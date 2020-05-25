@@ -472,35 +472,6 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     /// call.
     void ForceUpdate();
 
-    // Overload interfaces for global state vectors, see ChPhysicsItem for comments.
-    // The following must be overloaded because there may be ChContactContainer objects in addition to base ChAssembly.
-    void IntStateGather(const unsigned int off_x, ChState& x, const unsigned int off_v, ChStateDelta& v, double& T);
-    void IntStateScatter(const unsigned int off_x,
-                         const ChState& x,
-                         const unsigned int off_v,
-                         const ChStateDelta& v,
-                         const double T);
-    void IntStateGatherAcceleration(const unsigned int off_a, ChStateDelta& a);
-    void IntStateScatterAcceleration(const unsigned int off_a, const ChStateDelta& a);
-    void IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L);
-    void IntStateScatterReactions(const unsigned int off_L, const ChVectorDynamic<>& L);
-    void IntStateIncrement(const unsigned int off_x,
-                           ChState& x_new,
-                           const ChState& x,
-                           const unsigned int off_v,
-                           const ChStateDelta& Dv);
-    void IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, const double c);
-    void IntLoadResidual_Mv(const unsigned int off, ChVectorDynamic<>& R, const ChVectorDynamic<>& w, const double c);
-    void IntLoadResidual_CqL(const unsigned int off_L,
-                             ChVectorDynamic<>& R,
-                             const ChVectorDynamic<>& L,
-                             const double c);
-    void IntLoadConstraint_C(const unsigned int off,
-                             ChVectorDynamic<>& Qc,
-                             const double c,
-                             bool do_clamp,
-                             double recovery_clamp);
-    void IntLoadConstraint_Ct(const unsigned int off, ChVectorDynamic<>& Qc, const double c);
     void IntToDescriptor(const unsigned int off_v,
                          const ChStateDelta& v,
                          const ChVectorDynamic<>& R,
@@ -624,7 +595,7 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     virtual void LoadConstraint_C(ChVectorDynamic<>& Qc,        ///< result: the Qc residual, Qc += c*C
                                   const double c,               ///< a scaling factor
                                   const bool do_clamp = false,  ///< enable optional clamping of Qc
-                                  const double mclam = 1e30     ///< clamping value
+                                  const double clamp = 1e30     ///< clamping value
                                   ) override;
 
     /// Increment a vector Qc with the term Ct = partial derivative dC/dt:

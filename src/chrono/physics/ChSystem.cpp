@@ -635,163 +635,6 @@ void ChSystem::ForceUpdate() {
     is_updated = false;
 }
 
-void ChSystem::IntStateGather(const unsigned int off_x,  // offset in x state vector
-                              ChState& x,                // state vector, position part
-                              const unsigned int off_v,  // offset in v state vector
-                              ChStateDelta& v,           // state vector, speed part
-                              double& T)                 // time
-{
-    // Operate on assembly items (bodies, links, etc.)
-    assembly.IntStateGather(off_x, x, off_v, v, T);
-
-    // Use also on contact container:
-    unsigned int displ_x = off_x - assembly.offset_x;
-    unsigned int displ_v = off_v - assembly.offset_w;
-    contact_container->IntStateGather(displ_x + contact_container->GetOffset_x(), x,
-                                      displ_v + contact_container->GetOffset_w(), v, T);
-
-    T = ch_time;
-}
-
-void ChSystem::IntStateScatter(const unsigned int off_x,  // offset in x state vector
-                               const ChState& x,          // state vector, position part
-                               const unsigned int off_v,  // offset in v state vector
-                               const ChStateDelta& v,     // state vector, speed part
-                               const double T)            // time
-{
-    // Let each object (bodies, links, etc.) in the assembly extract its own states.
-    // Note that each object also performs an update
-    assembly.IntStateScatter(off_x, x, off_v, v, T);
-
-    // Use also on contact container:
-    unsigned int displ_x = off_x - assembly.offset_x;
-    unsigned int displ_v = off_v - assembly.offset_w;
-    contact_container->IntStateScatter(displ_x + contact_container->GetOffset_x(), x,
-                                       displ_v + contact_container->GetOffset_w(), v, T);
-
-    ch_time = T;
-}
-
-void ChSystem::IntStateGatherAcceleration(const unsigned int off_a, ChStateDelta& a) {
-    // Operate on assembly sub-objects (bodies, links, etc.)
-    assembly.IntStateGatherAcceleration(off_a, a);
-
-    // Use also on contact container:
-    unsigned int displ_a = off_a - assembly.offset_w;
-    contact_container->IntStateGatherAcceleration(displ_a + contact_container->GetOffset_w(), a);
-}
-
-// From state derivative (acceleration) to system, sometimes might be needed
-void ChSystem::IntStateScatterAcceleration(const unsigned int off_a, const ChStateDelta& a) {
-    // Operate on assembly sub-objects (bodies, links, etc.)
-    assembly.IntStateScatterAcceleration(off_a, a);
-
-    // Use also on contact container:
-    unsigned int displ_a = off_a - assembly.offset_w;
-    contact_container->IntStateScatterAcceleration(displ_a + contact_container->GetOffset_w(), a);
-}
-
-// From system to reaction forces (last computed) - some timestepper might need this
-void ChSystem::IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L) {
-    // Operate on assembly sub-objects (bodies, links, etc.)
-    assembly.IntStateGatherReactions(off_L, L);
-
-    // Use also on contact container:
-    unsigned int displ_L = off_L - assembly.offset_L;
-    contact_container->IntStateGatherReactions(displ_L + contact_container->GetOffset_L(), L);
-}
-
-// From reaction forces to system, ex. store last computed reactions in ChLink objects for plotting etc.
-void ChSystem::IntStateScatterReactions(const unsigned int off_L, const ChVectorDynamic<>& L) {
-    // Operate on assembly sub-objects (bodies, links, etc.)
-    assembly.IntStateScatterReactions(off_L, L);
-
-    // Use also on contact container:
-    unsigned int displ_L = off_L - assembly.offset_L;
-    contact_container->IntStateScatterReactions(displ_L + contact_container->GetOffset_L(), L);
-}
-
-void ChSystem::IntStateIncrement(const unsigned int off_x,  // offset in x state vector
-                                 ChState& x_new,            // state vector, position part, incremented result
-                                 const ChState& x,          // state vector, initial position part
-                                 const unsigned int off_v,  // offset in v state vector
-                                 const ChStateDelta& Dv)    // state vector, increment
-{
-    // Operate on assembly sub-objects (bodies, links, etc.)
-    assembly.IntStateIncrement(off_x, x_new, x, off_v, Dv);
-
-    // Use also on contact container:
-    unsigned int displ_x = off_x - assembly.offset_x;
-    unsigned int displ_v = off_v - assembly.offset_w;
-    contact_container->IntStateIncrement(displ_x + contact_container->GetOffset_x(), x_new, x,
-                                         displ_v + contact_container->GetOffset_w(), Dv);
-}
-
-void ChSystem::IntLoadResidual_F(const unsigned int off,  // offset in R residual
-                                 ChVectorDynamic<>& R,    // result: the R residual, R += c*F
-                                 const double c           // a scaling factor
-) {
-    // Operate on assembly sub-objects (bodies, links, etc.)
-    assembly.IntLoadResidual_F(off, R, c);
-
-    // Use also on contact container:
-    unsigned int displ_v = off - assembly.offset_w;
-    contact_container->IntLoadResidual_F(displ_v + contact_container->GetOffset_w(), R, c);
-}
-
-void ChSystem::IntLoadResidual_Mv(const unsigned int off,      // offset in R residual
-                                  ChVectorDynamic<>& R,        // result: the R residual, R += c*M*v
-                                  const ChVectorDynamic<>& w,  // the w vector
-                                  const double c               // a scaling factor
-) {
-
-    // Operate on assembly sub-objects (bodies, links, etc.)
-    assembly.IntLoadResidual_Mv(off, R, w, c);
-
-    // Use also on contact container:
-    unsigned int displ_v = off - assembly.offset_w;
-    contact_container->IntLoadResidual_Mv(displ_v + contact_container->GetOffset_w(), R, w, c);
-}
-
-void ChSystem::IntLoadResidual_CqL(const unsigned int off_L,    // offset in L multipliers
-                                   ChVectorDynamic<>& R,        // result: the R residual, R += c*Cq'*L
-                                   const ChVectorDynamic<>& L,  // the L vector
-                                   const double c               // a scaling factor
-) {
-    // Operate on assembly sub-objects (bodies, links, etc.)
-    assembly.IntLoadResidual_CqL(off_L, R, L, c);
-
-    // Use also on contact container:
-    unsigned int displ_L = off_L - assembly.offset_L;
-    contact_container->IntLoadResidual_CqL(displ_L + contact_container->GetOffset_L(), R, L, c);
-}
-
-void ChSystem::IntLoadConstraint_C(const unsigned int off_L,  // offset in Qc residual
-                                   ChVectorDynamic<>& Qc,     // result: the Qc residual, Qc += c*C
-                                   const double c,            // a scaling factor
-                                   bool do_clamp,             // apply clamping to c*C?
-                                   double recovery_clamp      // value for min/max clamping of c*C
-) {
-    // Operate on assembly sub-objects (bodies, links, etc.)
-    assembly.IntLoadConstraint_C(off_L, Qc, c, do_clamp, recovery_clamp);
-
-    // Use also on contact container:
-    unsigned int displ_L = off_L - assembly.offset_L;
-    contact_container->IntLoadConstraint_C(displ_L + contact_container->GetOffset_L(), Qc, c, do_clamp, recovery_clamp);
-}
-
-void ChSystem::IntLoadConstraint_Ct(const unsigned int off_L,  // offset in Qc residual
-                                    ChVectorDynamic<>& Qc,     // result: the Qc residual, Qc += c*Ct
-                                    const double c             // a scaling factor
-) {
-    // Operate on assembly sub-objects (bodies, links, etc.)
-    assembly.IntLoadConstraint_Ct(off_L, Qc, c);
-
-    // Use also on contact container:
-    unsigned int displ_L = off_L - assembly.offset_L;
-    contact_container->IntLoadConstraint_Ct(displ_L + contact_container->GetOffset_L(), Qc, c);
-}
-
 void ChSystem::IntToDescriptor(const unsigned int off_v,
                                const ChStateDelta& v,
                                const ChVectorDynamic<>& R,
@@ -966,44 +809,103 @@ void ChSystem::KRMmatricesLoad(double Kfactor, double Rfactor, double Mfactor) {
 
 // From system to state y={x,v}
 void ChSystem::StateGather(ChState& x, ChStateDelta& v, double& T) {
-    IntStateGather(0, x, 0, v, T);
+    unsigned int off_x = 0;
+    unsigned int off_v = 0;
+
+    // Operate on assembly items (bodies, links, etc.)
+    assembly.IntStateGather(off_x, x, off_v, v, T);
+
+    // Use also on contact container:
+    unsigned int displ_x = off_x - assembly.offset_x;
+    unsigned int displ_v = off_v - assembly.offset_w;
+    contact_container->IntStateGather(displ_x + contact_container->GetOffset_x(), x,
+                                      displ_v + contact_container->GetOffset_w(), v, T);
+
+    T = ch_time;
 }
 
 // From state Y={x,v} to system.
 void ChSystem::StateScatter(const ChState& x, const ChStateDelta& v, const double T) {
-    IntStateScatter(0, x, 0, v, T);
-    // Note that there is no need to perform an update here, as this was done above.
+    unsigned int off_x = 0;
+    unsigned int off_v = 0;
+ 
+    // Let each object (bodies, links, etc.) in the assembly extract its own states.
+    // Note that each object also performs an update
+    assembly.IntStateScatter(off_x, x, off_v, v, T);
+
+    // Use also on contact container:
+    unsigned int displ_x = off_x - assembly.offset_x;
+    unsigned int displ_v = off_v - assembly.offset_w;
+    contact_container->IntStateScatter(displ_x + contact_container->GetOffset_x(), x,
+                                       displ_v + contact_container->GetOffset_w(), v, T);
+
+    ch_time = T;
 }
 
 // From system to state derivative (acceleration), some timesteppers might need last computed accel.
 void ChSystem::StateGatherAcceleration(ChStateDelta& a) {
-    IntStateGatherAcceleration(0, a);
+    unsigned int off_a = 0;
+
+    // Operate on assembly sub-objects (bodies, links, etc.)
+    assembly.IntStateGatherAcceleration(off_a, a);
+
+    // Use also on contact container:
+    unsigned int displ_a = off_a - assembly.offset_w;
+    contact_container->IntStateGatherAcceleration(displ_a + contact_container->GetOffset_w(), a);
 }
 
 // From state derivative (acceleration) to system, sometimes might be needed
 void ChSystem::StateScatterAcceleration(const ChStateDelta& a) {
-    IntStateScatterAcceleration(0, a);
+    unsigned int off_a = 0;
+
+    // Operate on assembly sub-objects (bodies, links, etc.)
+    assembly.IntStateScatterAcceleration(off_a, a);
+
+    // Use also on contact container:
+    unsigned int displ_a = off_a - assembly.offset_w;
+    contact_container->IntStateScatterAcceleration(displ_a + contact_container->GetOffset_w(), a);
 }
 
 // From system to reaction forces (last computed) - some timestepper might need this
 void ChSystem::StateGatherReactions(ChVectorDynamic<>& L) {
-    IntStateGatherReactions(0, L);
+    unsigned int off_L = 0;
+
+    // Operate on assembly sub-objects (bodies, links, etc.)
+    assembly.IntStateGatherReactions(off_L, L);
+
+    // Use also on contact container:
+    unsigned int displ_L = off_L - assembly.offset_L;
+    contact_container->IntStateGatherReactions(displ_L + contact_container->GetOffset_L(), L);
 }
 
 // From reaction forces to system, ex. store last computed reactions in ChLink objects for plotting etc.
 void ChSystem::StateScatterReactions(const ChVectorDynamic<>& L) {
-    IntStateScatterReactions(0, L);
+    unsigned int off_L = 0;
+
+    // Operate on assembly sub-objects (bodies, links, etc.)
+    assembly.IntStateScatterReactions(off_L, L);
+
+    // Use also on contact container:
+    unsigned int displ_L = off_L - assembly.offset_L;
+    contact_container->IntStateScatterReactions(displ_L + contact_container->GetOffset_L(), L);
 }
 
 // Perform x_new = x + dx    for x in    Y = {x, dx/dt}
 // It takes care of the fact that x has quaternions, dx has angular vel etc.
 // NOTE: the system is not updated automatically after the state increment, so one might
 // need to call StateScatter() if needed.
-void ChSystem::StateIncrementX(ChState& x_new,         ///< resulting x_new = x + Dx
-                               const ChState& x,       ///< initial state x
-                               const ChStateDelta& Dx  ///< state increment Dx
-) {
-    IntStateIncrement(0, x_new, x, 0, Dx);
+void ChSystem::StateIncrementX(ChState& x_new, const ChState& x, const ChStateDelta& Dx) {
+    unsigned int off_x = 0;
+    unsigned int off_v = 0;
+
+    // Operate on assembly sub-objects (bodies, links, etc.)
+    assembly.IntStateIncrement(off_x, x_new, x, off_v, Dx);
+
+    // Use also on contact container:
+    unsigned int displ_x = off_x - assembly.offset_x;
+    unsigned int displ_v = off_v - assembly.offset_w;
+    contact_container->IntStateIncrement(displ_x + contact_container->GetOffset_x(), x_new, x,
+                                         displ_v + contact_container->GetOffset_w(), Dx);
 }
 
 // Assuming a DAE of the form
@@ -1108,7 +1010,7 @@ bool ChSystem::StateSolveCorrection(ChStateDelta& Dv,             // result: com
         // since the .._f.dat vector dumped in DumpLastMatrices() might contain scaled loads, and also +M*v
         ChVectorDynamic<> tempF(this->GetNcoords_v());
         tempF.setZero();
-        this->IntLoadResidual_F(0, tempF, 1.0);
+        LoadResidual_F(tempF, 1.0);
         chrono::ChStreamOutAsciiFile file_F((sprefix + "F_pre.dat").c_str());
         file_F.SetNumFormat(numformat);
         StreamOUTdenseMatlabFormat(tempF, file_F);
@@ -1121,47 +1023,73 @@ bool ChSystem::StateSolveCorrection(ChStateDelta& Dv,             // result: com
 
 // Increment a vector R with the term c*F:
 //    R += c*F
-void ChSystem::LoadResidual_F(ChVectorDynamic<>& R,  ///< result: the R residual, R += c*F
-                              const double c         ///< a scaling factor
-) {
-    IntLoadResidual_F(0, R, c);
+void ChSystem::LoadResidual_F(ChVectorDynamic<>& R, const double c) {
+    unsigned int off = 0;
+
+    // Operate on assembly sub-objects (bodies, links, etc.)
+    assembly.IntLoadResidual_F(off, R, c);
+
+    // Use also on contact container:
+    unsigned int displ_v = off - assembly.offset_w;
+    contact_container->IntLoadResidual_F(displ_v + contact_container->GetOffset_w(), R, c);
 }
 
 // Increment a vector R with a term that has M multiplied a given vector w:
 //    R += c*M*w
-void ChSystem::LoadResidual_Mv(ChVectorDynamic<>& R,        ///< result: the R residual, R += c*M*v
-                               const ChVectorDynamic<>& w,  ///< the w vector
-                               const double c               ///< a scaling factor
-) {
-    IntLoadResidual_Mv(0, R, w, c);
+void ChSystem::LoadResidual_Mv(ChVectorDynamic<>& R, const ChVectorDynamic<>& w, const double c) {
+    unsigned int off = 0;
+
+    // Operate on assembly sub-objects (bodies, links, etc.)
+    assembly.IntLoadResidual_Mv(off, R, w, c);
+
+    // Use also on contact container:
+    unsigned int displ_v = off - assembly.offset_w;
+    contact_container->IntLoadResidual_Mv(displ_v + contact_container->GetOffset_w(), R, w, c);
 }
 
 // Increment a vectorR with the term Cq'*L:
 //    R += c*Cq'*L
-void ChSystem::LoadResidual_CqL(ChVectorDynamic<>& R,        ///< result: the R residual, R += c*Cq'*L
-                                const ChVectorDynamic<>& L,  ///< the L vector
-                                const double c               ///< a scaling factor
-) {
-    IntLoadResidual_CqL(0, R, L, c);
+void ChSystem::LoadResidual_CqL(ChVectorDynamic<>& R, const ChVectorDynamic<>& L, const double c) {
+    unsigned int off_L = 0;
+
+    // Operate on assembly sub-objects (bodies, links, etc.)
+    assembly.IntLoadResidual_CqL(off_L, R, L, c);
+
+    // Use also on contact container:
+    unsigned int displ_L = off_L - assembly.offset_L;
+    contact_container->IntLoadResidual_CqL(displ_L + contact_container->GetOffset_L(), R, L, c);
 }
 
 // Increment a vector Qc with the term C:
 //    Qc += c*C
-void ChSystem::LoadConstraint_C(ChVectorDynamic<>& Qc,  ///< result: the Qc residual, Qc += c*C
-                                const double c,         ///< a scaling factor
-                                const bool mdo_clamp,   ///< enable optional clamping of Qc
-                                const double mclam      ///< clamping value
+void ChSystem::LoadConstraint_C(ChVectorDynamic<>& Qc,  // result: the Qc residual, Qc += c*C
+                                const double c,         // a scaling factor
+                                const bool do_clamp,    // enable optional clamping of Qc
+                                const double clamp      // clamping value
 ) {
-    IntLoadConstraint_C(0, Qc, c, mdo_clamp, mclam);
+    unsigned int off_L = 0;
+
+    // Operate on assembly sub-objects (bodies, links, etc.)
+    assembly.IntLoadConstraint_C(off_L, Qc, c, do_clamp, clamp);
+
+    // Use also on contact container:
+    unsigned int displ_L = off_L - assembly.offset_L;
+    contact_container->IntLoadConstraint_C(displ_L + contact_container->GetOffset_L(), Qc, c, do_clamp, clamp);
 }
 
 // Increment a vector Qc with the term Ct = partial derivative dC/dt:
 //    Qc += c*Ct
-void ChSystem::LoadConstraint_Ct(ChVectorDynamic<>& Qc,  ///< result: the Qc residual, Qc += c*Ct
-                                 const double c          ///< a scaling factor
-) {
-    IntLoadConstraint_Ct(0, Qc, c);
+void ChSystem::LoadConstraint_Ct(ChVectorDynamic<>& Qc, const double c) {
+    unsigned int off_L = 0;
+
+    // Operate on assembly sub-objects (bodies, links, etc.)
+    assembly.IntLoadConstraint_Ct(off_L, Qc, c);
+
+    // Use also on contact container:
+    unsigned int displ_L = off_L - assembly.offset_L;
+    contact_container->IntLoadConstraint_Ct(displ_L + contact_container->GetOffset_L(), Qc, c);
 }
+
 // -----------------------------------------------------------------------------
 //   COLLISION OPERATIONS
 // -----------------------------------------------------------------------------
