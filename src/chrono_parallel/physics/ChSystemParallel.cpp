@@ -911,4 +911,22 @@ void ChSystemParallel::SetMaterialCompositionStrategy(std::unique_ptr<ChMaterial
     data_manager->composition_strategy = std::move(strategy);
 }
 
+// -------------------------------------------------------------
+
+ChVector<> ChSystemParallel::GetBodyAppliedForce(ChBody* body) {
+    auto h = data_manager->settings.step_size;
+    auto fx = data_manager->host_data.hf[body->GetId() * 6 + 0] / h;
+    auto fy = data_manager->host_data.hf[body->GetId() * 6 + 1] / h;
+    auto fz = data_manager->host_data.hf[body->GetId() * 6 + 2] / h;
+    return ChVector<>((double)fx, (double)fy, (double)fz);
+}
+
+ChVector<> ChSystemParallel::GetBodyAppliedTorque(ChBody* body) {
+    auto h = data_manager->settings.step_size;
+    auto tx = data_manager->host_data.hf[body->GetId() * 6 + 3] / h;
+    auto ty = data_manager->host_data.hf[body->GetId() * 6 + 4] / h;
+    auto tz = data_manager->host_data.hf[body->GetId() * 6 + 5] / h;
+    return ChVector<>((double)tx, (double)ty, (double)tz);
+}
+
 }  // end namespace chrono

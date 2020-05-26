@@ -99,7 +99,7 @@ ChBody::ChBody(const ChBody& other) : ChPhysicsItem(other), ChBodyFrame(other) {
     variables = other.variables;
     variables.SetUserData((void*)this);
 
-    gyro = other.Get_gyro();
+    gyro = other.gyro;
 
     RemoveAllForces();   // also copy-duplicate the forces? Let the user handle this..
     RemoveAllMarkers();  // also copy-duplicate the markers? Let the user handle this..
@@ -960,6 +960,14 @@ void ChBody::ComputeJacobianForRollingContactPart(
     jacobian_tuple_N.Get_Cq().segment(3, 3) = Jr1.row(0);
     jacobian_tuple_U.Get_Cq().segment(3, 3) = Jr1.row(1);
     jacobian_tuple_V.Get_Cq().segment(3, 3) = Jr1.row(2);
+}
+
+ChVector<> ChBody::GetAppliedForce() {
+    return GetSystem()->GetBodyAppliedForce(this);
+}
+
+ChVector<> ChBody::GetAppliedTorque() {
+    return GetSystem()->GetBodyAppliedTorque(this);
 }
 
 ChVector<> ChBody::GetContactForce() {

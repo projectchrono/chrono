@@ -2,6 +2,7 @@ Change Log
 ==========
 
 - [Unreleased (development version)](#unreleased-development-branch)
+    - [Applied forces](#added-applied-forces)
     - [Chrono::Vehicle simulation world frame](#added-chronovehicle-simulation-world-frame)
     - [CASCADE module](#changed-cascade-module)
 	- [Collision shapes and contact materials](#changed-collision-shapes-and-contact-materials)
@@ -13,13 +14,24 @@ Change Log
 
 ## Unreleased (development branch)
 
+### [Added] Applied forces
+
+The new functions `ChBody::GetAppliedForce` and `ChBody::GetAppliedTorque` return the body resultant applied force and torque, respectively.
+
+1. These functions include contributions from all external applied loads acting on a body (e.g., gravitational forces, forces defined through ChForce elements, forces specified through ChLoad, springs, dampers, etc).
+   However, they **do not** include any constraint forces.  In particular, this means that contact forces are not included when using the NSC formulation, but are included when using the SMC formulation.
+   For the former case, use `ChBody::GetContactForce` and `ChBody::GetContactTorque` to obtain the resultant contact force and torque, respectively.
+   
+2. Note that reporting this information requires a traversal of the entire system and caching the generalized forces, a quantity that is otherwise not computed in the form required for this reporting.  To prevent any additional overhead when this information is not requested by the user, this is done using lazy evaluation.   In other words, no overhead is incurred at a simulation step if no applied forces are requested. On the other hand, there is a small (but non-zero) cost when a call to `ChBody::GetAppliedForce` or `ChBody::GetAppliedTorque` is made; however, this cost is constant at any given time, regardless of how many queries are made.  Note also that this additional cost is not incurred for Chrono::Parallel.
+
+
 ### [Added] Chrono::Vehicle simulation world frame
 
 While the default world frame for Chrono::Vehicle simulations is an ISO (Z up) frame, we now provide support to simulate vehicles in a scene specified in a different reference frame (for example, an Y up frame).
 The world frame is uniquely defined through a rotation matrix (the rotation required to align the ISO frame with the desired world frame). To change the world frame definition from the default ISO convention, the desired world frame must be set **before** any Chrono::Vehicle library call:
 ```cpp
 ChMatrix33<> world_rotation = ...
-ChWorldFrame::Set(worl_rotation);
+ChWorldFrame::Set(world_rotation);
 ```
 A shortcut is provided to specify a world frame with Y up (and X forward, Z to the right):
 ```cpp

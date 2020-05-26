@@ -124,6 +124,18 @@ class CH_PARALLEL_API ChSystemParallel : public ChSystem {
     /// calls to GetContactableForce or ContactableTorque are made.
     virtual void CalculateContactForces() {}
 
+    /// Return the resultant applied force on the specified body.
+    /// This resultant force includes all external applied loads acting on the body (from gravity, loads, springs,
+    /// etc). However, this does *not* include any constraint forces. In particular, contact forces are not included if
+    /// using the NSC formulation, but are included when using the SMC formulation.
+    virtual ChVector<> GetBodyAppliedForce(ChBody* body) override;
+
+    /// Return the resultant applied torque on the specified body.
+    /// This resultant torque includes all external applied loads acting on the body (from gravity, loads, springs,
+    /// etc). However, this does *not* include any constraint forces. In particular, contact torques are not included if
+    /// using the NSC formulation, but are included when using the SMC formulation.
+    virtual ChVector<> GetBodyAppliedTorque(ChBody* body) override;
+
     /// Get the contact force on the body with specified id.
     /// Note that ComputeContactForces must be called prior to calling this function
     /// at any time where reporting of contact forces is desired.

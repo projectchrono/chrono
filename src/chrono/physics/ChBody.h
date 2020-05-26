@@ -392,17 +392,6 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     /// Note that this is a resultant torque expressed in the body local frame.
     const ChVector<>& Get_accumulated_torque() const { return Torque_acc; }
 
-    /// Return the gyroscopic torque.
-    const ChVector<>& Get_gyro() const { return gyro; }
-
-    /// Get the total force applied to the rigid body.
-    /// Note that this is a resultant force as applied to the COM and expressed in the absolute frame.
-    const ChVector<>& Get_Xforce() const { return Xforce; }
-
-    /// Get the total torque applied to the rigid body.
-    /// Note that this is a resultant torque (excluding the gyroscopic torque) expressed in the body local frame.
-    const ChVector<>& Get_Xtorque() const { return Xtorque; }
-
     // UPDATE FUNCTIONS
 
     /// Update all children markers of the rigid body, at current body state
@@ -418,6 +407,18 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     /// Update all auxiliary data of the rigid body and of
     /// its children (markers, forces..)
     virtual void Update(bool update_assets = true) override;
+
+    /// Return the resultant applied force on the body.
+    /// This resultant force includes all external applied loads acting on this body (from gravity, loads, springs,
+    /// etc). However, this does *not* include any constraint forces. In particular, contact forces are not included if
+    /// using the NSC formulation, but are included when using the SMC formulation.
+    ChVector<> GetAppliedForce();
+
+    /// Return the resultant applied torque on the body.
+    /// This resultant torque includes all external applied loads acting on this body (from gravity, loads, springs,
+    /// etc). However, this does *not* include any constraint forces. In particular, contact torques are not included if
+    /// using the NSC formulation, but are included when using the SMC formulation.
+    ChVector<> GetAppliedTorque();
 
     /// Get the resultant contact force acting on this body.
     ChVector<> GetContactForce();
