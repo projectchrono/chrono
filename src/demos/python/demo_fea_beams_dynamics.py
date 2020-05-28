@@ -46,6 +46,12 @@ CH_C_PI = 3.1456
 # Create a section, i.e. thickness and material properties
 # for beams. This will be shared among some beams.
 
+minertia = fea.ChInertiaCosseratUniformDensity()
+minertia.SetDensity(7800);
+minertia.SetArea(CH_C_PI * (pow(beam_ro, 2)- pow(beam_ri, 2)));
+minertia.SetIyy( (CH_C_PI / 4.0) * (pow(beam_ro, 4) - pow(beam_ri, 4)) );
+minertia.SetIzz( (CH_C_PI / 4.0) * (pow(beam_ro, 4) - pow(beam_ri, 4)) );
+    
 melasticity = fea.ChElasticityCosseratSimple()
 melasticity.SetYoungModulus(210e9)
 melasticity.SetGwithPoissonRatio(0.3)
@@ -53,11 +59,11 @@ melasticity.SetIyy( (CH_C_PI / 4.0) * (pow(beam_ro, 4) - pow(beam_ri, 4)) )
 melasticity.SetIzz( (CH_C_PI / 4.0) * (pow(beam_ro, 4) - pow(beam_ri, 4)) )
 melasticity.SetJ  ( (CH_C_PI / 2.0) * (pow(beam_ro, 4) - pow(beam_ri, 4)) )
 
-msection = fea.ChBeamSectionCosserat(melasticity)
-msection.SetDensity(7800)
+msection = fea.ChBeamSectionCosserat(minertia, melasticity)
+
 msection.SetCircular(True)
 msection.SetDrawCircularRadius(beam_ro) # SetAsCircularSection(..) would overwrite Ixx Iyy J etc.
-msection.SetArea(CH_C_PI * (pow(beam_ro, 2)- pow(beam_ri, 2)))
+
 
 # Use the ChBuilderBeamIGA tool for creating a straight rod 
 # divided in Nel elements:
