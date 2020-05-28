@@ -73,6 +73,7 @@ class ChApi ChElasticityCosseratSimple : public ChElasticityCosserat {
     double J;
     double G;
     double E;
+	double A;
 
     double rdamping;
     double Ks_y;
@@ -82,13 +83,21 @@ class ChApi ChElasticityCosseratSimple : public ChElasticityCosserat {
 
     virtual ~ChElasticityCosseratSimple() {}
 
-    /// Set the Iyy moment of inertia of the beam (for flexion about y axis).
-    /// Note: some textbook calls this Iyy as Iz
+	/// Set the A area of the beam.
+    void SetArea(double ma) { this->A = ma; }
+    double GetArea() const { return this->A; }
+
+    /// Set the Iyy second moment of area of the beam (for bending about y in xz plane),
+	/// defined as \f$ I_y =  \int_\Omega \rho z^2 dA f$.
+    /// Note: some textbook calls this Iyy as Iy
+	/// Ex SI units: [m^4]
     void SetIyy(double ma) { this->Iyy = ma; }
     double GetIyy() const { return this->Iyy; }
 
-    /// Set the Izz moment of inertia of the beam (for flexion about z axis).
-    /// Note: some textbook calls this Izz as Iy
+    /// Set the Izz second moment of area of the beam (for bending about z in xy plane). 
+	/// defined as \f$ I_z =  \int_\Omega \rho y^2 dA f$.
+    /// Note: some textbook calls this Izz as Iz
+	/// Ex SI units: [m^4]
     void SetIzz(double ma) { this->Izz = ma; }
     double GetIzz() const { return this->Izz; }
 
