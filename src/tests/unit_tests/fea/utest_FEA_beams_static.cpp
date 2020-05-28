@@ -100,15 +100,13 @@ double IGA_test(ChSystem& sys, double tip_load, int nsections, int order) {
     mesh->SetAutomaticGravity(false);
     sys.Add(mesh);
 
-    auto melasticity = chrono_types::make_shared<ChElasticityCosseratSimple>();
-    melasticity->SetYoungModulus(E_mod);
-    melasticity->SetGshearModulus(E_mod * nu_rat);
-    auto mdamping = chrono_types::make_shared<ChDampingCosseratRayleigh>(melasticity);
-    mdamping->SetBeta(0.000);
-
-    auto section = chrono_types::make_shared<ChBeamSectionCosserat>(melasticity);
-    section->SetDensity(rho);
-    section->SetAsRectangularSection(beam_wy, beam_wz);
+	auto section = chrono_types::make_shared<ChBeamSectionCosseratEasyRectangular>(
+		beam_wy,			// width of section in y direction
+		beam_wz,			// width of section in z direction
+		E_mod,				// Young modulus
+		E_mod * nu_rat,		// shear modulus
+		rho			        // density
+		);
 
     // Use the ChBuilderBeamIGA tool for creating a straight rod divided in Nel elements
     ChBuilderBeamIGA builder;
