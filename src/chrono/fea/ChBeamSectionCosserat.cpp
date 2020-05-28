@@ -837,7 +837,7 @@ void ChBeamSectionCosserat::SetElasticity(std::shared_ptr<ChElasticityCosserat> 
 
 void ChBeamSectionCosserat::SetPlasticity(std::shared_ptr<ChPlasticityCosserat> mplasticity) {
     plasticity = mplasticity;
-    mplasticity->section = this;
+    plasticity->section = this;
 }
 
 void ChBeamSectionCosserat::SetDamping(std::shared_ptr<ChDampingCosserat> mdamping) {

@@ -368,6 +368,10 @@ class ChApi ChElasticityCosseratMesh : public ChElasticityCosserat {
     std::vector<ChVector<int>> triangles;
 };
 
+
+//----------------------------------------------------------------------------------------
+
+
 /// Base class for plasticity of beam sections of Cosserat type.
 /// This can be shared between multiple beams.
 class ChApi ChPlasticityCosserat {
@@ -517,6 +521,11 @@ class ChApi ChPlasticityCosseratLumped : public ChPlasticityCosserat {
     std::shared_ptr<ChFunction> n_beta_Mz;  ///< beta(p_strain_acc)
 };
 
+
+//-----------------------------------------------------------------------------------------------
+
+
+
 /// Base interface for structural damping of beam sections of Cosserat type,
 /// where xyz force "n" and xyz torque "m" are a 6-dimensional function of
 /// generalized strain speeds, "e'" traction/shear speed and "k'" curvature speed, as:
@@ -594,7 +603,7 @@ class ChApi ChDampingCosseratLinear : public ChDampingCosserat {
 };
 
 
-/// Simple Rayleight damping of beam sections of Cosserat type,
+/// Simple Rayleigh damping of beam sections of Cosserat type,
 /// where damping is proportional to stiffness via a beta coefficient.
 /// In order to generalize it also in case of nonlinearity, the full
 /// element tangent stiffness matrix cannot be used (it may contain negative eigenvalues)
