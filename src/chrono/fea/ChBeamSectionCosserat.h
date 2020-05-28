@@ -891,6 +891,49 @@ class ChApi ChBeamSectionCosserat : public ChBeamSectionProperties {
 	std::shared_ptr<ChInertiaCosserat> inertia;
 };
 
+
+
+/// A simple specialization of ChBeamSectionCosserat if you do not need to define
+/// its separate models for elasticity, plasticity, damping and inertia. 
+/// Good if you just need the simplest model for a rectangular centered beam. This section automatically
+/// creates, initializes and embeds, at construction, these models:
+/// - elasticity: ChElasticityCosseratSimple  
+/// - inertia:    ChInertiaCosseratUniformDensity
+/// - damping:    none   - you can add it later
+/// - plasticity: none 
+class ChApi ChBeamSectionCosseratEasyRectangular : public ChBeamSectionCosserat {
+public:
+	ChBeamSectionCosseratEasyRectangular(
+		double width_y,			///< width of section in y direction
+		double width_z,			///< width of section in z direction
+		double E,				///< Young modulus
+		double G,				///< shear modulus
+		double density			///< volumetric density (ex. in SI units: [kg/m])
+	);
+};
+
+
+/// A simple specialization of ChBeamSectionCosserat if you do not need to define
+/// its separate models for elasticity, plasticity, damping and inertia. 
+/// Good if you just need the simplest model for a circular centered beam. This section automatically
+/// creates, initializes and embeds, at construction, these models:
+/// - elasticity: ChElasticityCosseratSimple  
+/// - inertia:    ChInertiaCosseratUniformDensity
+/// - damping:    none   - you can add it later
+/// - plasticity: none 
+class ChApi ChBeamSectionCosseratEasyCircular : public ChBeamSectionCosserat {
+public:
+	ChBeamSectionCosseratEasyCircular(
+		double diameter,		///< diameter of section 
+		double E,				///< Young modulus
+		double G,				///< shear modulus
+		double density			///< volumetric density (ex. in SI units: [kg/m])
+	);
+};
+
+
+
+
 /// @} fea_utils
 
 }  // end namespace fea

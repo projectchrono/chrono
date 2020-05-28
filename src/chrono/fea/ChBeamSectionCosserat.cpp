@@ -853,16 +853,58 @@ void ChBeamSectionCosserat::SetInertia(std::shared_ptr<ChInertiaCosserat> minert
 
 
 
+// -----------------------------------------------------------------------------
+
+
+
+ChBeamSectionCosseratEasyRectangular::ChBeamSectionCosseratEasyRectangular(
+	double width_y,			///< width of section in y direction
+	double width_z,			///< width of section in z direction
+	double E,				///< Young modulus
+	double G,				///< shear modulus
+	double density			///< volumetric density (ex. in SI units: [kg/m])
+) {
+
+	this->is_circular = false;
     this->y_drawsize = width_y;
     this->z_drawsize = width_z;
 
+	auto melasticity = chrono_types::make_shared<ChElasticityCosseratSimple>();
+	melasticity->SetYoungModulus(E);
+	melasticity->SetGshearModulus(G);
+	melasticity->SetAsRectangularSection(width_y, width_z);
+	this->SetElasticity(melasticity);
+
+	auto minertia = chrono_types::make_shared<ChInertiaCosseratUniformDensity>();
+	minertia->SetAsRectangularSection(width_y, width_z, density);
+	this->SetInertia(minertia);
 }
 
+
+ChBeamSectionCosseratEasyCircular::ChBeamSectionCosseratEasyCircular(
+	double diameter,		///< diameter
+	double E,				///< Young modulus
+	double G,				///< shear modulus
+	double density			///< volumetric density (ex. in SI units: [kg/m])
+) {
+	this->is_circular = true;
     this->SetDrawCircularRadius(diameter / 2);
 
+	auto melasticity = chrono_types::make_shared<ChElasticityCosseratSimple>();
+	melasticity->SetYoungModulus(E);
+	melasticity->SetGshearModulus(G);
+	melasticity->SetAsCircularSection(diameter);
+	this->SetElasticity(melasticity);
+
+	auto minertia = chrono_types::make_shared<ChInertiaCosseratUniformDensity>();
+	minertia->SetAsCircularSection(diameter, density);
+	this->SetInertia(minertia);
 }
 
-// -----------------------------------------------------------------------------
+
+
+// ------------------------------------------------------------------------------
+
 
 }  // end namespace fea
 }  // end namespace chrono
