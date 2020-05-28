@@ -114,57 +114,9 @@ void ChElasticityCosseratSimple::ComputeStiffnessMatrix(ChMatrixNM<double, 6, 6>
 
 ChElasticityCosseratGeneric::ChElasticityCosseratGeneric() {
     mE.setIdentity();                     // default E stiffness: diagonal 1.
-    SetAsRectangularSection(0.01, 0.01);  // defaults Area, Ixx, Iyy, Ks_y, Ks_z, J
 }
 
-void ChElasticityCosseratGeneric::SetAsRectangularSection(double width_y, double width_z) {
-    double E = 1;
-    double G = 1;
 
-    double Izz = (1.0 / 12.0) * width_z * pow(width_y, 3);
-    double Iyy = (1.0 / 12.0) * width_y * pow(width_z, 3);
-
-    // use Roark's formulas for torsion of rectangular sect:
-    double t = ChMin(width_y, width_z);
-    double b = ChMax(width_y, width_z);
-    double J = b * pow(t, 3) * ((1.0 / 3.0) - 0.210 * (t / b) * (1.0 - (1.0 / 12.0) * pow((t / b), 4)));
-
-    // set Ks using Timoshenko-Gere formula for solid rect.shapes
-    double poisson = E / (2.0 * G) - 1.0;
-    double Ks_y = 10.0 * (1.0 + poisson) / (12.0 + 11.0 * poisson);
-    double Ks_z = Ks_y;
-
-    mE(0, 0) = E * section->Area;
-    mE(1, 1) = Ks_y * G * section->Area;
-    mE(2, 2) = Ks_z * G * section->Area;
-    mE(3, 3) = G * J;
-    mE(4, 4) = E * Iyy;
-    mE(5, 5) = E * Izz;
-}
-
-void ChElasticityCosseratGeneric::SetAsCircularSection(double diameter) {
-    double E = 1;
-    double G = 1;
-
-    double Izz = (CH_C_PI / 4.0) * pow((0.5 * diameter), 4);
-    double Iyy = Izz;
-
-    // exact expression for circular beam J = Ixx ,
-    // where for polar theorem Ixx = Izz+Iyy
-    double J = Izz + Iyy;
-
-    // set Ks using Timoshenko-Gere formula for solid circular shape
-    double poisson = E / (2.0 * G) - 1.0;
-    double Ks_y = 6.0 * (1.0 + poisson) / (7.0 + 6.0 * poisson);
-    double Ks_z = Ks_y;
-
-    mE(0, 0) = E * section->Area;
-    mE(1, 1) = Ks_y * G * section->Area;
-    mE(2, 2) = Ks_z * G * section->Area;
-    mE(3, 3) = G * J;
-    mE(4, 4) = E * Iyy;
-    mE(5, 5) = E * Izz;
-}
 
 void ChElasticityCosseratGeneric::ComputeStress(ChVector<>& stress_n,
                                                 ChVector<>& stress_m,
@@ -813,17 +765,22 @@ void ChDampingCosseratRayleigh::UpdateStiffnessModel() {
 }
 
 
-// -----------------------------------------------------------------------------
 
+//-----------------------------------------------------------------------------
 
-ChBeamSectionCosserat::ChBeamSectionCosserat(std::shared_ptr<ChElasticityCosserat> melasticity) {
-    this->SetElasticity(melasticity);
+void ChInertiaCosseratUniformDensity::SetAsRectangularSection(double width_y, double width_z, double density) {
+	this->A = width_y * width_z;
+	this->Izz = (1.0 / 12.0) * width_z * pow(width_y, 3);
+	this->Iyy = (1.0 / 12.0) * width_y * pow(width_z, 3);
+	this->rho = density;
 }
 
-ChBeamSectionCosserat::ChBeamSectionCosserat(std::shared_ptr<ChElasticityCosserat> melasticity,
-                                             std::shared_ptr<ChPlasticityCosserat> mplasticity) {
-    this->SetElasticity(melasticity);
-    this->SetPlasticity(mplasticity);
+
+void ChInertiaCosseratUniformDensity::SetAsCircularSection(double diameter, double density) {
+	this->A   = CH_C_PI * pow((0.5 * diameter), 2);
+    this->Izz = (CH_C_PI / 4.0) * pow((0.5 * diameter), 4);
+    this->Iyy = Izz;
+	this->rho = density;
 }
 
 ChBeamSectionCosserat::ChBeamSectionCosserat(std::shared_ptr<ChElasticityCosserat> melasticity,
@@ -880,31 +837,13 @@ void ChBeamSectionCosserat::SetDamping(std::shared_ptr<ChDampingCosserat> mdampi
     damping->section = this;
 }
 
-void ChBeamSectionCosserat::SetAsRectangularSection(double width_y, double width_z) {
-    this->Area = width_y * width_z;
-    this->is_circular = false;
     this->y_drawsize = width_y;
     this->z_drawsize = width_z;
 
-    if (this->elasticity)
-        this->elasticity->SetAsRectangularSection(width_y, width_z);
-    if (this->plasticity)
-        this->plasticity->SetAsRectangularSection(width_y, width_z);
-    if (this->damping)
-        this->damping->SetAsRectangularSection(width_y, width_z);
 }
 
-void ChBeamSectionCosserat::SetAsCircularSection(double diameter) {
-    this->Area = CH_C_PI * pow((0.5 * diameter), 2);
-    this->is_circular = true;
     this->SetDrawCircularRadius(diameter / 2);
 
-    if (this->elasticity)
-        this->elasticity->SetAsCircularSection(diameter);
-    if (this->plasticity)
-        this->plasticity->SetAsCircularSection(diameter);
-    if (this->damping)
-        this->damping->SetAsCircularSection(diameter);
 }
 
 // -----------------------------------------------------------------------------

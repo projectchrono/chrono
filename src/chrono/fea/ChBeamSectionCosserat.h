@@ -58,12 +58,6 @@ class ChApi ChElasticityCosserat {
         const ChVector<>& strain_k   ///< local strain (curvature part), x= torsion, y and z are line curvatures
     );
 
-    /// Shortcut: set parameters at once, given the y and z widths of the beam assumed with rectangular shape.
-    virtual void SetAsRectangularSection(double width_y, double width_z) = 0;
-
-    /// Shortcut: set parameters at once, given the diameter of the beam assumed with circular shape.
-    virtual void SetAsCircularSection(double diameter) = 0;
-
     ChBeamSectionCosserat* section;
 };
 
@@ -114,13 +108,13 @@ class ChApi ChElasticityCosseratSimple : public ChElasticityCosserat {
 
     /// Shortcut: set Area, Ixx, Iyy, Ksy, Ksz and J torsion constant
     /// at once, given the y and z widths of the beam assumed
-    /// with rectangular shape.
-    virtual void SetAsRectangularSection(double width_y, double width_z) override;
+    /// with rectangular shape. You must set E and G anyway.
+    virtual void SetAsRectangularSection(double width_y, double width_z);
 
     /// Shortcut: set Area, Ixx, Iyy, Ksy, Ksz and J torsion constant
     /// at once, given the diameter of the beam assumed
-    /// with circular shape.
-    virtual void SetAsCircularSection(double diameter) override;
+    /// with circular shape. You must set E and G anyway.
+    virtual void SetAsCircularSection(double diameter);
 
     /// Set E, the Young elastic modulus (N/m^2)
     void SetYoungModulus(double mE) { this->E = mE; }
@@ -175,13 +169,6 @@ class ChApi ChElasticityCosseratGeneric : public ChElasticityCosserat {
     ///   {m,n}=[E]{e,k}.
     ChMatrixNM<double, 6, 6>& Ematrix() { return this->mE; }
 
-    /// Shortcut: set E given the y and z widths of the beam assumed
-    /// with rectangular shape. Assumes stiffness parameters G=1 and E=1.
-    virtual void SetAsRectangularSection(double width_y, double width_z) override;
-
-    /// Shortcut: set E given the diameter of the beam assumed
-    /// with circular shape. Assumes stiffness parameters G=1 and E=1.
-    virtual void SetAsCircularSection(double diameter) override;
 
     // Interface to base:
 
@@ -336,11 +323,15 @@ class ChApi ChElasticityCosseratMesh : public ChElasticityCosserat {
     /// in the Vertexes() array, where 0 is the 1st vertex etc.
     std::vector<ChVector<int>>& Triangles() { return triangles; }
 
-    /// Set rectangular centered. No material defined.
-    virtual void SetAsRectangularSection(double width_y, double width_z) override;
+    /// Set rectangular centered section, using two triangles. 
+	/// Note: for testing only, use ChElasticityCosseratSimple instead. 
+	/// No material defined: you still must set E and G.
+    virtual void SetAsRectangularSection(double width_y, double width_z);
 
-    /// Set circular centered. No material defined.
-    virtual void SetAsCircularSection(double diameter) override;
+    /// Set circular centered, using n triangles. 
+	/// Note: for testing only, use ChElasticityCosseratSimple instead. 
+	/// No material defined: you still must set E and G.
+    virtual void SetAsCircularSection(double diameter);
 
     // Interface to base:
 
@@ -419,13 +410,6 @@ class ChApi ChPlasticityCosserat {
     virtual void CreatePlasticityData(int numpoints,
                                       std::vector<std::unique_ptr<ChBeamMaterialInternalData>>& plastic_data);
 
-    /// Shortcut: set parameters at once, given the y and z widths of the beam assumed
-    /// with rectangular shape.
-    virtual void SetAsRectangularSection(double width_y, double width_z) = 0;
-
-    /// Shortcut: set parameters at once, given the diameter of the beam assumed
-    /// with circular shape.
-    virtual void SetAsCircularSection(double diameter) = 0;
 
     ChBeamSectionCosserat* section;
     double nr_yeld_tolerance;
@@ -509,9 +493,6 @@ class ChApi ChPlasticityCosseratLumped : public ChPlasticityCosserat {
     virtual void CreatePlasticityData(int numpoints,
                                       std::vector<std::unique_ptr<ChBeamMaterialInternalData>>& plastic_data) override;
 
-    virtual void SetAsRectangularSection(double width_y, double width_z) override {}
-
-    virtual void SetAsCircularSection(double diameter) override {}
 
     std::shared_ptr<ChFunction> n_yeld_x;   ///< sigma_y(p_strain_acc)
     std::shared_ptr<ChFunction> n_beta_x;   ///< beta(p_strain_acc)
@@ -557,11 +538,6 @@ class ChApi ChDampingCosserat {
                                       const ChVector<>& dstrain_k   ///< current strain speed (curvature part)
     );
 
-    /// Shortcut: set parameters at once, given the y and z widths of the beam assumed with rectangular shape.
-    virtual void SetAsRectangularSection(double width_y, double width_z) = 0;
-
-    /// Shortcut: set parameters at once, given the diameter of the beam assumed with circular shape.
-    virtual void SetAsCircularSection(double diameter) = 0;
 
     ChBeamSectionCosserat* section;
 };
@@ -602,8 +578,6 @@ class ChApi ChDampingCosseratLinear : public ChDampingCosserat {
     ChVector<> GetDampingCoefficientsRk() { return R_k; }
     void SetDampingCoefficientsRk(const ChVector<> mR_k) { R_k = mR_k; }
 
-    virtual void SetAsRectangularSection(double width_y, double width_z) override {}
-    virtual void SetAsCircularSection(double diameter) override {}
 
   private:
     ChVector<> R_e;
@@ -664,9 +638,6 @@ class ChApi ChDampingCosseratRayleigh : public ChDampingCosserat {
 	/// update the [E] 6x6 material stiffness matrix, which is stored here as private and constant data for performance
 	void UpdateStiffnessModel();
 
-
-    virtual void SetAsRectangularSection(double width_y, double width_z) override {}
-    virtual void SetAsCircularSection(double diameter) override {}
 
   private:
 	std::shared_ptr<ChElasticityCosserat> section_elasticity;
@@ -756,13 +727,6 @@ class ChApi ChBeamSectionCosserat : public ChBeamSectionProperties {
     /// By default no damping.
     std::shared_ptr<ChDampingCosserat> GetDamping() { return this->damping; }
 
-    /// Shortcut: set elastic and plastic constants at once, given the y and z widths of the beam assumed
-    /// with rectangular shape.
-    virtual void SetAsRectangularSection(double width_y, double width_z) override;
-
-    /// Shortcut: set elastic and plastic constants at once, given the diameter of the beam assumed
-    /// with circular shape.
-    virtual void SetAsCircularSection(double diameter) override;
 
   private:
     std::shared_ptr<ChElasticityCosserat> elasticity;
