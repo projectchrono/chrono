@@ -69,18 +69,22 @@ void MakeAndRunDemo0(ChIrrApp& myapp) {
 	my_mesh->SetAutomaticGravity(false);
 	myapp.GetSystem()->Add(my_mesh);
 
+
 	// Create a section, i.e. thickness and material properties
-	// for beams. This will be shared among some beams.
+	// for beams. This will be shared among some beams. 
+	// To simplify things, use ChBeamSectionCosseratEasyRectangular:
 
 	double beam_wy = 0.012;
 	double beam_wz = 0.025;
 
-	auto melasticity = chrono_types::make_shared<ChElasticityCosseratSimple>();
-	melasticity->SetYoungModulus(0.02e10);
-	melasticity->SetGshearModulus(0.02e10 * 0.3);
-	auto msection = chrono_types::make_shared<ChBeamSectionCosserat>(melasticity);
-	msection->SetDensity(1000);
-	msection->SetAsRectangularSection(beam_wy, beam_wz);
+	auto msection = chrono_types::make_shared<ChBeamSectionCosseratEasyRectangular>(
+		beam_wy,			// width of section in y direction
+		beam_wz,			// width of section in z direction
+		0.02e10,			// Young modulus
+		0.02e10 * 0.3,		// shear modulus
+		1000			    // density
+		);
+
 
 	// Example A.  
 	// Create an IGA beam using a low-level approach, i.e.
@@ -168,25 +172,31 @@ void MakeAndRunDemo1(ChIrrApp& myapp, int nsections=32, int order=2) {
 	double beam_L = 0.4;
 	double beam_tip_load = -2;
 
-	// Create a section, i.e. thickness and material properties
-	// for beams. This will be shared among some beams.
+
+	// Create a customized section, i.e. assemblying separate constitutive models for elasticity, damping etc.
+	// This can be done by creating a ChBeamSectionCosserat section,
+	// to whom we will attach sub-models for: inertia, elasticity, damping (optional), plasticity (optional)
+	// By the way: a faster way to define a section for basic circular or rectangular beams is to
+	// use the ChBeamSectionCosseratEasyCircular or ChBeamSectionCosseratEasyRectangular, see above.
 
 	double beam_wy = 0.012;
 	double beam_wz = 0.025;
-/*
-	auto melasticity = chrono_types::make_shared<ChElasticityCosseratMesh>();
-	auto mmeshmaterial = chrono_types::make_shared<ChElasticityCosseratMesh::ChSectionMaterial>();
-	mmeshmaterial->E = 0.02e10;
-	mmeshmaterial->G = 0.02e10 * 0.3;
-	melasticity->Materials().push_back(mmeshmaterial);
-*/
-	auto melasticity = chrono_types::make_shared<ChElasticityCosseratSimple>();
-	melasticity->SetYoungModulus( 0.02e10);
-	melasticity->SetGshearModulus(0.02e10 * 0.38);
 
-	auto msection = chrono_types::make_shared<ChBeamSectionCosserat>(melasticity);
-	msection->SetDensity(1000);
-	msection->SetAsRectangularSection(beam_wy, beam_wz);
+	auto minertia = chrono_types::make_shared<ChInertiaCosseratUniformDensity>();
+	minertia->SetAsRectangularSection(beam_wy, beam_wz, 1000);  // automatically sets A etc., from width, height, density
+
+	auto melasticity = chrono_types::make_shared<ChElasticityCosseratSimple>();
+	melasticity->SetYoungModulus(0.02e10);
+	melasticity->SetGshearModulus(0.02e10 * 0.38);
+	melasticity->SetAsRectangularSection(beam_wy, beam_wz); // automatically sets A, Ixx, Iyy, Ksy, Ksz and J 
+			
+	auto msection = chrono_types::make_shared<ChBeamSectionCosserat>(
+			minertia,		// the constitutive model for inertia
+			melasticity		// the constitutive model for elasticity
+		);
+	msection->SetDrawThickness(beam_wy,beam_wz); 
+
+
 
 	// Use the ChBuilderBeamIGA tool for creating a straight rod 
 	// divided in Nel elements:
@@ -268,23 +278,20 @@ void MakeAndRunDemo2(ChIrrApp& myapp) {
 	my_mesh->SetAutomaticGravity(false);
 	myapp.GetSystem()->Add(my_mesh);
 
-
 	// Create a section, i.e. thickness and material properties
-	// for beams. This will be shared among some beams.
+	// for beams. This will be shared among some beams. 
+	// To simplify things, use ChBeamSectionCosseratEasyRectangular:
 
 	double beam_wy = 0.012;
 	double beam_wz = 0.025;
 
-	auto melasticity = chrono_types::make_shared<ChElasticityCosseratSimple>();
-	melasticity->SetYoungModulus(0.02e10);
-	melasticity->SetGshearModulus(0.02e10 * 0.3);
-
-	auto mdamping = chrono_types::make_shared<ChDampingCosseratRayleigh>(melasticity);
-	mdamping->SetBeta(0.005);
-
-	auto msection = chrono_types::make_shared<ChBeamSectionCosserat>(melasticity, nullptr, mdamping);
-	msection->SetDensity(1000);
-	msection->SetAsRectangularSection(beam_wy, beam_wz);
+	auto msection = chrono_types::make_shared<ChBeamSectionCosseratEasyRectangular>(
+		beam_wy,			// width of section in y direction
+		beam_wz,			// width of section in z direction
+		0.02e10,			// Young modulus
+		0.02e10 * 0.3,		// shear modulus
+		1000			    // density
+		);
 
 
 	ChBuilderBeamIGA builderR;
@@ -365,9 +372,13 @@ void MakeAndRunDemo3(ChIrrApp& myapp) {
 	double beam_wy = 0.012;
 	double beam_wz = 0.025;
 
+	auto minertia = chrono_types::make_shared<ChInertiaCosseratUniformDensity>();
+	minertia->SetAsRectangularSection(beam_wy, beam_wz, 1000);  // automatically sets A etc., from width, height, density
+
 	auto melasticity = chrono_types::make_shared<ChElasticityCosseratSimple>();
 	melasticity->SetYoungModulus(0.02e10);
 	melasticity->SetGshearModulus(0.02e10 * 0.3);
+	melasticity->SetAsRectangularSection(beam_wy, beam_wz); // automatically sets A, Ixx, Iyy, Ksy, Ksz and J
 
 	auto mplasticity = chrono_types::make_shared<ChPlasticityCosseratLumped>();
 	// The isotropic hardening curve. The value at zero absyssa is the initial yeld.
@@ -383,9 +394,12 @@ void MakeAndRunDemo3(ChIrrApp& myapp) {
 	mplasticity->n_beta_Mz = chrono_types::make_shared<ChFunction_Ramp>(0, 0.001e2);
 
 
-	auto msection = chrono_types::make_shared<ChBeamSectionCosserat>(melasticity, mplasticity);
-	msection->SetDensity(1000);
-	msection->SetAsRectangularSection(beam_wy, beam_wz);
+	auto msection = chrono_types::make_shared<ChBeamSectionCosserat>(
+		minertia, 
+		melasticity, 
+		mplasticity);
+
+	msection->SetDrawThickness(beam_wy, beam_wz);
 
 
 	ChBuilderBeamIGA builder;
@@ -505,18 +519,26 @@ void MakeAndRunDemo4(ChIrrApp& myapp) {
 	// Create a section, i.e. thickness and material properties
 	// for beams. This will be shared among some beams.
 
+	auto minertia = chrono_types::make_shared<ChInertiaCosseratUniformDensity>();
+	minertia->SetDensity(7800);
+	minertia->SetArea(CH_C_PI * (pow(beam_ro, 2)- pow(beam_ri, 2)));
+	minertia->SetIyy( (CH_C_PI / 4.0) * (pow(beam_ro, 4) - pow(beam_ri, 4)) );
+	minertia->SetIzz( (CH_C_PI / 4.0) * (pow(beam_ro, 4) - pow(beam_ri, 4)) );
+
 	auto melasticity = chrono_types::make_shared<ChElasticityCosseratSimple>();
 	melasticity->SetYoungModulus(210e9);
 	melasticity->SetGwithPoissonRatio(0.3);
+	melasticity->SetArea(CH_C_PI * (pow(beam_ro, 2)- pow(beam_ri, 2)));
 	melasticity->SetIyy( (CH_C_PI / 4.0) * (pow(beam_ro, 4) - pow(beam_ri, 4)) );
 	melasticity->SetIzz( (CH_C_PI / 4.0) * (pow(beam_ro, 4) - pow(beam_ri, 4)) );
 	melasticity->SetJ  ( (CH_C_PI / 2.0) * (pow(beam_ro, 4) - pow(beam_ri, 4)) );
+	// set the Timoshenko shear factors, if needed: melasticity->SetKsy(..) melasticity->SetKsy(..)
 
-	auto msection = chrono_types::make_shared<ChBeamSectionCosserat>(melasticity);
-	msection->SetDensity(7800);
+	auto msection = chrono_types::make_shared<ChBeamSectionCosserat>(minertia, melasticity);
+
 	msection->SetCircular(true);
-	msection->SetDrawCircularRadius(beam_ro); // SetAsCircularSection(..) would overwrite Ixx Iyy J etc.
-	msection->SetArea(CH_C_PI * (pow(beam_ro, 2)- pow(beam_ri, 2)));
+	msection->SetDrawCircularRadius(beam_ro); 
+
 
 	// Use the ChBuilderBeamIGA tool for creating a straight rod 
 	// divided in Nel elements:
