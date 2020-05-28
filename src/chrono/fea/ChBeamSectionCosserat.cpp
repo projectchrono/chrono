@@ -783,10 +783,18 @@ void ChInertiaCosseratUniformDensity::SetAsCircularSection(double diameter, doub
 	this->rho = density;
 }
 
-ChBeamSectionCosserat::ChBeamSectionCosserat(std::shared_ptr<ChElasticityCosserat> melasticity,
+
+// -----------------------------------------------------------------------------
+
+
+
+ChBeamSectionCosserat::ChBeamSectionCosserat(std::shared_ptr<ChInertiaCosserat>    minertia,			 
+											 std::shared_ptr<ChElasticityCosserat> melasticity,
                                              std::shared_ptr<ChPlasticityCosserat> mplasticity,
                                              std::shared_ptr<ChDampingCosserat> mdamping) {
-    this->SetElasticity(melasticity);
+    this->SetInertia(minertia);
+
+	this->SetElasticity(melasticity);
 
     if (mplasticity)
         this->SetPlasticity(mplasticity);
@@ -836,6 +844,14 @@ void ChBeamSectionCosserat::SetDamping(std::shared_ptr<ChDampingCosserat> mdampi
     damping = mdamping;
     damping->section = this;
 }
+
+void ChBeamSectionCosserat::SetInertia(std::shared_ptr<ChInertiaCosserat> minertia) {
+    inertia = minertia;
+    inertia->section = this;
+}
+
+
+
 
     this->y_drawsize = width_y;
     this->z_drawsize = width_z;

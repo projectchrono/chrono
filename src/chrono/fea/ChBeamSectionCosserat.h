@@ -658,23 +658,161 @@ class ChApi ChDampingCosseratRayleigh : public ChDampingCosserat {
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 };
 
-/// Base class for properties of beam sections of Cosserat type (with shear too).
-/// A beam section can be shared between multiple beams.
-/// A beam section contains the models for elasticity, plasticity, damping, etc.
-class ChApi ChBeamSectionCosserat : public ChBeamSectionProperties {
+
+
+////////////////////////////////////////////////////////////////////////////////////
+
+
+/// Base class for inerital properties (mass, moment of inertia) of beam sections of Cosserat type.
+/// This can be shared between multiple beams.
+/// It is assumed that the reference line of the beam is also passing through the center of mass of the sections.
+class ChApi ChInertiaCosserat {
   public:
-    ChBeamSectionCosserat(std::shared_ptr<ChElasticityCosserat> melasticity  ///< elasticity model for this section
-    );
+	ChInertiaCosserat() : section(nullptr) {};
+
+    virtual ~ChInertiaCosserat() {}
+
+	/// Compute mass per unit length, ex. SI units [kg/m]
+	/// Defined as: \f$ \mu = \int_\Omega \rho dA \f$, with \f$ \rho \f$ density in [kg/m^3].
+	virtual double GetMassPerUnitLength() = 0;
+
+	/// Compute the Ixx component of the inertia tensor per unit length,
+	/// i.e. the part associated with rotation about the beam direction.
+	/// Ex. SI units [kg/m].
+	/// Defined as: \f$ J_{xx} = \int_\Omega \rho y^2 + z^2 dA \f$, with \f$ \rho \f$ density in [kg/m^3].
+	/// For uniform density it is also \f$ J_{xx} = \rho I_p \f$, where \f$ I_p = I_z + I_y\f$ is the polar moment of area. 
+	virtual double GetInertiaJxxPerUnitLength() = 0;
+
+	/// Compute the Jyy component of the inertia tensor per unit length,
+	/// i.e. the part associated with rotation of the section on its Y axis.
+	/// Ex. SI units [kg/m].
+	/// Defined as: \f$ J_{yy} = \int_\Omega \rho z^2 dA \f$, with \f$ \rho \f$ density in [kg/m^3].
+	/// For uniform density it is also \f$ J_{yy} = \rho I_y \f$, where \f$ I_y =  \int_\Omega \rho z^2 dA f$ is the second moment of area. 
+	virtual double GetInertiaJyyPerUnitLength() = 0;
+
+	/// Compute the Jzz component of the inertia tensor per unit length,
+	/// i.e. the part associated with rotation of the section on its Z axis.
+	/// Ex. SI units [kg/m].
+	/// Defined as: \f$ J_{zz} = \int_\Omega \rho y^2 dA \f$, with \f$ \rho \f$ density in [kg/m^3].
+	/// For uniform density it is also \f$ J_{zz} = \rho I_z \f$, where \f$ I_z =  \int_\Omega \rho y^2 dA f$ is the second moment of area. 
+	virtual double GetInertiaJzzPerUnitLength() = 0;
+
+	ChBeamSectionCosserat* section;
+};
+
+
+
+/// Inertia properties of a beam of Cosserat type, defined from an uniform density [kg/m^3], 
+/// and the following geometric information:
+///  - a section area 
+///  - Iyy Izz second moments of area
+/// The polar moment of area is automatically inferred via perpendicular axis theorem, Ip=Iyy+Izz.
+/// The section is assumed aligned to principal axis of the moment of area tensor, ie. Iyz=0,
+/// the section is assumed to be centered in the center of mass.
+class ChApi ChInertiaCosseratUniformDensity : public ChInertiaCosserat {
+  public:
+
+	ChInertiaCosseratUniformDensity() 
+						: rho(1000), A(1), Izz(1), Iyy(1) {};
+
+	ChInertiaCosseratUniformDensity(double density,			///< the density fo the material [kg/m^3], assumed constant
+									double Area,			///< area of the section, [m^2]
+									double Iyy_area_moment,	///< second moment of area [m^4] about Y 
+									double Izz_area_moment	///< second moment of area [m^4] about Z 
+									) 
+						: rho(density), A(Area), Izz(Izz_area_moment), Iyy(Iyy_area_moment) {};
+
+    virtual ~ChInertiaCosseratUniformDensity() {}
+
+	/// Compute mass per unit length, ex.SI units [kg/m]
+	/// In this case is simply  \f$ \mu = \rho A \f$, given area in [m^2] and with \f$ \rho \f$ density in [kg/m^3].
+	virtual double GetMassPerUnitLength() override { return this->rho * this->A; }
+
+	/// Compute the Ixx component of the inertia tensor per unit length,
+	/// i.e. the part associated with rotation about the beam direction.
+	/// In this case it is \f$ J_{xx} = \rho I_p \f$, where \f$ I_p = I_z + I_y\f$ is the polar moment of area. 
+	virtual double GetInertiaJxxPerUnitLength() override { return this->rho * (this->Iyy + this->Izz); }
+
+	/// Compute the Jyy component of the inertia tensor per unit length,
+	/// i.e. the part associated with rotation of the section on its Y axis.
+	/// Defined as: \f$ J_{yy} = \int_\Omega \rho z^2 dA \f$, with \f$ \rho \f$ density in [kg/m^3].
+	/// For uniform density it is  \f$ J_{yy} = \rho I_y \f$, where \f$ I_y =  \int_\Omega \rho z^2 dA f$ is the second moment of area. 
+	virtual double GetInertiaJyyPerUnitLength() override { return this->rho * this->Iyy; }
+
+	/// Compute the Jzz component of the inertia tensor per unit length,
+	/// i.e. the part associated with rotation of the section on its Z axis.
+	/// Defined as: \f$ J_{zz} = \int_\Omega \rho y^2 dA \f$, with \f$ \rho \f$ density in [kg/m^3].
+	/// For uniform density it is  \f$ J_{zz} = \rho I_z \f$, where \f$ I_z =  \int_\Omega \rho y^2 dA f$ is the second moment of area. 
+	virtual double GetInertiaJzzPerUnitLength() override { return this->rho * this->Izz; }
+
+	/// Set the volumetric density, assumed constant in the section. Ex. SI units: [kg/m^3].
+	void SetDensity(const double md) {	rho = md; }
+	double GetDensity() const { return rho; }
+
+	/// Set the area of section for computing mass properties. Ex. SI units: [m^2]
+	void SetArea(const double ma) {	A = ma; }
+	double GetArea() const { return A; }
+
+	/// Set the Iyy second moment of area of the beam (for bending about y in xz plane),
+	/// defined as \f$ I_y =  \int_\Omega \rho z^2 dA f$. 
+    /// Note: some textbook calls this Iyy as Iy.
+	/// Note: it can correspond to the same Iyy that you used for the elasticity, ex. in ChElasticityCosseratSimple.
+	/// Ex. SI units: [m^4]
+	void SetIyy(double mi) { this->Iyy = mi; }
+    double GetIyy() const { return this->Iyy; }
+
+	/// Set the Izz second moment of area of the beam (for bending about z in xy plane),
+	/// defined as \f$ I_z =  \int_\Omega \rho y^2 dA f$. 
+    /// Note: some textbook calls this Izz as Iz.
+	/// Note: it can correspond to the same Izz that you used for the elasticity, ex. in ChElasticityCosseratSimple.
+	/// Ex. SI units: [m^4]
+	void SetIzz(double mi) { this->Izz = mi; }
+    double GetIzz() const { return this->Izz; }
+
+
+	/// Shortcut: set Izz, Iyy, Area and density at once, given the y and z widths of the beam assumed
+    /// with rectangular shape, and volumetric density. Assuming centered section.
+    virtual void SetAsRectangularSection(double width_y, double width_z, double density);
+
+    /// Shortcut: set Izz, Iyy, Area and density at once, given the diameter the beam assumed
+    /// with circular shape, and volumetric density. Assuming centered section.
+    virtual void SetAsCircularSection(double diameter, double density);
+
+private:
+	double rho; // density
+	double A;   // Area
+	double Izz; // moment of area: m^4
+	double Iyy; // moment of area: m^4
+};
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+/// Base class for properties of beam sections of Cosserat type (with shear too)
+/// such as ChElementBeamIGA.
+/// A beam section can be shared between multiple beams.
+/// A beam section contains the models for elasticity, inertia, plasticity, damping, etc.
+/// This base model expect that you provide at least the elasticity and inertia models,
+/// and optionally you can also add a damping model and a plasticity model.
+/// This accomodates most of the constitutive models because there are many
+/// combinations of the different types of damping models, elasticity models, etc.,
+/// but if you need some extreme customization, you might also inherit your C++ class from this.
+/// On the other side, if you need a more immediate way to create sections, look at
+/// the special cases called ChBeamSectionCosseratEasyRectangular and ChBeamSectionCosseratEasyCircular.
+
+class ChApi ChBeamSectionCosserat : public ChBeamSectionProperties {
+  protected:
+	ChBeamSectionCosserat() {};
+
+  public:
 
     ChBeamSectionCosserat(
-        std::shared_ptr<ChElasticityCosserat> melasticity,  ///< elasticity model for this section
-        std::shared_ptr<ChPlasticityCosserat> mplasticity   ///< plasticity model for this section, if any
-    );
-
-    ChBeamSectionCosserat(
-        std::shared_ptr<ChElasticityCosserat> melasticity,  ///< elasticity model for this section
-        std::shared_ptr<ChPlasticityCosserat> mplasticity,  ///< plasticity model for this section, if any
-        std::shared_ptr<ChDampingCosserat> mdamping         ///< damping model for this section, if any
+		std::shared_ptr<ChInertiaCosserat>    minertia,			    ///< inertia model for this section (density, etc)
+        std::shared_ptr<ChElasticityCosserat> melasticity,		    ///< elasticity model for this section
+		std::shared_ptr<ChPlasticityCosserat> mplasticity = {},		///< plasticity model for this section, if any
+		std::shared_ptr<ChDampingCosserat>    mdamping = {}			///< damping model for this section, if any
     );
 
     virtual ~ChBeamSectionCosserat() {}
@@ -728,6 +866,15 @@ class ChApi ChBeamSectionCosserat : public ChBeamSectionProperties {
     /// Use this function to access parameters such as yeld limit, etc.
     std::shared_ptr<ChPlasticityCosserat> GetPlasticity() { return this->plasticity; }
 
+	/// Set the inertial model for this section, that defines the 
+    /// mass per unit length and the inertia tensor of the section.
+    void SetInertia(std::shared_ptr<ChInertiaCosserat> minertia);
+
+    /// Get the inertial model for this section, if any.
+    /// Use this function to access parameters such as mass per unit length, etc.
+    std::shared_ptr<ChInertiaCosserat> GetInertia() { return this->inertia; }
+
+
     /// Set the damping model for this section.
     /// By default no damping.
     void SetDamping(std::shared_ptr<ChDampingCosserat> mdamping);
@@ -741,6 +888,7 @@ class ChApi ChBeamSectionCosserat : public ChBeamSectionProperties {
     std::shared_ptr<ChElasticityCosserat> elasticity;
     std::shared_ptr<ChPlasticityCosserat> plasticity;
     std::shared_ptr<ChDampingCosserat> damping;
+	std::shared_ptr<ChInertiaCosserat> inertia;
 };
 
 /// @} fea_utils
