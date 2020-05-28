@@ -46,10 +46,7 @@ class ChApi ChBeamSectionProperties {
     double z_drawsize;
     bool is_circular;
 
-    double Area;
-    double density;
-
-    ChBeamSectionProperties() : y_drawsize(0.01), z_drawsize(0.01), is_circular(false), Area(1), density(1000) {}
+    ChBeamSectionProperties() : y_drawsize(0.01), z_drawsize(0.01), is_circular(false) {}
 
     virtual ~ChBeamSectionProperties() {}
 
@@ -78,23 +75,6 @@ class ChApi ChBeamSectionProperties {
     void SetDrawCircularRadius(double draw_rad) { this->y_drawsize = draw_rad; }
     double GetDrawCircularRadius() { return this->y_drawsize; }
 
-    /// Set the cross sectional area A of the beam (m^2)
-    void SetArea(const double ma) { this->Area = ma; }
-    double GetArea() const { return this->Area; }
-
-    /// Set the density of the beam (kg/m^3)
-    void SetDensity(double md) { this->density = md; }
-    double GetDensity() const { return this->density; }
-
-    /// Shortcut: set elastic and plastic constants
-    /// at once, given the y and z widths of the beam assumed
-    /// with rectangular shape.
-    virtual void SetAsRectangularSection(double width_y, double width_z) = 0;
-
-    /// Shortcut: set elastic and plastic constants
-    /// at once, given the diameter of the beam assumed
-    /// with circular shape.
-    virtual void SetAsCircularSection(double diameter) = 0;
 };
 
 //
