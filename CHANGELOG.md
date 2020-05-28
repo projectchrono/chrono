@@ -2,7 +2,8 @@ Change Log
 ==========
 
 - [Unreleased (development version)](#unreleased-development-branch)
-    - [Applied forces](#added-applied-forces)
+    - [Constitutive models for beams](#constitutive-models-for-beams)
+	- [Applied forces](#added-applied-forces)
     - [Chrono::Vehicle simulation world frame](#added-chronovehicle-simulation-world-frame)
     - [CASCADE module](#changed-cascade-module)
 	- [Collision shapes and contact materials](#changed-collision-shapes-and-contact-materials)
@@ -13,6 +14,30 @@ Change Log
 - [Release 4.0.0](#release-400---2019-02-22)
 
 ## Unreleased (development branch)
+
+### [Changed] Constitutive models for beams
+
+Inertial properties of Cosserat beams, such as the ChElementBeamIGA, are now defined via a **new class** `ChInertiaCosserat` and subclasses, that can be composed into `ChBeamSectionCosserat` just like we do for elastic properties, damping, etc. This is more flexible than before. Therefore these functions have been **removed**:
+ - `ChBeamSectionCosserat::SetDensity()`
+ - `ChBeamSectionCosserat::SetArea()`
+
+**Consequences:**
+ - the ChBeamSectionCosserat constructor has changed: it always requires a ChInertiaCosserat too.
+ - you should create a ChInertiaCosserat, like ChInertiaCosseratUniformDensity, set density and area there, and add the ChInertiaCosserat to the ChBeamSectionCosserat.
+ - the polar part of inertia was using the width-height values of the visualization, that was limiting and often not related to the beam; now it is a physical value
+  - the rotational inertia (in lumped mass matrix) of the beam is more precise
+
+Moreover, also because of this modification, and in order to make the API less ambiguous, these functions have been **removed**:
+ - `SetAsCircularSection()`
+ - `SetAsRectangularSection()`
+from the ChBeamSectionCosserat *and* from all elastic/damping/plastic models. We kept them only for the elastic models where they make sense. 
+
+**Consequences:** 
+ - previously one could call `ChBeamSectionCosserat::SetAsRectangularSection()` and automatically invoke the same for all sub-models (elasticity, etc.) whereas now one has to call `SetAsRectangularSection()` for the single sub-models, only when needed and when available. 
+ - To make things easier, we provide the new classes `ChBeamSectionCosseratEasyRectangular`
+and `ChBeamSectionCosseratEasyCircular` that in a single shot create elastic and inertia models, sets them as rectangular or circular, and sets the visualization type.
+
+
 
 ### [Added] Applied forces
 
