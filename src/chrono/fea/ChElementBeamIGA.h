@@ -733,7 +733,8 @@ class  ChElementBeamIGA :   public ChElementBeam,
 	}
 
 	/// This is needed so that it can be accessed by ChLoaderVolumeGravity
-	virtual double GetDensity() override { return this->section->GetArea() * this->section->GetDensity(); }
+	virtual double GetDensity() override { return this->section->GetInertia()->GetMassPerUnitLength(); } //this->section->GetArea()* this->section->GetDensity();
+
 
   private:
     /// Initial setup. Precompute mass and matrices that do not change during the simulation. In particular, compute the
@@ -878,7 +879,7 @@ class  ChElementBeamIGA :   public ChElementBeam,
         }
 
         // as a byproduct, also compute total mass
-        this->mass = this->length * this->section->GetArea() * this->section->GetDensity();
+        this->mass = this->length * this->section->GetInertia()->GetMassPerUnitLength();
     }
 
     std::vector<std::shared_ptr<ChNodeFEAxyzrot>> nodes;  // also "control points"
