@@ -93,6 +93,9 @@ class CH_VEHICLE_API ChSprocket : public ChPart {
     /// Get the sprocket contact material.
     std::shared_ptr<ChMaterialSurface> GetContactMaterial() const { return m_material; }
 
+    /// Disable lateral contact for preventing detracking (default: enabled).
+    void DisableLateralContact() { m_lateral_contact = false; }
+
     /// Initialize this sprocket subsystem.
     /// The sprocket subsystem is initialized by attaching it to the specified
     /// chassis body at the specified location (with respect to and expressed in
@@ -154,6 +157,8 @@ class CH_VEHICLE_API ChSprocket : public ChPart {
     std::shared_ptr<ChShaftsBody> m_axle_to_spindle;  ///< handle to gear-shaft connector
     std::shared_ptr<ChLinkLockRevolute> m_revolute;   ///< handle to sprocket revolute joint
     std::shared_ptr<ChMaterialSurface> m_material;    ///< contact material;
+
+    bool m_lateral_contact;  ///< if 'true', enable lateral conatact to prevent detracking
 
     friend class ChTrackAssembly;
 };

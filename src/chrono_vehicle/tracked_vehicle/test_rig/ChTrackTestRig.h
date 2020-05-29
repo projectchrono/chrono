@@ -45,15 +45,17 @@ class CH_VEHICLE_API ChTrackTestRig : public ChVehicle {
     ChTrackTestRig() : ChVehicle("TrackTestRig") {}
 
     /// Construct a test rig from specified track assembly JSON file.
-    ChTrackTestRig(const std::string& filename,                           ///< [in] JSON file with rig specification
-                   bool create_track = true,                              ///< [in] include track shoes?
-                   ChContactMethod contact_method = ChContactMethod::NSC  ///< [in] contact method
+    ChTrackTestRig(const std::string& filename,                            ///< [in] JSON file with rig specification
+                   bool create_track = true,                               ///< [in] include track shoes?
+                   ChContactMethod contact_method = ChContactMethod::NSC,  ///< [in] contact method
+                   bool detracking_control = false                         ///< [in] detracking control
     );
 
     /// Construct a test rig using the specified track assembly and subsystem locations.
-    ChTrackTestRig(std::shared_ptr<ChTrackAssembly> assembly,             ///< [in] handle to the track assembly
-                   bool create_track = true,                              ///< [in] include track shoes?
-                   ChContactMethod contact_method = ChContactMethod::NSC  ///< [in] contact method
+    ChTrackTestRig(std::shared_ptr<ChTrackAssembly> assembly,              ///< [in] handle to the track assembly
+                   bool create_track = true,                               ///< [in] include track shoes?
+                   ChContactMethod contact_method = ChContactMethod::NSC,  ///< [in] contact method
+                   bool detracking_control = false                         ///< [in] detracking control
     );
 
     /// Destructor
@@ -153,7 +155,7 @@ class CH_VEHICLE_API ChTrackTestRig : public ChVehicle {
 
   private:
     // Create the rig mechanism
-    void Create();
+    void Create(bool create_track, bool detracking_control);
 
     // Utility function to add visualization to post bodies.
     void AddPostVisualization(std::shared_ptr<ChBody> post_body,
@@ -178,7 +180,6 @@ class CH_VEHICLE_API ChTrackTestRig : public ChVehicle {
 
     std::shared_ptr<ChTrackAssembly> m_track;  ///< track assembly
     std::shared_ptr<ChShaft> m_dummy_shaft;    ///< dummy driveshaft
-    bool m_create_track;                       ///< include track shoes?
     int m_collide_flags;                       ///< collision flags
 
     std::vector<std::shared_ptr<ChBody>> m_post;                            ///< post bodies

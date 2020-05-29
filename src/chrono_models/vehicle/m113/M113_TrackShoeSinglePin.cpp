@@ -41,6 +41,8 @@ const double M113_TrackShoeSinglePin::m_cyl_radius = 0.015;
 const double M113_TrackShoeSinglePin::m_front_cyl_loc = 0.0535;
 const double M113_TrackShoeSinglePin::m_rear_cyl_loc = -0.061;
 
+const ChVector<> M113_TrackShoeSinglePin::m_pin_center(0.045, 0, 0.0375);
+
 const std::string M113_TrackShoeSinglePin::m_meshFile = "M113/TrackShoe.obj";
 
 // -----------------------------------------------------------------------------

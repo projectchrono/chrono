@@ -85,6 +85,9 @@ class CH_VEHICLE_API ChTrackShoeSinglePin : public ChTrackShoe {
     /// Return the radius of the contact cylinders.
     virtual double GetCylinderRadius() const = 0;
 
+    /// Return the location of the guiding pin center, expressed in the shoe reference frame.
+    virtual ChVector<> GetPinLocation() const = 0;
+
     /// Create the contact materials for the shoe, consistent with the specified contact method. A derived class must
     /// set m_cyl_material (used for contact with the sprocket) and m_shoe_materials which must include one or more
     /// contact materials for the collision shapes of the shoe itself (for contact with the wheels, idler, and ground).
