@@ -39,8 +39,8 @@ namespace vehicle {
 // -----------------------------------------------------------------------------
 // Implementation of the SCMDeformableTerrain wrapper class
 // -----------------------------------------------------------------------------
-SCMDeformableTerrain::SCMDeformableTerrain(ChSystem* system) {
-    m_ground = chrono_types::make_shared<SCMDeformableSoil>(system);
+SCMDeformableTerrain::SCMDeformableTerrain(ChSystem* system, bool visualization_mesh) {
+    m_ground = chrono_types::make_shared<SCMDeformableSoil>(system, visualization_mesh);
     system->Add(m_ground);
 }
 
@@ -63,7 +63,8 @@ float SCMDeformableTerrain::GetCoefficientFriction(const ChVector<>& loc) const 
 
 // Set the color of the visualization assets
 void SCMDeformableTerrain::SetColor(ChColor color) {
-    m_ground->m_color->SetColor(color);
+    if (m_ground->m_color)
+        m_ground->m_color->SetColor(color);
 }
 
 // Set the texture and texture scaling
@@ -239,18 +240,21 @@ void SCMDeformableTerrain::PrintStepStatistics(std::ostream& os) const {
 // -----------------------------------------------------------------------------
 
 // Constructor.
-SCMDeformableSoil::SCMDeformableSoil(ChSystem* system) : m_soil_fun(nullptr) {
+SCMDeformableSoil::SCMDeformableSoil(ChSystem* system, bool visualization_mesh) : m_soil_fun(nullptr) {
     this->SetSystem(system);
-
-    // Create the default mesh asset
-    m_color = std::shared_ptr<ChColorAsset>(new ChColorAsset);
-    m_color->SetColor(ChColor(0.3f, 0.3f, 0.3f));
-    this->AddAsset(m_color);
 
     // Create the default triangle mesh asset
     m_trimesh_shape = std::shared_ptr<ChTriangleMeshShape>(new ChTriangleMeshShape);
-    this->AddAsset(m_trimesh_shape);
-    m_trimesh_shape->SetWireframe(true);
+
+    if (visualization_mesh) {
+        // Create the default mesh asset
+        m_color = std::shared_ptr<ChColorAsset>(new ChColorAsset);
+        m_color->SetColor(ChColor(0.3f, 0.3f, 0.3f));
+        this->AddAsset(m_color);
+
+        this->AddAsset(m_trimesh_shape);
+        m_trimesh_shape->SetWireframe(true);
+    }
 
     do_bulldozing = false;
     bulldozing_flow_factor = 1.2;
