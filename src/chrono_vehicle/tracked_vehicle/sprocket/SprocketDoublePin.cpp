@@ -56,6 +56,9 @@ void SprocketDoublePin::Create(const rapidjson::Document& d) {
     m_axle_inertia = d["Axle Inertia"].GetDouble();
     m_separation = d["Gear Separation"].GetDouble();
 
+    // Read lateral backlash (for contact against detracking)
+    m_lateral_backlash = d["Lateral Backlash"].GetDouble();
+
     // Read profile information
     assert(d.HasMember("Profile"));
     m_gear_RT = d["Profile"]["Addenum Radius"].GetDouble();

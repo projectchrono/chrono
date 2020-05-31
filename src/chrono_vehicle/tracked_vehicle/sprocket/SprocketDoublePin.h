@@ -63,6 +63,9 @@ class CH_VEHICLE_API SprocketDoublePin : public ChSprocketDoublePin {
     /// Return offset of arc center.
     virtual double GetArcCenterOffset() const override { return m_gear_W; }
 
+    /// Return the allowed backlash (play) before lateral contact with track shoes is enabled (to prevent detracking).
+    virtual double GetLateralBacklash() const override { return m_lateral_backlash; }
+
   private:
     virtual void Create(const rapidjson::Document& d) override;
 
@@ -84,6 +87,8 @@ class CH_VEHICLE_API SprocketDoublePin : public ChSprocketDoublePin {
     double m_gear_RA;
     double m_gear_C;
     double m_gear_W;
+
+    double m_lateral_backlash;
 
     bool m_has_mesh;
     std::string m_meshFile;

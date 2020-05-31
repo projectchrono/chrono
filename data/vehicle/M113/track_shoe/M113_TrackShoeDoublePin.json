@@ -19,6 +19,9 @@
         "Inertia": [ 0.1, 0.1, 0.1 ]
     },
 
+    // Contact point on track shoe for detracking control
+    "Guide Pin Center": [ 0.045, 0, 0.0375 ],
+
     "Contact": {
         "Connector Material": {
             // Material for sprocket contact surfaces
