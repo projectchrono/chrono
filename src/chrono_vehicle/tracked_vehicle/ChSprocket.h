@@ -93,6 +93,9 @@ class CH_VEHICLE_API ChSprocket : public ChPart {
     /// Get the sprocket contact material.
     std::shared_ptr<ChMaterialSurface> GetContactMaterial() const { return m_material; }
 
+    /// Disable lateral contact for preventing detracking (default: enabled).
+    void DisableLateralContact() { m_lateral_contact = false; }
+
     /// Initialize this sprocket subsystem.
     /// The sprocket subsystem is initialized by attaching it to the specified
     /// chassis body at the specified location (with respect to and expressed in
@@ -130,6 +133,9 @@ class CH_VEHICLE_API ChSprocket : public ChPart {
     /// Return the distance between the two gear profiles.
     virtual double GetSeparation() const = 0;
 
+    /// Return the allowed backlash (play) before lateral contact with track shoes is enabled (to prevent detracking).
+    virtual double GetLateralBacklash() const = 0;
+
     /// Return the 2D gear profile.
     /// The gear profile, a ChLinePath geometric object, is made up of an arbitrary number
     /// of sub-paths of type ChLineArc or ChLineSegment sub-lines. These must be added in
@@ -154,6 +160,8 @@ class CH_VEHICLE_API ChSprocket : public ChPart {
     std::shared_ptr<ChShaftsBody> m_axle_to_spindle;  ///< handle to gear-shaft connector
     std::shared_ptr<ChLinkLockRevolute> m_revolute;   ///< handle to sprocket revolute joint
     std::shared_ptr<ChMaterialSurface> m_material;    ///< contact material;
+
+    bool m_lateral_contact;  ///< if 'true', enable lateral conatact to prevent detracking
 
     friend class ChTrackAssembly;
 };

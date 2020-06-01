@@ -41,6 +41,8 @@ const double M113_TrackShoeDoublePin::m_shoe_length = 0.0984;  // 3.875''
 const double M113_TrackShoeDoublePin::m_shoe_width = 0.2781;   // 10.95''
 const double M113_TrackShoeDoublePin::m_shoe_height = 0.06;
 
+const ChVector<> M113_TrackShoeDoublePin::m_pin_center(0.045, 0, 0.0375);
+
 const double M113_TrackShoeDoublePin::m_connector_mass = 2.0;                  //// TODO
 const ChVector<> M113_TrackShoeDoublePin::m_connector_inertia(0.1, 0.1, 0.1);  //// TODO
 const double M113_TrackShoeDoublePin::m_connector_radius = 0.02;               // 0.88''

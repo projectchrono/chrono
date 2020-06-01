@@ -47,8 +47,7 @@ const double M113_SprocketBand::m_gear_tooth_depth = 0.0387 * 1.04;
 const double M113_SprocketBand::m_gear_arc_radius = 0.0542 * 1.04;
 const double M113_SprocketBand::m_gear_RA = 0.2307 * 1.04;
 
-const double M113_SprocketBand::m_gear_guide_wheel_width = 0.181;
-const double M113_SprocketBand::m_gear_guide_wheel_gap = 0.051;
+const double M113_SprocketBand::m_lateral_backlash = 0.02;
 
 const std::string M113_SprocketBandLeft::m_meshFile = "M113/Sprocket2_L.obj";
 const std::string M113_SprocketBandRight::m_meshFile = "M113/Sprocket2_R.obj";

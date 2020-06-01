@@ -31,7 +31,7 @@ namespace vehicle {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-ChSprocket::ChSprocket(const std::string& name) : ChPart(name) {}
+ChSprocket::ChSprocket(const std::string& name) : ChPart(name), m_lateral_contact(true) {}
 
 ChSprocket::~ChSprocket() {}
 

@@ -57,6 +57,9 @@ void SprocketBand::Create(const rapidjson::Document& d) {
     m_axle_inertia = d["Axle Inertia"].GetDouble();
     m_separation = d["Gear Separation"].GetDouble();
 
+    // Read lateral backlash (for contact against detracking)
+    m_lateral_backlash = d["Lateral Backlash"].GetDouble();
+
     // Read profile information
     assert(d.HasMember("Profile"));
     m_gear_outer_radius = d["Profile"]["Outer Radius"].GetDouble();
@@ -64,8 +67,6 @@ void SprocketBand::Create(const rapidjson::Document& d) {
     m_gear_tip_width = d["Profile"]["Tip Width"].GetDouble();
     m_gear_tooth_depth = d["Profile"]["Tooth Depth"].GetDouble();
     m_gear_arc_radius = d["Profile"]["Arc Radius"].GetDouble();
-    m_gear_guide_wheel_width = d["Profile"]["Guide Wheel Width"].GetDouble();
-    m_gear_guide_wheel_gap = d["Profile"]["Guide Wheel Gap"].GetDouble();
     m_gear_RA = d["Profile"]["Assembly Radius"].GetDouble();
 
     // Read contact material data
