@@ -92,7 +92,7 @@ class CH_VEHICLE_API ChTrackShoeBand : public ChTrackShoe {
     virtual double GetGuideBoxOffsetX() const = 0;
 
     /// Return the location of the guiding pin center, expressed in the shoe reference frame.
-    ChVector<> GetPinLocation() const;
+    virtual ChVector<> GetLateralContactPoint() const override;
 
     /// Return the width of the CB track belt (in the Y direction)
     virtual double GetBeltWidth() const = 0;

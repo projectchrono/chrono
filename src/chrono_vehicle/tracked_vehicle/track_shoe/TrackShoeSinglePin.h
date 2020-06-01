@@ -59,7 +59,7 @@ class CH_VEHICLE_API TrackShoeSinglePin : public ChTrackShoeSinglePin {
     virtual double GetCylinderRadius() const override { return m_cyl_radius; }
 
     /// Return the location of the guiding pin center, expressed in the shoe reference frame.
-    virtual ChVector<> GetPinLocation() const override { return m_pin_center; }
+    virtual ChVector<> GetLateralContactPoint() const override { return m_pin_center; }
 
   private:
     virtual void Create(const rapidjson::Document& d) override;

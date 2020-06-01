@@ -63,9 +63,6 @@ class CH_VEHICLE_API ChSprocketSinglePin : public ChSprocket {
 
     /// Return the radius of the tooth arc centers.
     virtual double GetArcCentersRadius() const = 0;
-
-    /// Return the allowed backlash (play) before lateral contact with track shoes is enabled (to prevent detracking).
-    virtual double GetLateralBacklash() const = 0;
 };
 
 /// @} vehicle_tracked_sprocket

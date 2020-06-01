@@ -695,8 +695,9 @@ std::shared_ptr<ChSystem::CustomCollisionCallback> ChSprocketBand::GetCollisionC
     assert(shoe);
 
     // Create and return the callback object. Note: this pointer will be freed by the base class.
-    return chrono_types::make_shared<SprocketBandContactCB>(
-        track, 0.005, GetNumTeeth(), GetSeparation(), m_lateral_contact, GetLateralBacklash(), shoe->GetPinLocation());
+    return chrono_types::make_shared<SprocketBandContactCB>(track, 0.005, GetNumTeeth(), GetSeparation(),
+                                                            m_lateral_contact, GetLateralBacklash(),
+                                                            shoe->GetLateralContactPoint());
 }
 
 // -----------------------------------------------------------------------------

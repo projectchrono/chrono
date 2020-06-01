@@ -64,7 +64,7 @@ class CH_VEHICLE_API TrackShoeDoublePin : public ChTrackShoeDoublePin {
     virtual double GetConnectorWidth() const override { return m_connector_width; }
 
     /// Return the location of the guiding pin center, expressed in the shoe reference frame.
-    virtual ChVector<> GetPinLocation() const override { return m_pin_center; }
+    virtual ChVector<> GetLateralContactPoint() const override { return m_pin_center; }
 
   private:
     virtual void Create(const rapidjson::Document& d) override;

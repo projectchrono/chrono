@@ -447,7 +447,7 @@ std::shared_ptr<ChSystem::CustomCollisionCallback> ChSprocketDoublePin::GetColli
     // Extract parameterization of the shoe connector contact geometry.
     double shoe_len = shoe->GetConnectorLength();
     double shoe_R = shoe->GetConnectorRadius();
-    ChVector<> shoe_locPin = shoe->GetPinLocation();
+    ChVector<> shoe_locPin = shoe->GetLateralContactPoint();
 
     // Create and return the callback object. Note: this pointer will be freed by the base class.
     return chrono_types::make_shared<SprocketDoublePinContactCB>(track, 0.005, gear_nteeth, gear_RT, gear_R, gear_C,

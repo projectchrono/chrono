@@ -330,7 +330,7 @@ std::shared_ptr<ChSystem::CustomCollisionCallback> ChSprocketSinglePin::GetColli
     double shoe_locF = shoe->GetFrontCylinderLoc();
     double shoe_locR = shoe->GetRearCylinderLoc();
     double shoe_R = shoe->GetCylinderRadius();
-    ChVector<> shoe_locPin = shoe->GetPinLocation();
+    ChVector<> shoe_locPin = shoe->GetLateralContactPoint();
 
     // Create and return the callback object. Note: this pointer will be freed by the base class.
     return chrono_types::make_shared<SprocketSinglePinContactCB>(track, 0.005, gear_nteeth, gear_RO, gear_RC, gear_R,

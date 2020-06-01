@@ -58,7 +58,7 @@ class CH_MODELS_API M113a_TrackShoeSinglePin : public ChTrackShoeSinglePin {
     virtual double GetCylinderRadius() const override { return m_cyl_radius; }
 
     /// Return the location of the guiding pin center, expressed in the shoe reference frame.
-    virtual ChVector<> GetPinLocation() const override { return m_pin_center; }
+    virtual ChVector<> GetLateralContactPoint() const override { return m_pin_center; }
 
   private:
     /// Create the contact materials.

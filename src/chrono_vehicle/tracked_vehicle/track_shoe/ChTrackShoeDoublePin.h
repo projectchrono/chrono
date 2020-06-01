@@ -90,9 +90,6 @@ class CH_VEHICLE_API ChTrackShoeDoublePin : public ChTrackShoe {
     /// Return shoe width (separation between connectors).
     virtual double GetShoeWidth() const = 0;
 
-    /// Return the location of the guiding pin center, expressed in the shoe reference frame.
-    virtual ChVector<> GetPinLocation() const = 0;
-
     /// Return the mass of a connector body.
     virtual double GetConnectorMass() const = 0;
     /// Return the moments of inertia of a connector body.

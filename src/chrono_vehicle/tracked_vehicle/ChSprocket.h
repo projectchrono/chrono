@@ -133,6 +133,9 @@ class CH_VEHICLE_API ChSprocket : public ChPart {
     /// Return the distance between the two gear profiles.
     virtual double GetSeparation() const = 0;
 
+    /// Return the allowed backlash (play) before lateral contact with track shoes is enabled (to prevent detracking).
+    virtual double GetLateralBacklash() const = 0;
+
     /// Return the 2D gear profile.
     /// The gear profile, a ChLinePath geometric object, is made up of an arbitrary number
     /// of sub-paths of type ChLineArc or ChLineSegment sub-lines. These must be added in

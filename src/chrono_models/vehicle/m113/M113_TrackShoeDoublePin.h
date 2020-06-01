@@ -57,7 +57,7 @@ class CH_MODELS_API M113_TrackShoeDoublePin : public ChTrackShoeDoublePin {
     virtual double GetShoeWidth() const override { return m_shoe_width; }
 
     /// Return the location of the guiding pin center, expressed in the shoe reference frame.
-    virtual ChVector<> GetPinLocation() const override { return m_pin_center; }
+    virtual ChVector<> GetLateralContactPoint() const override { return m_pin_center; }
 
     /// Return the mass of a connector body.
     virtual double GetConnectorMass() const override { return m_connector_mass; }
