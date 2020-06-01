@@ -127,6 +127,10 @@ double ChTrackShoeBand::GetPitch() const {
     return GetToothBaseLength() + GetWebLength();
 }
 
+ChVector<> ChTrackShoeBand::GetPinLocation() const {
+    return ChVector<>(GetGuideBoxOffsetX(), 0, GetWebThickness() / 2 + GetGuideBoxDimensions().z() / 2);
+}
+
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChTrackShoeBand::AddShoeContact() {

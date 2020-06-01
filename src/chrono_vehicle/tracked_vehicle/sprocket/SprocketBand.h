@@ -68,6 +68,9 @@ class CH_VEHICLE_API SprocketBand : public ChSprocketBand {
     /// Return the radius of the (concave) tooth circular arc.
     virtual double GetArcRadius() const override { return m_gear_arc_radius; }
 
+    /// Return the allowed backlash (play) before lateral contact with track shoes is enabled (to prevent detracking).
+    virtual double GetLateralBacklash() const override { return m_lateral_backlash; }
+
   private:
     virtual void Create(const rapidjson::Document& d) override;
 
@@ -90,6 +93,8 @@ class CH_VEHICLE_API SprocketBand : public ChSprocketBand {
     double m_gear_tooth_depth;
     double m_gear_arc_radius;
     double m_gear_RA;
+
+    double m_lateral_backlash;
 
     bool m_has_mesh;
     std::string m_meshFile;
