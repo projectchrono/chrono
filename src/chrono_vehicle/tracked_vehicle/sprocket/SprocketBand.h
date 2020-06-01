@@ -67,10 +67,6 @@ class CH_VEHICLE_API SprocketBand : public ChSprocketBand {
     virtual double GetToothDepth() const override { return m_gear_tooth_depth; }
     /// Return the radius of the (concave) tooth circular arc.
     virtual double GetArcRadius() const override { return m_gear_arc_radius; }
-    /// Return the total width of the sprocket guiding wheel that acts similar to another road wheel.
-    virtual double GetGuideWheelWidth() const override { return m_gear_guide_wheel_width; }
-    /// Return the gap width of the sprocket guiding wheel that acts similar to another road wheel.
-    virtual double GetGuideWheelGap() const override { return m_gear_guide_wheel_gap; }
 
   private:
     virtual void Create(const rapidjson::Document& d) override;
@@ -94,8 +90,6 @@ class CH_VEHICLE_API SprocketBand : public ChSprocketBand {
     double m_gear_tooth_depth;
     double m_gear_arc_radius;
     double m_gear_RA;
-    double m_gear_guide_wheel_width;
-    double m_gear_guide_wheel_gap;
 
     bool m_has_mesh;
     std::string m_meshFile;

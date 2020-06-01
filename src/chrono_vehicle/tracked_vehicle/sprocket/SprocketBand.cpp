@@ -64,8 +64,6 @@ void SprocketBand::Create(const rapidjson::Document& d) {
     m_gear_tip_width = d["Profile"]["Tip Width"].GetDouble();
     m_gear_tooth_depth = d["Profile"]["Tooth Depth"].GetDouble();
     m_gear_arc_radius = d["Profile"]["Arc Radius"].GetDouble();
-    m_gear_guide_wheel_width = d["Profile"]["Guide Wheel Width"].GetDouble();
-    m_gear_guide_wheel_gap = d["Profile"]["Guide Wheel Gap"].GetDouble();
     m_gear_RA = d["Profile"]["Assembly Radius"].GetDouble();
 
     // Read contact material data
