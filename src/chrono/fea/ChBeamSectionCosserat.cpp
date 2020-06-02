@@ -58,6 +58,7 @@ ChElasticityCosseratSimple::ChElasticityCosseratSimple()
 }
 
 void ChElasticityCosseratSimple::SetAsRectangularSection(double width_y, double width_z) {
+	this->A   = width_y * width_z;
     this->Izz = (1.0 / 12.0) * width_z * pow(width_y, 3);
     this->Iyy = (1.0 / 12.0) * width_y * pow(width_z, 3);
 
@@ -73,6 +74,7 @@ void ChElasticityCosseratSimple::SetAsRectangularSection(double width_y, double 
 }
 
 void ChElasticityCosseratSimple::SetAsCircularSection(double diameter) {
+	this->A   = CH_C_PI * pow((0.5 * diameter), 2);
     this->Izz = (CH_C_PI / 4.0) * pow((0.5 * diameter), 4);
     this->Iyy = Izz;
 
@@ -90,9 +92,9 @@ void ChElasticityCosseratSimple::ComputeStress(ChVector<>& stress_n,
                                                ChVector<>& stress_m,
                                                const ChVector<>& strain_n,
                                                const ChVector<>& strain_m) {
-    stress_n.x() = E * section->Area * strain_n.x();
-    stress_n.y() = Ks_y * G * section->Area * strain_n.y();
-    stress_n.z() = Ks_z * G * section->Area * strain_n.z();
+    stress_n.x() = E * A * strain_n.x();
+    stress_n.y() = Ks_y * G * A * strain_n.y();
+    stress_n.z() = Ks_z * G * A * strain_n.z();
     stress_m.x() = G * J * strain_m.x();
     stress_m.y() = E * Iyy * strain_m.y();
     stress_m.z() = E * Izz * strain_m.z();
@@ -102,9 +104,9 @@ void ChElasticityCosseratSimple::ComputeStiffnessMatrix(ChMatrixNM<double, 6, 6>
                                                         const ChVector<>& strain_n,
                                                         const ChVector<>& strain_m) {
     K.setZero(6, 6);
-    K(0, 0) = E * section->Area;
-    K(1, 1) = Ks_y * G * section->Area;
-    K(2, 2) = Ks_z * G * section->Area;
+    K(0, 0) = E * A;
+    K(1, 1) = Ks_y * G * A;
+    K(2, 2) = Ks_z * G * A;
     K(3, 3) = G * J;
     K(4, 4) = E * Iyy;
     K(5, 5) = E * Izz;
@@ -114,57 +116,9 @@ void ChElasticityCosseratSimple::ComputeStiffnessMatrix(ChMatrixNM<double, 6, 6>
 
 ChElasticityCosseratGeneric::ChElasticityCosseratGeneric() {
     mE.setIdentity();                     // default E stiffness: diagonal 1.
-    SetAsRectangularSection(0.01, 0.01);  // defaults Area, Ixx, Iyy, Ks_y, Ks_z, J
 }
 
-void ChElasticityCosseratGeneric::SetAsRectangularSection(double width_y, double width_z) {
-    double E = 1;
-    double G = 1;
 
-    double Izz = (1.0 / 12.0) * width_z * pow(width_y, 3);
-    double Iyy = (1.0 / 12.0) * width_y * pow(width_z, 3);
-
-    // use Roark's formulas for torsion of rectangular sect:
-    double t = ChMin(width_y, width_z);
-    double b = ChMax(width_y, width_z);
-    double J = b * pow(t, 3) * ((1.0 / 3.0) - 0.210 * (t / b) * (1.0 - (1.0 / 12.0) * pow((t / b), 4)));
-
-    // set Ks using Timoshenko-Gere formula for solid rect.shapes
-    double poisson = E / (2.0 * G) - 1.0;
-    double Ks_y = 10.0 * (1.0 + poisson) / (12.0 + 11.0 * poisson);
-    double Ks_z = Ks_y;
-
-    mE(0, 0) = E * section->Area;
-    mE(1, 1) = Ks_y * G * section->Area;
-    mE(2, 2) = Ks_z * G * section->Area;
-    mE(3, 3) = G * J;
-    mE(4, 4) = E * Iyy;
-    mE(5, 5) = E * Izz;
-}
-
-void ChElasticityCosseratGeneric::SetAsCircularSection(double diameter) {
-    double E = 1;
-    double G = 1;
-
-    double Izz = (CH_C_PI / 4.0) * pow((0.5 * diameter), 4);
-    double Iyy = Izz;
-
-    // exact expression for circular beam J = Ixx ,
-    // where for polar theorem Ixx = Izz+Iyy
-    double J = Izz + Iyy;
-
-    // set Ks using Timoshenko-Gere formula for solid circular shape
-    double poisson = E / (2.0 * G) - 1.0;
-    double Ks_y = 6.0 * (1.0 + poisson) / (7.0 + 6.0 * poisson);
-    double Ks_z = Ks_y;
-
-    mE(0, 0) = E * section->Area;
-    mE(1, 1) = Ks_y * G * section->Area;
-    mE(2, 2) = Ks_z * G * section->Area;
-    mE(3, 3) = G * J;
-    mE(4, 4) = E * Iyy;
-    mE(5, 5) = E * Izz;
-}
 
 void ChElasticityCosseratGeneric::ComputeStress(ChVector<>& stress_n,
                                                 ChVector<>& stress_m,
@@ -193,22 +147,21 @@ void ChElasticityCosseratAdvanced::ComputeStress(ChVector<>& stress_n,
                                                  ChVector<>& stress_m,
                                                  const ChVector<>& strain_n,
                                                  const ChVector<>& strain_m) {
-    double Area = section->Area;
     double cos_alpha = cos(alpha);
     double sin_alpha = sin(alpha);
-    double a11 = E * section->Area;
-    double a22 = E * (Iyy * pow(cos_alpha, 2.) + Izz * pow(sin_alpha, 2.) + Cz * Cz * Area);
-    double a33 = E * (Izz * pow(cos_alpha, 2.) + Iyy * pow(sin_alpha, 2.) + Cy * Cy * Area);
-    double a12 = Cz * E * Area;
-    double a13 = -Cy * E * Area;
-    double a23 = (E * Iyy - E * Izz) * cos_alpha * sin_alpha - E * Cy * Cz * Area;
+    double a11 = E * A;
+    double a22 = E * (Iyy * pow(cos_alpha, 2.) + Izz * pow(sin_alpha, 2.) + Cz * Cz * A);
+    double a33 = E * (Izz * pow(cos_alpha, 2.) + Iyy * pow(sin_alpha, 2.) + Cy * Cy * A);
+    double a12 = Cz * E * A;
+    double a13 = -Cy * E * A;
+    double a23 = (E * Iyy - E * Izz) * cos_alpha * sin_alpha - E * Cy * Cz * A;
     stress_n.x() = a11 * strain_n.x() + a12 * strain_m.y() + a13 * strain_m.z();
     stress_m.y() = a12 * strain_n.x() + a22 * strain_m.y() + a23 * strain_m.z();
     stress_m.z() = a13 * strain_n.x() + a23 * strain_m.y() + a33 * strain_m.z();
     double cos_beta = cos(beta);
     double sin_beta = sin(beta);
-    double KsyGA = Ks_y * G * Area;
-    double KszGA = Ks_z * G * Area;
+    double KsyGA = Ks_y * G * A;
+    double KszGA = Ks_z * G * A;
     double s11 = KsyGA * pow(cos_beta, 2.) + KszGA * pow(sin_beta, 2.);
     double s22 = KsyGA * pow(sin_beta, 2.) + KszGA * pow(cos_beta, 2.);  // ..+s_loc_12*sin(beta)*cos(beta);
     double s33 = G * J + Sz * Sz * KsyGA + Sy * Sy * KszGA;
@@ -224,19 +177,18 @@ void ChElasticityCosseratAdvanced::ComputeStiffnessMatrix(ChMatrixNM<double, 6, 
                                                           const ChVector<>& strain_n,
                                                           const ChVector<>& strain_m) {
     K.setZero(6, 6);
-    double Area = section->Area;
     double cos_alpha = cos(alpha);
     double sin_alpha = sin(alpha);
-    double a11 = E * section->Area;
-    double a22 = E * (Iyy * pow(cos_alpha, 2.) + Izz * pow(sin_alpha, 2.) + Cz * Cz * Area);
-    double a33 = E * (Izz * pow(cos_alpha, 2.) + Iyy * pow(sin_alpha, 2.) + Cy * Cy * Area);
-    double a12 = Cz * E * Area;
-    double a13 = -Cy * E * Area;
-    double a23 = (E * Iyy - E * Izz) * cos_alpha * sin_alpha - E * Cy * Cz * Area;
+    double a11 = E * A;
+    double a22 = E * (Iyy * pow(cos_alpha, 2.) + Izz * pow(sin_alpha, 2.) + Cz * Cz * A);
+    double a33 = E * (Izz * pow(cos_alpha, 2.) + Iyy * pow(sin_alpha, 2.) + Cy * Cy * A);
+    double a12 = Cz * E * A;
+    double a13 = -Cy * E * A;
+    double a23 = (E * Iyy - E * Izz) * cos_alpha * sin_alpha - E * Cy * Cz * A;
     double cos_beta = cos(beta);
     double sin_beta = sin(beta);
-    double KsyGA = Ks_y * G * Area;
-    double KszGA = Ks_z * G * Area;
+    double KsyGA = Ks_y * G * A;
+    double KszGA = Ks_z * G * A;
     double s11 = KsyGA * pow(cos_beta, 2.) + KszGA * pow(sin_beta, 2.);
     double s22 = KsyGA * pow(sin_beta, 2.) + KszGA * pow(cos_beta, 2.);  // ..+s_loc_12*sin(beta)*cos(beta);
     double s33 = G * J + Sz * Sz * KsyGA + Sy * Sy * KszGA;
@@ -813,23 +765,36 @@ void ChDampingCosseratRayleigh::UpdateStiffnessModel() {
 }
 
 
+
+//-----------------------------------------------------------------------------
+
+void ChInertiaCosseratUniformDensity::SetAsRectangularSection(double width_y, double width_z, double density) {
+	this->A = width_y * width_z;
+	this->Izz = (1.0 / 12.0) * width_z * pow(width_y, 3);
+	this->Iyy = (1.0 / 12.0) * width_y * pow(width_z, 3);
+	this->rho = density;
+}
+
+
+void ChInertiaCosseratUniformDensity::SetAsCircularSection(double diameter, double density) {
+	this->A   = CH_C_PI * pow((0.5 * diameter), 2);
+    this->Izz = (CH_C_PI / 4.0) * pow((0.5 * diameter), 4);
+    this->Iyy = Izz;
+	this->rho = density;
+}
+
+
 // -----------------------------------------------------------------------------
 
 
-ChBeamSectionCosserat::ChBeamSectionCosserat(std::shared_ptr<ChElasticityCosserat> melasticity) {
-    this->SetElasticity(melasticity);
-}
 
-ChBeamSectionCosserat::ChBeamSectionCosserat(std::shared_ptr<ChElasticityCosserat> melasticity,
-                                             std::shared_ptr<ChPlasticityCosserat> mplasticity) {
-    this->SetElasticity(melasticity);
-    this->SetPlasticity(mplasticity);
-}
-
-ChBeamSectionCosserat::ChBeamSectionCosserat(std::shared_ptr<ChElasticityCosserat> melasticity,
+ChBeamSectionCosserat::ChBeamSectionCosserat(std::shared_ptr<ChInertiaCosserat>    minertia,			 
+											 std::shared_ptr<ChElasticityCosserat> melasticity,
                                              std::shared_ptr<ChPlasticityCosserat> mplasticity,
                                              std::shared_ptr<ChDampingCosserat> mdamping) {
-    this->SetElasticity(melasticity);
+    this->SetInertia(minertia);
+
+	this->SetElasticity(melasticity);
 
     if (mplasticity)
         this->SetPlasticity(mplasticity);
@@ -872,7 +837,7 @@ void ChBeamSectionCosserat::SetElasticity(std::shared_ptr<ChElasticityCosserat> 
 
 void ChBeamSectionCosserat::SetPlasticity(std::shared_ptr<ChPlasticityCosserat> mplasticity) {
     plasticity = mplasticity;
-    mplasticity->section = this;
+    plasticity->section = this;
 }
 
 void ChBeamSectionCosserat::SetDamping(std::shared_ptr<ChDampingCosserat> mdamping) {
@@ -880,34 +845,66 @@ void ChBeamSectionCosserat::SetDamping(std::shared_ptr<ChDampingCosserat> mdampi
     damping->section = this;
 }
 
-void ChBeamSectionCosserat::SetAsRectangularSection(double width_y, double width_z) {
-    this->Area = width_y * width_z;
-    this->is_circular = false;
+void ChBeamSectionCosserat::SetInertia(std::shared_ptr<ChInertiaCosserat> minertia) {
+    inertia = minertia;
+    inertia->section = this;
+}
+
+
+
+
+// -----------------------------------------------------------------------------
+
+
+
+ChBeamSectionCosseratEasyRectangular::ChBeamSectionCosseratEasyRectangular(
+	double width_y,			///< width of section in y direction
+	double width_z,			///< width of section in z direction
+	double E,				///< Young modulus
+	double G,				///< shear modulus
+	double density			///< volumetric density (ex. in SI units: [kg/m])
+) {
+
+	this->is_circular = false;
     this->y_drawsize = width_y;
     this->z_drawsize = width_z;
 
-    if (this->elasticity)
-        this->elasticity->SetAsRectangularSection(width_y, width_z);
-    if (this->plasticity)
-        this->plasticity->SetAsRectangularSection(width_y, width_z);
-    if (this->damping)
-        this->damping->SetAsRectangularSection(width_y, width_z);
+	auto melasticity = chrono_types::make_shared<ChElasticityCosseratSimple>();
+	melasticity->SetYoungModulus(E);
+	melasticity->SetGshearModulus(G);
+	melasticity->SetAsRectangularSection(width_y, width_z);
+	this->SetElasticity(melasticity);
+
+	auto minertia = chrono_types::make_shared<ChInertiaCosseratUniformDensity>();
+	minertia->SetAsRectangularSection(width_y, width_z, density);
+	this->SetInertia(minertia);
 }
 
-void ChBeamSectionCosserat::SetAsCircularSection(double diameter) {
-    this->Area = CH_C_PI * pow((0.5 * diameter), 2);
-    this->is_circular = true;
+
+ChBeamSectionCosseratEasyCircular::ChBeamSectionCosseratEasyCircular(
+	double diameter,		///< diameter
+	double E,				///< Young modulus
+	double G,				///< shear modulus
+	double density			///< volumetric density (ex. in SI units: [kg/m])
+) {
+	this->is_circular = true;
     this->SetDrawCircularRadius(diameter / 2);
 
-    if (this->elasticity)
-        this->elasticity->SetAsCircularSection(diameter);
-    if (this->plasticity)
-        this->plasticity->SetAsCircularSection(diameter);
-    if (this->damping)
-        this->damping->SetAsCircularSection(diameter);
+	auto melasticity = chrono_types::make_shared<ChElasticityCosseratSimple>();
+	melasticity->SetYoungModulus(E);
+	melasticity->SetGshearModulus(G);
+	melasticity->SetAsCircularSection(diameter);
+	this->SetElasticity(melasticity);
+
+	auto minertia = chrono_types::make_shared<ChInertiaCosseratUniformDensity>();
+	minertia->SetAsCircularSection(diameter, density);
+	this->SetInertia(minertia);
 }
 
-// -----------------------------------------------------------------------------
+
+
+// ------------------------------------------------------------------------------
+
 
 }  // end namespace fea
 }  // end namespace chrono

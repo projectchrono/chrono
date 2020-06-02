@@ -68,9 +68,10 @@ class CH_VEHICLE_API SCMDeformableTerrain : public ChTerrain {
         PLOT_MASSREMAINDER
     };
 
-    /// Construct a default SCMDeformableSoil.
+    /// Construct a default SCM deformable terrain.
     /// The user is responsible for calling various Set methods before Initialize.
-    SCMDeformableTerrain(ChSystem* system  ///< [in] pointer to the containing multibody system
+    SCMDeformableTerrain(ChSystem* system,               ///< [in] pointer to the containing multibody system
+                         bool visualization_mesh = true  ///< [in] enable/disable visualization asset
     );
 
     ~SCMDeformableTerrain() {}
@@ -235,7 +236,7 @@ class CH_VEHICLE_API SCMDeformableTerrain : public ChTerrain {
 /// Used in SCMDeformableTerrain.
 class CH_VEHICLE_API SCMDeformableSoil : public ChLoadContainer {
   public:
-    SCMDeformableSoil(ChSystem* system);
+    SCMDeformableSoil(ChSystem* system, bool visualization_mesh);
     ~SCMDeformableSoil() {}
 
     /// Initialize the terrain system (flat).

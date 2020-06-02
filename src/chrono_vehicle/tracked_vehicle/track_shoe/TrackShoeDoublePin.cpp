@@ -57,6 +57,9 @@ void TrackShoeDoublePin::Create(const rapidjson::Document& d) {
     m_shoe_mass = d["Shoe"]["Mass"].GetDouble();
     m_shoe_inertia = ReadVectorJSON(d["Shoe"]["Inertia"]);
 
+    // Read location of guide pin center (for detracking control)
+    m_pin_center = ReadVectorJSON(d["Guide Pin Center"]);
+
     // Read connector body geometry and mass properties
     assert(d.HasMember("Connector"));
     m_connector_radius = d["Connector"]["Radius"].GetDouble();

@@ -8,6 +8,7 @@
   "Gear Inertia":                   [ 0.646, 0.883, 0.646 ],
   "Axle Inertia":                   0.02,
   "Gear Separation":                0.278,
+  "Lateral Backlash":               0.02,
 
   "Profile": {
     "Outer Radius":                0.24,
@@ -15,8 +16,6 @@
     "Tip Width":                   0.0133,
     "Tooth Depth":                 0.0402,
     "Arc Radius":                  0.264,
-    "Guide Wheel Width":           0.181,
-    "Guide Wheel Gap":             0.051,
     "Assembly Radius":             0.24
   },
 

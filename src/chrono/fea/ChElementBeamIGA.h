@@ -274,24 +274,25 @@ class  ChElementBeamIGA :   public ChElementBeam,
         Mloc.setZero();
 
         double nmass = mass /(double)nodes.size();
-         //Iyy and Izz: (orthogonal to spline) approx as 1/50 lumped mass at half dist:
-        double lineryz = (1. / 50.) * nmass * pow(length, 2);  // note: 1/50 can be even less (this is 0 in many texts, but 0 means no explicit integrator could be used) 
-         //Ixx: (tangent to spline) approx as node cuboid
-        double linerx =  (1. / 12.) * nmass * (pow(section->GetDrawThicknessY(),2) + pow(section->GetDrawThicknessZ(),2));
+         //Iyy and Izz: (orthogonal to spline) add approx as 1/50 lumped mass at half dist for translational effect, plus inertia of thin section: 
+		 // note: 1/50 can be even less (this is 0 in many texts) 
+        double lineryy  = (1. / 50.) * nmass * pow(length, 2) + 
+						 this->section->GetInertia()->GetInertiaJyyPerUnitLength() * (length / (double)nodes.size());
+		double linerzz  = (1. / 50.) * nmass * pow(length, 2) + 
+						 this->section->GetInertia()->GetInertiaJyyPerUnitLength() * (length / (double)nodes.size());
+         //Ixx: (tangent to spline)  
+        double linerxx  = this->section->GetInertia()->GetInertiaJxxPerUnitLength() * (length / (double)nodes.size()); 
+		  //was Ixx: (tangent to spline) approx as node cuboid: linerxx=  (1. / 12.) * nmass * (pow(section->GetDrawThicknessY(),2) + pow(section->GetDrawThicknessZ(),2));
 
         for (int i = 0; i< nodes.size(); ++i) {
             int stride = i*6;
-			double nodelineryz = lineryz;
-			//if (i == 0 || i == (nodes.size() - 1)) {
-				// node overlapped in neighbouring element
-			//	nodelineryz = lineryz * 0.5;
-			//}
+
             Mloc(stride+0, stride+0) += Mfactor * nmass;  // node A x,y,z
             Mloc(stride+1, stride+1) += Mfactor * nmass;
             Mloc(stride+2, stride+2) += Mfactor * nmass;
-            Mloc(stride+3, stride+3) += Mfactor * linerx;  // node A Ixx,Iyy,Izz 
-            Mloc(stride+4, stride+4) += Mfactor * lineryz;
-            Mloc(stride+5, stride+5) += Mfactor * lineryz;
+            Mloc(stride+3, stride+3) += Mfactor * linerxx;  // node A Ixx,Iyy,Izz 
+            Mloc(stride+4, stride+4) += Mfactor * lineryy;
+            Mloc(stride+5, stride+5) += Mfactor * linerzz;
         }
 
         H.block(0, 0, Mloc.rows(), Mloc.cols()) += Mloc;
@@ -733,7 +734,8 @@ class  ChElementBeamIGA :   public ChElementBeam,
 	}
 
 	/// This is needed so that it can be accessed by ChLoaderVolumeGravity
-	virtual double GetDensity() override { return this->section->GetArea() * this->section->GetDensity(); }
+	virtual double GetDensity() override { return this->section->GetInertia()->GetMassPerUnitLength(); } //this->section->GetArea()* this->section->GetDensity();
+
 
   private:
     /// Initial setup. Precompute mass and matrices that do not change during the simulation. In particular, compute the
@@ -878,7 +880,7 @@ class  ChElementBeamIGA :   public ChElementBeam,
         }
 
         // as a byproduct, also compute total mass
-        this->mass = this->length * this->section->GetArea() * this->section->GetDensity();
+        this->mass = this->length * this->section->GetInertia()->GetMassPerUnitLength();
     }
 
     std::vector<std::shared_ptr<ChNodeFEAxyzrot>> nodes;  // also "control points"

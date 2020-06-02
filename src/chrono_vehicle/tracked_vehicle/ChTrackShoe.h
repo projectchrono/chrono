@@ -48,6 +48,9 @@ class CH_VEHICLE_API ChTrackShoe : public ChPart {
     /// consistent with the idler and road wheels in the containing track assembly.
     virtual GuidePinType GetType() const = 0;
 
+    /// Get the index of this track shoe within its containing track assembly.
+    size_t GetIndex() const { return m_index; }
+
     /// Get a handle to the shoe body.
     std::shared_ptr<ChBody> GetShoeBody() const { return m_shoe; }
 
@@ -58,11 +61,14 @@ class CH_VEHICLE_API ChTrackShoe : public ChPart {
     /// This quantity must agree with the pitch of the sprocket gear.
     virtual double GetPitch() const = 0;
 
-    /// Get the index of this track shoe within its containing track assembly.
-    size_t GetIndex() const { return m_index; }
-
     /// Get the mass of the track shoe assembly.
     virtual double GetMass() const = 0;
+
+    /// Return the location for lateral contact with the sprocket, expressed in the shoe reference frame.
+    /// This point, which must be in the median plane of the track shoe, is used to enforce lateral contact with the
+    /// sprocket as a detracking prevention mechanism. For track shoes with a central guiding pin, this can be the
+    /// center of the guiding pin collision shape.
+    virtual ChVector<> GetLateralContactPoint() const = 0;
 
     /// Turn on/off collision flag for the shoe body.
     void SetCollide(bool val) { m_shoe->SetCollide(val); }

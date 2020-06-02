@@ -125,6 +125,9 @@ int main(int argc, char* argv[]) {
 
     double wire_diameter = 0.010;
 
+	auto minertia = chrono_types::make_shared<ChInertiaCosseratUniformDensity>();
+	minertia->SetAsCircularSection(wire_diameter, 2700);  // automatically sets A etc., from width, height, density 
+
 	auto melasticity = chrono_types::make_shared<ChElasticityCosseratSimple>();
 	melasticity->SetYoungModulus(0.5e9);
 	melasticity->SetGshearModulus(0.5e9 * 0.7);
@@ -138,9 +141,10 @@ int main(int argc, char* argv[]) {
 	mplasticity->n_yeld_My = chrono_types::make_shared<ChFunction_Ramp>(0.2, 0.001);
 	mplasticity->n_yeld_Mz = chrono_types::make_shared<ChFunction_Ramp>(0.2, 0.001);
 
-	auto msection = chrono_types::make_shared<ChBeamSectionCosserat>(melasticity, mplasticity, mdamping);
-	msection->SetDensity(1000);
-	msection->SetAsCircularSection(wire_diameter);
+	auto msection = chrono_types::make_shared<ChBeamSectionCosserat>(minertia, melasticity, mplasticity, mdamping);
+
+	msection->SetCircular(true);
+	msection->SetDrawCircularRadius(wire_diameter/2.);
 
     // Create the surface material for the contacts; this contains information about friction etc.
     // It is a SMC (penalty) material: interpenetration might happen for low Young stiffness,
