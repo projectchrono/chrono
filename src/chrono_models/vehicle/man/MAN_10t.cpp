@@ -43,6 +43,7 @@ MAN_10t::MAN_10t()
       m_contactMethod(ChContactMethod::NSC),
       m_chassisCollisionType(ChassisCollisionType::NONE),
       m_fixed(false),
+      m_brake_locking(false),
       m_tireType(TireModelType::TMEASY),
       m_tire_step_size(-1),
       m_initFwdVel(0),
@@ -58,6 +59,7 @@ MAN_10t::MAN_10t(ChSystem* system)
       m_contactMethod(ChContactMethod::NSC),
       m_chassisCollisionType(ChassisCollisionType::NONE),
       m_fixed(false),
+      m_brake_locking(false),
       m_tireType(TireModelType::TMEASY),
       m_tire_step_size(-1),
       m_initFwdVel(0),
@@ -200,6 +202,8 @@ void MAN_10t::Initialize() {
                 wheel->GetTire()->SetStepsize(m_tire_step_size);
         }
     }
+
+    m_vehicle->EnableBrakeLocking(m_brake_locking);
 }
 
 // -----------------------------------------------------------------------------

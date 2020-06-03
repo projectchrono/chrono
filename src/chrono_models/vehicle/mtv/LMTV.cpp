@@ -34,6 +34,7 @@ LMTV::LMTV()
       m_contactMethod(ChContactMethod::NSC),
       m_chassisCollisionType(ChassisCollisionType::NONE),
       m_fixed(false),
+      m_brake_locking(false),
       m_powertrainType(PowertrainModelType::SHAFTS),
       m_tireType(TireModelType::RIGID),
       m_tire_step_size(-1),
@@ -49,6 +50,7 @@ LMTV::LMTV(ChSystem* system)
       m_contactMethod(ChContactMethod::NSC),
       m_chassisCollisionType(ChassisCollisionType::NONE),
       m_fixed(false),
+      m_brake_locking(false),
       m_powertrainType(PowertrainModelType::SHAFTS),
       m_tireType(TireModelType::RIGID),
       m_tire_step_size(-1),
@@ -170,6 +172,8 @@ void LMTV::Initialize() {
                 wheel->GetTire()->SetStepsize(m_tire_step_size);
         }
     }
+
+    m_vehicle->EnableBrakeLocking(m_brake_locking);
 }
 
 // -----------------------------------------------------------------------------

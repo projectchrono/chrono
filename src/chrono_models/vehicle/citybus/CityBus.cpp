@@ -34,6 +34,7 @@ CityBus::CityBus()
       m_contactMethod(ChContactMethod::NSC),
       m_chassisCollisionType(ChassisCollisionType::NONE),
       m_fixed(false),
+      m_brake_locking(false),
       m_tireType(TireModelType::TMEASY),
       m_tire_step_size(-1),
       m_initFwdVel(0),
@@ -47,6 +48,7 @@ CityBus::CityBus(ChSystem* system)
       m_contactMethod(ChContactMethod::NSC),
       m_chassisCollisionType(ChassisCollisionType::NONE),
       m_fixed(false),
+      m_brake_locking(false),
       m_tireType(TireModelType::RIGID),
       m_tire_step_size(-1),
       m_initFwdVel(0),
@@ -172,6 +174,8 @@ void CityBus::Initialize() {
                 wheel->GetTire()->SetStepsize(m_tire_step_size);
         }
     }
+
+    m_vehicle->EnableBrakeLocking(m_brake_locking);
 }
 
 // -----------------------------------------------------------------------------
