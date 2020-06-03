@@ -64,6 +64,8 @@ class CH_MODELS_API UAZBUS {
 
     void SetTireStepSize(double step_size) { m_tire_step_size = step_size; }
 
+    void EnableBrakeLocking(bool lock) { m_brake_locking = lock; }
+
     ChSystem* GetSystem() const { return m_vehicle->GetSystem(); }
     ChWheeledVehicle& GetVehicle() const { return *m_vehicle; }
     std::shared_ptr<ChChassis> GetChassis() const { return m_vehicle->GetChassis(); }
@@ -94,6 +96,7 @@ class CH_MODELS_API UAZBUS {
     ChContactMethod m_contactMethod;
     ChassisCollisionType m_chassisCollisionType;
     bool m_fixed;
+    bool m_brake_locking;
 
     TireModelType m_tireType;
 

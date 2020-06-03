@@ -429,10 +429,12 @@ void ChTMeasyTire::Advance(double step) {
         // Calculate result of alignment torque and bore torque
         // Compile the force and moment vectors so that they can be
         // transformed into the global coordinate system.
-        m_states.Fx_struct = ChClamp(m_states.xe * m_TMeasyCoeff.cx + m_states.xe_dot * m_TMeasyCoeff.dx,
-                                     -m_TMeasyCoeff.fxm_p2n * kN2N, m_TMeasyCoeff.fxm_p2n * kN2N);
-        m_states.Fy_struct = ChClamp(m_states.ye * m_TMeasyCoeff.cy + m_states.ye_dot * m_TMeasyCoeff.dy,
-                                     -m_TMeasyCoeff.fym_p2n * kN2N, m_TMeasyCoeff.fym_p2n * kN2N);
+        double Fx_struct_max = muscale * m_TMeasyCoeff.fxm_p2n * kN2N;
+        m_states.Fx_struct =
+            ChClamp(m_states.xe * m_TMeasyCoeff.cx + m_states.xe_dot * m_TMeasyCoeff.dx, -Fx_struct_max, Fx_struct_max);
+        double Fy_struct_max = muscale * m_TMeasyCoeff.fym_p2n * kN2N;
+        m_states.Fy_struct =
+            ChClamp(m_states.ye * m_TMeasyCoeff.cy + m_states.ye_dot * m_TMeasyCoeff.dy, -Fy_struct_max, Fy_struct_max);
         double weightx = ChSineStep(abs(m_states.vsx), 1.0, 1.0, 1.5, 0.0);
         double Fx_res = weightx * m_states.Fx_struct + (1.0 - weightx) * m_states.Fx_dyn;
         double weighty = ChSineStep(abs(m_states.vsy), 1.0, 1.0, 1.5, 0.0);

@@ -43,6 +43,7 @@ MAN_5t::MAN_5t()
       m_contactMethod(ChContactMethod::NSC),
       m_chassisCollisionType(ChassisCollisionType::NONE),
       m_fixed(false),
+      m_brake_locking(false),
       m_tireType(TireModelType::TMEASY),
       m_tire_step_size(-1),
       m_initFwdVel(0),
@@ -58,6 +59,7 @@ MAN_5t::MAN_5t(ChSystem* system)
       m_contactMethod(ChContactMethod::NSC),
       m_chassisCollisionType(ChassisCollisionType::NONE),
       m_fixed(false),
+      m_brake_locking(false),
       m_tireType(TireModelType::TMEASY),
       m_tire_step_size(-1),
       m_initFwdVel(0),
@@ -188,6 +190,8 @@ void MAN_5t::Initialize() {
                 wheel->GetTire()->SetStepsize(m_tire_step_size);
         }
     }
+
+    m_vehicle->EnableBrakeLocking(m_brake_locking);
 }
 
 // -----------------------------------------------------------------------------

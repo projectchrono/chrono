@@ -317,6 +317,7 @@ void ChLinkLock::BuildLinkType(LinkType link_type) {
             break;
         case LinkType::ALIGN:
             BuildLink(false, false, false, false, true, true, true);
+            break;
         case LinkType::PARALLEL:
             BuildLink(false, false, false, false, true, true, false);
             break;
