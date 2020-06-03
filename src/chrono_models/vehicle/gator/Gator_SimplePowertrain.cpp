@@ -31,7 +31,7 @@ namespace gator {
 const double Gator_SimplePowertrain::m_max_torque = 200;                      // N.m
 const double Gator_SimplePowertrain::m_max_speed = 3500 * (CH_C_2PI / 60.0);  // rad/s
 const double Gator_SimplePowertrain::m_fwd_gear_ratio = 0.07;
-const double Gator_SimplePowertrain::m_rev_gear_ratio = -0.05;
+const double Gator_SimplePowertrain::m_rev_gear_ratio = -0.04;
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -62,7 +62,7 @@ void Gator_SimplePowertrain::Synchronize(double time, double throttle) {
     double shaftSpeed = std::abs(m_driveline->GetDriveshaftSpeed());
 
     // The motor speed is the shaft speed multiplied by gear ratio inversed
-    m_motorSpeed = shaftSpeed / m_current_gear_ratio;
+    m_motorSpeed = shaftSpeed / std::abs(m_current_gear_ratio);
 
     // DC motor model (throttle modulates output torque)
     m_motorTorque = m_max_torque - m_motorSpeed * (m_max_torque / m_max_speed);
