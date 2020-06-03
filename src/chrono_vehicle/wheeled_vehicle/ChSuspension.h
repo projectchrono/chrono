@@ -163,6 +163,9 @@ class CH_VEHICLE_API ChSuspension : public ChPart {
     /// Log current constraint violations.
     virtual void LogConstraintViolations(VehicleSide side) {}
 
+    /// Simple model of a parking brake.
+    void ApplyParkingBrake(bool brake);
+
   protected:
     ChVector<> m_location;                               ///< location relative to chassis
     int m_steering_index;                                ///< index of associated steering mechanism

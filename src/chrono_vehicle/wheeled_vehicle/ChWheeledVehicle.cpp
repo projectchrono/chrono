@@ -30,9 +30,10 @@ namespace vehicle {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 ChWheeledVehicle::ChWheeledVehicle(const std::string& name, ChContactMethod contact_method)
-    : ChVehicle(name, contact_method) {}
+    : ChVehicle(name, contact_method), m_parking_on(false) {}
 
-ChWheeledVehicle::ChWheeledVehicle(const std::string& name, ChSystem* system) : ChVehicle(name, system) {}
+ChWheeledVehicle::ChWheeledVehicle(const std::string& name, ChSystem* system)
+    : ChVehicle(name, system), m_parking_on(false) {}
 
 // -----------------------------------------------------------------------------
 // Initialize a tire and attach it to one of the vehicle's wheels.
@@ -122,6 +123,17 @@ void ChWheeledVehicle::LockAxleDifferential(int axle, bool lock) {
 
 void ChWheeledVehicle::LockCentralDifferential(int which, bool lock) {
     m_driveline->LockCentralDifferential(which, lock);
+}
+
+
+void ChWheeledVehicle::ApplyParkingBrake(bool lock) {
+    if (m_parking_on == lock)
+        return;
+
+    for (auto& axle : m_axles) {
+        axle->m_suspension->ApplyParkingBrake(lock);
+    }
+    m_parking_on = lock;
 }
 
 // -----------------------------------------------------------------------------

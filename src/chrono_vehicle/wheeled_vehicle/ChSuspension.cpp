@@ -74,5 +74,10 @@ void ChSuspension::AddVisualizationSpindle(VehicleSide side, double radius, doub
     m_spindle[side]->AddAsset(m_spindle_shapes[side]);
 }
 
+void ChSuspension::ApplyParkingBrake(bool brake) {
+    m_revolute[0]->Lock(brake);
+    m_revolute[1]->Lock(brake);
+}
+
 }  // end namespace vehicle
 }  // end namespace chrono
