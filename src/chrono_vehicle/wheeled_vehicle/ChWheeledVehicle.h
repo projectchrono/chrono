@@ -207,6 +207,11 @@ class CH_VEHICLE_API ChWheeledVehicle : public ChVehicle {
     /// the central differential between the two front-most axles.
     void LockCentralDifferential(int which, bool lock);
 
+    /// Enable/disable brake locking.
+    /// If supported by the concrete brake type used on this vehicle, the brakes will be locked for large enough braking
+    /// inputs. By default, brakes do not lock.
+    void EnableBrakeLocking(bool lock);
+
     /// Engage/disengage parking brake.
     /// If engaged, this locks all suspension spindle revolute joints.
     void ApplyParkingBrake(bool lock);

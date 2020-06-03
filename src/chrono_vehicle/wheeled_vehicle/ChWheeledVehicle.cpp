@@ -125,6 +125,17 @@ void ChWheeledVehicle::LockCentralDifferential(int which, bool lock) {
     m_driveline->LockCentralDifferential(which, lock);
 }
 
+// -----------------------------------------------------------------------------
+// Brake behavior
+// -----------------------------------------------------------------------------
+void ChWheeledVehicle::EnableBrakeLocking(bool lock) {
+    for (auto& axle : m_axles) {
+        if (axle->m_brake_left)
+            axle->m_brake_left->EnableLocking(lock);
+        if (axle->m_brake_right)
+            axle->m_brake_right->EnableLocking(lock);
+    }
+}
 
 void ChWheeledVehicle::ApplyParkingBrake(bool lock) {
     if (m_parking_on == lock)
