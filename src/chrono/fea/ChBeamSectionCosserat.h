@@ -88,14 +88,14 @@ class ChApi ChElasticityCosseratSimple : public ChElasticityCosserat {
     double GetArea() const { return this->A; }
 
     /// Set the Iyy second moment of area of the beam (for bending about y in xz plane),
-	/// defined as \f$ I_y =  \int_\Omega \rho z^2 dA f$.
+	/// defined as \f$ I_y =  \int_\Omega \rho z^2 dA \f$.
     /// Note: some textbook calls this Iyy as Iy
 	/// Ex SI units: [m^4]
     void SetIyy(double ma) { this->Iyy = ma; }
     double GetIyy() const { return this->Iyy; }
 
     /// Set the Izz second moment of area of the beam (for bending about z in xy plane). 
-	/// defined as \f$ I_z =  \int_\Omega \rho y^2 dA f$.
+	/// defined as \f$ I_z =  \int_\Omega \rho y^2 dA \f$.
     /// Note: some textbook calls this Izz as Iz
 	/// Ex SI units: [m^4]
     void SetIzz(double ma) { this->Izz = ma; }
@@ -689,21 +689,21 @@ class ChApi ChInertiaCosserat {
 	/// i.e. the part associated with rotation about the beam direction.
 	/// Ex. SI units [kg/m].
 	/// Defined as: \f$ J_{xx} = \int_\Omega \rho y^2 + z^2 dA \f$, with \f$ \rho \f$ density in [kg/m^3].
-	/// For uniform density it is also \f$ J_{xx} = \rho I_p \f$, where \f$ I_p = I_z + I_y\f$ is the polar moment of area. 
+	/// For uniform density it is also \f$ J_{xx} = \rho I_p \f$, where \f$ I_p = I_z + I_y \f$ is the polar moment of area. 
 	virtual double GetInertiaJxxPerUnitLength() = 0;
 
 	/// Compute the Jyy component of the inertia tensor per unit length,
 	/// i.e. the part associated with rotation of the section on its Y axis.
 	/// Ex. SI units [kg/m].
 	/// Defined as: \f$ J_{yy} = \int_\Omega \rho z^2 dA \f$, with \f$ \rho \f$ density in [kg/m^3].
-	/// For uniform density it is also \f$ J_{yy} = \rho I_y \f$, where \f$ I_y =  \int_\Omega \rho z^2 dA f$ is the second moment of area. 
+	/// For uniform density it is also \f$ J_{yy} = \rho I_y \f$, where \f$ I_y =  \int_\Omega \rho z^2 dA \f$ is the second moment of area. 
 	virtual double GetInertiaJyyPerUnitLength() = 0;
 
 	/// Compute the Jzz component of the inertia tensor per unit length,
 	/// i.e. the part associated with rotation of the section on its Z axis.
 	/// Ex. SI units [kg/m].
 	/// Defined as: \f$ J_{zz} = \int_\Omega \rho y^2 dA \f$, with \f$ \rho \f$ density in [kg/m^3].
-	/// For uniform density it is also \f$ J_{zz} = \rho I_z \f$, where \f$ I_z =  \int_\Omega \rho y^2 dA f$ is the second moment of area. 
+	/// For uniform density it is also \f$ J_{zz} = \rho I_z \f$, where \f$ I_z =  \int_\Omega \rho y^2 dA \f$ is the second moment of area. 
 	virtual double GetInertiaJzzPerUnitLength() = 0;
 
 	ChBeamSectionCosserat* section;
@@ -739,19 +739,19 @@ class ChApi ChInertiaCosseratUniformDensity : public ChInertiaCosserat {
 
 	/// Compute the Ixx component of the inertia tensor per unit length,
 	/// i.e. the part associated with rotation about the beam direction.
-	/// In this case it is \f$ J_{xx} = \rho I_p \f$, where \f$ I_p = I_z + I_y\f$ is the polar moment of area. 
+	/// In this case it is \f$ J_{xx} = \rho I_p \f$, where \f$ I_p = I_z + I_y \f$ is the polar moment of area. 
 	virtual double GetInertiaJxxPerUnitLength() override { return this->rho * (this->Iyy + this->Izz); }
 
 	/// Compute the Jyy component of the inertia tensor per unit length,
 	/// i.e. the part associated with rotation of the section on its Y axis.
 	/// Defined as: \f$ J_{yy} = \int_\Omega \rho z^2 dA \f$, with \f$ \rho \f$ density in [kg/m^3].
-	/// For uniform density it is  \f$ J_{yy} = \rho I_y \f$, where \f$ I_y =  \int_\Omega \rho z^2 dA f$ is the second moment of area. 
+	/// For uniform density it is  \f$ J_{yy} = \rho I_y \f$, where \f$ I_y =  \int_\Omega \rho z^2 dA \f$ is the second moment of area. 
 	virtual double GetInertiaJyyPerUnitLength() override { return this->rho * this->Iyy; }
 
 	/// Compute the Jzz component of the inertia tensor per unit length,
 	/// i.e. the part associated with rotation of the section on its Z axis.
 	/// Defined as: \f$ J_{zz} = \int_\Omega \rho y^2 dA \f$, with \f$ \rho \f$ density in [kg/m^3].
-	/// For uniform density it is  \f$ J_{zz} = \rho I_z \f$, where \f$ I_z =  \int_\Omega \rho y^2 dA f$ is the second moment of area. 
+	/// For uniform density it is  \f$ J_{zz} = \rho I_z \f$, where \f$ I_z =  \int_\Omega \rho y^2 dA \f$ is the second moment of area. 
 	virtual double GetInertiaJzzPerUnitLength() override { return this->rho * this->Izz; }
 
 	/// Set the volumetric density, assumed constant in the section. Ex. SI units: [kg/m^3].
@@ -763,7 +763,7 @@ class ChApi ChInertiaCosseratUniformDensity : public ChInertiaCosserat {
 	double GetArea() const { return A; }
 
 	/// Set the Iyy second moment of area of the beam (for bending about y in xz plane),
-	/// defined as \f$ I_y =  \int_\Omega \rho z^2 dA f$. 
+	/// defined as \f$ I_y =  \int_\Omega \rho z^2 dA \f$. 
     /// Note: some textbook calls this Iyy as Iy.
 	/// Note: it can correspond to the same Iyy that you used for the elasticity, ex. in ChElasticityCosseratSimple.
 	/// Ex. SI units: [m^4]
@@ -771,7 +771,7 @@ class ChApi ChInertiaCosseratUniformDensity : public ChInertiaCosserat {
     double GetIyy() const { return this->Iyy; }
 
 	/// Set the Izz second moment of area of the beam (for bending about z in xy plane),
-	/// defined as \f$ I_z =  \int_\Omega \rho y^2 dA f$. 
+	/// defined as \f$ I_z =  \int_\Omega \rho y^2 dA \f$. 
     /// Note: some textbook calls this Izz as Iz.
 	/// Note: it can correspond to the same Izz that you used for the elasticity, ex. in ChElasticityCosseratSimple.
 	/// Ex. SI units: [m^4]
