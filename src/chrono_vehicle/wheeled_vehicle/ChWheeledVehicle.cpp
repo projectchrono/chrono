@@ -233,8 +233,6 @@ double ChWheeledVehicle::GetVehicleMass() const {
 
 // -----------------------------------------------------------------------------
 // Calculate and return the current vehicle COM location
-// Note: do not include the wheels, as these are already accounted for through
-// the associated spindle body.
 // -----------------------------------------------------------------------------
 ChVector<> ChWheeledVehicle::GetVehicleCOMPos() const {
     ChVector<> com(0, 0, 0);
@@ -242,6 +240,8 @@ ChVector<> ChWheeledVehicle::GetVehicleCOMPos() const {
     com += m_chassis->GetMass() * m_chassis->GetCOMPos();
     for (auto& axle : m_axles) {
         com += axle->m_suspension->GetMass() * axle->m_suspension->GetCOMPos();
+        for (auto& wheel : axle->GetWheels())
+            com += wheel->GetMass() * wheel->GetPos();
         if (axle->m_antirollbar)
             com += axle->m_antirollbar->GetMass() * axle->m_antirollbar->GetCOMPos();
     }
