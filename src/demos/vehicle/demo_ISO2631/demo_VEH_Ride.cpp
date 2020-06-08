@@ -283,7 +283,7 @@ int main(int argc, char* argv[]) {
         }
         if (xpos >= xstart) {
             double speed = vehicle.GetVehicleSpeed();
-            ChVector<> seat_acc = vehicle.GetVehicleAcceleration(vehicle.GetChassis()->GetLocalDriverCoordsys().pos);
+            ChVector<> seat_acc = vehicle.GetVehiclePointAcceleration(vehicle.GetChassis()->GetLocalDriverCoordsys().pos);
             seat_logger.AddData(speed, seat_acc);
         }
 
@@ -310,7 +310,7 @@ int main(int argc, char* argv[]) {
 
         if (xpos >= xstart) {
             double speed = vehicle.GetVehicleSpeed();
-            ChVector<> seat_acc = vehicle.GetVehicleAcceleration(vehicle.GetChassis()->GetLocalDriverCoordsys().pos);
+            ChVector<> seat_acc = vehicle.GetVehiclePointAcceleration(vehicle.GetChassis()->GetLocalDriverCoordsys().pos);
             seat_logger.AddData(speed, seat_acc);
         }
     }

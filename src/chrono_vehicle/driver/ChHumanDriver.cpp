@@ -222,7 +222,8 @@ void ChHumanDriver::Advance(double step) {  // distance in front of the vehicle.
         m_run_once = false;
     }
 
-    auto& chassis_frame = m_vehicle.GetChassisBody()->GetFrame_REF_to_abs();  // chassis ref-to-world frame
+    auto& chassis_frame = m_vehicle.GetChassisBody()->GetFrame_REF_to_abs();  // chassis ref-to-world frame (ISO frame)
+    auto& chassis_rot = chassis_frame.GetRot();                               // chassis ref-to-world rotation (ISO frame)
     double u = m_vehicle.GetVehicleSpeed();                                   // vehicle speed
 
     m_distance = m_UIntegrator.Filter(u);
@@ -234,7 +235,7 @@ void ChHumanDriver::Advance(double step) {  // distance in front of the vehicle.
         m_speed_min = u;
     }
 
-    double acc = m_acc_filter.Filter(m_vehicle.GetVehicleAcceleration(ChVector<>(0, 0, 0)).y());
+    double acc = m_acc_filter.Filter(m_vehicle.GetVehiclePointAcceleration(ChVector<>(0, 0, 0)).y());
     if (acc > m_left_acc) {
         m_left_acc = acc;
     }
@@ -243,13 +244,13 @@ void ChHumanDriver::Advance(double step) {  // distance in front of the vehicle.
     }
 
     // Calculate unit vector pointing to the yaw center
-    ChVector<> n_g = m_vehicle.GetVehicleRot().GetYaxis();  // vehicle left direction
-    ChWorldFrame::Project(n_g);                             // projected onto horizontal plane
+    ChVector<> n_g = chassis_rot.GetYaxis();                // vehicle left direction (ISO frame)
+    ChWorldFrame::Project(n_g);                             // projected onto horizontal plane (world frame)
     n_g.Normalize();                                        // normalized
 
     // Calculate unit vector in the vehicle forward direction
-    ChVector<> t_g = m_vehicle.GetVehicleRot().GetXaxis();  // vehicle forward direction
-    ChWorldFrame::Project(t_g);                             // projected onto horizontal plane
+    ChVector<> t_g = chassis_rot.GetXaxis();                // vehicle forward direction (ISO frame)
+    ChWorldFrame::Project(t_g);                             // projected onto horizontal plane (world frame)
     t_g.Normalize();                                        // normalized
 
     double R = 0;

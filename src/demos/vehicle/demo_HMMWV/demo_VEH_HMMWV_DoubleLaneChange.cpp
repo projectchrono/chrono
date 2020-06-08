@@ -508,8 +508,8 @@ int main(int argc, char* argv[]) {
     while (app.GetDevice()->run()) {
         time = my_hmmwv.GetSystem()->GetChTime();
         double speed = speed_filter.Add(my_hmmwv.GetVehicle().GetVehicleSpeed());
-        double accel =
-            accel_filter.Filter(my_hmmwv.GetVehicle().GetVehicleAcceleration(ChVector<>(-wheel_base / 2, 0, 0)).y());
+        double accel = accel_filter.Filter(
+            my_hmmwv.GetVehicle().GetVehiclePointAcceleration(ChVector<>(-wheel_base / 2, 0, 0)).y());
 
         speed_recorder.AddPoint(time, speed);
         accel_recorder.AddPoint(time, accel);

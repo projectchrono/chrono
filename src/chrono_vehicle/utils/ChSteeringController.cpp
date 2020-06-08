@@ -340,10 +340,12 @@ double ChPathSteeringControllerXT::CalcAckermannAngle() {
 }
 
 double ChPathSteeringControllerXT::Advance(const ChVehicle& vehicle, double step) {
+    auto& chassis_frame = vehicle.GetChassisBody()->GetFrame_REF_to_abs();  // chassis ref-to-world frame (ISO frame)
+    auto& chassis_rot = chassis_frame.GetRot();                             // chassis ref-to-world rotation (ISO frame)
+
     // Calculate current "sentinel" location.  This is a point at the look-ahead
     // distance in front of the vehicle.
-    m_sentinel =
-        vehicle.GetChassisBody()->GetFrame_REF_to_abs().TransformPointLocalToParent(m_dist * ChWorldFrame::Forward());
+    m_sentinel = chassis_frame.TransformPointLocalToParent(m_dist * ChWorldFrame::Forward());
     m_vel = vehicle.GetVehiclePointVelocity(ChVector<>(0, 0, 0));
     if (!m_filters_initialized) {
         // first time we know about step size
@@ -380,7 +382,7 @@ double ChPathSteeringControllerXT::Advance(const ChVehicle& vehicle, double step
     double y_err_out = m_PathErrCtl.Filter(y_err);
 
     // Calculate the heading error
-    ChVector<> veh_head = vehicle.GetVehicleRot().GetXaxis();
+    ChVector<> veh_head = chassis_rot.GetXaxis();  // vehicle forward direction (ISO frame)
     ChVector<> path_head = m_ptangent;
 
     double h_err = CalcHeadingError(veh_head, path_head);
@@ -400,7 +402,7 @@ double ChPathSteeringControllerXT::Advance(const ChVehicle& vehicle, double step
     // in right bending curves only right steering allowed
     // |res| is never allowed to grow above 1
 
-    ChVector<> veh_left = vehicle.GetVehicleRot().GetYaxis();
+    ChVector<> veh_left = chassis_rot.GetYaxis();  // vehicle left direction (ISO frame)
     ChVector<> path_left = m_pnormal;
     int crvcode = CalcCurvatureCode(veh_left, path_left);
 
@@ -534,17 +536,17 @@ void ChPathSteeringControllerSR::SetPreviewTime(double Tp) {
 double ChPathSteeringControllerSR::Advance(const ChVehicle& vehicle, double step) {
     const double g = 9.81;
 
-    // Calculate current "sentinel" location.  
-    // This is a point at the look-ahead distance in front of the vehicle.
-
-    // Calculate unit vector pointing to the yaw center
-    ChVector<> n_g = vehicle.GetVehicleRot().GetYaxis();  // vehicle left direction
-    ChWorldFrame::Project(n_g);                           // projected onto horizontal plane
-    n_g.Normalize();                                      // normalized
-
-    auto& chassis_frame = vehicle.GetChassisBody()->GetFrame_REF_to_abs();  // chassis ref-to-world frame
+    auto& chassis_frame = vehicle.GetChassisBody()->GetFrame_REF_to_abs();  // chassis ref-to-world frame (ISO frame)
+    auto& chassis_rot = chassis_frame.GetRot();                             // chassis ref-to-world rotation (ISO frame)
     double u = vehicle.GetVehicleSpeed();                                   // vehicle speed
 
+    // Calculate unit vector pointing to the yaw center
+    ChVector<> n_g = chassis_rot.GetYaxis();  // vehicle left direction (ISO frame)
+    ChWorldFrame::Project(n_g);               // projected onto horizontal plane (world frame)
+    n_g.Normalize();                          // normalized
+
+    // Calculate current "sentinel" location.
+    // This is a point at the look-ahead distance in front of the vehicle.
     double R = 0;
     double ut = u > m_umin ? u : m_umin;
     double factor = ut * m_Tp;
