@@ -29,6 +29,7 @@
 //// case. Is there a solution?
 
 #include <algorithm>
+#include <stdexcept>
 #include <thrust/sort.h>
 
 #include "chrono/physics/ChSystemSMC.h"
