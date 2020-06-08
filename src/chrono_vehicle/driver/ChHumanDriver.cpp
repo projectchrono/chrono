@@ -235,7 +235,7 @@ void ChHumanDriver::Advance(double step) {  // distance in front of the vehicle.
         m_speed_min = u;
     }
 
-    double acc = m_acc_filter.Filter(m_vehicle.GetVehicleAcceleration(ChVector<>(0, 0, 0)).y());
+    double acc = m_acc_filter.Filter(m_vehicle.GetVehiclePointAcceleration(ChVector<>(0, 0, 0)).y());
     if (acc > m_left_acc) {
         m_left_acc = acc;
     }

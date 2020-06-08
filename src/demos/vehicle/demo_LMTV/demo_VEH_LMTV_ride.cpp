@@ -364,10 +364,10 @@ int main(int argc, char* argv[]) {
                 csv << lmtv.GetVehicle().GetSpindleAngVel(axle, RIGHT);
             }
             csv << lmtv.GetVehicle().GetVehicleSpeed();
-            csv << lmtv.GetVehicle().GetVehicleAcceleration(
+            csv << lmtv.GetVehicle().GetVehiclePointAcceleration(
                 lmtv.GetVehicle().GetChassis()->GetLocalDriverCoordsys().pos);
 
-            csv << lmtv.GetVehicle().GetVehicleAcceleration(vehCOM);
+            csv << lmtv.GetVehicle().GetVehiclePointAcceleration(vehCOM);
 
             for (auto& axle : lmtv.GetVehicle().GetAxles()) {
                 for (auto& wheel : axle->GetWheels()) {
