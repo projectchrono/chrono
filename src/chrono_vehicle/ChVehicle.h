@@ -105,7 +105,7 @@ class CH_VEHICLE_API ChVehicle {
     /// Get the acceleration at the specified point.
     /// The point is assumed to be given relative to the chassis reference frame.
     /// The returned acceleration is expressed in the chassis reference frame.
-    ChVector<> GetVehicleAcceleration(const ChVector<>& locpos) const { return m_chassis->GetPointAcceleration(locpos); }
+    ChVector<> GetVehiclePointAcceleration(const ChVector<>& locpos) const { return m_chassis->GetPointAcceleration(locpos); }
 
     /// Get a handle to the vehicle's driveshaft body.
     virtual std::shared_ptr<ChShaft> GetDriveshaft() const = 0;

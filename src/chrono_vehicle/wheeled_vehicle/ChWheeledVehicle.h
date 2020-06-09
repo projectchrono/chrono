@@ -207,6 +207,18 @@ class CH_VEHICLE_API ChWheeledVehicle : public ChVehicle {
     /// the central differential between the two front-most axles.
     void LockCentralDifferential(int which, bool lock);
 
+    /// Enable/disable brake locking.
+    /// If supported by the concrete brake type used on this vehicle, the brakes will be locked for large enough braking
+    /// inputs. By default, brakes do not lock.
+    void EnableBrakeLocking(bool lock);
+
+    /// Engage/disengage parking brake.
+    /// If engaged, this locks all suspension spindle revolute joints.
+    void ApplyParkingBrake(bool lock);
+
+    /// Returns the state of the parking brake (true if enagaged, false otherwise).
+    bool ParkingBrake() const { return m_parking_on; }
+
     /// Log current constraint violations.
     virtual void LogConstraintViolations() override;
 
@@ -226,6 +238,7 @@ class CH_VEHICLE_API ChWheeledVehicle : public ChVehicle {
     ChSteeringList m_steerings;                  ///< list of steering subsystems
     std::shared_ptr<ChDrivelineWV> m_driveline;  ///< driveline subsystem
     std::shared_ptr<ChPowertrain> m_powertrain;  ///< associated powertrain system
+    bool m_parking_on;                           ///< indicates whether or not parking brake is engaged
 };
 
 /// @} vehicle_wheeled

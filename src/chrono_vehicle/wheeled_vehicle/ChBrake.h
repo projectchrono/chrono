@@ -31,7 +31,7 @@ namespace vehicle {
 /// @addtogroup vehicle_wheeled_brake
 /// @{
 
-/// Base class for a brake subsystem
+/// Base class for a brake subsystem.
 class CH_VEHICLE_API ChBrake : public ChPart {
   public:
     ChBrake(const std::string& name);
@@ -49,8 +49,15 @@ class CH_VEHICLE_API ChBrake : public ChPart {
     ///   modulation = 1 indicates that the subsystem should provide maximum braking torque
     virtual void Synchronize(double modulation) = 0;
 
+    /// Enable/disable ability of locking (default: false).
+    /// Note that a derived class may or may not support this option.
+    void EnableLocking(bool val) { m_can_lock = val; }
+
     /// Get the current brake torque.
     virtual double GetBrakeTorque() = 0;
+
+  protected:
+    bool m_can_lock;  ///< can the brake lock?
 };
 
 /// Vector of handles to brake subsystems.

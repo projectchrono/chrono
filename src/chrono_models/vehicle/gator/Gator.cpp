@@ -38,6 +38,7 @@ Gator::Gator()
       m_contactMethod(ChContactMethod::NSC),
       m_chassisCollisionType(ChassisCollisionType::NONE),
       m_fixed(false),
+      m_brake_locking(false),
       m_tireType(TireModelType::RIGID),
       m_tire_step_size(-1),
       m_tire_mass(0),
@@ -52,6 +53,7 @@ Gator::Gator(ChSystem* system)
       m_contactMethod(ChContactMethod::NSC),
       m_chassisCollisionType(ChassisCollisionType::NONE),
       m_fixed(false),
+      m_brake_locking(false),
       m_tireType(TireModelType::RIGID),
       m_tire_step_size(-1),
       m_tire_mass(0),
@@ -139,6 +141,8 @@ void Gator::Initialize() {
                 wheel->GetTire()->SetStepsize(m_tire_step_size);
         }
     }
+
+    m_vehicle->EnableBrakeLocking(m_brake_locking);
 }
 
 // -----------------------------------------------------------------------------

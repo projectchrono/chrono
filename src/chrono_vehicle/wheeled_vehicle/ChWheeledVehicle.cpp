@@ -30,9 +30,10 @@ namespace vehicle {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 ChWheeledVehicle::ChWheeledVehicle(const std::string& name, ChContactMethod contact_method)
-    : ChVehicle(name, contact_method) {}
+    : ChVehicle(name, contact_method), m_parking_on(false) {}
 
-ChWheeledVehicle::ChWheeledVehicle(const std::string& name, ChSystem* system) : ChVehicle(name, system) {}
+ChWheeledVehicle::ChWheeledVehicle(const std::string& name, ChSystem* system)
+    : ChVehicle(name, system), m_parking_on(false) {}
 
 // -----------------------------------------------------------------------------
 // Initialize a tire and attach it to one of the vehicle's wheels.
@@ -125,6 +126,28 @@ void ChWheeledVehicle::LockCentralDifferential(int which, bool lock) {
 }
 
 // -----------------------------------------------------------------------------
+// Brake behavior
+// -----------------------------------------------------------------------------
+void ChWheeledVehicle::EnableBrakeLocking(bool lock) {
+    for (auto& axle : m_axles) {
+        if (axle->m_brake_left)
+            axle->m_brake_left->EnableLocking(lock);
+        if (axle->m_brake_right)
+            axle->m_brake_right->EnableLocking(lock);
+    }
+}
+
+void ChWheeledVehicle::ApplyParkingBrake(bool lock) {
+    if (m_parking_on == lock)
+        return;
+
+    for (auto& axle : m_axles) {
+        axle->m_suspension->ApplyParkingBrake(lock);
+    }
+    m_parking_on = lock;
+}
+
+// -----------------------------------------------------------------------------
 // Set visualization type for the various subsystems
 // -----------------------------------------------------------------------------
 void ChWheeledVehicle::SetSuspensionVisualizationType(VisualizationType vis) {
@@ -210,8 +233,6 @@ double ChWheeledVehicle::GetVehicleMass() const {
 
 // -----------------------------------------------------------------------------
 // Calculate and return the current vehicle COM location
-// Note: do not include the wheels, as these are already accounted for through
-// the associated spindle body.
 // -----------------------------------------------------------------------------
 ChVector<> ChWheeledVehicle::GetVehicleCOMPos() const {
     ChVector<> com(0, 0, 0);
@@ -219,6 +240,8 @@ ChVector<> ChWheeledVehicle::GetVehicleCOMPos() const {
     com += m_chassis->GetMass() * m_chassis->GetCOMPos();
     for (auto& axle : m_axles) {
         com += axle->m_suspension->GetMass() * axle->m_suspension->GetCOMPos();
+        for (auto& wheel : axle->GetWheels())
+            com += wheel->GetMass() * wheel->GetPos();
         if (axle->m_antirollbar)
             com += axle->m_antirollbar->GetMass() * axle->m_antirollbar->GetCOMPos();
     }

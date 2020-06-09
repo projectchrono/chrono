@@ -444,8 +444,8 @@ bool ChPlasticityCosseratLumped::ComputeStressWithReturnMapping(ChVector<>& stre
 
     // axial direction
     {
-        double strain_yeld_x = this->n_yeld_x->Get_y(mydata->p_strain_acc_e.x());     ///<<<< sigma_y(p_strain_acc)
-        double eta_x = stress_n.x() - this->n_beta_x->Get_y(mydata->p_strain_e.x());  ///<<<< beta(p_strain_e)
+        double strain_yeld_x = this->n_yeld_x->Get_y(mydata->p_strain_acc_e.x());     //<<<< sigma_y(p_strain_acc)
+        double eta_x = stress_n.x() - this->n_beta_x->Get_y(mydata->p_strain_e.x());  //<<<< beta(p_strain_e)
         double Fyeld_x = fabs(eta_x) - strain_yeld_x;                                 //<<<<  Phi(sigma,p_strain_acc)
 
         if (Fyeld_x > 0) {
@@ -466,8 +466,8 @@ bool ChPlasticityCosseratLumped::ComputeStressWithReturnMapping(ChVector<>& stre
                 mydata_new->p_strain_e.x() += dDgamma * chrono::ChSignum(stress_n.x());
                 this->section->GetElasticity()->ComputeStress(stress_n, stress_m, e_strain_e_new, e_strain_k_new);
                 // compute yeld
-                strain_yeld_x = this->n_yeld_x->Get_y(mydata_new->p_strain_acc_e.x());     ///<<<< sigma_y(p_strain_acc)
-                eta_x = stress_n.x() - this->n_beta_x->Get_y(mydata_new->p_strain_e.x());  ///<<<< beta(p_strain_acc)
+                strain_yeld_x = this->n_yeld_x->Get_y(mydata_new->p_strain_acc_e.x());     //<<<< sigma_y(p_strain_acc)
+                eta_x = stress_n.x() - this->n_beta_x->Get_y(mydata_new->p_strain_e.x());  //<<<< beta(p_strain_acc)
                 Fyeld_x = fabs(eta_x) - strain_yeld_x;  //<<<<  Phi(sigma,p_strain_acc)
 
                 ++iters;
@@ -499,8 +499,8 @@ bool ChPlasticityCosseratLumped::ComputeStressWithReturnMapping(ChVector<>& stre
                 mydata_new->p_strain_e.y() += dDgamma * chrono::ChSignum(stress_n.y());
                 this->section->GetElasticity()->ComputeStress(stress_n, stress_m, e_strain_e_new, e_strain_k_new);
                 // compute yeld
-                strain_yeld_y = this->n_yeld_y->Get_y(mydata_new->p_strain_acc_e.y());     ///<<<< sigma_y(p_strain_acc)
-                eta_y = stress_n.y() - this->n_beta_y->Get_y(mydata_new->p_strain_e.y());  ///<<<< beta(p_strain_acc)
+                strain_yeld_y = this->n_yeld_y->Get_y(mydata_new->p_strain_acc_e.y());     //<<<< sigma_y(p_strain_acc)
+                eta_y = stress_n.y() - this->n_beta_y->Get_y(mydata_new->p_strain_e.y());  //<<<< beta(p_strain_acc)
                 Fyeld_y = fabs(eta_y) - strain_yeld_y;  //<<<<  Phi(sigma,p_strain_acc)
 
                 ++iters;
@@ -532,8 +532,8 @@ bool ChPlasticityCosseratLumped::ComputeStressWithReturnMapping(ChVector<>& stre
                 mydata_new->p_strain_e.z() += dDgamma * chrono::ChSignum(stress_n.z());
                 this->section->GetElasticity()->ComputeStress(stress_n, stress_m, e_strain_e_new, e_strain_k_new);
                 // compute yeld
-                strain_yeld_z = this->n_yeld_z->Get_y(mydata_new->p_strain_acc_e.z());     ///<<<< sigma_y(p_strain_acc)
-                eta_z = stress_n.z() - this->n_beta_z->Get_y(mydata_new->p_strain_e.z());  ///<<<< beta(p_strain_acc)
+                strain_yeld_z = this->n_yeld_z->Get_y(mydata_new->p_strain_acc_e.z());     //<<<< sigma_y(p_strain_acc)
+                eta_z = stress_n.z() - this->n_beta_z->Get_y(mydata_new->p_strain_e.z());  //<<<< beta(p_strain_acc)
                 Fyeld_z = fabs(eta_z) - strain_yeld_z;  //<<<<  Phi(sigma,p_strain_acc)
 
                 ++iters;
@@ -566,8 +566,8 @@ bool ChPlasticityCosseratLumped::ComputeStressWithReturnMapping(ChVector<>& stre
                 mydata_new->p_strain_k.x() += dDgamma * chrono::ChSignum(stress_m.x());
                 this->section->GetElasticity()->ComputeStress(stress_n, stress_m, e_strain_e_new, e_strain_k_new);
                 // compute yeld
-                strain_yeld_Mx = this->n_yeld_Mx->Get_y(mydata_new->p_strain_acc_k.x());  ///<<<< sigma_y(p_strain_acc)
-                eta_Mx = stress_m.x() - this->n_beta_Mx->Get_y(mydata_new->p_strain_k.x());  ///<<<< beta(p_strain_acc)
+                strain_yeld_Mx = this->n_yeld_Mx->Get_y(mydata_new->p_strain_acc_k.x());  //<<<< sigma_y(p_strain_acc)
+                eta_Mx = stress_m.x() - this->n_beta_Mx->Get_y(mydata_new->p_strain_k.x());  //<<<< beta(p_strain_acc)
                 Fyeld_Mx = fabs(eta_Mx) - strain_yeld_Mx;  //<<<<  Phi(sigma,p_strain_acc)
 
                 ++iters;
@@ -600,8 +600,8 @@ bool ChPlasticityCosseratLumped::ComputeStressWithReturnMapping(ChVector<>& stre
                 mydata_new->p_strain_k.y() += dDgamma * chrono::ChSignum(stress_m.y());
                 this->section->GetElasticity()->ComputeStress(stress_n, stress_m, e_strain_e_new, e_strain_k_new);
                 // compute yeld
-                strain_yeld_My = this->n_yeld_My->Get_y(mydata_new->p_strain_acc_k.y());  ///<<<< sigma_y(p_strain_acc)
-                eta_My = stress_m.y() - this->n_beta_My->Get_y(mydata_new->p_strain_k.y());  ///<<<< beta(p_strain_acc)
+                strain_yeld_My = this->n_yeld_My->Get_y(mydata_new->p_strain_acc_k.y());  //<<<< sigma_y(p_strain_acc)
+                eta_My = stress_m.y() - this->n_beta_My->Get_y(mydata_new->p_strain_k.y());  //<<<< beta(p_strain_acc)
                 Fyeld_My = fabs(eta_My) - strain_yeld_My;  //<<<<  Phi(sigma,p_strain_acc)
 
                 ++iters;
@@ -634,8 +634,8 @@ bool ChPlasticityCosseratLumped::ComputeStressWithReturnMapping(ChVector<>& stre
                 mydata_new->p_strain_k.z() += dDgamma * chrono::ChSignum(stress_m.z());
                 this->section->GetElasticity()->ComputeStress(stress_n, stress_m, e_strain_e_new, e_strain_k_new);
                 // compute yeld
-                strain_yeld_Mz = this->n_yeld_Mz->Get_y(mydata_new->p_strain_acc_k.z());  ///<<<< sigma_y(p_strain_acc)
-                eta_Mz = stress_m.z() - this->n_beta_Mz->Get_y(mydata_new->p_strain_k.z());  ///<<<< beta(p_strain_acc)
+                strain_yeld_Mz = this->n_yeld_Mz->Get_y(mydata_new->p_strain_acc_k.z());  //<<<< sigma_y(p_strain_acc)
+                eta_Mz = stress_m.z() - this->n_beta_Mz->Get_y(mydata_new->p_strain_k.z());  //<<<< beta(p_strain_acc)
                 Fyeld_Mz = fabs(eta_Mz) - strain_yeld_Mz;  //<<<<  Phi(sigma,p_strain_acc)
 
                 ++iters;
@@ -757,9 +757,9 @@ void ChDampingCosseratRayleigh::ComputeDampingMatrix(ChMatrixNM<double, 6, 6>& R
 
 void ChDampingCosseratRayleigh::UpdateStiffnessModel() {
 	
-	/// Precompute and store the stiffness matrix into E_const, assuming 
-	/// initial zero stress and zero strain, and use it as constant E from now on
-	/// (for many stiffness models, this is constant anyway)
+	// Precompute and store the stiffness matrix into E_const, assuming 
+	// initial zero stress and zero strain, and use it as constant E from now on
+	// (for many stiffness models, this is constant anyway)
 	this->section_elasticity->ComputeStiffnessMatrix(this->E_const, VNULL, VNULL);
 	
 }
@@ -858,11 +858,11 @@ void ChBeamSectionCosserat::SetInertia(std::shared_ptr<ChInertiaCosserat> minert
 
 
 ChBeamSectionCosseratEasyRectangular::ChBeamSectionCosseratEasyRectangular(
-	double width_y,			///< width of section in y direction
-	double width_z,			///< width of section in z direction
-	double E,				///< Young modulus
-	double G,				///< shear modulus
-	double density			///< volumetric density (ex. in SI units: [kg/m])
+	double width_y,			// width of section in y direction
+	double width_z,			// width of section in z direction
+	double E,				// Young modulus
+	double G,				// shear modulus
+	double density			// volumetric density (ex. in SI units: [kg/m])
 ) {
 
 	this->is_circular = false;
@@ -882,10 +882,10 @@ ChBeamSectionCosseratEasyRectangular::ChBeamSectionCosseratEasyRectangular(
 
 
 ChBeamSectionCosseratEasyCircular::ChBeamSectionCosseratEasyCircular(
-	double diameter,		///< diameter
-	double E,				///< Young modulus
-	double G,				///< shear modulus
-	double density			///< volumetric density (ex. in SI units: [kg/m])
+	double diameter,		// diameter
+	double E,				// Young modulus
+	double G,				// shear modulus
+	double density			// volumetric density (ex. in SI units: [kg/m])
 ) {
 	this->is_circular = true;
     this->SetDrawCircularRadius(diameter / 2);

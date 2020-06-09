@@ -689,7 +689,7 @@ class ChApi ChInertiaCosserat {
 	/// i.e. the part associated with rotation about the beam direction.
 	/// Ex. SI units [kg/m].
 	/// Defined as: \f$ J_{xx} = \int_\Omega \rho y^2 + z^2 dA \f$, with \f$ \rho \f$ density in [kg/m^3].
-	/// For uniform density it is also \f$ J_{xx} = \rho I_p \f$, where \f$ I_p = I_z + I_y\f$ is the polar moment of area. 
+	/// For uniform density it is also \f$ J_{xx} = \rho I_p \f$, where \f$ I_p = I_z + I_y \f$ is the polar moment of area. 
 	virtual double GetInertiaJxxPerUnitLength() = 0;
 
 	/// Compute the Jyy component of the inertia tensor per unit length,
@@ -739,7 +739,7 @@ class ChApi ChInertiaCosseratUniformDensity : public ChInertiaCosserat {
 
 	/// Compute the Ixx component of the inertia tensor per unit length,
 	/// i.e. the part associated with rotation about the beam direction.
-	/// In this case it is \f$ J_{xx} = \rho I_p \f$, where \f$ I_p = I_z + I_y\f$ is the polar moment of area. 
+	/// In this case it is \f$ J_{xx} = \rho I_p \f$, where \f$ I_p = I_z + I_y \f$ is the polar moment of area. 
 	virtual double GetInertiaJxxPerUnitLength() override { return this->rho * (this->Iyy + this->Izz); }
 
 	/// Compute the Jyy component of the inertia tensor per unit length,
