@@ -324,6 +324,23 @@ class ChApi ChElementBeamIGA :  public ChElementBeam,
 	virtual double GetDensity() override { return this->section->GetInertia()->GetMassPerUnitLength(); } //this->section->GetArea()* this->section->GetDensity();
 
 
+
+    ///  For testing purposes:
+    enum class QuadratureType {
+        FULL_OVER,
+        FULL_EXACT,
+        REDUCED,
+        SELECTIVE,
+        CUSTOM1,
+        URI2
+    };
+
+    ///  For testing purposes:
+    static QuadratureType quadrature_type;
+
+    ///  For testing purposes:
+    static double Delta;
+
   private:
     /// Initial setup. Precompute mass and matrices that do not change during the simulation. In particular, compute the
     /// arc-length parametrization.

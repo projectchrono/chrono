@@ -19,6 +19,11 @@
 namespace chrono {
 namespace fea {
 
+
+// for testing and debugging
+ChElementBeamIGA::QuadratureType ChElementBeamIGA::quadrature_type = ChElementBeamIGA::QuadratureType::FULL_EXACT;
+double ChElementBeamIGA::Delta = 1e-10;
+
 ChElementBeamIGA::ChElementBeamIGA() {
         order = 3;
         nodes.resize(4); // controllare se ordine = -> 2 nodi, 2 control points, o di più
@@ -72,7 +77,7 @@ void ChElementBeamIGA::SetNodesGenericOrder(std::vector<std::shared_ptr<ChNodeFE
     Kmatr.SetVariables(mvars);
 
     // integration for in-between elements:
-    int_order_s = 1;
+    //int_order_s = 1;
 
     // FULL OVER INTEGRATION:
     //int_order_b = myorder+1;
@@ -88,15 +93,17 @@ void ChElementBeamIGA::SetNodesGenericOrder(std::vector<std::shared_ptr<ChNodeFE
     //	int_order_b += 1;
     //}
 
+    bool is_middle = false;
+    bool is_end_A = false;
+    bool is_end_B = false;
+
     double u1 = knots(order);
     double u2 = knots(knots.size() - order - 1);
-    GetLog() << "Element order p=" << this->order << ",   u in (" << u1 << ", " << u2 << ")";
-    GetLog() << "   orders b=" << int_order_b << "   s=" << int_order_s;
-    if (u1 < 0.5 && u2 >= 0.5)
-        GetLog() << " -- IS_MIDDLE ";
-    GetLog() << "\n";
 
-
+    if (u1 < 0.5 && u2 >= 0.5) {
+        //GetLog() << " -- IS_MIDDLE ";
+        is_middle = true;
+    }
     // Full integration for end elements:
     int multiplicity_a = 1;
     int multiplicity_b = 1;
@@ -108,10 +115,73 @@ void ChElementBeamIGA::SetNodesGenericOrder(std::vector<std::shared_ptr<ChNodeFE
         if (knots(im) == knots(knots.size() - order - 1))  // extreme of span
             ++multiplicity_b;
     }
-    if (multiplicity_a > 1 || multiplicity_b > 1) {
-        int_order_s = (int)std::ceil((this->order + 1.0) / 2.0);
+    if (multiplicity_a > 1)
+        is_end_A = true;
+    if (multiplicity_b > 1)
+        is_end_B = true;
+
+
+    if (this->quadrature_type == QuadratureType::FULL_EXACT) {
         int_order_b = (int)std::ceil((this->order + 1.0) / 2.0);
+        int_order_s = (int)std::ceil((this->order + 1.0) / 2.0);
     }
+    if (this->quadrature_type == QuadratureType::FULL_OVER) {
+        int_order_b = myorder+1;
+        int_order_s = myorder+1;
+    }
+    if (this->quadrature_type == QuadratureType::REDUCED) {
+        int_order_b = myorder;
+        int_order_s = myorder;
+    }
+    if (this->quadrature_type == QuadratureType::SELECTIVE) {
+        int_order_b = 1; // int_order_b = my_order;
+        int_order_s = 1;
+        if (is_end_A || is_end_B) {
+            int_order_b = (int)std::ceil((this->order + 1.0) / 2.0);
+            int_order_s = (int)std::ceil((this->order + 1.0) / 2.0);
+        }
+    }
+    if (this->quadrature_type == QuadratureType::CUSTOM1) {
+        int_order_b = 1;
+        int_order_s = 1;
+        if (order == 2) {
+            if (is_middle) {
+                int_order_s = 2;
+                int_order_b = 2;
+            }
+        }
+        if (order >= 3) {
+            if (is_end_A || is_end_B) {
+                int_order_b = order - 1;
+                int_order_s = order - 1;
+            }
+        }
+    }
+    if (this->quadrature_type == QuadratureType::URI2) {
+        int_order_b = 1;
+        int_order_s = 1;
+        if (order == 2) {
+            if (is_end_B) {
+                int_order_s = 2;
+                int_order_b = 2;
+            }
+        }
+        if (order >= 3) {
+            if (is_end_A || is_end_B) {
+                int_order_b = order - 1;
+                int_order_s = order - 1;
+            }
+        }
+    }
+
+    // TRICK - FOR THE MOMENT ENSURE NO SELECTIVE CAUSE NOT YET IMPLEMENTED DIFFERENT GAUSS PTS FOR BEND/SHEAR
+    int_order_s = int_order_b;
+
+
+    GetLog() << "Element order p=" << this->order << ",   u in (" << u1 << ", " << u2 << ")";
+    GetLog() << "   orders:  b=" << int_order_b << "   s=" << int_order_s;
+    GetLog() << "\n";
+    
 }
 
 /// Set the integration points, for shear components and for bending components:
@@ -139,8 +209,6 @@ void ChElementBeamIGA::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfactor, d
     ChStateDelta state_w(this->LoadableGet_ndof_w(), nullptr);
     this->LoadableGetStateBlock_x(0, state_x);
     this->LoadableGetStateBlock_w(0, state_w);
-
-    double Delta = 1e-10;
 
     int mrows_w = this->LoadableGet_ndof_w();
     int mrows_x = this->LoadableGet_ndof_x();
@@ -301,6 +369,8 @@ void ChElementBeamIGA::ComputeInternalForces_impl(ChVectorDynamic<>& Fi, ChState
 
 
         // compute the 3x3 rotation matrix R equivalent to quaternion above
+//qR = nodes[0]->GetX0().GetCoord().rot; //***ALEX***TEST 
+ //       GetLog() << " qR = " << qR.e0() << "  " << qR.e1() << "  " << qR.e2() << "  " << qR.e3() << "\n";
         ChMatrix33<> R(qR);
 
         // compute abs. spline gradient r'  = dr/ds
@@ -585,7 +655,7 @@ void ChElementBeamIGA::SetupInitial(ChSystem* system) {
         }
         ChQuaternion<> qda;
         qda.Q_from_Rotv(da);
-        ChQuaternion<> qR = nodes[0]->GetX0ref().GetRot() * qda;
+        ChQuaternion<> qR = nodes[0]->GetX0().GetRot() * qda;
 
         // compute the 3x3 rotation matrix R equivalent to quaternion above
         ChMatrix33<> R(qR);
