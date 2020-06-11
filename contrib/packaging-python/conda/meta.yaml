@@ -1,10 +1,11 @@
 # change the version number in case of a release build
 package:
   name: pychrono
-  version: 5.0.0
+  version: 5.0.1
 
 source:
-  path: ../../..
+  git_url: https://github.com/projectchrono/chrono
+  git_tag: develop
 
 
 build:
