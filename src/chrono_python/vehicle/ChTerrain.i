@@ -31,7 +31,10 @@
 %import(module = "pychrono.core") "../../chrono/assets/ChTriangleMeshShape.h"
 %import(module = "pychrono.core") "chrono_python/core/ChColorAsset.i"
 
+%shared_ptr(chrono::vehicle::ChTerrain)
+%shared_ptr(chrono::vehicle::FlatTerrain)
 %shared_ptr(chrono::vehicle::RigidTerrain::Patch)
+%shared_ptr(chrono::vehicle::RigidTerrain)
 %shared_ptr(chrono::vehicle::SCMDeformableSoil)
 %shared_ptr(chrono::vehicle::SCMDeformableTerrain)
 %shared_ptr(chrono::vehicle::SCMDeformableTerrain::SoilParametersCallback)
