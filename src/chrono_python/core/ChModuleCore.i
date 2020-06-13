@@ -73,6 +73,7 @@
 #include "chrono/core/ChBezierCurve.h"
 #include "Eigen/src/Core/util/Memory.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
+#include "chrono/utils/ChFilters.h"
 using namespace chrono;
 using namespace chrono::collision;
 using namespace chrono::geometry;
@@ -368,6 +369,7 @@ using namespace chrono::fea;
 // Utils
 
 %include "../../chrono/utils/ChUtilsInputOutput.h"
+%include "../../chrono/utils/ChFilters.h"
 
 //
 // C- DOWNCASTING OF SHARED POINTERS

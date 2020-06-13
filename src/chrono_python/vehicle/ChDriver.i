@@ -49,6 +49,7 @@ using namespace irr;*/
 
 //%shared_ptr(chrono::vehicle::RigidTerrain::Patch)
 
+%rename(DataDriverEntry) chrono::vehicle::ChDataDriver::Entry;
 %template(vector_Entry) std::vector< chrono::vehicle::ChDataDriver::Entry >;
 
 

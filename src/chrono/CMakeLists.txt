@@ -457,6 +457,7 @@ source_group(fea\\nodes FILES
 set(ChronoEngine_fea_elements_SOURCES
     fea/ChElementBeamANCF.cpp
     fea/ChElementBeamEuler.cpp
+    fea/ChElementBeamIGA.cpp
     fea/ChElementCableANCF.cpp
     fea/ChElementGeneric.cpp
     fea/ChElementSpring.cpp
