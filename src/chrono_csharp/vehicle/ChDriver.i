@@ -32,7 +32,7 @@
 %import "ChChassis.i"
 %import "../../chrono_vehicle/ChVehicle.h"
 
-
+%rename(DataDriverEntry) chrono::vehicle::ChDataDriver::Entry;
 %template(vector_Entry) std::vector< chrono::vehicle::ChDataDriver::Entry >;
 
 
