@@ -428,8 +428,8 @@ void ChElementBeamIGA::ComputeInternalForces_impl(ChVectorDynamic<>& Fi, ChState
         ChVector<> astress_m;
         ChBeamMaterialInternalData* aplastic_data_old = nullptr;
         ChBeamMaterialInternalData* aplastic_data = nullptr;
-        std::vector< std::unique_ptr<ChBeamMaterialInternalData> > foo_plastic_data;
         if (this->section->GetPlasticity()) {
+            std::vector< std::unique_ptr<ChBeamMaterialInternalData> > foo_plastic_data;
             aplastic_data_old = this->plastic_data_old[ig].get();
             aplastic_data = this->plastic_data[ig].get();
             if (used_for_differentiation) {
