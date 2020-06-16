@@ -278,7 +278,6 @@ void ChElementBeamIGA::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfactor, d
         this->section->GetInertia()->GetInertiaJzzPerUnitLength() * (length / (double)nodes.size());
     //Ixx: (tangent to spline)  
     double linerxx = this->section->GetInertia()->GetInertiaJxxPerUnitLength() * (length / (double)nodes.size());
-    //was Ixx: (tangent to spline) approx as node cuboid: linerxx=  (1. / 12.) * nmass * (pow(section->GetDrawThicknessY(),2) + pow(section->GetDrawThicknessZ(),2));
 
     for (int i = 0; i< nodes.size(); ++i) {
         int stride = i * 6;
@@ -369,8 +368,6 @@ void ChElementBeamIGA::ComputeInternalForces_impl(ChVectorDynamic<>& Fi, ChState
 
 
         // compute the 3x3 rotation matrix R equivalent to quaternion above
-//qR = nodes[0]->GetX0().GetCoord().rot; //***ALEX***TEST 
- //       GetLog() << " qR = " << qR.e0() << "  " << qR.e1() << "  " << qR.e2() << "  " << qR.e3() << "\n";
         ChMatrix33<> R(qR);
 
         // compute abs. spline gradient r'  = dr/ds
@@ -477,14 +474,14 @@ void ChElementBeamIGA::ComputeInternalForces_impl(ChVectorDynamic<>& Fi, ChState
 
         for (int i = 0; i < nodes.size(); ++i) {
             // -Force_i = w * Jue * Jsu * Jsu^-1 * N' * R * C * (strain_e - strain_e0)
-            //          = w * Jue * N'            * stress_n_abs
+            //          = w * Jue                * N'         * stress_n_abs
             ChVector<> Force_i = stress_n_abs * N(1, i) * (-w * Jue);
             Fi.segment(i * 6, 3) += Force_i.eigen();
 
             // -Torque_i =   w * Jue * Jsu * Jsu^-1 * R_i^t * N'               * R * D * (strain_k - strain_k0) +
-            //             + w * Jue * Jsu *        R_i^t * N  * skew(r')^t  * R * C * (strain_e - strain_e0)
-            //           =   w * Jue * R_i^t * N'                          * stress_m_abs +
-            //             + w * Jue * Jsu * R_i^t * N * skew(r')^t          * stress_n_abs
+            //             + w * Jue * Jsu *          R_i^t * N * skew(r')^t   * R * C * (strain_e - strain_e0)
+            //           =   w * Jue * R_i^t                * N'               * stress_m_abs +
+            //             + w * Jue * Jsu * R_i^t          * N * skew(r')^t   * stress_n_abs
             ChQuaternion<> q_i(state_x.segment(i * 7 + 3, 4));
             ChVector<> Torque_i = q_i.RotateBack(stress_m_abs * N(1, i) * (-w * Jue) -
                 Vcross(dr, stress_n_abs) * N(0, i) * (-w * Jue * Jsu));
