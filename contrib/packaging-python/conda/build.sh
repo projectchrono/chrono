@@ -1,5 +1,5 @@
 
-mkdir -p ./build
+mkdir ./build
 cd ./build
 if [ "$PY3K" == "1" ]; then
     MY_PY_VER="${PY_VER}m"
