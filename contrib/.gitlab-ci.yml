@@ -504,7 +504,10 @@ macos:macos:deploy:
     name: pychrono-macos
     url: https://anaconda.org/projectchrono/pychrono
   when: manual
-
+  artifacts:
+    expire_in: 60m
+    paths:
+      - $SRC_DIR/build/CMakeFiles/
 #-----------------#
 # FreeBSD Builder #
 #-----------------#
