@@ -177,11 +177,11 @@ void ChElementBeamIGA::SetNodesGenericOrder(std::vector<std::shared_ptr<ChNodeFE
     // TRICK - FOR THE MOMENT ENSURE NO SELECTIVE CAUSE NOT YET IMPLEMENTED DIFFERENT GAUSS PTS FOR BEND/SHEAR
     int_order_s = int_order_b;
 
-
+    /*
     GetLog() << "Element order p=" << this->order << ",   u in (" << u1 << ", " << u2 << ")";
     GetLog() << "   orders:  b=" << int_order_b << "   s=" << int_order_s;
     GetLog() << "\n";
-    
+    */
 }
 
 /// Set the integration points, for shear components and for bending components:
