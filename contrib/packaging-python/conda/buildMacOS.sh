@@ -40,7 +40,7 @@ cmake -DCMAKE_INSTALL_PREFIX=$PREFIX \
  -DENABLE_MODULE_MKL=ON \
  -DMKL_INCLUDE_DIR=$HOME/miniconda3/include \
  -DMKL_RT_LIBRARY=$HOME/miniconda3/lib/libmkl_rt.so \
- -DEIGEN3_INCLUDE_DIR=/usr/local/include/eigen3 \ 
+ -DEIGEN3_INCLUDE_DIR=/usr/local/include/eigen3 \
  -DPYCHRONO_DATA_PATH=../../../../../../share/chrono/data \
  ./..
 # Build step
