@@ -495,6 +495,7 @@ macos:macos:deploy:
     #- conda install -c dlr-sc opencascade --yes
     - conda install -c intel mkl-devel --yes
     - conda build purge-all
+    - mv -f ./contrib/packaging-python/conda/buildMacOS.sh ./contrib/packaging-python/conda/build.sh
     - conda build ./contrib/packaging-python/conda --no-remove-work-dir --dirty --python=3.6
     - anaconda -t $ANACONDA_TOKEN upload $HOME/miniconda3/conda-bld/osx-64/pychrono*.bz2 -l develop --force
     - conda build purge-all
