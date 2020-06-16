@@ -213,37 +213,47 @@ void ChElementBeamIGA::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfactor, d
     int mrows_w = this->LoadableGet_ndof_w();
     int mrows_x = this->LoadableGet_ndof_x();
 
-    ChMatrixDynamic<> K(mrows_w, mrows_w);
-
     // compute Q at current speed & position, x_0, v_0
     ChVectorDynamic<> Q0(mrows_w);
     this->ComputeInternalForces_impl(Q0, state_x, state_w, true);     // Q0 = Q(x, v)
 
     ChVectorDynamic<> Q1(mrows_w);
     ChVectorDynamic<> Jcolumn(mrows_w);
-    ChState       state_x_inc(mrows_x, nullptr);
-    ChStateDelta  state_delta(mrows_w, nullptr);
 
-    // Compute K=-dQ(x,v)/dx by backward differentiation
-    state_delta.setZero(mrows_w, nullptr);
+    if (Kfactor) {
+        ChMatrixDynamic<> K(mrows_w, mrows_w);
 
-    for (int i = 0; i<mrows_w; ++i) {
-        state_delta(i) += Delta;
-        this->LoadableStateIncrement(0, state_x_inc, state_x, 0, state_delta);  // exponential, usually state_x_inc(i) = state_x(i) + Delta;
+        ChState       state_x_inc(mrows_x, nullptr);
+        ChStateDelta  state_delta(mrows_w, nullptr);
 
-        Q1.setZero(mrows_w);
-        this->ComputeInternalForces_impl(Q1, state_x_inc, state_w, true);   // Q1 = Q(x+Dx, v)
-        state_delta(i) -= Delta;
+        // Compute K=-dQ(x,v)/dx by backward differentiation
+        state_delta.setZero(mrows_w, nullptr);
 
-        Jcolumn = (Q1 - Q0) * (-1.0 / Delta);   // - sign because K=-dQ/dx
-        K.col(i) = Jcolumn;
+        for (int i = 0; i < mrows_w; ++i) {
+            state_delta(i) += Delta;
+            this->LoadableStateIncrement(0, state_x_inc, state_x, 0, state_delta);  // exponential, usually state_x_inc(i) = state_x(i) + Delta;
+
+            Q1.setZero(mrows_w);
+            this->ComputeInternalForces_impl(Q1, state_x_inc, state_w, true);   // Q1 = Q(x+Dx, v)
+            state_delta(i) -= Delta;
+
+            Jcolumn = (Q1 - Q0) * (-1.0 / Delta);   // - sign because K=-dQ/dx
+            K.col(i) = Jcolumn;
+        }
+
+        // finally, store K into H:
+        H.block(0, 0, mrows_w, mrows_w) = Kfactor * K;
     }
+	else
+		H.setZero();
 
-    // finally, store K into H:
-    H.block(0, 0, mrows_w, mrows_w) = Kfactor * K;
+    
+    //
+	// The R damping matrix of this element: 
+	//
 
-    // Compute R=-dQ(x,v)/dv by backward differentiation
-    if (this->section->GetDamping()) {
+    if (Rfactor && this->section->GetDamping()) {
+        // Compute R=-dQ(x,v)/dv by backward differentiation
         ChStateDelta  state_w_inc(mrows_w, nullptr);
         state_w_inc = state_w;
         ChMatrixDynamic<> R(mrows_w, mrows_w);
@@ -258,7 +268,6 @@ void ChElementBeamIGA::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfactor, d
             Jcolumn = (Q1 - Q0) * (-1.0 / Delta);   // - sign because R=-dQ/dv
             R.col(i) = Jcolumn;
         }
-
         H.block(0, 0, mrows_w, mrows_w) += Rfactor * R;
     }
 
@@ -266,31 +275,33 @@ void ChElementBeamIGA::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfactor, d
     // The M mass matrix of this element span: (lumped version)
     //
 
-    ChMatrixDynamic<> Mloc(6 * nodes.size(), 6 * nodes.size());
-    Mloc.setZero();
+    if (Mfactor) {
+        ChMatrixDynamic<> Mloc(6 * nodes.size(), 6 * nodes.size());
+        Mloc.setZero();
 
-    double nmass = mass / (double)nodes.size();
-    //Iyy and Izz: (orthogonal to spline) add approx as 1/50 lumped mass at half dist for translational effect, plus inertia of thin section: 
-    // note: 1/50 can be even less (this is 0 in many texts) 
-    double lineryy = (1. / 50.) * nmass * pow(length, 2) +
-        this->section->GetInertia()->GetInertiaJyyPerUnitLength() * (length / (double)nodes.size());
-    double linerzz = (1. / 50.) * nmass * pow(length, 2) +
-        this->section->GetInertia()->GetInertiaJzzPerUnitLength() * (length / (double)nodes.size());
-    //Ixx: (tangent to spline)  
-    double linerxx = this->section->GetInertia()->GetInertiaJxxPerUnitLength() * (length / (double)nodes.size());
+        double nmass = mass / (double)nodes.size();
+        //Iyy and Izz: (orthogonal to spline) add approx as 1/50 lumped mass at half dist for translational effect, plus inertia of thin section: 
+        // note: 1/50 can be even less (this is 0 in many texts) 
+        double lineryy = (1. / 50.) * nmass * pow(length, 2) +
+            this->section->GetInertia()->GetInertiaJyyPerUnitLength() * (length / (double)nodes.size());
+        double linerzz = (1. / 50.) * nmass * pow(length, 2) +
+            this->section->GetInertia()->GetInertiaJzzPerUnitLength() * (length / (double)nodes.size());
+        //Ixx: (tangent to spline)  
+        double linerxx = this->section->GetInertia()->GetInertiaJxxPerUnitLength() * (length / (double)nodes.size());
 
-    for (int i = 0; i< nodes.size(); ++i) {
-        int stride = i * 6;
+        for (int i = 0; i < nodes.size(); ++i) {
+            int stride = i * 6;
 
-        Mloc(stride + 0, stride + 0) += Mfactor * nmass;  // node A x,y,z
-        Mloc(stride + 1, stride + 1) += Mfactor * nmass;
-        Mloc(stride + 2, stride + 2) += Mfactor * nmass;
-        Mloc(stride + 3, stride + 3) += Mfactor * linerxx;  // node A Ixx,Iyy,Izz 
-        Mloc(stride + 4, stride + 4) += Mfactor * lineryy;
-        Mloc(stride + 5, stride + 5) += Mfactor * linerzz;
+            Mloc(stride + 0, stride + 0) += Mfactor * nmass;  // node A x,y,z
+            Mloc(stride + 1, stride + 1) += Mfactor * nmass;
+            Mloc(stride + 2, stride + 2) += Mfactor * nmass;
+            Mloc(stride + 3, stride + 3) += Mfactor * linerxx;  // node A Ixx,Iyy,Izz 
+            Mloc(stride + 4, stride + 4) += Mfactor * lineryy;
+            Mloc(stride + 5, stride + 5) += Mfactor * linerzz;
+        }
+
+        H.block(0, 0, Mloc.rows(), Mloc.cols()) += Mloc;
     }
-
-    H.block(0, 0, Mloc.rows(), Mloc.cols()) += Mloc;
 }
 
 /// Computes the internal forces (ex. the actual position of nodes is not in relaxed reference position) and set
