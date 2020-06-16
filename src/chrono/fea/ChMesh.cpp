@@ -272,7 +272,7 @@ void ChMesh::IntLoadResidual_F(const unsigned int off,
                                ChVectorDynamic<>& R,   
                                const double c          
                                ) {
-    // applied nodal forces
+    // nodes applied forces
     unsigned int local_off_v = 0;
     for (unsigned int j = 0; j < vnodes.size(); j++) {
         if (!vnodes[j]->GetFixed()) {
@@ -281,7 +281,7 @@ void ChMesh::IntLoadResidual_F(const unsigned int off,
         }
     }
 
-    // internal forces
+    // elements internal forces
     timer_internal_forces.start();
 #pragma omp parallel for schedule(dynamic, 4)
     for (int ie = 0; ie < velements.size(); ie++) {
@@ -290,7 +290,15 @@ void ChMesh::IntLoadResidual_F(const unsigned int off,
     timer_internal_forces.stop();
     ncalls_internal_forces++;
 
-    // Apply gravity loads without the need of adding
+    // elements gravity forces 
+    if (automatic_gravity_load) {
+        for (int ie = 0; ie < velements.size(); ie++) {
+            velements[ie]->EleIntLoadResidual_F_gravity(R, GetSystem()->Get_G_acc(), c);
+        }
+    }
+    
+    /*
+    // without the need of adding
     // a ChLoad object to each element: just instance here a single ChLoad and reuse
     // it for all 'volume' objects.
     if (automatic_gravity_load) {
@@ -310,6 +318,7 @@ void ChMesh::IntLoadResidual_F(const unsigned int off,
             }
         }
     }
+    */
 }
 
 void ChMesh::ComputeMassProperties(double& mass,           // ChMesh object mass

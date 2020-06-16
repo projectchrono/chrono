@@ -99,8 +99,17 @@ class ChApi ChElementBase {
 
     /// Adds the product of element mass M by a vector w (pasted at global nodes offsets) into
     /// a global vector R, multiplied by a scaling factor c, as
-    ///   R += M * v * c
+    ///   R += M * w * c
     virtual void EleIntLoadResidual_Mv(ChVectorDynamic<>& R, const ChVectorDynamic<>& w, const double c) {}
+
+    /// Adds the contribution of gravity loads, multiplied by a scaling factor c, as: 
+    ///   R += M * g * c
+    /// Note that it is up to the element implementation to build a proper g vector that 
+    /// contains G_acc values in the proper stride (ex. tetahedrons have 4x copies of G_acc in g). 
+    /// Note that elements can provide fast implementations that do not need to build any internal M matrix,
+    /// and not even the g vector, for instance if using lumped masses. 
+    virtual void EleIntLoadResidual_F_gravity(ChVectorDynamic<>& R, const ChVector<>& G_acc, const double c) = 0;
+
 
     //
     // Functions for interfacing to the solver
