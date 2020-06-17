@@ -37,9 +37,9 @@ cmake -DCMAKE_INSTALL_PREFIX=$PREFIX \
  -DENABLE_MODULE_CASCADE=OFF \
  -DCASCADE_INCLUDE_DIR=$HOME/miniconda/include/opencascade \
  -DCASCADE_LIBDIR=$HOME/miniconda/lib \
- -DENABLE_MODULE_MKL=ON \
+ -DENABLE_MODULE_MKL=OFF \
  -DMKL_INCLUDE_DIR=$HOME/miniconda/include \
- -DMKL_RT_LIBRARY=$HOME/miniconda/lib/libmkl_rt.so \
+ -DMKL_RT_LIBRARY=$HOME/miniconda/lib/libmkl_rt.a \
  -DEIGEN3_INCLUDE_DIR=/usr/local/include/eigen3 \
  -DPYCHRONO_DATA_PATH=../../../../../../share/chrono/data \
  ./..
