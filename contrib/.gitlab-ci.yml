@@ -283,6 +283,7 @@ linux:ubuntu1804:deploy:
     - conda install -c dlr-sc opencascade --yes
     - conda install -c intel mkl-devel --yes
     - conda build purge-all
+    - git describe
     - conda build ./contrib/packaging-python/conda --no-remove-work-dir --dirty --python=3.6
     - anaconda -t $ANACONDA_TOKEN upload $HOME/miniconda3/conda-bld/linux-64/pychrono*.bz2 -l develop --force
     - conda build purge-all
