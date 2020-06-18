@@ -13,6 +13,8 @@
 // =============================================================================
 
 #include "chrono/fea/ChElementGeneric.h"
+#include "chrono/physics/ChLoadable.h"
+#include "chrono/physics/ChLoad.h"
 
 namespace chrono {
 namespace fea {
@@ -72,6 +74,33 @@ void ChElementGeneric::EleIntLoadResidual_Mv(ChVectorDynamic<>& R, const ChVecto
         stride += nodedofs;
     }
 }
+
+
+void ChElementGeneric::EleIntLoadResidual_F_gravity(ChVectorDynamic<>& R, const ChVector<>& G_acc, const double c) {
+    // (This is a default (VERY UNOPTIMAL) book keeping so that in children classes you can avoid
+    // implementing this EleIntLoadResidual_F_gravity function, unless you need faster code.
+
+    // fallback to the previous implementation, that used ChLoaderGravity and Gauss uadrature for 
+    // elements inherited from ChLoadableUVW:
+
+    std::shared_ptr<ChElementGeneric> this_wrapper{this, [](ChElementGeneric*){} }; //  A null deleter: this is a hack to wrap "this" raw ptr
+
+    if (auto mloadable = std::dynamic_pointer_cast<ChLoadableUVW>(this_wrapper)) {
+        if (G_acc != VNULL) {
+                auto common_gravity_loader = chrono_types::make_shared<ChLoad<ChLoaderGravity>>(mloadable);
+                common_gravity_loader->loader.Set_G_acc(G_acc);
+                common_gravity_loader->loader.SetNumIntPoints(1); //***TODO*** n. gauss points as parameter?
+                if (mloadable->GetDensity()) {
+                    // temporary set loader target and compute generalized forces term
+                    common_gravity_loader->loader.loadable = mloadable;
+                    common_gravity_loader->ComputeQ(0, 0);
+                    common_gravity_loader->LoadIntLoadResidual_F(R, c);
+                }
+        }
+    }
+
+}
+
 
 void ChElementGeneric::VariablesFbLoadInternalForces(double factor) {
     throw(ChException("ChElementGeneric::VariablesFbLoadInternalForces is deprecated"));

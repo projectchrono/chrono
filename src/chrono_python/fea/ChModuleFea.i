@@ -134,6 +134,10 @@ using namespace chrono::fea;
 
 %template(vector_ChNodeFEAxyzrot) std::vector< std::shared_ptr<chrono::fea::ChNodeFEAxyzrot> >;
 %template(vector_ChNodeFEAxyz)    std::vector< std::shared_ptr<chrono::fea::ChNodeFEAxyz> >;
+%template(vector_ChElementBeamEuler)    std::vector< std::shared_ptr<chrono::fea::ChElementBeamEuler> >;
+%template(vector_ChElementBeamIGA)    std::vector< std::shared_ptr<chrono::fea::ChElementBeamIGA> >;
+%template(vector_ChElementCableANCF)    std::vector< std::shared_ptr<chrono::fea::ChElementCableANCF> >;
+%template(vector_ChElementBeamANCF)    std::vector< std::shared_ptr<chrono::fea::ChElementBeamANCF> >;
 
 //
 // For each class, keep updated the  A, B, C sections: 
