@@ -8,9 +8,10 @@
 # Copyright:   (c) ProjectChrono 2019
 #------------------------------------------------------------------------------
 
+
 import pychrono.core as chrono
 import pychrono.irrlicht as chronoirr
-import math
+import math as m
 
 
 print (" Demo of using the assets system to create shapes for Irrlicht visualization")
@@ -19,7 +20,7 @@ print (" Demo of using the assets system to create shapes for Irrlicht visualiza
 # The path to the Chrono directory containing various assets(meshes, textures, data files)
 # is automatically set, relative to the default lcoation of this demo.
 # If running from a different directory, you must change the path to the data directory with:
-chrono.SetChronoDataPath("../../../../data/")
+# chrono.SetChronoDataPath('relative/path/to/data/directory')
 
 # Create a Chrono::Engine physical system
 mphysicalSystem = chrono.ChSystemNSC()
@@ -53,7 +54,7 @@ floor_mat = chrono.ChMaterialSurfaceNSC()
 mfloor.GetCollisionModel().ClearModel()
 mfloor.GetCollisionModel().AddBox(floor_mat, 10, 0.5, 10, chrono.ChVectorD(0, -1, 0))
 mfloor.GetCollisionModel().BuildModel()
-
+mfloor.SetCollide(True)
 
 # Add body to system
 mphysicalSystem.Add(mfloor)
@@ -105,7 +106,25 @@ mfloor.AddAsset(mnurbsasset)
 # ==Asset== attach a 'nurbs surface' shape:
 # (first you create the ChSurfaceNurbs geometry,
 # then you put it inside a ChSurfaceShape asset)
+#
+# NOTE: not working at this time
+#       requires proper wrapping of matrix_ChVectorD...
 
+#mlist = [[chrono.ChVectorD(1, 2, 3), chrono.ChVectorD(1, 2, 1)],
+#         [chrono.ChVectorD(1, 3, 3), chrono.ChVectorD(1, 3, 1)],
+#         [chrono.ChVectorD(2, 3, 3), chrono.ChVectorD(3, 3, 1)],
+#         [chrono.ChVectorD(2, 4, 3), chrono.ChVectorD(2, 4, 1)]]
+#surfpoints = chrono.matrix_ChVectorD()
+#surfpoints.SetMatr(mlist)
+#
+#msurf = chrono.ChSurfaceNurbs()
+#msurf.SetupData(3, 1, surfpoints)
+#
+#msurfasset = chrono.ChSurfaceShape()
+#msurfasset.Pos = chrono.ChVectorD(3, -1, 3)
+#msurfasset.SetSurfaceGeometry(msurf)
+#msurfasset.SetWireframe(True)
+#mfloor.AddAsset(msurfasset)
 
 
 # 
@@ -143,8 +162,10 @@ mbody.AddAsset(mcyl)
 
 # ==Asset== Attach also a 'triangle mesh' shape
 # TODO: not sure how to add vertices
-# mmesh = chrono.ChTriangleMeshShape()
-# mmesh.GetMesh().getCoordsVertices().Add(chrono.ChVectorD(0,1,0))
+mmesh = chrono.ChTriangleMeshShape()
+mmesh.GetMesh().addTriangle(chrono.ChVectorD(0, 1, 0), chrono.ChVectorD(0, 1, 0.5), chrono.ChVectorD(1, 1, 0))
+mbody.AddAsset(mmesh)
+
 
 # ==Asset== Attach color. To set colors for all assets
 # in the same level, just asdd this:
@@ -204,7 +225,6 @@ mcamera.SetAngle(50)
 mcamera.SetPosition(chrono.ChVectorD(-3, 4, -5))
 mcamera.SetAimPoint(chrono.ChVectorD(0, 1, 0))
 mbody.AddAsset(mcamera)
-
 
 #
 # EXAMPLE 3:
@@ -281,12 +301,9 @@ application.AssetUpdateAll()
 application.SetTimestep(0.01)
 application.SetTryRealtime(True)
 
-while(application.GetDevice().run()):
+while application.GetDevice().run():
     application.BeginScene()
     application.DrawAll()
     application.DoStep()
     application.EndScene()
-
-
-
 
