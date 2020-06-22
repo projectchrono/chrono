@@ -495,8 +495,9 @@ macos:macos:deploy:
     #- conda install -c dlr-sc opencascade --yes
     - conda install -c intel mkl-devel --yes
     - conda build purge-all
+    # this command is needed to get the git describe data
     - git fetch --prune --unshallow
-    - git describe
+    - clang --version
     - mv -f ./contrib/packaging-python/conda/buildMacOS.sh ./contrib/packaging-python/conda/build.sh
     - conda build ./contrib/packaging-python/conda --no-remove-work-dir --dirty --python=3.6
     - anaconda -t $ANACONDA_TOKEN upload $HOME/miniconda/conda-bld/osx-64/pychrono*.bz2 -l develop --force
