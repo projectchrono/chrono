@@ -134,6 +134,9 @@ using namespace chrono::fea;
 
 %template(vector_ChNodeFEAxyzrot) std::vector< std::shared_ptr<chrono::fea::ChNodeFEAxyzrot> >;
 %template(vector_ChNodeFEAxyz)    std::vector< std::shared_ptr<chrono::fea::ChNodeFEAxyz> >;
+%template(vector_ChNodeFEAxyzD)    std::vector< std::shared_ptr<chrono::fea::ChNodeFEAxyzD> >;
+%template(vector_ChNodeFEAxyzDD)    std::vector< std::shared_ptr<chrono::fea::ChNodeFEAxyzDD> >;
+%template(vector_ChNodeFEAcurv)    std::vector< std::shared_ptr<chrono::fea::ChNodeFEAcurv> >;
 %template(vector_ChElementBeamEuler)    std::vector< std::shared_ptr<chrono::fea::ChElementBeamEuler> >;
 %template(vector_ChElementBeamIGA)    std::vector< std::shared_ptr<chrono::fea::ChElementBeamIGA> >;
 %template(vector_ChElementCableANCF)    std::vector< std::shared_ptr<chrono::fea::ChElementCableANCF> >;
