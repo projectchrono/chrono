@@ -89,9 +89,7 @@ SET(CH_OPENGL_INCLUDES "${CH_OPENGL_INCLUDES}" PARENT_SCOPE)
 # Add commands to compile shaders
 # ------------------------------------------------------------------------------
 
-ADD_EXECUTABLE(embedfile embedfile.cpp)
-
-#All shaders are compiled into strings by embedfile.cpp
+#All shaders are compiled into strings by embedfile.cmake
 SET(GLSL_SHADERS
   bar_frag
   bar_vert
@@ -110,10 +108,11 @@ SET(GLSL_SHADERS
 FOREACH(GLSL_SHADER ${GLSL_SHADERS})
   ADD_CUSTOM_COMMAND(
     OUTPUT  ${CMAKE_BINARY_DIR}/resources/${GLSL_SHADER}.h
-    COMMAND embedfile 
-            ${GLSL_SHADER}
-            ${CMAKE_CURRENT_SOURCE_DIR}/resources/${GLSL_SHADER}.glsl 
-            ${CMAKE_BINARY_DIR}/resources/${GLSL_SHADER}.h
+    COMMAND ${CMAKE_COMMAND} 
+            -DSYMBOL=${GLSL_SHADER}
+            -DDATA_FILE=${CMAKE_CURRENT_SOURCE_DIR}/resources/${GLSL_SHADER}.glsl 
+            -DHEADER_FILE=${CMAKE_BINARY_DIR}/resources/${GLSL_SHADER}.h
+            -P ${CMAKE_SOURCE_DIR}/cmake/embedfile.cmake
     DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/resources/${GLSL_SHADER}.glsl
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
 ENDFOREACH()
@@ -128,10 +127,11 @@ SET(DEFAULT_OBJ_FILES
 FOREACH(DEFAULT_OBJ_FILE ${DEFAULT_OBJ_FILES})
   ADD_CUSTOM_COMMAND(
     OUTPUT  ${CMAKE_BINARY_DIR}/resources/${DEFAULT_OBJ_FILE}.h
-    COMMAND embedfile 
-            ${DEFAULT_OBJ_FILE}_mesh_data
-            ${CMAKE_CURRENT_SOURCE_DIR}/resources/${DEFAULT_OBJ_FILE}.obj
-            ${CMAKE_BINARY_DIR}/resources/${DEFAULT_OBJ_FILE}.h
+    COMMAND ${CMAKE_COMMAND}
+            -DSYMBOL=${DEFAULT_OBJ_FILE}_mesh_data
+            -DDATA_FILE=${CMAKE_CURRENT_SOURCE_DIR}/resources/${DEFAULT_OBJ_FILE}.obj
+            -DHEADER_FILE=${CMAKE_BINARY_DIR}/resources/${DEFAULT_OBJ_FILE}.h
+            -P ${CMAKE_SOURCE_DIR}/cmake/embedfile.cmake
     DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/resources/${DEFAULT_OBJ_FILE}.obj
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
 ENDFOREACH()
@@ -267,11 +267,17 @@ ADD_LIBRARY(ChronoEngine_opengl SHARED
   ${CE_OpenGL_BULLET_FILES}
 ) 
 
-SET(CE_OpenGL_LIBRARIES 
-  ${GLEW_LIBRARY}
-  ${GLFW_LIBRARY}
-  ${OPENGL_LIBRARIES}
-  ChronoEngine)
+IF(${CMAKE_SYSTEM_NAME} MATCHES "Emscripten")
+  SET(CE_OpenGL_LIBRARIES 
+    ${OPENGL_LIBRARIES}
+    ChronoEngine)
+ELSE()
+  SET(CE_OpenGL_LIBRARIES 
+    ${GLEW_LIBRARY}
+    ${GLFW_LIBRARY}
+    ${OPENGL_LIBRARIES}
+    ChronoEngine)
+ENDIF()
 
 SET(CE_OpenGL_FLAGS "${CH_CXX_FLAGS}")
 
