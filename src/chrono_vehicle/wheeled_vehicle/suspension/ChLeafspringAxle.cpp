@@ -160,12 +160,15 @@ void ChLeafspringAxle::InitializeSide(VehicleSide side,
     m_shock[side]->RegisterForceFunctor(getShockForceFunctor());
     chassis->GetSystem()->AddLink(m_shock[side]);
 
-    m_spring[side] = chrono_types::make_shared<ChLinkTSDA>();
-    m_spring[side]->SetNameString(m_name + "_spring" + suffix);
-    m_spring[side]->Initialize(chassis, m_axleTube, false, points[SPRING_C], points[SPRING_A], false,
-                               getSpringRestLength());
-    m_spring[side]->RegisterForceFunctor(getSpringForceFunctor());
-    chassis->GetSystem()->AddLink(m_spring[side]);
+    if (!IsMemberOfAggregate()) {
+        // this is the usual configuration, no connection to a second axle exists
+        m_spring[side] = chrono_types::make_shared<ChLinkTSDA>();
+        m_spring[side]->SetNameString(m_name + "_spring" + suffix);
+        m_spring[side]->Initialize(chassis, m_axleTube, false, points[SPRING_C], points[SPRING_A], false,
+                                   getSpringRestLength());
+        m_spring[side]->RegisterForceFunctor(getSpringForceFunctor());
+        chassis->GetSystem()->AddLink(m_spring[side]);
+    }
 
     // Create and initialize the axle shaft and its connection to the spindle. Note that the
     // spindle rotates about the Y axis.
@@ -179,6 +182,30 @@ void ChLeafspringAxle::InitializeSide(VehicleSide side,
     m_axle_to_spindle[side]->SetNameString(m_name + "_axle_to_spindle" + suffix);
     m_axle_to_spindle[side]->Initialize(m_axle[side], m_spindle[side], ChVector<>(0, -1, 0));
     chassis->GetSystem()->Add(m_axle_to_spindle[side]);
+}
+
+void ChLeafspringAxle::InitBalancing(std::shared_ptr<ChBodyAuxRef> chassis,
+                                     std::shared_ptr<ChBody> leftBalancer,
+                                     std::shared_ptr<ChBody> rightBalancer) {
+    if (IsMemberOfAggregate()) {
+        // top mounts of the springs go to the balancers instead of the chassis
+        m_spring[LEFT] = chrono_types::make_shared<ChLinkTSDA>();
+        m_spring[LEFT]->SetNameString(m_name + "_spring_L");
+        m_spring[LEFT]->Initialize(leftBalancer, m_axleTube, false, m_pointsL[SPRING_C], m_pointsL[SPRING_A], false,
+                                   getSpringRestLength());
+        m_spring[LEFT]->RegisterForceFunctor(getSpringForceFunctor());
+        chassis->GetSystem()->AddLink(m_spring[LEFT]);
+
+        m_spring[RIGHT] = chrono_types::make_shared<ChLinkTSDA>();
+        m_spring[RIGHT]->SetNameString(m_name + "_spring_R");
+        m_spring[RIGHT]->Initialize(rightBalancer, m_axleTube, false, m_pointsR[SPRING_C], m_pointsR[SPRING_A], false,
+                                    getSpringRestLength());
+        m_spring[RIGHT]->RegisterForceFunctor(getSpringForceFunctor());
+        chassis->GetSystem()->AddLink(m_spring[RIGHT]);
+    } else {
+        GetLog()
+            << "ChLeafSpringAxle::InitBalancing(): Axle is not configured for load balancing. Method call ignored.\n";
+    }
 }
 
 // -----------------------------------------------------------------------------

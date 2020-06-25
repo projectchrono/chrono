@@ -78,6 +78,12 @@ class CH_VEHICLE_API ChLeafspringAxle : public ChSuspension {
     /// Specify whether or not this is an independent suspension.
     virtual bool IsIndependent() const final override { return false; }
 
+    virtual bool IsMemberOfAggregate() const { return false; }
+
+    void InitBalancing(std::shared_ptr<ChBodyAuxRef> chassis,
+                       std::shared_ptr<ChBody> leftBalancer,
+                       std::shared_ptr<ChBody> rightBalancer);
+
     /// Initialize this suspension subsystem.
     /// The suspension subsystem is initialized by attaching it to the specified
     /// chassis body at the specified location (with respect to and expressed in
@@ -85,7 +91,7 @@ class CH_VEHICLE_API ChLeafspringAxle : public ChSuspension {
     /// reference frame is always aligned with the chassis reference frame.
     virtual void Initialize(std::shared_ptr<ChBodyAuxRef> chassis,  ///< [in] handle to the chassis body
                             const ChVector<>& location,             ///< [in] location relative to the chassis frame
-                            std::shared_ptr<ChBody> tierod_body,    ///< [in] body to which tireods are connected
+                            std::shared_ptr<ChBody> tierod_body,    ///< [in] body to which tierods are connected
                             int steering_index,                     ///< [in] index of the associated steering mechanism
                             double left_ang_vel = 0,                ///< [in] initial angular velocity of left wheel
                             double right_ang_vel = 0                ///< [in] initial angular velocity of right wheel
