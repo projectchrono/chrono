@@ -16,8 +16,6 @@
 //
 // =============================================================================
 
-#include "chrono/assets/ChSphereShape.h"
-
 #include "subsystems/SemiTractor_brake.h"
 #include "subsystems/SemiTractor_driveline.h"
 #include "subsystems/SemiTractor_wheel.h"
@@ -30,7 +28,6 @@
 using namespace chrono;
 using namespace chrono::vehicle;
 
-// -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 SemiTractor_vehicle::SemiTractor_vehicle(const bool fixed, ChContactMethod contactMethod)
     : ChWheeledVehicle("SemiTractor", contactMethod) {
@@ -79,7 +76,6 @@ SemiTractor_vehicle::SemiTractor_vehicle(const bool fixed, ChContactMethod conta
 }
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 void SemiTractor_vehicle::Initialize(const ChCoordsys<>& chassisPos, double chassisFwdVel) {
     // Initialize the chassis subsystem.
     m_chassis->Initialize(m_system, chassisPos, chassisFwdVel, WheeledCollisionFamily::CHASSIS);
@@ -103,7 +99,6 @@ void SemiTractor_vehicle::Initialize(const ChCoordsys<>& chassisPos, double chas
     m_driveline->Initialize(m_chassis->GetBody(), m_axles, driven_susp);
 }
 
-// -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 double SemiTractor_vehicle::GetSpringForce(int axle, VehicleSide side) const {
     switch (axle) {
@@ -142,7 +137,6 @@ double SemiTractor_vehicle::GetSpringDeformation(int axle, VehicleSide side) con
     }
 }
 
-// -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 double SemiTractor_vehicle::GetShockForce(int axle, VehicleSide side) const {
     switch (axle) {

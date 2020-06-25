@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Alessandro Tasora
+// Authors: Rainer Gericke, Radu Serban
 // =============================================================================
 //
 // Trailer for the tractor-trailer vehicle model.
@@ -19,8 +19,10 @@
 #ifndef SEMITRAILER_H
 #define SEMITRAILER_H
 
-#include "chrono_vehicle/ChTerrain.h"
+#include "subsystems/SemiTrailer_chassis.h"
+
 #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicle.h"
+#include "chrono_vehicle/ChTerrain.h"
 
 class SemiTrailer {
   public:
@@ -38,9 +40,7 @@ class SemiTrailer {
     double GetShockLength(int axle, chrono::vehicle::VehicleSide side) const;
     double GetShockVelocity(int axle, chrono::vehicle::VehicleSide side) const;
 
-    void Initialize(const chrono::ChCoordsys<>& chassisPos,
-                    const bool connect_to_puller,
-                    std::shared_ptr<chrono::ChBodyAuxRef> pulling_vehicle);
+    void Initialize(std::shared_ptr<chrono::vehicle::ChChassis> frontChassis, const chrono::ChVector<>& location);
 
     void InitializeTire(
         std::shared_ptr<chrono::vehicle::ChTire> tire,
@@ -52,12 +52,9 @@ class SemiTrailer {
 
     void Advance(double step);
 
+    void SetChassisVisualizationType(chrono::vehicle::VisualizationType vis);
     void SetSuspensionVisualizationType(chrono::vehicle::VisualizationType vis);
     void SetWheelVisualizationType(chrono::vehicle::VisualizationType vis);
-
-    // Log debugging information
-    void LogHardpointLocations();  /// suspension hardpoints at design
-    void DebugLog(int what);       /// shock forces and lengths, constraints, etc.
 
     /// Get all trailer axle subsystems.
     const chrono::vehicle::ChAxleList& GetAxles() const { return m_axles; }
@@ -66,18 +63,9 @@ class SemiTrailer {
     std::shared_ptr<chrono::vehicle::ChAxle> GetAxle(int id) const { return m_axles[id]; }
 
   private:
-    std::shared_ptr<chrono::ChBodyAuxRef> m_chassis;  ///< chassis body
-    // std::shared_ptr<chrono::ChBodyAuxRef> m_frontaxle;  ///< steering axle
-    chrono::vehicle::ChAxleList m_axles;  ///< list of axle subsystems
-
-    std::shared_ptr<chrono::ChLinkLockSpherical> m_joint;   ///< joint between chassis and front axle
-    std::shared_ptr<chrono::ChLinkLockSpherical> m_puller;  ///< joint between trailer and pulling vehicle
-
-    // Chassis mass properties
-    static const double m_chassisMass;
-    static const chrono::ChVector<> m_chassisCOM;
-    static const chrono::ChVector<> m_chassisInertia;
-    static const chrono::ChVector<> m_chassisPullerJoint;
+    std::shared_ptr<chrono::vehicle::ChChassisRear> m_chassis;              ///< trailer chassis
+    std::shared_ptr<chrono::vehicle::ChChassisConnectorHitch> m_connector;  ///< connector to pulling vehicle
+    chrono::vehicle::ChAxleList m_axles;                                    ///< list of axle subsystems
 };
 
 #endif
