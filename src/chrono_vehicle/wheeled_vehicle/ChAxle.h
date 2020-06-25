@@ -67,7 +67,7 @@ class CH_VEHICLE_API ChAxle {
         std::shared_ptr<ChBodyAuxRef> chassis,  ///< [in] handle to the chassis body
         const ChVector<>& susp_location,        ///< [in] suspension location relative to the chassis frame
         const ChVector<>& arb_location,         ///< [in] antirollbar location relative to chassis frame
-        std::shared_ptr<ChBody> tierod_body,    ///< [in] body to which tireods are connected
+        std::shared_ptr<ChBody> tierod_body,    ///< [in] body to which tierods are connected
         int steering_index,                     ///< [in] index of the associated steering mechanism
         double wheel_separation = 0,            ///< [in] distance between wheel centers on one side
         double left_ang_vel = 0,                ///< [in] initial angular velocity of left wheel

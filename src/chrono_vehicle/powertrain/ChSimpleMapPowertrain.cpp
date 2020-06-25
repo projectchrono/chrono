@@ -30,7 +30,12 @@ namespace vehicle {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 ChSimpleMapPowertrain::ChSimpleMapPowertrain(const std::string& name)
-    : ChPowertrain(name), m_initialized(false), m_automatic(true), m_motor_speed(0), m_motor_torque(0), m_shaft_torque(0) {}
+    : ChPowertrain(name),
+      m_initialized(false),
+      m_automatic(true),
+      m_motor_speed(0),
+      m_motor_torque(0),
+      m_shaft_torque(0) {}
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------

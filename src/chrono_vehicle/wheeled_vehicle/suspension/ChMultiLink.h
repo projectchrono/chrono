@@ -79,7 +79,7 @@ class CH_VEHICLE_API ChMultiLink : public ChSuspension {
     /// associated steering mechanism in the vehicle's list (-1 for a non-steered suspension).
     virtual void Initialize(std::shared_ptr<ChBodyAuxRef> chassis,  ///< [in] handle to the chassis body
                             const ChVector<>& location,             ///< [in] location relative to the chassis frame
-                            std::shared_ptr<ChBody> tierod_body,    ///< [in] body to which tireods are connected
+                            std::shared_ptr<ChBody> tierod_body,    ///< [in] body to which tierods are connected
                             int steering_index,                     ///< [in] index of the associated steering mechanism
                             double left_ang_vel = 0,                ///< [in] initial angular velocity of left wheel
                             double right_ang_vel = 0                ///< [in] initial angular velocity of right wheel
