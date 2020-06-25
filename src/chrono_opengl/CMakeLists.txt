@@ -269,7 +269,7 @@ ADD_LIBRARY(ChronoEngine_opengl SHARED
 
 IF(${CMAKE_SYSTEM_NAME} MATCHES "Emscripten")
   SET(CE_OpenGL_LIBRARIES 
-    ${OPENGL_LIBRARIES}
+    # ${OPENGL_LIBRARIES}
     ChronoEngine)
 ELSE()
   SET(CE_OpenGL_LIBRARIES 

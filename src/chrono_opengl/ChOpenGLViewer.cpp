@@ -196,11 +196,11 @@ void ChOpenGLViewer::Render() {
         dot_shader.SetViewport(window_size);
         sphere_shader.SetViewport(window_size);
 
-        if (render_mode == WIREFRAME) {
-            glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-        } else {
-            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-        }
+        // if (render_mode == WIREFRAME) {
+        //     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+        // } else {
+        //     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+        // }
 
         if (render_mode != POINTS) {
             model_box.clear();
