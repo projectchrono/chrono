@@ -22,6 +22,7 @@ SET(LIBRARIES
 
 SET(DEMOS
     demo_VEH_LMTV_ride
+    demo_VEH_MTV_ride
 )
 
 # ------------------------------------------------------------------------------

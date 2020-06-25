@@ -12,7 +12,7 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// Wrapper classes for modeling an entire LMTV vehicle assembly
+// Wrapper classes for modeling an entire MTV vehicle assembly
 // (including the vehicle itself, the powertrain, and the tires).
 //
 // =============================================================================
@@ -21,14 +21,14 @@
 
 #include "chrono_vehicle/ChVehicleModelData.h"
 
-#include "chrono_models/vehicle/mtv/LMTV.h"
+#include "chrono_models/vehicle/mtv/MTV.h"
 
 namespace chrono {
 namespace vehicle {
 namespace fmtv {
 
 // -----------------------------------------------------------------------------
-LMTV::LMTV()
+MTV::MTV()
     : m_system(nullptr),
       m_vehicle(nullptr),
       m_contactMethod(ChContactMethod::NSC),
@@ -41,10 +41,10 @@ LMTV::LMTV()
       m_steeringType(SteeringType::PITMAN_ARM),
       m_initFwdVel(0),
       m_initPos(ChCoordsys<>(ChVector<>(0, 0, 1), QUNIT)),
-      m_initOmega({0, 0, 0, 0}),
+      m_initOmega({0, 0, 0, 0, 0, 0}),
       m_apply_drag(false) {}
 
-LMTV::LMTV(ChSystem* system)
+MTV::MTV(ChSystem* system)
     : m_system(system),
       m_vehicle(nullptr),
       m_contactMethod(ChContactMethod::NSC),
@@ -57,15 +57,15 @@ LMTV::LMTV(ChSystem* system)
       m_steeringType(SteeringType::PITMAN_ARM),
       m_initFwdVel(0),
       m_initPos(ChCoordsys<>(ChVector<>(0, 0, 1), QUNIT)),
-      m_initOmega({0, 0, 0, 0}),
+      m_initOmega({0, 0, 0, 0, 0, 0}),
       m_apply_drag(false) {}
 
-LMTV::~LMTV() {
+MTV::~MTV() {
     delete m_vehicle;
 }
 
 // -----------------------------------------------------------------------------
-void LMTV::SetAerodynamicDrag(double Cd, double area, double air_density) {
+void MTV::SetAerodynamicDrag(double Cd, double area, double air_density) {
     m_Cd = Cd;
     m_area = area;
     m_air_density = air_density;
@@ -74,10 +74,10 @@ void LMTV::SetAerodynamicDrag(double Cd, double area, double air_density) {
 }
 
 // -----------------------------------------------------------------------------
-void LMTV::Initialize() {
-    // Create and initialize the LMTV vehicle
-    m_vehicle = m_system ? new LMTV_Vehicle(m_system, m_fixed, m_steeringType, m_chassisCollisionType)
-                         : new LMTV_Vehicle(m_fixed, m_steeringType, m_contactMethod, m_chassisCollisionType);
+void MTV::Initialize() {
+    // Create and initialize the MTV vehicle
+    m_vehicle = m_system ? new MTV_Vehicle(m_system, m_fixed, m_steeringType, m_chassisCollisionType)
+                         : new MTV_Vehicle(m_fixed, m_steeringType, m_contactMethod, m_chassisCollisionType);
 
     m_vehicle->SetInitWheelAngVel(m_initOmega);
     m_vehicle->Initialize(m_initPos, m_initFwdVel);
@@ -119,13 +119,17 @@ void LMTV::Initialize() {
 
             auto tire_FL = chrono_types::make_shared<FMTV_RigidTire>("FL", use_mesh);
             auto tire_FR = chrono_types::make_shared<FMTV_RigidTire>("FR", use_mesh);
-            auto tire_RL = chrono_types::make_shared<FMTV_RigidTire>("RL", use_mesh);
-            auto tire_RR = chrono_types::make_shared<FMTV_RigidTire>("RR", use_mesh);
+            auto tire_RL1 = chrono_types::make_shared<FMTV_RigidTire>("RL1", use_mesh);
+            auto tire_RR1 = chrono_types::make_shared<FMTV_RigidTire>("RR1", use_mesh);
+            auto tire_RL2 = chrono_types::make_shared<FMTV_RigidTire>("RL2", use_mesh);
+            auto tire_RR2 = chrono_types::make_shared<FMTV_RigidTire>("RR2", use_mesh);
 
             m_vehicle->InitializeTire(tire_FL, m_vehicle->GetAxle(0)->m_wheels[LEFT], VisualizationType::NONE);
             m_vehicle->InitializeTire(tire_FR, m_vehicle->GetAxle(0)->m_wheels[RIGHT], VisualizationType::NONE);
-            m_vehicle->InitializeTire(tire_RL, m_vehicle->GetAxle(1)->m_wheels[LEFT], VisualizationType::NONE);
-            m_vehicle->InitializeTire(tire_RR, m_vehicle->GetAxle(1)->m_wheels[RIGHT], VisualizationType::NONE);
+            m_vehicle->InitializeTire(tire_RL1, m_vehicle->GetAxle(1)->m_wheels[LEFT], VisualizationType::NONE);
+            m_vehicle->InitializeTire(tire_RR1, m_vehicle->GetAxle(1)->m_wheels[RIGHT], VisualizationType::NONE);
+            m_vehicle->InitializeTire(tire_RL2, m_vehicle->GetAxle(2)->m_wheels[LEFT], VisualizationType::NONE);
+            m_vehicle->InitializeTire(tire_RR2, m_vehicle->GetAxle(2)->m_wheels[RIGHT], VisualizationType::NONE);
 
             m_tire_mass = tire_FL->ReportMass();
 
@@ -135,13 +139,17 @@ void LMTV::Initialize() {
         case TireModelType::TMEASY: {
             auto tire_FL = chrono_types::make_shared<FMTV_TMeasyTire>("FL");
             auto tire_FR = chrono_types::make_shared<FMTV_TMeasyTire>("FR");
-            auto tire_RL = chrono_types::make_shared<FMTV_TMeasyTire>("RL");
-            auto tire_RR = chrono_types::make_shared<FMTV_TMeasyTire>("RR");
+            auto tire_RL1 = chrono_types::make_shared<FMTV_TMeasyTire>("RL1");
+            auto tire_RR1 = chrono_types::make_shared<FMTV_TMeasyTire>("RR1");
+            auto tire_RL2 = chrono_types::make_shared<FMTV_TMeasyTire>("RL2");
+            auto tire_RR2 = chrono_types::make_shared<FMTV_TMeasyTire>("RR2");
 
             m_vehicle->InitializeTire(tire_FL, m_vehicle->GetAxle(0)->m_wheels[LEFT], VisualizationType::NONE);
             m_vehicle->InitializeTire(tire_FR, m_vehicle->GetAxle(0)->m_wheels[RIGHT], VisualizationType::NONE);
-            m_vehicle->InitializeTire(tire_RL, m_vehicle->GetAxle(1)->m_wheels[LEFT], VisualizationType::NONE);
-            m_vehicle->InitializeTire(tire_RR, m_vehicle->GetAxle(1)->m_wheels[RIGHT], VisualizationType::NONE);
+            m_vehicle->InitializeTire(tire_RL1, m_vehicle->GetAxle(1)->m_wheels[LEFT], VisualizationType::NONE);
+            m_vehicle->InitializeTire(tire_RR1, m_vehicle->GetAxle(1)->m_wheels[RIGHT], VisualizationType::NONE);
+            m_vehicle->InitializeTire(tire_RL2, m_vehicle->GetAxle(2)->m_wheels[LEFT], VisualizationType::NONE);
+            m_vehicle->InitializeTire(tire_RR2, m_vehicle->GetAxle(2)->m_wheels[RIGHT], VisualizationType::NONE);
 
             m_tire_mass = tire_FL->ReportMass();
 
@@ -162,7 +170,7 @@ void LMTV::Initialize() {
 }
 
 // -----------------------------------------------------------------------------
-void LMTV::SetTireVisualizationType(VisualizationType vis) {
+void MTV::SetTireVisualizationType(VisualizationType vis) {
     for (auto& axle : m_vehicle->GetAxles()) {
         for (auto& wheel : axle->GetWheels()) {
             wheel->GetTire()->SetVisualizationType(vis);
@@ -171,17 +179,17 @@ void LMTV::SetTireVisualizationType(VisualizationType vis) {
 }
 
 // -----------------------------------------------------------------------------
-void LMTV::Synchronize(double time, const ChDriver::Inputs& driver_inputs, const ChTerrain& terrain) {
+void MTV::Synchronize(double time, const ChDriver::Inputs& driver_inputs, const ChTerrain& terrain) {
     m_vehicle->Synchronize(time, driver_inputs, terrain);
 }
 // -----------------------------------------------------------------------------
-void LMTV::Advance(double step) {
+void MTV::Advance(double step) {
     m_vehicle->Advance(step);
 }
 
 // -----------------------------------------------------------------------------
-double LMTV::GetTotalMass() const {
-    return m_vehicle->GetVehicleMass() + 4 * m_tire_mass;
+double MTV::GetTotalMass() const {
+    return m_vehicle->GetVehicleMass() + 6 * m_tire_mass;
 }
 
 }  // namespace fmtv

@@ -12,13 +12,13 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// Wrapper classes for modeling an entire LMTV vehicle assembly
+// Wrapper classes for modeling an entire MTV vehicle assembly
 // (including the vehicle itself, the powertrain, and the tires).
 //
 // =============================================================================
 
-#ifndef LMTV_H
-#define LMTV_H
+#ifndef MTV_H
+#define MTV_H
 
 #include <array>
 #include <string>
@@ -26,7 +26,7 @@
 #include "chrono_vehicle/wheeled_vehicle/tire/ChPacejkaTire.h"
 
 #include "chrono_models/ChApiModels.h"
-#include "chrono_models/vehicle/mtv/LMTV_Vehicle.h"
+#include "chrono_models/vehicle/mtv/MTV_Vehicle.h"
 #include "chrono_models/vehicle/mtv/FMTV_SimpleCVTPowertrain.h"
 #include "chrono_models/vehicle/mtv/FMTV_SimpleMapPowertrain.h"
 #include "chrono_models/vehicle/mtv/FMTV_SimplePowertrain.h"
@@ -43,13 +43,13 @@ namespace fmtv {
 
 /// Definition of the UAZ assembly.
 /// This class encapsulates a concrete wheeled vehicle model with parameters corresponding to
-/// a UAZ vehicle, the powertrain model, and the 4 tires.
-class CH_MODELS_API LMTV {
+/// a UAZ vehicle, the powertrain model, and the 6 tires.
+class CH_MODELS_API MTV {
   public:
-    LMTV();
-    LMTV(ChSystem* system);
+    MTV();
+    MTV(ChSystem* system);
 
-    ~LMTV();
+    ~MTV();
 
     void SetContactMethod(ChContactMethod val) { m_contactMethod = val; }
 
@@ -85,6 +85,7 @@ class CH_MODELS_API LMTV {
 
     void SetChassisVisualizationType(VisualizationType vis) { m_vehicle->SetChassisVisualizationType(vis); }
     void SetChassisRearVisualizationType(VisualizationType vis) { m_vehicle->SetChassisRearVisualizationType(vis); }
+    void SetSubchassisVisualizationType(VisualizationType vis) { m_vehicle->SetSubchassisVisualizationType(vis); }
     void SetSuspensionVisualizationType(VisualizationType vis) { m_vehicle->SetSuspensionVisualizationType(vis); }
     void SetSteeringVisualizationType(VisualizationType vis) { m_vehicle->SetSteeringVisualizationType(vis); }
     void SetWheelVisualizationType(VisualizationType vis) { m_vehicle->SetWheelVisualizationType(vis); }
@@ -119,7 +120,7 @@ class CH_MODELS_API LMTV {
     double m_air_density;
 
     ChSystem* m_system;
-    LMTV_Vehicle* m_vehicle;
+    MTV_Vehicle* m_vehicle;
 
     double m_tire_mass;
 };

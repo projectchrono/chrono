@@ -12,12 +12,12 @@
 // Authors: Radu Serban, Rainer Gericke
 // =============================================================================
 //
-// LMTV leafspring axle.
+// 1st rear Leafspring axle subsystem for the MTV vehicle.
 //
 // =============================================================================
 
-#ifndef LMTV_LEAFSPRING_AXLE_H
-#define LMTV_LEAFSPRING_AXLE_H
+#ifndef MTV_LEAFSPRING_AXLE1_H
+#define MTV_LEAFSPRING_AXLE1_H
 
 #include "chrono_vehicle/wheeled_vehicle/suspension/ChLeafspringAxle.h"
 
@@ -30,12 +30,12 @@ namespace fmtv {
 /// @addtogroup vehicle_models_fmtv
 /// @{
 
-/// Leafspring axle subsystem for the LMTV vehicle.
+/// 1st rear Leafspring axle subsystem for the MTV vehicle.
 
-class CH_MODELS_API LMTV_LeafspringAxle : public ChLeafspringAxle {
+class CH_MODELS_API MTV_LeafspringAxle1 : public ChLeafspringAxle {
   public:
-    LMTV_LeafspringAxle(const std::string& name);
-    ~LMTV_LeafspringAxle();
+    MTV_LeafspringAxle1(const std::string& name);
+    ~MTV_LeafspringAxle1() {}
 
   protected:
     virtual const ChVector<> getLocation(PointId which) override;
@@ -63,6 +63,8 @@ class CH_MODELS_API LMTV_LeafspringAxle : public ChLeafspringAxle {
     virtual std::shared_ptr<ChBody> GetLeftBody() const override { return m_axleTube; }
     virtual std::shared_ptr<ChBody> GetRightBody() const override { return m_axleTube; }
 
+    virtual bool IsMemberOfAggregate() const override { return m_is_agregate_member; }
+
   private:
     std::shared_ptr<ChLinkTSDA::ForceFunctor> m_springForceCB;
     std::shared_ptr<ChLinkTSDA::ForceFunctor> m_shockForceCB;
@@ -75,6 +77,8 @@ class CH_MODELS_API LMTV_LeafspringAxle : public ChLeafspringAxle {
     static const double m_axleTubeRadius;
     static const double m_spindleRadius;
     static const double m_spindleWidth;
+
+    static const bool m_is_agregate_member;
 
     static const ChVector<> m_axleTubeInertia;
     static const ChVector<> m_spindleInertia;

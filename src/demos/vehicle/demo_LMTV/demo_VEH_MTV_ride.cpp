@@ -12,8 +12,8 @@
 // Authors: Rainer Gericke
 // =============================================================================
 //
-// Sample test program for sequential LMTV 2.5 ton simulation, demonstrating
-// chassis torsion due to random wheel excitation.
+// Sample test program for MTV 5 ton simulation, demonstrating chassis torsion
+// due to random wheel excitation.
 //
 // The vehicle reference frame has Z up, X towards the front of the vehicle, and
 // Y pointing to the left.
@@ -33,7 +33,7 @@
 #include "chrono_vehicle/driver/ChPathFollowerDriver.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 
-#include "chrono_models/vehicle/mtv/LMTV.h"
+#include "chrono_models/vehicle/mtv/MTV.h"
 
 #include "chrono_thirdparty/filesystem/path.h"
 
@@ -54,6 +54,7 @@ ChQuaternion<> initRot(1, 0, 0, 0);
 // Visualization type for vehicle parts (PRIMITIVES, MESH, or NONE)
 VisualizationType chassis_vis_type = VisualizationType::MESH;
 VisualizationType chassis_rear_vis_type = VisualizationType::MESH;
+VisualizationType subchassis_vis_type = VisualizationType::PRIMITIVES;
 VisualizationType suspension_vis_type = VisualizationType::PRIMITIVES;
 VisualizationType steering_vis_type = VisualizationType::PRIMITIVES;
 VisualizationType wheel_vis_type = VisualizationType::MESH;
@@ -76,8 +77,8 @@ double tire_step_size = step_size;
 // Simulation end time
 double tend = 300;
 
-// Simulation end x coordinate
-double xmax = 300.0;
+// Simulation maximum x coordinate
+double xend = 300;
 
 // Time interval between two render frames
 double render_step_size = 1.0 / 50;  // FPS = 50
@@ -89,7 +90,7 @@ double mph_to_ms = 0.44704;
 double target_speed = 5 * mph_to_ms;
 
 // output directory
-const std::string out_dir = GetChronoOutputPath() + "LMTV_RND_QUALITY";
+const std::string out_dir = GetChronoOutputPath() + "MTV_RND_QUALITY";
 const std::string pov_dir = out_dir + "/POVRAY";
 bool povray_output = false;
 bool data_output = true;
@@ -207,36 +208,37 @@ int main(int argc, char* argv[]) {
     // --------------
 
     // Create the vehicle, set parameters, and initialize
-    LMTV lmtv;
-    lmtv.SetContactMethod(ChContactMethod::NSC);
-    lmtv.SetChassisFixed(false);
-    lmtv.SetInitPosition(ChCoordsys<>(initLoc, initRot));
-    lmtv.SetTireType(tire_model);
-    lmtv.SetTireStepSize(tire_step_size);
-    lmtv.SetInitFwdVel(target_speed);
-    lmtv.Initialize();
+    MTV mtv;
+    mtv.SetContactMethod(ChContactMethod::NSC);
+    mtv.SetChassisFixed(false);
+    mtv.SetInitPosition(ChCoordsys<>(initLoc, initRot));
+    mtv.SetTireType(tire_model);
+    mtv.SetTireStepSize(tire_step_size);
+    mtv.SetInitFwdVel(target_speed);
+    mtv.Initialize();
 
-    lmtv.SetChassisVisualizationType(chassis_vis_type);
-    lmtv.SetChassisRearVisualizationType(chassis_rear_vis_type);
-    lmtv.SetSuspensionVisualizationType(suspension_vis_type);
-    lmtv.SetSteeringVisualizationType(steering_vis_type);
-    lmtv.SetWheelVisualizationType(wheel_vis_type);
-    lmtv.SetTireVisualizationType(tire_vis_type);
+    mtv.SetChassisVisualizationType(chassis_vis_type);
+    mtv.SetChassisRearVisualizationType(chassis_rear_vis_type);
+    mtv.SetSubchassisVisualizationType(subchassis_vis_type);
+    mtv.SetSuspensionVisualizationType(suspension_vis_type);
+    mtv.SetSteeringVisualizationType(steering_vis_type);
+    mtv.SetWheelVisualizationType(wheel_vis_type);
+    mtv.SetTireVisualizationType(tire_vis_type);
 
-    std::cout << "Vehicle mass:               " << lmtv.GetVehicle().GetVehicleMass() << std::endl;
-    std::cout << "Vehicle mass (with tires):  " << lmtv.GetTotalMass() << std::endl;
+    std::cout << "Vehicle mass:               " << mtv.GetVehicle().GetVehicleMass() << std::endl;
+    std::cout << "Vehicle mass (with tires):  " << mtv.GetTotalMass() << std::endl;
 
     // ------------------
     // Create the terrain
     // ------------------
-    RandomSurfaceTerrain terrain(lmtv.GetSystem(), xmax);
+    RandomSurfaceTerrain terrain(mtv.GetSystem(), xend);
     terrain.Initialize(surface, 2, visType);
     GetLog() << "RMS = " << (1000.0 * terrain.GetRMS()) << " mm\n";
     GetLog() << "IRI = " << terrain.GetIRI() << " mm/m\n";
 
     // create the driver
     auto path = ChBezierCurve::read(vehicle::GetDataFile(path_file));
-    ChPathFollowerDriver driver(lmtv.GetVehicle(), vehicle::GetDataFile(steering_controller_file),
+    ChPathFollowerDriver driver(mtv.GetVehicle(), vehicle::GetDataFile(steering_controller_file),
                                 vehicle::GetDataFile(speed_controller_file), path, "my_path", target_speed, false);
     driver.Initialize();
 
@@ -246,14 +248,14 @@ int main(int argc, char* argv[]) {
     // -------------------------------------
 
 #ifdef USE_IRRLICHT
-    ChWheeledVehicleIrrApp app(&lmtv.GetVehicle(), L"LMTV ride & twist test");
+    ChWheeledVehicleIrrApp app(&mtv.GetVehicle(), L"MTV ride & twist test");
     app.SetSkyBox();
     // app.AddTypicalLights(irr::core::vector3df(30.f, -30.f, 100.f), irr::core::vector3df(30.f, 50.f, 100.f), 250,
     // 130);
     app.GetSceneManager()->setAmbientLight(irr::video::SColorf(0.1f, 0.1f, 0.1f, 1.0f));
     app.AddTypicalLights(irr::core::vector3df(-50.f, -30.f, 40.f), irr::core::vector3df(10.f, 30.f, 40.f), 50, 50,
                          irr::video::SColorf(0.7f, 0.7f, 0.7f, 1.0f), irr::video::SColorf(0.7f, 0.7f, 0.7f, 1.0f));
-    app.SetChaseCamera(trackPoint, 9.0, 0.5);
+    app.SetChaseCamera(trackPoint, 10.0, 0.5);
     /*app.SetTimestep(step_size);*/
     app.AssetBindAll();
     app.AssetUpdateAll();
@@ -298,10 +300,10 @@ int main(int argc, char* argv[]) {
     csv << "throttle";
     csv << "MotorSpeed";
     csv << "CurrentTransmissionGear";
-    for (int i = 0; i < 4; i++) {
+    for (int i = 0; i < 6; i++) {
         csv << "WheelTorque";
     }
-    for (int i = 0; i < 4; i++) {
+    for (int i = 0; i < 6; i++) {
         csv << "WheelAngVelX";
         csv << "WheelAngVelY";
         csv << "WheelAngVelZ";
@@ -315,7 +317,7 @@ int main(int argc, char* argv[]) {
     csv << "VehicleCOMAccelerationY";
     csv << "VehicleCOMAccelerationZ";
 
-    for (int i = 0; i < 4; i++) {
+    for (int i = 0; i < 6; i++) {
         csv << "TireForce";
     }
     csv << "EngineTorque";
@@ -332,8 +334,14 @@ int main(int argc, char* argv[]) {
         << "W3 Pos x"
         << "W3 Pos Y"
         << "W3 Pos Z";
+    csv << "W4 Pos x"
+        << "W4 Pos Y"
+        << "W4 Pos Z"
+        << "W5 Pos x"
+        << "W5 Pos Y"
+        << "W5 Pos Z";
 
-    for (auto& axle : lmtv.GetVehicle().GetAxles()) {
+    for (auto& axle : mtv.GetVehicle().GetAxles()) {
         for (auto& wheel : axle->GetWheels()) {
             csv << wheel->GetPos();
         }
@@ -355,11 +363,11 @@ int main(int argc, char* argv[]) {
     double time = 0;
 
 #ifdef USE_IRRLICHT
-    while (app.GetDevice()->run() && (time < tend) && (lmtv.GetVehicle().GetVehiclePos().x() < xmax)) {
+    while (app.GetDevice()->run() && (time < tend) && (mtv.GetVehicle().GetVehiclePos().x() < xend)) {
 #else
-    while ((time < tend) && (lmtv.GetVehicle().GetVehiclePos().x() < xmax)) {
+    while ((time < tend) && (mtv.GetVehicle().GetVehiclePos().x() < xend)) {
 #endif
-        time = lmtv.GetSystem()->GetChTime();
+        time = mtv.GetSystem()->GetChTime();
 
 #ifdef USE_IRRLICHT
         // path visualization
@@ -369,9 +377,9 @@ int main(int argc, char* argv[]) {
         ballT->setPosition(irr::core::vector3df((irr::f32)pT.x(), (irr::f32)pT.y(), (irr::f32)pT.z()));
 
         // std::cout<<"Target:\t"<<(irr::f32)pT.x()<<",\t "<<(irr::f32)pT.y()<<",\t "<<(irr::f32)pT.z()<<std::endl;
-        // std::cout<<"Vehicle:\t"<<lmtv.GetVehicle().GetChassisBody()->GetPos().x()
-        //   <<",\t "<<lmtv.GetVehicle().GetChassisBody()->GetPos().y()<<",\t "
-        //   <<lmtv.GetVehicle().GetChassisBody()->GetPos().z()<<std::endl;
+        // std::cout<<"Vehicle:\t"<<mtv.GetVehicle().GetChassisBody()->GetPos().x()
+        //   <<",\t "<<mtv.GetVehicle().GetChassisBody()->GetPos().y()<<",\t "
+        //   <<mtv.GetVehicle().GetChassisBody()->GetPos().z()<<std::endl;
 
         // Render scene
         if (step_number % render_steps == 0) {
@@ -385,7 +393,7 @@ int main(int argc, char* argv[]) {
         if (povray_output && step_number % render_steps == 0) {
             char filename[100];
             sprintf(filename, "%s/data_%03d.dat", pov_dir.c_str(), render_frame + 1);
-            utils::WriteShapesPovray(lmtv.GetSystem(), filename);
+            utils::WriteShapesPovray(mtv.GetSystem(), filename);
             render_frame++;
         }
 
@@ -395,7 +403,7 @@ int main(int argc, char* argv[]) {
         // Update modules (process inputs from other modules)
         driver.Synchronize(time);
         terrain.Synchronize(time);
-        lmtv.Synchronize(time, driver_inputs, terrain);
+        mtv.Synchronize(time, driver_inputs, terrain);
 
 #ifdef USE_IRRLICHT
         app.Synchronize("Follower driver", driver_inputs);
@@ -405,7 +413,7 @@ int main(int argc, char* argv[]) {
 
         driver.Advance(step_size);
         terrain.Advance(step_size);
-        lmtv.Advance(step_size);
+        mtv.Advance(step_size);
 
 #ifdef USE_IRRLICHT
         app.Advance(step_size);
@@ -415,29 +423,29 @@ int main(int argc, char* argv[]) {
             // std::cout << time << std::endl;
             csv << time;
             csv << driver_inputs.m_throttle;
-            csv << lmtv.GetVehicle().GetPowertrain()->GetMotorSpeed();
-            csv << lmtv.GetVehicle().GetPowertrain()->GetCurrentTransmissionGear();
-            for (int axle = 0; axle < 2; axle++) {
-                csv << lmtv.GetVehicle().GetDriveline()->GetSpindleTorque(axle, LEFT);
-                csv << lmtv.GetVehicle().GetDriveline()->GetSpindleTorque(axle, RIGHT);
+            csv << mtv.GetVehicle().GetPowertrain()->GetMotorSpeed();
+            csv << mtv.GetVehicle().GetPowertrain()->GetCurrentTransmissionGear();
+            for (int axle = 0; axle < 3; axle++) {
+                csv << mtv.GetVehicle().GetDriveline()->GetSpindleTorque(axle, LEFT);
+                csv << mtv.GetVehicle().GetDriveline()->GetSpindleTorque(axle, RIGHT);
             }
-            for (int axle = 0; axle < 2; axle++) {
-                csv << lmtv.GetVehicle().GetSpindleAngVel(axle, LEFT);
-                csv << lmtv.GetVehicle().GetSpindleAngVel(axle, RIGHT);
+            for (int axle = 0; axle < 3; axle++) {
+                csv << mtv.GetVehicle().GetSpindleAngVel(axle, LEFT);
+                csv << mtv.GetVehicle().GetSpindleAngVel(axle, RIGHT);
             }
-            csv << lmtv.GetVehicle().GetVehicleSpeed();
-            csv << lmtv.GetVehicle().GetVehiclePointAcceleration(
-                lmtv.GetVehicle().GetChassis()->GetLocalDriverCoordsys().pos);
+            csv << mtv.GetVehicle().GetVehicleSpeed();
+            csv << mtv.GetVehicle().GetVehiclePointAcceleration(
+                mtv.GetVehicle().GetChassis()->GetLocalDriverCoordsys().pos);
 
-            csv << lmtv.GetVehicle().GetVehiclePointAcceleration(vehCOM);
+            csv << mtv.GetVehicle().GetVehiclePointAcceleration(vehCOM);
 
-            for (auto& axle : lmtv.GetVehicle().GetAxles()) {
+            for (auto& axle : mtv.GetVehicle().GetAxles()) {
                 for (auto& wheel : axle->GetWheels()) {
                     csv << wheel->GetTire()->ReportTireForce(&terrain).force;
                 }
             }
 
-            csv << lmtv.GetVehicle().GetPowertrain()->GetMotorTorque();
+            csv << mtv.GetVehicle().GetPowertrain()->GetMotorTorque();
 
             csv << std::endl;
         }

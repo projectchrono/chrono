@@ -12,18 +12,13 @@
 // Authors: Radu Serban, Rainer Gericke
 // =============================================================================
 //
-// Rear LMTV suspension subsystems (simple leafspring work a like).
-//
-// These concrete suspension subsystems are defined with respect to right-handed
-// frames with X pointing towards the front, Y to the left, and Z up (as imposed
-// by the base class ChDoubleWishbone) and origins at the midpoint between the
-// lower control arms' connection points to the chassis.
+// Rear FMTV suspension subsystems (simple leafspring work a like).
 //
 // All point locations are provided for the left half of the suspension.
 //
 // =============================================================================
 
-#include "chrono_models/vehicle/mtv/LMTV_LeafspringAxle.h"
+#include "chrono_models/vehicle/mtv/MTV_LeafspringAxle1.h"
 
 namespace chrono {
 namespace vehicle {
@@ -38,32 +33,32 @@ static const double lb2kg = 0.453592;
 static const double lbf2N = 4.44822162;
 static const double lbfpin2Npm = 175.12677;
 
-const double LMTV_LeafspringAxle::m_axleTubeMass = 717.0;
-const double LMTV_LeafspringAxle::m_spindleMass = 14.705;
+const double MTV_LeafspringAxle1::m_axleTubeMass = 717.0;
+const double MTV_LeafspringAxle1::m_spindleMass = 14.705;
 
-const double LMTV_LeafspringAxle::m_axleTubeRadius = 0.06;
-const double LMTV_LeafspringAxle::m_spindleRadius = 0.10;
-const double LMTV_LeafspringAxle::m_spindleWidth = 0.06;
+const double MTV_LeafspringAxle1::m_axleTubeRadius = 0.06;
+const double MTV_LeafspringAxle1::m_spindleRadius = 0.10;
+const double MTV_LeafspringAxle1::m_spindleWidth = 0.06;
 
-const ChVector<> LMTV_LeafspringAxle::m_axleTubeInertia(240.8417938, 1.2906, 240.8417938);
-const ChVector<> LMTV_LeafspringAxle::m_spindleInertia(0.04117, 0.07352, 0.04117);
+const ChVector<> MTV_LeafspringAxle1::m_axleTubeInertia(240.8417938, 1.2906, 240.8417938);
+const ChVector<> MTV_LeafspringAxle1::m_spindleInertia(0.04117, 0.07352, 0.04117);
 
-const double LMTV_LeafspringAxle::m_springDesignLength = 0.2;
-const double LMTV_LeafspringAxle::m_springCoefficient = 366991.3701;
-const double LMTV_LeafspringAxle::m_springRestLength = m_springDesignLength + 0.062122551;
-const double LMTV_LeafspringAxle::m_springMinLength = m_springDesignLength - 0.08;
-const double LMTV_LeafspringAxle::m_springMaxLength = m_springDesignLength + 0.08;
-const double LMTV_LeafspringAxle::m_damperCoefficient = 41301.03979;
-const double LMTV_LeafspringAxle::m_damperDegressivityCompression = 3.0;
-const double LMTV_LeafspringAxle::m_damperDegressivityExpansion = 1.0;
-const double LMTV_LeafspringAxle::m_axleShaftInertia = 0.4;
+const double MTV_LeafspringAxle1::m_springDesignLength = 0.2;
+const double MTV_LeafspringAxle1::m_springCoefficient = 366991.3701;
+const double MTV_LeafspringAxle1::m_springRestLength = m_springDesignLength + 0.062122551;
+const double MTV_LeafspringAxle1::m_springMinLength = m_springDesignLength - 0.08;
+const double MTV_LeafspringAxle1::m_springMaxLength = m_springDesignLength + 0.08;
+const double MTV_LeafspringAxle1::m_damperCoefficient = 41301.03979;
+const double MTV_LeafspringAxle1::m_damperDegressivityCompression = 3.0;
+const double MTV_LeafspringAxle1::m_damperDegressivityExpansion = 1.0;
+const double MTV_LeafspringAxle1::m_axleShaftInertia = 0.4;
+
+const bool MTV_LeafspringAxle1::m_is_agregate_member = true;
 
 // ---------------------------------------------------------------------------------------
-// UAZBUS spring functor class - implements a linear spring + bump stop + rebound stop
-// ---------------------------------------------------------------------------------------
-class LMTV_SpringForceRear : public ChLinkTSDA::ForceFunctor {
+class MTV_SpringForceRear1 : public ChLinkTSDA::ForceFunctor {
   public:
-    LMTV_SpringForceRear(double spring_constant, double min_length, double max_length);
+    MTV_SpringForceRear1(double spring_constant, double min_length, double max_length);
 
     virtual double operator()(double time, double rest_length, double length, double vel, ChLinkTSDA* link) override;
 
@@ -75,7 +70,7 @@ class LMTV_SpringForceRear : public ChLinkTSDA::ForceFunctor {
     ChFunction_Recorder m_bump;
 };
 
-LMTV_SpringForceRear::LMTV_SpringForceRear(double spring_constant, double min_length, double max_length)
+MTV_SpringForceRear1::MTV_SpringForceRear1(double spring_constant, double min_length, double max_length)
     : m_spring_constant(spring_constant), m_min_length(min_length), m_max_length(max_length) {
     // From ADAMS/Car
     m_bump.AddPoint(0.0, 0.0);
@@ -90,7 +85,7 @@ LMTV_SpringForceRear::LMTV_SpringForceRear(double spring_constant, double min_le
     m_bump.AddPoint(50.0e-3, 12500.0);
 }
 
-double LMTV_SpringForceRear::operator()(double time, double rest_length, double length, double vel, ChLinkTSDA* link) {
+double MTV_SpringForceRear1::operator()(double time, double rest_length, double length, double vel, ChLinkTSDA* link) {
     /*
      *
      */
@@ -115,11 +110,11 @@ double LMTV_SpringForceRear::operator()(double time, double rest_length, double 
 }
 
 // -----------------------------------------------------------------------------
-// LMTV shock functor class - implements a nonlinear damper
+// MTV shock functor class - implements a nonlinear damper
 // -----------------------------------------------------------------------------
-class LMTV_ShockForceRear : public ChLinkTSDA::ForceFunctor {
+class MTV_ShockForceRear1 : public ChLinkTSDA::ForceFunctor {
   public:
-    LMTV_ShockForceRear(double compression_slope,
+    MTV_ShockForceRear1(double compression_slope,
                         double compression_degressivity,
                         double expansion_slope,
                         double expansion_degressivity);
@@ -133,7 +128,7 @@ class LMTV_ShockForceRear : public ChLinkTSDA::ForceFunctor {
     double m_degres_expand;
 };
 
-LMTV_ShockForceRear::LMTV_ShockForceRear(double compression_slope,
+MTV_ShockForceRear1::MTV_ShockForceRear1(double compression_slope,
                                          double compression_degressivity,
                                          double expansion_slope,
                                          double expansion_degressivity)
@@ -142,7 +137,7 @@ LMTV_ShockForceRear::LMTV_ShockForceRear(double compression_slope,
       m_slope_expand(expansion_slope),
       m_degres_expand(expansion_degressivity) {}
 
-double LMTV_ShockForceRear::operator()(double time, double rest_length, double length, double vel, ChLinkTSDA* link) {
+double MTV_ShockForceRear1::operator()(double time, double rest_length, double length, double vel, ChLinkTSDA* link) {
     /*
      * Simple model of a degressive damping characteristic
      */
@@ -159,27 +154,22 @@ double LMTV_ShockForceRear::operator()(double time, double rest_length, double l
     return force;
 }
 
-LMTV_LeafspringAxle::LMTV_LeafspringAxle(const std::string& name) : ChLeafspringAxle(name) {
+MTV_LeafspringAxle1::MTV_LeafspringAxle1(const std::string& name) : ChLeafspringAxle(name) {
     m_springForceCB =
-        chrono_types::make_shared<LMTV_SpringForceRear>(m_springCoefficient, m_springMinLength, m_springMaxLength);
+        chrono_types::make_shared<MTV_SpringForceRear1>(m_springCoefficient, m_springMinLength, m_springMaxLength);
 
-    m_shockForceCB = chrono_types::make_shared<LMTV_ShockForceRear>(
+    m_shockForceCB = chrono_types::make_shared<MTV_ShockForceRear1>(
         m_damperCoefficient, m_damperDegressivityCompression, m_damperCoefficient, m_damperDegressivityExpansion);
 }
 
-// -----------------------------------------------------------------------------
-// Destructors
-// -----------------------------------------------------------------------------
-LMTV_LeafspringAxle::~LMTV_LeafspringAxle() {}
-
-const ChVector<> LMTV_LeafspringAxle::getLocation(PointId which) {
+const ChVector<> MTV_LeafspringAxle1::getLocation(PointId which) {
     switch (which) {
         case SPRING_A:
             return ChVector<>(0.0, 0.529, m_axleTubeRadius);
         case SPRING_C:
             return ChVector<>(0.0, 0.529, m_axleTubeRadius + m_springDesignLength);
         case SHOCK_A:
-            return ChVector<>(-0.15, 0.7075, m_axleTubeRadius - 0.05);
+            return ChVector<>(0.15, 0.7075, m_axleTubeRadius - 0.05);
         case SHOCK_C:
             return ChVector<>(0.0, 0.529, m_axleTubeRadius + m_springDesignLength + 0.2);
         case SPINDLE:

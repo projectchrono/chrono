@@ -12,12 +12,12 @@
 // Authors: Radu Serban, Rainer Gericke
 // =============================================================================
 //
-// Base class for the LMTV vehicle models
+// MTV vehicle model (5t truck)
 //
 // =============================================================================
 
-#ifndef LMTV_VEHICLE_H
-#define LMTV_VEHICLE_H
+#ifndef MTV_VEHICLE_H
+#define MTV_VEHICLE_H
 
 #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicle.h"
 
@@ -31,29 +31,29 @@ namespace fmtv {
 /// @addtogroup vehicle_models_fmtv
 /// @{
 
-/// LMTV vehicle system.
-class CH_MODELS_API LMTV_Vehicle : public ChWheeledVehicle {
+/// MTV vehicle system (5t truck).
+class CH_MODELS_API MTV_Vehicle : public ChWheeledVehicle {
   public:
-    LMTV_Vehicle(const bool fixed = false,
-                 SteeringType steering_model = SteeringType::PITMAN_ARM,
-                 ChContactMethod contact_method = ChContactMethod::NSC,
-                 ChassisCollisionType chassis_collision_type = ChassisCollisionType::NONE);
+    MTV_Vehicle(const bool fixed = false,
+                SteeringType steering_model = SteeringType::PITMAN_ARM,
+                ChContactMethod contact_method = ChContactMethod::NSC,
+                ChassisCollisionType chassis_collision_type = ChassisCollisionType::NONE);
 
-    LMTV_Vehicle(ChSystem* system,
-                 const bool fixed = false,
-                 SteeringType steering_model = SteeringType::PITMAN_ARM,
-                 ChassisCollisionType chassis_collision_type = ChassisCollisionType::NONE);
+    MTV_Vehicle(ChSystem* system,
+                const bool fixed = false,
+                SteeringType steering_model = SteeringType::PITMAN_ARM,
+                ChassisCollisionType chassis_collision_type = ChassisCollisionType::NONE);
 
-    ~LMTV_Vehicle();
+    ~MTV_Vehicle();
 
-    virtual int GetNumberAxles() const override { return 2; }
+    virtual int GetNumberAxles() const override { return 3; }
 
-    virtual double GetWheelbase() const override { return 3.8; }
+    virtual double GetWheelbase() const override { return 4.1; }
     virtual double GetMinTurningRadius() const override { return 11.0; }
     virtual double GetMaxSteeringAngle() const override { return 24.6 * CH_C_DEG_TO_RAD; }
 
     void SetInitWheelAngVel(const std::vector<double>& omega) {
-        assert(omega.size() == 4);
+        assert(omega.size() == 6);
         m_omega = omega;
     }
 
