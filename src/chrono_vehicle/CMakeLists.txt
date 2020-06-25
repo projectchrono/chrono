@@ -296,6 +296,8 @@ set(CV_WV_BASE_FILES
     wheeled_vehicle/ChSuspension.cpp
     wheeled_vehicle/ChSteering.h
     wheeled_vehicle/ChSteering.cpp
+    wheeled_vehicle/ChSubchassis.h
+    wheeled_vehicle/ChSubchassis.cpp
     wheeled_vehicle/ChWheeledVehicle.h
     wheeled_vehicle/ChWheeledVehicle.cpp
     wheeled_vehicle/ChWheel.h
@@ -362,6 +364,15 @@ set(CV_WV_STEERING_FILES
     wheeled_vehicle/steering/RotaryArm.cpp
 )
 source_group("wheeled_vehicle\\steering" FILES ${CV_WV_STEERING_FILES})
+
+set(CV_WV_SUBCHASSIS_FILES
+    wheeled_vehicle/subchassis/ChBalancer.h
+    wheeled_vehicle/subchassis/ChBalancer.cpp
+
+    #wheeled_vehicle/subchassis/Balancer.h
+    #wheeled_vehicle/subchassis/Balancer.cpp
+)
+source_group("wheeled_vehicle\\subchassis" FILES ${CV_WV_SUBCHASSIS_FILES})
 
 set(CV_WV_SUSPENSION_FILES
     wheeled_vehicle/suspension/ChDoubleWishbone.h
@@ -802,6 +813,7 @@ add_library(ChronoEngine_vehicle SHARED
     ${CV_WV_BRAKE_FILES}
     ${CV_WV_DRIVELINE_FILES}
     ${CV_WV_STEERING_FILES}
+    ${CV_WV_SUBCHASSIS_FILES}
     ${CV_WV_SUSPENSION_FILES}
     ${CV_WV_TEST_RIG_FILES}
     ${CV_WV_TIRE_FILES}
