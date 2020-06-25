@@ -120,7 +120,7 @@ int main(int argc, char* argv[]) {
     // IGA beams require ChBeamSectionCosserat sections, containing at least
 	// a ChElasticityCosserat and ChInertiaCosserat models, and optional ChDampingCosserat and ChPlasticityCosserat.
 
-	auto minertia = chrono_types::make_shared<ChInertiaCosseratUniformDensity>();
+	auto minertia = chrono_types::make_shared<ChInertiaCosseratSimple>();
 	minertia->SetAsRectangularSection(beam_wy, beam_wz, 2700);  // automatically sets A etc., from width, height, density
 
     auto melasticity = chrono_types::make_shared<ChElasticityCosseratSimple>();
