@@ -504,6 +504,32 @@ void ChElementBeamIGA::ComputeInternalForces_impl(ChVectorDynamic<>& Fi, ChState
     }
 }
 
+
+
+void ChElementBeamIGA::ComputeGravityForces(ChVectorDynamic<>& Fg, const ChVector<>& G_acc) {
+    
+    // no so efficient... a temporary mass matrix here:
+    ChMatrixDynamic<> mM(this->GetNdofs(), this->GetNdofs());
+    this->ComputeMmatrixGlobal(mM);
+
+    // a vector of G accelerations (for translation degrees of freedom ie 3 xyz every 6 values)
+    ChVectorDynamic<> mG(this->GetNdofs());
+    mG.setZero();
+    for (int i = 0 ; i< nodes.size(); ++i) {
+        mG.segment(i * 6, 3) = G_acc.eigen();
+    }
+    
+    // Gravity forces as M*g, always works, regardless of the way M 
+    // is computed (lumped or consistent, with offset center of mass or centered, etc.)
+    // [Maybe one can replace this function with a faster ad-hoc implementation in case of lumped masses.]
+    Fg = mM * mG;
+}
+
+
+
+
+
+
 /// Evaluate N'*F , where N is some type of shape function
 /// evaluated at U coordinates of the line, ranging in -1..+1
 /// F is a load, N'*F is the resulting generalized load

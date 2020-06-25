@@ -129,6 +129,9 @@ class ChApi ChElementBeamIGA :  public ChElementBeam,
                                     bool used_for_differentiation = false  ///< used during FD Jacobian evaluation?
     );
 
+    /// Compute gravity forces, grouped in the Fg vector, one node after the other
+    virtual void ComputeGravityForces(ChVectorDynamic<>& Fg, const ChVector<>& G_acc) override;
+
     //
     // Beam-specific functions
     //
