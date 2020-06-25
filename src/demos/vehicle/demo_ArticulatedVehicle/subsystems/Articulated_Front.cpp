@@ -55,14 +55,15 @@ Articulated_Chassis::Articulated_Chassis(const std::string& name, bool fixed) : 
     m_inertia(2, 1) = m_inertiaXY.z();
 
     // Visualization primitives
-    BoxShape box(ChVector<>(-0.25, 0.0, 0.1), ChQuaternion<>(1, 0, 0, 0), ChVector<>(1.5, 1.0, 0.2));
-    CylinderShape cyl1(m_offset, Q_from_AngX(CH_C_PI_2), 0.1, 0.2);
-    CylinderShape cyl2(ChVector<>(0.5, 0, 0), QUNIT, 0.05, 2);
+    ChRigidChassisGeometry::BoxShape box(ChVector<>(-0.25, 0.0, 0.1), ChQuaternion<>(1, 0, 0, 0),
+                                         ChVector<>(1.5, 1.0, 0.2));
+    ChRigidChassisGeometry::CylinderShape cyl1(m_offset, Q_from_AngX(CH_C_PI_2), 0.1, 0.2);
+    ChRigidChassisGeometry::CylinderShape cyl2(ChVector<>(0.5, 0, 0), QUNIT, 0.05, 2);
 
-    m_has_primitives = true;
-    m_vis_boxes.push_back(box);
-    m_vis_cylinders.push_back(cyl1);
-    m_vis_cylinders.push_back(cyl2);
+    m_geometry.m_has_primitives = true;
+    m_geometry.m_vis_boxes.push_back(box);
+    m_geometry.m_vis_cylinders.push_back(cyl1);
+    m_geometry.m_vis_cylinders.push_back(cyl2);
 }
 
 ChVector<> Articulated_Chassis::GetConnectionPoint() const {

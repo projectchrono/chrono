@@ -79,6 +79,11 @@ void ChWheeledVehicle::Synchronize(double time, const ChDriver::Inputs& driver_i
         m_steerings[i]->Synchronize(time, driver_inputs.m_steering);
     }
 
+    // Pass the steering input to any chassis connectors (in case one of them is actuated)
+    for (auto& connector : m_chassis_connectors) {
+        connector->Synchronize(time, driver_inputs.m_steering);
+    }
+
     // Synchronize the vehicle's axle subsystems
     for (auto& axle : m_axles) {
         for (auto& wheel : axle->GetWheels()) {
@@ -89,6 +94,8 @@ void ChWheeledVehicle::Synchronize(double time, const ChDriver::Inputs& driver_i
     }
 
     m_chassis->Synchronize(time);
+    for (auto& c : m_chassis_rear)
+        c->Synchronize(time);
 }
 
 // -----------------------------------------------------------------------------
@@ -178,9 +185,13 @@ void ChWheeledVehicle::SetChassisVehicleCollide(bool state) {
     if (state) {
         // Chassis collides with tires
         m_chassis->GetBody()->GetCollisionModel()->SetFamilyMaskDoCollisionWithFamily(WheeledCollisionFamily::TIRES);
+        for (auto& c : m_chassis_rear)
+            c->GetBody()->GetCollisionModel()->SetFamilyMaskDoCollisionWithFamily(WheeledCollisionFamily::TIRES);
     } else {
         // Chassis does not collide with tires
         m_chassis->GetBody()->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(WheeledCollisionFamily::TIRES);
+        for (auto& c : m_chassis_rear)
+            c->GetBody()->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(WheeledCollisionFamily::TIRES);
     }
 }
 
@@ -217,6 +228,8 @@ std::shared_ptr<ChWheel> ChWheeledVehicle::GetWheel(int axle, VehicleSide side, 
 double ChWheeledVehicle::GetVehicleMass() const {
     double mass = m_chassis->GetMass();
 
+    for (auto& c : m_chassis_rear)
+        mass += c->GetMass();
     for (auto& axle : m_axles) {
         mass += axle->m_suspension->GetMass();
         for (auto& wheel : axle->GetWheels())
@@ -238,6 +251,8 @@ ChVector<> ChWheeledVehicle::GetVehicleCOMPos() const {
     ChVector<> com(0, 0, 0);
 
     com += m_chassis->GetMass() * m_chassis->GetCOMPos();
+    for (auto& c : m_chassis_rear)
+        com += c->GetMass() * c->GetCOMPos();
     for (auto& axle : m_axles) {
         com += axle->m_suspension->GetMass() * axle->m_suspension->GetCOMPos();
         for (auto& wheel : axle->GetWheels())
@@ -392,6 +407,13 @@ void ChWheeledVehicle::Output(int frame, ChVehicleOutput& database) const {
     if (m_chassis->OutputEnabled()) {
         database.WriteSection(m_chassis->GetName());
         m_chassis->Output(database);
+    }
+
+    for (auto& c : m_chassis_rear) {
+        if (c->OutputEnabled()) {
+            database.WriteSection(c->GetName());
+            c->Output(database);
+        }
     }
 
     for (auto& steering : m_steerings) {

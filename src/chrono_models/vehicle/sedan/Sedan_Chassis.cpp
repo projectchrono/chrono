@@ -53,23 +53,24 @@ Sedan_Chassis::Sedan_Chassis(const std::string& name, bool fixed, ChassisCollisi
 
     //// TODO:
     //// A more appropriate contact shape from primitives
-    BoxShape box1(ChVector<>(0.0, 0.0, 0.1), ChQuaternion<>(1, 0, 0, 0), ChVector<>(1.0, 0.5, 0.2));
+    ChRigidChassisGeometry::BoxShape box1(ChVector<>(0.0, 0.0, 0.1), ChQuaternion<>(1, 0, 0, 0),
+                                          ChVector<>(1.0, 0.5, 0.2));
 
-    m_has_primitives = true;
-    m_vis_boxes.push_back(box1);
+    m_geometry.m_has_primitives = true;
+    m_geometry.m_vis_boxes.push_back(box1);
 
-    m_has_mesh = true;
-    m_vis_mesh_file = "sedan/sedan_chassis_vis.obj";
+    m_geometry.m_has_mesh = true;
+    m_geometry.m_vis_mesh_file = "sedan/sedan_chassis_vis.obj";
 
-    m_has_collision = (chassis_collision_type != ChassisCollisionType::NONE);
+    m_geometry.m_has_collision = (chassis_collision_type != ChassisCollisionType::NONE);
     switch (chassis_collision_type) {
         case ChassisCollisionType::PRIMITIVES:
             box1.m_matID = 0;
-            m_coll_boxes.push_back(box1);
+            m_geometry.m_coll_boxes.push_back(box1);
             break;
         case ChassisCollisionType::MESH: {
-            ConvexHullsShape hull("sedan/sedan_chassis_col.obj", 0);
-            m_coll_hulls.push_back(hull);
+            ChRigidChassisGeometry::ConvexHullsShape hull("sedan/sedan_chassis_col.obj", 0);
+            m_geometry.m_coll_hulls.push_back(hull);
             break;
         }
         default:
@@ -81,7 +82,7 @@ void Sedan_Chassis::CreateContactMaterials(ChContactMethod contact_method) {
     // Create the contact materials.
     // In this model, we use a single material with default properties.
     MaterialInfo minfo;
-    m_materials.push_back(minfo.CreateMaterial(contact_method));
+    m_geometry.m_materials.push_back(minfo.CreateMaterial(contact_method));
 }
 
 }  // end namespace sedan

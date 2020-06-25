@@ -14,16 +14,24 @@
 
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChChassis.h"
-#include "chrono_vehicle/chassis/RigidChassis.h"
 #include "chrono_vehicle/chassis/ChRigidChassis.h"
+#include "chrono_vehicle/chassis/ChChassisConnectorArticulated.h"
+#include "chrono_vehicle/chassis/ChChassisConnectorTorsion.h"
+#include "chrono_vehicle/chassis/ChChassisConnectorHitch.h"
+#include "chrono_vehicle/chassis/RigidChassis.h"
 
 #include "chrono_thirdparty/rapidjson/document.h"
-
 
 %}
 
 %shared_ptr(chrono::vehicle::ChChassis)
+%shared_ptr(chrono::vehicle::ChChassisRear)
 %shared_ptr(chrono::vehicle::ChRigidChassis)
+%shared_ptr(chrono::vehicle::ChRigidChassisRear)
+%shared_ptr(chrono::vehicle::ChChassisConnector)
+%shared_ptr(chrono::vehicle::ChChassisConnectorArticulated)
+%shared_ptr(chrono::vehicle::ChChassisConnectorTorsion)
+%shared_ptr(chrono::vehicle::ChChassisConnectorHitch)
 %shared_ptr(chrono::vehicle::RigidChassis)
 
 
@@ -34,6 +42,9 @@
 /* Parse the header file to generate wrappers */
 %include "../../chrono_vehicle/ChChassis.h"
 %include "../../chrono_vehicle/chassis/ChRigidChassis.h"
+%include "../../chrono_vehicle/chassis/ChChassisConnectorArticulated.h"
+%include "../../chrono_vehicle/chassis/ChChassisConnectorTorsion.h"
+%include "../../chrono_vehicle/chassis/ChChassisConnectorHitch.h"
 %include "../../chrono_vehicle/chassis/RigidChassis.h"
 
 %include "chrono_python/models/ChassisModels.i"
