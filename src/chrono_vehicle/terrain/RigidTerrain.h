@@ -72,6 +72,7 @@ class CH_VEHICLE_API RigidTerrain : public ChTerrain {
       protected:
         virtual bool FindPoint(const ChVector<>& loc, double& height, ChVector<>& normal) const = 0;
         virtual void ExportMeshPovray(const std::string& out_dir, bool smoothed = false) {}
+        virtual void ExportMeshWavefront(const std::string& out_dir) {}
 
         PatchType m_type;                ///< type of this patch
         std::shared_ptr<ChBody> m_body;  ///< associated body
@@ -168,6 +169,9 @@ class CH_VEHICLE_API RigidTerrain : public ChTerrain {
     /// Export all patch meshes as macros in PovRay include files.
     void ExportMeshPovray(const std::string& out_dir, bool smoothed = false);
 
+    /// Export all patch meshes as Wavefront files.
+    void ExportMeshWavefront(const std::string& out_dir);
+
     /// Find the terrain height, normal, and coefficient of friction at the point below the specified location.
     /// The point on the terrain surface is obtained through ray casting into the terrain contact model.
     /// The return value is 'true' if the ray intersection succeeded and 'false' otherwise (in which case
@@ -194,6 +198,7 @@ class CH_VEHICLE_API RigidTerrain : public ChTerrain {
         std::string m_mesh_name;                                       ///< name of associated mesh
         virtual bool FindPoint(const ChVector<>& loc, double& height, ChVector<>& normal) const override;
         virtual void ExportMeshPovray(const std::string& out_dir, bool smoothed = false) override;
+        virtual void ExportMeshWavefront(const std::string& out_dir) override;
     };
 
     ChSystem* m_system;
