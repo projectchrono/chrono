@@ -11,10 +11,26 @@ ENDIF()
 # List all model files for this demo
 
 SET(MODEL_FILES
-    subsystems/Articulated_Front.h
-    subsystems/Articulated_Front.cpp
-    subsystems/Articulated_Rear.h
-    subsystems/Articulated_Rear.cpp
+    subsystems/ACV_Vehicle.h
+    subsystems/ACV_Vehicle.cpp
+    subsystems/ACV_ChassisFront.h
+    subsystems/ACV_ChassisFront.cpp
+    subsystems/ACV_ChassisRear.h
+    subsystems/ACV_ChassisRear.cpp
+    subsystems/ACV_ChassisConnector.h
+    subsystems/ACV_ChassisConnector.cpp
+    subsystems/ACV_RigidSuspension.h
+    subsystems/ACV_RigidSuspension.cpp
+    subsystems/ACV_Driveline2WD.h
+    subsystems/ACV_Driveline2WD.cpp
+    subsystems/ACV_Wheel.h
+    subsystems/ACV_Wheel.cpp
+    subsystems/ACV_BrakeSimple.h
+    subsystems/ACV_BrakeSimple.cpp
+    subsystems/ACV_RigidTire.h
+    subsystems/ACV_RigidTire.cpp
+    subsystems/ACV_SimplePowertrain.h
+    subsystems/ACV_SimplePowertrain.cpp
 )
 
 SET(PROGRAM

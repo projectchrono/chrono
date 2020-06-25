@@ -12,19 +12,19 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// Front of the articulated vehicle model. Implemented as a ChWheeledVehicle.
+// Front chassis subsystem for the articulated vehicle.
 //
 // =============================================================================
 
-#ifndef ARTICULATED_FRONT_H
-#define ARTICULATED_FRONT_H
+#ifndef ACV_CHASSIS_FRONT_H
+#define ACV_CHASSIS_FRONT_H
 
 #include "chrono_vehicle/chassis/ChRigidChassis.h"
-#include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicle.h"
 
-class Articulated_Chassis : public chrono::vehicle::ChRigidChassis {
+class ACV_ChassisFront : public chrono::vehicle::ChRigidChassis {
   public:
-    Articulated_Chassis(const std::string& name, bool fixed = false);
+    ACV_ChassisFront(const std::string& name, bool fixed = false);
+    ~ACV_ChassisFront() {}
 
     /// Return the mass of the chassis body.
     virtual double GetMass() const override { return m_mass; }
@@ -39,13 +39,7 @@ class Articulated_Chassis : public chrono::vehicle::ChRigidChassis {
     /// This is a coordinate system relative to the chassis reference frame.
     virtual chrono::ChCoordsys<> GetLocalDriverCoordsys() const override { return m_driverCsys; }
 
-    /// Return offset to rear connection.
-    const chrono::ChVector<>& GetLocalConnectionPoint() const { return m_offset; }
-    chrono::ChVector<> GetConnectionPoint() const;
-
-  private:
-    static const chrono::ChVector<> m_offset;
-
+  protected:
     chrono::ChMatrix33<> m_inertia;
 
     static const double m_mass;
@@ -53,21 +47,6 @@ class Articulated_Chassis : public chrono::vehicle::ChRigidChassis {
     static const chrono::ChVector<> m_inertiaXY;
     static const chrono::ChVector<> m_COM_loc;
     static const chrono::ChCoordsys<> m_driverCsys;
-};
-
-class Articulated_Front : public chrono::vehicle::ChWheeledVehicle {
-  public:
-    Articulated_Front(const bool fixed = false, chrono::ChContactMethod contactMethod = chrono::ChContactMethod::NSC);
-
-    ~Articulated_Front() {}
-
-    virtual int GetNumberAxles() const override { return 1; }
-
-    virtual double GetWheelbase() const override { return 1.0; }
-    virtual double GetMinTurningRadius() const override { return 5.0; }
-    virtual double GetMaxSteeringAngle() const override { return 0.0; }
-
-    virtual void Initialize(const chrono::ChCoordsys<>& chassisPos, double chassisFwdVel = 0) override;
 };
 
 #endif
