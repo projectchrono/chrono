@@ -2,7 +2,7 @@
 # Name:        pychrono example
 # Purpose:
 #
-# Author:      Alessandro Tasora
+# Author:      Lijing Yang
 #
 # Created:     1/01/2019
 # Copyright:   (c) ProjectChrono 2019
@@ -17,7 +17,7 @@ print ("Example: demonstration of a plane-plane joint")
 # The path to the Chrono data directory containing various assets (meshes, textures, data files)
 # is automatically set, relative to the default location of this demo.
 # If running from a different directory, you must change the path to the data directory with: 
-chrono.SetChronoDataPath('../../../../data/')
+#chrono.SetChronoDataPath('relative/path/to/data/directory/')
 
 # ---------------------------------------------------------------------
 #
@@ -108,6 +108,7 @@ myapplication.SetTryRealtime(True)
 while(myapplication.GetDevice().run()):
     myapplication.BeginScene()
     myapplication.DrawAll()
+    chronoirr.ChIrrTools.drawAllCOGs(mysystem, myapplication.GetVideoDriver(), 2)
     myapplication.DoStep()
     myapplication.EndScene()
 

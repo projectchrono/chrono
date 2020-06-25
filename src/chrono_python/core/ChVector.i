@@ -26,10 +26,13 @@
 
 %template(ChVectorD) chrono::ChVector<double>; 
 %template(ChVectorF) chrono::ChVector<float>; 
+%template(ChVectorI) chrono::ChVector<int>;
 
 // This is needed because a std::vector<ChVector<double>
 // might be used  somewhere, and we want to use it via python:
 %template(vector_ChVectorD) std::vector< chrono::ChVector<double> >;
+%template(vector_ChVectorF) std::vector< chrono::ChVector<float> >;
+%template(vector_ChVectorI) std::vector< chrono::ChVector<int> >;
 
 // Constants seem not to work...
 // %constant chrono::ChVector<double> VNULL = chrono::ChVector<double>(0,0,0);
