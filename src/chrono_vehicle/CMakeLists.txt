@@ -227,6 +227,8 @@ set(CV_TERRAIN_FILES
     terrain/FlatTerrain.cpp
     terrain/RigidTerrain.h
     terrain/RigidTerrain.cpp
+    terrain/RandomSurfaceTerrain.h
+    terrain/RandomSurfaceTerrain.cpp
     terrain/SCMDeformableTerrain.h
     terrain/SCMDeformableTerrain.cpp
     terrain/GranularTerrain.h
