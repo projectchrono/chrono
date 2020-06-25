@@ -283,7 +283,7 @@ void ChMesh::IntLoadResidual_F(const unsigned int off,
 
     // elements internal forces
     timer_internal_forces.start();
-#pragma omp parallel for schedule(dynamic, 4)
+    #pragma omp parallel for schedule(dynamic, 4) //***PARALLEL FOR***, must use omp atomic to avoid race condition in writing to R
     for (int ie = 0; ie < velements.size(); ie++) {
         velements[ie]->EleIntLoadResidual_F(R, c);
     }
@@ -292,6 +292,7 @@ void ChMesh::IntLoadResidual_F(const unsigned int off,
 
     // elements gravity forces 
     if (automatic_gravity_load) {
+        #pragma omp parallel for schedule(dynamic, 4) //***PARALLEL FOR***, must use omp atomic to avoid race condition in writing to R
         for (int ie = 0; ie < velements.size(); ie++) {
             velements[ie]->EleIntLoadResidual_F_gravity(R, GetSystem()->Get_G_acc(), c);
         }
