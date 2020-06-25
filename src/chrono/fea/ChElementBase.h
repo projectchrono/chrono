@@ -79,6 +79,11 @@ class ChApi ChElementBase {
     /// values in the Fi vector, with n.rows = n.of dof of element.
     virtual void ComputeInternalForces(ChVectorDynamic<>& Fi) = 0;
 
+    /// Computes the gravitational forces and set
+    /// values in the Fi vector, with n.rows = n.of dof of element.
+    virtual void ComputeGravityForces(ChVectorDynamic<>& Fi, const ChVector<>& G_acc) = 0;
+
+
     /// Update: this is called at least at each time step. If the
     /// element has to keep updated some auxiliary data, such as the rotation
     /// matrices for corotational approach, this is the proper place.
