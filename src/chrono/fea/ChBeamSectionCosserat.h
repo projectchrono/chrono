@@ -205,7 +205,7 @@ class ChApi ChElasticityCosseratGeneric : public ChElasticityCosserat {
 
 /// Elasticity for a beam section in 3D, along with basic material
 /// properties. It also supports the advanced case of
-/// Iyy and Izz axes rotated respect reference, centroid with offset
+/// Iyy and Izz axes rotated respect reference, elastic center with offset
 /// from reference, and shear center with offset from reference.
 /// This material can be shared between multiple beams.
 /// The linear elasticity is uncoupled between shear terms S and axial terms A
@@ -221,7 +221,7 @@ class ChApi ChElasticityCosseratGeneric : public ChElasticityCosserat {
 class ChApi ChElasticityCosseratAdvanced : public ChElasticityCosseratSimple {
   public:
     double alpha;  ///< Rotation of Izz Iyy respect to reference section, centered on line x
-    double Cy;     ///< Centroid, respect to reference section (elastic center, tension center)
+    double Cy;     ///< Elastic center, respect to reference section (elastic center, tension center)
     double Cz;     ///<
     double beta;   ///< Rotation of shear reference section, centered on line x
     double Sy;     ///< Shear center, respect to reference section
@@ -232,12 +232,12 @@ class ChApi ChElasticityCosseratAdvanced : public ChElasticityCosseratSimple {
     virtual ~ChElasticityCosseratAdvanced() {}
 
     /// "Elastic reference": set alpha, the rotation of the section for which the Iyy Izz are
-    /// defined, respect to the reference section coordinate system.
+    /// defined, respect to the reference section coordinate system placed at centerline.
     void SetSectionRotation(double ma) { this->alpha = ma; }
     double GetSectionRotation() { return this->alpha; }
 
-    /// "Elastic reference": set the displacement of the centroid C (i.e. the elastic center,
-    /// or tension center) respect to the reference section coordinate system.
+    /// "Elastic reference": set the displacement of the elastic center 
+    /// (or tension center) respect to the reference section coordinate system placed at centerline.
     void SetCentroid(double my, double mz) {
         this->Cy = my;
         this->Cz = mz;
@@ -246,13 +246,13 @@ class ChApi ChElasticityCosseratAdvanced : public ChElasticityCosseratSimple {
     double GetCentroidZ() { return this->Cz; }
 
     /// "Shear reference": set beta, the rotation of the section for shear decoupling, respect to
-    /// the reference section coordinate system. Usually it is same as alpha.
+    /// the reference section coordinate system placed at centerline. 
     void SetShearRotation(double mb) { this->beta = mb; }
     double GetShearRotation() { return this->beta; }
 
     /// "Shear reference": set the displacement of the shear center S
-    /// respect to the reference beam line. For shapes like rectangles,
-    /// rotated rectangles, etc., it corresponds to the centroid C, but
+    /// respect to the reference beam line placed at centerline. For shapes like rectangles,
+    /// rotated rectangles, etc., it corresponds to the elastic center C, but
     /// for "L" shaped or "U" shaped beams this is not always true, and
     /// the shear center accounts for torsion effects when a shear force is applied.
     void SetShearCenter(double my, double mz) {
@@ -672,9 +672,8 @@ class ChApi ChDampingCosseratRayleigh : public ChDampingCosserat {
 ////////////////////////////////////////////////////////////////////////////////////
 
 
-/// Base class for inerital properties (mass, moment of inertia) of beam sections of Cosserat type.
+/// Base class for ineri tal properties (mass, moment of inertia) of beam sections of Cosserat type.
 /// This can be shared between multiple beams.
-/// It is assumed that the reference line of the beam is also passing through the center of mass of the sections.
 class ChApi ChInertiaCosserat {
   public:
 	ChInertiaCosserat() : section(nullptr) {};
@@ -763,7 +762,7 @@ class ChApi ChInertiaCosseratUniformDensity : public ChInertiaCosserat {
 	double GetArea() const { return A; }
 
 	/// Set the Iyy second moment of area of the beam (for bending about y in xz plane),
-	/// defined as \f$ I_y =  \int_\Omega \rho z^2 dA \f$. 
+	/// defined as \f$ I_y =  \int_\Omega z^2 dA \f$. 
     /// Note: some textbook calls this Iyy as Iy.
 	/// Note: it can correspond to the same Iyy that you used for the elasticity, ex. in ChElasticityCosseratSimple.
 	/// Ex. SI units: [m^4]
@@ -771,7 +770,7 @@ class ChApi ChInertiaCosseratUniformDensity : public ChInertiaCosserat {
     double GetIyy() const { return this->Iyy; }
 
 	/// Set the Izz second moment of area of the beam (for bending about z in xy plane),
-	/// defined as \f$ I_z =  \int_\Omega \rho y^2 dA \f$. 
+	/// defined as \f$ I_z =  \int_\Omega y^2 dA \f$. 
     /// Note: some textbook calls this Izz as Iz.
 	/// Note: it can correspond to the same Izz that you used for the elasticity, ex. in ChElasticityCosseratSimple.
 	/// Ex. SI units: [m^4]
@@ -907,7 +906,7 @@ class ChApi ChBeamSectionCosserat : public ChBeamSectionProperties {
 /// Good if you just need the simplest model for a rectangular centered beam. This section automatically
 /// creates, initializes and embeds, at construction, these models:
 /// - elasticity: ChElasticityCosseratSimple  
-/// - inertia:    ChInertiaCosseratUniformDensity
+/// - inertia:    ChInertiaCosseratSimple
 /// - damping:    none   - you can add it later
 /// - plasticity: none 
 class ChApi ChBeamSectionCosseratEasyRectangular : public ChBeamSectionCosserat {
@@ -927,7 +926,7 @@ public:
 /// Good if you just need the simplest model for a circular centered beam. This section automatically
 /// creates, initializes and embeds, at construction, these models:
 /// - elasticity: ChElasticityCosseratSimple  
-/// - inertia:    ChInertiaCosseratUniformDensity
+/// - inertia:    ChInertiaCosseratSimple
 /// - damping:    none   - you can add it later
 /// - plasticity: none 
 class ChApi ChBeamSectionCosseratEasyCircular : public ChBeamSectionCosserat {
