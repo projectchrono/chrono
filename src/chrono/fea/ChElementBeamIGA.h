@@ -236,7 +236,9 @@ class ChApi ChElementBeamIGA :  public ChElementBeam,
 
     //
     // Functions for interfacing to the solver
-    //            (***not needed, thank to bookkeeping in parent class ChElementGeneric)
+    //            (***most not needed, thank to bookkeeping in parent class ChElementGeneric)
+
+
 
 	virtual void EleDoIntegration() override {
 		for (size_t i = 0; i < this->plastic_data.size(); ++i) {
@@ -327,7 +329,6 @@ class ChApi ChElementBeamIGA :  public ChElementBeam,
 	virtual double GetDensity() override { return this->section->GetInertia()->GetMassPerUnitLength(); } //this->section->GetArea()* this->section->GetDensity();
 
 
-
     ///  For testing purposes:
     enum class QuadratureType {
         FULL_OVER,
@@ -343,6 +344,12 @@ class ChApi ChElementBeamIGA :  public ChElementBeam,
 
     ///  For testing purposes:
     static double Delta;
+
+    /// Set if the element mass matrix is computed in lumped or consistent way
+    static bool lumped_mass;
+
+    /// Set if the element forces will include the gyroscopic and centrifugal terms (slower performance, but might be needed esp. when center of mass is offset)
+    static bool add_gyroscopic_terms;
 
   private:
     /// Initial setup. Precompute mass and matrices that do not change during the simulation. In particular, compute the

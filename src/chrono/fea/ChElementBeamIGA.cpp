@@ -23,6 +23,8 @@ namespace fea {
 // for testing and debugging
 ChElementBeamIGA::QuadratureType ChElementBeamIGA::quadrature_type = ChElementBeamIGA::QuadratureType::FULL_EXACT;
 double ChElementBeamIGA::Delta = 1e-10;
+bool   ChElementBeamIGA::lumped_mass = true;
+bool   ChElementBeamIGA::add_gyroscopic_terms = true;
 
 ChElementBeamIGA::ChElementBeamIGA() {
         order = 3;
