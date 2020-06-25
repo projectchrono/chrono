@@ -803,6 +803,135 @@ private:
 };
 
 
+// for backward compatibility - note it WILL BE DEPRECATED
+using ChInertiaCosseratUniformDensity = ChInertiaCosseratSimple;
+
+
+
+
+
+/// Inertia properties of a beam of Cosserat type, defined from an uniform density [kg/m^3], 
+/// and from the following geometric information, that allows the center of mass to be
+/// offset respect to the beam centerline:
+///  - a section area 
+///  - offset of the center of mass along Y Z section axes,
+///  - and one of these information:
+///    - rotation of axes Y_m Z_m (used for computed Jzz_m Jyy_m) respect to Y Z section axes.
+///    - Jyy_m Jzz_m moments of inertia computed in reference Y_m Z_m, rotated and with origin in center of mass
+///  - or:
+///    - Jyy Jzz Jzy moments of inertia computed in section reference Y Z, not rotated and origin in centerline
+/// The polar moment of area is automatically inferred via perpendicular axis theorem.
+
+class ChApi ChInertiaCosseratAdvanced : public ChInertiaCosserat {
+  public:
+
+	ChInertiaCosseratAdvanced() 
+						: mu(1), cm_y(0), cm_z(0), Jzz(1), Jyy(1), Jyz(0) {};
+
+	ChInertiaCosseratAdvanced(double mu_density,    ///< mass per unit length [kg/m] 
+		                    double c_y,             ///< displacement of center of mass along Y
+                            double c_z,             ///< displacement of center of mass along Z					
+                            double Jyy_moment,	    ///< moment of inertia per unit length, about Y. Also Jyy= Mm(4,4)
+							double Jzz_moment,	    ///< moment of inertia per unit length, about Z. Also Jzz= Mm(5,5)
+                            double Jyz_moment       ///< moment of inertia per unit length, about YZ (off diagonal term). Also Jyz= -Mm(4,5) = -Mm(5,4)
+							) 
+						: mu(mu_density), cm_y(0), cm_z(0), Jzz(Jzz_moment), Jyy(Jyy_moment), Jyz(Jyz_moment) {};
+
+    virtual ~ChInertiaCosseratAdvanced() {}
+
+    /// Compute the 6x6 sectional inertia matrix, as in  {x_momentum,w_momentum}=[Mm]{xvel,wvel} 
+    /// The matrix is computed in the material reference (i.e. it is the sectional mass matrix).
+    virtual void ComputeInertiaMatrix(ChMatrixNM<double, 6, 6>& M  ///< 6x6 sectional mass matrix values here
+                                      ) override;
+
+    /// Compute the values of inertial force & torque depending on quadratic velocity terms,
+    /// that is the gyroscopic torque w x [J]w and the centrifugal term (if center of mass is offset). All terms expressed 
+    /// in the material reference, ie. the reference in the centerline of the section.
+    virtual void ComputeQuadraticTerms(ChVector<>& mF,   ///< centrifugal term (if any) returned here
+                                       ChVector<>& mT,   ///< gyroscopic term  returned here
+                                       const ChVector<>& mW    ///< current angular velocity of section, in material frame
+                                      ) override;
+
+	/// Get mass per unit length, ex.SI units [kg/m]
+	virtual double GetMassPerUnitLength() override { return this->mu; }
+
+
+    /// Set mass per unit length, ex.SI units [kg/m].
+    /// Note that for uniform volumetric density \f$ \rho \f$, this is also \f$ \mu = \rho * A \f$.
+    virtual void SetMassPerUnitLength(double mmu) { mu = mmu; }
+
+    /// "mass reference": set the displacement of the center of mass respect to 
+    /// the section centerline reference.
+    void SetCenterOfMass(double my, double mz) {
+        this->cm_y = my;
+        this->cm_z = mz;
+    }
+    double GetCenterOfMassY() {
+        return this->cm_y;
+    }
+    double GetCenterOfMassZ() {
+        return this->cm_z;
+    }
+
+    /// Set inertia moments, assumed computed in the Y Z unrotated reference
+    /// frame of the section at centerline, and defined as: 
+    /// \f$ J_{yy} =  \int_\Omega \rho z^2 dA \f$, also Jyy = Mm(4,4) 
+    /// \f$ J_{zz} =  \int_\Omega \rho y^2 dA \f$, also Jzz = Mm(5,5) 
+    /// \f$ J_{yz} =  \int_\Omega \rho y z  dA \f$, also Jyz = -Mm(4,5) = -Mm(5,4)
+    /// Note that for an uniform density, these are also related to second moments of area
+    /// as \f$ J_{yy} = \rho I_{yy} \f$,  \f$ J_{zz} = \rho I_{zz} \f$.
+    /// Note also that \f$ J_{xy} = J_{xz} = J_{yx} = J_{zx} = 0 \f$ anyway. 
+    /// Note also that \f$ J_{xy} \f$ does not need to be input, as automatically computed 
+    /// via \f$ J_{xx} = J_{yy} +J_{zz} \f$ for the polar theorem.
+    void SetInertiasPerUnitLength(double Jyy_moment, double Jzz_moment, double Jyz_moment);
+
+    /// Get the Jxx component of the inertia per unit length (polar inertia), in the Y Z unrotated reference
+    /// frame of the section at centerline. Note: it automatically follows Jxx=Jyy+Jzz for the polar theorem.
+    virtual double GetInertiaJxxPerUnitLength()  { return  this->Jyy + this->Jzz; }
+
+    /// Get the Jyy component of the inertia per unit length, in the Y Z unrotated reference
+    /// frame of the section at centerline, also Jyy = Mm(4,4)
+    virtual double GetInertiaJyyPerUnitLength()  { return  this->Jyy; }
+
+    /// Get the Jzz component of the inertia per unit length, in the Y Z unrotated reference
+    /// frame of the section at centerline, also Jzz = Mm(5,5) 
+    virtual double GetInertiaJzzPerUnitLength()  { return  this->Jzz; }
+
+    /// Get the Jyz off-diagonal component of the inertia per unit length, in the Y Z unrotated reference
+    /// frame of the section at centerline. Also Jyz = -Mm(4,5) = -Mm(5,4)
+    virtual double GetInertiaJyzPerUnitLength()  { return  this->Jyz; }
+
+
+
+    /// Set inertia moments as assumed computed in the Ym Zm "mass reference"
+    /// frame, ie. centered at the center of mass and rotated by phi angle to match the main axes of inertia:
+    /// \f$ Jm_{yy} =  \int_\Omega \rho z_{m}^2 dA \f$, 
+    /// \f$ Jm_{zz} =  \int_\Omega \rho y_{m}^2 dA \f$.
+    /// Assuming the center of mass is already set.
+    void SetInertiasPerUnitLengthInMassReference(double Jmyy, double Jmzz, double phi);
+
+    /// Get inertia moments as assumed computed in the Ym Zm "mass reference" frame, and the rotation phi of that frame,
+    /// ie. inertias centered at the center of mass and rotated by phi angle to match the main axes of inertia:
+    /// \f$ Jm_{yy} =  \int_\Omega \rho z_{m}^2 dA \f$, 
+    /// \f$ Jm_{zz} =  \int_\Omega \rho y_{m}^2 dA \f$.
+    /// Assuming the center of mass is already set.
+    void GetInertiasPerUnitLengthInMassReference(double& Jmyy, double& Jmzz, double& phi);
+
+private:
+	double mu; // density
+    double cm_y; // center of mass offset along Y of section
+    double cm_z; // center of mass offset along Z of section
+    //double phi; // rotation of reference where Izz and Iyy are computed, also main inertia axes ie. Iyz=0
+	double Jzz; // moment of area: m^4
+	double Jyy; // moment of area: m^4
+    double Jyz; // moment of area: m^4
+};
+
+
+
+
+
+
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
 
