@@ -13,6 +13,7 @@
 // =============================================================================
 
 #include "chrono/fea/ChBeamSectionCosserat.h"
+#include <math.h>
 
 namespace chrono {
 namespace fea {
@@ -768,7 +769,29 @@ void ChDampingCosseratRayleigh::UpdateStiffnessModel() {
 
 //-----------------------------------------------------------------------------
 
-void ChInertiaCosseratUniformDensity::SetAsRectangularSection(double width_y, double width_z, double density) {
+
+void ChInertiaCosseratSimple::ComputeInertiaMatrix(ChMatrixNM<double, 6, 6>& M) {
+    M.setZero();
+    M(0, 0) = this->GetMassPerUnitLength();
+    M(1, 1) = this->GetMassPerUnitLength();
+    M(2, 2) = this->GetMassPerUnitLength();
+    M(3, 3) = this->GetInertiaJxxPerUnitLength();
+    M(4, 4) = this->GetInertiaJyyPerUnitLength();
+    M(5, 5) = this->GetInertiaJzzPerUnitLength();
+}
+
+void ChInertiaCosseratSimple::ComputeQuadraticTerms(ChVector<>& mF,   ///< centrifugal term (if any) returned here
+    ChVector<>& mT,                ///< gyroscopic term  returned here
+    const ChVector<>& mW           ///< current angular velocity of section, in material frame
+) {
+    mF = VNULL;
+    mT = Vcross(mW, ChVector<>( this->GetInertiaJxxPerUnitLength()*mW.x(),
+                                this->GetInertiaJyyPerUnitLength()*mW.y(),
+                                this->GetInertiaJzzPerUnitLength()*mW.z() )  );
+}
+
+
+void ChInertiaCosseratSimple::SetAsRectangularSection(double width_y, double width_z, double density) {
 	this->A = width_y * width_z;
 	this->Izz = (1.0 / 12.0) * width_z * pow(width_y, 3);
 	this->Iyy = (1.0 / 12.0) * width_y * pow(width_z, 3);
@@ -776,7 +799,7 @@ void ChInertiaCosseratUniformDensity::SetAsRectangularSection(double width_y, do
 }
 
 
-void ChInertiaCosseratUniformDensity::SetAsCircularSection(double diameter, double density) {
+void ChInertiaCosseratSimple::SetAsCircularSection(double diameter, double density) {
 	this->A   = CH_C_PI * pow((0.5 * diameter), 2);
     this->Izz = (CH_C_PI / 4.0) * pow((0.5 * diameter), 4);
     this->Iyy = Izz;
