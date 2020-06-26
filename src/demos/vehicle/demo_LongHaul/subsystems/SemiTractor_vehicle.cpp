@@ -85,14 +85,10 @@ void SemiTractor_vehicle::Initialize(const ChCoordsys<>& chassisPos, double chas
     m_steerings[0]->Initialize(m_chassis->GetBody(), ChVector<>(0, 0, 0), ChQuaternion<>(1, 0, 0, 0));
 
     // Initialize the axle subsystems.
-    m_axles[0]->Initialize(m_chassis->GetBody(), ChVector<>(0.0, 0, 0), ChVector<>(0),
-                           m_steerings[0]->GetSteeringLink(), 0, 0.0);
-
+    m_axles[0]->Initialize(m_chassis, nullptr, m_steerings[0], ChVector<>(0.0, 0, 0), ChVector<>(0), 0.0);
     const double twin_tire_dist = 0.33528;  // Michelin for 12.00 R 20
-    m_axles[1]->Initialize(m_chassis->GetBody(), ChVector<>(-4.08, 0, 0), ChVector<>(0), m_chassis->GetBody(), -1,
-                           twin_tire_dist);
-    m_axles[2]->Initialize(m_chassis->GetBody(), ChVector<>(-5.48, 0, 0), ChVector<>(0), m_chassis->GetBody(), -1,
-                           twin_tire_dist);
+    m_axles[1]->Initialize(m_chassis, nullptr, nullptr, ChVector<>(-4.08, 0, 0), ChVector<>(0), twin_tire_dist);
+    m_axles[2]->Initialize(m_chassis, nullptr, nullptr, ChVector<>(-5.48, 0, 0), ChVector<>(0), twin_tire_dist);
 
     // Initialize the driveline subsystem (6x4 = rear axles are driven)
     std::vector<int> driven_susp = {1, 2};

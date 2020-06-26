@@ -66,9 +66,9 @@ void SemiTrailer::Initialize(std::shared_ptr<ChChassis> frontChassis, const ChVe
     m_connector->Initialize(frontChassis, m_chassis);
 
     // Initialize the axle subsystems.
-    m_axles[0]->Initialize(m_chassis->GetBody(), ChVector<>(-6.32, 0, 0), ChVector<>(0), m_chassis->GetBody(), -1, 0.0);
-    m_axles[1]->Initialize(m_chassis->GetBody(), ChVector<>(-7.63, 0, 0), ChVector<>(0), m_chassis->GetBody(), -1, 0.0);
-    m_axles[2]->Initialize(m_chassis->GetBody(), ChVector<>(-8.94, 0, 0), ChVector<>(0), m_chassis->GetBody(), -1, 0.0);
+    m_axles[0]->Initialize(m_chassis, nullptr, nullptr, ChVector<>(-6.32, 0, 0), ChVector<>(0), 0.0);
+    m_axles[1]->Initialize(m_chassis, nullptr, nullptr, ChVector<>(-7.63, 0, 0), ChVector<>(0), 0.0);
+    m_axles[2]->Initialize(m_chassis, nullptr, nullptr, ChVector<>(-8.94, 0, 0), ChVector<>(0), 0.0);
 }
 
 // Initialize the given tire and attach to the specified wheel
