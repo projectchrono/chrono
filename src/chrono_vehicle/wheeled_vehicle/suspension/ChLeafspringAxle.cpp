@@ -55,14 +55,13 @@ ChLeafspringAxle::ChLeafspringAxle(const std::string& name) : ChSuspension(name)
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChLeafspringAxle::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
+void ChLeafspringAxle::Initialize(std::shared_ptr<ChChassis> chassis,
+                                  std::shared_ptr<ChSubchassis> subchassis,
+                                  std::shared_ptr<ChSteering> steering,
                                   const ChVector<>& location,
-                                  std::shared_ptr<ChBody> tierod_body,
-                                  int steering_index,
                                   double left_ang_vel,
                                   double right_ang_vel) {
     m_location = location;
-    m_steering_index = steering_index;
 
     // Unit vectors for orientation matrices.
     ChVector<> u;
@@ -72,7 +71,7 @@ void ChLeafspringAxle::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
 
     // Express the suspension reference frame in the absolute coordinate system.
     ChFrame<> suspension_to_abs(location);
-    suspension_to_abs.ConcatenatePreTransformation(chassis->GetFrame_REF_to_abs());
+    suspension_to_abs.ConcatenatePreTransformation(chassis->GetBody()->GetFrame_REF_to_abs());
 
     // Transform the location of the axle body COM to absolute frame.
     ChVector<> axleCOM_local = getAxleTubeCOM();
@@ -88,21 +87,21 @@ void ChLeafspringAxle::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     m_axleOuterR = suspension_to_abs.TransformPointLocalToParent(outer_local);
 
     // Create and initialize the axle body.
-    m_axleTube = std::shared_ptr<ChBody>(chassis->GetSystem()->NewBody());
+    m_axleTube = std::shared_ptr<ChBody>(chassis->GetBody()->GetSystem()->NewBody());
     m_axleTube->SetNameString(m_name + "_axleTube");
     m_axleTube->SetPos(axleCOM);
-    m_axleTube->SetRot(chassis->GetFrame_REF_to_abs().GetRot());
+    m_axleTube->SetRot(chassis->GetBody()->GetFrame_REF_to_abs().GetRot());
     m_axleTube->SetMass(getAxleTubeMass());
     m_axleTube->SetInertiaXX(getAxleTubeInertia());
-    chassis->GetSystem()->AddBody(m_axleTube);
+    chassis->GetBody()->GetSystem()->AddBody(m_axleTube);
 
     // Fix the axle body to the chassis
     m_axleTubeGuide = chrono_types::make_shared<ChLinkLockRevolutePrismatic>();
     m_axleTubeGuide->SetNameString(m_name + "_revolutePrismaticAxleTube");
-    const ChQuaternion<>& guideRot = chassis->GetFrame_REF_to_abs().GetRot();
-    m_axleTubeGuide->Initialize(chassis, m_axleTube, ChCoordsys<>(axleCOM, guideRot * Q_from_AngY(CH_C_PI_2)));
-
-    chassis->GetSystem()->AddLink(m_axleTubeGuide);
+    const ChQuaternion<>& guideRot = chassis->GetBody()->GetFrame_REF_to_abs().GetRot();
+    m_axleTubeGuide->Initialize(chassis->GetBody(), m_axleTube,
+                                ChCoordsys<>(axleCOM, guideRot * Q_from_AngY(CH_C_PI_2)));
+    chassis->GetBody()->GetSystem()->AddLink(m_axleTubeGuide);
 
     // Transform all hardpoints to absolute frame.
     m_pointsL.resize(NUM_POINTS);
@@ -115,13 +114,15 @@ void ChLeafspringAxle::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     }
 
     // Initialize left and right sides.
-    InitializeSide(LEFT, chassis, tierod_body, m_pointsL, left_ang_vel);
-    InitializeSide(RIGHT, chassis, tierod_body, m_pointsR, right_ang_vel);
+    std::shared_ptr<ChBody> scbeamL = (subchassis == nullptr) ? chassis->GetBody() : subchassis->GetBeam(LEFT);
+    std::shared_ptr<ChBody> scbeamR = (subchassis == nullptr) ? chassis->GetBody() : subchassis->GetBeam(LEFT);
+    InitializeSide(LEFT, chassis->GetBody(), scbeamL, m_pointsL, left_ang_vel);
+    InitializeSide(RIGHT, chassis->GetBody(), scbeamR, m_pointsR, right_ang_vel);
 }
 
 void ChLeafspringAxle::InitializeSide(VehicleSide side,
                                       std::shared_ptr<ChBodyAuxRef> chassis,
-                                      std::shared_ptr<ChBody> tierod_body,
+                                      std::shared_ptr<ChBody> scbeam,
                                       const std::vector<ChVector<>>& points,
                                       double ang_vel) {
     std::string suffix = (side == LEFT) ? "_L" : "_R";
@@ -153,22 +154,20 @@ void ChLeafspringAxle::InitializeSide(VehicleSide side,
     m_revolute[side]->Initialize(m_spindle[side], m_axleTube, rev_csys);
     chassis->GetSystem()->AddLink(m_revolute[side]);
 
-    // Create and initialize the spring/damper
+    // Create and initialize the shock damper
     m_shock[side] = chrono_types::make_shared<ChLinkTSDA>();
     m_shock[side]->SetNameString(m_name + "_shock" + suffix);
     m_shock[side]->Initialize(chassis, m_axleTube, false, points[SHOCK_C], points[SHOCK_A]);
     m_shock[side]->RegisterForceFunctor(getShockForceFunctor());
     chassis->GetSystem()->AddLink(m_shock[side]);
 
-    if (!IsMemberOfAggregate()) {
-        // this is the usual configuration, no connection to a second axle exists
-        m_spring[side] = chrono_types::make_shared<ChLinkTSDA>();
-        m_spring[side]->SetNameString(m_name + "_spring" + suffix);
-        m_spring[side]->Initialize(chassis, m_axleTube, false, points[SPRING_C], points[SPRING_A], false,
-                                   getSpringRestLength());
-        m_spring[side]->RegisterForceFunctor(getSpringForceFunctor());
-        chassis->GetSystem()->AddLink(m_spring[side]);
-    }
+    // Create and initialize the spring
+    m_spring[side] = chrono_types::make_shared<ChLinkTSDA>();
+    m_spring[side]->SetNameString(m_name + "_spring" + suffix);
+    m_spring[side]->Initialize(scbeam, m_axleTube, false, points[SPRING_C], points[SPRING_A], false,
+                               getSpringRestLength());
+    m_spring[side]->RegisterForceFunctor(getSpringForceFunctor());
+    chassis->GetSystem()->AddLink(m_spring[side]);
 
     // Create and initialize the axle shaft and its connection to the spindle. Note that the
     // spindle rotates about the Y axis.
@@ -182,30 +181,6 @@ void ChLeafspringAxle::InitializeSide(VehicleSide side,
     m_axle_to_spindle[side]->SetNameString(m_name + "_axle_to_spindle" + suffix);
     m_axle_to_spindle[side]->Initialize(m_axle[side], m_spindle[side], ChVector<>(0, -1, 0));
     chassis->GetSystem()->Add(m_axle_to_spindle[side]);
-}
-
-void ChLeafspringAxle::InitBalancing(std::shared_ptr<ChBodyAuxRef> chassis,
-                                     std::shared_ptr<ChBody> leftBalancer,
-                                     std::shared_ptr<ChBody> rightBalancer) {
-    if (IsMemberOfAggregate()) {
-        // top mounts of the springs go to the balancers instead of the chassis
-        m_spring[LEFT] = chrono_types::make_shared<ChLinkTSDA>();
-        m_spring[LEFT]->SetNameString(m_name + "_spring_L");
-        m_spring[LEFT]->Initialize(leftBalancer, m_axleTube, false, m_pointsL[SPRING_C], m_pointsL[SPRING_A], false,
-                                   getSpringRestLength());
-        m_spring[LEFT]->RegisterForceFunctor(getSpringForceFunctor());
-        chassis->GetSystem()->AddLink(m_spring[LEFT]);
-
-        m_spring[RIGHT] = chrono_types::make_shared<ChLinkTSDA>();
-        m_spring[RIGHT]->SetNameString(m_name + "_spring_R");
-        m_spring[RIGHT]->Initialize(rightBalancer, m_axleTube, false, m_pointsR[SPRING_C], m_pointsR[SPRING_A], false,
-                                    getSpringRestLength());
-        m_spring[RIGHT]->RegisterForceFunctor(getSpringForceFunctor());
-        chassis->GetSystem()->AddLink(m_spring[RIGHT]);
-    } else {
-        GetLog()
-            << "ChLeafSpringAxle::InitBalancing(): Axle is not configured for load balancing. Method call ignored.\n";
-    }
 }
 
 // -----------------------------------------------------------------------------
