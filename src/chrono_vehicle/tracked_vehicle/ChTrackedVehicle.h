@@ -62,10 +62,8 @@ class CH_VEHICLE_API ChTrackedVehicle : public ChVehicle {
     virtual double GetVehicleMass() const override;
 
     /// Get the current global vehicle COM location.
-    virtual ChVector<> GetVehicleCOMPos() const override {
-        //// TODO
-        return ChVector<>(0, 0, 0);
-    }
+    /// (Currently not implemented)
+    virtual ChVector<> GetVehicleCOMPos() const override;
 
     /// Get the powertrain attached to this vehicle.
     virtual std::shared_ptr<ChPowertrain> GetPowertrain() const override { return m_powertrain; }
@@ -107,10 +105,6 @@ class CH_VEHICLE_API ChTrackedVehicle : public ChVehicle {
     void GetTrackShoeStates(VehicleSide side, BodyStates& states) const {
         m_tracks[side]->GetTrackShoeStates(states);
     }
-
-    /// Initialize the given powertrain system and associate it to this vehicle.
-    /// The powertrain is initialized by connecting it to this vehicle's chassis and driveline shaft.
-    void InitializePowertrain(std::shared_ptr<ChPowertrain> powertrain);
 
     /// Set visualization type for the sprocket subsystem.
     void SetSprocketVisualizationType(VisualizationType vis);
@@ -179,12 +173,16 @@ class CH_VEHICLE_API ChTrackedVehicle : public ChVehicle {
     void SetTrackAssemblyOutput(VehicleSide side, bool state);
 
     /// Initialize this vehicle at the specified global location and orientation.
-    /// This base class implementation only initializes the chassis subsystem.
+    /// This base class implementation only initializes the main chassis subsystem.
     /// Derived classes must extend this function to initialize all other tracked
     /// vehicle subsystems (the two track assemblies and the driveline).
     virtual void Initialize(const ChCoordsys<>& chassisPos,  ///< [in] initial global position and orientation
                             double chassisFwdVel = 0         ///< [in] initial chassis forward velocity
                             ) override;
+
+    /// Initialize the given powertrain system and associate it to this vehicle.
+    /// The powertrain is initialized by connecting it to this vehicle's chassis and driveline shaft.
+    void InitializePowertrain(std::shared_ptr<ChPowertrain> powertrain);
 
     /// Update the state of this vehicle at the current time.
     /// The vehicle system is provided the current driver inputs (throttle between 0 and 1, steering between -1 and +1,

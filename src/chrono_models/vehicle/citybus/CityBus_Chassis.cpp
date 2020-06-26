@@ -54,23 +54,24 @@ CityBus_Chassis::CityBus_Chassis(const std::string& name, bool fixed, ChassisCol
 
     //// TODO:
     //// A more appropriate contact shape from primitives
-    BoxShape box1(ChVector<>(0.0, 0.0, 0.1), ChQuaternion<>(1, 0, 0, 0), ChVector<>(1.0, 0.5, 0.2));
+    ChRigidChassisGeometry::BoxShape box1(ChVector<>(0.0, 0.0, 0.1), ChQuaternion<>(1, 0, 0, 0),
+                                          ChVector<>(1.0, 0.5, 0.2));
 
-    m_has_primitives = true;
-    m_vis_boxes.push_back(box1);
+    m_geometry.m_has_primitives = true;
+    m_geometry.m_vis_boxes.push_back(box1);
 
-    m_has_mesh = true;
-    m_vis_mesh_file = "citybus/CityBus_Vis.obj";
+    m_geometry.m_has_mesh = true;
+    m_geometry.m_vis_mesh_file = "citybus/CityBus_Vis.obj";
 
-    m_has_collision = (chassis_collision_type != ChassisCollisionType::NONE);
+    m_geometry.m_has_collision = (chassis_collision_type != ChassisCollisionType::NONE);
     switch (chassis_collision_type) {
         case ChassisCollisionType::PRIMITIVES:
             box1.m_matID = 0;
-            m_coll_boxes.push_back(box1);
+            m_geometry.m_coll_boxes.push_back(box1);
             break;
         case ChassisCollisionType::MESH: {
-            ConvexHullsShape hull("citybus/CityBus_Col.obj", 0);
-            m_coll_hulls.push_back(hull);
+            ChRigidChassisGeometry::ConvexHullsShape hull("citybus/CityBus_Col.obj", 0);
+            m_geometry.m_coll_hulls.push_back(hull);
             break;
         }
         default:
@@ -82,7 +83,7 @@ void CityBus_Chassis::CreateContactMaterials(ChContactMethod contact_method) {
     // Create the contact materials.
     // In this model, we use a single material with default properties.
     MaterialInfo minfo;
-    m_materials.push_back(minfo.CreateMaterial(contact_method));
+    m_geometry.m_materials.push_back(minfo.CreateMaterial(contact_method));
 }
 
 }  // end namespace citybus

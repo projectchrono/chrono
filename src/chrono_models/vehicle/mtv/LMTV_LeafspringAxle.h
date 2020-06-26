@@ -25,9 +25,9 @@
 
 namespace chrono {
 namespace vehicle {
-namespace mtv {
+namespace fmtv {
 
-/// @addtogroup vehicle_models_mtv
+/// @addtogroup vehicle_models_fmtv
 /// @{
 
 /// Leafspring axle subsystem for the LMTV vehicle.
@@ -90,9 +90,9 @@ class CH_MODELS_API LMTV_LeafspringAxle : public ChLeafspringAxle {
     static const double m_damperDegressivityCompression;
 };
 
-/// @} vehicle_models_mtv
+/// @} vehicle_models_fmtv
 
-}  // namespace mtv
+}  // namespace fmtv
 }  // end namespace vehicle
 }  // end namespace chrono
 

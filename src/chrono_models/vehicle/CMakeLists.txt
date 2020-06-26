@@ -75,44 +75,59 @@ set(CVM_HMMWV_FILES
 )
 source_group("hmmwv" FILES ${CVM_HMMWV_FILES})
 
+set(CVM_FMTV_FILES
+    mtv/FMTV_ChassisFront.cpp
+    mtv/FMTV_ChassisFront.h
+    mtv/FMTV_ToebarLeafspringAxle.cpp
+    mtv/FMTV_ToebarLeafspringAxle.h
+    mtv/FMTV_Wheel.cpp
+    mtv/FMTV_Wheel.h
+    mtv/FMTV_BrakeSimple.cpp
+    mtv/FMTV_BrakeSimple.h
+    mtv/FMTV_RotaryArm.cpp
+    mtv/FMTV_RotaryArm.h
+    mtv/FMTV_AntiRollBar.cpp
+    mtv/FMTV_AntiRollBar.h
+    mtv/FMTV_SimpleDriveline.cpp
+    mtv/FMTV_SimpleDriveline.h
+    mtv/FMTV_Driveline4WD.cpp
+    mtv/FMTV_Driveline4WD.h
+    mtv/FMTV_SimpleCVTPowertrain.cpp
+    mtv/FMTV_SimpleCVTPowertrain.h
+    mtv/FMTV_SimpleMapPowertrain.cpp
+    mtv/FMTV_SimpleMapPowertrain.h
+    mtv/FMTV_SimplePowertrain.cpp
+    mtv/FMTV_SimplePowertrain.h
+    mtv/FMTV_Powertrain.cpp
+    mtv/FMTV_Powertrain.h
+    mtv/FMTV_TMeasyTire.cpp
+    mtv/FMTV_TMeasyTire.h
+    mtv/FMTV_RigidTire.cpp
+    mtv/FMTV_RigidTire.h
 
-set(CVM_MTV_FILES
-    mtv/LMTV_AntiRollBar.cpp
-    mtv/LMTV_AntiRollBar.h
-    mtv/LMTV_BrakeSimple.cpp
-    mtv/LMTV_BrakeSimple.h
-    mtv/LMTV_Chassis.cpp
-    mtv/LMTV_Chassis.h
-    mtv/LMTV_Driveline4WD.cpp
-    mtv/LMTV_Driveline4WD.h
-    mtv/LMTV_LeafspringAxle.cpp
-    mtv/LMTV_LeafspringAxle.h
-    mtv/LMTV_RotaryArm.cpp
-    mtv/LMTV_RotaryArm.h
-    mtv/LMTV_RigidTire.cpp
-    mtv/LMTV_RigidTire.h
-    mtv/LMTV_SimpleDriveline.cpp
-    mtv/LMTV_SimpleDriveline.h
-    mtv/LMTV_SimpleCVTPowertrain.cpp
-    mtv/LMTV_SimpleCVTPowertrain.h
-    mtv/LMTV_SimpleMapPowertrain.cpp
-    mtv/LMTV_SimpleMapPowertrain.h
-    mtv/LMTV_SimplePowertrain.cpp
-    mtv/LMTV_SimplePowertrain.h
-    mtv/LMTV_Powertrain.cpp
-    mtv/LMTV_Powertrain.h
-    mtv/LMTV_TMeasyTire.cpp
-    mtv/LMTV_TMeasyTire.h
-    mtv/LMTV_ToebarLeafspringAxle.cpp
-    mtv/LMTV_ToebarLeafspringAxle.h
-    mtv/LMTV_Vehicle.cpp
-    mtv/LMTV_Vehicle.h
-    mtv/LMTV_Wheel.cpp
-    mtv/LMTV_Wheel.h
     mtv/LMTV.cpp
     mtv/LMTV.h
+    mtv/LMTV_Vehicle.cpp
+    mtv/LMTV_Vehicle.h
+    mtv/LMTV_ChassisRear.cpp
+    mtv/LMTV_ChassisRear.h
+    mtv/LMTV_LeafspringAxle.cpp
+    mtv/LMTV_LeafspringAxle.h
+
+    mtv/MTV.cpp
+    mtv/MTV.h
+    mtv/MTV_Vehicle.cpp
+    mtv/MTV_Vehicle.h
+    mtv/MTV_ChassisRear.cpp
+    mtv/MTV_ChassisRear.h
+    mtv/MTV_Balancer.cpp
+    mtv/MTV_Balancer.h
+    mtv/MTV_LeafspringAxle1.cpp
+    mtv/MTV_LeafspringAxle1.h
+    mtv/MTV_LeafspringAxle2.cpp
+    mtv/MTV_LeafspringAxle2.h
 )
-source_group("mtv" FILES ${CVM_MTV_FILES})
+source_group("mtv" FILES ${CVM_FMTV_FILES})
 
 set(CVM_UAZ_FILES
     uaz/UAZBUS.cpp
@@ -438,7 +453,7 @@ set(LIBRARIES ChronoEngine ChronoEngine_vehicle)
 add_library(ChronoModels_vehicle SHARED
     ${CVM_COMMON_FILES}
     ${CVM_HMMWV_FILES}
-    ${CVM_MTV_FILES}
+    ${CVM_FMTV_FILES}
     ${CVM_UAZ_FILES}
     ${CVM_GENERIC_FILES}
     ${CVM_SEDAN_FILES}

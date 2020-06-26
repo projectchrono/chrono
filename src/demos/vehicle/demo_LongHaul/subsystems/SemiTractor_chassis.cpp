@@ -46,6 +46,6 @@ SemiTractor_chassis::SemiTractor_chassis(const std::string& name) : ChRigidChass
     m_inertia(2, 0) = m_inertiaXY.y();
     m_inertia(2, 1) = m_inertiaXY.z();
 
-    m_has_mesh = true;
-    m_vis_mesh_file = "longhaul/meshes/SemiTractorBody.obj";
+    m_geometry.m_has_mesh = true;
+    m_geometry.m_vis_mesh_file = "longhaul/meshes/SemiTractorBody.obj";
 }

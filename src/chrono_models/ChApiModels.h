@@ -36,10 +36,12 @@
          @defgroup vehicle_models_hmmwv HMMWV model
          @defgroup vehicle_models_sedan Passenger car model
          @defgroup vehicle_models_citybus City bus model
+         @defgroup vehicle_models_uaz UAZ model
+         @defgroup vehicle_models_gator Gator model
+         @defgroup vehicle_models_fmtv FMTV truck models
+         @defgroup vehicle_models_man MAN truck models
          @defgroup vehicle_models_generic Generic wheeled vehicle
          @defgroup vehicle_models_m113 M113 tracked vehicle model
-         @defgroup vehicle_models_uaz UAZ model
-         @defgroup vehicle_models_man MAN truck models
        @}
     @}
 */

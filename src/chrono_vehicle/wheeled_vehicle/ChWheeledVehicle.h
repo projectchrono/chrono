@@ -27,6 +27,7 @@
 #include "chrono_vehicle/ChVehicle.h"
 #include "chrono_vehicle/ChDriver.h"
 #include "chrono_vehicle/ChTerrain.h"
+#include "chrono_vehicle/wheeled_vehicle/ChSubchassis.h"
 #include "chrono_vehicle/wheeled_vehicle/ChAxle.h"
 #include "chrono_vehicle/wheeled_vehicle/ChAntirollBar.h"
 #include "chrono_vehicle/wheeled_vehicle/ChBrake.h"
@@ -89,6 +90,9 @@ class CH_VEHICLE_API ChWheeledVehicle : public ChVehicle {
     /// Get a handle to the vehicle's driveline subsystem.
     std::shared_ptr<ChDrivelineWV> GetDriveline() const { return m_driveline; }
 
+    /// Get the subchassis system (if none present, returns an empty pointer).
+    std::shared_ptr<ChSubchassis> GetSubchassis(int id) const { return m_subchassis[id]; }
+
     /// Get the vehicle total mass.
     /// This includes the mass of the chassis and all vehicle subsystems, but not the mass of tires.
     virtual double GetVehicleMass() const override;
@@ -141,17 +145,8 @@ class CH_VEHICLE_API ChWheeledVehicle : public ChVehicle {
     /// and the vehicle minimum turning radius.
     virtual double GetMaxSteeringAngle() const;
 
-    /// Initialize the given tire and attach it to the specified wheel.
-    /// Optionally, specify tire visualization mode and tire-terrain collision detection method.
-    /// This function should be called only after vehicle initialization.
-    void InitializeTire(std::shared_ptr<ChTire> tire,
-                        std::shared_ptr<ChWheel> wheel,
-                        VisualizationType tire_vis = VisualizationType::PRIMITIVES,
-                        ChTire::CollisionType tire_coll = ChTire::CollisionType::SINGLE_POINT);
-
-    /// Initialize the given powertrain system and associate it to this vehicle.
-    /// The powertrain is initialized by connecting it to this vehicle's chassis and driveline shaft.
-    void InitializePowertrain(std::shared_ptr<ChPowertrain> powertrain);
+    /// Set visualization mode for the sub-chassis subsystems.
+    void SetSubchassisVisualizationType(VisualizationType vis);
 
     /// Set visualization type for the suspension subsystems.
     /// This function should be called only after vehicle initialization.
@@ -184,6 +179,26 @@ class CH_VEHICLE_API ChWheeledVehicle : public ChVehicle {
     /// Enable/disable output from the driveline subsystem.
     /// See also ChVehicle::SetOuput.
     void SetDrivelineOutput(bool state);
+
+    /// Initialize this vehicle at the specified global location and orientation.
+    /// This base class implementation only initializes the main chassis subsystem.
+    /// Derived classes must extend this function to initialize all other tracked
+    /// vehicle subsystems (axles, steerings, driveline).
+    virtual void Initialize(const ChCoordsys<>& chassisPos,  ///< [in] initial global position and orientation
+                            double chassisFwdVel = 0         ///< [in] initial chassis forward velocity
+                            ) override;
+
+    /// Initialize the given tire and attach it to the specified wheel.
+    /// Optionally, specify tire visualization mode and tire-terrain collision detection method.
+    /// This function should be called only after vehicle initialization.
+    void InitializeTire(std::shared_ptr<ChTire> tire,
+                        std::shared_ptr<ChWheel> wheel,
+                        VisualizationType tire_vis = VisualizationType::PRIMITIVES,
+                        ChTire::CollisionType tire_coll = ChTire::CollisionType::SINGLE_POINT);
+
+    /// Initialize the given powertrain system and associate it to this vehicle.
+    /// The powertrain is initialized by connecting it to this vehicle's chassis and driveline shaft.
+    void InitializePowertrain(std::shared_ptr<ChPowertrain> powertrain);
 
     /// Update the state of this vehicle at the current time.
     /// The vehicle system is provided the current driver inputs (throttle between 0 and 1, steering between -1 and +1,
@@ -234,6 +249,7 @@ class CH_VEHICLE_API ChWheeledVehicle : public ChVehicle {
     /// Output data for all modeling components in the vehicle system.
     virtual void Output(int frame, ChVehicleOutput& database) const override;
 
+    ChSubchassisList m_subchassis;               ///< list of subchassis subsystems (typically empty)
     ChAxleList m_axles;                          ///< list of axle subsystems
     ChSteeringList m_steerings;                  ///< list of steering subsystems
     std::shared_ptr<ChDrivelineWV> m_driveline;  ///< driveline subsystem

@@ -215,23 +215,18 @@ void WheeledVehicle::Initialize(const ChCoordsys<>& chassisPos, double chassisFw
 
     // Initialize the steering subsystems.
     for (int i = 0; i < m_num_strs; i++) {
-        m_steerings[i]->Initialize(m_chassis->GetBody(), m_strLocations[i], m_strRotations[i]);
+        m_steerings[i]->Initialize(m_chassis, m_strLocations[i], m_strRotations[i]);
     }
 
     // Initialize the axles (suspension + brakes + wheels + antirollbar)
     for (int i = 0; i < m_num_axles; i++) {
         int str_index = m_suspSteering[i];
-        if (str_index == -1) {
-            m_axles[i]->Initialize(m_chassis->GetBody(), m_suspLocations[i], m_arbLocations[i], m_chassis->GetBody(),
-                                   -1, 0.0);
-        } else {
-            m_axles[i]->Initialize(m_chassis->GetBody(), m_suspLocations[i], m_arbLocations[i],
-                                   m_steerings[str_index]->GetSteeringLink(), str_index, 0.0);
-        }
+        std::shared_ptr<ChSteering> steering = (str_index == -1) ? nullptr : m_steerings[str_index];
+        m_axles[i]->Initialize(m_chassis, nullptr, steering, m_suspLocations[i], m_arbLocations[i], 0.0);
     }
 
     // Initialize the driveline
-    m_driveline->Initialize(m_chassis->GetBody(), m_axles, m_driven_axles);
+    m_driveline->Initialize(m_chassis, m_axles, m_driven_axles);
 
     // Sanity check: make sure the driveline can accommodate the number of driven axles.
     assert(m_driveline->GetNumDrivenAxles() == m_driven_axles.size());

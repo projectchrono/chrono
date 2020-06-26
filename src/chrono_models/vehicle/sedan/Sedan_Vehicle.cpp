@@ -86,17 +86,17 @@ void Sedan_Vehicle::Initialize(const ChCoordsys<>& chassisPos, double chassisFwd
     // frame).
     ChVector<> offset = ChVector<>(1.2, 0, 0.14);
     ChQuaternion<> rotation = ChQuaternion<>(1, 0, 0, 0);
-    m_steerings[0]->Initialize(m_chassis->GetBody(), offset, rotation);
+    m_steerings[0]->Initialize(m_chassis, offset, rotation);
 
     // Initialize the axle subsystems.
-    m_axles[0]->Initialize(m_chassis->GetBody(), ChVector<>(1.388, 0, .25), ChVector<>(0),
-                           m_steerings[0]->GetSteeringLink(), 0, 0.0, m_omega[0], m_omega[1]);
-    m_axles[1]->Initialize(m_chassis->GetBody(), ChVector<>(-1.388, 0, .125), ChVector<>(0), m_chassis->GetBody(), -1,
-                           0.0, m_omega[2], m_omega[3]);
+    m_axles[0]->Initialize(m_chassis, nullptr, m_steerings[0], ChVector<>(1.388, 0, .25), ChVector<>(0), 0.0,
+                           m_omega[0], m_omega[1]);
+    m_axles[1]->Initialize(m_chassis, nullptr, nullptr, ChVector<>(-1.388, 0, .125), ChVector<>(0), 0.0, m_omega[2],
+                           m_omega[3]);
 
     // Initialize the driveline subsystem (FWD)
     std::vector<int> driven_susp_indexes = {0};
-    m_driveline->Initialize(m_chassis->GetBody(), m_axles, driven_susp_indexes);
+    m_driveline->Initialize(m_chassis, m_axles, driven_susp_indexes);
 }
 
 // -----------------------------------------------------------------------------

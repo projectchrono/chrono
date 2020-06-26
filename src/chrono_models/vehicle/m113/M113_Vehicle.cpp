@@ -97,7 +97,7 @@ void M113_Vehicle::Initialize(const ChCoordsys<>& chassisPos, double chassisFwdV
     m_tracks[1]->Initialize(m_chassis->GetBody(), ChVector<>(0, -track_offset, 0));
 
     // Initialize the driveline subsystem
-    m_driveline->Initialize(m_chassis->GetBody(), m_tracks[0], m_tracks[1]);
+    m_driveline->Initialize(m_chassis, m_tracks[0], m_tracks[1]);
 }
 
 }  // end namespace m113

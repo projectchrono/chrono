@@ -27,7 +27,7 @@
 
 namespace chrono {
 namespace vehicle {
-namespace mtv {
+namespace fmtv {
 
 // -----------------------------------------------------------------------------
 // Static variables
@@ -189,6 +189,6 @@ const ChVector<> LMTV_LeafspringAxle::getLocation(PointId which) {
     }
 }
 
-}  // namespace mtv
+}  // namespace fmtv
 }  // end namespace vehicle
 }  // end namespace chrono
