@@ -115,7 +115,7 @@ void ChLeafspringAxle::Initialize(std::shared_ptr<ChChassis> chassis,
 
     // Initialize left and right sides.
     std::shared_ptr<ChBody> scbeamL = (subchassis == nullptr) ? chassis->GetBody() : subchassis->GetBeam(LEFT);
-    std::shared_ptr<ChBody> scbeamR = (subchassis == nullptr) ? chassis->GetBody() : subchassis->GetBeam(LEFT);
+    std::shared_ptr<ChBody> scbeamR = (subchassis == nullptr) ? chassis->GetBody() : subchassis->GetBeam(RIGHT);
     InitializeSide(LEFT, chassis->GetBody(), scbeamL, m_pointsL, left_ang_vel);
     InitializeSide(RIGHT, chassis->GetBody(), scbeamR, m_pointsR, right_ang_vel);
 }
