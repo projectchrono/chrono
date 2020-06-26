@@ -26,6 +26,9 @@
 namespace chrono {
 namespace vehicle {
 
+/// @addtogroup vehicle_wheeled_subchassis
+/// @{
+
 /// Template for a balancer subchassis system.
 class CH_VEHICLE_API ChBalancer : public ChSubchassis {
   public:
@@ -88,6 +91,8 @@ private:
     std::vector<ChVector<>> m_pointsL;
     std::vector<ChVector<>> m_pointsR;
 };
+
+/// @} vehicle_wheeled_subchassis
 
 }  // end namespace vehicle
 }  // end namespace chrono

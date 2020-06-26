@@ -27,6 +27,9 @@
 namespace chrono {
 namespace vehicle {
 
+/// @addtogroup vehicle_wheeled_subchassis
+/// @{
+
 /// Base class for a sub-chassis system for wheeled vehicles.
 class CH_VEHICLE_API ChSubchassis : public ChPart {
   public:
@@ -64,6 +67,8 @@ class CH_VEHICLE_API ChSubchassis : public ChPart {
 
 /// Vector of handles to subchassis subsystems.
 typedef std::vector<std::shared_ptr<ChSubchassis>> ChSubchassisList;
+
+/// @} vehicle_wheeled_subchassis
 
 }  // end namespace vehicle
 }  // end namespace chrono
