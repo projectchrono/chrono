@@ -86,7 +86,7 @@ void Sedan_Vehicle::Initialize(const ChCoordsys<>& chassisPos, double chassisFwd
     // frame).
     ChVector<> offset = ChVector<>(1.2, 0, 0.14);
     ChQuaternion<> rotation = ChQuaternion<>(1, 0, 0, 0);
-    m_steerings[0]->Initialize(m_chassis->GetBody(), offset, rotation);
+    m_steerings[0]->Initialize(m_chassis, offset, rotation);
 
     // Initialize the axle subsystems.
     m_axles[0]->Initialize(m_chassis, nullptr, m_steerings[0], ChVector<>(1.388, 0, .25), ChVector<>(0), 0.0,

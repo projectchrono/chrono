@@ -118,7 +118,7 @@ void HMMWV_VehicleFull::Initialize(const ChCoordsys<>& chassisPos, double chassi
     // frame).
     ChVector<> offset = ChVector<>(1.24498, 0, 0.101322);
     ChQuaternion<> rotation = Q_from_AngAxis(18.5 * CH_C_PI / 180, ChVector<>(0, 1, 0));
-    m_steerings[0]->Initialize(m_chassis->GetBody(), offset, rotation);
+    m_steerings[0]->Initialize(m_chassis, offset, rotation);
 
     // Initialize the axle subsystems.
     m_axles[0]->Initialize(m_chassis, nullptr, m_steerings[0], ChVector<>(1.688965, 0, 0), ChVector<>(0), 0.0,

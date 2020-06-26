@@ -108,7 +108,7 @@ void HMMWV_VehicleReduced::Initialize(const ChCoordsys<>& chassisPos, double cha
     // Initialize the steering subsystem (specify the steering subsystem's frame relative to the chassis reference
     // frame).
     ChVector<> offset = in2m * ChVector<>(56.735, 0, 3.174);
-    m_steerings[0]->Initialize(m_chassis->GetBody(), offset, ChQuaternion<>(1, 0, 0, 0));
+    m_steerings[0]->Initialize(m_chassis, offset, ChQuaternion<>(1, 0, 0, 0));
 
     // Initialize the axle subsystems.
     m_axles[0]->Initialize(m_chassis, nullptr, m_steerings[0], in2m * ChVector<>(66.59, 0, 1.039), ChVector<>(0), 0.0,

@@ -82,7 +82,7 @@ void SemiTractor_vehicle::Initialize(const ChCoordsys<>& chassisPos, double chas
 
     // Initialize the steering subsystem (specify the steering subsystem's frame relative to the chassis reference
     // frame).
-    m_steerings[0]->Initialize(m_chassis->GetBody(), ChVector<>(0, 0, 0), ChQuaternion<>(1, 0, 0, 0));
+    m_steerings[0]->Initialize(m_chassis, ChVector<>(0, 0, 0), ChQuaternion<>(1, 0, 0, 0));
 
     // Initialize the axle subsystems.
     m_axles[0]->Initialize(m_chassis, nullptr, m_steerings[0], ChVector<>(0.0, 0, 0), ChVector<>(0), 0.0);

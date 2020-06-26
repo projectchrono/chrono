@@ -122,8 +122,8 @@ void MAN_10t_Vehicle::Initialize(const ChCoordsys<>& chassisPos, double chassisF
     ChVector<> offset3 = ChVector<>(-5.6, 0, 0.0);   // 0.4 0 0.4
     ChVector<> offset4 = ChVector<>(-7.0, 0, 0.0);   // 0.4 0 0.4
     ChQuaternion<> rotation = ChQuaternion<>(1, 0, 0, 0);
-    m_steerings[0]->Initialize(m_chassis->GetBody(), offset1, rotation);
-    m_steerings[1]->Initialize(m_chassis->GetBody(), offset2, rotation);
+    m_steerings[0]->Initialize(m_chassis, offset1, rotation);
+    m_steerings[1]->Initialize(m_chassis, offset2, rotation);
 
     // Initialize the axle subsystems.
     m_axles[0]->Initialize(m_chassis, nullptr, m_steerings[0], offset1, ChVector<>(0), 0.0, m_omega[0], m_omega[1]);

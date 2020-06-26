@@ -139,7 +139,7 @@ void Generic_Vehicle::Initialize(const ChCoordsys<>& chassisPos, double chassisF
         default:
             break;
     }
-    m_steerings[0]->Initialize(m_chassis->GetBody(), offset, ChQuaternion<>(1, 0, 0, 0));
+    m_steerings[0]->Initialize(m_chassis, offset, ChQuaternion<>(1, 0, 0, 0));
 
     // Initialize the axle subsystems.
     m_axles[0]->Initialize(m_chassis, nullptr, m_steerings[0], ChVector<>(1.6914, 0, 0), ChVector<>(1.3, 0, 0.0), 0.0);

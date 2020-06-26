@@ -305,7 +305,7 @@ void ChSuspensionTestRig::InitializeSubsystems() {
 
     // Initialize the steering subsystem.
     if (m_steering)
-        m_steering->Initialize(m_chassis->GetBody(), m_steeringLoc, m_steeringRot);
+        m_steering->Initialize(m_chassis, m_steeringLoc, m_steeringRot);
 
     // Initialize the suspension subsystem.
     m_suspension->Initialize(m_chassis, nullptr, m_steering, m_suspLoc);

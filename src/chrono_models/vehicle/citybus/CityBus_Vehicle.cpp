@@ -89,7 +89,7 @@ void CityBus_Vehicle::Initialize(const ChCoordsys<>& chassisPos, double chassisF
     // frame).
     ChVector<> offset = ChVector<>(0, 0, 0.545);  // 0.4 0 0.4
     ChQuaternion<> rotation = ChQuaternion<>(1, 0, 0, 0);
-    m_steerings[0]->Initialize(m_chassis->GetBody(), offset, rotation);
+    m_steerings[0]->Initialize(m_chassis, offset, rotation);
 
     // Initialize the axle subsystems.
     m_axles[0]->Initialize(m_chassis, nullptr, m_steerings[0], ChVector<>(0, 0, .545), ChVector<>(0), 0.0, m_omega[0],

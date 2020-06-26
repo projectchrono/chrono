@@ -215,7 +215,7 @@ void WheeledVehicle::Initialize(const ChCoordsys<>& chassisPos, double chassisFw
 
     // Initialize the steering subsystems.
     for (int i = 0; i < m_num_strs; i++) {
-        m_steerings[i]->Initialize(m_chassis->GetBody(), m_strLocations[i], m_strRotations[i]);
+        m_steerings[i]->Initialize(m_chassis, m_strLocations[i], m_strRotations[i]);
     }
 
     // Initialize the axles (suspension + brakes + wheels + antirollbar)
