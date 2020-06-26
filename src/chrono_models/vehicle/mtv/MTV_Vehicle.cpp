@@ -129,26 +129,15 @@ void MTV_Vehicle::Initialize(const ChCoordsys<>& chassisPos, double chassisFwdVe
     m_steerings[0]->Initialize(m_chassis->GetBody(), offset, rotation);
 
     // Initialize the axle subsystems
-    m_axles[0]->Initialize(m_chassis->GetBody(), ChVector<>(0, 0, 0), ChVector<>(0), m_steerings[0]->GetSteeringLink(),
-                           0, 0.0, m_omega[0], m_omega[1]);
+    m_axles[0]->Initialize(m_chassis, nullptr, m_steerings[0], ChVector<>(0, 0, 0), ChVector<>(0), 0.0, m_omega[0],
+                           m_omega[1]);
 
-    // rear axles, rear axle is 'mounted' to the rear chassis body and the subchassis
-    m_axles[1]->Initialize(m_chassis_rear[0]->GetBody(), ChVector<>(-3.4, 0, 0), ChVector<>(0),
-                           m_chassis_rear[0]->GetBody(), -1, 0.0, m_omega[2], m_omega[3]);
-    auto s1 = std::static_pointer_cast<ChLeafspringAxle>(m_axles[1]->m_suspension);
-    s1->InitBalancing(m_chassis_rear[0]->GetBody(), m_subchassis[0]->GetBeam(LEFT), m_subchassis[0]->GetBeam(RIGHT));
+    // rear axles mounted on rear chassis and subchassis
+    m_axles[1]->Initialize(m_chassis_rear[0], m_subchassis[0], nullptr, ChVector<>(-3.4, 0, 0), ChVector<>(0), 0.0,
+                           m_omega[2], m_omega[3]);
+    m_axles[2]->Initialize(m_chassis_rear[0], m_subchassis[0], nullptr, ChVector<>(-4.8, 0, 0), ChVector<>(0), 0.0,
+                           m_omega[4], m_omega[5]);
 
-    // rear axles, rear axle is 'mounted' to the rear chassis body and the subchassis
-    m_axles[2]->Initialize(m_chassis_rear[0]->GetBody(), ChVector<>(-4.8, 0, 0), ChVector<>(0),
-                           m_chassis_rear[0]->GetBody(), -1, 0.0, m_omega[4], m_omega[5]);
-    auto s2 = std::static_pointer_cast<ChLeafspringAxle>(m_axles[2]->m_suspension);
-    s2->InitBalancing(m_chassis_rear[0]->GetBody(), m_subchassis[0]->GetBeam(LEFT), m_subchassis[0]->GetBeam(RIGHT));
-
-    /* Initialize the anti roll bar system
-    auto sus = std::static_pointer_cast<ChLeafspringAxle>(m_axles[1]->m_suspension);
-    m_axles[1]->m_antirollbar->Initialize(m_chassis_rear[0]->GetBody(), ChVector<>(-3.7, 0, 0.2), sus->GetLeftBody(),
-                                          sus->GetRightBody());
-                                           */
     // Initialize the driveline subsystem
     std::vector<int> driven_susp_indexes(m_driveline->GetNumDrivenAxles());
 

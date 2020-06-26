@@ -63,8 +63,6 @@ class CH_MODELS_API MTV_LeafspringAxle1 : public ChLeafspringAxle {
     virtual std::shared_ptr<ChBody> GetLeftBody() const override { return m_axleTube; }
     virtual std::shared_ptr<ChBody> GetRightBody() const override { return m_axleTube; }
 
-    virtual bool IsMemberOfAggregate() const override { return m_is_agregate_member; }
-
   private:
     std::shared_ptr<ChLinkTSDA::ForceFunctor> m_springForceCB;
     std::shared_ptr<ChLinkTSDA::ForceFunctor> m_shockForceCB;
@@ -77,8 +75,6 @@ class CH_MODELS_API MTV_LeafspringAxle1 : public ChLeafspringAxle {
     static const double m_axleTubeRadius;
     static const double m_spindleRadius;
     static const double m_spindleWidth;
-
-    static const bool m_is_agregate_member;
 
     static const ChVector<> m_axleTubeInertia;
     static const ChVector<> m_spindleInertia;

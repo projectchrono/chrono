@@ -113,12 +113,10 @@ void LMTV_Vehicle::Initialize(const ChCoordsys<>& chassisPos, double chassisFwdV
     m_steerings[0]->Initialize(m_chassis->GetBody(), offset, rotation);
 
     // Initialize the axle subsystems
-    m_axles[0]->Initialize(m_chassis->GetBody(), ChVector<>(0, 0, 0), ChVector<>(0), m_steerings[0]->GetSteeringLink(),
-                           0, 0.0, m_omega[0], m_omega[1]);
-
-    // rear axles, rear axle is 'mounted' to the rear chassis body
-    m_axles[1]->Initialize(m_chassis_rear[0]->GetBody(), ChVector<>(-3.9, 0, 0), ChVector<>(0),
-                           m_chassis_rear[0]->GetBody(), -1, 0.0, m_omega[2], m_omega[3]);
+    m_axles[0]->Initialize(m_chassis, nullptr, m_steerings[0], ChVector<>(0, 0, 0), ChVector<>(0), 0.0, m_omega[0],
+                           m_omega[1]);
+    m_axles[1]->Initialize(m_chassis_rear[0], nullptr, nullptr, ChVector<>(-3.9, 0, 0), ChVector<>(0), 0.0, m_omega[2],
+                           m_omega[3]);
 
     /* Initialize the anti roll bar system
     auto sus = std::static_pointer_cast<ChLeafspringAxle>(m_axles[1]->m_suspension);

@@ -51,8 +51,6 @@ const double MTV_LeafspringAxle2::m_damperDegressivityCompression = 3.0;
 const double MTV_LeafspringAxle2::m_damperDegressivityExpansion = 1.0;
 const double MTV_LeafspringAxle2::m_axleShaftInertia = 0.4;
 
-const bool MTV_LeafspringAxle2::m_is_agregate_member = true;
-
 // ---------------------------------------------------------------------------------------
 class MTV_SpringForceRear2 : public ChLinkTSDA::ForceFunctor {
   public:
