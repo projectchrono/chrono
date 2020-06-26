@@ -312,8 +312,7 @@ void ChSuspensionTestRig::InitializeSubsystems() {
 
     // Initialize the antirollbar subsystem.
     if (m_antirollbar)
-        m_antirollbar->Initialize(m_chassis->GetBody(), m_antirollbarLoc, m_suspension->GetLeftBody(),
-                                  m_suspension->GetRightBody());
+        m_antirollbar->Initialize(m_chassis, m_suspension, m_antirollbarLoc);
 
     // Initialize the two wheels
     m_wheel[LEFT]->Initialize(m_suspension->GetSpindle(LEFT), LEFT);

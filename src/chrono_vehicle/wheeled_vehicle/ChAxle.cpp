@@ -68,7 +68,7 @@ void ChAxle::Initialize(std::shared_ptr<ChChassis> chassis,
     }
     if (m_antirollbar) {
         assert(m_suspension->IsIndependent());
-        m_antirollbar->Initialize(chassis->GetBody(), arb_location, m_suspension->GetLeftBody(), m_suspension->GetRightBody());
+        m_antirollbar->Initialize(chassis, m_suspension, arb_location);
     }
 }
 

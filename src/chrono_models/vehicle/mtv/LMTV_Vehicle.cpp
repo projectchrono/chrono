@@ -87,8 +87,10 @@ void LMTV_Vehicle::Create(bool fixed, SteeringType steering_model, ChassisCollis
     m_axles[1]->m_brake_left = chrono_types::make_shared<FMTV_BrakeSimple>("Brake_RL");
     m_axles[1]->m_brake_right = chrono_types::make_shared<FMTV_BrakeSimple>("Brake_RR");
 
+    /*
     // Create the antirollbar system
-    // m_axles[1]->m_antirollbar = chrono_types::make_shared<LMTV_AntirollBarRSD>("AntirollBar");
+    m_axles[1]->m_antirollbar = chrono_types::make_shared<LMTV_AntirollBarRSD>("AntirollBar");
+    */
 
     // Create the driveline
     m_driveline = chrono_types::make_shared<FMTV_Driveline4WD>("Driveline");
@@ -118,11 +120,11 @@ void LMTV_Vehicle::Initialize(const ChCoordsys<>& chassisPos, double chassisFwdV
     m_axles[1]->Initialize(m_chassis_rear[0], nullptr, nullptr, ChVector<>(-3.9, 0, 0), ChVector<>(0), 0.0, m_omega[2],
                            m_omega[3]);
 
-    /* Initialize the anti roll bar system
-    auto sus = std::static_pointer_cast<ChLeafspringAxle>(m_axles[1]->m_suspension);
-    m_axles[1]->m_antirollbar->Initialize(m_chassis_rear[0]->GetBody(), ChVector<>(-3.7, 0, 0.2), sus->GetLeftBody(),
-                                          sus->GetRightBody());
-                                           */
+    /*
+    // Initialize the anti roll bar system
+    m_axles[1]->m_antirollbar->Initialize(m_chassis_rear[0], m_axles[1]->m_suspension, ChVector<>(-3.7, 0, 0.2));
+    */
+
     // Initialize the driveline subsystem
     std::vector<int> driven_susp_indexes(m_driveline->GetNumDrivenAxles());
 
