@@ -144,7 +144,7 @@ void MTV_Vehicle::Initialize(const ChCoordsys<>& chassisPos, double chassisFwdVe
     driven_susp_indexes[0] = 1;
     driven_susp_indexes[1] = 2;
 
-    m_driveline->Initialize(m_chassis->GetBody(), m_axles, driven_susp_indexes);
+    m_driveline->Initialize(m_chassis, m_axles, driven_susp_indexes);
 }
 
 // -----------------------------------------------------------------------------

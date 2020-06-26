@@ -226,7 +226,7 @@ void WheeledVehicle::Initialize(const ChCoordsys<>& chassisPos, double chassisFw
     }
 
     // Initialize the driveline
-    m_driveline->Initialize(m_chassis->GetBody(), m_axles, m_driven_axles);
+    m_driveline->Initialize(m_chassis, m_axles, m_driven_axles);
 
     // Sanity check: make sure the driveline can accommodate the number of driven axles.
     assert(m_driveline->GetNumDrivenAxles() == m_driven_axles.size());

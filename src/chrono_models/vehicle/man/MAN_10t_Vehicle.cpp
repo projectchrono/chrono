@@ -138,14 +138,14 @@ void MAN_10t_Vehicle::Initialize(const ChCoordsys<>& chassisPos, double chassisF
         driven_susp_indexes.resize(2);
         driven_susp_indexes[0] = 2;
         driven_susp_indexes[1] = 3;
-        m_driveline->Initialize(m_chassis->GetBody(), m_axles, driven_susp_indexes);
+        m_driveline->Initialize(m_chassis, m_axles, driven_susp_indexes);
     } else {
         driven_susp_indexes.resize(4);
         driven_susp_indexes[0] = 0;
         driven_susp_indexes[1] = 1;
         driven_susp_indexes[2] = 2;
         driven_susp_indexes[3] = 3;
-        m_driveline->Initialize(m_chassis->GetBody(), m_axles, driven_susp_indexes);
+        m_driveline->Initialize(m_chassis, m_axles, driven_susp_indexes);
     }
 }
 

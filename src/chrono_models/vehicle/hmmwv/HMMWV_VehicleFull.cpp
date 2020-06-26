@@ -143,7 +143,7 @@ void HMMWV_VehicleFull::Initialize(const ChCoordsys<>& chassisPos, double chassi
             break;
     }
 
-    m_driveline->Initialize(m_chassis->GetBody(), m_axles, driven_susp_indexes);
+    m_driveline->Initialize(m_chassis, m_axles, driven_susp_indexes);
 }
 
 // -----------------------------------------------------------------------------

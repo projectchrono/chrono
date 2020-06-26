@@ -101,11 +101,9 @@ void UAZBUS_SAEVehicle::Initialize(const ChCoordsys<>& chassisPos, double chassi
 
     // Initialize the driveline subsystem
     std::vector<int> driven_susp_indexes(m_driveline->GetNumDrivenAxles());
-
     driven_susp_indexes[0] = 1;
     driven_susp_indexes[1] = 1;
-
-    m_driveline->Initialize(m_chassis->GetBody(), m_axles, driven_susp_indexes);
+    m_driveline->Initialize(m_chassis, m_axles, driven_susp_indexes);
 }
 
 // -----------------------------------------------------------------------------

@@ -120,18 +120,13 @@ void LMTV_Vehicle::Initialize(const ChCoordsys<>& chassisPos, double chassisFwdV
     m_axles[1]->Initialize(m_chassis_rear[0], nullptr, nullptr, ChVector<>(-3.9, 0, 0), ChVector<>(0), 0.0, m_omega[2],
                            m_omega[3]);
 
-    /*
-    // Initialize the anti roll bar system
-    m_axles[1]->m_antirollbar->Initialize(m_chassis_rear[0], m_axles[1]->m_suspension, ChVector<>(-3.7, 0, 0.2));
-    */
-
     // Initialize the driveline subsystem
     std::vector<int> driven_susp_indexes(m_driveline->GetNumDrivenAxles());
 
     driven_susp_indexes[0] = 1;
     driven_susp_indexes[1] = 1;
 
-    m_driveline->Initialize(m_chassis->GetBody(), m_axles, driven_susp_indexes);
+    m_driveline->Initialize(m_chassis, m_axles, driven_susp_indexes);
 }
 
 // -----------------------------------------------------------------------------

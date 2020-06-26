@@ -124,13 +124,13 @@ void MAN_7t_Vehicle::Initialize(const ChCoordsys<>& chassisPos, double chassisFw
         driven_susp_indexes.resize(2);
         driven_susp_indexes[0] = 0;
         driven_susp_indexes[1] = 1;
-        m_driveline->Initialize(m_chassis->GetBody(), m_axles, driven_susp_indexes);
+        m_driveline->Initialize(m_chassis, m_axles, driven_susp_indexes);
     } else {
         driven_susp_indexes.resize(3);
         driven_susp_indexes[0] = 0;
         driven_susp_indexes[1] = 1;
         driven_susp_indexes[2] = 2;
-        m_driveline->Initialize(m_chassis->GetBody(), m_axles, driven_susp_indexes);
+        m_driveline->Initialize(m_chassis, m_axles, driven_susp_indexes);
     }
 }
 

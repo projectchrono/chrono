@@ -92,7 +92,7 @@ void SemiTractor_vehicle::Initialize(const ChCoordsys<>& chassisPos, double chas
 
     // Initialize the driveline subsystem (6x4 = rear axles are driven)
     std::vector<int> driven_susp = {1, 2};
-    m_driveline->Initialize(m_chassis->GetBody(), m_axles, driven_susp);
+    m_driveline->Initialize(m_chassis, m_axles, driven_susp);
 }
 
 // -----------------------------------------------------------------------------

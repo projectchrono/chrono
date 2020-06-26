@@ -133,7 +133,7 @@ void HMMWV_VehicleReduced::Initialize(const ChCoordsys<>& chassisPos, double cha
             break;
     }
 
-    m_driveline->Initialize(m_chassis->GetBody(), m_axles, driven_susp_indexes);
+    m_driveline->Initialize(m_chassis, m_axles, driven_susp_indexes);
 }
 
 }  // end namespace hmmwv

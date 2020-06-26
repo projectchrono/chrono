@@ -86,5 +86,5 @@ void ACV_Vehicle::Initialize(const ChCoordsys<>& chassisPos, double chassisFwdVe
 
     // Initialize the driveline subsystem (RWD)
     std::vector<int> driven_susp = {0};
-    m_driveline->Initialize(m_chassis->GetBody(), m_axles, driven_susp);
+    m_driveline->Initialize(m_chassis, m_axles, driven_susp);
 }
