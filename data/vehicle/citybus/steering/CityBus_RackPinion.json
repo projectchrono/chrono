@@ -1,0 +1,20 @@
+{
+  "Name":                       "CityBus Rack-Pinion Steering",
+  "Type":                       "Steering",
+  "Template":                   "RackPinion",
+
+  "Steering Link":
+  {
+    "Mass":                     3.0,
+    "COM":                      0,
+    "Inertia":                  [0.138, 0.09, 0.138],
+    "Radius":                   0.03,
+    "Length":                   0.5
+  },
+
+  "Pinion":
+  {
+    "Radius":                   -0.03,
+    "Maximum Angle":            0.27
+  }
+}
