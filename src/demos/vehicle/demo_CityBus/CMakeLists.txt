@@ -12,7 +12,6 @@ ENDIF()
 
 SET(DEMOS
     demo_VEH_CityBus
-    demo_VEH_CityBus_JSON
 )
 
 #--------------------------------------------------------------
