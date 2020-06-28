@@ -11,7 +11,8 @@ ENDIF()
 # List all CITYBUS demos
 
 SET(DEMOS
-    demo_VEH_CityBus)
+    demo_VEH_CityBus
+)
 
 #--------------------------------------------------------------
 # Additional include directories
@@ -26,7 +27,7 @@ FOREACH(PROGRAM ${DEMOS})
 
     ADD_EXECUTABLE(${PROGRAM} ${PROGRAM}.cpp)
     SOURCE_GROUP("" FILES ${PROGRAM}.cpp)
-    
+
     SET_TARGET_PROPERTIES(${PROGRAM} PROPERTIES
                           COMPILE_FLAGS "${CH_CXX_FLAGS} ${CH_IRRLICHT_CXX_FLAGS}"
                           LINK_FLAGS "${CH_LINKERFLAG_EXE}")
