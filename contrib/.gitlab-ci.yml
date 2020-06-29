@@ -178,7 +178,7 @@ linux:arch-llvm:test:
   - git submodule update
   - mkdir -p build
 
-linux:centos:build:
+.linux:centos:build:
   stage: build
   extends: .centos
   script:
@@ -195,7 +195,7 @@ linux:centos:build:
     paths:
     - build/
 
-linux:centos:test:
+.linux:centos:test:
   stage: test
   needs: ["linux:centos:build"]
   extends: .centos
