@@ -934,6 +934,83 @@ private:
 };
 
 
+
+
+/// Inertia properties of a beam of Cosserat type, not necessarily of uniform density, 
+/// from the following information that allows the center of mass to be
+/// offset respect to the beam centerline:
+///  - a mass per unit length 
+///  - offset of the center of mass Cm along Y Z section axes,
+///  - rotation of axes Y_m Z_m (used for computed Jzz_m Jyy_m) respect to Y Z section axes.
+///  - Jyy_m Jzz_m principal moments of inertia computed in reference Y_m Z_m, rotated and with origin in center of mass Cm
+/// The polar moment of area is automatically inferred via perpendicular axis theorem.
+/// 
+/// \image html "http://www.projectchrono.org/assets/manual/fea_ChInertiaCosseratMassref.png"
+///
+
+class ChApi ChInertiaCosseratMassref : public ChInertiaCosseratAdvanced {
+  public:
+
+	ChInertiaCosseratMassref() 
+						: Jzz_m(1), Jyy_m(1), phi(0) {};
+
+	ChInertiaCosseratMassref(double mu_density,    ///< mass per unit length [kg/m] 
+		                    double c_y,             ///< displacement of center of mass Cm along Y
+                            double c_z,             ///< displacement of center of mass Cm along Z		
+                            double phi_massref,     ///< rotation of auxiliary mass reference Ym Zm respect to Y Z reference 
+                            double Jyy_massref,	    ///< moment of inertia per unit length, about Ym, with origin in Cm 
+							double Jzz_massref 	    ///< moment of inertia per unit length, about Zm, with origin in Cm  
+							) 
+    {
+        this->SetMassPerUnitLength(mu_density);
+        this->SetCenterOfMass(c_y, c_z);
+        this->SetInertiasPerUnitLengthInMassReference(Jyy_massref, Jzz_massref, phi_massref); 
+    };
+
+    virtual ~ChInertiaCosseratMassref() {}
+
+    /// Set inertia moments, assumed computed in the Y Z unrotated reference
+    /// frame of the section at centerline, and defined as: 
+    /// \f$ J_{yy} =  \int_\Omega \rho z^2 d\Omega \f$, also Jyy = Mm(4,4) 
+    /// \f$ J_{zz} =  \int_\Omega \rho y^2 d\Omega \f$, also Jzz = Mm(5,5) 
+    /// \f$ J_{yz} =  \int_\Omega \rho y z  d\Omega \f$, also Jyz = -Mm(4,5) = -Mm(5,4)
+    /// Note that for an uniform density, these are also related to second moments of area
+    /// as \f$ J_{yy} = \rho I_{yy} \f$,  \f$ J_{zz} = \rho I_{zz} \f$.
+    /// Note also that \f$ J_{xy} = J_{xz} = J_{yx} = J_{zx} = 0 \f$ anyway. 
+    /// Note also that \f$ J_{xy} \f$ does not need to be input, as automatically computed 
+    /// via \f$ J_{xx} = J_{yy} +J_{zz} \f$ for the polar theorem.
+    virtual void SetInertiasPerUnitLength(double Jyy_moment, double Jzz_moment, double Jyz_moment) override {
+        ChInertiaCosseratAdvanced::SetInertiasPerUnitLength(Jyy_moment,Jzz_moment,Jyz_moment);
+        this->GetInertiasPerUnitLengthInMassReference(this->Jyy_m, this->Jzz_m, this->phi);
+    };
+
+    /// Set inertia moments as assumed computed in the Ym Zm "mass reference"
+    /// frame, ie. centered at the center of mass and rotated by phi angle to match the main axes of inertia:
+    /// \f$ Jm_{yy} =  \int_\Omega \rho z_{m}^2 d\Omega \f$, 
+    /// \f$ Jm_{zz} =  \int_\Omega \rho y_{m}^2 d\Omega \f$.
+    /// Assuming the center of mass is already set.
+    virtual void SetInertiasPerUnitLengthInMassReference(double Jyy_massref, double Jzz_massref, double phi_massref) override {
+        this->Jyy_m = Jyy_massref;
+        this->Jzz_m = Jzz_massref;
+        this->phi = phi_massref;
+        ChInertiaCosseratAdvanced::SetInertiasPerUnitLengthInMassReference(this->Jyy_m, this->Jzz_m, this->phi);
+    };
+
+    /// Get inertia moments as assumed computed in the Ym Zm "mass reference" frame, and the rotation phi of that frame,
+    /// ie. inertias centered at the center of mass and rotated by phi angle to match the main axes of inertia:
+    /// \f$ Jm_{yy} =  \int_\Omega \rho z_{m}^2 d\Omega \f$, 
+    /// \f$ Jm_{zz} =  \int_\Omega \rho y_{m}^2 d\Omega \f$.
+    /// Assuming the center of mass is already set.
+    virtual void GetInertiasPerUnitLengthInMassReference(double& Jyy_massref, double& Jzz_massref, double& phi_massref) override {
+        Jyy_massref = this->Jyy_m;
+        Jzz_massref = this->Jzz_m;
+        phi_massref = this->phi;
+    };
+
+private:
+    double phi; // rotation of reference, also main inertia axes ie. Iyz=0
+	double Jzz_m;  
+	double Jyy_m;  
 };
 
 
