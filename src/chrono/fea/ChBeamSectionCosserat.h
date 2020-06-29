@@ -66,6 +66,8 @@ class ChApi ChElasticityCosserat {
 /// The classical Timoshenko beam theory is encompassed in this model, that
 /// can be interpreted as a 3D extension of the Timoshenko beam theory.
 /// This can be shared between multiple beams.
+/// \image html "http://www.projectchrono.org/assets/manual/fea_ChElasticityCosseratSimple.png"
+/// 
 class ChApi ChElasticityCosseratSimple : public ChElasticityCosserat {
   public:
     double Iyy;
@@ -752,21 +754,21 @@ class ChApi ChInertiaCosseratSimple : public ChInertiaCosserat {
 	virtual double GetMassPerUnitLength() override { return this->rho * this->A; }
 
 
-	/// Compute the Ixx component of the inertia tensor per unit length,
+	/// Compute the Jxx component of the inertia tensor per unit length,
 	/// i.e. the part associated with rotation about the beam direction.
-	/// In this case it is \f$ J_{xx} = \rho I_p \f$, where \f$ I_p = I_z + I_y \f$ is the polar moment of area. 
+	/// In this case it is \f$ J_{xx} = \rho I_p \f$, where \f$ I_p = I_{zz} + I_{yy} \f$ is the polar moment of area. 
 	virtual double GetInertiaJxxPerUnitLength()  { return this->rho * (this->Iyy + this->Izz); }
 
 	/// Compute the Jyy component of the inertia tensor per unit length,
 	/// i.e. the part associated with rotation of the section on its Y axis.
-	/// Defined as: \f$ J_{yy} = \int_\Omega \rho z^2 dA \f$, with \f$ \rho \f$ density in [kg/m^3].
-	/// For uniform density it is  \f$ J_{yy} = \rho I_y \f$, where \f$ I_y =  \int_\Omega \rho z^2 dA \f$ is the second moment of area. 
+	/// Defined as: \f$ J_{yy} = \int_\Omega \rho z^2 d\Omega \f$, with \f$ \rho \f$ density in [kg/m^3].
+	/// For uniform density it is  \f$ J_{yy} = \rho I_{yy} \f$, where \f$ I_{yy} =  \int_\Omega z^2 d\Omega \f$ is the second moment of area. 
 	virtual double GetInertiaJyyPerUnitLength()  { return this->rho * this->Iyy; }
 
 	/// Compute the Jzz component of the inertia tensor per unit length,
 	/// i.e. the part associated with rotation of the section on its Z axis.
-	/// Defined as: \f$ J_{zz} = \int_\Omega \rho y^2 dA \f$, with \f$ \rho \f$ density in [kg/m^3].
-	/// For uniform density it is  \f$ J_{zz} = \rho I_z \f$, where \f$ I_z =  \int_\Omega \rho y^2 dA \f$ is the second moment of area. 
+	/// Defined as: \f$ J_{zz} = \int_\Omega \rho y^2 d\Omega \f$, with \f$ \rho \f$ density in [kg/m^3].
+	/// For uniform density it is  \f$ J_{zz} = \rho I_{zz} \f$, where \f$ I_{zz} =  \int_\Omega y^2 d\Omega \f$ is the second moment of area. 
 	virtual double GetInertiaJzzPerUnitLength()  { return this->rho * this->Izz; }
 
 	/// Set the volumetric density, assumed constant in the section. Ex. SI units: [kg/m^3].
@@ -778,7 +780,7 @@ class ChApi ChInertiaCosseratSimple : public ChInertiaCosserat {
 	double GetArea() const { return A; }
 
 	/// Set the Iyy second moment of area of the beam (for bending about y in xz plane),
-	/// defined as \f$ I_y =  \int_\Omega z^2 dA \f$. 
+	/// defined as \f$ I_{yy} =  \int_\Omega z^2 d\Omega \f$. 
     /// Note: some textbook calls this Iyy as Iy.
 	/// Note: it can correspond to the same Iyy that you used for the elasticity, ex. in ChElasticityCosseratSimple.
 	/// Ex. SI units: [m^4]
@@ -786,7 +788,7 @@ class ChApi ChInertiaCosseratSimple : public ChInertiaCosserat {
     double GetIyy() const { return this->Iyy; }
 
 	/// Set the Izz second moment of area of the beam (for bending about z in xy plane),
-	/// defined as \f$ I_z =  \int_\Omega y^2 dA \f$. 
+	/// defined as \f$ I_{zz} =  \int_\Omega y^2 d\Omega \f$. 
     /// Note: some textbook calls this Izz as Iz.
 	/// Note: it can correspond to the same Izz that you used for the elasticity, ex. in ChElasticityCosseratSimple.
 	/// Ex. SI units: [m^4]
@@ -817,17 +819,16 @@ using ChInertiaCosseratUniformDensity = ChInertiaCosseratSimple;
 
 
 
-/// Inertia properties of a beam of Cosserat type, defined from an uniform density [kg/m^3], 
-/// and from the following geometric information, that allows the center of mass to be
+/// Inertia properties of a beam of Cosserat type, not necessarily of uniform density, 
+/// from the following information that allows the center of mass to be
 /// offset respect to the beam centerline:
-///  - a section area 
-///  - offset of the center of mass along Y Z section axes,
-///  - and one of these information:
-///    - rotation of axes Y_m Z_m (used for computed Jzz_m Jyy_m) respect to Y Z section axes.
-///    - Jyy_m Jzz_m moments of inertia computed in reference Y_m Z_m, rotated and with origin in center of mass
-///  - or:
-///    - Jyy Jzz Jzy moments of inertia computed in section reference Y Z, not rotated and origin in centerline
+///  - a mass per unit length 
+///  - offset of the center of mass Cm along Y Z section axes,
+///  - Jyy Jzz Jzy moments of inertia computed in section reference Y Z, not rotated and origin in centerline
 /// The polar moment of area is automatically inferred via perpendicular axis theorem.
+/// 
+/// \image html "http://www.projectchrono.org/assets/manual/fea_ChInertiaCosseratAdvanced.png"
+///
 
 class ChApi ChInertiaCosseratAdvanced : public ChInertiaCosserat {
   public:
@@ -864,7 +865,7 @@ class ChApi ChInertiaCosseratAdvanced : public ChInertiaCosserat {
 
 
     /// Set mass per unit length, ex.SI units [kg/m].
-    /// Note that for uniform volumetric density \f$ \rho \f$, this is also \f$ \mu = \rho * A \f$.
+    /// Note that for uniform volumetric density \f$ \rho \f$, this is also \f$ \mu = \rho A \f$.
     virtual void SetMassPerUnitLength(double mmu) { mu = mmu; }
 
     /// "mass reference": set the displacement of the center of mass respect to 
@@ -882,15 +883,15 @@ class ChApi ChInertiaCosseratAdvanced : public ChInertiaCosserat {
 
     /// Set inertia moments, assumed computed in the Y Z unrotated reference
     /// frame of the section at centerline, and defined as: 
-    /// \f$ J_{yy} =  \int_\Omega \rho z^2 dA \f$, also Jyy = Mm(4,4) 
-    /// \f$ J_{zz} =  \int_\Omega \rho y^2 dA \f$, also Jzz = Mm(5,5) 
-    /// \f$ J_{yz} =  \int_\Omega \rho y z  dA \f$, also Jyz = -Mm(4,5) = -Mm(5,4)
+    /// \f$ J_{yy} =  \int_\Omega \rho z^2 d\Omega \f$, also Jyy = Mm(4,4) 
+    /// \f$ J_{zz} =  \int_\Omega \rho y^2 d\Omega \f$, also Jzz = Mm(5,5) 
+    /// \f$ J_{yz} =  \int_\Omega \rho y z  d\Omega \f$, also Jyz = -Mm(4,5) = -Mm(5,4)
     /// Note that for an uniform density, these are also related to second moments of area
     /// as \f$ J_{yy} = \rho I_{yy} \f$,  \f$ J_{zz} = \rho I_{zz} \f$.
     /// Note also that \f$ J_{xy} = J_{xz} = J_{yx} = J_{zx} = 0 \f$ anyway. 
     /// Note also that \f$ J_{xy} \f$ does not need to be input, as automatically computed 
     /// via \f$ J_{xx} = J_{yy} +J_{zz} \f$ for the polar theorem.
-    void SetInertiasPerUnitLength(double Jyy_moment, double Jzz_moment, double Jyz_moment);
+    virtual void SetInertiasPerUnitLength(double Jyy_moment, double Jzz_moment, double Jyz_moment);
 
     /// Get the Jxx component of the inertia per unit length (polar inertia), in the Y Z unrotated reference
     /// frame of the section at centerline. Note: it automatically follows Jxx=Jyy+Jzz for the polar theorem.
@@ -909,30 +910,32 @@ class ChApi ChInertiaCosseratAdvanced : public ChInertiaCosserat {
     virtual double GetInertiaJyzPerUnitLength()  { return  this->Jyz; }
 
 
-
     /// Set inertia moments as assumed computed in the Ym Zm "mass reference"
     /// frame, ie. centered at the center of mass and rotated by phi angle to match the main axes of inertia:
-    /// \f$ Jm_{yy} =  \int_\Omega \rho z_{m}^2 dA \f$, 
-    /// \f$ Jm_{zz} =  \int_\Omega \rho y_{m}^2 dA \f$.
+    /// \f$ Jm_{yy} =  \int_\Omega \rho z_{m}^2 d\Omega \f$, 
+    /// \f$ Jm_{zz} =  \int_\Omega \rho y_{m}^2 d\Omega \f$.
     /// Assuming the center of mass is already set.
-    void SetInertiasPerUnitLengthInMassReference(double Jmyy, double Jmzz, double phi);
+    virtual void SetInertiasPerUnitLengthInMassReference(double Jmyy, double Jmzz, double phi);
 
     /// Get inertia moments as assumed computed in the Ym Zm "mass reference" frame, and the rotation phi of that frame,
     /// ie. inertias centered at the center of mass and rotated by phi angle to match the main axes of inertia:
-    /// \f$ Jm_{yy} =  \int_\Omega \rho z_{m}^2 dA \f$, 
-    /// \f$ Jm_{zz} =  \int_\Omega \rho y_{m}^2 dA \f$.
+    /// \f$ Jm_{yy} =  \int_\Omega \rho z_{m}^2 d\Omega \f$, 
+    /// \f$ Jm_{zz} =  \int_\Omega \rho y_{m}^2 d\Omega \f$.
     /// Assuming the center of mass is already set.
-    void GetInertiasPerUnitLengthInMassReference(double& Jmyy, double& Jmzz, double& phi);
+    virtual void GetInertiasPerUnitLengthInMassReference(double& Jmyy, double& Jmzz, double& phi);
 
 private:
 	double mu; // density
     double cm_y; // center of mass offset along Y of section
     double cm_z; // center of mass offset along Z of section
-    //double phi; // rotation of reference where Izz and Iyy are computed, also main inertia axes ie. Iyz=0
-	double Jzz; // moment of area: m^4
-	double Jyy; // moment of area: m^4
-    double Jyz; // moment of area: m^4
+	double Jzz;  
+	double Jyy;  
+    double Jyz;  
 };
+
+
+};
+
 
 
 
