@@ -123,6 +123,9 @@ class ChApi ChBeamSection {
 /// Basic geometry for a beam section in 3D, along with basic material
 /// properties (zz and yy moments of inertia, area, Young modulus, etc.)
 /// This material can be shared between multiple beams.
+/// 
+/// \image html "http://www.projectchrono.org/assets/manual/fea_ChElasticityCosseratSimple.png"
+///
 class ChApi ChBeamSectionBasic : public ChBeamSection {
   public:
     double Area;
@@ -244,6 +247,9 @@ class ChApi ChBeamSectionBasic : public ChBeamSection {
 /// Iyy and Izz axes rotated respect reference, centroid with offset
 /// from reference, and shear center with offset from reference.
 /// This material can be shared between multiple beams.
+/// 
+/// \image html "http://www.projectchrono.org/assets/manual/fea_ChElementBeamEuler_section.png"
+///
 class ChApi ChBeamSectionAdvanced : public ChBeamSectionBasic {
   public:
     double alpha;  // Rotation of Izz Iyy respect to reference line x

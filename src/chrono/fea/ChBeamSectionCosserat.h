@@ -165,6 +165,8 @@ class ChApi ChElasticityCosseratSimple : public ChElasticityCosserat {
 /// xyz rotations "k" to the xyz cut-force "n" and xyz cut-torque "m" as in
 /// {m,n}=[E]{e,k}.
 /// This can be shared between multiple beams.
+/// \image html "http://www.projectchrono.org/assets/manual/fea_ChElasticityCosseratGeneric.png"
+/// 
 class ChApi ChElasticityCosseratGeneric : public ChElasticityCosserat {
   public:
     ChElasticityCosseratGeneric();
@@ -218,6 +220,8 @@ class ChApi ChElasticityCosseratGeneric : public ChElasticityCosserat {
 ///  m_y   [A       A A ]   k_y
 ///  m_z   [A       A A ]   k_z
 ///  </pre>
+/// \image html "http://www.projectchrono.org/assets/manual/fea_ChElasticityCosseratAdvanced.png"
+/// 
 class ChApi ChElasticityCosseratAdvanced : public ChElasticityCosseratSimple {
   public:
     double alpha;  ///< Rotation of Izz Iyy respect to reference section, centered on line x
@@ -305,6 +309,8 @@ class ChApi ChElasticityCosseratAdvanced : public ChElasticityCosseratSimple {
 ///   level using the Timoshenko correction factors Ks_y and Ks_z, here they are used as well, but if so, shear in
 ///   material points would have less meaning.
 /// This material can be shared between multiple beams.
+///
+/// \image html "http://www.projectchrono.org/assets/manual/fea_ChElasticityCosseratMesh.png"
 ///
 class ChApi ChElasticityCosseratMesh : public ChElasticityCosserat {
   public:
@@ -708,7 +714,11 @@ class ChApi ChInertiaCosserat {
 ///  - Iyy Izz second moments of area
 /// The polar moment of area is automatically inferred via perpendicular axis theorem, Ip=Iyy+Izz.
 /// The section is assumed aligned to principal axis of the moment of area tensor, ie. Iyz=0,
-/// The section is assumed to be centered in the center of mass.
+/// The section is assumed to be centered in the center of mass,
+/// The density is constant.
+/// 
+/// \image html "http://www.projectchrono.org/assets/manual/fea_ChInertiaCosseratSimple.png"
+///
 class ChApi ChInertiaCosseratSimple : public ChInertiaCosserat {
   public:
 
