@@ -958,7 +958,7 @@ private:
 /// On the other side, if you need a more immediate way to create sections, look at
 /// the special cases called ChBeamSectionCosseratEasyRectangular and ChBeamSectionCosseratEasyCircular.
 
-class ChApi ChBeamSectionCosserat : public ChBeamSectionProperties {
+class ChApi ChBeamSectionCosserat : public ChBeamSection {
   protected:
 	ChBeamSectionCosserat() {};
 
