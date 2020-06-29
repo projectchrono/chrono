@@ -30,9 +30,17 @@ namespace fea {
 /// @addtogroup fea_elements
 /// @{
 
-/// Element of IGA type, with Timoshenko shear etc.
-/// et.. etc.  (intro to write)
-/// Note: each IGA element represents one "knot span" of the spline!
+/// Isogeometric formulation (IGA) of a Cosserat rod, with large displacements, based on the Geometrically Exact Beam Theory.
+/// User-defined order n (ex: 1=linear 2=quadratic, 3=cubic), where each element is a span of a b-spline, 
+/// so each element uses n+1 control points, ie. nodes of chrono::fea::ChNodeFEAxyzrot type.
+/// As a thick beam, shear effects are possible, v. Timoshenko theory.
+/// Reduced integration to correct shear locking (*note, use order 1 for the moment, this must be improved)
+/// Initial curved configuration is supported.
+/// The section is defined in a modular way, via a chrono::fea::ChBeamSectionCosserat object that is composed via an 
+/// elastic model, an inertial model, a damping (optional) model, a plastic (optional) model. Some of the ready-to-use 
+/// implementation of those models allow a very generic beam where the center of mass, center of shear etc. are arbitrarily
+/// offset from the beam centerline, thus allowing the simulation of advanced cases like helicopter blades etc.
+
 class ChApi ChElementBeamIGA :  public ChElementBeam,
                                 public ChLoadableU,
 							    public ChLoadableUVW
