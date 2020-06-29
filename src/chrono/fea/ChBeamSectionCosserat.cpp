@@ -51,8 +51,7 @@ void ChElasticityCosserat::ComputeStiffnessMatrix(ChMatrixNM<double, 6, 6>& K,
 // -----------------------------------------------------------------------------
 
 ChElasticityCosseratSimple::ChElasticityCosseratSimple()
-    : E(0.01e9),      // default E stiffness (almost rubber)
-      rdamping(0.01)  // default Rayleigh damping
+    : E(0.01e9)       // default E stiffness (almost rubber)
 {
     SetGwithPoissonRatio(0.3);            // default G (low poisson ratio)
     SetAsRectangularSection(0.01, 0.01);  // defaults Area, Ixx, Iyy, Ks_y, Ks_z, J
