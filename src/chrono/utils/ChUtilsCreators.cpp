@@ -727,16 +727,34 @@ void LoadConvexHulls(const std::string& file_name,
     convex_mesh.LoadWavefrontMesh(file_name, true, false);
 
     std::vector<tinyobj::shape_t> shapes;
-    std::string err = tinyobj::LoadObj(shapes, file_name.c_str());
+    tinyobj::attrib_t att;
+    std::vector<tinyobj::material_t> materials;
+    std::string warn;
+    std::string err;
+
+    LoadObj(&att, &shapes, &materials, &warn, &err, file_name.c_str());
+
+    auto& positions = att.vertices;
 
     convex_hulls.resize(shapes.size());
-    for (int i = 0; i < shapes.size(); i++) {
-        convex_hulls[i].resize(shapes[i].mesh.input_pos.size() / 3);
-        for (int j = 0; j < shapes[i].mesh.input_pos.size() / 3; j++) {
-            ChVector<double> pos(shapes[i].mesh.input_pos[j * 3 + 0],  //
-                                 shapes[i].mesh.input_pos[j * 3 + 1],  //
-                                 shapes[i].mesh.input_pos[j * 3 + 2]);
-            convex_hulls[i][j] = pos;
+
+    for (size_t i = 0; i < shapes.size(); i++) {
+        convex_hulls[i].clear();
+
+        // hold onto unique ids temporarily
+        std::vector<int> ids;
+
+        for (int j = 0; j < shapes[i].mesh.indices.size(); j++) {
+            int id = shapes[i].mesh.indices[j].vertex_index;
+
+            // if vertex not already added, add new vertex
+            if (std::find(ids.begin(), ids.end(), id) == ids.end()) {
+                ChVector<double> pos(att.vertices[id * 3 + 0],  //
+                                     att.vertices[id * 3 + 1],  //
+                                     att.vertices[id * 3 + 2]);
+                convex_hulls[i].push_back(pos);
+                ids.push_back(id);
+            }
         }
     }
 }
