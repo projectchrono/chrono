@@ -598,12 +598,12 @@ enum OutputInformation {
 
 /// Identifiers for specific component bodies.
 enum BodyID {
-    CHASSIS = -99990,
-    SPROCKETS = -99991,
-    IDLERS = -99992,
-    WHEELS = -99993,
-    ROLERS = -99994,
-    SHOES = -99995
+    CHASSIS_BODY = -99990,
+    SPROCKET_BODY = -99991,
+    IDLER_BODY = -99992,
+    WHEEL_BODY = -99993,
+    ROLER_BODY = -99994,
+    SHOE_BODY = -99995
 };
 
 /// @} vehicle

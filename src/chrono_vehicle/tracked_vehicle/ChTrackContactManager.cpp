@@ -320,25 +320,25 @@ bool ChTrackCollisionManager::OnNarrowphase(collision::ChCollisionInfo& contacti
     if (!bodyA || !bodyB)
         return true;
 
-    if (bodyB->GetIdentifier() == BodyID::SHOES) {
-        if (m_idler_shoe && bodyA->GetIdentifier() == BodyID::IDLERS) {
+    if (bodyB->GetIdentifier() == BodyID::SHOE_BODY) {
+        if (m_idler_shoe && bodyA->GetIdentifier() == BodyID::IDLER_BODY) {
             m_collisions_idler.push_back(contactinfo);
             return false;
         }
-        if (m_wheel_shoe && bodyA->GetIdentifier() == BodyID::WHEELS) {
+        if (m_wheel_shoe && bodyA->GetIdentifier() == BodyID::WHEEL_BODY) {
             m_collisions_wheel.push_back(contactinfo);
             return false;
         }
     }
 
-    if (bodyA->GetIdentifier() == BodyID::SHOES) {
-        if (m_idler_shoe && bodyB->GetIdentifier() == BodyID::IDLERS) {
+    if (bodyA->GetIdentifier() == BodyID::SHOE_BODY) {
+        if (m_idler_shoe && bodyB->GetIdentifier() == BodyID::IDLER_BODY) {
             auto contactinfoS = contactinfo;
             contactinfoS.SwapModels();
             m_collisions_idler.push_back(contactinfoS);
             return false;
         }
-        if (m_wheel_shoe && bodyB->GetIdentifier() == BodyID::WHEELS) {
+        if (m_wheel_shoe && bodyB->GetIdentifier() == BodyID::WHEEL_BODY) {
             auto contactinfoS = contactinfo;
             contactinfoS.SwapModels();
             m_collisions_wheel.push_back(contactinfoS);
