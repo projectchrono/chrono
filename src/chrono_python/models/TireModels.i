@@ -20,6 +20,7 @@
 #include "chrono_models/vehicle/hmmwv/HMMWV_PacejkaTire.h"
 #include "chrono_models/vehicle/hmmwv/HMMWV_LugreTire.h"
 #include "chrono_models/vehicle/hmmwv/HMMWV_FialaTire.h"
+#include "chrono_models/vehicle/hmmwv/HMMWV_TMeasyTire.h"
 
 #include "chrono_models/vehicle/sedan/Sedan_TMeasyTire.h"
 #include "chrono_models/vehicle/sedan/Sedan_RigidTire.h"
@@ -32,6 +33,9 @@
 #include "chrono_models/vehicle/uaz/UAZBUS_TMeasyTire.h"
 #include "chrono_models/vehicle/uaz/UAZBUS_RigidTire.h"
 #include "chrono_models/vehicle/uaz/UAZBUS_Pac02Tire.h"
+
+#include "chrono_models/vehicle/gator/Gator_RigidTire.h"
+#include "chrono_models/vehicle/gator/Gator_TMeasyTire.h"
 %}
 
 
@@ -47,6 +51,7 @@
 %shared_ptr(chrono::vehicle::hmmwv::HMMWV_PacejkaTire)
 %shared_ptr(chrono::vehicle::hmmwv::HMMWV_LugreTire)
 %shared_ptr(chrono::vehicle::hmmwv::HMMWV_FialaTire)
+%shared_ptr(chrono::vehicle::hmmwv::HMMWV_TMeasyTire)
 %shared_ptr(chrono::vehicle::sedan::Sedan_TMeasyTire)
 %shared_ptr(chrono::vehicle::sedan::Sedan_RigidTire)
 %shared_ptr(chrono::vehicle::citybus::CityBus_RigidTire)
@@ -56,6 +61,9 @@
 %shared_ptr(chrono::vehicle::uaz::UAZBUS_TMeasyTireRear)
 %shared_ptr(chrono::vehicle::uaz::UAZBUS_RigidTire)
 %shared_ptr(chrono::vehicle::uaz::UAZBUS_Pac02Tire)
+%shared_ptr(chrono::vehicle::gator::Gator_RigidTire)
+%shared_ptr(chrono::vehicle::gator::Gator_TMeasyTire_Front)
+%shared_ptr(chrono::vehicle::gator::Gator_TMeasyTire_Rear)
 
 // Model:
 
@@ -69,6 +77,7 @@
 %include "../../chrono_models/vehicle/hmmwv/HMMWV_PacejkaTire.h"
 %include "../../chrono_models/vehicle/hmmwv/HMMWV_LugreTire.h"
 %include "../../chrono_models/vehicle/hmmwv/HMMWV_FialaTire.h"
+%include "../../chrono_models/vehicle/hmmwv/HMMWV_TMeasyTire.h"
 
 %include "../../chrono_models/vehicle/sedan/Sedan_TMeasyTire.h"
 %include "../../chrono_models/vehicle/sedan/Sedan_RigidTire.h"
@@ -81,3 +90,6 @@
 %include "../../chrono_models/vehicle/uaz/UAZBUS_TMeasyTire.h"
 %include "../../chrono_models/vehicle/uaz/UAZBUS_RigidTire.h"
 %include "../../chrono_models/vehicle/uaz/UAZBUS_Pac02Tire.h"
+
+%include "../../chrono_models/vehicle/gator/Gator_RigidTire.h"
+%include "../../chrono_models/vehicle/gator/Gator_TMeasyTire.h"

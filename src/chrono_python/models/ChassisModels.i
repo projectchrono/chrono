@@ -23,6 +23,7 @@
 #include "chrono_models/vehicle/man/MAN_7t_Chassis.h"
 #include "chrono_models/vehicle/man/MAN_10t_Chassis.h"
 #include "chrono_models/vehicle/uaz/UAZBUS_Chassis.h"
+#include "chrono_models/vehicle/gator/Gator_Chassis.h"
 %}
 
 
@@ -34,6 +35,7 @@
 %shared_ptr(chrono::vehicle::man::MAN_7t_Chassis)
 %shared_ptr(chrono::vehicle::man::MAN_10t_Chassis)
 %shared_ptr(chrono::vehicle::uaz::UAZBUS_Chassis)
+%shared_ptr(chrono::vehicle::gator::Gator_Chassis)
 
 /* Parse the header file to generate wrappers */
 %import "chrono_python/vehicle/ChChassis.i"
@@ -49,3 +51,4 @@
 %include "../../chrono_models/vehicle/man/MAN_7t_Chassis.h"
 %include "../../chrono_models/vehicle/man/MAN_10t_Chassis.h"
 %include "../../chrono_models/vehicle/uaz/UAZBUS_Chassis.h"
+%include "../../chrono_models/vehicle/gator/Gator_Chassis.h"
