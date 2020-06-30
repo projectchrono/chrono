@@ -159,9 +159,9 @@ bool ChOpenGLViewer::Initialize() {
     graph_renderer.Initialize(white, &cloud_shader);
 
     // glEnable(GL_MULTISAMPLE);
-    glEnable(GL_POINT_SPRITE);
-    glEnable(GL_PROGRAM_POINT_SIZE);
-    glEnable(GL_VERTEX_PROGRAM_POINT_SIZE);
+    // glEnable(GL_POINT_SPRITE);
+    // glEnable(GL_PROGRAM_POINT_SIZE);
+    // glEnable(GL_VERTEX_PROGRAM_POINT_SIZE);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     // glLineWidth(10);

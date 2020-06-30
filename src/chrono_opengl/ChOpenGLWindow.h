@@ -86,6 +86,9 @@ class CH_OPENGL_API ChOpenGLWindow {
     static void GLFWGetVersion(GLFWwindow* main_window  // A pointer to the window/context
                                );
 
+    // Callback wrapper for steps of the render loop. Works with Emscripten.
+    static void WrapRenderStep(void* stepFunction);
+
     // Pointer to the opengl viewer that handles rendering, text and user
     // interaction
     ChOpenGLViewer* viewer;

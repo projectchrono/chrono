@@ -1,4 +1,6 @@
-#version 330
+#version 300 es
+
+precision highp float;
 
 layout(location = 0) out vec4 FragColor;
 uniform vec4 color;
@@ -13,7 +15,7 @@ void main() {
   if (mag > 0.25) {
     discard;
   } else {
-    N.z = sqrt(1.0 - mag * 4);
+    N.z = sqrt(1.0 - mag * 4.0);
     float diffuse = max(0.0, dot(lightDir, N));
     FragColor = vec4(color.xyz * diffuse, 1);
   }
