@@ -596,6 +596,16 @@ enum OutputInformation {
     OUT_TESTRIG = 1 << 3       ///< test-rig specific information
 };
 
+/// Identifiers for specific component bodies.
+enum BodyID {
+    CHASSIS = -99990,
+    SPROCKETS = -99991,
+    IDLERS = -99992,
+    WHEELS = -99993,
+    ROLERS = -99994,
+    SHOES = -99995
+};
+
 /// @} vehicle
 
 }  // end namespace vehicle
