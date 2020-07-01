@@ -53,7 +53,7 @@ VisualizationType tire_vis_type = VisualizationType::MESH;
 // Collision type for chassis (PRIMITIVES, MESH, or NONE)
 ChassisCollisionType chassis_collision_type = ChassisCollisionType::NONE;
 
-// Type of tire model (RIGID, TMEASY)
+// Type of tire model (RIGID, RIGID_MESH, TMEASY)
 TireModelType tire_model = TireModelType::TMEASY;
 
 // Rigid terrain
@@ -63,7 +63,7 @@ RigidTerrain::PatchType terrain_model = RigidTerrain::PatchType::BOX;
 ChContactMethod contact_method = ChContactMethod::NSC;
 
 // Simulation step sizes
-double step_size = 1e-3;
+double step_size = 2e-3;
 double tire_step_size = step_size;
 
 // Time interval between two render frames

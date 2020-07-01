@@ -30,11 +30,11 @@ namespace gator {
 /// @addtogroup vehicle_models_gator
 /// @{
 
-/// Rigid tire model for the Gator vehicle.
-class CH_MODELS_API Gator_RigidTire : public ChRigidTire {
+/// Rigid tire model for the Gator vehicle (front).
+class CH_MODELS_API Gator_RigidTire_Front : public ChRigidTire {
   public:
-    Gator_RigidTire(const std::string& name, bool use_mesh = false);
-    ~Gator_RigidTire() {}
+    Gator_RigidTire_Front(const std::string& name, bool use_mesh = false);
+    ~Gator_RigidTire_Front() {}
 
     virtual double GetRadius() const override { return m_radius; }
     virtual double GetWidth() const override { return m_width; }
@@ -51,7 +51,34 @@ class CH_MODELS_API Gator_RigidTire : public ChRigidTire {
     static const double m_mass;
     static const ChVector<> m_inertia;
 
-    static const std::string m_meshFile;
+    static const std::string m_meshFile_left;
+    static const std::string m_meshFile_right;
+    std::shared_ptr<ChTriangleMeshShape> m_trimesh_shape;
+};
+
+/// Rigid tire model for the Gator vehicle (rear).
+class CH_MODELS_API Gator_RigidTire_Rear : public ChRigidTire {
+  public:
+    Gator_RigidTire_Rear(const std::string& name, bool use_mesh = false);
+    ~Gator_RigidTire_Rear() {}
+
+    virtual double GetRadius() const override { return m_radius; }
+    virtual double GetWidth() const override { return m_width; }
+    virtual double GetMass() const override { return m_mass; }
+    virtual ChVector<> GetInertia() const override { return m_inertia; }
+
+  private:
+    virtual void CreateContactMaterial(ChContactMethod contact_method) override;
+    virtual void AddVisualizationAssets(VisualizationType vis) override;
+    virtual void RemoveVisualizationAssets() override final;
+
+    static const double m_radius;
+    static const double m_width;
+    static const double m_mass;
+    static const ChVector<> m_inertia;
+
+    static const std::string m_meshFile_left;
+    static const std::string m_meshFile_right;
     std::shared_ptr<ChTriangleMeshShape> m_trimesh_shape;
 };
 
