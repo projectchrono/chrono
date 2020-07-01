@@ -16,6 +16,8 @@
 #define CHBEAMSECTION_H
 
 #include "chrono/core/ChMathematics.h"
+#include "chrono/core/ChVector.h"
+#include <vector>
 
 namespace chrono {
 namespace fea {
@@ -38,6 +40,63 @@ class ChApi ChBeamMaterialInternalData {
 };
 
 
+
+/// Base class for drawing tesselated profiles of beams in 3D views, if needed.
+/// This cross section visualization shape is independent from physical properties 
+/// (area, inertia, etc.) that you can define with other components of the ChBeamSection,
+/// such as for example ChBeamSectionCosseratElasticity, etc.
+/// Used as a component of ChBeamSection.
+
+class ChApi ChBeamSectionShape {
+public:
+    //
+    // Functions for drawing the shape via triangulation:
+    //
+
+    /// Get the n. of lines making the profile of the section, for meshing purposes.
+    /// C0 continuity is required between lines, C1 also required within each line.
+    /// Ex. a circle has 1 line, a cube 4 lines, etc. Sharp corners can be done mith multiple lines.
+    virtual int GetNofLines() const = 0;
+
+    /// Get the n. of points to be allocated per each section, for the i-th line in the section.
+    /// We assume one also allocates a n. of 3d normals equal to n of points.
+    virtual int GetNofPoints(const int i_line) const = 0;
+
+    /// Compute the points (in the reference of the section), for the i-th line in the section. 
+    /// Note: mpoints must already have the proper size.
+    virtual void GetPoints(const int i_line, std::vector<ChVector<>>& mpoints) const = 0;
+
+    /// Compute the normals (in the reference of the section) at each point, for the i-th line in the section. 
+    /// Note: mnormals must already have the proper size.
+    virtual void GetNormals(const int i_line, std::vector<ChVector<>>& mnormals) const = 0;
+
+
+    /// Returns the axis-aligned bounding box (assuming axes of local reference of the section) 
+    /// This functions has many uses, ex.for drawing, optimizations, collisions.
+    /// We provide a fallback default implementation that iterates over all points thanks to GetPoints(),
+    /// but one could override this if a more efficient implementaiton is possible (ex for circular beams, etc.)
+    virtual void GetAABB(double& ymin, double& ymax, double& zmin, double& zmax) const {
+        ymin = 1e30;
+        ymax = -1e30;
+        zmin = 1e30;
+        zmax = -1e30;
+        for (int nl = 0; nl < GetNofLines(); ++nl) {
+            std::vector<ChVector<>> mpoints(GetNofPoints(nl));
+            GetPoints(nl, mpoints);
+            for (int np = 0; np < GetNofPoints(nl); ++nl) {
+                if (mpoints[np].y() < ymin)
+                    ymin = mpoints[np].y();
+                if (mpoints[np].y() > ymax)
+                    ymax = mpoints[np].y();
+                if (mpoints[np].z() < zmin)
+                    zmin = mpoints[np].z();
+                if (mpoints[np].z() > zmax)
+                    zmax = mpoints[np].z();
+            }   
+        }
+    };
+
+};
 
 /// Base class for properties of beam sections.
 /// A beam section can be shared between multiple beams.
