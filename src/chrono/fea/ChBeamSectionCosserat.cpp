@@ -846,7 +846,7 @@ void ChInertiaCosseratAdvanced::ComputeQuadraticTerms(ChVector<>& mF,   ///< cen
 }
 
 
-void ChInertiaCosseratAdvanced::SetInertiasPerUnitLengthInMassReference(double Jmyy, double Jmzz, double phi) {
+void ChInertiaCosseratAdvanced::SetMainInertiasInMassReference(double Jmyy, double Jmzz, double phi) {
     double cc = pow(cos(-phi), 2);
     double ss = pow(sin(-phi), 2);
     double cs = cos(-phi) * sin(-phi);
@@ -860,7 +860,7 @@ void ChInertiaCosseratAdvanced::SetInertiasPerUnitLengthInMassReference(double J
     this->Jyz = -(Tyz_rot -  this->mu * this->cm_z * this->cm_y); // note minus, per definition of Jyz
 }
 
-void ChInertiaCosseratAdvanced::GetInertiasPerUnitLengthInMassReference(double& Jmyy, double& Jmzz, double& phi) {
+void ChInertiaCosseratAdvanced::GetMainInertiasInMassReference(double& Jmyy, double& Jmzz, double& phi) {
     // remove inertia transport
     double Tyy_rot  =  this->Jyy - this->mu * this->cm_z * this->cm_z;
     double Tzz_rot  =  this->Jzz - this->mu * this->cm_y * this->cm_y;
