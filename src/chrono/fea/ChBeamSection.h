@@ -98,6 +98,74 @@ public:
 
 };
 
+
+/// A ready-to-use class for drawing properties of circular beams.
+/// Used as a component of ChBeamSection
+
+class ChApi ChBeamSectionShapeCircular : public ChBeamSectionShape {
+public:
+
+    ChBeamSectionShapeCircular(double mradius, int mresolution = 10) {
+        radius = mradius;
+        resolution = mresolution;
+        this->UpdateProfile();
+    }
+
+    //
+    // Functions for drawing the shape via triangulation:
+    //
+
+    virtual int GetNofLines() const override {
+        return 1;
+    };
+
+    virtual int GetNofPoints(const int i_line) const override {
+        return resolution+1;
+    };
+
+    /// Compute the points (in the reference of the section). 
+    /// Note: mpoints must already have the proper size.
+    virtual void GetPoints(const int i_line, std::vector<ChVector<>>& mpoints) const override { 
+        mpoints = points; 
+    };
+
+    /// Compute the normals (in the reference of the section) at each point. 
+    /// Note: mnormals must already have the proper size.
+    virtual void GetNormals(const int i_line, std::vector<ChVector<>>& mnormals) const override {
+        mnormals = normals;
+    }
+
+    //
+    // Functions for drawing, optimizations, collisions
+    //
+
+    /// Returns the axis-aligned bounding box (assuming axes of local reference of the section) 
+    /// This functions has many uses, ex.for drawing, optimizations, collisions.
+    virtual void GetAABB(double& ymin, double& ymax, double& zmin, double& zmax) const override {
+        ymin = -radius;
+        ymax =  radius;
+        zmin = -radius;
+        zmax =  radius;
+    }
+
+private:
+    // internal: update internal precomputed vertex arrays
+    void UpdateProfile() {
+        points.resize(resolution+1);
+        normals.resize(resolution+1);
+        for (size_t is = 0; is < points.size(); ++is) {
+             double sangle = CH_C_2PI * ((double)is / (double)resolution);
+             points[is]  = ChVector<>(0, cos(sangle) * radius, sin(sangle) * radius);
+             normals[is] = ChVector<>(0, cos(sangle) , sin(sangle) );
+        }
+    }
+    
+    int resolution;
+    double radius;
+    std::vector<ChVector<>> points;
+    std::vector<ChVector<>> normals;
+};
+
 /// Base class for properties of beam sections.
 /// A beam section can be shared between multiple beams.
 /// A beam section contains the models for elasticity, plasticity, damping, etc.
