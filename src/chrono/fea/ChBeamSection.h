@@ -166,6 +166,105 @@ private:
     std::vector<ChVector<>> normals;
 };
 
+
+/// A ready-to-use class for drawing properties of rectangular beams.
+/// Used as a component of ChBeamSection.
+
+class ChApi ChBeamSectionShapeRectangular : public ChBeamSectionShape {
+public:
+
+    ChBeamSectionShapeRectangular(double y_width, double z_width) {
+        z_thick = z_width;
+        y_thick = y_width;
+        this->UpdateProfile();
+    }
+
+    //
+    // Functions for drawing the shape via triangulation:
+    //
+
+    virtual int GetNofLines() const override {
+        return 4;
+    };
+
+    virtual int GetNofPoints(const int i_line) const override {
+        return 2;
+    };
+
+    /// Compute the points (in the reference of the section). 
+    /// Note: mpoints must already have the proper size.
+    virtual void GetPoints(const int i_line, std::vector<ChVector<>>& mpoints) const override { 
+        mpoints = ml_points[i_line]; 
+    };
+
+    /// Compute the normals (in the reference of the section) at each point. 
+    /// Note: mnormals must already have the proper size.
+    virtual void GetNormals(const int i_line, std::vector<ChVector<>>& mnormals) const override {
+        mnormals = ml_normals[i_line];
+    }
+
+    /// Returns the axis-aligned bounding box (assuming axes of local reference of the section) 
+    virtual void GetAABB(double& ymin, double& ymax, double& zmin, double& zmax) const override {
+        ymin = -y_thick*0.5;
+        ymax =  y_thick*0.5;
+        zmin = -z_thick*0.5;
+        zmax =  z_thick*0.5;
+    }
+
+private:
+
+    // internal: update internal precomputed vertex arrays
+    void UpdateProfile() {
+
+        ml_points.resize(4);
+        ml_normals.resize(4);
+
+        double y_thick_half = 0.5 * y_thick;
+        double z_thick_half = 0.5 * z_thick;
+
+        ml_points[0].resize(2);
+        ml_points[0][0].Set(0, -y_thick_half, -z_thick_half);
+        ml_points[0][1].Set(0,  y_thick_half, -z_thick_half);
+
+        ml_points[1].resize(2);
+        ml_points[1][0].Set(0,  y_thick_half, -z_thick_half);
+        ml_points[1][1].Set(0,  y_thick_half,  z_thick_half);
+
+        ml_points[2].resize(2);
+        ml_points[2][0].Set(0,  y_thick_half,  z_thick_half);
+        ml_points[2][1].Set(0, -y_thick_half,  z_thick_half);
+
+        ml_points[3].resize(2);
+        ml_points[3][0].Set(0, -y_thick_half,  z_thick_half);
+        ml_points[3][1].Set(0, -y_thick_half, -z_thick_half);
+
+
+        ml_normals[0].resize(2);
+        ml_normals[0][0].Set(0, 0, -1);
+        ml_normals[0][1].Set(0, 0, -1);
+
+        ml_normals[1].resize(2);
+        ml_normals[1][0].Set(0,  1, 0);
+        ml_normals[1][1].Set(0,  1, 0);
+
+        ml_normals[2].resize(2);
+        ml_normals[2][0].Set(0,  0,  1);
+        ml_normals[2][1].Set(0,  0,  1);
+
+        ml_normals[3].resize(2);
+        ml_normals[3][0].Set(0, -1, 0);
+        ml_normals[3][1].Set(0, -1, 0);
+    }
+
+    double y_thick;
+    double z_thick;
+    std::vector< std::vector<ChVector<>> > ml_points;
+    std::vector< std::vector<ChVector<>> > ml_normals;
+};
+
+
+
+
 /// Base class for properties of beam sections.
 /// A beam section can be shared between multiple beams.
 /// A beam section contains the models for elasticity, plasticity, damping, etc.
