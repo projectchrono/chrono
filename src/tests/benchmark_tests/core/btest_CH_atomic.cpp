@@ -37,8 +37,8 @@ int main() {
     double result_OSX = OSX();
 
     // Deprecated in macOS Sierra
-    // cout << "OSAtomicIncrement32Barrier: " << result_OSX << " " << result_OSX / 100000000.0 << endl;
-    cout << "atomic_fetch_add: " << result_OSX << " " << result_OSX / 100000000.0 << endl;
+    // std::cout << "OSAtomicIncrement32Barrier: " << result_OSX << " " << result_OSX / 100000000.0 << std::endl;
+    std::cout << "atomic_fetch_add: " << result_OSX << " " << result_OSX / 100000000.0 << std::endl;
 #endif
 
 #if defined(__GNUC__)
@@ -51,7 +51,7 @@ int main() {
     }
     GNU.stop();
     double result_GNU = GNU();
-    cout << "__sync_add_and_fetch: " << result_GNU << " " << result_GNU / 100000000.0 << endl;
+    std::cout << "__sync_add_and_fetch: " << result_GNU << " " << result_GNU / 100000000.0 << std::endl;
 #endif
 
     CHRONO.start();
