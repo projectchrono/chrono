@@ -57,13 +57,13 @@ ChTireTestRig::ChTireTestRig(std::shared_ptr<ChWheel> wheel, std::shared_ptr<ChT
 
 // -----------------------------------------------------------------------------
 
-void ChTireTestRig::SetLongSpeedFunction(std::shared_ptr<ChFunction> funct) { 
-    m_ls_fun = funct; 
+void ChTireTestRig::SetLongSpeedFunction(std::shared_ptr<ChFunction> funct) {
+    m_ls_fun = funct;
     m_ls_actuated = true;
 }
 
-void ChTireTestRig::SetAngSpeedFunction(std::shared_ptr<ChFunction> funct) { 
-    m_rs_fun = funct; 
+void ChTireTestRig::SetAngSpeedFunction(std::shared_ptr<ChFunction> funct) {
+    m_rs_fun = funct;
     m_rs_actuated = true;
 }
 
@@ -133,7 +133,7 @@ void ChTireTestRig::Initialize() {
 
     if (m_rs_actuated)
         m_rot_motor->SetSpeedFunction(m_rs_fun);
-    
+
     m_slip_lock->SetMotion_ang(m_sa_fun);
 
     CreateTerrain();
@@ -348,18 +348,18 @@ void ChTireTestRig::CreateMechanism() {
     }
 
     // Calculate required body force on chassis (to enforce given normal load)
-    m_total_mass = m_chassis_body->GetMass() + m_slip_body->GetMass() + m_spindle_body->GetMass() +
-                        m_wheel->GetMass() + m_tire->GetMass();
+    m_total_mass = m_chassis_body->GetMass() + m_slip_body->GetMass() + m_spindle_body->GetMass() + m_wheel->GetMass() +
+                   m_tire->GetMass();
     m_applied_load = m_total_mass * m_grav - m_normal_load;
 
     // Approach using ChLoad does not work with Chrono::Parallel (loads currently not supported).
     // Instead use a force accumulator (updated in ChTireTestRig::Advance)
-    /*
-    auto load = chrono_types::make_shared<ChLoadBodyForce>(m_chassis_body, ChVector<>(0, 0, m_applied_load), false, VNULL, true);
-    auto load_container = chrono_types::make_shared<ChLoadContainer>();
-    load_container->Add(load);
-    m_system->Add(load_container);
-    */
+
+    ////auto load = chrono_types::make_shared<ChLoadBodyForce>(m_chassis_body, ChVector<>(0, 0, m_applied_load), false,
+    ////                                                       VNULL, true);
+    ////auto load_container = chrono_types::make_shared<ChLoadContainer>();
+    ////load_container->Add(load);
+    ////m_system->Add(load_container);
 
     // Initialize subsystems
     m_wheel->Initialize(m_spindle_body, LEFT);
@@ -412,20 +412,25 @@ void ChTireTestRig::CreateTerrainSCM() {
     terrain->SetAutomaticRefinement(true);
     terrain->SetAutomaticRefinementResolution(1.0 / 32);
     terrain->Initialize(m_terrain_height, m_params_SCM.length, m_params_SCM.width, ndivX, ndivY);
-    terrain->EnableMovingPatch(m_chassis_body, ChVector<>(0, 0, 0), 2 * m_tire->GetRadius(), 1.0);
+    terrain->AddMovingPatch(m_chassis_body, ChVector<>(0, 0, 0), 2 * m_tire->GetRadius(), 1.0);
 
     m_terrain = terrain;
 }
 
 void ChTireTestRig::CreateTerrainRigid() {
-    ChVector<> location(m_params_rigid.length / 2 - 2 * m_tire->GetRadius(), m_terrain_offset, m_terrain_height - 0.1);
+    ChVector<> location(m_params_rigid.length / 2 - 2 * m_tire->GetRadius(), m_terrain_offset, m_terrain_height);
 
     auto terrain = chrono_types::make_shared<vehicle::RigidTerrain>(m_system);
+
+    MaterialInfo minfo;
+    minfo.mu = m_params_rigid.friction;
+    minfo.cr = m_params_rigid.restitution;
+    minfo.Y = m_params_rigid.Young_modulus;
+    auto patch_mat = minfo.CreateMaterial(m_system->GetContactMethod());
+
     auto patch =
-        terrain->AddPatch(ChCoordsys<>(location, QUNIT), ChVector<>(m_params_rigid.length, m_params_rigid.width, 0.1));
-    patch->SetContactFrictionCoefficient(m_params_rigid.friction);
-    patch->SetContactRestitutionCoefficient(m_params_rigid.restitution);
-    patch->SetContactMaterialProperties(m_params_rigid.Young_modulus, 0.3f);
+        terrain->AddPatch(patch_mat, location, ChVector<>(0, 0, 1), m_params_rigid.length, m_params_rigid.width, 0.1);
+
     patch->SetColor(ChColor(0.8f, 0.8f, 0.8f));
     patch->SetTexture(GetChronoDataFile("pinkwhite.png"), 10 * (float)m_params_rigid.length,
                       10 * (float)m_params_rigid.width);
@@ -442,7 +447,7 @@ void ChTireTestRig::CreateTerrainGranular() {
 
     double coh_force = (CH_C_PI * m_params_granular.radius * m_params_granular.radius) * m_params_granular.cohesion;
     switch (m_system->GetContactMethod()) {
-        case ChMaterialSurface::SMC: {
+        case ChContactMethod::SMC: {
             auto mat_g = chrono_types::make_shared<ChMaterialSurfaceSMC>();
             mat_g->SetFriction(static_cast<float>(m_params_granular.friction));
             mat_g->SetRestitution(0.0f);
@@ -453,16 +458,16 @@ void ChTireTestRig::CreateTerrainGranular() {
             mat_g->SetGn(6.0e1f);
             mat_g->SetKt(4.0e5f);
             mat_g->SetGt(4.0e1f);
-            terrain->SetContactMaterialSMC(std::static_pointer_cast<ChMaterialSurfaceSMC>(mat_g));
+            terrain->SetContactMaterial(mat_g);
             break;
         }
-        case ChMaterialSurface::NSC: {
-            double step_size = 1e-3; ///< estimate for integration step size
+        case ChContactMethod::NSC: {
+            double step_size = 1e-3;  ///< estimate for integration step size
             auto mat_g = chrono_types::make_shared<ChMaterialSurfaceNSC>();
             mat_g->SetFriction(static_cast<float>(m_params_granular.friction));
             mat_g->SetRestitution(0.0f);
             mat_g->SetCohesion(static_cast<float>(coh_force * step_size));
-            terrain->SetContactMaterialNSC(std::static_pointer_cast<ChMaterialSurfaceNSC>(mat_g));
+            terrain->SetContactMaterial(mat_g);
             terrain->SetCollisionEnvelope(0.05 * m_params_granular.radius);
             break;
         }

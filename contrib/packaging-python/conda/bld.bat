@@ -31,14 +31,14 @@ cmake -G "Ninja" ^
  -DIRRLICHT_ROOT="C:\Users\builder\Documents\irrlicht-1.8.4" ^
  -DIRRLICHT_LIBRARY="C:\Users\builder\Documents\irrlicht-1.8.4\lib\Win64-visualStudio\Irrlicht.lib" ^
  -DEIGEN3_INCLUDE_DIR="C:\Users\builder\Documents\eigen-3.3.7" ^
- -DENABLE_MODULE_CASCADE=OFF ^
- -DCASCADE_INCLUDE_DIR="%CONDA_INSTALL_LOCN%"\Library\include\oce ^
+ -DENABLE_MODULE_CASCADE=ON ^
+ -DCASCADE_INCLUDE_DIR="%CONDA_INSTALL_LOCN%"\Library\include\opencascade ^
  -DCASCADE_LIBDIR="%CONDA_INSTALL_LOCN%"\Library\lib ^
  -DENABLE_MODULE_MKL=ON ^
  -DMKL_INCLUDE_DIR="%CONDA_INSTALL_LOCN%"\Library\include ^
  -DMKL_RT_LIBRARY="%CONDA_INSTALL_LOCN%"\Library\lib\mkl_rt.lib ^
  -DIOMP5_LIBRARY="%CONDA_INSTALL_LOCN%"\Library\lib\libiomp5md.lib ^
- -DPYCHRONO_DATA_PATH="..\..\..\..\Library\data" ^
+ -DPYCHRONO_DATA_PATH="..\..\..\..\..\Library\data" ^
  .. >> "%LOG_DIR%"\cmakeconfiglog.txt 2>&1
 if errorlevel 1 exit 1
  

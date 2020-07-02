@@ -164,8 +164,8 @@ void ProjectRigidFluidBoundary(const real contact_mu,
 #pragma omp parallel for
         Loop_Over_Rigid_Neighbors(
             int rigid = neighbor_rigid_fluid[p * max_rigid_neighbors + i];  // rigid is stored in the first index
-            real rigid_coh = data_manager->host_data.cohesion_data[rigid];
-            real cohesion = data_manager->composition_strategy->CombineCohesion(rigid_coh, contact_cohesion);
+            float rigid_coh = data_manager->host_data.cohesion[rigid];
+            real cohesion = data_manager->composition_strategy->CombineCohesion(rigid_coh, (float)contact_cohesion);
 
             real3 gam;                                 //
             gam.x = gamma[start_boundary + index];     //
@@ -177,10 +177,10 @@ void ProjectRigidFluidBoundary(const real contact_mu,
 #pragma omp parallel for
         Loop_Over_Rigid_Neighbors(
             int rigid = neighbor_rigid_fluid[p * max_rigid_neighbors + i];  // rigid is stored in the first index
-            real rigid_coh = data_manager->host_data.cohesion_data[rigid];
-            real rigid_mu = data_manager->host_data.fric_data[rigid].x;
-            real cohesion = data_manager->composition_strategy->CombineCohesion(rigid_coh, contact_cohesion);
-            real friction = data_manager->composition_strategy->CombineFriction(rigid_mu, contact_mu);
+            float rigid_coh = data_manager->host_data.cohesion[rigid];
+            float rigid_mu = data_manager->host_data.sliding_friction[rigid];
+            real cohesion = data_manager->composition_strategy->CombineCohesion(rigid_coh, (float)contact_cohesion);
+            real friction = data_manager->composition_strategy->CombineFriction(rigid_mu, (float)contact_mu);
 
             real3 gam;                                                                 //
             gam.x = gamma[start_boundary + index];                                     //

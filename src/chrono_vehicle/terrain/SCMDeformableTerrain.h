@@ -68,9 +68,10 @@ class CH_VEHICLE_API SCMDeformableTerrain : public ChTerrain {
         PLOT_MASSREMAINDER
     };
 
-    /// Construct a default SCMDeformableSoil.
+    /// Construct a default SCM deformable terrain.
     /// The user is responsible for calling various Set methods before Initialize.
-    SCMDeformableTerrain(ChSystem* system  ///< [in] pointer to the containing multibody system
+    SCMDeformableTerrain(ChSystem* system,               ///< [in] pointer to the containing multibody system
+                         bool visualization_mesh = true  ///< [in] enable/disable visualization asset
     );
 
     ~SCMDeformableTerrain() {}
@@ -140,13 +141,15 @@ class CH_VEHICLE_API SCMDeformableTerrain : public ChTerrain {
                     float tex_scale_y = 1        ///< [in] texture scale in Y
     );
 
-    /// Enable moving patch an set parameters (default: disabled).
-    /// If enabled, ray-casting is performed only for the SCM vertices that are within the specified
-    /// range (dimX, dimY) of the given point on the specified reference body.
-    void EnableMovingPatch(std::shared_ptr<ChBody> body,     ///< [in] monitored body
-                           const ChVector<>& point_on_body,  ///< [in] patch center, relative to body
-                           double dimX,                      ///< [in] patch X dimension
-                           double dimY                       ///< [in] patch Y dimension
+    /// Add a new moving patch.
+    /// Multiple calls to this function can be made, each of them adding a new active patch area.
+    /// If no patches are defined, ray-casting is performed for every single node of the underlying SCM mesh.
+    /// If at least one patch is defined, ray-casting is performed only for mesh nodes within the patch areas
+    /// (that is, nodes that are within the specified range from the given point on the associated body).
+    void AddMovingPatch(std::shared_ptr<ChBody> body,     ///< [in] monitored body
+                        const ChVector<>& point_on_body,  ///< [in] patch center, relative to body
+                        double dimX,                      ///< [in] patch X dimension
+                        double dimY                       ///< [in] patch Y dimension
     );
 
     /// Class to be used as a callback interface for location-dependent soil parameters.
@@ -172,22 +175,22 @@ class CH_VEHICLE_API SCMDeformableTerrain : public ChTerrain {
 
     /// Specify the callback object to set the soil parameters at given (x,y) locations.
     /// To use constant soil parameters throughout the entire patch, use SetSoilParameters.
-    void RegisterSoilParametersCallback(SoilParametersCallback* cb);
+    void RegisterSoilParametersCallback(std::shared_ptr<SoilParametersCallback> cb);
 
-    /// Get the terrain height at the specified (x,y) location.
-    virtual double GetHeight(double x, double y) const override;
+    /// Get the terrain height below the specified location.
+    virtual double GetHeight(const ChVector<>& loc) const override;
 
-    /// Get the terrain normal at the specified (x,y) location.
-    virtual chrono::ChVector<> GetNormal(double x, double y) const override;
+    /// Get the terrain normal at the point below the specified location.
+    virtual chrono::ChVector<> GetNormal(const ChVector<>& loc) const override;
 
-    /// Get the coefficient of friction at the specified (x,y) location.
+    /// Get the terrain coefficient of friction at the point below the specified location.
     /// This coefficient of friction value may be used by certain tire models to modify
     /// the tire characteristics, but it will have no effect on the interaction of the terrain
     /// with other objects (including tire models that do not explicitly use it).
     /// For SCMDeformableTerrain, this function defers to the user-provided functor object
     /// of type ChTerrain::FrictionFunctor, if one was specified.
     /// Otherwise, it returns the constant value of 0.8.
-    virtual float GetCoefficientFriction(double x, double y) const override;
+    virtual float GetCoefficientFriction(const ChVector<>& loc) const override;
 
     /// Get the current reference plane. The SCM terrain patch is in the (x,y) plane with normal along the Z axis.
     const ChCoordsys<>& GetPlane() const;
@@ -233,7 +236,7 @@ class CH_VEHICLE_API SCMDeformableTerrain : public ChTerrain {
 /// Used in SCMDeformableTerrain.
 class CH_VEHICLE_API SCMDeformableSoil : public ChLoadContainer {
   public:
-    SCMDeformableSoil(ChSystem* system);
+    SCMDeformableSoil(ChSystem* system, bool visualization_mesh);
     ~SCMDeformableSoil() {}
 
     /// Initialize the terrain system (flat).
@@ -354,12 +357,18 @@ class CH_VEHICLE_API SCMDeformableSoil : public ChLoadContainer {
     double last_t;  // for optimization
 
     // Moving patch parameters
-    bool m_moving_patch;             ///< moving patch feature enabled?
-    std::shared_ptr<ChBody> m_body;  ///< tracked body
-    ChVector<> m_body_point;         ///< patch center, relative to body
-    ChVector2<> m_patch_dim;         ///< patch dimensions (X,Y)
+    struct MovingPatchInfo {
+        std::shared_ptr<ChBody> m_body;  // tracked body
+        ChVector<> m_point;              // patch center, relative to body
+        ChVector2<> m_dim;               // patch dimensions (X,Y)
+        ChVector2<> m_min;               // current patch AABB (min x,y)
+        ChVector2<> m_max;               // current patch AABB (max x,y)
+    };
+    std::vector<MovingPatchInfo> m_patches;  // set of active moving patches
+    bool m_moving_patch;                     // moving patch feature enabled?
 
-    SCMDeformableTerrain::SoilParametersCallback* m_soil_fun;
+    // Callback object for position-dependent soil properties
+    std::shared_ptr<SCMDeformableTerrain::SoilParametersCallback> m_soil_fun;
 
     // Timers and counters
     ChTimer<double> m_timer_calc_areas;

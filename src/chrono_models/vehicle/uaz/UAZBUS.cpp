@@ -31,9 +31,10 @@ namespace uaz {
 UAZBUS::UAZBUS()
     : m_system(nullptr),
       m_vehicle(nullptr),
-      m_contactMethod(ChMaterialSurface::NSC),
+      m_contactMethod(ChContactMethod::NSC),
       m_chassisCollisionType(ChassisCollisionType::NONE),
       m_fixed(false),
+      m_brake_locking(false),
       m_tireType(TireModelType::RIGID),
       m_tire_step_size(-1),
       m_steeringType(SteeringType::PITMAN_ARM),
@@ -45,9 +46,10 @@ UAZBUS::UAZBUS()
 UAZBUS::UAZBUS(ChSystem* system)
     : m_system(system),
       m_vehicle(nullptr),
-      m_contactMethod(ChMaterialSurface::NSC),
+      m_contactMethod(ChContactMethod::NSC),
       m_chassisCollisionType(ChassisCollisionType::NONE),
       m_fixed(false),
+      m_brake_locking(false),
       m_tireType(TireModelType::RIGID),
       m_tire_step_size(-1),
       m_steeringType(SteeringType::PITMAN_ARM),
@@ -150,6 +152,8 @@ void UAZBUS::Initialize() {
                 wheel->GetTire()->SetStepsize(m_tire_step_size);
         }
     }
+
+    m_vehicle->EnableBrakeLocking(m_brake_locking);
 }
 
 // -----------------------------------------------------------------------------

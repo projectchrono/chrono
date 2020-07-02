@@ -308,82 +308,92 @@ void ChElementShellBST::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfactor, 
 	int mrows_w = this->LoadableGet_ndof_w();
 	int mrows_x = this->LoadableGet_ndof_x();
 
-	ChMatrixDynamic<> K(mrows_w, mrows_w);
-
+	
 	// compute Q at current speed & position, x_0, v_0
 	ChVectorDynamic<> Q0(mrows_w);
 	this->ComputeInternalForces_impl(Q0, state_x, state_w, true);     // Q0 = Q(x, v)
 
 	ChVectorDynamic<> Q1(mrows_w);
 	ChVectorDynamic<> Jcolumn(mrows_w);
-	ChState       state_x_inc(mrows_x, nullptr);
-	ChStateDelta  state_delta(mrows_w, nullptr);
+	
 
-	// Compute K=-dQ(x,v)/dx by backward differentiation
-	state_delta.setZero(mrows_w, nullptr);
+	if (Kfactor) {
+		ChMatrixDynamic<> K(mrows_w, mrows_w);
 
-	for (int i = 0; i < mrows_w; ++i) {
-		state_delta(i) += Delta;
-		this->LoadableStateIncrement(0, state_x_inc, state_x, 0, state_delta);  // exponential, usually state_x_inc(i) = state_x(i) + Delta;
+		ChState       state_x_inc(mrows_x, nullptr);
+		ChStateDelta  state_delta(mrows_w, nullptr);
 
-		Q1.setZero(mrows_w);
-		this->ComputeInternalForces_impl(Q1, state_x_inc, state_w, true);   // Q1 = Q(x+Dx, v)
-		state_delta(i) -= Delta;
+		// Compute K=-dQ(x,v)/dx by backward differentiation
+		state_delta.setZero(mrows_w, nullptr);
 
-		Jcolumn = (Q1 - Q0) * (-1.0 / Delta);   // - sign because K=-dQ/dx
-		K.col(i) = Jcolumn;
+		for (int i = 0; i < mrows_w; ++i) {
+			state_delta(i) += Delta;
+			this->LoadableStateIncrement(0, state_x_inc, state_x, 0, state_delta);  // exponential, usually state_x_inc(i) = state_x(i) + Delta;
+
+			Q1.setZero(mrows_w);
+			this->ComputeInternalForces_impl(Q1, state_x_inc, state_w, true);   // Q1 = Q(x+Dx, v)
+			state_delta(i) -= Delta;
+
+			Jcolumn = (Q1 - Q0) * (-1.0 / Delta);   // - sign because K=-dQ/dx
+			K.col(i) = Jcolumn;
+		}
+
+		// finally, store K into H:
+		H.block(0, 0, mrows_w, mrows_w) = Kfactor * K;
 	}
+	else
+		H.setZero();
 
-	// finally, store K into H:
-	H.block(0, 0, mrows_w, mrows_w) =  Kfactor * K;
 
 	//
-	// The R damping matrix of this element span: 
+	// The R damping matrix of this element: 
 	//
 
-	// Compute R=-dQ(x,v)/dv by backward differentiation
-	//if (this->section->GetDamping()) {
-	ChStateDelta  state_w_inc(mrows_w, nullptr);
-	state_w_inc = state_w;
-	ChMatrixDynamic<> R(mrows_w, mrows_w);
+	if (Rfactor) {
+		// Compute R=-dQ(x,v)/dv by backward differentiation
+		//if (this->section->GetDamping()) {
+		ChStateDelta  state_w_inc(mrows_w, nullptr);
+		state_w_inc = state_w;
+		ChMatrixDynamic<> R(mrows_w, mrows_w);
 
-	for (int i = 0; i < mrows_w; ++i) {
-		Q1.setZero(mrows_w);
+		for (int i = 0; i < mrows_w; ++i) {
+			Q1.setZero(mrows_w);
 
-		state_w_inc(i) += Delta;
-		this->ComputeInternalForces_impl(Q1, state_x, state_w_inc, true); // Q1 = Q(x, v+Dv)
-		state_w_inc(i) -= Delta;
+			state_w_inc(i) += Delta;
+			this->ComputeInternalForces_impl(Q1, state_x, state_w_inc, true); // Q1 = Q(x, v+Dv)
+			state_w_inc(i) -= Delta;
 
-		Jcolumn = (Q1 - Q0) * (-1.0 / Delta);   // - sign because R=-dQ/dv
-		R.col(i) = Jcolumn;
+			Jcolumn = (Q1 - Q0) * (-1.0 / Delta);   // - sign because R=-dQ/dv
+			R.col(i) = Jcolumn;
+		}
+
+		H.block(0, 0, mrows_w, mrows_w) += Rfactor * R;
 	}
-
-	H.block(0, 0, mrows_w, mrows_w) += Rfactor * R;
-
 
 	//
 	// The M mass matrix of this element: (lumped version)
 	//
 
-	// loop over all layers, to compute total "mass per area" = sum(rho_i*thickness_i) = average_rho * sum(thickness_i)
-    double avg_density = this->GetDensity();
-    double mass_per_area = avg_density * tot_thickness;
+	if (Mfactor) {
+		// loop over all layers, to compute total "mass per area" = sum(rho_i*thickness_i) = average_rho * sum(thickness_i)
+		double avg_density = this->GetDensity();
+		double mass_per_area = avg_density * tot_thickness;
 
-    // Heuristic, simplified 'lumped' mass matrix to central three nodes.
-    // This is simpler than the stiffness-consistent mass matrix that would require
-    // integration over gauss points.
+		// Heuristic, simplified 'lumped' mass matrix to central three nodes.
+		// This is simpler than the stiffness-consistent mass matrix that would require
+		// integration over gauss points.
 
-	double nodemass = (1.0/3.0)*(this->area * mass_per_area);
+		double nodemass = (1.0 / 3.0) * (this->area * mass_per_area);
 
-    for (int n = 0; n < 3; n++) {
+		for (int n = 0; n < 3; n++) {
 
-        int node_off = n * 3;
-        H(node_off + 0, node_off + 0) += Mfactor*nodemass;
-        H(node_off + 1, node_off + 1) += Mfactor*nodemass;
-        H(node_off + 2, node_off + 2) += Mfactor*nodemass;	
+			int node_off = n * 3;
+			H(node_off + 0, node_off + 0) += Mfactor * nodemass;
+			H(node_off + 1, node_off + 1) += Mfactor * nodemass;
+			H(node_off + 2, node_off + 2) += Mfactor * nodemass;
 
-    }  
-
+		}
+	}
 }
 
 
@@ -483,11 +493,32 @@ void ChElementShellBST::ComputeInternalForces_impl(ChVectorDynamic<>& Fi,
 	this->m = VNULL;
     for (size_t il = 0; il < this->m_layers.size(); ++il) {
         // compute layer stresses (per-unit-length forces and torques), and accumulate
-        m_layers[il].GetMaterial()->ComputeStress(l_n, l_m, this->e, this->k, 
+        m_layers[il].GetMaterial()->ComputeStress(	l_n, 
+													l_m, 
+													this->e, 
+													this->k, 
                                                     m_layers_z[il], m_layers_z[il + 1], m_layers[il].Get_theta());
         this->n += l_n;
 		this->m += l_m;
+
+		// add viscous damping 
+		//***TO DO*** this require (still not computed) time derivative of this->e and this->k from state_w. Ex. see in IGA beam etc.
+		/*
+		if (m_layers[il].GetMaterial()->GetDamping()) {
+			ChVector<> n_sp;
+			ChVector<> m_sp;
+			m_layers[il].GetMaterial()->GetDamping()->ComputeStress(
+					n_sp,
+					m_sp,
+					e_dt, ???
+					k_dt, ???
+					m_layers_z[il], m_layers_z[il + 1], m_layers[il].Get_theta());
+			this->n += n_sp;
+			this->n += m_sp;
+		}
+		*/
     }
+	
 
 	// Compute forces by computing variations. One gauss point integration.
 
@@ -532,8 +563,6 @@ void ChElementShellBST::ComputeInternalForces_impl(ChVectorDynamic<>& Fi,
 		}
 	}
 
-	// Add Rayleigh damping if needed
-	// ***TODO***
 
 }
 

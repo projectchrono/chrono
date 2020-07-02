@@ -114,6 +114,13 @@ int main(int argc, char* argv[]) {
 
     // Change default collision effective radius of curvature
     ////collision::ChCollisionInfo::SetDefaultEffectiveCurvatureRadius(1);
+    
+    // --------------------------------------------------
+    // Create a contact material, shared among all bodies
+    // --------------------------------------------------
+
+    auto material = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+    material->SetFriction(friction);
 
     // ----------
     // Add bodies
@@ -125,11 +132,9 @@ int main(int argc, char* argv[]) {
     container->SetBodyFixed(true);
     container->SetIdentifier(-1);
 
-    container->GetMaterialSurfaceSMC()->SetFriction(friction);
-
     container->SetCollide(true);
     container->GetCollisionModel()->ClearModel();
-    utils::AddBoxGeometry(container.get(), ChVector<>(4, 0.5, 4), ChVector<>(0, -0.5, 0));
+    utils::AddBoxGeometry(container.get(), material, ChVector<>(4, 0.5, 4), ChVector<>(0, -0.5, 0));
     container->GetCollisionModel()->BuildModel();
 
     container->AddAsset(chrono_types::make_shared<ChColorAsset>(ChColor(0.4f, 0.4f, 0.4f)));
@@ -140,11 +145,9 @@ int main(int argc, char* argv[]) {
     box1->SetPos(ChVector<>(-1, 0.21, -1));
     box1->SetPos_dt(ChVector<>(5, 0, 0));
 
-    box1->GetMaterialSurfaceSMC()->SetFriction(friction);
-
     box1->SetCollide(true);
     box1->GetCollisionModel()->ClearModel();
-    utils::AddBoxGeometry(box1.get(), ChVector<>(0.4, 0.2, 0.1));
+    utils::AddBoxGeometry(box1.get(), material, ChVector<>(0.4, 0.2, 0.1));
     box1->GetCollisionModel()->BuildModel();
 
     box1->AddAsset(chrono_types::make_shared<ChColorAsset>(ChColor(0.1f, 0.1f, 0.4f)));
@@ -157,11 +160,9 @@ int main(int argc, char* argv[]) {
     box2->SetPos(ChVector<>(-1, 0.21, +1));
     box2->SetPos_dt(ChVector<>(5, 0, 0));
 
-    box2->GetMaterialSurfaceSMC()->SetFriction(friction);
-
     box2->SetCollide(true);
     box2->GetCollisionModel()->ClearModel();
-    utils::AddBoxGeometry(box2.get(), ChVector<>(0.4, 0.2, 0.1));
+    utils::AddBoxGeometry(box2.get(), material, ChVector<>(0.4, 0.2, 0.1));
     box2->GetCollisionModel()->BuildModel();
 
     box2->AddAsset(chrono_types::make_shared<ChColorAsset>(ChColor(0.4f, 0.1f, 0.1f)));
@@ -185,10 +186,10 @@ int main(int argc, char* argv[]) {
     // Simulate system
     // ---------------
 
-    ContactReporter creporter(box1, box2);
+    auto creporter = chrono_types::make_shared<ContactReporter>(box1, box2);
 
-    ContactMaterial cmaterial;
-    system.GetContactContainer()->RegisterAddContactCallback(&cmaterial);
+    auto cmaterial = chrono_types::make_shared<ContactMaterial>();
+    system.GetContactContainer()->RegisterAddContactCallback(cmaterial);
 
     application.SetTimestep(1e-3);
 
@@ -204,7 +205,7 @@ int main(int argc, char* argv[]) {
 
         // Process contacts
         std::cout << system.GetChTime() << "  " << system.GetNcontacts() << std::endl;
-        system.GetContactContainer()->ReportAllContacts(&creporter);
+        system.GetContactContainer()->ReportAllContacts(creporter);
 
         // Cumulative contact force and torque on boxes (as applied to COM)
         ChVector<> frc1 = box1->GetContactForce();

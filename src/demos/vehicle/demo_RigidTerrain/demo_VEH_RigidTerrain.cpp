@@ -52,9 +52,10 @@ int main(int argc, char* argv[]) {
 
     // Create the HMMWV vehicle, set parameters, and initialize
     HMMWV_Reduced my_hmmwv;
+    my_hmmwv.SetContactMethod(ChContactMethod::NSC);
     my_hmmwv.SetChassisFixed(false);
     my_hmmwv.SetChassisCollisionType(ChassisCollisionType::NONE);
-    my_hmmwv.SetInitPosition(ChCoordsys<>(ChVector<>(0, 0, 1), ChQuaternion<>(1, 0, 0, 0)));
+    my_hmmwv.SetInitPosition(ChCoordsys<>(ChVector<>(-10, 0, 1), ChQuaternion<>(1, 0, 0, 0)));
     my_hmmwv.SetPowertrainType(PowertrainModelType::SIMPLE);
     my_hmmwv.SetDriveType(DrivelineType::RWD);
     my_hmmwv.SetTireType(TireModelType::TMEASY);
@@ -68,39 +69,41 @@ int main(int argc, char* argv[]) {
     my_hmmwv.SetTireVisualizationType(VisualizationType::PRIMITIVES);
 
 #ifdef USE_JSON
-    // Create the terrain from JSON specification file
+    // Create the terrain from JSON specification file 
     RigidTerrain terrain(my_hmmwv.GetSystem(), vehicle::GetDataFile("terrain/RigidPatches.json"), true);
 #else
     // Create the terrain patches programatically
     RigidTerrain terrain(my_hmmwv.GetSystem());
 
-    auto patch1 = terrain.AddPatch(ChCoordsys<>(ChVector<>(0, 0, -0.5), QUNIT), ChVector<>(20, 20, 1));
-    patch1->SetContactFrictionCoefficient(0.9f);
-    patch1->SetContactRestitutionCoefficient(0.01f);
-    patch1->SetContactMaterialProperties(2e7f, 0.3f);
+    auto patch1_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    patch1_mat->SetFriction(0.9f);
+    patch1_mat->SetRestitution(0.01f);
+    auto patch1 = terrain.AddPatch(patch1_mat, ChVector<>(-16, 0, 0), ChVector<>(0, 0, 1), 32, 20);
     patch1->SetColor(ChColor(0.8f, 0.8f, 0.5f));
     patch1->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 20, 20);
 
-    auto patch2 = terrain.AddPatch(ChCoordsys<>(ChVector<>(20, 0, -0.5), QUNIT), ChVector<>(20, 30, 1.6));
-    patch2->SetContactFrictionCoefficient(0.9f);
-    patch2->SetContactRestitutionCoefficient(0.01f);
-    patch2->SetContactMaterialProperties(2e7f, 0.3f);
+    auto patch2_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    patch2_mat->SetFriction(0.9f);
+    patch2_mat->SetRestitution(0.01f);
+    auto patch2 = terrain.AddPatch(patch1_mat, ChVector<>(16, 0, 0.15), ChVector<>(0, 0, 1), 32, 30);
     patch2->SetColor(ChColor(1.0f, 0.5f, 0.5f));
+    patch2->SetTexture(vehicle::GetDataFile("terrain/textures/concrete.jpg"), 20, 20);
 
-    auto patch3 = terrain.AddPatch(ChCoordsys<>(ChVector<>(120, -152, 0), QUNIT),
-                                    vehicle::GetDataFile("terrain/meshes/test.obj"), "hills_mesh");
-    patch3->SetContactFrictionCoefficient(0.9f);
-    patch3->SetContactRestitutionCoefficient(0.01f);
-    patch3->SetContactMaterialProperties(2e7f, 0.3f);
+    auto patch3_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    patch3_mat->SetFriction(0.9f);
+    patch3_mat->SetRestitution(0.01f);
+    auto patch3 = terrain.AddPatch(patch3_mat, ChCoordsys<>(ChVector<>(0, -42, 0), QUNIT),
+                                   vehicle::GetDataFile("terrain/meshes/bump.obj"), "hills_mesh");
     patch3->SetColor(ChColor(0.5f, 0.5f, 0.8f));
-    patch3->SetTexture(vehicle::GetDataFile("terrain/textures/dirt.jpg"), 200, 200);
+    patch3->SetTexture(vehicle::GetDataFile("terrain/textures/dirt.jpg"), 6.0f, 6.0f);
 
-    auto patch4 = terrain.AddPatch(ChCoordsys<>(ChVector<>(0, 40, -1), QUNIT),
-                                    vehicle::GetDataFile("terrain/height_maps/test64.bmp"), "field_mesh", 64.0, 64.0, 0.0, 3.0);
-    patch4->SetContactFrictionCoefficient(0.9f);
-    patch4->SetContactRestitutionCoefficient(0.01f);
-    patch4->SetContactMaterialProperties(2e7f, 0.3f);
-    patch4->SetTexture(vehicle::GetDataFile("terrain/textures/grass.jpg"), 64, 64);
+    auto patch4_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    patch4_mat->SetFriction(0.9f);
+    patch4_mat->SetRestitution(0.01f);
+    auto patch4 =
+        terrain.AddPatch(patch4_mat, ChCoordsys<>(ChVector<>(0, 42, 0), QUNIT),
+                         vehicle::GetDataFile("terrain/height_maps/bump64.bmp"), "field_mesh", 64.0, 64.0, 0.0, 3.0);
+    patch4->SetTexture(vehicle::GetDataFile("terrain/textures/grass.jpg"), 6.0f, 6.0f);
 
     terrain.Initialize();
 #endif

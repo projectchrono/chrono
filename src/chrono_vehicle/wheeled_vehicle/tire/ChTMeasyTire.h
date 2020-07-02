@@ -102,37 +102,41 @@ class CH_VEHICLE_API ChTMeasyTire : public ChTire {
     static double GetTireMaxLoad(unsigned int li);
 
     /// Guess Tire Parameters from characteristic truck tire parameter pattern (Ratio = 80%)
-    void GuessTruck80Par(unsigned int li,        ///< tire load index
-                         double tireWidth,       ///< tire width [m]
-                         double ratio,           ///< use 0.75 meaning 75%
-                         double rimDia,          ///< rim diameter [m]
-                         double pinfl_li = 1.0,  ///< inflation pressure at load index
-                         double pinfl_use = 1.0  ///< inflation pressure in this configuration
-                         );
+    void GuessTruck80Par(unsigned int li,            ///< tire load index
+                         double tireWidth,           ///< tire width [m]
+                         double ratio,               ///< use 0.75 meaning 75%
+                         double rimDia,              ///< rim diameter [m]
+                         double pinfl_li = 1.0,      ///< inflation pressure at load index
+                         double pinfl_use = 1.0,     ///< inflation pressure in this configuration
+                         double damping_ratio = 0.5  ///< scaling factor for normal damping coefficient
+    );
 
-    void GuessTruck80Par(double loadForce,       ///< tire nominal load force [N]
-                         double tireWidth,       ///< tire width [m]
-                         double ratio,           ///< use 0.75 meaning 75%
-                         double rimDia,          ///< rim diameter [m]
-                         double pinfl_li = 1.0,  ///< inflation pressure at load index
-                         double pinfl_use = 1.0  ///< inflation pressure in this configuration
-                         );
+    void GuessTruck80Par(double loadForce,           ///< tire nominal load force [N]
+                         double tireWidth,           ///< tire width [m]
+                         double ratio,               ///< use 0.75 meaning 75%
+                         double rimDia,              ///< rim diameter [m]
+                         double pinfl_li = 1.0,      ///< inflation pressure at load index
+                         double pinfl_use = 1.0,     ///< inflation pressure in this configuration
+                         double damping_ratio = 0.5  ///< scaling factor for normal damping coefficient
+    );
 
     /// Guess Tire Parameters from characteristic passenger car tire parameter pattern (Ratio = 70%)
-    void GuessPassCar70Par(unsigned int li,        ///< tire load index
-                           double tireWidth,       ///< tire width [m]
-                           double ratio,           ///< use 0.75 meaning 75%
-                           double rimDia,          ///< rim diameter [m]
-                           double pinfl_li = 1.0,  ///< inflation pressure at load index
-                           double pinfl_use = 1.0  ///< inflation pressure in this configuration
-                           );
-    void GuessPassCar70Par(double loadForce,       ///< tire nominal load force [N]
-                           double tireWidth,       ///< tire width [m]
-                           double ratio,           ///< use 0.75 meaning 75%
-                           double rimDia,          ///< rim diameter [m]
-                           double pinfl_li = 1.0,  ///< inflation pressure at load index
-                           double pinfl_use = 1.0  ///< inflation pressure in this configuration
-                           );
+    void GuessPassCar70Par(unsigned int li,            ///< tire load index
+                           double tireWidth,           ///< tire width [m]
+                           double ratio,               ///< use 0.75 meaning 75%
+                           double rimDia,              ///< rim diameter [m]
+                           double pinfl_li = 1.0,      ///< inflation pressure at load index
+                           double pinfl_use = 1.0,     ///< inflation pressure in this configuration
+                           double damping_ratio = 0.5  ///< scaling factor for normal damping coefficient
+    );
+    void GuessPassCar70Par(double loadForce,           ///< tire nominal load force [N]
+                           double tireWidth,           ///< tire width [m]
+                           double ratio,               ///< use 0.75 meaning 75%
+                           double rimDia,              ///< rim diameter [m]
+                           double pinfl_li = 1.0,      ///< inflation pressure at load index
+                           double pinfl_use = 1.0,     ///< inflation pressure in this configuration
+                           double damping_ratio = 0.5  ///< scaling factor for normal damping coefficient
+    );
 
     /// Set vertical tire stiffness as linear function by coefficient [N/m].
     void SetVerticalStiffness(double Cz) { SetVerticalStiffness(Cz, Cz); }
@@ -303,11 +307,15 @@ class CH_VEHICLE_API ChTMeasyTire : public ChTire {
         double vsy;              // Lateral slip velocity = Lateral velocity
         double omega;            // Wheel angular velocity about its spin axis
         double R_eff;            // Effective Rolling Radius
-        double Fx_dyn;           // Dynamic longitudinal fire force
+        double Fx_dyn;           // Dynamic longitudinal tire force
         double Fy_dyn;           // Dynamic lateral tire force
         double Mb_dyn;           // Dynamic bore torque
         double xe;               // Longitudinal tire deflection
         double ye;               // Lateral tire deflection
+        double xe_dot;           // Longitudinal tire deflection velocity
+        double ye_dot;           // Lateral tire deflection velocity
+        double Fx_struct;        // Longitudinal tire force from structural deformation
+        double Fy_struct;        // Lateral tire force from structural deformation
         double Fx;               // Steady state longitudinal tire force
         double Fy;               // Steady state lateral tire force
         double Mb;               // Steady state bore torque

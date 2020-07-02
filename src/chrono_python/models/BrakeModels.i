@@ -16,6 +16,7 @@
 #include "chrono_models/vehicle/citybus/CityBus_BrakeSimple.h"
 #include "chrono_models/vehicle/man/MAN_5t_BrakeSimple.h"
 #include "chrono_models/vehicle/uaz/UAZBUS_BrakeSimple.h"
+#include "chrono_models/vehicle/gator/Gator_BrakeSimple.h"
 %}
 
 
@@ -29,12 +30,14 @@
 %shared_ptr(chrono::vehicle::man::MAN_5t_BrakeSimple)
 %shared_ptr(chrono::vehicle::uaz::UAZBUS_BrakeSimpleFront)
 %shared_ptr(chrono::vehicle::uaz::UAZBUS_BrakeSimpleRear)
+%shared_ptr(chrono::vehicle::gator::Gator_BrakeSimple)
 
 // Model:
 
-%include "../chrono_models/vehicle/generic/Generic_BrakeSimple.h"
-%include "../chrono_models/vehicle/hmmwv/HMMWV_BrakeSimple.h"
-%include "../chrono_models/vehicle/sedan/Sedan_BrakeSimple.h"
-%include "../chrono_models/vehicle/citybus/CityBus_BrakeSimple.h"
-%include "../chrono_models/vehicle/man/MAN_5t_BrakeSimple.h"
-%include "../chrono_models/vehicle/uaz/UAZBUS_BrakeSimple.h"
+%include "../../chrono_models/vehicle/generic/Generic_BrakeSimple.h"
+%include "../../chrono_models/vehicle/hmmwv/HMMWV_BrakeSimple.h"
+%include "../../chrono_models/vehicle/sedan/Sedan_BrakeSimple.h"
+%include "../../chrono_models/vehicle/citybus/CityBus_BrakeSimple.h"
+%include "../../chrono_models/vehicle/man/MAN_5t_BrakeSimple.h"
+%include "../../chrono_models/vehicle/uaz/UAZBUS_BrakeSimple.h"
+%include "../../chrono_models/vehicle/gator/Gator_BrakeSimple.h"

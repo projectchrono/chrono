@@ -428,8 +428,9 @@ bool Cone_generalized_rnode(real& gamma_n, real& gamma_u, real& gamma_v, const r
 }
 
 void ChFEAContainer::Project(real* gamma) {
-    real mu = data_manager->fea_container->contact_mu;
-    real coh = data_manager->fea_container->contact_cohesion;
+    float mu = (float)data_manager->fea_container->contact_mu;
+    float coh = (float)data_manager->fea_container->contact_cohesion;
+
     if (data_manager->num_rigid_tet_contacts > 0) {
         uint num_rigid_tet_contacts = data_manager->num_rigid_tet_contacts;
         custom_vector<int>& neighbor_rigid_tet = data_manager->host_data.neighbor_rigid_tet;
@@ -442,8 +443,8 @@ void ChFEAContainer::Project(real* gamma) {
             for (int index = start; index < end; index++) {
                 int i = index - start;                                        // index that goes from 0
                 int rigid = neighbor_rigid_tet[p * max_rigid_neighbors + i];  // rigid is stored in the first index
-                real rigid_coh = data_manager->host_data.cohesion_data[rigid];
-                real rigid_mu = data_manager->host_data.fric_data[rigid].x;
+                float rigid_coh = data_manager->host_data.cohesion[rigid];
+                float rigid_mu = data_manager->host_data.sliding_friction[rigid];
                 real cohesion = data_manager->composition_strategy->CombineCohesion(rigid_coh, coh);
                 real friction = data_manager->composition_strategy->CombineFriction(rigid_mu, mu);
 
@@ -485,8 +486,8 @@ void ChFEAContainer::Project(real* gamma) {
             for (int index = start; index < end; index++) {
                 int i = index - start;                                        // index that goes from 0
                 int rigid = neighbor_rigid_tet[p * max_rigid_neighbors + i];  // rigid is stored in the first index
-                real rigid_coh = data_manager->host_data.cohesion_data[rigid];
-                real rigid_mu = data_manager->host_data.fric_data[rigid].x;
+                float rigid_coh = data_manager->host_data.cohesion[rigid];
+                float rigid_mu = data_manager->host_data.sliding_friction[rigid];
                 real cohesion = data_manager->composition_strategy->CombineCohesion(rigid_coh, coh);
                 real friction = data_manager->composition_strategy->CombineFriction(rigid_mu, mu);
 
@@ -530,8 +531,8 @@ void ChFEAContainer::Project(real* gamma) {
             for (int index = start; index < end; index++) {
                 int i = index - start;                                         // index that goes from 0
                 int rigid = neighbor_marker_tet[p * max_rigid_neighbors + i];  // rigid is stored in the first index
-                real rigid_coh = data_manager->host_data.cohesion_data[rigid];
-                real rigid_mu = data_manager->host_data.fric_data[rigid].x;
+                float rigid_coh = data_manager->host_data.cohesion[rigid];
+                float rigid_mu = data_manager->host_data.sliding_friction[rigid];
                 real cohesion = data_manager->composition_strategy->CombineCohesion(rigid_coh, coh);
                 real friction = data_manager->composition_strategy->CombineFriction(rigid_mu, mu);
 

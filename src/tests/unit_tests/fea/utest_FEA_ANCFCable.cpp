@@ -185,8 +185,6 @@ int main(int argc, char* argv[]) {
 
     my_system.SetSolverForceTolerance(1e-14);
 
-    my_system.SetEndTime(12.5);
-
     // Change type of integrator:
     my_system.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);  // fast, less precise
     //  my_system.SetTimestepperType(chrono::ChTimestepper::Type::HHT);  // precise,slower, might iterate each step

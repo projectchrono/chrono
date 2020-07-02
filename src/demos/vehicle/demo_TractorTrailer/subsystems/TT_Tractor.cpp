@@ -36,7 +36,7 @@ using namespace chrono::vehicle::generic;
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-TT_Tractor::TT_Tractor(const bool fixed, SuspensionType suspType, ChMaterialSurface::ContactMethod contactMethod)
+TT_Tractor::TT_Tractor(const bool fixed, SuspensionType suspType, ChContactMethod contactMethod)
     : ChWheeledVehicle("Tractor", contactMethod), m_suspType(suspType) {
     // Create the chassis subsystem
     m_chassis = chrono_types::make_shared<TT_Chassis>("Chassis");

@@ -73,17 +73,14 @@ const double Generic_SolidAxle::m_springRestLength = 0.3948;
 // Constructor
 // -----------------------------------------------------------------------------
 Generic_SolidAxle::Generic_SolidAxle(const std::string& name) : ChSolidAxle(name) {
-    m_springForceCB = new LinearSpringForce(m_springCoefficient);
-    m_shockForceCB = new LinearDamperForce(m_dampingCoefficient);
+    m_springForceCB = chrono_types::make_shared<LinearSpringForce>(m_springCoefficient);
+    m_shockForceCB = chrono_types::make_shared<LinearDamperForce>(m_dampingCoefficient);
 }
 
 // -----------------------------------------------------------------------------
 // Destructor
 // -----------------------------------------------------------------------------
-Generic_SolidAxle::~Generic_SolidAxle() {
-    delete m_springForceCB;
-    delete m_shockForceCB;
-}
+Generic_SolidAxle::~Generic_SolidAxle() {}
 
 // -----------------------------------------------------------------------------
 // Implementation of the getLocation() virtual methods.

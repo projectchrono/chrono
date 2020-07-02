@@ -46,10 +46,7 @@ MultiLink::MultiLink(const rapidjson::Document& d) : ChMultiLink(""), m_springFo
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-MultiLink::~MultiLink() {
-    delete m_springForceCB;
-    delete m_shockForceCB;
-}
+MultiLink::~MultiLink() {}
 
 // -----------------------------------------------------------------------------
 // Worker function for creating a MultiLink suspension using data in the
@@ -134,13 +131,13 @@ void MultiLink::Create(const rapidjson::Document& d) {
     if (d["Spring"].HasMember("Minimum Length") && d["Spring"].HasMember("Maximum Length")) {
         // Use bump stops
         if (d["Spring"].HasMember("Spring Coefficient")) {
-            m_springForceCB = new LinearSpringBistopForce(d["Spring"]["Spring Coefficient"].GetDouble(),
-                                                          d["Spring"]["Minimum Length"].GetDouble(),
-                                                          d["Spring"]["Maximum Length"].GetDouble());
+            m_springForceCB = chrono_types::make_shared<LinearSpringBistopForce>(
+                d["Spring"]["Spring Coefficient"].GetDouble(), d["Spring"]["Minimum Length"].GetDouble(),
+                d["Spring"]["Maximum Length"].GetDouble());
         } else if (d["Spring"].HasMember("Curve Data")) {
             int num_points = d["Spring"]["Curve Data"].Size();
-            MapSpringBistopForce* springForceCB = new MapSpringBistopForce(d["Spring"]["Minimum Length"].GetDouble(),
-                                                                           d["Spring"]["Maximum Length"].GetDouble());
+            auto springForceCB = chrono_types::make_shared<MapSpringBistopForce>(
+                d["Spring"]["Minimum Length"].GetDouble(), d["Spring"]["Maximum Length"].GetDouble());
             for (int i = 0; i < num_points; i++) {
                 springForceCB->add_point(d["Spring"]["Curve Data"][i][0u].GetDouble(),
                                          d["Spring"]["Curve Data"][i][1u].GetDouble());
@@ -150,10 +147,11 @@ void MultiLink::Create(const rapidjson::Document& d) {
     } else {
         // No bump stops
         if (d["Spring"].HasMember("Spring Coefficient")) {
-            m_springForceCB = new LinearSpringForce(d["Spring"]["Spring Coefficient"].GetDouble());
+            m_springForceCB =
+                chrono_types::make_shared<LinearSpringForce>(d["Spring"]["Spring Coefficient"].GetDouble());
         } else if (d["Spring"].HasMember("Curve Data")) {
             int num_points = d["Spring"]["Curve Data"].Size();
-            MapSpringForce* springForceCB = new MapSpringForce();
+            auto springForceCB = chrono_types::make_shared<MapSpringForce>();
             for (int i = 0; i < num_points; i++) {
                 springForceCB->add_point(d["Spring"]["Curve Data"][i][0u].GetDouble(),
                                          d["Spring"]["Curve Data"][i][1u].GetDouble());
@@ -170,10 +168,10 @@ void MultiLink::Create(const rapidjson::Document& d) {
     m_points[SHOCK_L] = ReadVectorJSON(d["Shock"]["Location Link"]);
 
     if (d["Shock"].HasMember("Damping Coefficient")) {
-        m_shockForceCB = new LinearDamperForce(d["Shock"]["Damping Coefficient"].GetDouble());
+        m_shockForceCB = chrono_types::make_shared<LinearDamperForce>(d["Shock"]["Damping Coefficient"].GetDouble());
     } else if (d["Shock"].HasMember("Curve Data")) {
         int num_points = d["Shock"]["Curve Data"].Size();
-        MapDamperForce* shockForceCB = new MapDamperForce();
+        auto shockForceCB = chrono_types::make_shared<MapDamperForce>();
         for (int i = 0; i < num_points; i++) {
             shockForceCB->add_point(d["Shock"]["Curve Data"][i][0u].GetDouble(),
                                     d["Shock"]["Curve Data"][i][1u].GetDouble());

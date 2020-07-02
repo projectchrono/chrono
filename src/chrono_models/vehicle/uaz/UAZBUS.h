@@ -49,7 +49,7 @@ class CH_MODELS_API UAZBUS {
 
     ~UAZBUS();
 
-    void SetContactMethod(ChMaterialSurface::ContactMethod val) { m_contactMethod = val; }
+    void SetContactMethod(ChContactMethod val) { m_contactMethod = val; }
 
     void SetChassisFixed(bool val) { m_fixed = val; }
     void SetChassisCollisionType(ChassisCollisionType val) { m_chassisCollisionType = val; }
@@ -63,6 +63,8 @@ class CH_MODELS_API UAZBUS {
     void SetInitWheelAngVel(const std::vector<double>& omega) { m_initOmega = omega; }
 
     void SetTireStepSize(double step_size) { m_tire_step_size = step_size; }
+
+    void EnableBrakeLocking(bool lock) { m_brake_locking = lock; }
 
     ChSystem* GetSystem() const { return m_vehicle->GetSystem(); }
     ChWheeledVehicle& GetVehicle() const { return *m_vehicle; }
@@ -91,9 +93,10 @@ class CH_MODELS_API UAZBUS {
     void DebugLog(int what) { m_vehicle->DebugLog(what); }
 
   protected:
-    ChMaterialSurface::ContactMethod m_contactMethod;
+    ChContactMethod m_contactMethod;
     ChassisCollisionType m_chassisCollisionType;
     bool m_fixed;
+    bool m_brake_locking;
 
     TireModelType m_tireType;
 

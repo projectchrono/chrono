@@ -16,7 +16,7 @@
 #define CHGAUSSPOINT
 
 #include "chrono/core/ChMath.h"
-#include "chrono/physics/ChTensors.h"
+#include "chrono/core/ChTensors.h"
 #include "chrono/solver/ChSystemDescriptor.h"
 
 namespace chrono {

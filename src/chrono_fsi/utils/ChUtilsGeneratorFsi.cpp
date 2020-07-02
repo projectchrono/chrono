@@ -616,7 +616,7 @@ void CreateSphereFSI(std::shared_ptr<ChFsiDataManager> fsiData,
                      ChSystem& mphysicalSystem,
                      std::vector<std::shared_ptr<ChBody>>& fsiBodeis,
                      std::shared_ptr<fsi::SimParams> paramsH,
-                     std::shared_ptr<ChMaterialSurfaceNSC> mat_prop,
+                     std::shared_ptr<ChMaterialSurface> mat_prop,
                      Real density,
                      ChVector<> pos,
                      Real radius) {
@@ -626,7 +626,6 @@ void CreateSphereFSI(std::shared_ptr<ChFsiDataManager> fsiData,
     auto body = chrono_types::make_shared<ChBody>();
     body->SetBodyFixed(false);
     body->SetCollide(true);
-    body->SetMaterialSurface(mat_prop);
     body->SetPos(pos);
     double volume = chrono::utils::CalcSphereVolume(radius);
     ChVector<> gyration = chrono::utils::CalcSphereGyration(radius).diagonal();
@@ -635,7 +634,7 @@ void CreateSphereFSI(std::shared_ptr<ChFsiDataManager> fsiData,
     body->SetInertiaXX(mass * gyration);
     //
     body->GetCollisionModel()->ClearModel();
-    chrono::utils::AddSphereGeometry(body.get(), radius);
+    chrono::utils::AddSphereGeometry(body.get(), mat_prop, radius);
     body->GetCollisionModel()->BuildModel();
     mphysicalSystem.AddBody(body);
     fsiBodeis.push_back(body);
@@ -647,7 +646,7 @@ void CreateCylinderFSI(std::shared_ptr<ChFsiDataManager> fsiData,
                        ChSystem& mphysicalSystem,
                        std::vector<std::shared_ptr<ChBody>>& fsiBodeis,
                        std::shared_ptr<fsi::SimParams> paramsH,
-                       std::shared_ptr<ChMaterialSurfaceSMC> mat_prop,
+                       std::shared_ptr<ChMaterialSurface> mat_prop,
                        Real density,
                        ChVector<> pos,
                        ChQuaternion<> rot,
@@ -656,7 +655,6 @@ void CreateCylinderFSI(std::shared_ptr<ChFsiDataManager> fsiData,
     auto body = chrono_types::make_shared<ChBody>();
     body->SetBodyFixed(false);
     body->SetCollide(true);
-    body->SetMaterialSurface(mat_prop);
     body->SetPos(pos);
     body->SetRot(rot);
     double volume = chrono::utils::CalcCylinderVolume(radius, 0.5 * length);
@@ -666,7 +664,7 @@ void CreateCylinderFSI(std::shared_ptr<ChFsiDataManager> fsiData,
     body->SetInertiaXX(mass * gyration);
     //
     body->GetCollisionModel()->ClearModel();
-    chrono::utils::AddCylinderGeometry(body.get(), radius, 0.5 * length);
+    chrono::utils::AddCylinderGeometry(body.get(), mat_prop, radius, 0.5 * length);
     body->GetCollisionModel()->BuildModel();
     mphysicalSystem.AddBody(body);
 
@@ -688,7 +686,6 @@ void CreateBoxFSI(std::shared_ptr<ChFsiDataManager> fsiData,
     auto body = chrono_types::make_shared<ChBody>();
     body->SetBodyFixed(false);
     body->SetCollide(true);
-    body->SetMaterialSurface(mat_prop);
     body->SetPos(pos);
     body->SetRot(rot);
     double volume = chrono::utils::CalcBoxVolume(hsize);
@@ -698,7 +695,7 @@ void CreateBoxFSI(std::shared_ptr<ChFsiDataManager> fsiData,
     body->SetInertiaXX(mass * gyration);
     //
     body->GetCollisionModel()->ClearModel();
-    chrono::utils::AddBoxGeometry(body.get(), hsize);
+    chrono::utils::AddBoxGeometry(body.get(), mat_prop, hsize);
     body->GetCollisionModel()->BuildModel();
     mphysicalSystem.AddBody(body);
 

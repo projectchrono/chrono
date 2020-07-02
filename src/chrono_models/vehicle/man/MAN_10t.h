@@ -55,7 +55,7 @@ class CH_MODELS_API MAN_10t {
 
     ~MAN_10t();
 
-    void SetContactMethod(ChMaterialSurface::ContactMethod val) { m_contactMethod = val; }
+    void SetContactMethod(ChContactMethod val) { m_contactMethod = val; }
 
     void SetChassisFixed(bool val) { m_fixed = val; }
     void SetChassisCollisionType(ChassisCollisionType val) { m_chassisCollisionType = val; }
@@ -68,6 +68,8 @@ class CH_MODELS_API MAN_10t {
     void SetShaftBasedDrivetrain(bool val) { m_use_shafts_drivetrain = val; }
 
     void SetTireStepSize(double step_size) { m_tire_step_size = step_size; }
+
+    void EnableBrakeLocking(bool lock) { m_brake_locking = lock; }
 
     ChSystem* GetSystem() const { return m_vehicle->GetSystem(); }
     ChWheeledVehicle& GetVehicle() const { return *m_vehicle; }
@@ -93,9 +95,10 @@ class CH_MODELS_API MAN_10t {
     void DebugLog(int what) { m_vehicle->DebugLog(what); }
 
   protected:
-    ChMaterialSurface::ContactMethod m_contactMethod;
+    ChContactMethod m_contactMethod;
     ChassisCollisionType m_chassisCollisionType;
     bool m_fixed;
+    bool m_brake_locking;
 
     TireModelType m_tireType;
 

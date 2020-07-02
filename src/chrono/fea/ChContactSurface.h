@@ -9,16 +9,20 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Alessandro Tasora
+// Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
+
+//// RADU:
+////  - is there a need for having the mesh in the constructor?
+////  - SetMesh / GetMesh should be private (or eliminated).  Use friend classes
 
 #ifndef CHCONTACTSURFACE_H
 #define CHCONTACTSURFACE_H
 
 #include "chrono/fea/ChElementBase.h"
 #include "chrono/physics/ChContactable.h"
+#include "chrono/physics/ChMaterialSurfaceSMC.h"
 #include "chrono/physics/ChMaterialSurfaceNSC.h"
-#include "chrono/physics/ChMaterialSurface.h"
 
 namespace chrono {
 namespace fea {
@@ -27,36 +31,22 @@ namespace fea {
 /// @{
 
 /// Base class for contact surfaces in FEA meshes.
-/// Use children classes like ChContactSurfaceNodeCloud or ChContactSurfaceMesh
-/// that implement practical functionalities.
-/// The contact surface has a material of ChMaterialSurface type (non-smooth contact material
-/// by default, but it can be also switched to a smooth (penalty) contact material, using Set).
+/// Use children classes like ChContactSurfaceNodeCloud or ChContactSurfaceMesh that implement practical
+/// functionalities.
 class ChApi ChContactSurface {
-
   public:
-    ChContactSurface(ChMesh* parentmesh = 0) {
-        // default non-smooth contact material
-        matsurface = chrono_types::make_shared<ChMaterialSurfaceNSC>();
-        mmesh = parentmesh;
-    }
+    ChContactSurface(std::shared_ptr<ChMaterialSurface> material, ChMesh* mesh = nullptr);
 
     virtual ~ChContactSurface() {}
 
-    //
-    // FUNCTIONS
-    //
-
     /// Get owner mesh
-    ChMesh* GetMesh() { return mmesh; }
+    ChMesh* GetMesh() { return m_mesh; }
 
     /// Set owner mesh
-    void SetMesh(ChMesh* mm) { mmesh = mm; }
+    void SetMesh(ChMesh* mesh) { m_mesh = mesh; }
 
-    /// Set the material surface for 'boundary contact'
-    void SetMaterialSurface(const std::shared_ptr<ChMaterialSurface>& mnewsurf) { matsurface = mnewsurf; }
-
-    /// Set the material surface for 'boundary contact'
-    std::shared_ptr<ChMaterialSurface>& GetMaterialSurface() { return matsurface; }
+    /// Get the surface contact material
+    std::shared_ptr<ChMaterialSurface>& GetMaterialSurface() { return m_material; }
 
     /// Functions to interface this with ChPhysicsItem container
     virtual void SurfaceSyncCollisionModels() = 0;
@@ -64,9 +54,8 @@ class ChApi ChContactSurface {
     virtual void SurfaceRemoveCollisionModelsFromSystem(ChSystem* msys) = 0;
 
   protected:
-    std::shared_ptr<ChMaterialSurface> matsurface;  ///< material for contacts
-
-    ChMesh* mmesh;
+    std::shared_ptr<ChMaterialSurface> m_material;  ///< contact material properties
+    ChMesh* m_mesh;                                 ///< associated mesh
 };
 
 /// @} fea_contact

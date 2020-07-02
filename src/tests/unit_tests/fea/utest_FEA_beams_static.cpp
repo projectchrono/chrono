@@ -68,7 +68,7 @@ double ANCF_test(ChSystem& sys, double tip_load, int nelements) {
     // Remember to add it to the system.
     auto mesh = chrono_types::make_shared<ChMesh>();
     mesh->SetAutomaticGravity(false);
-    sys.GetSystem()->Add(mesh);
+    sys.Add(mesh);
 
     auto material = chrono_types::make_shared<ChMaterialBeamANCF>(rho, E_mod, nu_rat, E_mod * nu_rat, k1, k2);
 
@@ -90,8 +90,8 @@ double ANCF_test(ChSystem& sys, double tip_load, int nelements) {
 
 double IGA_test(ChSystem& sys, double tip_load, int nsections, int order) {
     // Clear previous demo, if any:
-    sys.GetSystem()->Clear();
-    sys.GetSystem()->SetChTime(0);
+    sys.Clear();
+    sys.SetChTime(0);
 
     // Create a mesh, that is a container for groups
     // of elements and their referenced nodes.
@@ -100,14 +100,13 @@ double IGA_test(ChSystem& sys, double tip_load, int nsections, int order) {
     mesh->SetAutomaticGravity(false);
     sys.Add(mesh);
 
-    auto melasticity = chrono_types::make_shared<ChElasticityCosseratSimple>();
-    melasticity->SetYoungModulus(E_mod);
-    melasticity->SetGshearModulus(E_mod * nu_rat);
-    melasticity->SetBeamRaleyghDamping(0.0000);
-
-    auto section = chrono_types::make_shared<ChBeamSectionCosserat>(melasticity);
-    section->SetDensity(rho);
-    section->SetAsRectangularSection(beam_wy, beam_wz);
+	auto section = chrono_types::make_shared<ChBeamSectionCosseratEasyRectangular>(
+		beam_wy,			// width of section in y direction
+		beam_wz,			// width of section in z direction
+		E_mod,				// Young modulus
+		E_mod * nu_rat,		// shear modulus
+		rho			        // density
+		);
 
     // Use the ChBuilderBeamIGA tool for creating a straight rod divided in Nel elements
     ChBuilderBeamIGA builder;

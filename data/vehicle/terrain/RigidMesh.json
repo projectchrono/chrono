@@ -9,7 +9,7 @@
       "Orientation": [ 1, 0, 0, 0 ],
 
       "Geometry": {
-        "Mesh Filename": "terrain/meshes/test.obj",
+        "Mesh Filename": "terrain/meshes/bump.obj",
         "Mesh Name": "terrain_test_POV_geom"
       },
 

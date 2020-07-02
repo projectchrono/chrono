@@ -61,41 +61,9 @@ linux:arch-gcc:test:
   extends: .archlinux
   script:
   - cd build
+  - export OMP_NUM_THREADS=8
   - make test
   dependencies: ["linux:arch-gcc:build"]
-
-
-linux:arch-gcc:deploy:
-  stage: deploy
-  needs: []
-  extends: .archlinux
-  script:
-# Clean up the docker image because it is very large and pychrono won't fit
-    - pacman -R cuda openmpi --noconfirm
-    - pacman -Scc --noconfirm
-    - echo "Build PyChrono and deploy via Anaconda..."
-# Remove build directory because anaconda doesn't want it
-    - rm -rf build
-    - export CONDA_NPY=19
-    - wget "http://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh"
-    - bash Miniconda3-latest-Linux-x86_64.sh -b
-    - rm -rf Miniconda3-latest-Linux-x86_64.sh
-    - export PATH=$HOME/miniconda3/bin:$PATH
-    - conda update --yes conda
-    - conda install --yes pip jinja2
-    - conda config --set show_channel_urls true
-    - conda install conda-build anaconda-client conda-verify --yes
-    - conda update conda --yes
-    - conda config --add channels https://conda.anaconda.org/conda-forge
-    - conda config --add channels https://conda.anaconda.org/intel
-    - conda install -c conda-forge -c dlr-sc -c pythonocc -c oce -c 3dhubs oce=0.18.2 --yes
-    - conda install -c intel mkl-devel --yes
-    - conda build ./contrib/packaging-python/conda --no-remove-work-dir --dirty --python=3.7
-    - anaconda -t $ANACONDA_TOKEN upload $HOME/miniconda3/conda-bld/linux-64/pychrono*.bz2 -l develop --force
-  environment:
-    name: pychrono-archlinux
-    url: https://anaconda.org/projectchrono/pychrono
-  when: manual
 
 
 linux:doxygen:deploy:
@@ -161,6 +129,7 @@ linux:arch-llvm:test:
   script:
   - pacman -S --noconfirm llvm clang openmp
   - cd build
+  - export OMP_NUM_THREADS=8
   - make test
   dependencies: ["linux:arch-llvm:build"]
 
@@ -209,7 +178,7 @@ linux:arch-llvm:test:
   - git submodule update
   - mkdir -p build
 
-linux:centos:build:
+.linux:centos:build:
   stage: build
   extends: .centos
   script:
@@ -226,12 +195,13 @@ linux:centos:build:
     paths:
     - build/
 
-linux:centos:test:
+.linux:centos:test:
   stage: test
   needs: ["linux:centos:build"]
   extends: .centos
   script:
   - cd build
+  - export OMP_NUM_THREADS=8
   - make test
   dependencies: ["linux:centos:build"]
   
@@ -286,6 +256,7 @@ linux:ubuntu1804:test:
   extends: .ubuntu
   script:
     - cd build
+    - export OMP_NUM_THREADS=8
     - make test
   dependencies: ["linux:ubuntu1804:build"]
 
@@ -309,13 +280,14 @@ linux:ubuntu1804:deploy:
     - conda update conda --yes
     - conda config --add channels https://conda.anaconda.org/conda-forge
     - conda config --add channels https://conda.anaconda.org/intel
-    - conda install -c conda-forge -c dlr-sc -c pythonocc -c oce -c 3dhubs oce=0.18.2 --yes
+    - conda install -c dlr-sc opencascade --yes
     - conda install -c intel mkl-devel --yes
+    - conda build purge-all
     - conda build ./contrib/packaging-python/conda --no-remove-work-dir --dirty --python=3.6
     - anaconda -t $ANACONDA_TOKEN upload $HOME/miniconda3/conda-bld/linux-64/pychrono*.bz2 -l develop --force
-    #- conda build purge
-    #- conda build ./contrib/packaging-python/conda --no-remove-work-dir --dirty --python=3.8
-    #- anaconda -t $ANACONDA_TOKEN upload $HOME/miniconda3/conda-bld/linux-64/pychrono*.bz2 -l develop --force
+    - conda build purge-all
+    - conda build ./contrib/packaging-python/conda --no-remove-work-dir --dirty --python=3.7
+    - anaconda -t $ANACONDA_TOKEN upload $HOME/miniconda3/conda-bld/linux-64/pychrono*.bz2 -l develop --force
   environment:
     name: pychrono-ubuntu1804
     url: https://anaconda.org/projectchrono/pychrono

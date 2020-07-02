@@ -38,6 +38,9 @@ void ChSingleIdler::Initialize(std::shared_ptr<ChBodyAuxRef> chassis, const ChVe
     // Invoke the base class method
     ChIdler::Initialize(chassis, location);
 
+    CreateContactMaterial(m_wheel->GetSystem()->GetContactMethod());
+    assert(m_material && m_material->GetContactMethod() == m_wheel->GetSystem()->GetContactMethod());
+
     // Add contact geometry.
     double radius = GetWheelRadius();
     double width = GetWheelWidth();
@@ -49,7 +52,7 @@ void ChSingleIdler::Initialize(std::shared_ptr<ChBodyAuxRef> chassis, const ChVe
     m_wheel->GetCollisionModel()->SetFamily(TrackedCollisionFamily::IDLERS);
     m_wheel->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(TrackedCollisionFamily::WHEELS);
 
-    m_wheel->GetCollisionModel()->AddCylinder(radius, radius, width / 2);
+    m_wheel->GetCollisionModel()->AddCylinder(m_material, radius, radius, width / 2);
 
     m_wheel->GetCollisionModel()->BuildModel();
 }

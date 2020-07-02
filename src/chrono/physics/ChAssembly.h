@@ -30,10 +30,13 @@ class ChApi ChAssembly : public ChPhysicsItem {
   public:
     ChAssembly();
     ChAssembly(const ChAssembly& other);
-    virtual ~ChAssembly();
+    ~ChAssembly();
 
     /// "Virtual" copy constructor (covariant return type).
     virtual ChAssembly* Clone() const override { return new ChAssembly(*this); }
+
+    /// Assignment operator for ChAssembly.
+    ChAssembly& operator=(ChAssembly other);
 
     //
     // CONTAINER FUNCTIONS
@@ -47,16 +50,16 @@ class ChApi ChAssembly : public ChPhysicsItem {
     // Note. adding/removing items to the assembly doesn't call Update() automatically.
 
     /// Attach a body to this assembly.
-    virtual void AddBody(std::shared_ptr<ChBody> body);
+    void AddBody(std::shared_ptr<ChBody> body);
 
     /// Attach a link to this assembly.
-    virtual void AddLink(std::shared_ptr<ChLinkBase> link);
+    void AddLink(std::shared_ptr<ChLinkBase> link);
 
     /// Attach a mesh to this assembly.
-    virtual void AddMesh(std::shared_ptr<fea::ChMesh> mesh);
+    void AddMesh(std::shared_ptr<fea::ChMesh> mesh);
 
     /// Attach a ChPhysicsItem object that is not a body, link, or mesh.
-    virtual void AddOtherPhysicsItem(std::shared_ptr<ChPhysicsItem> item);
+    void AddOtherPhysicsItem(std::shared_ptr<ChPhysicsItem> item);
 
     /// Attach an arbitrary ChPhysicsItem (e.g. ChBody, ChParticles, ChLink, etc.) to the assembly.
     /// It will take care of adding it to the proper list of bodies, links, meshes, or generic
@@ -76,13 +79,13 @@ class ChApi ChAssembly : public ChPhysicsItem {
     void FlushBatch();
 
     /// Remove a body from this assembly.
-    virtual void RemoveBody(std::shared_ptr<ChBody> body);
+    void RemoveBody(std::shared_ptr<ChBody> body);
     /// Remove a link from this assembly.
-    virtual void RemoveLink(std::shared_ptr<ChLinkBase> link);
+    void RemoveLink(std::shared_ptr<ChLinkBase> link);
     /// Remove a mesh from the assembly.
-    virtual void RemoveMesh(std::shared_ptr<fea::ChMesh> mesh);
+    void RemoveMesh(std::shared_ptr<fea::ChMesh> mesh);
     /// Remove a ChPhysicsItem object that is not a body or a link
-    virtual void RemoveOtherPhysicsItem(std::shared_ptr<ChPhysicsItem> item);
+    void RemoveOtherPhysicsItem(std::shared_ptr<ChPhysicsItem> item);
     /// Remove arbitrary ChPhysicsItem that was added to the assembly.
     void Remove(std::shared_ptr<ChPhysicsItem> item);
 
@@ -112,12 +115,12 @@ class ChApi ChAssembly : public ChPhysicsItem {
     std::shared_ptr<fea::ChMesh> SearchMesh(const char* name);
     /// Search from other ChPhysics items (not bodies, links, or meshes) by name.
     std::shared_ptr<ChPhysicsItem> SearchOtherPhysicsItem(const char* name);
+    /// Search a marker by its name.
+    std::shared_ptr<ChMarker> SearchMarker(const char* name);
     /// Search an item (body, link or other ChPhysics items) by name.
     std::shared_ptr<ChPhysicsItem> Search(const char* name);
     /// Search a body by its ID
-    std::shared_ptr<ChBody> SearchBodyID(int markID);
-    /// Search a marker by its name.
-    std::shared_ptr<ChMarker> SearchMarker(const char* name);
+    std::shared_ptr<ChBody> SearchBodyID(int bodyID);
     /// Search a marker by its unique ID.
     std::shared_ptr<ChMarker> SearchMarker(int markID);
 
@@ -196,9 +199,9 @@ class ChApi ChAssembly : public ChPhysicsItem {
     /// Get the number of scalar constraints, if any, in this item
     virtual int GetDOC() override { return GetNdoc_w(); }
     /// Get the number of scalar constraints, if any, in this item (only bilateral constr.)
-    virtual int GetDOC_c() override { return GetNdoc_w_C(); };
+    virtual int GetDOC_c() override { return GetNdoc_w_C(); }
     /// Get the number of scalar constraints, if any, in this item (only unilateral constr.)
-    virtual int GetDOC_d() override { return GetNdoc_w_D(); };
+    virtual int GetDOC_d() override { return GetNdoc_w_D(); }
 
     // (override/implement interfaces for global state vectors, see ChPhysicsItem for comments.)
     virtual void IntStateGather(const unsigned int off_x,
@@ -274,7 +277,7 @@ class ChApi ChAssembly : public ChPhysicsItem {
 
     /// Writes the hierarchy of contained bodies, markers, etc. in ASCII
     /// readable form, mostly for debugging purposes. Level is the tab spacing at the left.
-    void ShowHierarchy(ChStreamOutAscii& m_file, int level = 0);
+    void ShowHierarchy(ChStreamOutAscii& m_file, int level = 0) const;
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOUT(ChArchiveOut& marchive) override;
@@ -282,7 +285,16 @@ class ChApi ChAssembly : public ChPhysicsItem {
     /// Method to allow deserialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
 
-  protected:
+    // SWAP FUNCTION
+
+    /// Swap the contents of the two provided ChAssembly objects.
+    /// Implemented as a friend (as opposed to a member function) so classes with a ChAssembly member can use ADL when
+    /// implementing their own swap.
+    friend void swap(ChAssembly& first, ChAssembly& second);
+
+  private:
+    virtual void SetupInitial() override;
+
     std::vector<std::shared_ptr<ChBody>> bodylist;                 ///< list of rigid bodies
     std::vector<std::shared_ptr<ChLinkBase>> linklist;             ///< list of joints (links)
     std::vector<std::shared_ptr<fea::ChMesh>> meshlist;            ///< list of meshes
@@ -305,6 +317,10 @@ class ChApi ChAssembly : public ChPhysicsItem {
     int ndoc_w_D;       ///< number of scalar constraints D, when using 3 rot. dof. per body (only unilaterals)
     int nbodies_sleep;  ///< number of bodies that are sleeping
     int nbodies_fixed;  ///< number of bodies that are fixed
+
+    friend class ChSystem;
+    friend class ChSystemParallel;
+    friend class ChSystemDistributed;
 };
 
 CH_CLASS_VERSION(ChAssembly, 0)

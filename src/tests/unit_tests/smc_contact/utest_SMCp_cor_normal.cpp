@@ -57,6 +57,10 @@ class CorNormalTest : public ::testing::TestWithParam<std::tuple<ChSystemSMC::Co
         SetSimParameters(sys, ChVector<>(0, 0, 0), fmodel);
 
         CHOMPfunctions::SetNumThreads(2);
+        sys->GetSettings()->perform_thread_tuning = false;
+#pragma omp parallel
+#pragma omp master
+        std::cout << "Using " << omp_get_num_threads() << " threads" << std::endl;
         
         // Add the sphere to the system
         double srad = 0.5;

@@ -160,12 +160,21 @@ set(CV_BASE_FILES
     ChVehicleModelData.h
     ChVehicleModelData.cpp
     ChVehicleOutput.h
+    ChWorldFrame.cpp
+    ChWorldFrame.h
 )
 source_group("base" FILES ${CV_BASE_FILES})
 
 set(CV_CHASSIS_FILES
     chassis/ChRigidChassis.h
     chassis/ChRigidChassis.cpp
+
+    chassis/ChChassisConnectorArticulated.h
+    chassis/ChChassisConnectorArticulated.cpp
+    chassis/ChChassisConnectorHitch.h
+    chassis/ChChassisConnectorHitch.cpp
+    chassis/ChChassisConnectorTorsion.h
+    chassis/ChChassisConnectorTorsion.cpp
 
     chassis/RigidChassis.h
     chassis/RigidChassis.cpp
@@ -218,6 +227,8 @@ set(CV_TERRAIN_FILES
     terrain/FlatTerrain.cpp
     terrain/RigidTerrain.h
     terrain/RigidTerrain.cpp
+    terrain/RandomSurfaceTerrain.h
+    terrain/RandomSurfaceTerrain.cpp
     terrain/SCMDeformableTerrain.h
     terrain/SCMDeformableTerrain.cpp
     terrain/GranularTerrain.h
@@ -287,6 +298,8 @@ set(CV_WV_BASE_FILES
     wheeled_vehicle/ChSuspension.cpp
     wheeled_vehicle/ChSteering.h
     wheeled_vehicle/ChSteering.cpp
+    wheeled_vehicle/ChSubchassis.h
+    wheeled_vehicle/ChSubchassis.cpp
     wheeled_vehicle/ChWheeledVehicle.h
     wheeled_vehicle/ChWheeledVehicle.cpp
     wheeled_vehicle/ChWheel.h
@@ -354,11 +367,22 @@ set(CV_WV_STEERING_FILES
 )
 source_group("wheeled_vehicle\\steering" FILES ${CV_WV_STEERING_FILES})
 
+set(CV_WV_SUBCHASSIS_FILES
+    wheeled_vehicle/subchassis/ChBalancer.h
+    wheeled_vehicle/subchassis/ChBalancer.cpp
+
+    #wheeled_vehicle/subchassis/Balancer.h
+    #wheeled_vehicle/subchassis/Balancer.cpp
+)
+source_group("wheeled_vehicle\\subchassis" FILES ${CV_WV_SUBCHASSIS_FILES})
+
 set(CV_WV_SUSPENSION_FILES
     wheeled_vehicle/suspension/ChDoubleWishbone.h
     wheeled_vehicle/suspension/ChDoubleWishbone.cpp
     wheeled_vehicle/suspension/ChDoubleWishboneReduced.h
     wheeled_vehicle/suspension/ChDoubleWishboneReduced.cpp
+    wheeled_vehicle/suspension/ChSingleWishbone.h
+    wheeled_vehicle/suspension/ChSingleWishbone.cpp
     wheeled_vehicle/suspension/ChSolidAxle.h
     wheeled_vehicle/suspension/ChSolidAxle.cpp
     wheeled_vehicle/suspension/ChMultiLink.h
@@ -377,17 +401,23 @@ set(CV_WV_SUSPENSION_FILES
     wheeled_vehicle/suspension/ChRigidPinnedAxle.cpp
     wheeled_vehicle/suspension/ChLeafspringAxle.h
     wheeled_vehicle/suspension/ChLeafspringAxle.cpp
+    wheeled_vehicle/suspension/ChSAELeafspringAxle.h
+    wheeled_vehicle/suspension/ChSAELeafspringAxle.cpp
     wheeled_vehicle/suspension/ChSolidBellcrankThreeLinkAxle.h
     wheeled_vehicle/suspension/ChSolidBellcrankThreeLinkAxle.cpp
     wheeled_vehicle/suspension/ChSolidThreeLinkAxle.h
     wheeled_vehicle/suspension/ChSolidThreeLinkAxle.cpp
     wheeled_vehicle/suspension/ChToeBarLeafspringAxle.h
     wheeled_vehicle/suspension/ChToeBarLeafspringAxle.cpp
+    wheeled_vehicle/suspension/ChSAEToeBarLeafspringAxle.h
+    wheeled_vehicle/suspension/ChSAEToeBarLeafspringAxle.cpp
 
     wheeled_vehicle/suspension/DoubleWishbone.h
     wheeled_vehicle/suspension/DoubleWishbone.cpp
     wheeled_vehicle/suspension/DoubleWishboneReduced.h
     wheeled_vehicle/suspension/DoubleWishboneReduced.cpp
+#    wheeled_vehicle/suspension/SingleWishbone.h
+#    wheeled_vehicle/suspension/SingleWishbone.cpp
     wheeled_vehicle/suspension/SolidAxle.h
     wheeled_vehicle/suspension/SolidAxle.cpp
     wheeled_vehicle/suspension/MultiLink.h
@@ -406,12 +436,16 @@ set(CV_WV_SUSPENSION_FILES
     wheeled_vehicle/suspension/RigidPinnedAxle.cpp
     wheeled_vehicle/suspension/LeafspringAxle.h
     wheeled_vehicle/suspension/LeafspringAxle.cpp
+    wheeled_vehicle/suspension/SAELeafspringAxle.h
+    wheeled_vehicle/suspension/SAELeafspringAxle.cpp
     wheeled_vehicle/suspension/SolidBellcrankThreeLinkAxle.h
     wheeled_vehicle/suspension/SolidBellcrankThreeLinkAxle.cpp
     wheeled_vehicle/suspension/SolidThreeLinkAxle.h
     wheeled_vehicle/suspension/SolidThreeLinkAxle.cpp
     wheeled_vehicle/suspension/ToeBarLeafspringAxle.h
     wheeled_vehicle/suspension/ToeBarLeafspringAxle.cpp
+    wheeled_vehicle/suspension/SAEToeBarLeafspringAxle.h
+    wheeled_vehicle/suspension/SAEToeBarLeafspringAxle.cpp
 )
 source_group("wheeled_vehicle\\suspension" FILES ${CV_WV_SUSPENSION_FILES})
 
@@ -746,12 +780,6 @@ set(COMPILE_DEFS "CH_API_COMPILE_VEHICLE")
 set(LINK_FLAGS ${CH_LINKERFLAG_SHARED})
 set(LIBRARIES "ChronoEngine")
 
-if(ENABLE_MODULE_IRRLICHT)
-    set(CXX_FLAGS "${CXX_FLAGS} ${CH_IRRLICHT_CXX_FLAGS}")
-    list(APPEND LIBRARIES ChronoEngine_irrlicht) 
-    include_directories(${CH_IRRLICHTINC})
-endif()
-
 if(MPI_CXX_FOUND)
     set(CXX_FLAGS "${CXX_FLAGS} ${MPI_CXX_COMPILE_FLAGS}")
     set(LINK_FLAGS "${LINK_FLAGS} ${MPI_CXX_LINK_FLAGS}")
@@ -770,22 +798,15 @@ if(HAVE_OPENCRG)
     list(APPEND LIBRARIES ${OPENCRG_LIBRARY})
 endif()
 
-if(ENABLE_IRRKLANG)
-    include_directories(${CH_IRRKLANGINC})
-    list(APPEND LIBRARIES ${CH_IRRKLANGLIB})
-endif()
-
 add_library(ChronoEngine_vehicle SHARED
 #
     ${CV_BASE_FILES}
     ${CV_CHASSIS_FILES}
     ${CV_DRIVER_FILES}
-    ${CVIRR_DRIVER_FILES}
     ${CV_POVERTRAIN_FILES}
     ${CV_TERRAIN_FILES}
     ${CV_OPENCRG_FILES}
     ${CV_UTILS_FILES}
-    ${CVIRR_UTILS_FILES}
     ${CV_OUTPUT_FILES}
     ${CVHDF5_OUTPUT_FILES}
 #
@@ -794,12 +815,11 @@ add_library(ChronoEngine_vehicle SHARED
     ${CV_WV_BRAKE_FILES}
     ${CV_WV_DRIVELINE_FILES}
     ${CV_WV_STEERING_FILES}
+    ${CV_WV_SUBCHASSIS_FILES}
     ${CV_WV_SUSPENSION_FILES}
     ${CV_WV_TEST_RIG_FILES}
-    ${CVIRR_WV_TEST_RIG_FILES}
     ${CV_WV_TIRE_FILES}
     ${CV_WV_UTILS_FILES}
-    ${CVIRR_WV_UTILS_FILES}
     ${CV_WV_VEHICLE_FILES}
     ${CV_WV_WHEEL_FILES}
     ${CV_WV_COSIM_FILES}
@@ -815,9 +835,7 @@ add_library(ChronoEngine_vehicle SHARED
     ${CV_TV_TRACKSHOE_FILES}
     ${CV_TV_TRACKASSEMBLY_FILES}
     ${CV_TV_TEST_RIG_FILES}
-    ${CVIRR_TV_TEST_RIG_FILES}
     ${CV_TV_UTILS_FILES}
-    ${CVIRR_TV_UTILS_FILES}
     ${CV_TV_VEHICLE_FILES}
 #
     ${CV_EASYBMP_FILES}
@@ -840,6 +858,52 @@ install(TARGETS ChronoEngine_vehicle
         LIBRARY DESTINATION lib
         ARCHIVE DESTINATION lib)
 
+
+#-------------------------------------------------------------------------------
+# Add the ChronoEngine_vehicle_irrlicht library
+#-------------------------------------------------------------------------------
+
+if(ENABLE_MODULE_IRRLICHT)
+
+set(CXX_FLAGS "${CXX_FLAGS} ${CH_IRRLICHT_CXX_FLAGS}")
+list(APPEND LIBRARIES ChronoEngine_vehicle)
+list(APPEND LIBRARIES ChronoEngine_irrlicht) 
+include_directories(${CH_IRRLICHTINC})
+
+if(ENABLE_IRRKLANG)
+    include_directories(${CH_IRRKLANGINC})
+    list(APPEND LIBRARIES ${CH_IRRKLANGLIB})
+endif()
+
+add_library(ChronoEngine_vehicle_irrlicht SHARED
+    ${CVIRR_DRIVER_FILES}
+    ${CVIRR_UTILS_FILES}
+    ${CVIRR_WV_TEST_RIG_FILES}
+    ${CVIRR_WV_UTILS_FILES}
+    ${CVIRR_TV_TEST_RIG_FILES}
+    ${CVIRR_TV_UTILS_FILES}
+)
+
+set_target_properties(ChronoEngine_vehicle_irrlicht PROPERTIES
+                      COMPILE_FLAGS "${CXX_FLAGS}"
+                      LINK_FLAGS "${CH_LINKERFLAG_SHARED}")
+
+target_compile_definitions(ChronoEngine_vehicle_irrlicht PRIVATE "CH_API_COMPILE_VEHICLE")
+target_compile_definitions(ChronoEngine_vehicle_irrlicht PRIVATE "CH_IGNORE_DEPRECATED")
+
+target_link_libraries(ChronoEngine_vehicle_irrlicht ${LIBRARIES})
+
+install(TARGETS ChronoEngine_vehicle_irrlicht
+        RUNTIME DESTINATION bin
+        LIBRARY DESTINATION lib
+        ARCHIVE DESTINATION lib)
+
+endif()
+
+#-------------------------------------------------------------------------------
+# Install Chrono::Vehicle headers
+#-------------------------------------------------------------------------------
+
 install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/
         DESTINATION include/chrono_vehicle
         FILES_MATCHING PATTERN "*.h")
@@ -850,8 +914,8 @@ install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 
-    if(EXISTS ${CH_IRRKLANG_DLL})
-        add_custom_command(TARGET ChronoEngine_vehicle POST_BUILD
+    if(ENABLE_MODULE_IRRLICHT AND EXISTS ${CH_IRRKLANG_DLL})
+        add_custom_command(TARGET ChronoEngine_vehicle_irrlicht POST_BUILD
             COMMAND ${CMAKE_COMMAND} -E copy_if_different
             "${CH_IRRKLANG_DLL}"
             "${PROJECT_BINARY_DIR}/bin/$<CONFIGURATION>")

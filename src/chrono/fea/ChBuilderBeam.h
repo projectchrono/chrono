@@ -25,6 +25,7 @@
 #include "chrono/physics/ChBody.h"
 #include "chrono/physics/ChLinkMate.h"
 #include "chrono/physics/ChLinkMotorLinearSpeed.h"
+#include "chrono/physics/ChMaterialSurfaceSMC.h"
 
 #include "chrono/geometry/ChLineBspline.h"
 

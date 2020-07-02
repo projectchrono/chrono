@@ -102,8 +102,8 @@ class MyEventReceiver : public IEventReceiver {
     IGUIStaticText* text_speed;
 };
 
-// Function that creates debris that fall on the conveyor belt, to be called at each dt
-
+// Function that creates debris that fall on the conveyor belt, to be called at each dt.
+// In this example, all debris particles share the same contact material.
 void create_debris(ChIrrApp& application, double dt, double particles_second) {
     double xnozzlesize = 0.2;
     double znozzlesize = 0.56;
@@ -128,18 +128,27 @@ void create_debris(ChIrrApp& application, double dt, double particles_second) {
     video::ITexture* pinkwhiteMap =
         application.GetVideoDriver()->getTexture(GetChronoDataFile("pinkwhite.png").c_str());
 
+    auto sphere_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    sphere_mat->SetFriction(0.2f);
+    sphere_mat->SetRestitution(0.8f);
+
+    auto box_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    box_mat->SetFriction(0.4f);
+
+    auto cyl_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    cyl_mat->SetFriction(0.2f);
+
     for (int i = 0; i < particles_dt; i++) {
         double rand_fract = ChRandom();
 
         if (rand_fract < box_fraction) {
-            auto mrigidBody = chrono_types::make_shared<ChBodyEasySphere>(sphrad,  // size
-                                                                 1000,    // density
-                                                                 true,    // collide enable?
-                                                                 true);   // visualization?
+            auto mrigidBody = chrono_types::make_shared<ChBodyEasySphere>(sphrad,       // size
+                                                                          1000,         // density
+                                                                          true,         // visualization?
+                                                                          true,         // collision?
+                                                                          sphere_mat);  // contact material
             mrigidBody->SetPos(ChVector<>(-0.5 * xnozzlesize + ChRandom() * xnozzlesize, ynozzle + i * 0.005,
                                           -0.5 * znozzlesize + ChRandom() * znozzlesize));
-            mrigidBody->GetMaterialSurfaceNSC()->SetFriction(0.2f);
-            mrigidBody->GetMaterialSurfaceNSC()->SetRestitution(0.8f);
             mrigidBody->AddAsset(chrono_types::make_shared<ChTexture>(GetChronoDataFile("bluwhite.png")));
 
             application.GetSystem()->Add(mrigidBody);
@@ -158,12 +167,12 @@ void create_debris(ChIrrApp& application, double dt, double particles_second) {
 
             auto mrigidBody =
                 chrono_types::make_shared<ChBodyEasyBox>(sphrad * 2 * xscale, sphrad * 2 * yscale, sphrad * 2 * zscale,
-                                                1000,   // density
-                                                true,   // collide enable?
-                                                true);  // visualization?
+                                                         1000,      // density
+                                                         true,      // visualization?
+                                                         true,      // collision?
+                                                         box_mat);  // contact material
             mrigidBody->SetPos(ChVector<>(-0.5 * xnozzlesize + ChRandom() * xnozzlesize, ynozzle + i * 0.005,
                                           -0.5 * znozzlesize + ChRandom() * znozzlesize));
-            mrigidBody->GetMaterialSurfaceNSC()->SetFriction(0.4f);
             mrigidBody->AddAsset(chrono_types::make_shared<ChTexture>(GetChronoDataFile("cubetexture_bluwhite.png")));
 
             application.GetSystem()->Add(mrigidBody);
@@ -177,12 +186,12 @@ void create_debris(ChIrrApp& application, double dt, double particles_second) {
 
         if (rand_fract > box_fraction + cyl_fraction) {
             auto mrigidBody = chrono_types::make_shared<ChBodyEasyCylinder>(sphrad, sphrad * 2,  // rad, height
-                                                                   1000,                // density
-                                                                   true,                // collide enable?
-                                                                   true);               // visualization?
+                                                                            1000,                // density
+                                                                            true,                // visualization?
+                                                                            true,                // collision?
+                                                                            cyl_mat);            // contact material
             mrigidBody->SetPos(ChVector<>(-0.5 * xnozzlesize + ChRandom() * xnozzlesize, ynozzle + i * 0.005,
                                           -0.5 * znozzlesize + ChRandom() * znozzlesize));
-            mrigidBody->GetMaterialSurfaceNSC()->SetFriction(0.2f);
             mrigidBody->AddAsset(chrono_types::make_shared<ChTexture>(GetChronoDataFile("pinkwhite.png")));
 
             application.GetSystem()->Add(mrigidBody);
@@ -233,46 +242,43 @@ int main(int argc, char* argv[]) {
     ChCollisionModel::SetDefaultSuggestedMargin(0.002);
 
     // Create two conveyor fences
-   
-    auto mfence1 = chrono_types::make_shared<ChBodyEasyBox>(2, 0.11, 0.04, 1000, true, true);
+    auto fence_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    fence_mat->SetFriction(0.1f);
+
+    auto mfence1 = chrono_types::make_shared<ChBodyEasyBox>(2, 0.11, 0.04, 1000, true, true, fence_mat);
     mphysicalSystem.Add(mfence1);
     mfence1->SetPos(ChVector<>(0, 0, -0.325));
     mfence1->SetBodyFixed(true);
-    mfence1->GetMaterialSurfaceNSC()->SetFriction(0.1f);
-    
-    auto mfence2 = chrono_types::make_shared<ChBodyEasyBox>(2, 0.11, 0.04, 1000, true, true);
-    mphysicalSystem.Add(mfence2);
-    mfence2->SetPos(ChVector<>(0, 0,  0.325));
-    mfence2->SetBodyFixed(true);
-    mfence2->GetMaterialSurfaceNSC()->SetFriction(0.1f);
 
+    auto mfence2 = chrono_types::make_shared<ChBodyEasyBox>(2, 0.11, 0.04, 1000, true, true, fence_mat);
+    mphysicalSystem.Add(mfence2);
+    mfence2->SetPos(ChVector<>(0, 0, 0.325));
+    mfence2->SetBodyFixed(true);
 
     // Create the conveyor belt (this is a pure Chrono::Engine object,
     // because an Irrlicht 'SceneNode' wrapper is not yet available, so it is invisible - no 3D preview)
+    auto conveyor_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    conveyor_mat->SetFriction(0.35f);
 
     auto mconveyor = chrono_types::make_shared<ChConveyor>(2, 0.05, 0.6);
     mconveyor->SetBodyFixed(true);
-    mconveyor->GetMaterialSurfaceNSC()->SetFriction(0.35f);
+    mconveyor->SetMaterialSurface(conveyor_mat);
     mconveyor->SetConveyorSpeed(STATIC_speed);
     mconveyor->SetPos(ChVector<>(0, 0, 0));
 
     mphysicalSystem.Add(mconveyor);
 
-
-
-    // Use this function for adding a ChIrrNodeAsset to all items
+    // Use this function for adding a ChIrrNodeAsset to all items.
     // Otherwise use application.AssetBind(myitem); on a per-item basis.
     application.AssetBindAll();
 
     // Use this function for 'converting' assets into Irrlicht meshes
     application.AssetUpdateAll();
 
-
     //
     // THE SOFT-REAL-TIME CYCLE
     //
 
-    application.SetStepManage(true);
     application.SetTimestep(0.005);
 
     while (application.GetDevice()->run()) {

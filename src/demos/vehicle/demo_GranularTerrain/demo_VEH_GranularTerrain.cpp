@@ -115,8 +115,10 @@ int main(int argc, char* argv[]) {
     // ------------------
 
     GranularTerrain terrain(system);
-    terrain.SetContactFrictionCoefficient((float)mu_g);
-    terrain.SetContactCohesion((float)coh_g);
+    auto mat = std::static_pointer_cast<ChMaterialSurfaceNSC>(terrain.GetContactMaterial());
+    mat->SetFriction((float)mu_g);
+    mat->SetCohesion((float)coh_g);
+    terrain.SetContactMaterial(mat);
     terrain.SetCollisionEnvelope(envelope / 5);
     if (rough) {
         int nx = (int)std::round((2 * hdimX) / (4 * r_g));
@@ -128,7 +130,7 @@ int main(int argc, char* argv[]) {
 
     terrain.Initialize(center, 2 * hdimX, 2 * hdimY, num_layers, r_g, rho_g);
     uint actual_num_particles = terrain.GetNumParticles();
-    double terrain_height = terrain.GetHeight(0, 0);
+    double terrain_height = terrain.GetHeight(ChVector<>(0, 0, 0));
 
     std::cout << "Number of particles: " << actual_num_particles << std::endl;
     std::cout << "Terrain height:      " << terrain_height << std::endl;
@@ -153,11 +155,12 @@ int main(int argc, char* argv[]) {
     trimesh_shape->SetMesh(trimesh);
     body->AddAsset(trimesh_shape);
 
-    body->GetCollisionModel()->ClearModel();
-    body->GetCollisionModel()->AddTriangleMesh(trimesh, false, false, VNULL, ChMatrix33<>(1), 0.01);
-    body->GetCollisionModel()->BuildModel();
+    auto body_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
 
-    ////utils::AddSphereGeometry(body.get(), tire_rad, ChVector<>(0, 0, 0));
+    body->GetCollisionModel()->ClearModel();
+    body->GetCollisionModel()->AddTriangleMesh(body_mat, trimesh, false, false, VNULL, ChMatrix33<>(1), 0.01);
+    ////utils::AddSphereGeometry(body.get(), body_mat, tire_rad, ChVector<>(0, 0, 0));
+    body->GetCollisionModel()->BuildModel();
 
     body->SetCollide(true);
 

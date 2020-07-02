@@ -62,7 +62,7 @@ private:
 
 template <typename EnumClass, EnumClass SHOE_TYPE>
 M113AccTest<EnumClass, SHOE_TYPE>::M113AccTest() : m_step(1e-3) {
-    ChMaterialSurface::ContactMethod contact_method = ChMaterialSurface::NSC;
+    ChContactMethod contact_method = ChContactMethod::NSC;
     ChassisCollisionType chassis_collision_type = ChassisCollisionType::NONE;
 
     // Create the M113 vehicle, set parameters, and initialize.
@@ -82,10 +82,11 @@ M113AccTest<EnumClass, SHOE_TYPE>::M113AccTest() : m_step(1e-3) {
 
     // Create the terrain
     m_terrain = new RigidTerrain(m_m113->GetSystem());
-    auto patch = m_terrain->AddPatch(ChCoordsys<>(ChVector<>(0, 0, -5), QUNIT), ChVector<>(500, 5, 10));
-    patch->SetContactFrictionCoefficient(0.9f);
-    patch->SetContactRestitutionCoefficient(0.01f);
-    patch->SetContactMaterialProperties(2e7f, 0.3f);
+    auto patch_material = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+    patch_material->SetFriction(0.9f);
+    patch_material->SetRestitution(0.01f);
+    patch_material->SetYoungModulus(2e7f);
+    auto patch = m_terrain->AddPatch(patch_material, ChVector<>(0, 0, 0), ChVector<>(0, 0, 1), 500, 5);
     patch->SetColor(ChColor(0.8f, 0.8f, 0.8f));
     patch->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 500, 5);
     m_terrain->Initialize();

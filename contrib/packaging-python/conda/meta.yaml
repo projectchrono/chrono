@@ -1,10 +1,11 @@
 # change the version number in case of a release build
 package:
   name: pychrono
-  version: 5.0.0
+  version: 5.0.1
 
 source:
-  path: ../../..
+  git_url: https://github.com/projectchrono/chrono
+  git_tag: develop
 
 
 build:
@@ -14,7 +15,7 @@ build:
     - CC
     - CXX
 
-  number: {{ CI_COMMIT_SHA }}
+  number: {{ environ.get('GIT_DESCRIBE_NUMBER', 0) }}
   binary_relocation: true
   #features:
   #  - vc9               [win and py27]

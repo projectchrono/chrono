@@ -15,7 +15,7 @@
 #ifndef CHCONTACTSURFACENODECLOUD_H
 #define CHCONTACTSURFACENODECLOUD_H
 
-#include "chrono/collision/ChCCollisionModel.h"
+#include "chrono/collision/ChCollisionModel.h"
 #include "chrono/fea/ChContactSurface.h"
 #include "chrono/fea/ChNodeFEAxyz.h"
 #include "chrono/fea/ChNodeFEAxyzrot.h"
@@ -134,9 +134,6 @@ class ChApi ChContactNodeXYZ : public ChContactable_1vars<3> {
         return 1;
         // return this->mnode->GetMass(); // no!! could be zero in nodes of non-lumped-masses meshes!
     }
-
-    /// Return the pointer to the surface material.
-    virtual std::shared_ptr<ChMaterialSurface>& GetMaterialSurface() override;
 
     /// This is only for backward compatibility
     virtual ChPhysicsItem* GetPhysicsItem() override;
@@ -275,9 +272,6 @@ class ChApi ChContactNodeXYZROT : public ChContactable_1vars<6> {
         // return this->mnode->GetMass(); // no!! could be zero in nodes of non-lumped-masses meshes!
     }
 
-    /// Return the pointer to the surface material.
-    virtual std::shared_ptr<ChMaterialSurface>& GetMaterialSurface() override;
-
     /// This is only for backward compatibility
     virtual ChPhysicsItem* GetPhysicsItem() override;
 
@@ -307,11 +301,10 @@ class ChApi ChContactNodeXYZROTsphere : public ChContactNodeXYZROT {
 /// Might be an efficient option in case of dense tessellations (but misses the FEAnodes-vs-FEAfaces
 /// cases, and misses FEAedge-vs-edges)
 class ChApi ChContactSurfaceNodeCloud : public ChContactSurface {
-
   public:
-    ChContactSurfaceNodeCloud(ChMesh* parentmesh = 0) : ChContactSurface(parentmesh){};
+    ChContactSurfaceNodeCloud(std::shared_ptr<ChMaterialSurface> material, ChMesh* mesh = nullptr);
 
-    virtual ~ChContactSurfaceNodeCloud(){};
+    virtual ~ChContactSurfaceNodeCloud() {}
 
     //
     // FUNCTIONS

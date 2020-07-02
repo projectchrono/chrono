@@ -19,9 +19,14 @@
 #include <fstream>
 
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
-//
+
 #include "chrono_vehicle/chassis/RigidChassis.h"
-//
+
+#include "chrono_vehicle/powertrain/ShaftsPowertrain.h"
+#include "chrono_vehicle/powertrain/SimpleCVTPowertrain.h"
+#include "chrono_vehicle/powertrain/SimpleMapPowertrain.h"
+#include "chrono_vehicle/powertrain/SimplePowertrain.h"
+
 #include "chrono_vehicle/wheeled_vehicle/antirollbar/AntirollBarRSD.h"
 #include "chrono_vehicle/wheeled_vehicle/brake/BrakeSimple.h"
 #include "chrono_vehicle/wheeled_vehicle/driveline/ShaftsDriveline2WD.h"
@@ -35,6 +40,7 @@
 #include "chrono_vehicle/wheeled_vehicle/suspension/DoubleWishboneReduced.h"
 #include "chrono_vehicle/wheeled_vehicle/suspension/HendricksonPRIMAXX.h"
 #include "chrono_vehicle/wheeled_vehicle/suspension/LeafspringAxle.h"
+#include "chrono_vehicle/wheeled_vehicle/suspension/SAELeafspringAxle.h"
 #include "chrono_vehicle/wheeled_vehicle/suspension/MacPhersonStrut.h"
 #include "chrono_vehicle/wheeled_vehicle/suspension/MultiLink.h"
 #include "chrono_vehicle/wheeled_vehicle/suspension/RigidSuspension.h"
@@ -45,6 +51,7 @@
 #include "chrono_vehicle/wheeled_vehicle/suspension/SolidThreeLinkAxle.h"
 #include "chrono_vehicle/wheeled_vehicle/suspension/ThreeLinkIRS.h"
 #include "chrono_vehicle/wheeled_vehicle/suspension/ToeBarLeafspringAxle.h"
+#include "chrono_vehicle/wheeled_vehicle/suspension/SAEToeBarLeafspringAxle.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/ANCFTire.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/FEATire.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/FialaTire.h"
@@ -56,7 +63,7 @@
 #include "chrono_vehicle/wheeled_vehicle/tire/Pac89Tire.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/Pac02Tire.h"
 #include "chrono_vehicle/wheeled_vehicle/wheel/Wheel.h"
-//
+
 #include "chrono_vehicle/tracked_vehicle/brake/TrackBrakeSimple.h"
 #include "chrono_vehicle/tracked_vehicle/driveline/SimpleTrackDriveline.h"
 #include "chrono_vehicle/tracked_vehicle/driveline/TrackDrivelineBDS.h"
@@ -71,7 +78,7 @@
 #include "chrono_vehicle/tracked_vehicle/track_assembly/TrackAssemblyBandBushing.h"
 #include "chrono_vehicle/tracked_vehicle/track_assembly/TrackAssemblyDoublePin.h"
 #include "chrono_vehicle/tracked_vehicle/track_assembly/TrackAssemblySinglePin.h"
-//
+
 #include "chrono_thirdparty/rapidjson/filereadstream.h"
 #include "chrono_thirdparty/rapidjson/istreamwrapper.h"
 
@@ -119,6 +126,27 @@ ChColor ReadColorJSON(const Value& a) {
 
 // -----------------------------------------------------------------------------
 
+MaterialInfo ReadMaterialInfoJSON(const rapidjson::Value& mat) {
+    MaterialInfo minfo;
+
+    minfo.mu = mat["Coefficient of Friction"].GetFloat();
+    minfo.cr = mat["Coefficient of Restitution"].GetFloat();
+    if (mat.HasMember("Properties")) {
+        minfo.Y = mat["Properties"]["Young Modulus"].GetFloat();
+        minfo.nu = mat["Properties"]["Poisson Ratio"].GetFloat();
+    }
+    if (mat.HasMember("Coefficients")) {
+        minfo.kn = mat["Coefficients"]["Normal Stiffness"].GetFloat();
+        minfo.gn = mat["Coefficients"]["Normal Damping"].GetFloat();
+        minfo.kt = mat["Coefficients"]["Tangential Stiffness"].GetFloat();
+        minfo.gt = mat["Coefficients"]["Tangential Damping"].GetFloat();
+    }
+
+    return minfo;
+}
+
+// -----------------------------------------------------------------------------
+
 std::shared_ptr<ChChassis> ReadChassisJSON(const std::string& filename) {
     std::shared_ptr<ChChassis> chassis;
 
@@ -144,6 +172,40 @@ std::shared_ptr<ChChassis> ReadChassisJSON(const std::string& filename) {
 
     return chassis;
 }
+
+std::shared_ptr<ChPowertrain> ReadPowertrainJSON(const std::string& filename) {
+    std::shared_ptr<ChPowertrain> powertrain;
+
+    Document d = ReadFileJSON(filename);
+    if (d.IsNull())
+        return nullptr;
+
+    // Check that the given file is a powertrain specification file.
+    assert(d.HasMember("Type"));
+    std::string type = d["Type"].GetString();
+    assert(type.compare("Powertrain") == 0);
+
+    // Extract the powertrain type.
+    assert(d.HasMember("Template"));
+    std::string subtype = d["Template"].GetString();
+
+    // Create the powertrain using the appropriate template.
+    if (subtype.compare("ShaftsPowertrain") == 0) {
+        powertrain = chrono_types::make_shared<ShaftsPowertrain>(d);
+    } else if (subtype.compare("SimpleCVTPowertrain") == 0) {
+        powertrain = chrono_types::make_shared<SimpleCVTPowertrain>(d);
+    } else if (subtype.compare("SimpleMapPowertrain") == 0) {
+        powertrain = chrono_types::make_shared<SimpleMapPowertrain>(d);
+    } else if (subtype.compare("SimplePowertrain") == 0) {
+        powertrain = chrono_types::make_shared<SimplePowertrain>(d);
+    } else {
+        throw ChException("Powertrain type not supported in ReadChassisJSON.");
+    }
+
+    return powertrain;
+}
+
+// -----------------------------------------------------------------------------
 
 std::shared_ptr<ChSuspension> ReadSuspensionJSON(const std::string& filename) {
     std::shared_ptr<ChSuspension> suspension;
@@ -178,8 +240,12 @@ std::shared_ptr<ChSuspension> ReadSuspensionJSON(const std::string& filename) {
         suspension = chrono_types::make_shared<ThreeLinkIRS>(d);
     } else if (subtype.compare("ToeBarLeafspringAxle") == 0) {
         suspension = chrono_types::make_shared<ToeBarLeafspringAxle>(d);
+    } else if (subtype.compare("SAEToeBarLeafspringAxle") == 0) {
+        suspension = chrono_types::make_shared<SAEToeBarLeafspringAxle>(d);
     } else if (subtype.compare("LeafspringAxle") == 0) {
         suspension = chrono_types::make_shared<LeafspringAxle>(d);
+    } else if (subtype.compare("SAELeafspringAxle") == 0) {
+        suspension = chrono_types::make_shared<SAELeafspringAxle>(d);
     } else if (subtype.compare("SolidThreeLinkAxle") == 0) {
         suspension = chrono_types::make_shared<SolidThreeLinkAxle>(d);
     } else if (subtype.compare("SolidBellcrankThreeLinkAxle") == 0) {

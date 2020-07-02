@@ -52,7 +52,7 @@ individual iterative VI solver for details.
 
 Diagonal preconditioning is enabled by default, but may not supported by all iterative VI solvers.
 */
-class ChApi ChIterativeSolverVI : public ChSolverVI, public ChIterativeSolver {
+class ChApi ChIterativeSolverVI : public ChIterativeSolver, public ChSolverVI {
   public:
     ChIterativeSolverVI();
 

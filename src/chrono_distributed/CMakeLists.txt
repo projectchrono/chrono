@@ -80,6 +80,7 @@ SET(ChronoEngine_distributed_BASE
 	ChApiDistributed.h
 	ChDistributedDataManager.h
 	ChDistributedDataManager.cpp
+	ChTypesDistributed.h
     )
 
 SOURCE_GROUP("" FILES ${ChronoEngine_distributed_BASE})

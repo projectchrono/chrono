@@ -60,8 +60,8 @@ double terrainLength = 16.0;  // size in X direction
 double terrainWidth = 8.0;    // size in Y direction
 
 // Divisions (X and Y)
-int divLength = 128;//1024;
-int divWidth = 64;//512;
+int divLength = 128;
+int divWidth = 64;
 
 // -----------------------------------------------------------------------------
 // Vehicle parameters
@@ -70,10 +70,6 @@ int divWidth = 64;//512;
 // Type of wheel/tire (controls both contact and visualization)
 enum WheelType { CYLINDRICAL, LUGGED };
 WheelType wheel_type = LUGGED;
-
-// Type of terrain
-enum TerrainType { DEFORMABLE_SOIL, RIGID_SOIL };
-TerrainType terrain_type = DEFORMABLE_SOIL;
 
 // Type of powertrain model (SHAFTS, SIMPLE)
 PowertrainModelType powertrain_model = PowertrainModelType::SHAFTS;
@@ -148,14 +144,14 @@ class MyDriver : public ChDriver {
 
 // =============================================================================
 
-void CreateLuggedGeometry(std::shared_ptr<ChBody> wheelBody) {
+void CreateLuggedGeometry(std::shared_ptr<ChBody> wheel_body, std::shared_ptr<ChMaterialSurfaceSMC> wheel_material) {
     std::string lugged_file("hmmwv/lugged_wheel_section.obj");
     geometry::ChTriangleMeshConnected lugged_mesh;
     ChConvexDecompositionHACDv2 lugged_convex;
     utils::LoadConvexMesh(vehicle::GetDataFile(lugged_file), lugged_mesh, lugged_convex);
     int num_hulls = lugged_convex.GetHullCount();
 
-    auto coll_model = wheelBody->GetCollisionModel();
+    auto coll_model = wheel_body->GetCollisionModel();
     coll_model->ClearModel();
 
     // Assemble the tire contact from 15 segments, properly offset.
@@ -165,12 +161,12 @@ void CreateLuggedGeometry(std::shared_ptr<ChBody> wheelBody) {
         for (int ihull = 0; ihull < num_hulls; ihull++) {
             std::vector<ChVector<> > convexhull;
             lugged_convex.GetConvexHullResult(ihull, convexhull);
-            coll_model->AddConvexHull(convexhull, VNULL, rot);
+            coll_model->AddConvexHull(wheel_material, convexhull, VNULL, rot);
         }
     }
 
     // Add a cylinder to represent the wheel hub.
-    coll_model->AddCylinder(0.223, 0.223, 0.126);
+    coll_model->AddCylinder(wheel_material, 0.223, 0.223, 0.126);
     coll_model->BuildModel();
 
     // Visualization
@@ -180,10 +176,10 @@ void CreateLuggedGeometry(std::shared_ptr<ChBody> wheelBody) {
     auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
     trimesh_shape->SetMesh(trimesh);
     trimesh_shape->SetName("lugged_wheel");
-    wheelBody->AddAsset(trimesh_shape);
+    wheel_body->AddAsset(trimesh_shape);
 
     auto mcolor = chrono_types::make_shared<ChColorAsset>(0.3f, 0.3f, 0.3f);
-    wheelBody->AddAsset(mcolor);
+    wheel_body->AddAsset(mcolor);
 }
 
 // =============================================================================
@@ -195,7 +191,7 @@ int main(int argc, char* argv[]) {
     // Create HMMWV vehicle
     // --------------------
     HMMWV_Full my_hmmwv;
-    my_hmmwv.SetContactMethod(ChMaterialSurface::SMC);
+    my_hmmwv.SetContactMethod(ChContactMethod::SMC);
     my_hmmwv.SetChassisFixed(false);
     my_hmmwv.SetInitPosition(ChCoordsys<>(initLoc, initRot));
     my_hmmwv.SetPowertrainType(powertrain_model);
@@ -213,17 +209,16 @@ int main(int argc, char* argv[]) {
     // Set wheel contact material.
     // If needed, modify wheel contact and visualization models
     // --------------------------------------------------------
+    auto wheel_material = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+    wheel_material->SetFriction(mu_t);
+    wheel_material->SetYoungModulus(Y_t);
+    wheel_material->SetRestitution(cr_t);
+
     for (auto& axle : my_hmmwv.GetVehicle().GetAxles()) {
         auto wheelBodyL = axle->m_wheels[0]->GetSpindle();
-        wheelBodyL->GetMaterialSurfaceSMC()->SetFriction(mu_t);
-        wheelBodyL->GetMaterialSurfaceSMC()->SetYoungModulus(Y_t);
-        wheelBodyL->GetMaterialSurfaceSMC()->SetRestitution(cr_t);
-        CreateLuggedGeometry(wheelBodyL);
+        CreateLuggedGeometry(wheelBodyL, wheel_material);
         auto wheelBodyR = axle->m_wheels[1]->GetSpindle();
-        wheelBodyR->GetMaterialSurfaceSMC()->SetFriction(mu_t);
-        wheelBodyR->GetMaterialSurfaceSMC()->SetYoungModulus(Y_t);
-        wheelBodyR->GetMaterialSurfaceSMC()->SetRestitution(cr_t);
-        CreateLuggedGeometry(wheelBodyR);
+        CreateLuggedGeometry(wheelBodyR, wheel_material);
     }
 
     // --------------------
@@ -235,59 +230,43 @@ int main(int argc, char* argv[]) {
     // ------------------
     // Create the terrain
     // ------------------
-    ChTerrain* terrain;
 
-    switch (terrain_type) {
-        case DEFORMABLE_SOIL: {
-            SCMDeformableTerrain* terrainD = new SCMDeformableTerrain(system);
-            terrainD->SetSoilParameters(2e6,   // Bekker Kphi
-                                        0,     // Bekker Kc
-                                        1.1,   // Bekker n exponent
-                                        0,     // Mohr cohesive limit (Pa)
-                                        30,    // Mohr friction limit (degrees)
-                                        0.01,  // Janosi shear coefficient (m)
-                                        2e8,   // Elastic stiffness (Pa/m), before plastic yield
-                                        3e4    // Damping (Pa s/m), proportional to negative vertical speed (optional)
-            );
-            /*
-            terrainD->SetBulldozingFlow(true);    // inflate soil at the border of the rut
-            terrainD->SetBulldozingParameters(55, // angle of friction for erosion of displaced material at the border of the rut
-                                            0.8, // displaced material vs downward pressed material.
-                                            5,   // number of erosion refinements per timestep
-                                            10); // number of concentric vertex selections subject to erosion
-            */
-            // Turn on the automatic level of detail refinement, so a coarse terrain mesh
-            // is automatically improved by adding more points under the wheel contact patch:
-            terrainD->SetAutomaticRefinement(true);
-            terrainD->SetAutomaticRefinementResolution(0.04);
+    SCMDeformableTerrain terrain(system);
+    terrain.SetSoilParameters(2e6,   // Bekker Kphi
+                                0,     // Bekker Kc
+                                1.1,   // Bekker n exponent
+                                0,     // Mohr cohesive limit (Pa)
+                                30,    // Mohr friction limit (degrees)
+                                0.01,  // Janosi shear coefficient (m)
+                                2e8,   // Elastic stiffness (Pa/m), before plastic yield
+                                3e4    // Damping (Pa s/m), proportional to negative vertical speed (optional)
+    );
 
-            ////terrainD->SetTexture(vehicle::GetDataFile("terrain/textures/grass.jpg"), 80, 16);
-            ////terrainD->SetPlotType(vehicle::SCMDeformableTerrain::PLOT_PRESSURE_YELD, 0, 30000.2);
-            terrainD->SetPlotType(vehicle::SCMDeformableTerrain::PLOT_SINKAGE, 0, 0.1);
+    ////terrain.SetBulldozingFlow(true);      // inflate soil at the border of the rut
+    ////terrain.SetBulldozingParameters(55,   // angle of friction for erosion of displaced material at rut border
+    ////                                0.8,  // displaced material vs downward pressed material.
+    ////                                5,    // number of erosion refinements per timestep
+    ////                                10);  // number of concentric vertex selections subject to erosion
 
-            terrainD->Initialize(terrainHeight, terrainLength, terrainWidth, divLength, divWidth);
+    // Turn on the automatic level of detail refinement, so a coarse terrain mesh
+    // is automatically improved by adding more points under the wheel contact patch:
+    terrain.SetAutomaticRefinement(true);
+    terrain.SetAutomaticRefinementResolution(0.04);
 
-            terrain = terrainD;
+    // Optionally, enable moving patch feature (single patch around vehicle chassis)
+    terrain.AddMovingPatch(my_hmmwv.GetChassisBody(), ChVector<>(0, 0, 0), 5, 3);
 
-            break;
-        }
+    // Optionally, enable moving patch feature (multiple patches around each wheel)
+    ////for (auto& axle : my_hmmwv.GetVehicle().GetAxles()) {
+    ////    terrain.AddMovingPatch(axle->m_wheels[0]->GetSpindle(), ChVector<>(0, 0, 0), 1, 1);
+    ////    terrain.AddMovingPatch(axle->m_wheels[1]->GetSpindle(), ChVector<>(0, 0, 0), 1, 1);
+    ////}
 
-        case RIGID_SOIL: {
-            RigidTerrain* terrainR = new RigidTerrain(system);
-            auto patch = terrainR->AddPatch(ChCoordsys<>(ChVector<>(0, 0, terrainHeight - 5), QUNIT),
-                                            ChVector<>(terrainLength, terrainWidth, 10));
-            patch->SetContactFrictionCoefficient(0.9f);
-            patch->SetContactRestitutionCoefficient(0.01f);
-            patch->SetContactMaterialProperties(2e7f, 0.3f);
-            patch->SetColor(ChColor(0.8f, 0.8f, 0.5f));
-            patch->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 200, 200);
-            terrainR->Initialize();
+    ////terrain.SetTexture(vehicle::GetDataFile("terrain/textures/grass.jpg"), 80, 16);
+    ////terrain.SetPlotType(vehicle::SCMDeformableTerrain::PLOT_PRESSURE_YELD, 0, 30000.2);
+    terrain.SetPlotType(vehicle::SCMDeformableTerrain::PLOT_SINKAGE, 0, 0.1);
 
-            terrain = terrainR;
-
-            break;
-        }
-    }
+    terrain.Initialize(terrainHeight, terrainLength, terrainWidth, divLength, divWidth);
 
     // ---------------------------------------
     // Create the vehicle Irrlicht application
@@ -330,13 +309,28 @@ int main(int argc, char* argv[]) {
     int step_number = 0;
     int render_frame = 0;
 
+    ChTimer<> timer;
+
     while (app.GetDevice()->run()) {
         double time = system->GetChTime();
+
+        if (step_number == 800) {
+            std::cout << "\nstart timer at t = " << time << std::endl;
+            timer.start();
+        }
+        if (step_number == 1400) {
+            timer.stop();
+            std::cout << "stop timer at t = " << time << std::endl;
+            std::cout << "elapsed: " << timer() << std::endl;
+            std::cout << "\nSCM stats for last step:" << std::endl;
+            terrain.PrintStepStatistics(std::cout);
+        }
 
         // Render scene
         app.BeginScene(true, true, irr::video::SColor(255, 140, 161, 192));
         app.DrawAll();
         ChIrrTools::drawColorbar(0, 0.1, "Sinkage", app.GetDevice(), 30);
+        app.EndScene();
 
         if (img_output && step_number % render_steps == 0) {
             char filename[100];
@@ -350,8 +344,8 @@ int main(int argc, char* argv[]) {
 
         // Update modules
         driver.Synchronize(time);
-        terrain->Synchronize(time);
-        my_hmmwv.Synchronize(time, driver_inputs, *terrain);
+        terrain.Synchronize(time);
+        my_hmmwv.Synchronize(time, driver_inputs, terrain);
         app.Synchronize("", driver_inputs);
 
         // Advance dynamics
@@ -360,12 +354,7 @@ int main(int argc, char* argv[]) {
 
         // Increment frame number
         step_number++;
-
-        app.EndScene();
     }
-
-    // Cleanup
-    delete terrain;
 
     return 0;
 }

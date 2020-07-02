@@ -47,9 +47,7 @@ namespace generic {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-Generic_Vehicle::Generic_Vehicle(const bool fixed,
-                                 SuspensionType suspType,
-                                 ChMaterialSurface::ContactMethod contactMethod)
+Generic_Vehicle::Generic_Vehicle(const bool fixed, SuspensionType suspType, ChContactMethod contactMethod)
     : ChWheeledVehicle("GenericWV", contactMethod), m_suspType(suspType) {
     // Create the chassis subsystem
     m_chassis = chrono_types::make_shared<Generic_Chassis>("Chassis", fixed);
@@ -141,17 +139,15 @@ void Generic_Vehicle::Initialize(const ChCoordsys<>& chassisPos, double chassisF
         default:
             break;
     }
-    m_steerings[0]->Initialize(m_chassis->GetBody(), offset, ChQuaternion<>(1, 0, 0, 0));
+    m_steerings[0]->Initialize(m_chassis, offset, ChQuaternion<>(1, 0, 0, 0));
 
     // Initialize the axle subsystems.
-    m_axles[0]->Initialize(m_chassis->GetBody(), ChVector<>(1.6914, 0, 0), ChVector<>(1.3, 0, 0.0),
-                           m_steerings[0]->GetSteeringLink(), 0, 0.0);
-    m_axles[1]->Initialize(m_chassis->GetBody(), ChVector<>(-1.6865, 0, 0), ChVector<>(1.3, 0, 0.0),
-                           m_chassis->GetBody(), -1, 0.0);
+    m_axles[0]->Initialize(m_chassis, nullptr, m_steerings[0], ChVector<>(1.6914, 0, 0), ChVector<>(1.3, 0, 0.0), 0.0);
+    m_axles[1]->Initialize(m_chassis, nullptr, nullptr, ChVector<>(-1.6865, 0, 0), ChVector<>(1.3, 0, 0.0), 0.0);
 
     // Initialize the driveline subsystem (RWD)
     std::vector<int> driven_susp = {1};
-    m_driveline->Initialize(m_chassis->GetBody(), m_axles, driven_susp);
+    m_driveline->Initialize(m_chassis, m_axles, driven_susp);
 }
 
 // -----------------------------------------------------------------------------

@@ -16,6 +16,7 @@
 #include <cuda_runtime.h>
 #include <cmath>
 #include <vector>
+#include <algorithm>
 #include "ChGranular.h"
 #include "chrono/utils/ChUtilsGenerators.h"
 #include "chrono/core/ChVector.h"
@@ -44,6 +45,7 @@ ChSystemGranularSMC::ChSystemGranularSMC(float sphere_rad, float density, float3
       nSpheres(0),
       elapsedSimTime(0.f),
       verbosity(INFO),
+      use_min_length_unit(true),
       file_write_mode(CSV),
       X_accGrav(0.f),
       Y_accGrav(0.f),
@@ -66,6 +68,7 @@ ChSystemGranularSMC::ChSystemGranularSMC(float sphere_rad, float density, float3
     gpuErrchk(cudaMallocManaged(&sphere_data, sizeof(ChGranSphereData), cudaMemAttachGlobal));
     psi_T = PSI_T_DEFAULT;
     psi_L = PSI_L_DEFAULT;
+    psi_R = PSI_R_DEFAULT;
     gran_params->friction_mode = FRICTIONLESS;
     gran_params->rolling_mode = NO_RESISTANCE;
     gran_params->time_integrator = EXTENDED_TAYLOR;
@@ -254,6 +257,10 @@ void ChSystemGranularSMC::writeFile(std::string ofile) const {
             outstrstream << ",wx,wy,wz";
         }
 
+        if (GET_OUTPUT_SETTING(FORCE_COMPONENTS)) {
+            outstrstream << ",fx,fy,fz";
+        }
+
         outstrstream << "\n";
         for (unsigned int n = 0; n < nSpheres; n++) {
             unsigned int ownerSD = sphere_owner_SDs.at(n);
@@ -297,6 +304,16 @@ void ChSystemGranularSMC::writeFile(std::string ofile) const {
                 outstrstream << "," << sphere_Omega_X.at(n) / TIME_SU2UU << "," << sphere_Omega_Y.at(n) / TIME_SU2UU
                              << "," << sphere_Omega_Z.at(n) / TIME_SU2UU;
             }
+
+            if (GET_OUTPUT_SETTING(FORCE_COMPONENTS)) {
+                double massSphere =
+                    (4.0 / 3.0) * CH_C_PI * sphere_radius_UU * sphere_radius_UU * sphere_radius_UU * sphere_density_UU;
+                double fx = (sphere_acc_X.at(n) - gran_params->gravAcc_X_SU) * massSphere * FORCE_SU2UU;
+                double fy = (sphere_acc_Y.at(n) - gran_params->gravAcc_Y_SU) * massSphere * FORCE_SU2UU;
+                double fz = (sphere_acc_Z.at(n) - gran_params->gravAcc_Z_SU) * massSphere * FORCE_SU2UU;
+                outstrstream << "," << fx << "," << fy << "," << fz;
+            }
+
             outstrstream << "\n";
         }
 
@@ -439,14 +456,14 @@ void ChSystemGranularSMC::copyConstSphereDataToDevice() {
     int64_t true_max_pos = std::max(std::max(gran_params->max_x_pos_unsigned, gran_params->max_y_pos_unsigned),
                                     gran_params->max_z_pos_unsigned);
 
-    if (true_max_pos >= INT_MAX) {
-        printf("WARNING! Max possible position is greater than INT_MAX!!!\n");
-    }
+    // if (true_max_pos >= INT_MAX) {
+    //     printf("WARNING! Max possible position is greater than INT_MAX!!!\n");
+    // }
 
-    if (true_max_pos >= UINT_MAX) {
-        printf("BIG WARNING! Max possible position is greater than UINT_MAX!!!\n");
-        printf("You are now relying on Conlain's local coordinate implementation.\n");
-    }
+    // if (true_max_pos >= UINT_MAX) {
+    //     printf("BIG WARNING! Max possible position is greater than UINT_MAX!!!\n");
+    //     printf("You are now relying on Conlain's local coordinate implementation.\n");
+    // }
 
     if (true_max_pos >= LLONG_MAX) {
         printf("ERROR! Max possible position is greater than LLONG_MAX!!!\n");
@@ -834,6 +851,15 @@ void ChSystemGranularSMC::switchToSimUnits() {
     this->LENGTH_SU2UU =
         std::pow(massSphere * massSphere * magGravAcc * magGravAcc * sphere_radius_UU / (K_star * K_star), 1. / 3.) /
         psi_L;
+    this->LENGTH_SU2UU = std::min((double)(sphere_radius_UU * psi_R), this->LENGTH_SU2UU);
+
+    // If we can get better precision by just dividing the box as fine as possible
+    // using single ints, do that. Conservative by a factor of 2.
+    if (this->use_min_length_unit) {
+        this->LENGTH_SU2UU =
+            std::min((double)std::max(box_size_X, std::max(box_size_Y, box_size_Z)) / std::numeric_limits<int>::max(),
+                     this->LENGTH_SU2UU);
+    }
 
     stepSize_SU = (float)(stepSize_UU / TIME_SU2UU);
     gran_params->stepSize_SU = stepSize_SU;

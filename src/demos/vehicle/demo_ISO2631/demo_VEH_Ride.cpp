@@ -30,7 +30,7 @@
 
 #include "chrono_vehicle/driver/ChPathFollowerDriver.h"
 #include "chrono_vehicle/powertrain/SimpleCVTPowertrain.h"
-#include "chrono_vehicle/terrain/RigidTerrain.h"
+#include "chrono_vehicle/terrain/RandomSurfaceTerrain.h"
 #include "chrono_vehicle/wheeled_vehicle/vehicle/WheeledVehicle.h"
 
 #include "chrono_models/vehicle/hmmwv/HMMWV_PacejkaTire.h"
@@ -70,10 +70,14 @@ std::string steering_controller_file("hmmwv/SteeringController.json");
 std::string speed_controller_file("hmmwv/SpeedController.json");
 
 // Initial vehicle position
-ChVector<> initLoc(0, 0, 0.6);
+ChVector<> initLoc(-100, 0, 0.6);
 
 // Simulation step size
 double step_size = 1e-3;
+
+// Logging of seat acceleration data on flat road surface is useless and would lead to distorted results
+double xstart = 0.0;  // start logging when the vehicle crosses this x position
+double xend = 400.0;  // end logging here, this also the end of our world
 
 // =============================================================================
 
@@ -82,7 +86,7 @@ int main(int argc, char* argv[]) {
 
     int iTire = 1;
 
-    const int rmsVals[5] = {0, 10, 20, 30, 40};
+    double rmsVal = 0.0;
     int iTerrain = 1;
     double target_speed = 15.0;
 
@@ -94,33 +98,33 @@ int main(int argc, char* argv[]) {
         case 1:
             GetLog() << "usage: demo_VEH_Ride [TerrainNumber [Speed [TireNumberOneToFive]]\n\n";
             GetLog() << "Using standard values for simulation:\n"
-                     << "Terrain No. = " << iTerrain << " (" << rmsVals[iTerrain] << " mm RMS)\n"
+                     << "Terrain No. = " << iTerrain << "\n"
                      << "Speed       = " << target_speed << " m/s\n"
                      << "Tire Code (1=TMeasy, 2=Fiala, 3=Pacejka, 4=Pacejka89, 5=Pacejka02) = " << iTire << "\n";
             break;
         case 2:
-            if (atoi(argv[1]) >= 1 && atoi(argv[1]) <= 4) {
+            if (atoi(argv[1]) >= 1 && atoi(argv[1]) <= 8) {
                 iTerrain = atoi(argv[1]);
                 rigidterrain_file = "terrain/RigidRandom" + std::to_string(iTerrain) + ".json";
             }
             GetLog() << "Using values for simulation:\n"
-                     << "Terrain No. = " << iTerrain << " (" << rmsVals[iTerrain] << " mm RMS)\n"
+                     << "Terrain No. = " << iTerrain << "\n"
                      << "Speed       = " << target_speed << " m/s\n"
                      << "Tire Code (1=TMeasy, 2=Fiala, 3=Pacejka, 4=Pacejka89, 5=Pacejka02) = " << iTire << "\n";
             break;
         case 3:
-            if (atoi(argv[1]) >= 1 && atoi(argv[1]) <= 4) {
+            if (atoi(argv[1]) >= 1 && atoi(argv[1]) <= 8) {
                 iTerrain = atoi(argv[1]);
                 rigidterrain_file = "terrain/RigidRandom" + std::to_string(iTerrain) + ".json";
             }
             target_speed = atof(argv[2]);
             GetLog() << "Using values for simulation:\n"
-                     << "Terrain No. = " << iTerrain << " (" << rmsVals[iTerrain] << " mm RMS)\n"
+                     << "Terrain No. = " << iTerrain << "\n"
                      << "Speed       = " << target_speed << " m/s\n"
                      << "Tire Code (1=TMeasy, 2=Fiala, 3=Pacejka, 4=Pacejka89, 5=Pacejka02) = " << iTire << "\n";
             break;
         case 4:
-            if (atoi(argv[1]) >= 1 && atoi(argv[1]) <= 4) {
+            if (atoi(argv[1]) >= 1 && atoi(argv[1]) <= 8) {
                 iTerrain = atoi(argv[1]);
                 rigidterrain_file = "terrain/RigidRandom" + std::to_string(iTerrain) + ".json";
             }
@@ -129,7 +133,7 @@ int main(int argc, char* argv[]) {
                 iTire = atoi(argv[3]);
             }
             GetLog() << "Using values for simulation:\n"
-                     << "Terrain No. = " << iTerrain << " (" << rmsVals[iTerrain] << " mm RMS)\n"
+                     << "Terrain No. = " << iTerrain << "\n"
                      << "Speed       = " << target_speed << " m/s\n"
                      << "Tire Code (1=TMeasy, 2=Fiala, 3=Pacejka, 4=Pacejka89, 5=Pacejka02) = " << iTire << "\n";
             break;
@@ -140,7 +144,7 @@ int main(int argc, char* argv[]) {
     // --------------------------
 
     // Create the vehicle system
-    WheeledVehicle vehicle(vehicle::GetDataFile(vehicle_file), ChMaterialSurface::NSC);
+    WheeledVehicle vehicle(vehicle::GetDataFile(vehicle_file), ChContactMethod::NSC);
     vehicle.Initialize(ChCoordsys<>(initLoc, QUNIT));
     ////vehicle.GetChassis()->SetFixed(true);
     vehicle.SetChassisVisualizationType(VisualizationType::PRIMITIVES);
@@ -148,10 +152,37 @@ int main(int argc, char* argv[]) {
     vehicle.SetSteeringVisualizationType(VisualizationType::PRIMITIVES);
     vehicle.SetWheelVisualizationType(VisualizationType::NONE);
 
-    GetLog() << "\nBe patient - startup may take some time... \n";
-
     // Create the ground
-    RigidTerrain terrain(vehicle.GetSystem(), vehicle::GetDataFile(rigidterrain_file));
+    RandomSurfaceTerrain terrain(vehicle.GetSystem(), xend);
+    switch (iTerrain) {
+        default:
+        case 1:
+            terrain.Initialize(RandomSurfaceTerrain::SurfaceType::ISO8608_A_CORR, vehicle.GetWheeltrack(0));
+            break;
+        case 2:
+            terrain.Initialize(RandomSurfaceTerrain::SurfaceType::ISO8608_B_CORR, vehicle.GetWheeltrack(0));
+            break;
+        case 3:
+            terrain.Initialize(RandomSurfaceTerrain::SurfaceType::ISO8608_C_CORR, vehicle.GetWheeltrack(0));
+            break;
+        case 4:
+            terrain.Initialize(RandomSurfaceTerrain::SurfaceType::ISO8608_D_CORR, vehicle.GetWheeltrack(0));
+            break;
+        case 5:
+            terrain.Initialize(RandomSurfaceTerrain::SurfaceType::ISO8608_E_CORR, vehicle.GetWheeltrack(0));
+            break;
+        case 6:
+            terrain.Initialize(RandomSurfaceTerrain::SurfaceType::ISO8608_F_NOCORR, vehicle.GetWheeltrack(0));
+            break;
+        case 7:
+            terrain.Initialize(RandomSurfaceTerrain::SurfaceType::ISO8608_G_NOCORR, vehicle.GetWheeltrack(0));
+            break;
+        case 8:
+            terrain.Initialize(RandomSurfaceTerrain::SurfaceType::ISO8608_H_NOCORR, vehicle.GetWheeltrack(0));
+            break;
+    }
+
+    rmsVal = terrain.GetRMS() * 1000.0;  // unit [mm]
 
     // Create and initialize the powertrain system
     auto powertrain = chrono_types::make_shared<SimpleCVTPowertrain>(vehicle::GetDataFile(simplepowertrain_file));
@@ -206,7 +237,7 @@ int main(int argc, char* argv[]) {
 #ifdef USE_IRRLICHT
 
     // Create the visualization application
-    // std::wstring windowTitle = L"Vehicle Ride Quality Demo - " + std::to_wstring(rmsVals[iTerrain]) + L" mm RMS";
+    // std::wstring windowTitle = L"Vehicle Ride Quality Demo - " + std::to_wstring(rmsVal[iTerrain]) + L" mm RMS";
     std::wstring windowTitle = L"Vehicle Ride Quality Demo ";
     switch (iTire) {
         default:
@@ -226,11 +257,16 @@ int main(int argc, char* argv[]) {
             windowTitle.append(L"(Pacejka02 Tire)");
             break;
     }
-    windowTitle.append(L" - " + std::to_wstring(rmsVals[iTerrain]) + L" mm RMS");
-    ChWheeledVehicleIrrApp app(&vehicle, windowTitle.c_str());
+    windowTitle.append(L" - " + std::to_wstring(rmsVal) + L" mm RMS");
+    ChWheeledVehicleIrrApp app(&vehicle, windowTitle);
 
     app.SetSkyBox();
-    app.AddTypicalLights(irr::core::vector3df(30.f, -30.f, 100.f), irr::core::vector3df(30.f, 50.f, 100.f), 250, 130);
+    // app.AddTypicalLights(irr::core::vector3df(30.f, -30.f, 100.f), irr::core::vector3df(30.f, 50.f, 100.f), 250,
+    // 130);
+    app.GetSceneManager()->setAmbientLight(irr::video::SColorf(0.1f, 0.1f, 0.1f, 1.0f));
+    app.AddTypicalLights(irr::core::vector3df(-50.f, -30.f, 40.f), irr::core::vector3df(10.f, 30.f, 40.f), 50, 50,
+                         irr::video::SColorf(0.7f, 0.7f, 0.7f, 1.0f), irr::video::SColorf(0.7f, 0.7f, 0.7f, 1.0f));
+
     app.SetChaseCamera(ChVector<>(0.0, 0.0, 1.75), 6.0, 0.5);
 
     app.SetTimestep(step_size);
@@ -249,10 +285,6 @@ int main(int argc, char* argv[]) {
     // ---------------
     // Simulation loop
     // ---------------
-
-    // Logging of seat acceleration data on flat road surface is useless and would lead to distorted results
-    double xstart = 100.0;  // start logging when the vehicle crosses this x position
-    double xend = 400.0;    // end logging here, this also the end of our world
 
 #ifdef USE_IRRLICHT
 
@@ -283,7 +315,8 @@ int main(int argc, char* argv[]) {
         }
         if (xpos >= xstart) {
             double speed = vehicle.GetVehicleSpeed();
-            ChVector<> seat_acc = vehicle.GetVehicleAcceleration(vehicle.GetChassis()->GetLocalDriverCoordsys().pos);
+            ChVector<> seat_acc =
+                vehicle.GetVehiclePointAcceleration(vehicle.GetChassis()->GetLocalDriverCoordsys().pos);
             seat_logger.AddData(speed, seat_acc);
         }
 
@@ -310,7 +343,8 @@ int main(int argc, char* argv[]) {
 
         if (xpos >= xstart) {
             double speed = vehicle.GetVehicleSpeed();
-            ChVector<> seat_acc = vehicle.GetVehicleAcceleration(vehicle.GetChassis()->GetLocalDriverCoordsys().pos);
+            ChVector<> seat_acc =
+                vehicle.GetVehiclePointAcceleration(vehicle.GetChassis()->GetLocalDriverCoordsys().pos);
             seat_logger.AddData(speed, seat_acc);
         }
     }
@@ -326,6 +360,7 @@ int main(int argc, char* argv[]) {
     double ap = seat_logger.GetAbsorbedPowerVertical();
 
     GetLog() << "Ride Quality Results #1 (ISO 2631-1):\n";
+    GetLog() << "  Root Mean Square of the Road = " << rmsVal << " mm\n";
     GetLog() << "  Average Speed                = " << avg_speed << " m/s\n";
     GetLog() << "  Weighted Acceleration        = " << awv << " m/s^2\n";
     GetLog() << "  Vibration Dose Value         = " << vdv << " m/s^1.75\n";

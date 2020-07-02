@@ -88,14 +88,14 @@ int main(int argc, char* argv[]) {
     // -----------------------
 
     bool create_track = true;
-    ChMaterialSurface::ContactMethod contact_method = ChMaterialSurface::NSC;
+    ChContactMethod contact_method = ChContactMethod::NSC;
 
     //// NOTE
     //// When using SMC, a double-pin shoe type requires MKL or MUMPS.
     //// However, there appear to still be redundant constraints in the double-pin assembly
     //// resulting in solver failures with MKL and MUMPS (rank-deficient matrix).
     ////
-    //// For now, use ChMaterialSurface::NSC for a double-pin track model
+    //// For now, use ChContactMethod::NSC for a double-pin track model
 
     ChTrackTestRig* rig = nullptr;
     if (use_JSON) {
@@ -212,7 +212,7 @@ int main(int argc, char* argv[]) {
     // ------------------------------
 
     // Cannot use HHT with MKL/MUMPS with NSC contact
-    if (contact_method == ChMaterialSurface::NSC) {
+    if (contact_method == ChContactMethod::NSC) {
         use_mkl = false;
         use_mumps = false;
     }

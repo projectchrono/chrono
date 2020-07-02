@@ -59,11 +59,10 @@ class CH_VEHICLE_API ChTrackDrivelineBDS : public ChDrivelineTV {
     void SetAxleDirection(const ChVector<>& dir) { m_dir_axle = dir; }
 
     /// Initialize the driveline subsystem.
-    /// This function connects this driveline subsystem to the sprockets of the
-    /// two track assembly subsystems.
-    virtual void Initialize(std::shared_ptr<ChBody> chassis,              ///< handle to the chassis body
-                            std::shared_ptr<ChTrackAssembly> track_left,  ///< handle to the left track assembly
-                            std::shared_ptr<ChTrackAssembly> track_right  ///< handle to the right track assembly
+    /// This function connects this driveline subsystem to the sprockets of the two track assembly subsystems.
+    virtual void Initialize(std::shared_ptr<ChChassis> chassis,           ///< associated chassis subsystem
+                            std::shared_ptr<ChTrackAssembly> track_left,  ///< left track assembly
+                            std::shared_ptr<ChTrackAssembly> track_right  ///< right track assembly
                             ) override;
 
     /// Get the motor torque to be applied to the specified sprocket.

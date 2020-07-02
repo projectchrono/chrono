@@ -64,25 +64,10 @@ void ReissnerTire::ProcessJSON(const rapidjson::Document& d) {
 
     // Read contact material data
     assert(d.HasMember("Contact Material"));
+    m_mat_info = ReadMaterialInfoJSON(d["Contact Material"]);
 
-    float mu = d["Contact Material"]["Coefficient of Friction"].GetFloat();
-    float cr = d["Contact Material"]["Coefficient of Restitution"].GetFloat();
-
-    SetContactFrictionCoefficient(mu);
-    SetContactRestitutionCoefficient(cr);
-
-    if (d["Contact Material"].HasMember("Properties")) {
-        float ym = d["Contact Material"]["Properties"]["Young Modulus"].GetFloat();
-        float pr = d["Contact Material"]["Properties"]["Poisson Ratio"].GetFloat();
-        SetContactMaterialProperties(ym, pr);
-    }
-    if (d["Contact Material"].HasMember("Coefficients")) {
-        float kn = d["Contact Material"]["Coefficients"]["Normal Stiffness"].GetFloat();
-        float gn = d["Contact Material"]["Coefficients"]["Normal Damping"].GetFloat();
-        float kt = d["Contact Material"]["Coefficients"]["Tangential Stiffness"].GetFloat();
-        float gt = d["Contact Material"]["Coefficients"]["Tangential Damping"].GetFloat();
-        SetContactMaterialCoefficients(kn, gn, kt, gt);
-    }
+	// Structural damping
+    m_alpha = d["Structural Damping Coefficient"].GetDouble();
 
     // Read the list of materials (note that order is important)
     int num_materials = d["Materials"].Size();
@@ -94,6 +79,8 @@ void ReissnerTire::ProcessJSON(const rapidjson::Document& d) {
             double E = d["Materials"][i]["E"].GetDouble();
             double nu = d["Materials"][i]["nu"].GetDouble();
             m_materials[i] = chrono_types::make_shared<ChMaterialShellReissnerIsothropic>(rho, E, nu);
+			auto mdamping = chrono_types::make_shared<ChDampingReissnerRayleigh>(m_materials[i]->GetElasticity(),m_alpha);
+			m_materials[i]->SetDamping(mdamping);
         } else if (type.compare("Orthotropic") == 0) {
             double rho = d["Materials"][i]["Density"].GetDouble();
             double Ex = d["Materials"][i]["Ex"].GetDouble();
@@ -103,11 +90,10 @@ void ReissnerTire::ProcessJSON(const rapidjson::Document& d) {
             double Gxz =d["Materials"][i]["Gxz"].GetDouble();
             double Gyz =d["Materials"][i]["Gyz"].GetDouble();
             m_materials[i] = chrono_types::make_shared<ChMaterialShellReissnerOrthotropic>(rho, Ex, Ey, nu, Gxy, Gxz, Gyz);
+			auto mdamping = chrono_types::make_shared<ChDampingReissnerRayleigh>(m_materials[i]->GetElasticity(),m_alpha);
+			m_materials[i]->SetDamping(mdamping);
         }
-    }
-
-    // Structural damping
-    m_alpha = d["Structural Damping Coefficient"].GetDouble();
+    }  
 
     // Default tire pressure
     m_default_pressure = d["Default Pressure"].GetDouble();
@@ -364,8 +350,7 @@ void ReissnerTire::CreateMesh(const ChFrameMoving<>& wheel_frame, VehicleSide si
                 }
             }
 
-            // Set other element properties
-            element->SetAlphaDamp(m_alpha);
+
             //***TODO*** add gravity load 
             //element->SetGravityOn(true); 
 
@@ -504,6 +489,19 @@ std::vector<std::shared_ptr<fea::ChNodeFEAbase>> ReissnerTire::GetConnectedNodes
 
     return nodes;
 }
+
+void ReissnerTire::CreateContactMaterial() {
+    m_contact_mat = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+    m_contact_mat->SetFriction(m_mat_info.mu);
+    m_contact_mat->SetRestitution(m_mat_info.cr);
+    m_contact_mat->SetYoungModulus(m_mat_info.Y);
+    m_contact_mat->SetPoissonRatio(m_mat_info.nu);
+    m_contact_mat->SetKn(m_mat_info.kn);
+    m_contact_mat->SetGn(m_mat_info.gn);
+    m_contact_mat->SetKt(m_mat_info.kt);
+    m_contact_mat->SetGt(m_mat_info.gt);
+}
+
 
 }  // end namespace vehicle
 }  // end namespace chrono

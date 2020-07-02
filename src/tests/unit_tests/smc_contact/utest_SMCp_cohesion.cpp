@@ -62,6 +62,10 @@ class CohesionTest : public ::testing::TestWithParam<ChSystemSMC::ContactForceMo
         SetSimParameters(sys, ChVector<>(0, 0, 0), fmodel);
 
         CHOMPfunctions::SetNumThreads(2);
+        sys->GetSettings()->perform_thread_tuning = false;
+#pragma omp parallel
+#pragma omp master
+        std::cout << "Using " << omp_get_num_threads() << " threads" << std::endl;
         
         // Add the sphere to the system
         srad = 0.5;

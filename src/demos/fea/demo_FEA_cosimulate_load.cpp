@@ -171,15 +171,11 @@ int main(int argc, char* argv[]) {
     }
 
     // Create the contact surface(s).
-    // Use the AddFacesFromBoundary() to select automatically the outer skin of the tetrahedron mesh:
-
-    auto mcontactsurf = chrono_types::make_shared<ChContactSurfaceMesh>();
+    // Use the AddFacesFromBoundary() to select automatically the outer skin of the tetrahedron mesh.
+    // Note that the contact material specified here is not used, as contacts will be emulated through cosimulation.
+    auto mcontactsurf = chrono_types::make_shared<ChContactSurfaceMesh>(mysurfmaterial);
     my_mesh->AddContactSurface(mcontactsurf);
-
     mcontactsurf->AddFacesFromBoundary();
-
-    mcontactsurf->SetMaterialSurface(
-        mysurfmaterial);  // by the way it is not needed because contacts will be emulated by cosimulation
 
     // Create a mesh load for cosimulation, acting on the contact surface above
     // (forces on nodes will be computed by an external procedure)

@@ -15,7 +15,7 @@
 
 #include "chrono/collision/edgetempest/ChCCompile.h"
 #include "chrono/collision/edgetempest/ChCCollisionTree.h"
-#include "chrono/collision/ChCCollisionPair.h"
+#include "chrono/collision/ChCollisionPair.h"
 
 namespace chrono {
 /// Namespace for classes devoted to

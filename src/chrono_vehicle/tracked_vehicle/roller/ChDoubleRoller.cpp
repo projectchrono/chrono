@@ -37,6 +37,9 @@ void ChDoubleRoller::Initialize(std::shared_ptr<ChBodyAuxRef> chassis, const ChV
     // Invoke the base class method
     ChRoller::Initialize(chassis, location);
 
+    CreateContactMaterial(m_wheel->GetSystem()->GetContactMethod());
+    assert(m_material && m_material->GetContactMethod() == m_wheel->GetSystem()->GetContactMethod());
+
     // Add contact geometry.
     double radius = GetRadius();
     double width = 0.5 * (GetWidth() - GetGap());
@@ -50,8 +53,8 @@ void ChDoubleRoller::Initialize(std::shared_ptr<ChBodyAuxRef> chassis, const ChV
     m_wheel->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(TrackedCollisionFamily::WHEELS);
     m_wheel->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(TrackedCollisionFamily::IDLERS);
 
-    m_wheel->GetCollisionModel()->AddCylinder(radius, radius, width / 2, ChVector<>(0, offset, 0));
-    m_wheel->GetCollisionModel()->AddCylinder(radius, radius, width / 2, ChVector<>(0, -offset, 0));
+    m_wheel->GetCollisionModel()->AddCylinder(m_material, radius, radius, width / 2, ChVector<>(0, offset, 0));
+    m_wheel->GetCollisionModel()->AddCylinder(m_material, radius, radius, width / 2, ChVector<>(0, -offset, 0));
     
     m_wheel->GetCollisionModel()->BuildModel();
 }

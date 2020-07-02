@@ -32,7 +32,6 @@
 
   "Visualization":
   {
-      "Mesh Filename":              "M113/Roller_R.obj",
-      "Mesh Name":                  "Roller_R_POV_geom"
+      "Mesh":              "M113/Roller_R.obj"
   }
 }

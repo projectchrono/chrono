@@ -16,6 +16,8 @@
 #define CHBEAMSECTION_H
 
 #include "chrono/core/ChMathematics.h"
+#include "chrono/core/ChVector.h"
+#include <vector>
 
 namespace chrono {
 namespace fea {
@@ -37,112 +39,301 @@ class ChApi ChBeamMaterialInternalData {
     double p_strain_acc;  // accumulated flow,  \overbar\eps^p  in Neto-Owen book
 };
 
-/// Base class for properties of all beam sections.
-/// A beam section can be shared between multiple beams.
-/// A beam section contains the models for elasticity, plasticity, damping, etc.
-class ChApi ChBeamSectionProperties {
-  public:
-    double y_drawsize;
-    double z_drawsize;
-    bool is_circular;
 
-    double Area;
-    double density;
 
-    ChBeamSectionProperties() : y_drawsize(0.01), z_drawsize(0.01), is_circular(false), Area(1), density(1000) {}
+/// Base class for drawing tesselated profiles of beams in 3D views, if needed.
+/// This cross section visualization shape is independent from physical properties 
+/// (area, inertia, etc.) that you can define with other components of the ChBeamSection,
+/// such as for example ChBeamSectionCosseratElasticity, etc.
+/// Used as a component of ChBeamSection.
 
-    virtual ~ChBeamSectionProperties() {}
+class ChApi ChBeamSectionShape {
+public:
+    //
+    // Functions for drawing the shape via triangulation:
+    //
 
-    /// Sets the rectangular thickness of the beam on y and z directions,
-    /// only for drawing/rendering purposes (these thickness values do NOT
-    /// have any meaning at a physical level, use SetAsRectangularSection()
-    ////instead if you want to affect also the inertias of the beam section).
-    void SetDrawThickness(double thickness_y, double thickness_z) {
-        this->y_drawsize = thickness_y;
-        this->z_drawsize = thickness_z;
-    }
-    double GetDrawThicknessY() { return this->y_drawsize; }
-    double GetDrawThicknessZ() { return this->z_drawsize; }
+    /// Get the n. of lines making the profile of the section, for meshing purposes.
+    /// C0 continuity is required between lines, C1 also required within each line.
+    /// Ex. a circle has 1 line, a cube 4 lines, etc. Sharp corners can be done mith multiple lines.
+    virtual int GetNofLines() const = 0;
 
-    /// Tells if the section must be drawn as a circular
-    /// section instead than default rectangular
-    bool IsCircular() { return is_circular; }
-    /// Set if the section must be drawn as a circular
-    /// section instead than default rectangular
-    void SetCircular(bool ic) { is_circular = ic; }
+    /// Get the n. of points to be allocated per each section, for the i-th line in the section.
+    /// We assume one also allocates a n. of 3d normals equal to n of points.
+    virtual int GetNofPoints(const int i_line) const = 0;
 
-    /// Sets the radius of the beam if in 'circular section' draw mode,
-    /// only for drawing/rendering purposes (this radius value do NOT
-    /// have any meaning at a physical level, use ChBeamSectionBasic::SetAsCircularSection()
-    ////instead if you want to affect also the inertias of the beam section).
-    void SetDrawCircularRadius(double draw_rad) { this->y_drawsize = draw_rad; }
-    double GetDrawCircularRadius() { return this->y_drawsize; }
+    /// Compute the points (in the reference of the section), for the i-th line in the section. 
+    /// Note: mpoints must already have the proper size.
+    virtual void GetPoints(const int i_line, std::vector<ChVector<>>& mpoints) const = 0;
 
-    /// Set the cross sectional area A of the beam (m^2)
-    void SetArea(const double ma) { this->Area = ma; }
-    double GetArea() const { return this->Area; }
+    /// Compute the normals (in the reference of the section) at each point, for the i-th line in the section. 
+    /// Note: mnormals must already have the proper size.
+    virtual void GetNormals(const int i_line, std::vector<ChVector<>>& mnormals) const = 0;
 
-    /// Set the density of the beam (kg/m^3)
-    void SetDensity(double md) { this->density = md; }
-    double GetDensity() const { return this->density; }
 
-    /// Shortcut: set elastic and plastic constants
-    /// at once, given the y and z widths of the beam assumed
-    /// with rectangular shape.
-    virtual void SetAsRectangularSection(double width_y, double width_z) = 0;
+    /// Returns the axis-aligned bounding box (assuming axes of local reference of the section) 
+    /// This functions has many uses, ex.for drawing, optimizations, collisions.
+    /// We provide a fallback default implementation that iterates over all points thanks to GetPoints(),
+    /// but one could override this if a more efficient implementaiton is possible (ex for circular beams, etc.)
+    virtual void GetAABB(double& ymin, double& ymax, double& zmin, double& zmax) const {
+        ymin = 1e30;
+        ymax = -1e30;
+        zmin = 1e30;
+        zmax = -1e30;
+        for (int nl = 0; nl < GetNofLines(); ++nl) {
+            std::vector<ChVector<>> mpoints(GetNofPoints(nl));
+            GetPoints(nl, mpoints);
+            for (int np = 0; np < GetNofPoints(nl); ++nl) {
+                if (mpoints[np].y() < ymin)
+                    ymin = mpoints[np].y();
+                if (mpoints[np].y() > ymax)
+                    ymax = mpoints[np].y();
+                if (mpoints[np].z() < zmin)
+                    zmin = mpoints[np].z();
+                if (mpoints[np].z() > zmax)
+                    zmax = mpoints[np].z();
+            }   
+        }
+    };
 
-    /// Shortcut: set elastic and plastic constants
-    /// at once, given the diameter of the beam assumed
-    /// with circular shape.
-    virtual void SetAsCircularSection(double diameter) = 0;
 };
 
-//
-// OLD CLASSES FOR BEAM MATERIALS
-//
+
+/// A ready-to-use class for drawing properties of circular beams.
+/// Used as a component of ChBeamSection
+
+class ChApi ChBeamSectionShapeCircular : public ChBeamSectionShape {
+public:
+
+    ChBeamSectionShapeCircular(double mradius, int mresolution = 10) {
+        radius = mradius;
+        resolution = mresolution;
+        this->UpdateProfile();
+    }
+
+    //
+    // Functions for drawing the shape via triangulation:
+    //
+
+    virtual int GetNofLines() const override {
+        return 1;
+    };
+
+    virtual int GetNofPoints(const int i_line) const override {
+        return resolution+1;
+    };
+
+    /// Compute the points (in the reference of the section). 
+    /// Note: mpoints must already have the proper size.
+    virtual void GetPoints(const int i_line, std::vector<ChVector<>>& mpoints) const override { 
+        mpoints = points; 
+    };
+
+    /// Compute the normals (in the reference of the section) at each point. 
+    /// Note: mnormals must already have the proper size.
+    virtual void GetNormals(const int i_line, std::vector<ChVector<>>& mnormals) const override {
+        mnormals = normals;
+    }
+
+    //
+    // Functions for drawing, optimizations, collisions
+    //
+
+    /// Returns the axis-aligned bounding box (assuming axes of local reference of the section) 
+    /// This functions has many uses, ex.for drawing, optimizations, collisions.
+    virtual void GetAABB(double& ymin, double& ymax, double& zmin, double& zmax) const override {
+        ymin = -radius;
+        ymax =  radius;
+        zmin = -radius;
+        zmax =  radius;
+    }
+
+private:
+    // internal: update internal precomputed vertex arrays
+    void UpdateProfile() {
+        points.resize(resolution+1);
+        normals.resize(resolution+1);
+        for (size_t is = 0; is < points.size(); ++is) {
+             double sangle = CH_C_2PI * ((double)is / (double)resolution);
+             points[is]  = ChVector<>(0, cos(sangle) * radius, sin(sangle) * radius);
+             normals[is] = ChVector<>(0, cos(sangle) , sin(sangle) );
+        }
+    }
+    
+    int resolution;
+    double radius;
+    std::vector<ChVector<>> points;
+    std::vector<ChVector<>> normals;
+};
+
+
+/// A ready-to-use class for drawing properties of rectangular beams.
+/// Used as a component of ChBeamSection.
+
+class ChApi ChBeamSectionShapeRectangular : public ChBeamSectionShape {
+public:
+
+    ChBeamSectionShapeRectangular(double y_width, double z_width) {
+        z_thick = z_width;
+        y_thick = y_width;
+        this->UpdateProfile();
+    }
+
+    //
+    // Functions for drawing the shape via triangulation:
+    //
+
+    virtual int GetNofLines() const override {
+        return 4;
+    };
+
+    virtual int GetNofPoints(const int i_line) const override {
+        return 2;
+    };
+
+    /// Compute the points (in the reference of the section). 
+    /// Note: mpoints must already have the proper size.
+    virtual void GetPoints(const int i_line, std::vector<ChVector<>>& mpoints) const override { 
+        mpoints = ml_points[i_line]; 
+    };
+
+    /// Compute the normals (in the reference of the section) at each point. 
+    /// Note: mnormals must already have the proper size.
+    virtual void GetNormals(const int i_line, std::vector<ChVector<>>& mnormals) const override {
+        mnormals = ml_normals[i_line];
+    }
+
+    /// Returns the axis-aligned bounding box (assuming axes of local reference of the section) 
+    virtual void GetAABB(double& ymin, double& ymax, double& zmin, double& zmax) const override {
+        ymin = -y_thick*0.5;
+        ymax =  y_thick*0.5;
+        zmin = -z_thick*0.5;
+        zmax =  z_thick*0.5;
+    }
+
+private:
+
+    // internal: update internal precomputed vertex arrays
+    void UpdateProfile() {
+
+        ml_points.resize(4);
+        ml_normals.resize(4);
+
+        double y_thick_half = 0.5 * y_thick;
+        double z_thick_half = 0.5 * z_thick;
+
+        ml_points[0].resize(2);
+        ml_points[0][0].Set(0, -y_thick_half, -z_thick_half);
+        ml_points[0][1].Set(0,  y_thick_half, -z_thick_half);
+
+        ml_points[1].resize(2);
+        ml_points[1][0].Set(0,  y_thick_half, -z_thick_half);
+        ml_points[1][1].Set(0,  y_thick_half,  z_thick_half);
+
+        ml_points[2].resize(2);
+        ml_points[2][0].Set(0,  y_thick_half,  z_thick_half);
+        ml_points[2][1].Set(0, -y_thick_half,  z_thick_half);
+
+        ml_points[3].resize(2);
+        ml_points[3][0].Set(0, -y_thick_half,  z_thick_half);
+        ml_points[3][1].Set(0, -y_thick_half, -z_thick_half);
+
+
+        ml_normals[0].resize(2);
+        ml_normals[0][0].Set(0, 0, -1);
+        ml_normals[0][1].Set(0, 0, -1);
+
+        ml_normals[1].resize(2);
+        ml_normals[1][0].Set(0,  1, 0);
+        ml_normals[1][1].Set(0,  1, 0);
+
+        ml_normals[2].resize(2);
+        ml_normals[2][0].Set(0,  0,  1);
+        ml_normals[2][1].Set(0,  0,  1);
+
+        ml_normals[3].resize(2);
+        ml_normals[3][0].Set(0, -1, 0);
+        ml_normals[3][1].Set(0, -1, 0);
+    }
+
+    double y_thick;
+    double z_thick;
+    std::vector< std::vector<ChVector<>> > ml_points;
+    std::vector< std::vector<ChVector<>> > ml_normals;
+};
+
+
+
 
 /// Base class for properties of beam sections.
 /// A beam section can be shared between multiple beams.
 /// A beam section contains the models for elasticity, plasticity, damping, etc.
 class ChApi ChBeamSection {
   public:
-    double y_drawsize;
-    double z_drawsize;
-    bool is_circular;
 
-    ChBeamSection() : y_drawsize(0.01), z_drawsize(0.01), is_circular(false) {}
+
+    ChBeamSection()  {
+        // default visualization as 1cm square tube
+        this->draw_shape = chrono_types::make_shared<ChBeamSectionShapeRectangular>(0.01, 0.01);
+    }
 
     virtual ~ChBeamSection() {}
 
-    /// Sets the rectangular thickness of the beam on y and z directions,
-    /// only for drawing/rendering purposes (these thickness values do NOT
-    /// have any meaning at a physical level, use ChBeamSectionBasic::SetAsRectangularSection()
-    ////instead if you want to affect also the inertias of the beam section).
-    void SetDrawThickness(double thickness_y, double thickness_z) {
-        this->y_drawsize = thickness_y;
-        this->z_drawsize = thickness_z;
+
+    /// Set the graphical representation for this section. Might be used for collision too.
+    /// This is a 2D profile used for 3D tesselation and visualization of the beam, but NOT used for physical
+    /// properties, that you should rather define with other components of more specialized ChBeamSection,
+    /// such as for example adding ChBeamSectionCosseratElasticity to a ChBeamSectionCosserat, etc.
+    void SetDrawShape(std::shared_ptr<ChBeamSectionShape> mshape) {
+        this->draw_shape = mshape;
     }
-    double GetDrawThicknessY() { return this->y_drawsize; }
-    double GetDrawThicknessZ() { return this->z_drawsize; }
 
-    /// Tells if the section must be drawn as a circular
-    /// section instead than default rectangular
-    bool IsCircular() { return is_circular; }
-    /// Set if the section must be drawn as a circular
-    /// section instead than default rectangular
-    void SetCircular(bool ic) { is_circular = ic; }
+    /// Get the drawing shape of this section (i.e.a 2D profile used for drawing 3D tesselation and visualization)
+    /// By default a thin square section, use SetDrawShape() to change it.
+    std::shared_ptr<ChBeamSectionShape> GetDrawShape() const { 
+        return this->draw_shape; 
+    }
 
-    /// Sets the radius of the beam if in 'circular section' draw mode,
-    /// only for drawing/rendering purposes (this radius value do NOT
-    /// have any meaning at a physical level, use ChBeamSectionBasic::SetAsCircularSection()
-    ////instead if you want to affect also the inertias of the beam section).
-    void SetDrawCircularRadius(double draw_rad) { this->y_drawsize = draw_rad; }
-    double GetDrawCircularRadius() { return this->y_drawsize; }
+
+    /// Shortcut: adds a ChBeamSectionShapeRectangular for visualization as a centered rectangular beam,
+    /// and sets its width/height. 
+    /// NOTE: only for visualization - these thickness values do NOT have any meaning at a physical level, that is set in other ways.
+    void SetDrawThickness(double thickness_y, double thickness_z) {
+        this->draw_shape = chrono_types::make_shared<ChBeamSectionShapeRectangular>(thickness_y, thickness_z);
+    }
+
+    /// Shortcut: adds a ChBeamSectionShapeCircular for visualization as a centered circular beam,
+    /// and sets its radius. 
+    /// NOTE: only for visualization - this radius do NOT have any meaning at a physical level, that is set in other ways.
+    void SetDrawCircularRadius(double draw_rad) { 
+        this->draw_shape = chrono_types::make_shared<ChBeamSectionShapeCircular>(draw_rad);
+    }
+
+    ///***OBSOLETE*** only for backward compability
+    void SetCircular(bool ic) { 
+        ///***OBSOLETE*** 
+    }
+
+private:
+    std::shared_ptr< ChBeamSectionShape > draw_shape;
 };
+
+
+
+
+
+//
+// OLD CLASSES FOR BEAM MATERIALS
+//
+
+
 
 /// Basic geometry for a beam section in 3D, along with basic material
 /// properties (zz and yy moments of inertia, area, Young modulus, etc.)
 /// This material can be shared between multiple beams.
+/// 
+/// \image html "http://www.projectchrono.org/assets/manual/fea_ChElasticityCosseratSimple.png"
+///
 class ChApi ChBeamSectionBasic : public ChBeamSection {
   public:
     double Area;
@@ -213,9 +404,7 @@ class ChApi ChBeamSectionBasic : public ChBeamSection {
         this->Ks_y = 10.0 * (1.0 + poisson) / (12.0 + 11.0 * poisson);
         this->Ks_z = this->Ks_y;
 
-        this->is_circular = false;
-        this->y_drawsize = width_y;
-        this->z_drawsize = width_z;
+        this->SetDrawThickness(width_y, width_z);
     }
 
     /// Shortcut: set Area, Ixx, Iyy, Ksy, Ksz and J torsion constant
@@ -235,7 +424,6 @@ class ChApi ChBeamSectionBasic : public ChBeamSection {
         this->Ks_y = 6.0 * (1.0 + poisson) / (7.0 + 6.0 * poisson);
         this->Ks_z = this->Ks_y;
 
-        this->is_circular = true;
         this->SetDrawCircularRadius(diameter / 2);
     }
 
@@ -264,6 +452,9 @@ class ChApi ChBeamSectionBasic : public ChBeamSection {
 /// Iyy and Izz axes rotated respect reference, centroid with offset
 /// from reference, and shear center with offset from reference.
 /// This material can be shared between multiple beams.
+/// 
+/// \image html "http://www.projectchrono.org/assets/manual/fea_ChElementBeamEuler_section.png"
+///
 class ChApi ChBeamSectionAdvanced : public ChBeamSectionBasic {
   public:
     double alpha;  // Rotation of Izz Iyy respect to reference line x
@@ -338,7 +529,6 @@ class ChApi ChBeamSectionCable : public ChBeamSection {
         this->Area = CH_C_PI * pow((0.5 * diameter), 2);
         this->I = (CH_C_PI / 4.0) * pow((0.5 * diameter), 4);
 
-        this->is_circular = true;
         this->SetDrawCircularRadius(diameter / 2);
     }
 

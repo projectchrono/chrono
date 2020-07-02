@@ -179,11 +179,8 @@ int main(int argc, char* argv[]) {
     int elemcount = 0;
     while (elemcount < TotalNumElements) {
         auto element = chrono_types::make_shared<ChElementBrick>();
-        ChVectorN<double, 3> InertFlexVec;  // read element length, used in ChElementBrick
-        InertFlexVec.setZero();
-        InertFlexVec(0) = ElemLengthXY(elemcount, 0);
-        InertFlexVec(1) = ElemLengthXY(elemcount, 1);
-        InertFlexVec(2) = ElemLengthXY(elemcount, 2);
+        ChVector<double> InertFlexVec(ElemLengthXY(elemcount, 0), ElemLengthXY(elemcount, 1),
+                                      ElemLengthXY(elemcount, 2));  // read element length, used in ChElementBrick
         element->SetInertFlexVec(InertFlexVec);
         element->SetNodes(std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(NumNodes(elemcount, 0))),
                           std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(NumNodes(elemcount, 1))),

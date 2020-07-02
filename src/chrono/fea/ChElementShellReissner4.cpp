@@ -308,7 +308,6 @@ void ChElementShellReissner4::ComputeIPCurvature() {
 
 ChElementShellReissner4::ChElementShellReissner4() : tot_thickness(0) {
     m_nodes.resize(4);
-    m_Alpha = 0;
 
     // add here other constructor-time initializations
     for (int i = 0; i < NUMIP; i++) {
@@ -919,59 +918,59 @@ void ChElementShellReissner4::ComputeInternalForces(ChVectorDynamic<>& Fi) {
 #endif
     }
 
-    // Add Rayleigh stiffness-proportional damping, as
-    //   Fi_damping = Alpha*[Km]*v
-    // where the Km matrix is the material stiffness matrix.
-    // This is just one of the many structural damping approaches, here it is
-    // used because, later, computing the jacobian of internal forces (the damping matrix -[R])
-    // becomes a very easy formula [R] = Alpha*[Km].
-    if (this->m_Alpha) {
-        // fills velocities with speeds of nodes:
-        // {dxdt_1, angular_vel_1,  dxdt_2, angular_vel_2, ...}
-        // Note that angular velocities are in node local frame because in C::E angular
-        // increments are assumed in local frame csys.
-        ChStateDelta velocities(24, nullptr);
-        this->LoadableGetStateBlock_w(0, velocities);
+    // Add damping: 
 
-        // compute Fi_damping = -Alpha*[Km]*v   without explicitly building [Km],
-        // rather exploit the factorization B'CB, as:
-        //   Alpha*[Km]*v = Alpha * [sum_integraton_points ( [B_i]'*[C]*[B_i] * a_i * w_i )] *v
-        //   Alpha*[Km]*v = sum_integraton_points ( [B_i]' * (Alpha * [C]*[B_i] *v) * a_i * w_i )
-        //   Alpha*[Km]*v = sum_integraton_points ( [B_i]' * (   stress_damp_i    ) * a_i * w_i )
-        // where for convenience we denoted stress_damp = Alpha*[C]*[B_i]*v
+    // fills velocities with speeds of nodes:
+    // {dxdt_1, angular_vel_1,  dxdt_2, angular_vel_2, ...}
+    // Note that angular velocities are in node local frame because in C::E angular
+    // increments are assumed in local frame csys.
+    ChStateDelta velocities(24, nullptr);
+    this->LoadableGetStateBlock_w(0, velocities);
 
-        ChVectorN<double, 12> strain_dt;
-        ChVectorN<double, 12> stress_damp;
+    // Note that, in case of ChDampingReissnerRayleigh (rayleigh damping), this
+	// is like computing Fi_damping = -beta*[Km]*v   without explicitly building [Km],
+    // rather exploit the factorization B'CB, as:
+    //   Alpha*[Km]*v = beta * [sum_integraton_points ( [B_i]'*[C]*[B_i] * a_i * w_i )] *v
+    //   Alpha*[Km]*v = sum_integraton_points ( [B_i]' * (beta * [C]*[B_i] *v) * a_i * w_i )
+    //   Alpha*[Km]*v = sum_integraton_points ( [B_i]' * (   stress_damp_i    ) * a_i * w_i )
+    // where for convenience we denoted stress_damp = beta*[C]*[B_i]*v
 
-        for (int i = 0; i < NUMIP; i++) {
-            strain_dt = B_overline_i[i] * velocities;  // [B_i] *v
+    ChVectorN<double, 12> strain_dt;
+    ChVectorN<double, 12> stress_damp;
 
-            ChVector<> eps_dt_1(strain_dt.segment(0, 3));
-            ChVector<> eps_dt_2(strain_dt.segment(3, 3));
-            ChVector<> k_dt_1(strain_dt.segment(6, 3));
-            ChVector<> k_dt_2(strain_dt.segment(9, 3));
-            ChVector<> n1, n2, m1, m2;
-            ChVector<> l_n1, l_n2, l_m1, l_m2;
-            // loop on layers
-            for (size_t il = 0; il < this->m_layers.size(); ++il) {
-                // compute layer stresses (per-unit-length forces and torques), and accumulate  [C]*[B_i]*v
-                m_layers[il].GetMaterial()->ComputeStress(l_n1, l_n2, l_m1, l_m2, eps_dt_1, eps_dt_2, k_dt_1, k_dt_2,
-                                                          m_layers_z[il], m_layers_z[il + 1], m_layers[il].Get_theta());
-                n1 += l_n1;
-                n2 += l_n2;
-                m1 += l_m1;
-                m2 += l_m2;
-            }
-            stress_damp.segment(0, 3) = n1.eigen();
-            stress_damp.segment(3, 3) = n2.eigen();
-            stress_damp.segment(6, 3) = m1.eigen();
-            stress_damp.segment(9, 3) = m2.eigen();
-            stress_damp *= m_Alpha;
+    for (int i = 0; i < NUMIP; i++) {
+			
+        strain_dt = B_overline_i[i] * velocities;  // [B_i] *v
 
-            Fi.segment(0, 24) += (-alpha_i[i] * w_i[i]) * B_overline_i[i].transpose() * stress_damp;
+        ChVector<> eps_dt_1(strain_dt.segment(0, 3));
+        ChVector<> eps_dt_2(strain_dt.segment(3, 3));
+        ChVector<> k_dt_1(strain_dt.segment(6, 3));
+        ChVector<> k_dt_2(strain_dt.segment(9, 3));
+        ChVector<> n1, n2, m1, m2;
+        ChVector<> l_n1, l_n2, l_m1, l_m2;
+        // loop on layers
+        for (size_t il = 0; il < this->m_layers.size(); ++il) {
+
+			if (m_layers[il].GetMaterial()->GetDamping()) {
+
+				// compute layer stresses (per-unit-length forces and torques), and accumulate  [C]*[B_i]*v
+				m_layers[il].GetMaterial()->GetDamping()->ComputeStress(l_n1, l_n2, l_m1, l_m2, eps_dt_1, eps_dt_2, k_dt_1, k_dt_2,
+					m_layers_z[il], m_layers_z[il + 1], m_layers[il].Get_theta());
+				n1 += l_n1;
+				n2 += l_n2;
+				m1 += l_m1;
+				m2 += l_m2;
+			}
         }
+        stress_damp.segment(0, 3) = n1.eigen();
+        stress_damp.segment(3, 3) = n2.eigen();
+        stress_damp.segment(6, 3) = m1.eigen();
+        stress_damp.segment(9, 3) = m2.eigen();
 
-    }  // end Rayleigh damping
+        Fi.segment(0, 24) += (-alpha_i[i] * w_i[i]) * B_overline_i[i].transpose() * stress_damp;
+    }
+
+
 }
 
 // -----------------------------------------------------------------------------
@@ -985,6 +984,7 @@ void ChElementShellReissner4::ComputeInternalJacobians(double Kfactor, double Rf
 
     ChMatrixNM<double, 24, 24> Kg;
     ChMatrixNM<double, 24, 24> Km;
+	ChMatrixNM<double, 24, 24> Rm;
     ChMatrixNM<double, IDOFS, 24> K_beta_q;
     ChMatrixNM<double, IDOFS, IDOFS> K_beta_beta;
 
@@ -1025,7 +1025,7 @@ void ChElementShellReissner4::ComputeInternalJacobians(double Kfactor, double Rf
 
         double dCoef = 1.0;  //***TODO*** autoset this
 
-        Km *= (alpha_i[i] * w_i[i] * dCoef * (Kfactor + Rfactor * m_Alpha));
+		Km *= (alpha_i[i] * w_i[i] * dCoef * Kfactor); // was: ... * dCoef * (Kfactor+Rfactor * m_Alpha));
         m_JacobianMatrix += Km;
 
 #ifdef CHUSE_KGEOMETRIC
@@ -1041,6 +1041,27 @@ void ChElementShellReissner4::ComputeInternalJacobians(double Kfactor, double Rf
         m_JacobianMatrix.block(0, 24, 24, 7) += K_beta_q.transpose();
         m_JacobianMatrix.block(24, 4, 7, 7) += K_beta_beta;
 #endif
+
+		// Damping matrix 
+
+		C.setZero();
+        l_C.setZero();
+        // loop on layers
+        for (size_t il = 0; il < m_layers.size(); ++il) {
+            // compute layer damping matrix
+			if (m_layers[il].GetMaterial()->GetDamping()) {
+				m_layers[il].GetMaterial()->GetDamping()->ComputeDampingMatrix(
+					l_C, 
+					VNULL, VNULL, VNULL, VNULL, //***TODO*** should be more general: eps_dt_tilde_1_i[i], eps_dt_tilde_2_i[i], k_dt_tilde_1_i[i], k_dt_tilde_2_i[i], 
+					m_layers_z[il],
+					m_layers_z[il + 1],
+					m_layers[il].Get_theta());  
+				C += l_C;
+			}
+        }
+		Rm = B_overline_i[i].transpose() * C * B_overline_i[i];
+		Rm *= (alpha_i[i] * w_i[i] * dCoef * Rfactor);
+        m_JacobianMatrix += Rm;
     }
 }
 

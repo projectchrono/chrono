@@ -20,7 +20,6 @@
 
 #include "chrono/core/ChTimer.h"
 #include "chrono/physics/ChIndexedNodes.h"
-#include "chrono/physics/ChMaterialSurfaceNSC.h"
 #include "chrono/fea/ChContinuumMaterial.h"
 #include "chrono/fea/ChContactSurface.h"
 #include "chrono/fea/ChElementBase.h"
@@ -28,6 +27,8 @@
 #include "chrono/fea/ChNodeFEAbase.h"
 
 namespace chrono {
+
+class ChAssembly;
 
 namespace fea {
 
@@ -279,6 +280,7 @@ class ChApi ChMesh : public ChIndexedNodes {
     virtual void SetupInitial() override;
 
     friend class chrono::ChSystem;
+    friend class chrono::ChAssembly;
 };
 
 /// @} chrono_fea

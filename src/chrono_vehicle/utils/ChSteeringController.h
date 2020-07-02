@@ -57,8 +57,8 @@ namespace vehicle {
 ///          "Gains":
 ///          {
 ///              "Kp":   0.5,
-///                  "Ki" : 0.0,
-///                  "Kd" : 0.0
+///              "Ki" : 0.0,
+///              "Kd" : 0.0
 ///          },
 ///
 ///          "Lookahead Distance": 20.0

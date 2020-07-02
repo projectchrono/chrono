@@ -13,13 +13,14 @@
 // =============================================================================
 
 #include "chrono/fea/ChBeamSectionCosserat.h"
+#include <math.h>
 
 namespace chrono {
 namespace fea {
 
 // -----------------------------------------------------------------------------
 
-void ChElasticityCosserat::ComputeStiffnessMatrix(ChMatrixDynamic<>& K,
+void ChElasticityCosserat::ComputeStiffnessMatrix(ChMatrixNM<double, 6, 6>& K,
                                                   const ChVector<>& strain_e,
                                                   const ChVector<>& strain_k) {
     double epsi = 1e-6;
@@ -50,14 +51,14 @@ void ChElasticityCosserat::ComputeStiffnessMatrix(ChMatrixDynamic<>& K,
 // -----------------------------------------------------------------------------
 
 ChElasticityCosseratSimple::ChElasticityCosseratSimple()
-    : E(0.01e9),      // default E stiffness (almost rubber)
-      rdamping(0.01)  // default Rayleigh damping
+    : E(0.01e9)       // default E stiffness (almost rubber)
 {
     SetGwithPoissonRatio(0.3);            // default G (low poisson ratio)
     SetAsRectangularSection(0.01, 0.01);  // defaults Area, Ixx, Iyy, Ks_y, Ks_z, J
 }
 
 void ChElasticityCosseratSimple::SetAsRectangularSection(double width_y, double width_z) {
+	this->A   = width_y * width_z;
     this->Izz = (1.0 / 12.0) * width_z * pow(width_y, 3);
     this->Iyy = (1.0 / 12.0) * width_y * pow(width_z, 3);
 
@@ -73,6 +74,7 @@ void ChElasticityCosseratSimple::SetAsRectangularSection(double width_y, double 
 }
 
 void ChElasticityCosseratSimple::SetAsCircularSection(double diameter) {
+	this->A   = CH_C_PI * pow((0.5 * diameter), 2);
     this->Izz = (CH_C_PI / 4.0) * pow((0.5 * diameter), 4);
     this->Iyy = Izz;
 
@@ -90,21 +92,21 @@ void ChElasticityCosseratSimple::ComputeStress(ChVector<>& stress_n,
                                                ChVector<>& stress_m,
                                                const ChVector<>& strain_n,
                                                const ChVector<>& strain_m) {
-    stress_n.x() = E * section->Area * strain_n.x();
-    stress_n.y() = Ks_y * G * section->Area * strain_n.y();
-    stress_n.z() = Ks_z * G * section->Area * strain_n.z();
+    stress_n.x() = E * A * strain_n.x();
+    stress_n.y() = Ks_y * G * A * strain_n.y();
+    stress_n.z() = Ks_z * G * A * strain_n.z();
     stress_m.x() = G * J * strain_m.x();
     stress_m.y() = E * Iyy * strain_m.y();
     stress_m.z() = E * Izz * strain_m.z();
 }
 
-void ChElasticityCosseratSimple::ComputeStiffnessMatrix(ChMatrixDynamic<>& K,
+void ChElasticityCosseratSimple::ComputeStiffnessMatrix(ChMatrixNM<double, 6, 6>& K,
                                                         const ChVector<>& strain_n,
                                                         const ChVector<>& strain_m) {
     K.setZero(6, 6);
-    K(0, 0) = E * section->Area;
-    K(1, 1) = Ks_y * G * section->Area;
-    K(2, 2) = Ks_z * G * section->Area;
+    K(0, 0) = E * A;
+    K(1, 1) = Ks_y * G * A;
+    K(2, 2) = Ks_z * G * A;
     K(3, 3) = G * J;
     K(4, 4) = E * Iyy;
     K(5, 5) = E * Izz;
@@ -114,57 +116,9 @@ void ChElasticityCosseratSimple::ComputeStiffnessMatrix(ChMatrixDynamic<>& K,
 
 ChElasticityCosseratGeneric::ChElasticityCosseratGeneric() {
     mE.setIdentity();                     // default E stiffness: diagonal 1.
-    SetAsRectangularSection(0.01, 0.01);  // defaults Area, Ixx, Iyy, Ks_y, Ks_z, J
 }
 
-void ChElasticityCosseratGeneric::SetAsRectangularSection(double width_y, double width_z) {
-    double E = 1;
-    double G = 1;
 
-    double Izz = (1.0 / 12.0) * width_z * pow(width_y, 3);
-    double Iyy = (1.0 / 12.0) * width_y * pow(width_z, 3);
-
-    // use Roark's formulas for torsion of rectangular sect:
-    double t = ChMin(width_y, width_z);
-    double b = ChMax(width_y, width_z);
-    double J = b * pow(t, 3) * ((1.0 / 3.0) - 0.210 * (t / b) * (1.0 - (1.0 / 12.0) * pow((t / b), 4)));
-
-    // set Ks using Timoshenko-Gere formula for solid rect.shapes
-    double poisson = E / (2.0 * G) - 1.0;
-    double Ks_y = 10.0 * (1.0 + poisson) / (12.0 + 11.0 * poisson);
-    double Ks_z = Ks_y;
-
-    mE(0, 0) = E * section->Area;
-    mE(1, 1) = Ks_y * G * section->Area;
-    mE(2, 2) = Ks_z * G * section->Area;
-    mE(3, 3) = G * J;
-    mE(4, 4) = E * Iyy;
-    mE(5, 5) = E * Izz;
-}
-
-void ChElasticityCosseratGeneric::SetAsCircularSection(double diameter) {
-    double E = 1;
-    double G = 1;
-
-    double Izz = (CH_C_PI / 4.0) * pow((0.5 * diameter), 4);
-    double Iyy = Izz;
-
-    // exact expression for circular beam J = Ixx ,
-    // where for polar theorem Ixx = Izz+Iyy
-    double J = Izz + Iyy;
-
-    // set Ks using Timoshenko-Gere formula for solid circular shape
-    double poisson = E / (2.0 * G) - 1.0;
-    double Ks_y = 6.0 * (1.0 + poisson) / (7.0 + 6.0 * poisson);
-    double Ks_z = Ks_y;
-
-    mE(0, 0) = E * section->Area;
-    mE(1, 1) = Ks_y * G * section->Area;
-    mE(2, 2) = Ks_z * G * section->Area;
-    mE(3, 3) = G * J;
-    mE(4, 4) = E * Iyy;
-    mE(5, 5) = E * Izz;
-}
 
 void ChElasticityCosseratGeneric::ComputeStress(ChVector<>& stress_n,
                                                 ChVector<>& stress_m,
@@ -179,7 +133,7 @@ void ChElasticityCosseratGeneric::ComputeStress(ChVector<>& stress_n,
     stress_m = mstress.segment(3, 3);
 }
 
-void ChElasticityCosseratGeneric::ComputeStiffnessMatrix(ChMatrixDynamic<>& K,
+void ChElasticityCosseratGeneric::ComputeStiffnessMatrix(ChMatrixNM<double, 6, 6>& K,
                                                          const ChVector<>& strain_n,
                                                          const ChVector<>& strain_m) {
     K = this->mE;
@@ -193,22 +147,21 @@ void ChElasticityCosseratAdvanced::ComputeStress(ChVector<>& stress_n,
                                                  ChVector<>& stress_m,
                                                  const ChVector<>& strain_n,
                                                  const ChVector<>& strain_m) {
-    double Area = section->Area;
     double cos_alpha = cos(alpha);
     double sin_alpha = sin(alpha);
-    double a11 = E * section->Area;
-    double a22 = E * (Iyy * pow(cos_alpha, 2.) + Izz * pow(sin_alpha, 2.) + Cz * Cz * Area);
-    double a33 = E * (Izz * pow(cos_alpha, 2.) + Iyy * pow(sin_alpha, 2.) + Cy * Cy * Area);
-    double a12 = Cz * E * Area;
-    double a13 = -Cy * E * Area;
-    double a23 = (E * Iyy - E * Izz) * cos_alpha * sin_alpha - E * Cy * Cz * Area;
+    double a11 = E * A;
+    double a22 = E * (Iyy * pow(cos_alpha, 2.) + Izz * pow(sin_alpha, 2.) + Cz * Cz * A);
+    double a33 = E * (Izz * pow(cos_alpha, 2.) + Iyy * pow(sin_alpha, 2.) + Cy * Cy * A);
+    double a12 = Cz * E * A;
+    double a13 = -Cy * E * A;
+    double a23 = (E * Iyy - E * Izz) * cos_alpha * sin_alpha - E * Cy * Cz * A;
     stress_n.x() = a11 * strain_n.x() + a12 * strain_m.y() + a13 * strain_m.z();
     stress_m.y() = a12 * strain_n.x() + a22 * strain_m.y() + a23 * strain_m.z();
     stress_m.z() = a13 * strain_n.x() + a23 * strain_m.y() + a33 * strain_m.z();
     double cos_beta = cos(beta);
     double sin_beta = sin(beta);
-    double KsyGA = Ks_y * G * Area;
-    double KszGA = Ks_z * G * Area;
+    double KsyGA = Ks_y * G * A;
+    double KszGA = Ks_z * G * A;
     double s11 = KsyGA * pow(cos_beta, 2.) + KszGA * pow(sin_beta, 2.);
     double s22 = KsyGA * pow(sin_beta, 2.) + KszGA * pow(cos_beta, 2.);  // ..+s_loc_12*sin(beta)*cos(beta);
     double s33 = G * J + Sz * Sz * KsyGA + Sy * Sy * KszGA;
@@ -220,23 +173,22 @@ void ChElasticityCosseratAdvanced::ComputeStress(ChVector<>& stress_n,
     stress_m.x() = s13 * strain_n.y() + s23 * strain_n.z() + s33 * strain_m.x();
 }
 
-void ChElasticityCosseratAdvanced::ComputeStiffnessMatrix(ChMatrixDynamic<>& K,
+void ChElasticityCosseratAdvanced::ComputeStiffnessMatrix(ChMatrixNM<double, 6, 6>& K,
                                                           const ChVector<>& strain_n,
                                                           const ChVector<>& strain_m) {
     K.setZero(6, 6);
-    double Area = section->Area;
     double cos_alpha = cos(alpha);
     double sin_alpha = sin(alpha);
-    double a11 = E * section->Area;
-    double a22 = E * (Iyy * pow(cos_alpha, 2.) + Izz * pow(sin_alpha, 2.) + Cz * Cz * Area);
-    double a33 = E * (Izz * pow(cos_alpha, 2.) + Iyy * pow(sin_alpha, 2.) + Cy * Cy * Area);
-    double a12 = Cz * E * Area;
-    double a13 = -Cy * E * Area;
-    double a23 = (E * Iyy - E * Izz) * cos_alpha * sin_alpha - E * Cy * Cz * Area;
+    double a11 = E * A;
+    double a22 = E * (Iyy * pow(cos_alpha, 2.) + Izz * pow(sin_alpha, 2.) + Cz * Cz * A);
+    double a33 = E * (Izz * pow(cos_alpha, 2.) + Iyy * pow(sin_alpha, 2.) + Cy * Cy * A);
+    double a12 = Cz * E * A;
+    double a13 = -Cy * E * A;
+    double a23 = (E * Iyy - E * Izz) * cos_alpha * sin_alpha - E * Cy * Cz * A;
     double cos_beta = cos(beta);
     double sin_beta = sin(beta);
-    double KsyGA = Ks_y * G * Area;
-    double KszGA = Ks_z * G * Area;
+    double KsyGA = Ks_y * G * A;
+    double KszGA = Ks_z * G * A;
     double s11 = KsyGA * pow(cos_beta, 2.) + KszGA * pow(sin_beta, 2.);
     double s22 = KsyGA * pow(sin_beta, 2.) + KszGA * pow(cos_beta, 2.);  // ..+s_loc_12*sin(beta)*cos(beta);
     double s33 = G * J + Sz * Sz * KsyGA + Sy * Sy * KszGA;
@@ -394,7 +346,7 @@ void ChElasticityCosseratMesh::ComputeStress(ChVector<>& stress_n,
 
 ChPlasticityCosserat::ChPlasticityCosserat() : section(nullptr), nr_yeld_tolerance(1e-7), nr_yeld_maxiters(5) {}
 
-void ChPlasticityCosserat::ComputeStiffnessMatrixElastoplastic(ChMatrixDynamic<>& K,
+void ChPlasticityCosserat::ComputeStiffnessMatrixElastoplastic(ChMatrixNM<double, 6, 6>& K,
                                                                const ChVector<>& strain_n,
                                                                const ChVector<>& strain_m,
                                                                const ChBeamMaterialInternalData& data) {
@@ -492,8 +444,8 @@ bool ChPlasticityCosseratLumped::ComputeStressWithReturnMapping(ChVector<>& stre
 
     // axial direction
     {
-        double strain_yeld_x = this->n_yeld_x->Get_y(mydata->p_strain_acc_e.x());     ///<<<< sigma_y(p_strain_acc)
-        double eta_x = stress_n.x() - this->n_beta_x->Get_y(mydata->p_strain_e.x());  ///<<<< beta(p_strain_e)
+        double strain_yeld_x = this->n_yeld_x->Get_y(mydata->p_strain_acc_e.x());     //<<<< sigma_y(p_strain_acc)
+        double eta_x = stress_n.x() - this->n_beta_x->Get_y(mydata->p_strain_e.x());  //<<<< beta(p_strain_e)
         double Fyeld_x = fabs(eta_x) - strain_yeld_x;                                 //<<<<  Phi(sigma,p_strain_acc)
 
         if (Fyeld_x > 0) {
@@ -514,8 +466,8 @@ bool ChPlasticityCosseratLumped::ComputeStressWithReturnMapping(ChVector<>& stre
                 mydata_new->p_strain_e.x() += dDgamma * chrono::ChSignum(stress_n.x());
                 this->section->GetElasticity()->ComputeStress(stress_n, stress_m, e_strain_e_new, e_strain_k_new);
                 // compute yeld
-                strain_yeld_x = this->n_yeld_x->Get_y(mydata_new->p_strain_acc_e.x());     ///<<<< sigma_y(p_strain_acc)
-                eta_x = stress_n.x() - this->n_beta_x->Get_y(mydata_new->p_strain_e.x());  ///<<<< beta(p_strain_acc)
+                strain_yeld_x = this->n_yeld_x->Get_y(mydata_new->p_strain_acc_e.x());     //<<<< sigma_y(p_strain_acc)
+                eta_x = stress_n.x() - this->n_beta_x->Get_y(mydata_new->p_strain_e.x());  //<<<< beta(p_strain_acc)
                 Fyeld_x = fabs(eta_x) - strain_yeld_x;  //<<<<  Phi(sigma,p_strain_acc)
 
                 ++iters;
@@ -547,8 +499,8 @@ bool ChPlasticityCosseratLumped::ComputeStressWithReturnMapping(ChVector<>& stre
                 mydata_new->p_strain_e.y() += dDgamma * chrono::ChSignum(stress_n.y());
                 this->section->GetElasticity()->ComputeStress(stress_n, stress_m, e_strain_e_new, e_strain_k_new);
                 // compute yeld
-                strain_yeld_y = this->n_yeld_y->Get_y(mydata_new->p_strain_acc_e.y());     ///<<<< sigma_y(p_strain_acc)
-                eta_y = stress_n.y() - this->n_beta_y->Get_y(mydata_new->p_strain_e.y());  ///<<<< beta(p_strain_acc)
+                strain_yeld_y = this->n_yeld_y->Get_y(mydata_new->p_strain_acc_e.y());     //<<<< sigma_y(p_strain_acc)
+                eta_y = stress_n.y() - this->n_beta_y->Get_y(mydata_new->p_strain_e.y());  //<<<< beta(p_strain_acc)
                 Fyeld_y = fabs(eta_y) - strain_yeld_y;  //<<<<  Phi(sigma,p_strain_acc)
 
                 ++iters;
@@ -580,8 +532,8 @@ bool ChPlasticityCosseratLumped::ComputeStressWithReturnMapping(ChVector<>& stre
                 mydata_new->p_strain_e.z() += dDgamma * chrono::ChSignum(stress_n.z());
                 this->section->GetElasticity()->ComputeStress(stress_n, stress_m, e_strain_e_new, e_strain_k_new);
                 // compute yeld
-                strain_yeld_z = this->n_yeld_z->Get_y(mydata_new->p_strain_acc_e.z());     ///<<<< sigma_y(p_strain_acc)
-                eta_z = stress_n.z() - this->n_beta_z->Get_y(mydata_new->p_strain_e.z());  ///<<<< beta(p_strain_acc)
+                strain_yeld_z = this->n_yeld_z->Get_y(mydata_new->p_strain_acc_e.z());     //<<<< sigma_y(p_strain_acc)
+                eta_z = stress_n.z() - this->n_beta_z->Get_y(mydata_new->p_strain_e.z());  //<<<< beta(p_strain_acc)
                 Fyeld_z = fabs(eta_z) - strain_yeld_z;  //<<<<  Phi(sigma,p_strain_acc)
 
                 ++iters;
@@ -614,8 +566,8 @@ bool ChPlasticityCosseratLumped::ComputeStressWithReturnMapping(ChVector<>& stre
                 mydata_new->p_strain_k.x() += dDgamma * chrono::ChSignum(stress_m.x());
                 this->section->GetElasticity()->ComputeStress(stress_n, stress_m, e_strain_e_new, e_strain_k_new);
                 // compute yeld
-                strain_yeld_Mx = this->n_yeld_Mx->Get_y(mydata_new->p_strain_acc_k.x());  ///<<<< sigma_y(p_strain_acc)
-                eta_Mx = stress_m.x() - this->n_beta_Mx->Get_y(mydata_new->p_strain_k.x());  ///<<<< beta(p_strain_acc)
+                strain_yeld_Mx = this->n_yeld_Mx->Get_y(mydata_new->p_strain_acc_k.x());  //<<<< sigma_y(p_strain_acc)
+                eta_Mx = stress_m.x() - this->n_beta_Mx->Get_y(mydata_new->p_strain_k.x());  //<<<< beta(p_strain_acc)
                 Fyeld_Mx = fabs(eta_Mx) - strain_yeld_Mx;  //<<<<  Phi(sigma,p_strain_acc)
 
                 ++iters;
@@ -648,8 +600,8 @@ bool ChPlasticityCosseratLumped::ComputeStressWithReturnMapping(ChVector<>& stre
                 mydata_new->p_strain_k.y() += dDgamma * chrono::ChSignum(stress_m.y());
                 this->section->GetElasticity()->ComputeStress(stress_n, stress_m, e_strain_e_new, e_strain_k_new);
                 // compute yeld
-                strain_yeld_My = this->n_yeld_My->Get_y(mydata_new->p_strain_acc_k.y());  ///<<<< sigma_y(p_strain_acc)
-                eta_My = stress_m.y() - this->n_beta_My->Get_y(mydata_new->p_strain_k.y());  ///<<<< beta(p_strain_acc)
+                strain_yeld_My = this->n_yeld_My->Get_y(mydata_new->p_strain_acc_k.y());  //<<<< sigma_y(p_strain_acc)
+                eta_My = stress_m.y() - this->n_beta_My->Get_y(mydata_new->p_strain_k.y());  //<<<< beta(p_strain_acc)
                 Fyeld_My = fabs(eta_My) - strain_yeld_My;  //<<<<  Phi(sigma,p_strain_acc)
 
                 ++iters;
@@ -682,8 +634,8 @@ bool ChPlasticityCosseratLumped::ComputeStressWithReturnMapping(ChVector<>& stre
                 mydata_new->p_strain_k.z() += dDgamma * chrono::ChSignum(stress_m.z());
                 this->section->GetElasticity()->ComputeStress(stress_n, stress_m, e_strain_e_new, e_strain_k_new);
                 // compute yeld
-                strain_yeld_Mz = this->n_yeld_Mz->Get_y(mydata_new->p_strain_acc_k.z());  ///<<<< sigma_y(p_strain_acc)
-                eta_Mz = stress_m.z() - this->n_beta_Mz->Get_y(mydata_new->p_strain_k.z());  ///<<<< beta(p_strain_acc)
+                strain_yeld_Mz = this->n_yeld_Mz->Get_y(mydata_new->p_strain_acc_k.z());  //<<<< sigma_y(p_strain_acc)
+                eta_Mz = stress_m.z() - this->n_beta_Mz->Get_y(mydata_new->p_strain_k.z());  //<<<< beta(p_strain_acc)
                 Fyeld_Mz = fabs(eta_Mz) - strain_yeld_Mz;  //<<<<  Phi(sigma,p_strain_acc)
 
                 ++iters;
@@ -710,7 +662,7 @@ void ChPlasticityCosseratLumped::CreatePlasticityData(
 
 // -----------------------------------------------------------------------------
 
-void ChDampingCosserat::ComputeDampingMatrix(ChMatrixDynamic<>& R,
+void ChDampingCosserat::ComputeDampingMatrix(ChMatrixNM<double, 6, 6>& R,
                                              const ChVector<>& dstrain_e,
                                              const ChVector<>& dstrain_k) {
     double epsi = 1e-6;
@@ -751,7 +703,7 @@ void ChDampingCosseratLinear::ComputeStress(ChVector<>& stress_n,
     stress_m.z() = dstrain_k.z() * R_k.z();
 }
 
-void ChDampingCosseratLinear::ComputeDampingMatrix(ChMatrixDynamic<>& R,
+void ChDampingCosseratLinear::ComputeDampingMatrix(ChMatrixNM<double, 6, 6>& R,
                                                    const ChVector<>& dstrain_e,
                                                    const ChVector<>& dstrain_k) {
     R.setZero();
@@ -765,20 +717,186 @@ void ChDampingCosseratLinear::ComputeDampingMatrix(ChMatrixDynamic<>& R,
 
 // -----------------------------------------------------------------------------
 
-ChBeamSectionCosserat::ChBeamSectionCosserat(std::shared_ptr<ChElasticityCosserat> melasticity) {
-    this->SetElasticity(melasticity);
+
+
+// -----------------------------------------------------------------------------
+
+ChDampingCosseratRayleigh::ChDampingCosseratRayleigh(
+									std::shared_ptr<ChElasticityCosserat> melasticity, 
+									const double& mbeta) {
+	this->beta = mbeta;
+	this->section_elasticity = melasticity;
+	this->updated = false;
 }
 
-ChBeamSectionCosserat::ChBeamSectionCosserat(std::shared_ptr<ChElasticityCosserat> melasticity,
-                                             std::shared_ptr<ChPlasticityCosserat> mplasticity) {
-    this->SetElasticity(melasticity);
-    this->SetPlasticity(mplasticity);
+
+void ChDampingCosseratRayleigh::ComputeStress(ChVector<>& stress_n,
+                                            ChVector<>& stress_m,
+                                            const ChVector<>& dstrain_e,
+                                            const ChVector<>& dstrain_k) {
+	if (!this->updated) {
+		this->UpdateStiffnessModel();
+		this->updated = true;
+	}
+	ChVectorN<double, 6> mdstrain;
+    ChVectorN<double, 6> mstress;
+    mdstrain.segment(0 , 3) = dstrain_e.eigen();
+    mdstrain.segment(3 , 3) = dstrain_k.eigen();
+    mstress = this->beta * this->E_const * mdstrain;
+    stress_n = mstress.segment(0, 3);
+    stress_m = mstress.segment(3, 3);
+    
 }
 
-ChBeamSectionCosserat::ChBeamSectionCosserat(std::shared_ptr<ChElasticityCosserat> melasticity,
+void ChDampingCosseratRayleigh::ComputeDampingMatrix(ChMatrixNM<double, 6, 6>& R,
+                                                   const ChVector<>& dstrain_e,
+                                                   const ChVector<>& dstrain_k) {
+	R = this->beta * this->E_const;
+}
+
+
+void ChDampingCosseratRayleigh::UpdateStiffnessModel() {
+	
+	// Precompute and store the stiffness matrix into E_const, assuming 
+	// initial zero stress and zero strain, and use it as constant E from now on
+	// (for many stiffness models, this is constant anyway)
+	this->section_elasticity->ComputeStiffnessMatrix(this->E_const, VNULL, VNULL);
+	
+}
+
+
+
+//-----------------------------------------------------------------------------
+
+
+void ChInertiaCosseratSimple::ComputeInertiaMatrix(ChMatrixNM<double, 6, 6>& M) {
+    M.setZero();
+    M(0, 0) = this->GetMassPerUnitLength();
+    M(1, 1) = this->GetMassPerUnitLength();
+    M(2, 2) = this->GetMassPerUnitLength();
+    M(3, 3) = this->GetInertiaJxxPerUnitLength();
+    M(4, 4) = this->GetInertiaJyyPerUnitLength();
+    M(5, 5) = this->GetInertiaJzzPerUnitLength();
+}
+
+void ChInertiaCosseratSimple::ComputeQuadraticTerms(ChVector<>& mF,   ///< centrifugal term (if any) returned here
+    ChVector<>& mT,                ///< gyroscopic term  returned here
+    const ChVector<>& mW           ///< current angular velocity of section, in material frame
+) {
+    mF = VNULL;
+    mT = Vcross(mW, ChVector<>( this->GetInertiaJxxPerUnitLength()*mW.x(),
+                                this->GetInertiaJyyPerUnitLength()*mW.y(),
+                                this->GetInertiaJzzPerUnitLength()*mW.z() )  );
+}
+
+
+void ChInertiaCosseratSimple::SetAsRectangularSection(double width_y, double width_z, double density) {
+	this->A = width_y * width_z;
+	this->Izz = (1.0 / 12.0) * width_z * pow(width_y, 3);
+	this->Iyy = (1.0 / 12.0) * width_y * pow(width_z, 3);
+	this->rho = density;
+}
+
+
+void ChInertiaCosseratSimple::SetAsCircularSection(double diameter, double density) {
+	this->A   = CH_C_PI * pow((0.5 * diameter), 2);
+    this->Izz = (CH_C_PI / 4.0) * pow((0.5 * diameter), 4);
+    this->Iyy = Izz;
+	this->rho = density;
+}
+
+
+
+// -----------------------------------------------------------------------------
+
+void  ChInertiaCosseratAdvanced::ComputeInertiaMatrix(ChMatrixNM<double, 6, 6>& M) {
+    M.setZero();
+    M(0, 0) = this->mu;
+    M(1, 1) = this->mu;
+    M(2, 2) = this->mu;
+
+    M(3, 1) = - this->mu * this->cm_z;
+    M(3, 2) =   this->mu * this->cm_y;
+    M(4, 0) =   this->mu * this->cm_z;
+    M(5, 0) = - this->mu * this->cm_y;
+
+    M(1, 3) = - this->mu * this->cm_z;
+    M(2, 3) =   this->mu * this->cm_y;
+    M(0, 4) =   this->mu * this->cm_z;
+    M(0, 5) = - this->mu * this->cm_y;
+
+    M(3, 3) = this->Jyy + this->Jzz;
+    M(4, 4) = this->Jyy;
+    M(5, 5) = this->Jzz;
+    M(4, 5) = -this->Jyz;
+    M(5, 4) = -this->Jyz;
+}
+
+void ChInertiaCosseratAdvanced::ComputeQuadraticTerms(ChVector<>& mF,   ///< centrifugal term (if any) returned here
+    ChVector<>& mT,                ///< gyroscopic term  returned here
+    const ChVector<>& mW           ///< current angular velocity of section, in material frame
+) {
+    // F_centrifugal = density_per_unit_length w X w X c 
+    mF = this->mu * Vcross(mW,Vcross(mW,ChVector<>(0,cm_y,cm_z)));
+
+    // unroll the product [J] * w  in the expression w X [J] * w  as 4 values of [J] are zero anyway
+    mT = Vcross(mW, ChVector<>( this->GetInertiaJxxPerUnitLength()*mW.x(),
+                                this->Jyy*mW.y() - this->Jyz*mW.z(),
+                                this->Jzz*mW.z() - this->Jyz*mW.y() )  );
+}
+
+
+void ChInertiaCosseratAdvanced::SetMainInertiasInMassReference(double Jmyy, double Jmzz, double phi) {
+    double cc = pow(cos(-phi), 2);
+    double ss = pow(sin(-phi), 2);
+    double cs = cos(-phi) * sin(-phi);
+    // generic 2x2 tensor rotation
+    double Tyy_rot = cc * Jmyy + ss * Jmzz; // + 2 * Jmyz * cs;
+    double Tzz_rot = ss * Jmyy + cc * Jmzz; // - 2 * Jmyz * cs;
+    double Tyz_rot = (Jmzz - Jmyy) * cs; // +Jmyz * (cc - ss); 
+    // add inertia transport
+    this->Jyy = Tyy_rot +  this->mu * this->cm_z * this->cm_z;
+    this->Jzz = Tzz_rot +  this->mu * this->cm_y * this->cm_y;
+    this->Jyz = -(Tyz_rot -  this->mu * this->cm_z * this->cm_y); // note minus, per definition of Jyz
+}
+
+void ChInertiaCosseratAdvanced::GetMainInertiasInMassReference(double& Jmyy, double& Jmzz, double& phi) {
+    // remove inertia transport
+    double Tyy_rot  =  this->Jyy - this->mu * this->cm_z * this->cm_z;
+    double Tzz_rot  =  this->Jzz - this->mu * this->cm_y * this->cm_y;
+    double Tyz_rot  = -this->Jyz + this->mu * this->cm_z * this->cm_y;
+    // tensor de-rotation up to principal axes
+    double argum = pow((Tyy_rot - Tzz_rot) * 0.5, 2) + pow(Tyz_rot, 2);
+    if (argum <= 0) {
+        phi = 0;
+        Jmyy = 0.5 * (Tzz_rot + Tyy_rot);
+        Jmzz = 0.5 * (Tzz_rot + Tyy_rot);
+        return;
+    }
+    double discr = sqrt( pow((Tyy_rot - Tzz_rot)*0.5,2) + pow(Tyz_rot, 2) );
+    phi = - 0.5* atan2(Tyz_rot / discr, (Tzz_rot - Tyy_rot) / (2. * discr));
+    Jmyy = 0.5 * (Tzz_rot + Tyy_rot) - discr;
+    Jmzz = 0.5 * (Tzz_rot + Tyy_rot) + discr;
+}
+
+
+void ChInertiaCosseratAdvanced::SetInertiasPerUnitLength(double Jyy_moment, double Jzz_moment, double Jyz_moment) {
+    this->Jyy = Jyy_moment;
+    this->Jzz = Jzz_moment;
+    this->Jyz = Jyz_moment;
+}
+
+// -----------------------------------------------------------------------------
+
+
+
+ChBeamSectionCosserat::ChBeamSectionCosserat(std::shared_ptr<ChInertiaCosserat>    minertia,			 
+											 std::shared_ptr<ChElasticityCosserat> melasticity,
                                              std::shared_ptr<ChPlasticityCosserat> mplasticity,
                                              std::shared_ptr<ChDampingCosserat> mdamping) {
-    this->SetElasticity(melasticity);
+    this->SetInertia(minertia);
+
+	this->SetElasticity(melasticity);
 
     if (mplasticity)
         this->SetPlasticity(mplasticity);
@@ -803,7 +921,7 @@ void ChBeamSectionCosserat::ComputeStress(ChVector<>& stress_n,
     }
 }
 
-void ChBeamSectionCosserat::ComputeStiffnessMatrix(ChMatrixDynamic<>& K,
+void ChBeamSectionCosserat::ComputeStiffnessMatrix(ChMatrixNM<double, 6, 6>& K,
                                                    const ChVector<>& strain_e,
                                                    const ChVector<>& strain_k,
                                                    const ChBeamMaterialInternalData* mdata) {
@@ -821,7 +939,7 @@ void ChBeamSectionCosserat::SetElasticity(std::shared_ptr<ChElasticityCosserat> 
 
 void ChBeamSectionCosserat::SetPlasticity(std::shared_ptr<ChPlasticityCosserat> mplasticity) {
     plasticity = mplasticity;
-    mplasticity->section = this;
+    plasticity->section = this;
 }
 
 void ChBeamSectionCosserat::SetDamping(std::shared_ptr<ChDampingCosserat> mdamping) {
@@ -829,34 +947,64 @@ void ChBeamSectionCosserat::SetDamping(std::shared_ptr<ChDampingCosserat> mdampi
     damping->section = this;
 }
 
-void ChBeamSectionCosserat::SetAsRectangularSection(double width_y, double width_z) {
-    this->Area = width_y * width_z;
-    this->is_circular = false;
-    this->y_drawsize = width_y;
-    this->z_drawsize = width_z;
-
-    if (this->elasticity)
-        this->elasticity->SetAsRectangularSection(width_y, width_z);
-    if (this->plasticity)
-        this->plasticity->SetAsRectangularSection(width_y, width_z);
-    if (this->damping)
-        this->damping->SetAsRectangularSection(width_y, width_z);
+void ChBeamSectionCosserat::SetInertia(std::shared_ptr<ChInertiaCosserat> minertia) {
+    inertia = minertia;
+    inertia->section = this;
 }
 
-void ChBeamSectionCosserat::SetAsCircularSection(double diameter) {
-    this->Area = CH_C_PI * pow((0.5 * diameter), 2);
-    this->is_circular = true;
-    this->SetDrawCircularRadius(diameter / 2);
 
-    if (this->elasticity)
-        this->elasticity->SetAsCircularSection(diameter);
-    if (this->plasticity)
-        this->plasticity->SetAsCircularSection(diameter);
-    if (this->damping)
-        this->damping->SetAsCircularSection(diameter);
-}
+
 
 // -----------------------------------------------------------------------------
+
+
+
+ChBeamSectionCosseratEasyRectangular::ChBeamSectionCosseratEasyRectangular(
+	double width_y,			// width of section in y direction
+	double width_z,			// width of section in z direction
+	double E,				// Young modulus
+	double G,				// shear modulus
+	double density			// volumetric density (ex. in SI units: [kg/m])
+) {
+	auto melasticity = chrono_types::make_shared<ChElasticityCosseratSimple>();
+	melasticity->SetYoungModulus(E);
+	melasticity->SetGshearModulus(G);
+	melasticity->SetAsRectangularSection(width_y, width_z);
+	this->SetElasticity(melasticity);
+
+	auto minertia = chrono_types::make_shared<ChInertiaCosseratSimple>();
+	minertia->SetAsRectangularSection(width_y, width_z, density);
+	this->SetInertia(minertia);
+
+    auto mdrawshape = chrono_types::make_shared<ChBeamSectionShapeRectangular>(width_y, width_z);
+    this->SetDrawShape(mdrawshape);
+}
+
+
+ChBeamSectionCosseratEasyCircular::ChBeamSectionCosseratEasyCircular(
+	double diameter,		// diameter
+	double E,				// Young modulus
+	double G,				// shear modulus
+	double density			// volumetric density (ex. in SI units: [kg/m])
+) {
+	auto melasticity = chrono_types::make_shared<ChElasticityCosseratSimple>();
+	melasticity->SetYoungModulus(E);
+	melasticity->SetGshearModulus(G);
+	melasticity->SetAsCircularSection(diameter);
+	this->SetElasticity(melasticity);
+
+	auto minertia = chrono_types::make_shared<ChInertiaCosseratSimple>();
+	minertia->SetAsCircularSection(diameter, density);
+	this->SetInertia(minertia);
+
+    auto mdrawshape = chrono_types::make_shared<ChBeamSectionShapeCircular>(diameter / 2, 10);
+    this->SetDrawShape(mdrawshape);
+}
+
+
+
+// ------------------------------------------------------------------------------
+
 
 }  // end namespace fea
 }  // end namespace chrono

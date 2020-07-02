@@ -43,7 +43,6 @@ void CreateContainer(ChSystemParallel* system) {
     mat_walls->SetFriction(0.3f);
 
     std::shared_ptr<ChBody> container(system->NewBody());
-    container->SetMaterialSurface(mat_walls);
     container->SetBodyFixed(true);
     container->SetCollide(true);
     container->SetMass(10000.0);
@@ -51,11 +50,11 @@ void CreateContainer(ChSystemParallel* system) {
     // Attach geometry of the containing bin
     double hthick = 0.05;
     container->GetCollisionModel()->ClearModel();
-    utils::AddBoxGeometry(container.get(), ChVector<>(1, 1, hthick), ChVector<>(0, 0, -hthick));
-    utils::AddBoxGeometry(container.get(), ChVector<>(hthick, 1, 1), ChVector<>(-1 - hthick, 0, 1));
-    utils::AddBoxGeometry(container.get(), ChVector<>(hthick, 1, 1), ChVector<>(1 + hthick, 0, 1));
-    utils::AddBoxGeometry(container.get(), ChVector<>(1, hthick, 1), ChVector<>(0, -1 - hthick, 1));
-    utils::AddBoxGeometry(container.get(), ChVector<>(1, hthick, 1), ChVector<>(0, 1 + hthick, 1));
+    utils::AddBoxGeometry(container.get(), mat_walls, ChVector<>(1, 1, hthick), ChVector<>(0, 0, -hthick));
+    utils::AddBoxGeometry(container.get(), mat_walls, ChVector<>(hthick, 1, 1), ChVector<>(-1 - hthick, 0, 1));
+    utils::AddBoxGeometry(container.get(), mat_walls, ChVector<>(hthick, 1, 1), ChVector<>(1 + hthick, 0, 1));
+    utils::AddBoxGeometry(container.get(), mat_walls, ChVector<>(1, hthick, 1), ChVector<>(0, -1 - hthick, 1));
+    utils::AddBoxGeometry(container.get(), mat_walls, ChVector<>(1, hthick, 1), ChVector<>(0, 1 + hthick, 1));
     container->GetCollisionModel()->BuildModel();
 
     system->AddBody(container);
@@ -79,7 +78,6 @@ void CreateGranularMaterial(ChSystemParallel* sys) {
                 ChVector<> pos(0.4 * ix, 0.4 * iy, 0.4 * iz + 1);
 
                 std::shared_ptr<ChBody> ball(sys->NewBody());
-                ball->SetMaterialSurface(ballMat);
 
                 ball->SetMass(mass);
                 ball->SetInertiaXX(inertia);
@@ -89,7 +87,7 @@ void CreateGranularMaterial(ChSystemParallel* sys) {
                 ball->SetCollide(true);
 
                 ball->GetCollisionModel()->ClearModel();
-                utils::AddSphereGeometry(ball.get(), radius);
+                utils::AddSphereGeometry(ball.get(), ballMat, radius);
                 ball->GetCollisionModel()->BuildModel();
 
                 sys->AddBody(ball);

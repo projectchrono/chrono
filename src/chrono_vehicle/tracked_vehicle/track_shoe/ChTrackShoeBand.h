@@ -91,6 +91,9 @@ class CH_VEHICLE_API ChTrackShoeBand : public ChTrackShoe {
     /// Return the offset (in X direction) of the guiding pin.
     virtual double GetGuideBoxOffsetX() const = 0;
 
+    /// Return the location of the guiding pin center, expressed in the shoe reference frame.
+    virtual ChVector<> GetLateralContactPoint() const override;
+
     /// Return the width of the CB track belt (in the Y direction)
     virtual double GetBeltWidth() const = 0;
 
@@ -118,6 +121,10 @@ class CH_VEHICLE_API ChTrackShoeBand : public ChTrackShoe {
     /// Specify the name assigned to the procedurally-generated tread body visualization mesh.
     virtual const std::string& GetTreadVisualizationMeshName() const = 0;
 
+    /// Create the contact materials. A derived class must set 4 materials, consistent with the specified contact
+    /// method, for interactionss with the sprocket, wheels, and ground. Note that these can be shared.
+    virtual void CreateContactMaterials(ChContactMethod contact_method) = 0;
+
     /// Add contact geometry for the tread body.
     /// Note that this is for contact with wheels, idler, and ground only.
     /// This contact geometry does not affect contact with the sprocket.
@@ -129,6 +136,12 @@ class CH_VEHICLE_API ChTrackShoeBand : public ChTrackShoe {
 
     /// Get index-specific color (for visualization)
     static ChColor GetColor(size_t index);
+
+    // Contact materials
+    std::shared_ptr<ChMaterialSurface> m_tooth_material;  ///< contact material for teeth (sprocket interaction)
+    std::shared_ptr<ChMaterialSurface> m_body_material;   ///< contact material for main body (wheel interaction)
+    std::shared_ptr<ChMaterialSurface> m_pad_material;    ///< contact material for pad (ground interaction)
+    std::shared_ptr<ChMaterialSurface> m_guide_material;  ///< contact material for guide pin (wheel interaction)
 
   private:
     /// Utilities for creating the tooth visualization mesh.
@@ -142,6 +155,7 @@ class CH_VEHICLE_API ChTrackShoeBand : public ChTrackShoe {
     double m_center_m_arc_start;  ///< starting angle of the (-x) arc, in tread body x-z plane
     double m_center_m_arc_end;    ///< ending angle of the (-x) arc, in tread body x-z plane
 
+    friend class ChSprocketBand;
     friend class SprocketBandContactCB;
 };
 

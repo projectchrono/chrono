@@ -15,6 +15,7 @@
 #include <cstdio>
 
 #include "chrono/geometry/ChTriangleMeshSoup.h"
+#include "chrono_thirdparty/tinyobjloader/tiny_obj_loader.h"
 
 namespace chrono {
 namespace geometry {
@@ -24,6 +25,35 @@ CH_FACTORY_REGISTER(ChTriangleMeshSoup)
 
 ChTriangleMeshSoup::ChTriangleMeshSoup(const ChTriangleMeshSoup& source) {
     m_triangles = source.m_triangles;
+}
+
+void ChTriangleMeshSoup::LoadWavefrontMesh(std::string filename) {
+    std::vector<tinyobj::shape_t> shapes;
+    tinyobj::attrib_t att;
+    std::vector<tinyobj::material_t> materials;
+    std::string warn;
+    std::string err;
+
+    LoadObj(&att, &shapes, &materials, &warn, &err, filename.c_str());
+
+    for (size_t i = 0; i < shapes.size(); i++) {
+        assert((shapes[i].mesh.indices.size() % 3) == 0);
+        for (size_t f = 0; f < shapes[i].mesh.indices.size() / 3; f++) {
+            auto& indices = shapes[i].mesh.indices;
+            int i0 = indices[3 * f + 0].vertex_index;
+            int i1 = indices[3 * f + 1].vertex_index;
+            int i2 = indices[3 * f + 2].vertex_index;
+            auto v0 = ChVector<>(att.vertices[3 * i0 + 0], att.vertices[3 * i0 + 1], att.vertices[3 * i0 + 2]);
+            auto v1 = ChVector<>(att.vertices[3 * i1 + 0], att.vertices[3 * i1 + 1], att.vertices[3 * i1 + 2]);
+            auto v2 = ChVector<>(att.vertices[3 * i2 + 0], att.vertices[3 * i2 + 1], att.vertices[3 * i2 + 2]);
+            addTriangle(v0, v1, v2);
+        }
+    }
+}
+
+void ChTriangleMeshSoup::addTriangle(const ChVector<>& vertex0, const ChVector<>& vertex1, const ChVector<>& vertex2) {
+    ChTriangle tri(vertex0, vertex1, vertex2);
+    m_triangles.push_back(tri);
 }
 
 void ChTriangleMeshSoup::Transform(const ChVector<> displ, const ChMatrix33<> rotscale) {

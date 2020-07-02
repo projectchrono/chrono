@@ -56,33 +56,6 @@ class CH_VEHICLE_API RigidTerrain : public ChTerrain {
     /// Definition of a patch in a rigid terrain model.
     class CH_VEHICLE_API Patch {
       public:
-
-        /// Set coefficient of friction.
-        /// The default value is 0.7
-        void SetContactFrictionCoefficient(float friction_coefficient);
-
-        /// Set coefficient of restitution.
-        /// The default value is 0.1
-        void SetContactRestitutionCoefficient(float restitution_coefficient);
-
-        /// Set contact material properties.
-        /// These values are used to calculate contact material coefficients (if the containing
-        /// system is so configured and if the SMC contact method is being used).
-        /// The default values are: Y = 2e5 and nu = 0.3
-        void SetContactMaterialProperties(float young_modulus,  ///< [in] Young's modulus of elasticity
-                                          float poisson_ratio   ///< [in] Poisson ratio
-        );
-
-        /// Set contact material coefficients.
-        /// These values are used directly to compute contact forces (if the containing system
-        /// is so configured and if the SMC contact method is being used).
-        /// The default values are: kn=2e5, gn=40, kt=2e5, gt=20
-        void SetContactMaterialCoefficients(float kn,  ///< [in] normal contact stiffness
-                                            float gn,  ///< [in] normal contact damping
-                                            float kt,  ///< [in] tangential contact stiffness
-                                            float gt   ///< [in] tangential contact damping
-        );
-
         /// Set visualization color.
         void SetColor(const ChColor& color  ///< [in] color of the visualization material
         );
@@ -97,8 +70,9 @@ class CH_VEHICLE_API RigidTerrain : public ChTerrain {
         std::shared_ptr<ChBody> GetGroundBody() const { return m_body; }
 
       protected:
-        virtual bool FindPoint(double x, double y, double& height, ChVector<>& normal) const = 0;
+        virtual bool FindPoint(const ChVector<>& loc, double& height, ChVector<>& normal) const = 0;
         virtual void ExportMeshPovray(const std::string& out_dir, bool smoothed = false) {}
+        virtual void ExportMeshWavefront(const std::string& out_dir) {}
 
         PatchType m_type;                ///< type of this patch
         std::shared_ptr<ChBody> m_body;  ///< associated body
@@ -124,35 +98,41 @@ class CH_VEHICLE_API RigidTerrain : public ChTerrain {
     /// If tiled = true, multiple side-by-side boxes are used.
     /// The "driving" surface is assumed to be the +z face of the specified box domain.
     std::shared_ptr<Patch> AddPatch(
-        const ChCoordsys<>& position,  ///< [in] box location and orientation
-        const ChVector<>& size,        ///< [in] box dimensions (x, y, z)
-        bool tiled = false,            ///< [in] terrain created from multiple tiled boxes
-        double max_tile_size = 1,      ///< [in] maximum tile size
-        bool visualization = true      ///< [in] enable/disable construction of visualization assets
+        std::shared_ptr<ChMaterialSurface> material,  ///< [in] contact material
+        const ChVector<>& location,                   ///< [in] center of top surface
+        const ChVector<>& normal,                     ///< [in] normal to top surface
+        double length,                                ///< [in] patch length
+        double width,                                 ///< [in] patch width
+        double thickness = 1,                         ///< [in] box thickness
+        bool tiled = false,                           ///< [in] terrain created from multiple tiled boxes
+        double max_tile_size = 1,                     ///< [in] maximum tile size
+        bool visualization = true                     ///< [in] enable/disable construction of visualization assets
     );
 
     /// Add a terrain patch represented by a triangular mesh.
     /// The mesh is specified through a Wavefront file and is used for both contact and visualization.
     std::shared_ptr<Patch> AddPatch(
-        const ChCoordsys<>& position,    ///< [in] patch location and orientation
-        const std::string& mesh_file,    ///< [in] filename of the input mesh (OBJ)
-        const std::string& mesh_name,    ///< [in] name of the mesh asset
-        double sweep_sphere_radius = 0,  ///< [in] radius of sweep sphere
-        bool visualization = true        ///< [in] enable/disable construction of visualization assets
+        std::shared_ptr<ChMaterialSurface> material,  ///< [in] contact material
+        const ChCoordsys<>& position,                 ///< [in] patch location and orientation
+        const std::string& mesh_file,                 ///< [in] filename of the input mesh (OBJ)
+        const std::string& mesh_name,                 ///< [in] name of the mesh asset
+        double sweep_sphere_radius = 0,               ///< [in] radius of sweep sphere
+        bool visualization = true                     ///< [in] enable/disable construction of visualization assets
     );
 
     /// Add a terrain patch represented by a height-field map.
     /// The height map is specified through a BMP gray-scale image.
     std::shared_ptr<Patch> AddPatch(
-        const ChCoordsys<>& position,       ///< [in] patch location and orientation
-        const std::string& heightmap_file,  ///< [in] filename for the height map (BMP)
-        const std::string& mesh_name,       ///< [in] name of the mesh asset
-        double sizeX,                       ///< [in] terrain dimension in the X direction
-        double sizeY,                       ///< [in] terrain dimension in the Y direction
-        double hMin,                        ///< [in] minimum height (black level)
-        double hMax,                        ///< [in] maximum height (white level)
-        double sweep_sphere_radius = 0,     ///< [in] radius of sweep sphere
-        bool visualization = true           ///< [in] enable/disable construction of visualization assets
+        std::shared_ptr<ChMaterialSurface> material,  ///< [in] contact material
+        const ChCoordsys<>& position,                 ///< [in] patch location and orientation
+        const std::string& heightmap_file,            ///< [in] filename for the height map (BMP)
+        const std::string& mesh_name,                 ///< [in] name of the mesh asset
+        double length,                                ///< [in] patch length
+        double width,                                 ///< [in] patch width
+        double hMin,                                  ///< [in] minimum height (black level)
+        double hMax,                                  ///< [in] maximum height (white level)
+        double sweep_sphere_radius = 0,               ///< [in] radius of sweep sphere
+        bool visualization = true                     ///< [in] enable/disable construction of visualization assets
     );
 
     /// Initialize all defined terrain patches.
@@ -161,11 +141,11 @@ class CH_VEHICLE_API RigidTerrain : public ChTerrain {
     /// Get the terrain patches currently added to the rigid terrain system.
     const std::vector<std::shared_ptr<Patch>>& GetPatches() const { return m_patches; }
 
-    /// Get the terrain height at the specified (x,y) location.
-    virtual double GetHeight(double x, double y) const override;
+    /// Get the terrain height below the specified location.
+    virtual double GetHeight(const ChVector<>& loc) const override;
 
-    /// Get the terrain height at the specified (x,y) location.
-    virtual ChVector<> GetNormal(double x, double y) const override;
+    /// Get the terrain normal at the point below the specified location.
+    virtual ChVector<> GetNormal(const ChVector<>& loc) const override;
 
     /// Enable use of location-dependent coefficient of friction in terrain-solid contacts.
     /// This assumes that a non-trivial functor (of type ChTerrain::FrictionFunctor) was defined
@@ -176,7 +156,7 @@ class CH_VEHICLE_API RigidTerrain : public ChTerrain {
     /// By default, this option is disabled.  This function must be called before Initialize.
     void UseLocationDependentFriction(bool val) { m_use_friction_functor = val; }
 
-    /// Get the terrain coefficient of friction at the specified (x,y) location.
+    /// Get the terrain coefficient of friction at the point below the specified location.
     /// For RigidTerrain, this function defers to the user-provided functor object of type
     /// ChTerrain::FrictionFunctor, if one was specified. Otherwise, it returns the constant
     /// value from the appropriate patch, as specified through SetContactFrictionCoefficient.
@@ -184,41 +164,55 @@ class CH_VEHICLE_API RigidTerrain : public ChTerrain {
     /// characteristics, but it will have no effect on the interaction of the terrain with
     /// other objects (including tire models that do not explicitly use it).
     /// See UseLocationDependentFriction.
-    virtual float GetCoefficientFriction(double x, double y) const override;
+    virtual float GetCoefficientFriction(const ChVector<>& loc) const override;
 
     /// Export all patch meshes as macros in PovRay include files.
     void ExportMeshPovray(const std::string& out_dir, bool smoothed = false);
 
-    /// Evaluate terrain height, normal, and coefficient of friction at the specified (x,y) location.
+    /// Export all patch meshes as Wavefront files.
+    void ExportMeshWavefront(const std::string& out_dir);
+
+    /// Find the terrain height, normal, and coefficient of friction at the point below the specified location.
     /// The point on the terrain surface is obtained through ray casting into the terrain contact model.
     /// The return value is 'true' if the ray intersection succeeded and 'false' otherwise (in which case
     /// the output is set to heigh=0, normal=[0,0,1], and friction=0.8).
-    bool FindPoint(double x, double y, double& height, ChVector<>& normal, float& friction) const;
+    bool FindPoint(const ChVector<> loc, double& height, ChVector<>& normal, float& friction) const;
+
+    /// Set common collision family for patches.
+    /// Used only if defining two or more patches. Default: 14.
+    void SetCollisionFamily(int family) { m_collision_family = family; }
 
   private:
     /// Patch represented as a box domain.
     struct CH_VEHICLE_API BoxPatch : public Patch {
-        ChVector<> m_hsize;   ///< half-dimensions of the box domain
-        ChVector<> m_normal;  ///< outward normal of the +z face
-        virtual bool FindPoint(double x, double y, double& height, ChVector<>& normal) const override;
+        ChVector<> m_location;  ///< center of top surface
+        ChVector<> m_normal;    ///< outward normal of the top surface
+        double m_hlength;       ///< patch half-length
+        double m_hwidth;        ///< patch half-width
+        virtual bool FindPoint(const ChVector<>& loc, double& height, ChVector<>& normal) const override;
     };
 
     /// Patch represented as a mesh.
     struct CH_VEHICLE_API MeshPatch : public Patch {
         std::shared_ptr<geometry::ChTriangleMeshConnected> m_trimesh;  ///< associated mesh
         std::string m_mesh_name;                                       ///< name of associated mesh
-        virtual bool FindPoint(double x, double y, double& height, ChVector<>& normal) const override;
+        virtual bool FindPoint(const ChVector<>& loc, double& height, ChVector<>& normal) const override;
         virtual void ExportMeshPovray(const std::string& out_dir, bool smoothed = false) override;
+        virtual void ExportMeshWavefront(const std::string& out_dir) override;
     };
 
     ChSystem* m_system;
     int m_num_patches;
     std::vector<std::shared_ptr<Patch>> m_patches;
     bool m_use_friction_functor;
-    ChContactContainer::AddContactCallback* m_contact_callback;
+    std::shared_ptr<ChContactContainer::AddContactCallback> m_contact_callback;
 
-    void AddPatch(std::shared_ptr<Patch> patch, const ChCoordsys<>& position);
+    void AddPatch(std::shared_ptr<Patch> patch,
+                  const ChCoordsys<>& position,
+                  std::shared_ptr<ChMaterialSurface> material);
     void LoadPatch(const rapidjson::Value& a);
+
+    int m_collision_family;
 };
 
 /// @} vehicle_terrain

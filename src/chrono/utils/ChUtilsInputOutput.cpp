@@ -66,88 +66,66 @@ void WriteBodies(ChSystem* system,
 bool WriteCheckpoint(ChSystem* system, const std::string& filename) {
     // Create the CSV stream.
     CSV_writer csv(" ");
+    std::string tab("    ");
+
+    // Write contact method type (0: NSC, 1: SMC)
+    int ctype = (system->GetContactMethod() == ChContactMethod::NSC) ? 0 : 1;
+    csv << ctype;
 
     for (auto body : system->Get_bodylist()) {
-        // Infer body type (0: NSC, 1:SMC)
-        int btype = (body->GetContactMethod() == ChMaterialSurface::NSC) ? 0 : 1;
-
-        // Write body type, body identifier, the body fixed flag, and the collide flag
-        csv << btype << body->GetIdentifier() << body->GetBodyFixed() << body->GetCollide();
+        // Write body identifier, the body fixed flag, and the collide flag
+        csv << body->GetIdentifier() << body->GetBodyFixed() << body->GetCollide() << tab;
 
         // Write collision family information.
-        csv << body->GetCollisionModel()->GetFamilyGroup() << body->GetCollisionModel()->GetFamilyMask();
+        csv << body->GetCollisionModel()->GetFamilyGroup() << body->GetCollisionModel()->GetFamilyMask() << tab;
 
         // Write body mass and inertia
-        csv << body->GetMass() << body->GetInertiaXX();
+        csv << body->GetMass() << body->GetInertiaXX() << tab;
 
         // Write body position, orientation, and their time derivatives
-        csv << body->GetPos() << body->GetRot();
-        csv << body->GetPos_dt() << body->GetRot_dt();
+        csv << body->GetPos() << body->GetRot() << tab;
+        csv << body->GetPos_dt() << body->GetRot_dt() << tab;
 
         csv << std::endl;
 
-        // Write material information
-        if (btype == 0) {
-            // Write NSC material surface information
-            std::shared_ptr<ChMaterialSurfaceNSC> mat = body->GetMaterialSurfaceNSC();
-            csv << mat->static_friction << mat->sliding_friction << mat->rolling_friction << mat->spinning_friction;
-            csv << mat->restitution << mat->cohesion << mat->dampingf;
-            csv << mat->compliance << mat->complianceT << mat->complianceRoll << mat->complianceSpin;
-        } else {
-            // Write SMC material surface information
-            std::shared_ptr<ChMaterialSurfaceSMC> mat = body->GetMaterialSurfaceSMC();
-            csv << mat->young_modulus << mat->poisson_ratio;
-            csv << mat->static_friction << mat->sliding_friction;
-            csv << mat->restitution << mat->constant_adhesion << mat->adhesionMultDMT;
-            csv << mat->kn << mat->gn << mat->kt << mat->gt;
-        }
+        // Write number of collision shapes
+        int n_shapes = body->GetCollisionModel()->GetNumShapes();
+        csv << n_shapes << std::endl;
 
-        csv << std::endl;
-
-        // Count and write all visual assets.
-        int num_visual_assets = 0;
-        for (auto asset : body->GetAssets()) {
-            if (std::dynamic_pointer_cast<ChVisualization>(asset))
-                num_visual_assets++;
-        }
-        csv << num_visual_assets << std::endl;
-
-        // Loop over each asset and, for selected visual assets only, write its data
-        // on a separate line. If we encounter an unsupported type, return false.
-        for (auto asset : body->GetAssets()) {
-            auto visual_asset = std::dynamic_pointer_cast<ChVisualization>(asset);
-            if (!visual_asset)
-                continue;
+        // Loop over each shape and write its data on a separate line.
+        // If we encounter an unsupported type, return false.
+        for (int index = 0; index < n_shapes; index++) {
+            auto shape = body->GetCollisionModel()->GetShape(index);
 
             // Write relative position and rotation
-            csv << visual_asset->Pos << visual_asset->Rot.Get_A_quaternion();
+            ChCoordsys<> csys = body->GetCollisionModel()->GetShapePos(index);
+            csv << csys.pos << csys.rot << tab;
 
-            // Write shape type and geometry data
-            if (auto sphere = std::dynamic_pointer_cast<ChSphereShape>(visual_asset)) {
-                csv << collision::SPHERE << sphere->GetSphereGeometry().rad;
-            } else if (auto ellipsoid = std::dynamic_pointer_cast<ChEllipsoidShape>(visual_asset)) {
-                csv << collision::ELLIPSOID << ellipsoid->GetEllipsoidGeometry().rad;
-            } else if (auto box = std::dynamic_pointer_cast<ChBoxShape>(visual_asset)) {
-                csv << collision::BOX << box->GetBoxGeometry().Size;
-            } else if (auto capsule = std::dynamic_pointer_cast<ChCapsuleShape>(visual_asset)) {
-                const geometry::ChCapsule& geom = capsule->GetCapsuleGeometry();
-                csv << collision::CAPSULE << geom.rad << geom.hlen;
-            } else if (auto cylinder = std::dynamic_pointer_cast<ChCylinderShape>(visual_asset)) {
-                const geometry::ChCylinder& geom = cylinder->GetCylinderGeometry();
-                csv << collision::CYLINDER << geom.rad << (geom.p1.y() - geom.p2.y()) / 2;
-            } else if (auto cone = std::dynamic_pointer_cast<ChConeShape>(visual_asset)) {
-                const geometry::ChCone& geom = cone->GetConeGeometry();
-                csv << collision::CONE << geom.rad.x() << geom.rad.y();
-            } else if (auto rbox = std::dynamic_pointer_cast<ChRoundedBoxShape>(visual_asset)) {
-                const geometry::ChRoundedBox& geom = rbox->GetRoundedBoxGeometry();
-                csv << collision::ROUNDEDBOX << geom.Size << geom.radsphere;
-            } else if (auto rcyl = std::dynamic_pointer_cast<ChRoundedCylinderShape>(visual_asset)) {
-                const geometry::ChRoundedCylinder& geom = rcyl->GetRoundedCylinderGeometry();
-                csv << collision::ROUNDEDCYL << geom.rad << geom.hlen << geom.radsphere;
+            // Write shape material information
+            if (ctype == 0) {
+                auto mat = std::static_pointer_cast<ChMaterialSurfaceNSC>(shape->GetMaterial());
+                csv << mat->static_friction << mat->sliding_friction << mat->rolling_friction << mat->spinning_friction;
+                csv << mat->restitution << mat->cohesion << mat->dampingf;
+                csv << mat->compliance << mat->complianceT << mat->complianceRoll << mat->complianceSpin;
+                csv << tab;
             } else {
-                // Unsupported visual asset type.
+                auto mat = std::static_pointer_cast<ChMaterialSurfaceSMC>(shape->GetMaterial());
+                csv << mat->young_modulus << mat->poisson_ratio;
+                csv << mat->static_friction << mat->sliding_friction;
+                csv << mat->restitution << mat->constant_adhesion << mat->adhesionMultDMT;
+                csv << mat->kn << mat->gn << mat->kt << mat->gt;
+                csv << tab;
+            }
+
+            // Write shape type and characteristic dimensions
+            std::vector<double> dims = body->GetCollisionModel()->GetShapeDimensions(index);
+            if (dims.empty()) {
+                std::cout << "utils::WriteCheckpoint ERROR: unknown or not supported collision shape\n";
                 return false;
             }
+
+            csv << shape->GetType() << dims;
+
             csv << std::endl;
         }
     }
@@ -168,13 +146,27 @@ void ReadCheckpoint(ChSystem* system, const std::string& filename) {
     std::ifstream ifile(filename.c_str());
     std::string line;
 
+    // Read the contact method type
+    std::getline(ifile, line);
+    std::istringstream iss0(line);
+    int ctype;
+    iss0 >> ctype;
+    auto contact_method = (ctype == 0) ? ChContactMethod::NSC : ChContactMethod::SMC;
+
+    // Check consistency with the current system
+    if (contact_method != system->GetContactMethod()) {
+        std::cout << "utils::ReadCheckpoint ERROR: checkpoint data file inconsistent with the Chrono system\n";
+        std::cout << "    Contact method in data file: " << (ctype == 0 ? "NSC" : "SMC") << "\n";
+        return;
+    }
+
     while (std::getline(ifile, line)) {
         std::istringstream iss1(line);
 
-        // Read body type, Id, flags
-        int btype, bid, bfixed, bcollide;
+        // Read body Id and flags
+        int bid, bfixed, bcollide;
         short family_group, family_mask;
-        iss1 >> btype >> bid >> bfixed >> bcollide >> family_group >> family_mask;
+        iss1 >> bid >> bfixed >> bcollide >> family_group >> family_mask;
 
         // Read body mass and inertia
         double mass;
@@ -184,30 +176,14 @@ void ReadCheckpoint(ChSystem* system, const std::string& filename) {
         // Read body position, orientation, and their time derivatives
         ChVector<> bpos, bpos_dt;
         ChQuaternion<> brot, brot_dt;
-        iss1 >> bpos.x() >> bpos.y() >> bpos.z() >> brot.e0() >> brot.e1() >> brot.e2() >> brot.e3();
-        iss1 >> bpos_dt.x() >> bpos_dt.y() >> bpos_dt.z() >> brot_dt.e0() >> brot_dt.e1() >> brot_dt.e2() >> brot_dt.e3();
+        iss1 >> bpos.x() >> bpos.y() >> bpos.z();
+        iss1 >> brot.e0() >> brot.e1() >> brot.e2() >> brot.e3();
+        iss1 >> bpos_dt.x() >> bpos_dt.y() >> bpos_dt.z();
+        iss1 >> brot_dt.e0() >> brot_dt.e1() >> brot_dt.e2() >> brot_dt.e3();
 
-        // Get the next line in the file (material properties)
-        std::getline(ifile, line);
-        std::istringstream iss2(line);
-
-        // Create a body of the appropriate type, read and apply material properties
-        ChBody* body = system->NewBody();
-        if (btype == 0) {
-            std::shared_ptr<ChMaterialSurfaceNSC> mat = body->GetMaterialSurfaceNSC();
-            iss2 >> mat->static_friction >> mat->sliding_friction >> mat->rolling_friction >> mat->spinning_friction;
-            iss2 >> mat->restitution >> mat->cohesion >> mat->dampingf;
-            iss2 >> mat->compliance >> mat->complianceT >> mat->complianceRoll >> mat->complianceSpin;
-        } else {
-            std::shared_ptr<ChMaterialSurfaceSMC> mat = body->GetMaterialSurfaceSMC();
-            iss2 >> mat->young_modulus >> mat->poisson_ratio;
-            iss2 >> mat->static_friction >> mat->sliding_friction;
-            iss2 >> mat->restitution >> mat->constant_adhesion >> mat->adhesionMultDMT;
-            iss2 >> mat->kn >> mat->gn >> mat->kt >> mat->gt;
-        }
-
-        // Add the body to the system.
-        system->AddBody(std::shared_ptr<ChBody>(body));
+        // Create a body of the appropriate type
+        auto body = std::shared_ptr<ChBody>(system->NewBody());
+        system->AddBody(body);
 
         // Set body properties and state
         body->SetPos(bpos);
@@ -222,71 +198,88 @@ void ReadCheckpoint(ChSystem* system, const std::string& filename) {
         body->SetMass(mass);
         body->SetInertiaXX(inertiaXX);
 
-        // Get next line in the file (number of visualization assets)
+        // Get next line in the file (number of collision shapes)
         std::getline(ifile, line);
         std::istringstream iss3(line);
 
-        int numAssets;
-        iss3 >> numAssets;
+        int n_shapes;
+        iss3 >> n_shapes;
 
-        // In a loop, read information about each asset and add geometry to the body
+        // In a loop, read information about each shape and add geometry to the body
         body->GetCollisionModel()->ClearModel();
 
-        for (int j = 0; j < numAssets; j++) {
+        for (int j = 0; j < n_shapes; j++) {
             std::getline(ifile, line);
             std::istringstream iss(line);
 
-            // Get relative position and rotation
-            ChVector<> apos;
-            ChQuaternion<> arot;
-            iss >> apos.x() >> apos.y() >> apos.z() >> arot.e0() >> arot.e1() >> arot.e2() >> arot.e3();
+            // Get shape relative position and rotation
+            ChVector<> spos;
+            ChQuaternion<> srot;
+            iss >> spos.x() >> spos.y() >> spos.z() >> srot.e0() >> srot.e1() >> srot.e2() >> srot.e3();
 
-            // Get visualization asset type and geometry data.
-            // Create the appropriate shape (both visualization and contact).
-            int atype;
-            iss >> atype;
+            // Get material information and create the material
+            std::shared_ptr<ChMaterialSurface> mat;
+            if (ctype == 0) {
+                auto matNSC = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+                iss >> matNSC->static_friction >> matNSC->sliding_friction >> matNSC->rolling_friction >>
+                    matNSC->spinning_friction;
+                iss >> matNSC->restitution >> matNSC->cohesion >> matNSC->dampingf;
+                iss >> matNSC->compliance >> matNSC->complianceT >> matNSC->complianceRoll >> matNSC->complianceSpin;
+                mat = matNSC;
+            } else {
+                auto matSMC = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+                iss >> matSMC->young_modulus >> matSMC->poisson_ratio;
+                iss >> matSMC->static_friction >> matSMC->sliding_friction;
+                iss >> matSMC->restitution >> matSMC->constant_adhesion >> matSMC->adhesionMultDMT;
+                iss >> matSMC->kn >> matSMC->gn >> matSMC->kt >> matSMC->gt;
+                mat = matSMC;
+            }
 
-            switch (collision::ShapeType(atype)) {
-                case collision::SPHERE: {
+            // Get shape type and geometry data and create the shape (both visualization and contact).
+            int stype;
+            iss >> stype;
+
+            switch (collision::ChCollisionShape::Type(stype)) {
+                case collision::ChCollisionShape::Type::SPHERE: {
                     double radius;
                     iss >> radius;
-                    AddSphereGeometry(body, radius, apos, arot);
+                    AddSphereGeometry(body.get(), mat, radius, spos, srot);
                 } break;
-                case collision::ELLIPSOID: {
+                case collision::ChCollisionShape::Type::ELLIPSOID: {
                     ChVector<> size;
                     iss >> size.x() >> size.y() >> size.z();
-                    AddEllipsoidGeometry(body, size, apos, arot);
+                    AddEllipsoidGeometry(body.get(), mat, size, spos, srot);
                 } break;
-                case collision::BOX: {
+                case collision::ChCollisionShape::Type::BOX: {
                     ChVector<> size;
                     iss >> size.x() >> size.y() >> size.z();
-                    AddBoxGeometry(body, size, apos, arot);
+                    AddBoxGeometry(body.get(), mat, size, spos, srot);
                 } break;
-                case collision::CAPSULE: {
+                case collision::ChCollisionShape::Type::CAPSULE: {
                     double radius, hlen;
                     iss >> radius >> hlen;
-                    AddCapsuleGeometry(body, radius, hlen, apos, arot);
+                    AddCapsuleGeometry(body.get(), mat, radius, hlen, spos, srot);
                 } break;
-                case collision::CYLINDER: {
-                    double radius, hlen;
-                    iss >> radius >> hlen;
-                    AddCylinderGeometry(body, radius, hlen, apos, arot);
+                case collision::ChCollisionShape::Type::CYLINDER: {
+                    double radius, hlen, dummy;
+                    iss >> radius >> dummy >> hlen;
+                    AddCylinderGeometry(body.get(), mat, radius, hlen, spos, srot);
                 } break;
-                case collision::CONE: {
-                    double radius, height;
-                    iss >> radius >> height;
-                    AddConeGeometry(body, radius, height, apos, arot);
+                case collision::ChCollisionShape::Type::CONE: {
+                    double radius, height, dummy;
+                    iss >> radius >> dummy >> height;
+                    AddConeGeometry(body.get(), mat, radius, height, spos, srot);
                 } break;
-                case collision::ROUNDEDBOX: {
+                case collision::ChCollisionShape::Type::ROUNDEDBOX: {
                     ChVector<> size;
                     double srad;
                     iss >> size.x() >> size.y() >> size.z() >> srad;
-                    AddRoundedBoxGeometry(body, size, srad, apos, arot);
+                    AddRoundedBoxGeometry(body.get(), mat, size, srad, spos, srot);
                 } break;
-                case collision::ROUNDEDCYL: {
-                    double radius, hlen, srad;
-                    iss >> radius >> hlen >> srad;
-                    AddRoundedCylinderGeometry(body, radius, hlen, srad, apos, arot);
+                case collision::ChCollisionShape::Type::ROUNDEDCYL: {
+                    double radius, hlen, srad, dummy;
+                    iss >> radius >> dummy >> hlen >> srad;
+                    AddRoundedCylinderGeometry(body.get(), mat, radius, hlen, srad, spos, srot);
                 } break;
                 default:
                     break;
@@ -410,8 +403,8 @@ void WriteShapesPovray(ChSystem* system, const std::string& filename, bool body_
                 a_count++;
             } else if (auto cylinder = std::dynamic_pointer_cast<ChCylinderShape>(visual_asset)) {
                 const geometry::ChCylinder& geom = cylinder->GetCylinderGeometry();
-                gss << CYLINDER << delim << geom.rad << delim << geom.p1.x() << delim << geom.p1.y() << delim << geom.p1.z()
-                    << delim << geom.p2.x() << delim << geom.p2.y() << delim << geom.p2.z();
+                gss << CYLINDER << delim << geom.rad << delim << geom.p1.x() << delim << geom.p1.y() << delim
+                    << geom.p1.z() << delim << geom.p2.x() << delim << geom.p2.y() << delim << geom.p2.z();
                 a_count++;
             } else if (auto cone = std::dynamic_pointer_cast<ChConeShape>(visual_asset)) {
                 const geometry::ChCone& geom = cone->GetConeGeometry();
@@ -506,8 +499,7 @@ void WriteShapesPovray(ChSystem* system, const std::string& filename, bool body_
             if (std::dynamic_pointer_cast<ChPointPointSegment>(visual_asset)) {
                 csv << SEGMENT << link->GetPoint1Abs() << link->GetPoint2Abs() << std::endl;
                 la_count++;
-            }
-            else if (std::dynamic_pointer_cast<ChPointPointSpring>(visual_asset)) {
+            } else if (std::dynamic_pointer_cast<ChPointPointSpring>(visual_asset)) {
                 csv << COIL << link->GetPoint1Abs() << link->GetPoint2Abs() << std::endl;
                 la_count++;
             }
@@ -630,7 +622,7 @@ void WriteCurvePovray(const ChBezierCurve& curve,
 
     ofile << "#declare " << curve_name << " = object {" << std::endl;
     ofile << "  sphere_sweep {" << std::endl;
-    ofile << "    linear_spline " << nP* nS + 1 << "," << std::endl;
+    ofile << "    linear_spline " << nP * nS + 1 << "," << std::endl;
 
     ChVector<> v = curve.eval(0, 0.0);
     ofile << "        <" << v.x() << ", " << v.z() << ", " << v.x() << "> ," << radius << std::endl;

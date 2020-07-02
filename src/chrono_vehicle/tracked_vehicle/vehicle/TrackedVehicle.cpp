@@ -28,7 +28,7 @@ namespace vehicle {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-TrackedVehicle::TrackedVehicle(const std::string& filename, ChMaterialSurface::ContactMethod contact_method)
+TrackedVehicle::TrackedVehicle(const std::string& filename, ChContactMethod contact_method)
     : ChTrackedVehicle("", contact_method) {
     Create(filename);
 }
@@ -127,7 +127,7 @@ void TrackedVehicle::Initialize(const ChCoordsys<>& chassisPos, double chassisFw
     m_tracks[1]->Initialize(m_chassis->GetBody(), ChVector<>(0, m_track_offset[1], 0));
 
     // Initialize the driveline
-    m_driveline->Initialize(m_chassis->GetBody(), m_tracks[0], m_tracks[1]);
+    m_driveline->Initialize(m_chassis, m_tracks[0], m_tracks[1]);
 }
 
 }  // end namespace vehicle

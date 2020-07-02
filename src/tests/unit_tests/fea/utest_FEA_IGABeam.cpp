@@ -66,14 +66,15 @@ Model::Model(int sec, int ord) {
     my_mesh->SetAutomaticGravity(false);
     m_system->Add(my_mesh);
 
-    melasticity = chrono_types::make_shared<ChElasticityCosseratSimple>();
-    melasticity->SetYoungModulus(E);
-    melasticity->SetGshearModulus(E * nu);
-    melasticity->SetBeamRaleyghDamping(0.0000);
 
-    auto msection = chrono_types::make_shared<ChBeamSectionCosserat>(melasticity);
-    msection->SetDensity(rho);
-    msection->SetAsRectangularSection(wy, wz);
+	auto msection = chrono_types::make_shared<ChBeamSectionCosseratEasyRectangular>(
+		wy,					// width of section in y direction
+		wz,					// width of section in z direction
+		E,					// Young modulus
+		E * nu,				// shear modulus
+		rho			        // density
+		);
+	this->melasticity = std::dynamic_pointer_cast<ChElasticityCosseratSimple>(msection->GetElasticity());
 
     // Use the ChBuilderBeamIGA tool for creating a straight rod
     // divided in Nel elements:
@@ -109,7 +110,6 @@ double AnalyticalTipDisp(std::shared_ptr<ChElasticityCosseratSimple> elast) {
 TEST(IGA_Beam, Sim_vs_Analytical) {
 //int main() {
     // Simulate a cantilever with IGA and compare to analytical solution
-
     int sections[4] = { 8, 12, 16, 20 };
     int order[4] = { 7, 5, 3, 3 };
     for (int i = 0; i < 4; i++) {

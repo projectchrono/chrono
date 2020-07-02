@@ -35,18 +35,21 @@ ChRotaryArm::ChRotaryArm(const std::string& name, bool vehicle_frame_inertia)
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChRotaryArm::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
+void ChRotaryArm::Initialize(std::shared_ptr<ChChassis> chassis,
                              const ChVector<>& location,
                              const ChQuaternion<>& rotation) {
     m_position = ChCoordsys<>(location, rotation);
 
+    auto chassisBody = chassis->GetBody();
+    auto sys = chassisBody->GetSystem();
+
     // Chassis orientation (expressed in absolute frame)
     // Recall that the suspension reference frame is aligned with the chassis.
-    ChQuaternion<> chassisRot = chassis->GetFrame_REF_to_abs().GetRot();
+    ChQuaternion<> chassisRot = chassisBody->GetFrame_REF_to_abs().GetRot();
 
     // Express the steering reference frame in the absolute coordinate system.
     ChFrame<> steering_to_abs(location, rotation);
-    steering_to_abs.ConcatenatePreTransformation(chassis->GetFrame_REF_to_abs());
+    steering_to_abs.ConcatenatePreTransformation(chassisBody->GetFrame_REF_to_abs());
 
     // Transform all points and directions to absolute frame.
     std::vector<ChVector<>> points(NUM_POINTS);
@@ -69,7 +72,7 @@ void ChRotaryArm::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     ChMatrix33<> rot;
 
     // Create and initialize the Pitman arm body
-    m_link = std::shared_ptr<ChBody>(chassis->GetSystem()->NewBody());
+    m_link = std::shared_ptr<ChBody>(sys->NewBody());
     m_link->SetNameString(m_name + "_arm");
     m_link->SetPos(0.5 * (points[ARM_L] + points[ARM_C]));
     m_link->SetRot(steering_to_abs.GetRot());
@@ -82,7 +85,7 @@ void ChRotaryArm::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
         m_link->SetInertiaXX(getPitmanArmInertiaMoments());
         m_link->SetInertiaXY(getPitmanArmInertiaProducts());
     }
-    chassis->GetSystem()->AddBody(m_link);
+    sys->AddBody(m_link);
 
     // Cache points for arm visualization (expressed in the arm frame)
     m_pC = m_link->TransformPointParentToLocal(points[ARM_C]);
@@ -101,10 +104,10 @@ void ChRotaryArm::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
 
     m_revolute = chrono_types::make_shared<ChLinkMotorRotationAngle>();
     m_revolute->SetNameString(m_name + "_revolute");
-    m_revolute->Initialize(chassis, m_link, ChFrame<>(points[ARM_C], rot.Get_A_quaternion()));
+    m_revolute->Initialize(chassisBody, m_link, ChFrame<>(points[ARM_C], rot.Get_A_quaternion()));
     auto motor_fun = chrono_types::make_shared<ChFunction_Setpoint>();
     m_revolute->SetAngleFunction(motor_fun);
-    chassis->GetSystem()->AddLink(m_revolute);
+    sys->AddLink(m_revolute);
 }
 
 // -----------------------------------------------------------------------------

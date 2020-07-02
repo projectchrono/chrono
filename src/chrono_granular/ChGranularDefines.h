@@ -46,6 +46,8 @@ constexpr size_t NUM_RESERVED_BC_IDS = 6;
 #define NULL_GRANULAR_ID UINT_MAX
 /// Value that controls the length unit. A sphere deforms this many simulation length units under its own weight.
 #define PSI_L_DEFAULT 16
+/// Fraction of sphere radius which gives an upper bound on the length unit.
+#define PSI_R_DEFAULT 1.f
 /// Value that controls the time unit -- safety factor on the deformation-based time unit
 #define PSI_T_DEFAULT 32
 /// Maximum number of triangles that an SD can touch

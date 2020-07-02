@@ -17,6 +17,7 @@
 
 
 #include "chrono_cascade/ChApiCASCADE.h"
+#include "chrono_cascade/ChCascadeTriangulate.h"
 
 #include "chrono/core/ChStream.h"
 #include "chrono/geometry/ChTriangleMeshConnected.h"
@@ -24,8 +25,6 @@
 class TopoDS_Face;
 class TopoDS_Shape;
 class Poly_Connect;
-class TColgp_Array1OfDir;
-class Handle_TDocStd_Document;
 class TopLoc_Location;
 class TDF_Label;
 
@@ -55,9 +54,7 @@ class ChApiCASCADE ChCascadeMeshTools {
     static void fillTriangleMeshFromCascade(
         geometry::ChTriangleMeshConnected& chmesh,  ///< Mesh that will be filled with triangles
         const TopoDS_Shape& mshape,        ///< OpenCASCADE face to be meshed
-        double deflection = 1,             ///< Tolerance on meshing (the lower, the finer the mesh)
-        bool   relative_deflection= false, ///< If true, deflection is relative to face size
-        double angulardeflection = 0.5     ///< angular deflection
+        const ChCascadeTriangulateTolerances& mtolerances ///< tesselation tolerances
 		);
 
     //---------------------------------------------------------------------------------
@@ -69,9 +66,7 @@ class ChApiCASCADE ChCascadeMeshTools {
     static void fillObjFileFromCascade(
         ChStreamOutAscii& objfile,   ///< the .obj file will be written here
         const TopoDS_Shape& mshape,  ///< OpenCASCADE face to be output as 'obj' file
-        double deflection = 1,       ///< Tolerance on meshing (the lower, the finer the mesh)
-        bool   relative_deflection= false, ///< If true, deflection is relative to face size
-        double angulardeflection = 0.5 ///< angular deflection
+        const ChCascadeTriangulateTolerances& mtolerances ///< tesselation tolerances
 		);
 
 
@@ -79,7 +74,7 @@ class ChApiCASCADE ChCascadeMeshTools {
 
 /// @} cascade_module
 
-}  // END_OF_NAMESPACE____
-}  // END_OF_NAMESPACE____
+}  // end namespace cascade
+}  // end namespace chrono
 
 #endif  // END of header

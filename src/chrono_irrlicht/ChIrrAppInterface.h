@@ -41,8 +41,8 @@ class ChApiIrr ChIrrAppInterface {
   public:
     /// Create the IRRLICHT context (device, etc.)
     ChIrrAppInterface(ChSystem* psystem,
-                      const wchar_t* title = 0,
-                      irr::core::dimension2d<irr::u32> dimens = irr::core::dimension2d<irr::u32>(640, 480),
+                      const std::wstring& title = L"Chrono",
+                      const irr::core::dimension2d<irr::u32>& dimens = irr::core::dimension2d<irr::u32>(640, 480),
                       bool do_fullscreen = false,
                       bool do_shadows = false,
                       bool do_antialias = true,
@@ -81,16 +81,12 @@ class ChApiIrr ChIrrAppInterface {
     /// If set to true, you can use DoStep() in the simulation loop to advance the
     /// simulation by one timestep. Otherwise, you have to handle the time
     /// stepping by yourself, e.g. by calling ChSystem::DoStepDynamics().
+    /// Default: true.
     void SetStepManage(bool val) { step_manage = val; }
-    bool GetStepManage() { return step_manage; }
 
-    /// If set to true, the function DoStep() will try to use a timestep that is
-    /// the same as that used to refresh the interface and compute physics (i.e.,
-    /// it attempts to keep soft-realtime performance).
-    /// Note: the realtime step is bounded above by the timestep specified through
-    /// SetTimestep()! This clamping will happen if there's too much load.
+    /// If enabled, the function DoStep() will enforce soft real-time, by spinning in place until simulation time
+    /// catches up with real time.
     void SetTryRealtime(bool val) { try_realtime = val; }
-    bool GetTryRealtime() { return try_realtime; }
 
     /// Set/Get the simulation state (running or paused)
     void SetPaused(bool val) { pause_step = val; }
@@ -114,15 +110,15 @@ class ChApiIrr ChIrrAppInterface {
     void SetLinksLabelMode(ChIrrTools::eCh_LinkLabelMode mm) { this->gad_labellinks->setSelected((int)mm); }
     /// Set the draw mode for links
     void SetLinksDrawMode(ChIrrTools::eCh_LinkDrawMode mm) { this->gad_drawlinks->setSelected((int)mm); }
-	/// Set if the AABB collision shapes will be plotted
+    /// Set if the AABB collision shapes will be plotted
     void SetPlotAABB(bool val) { this->gad_plot_aabb->setChecked(val); }
-	/// Set if the COG frames will be plotted
-	void SetPlotCOGFrames(bool val) { this->gad_plot_cogs->setChecked(val); }
-	/// Set if the Bullet collision shapes will be plotted
-	void SetPlotCollisionShapes(bool val) { this->gad_plot_collisionshapes->setChecked(val); }
-	/// Set if the link frames will be plotted
+    /// Set if the COG frames will be plotted
+    void SetPlotCOGFrames(bool val) { this->gad_plot_cogs->setChecked(val); }
+    /// Set if the Bullet collision shapes will be plotted
+    void SetPlotCollisionShapes(bool val) { this->gad_plot_collisionshapes->setChecked(val); }
+    /// Set if the link frames will be plotted
     void SetPlotLinkFrames(bool val) { this->gad_plot_linkframes->setChecked(val); }
-	/// Set if the COG frames will be plotted
+    /// Set if the COG frames will be plotted
     void SetPlotConvergence(bool val) { this->gad_plot_convergence->setChecked(val); }
 
     /// Set the scale for symbol drawing (link frames, COGs, etc.)
@@ -142,18 +138,20 @@ class ChApiIrr ChIrrAppInterface {
                             bool zBuffer = true,
                             irr::video::SColor color = irr::video::SColor(255, 0, 0, 0));
 
-    /// Call this important function inside a cycle like
+    /// Call this function inside a loop such as
+    /// <pre>
     ///    while(application.GetDevice()->run()) {...}
-    /// in order to advance the physics by one timestep. The value of the timestep
-    /// can be set via SetTimestep(). Optionally, you can use SetTryRealtime(true)
-    /// if your simulation can run in realtime.
-    /// Alternatively, if you want to use ChSystem::DoStepDynamics() directly in
-    /// your loop, use SetStepManage(false).
+    /// </pre>
+    /// in order to advance the dynamics by one timestep. The value of the timestep can be set via SetTimestep().
+    /// Optionally, you can use SetTryRealtime(true) if your simulation can run in realtime; this will enforce soft
+    /// real-time. Alternatively, to use ChSystem::DoStepDynamics() directly in the loop, use SetStepManage(false).
     virtual void DoStep();
 
-    /// Call this important function inside a loop like
+    /// Call this function inside a loop such as
+    /// <pre>
     ///    while(application.GetDevice()->run()) {...}
-    /// in order to get the redrawing of all 3D shapes and all the GUI elements.
+    /// </pre>
+    /// to draw all 3D shapes and GUI elements at the current frame.
     virtual void DrawAll();
 
     /// Call this to end the scene draw at the end of each animation frame
@@ -274,7 +272,7 @@ class ChApiIrr ChIrrAppInterface {
     irr::gui::IGUIComboBox* gad_labellinks;
     irr::gui::IGUICheckBox* gad_plot_aabb;
     irr::gui::IGUICheckBox* gad_plot_cogs;
-	irr::gui::IGUICheckBox* gad_plot_collisionshapes;
+    irr::gui::IGUICheckBox* gad_plot_collisionshapes;
     irr::gui::IGUICheckBox* gad_plot_linkframes;
     irr::gui::IGUICheckBox* gad_plot_convergence;
 

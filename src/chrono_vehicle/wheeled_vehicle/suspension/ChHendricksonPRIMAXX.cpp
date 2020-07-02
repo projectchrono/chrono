@@ -64,18 +64,17 @@ ChHendricksonPRIMAXX::ChHendricksonPRIMAXX(const std::string& name) : ChSuspensi
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChHendricksonPRIMAXX::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
+void ChHendricksonPRIMAXX::Initialize(std::shared_ptr<ChChassis> chassis,
+                                      std::shared_ptr<ChSubchassis> subchassis,
+                                      std::shared_ptr<ChSteering> steering,
                                       const ChVector<>& location,
-                                      std::shared_ptr<ChBody> tierod_body,
-                                      int steering_index,
                                       double left_ang_vel,
                                       double right_ang_vel) {
     m_location = location;
-    m_steering_index = steering_index;
 
     // Express the suspension reference frame in the absolute coordinate system.
     ChFrame<> suspension_to_abs(location);
-    suspension_to_abs.ConcatenatePreTransformation(chassis->GetFrame_REF_to_abs());
+    suspension_to_abs.ConcatenatePreTransformation(chassis->GetBody()->GetFrame_REF_to_abs());
 
     // Transform the location of the axle body COM to absolute frame.
     ChVector<> axleCOM_local = getAxlehousingCOM();
@@ -90,13 +89,13 @@ void ChHendricksonPRIMAXX::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     m_outerR = suspension_to_abs.TransformPointLocalToParent(outer_local);
 
     // Create and initialize the axle housing body.
-    m_axlehousing = std::shared_ptr<ChBody>(chassis->GetSystem()->NewBody());
+    m_axlehousing = std::shared_ptr<ChBody>(chassis->GetBody()->GetSystem()->NewBody());
     m_axlehousing->SetNameString(m_name + "_axlehousing");
     m_axlehousing->SetPos(axleCOM);
-    m_axlehousing->SetRot(chassis->GetFrame_REF_to_abs().GetRot());
+    m_axlehousing->SetRot(chassis->GetBody()->GetFrame_REF_to_abs().GetRot());
     m_axlehousing->SetMass(getAxlehousingMass());
     m_axlehousing->SetInertiaXX(getAxlehousingInertia());
-    chassis->GetSystem()->AddBody(m_axlehousing);
+    chassis->GetBody()->GetSystem()->AddBody(m_axlehousing);
 
     // Transform all points and directions to absolute frame
     m_pointsL.resize(NUM_POINTS);
@@ -123,17 +122,18 @@ void ChHendricksonPRIMAXX::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     ChVector<> tbCOM_local = getTransversebeamCOM();
     ChVector<> tbCOM = suspension_to_abs.TransformLocalToParent(tbCOM_local);
 
-    m_transversebeam = std::shared_ptr<ChBody>(chassis->GetSystem()->NewBody());
+    m_transversebeam = std::shared_ptr<ChBody>(chassis->GetBody()->GetSystem()->NewBody());
     m_transversebeam->SetNameString(m_name + "_transversebeam");
     m_transversebeam->SetPos(tbCOM);
-    m_transversebeam->SetRot(chassis->GetFrame_REF_to_abs().GetRot());
+    m_transversebeam->SetRot(chassis->GetBody()->GetFrame_REF_to_abs().GetRot());
     m_transversebeam->SetMass(getTransversebeamMass());
     m_transversebeam->SetInertiaXX(getTransversebeamInertia());
-    chassis->GetSystem()->AddBody(m_transversebeam);
+    chassis->GetBody()->GetSystem()->AddBody(m_transversebeam);
 
     // Initialize left and right sides.
-    InitializeSide(LEFT, chassis, tierod_body, m_pointsL, m_dirsL, left_ang_vel);
-    InitializeSide(RIGHT, chassis, tierod_body, m_pointsR, m_dirsR, right_ang_vel);
+    std::shared_ptr<ChBody> tierod_body = (steering == nullptr) ? chassis->GetBody() : steering->GetSteeringLink();
+    InitializeSide(LEFT, chassis->GetBody(), tierod_body, m_pointsL, m_dirsL, left_ang_vel);
+    InitializeSide(RIGHT, chassis->GetBody(), tierod_body, m_pointsR, m_dirsR, right_ang_vel);
 }
 
 void ChHendricksonPRIMAXX::InitializeSide(VehicleSide side,

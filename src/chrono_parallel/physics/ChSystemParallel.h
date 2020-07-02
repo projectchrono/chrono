@@ -76,6 +76,9 @@ class CH_PARALLEL_API ChSystemParallel : public ChSystem {
     virtual void Update3DOFBodies();
     void RecomputeThreads();
 
+    virtual ChBody* NewBody() override;
+    virtual ChBodyAuxRef* NewBodyAuxRef() override;
+
     virtual void AddMaterialSurfaceData(std::shared_ptr<ChBody> newbody) = 0;
     virtual void UpdateMaterialSurfaceData(int index, ChBody* body) = 0;
     virtual void Setup() override;
@@ -83,7 +86,7 @@ class CH_PARALLEL_API ChSystemParallel : public ChSystem {
 
     /// Change the default composition laws for contact surface materials
     /// (coefficient of friction, cohesion, compliance, etc.).
-    void SetMaterialCompositionStrategy(std::unique_ptr<ChMaterialCompositionStrategy<real>>&& strategy);
+    virtual void SetMaterialCompositionStrategy(std::unique_ptr<ChMaterialCompositionStrategy>&& strategy) override;
 
     virtual void PrintStepStats();
     unsigned int GetNumBodies();
@@ -120,6 +123,18 @@ class CH_PARALLEL_API ChSystemParallel : public ChSystem {
     /// Note that this function must be explicitly called by the user at each time where
     /// calls to GetContactableForce or ContactableTorque are made.
     virtual void CalculateContactForces() {}
+
+    /// Return the resultant applied force on the specified body.
+    /// This resultant force includes all external applied loads acting on the body (from gravity, loads, springs,
+    /// etc). However, this does *not* include any constraint forces. In particular, contact forces are not included if
+    /// using the NSC formulation, but are included when using the SMC formulation.
+    virtual ChVector<> GetBodyAppliedForce(ChBody* body) override;
+
+    /// Return the resultant applied torque on the specified body.
+    /// This resultant torque includes all external applied loads acting on the body (from gravity, loads, springs,
+    /// etc). However, this does *not* include any constraint forces. In particular, contact torques are not included if
+    /// using the NSC formulation, but are included when using the SMC formulation.
+    virtual ChVector<> GetBodyAppliedTorque(ChBody* body) override;
 
     /// Get the contact force on the body with specified id.
     /// Note that ComputeContactForces must be called prior to calling this function
@@ -189,9 +204,7 @@ class CH_PARALLEL_API ChSystemParallelNSC : public ChSystemParallel {
     void ChangeSolverType(SolverType type);
     void Initialize();
 
-    virtual ChMaterialSurface::ContactMethod GetContactMethod() const override { return ChMaterialSurface::NSC; }
-    virtual ChBody* NewBody() override;
-    virtual ChBodyAuxRef* NewBodyAuxRef() override;
+    virtual ChContactMethod GetContactMethod() const override { return ChContactMethod::NSC; }
     virtual void AddMaterialSurfaceData(std::shared_ptr<ChBody> newbody) override;
     virtual void UpdateMaterialSurfaceData(int index, ChBody* body) override;
 
@@ -222,9 +235,7 @@ class CH_PARALLEL_API ChSystemParallelSMC : public ChSystemParallel {
     /// "Virtual" copy constructor (covariant return type).
     virtual ChSystemParallelSMC* Clone() const override { return new ChSystemParallelSMC(*this); }
 
-    virtual ChMaterialSurfaceNSC::ContactMethod GetContactMethod() const override { return ChMaterialSurface::SMC; }
-    virtual ChBody* NewBody() override;
-    virtual ChBodyAuxRef* NewBodyAuxRef() override;
+    virtual ChContactMethod GetContactMethod() const override { return ChContactMethod::SMC; }
     virtual void AddMaterialSurfaceData(std::shared_ptr<ChBody> newbody) override;
     virtual void UpdateMaterialSurfaceData(int index, ChBody* body) override;
 

@@ -23,6 +23,9 @@ Note how we used  **mybody = mysystem.SearchBody('...')**; and  **mymarker = myb
 	
 Finally, note how we used ChFunction objects to build some basic loop motions for the actuators, in prescribed rotation mode.
 
+
+<span style="color:red;font-weight:bold">ATTENTION!</span> The source code listed below may not be compatible with your current version of PyChrono and may need to be slightly adjusted to reflect any recent API changes.
+
 ~~~~~~~~~~~~~{.py}
 
 

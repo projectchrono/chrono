@@ -13,7 +13,7 @@
 // =============================================================================
 //
 // Demo code about
-// - loading a SilidWorks .py file saved with the Chrono::Engine add-in,
+// - loading a SolidWorks .py file saved with the Chrono::Engine add-in,
 // - showing the system in Irrlicht.
 //
 // =============================================================================
@@ -94,22 +94,24 @@ int main(int argc, char* argv[]) {
         GetLog() << "item:" << typeid(ph).name() << "\n";
     }
 
-    // Fetch some bodies, given their names,
-    // and apply forces/constraints/etc
-    std::shared_ptr<ChPhysicsItem> myitemE = mphysicalSystem.Search("escape_wheel^escapement-1");
-    std::shared_ptr<ChPhysicsItem> myitemA = mphysicalSystem.Search("truss^escapement-1");
-    std::shared_ptr<ChPhysicsItem> myitemB = mphysicalSystem.Search("balance^escapement-1");
-    std::shared_ptr<ChPhysicsItem> myitemC = mphysicalSystem.Search("anchor^escapement-1");
+    // Fetch some bodies, given their names, and apply forces/constraints/etc
+    std::shared_ptr<ChPhysicsItem> myitemE = mphysicalSystem.Search("escape_wheel-1");
+    std::shared_ptr<ChPhysicsItem> myitemA = mphysicalSystem.Search("truss-1");
+    std::shared_ptr<ChPhysicsItem> myitemB = mphysicalSystem.Search("balance-1");
+    std::shared_ptr<ChPhysicsItem> myitemC = mphysicalSystem.Search("anchor-1");
     auto mescape_wheel = std::dynamic_pointer_cast<ChBody>(myitemE);
-    auto mtruss        = std::dynamic_pointer_cast<ChBody>(myitemA);
-    auto mbalance      = std::dynamic_pointer_cast<ChBody>(myitemB);
-    auto manchor       = std::dynamic_pointer_cast<ChBody>(myitemC);
+    auto mtruss = std::dynamic_pointer_cast<ChBody>(myitemA);
+    auto mbalance = std::dynamic_pointer_cast<ChBody>(myitemB);
+    auto manchor = std::dynamic_pointer_cast<ChBody>(myitemC);
 
-    if (mescape_wheel && mtruss && mbalance && manchor ) {
+    // Create a contact material with zero friction which will be shared by all parts
+    auto mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    mat->SetFriction(0);
 
-        // Set a constant torque to escape wheel, in a
-        // very simple way:
-        mescape_wheel->Set_Scr_torque(ChVector<>(0, -0.03, 0));
+    if (mescape_wheel && mtruss && mbalance && manchor) {
+        // Set a constant torque to escape wheel, in a very simple way:
+        mescape_wheel->Empty_forces_accumulators();
+        mescape_wheel->Accumulate_torque(ChVector<>(0, -0.03, 0), false);
 
         // Add a torsional spring
         std::shared_ptr<ChLinkLockFree> mspring(new ChLinkLockFree);
@@ -122,11 +124,11 @@ int main(int argc, char* argv[]) {
         mbalance->SetWvel_par(ChVector<>(0, 5, 0));
 
         // Set no friction in all parts
-        mbalance->GetMaterialSurfaceNSC()->SetFriction(0);
-        mescape_wheel->GetMaterialSurfaceNSC()->SetFriction(0);
-        manchor->GetMaterialSurfaceNSC()->SetFriction(0);
+        mbalance->GetCollisionModel()->SetAllShapesMaterial(mat);
+        mescape_wheel->GetCollisionModel()->SetAllShapesMaterial(mat);
+        manchor->GetCollisionModel()->SetAllShapesMaterial(mat);
     } else
-        GetLog() << "Error: cannot one or more objects from their names in the C::E system! \n\n";
+        GetLog() << "\n\nERROR: cannot find one or more objects from their names in the Chrono system!\n\n";
 
     //
     // THE VISUALIZATION
@@ -175,7 +177,6 @@ int main(int argc, char* argv[]) {
     // set a low stabilization value because objects are small!
     application.GetSystem()->SetMaxPenetrationRecoverySpeed(0.002);
 
-    application.SetStepManage(true);
     application.SetTimestep(0.002);
     application.SetTryRealtime(true);
 

@@ -39,7 +39,7 @@ ChShaftsDriveline2WD::ChShaftsDriveline2WD(const std::string& name)
 // Initialize the driveline subsystem.
 // This function connects this driveline to the specified axle.
 // -----------------------------------------------------------------------------
-void ChShaftsDriveline2WD::Initialize(std::shared_ptr<ChBody> chassis,
+void ChShaftsDriveline2WD::Initialize(std::shared_ptr<ChChassis> chassis,
                                       const ChAxleList& axles,
                                       const std::vector<int>& driven_axles) {
     assert(axles.size() >= 1);
@@ -47,19 +47,20 @@ void ChShaftsDriveline2WD::Initialize(std::shared_ptr<ChBody> chassis,
 
     m_driven_axles = driven_axles;
 
-    ChSystem* my_system = chassis->GetSystem();
+    auto chassisBody = chassis->GetBody();
+    auto sys = chassisBody->GetSystem();
 
     // Create the driveshaft, a 1 d.o.f. object with rotational inertia which
     // represents the connection of the driveline to the transmission box.
     m_driveshaft = chrono_types::make_shared<ChShaft>();
     m_driveshaft->SetInertia(GetDriveshaftInertia());
-    my_system->Add(m_driveshaft);
+    sys->Add(m_driveshaft);
 
     // Create a 1 d.o.f. object: a 'shaft' with rotational inertia.
     // This represents the inertia of the rotating box of the differential.
     m_differentialbox = chrono_types::make_shared<ChShaft>();
     m_differentialbox->SetInertia(GetDifferentialBoxInertia());
-    my_system->Add(m_differentialbox);
+    sys->Add(m_differentialbox);
 
     // Create an angled gearbox, i.e a transmission ratio constraint between two
     // non parallel shafts. This is the case of the 90° bevel gears in the
@@ -67,9 +68,9 @@ void ChShaftsDriveline2WD::Initialize(std::shared_ptr<ChBody> chassis,
     // provides the possibility of transmitting a reaction torque to the box
     // (the truss).
     m_conicalgear = chrono_types::make_shared<ChShaftsGearboxAngled>();
-    m_conicalgear->Initialize(m_driveshaft, m_differentialbox, chassis, m_dir_motor_block, m_dir_axle);
+    m_conicalgear->Initialize(m_driveshaft, m_differentialbox, chassisBody, m_dir_motor_block, m_dir_axle);
     m_conicalgear->SetTransmissionRatio(GetConicalGearRatio());
-    my_system->Add(m_conicalgear);
+    sys->Add(m_conicalgear);
 
     // Create a differential, i.e. an epicycloidal mechanism that connects three
     // rotating members. This class of mechanisms can be simulated using
@@ -80,7 +81,7 @@ void ChShaftsDriveline2WD::Initialize(std::shared_ptr<ChBody> chassis,
     m_differential->Initialize(m_differentialbox, axles[m_driven_axles[0]]->m_suspension->GetAxle(LEFT),
                                axles[m_driven_axles[0]]->m_suspension->GetAxle(RIGHT));
     m_differential->SetTransmissionRatioOrdinary(GetDifferentialRatio());
-    my_system->Add(m_differential);
+    sys->Add(m_differential);
 
     // Create the clutch for differential locking. By default, unlocked.
     m_clutch = chrono_types::make_shared<ChShaftsClutch>();
@@ -88,7 +89,7 @@ void ChShaftsDriveline2WD::Initialize(std::shared_ptr<ChBody> chassis,
                          axles[m_driven_axles[0]]->m_suspension->GetAxle(RIGHT));
     m_clutch->SetTorqueLimit(GetAxleDifferentialLockingLimit());
     m_clutch->SetModulation(0);
-    my_system->Add(m_clutch);
+    sys->Add(m_clutch);
 }
 
 // -----------------------------------------------------------------------------

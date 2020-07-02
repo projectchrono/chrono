@@ -23,8 +23,6 @@
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChBodyEasy.h"
 
-#include "chrono_irrlicht/ChBodySceneNode.h"
-#include "chrono_irrlicht/ChBodySceneNodeTools.h"
 #include "chrono_irrlicht/ChIrrApp.h"
 
 #include <irrlicht.h>
@@ -53,16 +51,17 @@ std::shared_ptr<ChBody> create_wheel(ChVector<> mposition, ChIrrAppInterface& ma
     mrigidBody->SetMass(50);
     mrigidBody->SetInertiaXX(ChVector<>(10, 10, 10));
     mrigidBody->SetPos(mposition);
-    mrigidBody->GetMaterialSurfaceNSC()->SetFriction(0.5);
 
     // now attach a visualization shape, as a mesh from disk
     auto tireMesh = chrono_types::make_shared<ChObjShapeFile>();
     tireMesh->SetFilename(GetChronoDataFile("tractor_wheel.obj").c_str());
     mrigidBody->AddAsset(tireMesh);
 
-    // now attach collision shape, as a compound of convex hulls (for each thread pair):
+    // contact material shared by all collision shapes of the wheel
+    auto mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    mat->SetFriction(0.5f);
 
-    // clear model. The colliding shape description MUST be between  ClearModel() .. BuildModel() pair.
+    // now attach collision shape, as a compound of convex hulls (for each thread pair):
     mrigidBody->GetCollisionModel()->ClearModel();
     // describe the (invisible) colliding shape by adding the 'carcass' decomposed shape and the
     // 'knobs'. Since these decompositions are only for 1/15th of the wheel, use for() to pattern them:
@@ -72,8 +71,8 @@ std::shared_ptr<ChBody> create_wheel(ChVector<> mposition, ChIrrAppInterface& ma
         ChStreamInAsciiFile myslice(GetChronoDataFile("tractor_wheel_slice.chulls").c_str());
         myrot.Q_from_AngAxis(mangle * (CH_C_PI / 180.), VECT_X);
         ChMatrix33<> mm(myrot);
-        mrigidBody->GetCollisionModel()->AddConvexHullsFromFile(myknobs, ChVector<>(0, 0, 0), mm);
-        mrigidBody->GetCollisionModel()->AddConvexHullsFromFile(myslice, ChVector<>(0, 0, 0), mm);
+        mrigidBody->GetCollisionModel()->AddConvexHullsFromFile(mat, myknobs, ChVector<>(0, 0, 0), mm);
+        mrigidBody->GetCollisionModel()->AddConvexHullsFromFile(mat, myslice, ChVector<>(0, 0, 0), mm);
         // break;
     }
     // complete the description.
@@ -94,6 +93,9 @@ void create_some_falling_items(ChSystemNSC& mphysicalSystem, ISceneManager* msce
     ChQuaternion<> rot;
     rot.Q_from_AngAxis(ChRandom() * CH_C_2PI, VECT_Y);
 
+    auto pebble_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    pebble_mat->SetFriction(0.4f);
+
     double bed_x = 0.6;
     double bed_z = 1;
 
@@ -106,21 +108,22 @@ void create_some_falling_items(ChSystemNSC& mphysicalSystem, ISceneManager* msce
         ChQuaternion<> randrot(ChRandom(), ChRandom(), ChRandom(), ChRandom());
         randrot.Normalize();
 
-        auto mrigidBody = chrono_types::make_shared<ChBodyEasySphere>(sphrad, sphdens, true, true);
+        auto mrigidBody = chrono_types::make_shared<ChBodyEasySphere>(sphrad, sphdens, true, true, pebble_mat);
         mphysicalSystem.Add(mrigidBody);
         mrigidBody->SetRot(randrot);
         mrigidBody->SetPos(ChVector<>(-0.5 * bed_x + ChRandom() * bed_x, 
                             0.01 + 0.04 * ((double)bi / (double)n_pebbles),
                               -0.5 * bed_z + ChRandom() * bed_z));
-        mrigidBody->GetMaterialSurfaceNSC()->SetFriction(0.4f);
     }
 
     // Create the a plane using body of 'box' type:
-    auto mrigidBodyB = chrono_types::make_shared<ChBodyEasyBox>(10, 1, 10, 1000, true, true);
+    auto ground_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    ground_mat->SetFriction(0.5f);
+
+    auto mrigidBodyB = chrono_types::make_shared<ChBodyEasyBox>(10, 1, 10, 1000, true, true, ground_mat);
     mphysicalSystem.Add(mrigidBodyB);
     mrigidBodyB->SetBodyFixed(true);
     mrigidBodyB->SetPos(ChVector<>(0, -0.5, 0));
-    mrigidBodyB->GetMaterialSurfaceNSC()->SetFriction(0.5);
     auto mcolor = chrono_types::make_shared<ChColorAsset>();
     mcolor->SetColor(ChColor(0.2f,0.2f,0.2f));
     mrigidBodyB->AddAsset(mcolor);
@@ -159,17 +162,10 @@ int main(int argc, char* argv[]) {
     // Use this function for 'converting' assets into Irrlicht meshes
     application.AssetUpdateAll();
 
-
     //
     // THE SOFT-REAL-TIME CYCLE
     //
 
-    // This will help choosing an integration step which matches the
-    // real-time step of the simulation, if possible.
-
-    int nstep = 0;
-
-    application.SetStepManage(true);
     application.SetTimestep(0.01);
     application.SetTryRealtime(true);
 

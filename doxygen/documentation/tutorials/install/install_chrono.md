@@ -1,6 +1,9 @@
 Install Chrono {#tutorial_install_chrono}
 ==========================
-
+<div class="ce-info">
+Looking for Linux installation instructions?<br>
+A detailed install guide may be found [here](@ref tutorial_install_chrono_linux).
+</div>
 
 A summary of the process required to **build** Chrono is provided in the picture below. 
 
@@ -11,7 +14,6 @@ A summary of the process required to **build** Chrono is provided in the picture
 
 Recommended compilers:
 - Microsoft Visual C++: Visual Studio 2015 or newer. The [community edition of the latest Visual Studio](https://visualstudio.microsoft.com/downloads/) is available for free. 
-- GNU C++ compiler for Linux-based platforms (version 4.9 or newer).
 - Xcode Package for MacOS: Download via App Store for free - it contains the clang++ compiler.
 
 Other compilers were also tested (e.g. Intel C++, PGI) but they are not officially supported and maintained.
@@ -52,8 +54,6 @@ better to install a pure command line version via homebrew (https://brew.sh). Af
 
 On Windows and MacOS, you might want to **download and install** [SourceTree](http://www.sourcetreeapp.com/). <br>
 On MacOS you will find an Application Bundle under /Applications<br>
-On Linux, there are several good [options](https://git-scm.com/download/gui/linux).
-
 
 ## 5) Download the project by cloning the Git repository
 
@@ -99,7 +99,7 @@ Start CMake to configure the build. We assume that you are using the graphical i
 -  In the field "Where is the source code" set the path to your Chrono directory. <br>
    This is the directory where you created your Git repository, in our example is <tt>C:/workspace/chrono</tt>. 
 -  In the field "Where to build the binaries" set the path to *another* directory on your system, 
-   that must be empty. This is where the Visual C++ project will be created (or the Makefile, if on Linux). <br>
+   that must be empty. This is where the Visual C++ project will be created. <br>
    For our example, let's use <tt>C:/workspace/chrono_build</tt>  
    <img src="http://www.projectchrono.org/assets/manual/Install_cmake_destinations.png" class="img-responsive">
 
@@ -164,7 +164,7 @@ For Visual Studio:
 
 5. Repeat step 3 and 4, but choosing **Debug** as configuration type. This will generate the binaries with debugging symbols: they will be placed under the bin/Debug subfolder.
 
-For Linux/GCC and for MacOS/clang:
+For MacOS/clang:
 
 - CMake generates a hierarchy of makefiles in the directory specified in "Where to build the binaries".
 
@@ -185,7 +185,7 @@ and the C++ compiler, otherwise the OpenMP configuration will fail.
 ## 9) Test the demos
 
 Go to the directory that you set in "Where to build the binaries", 
-in our case <tt>C:/workspace/chrono_build</tt>, then go to <tt>bin/Release</tt> or <tt>bin/Debug</tt> (Windows), or to <tt>bin</tt> (Linux).
+in our case <tt>C:/workspace/chrono_build</tt>, then go to <tt>bin/Release</tt> or <tt>bin/Debug</tt> (Windows).
 
 <div class="ce-info">
 **Windows**: If demos using 3D visualization do not start, this may indicate that the **Irrlicht.dll** is not found.  

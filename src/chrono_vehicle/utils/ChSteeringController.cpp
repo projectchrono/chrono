@@ -31,6 +31,7 @@
 
 #include "chrono/core/ChMathematics.h"
 
+#include "chrono_vehicle/ChWorldFrame.h"
 #include "chrono_vehicle/utils/ChSteeringController.h"
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
 
@@ -49,7 +50,7 @@ ChSteeringController::ChSteeringController()
 }
 
 ChSteeringController::ChSteeringController(const std::string& filename)
-    : m_sentinel(0, 0, 0), m_target(0, 0, 0), m_collect(false), m_csv(NULL) {
+    : m_sentinel(0, 0, 0), m_target(0, 0, 0), m_err(0), m_errd(0), m_erri(0), m_collect(false), m_csv(NULL) {
     Document d = ReadFileJSON(filename);
     if (d.IsNull())
         return;
@@ -69,7 +70,8 @@ ChSteeringController::~ChSteeringController() {
 
 void ChSteeringController::Reset(const ChVehicle& vehicle) {
     // Base class only calculates an updated sentinel location.
-    m_sentinel = vehicle.GetChassisBody()->GetFrame_REF_to_abs().TransformPointLocalToParent(ChVector<>(m_dist, 0, 0));
+    m_sentinel =
+        vehicle.GetChassisBody()->GetFrame_REF_to_abs().TransformPointLocalToParent(m_dist * ChWorldFrame::Forward());
     m_err = 0;
     m_erri = 0;
     m_errd = 0;
@@ -78,7 +80,8 @@ void ChSteeringController::Reset(const ChVehicle& vehicle) {
 double ChSteeringController::Advance(const ChVehicle& vehicle, double step) {
     // Calculate current "sentinel" location.  This is a point at the look-ahead
     // distance in front of the vehicle.
-    m_sentinel = vehicle.GetChassisBody()->GetFrame_REF_to_abs().TransformPointLocalToParent(ChVector<>(m_dist, 0, 0));
+    m_sentinel =
+        vehicle.GetChassisBody()->GetFrame_REF_to_abs().TransformPointLocalToParent(m_dist * ChWorldFrame::Forward());
 
     // Calculate current "target" location.
     CalcTargetLocation();
@@ -88,19 +91,18 @@ double ChSteeringController::Advance(const ChVehicle& vehicle, double step) {
         *m_csv << vehicle.GetChTime() << m_target << m_sentinel << std::endl;
     }
 
-    // The "error" vector is the projection onto the horizontal plane (z=0) of
-    // the vector between sentinel and target.
+    // The "error" vector is the projection onto the horizontal plane of the vector between sentinel and target.
     ChVector<> err_vec = m_target - m_sentinel;
-    err_vec.z() = 0;
+    ChWorldFrame::Project(err_vec);
 
     // Calculate the sign of the angle between the projections of the sentinel
     // vector and the target vector (with origin at vehicle location).
     ChVector<> sentinel_vec = m_sentinel - vehicle.GetVehiclePos();
-    sentinel_vec.z() = 0;
+    ChWorldFrame::Project(sentinel_vec);
     ChVector<> target_vec = m_target - vehicle.GetVehiclePos();
-    target_vec.z() = 0;
+    ChWorldFrame::Project(target_vec);
 
-    double temp = Vdot(Vcross(sentinel_vec, target_vec), ChVector<>(0, 0, 1));
+    double temp = Vdot(Vcross(sentinel_vec, target_vec), ChWorldFrame::Vertical());
 
     // Calculate current error (magnitude).
     double err = ChSignum(temp) * err_vec.Length();
@@ -264,20 +266,20 @@ double ChPathSteeringControllerXT::CalcHeadingError(ChVector<>& a, ChVector<>& b
     double ang = 0.0;
 
     // test for velocity > 0
-    m_vel.z() = 0;
+    ChWorldFrame::Project(m_vel);
     m_vel.Normalize();
     double speed = m_vel.Length();
 
     if (speed < 1) {
         // vehicle is standing still, we take the chassis orientation
-        a.z() = 0;
-        b.z() = 0;
+        ChWorldFrame::Project(a);
+        ChWorldFrame::Project(b);
         a.Normalize();
         b.Normalize();
     } else {
         // vehicle is running, we take the {x,y} velocity vector
         a = m_vel;
-        b.z() = 0;
+        ChWorldFrame::Project(b);
         b.Normalize();
     }
 
@@ -293,7 +295,7 @@ double ChPathSteeringControllerXT::CalcHeadingError(ChVector<>& a, ChVector<>& b
     } else {
         vpc = Vcross(a, -b);
     }
-    ang = std::asin(vpc.z());
+    ang = std::asin(ChWorldFrame::Height(vpc));
 
     return ang;
 }
@@ -301,9 +303,9 @@ double ChPathSteeringControllerXT::CalcHeadingError(ChVector<>& a, ChVector<>& b
 int ChPathSteeringControllerXT::CalcCurvatureCode(ChVector<>& a, ChVector<>& b) {
     // a[] is a unit vector pointing to the left vehicle side
     // b[] is a unit vector pointing to the instantanous curve center
-    a.z() = 0;
+    ChWorldFrame::Project(a);
+    ChWorldFrame::Project(b);
     a.Normalize();
-    b.z() = 0;
     b.Normalize();
 
     // In a left turn the distance between the two points will be nearly zero
@@ -338,9 +340,12 @@ double ChPathSteeringControllerXT::CalcAckermannAngle() {
 }
 
 double ChPathSteeringControllerXT::Advance(const ChVehicle& vehicle, double step) {
+    auto& chassis_frame = vehicle.GetChassisBody()->GetFrame_REF_to_abs();  // chassis ref-to-world frame (ISO frame)
+    auto& chassis_rot = chassis_frame.GetRot();                             // chassis ref-to-world rotation (ISO frame)
+
     // Calculate current "sentinel" location.  This is a point at the look-ahead
     // distance in front of the vehicle.
-    m_sentinel = vehicle.GetChassisBody()->GetFrame_REF_to_abs().TransformPointLocalToParent(ChVector<>(m_dist, 0, 0));
+    m_sentinel = chassis_frame.TransformPointLocalToParent(m_dist * ChWorldFrame::Forward());
     m_vel = vehicle.GetVehiclePointVelocity(ChVector<>(0, 0, 0));
     if (!m_filters_initialized) {
         // first time we know about step size
@@ -357,19 +362,19 @@ double ChPathSteeringControllerXT::Advance(const ChVehicle& vehicle, double step
         *m_csv << vehicle.GetChTime() << m_target << m_sentinel << std::endl;
     }
 
-    // The "error" vector is the projection onto the horizontal plane (z=0) of
+    // The "error" vector is the projection onto the horizontal planeof
     // the vector between sentinel and target.
     ChVector<> err_vec = m_target - m_sentinel;
-    err_vec.z() = 0;
+    ChWorldFrame::Project(err_vec);
 
     // Calculate the sign of the angle between the projections of the sentinel
     // vector and the target vector (with origin at vehicle location).
     ChVector<> sentinel_vec = m_sentinel - vehicle.GetVehiclePos();
-    sentinel_vec.z() = 0;
+    ChWorldFrame::Project(sentinel_vec);
     ChVector<> target_vec = m_target - vehicle.GetVehiclePos();
-    target_vec.z() = 0;
+    ChWorldFrame::Project(target_vec);
 
-    double temp = Vdot(Vcross(sentinel_vec, target_vec), ChVector<>(0, 0, 1));
+    double temp = Vdot(Vcross(sentinel_vec, target_vec), ChWorldFrame::Vertical());
 
     // Calculate current lateral error.
     double y_err = ChSignum(temp) * err_vec.Length();
@@ -377,7 +382,7 @@ double ChPathSteeringControllerXT::Advance(const ChVehicle& vehicle, double step
     double y_err_out = m_PathErrCtl.Filter(y_err);
 
     // Calculate the heading error
-    ChVector<> veh_head = vehicle.GetVehicleRot().GetXaxis();
+    ChVector<> veh_head = chassis_rot.GetXaxis();  // vehicle forward direction (ISO frame)
     ChVector<> path_head = m_ptangent;
 
     double h_err = CalcHeadingError(veh_head, path_head);
@@ -397,7 +402,7 @@ double ChPathSteeringControllerXT::Advance(const ChVehicle& vehicle, double step
     // in right bending curves only right steering allowed
     // |res| is never allowed to grow above 1
 
-    ChVector<> veh_left = vehicle.GetVehicleRot().GetYaxis();
+    ChVector<> veh_left = chassis_rot.GetYaxis();  // vehicle left direction (ISO frame)
     ChVector<> path_left = m_pnormal;
     int crvcode = CalcCurvatureCode(veh_left, path_left);
 
@@ -529,27 +534,30 @@ void ChPathSteeringControllerSR::SetPreviewTime(double Tp) {
 }
 
 double ChPathSteeringControllerSR::Advance(const ChVehicle& vehicle, double step) {
-    // Calculate current "sentinel" location.  This is a point at the look-ahead
-    // distance in front of the vehicle.
     const double g = 9.81;
 
-    double u = vehicle.GetVehicleSpeed();
-    ChQuaternion<> vehrot = vehicle.GetVehicleRot();
-    double psi = vehrot.Q_to_Euler123().z();
-    ChVector<> n_g(-sin(psi), cos(psi), 0);  ///< normal vector pinting to actual yaw center
+    auto& chassis_frame = vehicle.GetChassisBody()->GetFrame_REF_to_abs();  // chassis ref-to-world frame (ISO frame)
+    auto& chassis_rot = chassis_frame.GetRot();                             // chassis ref-to-world rotation (ISO frame)
+    double u = vehicle.GetVehicleSpeed();                                   // vehicle speed
+
+    // Calculate unit vector pointing to the yaw center
+    ChVector<> n_g = chassis_rot.GetYaxis();  // vehicle left direction (ISO frame)
+    ChWorldFrame::Project(n_g);               // projected onto horizontal plane (world frame)
+    n_g.Normalize();                          // normalized
+
+    // Calculate current "sentinel" location.
+    // This is a point at the look-ahead distance in front of the vehicle.
     double R = 0;
     double ut = u > m_umin ? u : m_umin;
+    double factor = ut * m_Tp;
     if (m_delta == 0.0) {
-        m_sentinel =
-            vehicle.GetChassisBody()->GetFrame_REF_to_abs().TransformPointLocalToParent(ChVector<>(ut * m_Tp, 0, 0));
+        m_sentinel = chassis_frame.TransformPointLocalToParent(factor * ChWorldFrame::Forward());
     } else {
         // m_Kug is in [°/g]
         R = (m_L + CH_C_DEG_TO_RAD * m_Kug * u * u / g) / m_delta;
         double theta = u * m_Tp / R;
-        ChMatrix33<> RM(theta, ChVector<>(0, 0, 1));
-        m_sentinel =
-            vehicle.GetChassisBody()->GetFrame_REF_to_abs().TransformPointLocalToParent(ChVector<>(ut * m_Tp, 0, 0)) +
-            R * (n_g - RM * n_g);
+        ChMatrix33<> RM(theta, ChWorldFrame::Vertical());
+        m_sentinel = chassis_frame.TransformPointLocalToParent(factor * ChWorldFrame::Forward()) + R * (n_g - RM * n_g);
     }
 
     ChVector<> Pt = m_sentinel - S_l[m_idx_curr];
@@ -588,7 +596,7 @@ double ChPathSteeringControllerSR::Advance(const ChVehicle& vehicle, double step
         *m_csv << vehicle.GetChTime() << m_target << m_sentinel << std::endl;
     }
 
-    ChVector<> n_lu = ChVector<>(0, 0, -1).Cross(R_lu[m_idx_curr]);
+    ChVector<> n_lu = R_lu[m_idx_curr] % ChWorldFrame::Vertical();  // cross product
 
     m_err = Pt.Dot(n_lu);
 

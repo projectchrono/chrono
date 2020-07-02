@@ -45,17 +45,17 @@ void ChLinkBushing::Initialize(std::shared_ptr<ChBody> mbody1,
     // Bushing joint always applied compliance in all translation directions.
     // Use force objects (force_X, force_Y, force_Z; force_Rx, force_Ry, force_Rz) from parent class.
 
-    force_X = std::make_unique<ChLinkForce>();
+    force_X = chrono_types::make_unique<ChLinkForce>();
     force_X->SetActive(true);
     force_X->SetK(m_constants_K(0, 0));
     force_X->SetR(m_constants_R(0, 0));
 
-    force_Y = std::make_unique<ChLinkForce>();
+    force_Y = chrono_types::make_unique<ChLinkForce>();
     force_Y->SetActive(true);
     force_Y->SetK(m_constants_K(1, 1));
     force_Y->SetR(m_constants_R(1, 1));
 
-    force_Z = std::make_unique<ChLinkForce>();
+    force_Z = chrono_types::make_unique<ChLinkForce>();
     force_Z->SetActive(true);
     force_Z->SetK(m_constants_K(2, 2));
     force_Z->SetR(m_constants_R(2, 2));
@@ -63,17 +63,17 @@ void ChLinkBushing::Initialize(std::shared_ptr<ChBody> mbody1,
     // Apply compliance in rotational dofs depending on bushing type selected
     switch (m_bushing_joint) {
         case ChLinkBushing::Mount:
-            force_Rx = std::make_unique<ChLinkForce>();
+            force_Rx = chrono_types::make_unique<ChLinkForce>();
             force_Rx->SetActive(true);
             force_Rx->SetK(m_constants_K(3, 3));
             force_Rx->SetR(m_constants_R(3, 3));
 
-            force_Ry = std::make_unique<ChLinkForce>();
+            force_Ry = chrono_types::make_unique<ChLinkForce>();
             force_Ry->SetActive(true);
             force_Ry->SetK(m_constants_K(4, 4));
             force_Ry->SetR(m_constants_R(4, 4));
 
-            force_Rz = std::make_unique<ChLinkForce>();
+            force_Rz = chrono_types::make_unique<ChLinkForce>();
             force_Rz->SetActive(true);
             force_Rz->SetK(m_constants_K(5, 5));
             force_Rz->SetR(m_constants_R(5, 5));

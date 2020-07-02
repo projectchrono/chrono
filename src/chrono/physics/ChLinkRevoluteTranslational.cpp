@@ -67,8 +67,8 @@ ChLinkRevoluteTranslational::ChLinkRevoluteTranslational(const ChLinkRevoluteTra
 // -----------------------------------------------------------------------------
 // Link initialization functions
 // -----------------------------------------------------------------------------
-void ChLinkRevoluteTranslational::Initialize(std::shared_ptr<ChBodyFrame> body1,
-                                             std::shared_ptr<ChBodyFrame> body2,
+void ChLinkRevoluteTranslational::Initialize(std::shared_ptr<ChBody> body1,
+                                             std::shared_ptr<ChBody> body2,
                                              const ChCoordsys<>& csys,
                                              double distance) {
     Body1 = body1.get();
@@ -97,8 +97,8 @@ void ChLinkRevoluteTranslational::Initialize(std::shared_ptr<ChBodyFrame> body1,
     m_cur_dist = distance;
 }
 
-void ChLinkRevoluteTranslational::Initialize(std::shared_ptr<ChBodyFrame> body1,
-                                             std::shared_ptr<ChBodyFrame> body2,
+void ChLinkRevoluteTranslational::Initialize(std::shared_ptr<ChBody> body1,
+                                             std::shared_ptr<ChBody> body2,
                                              bool local,
                                              const ChVector<>& p1,
                                              const ChVector<>& dirZ1,

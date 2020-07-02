@@ -68,8 +68,11 @@ void SaveParaViewFiles(fsi::ChSystemFsi& myFsiSystem,
                        int tStep,
                        double mTime);
 
-void AddWall(std::shared_ptr<ChBody> body, const ChVector<>& dim, const ChVector<>& loc) {
-    body->GetCollisionModel()->AddBox(dim.x(), dim.y(), dim.z(), loc);
+void AddWall(std::shared_ptr<ChBody> body,
+             const ChVector<>& dim,
+             std::shared_ptr<ChMaterialSurface> mat,
+             const ChVector<>& loc) {
+    body->GetCollisionModel()->AddBox(mat, dim.x(), dim.y(), dim.z(), loc);
     auto box = chrono_types::make_shared<ChBoxShape>();
     box->GetBoxGeometry().Size = dim;
     box->GetBoxGeometry().Pos = loc;
@@ -247,21 +250,20 @@ void CreateSolidPhase(ChSystemSMC& mphysicalSystem,
     ChVector<> pos_yn(0, -byDim / 2 - 3 * initSpace0, bzDim / 2 + 1 * initSpace0);
 
     /// Create a container
-    auto bin = chrono_types::make_shared<ChBody>(ChMaterialSurface::SMC);
+    auto bin = chrono_types::make_shared<ChBody>();
     bin->SetPos(ChVector<>(0.0, 0.0, 0.0));
     bin->SetRot(ChQuaternion<>(1, 0, 0, 0));
     bin->SetIdentifier(-1);
     bin->SetBodyFixed(true);
     bin->GetCollisionModel()->ClearModel();
     bin->GetCollisionModel()->SetSafeMargin(initSpace0 / 2);
-    bin->SetMaterialSurface(mysurfmaterial);
     /// MBD representation of the walls
-    AddWall(bin, sizeBottom, posBottom);
-    AddWall(bin, sizeBottom, posTop + ChVector<>(0.0, 0.0, 3 * initSpace0));
-    AddWall(bin, size_YZ, pos_xp);
-    AddWall(bin, size_YZ, pos_xn);
-    AddWall(bin, size_XZ, pos_yp + ChVector<>(+1.5 * initSpace0, +1.5 * initSpace0, 0.0));
-    AddWall(bin, size_XZ, pos_yn + ChVector<>(-0.5 * initSpace0, -0.5 * initSpace0, 0.0));
+    AddWall(bin, sizeBottom, mysurfmaterial, posBottom);
+    AddWall(bin, sizeBottom, mysurfmaterial, posTop + ChVector<>(0.0, 0.0, 3 * initSpace0));
+    AddWall(bin, size_YZ, mysurfmaterial, pos_xp);
+    AddWall(bin, size_YZ, mysurfmaterial, pos_xn);
+    AddWall(bin, size_XZ, mysurfmaterial, pos_yp + ChVector<>(+1.5 * initSpace0, +1.5 * initSpace0, 0.0));
+    AddWall(bin, size_XZ, mysurfmaterial, pos_yn + ChVector<>(-0.5 * initSpace0, -0.5 * initSpace0, 0.0));
     bin->GetCollisionModel()->BuildModel();
 
     bin->SetCollide(true);
@@ -278,7 +280,7 @@ void CreateSolidPhase(ChSystemSMC& mphysicalSystem,
     /// Create falling cone
     ChVector<> cone_pos = ChVector<>(0, 0, fzDim + 0.5 * cone_length + 1.5 * initSpace0 + 0.01);
     ChQuaternion<> cone_rot = QUNIT;
-    auto cone = chrono_types::make_shared<ChBody>(ChMaterialSurface::SMC);
+    auto cone = chrono_types::make_shared<ChBody>();
     cone->SetPos(cone_pos);
     double volume = utils::CalcConeVolume(cone_radius, cone_length / 2);
     ChVector<> gyration = utils::CalcConeGyration(cone_radius, cone_length / 2).diagonal();
@@ -287,10 +289,10 @@ void CreateSolidPhase(ChSystemSMC& mphysicalSystem,
     cone->SetCollide(true);
     cone->SetBodyFixed(false);
 
-    cone->SetMaterialSurface(mysurfmaterial);
     cone->GetCollisionModel()->ClearModel();
     cone->GetCollisionModel()->SetSafeMargin(initSpace0);
-    utils::AddConeGeometry(cone.get(), cone_radius, cone_length, ChVector<>(0.0, 0.0, 0.0), ChQuaternion<>(1, 0, 0, 0));
+    utils::AddConeGeometry(cone.get(), mysurfmaterial, cone_radius, cone_length, ChVector<>(0.0, 0.0, 0.0),
+                           ChQuaternion<>(1, 0, 0, 0));
     cone->GetCollisionModel()->BuildModel();
     size_t numRigidObjects = mphysicalSystem.Get_bodylist().size();
     mphysicalSystem.AddBody(cone);

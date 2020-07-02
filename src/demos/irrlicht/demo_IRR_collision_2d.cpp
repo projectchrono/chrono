@@ -56,6 +56,8 @@ int main(int argc, char* argv[]) {
     application.SetSymbolscale(0.2);
     application.SetContactsDrawMode(ChIrrTools::eCh_ContactsDrawMode::CONTACT_NORMALS);
 
+    // Contact material (shared among all collision shapes)
+    auto mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
 
     //
     // EXAMPLE 1:
@@ -86,7 +88,7 @@ int main(int argc, char* argv[]) {
     mcoin->GetCollisionModel()->SetSafeMargin(0.1);
     mcoin->SetCollide(true);
     mcoin->GetCollisionModel()->ClearModel();
-    mcoin->GetCollisionModel()->Add2Dpath(mpathcoin, VNULL, ChMatrix33<>(1), 0.03); // 0.03 thickness
+    mcoin->GetCollisionModel()->Add2Dpath(mat, mpathcoin, VNULL, ChMatrix33<>(1), 0.03); // 0.03 thickness
     mcoin->GetCollisionModel()->BuildModel();
 
     // For visualization:create a ChLineShape, a visualization asset for lines.
@@ -118,7 +120,7 @@ int main(int argc, char* argv[]) {
     mcoin->GetCollisionModel()->SetSafeMargin(0.1);
     mhole->SetCollide(true);
     mhole->GetCollisionModel()->ClearModel();
-    mhole->GetCollisionModel()->Add2Dpath(mpathhole, VNULL, ChMatrix33<>(1), 0.03); // 0.01 thickness
+    mhole->GetCollisionModel()->Add2Dpath(mat, mpathhole, VNULL, ChMatrix33<>(1), 0.03); // 0.01 thickness
     mhole->GetCollisionModel()->BuildModel();
 
     // Create a ChLineShape, a visualization asset for lines.
@@ -145,7 +147,7 @@ int main(int argc, char* argv[]) {
     double B = R*tan(beta/2);
     ChVector<> crank_center = ChVector<>(B, R, 0) + geneva_center;
     
-    // Create the rotating Gnevawheel:
+    // Create the rotating Genevawheel:
     auto mgenevawheel = chrono_types::make_shared<ChBody>();
     mgenevawheel->SetPos(geneva_center);
     mgenevawheel->SetWvel_loc(ChVector<>(0,0,-0.08));
@@ -193,7 +195,7 @@ int main(int argc, char* argv[]) {
     mgenevawheel->GetCollisionModel()->SetSafeMargin(0.02);
     mgenevawheel->SetCollide(true);
     mgenevawheel->GetCollisionModel()->ClearModel();
-    mgenevawheel->GetCollisionModel()->Add2Dpath(mpathwheel);
+    mgenevawheel->GetCollisionModel()->Add2Dpath(mat, mpathwheel);
     mgenevawheel->GetCollisionModel()->BuildModel();
 
     // Create a ChLineShape, a visualization asset for lines.
@@ -230,8 +232,8 @@ int main(int argc, char* argv[]) {
     mcrank->GetCollisionModel()->SetSafeMargin(0.02);
     mcrank->SetCollide(true);
     mcrank->GetCollisionModel()->ClearModel();
-    mcrank->GetCollisionModel()->Add2Dpath(mpathcrankpin);
-    mcrank->GetCollisionModel()->Add2Dpath(mpathcrankstopper);
+    mcrank->GetCollisionModel()->Add2Dpath(mat, mpathcrankpin);
+    mcrank->GetCollisionModel()->Add2Dpath(mat, mpathcrankstopper);
     mcrank->GetCollisionModel()->BuildModel();
 
     // Create a ChLineShape, a visualization asset for lines.

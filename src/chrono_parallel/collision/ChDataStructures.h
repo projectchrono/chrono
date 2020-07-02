@@ -72,7 +72,7 @@ class ConvexShapeSphere : public ConvexBase {
   public:
     ConvexShapeSphere(real3 p, real r) : position(p), radius(r) {}
     virtual ~ConvexShapeSphere() {}
-    inline int Type() const override { return SPHERE; }
+    inline int Type() const override { return ChCollisionShape::Type::SPHERE; }
     inline real3 A() const override { return position; }
     inline real Radius() const override { return radius; }
     real3 position;
@@ -105,7 +105,7 @@ class ConvexShapeTetrahedron : public ConvexBase {
   public:
     ConvexShapeTetrahedron(uvec4 i, real3* n) : indices(i), nodes(n) {}
     virtual ~ConvexShapeTetrahedron() {}
-    inline int Type() const override { return TETRAHEDRON; }
+    inline int Type() const override { return ChCollisionShape::Type::TETRAHEDRON; }
     inline real3 A() const override { return real3(0); }
     uvec4 TetIndex() const override { return indices; }
     const real3* TetNodes() const override { return nodes; }
@@ -122,7 +122,7 @@ class ConvexShapeTriangle : public ConvexBase {
         tri[2] = t3;
     }
     virtual ~ConvexShapeTriangle() {}
-    inline int Type() const override { return TRIANGLEMESH; }
+    inline int Type() const override { return ChCollisionShape::Type::TRIANGLE; }
     inline real3 A() const override { return real3(0); }
     const real3* Triangles() const override { return &tri[0]; }
     real3 tri[3];

@@ -38,8 +38,6 @@
 
 #include "chrono_mkl/ChSolverMKL.h"
 
-#include "chrono_irrlicht/ChBodySceneNode.h"
-#include "chrono_irrlicht/ChBodySceneNodeTools.h"
 #include "chrono_irrlicht/ChIrrApp.h"
 #include "chrono_irrlicht/ChIrrAppInterface.h"
 
@@ -208,11 +206,10 @@ void DPCapPress() {
     my_surfacematerial->SetGn(32);    // (10e3);
     my_surfacematerial->SetGt(32);    // (10e3);
 
-    std::shared_ptr<ChContactSurfaceNodeCloud> my_contactsurface(new ChContactSurfaceNodeCloud);
+    auto my_contactsurface = chrono_types::make_shared<ChContactSurfaceNodeCloud>(my_surfacematerial);
     my_mesh->AddContactSurface(my_contactsurface);
     my_contactsurface->AddAllNodes(0.005);
 
-    my_contactsurface->SetMaterialSurface(my_surfacematerial);
     ChMatrixNM<double, 9, 8> CCPInitial;
     for (int k = 0; k < 8; k++) {
         CCPInitial(0, k) = 1;
@@ -633,12 +630,9 @@ void ShellBrickContact() {
     // Add the mesh to the system.
     my_system.Add(my_mesh);
 
-    // std::shared_ptr<ChContactSurfaceNodeCloud> my_contactsurface(new ChContactSurfaceNodeCloud);
-    std::shared_ptr<ChContactSurfaceMesh> my_contactsurface(new ChContactSurfaceMesh);
+    auto my_contactsurface = chrono_types::make_shared<ChContactSurfaceMesh>(my_surfacematerial);
     my_mesh->AddContactSurface(my_contactsurface);
-    // my_contactsurface->AddAllNodes(0.001);
     my_contactsurface->AddFacesFromBoundary(0.005);
-    my_contactsurface->SetMaterialSurface(my_surfacematerial);
 
     my_system.Set_G_acc(ChVector<>(0.0, 0.0, -9.81));
     my_mesh->SetAutomaticGravity(false);
@@ -933,22 +927,19 @@ void SimpleBoxContact() {
     // Add the mesh to the system
     my_system.Add(my_mesh);
 
-    // std::shared_ptr<ChContactSurfaceNodeCloud> my_contactsurface(new ChContactSurfaceNodeCloud);
-    std::shared_ptr<ChContactSurfaceMesh> my_contactsurface(new ChContactSurfaceMesh);
+    auto my_contactsurface = chrono_types::make_shared<ChContactSurfaceMesh>(my_surfacematerial);
     my_mesh->AddContactSurface(my_contactsurface);
-    // my_contactsurface->AddAllNodes(0.0);
     my_contactsurface->AddFacesFromBoundary(0.0);
-    my_contactsurface->SetMaterialSurface(my_surfacematerial);
 
     double plate_w = 0.1;
     double plate_l = 0.1;
     double plate_h = 0.1;
-    auto Plate = chrono_types::make_shared<ChBodyEasyBox>(plate_l, plate_w, plate_h, 1000, true);
+    auto Plate =
+        chrono_types::make_shared<ChBodyEasyBox>(plate_l, plate_w, plate_h, 1000, true, true, my_surfacematerial);
     my_system.Add(Plate);
     Plate->SetBodyFixed(true);
     Plate->SetPos(ChVector<>(0.025, 0.025, -0.0015 - plate_h / 2));
     Plate->SetRot(ChQuaternion<>(1.0, 0.0, 0.0, 0.0));
-    Plate->SetMaterialSurface(my_surfacematerial);
     // Plate->SetPos_dt(ChVector<>(0.0, 0.0, -0.1));
 
     my_system.Set_G_acc(ChVector<>(0.0, 0.0, -9.81));
@@ -1238,21 +1229,16 @@ void SoilBin() {
     // Add the mesh to the system
     my_system.Add(my_mesh);
 
-    std::shared_ptr<ChContactSurfaceNodeCloud> my_contactsurface(new ChContactSurfaceNodeCloud);  /// node cloud
-    // std::shared_ptr<ChContactSurfaceMesh> my_contactsurface(new ChContactSurfaceMesh);///surface mesh
-
+    auto my_contactsurface = chrono_types::make_shared<ChContactSurfaceNodeCloud>(my_surfacematerial);
     my_mesh->AddContactSurface(my_contactsurface);
-
-    // my_contactsurface->AddFacesFromBoundary(0.0002);//0.001///surface mesh
     my_contactsurface->AddAllNodes(0.006);  // 0.001///node cloud
-
-    my_contactsurface->SetMaterialSurface(my_surfacematerial);
 
     // Creat punch
     double plate_w = 0.2;  // 0.15
     double plate_l = 0.2;  // 0.15
     double plate_h = 0.1;
-    auto Plate = chrono_types::make_shared<ChBodyEasyBox>(plate_l, plate_w, plate_h, 1000, true);
+    auto Plate =
+        chrono_types::make_shared<ChBodyEasyBox>(plate_l, plate_w, plate_h, 1000, true, true, my_surfacematerial);
     my_system.Add(Plate);
     Plate->SetBodyFixed(false);
     Plate->SetPos(ChVector<>(0.2, 0.2, 0.6001 + plate_h / 2));
@@ -1260,7 +1246,6 @@ void SoilBin() {
     Plate->SetPos_dt(ChVector<>(0.0, 0.0, 0.0));
     Plate->SetRot_dt(ChQuaternion<>(0.0, 0.0, 0.0, 0.0));
     Plate->SetMass(1.2265625);
-    Plate->SetMaterialSurface(my_surfacematerial);
 
     //// Create ground body
     auto Ground = chrono_types::make_shared<ChBody>();

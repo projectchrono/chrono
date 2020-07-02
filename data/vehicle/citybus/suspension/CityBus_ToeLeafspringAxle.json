@@ -1,0 +1,74 @@
+{
+  "Name":                           "CityBus Toe Leafspring Axle",
+  "Type":                           "Suspension",
+  "Template":                       "ToeBarLeafspringAxle",
+
+  "Spindle" :
+  {
+    "Mass":                         60.2905,
+    "COM":                          [0.0, 1.0075, 0.0],
+    "Inertia":                      [0.2700752, 0.4822912, 0.2700752],
+    "Radius":                       0.10,
+    "Width":                        0.06
+  },
+
+  "Knuckle":
+  {
+    "Mass":                         41.0,
+    "COM":                          [0.0, 0.8125, 0.0],
+    "Inertia":                      [0.656, 0.656, 0.656],
+    "Radius":                       0.05,
+    "Location Lower":               [0.0, 0.82230580675, -0.1],
+    "Location Upper":               [0.0, 0.80269419324, 0.1],
+    "Location Draglink":            [0.05818456, 0.51569083, 0.2]  // y > 0 -> left knuckle connects to draglink
+                                                                    // y < 0 -> right knuckle connects to draglink
+  },
+
+  "Axle Tube" :
+  {
+    "Mass":                         508.4,
+    "COM":                          [0, 0, 0],
+    "Inertia":                      [145.6976, 0.5084, 145.6976],
+    "Radius":                       0.0476
+  },
+
+  "Tierod":
+  {
+    "Mass":                         20.5,
+    "Inertia":                      [6.56, 0.656, 6.56],
+    "Location Knuckle":             [-0.49554, 0.7625155, 0.0],
+	  "Radius":                       0.02
+  },
+
+  "Draglink":
+  {
+    "Mass":                         20.5,
+    "Inertia":                      [0.656, 6.56, 0.656],
+    "Location Chassis":             [1.6, 0.51569083, 0.1],
+	  "Radius":                       0.02
+  },
+
+  "Spring":
+  {
+    "Location Chassis":             [0.0, 0.3824, 0.3476],
+    "Location Axle":                [0.0, 0.3824, 0.0476],
+    "Spring Coefficient":           565480,
+    "Free Length":                  0.462122550720708,
+    "Minimum Length":               0.3,
+    "Maximum Length":               0.5
+  },
+
+  "Shock":
+  {
+    "Location Chassis":             [-0.2,  0.4193, 0.4298],
+    "Location Axle":                [-0.125, 0.441, -0.0507],
+    "Damping Coefficient":          60552,
+    "Degressivity Compression":     3,
+    "Degressivity Expansion":       1
+  },
+
+  "Axle":
+  {
+    "Inertia":                      2.624
+  }
+}

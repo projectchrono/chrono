@@ -12,20 +12,34 @@
 // Authors: Radu Serban, Rainer Gericke
 // =============================================================================
 //
-// Demonstration of an OpenCRG terrain.
+// Demonstration of an OpenCRG terrain and different driver controllers.
 //
-// The vehicle reference frame has Z up, X towards the front of the vehicle, and
-// Y pointing to the left.
+// The default world frame is ISO (Z up, X forward, Y to the left).
+// This demo can be set up to work with a non-ISO frame by uncommenting the line
+//         ChWorldFrame::SetYUP();
+// at the top of the main function.  This will use a world frame with Y up, X
+// forward, and Z to the right.
+//
+// NOTES: 
+// (1) changing the world frame from the ISO default must be done *before* any
+//     other Chrono::Vehicle library calls.
+// (2) modifications to user code to use a different world frame are minimal:
+//     - set the desired world frame
+//     - properly set vehicle initial position (e.g. initial height above terrain)
+//     - adjust light locations in the run-time visualization system
 //
 // =============================================================================
 
 #include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/ChWorldFrame.h"
 #include "chrono_vehicle/driver/ChPathFollowerDriver.h"
+#include "chrono_vehicle/driver/ChHumanDriver.h"
 #include "chrono_vehicle/terrain/CRGTerrain.h"
 #include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleIrrApp.h"
 
 #include "chrono_models/vehicle/hmmwv/HMMWV.h"
 
+#include "chrono_thirdparty/SimpleOpt/SimpleOpt.h"
 #include "chrono_thirdparty/filesystem/path.h"
 
 using namespace chrono;
@@ -33,31 +47,27 @@ using namespace chrono::vehicle;
 using namespace chrono::vehicle::hmmwv;
 
 // =============================================================================
-// Select Path Follower, uncomment the next line to get the pure PID driver
-//#define USE_PID 1
-// to use the XT controller uncomment the next line
-//#define USE_XT
-// to use the SR controller uncomment the next line
-#define USE_SR
-// =============================================================================
 // Problem parameters
+
+enum class DriverModelType {
+    PID,   // pure PID lateral controller with constant speed controller
+    XT,    // alternative PID lateral controller with constant speed controller
+    SR,    // alternative PID lateral controller with constant speed controller
+    HUMAN  // simple realistic human driver
+};
 
 // Type of tire model (LUGRE, FIALA, PACEJKA, or TMEASY)
 TireModelType tire_model = TireModelType::TMEASY;
-
-// OpenCRG input file
-std::string crg_road_file = "terrain/crg_roads/Barber.crg";
-////std::string crg_road_file = "terrain/crg_roads/Horstwalde.crg";
-////std::string crg_road_file = "terrain/crg_roads/handmade_arc.crg";
-////std::string crg_road_file = "terrain/crg_roads/handmade_banked.crg";
-////std::string crg_road_file = "terrain/crg_roads/handmade_circle.crg";
-////std::string crg_road_file = "terrain/crg_roads/handmade_sloped.crg";
 
 // Road visualization (mesh or boundary lines)
 bool useMesh = false;
 
 // Desired vehicle speed (m/s)
 double target_speed = 12;
+
+// Minimum / maximum speed (m/s) for Human driver type
+double minimum_speed = 12;
+double maximum_speed = 30;
 
 // Simulation step size
 double step_size = 3e-3;
@@ -70,18 +80,169 @@ const std::string out_dir = GetChronoOutputPath() + "OPENCRG_DEMO";
 
 // =============================================================================
 
+enum { OPT_HELP, OPT_YUP, OPT_DRIVER_MODEL, OPT_ROAD_FILE };
+CSimpleOptA::SOption g_options[] = {{OPT_DRIVER_MODEL, "--driver-model", SO_REQ_CMB},
+                                    {OPT_ROAD_FILE, "--road-file", SO_REQ_CMB},
+                                    {OPT_YUP, "--yup", SO_NONE},
+                                    {OPT_HELP, "--help", SO_NONE},
+                                    SO_END_OF_OPTIONS};
+void ShowUsage();
+bool GetProblemSpecs(int argc, char** argv, DriverModelType& model, std::string& road_file, bool& yup);
+
+// =============================================================================
+
+// Wrapper around a driver system of specified type
+class MyDriver {
+  public:
+    MyDriver(DriverModelType type,
+             ChWheeledVehicle& vehicle,
+             std::shared_ptr<ChBezierCurve> path,
+             double road_width,
+             bool path_is_closed)
+        : m_type(type), m_steering_controller(nullptr) {
+        switch (type) {
+            case DriverModelType::PID: {
+                m_driver_type = "PID";
+
+                auto driverPID = chrono_types::make_shared<ChPathFollowerDriver>(vehicle, path, "my_path", target_speed,
+                                                                                 path_is_closed);
+                driverPID->GetSteeringController().SetLookAheadDistance(5);
+                driverPID->GetSteeringController().SetGains(0.5, 0, 0);
+                driverPID->GetSpeedController().SetGains(0.4, 0, 0);
+
+                m_driver = driverPID;
+                m_steering_controller = &driverPID->GetSteeringController();
+                break;
+            }
+            case DriverModelType::XT: {
+                m_driver_type = "XT";
+
+                auto driverXT = chrono_types::make_shared<ChPathFollowerDriverXT>(
+                    vehicle, path, "my_path", target_speed, path_is_closed, vehicle.GetMaxSteeringAngle());
+                driverXT->GetSteeringController().SetLookAheadDistance(5);
+                driverXT->GetSteeringController().SetGains(0.4, 1, 1, 1);
+                driverXT->GetSpeedController().SetGains(0.4, 0, 0);
+
+                m_driver = driverXT;
+                m_steering_controller = &driverXT->GetSteeringController();
+                break;
+            }
+            case DriverModelType::SR: {
+                m_driver_type = "SR";
+
+                auto driverSR = chrono_types::make_shared<ChPathFollowerDriverSR>(
+                    vehicle, path, "my_path", target_speed, path_is_closed, vehicle.GetMaxSteeringAngle(), 3.2);
+                driverSR->GetSteeringController().SetGains(0.1, 5);
+                driverSR->GetSteeringController().SetPreviewTime(0.5);
+                driverSR->GetSpeedController().SetGains(0.4, 0, 0);
+
+                m_driver = driverSR;
+                m_steering_controller = &driverSR->GetSteeringController();
+                break;
+            }
+            case DriverModelType::HUMAN: {
+                m_driver_type = "HUMAN";
+
+                // Driver model read from JSONJ file
+                ////auto driverHUMAN = chrono_types::make_shared<ChHumanDriver>(
+                ////    vehicle::GetDataFile("hmmwv/driver/HumanController.json"), vehicle, path, "my_path", path_is_closed,
+                ////    road_width, vehicle.GetMaxSteeringAngle(), 3.2);
+
+                auto driverHUMAN = chrono_types::make_shared<ChHumanDriver>(
+                    vehicle, path, "my_path", path_is_closed, road_width, vehicle.GetMaxSteeringAngle(), 3.2);
+                driverHUMAN->SetPreviewTime(0.5);
+                driverHUMAN->SetLateralGains(0.1, 2);
+                driverHUMAN->SetLongitudinalGains(0.1, 0.1, 0.2);
+                driverHUMAN->SetSpeedRange(minimum_speed, maximum_speed);
+
+                m_driver = driverHUMAN;
+                break;
+            }
+        }
+    }
+
+    ChDriver::Inputs GetInputs() { return m_driver->GetInputs(); }
+    void Initialize() { m_driver->Initialize(); }
+    void Synchronize(double time) { m_driver->Synchronize(time); }
+    void Advance(double step) { m_driver->Advance(step); }
+
+    const std::string& GetDriverType() { return m_driver_type; }
+
+    ChVector<> GetTargetLocation() {
+        if (m_type == DriverModelType::HUMAN)
+            return std::static_pointer_cast<ChHumanDriver>(m_driver)->GetTargetLocation();
+        else
+            return m_steering_controller->GetTargetLocation();
+    }
+
+    ChVector<> GetSentinelLocation() {
+        if (m_type == DriverModelType::HUMAN)
+            return std::static_pointer_cast<ChHumanDriver>(m_driver)->GetSentinelLocation();
+        else
+            return m_steering_controller->GetSentinelLocation();
+    }
+
+    void PrintStats() {
+        if (m_type != DriverModelType::HUMAN)
+            return;
+
+        auto driverHUMAN = std::static_pointer_cast<ChHumanDriver>(m_driver);
+        std::cout << std::endl;
+        std::cout << "Traveled Distance    = " << driverHUMAN->GetTraveledDistance() << " m" << std::endl;
+        std::cout << "Average Speed        = " << driverHUMAN->GetAverageSpeed() << " m/s" << std::endl;
+        std::cout << "Maximum Speed        = " << driverHUMAN->GetMaxSpeed() << " m/s" << std::endl;
+        std::cout << "Minimum Speed        = " << driverHUMAN->GetMinSpeed() << " m/s" << std::endl;
+        std::cout << "Maximum Lateral Acc. = " << driverHUMAN->GetMaxLatAcc() << " m^2/s" << std::endl;
+        std::cout << "Minimum Lateral Acc. = " << driverHUMAN->GetMinLatAcc() << " m^2/s" << std::endl;
+    }
+
+  private:
+    DriverModelType m_type;
+    std::string m_driver_type;
+    std::shared_ptr<ChDriver> m_driver;
+    ChSteeringController* m_steering_controller;
+};
+
+// =============================================================================
+
 int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
-    // ---------------------------------------
-    // Create the vehicle, terrain, and driver
-    // ---------------------------------------
+    // Parse arguments
+    std::string crg_road_file = "terrain/crg_roads/Barber.crg";
+    bool yup = false;
+    DriverModelType driver_type = DriverModelType::HUMAN;
+    if (argc == 1) {
+        std::cout << "Type 'demo_VEH_CRGTerrain --help' for a complete list of available options.\n" << std::endl;
+    }
+    if (!GetProblemSpecs(argc, argv, driver_type, crg_road_file, yup)) {
+        return 1;
+    }
+    crg_road_file = vehicle::GetDataFile(crg_road_file);
+
+    // ---------------
+    // Set World Frame
+    // ---------------
+
+    if (yup)
+        ChWorldFrame::SetYUP();
+
+    std::cout << "World Frame\n" << ChWorldFrame::Rotation() << std::endl;
+    std::cout << "Vertical direction: " << ChWorldFrame::Vertical() << std::endl;
+    std::cout << "Forward direction:  " << ChWorldFrame::Forward() << std::endl;
+
+    // ------------------
+    // Create the vehicle
+    // ------------------
+
+    // Initial location
+    auto init_loc = 2.0 * ChWorldFrame::Forward() + 0.5 * ChWorldFrame::Vertical();
 
     // Create the HMMWV vehicle, set parameters, and initialize
     HMMWV_Full my_hmmwv;
-    my_hmmwv.SetContactMethod(ChMaterialSurface::SMC);
+    my_hmmwv.SetContactMethod(ChContactMethod::SMC);
     my_hmmwv.SetChassisFixed(false);
-    my_hmmwv.SetInitPosition(ChCoordsys<>(ChVector<>(2, 0, 0.5), QUNIT));
+    my_hmmwv.SetInitPosition(ChCoordsys<>(init_loc, QUNIT));
     my_hmmwv.SetPowertrainType(PowertrainModelType::SHAFTS);
     my_hmmwv.SetDriveType(DrivelineType::RWD);
     my_hmmwv.SetTireType(tire_model);
@@ -94,11 +255,17 @@ int main(int argc, char* argv[]) {
     my_hmmwv.SetWheelVisualizationType(VisualizationType::NONE);
     my_hmmwv.SetTireVisualizationType(VisualizationType::PRIMITIVES);
 
+    // ------------------
     // Create the terrain
+    // ------------------
+
+    std::cout << std::endl;
+    std::cout << "CRG road file: " << crg_road_file << std::endl;
+
     CRGTerrain terrain(my_hmmwv.GetSystem());
     terrain.UseMeshVisualization(useMesh);
     terrain.SetContactFrictionCoefficient(0.8f);
-    terrain.Initialize(vehicle::GetDataFile(crg_road_file));
+    terrain.Initialize(crg_road_file);
 
     // Get the vehicle path (middle of the road)
     auto path = terrain.GetRoadCenterLine();
@@ -106,54 +273,38 @@ int main(int argc, char* argv[]) {
     double road_length = terrain.GetLength();
     double road_width = terrain.GetWidth();
 
-#ifdef USE_PID
-    // Create the driver system based on PID steering controller
-    ChPathFollowerDriver driver(my_hmmwv.GetVehicle(), path, "my_path", target_speed, path_is_closed);
-    driver.GetSteeringController().SetLookAheadDistance(5);
-    driver.GetSteeringController().SetGains(0.5, 0, 0);
-    driver.GetSpeedController().SetGains(0.4, 0, 0);
+    std::cout << "Road length = " << road_length << std::endl;
+    std::cout << "Road width  = " << road_width << std::endl;
+    std::cout << std::boolalpha << "Closed loop?  " << path_is_closed << std::endl << std::endl;
+
+    // --------------------
+    // Create driver system
+    // --------------------
+
+    MyDriver driver(driver_type, my_hmmwv.GetVehicle(), path, road_width, path_is_closed);
     driver.Initialize();
 
-    ChWheeledVehicleIrrApp app(&my_hmmwv.GetVehicle(), L"OpenCRG Demo PID Steering",
-                               irr::core::dimension2d<irr::u32>(800, 640));
-#endif
-#ifdef USE_XT
-    // Create the driver system based on XT steering controller
-    ChPathFollowerDriverXT driver(my_hmmwv.GetVehicle(), path, "my_path", target_speed, path_is_closed,
-                                  my_hmmwv.GetVehicle().GetMaxSteeringAngle());
-    driver.GetSteeringController().SetLookAheadDistance(5);
-    driver.GetSteeringController().SetGains(0.4, 1, 1, 1);
-    driver.GetSpeedController().SetGains(0.4, 0, 0);
-    driver.Initialize();
+    std::cout << "Driver model: " << driver.GetDriverType() << std::endl << std::endl;
 
-    ChWheeledVehicleIrrApp app(&my_hmmwv.GetVehicle(), L"OpenCRG Demo XT Steering",
-                               irr::core::dimension2d<irr::u32>(800, 640));
-#endif
-#ifdef USE_SR
-    ChPathFollowerDriverSR driver(my_hmmwv.GetVehicle(), path, "my_path", target_speed, path_is_closed,
-                                  my_hmmwv.GetVehicle().GetMaxSteeringAngle(), 3.2);
-    driver.GetSteeringController().SetGains(0.1, 5);
-    driver.GetSteeringController().SetPreviewTime(0.5);
-    driver.GetSpeedController().SetGains(0.4, 0, 0);
-    driver.Initialize();
+    // -------------------------------
+    // Create the visualization system
+    // -------------------------------
 
-    ChWheeledVehicleIrrApp app(&my_hmmwv.GetVehicle(), L"OpenCRG Demo SR Steering",
-                               irr::core::dimension2d<irr::u32>(800, 640));
-#endif
+    // Light positions (in ISO frame)
+    std::vector<ChVector<>> light_locs = {
+        ChVector<>(-150, -150, 200),  //
+        ChVector<>(-150, +150, 200),  //
+        ChVector<>(+150, -150, 200),  //
+        ChVector<>(+150, +150, 200)   //
+    };
 
-    // ---------------------------------------
-    // Create the vehicle Irrlicht application
-    // ---------------------------------------
-
+    ChWheeledVehicleIrrApp app(&my_hmmwv.GetVehicle(), L"OpenCRG Steering", irr::core::dimension2d<irr::u32>(1000, 800));
     app.SetHUDLocation(500, 20);
     app.SetSkyBox();
     app.AddTypicalLogo();
-    app.AddTypicalLights(irr::core::vector3df(-150.f, -150.f, 200.f), irr::core::vector3df(-150.f, 150.f, 200.f), 100,
-                         100);
-    app.AddTypicalLights(irr::core::vector3df(150.f, -150.f, 200.f), irr::core::vector3df(150.0f, 150.f, 200.f), 100,
-                         100);
+    for (auto loc : light_locs)
+        app.AddLight(irr::core::vector3dfCH(ChWorldFrame::FromISO(loc)), 100);
     app.SetChaseCamera(ChVector<>(0.0, 0.0, 1.75), 6.0, 0.5);
-
     app.SetTimestep(step_size);
 
     // Visualization of controller points (sentinel & target)
@@ -181,16 +332,6 @@ int main(int argc, char* argv[]) {
     // Simulation loop
     // ---------------
 
-    // Final time
-    double t_end = 2 + road_length / target_speed;
-    if (path_is_closed) {
-        t_end += 30.0;
-    }
-    std::cout << "Road length:     " << road_length << std::endl;
-    std::cout << "Road width:      " << road_width << std::endl;
-    std::cout << "Closed loop?     " << path_is_closed << std::endl;
-    std::cout << "Set end time to: " << t_end << std::endl;
-
     // Number of simulation steps between image outputs
     double render_step_size = 1 / fps;
     int render_steps = (int)std::ceil(render_step_size / step_size);
@@ -201,22 +342,20 @@ int main(int argc, char* argv[]) {
 
     while (app.GetDevice()->run()) {
         double time = my_hmmwv.GetSystem()->GetChTime();
-        if (time >= t_end)
-            break;
 
         // Driver inputs
         ChDriver::Inputs driver_inputs = driver.GetInputs();
 
         // Update sentinel and target location markers for the path-follower controller.
-        // Note that we do this whether or not we are currently using the path-follower driver.
-        const ChVector<>& pS = driver.GetSteeringController().GetSentinelLocation();
-        const ChVector<>& pT = driver.GetSteeringController().GetTargetLocation();
-        ballS->setPosition(irr::core::vector3df((irr::f32)pS.x(), (irr::f32)pS.y(), (irr::f32)pS.z()));
-        ballT->setPosition(irr::core::vector3df((irr::f32)pT.x(), (irr::f32)pT.y(), (irr::f32)pT.z()));
+        ballS->setPosition(irr::core::vector3dfCH(driver.GetSentinelLocation()));
+        ballT->setPosition(irr::core::vector3dfCH(driver.GetTargetLocation()));
 
         // Render scene and output images
         app.BeginScene(true, true, irr::video::SColor(255, 140, 161, 192));
         app.DrawAll();
+
+        // Draw the world reference frame at the sentinel location
+        app.RenderFrame(driver.GetSentinelLocation());
 
         if (output_images && sim_frame % render_steps == 0) {
             char filename[200];
@@ -229,7 +368,7 @@ int main(int argc, char* argv[]) {
         driver.Synchronize(time);
         terrain.Synchronize(time);
         my_hmmwv.Synchronize(time, driver_inputs, terrain);
-        app.Synchronize("", driver_inputs);
+        app.Synchronize(driver.GetDriverType(), driver_inputs);
 
         // Advance simulation for one timestep for all modules
         driver.Advance(step_size);
@@ -243,5 +382,78 @@ int main(int argc, char* argv[]) {
         app.EndScene();
     }
 
+    driver.PrintStats();
+
     return 0;
+}
+
+// =============================================================================
+
+void ShowUsage() {
+    std::cout << "Usage:  demo_VEH_CRGTerrain [OPTIONS]" << std::endl;
+    std::cout << std::endl;
+    std::cout << " --driver-model=MODEL" << std::endl;
+    std::cout << "        Controller model type. 0: PID, 1: XT, 2: SR, 3: HUMAN " << std::endl;
+    std::cout << "        Default: 3" << std::endl;
+    std::cout << " --road-file=FILE" << std::endl;
+    std::cout << "        CRG road filename";
+    std::cout << "        Default: \"terrain/crg_roads/Barber.crg\"]" << std::endl;
+    std::cout << " --yup" << std::endl;
+    std::cout << "        Use YUP world frame" << std::endl;
+    std::cout << "        Default: ISO frame (Z up)";
+    std::cout << " --help" << std::endl;
+    std::cout << "        Print this message and exit." << std::endl;
+    std::cout << std::endl;
+}
+
+bool GetProblemSpecs(int argc, char** argv, DriverModelType& model, std::string& road_file, bool& yup) {
+    // Create the option parser and pass it the program arguments and the array of valid options.
+    CSimpleOptA args(argc, argv, g_options);
+
+        // Then loop for as long as there are arguments to be processed.
+    while (args.Next()) {
+        // Exit immediately if we encounter an invalid argument.
+        if (args.LastError() != SO_SUCCESS) {
+            std::cout << "Invalid argument: " << args.OptionText() << std::endl;
+            ShowUsage();
+            return false;
+        }
+    
+        // Process the current argument.
+        switch (args.OptionId()) {
+            case OPT_HELP:
+                ShowUsage();
+                return false;
+            case OPT_DRIVER_MODEL: {
+                auto model_in = std::stoi(args.OptionArg());
+                switch (model_in) {
+                    case 0:
+                        model = DriverModelType::PID;
+                        break;
+                    case 1:
+                        model = DriverModelType::XT;
+                        break;
+                    case 2:
+                        model = DriverModelType::SR;
+                        break;
+                    case 3:
+                        model = DriverModelType::HUMAN;
+                        break;
+                    default:
+                        std::cout << "Incorrect driver model type" << std::endl;
+                        ShowUsage();
+                        break;
+                }
+                break;
+            }
+            case OPT_ROAD_FILE:
+                road_file = args.OptionArg();
+                break;
+            case OPT_YUP:
+                yup = true;
+                break;
+        }
+    }
+
+    return true;
 }

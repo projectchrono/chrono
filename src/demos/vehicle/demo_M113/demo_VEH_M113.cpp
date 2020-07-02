@@ -97,7 +97,7 @@ int main(int argc, char* argv[]) {
     // Construct the M113 vehicle
     // --------------------------
 
-    ChMaterialSurface::ContactMethod contact_method = ChMaterialSurface::SMC;
+    ChContactMethod contact_method = ChContactMethod::SMC;
     ChassisCollisionType chassis_collision_type = ChassisCollisionType::NONE;
     TrackShoeType shoe_type = TrackShoeType::SINGLE_PIN;
 
@@ -106,7 +106,7 @@ int main(int argc, char* argv[]) {
     //// However, there appear to still be redundant constraints in the double-pin assembly
     //// resulting in solver failures with MKL and MUMPS (rank-deficient matrix).
     if (shoe_type == TrackShoeType::DOUBLE_PIN)
-        contact_method = ChMaterialSurface::NSC;
+        contact_method = ChContactMethod::NSC;
 
     M113_Vehicle vehicle(false, shoe_type, contact_method, chassis_collision_type);
 
@@ -115,7 +115,7 @@ int main(int argc, char* argv[]) {
     // ------------------------------
 
     // Cannot use HHT + MKL with NSC contact
-    if (contact_method == ChMaterialSurface::NSC) {
+    if (contact_method == ChContactMethod::NSC) {
         use_mkl = false;
     }
 
@@ -207,11 +207,12 @@ int main(int argc, char* argv[]) {
     // ------------------
 
     RigidTerrain terrain(vehicle.GetSystem());
-    auto patch = terrain.AddPatch(ChCoordsys<>(ChVector<>(0, 0, terrainHeight - 5), QUNIT),
-                                  ChVector<>(terrainLength, terrainWidth, 10));
-    patch->SetContactFrictionCoefficient(0.9f);
-    patch->SetContactRestitutionCoefficient(0.01f);
-    patch->SetContactMaterialProperties(2e7f, 0.3f);
+    MaterialInfo minfo;
+    minfo.mu = 0.9f;
+    minfo.cr = 0.01f;
+    minfo.Y = 2e7f;
+    auto patch_mat = minfo.CreateMaterial(contact_method);
+    auto patch = terrain.AddPatch(patch_mat, ChVector<>(0, 0, 0), ChVector<>(0, 0, 1), terrainLength, terrainWidth);
     patch->SetColor(ChColor(0.5f, 0.8f, 0.5f));
     patch->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 200, 200);
     terrain.Initialize();
@@ -404,11 +405,6 @@ void AddFixedObstacles(ChSystem* system) {
     double radius = 2.2;
     double length = 6;
 
-    float friction_coefficient = 0.9f;
-    float restitution_coefficient = 0.01f;
-    float young_modulus = 2e7f;
-    float poisson_ratio = 0.3f;
-
     auto obstacle = std::shared_ptr<ChBody>(system->NewBody());
     obstacle->SetPos(ChVector<>(10, 0, -1.8));
     obstacle->SetBodyFixed(true);
@@ -431,22 +427,15 @@ void AddFixedObstacles(ChSystem* system) {
     obstacle->AddAsset(texture);
 
     // Contact
-    obstacle->GetCollisionModel()->ClearModel();
-    obstacle->GetCollisionModel()->AddCylinder(radius, radius, length * 0.5);
-    obstacle->GetCollisionModel()->BuildModel();
+    MaterialInfo minfo;
+    minfo.mu = 0.9f;
+    minfo.cr = 0.01f;
+    minfo.Y = 2e7f;
+    auto obst_mat = minfo.CreateMaterial(system->GetContactMethod());
 
-    switch (obstacle->GetContactMethod()) {
-        case ChMaterialSurface::NSC:
-            obstacle->GetMaterialSurfaceNSC()->SetFriction(friction_coefficient);
-            obstacle->GetMaterialSurfaceNSC()->SetRestitution(restitution_coefficient);
-            break;
-        case ChMaterialSurface::SMC:
-            obstacle->GetMaterialSurfaceSMC()->SetFriction(friction_coefficient);
-            obstacle->GetMaterialSurfaceSMC()->SetRestitution(restitution_coefficient);
-            obstacle->GetMaterialSurfaceSMC()->SetYoungModulus(young_modulus);
-            obstacle->GetMaterialSurfaceSMC()->SetPoissonRatio(poisson_ratio);
-            break;
-    }
+    obstacle->GetCollisionModel()->ClearModel();
+    obstacle->GetCollisionModel()->AddCylinder(obst_mat, radius, radius, length * 0.5);
+    obstacle->GetCollisionModel()->BuildModel();
 
     system->AddBody(obstacle);
 }
@@ -464,9 +453,12 @@ void AddFallingObjects(ChSystem* system) {
     ball->SetPos_dt(ChVector<>(3, 0, 0));
     ball->SetBodyFixed(false);
 
+    MaterialInfo minfo;
+    auto obst_mat = minfo.CreateMaterial(system->GetContactMethod());
+
     ball->SetCollide(true);
     ball->GetCollisionModel()->ClearModel();
-    ball->GetCollisionModel()->AddSphere(radius);
+    ball->GetCollisionModel()->AddSphere(obst_mat, radius);
     ball->GetCollisionModel()->BuildModel();
 
     auto sphere = chrono_types::make_shared<ChSphereShape>();

@@ -1,0 +1,14 @@
+# Blender MTL File: 'None'
+# Material Count: 1
+
+newmtl polySurface53SG.001
+Ns 0.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.040000 0.040000 0.040000
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.000000
+d 1.000000
+illum 1
+map_Bump Textures/Wheel_F_Gator_Wheels_Normal.jpg
+map_Kd Textures/Wheel_F_Gator_Wheels_AlbedoTransparency.jpg

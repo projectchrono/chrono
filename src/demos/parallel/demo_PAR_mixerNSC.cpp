@@ -47,7 +47,7 @@ using namespace chrono::collision;
 // blade attached through a revolute joint to ground. The mixer is constrained
 // to rotate at constant angular velocity.
 // -----------------------------------------------------------------------------
-void AddContainer(ChSystemParallelNSC* sys) {
+std::shared_ptr<ChBody> AddContainer(ChSystemParallelNSC* sys) {
     // IDs for the two bodies
     int binId = -200;
     int mixerId = -201;
@@ -58,7 +58,6 @@ void AddContainer(ChSystemParallelNSC* sys) {
 
     // Create the containing bin (2 x 2 x 1)
     auto bin = chrono_types::make_shared<ChBody>(chrono_types::make_shared<ChCollisionModelParallel>());
-    bin->SetMaterialSurface(mat);
     bin->SetIdentifier(binId);
     bin->SetMass(1);
     bin->SetPos(ChVector<>(0, 0, 0));
@@ -70,14 +69,14 @@ void AddContainer(ChSystemParallelNSC* sys) {
     double hthick = 0.1;
 
     bin->GetCollisionModel()->ClearModel();
-    utils::AddBoxGeometry(bin.get(), ChVector<>(hdim.x(), hdim.y(), hthick), ChVector<>(0, 0, -hthick));
-    utils::AddBoxGeometry(bin.get(), ChVector<>(hthick, hdim.y(), hdim.z()),
+    utils::AddBoxGeometry(bin.get(), mat, ChVector<>(hdim.x(), hdim.y(), hthick), ChVector<>(0, 0, -hthick));
+    utils::AddBoxGeometry(bin.get(), mat, ChVector<>(hthick, hdim.y(), hdim.z()),
                           ChVector<>(-hdim.x() - hthick, 0, hdim.z()));
-    utils::AddBoxGeometry(bin.get(), ChVector<>(hthick, hdim.y(), hdim.z()),
+    utils::AddBoxGeometry(bin.get(), mat, ChVector<>(hthick, hdim.y(), hdim.z()),
                           ChVector<>(hdim.x() + hthick, 0, hdim.z()));
-    utils::AddBoxGeometry(bin.get(), ChVector<>(hdim.x(), hthick, hdim.z()),
+    utils::AddBoxGeometry(bin.get(), mat, ChVector<>(hdim.x(), hthick, hdim.z()),
                           ChVector<>(0, -hdim.y() - hthick, hdim.z()));
-    utils::AddBoxGeometry(bin.get(), ChVector<>(hdim.x(), hthick, hdim.z()),
+    utils::AddBoxGeometry(bin.get(), mat, ChVector<>(hdim.x(), hthick, hdim.z()),
                           ChVector<>(0, hdim.y() + hthick, hdim.z()));
     bin->GetCollisionModel()->SetFamily(1);
     bin->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(2);
@@ -87,7 +86,6 @@ void AddContainer(ChSystemParallelNSC* sys) {
 
     // The rotating mixer body (1.6 x 0.2 x 0.4)
     auto mixer = chrono_types::make_shared<ChBody>(chrono_types::make_shared<ChCollisionModelParallel>());
-    mixer->SetMaterialSurface(mat);
     mixer->SetIdentifier(mixerId);
     mixer->SetMass(10.0);
     mixer->SetInertiaXX(ChVector<>(50, 50, 50));
@@ -98,7 +96,7 @@ void AddContainer(ChSystemParallelNSC* sys) {
     ChVector<> hsize(0.8, 0.1, 0.2);
 
     mixer->GetCollisionModel()->ClearModel();
-    utils::AddBoxGeometry(mixer.get(), hsize);
+    utils::AddBoxGeometry(mixer.get(), mat, hsize);
     mixer->GetCollisionModel()->SetFamily(2);
     mixer->GetCollisionModel()->BuildModel();
 
@@ -109,10 +107,12 @@ void AddContainer(ChSystemParallelNSC* sys) {
     motor->Initialize(mixer, bin, ChFrame<>(ChVector<>(0, 0, 0), ChQuaternion<>(1, 0, 0, 0)));
     motor->SetAngleFunction(chrono_types::make_shared<ChFunction_Ramp>(0, CH_C_PI / 2));
     sys->AddLink(motor);
+
+    return mixer;
 }
 
 // -----------------------------------------------------------------------------
-// Create the falling spherical objects in a unfiorm rectangular grid.
+// Create the falling spherical objects in a uniform rectangular grid.
 // -----------------------------------------------------------------------------
 void AddFallingBalls(ChSystemParallel* sys) {
     // Common material
@@ -130,7 +130,6 @@ void AddFallingBalls(ChSystemParallel* sys) {
             ChVector<> pos(0.4 * ix, 0.4 * iy, 1);
 
             auto ball = chrono_types::make_shared<ChBody>(chrono_types::make_shared<ChCollisionModelParallel>());
-            ball->SetMaterialSurface(ballMat);
 
             ball->SetIdentifier(ballId++);
             ball->SetMass(mass);
@@ -141,7 +140,7 @@ void AddFallingBalls(ChSystemParallel* sys) {
             ball->SetCollide(true);
 
             ball->GetCollisionModel()->ClearModel();
-            utils::AddSphereGeometry(ball.get(), radius);
+            utils::AddSphereGeometry(ball.get(), ballMat, radius);
             ball->GetCollisionModel()->BuildModel();
 
             sys->AddBody(ball);
@@ -201,11 +200,11 @@ int main(int argc, char* argv[]) {
     // Create the fixed and moving bodies
     // ----------------------------------
 
-    AddContainer(&msystem);
+    auto mixer = AddContainer(&msystem);
     AddFallingBalls(&msystem);
 
-// Perform the simulation
-// ----------------------
+    // Perform the simulation
+    // ----------------------
 
 #ifdef CHRONO_OPENGL
     opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
@@ -213,18 +212,13 @@ int main(int argc, char* argv[]) {
     gl_window.SetCamera(ChVector<>(0, -3, 2), ChVector<>(0, 0, 0), ChVector<>(0, 0, 1));
     gl_window.SetRenderMode(opengl::WIREFRAME);
 
-    // Uncomment the following two lines for the OpenGL manager to automatically
-    // run the simulation in an infinite loop.
-    // gl_window.StartDrawLoop(time_step);
-    // return 0;
+    while (gl_window.Active()) {
+        gl_window.DoStepDynamics(time_step);
+        gl_window.Render();
 
-    while (true) {
-        if (gl_window.Active()) {
-            gl_window.DoStepDynamics(time_step);
-            gl_window.Render();
-        } else {
-            break;
-        }
+        ////auto frc = mixer->GetAppliedForce();
+        ////auto trq = mixer->GetAppliedTorque();
+        ////std::cout << msystem.GetChTime() << "  force: " << frc << "  torque: " << trq << std::endl;
     }
 #else
     // Run simulation for specified time

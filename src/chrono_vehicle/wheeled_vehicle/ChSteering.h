@@ -19,13 +19,8 @@
 #ifndef CH_STEERING_H
 #define CH_STEERING_H
 
-#include <string>
-
-#include "chrono/physics/ChSystem.h"
-#include "chrono/physics/ChBodyAuxRef.h"
-
 #include "chrono_vehicle/ChApiVehicle.h"
-#include "chrono_vehicle/ChPart.h"
+#include "chrono_vehicle/ChChassis.h"
 
 namespace chrono {
 namespace vehicle {
@@ -51,13 +46,12 @@ class CH_VEHICLE_API ChSteering : public ChPart {
     std::shared_ptr<ChBody> GetSteeringLink() const { return m_link; }
 
     /// Initialize this steering subsystem.
-    /// The steering subsystem is initialized by attaching it to the specified
-    /// chassis body at the specified location (with respect to and expressed in
-    /// the reference frame of the chassis) and with specified orientation (with
-    /// respect to the chassis reference frame).
-    virtual void Initialize(std::shared_ptr<ChBodyAuxRef> chassis,  ///< [in] handle to the chassis body
-                            const ChVector<>& location,             ///< [in] location relative to the chassis frame
-                            const ChQuaternion<>& rotation          ///< [in] orientation relative to the chassis frame
+    /// The steering subsystem is initialized by attaching it to the specified chassis at the specified location (with
+    /// respect to and expressed in the reference frame of the chassis) and with specified orientation (with respect to
+    /// the chassis reference frame).
+    virtual void Initialize(std::shared_ptr<ChChassis> chassis,  ///< [in] associated chassis subsystem
+                            const ChVector<>& location,          ///< [in] location relative to the chassis frame
+                            const ChQuaternion<>& rotation       ///< [in] orientation relative to the chassis frame
                             ) = 0;
 
     /// Update the state of this steering subsystem at the current time.

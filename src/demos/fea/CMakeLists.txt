@@ -19,7 +19,7 @@ set(FEA_DEMOS ${FEA_DEMOS}
     demo_FEA_brick
     demo_FEA_cosimulate_load
     demo_FEA_loads_dynamics
-	demo_FEA_truss
+    demo_FEA_truss
 )
 endif()
 
@@ -40,7 +40,7 @@ set(FEA_DEMOS ${FEA_DEMOS}
     demo_FEA_cablesMKL
     demo_FEA_abaqus_wheel
     demo_FEA_shells
-	demo_FEA_shellsBST
+    demo_FEA_shellsBST
     demo_FEA_ContactANCF
     demo_FEA_Brick9
     demo_FEA_beamsIGA
@@ -102,9 +102,10 @@ foreach(PROGRAM ${FEA_DEMOS})
     set_target_properties(${PROGRAM} PROPERTIES
         FOLDER demos
         COMPILE_FLAGS "${COMPILER_FLAGS}"
-        LINK_FLAGS "${LINKER_FLAGS}"
-    )
+        LINK_FLAGS "${LINKER_FLAGS}")
+    set_property(TARGET ${PROGRAM} PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:${PROGRAM}>")
     target_link_libraries(${PROGRAM} ${LIBS})
+    
     install(TARGETS ${PROGRAM} DESTINATION ${CH_INSTALL_DEMO})
 endforeach(PROGRAM)
 

@@ -106,7 +106,12 @@ int main(int argc, char* argv[]) {
     ////parser.SetExcitationFunction("grav", excitation);
 
     // Create a gound body
-    ////auto my_ground = chrono_types::make_shared<ChBodyEasyBox>(40, 2, 40, 1000, true, true, my_system.GetContactMethod());
+    ////auto my_ground = chrono_types::make_shared<ChBodyEasyBox>(  //
+    ////    40, 2, 40,                                              // dimensions
+    ////    1000,                                                   // density
+    ////    true, true,                                             // visualize? collide?
+    ////    chrono_types::make_shared<ChMaterialSurfaceSMC>()       // contact material
+    ////);
     ////my_system.AddBody(my_ground);
     ////my_ground->SetBodyFixed(true);
     ////my_ground->SetPos(ChVector<>(0, -2.9, 0));
@@ -123,8 +128,8 @@ int main(int argc, char* argv[]) {
     application.AssetUpdateAll();
 
     // Simulation loop
-    application.SetTryRealtime(true);
     application.SetTimestep(0.001);
+    application.SetTryRealtime(true);
 
     while (application.GetDevice()->run()) {
         application.BeginScene();

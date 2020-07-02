@@ -85,13 +85,10 @@ class CH_VEHICLE_API ChTrackShoeSinglePin : public ChTrackShoe {
     /// Return the radius of the contact cylinders.
     virtual double GetCylinderRadius() const = 0;
 
-    /// Return dimensions and locations of the contact boxes for the shoe and guiding pin.
-    /// Note that this is for contact with wheels, idler, and ground only.
-    /// This contact geometry does not affect contact with the sprocket.
-    virtual const ChVector<>& GetPadBoxDimensions() const = 0;
-    virtual const ChVector<>& GetPadBoxLocation() const = 0;
-    virtual const ChVector<>& GetGuideBoxDimensions() const = 0;
-    virtual const ChVector<>& GetGuideBoxLocation() const = 0;
+    /// Create the contact materials for the shoe, consistent with the specified contact method. A derived class must
+    /// set m_cyl_material (used for contact with the sprocket) and m_shoe_materials which must include one or more
+    /// contact materials for the collision shapes of the shoe itself (for contact with the wheels, idler, and ground).
+    virtual void CreateContactMaterials(ChContactMethod contact_method) = 0;
 
     /// Add contact geometry for the track shoe.
     /// Note that this is for contact with wheels, idler, and ground only.
@@ -103,7 +100,35 @@ class CH_VEHICLE_API ChTrackShoeSinglePin : public ChTrackShoe {
 
     virtual void Output(ChVehicleOutput& database) const override;
 
+    struct BoxShape {
+        BoxShape(const ChVector<>& pos, const ChQuaternion<>& rot, const ChVector<>& dims, int matID = -1)
+            : m_pos(pos), m_rot(rot), m_dims(dims), m_matID(matID) {}
+        ChVector<> m_pos;
+        ChQuaternion<> m_rot;
+        ChVector<> m_dims;
+        int m_matID;
+    };
+
+    struct CylinderShape {
+        CylinderShape(const ChVector<>& pos, const ChQuaternion<>& rot, double radius, double length, int matID = -1)
+            : m_pos(pos), m_rot(rot), m_radius(radius), m_length(length), m_matID(matID) {}
+        ChVector<> m_pos;
+        ChQuaternion<> m_rot;
+        double m_radius;
+        double m_length;
+        int m_matID;
+    };
+
+    std::vector<BoxShape> m_coll_boxes;                                ///< collision boxes on shoe body
+    std::vector<CylinderShape> m_coll_cylinders;                       ///< collision cylinders on shoe body
+    std::vector<std::shared_ptr<ChMaterialSurface>> m_shoe_materials;  ///< contact materials for shoe collision shapes
+    std::shared_ptr<ChMaterialSurface> m_cyl_material;                 ///< contact material for cylindrical surface
+
+    std::vector<BoxShape> m_vis_boxes;
+    std::vector<CylinderShape> m_vis_cylinders;
+
     friend class ChSprocketSinglePin;
+    friend class SprocketSinglePinContactCB;
     friend class ChTrackAssemblySinglePin;
 };
 

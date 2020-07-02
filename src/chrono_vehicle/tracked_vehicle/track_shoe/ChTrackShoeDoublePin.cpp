@@ -17,6 +17,7 @@
 // =============================================================================
 
 #include "chrono/core/ChGlobal.h"
+#include "chrono/assets/ChAssetLevel.h"
 #include "chrono/assets/ChCylinderShape.h"
 #include "chrono/assets/ChBoxShape.h"
 #include "chrono/assets/ChColorAsset.h"
@@ -37,6 +38,8 @@ ChTrackShoeDoublePin::ChTrackShoeDoublePin(const std::string& name) : ChTrackSho
 void ChTrackShoeDoublePin::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
                                       const ChVector<>& location,
                                       const ChQuaternion<>& rotation) {
+    ChSystem* sys = chassis->GetSystem();
+
     // Express the track shoe location and orientation in global frame.
     ChVector<> loc = chassis->TransformPointLocalToParent(location);
     ChQuaternion<> rot = chassis->GetRot() * rotation;
@@ -44,38 +47,17 @@ void ChTrackShoeDoublePin::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     ChVector<> ydir = rot.GetYaxis();
 
     // Create the shoe body
-    m_shoe = std::shared_ptr<ChBody>(chassis->GetSystem()->NewBody());
+    m_shoe = std::shared_ptr<ChBody>(sys->NewBody());
     m_shoe->SetNameString(m_name + "_shoe");
     m_shoe->SetPos(loc - (0.5 * GetConnectorLength()) * xdir);
     m_shoe->SetRot(rot);
     m_shoe->SetMass(GetShoeMass());
     m_shoe->SetInertiaXX(GetShoeInertia());
+    m_shoe->SetCollide(true);
     chassis->GetSystem()->AddBody(m_shoe);
 
-    // Add contact geometry.
-    m_shoe->SetCollide(true);
-
-    switch (m_shoe->GetContactMethod()) {
-        case ChMaterialSurface::NSC:
-            m_shoe->GetMaterialSurfaceNSC()->SetFriction(m_friction);
-            m_shoe->GetMaterialSurfaceNSC()->SetRestitution(m_restitution);
-            break;
-        case ChMaterialSurface::SMC:
-            m_shoe->GetMaterialSurfaceSMC()->SetFriction(m_friction);
-            m_shoe->GetMaterialSurfaceSMC()->SetRestitution(m_restitution);
-            m_shoe->GetMaterialSurfaceSMC()->SetYoungModulus(m_young_modulus);
-            m_shoe->GetMaterialSurfaceSMC()->SetPoissonRatio(m_poisson_ratio);
-            m_shoe->GetMaterialSurfaceSMC()->SetKn(m_kn);
-            m_shoe->GetMaterialSurfaceSMC()->SetGn(m_gn);
-            m_shoe->GetMaterialSurfaceSMC()->SetKt(m_kt);
-            m_shoe->GetMaterialSurfaceSMC()->SetGt(m_gt);
-            break;
-    }
-
-    AddShoeContact();
-
     // Create the connector bodies.
-    m_connector_L = std::shared_ptr<ChBody>(chassis->GetSystem()->NewBody());
+    m_connector_L = std::shared_ptr<ChBody>(sys->NewBody());
     m_connector_L->SetNameString(m_name + "_connector_L");
     m_connector_L->SetPos(loc + (0.5 * GetShoeLength()) * xdir + (0.5 * GetShoeWidth()) * ydir);
     m_connector_L->SetRot(rot);
@@ -91,40 +73,11 @@ void ChTrackShoeDoublePin::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     m_connector_R->SetInertiaXX(GetConnectorInertia());
     chassis->GetSystem()->AddBody(m_connector_R);
 
-    // Set contact material properties.
-    switch (m_connector_L->GetContactMethod()) {
-        case ChMaterialSurface::NSC:
-            m_connector_L->GetMaterialSurfaceNSC()->SetFriction(m_friction);
-            m_connector_L->GetMaterialSurfaceNSC()->SetRestitution(m_restitution);
-            break;
-        case ChMaterialSurface::SMC:
-            m_connector_L->GetMaterialSurfaceSMC()->SetFriction(m_friction);
-            m_connector_L->GetMaterialSurfaceSMC()->SetRestitution(m_restitution);
-            m_connector_L->GetMaterialSurfaceSMC()->SetYoungModulus(m_young_modulus);
-            m_connector_L->GetMaterialSurfaceSMC()->SetPoissonRatio(m_poisson_ratio);
-            m_connector_L->GetMaterialSurfaceSMC()->SetKn(m_kn);
-            m_connector_L->GetMaterialSurfaceSMC()->SetGn(m_gn);
-            m_connector_L->GetMaterialSurfaceSMC()->SetKt(m_kt);
-            m_connector_L->GetMaterialSurfaceSMC()->SetGt(m_gt);
-            break;
-    }
+    // Create all contact materials
+    CreateContactMaterials(sys->GetContactMethod());
 
-    switch (m_connector_R->GetContactMethod()) {
-        case ChMaterialSurface::NSC:
-            m_connector_R->GetMaterialSurfaceNSC()->SetFriction(m_friction);
-            m_connector_R->GetMaterialSurfaceNSC()->SetRestitution(m_restitution);
-            break;
-        case ChMaterialSurface::SMC:
-            m_connector_R->GetMaterialSurfaceSMC()->SetFriction(m_friction);
-            m_connector_R->GetMaterialSurfaceSMC()->SetRestitution(m_restitution);
-            m_connector_R->GetMaterialSurfaceSMC()->SetYoungModulus(m_young_modulus);
-            m_connector_R->GetMaterialSurfaceSMC()->SetPoissonRatio(m_poisson_ratio);
-            m_connector_R->GetMaterialSurfaceSMC()->SetKn(m_kn);
-            m_connector_R->GetMaterialSurfaceSMC()->SetGn(m_gn);
-            m_connector_R->GetMaterialSurfaceSMC()->SetKt(m_kt);
-            m_connector_R->GetMaterialSurfaceSMC()->SetGt(m_gt);
-            break;
-    }
+    // Add contact geometry on shoe body
+    AddShoeContact();
 }
 
 void ChTrackShoeDoublePin::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
@@ -160,21 +113,24 @@ double ChTrackShoeDoublePin::GetPitch() const {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChTrackShoeDoublePin::AddShoeContact() {
-    double pitch = GetPitch();
-
-    const ChVector<>& pad_dims = GetPadBoxDimensions();
-    const ChVector<>& guide_dims = GetGuideBoxDimensions();
-
-    double p0y = 2.1 * (pad_dims.y() / 2);
-    double p1y = 1.5 * (pad_dims.y() / 2);
-
     m_shoe->GetCollisionModel()->ClearModel();
 
     m_shoe->GetCollisionModel()->SetFamily(TrackedCollisionFamily::SHOES);
     m_shoe->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(TrackedCollisionFamily::SHOES);
 
-    m_shoe->GetCollisionModel()->AddBox(pad_dims.x() / 2, pad_dims.y() / 2, pad_dims.z() / 2, GetPadBoxLocation());
-    m_shoe->GetCollisionModel()->AddBox(guide_dims.x() / 2, guide_dims.y() / 2, guide_dims.z() / 2, GetGuideBoxLocation());
+    for (auto box : m_coll_boxes) {
+        assert(m_shoe_materials[box.m_matID] &&
+               m_shoe_materials[box.m_matID]->GetContactMethod() == m_shoe->GetSystem()->GetContactMethod());
+        ChVector<> hdims = box.m_dims / 2;
+        m_shoe->GetCollisionModel()->AddBox(m_shoe_materials[box.m_matID], hdims.x(), hdims.y(), hdims.z(), box.m_pos,
+                                            box.m_rot);
+    }
+    for (auto cyl : m_coll_cylinders) {
+        assert(m_shoe_materials[cyl.m_matID] &&
+               m_shoe_materials[cyl.m_matID]->GetContactMethod() == m_shoe->GetSystem()->GetContactMethod());
+        m_shoe->GetCollisionModel()->AddCylinder(m_shoe_materials[cyl.m_matID], cyl.m_radius, cyl.m_radius,
+                                                 cyl.m_length / 2, cyl.m_pos, cyl.m_rot);
+    }
 
     m_shoe->GetCollisionModel()->BuildModel();
 }
@@ -197,46 +153,47 @@ void ChTrackShoeDoublePin::RemoveVisualizationAssets() {
 }
 
 void ChTrackShoeDoublePin::AddShoeVisualization() {
-    const ChVector<>& pad_box_dims = GetPadBoxDimensions();
-    const ChVector<>& guide_box_dims = GetGuideBoxDimensions();
-    double s_width = GetShoeWidth();
-    double c_width = GetConnectorWidth();
+    // Create colors for the track shoe (based on shoe index)
+    ChColor box_col;
+    ChColor cyl_col;
+    if (m_index == 0) {
+        box_col = {0.6f, 0.3f, 0.3f};
+        cyl_col = {0.4f, 0.1f, 0.1f};
+    } else if (m_index % 2 == 0) {
+        box_col = {0.3f, 0.6f, 0.3f};
+        cyl_col = {0.1f, 0.4f, 0.1f};
+    } else {
+        box_col = {0.3f, 0.3f, 0.6f};
+        cyl_col = {0.1f, 0.1f, 0.4f};
+    }
 
-    double pin_radius = pad_box_dims.z() / 6;
-    double pin_len = s_width + c_width + 2 * c_width;
+    // Render boxes
+    auto box_level = chrono_types::make_shared<ChAssetLevel>();
+    for (auto box : m_vis_boxes) {
+        auto box_shape = chrono_types::make_shared<ChBoxShape>();
+        box_shape->GetBoxGeometry().SetLengths(box.m_dims);
+        box_shape->Pos = box.m_pos;
+        box_shape->Rot = box.m_rot;
+        box_level->AddAsset(box_shape);
+    }
+    box_level->AddAsset(chrono_types::make_shared<ChColorAsset>(box_col));
 
-    auto rev_rear = chrono_types::make_shared<ChCylinderShape>();
-    rev_rear->GetCylinderGeometry().p1 = ChVector<>(-0.5 * GetShoeLength(), -0.5 * pin_len, 0);
-    rev_rear->GetCylinderGeometry().p2 = ChVector<>(-0.5 * GetShoeLength(), +0.5 * pin_len, 0);
-    rev_rear->GetCylinderGeometry().rad = pin_radius;
-    m_shoe->AddAsset(rev_rear);
+    // Render cylinders
+    auto cyl_level = chrono_types::make_shared<ChAssetLevel>();
+    for (auto cyl : m_vis_cylinders) {
+        auto cyl_shape = chrono_types::make_shared<ChCylinderShape>();
+        cyl_shape->GetCylinderGeometry().rad = cyl.m_radius;
+        cyl_shape->GetCylinderGeometry().p1 = ChVector<>(0, cyl.m_length / 2, 0);
+        cyl_shape->GetCylinderGeometry().p2 = ChVector<>(0, -cyl.m_length / 2, 0);
+        cyl_shape->Pos = cyl.m_pos;
+        cyl_shape->Rot = cyl.m_rot;
+        cyl_level->AddAsset(cyl_shape);
+    }
+    cyl_level->AddAsset(chrono_types::make_shared<ChColorAsset>(cyl_col));
 
-    auto rev_front = chrono_types::make_shared<ChCylinderShape>();
-    rev_front->GetCylinderGeometry().p1 = ChVector<>(0.5 * GetShoeLength(), -0.5 * pin_len, 0);
-    rev_front->GetCylinderGeometry().p2 = ChVector<>(0.5 * GetShoeLength(), +0.5 * pin_len, 0);
-    rev_front->GetCylinderGeometry().rad = pin_radius;
-    m_shoe->AddAsset(rev_front);
-
-    // Render the pad contact box
-    auto box_shoe = chrono_types::make_shared<ChBoxShape>();
-    box_shoe->GetBoxGeometry().SetLengths(pad_box_dims);
-    box_shoe->Pos = GetPadBoxLocation();
-    m_shoe->AddAsset(box_shoe);
-
-    // Render the guiding pin contact box
-    auto box_pin = chrono_types::make_shared<ChBoxShape>();
-    box_pin->GetBoxGeometry().SetLengths(guide_box_dims);
-    box_pin->Pos = GetGuideBoxLocation();
-    m_shoe->AddAsset(box_pin);
-
-    auto col = chrono_types::make_shared<ChColorAsset>();
-    if (m_index == 0)
-        col->SetColor(ChColor(0.6f, 0.3f, 0.3f));
-    else if (m_index % 2 == 0)
-        col->SetColor(ChColor(0.3f, 0.6f, 0.3f));
-    else
-        col->SetColor(ChColor(0.3f, 0.3f, 0.6f));
-    m_shoe->AddAsset(col);
+    // Attach asset levels
+    m_shoe->AddAsset(box_level);
+    m_shoe->AddAsset(cyl_level);
 }
 
 void ChTrackShoeDoublePin::AddConnectorVisualization(std::shared_ptr<ChBody> connector) {

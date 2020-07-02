@@ -33,6 +33,17 @@ using namespace irr;
 bool output = false;
 const std::string out_dir = GetChronoOutputPath() + "SCM_DEF_SOIL";
 
+// Enable/disable adaptive mesh refinement
+bool enable_adaptive_refinement = true;
+double init_mesh_resolution = 0.1;
+double min_mesh_resolution = 0.04;
+
+// Enable/disable bulldozing effects
+bool enable_bulldozing = true;
+
+// Enable/disable moving patch feature
+bool enable_moving_patch = false;
+
 // If true, use provided callback to change soil properties based on location
 bool var_params = true;
 
@@ -116,8 +127,10 @@ int main(int argc, char* argv[]) {
     mrigidmesh->SetMesh(trimesh);
     mrigidbody->AddAsset(mrigidmesh);
 
+    auto material = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+
     mrigidbody->GetCollisionModel()->ClearModel();
-    mrigidbody->GetCollisionModel()->AddTriangleMesh(trimesh, false, false, VNULL, ChMatrix33<>(1), 0.01);
+    mrigidbody->GetCollisionModel()->AddTriangleMesh(material, trimesh, false, false, VNULL, ChMatrix33<>(1), 0.01);
     mrigidbody->GetCollisionModel()->BuildModel();
     mrigidbody->SetCollide(true);
 
@@ -143,16 +156,33 @@ int main(int argc, char* argv[]) {
     // a Y-up global frame, we rotate the terrain plane by -90 degrees about the X axis.
     mterrain.SetPlane(ChCoordsys<>(ChVector<>(0, 0, 0), Q_from_AngX(-CH_C_PI_2)));
 
-    // Initialize the geometry of the soil: use either a regular grid:
-    mterrain.Initialize(0.2, 1.5, 5, 20, 60);
-    // or use a height map:
+    // Initialize the geometry of the soil
+    
+    // Use either a regular grid:
+    double length = 6;
+    double width = 2;
+    if (enable_adaptive_refinement) {
+        int div_length = (int)std::ceil(length / init_mesh_resolution);
+        int div_width = (int)std::ceil(width / init_mesh_resolution);
+        mterrain.Initialize(0.2, width, length, div_width, div_length);
+        // Turn on the automatic level of detail refinement, so a coarse terrain mesh
+        // is automatically improved by adding more points under the wheel contact patch:
+        mterrain.SetAutomaticRefinement(true);
+        mterrain.SetAutomaticRefinementResolution(min_mesh_resolution);
+    } else {
+        int div_length = (int)std::ceil(length / min_mesh_resolution);
+        int div_width = (int)std::ceil(width / min_mesh_resolution);
+        mterrain.Initialize(0.2, width, length, div_width, div_length);
+    }
+    
+    // Or use a height map:
     ////mterrain.Initialize(vehicle::GetDataFile("terrain/height_maps/test64.bmp"), "test64", 1.6, 1.6, 0, 0.3);
 
     // Set the soil terramechanical parameters
-    MySoilParams my_params;
     if (var_params) {
         // Location-dependent soil properties
-        mterrain.RegisterSoilParametersCallback(&my_params);
+        auto my_params = chrono_types::make_shared<MySoilParams>();
+        mterrain.RegisterSoilParametersCallback(my_params);
     } else {
         // Constant soil properties
         mterrain.SetSoilParameters(0.2e6,  // Bekker Kphi
@@ -177,19 +207,19 @@ int main(int argc, char* argv[]) {
         ////);
     }
 
-    mterrain.SetBulldozingFlow(true);  // inflate soil at the border of the rut
-    mterrain.SetBulldozingParameters(
-        55,   // angle of friction for erosion of displaced material at the border of the rut
-        1,    // displaced material vs downward pressed material.
-        5,    // number of erosion refinements per timestep
-        10);  // number of concentric vertex selections subject to erosion
-    // Turn on the automatic level of detail refinement, so a coarse terrain mesh
-    // is automatically improved by adding more points under the wheel contact patch:
-    mterrain.SetAutomaticRefinement(true);
-    mterrain.SetAutomaticRefinementResolution(0.04);
+    if (enable_bulldozing) {
+        mterrain.SetBulldozingFlow(true);  // inflate soil at the border of the rut
+        mterrain.SetBulldozingParameters(
+            55,   // angle of friction for erosion of displaced material at the border of the rut
+            1,    // displaced material vs downward pressed material.
+            5,    // number of erosion refinements per timestep
+            10);  // number of concentric vertex selections subject to erosion
+    }
 
     // Optionally, enable moving patch feature (reduces number of ray casts)
-    ////mterrain.EnableMovingPatch(mrigidbody, ChVector<>(0, 0, 0), 2 * tire_rad, 2 * tire_rad);
+    if (enable_moving_patch) {
+        mterrain.AddMovingPatch(mrigidbody, ChVector<>(0, 0, 0), 2 * tire_rad, 2 * tire_rad);
+    }
 
     // Set some visualization parameters: either with a texture, or with falsecolor plot, etc.
     ////mterrain.SetTexture(vehicle::GetDataFile("terrain/textures/grass.jpg"), 16, 16);

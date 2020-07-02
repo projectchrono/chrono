@@ -116,15 +116,21 @@ int main(int argc, char* argv[]) {
     double beam_wy = 0.10;
     double beam_wz = 0.01;
 
-    // Create a section, with elasticity property.
-    // IGA beams require ChBeamSectionCosserat sections.
+    // Create a section for the IGA beam.
+    // IGA beams require ChBeamSectionCosserat sections, containing at least
+	// a ChElasticityCosserat and ChInertiaCosserat models, and optional ChDampingCosserat and ChPlasticityCosserat.
+
+	auto minertia = chrono_types::make_shared<ChInertiaCosseratSimple>();
+	minertia->SetAsRectangularSection(beam_wy, beam_wz, 2700);  // automatically sets A etc., from width, height, density
+
     auto melasticity = chrono_types::make_shared<ChElasticityCosseratSimple>();
     melasticity->SetYoungModulus(73.0e9);
     melasticity->SetGwithPoissonRatio(0.3);
-    melasticity->SetBeamRaleyghDamping(0.0000);
-    auto msection1 = chrono_types::make_shared<ChBeamSectionCosserat>(melasticity);
-    msection1->SetDensity(2700);
-    msection1->SetAsRectangularSection(beam_wy, beam_wz);
+	melasticity->SetAsRectangularSection(beam_wy, beam_wz);
+
+    auto msection1 = chrono_types::make_shared<ChBeamSectionCosserat>(minertia, melasticity);
+
+    msection1->SetDrawThickness(beam_wy, beam_wz);
 
     ChBuilderBeamIGA builder_iga;
     builder_iga.BuildBeam(my_mesh,    // the mesh to put the elements in

@@ -14,8 +14,7 @@ ENDIF()
 #--------------------------------------------------------------
 # List all model files for this demo
 
-SET(DEMO demo_VEH_M113_Parallel)
-SOURCE_GROUP("" FILES ${DEMO}.cpp)
+SET(PROGRAM demo_VEH_M113_Parallel)
 
 #--------------------------------------------------------------
 # Additional include directories
@@ -25,16 +24,20 @@ INCLUDE_DIRECTORIES(${CH_PARALLEL_INCLUDES} ${CH_OPENGL_INCLUDES})
 #--------------------------------------------------------------
 # Add executable
 
-MESSAGE(STATUS "...add ${DEMO}")
+MESSAGE(STATUS "...add ${PROGRAM}")
 
-ADD_EXECUTABLE(${DEMO} ${DEMO}.cpp ${MODEL_FILES})
-SET_TARGET_PROPERTIES(${DEMO} PROPERTIES 
+ADD_EXECUTABLE(${PROGRAM} ${PROGRAM}.cpp ${MODEL_FILES})
+SOURCE_GROUP("" FILES ${PROGRAM}.cpp)
+
+SET_TARGET_PROPERTIES(${PROGRAM} PROPERTIES 
                       COMPILE_FLAGS "${CH_CXX_FLAGS} ${CH_PARALLEL_CXX_FLAGS}"
                       LINK_FLAGS "${LINKERFLAG_EXE}")
-TARGET_LINK_LIBRARIES(${DEMO}
+SET_PROPERTY(TARGET ${PROGRAM} PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:${PROGRAM}>")
+TARGET_LINK_LIBRARIES(${PROGRAM}
                       ChronoEngine
                       ChronoEngine_vehicle
                       ChronoEngine_parallel
                       ChronoEngine_opengl
                       ChronoModels_vehicle)
-INSTALL(TARGETS ${DEMO} DESTINATION ${CH_INSTALL_DEMO})
+
+INSTALL(TARGETS ${PROGRAM} DESTINATION ${CH_INSTALL_DEMO})

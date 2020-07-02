@@ -173,7 +173,7 @@ class HMMWV_Driver : public ChDriver {
                  std::shared_ptr<chrono::ChBezierCurve> path,  // target path
                  double time_start,                            // time throttle start
                  double time_max                               // time throttle max
-                 );
+    );
 
     void SetGains(double Kp, double Ki, double Kd) { m_steeringPID.SetGains(Kp, Ki, Kd); }
     void SetLookAheadDistance(double dist) { m_steeringPID.SetLookAheadDistance(dist); }
@@ -236,9 +236,9 @@ void HMMWV_Driver::ExportPathPovray(const std::string& out_dir) {
 
 // Custom material composition law.
 // Use the maximum coefficient of friction.
-class CustomCompositionStrategy : public ChMaterialCompositionStrategy<real> {
+class CustomCompositionStrategy : public ChMaterialCompositionStrategy {
   public:
-    virtual real CombineFriction(real a1, real a2) const override { return std::max<real>(a1, a2); }
+    virtual float CombineFriction(float a1, float a2) const override { return std::max<float>(a1, a2); }
 };
 
 // =============================================================================
@@ -355,8 +355,10 @@ int main(int argc, char* argv[]) {
     // ------------------
 
     GranularTerrain terrain(system);
-    terrain.SetContactFrictionCoefficient((float)mu_g);
-    terrain.SetContactCohesion((float)coh_g);
+    auto mat = std::static_pointer_cast<ChMaterialSurfaceNSC>(terrain.GetContactMaterial());
+    mat->SetFriction((float)mu_g);
+    mat->SetCohesion((float)coh_g);
+    terrain.SetContactMaterial(mat);
     terrain.SetCollisionEnvelope(envelope / 5);
     if (rough) {
         int nx = (int)std::round((2 * hdimX) / (4 * r_g));
@@ -451,7 +453,7 @@ int main(int argc, char* argv[]) {
         if (!hmmwv && time > time_create_vehicle) {
             cout << time << "    Create vehicle" << endl;
 
-            double max_height = terrain.GetHeight(0, 0);
+            double max_height = terrain.GetHeight(ChVector<>(0, 0, 0));
             hmmwv = CreateVehicle(system, max_height);
             driver = CreateDriver(hmmwv);
 
@@ -510,7 +512,6 @@ int main(int argc, char* argv[]) {
         // Advance system state (no vehicle created yet)
         system->DoStepDynamics(time_step);
 
-
 #ifdef CHRONO_OPENGL
         if (render) {
             opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
@@ -551,7 +552,7 @@ int main(int argc, char* argv[]) {
 HMMWV_Full* CreateVehicle(ChSystem* system, double vertical_offset) {
     auto hmmwv = new HMMWV_Full(system);
 
-    hmmwv->SetContactMethod(ChMaterialSurface::NSC);
+    hmmwv->SetContactMethod(ChContactMethod::NSC);
     hmmwv->SetChassisFixed(false);
     hmmwv->SetInitPosition(ChCoordsys<>(initLoc + ChVector<>(0, 0, vertical_offset), initRot));
     hmmwv->SetInitFwdVel(initSpeed);

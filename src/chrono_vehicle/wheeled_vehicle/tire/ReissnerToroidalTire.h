@@ -46,11 +46,15 @@ class CH_VEHICLE_API ReissnerToroidalTire : public ChReissnerTire {
     void SetDivCircumference(int divcirc_) { m_div_circumference = divcirc_; }
     void SetDivWidth(int divwidth_) { m_div_width = divwidth_; }
 
+    void SetContactMaterial(std::shared_ptr<ChMaterialSurfaceSMC> mat) { m_mat = mat; }
+
     void SetPressure(double pressure_) { m_default_pressure = pressure_; }
     void SetAlpha(double alpha_) { m_alpha = alpha_; }
     virtual void CreateMesh(const ChFrameMoving<>& wheel_frame, VehicleSide side) override;
 
   private:
+    virtual void CreateContactMaterial() override;
+
     double m_rim_radius;
     double m_height;
     double m_thickness;
@@ -60,6 +64,8 @@ class CH_VEHICLE_API ReissnerToroidalTire : public ChReissnerTire {
 
     double m_default_pressure;
     double m_alpha;
+
+    std::shared_ptr<ChMaterialSurfaceSMC> m_mat;
 };
 
 }  // end namespace vehicle

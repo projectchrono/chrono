@@ -32,7 +32,7 @@ namespace uaz {
 // -----------------------------------------------------------------------------
 UAZBUS_Vehicle::UAZBUS_Vehicle(const bool fixed,
                                SteeringType steering_model,
-                               ChMaterialSurface::ContactMethod contact_method,
+                               ChContactMethod contact_method,
                                ChassisCollisionType chassis_collision_type)
     : ChWheeledVehicle("UAZBUS", contact_method), m_omega({0, 0, 0, 0}) {
     Create(fixed, steering_model, chassis_collision_type);
@@ -91,21 +91,19 @@ void UAZBUS_Vehicle::Initialize(const ChCoordsys<>& chassisPos, double chassisFw
     // frame).
     ChVector<> offset = ChVector<>(0, 0, 0);
     ChQuaternion<> rotation = Q_from_AngAxis(0, ChVector<>(0, 1, 0));
-    m_steerings[0]->Initialize(m_chassis->GetBody(), offset, rotation);
+    m_steerings[0]->Initialize(m_chassis, offset, rotation);
 
     // Initialize the axle subsystems.
-    m_axles[0]->Initialize(m_chassis->GetBody(), ChVector<>(0, 0, 0), ChVector<>(0), m_steerings[0]->GetSteeringLink(),
-                           0, 0.0, m_omega[0], m_omega[1]);
-    m_axles[1]->Initialize(m_chassis->GetBody(), ChVector<>(-2.3, 0, 0), ChVector<>(0), m_chassis->GetBody(), -1, 0.0,
-                           m_omega[2], m_omega[3]);
+    m_axles[0]->Initialize(m_chassis, nullptr, m_steerings[0], ChVector<>(0, 0, 0), ChVector<>(0), 0.0,
+                           m_omega[0], m_omega[1]);
+    m_axles[1]->Initialize(m_chassis, nullptr, nullptr, ChVector<>(-2.3, 0, 0), ChVector<>(0), 0.0, m_omega[2],
+                           m_omega[3]);
 
     // Initialize the driveline subsystem
     std::vector<int> driven_susp_indexes(m_driveline->GetNumDrivenAxles());
-
     driven_susp_indexes[0] = 1;
     driven_susp_indexes[1] = 1;
-
-    m_driveline->Initialize(m_chassis->GetBody(), m_axles, driven_susp_indexes);
+    m_driveline->Initialize(m_chassis, m_axles, driven_susp_indexes);
 }
 
 // -----------------------------------------------------------------------------

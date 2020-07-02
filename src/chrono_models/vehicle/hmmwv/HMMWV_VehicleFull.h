@@ -48,7 +48,7 @@ class CH_MODELS_API HMMWV_VehicleFull : public HMMWV_Vehicle {
                       DrivelineType drive_type,
                       SteeringType steering_type,
                       bool rigid_steering_column,
-                      ChMaterialSurface::ContactMethod contact_method,
+                      ChContactMethod contact_method,
                       ChassisCollisionType chassis_collision_type);
 
     HMMWV_VehicleFull(ChSystem* system,

@@ -32,7 +32,8 @@ int ChCollisionModelDistributed::ClearModel() {
     return 1;
 }
 
-bool ChCollisionModelDistributed::AddBox(double hx,
+bool ChCollisionModelDistributed::AddBox(std::shared_ptr<ChMaterialSurface> material,
+                                         double hx,
                                          double hy,
                                          double hz,
                                          const ChVector<>& pos,
@@ -83,10 +84,12 @@ bool ChCollisionModelDistributed::AddBox(double hx,
     shape_aabb_min.push_back(box_aabb_min);
     shape_aabb_max.push_back(box_aabb_max);
 
-    return this->ChCollisionModelParallel::AddBox(hx, hy, hz, pos, rot);
+    return this->ChCollisionModelParallel::AddBox(material, hx, hy, hz, pos, rot);
 }
 
-bool ChCollisionModelDistributed::AddSphere(double radius, const ChVector<>& pos) {
+bool ChCollisionModelDistributed::AddSphere(std::shared_ptr<ChMaterialSurface> material,
+                                            double radius,
+                                            const ChVector<>& pos) {
     ChVector<double> body_pos(this->GetBody()->GetPos());
 
     ChVector<double> max = pos + ChVector<double>(radius, radius, radius);
@@ -112,16 +115,17 @@ bool ChCollisionModelDistributed::AddSphere(double radius, const ChVector<>& pos
     shape_aabb_max.push_back(real3(max.x(), max.y(), max.z()));
     shape_aabb_min.push_back(real3(min.x(), min.y(), min.z()));
 
-    return this->ChCollisionModelParallel::AddSphere(radius, pos);
+    return this->ChCollisionModelParallel::AddSphere(material, radius, pos);
 }
 
-bool ChCollisionModelDistributed::AddTriangle(ChVector<> A,
+bool ChCollisionModelDistributed::AddTriangle(std::shared_ptr<ChMaterialSurface> material,
+                                              ChVector<> A,
                                               ChVector<> B,
                                               ChVector<> C,
                                               const ChVector<>& pos,
                                               const ChMatrix33<>& rot) {
     // TODO doesn't allow for global triangle bodies
-    return this->ChCollisionModelParallel::AddTriangle(A, B, C, pos, rot);
+    return this->ChCollisionModelParallel::AddTriangle(material, A, B, C, pos, rot);
 }
 
 // TODO: Add other adds for shapes that can be global

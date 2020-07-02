@@ -52,27 +52,30 @@ class ChContactNSCrolling : public ChContactNSC<Ta, Tb> {
         Rx.SetNormalConstraint(&this->Nx);
     }
 
-    ChContactNSCrolling(ChContactContainer* mcontainer,          ///< contact container
-                        Ta* mobjA,                               ///< collidable object A
-                        Tb* mobjB,                               ///< collidable object B
-                        const collision::ChCollisionInfo& cinfo  ///< data for the contact pair
+    ChContactNSCrolling(ChContactContainer* mcontainer,           ///< contact container
+                        Ta* mobjA,                                ///< collidable object A
+                        Tb* mobjB,                                ///< collidable object B
+                        const collision::ChCollisionInfo& cinfo,  ///< data for the collision pair
+                        const ChMaterialCompositeNSC& mat         ///< composite material
                         )
-        : ChContactNSC<Ta, Tb>(mcontainer, mobjA, mobjB, cinfo) {
+        : ChContactNSC<Ta, Tb>(mcontainer, mobjA, mobjB, cinfo, mat) {
         Rx.SetRollingConstraintU(&this->Ru);
         Rx.SetRollingConstraintV(&this->Rv);
         Rx.SetNormalConstraint(&this->Nx);
 
-        Reset(mobjA, mobjB, cinfo);
+        Reset(mobjA, mobjB, cinfo, mat);
     }
 
     virtual ~ChContactNSCrolling() {}
 
-    /// Initialize again this constraint.
-    virtual void Reset(Ta* mobjA,
-                       Tb* mobjB,
-                       const collision::ChCollisionInfo& cinfo) {
-        // Base method call:
-        ChContactNSC<Ta, Tb>::Reset(mobjA, mobjB, cinfo);
+    /// Reinitialize this contact for reuse.
+    virtual void Reset(Ta* mobjA,                                ///< collidable object A
+                       Tb* mobjB,                                ///< collidable object B
+                       const collision::ChCollisionInfo& cinfo,  ///< data for the collision pair
+                       const ChMaterialCompositeNSC& mat         ///< composite material
+    ) override {
+        // Invoke base class method to reset normal and sliding constraints
+        ChContactNSC<Ta, Tb>::Reset(mobjA, mobjB, cinfo, mat);
 
         Rx.Get_tuple_a().SetVariables(*this->objA);
         Rx.Get_tuple_b().SetVariables(*this->objB);
@@ -81,12 +84,7 @@ class ChContactNSCrolling : public ChContactNSC<Ta, Tb> {
         Rv.Get_tuple_a().SetVariables(*this->objA);
         Rv.Get_tuple_b().SetVariables(*this->objB);
 
-        // Calculate composite material properties
-        ChMaterialCompositeNSC mat(
-            this->container->GetSystem()->composition_strategy.get(),
-            std::static_pointer_cast<ChMaterialSurfaceNSC>(this->objA->GetMaterialSurface()),
-            std::static_pointer_cast<ChMaterialSurfaceNSC>(this->objB->GetMaterialSurface()));
-
+        // Cache composite material properties
         Rx.SetRollingFrictionCoefficient(mat.rolling_friction);
         Rx.SetSpinningFrictionCoefficient(mat.spinning_friction);
 

@@ -48,9 +48,7 @@ DoubleWishboneReduced::DoubleWishboneReduced(const rapidjson::Document& d)
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-DoubleWishboneReduced::~DoubleWishboneReduced() {
-    delete m_shockForceCB;
-}
+DoubleWishboneReduced::~DoubleWishboneReduced() {}
 
 // -----------------------------------------------------------------------------
 // Worker function for creating a DoubleWishboneReduced suspension using data in
@@ -109,8 +107,8 @@ void DoubleWishboneReduced::Create(const rapidjson::Document& d) {
     m_points[SHOCK_C] = ReadVectorJSON(d["Shock"]["Location Chassis"]);
     m_points[SHOCK_U] = ReadVectorJSON(d["Shock"]["Location Upright"]);
     m_springRestLength = d["Shock"]["Free Length"].GetDouble();
-    m_shockForceCB = new LinearSpringDamperForce(d["Shock"]["Spring Coefficient"].GetDouble(),
-                                                 d["Shock"]["Damping Coefficient"].GetDouble());
+    m_shockForceCB = chrono_types::make_shared<LinearSpringDamperForce>(d["Shock"]["Spring Coefficient"].GetDouble(),
+                                                                        d["Shock"]["Damping Coefficient"].GetDouble());
 
     // Read axle inertia
     assert(d.HasMember("Axle"));
