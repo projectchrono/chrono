@@ -19,7 +19,6 @@
 #include <iostream>
 
 using namespace chrono;
-using namespace std;
 
 static volatile int first = 100000;
 
@@ -63,7 +62,7 @@ int main() {
     }
     CHRONO.stop();
     double result_CHRONO = CHRONO();
-    cout << "Chrono GetUniqueIntID: " << result_CHRONO << " " << result_CHRONO / 100000000.0 << endl;
+    std::cout << "Chrono GetUniqueIntID: " << result_CHRONO << " " << result_CHRONO / 100000000.0 << std::endl;
 
     return 0;
 }
