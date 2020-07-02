@@ -2,6 +2,10 @@
 ## Directories
 ##---------------------------------------------------
 
+#large data used by sensors
+# /data/sensor/textures/
+*.hdr
+
 # Where you build the src
 /build
 .vscode

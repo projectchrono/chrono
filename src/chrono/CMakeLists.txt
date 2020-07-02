@@ -158,7 +158,7 @@ set(ChronoEngine_physics_HEADERS
     physics/ChProximityContainerSPH.h
     physics/ChSystem.h
     physics/ChSystemNSC.h
-    physics/ChSystemSMC.h    
+    physics/ChSystemSMC.h
     physics/ChAssembly.h
     physics/ChInertiaUtils.h
     )
@@ -441,7 +441,7 @@ set(ChronoEngine_fea_nodes_SOURCES
 )
 
 set(ChronoEngine_fea_nodes_HEADERS
-    fea/ChNodeFEAbase.h 
+    fea/ChNodeFEAbase.h
     fea/ChNodeFEAxyz.h
     fea/ChNodeFEAxyzrot.h
     fea/ChNodeFEAxyzP.h
@@ -465,7 +465,7 @@ set(ChronoEngine_fea_elements_SOURCES
     fea/ChElementTetra_4.cpp
     fea/ChElementTetra_10.cpp
     fea/ChElementHexa_8.cpp
-    fea/ChElementHexa_20.cpp 
+    fea/ChElementHexa_20.cpp
     fea/ChElementShellANCF.cpp
     fea/ChElementShellANCF_8.cpp
     fea/ChElementShellReissner4.cpp
@@ -485,7 +485,7 @@ set(ChronoEngine_fea_elements_HEADERS
     fea/ChElementBeamEuler.h
     fea/ChElementBeamIGA.h
     fea/ChElementCableANCF.h
-    fea/ChElementBrick.h 
+    fea/ChElementBrick.h
     fea/ChElementBrick_9.h
     fea/ChElementTetrahedron.h
     fea/ChElementTetra_4.h
@@ -579,7 +579,7 @@ set(ChronoEngine_assets_SOURCES
     assets/ChSphereShape.cpp
     assets/ChEllipsoidShape.cpp
     assets/ChBoxShape.cpp
-	assets/ChBarrelShape.cpp
+  	assets/ChBarrelShape.cpp
     assets/ChConeShape.cpp
     assets/ChCylinderShape.cpp
     assets/ChCapsuleShape.cpp
@@ -597,6 +597,7 @@ set(ChronoEngine_assets_SOURCES
     assets/ChEmitterAsset.cpp
     assets/ChPointPointDrawing.cpp
     assets/ChSurfaceShape.cpp
+    assets/ChVisualMaterial.cpp
     )
 
 set(ChronoEngine_assets_HEADERS
@@ -606,7 +607,7 @@ set(ChronoEngine_assets_HEADERS
     assets/ChTriangleMeshShape.h
     assets/ChSphereShape.h
     assets/ChEllipsoidShape.h
-	assets/ChBarrelShape.h
+  	assets/ChBarrelShape.h
     assets/ChBoxShape.h
     assets/ChConeShape.h
     assets/ChCylinderShape.h
@@ -627,6 +628,7 @@ set(ChronoEngine_assets_HEADERS
     assets/ChEmitterAsset.h
     assets/ChPointPointDrawing.h
     assets/ChSurfaceShape.h
+    assets/ChVisualMaterial.h
     )
 
 source_group(assets FILES

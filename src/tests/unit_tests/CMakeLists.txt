@@ -10,7 +10,7 @@ SET(CMAKE_SKIP_BUILD_RPATH  FALSE)
 
 # when building, don't use the install RPATH already
 # (but later on when installing)
-SET(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE) 
+SET(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE)
 
 SET(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
 
@@ -54,6 +54,14 @@ IF(ENABLE_MODULE_PARALLEL)
   if(BUILD_TESTING_PARALLEL)
     ADD_SUBDIRECTORY(parallel)
     ADD_SUBDIRECTORY(smc_contact)
+  endif()
+ENDIF()
+
+IF(ENABLE_MODULE_SENSOR)
+  option(BUILD_TESTING_SENSOR "Build unit tests for Sensor module" TRUE)
+  mark_as_advanced(FORCE BUILD_TESTING_SENSOR)
+  if(BUILD_TESTING_SENSOR)
+    ADD_SUBDIRECTORY(sensor)
   endif()
 ENDIF()
 

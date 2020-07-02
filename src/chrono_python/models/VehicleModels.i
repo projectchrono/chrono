@@ -36,6 +36,9 @@
 
 #include "chrono_models/vehicle/gator/Gator.h"
 #include "chrono_models/vehicle/gator/Gator_Vehicle.h"
+
+#include "chrono_models/vehicle/rccar/RCCar.h"
+#include "chrono_models/vehicle/rccar/RCCar_Vehicle.h"
 %}
 
 
@@ -66,6 +69,9 @@
 
 %shared_ptr(chrono::vehicle::gator::Gator)
 %shared_ptr(chrono::vehicle::gator::Gator_Vehicle)
+
+%shared_ptr(chrono::vehicle::rccar::RCCar)
+%shared_ptr(chrono::vehicle::rccar::RCCar_Vehicle)
 
 
 %import(module = "pychrono.core") "chrono_python/core/ChMaterialSurface.i"
@@ -106,3 +112,6 @@
 
 %include "../../chrono_models/vehicle/gator/Gator.h"
 %include "../../chrono_models/vehicle/gator/Gator_Vehicle.h"
+
+%include "../../chrono_models/vehicle/rccar/RCCar.h"
+%include "../../chrono_models/vehicle/rccar/RCCar_Vehicle.h"

@@ -443,6 +443,30 @@ set(CVM_M113_A_FILES
  )
 source_group("m113a" FILES ${CVM_M113_A_FILES})
 
+set(CVM_RCCAR_FILES
+  rccar/RCCar_BrakeSimple.cpp
+  rccar/RCCar_BrakeSimple.h
+  rccar/RCCar_Chassis.cpp
+  rccar/RCCar_Chassis.h
+  rccar/RCCar_DoubleWishbone.cpp
+  rccar/RCCar_DoubleWishbone.h
+  rccar/RCCar_Driveline4WD.cpp
+  rccar/RCCar_Driveline4WD.h
+  rccar/RCCar_PitmanArm.cpp
+  rccar/RCCar_PitmanArm.h
+  rccar/RCCar_RigidTire.cpp
+  rccar/RCCar_RigidTire.h
+  rccar/RCCar_SimpleMapPowertrain.cpp
+  rccar/RCCar_SimpleMapPowertrain.h
+  rccar/RCCar_Vehicle.cpp
+  rccar/RCCar_Vehicle.h
+  rccar/RCCar_Wheel.cpp
+  rccar/RCCar_Wheel.h
+  rccar/RCCar.cpp
+  rccar/RCCar.h
+ )
+source_group("rccar" FILES ${CVM_RCCAR_FILES})
+
 # ----------------------------------------------------------------------------
 # Add the Chrono_vehicle_models library
 # ----------------------------------------------------------------------------
@@ -462,6 +486,7 @@ add_library(ChronoModels_vehicle SHARED
     ${CVM_M113_FILES}
     ${CVM_M113_A_FILES}
     ${CVM_MAN_FILES}
+    ${CVM_RCCAR_FILES}
  )
 
 set_target_properties(ChronoModels_vehicle PROPERTIES

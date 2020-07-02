@@ -17,6 +17,8 @@
 #include "chrono/assets/ChColor.h"
 #include "chrono/core/ChMath.h"
 
+#include "chrono/assets/ChVisualMaterial.h"
+
 namespace chrono {
 
 /// Base class for assets that define something about visualization (rendering, post processing, etc.)
@@ -57,6 +59,9 @@ class ChApi ChVisualization : public ChAsset {
 
     ChVector<> Pos;    ///< Position of Asset
     ChMatrix33<> Rot;  ///< Rotation of Asset
+
+    // added for Mulitple materials
+    std::vector<std::shared_ptr<ChVisualMaterial>> material_list;
 
   protected:
     ChVisualization();

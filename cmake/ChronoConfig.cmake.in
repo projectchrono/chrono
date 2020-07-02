@@ -95,6 +95,7 @@ set(Chrono_HAS_python @ENABLE_MODULE_PYTHON@)
 set(Chrono_HAS_vehicle @ENABLE_MODULE_VEHICLE@)
 set(Chrono_HAS_fsi @ENABLE_MODULE_FSI@)
 set(Chrono_HAS_granular @ENABLE_MODULE_GRANULAR@)
+set(Chrono_HAS_sensor @ENABLE_MODULE_SENSOR@)
 
 #-------------------------------------------------------------------------------
 # Loop over the list of requested components
@@ -148,7 +149,7 @@ foreach(COMPONENT ${Chrono_FIND_COMPONENTS})
       list(APPEND CHRONO_LIB_NAMES "ChronoEngine_opengl")
       list(APPEND CHRONO_LIBRARIES "@GLEW_LIBRARY@")
       list(APPEND CHRONO_LIBRARIES "@GLFW_LIBRARY@")
-      list(APPEND CHRONO_LIBRARIES "@OPENGL_LIBRARY@")        
+      list(APPEND CHRONO_LIBRARIES "@OPENGL_LIBRARY@")
       list(APPEND CHRONO_DLL_NAMES "ChronoEngine_opengl.dll")
       list(APPEND CHRONO_DLLS "@GLEW_DLL@")
       list(APPEND CHRONO_DLLS "@GLFW_DLL@")
@@ -181,6 +182,15 @@ foreach(COMPONENT ${Chrono_FIND_COMPONENTS})
       list(APPEND CHRONO_INCLUDE_DIRS "@CH_FSI_INCLUDES@")
       list(APPEND CHRONO_LIB_NAMES "ChronoEngine_fsi")
       list(APPEND CHRONO_DLL_NAMES "ChronoEngine_fsi.dll")
+
+    elseif(${COMPONENT_UPPER} MATCHES "SENSOR")
+      set(CHRONO_CXX_FLAGS "${CHRONO_CXX_FLAGS} @CH_SENSOR_CXX_FLAGS@")
+      set(CHRONO_C_FLAGS "${CHRONO_C_FLAGS} @CH_SENSOR_C_FLAGS@")
+
+      list(APPEND CHRONO_INCLUDE_DIRS "@CH_SENSOR_INCLUDES@")
+      list(APPEND CHRONO_LIB_NAMES "ChronoEngine_sensor")
+      list(APPEND CHRONO_LIBRARIES "@SENSOR_LIBRARIES@")
+      list(APPEND CHRONO_DLL_NAMES "ChronoEngine_sensor.dll")
 
     elseif(${COMPONENT_UPPER} MATCHES "GRANULAR")
  

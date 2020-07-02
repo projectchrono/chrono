@@ -46,6 +46,8 @@
 
 #include "chrono_models/vehicle/gator/Gator_SimpleDriveline.h"
 #include "chrono_models/vehicle/gator/Gator_Driveline2WD.h"
+
+#include "chrono_models/vehicle/rccar/RCCar_Driveline4WD.h"
 %}
 
 
@@ -62,6 +64,8 @@
 %shared_ptr(chrono::vehicle::uaz::UAZBUS_Driveline4WD)
 %shared_ptr(chrono::vehicle::gator::Gator_SimpleDriveline)
 %shared_ptr(chrono::vehicle::gator::Gator_Driveline2WD)
+%shared_ptr(chrono::vehicle::rccar::RCCar_Driveline4WD)
+
 
 /* Parse the header file to generate wrappers */
 %import "chrono_python/vehicle/ChDriveline.i"
