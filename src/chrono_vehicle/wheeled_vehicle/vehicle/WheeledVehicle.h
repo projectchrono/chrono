@@ -64,6 +64,8 @@ class CH_VEHICLE_API WheeledVehicle : public ChWheeledVehicle {
 
     std::vector<int> m_driven_axles;  // indexes of the driven axles
 
+    std::vector<double> m_wheelSeparations; // wheel separations for each axle
+
     double m_turn_radius;  // minimum turning radius
     double m_steer_angle;  // maximum steering angle
 };

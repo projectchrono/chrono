@@ -134,6 +134,13 @@ using namespace chrono::fea;
 
 %template(vector_ChNodeFEAxyzrot) std::vector< std::shared_ptr<chrono::fea::ChNodeFEAxyzrot> >;
 %template(vector_ChNodeFEAxyz)    std::vector< std::shared_ptr<chrono::fea::ChNodeFEAxyz> >;
+%template(vector_ChNodeFEAxyzD)    std::vector< std::shared_ptr<chrono::fea::ChNodeFEAxyzD> >;
+%template(vector_ChNodeFEAxyzDD)    std::vector< std::shared_ptr<chrono::fea::ChNodeFEAxyzDD> >;
+%template(vector_ChNodeFEAcurv)    std::vector< std::shared_ptr<chrono::fea::ChNodeFEAcurv> >;
+%template(vector_ChElementBeamEuler)    std::vector< std::shared_ptr<chrono::fea::ChElementBeamEuler> >;
+%template(vector_ChElementBeamIGA)    std::vector< std::shared_ptr<chrono::fea::ChElementBeamIGA> >;
+%template(vector_ChElementCableANCF)    std::vector< std::shared_ptr<chrono::fea::ChElementCableANCF> >;
+%template(vector_ChElementBeamANCF)    std::vector< std::shared_ptr<chrono::fea::ChElementBeamANCF> >;
 
 //
 // For each class, keep updated the  A, B, C sections: 
@@ -175,7 +182,7 @@ using namespace chrono::fea;
 %shared_ptr(chrono::fea::ChBeamSectionBasic)
 %shared_ptr(chrono::fea::ChBeamSectionCable)
 %shared_ptr(chrono::fea::ChBeamSectionAdvanced)
-%shared_ptr(chrono::fea::ChBeamSectionProperties)
+//%shared_ptr(chrono::fea::ChBeamSectionProperties)
 %shared_ptr(chrono::fea::ChBeamSectionCosserat)
 %shared_ptr(chrono::fea::ChBeamSectionCosseratEasyCircular)
 %shared_ptr(chrono::fea::ChBeamSectionCosseratEasyRectangular)
@@ -191,6 +198,9 @@ using namespace chrono::fea;
 %shared_ptr(chrono::fea::ChDampingCosseratRayleigh)
 %shared_ptr(chrono::fea::ChInertiaCosserat)
 %shared_ptr(chrono::fea::ChInertiaCosseratUniformDensity)
+%shared_ptr(chrono::fea::ChInertiaCosseratSimple)
+%shared_ptr(chrono::fea::ChInertiaCosseratAdvanced)
+%shared_ptr(chrono::fea::ChInertiaCosseratMassref)
 %shared_ptr(chrono::fea::ChElementBeam)
 %shared_ptr(chrono::fea::ChElementBeamEuler)
 %shared_ptr(chrono::fea::ChElementBeamANCF)
@@ -426,6 +436,11 @@ using namespace chrono::fea;
 %DefSharedPtrDynamicDowncast(chrono::fea,ChElasticityCosserat,ChElasticityCosseratAdvanced)
 %DefSharedPtrDynamicDowncast(chrono::fea,ChElasticityCosserat,ChElasticityCosseratMesh)
 %DefSharedPtrDynamicDowncast(chrono::fea,ChPlasticityCosserat,ChPlasticityCosseratLumped)
+%DefSharedPtrDynamicDowncast(chrono::fea,ChInertiaCosserat,ChInertiaCosseratSimple)
+%DefSharedPtrDynamicDowncast(chrono::fea,ChInertiaCosserat,ChInertiaCosseratAdvanced)
+%DefSharedPtrDynamicDowncast(chrono::fea,ChInertiaCosserat,ChInertiaCosseratMassref)
+%DefSharedPtrDynamicDowncast(chrono::fea,ChDampingCosserat,ChDampingCosseratLinear)
+%DefSharedPtrDynamicDowncast(chrono::fea,ChDampingCosserat,ChDampingCosseratRayleigh)
 %DefSharedPtrDynamicDowncast(chrono::fea,ChElasticityReissner,ChElasticityReissnerIsothropic)
 %DefSharedPtrDynamicDowncast(chrono::fea,ChElasticityReissner,ChElasticityReissnerOrthotropic)
 %DefSharedPtrDynamicDowncast(chrono::fea,ChElasticityReissner,ChElasticityReissnerGeneric)

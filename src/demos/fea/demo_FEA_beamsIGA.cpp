@@ -182,7 +182,7 @@ void MakeAndRunDemo1(ChIrrApp& myapp, int nsections=32, int order=2) {
 	double beam_wy = 0.012;
 	double beam_wz = 0.025;
 
-	auto minertia = chrono_types::make_shared<ChInertiaCosseratUniformDensity>();
+	auto minertia = chrono_types::make_shared<ChInertiaCosseratSimple>();
 	minertia->SetAsRectangularSection(beam_wy, beam_wz, 1000);  // automatically sets A etc., from width, height, density
 
 	auto melasticity = chrono_types::make_shared<ChElasticityCosseratSimple>();
@@ -372,7 +372,7 @@ void MakeAndRunDemo3(ChIrrApp& myapp) {
 	double beam_wy = 0.012;
 	double beam_wz = 0.025;
 
-	auto minertia = chrono_types::make_shared<ChInertiaCosseratUniformDensity>();
+	auto minertia = chrono_types::make_shared<ChInertiaCosseratSimple>();
 	minertia->SetAsRectangularSection(beam_wy, beam_wz, 1000);  // automatically sets A etc., from width, height, density
 
 	auto melasticity = chrono_types::make_shared<ChElasticityCosseratSimple>();
@@ -519,7 +519,7 @@ void MakeAndRunDemo4(ChIrrApp& myapp) {
 	// Create a section, i.e. thickness and material properties
 	// for beams. This will be shared among some beams.
 
-	auto minertia = chrono_types::make_shared<ChInertiaCosseratUniformDensity>();
+	auto minertia = chrono_types::make_shared<ChInertiaCosseratSimple>();
 	minertia->SetDensity(7800);
 	minertia->SetArea(CH_C_PI * (pow(beam_ro, 2)- pow(beam_ri, 2)));
 	minertia->SetIyy( (CH_C_PI / 4.0) * (pow(beam_ro, 4) - pow(beam_ri, 4)) );

@@ -25,7 +25,7 @@
 namespace chrono {
 namespace vehicle {
 
-ChAxle::ChAxle() : m_steering_index(-1) {}
+ChAxle::ChAxle() {}
 
 void ChAxle::SetOutput(bool state) {
     m_suspension->SetOutput(state);
@@ -41,15 +41,16 @@ void ChAxle::SetOutput(bool state) {
     }
 }
 
-void ChAxle::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
-                        const ChVector<>& susp_location,
-                        const ChVector<>& arb_location,
-                        std::shared_ptr<ChBody> tierod_body,
-                        int steering_index,
-                        double wheel_separation,
-                        double left_ang_vel,
-                        double right_ang_vel) {
-    m_suspension->Initialize(chassis, susp_location, tierod_body, steering_index, left_ang_vel, right_ang_vel);
+void ChAxle::Initialize(std::shared_ptr<ChChassis> chassis,        
+                std::shared_ptr<ChSubchassis> subchassis,  
+                std::shared_ptr<ChSteering> steering,      
+                const ChVector<>& susp_location,           
+                const ChVector<>& arb_location,            
+                double wheel_separation,               
+                double left_ang_vel,                   
+                double right_ang_vel                   
+) {
+    m_suspension->Initialize(chassis, subchassis, steering, susp_location, left_ang_vel, right_ang_vel);
     if (m_brake_left && m_brake_right) {
         m_brake_left->Initialize(m_suspension, LEFT);
         m_brake_right->Initialize(m_suspension, RIGHT);
@@ -67,7 +68,7 @@ void ChAxle::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     }
     if (m_antirollbar) {
         assert(m_suspension->IsIndependent());
-        m_antirollbar->Initialize(chassis, arb_location, m_suspension->GetLeftBody(), m_suspension->GetRightBody());
+        m_antirollbar->Initialize(chassis, m_suspension, arb_location);
     }
 }
 

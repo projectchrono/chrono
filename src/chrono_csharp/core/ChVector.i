@@ -34,4 +34,5 @@
 // This is needed because a std::vector<ChVector<double> or std::vector<ChVector<int>>
 // might be used  somewhere, and we want to use them in C#.
 %template(vector_ChVectorD) std::vector< chrono::ChVector<double> >;
+%template(vector_ChVectorF) std::vector< chrono::ChVector<float> >;
 %template(vector_ChVectorI) std::vector< chrono::ChVector<int> >;

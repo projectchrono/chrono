@@ -31,7 +31,6 @@
 #include "chrono/fea/ChMeshFileLoader.h"
 #include "chrono/fea/ChNodeFEAxyz.h"
 
-#include "chrono_thirdparty/tinyobjloader/tiny_obj_loader.h"
 #include "chrono/geometry/ChTriangleMeshConnected.h"
 
 using namespace std;
@@ -585,7 +584,6 @@ void ChMeshFileLoader::ANCFShellFromGMFFile(std::shared_ptr<ChMesh> mesh,
         }
 
         //
-        /////////////////
         if (line.find("Quadrilaterals") == 0) {
             getline(fin, line);
             TotalNumElements = atoi(line.c_str());
@@ -699,15 +697,13 @@ void ChMeshFileLoader::ANCFShellFromGMFFile(std::shared_ptr<ChMesh> mesh,
     }
 }
 
-
-
 void ChMeshFileLoader::BSTShellFromObjFile(
-	std::shared_ptr<ChMesh> mesh,                      ///< destination mesh
-	const char* filename,                              ///< .obj mesh complete filename
-	std::shared_ptr<ChMaterialShellKirchhoff> my_material,  ///< material to be given to the shell elements
-	double my_thickness,							   ///< thickness to be given to shell elements
-	ChVector<> pos_transform,                  ///< optional displacement of imported mesh
-	ChMatrix33<> rot_transform      ///< optional rotation/scaling of imported mesh
+    std::shared_ptr<ChMesh> mesh,                           // destination mesh
+    const char* filename,                                   // .obj mesh complete filename
+    std::shared_ptr<ChMaterialShellKirchhoff> my_material,  // material to be given to the shell elements
+    double my_thickness,                                    // thickness to be given to shell elements
+    ChVector<> pos_transform,                               // optional displacement of imported mesh
+    ChMatrix33<> rot_transform                              // optional rotation/scaling of imported mesh
 ) {
 	auto mmesh = geometry::ChTriangleMeshConnected();
 	mmesh.LoadWavefrontMesh(std::string(filename), false, false);

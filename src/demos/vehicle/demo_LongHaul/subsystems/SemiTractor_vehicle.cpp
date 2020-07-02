@@ -16,8 +16,6 @@
 //
 // =============================================================================
 
-#include "chrono/assets/ChSphereShape.h"
-
 #include "subsystems/SemiTractor_brake.h"
 #include "subsystems/SemiTractor_driveline.h"
 #include "subsystems/SemiTractor_wheel.h"
@@ -30,7 +28,6 @@
 using namespace chrono;
 using namespace chrono::vehicle;
 
-// -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 SemiTractor_vehicle::SemiTractor_vehicle(const bool fixed, ChContactMethod contactMethod)
     : ChWheeledVehicle("SemiTractor", contactMethod) {
@@ -79,31 +76,25 @@ SemiTractor_vehicle::SemiTractor_vehicle(const bool fixed, ChContactMethod conta
 }
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 void SemiTractor_vehicle::Initialize(const ChCoordsys<>& chassisPos, double chassisFwdVel) {
     // Initialize the chassis subsystem.
     m_chassis->Initialize(m_system, chassisPos, chassisFwdVel, WheeledCollisionFamily::CHASSIS);
 
     // Initialize the steering subsystem (specify the steering subsystem's frame relative to the chassis reference
     // frame).
-    m_steerings[0]->Initialize(m_chassis->GetBody(), ChVector<>(0, 0, 0), ChQuaternion<>(1, 0, 0, 0));
+    m_steerings[0]->Initialize(m_chassis, ChVector<>(0, 0, 0), ChQuaternion<>(1, 0, 0, 0));
 
     // Initialize the axle subsystems.
-    m_axles[0]->Initialize(m_chassis->GetBody(), ChVector<>(0.0, 0, 0), ChVector<>(0),
-                           m_steerings[0]->GetSteeringLink(), 0, 0.0);
-
+    m_axles[0]->Initialize(m_chassis, nullptr, m_steerings[0], ChVector<>(0.0, 0, 0), ChVector<>(0), 0.0);
     const double twin_tire_dist = 0.33528;  // Michelin for 12.00 R 20
-    m_axles[1]->Initialize(m_chassis->GetBody(), ChVector<>(-4.08, 0, 0), ChVector<>(0), m_chassis->GetBody(), -1,
-                           twin_tire_dist);
-    m_axles[2]->Initialize(m_chassis->GetBody(), ChVector<>(-5.48, 0, 0), ChVector<>(0), m_chassis->GetBody(), -1,
-                           twin_tire_dist);
+    m_axles[1]->Initialize(m_chassis, nullptr, nullptr, ChVector<>(-4.08, 0, 0), ChVector<>(0), twin_tire_dist);
+    m_axles[2]->Initialize(m_chassis, nullptr, nullptr, ChVector<>(-5.48, 0, 0), ChVector<>(0), twin_tire_dist);
 
     // Initialize the driveline subsystem (6x4 = rear axles are driven)
     std::vector<int> driven_susp = {1, 2};
-    m_driveline->Initialize(m_chassis->GetBody(), m_axles, driven_susp);
+    m_driveline->Initialize(m_chassis, m_axles, driven_susp);
 }
 
-// -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 double SemiTractor_vehicle::GetSpringForce(int axle, VehicleSide side) const {
     switch (axle) {
@@ -142,7 +133,6 @@ double SemiTractor_vehicle::GetSpringDeformation(int axle, VehicleSide side) con
     }
 }
 
-// -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 double SemiTractor_vehicle::GetShockForce(int axle, VehicleSide side) const {
     switch (axle) {

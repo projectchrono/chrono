@@ -1063,10 +1063,36 @@ void ChTriangleMeshConnected::WriteWavefront(const std::string& filename,
         v_off += static_cast<int>(m.getCoordsVertices().size());
     }
 
+    std::vector<bool> has_normals;
+    std::vector<int> vn_offsets;
+    int vn_off = 1;
+    for (auto& m : meshes) {
+        has_normals.push_back(m.getCoordsNormals().size() > 0);
+        for (auto& v : m.getCoordsNormals()) {
+            mf << "vn " << v.x() << " " << v.y() << " " << v.z() << std::endl;
+        }
+        vn_offsets.push_back(vn_off);
+        vn_off += static_cast<int>(m.getCoordsNormals().size());
+    }
+
     for (size_t i = 0; i < meshes.size(); i++) {
         v_off = v_offsets[i];
-        for (auto& f : meshes[i].getIndicesVertexes()) {
-            mf << "f " << f.x() + v_off << " " << f.y() + v_off << " " << f.z() + v_off << std::endl;
+        if (has_normals[i]) {
+            auto& idxV = meshes[i].getIndicesVertexes();
+            auto& idxN = meshes[i].getIndicesNormals();
+            assert(idxV.size() == idxN.size());
+            vn_off = vn_offsets[i];
+            for (int j = 0; j < idxV.size(); j++) {
+                mf << "f " <<                                                      //
+                    idxV[j].x() + v_off << "//" << idxN[j].x() + vn_off << " " <<  //
+                    idxV[j].y() + v_off << "//" << idxN[j].y() + vn_off << " " <<  //
+                    idxV[j].z() + v_off << "//" << idxN[j].z() + vn_off <<         //
+                    std::endl;
+            }
+        } else {
+            for (auto& f : meshes[i].getIndicesVertexes()) {
+                mf << "f " << f.x() + v_off << " " << f.y() + v_off << " " << f.z() + v_off << std::endl;
+            }
         }
     }
 

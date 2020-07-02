@@ -37,49 +37,7 @@ class ChApi ChBeamMaterialInternalData {
     double p_strain_acc;  // accumulated flow,  \overbar\eps^p  in Neto-Owen book
 };
 
-/// Base class for properties of all beam sections.
-/// A beam section can be shared between multiple beams.
-/// A beam section contains the models for elasticity, plasticity, damping, etc.
-class ChApi ChBeamSectionProperties {
-  public:
-    double y_drawsize;
-    double z_drawsize;
-    bool is_circular;
 
-    ChBeamSectionProperties() : y_drawsize(0.01), z_drawsize(0.01), is_circular(false) {}
-
-    virtual ~ChBeamSectionProperties() {}
-
-    /// Sets the rectangular thickness of the beam on y and z directions,
-    /// only for drawing/rendering purposes (these thickness values do NOT
-    /// have any meaning at a physical level, use SetAsRectangularSection()
-    ////instead if you want to affect also the inertias of the beam section).
-    void SetDrawThickness(double thickness_y, double thickness_z) {
-        this->y_drawsize = thickness_y;
-        this->z_drawsize = thickness_z;
-    }
-    double GetDrawThicknessY() { return this->y_drawsize; }
-    double GetDrawThicknessZ() { return this->z_drawsize; }
-
-    /// Tells if the section must be drawn as a circular
-    /// section instead than default rectangular
-    bool IsCircular() { return is_circular; }
-    /// Set if the section must be drawn as a circular
-    /// section instead than default rectangular
-    void SetCircular(bool ic) { is_circular = ic; }
-
-    /// Sets the radius of the beam if in 'circular section' draw mode,
-    /// only for drawing/rendering purposes (this radius value do NOT
-    /// have any meaning at a physical level, use ChBeamSectionBasic::SetAsCircularSection()
-    ////instead if you want to affect also the inertias of the beam section).
-    void SetDrawCircularRadius(double draw_rad) { this->y_drawsize = draw_rad; }
-    double GetDrawCircularRadius() { return this->y_drawsize; }
-
-};
-
-//
-// OLD CLASSES FOR BEAM MATERIALS
-//
 
 /// Base class for properties of beam sections.
 /// A beam section can be shared between multiple beams.
@@ -120,9 +78,22 @@ class ChApi ChBeamSection {
     double GetDrawCircularRadius() { return this->y_drawsize; }
 };
 
+
+
+
+
+//
+// OLD CLASSES FOR BEAM MATERIALS
+//
+
+
+
 /// Basic geometry for a beam section in 3D, along with basic material
 /// properties (zz and yy moments of inertia, area, Young modulus, etc.)
 /// This material can be shared between multiple beams.
+/// 
+/// \image html "http://www.projectchrono.org/assets/manual/fea_ChElasticityCosseratSimple.png"
+///
 class ChApi ChBeamSectionBasic : public ChBeamSection {
   public:
     double Area;
@@ -244,6 +215,9 @@ class ChApi ChBeamSectionBasic : public ChBeamSection {
 /// Iyy and Izz axes rotated respect reference, centroid with offset
 /// from reference, and shear center with offset from reference.
 /// This material can be shared between multiple beams.
+/// 
+/// \image html "http://www.projectchrono.org/assets/manual/fea_ChElementBeamEuler_section.png"
+///
 class ChApi ChBeamSectionAdvanced : public ChBeamSectionBasic {
   public:
     double alpha;  // Rotation of Izz Iyy respect to reference line x

@@ -9,10 +9,10 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Radu Serban, Asher Elmquist, Rainer Gericke
+// Authors: Rainer Gericke
 // =============================================================================
 //
-// Sample test program for sequential lmtv 2.5 ton simulation. It demonstrates
+// Sample test program for sequential LMTV 2.5 ton simulation, demonstrating
 // chassis torsion due to random wheel excitation.
 //
 // The vehicle reference frame has Z up, X towards the front of the vehicle, and
@@ -25,7 +25,7 @@
 
 #include "chrono_vehicle/ChConfigVehicle.h"
 #include "chrono_vehicle/ChVehicleModelData.h"
-#include "chrono_vehicle/terrain/RigidTerrain.h"
+#include "chrono_vehicle/terrain/RandomSurfaceTerrain.h"
 #ifdef USE_IRRLICHT
 #include "chrono_vehicle/driver/ChIrrGuiDriver.h"
 #include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleIrrApp.h"
@@ -43,20 +43,23 @@
 
 using namespace chrono;
 using namespace chrono::vehicle;
-using namespace chrono::vehicle::mtv;
+using namespace chrono::vehicle::fmtv;
 
 // =============================================================================
 
 // Initial vehicle location and orientation
-ChVector<> initLoc(0, 0, 1.0);
+ChVector<> initLoc(-2, 0, 1.0);
 ChQuaternion<> initRot(1, 0, 0, 0);
 
 // Visualization type for vehicle parts (PRIMITIVES, MESH, or NONE)
 VisualizationType chassis_vis_type = VisualizationType::MESH;
+VisualizationType chassis_rear_vis_type = VisualizationType::MESH;
 VisualizationType suspension_vis_type = VisualizationType::PRIMITIVES;
 VisualizationType steering_vis_type = VisualizationType::PRIMITIVES;
 VisualizationType wheel_vis_type = VisualizationType::MESH;
 VisualizationType tire_vis_type = VisualizationType::MESH;
+
+RandomSurfaceTerrain::VisualisationType visType = RandomSurfaceTerrain::VisualisationType::MESH;
 
 // Type of tire model (RIGID, TMEASY)
 TireModelType tire_model = TireModelType::TMEASY;
@@ -71,7 +74,10 @@ double step_size = 1e-3;
 double tire_step_size = step_size;
 
 // Simulation end time
-double tend = 60;
+double tend = 300;
+
+// Simulation end x coordinate
+double xmax = 300.0;
 
 // Time interval between two render frames
 double render_step_size = 1.0 / 50;  // FPS = 50
@@ -83,7 +89,7 @@ double mph_to_ms = 0.44704;
 double target_speed = 5 * mph_to_ms;
 
 // output directory
-const std::string out_dir = GetChronoOutputPath() + "LMTV_QUALITY";
+const std::string out_dir = GetChronoOutputPath() + "LMTV_RND_QUALITY";
 const std::string pov_dir = out_dir + "/POVRAY";
 bool povray_output = false;
 bool data_output = true;
@@ -92,19 +98,13 @@ std::string path_file("paths/straightOrigin.txt");
 std::string steering_controller_file("mtv/SteeringController.json");
 std::string speed_controller_file("mtv/SpeedController.json");
 
-std::string rnd_1("terrain/meshes/uneven_300m_6m_10mm.obj");
-std::string rnd_2("terrain/meshes/uneven_300m_6m_20mm.obj");
-std::string rnd_3("terrain/meshes/uneven_300m_6m_30mm.obj");
-std::string rnd_4("terrain/meshes/uneven_300m_6m_40mm.obj");
-
 std::string output_file_name("quality");
-
-std::string terrainFile = rnd_1;
 
 // =============================================================================
 
 int main(int argc, char* argv[]) {
     int terrainCode = 1;
+    RandomSurfaceTerrain::SurfaceType surface = RandomSurfaceTerrain::SurfaceType::FLAT;
     // read in argument as simulation duration
     switch (argc) {
         default:
@@ -121,19 +121,81 @@ int main(int argc, char* argv[]) {
     }
     switch (terrainCode) {
         case 1:
-            terrainFile = rnd_1;
+            surface = RandomSurfaceTerrain::SurfaceType::ISO8608_A_NOCORR;
+            GetLog() << "ISO8608 track A without correlation.\n";
             break;
         case 2:
-            terrainFile = rnd_2;
+            surface = RandomSurfaceTerrain::SurfaceType::ISO8608_B_NOCORR;
+            GetLog() << "ISO8608 track B without correlation.\n";
             break;
         case 3:
-            terrainFile = rnd_3;
+            surface = RandomSurfaceTerrain::SurfaceType::ISO8608_C_NOCORR;
+            GetLog() << "ISO8608 track C without correlation.\n";
             break;
         case 4:
-            terrainFile = rnd_4;
+            surface = RandomSurfaceTerrain::SurfaceType::ISO8608_D_NOCORR;
+            GetLog() << "ISO8608 track D without correlation.\n";
+            break;
+        case 5:
+            surface = RandomSurfaceTerrain::SurfaceType::ISO8608_E_NOCORR;
+            GetLog() << "ISO8608 track E without correlation.\n";
+            break;
+        case 6:
+            surface = RandomSurfaceTerrain::SurfaceType::ISO8608_F_NOCORR;
+            GetLog() << "ISO8608 track F without correlation.\n";
+            break;
+        case 7:
+            surface = RandomSurfaceTerrain::SurfaceType::ISO8608_G_NOCORR;
+            GetLog() << "ISO8608 track G without correlation.\n";
+            break;
+        case 8:
+            surface = RandomSurfaceTerrain::SurfaceType::ISO8608_H_NOCORR;
+            GetLog() << "ISO8608 track H without correlation.\n";
+            break;
+        case 11:
+            surface = RandomSurfaceTerrain::SurfaceType::ISO8608_A_CORR;
+            GetLog() << "ISO8608 track A with correlation.\n";
+            break;
+        case 12:
+            surface = RandomSurfaceTerrain::SurfaceType::ISO8608_B_CORR;
+            GetLog() << "ISO8608 track B with correlation.\n";
+            break;
+        case 13:
+            surface = RandomSurfaceTerrain::SurfaceType::ISO8608_C_CORR;
+            GetLog() << "ISO8608 track C with correlation.\n";
+            break;
+        case 14:
+            surface = RandomSurfaceTerrain::SurfaceType::ISO8608_D_CORR;
+            GetLog() << "ISO8608 track D with correlation.\n";
+            break;
+        case 15:
+            surface = RandomSurfaceTerrain::SurfaceType::ISO8608_E_CORR;
+            GetLog() << "ISO8608 track E with correlation.\n";
+            break;
+        case 21:
+            surface = RandomSurfaceTerrain::SurfaceType::MAJOR_ROAD_CONCRETE;
+            GetLog() << "Concrete Major Road with correlation.\n";
+            break;
+        case 22:
+            surface = RandomSurfaceTerrain::SurfaceType::MAJOR_ROAD_ASPHALTIC_CONCRETE;
+            GetLog() << "Asphaltic Concrete Major Road with correlation.\n";
+            break;
+        case 23:
+            surface = RandomSurfaceTerrain::SurfaceType::MAIN_ROAD_ASPHALTIC_CONCRETE_ON_PAVEMENT;
+            GetLog() << "Asphaltic Concrete Covered Pavement Main Road with correlation.\n";
+            break;
+        case 24:
+            surface = RandomSurfaceTerrain::SurfaceType::MAIN_ROAD_ASPHALTIC_CONCRETE;
+            GetLog() << "Asphaltic Concrete  Main Road with correlation.\n";
+            break;
+        case 25:
+            surface = RandomSurfaceTerrain::SurfaceType::TRACK_TILED_CONCRETE_PAVEMENT;
+            GetLog() << "Tiled Concrete Pavement Track with correlation.\n";
             break;
         default:
-            std::cout << "Invalid Terrain Code - (1-4)";
+            GetLog()
+                << "Invalid Terrain Code - (1-8 uncorrelated) or (11-15 correlated) or (21-25 Literature Examples)\n";
+            return -1;
     }
 
     output_file_name += "_" + std::to_string((int)target_speed);
@@ -151,9 +213,11 @@ int main(int argc, char* argv[]) {
     lmtv.SetInitPosition(ChCoordsys<>(initLoc, initRot));
     lmtv.SetTireType(tire_model);
     lmtv.SetTireStepSize(tire_step_size);
+    lmtv.SetInitFwdVel(target_speed);
     lmtv.Initialize();
 
     lmtv.SetChassisVisualizationType(chassis_vis_type);
+    lmtv.SetChassisRearVisualizationType(chassis_rear_vis_type);
     lmtv.SetSuspensionVisualizationType(suspension_vis_type);
     lmtv.SetSteeringVisualizationType(steering_vis_type);
     lmtv.SetWheelVisualizationType(wheel_vis_type);
@@ -165,16 +229,10 @@ int main(int argc, char* argv[]) {
     // ------------------
     // Create the terrain
     // ------------------
-    double swept_radius = 0.01;
-
-    auto patch_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
-    patch_mat->SetFriction(0.9f);
-    patch_mat->SetRestitution(0.01f);
-    RigidTerrain terrain(lmtv.GetSystem());
-    auto patch = terrain.AddPatch(patch_mat, CSYSNORM, vehicle::GetDataFile(terrainFile), "test_mesh", swept_radius);
-    patch->SetColor(ChColor(0.8f, 0.8f, 0.5f));
-    patch->SetTexture(vehicle::GetDataFile("terrain/textures/dirt.jpg"), 12, 12);
-    terrain.Initialize();
+    RandomSurfaceTerrain terrain(lmtv.GetSystem(), xmax);
+    terrain.Initialize(surface, 2, visType);
+    GetLog() << "RMS = " << (1000.0 * terrain.GetRMS()) << " mm\n";
+    GetLog() << "IRI = " << terrain.GetIRI() << " mm/m\n";
 
     // create the driver
     auto path = ChBezierCurve::read(vehicle::GetDataFile(path_file));
@@ -190,8 +248,12 @@ int main(int argc, char* argv[]) {
 #ifdef USE_IRRLICHT
     ChWheeledVehicleIrrApp app(&lmtv.GetVehicle(), L"LMTV ride & twist test");
     app.SetSkyBox();
-    app.AddTypicalLights(irr::core::vector3df(30.f, -30.f, 100.f), irr::core::vector3df(30.f, 50.f, 100.f), 250, 130);
-    app.SetChaseCamera(trackPoint, 6.0, 0.5);
+    // app.AddTypicalLights(irr::core::vector3df(30.f, -30.f, 100.f), irr::core::vector3df(30.f, 50.f, 100.f), 250,
+    // 130);
+    app.GetSceneManager()->setAmbientLight(irr::video::SColorf(0.1f, 0.1f, 0.1f, 1.0f));
+    app.AddTypicalLights(irr::core::vector3df(-50.f, -30.f, 40.f), irr::core::vector3df(10.f, 30.f, 40.f), 50, 50,
+                         irr::video::SColorf(0.7f, 0.7f, 0.7f, 1.0f), irr::video::SColorf(0.7f, 0.7f, 0.7f, 1.0f));
+    app.SetChaseCamera(trackPoint, 9.0, 0.5);
     /*app.SetTimestep(step_size);*/
     app.AssetBindAll();
     app.AssetUpdateAll();
@@ -293,9 +355,9 @@ int main(int argc, char* argv[]) {
     double time = 0;
 
 #ifdef USE_IRRLICHT
-    while (app.GetDevice()->run() && (time < tend)) {
+    while (app.GetDevice()->run() && (time < tend) && (lmtv.GetVehicle().GetVehiclePos().x() < xmax)) {
 #else
-    while (time < tend) {
+    while ((time < tend) && (lmtv.GetVehicle().GetVehiclePos().x() < xmax)) {
 #endif
         time = lmtv.GetSystem()->GetChTime();
 

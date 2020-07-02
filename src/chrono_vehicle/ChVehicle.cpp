@@ -130,12 +130,21 @@ void ChVehicle::SetChassisVisualizationType(VisualizationType vis) {
     m_chassis->SetVisualizationType(vis);
 }
 
+void ChVehicle::SetChassisRearVisualizationType(VisualizationType vis) {
+    for (auto& c : m_chassis_rear)
+        c->SetVisualizationType(vis);
+}
+
 void ChVehicle::SetChassisCollide(bool state) {
     m_chassis->SetCollide(state);
+    for (auto& c : m_chassis_rear)
+        c->SetCollide(state);
 }
 
 void ChVehicle::SetChassisOutput(bool state) {
     m_chassis->SetOutput(state);
+    for (auto& c : m_chassis_rear)
+        c->SetOutput(state);
 }
 
 }  // end namespace vehicle

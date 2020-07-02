@@ -27,18 +27,18 @@
 
 #include "chrono_models/ChApiModels.h"
 #include "chrono_models/vehicle/mtv/LMTV_Vehicle.h"
-#include "chrono_models/vehicle/mtv/LMTV_SimpleCVTPowertrain.h"
-#include "chrono_models/vehicle/mtv/LMTV_SimpleMapPowertrain.h"
-#include "chrono_models/vehicle/mtv/LMTV_SimplePowertrain.h"
-#include "chrono_models/vehicle/mtv/LMTV_Powertrain.h"
-#include "chrono_models/vehicle/mtv/LMTV_RigidTire.h"
-#include "chrono_models/vehicle/mtv/LMTV_TMeasyTire.h"
+#include "chrono_models/vehicle/mtv/FMTV_SimpleCVTPowertrain.h"
+#include "chrono_models/vehicle/mtv/FMTV_SimpleMapPowertrain.h"
+#include "chrono_models/vehicle/mtv/FMTV_SimplePowertrain.h"
+#include "chrono_models/vehicle/mtv/FMTV_Powertrain.h"
+#include "chrono_models/vehicle/mtv/FMTV_RigidTire.h"
+#include "chrono_models/vehicle/mtv/FMTV_TMeasyTire.h"
 
 namespace chrono {
 namespace vehicle {
-namespace mtv {
+namespace fmtv {
 
-/// @addtogroup vehicle_models_mtv
+/// @addtogroup vehicle_models_fmtv
 /// @{
 
 /// Definition of the UAZ assembly.
@@ -84,6 +84,7 @@ class CH_MODELS_API LMTV {
     void SetAerodynamicDrag(double Cd, double area, double air_density);
 
     void SetChassisVisualizationType(VisualizationType vis) { m_vehicle->SetChassisVisualizationType(vis); }
+    void SetChassisRearVisualizationType(VisualizationType vis) { m_vehicle->SetChassisRearVisualizationType(vis); }
     void SetSuspensionVisualizationType(VisualizationType vis) { m_vehicle->SetSuspensionVisualizationType(vis); }
     void SetSteeringVisualizationType(VisualizationType vis) { m_vehicle->SetSteeringVisualizationType(vis); }
     void SetWheelVisualizationType(VisualizationType vis) { m_vehicle->SetWheelVisualizationType(vis); }
@@ -123,9 +124,9 @@ class CH_MODELS_API LMTV {
     double m_tire_mass;
 };
 
-/// @} vehicle_models_mtv
+/// @} vehicle_models_fmtv
 
-}  // namespace mtv
+}  // namespace fmtv
 }  // end namespace vehicle
 }  // end namespace chrono
 

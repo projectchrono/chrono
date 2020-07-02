@@ -118,6 +118,7 @@ const double ChSuspensionTestRigPushrod::m_rod_radius = 0.02;
 // =============================================================================
 ChSuspensionTestRig::ChSuspensionTestRig(ChWheeledVehicle& vehicle,
                                          int axle_index,
+                                         int steering_index,
                                          double displ_limit,
                                          std::shared_ptr<ChTire> tire_left,
                                          std::shared_ptr<ChTire> tire_right,
@@ -144,7 +145,6 @@ ChSuspensionTestRig::ChSuspensionTestRig(ChWheeledVehicle& vehicle,
     m_wheel[RIGHT] = vehicle.GetAxle(axle_index)->m_wheels[1];
 
     // Load steering subsystem (if needed)
-    int steering_index = m_suspension->GetSteeringIndex();
     if (steering_index >= 0) {
         m_steering = vehicle.GetSteering(steering_index);
         m_steeringLoc = m_steering->GetPosition().pos;
@@ -303,19 +303,16 @@ void ChSuspensionTestRig::InitializeSubsystems() {
     // Create the terrain system
     m_terrain = std::unique_ptr<ChTerrain>(new TestRigTerrain);
 
-    // Initialize the suspension and steering subsystems.
-    if (m_steering) {
-        m_steering->Initialize(m_chassis->GetBody(), m_steeringLoc, m_steeringRot);
-        m_suspension->Initialize(m_chassis->GetBody(), m_suspLoc, m_steering->GetSteeringLink(), 0);
-    } else {
-        m_suspension->Initialize(m_chassis->GetBody(), m_suspLoc, m_chassis->GetBody(), -1);
-    }
+    // Initialize the steering subsystem.
+    if (m_steering)
+        m_steering->Initialize(m_chassis, m_steeringLoc, m_steeringRot);
+
+    // Initialize the suspension subsystem.
+    m_suspension->Initialize(m_chassis, nullptr, m_steering, m_suspLoc);
 
     // Initialize the antirollbar subsystem.
-    if (HasAntirollbar()) {
-        m_antirollbar->Initialize(m_chassis->GetBody(), m_antirollbarLoc, m_suspension->GetLeftBody(),
-                                  m_suspension->GetRightBody());
-    }
+    if (m_antirollbar)
+        m_antirollbar->Initialize(m_chassis, m_suspension, m_antirollbarLoc);
 
     // Initialize the two wheels
     m_wheel[LEFT]->Initialize(m_suspension->GetSpindle(LEFT), LEFT);
@@ -544,14 +541,16 @@ void ChSuspensionTestRig::SetPlotOutput(double output_step) {
 // =============================================================================
 // ChSuspensionTestRigPlatform class implementation
 // =============================================================================
-ChSuspensionTestRigPlatform::ChSuspensionTestRigPlatform(ChWheeledVehicle& vehicle,  // vehicle source
-                                                         int axle_index,             // index of test suspension
-                                                         double displ_limit,         // limits for post displacement
-                                                         std::shared_ptr<ChTire> tire_left,   // left tire
-                                                         std::shared_ptr<ChTire> tire_right,  // right tire
-                                                         ChContactMethod contact_method       // contact method
-                                                         )
-    : ChSuspensionTestRig(vehicle, axle_index, displ_limit, tire_left, tire_right, contact_method) {
+ChSuspensionTestRigPlatform::ChSuspensionTestRigPlatform(
+    ChWheeledVehicle& vehicle,           // vehicle source
+    int axle_index,                      // index of test suspension
+    int steering_index,                  // index of associated steering subsystem (-1 for no steering)
+    double displ_limit,                  // limits for post displacement
+    std::shared_ptr<ChTire> tire_left,   // left tire
+    std::shared_ptr<ChTire> tire_right,  // right tire
+    ChContactMethod contact_method       // contact method
+    )
+    : ChSuspensionTestRig(vehicle, axle_index, steering_index, displ_limit, tire_left, tire_right, contact_method) {
     InitializeSubsystems();
     Create();
 }
@@ -775,14 +774,16 @@ void ChSuspensionTestRigPlatform::PlotOutput(const std::string& out_dir, const s
 // =============================================================================
 // ChSuspensionTestRigPushrod class implementation
 // =============================================================================
-ChSuspensionTestRigPushrod::ChSuspensionTestRigPushrod(ChWheeledVehicle& vehicle,  // vehicle source
-                                                       int axle_index,             // index of test suspension
-                                                       double displ_limit,         // limits for post displacement
-                                                       std::shared_ptr<ChTire> tire_left,   // left tire
-                                                       std::shared_ptr<ChTire> tire_right,  // right tire
-                                                       ChContactMethod contact_method       // contact method
-                                                       )
-    : ChSuspensionTestRig(vehicle, axle_index, displ_limit, tire_left, tire_right, contact_method) {
+ChSuspensionTestRigPushrod::ChSuspensionTestRigPushrod(
+    ChWheeledVehicle& vehicle,           // vehicle source
+    int axle_index,                      // index of test suspension
+    int steering_index,                  // index of associated steering subsystem (-1 for no steering)
+    double displ_limit,                  // limits for post displacement
+    std::shared_ptr<ChTire> tire_left,   // left tire
+    std::shared_ptr<ChTire> tire_right,  // right tire
+    ChContactMethod contact_method       // contact method
+    )
+    : ChSuspensionTestRig(vehicle, axle_index, steering_index, displ_limit, tire_left, tire_right, contact_method) {
     InitializeSubsystems();
     Create();
 }

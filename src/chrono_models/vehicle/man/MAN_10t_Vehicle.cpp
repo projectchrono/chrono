@@ -122,19 +122,15 @@ void MAN_10t_Vehicle::Initialize(const ChCoordsys<>& chassisPos, double chassisF
     ChVector<> offset3 = ChVector<>(-5.6, 0, 0.0);   // 0.4 0 0.4
     ChVector<> offset4 = ChVector<>(-7.0, 0, 0.0);   // 0.4 0 0.4
     ChQuaternion<> rotation = ChQuaternion<>(1, 0, 0, 0);
-    m_steerings[0]->Initialize(m_chassis->GetBody(), offset1, rotation);
-    m_steerings[1]->Initialize(m_chassis->GetBody(), offset2, rotation);
+    m_steerings[0]->Initialize(m_chassis, offset1, rotation);
+    m_steerings[1]->Initialize(m_chassis, offset2, rotation);
 
     // Initialize the axle subsystems.
-    m_axles[0]->Initialize(m_chassis->GetBody(), offset1, ChVector<>(0), m_steerings[0]->GetSteeringLink(), 0, 0.0,
-                           m_omega[0], m_omega[1]);
-    m_axles[1]->Initialize(m_chassis->GetBody(), offset2, ChVector<>(0), m_steerings[1]->GetSteeringLink(), 0, 0.0,
-                           m_omega[2], m_omega[3]);
+    m_axles[0]->Initialize(m_chassis, nullptr, m_steerings[0], offset1, ChVector<>(0), 0.0, m_omega[0], m_omega[1]);
+    m_axles[1]->Initialize(m_chassis, nullptr, m_steerings[1], offset2, ChVector<>(0), 0.0, m_omega[2], m_omega[3]);
     const double twin_tire_dist = 0.0;  // single tires only
-    m_axles[2]->Initialize(m_chassis->GetBody(), offset3, ChVector<>(0), m_chassis->GetBody(), -1, twin_tire_dist,
-                           m_omega[4], m_omega[5]);
-    m_axles[3]->Initialize(m_chassis->GetBody(), offset4, ChVector<>(0), m_chassis->GetBody(), -1, twin_tire_dist,
-                           m_omega[6], m_omega[7]);
+    m_axles[2]->Initialize(m_chassis, nullptr, nullptr, offset3, ChVector<>(0), twin_tire_dist, m_omega[4], m_omega[5]);
+    m_axles[3]->Initialize(m_chassis, nullptr, nullptr, offset4, ChVector<>(0), twin_tire_dist, m_omega[6], m_omega[7]);
 
     // Initialize the driveline subsystem (RWD)
     std::vector<int> driven_susp_indexes;
@@ -142,14 +138,14 @@ void MAN_10t_Vehicle::Initialize(const ChCoordsys<>& chassisPos, double chassisF
         driven_susp_indexes.resize(2);
         driven_susp_indexes[0] = 2;
         driven_susp_indexes[1] = 3;
-        m_driveline->Initialize(m_chassis->GetBody(), m_axles, driven_susp_indexes);
+        m_driveline->Initialize(m_chassis, m_axles, driven_susp_indexes);
     } else {
         driven_susp_indexes.resize(4);
         driven_susp_indexes[0] = 0;
         driven_susp_indexes[1] = 1;
         driven_susp_indexes[2] = 2;
         driven_susp_indexes[3] = 3;
-        m_driveline->Initialize(m_chassis->GetBody(), m_axles, driven_susp_indexes);
+        m_driveline->Initialize(m_chassis, m_axles, driven_susp_indexes);
     }
 }
 

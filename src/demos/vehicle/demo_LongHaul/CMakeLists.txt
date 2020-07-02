@@ -27,21 +27,23 @@ SET(MODEL_FILES
     subsystems/SemiTractor_steering.cpp
     subsystems/SemiTractor_tire.h
     subsystems/SemiTractor_tire.cpp
-    subsystems/SemiTractor_vehicle.h
-    subsystems/SemiTractor_vehicle.cpp
     subsystems/SemiTractor_wheel.h
     subsystems/SemiTractor_wheel.cpp
+    subsystems/SemiTractor_vehicle.h
+    subsystems/SemiTractor_vehicle.cpp
     
     subsystems/SemiTrailer_axle.h
     subsystems/SemiTrailer_axle.cpp    
     subsystems/SemiTrailer_brake.h
     subsystems/SemiTrailer_brake.cpp    
-    subsystems/SemiTrailer.h
-    subsystems/SemiTrailer.cpp    
+    subsystems/SemiTrailer_chassis.h
+    subsystems/SemiTrailer_chassis.cpp    
     subsystems/SemiTrailer_tire.h
     subsystems/SemiTrailer_tire.cpp    
     subsystems/SemiTrailer_wheel.h
     subsystems/SemiTrailer_wheel.cpp
+    subsystems/SemiTrailer.h
+    subsystems/SemiTrailer.cpp    
 )
 
 SET(DEMOS

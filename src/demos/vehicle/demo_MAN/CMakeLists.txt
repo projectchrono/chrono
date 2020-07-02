@@ -14,7 +14,6 @@ SET(DEMOS
     demo_VEH_MAN_5t
     demo_VEH_MAN_7t
     demo_VEH_MAN_10t
-    demo_VEH_MAN_JSON
 )
 
 #--------------------------------------------------------------

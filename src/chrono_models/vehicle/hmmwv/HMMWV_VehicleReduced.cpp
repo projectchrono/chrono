@@ -108,13 +108,13 @@ void HMMWV_VehicleReduced::Initialize(const ChCoordsys<>& chassisPos, double cha
     // Initialize the steering subsystem (specify the steering subsystem's frame relative to the chassis reference
     // frame).
     ChVector<> offset = in2m * ChVector<>(56.735, 0, 3.174);
-    m_steerings[0]->Initialize(m_chassis->GetBody(), offset, ChQuaternion<>(1, 0, 0, 0));
+    m_steerings[0]->Initialize(m_chassis, offset, ChQuaternion<>(1, 0, 0, 0));
 
     // Initialize the axle subsystems.
-    m_axles[0]->Initialize(m_chassis->GetBody(), in2m * ChVector<>(66.59, 0, 1.039), ChVector<>(0),
-                           m_steerings[0]->GetSteeringLink(), 0, 0.0, m_omega[0], m_omega[1]);
-    m_axles[1]->Initialize(m_chassis->GetBody(), in2m * ChVector<>(-66.4, 0, 1.039), ChVector<>(0),
-                           m_chassis->GetBody(), -1, 0.0, m_omega[2], m_omega[3]);
+    m_axles[0]->Initialize(m_chassis, nullptr, m_steerings[0], in2m * ChVector<>(66.59, 0, 1.039), ChVector<>(0), 0.0,
+                           m_omega[0], m_omega[1]);
+    m_axles[1]->Initialize(m_chassis, nullptr, nullptr, in2m * ChVector<>(-66.4, 0, 1.039), ChVector<>(0), 0.0,
+                           m_omega[2], m_omega[3]);
 
     // Initialize the driveline subsystem.
     std::vector<int> driven_susp_indexes(m_driveline->GetNumDrivenAxles());
@@ -133,7 +133,7 @@ void HMMWV_VehicleReduced::Initialize(const ChCoordsys<>& chassisPos, double cha
             break;
     }
 
-    m_driveline->Initialize(m_chassis->GetBody(), m_axles, driven_susp_indexes);
+    m_driveline->Initialize(m_chassis, m_axles, driven_susp_indexes);
 }
 
 }  // end namespace hmmwv

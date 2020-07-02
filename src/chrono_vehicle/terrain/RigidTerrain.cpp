@@ -604,7 +604,7 @@ bool RigidTerrain::MeshPatch::FindPoint(const ChVector<>& loc, double& height, C
 }
 
 // -----------------------------------------------------------------------------
-// Export all patch meshes as macros in PovRay include files.
+// Export all patch meshes
 // -----------------------------------------------------------------------------
 void RigidTerrain::ExportMeshPovray(const std::string& out_dir, bool smoothed) {
     for (auto patch : m_patches) {
@@ -612,9 +612,22 @@ void RigidTerrain::ExportMeshPovray(const std::string& out_dir, bool smoothed) {
     }
 }
 
+void RigidTerrain::ExportMeshWavefront(const std::string& out_dir) {
+    for (auto patch : m_patches) {
+        patch->ExportMeshWavefront(out_dir);
+    }
+}
+
 void RigidTerrain::MeshPatch::ExportMeshPovray(const std::string& out_dir, bool smoothed) {
     utils::WriteMeshPovray(*m_trimesh, m_mesh_name, out_dir, ChColor(1, 1, 1), ChVector<>(0, 0, 0),
                            ChQuaternion<>(1, 0, 0, 0), smoothed);
+}
+
+void RigidTerrain::MeshPatch::ExportMeshWavefront(const std::string& out_dir) {
+    std::string obj_filename = out_dir + "/" + m_mesh_name + ".obj";
+    std::vector<geometry::ChTriangleMeshConnected> meshes = {*m_trimesh};
+    std::cout << "Exporting to " << obj_filename << std::endl;
+    m_trimesh->WriteWavefront(obj_filename, meshes);
 }
 
 }  // end namespace vehicle

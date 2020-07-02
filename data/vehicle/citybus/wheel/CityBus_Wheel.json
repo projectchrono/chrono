@@ -1,0 +1,14 @@
+{
+  "Name":                       "CityBus Wheel",
+  "Type":                       "Wheel",
+  "Template":                   "Wheel",
+
+  "Mass":                       30.0,
+  "Inertia":                    [0.6, 0.63, 0.6],
+
+    "Visualization": {
+        "Mesh Filename": "citybus/CityBusRim.obj",
+        "Radius": 0.3365,
+        "Width": 0.205
+    }
+}

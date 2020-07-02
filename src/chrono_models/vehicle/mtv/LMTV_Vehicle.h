@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Radu Serban, Asher Elmquist
+// Authors: Radu Serban, Rainer Gericke
 // =============================================================================
 //
 // Base class for the LMTV vehicle models
@@ -19,32 +19,16 @@
 #ifndef LMTV_VEHICLE_H
 #define LMTV_VEHICLE_H
 
-#include <vector>
-
-#include "chrono/core/ChCoordsys.h"
-#include "chrono/physics/ChMaterialSurface.h"
-#include "chrono/physics/ChSystem.h"
-
 #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicle.h"
 
 #include "chrono_models/ChApiModels.h"
 #include "chrono_models/vehicle/ChVehicleModelDefs.h"
 
-#include "chrono_models/vehicle/mtv/LMTV_BrakeSimple.h"
-#include "chrono_models/vehicle/mtv/LMTV_Chassis.h"
-#include "chrono_models/vehicle/mtv/LMTV_Driveline4WD.h"
-#include "chrono_models/vehicle/mtv/LMTV_LeafspringAxle.h"
-#include "chrono_models/vehicle/mtv/LMTV_AntiRollBar.h"
-#include "chrono_models/vehicle/mtv/LMTV_RotaryArm.h"
-#include "chrono_models/vehicle/mtv/LMTV_SimpleMapPowertrain.h"
-#include "chrono_models/vehicle/mtv/LMTV_ToebarLeafspringAxle.h"
-#include "chrono_models/vehicle/mtv/LMTV_Wheel.h"
-
 namespace chrono {
 namespace vehicle {
-namespace mtv {
+namespace fmtv {
 
-/// @addtogroup vehicle_models_mtv
+/// @addtogroup vehicle_models_fmtv
 /// @{
 
 /// LMTV vehicle system.
@@ -81,11 +65,6 @@ class CH_MODELS_API LMTV_Vehicle : public ChWheeledVehicle {
     double GetShockLength(int axle, VehicleSide side) const;
     double GetShockVelocity(int axle, VehicleSide side) const;
 
-    /// Get the vehicle total mass.
-    /// This includes the mass of the chassis and all vehicle subsystems, but not the mass of tires.
-    /// ChTorsionChassis needs special attention
-    virtual double GetVehicleMass() const override;
-
     virtual void Initialize(const ChCoordsys<>& chassisPos, double chassisFwdVel = 0) override;
 
     // Log debugging information
@@ -98,9 +77,9 @@ class CH_MODELS_API LMTV_Vehicle : public ChWheeledVehicle {
     std::vector<double> m_omega;
 };
 
-/// @} vehicle_models_mtv
+/// @} vehicle_models_fmtv
 
-}  // namespace mtv
+}  // namespace fmtv
 }  // end namespace vehicle
 }  // end namespace chrono
 
