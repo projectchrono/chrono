@@ -61,7 +61,8 @@
 %shared_ptr(chrono::vehicle::uaz::UAZBUS_TMeasyTireRear)
 %shared_ptr(chrono::vehicle::uaz::UAZBUS_RigidTire)
 %shared_ptr(chrono::vehicle::uaz::UAZBUS_Pac02Tire)
-%shared_ptr(chrono::vehicle::gator::Gator_RigidTire)
+%shared_ptr(chrono::vehicle::gator::Gator_RigidTire_Front)
+%shared_ptr(chrono::vehicle::gator::Gator_RigidTire_Rear)
 %shared_ptr(chrono::vehicle::gator::Gator_TMeasyTire_Front)
 %shared_ptr(chrono::vehicle::gator::Gator_TMeasyTire_Rear)
 
