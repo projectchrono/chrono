@@ -118,6 +118,8 @@ int main(int argc, char* argv[]) {
         case RigidTerrain::PatchType::BOX:
             patch = terrain.AddPatch(patch_mat, ChVector<>(0, 0, 0), ChVector<>(0, 0, 1), 100.0, 100.0);
             patch->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 200, 200);
+            patch =
+                terrain.AddPatch(patch_mat, ChVector<>(10, 0, 0), Q_from_AngY(-10 * CH_C_DEG_TO_RAD).GetZaxis(), 5, 10);
             break;
         case RigidTerrain::PatchType::HEIGHT_MAP:
             patch = terrain.AddPatch(patch_mat, CSYSNORM, vehicle::GetDataFile("terrain/height_maps/test64.bmp"),
