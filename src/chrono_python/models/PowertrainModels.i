@@ -27,6 +27,9 @@
 #include "chrono_models/vehicle/man/MAN_7t_SimpleCVTPowertrain.h"
 
 #include "chrono_models/vehicle/uaz/UAZBUS_SimpleMapPowertrain.h"
+
+#include "chrono_models/vehicle/gator/Gator_SimplePowertrain.h"
+#include "chrono_models/vehicle/gator/Gator_SimpleMapPowertrain.h"
 %}
 
 
@@ -47,6 +50,9 @@
 
 %shared_ptr(chrono::vehicle::uaz::UAZBUS_SimpleMapPowertrain)
 
+%shared_ptr(chrono::vehicle::gator::Gator_SimplePowertrain)
+%shared_ptr(chrono::vehicle::gator::Gator_SimpleMapPowertrain)
+
 %import "chrono_python/vehicle/ChPowertrain.i"
 
 // Model:
@@ -66,3 +72,6 @@
 %include "../../chrono_models/vehicle/man/MAN_7t_SimpleCVTPowertrain.h"
 
 %include "../../chrono_models/vehicle/uaz/UAZBUS_SimpleMapPowertrain.h"
+
+%include "../../chrono_models/vehicle/gator/Gator_SimplePowertrain.h"
+%include "../../chrono_models/vehicle/gator/Gator_SimpleMapPowertrain.h"

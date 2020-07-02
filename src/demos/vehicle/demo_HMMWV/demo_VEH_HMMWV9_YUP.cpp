@@ -18,6 +18,7 @@
 // =============================================================================
 
 #include "chrono/core/ChRealtimeStep.h"
+#include "chrono/utils/ChFilters.h"
 
 #include "chrono_vehicle/ChConfigVehicle.h"
 #include "chrono_vehicle/ChVehicleModelData.h"
@@ -53,6 +54,9 @@ TireModelType tire_model = TireModelType::TMEASY;
 // Simulation step sizes
 double step_size = 3e-3;
 double tire_step_size = 1e-3;
+
+// Time interval between two render frames
+double render_step_size = 1.0 / 50;  // FPS = 50
 
 // =============================================================================
 
@@ -126,13 +130,6 @@ int main(int argc, char* argv[]) {
     // Create the run-time visualization system
     // ----------------------------------------
 
-    ////// "Standard" Irrlicht run-time visualization
-    ////ChIrrApp app(my_hmmwv.GetSystem(), L"HMMWV-9 YUP", irr::core::dimension2d<irr::u32>(1000, 800), false, true);
-    ////app.AddTypicalLogo();
-    ////app.AddTypicalSky();
-    ////app.AddTypicalLights();
-    ////app.AddTypicalCamera(irr::core::vector3df(-1, 3, -5), irr::core::vector3dfCH(&initLoc));
-
     // Vehicle Irrlicht run-time visualization
     ChWheeledVehicleIrrApp app(&my_hmmwv.GetVehicle(), L"HMMWV-9 YUP", irr::core::dimension2d<irr::u32>(1000, 800),
                                irr::ELL_NONE);
@@ -178,7 +175,12 @@ int main(int argc, char* argv[]) {
     // Simulation loop
     // ---------------
 
+    int render_steps = (int)std::ceil(render_step_size / step_size);
+    int step_number = 0;
+
     ChRealtimeStepTimer realtime_timer;
+    utils::ChRunningAverage RTF_filter(50);
+
     while (app.GetDevice()->run()) {
         double time = my_hmmwv.GetSystem()->GetChTime();
 
@@ -189,11 +191,13 @@ int main(int argc, char* argv[]) {
         ballT->setPosition(irr::core::vector3df((irr::f32)pT.x(), (irr::f32)pT.y(), (irr::f32)pT.z()));
 #endif
 
-        app.BeginScene(true, true, irr::video::SColor(255, 140, 161, 192));
-        app.DrawAll();
-        app.RenderFrame(ChVector<>(0, 0, 0), 10);
-        app.RenderGrid(ChVector<>(0, 0.01, 0), 20, 1.0);
-        app.EndScene();
+        if (step_number % render_steps == 0) {
+            app.BeginScene(true, true, irr::video::SColor(255, 140, 161, 192));
+            app.DrawAll();
+            app.RenderFrame(ChVector<>(0, 0, 0), 10);
+            app.RenderGrid(ChVector<>(0, 0.01, 0), 20, 1.0);
+            app.EndScene();
+        }
 
         // Driver inputs
         ChDriver::Inputs driver_inputs = driver.GetInputs();
@@ -212,6 +216,7 @@ int main(int argc, char* argv[]) {
 
         // Spin in place for real time to catch up
         realtime_timer.Spin(step_size);
+        ////std::cout << RTF_filter.Add(realtime_timer.RTF) << std::endl;
     }
 
     return 0;

@@ -10,3 +10,5 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.000000
 d 1.000000
 illum 1
+map_Bump Textures/Wheel_F_Gator_Wheels_Normal.jpg
+map_Kd Textures/Wheel_F_Gator_Wheels_AlbedoTransparency.jpg

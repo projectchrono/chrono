@@ -33,6 +33,9 @@
 
 #include "chrono_models/vehicle/uaz/UAZBUS.h"
 #include "chrono_models/vehicle/uaz/UAZBUS_Vehicle.h"
+
+#include "chrono_models/vehicle/gator/Gator.h"
+#include "chrono_models/vehicle/gator/Gator_Vehicle.h"
 %}
 
 
@@ -60,6 +63,9 @@
 
 %shared_ptr(chrono::vehicle::uaz::UAZBUS)
 %shared_ptr(chrono::vehicle::uaz::UAZBUS_Vehicle)
+
+%shared_ptr(chrono::vehicle::gator::Gator)
+%shared_ptr(chrono::vehicle::gator::Gator_Vehicle)
 
 
 %import(module = "pychrono.core") "chrono_python/core/ChMaterialSurface.i"
@@ -97,3 +103,6 @@
 
 %include "../../chrono_models/vehicle/uaz/UAZBUS.h"
 %include "../../chrono_models/vehicle/uaz/UAZBUS_Vehicle.h"
+
+%include "../../chrono_models/vehicle/gator/Gator.h"
+%include "../../chrono_models/vehicle/gator/Gator_Vehicle.h"

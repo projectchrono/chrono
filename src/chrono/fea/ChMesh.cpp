@@ -28,8 +28,6 @@
 #include "chrono/fea/ChMesh.h"
 #include "chrono/fea/ChNodeFEAxyz.h"
 
-using namespace std;
-
 namespace chrono {
 namespace fea {
 

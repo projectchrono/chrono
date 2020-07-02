@@ -29,27 +29,29 @@ ChTriangleMeshSoup::ChTriangleMeshSoup(const ChTriangleMeshSoup& source) {
 
 void ChTriangleMeshSoup::LoadWavefrontMesh(std::string filename) {
     std::vector<tinyobj::shape_t> shapes;
-    std::string err = tinyobj::LoadObj(shapes, filename.c_str());
+    tinyobj::attrib_t att;
+    std::vector<tinyobj::material_t> materials;
+    std::string warn;
+    std::string err;
+
+    LoadObj(&att, &shapes, &materials, &warn, &err, filename.c_str());
 
     for (size_t i = 0; i < shapes.size(); i++) {
         assert((shapes[i].mesh.indices.size() % 3) == 0);
         for (size_t f = 0; f < shapes[i].mesh.indices.size() / 3; f++) {
             auto& indices = shapes[i].mesh.indices;
-            auto& positions = shapes[i].mesh.positions;
-            int i0 = indices[3 * f + 0];
-            int i1 = indices[3 * f + 1];
-            int i2 = indices[3 * f + 2];
-            auto v0 = ChVector<>(positions[3 * i0 + 0], positions[3 * i0 + 1], positions[3 * i0 + 2]);
-            auto v1 = ChVector<>(positions[3 * i1 + 0], positions[3 * i1 + 1], positions[3 * i1 + 2]);
-            auto v2 = ChVector<>(positions[3 * i2 + 0], positions[3 * i2 + 1], positions[3 * i2 + 2]);
+            int i0 = indices[3 * f + 0].vertex_index;
+            int i1 = indices[3 * f + 1].vertex_index;
+            int i2 = indices[3 * f + 2].vertex_index;
+            auto v0 = ChVector<>(att.vertices[3 * i0 + 0], att.vertices[3 * i0 + 1], att.vertices[3 * i0 + 2]);
+            auto v1 = ChVector<>(att.vertices[3 * i1 + 0], att.vertices[3 * i1 + 1], att.vertices[3 * i1 + 2]);
+            auto v2 = ChVector<>(att.vertices[3 * i2 + 0], att.vertices[3 * i2 + 1], att.vertices[3 * i2 + 2]);
             addTriangle(v0, v1, v2);
         }
     }
 }
 
-void ChTriangleMeshSoup::addTriangle(const ChVector<>& vertex0,
-                                   const ChVector<>& vertex1,
-                                   const ChVector<>& vertex2) {
+void ChTriangleMeshSoup::addTriangle(const ChVector<>& vertex0, const ChVector<>& vertex1, const ChVector<>& vertex2) {
     ChTriangle tri(vertex0, vertex1, vertex2);
     m_triangles.push_back(tri);
 }

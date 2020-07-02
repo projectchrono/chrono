@@ -38,6 +38,9 @@
 
 #include "chrono_models/vehicle/uaz/UAZBUS_ToeBarLeafspringAxle.h"
 #include "chrono_models/vehicle/uaz/UAZBUS_LeafspringAxle.h"
+
+#include "chrono_models/vehicle/gator/Gator_SingleWishbone.h"
+#include "chrono_models/vehicle/gator/Gator_RigidSuspension.h"
 %}
 
 
@@ -71,6 +74,9 @@
 %shared_ptr(chrono::vehicle::uaz::UAZBUS_ToeBarLeafspringAxle)
 %shared_ptr(chrono::vehicle::uaz::UAZBUS_LeafspringAxle)
 
+%shared_ptr(chrono::vehicle::gator::Gator_SingleWishbone)
+%shared_ptr(chrono::vehicle::gator::Gator_RigidSuspension)
+
 /* Parse the header file to generate wrappers */
 %import "chrono_python/vehicle/ChSuspension.i"
 
@@ -97,3 +103,6 @@
 
 %include "../../chrono_models/vehicle/uaz/UAZBUS_ToeBarLeafspringAxle.h"
 %include "../../chrono_models/vehicle/uaz/UAZBUS_LeafspringAxle.h"
+
+%include "../../chrono_models/vehicle/gator/Gator_SingleWishbone.h"
+%include "../../chrono_models/vehicle/gator/Gator_RigidSuspension.h"

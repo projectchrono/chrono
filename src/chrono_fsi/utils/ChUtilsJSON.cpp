@@ -34,7 +34,6 @@
 #include "chrono_thirdparty/filesystem/path.h"
 #include "chrono_thirdparty/filesystem/resolver.h"
 
-using namespace std;
 namespace chrono {
 namespace fsi {
 
@@ -102,7 +101,7 @@ void InvalidArg(std::string arg) {
 }
 
 bool ParseJSON(std::string json_file, std::shared_ptr<SimParams> paramsH, Real3 Domain) {
-    cout << "Reading parameters: " << json_file << endl;
+    std::cout << "Reading parameters: " << json_file << std::endl;
     FILE* fp = fopen(json_file.c_str(), "r");
     if (!fp) {
         std::cout << "Invalid JSON file!" << std::endl;
@@ -121,7 +120,7 @@ bool ParseJSON(std::string json_file, std::shared_ptr<SimParams> paramsH, Real3 
         return false;
     }
 
-    std::cout << "--- Parsing JSON ---" << endl;
+    std::cout << "--- Parsing JSON ---" << std::endl;
     if (doc.HasMember("Output Folder"))
         strcpy(paramsH->out_name, doc["Output Folder"].GetString());
     else
@@ -187,7 +186,7 @@ bool ParseJSON(std::string json_file, std::shared_ptr<SimParams> paramsH, Real3 
         else
             paramsH->HSML = 0.02;
 
-        cout << "paramsH->HSML: " << paramsH->HSML << endl;
+        std::cout << "paramsH->HSML: " << paramsH->HSML << std::endl;
 
         if (doc["SPH Parameters"].HasMember("Initial Spacing"))
             paramsH->MULT_INITSPACE = doc["SPH Parameters"]["Initial Spacing"].GetDouble() / paramsH->HSML;
@@ -440,7 +439,7 @@ bool ParseJSON(std::string json_file, std::shared_ptr<SimParams> paramsH, Real3 
                     else
                         paramsH->HB_sr0 = 0.0;
                 } else {
-                    cout << "Constants of Herschel–Bulkley are not found. Using the default Newtonian values" << endl;
+                    std::cout << "Constants of Herschel–Bulkley are not found. Using the default Newtonian values" << std::endl;
                     paramsH->HB_k = paramsH->mu0;
                     paramsH->HB_n = 1;
                     paramsH->HB_tau0 = 0;
@@ -480,7 +479,7 @@ bool ParseJSON(std::string json_file, std::shared_ptr<SimParams> paramsH, Real3 
                 /// mu(I) functionality
                 //===============================================================
                 if (doc["Material Model"]["granular model"].HasMember("mu(I)")) {
-                    string type = doc["Material Model"]["granular model"]["mu(I)"]["type"].GetString();
+                    std::string type = doc["Material Model"]["granular model"]["mu(I)"]["type"].GetString();
                     if (type == "constant") {
                         paramsH->mu_of_I = friction_law::constant;
                         paramsH->mu_fric_s =
@@ -524,69 +523,69 @@ bool ParseJSON(std::string json_file, std::shared_ptr<SimParams> paramsH, Real3 
     paramsH->cMin = mR3(-Domain.x * 2, -Domain.y * 2, -2 * Domain.z) - 10 * mR3(paramsH->HSML);
     paramsH->cMax = mR3(Domain.x * 2, Domain.y * 2, 2 * Domain.z) + 10 * mR3(paramsH->HSML);
 
-    cout << "parameters of the simulation" << endl;
+    std::cout << "parameters of the simulation" << std::endl;
 
-    cout << "paramsH->num_neighbors: " << paramsH->num_neighbors << endl;
-    cout << "paramsH->rho0: " << paramsH->rho0 << endl;
-    cout << "paramsH->mu0: " << paramsH->mu0 << endl;
-    cout << "paramsH->bodyForce3: ";
+    std::cout << "paramsH->num_neighbors: " << paramsH->num_neighbors << std::endl;
+    std::cout << "paramsH->rho0: " << paramsH->rho0 << std::endl;
+    std::cout << "paramsH->mu0: " << paramsH->mu0 << std::endl;
+    std::cout << "paramsH->bodyForce3: ";
     utils::printStruct(paramsH->bodyForce3);
-    cout << "paramsH->gravity: ";
+    std::cout << "paramsH->gravity: ";
     utils::printStruct(paramsH->gravity);
 
-    cout << "paramsH->HSML: " << paramsH->HSML << endl;
+    std::cout << "paramsH->HSML: " << paramsH->HSML << std::endl;
 
-    cout << "paramsH->MULT_INITSPACE: " << paramsH->MULT_INITSPACE << endl;
-    cout << "paramsH->NUM_BOUNDARY_LAYERS: " << paramsH->NUM_BOUNDARY_LAYERS << endl;
-    cout << "paramsH->epsMinMarkersDis: " << paramsH->epsMinMarkersDis << endl;
-    cout << "paramsH->markerMass: " << paramsH->markerMass << endl;
-    cout << "paramsH->gradient_type: " << paramsH->gradient_type << endl;
+    std::cout << "paramsH->MULT_INITSPACE: " << paramsH->MULT_INITSPACE << std::endl;
+    std::cout << "paramsH->NUM_BOUNDARY_LAYERS: " << paramsH->NUM_BOUNDARY_LAYERS << std::endl;
+    std::cout << "paramsH->epsMinMarkersDis: " << paramsH->epsMinMarkersDis << std::endl;
+    std::cout << "paramsH->markerMass: " << paramsH->markerMass << std::endl;
+    std::cout << "paramsH->gradient_type: " << paramsH->gradient_type << std::endl;
 
-    cout << "paramsH->v_Max: " << paramsH->v_Max << endl;
-    cout << "paramsH->EPS_XSPH: " << paramsH->EPS_XSPH << endl;
-    cout << "paramsH->beta_shifting: " << paramsH->beta_shifting << endl;
-    cout << "paramsH->densityReinit: " << paramsH->densityReinit << endl;
+    std::cout << "paramsH->v_Max: " << paramsH->v_Max << std::endl;
+    std::cout << "paramsH->EPS_XSPH: " << paramsH->EPS_XSPH << std::endl;
+    std::cout << "paramsH->beta_shifting: " << paramsH->beta_shifting << std::endl;
+    std::cout << "paramsH->densityReinit: " << paramsH->densityReinit << std::endl;
 
-    cout << "paramsH->Adaptive_time_stepping: " << paramsH->Adaptive_time_stepping << endl;
-    cout << "paramsH->Co_number: " << paramsH->Co_number << endl;
-    cout << "paramsH->dT: " << paramsH->dT << endl;
-    cout << "paramsH->dT_Max: " << paramsH->dT_Max << endl;
-    cout << "paramsH->dT_Flex: " << paramsH->dT_Flex << endl;
+    std::cout << "paramsH->Adaptive_time_stepping: " << paramsH->Adaptive_time_stepping << std::endl;
+    std::cout << "paramsH->Co_number: " << paramsH->Co_number << std::endl;
+    std::cout << "paramsH->dT: " << paramsH->dT << std::endl;
+    std::cout << "paramsH->dT_Max: " << paramsH->dT_Max << std::endl;
+    std::cout << "paramsH->dT_Flex: " << paramsH->dT_Flex << std::endl;
 
-    cout << "paramsH->non_newtonian: " << paramsH->non_newtonian << endl;
-    cout << "paramsH->granular_material: " << paramsH->granular_material << endl;
-    cout << "paramsH->mu_of_I : " << paramsH->mu_of_I << endl;
-    cout << "paramsH->rheology_model: " << paramsH->rheology_model << endl;
-    cout << "paramsH->ave_diam: " << paramsH->ave_diam << endl;
-    cout << "paramsH->mu_max: " << paramsH->mu_max << endl;
-    cout << "paramsH->mu_fric_s: " << paramsH->mu_fric_s << endl;
-    cout << "paramsH->mu_fric_2: " << paramsH->mu_fric_2 << endl;
-    cout << "paramsH->mu_I0: " << paramsH->mu_I0 << endl;
-    cout << "paramsH->mu_I_b: " << paramsH->mu_I_b << endl;
-    cout << "paramsH->HB_k: " << paramsH->HB_k << endl;
-    cout << "paramsH->HB_n: " << paramsH->HB_n << endl;
-    cout << "paramsH->HB_tau0: " << paramsH->HB_tau0 << endl;
+    std::cout << "paramsH->non_newtonian: " << paramsH->non_newtonian << std::endl;
+    std::cout << "paramsH->granular_material: " << paramsH->granular_material << std::endl;
+    std::cout << "paramsH->mu_of_I : " << paramsH->mu_of_I << std::endl;
+    std::cout << "paramsH->rheology_model: " << paramsH->rheology_model << std::endl;
+    std::cout << "paramsH->ave_diam: " << paramsH->ave_diam << std::endl;
+    std::cout << "paramsH->mu_max: " << paramsH->mu_max << std::endl;
+    std::cout << "paramsH->mu_fric_s: " << paramsH->mu_fric_s << std::endl;
+    std::cout << "paramsH->mu_fric_2: " << paramsH->mu_fric_2 << std::endl;
+    std::cout << "paramsH->mu_I0: " << paramsH->mu_I0 << std::endl;
+    std::cout << "paramsH->mu_I_b: " << paramsH->mu_I_b << std::endl;
+    std::cout << "paramsH->HB_k: " << paramsH->HB_k << std::endl;
+    std::cout << "paramsH->HB_n: " << paramsH->HB_n << std::endl;
+    std::cout << "paramsH->HB_tau0: " << paramsH->HB_tau0 << std::endl;
 
-    cout << "paramsH->cMin: ";
+    std::cout << "paramsH->cMin: ";
     utils::printStruct(paramsH->cMin);
-    cout << "paramsH->cMax: ";
+    std::cout << "paramsH->cMax: ";
     utils::printStruct(paramsH->cMax);
 
-    cout << "paramsH->bceType: " << paramsH->bceType << endl;
-    cout << "paramsH->USE_NonIncrementalProjection : " << paramsH->USE_NonIncrementalProjection << endl;
-    //    cout << "paramsH->LinearSolver: " << paramsH->LinearSolver << endl;
-    cout << "paramsH->PPE_relaxation: " << paramsH->PPE_relaxation << endl;
-    cout << "paramsH->Conservative_Form: " << paramsH->Conservative_Form << endl;
-    cout << "paramsH->Pressure_Constraint: " << paramsH->Pressure_Constraint << endl;
+    std::cout << "paramsH->bceType: " << paramsH->bceType << std::endl;
+    std::cout << "paramsH->USE_NonIncrementalProjection : " << paramsH->USE_NonIncrementalProjection << std::endl;
+    //    std::cout << "paramsH->LinearSolver: " << paramsH->LinearSolver << std::endl;
+    std::cout << "paramsH->PPE_relaxation: " << paramsH->PPE_relaxation << std::endl;
+    std::cout << "paramsH->Conservative_Form: " << paramsH->Conservative_Form << std::endl;
+    std::cout << "paramsH->Pressure_Constraint: " << paramsH->Pressure_Constraint << std::endl;
 
-    cout << "paramsH->deltaPress: ";
+    std::cout << "paramsH->deltaPress: ";
     utils::printStruct(paramsH->deltaPress);
-    cout << "paramsH->binSize0: " << paramsH->binSize0 << endl;
-    cout << "paramsH->boxDims: ";
+    std::cout << "paramsH->binSize0: " << paramsH->binSize0 << std::endl;
+    std::cout << "paramsH->boxDims: ";
     utils::printStruct(paramsH->boxDims);
-    cout << "paramsH->gridSize: ";
+    std::cout << "paramsH->gridSize: ";
     utils::printStruct(paramsH->gridSize);
-    cout << "********************" << endl;
+    std::cout << "********************" << std::endl;
     return true;
 }  // namespace utils
 void PrepareOutputDir(std::shared_ptr<fsi::SimParams> paramsH,
@@ -597,7 +596,7 @@ void PrepareOutputDir(std::shared_ptr<fsi::SimParams> paramsH,
     struct tm* timeinfo;
     time(&rawtime);
     timeinfo = localtime(&rawtime);
-    cout << asctime(timeinfo);
+    std::cout << asctime(timeinfo);
     char buffer[80];
 
     strftime(buffer, 80, "%F_%T", timeinfo);

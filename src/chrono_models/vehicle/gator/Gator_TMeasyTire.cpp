@@ -56,10 +56,12 @@ void Gator_TMeasyTire_Front::SetTMeasyParams() {
 
     double load = 1800;
 
-    GuessTruck80Par(load,     // tire load [N]
-                    w,        // tire width [m]
-                    r,        // aspect ratio []
-                    rim_diam  // rim diameter [m]
+    GuessTruck80Par(load,      // tire load [N]
+                    w,         // tire width [m]
+                    r,         // aspect ratio []
+                    rim_diam,  // rim diameter [m]
+                    1.0, 1.0,  // inflation pressures at load index and use configuration
+                    1.0        // damping ratio
     );
 
     SetFrictionCoefficient(0.6f);

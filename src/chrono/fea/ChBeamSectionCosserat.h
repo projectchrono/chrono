@@ -865,7 +865,7 @@ class ChApi ChInertiaCosseratAdvanced : public ChInertiaCosserat {
 
 
     /// Set mass per unit length, ex.SI units [kg/m].
-    /// Note that for uniform volumetric density \f$ \rho \f$, this is also \f$ \mu = \rho A \f$.
+    /// Note that for uniform volumetric density \f$ \rho \f$, and area \f$ A \f$, this is also \f$ \mu = \rho A \f$.
     virtual void SetMassPerUnitLength(double mmu) { mu = mmu; }
 
     /// "mass reference": set the displacement of the center of mass respect to 
@@ -910,19 +910,19 @@ class ChApi ChInertiaCosseratAdvanced : public ChInertiaCosserat {
     virtual double GetInertiaJyzPerUnitLength()  { return  this->Jyz; }
 
 
-    /// Set inertia moments as assumed computed in the Ym Zm "mass reference"
+    /// Set inertia moments, per unit length, as assumed computed in the Ym Zm "mass reference"
     /// frame, ie. centered at the center of mass and rotated by phi angle to match the main axes of inertia:
     /// \f$ Jm_{yy} =  \int_\Omega \rho z_{m}^2 d\Omega \f$, 
     /// \f$ Jm_{zz} =  \int_\Omega \rho y_{m}^2 d\Omega \f$.
     /// Assuming the center of mass is already set.
-    virtual void SetInertiasPerUnitLengthInMassReference(double Jmyy, double Jmzz, double phi);
+    virtual void SetMainInertiasInMassReference(double Jmyy, double Jmzz, double phi);
 
-    /// Get inertia moments as assumed computed in the Ym Zm "mass reference" frame, and the rotation phi of that frame,
+    /// Get inertia moments, per unit length, as assumed computed in the Ym Zm "mass reference" frame, and the rotation phi of that frame,
     /// ie. inertias centered at the center of mass and rotated by phi angle to match the main axes of inertia:
     /// \f$ Jm_{yy} =  \int_\Omega \rho z_{m}^2 d\Omega \f$, 
     /// \f$ Jm_{zz} =  \int_\Omega \rho y_{m}^2 d\Omega \f$.
     /// Assuming the center of mass is already set.
-    virtual void GetInertiasPerUnitLengthInMassReference(double& Jmyy, double& Jmzz, double& phi);
+    virtual void GetMainInertiasInMassReference(double& Jmyy, double& Jmzz, double& phi);
 
 private:
 	double mu; // density
@@ -964,7 +964,7 @@ class ChApi ChInertiaCosseratMassref : public ChInertiaCosseratAdvanced {
     {
         this->SetMassPerUnitLength(mu_density);
         this->SetCenterOfMass(c_y, c_z);
-        this->SetInertiasPerUnitLengthInMassReference(Jyy_massref, Jzz_massref, phi_massref); 
+        this->SetMainInertiasInMassReference(Jyy_massref, Jzz_massref, phi_massref); 
     };
 
     virtual ~ChInertiaCosseratMassref() {}
@@ -981,7 +981,7 @@ class ChApi ChInertiaCosseratMassref : public ChInertiaCosseratAdvanced {
     /// via \f$ J_{xx} = J_{yy} +J_{zz} \f$ for the polar theorem.
     virtual void SetInertiasPerUnitLength(double Jyy_moment, double Jzz_moment, double Jyz_moment) override {
         ChInertiaCosseratAdvanced::SetInertiasPerUnitLength(Jyy_moment,Jzz_moment,Jyz_moment);
-        this->GetInertiasPerUnitLengthInMassReference(this->Jyy_m, this->Jzz_m, this->phi);
+        this->GetMainInertiasInMassReference(this->Jyy_m, this->Jzz_m, this->phi);
     };
 
     /// Set inertia moments as assumed computed in the Ym Zm "mass reference"
@@ -989,11 +989,11 @@ class ChApi ChInertiaCosseratMassref : public ChInertiaCosseratAdvanced {
     /// \f$ Jm_{yy} =  \int_\Omega \rho z_{m}^2 d\Omega \f$, 
     /// \f$ Jm_{zz} =  \int_\Omega \rho y_{m}^2 d\Omega \f$.
     /// Assuming the center of mass is already set.
-    virtual void SetInertiasPerUnitLengthInMassReference(double Jyy_massref, double Jzz_massref, double phi_massref) override {
+    virtual void SetMainInertiasInMassReference(double Jyy_massref, double Jzz_massref, double phi_massref) override {
         this->Jyy_m = Jyy_massref;
         this->Jzz_m = Jzz_massref;
         this->phi = phi_massref;
-        ChInertiaCosseratAdvanced::SetInertiasPerUnitLengthInMassReference(this->Jyy_m, this->Jzz_m, this->phi);
+        ChInertiaCosseratAdvanced::SetMainInertiasInMassReference(this->Jyy_m, this->Jzz_m, this->phi);
     };
 
     /// Get inertia moments as assumed computed in the Ym Zm "mass reference" frame, and the rotation phi of that frame,
@@ -1001,7 +1001,7 @@ class ChApi ChInertiaCosseratMassref : public ChInertiaCosseratAdvanced {
     /// \f$ Jm_{yy} =  \int_\Omega \rho z_{m}^2 d\Omega \f$, 
     /// \f$ Jm_{zz} =  \int_\Omega \rho y_{m}^2 d\Omega \f$.
     /// Assuming the center of mass is already set.
-    virtual void GetInertiasPerUnitLengthInMassReference(double& Jyy_massref, double& Jzz_massref, double& phi_massref) override {
+    virtual void GetMainInertiasInMassReference(double& Jyy_massref, double& Jzz_massref, double& phi_massref) override {
         Jyy_massref = this->Jyy_m;
         Jzz_massref = this->Jzz_m;
         phi_massref = this->phi;

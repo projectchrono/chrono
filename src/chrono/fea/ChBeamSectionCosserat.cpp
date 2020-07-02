@@ -846,7 +846,7 @@ void ChInertiaCosseratAdvanced::ComputeQuadraticTerms(ChVector<>& mF,   ///< cen
 }
 
 
-void ChInertiaCosseratAdvanced::SetInertiasPerUnitLengthInMassReference(double Jmyy, double Jmzz, double phi) {
+void ChInertiaCosseratAdvanced::SetMainInertiasInMassReference(double Jmyy, double Jmzz, double phi) {
     double cc = pow(cos(-phi), 2);
     double ss = pow(sin(-phi), 2);
     double cs = cos(-phi) * sin(-phi);
@@ -860,7 +860,7 @@ void ChInertiaCosseratAdvanced::SetInertiasPerUnitLengthInMassReference(double J
     this->Jyz = -(Tyz_rot -  this->mu * this->cm_z * this->cm_y); // note minus, per definition of Jyz
 }
 
-void ChInertiaCosseratAdvanced::GetInertiasPerUnitLengthInMassReference(double& Jmyy, double& Jmzz, double& phi) {
+void ChInertiaCosseratAdvanced::GetMainInertiasInMassReference(double& Jmyy, double& Jmzz, double& phi) {
     // remove inertia transport
     double Tyy_rot  =  this->Jyy - this->mu * this->cm_z * this->cm_z;
     double Tzz_rot  =  this->Jzz - this->mu * this->cm_y * this->cm_y;
@@ -966,11 +966,6 @@ ChBeamSectionCosseratEasyRectangular::ChBeamSectionCosseratEasyRectangular(
 	double G,				// shear modulus
 	double density			// volumetric density (ex. in SI units: [kg/m])
 ) {
-
-	this->is_circular = false;
-    this->y_drawsize = width_y;
-    this->z_drawsize = width_z;
-
 	auto melasticity = chrono_types::make_shared<ChElasticityCosseratSimple>();
 	melasticity->SetYoungModulus(E);
 	melasticity->SetGshearModulus(G);
@@ -980,6 +975,9 @@ ChBeamSectionCosseratEasyRectangular::ChBeamSectionCosseratEasyRectangular(
 	auto minertia = chrono_types::make_shared<ChInertiaCosseratSimple>();
 	minertia->SetAsRectangularSection(width_y, width_z, density);
 	this->SetInertia(minertia);
+
+    auto mdrawshape = chrono_types::make_shared<ChBeamSectionShapeRectangular>(width_y, width_z);
+    this->SetDrawShape(mdrawshape);
 }
 
 
@@ -989,9 +987,6 @@ ChBeamSectionCosseratEasyCircular::ChBeamSectionCosseratEasyCircular(
 	double G,				// shear modulus
 	double density			// volumetric density (ex. in SI units: [kg/m])
 ) {
-	this->is_circular = true;
-    this->SetDrawCircularRadius(diameter / 2);
-
 	auto melasticity = chrono_types::make_shared<ChElasticityCosseratSimple>();
 	melasticity->SetYoungModulus(E);
 	melasticity->SetGshearModulus(G);
@@ -1001,6 +996,9 @@ ChBeamSectionCosseratEasyCircular::ChBeamSectionCosseratEasyCircular(
 	auto minertia = chrono_types::make_shared<ChInertiaCosseratSimple>();
 	minertia->SetAsCircularSection(diameter, density);
 	this->SetInertia(minertia);
+
+    auto mdrawshape = chrono_types::make_shared<ChBeamSectionShapeCircular>(diameter / 2, 10);
+    this->SetDrawShape(mdrawshape);
 }
 
 

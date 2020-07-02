@@ -14,8 +14,6 @@
 
 #include "chrono_matlab/ChMatlabEngine.h"
 
-using namespace std;
-
 namespace chrono {
 
 ChMatlabEngine::ChMatlabEngine() {
@@ -42,7 +40,7 @@ matlabengine::Engine* ChMatlabEngine::GetEngine() {
 }
 
 /// Evaluate a Matlab instruction (as a string). If error happens while executing, returns false.
-bool ChMatlabEngine::Eval(string mstring) {
+bool ChMatlabEngine::Eval(std::string mstring) {
     if (matlabengine::engEvalString(ep, mstring.c_str()) == 0)
         return true;
     else
@@ -59,7 +57,7 @@ bool ChMatlabEngine::SetVisible(bool mvis) {
 
 /// Put a matrix in Matlab environment, specifying its name as variable.
 /// If a variable with the same name already exist, it is overwritten.
-bool ChMatlabEngine::PutVariable(ChMatrixConstRef mmatr, string varname) {
+bool ChMatlabEngine::PutVariable(ChMatrixConstRef mmatr, std::string varname) {
     // elements in Matlab are column-major
     ChMatrixDynamic<> transfer = mmatr.transpose();
 
@@ -73,7 +71,7 @@ bool ChMatlabEngine::PutVariable(ChMatrixConstRef mmatr, string varname) {
 
 /// Put a sparse matrix in Matlab environment, specifying its name as variable.
 /// If a variable with the same name already exist, it is overwritten.
-bool ChMatlabEngine::PutSparseMatrix(const ChSparseMatrix& mmatr, string varname) {
+bool ChMatlabEngine::PutSparseMatrix(const ChSparseMatrix& mmatr, std::string varname) {
     int nels = 0;
     for (int ii = 0; ii < mmatr.rows(); ii++)
         for (int jj = 0; jj < mmatr.cols(); jj++) {
@@ -108,7 +106,7 @@ bool ChMatlabEngine::PutSparseMatrix(const ChSparseMatrix& mmatr, string varname
 /// Fetch a matrix from Matlab environment, specifying its name as variable.
 /// The used matrix must be of ChMatrixDynamic<double> type because
 /// it might undergo resizing.
-bool ChMatlabEngine::GetVariable(ChMatrixDynamic<double>& mmatr, string varname) {
+bool ChMatlabEngine::GetVariable(ChMatrixDynamic<double>& mmatr, std::string varname) {
     ChMatrixDynamic<> transfer;  // elements in Matlab are column-major
 
     matlabengine::mxArray* T = matlabengine::engGetVariable(ep, varname.c_str());

@@ -19,8 +19,6 @@
 #include "chrono/fea/ChElementTetra_4.h"
 #include "chrono/fea/ChMesh.h"
 
-using namespace std;
-
 namespace chrono {
 namespace fea {
 

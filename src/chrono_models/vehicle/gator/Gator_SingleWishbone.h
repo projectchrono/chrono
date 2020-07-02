@@ -39,15 +39,10 @@ namespace gator {
 /// Single wishbone suspension model for the Gator vehicle (front).
 class CH_MODELS_API Gator_SingleWishbone : public ChSingleWishbone {
   public:
-    // Constructor takes as argument the name of the subsystem instance.
     Gator_SingleWishbone(const std::string& name);
 
     // Destructor
     ~Gator_SingleWishbone();
-
-    // Implementation of virtual methods imposed by the base class ChDoubleWishbone
-
-    virtual const ChVector<> getLocation(PointId which) override;
 
     virtual double getSpindleMass() const override { return m_spindleMass; }
     virtual double getCAMass() const override { return m_CAMass; }
@@ -70,6 +65,8 @@ class CH_MODELS_API Gator_SingleWishbone : public ChSingleWishbone {
     virtual std::shared_ptr<ChLinkTSDA::ForceFunctor> getShockForceFunctor() const override { return m_shockForceCB; }
 
   private:
+    virtual const ChVector<> getLocation(PointId which) override;
+
     std::shared_ptr<ChLinkTSDA::ForceFunctor> m_shockForceCB;
 
     static const double m_spindleMass;

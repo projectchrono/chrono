@@ -100,10 +100,10 @@ void Gator::Initialize() {
         case TireModelType::RIGID: {
             bool use_mesh = (m_tireType == TireModelType::RIGID_MESH);
 
-            auto tire_FL = chrono_types::make_shared<Gator_RigidTire>("FL", use_mesh);
-            auto tire_FR = chrono_types::make_shared<Gator_RigidTire>("FR", use_mesh);
-            auto tire_RL = chrono_types::make_shared<Gator_RigidTire>("RL", use_mesh);
-            auto tire_RR = chrono_types::make_shared<Gator_RigidTire>("RR", use_mesh);
+            auto tire_FL = chrono_types::make_shared<Gator_RigidTire_Front>("FL", use_mesh);
+            auto tire_FR = chrono_types::make_shared<Gator_RigidTire_Front>("FR", use_mesh);
+            auto tire_RL = chrono_types::make_shared<Gator_RigidTire_Rear>("RL", use_mesh);
+            auto tire_RR = chrono_types::make_shared<Gator_RigidTire_Rear>("RR", use_mesh);
 
             m_vehicle->InitializeTire(tire_FL, m_vehicle->GetAxle(0)->m_wheels[LEFT], VisualizationType::NONE);
             m_vehicle->InitializeTire(tire_FR, m_vehicle->GetAxle(0)->m_wheels[RIGHT], VisualizationType::NONE);
