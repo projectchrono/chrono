@@ -19,7 +19,7 @@
 
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/timestepper/ChTimestepper.h"
-#include "chrono_mumps/ChSolverMUMPS.h"
+#include "chrono_mumps/ChSolverMumps.h"
 #include "chrono_irrlicht/ChIrrApp.h"
 
 #include "FEAcables.h"
