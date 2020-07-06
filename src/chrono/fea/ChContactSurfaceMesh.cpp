@@ -35,8 +35,6 @@
 #include <array>
 #include <algorithm>
 
-using namespace std;
-
 namespace chrono {
 namespace fea {
 
@@ -359,7 +357,7 @@ void ChContactSurfaceMesh::AddFacesFromBoundary(double sphere_swept, bool ccw) {
             this->vfaces_rot.push_back(contact_triangle);
             contact_triangle->SetContactSurface(this);
 
-            double capsule_radius = chrono::collision::ChCollisionModel::GetDefaultSuggestedMargin(); // fallback for no draw profile
+            double capsule_radius = collision::ChCollisionModel::GetDefaultSuggestedMargin(); // fallback for no draw profile
             if (auto mdrawshape = mbeam->GetSection()->GetDrawShape()) {
                 double ymin, ymax, zmin, zmax;
                 mdrawshape->GetAABB(ymin, ymax, zmin, zmax);
@@ -393,7 +391,7 @@ void ChContactSurfaceMesh::AddFacesFromBoundary(double sphere_swept, bool ccw) {
             this->vfaces.push_back(contact_triangle);
             contact_triangle->SetContactSurface(this);
 
-            double capsule_radius = chrono::collision::ChCollisionModel::GetDefaultSuggestedMargin(); // fallback for no draw profile
+            double capsule_radius = collision::ChCollisionModel::GetDefaultSuggestedMargin(); // fallback for no draw profile
             if (auto mdrawshape = mbeam->GetSection()->GetDrawShape()) {
                 double ymin, ymax, zmin, zmax;
                 mdrawshape->GetAABB(ymin, ymax, zmin, zmax);

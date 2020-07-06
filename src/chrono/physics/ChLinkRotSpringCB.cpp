@@ -31,12 +31,8 @@ void ChLinkRotSpringCB::UpdateForces(double time) {
     ChLinkMarkers::UpdateForces(time);
 
     // Invoke the provided functor to evaluate torque.
-    // NOTE: we implicitly assume that the kinematics are CONSISTENT with this
-    // type of link!
-    double angle = relAngle;
-    double angle_dt = Vdot(relWvel, relAxis);
-
-    m_torque = m_torque_fun ? (*m_torque_fun)(time, relAngle, angle_dt, this) : 0;
+    double relAngle_dt = Vdot(relWvel, relAxis);
+    m_torque = m_torque_fun ? (*m_torque_fun)(time, relAngle, relAngle_dt, this) : 0;
 
     // Add to existing torque.
     C_torque += Vmul(relAxis, m_torque);
