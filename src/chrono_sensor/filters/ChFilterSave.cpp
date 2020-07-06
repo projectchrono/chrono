@@ -116,6 +116,9 @@ CH_SENSOR_API void ChFilterSave::Initialize(std::shared_ptr<ChSensor> pSensor) {
             }
         }
     }
+
+    if (m_path.back() != '\\')
+        m_path += '\\';
 #else
 
     std::istringstream istring(m_path);
@@ -138,6 +141,9 @@ CH_SENSOR_API void ChFilterSave::Initialize(std::shared_ptr<ChSensor> pSensor) {
             }
         }
     }
+
+    if (m_path.back() != '/')
+        m_path += '/';
 #endif
 }
 
