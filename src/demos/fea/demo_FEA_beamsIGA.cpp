@@ -293,6 +293,19 @@ void MakeAndRunDemo2(ChIrrApp& myapp) {
 		1000			    // density
 		);
 
+	// Note: we can add a ChBeamShape component to the section, and that can
+	// provide the shape for the visualization of the beam. Note that the visualization
+	// shape does not have to match to the physical properties (that in this example are those of a rectangular section)
+	std::vector< std::vector< ChVector<> > > polyline_points =
+	{
+		{{0, 0.00, 0.02}, {0, 0.01, -0.02}, {0, 0.00, -0.025}, {0, -0.01, -0.025}}, // upper profile, with 4 xyz points
+		{{0, -0.01, -0.025}, {0, -0.01,  0.00}, {0, 0.00, 0.02}} // lower profile, with 3 xyz points. Note x=0, always.
+	};
+	auto msection_drawshape = chrono_types::make_shared<ChBeamSectionShapePolyline>(polyline_points);
+	msection->SetDrawShape(msection_drawshape);
+
+	// Use the ChBuilderBeamIGA tool for creating a curved rod 
+	// from a B-Spline
 
 	ChBuilderBeamIGA builderR;
 
