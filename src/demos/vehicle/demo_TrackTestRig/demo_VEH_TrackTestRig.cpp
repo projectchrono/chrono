@@ -69,7 +69,7 @@ std::string filename("M113/track_assembly/M113_TrackAssemblySinglePin_Left.json"
 
 // Use HHT + MKL / MUMPS
 bool use_mkl = false;
-bool use_mumps = true;
+bool use_mumps = false;
 
 // Solver output level (MKL and MUMPS)
 bool verbose_solver = false;
@@ -88,7 +88,7 @@ int main(int argc, char* argv[]) {
     // -----------------------
 
     bool create_track = true;
-    ChContactMethod contact_method = ChContactMethod::NSC;
+    ChContactMethod contact_method = ChContactMethod::SMC;
 
     //// NOTE
     //// When using SMC, a double-pin shoe type requires MKL or MUMPS.
@@ -103,7 +103,7 @@ int main(int argc, char* argv[]) {
         std::cout << "Rig uses track assembly from JSON file: " << vehicle::GetDataFile(filename) << std::endl;
     } else {
         VehicleSide side = LEFT;
-        TrackShoeType type = TrackShoeType::DOUBLE_PIN;
+        TrackShoeType type = TrackShoeType::SINGLE_PIN;
         std::shared_ptr<ChTrackAssembly> track_assembly;
         switch (type) {
             case TrackShoeType::SINGLE_PIN: {
@@ -112,6 +112,7 @@ int main(int argc, char* argv[]) {
                 break;
             }
             case TrackShoeType::DOUBLE_PIN: {
+                contact_method = ChContactMethod::NSC; // force NSC
                 auto assembly = chrono_types::make_shared<M113_TrackAssemblyDoublePin>(side);
                 track_assembly = assembly;
                 break;
@@ -244,7 +245,7 @@ int main(int argc, char* argv[]) {
     } else {
         std::cout << "Solver: SOR" << std::endl;
         auto solver = chrono_types::make_shared<ChSolverPSOR>();
-        solver->SetMaxIterations(50);
+        solver->SetMaxIterations(60);
         solver->SetOmega(0.8);
         solver->SetSharpnessLambda(1.0);
         rig->GetSystem()->SetSolver(solver);
@@ -266,7 +267,7 @@ int main(int argc, char* argv[]) {
         integrator->SetScaling(true);
         integrator->SetVerbose(verbose_solver);
     } else {
-        std::cout << "Solver: Default" << std::endl;
+        std::cout << "Integrator: Default" << std::endl;
     }
 
     // ---------------
