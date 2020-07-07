@@ -46,8 +46,7 @@ SCMDeformableTerrain::SCMDeformableTerrain(ChSystem* system, bool visualization_
 
 // Return the terrain height at the specified location
 double SCMDeformableTerrain::GetHeight(const ChVector<>& loc) const {
-    //// TODO
-    return 0;
+    return m_ground->GetHeight(loc);
 }
 
 // Return the terrain normal at the specified location
@@ -201,8 +200,10 @@ void SCMDeformableTerrain::Initialize(const std::string& heightmap_file,
                                       double sizeX,
                                       double sizeY,
                                       double hMin,
-                                      double hMax) {
-    m_ground->Initialize(heightmap_file, mesh_name, sizeX, sizeY, hMin, hMax);
+                                      double hMax,
+                                      int divX,
+                                      int divY) {
+    m_ground->Initialize(heightmap_file, mesh_name, sizeX, sizeY, hMin, hMax, divX, divY);
 }
 
 TerrainForce SCMDeformableTerrain::GetContactForce(std::shared_ptr<ChBody> body) const {
@@ -367,75 +368,111 @@ void SCMDeformableSoil::Initialize(const std::string& heightmap_file,
                                    double sizeX,
                                    double sizeY,
                                    double hMin,
-                                   double hMax) {
-    auto trimesh = m_trimesh_shape->GetMesh();
-    trimesh->Clear();
-
-    // Read the BMP file nd extract number of pixels.
+                                   double hMax,
+                                   int divX,
+                                   int divY) {
+    // Read the BMP file and extract number of pixels.
     BMP hmap;
     if (!hmap.ReadFromFile(heightmap_file.c_str())) {
         throw ChException("Cannot open height map BMP file");
     }
-    int nv_x = hmap.TellWidth();
-    int nv_y = hmap.TellHeight();
+    int nx_bmp = hmap.TellWidth();
+    int ny_bmp = hmap.TellHeight();
+
+    double dx_bmp = 1.0 / (nx_bmp - 1.0);
+    double dy_bmp = 1.0 / (ny_bmp - 1.0);
+
+    int nx = (divX > 0) ? divX + 1 : nx_bmp;
+    int ny = (divY > 0) ? divY + 1 : ny_bmp;
+
+    double dx = 1.0 / (nx - 1.0);
+    double dy = 1.0 / (ny - 1.0);
+
+    // Resample BMP and calculate equivalent gray levels
+    ChMatrixDynamic<> G(nx, ny);
+    for (int ix = 0; ix < nx; ix++) {
+        double x = ix * dx;                       // Vertex x location (in [0,1])
+        int jx1 = (int)std::floor(x / dx_bmp);    // Left pixel
+        int jx2 = (int)std::ceil(x / dx_bmp);     // Right pixel
+        double ax = (x - jx1 * dx_bmp) / dx_bmp;  // Scaled offset from left pixel
+
+        assert(ax < 1.0);
+        assert(jx1 < nx_bmp);
+        assert(jx2 < nx_bmp);
+        assert(jx1 <= jx2);
+
+        for (int iy = 0; iy < ny; iy++) {
+            double y = iy * dy;                       // Vertex y location (in [0,1])
+            int jy1 = (int)std::floor(y / dy_bmp);    // Up pixel
+            int jy2 = (int)std::ceil(y / dy_bmp);     // Down pixel
+            double ay = (y - jy1 * dy_bmp) / dy_bmp;  // Scaled offset from down pixel
+
+            assert(ay < 1.0);
+            assert(jy1 < ny_bmp);
+            assert(jy2 < ny_bmp);
+            assert(jy1 <= jy2);
+
+            // Gray levels at left-up, left-down, right-up, and right-down pixels (RGB -> YUV conversion)
+            double g11 = 0.299 * hmap(jx1, jy1)->Red + 0.587 * hmap(jx1, jy1)->Green + 0.114 * hmap(jx1, jy1)->Blue;
+            double g12 = 0.299 * hmap(jx1, jy2)->Red + 0.587 * hmap(jx1, jy2)->Green + 0.114 * hmap(jx1, jy2)->Blue;
+            double g21 = 0.299 * hmap(jx2, jy1)->Red + 0.587 * hmap(jx2, jy1)->Green + 0.114 * hmap(jx2, jy1)->Blue;
+            double g22 = 0.299 * hmap(jx2, jy2)->Red + 0.587 * hmap(jx2, jy2)->Green + 0.114 * hmap(jx2, jy2)->Blue;
+
+            // Bilinear interpolation
+            G(ix, iy) = (1 - ax) * (1 - ay) * g11 + (1 - ax) * ay * g12 + ax * (1 - ay) * g21 + ax * ay * g22;
+        }
+    }
 
     // Construct a triangular mesh of sizeX x sizeY.
-    // Each pixel in the BMP represents a vertex.
+    // Usually, each pixel in the BMP represents a vertex. Otherwise, use interpolation.
     // The gray level of a pixel is mapped to the height range, with black corresponding
     // to hMin and white corresponding to hMax.
     // UV coordinates are mapped in [0,1] x [0,1].
     // We use smoothed vertex normals.
-    double dx = sizeX / (nv_x - 1);
-    double dy = sizeY / (nv_y - 1);
-    double h_scale = (hMax - hMin) / 255;
-    double x_scale = 1.0 / (nv_x - 1);
-    double y_scale = 1.0 / (nv_y - 1);
-    unsigned int n_verts = nv_x * nv_y;
-    unsigned int n_faces = 2 * (nv_x - 1) * (nv_y - 1);
 
-    // Resize mesh arrays.
-    trimesh->getCoordsVertices().resize(n_verts);
-    trimesh->getCoordsNormals().resize(n_verts);
-    trimesh->getCoordsUV().resize(n_verts);
-    trimesh->getCoordsColors().resize(n_verts);
-
-    trimesh->getIndicesVertexes().resize(n_faces);
-    trimesh->getIndicesNormals().resize(n_faces);
-
-    // Initialize the array of accumulators (number of adjacent faces to a vertex)
-    std::vector<int> accumulators(n_verts, 0);
+    auto trimesh = m_trimesh_shape->GetMesh();
+    trimesh->Clear();
 
     // Readability aliases
     std::vector<ChVector<>>& vertices = trimesh->getCoordsVertices();
     std::vector<ChVector<>>& normals = trimesh->getCoordsNormals();
+    std::vector<ChVector<>>& coordsUV = trimesh->getCoordsUV();
+    std::vector<ChVector<float>>& colors = trimesh->getCoordsColors();
     std::vector<ChVector<int>>& idx_vertices = trimesh->getIndicesVertexes();
     std::vector<ChVector<int>>& idx_normals = trimesh->getIndicesNormals();
+
+    // Resize mesh arrays.
+    unsigned int n_verts = nx * ny;
+    unsigned int n_faces = 2 * (nx - 1) * (ny - 1);
+
+    vertices.resize(n_verts);
+    normals.resize(n_verts);
+    coordsUV.resize(n_verts);
+    colors.resize(n_verts);
+
+    idx_vertices.resize(n_faces);
+    idx_normals.resize(n_faces);
+
+    // Initialize the array of accumulators (number of adjacent faces to a vertex)
+    std::vector<int> accumulators(n_verts, 0);
 
     // Load mesh vertices.
     // Note that pixels in a BMP start at top-left corner.
     // We order the vertices starting at the bottom-left corner, row after row.
     // The bottom-left corner corresponds to the point (-sizeX/2, -sizeY/2).
+    double h_scale = (hMax - hMin) / 255;
+
     unsigned int iv = 0;
-    for (int iy = nv_y - 1; iy >= 0; --iy) {
-        double y = 0.5 * sizeY - iy * dy;
-        for (int ix = 0; ix < nv_x; ++ix) {
-            double x = ix * dx - 0.5 * sizeX;
-            // Calculate equivalent gray level (RGB -> YUV)
-            ebmpBYTE red = hmap(ix, iy)->Red;
-            ebmpBYTE green = hmap(ix, iy)->Green;
-            ebmpBYTE blue = hmap(ix, iy)->Blue;
-            double gray = 0.299 * red + 0.587 * green + 0.114 * blue;
-            // Map gray level to vertex height
-            double z = hMin + gray * h_scale;
-            // Set vertex location
-            vertices[iv] = plane * ChVector<>(x, y, z);
-            // Initialize vertex normal to (0, 0, 0).
-            normals[iv] = ChVector<>(0, 0, 0);
-            // Assign color white to all vertices
-            trimesh->getCoordsColors()[iv] = ChVector<float>(1, 1, 1);
-            // Set UV coordinates in [0,1] x [0,1]
-            trimesh->getCoordsUV()[iv] = ChVector<>(ix * x_scale, iy * y_scale, 0.0);
-            ++iv;
+    for (int iy = ny - 1; iy >= 0; --iy) {                     //
+        double y = (0.5 - iy * dy) * sizeY;                    // Vertex y location
+        for (int ix = 0; ix < nx; ++ix) {                      //
+            double x = (ix * dx - 0.5) * sizeX;                // Vertex x location
+            double z = hMin + G(ix, iy) * h_scale;             // Map gray level to vertex height
+            vertices[iv] = plane * ChVector<>(x, y, z);        // Set vertex location
+            normals[iv] = ChVector<>(0, 0, 0);                 // Initialize vertex normal to (0, 0, 0)
+            colors[iv] = ChVector<float>(1, 1, 1);             // Assign color white to all vertices
+            coordsUV[iv] = ChVector<>(ix * dx, iy * dy, 0.0);  // Set UV coordinates in [0,1] x [0,1]
+            ++iv;                                              //
         }
     }
 
@@ -443,14 +480,14 @@ void SCMDeformableSoil::Initialize(const std::string& heightmap_file,
     // Specify the face vertices counter-clockwise.
     // Set the normal indices same as the vertex indices.
     unsigned int it = 0;
-    for (int iy = nv_y - 2; iy >= 0; --iy) {
-        for (int ix = 0; ix < nv_x - 1; ++ix) {
-            int v0 = ix + nv_x * iy;
-            idx_vertices[it] = ChVector<int>(v0, v0 + nv_x + 1, v0 + nv_x);
-            idx_normals[it] = ChVector<int>(v0, v0 + nv_x + 1, v0 + nv_x);
+    for (int iy = ny - 2; iy >= 0; --iy) {
+        for (int ix = 0; ix < nx - 1; ++ix) {
+            int v0 = ix + nx * iy;
+            idx_vertices[it] = ChVector<int>(v0, v0 + nx + 1, v0 + nx);
+            idx_normals[it] = ChVector<int>(v0, v0 + nx + 1, v0 + nx);
             ++it;
-            idx_vertices[it] = ChVector<int>(v0, v0 + 1, v0 + nv_x + 1);
-            idx_normals[it] = ChVector<int>(v0, v0 + 1, v0 + nv_x + 1);
+            idx_vertices[it] = ChVector<int>(v0, v0 + 1, v0 + nx + 1);
+            idx_normals[it] = ChVector<int>(v0, v0 + 1, v0 + nx + 1);
             ++it;
         }
     }
@@ -478,6 +515,12 @@ void SCMDeformableSoil::Initialize(const std::string& heightmap_file,
 
     // Precompute aux. topology data structures for the mesh, aux. material data, etc.
     SetupAuxData();
+}
+
+// Return the terrain height at the specified location
+double SCMDeformableSoil::GetHeight(const ChVector<>& loc) const {
+    //// TODO
+    return 0;
 }
 
 // Set up auxiliary data structures.
@@ -1209,7 +1252,7 @@ void SCMDeformableSoil::ComputeInternalForces() {
                     if (p_erosion[iv] == true)
                         mcolor = ChColor(1, 1, 1);
                     if (p_id_island[iv] > 0)
-                        mcolor = ChColor::ComputeFalseColor(4 + (p_id_island[iv] % 8), 0, 12);
+                        mcolor = ChColor::ComputeFalseColor(4.0 + (p_id_island[iv] % 8), 0.0, 12.0);
                     if (p_id_island[iv] < 0)
                         mcolor = ChColor(0, 0, 0);
                     break;
