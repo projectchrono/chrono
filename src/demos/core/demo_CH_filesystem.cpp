@@ -13,13 +13,13 @@
 // =============================================================================
 //
 // Demo for using the third-party library 'filesystem' for file and directory
-// operations.  
+// operations.
 // Note that the version distributed with Chrono includes some  extensions:
 //   path::stem
 //        extracts the stem (basename) for a file, by stripping extension
 //        from the filename.
 //   create_subdirectory
-//        utility function for creating a hierarchy of nested directories, 
+//        utility function for creating a hierarchy of nested directories,
 //        creating all intermediate subdirectories as needed.
 //
 // =============================================================================
@@ -45,43 +45,46 @@ int main(int argc, char** argv) {
 
     cout << path1.exists() << endl;
     cout << path1 << endl;
-    cout << (path1/path2) << endl;
-    cout << (path1/path2).parent_path() << endl;
-    cout << (path1/path2).parent_path().parent_path() << endl;
-    cout << (path1/path2).parent_path().parent_path().parent_path() << endl;
-    cout << (path1/path2).parent_path().parent_path().parent_path().parent_path() << endl;
+    cout << (path1 / path2) << endl;
+    cout << (path1 / path2).parent_path() << endl;
+    cout << (path1 / path2).parent_path().parent_path() << endl;
+    cout << (path1 / path2).parent_path().parent_path().parent_path() << endl;
+    cout << (path1 / path2).parent_path().parent_path().parent_path().parent_path() << endl;
     cout << path().parent_path() << endl;
-
-    // Absolute path of current directory 
     cout << endl;
+
+    // Absolute path of current directory
     cout << "Current directory = " << path(".").make_absolute() << endl;
+    cout << endl;
 
     // Create output directory and output file
     std::string out_dir = GetChronoOutputPath() + "DEMO_FILESYSTEM";
     std::string out_file = out_dir + "/foo.txt";
-    bool out_dir_exists = path(out_dir).exists();
-    if (out_dir_exists) {
-        cout << "Output directory already exists" << endl;
-    } else if (create_directory(path(out_dir))) {
-        cout << "Create directory = " << path(out_dir).make_absolute() << endl;
+
+    cout << "Create output directory;  out_dir = " << out_dir << endl;
+    cout << "  out_dir exists? " << path(out_dir).exists() << endl;
+    if (create_directory(path(out_dir))) {
+        cout << "  ...Created output directory" << endl;
     } else {
-        cout << "Error creating output directory" << endl;
+        cout << "  ...Error creating output directory" << endl;
         return 1;
     }
-    cout << "Output directory exists = " << path(out_dir).exists() << endl;
-    cout << "             dir name: " << out_dir << endl;
-    cout << "          path of dir: " << path(out_dir) << endl;
-    cout << "     abs. path of dir: " << path(out_dir).make_absolute() << endl;
+    cout << "  out_dir exists? " << path(out_dir).exists() << endl;
+    cout << "  out_dir is directory? " << path(out_dir).is_directory() << endl;
+    cout << "  path of out_dir: " << path(out_dir) << endl;
+    cout << "  abs. path of out_dir: " << path(out_dir).make_absolute() << endl;
+    cout << endl;
 
-    cout << "Create output file" << endl;
-    cout << "            file name: " << out_file << endl;
-    cout << "         path of file: " << path(out_file) << endl;
-    cout << "    abs. path of file: " << path(out_file).make_absolute() << endl;
+    cout << "Create output file;  out_file = " << out_file << endl;
+    cout << "  out_file exists? " << path(out_file).exists() << endl;
     utils::CSV_writer csv(",");
     csv << ChVector<>(1, 2, 3) << ChQuaternion<>(1, 0, 0, 0) << endl;
     csv.write_to_file(out_file);
-    cout << "Output file exists = " << path(out_file).exists() << endl;
-    cout << "Output file is file = " << path(out_file).is_file() << endl;
+    cout << "  ...Created output file" << endl;
+    cout << "  out_file exists? " << path(out_file).exists() << endl;
+    cout << "  out_file is file? " << path(out_file).is_file() << endl;
+    cout << "  path of out_file: " << path(out_file) << endl;
+    cout << "  abs. path of out_file: " << path(out_file).make_absolute() << endl;
     cout << endl;
 
     // Create hierarchy of nested directories
@@ -90,13 +93,20 @@ int main(int argc, char** argv) {
 #else
     std::string nested = out_dir + "/child/grandchild";
 #endif
-    cout << "nested (as string) = " << nested << endl;
-    cout << "nested (as path)   = " << path(nested) << endl;
-    cout << "length of nested   = " << path(nested).length() << endl;
-    if (create_subdirectory(path(nested)))
-        cout << "created nested subdirectories" << endl;
-    else
-        cout << "Error creating subdirectories" << endl;
+    cout << "Create nested directories;  nested = " << nested << endl;
+    cout << "  nested (as path)   = " << path(nested) << endl;
+    cout << "  length of nested   = " << path(nested).length() << endl;
+    cout << "  nested exists? " << path(nested).exists() << endl;
+    if (create_subdirectory(path(nested))) {
+        cout << "  ...Created nested subdirectories" << endl;
+    } else {
+        cout << "  ...Error creating subdirectories" << endl;
+        return 1;
+    }
+    cout << "  nested exists? " << path(nested).exists() << endl;
+    cout << "  nested is directory? " << path(nested).is_directory() << endl;
+    cout << "  path of nested: " << path(nested) << endl;
+    cout << "  abs. path of nested: " << path(nested).make_absolute() << endl;
     cout << endl;
 
     // Other tests
