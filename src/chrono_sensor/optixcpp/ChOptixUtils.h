@@ -36,36 +36,94 @@
 namespace chrono {
 namespace sensor {
 
+/// @addtogroup sensor_optix
+/// @{
+
+/// holds string values for ptx file and ray generation program 
 struct ProgramString {
     std::string file_name;
     std::string program_name;
 };
 
+/// stores image data
 struct ByteImageData {
-    int w;
-    int h;
+    /// image width
+    int w; 
+    /// image height
+    int h; 
+    ///
     int c;
-    std::vector<unsigned char> data;
+    /// image pixel valules
+    std::vector<unsigned char> data; 
 };
-
+/// launches ray generation program  
+/// @param context optix context
+/// @param file_name the .cu file where the RT program is implemented
+/// @param program_name RT program
 CH_SENSOR_API optix::Program GetRTProgram(optix::Context context, std::string file_name, std::string program_name);
 
+/// loads image to struct ByteImageData, returns an empty struct with 0 values if loading failed
+/// @param filename
 ByteImageData LoadImage(std::string filename);
 
+/// creates an empty optix transform::node
+/// @param context the optix context
 optix::Transform CreateEmptyTransform(optix::Context contex);
+
+/// creates an opti::transform node
+/// @param context optix context
+/// @param a projection matrix
+/// @param b
 optix::Transform CreateTransform(optix::Context context, ChMatrix33<double> a, ChVector<double> b);
+
+/// creates an optix::transform node
+/// @param context optix context
+/// @param a  projection matrix
+/// @param b
+/// @param s
+/// @return an optix::transform
 optix::Transform CreateTransform(optix::Context context, ChMatrix33<double> a, ChVector<double> b, ChVector<double> s);
+
+/// creatse an optix::transform node based on end points 
+/// @param context optix context
+/// @param a projection matrix
+/// @param b
+/// @param from
+/// @return an optix::transform
 optix::Transform CreateTransformFromEndPoints(optix::Context context, ChVector<> a, ChVector<> b, ChVector<> from);
+
+/// creatse an optix::transform node based on end points
+/// @param context optix context
+/// @param a projection matrix
+/// @param b
+/// @param from
+/// @param s
+/// @return an optix::transform 
 optix::Transform CreateTransformFromEndPoints(optix::Context context,
                                               ChVector<> a,
                                               ChVector<> b,
                                               ChVector<> from,
                                               ChVector<double> s);
+
+/// updates the projection matrix in the optix::transform object 
+/// @param t optix transform object
+/// @param a projection matrix
+/// @param b
 void UpdateTransform(optix::Transform t, ChMatrix33<double> a, ChVector<double> b);
+
+/// updates the projection matrix in the optix::transform object
+/// @param t optix tranform object
+/// @param a projection matrix
+/// @param b
+/// @param s
 void UpdateTransform(optix::Transform t, ChMatrix33<double> a, ChVector<double> b, ChVector<double> s);
 
+/// prefix for ptx file
 const std::string ptx_pre = "ChronoEngine_sensor_generated_";
+/// suffix for ptx file
 const std::string ptx_suff = ".cu.ptx";
+
+/// @}
 
 }  // namespace sensor
 }  // namespace chrono
