@@ -70,7 +70,6 @@
 #include "chrono_sensor/ChSensorManager.h"
 #include "chrono_sensor/ChSensorBuffer.h"
 #include "chrono_sensor/scene/ChScene.h"
-#include "chrono_sensor/scene/ChWeather.h"
 /// FILTERS
 #include "chrono_sensor/filters/ChFilter.h"
 #include "chrono_sensor/filters/ChFilterAccess.h"
@@ -275,7 +274,6 @@ using namespace chrono::sensor;
 %include "chrono_sensor/filters/ChFilterImageOps.h"
 
 %include "chrono_sensor/scene/ChScene.h"
-%include "chrono_sensor/scene/ChWeather.h"
 
 %include "chrono_sensor/ChSensor.h"
 %include "chrono_sensor/ChOptixSensor.h"

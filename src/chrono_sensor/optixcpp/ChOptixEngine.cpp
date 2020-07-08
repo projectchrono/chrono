@@ -833,7 +833,13 @@ void ChOptixEngine::ConstructScene() {
         m_root->removeChild(0);
     }
 
+    // clear all the old bodies
     m_bodies.clear();
+
+    // clear all the old keyframes for bodies and cameras (sensors)
+    m_keyframes.clear();
+    m_camera_keyframes.clear();
+
     // create the programs for each geometry -> TODO: refactor so only only one instance of a geometry or material
     // is made
 

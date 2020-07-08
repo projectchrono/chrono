@@ -250,7 +250,6 @@ set(ChronoEngine_sensor_SCENE_SOURCES
 )
 set(ChronoEngine_sensor_SCENE_HEADERS
     scene/ChScene.h
-    scene/ChWeather.h
     scene/lights.h
 )
 

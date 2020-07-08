@@ -28,7 +28,6 @@
 #include "chrono/physics/ChBody.h"
 
 #include "chrono_sensor/ChApiSensor.h"
-#include "chrono_sensor/scene/ChWeather.h"
 #include "chrono_sensor/scene/lights.h"
 
 namespace chrono {
@@ -53,19 +52,19 @@ struct Background {
     bool has_changed;
 };
 
-struct Keyframe {
-    // float sim_time;     // simulation time of the frame
-    // SceneBody* bodies;  // list of body positions
-
-    // Snow snow;                // state of the snow
-    // Rain rain;                // state of the rain
-    // Fog fog;                  // state of the fog
-    // Wind wind;                // state of the wind
-    // Temperature temperature;  // state of the temperature
-    // SunSky sunsky;            // state of the sky
-
-    std::vector<PointLight> pointlights;  // list of point lights for that keyframe
-};
+// struct Keyframe {
+//     // float sim_time;     // simulation time of the frame
+//     // SceneBody* bodies;  // list of body positions
+//
+//     // Snow snow;                // state of the snow
+//     // Rain rain;                // state of the rain
+//     // Fog fog;                  // state of the fog
+//     // Wind wind;                // state of the wind
+//     // Temperature temperature;  // state of the temperature
+//     // SunSky sunsky;            // state of the sky
+//
+//     std::vector<PointLight> pointlights;  // list of point lights for that keyframe
+// };
 
 class CH_SENSOR_API ChScene {
   public:
@@ -87,11 +86,11 @@ class CH_SENSOR_API ChScene {
 
     Background& GetBackground() { return m_background; }
 
-    bool SetMaxKeyframes(int num_frames);
-    int GetMaxKeyframes() { return max_keyframes; }
-
-    void PackFrame(ChSystem* pSystem);        // saves the keyframe with the current states of the scene
-    std::deque<Keyframe> GetKeyframesCopy();  // return a copy of the keyframes (is or will be threadsafe)
+    // bool SetMaxKeyframes(int num_frames);
+    // int GetMaxKeyframes() { return max_keyframes; }
+    //
+    // void PackFrame(ChSystem* pSystem);        // saves the keyframe with the current states of the scene
+    // std::deque<Keyframe> GetKeyframesCopy();  // return a copy of the keyframes (is or will be threadsafe)
 
   private:
     // TimeDate m_timedate;
@@ -102,10 +101,10 @@ class CH_SENSOR_API ChScene {
     // Wind m_wind;
     // Fog m_fog;
 
-    int max_keyframes = 10;
-    Keyframe m_current_frame;
-    std::deque<Keyframe> m_keyframes;
-    std::mutex keyframe_mutex;
+    // int max_keyframes = 10;
+    // Keyframe m_current_frame;
+    // std::deque<Keyframe> m_keyframes;
+    // std::mutex keyframe_mutex;
 
     std::vector<PointLight> m_pointlights;  // list of point lights for that keyframe
     Background m_background;
