@@ -351,6 +351,8 @@ void SCMDeformableSoil::Initialize(double height, double sizeX, double sizeY, in
 
     // Precompute aux. topology data structures for the mesh, aux. material data, etc.
     SetupAuxData();
+
+    m_type = PatchType::BOX;
 }
 
 // Initialize the terrain from a specified .obj mesh file.
@@ -360,6 +362,8 @@ void SCMDeformableSoil::Initialize(const std::string& mesh_file) {
 
     // Precompute aux. topology data structures for the mesh, aux. material data, etc.
     SetupAuxData();
+
+    m_type = PatchType::MESH;
 }
 
 // Initialize the terrain from a specified height map.
@@ -519,6 +523,8 @@ void SCMDeformableSoil::Initialize(const std::string& heightmap_file,
 
     // Precompute aux. topology data structures for the mesh, aux. material data, etc.
     SetupAuxData();
+
+    m_type = PatchType::HEIGHT_MAP;
 
     ////std::vector<geometry::ChTriangleMeshConnected> meshes = {*trimesh};
     ////trimesh->WriteWavefront("foo.obj", meshes);

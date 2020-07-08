@@ -213,10 +213,10 @@ class CH_VEHICLE_API SCMDeformableTerrain : public ChTerrain {
     );
 
     /// Initialize the terrain system (height map).
-    /// The initial undeformed mesh is provided via the specified BMP file as a height map.
-    /// By default, a mesh vertex is created for each pixel in the BMP image. If divX and divY are non-zero,
-    /// the BMP image will be sampled at the specified resolution with linear interpolation as needed.
-    void Initialize(const std::string& heightmap_file,  ///< [in] filename for the height map (BMP)
+    /// The initial undeformed mesh is provided via the specified image file as a height map.
+    /// By default, a mesh vertex is created for each pixel in the image. If divX and divY are non-zero,
+    /// the image will be sampled at the specified resolution with linear interpolation as needed.
+    void Initialize(const std::string& heightmap_file,  ///< [in] filename for the height map (image file)
                     const std::string& mesh_name,       ///< [in] name of the mesh asset
                     double sizeX,                       ///< [in] terrain dimension in the X direction
                     double sizeY,                       ///< [in] terrain dimension in the Y direction
@@ -258,10 +258,10 @@ class CH_VEHICLE_API SCMDeformableSoil : public ChLoadContainer {
     );
 
     /// Initialize the terrain system (height map).
-    /// The initial undeformed mesh is provided via the specified BMP file as a height map
-    /// By default, a mesh vertex is created for each pixel in the BMP image. If divX and divY are non-zero,
-    /// the BMP image will be sampled at the specified resolution with linear interpolation as needed.
-    void Initialize(const std::string& heightmap_file,  ///< [in] filename for the height map (BMP)
+    /// The initial undeformed mesh is provided via the specified image file as a height map
+    /// By default, a mesh vertex is created for each pixel in the image. If divX and divY are non-zero,
+    /// the image will be sampled at the specified resolution with linear interpolation as needed.
+    void Initialize(const std::string& heightmap_file,  ///< [in] filename for the height map (image file)
                     const std::string& mesh_name,       ///< [in] name of the mesh asset
                     double sizeX,                       ///< [in] terrain dimension in the X direction
                     double sizeY,                       ///< [in] terrain dimension in the Y direction
@@ -272,6 +272,13 @@ class CH_VEHICLE_API SCMDeformableSoil : public ChLoadContainer {
     );
 
   private:
+    /// Patch type.
+    enum class PatchType {
+        BOX,        ///< rectangular box
+        MESH,       ///< triangular mesh (from a Wavefront OBJ file)
+        HEIGHT_MAP  ///< triangular mesh (generated from a gray-scale image height-map)
+    };
+
     // Get the terrain height below the specified location.
     double GetHeight(const ChVector<>& loc) const;
 
@@ -348,6 +355,7 @@ class CH_VEHICLE_API SCMDeformableSoil : public ChLoadContainer {
     double plot_v_max;
 
     ChCoordsys<> plane;
+    PatchType m_type;
 
     // aux. topology data
     std::vector<std::set<int>> connected_vertexes;
