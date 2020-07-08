@@ -27,7 +27,7 @@
 #include "chrono/assets/ChBoxShape.h"
 #include "chrono/core/ChMatrix33.h"
 
-#include "chrono_thirdparty/nothings/stb_image.h"
+#include "chrono_thirdparty/stb/stb_image.h"
 
 #include <string>
 
@@ -39,7 +39,7 @@ namespace sensor {
 /// @addtogroup sensor_optix
 /// @{
 
-/// holds string values for ptx file and ray generation program 
+/// holds string values for ptx file and ray generation program
 struct ProgramString {
     std::string file_name;
     std::string program_name;
@@ -48,15 +48,15 @@ struct ProgramString {
 /// stores image data
 struct ByteImageData {
     /// image width
-    int w; 
+    int w;
     /// image height
-    int h; 
+    int h;
     ///
     int c;
     /// image pixel valules
-    std::vector<unsigned char> data; 
+    std::vector<unsigned char> data;
 };
-/// launches ray generation program  
+/// launches ray generation program
 /// @param context optix context
 /// @param file_name the .cu file where the RT program is implemented
 /// @param program_name RT program
@@ -84,7 +84,7 @@ optix::Transform CreateTransform(optix::Context context, ChMatrix33<double> a, C
 /// @return an optix::transform
 optix::Transform CreateTransform(optix::Context context, ChMatrix33<double> a, ChVector<double> b, ChVector<double> s);
 
-/// creatse an optix::transform node based on end points 
+/// creatse an optix::transform node based on end points
 /// @param context optix context
 /// @param a projection matrix
 /// @param b
@@ -98,14 +98,14 @@ optix::Transform CreateTransformFromEndPoints(optix::Context context, ChVector<>
 /// @param b
 /// @param from
 /// @param s
-/// @return an optix::transform 
+/// @return an optix::transform
 optix::Transform CreateTransformFromEndPoints(optix::Context context,
                                               ChVector<> a,
                                               ChVector<> b,
                                               ChVector<> from,
                                               ChVector<double> s);
 
-/// updates the projection matrix in the optix::transform object 
+/// updates the projection matrix in the optix::transform object
 /// @param t optix transform object
 /// @param a projection matrix
 /// @param b

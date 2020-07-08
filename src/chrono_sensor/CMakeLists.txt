@@ -223,8 +223,6 @@ set(ChronoEngine_sensor_SOURCES
     ChSensorManager.cpp
     ChDynamicsManager.cpp
     Sensor.cpp
-    ../chrono_thirdparty/nothings/stb_image.cpp
-    ../chrono_thirdparty/nothings/stb_image_write.cpp
 )
 set(ChronoEngine_sensor_HEADERS
   	ChApiSensor.h
@@ -237,8 +235,6 @@ set(ChronoEngine_sensor_HEADERS
     ChDynamicsManager.h
   	ChSensorBuffer.h
     Sensor.h
-    ../chrono_thirdparty/nothings/stb_image.h
-    ../chrono_thirdparty/nothings/stb_image_write.h
 )
 
 source_group("Source" FILES
@@ -363,6 +359,16 @@ source_group(Utils FILES
   	${ChronoEngine_sensor_UTILS_HEADERS}
 )
 
+set(SENSOR_STB_FILES
+    ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/stb/stb.h
+    ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/stb/stb_image.h
+    ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/stb/stb_image.cpp
+    ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/stb/stb_image_write.h
+    ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/stb/stb_image_write.cpp
+)
+source_group("utils\\stb" FILES ${SENSOR_STB_FILES})
+
+
 #-----------------------------------------------------------------------------
 # Create the ChronoEngine_sensor library
 #-----------------------------------------------------------------------------
@@ -396,6 +402,7 @@ list(APPEND ALL_CH_SENSOR_FILES ${ChronoEngine_sensor_FILTERS_SOURCES})
 list(APPEND ALL_CH_SENSOR_FILES ${ChronoEngine_sensor_FILTERS_HEADERS})
 list(APPEND ALL_CH_SENSOR_FILES ${ChronoEngine_sensor_SCENE_SOURCES})
 list(APPEND ALL_CH_SENSOR_FILES ${ChronoEngine_sensor_SCENE_HEADERS})
+list(APPEND ALL_CH_SENSOR_FILES ${SENSOR_STB_FILES})
 
 list(APPEND ALL_CH_SENSOR_FILES ${generated_obj_files})
 

@@ -18,7 +18,7 @@
 #include "chrono_sensor/filters/ChFilterSave.h"
 #include "chrono_sensor/ChSensor.h"
 
-#include "chrono_thirdparty/nothings/stb_image_write.h"
+#include "chrono_thirdparty/stb/stb_image_write.h"
 #include "chrono_thirdparty/filesystem/path.h"
 
 #include <vector>
