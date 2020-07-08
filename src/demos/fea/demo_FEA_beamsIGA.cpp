@@ -86,7 +86,6 @@ void MakeAndRunDemo0(ChIrrApp& myapp) {
 		);
 
 
-	// Example A.  
 	// Create an IGA beam using a low-level approach, i.e.
 	// creating all elements and nodes one after the other:
 
@@ -283,7 +282,7 @@ void MakeAndRunDemo2(ChIrrApp& myapp) {
 	// To simplify things, use ChBeamSectionCosseratEasyRectangular:
 
 	double beam_wy = 0.012;
-	double beam_wz = 0.025;
+	double beam_wz = 0.032;
 
 	auto msection = chrono_types::make_shared<ChBeamSectionCosseratEasyRectangular>(
 		beam_wy,			// width of section in y direction
@@ -293,6 +292,19 @@ void MakeAndRunDemo2(ChIrrApp& myapp) {
 		1000			    // density
 		);
 
+	// Note: we can add a ChBeamShape component to the section, and that can
+	// provide the shape for the visualization of the beam. Note that the visualization
+	// shape does not have to match to the physical properties (that in this example are those of a rectangular section)
+	std::vector< std::vector< ChVector<> > > polyline_points =
+	{
+		{{0, 0.00, 0.02}, {0, 0.01, -0.02}, {0, 0.00, -0.025}, {0, -0.01, -0.025}}, // upper profile, with 4 xyz points
+		{{0, -0.01, -0.025}, {0, -0.01,  0.00}, {0, 0.00, 0.02}} // lower profile, with 3 xyz points. Note x=0, always.
+	};
+	auto msection_drawshape = chrono_types::make_shared<ChBeamSectionShapePolyline>(polyline_points);
+	msection->SetDrawShape(msection_drawshape);
+
+	// Use the ChBuilderBeamIGA tool for creating a curved rod 
+	// from a B-Spline
 
 	ChBuilderBeamIGA builderR;
 
@@ -723,7 +735,7 @@ int main(int argc, char* argv[]) {
     // Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
     application.AddTypicalLogo();
     application.AddTypicalSky();
-    application.AddTypicalLights();
+    application.AddTypicalLights(irr::core::vector3df(30.f, 100.f, 30.f), irr::core::vector3df(30.f, 80.f, -30.f),180,190,irr::video::SColorf(0.5f, 0.5f, 0.5f, 1.0f),irr::video::SColorf(0.2f, 0.3f, 0.4f, 1.0f));
     application.AddTypicalCamera(core::vector3df(-0.1f, 0.2f, -0.2f));
 
 	// This is for GUI tweaking of system parameters..

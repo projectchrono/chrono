@@ -1070,8 +1070,6 @@ void ChBody::ArchiveOUT(ChArchiveOut& marchive) {
     marchive << CHNVP(Xtorque);
     // marchive << CHNVP(Force_acc); // not useful in serialization
     // marchive << CHNVP(Torque_acc);// not useful in serialization
-    // marchive << CHNVP(Scr_force); // not useful in serialization
-    // marchive << CHNVP(Scr_torque);// not useful in serialization
     marchive << CHNVP(density);
     marchive << CHNVP(variables);
     marchive << CHNVP(max_speed);
@@ -1131,8 +1129,6 @@ void ChBody::ArchiveIN(ChArchiveIn& marchive) {
     marchive >> CHNVP(Xtorque);
     // marchive << CHNVP(Force_acc); // not useful in serialization
     // marchive << CHNVP(Torque_acc);// not useful in serialization
-    // marchive << CHNVP(Scr_force); // not useful in serialization
-    // marchive << CHNVP(Scr_torque);// not useful in serialization
     marchive >> CHNVP(density);
     marchive >> CHNVP(variables);
     marchive >> CHNVP(max_speed);

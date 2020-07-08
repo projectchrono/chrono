@@ -19,12 +19,12 @@
 
 namespace chrono {
 
-/// Class for rotational spring-damper systems with the torque specified through a
-/// functor object.
-/// It is ASSUMED that the two bodies are joined such that they have a rotational
-/// degree of freedom about the z axis of the specified link reference frame (i.e.,
-/// they are connected through a revolute, cylindrical, or screw joint). The
-/// relative angle and relative angular speed of this link are about the common axis.
+/// Class for rotational spring-damper elements with the torque specified through a callback object.
+/// The torque is applied in the current direction of the relative axis of rotation.
+/// While a rotational spring-damper can be associated with any pair of bodies in the system, it is
+/// typically used in cases where the mechanism kinematics are such that the two bodies have a single
+/// relative rotational degree of freedom (e.g, between two bodies connected through a revolute,
+/// cylindrical, or screw joint). 
 class ChApi ChLinkRotSpringCB : public ChLinkMarkers {
 
   public:
@@ -35,8 +35,11 @@ class ChApi ChLinkRotSpringCB : public ChLinkMarkers {
     /// "Virtual" copy constructor (covariant return type).
     virtual ChLinkRotSpringCB* Clone() const override { return new ChLinkRotSpringCB(*this); }
 
-    /// Get the current relative angle about the common rotation axis.
+    /// Get the current rotation angle about the relative rotation axis.
     double GetRotSpringAngle() const { return relAngle; }
+
+    /// Get the current relative axis of rotation.
+    const ChVector<>& GetRotSpringAxis() const { return relAxis; }
 
     /// Get the current relative angular speed about the common rotation axis.
     double GetRotSpringSpeed() const { return Vdot(relWvel, relAxis); }
@@ -44,7 +47,7 @@ class ChApi ChLinkRotSpringCB : public ChLinkMarkers {
     /// Get the current generated torque.
     double GetRotSpringTorque() const { return m_torque; }
 
-    /// Class to be used as a functor interface for calculating the general spring-damper torque.
+    /// Class to be used as a callback interface for calculating the general spring-damper torque.
     /// A derived class must implement the virtual operator().
     class ChApi TorqueFunctor {
       public:
@@ -58,11 +61,8 @@ class ChApi ChLinkRotSpringCB : public ChLinkMarkers {
                                   ) = 0;
     };
 
-    /// Specify the functor object for calculating the torque.
+    /// Specify the callback object for calculating the torque.
     void RegisterTorqueFunctor(std::shared_ptr<TorqueFunctor> functor) { m_torque_fun = functor; }
-
-    /// Include the rotational spring custom torque.
-    virtual void UpdateForces(double time) override;
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOUT(ChArchiveOut& marchive) override;
@@ -71,6 +71,9 @@ class ChApi ChLinkRotSpringCB : public ChLinkMarkers {
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
 
   protected:
+    /// Include the rotational spring-damper custom torque.
+    virtual void UpdateForces(double time) override;
+
     std::shared_ptr<TorqueFunctor> m_torque_fun;  ///< functor for torque calculation
     double m_torque;                              ///< resulting torque along relative axis of rotation
 };

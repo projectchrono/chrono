@@ -576,7 +576,6 @@ void ChMeshFileLoader::ANCFShellFromGMFFile(std::shared_ptr<ChMesh> mesh,
                 if (ntoken != 3)
                     throw ChException("ERROR in .mesh file, Edges require 3 node IDs, see line:\n" + line + "\n");
 
-                std:;
                 std::getline(fin, line);
             }
         }

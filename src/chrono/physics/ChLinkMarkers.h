@@ -49,8 +49,6 @@ class ChApi ChLinkMarkers : public ChLink {
     double dist;            ///< the distance between the two origins of markers,
     double dist_dt;         ///< the speed between the two  origins of markers
 
-    ChVector<> Scr_force;   ///< internal force  set by script only (just added to C_force)
-    ChVector<> Scr_torque;  ///< internal torque set by script only (just added to C_force)
     ChVector<> C_force;     ///< internal force  applied by springs/dampers/actuators
     ChVector<> C_torque;    ///< internal torque applied by springs/dampers/actuators
 
@@ -192,14 +190,6 @@ class ChApi ChLinkMarkers : public ChLink {
     double GetDist() const { return dist; }
     /// Relative speed of marker 1 respect to marker 2, along the polar distance vector.
     double GetDist_dt() const { return dist_dt; }
-
-    /// To get & set the 'script' force buffers(only accessed by
-    /// external scripts, so it's up to the script to remember
-    /// to set& reset them -link class just add them to C_force etc.
-    const ChVector<>& Get_Scr_force() const { return Scr_force; }
-    const ChVector<>& Get_Scr_torque() const { return Scr_torque; }
-    void Set_Scr_force(const ChVector<>& mf) { Scr_force = mf; }
-    void Set_Scr_torque(const ChVector<>& mf) { Scr_torque = mf; }
 
     /// Get the total applied force accumulators (force, momentum) in link coords.
     /// These forces might be affected by additional springs, dampers, etc. but they do not

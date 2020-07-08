@@ -96,7 +96,7 @@ if solver.GetType()==chrono.ChSolver.Type_SPARSE_QR:
 	solver.LockSparsityPattern(True)
 	solver.SetVerbose(False)
 
-if solver.GetType()== chrono.ChSolver.Type_MINRES :
+elif solver.GetType()== chrono.ChSolver.Type_MINRES :
 	print( "Using MINRES solver" )
 	my_system.SetSolver(solver)
 	solver.SetMaxIterations(200)

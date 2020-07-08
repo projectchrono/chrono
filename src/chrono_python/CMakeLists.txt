@@ -88,8 +88,9 @@ include(${SWIG_USE_FILE})
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
   set(CMAKE_CXX_FLAGS_DEBUG   "${CMAKE_CXX_FLAGS_DEBUG}   /bigobj")
   set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /bigobj")
+  set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} /bigobj")
 endif()
-
+ 
 # Set location of SWIG-generated files.
 # Note that *.py files are also generated in this location.
 set(CMAKE_SWIG_OUTDIR "${PROJECT_BINARY_DIR}/swig")

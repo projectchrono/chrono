@@ -27,7 +27,6 @@ import pychrono.irrlicht as chronoirr
 # ----------------------------------------------------------------------------
 class Model1:
     def __init__(self, system, mesh):
-        self.body = chrono.ChBodyEasyBox() 
         beam_L = 0.1
         beam_diameter = 0.015
 
@@ -61,16 +60,16 @@ class Model1:
 
         # Add a rigid body connected to the end of the beam:
 
-        body = chrono.ChBodyEasyBox(0.1, 0.02, 0.02, 1000)
-        body.SetPos(hnodeancf2.GetPos() + chrono.ChVectorD(0.05, 0, 0))
-        system.Add(body)
+        self.body = chrono.ChBodyEasyBox(0.1, 0.02, 0.02, 1000)
+        self.body.SetPos(hnodeancf2.GetPos() + chrono.ChVectorD(0.05, 0, 0))
+        system.Add(self.body)
 
-        constraint_pos = chrono.ChLinkPointFrame()
-        constraint_pos.Initialize(hnodeancf2, body)
+        constraint_pos = fea.ChLinkPointFrame()
+        constraint_pos.Initialize(hnodeancf2, self.body)
         system.Add(constraint_pos)
 
-        constraint_dir = chrono.ChLinkDirFrame()
-        constraint_dir.Initialize(hnodeancf2, body)
+        constraint_dir = fea.ChLinkDirFrame()
+        constraint_dir.Initialize(hnodeancf2, self.body)
         constraint_dir.SetDirectionInAbsoluteCoords(chrono.ChVectorD(1, 0, 0))
         system.Add(constraint_dir)
         
@@ -85,7 +84,7 @@ class Model1:
 # This model demonstrates the use of the utility class ChBuilderCableANCF.
 # ----------------------------------------------------------------------------
 class Model2 :
-    def __init__(system, mesh):
+    def __init__(self, system, mesh):
         # Create a section, i.e. thickness and material properties
         # for beams. This will be shared among some beams.
 
@@ -117,7 +116,7 @@ class Model2 :
         mtruss = chrono.ChBody()
         mtruss.SetBodyFixed(True)
 
-        constraint_hinge = chrono.ChLinkPointFrame()
+        constraint_hinge = fea.ChLinkPointFrame()
         constraint_hinge.Initialize(builder.GetLastBeamNodes().back(), mtruss)
         system.Add(constraint_hinge)
 

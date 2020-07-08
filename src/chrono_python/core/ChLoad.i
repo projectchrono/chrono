@@ -46,6 +46,12 @@
 %shared_ptr(chrono::ChLoadXYZnodeBodySpring)
 %shared_ptr(chrono::ChLoadXYZnodeBodyBushing)
 
+// The user might inherit and construct ChLoadCustom
+%feature("director") chrono::ChLoadBase;
+%feature("director") chrono::ChLoadCustom;
+//%ignore chrono::ChLoadBase::Clone;
+%ignore chrono::ChLoadCustomMultiple::ComputeJacobian;
+
 // Tell SWIG about parent class in Python
 %import "chrono_python/core/ChPhysicsItem.i"
 %import "chrono_python/core/ChObject.i"
@@ -53,7 +59,7 @@
 /* Parse the header file to generate wrappers */
 %ignore chrono::ChLoadBase::ComputeJacobian;
 %ignore chrono::ChLoadCustom::ComputeJacobian;
-%ignore chrono::ChLoadCustomMultiple::ComputeJacobian;
+%ignore chrono::ChLoadCustom::Clone;
 %include "../chrono/physics/ChLoad.h"
 
 %template(LoadLoaderXYZnode) chrono::ChLoad< chrono::ChLoaderXYZnode>;
