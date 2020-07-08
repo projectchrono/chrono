@@ -31,7 +31,7 @@
 #include "chrono_vehicle/ChWorldFrame.h"
 #include "chrono_vehicle/terrain/SCMDeformableTerrain.h"
 
-#include "chrono_thirdparty/Easy_BMP/EasyBMP.h"
+#include "chrono_thirdparty/stb/stb.h"
 
 namespace chrono {
 namespace vehicle {
@@ -371,52 +371,56 @@ void SCMDeformableSoil::Initialize(const std::string& heightmap_file,
                                    double hMax,
                                    int divX,
                                    int divY) {
-    // Read the BMP file and extract number of pixels.
-    BMP hmap;
-    if (!hmap.ReadFromFile(heightmap_file.c_str())) {
-        throw ChException("Cannot open height map BMP file");
+    // Read the image file (request only 1 channel) and extract number of pixels.
+    STB hmap;
+    if (!hmap.ReadFromFile(heightmap_file, 1)) {
+        throw ChException("Cannot open height map image file");
     }
-    int nx_bmp = hmap.TellWidth();
-    int ny_bmp = hmap.TellHeight();
+    int nx_img = hmap.GetWidth();
+    int ny_img = hmap.GetHeight();
 
-    double dx_bmp = 1.0 / (nx_bmp - 1.0);
-    double dy_bmp = 1.0 / (ny_bmp - 1.0);
+    ////std::cout << "image size: " << nx_img << " x " << ny_img << std::endl;
+    ////std::cout << "number channels: " << hmap.GetNumChannels() << std::endl;
+    ////std::cout << "range: " << hmap.GetRange() << std::endl;
 
-    int nx = (divX > 0) ? divX + 1 : nx_bmp;
-    int ny = (divY > 0) ? divY + 1 : ny_bmp;
+    double dx_img = 1.0 / (nx_img - 1.0);
+    double dy_img = 1.0 / (ny_img - 1.0);
+
+    int nx = (divX > 0) ? divX + 1 : nx_img;
+    int ny = (divY > 0) ? divY + 1 : ny_img;
 
     double dx = 1.0 / (nx - 1.0);
     double dy = 1.0 / (ny - 1.0);
 
-    // Resample BMP and calculate equivalent gray levels
+    // Resample image and calculate interpolated gray levels
     ChMatrixDynamic<> G(nx, ny);
     for (int ix = 0; ix < nx; ix++) {
         double x = ix * dx;                       // Vertex x location (in [0,1])
-        int jx1 = (int)std::floor(x / dx_bmp);    // Left pixel
-        int jx2 = (int)std::ceil(x / dx_bmp);     // Right pixel
-        double ax = (x - jx1 * dx_bmp) / dx_bmp;  // Scaled offset from left pixel
+        int jx1 = (int)std::floor(x / dx_img);    // Left pixel
+        int jx2 = (int)std::ceil(x / dx_img);     // Right pixel
+        double ax = (x - jx1 * dx_img) / dx_img;  // Scaled offset from left pixel
 
         assert(ax < 1.0);
-        assert(jx1 < nx_bmp);
-        assert(jx2 < nx_bmp);
+        assert(jx1 < nx_img);
+        assert(jx2 < nx_img);
         assert(jx1 <= jx2);
 
         for (int iy = 0; iy < ny; iy++) {
             double y = iy * dy;                       // Vertex y location (in [0,1])
-            int jy1 = (int)std::floor(y / dy_bmp);    // Up pixel
-            int jy2 = (int)std::ceil(y / dy_bmp);     // Down pixel
-            double ay = (y - jy1 * dy_bmp) / dy_bmp;  // Scaled offset from down pixel
+            int jy1 = (int)std::floor(y / dy_img);    // Up pixel
+            int jy2 = (int)std::ceil(y / dy_img);     // Down pixel
+            double ay = (y - jy1 * dy_img) / dy_img;  // Scaled offset from down pixel
 
             assert(ay < 1.0);
-            assert(jy1 < ny_bmp);
-            assert(jy2 < ny_bmp);
+            assert(jy1 < ny_img);
+            assert(jy2 < ny_img);
             assert(jy1 <= jy2);
 
-            // Gray levels at left-up, left-down, right-up, and right-down pixels (RGB -> YUV conversion)
-            double g11 = 0.299 * hmap(jx1, jy1)->Red + 0.587 * hmap(jx1, jy1)->Green + 0.114 * hmap(jx1, jy1)->Blue;
-            double g12 = 0.299 * hmap(jx1, jy2)->Red + 0.587 * hmap(jx1, jy2)->Green + 0.114 * hmap(jx1, jy2)->Blue;
-            double g21 = 0.299 * hmap(jx2, jy1)->Red + 0.587 * hmap(jx2, jy1)->Green + 0.114 * hmap(jx2, jy1)->Blue;
-            double g22 = 0.299 * hmap(jx2, jy2)->Red + 0.587 * hmap(jx2, jy2)->Green + 0.114 * hmap(jx2, jy2)->Blue;
+            // Gray levels at left-up, left-down, right-up, and right-down pixels
+            double g11 = hmap.Gray(jx1, jy1);
+            double g12 = hmap.Gray(jx1, jy2);
+            double g21 = hmap.Gray(jx2, jy1);
+            double g22 = hmap.Gray(jx2, jy2);
 
             // Bilinear interpolation
             G(ix, iy) = (1 - ax) * (1 - ay) * g11 + (1 - ax) * ay * g12 + ax * (1 - ay) * g21 + ax * ay * g22;
@@ -424,7 +428,7 @@ void SCMDeformableSoil::Initialize(const std::string& heightmap_file,
     }
 
     // Construct a triangular mesh of sizeX x sizeY.
-    // Usually, each pixel in the BMP represents a vertex. Otherwise, use interpolation.
+    // Usually, each pixel in the image represents a vertex. Otherwise, use interpolation.
     // The gray level of a pixel is mapped to the height range, with black corresponding
     // to hMin and white corresponding to hMax.
     // UV coordinates are mapped in [0,1] x [0,1].
@@ -457,10 +461,10 @@ void SCMDeformableSoil::Initialize(const std::string& heightmap_file,
     std::vector<int> accumulators(n_verts, 0);
 
     // Load mesh vertices.
-    // Note that pixels in a BMP start at top-left corner.
+    // Note that pixels in the image start at top-left corner.
     // We order the vertices starting at the bottom-left corner, row after row.
     // The bottom-left corner corresponds to the point (-sizeX/2, -sizeY/2).
-    double h_scale = (hMax - hMin) / 255;
+    double h_scale = (hMax - hMin) / hmap.GetRange();
 
     unsigned int iv = 0;
     for (int iy = ny - 1; iy >= 0; --iy) {                     //
@@ -515,6 +519,9 @@ void SCMDeformableSoil::Initialize(const std::string& heightmap_file,
 
     // Precompute aux. topology data structures for the mesh, aux. material data, etc.
     SetupAuxData();
+
+    ////std::vector<geometry::ChTriangleMeshConnected> meshes = {*trimesh};
+    ////trimesh->WriteWavefront("foo.obj", meshes);
 }
 
 // Return the terrain height at the specified location
