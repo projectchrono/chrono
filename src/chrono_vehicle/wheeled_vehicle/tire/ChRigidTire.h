@@ -100,7 +100,7 @@ class CH_VEHICLE_API ChRigidTire : public ChTire {
 
     std::shared_ptr<ChMaterialSurface> m_material;  ///< contact material;
 
-  private:
+  //private:
     /// Get the tire force and moment.
     /// A ChRigidTire always returns zero force and moment since tire
     /// forces are automatically applied to the associated wheel through Chrono's

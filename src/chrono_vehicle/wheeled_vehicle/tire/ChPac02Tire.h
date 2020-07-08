@@ -299,7 +299,7 @@ class CH_VEHICLE_API ChPac02Tire : public ChTire {
     Pac02ScalingFactors m_PacScal;
     Pac02Coeff m_PacCoeff;
 
-  private:
+  //private:
     /// Get the tire force and moment.
     /// This represents the output from this tire system that is passed to the
     /// vehicle system.  Typically, the vehicle subsystem will pass the tire force
