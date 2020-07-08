@@ -16,7 +16,7 @@
 //
 // =============================================================================
 
-#include "chrono/physics/ChSystemNSC.h"
+#include "chrono/physics/ChSystemSMC.h"
 #include "chrono/physics/ChLinkMate.h"
 #include "chrono/physics/ChLoadContainer.h"
 
@@ -50,7 +50,7 @@ int main(int argc, char* argv[]) {
     }
 
     // Create the physical system
-    ChSystemNSC my_system;
+    ChSystemSMC my_system;
 
     // Create the Irrlicht visualization
     ChIrrApp application(&my_system, L"Loads on beams", irr::core::dimension2d<irr::u32>(800, 600), false, true);
