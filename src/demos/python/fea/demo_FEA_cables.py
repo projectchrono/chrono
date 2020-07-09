@@ -30,7 +30,7 @@ solver = chrono.ChSolverSparseQR()
 print("Copyright (c) 2017 projectchrono.org\nChrono version: ")
 
 # Create a Chrono::Engine physical system
-my_system = chrono.ChSystemNSC()
+my_system = chrono.ChSystemSMC()
 
 # Create the Irrlicht visualization (open the Irrlicht device,
 # bind a simple user interface, etc. etc.)

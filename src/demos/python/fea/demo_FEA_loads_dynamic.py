@@ -34,7 +34,7 @@ if not os.path.isdir(out_dir):
 
 
 # Create the physical system
-my_system = chrono.ChSystemNSC()
+my_system = chrono.ChSystemSMC()
 
 # Create the Irrlicht visualization
 
@@ -116,7 +116,6 @@ class MyLoadCustom(chrono.ChLoadCustom):
         chrono.ChLoadCustom.__init__(self, mloadable)
     #/ "Virtual" copy constructor (covariant return type).
     def Clone(self):
-        print('I am there!')
         newinst = copy.deepcopy(self)
         return  newinst
     # Compute Q=Q(x,v)
@@ -126,8 +125,6 @@ class MyLoadCustom(chrono.ChLoadCustom):
     # As this is a stiff force field, dependency from state_x and state_y must be considered.
     def ComputeQ(self,state_x,      #/< state position to evaluate Q
                  state_w):     #/< state speed to evaluate Q
-        node_pos = chrono.ChVectorD()
-        node_vel = chrono.ChVectorD()
         if not state_x==None and not state_w==None :
             node_pos = chrono.ChVectorD(state_x[0], state_x[1], state_x[2])
             node_vel = chrono.ChVectorD(state_w[0], state_w[1], state_w[2])
