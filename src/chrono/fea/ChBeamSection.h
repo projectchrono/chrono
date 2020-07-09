@@ -264,6 +264,81 @@ private:
 
 
 
+/// A class for drawing properties of beams whose section is a set of M polylines, each with N points.
+/// The shading will show the longitudinal edges extruded at each Nth point as a smooth edge,
+/// so if you need sharp edges, just create multiple polylines (ex a quadrialteral=4 polylines).
+/// Used as a component of ChBeamSection.
+
+class ChApi ChBeamSectionShapePolyline : public ChBeamSectionShape {
+public:
+
+    ChBeamSectionShapePolyline(const std::vector< std::vector< ChVector<> > >& polyline_points) {
+        this->ml_points = polyline_points;
+        this->UpdateProfile();
+    }
+
+    //
+    // Functions for drawing the shape via triangulation:
+    //
+
+    virtual int GetNofLines() const override {
+        return (int)this->ml_points.size();
+    };
+
+    virtual int GetNofPoints(const int i_line) const override {
+        return (int)this->ml_points[i_line].size();
+    };
+
+    /// Compute the points (in the reference of the section). 
+    /// Note: mpoints must already have the proper size.
+    virtual void GetPoints(const int i_line, std::vector<ChVector<>>& mpoints) const override { 
+        mpoints = ml_points[i_line]; 
+    };
+
+    /// Compute the normals (in the reference of the section) at each point. 
+    /// Note: mnormals must already have the proper size.
+    virtual void GetNormals(const int i_line, std::vector<ChVector<>>& mnormals) const override {
+        mnormals = ml_normals[i_line];
+    }
+
+
+private:
+
+    // internal: update internal precomputed vertex arrays, computing normals by smoothing segments
+    void UpdateProfile() {
+
+        ml_normals.resize(ml_points.size());
+
+        for (int il = 0; il < ml_points.size(); ++il) {
+            ml_normals[il].resize(ml_points[il].size());
+            double dy, dz, len;
+            for (int ip = 1; ip < ml_points[il].size()-1; ++ip) {
+                dy = ml_points[il][ip + 1].y() - ml_points[il][ip-1].y();
+                dz = ml_points[il][ip + 1].z() - ml_points[il][ip-1].z();
+                len = sqrt(dy * dy + dz * dz);
+                ml_normals[il][ip].y() = -dz/len;
+                ml_normals[il][ip].z() = dy/len;
+            }
+            dy = ml_points[il][1].y() - ml_points[il][0].y();
+            dz = ml_points[il][1].z() - ml_points[il][0].z();
+            len = sqrt(dy * dy + dz * dz);
+            ml_normals[il][0].y() = -dz/len;
+            ml_normals[il][0].z() = dy/len;
+            dy = ml_points[il][ml_points[il].size()-1].y() - ml_points[il][ml_points[il].size()-2].y();
+            dz = ml_points[il][ml_points[il].size()-1].z() - ml_points[il][ml_points[il].size()-2].z();
+            len = sqrt(dy * dy + dz * dz);
+            ml_normals[il][ml_points[il].size()-1].y() = -dz/len;
+            ml_normals[il][ml_points[il].size()-1].z() = dy/len;
+        }
+    }
+
+    std::vector< std::vector<ChVector<>> > ml_points;
+    std::vector< std::vector<ChVector<>> > ml_normals;
+};
+
+
+
+
 
 /// Base class for properties of beam sections.
 /// A beam section can be shared between multiple beams.

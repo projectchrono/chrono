@@ -29,7 +29,7 @@ print ("Example: PyChrono using  beam finite elements");
 
 
 # Create a Chrono::Engine physical system
-my_system = chrono.ChSystemNSC()
+my_system = chrono.ChSystemSMC()
 
 ## Create a mesh, that is a container for groups
 ## of elements and their referenced nodes.

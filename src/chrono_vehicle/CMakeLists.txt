@@ -762,14 +762,14 @@ source_group("tracked_vehicle\\vehicle" FILES ${CV_TV_VEHICLE_FILES})
 
 # --------------- THIRD-PARTY FILES
 
-set(CV_EASYBMP_FILES
-    ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/Easy_BMP/EasyBMP.h
-    ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/Easy_BMP/EasyBMP.cpp
-    ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/Easy_BMP/EasyBMP_BMP.h
-    ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/Easy_BMP/EasyBMP_DataStructures.h
-    ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/Easy_BMP/EasyBMP_VariousBMPutilities.h
+set(CV_STB_FILES
+    ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/stb/stb.h
+    ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/stb/stb_image.h
+    ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/stb/stb_image.cpp
+    ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/stb/stb_image_write.h
+    ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/stb/stb_image_write.cpp
 )
-source_group("easyBMP" FILES ${CV_EASYBMP_FILES})
+source_group("utils\\stb" FILES ${CV_STB_FILES})
 
 # ----------------------------------------------------------------------------
 # Add the ChronoEngine_vehicle library
@@ -838,7 +838,7 @@ add_library(ChronoEngine_vehicle SHARED
     ${CV_TV_UTILS_FILES}
     ${CV_TV_VEHICLE_FILES}
 #
-    ${CV_EASYBMP_FILES}
+    ${CV_STB_FILES}
 )
 
 set_target_properties(ChronoEngine_vehicle PROPERTIES

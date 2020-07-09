@@ -30,7 +30,7 @@ print ("Example: FEA of the Jeffcott rotor passing through resonance.");
 
 
 # Create a Chrono::Engine physical system
-my_system = chrono.ChSystemNSC()
+my_system = chrono.ChSystemSMC()
 
 my_mesh = fea.ChMesh()
 my_system.Add(my_mesh)
@@ -46,7 +46,7 @@ CH_C_PI = 3.1456
 # Create a section, i.e. thickness and material properties
 # for beams. This will be shared among some beams.
 
-minertia = fea.ChInertiaCosseratUniformDensity()
+minertia = fea.ChInertiaCosseratSimple()
 minertia.SetDensity(7800);
 minertia.SetArea(CH_C_PI * (pow(beam_ro, 2)- pow(beam_ri, 2)));
 minertia.SetIyy( (CH_C_PI / 4.0) * (pow(beam_ro, 4) - pow(beam_ri, 4)) );

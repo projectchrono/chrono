@@ -280,12 +280,11 @@ using namespace chrono::fea;
 %include "ChRealtimeStep.i"
 %include "ChTransform.i"
 
+// geometry/   classes
+%include "ChGeometry.i"
 
 // motion_functions/   classes
 %include "ChFunction.i"
-
-// geometry/   classes
-%include "ChGeometry.i"
 
 %include "ChMaterialSurface.i"
 %include "ChCollisionModel.i"
@@ -386,6 +385,9 @@ using namespace chrono::fea;
 
 // enable _automatic_ downcasting from ChAsset to derived classes (shared pointers versions)
 %downcast_output_sharedptr(chrono::ChAsset, chrono::ChVisualization, chrono::ChObjShapeFile, chrono::ChBoxShape, chrono::ChSphereShape, chrono::ChCylinderShape, chrono::ChTexture, chrono::ChAssetLevel, chrono::ChCamera, chrono::ChColorAsset)
+
+%DefSharedPtrDynamicDowncast(chrono,ChLoadable, ChBody)
+%DefSharedPtrDynamicDowncast(chrono,ChLoadable, ChNodeBase)
 
 %DefSharedPtrDynamicDowncast(chrono,ChAsset,ChVisualization)
 %DefSharedPtrDynamicDowncast(chrono,ChAsset,ChObjShapeFile)

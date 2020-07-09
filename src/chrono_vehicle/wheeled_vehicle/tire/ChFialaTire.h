@@ -115,7 +115,7 @@ class CH_VEHICLE_API ChFialaTire : public ChTire {
     double m_time;        // actual system time
     double m_time_trans;  // end of start transient
 
-  private:
+  //private:
     /// Get the tire force and moment.
     /// This represents the output from this tire system that is passed to the
     /// vehicle system.  Typically, the vehicle subsystem will pass the tire force

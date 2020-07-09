@@ -30,7 +30,7 @@ solver = chrono.ChSolverSparseQR()
 print("Copyright (c) 2017 projectchrono.org\nChrono version: ")
 
 # Create a Chrono::Engine physical system
-my_system = chrono.ChSystemNSC()
+my_system = chrono.ChSystemSMC()
 
 # Create the Irrlicht visualization (open the Irrlicht device,
 # bind a simple user interface, etc. etc.)
@@ -96,7 +96,7 @@ if solver.GetType()==chrono.ChSolver.Type_SPARSE_QR:
 	solver.LockSparsityPattern(True)
 	solver.SetVerbose(False)
 
-if solver.GetType()== chrono.ChSolver.Type_MINRES :
+elif solver.GetType()== chrono.ChSolver.Type_MINRES :
 	print( "Using MINRES solver" )
 	my_system.SetSolver(solver)
 	solver.SetMaxIterations(200)

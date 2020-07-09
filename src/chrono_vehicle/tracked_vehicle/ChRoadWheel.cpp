@@ -40,6 +40,7 @@ void ChRoadWheel::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     // Create and initialize the wheel body.
     m_wheel = std::shared_ptr<ChBody>(chassis->GetSystem()->NewBody());
     m_wheel->SetNameString(m_name + "_wheel");
+    m_wheel->SetIdentifier(BodyID::WHEEL_BODY);
     m_wheel->SetPos(wheel_to_abs.GetPos());
     m_wheel->SetRot(wheel_to_abs.GetRot());
     m_wheel->SetMass(GetWheelMass());

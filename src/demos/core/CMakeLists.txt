@@ -13,6 +13,7 @@ SET(DEMOS
   demo_CH_functions
   demo_CH_solver
   demo_CH_EulerAngles
+  demo_CH_filesystem
 )
 
 

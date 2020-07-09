@@ -38,6 +38,7 @@ void ChRoller::Initialize(std::shared_ptr<ChBodyAuxRef> chassis, const ChVector<
     // Create and initialize the roller body.
     m_wheel = std::shared_ptr<ChBody>(chassis->GetSystem()->NewBody());
     m_wheel->SetNameString(m_name + "_wheel");
+    m_wheel->SetIdentifier(BodyID::ROLER_BODY);
     m_wheel->SetPos(roller_to_abs.GetPos());
     m_wheel->SetRot(roller_to_abs.GetRot());
     m_wheel->SetMass(GetMass());

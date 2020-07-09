@@ -264,7 +264,7 @@ class CH_VEHICLE_API ChTMeasyTire : public ChTire {
         return (fz / m_TMeasyCoeff.pn) * (2.0 * w1 - 0.5 * w2 - (w1 - 0.5 * w2) * (fz / m_TMeasyCoeff.pn));
     };
 
-  private:
+  //private:
     void UpdateVerticalStiffness();
 
     /// Get the tire force and moment.
