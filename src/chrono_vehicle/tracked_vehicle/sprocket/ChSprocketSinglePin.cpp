@@ -280,6 +280,10 @@ void SprocketSinglePinContactCB::CheckPinSprocket(std::shared_ptr<ChTrackShoeSin
     if (std::abs(locPin.y()) < m_lateral_backlash)
         return;
 
+    // No contact if pin is too far from sprocket center
+    if (locPin.x() * locPin.x() + locPin.z() * locPin.z() > m_gear_RO * m_gear_RO)
+        return;
+
     // Fill in contact information and add the contact to the system.
     // Express all vectors in the global frame
     collision::ChCollisionInfo contact;
