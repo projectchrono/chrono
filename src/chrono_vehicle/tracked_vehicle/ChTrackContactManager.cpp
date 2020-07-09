@@ -313,6 +313,8 @@ void ChTrackCollisionManager::Reset() {
     m_collisions_wheel.clear();
 }
 
+static const double nrm_threshold = 0.8;
+
 bool ChTrackCollisionManager::OnNarrowphase(collision::ChCollisionInfo& contactinfo) {
     ChBody* bodyA = dynamic_cast<ChBody*>(contactinfo.modelA->GetContactable());
     ChBody* bodyB = dynamic_cast<ChBody*>(contactinfo.modelB->GetContactable());
@@ -320,7 +322,18 @@ bool ChTrackCollisionManager::OnNarrowphase(collision::ChCollisionInfo& contacti
     if (!bodyA || !bodyB)
         return true;
 
+    // Body B is a track shoe body
     if (bodyB->GetIdentifier() == BodyID::SHOE_BODY) {
+        // Express collision normal in body A (wheel) frame
+        auto nrm = bodyA->TransformDirectionParentToLocal(contactinfo.vN);
+
+        // Identify "lateral" contacts (assumed to be with a guiding pin) and let Chrono generate contacts
+        if (std::abs(nrm.y()) > nrm_threshold) {
+            return true;
+        }
+
+        // Intercept and cache collisions between wheels and track pad.
+        // Do not generate Chrono contact for such collisions.
         if (m_idler_shoe && bodyA->GetIdentifier() == BodyID::IDLER_BODY) {
             m_collisions_idler.push_back(contactinfo);
             return false;
@@ -331,7 +344,18 @@ bool ChTrackCollisionManager::OnNarrowphase(collision::ChCollisionInfo& contacti
         }
     }
 
+    // Body A is a track shoe body
     if (bodyA->GetIdentifier() == BodyID::SHOE_BODY) {
+        // Express collision normal in body B (wheel) frame
+        auto nrm = bodyB->TransformDirectionParentToLocal(contactinfo.vN);
+
+        // Identify "lateral" contacts (assumed to be with a guiding pin) and let Chrono generate contacts
+        if (std::abs(nrm.y()) > nrm_threshold) {
+            return true;
+        }
+ 
+        // Intercept and cache collisions between wheels and track pad.
+        // Do not generate Chrono contact for such collisions.
         if (m_idler_shoe && bodyB->GetIdentifier() == BodyID::IDLER_BODY) {
             auto contactinfoS = contactinfo;
             contactinfoS.SwapModels();
@@ -346,6 +370,7 @@ bool ChTrackCollisionManager::OnNarrowphase(collision::ChCollisionInfo& contacti
         }
     }
 
+    // Let Chrono generate contact for any other collision 
     return true;
 }
 
