@@ -66,16 +66,12 @@ RT_PROGRAM void mesh_attributes() {
                    texcoord_buffer[texcoord_idx.x] * (1.0f - bary_coord.x - bary_coord.y);
     }
 
-    // calculating tangent vector
     float3 e1 = vertex_buffer[vertex_idx.y] - vertex_buffer[vertex_idx.x];
     float3 e2 = vertex_buffer[vertex_idx.z] - vertex_buffer[vertex_idx.x];
-    //    printf("%.3f %.3f %.3f\n", vertex_buffer[vertex_idx.x].x, vertex_buffer[vertex_idx.x].y,
-    //    vertex_buffer[vertex_idx.x].z);
 
     float2 delta_uv1 = texcoord_buffer[texcoord_idx.y] - texcoord_buffer[texcoord_idx.x];
     float2 delta_uv2 = texcoord_buffer[texcoord_idx.z] - texcoord_buffer[texcoord_idx.x];
 
-    //    printf("%.3f %.3f\n", delta_uv2.x, delta_uv2.y);
     float f = 1.0f / (delta_uv1.x * delta_uv2.y - delta_uv2.x * delta_uv1.y);
 
     tangent_vector.x = f * (delta_uv2.y * e1.x - delta_uv1.y * e2.x);
@@ -84,5 +80,5 @@ RT_PROGRAM void mesh_attributes() {
     //    printf("%.3f %.3f %.3f    %.3f %.3f %.3f    %.3f %.3f   %.3f  %.3f\n", e1.x, e1.y, e1.z, e2.x, e2.y, e2.z,
     //    delta_uv1.x, delta_uv1.y, delta_uv2.x, delta_uv2.y);
 
-    normalize(tangent_vector);
+    tangent_vector = normalize(tangent_vector);
 }
