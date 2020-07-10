@@ -67,8 +67,8 @@ void SemiTractor_tire::GenerateCharacteristicPlots(const std::string& dirname) {
 // -----------------------------------------------------------------------------
 void SemiTractor_tire::AddVisualizationAssets(chrono::vehicle::VisualizationType vis) {
     if (vis == chrono::vehicle::VisualizationType::MESH) {
-        m_trimesh_shape = AddVisualizationMesh(chrono::vehicle::GetDataFile(m_meshFile),   // left side
-                                               chrono::vehicle::GetDataFile(m_meshFile));  // right side
+        m_trimesh_shape = AddVisualizationMesh(m_meshFile,   // left side
+                                               m_meshFile);  // right side
     } else {
         ChTMeasyTire::AddVisualizationAssets(vis);
     }

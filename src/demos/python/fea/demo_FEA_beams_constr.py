@@ -39,7 +39,7 @@ out_dir = chrono.GetChronoOutputPath() + "BEAM_BUCKLING"
 print( "Copyright (c) 2017 projectchrono.org \n")
 
 # Create a Chrono::Engine physical system
-my_system = chrono.ChSystemNSC()
+my_system = chrono.ChSystemSMC()
 
 # Create the Irrlicht visualization (open the Irrlicht device,
 # bind a simple user interface, etc. etc.)
@@ -102,7 +102,7 @@ beam_wz = 0.01
 # Create a section for the IGA beam.
 # IGA beams require ChBeamSectionCosserat sections, containing at least
 # a ChElasticityCosserat and ChInertiaCosserat models, and optional ChDampingCosserat and ChPlasticityCosserat.
-minertia = fea.ChInertiaCosseratUniformDensity()
+minertia = fea.ChInertiaCosseratSimple()
 minertia.SetAsRectangularSection(beam_wy, beam_wz, 2700)  # automatically sets A etc., from width, height, density
 
 melasticity = fea.ChElasticityCosseratSimple()

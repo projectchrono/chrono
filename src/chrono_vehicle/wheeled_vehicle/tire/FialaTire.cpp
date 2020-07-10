@@ -123,8 +123,8 @@ double FialaTire::GetNormalDampingForce(double depth, double velocity) const {
 // -----------------------------------------------------------------------------
 void FialaTire::AddVisualizationAssets(VisualizationType vis) {
     if (vis == VisualizationType::MESH && m_has_mesh) {
-        m_trimesh_shape = AddVisualizationMesh(vehicle::GetDataFile(m_meshFile_left),    // left side
-                                               vehicle::GetDataFile(m_meshFile_right));  // right side
+        m_trimesh_shape = AddVisualizationMesh(m_meshFile_left,    // left side
+                                               m_meshFile_right);  // right side
     } else {
         ChFialaTire::AddVisualizationAssets(vis);
     }
