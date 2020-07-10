@@ -76,8 +76,8 @@ void Gator_TMeasyTire_Front::GenerateCharacteristicPlots(const std::string& dirn
 
 void Gator_TMeasyTire_Front::AddVisualizationAssets(VisualizationType vis) {
     if (vis == VisualizationType::MESH) {
-        m_trimesh_shape = AddVisualizationMesh(vehicle::GetDataFile(m_meshFile_left),    // left side
-                                               vehicle::GetDataFile(m_meshFile_right));  // right side
+        m_trimesh_shape = AddVisualizationMesh(m_meshFile_left,    // left side
+                                               m_meshFile_right);  // right side
     } else {
         ChTMeasyTire::AddVisualizationAssets(vis);
     }
@@ -122,8 +122,8 @@ void Gator_TMeasyTire_Rear::GenerateCharacteristicPlots(const std::string& dirna
 
 void Gator_TMeasyTire_Rear::AddVisualizationAssets(VisualizationType vis) {
     if (vis == VisualizationType::MESH) {
-        m_trimesh_shape = AddVisualizationMesh(vehicle::GetDataFile(m_meshFile_left),    // left side
-                                               vehicle::GetDataFile(m_meshFile_right));  // right side
+        m_trimesh_shape = AddVisualizationMesh(m_meshFile_left,    // left side
+                                               m_meshFile_right);  // right side
     } else {
         ChTMeasyTire::AddVisualizationAssets(vis);
     }

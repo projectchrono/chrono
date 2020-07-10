@@ -22,8 +22,11 @@
 #include <cmath>
 
 #include "chrono/physics/ChSystem.h"
+
+#include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/ChWorldFrame.h"
 #include "chrono_vehicle/wheeled_vehicle/ChTire.h"
+
 #include "chrono_thirdparty/filesystem/path.h"
 
 namespace chrono {
@@ -108,17 +111,17 @@ std::shared_ptr<ChTriangleMeshShape> ChTire::AddVisualizationMesh(const std::str
                                                                   const std::string& mesh_file_right) {
     bool left = (m_wheel->GetSide() == VehicleSide::LEFT);
     ChQuaternion<> rot = left ? Q_from_AngZ(0) : Q_from_AngZ(CH_C_PI);
-    auto meshFile = left ? mesh_file_left : mesh_file_right;
+    m_vis_mesh_file = left ? mesh_file_left : mesh_file_right;
 
     auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
-    trimesh->LoadWavefrontMesh(meshFile, false, false);
+    trimesh->LoadWavefrontMesh(vehicle::GetDataFile(m_vis_mesh_file), false, false);
     trimesh->Transform(ChVector<>(0, GetOffset(), 0), ChMatrix33<>(rot));
 
     auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
     trimesh_shape->Pos = ChVector<>(0, GetOffset(), 0);
     trimesh_shape->Rot = ChMatrix33<>(rot);
     trimesh_shape->SetMesh(trimesh);
-    trimesh_shape->SetName(filesystem::path(meshFile).stem());
+    trimesh_shape->SetName(filesystem::path(m_vis_mesh_file).stem());
     trimesh_shape->SetStatic(true);
 
     m_wheel->GetSpindle()->AddAsset(trimesh_shape);
