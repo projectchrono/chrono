@@ -35,7 +35,7 @@ class ChApi ChTriangleMeshSoup : public ChTriangleMesh {
     virtual ChTriangleMeshSoup* Clone() const override { return new ChTriangleMeshSoup(*this); }
 
     /// Load from the given Wavefront .obj file
-    void LoadWavefrontMesh(std::string filename);
+    bool LoadWavefrontMesh(std::string filename);
 
     /// Access the n-th triangle in mesh
     virtual ChTriangle& Triangle(int index) { return m_triangles[index]; }

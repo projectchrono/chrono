@@ -75,8 +75,8 @@ void ChTrackedVehicleIrrApp::renderOtherStats(int left, int top) {
 void ChTrackedVehicleIrrApp::renderOtherGraphics() {
     // Contact normals on left sprocket.
     // Note that we only render information for contacts on the outside gear profile
-    for (auto it = m_tvehicle->m_contacts->m_sprocket_L_contacts.begin();
-         it != m_tvehicle->m_contacts->m_sprocket_L_contacts.end(); ++it) {
+    for (auto it = m_tvehicle->m_contact_manager->m_sprocket_L_contacts.begin();
+         it != m_tvehicle->m_contact_manager->m_sprocket_L_contacts.end(); ++it) {
         ChVector<> v1 = it->m_point;
         ChVector<> v2 = v1 + it->m_csys.Get_A_Xaxis();
 
@@ -86,8 +86,8 @@ void ChTrackedVehicleIrrApp::renderOtherGraphics() {
 
     // Contact normals on rear sprocket.
     // Note that we only render information for contacts on the outside gear profile
-    for (auto it = m_tvehicle->m_contacts->m_sprocket_R_contacts.begin();
-         it != m_tvehicle->m_contacts->m_sprocket_R_contacts.end(); ++it) {
+    for (auto it = m_tvehicle->m_contact_manager->m_sprocket_R_contacts.begin();
+         it != m_tvehicle->m_contact_manager->m_sprocket_R_contacts.end(); ++it) {
         ChVector<> v1 = it->m_point;
         ChVector<> v2 = v1 + it->m_csys.Get_A_Xaxis();
 
@@ -96,19 +96,20 @@ void ChTrackedVehicleIrrApp::renderOtherGraphics() {
     }
 
     // Contact normals on monitored track shoes.
-    renderContactNormals(m_tvehicle->m_contacts->m_shoe_L_contacts, video::SColor(255, 180, 180, 0));
-    renderContactNormals(m_tvehicle->m_contacts->m_shoe_R_contacts, video::SColor(255, 180, 180, 0));
+    renderContactNormals(m_tvehicle->m_contact_manager->m_shoe_L_contacts, video::SColor(255, 180, 180, 0));
+    renderContactNormals(m_tvehicle->m_contact_manager->m_shoe_R_contacts, video::SColor(255, 180, 180, 0));
 
     // Contact normals on idler wheels.
-    renderContactNormals(m_tvehicle->m_contacts->m_idler_L_contacts, video::SColor(255, 0, 0, 180));
-    renderContactNormals(m_tvehicle->m_contacts->m_idler_R_contacts, video::SColor(255, 0, 0, 180));
+    renderContactNormals(m_tvehicle->m_contact_manager->m_idler_L_contacts, video::SColor(255, 0, 0, 180));
+    renderContactNormals(m_tvehicle->m_contact_manager->m_idler_R_contacts, video::SColor(255, 0, 0, 180));
 
     // Contact normals on chassis.
-    renderContactNormals(m_tvehicle->m_contacts->m_chassis_contacts, video::SColor(255, 0, 180, 0));
+    renderContactNormals(m_tvehicle->m_contact_manager->m_chassis_contacts, video::SColor(255, 0, 180, 0));
 }
 
 // Render normal for all contacts in the specified list, using the given color.
-void ChTrackedVehicleIrrApp::renderContactNormals(const std::list<ChTrackContactInfo>& lst, const video::SColor& col) {
+void ChTrackedVehicleIrrApp::renderContactNormals(const std::list<ChTrackContactManager::ContactInfo>& lst,
+                                                  const video::SColor& col) {
     for (auto it = lst.begin(); it != lst.end(); ++it) {
         ChVector<> v1 = it->m_point;
         ChVector<> v2 = v1 + it->m_csys.Get_A_Xaxis();

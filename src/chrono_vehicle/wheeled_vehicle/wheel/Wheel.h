@@ -48,9 +48,6 @@ class CH_VEHICLE_API Wheel : public ChWheel {
     void SetRadius(double rad) { m_radius = rad; }
     void SetWidth(double width) { m_width = width; }
 
-    virtual void AddVisualizationAssets(VisualizationType vis) override;
-    virtual void RemoveVisualizationAssets() override;
-
   private:
     virtual void Create(const rapidjson::Document& d) override;
 
@@ -59,9 +56,6 @@ class CH_VEHICLE_API Wheel : public ChWheel {
 
     double m_radius;
     double m_width;
-    bool m_has_mesh;
-    std::string m_meshFile;
-    std::shared_ptr<ChTriangleMeshShape> m_trimesh_shape;
 };
 
 /// @} vehicle_wheeled_wheel

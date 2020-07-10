@@ -26,7 +26,7 @@ import numpy as np
 
 print( "Copyright (c) 2017 projectchrono.org")
 
-my_system = chrono.ChSystemNSC()
+my_system = chrono.ChSystemSMC()
 
 # Create the Irrlicht visualization (open the Irrlicht device,
 # bind a simple user interface, etc. etc.)
