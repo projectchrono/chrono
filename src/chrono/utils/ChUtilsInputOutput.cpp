@@ -588,7 +588,7 @@ void WriteMeshPovray(geometry::ChTriangleMeshConnected& trimesh,
     ofile.close();
 }
 
-void WriteMeshPovray(const std::string& obj_filename,
+bool WriteMeshPovray(const std::string& obj_filename,
                      const std::string& mesh_name,
                      const std::string& out_dir,
                      const ChColor& col,
@@ -596,10 +596,13 @@ void WriteMeshPovray(const std::string& obj_filename,
                      const ChQuaternion<>& rot) {
     // Read trimesh from OBJ file
     geometry::ChTriangleMeshConnected trimesh;
-    trimesh.LoadWavefrontMesh(obj_filename, false, false);
+    if (!trimesh.LoadWavefrontMesh(obj_filename, false, false))
+        return false;
 
     // Generate output
     WriteMeshPovray(trimesh, mesh_name, out_dir, col, pos, rot);
+
+    return true;
 }
 
 // -----------------------------------------------------------------------------
