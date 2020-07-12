@@ -45,7 +45,7 @@ static __device__ float3 box_tangent(float3 scaled, float3 geometric_normal){
     } else if ( geometric_normal.y > 1e-6) {
         vec = scaled.x > -.5f ? make_float3(0,0,1) : make_float3(0,0,-1);
     } else if ( geometric_normal.y < -1e-6) {
-        vec = scaled.x > -.5f ? make_float3(-1,0,0) : make_float3(1,0,0);
+        vec = scaled.x > -.5f ? make_float3(0,0,-1) : make_float3(0,0,1);
     } else if ( geometric_normal.z > 1e-6) {
         vec = scaled.x > -.5f ? make_float3(-1,0,0) : make_float3(1,0,0);
     } else {

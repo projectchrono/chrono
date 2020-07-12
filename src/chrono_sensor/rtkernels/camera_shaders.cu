@@ -86,21 +86,22 @@ RT_PROGRAM void diffuse_shader() {
 // componenets when necessary
 RT_PROGRAM void pbr_shader() {
     float3 forward_normal = shading_normal;
-    forward_normal = normalize(rtTransformNormal(RT_OBJECT_TO_WORLD, forward_normal));
 
     // if has normal_map use the normal map for normal
     if (has_normal_map) {
-        // Transform TBN to world space
-        float3 tangent_normal = normalize(rtTransformNormal(RT_OBJECT_TO_WORLD, tangent_vector));
-        float3 bitangent = normalize(rtTransformNormal(RT_OBJECT_TO_WORLD, cross(forward_normal, tangent_normal)));
+        //bitangent is the cross product of normal and tangent
+        float3 bitangent = cross(forward_normal, tangent_vector);
 
-        // Extract normal_delta and convert it to world space
+        // Extract normal_delta
         float3 normal_delta = make_float3(tex2D(normal_map, texcoord.x, texcoord.y)) * 2 - make_float3(1);
-        normal_delta = normalize(rtTransformNormal(RT_OBJECT_TO_WORLD, normal_delta));
 
         // Calculate final normal TBN * normal delta
         forward_normal =
-            -(tangent_normal * normal_delta.x + bitangent * normal_delta.y + forward_normal * normal_delta.z);
+            -(tangent_vector * normal_delta.x + bitangent * normal_delta.y + forward_normal * normal_delta.z);
+        forward_normal = normalize(rtTransformNormal(RT_OBJECT_TO_WORLD, forward_normal));
+
+    }else{
+        forward_normal = normalize(rtTransformNormal(RT_OBJECT_TO_WORLD, forward_normal));
     }
 
     if (dot(forward_normal, -ray.direction) < 0) {

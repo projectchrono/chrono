@@ -1235,10 +1235,8 @@ Material ChOptixEngine::CreateMaterial(std::shared_ptr<ChVisualMaterial> chmat) 
     // use the single pbr shader that can handle reflectivity and transparency if it exists
     if (!m_camera_shader)
         m_camera_shader = GetRTProgram(m_context, "camera_shaders", "pbr_shader");
-
     if (!m_shadow_shader)
         m_shadow_shader = GetRTProgram(m_context, "shadow_shaders", "hit_shadow");
-
     if (!m_lidar_shader)
         m_lidar_shader = GetRTProgram(m_context, "lidar_shaders", "diffuse_shader");
 

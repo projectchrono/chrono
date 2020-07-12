@@ -66,7 +66,6 @@ const std::string kdmap = "sensor/textures/grass_texture.jpg";
 //const std::string kdmap = "sensor/textures/rock.png";
 //const std::string normalmap = "sensor/textures/rock_normalmap.jpg";
 const std::string objfile = "sensor/cube_bumpy.obj";
-const std::string mtlfile = "sensor/cube.bumpy.mtl";
 
 const std::string floor_kdmap = "sensor/textures/white.png";
 
@@ -74,7 +73,7 @@ const std::string floor_kdmap = "sensor/textures/white.png";
 double step_size = 1e-3;
 
 // Simulation end time
-float end_time = 30.0f;
+float end_time = 60.0f;
 
 // Save camera images
 bool save = false;
@@ -121,7 +120,6 @@ int main(int argc, char* argv[]) {
                                                           true,         // visualization
                                                           phys_mat);    // physical material
     floor->SetPos({0, 0, -1.0});
-    floor->SetRot(Q_from_AngZ(CH_C_PI / 2.0));
     floor->SetBodyFixed(true);
     auto floor_asset = floor->GetAssets()[0];
     if (std::shared_ptr<ChVisualization> visual_asset = std::dynamic_pointer_cast<ChVisualization>(floor_asset)) {
@@ -137,7 +135,7 @@ int main(int argc, char* argv[]) {
                                                         true,           // collide enable?
                                                         true,           // visualization
                                                         phys_mat);      // physical material
-    box->SetPos({-2.5, 0, 0});
+    box->SetPos({0, -2.5, 0});
     box->SetBodyFixed(true);
     auto box_asset = box->GetAssets()[0];
     if (std::shared_ptr<ChVisualization> visual_asset = std::dynamic_pointer_cast<ChVisualization>(box_asset)) {
@@ -153,7 +151,7 @@ int main(int argc, char* argv[]) {
                                                          true,           // collide enable?
                                                          true,           // visualization
                                                          phys_mat);      // phyiscal material
-    box2->SetPos({2.5, 0, 0});
+    box2->SetPos({0, 2.5, 0});
     box2->SetBodyFixed(true);
     auto box2_asset = box2->GetAssets()[0];
     if (std::shared_ptr<ChVisualization> visual_asset = std::dynamic_pointer_cast<ChVisualization>(box2_asset)) {
@@ -181,7 +179,7 @@ int main(int argc, char* argv[]) {
     // Create a sensor manager
     // -----------------------
     auto manager = chrono_types::make_shared<ChSensorManager>(&mphysicalSystem);
-    manager->scene->AddPointLight({0, -10, 10}, {1, 1, 1}, 3000);
+    manager->scene->AddPointLight({-10, 0, 10}, {1, 1, 1}, 3000);
 
     // Get the point lights
     std::vector<PointLight>& lights = manager->scene->GetPointLights();
@@ -216,7 +214,7 @@ int main(int argc, char* argv[]) {
     // Create a second camera and add it to the sensor manager
     // -------------------------------------------------------
 
-    chrono::ChFrame<double> offset_pose2({0, 5, 5}, Q_from_AngAxis(0, {1, 1, 1}));
+    chrono::ChFrame<double> offset_pose2({-7, 0, 2}, Q_from_AngAxis(0, {1, 1, 1}));
     auto cam2 = chrono_types::make_shared<ChCameraSensor>(floor,         // body camera is attached to
                                                           update_rate,   // update rate in Hz
                                                           offset_pose2,  // offset pose
@@ -244,7 +242,7 @@ int main(int argc, char* argv[]) {
     // Simulate system
     //----------------
     float orbit_radius = 6.5;
-    float orbit_rate = 0.15;
+    float orbit_rate = 0.10;
     float ch_time = 0.0;
 
     while (ch_time < end_time) {
@@ -253,9 +251,13 @@ int main(int argc, char* argv[]) {
 //            {-orbit_radius * cos(ch_time * orbit_rate), -orbit_radius * sin(ch_time * orbit_rate), 3},
 //            Q_from_AngAxis(ch_time * orbit_rate, {0, 0, 1}) * Q_from_AngAxis(.5, {0, 1, 0})));
 //
-        cam2->SetOffsetPose(chrono::ChFrame<double>(
-            {-orbit_radius * cos(ch_time * orbit_rate), -orbit_radius * sin(ch_time * orbit_rate), 3},
-            Q_from_AngAxis(ch_time * orbit_rate, {0, 0, 1})));
+//        cam2->SetOffsetPose(chrono::ChFrame<double>(
+//            {-orbit_radius * cos(ch_time * orbit_rate), -orbit_radius * sin(ch_time * orbit_rate), 3},
+//            Q_from_AngAxis(ch_time * orbit_rate, {0, 0, 1})));
+
+    mesh_body->SetRot(Q_from_AngX(ch_time * orbit_rate));
+    box2->SetRot(Q_from_AngX(ch_time * orbit_rate));
+        
 
         // Update sensor manager
         // Will render/save/filter automatically
