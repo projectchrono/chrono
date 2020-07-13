@@ -46,8 +46,8 @@ HMMWV_PacejkaTire::HMMWV_PacejkaTire(const std::string& name)
 // -----------------------------------------------------------------------------
 void HMMWV_PacejkaTire::AddVisualizationAssets(VisualizationType vis) {
     if (vis == VisualizationType::MESH) {
-        m_trimesh_shape = AddVisualizationMesh(vehicle::GetDataFile(m_meshFile_left),    // left side
-                                               vehicle::GetDataFile(m_meshFile_right));  // right side
+        m_trimesh_shape = AddVisualizationMesh(m_meshFile_left,    // left side
+                                               m_meshFile_right);  // right side
     } else {
         ChPacejkaTire::AddVisualizationAssets(vis);
     }

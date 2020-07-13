@@ -65,8 +65,8 @@ void Gator_RigidTire_Front::CreateContactMaterial(ChContactMethod contact_method
 
 void Gator_RigidTire_Front::AddVisualizationAssets(VisualizationType vis) {
     if (vis == VisualizationType::MESH) {
-        m_trimesh_shape = AddVisualizationMesh(vehicle::GetDataFile(m_meshFile_left),    // left side
-                                               vehicle::GetDataFile(m_meshFile_right));  // right side
+        m_trimesh_shape = AddVisualizationMesh(m_meshFile_left,    // left side
+                                               m_meshFile_right);  // right side
     } else {
         ChRigidTire::AddVisualizationAssets(vis);
     }
@@ -95,8 +95,8 @@ void Gator_RigidTire_Rear::CreateContactMaterial(ChContactMethod contact_method)
 
 void Gator_RigidTire_Rear::AddVisualizationAssets(VisualizationType vis) {
     if (vis == VisualizationType::MESH) {
-        m_trimesh_shape = AddVisualizationMesh(vehicle::GetDataFile(m_meshFile_left),    // left side
-                                               vehicle::GetDataFile(m_meshFile_right));  // right side
+        m_trimesh_shape = AddVisualizationMesh(m_meshFile_left,    // left side
+                                               m_meshFile_right);  // right side
     } else {
         ChRigidTire::AddVisualizationAssets(vis);
     }

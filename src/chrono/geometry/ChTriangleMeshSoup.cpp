@@ -13,6 +13,7 @@
 // =============================================================================
 
 #include <cstdio>
+#include <iostream>
 
 #include "chrono/geometry/ChTriangleMeshSoup.h"
 #include "chrono_thirdparty/tinyobjloader/tiny_obj_loader.h"
@@ -27,14 +28,20 @@ ChTriangleMeshSoup::ChTriangleMeshSoup(const ChTriangleMeshSoup& source) {
     m_triangles = source.m_triangles;
 }
 
-void ChTriangleMeshSoup::LoadWavefrontMesh(std::string filename) {
+bool ChTriangleMeshSoup::LoadWavefrontMesh(std::string filename) {
     std::vector<tinyobj::shape_t> shapes;
     tinyobj::attrib_t att;
     std::vector<tinyobj::material_t> materials;
     std::string warn;
     std::string err;
 
-    LoadObj(&att, &shapes, &materials, &warn, &err, filename.c_str());
+    bool success = LoadObj(&att, &shapes, &materials, &warn, &err, filename.c_str());
+    if (!success) {
+        std::cerr << "Error loading OBJ file " << filename << std::endl;
+        std::cerr << "   tiny_obj warning message: " << warn << std::endl;
+        std::cerr << "   tiny_obj error message:   " << err << std::endl;
+        return false;
+    }
 
     for (size_t i = 0; i < shapes.size(); i++) {
         assert((shapes[i].mesh.indices.size() % 3) == 0);
@@ -49,6 +56,8 @@ void ChTriangleMeshSoup::LoadWavefrontMesh(std::string filename) {
             addTriangle(v0, v1, v2);
         }
     }
+
+    return true;
 }
 
 void ChTriangleMeshSoup::addTriangle(const ChVector<>& vertex0, const ChVector<>& vertex1, const ChVector<>& vertex2) {

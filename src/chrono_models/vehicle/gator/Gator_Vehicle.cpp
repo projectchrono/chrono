@@ -103,7 +103,7 @@ void Gator_Vehicle::Initialize(const ChCoordsys<>& chassisPos, double chassisFwd
     m_axles[1]->Initialize(m_chassis, nullptr, nullptr, ChVector<>(-0.97, 0, 0), ChVector<>(0), 0.0, m_omega[2],
                            m_omega[3]);
 
-    // Initialize the driveline subsystem (FWD)
+    // Initialize the driveline subsystem (RWD)
     std::vector<int> driven_susp_indexes = {1};
     m_driveline->Initialize(m_chassis, m_axles, driven_susp_indexes);
 }

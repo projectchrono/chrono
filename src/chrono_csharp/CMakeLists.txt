@@ -55,6 +55,10 @@ message(STATUS "SWIG_USE_FILE:      ${SWIG_USE_FILE}")
 message(STATUS "CMAKE_SWIG_OUTDIR:  ${CMAKE_SWIG_OUTDIR}")
 
 #-----------------------------------------------------------------------------
+
+set(CMAKE_BUILD_RPATH_USE_ORIGIN TRUE)
+
+#-----------------------------------------------------------------------------
 # Wrapper for CORE Chrono module
 #-----------------------------------------------------------------------------
 
