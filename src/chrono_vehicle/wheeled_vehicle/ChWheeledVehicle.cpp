@@ -231,10 +231,14 @@ void ChWheeledVehicle::SetDrivelineOutput(bool state) {
 }
 
 // -----------------------------------------------------------------------------
-// Get the specified wheel (axle, side, location)
+// Get the specified wheel or tire (axle, side, location)
 // -----------------------------------------------------------------------------
 std::shared_ptr<ChWheel> ChWheeledVehicle::GetWheel(int axle, VehicleSide side, WheelLocation location) const {
     return m_axles[axle]->GetWheel(side, location);
+}
+
+std::shared_ptr<ChTire> ChWheeledVehicle::GetTire(int axle, VehicleSide side, WheelLocation location) const {
+    return m_axles[axle]->GetWheel(side, location)->GetTire();
 }
 
 // -----------------------------------------------------------------------------

@@ -87,6 +87,12 @@ class CH_VEHICLE_API ChWheeledVehicle : public ChVehicle {
     /// right wheel; for a double-wheel axle, the order is inner left, inner right, outer left, outer right.
     std::shared_ptr<ChWheel> GetWheel(int axle, VehicleSide side, WheelLocation location = SINGLE) const;
 
+    /// Get the specified vehicle tire, by specifying the axle, side, and wheel location.
+    /// Axles are assumed to be indexed starting from the front of the vehicle. On each axle, wheels are assumed to be
+    /// ordered from inner to outer wheels, first left then right: for a single-wheel axle the order is left wheel,
+    /// right wheel; for a double-wheel axle, the order is inner left, inner right, outer left, outer right.
+    std::shared_ptr<ChTire> GetTire(int axle, VehicleSide side, WheelLocation location = SINGLE) const;
+
     /// Get a handle to the vehicle's driveline subsystem.
     std::shared_ptr<ChDrivelineWV> GetDriveline() const { return m_driveline; }
 
