@@ -27,31 +27,13 @@ rtDeclareVariable(optix::Ray, ray, rtCurrentRay, );
 rtDeclareVariable(float, t_hit, rtIntersectionDistance, );
 rtDeclareVariable(float3, tangent_vector, attribute tangent_vector, );
 rtDeclareVariable(float3, shading_normal, attribute shading_normal, );
-rtDeclareVariable(float3, geometric_normal, attribute geometric_normal, );
+// rtDeclareVariable(float3, geometric_normal, attribute geometric_normal, );
 rtDeclareVariable(float2, texcoord, attribute texcoord, );
 
 static __device__ float3 box_normal(float t, float3 t0, float3 t1) {
     float3 normal_pos = make_float3(t == t0.x ? 1 : 0, t == t0.y ? 1 : 0, t == t0.z ? 1 : 0);
     float3 normal_neg = make_float3(t == t1.x ? 1 : 0, t == t1.y ? 1 : 0, t == t1.z ? 1 : 0);
-    return normal_pos - normal_neg;
-}
-
-static __device__ float3 box_tangent(float3 scaled, float3 geometric_normal){
-    float3 vec;
-    if(geometric_normal.x > 1e-6){
-        vec = scaled.x > -.5f ? make_float3(0,-1,0) : make_float3(0,1,0);
-    } else if ( geometric_normal.x < -1e-6) {
-        vec = scaled.x > -.5f ? make_float3(0,1,0) : make_float3(0,-1,0);
-    } else if ( geometric_normal.y > 1e-6) {
-        vec = scaled.x > -.5f ? make_float3(0,0,1) : make_float3(0,0,-1);
-    } else if ( geometric_normal.y < -1e-6) {
-        vec = scaled.x > -.5f ? make_float3(0,0,-1) : make_float3(0,0,1);
-    } else if ( geometric_normal.z > 1e-6) {
-        vec = scaled.x > -.5f ? make_float3(-1,0,0) : make_float3(1,0,0);
-    } else {
-        vec = scaled.x > -.5f ? make_float3(1,0,0) : make_float3(-1,0,0);
-    }
-    return vec; 
+    return normal_neg - normal_pos;
 }
 
 RT_PROGRAM void box_intersect(int) {
@@ -66,30 +48,43 @@ RT_PROGRAM void box_intersect(int) {
 
     // check if near is less than far
     if (dist_near <= dist_far) {
+        float3 p = make_float3(0);
         bool check_second = true;
         if (rtPotentialIntersection(dist_near)) {
-            shading_normal = geometric_normal = box_normal(dist_near, t0, t1);
-            float3 p = ray.origin + dist_near * ray.direction;
-            float3 scaled =
-                (p - make_float3(-.5f)) / make_float3(1.f) -
-                make_float3(2 * abs(shading_normal.x), 2 * abs(shading_normal.y), 2 * abs(shading_normal.z));
-            float u = scaled.x > -.5f ? scaled.x : scaled.y;
-            float v = (scaled.x > -.5f && scaled.y > -.5f) ? scaled.y : scaled.z;
-            texcoord = make_float2(u, v);
-            tangent_vector = box_tangent(scaled, geometric_normal);
+            shading_normal = box_normal(dist_near, t0, t1);
+            p = ray.origin + dist_near * ray.direction;
+
+            // calculate uvs and tangent vector
+            if (abs(shading_normal.x) > 0.5) {
+                texcoord = make_float2((p.y + 0.5), (p.z + 0.5) * shading_normal.x);
+                tangent_vector = make_float3(0, 1, 0);
+            } else if (abs(shading_normal.y) > 0.5) {
+                texcoord = make_float2((p.x + 0.5), -(p.z + 0.5) * shading_normal.y);
+                tangent_vector = make_float3(1, 0, 0);
+            } else {
+                texcoord = make_float2((p.x + 0.5), (p.y + 0.5) * shading_normal.z);
+                tangent_vector = make_float3(1, 0, 0);
+            }
+
             if (rtReportIntersection(0))
                 check_second = false;
         }
         if (check_second) {
             if (rtPotentialIntersection(dist_far)) {
                 shading_normal = box_normal(dist_far, t0, t1);
-                float3 p = ray.origin + dist_far * ray.direction;
-                float3 scaled = (p - make_float3(-.5f)) / make_float3(1.f) -
-                                make_float3(abs(shading_normal.x), abs(shading_normal.y), abs(shading_normal.z));
-                float u = scaled.x > -.5f ? abs(scaled.x) : abs(scaled.y);
-                float v = scaled.x > -.5f ? abs(scaled.y) : abs(scaled.z);
-                texcoord = make_float2(u, v);
-                tangent_vector = box_tangent(scaled, geometric_normal);
+                p = ray.origin + dist_far * ray.direction;
+
+                // calculate uvs and tangent vector
+                if (abs(shading_normal.x) > 0.5) {
+                    texcoord = make_float2((p.y + 0.5), (p.z + 0.5) * shading_normal.x);
+                    tangent_vector = make_float3(0, 1, 0);
+                } else if (abs(shading_normal.y) > 0.5) {
+                    texcoord = make_float2((p.x + 0.5), -(p.z + 0.5) * shading_normal.y);
+                    tangent_vector = make_float3(1, 0, 0);
+                } else {
+                    texcoord = make_float2((p.x + 0.5), (p.y + 0.5) * shading_normal.z);
+                    tangent_vector = make_float3(1, 0, 0);
+                }
                 rtReportIntersection(0);
             }
         }

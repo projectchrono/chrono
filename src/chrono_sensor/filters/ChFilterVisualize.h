@@ -54,7 +54,7 @@ class CH_SENSOR_API ChFilterVisualize : public ChFilter {
     /// @param pSensor A pointer to the sensor.
     virtual void Initialize(std::shared_ptr<ChSensor> pSensor) {}
 
-  private:
+  protected:
     /// Creates a GLFW window for this filter
     void CreateGlfwWindow(std::shared_ptr<ChSensor> pSensor);
 

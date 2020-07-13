@@ -1,36 +1,29 @@
 {
-  "Name": "Generic sensor",
+  "Name": "Velodyne VLP-16",
   "Type": "Sensor",
   "Template": "Lidar",
 
   "Properties": {
-    "Update Rate": 30,
+    "Update Rate": 20,
     "Offset Pose": {
       "Location": [-5, 0, 2],
       "Orientation": [0.995004, 0, 0.0998334, 0]
     },
-    "Width": 4500,
-    "Height": 32,
+    "Width": 900,
+    "Height": 16,
     "Horizontal Field of View": 6.28318530718,
-    "Max Vertical Angle": 0.2,
-    "Min Vertical Angle": -0.399,
+    "Max Vertical Angle": 0.261799,
+    "Min Vertical Angle": -0.261799,
     "Lag": 0.01,
-    "Collection Time": 0
+    "Collection Window": 0.05,
+    "Divergence Angle": 0.003,
+    "Sample Radius": 2
   },
 
   "Filters":
   [
     {
-      "Filter": "ChFilterDIAccess"
-    },
-    {
-      "Filter": "ChFilterVisualize"
-    },
-    {
       "Filter": "ChFilterPCfromDepth"
-    },
-    {
-      "Filter": "ChFilterXYZIAccess"
     },
     {
       "Filter": "ChFilterLidarNoiseXYZI",
@@ -41,8 +34,8 @@
     },
     {
       "Filter": "ChFilterVisualizePointCloud",
-      "Width": 800,
-      "Height": 800
+      "Width": 640,
+      "Height": 480
     },
     {
       "Filter": "ChFilterXYZIAccess"

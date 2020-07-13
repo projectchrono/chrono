@@ -1,11 +1,11 @@
-# Blender MTL File: 'cube_with_normal_map.blend'
+# Blender MTL File: 'None'
 # Material Count: 1
 
-newmtl Material
-Ns 323.999994
+newmtl Material.001
+Ns 225.000000
 Ka 1.000000 1.000000 1.000000
-Kd 1.000000 0.000000 0.000000
-Ks 0.324561 0.324561 0.324561
+Kd 0.800000 0.800000 0.800000
+Ks 0.200000 0.200000 0.200000
 Ke 0.000000 0.000000 0.000000
 Ni 1.450000
 d 1.000000

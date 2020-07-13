@@ -89,20 +89,18 @@ RT_PROGRAM void pbr_shader() {
 
     // if has normal_map use the normal map for normal
     if (has_normal_map) {
-        //bitangent is the cross product of normal and tangent
-        float3 bitangent = cross(forward_normal, tangent_vector);
+        // Transform TBN to world space
+        float3 tangent = normalize(tangent_vector);
+        float3 bitangent = normalize(cross(forward_normal, tangent));
 
         // Extract normal_delta
         float3 normal_delta = make_float3(tex2D(normal_map, texcoord.x, texcoord.y)) * 2 - make_float3(1);
 
         // Calculate final normal TBN * normal delta
-        forward_normal =
-            -(tangent_vector * normal_delta.x + bitangent * normal_delta.y + forward_normal * normal_delta.z);
-        forward_normal = normalize(rtTransformNormal(RT_OBJECT_TO_WORLD, forward_normal));
-
-    }else{
-        forward_normal = normalize(rtTransformNormal(RT_OBJECT_TO_WORLD, forward_normal));
+        forward_normal = -(tangent * normal_delta.x + bitangent * normal_delta.y + forward_normal * normal_delta.z);
     }
+
+    forward_normal = normalize(rtTransformNormal(RT_OBJECT_TO_WORLD, forward_normal));
 
     if (dot(forward_normal, -ray.direction) < 0) {
         forward_normal = -forward_normal;

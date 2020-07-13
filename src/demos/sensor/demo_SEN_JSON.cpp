@@ -77,10 +77,10 @@ int main(int argc, char* argv[]) {
     // -----------------------
     float intensity = .5;
     auto manager = chrono_types::make_shared<ChSensorManager>(&mphysicalSystem);
-    manager->scene->AddPointLight({2, 2.5, 100}, {intensity, intensity, intensity}, 500);
-    manager->scene->AddPointLight({9, 2.5, 100}, {intensity, intensity, intensity}, 500);
-    manager->scene->AddPointLight({16, 2.5, 100}, {intensity, intensity, intensity}, 500);
-    manager->scene->AddPointLight({23, 2.5, 100}, {intensity, intensity, intensity}, 500);
+    manager->scene->AddPointLight({2, 2.5, 100}, {intensity, intensity, intensity}, 5000);
+    manager->scene->AddPointLight({9, 2.5, 100}, {intensity, intensity, intensity}, 5000);
+    manager->scene->AddPointLight({16, 2.5, 100}, {intensity, intensity, intensity}, 5000);
+    manager->scene->AddPointLight({23, 2.5, 100}, {intensity, intensity, intensity}, 5000);
 
     // ------------------------------------------------
     // Create a camera and add it to the sensor manager
@@ -92,7 +92,7 @@ int main(int argc, char* argv[]) {
     // -----------------------------------------------
     // Create a lidar and add it to the sensor manager
     // -----------------------------------------------
-    auto lidar = Sensor::CreateFromJSON(GetChronoDataFile("sensor/json/generic/Lidar.json"), mesh_body);
+    auto lidar = Sensor::CreateFromJSON(GetChronoDataFile("sensor/json/Velodyne/VLP-16.json"), mesh_body);
     // add sensor to the manager
     manager->AddSensor(lidar);
 

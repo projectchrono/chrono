@@ -20,16 +20,10 @@
 namespace chrono {
 namespace sensor {
 
-int ChFilterVisualizePointCloud::s_windowCount = 0;
-
 CH_SENSOR_API ChFilterVisualizePointCloud::ChFilterVisualizePointCloud(int w, int h, std::string name)
-    : m_w(w), m_h(h), ChFilter(name) {
-    ChFilterVisualizePointCloud::OnNewWindow();
-}
+    : ChFilterVisualize(w, h, name) {}
 
-CH_SENSOR_API ChFilterVisualizePointCloud::~ChFilterVisualizePointCloud() {
-    ChFilterVisualizePointCloud::OnCloseWindow();
-}
+CH_SENSOR_API ChFilterVisualizePointCloud::~ChFilterVisualizePointCloud() {}
 
 CH_SENSOR_API void ChFilterVisualizePointCloud::Apply(std::shared_ptr<ChSensor> pSensor,
                                                       std::shared_ptr<SensorBuffer>& bufferInOut) {
@@ -110,27 +104,6 @@ CH_SENSOR_API void ChFilterVisualizePointCloud::Apply(std::shared_ptr<ChSensor> 
                 }
             }
         }
-        // else if (pHostXYZIBuffer) {
-        //     int data_w = pHostXYZIBuffer->Width;
-        //     int data_h = pHostXYZIBuffer->Height;
-        //     for (int i = 0; i < data_w; i++) {
-        //         for (int j = 0; j < data_h; j++) {
-        //             // glColor3f(1.0, 1.0, pHostXYZIBuffer->Buffer[i * data_h + j].z / 10.0);
-        //             // glVertex3f(-pHostXYZIBuffer->Buffer[i * data_h + j].y, pHostXYZIBuffer->Buffer[i * data_h +
-        //             j].z,
-        //             //            pHostXYZIBuffer->Buffer[i * data_h + j].x);
-        //
-        //             if (pHostXYZIBuffer->Buffer[i * data_h + j].intensity > 1e-6) {
-        //                 glColor3f(pHostXYZIBuffer->Buffer[i * data_h + j].intensity,
-        //                           pHostXYZIBuffer->Buffer[i * data_h + j].intensity,
-        //                           pHostXYZIBuffer->Buffer[i * data_h + j].z / 10.0);
-        //                 glVertex3f(-pHostXYZIBuffer->Buffer[i * data_h + j].y,
-        //                            pHostXYZIBuffer->Buffer[i * data_h + j].z,
-        //                            pHostXYZIBuffer->Buffer[i * data_h + j].x);
-        //             }
-        //         }
-        //     }
-        // }
 
         // Done drawing points
         glEnd();
@@ -143,66 +116,7 @@ CH_SENSOR_API void ChFilterVisualizePointCloud::Apply(std::shared_ptr<ChSensor> 
 
         glfwSwapBuffers(m_window.get());
         glfwPollEvents();
-        // }
     }
-}
-
-void ChFilterVisualizePointCloud::CreateGlfwWindow(std::shared_ptr<ChSensor> pSensor) {
-    // if we've already made the window, there's nothing to do.
-    if (m_window)
-        return;
-
-    // to visualize, the sensor must inherit from ChOptixSensor
-    std::shared_ptr<ChOptixSensor> pVis = std::dynamic_pointer_cast<ChOptixSensor>(pSensor);
-    if (!pVis)
-        throw std::runtime_error("Cannot create a window for a sensor that does not implement ChOptixSensor");
-
-    OnNewWindow();
-    std::stringstream s;
-    s << pSensor->GetName().c_str();
-    if (Name().length() > 0)
-        s << " - " << Name();
-    m_window.reset(glfwCreateWindow(static_cast<GLsizei>(m_w), static_cast<GLsizei>(m_h), s.str().c_str(), NULL, NULL));
-    glfwSwapInterval(0);
-    if (!m_window) {
-        // OnCloseWindow();
-        //     throw std::runtime_error("Could not create window");
-    }
-    if (m_window) {
-        glfwMakeContextCurrent(m_window.get());
-
-        // TODO: will only succeed the first time, so perhaps do this more intelligently
-        glewInit();
-
-        // Init state
-        glMatrixMode(GL_PROJECTION);
-        glLoadIdentity();
-        glOrtho(0, 1, 0, 1, -1, 1);
-
-        glMatrixMode(GL_MODELVIEW);
-        glLoadIdentity();
-
-        glViewport(0, 0, m_w, m_h);
-    } else {
-        std::cerr << "WARNING: requested window could not be created by GLFW. Will proceed with no window.\n";
-        m_window_disabled = true;
-    }
-}
-
-void ChFilterVisualizePointCloud::MakeGlContextActive() {
-    if (!m_window)
-        throw std::runtime_error("Cannot make gl context active because there is no window");
-    glfwMakeContextCurrent(m_window.get());
-}
-
-void ChFilterVisualizePointCloud::OnNewWindow() {
-    if (s_windowCount++ == 0) {
-        glfwInit();
-    }
-}
-void ChFilterVisualizePointCloud::OnCloseWindow() {
-    if (--s_windowCount == 0)
-        glfwTerminate();
 }
 
 }  // namespace sensor
