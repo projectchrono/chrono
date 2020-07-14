@@ -148,7 +148,6 @@ while application.GetDevice().run():
     # print('{0:f}   {1:f} {2:f}   {3:f} {4:f}'.format(time, x, x_d, xa, xa_d))
 
     application.BeginScene()
-    application.BeginScene()
     application.DrawAll()
     irr.ChIrrTools_drawAllLinkframes(system, application.GetVideoDriver(), 1)
     application.DoStep()

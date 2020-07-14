@@ -26,9 +26,12 @@ import math as m
 
 print("Copyright (c) 2017 projectchrono.org")
 
-system = chrono.ChSystemNSC()
+# The path to the Chrono data directory containing various assets (meshes, textures, data files)
+# is automatically set, relative to the default location of this demo.
+# If running from a different directory, you must change the path to the data directory with: 
+#chrono.SetChronoDataPath('path/to/data')
 
-chrono.SetChronoDataPath("/home/jay/chrono-main/data/")
+system = chrono.ChSystemNSC()
 
 # Create a floor
 mfloor = chrono.ChBodyEasyBox(3, 0.2, 3, 1000, False, False)
