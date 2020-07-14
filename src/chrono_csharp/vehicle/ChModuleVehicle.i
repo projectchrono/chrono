@@ -89,7 +89,6 @@
 
 #include "chrono_thirdparty/rapidjson/document.h"
 #include "Eigen/src/Core/util/Memory.h"
-#include "chrono_models/vehicle/citybus/CityBus.h"
 
 using namespace chrono;
 using namespace chrono::vehicle;
@@ -100,6 +99,7 @@ using namespace chrono::vehicle::sedan;
 using namespace chrono::vehicle::citybus;
 using namespace chrono::vehicle::man;
 using namespace chrono::vehicle::uaz;
+using namespace chrono::vehicle::gator;
 
 %}
 
@@ -318,30 +318,33 @@ Before adding a shared_ptr, mark as shared ptr all its inheritance tree in the m
 
 %DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, ChDoubleWishbone)
 %DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, ChMacPhersonStrut)
-//%DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, MacPhersonStrut)
 %DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, ChLeafspringAxle)
-//%DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, LeafspringAxle)
 %DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, ChHendricksonPRIMAXX)
 %DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, ChDoubleWishboneReduced)
 %DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, ChMultiLink)
-//%DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, MultiLink)
 %DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, ChRigidPinnedAxle)
 %DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, ChSemiTrailingArm)
-//%DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, SemiTrailingArm)
 %DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, ChRigidSuspension)
 %DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, ChSolidAxle)
 %DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, ChThreeLinkIRS)
 %DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, ChToeBarLeafspringAxle)
+%DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, ChSolidBellcrankThreeLinkAxle)
+%DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, ChSolidThreeLinkAxle)
+%DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, ChSingleWishbone)
+
+//%DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, MacPhersonStrut)
+//%DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, LeafspringAxle)
+//%DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, MultiLink)
+//%DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, SemiTrailingArm)
 //%DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, DoubleWishbone)
 //%DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, DoubleWishboneReduced)
 //%DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, HendricksonPRIMAXX)
 //%DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, SolidAxle)
 //%DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, ThreeLinkIRS)
 //%DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, ToeBarLeafspringAxle)
-%DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, ChSolidBellcrankThreeLinkAxle)
-%DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, ChSolidThreeLinkAxle)
 //%DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, SolidBellcrankThreeLinkAxle)
 //%DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, SolidThreeLinkAxle)
+//%DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, SingleWishbone)
 
 %DefSharedPtrDynamicDowncast(chrono::vehicle,ChSteering, ChPitmanArm)
 %DefSharedPtrDynamicDowncast(chrono::vehicle,ChSteering, ChPitmanArmShafts)
