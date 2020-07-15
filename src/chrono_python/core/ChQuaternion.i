@@ -33,8 +33,12 @@
 
 
 %template(ChQuaternionD) chrono::ChQuaternion<double>; 
-//%template(ChQuaternionF) chrono::ChQuaternion<float>; 
+%template(ChQuaternionF) chrono::ChQuaternion<float>; 
 
+// This is needed because a std::vector<ChQuaternion<double>
+// might be used  somewhere, and we want to use it via python:
+%template(vector_ChQuaternionD) std::vector< chrono::ChQuaternion<double> >;
+%template(vector_ChQuaternionF) std::vector< chrono::ChQuaternion<float> >;
 
 
 %extend chrono::ChQuaternion<double>{

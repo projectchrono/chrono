@@ -78,6 +78,7 @@ int main(int argc, char* argv[]) {
     gator.SetTireType(TireModelType::TMEASY);
     gator.SetTireStepSize(step_size);
     gator.SetAerodynamicDrag(0.5, 5.0, 1.2);
+    gator.EnableBrakeLocking(true);
     gator.Initialize();
 
     gator.SetChassisVisualizationType(chassis_vis_type);

@@ -22,3 +22,13 @@
     CSYSNULL = ChCoordsysD(VNULL,QNULL)
     CSYSNORM = ChCoordsysD(VNULL,QUNIT)
 %}*/
+
+%extend chrono::ChVector<double>{
+        // Workaround because mixed 'out of class' operators  
+        // not supported in Swig
+        public:
+            chrono::ChVector<double> operator>> (chrono::ChCoordsys<double>& msys) 
+            {
+                return msys.TransformPointLocalToParent(*$self);
+            }
+        };
