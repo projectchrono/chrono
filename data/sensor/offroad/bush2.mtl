@@ -1,7 +1,7 @@
-# Blender MTL File: 'Bush1.blend'
+# Blender MTL File: 'None'
 # Material Count: 2
 
-newmtl Material.001
+newmtl Material.008
 Ns 225.000000
 Ka 1.000000 1.000000 1.000000
 Kd 0.344855 0.429226 0.000000
@@ -11,7 +11,7 @@ Ni 1.000000
 d 1.000000
 illum 2
 
-newmtl Material.002
+newmtl Material.009
 Ns 225.000000
 Ka 1.000000 1.000000 1.000000
 Kd 0.201901 0.116948 0.078615
