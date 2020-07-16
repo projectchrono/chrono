@@ -12,6 +12,9 @@ using namespace chrono;
 %shared_ptr(chrono::ChMaterialSurface)
 %shared_ptr(chrono::ChMaterialSurfaceNSC)
 %shared_ptr(chrono::ChMaterialSurfaceSMC)
+%shared_ptr(chrono::ChMaterialComposite)
+%shared_ptr(chrono::ChMaterialCompositeNSC)
+%shared_ptr(chrono::ChMaterialCompositeSMC)
 
 /* Parse the header file to generate wrappers */
 %include "../../chrono/physics/ChMaterialSurface.h"  
@@ -30,3 +33,6 @@ using namespace chrono;
 
 %DefSharedPtrDynamicDowncast(chrono,ChMaterialSurface,ChMaterialSurfaceNSC)
 %DefSharedPtrDynamicDowncast(chrono,ChMaterialSurface,ChMaterialSurfaceSMC)
+
+%DefSharedPtrDynamicDowncast(chrono,ChMaterialComposite,ChMaterialCompositeSMC)
+%DefSharedPtrDynamicDowncast(chrono,ChMaterialComposite,ChMaterialCompositeNSC)
