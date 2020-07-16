@@ -59,12 +59,12 @@ float exposure_time = 0;
 // -----------------------------------------------------------------------------
 
 // Texture files
-//const std::string normalmap = "sensor/textures/brick_normal.png";
-//const std::string kdmap = "sensor/textures/brick.png";
+// const std::string normalmap = "sensor/textures/brick_normal.png";
+// const std::string kdmap = "sensor/textures/brick.png";
 const std::string normalmap = "sensor/textures/FaceNormal.jpg";
 const std::string kdmap = "sensor/textures/grass_texture.jpg";
-//const std::string kdmap = "sensor/textures/rock.png";
-//const std::string normalmap = "sensor/textures/rock_normalmap.jpg";
+// const std::string kdmap = "sensor/textures/rock.png";
+// const std::string normalmap = "sensor/textures/rock_normalmap.jpg";
 const std::string objfile = "sensor/cube_bumpy.obj";
 
 const std::string floor_kdmap = "sensor/textures/white.png";
@@ -187,7 +187,7 @@ int main(int argc, char* argv[]) {
     // ------------------------------------------------
     // Create a camera and add it to the sensor manager
     // ------------------------------------------------
-    chrono::ChFrame<double> offset_pose({0, 0, 10}, Q_from_AngY(CH_C_PI/2));
+    chrono::ChFrame<double> offset_pose({0, 0, 10}, Q_from_AngY(CH_C_PI / 2));
     auto cam = chrono_types::make_shared<ChCameraSensor>(floor,         // body camera is attached to
                                                          update_rate,   // update rate in Hz
                                                          offset_pose,   // offset pose
@@ -247,17 +247,16 @@ int main(int argc, char* argv[]) {
 
     while (ch_time < end_time) {
         // Rotate the cameras around the mesh at a fixed rate
-//        cam->SetOffsetPose(chrono::ChFrame<double>(
-//            {-orbit_radius * cos(ch_time * orbit_rate), -orbit_radius * sin(ch_time * orbit_rate), 3},
-//            Q_from_AngAxis(ch_time * orbit_rate, {0, 0, 1}) * Q_from_AngAxis(.5, {0, 1, 0})));
-//
-//        cam2->SetOffsetPose(chrono::ChFrame<double>(
-//            {-orbit_radius * cos(ch_time * orbit_rate), -orbit_radius * sin(ch_time * orbit_rate), 3},
-//            Q_from_AngAxis(ch_time * orbit_rate, {0, 0, 1})));
+        //        cam->SetOffsetPose(chrono::ChFrame<double>(
+        //            {-orbit_radius * cos(ch_time * orbit_rate), -orbit_radius * sin(ch_time * orbit_rate), 3},
+        //            Q_from_AngAxis(ch_time * orbit_rate, {0, 0, 1}) * Q_from_AngAxis(.5, {0, 1, 0})));
+        //
+        //        cam2->SetOffsetPose(chrono::ChFrame<double>(
+        //            {-orbit_radius * cos(ch_time * orbit_rate), -orbit_radius * sin(ch_time * orbit_rate), 3},
+        //            Q_from_AngAxis(ch_time * orbit_rate, {0, 0, 1})));
 
-    mesh_body->SetRot(Q_from_AngX(ch_time * orbit_rate));
-    box2->SetRot(Q_from_AngX(ch_time * orbit_rate));
-        
+        mesh_body->SetRot(Q_from_AngX(ch_time * orbit_rate));
+        box2->SetRot(Q_from_AngX(ch_time * orbit_rate));
 
         // Update sensor manager
         // Will render/save/filter automatically

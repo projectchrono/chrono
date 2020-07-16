@@ -85,7 +85,7 @@ RT_PROGRAM void pinhole_camera() {
     // create a ray based on the calculated parameters
     optix::Ray ray(ray_origin, ray_direction, CAMERA_RAY_TYPE, scene_epsilon, max_scene_distance);
     // set the ray pay load
-    PerRayData_camera prd_camera = make_camera_data(make_float3(0), 1.f, 1);
+    PerRayData_camera prd_camera = make_camera_data(make_float3(0), 1.f, 2);
 
     rtTrace(root_node, ray, current_time, prd_camera);
     output_buffer[launch_index] = make_color(prd_camera.color);
@@ -144,7 +144,7 @@ RT_PROGRAM void fov_lens_camera() {
     optix::Ray ray(ray_origin, ray_direction, CAMERA_RAY_TYPE, scene_epsilon, max_scene_distance);
 
     // set the ray pay load
-    PerRayData_camera prd_camera = make_camera_data(make_float3(0), 1.f, 1);
+    PerRayData_camera prd_camera = make_camera_data(make_float3(0), 1.f, 2);
 
     // launch the ray
     rtTrace(root_node, ray, current_time, prd_camera, RT_RAY_FLAG_DISABLE_ANYHIT);

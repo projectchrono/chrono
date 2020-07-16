@@ -28,18 +28,6 @@
 namespace chrono {
 namespace sensor {
 
-// cuda_camera_noise_pixel_dependent
-bool init_camera_noise_const_normal = true;
-std::shared_ptr<curandState_t> camera_noise_const_normal_rng;
-
-// cuda_camera_noise_pixel_dependent
-bool init_camera_noise_pix_dep = true;
-std::shared_ptr<curandState_t> camera_noise_pix_dep_rng;
-
-// cuda_camera_noise_crf
-bool init_camera_noise_crf = true;
-std::shared_ptr<curandState_t> camera_noise_crf_rng;
-
 // Add random normal noise to the image with constant mean and stdev
 __global__ void const_normal_noise_kernel(unsigned char* bufPtr,
                                           int w,
@@ -111,41 +99,29 @@ __global__ void pix_dep_noise_kernel(unsigned char* bufPtr,
     }
 }
 
-void cuda_camera_noise_const_normal(void* bufPtr, int width, int height, float mean, float stdev) {
+void cuda_camera_noise_const_normal(unsigned char* bufPtr,
+                                    int width,
+                                    int height,
+                                    float mean,
+                                    float stdev,
+                                    curandState_t* rng) {
     const int nThreads = 512;
     int nBlocks = (width * height + nThreads - 1) / nThreads;
 
-    if (init_camera_noise_const_normal) {
-        camera_noise_const_normal_rng = std::shared_ptr<curandState_t>(
-            cudaMallocHelper<curandState_t>(nBlocks * nThreads), cudaFreeHelper<curandState_t>);
-        init_camera_noise_const_normal = false;
-        init_random_states<<<nBlocks, nThreads>>>(std::chrono::high_resolution_clock::now().time_since_epoch().count(),
-                                                  camera_noise_const_normal_rng.get(), nBlocks * nThreads);
-    }
-
-    const_normal_noise_kernel<<<nBlocks, nThreads>>>((unsigned char*)bufPtr, width, height, mean, stdev,
-                                                     camera_noise_const_normal_rng.get());
+    const_normal_noise_kernel<<<nBlocks, nThreads>>>(bufPtr, width, height, mean, stdev, rng);
 }
 
-void cuda_camera_noise_pixel_dependent(void* bufPtr,
+void cuda_camera_noise_pixel_dependent(unsigned char* bufPtr,
                                        int width,
                                        int height,
                                        float gain,
                                        float sigma_read,
-                                       float sigma_adc) {
+                                       float sigma_adc,
+                                       curandState_t* rng) {
     const int nThreads = 512;
     int nBlocks = (width * height + nThreads - 1) / nThreads;
 
-    if (init_camera_noise_pix_dep) {
-        camera_noise_pix_dep_rng = std::shared_ptr<curandState_t>(cudaMallocHelper<curandState_t>(nBlocks * nThreads),
-                                                                  cudaFreeHelper<curandState_t>);
-        init_camera_noise_pix_dep = false;
-        init_random_states<<<nBlocks, nThreads>>>(std::chrono::high_resolution_clock::now().time_since_epoch().count(),
-                                                  camera_noise_pix_dep_rng.get(), nBlocks * nThreads);
-    }
-
-    pix_dep_noise_kernel<<<nBlocks, nThreads>>>((unsigned char*)bufPtr, width, height, gain, sigma_read, sigma_adc,
-                                                camera_noise_pix_dep_rng.get());
+    pix_dep_noise_kernel<<<nBlocks, nThreads>>>(bufPtr, width, height, gain, sigma_read, sigma_adc, rng);
 }
 
 }  // namespace sensor

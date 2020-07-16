@@ -28,9 +28,6 @@
 namespace chrono {
 namespace sensor {
 
-bool init_lidar_noise_normal = true;
-std::shared_ptr<curandState_t> lidar_noise_normal_rng;
-
 // Add random normal noise to the image with constant mean and stdev
 __global__ void lidar_normal_noise_kernel(float* bufPtr,
                                           int w,
@@ -84,27 +81,19 @@ __global__ void lidar_normal_noise_kernel(float* bufPtr,
     }
 }
 
-void cuda_lidar_noise_normal(void* bufPtr,
+void cuda_lidar_noise_normal(float* bufPtr,
                              int width,
                              int height,
                              float stdev_range,
                              float stdev_v_angle,
                              float stdev_h_angle,
-                             float stdev_intensity) {
+                             float stdev_intensity,
+                             curandState_t* rng) {
     const int nThreads = 512;
     int nBlocks = (width * height + nThreads - 1) / nThreads;
 
-    if (init_lidar_noise_normal) {
-        lidar_noise_normal_rng = std::shared_ptr<curandState_t>(cudaMallocHelper<curandState_t>(width * height),
-                                                                cudaFreeHelper<curandState_t>);
-
-        init_lidar_noise_normal = false;
-        init_random_states<<<nBlocks, nThreads>>>(std::chrono::high_resolution_clock::now().time_since_epoch().count(),
-                                                  lidar_noise_normal_rng.get(), width * height);
-    }
-
-    lidar_normal_noise_kernel<<<nBlocks, nThreads>>>((float*)bufPtr, width, height, stdev_range, stdev_v_angle,
-                                                     stdev_h_angle, stdev_intensity, lidar_noise_normal_rng.get());
+    lidar_normal_noise_kernel<<<nBlocks, nThreads>>>(bufPtr, width, height, stdev_range, stdev_v_angle, stdev_h_angle,
+                                                     stdev_intensity, rng);
 }
 
 }  // namespace sensor

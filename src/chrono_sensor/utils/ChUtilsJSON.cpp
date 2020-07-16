@@ -83,7 +83,9 @@ ChFrame<> ReadFrameJSON(const Value& a) {
 
 // -----------------------------------------------------------------------------
 
-std::shared_ptr<ChSensor> ReadSensorJSON(const std::string& filename, std::shared_ptr<chrono::ChBody> parent) {
+std::shared_ptr<ChSensor> ReadSensorJSON(const std::string& filename,
+                                         std::shared_ptr<chrono::ChBody> parent,
+                                         chrono::ChFrame<double> offsetPose) {
     std::shared_ptr<ChSensor> sensor;
 
     Document d = ReadFileJSON(filename);
@@ -101,13 +103,13 @@ std::shared_ptr<ChSensor> ReadSensorJSON(const std::string& filename, std::share
 
     // Create the sensor using the appropriate template.
     if (sensor_type.compare("Camera") == 0) {
-        sensor = ReadCameraSensorJSON(filename, parent);
+        sensor = ReadCameraSensorJSON(filename, parent, offsetPose);
     } else if (sensor_type.compare("GPS") == 0) {
-        sensor = ReadGPSSensorJSON(filename, parent);
+        sensor = ReadGPSSensorJSON(filename, parent, offsetPose);
     } else if (sensor_type.compare("IMU") == 0) {
-        sensor = ReadIMUSensorJSON(filename, parent);
+        sensor = ReadIMUSensorJSON(filename, parent, offsetPose);
     } else if (sensor_type.compare("Lidar") == 0) {
-        sensor = ReadLidarSensorJSON(filename, parent);
+        sensor = ReadLidarSensorJSON(filename, parent, offsetPose);
     } else {
         throw ChException("Sensor type of " + sensor_type + " not supported in ReadSensorJSON.");
     }
@@ -116,7 +118,8 @@ std::shared_ptr<ChSensor> ReadSensorJSON(const std::string& filename, std::share
 }
 
 std::shared_ptr<ChCameraSensor> ReadCameraSensorJSON(const std::string& filename,
-                                                     std::shared_ptr<chrono::ChBody> parent) {
+                                                     std::shared_ptr<chrono::ChBody> parent,
+                                                     chrono::ChFrame<double> offsetPose) {
     Document d = ReadFileJSON(filename);
     if (d.IsNull())
         return nullptr;
@@ -139,13 +142,10 @@ std::shared_ptr<ChCameraSensor> ReadCameraSensorJSON(const std::string& filename
 
     // Create the camera sensor.
     float updateRate = properties["Update Rate"].GetFloat();
-    ChFrame<> offsetPose = ReadFrameJSON(properties["Offset Pose"]);
+    // ChFrame<> offsetPose = ReadFrameJSON(properties["Offset Pose"]);
     unsigned int w = properties["Width"].GetUint();
     unsigned int h = properties["Height"].GetUint();
     float hFOV = properties["Horizontal Field of View"].GetFloat();
-    float lag = properties["Lag"].GetFloat();
-    float exposure_time = properties["Exposure Time"].GetFloat();
-
     unsigned int supersample_factor = 1;
     CameraLensModelType lens_model = PINHOLE;
 
@@ -161,13 +161,20 @@ std::shared_ptr<ChCameraSensor> ReadCameraSensorJSON(const std::string& filename
 
     auto camera = chrono_types::make_shared<ChCameraSensor>(parent, updateRate, offsetPose, w, h, hFOV,
                                                             supersample_factor, lens_model);
-
-    camera->SetLag(lag);
-    camera->SetCollectionWindow(exposure_time);
+    if (properties.HasMember("Lag")) {
+        float lag = properties["Lag"].GetFloat();
+        camera->SetLag(lag);
+    }
+    if (properties.HasMember("Exposure Time")) {
+        float collection = properties["Exposure Time"].GetFloat();
+        camera->SetCollectionWindow(collection);
+    }
     return camera;
 }
 
-std::shared_ptr<ChGPSSensor> ReadGPSSensorJSON(const std::string& filename, std::shared_ptr<chrono::ChBody> parent) {
+std::shared_ptr<ChGPSSensor> ReadGPSSensorJSON(const std::string& filename,
+                                               std::shared_ptr<chrono::ChBody> parent,
+                                               chrono::ChFrame<double> offsetPose) {
     Document d = ReadFileJSON(filename);
     if (d.IsNull())
         return nullptr;
@@ -190,21 +197,26 @@ std::shared_ptr<ChGPSSensor> ReadGPSSensorJSON(const std::string& filename, std:
 
     // Create the gps sensor.
     float updateRate = properties["Update Rate"].GetFloat();
-    float lag = properties["Lag"].GetFloat();
-    float collection_time = properties["Collection Time"].GetFloat();
-    ChFrame<> offsetPose = ReadFrameJSON(properties["Offset Pose"]);
+    // ChFrame<> offsetPose = ReadFrameJSON(properties["Offset Pose"]);
     ChVector<> gps_reference = ReadVectorJSON(properties["GPS Reference"]);
     std::shared_ptr<ChGPSNoiseModel> noise_model = CreateGPSNoiseJSON(properties["GPS Noise Model"]);
 
     auto gps = chrono_types::make_shared<ChGPSSensor>(parent, updateRate, offsetPose, gps_reference, noise_model);
-
-    gps->SetLag(lag);
-    gps->SetCollectionWindow(collection_time);
+    if (properties.HasMember("Lag")) {
+        float lag = properties["Lag"].GetFloat();
+        gps->SetLag(lag);
+    }
+    if (properties.HasMember("Collection Window")) {
+        float collection = properties["Collection Window"].GetFloat();
+        gps->SetCollectionWindow(collection);
+    }
 
     return gps;
 }
 
-std::shared_ptr<ChIMUSensor> ReadIMUSensorJSON(const std::string& filename, std::shared_ptr<chrono::ChBody> parent) {
+std::shared_ptr<ChIMUSensor> ReadIMUSensorJSON(const std::string& filename,
+                                               std::shared_ptr<chrono::ChBody> parent,
+                                               chrono::ChFrame<double> offsetPose) {
     Document d = ReadFileJSON(filename);
     if (d.IsNull())
         return nullptr;
@@ -226,20 +238,25 @@ std::shared_ptr<ChIMUSensor> ReadIMUSensorJSON(const std::string& filename, std:
     const Value& properties = d["Properties"];
 
     // Create the gps sensor.
-    float updateRate = properties["Update Rate"].GetDouble();
-    ChFrame<> offsetPose = ReadFrameJSON(properties["Offset Pose"]);
+    float updateRate = properties["Update Rate"].GetFloat();
+    // ChFrame<> offsetPose = ReadFrameJSON(properties["Offset Pose"]);
     std::shared_ptr<ChIMUNoiseModel> noise_model = CreateIMUNoiseJSON(properties["IMU Noise Model"]);
-    float lag = properties["Lag"].GetFloat();
-    float collection_time = properties["Collection Time"].GetFloat();
-
     auto imu = chrono_types::make_shared<ChIMUSensor>(parent, updateRate, offsetPose, noise_model);
-    imu->SetLag(lag);
-    imu->SetCollectionWindow(collection_time);
+
+    if (properties.HasMember("Lag")) {
+        float lag = properties["Lag"].GetFloat();
+        imu->SetLag(lag);
+    }
+    if (properties.HasMember("Collection Window")) {
+        float collection = properties["Collection Window"].GetFloat();
+        imu->SetCollectionWindow(collection);
+    }
     return imu;
 }
 
 std::shared_ptr<ChLidarSensor> ReadLidarSensorJSON(const std::string& filename,
-                                                   std::shared_ptr<chrono::ChBody> parent) {
+                                                   std::shared_ptr<chrono::ChBody> parent,
+                                                   chrono::ChFrame<double> offsetPose) {
     Document d = ReadFileJSON(filename);
     if (d.IsNull())
         return nullptr;
@@ -262,14 +279,14 @@ std::shared_ptr<ChLidarSensor> ReadLidarSensorJSON(const std::string& filename,
 
     // Create the gps sensor.
     float updateRate = properties["Update Rate"].GetFloat();
-    ChFrame<> offsetPose = ReadFrameJSON(properties["Offset Pose"]);
+    // ChFrame<> offsetPose = ReadFrameJSON(properties["Offset Pose"]);
     unsigned int w = properties["Width"].GetUint();
     unsigned int h = properties["Height"].GetUint();
     float hfov = properties["Horizontal Field of View"].GetFloat();
     float max_v_angle = properties["Max Vertical Angle"].GetFloat();
     float min_v_angle = properties["Min Vertical Angle"].GetFloat();
-    float lag = properties["Lag"].GetFloat();
-    float exposure_time = properties["Collection Window"].GetFloat();
+    // float lag = properties["Lag"].GetFloat();
+    // float exposure_time = properties["Collection Window"].GetFloat();
 
     unsigned int sample_radius = 1;
     float divergence_angle = .003;
@@ -296,8 +313,16 @@ std::shared_ptr<ChLidarSensor> ReadLidarSensorJSON(const std::string& filename,
     auto lidar =
         chrono_types::make_shared<ChLidarSensor>(parent, updateRate, offsetPose, w, h, hfov, max_v_angle, min_v_angle,
                                                  sample_radius, divergence_angle, return_mode, lidar_model);
-    lidar->SetLag(lag);
-    lidar->SetCollectionWindow(exposure_time);
+
+    if (properties.HasMember("Lag")) {
+        float lag = properties["Lag"].GetFloat();
+        lidar->SetLag(lag);
+    }
+    if (properties.HasMember("Collection Window")) {
+        float exposure_time = properties["Collection Window"].GetFloat();
+        lidar->SetCollectionWindow(exposure_time);
+    }
+
     return lidar;
 }
 

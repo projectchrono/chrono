@@ -166,6 +166,7 @@ set(ChronoEngine_sensor_RT_SOURCES
     rtkernels/camera.cu
     rtkernels/lidar.cu
     rtkernels/miss.cu
+    rtkernels/exception.cu
     rtkernels/triangle_mesh.cu
     rtkernels/camera_shaders.cu
     rtkernels/lidar_shaders.cu

@@ -26,6 +26,7 @@ CH_SENSOR_API ChScene::ChScene() {
 
     m_background.color = {0.5f, 0.6f, 0.7f};
     m_background.has_texture = false;
+    m_pointlights = std::vector<PointLight>();
     // m_background.env_te
 }
 

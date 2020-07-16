@@ -5,10 +5,6 @@
 
   "Properties": {
     "Update Rate": 30,
-    "Offset Pose": {
-      "Location": [-5, 0, 2],
-      "Orientation": [0.995004, 0, 0.0998334, 0]
-    },
     "Width": 4500,
     "Height": 32,
     "Horizontal Field of View": 6.28318530718,
@@ -24,7 +20,9 @@
       "Filter": "ChFilterDIAccess"
     },
     {
-      "Filter": "ChFilterVisualize"
+      "Filter": "ChFilterVisualize",
+      "Width": 640,
+      "Height": 360
     },
     {
       "Filter": "ChFilterPCfromDepth"

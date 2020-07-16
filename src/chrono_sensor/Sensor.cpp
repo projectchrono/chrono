@@ -26,7 +26,8 @@ namespace chrono {
 namespace sensor {
 
 CH_SENSOR_API std::shared_ptr<ChSensor> Sensor::CreateFromJSON(const std::string& filename,
-                                                              std::shared_ptr<chrono::ChBody> parent) {
+                                                               std::shared_ptr<chrono::ChBody> parent,
+                                                               chrono::ChFrame<double> offsetPose) {
     // Open and parse the input file
     Document d = ReadFileJSON(filename);
     if (d.IsNull())
@@ -44,7 +45,7 @@ CH_SENSOR_API std::shared_ptr<ChSensor> Sensor::CreateFromJSON(const std::string
     // ------------------------------------
     // Create the sensor from the JSON file
     // ------------------------------------
-    auto sensor = ReadSensorJSON(filename, parent);
+    auto sensor = ReadSensorJSON(filename, parent, offsetPose);
     ReadFilterListJSON(filename, sensor);
     sensor->SetName(name);
 

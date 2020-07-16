@@ -7,10 +7,6 @@
     "Update Rate": 100,
     "Lag": 0.01,
     "Collection Time": 0.01,
-    "Offset Pose": {
-      "Location": [0, 0, 0],
-      "Orientation": [1, 0, 0, 0]
-    },
     "IMU Noise Model": {
       "Noise Model": "ChIMUNoiseNone"
     }

@@ -23,6 +23,8 @@
 
 #include "chrono_sensor/filters/ChFilter.h"
 
+#include <iostream>
+
 namespace chrono {
 namespace sensor {
 

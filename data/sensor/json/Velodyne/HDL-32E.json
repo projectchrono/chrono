@@ -5,15 +5,11 @@
 
   "Properties": {
     "Update Rate": 20,
-    "Offset Pose": {
-      "Location": [-5, 0, 2],
-      "Orientation": [0.995004, 0, 0.0998334, 0]
-    },
-    "Width": 900,
-    "Height": 16,
+    "Width": 1080,
+    "Height": 32,
     "Horizontal Field of View": 6.28318530718,
-    "Max Vertical Angle": 0.261799,
-    "Min Vertical Angle": -0.261799,
+    "Max Vertical Angle": 0.186227,
+    "Min Vertical Angle": -0.53529,
     "Lag": 0.01,
     "Collection Window": 0.05,
     "Divergence Angle": 0.003,
@@ -23,22 +19,26 @@
   "Filters":
   [
     {
-      "Filter": "ChFilterPCfromDepth"
+      "Filter": "ChFilterPCfromDepth",
+      "Name":"PC from depth"
     },
     {
       "Filter": "ChFilterLidarNoiseXYZI",
-      "Standard Deviation Range": 0.01,
+      "Standard Deviation Range": 0.0067,
       "Standard Deviation Vertical Angle": 0.001,
       "Standard Deviation Horizontal Angle": 0.001,
-      "Standard Deviation Intensity": 0.001
+      "Standard Deviation Intensity": 0.01,
+      "Name":"Noise"
     },
     {
       "Filter": "ChFilterVisualizePointCloud",
       "Width": 640,
-      "Height": 480
+      "Height": 480,
+      "Name":"Vis"
     },
     {
-      "Filter": "ChFilterXYZIAccess"
+      "Filter": "ChFilterXYZIAccess",
+      "Name":"XYZI Access"
     }
   ]
 }

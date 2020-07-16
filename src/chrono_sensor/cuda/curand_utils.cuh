@@ -29,6 +29,12 @@ namespace sensor {
 /// @param n_generators The number of random value generators we need.
 __global__ void init_random_states(unsigned int seed, curandState_t* rng_states, int n_generators);
 
+/// Host function for initialing random values for cuRAND.
+/// @param seed Random number generator seed.
+/// @param rng_states The states to be randomly generated.
+/// @param n_generators The number of random value generators we need.
+void init_cuda_rng(unsigned int seed, curandState_t* rng_states, int n_generators);
+
 /// @}
 
 }  // namespace sensor

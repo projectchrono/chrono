@@ -396,15 +396,19 @@ int main(int argc, char* argv[]) {
             break;
 
         // Render scene
-        app.BeginScene(true, true, irr::video::SColor(255, 140, 161, 192));
-        app.DrawAll();
-        ChIrrTools::drawColorbar(0, 0.1, "Sinkage", app.GetDevice(), 30);
 
         if (img_output && step_number % render_steps == 0) {
             char filename[100];
             sprintf(filename, "%s/img_%03d.jpg", img_dir.c_str(), render_frame + 1);
             app.WriteImageToFile(filename);
             render_frame++;
+        }
+
+        if (step_number % render_steps == 0) {
+            app.BeginScene(true, true, irr::video::SColor(255, 140, 161, 192));
+            app.DrawAll();
+            ChIrrTools::drawColorbar(0, 0.1, "Sinkage", app.GetDevice(), 30);
+            app.EndScene();
         }
 
         // Driver inputs
@@ -424,8 +428,6 @@ int main(int argc, char* argv[]) {
 
         // Increment frame number
         step_number++;
-
-        app.EndScene();
     }
 
     return 0;

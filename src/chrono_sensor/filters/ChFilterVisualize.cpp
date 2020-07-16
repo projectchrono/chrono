@@ -151,7 +151,7 @@ void ChFilterVisualize::CreateGlfwWindow(std::shared_ptr<ChSensor> pSensor) {
     // to visualize, the sensor *must* inherit from ICanBeVisualized
     std::shared_ptr<ChOptixSensor> pVis = std::dynamic_pointer_cast<ChOptixSensor>(pSensor);
     if (!pVis)
-        throw std::runtime_error("Cannot create a window for a sensor that does not implement ChOptixSensor");
+        throw std::runtime_error("Cannot create a window for a sensor that does not inherit from ChOptixSensor");
 
     // unsigned int width = pVis->m_width;
     // unsigned int height = pVis->m_height;
@@ -162,13 +162,16 @@ void ChFilterVisualize::CreateGlfwWindow(std::shared_ptr<ChSensor> pSensor) {
     if (Name().length() > 0)
         s << " - " << Name();
     m_window.reset(glfwCreateWindow(static_cast<GLsizei>(m_w), static_cast<GLsizei>(m_h), s.str().c_str(), NULL, NULL));
-    glfwSwapInterval(0);
+
     if (!m_window) {
         // OnCloseWindow();
         //     throw std::runtime_error("Could not create window");
     }
     if (m_window) {
         glfwMakeContextCurrent(m_window.get());
+
+        // disable vsync
+        glfwSwapInterval(0);
 
         // TODO: will only succeed the first time, so perhaps do this more intelligently
         glewInit();

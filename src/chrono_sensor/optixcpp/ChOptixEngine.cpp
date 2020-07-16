@@ -82,6 +82,12 @@ void ChOptixEngine::AssignSensor(std::shared_ptr<ChOptixSensor> sensor) {
         }
         sensor->LockFilterList();
 
+        if (m_verbose) {
+            if (!m_exception_prog)
+                m_exception_prog = GetRTProgram(m_context, "exception", "base");
+            m_context->setExceptionProgram(m_context->getEntryPointCount() - 1, m_exception_prog);
+        }
+
         m_noise_initialized = false;
         m_num_noise_vals = max(m_num_noise_vals, sensor->m_width * sensor->m_height);
 
@@ -451,34 +457,34 @@ void ChOptixEngine::staticTrimeshVisualization(std::shared_ptr<ChTriangleMeshSha
     // copy over the vertex index buffer
     unsigned int* tmp_vertex_index_buffer = (unsigned int*)(vertex_index_buffer->map());
     for (int i = 0; i < mesh->getIndicesVertexes().size(); i++) {
-        tmp_vertex_index_buffer[3 * i] = mesh->getIndicesVertexes().data()[i].x();
-        tmp_vertex_index_buffer[3 * i + 1] = mesh->getIndicesVertexes().data()[i].y();
-        tmp_vertex_index_buffer[3 * i + 2] = mesh->getIndicesVertexes().data()[i].z();
+        tmp_vertex_index_buffer[3 * i] = (unsigned int)mesh->getIndicesVertexes().data()[i].x();
+        tmp_vertex_index_buffer[3 * i + 1] = (unsigned int)mesh->getIndicesVertexes().data()[i].y();
+        tmp_vertex_index_buffer[3 * i + 2] = (unsigned int)mesh->getIndicesVertexes().data()[i].z();
     }
     vertex_index_buffer->unmap();
 
     // copy over the vertex index buffer
     unsigned int* tmp_normal_index_buffer = (unsigned int*)(normal_index_buffer->map());
     for (int i = 0; i < mesh->getIndicesNormals().size(); i++) {
-        tmp_normal_index_buffer[3 * i] = mesh->getIndicesNormals().data()[i].x();
-        tmp_normal_index_buffer[3 * i + 1] = mesh->getIndicesNormals().data()[i].y();
-        tmp_normal_index_buffer[3 * i + 2] = mesh->getIndicesNormals().data()[i].z();
+        tmp_normal_index_buffer[3 * i] = (unsigned int)mesh->getIndicesNormals().data()[i].x();
+        tmp_normal_index_buffer[3 * i + 1] = (unsigned int)mesh->getIndicesNormals().data()[i].y();
+        tmp_normal_index_buffer[3 * i + 2] = (unsigned int)mesh->getIndicesNormals().data()[i].z();
     }
     normal_index_buffer->unmap();
 
     // copy over the vertex index buffer
     unsigned int* tmp_texcoord_index_buffer = (unsigned int*)(texcoord_index_buffer->map());
     for (int i = 0; i < mesh->getIndicesUV().size(); i++) {
-        tmp_texcoord_index_buffer[3 * i] = mesh->getIndicesUV().data()[i].x();
-        tmp_texcoord_index_buffer[3 * i + 1] = mesh->getIndicesUV().data()[i].y();
-        tmp_texcoord_index_buffer[3 * i + 2] = mesh->getIndicesUV().data()[i].z();
+        tmp_texcoord_index_buffer[3 * i] = (unsigned int)mesh->getIndicesUV().data()[i].x();
+        tmp_texcoord_index_buffer[3 * i + 1] = (unsigned int)mesh->getIndicesUV().data()[i].y();
+        tmp_texcoord_index_buffer[3 * i + 2] = (unsigned int)mesh->getIndicesUV().data()[i].z();
     }
     texcoord_index_buffer->unmap();
 
     // copy over the material index buffer
     unsigned int* tmp_mat_index_buffer = (unsigned int*)(mat_index_buffer->map());
     for (int i = 0; i < mesh->getIndicesColors().size(); i++) {
-        tmp_mat_index_buffer[i] = mesh->getIndicesColors().data()[i].x();
+        tmp_mat_index_buffer[i] = (unsigned int)mesh->getIndicesColors().data()[i].x();
     }
     mat_index_buffer->unmap();
 
@@ -535,6 +541,21 @@ void ChOptixEngine::staticTrimeshVisualization(std::shared_ptr<ChTriangleMeshSha
     triangle_instance["normal_index_buffer"]->setBuffer(normal_index_buffer);
     triangle_instance["texcoord_index_buffer"]->setBuffer(texcoord_index_buffer);
     // triangle_instance["material_buffer"]->setBuffer(mat_index_buffer);
+
+    // std::cout << "Static Triangle Mesh Buffers\n";
+    // size_t n;
+    // vertex_buffer->getSize(n);
+    // std::cout << "vertex_buffer: " << n << std::endl;
+    // normal_buffer->getSize(n);
+    // std::cout << "normal_buffer: " << n << std::endl;
+    // texcoord_buffer->getSize(n);
+    // std::cout << "texcoord_buffer: " << n << std::endl;
+    // vertex_index_buffer->getSize(n);
+    // std::cout << "vertex_index_buffer: " << n << std::endl;
+    // normal_index_buffer->getSize(n);
+    // std::cout << "normal_index_buffer: " << n << std::endl;
+    // texcoord_index_buffer->getSize(n);
+    // std::cout << "texcoord_index_buffer: " << n << std::endl;
 
     optix::GeometryGroup triangle_group = m_context->createGeometryGroup();
     triangle_group->setAcceleration(m_context->createAcceleration("trbvh"));
@@ -685,19 +706,24 @@ void ChOptixEngine::dynamicTrimeshVisualization(std::shared_ptr<ChTriangleMeshSh
     triangle_instance["normal_index_buffer"]->setBuffer(normal_index_buffer);
     triangle_instance["texcoord_index_buffer"]->setBuffer(texcoord_index_buffer);
 
-    // RTsize size = 0;
-    // vertex_buffer->getSize(size);
-    // std::cout << "Vertices: " << size << std::endl;
-    // normal_buffer->getSize(size);
-    // std::cout << "Normals: " << size << std::endl;
-    // texcoord_buffer->getSize(size);
-    // std::cout << "Texcoords: " << size << std::endl;
-    // vertex_index_buffer->getSize(size);
-    // std::cout << "Vertex Indices: " << size << std::endl;
-    // normal_index_buffer->getSize(size);
-    // std::cout << "Normal Indices: " << size << std::endl;
-    // texcoord_index_buffer->getSize(size);
-    // std::cout << "UV Indices: " << size << std::endl;
+    if (mesh->getIndicesUV().size() == 0 && mesh->getCoordsUV().size() > 0) {
+        triangle_instance["texcoord_index_buffer"]->setBuffer(vertex_index_buffer);
+    }
+
+    // std::cout << "=== Deformable Triangle Mesh Buffers ===\n";
+    // size_t n;
+    // vertex_buffer->getSize(n);
+    // std::cout << "vertex_buffer: " << n << std::endl;
+    // normal_buffer->getSize(n);
+    // std::cout << "normal_buffer: " << n << std::endl;
+    // texcoord_buffer->getSize(n);
+    // std::cout << "texcoord_buffer: " << n << std::endl;
+    // vertex_index_buffer->getSize(n);
+    // std::cout << "vertex_index_buffer: " << n << std::endl;
+    // normal_index_buffer->getSize(n);
+    // std::cout << "normal_index_buffer: " << n << std::endl;
+    // texcoord_index_buffer->getSize(n);
+    // std::cout << "texcoord_index_buffer: " << n << std::endl;
 
     optix::GeometryGroup triangle_group = m_context->createGeometryGroup();
     triangle_group->setAcceleration(m_context->createAcceleration("trbvh"));
@@ -732,6 +758,7 @@ void ChOptixEngine::Initialize() {
             std::cout << i << ", ";
         }
         std::cout << std::endl;
+        rtContextSetPrintEnabled(m_context->get(), 1);
     }
     if (m_deviceId > n_devices - 1) {
         std::cerr << "Requested GPU not available, falling back on RT Device 0\n";
@@ -946,6 +973,8 @@ void ChOptixEngine::ConstructScene() {
 
     // Assumption made here that other physics items don't have a transform -> not always true!!!
     for (auto item : m_system->Get_otherphysicslist()) {
+        // add items one by one
+
         if (item->GetAssets().size() > 0) {
             optix::Group asset_group = m_context->createGroup();
             asset_group->setAcceleration(m_context->createAcceleration("trbvh"));

@@ -182,50 +182,51 @@ class CH_SENSOR_API ChOptixEngine {
     long unsigned int m_num_noise_vals = 0;  ///< number of noise values needed by largest sensor
 
     // mutex and condition variables
-    std::mutex m_renderQueueMutex;            /// mutex for protecting the render queue
-    std::condition_variable m_renderQueueCV;  /// condition variable for notifying the worker thread it should process
-                                              /// the filters from the queue
-    bool m_terminate = false;                 /// worker thread stop variable
-    bool m_started = false;                   /// worker thread start variable
+    std::mutex m_renderQueueMutex;            ///< mutex for protecting the render queue
+    std::condition_variable m_renderQueueCV;  ///< condition variable for notifying the worker thread it should process
+                                              ///< the filters from the queue
+    bool m_terminate = false;                 ///< worker thread stop variable
+    bool m_started = false;                   ///< worker thread start variable
 
     // objects that should be instanced or reused
-    optix::Geometry m_box_geometry;      /// box geometry that all boxes in the scenes will share
-    optix::Acceleration m_box_accel;     /// acceleration object that all box geometries in the scene will share
-    optix::Geometry m_sphere_geometry;   /// sphere geometry that all sphere in the scenes will share
-    optix::Acceleration m_sphere_accel;  /// acceleration object that all sphere geometries in the scene will share
-    optix::Geometry m_cyl_geometry;      /// sphere geometry that all sphere in the scenes will share
-    optix::Acceleration m_cyl_accel;     /// acceleration object that all sphere geometries in the scene will share
+    optix::Geometry m_box_geometry;      ///< box geometry that all boxes in the scenes will share
+    optix::Acceleration m_box_accel;     ///< acceleration object that all box geometries in the scene will share
+    optix::Geometry m_sphere_geometry;   ///< sphere geometry that all sphere in the scenes will share
+    optix::Acceleration m_sphere_accel;  ///< acceleration object that all sphere geometries in the scene will share
+    optix::Geometry m_cyl_geometry;      ///< sphere geometry that all sphere in the scenes will share
+    optix::Acceleration m_cyl_accel;     ///< acceleration object that all sphere geometries in the scene will share
 
-    /// All RT Program should only be made once and then reused
-    optix::Program m_camera_shader;    /// camera material shader
-    optix::Program m_lidar_shader;     /// lidar material shader
-    optix::Program m_shadow_shader;    /// shadow shader
-    optix::Program m_camera_miss;      /// camera miss shader
-    optix::Program m_lidar_miss;       /// lidar miss shader
-    optix::Program m_box_int;          /// box intersection function
-    optix::Program m_box_bounds;       /// box bounding function
-    optix::Program m_sphere_int;       /// sphere intersection function
-    optix::Program m_sphere_bounds;    /// sphere bounds function
-    optix::Program m_cylinder_int;     /// cylinder intersection function
-    optix::Program m_cylinder_bounds;  /// cylinder intersection function
-    optix::Program m_mesh_att;         /// mesh attributes function
+    // All RT Program should only be made once and then reused
+    optix::Program m_camera_shader;    ///< camera material shader
+    optix::Program m_lidar_shader;     ///< lidar material shader
+    optix::Program m_shadow_shader;    ///< shadow shader
+    optix::Program m_camera_miss;      ///< camera miss shader
+    optix::Program m_lidar_miss;       ///< lidar miss shader
+    optix::Program m_box_int;          ///< box intersection function
+    optix::Program m_box_bounds;       ///< box bounding function
+    optix::Program m_sphere_int;       ///< sphere intersection function
+    optix::Program m_sphere_bounds;    ///< sphere bounds function
+    optix::Program m_cylinder_int;     ///< cylinder intersection function
+    optix::Program m_cylinder_bounds;  ///< cylinder intersection function
+    optix::Program m_mesh_att;         ///< mesh attributes function
+    optix::Program m_exception_prog;   ///< exception program
 
     // default material objects
-    optix::TextureSampler m_empty_tex_sampler;  /// default texture sampler
-    optix::Material m_default_material;         /// default material
+    optix::TextureSampler m_empty_tex_sampler;  ///< default texture sampler
+    optix::Material m_default_material;         ///< default material
 
-    optix::Buffer m_light_buffer;  /// scene light buffer
+    optix::Buffer m_light_buffer;  ///< scene light buffer
 
     // information that belongs to the rendering concept of this engine
-    optix::Context m_context;                                      /// the optix context we use for everything
-    optix::Group m_root;                                           /// root node of the optix scene
-    std::vector<std::shared_ptr<ChOptixSensor>> m_assignedSensor;  /// list of sensor this engine is responsible for
-    ChSystem* m_system;                                            /// the chrono system that defines the scene
+    optix::Context m_context;                                      ///< the optix context we use for everything
+    optix::Group m_root;                                           ///< root node of the optix scene
+    std::vector<std::shared_ptr<ChOptixSensor>> m_assignedSensor;  ///< list of sensor this engine is responsible for
+    ChSystem* m_system;                                            ///< the chrono system that defines the scene
     std::vector<std::pair<std::shared_ptr<ChBody>, optix::Transform>>
-        m_bodies;  /// matching bodies to transforms for quicker upgates of the scene
-    std::vector<std::shared_ptr<DynamicMesh>> m_dynamicMeshes;  /// list of dynamic meshes for quick updating
-    int m_deviceId;                                             /// ID of the GPU the context should be attached to
-    int m_recursions;                                           /// number of allowable ray tracing recursions in optix
+        m_bodies;  ///< matching bodies to transforms for quicker upgates of the scene
+    std::vector<std::shared_ptr<DynamicMesh>> m_dynamicMeshes;  ///< list of dynamic meshes for quick updating
+    int m_deviceId;                                             ///< ID of the GPU the context should be attached to
+    int m_recursions;                                           ///< number of allowable ray tracing recursions in optix
 };
 
 }  // namespace sensor

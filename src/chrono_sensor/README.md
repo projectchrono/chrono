@@ -16,7 +16,7 @@ Latest Tested Commit:
  - NVIDIA GPU (required)
 	 - tested on Maxwell and later
  - OptiX (required)
-	 - 6.5.0 suggested
+	 - 6.5.0
  - CUDA (required)
 	 - tested with CUDA 10.2
  - GLFW >= 3.0 (required)
@@ -24,7 +24,6 @@ Latest Tested Commit:
  - openGL (required)
  - TensorRT (optional)
      - tested with TensorRT 7.0.0
-     - if using TensorRT, make sure to use OptiX 6.5 since 6.0 ships with additional version of cuDNN
      - need to explicitly enable TensorRT in cmake by setting USE_TENSOR_RT=ON (default: USE_TENSOR_RT=OFF)
 
 ## CMake and Build Notes

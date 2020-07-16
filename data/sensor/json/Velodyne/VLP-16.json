@@ -5,10 +5,6 @@
 
   "Properties": {
     "Update Rate": 20,
-    "Offset Pose": {
-      "Location": [-5, 0, 2],
-      "Orientation": [0.995004, 0, 0.0998334, 0]
-    },
     "Width": 900,
     "Height": 16,
     "Horizontal Field of View": 6.28318530718,
@@ -23,22 +19,26 @@
   "Filters":
   [
     {
-      "Filter": "ChFilterPCfromDepth"
+      "Filter": "ChFilterPCfromDepth",
+      "Name":"PC from Depth"
     },
     {
       "Filter": "ChFilterLidarNoiseXYZI",
       "Standard Deviation Range": 0.01,
       "Standard Deviation Vertical Angle": 0.001,
       "Standard Deviation Horizontal Angle": 0.001,
-      "Standard Deviation Intensity": 0.01
+      "Standard Deviation Intensity": 0.01,
+      "Name":"Noise"
     },
     {
       "Filter": "ChFilterVisualizePointCloud",
       "Width": 640,
-      "Height": 480
+      "Height": 480,
+      "Name":"Vis"
     },
     {
-      "Filter": "ChFilterXYZIAccess"
+      "Filter": "ChFilterXYZIAccess",
+      "Name":"XYZI Access"
     }
   ]
 }

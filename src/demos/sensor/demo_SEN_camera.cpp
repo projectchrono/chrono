@@ -49,14 +49,14 @@ enum NoiseModel {
     PIXEL_DEPENDENT,  // Pixel dependent gaussian noise
     NONE              // No noise model
 };
-NoiseModel noise_model = NONE;
+NoiseModel noise_model = PIXEL_DEPENDENT;
 
 // Camera lens model
 // Either PINHOLE or SPHERICAL
 CameraLensModelType lens_model = SPHERICAL;
 
 // Update rate in Hz
-float update_rate = 25;
+float update_rate = 30;
 
 // Image width and height
 unsigned int image_width = 1280;

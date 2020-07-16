@@ -19,6 +19,10 @@
 
 #include "chrono_sensor/filters/ChFilter.h"
 
+#include <cuda.h>
+#include <curand.h>
+#include <curand_kernel.h>
+
 namespace chrono {
 namespace sensor {
 
@@ -45,8 +49,10 @@ class CH_SENSOR_API ChFilterCameraNoiseConstNormal : public ChFilter {
     virtual void Initialize(std::shared_ptr<ChSensor> pSensor) {}
 
   private:
-    float m_mean;   ///< mean value of the Guassian distribution
-    float m_stdev;  ///< standard deviation of the Gaussian distribution
+    float m_mean;                          ///< mean value of the Guassian distribution
+    float m_stdev;                         ///< standard deviation of the Gaussian distribution
+    std::shared_ptr<curandState_t> m_rng;  ///< cuda random number generator
+    bool m_noise_init = true;              ///< initialize noise only once
 };
 
 /// A filter that adds pixel dependent gaussian noise across an image. Method summarized in paper: ()
@@ -73,6 +79,8 @@ class CH_SENSOR_API ChFilterCameraNoisePixDep : public ChFilter {
     float m_gain;        ///< The linear correlation factor between the intensity and the noise variance
     float m_sigma_read;  ///< The standard deviation of the multiplicative noise
     float m_sigma_adc;   ///< The standard deviation of the additive noise
+    std::shared_ptr<curandState_t> m_rng;  ///< cuda random number generator
+    bool m_noise_init = true;              ///< initialize noise only once
 };
 
 /// @}

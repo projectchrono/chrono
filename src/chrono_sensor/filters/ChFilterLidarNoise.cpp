@@ -17,6 +17,9 @@
 #include "chrono_sensor/filters/ChFilterLidarNoise.h"
 #include "chrono_sensor/ChSensor.h"
 #include "chrono_sensor/cuda/lidar_noise.cuh"
+#include "chrono_sensor/cuda/curand_utils.cuh"
+#include "chrono_sensor/utils/CudaMallocHelper.h"
+#include <chrono>
 
 namespace chrono {
 namespace sensor {
@@ -32,8 +35,9 @@ ChFilterLidarNoiseXYZI::ChFilterLidarNoiseXYZI(float stdev_range,
       m_stdev_intensity(stdev_intensity),
       ChFilter(name) {}
 
-CH_SENSOR_API void ChFilterLidarNoiseXYZI::Apply(std::shared_ptr<ChSensor> pSensor,
-                                                 std::shared_ptr<SensorBuffer>& bufferInOut) {
+void ChFilterLidarNoiseXYZI::Initialize(std::shared_ptr<ChSensor> pSensor) {}
+
+void ChFilterLidarNoiseXYZI::Apply(std::shared_ptr<ChSensor> pSensor, std::shared_ptr<SensorBuffer>& bufferInOut) {
     // this filter CANNOT be the first filter in a sensor's filter list, so the bufferIn CANNOT null.
     assert(bufferInOut != nullptr);
     if (!bufferInOut)
@@ -48,8 +52,19 @@ CH_SENSOR_API void ChFilterLidarNoiseXYZI::Apply(std::shared_ptr<ChSensor> pSens
     unsigned int width = pXYZI->Width;
     unsigned int height = pXYZI->Height;
 
-    cuda_lidar_noise_normal(pXYZI->Buffer.get(), (int)width, (int)height, m_stdev_range, m_stdev_v_angle,
-                            m_stdev_h_angle, m_stdev_intensity);
+    // must initialize noise during first run since we don't know the dimensions in the initialize function
+    if (m_noise_init) {
+        m_rng = std::shared_ptr<curandState_t>(cudaMallocHelper<curandState_t>(width * height),
+                                               cudaFreeHelper<curandState_t>);
+
+        init_cuda_rng(std::chrono::high_resolution_clock::now().time_since_epoch().count(), m_rng.get(),
+                      width * height);
+
+        m_noise_init = false;
+    }
+
+    cuda_lidar_noise_normal((float*)pXYZI->Buffer.get(), (int)width, (int)height, m_stdev_range, m_stdev_v_angle,
+                            m_stdev_h_angle, m_stdev_intensity, m_rng.get());
 }
 
 }  // namespace sensor
