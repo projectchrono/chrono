@@ -48,7 +48,7 @@ CH_SENSOR_API ChSensor::ChSensor(std::shared_ptr<chrono::ChBody> parent,
 CH_SENSOR_API ChSensor::~ChSensor() {}
 
 CH_SENSOR_API void ChSensor::SetLag(float t) {
-    m_lag = max(0, t);
+    m_lag = fmax(0.f, t);
 }
 
 CH_SENSOR_API void ChSensor::SetCollectionWindow(float t) {

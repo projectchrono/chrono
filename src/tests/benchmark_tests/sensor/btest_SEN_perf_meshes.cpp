@@ -36,7 +36,7 @@ using namespace chrono;
 using namespace chrono::geometry;
 using namespace chrono::sensor;
 
-float end_time = 1.0f;
+float end_time = 10.0f;
 bool vis = false;
 
 int main(int argc, char* argv[]) {
@@ -87,10 +87,10 @@ int main(int argc, char* argv[]) {
         // Create a sensor manager
         // -----------------------
         auto manager = std::make_shared<ChSensorManager>(&mphysicalSystem);
-        manager->scene->AddPointLight({100, 100, 100}, {1, 1, 1}, 500);
-        // manager->scene->AddPointLight({-100, 100, 100}, {1, 1, 1}, 500);
-        // manager->scene->AddPointLight({100, -100, 100}, {1, 1, 1}, 500);
-        // manager->scene->AddPointLight({-100, -100, 100}, {1, 1, 1}, 500);
+        manager->scene->AddPointLight({100, 100, 100}, {1, 1, 1}, 5000);
+        manager->scene->AddPointLight({-100, 100, 100}, {1, 1, 1}, 5000);
+        manager->scene->AddPointLight({100, -100, 100}, {1, 1, 1}, 5000);
+        manager->scene->AddPointLight({-100, -100, 100}, {1, 1, 1}, 5000);
 
         // ------------------------------------------------
         // Create a camera and add it to the sensor manager

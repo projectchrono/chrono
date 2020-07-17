@@ -36,8 +36,8 @@ using namespace chrono;
 using namespace chrono::geometry;
 using namespace chrono::sensor;
 
-float end_time = 1.0f;
-bool vis = true;
+float end_time = 10.0f;
+bool vis = false;
 
 int main(int argc, char* argv[]) {
     for (int q = 0; q <= 3; q++) {
@@ -65,9 +65,9 @@ int main(int argc, char* argv[]) {
         int x_instances = q + 1;
         int y_instances = q + 1;
         int z_instances = q + 1;
-        float x_spread = 5.f;
-        float y_spread = 3.f;
-        float z_spread = 2.f;
+        float x_spread = 2.5f;
+        float y_spread = 1.5f;
+        float z_spread = 1.f;
         srand(0);
         for (int i = 0; i < x_instances; i++) {
             for (int j = 0; j < y_instances; j++) {
@@ -75,6 +75,8 @@ int main(int argc, char* argv[]) {
                     auto mesh_body = std::make_shared<ChBody>();
                     ChVector<> p = {x_spread * (i + .5 - x_instances / 2.), y_spread * (j + .5 - y_instances / 2.),
                                     z_spread * (k + .5 - z_instances / 2.)};
+
+                    // ChVector<> p = {10 * (float)rand() - 5, 10 * (float)rand() - 5, 10 * (float)rand() - 5};
 
                     ChQuaternion<> q = Q_from_AngAxis(p.Length(), {0, 0, 1});
 
@@ -100,18 +102,19 @@ int main(int argc, char* argv[]) {
         // Create a sensor manager
         // -----------------------
         auto manager = std::make_shared<ChSensorManager>(&mphysicalSystem);
-        manager->scene->AddPointLight({100, 100, 100}, {1, 1, 1}, 500);
-        manager->scene->AddPointLight({-100, 100, 100}, {1, 1, 1}, 500);
-        manager->scene->AddPointLight({100, -100, 100}, {1, 1, 1}, 500);
-        manager->scene->AddPointLight({-100, -100, 100}, {1, 1, 1}, 500);
+        manager->SetRayRecursions(0);
+        manager->scene->AddPointLight({100, 100, 100}, {1, 1, 1}, 5000);
+        // manager->scene->AddPointLight({-100, 100, 100}, {1, 1, 1}, 5000);
+        // manager->scene->AddPointLight({100, -100, 100}, {1, 1, 1}, 5000);
+        // manager->scene->AddPointLight({-100, -100, 100}, {1, 1, 1}, 5000);
 
         // ------------------------------------------------
         // Create a camera and add it to the sensor manager
         // ------------------------------------------------
         auto cam = std::make_shared<ChCameraSensor>(
             cam_body,                                                            // body camera is attached to
-            100,                                                                 // update rate in Hz
-            chrono::ChFrame<double>({-10, 0, 1}, Q_from_AngAxis(0, {0, 1, 0})),  // offset pose
+            60,                                                                  // update rate in Hz
+            chrono::ChFrame<double>({-10, 0, 0}, Q_from_AngAxis(0, {0, 1, 0})),  // offset pose
             1920,                                                                // image width
             1080,                                                                // image height
             CH_C_PI / 3);                                                        // FOV
@@ -126,7 +129,7 @@ int main(int argc, char* argv[]) {
         // ---------------
         // Simulate system
         // ---------------
-        float orbit_radius = (x_instances / 2.) * x_spread + 10.f;
+        float orbit_radius = (x_instances / 2.) * x_spread + 5.f;
         float orbit_rate = 0.5;
         float ch_time = 0.0;
 
