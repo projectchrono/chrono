@@ -485,7 +485,7 @@ macos:macos:deploy:
     - rm -r $HOME/miniconda
     - bash ~/miniconda.sh -b -p $HOME/miniconda
     - export PATH=$HOME/miniconda/bin:$PATH
-    - conda update --yes conda
+    #- conda update --yes conda
     #- conda install --yes pip
     - conda install --yes -c intel jinja2
     - conda config --set show_channel_urls true
