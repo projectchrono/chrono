@@ -16,6 +16,7 @@ fi
 # set MKL vars
 export MKL_INTERFACE_LAYER=LP64
 export MKL_THREADING_LAYER=INTEL
+export LDFLAGS="-Wl,-undefined,dynamic_lookup $LDFLAGS"
 CONFIGURATION=Release
 # Configure step
 cmake -DCMAKE_INSTALL_PREFIX=$PREFIX \
