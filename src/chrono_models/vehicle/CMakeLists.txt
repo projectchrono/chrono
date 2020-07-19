@@ -342,6 +342,8 @@ set(CVM_GATOR_FILES
     gator/Gator.h
     gator/Gator_BrakeSimple.cpp
     gator/Gator_BrakeSimple.h
+    gator/Gator_BrakeShafts.cpp
+    gator/Gator_BrakeShafts.h
     gator/Gator_Chassis.h
     gator/Gator_Chassis.cpp
     gator/Gator_SingleWishbone.cpp
