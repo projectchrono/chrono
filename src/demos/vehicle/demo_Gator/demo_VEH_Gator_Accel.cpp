@@ -44,6 +44,9 @@ using namespace chrono::vehicle::gator;
 ChVector<> initLoc(-40, 0, 0.5);
 ChQuaternion<> initRot(1, 0, 0, 0);
 
+// Brake type (SIMPLE or SHAFTS)
+BrakeType brake_type = BrakeType::SHAFTS;
+
 // Terrain slope (degrees)
 double slope = 20;
 
@@ -75,6 +78,7 @@ int main(int argc, char* argv[]) {
     gator.SetChassisCollisionType(ChassisCollisionType::NONE);
     gator.SetChassisFixed(false);
     gator.SetInitPosition(ChCoordsys<>(initLoc, initRot));
+    gator.SetBrakeType(brake_type);
     gator.SetTireType(TireModelType::TMEASY);
     gator.SetTireStepSize(step_size);
     gator.SetAerodynamicDrag(0.5, 5.0, 1.2);
@@ -133,8 +137,10 @@ int main(int argc, char* argv[]) {
     // Simulation loop
     // ---------------
 
-    // output vehicle mass
     std::cout << "VEHICLE MASS: " << gator.GetTotalMass() << std::endl;
+    std::cout << "Driveline: " << gator.GetVehicle().GetDriveline()->GetTemplateName() << std::endl;
+    std::cout << "Brake:     " << gator.GetVehicle().GetBrake(1, LEFT)->GetTemplateName() << std::endl;
+    std::cout << "Tire:      " << gator.GetVehicle().GetTire(0, LEFT)->GetTemplateName() << std::endl;
 
     // Initialize simulation frame counters
     int step_number = 0;
@@ -150,7 +156,7 @@ int main(int argc, char* argv[]) {
 
         // Get driver inputs
         ChDriver::Inputs driver_inputs = driver.GetInputs();
-        if (gator.GetVehicle().GetVehiclePos().x() > 200 * c + 25) {
+        if (gator.GetVehicle().GetVehiclePos().x() > 4) {
             driver_inputs.m_braking = 1;
             driver_inputs.m_throttle = 0;
         }
