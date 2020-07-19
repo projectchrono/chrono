@@ -29,6 +29,7 @@
 
 #include "chrono_vehicle/wheeled_vehicle/antirollbar/AntirollBarRSD.h"
 #include "chrono_vehicle/wheeled_vehicle/brake/BrakeSimple.h"
+#include "chrono_vehicle/wheeled_vehicle/brake/BrakeShafts.h"
 #include "chrono_vehicle/wheeled_vehicle/driveline/ShaftsDriveline2WD.h"
 #include "chrono_vehicle/wheeled_vehicle/driveline/ShaftsDriveline4WD.h"
 #include "chrono_vehicle/wheeled_vehicle/driveline/SimpleDriveline.h"
@@ -396,6 +397,8 @@ std::shared_ptr<ChBrake> ReadBrakeJSON(const std::string& filename) {
     // Create the brake using the appropriate template.
     if (subtype.compare("BrakeSimple") == 0) {
         brake = chrono_types::make_shared<BrakeSimple>(d);
+    } else if (subtype.compare("BrakeShafts") == 0) {
+        brake = chrono_types::make_shared<BrakeShafts>(d);
     } else {
         throw ChException("Brake type not supported in ReadBrakeJSON.");
     }

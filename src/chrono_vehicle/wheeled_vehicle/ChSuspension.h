@@ -138,6 +138,9 @@ class CH_VEHICLE_API ChSuspension : public ChPart {
     /// The default implementation returns a NULL pointer.
     virtual std::shared_ptr<ChBody> GetAntirollBody(VehicleSide side) const { return nullptr; }
 
+    /// Specify the body on the specified side for a possible connection to brake subsystem.
+    /// The default implementation returns a NULL pointer (indicating that a brake should connect to the chassis).
+    virtual std::shared_ptr<ChBody> GetBrakeBody(VehicleSide side) const { return nullptr; }
 
     /// Get the total mass of the suspension subsystem.
     virtual double GetMass() const = 0;

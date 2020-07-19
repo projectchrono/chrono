@@ -321,9 +321,13 @@ source_group("wheeled_vehicle\\antirollbar" FILES ${CV_WV_ANTIROLL_FILES})
 set(CV_WV_BRAKE_FILES
     wheeled_vehicle/brake/ChBrakeSimple.h
     wheeled_vehicle/brake/ChBrakeSimple.cpp
+    wheeled_vehicle/brake/ChBrakeShafts.h
+    wheeled_vehicle/brake/ChBrakeShafts.cpp
 
     wheeled_vehicle/brake/BrakeSimple.h
     wheeled_vehicle/brake/BrakeSimple.cpp
+    wheeled_vehicle/brake/BrakeShafts.h
+    wheeled_vehicle/brake/BrakeShafts.cpp
 )
 source_group("wheeled_vehicle\\brake" FILES ${CV_WV_BRAKE_FILES})
 
