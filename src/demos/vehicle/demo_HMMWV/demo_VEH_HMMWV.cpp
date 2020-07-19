@@ -237,6 +237,8 @@ int main(int argc, char* argv[]) {
     // Simulation loop
     // ---------------
 
+    my_hmmwv.GetVehicle().LogSubsystemTypes();
+
     if (debug_output) {
         GetLog() << "\n\n============ System Configuration ============\n";
         my_hmmwv.LogHardpointLocations();

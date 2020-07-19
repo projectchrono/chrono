@@ -188,6 +188,8 @@ int main(int argc, char* argv[]) {
     // Simulation loop
     // ---------------
 
+    uaz.GetVehicle().LogSubsystemTypes();
+
     int render_steps = (int)std::ceil(render_step_size / step_size);
     int step_number = 0;
     int render_frame = 0;

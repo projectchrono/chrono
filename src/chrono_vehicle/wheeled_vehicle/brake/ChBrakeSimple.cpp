@@ -29,7 +29,9 @@ ChBrakeSimple::ChBrakeSimple(const std::string& name)
     m_brake = chrono_types::make_shared<ChLinkBrake>();
 }
 
-void ChBrakeSimple::Initialize(std::shared_ptr<ChSuspension> suspension, VehicleSide side) {
+void ChBrakeSimple::Initialize(std::shared_ptr<ChChassis> chassis,
+                               std::shared_ptr<ChSuspension> suspension,
+                               VehicleSide side) {
     m_hub = suspension->GetRevolute(side);
 
     // Reuse the same bodies and link coordinate of the hub revolute joint

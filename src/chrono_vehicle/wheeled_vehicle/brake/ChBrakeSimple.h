@@ -47,14 +47,15 @@ class CH_VEHICLE_API ChBrakeSimple : public ChBrake {
     virtual std::string GetTemplateName() const override { return "BrakeSimple"; }
 
     /// Initialize the brake by associating it to an existing suspension subsystem.
-    virtual void Initialize(std::shared_ptr<ChSuspension> suspension,  ///< associated suspension subsystem
+    virtual void Initialize(std::shared_ptr<ChChassis> chassis,        ///< associated chassis subsystem
+                            std::shared_ptr<ChSuspension> suspension,  ///< associated suspension subsystem
                             VehicleSide side                           ///< brake mounted on left/right side
                             ) override;
 
     /// Update the brake subsystem: set the brake modulation, in 0..1 range:
     /// <pre>
-    /// when = 0 it is completely free,
-    /// when = 1 it provides the max braking torque
+    ///   modulation = 0 it is completely free,
+    ///   modulation = 1 it provides the max braking torque
     /// </pre>
     virtual void Synchronize(double modulation) override;
 
