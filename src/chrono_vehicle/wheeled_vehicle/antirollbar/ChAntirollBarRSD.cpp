@@ -109,13 +109,14 @@ void ChAntirollBarRSD::Initialize(std::shared_ptr<ChChassis> chassis,
     // Create distance constraint to model left droplink.
     m_link_left = chrono_types::make_shared<ChLinkDistance>();
     m_link_left->SetNameString(m_name + "_droplink_left");
-    m_link_left->Initialize(m_arm_left, suspension->GetLeftBody(), false, P_drop_arm_left, P_drop_susp_left);
+    m_link_left->Initialize(m_arm_left, suspension->GetAntirollBody(LEFT), false, P_drop_arm_left, P_drop_susp_left);
     sys->AddLink(m_link_left);
 
     // Create distance constraint to model right droplink.
     m_link_right = chrono_types::make_shared<ChLinkDistance>();
     m_link_right->SetNameString(m_name + "_droplink_right");
-    m_link_right->Initialize(m_arm_right, suspension->GetRightBody(), false, P_drop_arm_right, P_drop_susp_right);
+    m_link_right->Initialize(m_arm_right, suspension->GetAntirollBody(RIGHT), false, P_drop_arm_right,
+                             P_drop_susp_right);
     sys->AddLink(m_link_right);
 }
 

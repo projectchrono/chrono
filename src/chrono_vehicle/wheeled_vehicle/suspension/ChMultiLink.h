@@ -125,13 +125,9 @@ class CH_VEHICLE_API ChMultiLink : public ChSuspension {
     /// Get the current deformation velocity of the shock (damper) element.
     double GetShockVelocity(VehicleSide side) const { return m_shock[side]->GetVelocity(); }
 
-    /// Specify the left body for a possible antirollbar subsystem.
-    /// Return a handle to the left trailing link.
-    virtual std::shared_ptr<ChBody> GetLeftBody() const override { return m_trailingLink[0]; }
-
-    /// Specify the right body for a possible antirollbar subsystem.
-    /// Return a handle to the right trailing link.
-    virtual std::shared_ptr<ChBody> GetRightBody() const override { return m_trailingLink[1]; }
+    /// Specify the suspension body on the specified side to attach a possible antirollbar subsystem.
+    /// Return the corresponding trailing link.
+    virtual std::shared_ptr<ChBody> GetAntirollBody(VehicleSide side) const override { return m_trailingLink[side]; }
 
     /// Log current constraint violations.
     virtual void LogConstraintViolations(VehicleSide side) override;

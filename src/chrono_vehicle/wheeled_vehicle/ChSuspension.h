@@ -134,13 +134,10 @@ class CH_VEHICLE_API ChSuspension : public ChPart {
     /// Remove visualization assets for the suspension subsystem.
     virtual void RemoveVisualizationAssets() override;
 
-    /// Specify the left body for a possible antirollbar subsystem.
+    /// Specify the suspension body on the specified side to attach a possible antirollbar subsystem.
     /// The default implementation returns a NULL pointer.
-    virtual std::shared_ptr<ChBody> GetLeftBody() const { return std::shared_ptr<ChBody>(); }
+    virtual std::shared_ptr<ChBody> GetAntirollBody(VehicleSide side) const { return nullptr; }
 
-    /// Specify the right body for a possible antirollbar subsystem.
-    /// The default implementation returns a NULL pointer.
-    virtual std::shared_ptr<ChBody> GetRightBody() const { return std::shared_ptr<ChBody>(); }
 
     /// Get the total mass of the suspension subsystem.
     virtual double GetMass() const = 0;

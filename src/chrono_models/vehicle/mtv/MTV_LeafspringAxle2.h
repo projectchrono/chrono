@@ -59,9 +59,6 @@ class CH_MODELS_API MTV_LeafspringAxle2 : public ChLeafspringAxle {
     /// Return the functor object for shock force.
     virtual std::shared_ptr<ChLinkTSDA::ForceFunctor> getShockForceFunctor() const override { return m_shockForceCB; }
 
-    virtual std::shared_ptr<ChBody> GetLeftBody() const override { return m_axleTube; }
-    virtual std::shared_ptr<ChBody> GetRightBody() const override { return m_axleTube; }
-
   private:
     std::shared_ptr<ChLinkTSDA::ForceFunctor> m_springForceCB;
     std::shared_ptr<ChLinkTSDA::ForceFunctor> m_shockForceCB;

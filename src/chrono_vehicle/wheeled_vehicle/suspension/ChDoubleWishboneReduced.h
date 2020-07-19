@@ -106,13 +106,9 @@ class CH_VEHICLE_API ChDoubleWishboneReduced : public ChSuspension {
     /// "spring" and "shock" members of the return struct.
     virtual ChSuspension::Force ReportSuspensionForce(VehicleSide side) const override;
 
-    /// Specify the left body for a possible antirollbar subsystem.
-    /// Return a handle to the left upright.
-    virtual std::shared_ptr<ChBody> GetLeftBody() const override { return m_upright[0]; }
-
-    /// Specify the right body for a possible antirollbar subsystem.
-    /// Return a handle to the right upright.
-    virtual std::shared_ptr<ChBody> GetRightBody() const override { return m_upright[1]; }
+    /// Specify the suspension body on the specified side to attach a possible antirollbar subsystem.
+    /// Return the corresponding upright body.
+    virtual std::shared_ptr<ChBody> GetAntirollBody(VehicleSide side) const override { return m_upright[side]; }
 
     /// Log current constraint violations.
     virtual void LogConstraintViolations(VehicleSide side) override;
