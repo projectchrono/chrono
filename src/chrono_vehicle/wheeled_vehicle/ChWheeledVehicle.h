@@ -238,7 +238,7 @@ class CH_VEHICLE_API ChWheeledVehicle : public ChVehicle {
     void EnableBrakeLocking(bool lock);
 
     /// Engage/disengage parking brake.
-    /// If engaged, this locks all suspension spindle revolute joints.
+    /// If engaged and supported by the concrete brake type on this vehicle, this locks all vehicle brakes.
     void ApplyParkingBrake(bool lock);
 
     /// Returns the state of the parking brake (true if enagaged, false otherwise).
@@ -246,6 +246,9 @@ class CH_VEHICLE_API ChWheeledVehicle : public ChVehicle {
 
     /// Log current constraint violations.
     virtual void LogConstraintViolations() override;
+
+    /// Log the types (template names) of current vehicle subsystems.
+    void LogSubsystemTypes();
 
     /// Return a JSON string with information on all modeling components in the vehicle system.
     /// These include bodies, shafts, joints, spring-damper elements, markers, etc.

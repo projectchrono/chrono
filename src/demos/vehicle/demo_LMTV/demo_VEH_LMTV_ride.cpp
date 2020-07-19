@@ -345,6 +345,8 @@ int main(int argc, char* argv[]) {
     // Simulation loop
     // ---------------
 
+    lmtv.GetVehicle().LogSubsystemTypes();
+
     std::cout << "data at: " << vehicle::GetDataFile(steering_controller_file) << std::endl;
     std::cout << "data at: " << vehicle::GetDataFile(speed_controller_file) << std::endl;
     std::cout << "data at: " << vehicle::GetDataFile(path_file) << std::endl;

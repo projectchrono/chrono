@@ -137,10 +137,8 @@ int main(int argc, char* argv[]) {
     // Simulation loop
     // ---------------
 
-    std::cout << "VEHICLE MASS: " << gator.GetTotalMass() << std::endl;
-    std::cout << "Driveline: " << gator.GetVehicle().GetDriveline()->GetTemplateName() << std::endl;
-    std::cout << "Brake:     " << gator.GetVehicle().GetBrake(1, LEFT)->GetTemplateName() << std::endl;
-    std::cout << "Tire:      " << gator.GetVehicle().GetTire(0, LEFT)->GetTemplateName() << std::endl;
+    gator.GetVehicle().LogSubsystemTypes();
+    std::cout << "\nVehicle mass: " << gator.GetTotalMass() << std::endl;
 
     // Initialize simulation frame counters
     int step_number = 0;

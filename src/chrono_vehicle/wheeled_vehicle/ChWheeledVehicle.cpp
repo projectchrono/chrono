@@ -361,6 +361,31 @@ void ChWheeledVehicle::LogConstraintViolations() {
     GetLog().SetNumFormat("%g");
 }
 
+// -----------------------------------------------------------------------------
+
+void ChWheeledVehicle::LogSubsystemTypes() {
+    GetLog() << "\nSubsystem types\n";
+    GetLog() << "Chassis:        " << m_chassis->GetTemplateName().c_str() << "\n";
+    GetLog() << "Powertrain:     " << m_powertrain->GetTemplateName().c_str() << "\n";
+    GetLog() << "Driveline:      " << m_driveline->GetTemplateName().c_str() << "\n";
+
+    for (int i = 0; i < m_steerings.size(); i++) {
+        GetLog() << "Steering " << i << ":     " << m_steerings[i]->GetTemplateName().c_str() << "\n";
+    }
+
+    for (int i = 0; i < m_axles.size(); i++) {
+        GetLog() << "Axle " << i << "\n";
+        GetLog() << "  Suspension:   " << m_axles[i]->m_suspension->GetTemplateName().c_str() << "\n";
+        if (m_axles[i]->m_antirollbar)
+            GetLog() << "  Antiroll bar: " << m_axles[i]->m_brake_left->GetTemplateName().c_str() << "\n";
+        if (m_axles[i]->m_brake_left)
+            GetLog() << "  Brake:        " << m_axles[i]->m_brake_left->GetTemplateName().c_str() << "\n";
+        GetLog() << "  Tire:         " << GetTire(i, LEFT)->GetTemplateName().c_str() << "\n";
+    }
+}
+
+// -----------------------------------------------------------------------------
+
 std::string ChWheeledVehicle::ExportComponentList() const {
     rapidjson::Document jsonDocument;
     jsonDocument.SetObject();
