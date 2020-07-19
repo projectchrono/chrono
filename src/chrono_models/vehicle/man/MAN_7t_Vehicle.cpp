@@ -22,7 +22,17 @@
 
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/wheeled_vehicle/suspension/ChSolidAxle.h"
+
 #include "chrono_models/vehicle/man/MAN_7t_Vehicle.h"
+#include "chrono_models/vehicle/man/MAN_7t_Chassis.h"
+#include "chrono_models/vehicle/man/MAN_5t_BrakeSimple.h"
+#include "chrono_models/vehicle/man/MAN_5t_BrakeShafts.h"
+#include "chrono_models/vehicle/man/MAN_7t_Solid3LinkAxle.h"
+#include "chrono_models/vehicle/man/MAN_5t_BellcrankSolid3LinkAxle.h"
+#include "chrono_models/vehicle/man/MAN_5t_RotaryArm.h"
+#include "chrono_models/vehicle/man/MAN_5t_Driveline4WD.h"
+#include "chrono_models/vehicle/man/MAN_5t_SimpleDrivelineXWD.h"
+#include "chrono_models/vehicle/man/MAN_5t_Wheel.h"
 
 namespace chrono {
 namespace vehicle {
@@ -31,24 +41,26 @@ namespace man {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 MAN_7t_Vehicle::MAN_7t_Vehicle(const bool fixed,
+                               BrakeType brake_type,
                                ChContactMethod contact_method,
                                ChassisCollisionType chassis_collision_type,
                                bool useShaftDrivetrain)
     : ChWheeledVehicle("MAN_7t", contact_method),
       m_omega({0, 0, 0, 0, 0, 0}),
       m_use_shafts_drivetrain(useShaftDrivetrain) {
-    Create(fixed, chassis_collision_type);
+    Create(fixed, brake_type, chassis_collision_type);
 }
 
 MAN_7t_Vehicle::MAN_7t_Vehicle(ChSystem* system,
                                const bool fixed,
+                               BrakeType brake_type,
                                ChassisCollisionType chassis_collision_type,
                                bool useShaftDrivetrain)
     : ChWheeledVehicle("MAN_7t", system), m_omega({0, 0, 0, 0, 0, 0}), m_use_shafts_drivetrain(useShaftDrivetrain) {
-    Create(fixed, chassis_collision_type);
+    Create(fixed, brake_type, chassis_collision_type);
 }
 
-void MAN_7t_Vehicle::Create(bool fixed, ChassisCollisionType chassis_collision_type) {
+void MAN_7t_Vehicle::Create(bool fixed, BrakeType brake_type, ChassisCollisionType chassis_collision_type) {
     // Create the chassis subsystem
     m_chassis = chrono_types::make_shared<MAN_7t_Chassis>("Chassis", fixed, chassis_collision_type);
 
@@ -74,14 +86,31 @@ void MAN_7t_Vehicle::Create(bool fixed, ChassisCollisionType chassis_collision_t
     m_axles[2]->m_wheels[0] = chrono_types::make_shared<MAN_5t_Wheel>("Wheel_RL2");
     m_axles[2]->m_wheels[1] = chrono_types::make_shared<MAN_5t_Wheel>("Wheel_RR2");
 
-    m_axles[0]->m_brake_left = chrono_types::make_shared<MAN_5t_BrakeSimple>("Brake_FL");
-    m_axles[0]->m_brake_right = chrono_types::make_shared<MAN_5t_BrakeSimple>("Brake_FR");
+    switch (brake_type) {
+        case BrakeType::SIMPLE:
+            m_axles[0]->m_brake_left = chrono_types::make_shared<MAN_5t_BrakeSimple>("Brake_FL");
+            m_axles[0]->m_brake_right = chrono_types::make_shared<MAN_5t_BrakeSimple>("Brake_FR");
 
-    m_axles[1]->m_brake_left = chrono_types::make_shared<MAN_5t_BrakeSimple>("Brake_RL1");
-    m_axles[1]->m_brake_right = chrono_types::make_shared<MAN_5t_BrakeSimple>("Brake_RR1");
+            m_axles[1]->m_brake_left = chrono_types::make_shared<MAN_5t_BrakeSimple>("Brake_RL1");
+            m_axles[1]->m_brake_right = chrono_types::make_shared<MAN_5t_BrakeSimple>("Brake_RR1");
 
-    m_axles[2]->m_brake_left = chrono_types::make_shared<MAN_5t_BrakeSimple>("Brake_RL2");
-    m_axles[2]->m_brake_right = chrono_types::make_shared<MAN_5t_BrakeSimple>("Brake_RR2");
+            m_axles[2]->m_brake_left = chrono_types::make_shared<MAN_5t_BrakeSimple>("Brake_RL2");
+            m_axles[2]->m_brake_right = chrono_types::make_shared<MAN_5t_BrakeSimple>("Brake_RR2");
+
+            break;
+
+        case BrakeType::SHAFTS:
+            m_axles[0]->m_brake_left = chrono_types::make_shared<MAN_5t_BrakeShafts>("Brake_FL");
+            m_axles[0]->m_brake_right = chrono_types::make_shared<MAN_5t_BrakeShafts>("Brake_FR");
+
+            m_axles[1]->m_brake_left = chrono_types::make_shared<MAN_5t_BrakeShafts>("Brake_RL1");
+            m_axles[1]->m_brake_right = chrono_types::make_shared<MAN_5t_BrakeShafts>("Brake_RR1");
+
+            m_axles[2]->m_brake_left = chrono_types::make_shared<MAN_5t_BrakeShafts>("Brake_RL2");
+            m_axles[2]->m_brake_right = chrono_types::make_shared<MAN_5t_BrakeShafts>("Brake_RR2");
+
+            break;
+    }
 
     // Create the steering subsystem
     m_steerings.resize(1);

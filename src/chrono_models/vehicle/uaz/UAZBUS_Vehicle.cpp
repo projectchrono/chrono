@@ -12,7 +12,7 @@
 // Authors: Radu Serban, Asher Elmquist
 // =============================================================================
 //
-// UAZBUS full vehicle model...
+// UAZBUS vehicle model.
 //
 // =============================================================================
 
@@ -23,6 +23,15 @@
 #include "chrono_vehicle/ChVehicleModelData.h"
 
 #include "chrono_models/vehicle/uaz/UAZBUS_Vehicle.h"
+#include "chrono_models/vehicle/uaz/UAZBUS_BrakeSimple.h"
+#include "chrono_models/vehicle/uaz/UAZBUS_BrakeShafts.h"
+#include "chrono_models/vehicle/uaz/UAZBUS_Chassis.h"
+#include "chrono_models/vehicle/uaz/UAZBUS_Driveline4WD.h"
+#include "chrono_models/vehicle/uaz/UAZBUS_LeafspringAxle.h"
+#include "chrono_models/vehicle/uaz/UAZBUS_RotaryArm.h"
+#include "chrono_models/vehicle/uaz/UAZBUS_SimpleMapPowertrain.h"
+#include "chrono_models/vehicle/uaz/UAZBUS_ToeBarLeafspringAxle.h"
+#include "chrono_models/vehicle/uaz/UAZBUS_Wheel.h"
 
 namespace chrono {
 namespace vehicle {
@@ -31,22 +40,27 @@ namespace uaz {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 UAZBUS_Vehicle::UAZBUS_Vehicle(const bool fixed,
+                               BrakeType brake_type,
                                SteeringType steering_model,
                                ChContactMethod contact_method,
                                ChassisCollisionType chassis_collision_type)
     : ChWheeledVehicle("UAZBUS", contact_method), m_omega({0, 0, 0, 0}) {
-    Create(fixed, steering_model, chassis_collision_type);
+    Create(fixed, brake_type, steering_model, chassis_collision_type);
 }
 
 UAZBUS_Vehicle::UAZBUS_Vehicle(ChSystem* system,
                                const bool fixed,
+                               BrakeType brake_type,
                                SteeringType steering_model,
                                ChassisCollisionType chassis_collision_type)
     : ChWheeledVehicle("UAZBUS", system), m_omega({0, 0, 0, 0}) {
-    Create(fixed, steering_model, chassis_collision_type);
+    Create(fixed, brake_type, steering_model, chassis_collision_type);
 }
 
-void UAZBUS_Vehicle::Create(bool fixed, SteeringType steering_model, ChassisCollisionType chassis_collision_type) {
+void UAZBUS_Vehicle::Create(bool fixed,
+                            BrakeType brake_type,
+                            SteeringType steering_model,
+                            ChassisCollisionType chassis_collision_type) {
     // Create the chassis subsystem
     m_chassis = chrono_types::make_shared<UAZBUS_Chassis>("Chassis", fixed, chassis_collision_type);
 
@@ -69,10 +83,20 @@ void UAZBUS_Vehicle::Create(bool fixed, SteeringType steering_model, ChassisColl
     m_axles[1]->m_wheels[0] = chrono_types::make_shared<UAZBUS_Wheel>("Wheel_RL");
     m_axles[1]->m_wheels[1] = chrono_types::make_shared<UAZBUS_Wheel>("Wheel_RR");
 
-    m_axles[0]->m_brake_left = chrono_types::make_shared<UAZBUS_BrakeSimpleFront>("Brake_FL");
-    m_axles[0]->m_brake_right = chrono_types::make_shared<UAZBUS_BrakeSimpleFront>("Brake_FR");
-    m_axles[1]->m_brake_left = chrono_types::make_shared<UAZBUS_BrakeSimpleFront>("Brake_RL");
-    m_axles[1]->m_brake_right = chrono_types::make_shared<UAZBUS_BrakeSimpleFront>("Brake_RR");
+    switch (brake_type) {
+        case BrakeType::SIMPLE:
+            m_axles[0]->m_brake_left = chrono_types::make_shared<UAZBUS_BrakeSimpleFront>("Brake_FL");
+            m_axles[0]->m_brake_right = chrono_types::make_shared<UAZBUS_BrakeSimpleFront>("Brake_FR");
+            m_axles[1]->m_brake_left = chrono_types::make_shared<UAZBUS_BrakeSimpleFront>("Brake_RL");
+            m_axles[1]->m_brake_right = chrono_types::make_shared<UAZBUS_BrakeSimpleFront>("Brake_RR");
+            break;
+        case BrakeType::SHAFTS:
+            m_axles[0]->m_brake_left = chrono_types::make_shared<UAZBUS_BrakeShaftsFront>("Brake_FL");
+            m_axles[0]->m_brake_right = chrono_types::make_shared<UAZBUS_BrakeShaftsFront>("Brake_FR");
+            m_axles[1]->m_brake_left = chrono_types::make_shared<UAZBUS_BrakeShaftsFront>("Brake_RL");
+            m_axles[1]->m_brake_right = chrono_types::make_shared<UAZBUS_BrakeShaftsFront>("Brake_RR");
+            break;
+    }
 
     // Create the driveline
     m_driveline = chrono_types::make_shared<UAZBUS_Driveline4WD>("Driveline");

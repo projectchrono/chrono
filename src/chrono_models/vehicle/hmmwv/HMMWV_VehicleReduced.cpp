@@ -23,6 +23,15 @@
 #include "chrono_vehicle/ChVehicleModelData.h"
 
 #include "chrono_models/vehicle/hmmwv/HMMWV_VehicleReduced.h"
+#include "chrono_models/vehicle/hmmwv/HMMWV_Chassis.h"
+#include "chrono_models/vehicle/hmmwv/HMMWV_BrakeSimple.h"
+#include "chrono_models/vehicle/hmmwv/HMMWV_BrakeShafts.h"
+#include "chrono_models/vehicle/hmmwv/HMMWV_DoubleWishboneReduced.h"
+#include "chrono_models/vehicle/hmmwv/HMMWV_Driveline2WD.h"
+#include "chrono_models/vehicle/hmmwv/HMMWV_Driveline4WD.h"
+#include "chrono_models/vehicle/hmmwv/HMMWV_SimpleDriveline.h"
+#include "chrono_models/vehicle/hmmwv/HMMWV_RackPinion.h"
+#include "chrono_models/vehicle/hmmwv/HMMWV_Wheel.h"
 
 namespace chrono {
 namespace vehicle {
@@ -40,21 +49,23 @@ static const double lbf2N = 4.44822162;
 // -----------------------------------------------------------------------------
 HMMWV_VehicleReduced::HMMWV_VehicleReduced(const bool fixed,
                                            DrivelineType drive_type,
+                                           BrakeType brake_type,
                                            ChContactMethod contact_method,
                                            ChassisCollisionType chassis_collision_type)
     : HMMWV_Vehicle("HMMWVreduced", contact_method, drive_type) {
-    Create(fixed, chassis_collision_type);
+    Create(fixed, brake_type, chassis_collision_type);
 }
 
 HMMWV_VehicleReduced::HMMWV_VehicleReduced(ChSystem* system,
                                            const bool fixed,
                                            DrivelineType drive_type,
+                                           BrakeType brake_type,
                                            ChassisCollisionType chassis_collision_type)
     : HMMWV_Vehicle("HMMWVreduced", system, drive_type) {
-    Create(fixed, chassis_collision_type);
+    Create(fixed, brake_type, chassis_collision_type);
 }
 
-void HMMWV_VehicleReduced::Create(bool fixed, ChassisCollisionType chassis_collision_type) {
+void HMMWV_VehicleReduced::Create(bool fixed, BrakeType brake_type, ChassisCollisionType chassis_collision_type) {
     // Create the chassis subsystem
     m_chassis = chrono_types::make_shared<HMMWV_Chassis>("Chassis", fixed, chassis_collision_type);
 
@@ -77,10 +88,20 @@ void HMMWV_VehicleReduced::Create(bool fixed, ChassisCollisionType chassis_colli
     m_axles[1]->m_wheels[0] = chrono_types::make_shared<HMMWV_Wheel>("Wheel_RL");
     m_axles[1]->m_wheels[1] = chrono_types::make_shared<HMMWV_Wheel>("Wheel_RR");
 
-    m_axles[0]->m_brake_left = chrono_types::make_shared<HMMWV_BrakeSimple>("Brake_FL");
-    m_axles[0]->m_brake_right = chrono_types::make_shared<HMMWV_BrakeSimple>("Brake_FR");
-    m_axles[1]->m_brake_left = chrono_types::make_shared<HMMWV_BrakeSimple>("Brake_RL");
-    m_axles[1]->m_brake_right = chrono_types::make_shared<HMMWV_BrakeSimple>("Brake_RR");
+    switch (brake_type) {
+        case BrakeType::SIMPLE:
+            m_axles[0]->m_brake_left = chrono_types::make_shared<HMMWV_BrakeSimple>("Brake_FL");
+            m_axles[0]->m_brake_right = chrono_types::make_shared<HMMWV_BrakeSimple>("Brake_FR");
+            m_axles[1]->m_brake_left = chrono_types::make_shared<HMMWV_BrakeSimple>("Brake_RL");
+            m_axles[1]->m_brake_right = chrono_types::make_shared<HMMWV_BrakeSimple>("Brake_RR");
+            break;
+        case BrakeType::SHAFTS:
+            m_axles[0]->m_brake_left = chrono_types::make_shared<HMMWV_BrakeShafts>("Brake_FL");
+            m_axles[0]->m_brake_right = chrono_types::make_shared<HMMWV_BrakeShafts>("Brake_FR");
+            m_axles[1]->m_brake_left = chrono_types::make_shared<HMMWV_BrakeShafts>("Brake_RL");
+            m_axles[1]->m_brake_right = chrono_types::make_shared<HMMWV_BrakeShafts>("Brake_RR");
+            break;
+    }
 
     // Create the driveline
     switch (m_driveType) {

@@ -23,6 +23,16 @@
 #include "chrono_vehicle/ChVehicleModelData.h"
 
 #include "chrono_models/vehicle/citybus/CityBus_Vehicle.h"
+#include "chrono_models/vehicle/citybus/CityBus_Chassis.h"
+#include "chrono_models/vehicle/citybus/CityBus_BrakeSimple.h"
+#include "chrono_models/vehicle/citybus/CityBus_BrakeShafts.h"
+#include "chrono_models/vehicle/citybus/CityBus_SolidAxle.h"
+#include "chrono_models/vehicle/citybus/CityBus_ToeBarLeafspringAxle.h"
+#include "chrono_models/vehicle/citybus/CityBus_LeafspringAxle.h"
+#include "chrono_models/vehicle/citybus/CityBus_RackPinion.h"
+#include "chrono_models/vehicle/citybus/CityBus_RotaryArm.h"
+#include "chrono_models/vehicle/citybus/CityBus_Driveline2WD.h"
+#include "chrono_models/vehicle/citybus/CityBus_Wheel.h"
 
 namespace chrono {
 namespace vehicle {
@@ -31,18 +41,22 @@ namespace citybus {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 CityBus_Vehicle::CityBus_Vehicle(const bool fixed,
+                                 BrakeType brake_type,
                                  ChContactMethod contact_method,
                                  ChassisCollisionType chassis_collision_type)
     : ChWheeledVehicle("CityBus", contact_method), m_omega({0, 0, 0, 0}) {
-    Create(fixed, chassis_collision_type);
+    Create(fixed, brake_type, chassis_collision_type);
 }
 
-CityBus_Vehicle::CityBus_Vehicle(ChSystem* system, const bool fixed, ChassisCollisionType chassis_collision_type)
+CityBus_Vehicle::CityBus_Vehicle(ChSystem* system,
+                                 const bool fixed,
+                                 BrakeType brake_type,
+                                 ChassisCollisionType chassis_collision_type)
     : ChWheeledVehicle("CityBus", system), m_omega({0, 0, 0, 0}) {
-    Create(fixed, chassis_collision_type);
+    Create(fixed, brake_type, chassis_collision_type);
 }
 
-void CityBus_Vehicle::Create(bool fixed, ChassisCollisionType chassis_collision_type) {
+void CityBus_Vehicle::Create(bool fixed, BrakeType brake_type, ChassisCollisionType chassis_collision_type) {
     // Create the chassis subsystem
     m_chassis = chrono_types::make_shared<CityBus_Chassis>("Chassis", fixed, chassis_collision_type);
 
@@ -64,10 +78,20 @@ void CityBus_Vehicle::Create(bool fixed, ChassisCollisionType chassis_collision_
     m_axles[1]->m_wheels[2] = chrono_types::make_shared<CityBus_Wheel>("Wheel_RLo");
     m_axles[1]->m_wheels[3] = chrono_types::make_shared<CityBus_Wheel>("Wheel_RRo");
 
-    m_axles[0]->m_brake_left = chrono_types::make_shared<CityBus_BrakeSimple>("Brake_FL");
-    m_axles[0]->m_brake_right = chrono_types::make_shared<CityBus_BrakeSimple>("Brake_FR");
-    m_axles[1]->m_brake_left = chrono_types::make_shared<CityBus_BrakeSimple>("Brake_RL");
-    m_axles[1]->m_brake_right = chrono_types::make_shared<CityBus_BrakeSimple>("Brake_RR");
+        switch (brake_type) {
+        case BrakeType::SIMPLE:
+            m_axles[0]->m_brake_left = chrono_types::make_shared<CityBus_BrakeSimple>("Brake_FL");
+            m_axles[0]->m_brake_right = chrono_types::make_shared<CityBus_BrakeSimple>("Brake_FR");
+            m_axles[1]->m_brake_left = chrono_types::make_shared<CityBus_BrakeSimple>("Brake_RL");
+            m_axles[1]->m_brake_right = chrono_types::make_shared<CityBus_BrakeSimple>("Brake_RR");
+            break;
+        case BrakeType::SHAFTS:
+            m_axles[0]->m_brake_left = chrono_types::make_shared<CityBus_BrakeShafts>("Brake_FL");
+            m_axles[0]->m_brake_right = chrono_types::make_shared<CityBus_BrakeShafts>("Brake_FR");
+            m_axles[1]->m_brake_left = chrono_types::make_shared<CityBus_BrakeShafts>("Brake_RL");
+            m_axles[1]->m_brake_right = chrono_types::make_shared<CityBus_BrakeShafts>("Brake_RR");
+            break;
+    }
 
     // Create the steering subsystem
     m_steerings.resize(1);

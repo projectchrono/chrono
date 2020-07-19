@@ -29,6 +29,8 @@
 #include "chrono_vehicle/driver/ChIrrGuiDriver.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
 #include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleIrrApp.h"
+#include "chrono_models/vehicle/uaz/UAZBUS_LeafspringAxle.h"
+#include "chrono_models/vehicle/uaz/UAZBUS_ToeBarLeafspringAxle.h"
 
 #include "chrono_models/vehicle/uaz/UAZBUS.h"
 

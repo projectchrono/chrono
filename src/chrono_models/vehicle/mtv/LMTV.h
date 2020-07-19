@@ -56,6 +56,7 @@ class CH_MODELS_API LMTV {
     void SetChassisFixed(bool val) { m_fixed = val; }
     void SetChassisCollisionType(ChassisCollisionType val) { m_chassisCollisionType = val; }
 
+     void SetBrakeType(BrakeType brake_type) { m_brake_type = brake_type; }
     void SetTireType(TireModelType val) { m_tireType = val; }
     void SetPowertrainType(PowertrainModelType val) { m_powertrainType = val; }
 
@@ -102,6 +103,7 @@ class CH_MODELS_API LMTV {
     bool m_fixed;
     bool m_brake_locking;
 
+    BrakeType m_brake_type;
     TireModelType m_tireType;
     PowertrainModelType m_powertrainType;
 

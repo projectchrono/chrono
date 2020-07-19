@@ -54,6 +54,7 @@ class CH_MODELS_API HMMWV {
     void SetChassisCollisionType(ChassisCollisionType val) { m_chassisCollisionType = val; }
 
     void SetDriveType(DrivelineType val) { m_driveType = val; }
+    void SetBrakeType(BrakeType brake_type) { m_brake_type = brake_type; }
     void SetPowertrainType(PowertrainModelType val) { m_powertrainType = val; }
     void SetTireType(TireModelType val) { m_tireType = val; }
 
@@ -104,6 +105,7 @@ class CH_MODELS_API HMMWV {
 
     DrivelineType m_driveType;
     PowertrainModelType m_powertrainType;
+    BrakeType m_brake_type;
     TireModelType m_tireType;
     ChTire::CollisionType m_tire_collision_type;
 

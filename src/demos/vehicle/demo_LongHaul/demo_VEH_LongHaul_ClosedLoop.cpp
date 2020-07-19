@@ -32,13 +32,11 @@
 #include "chrono_vehicle/terrain/RigidTerrain.h"
 #include "chrono_vehicle/utils/ChVehiclePath.h"
 #include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleIrrApp.h"
-
-#include "chrono_models/vehicle/hmmwv/HMMWV.h"
+#include "chrono_vehicle/wheeled_vehicle/driveline/ChShaftsDriveline4WD.h"
 
 #include "subsystems/SemiTractor_tire.h"
 #include "subsystems/SemiTractor_powertrain.h"
 #include "subsystems/SemiTractor_vehicle.h"
-
 #include "subsystems/SemiTrailer.h"
 #include "subsystems/SemiTrailer_tire.h"
 
@@ -49,7 +47,6 @@
 using namespace chrono;
 using namespace chrono::irrlicht;
 using namespace chrono::vehicle;
-using namespace chrono::vehicle::hmmwv;
 
 // =============================================================================
 

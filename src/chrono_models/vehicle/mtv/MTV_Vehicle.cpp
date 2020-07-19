@@ -26,6 +26,7 @@
 
 #include "chrono_models/vehicle/mtv/FMTV_ChassisFront.h"
 #include "chrono_models/vehicle/mtv/FMTV_BrakeSimple.h"
+#include "chrono_models/vehicle/mtv/FMTV_BrakeShafts.h"
 #include "chrono_models/vehicle/mtv/FMTV_Driveline4WD.h"
 #include "chrono_models/vehicle/mtv/FMTV_AntiRollBar.h"
 #include "chrono_models/vehicle/mtv/FMTV_RotaryArm.h"
@@ -40,22 +41,27 @@ namespace fmtv {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 MTV_Vehicle::MTV_Vehicle(const bool fixed,
-                           SteeringType steering_model,
-                           ChContactMethod contact_method,
-                           ChassisCollisionType chassis_collision_type)
+                         BrakeType brake_type,
+                         SteeringType steering_model,
+                         ChContactMethod contact_method,
+                         ChassisCollisionType chassis_collision_type)
     : ChWheeledVehicle("MTV", contact_method), m_omega({0, 0, 0, 0, 0, 0}) {
-    Create(fixed, steering_model, chassis_collision_type);
+    Create(fixed, brake_type, steering_model, chassis_collision_type);
 }
 
 MTV_Vehicle::MTV_Vehicle(ChSystem* system,
-                           const bool fixed,
-                           SteeringType steering_model,
-                           ChassisCollisionType chassis_collision_type)
+                         const bool fixed,
+                         BrakeType brake_type,
+                         SteeringType steering_model,
+                         ChassisCollisionType chassis_collision_type)
     : ChWheeledVehicle("MTV", system), m_omega({0, 0, 0, 0, 0, 0}) {
-    Create(fixed, steering_model, chassis_collision_type);
+    Create(fixed, brake_type, steering_model, chassis_collision_type);
 }
 
-void MTV_Vehicle::Create(bool fixed, SteeringType steering_model, ChassisCollisionType chassis_collision_type) {
+void MTV_Vehicle::Create(bool fixed,
+                         BrakeType brake_type,
+                         SteeringType steering_model,
+                         ChassisCollisionType chassis_collision_type) {
     // Create the front and rear chassis subsystems
     m_chassis = chrono_types::make_shared<FMTV_ChassisFront>("ChassisFront", fixed, chassis_collision_type);
     m_chassis_rear.resize(1);
@@ -93,12 +99,24 @@ void MTV_Vehicle::Create(bool fixed, SteeringType steering_model, ChassisCollisi
     m_axles[2]->m_wheels[0] = chrono_types::make_shared<FMTV_Wheel>("Wheel_RL2");
     m_axles[2]->m_wheels[1] = chrono_types::make_shared<FMTV_Wheel>("Wheel_RR2");
 
-    m_axles[0]->m_brake_left = chrono_types::make_shared<FMTV_BrakeSimple>("Brake_FL");
-    m_axles[0]->m_brake_right = chrono_types::make_shared<FMTV_BrakeSimple>("Brake_FR");
-    m_axles[1]->m_brake_left = chrono_types::make_shared<FMTV_BrakeSimple>("Brake_RL1");
-    m_axles[1]->m_brake_right = chrono_types::make_shared<FMTV_BrakeSimple>("Brake_RR1");
-    m_axles[2]->m_brake_left = chrono_types::make_shared<FMTV_BrakeSimple>("Brake_RL2");
-    m_axles[2]->m_brake_right = chrono_types::make_shared<FMTV_BrakeSimple>("Brake_RR2");
+    switch (brake_type) {
+        case BrakeType::SIMPLE:
+            m_axles[0]->m_brake_left = chrono_types::make_shared<FMTV_BrakeSimple>("Brake_FL");
+            m_axles[0]->m_brake_right = chrono_types::make_shared<FMTV_BrakeSimple>("Brake_FR");
+            m_axles[1]->m_brake_left = chrono_types::make_shared<FMTV_BrakeSimple>("Brake_RL1");
+            m_axles[1]->m_brake_right = chrono_types::make_shared<FMTV_BrakeSimple>("Brake_RR1");
+            m_axles[2]->m_brake_left = chrono_types::make_shared<FMTV_BrakeSimple>("Brake_RL2");
+            m_axles[2]->m_brake_right = chrono_types::make_shared<FMTV_BrakeSimple>("Brake_RR2");
+            break;
+        case BrakeType::SHAFTS:
+            m_axles[0]->m_brake_left = chrono_types::make_shared<FMTV_BrakeShafts>("Brake_FL");
+            m_axles[0]->m_brake_right = chrono_types::make_shared<FMTV_BrakeShafts>("Brake_FR");
+            m_axles[1]->m_brake_left = chrono_types::make_shared<FMTV_BrakeShafts>("Brake_RL1");
+            m_axles[1]->m_brake_right = chrono_types::make_shared<FMTV_BrakeShafts>("Brake_RR1");
+            m_axles[2]->m_brake_left = chrono_types::make_shared<FMTV_BrakeShafts>("Brake_RL2");
+            m_axles[2]->m_brake_right = chrono_types::make_shared<FMTV_BrakeShafts>("Brake_RR2");
+            break;
+    }
 
     // Create the antirollbar system
     // m_axles[1]->m_antirollbar = chrono_types::make_shared<FMTV_AntirollBarRSD>("AntirollBar");
