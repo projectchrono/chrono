@@ -52,8 +52,8 @@ void ChAxle::Initialize(std::shared_ptr<ChChassis> chassis,
 ) {
     m_suspension->Initialize(chassis, subchassis, steering, susp_location, left_ang_vel, right_ang_vel);
     if (m_brake_left && m_brake_right) {
-        m_brake_left->Initialize(m_suspension, LEFT);
-        m_brake_right->Initialize(m_suspension, RIGHT);
+        m_brake_left->Initialize(chassis, m_suspension, LEFT);
+        m_brake_right->Initialize(chassis, m_suspension, RIGHT);
     }
     if (wheel_separation > 0) {
         assert(m_wheels.size() == 4);
@@ -93,6 +93,12 @@ std::shared_ptr<ChWheel> ChAxle::GetWheel(VehicleSide side, WheelLocation locati
     if (location == SINGLE)
         return m_wheels[side];
     return m_wheels[2 * (location - 1) + side];
+}
+
+std::shared_ptr<ChBrake> ChAxle::GetBrake(VehicleSide side) const {
+    if (side == VehicleSide::LEFT)
+        return m_brake_left;
+    return m_brake_right;
 }
 
 }  // end namespace vehicle

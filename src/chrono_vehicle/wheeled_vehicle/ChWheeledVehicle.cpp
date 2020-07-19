@@ -242,6 +242,13 @@ std::shared_ptr<ChTire> ChWheeledVehicle::GetTire(int axle, VehicleSide side, Wh
 }
 
 // -----------------------------------------------------------------------------
+// Get the specified brake (axle, side)
+// -----------------------------------------------------------------------------
+std::shared_ptr<ChBrake> ChWheeledVehicle::GetBrake(int axle, VehicleSide side) const {
+    return m_axles[axle]->GetBrake(side);
+}
+
+// -----------------------------------------------------------------------------
 // Calculate and return the total vehicle mass
 // -----------------------------------------------------------------------------
 double ChWheeledVehicle::GetVehicleMass() const {

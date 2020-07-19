@@ -168,7 +168,7 @@ void ChTrackTestRig::Create(bool create_track, bool detracking_control) {
         m_track->GetSprocket()->DisableLateralContact();
 
     // Initialize the track assembly subsystem
-    m_track->Initialize(m_chassis->GetBody(), ChVector<>(0, 0, 0), create_track);
+    m_track->Initialize(m_chassis, ChVector<>(0, 0, 0), create_track);
 
     // Create and initialize the shaker post body
     auto num_wheels = m_track->GetNumRoadWheelAssemblies();

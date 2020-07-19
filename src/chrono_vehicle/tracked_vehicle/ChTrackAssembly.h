@@ -140,13 +140,13 @@ class CH_VEHICLE_API ChTrackAssembly : public ChPart {
     virtual const ChVector<> GetRollerLocation(int which) const { return ChVector<>(0, 0, 0); }
 
     /// Initialize this track assembly subsystem.
-    /// The subsystem is initialized by attaching it to the specified chassis body
+    /// The subsystem is initialized by attaching it to the specified chassis
     /// at the specified location (with respect to and expressed in the reference
     /// frame of the chassis). It is assumed that the track assembly reference frame
     /// is always aligned with the chassis reference frame.
-    void Initialize(std::shared_ptr<ChBodyAuxRef> chassis,  ///< [in] handle to the chassis body
-                    const ChVector<>& location,             ///< [in] location relative to the chassis frame
-                    bool create_shoes = true                ///< [in] control creation of the actual track
+    void Initialize(std::shared_ptr<ChChassis> chassis,  ///< [in] chassis subsystem
+                    const ChVector<>& location,          ///< [in] location relative to the chassis frame
+                    bool create_shoes = true             ///< [in] control creation of the actual track
     );
 
     /// Set visualization type for the sprocket subsystem.
