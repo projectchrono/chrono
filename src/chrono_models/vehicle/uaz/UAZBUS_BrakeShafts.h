@@ -9,17 +9,17 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Alessandro Tasora
+// Authors: Radu Serban
 // =============================================================================
 //
-// UAZBUS simple brake models (front and rear).
+// UAZ shafts-based brake model.
 //
 // =============================================================================
 
-#ifndef UAZBUS_BRAKESIMPLE_H
-#define UAZBUS_BRAKESIMPLE_H
+#ifndef UAZBUS_BRAKE_SHAFTS_H
+#define UAZBUS_BRAKE_SHAFTS_H
 
-#include "chrono_vehicle/wheeled_vehicle/brake/ChBrakeSimple.h"
+#include "chrono_vehicle/wheeled_vehicle/brake/ChBrakeShafts.h"
 
 #include "chrono_models/ChApiModels.h"
 
@@ -30,28 +30,32 @@ namespace uaz {
 /// @addtogroup vehicle_models_uaz
 /// @{
 
-/// Simple UAZBUS front brake subsystem (torque applied directly to the spindle joint).
-class CH_MODELS_API UAZBUS_BrakeSimpleFront : public ChBrakeSimple {
+/// Shafts-based UAZ front brake subsystem (uses a clutch between two shafts).
+class CH_MODELS_API UAZBUS_BrakeShaftsFront : public ChBrakeShafts {
   public:
-    UAZBUS_BrakeSimpleFront(const std::string& name);
-    virtual ~UAZBUS_BrakeSimpleFront() {}
+    UAZBUS_BrakeShaftsFront(const std::string& name);
+    ~UAZBUS_BrakeShaftsFront() {}
 
     virtual double GetMaxBrakingTorque() override { return m_maxtorque; }
+    virtual double GetShaftInertia() override { return m_shaft_inertia; }
 
   private:
     static const double m_maxtorque;
+    static const double m_shaft_inertia;
 };
 
-/// Simple UAZBUS rear brake subsystem (torque applied directly to the spindle joint).
-class CH_MODELS_API UAZBUS_BrakeSimpleRear : public ChBrakeSimple {
+/// Shafts-based UAZ rear brake subsystem (uses a clutch between two shafts).
+class CH_MODELS_API UAZBUS_BrakeShaftsRear : public ChBrakeShafts {
   public:
-    UAZBUS_BrakeSimpleRear(const std::string& name);
-    virtual ~UAZBUS_BrakeSimpleRear() {}
+    UAZBUS_BrakeShaftsRear(const std::string& name);
+    ~UAZBUS_BrakeShaftsRear() {}
 
     virtual double GetMaxBrakingTorque() override { return m_maxtorque; }
+    virtual double GetShaftInertia() override { return m_shaft_inertia; }
 
   private:
     static const double m_maxtorque;
+    static const double m_shaft_inertia;
 };
 
 /// @} vehicle_models_uaz

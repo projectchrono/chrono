@@ -1,0 +1,8 @@
+{
+  "Name":                       "HMMWV Brake Front",
+  "Type":                       "Brake",
+  "Template":                   "BrakeShafts",
+
+  "Shaft Inertia":              0.4,
+  "Maximum Torque":             4000
+}
