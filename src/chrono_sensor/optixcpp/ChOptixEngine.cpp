@@ -542,6 +542,10 @@ void ChOptixEngine::staticTrimeshVisualization(std::shared_ptr<ChTriangleMeshSha
     triangle_instance["texcoord_index_buffer"]->setBuffer(texcoord_index_buffer);
     // triangle_instance["material_buffer"]->setBuffer(mat_index_buffer);
 
+    if (mesh->getIndicesUV().size() == 0 && mesh->getCoordsUV().size() > 0) {
+        triangle_instance["texcoord_index_buffer"]->setBuffer(vertex_index_buffer);
+    }
+
     // std::cout << "Static Triangle Mesh Buffers\n";
     // size_t n;
     // vertex_buffer->getSize(n);
