@@ -12,31 +12,31 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// Wheeled vehicle shafts-based brake model constructed with data from file
+// Tracked vehicle shafts-based brake model constructed with data from file
 // (JSON format).
 //
 // =============================================================================
 
-#ifndef BRAKE_SHAFTS_H
-#define BRAKE_SHAFTS_H
+#ifndef TRACK_BRAKE_SIMPLE_H
+#define TRACK_BRAKE_SIMPLE_H
 
 #include "chrono_vehicle/ChApiVehicle.h"
-#include "chrono_vehicle/wheeled_vehicle/brake/ChBrakeShafts.h"
+#include "chrono_vehicle/tracked_vehicle/brake/ChTrackBrakeShafts.h"
 
 #include "chrono_thirdparty/rapidjson/document.h"
 
 namespace chrono {
 namespace vehicle {
 
-/// @addtogroup vehicle_wheeled_brake
+/// @addtogroup vehicle_tracked_brake
 /// @{
 
-/// Wheeled vehicle shafts-based brake model constructed with data from file (JSON format).
-class CH_VEHICLE_API BrakeShafts : public ChBrakeShafts {
+/// Tracked vehicle shafts-based brake model constructed with data from file (JSON format).
+class CH_VEHICLE_API TrackBrakeShafts : public ChTrackBrakeShafts {
   public:
-    BrakeShafts(const std::string& filename);
-    BrakeShafts(const rapidjson::Document& d);
-    ~BrakeShafts() {}
+    TrackBrakeShafts(const std::string& filename);
+    TrackBrakeShafts(const rapidjson::Document& d);
+    ~TrackBrakeShafts() {}
 
     virtual double GetShaftInertia() override { return m_shaft_inertia; }
     virtual double GetMaxBrakingTorque() override { return m_maxtorque; }
@@ -48,7 +48,7 @@ class CH_VEHICLE_API BrakeShafts : public ChBrakeShafts {
     double m_maxtorque;
 };
 
-/// @} vehicle_wheeled_brake
+/// @} vehicle_tracked_brake
 
 }  // end namespace vehicle
 }  // end namespace chrono

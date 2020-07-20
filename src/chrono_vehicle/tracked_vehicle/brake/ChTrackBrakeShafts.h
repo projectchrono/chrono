@@ -9,19 +9,17 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Alessandro Tasora
+// Authors: Radu Serban
 // =============================================================================
 //
-// Simple brake created with constant torque opposing sprocket rotation.
-// It just uses a speed-dependent torque.
+// Brake for tracked vehicles modeled using a clutch between two shafts.
 //
 // =============================================================================
 
-#ifndef CH_TRACK_BRAKE_SIMPLE_H
-#define CH_TRACK_BRAKE_SIMPLE_H
+#ifndef CH_TRACK_BRAKE_SHAFTS_H
+#define CH_TRACK_BRAKE_SHAFTS_H
 
-#include "chrono/physics/ChSystem.h"
-#include "chrono/physics/ChLinkBrake.h"
+#include "chrono/physics/ChShaftsClutch.h"
 
 #include "chrono_vehicle/tracked_vehicle/ChTrackBrake.h"
 
@@ -31,21 +29,20 @@ namespace vehicle {
 /// @addtogroup vehicle_tracked_brake
 /// @{
 
-/// Simple brake created with constant torque opposing sprocket rotation.
-class CH_VEHICLE_API ChTrackBrakeSimple : public ChTrackBrake {
+/// Brake for tracked vehicles modeled using a clutch between two shafts.
+class CH_VEHICLE_API ChTrackBrakeShafts : public ChTrackBrake {
   public:
-    ChTrackBrakeSimple(const std::string& name  ///< [in] name of the subsystem
-                       );
+    ChTrackBrakeShafts(const std::string& name);
 
-    virtual ~ChTrackBrakeSimple() {}
+    virtual ~ChTrackBrakeShafts() {}
 
     /// Get the name of the vehicle subsystem template.
-    virtual std::string GetTemplateName() const override { return "TrackBrakeSimple"; }
+    virtual std::string GetTemplateName() const override { return "TrackBrakeShafts"; }
 
     /// Initialize the brake by providing the chassis and associated sprocket.
-    virtual void Initialize(std::shared_ptr<ChChassis> chassis,   ///< associated chassis subsystem
-                            std::shared_ptr<ChSprocket> sprocket  ///< associated sprocket subsystem
-                            ) override;
+    virtual void Initialize(std::shared_ptr<ChChassis> chassis,  ///< associated chassis subsystem
+                            std::shared_ptr<ChSprocket> sprocket ///< associated sprocket subsystem
+    ) override;
 
     /// Update the brake subsystem for the given braking driver input.
     /// <pre>
@@ -57,15 +54,16 @@ class CH_VEHICLE_API ChTrackBrakeSimple : public ChTrackBrake {
     /// Get the current brake torque.
     virtual double GetBrakeTorque() override { return m_braking * GetMaxBrakingTorque(); }
 
-    /// Get the current brake angular speed (between disc and caliper) [rad/s].
-    double GetBrakeSpeed() { return m_brake->GetRelWvel().Length(); }
-
   protected:
+    /// Get the brake shaft inertia
+    virtual double GetShaftInertia() = 0;
+
     /// Get the max braking torque (for braking = 1)
     virtual double GetMaxBrakingTorque() = 0;
 
-    double m_braking;
-    std::shared_ptr<ChLinkBrake> m_brake;
+    double m_braking;                          ///< current braking input
+    std::shared_ptr<ChShaft> m_shaft;          ///< shaft attached to "fixed" body
+    std::shared_ptr<ChShaftsClutch> m_clutch;  ///< clutch between the brake shaft and axle shaft
 };
 
 /// @} vehicle_tracked_brake

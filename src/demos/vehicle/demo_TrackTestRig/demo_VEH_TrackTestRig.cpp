@@ -104,16 +104,17 @@ int main(int argc, char* argv[]) {
     } else {
         VehicleSide side = LEFT;
         TrackShoeType type = TrackShoeType::SINGLE_PIN;
+        BrakeType brake_type = BrakeType::SIMPLE;
         std::shared_ptr<ChTrackAssembly> track_assembly;
         switch (type) {
             case TrackShoeType::SINGLE_PIN: {
-                auto assembly = chrono_types::make_shared<M113_TrackAssemblySinglePin>(side);
+                auto assembly = chrono_types::make_shared<M113_TrackAssemblySinglePin>(side, brake_type);
                 track_assembly = assembly;
                 break;
             }
             case TrackShoeType::DOUBLE_PIN: {
                 contact_method = ChContactMethod::NSC; // force NSC
-                auto assembly = chrono_types::make_shared<M113_TrackAssemblyDoublePin>(side);
+                auto assembly = chrono_types::make_shared<M113_TrackAssemblyDoublePin>(side, brake_type);
                 track_assembly = assembly;
                 break;
             }

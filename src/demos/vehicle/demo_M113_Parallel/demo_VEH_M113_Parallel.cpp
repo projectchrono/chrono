@@ -371,7 +371,7 @@ int main(int argc, char* argv[]) {
     // --------------------------
 
     // Create and initialize vehicle system
-    M113_Vehicle vehicle(true, TrackShoeType::SINGLE_PIN, system);
+    M113_Vehicle vehicle(true, TrackShoeType::SINGLE_PIN, BrakeType::SIMPLE, system);
     ////vehicle.SetStepsize(0.0001);
 
     vehicle.Initialize(ChCoordsys<>(initLoc, initRot));

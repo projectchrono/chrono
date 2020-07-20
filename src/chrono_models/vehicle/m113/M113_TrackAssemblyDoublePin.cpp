@@ -52,7 +52,8 @@ const ChVector<> M113_TrackAssemblyDoublePin::m_susp_locs_R[5] = {
 // Constructor for the M113 track assembly using double-pin track shoes.
 // Create the suspensions, idler, brake, sprocket, and track shoes.
 // -----------------------------------------------------------------------------
-M113_TrackAssemblyDoublePin::M113_TrackAssemblyDoublePin(VehicleSide side) : ChTrackAssemblyDoublePin("", side) {
+M113_TrackAssemblyDoublePin::M113_TrackAssemblyDoublePin(VehicleSide side, BrakeType brake_type)
+    : ChTrackAssemblyDoublePin("", side) {
     size_t num_shoes;
     std::string suspName("M113_Suspension");
     std::string shoeName("M113_TrackShoe");

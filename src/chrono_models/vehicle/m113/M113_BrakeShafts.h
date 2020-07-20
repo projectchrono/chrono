@@ -12,14 +12,14 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// M113 simple brake model
+// M113 shafts-based brake model
 //
 // =============================================================================
 
-#ifndef M113_BRAKE_SIMPLE_H
-#define M113_BRAKE_SIMPLE_H
+#ifndef M113_BRAKE_SHAFTS_H
+#define M113_BRAKE_SHAFTS_H
 
-#include "chrono_vehicle/tracked_vehicle/brake/ChTrackBrakeSimple.h"
+#include "chrono_vehicle/tracked_vehicle/brake/ChTrackBrakeShafts.h"
 
 #include "chrono_models/ChApiModels.h"
 
@@ -30,13 +30,14 @@ namespace m113 {
 /// @addtogroup vehicle_models_m113
 /// @{
 
-/// Simple M113 brake subsystem (torque applied directly to the spindle joint).
-class CH_MODELS_API M113_BrakeSimple : public ChTrackBrakeSimple {
+/// Shafts-based M113 brake subsystem (uses a clutch between two shafts).
+class CH_MODELS_API M113_BrakeShafts : public ChTrackBrakeShafts {
   public:
-    M113_BrakeSimple(const std::string& name) : ChTrackBrakeSimple(name) {}
-    ~M113_BrakeSimple() {}
+    M113_BrakeShafts(const std::string& name) : ChTrackBrakeShafts(name) {}
+    ~M113_BrakeShafts() {}
 
     virtual double GetMaxBrakingTorque() override { return 10000.0; }
+    virtual double GetShaftInertia() override { return 0.4; }
 };
 
 /// @} vehicle_models_m113

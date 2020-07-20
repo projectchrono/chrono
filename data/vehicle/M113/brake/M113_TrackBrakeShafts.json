@@ -1,0 +1,8 @@
+{
+  "Name":                       "M113 Shafts Brake",
+  "Type":                       "TrackBrake",
+  "Template":                   "TrackBrakeShafts",
+
+  "Maximum Torque":             10000,
+  "Shaft Inertia":              0.4
+}

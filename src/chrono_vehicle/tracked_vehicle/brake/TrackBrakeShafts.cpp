@@ -12,12 +12,12 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// Wheeled vehicle shafts-based brake model constructed with data from file
+// Tracked vehicle shafts-based brake model constructed with data from file
 // (JSON format).
 //
 // =============================================================================
 
-#include "chrono_vehicle/wheeled_vehicle/brake/BrakeShafts.h"
+#include "chrono_vehicle/tracked_vehicle/brake/TrackBrakeShafts.h"
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
 
 using namespace rapidjson;
@@ -27,7 +27,7 @@ namespace vehicle {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-BrakeShafts::BrakeShafts(const std::string& filename) : ChBrakeShafts("") {
+TrackBrakeShafts::TrackBrakeShafts(const std::string& filename) : ChTrackBrakeShafts("") {
     Document d = ReadFileJSON(filename);
     if (d.IsNull())
         return;
@@ -37,12 +37,12 @@ BrakeShafts::BrakeShafts(const std::string& filename) : ChBrakeShafts("") {
     GetLog() << "Loaded JSON: " << filename.c_str() << "\n";
 }
 
-BrakeShafts::BrakeShafts(const rapidjson::Document& d) : ChBrakeShafts("") {
+TrackBrakeShafts::TrackBrakeShafts(const rapidjson::Document& d) : ChTrackBrakeShafts("") {
     Create(d);
 }
 
-void BrakeShafts::Create(const rapidjson::Document& d) {
-    // Invoke base class method.
+void TrackBrakeShafts::Create(const rapidjson::Document& d) {
+    // Invoke base class method
     ChPart::Create(d);
 
     // Read shaft inertia

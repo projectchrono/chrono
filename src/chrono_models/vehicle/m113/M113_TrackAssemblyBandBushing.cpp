@@ -51,7 +51,8 @@ const ChVector<> M113_TrackAssemblyBandBushing::m_susp_locs_R[5] = {  //
 // track shoes.
 // Create the suspensions, idler, brake, sprocket, and track shoes.
 // -----------------------------------------------------------------------------
-M113_TrackAssemblyBandBushing::M113_TrackAssemblyBandBushing(VehicleSide side) : ChTrackAssemblyBandBushing("", side) {
+M113_TrackAssemblyBandBushing::M113_TrackAssemblyBandBushing(VehicleSide side, BrakeType brake_type)
+    : ChTrackAssemblyBandBushing("", side) {
     size_t num_shoes;
     std::string suspName("M113_Suspension");
     std::string shoeName("M113_TrackShoe");

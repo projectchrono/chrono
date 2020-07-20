@@ -92,7 +92,7 @@ int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
     // Construct the M113 vehicle
-    M113_Vehicle vehicle(false, TrackShoeType::SINGLE_PIN, ChContactMethod::SMC);
+    M113_Vehicle vehicle(false, TrackShoeType::SINGLE_PIN, BrakeType::SIMPLE, ChContactMethod::SMC);
 
 #ifndef CHRONO_MKL
     // Do not use MKL if not available
