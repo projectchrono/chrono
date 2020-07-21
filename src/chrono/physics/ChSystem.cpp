@@ -828,18 +828,25 @@ void ChSystem::StateGather(ChState& x, ChStateDelta& v, double& T) {
 
 // From state Y={x,v} to system.
 void ChSystem::StateScatter(const ChState& x, const ChStateDelta& v, const double T) {
+
+
+    ////  (TEMPORARY) FIX ME 
+    bool full_update = true;
+
+
     unsigned int off_x = 0;
     unsigned int off_v = 0;
  
     // Let each object (bodies, links, etc.) in the assembly extract its own states.
     // Note that each object also performs an update
-    assembly.IntStateScatter(off_x, x, off_v, v, T);
+    assembly.IntStateScatter(off_x, x, off_v, v, T, full_update);
 
     // Use also on contact container:
     unsigned int displ_x = off_x - assembly.offset_x;
     unsigned int displ_v = off_v - assembly.offset_w;
-    contact_container->IntStateScatter(displ_x + contact_container->GetOffset_x(), x,
-                                       displ_v + contact_container->GetOffset_w(), v, T);
+    contact_container->IntStateScatter(displ_x + contact_container->GetOffset_x(), x,  //
+                                       displ_v + contact_container->GetOffset_w(), v,  //
+                                       T, full_update);
 
     ch_time = T;
 }

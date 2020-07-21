@@ -530,7 +530,7 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     /// From system to state y={x,v}
     virtual void StateGather(ChState& x, ChStateDelta& v, double& T) override;
 
-    /// From state Y={x,v} to system.
+    /// From state Y={x,v} to system. This also triggers an update operation.
     virtual void StateScatter(const ChState& x, const ChStateDelta& v, const double T) override;
 
     /// From system to state derivative (acceleration), some timesteppers might need last computed accel.
