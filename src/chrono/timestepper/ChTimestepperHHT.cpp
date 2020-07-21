@@ -226,7 +226,7 @@ void ChTimestepperHHT::Advance(const double dt) {
         }
 
         // Scatter state -> system
-        mintegrable->StateScatter(X, V, T);
+        mintegrable->StateScatter(X, V, T, true);
 
         // In case we go back in the loop
         //// TODO: this is wasted work if we DO NOT go back
@@ -288,7 +288,7 @@ void ChTimestepperHHT::Prepare(ChIntegrableIIorder* integrable, double scaling_f
 //
 void ChTimestepperHHT::Increment(ChIntegrableIIorder* integrable, double scaling_factor) {
     // Scatter the current estimate of state at time T+h
-    integrable->StateScatter(Xnew, Vnew, T + h);
+    integrable->StateScatter(Xnew, Vnew, T + h, true);
 
     // Initialize the two segments of the RHS
     R = Rold;      // terms related to state at time T
@@ -309,6 +309,7 @@ void ChTimestepperHHT::Increment(ChIntegrableIIorder* integrable, double scaling
                                              -h * h * beta,      // factor for  dF/dx
                                              Xnew, Vnew, T + h,  // not used here (force_scatter = false)
                                              false,              // do not scatter states
+                                             false,              // full update? (not used, since no scatter)
                                              call_setup          // call Setup?
             );
 
@@ -334,6 +335,7 @@ void ChTimestepperHHT::Increment(ChIntegrableIIorder* integrable, double scaling
                                              -scaling_factor,                                // factor for  dF/dx
                                              Xnew, Vnew, T + h,  // not used here(force_scatter = false)
                                              false,              // do not scatter states
+                                             false,              // full update? (not used, since no scatter)
                                              call_setup          // call Setup?
             );
 
