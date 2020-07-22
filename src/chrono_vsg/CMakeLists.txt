@@ -26,6 +26,7 @@ SET(ChronoEngine_VSG_SOURCES
 
 SET(ChronoEngine_VSG_HEADERS
     ChVSGApp.h
+    core/ChApiVSG.h
 )
 
 SOURCE_GROUP("" FILES
@@ -56,6 +57,8 @@ ADD_LIBRARY(ChronoEngine_vsg SHARED
 )
 
 #SET_TARGET_PROPERTIES(ChronoEngine_vsg  vsg::vsg)
+
+target_compile_definitions(ChronoEngine_vsg PRIVATE "CH_API_COMPILE_VSG")
 
 TARGET_LINK_LIBRARIES(ChronoEngine_vsg
   ChronoEngine

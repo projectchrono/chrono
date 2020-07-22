@@ -15,6 +15,8 @@
 // screen and handle input some day
 // =============================================================================
 
+#include "chrono_vsg/core/ChApiVSG.h"
+
 #include "ChVSGApp.h"
 
 using namespace chrono::vsg;

@@ -18,6 +18,7 @@
 #ifndef CH_VSG_APP_H
 #define CH_VSG_APP_H
 
+#include "chrono_vsg/core/ChApiVSG.h"
 #include "chrono/physics/ChSystem.h"
 #include "chrono/core/ChTimer.h"
 
@@ -27,7 +28,7 @@ namespace vsg {
 /// @addtogroup vsg_module
 /// @{
 
-class ChVSGApp {
+class CH_VSG_API ChVSGApp {
   public:
     ChVSGApp(ChSystem* system);
     ~ChVSGApp();
