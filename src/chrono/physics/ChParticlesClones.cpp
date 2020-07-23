@@ -343,7 +343,8 @@ void ChParticlesClones::IntStateScatter(const unsigned int off_x,  // offset in 
                                         const ChState& x,          // state vector, position part
                                         const unsigned int off_v,  // offset in v state vector
                                         const ChStateDelta& v,     // state vector, speed part
-                                        const double T             // time
+                                        const double T,            // time
+                                        bool full_update           // perform complete update
 ) {
     for (unsigned int j = 0; j < particles.size(); j++) {
         particles[j]->SetCoord(x.segment(off_x + 7 * j, 7));
@@ -351,7 +352,7 @@ void ChParticlesClones::IntStateScatter(const unsigned int off_x,  // offset in 
         particles[j]->SetWvel_loc(v.segment(off_v + 6 * j + 3, 3));
     }
     SetChTime(T);
-    Update(T);
+    Update(T, full_update);
 }
 
 void ChParticlesClones::IntStateGatherAcceleration(const unsigned int off_a, ChStateDelta& a) {
