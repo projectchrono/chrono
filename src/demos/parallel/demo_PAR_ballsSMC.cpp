@@ -138,8 +138,6 @@ void AddFallingBalls(ChSystemParallel* sys) {
 int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
-    int threads = 8;
-
     // Simulation parameters
     // ---------------------
 
@@ -157,11 +155,8 @@ int main(int argc, char* argv[]) {
 
     ChSystemParallelSMC msystem;
 
-    // Set number of threads.
-    int max_threads = CHOMPfunctions::GetNumProcs();
-    if (threads > max_threads)
-        threads = max_threads;
-    CHOMPfunctions::SetNumThreads(threads);
+    // Set number of threads
+    msystem.SetNumThreads(8);
 
     // Set gravitational acceleration
     msystem.Set_G_acc(ChVector<>(0, 0, -gravity));

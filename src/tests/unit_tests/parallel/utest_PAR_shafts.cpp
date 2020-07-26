@@ -33,9 +33,6 @@ class ChShaftTest : public ::testing::TestWithParam<ChContactMethod> {
   protected:
     ChShaftTest() {
         // Settings
-        int threads = 1;
-        bool thread_tuning = false;
-
         double tolerance = 1e-5;
 
         int max_iteration_bilateral = 100;
@@ -58,10 +55,8 @@ class ChShaftTest : public ::testing::TestWithParam<ChContactMethod> {
                 break;
         }
 
-        // Set number of threads.
-        CHOMPfunctions::SetNumThreads(threads);
-        system->GetSettings()->max_threads = threads;
-        system->GetSettings()->perform_thread_tuning = thread_tuning;
+        // Set number of threads
+        system->SetNumThreads(1);
 
         // Edit system settings
         system->GetSettings()->solver.tolerance = tolerance;
