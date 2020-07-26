@@ -18,9 +18,12 @@
 #ifndef CH_VSG_APP_H
 #define CH_VSG_APP_H
 
+#include <iostream>
 #include "chrono_vsg/core/ChApiVSG.h"
 #include "chrono/physics/ChSystem.h"
 #include "chrono/core/ChTimer.h"
+
+#include <vsg/all.h>
 
 namespace chrono {
 namespace vsg {

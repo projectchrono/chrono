@@ -41,10 +41,10 @@ if (VULKAN_SDK)
 endif()
 
 find_package(vsg REQUIRED)
+find_package(vsgXchange QUIET)
 
 # set the use of C++17 here as VSG requires it
 set(CMAKE_CXX_STANDARD 17)
-
 
 # Let some variables be visible also from outside this directory
 
@@ -56,7 +56,6 @@ ADD_LIBRARY(ChronoEngine_vsg SHARED
   ${ChronoEngine_VSG_HEADERS}
 )
 
-#SET_TARGET_PROPERTIES(ChronoEngine_vsg  vsg::vsg)
 
 target_compile_definitions(ChronoEngine_vsg PRIVATE "CH_API_COMPILE_VSG")
 
@@ -65,7 +64,7 @@ TARGET_LINK_LIBRARIES(ChronoEngine_vsg
   vsg::vsg
 )
 
-ADD_DEPENDENCIES (ChronoEngine_vsg ChronoEngine)
+ADD_DEPENDENCIES (ChronoEngine_vsg ChronoEngine vsg::vsg)
 
 
 #-------------------------------------------------------------------------------
