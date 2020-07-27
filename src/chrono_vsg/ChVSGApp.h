@@ -38,6 +38,13 @@ class CH_VSG_API ChVSGApp {
 
   private:
     ChSystem* m_system;
+
+    ::vsg::ref_ptr<::vsg::WindowTraits> m_windowTraits;
+
+    ::vsg::Paths m_searchPaths;
+
+    ::vsg::ref_ptr<::vsg::ShaderStage> m_vertexShader;
+    ::vsg::ref_ptr<::vsg::ShaderStage> m_fragmentShader;
 };
 
 }  // namespace vsg
