@@ -27,6 +27,7 @@
 #include "chrono/fea/ChElementTetra_4.h"
 #include "chrono/fea/ChMesh.h"
 #include "chrono/fea/ChNodeFEAxyz.h"
+#include "chrono/fea/ChNodeFEAxyzrot.h"
 
 namespace chrono {
 namespace fea {
@@ -299,11 +300,18 @@ void ChMesh::IntLoadResidual_F(const unsigned int off,
     // nodes gravity forces
     local_off_v = 0;
     if (automatic_gravity_load && this->system) {
-        #pragma omp parallel for schedule(dynamic, 4) //***PARALLEL FOR***, (no need here to use omp atomic to avoid race condition in writing to R)
+        //#pragma omp parallel for schedule(dynamic, 4) //***PARALLEL FOR***, (no need here to use omp atomic to avoid race condition in writing to R)
         for (int in = 0; in < vnodes.size(); in++) {
-            if (auto mnode = std::dynamic_pointer_cast<ChNodeFEAxyz>(vnodes[in])) {
-                ChVector<> fg = c * mnode->GetMass()* this->system->Get_G_acc();
-                R.segment(off + local_off_v, 3) += fg.eigen();
+            if (!vnodes[in]->GetFixed()) {
+                if (auto mnode = std::dynamic_pointer_cast<ChNodeFEAxyz>(vnodes[in])) {
+                    ChVector<> fg = c * mnode->GetMass() * this->system->Get_G_acc();
+                    R.segment(off + local_off_v, 3) += fg.eigen();
+                }
+                // odd stuf here... the ChNodeFEAxyzrot is not inherited from ChNodeFEAxyz so must trap it too:
+                if (auto mnode = std::dynamic_pointer_cast<ChNodeFEAxyzrot>(vnodes[in])) {
+                    ChVector<> fg = c * mnode->GetMass() * this->system->Get_G_acc();
+                    R.segment(off + local_off_v, 3) += fg.eigen();
+                }
                 local_off_v += vnodes[in]->Get_ndof_w();
             }
         }
