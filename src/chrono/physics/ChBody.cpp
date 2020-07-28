@@ -150,13 +150,14 @@ void ChBody::IntStateScatter(const unsigned int off_x,  // offset in x state vec
                              const ChState& x,          // state vector, position part
                              const unsigned int off_v,  // offset in v state vector
                              const ChStateDelta& v,     // state vector, speed part
-                             const double T             // time
+                             const double T,            // time
+                             bool full_update           // perform complete update
 ) {
     this->SetCoord(x.segment(off_x, 7));
     this->SetPos_dt(v.segment(off_v + 0, 3));
     this->SetWvel_loc(v.segment(off_v + 3, 3));
     this->SetChTime(T);
-    this->Update(T);
+    this->Update(T, full_update);
 }
 
 void ChBody::IntStateGatherAcceleration(const unsigned int off_a, ChStateDelta& a) {

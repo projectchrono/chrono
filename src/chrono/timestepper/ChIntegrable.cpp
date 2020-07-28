@@ -50,16 +50,17 @@ void ChIntegrableIIorder::StateSetup(ChState& x, ChStateDelta& v, ChStateDelta& 
     a.resize(GetNcoords_a());
 }
 
-bool ChIntegrableIIorder::StateSolveA(ChStateDelta& Dvdt,       // result: computed a for a=dv/dt
-                                      ChVectorDynamic<>& L,     // result: computed lagrangian multipliers, if any
-                                      const ChState& x,         // current state, x
-                                      const ChStateDelta& v,    // current state, v
-                                      const double T,           // current time T
-                                      const double dt,          // timestep (if needed)
-                                      bool force_state_scatter  // if false, x,v and T are not scattered to the system
-                                      ) {
+bool ChIntegrableIIorder::StateSolveA(ChStateDelta& Dvdt,        // result: computed a for a=dv/dt
+                                      ChVectorDynamic<>& L,      // result: computed lagrangian multipliers, if any
+                                      const ChState& x,          // current state, x
+                                      const ChStateDelta& v,     // current state, v
+                                      const double T,            // current time T
+                                      const double dt,           // timestep (if needed)
+                                      bool force_state_scatter,  // if false, x and v are not scattered to the system
+                                      bool full_update           // if true, perform a full update during scatter
+) {
     if (force_state_scatter)
-        StateScatter(x, v, T);
+        StateScatter(x, v, T, full_update);
 
     ChVectorDynamic<> R(GetNcoords_v());
     ChVectorDynamic<> Qc(GetNconstr());
@@ -77,16 +78,16 @@ bool ChIntegrableIIorder::StateSolveA(ChStateDelta& Dvdt,       // result: compu
     ChState xdx(x.size(), this);
 
     StateIncrement(xdx, x, dx);
-    StateScatter(xdx, v, T + Delta);
+    StateScatter(xdx, v, T + Delta, full_update);
     LoadConstraint_C(Qc, 1.0 / (Delta * Delta));
 
     StateIncrement(xdx, x, -dx);
-    StateScatter(xdx, v, T - Delta);
+    StateScatter(xdx, v, T - Delta, full_update);
     LoadConstraint_C(Qc, 1.0 / (Delta * Delta));
 
-    StateScatter(x, v, T);  // back to original state
+    StateScatter(x, v, T, full_update);  // back to original state
 
-    bool success = StateSolveCorrection(Dvdt, L, R, Qc, 1.0, 0, 0, x, v, T, false, true);
+    bool success = StateSolveCorrection(Dvdt, L, R, Qc, 1.0, 0, 0, x, v, T, false, false, true);
 
     return success;
 }
@@ -112,12 +113,12 @@ void ChIntegrableIIorder::StateGather(ChState& y, double& T)  {
     y.segment(GetNcoords_x(), mv.size()) = mv;
 }
 
-void ChIntegrableIIorder::StateScatter(const ChState& y, const double T) {
+void ChIntegrableIIorder::StateScatter(const ChState& y, const double T, bool full_update) {
     ChState mx(GetNcoords_x(), y.GetIntegrable());
     ChStateDelta mv(GetNcoords_v(), y.GetIntegrable());
     mx = y.segment(0, GetNcoords_x());
     mv = y.segment(GetNcoords_x(), GetNcoords_v());
-    StateScatter(mx, mv, T);
+    StateScatter(mx, mv, T, full_update);
 }
 
 void ChIntegrableIIorder::StateGatherDerivative(ChStateDelta& Dydt) {
@@ -173,13 +174,14 @@ void ChIntegrableIIorder::StateIncrement(ChState& y_new,         // resulting y_
     throw ChException("StateIncrement() called with a wrong number of elements");
 }
 
-bool ChIntegrableIIorder::StateSolve(ChStateDelta& dydt,       // result: computed dydt
-                                     ChVectorDynamic<>& L,     // result: computed lagrangian multipliers, if any
-                                     const ChState& y,         // current state y
-                                     const double T,           // current time T
-                                     const double dt,          // timestep (if needed, ex. in NSC)
-                                     bool force_state_scatter  // if false, y and T are not scattered to the system
-                                     ) {
+bool ChIntegrableIIorder::StateSolve(ChStateDelta& dydt,        // result: computed dydt
+                                     ChVectorDynamic<>& L,      // result: computed lagrangian multipliers, if any
+                                     const ChState& y,          // current state y
+                                     const double T,            // current time T
+                                     const double dt,           // timestep (if needed, ex. in NSC)
+                                     bool force_state_scatter,  // if false, y and T are not scattered to the system
+                                     bool full_update           // if true, perform a full update during scatter
+) {
     ChState mx(GetNcoords_x(), y.GetIntegrable());
     ChStateDelta mv(GetNcoords_v(), y.GetIntegrable());
     mx = y.segment(0, GetNcoords_x());
@@ -187,7 +189,7 @@ bool ChIntegrableIIorder::StateSolve(ChStateDelta& dydt,       // result: comput
 
     // Solve with custom II order solver
     ChStateDelta ma(GetNcoords_v(), y.GetIntegrable());
-    if (!StateSolveA(ma, L, mx, mv, T, dt, force_state_scatter)) {
+    if (!StateSolveA(ma, L, mx, mv, T, dt, force_state_scatter, full_update)) {
         return false;
     }
 

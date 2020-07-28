@@ -37,7 +37,7 @@ void ChStaticLinearAnalysis::StaticAnalysis() {
 
     // Set V speed to zero
     V.setZero(integrable->GetNcoords_v(), integrable);
-    integrable->StateScatter(X, V, T);  // state -> system
+    integrable->StateScatter(X, V, T, true);  // state -> system
 
     // Set up auxiliary vectors
     ChStateDelta Dx;
@@ -56,18 +56,20 @@ void ChStaticLinearAnalysis::StaticAnalysis() {
     integrable->LoadResidual_F(R, 1.0);
     integrable->LoadConstraint_C(Qc, 1.0);
 
-    integrable->StateSolveCorrection(Dx, L, R, Qc,
-                                     0,        // factor for  M
-                                     0,        // factor for  dF/dv
-                                     -1.0,     // factor for  dF/dx (the stiffness matrix)
-                                     X, V, T,  // not needed here
-                                     false,  // do not StateScatter update to Xnew Vnew T+dt before computing correction
-                                     true    // force a call to the solver's Setup() function
+    integrable->StateSolveCorrection(  //
+        Dx, L, R, Qc,                  //
+        0,                             // factor for  M
+        0,                             // factor for  dF/dv
+        -1.0,                          // factor for  dF/dx (the stiffness matrix)
+        X, V, T,                       // not needed here
+        false,                         // do not scatter Xnew Vnew T+dt before computing correction
+        false,                         // full update? (not used, since no scatter)
+        true                           // force a call to the solver's Setup() function
     );
 
     X += Dx;
 
-    integrable->StateScatter(X, V, T);     // state -> system
+    integrable->StateScatter(X, V, T, true);     // state -> system
     integrable->StateScatterReactions(L);  // -> system auxiliary data
 }
 
@@ -109,7 +111,7 @@ void ChStaticNonLinearAnalysis::StaticAnalysis() {
 
     // Set speed to zero
     V.setZero(integrable->GetNcoords_v(), integrable);
-    integrable->StateScatter(X, V, T);  // state -> system
+    integrable->StateScatter(X, V, T, true);  // state -> system
 
     // Set up auxiliary vectors
     ChState Xnew;
@@ -127,7 +129,7 @@ void ChStaticNonLinearAnalysis::StaticAnalysis() {
     //      [ Cq         0   ] [ L   ] = [ C ]
 
     for (int i = 0; i < m_maxiters; ++i) {
-        integrable->StateScatter(X, V, T);  // state -> system
+        integrable->StateScatter(X, V, T, true);  // state -> system
         R.setZero();
         Qc.setZero();
         integrable->LoadResidual_F(R, 1.0);
@@ -157,14 +159,15 @@ void ChStaticNonLinearAnalysis::StaticAnalysis() {
         }
 
         // Solve linear system for correction
-        integrable->StateSolveCorrection(
-            Dx, L, R, Qc,
-            0,        // factor for  M
-            0,        // factor for  dF/dv
-            -1.0,     // factor for  dF/dx (the stiffness matrix)
-            X, V, T,  // not needed here
-            false,    // do not StateScatter update to Xnew Vnew T+dt before computing correction
-            true      // force a call to the solver's Setup() function
+        integrable->StateSolveCorrection(  //
+            Dx, L, R, Qc,                  //
+            0,                             // factor for  M
+            0,                             // factor for  dF/dv
+            -1.0,                          // factor for  dF/dx (the stiffness matrix)
+            X, V, T,                       // not needed here
+            false,                         // do not scatter Xnew Vnew T+dt before computing correction
+            false,                         // full update? (not used, since no scatter)
+            true                           // force a call to the solver's Setup() function
         );
 
         Xnew = X + Dx;
@@ -197,7 +200,7 @@ void ChStaticNonLinearAnalysis::StaticAnalysis() {
         X = Xnew;
     }
 
-    integrable->StateScatter(X, V, T);     // state -> system
+    integrable->StateScatter(X, V, T, true);     // state -> system
     integrable->StateScatterReactions(L);  // -> system auxiliary data
 }
 

@@ -211,8 +211,8 @@ void ChMesh::IntStateScatter(const unsigned int off_x,
                              const ChState& x,          
                              const unsigned int off_v,  
                              const ChStateDelta& v,     
-                             const double T)            
-{
+                             const double T,
+                             bool full_update) {
     unsigned int local_off_x = 0;
     unsigned int local_off_v = 0;
     for (unsigned int j = 0; j < vnodes.size(); j++) {
@@ -223,7 +223,7 @@ void ChMesh::IntStateScatter(const unsigned int off_x,
         }
     }
 
-    Update(T);
+    Update(T, full_update);
 }
 
 void ChMesh::IntStateGatherAcceleration(const unsigned int off_a, ChStateDelta& a) {

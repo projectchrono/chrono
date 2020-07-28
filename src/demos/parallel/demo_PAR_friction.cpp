@@ -38,7 +38,6 @@ int main(int argc, char** argv) {
     double radius = 0.5;
 
     double time_step = 0.01;
-    int num_threads = 1;
 
     uint max_iteration_normal = 0;
     uint max_iteration_sliding = 0;
@@ -50,18 +49,10 @@ int main(int argc, char** argv) {
     system.Set_G_acc(ChVector<>(0, -9.81, 0));
 
     // Set number of threads
-    CHOMPfunctions::SetNumThreads(num_threads);
-    ////#pragma omp parallel
-    ////#pragma omp master
-    ////    {
-    ////        // Sanity check: print number of threads in a parallel region
-    ////        std::cout << "Actual number of OpenMP threads: " << omp_get_num_threads() << std::endl;
-    ////    }
+    system.SetNumThreads(1);
 
     // Set solver settings
     system.ChangeSolverType(SolverType::APGD);
-
-    system.GetSettings()->perform_thread_tuning = false;
 
     system.GetSettings()->solver.solver_mode = SolverMode::SPINNING;
     system.GetSettings()->solver.max_iteration_normal = max_iteration_normal;

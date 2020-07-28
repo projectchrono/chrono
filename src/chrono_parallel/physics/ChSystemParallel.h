@@ -158,8 +158,14 @@ class CH_PARALLEL_API ChSystemParallel : public ChSystem {
 
     settings_container* GetSettings();
 
-    // Based on the specified logging level and the state of that level, enable or
-    // disable logging level.
+    /// Set the number of OpenMP threads.
+    /// If non-zero values are provided for 'min_threads' and 'max_threads', a heuristic is used to dynamically adjust
+    /// the number of threads between the specified limits as the simulation proceeds. 
+    /// Valid arguments must satisfy: 1 <= min_threads < max_threads <= omp_get_max_threads().
+    /// The function returns 'true' if successful and 'false' for incorrect input arguments.
+    bool SetNumThreads(int num_threads, int min_threads = 0, int max_threads = 0);
+
+    // Based on the specified logging level and the state of that level, enable or disable logging level.
     void SetLoggingLevel(LoggingLevel level, bool state = true);
 
     /// Calculate the (linearized) bilateral constraint violations.
