@@ -25,18 +25,11 @@ ChVSGApp::ChVSGApp(ChSystem* system) : m_system(system) {
     GetLog() << "System = " << m_system << "\n";
 
     m_windowTraits = ::vsg::WindowTraits::create();
+    m_windowTraits->windowTitle = "Chrono VSG Viewer";
 
     m_searchPaths = ::vsg::getEnvPaths("VSG_FILE_PATH");
 
-    // load shaders
-    m_vertexShader = ::vsg::ShaderStage::read(VK_SHADER_STAGE_VERTEX_BIT, "main",
-                                              ::vsg::findFile("shaders/vert_PushConstants.spv", m_searchPaths));
-    m_fragmentShader = ::vsg::ShaderStage::read(VK_SHADER_STAGE_FRAGMENT_BIT, "main",
-                                                ::vsg::findFile("shaders/frag_PushConstants.spv", m_searchPaths));
-    if (!m_vertexShader || !m_fragmentShader) {
-        std::cout << "Could not create shaders." << std::endl;
-        return;
-    }
+    // analyze system, look for bodies and assets
 }
 
 ChVSGApp::~ChVSGApp() {

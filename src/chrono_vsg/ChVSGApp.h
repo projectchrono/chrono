@@ -43,8 +43,9 @@ class CH_VSG_API ChVSGApp {
 
     ::vsg::Paths m_searchPaths;
 
-    ::vsg::ref_ptr<::vsg::ShaderStage> m_vertexShader;
-    ::vsg::ref_ptr<::vsg::ShaderStage> m_fragmentShader;
+    std::vector<::vsg::ref_ptr<::vsg::Node>> nodes;
+
+    ::vsg::ref_ptr<::vsg::Node> scene;
 };
 
 }  // namespace vsg
