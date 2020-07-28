@@ -864,7 +864,7 @@ class ChApi ChInertiaCosseratAdvanced : public ChInertiaCosserat {
 	virtual double GetMassPerUnitLength() override { return this->mu; }
 
 
-    /// Set mass per unit length, ex.SI units [kg/m].
+    /// Set mass c, ex.SI units [kg/m].
     /// Note that for uniform volumetric density \f$ \rho \f$, and area \f$ A \f$, this is also \f$ \mu = \rho A \f$.
     virtual void SetMassPerUnitLength(double mmu) { mu = mmu; }
 
@@ -925,7 +925,7 @@ class ChApi ChInertiaCosseratAdvanced : public ChInertiaCosserat {
     virtual void GetMainInertiasInMassReference(double& Jmyy, double& Jmzz, double& phi);
 
 private:
-	double mu; // density
+	double mu;   // mass per unit length
     double cm_y; // center of mass offset along Y of section
     double cm_z; // center of mass offset along Z of section
 	double Jzz;  
