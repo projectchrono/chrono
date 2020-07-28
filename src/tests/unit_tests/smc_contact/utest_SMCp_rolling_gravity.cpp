@@ -61,10 +61,7 @@ class RollingGravityTest : public ::testing::TestWithParam<ChSystemSMC::ContactF
         SetSimParameters(sys, ChVector<>(0, -9.81, 0), fmodel);
 
         sys->SetNumThreads(2);
-#pragma omp parallel
-#pragma omp master
-        std::cout << "Using " << omp_get_num_threads() << " threads" << std::endl;
-        
+
         // Add the wall to the system
         int id = -1;
         double wmass = 10.0;

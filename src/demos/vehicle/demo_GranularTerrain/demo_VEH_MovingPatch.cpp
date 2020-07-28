@@ -17,7 +17,6 @@
 //
 // =============================================================================
 
-#include "chrono/parallel/ChOpenMP.h"
 #include "chrono/utils/ChUtilsCreators.h"
 
 #include "chrono_vehicle/ChVehicleModelData.h"
