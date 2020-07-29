@@ -113,9 +113,8 @@ void SetupSystem(ChSystemParallelNSC* msystem) {
     msystem->ChangeSolverType(SolverType::APGD);
     msystem->GetSettings()->collision.collision_envelope = 0.00;
     msystem->GetSettings()->collision.bins_per_axis = vec3(10, 10, 10);
-    CHOMPfunctions::SetNumThreads(1);
-    msystem->GetSettings()->max_threads = 1;
-    msystem->GetSettings()->perform_thread_tuning = false;
+
+    msystem->SetNumThreads(1);
 
     CreateContainer(msystem);
     CreateGranularMaterial(msystem);
@@ -221,8 +220,8 @@ void CompareContacts(ChParallelDataManager* data_manager,
 TEST(ChronoParallel, jacobians) {
     bool animate = false;
 
-    CHOMPfunctions::SetNumThreads(1);
     ChSystemParallelNSC* msystem = new ChSystemParallelNSC();
+    msystem->SetNumThreads(1);
 
 #ifdef BULLET
     msystem->ChangeCollisionSystem(CollisionSystemType::COLLSYS_BULLET_PARALLEL);

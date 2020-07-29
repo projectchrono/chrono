@@ -62,12 +62,8 @@ class SlidingGravityTest : public ::testing::TestWithParam<ChSystemSMC::ContactF
         gravity = -9.81;
         SetSimParameters(sys, ChVector<>(0, gravity, 0), fmodel);
 
-        CHOMPfunctions::SetNumThreads(2);
-        sys->GetSettings()->perform_thread_tuning = false;
-#pragma omp parallel
-#pragma omp master
-        std::cout << "Using " << omp_get_num_threads() << " threads" << std::endl;
-        
+        sys->SetNumThreads(2);
+
         // Add the wall to the system
         double wmass = 10.0;
         ChVector<> wsize(8, 1, 3);

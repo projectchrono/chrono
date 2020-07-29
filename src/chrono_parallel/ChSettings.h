@@ -222,48 +222,32 @@ class solver_settings {
 class settings_container {
   public:
     settings_container() {
-        /// The default minimum number of threads is 1, set this to your max threads
-        /// if you already know that it will run the fastest with that configuration.
-        /// In some cases simulations start with a few objects but more are added
-        /// later. By setting it to a low value initially the simulation will run
-        /// as more objects are added chrono parallel will automatically increase
-        /// the number of threads. If min threads is > max threads, weird stuff might
-        /// happen!
         min_threads = 1;
-        /// The default maximum threads is equal to the number visible via openMP.
-        max_threads = CHOMPfunctions::GetNumProcs();
-        /// Only perform thread tuning if max threads is greater than min_threads;
-        /// I don't really check to see if max_threads is > than min_threads
-        /// not sure if that is a huge issue.
-        perform_thread_tuning = ((min_threads == max_threads) ? false : true);
+#ifdef _OPENMP
+        max_threads = omp_get_max_threads();
+#else
+        max_threads = 1;
+#endif
+        perform_thread_tuning = false;
         system_type = SystemType::SYSTEM_NSC;
-        step_size = .01;
+        step_size = 0.01;
     }
 
-    /// The settings for the collision detection.
-    collision_settings collision;
-    /// The settings for the solver.
-    solver_settings solver;
+    collision_settings collision;  ///< settings for collision detection
+    solver_settings solver;        ///< settings for iterative solver
 
-    /// System level settings.
-    /// If set to true chrono parallel will automatically check to see if increasing
-    /// the number of threads will improve performance. If performance is improved
-    /// it changes the number of threads, if not, it decreases the number of threads
-    /// back to the original value.
-    bool perform_thread_tuning;
-    /// The minimum number of threads that will ever be used by this simulation.
-    /// If you know a good number of threads for your simulation set the minimum so
-    /// that the simulation is running optimally from the start.
-    int min_threads;
-    // This is the number of threads that the simulation will not exceed.
-    int max_threads;
-    /// The timestep of the simulation. This value is copied from chrono currently,
-    /// setting it has no effect.
-    real step_size;
-    real3 gravity;
-    /// The system type defines if the system is solving the NSC frictional contact
-    /// problem or a SMC penalty based.
-    SystemType system_type;
+    real step_size;  ///< current integration step size
+    real3 gravity;   ///< gravitational acceleration vector
+
+  private:
+    bool perform_thread_tuning;  ///< dynamically tune number of threads
+    int min_threads;             ///< lower bound for number of threads (if dynamic tuning)
+    int max_threads;             ///< maximum bound for number of threads (if dynamic tuning)
+    SystemType system_type;      ///< system type (NSC or SMC)
+
+    friend class ChSystemParallel;
+    friend class ChSystemParallelNSC;
+    friend class ChSystemParallelSMC;
 };
 
 /// @} parallel_module
