@@ -5,7 +5,7 @@
 
 using namespace chrono;
 using namespace geometry;
-using namespace chrono::vsg;
+using namespace chrono::vsg3d;
 
 int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2020 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";

@@ -19,7 +19,7 @@
 
 #include "ChVSGApp.h"
 
-using namespace chrono::vsg;
+using namespace chrono::vsg3d;
 
 ChVSGApp::ChVSGApp(ChSystem* system) : m_system(system) {
     if (!system) {

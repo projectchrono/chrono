@@ -26,7 +26,7 @@
 #include <vsg/all.h>
 
 namespace chrono {
-namespace vsg {
+namespace vsg3d {
 
 /// @addtogroup vsg_module
 /// @{
@@ -53,6 +53,6 @@ class CH_VSG_API ChVSGApp {
     ::vsg::ref_ptr<::vsg::Window> m_window;
 };
 
-}  // namespace vsg
+}  // namespace vsg3d
 }  // namespace chrono
 #endif
