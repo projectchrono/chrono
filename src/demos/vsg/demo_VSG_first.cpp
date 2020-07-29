@@ -12,7 +12,22 @@ int main(int argc, char* argv[]) {
 
     ChSystemNSC sys;
 
+    auto mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+
+    auto bin = chrono_types::make_shared<ChBody>();
+    utils::AddSphereGeometry(bin.get(), mat, 1, ChVector<>(0, 0, 0));
+    sys.AddBody(bin);
+
     ChVSGApp app(&sys);
 
+    while (app.GetViewer()->advanceToNextFrame()) {
+        app.GetViewer()->handleEvents();
+
+        app.GetViewer()->update();
+
+        app.GetViewer()->recordAndSubmit();
+
+        app.GetViewer()->present();
+    }
     return 0;
 }

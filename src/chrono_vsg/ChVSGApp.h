@@ -35,6 +35,7 @@ class CH_VSG_API ChVSGApp {
   public:
     ChVSGApp(ChSystem* system);
     ~ChVSGApp();
+    ::vsg::ref_ptr<::vsg::Viewer> GetViewer() { return m_viewer; }
 
   private:
     ChSystem* m_system;
@@ -43,9 +44,13 @@ class CH_VSG_API ChVSGApp {
 
     ::vsg::Paths m_searchPaths;
 
-    std::vector<::vsg::ref_ptr<::vsg::Node>> nodes;
+    std::vector<::vsg::ref_ptr<::vsg::Node>> m_nodes;
 
-    ::vsg::ref_ptr<::vsg::Node> scene;
+    ::vsg::ref_ptr<::vsg::Node> m_scene;
+
+    ::vsg::ref_ptr<::vsg::Viewer> m_viewer;
+
+    ::vsg::ref_ptr<::vsg::Window> m_window;
 };
 
 }  // namespace vsg
