@@ -277,7 +277,8 @@ class ChApi ChBeamSectionEulerAdvanced : public ChBeamSectionEulerSimple {
 
     virtual ~ChBeamSectionEulerAdvanced() {}
 
-    /// Set the rotation of the section for which the Iyy Izz are defined.
+    /// Set the rotation in [rad], about elastic center, of the Y Z axes for which the 
+    /// Iyy and Izz are computed.
     void SetSectionRotation(double ma) { this->alpha = ma; }
     
 
@@ -393,7 +394,7 @@ public:
         Bzz = mv;
     }
 
-    /// Set the rotation of the Y Z section axes for which the 
+    /// Set the rotation in [rad], abour elastic center, of the Y Z axes for which the 
     /// YbendingRigidity and ZbendingRigidity values are defined.
     virtual void SetSectionRotation(const double mv) {
         alpha = mv;
