@@ -44,9 +44,6 @@ int main() {
     ////double tire_step_size = 1e-4;
 
     system.SetNumThreads(8);
-#pragma omp parallel
-#pragma omp master
-    std::cout << "Using " << omp_get_num_threads << " threads" << std::endl;
 
     system.GetSettings()->solver.tolerance = 1e-5;
     system.GetSettings()->solver.solver_mode = SolverMode::SLIDING;

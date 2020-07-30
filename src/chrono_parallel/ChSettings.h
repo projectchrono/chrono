@@ -223,7 +223,11 @@ class settings_container {
   public:
     settings_container() {
         min_threads = 1;
+#ifdef _OPENMP
         max_threads = omp_get_max_threads();
+#else
+        max_threads = 1;
+#endif
         perform_thread_tuning = false;
         system_type = SystemType::SYSTEM_NSC;
         step_size = 0.01;

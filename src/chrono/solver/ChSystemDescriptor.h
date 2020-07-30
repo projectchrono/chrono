@@ -17,7 +17,6 @@
 
 #include <vector>
 
-#include "chrono/parallel/ChOpenMP.h"
 #include "chrono/parallel/ChThreadsSync.h"
 #include "chrono/solver/ChConstraint.h"
 #include "chrono/solver/ChKblock.h"

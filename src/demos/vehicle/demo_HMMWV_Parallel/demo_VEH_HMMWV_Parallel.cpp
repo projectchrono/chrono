@@ -309,9 +309,6 @@ int main(int argc, char* argv[]) {
     system->SetMaterialCompositionStrategy(std::move(strategy));
 
     system->SetNumThreads(threads);
-#pragma omp parallel
-#pragma omp master
-    cout << "Using " << omp_get_num_threads() << " threads" << endl;
 
     // --------------------
     // Edit system settings
