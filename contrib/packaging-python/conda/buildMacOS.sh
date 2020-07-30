@@ -16,7 +16,17 @@ fi
 # set MKL vars
 export MKL_INTERFACE_LAYER=LP64
 export MKL_THREADING_LAYER=INTEL
+
+if [ `uname` == Darwin ]; then
+    sed -i '' 's/${PYTHON_LIBRARY}//g' $SRC_DIR/src/chrono_python/CMakeLists.txt
+    sed -i '' 's/find_package(AVX)//g' $SRC_DIR/src/CMakeLists.txt
+    sed -i '' 's/find_package(SSE)//g' $SRC_DIR/src/CMakeLists.txt
+    sed -i '' 's/find_package(NEON)//g' $SRC_DIR/src/CMakeLists.txt
+    sed -i '' 's/find_package(FMA)//g' $SRC_DIR/src/CMakeLists.txt
+    sed -i '' 's/find_package(OpenMP)//g' $SRC_DIR/src/CMakeLists.txt
+fi
 export LDFLAGS="-Wl,-undefined,dynamic_lookup $LDFLAGS"
+
 CONFIGURATION=Release
 # Configure step
 cmake -DCMAKE_INSTALL_PREFIX=$PREFIX \
@@ -46,12 +56,8 @@ cmake -DCMAKE_INSTALL_PREFIX=$PREFIX \
  -DEIGEN3_INCLUDE_DIR=/usr/local/include/eigen3 \
  -DPYCHRONO_DATA_PATH=../../../../../../share/chrono/data \
  ./..
-# Build step
-# on linux travis, limit the number of concurrent jobs otherwise
-# gcc gets out of memory
-cmake --build . --config "$CONFIGURATION"
 
-cmake --build . --config "$CONFIGURATION" --target install
+make all -j`python -c 'import os; print(os.cpu_count())'`
 
 
 
