@@ -486,7 +486,7 @@ void ChElementBeamEuler::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfactor,
     ////CKCt.triangularView<Eigen::Upper>() = CKCt.transpose();
 
     // For K stiffness matrix and R matrix: scale by factors
-    CKCt *= Kfactor + Rfactor * this->section->rdamping;
+    CKCt *= Kfactor + Rfactor * this->section->GetBeamRaleyghDamping();
 
     H.block(0, 0, 12, 12) = CKCt;  // because [R] = r*[K] , so kf*[K]+rf*[R] = (kf+rf*r)*[K]
 

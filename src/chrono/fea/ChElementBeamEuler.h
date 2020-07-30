@@ -15,7 +15,7 @@
 #ifndef CHELEMENTBEAMEULER_H
 #define CHELEMENTBEAMEULER_H
 
-#include "chrono/fea/ChBeamSection.h"
+#include "chrono/fea/ChBeamSectionEuler.h"
 #include "chrono/fea/ChElementBeam.h"
 #include "chrono/fea/ChElementCorotational.h"
 #include "chrono/fea/ChNodeFEAxyzrot.h"
