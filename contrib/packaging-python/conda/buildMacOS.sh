@@ -56,8 +56,12 @@ cmake -DCMAKE_INSTALL_PREFIX=$PREFIX \
  -DEIGEN3_INCLUDE_DIR=/usr/local/include/eigen3 \
  -DPYCHRONO_DATA_PATH=../../../../../../share/chrono/data \
  ./..
+# Build step
+# on linux travis, limit the number of concurrent jobs otherwise
+# gcc gets out of memory
+cmake --build . --config "$CONFIGURATION"
 
-make all -j`python -c 'import os; print(os.cpu_count())'`
+cmake --build . --config "$CONFIGURATION" --target install
 
 
 
