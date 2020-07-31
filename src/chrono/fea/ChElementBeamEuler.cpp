@@ -300,17 +300,17 @@ void ChElementBeamEuler::ComputeStiffnessMatrix() {
 
         for (int i = 0; i < 12; ++i)
             this->StiffnessMatrix(3, i) +=
-                Sz * this->StiffnessMatrix(1, i) - Sy * this->StiffnessMatrix(2, i);
+                - Sz * this->StiffnessMatrix(1, i) + Sy * this->StiffnessMatrix(2, i);
         for (int i = 0; i < 12; ++i)
             this->StiffnessMatrix(9, i) +=
-                Sz * this->StiffnessMatrix(7, i) - Sy * this->StiffnessMatrix(8, i);
+                - Sz * this->StiffnessMatrix(7, i) + Sy * this->StiffnessMatrix(8, i);
 
         for (int i = 0; i < 12; ++i)
             this->StiffnessMatrix(i, 3) +=
-                Sz * this->StiffnessMatrix(i, 1) - Sy * this->StiffnessMatrix(i, 2);
+                - Sz * this->StiffnessMatrix(i, 1) + Sy * this->StiffnessMatrix(i, 2);
         for (int i = 0; i < 12; ++i)
             this->StiffnessMatrix(i, 9) +=
-                Sz * this->StiffnessMatrix(i, 7) - Sy * this->StiffnessMatrix(i, 8);
+                - Sz * this->StiffnessMatrix(i, 7) + Sy * this->StiffnessMatrix(i, 8);
     }
 }
 
@@ -809,13 +809,13 @@ void ChElementBeamEuler::EvaluateSectionForceTorque(const double eta, ChVector<>
 
         // ..also translate for Cy Cz
         for (int i = 0; i < 6; ++i)
-            Klaw_r(i, 4) += Cz * Klaw_r(i, 0);
+            Klaw_r(i, 4) +=  Cz * Klaw_r(i, 0);
         for (int i = 0; i < 6; ++i)
             Klaw_r(i, 5) += -Cy * Klaw_r(i, 0);
 
         // ..also translate for Sy Sz
         for (int i = 0; i < 6; ++i)
-            Klaw_r(i, 3) += Sz * Klaw_r(i, 1) - Sy * Klaw_r(i, 2);
+            Klaw_r(i, 3) += - Sz * Klaw_r(i, 1) + Sy * Klaw_r(i, 2);
 
         // .. compute wrench = Klaw_l * sect_ek
         ChVectorN<double, 6> wrench = Klaw_r * sect_ek;
