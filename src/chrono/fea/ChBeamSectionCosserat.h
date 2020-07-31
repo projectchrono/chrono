@@ -83,6 +83,19 @@ class ChApi ChElasticityCosseratSimple : public ChElasticityCosserat {
 
     ChElasticityCosseratSimple();
 
+    ChElasticityCosseratSimple(
+        const double mIyy,   ///< Iyy second moment of area of the beam \f$ I_y =  \int_\Omega z^2 dA \f$
+        const double mIzz,   ///< Izz second moment of area of the beam \f$ I_z =  \int_\Omega y^2 dA \f$
+        const double mJ,     ///< torsion constant (torsion rigidity will be G*J, torsional stiffness = G*J*length)
+        const double mG,     ///< G shear modulus
+        const double mE,     ///< E young modulus 
+        const double mA,     ///< A area
+        const double mKs_y,  ///< Timoshenko shear coefficient Ks for y shear
+        const double mKs_z   ///< Timoshenko shear coefficient Ks for z shear
+    ) :
+        Iyy(mIyy), Izz(mIzz), J(mJ), G(mG), E(mE), A(mA), Ks_y(mKs_y), Ks_z(mKs_z)
+    {}
+
     virtual ~ChElasticityCosseratSimple() {}
 
 	/// Set the A area of the beam.
@@ -233,6 +246,26 @@ class ChApi ChElasticityCosseratAdvanced : public ChElasticityCosseratSimple {
     double Sz;     ///<
 
     ChElasticityCosseratAdvanced();
+
+    ChElasticityCosseratAdvanced(
+        const double mIyy,   ///< Iyy second moment of area of the beam \f$ I_y =  \int_\Omega z^2 dA \f$
+        const double mIzz,   ///< Izz second moment of area of the beam \f$ I_z =  \int_\Omega y^2 dA \f$
+        const double mJ,     ///< torsion constant (torsion rigidity will be G*J, torsional stiffness = G*J*length)
+        const double mG,     ///< G shear modulus
+        const double mE,     ///< E young modulus 
+        const double mA,     ///< A area
+        const double mKs_y,  ///< Timoshenko shear coefficient Ks for y shear
+        const double mKs_z,  ///< Timoshenko shear coefficient Ks for z shear
+        const double malpha, ///< section rotation for which Iyy Izz are computed
+        const double mCy,    ///< Cy offset of elastic center about which Iyy Izz are computed
+        const double mCz,    ///< Cz offset of elastic center about which Iyy Izz are computed
+        const double mbeta, ///< section rotation for which Ks_y Ks_z are computed
+        const double mSy,    ///< Sy offset of shear center
+        const double mSz     ///< Sz offset of shear center
+    ) :
+        ChElasticityCosseratSimple(mIyy, mIzz, mJ, mG, mE, mA, mKs_y, mKs_z), alpha(malpha), Cy(mCy), Cz(mCz), beta(mbeta), Sy(mSy), Sz(mSz)
+    {}
+
 
     virtual ~ChElasticityCosseratAdvanced() {}
 
