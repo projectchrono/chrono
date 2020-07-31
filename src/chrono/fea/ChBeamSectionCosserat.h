@@ -62,7 +62,8 @@ class ChApi ChElasticityCosserat {
 };
 
 /// Simple linear elasticity model for a Cosserat beam, using basic material
-/// properties (zz and yy moments of inertia, area, Young modulus, etc.)
+/// properties (zz and yy moments of inertia, area, Young modulus, etc.).
+/// Uniform stiffness properties E,G are hence assumed through the section.
 /// The classical Timoshenko beam theory is encompassed in this model, that
 /// can be interpreted as a 3D extension of the Timoshenko beam theory.
 /// This can be shared between multiple beams.
@@ -89,14 +90,14 @@ class ChApi ChElasticityCosseratSimple : public ChElasticityCosserat {
     double GetArea() const { return this->A; }
 
     /// Set the Iyy second moment of area of the beam (for bending about y in xz plane),
-	/// defined as \f$ I_y =  \int_\Omega \rho z^2 dA \f$.
+	/// defined as \f$ I_y =  \int_\Omega z^2 dA \f$.
     /// Note: some textbook calls this Iyy as Iy
 	/// Ex SI units: [m^4]
     void SetIyy(double ma) { this->Iyy = ma; }
     double GetIyy() const { return this->Iyy; }
 
     /// Set the Izz second moment of area of the beam (for bending about z in xy plane). 
-	/// defined as \f$ I_z =  \int_\Omega \rho y^2 dA \f$.
+	/// defined as \f$ I_z =  \int_\Omega y^2 dA \f$.
     /// Note: some textbook calls this Izz as Iz
 	/// Ex SI units: [m^4]
     void SetIzz(double ma) { this->Izz = ma; }
@@ -208,6 +209,7 @@ class ChApi ChElasticityCosseratGeneric : public ChElasticityCosserat {
 /// properties. It also supports the advanced case of
 /// Iyy and Izz axes rotated respect reference, elastic center with offset
 /// from reference, and shear center with offset from reference.
+/// Uniform stiffness properties E,G are assumed through the section.
 /// This material can be shared between multiple beams.
 /// The linear elasticity is uncoupled between shear terms S and axial terms A
 /// as to have this stiffness matrix pattern:
@@ -1141,7 +1143,7 @@ public:
 		double width_z,			///< width of section in z direction
 		double E,				///< Young modulus
 		double G,				///< shear modulus
-		double density			///< volumetric density (ex. in SI units: [kg/m])
+		double density			///< volumetric density (ex. in SI units: [kg/m^3])
 	);
 };
 
@@ -1160,7 +1162,7 @@ public:
 		double diameter,		///< diameter of section 
 		double E,				///< Young modulus
 		double G,				///< shear modulus
-		double density			///< volumetric density (ex. in SI units: [kg/m])
+		double density			///< volumetric density (ex. in SI units: [kg/m^3])
 	);
 };
 
