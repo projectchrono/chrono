@@ -472,6 +472,38 @@ public:
 
 
 
+/// A simple specialization of ChBeamSectionEuler if you just need the simplest model 
+/// for a rectangular centered beam, with uniform elasticity and uniform density. 
+/// This section automatically itializes at construction:
+/// - elasticity  as rectangular section
+/// - inertia     as rectangular section
+/// - damping:    none   - you can set it later
+class ChApi ChBeamSectionEulerEasyRectangular : public ChBeamSectionEulerSimple {
+public:
+	ChBeamSectionEulerEasyRectangular(
+		double width_y,			///< width of section in y direction
+		double width_z,			///< width of section in z direction
+		double E,				///< Young modulus
+		double density			///< volumetric density (ex. in SI units: [kg/m^3])
+	);
+};
+
+
+/// A simple specialization of ChBeamSectionEuler if you just need the simplest model 
+/// for a beam with circular centered section, with uniform elasticity and uniform density. 
+/// This section automatically itializes at construction:
+/// - elasticity  as circular section
+/// - inertia     as circular section
+/// - damping:    none   - you can set it later
+class ChApi ChBeamSectionEulerEasyCircular : public ChBeamSectionEulerSimple {
+public:
+	ChBeamSectionEulerEasyCircular(
+		double diameter,		///< diameter of circular section
+		double E,				///< Young modulus
+		double density			///< volumetric density (ex. in SI units: [kg/m^3])
+	);
+};
+
 
 /// @} fea_utils
 
