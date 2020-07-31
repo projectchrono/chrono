@@ -27,6 +27,8 @@ SET(ChronoEngine_VSG_SOURCES
 SET(ChronoEngine_VSG_HEADERS
     ChVSGApp.h
     core/ChApiVSG.h
+    shapes/vsgBox.h
+    shapes/vsgBox.cpp
 )
 
 SOURCE_GROUP("" FILES

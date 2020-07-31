@@ -22,6 +22,9 @@
 #include "chrono_vsg/core/ChApiVSG.h"
 #include "chrono/physics/ChSystem.h"
 #include "chrono/core/ChTimer.h"
+#include "chrono/core/ChVector.h"
+#include "chrono/assets/ChVisualization.h"
+#include "chrono/assets/ChSphereShape.h"
 
 #include <vsg/all.h>
 
@@ -35,22 +38,26 @@ class CH_VSG_API ChVSGApp {
   public:
     ChVSGApp(ChSystem* system);
     ~ChVSGApp();
-    ::vsg::ref_ptr<::vsg::Viewer> GetViewer() { return m_viewer; }
+    vsg::ref_ptr<vsg::Viewer> GetViewer() { return m_viewer; }
 
   private:
     ChSystem* m_system;
 
-    ::vsg::ref_ptr<::vsg::WindowTraits> m_windowTraits;
+    float m_horizonMountainHeight;
 
-    ::vsg::Paths m_searchPaths;
+    vsg::ref_ptr<vsg::WindowTraits> m_windowTraits;
 
-    std::vector<::vsg::ref_ptr<::vsg::Node>> m_nodes;
+    vsg::Paths m_searchPaths;
 
-    ::vsg::ref_ptr<::vsg::Node> m_scene;
+    std::vector<vsg::ref_ptr<::vsg::Node>> m_nodes;
 
-    ::vsg::ref_ptr<::vsg::Viewer> m_viewer;
+    vsg::ref_ptr<vsg::Group> m_scenegraph;
 
-    ::vsg::ref_ptr<::vsg::Window> m_window;
+    std::vector<vsg::ref_ptr<vsg::MatrixTransform>> m_transformList;
+
+    vsg::ref_ptr<vsg::Viewer> m_viewer;
+
+    vsg::ref_ptr<vsg::Window> m_window;
 };
 
 }  // namespace vsg3d
