@@ -36,9 +36,12 @@ namespace vsg3d {
 
 class CH_VSG_API ChVSGApp {
   public:
-    ChVSGApp(ChSystem* system);
+    ChVSGApp();
     ~ChVSGApp();
     vsg::ref_ptr<vsg::Viewer> GetViewer() { return m_viewer; }
+    bool Initialize(int windowWidth, int windowHeight, const char* windowTitle, ChSystem* system);
+    void AnalyseSystem();
+    void Render();
 
   private:
     ChSystem* m_system;

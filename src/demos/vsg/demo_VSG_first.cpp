@@ -20,16 +20,10 @@ int main(int argc, char* argv[]) {
     utils::AddBoxGeometry(bin.get(), mat, ChVector<>(1, 1, 1), ChVector<>(6, 0, 0));
     sys.AddBody(bin);
 
-    ChVSGApp app(&sys);
-
+    ChVSGApp app;
+    bool ok = app.Initialize(800, 600, "VSG Viewer", &sys);
     while (app.GetViewer()->advanceToNextFrame()) {
-        app.GetViewer()->handleEvents();
-
-        app.GetViewer()->update();
-
-        app.GetViewer()->recordAndSubmit();
-
-        app.GetViewer()->present();
+        app.Render();
     }
     return 0;
 }

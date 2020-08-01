@@ -1,10 +1,14 @@
-#include "chrono_vsg/shapes/vsgBox.h"
+#include "chrono_vsg/shapes/ChVSGBox.h"
+
+#define STB_IMAGE_IMPLEMENTATION
+
+#include "chrono_thirdparty/stb/stb_image.h"
 
 using namespace chrono::vsg3d;
 
-vsgBox::vsgBox() {}
+ChVSGBox::ChVSGBox() {}
 
-void vsgBox::compile(vsg::ref_ptr<vsg::Node> subgraph) {
+void ChVSGBox::compile(vsg::ref_ptr<vsg::Node> subgraph) {
     // std::cout << "Builder::compile(" << subgraph << ") _compile = " << _compile << std::endl;
     if (_compile) {
         subgraph->accept(*_compile);
@@ -13,9 +17,9 @@ void vsgBox::compile(vsg::ref_ptr<vsg::Node> subgraph) {
     }
 }
 
-vsg::ref_ptr<vsg::Node> vsgBox::createTexturedNode(vsg::vec3 size,
-                                                   vsg::vec4 color,
-                                                   vsg::ref_ptr<vsg::MatrixTransform> transform) {
+vsg::ref_ptr<vsg::Node> ChVSGBox::createTexturedNode(vsg::vec3 size,
+                                                     vsg::vec4 color,
+                                                     vsg::ref_ptr<vsg::MatrixTransform> transform) {
     // set up search paths to SPIRV shaders and textures
     vsg::Paths searchPaths = vsg::getEnvPaths("VSG_FILE_PATH");
 
@@ -28,7 +32,7 @@ vsg::ref_ptr<vsg::Node> vsgBox::createTexturedNode(vsg::vec3 size,
         return {};
     }
 
-    // read texture image
+    /* read texture image based on vsgb file
     vsg::Path textureFile("vsg/textures/Metal010.vsgb");
     auto textureData = vsg::read_cast<vsg::Data>(vsg::findFile(textureFile, searchPaths));
 
@@ -39,7 +43,32 @@ vsg::ref_ptr<vsg::Node> vsgBox::createTexturedNode(vsg::vec3 size,
         image->set(0, 0, {0.0f, 0.0f, 1.0f, 1.0f});
         image->set(1, 1, {0.0f, 0.0f, 1.0f, 1.0f});
         textureData = image;
+    } */
+    // read texture image file with stb_image
+
+    int texWidth, texHeight, texChannels;
+    // float* pixels = stbi_loadf("/Volumes/Ramdisk/build-chrono/data/bluwhite.png", &texWidth, &texHeight,
+    // &texChannels,
+    //                           STBI_rgb_alpha);
+    float* pixels = stbi_loadf(vsg::findFile("bluwhite.png", searchPaths).c_str(), &texWidth, &texHeight, &texChannels,
+                               STBI_rgb_alpha);
+
+    VkDeviceSize imageSize = texWidth * texHeight * 4;
+    GetLog() << "Image size = " << texWidth << " * " << texWidth << " * " << texChannels << "\n";
+    auto image = vsg::vec4Array2D::create(texWidth, texHeight, color, vsg::Data::Layout{VK_FORMAT_R32G32B32A32_SFLOAT});
+    int k = 0;
+    for (int j = 0; j < texHeight; j++) {
+        for (int i = 0; i < texWidth; i++) {
+            float r = pixels[k++];
+            float g = pixels[k++];
+            float b = pixels[k++];
+            float a = pixels[k++];
+            vsg::vec4 col(r, g, b, a);
+            image->set(i, j, col);
+        }
     }
+    auto textureData = image;
+    stbi_image_free(pixels);
 
     // set up graphics pipeline
     vsg::DescriptorSetLayoutBindings descriptorBindings{

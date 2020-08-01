@@ -20,24 +20,89 @@
 #include "ChVSGApp.h"
 #include "chrono/geometry/ChBox.h"
 #include "chrono/assets/ChBoxShape.h"
-#include "chrono_vsg/shapes/vsgBox.h"
+#include "chrono_vsg/shapes/ChVSGBox.h"
 
 using namespace chrono::vsg3d;
 
-ChVSGApp::ChVSGApp(ChSystem* system) : m_system(system), m_horizonMountainHeight(0.0) {
-    if (!system) {
-        GetLog() << "ChVSGApp::ChVSGApp(): Chrono System undefined!\n";
-        return;
-    }
+ChVSGApp::ChVSGApp() : m_horizonMountainHeight(0.0) {}
 
+bool ChVSGApp::Initialize(int windowWidth, int windowHeight, const char* windowTitle, ChSystem* system) {
+    if (!system) {
+        return false;
+    }
+    m_system = system;
     m_windowTraits = ::vsg::WindowTraits::create();
-    m_windowTraits->windowTitle = "Chrono VSG Viewer";
+    m_windowTraits->windowTitle = windowTitle;
+    m_windowTraits->width = windowWidth;
+    m_windowTraits->height = windowHeight;
+    m_windowTraits->x = 100;
+    m_windowTraits->y = 100;
 
     m_searchPaths = ::vsg::getEnvPaths("VSG_FILE_PATH");
 
     m_scenegraph = vsg::Group::create();
 
-    // analyze system, look for bodies and assets
+    // fill the scenegraph with asset definitions from the physical system
+    AnalyseSystem();
+
+    // create viewer
+    m_viewer = ::vsg::Viewer::create();
+
+    // create window
+    m_window = ::vsg::Window::create(m_windowTraits);
+    // if (!window) {
+    if (!m_window) {
+        GetLog() << "Could not create windows.\n";
+        return false;
+    }
+
+    m_viewer->addWindow(m_window);
+
+    // compute the bounds of the scene graph to help position camera
+    vsg::ComputeBounds computeBounds;
+    m_scenegraph->accept(computeBounds);
+    vsg::dvec3 centre = (computeBounds.bounds.min + computeBounds.bounds.max) * 0.5;
+    double radius = vsg::length(computeBounds.bounds.max - computeBounds.bounds.min) * 0.6;
+    double nearFarRatio = 0.001;
+    GetLog() << "BoundMin = {" << computeBounds.bounds.min.x << ";" << computeBounds.bounds.min.y << ";"
+             << computeBounds.bounds.min.z << "}\n";
+    GetLog() << "BoundMax = {" << computeBounds.bounds.max.x << ";" << computeBounds.bounds.max.y << ";"
+             << computeBounds.bounds.max.z << "}\n";
+    // set up the camera
+    auto lookAt = vsg::LookAt::create(centre + vsg::dvec3(0.0, -radius * 3.5, 0.0), centre, vsg::dvec3(0.0, 0.0, 1.0));
+
+    auto perspective = vsg::Perspective::create(
+        30.0, static_cast<double>(m_window->extent2D().width) / static_cast<double>(m_window->extent2D().height),
+        nearFarRatio * radius, radius * 4.5);
+
+    auto camera = vsg::Camera::create(perspective, lookAt, vsg::ViewportState::create(m_window->extent2D()));
+
+    // add close handler to respond to pressing the window close window button and pressing escape
+    m_viewer->addEventHandler(::vsg::CloseHandler::create(m_viewer));
+
+    // add a trackball event handler to control the camera view use the mouse
+    m_viewer->addEventHandler(::vsg::Trackball::create(camera));
+
+    auto commandGraph = vsg::createCommandGraphForView(m_window, camera, m_scenegraph);
+    m_viewer->assignRecordAndSubmitTaskAndPresentation({commandGraph});
+
+    m_viewer->compile();
+    return true;
+}
+
+ChVSGApp::~ChVSGApp() {
+    ;
+}
+
+void ChVSGApp::Render() {
+    m_viewer->handleEvents();
+    m_viewer->update();
+    m_viewer->recordAndSubmit();
+    m_viewer->present();
+}
+
+void ChVSGApp::AnalyseSystem() {
+    // analyse system, look for bodies and assets
     for (auto body : m_system->Get_bodylist()) {
         GetLog() << "ChVSGApp::ChVSGApp(): Body " << body << "\n";
         // position of the body
@@ -79,60 +144,11 @@ ChVSGApp::ChVSGApp(ChSystem* system) : m_system(system), m_horizonMountainHeight
                 auto transform = vsg::MatrixTransform::create();
                 transform->setMatrix(vsg::translate(pos_final.x(), pos_final.y(), pos_final.z()) *
                                      vsg::rotate(angle, axis.x(), axis.y(), axis.z()));
-                vsgBox theBox;
+                ChVSGBox theBox;
                 vsg::ref_ptr<vsg::Node> node = theBox.createTexturedNode(size, color, transform);
                 m_scenegraph->addChild(node);
                 m_transformList.push_back(transform);  // we will need it later
             }
         }
-        // DrawObject(body);
     }
-
-    // create viewer
-    m_viewer = ::vsg::Viewer::create();
-
-    // create window
-    //::vsg::ref_ptr<::vsg::Window> window(::vsg::Window::create(m_windowTraits));
-    m_window = ::vsg::Window::create(m_windowTraits);
-    // if (!window) {
-    if (!m_window) {
-        GetLog() << "Could not create windows.\n";
-        return;
-    }
-
-    m_viewer->addWindow(m_window);
-
-    // compute the bounds of the scene graph to help position camera
-    vsg::ComputeBounds computeBounds;
-    m_scenegraph->accept(computeBounds);
-    vsg::dvec3 centre = (computeBounds.bounds.min + computeBounds.bounds.max) * 0.5;
-    double radius = vsg::length(computeBounds.bounds.max - computeBounds.bounds.min) * 0.6;
-    double nearFarRatio = 0.001;
-    GetLog() << "BoundMin = {" << computeBounds.bounds.min.x << ";" << computeBounds.bounds.min.y << ";"
-             << computeBounds.bounds.min.z << "}\n";
-    GetLog() << "BoundMax = {" << computeBounds.bounds.max.x << ";" << computeBounds.bounds.max.y << ";"
-             << computeBounds.bounds.max.z << "}\n";
-    // set up the camera
-    auto lookAt = vsg::LookAt::create(centre + vsg::dvec3(0.0, -radius * 3.5, 0.0), centre, vsg::dvec3(0.0, 0.0, 1.0));
-
-    auto perspective = vsg::Perspective::create(
-        30.0, static_cast<double>(m_window->extent2D().width) / static_cast<double>(m_window->extent2D().height),
-        nearFarRatio * radius, radius * 4.5);
-
-    auto camera = vsg::Camera::create(perspective, lookAt, vsg::ViewportState::create(m_window->extent2D()));
-
-    // add close handler to respond to pressing the window close window button and pressing escape
-    m_viewer->addEventHandler(::vsg::CloseHandler::create(m_viewer));
-
-    // add a trackball event handler to control the camera view use the mouse
-    m_viewer->addEventHandler(::vsg::Trackball::create(camera));
-
-    auto commandGraph = vsg::createCommandGraphForView(m_window, camera, m_scenegraph);
-    m_viewer->assignRecordAndSubmitTaskAndPresentation({commandGraph});
-
-    m_viewer->compile();
-}
-
-ChVSGApp::~ChVSGApp() {
-    ;
 }

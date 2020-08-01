@@ -26,9 +26,9 @@
 namespace chrono {
 namespace vsg3d {
 
-class CH_VSG_API vsgBox {
+class CH_VSG_API ChVSGBox {
   public:
-    vsgBox();
+    ChVSGBox();
     vsg::ref_ptr<vsg::Node> createTexturedNode(vsg::vec3 size,
                                                vsg::vec4 color,
                                                vsg::ref_ptr<vsg::MatrixTransform> transform);
