@@ -15,7 +15,7 @@
 #ifndef CHELEMENTBEAMEULER_H
 #define CHELEMENTBEAMEULER_H
 
-#include "chrono/fea/ChBeamSection.h"
+#include "chrono/fea/ChBeamSectionEuler.h"
 #include "chrono/fea/ChElementBeam.h"
 #include "chrono/fea/ChElementCorotational.h"
 #include "chrono/fea/ChNodeFEAxyzrot.h"
@@ -61,9 +61,9 @@ class ChApi ChElementBeamEuler : public ChElementBeam,
 
     /// Set the section & material of beam element .
     /// It is a shared property, so it can be shared between other beams.
-    void SetSection(std::shared_ptr<ChBeamSectionAdvanced> my_material) { section = my_material; }
+    void SetSection(std::shared_ptr<ChBeamSectionEuler> my_material) { section = my_material; }
     /// Get the section & material of the element
-    std::shared_ptr<ChBeamSectionAdvanced> GetSection() { return section; }
+    std::shared_ptr<ChBeamSectionEuler> GetSection() { return section; }
 
     /// Get the first node (beginning)
     std::shared_ptr<ChNodeFEAxyzrot> GetNodeA() { return nodes[0]; }
@@ -258,7 +258,7 @@ class ChApi ChElementBeamEuler : public ChElementBeam,
 
     std::vector<std::shared_ptr<ChNodeFEAxyzrot> > nodes;
 
-    std::shared_ptr<ChBeamSectionAdvanced> section;
+    std::shared_ptr<ChBeamSectionEuler> section;
 
     ChMatrixDynamic<> StiffnessMatrix;  ///< undeformed local stiffness matrix
 

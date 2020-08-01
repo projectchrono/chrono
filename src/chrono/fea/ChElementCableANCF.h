@@ -18,7 +18,7 @@
 #define CHELEMENTCABLEANCF_H
 
 #include "chrono/core/ChVector.h"
-#include "chrono/fea/ChBeamSection.h"
+#include "chrono/fea/ChBeamSectionCable.h"
 #include "chrono/fea/ChElementBeam.h"
 #include "chrono/fea/ChNodeFEAxyzD.h"
 

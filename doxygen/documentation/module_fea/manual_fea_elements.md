@@ -160,7 +160,7 @@ The chrono::fea::ChElementCableANCF is a fast element for the simulation of thin
 - ANCF formulation for large displacements
 - Thin beam (no shear)
 - Does not model torsional stiffness (useful for wires, cables)
-- Section property: A, I, E, density, damping
+- Section property: A, I, E, density, damping, defined via a chrono::fea::ChBeamSectionCable object.
 
 
 
@@ -181,19 +181,26 @@ As an alternative, we also provide a chrono::fea::ChElementBeamIGA with more adv
 ![](http://www.projectchrono.org/assets/manual/fea_ChElementBeamEuler.png)
 ![](http://www.projectchrono.org/assets/manual/fea_ChElementBeamEuler_section.png)
 
-The chrono::fea::ChElementBeamANCF is a thin beam element, using the corotated Euler-Bernoulli theory in 3D. For low/moderate bending, and if shear effects are not important (thin beam assumption), this formulation is very efficient.
+The chrono::fea::ChElementBeamEuler is a thin beam element, using the corotated Euler-Bernoulli theory in 3D. For low/moderate bending, and if shear effects are not important (thin beam assumption), this formulation is very efficient.
 
 - 2 nodes of chrono::fea::ChNodeFEAxyzrot type
 - Linear interpolation
 - 1 integration point (default)
 - Corotational formulation for large displacements
 - Thin beam (no shear), based on the Euler-Bernoulli thin beam theory 
-- Section property: 
-  - A, Iyy, Izz, E, density, damping
-  - G, J   for torsional stiffness, plus optional:
-  - αe , ze , ye ,  for offset/rotated section
+- Section properties include settings for: 
+  - A, A, Iyy, Izz, (or axial and bending rigidity),
+  - G, J  (or torsional rigidity), 
+  - density, damping
+plus optional:
+  - αe , ze , ye ,   for offset/rotated section
   - zs , ys          for offset shear center
-
+- The section properties are defined via chrono::fea::ChBeamSectionEuler classes, among these:
+  - chrono::fea::ChBeamSectionEulerSimple , for uniform elasticity, uniform density 
+  - chrono::fea::ChBeamSectionEulerAdvanced , as above, adds offset/rotated section and shear center
+  - chrono::fea::ChBeamSectionEulerGeneric , if non-uniform elasticity or non-uniform density
+  - chrono::fea::ChBeamSectionEulerEasyCircular , an easy-to-use shortcut
+  - chrono::fea::ChBeamSectionEulerEasyRectangular , an easy-to-use shortcut
 
 
 

@@ -179,10 +179,18 @@ using namespace chrono::fea;
 %shared_ptr(chrono::fea::ChContinuumPlasticVonMises)
 %shared_ptr(chrono::fea::ChContinuumDruckerPrager)
 %shared_ptr(chrono::fea::ChBeamSection)
+%shared_ptr(chrono::fea::ChBeamSectionShape)
+%shared_ptr(chrono::fea::ChBeamSectionShapeCircular)
+%shared_ptr(chrono::fea::ChBeamSectionShapeRectangular)
+%shared_ptr(chrono::fea::ChBeamSectionShapePolyline)
+%shared_ptr(chrono::fea::ChBeamSectionEuler)
+%shared_ptr(chrono::fea::ChBeamSectionEulerSimple)
+%shared_ptr(chrono::fea::ChBeamSectionEulerAdvanced)
+%shared_ptr(chrono::fea::ChBeamSectionEulerEasyCircular)
+%shared_ptr(chrono::fea::ChBeamSectionEulerEasyRectangular)
 %shared_ptr(chrono::fea::ChBeamSectionBasic)
 %shared_ptr(chrono::fea::ChBeamSectionCable)
 %shared_ptr(chrono::fea::ChBeamSectionAdvanced)
-//%shared_ptr(chrono::fea::ChBeamSectionProperties)
 %shared_ptr(chrono::fea::ChBeamSectionCosserat)
 %shared_ptr(chrono::fea::ChBeamSectionCosseratEasyCircular)
 %shared_ptr(chrono::fea::ChBeamSectionCosseratEasyRectangular)
@@ -357,6 +365,7 @@ using namespace chrono::fea;
 %include "../../chrono/fea/ChElementBar.h"
 %include "../../chrono/fea/ChElementSpring.h"
 %include "../../chrono/fea/ChElementCorotational.h"
+%include "../../chrono/fea/ChBeamSectionShape.h"
 %include "../../chrono/fea/ChBeamSection.h"
 %include "../../chrono/fea/ChBeamSectionCosserat.h"
 %include "../../chrono/fea/ChElementBeam.h"

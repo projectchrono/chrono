@@ -57,7 +57,7 @@ mesh.AddNode(nodeA)
 mesh.AddNode(nodeB)
 
 # Create beam section & material
-msection = fea.ChBeamSectionAdvanced()
+msection = fea.ChBeamSectionEulerAdvanced()
 beam_wy = 0.1
 beam_wz = 0.2
 msection.SetAsRectangularSection(beam_wy, beam_wz)

@@ -171,18 +171,28 @@ void ChElementBeamEuler::GetField_dt(ChVectorDynamic<>& mD_dt) {
 
 void ChElementBeamEuler::ComputeStiffnessMatrix() {
     assert(section);
-
+    /*
     double Area = section->Area;
     double E = section->E;
     double Izz = section->Izz;
     double Iyy = section->Iyy;
     double G = section->G;
+    double Jpolar = section->J;
+    */
+    double EA = this->section->GetAxialRigidity();
+    double EIyy = this->section->GetYbendingRigidity();
+    double EIzz = this->section->GetZbendingRigidity();
+    double GJ = this->section->GetXtorsionRigidity();
+    double Cy = this->section->GetCentroidY();
+    double Cz = this->section->GetCentroidZ();
+    double Sy = this->section->GetShearCenterY();
+    double Sz = this->section->GetShearCenterZ();
 
     double h = this->length;
-    double Jpolar = section->J;
 
     double om_xz = 0;  // For Euler-Bernoulli
     double om_xy = 0;  // For Euler-Bernoulli
+    /*
     if (false) {
         //***TEST REDDY BEAMS***
         double Ks_z = section->Ks_z;
@@ -190,6 +200,7 @@ void ChElementBeamEuler::ComputeStiffnessMatrix() {
         double om_xz = E * Iyy / (G * Area * Ks_z * h);  // For Reddy's RBT
         double om_xy = E * Izz / (G * Area * Ks_y * h);  // For Reddy's RBT
     }
+    */
     double u_xz = 1 + 12 * om_xz;
     double l_xz = 1 + 3 * om_xz;
     double e_xz = 1 - 6 * om_xz;
@@ -197,20 +208,20 @@ void ChElementBeamEuler::ComputeStiffnessMatrix() {
     double l_xy = 1 + 3 * om_xy;
     double e_xy = 1 - 6 * om_xy;
 
-    double k_u = E * Area / h;
-    double k_f = G * Jpolar / h;
+    double k_u = EA / h;
+    double k_f = GJ / h;
 
-    double k_w = 12 * E * Iyy / (u_xz * h * h * h);
-    double k_v = 12 * E * Izz / (u_xy * h * h * h);
+    double k_w = 12 * EIyy / (u_xz * h * h * h);
+    double k_v = 12 * EIzz / (u_xy * h * h * h);
 
-    double k_t = 4 * E * Iyy * l_xz / (u_xz * h);
-    double k_p = 4 * E * Izz * l_xy / (u_xy * h);
+    double k_t = 4 * EIyy * l_xz / (u_xz * h);
+    double k_p = 4 * EIzz * l_xy / (u_xy * h);
 
-    double k_wt = 6 * E * Iyy / (u_xz * h * h);
-    double k_vp = 6 * E * Izz / (u_xy * h * h);
+    double k_wt = 6 * EIyy / (u_xz * h * h);
+    double k_vp = 6 * EIzz / (u_xy * h * h);
 
-    double k_tt = 2 * E * Iyy * e_xz / (u_xz * h);
-    double k_pp = 2 * E * Izz * e_xy / (u_xy * h);
+    double k_tt = 2 * EIyy * e_xz / (u_xz * h);
+    double k_pp = 2 * EIzz * e_xy / (u_xy * h);
 
     StiffnessMatrix(0, 0) = k_u;
     StiffnessMatrix(1, 1) = k_v;
@@ -248,57 +259,58 @@ void ChElementBeamEuler::ComputeStiffnessMatrix() {
             StiffnessMatrix(c, r) = StiffnessMatrix(r, c);
 
     // In case the section is rotated:
-    if (this->section->alpha) {
+    if (this->section->GetSectionRotation()) {
         // Do [K]^ = [R][K][R]'
         ChMatrix33<> Rotsect;
-        Rotsect.Set_A_Rxyz(ChVector<>(-section->alpha, 0, 0));
+        Rotsect.Set_A_Rxyz(ChVector<>(-section->GetSectionRotation(), 0, 0));
         ChMatrixDynamic<> CKtemp(12, 12);
         CKtemp.setZero();
         ChMatrixCorotation::ComputeCK(this->StiffnessMatrix, Rotsect, 4, CKtemp);
         ChMatrixCorotation::ComputeKCt(CKtemp, Rotsect, 4, this->StiffnessMatrix);
     }
     // In case the section has a centroid displacement:
-    if (this->section->Cy || this->section->Cz) {
+
+    if (Cy || Cz) {
         // Do [K]" = [T_c][K]^[T_c]'
 
         for (int i = 0; i < 12; ++i)
-            this->StiffnessMatrix(4, i) += this->section->Cz * this->StiffnessMatrix(0, i);
+            this->StiffnessMatrix(4, i) += Cz * this->StiffnessMatrix(0, i);
         for (int i = 0; i < 12; ++i)
-            this->StiffnessMatrix(5, i) += -this->section->Cy * this->StiffnessMatrix(0, i);
+            this->StiffnessMatrix(5, i) += -Cy * this->StiffnessMatrix(0, i);
 
         for (int i = 0; i < 12; ++i)
-            this->StiffnessMatrix(10, i) += this->section->Cz * this->StiffnessMatrix(6, i);
+            this->StiffnessMatrix(10, i) += Cz * this->StiffnessMatrix(6, i);
         for (int i = 0; i < 12; ++i)
-            this->StiffnessMatrix(11, i) += -this->section->Cy * this->StiffnessMatrix(6, i);
+            this->StiffnessMatrix(11, i) += -Cy * this->StiffnessMatrix(6, i);
 
         for (int i = 0; i < 12; ++i)
-            this->StiffnessMatrix(i, 4) += this->section->Cz * this->StiffnessMatrix(i, 0);
+            this->StiffnessMatrix(i, 4) += Cz * this->StiffnessMatrix(i, 0);
         for (int i = 0; i < 12; ++i)
-            this->StiffnessMatrix(i, 5) += -this->section->Cy * this->StiffnessMatrix(i, 0);
+            this->StiffnessMatrix(i, 5) += -Cy * this->StiffnessMatrix(i, 0);
 
         for (int i = 0; i < 12; ++i)
-            this->StiffnessMatrix(i, 10) += this->section->Cz * this->StiffnessMatrix(i, 6);
+            this->StiffnessMatrix(i, 10) += Cz * this->StiffnessMatrix(i, 6);
         for (int i = 0; i < 12; ++i)
-            this->StiffnessMatrix(i, 11) += -this->section->Cy * this->StiffnessMatrix(i, 6);
+            this->StiffnessMatrix(i, 11) += -Cy * this->StiffnessMatrix(i, 6);
     }
 
     // In case the section has a shear center displacement:
-    if (this->section->Sy || this->section->Sz) {
+    if (Sy || Sz) {
         // Do [K]° = [T_s][K]"[T_s]'
 
         for (int i = 0; i < 12; ++i)
             this->StiffnessMatrix(3, i) +=
-                this->section->Sz * this->StiffnessMatrix(1, i) - this->section->Sy * this->StiffnessMatrix(2, i);
+                - Sz * this->StiffnessMatrix(1, i) + Sy * this->StiffnessMatrix(2, i);
         for (int i = 0; i < 12; ++i)
             this->StiffnessMatrix(9, i) +=
-                this->section->Sz * this->StiffnessMatrix(7, i) - this->section->Sy * this->StiffnessMatrix(8, i);
+                - Sz * this->StiffnessMatrix(7, i) + Sy * this->StiffnessMatrix(8, i);
 
         for (int i = 0; i < 12; ++i)
             this->StiffnessMatrix(i, 3) +=
-                this->section->Sz * this->StiffnessMatrix(i, 1) - this->section->Sy * this->StiffnessMatrix(i, 2);
+                - Sz * this->StiffnessMatrix(i, 1) + Sy * this->StiffnessMatrix(i, 2);
         for (int i = 0; i < 12; ++i)
             this->StiffnessMatrix(i, 9) +=
-                this->section->Sz * this->StiffnessMatrix(i, 7) - this->section->Sy * this->StiffnessMatrix(i, 8);
+                - Sz * this->StiffnessMatrix(i, 7) + Sy * this->StiffnessMatrix(i, 8);
     }
 }
 
@@ -307,7 +319,7 @@ void ChElementBeamEuler::SetupInitial(ChSystem* system) {
 
     // Compute rest length, mass:
     this->length = (nodes[1]->GetX0().GetPos() - nodes[0]->GetX0().GetPos()).Length();
-    this->mass = this->length * this->section->Area * this->section->density;
+    this->mass = this->length * this->section->GetMassPerUnitLength();
 
     // Compute initial rotation
     ChMatrix33<> A0;
@@ -486,7 +498,7 @@ void ChElementBeamEuler::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfactor,
     ////CKCt.triangularView<Eigen::Upper>() = CKCt.transpose();
 
     // For K stiffness matrix and R matrix: scale by factors
-    CKCt *= Kfactor + Rfactor * this->section->rdamping;
+    CKCt *= Kfactor + Rfactor * this->section->GetBeamRaleyghDamping();
 
     H.block(0, 0, 12, 12) = CKCt;  // because [R] = r*[K] , so kf*[K]+rf*[R] = (kf+rf*r)*[K]
 
@@ -497,8 +509,7 @@ void ChElementBeamEuler::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfactor,
 
     double lmass = mass * 0.5;
     double lineryz = (1. / 50.) * mass * pow(length, 2);  // note: 1/50 can be even less (this is 0 in many texts)
-    double linerx =
-        (1. / 2.) * length * section->GetDensity() * (section->GetIyy() + section->GetIzz());  //***TO CHECK***
+    double linerx = (1. / 2.) * length * this->section->GetInertiaJxxPerUnitLength(); // for constant density would be (1. / 2.) * length * section->GetDensity() * (section->GetIyy() + section->GetIzz());  
 
     Mloc(0, 0) += Mfactor * lmass;  // node A x,y,z
     Mloc(1, 1) += Mfactor * lmass;
@@ -508,11 +519,11 @@ void ChElementBeamEuler::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfactor,
     Mloc(7, 7) += Mfactor * lmass;
     Mloc(8, 8) += Mfactor * lmass;
 
-    Mloc(3, 3) += Mfactor * linerx;  // node A Ixx,Iyy,Izz  // NEED COROTATION
+    Mloc(3, 3) += Mfactor * linerx;  // node A Ixx,Iyy,Izz  
     Mloc(4, 4) += Mfactor * lineryz;
     Mloc(5, 5) += Mfactor * lineryz;
 
-    Mloc(9, 9) += Mfactor * linerx;  // node B Ixx,Iyy,Izz // NEED COROTATION
+    Mloc(9, 9) += Mfactor * linerx;  // node B Ixx,Iyy,Izz 
     Mloc(10, 10) += Mfactor * lineryz;
     Mloc(11, 11) += Mfactor * lineryz;
 
@@ -710,7 +721,15 @@ void ChElementBeamEuler::EvaluateSectionForceTorque(const double eta, ChVector<>
     ChVectorDynamic<> displ(this->GetNdofs());
     this->GetStateBlock(displ);
 
-    double Jpolar = section->J;
+    double EA = this->section->GetAxialRigidity();
+    double EIyy = this->section->GetYbendingRigidity();
+    double EIzz = this->section->GetZbendingRigidity();
+    double GJ = this->section->GetXtorsionRigidity();
+    double alpha = this->section->GetSectionRotation();
+    double Cy = this->section->GetCentroidY();
+    double Cz = this->section->GetCentroidZ();
+    double Sy = this->section->GetShearCenterY();
+    double Sz = this->section->GetShearCenterZ();
 
     // ShapeVector N;
     // ShapeFunctions(N, eta);  // Evaluate compressed shape functions
@@ -751,30 +770,27 @@ void ChElementBeamEuler::EvaluateSectionForceTorque(const double eta, ChVector<>
     if (false)  // section->alpha ==0 && section->Cy ==0 && section->Cz==0 && section->Sy==0 && section->Sz==0)
     {
         // Fast computation:
-        Fforce.x() = this->section->E * this->section->Area * sect_ek(0);
-        Fforce.y() = this->section->E * this->section->Izz * sect_ek(1);
-        Fforce.z() = this->section->E * this->section->Iyy * sect_ek(2);
+        Fforce.x() = EA   * sect_ek(0);
+        Fforce.y() = EIzz * sect_ek(1);
+        Fforce.z() = EIyy * sect_ek(2);
 
-        Mtorque.x() = this->section->G * Jpolar * sect_ek(3);
-        Mtorque.y() = this->section->E * this->section->Iyy * sect_ek(4);
-        Mtorque.z() = this->section->E * this->section->Izz * sect_ek(5);
+        Mtorque.x() = GJ   * sect_ek(3);
+        Mtorque.y() = EIyy * sect_ek(4);
+        Mtorque.z() = EIzz * sect_ek(5);
     } else {
         // Generic computation, by rotating and translating the constitutive
         // matrix of the beam:
-        double ca = cos(section->alpha);
-        double sa = sin(section->alpha);
-        double cb = cos(section->alpha);  // could be beta if shear custom axes
-        double sb = sin(section->alpha);
-        double Cy = section->Cy;
-        double Cz = section->Cz;
-        double Sy = section->Sy;
-        double Sz = section->Sz;
-        double Klaw_d0 = this->section->E * this->section->Area;
-        double Klaw_d1 = this->section->E * this->section->Izz;
-        double Klaw_d2 = this->section->E * this->section->Iyy;
-        double Klaw_d3 = this->section->G * Jpolar;
-        double Klaw_d4 = this->section->E * this->section->Iyy;
-        double Klaw_d5 = this->section->E * this->section->Izz;
+        double ca = cos(alpha);
+        double sa = sin(alpha);
+        double cb = cos(alpha);  // could be beta if shear custom axes
+        double sb = sin(alpha);
+
+        double Klaw_d0 = EA;
+        double Klaw_d1 = EIzz;
+        double Klaw_d2 = EIyy;
+        double Klaw_d3 = GJ;
+        double Klaw_d4 = EIyy;
+        double Klaw_d5 = EIzz;
 
         // ..unrolled rotated constitutive matrix..
         ChMatrixNM<double, 6, 6> Klaw_r;
@@ -793,13 +809,13 @@ void ChElementBeamEuler::EvaluateSectionForceTorque(const double eta, ChVector<>
 
         // ..also translate for Cy Cz
         for (int i = 0; i < 6; ++i)
-            Klaw_r(i, 4) += Cz * Klaw_r(i, 0);
+            Klaw_r(i, 4) +=  Cz * Klaw_r(i, 0);
         for (int i = 0; i < 6; ++i)
             Klaw_r(i, 5) += -Cy * Klaw_r(i, 0);
 
         // ..also translate for Sy Sz
         for (int i = 0; i < 6; ++i)
-            Klaw_r(i, 3) += Sz * Klaw_r(i, 1) - Sy * Klaw_r(i, 2);
+            Klaw_r(i, 3) += - Sz * Klaw_r(i, 1) + Sy * Klaw_r(i, 2);
 
         // .. compute wrench = Klaw_l * sect_ek
         ChVectorN<double, 6> wrench = Klaw_r * sect_ek;
@@ -879,7 +895,7 @@ void ChElementBeamEuler::ComputeNF(const double U,
 }
 
 double ChElementBeamEuler::GetDensity() {
-    return this->section->Area * this->section->density;
+    return this->section->GetMassPerUnitLength();
 }
 
 }  // end namespace fea
