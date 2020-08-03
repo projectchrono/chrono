@@ -21,16 +21,18 @@ namespace fea {
 
 
 
-	ChBeamSectionEulerEasyRectangular::ChBeamSectionEulerEasyRectangular(double width_y, double width_z, double myE, double mydensity)
+	ChBeamSectionEulerEasyRectangular::ChBeamSectionEulerEasyRectangular(double width_y, double width_z, double myE,  double myG, double mydensity)
 	{
 		this->SetYoungModulus(myE);
+		this->SetGshearModulus(myG);
 		this->SetDensity(mydensity);
 		this->SetAsRectangularSection(width_y, width_z);
 	}
 
-	ChBeamSectionEulerEasyCircular::ChBeamSectionEulerEasyCircular(double diameter, double myE, double mydensity)
+	ChBeamSectionEulerEasyCircular::ChBeamSectionEulerEasyCircular(double diameter, double myE,  double myG, double mydensity)
 	{
 		this->SetYoungModulus(myE);
+		this->SetGshearModulus(myG);
 		this->SetDensity(mydensity);
 		this->SetAsCircularSection(diameter);
 	}

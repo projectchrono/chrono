@@ -196,7 +196,7 @@ class ChApi ChBeamSectionEulerSimple : public ChBeamSectionEuler {
     void SetYoungModulus(double mE) { this->E = mE; }
     double GetYoungModulus() const { return this->E; }
 
-    /// Set G, the shear modulus
+    /// Set G, the shear modulus, used for computing the torsion rigidity = J*G
     void SetGshearModulus(double mG) { this->G = mG; }
     double GetGshearModulus() const { return this->G; }
 
@@ -484,6 +484,7 @@ public:
 		double width_y,			///< width of section in y direction
 		double width_z,			///< width of section in z direction
 		double E,				///< Young modulus
+        double G,				///< Shear modulus (only needed for the torsion)
 		double density			///< volumetric density (ex. in SI units: [kg/m^3])
 	);
 };
@@ -500,6 +501,7 @@ public:
 	ChBeamSectionEulerEasyCircular(
 		double diameter,		///< diameter of circular section
 		double E,				///< Young modulus
+        double G,				///< Shear modulus (only needed for the torsion)
 		double density			///< volumetric density (ex. in SI units: [kg/m^3])
 	);
 };
