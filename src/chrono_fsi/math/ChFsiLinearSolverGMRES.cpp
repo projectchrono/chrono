@@ -80,8 +80,8 @@ void ChFsiLinearSolverGMRES::Solve(int SIZE,
     cusparseMatDescr_t descrA = 0;
     cusparseMatDescr_t descrM = 0;
     cudaStream_t stream = 0;
-    cusparseSolveAnalysisInfo_t info_l = 0;
-    cusparseSolveAnalysisInfo_t info_u = 0;
+    //cusparseSolveAnalysisInfo_t info_l = 0;
+    //cusparseSolveAnalysisInfo_t info_u = 0;
 
     double *w, *v0, *V, *sDev, *H, *s, *cs, *sn;
 
@@ -256,8 +256,8 @@ void ChFsiLinearSolverGMRES::Solve(int SIZE,
         residual = nrmr;
     }
 
-    cusparseDestroySolveAnalysisInfo(info_l);
-    cusparseDestroySolveAnalysisInfo(info_u);
+    //cusparseDestroySolveAnalysisInfo(info_l);
+    //cusparseDestroySolveAnalysisInfo(info_u);
     cudaFree(w);
     cudaFree(v0);
     cudaFree(V);
