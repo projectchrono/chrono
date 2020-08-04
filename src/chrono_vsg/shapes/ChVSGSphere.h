@@ -11,11 +11,11 @@
 // =============================================================================
 // Authors: Rainer Gericke
 // =============================================================================
-// Header for a class defining a box shape for the vulkan scene graph
+// Header for a class defining a sphere shape for the vulkan scene graph
 // =============================================================================
 
-#ifndef CH_VSG_BOX_H
-#define CH_VSG_BOX_H
+#ifndef CH_VSG_SPHERE_H
+#define CH_VSG_SPHERE_H
 
 #include <iostream>
 #include "chrono/core/ChVector.h"
@@ -26,9 +26,9 @@
 namespace chrono {
 namespace vsg3d {
 
-class CH_VSG_API ChVSGBox {
+class CH_VSG_API ChVSGSphere {
   public:
-    ChVSGBox();
+    ChVSGSphere();
     vsg::ref_ptr<vsg::Node> createTexturedNode(vsg::vec4 color, vsg::ref_ptr<vsg::MatrixTransform> transform);
     void compile(vsg::ref_ptr<vsg::Node> subgraph);
 

@@ -1,7 +1,6 @@
 #include "chrono_vsg/shapes/ChVSGBox.h"
 
 #define STB_IMAGE_IMPLEMENTATION
-
 #include "chrono_thirdparty/stb/stb_image.h"
 
 using namespace chrono::vsg3d;
@@ -17,9 +16,7 @@ void ChVSGBox::compile(vsg::ref_ptr<vsg::Node> subgraph) {
     }
 }
 
-vsg::ref_ptr<vsg::Node> ChVSGBox::createTexturedNode(vsg::vec3 size,
-                                                     vsg::vec4 color,
-                                                     vsg::ref_ptr<vsg::MatrixTransform> transform) {
+vsg::ref_ptr<vsg::Node> ChVSGBox::createTexturedNode(vsg::vec4 color, vsg::ref_ptr<vsg::MatrixTransform> transform) {
     // set up search paths to SPIRV shaders and textures
     vsg::Paths searchPaths = vsg::getEnvPaths("VSG_FILE_PATH");
 
@@ -124,62 +121,29 @@ vsg::ref_ptr<vsg::Node> ChVSGBox::createTexturedNode(vsg::vec3 size,
     scenegraph->add(bindGraphicsPipeline);
     scenegraph->add(bindDescriptorSets);
 
-    vsg::vec3 position = {0.0, 0.0, 0.0};
-    vsg::vec3 v000(position);
-    vsg::vec3 v100(position + vsg::vec3(size.x, 0.0f, 0.0f));
-    vsg::vec3 v110(position + vsg::vec3(size.x, size.y, 0.0f));
-    vsg::vec3 v010(position + vsg::vec3(0.0f, size.y, 0.0f));
-    vsg::vec3 v001(position + vsg::vec3(0.0f, 0.0f, size.z));
-    vsg::vec3 v101(position + vsg::vec3(size.x, 0.0f, size.z));
-    vsg::vec3 v111(position + vsg::vec3(size.x, size.y, size.z));
-    vsg::vec3 v011(position + vsg::vec3(0.0f, size.y, size.z));
-
     // set up vertex and index arrays
-    auto vertices = vsg::vec3Array::create({v000, v100, v101, v001, v100, v110, v111, v101, v110,
-                                            v010, v011, v111, v010, v000, v001, v011, v010, v110,
-                                            v100, v000, v001, v101, v111, v011});  // VK_FORMAT_R32G32B32_SFLOAT,
-                                                                                   // VK_VERTEX_INPUT_RATE_INSTANCE,
-                                                                                   // VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
-                                                                                   // VK_SHARING_MODE_EXCLUSIVE
-
-    auto colors = vsg::vec3Array::create(vertices->size(), vsg::vec3(1.0f, 1.0f, 1.0f));
-    // VK_FORMAT_R32G32B32_SFLOAT, VK_VERTEX_INPUT_RATE_VERTEX, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
-    // VK_SHARING_MODE_EXCLUSIVE
+    auto vertices = vsg::vec3Array::create(
+        {{1, -1, -1},  {1, 1, -1},  {1, 1, 1},  {1, -1, 1},  {-1, 1, -1}, {-1, -1, -1}, {-1, -1, 1}, {-1, 1, 1},
+         {-1, -1, -1}, {1, -1, -1}, {1, -1, 1}, {-1, -1, 1}, {1, 1, -1},  {-1, 1, -1},  {-1, 1, 1},  {1, 1, 1},
+         {-1, -1, 1},  {1, -1, 1},  {1, 1, 1},  {-1, 1, 1},  {1, -1, -1}, {-1, -1, -1}, {-1, 1, -1}, {1, 1, -1}});
 
 #if 0
-    vsg::vec3 n0(0.0f, -1.0f, 0.0f);
-    vsg::vec3 n1(1.0f, 0.0f, 0.0f);
-    vsg::vec3 n2(0.0f, 1.0f, 0.0f);
-    vsg::vec3 n3(0.0f, -1.0f, 0.0f);
-    vsg::vec3 n4(0.0f, 0.0f, -1.0f);
-    vsg::vec3 n5(0.0f, 0.0f, 1.0f);
-    auto normals = vsg::vec3Array::create(
-    {
-        n0, n0, n0, n0,
-        n1, n1, n1, n1,
-        n2, n2, n2, n2,
-        n3, n3, n3, n3,
-        n4, n4, n4, n4,
-        n5, n5, n5, n5,
-    }); // VK_FORMAT_R32G32B32_SFLOAT, VK_VERTEX_INPUT_RATE_VERTEX, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_SHARING_MODE_EXCLUSIVE
+    auto normals = vsg::vec3Array::create({{1, 0, 0},  {1, 0, 0},  {1, 0, 0},  {1, 0, 0},  {-1, 0, 0}, {-1, 0, 0},
+                                           {-1, 0, 0}, {-1, 0, 0}, {0, -1, 0}, {0, -1, 0}, {0, -1, 0}, {0, -1, 0},
+                                           {0, 1, 0},  {0, 1, 0},  {0, 1, 0},  {0, 1, 0},  {0, 0, 1},  {0, 0, 1},
+                                           {0, 0, 1},  {0, 0, 1},  {0, 0, -1}, {0, 0, -1}, {0, 0, -1}, {0, 0, -1}});
 #endif
 
-    vsg::vec2 t00(0.0f, 0.0f);
-    vsg::vec2 t01(0.0f, 1.0f);
-    vsg::vec2 t10(1.0f, 0.0f);
-    vsg::vec2 t11(1.0f, 1.0f);
+    auto colors = vsg::vec4Array::create(vertices->size(), color);
 
-    auto texcoords = vsg::vec2Array::create(
-        {t00, t10, t11, t01, t00, t10, t11, t01, t00, t10, t11, t01,
-         t00, t10, t11, t01, t00, t10, t11, t01, t00, t10, t11, t01});  // VK_FORMAT_R32G32_SFLOAT,
-                                                                        // VK_VERTEX_INPUT_RATE_VERTEX,
-                                                                        // VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
-                                                                        // VK_SHARING_MODE_EXCLUSIVE
+    auto texcoords = vsg::vec2Array::create({{0, 0}, {1, 0}, {1, 1}, {0, 1}, {0, 0}, {1, 0}, {1, 1}, {0, 1},
+                                             {0, 0}, {1, 0}, {1, 1}, {0, 1}, {0, 0}, {1, 0}, {1, 1}, {0, 1},
+                                             {0, 0}, {1, 0}, {1, 1}, {0, 1}, {0, 0}, {1, 0}, {1, 1}, {0, 1}});
 
-    auto indices = vsg::ushortArray::create(
-        {0,  1,  2,  0,  2,  3,  4,  5,  6,  4,  6,  7,  8,  9,  10, 8,  10, 11,
-         12, 13, 14, 12, 14, 15, 16, 17, 18, 16, 18, 19, 20, 21, 22, 20, 22, 23});  // VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
-                                                                                    // VK_SHARING_MODE_EXCLUSIVE
+    auto indices = vsg::ushortArray::create({0,  1,  2,  0,  2,  3,  4,  5,  6,  4,  6,  7,  8,  9,  10, 8,  10, 11,
+                                             12, 13, 14, 12, 14, 15, 16, 17, 18, 16, 18, 19, 20, 21, 22, 20, 22, 23});
+
+    // VK_SHARING_MODE_EXCLUSIVE
 
     // setup geometry
     auto drawCommands = vsg::Commands::create();

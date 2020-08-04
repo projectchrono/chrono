@@ -29,6 +29,10 @@ SET(ChronoEngine_VSG_HEADERS
     core/ChApiVSG.h
     shapes/ChVSGBox.h
     shapes/ChVSGBox.cpp
+    shapes/ChVSGSphere.h
+    shapes/ChVSGSphere.cpp
+    shapes/ChVSGCylinder.h
+    shapes/ChVSGCylinder.cpp
 )
 
 SOURCE_GROUP("" FILES

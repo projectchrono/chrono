@@ -25,6 +25,7 @@
 #include "chrono/core/ChVector.h"
 #include "chrono/assets/ChVisualization.h"
 #include "chrono/assets/ChSphereShape.h"
+#include "chrono/assets/ChCylinderShape.h"
 
 #include <vsg/all.h>
 

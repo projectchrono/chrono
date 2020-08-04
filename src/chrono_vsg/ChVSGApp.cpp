@@ -19,8 +19,14 @@
 
 #include "ChVSGApp.h"
 #include "chrono/geometry/ChBox.h"
+#include "chrono/assets/ChColorAsset.h"
 #include "chrono/assets/ChBoxShape.h"
+#include "chrono/assets/ChSphereShape.h"
+#include "chrono/assets/ChEllipsoidShape.h"
+#include "chrono/assets/ChCylinderShape.h"
 #include "chrono_vsg/shapes/ChVSGBox.h"
+#include "chrono_vsg/shapes/ChVSGSphere.h"
+#include "chrono_vsg/shapes/ChVSGCylinder.h"
 
 using namespace chrono::vsg3d;
 
@@ -115,6 +121,14 @@ void ChVSGApp::AnalyseSystem() {
         for (int i = 0; i < body->GetAssets().size(); i++) {
             auto asset = body->GetAssets().at(i);
 
+            vsg::vec4 color(1, 1, 1, 1);
+            if (std::dynamic_pointer_cast<ChColorAsset>(asset)) {
+                ChColorAsset* color_asset = (ChColorAsset*)(asset.get());
+                color[0] = color_asset->GetColor().R;
+                color[1] = color_asset->GetColor().G;
+                color[2] = color_asset->GetColor().B;
+                color[3] = color_asset->GetColor().A;
+            }
             if (!std::dynamic_pointer_cast<ChVisualization>(asset)) {
                 continue;
             }
@@ -129,11 +143,9 @@ void ChVSGApp::AnalyseSystem() {
             lrot = rot % lrot;
             lrot.Normalize();
             lrot.Q_to_AngAxis(angle, axis);
-            vsg::vec4 color(1, 1, 1, 1);
             if (ChBoxShape* box_shape = dynamic_cast<ChBoxShape*>(asset.get())) {
                 GetLog() << "Found BoxShape!\n";
-                vsg::vec3 size(box_shape->GetBoxGeometry().GetSize().x(), box_shape->GetBoxGeometry().GetSize().y(),
-                               box_shape->GetBoxGeometry().GetSize().z());
+                ChVector<> size = box_shape->GetBoxGeometry().GetSize();
                 ChVector<> pos_final = pos + center;
                 // GetLog() << "pos final = " << pos_final << "\n";
 
@@ -142,10 +154,84 @@ void ChVSGApp::AnalyseSystem() {
                 // model = glm::scale(model, glm::vec3(radius, radius, radius));
                 // model_sphere.push_back(model);
                 auto transform = vsg::MatrixTransform::create();
+
                 transform->setMatrix(vsg::translate(pos_final.x(), pos_final.y(), pos_final.z()) *
+                                     vsg::scale(size.x(), size.y(), size.z()) *
                                      vsg::rotate(angle, axis.x(), axis.y(), axis.z()));
+
                 ChVSGBox theBox;
-                vsg::ref_ptr<vsg::Node> node = theBox.createTexturedNode(size, color, transform);
+                vsg::ref_ptr<vsg::Node> node = theBox.createTexturedNode(color, transform);
+                m_scenegraph->addChild(node);
+                m_transformList.push_back(transform);  // we will need it later
+            }
+            if (ChSphereShape* sphere_shape = dynamic_cast<ChSphereShape*>(asset.get())) {
+                GetLog() << "Found SphereShape!\n";
+                double radius = sphere_shape->GetSphereGeometry().rad;
+                ChVector<> size(radius, radius, radius);
+                ChVector<> pos_final = pos + center;
+                // GetLog() << "pos final = " << pos_final << "\n";
+
+                // model = glm::translate(glm::mat4(1), glm::vec3(pos_final.x(), pos_final.y(), pos_final.z()));
+                // model = glm::rotate(model, float(angle), glm::vec3(axis.x(), axis.y(), axis.z()));
+                // model = glm::scale(model, glm::vec3(radius, radius, radius));
+                // model_sphere.push_back(model);
+                auto transform = vsg::MatrixTransform::create();
+
+                transform->setMatrix(vsg::translate(pos_final.x(), pos_final.y(), pos_final.z()) *
+                                     vsg::scale(size.x(), size.y(), size.z()) *
+                                     vsg::rotate(angle, axis.x(), axis.y(), axis.z()));
+
+                ChVSGSphere theSphere;
+                vsg::ref_ptr<vsg::Node> node = theSphere.createTexturedNode(color, transform);
+                m_scenegraph->addChild(node);
+                m_transformList.push_back(transform);  // we will need it later
+            }
+            if (ChEllipsoidShape* ellipsoid_shape = dynamic_cast<ChEllipsoidShape*>(asset.get())) {
+                GetLog() << "Found ElipsoidShape!\n";
+                Vector radius = ellipsoid_shape->GetEllipsoidGeometry().rad;
+                ChVector<> size(radius.x(), radius.y(), radius.z());
+                ChVector<> pos_final = pos + center;
+                // GetLog() << "pos final = " << pos_final << "\n";
+
+                // model = glm::translate(glm::mat4(1), glm::vec3(pos_final.x(), pos_final.y(), pos_final.z()));
+                // model = glm::rotate(model, float(angle), glm::vec3(axis.x(), axis.y(), axis.z()));
+                // model = glm::scale(model, glm::vec3(radius, radius, radius));
+                // model_sphere.push_back(model);
+                auto transform = vsg::MatrixTransform::create();
+
+                transform->setMatrix(vsg::translate(pos_final.x(), pos_final.y(), pos_final.z()) *
+                                     vsg::scale(size.x(), size.y(), size.z()) *
+                                     vsg::rotate(angle, axis.x(), axis.y(), axis.z()));
+
+                ChVSGSphere theSphere;
+                vsg::ref_ptr<vsg::Node> node = theSphere.createTexturedNode(color, transform);
+                m_scenegraph->addChild(node);
+                m_transformList.push_back(transform);  // we will need it later
+            }
+            if (ChCylinderShape* cylinder_shape = dynamic_cast<ChCylinderShape*>(asset.get())) {
+                GetLog() << "Found CylinderShape!\n";
+                double rad = cylinder_shape->GetCylinderGeometry().rad;
+                ChVector<> dir = cylinder_shape->GetCylinderGeometry().p2 - cylinder_shape->GetCylinderGeometry().p1;
+                double height = dir.Length();
+                dir.Normalize();
+                ChVector<> mx, my, mz;
+                dir.DirToDxDyDz(my, mz, mx);  // y is axis, in cylinder.obj frame
+                ChMatrix33<> mrot;
+                mrot.Set_A_axis(mx, my, mz);
+                lrot = rot % (visual_asset->Rot.Get_A_quaternion() % mrot.Get_A_quaternion());
+                // position of cylinder based on two points
+                ChVector<> mpos =
+                    0.5 * (cylinder_shape->GetCylinderGeometry().p2 + cylinder_shape->GetCylinderGeometry().p1);
+
+                lrot.Q_to_AngAxis(angle, axis);
+                ChVector<> pos_final = pos + rot.Rotate(mpos);
+                auto transform = vsg::MatrixTransform::create();
+
+                transform->setMatrix(vsg::translate(pos_final.x(), pos_final.y(), pos_final.z()) *
+                                     vsg::scale(rad, rad, height) * vsg::rotate(angle, axis.x(), axis.y(), axis.z()));
+
+                ChVSGCylinder theCylinder;
+                vsg::ref_ptr<vsg::Node> node = theCylinder.createTexturedNode(color, transform);
                 m_scenegraph->addChild(node);
                 m_transformList.push_back(transform);  // we will need it later
             }
