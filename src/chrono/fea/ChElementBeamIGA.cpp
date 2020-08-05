@@ -274,7 +274,7 @@ void ChElementBeamIGA::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfactor, d
     }
 
     //
-    // The M mass matrix of this element span: (lumped version)
+    // The M mass matrix of this element span: 
     //
 
     if (Mfactor) {
