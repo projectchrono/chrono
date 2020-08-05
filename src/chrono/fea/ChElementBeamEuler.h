@@ -153,6 +153,9 @@ class ChApi ChElementBeamEuler : public ChElementBeam,
     /// values in the Fi vector.
     virtual void ComputeInternalForces(ChVectorDynamic<>& Fi) override;
 
+    /// Compute gravity forces, grouped in the Fg vector, one node after the other
+    virtual void ComputeGravityForces(ChVectorDynamic<>& Fg, const ChVector<>& G_acc) override;
+
     //
     // Beam-specific functions
     //

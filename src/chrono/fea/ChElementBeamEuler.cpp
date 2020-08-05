@@ -675,6 +675,29 @@ void ChElementBeamEuler::ComputeInternalForces(ChVectorDynamic<>& Fi) {
 #endif
 }
 
+
+
+void ChElementBeamEuler::ComputeGravityForces(ChVectorDynamic<>& Fg, const ChVector<>& G_acc) {
+    
+    // no so efficient... a temporary mass matrix here:
+    ChMatrixDynamic<> mM(12, 12);
+    this->ComputeMmatrixGlobal(mM);
+
+    // a vector of G accelerations for the two nodes (for translation degrees of freedom)
+    ChVectorDynamic<> mG(12);
+    mG.setZero();
+    mG.segment(0, 3) = G_acc.eigen();
+    mG.segment(6, 3) = G_acc.eigen();
+
+    // Gravity forces as M*g, always works, regardless of the way M 
+    // is computed (lumped or consistent, with offset center of mass or centered, etc.)
+    // [Maybe one can replace this function with a faster ad-hoc implementation in case of lumped masses.]
+    Fg = mM * mG;
+
+    //***TO DO*** for the lumped mass matrix case, the mM * mG product can be unrolled into few multiplications as mM mostly zero, and same for mG
+}
+
+
 void ChElementBeamEuler::EvaluateSectionDisplacement(const double eta, ChVector<>& u_displ, ChVector<>& u_rotaz) {
     ChVectorDynamic<> displ(this->GetNdofs());
     this->GetStateBlock(displ);
