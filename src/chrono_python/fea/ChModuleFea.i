@@ -370,6 +370,7 @@ using namespace chrono::fea;
 %include "../../chrono/fea/ChBeamSection.h"
 %include "../../chrono/fea/ChBeamSectionCosserat.h"
 %include "../../chrono/fea/ChBeamSectionEuler.h"
+%include "../../chrono/fea/ChBeamSectionCable.h"
 %include "../../chrono/fea/ChElementBeam.h"
 %include "../../chrono/fea/ChElementBeamEuler.h"
 %include "../../chrono/fea/ChElementBeamANCF.h"
