@@ -40,8 +40,8 @@ void ChFsiLinearSolverBiCGStab::Solve(int SIZE,
     cusparseMatDescr_t descrA = 0;
     cusparseMatDescr_t descrM = 0;
     cudaStream_t stream = 0;
-    cusparseSolveAnalysisInfo_t info_l = 0;
-    cusparseSolveAnalysisInfo_t info_u = 0;
+    //cusparseSolveAnalysisInfo_t info_l = 0;
+    //cusparseSolveAnalysisInfo_t info_u = 0;
 
     double *r, *r_old, *rh, *p, *Mp, *AMp, *s, *Ms, *AMs;
     double* M = 0;
@@ -289,8 +289,8 @@ void ChFsiLinearSolverBiCGStab::Solve(int SIZE,
             printf("Iterations=%d\t ||b-A*x||=%.4e\n", Iterations, nrmr);
     }
 
-    cusparseDestroySolveAnalysisInfo(info_l);
-    cusparseDestroySolveAnalysisInfo(info_u);
+    //cusparseDestroySolveAnalysisInfo(info_l);
+    //cusparseDestroySolveAnalysisInfo(info_u);
     cudaFree(r);
     cudaFree(r_old);
     cudaFree(rh);
