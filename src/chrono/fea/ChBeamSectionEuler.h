@@ -382,9 +382,11 @@ public:
                                 const double mSy,      ///< shear center y displacement respect to centerline
                                 const double mSz,      ///< shear center z displacement respect to centerline
                                 const double mmu,      ///< mass per unit length  
-                                const double mJxx      ///< polar inertia Jxx per unit lenght
+                                const double mJxx,     ///< polar inertia Jxx per unit lenght, measured respect to centerline
+                                const double mMy = 0,  ///< mass center y displacement respect to centerline
+                                const double mMz = 0   ///< mass center z displacement respect to centerline
     ) :
-        Ax(mAx), Txx(mTxx), Byy(mByy), Bzz(mBzz), alpha(malpha), Cy(mCy), Cz(mCy), Sy(mSy), Sz(mSz), mu(mmu), Jxx(mJxx) {}
+        Ax(mAx), Txx(mTxx), Byy(mByy), Bzz(mBzz), alpha(malpha), Cy(mCy), Cz(mCz), Sy(mSy), Sz(mSz), mu(mmu), Jxx(mJxx), My(mMy), Mz(mMz) {}
 
 
     virtual ~ChBeamSectionEulerGeneric() {}
