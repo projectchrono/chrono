@@ -91,7 +91,7 @@ float collection_time = 1 / double(update_rate);  // typically 1/update rate
 double step_size = 1e-3;
 
 // Simulation end time
-float end_time = 20.0f;
+float end_time = 2000.0f;
 
 // Save lidar point clouds
 bool save = false;
@@ -126,13 +126,13 @@ int main(int argc, char* argv[]) {
     mesh_body->SetPos({0, 0, 0});
     mesh_body->AddAsset(trimesh_shape);
     mesh_body->SetBodyFixed(true);
-    mphysicalSystem.Add(mesh_body);
+    // mphysicalSystem.Add(mesh_body);
 
     // --------------------------------------------
     // add a few box bodies to be sensed by a lidar
     // --------------------------------------------
     auto box_body = chrono_types::make_shared<ChBodyEasyBox>(100, 100, 1, 1000, true, false);
-    box_body->SetPos({0, 0, -3});
+    box_body->SetPos({0, 0, -1});
     box_body->SetBodyFixed(true);
     mphysicalSystem.Add(box_body);
 
@@ -156,7 +156,7 @@ int main(int argc, char* argv[]) {
     // -----------------------------------------------
     // Create a lidar and add it to the sensor manager
     // -----------------------------------------------
-    auto offset_pose = chrono::ChFrame<double>({-4, 0, 4}, Q_from_AngAxis(0, {0, 1, 0}));
+    auto offset_pose = chrono::ChFrame<double>({-4, 0, 1}, Q_from_AngAxis(0, {0, 1, 0}));
 
     auto lidar = chrono_types::make_shared<ChLidarSensor>(box_body,        // body lidar is attached to
                                                           update_rate,     // scanning rate in Hz
@@ -164,7 +164,7 @@ int main(int argc, char* argv[]) {
                                                           900,             // number of horizontal samples
                                                           30,              // number of vertical channels
                                                           horizontal_fov,  // horizontal field of view
-                                                          max_vert_angle, min_vert_angle  // vertical field of view
+                                                          max_vert_angle, min_vert_angle, 100  // vertical field of view
     );
     lidar->SetName("Lidar Sensor 1");
     lidar->SetLag(lag);
@@ -198,7 +198,7 @@ int main(int argc, char* argv[]) {
 
     // Render the point cloud
     if (vis)
-        lidar->PushFilter(chrono_types::make_shared<ChFilterVisualizePointCloud>(640, 480, "Lidar Point Cloud"));
+        lidar->PushFilter(chrono_types::make_shared<ChFilterVisualizePointCloud>(640, 480, 2, "Lidar Point Cloud"));
 
     // Access the lidar data as an XYZI buffer
     lidar->PushFilter(chrono_types::make_shared<ChFilterXYZIAccess>());
@@ -225,6 +225,7 @@ int main(int argc, char* argv[]) {
                                                            horizontal_fov,  // horizontal field of view
                                                            max_vert_angle,
                                                            min_vert_angle,    // vertical field of view
+                                                           100,               // max distance
                                                            sample_radius,     // sample radius
                                                            divergence_angle,  // divergence angle
                                                            return_mode,       // return mode for the lidar
@@ -266,7 +267,7 @@ int main(int argc, char* argv[]) {
 
     // Render the point cloud
     if (vis)
-        lidar2->PushFilter(chrono_types::make_shared<ChFilterVisualizePointCloud>(640, 480, "Lidar Point Cloud"));
+        lidar2->PushFilter(chrono_types::make_shared<ChFilterVisualizePointCloud>(640, 480, 1, "Lidar Point Cloud"));
 
     // Access the lidar data as an XYZI buffer
     lidar2->PushFilter(chrono_types::make_shared<ChFilterXYZIAccess>("XYZI Access"));
@@ -294,8 +295,9 @@ int main(int argc, char* argv[]) {
     float ch_time = 0.0;
 
     UserDIBufferPtr di_ideal_ptr;
-    UserXYZIBufferPtr xyzi_ideal_ptr;
-    UserXYZIBufferPtr xyzi_model_ptr;
+
+    UserXYZIBufferPtr xyzi_buf;
+    UserXYZIBufferPtr xyzi_buf_old;
 
     std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
 
@@ -316,25 +318,6 @@ int main(int argc, char* argv[]) {
         //               di_ideal_ptr->Buffer[0].intensity
         //               << "]" << std::endl
         //               << std::endl;
-        // }
-
-        // Access the XYZI buffer from the ideal
-        // lidar xyzi_ideal_ptr =
-        // lidar->GetMostRecentBuffer<UserXYZIBufferPtr>();
-        // if (xyzi_ideal_ptr->Buffer) {
-        //     std::cout << "XYZI buffer recieved
-        //     from ideal lidar model." << std::endl;
-        //     std::cout << "\tFirst Point: [";
-        //     std::cout <<
-        //     xyzi_ideal_ptr->Buffer[0].x << ", ";
-        //     std::cout <<
-        //     xyzi_ideal_ptr->Buffer[0].y << ", ";
-        //     std::cout <<
-        //     xyzi_ideal_ptr->Buffer[0].z << ", ";
-        //     std::cout <<
-        //     xyzi_ideal_ptr->Buffer[0].intensity;
-        //     std::cout << "]" << std::endl <<
-        //     std::endl;
         // }
 
         // Access the XYZI buffer from the model

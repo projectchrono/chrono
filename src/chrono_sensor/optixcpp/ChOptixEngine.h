@@ -41,9 +41,21 @@
 namespace chrono {
 namespace sensor {
 
+/// @addtogroup sensor_optix
+/// @{
+
+/// Optix Engine that is responsible for managing all render-based sensors.
+/// The is the interface between the dynamic simulation and the rendering/ray tracing.
+/// All ray tracing code is setup and managed via this class.
 class CH_SENSOR_API ChOptixEngine {
+    /// Class for managing dynamic meshes such as SCM terrain
     class DynamicMesh {
       public:
+        /// Class constructor
+        /// @param mesh The Chrono core mesh object that reflects this dynamic mesh geometry
+        /// @param tri_group The triangle group that refects the optix version of the geometry
+        /// @param vertex_buffer Direct handle to the vertex buffer for modifying values in the optix scene
+        /// @param normal_buffer Direct handle to the normal buffer for modifying values in the optix scene
         DynamicMesh(std::shared_ptr<geometry::ChTriangleMeshConnected> mesh,
                     optix::GeometryGroup tri_group,
                     optix::Buffer vertex_buffer,
@@ -94,78 +106,111 @@ class CH_SENSOR_API ChOptixEngine {
     };
 
   public:
-    // ChOptixEngine(ChSystem* sys, bool verbose = false);
+    /// Class constructor
+    /// @param sys Pointer to the ChSystem that defines the simulation
+    /// @param device_id The id of the GPU which this engine is running on
+    /// @param max_scene_reflections The maximum number of ray recursions that should be allowed by this engine
+    /// @param verbose Sets verbose level for the engine
+    /// @param max_keyframes The number of keyframes to used for motion blur. Defaults to minimum of 2 which is smallest
+    /// that enables interpolation.
     ChOptixEngine(ChSystem* sys,
                   int device_id,
                   int max_scene_reflections = 9,
                   bool verbose = false,
                   int max_keyframes = 2);
+
+    /// Class destructor
     ~ChOptixEngine();
 
+    /// Add a sensor for this engine to manage and update
+    /// @param sensor A shared pointer to an Optix-based sensor
     void AssignSensor(std::shared_ptr<ChOptixSensor> sensor);
+
+    /// Updates the sensors if they need to be updated based on simulation time and last update time.
+    /// @param scene The scene that should be rendered with.
     void UpdateSensors(std::shared_ptr<ChScene> scene);
 
-    void ConstructScene();  /// tells the optix manager to construct the scene from scratch, translating all objects
-                            /// from Chrono to Optix
-    void AddInstancedStaticSceneMeshes(
-        std::vector<ChFrame<>>& frames,
-        std::shared_ptr<ChTriangleMeshShape>
-            mesh);  /// adds a static triangle mesh to the scene that is external to Chrono. This is a way to add
-                    /// complex environment that includes trees, etc
+    /// Tells the optix manager to construct the scene from scratch, translating all objects
+    /// from Chrono to Optix
+    void ConstructScene();
 
-    // optix::Context GetOptixContext() { return m_context; }  // return the optix context for this group
-    // optix::Group GetRootNode() { return m_root; }           // return the root node of this scene
-    int GetDevice() { return m_deviceId; }  // can only look at the device number, cannot change it
+    /// adds a static triangle mesh to the scene that is external to Chrono. This is a way to add
+    /// complex environment that includes trees, etc
+    /// @param frames The reference frames that encode location, orientation, and scale. One for each object that should
+    /// be added to the environment
+    /// @param mesh The mesh that should be added at each reference frame.
+    void AddInstancedStaticSceneMeshes(std::vector<ChFrame<>>& frames, std::shared_ptr<ChTriangleMeshShape> mesh);
+
+    /// Way to query the device ID on which the engine is running. CANNOT BE MODIFIED since the engine will have been
+    /// already constructed
+    /// @return the GPU ID
+    int GetDevice() { return m_deviceId; }
+
+    /// Query the number of sensors for which this engine is responsible.
+    /// @return The number of sensors managed by this engine
     int GetNumSensor() { return (int)m_assignedSensor.size(); }
-    optix::Context GetContext() { return m_context; }  /// gives the user the optix context
-    std::vector<std::shared_ptr<ChOptixSensor>> GetSensor() {
-        return m_assignedSensor;
-    }  /// returns the list of sensors attached to the engine
+
+    /// Gives the user the optix context. This should be used with caution and should not be required for typical
+    /// simulations.
+    /// @return The Optix context
+    optix::Context GetContext() { return m_context; }
+
+    /// Gives the user access to the list of sensors being managed by this engine.
+    /// @return the vector of Chrono sensors
+    std::vector<std::shared_ptr<ChOptixSensor>> GetSensor() { return m_assignedSensor; }
 
   private:
-    void Start();  /// start the render thread
-    void Stop();   /// stop the render thread
+    void Start();  ///< start the render thread
+    void Stop();   ///< stop the render thread
 
-    bool m_verbose;     /// whether the context should print errors and warnings
-    void Initialize();  /// intialize function for the optix engine. This is what gets everything up and running
-    void Process();     // function that processes sensor added to its queue
+    bool m_verbose;     ///< whether the context should print errors and warnings
+    void Initialize();  ///< intialize function for the optix engine. This is what gets everything up and running
+    void Process();     ///< function that processes sensor added to its queue
 
-    void UpdateCameraTransforms();  /// updates all of the camera position and orientations
-    void UpdateBodyTransforms();    /// updates all the transforms associated with the bodies
-    void PackKeyFrames();           /// updates all of the bodies and places their transforms into a list of keyframes.
-    void UpdateDynamicMeshes();     /// updates the dynamic meshes in the scene
+    void UpdateCameraTransforms();  ///< updates all of the camera position and orientations
+    void UpdateBodyTransforms();    ///< updates all the transforms associated with the bodies
+    void PackKeyFrames();           ///< updates all of the bodies and places their transforms into a list of keyframes.
+    void UpdateDynamicMeshes();     ///< updates the dynamic meshes in the scene
     void UpdateSceneDescription(
-        std::shared_ptr<ChScene> scene);  /// updates the scene characteristics such as lights, background, etc
+        std::shared_ptr<ChScene> scene);  ///< updates the scene characteristics such as lights, background, etc
 
-    optix::Material GetDefaultMaterial();  // returns a default material, creating it if it does not yet exist
+    optix::Material GetDefaultMaterial();  ///< returns a default material, creating it if it does not yet exist
     optix::Material CreateMaterial(
-        std::shared_ptr<ChVisualMaterial> chmat);               /// creates a new material based on a ChVisualMaterial
-    optix::TextureSampler CreateTexture(std::string filename);  /// creates a texture from file
-    optix::TextureSampler CreateTexture();                      /// creates a default texture
+        std::shared_ptr<ChVisualMaterial> chmat);               ///< creates a new material based on a ChVisualMaterial
+    optix::TextureSampler CreateTexture(std::string filename);  ///< creates a texture from file
+    optix::TextureSampler CreateTexture();                      ///< creates a default texture
 
     optix::Geometry
-    GetOptixBoxGeometry();  /// gets the box geometry and creates one if the single version doesn't yet exist
-    optix::Geometry GetOptixSphereGeometry();    /// get the sphere geometry and creates it if it does not yet exist
-    optix::Geometry GetOptixCylinderGeometry();  /// get the cylinder geometry and creates it if it does not yet exist
+    GetOptixBoxGeometry();  ///< gets the box geometry and creates one if the single version doesn't yet exist
+    optix::Geometry GetOptixSphereGeometry();    ///< get the sphere geometry and creates it if it does not yet exist
+    optix::Geometry GetOptixCylinderGeometry();  ///< get the cylinder geometry and creates it if it does not yet exist
 
+    /// Creates an optix box visualization object from a Chrono box shape
     void boxVisualization(std::shared_ptr<ChBoxShape> box_shape,
                           std::shared_ptr<ChVisualization> visual_asset,
                           optix::Group asset_group);
+    /// Creates an optix sphere visualization object from a Chrono sphere shape
     void sphereVisualization(std::shared_ptr<ChSphereShape> sphere_shape,
                              std::shared_ptr<ChVisualization> visual_asset,
                              optix::Group asset_group);
+
+    /// Creates an optix cylinder visualization from a Chrono cylinder shape
     void cylinderVisualization(std::shared_ptr<ChCylinderShape> cylinder_shape,
                                std::shared_ptr<ChVisualization> visual_asset,
                                optix::Group asset_group);
+
+    /// Creates a static optix triangle mesh visualization from a Chrono triangle mesh shape
     void staticTrimeshVisualization(std::shared_ptr<ChTriangleMeshShape> trimesh_shape,
                                     std::shared_ptr<ChVisualization> visual_asset,
                                     optix::Group asset_group);
+
+    /// Creates a dynamic optix triangle mesh visualization from a Chrono triangle mesh shape
     void dynamicTrimeshVisualization(std::shared_ptr<ChTriangleMeshShape> trimesh_shape,
                                      std::shared_ptr<ChVisualization> visual_asset,
                                      optix::Group asset_group);
 
-    std::thread m_thread;                                  /// worker thread for performing render operations
-    std::vector<std::shared_ptr<ChSensor>> m_renderQueue;  /// list of sensors for the engine to manage to process
+    std::thread m_thread;                                  ///< worker thread for performing render operations
+    std::vector<std::shared_ptr<ChSensor>> m_renderQueue;  ///< list of sensors for the engine to manage to process
 
     std::deque<std::tuple<float, std::vector<std::vector<float>>>>
         m_keyframes;  ///< queue of keyframes (queue of keyframes, each keyframe has a time and N bodies (vector), each
@@ -228,6 +273,8 @@ class CH_SENSOR_API ChOptixEngine {
     int m_deviceId;                                             ///< ID of the GPU the context should be attached to
     int m_recursions;                                           ///< number of allowable ray tracing recursions in optix
 };
+
+/// @} sensor_optix
 
 }  // namespace sensor
 }  // namespace chrono

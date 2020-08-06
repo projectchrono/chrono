@@ -119,13 +119,11 @@ CH_SENSOR_API void ChFilterCameraNoisePixDep::Apply(std::shared_ptr<ChSensor> pS
         // we need id of first device for this context (should only have 1 anyway)
         int device_id = pOpx->Buffer->getContext()->getEnabledDevices()[0];
         ptr = pOpx->Buffer->getDevicePointer(device_id);  // hard coded to grab from device 0
-        // cuda_camera_noise_pixel_dependent(ptr, (int)width, (int)height, m_gain, m_sigma_read, m_sigma_adc);
+
     } else if (pRGBA) {
         width = pRGBA->Width;
         height = pRGBA->Height;
-
         ptr = pRGBA->Buffer.get();
-        // cuda_camera_noise_pixel_dependent(ptr, (int)width, (int)height, m_gain, m_sigma_read, m_sigma_adc);
     }
 
     // must initialize noise during first run since we don't know the dimensions in the initialize function

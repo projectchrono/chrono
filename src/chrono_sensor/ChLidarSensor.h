@@ -59,6 +59,9 @@ class CH_SENSOR_API ChLidarSensor : public ChOptixSensor {
     /// @param divergence_angle The divergence angle of the lidar's laser beam
     /// @param return_mode The return mode for lidar data when multiple objects are visible
     /// @param lidar_model The model to be used for generating lidar data
+    /// @param clip_near Near clipping distance so that lidar sensor can be easily placed inside a visualization object
+    /// (sensor housing)
+
     ChLidarSensor(std::shared_ptr<chrono::ChBody> parent,
                   float updateRate,
                   chrono::ChFrame<double> offsetPose,
@@ -67,10 +70,12 @@ class CH_SENSOR_API ChLidarSensor : public ChOptixSensor {
                   float hfov,
                   float max_vertical_angle,
                   float min_vertical_angle,
+                  float max_distance,
                   unsigned int sample_radius = 1,
                   float divergence_angle = .003,
                   LidarReturnMode return_mode = STRONGEST_RETURN,
-                  LidarModelType lidar_model = RAYCAST);
+                  LidarModelType lidar_model = RAYCAST,
+                  float clip_near = 1e-3);
 
     /// Class destructor
     ~ChLidarSensor();
@@ -96,10 +101,12 @@ class CH_SENSOR_API ChLidarSensor : public ChOptixSensor {
     float m_hFOV;                   ///< the horizontal field of view of the sensor
     float m_max_vert_angle;         ///< maximum vertical angle of the rays
     float m_min_vert_angle;         ///< minimum vertical angle of the rays
+    float m_max_distance;           ///< maximum distance for lidar based on 90% reflectance
     LidarModelType m_model_type;    ///< lens model used by the camera
     unsigned int m_sample_radius;   ///< radius of the beam samples
     float m_divergence_angle;       ///< divergence angle of the beam
     LidarReturnMode m_return_mode;  ///< return mode of the lidar
+    float m_clip_near;              ///< near clipping distance so that lidar sensor housings can be transparent to self
 };
 
 /// @} sensor_sensors

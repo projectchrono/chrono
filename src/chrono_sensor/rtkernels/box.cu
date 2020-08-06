@@ -27,7 +27,6 @@ rtDeclareVariable(optix::Ray, ray, rtCurrentRay, );
 rtDeclareVariable(float, t_hit, rtIntersectionDistance, );
 rtDeclareVariable(float3, tangent_vector, attribute tangent_vector, );
 rtDeclareVariable(float3, shading_normal, attribute shading_normal, );
-// rtDeclareVariable(float3, geometric_normal, attribute geometric_normal, );
 rtDeclareVariable(float2, texcoord, attribute texcoord, );
 
 static __device__ float3 box_normal(float t, float3 t0, float3 t1) {

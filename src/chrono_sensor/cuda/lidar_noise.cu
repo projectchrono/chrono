@@ -43,7 +43,7 @@ __global__ void lidar_normal_noise_kernel(float* bufPtr,
         // get the intensity from the buffer
         float i = bufPtr[index * 4 + 3];
 
-        if (i > 1e-3) {
+        if (i > 1e-6) {
             // get values from the buffer
             float x = bufPtr[index * 4];
             float y = bufPtr[index * 4 + 1];
@@ -65,6 +65,7 @@ __global__ void lidar_normal_noise_kernel(float* bufPtr,
                 theta += curand_normal(&rng_states[index]) * stdev_h_angle;
                 phi += curand_normal(&rng_states[index]) * stdev_v_angle;
                 i += curand_normal(&rng_states[index]) * stdev_intensity;
+                i = i > 0 ? i : 0;
 
                 // convert back to XZY
                 z = sin(phi) * range;

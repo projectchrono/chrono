@@ -25,6 +25,9 @@ import time
 import math
 
 def main():
+
+    chrono.SetChronoDataPath("../../../data/")
+
     # -----------------
     # Create the system
     # -----------------
@@ -65,8 +68,9 @@ def main():
         horizontal_samples,     # number of horizontal samples
         vertical_samples,       # number of vertical channels
         horizontal_fov,         # horizontal field of view
-        max_vert_angle,           # vertical field of view
+        max_vert_angle,         # vertical field of view
         min_vert_angle,
+        100.0,                    #max lidar range
         sample_radius,          # sample radius
         divergence_angle,       # divergence angle
         return_mode,            # return mode for the lidar
@@ -97,7 +101,7 @@ def main():
 
     if vis:
         # Visualize the point cloud
-        lidar.PushFilter(sens.ChFilterVisualizePointCloud(640, 480, "Lidar Point Cloud"))
+        lidar.PushFilter(sens.ChFilterVisualizePointCloud(640, 480, 1.0, "Lidar Point Cloud"))
 
     # Provides the host access to the XYZI data
     lidar.PushFilter(sens.ChFilterXYZIAccess())

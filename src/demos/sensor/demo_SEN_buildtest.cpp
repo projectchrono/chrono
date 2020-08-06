@@ -255,7 +255,7 @@ int main(int argc, char* argv[]) {
         923,                                                                // horizontal samples
         24,                                                                 // vertical samples/channels
         (float)2.0f * (float)CH_C_PI / 3.0f,                                // horizontal field of view
-        (float)CH_C_PI / 8.f, -(float)CH_C_PI / 8.f                         // vertical field of view
+        (float)CH_C_PI / 8.f, -(float)CH_C_PI / 8.f, 100.0                  // vertical field of view
     );
     lidar->SetName("Lidar Sensor");
     lidar->SetLag(.1);
@@ -265,7 +265,7 @@ int main(int argc, char* argv[]) {
         lidar->PushFilter(chrono_types::make_shared<ChFilterVisualize>(923, 48, "Raw Lidar Data"));
     lidar->PushFilter(chrono_types::make_shared<ChFilterPCfromDepth>());
     if (display_data)
-        lidar->PushFilter(chrono_types::make_shared<ChFilterVisualizePointCloud>(640, 480, "Lidar Point Cloud"));
+        lidar->PushFilter(chrono_types::make_shared<ChFilterVisualizePointCloud>(640, 480, 2, "Lidar Point Cloud"));
     lidar->PushFilter(chrono_types::make_shared<ChFilterXYZIAccess>());
     // lidar->PushFilter(chrono_types::make_shared<ChFilterXYZIAccess>());
     manager->AddSensor(lidar);

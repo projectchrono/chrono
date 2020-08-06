@@ -38,6 +38,8 @@ rtDeclareVariable(float, end_time, , );    // launch time for the sensor
 rtDeclareVariable(float, hFOV, , );            // lidar horizontal field of view
 rtDeclareVariable(float, max_vert_angle, , );  // lidar vertical field of view
 rtDeclareVariable(float, min_vert_angle, , );  // lidar vertical field of view
+rtDeclareVariable(float, max_distance, , );    // lidar maximum distance
+rtDeclareVariable(float, clip_near, , );  // lidar minimum distance -> for use when lidar is placed within its casing
 
 rtDeclareVariable(float3, origin_0, , );  // origin at time 0
 rtDeclareVariable(float3, origin_1, , );  // origin at time 1
@@ -81,7 +83,7 @@ RT_PROGRAM void spherical() {
     float3 ray_direction = normalize(forward * x + left * y + up * z);
 
     // create a ray based on the calculated parameters
-    optix::Ray ray(ray_origin, ray_direction, LIDAR_RAY_TYPE, scene_epsilon, max_scene_distance);
+    optix::Ray ray(ray_origin, ray_direction, LIDAR_RAY_TYPE, clip_near, max_distance);
 
     // set the ray pay load
     PerRayData_lidar prd_lidar = make_lidar_data(0, 1.f, 0);
@@ -151,7 +153,7 @@ RT_PROGRAM void multi_sample() {
     float3 ray_direction = normalize(forward * x + left * y + up * z);
 
     // create a ray based on the calculated parameters
-    optix::Ray ray(ray_origin, ray_direction, LIDAR_RAY_TYPE, scene_epsilon, max_scene_distance);
+    optix::Ray ray(ray_origin, ray_direction, LIDAR_RAY_TYPE, clip_near, max_distance);
 
     // set the ray pay load
     PerRayData_lidar prd_lidar = make_lidar_data(0, 1.f, 0);

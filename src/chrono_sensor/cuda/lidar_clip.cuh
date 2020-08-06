@@ -9,33 +9,27 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Asher Elmquist
+// Authors: Eric Brandt, Asher Elmquist
 // =============================================================================
 //
-//
 // =============================================================================
-
-#include "chrono_sensor/scene/ChScene.h"
-#include "chrono/physics/ChSystem.h"
 
 namespace chrono {
 namespace sensor {
 
-CH_SENSOR_API ChScene::ChScene() {
-    m_background.color = {0.5f, 0.6f, 0.7f};
-    m_background.has_texture = false;
-    m_pointlights = std::vector<PointLight>();
-}
+/// @addtogroup sensor_cuda
+/// @{
 
-CH_SENSOR_API ChScene::~ChScene() {}
+/// Function for reduction of data when multiple samples are used per beam. The performs a mean average of the data with
+/// the sample radius.
+/// @param buf Input/output device pointer to raw lidar data. Computation will be done in-place
+/// @param width Width of the input data
+/// @param height Height of the inpute data
+/// @param threshold Intensity threshold for removing points
+/// @param default_dist Default distance to use when removing points
+void cuda_lidar_clip(float* buf, int width, int height, float threshold, float default_dist);
 
-void ChScene::AddPointLight(ChVector<float> pos, ChVector<float> color, float max_range) {
-    PointLight p;
-    p.pos = optix::make_float3(pos.x(), pos.y(), pos.z());
-    p.color = optix::make_float3(color.x(), color.y(), color.z());
-    p.max_range = max_range;
-    m_pointlights.push_back(p);
-}
+/// @}
 
 }  // namespace sensor
 }  // namespace chrono

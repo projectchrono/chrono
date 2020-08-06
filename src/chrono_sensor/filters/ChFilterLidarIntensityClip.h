@@ -14,14 +14,11 @@
 //
 // =============================================================================
 
-#ifndef CHFILTERVISUALIZEPOINTCLOUD_H
-#define CHFILTERVISUALIZEPOINTCLOUD_H
+#ifndef CHFILTERLIDARPOWERCLIP_H
+#define CHFILTERLIDARPOWERCLIP_H
 
-// #include "glad.h"
-// #include <GL/glew.h>
-// #include <GLFW/glfw3.h>
-
-#include "chrono_sensor/filters/ChFilterVisualize.h"
+#include "chrono_sensor/filters/ChFilter.h"
+#include "chrono_sensor/ChLidarSensor.h"
 
 namespace chrono {
 namespace sensor {
@@ -32,21 +29,16 @@ class ChSensor;
 /// @addtogroup sensor_filters
 /// @{
 
-/// A filter that, when applied to a sensor, creates a GUI window to visualize the sensor (using GLFW). This visualizes
-/// data as a point cloud. Will only work on data that can be interpreted as point cloud data.
-class CH_SENSOR_API ChFilterVisualizePointCloud : public ChFilterVisualize {
+//? a filter that removes points with intensity below a threshold
+class CH_SENSOR_API ChFilterLidarIntensityClip : public ChFilter {
   public:
     /// Class constructor
-    /// @param w Width of the window to create
-    /// @param h Height of the window to create
-    /// @param zoom Value to multiply by the default box in which points are viewed
-    /// @param name String name of the filter
-    ChFilterVisualizePointCloud(int w, int h, float zoom, std::string name = {});
+    /// @param intensity_thresh Intensity threshold under which points will be removed
+    /// @param default_value default value for distance when intensity is below threshold
+    /// @param name The string name of the filter
+    ChFilterLidarIntensityClip(float intensity_thresh, float default_value, std::string name = {});
 
-    /// Class destructor
-    virtual ~ChFilterVisualizePointCloud();
-
-    /// Apply function. Visualizes data as an image.
+    /// Apply function. Reduces lidar data from raw to processed.
     /// @param pSensor A pointer to the sensor on which the filter is attached.
     /// @param bufferInOut A buffer that is passed into the filter.
     virtual void Apply(std::shared_ptr<ChSensor> pSensor, std::shared_ptr<SensorBuffer>& bufferInOut);
@@ -56,7 +48,11 @@ class CH_SENSOR_API ChFilterVisualizePointCloud : public ChFilterVisualize {
     virtual void Initialize(std::shared_ptr<ChSensor> pSensor) {}
 
   private:
-    float m_zoom;  ///< value for setting the zoom factor of the visualization box
+    std::shared_ptr<SensorDeviceDIBuffer>
+        m_buffer;              ///< for holding the output buffer -> computations here can be performed in place though
+    float m_intensity_thresh;  ///< intensity threshold for clipping data. Can be determined by max distance of lidar
+                               ///< for object with 90% return -> see ChLidarSensor.cpp
+    float m_default_dist;      ///< default distance value used when intensity fall below threshold
 };
 
 /// @}

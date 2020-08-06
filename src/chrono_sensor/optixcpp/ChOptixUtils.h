@@ -123,7 +123,7 @@ const std::string ptx_pre = "ChronoEngine_sensor_generated_";
 /// suffix for ptx file
 const std::string ptx_suff = ".cu.ptx";
 
-/// @}
+/// @} sensor_optix
 
 }  // namespace sensor
 }  // namespace chrono

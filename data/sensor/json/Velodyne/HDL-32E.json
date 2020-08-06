@@ -10,6 +10,7 @@
     "Horizontal Field of View": 6.28318530718,
     "Max Vertical Angle": 0.186227,
     "Min Vertical Angle": -0.53529,
+    "Max Distance": 100.0,
     "Lag": 0.01,
     "Collection Window": 0.05,
     "Divergence Angle": 0.003,
@@ -34,6 +35,7 @@
       "Filter": "ChFilterVisualizePointCloud",
       "Width": 640,
       "Height": 480,
+      "Zoom": 2.0,
       "Name":"Vis"
     },
     {

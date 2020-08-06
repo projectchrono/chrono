@@ -194,6 +194,7 @@ set(ChronoEngine_sensor_CUDA_SOURCES
     cuda/curand_utils.cu
     cuda/image_ops.cu
     cuda/nn_prep.cu
+    cuda/lidar_clip.cu
 )
 set(ChronoEngine_sensor_CUDA_HEADERS
 	cuda/grayscale.cuh
@@ -204,6 +205,7 @@ set(ChronoEngine_sensor_CUDA_HEADERS
     cuda/curand_utils.cuh
     cuda/image_ops.cuh
     cuda/nn_prep.cuh
+    cuda/lidar_clip.cuh
 )
 
 source_group("Cuda" FILES
@@ -295,6 +297,7 @@ set(ChronoEngine_sensor_FILTERS_SOURCES
     filters/ChFilterPCfromDepth.cpp
     filters/ChFilterVisualizePointCloud.cpp
     filters/ChFilterImageOps.cpp
+    filters/ChFilterLidarIntensityClip.cpp
 )
 set(ChronoEngine_sensor_FILTERS_HEADERS
   	filters/ChFilter.h
@@ -312,6 +315,7 @@ set(ChronoEngine_sensor_FILTERS_HEADERS
     filters/ChFilterPCfromDepth.h
     filters/ChFilterVisualizePointCloud.h
     filters/ChFilterImageOps.h
+    filters/ChFilterLidarIntensityClip.h
 )
 
 source_group("Filters" FILES

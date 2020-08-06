@@ -33,82 +33,45 @@
 namespace chrono {
 namespace sensor {
 
-// struct TimeDate {
-//     int time;
-//     int date;
-// };
-
-// struct SceneBody {
-//     float pos[7];       // x,y,z,e0,e1,e2,e3,e4
-//     float vel[6];       // x_dt, y_dt, z_dt, angx_dt, angy_dt, angz_dt
-//     ChBody chronobody;  // pointer to corresponding chrono body
-//     // optix::Transform optixtransform;  // pointer to corresponding optix transform
-// };
+/// @addtogroup sensor_scene
+/// @{
 
 struct Background {
-    ChVector<float> color;
-    bool has_texture;
-    std::string env_tex;
-    bool has_changed;
+    ChVector<float> color;  ///< background color
+    bool has_texture;       ///< sets whether a texture should be used for background instead of color
+    std::string env_tex;    ///< full path name of the texture
+    bool has_changed;       ///< set if the background was changed since last scene update
 };
 
-// struct Keyframe {
-//     // float sim_time;     // simulation time of the frame
-//     // SceneBody* bodies;  // list of body positions
-//
-//     // Snow snow;                // state of the snow
-//     // Rain rain;                // state of the rain
-//     // Fog fog;                  // state of the fog
-//     // Wind wind;                // state of the wind
-//     // Temperature temperature;  // state of the temperature
-//     // SunSky sunsky;            // state of the sky
-//
-//     std::vector<PointLight> pointlights;  // list of point lights for that keyframe
-// };
-
+/// Scene class used for camera renderings. Includes environment colors, lights, etc
 class CH_SENSOR_API ChScene {
   public:
+    /// Class constructor
     ChScene();
+    /// Class destructor
     ~ChScene();
 
+    /// Add a point light that emits light in all directions.
+    /// @param pos The global position of the light source
+    /// @param color The golor of the light source
+    /// @param the range at which the light intensity is equal to 1% of its maximum intensity
     void AddPointLight(ChVector<float> pos, ChVector<float> color, float max_range);
+
+    /// Function for gaining access to the vector of point lights and can be used to modify lighting dynamically.
+    /// @return m_pointlights A reference to the vector of point lights
     std::vector<PointLight>& GetPointLights() { return m_pointlights; }
 
-    // void SetDateTime();
-    // void GetDateTime();
-
-    // void SetRain(Rain rain) { m_rain = rain; }
-    // Rain GetRain() { return m_rain; }
-    // void SetSnow(Snow snow) { m_snow = snow; }
-    // Snow GetSnow() { return m_snow; }
-    // void SetFog(Fog fog) { m_fog = fog; }
-    // Fog GetFog() { return m_fog; }
-
+    /// Function for gaining access to the background. Can be used to dynamically change the background color, or
+    /// texture
+    /// @return m_background A reference to the scene background used for rendering
     Background& GetBackground() { return m_background; }
 
-    // bool SetMaxKeyframes(int num_frames);
-    // int GetMaxKeyframes() { return max_keyframes; }
-    //
-    // void PackFrame(ChSystem* pSystem);        // saves the keyframe with the current states of the scene
-    // std::deque<Keyframe> GetKeyframesCopy();  // return a copy of the keyframes (is or will be threadsafe)
-
   private:
-    // TimeDate m_timedate;
-    // SunSky m_sunsky;
-    // Temperature m_temperature;
-    // Rain m_rain;
-    // Snow m_snow;
-    // Wind m_wind;
-    // Fog m_fog;
-
-    // int max_keyframes = 10;
-    // Keyframe m_current_frame;
-    // std::deque<Keyframe> m_keyframes;
-    // std::mutex keyframe_mutex;
-
-    std::vector<PointLight> m_pointlights;  // list of point lights for that keyframe
-    Background m_background;
+    std::vector<PointLight> m_pointlights;  //< list of point lights in the scene
+    Background m_background;                ///< The background object
 };
+
+/// @} sensor_scene
 
 }  // namespace sensor
 }  // namespace chrono

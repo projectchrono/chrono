@@ -84,7 +84,7 @@ int main(int argc, char* argv[]) {
         1,                                                                 // number of horizontal samples
         1,                                                                 // number of vertical channels
         1,                                                                 // horizontal field of view
-        0, 0                                                               // vertical field of view
+        0, 0, 100                                                          // vertical field of view
     );
     lidar1->SetName("Lidar Sensor");
     lidar1->PushFilter(std::make_shared<ChFilterDIAccess>());
@@ -97,7 +97,7 @@ int main(int argc, char* argv[]) {
         1,                                                                 // number of horizontal samples
         1,                                                                 // number of vertical channels
         1,                                                                 // horizontal field of view
-        0, 0,                                                              // vertical field of view
+        0, 0, 100,                                                         // vertical field of view
         10,                // radius of samples to use, 1->1 sample,2->9 samples, 3->25 samples...
         .003,              // 3 mradius cited by velodyne
         STRONGEST_RETURN,  // return mode for the lidar
@@ -116,8 +116,7 @@ int main(int argc, char* argv[]) {
         1,                                                                 // number of horizontal samples
         1,                                                                 // number of vertical channels
         1,                                                                 // horizontal field of view
-        0,
-        0,                 // vertical field of view
+        0, 0, 100,                                                         // vertical field of view
         5,                 // radius of samples to use, 1->1 sample,2->9 samples, 3->25 samples...
         .003,              // 3 mradius cited by velodyne
         STRONGEST_RETURN,  // return mode for the lidar

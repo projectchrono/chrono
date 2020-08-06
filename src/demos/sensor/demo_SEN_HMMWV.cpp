@@ -121,6 +121,7 @@ float cam_fov = 1.408;
 float lidar_hfov = 2 * CH_C_PI;   // 360 degrees
 float lidar_vmax = CH_C_PI / 12;  // 15 degrees up
 float lidar_vmin = -CH_C_PI / 6;  // 30 degrees down
+float lidar_max_distance = 100.0;
 
 // -----------------------------------------------------------------------------
 // Simulation parameters
@@ -385,7 +386,7 @@ int main(int argc, char* argv[]) {
         horizontal_samples,                                                // horizontal samples
         vertical_samples,                                                  // vertical samples/channels
         lidar_hfov,                                                        // horizontal field of view
-        lidar_vmax, lidar_vmin                                             // vertical field of view
+        lidar_vmax, lidar_vmin, lidar_max_distance                         // vertical field of view
     );
     lidar->SetName("Lidar Sensor");
     lidar->SetLag(1 / lidar_update_rate);
@@ -401,7 +402,7 @@ int main(int argc, char* argv[]) {
 
     if (sensor_vis)
         // Renders the point cloud
-        lidar->PushFilter(chrono_types::make_shared<ChFilterVisualizePointCloud>(640, 480, "Lidar Point Cloud"));
+        lidar->PushFilter(chrono_types::make_shared<ChFilterVisualizePointCloud>(640, 480, 3, "Lidar Point Cloud"));
 
     if (sensor_save)
         // Save the XYZI data

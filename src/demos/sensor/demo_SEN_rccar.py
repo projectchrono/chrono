@@ -416,13 +416,14 @@ lidar = sens.ChLidarSensor(
     200,                                                                 # number of vertical channels
     chrono.CH_C_PI / 2,                                                            # horizontal field of view
     chrono.CH_C_PI / 24.,
-    -chrono.CH_C_PI / 24.                                                        # vertical field of view
+    -chrono.CH_C_PI / 24.,                                                        # vertical field of view
+    100 # max lidar range
 )
 lidar.SetName("Lidar Sensor")
 lidar.PushFilter(sens.ChFilterDIAccess())
 lidar.PushFilter(sens.ChFilterPCfromDepth())
 if(visualize):
-    lidar.PushFilter(sens.ChFilterVisualizePointCloud(640,480))
+    lidar.PushFilter(sens.ChFilterVisualizePointCloud(640,480, 1.0))
 if(save_data):
     lidar.PushFilter(sens.ChFilterSavePtCloud("output/iros/lidar/"))
 lidar.PushFilter(sens.ChFilterXYZIAccess())

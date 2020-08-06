@@ -78,7 +78,7 @@ def main():
     # ------------------------------------------------
     offset_pose = chrono.ChFrameD(chrono.ChVectorD(-8, 0, 1), chrono.Q_from_AngAxis(0, chrono.ChVectorD(0, 1, 0)))
     cam = sens.ChCameraSensor(
-        floor,                  # body lidar is attached to
+        floor,                  # body camera is attached to
         cam_update_rate,        # update rate in Hz
         offset_pose,            # offset pose
         image_width,            # number of horizontal samples
@@ -132,7 +132,8 @@ def main():
         vertical_samples,       # number of vertical channels
         horizontal_fov,         # horizontal field of view
         max_vert_angle,
-        min_vert_angle           # vertical field of view
+        min_vert_angle,           # vertical field of view
+        100 #max lidar range
     )
     lidar.SetName("Lidar Sensor")
     lidar.SetLag(lidar_lag)
@@ -153,7 +154,7 @@ def main():
 
     if vis:
         # Visualize the point cloud
-        lidar.PushFilter(sens.ChFilterVisualizePointCloud(640, 480, "Lidar Point Cloud"))
+        lidar.PushFilter(sens.ChFilterVisualizePointCloud(640, 480, 1.0, "Lidar Point Cloud"))
 
     # Provides the host access to the XYZI data
     lidar.PushFilter(sens.ChFilterXYZIAccess())

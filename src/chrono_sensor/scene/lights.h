@@ -22,11 +22,15 @@
 #include <optix.h>
 #include <optixu/optixu_math_namespace.h>
 
+/// @addtogroup sensor_scene
+/// @{
+
 struct PointLight {
-    optix::float3 pos;
-    optix::float3 color;
-    float max_range;
-    int casts_shadow;
+    optix::float3 pos;    ///< position of the light in global coordinate frame
+    optix::float3 color;  ///< color of the light, encodes intensity as well
+    float max_range;      ///< range of the point light, where maximum range equates to 1% remaining light intensity
 };
+
+/// @} sensor_scene
 
 #endif

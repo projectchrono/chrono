@@ -285,6 +285,7 @@ std::shared_ptr<ChLidarSensor> ReadLidarSensorJSON(const std::string& filename,
     float hfov = properties["Horizontal Field of View"].GetFloat();
     float max_v_angle = properties["Max Vertical Angle"].GetFloat();
     float min_v_angle = properties["Min Vertical Angle"].GetFloat();
+    float max_distance = properties["Max Distance"].GetFloat();
     // float lag = properties["Lag"].GetFloat();
     // float exposure_time = properties["Collection Window"].GetFloat();
 
@@ -310,9 +311,9 @@ std::shared_ptr<ChLidarSensor> ReadLidarSensorJSON(const std::string& filename,
         // for when we add raytraced lidar model
     }
 
-    auto lidar =
-        chrono_types::make_shared<ChLidarSensor>(parent, updateRate, offsetPose, w, h, hfov, max_v_angle, min_v_angle,
-                                                 sample_radius, divergence_angle, return_mode, lidar_model);
+    auto lidar = chrono_types::make_shared<ChLidarSensor>(parent, updateRate, offsetPose, w, h, hfov, max_v_angle,
+                                                          min_v_angle, max_distance, sample_radius, divergence_angle,
+                                                          return_mode, lidar_model);
 
     if (properties.HasMember("Lag")) {
         float lag = properties["Lag"].GetFloat();
@@ -421,7 +422,8 @@ std::shared_ptr<ChFilter> CreateFilterJSON(const Value& value) {
         std::string name = GetStringMemberWithDefault(value, "Name");
         int w = value["Width"].GetInt();
         int h = value["Height"].GetInt();
-        filter = chrono_types::make_shared<ChFilterVisualizePointCloud>(w, h, name);
+        float zoom = value["Zoom"].GetFloat();
+        filter = chrono_types::make_shared<ChFilterVisualizePointCloud>(w, h, zoom, name);
     } else if (type.compare("ChFilterImageResize") == 0) {
         int w = value["Width"].GetInt();
         int h = value["Height"].GetInt();

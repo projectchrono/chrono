@@ -101,13 +101,13 @@ int main(int argc, char* argv[]) {
         1000,                                                              // number of horizontal samples
         10,                                                                // number of vertical channels
         2 * CH_C_PI,                                                       // horizontal field of view
-        .1, -.1                                                            // vertical field of view
+        .1, -.1, 100                                                       // vertical field of view
     );
     lidar1->SetName("Lidar Sensor");
     lidar1->SetLag(1);
     lidar1->SetCollectionWindow(1);
     lidar1->PushFilter(std::make_shared<ChFilterPCfromDepth>());
-    lidar1->PushFilter(std::make_shared<ChFilterVisualizePointCloud>(800, 800));
+    lidar1->PushFilter(std::make_shared<ChFilterVisualizePointCloud>(800, 800, 1.5));
     manager->AddSensor(lidar1);
 
     auto camera = std::make_shared<ChCameraSensor>(

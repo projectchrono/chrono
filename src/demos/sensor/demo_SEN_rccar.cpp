@@ -291,14 +291,15 @@ int main(int argc, char* argv[]) {
         2000,                                                               // horizontal samples
         50,                                                                 // vertical samples/channels
         (float)2.0f * CH_C_PI,                                              // horizontal field of view
-        (float)CH_C_PI / 6.f, -(float)CH_C_PI / 6.f                         // vertical field of view
+        (float)CH_C_PI / 6.f, -(float)CH_C_PI / 6.f,                        // vertical field of view
+        100.0                                                               // max distance
     );
     lidar->SetName("Lidar Sensor");
     // lidar->SetLag(1 / 10.0);
     // lidar->SetCollectionWindow(0);
     // lidar->PushFilter(chrono_types::make_shared<ChFilterVisualize>(1000,100,"Lidar Data"));
     lidar->PushFilter(chrono_types::make_shared<ChFilterPCfromDepth>());
-    lidar->PushFilter(chrono_types::make_shared<ChFilterVisualizePointCloud>(640, 480, "Lidar Point Cloud"));
+    lidar->PushFilter(chrono_types::make_shared<ChFilterVisualizePointCloud>(640, 480, 1.5, "Lidar Point Cloud"));
     lidar->PushFilter(chrono_types::make_shared<ChFilterXYZIAccess>());
     lidar->PushFilter(chrono_types::make_shared<ChFilterSavePtCloud>("output/ptcloud/sim1/lidar/"));
     manager->AddSensor(lidar);
