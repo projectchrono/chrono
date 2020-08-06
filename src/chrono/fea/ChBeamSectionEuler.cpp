@@ -20,7 +20,7 @@ namespace chrono {
 namespace fea {
 
 
-	inline void ChBeamSectionEulerSimple::ComputeInertiaMatrix(ChMatrixNM<double, 6, 6>& M) {
+	void ChBeamSectionEulerSimple::ComputeInertiaMatrix(ChMatrixNM<double, 6, 6>& M) {
 		M.setZero();
 		M(0, 0) = this->Area * this->density;
 		M(1, 1) = this->Area * this->density;
@@ -37,7 +37,7 @@ namespace fea {
 		//M(5, 4) = -this->Jyz;
 	}
 
-	inline void ChBeamSectionEulerSimple::ComputeQuadraticTerms(ChVector<>& mF, ChVector<>& mT, const ChVector<>& mW) {
+	void ChBeamSectionEulerSimple::ComputeQuadraticTerms(ChVector<>& mF, ChVector<>& mT, const ChVector<>& mW) {
 		mF = VNULL;
 		mT = VNULL;
 	}
