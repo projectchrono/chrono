@@ -21,20 +21,18 @@
 #include "chrono/core/ChVector.h"
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono_vsg/core/ChApiVSG.h"
+#include "chrono_vsg/shapes/ChVSGBaseShape.h"
 
 #include <vsg/all.h>
 
 namespace chrono {
 namespace vsg3d {
 
-class CH_VSG_API ChVSGCylinder {
+class CH_VSG_API ChVSGCylinder : public ChVSGBaseShape {
   public:
     ChVSGCylinder();
-    vsg::ref_ptr<vsg::Node> createTexturedNode(vsg::vec4 color, vsg::ref_ptr<vsg::MatrixTransform> transform);
-    void compile(vsg::ref_ptr<vsg::Node> subgraph);
-
-  private:
-    vsg::ref_ptr<vsg::CompileTraversal> _compile;
+    virtual vsg::ref_ptr<vsg::Node> createTexturedNode(vsg::vec4 color,
+                                                       vsg::ref_ptr<vsg::MatrixTransform> transform) override;
 };
 }  // namespace vsg3d
 }  // namespace chrono

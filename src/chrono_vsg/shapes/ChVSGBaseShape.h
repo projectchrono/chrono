@@ -11,28 +11,34 @@
 // =============================================================================
 // Authors: Rainer Gericke
 // =============================================================================
-// Header for a class defining a box shape for the vulkan scene graph
+// Header for an abstract class defining common methods for shape node classes
 // =============================================================================
 
-#ifndef CH_VSG_BOX_H
-#define CH_VSG_BOX_H
+#ifndef CH_VSG_BASESHAPE_H
+#define CH_VSG_BASESHAPE_H
 
 #include <iostream>
 #include "chrono/core/ChVector.h"
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono_vsg/core/ChApiVSG.h"
-#include "chrono_vsg/shapes/ChVSGBaseShape.h"
 
 #include <vsg/all.h>
 
 namespace chrono {
 namespace vsg3d {
 
-class CH_VSG_API ChVSGBox : public ChVSGBaseShape {
+class CH_VSG_API ChVSGBaseShape {
   public:
-    ChVSGBox();
+    ChVSGBaseShape();
     virtual vsg::ref_ptr<vsg::Node> createTexturedNode(vsg::vec4 color,
-                                                       vsg::ref_ptr<vsg::MatrixTransform> transform) override;
+                                                       vsg::ref_ptr<vsg::MatrixTransform> transform) = 0;
+    void compile(vsg::ref_ptr<vsg::Node> subgraph);
+    vsg::ref_ptr<vsg::ShaderStage> readVertexShader(std::string filePath);
+    vsg::ref_ptr<vsg::ShaderStage> readFragmentShader(std::string filePath);
+    vsg::ref_ptr<vsg::vec4Array2D> createRGBATexture(std::string filePath);
+
+  private:
+    vsg::ref_ptr<vsg::CompileTraversal> _compile;
 };
 }  // namespace vsg3d
 }  // namespace chrono

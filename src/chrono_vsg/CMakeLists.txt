@@ -27,6 +27,8 @@ SET(ChronoEngine_VSG_SOURCES
 SET(ChronoEngine_VSG_HEADERS
     ChVSGApp.h
     core/ChApiVSG.h
+    shapes/ChVSGBaseShape.h
+    shapes/ChVSGBaseShape.cpp
     shapes/ChVSGBox.h
     shapes/ChVSGBox.cpp
     shapes/ChVSGSphere.h

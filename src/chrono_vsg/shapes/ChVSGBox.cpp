@@ -1,55 +1,21 @@
 #include "chrono_vsg/shapes/ChVSGBox.h"
 
-#define STB_IMAGE_IMPLEMENTATION
-#include "chrono_thirdparty/stb/stb_image.h"
-
 using namespace chrono::vsg3d;
 
 ChVSGBox::ChVSGBox() {}
 
-void ChVSGBox::compile(vsg::ref_ptr<vsg::Node> subgraph) {
-    // std::cout << "Builder::compile(" << subgraph << ") _compile = " << _compile << std::endl;
-    if (_compile) {
-        subgraph->accept(*_compile);
-        _compile->context.record();
-        _compile->context.waitForCompletion();
-    }
-}
-
 vsg::ref_ptr<vsg::Node> ChVSGBox::createTexturedNode(vsg::vec4 color, vsg::ref_ptr<vsg::MatrixTransform> transform) {
     // set up search paths to SPIRV shaders and textures
-    vsg::ref_ptr<vsg::ShaderStage> vertexShader = vsg::ShaderStage::read(
-        VK_SHADER_STAGE_VERTEX_BIT, "main", GetChronoDataFile("vsg/shaders/vert_PushConstants.spv"));
-    vsg::ref_ptr<vsg::ShaderStage> fragmentShader = vsg::ShaderStage::read(
-        VK_SHADER_STAGE_FRAGMENT_BIT, "main", GetChronoDataFile("vsg/shaders/frag_PushConstants.spv"));
-
+    vsg::ref_ptr<vsg::ShaderStage> vertexShader =
+        readVertexShader(GetChronoDataFile("vsg/shaders/vert_PushConstants.spv"));
+    vsg::ref_ptr<vsg::ShaderStage> fragmentShader =
+        readFragmentShader(GetChronoDataFile("vsg/shaders/frag_PushConstants.spv"));
     if (!vertexShader || !fragmentShader) {
         std::cout << "Could not create shaders." << std::endl;
         return {};
     }
 
-    // read texture image file with stb_image
-    int texWidth, texHeight, texChannels;
-    float* pixels =
-        stbi_loadf(GetChronoDataFile("bluwhite.png").c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
-
-    VkDeviceSize imageSize = texWidth * texHeight * 4;
-    GetLog() << "Image size = " << texWidth << " * " << texWidth << " * " << texChannels << "\n";
-    auto image = vsg::vec4Array2D::create(texWidth, texHeight, color, vsg::Data::Layout{VK_FORMAT_R32G32B32A32_SFLOAT});
-    int k = 0;
-    for (int j = 0; j < texHeight; j++) {
-        for (int i = 0; i < texWidth; i++) {
-            float r = pixels[k++];
-            float g = pixels[k++];
-            float b = pixels[k++];
-            float a = pixels[k++];
-            vsg::vec4 col(r, g, b, a);
-            image->set(i, j, col);
-        }
-    }
-    auto textureData = image;
-    stbi_image_free(pixels);
-
+    auto textureData = createRGBATexture(GetChronoDataFile("bluwhite.png"));
     // set up graphics pipeline
     vsg::DescriptorSetLayoutBindings descriptorBindings{
         {0, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_FRAGMENT_BIT,
