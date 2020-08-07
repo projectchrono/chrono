@@ -36,6 +36,10 @@ void ChFsiLinearSolverBiCGStab::Solve(int SIZE,
                                       unsigned int* AcolIdx,
                                       double* x,
                                       double* b) {
+#ifndef CUDART_VERSION
+#error CUDART_VERSION Undefined!
+#elif (CUDART_VERSION == 11000)
+
     double *r, *rh, *p, *ph, *v, *s, *t, *Ac;
 
     cudaMalloc((void**)&r, sizeof(double) * SIZE);
@@ -366,6 +370,7 @@ void ChFsiLinearSolverBiCGStab::Solve(int SIZE,
     cusparseDestroyCsrilu02Info(info_M);
     cusparseDestroyCsrsv2Info(info_L);
     cusparseDestroyCsrsv2Info(info_U);
+#endif
 }
 }  // end namespace fsi
 }  // end namespace chrono

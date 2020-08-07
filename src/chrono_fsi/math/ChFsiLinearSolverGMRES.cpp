@@ -74,6 +74,10 @@ void ChFsiLinearSolverGMRES::Solve(int SIZE,
                                    unsigned int* AcolIdx,
                                    double* x,
                                    double* b) {
+#ifndef CUDART_VERSION
+#error CUDART_VERSION Undefined!
+#elif (CUDART_VERSION == 11000)
+
     restart = 10;
     cublasHandle_t cublasHandle = 0;
     cusparseHandle_t cusparseHandle = 0;
@@ -251,6 +255,7 @@ void ChFsiLinearSolverGMRES::Solve(int SIZE,
     free(s);
     free(cs);
     free(sn);
+#endif
 }
 
 }  // end namespace fsi
