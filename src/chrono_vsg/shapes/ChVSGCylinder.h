@@ -19,6 +19,7 @@
 
 #include <iostream>
 #include "chrono/core/ChVector.h"
+#include "chrono/physics/ChSystemNSC.h"
 #include "chrono_vsg/core/ChApiVSG.h"
 
 #include <vsg/all.h>

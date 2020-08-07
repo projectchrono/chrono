@@ -17,38 +17,19 @@ void ChVSGCylinder::compile(vsg::ref_ptr<vsg::Node> subgraph) {
 
 vsg::ref_ptr<vsg::Node> ChVSGCylinder::createTexturedNode(vsg::vec4 color,
                                                           vsg::ref_ptr<vsg::MatrixTransform> transform) {
-    // set up search paths to SPIRV shaders and textures
-    vsg::Paths searchPaths = vsg::getEnvPaths("VSG_FILE_PATH");
-
     vsg::ref_ptr<vsg::ShaderStage> vertexShader = vsg::ShaderStage::read(
-        VK_SHADER_STAGE_VERTEX_BIT, "main", vsg::findFile("shaders/vert_PushConstants.spv", searchPaths));
+        VK_SHADER_STAGE_VERTEX_BIT, "main", GetChronoDataFile("vsg/shaders/vert_PushConstants.spv"));
     vsg::ref_ptr<vsg::ShaderStage> fragmentShader = vsg::ShaderStage::read(
-        VK_SHADER_STAGE_FRAGMENT_BIT, "main", vsg::findFile("shaders/frag_PushConstants.spv", searchPaths));
+        VK_SHADER_STAGE_FRAGMENT_BIT, "main", GetChronoDataFile("vsg/shaders/frag_PushConstants.spv"));
     if (!vertexShader || !fragmentShader) {
         std::cout << "Could not create shaders." << std::endl;
         return {};
     }
 
-    /* read texture image based on vsgb file
-    vsg::Path textureFile("vsg/textures/Metal010.vsgb");
-    auto textureData = vsg::read_cast<vsg::Data>(vsg::findFile(textureFile, searchPaths));
-
-    if (!textureData) {
-        std::cout << "Could not read texture file : " << textureFile << ", we replace it by an default image."
-                  << std::endl;
-        auto image = vsg::vec4Array2D::create(2, 2, color, vsg::Data::Layout{VK_FORMAT_R32G32B32A32_SFLOAT});
-        image->set(0, 0, {0.0f, 0.0f, 1.0f, 1.0f});
-        image->set(1, 1, {0.0f, 0.0f, 1.0f, 1.0f});
-        textureData = image;
-    } */
     // read texture image file with stb_image
-
     int texWidth, texHeight, texChannels;
-    // float* pixels = stbi_loadf("/Volumes/Ramdisk/build-chrono/data/bluwhite.png", &texWidth, &texHeight,
-    // &texChannels,
-    //                           STBI_rgb_alpha);
-    float* pixels = stbi_loadf(vsg::findFile("bluwhite.png", searchPaths).c_str(), &texWidth, &texHeight, &texChannels,
-                               STBI_rgb_alpha);
+    float* pixels =
+        stbi_loadf(GetChronoDataFile("bluwhite.png").c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
 
     VkDeviceSize imageSize = texWidth * texHeight * 4;
     GetLog() << "Image size = " << texWidth << " * " << texWidth << " * " << texChannels << "\n";
