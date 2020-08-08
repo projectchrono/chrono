@@ -6,10 +6,10 @@ ChVSGCylinder::ChVSGCylinder() {}
 
 vsg::ref_ptr<vsg::Node> ChVSGCylinder::createTexturedNode(vsg::vec4 color,
                                                           vsg::ref_ptr<vsg::MatrixTransform> transform) {
-    vsg::ref_ptr<vsg::ShaderStage> vertexShader = vsg::ShaderStage::read(
-        VK_SHADER_STAGE_VERTEX_BIT, "main", GetChronoDataFile("vsg/shaders/vert_PushConstants.spv"));
-    vsg::ref_ptr<vsg::ShaderStage> fragmentShader = vsg::ShaderStage::read(
-        VK_SHADER_STAGE_FRAGMENT_BIT, "main", GetChronoDataFile("vsg/shaders/frag_PushConstants.spv"));
+    vsg::ref_ptr<vsg::ShaderStage> vertexShader =
+        readVertexShader(GetChronoDataFile("vsg/shaders/vert_PushConstants.spv"));
+    vsg::ref_ptr<vsg::ShaderStage> fragmentShader =
+        readFragmentShader(GetChronoDataFile("vsg/shaders/frag_PushConstants.spv"));
     if (!vertexShader || !fragmentShader) {
         std::cout << "Could not create shaders." << std::endl;
         return {};

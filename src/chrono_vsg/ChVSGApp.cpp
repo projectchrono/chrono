@@ -155,10 +155,9 @@ void ChVSGApp::AnalyseSystem() {
                 // model_sphere.push_back(model);
                 auto transform = vsg::MatrixTransform::create();
 
-                transform->setMatrix(vsg::translate(pos_final.x(), pos_final.y(), pos_final.z()) *
-                                     vsg::scale(size.x(), size.y(), size.z()) *
-                                     vsg::rotate(angle, axis.x(), axis.y(), axis.z()));
-
+                transform->setMatrix(vsg::scale(size.x(), size.y(), size.z()) *
+                                     vsg::rotate(angle, axis.x(), axis.y(), axis.z()) *
+                                     vsg::translate(pos_final.x(), pos_final.y(), pos_final.z()));
                 ChVSGBox theBox;
                 vsg::ref_ptr<vsg::Node> node = theBox.createTexturedNode(color, transform);
                 m_scenegraph->addChild(node);
@@ -177,10 +176,9 @@ void ChVSGApp::AnalyseSystem() {
                 // model_sphere.push_back(model);
                 auto transform = vsg::MatrixTransform::create();
 
-                transform->setMatrix(vsg::translate(pos_final.x(), pos_final.y(), pos_final.z()) *
-                                     vsg::scale(size.x(), size.y(), size.z()) *
-                                     vsg::rotate(angle, axis.x(), axis.y(), axis.z()));
-
+                transform->setMatrix(vsg::scale(size.x(), size.y(), size.z()) *
+                                     vsg::rotate(angle, axis.x(), axis.y(), axis.z()) *
+                                     vsg::translate(pos_final.x(), pos_final.y(), pos_final.z()));
                 ChVSGSphere theSphere;
                 vsg::ref_ptr<vsg::Node> node = theSphere.createTexturedNode(color, transform);
                 m_scenegraph->addChild(node);
@@ -199,9 +197,9 @@ void ChVSGApp::AnalyseSystem() {
                 // model_sphere.push_back(model);
                 auto transform = vsg::MatrixTransform::create();
 
-                transform->setMatrix(vsg::translate(pos_final.x(), pos_final.y(), pos_final.z()) *
-                                     vsg::scale(size.x(), size.y(), size.z()) *
-                                     vsg::rotate(angle, axis.x(), axis.y(), axis.z()));
+                transform->setMatrix(vsg::scale(size.x(), size.y(), size.z()) *
+                                     vsg::rotate(angle, axis.x(), axis.y(), axis.z()) *
+                                     vsg::translate(pos_final.x(), pos_final.y(), pos_final.z()));
 
                 ChVSGSphere theSphere;
                 vsg::ref_ptr<vsg::Node> node = theSphere.createTexturedNode(color, transform);
@@ -211,7 +209,7 @@ void ChVSGApp::AnalyseSystem() {
             if (ChCylinderShape* cylinder_shape = dynamic_cast<ChCylinderShape*>(asset.get())) {
                 GetLog() << "Found CylinderShape!\n";
                 double rad = cylinder_shape->GetCylinderGeometry().rad;
-                ChVector<> dir = cylinder_shape->GetCylinderGeometry().p2 - cylinder_shape->GetCylinderGeometry().p1;
+                ChVector<> dir = cylinder_shape->GetCylinderGeometry().p1 - cylinder_shape->GetCylinderGeometry().p2;
                 double height = dir.Length();
                 dir.Normalize();
                 ChVector<> mx, my, mz;
@@ -221,15 +219,14 @@ void ChVSGApp::AnalyseSystem() {
                 lrot = rot % (visual_asset->Rot.Get_A_quaternion() % mrot.Get_A_quaternion());
                 // position of cylinder based on two points
                 ChVector<> mpos =
-                    0.5 * (cylinder_shape->GetCylinderGeometry().p2 + cylinder_shape->GetCylinderGeometry().p1);
+                    0.5 * (cylinder_shape->GetCylinderGeometry().p1 + cylinder_shape->GetCylinderGeometry().p2);
 
                 lrot.Q_to_AngAxis(angle, axis);
                 ChVector<> pos_final = pos + rot.Rotate(mpos);
                 auto transform = vsg::MatrixTransform::create();
 
-                transform->setMatrix(vsg::translate(pos_final.x(), pos_final.y(), pos_final.z()) *
-                                     vsg::scale(rad, rad, height) * vsg::rotate(angle, axis.x(), axis.y(), axis.z()));
-
+                transform->setMatrix(vsg::scale(rad, rad, height) * vsg::rotate(angle, axis.x(), axis.y(), axis.z()) *
+                                     vsg::translate(pos_final.x(), pos_final.y(), pos_final.z()));
                 ChVSGCylinder theCylinder;
                 vsg::ref_ptr<vsg::Node> node = theCylinder.createTexturedNode(color, transform);
                 m_scenegraph->addChild(node);
