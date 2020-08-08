@@ -208,24 +208,14 @@ void ChVSGApp::AnalyseSystem() {
             }
             if (ChCylinderShape* cylinder_shape = dynamic_cast<ChCylinderShape*>(asset.get())) {
                 GetLog() << "Found CylinderShape!\n";
-                double rad = cylinder_shape->GetCylinderGeometry().rad;
-                ChVector<> dir = cylinder_shape->GetCylinderGeometry().p1 - cylinder_shape->GetCylinderGeometry().p2;
-                double height = dir.Length();
-                dir.Normalize();
-                ChVector<> mx, my, mz;
-                dir.DirToDxDyDz(my, mz, mx);  // y is axis, in cylinder.obj frame
-                ChMatrix33<> mrot;
-                mrot.Set_A_axis(mx, my, mz);
-                lrot = rot % (visual_asset->Rot.Get_A_quaternion() % mrot.Get_A_quaternion());
-                // position of cylinder based on two points
-                ChVector<> mpos =
-                    0.5 * (cylinder_shape->GetCylinderGeometry().p1 + cylinder_shape->GetCylinderGeometry().p2);
-
-                lrot.Q_to_AngAxis(angle, axis);
-                ChVector<> pos_final = pos + rot.Rotate(mpos);
                 auto transform = vsg::MatrixTransform::create();
 
-                transform->setMatrix(vsg::scale(rad, rad, height) * vsg::rotate(angle, axis.x(), axis.y(), axis.z()) *
+                double radius = cylinder_shape->GetCylinderGeometry().rad;
+                ChVector<> dir = cylinder_shape->GetCylinderGeometry().p1 - cylinder_shape->GetCylinderGeometry().p2;
+                double height = dir.Length();
+                ChVector<> pos_final = pos + center;
+                transform->setMatrix(vsg::scale(radius, radius, height) *
+                                     vsg::rotate(angle, axis.x(), axis.y(), axis.z()) *
                                      vsg::translate(pos_final.x(), pos_final.y(), pos_final.z()));
                 ChVSGCylinder theCylinder;
                 vsg::ref_ptr<vsg::Node> node = theCylinder.createTexturedNode(color, transform);

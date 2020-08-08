@@ -15,7 +15,7 @@ vsg::ref_ptr<vsg::Node> ChVSGBox::createTexturedNode(vsg::vec4 color, vsg::ref_p
         return {};
     }
 
-    auto textureData = createRGBATexture(GetChronoDataFile("bluwhite.png"));
+    auto textureData = createRGBATexture(GetChronoDataFile("vsg/textures/Metal007.jpg"));
     // set up graphics pipeline
     vsg::DescriptorSetLayoutBindings descriptorBindings{
         {0, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_FRAGMENT_BIT,

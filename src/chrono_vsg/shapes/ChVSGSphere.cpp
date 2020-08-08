@@ -15,7 +15,7 @@ vsg::ref_ptr<vsg::Node> ChVSGSphere::createTexturedNode(vsg::vec4 color, vsg::re
         return {};
     }
 
-    auto textureData = createRGBATexture(GetChronoDataFile("redwhite.png"));
+    auto textureData = createRGBATexture(GetChronoDataFile("vsg/textures/Marble008.jpg"));
 
     // set up graphics pipeline
     vsg::DescriptorSetLayoutBindings descriptorBindings{
