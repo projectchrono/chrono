@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Alessandro Tasora, Radu Serban, Jay Taves
+// Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 //
 // Deformable terrain based on SCM (Soil Contact Model) from DLR
@@ -99,7 +99,7 @@ class CH_VEHICLE_API SCMDeformableTerrain : public ChTerrain {
     /// Enable/disable the creation of soil inflation at the side of the ruts (bulldozing effects).
     void SetBulldozingFlow(bool mb);
     bool GetBulldozingFlow() const;
-
+     
     /// Set parameters controlling the creation of side ruts (bulldozing effects).
     void SetBulldozingParameters(
         double mbulldozing_erosion_angle,            ///< angle of erosion of the displaced material (in degrees!)
@@ -401,49 +401,6 @@ class CH_VEHICLE_API SCMDeformableSoil : public ChLoadContainer {
     size_t m_num_marked_faces;
 
     std::unordered_map<ChContactable*, TerrainForce> m_contact_forces;
-
-    // --------------------
-    // New member variables
-    // --------------------
-    float m_div_x;
-    float m_div_y;
-
-    struct pairhash {
-      public:
-        // 31 is just a decently-sized prime number to reduce bucket collisions
-        std::size_t operator()(const std::pair<int, int>& x) const { return x.first * 31 + x.second; }
-    };
-
-    struct VertexRecord {
-        ChVector<> m_point;
-        double p_sigma;
-        double p_sinkage_elastic;
-        double p_step_plastic_flow;
-        bool p_erosion;
-        double p_level;
-        double p_hit_level;
-        // TODO: Other necessary data here...
-
-        VertexRecord() : VertexRecord(ChVector<>(0, 0, 0)) {}
-
-        VertexRecord(ChVector<> point) : m_point(point) {
-            p_sigma = 0;
-            p_sinkage_elastic = 0;
-            p_step_plastic_flow = 0;
-            p_erosion = false;
-            p_level = point.z();  // global -> local transformation needed ??
-            p_hit_level = 1e9;
-        }
-    };
-
-    struct PatchRecord {
-        std::vector<ChVector2<>> points;  // points in patch (projected on reference plane)
-        double area;                      // patch area
-        double perimeter;                 // patch perimeter
-        double oob;                       // approximate value of 1/b
-    };
-
-    std::unordered_map<std::pair<int, int>, VertexRecord, pairhash> m_grid_map;
 
     friend class SCMDeformableTerrain;
 };

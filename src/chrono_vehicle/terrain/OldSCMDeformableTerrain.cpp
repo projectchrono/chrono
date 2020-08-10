@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Alessandro Tasora, Radu Serban, Jay Taves
+// Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 //
 // Deformable terrain based on SCM (Soil Contact Model) from DLR
@@ -165,9 +165,9 @@ void SCMDeformableTerrain::SetPlotType(DataPlotType mplot, double mmin, double m
 
 // Enable moving patch
 void SCMDeformableTerrain::AddMovingPatch(std::shared_ptr<ChBody> body,
-                                          const ChVector<>& point_on_body,
-                                          double dimX,
-                                          double dimY) {
+                                             const ChVector<>& point_on_body,
+                                             double dimX,
+                                             double dimY) {
     SCMDeformableSoil::MovingPatchInfo pinfo;
     pinfo.m_body = body;
     pinfo.m_point = point_on_body;
@@ -582,12 +582,12 @@ void SCMDeformableSoil::SetupAuxData() {
 
 // Reset the list of forces, and fills it with forces from a soil contact model.
 void SCMDeformableSoil::ComputeInternalForces() {
+    m_timer_calc_areas.reset();
     m_timer_ray_casting.reset();
     m_timer_refinement.reset();
     m_timer_bulldozing.reset();
     m_timer_visualization.reset();
 
-    // TODO : We shouldn't need these anymore, but they'll throw compile errors until I'm done with the whole function
     // Readability aliases
     auto trimesh = m_trimesh_shape->GetMesh();
     std::vector<ChVector<>>& vertices = trimesh->getCoordsVertices();
@@ -596,143 +596,152 @@ void SCMDeformableSoil::ComputeInternalForces() {
     std::vector<ChVector<int>>& idx_vertices = trimesh->getIndicesVertexes();
     std::vector<ChVector<int>>& idx_normals = trimesh->getIndicesNormals();
 
+    //
     // Reset the load list and map of contact forces
+    //
+
     this->GetLoadList().clear();
     m_contact_forces.clear();
 
+    //
+    // Compute (pseudo)areas per node
+    //
+
+    m_num_vertices = vertices.size();
+    m_num_faces = idx_vertices.size();
+    m_timer_calc_areas.start();
+
+    // for a X-Z rectangular grid-like mesh it is simply area[i]= xsize/xsteps * zsize/zsteps,
+    // but the following is more general, also for generic meshes:
+    for (unsigned int iv = 0; iv < vertices.size(); ++iv) {
+        p_area[iv] = 0;
+    }
+    for (unsigned int it = 0; it < idx_vertices.size(); ++it) {
+        ChVector<> AB = vertices[idx_vertices[it][1]] - vertices[idx_vertices[it][0]];
+        ChVector<> AC = vertices[idx_vertices[it][2]] - vertices[idx_vertices[it][1]];
+        AB = plane.TransformDirectionParentToLocal(AB);
+        AC = plane.TransformDirectionParentToLocal(AC);
+        AB.z() = 0;
+        AC.z() = 0;
+        double triangle_area = 0.5 * (Vcross(AB, AC)).Length();
+        p_area[idx_normals[it][0]] += triangle_area / 3.0;
+        p_area[idx_normals[it][1]] += triangle_area / 3.0;
+        p_area[idx_normals[it][2]] += triangle_area / 3.0;
+    }
+
+    m_timer_calc_areas.stop();
+
     ChVector<> N = plane.TransformDirectionLocalToParent(ChVector<>(0, 0, 1));
 
+    //
     // Perform ray casting test to detect the contact point sinkage
+    //
+
     m_timer_ray_casting.start();
     m_num_ray_casts = 0;
 
+    // If enabled, update the extent of the moving patches (no ray-hit tests performed outside)
+    if (m_moving_patch) {
+        for (auto& p : m_patches) {
+            ChVector<> center_abs = p.m_body->GetFrame_REF_to_abs().TransformPointLocalToParent(p.m_point);
+            ChVector<> center_loc = plane.TransformPointParentToLocal(center_abs);
+
+            p.m_min.x() = center_loc.x() - p.m_dim.x() / 2;
+            p.m_min.y() = center_loc.y() - p.m_dim.y() / 2;
+            p.m_max.x() = center_loc.x() + p.m_dim.x() / 2;
+            p.m_max.y() = center_loc.y() + p.m_dim.y() / 2;
+           
+        }
+    }
+
+    // Loop through all vertices.
+    // - set default SCM quantities (in case no ray-hit)
+    // - skip vertices outside moving patch (if option enabled)
+    // - cast ray and record result in a map (key: vertex index)
+    // - initialize patch id to -1 (not set)
     struct HitRecord {
         ChContactable* contactable;  // pointer to hit object
         ChVector<> abs_point;        // hit point, expressed in global frame
-        VertexRecord vertex;  // object containing physical properties of the hit point TODO : Need to figure out which
-                              // frame we are in
-        int patch_id;         // index of associated patch id
+        int patch_id;                // index of associated patch id
     };
-    std::unordered_map<std::pair<int, int>, HitRecord, pairhash> hits;
+    std::unordered_map<int, HitRecord> hits;
 
-    // Update the extent of the moving patches (no ray-hit tests performed outside)
-    for (auto& p : m_patches) {
-        // Update the extent of each moving patch
-        ChVector<> center_abs = p.m_body->GetFrame_REF_to_abs().TransformPointLocalToParent(p.m_point);
-        ChVector<> center_loc = plane.TransformPointParentToLocal(center_abs);
+    for (int i = 0; i < vertices.size(); ++i) {
+        auto v = plane.TransformParentToLocal(vertices[i]);
 
-        p.m_min.x() = center_loc.x() - p.m_dim.x() / 2;
-        p.m_min.y() = center_loc.y() - p.m_dim.y() / 2;
-        p.m_max.x() = center_loc.x() + p.m_dim.x() / 2;
-        p.m_max.y() = center_loc.y() + p.m_dim.y() / 2;
+        // Initialize SCM quantities at current vertex
+        p_sigma[i] = 0;
+        p_sinkage_elastic[i] = 0;
+        p_step_plastic_flow[i] = 0;
+        p_erosion[i] = false;
+        p_level[i] = v.z();
+        p_hit_level[i] = 1e9;
 
-        // Get the ij coordinates that bound this patch
-        int i_min = std::trunc(p.m_min.x() / m_div_x);
-        int i_max = p.m_max.x() < 0 ? std::floor(p.m_max.x() / m_div_x) : std::ceil(p.m_max.x() / m_div_x);
-        int j_min = std::trunc(p.m_min.y() / m_div_y);
-        int j_max = p.m_max.y() < 0 ? std::floor(p.m_max.y() / m_div_y) : std::ceil(p.m_max.y() / m_div_y);
-
-        // Loop through all vertices in this patch
-        for (int i = i_min; i <= i_max; i++) {
-            for (int j = j_min; j <= j_max; j++) {
-                std::pair<int, int> ij = std::make_pair(i, j);
-
-                // Move from (i, j) to (x, y, z) representation
-                float x = i * m_div_x;
-                float y = j * m_div_y;
-                auto grid_elem = m_grid_map.find(ij);
-                // TODO : Should use lookupInitialValue(x, y) (which may return 0 for a constant height map)
-                float z = grid_elem == m_grid_map.end() ? 0 : grid_elem->second.m_point.z();
-
-                // TODO : Might need a parent -> local transformation here
-                ChVector<> vertex_loc(x, y, z);
-
-                // Raycast to see if we need to work on this point later
-                collision::ChCollisionSystem::ChRayhitResult mrayhit_result;
-                ChVector<> to = vertex_loc + N * test_high_offset;
-                ChVector<> from = to - N * test_low_offset;
-                GetSystem()->GetCollisionSystem()->RayHit(from, to, mrayhit_result);
-                m_num_ray_casts++;
-
-                // Only interact with m_grid_map when we have a hit
-                if (mrayhit_result.hit) {
-                    VertexRecord vertex;
-                    // If this point has never been hit before we initialize it, otherwise just look it up
-                    if (grid_elem == m_grid_map.end()) {
-                        vertex = VertexRecord(vertex_loc);
-                        m_grid_map[ij] = vertex;
-                    } else {
-                        vertex = m_grid_map[ij];
-                    }
-
-                    // Add to our map of hits to process
-                    HitRecord record = {mrayhit_result.hitModel->GetContactable(), mrayhit_result.abs_hitPoint, vertex,
-                                        -1};
-                    hits.insert(std::make_pair(ij, record));
+        // Skip vertices outside any moving patch
+        if (m_moving_patch) {
+            bool outside = true;
+            for (auto& p : m_patches) {
+                if (v.x() >= p.m_min.x() && v.x() <= p.m_max.x() && v.y() >= p.m_min.y() && v.y() <= p.m_max.y()) {
+                    outside = false;  // vertex in current patch
+                    break;            // stop checking further patches
                 }
+            }
+            if (outside)  // vertex outside all patches
+                continue;
+        }
+
+        // Perform ray casting from current vertex
+        collision::ChCollisionSystem::ChRayhitResult mrayhit_result;
+        ChVector<> to = vertices[i] + N * test_high_offset;
+        ChVector<> from = to - N * test_low_offset;
+        this->GetSystem()->GetCollisionSystem()->RayHit(from, to, mrayhit_result);
+        m_num_ray_casts++;
+        if (mrayhit_result.hit) {
+            HitRecord record = {mrayhit_result.hitModel->GetContactable(), mrayhit_result.abs_hitPoint, -1};
+            hits.insert(std::make_pair(i, record));
+        }
+    }
+
+    // Loop through all hit vertices and determine to which contact patch they belong.
+    // We use here the connected_vertexes map (from a vertex to its adjacent vertices) which is
+    // set up at initialization and updated when the mesh is refined (if refinement is enabled).
+    // Use a queue-based flood-filling algorithm.
+    int num_patches = 0;
+    for (auto& h : hits) {
+        int i = h.first;
+        if (h.second.patch_id != -1)                               // move on if vertex already assigned to a patch
+            continue;                                              //
+        std::queue<int> todo;                                      //
+        h.second.patch_id = num_patches++;                         // assign this vertex to a new patch
+        todo.push(i);                                              // add vertex to end of queue
+        while (!todo.empty()) {                                    //
+            auto crt = hits.find(todo.front());                    // current vertex is first element in queue
+            todo.pop();                                            // remove first element of queue
+            auto crt_i = crt->first;                               //
+            auto crt_patch = crt->second.patch_id;                 //
+            for (const auto& nbr_i : connected_vertexes[crt_i]) {  // loop over all neighbors
+                auto nbr = hits.find(nbr_i);                       // look for neighbor in list of hit vertices
+                if (nbr == hits.end())                             // move on if neighbor is not a hit vertex
+                    continue;                                      //
+                if (nbr->second.patch_id != -1)                    // (COULD BE REMOVED, unless we update patch area)
+                    continue;                                      //
+                nbr->second.patch_id = crt_patch;                  // assign neighbor to same patch
+                todo.push(nbr_i);                                  // add neighbor to end of queue
             }
         }
     }
 
     // Collect hit vertices assigned to each patch.
-    std::vector<PatchRecord> patches;
-
-    // Profile this flood-fill once the whole thing is complete - there could be some ways to make it faster:
-    // - automatically traverse east and west quickly
-    // - only ij-coords and patch_id are needed, may not need the whole hit_record
-    // - a helpful metric is the number of times each vertex is visited
-    // - could be cost-effective to remove elements when they are tagged as neighbors - but then we have to add them
-    // somewhere else so that they aren't forgotten, this copying may make it not worth it
-    int num_patches = 0;
+    struct PatchRecord {
+        std::vector<ChVector2<>> points;  // points in patch (projected on reference plane)
+        double area;                      // patch area
+        double perimeter;                 // patch perimeter
+        double oob;                       // approximate value of 1/b
+    };
+    std::vector<PatchRecord> patches(num_patches);
     for (auto& h : hits) {
-        if (h.second.patch_id != -1)
-            continue;
-
-        std::pair<int, int> ij = h.first;
-        int i = ij.first;
-        int j = ij.second;
-
-        std::queue<std::pair<int, int>> todo;
-
-        // Make a new patch
-        h.second.patch_id = num_patches++;
-        PatchRecord patch = PatchRecord();
-
-        // Add our point to the patch and the queue
-        // TODO : Double-check if we need this parentToLocal transform
-        ChVector<> v = plane.TransformParentToLocal(h.second.vertex.m_point);
-        patches.push_back(patch);
-        patch.points.push_back(ChVector2<>(v.x(), v.y()));
-        todo.push(ij);
-
-        while (!todo.empty()) {
-            auto crt = hits.at(todo.front());
-            todo.pop();
-
-            int crt_patch = crt.patch_id;
-
-            // TODO : Don't know if we want to do 8-way or not
-            auto north = std::make_pair(i, j + 1);
-            auto south = std::make_pair(i, j - 1);
-            auto west = std::make_pair(i - 1, j);
-            auto east = std::make_pair(i + 1, j);
-
-            for (auto nbr_ij : {north, south, west, east}) {
-                auto nbr = hits.find(nbr_ij);
-                if (nbr == hits.end())
-                    continue;
-
-                if (nbr->second.patch_id != -1)
-                    continue;
-
-                nbr->second.patch_id = crt_patch;
-                // Add neighbor to the patch and the queue
-                // TODO : Double-check if we need this parentToLocal transform
-                ChVector<> v = plane.TransformParentToLocal(nbr->second.vertex.m_point);
-                patch.points.push_back(ChVector2<>(v.x(), v.y()));
-                todo.push(nbr_ij);
-            }
-        }
+        ChVector<> v = plane.TransformParentToLocal(vertices[h.first]);
+        patches[h.second.patch_id].points.push_back(ChVector2<>(v.x(), v.y()));
     }
 
     // Calculate area and perimeter of each patch.
@@ -758,135 +767,133 @@ void SCMDeformableSoil::ComputeInternalForces() {
     double elastic_K = m_elastic_K;
     double damping_R = m_damping_R;
 
-    // TODO : Could go in order of contact patch here to avoid repeated lookups?
-
     // Process only hit vertices
-    // for (auto& h : hits) {
-    //     int i = h.first;
-    //     ChContactable* contactable = h.second.contactable;
-    //     const ChVector<>& abs_point = h.second.abs_point;
-    //     int patch_id = h.second.patch_id;
+    for (auto& h : hits) {
+        int i = h.first;
+        ChContactable* contactable = h.second.contactable;
+        const ChVector<>& abs_point = h.second.abs_point;
+        int patch_id = h.second.patch_id;
 
-    //     auto loc_point = plane.TransformParentToLocal(abs_point);
+        auto loc_point = plane.TransformParentToLocal(abs_point);
 
-    //     if (m_soil_fun) {
-    //         m_soil_fun->Set(loc_point.x(), loc_point.y());
+        if (m_soil_fun) {
+            m_soil_fun->Set(loc_point.x(), loc_point.y());
 
-    //         Bekker_Kphi = m_soil_fun->m_Bekker_Kphi;
-    //         Bekker_Kc = m_soil_fun->m_Bekker_Kc;
-    //         Bekker_n = m_soil_fun->m_Bekker_n;
-    //         Mohr_cohesion = m_soil_fun->m_Mohr_cohesion;
-    //         Mohr_friction = m_soil_fun->m_Mohr_friction;
-    //         Janosi_shear = m_soil_fun->m_Janosi_shear;
-    //         elastic_K = m_soil_fun->m_elastic_K;
-    //         damping_R = m_soil_fun->m_damping_R;
-    //     }
+            Bekker_Kphi = m_soil_fun->m_Bekker_Kphi;
+            Bekker_Kc = m_soil_fun->m_Bekker_Kc;
+            Bekker_n = m_soil_fun->m_Bekker_n;
+            Mohr_cohesion = m_soil_fun->m_Mohr_cohesion;
+            Mohr_friction = m_soil_fun->m_Mohr_friction;
+            Janosi_shear = m_soil_fun->m_Janosi_shear;
+            elastic_K = m_soil_fun->m_elastic_K;
+            damping_R = m_soil_fun->m_damping_R;
+        }
 
-    //     p_hit_level[i] = loc_point.z();
-    //     double p_hit_offset = -p_hit_level[i] + p_level_initial[i];
+        p_hit_level[i] = loc_point.z();
+        double p_hit_offset = -p_hit_level[i] + p_level_initial[i];
 
-    //     p_speeds[i] = contactable->GetContactPointSpeed(vertices[i]);
+        p_speeds[i] = contactable->GetContactPointSpeed(vertices[i]);
 
-    //     ChVector<> T = -p_speeds[i];
-    //     T = plane.TransformDirectionParentToLocal(T);
-    //     double Vn = -T.z();
-    //     T.z() = 0;
-    //     T = plane.TransformDirectionLocalToParent(T);
-    //     T.Normalize();
+        ChVector<> T = -p_speeds[i];
+        T = plane.TransformDirectionParentToLocal(T);
+        double Vn = -T.z();
+        T.z() = 0;
+        T = plane.TransformDirectionLocalToParent(T);
+        T.Normalize();
 
-    //     // Compute i-th force:
-    //     ChVector<> Fn;
-    //     ChVector<> Ft;
+        // Compute i-th force:
+        ChVector<> Fn;
+        ChVector<> Ft;
 
-    //     // Elastic try:
-    //     p_sigma[i] = elastic_K * (p_hit_offset - p_sinkage_plastic[i]);
+        // Elastic try:
+        p_sigma[i] = elastic_K * (p_hit_offset - p_sinkage_plastic[i]);
 
-    //     // Handle unilaterality:
-    //     if (p_sigma[i] < 0) {
-    //         p_sigma[i] = 0;
-    //     } else {
-    //         // add compressive speed-proportional damping
-    //         ////if (Vn < 0) {
-    //         ////    p_sigma[i] += -Vn * this->damping_R;
-    //         ////}
+        // Handle unilaterality:
+        if (p_sigma[i] < 0) {
+            p_sigma[i] = 0;
+        } else {
+            // add compressive speed-proportional damping
+            ////if (Vn < 0) {
+            ////    p_sigma[i] += -Vn * this->damping_R;
+            ////}
 
-    //         p_sinkage[i] = p_hit_offset;
-    //         p_level[i] = p_hit_level[i];
+            p_sinkage[i] = p_hit_offset;
+            p_level[i] = p_hit_level[i];
 
-    //         // Accumulate shear for Janosi-Hanamoto
-    //         p_kshear[i] += Vdot(p_speeds[i], -T) * GetSystem()->GetStep();
+            // Accumulate shear for Janosi-Hanamoto
+            p_kshear[i] += Vdot(p_speeds[i], -T) * GetSystem()->GetStep();
 
-    //         // Plastic correction:
-    //         if (p_sigma[i] > p_sigma_yeld[i]) {
-    //             // Bekker formula
-    //             p_sigma[i] = (patches[patch_id].oob * Bekker_Kc + Bekker_Kphi) * pow(p_sinkage[i], Bekker_n);
-    //             p_sigma_yeld[i] = p_sigma[i];
-    //             double old_sinkage_plastic = p_sinkage_plastic[i];
-    //             p_sinkage_plastic[i] = p_sinkage[i] - p_sigma[i] / elastic_K;
-    //             p_step_plastic_flow[i] = (p_sinkage_plastic[i] - old_sinkage_plastic) / GetSystem()->GetStep();
-    //         }
+            // Plastic correction:
+            if (p_sigma[i] > p_sigma_yeld[i]) {
+                // Bekker formula
+                p_sigma[i] = (patches[patch_id].oob * Bekker_Kc + Bekker_Kphi) * pow(p_sinkage[i], Bekker_n);
+                p_sigma_yeld[i] = p_sigma[i];
+                double old_sinkage_plastic = p_sinkage_plastic[i];
+                p_sinkage_plastic[i] = p_sinkage[i] - p_sigma[i] / elastic_K;
+                p_step_plastic_flow[i] = (p_sinkage_plastic[i] - old_sinkage_plastic) / GetSystem()->GetStep();
+            }
 
-    //         p_sinkage_elastic[i] = p_sinkage[i] - p_sinkage_plastic[i];
+            p_sinkage_elastic[i] = p_sinkage[i] - p_sinkage_plastic[i];
 
-    //         // add compressive speed-proportional damping (not clamped by pressure yield)
-    //         ////if (Vn < 0) {
-    //         p_sigma[i] += -Vn * damping_R;
-    //         ////}
+            // add compressive speed-proportional damping (not clamped by pressure yield)
+            ////if (Vn < 0) {
+            p_sigma[i] += -Vn * damping_R;
+            ////}
 
-    //         // Mohr-Coulomb
-    //         double tau_max = Mohr_cohesion + p_sigma[i] * tan(Mohr_friction * CH_C_DEG_TO_RAD);
+            // Mohr-Coulomb
+            double tau_max = Mohr_cohesion + p_sigma[i] * tan(Mohr_friction * CH_C_DEG_TO_RAD);
 
-    //         // Janosi-Hanamoto
-    //         p_tau[i] = tau_max * (1.0 - exp(-(p_kshear[i] / Janosi_shear)));
+            // Janosi-Hanamoto
+            p_tau[i] = tau_max * (1.0 - exp(-(p_kshear[i] / Janosi_shear)));
 
-    //         Fn = N * p_area[i] * p_sigma[i];
-    //         Ft = T * p_area[i] * p_tau[i];
+            Fn = N * p_area[i] * p_sigma[i];
+            Ft = T * p_area[i] * p_tau[i];
 
-    //         if (ChBody* rigidbody = dynamic_cast<ChBody*>(contactable)) {
-    //             // [](){} Trick: no deletion for this shared ptr, since 'rigidbody' was not a new ChBody()
-    //             // object, but an already used pointer because mrayhit_result.hitModel->GetPhysicsItem()
-    //             // cannot return it as shared_ptr, as needed by the ChLoadBodyForce:
-    //             std::shared_ptr<ChBody> srigidbody(rigidbody, [](ChBody*) {});
-    //             std::shared_ptr<ChLoadBodyForce> mload(
-    //                 new ChLoadBodyForce(srigidbody, Fn + Ft, false, vertices[i], false));
-    //             this->Add(mload);
+            if (ChBody* rigidbody = dynamic_cast<ChBody*>(contactable)) {
+                // [](){} Trick: no deletion for this shared ptr, since 'rigidbody' was not a new ChBody()
+                // object, but an already used pointer because mrayhit_result.hitModel->GetPhysicsItem()
+                // cannot return it as shared_ptr, as needed by the ChLoadBodyForce:
+                std::shared_ptr<ChBody> srigidbody(rigidbody, [](ChBody*) {});
+                std::shared_ptr<ChLoadBodyForce> mload(
+                    new ChLoadBodyForce(srigidbody, Fn + Ft, false, vertices[i], false));
+                this->Add(mload);
 
-    //             // Accumulate contact force for this rigid body.
-    //             // The resultant force is assumed to be applied at the body COM.
-    //             // All components of the generalized terrain force are expressed in the global frame.
-    //             auto itr = m_contact_forces.find(contactable);
-    //             if (itr == m_contact_forces.end()) {
-    //                 // Create new entry and initialize generalized force.
-    //                 ChVector<> force = Fn + Ft;
-    //                 TerrainForce frc;
-    //                 frc.point = srigidbody->GetPos();
-    //                 frc.force = force;
-    //                 frc.moment = Vcross(Vsub(vertices[i], srigidbody->GetPos()), force);
-    //                 m_contact_forces.insert(std::make_pair(contactable, frc));
-    //             } else {
-    //                 // Update generalized force.
-    //                 ChVector<> force = Fn + Ft;
-    //                 itr->second.force += force;
-    //                 itr->second.moment += Vcross(Vsub(vertices[i], srigidbody->GetPos()), force);
-    //             }
-    //         } else if (ChLoadableUV* surf = dynamic_cast<ChLoadableUV*>(contactable)) {
-    //             // [](){} Trick: no deletion for this shared ptr
-    //             std::shared_ptr<ChLoadableUV> ssurf(surf, [](ChLoadableUV*) {});
-    //             std::shared_ptr<ChLoad<ChLoaderForceOnSurface>> mload(new ChLoad<ChLoaderForceOnSurface>(ssurf));
-    //             mload->loader.SetForce(Fn + Ft);
-    //             mload->loader.SetApplication(0.5, 0.5);  //***TODO*** set UV, now just in middle
-    //             this->Add(mload);
+                // Accumulate contact force for this rigid body.
+                // The resultant force is assumed to be applied at the body COM.
+                // All components of the generalized terrain force are expressed in the global frame.
+                auto itr = m_contact_forces.find(contactable);
+                if (itr == m_contact_forces.end()) {
+                    // Create new entry and initialize generalized force.
+                    ChVector<> force = Fn + Ft;
+                    TerrainForce frc;
+                    frc.point = srigidbody->GetPos();
+                    frc.force = force;
+                    frc.moment = Vcross(Vsub(vertices[i], srigidbody->GetPos()), force);
+                    m_contact_forces.insert(std::make_pair(contactable, frc));
+                } else {
+                    // Update generalized force.
+                    ChVector<> force = Fn + Ft;
+                    itr->second.force += force;
+                    itr->second.moment += Vcross(Vsub(vertices[i], srigidbody->GetPos()), force);
+                }
+            } else if (ChLoadableUV* surf = dynamic_cast<ChLoadableUV*>(contactable)) {
+                // [](){} Trick: no deletion for this shared ptr
+                std::shared_ptr<ChLoadableUV> ssurf(surf, [](ChLoadableUV*) {});
+                std::shared_ptr<ChLoad<ChLoaderForceOnSurface>> mload(new ChLoad<ChLoaderForceOnSurface>(ssurf));
+                mload->loader.SetForce(Fn + Ft);
+                mload->loader.SetApplication(0.5, 0.5);  //***TODO*** set UV, now just in middle
+                this->Add(mload);
 
-    //             // Accumulate contact forces for this surface.
-    //             //// TODO
-    //         }
+                // Accumulate contact forces for this surface.
+                //// TODO
+            }
 
-    //         // Update mesh representation
-    //         vertices[i] = p_vertices_initial[i] - N * p_sinkage[i];
+            // Update mesh representation
+            vertices[i] = p_vertices_initial[i] - N * p_sinkage[i];
 
-    //     }  // end positive contact force
+        }  // end positive contact force
 
-    // }  // end loop on ray hits
+    }  // end loop on ray hits
 
     m_timer_ray_casting.stop();
 
@@ -1309,7 +1316,7 @@ void SCMDeformableSoil::ComputeInternalForces() {
     //
 
     // Use the SCM soil contact model as described in the paper:
-    // "Parameter Identification of a Planetary Rover Wheelï¿½Soil
+    // "Parameter Identification of a Planetary Rover Wheel–Soil
     // Contact Model via a Bayesian Approach", A.Gallina, R. Krenn et al.
 
     //
