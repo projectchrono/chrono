@@ -41,11 +41,27 @@ class CH_VSG_API ChVSGApp {
     ~ChVSGApp();
     vsg::ref_ptr<vsg::Viewer> GetViewer() { return m_viewer; }
     bool Initialize(int windowWidth, int windowHeight, const char* windowTitle, ChSystem* system);
-    void AnalyseSystem();
     void Render();
+    void setClearColor(float r, float g, float b, float a) {
+        m_clearColor[0] = r;
+        m_clearColor[1] = g;
+        m_clearColor[2] = b;
+        m_clearColor[3] = a;
+    }
+    void setClearColor(float r, float g, float b) { setClearColor(r, g, b, 1.0); }
+    void setTimeStep(double tStep) { m_timeStep = tStep; }
+    void setUpVector(ChVector<> up);
+    void doTimeStep();
+
+  protected:
+    void BuildSceneGraph();
 
   private:
     ChSystem* m_system;
+
+    double m_timeStep;
+
+    bool m_build_graph;
 
     float m_horizonMountainHeight;
 
@@ -62,6 +78,10 @@ class CH_VSG_API ChVSGApp {
     vsg::ref_ptr<vsg::Viewer> m_viewer;
 
     vsg::ref_ptr<vsg::Window> m_window;
+
+    float m_clearColor[4];
+
+    vsg::dvec3 m_up_vector;
 };
 
 }  // namespace vsg3d
