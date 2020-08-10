@@ -23,8 +23,9 @@
 
 #ifdef CHRONO_IRRLICHT
 #include "chrono_vehicle/utils/ChVehicleIrrApp.h"
-#include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleIrrApp.h"
 #include "chrono_vehicle/driver/ChIrrGuiDriver.h"
+#include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleIrrApp.h"
+#include "chrono_vehicle/tracked_vehicle/utils/ChTrackedVehicleIrrApp.h"
 
 /*using namespace chrono::irrlicht;
 using namespace irr;*/
@@ -70,8 +71,9 @@ using namespace irr;*/
 
 #ifdef CHRONO_IRRLICHT
 %include "../../chrono_vehicle/utils/ChVehicleIrrApp.h"
-%include "../../chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleIrrApp.h"
 %include "../../chrono_vehicle/driver/ChIrrGuiDriver.h"
+%include "../../chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleIrrApp.h"
+%include "../../chrono_vehicle/tracked_vehicle/utils/ChTrackedVehicleIrrApp.h"
 %include "irrTypes.h"
 %include "vector2d.h"
 %include "dimension2d.h"
