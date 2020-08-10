@@ -86,7 +86,8 @@ class CH_VEHICLE_API ChTrackShoe : public ChPart {
 
     /// Connect this track shoe to the specified neighbor.
     /// This function must be called only after all track shoes have been initialized.
-    virtual void Connect(std::shared_ptr<ChTrackShoe> next  ///< [in] handle to the neighbor track shoe
+    virtual void Connect(std::shared_ptr<ChTrackShoe> next,  ///< [in] handle to the neighbor track shoe
+                         bool ccw                            ///< [in] track assembled in counter clockwise direction
                          ) = 0;
 
   protected:
