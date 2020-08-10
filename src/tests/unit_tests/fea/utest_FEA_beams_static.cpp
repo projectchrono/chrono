@@ -152,6 +152,7 @@ double EULER_test(ChSystem& sys, double tip_load, int nelements) {
 		beam_wy,			// width of section in y direction
 		beam_wz,			// width of section in z direction
 		E_mod,				// Young modulus
+        E_mod * nu_rat,     // Shear modulus
 		rho			        // density
 		);
 

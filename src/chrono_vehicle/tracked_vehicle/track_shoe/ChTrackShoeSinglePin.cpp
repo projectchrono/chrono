@@ -145,8 +145,9 @@ void ChTrackShoeSinglePin::RemoveVisualizationAssets() {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChTrackShoeSinglePin::Connect(std::shared_ptr<ChTrackShoe> next) {
-    ChVector<> loc = m_shoe->TransformPointLocalToParent(ChVector<>(GetPitch() / 2, 0, 0));
+void ChTrackShoeSinglePin::Connect(std::shared_ptr<ChTrackShoe> next, bool ccw) {
+    double sign = ccw ? +1 : -1;
+    ChVector<> loc = m_shoe->TransformPointLocalToParent(ChVector<>(sign * GetPitch() / 2, 0, 0));
 
     if (m_index == 0) {
         // Create and initialize a point-line joint (sliding line along X)

@@ -186,6 +186,7 @@ using namespace chrono::fea;
 %shared_ptr(chrono::fea::ChBeamSectionEuler)
 %shared_ptr(chrono::fea::ChBeamSectionEulerSimple)
 %shared_ptr(chrono::fea::ChBeamSectionEulerAdvanced)
+%shared_ptr(chrono::fea::ChBeamSectionEulerGeneric)
 %shared_ptr(chrono::fea::ChBeamSectionEulerEasyCircular)
 %shared_ptr(chrono::fea::ChBeamSectionEulerEasyRectangular)
 %shared_ptr(chrono::fea::ChBeamSectionBasic)
@@ -368,6 +369,8 @@ using namespace chrono::fea;
 %include "../../chrono/fea/ChBeamSectionShape.h"
 %include "../../chrono/fea/ChBeamSection.h"
 %include "../../chrono/fea/ChBeamSectionCosserat.h"
+%include "../../chrono/fea/ChBeamSectionEuler.h"
+%include "../../chrono/fea/ChBeamSectionCable.h"
 %include "../../chrono/fea/ChElementBeam.h"
 %include "../../chrono/fea/ChElementBeamEuler.h"
 %include "../../chrono/fea/ChElementBeamANCF.h"

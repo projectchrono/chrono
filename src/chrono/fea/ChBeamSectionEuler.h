@@ -76,6 +76,19 @@ public:
     /// frame of the section at centerline. Note: it automatically follows Jxx=Jyy+Jzz for the polar theorem. Also, Jxx=density*Ixx if constant density.
     virtual double GetInertiaJxxPerUnitLength()  const = 0;
 
+    /// Compute the 6x6 sectional inertia matrix, as in  {x_momentum,w_momentum}=[Mm]{xvel,wvel} 
+    /// The matrix is computed in the material reference (i.e. it is the sectional mass matrix)
+    virtual void ComputeInertiaMatrix(ChMatrixNM<double, 6, 6>& M  ///< 6x6 sectional mass matrix values here
+                                      ) = 0;
+
+    /// Compute the values of inertial force & torque depending on quadratic velocity terms,
+    /// that is the gyroscopic torque (null for Euler beam as point-like mass section, might be nonzero if adding Rayleigh beam theory) 
+    /// and the centrifugal term (if any). All terms expressed 
+    /// in the material reference, ie. the reference in the centerline of the section.
+    virtual void ComputeQuadraticTerms(ChVector<>& mF,   ///< centrifugal term (if any) returned here
+                                       ChVector<>& mT,   ///< gyroscopic term returned here
+                                       const ChVector<>& mW    ///< current angular velocity of section, in material frame
+                                      ) = 0;
 
     // DAMPING INTERFACE
 
@@ -92,6 +105,8 @@ private:
 /// Basic section of an Euler-Bernoulli beam in 3D, for a homogeneous density
 /// and homogeneous elasticity, given basic material properties (Izz and Iyy moments of inertia, 
 /// area, Young modulus, etc.). 
+/// This is a simple section model that assumes the elastic center, the shear center and the mass 
+/// center to be all in the centerline of the beam (section origin); this is the case of symmetric sections for example.
 /// To be used with ChElementBeamEuler.
 /// This material can be shared between multiple beams.
 /// 
@@ -196,7 +211,7 @@ class ChApi ChBeamSectionEulerSimple : public ChBeamSectionEuler {
     void SetYoungModulus(double mE) { this->E = mE; }
     double GetYoungModulus() const { return this->E; }
 
-    /// Set G, the shear modulus
+    /// Set G, the shear modulus, used for computing the torsion rigidity = J*G
     void SetGshearModulus(double mG) { this->G = mG; }
     double GetGshearModulus() const { return this->G; }
 
@@ -238,6 +253,12 @@ class ChApi ChBeamSectionEulerSimple : public ChBeamSectionEuler {
     virtual double GetShearCenterY() const override { return 0; }
     /// Gets the Z position of the shear center respect to centerline.
     virtual double GetShearCenterZ() const override { return 0; }
+
+    /// Compute the 6x6 sectional inertia matrix, as in  {x_momentum,w_momentum}=[Mm]{xvel,wvel} 
+    virtual void ComputeInertiaMatrix(ChMatrixNM<double, 6, 6>& M) override;
+
+    /// Compute the centrifugal term and gyroscopic term
+    virtual void ComputeQuadraticTerms(ChVector<>& mF, ChVector<>& mT, const ChVector<>& mW) override;
 
     /// Get mass per unit length, ex.SI units [kg/m]
     virtual double GetMassPerUnitLength() const override { 
@@ -345,9 +366,11 @@ private:
     double Sz;
     double mu;      // mass per unit length  
     double Jxx;     // inertia per unit length 
+    double My;      // Mass center
+    double Mz;
 public:
 
-    ChBeamSectionEulerGeneric() : Ax(1), Txx(1), Byy(1), Bzz(1),alpha(0),Cy(0),Cz(0),Sy(0),Sz(0),mu(1000),Jxx(1) {}
+    ChBeamSectionEulerGeneric() : Ax(1), Txx(1), Byy(1), Bzz(1),alpha(0),Cy(0),Cz(0),Sy(0),Sz(0),mu(1000),Jxx(1), My(0), Mz(0) {}
 
     ChBeamSectionEulerGeneric(  const double mAx,      ///< axial rigidity
                                 const double mTxx,     ///< torsion rigidity
@@ -359,9 +382,11 @@ public:
                                 const double mSy,      ///< shear center y displacement respect to centerline
                                 const double mSz,      ///< shear center z displacement respect to centerline
                                 const double mmu,      ///< mass per unit length  
-                                const double mJxx      ///< polar inertia Jxx per unit lenght
+                                const double mJxx,     ///< polar inertia Jxx per unit lenght, measured respect to centerline
+                                const double mMy = 0,  ///< mass center y displacement respect to centerline
+                                const double mMz = 0   ///< mass center z displacement respect to centerline
     ) :
-        Ax(mAx), Txx(mTxx), Byy(mByy), Bzz(mBzz), alpha(malpha), Cy(mCy), Cz(mCy), Sy(mSy), Sz(mSz), mu(mmu), Jxx(mJxx) {}
+        Ax(mAx), Txx(mTxx), Byy(mByy), Bzz(mBzz), alpha(malpha), Cy(mCy), Cz(mCz), Sy(mSy), Sz(mSz), mu(mmu), Jxx(mJxx), My(mMy), Mz(mMz) {}
 
 
     virtual ~ChBeamSectionEulerGeneric() {}
@@ -432,6 +457,30 @@ public:
         Jxx = mv;
     }
 
+    /// Set inertia moment per unit length Jxx_massref, as assumed computed in the "mass reference"
+    /// frame, ie. centered at the center of mass. Call this after you set SetCenterOfMass() and SetMassPerUnitLength() 
+    virtual void SetInertiaJxxPerUnitLengthInMassReference(const double mv)  {
+        Jxx = mv +  this->mu * this->Mz * this->Mz +  this->mu * this->My * this->My;
+    }
+    
+    /// Get inertia moment per unit length Jxx_massref, as assumed computed in the "mass reference"
+    /// frame, ie. centered at the center of mass 
+    virtual double GetInertiaJxxPerUnitLengthInMassReference()  {
+        return this->Jxx - this->mu * this->Mz * this->Mz +  this->mu * this->My * this->My;
+    }
+
+    /// "mass reference": set the displacement of the center of mass respect to 
+    /// the section centerline reference.
+    void SetCenterOfMass(double my, double mz) {
+        this->My = my;
+        this->Mz = mz;
+    }
+    double GetCenterOfMassY() {
+        return this->My;
+    }
+    double GetCenterOfMassZ() {
+        return this->Mz;
+    }
 
     // INTERFACES
 
@@ -460,6 +509,11 @@ public:
     /// Gets the Z position of the shear center respect to centerline.
     virtual double GetShearCenterZ() const  { return this->Sz; }
 
+    /// Compute the 6x6 sectional inertia matrix, as in  {x_momentum,w_momentum}=[Mm]{xvel,wvel} 
+    virtual void ComputeInertiaMatrix(ChMatrixNM<double, 6, 6>& M) override;
+
+    /// Compute the centrifugal term and gyroscopic term
+    virtual void ComputeQuadraticTerms(ChVector<>& mF, ChVector<>& mT, const ChVector<>& mW) override;
 
     /// Get mass per unit length, ex.SI units [kg/m]
     virtual double GetMassPerUnitLength() const { return this->mu; }
@@ -484,6 +538,7 @@ public:
 		double width_y,			///< width of section in y direction
 		double width_z,			///< width of section in z direction
 		double E,				///< Young modulus
+        double G,				///< Shear modulus (only needed for the torsion)
 		double density			///< volumetric density (ex. in SI units: [kg/m^3])
 	);
 };
@@ -500,6 +555,7 @@ public:
 	ChBeamSectionEulerEasyCircular(
 		double diameter,		///< diameter of circular section
 		double E,				///< Young modulus
+        double G,				///< Shear modulus (only needed for the torsion)
 		double density			///< volumetric density (ex. in SI units: [kg/m^3])
 	);
 };
