@@ -26,6 +26,7 @@
 #include "chrono_vehicle/wheeled_vehicle/tire/ChPacejkaTire.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/ChPac2002_data.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/ChPac89Tire.h"
+#include "chrono_vehicle/wheeled_vehicle/tire/ChPac02Tire.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/ChLugreTire.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/ChFialaTire.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/ChFEATire.h"
@@ -48,6 +49,7 @@
 %shared_ptr(chrono::vehicle::ChPacejkaTire)
 %shared_ptr(chrono::vehicle::ChPac2002_data)
 %shared_ptr(chrono::vehicle::ChPac89Tire)
+%shared_ptr(chrono::vehicle::ChPac02Tire)
 %shared_ptr(chrono::vehicle::ChLugreTire)
 %shared_ptr(chrono::vehicle::ChFialaTire)
 %shared_ptr(chrono::vehicle::TMeasyTire)
@@ -71,6 +73,7 @@
 %include "../../chrono_vehicle/wheeled_vehicle/tire/ChPacejkaTire.h"
 %include "../../chrono_vehicle/wheeled_vehicle/tire/ChPac2002_data.h"
 %include "../../chrono_vehicle/wheeled_vehicle/tire/ChPac89Tire.h"
+%include "../../chrono_vehicle/wheeled_vehicle/tire/ChPac02Tire.h"
 %include "../../chrono_vehicle/wheeled_vehicle/tire/ChLugreTire.h"
 %include "../../chrono_vehicle/wheeled_vehicle/tire/ChFialaTire.h"
 
