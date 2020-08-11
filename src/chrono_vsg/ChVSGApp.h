@@ -50,16 +50,19 @@ class CH_VSG_API ChVSGApp {
     }
     void setClearColor(float r, float g, float b) { setClearColor(r, g, b, 1.0); }
     void setTimeStep(double tStep) { m_timeStep = tStep; }
+    void setOutputStep(double outStep) { m_outputStep = outStep; }
     void setUpVector(ChVector<> up);
     void doTimeStep();
 
   protected:
-    void BuildSceneGraph();
+    void UpdateSceneGraph();
+    void IncreaseWaitCounter();
 
   private:
     ChSystem* m_system;
 
     double m_timeStep;
+    double m_outputStep;
 
     bool m_build_graph;
 
@@ -82,6 +85,9 @@ class CH_VSG_API ChVSGApp {
     float m_clearColor[4];
 
     vsg::dvec3 m_up_vector;
+
+    size_t m_wait_counter;
+    size_t m_wait_counter_max;
 };
 
 }  // namespace vsg3d

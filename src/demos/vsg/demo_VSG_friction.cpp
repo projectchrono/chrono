@@ -100,10 +100,23 @@ int main(int argc, char* argv[]) {
     ChVSGApp app;
 
     app.setTimeStep(0.005);
+    app.setOutputStep(0.05);
     app.setUpVector(ChVector<>(0.0, 0.0, -1.0));
 
     bool ok = app.Initialize(1200, 800, "VSG Friction Demo", &mphysicalSystem);
+    double modelTime = 0.0;
+    double maxModelTime = 10.0;
+    ChTimer timer;
+    timer.reset();  // mandatory on macos, doesn't do no harm on windows and linux
+    timer.start();
     while (app.GetViewer()->advanceToNextFrame()) {
+        modelTime = mphysicalSystem.GetChTime();
+        if (modelTime >= maxModelTime) {
+            GetLog() << "Max. model time of " << maxModelTime << " s reached. Terminate.\n";
+            timer.stop();
+            GetLog() << "Max. wallclock time is " << timer.GetTimeSeconds() << " s.\n";
+            app.GetViewer()->close();
+        }
         app.doTimeStep();
         app.Render();
     }
