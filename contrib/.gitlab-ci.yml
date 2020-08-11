@@ -492,17 +492,17 @@ macos:macos:deploy:
     - conda install conda-build anaconda-client conda-verify --yes
     - conda config --add channels https://conda.anaconda.org/conda-forge
     - conda config --add channels https://conda.anaconda.org/intel
-    #- conda install -c dlr-sc opencascade --yes
+    - conda install -c dlr-sc opencascade --yes
     - conda install -c intel mkl-devel --yes
     - conda build purge-all
     # this command is needed to get the git describe data
     - git fetch --prune --unshallow
     - clang --version
     - mv -f ./contrib/packaging-python/conda/buildMacOS.sh ./contrib/packaging-python/conda/build.sh
-    - conda build ./contrib/packaging-python/conda --no-remove-work-dir --dirty --python=3.6
+    - conda build ./contrib/packaging-python/conda --no-remove-work-dir --dirty --python=3.7
     - anaconda -t $ANACONDA_TOKEN upload $HOME/miniconda/conda-bld/osx-64/pychrono*.bz2 -l develop --force
     - conda build purge-all
-    - conda build ./contrib/packaging-python/conda --no-remove-work-dir --dirty --python=3.7
+    - conda build ./contrib/packaging-python/conda --no-remove-work-dir --dirty --python=3.6
     - anaconda -t $ANACONDA_TOKEN upload $HOME/miniconda/conda-bld/osx-64/pychrono*.bz2 -l develop --force
   environment:
     name: pychrono-macos
