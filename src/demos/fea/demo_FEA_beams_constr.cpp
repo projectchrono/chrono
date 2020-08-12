@@ -19,7 +19,7 @@
 #include "chrono/physics/ChLinkLock.h"
 #include "chrono/physics/ChLinkMate.h"
 #include "chrono/physics/ChLinkMotorRotationAngle.h"
-#include "chrono/physics/ChSystemNSC.h"
+#include "chrono/physics/ChSystemSMC.h"
 
 #include "chrono/fea/ChBuilderBeam.h"
 #include "chrono/fea/ChElementBeamEuler.h"
@@ -44,7 +44,7 @@ int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
     // Create a Chrono::Engine physical system
-    ChSystemNSC my_system;
+    ChSystemSMC my_system;
 
     // Create the Irrlicht visualization (open the Irrlicht device,
     // bind a simple user interface, etc. etc.)
@@ -120,7 +120,7 @@ int main(int argc, char* argv[]) {
     // IGA beams require ChBeamSectionCosserat sections, containing at least
 	// a ChElasticityCosserat and ChInertiaCosserat models, and optional ChDampingCosserat and ChPlasticityCosserat.
 
-	auto minertia = chrono_types::make_shared<ChInertiaCosseratUniformDensity>();
+	auto minertia = chrono_types::make_shared<ChInertiaCosseratSimple>();
 	minertia->SetAsRectangularSection(beam_wy, beam_wz, 2700);  // automatically sets A etc., from width, height, density
 
     auto melasticity = chrono_types::make_shared<ChElasticityCosseratSimple>();
@@ -145,7 +145,7 @@ int main(int argc, char* argv[]) {
     auto node_mid = std::shared_ptr<ChNodeFEAxyzrot>(builder_iga.GetLastBeamNodes()[17]);
 
     // Create the vertical beam (Here use Euler beams, for example).
-    auto msection2 = chrono_types::make_shared<ChBeamSectionAdvanced>();
+    auto msection2 = chrono_types::make_shared<ChBeamSectionEulerAdvanced>();
 
     double hbeam_d = 0.024;
     msection2->SetDensity(2700);
@@ -156,7 +156,7 @@ int main(int argc, char* argv[]) {
 
     ChBuilderBeamEuler builder;
     builder.BuildBeam(my_mesh,               // the mesh where to put the created nodes and elements
-                      msection2,             // the ChBeamSectionAdvanced to use for the ChElementBeamEuler elements
+                      msection2,             // the ChBeamSectionEuler to use for the ChElementBeamEuler elements
                       3,                     // the number of ChElementBeamEuler to create
                       vC + vd,               // the 'A' point in space (beginning of beam)
                       vB + vd,               // the 'B' point in space (end of beam)
@@ -178,7 +178,7 @@ int main(int argc, char* argv[]) {
     constr_bb->AddAsset(msphereconstr2);
 
     // Create a beam as a crank
-    auto msection3 = chrono_types::make_shared<ChBeamSectionAdvanced>();
+    auto msection3 = chrono_types::make_shared<ChBeamSectionEulerAdvanced>();
 
     double crankbeam_d = 0.048;
     msection3->SetDensity(2700);
@@ -188,7 +188,7 @@ int main(int argc, char* argv[]) {
     msection3->SetAsCircularSection(crankbeam_d);
 
     builder.BuildBeam(my_mesh,               // the mesh where to put the created nodes and elements
-                      msection3,             // the ChBeamSectionAdvanced to use for the ChElementBeamEuler elements
+                      msection3,             // the ChBeamSectionEuler to use for the ChElementBeamEuler elements
                       3,                     // the number of ChElementBeamEuler to create
                       vG + vd,               // the 'A' point in space (beginning of beam)
                       vB + vd,               // the 'B' point in space (end of beam)

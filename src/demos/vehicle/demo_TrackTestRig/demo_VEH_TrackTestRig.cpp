@@ -69,7 +69,7 @@ std::string filename("M113/track_assembly/M113_TrackAssemblySinglePin_Left.json"
 
 // Use HHT + MKL / MUMPS
 bool use_mkl = false;
-bool use_mumps = true;
+bool use_mumps = false;
 
 // Solver output level (MKL and MUMPS)
 bool verbose_solver = false;
@@ -88,7 +88,7 @@ int main(int argc, char* argv[]) {
     // -----------------------
 
     bool create_track = true;
-    ChContactMethod contact_method = ChContactMethod::NSC;
+    ChContactMethod contact_method = ChContactMethod::SMC;
 
     //// NOTE
     //// When using SMC, a double-pin shoe type requires MKL or MUMPS.
@@ -103,16 +103,18 @@ int main(int argc, char* argv[]) {
         std::cout << "Rig uses track assembly from JSON file: " << vehicle::GetDataFile(filename) << std::endl;
     } else {
         VehicleSide side = LEFT;
-        TrackShoeType type = TrackShoeType::DOUBLE_PIN;
+        TrackShoeType type = TrackShoeType::SINGLE_PIN;
+        BrakeType brake_type = BrakeType::SIMPLE;
         std::shared_ptr<ChTrackAssembly> track_assembly;
         switch (type) {
             case TrackShoeType::SINGLE_PIN: {
-                auto assembly = chrono_types::make_shared<M113_TrackAssemblySinglePin>(side);
+                auto assembly = chrono_types::make_shared<M113_TrackAssemblySinglePin>(side, brake_type);
                 track_assembly = assembly;
                 break;
             }
             case TrackShoeType::DOUBLE_PIN: {
-                auto assembly = chrono_types::make_shared<M113_TrackAssemblyDoublePin>(side);
+                contact_method = ChContactMethod::NSC; // force NSC
+                auto assembly = chrono_types::make_shared<M113_TrackAssemblyDoublePin>(side, brake_type);
                 track_assembly = assembly;
                 break;
             }
@@ -131,13 +133,15 @@ int main(int argc, char* argv[]) {
 
     ////ChVector<> target_point = rig->GetPostPosition();
     ////ChVector<> target_point = rig->GetTrackAssembly()->GetIdler()->GetWheelBody()->GetPos();
-    ChVector<> target_point = rig->GetTrackAssembly()->GetSprocket()->GetGearBody()->GetPos();
+    ////ChVector<> target_point = rig->GetTrackAssembly()->GetSprocket()->GetGearBody()->GetPos();
+    ChVector<> target_point = 0.5 * (rig->GetTrackAssembly()->GetSprocket()->GetGearBody()->GetPos() +
+                                     rig->GetTrackAssembly()->GetIdler()->GetWheelBody()->GetPos());
 
     ChVehicleIrrApp app(rig, L"Suspension Test Rig");
     app.SetSkyBox();
     app.AddTypicalLights(irr::core::vector3df(30.f, -30.f, 100.f), irr::core::vector3df(30.f, 50.f, 100.f), 250, 130);
     app.SetChaseCamera(ChVector<>(0), 3.0, 0.0);
-    app.SetChaseCameraPosition(target_point + ChVector<>(-2, 3, 0));
+    app.SetChaseCameraPosition(target_point + ChVector<>(0, 3, 0));
     app.SetChaseCameraState(utils::ChChaseCamera::Free);
     app.SetChaseCameraAngle(-CH_C_PI_2);
     app.SetChaseCameraMultipliers(1e-4, 10);
@@ -244,7 +248,7 @@ int main(int argc, char* argv[]) {
     } else {
         std::cout << "Solver: SOR" << std::endl;
         auto solver = chrono_types::make_shared<ChSolverPSOR>();
-        solver->SetMaxIterations(50);
+        solver->SetMaxIterations(60);
         solver->SetOmega(0.8);
         solver->SetSharpnessLambda(1.0);
         rig->GetSystem()->SetSolver(solver);
@@ -266,7 +270,7 @@ int main(int argc, char* argv[]) {
         integrator->SetScaling(true);
         integrator->SetVerbose(verbose_solver);
     } else {
-        std::cout << "Solver: Default" << std::endl;
+        std::cout << "Integrator: Default" << std::endl;
     }
 
     // ---------------

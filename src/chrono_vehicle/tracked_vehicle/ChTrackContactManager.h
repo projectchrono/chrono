@@ -22,6 +22,8 @@
 #include <list>
 
 #include "chrono/physics/ChContactContainer.h"
+#include "chrono/physics/ChLoadContainer.h"
+#include "chrono/collision/ChCollisionSystem.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 
 #include "chrono_vehicle/ChSubsysDefs.h"
@@ -29,6 +31,7 @@
 #include "chrono_vehicle/tracked_vehicle/ChSprocket.h"
 #include "chrono_vehicle/tracked_vehicle/ChTrackShoe.h"
 #include "chrono_vehicle/tracked_vehicle/ChIdler.h"
+#include "chrono_vehicle/tracked_vehicle/ChRoadWheel.h"
 
 namespace chrono {
 namespace vehicle {
@@ -38,13 +41,7 @@ namespace vehicle {
 
 class ChTrackedVehicle;
 
-/// Contact information data structure.
-struct ChTrackContactInfo {
-    ChVector<> m_point;
-    ChMatrix33<> m_csys;
-    ChVector<> m_force;
-    ChVector<> m_torque;
-};
+// -----------------------------------------------------------------------------
 
 /// Class for monitoring contacts of tracked vehicle subsystems.
 class CH_VEHICLE_API ChTrackContactManager : public ChContactContainer::ReportContactCallback {
@@ -63,6 +60,14 @@ class CH_VEHICLE_API ChTrackContactManager : public ChContactContainer::ReportCo
     bool InContact(TrackedCollisionFlag::Enum part) const;
 
   private:
+    /// Contact information data structure.
+    struct ContactInfo {
+        ChVector<> m_point;
+        ChMatrix33<> m_csys;
+        ChVector<> m_force;
+        ChVector<> m_torque;
+    };
+
     bool IsFlagSet(TrackedCollisionFlag::Enum val) { return (m_flags & static_cast<int>(val)) != 0; }
 
     /// Callback, used to report contact points already added to the container.
@@ -91,18 +96,68 @@ class CH_VEHICLE_API ChTrackContactManager : public ChContactContainer::ReportCo
     std::shared_ptr<ChTrackShoe> m_shoe_L;
     std::shared_ptr<ChTrackShoe> m_shoe_R;
 
-    size_t m_shoe_index_L;                                ///< index of monitored track shoe on left track
-    size_t m_shoe_index_R;                                ///< index of monitored track shoe on right track
+    size_t m_shoe_index_L;  ///< index of monitored track shoe on left track
+    size_t m_shoe_index_R;  ///< index of monitored track shoe on right track
 
-    std::list<ChTrackContactInfo> m_chassis_contacts;     ///< list of contacts on chassis
-    std::list<ChTrackContactInfo> m_sprocket_L_contacts;  ///< list of contacts on left sprocket gear
-    std::list<ChTrackContactInfo> m_sprocket_R_contacts;  ///< list of contacts on right sprocket gear
-    std::list<ChTrackContactInfo> m_shoe_L_contacts;      ///< list of contacts on left track shoe
-    std::list<ChTrackContactInfo> m_shoe_R_contacts;      ///< list of contacts on right track shoe
-    std::list<ChTrackContactInfo> m_idler_L_contacts;     ///< list of contacts on left idler wheel
-    std::list<ChTrackContactInfo> m_idler_R_contacts;     ///< list of contacts on right idler wheel
+    std::list<ContactInfo> m_chassis_contacts;     ///< list of contacts on chassis
+    std::list<ContactInfo> m_sprocket_L_contacts;  ///< list of contacts on left sprocket gear
+    std::list<ContactInfo> m_sprocket_R_contacts;  ///< list of contacts on right sprocket gear
+    std::list<ContactInfo> m_shoe_L_contacts;      ///< list of contacts on left track shoe
+    std::list<ContactInfo> m_shoe_R_contacts;      ///< list of contacts on right track shoe
+    std::list<ContactInfo> m_idler_L_contacts;     ///< list of contacts on left idler wheel
+    std::list<ContactInfo> m_idler_R_contacts;     ///< list of contacts on right idler wheel
 
     friend class ChTrackedVehicleIrrApp;
+};
+
+// -----------------------------------------------------------------------------
+
+// Class for monitoring collisions of tracked vehicle subsystems.
+// This private class is only used by ChTrackedVehicle (do not export?)
+class CH_VEHICLE_API ChTrackCollisionManager : public collision::ChCollisionSystem::NarrowphaseCallback {
+    ChTrackCollisionManager(ChTrackedVehicle* vehicle);
+
+    /// Empty the list of wheel-track shoe collisions
+    void Reset();
+
+    /// Callback used to process collision pairs found by the narrow-phase collision step.
+    /// Return true to generate a contact for this pair of overlapping bodies.
+    virtual bool OnNarrowphase(collision::ChCollisionInfo& contactinfo) override;
+
+    bool m_idler_shoe;                                           ///< process collisions with idler bodies
+    bool m_wheel_shoe;                                           ///< process collisions with road-wheel bodies
+    std::vector<collision::ChCollisionInfo> m_collisions_idler;  ///< current list of idler-track shoe collisions
+    std::vector<collision::ChCollisionInfo> m_collisions_wheel;  ///< current list of wheel-track shoe collisions
+
+    friend class ChTrackedVehicle;
+    friend class ChTrackCustomContact;
+};
+
+/// Callback interface for user-defined custom contact between road wheels and track shoes.
+class CH_VEHICLE_API ChTrackCustomContact : public ChLoadContainer {
+  public:
+    virtual ~ChTrackCustomContact() {}
+
+    /// For the given collision between an idler or road-wheel and a track shoe, compute the contact force on the track
+    /// shoe at the contact point. The first contactable in 'cinfo' is the wheel body and the second contactable is the
+    /// track shoe body. The wheel body is either an idler (wheel_is_idler = true) or a road-wheel (wheel_is_idler =
+    /// false). The return force is assumed to be expressed in the absolute reference frame.
+    virtual void ComputeForce(
+        const collision::ChCollisionInfo& cinfo,  ///< [in] geometric information for the collision pair
+        std::shared_ptr<ChBody> wheelBody,        ///< [in] wheel body (idler or road-wheel) in collision
+        std::shared_ptr<ChBody> shoeBody,         ///< [in] track shoe body in collision
+        bool wheel_is_idler,                      ///< [in] idler body (true) or road-wheel body (false)
+        ChVector<>& forceShoe                     ///< [out] force on track shoe at contact point, in abs. frame
+        ) = 0;
+
+  private:
+    virtual void Setup() override;
+    virtual void Update(double mytime, bool update_assets = true) override;
+    void ApplyForces();
+
+    ChTrackCollisionManager* m_collision_manager;
+
+    friend class ChTrackedVehicle;
 };
 
 /// @} vehicle_tracked

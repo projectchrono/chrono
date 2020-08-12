@@ -46,7 +46,7 @@ linux:arch-gcc:build:
   - cd build
   - cmake ../ $CHRONO_UNIX_SHARED -DENABLE_MODULE_DISTRIBUTED=TRUE 
     -DENABLE_MODULE_FSI=TRUE -DCMAKE_C_COMPILER=/usr/bin/gcc 
-    -DCMAKE_CXX_COMPILER=/usr/bin/g++ -DCUDA_HOST_COMPILER=/usr/bin/gcc-8 
+    -DCMAKE_CXX_COMPILER=/usr/bin/g++ -DCUDA_HOST_COMPILER=/usr/bin/gcc-9 
     -DEIGEN3_INCLUDE_DIR=/usr/include/eigen3 -DENABLE_MODULE_GRANULAR=TRUE
   - make -j 8
   artifacts:
@@ -113,7 +113,7 @@ linux:arch-llvm:build:
   - cd build
   - cmake ../ $CHRONO_UNIX_SHARED -DENABLE_MODULE_DISTRIBUTED=TRUE 
     -DENABLE_MODULE_FSI=TRUE -DCMAKE_C_COMPILER=/usr/bin/clang 
-    -DCMAKE_CXX_COMPILER=/usr/bin/clang++ -DCUDA_HOST_COMPILER=/usr/bin/gcc-8 
+    -DCMAKE_CXX_COMPILER=/usr/bin/clang++ -DCUDA_HOST_COMPILER=/usr/bin/gcc-9 
     -DEIGEN3_INCLUDE_DIR=/usr/include/eigen3 -DENABLE_MODULE_GRANULAR=TRUE
   - make -j 8
   artifacts:
@@ -178,7 +178,7 @@ linux:arch-llvm:test:
   - git submodule update
   - mkdir -p build
 
-linux:centos:build:
+.linux:centos:build:
   stage: build
   extends: .centos
   script:
@@ -195,7 +195,7 @@ linux:centos:build:
     paths:
     - build/
 
-linux:centos:test:
+.linux:centos:test:
   stage: test
   needs: ["linux:centos:build"]
   extends: .centos

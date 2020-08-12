@@ -264,9 +264,8 @@ int main(int argc, char* argv[]) {
         std::cout << "Rank: " << my_rank << " Node name: " << my_sys.node_name << std::endl;
     }
 
-    CHOMPfunctions::SetNumThreads(num_threads);
-
     my_sys.Set_G_acc(ChVector<double>(0, 0, -9.8));
+    my_sys.SetNumThreads(num_threads);
 
     // Domain decomposition
     ChVector<double> domlo(-hx - spacing, -hy - spacing, -2.0 * gran_radius);

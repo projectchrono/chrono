@@ -29,25 +29,33 @@ namespace gator {
 // Static variables
 // -----------------------------------------------------------------------------
 
-const double Gator_RigidTire::m_radius = 0.28575;
-const double Gator_RigidTire::m_width = 0.254;
+const double Gator_RigidTire_Front::m_radius = 0.28575;
+const double Gator_RigidTire_Front::m_width = 0.254;
+const double Gator_RigidTire_Front::m_mass = 9.3;
+const ChVector<> Gator_RigidTire_Front::m_inertia(0.258, 0.416, 0.258);
+const std::string Gator_RigidTire_Front::m_meshFile_left = "gator/gator_wheel_FL.obj";
+const std::string Gator_RigidTire_Front::m_meshFile_right = "gator/gator_wheel_FR.obj";
+////const std::string Gator_RigidTire_Front::m_meshFile_left = "gator/gator_tireF_fine.obj";
+////const std::string Gator_RigidTire_Front::m_meshFile_right = "gator/gator_tireF_fine.obj";
 
-const double Gator_RigidTire::m_mass = 9.3;
-const ChVector<> Gator_RigidTire::m_inertia(0.258, 0.416, 0.258);
-
-const std::string Gator_RigidTire::m_meshFile = "gator/gator_tire_fine.obj";
+const double Gator_RigidTire_Rear::m_radius = 0.3175;
+const double Gator_RigidTire_Rear::m_width = 0.3048;
+const double Gator_RigidTire_Rear::m_mass = 9.3;
+const ChVector<> Gator_RigidTire_Rear::m_inertia(0.258, 0.416, 0.258);
+const std::string Gator_RigidTire_Rear::m_meshFile_left = "gator/gator_wheel_RL.obj";
+const std::string Gator_RigidTire_Rear::m_meshFile_right = "gator/gator_wheel_RR.obj";
+////const std::string Gator_RigidTire_Rear::m_meshFile_left = "gator/gator_tireR_fine.obj";
+////const std::string Gator_RigidTire_Rear::m_meshFile_right = "gator/gator_tireR_fine.obj";
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-Gator_RigidTire::Gator_RigidTire(const std::string& name, bool use_mesh) : ChRigidTire(name) {
+
+Gator_RigidTire_Front::Gator_RigidTire_Front(const std::string& name, bool use_mesh) : ChRigidTire(name) {
     if (use_mesh) {
-        SetMeshFilename(GetDataFile("gator/gator_tire_coarse.obj"), 0.005);
+        SetMeshFilename(GetDataFile("gator/gator_tireF_coarse.obj"), 0.005);
     }
 }
 
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-void Gator_RigidTire::CreateContactMaterial(ChContactMethod contact_method) {
+void Gator_RigidTire_Front::CreateContactMaterial(ChContactMethod contact_method) {
     MaterialInfo minfo;
     minfo.mu = 0.9f;
     minfo.cr = 0.1f;
@@ -55,16 +63,46 @@ void Gator_RigidTire::CreateContactMaterial(ChContactMethod contact_method) {
     m_material = minfo.CreateMaterial(contact_method);
 }
 
-void Gator_RigidTire::AddVisualizationAssets(VisualizationType vis) {
+void Gator_RigidTire_Front::AddVisualizationAssets(VisualizationType vis) {
     if (vis == VisualizationType::MESH) {
-        m_trimesh_shape = AddVisualizationMesh(vehicle::GetDataFile(m_meshFile),   // left side
-                                               vehicle::GetDataFile(m_meshFile));  // right side
+        m_trimesh_shape = AddVisualizationMesh(m_meshFile_left,    // left side
+                                               m_meshFile_right);  // right side
     } else {
         ChRigidTire::AddVisualizationAssets(vis);
     }
 }
 
-void Gator_RigidTire::RemoveVisualizationAssets() {
+void Gator_RigidTire_Front::RemoveVisualizationAssets() {
+    ChRigidTire::RemoveVisualizationAssets();
+    RemoveVisualizationMesh(m_trimesh_shape);
+}
+
+// -----------------------------------------------------------------------------
+
+Gator_RigidTire_Rear::Gator_RigidTire_Rear(const std::string& name, bool use_mesh) : ChRigidTire(name) {
+    if (use_mesh) {
+        SetMeshFilename(GetDataFile("gator/gator_tireR_coarse.obj"), 0.005);
+    }
+}
+
+void Gator_RigidTire_Rear::CreateContactMaterial(ChContactMethod contact_method) {
+    MaterialInfo minfo;
+    minfo.mu = 0.9f;
+    minfo.cr = 0.1f;
+    minfo.Y = 2e7f;
+    m_material = minfo.CreateMaterial(contact_method);
+}
+
+void Gator_RigidTire_Rear::AddVisualizationAssets(VisualizationType vis) {
+    if (vis == VisualizationType::MESH) {
+        m_trimesh_shape = AddVisualizationMesh(m_meshFile_left,    // left side
+                                               m_meshFile_right);  // right side
+    } else {
+        ChRigidTire::AddVisualizationAssets(vis);
+    }
+}
+
+void Gator_RigidTire_Rear::RemoveVisualizationAssets() {
     ChRigidTire::RemoveVisualizationAssets();
     RemoveVisualizationMesh(m_trimesh_shape);
 }

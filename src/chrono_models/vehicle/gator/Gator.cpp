@@ -35,32 +35,44 @@ namespace gator {
 Gator::Gator()
     : m_system(nullptr),
       m_vehicle(nullptr),
-      m_contactMethod(ChContactMethod::NSC),
-      m_chassisCollisionType(ChassisCollisionType::NONE),
+      m_contact_method(ChContactMethod::NSC),
+      m_chassis_collision_type(ChassisCollisionType::NONE),
       m_fixed(false),
+      m_driveline_type(DrivelineType::SIMPLE),
       m_brake_locking(false),
-      m_tireType(TireModelType::RIGID),
+      m_brake_type(BrakeType::SIMPLE),
+      m_tire_type(TireModelType::RIGID),
+      m_tire_collision_type(ChTire::CollisionType::SINGLE_POINT),
       m_tire_step_size(-1),
       m_tire_mass(0),
       m_initFwdVel(0),
       m_initPos(ChCoordsys<>(ChVector<>(0, 0, 1), QUNIT)),
       m_initOmega({0, 0, 0, 0}),
-      m_apply_drag(false) {}
+      m_apply_drag(false),
+      m_Cd(0),
+      m_area(0),
+      m_air_density(0) {}
 
 Gator::Gator(ChSystem* system)
     : m_system(system),
       m_vehicle(nullptr),
-      m_contactMethod(ChContactMethod::NSC),
-      m_chassisCollisionType(ChassisCollisionType::NONE),
+      m_contact_method(ChContactMethod::NSC),
+      m_chassis_collision_type(ChassisCollisionType::NONE),
       m_fixed(false),
+      m_driveline_type(DrivelineType::SIMPLE),
       m_brake_locking(false),
-      m_tireType(TireModelType::RIGID),
+      m_brake_type(BrakeType::SIMPLE),
+      m_tire_type(TireModelType::RIGID),
+      m_tire_collision_type(ChTire::CollisionType::SINGLE_POINT),
       m_tire_step_size(-1),
       m_tire_mass(0),
       m_initFwdVel(0),
       m_initPos(ChCoordsys<>(ChVector<>(0, 0, 1), QUNIT)),
       m_initOmega({0, 0, 0, 0}),
-      m_apply_drag(false) {}
+      m_apply_drag(false),
+      m_Cd(0),
+      m_area(0),
+      m_air_density(0) {}
 
 Gator::~Gator() {
     delete m_vehicle;
@@ -78,8 +90,12 @@ void Gator::SetAerodynamicDrag(double Cd, double area, double air_density) {
 // -----------------------------------------------------------------------------
 void Gator::Initialize() {
     // Create and initialize the Gator vehicle
-    m_vehicle = m_system ? new Gator_Vehicle(m_system, m_fixed, m_chassisCollisionType)
-                         : new Gator_Vehicle(m_fixed, m_contactMethod, m_chassisCollisionType);
+    if (m_system) {
+        m_vehicle = new Gator_Vehicle(m_system, m_fixed, m_driveline_type, m_brake_type, m_chassis_collision_type);
+    } else {
+        m_vehicle =
+            new Gator_Vehicle(m_fixed, m_driveline_type, m_brake_type, m_contact_method, m_chassis_collision_type);
+    }
 
     m_vehicle->SetInitWheelAngVel(m_initOmega);
     m_vehicle->Initialize(m_initPos, m_initFwdVel);
@@ -95,15 +111,15 @@ void Gator::Initialize() {
     m_vehicle->InitializePowertrain(powertrain);
 
     // Create the tires and set parameters depending on type.
-    switch (m_tireType) {
+    switch (m_tire_type) {
         case TireModelType::RIGID_MESH:
         case TireModelType::RIGID: {
-            bool use_mesh = (m_tireType == TireModelType::RIGID_MESH);
+            bool use_mesh = (m_tire_type == TireModelType::RIGID_MESH);
 
-            auto tire_FL = chrono_types::make_shared<Gator_RigidTire>("FL", use_mesh);
-            auto tire_FR = chrono_types::make_shared<Gator_RigidTire>("FR", use_mesh);
-            auto tire_RL = chrono_types::make_shared<Gator_RigidTire>("RL", use_mesh);
-            auto tire_RR = chrono_types::make_shared<Gator_RigidTire>("RR", use_mesh);
+            auto tire_FL = chrono_types::make_shared<Gator_RigidTire_Front>("FL", use_mesh);
+            auto tire_FR = chrono_types::make_shared<Gator_RigidTire_Front>("FR", use_mesh);
+            auto tire_RL = chrono_types::make_shared<Gator_RigidTire_Rear>("RL", use_mesh);
+            auto tire_RR = chrono_types::make_shared<Gator_RigidTire_Rear>("RR", use_mesh);
 
             m_vehicle->InitializeTire(tire_FL, m_vehicle->GetAxle(0)->m_wheels[LEFT], VisualizationType::NONE);
             m_vehicle->InitializeTire(tire_FR, m_vehicle->GetAxle(0)->m_wheels[RIGHT], VisualizationType::NONE);
@@ -137,6 +153,7 @@ void Gator::Initialize() {
 
     for (auto& axle : m_vehicle->GetAxles()) {
         for (auto& wheel : axle->GetWheels()) {
+            wheel->GetTire()->SetCollisionType(m_tire_collision_type);
             if (m_tire_step_size > 0)
                 wheel->GetTire()->SetStepsize(m_tire_step_size);
         }

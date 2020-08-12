@@ -22,6 +22,7 @@
 #include "chrono/core/ChStream.h"
 #include "chrono/core/ChRealtimeStep.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
+#include "chrono/utils/ChFilters.h"
 
 #include "chrono_vehicle/ChConfigVehicle.h"
 #include "chrono_vehicle/ChVehicleModelData.h"
@@ -64,12 +65,11 @@ double terrainWidth = 100.0;   // size in Y direction
 ChVector<> trackPoint(0.0, 0.0, .75);
 
 // Simulation step sizes
-double step_size = 5e-3;
+double step_size = 3e-3;
 double tire_step_size = 1e-3;
 
 // Time interval between two render frames
-int FPS = 50;
-double render_step_size = 1.0 / FPS;  // FPS = 50
+double render_step_size = 1.0 / 50;  // FPS = 50
 
 // POV-Ray output
 bool povray_output = false;
@@ -165,6 +165,8 @@ int main(int argc, char* argv[]) {
     // Simulation loop
     // ---------------
 
+    my_hmmwv.GetVehicle().LogSubsystemTypes();
+
     // Number of simulation steps between two 3D view render frames
     int render_steps = (int)std::ceil(render_step_size / step_size);
 
@@ -173,18 +175,23 @@ int main(int argc, char* argv[]) {
     int render_frame = 0;
 
     ChRealtimeStepTimer realtime_timer;
+    utils::ChRunningAverage RTF_filter(50);
+
     while (app.GetDevice()->run()) {
         double time = my_hmmwv.GetSystem()->GetChTime();
 
-        app.BeginScene(true, true, irr::video::SColor(255, 140, 161, 192));
-        app.DrawAll();
-        app.EndScene();
+        // Render scene and output POV-Ray data
+        if (step_number % render_steps == 0) {
+            app.BeginScene(true, true, irr::video::SColor(255, 140, 161, 192));
+            app.DrawAll();
+            app.EndScene();
 
-        // Output POV-Ray data
-        if (povray_output && step_number % render_steps == 0) {
-            char filename[100];
-            sprintf(filename, "%s/data_%03d.dat", pov_dir.c_str(), render_frame + 1);
-            utils::WriteShapesPovray(my_hmmwv.GetSystem(), filename);
+            if (step_number % render_steps == 0) {
+                char filename[100];
+                sprintf(filename, "%s/data_%03d.dat", pov_dir.c_str(), render_frame + 1);
+                utils::WriteShapesPovray(my_hmmwv.GetSystem(), filename);
+            }
+
             render_frame++;
         }
 
@@ -208,6 +215,7 @@ int main(int argc, char* argv[]) {
 
         // Spin in place for real time to catch up
         realtime_timer.Spin(step_size);
+        ////std::cout << RTF_filter.Add(realtime_timer.RTF) << std::endl;
     }
 
     return 0;

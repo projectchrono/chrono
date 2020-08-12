@@ -43,12 +43,18 @@ class CH_MODELS_API Gator {
 
     ~Gator();
 
-    void SetContactMethod(ChContactMethod val) { m_contactMethod = val; }
+    void SetContactMethod(ChContactMethod contact_method) { m_contact_method = contact_method; }
 
     void SetChassisFixed(bool val) { m_fixed = val; }
-    void SetChassisCollisionType(ChassisCollisionType val) { m_chassisCollisionType = val; }
+    void SetChassisCollisionType(ChassisCollisionType chassis_collision_type) {
+        m_chassis_collision_type = chassis_collision_type;
+    }
 
-    void SetTireType(TireModelType val) { m_tireType = val; }
+    void SetBrakeType(BrakeType brake_type) { m_brake_type = brake_type; }
+    void SetDrivelineType(DrivelineType driveline_type) { m_driveline_type = driveline_type; }
+    void SetTireType(TireModelType tire_type) { m_tire_type = tire_type; }
+
+    void SetTireCollisionType(ChTire::CollisionType collision_type) { m_tire_collision_type = collision_type; }
 
     void SetInitPosition(const ChCoordsys<>& pos) { m_initPos = pos; }
     void SetInitFwdVel(double fwdVel) { m_initFwdVel = fwdVel; }
@@ -84,12 +90,15 @@ class CH_MODELS_API Gator {
     void DebugLog(int what) { m_vehicle->DebugLog(what); }
 
   protected:
-    ChContactMethod m_contactMethod;
-    ChassisCollisionType m_chassisCollisionType;
+    ChContactMethod m_contact_method;
+    ChassisCollisionType m_chassis_collision_type;
     bool m_fixed;
     bool m_brake_locking;
 
-    TireModelType m_tireType;
+    DrivelineType m_driveline_type;
+    BrakeType m_brake_type;
+    TireModelType m_tire_type;
+    ChTire::CollisionType m_tire_collision_type;
 
     double m_tire_step_size;
 

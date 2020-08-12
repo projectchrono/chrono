@@ -624,6 +624,7 @@ bool ChCollisionModelBullet::AddTriangleMesh(std::shared_ptr<ChMaterialSurface> 
         } else {
             // Note: currently there's no 'perfect' convex decomposition method, so code here is a bit experimental...
 
+            /*
             // using the HACD convex decomposition
             auto mydecompositionHACD = chrono_types::make_shared<ChConvexDecompositionHACD>();
             mydecompositionHACD->AddTriangleMesh(*trimesh);
@@ -640,6 +641,22 @@ bool ChCollisionModelBullet::AddTriangleMesh(std::shared_ptr<ChMaterialSurface> 
             );
             mydecompositionHACD->ComputeConvexDecomposition();
             AddTriangleMeshConcaveDecomposed(material, mydecompositionHACD, pos, rot);
+            */
+
+            // using HACDv2 convex decomposition
+            auto mydecompositionHACDv2 = chrono_types::make_shared<ChConvexDecompositionHACDv2>();
+            mydecompositionHACDv2->Reset();
+            mydecompositionHACDv2->AddTriangleMesh(*trimesh);
+            mydecompositionHACDv2->SetParameters(  //
+                512,                               // max hull count
+                256,                               // max hull merge
+                64,                                // max hull vettices
+                0.2f,                              // concavity
+                0.0f,                              // small cluster threshold
+                1e-9f                              // fuse tolerance
+            );
+            mydecompositionHACDv2->ComputeConvexDecomposition();
+            AddTriangleMeshConcaveDecomposed(material, mydecompositionHACDv2, pos, rot);
         }
     }
 

@@ -29,7 +29,7 @@ print ("Example: PyChrono using  beam finite elements");
 
 
 # Create a Chrono::Engine physical system
-my_system = chrono.ChSystemNSC()
+my_system = chrono.ChSystemSMC()
 
 ## Create a mesh, that is a container for groups
 ## of elements and their referenced nodes.
@@ -38,7 +38,7 @@ my_mesh = fea.ChMesh();
 ## Create a section, i.e. thickness and material properties
 ## for beams. This will be shared among some beams.
 
-msection = fea.ChBeamSectionAdvanced()
+msection = fea.ChBeamSectionEulerAdvanced()
 
 beam_wy = 0.012
 beam_wz = 0.025
@@ -113,7 +113,7 @@ builder = fea.ChBuilderBeamEuler()
 
 # Now, simply use BuildBeam to create a beam from a point to another:
 builder.BuildBeam(my_mesh,                   # the mesh where to put the created nodes and elements
-                    msection,                  # the ChBeamSectionAdvanced to use for the ChElementBeamEuler elements
+                    msection,                  # the ChBeamSectionEulerAdvanced to use for the ChElementBeamEuler elements
                     5,                         # the number of ChElementBeamEuler to create
                     chrono.ChVectorD(0, 0, -0.1),   # the 'A' point in space (beginning of beam)
                     chrono.ChVectorD(0.2, 0, -0.1), # the 'B' point in space (end of beam)

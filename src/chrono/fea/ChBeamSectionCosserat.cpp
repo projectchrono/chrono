@@ -13,6 +13,7 @@
 // =============================================================================
 
 #include "chrono/fea/ChBeamSectionCosserat.h"
+#include <math.h>
 
 namespace chrono {
 namespace fea {
@@ -50,8 +51,7 @@ void ChElasticityCosserat::ComputeStiffnessMatrix(ChMatrixNM<double, 6, 6>& K,
 // -----------------------------------------------------------------------------
 
 ChElasticityCosseratSimple::ChElasticityCosseratSimple()
-    : E(0.01e9),      // default E stiffness (almost rubber)
-      rdamping(0.01)  // default Rayleigh damping
+    : E(0.01e9)       // default E stiffness (almost rubber)
 {
     SetGwithPoissonRatio(0.3);            // default G (low poisson ratio)
     SetAsRectangularSection(0.01, 0.01);  // defaults Area, Ixx, Iyy, Ks_y, Ks_z, J
@@ -768,7 +768,29 @@ void ChDampingCosseratRayleigh::UpdateStiffnessModel() {
 
 //-----------------------------------------------------------------------------
 
-void ChInertiaCosseratUniformDensity::SetAsRectangularSection(double width_y, double width_z, double density) {
+
+void ChInertiaCosseratSimple::ComputeInertiaMatrix(ChMatrixNM<double, 6, 6>& M) {
+    M.setZero();
+    M(0, 0) = this->GetMassPerUnitLength();
+    M(1, 1) = this->GetMassPerUnitLength();
+    M(2, 2) = this->GetMassPerUnitLength();
+    M(3, 3) = this->GetInertiaJxxPerUnitLength();
+    M(4, 4) = this->GetInertiaJyyPerUnitLength();
+    M(5, 5) = this->GetInertiaJzzPerUnitLength();
+}
+
+void ChInertiaCosseratSimple::ComputeQuadraticTerms(ChVector<>& mF,   ///< centrifugal term (if any) returned here
+    ChVector<>& mT,                ///< gyroscopic term  returned here
+    const ChVector<>& mW           ///< current angular velocity of section, in material frame
+) {
+    mF = VNULL;
+    mT = Vcross(mW, ChVector<>( this->GetInertiaJxxPerUnitLength()*mW.x(),
+                                this->GetInertiaJyyPerUnitLength()*mW.y(),
+                                this->GetInertiaJzzPerUnitLength()*mW.z() )  );
+}
+
+
+void ChInertiaCosseratSimple::SetAsRectangularSection(double width_y, double width_z, double density) {
 	this->A = width_y * width_z;
 	this->Izz = (1.0 / 12.0) * width_z * pow(width_y, 3);
 	this->Iyy = (1.0 / 12.0) * width_y * pow(width_z, 3);
@@ -776,13 +798,93 @@ void ChInertiaCosseratUniformDensity::SetAsRectangularSection(double width_y, do
 }
 
 
-void ChInertiaCosseratUniformDensity::SetAsCircularSection(double diameter, double density) {
+void ChInertiaCosseratSimple::SetAsCircularSection(double diameter, double density) {
 	this->A   = CH_C_PI * pow((0.5 * diameter), 2);
     this->Izz = (CH_C_PI / 4.0) * pow((0.5 * diameter), 4);
     this->Iyy = Izz;
 	this->rho = density;
 }
 
+
+
+// -----------------------------------------------------------------------------
+
+void  ChInertiaCosseratAdvanced::ComputeInertiaMatrix(ChMatrixNM<double, 6, 6>& M) {
+    M.setZero();
+    M(0, 0) = this->mu;
+    M(1, 1) = this->mu;
+    M(2, 2) = this->mu;
+
+    M(3, 1) = - this->mu * this->cm_z;
+    M(3, 2) =   this->mu * this->cm_y;
+    M(4, 0) =   this->mu * this->cm_z;
+    M(5, 0) = - this->mu * this->cm_y;
+
+    M(1, 3) = - this->mu * this->cm_z;
+    M(2, 3) =   this->mu * this->cm_y;
+    M(0, 4) =   this->mu * this->cm_z;
+    M(0, 5) = - this->mu * this->cm_y;
+
+    M(3, 3) = this->Jyy + this->Jzz;
+    M(4, 4) = this->Jyy;
+    M(5, 5) = this->Jzz;
+    M(4, 5) = -this->Jyz;
+    M(5, 4) = -this->Jyz;
+}
+
+void ChInertiaCosseratAdvanced::ComputeQuadraticTerms(ChVector<>& mF,   ///< centrifugal term (if any) returned here
+    ChVector<>& mT,                ///< gyroscopic term  returned here
+    const ChVector<>& mW           ///< current angular velocity of section, in material frame
+) {
+    // F_centrifugal = density_per_unit_length w X w X c 
+    mF = this->mu * Vcross(mW,Vcross(mW,ChVector<>(0,cm_y,cm_z)));
+
+    // unroll the product [J] * w  in the expression w X [J] * w  as 4 values of [J] are zero anyway
+    mT = Vcross(mW, ChVector<>( this->GetInertiaJxxPerUnitLength()*mW.x(),
+                                this->Jyy*mW.y() - this->Jyz*mW.z(),
+                                this->Jzz*mW.z() - this->Jyz*mW.y() )  );
+}
+
+
+void ChInertiaCosseratAdvanced::SetMainInertiasInMassReference(double Jmyy, double Jmzz, double phi) {
+    double cc = pow(cos(-phi), 2);
+    double ss = pow(sin(-phi), 2);
+    double cs = cos(-phi) * sin(-phi);
+    // generic 2x2 tensor rotation
+    double Tyy_rot = cc * Jmyy + ss * Jmzz; // + 2 * Jmyz * cs;
+    double Tzz_rot = ss * Jmyy + cc * Jmzz; // - 2 * Jmyz * cs;
+    double Tyz_rot = (Jmzz - Jmyy) * cs; // +Jmyz * (cc - ss); 
+    // add inertia transport
+    this->Jyy = Tyy_rot +  this->mu * this->cm_z * this->cm_z;
+    this->Jzz = Tzz_rot +  this->mu * this->cm_y * this->cm_y;
+    this->Jyz = -(Tyz_rot -  this->mu * this->cm_z * this->cm_y); // note minus, per definition of Jyz
+}
+
+void ChInertiaCosseratAdvanced::GetMainInertiasInMassReference(double& Jmyy, double& Jmzz, double& phi) {
+    // remove inertia transport
+    double Tyy_rot  =  this->Jyy - this->mu * this->cm_z * this->cm_z;
+    double Tzz_rot  =  this->Jzz - this->mu * this->cm_y * this->cm_y;
+    double Tyz_rot  = -this->Jyz + this->mu * this->cm_z * this->cm_y;
+    // tensor de-rotation up to principal axes
+    double argum = pow((Tyy_rot - Tzz_rot) * 0.5, 2) + pow(Tyz_rot, 2);
+    if (argum <= 0) {
+        phi = 0;
+        Jmyy = 0.5 * (Tzz_rot + Tyy_rot);
+        Jmzz = 0.5 * (Tzz_rot + Tyy_rot);
+        return;
+    }
+    double discr = sqrt( pow((Tyy_rot - Tzz_rot)*0.5,2) + pow(Tyz_rot, 2) );
+    phi = - 0.5* atan2(Tyz_rot / discr, (Tzz_rot - Tyy_rot) / (2. * discr));
+    Jmyy = 0.5 * (Tzz_rot + Tyy_rot) - discr;
+    Jmzz = 0.5 * (Tzz_rot + Tyy_rot) + discr;
+}
+
+
+void ChInertiaCosseratAdvanced::SetInertiasPerUnitLength(double Jyy_moment, double Jzz_moment, double Jyz_moment) {
+    this->Jyy = Jyy_moment;
+    this->Jzz = Jzz_moment;
+    this->Jyz = Jyz_moment;
+}
 
 // -----------------------------------------------------------------------------
 
@@ -864,20 +966,18 @@ ChBeamSectionCosseratEasyRectangular::ChBeamSectionCosseratEasyRectangular(
 	double G,				// shear modulus
 	double density			// volumetric density (ex. in SI units: [kg/m])
 ) {
-
-	this->is_circular = false;
-    this->y_drawsize = width_y;
-    this->z_drawsize = width_z;
-
 	auto melasticity = chrono_types::make_shared<ChElasticityCosseratSimple>();
 	melasticity->SetYoungModulus(E);
 	melasticity->SetGshearModulus(G);
 	melasticity->SetAsRectangularSection(width_y, width_z);
 	this->SetElasticity(melasticity);
 
-	auto minertia = chrono_types::make_shared<ChInertiaCosseratUniformDensity>();
+	auto minertia = chrono_types::make_shared<ChInertiaCosseratSimple>();
 	minertia->SetAsRectangularSection(width_y, width_z, density);
 	this->SetInertia(minertia);
+
+    auto mdrawshape = chrono_types::make_shared<ChBeamSectionShapeRectangular>(width_y, width_z);
+    this->SetDrawShape(mdrawshape);
 }
 
 
@@ -887,18 +987,18 @@ ChBeamSectionCosseratEasyCircular::ChBeamSectionCosseratEasyCircular(
 	double G,				// shear modulus
 	double density			// volumetric density (ex. in SI units: [kg/m])
 ) {
-	this->is_circular = true;
-    this->SetDrawCircularRadius(diameter / 2);
-
 	auto melasticity = chrono_types::make_shared<ChElasticityCosseratSimple>();
 	melasticity->SetYoungModulus(E);
 	melasticity->SetGshearModulus(G);
 	melasticity->SetAsCircularSection(diameter);
 	this->SetElasticity(melasticity);
 
-	auto minertia = chrono_types::make_shared<ChInertiaCosseratUniformDensity>();
+	auto minertia = chrono_types::make_shared<ChInertiaCosseratSimple>();
 	minertia->SetAsCircularSection(diameter, density);
 	this->SetInertia(minertia);
+
+    auto mdrawshape = chrono_types::make_shared<ChBeamSectionShapeCircular>(diameter / 2, 10);
+    this->SetDrawShape(mdrawshape);
 }
 
 

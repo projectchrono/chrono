@@ -162,9 +162,10 @@ class CH_VEHICLE_API ChSuspensionTestRig : public ChVehicle {
   protected:
     /// Construct a test rig for a specified axle of a given vehicle.
     /// This version uses a concrete vehicle object.
-    ChSuspensionTestRig(ChWheeledVehicle& vehicle,                             ///< vehicle source
-                        int axle_index,                                        ///< index of the suspension to be tested
-                        double displ_limit,                                    ///< limits for post displacement
+    ChSuspensionTestRig(ChWheeledVehicle& vehicle,  ///< vehicle source
+                        int axle_index,             ///< index of the suspension to be tested
+                        int steering_index,         ///< index of associated steering subsystem (-1 for no steering)
+                        double displ_limit,         ///< limits for post displacement
                         std::shared_ptr<ChTire> tire_left,                     ///< left tire
                         std::shared_ptr<ChTire> tire_right,                    ///< right tire
                         ChContactMethod contact_method = ChContactMethod::NSC  ///< contact method
@@ -263,11 +264,12 @@ class CH_VEHICLE_API ChSuspensionTestRigPlatform : public ChSuspensionTestRig {
   public:
     /// Construct a test rig for a specified axle of a given vehicle.
     /// This version uses a concrete vehicle object.
-    ChSuspensionTestRigPlatform(ChWheeledVehicle& vehicle,           ///< vehicle source
-                                int axle_index,                      ///< index of the suspension to be tested
-                                double displ_limit,                  ///< limits for post displacement
-                                std::shared_ptr<ChTire> tire_left,   ///< left tire
-                                std::shared_ptr<ChTire> tire_right,  ///< right tire
+    ChSuspensionTestRigPlatform(ChWheeledVehicle& vehicle,  ///< vehicle source
+                                int axle_index,             ///< index of the suspension to be tested
+                                int steering_index,  ///< index of associated steering subsystem (-1 for no steering)
+                                double displ_limit,  ///< limits for post displacement
+                                std::shared_ptr<ChTire> tire_left,                     ///< left tire
+                                std::shared_ptr<ChTire> tire_right,                    ///< right tire
                                 ChContactMethod contact_method = ChContactMethod::NSC  ///< contact method
     );
 
@@ -343,11 +345,12 @@ class CH_VEHICLE_API ChSuspensionTestRigPushrod : public ChSuspensionTestRig {
   public:
     /// Construct a test rig for a specified axle of a given vehicle.
     /// This version uses a concrete vehicle object.
-    ChSuspensionTestRigPushrod(ChWheeledVehicle& vehicle,           ///< vehicle source
-                               int axle_index,                      ///< index of the suspension to be tested
-                               double displ_limit,                  ///< limits for post displacement
-                               std::shared_ptr<ChTire> tire_left,   ///< left tire
-                               std::shared_ptr<ChTire> tire_right,  ///< right tire
+    ChSuspensionTestRigPushrod(ChWheeledVehicle& vehicle,  ///< vehicle source
+                               int axle_index,             ///< index of the suspension to be tested
+                               int steering_index,  ///< index of associated steering subsystem (-1 for no steering)
+                               double displ_limit,  ///< limits for post displacement
+                               std::shared_ptr<ChTire> tire_left,                     ///< left tire
+                               std::shared_ptr<ChTire> tire_right,                    ///< right tire
                                ChContactMethod contact_method = ChContactMethod::NSC  ///< contact method
     );
 

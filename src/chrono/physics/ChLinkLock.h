@@ -385,7 +385,7 @@ class ChApi ChLinkLockRevolute : public ChLinkLock {
     /// Lock the joint.
     /// If enabled (lock = true) this effectively converts this joint into a weld joint.
     /// If lock = false, the joint reverts to its original degrees of freedom.
-    void Lock(bool lock) { BuildLink(true, true, true, false, true, true, lock); }
+    void Lock(bool lock);
 };
 
 /// Spherical joint, with the 'ChLinkLock' formulation.
@@ -400,7 +400,7 @@ class ChApi ChLinkLockSpherical : public ChLinkLock {
     /// Lock the joint.
     /// If enabled (lock = true) this effectively converts this joint into a weld joint.
     /// If lock = false, the joint reverts to its original degrees of freedom.
-    void Lock(bool lock) { BuildLink(true, true, true, false, lock, lock, lock); }
+    void Lock(bool lock);
 };
 
 /// Cylindrical joint, with the 'ChLinkLock' formulation.
@@ -415,7 +415,7 @@ class ChApi ChLinkLockCylindrical : public ChLinkLock {
     /// Lock the joint.
     /// If enabled (lock = true) this effectively converts this joint into a weld joint.
     /// If lock = false, the joint reverts to its original degrees of freedom.
-    void Lock(bool lock) { BuildLink(true, true, lock, false, true, true, lock); }
+    void Lock(bool lock);
 };
 
 /// Prismatic joint, with the 'ChLinkLock' formulation.
@@ -430,7 +430,7 @@ class ChApi ChLinkLockPrismatic : public ChLinkLock {
     /// Lock the joint.
     /// If enabled (lock = true) this effectively converts this joint into a weld joint.
     /// If lock = false, the joint reverts to its original degrees of freedom.
-    void Lock(bool lock) { BuildLink(true, true, lock, false, true, true, true); }
+    void Lock(bool lock);
 };
 
 /// Point-plane joint, with the 'ChLinkLock' formulation.
@@ -445,7 +445,7 @@ class ChApi ChLinkLockPointPlane : public ChLinkLock {
     /// Lock the joint.
     /// If enabled (lock = true) this effectively converts this joint into a weld joint.
     /// If lock = false, the joint reverts to its original degrees of freedom.
-    void Lock(bool lock) { BuildLink(lock, lock, true, false, lock, lock, lock); }
+    void Lock(bool lock);
 };
 
 /// Point-line joint, with the 'ChLinkLock' formulation.
@@ -460,7 +460,7 @@ class ChApi ChLinkLockPointLine : public ChLinkLock {
     /// Lock the joint.
     /// If enabled (lock = true) this effectively converts this joint into a weld joint.
     /// If lock = false, the joint reverts to its original degrees of freedom.
-    void Lock(bool lock) { BuildLink(lock, true, true, false, lock, lock, lock); }
+    void Lock(bool lock);
 };
 
 /// Plane-plane joint, with the 'ChLinkLock' formulation.
@@ -475,7 +475,7 @@ class ChApi ChLinkLockPlanePlane : public ChLinkLock {
     /// Lock the joint.
     /// If enabled (lock = true) this effectively converts this joint into a weld joint.
     /// If lock = false, the joint reverts to its original degrees of freedom.
-    void Lock(bool lock) { BuildLink(lock, lock, true, false, true, true, lock); }
+    void Lock(bool lock);
 };
 
 /// Oldham joint, with the 'ChLinkLock' formulation.
@@ -490,7 +490,7 @@ class ChApi ChLinkLockOldham : public ChLinkLock {
     /// Lock the joint.
     /// If enabled (lock = true) this effectively converts this joint into a weld joint.
     /// If lock = false, the joint reverts to its original degrees of freedom.
-    void Lock(bool lock) { BuildLink(lock, lock, true, false, true, true, true); }
+    void Lock(bool lock);
 };
 
 /// Free joint, with the 'ChLinkLock' formulation.
@@ -505,7 +505,7 @@ class ChApi ChLinkLockFree : public ChLinkLock {
     /// Lock the joint.
     /// If enabled (lock = true) this effectively converts this joint into a weld joint.
     /// If lock = false, the joint reverts to its original degrees of freedom.
-    void Lock(bool lock) { BuildLink(lock, lock, lock, false, lock, lock, lock); }
+    void Lock(bool lock);
 };
 
 /// Align joint, with the 'ChLinkLock' formulation.
@@ -520,7 +520,7 @@ class ChApi ChLinkLockAlign : public ChLinkLock {
     /// Lock the joint.
     /// If enabled (lock = true) this effectively converts this joint into a weld joint.
     /// If lock = false, the joint reverts to its original degrees of freedom.
-    void Lock(bool lock) { BuildLink(lock, lock, lock, false, true, true, true); }
+    void Lock(bool lock);
 };
 
 /// Parallel joint, with the 'ChLinkLock' formulation.
@@ -535,7 +535,7 @@ class ChApi ChLinkLockParallel : public ChLinkLock {
     /// Lock the joint.
     /// If enabled (lock = true) this effectively converts this joint into a weld joint.
     /// If lock = false, the joint reverts to its original degrees of freedom.
-    void Lock(bool lock) { BuildLink(lock, lock, lock, false, true, true, lock); }
+    void Lock(bool lock);
 };
 
 /// Perpendicularity joint, with the 'ChLinkLock' formulation.
@@ -550,7 +550,7 @@ class ChApi ChLinkLockPerpend : public ChLinkLock {
     /// Lock the joint.
     /// If enabled (lock = true) this effectively converts this joint into a weld joint.
     /// If lock = false, the joint reverts to its original degrees of freedom.
-    void Lock(bool lock) { BuildLink(lock, lock, lock, false, true, lock, true); }
+    void Lock(bool lock);
 };
 
 /// RevolutePrismatic joint, with the 'ChLinkLock' formulation.
@@ -565,7 +565,7 @@ class ChApi ChLinkLockRevolutePrismatic : public ChLinkLock {
     /// Lock the joint.
     /// If enabled (lock = true) this effectively converts this joint into a weld joint.
     /// If lock = false, the joint reverts to its original degrees of freedom.
-    void Lock(bool lock) { BuildLink(lock, true, true, false, true, true, lock); }
+    void Lock(bool lock);
 };
 
 }  // end namespace chrono

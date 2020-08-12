@@ -22,6 +22,7 @@
 #include "chrono/core/ChStream.h"
 #include "chrono/core/ChRealtimeStep.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
+#include "chrono/utils/ChFilters.h"
 
 #include "chrono_vehicle/ChConfigVehicle.h"
 #include "chrono_vehicle/ChVehicleModelData.h"
@@ -75,8 +76,8 @@ ChContactMethod contact_method = ChContactMethod::SMC;
 bool contact_vis = false;
 
 // Simulation step sizes
-double step_size = 1e-3;
-double tire_step_size = step_size;
+double step_size = 3e-3;
+double tire_step_size = 1e-3;
 
 // Simulation end time
 double t_end = 1000;
@@ -210,8 +211,8 @@ int main(int argc, char* argv[]) {
         my_sedan.LogHardpointLocations();
     }
 
-    // output vehicle mass
-    std::cout << "VEHICLE MASS: " << my_sedan.GetVehicle().GetVehicleMass() << std::endl;
+    my_sedan.GetVehicle().LogSubsystemTypes();
+    std::cout << "\nVehicle mass: " << my_sedan.GetVehicle().GetVehicleMass() << std::endl;
 
     // Number of simulation steps between miscellaneous events
     int render_steps = (int)std::ceil(render_step_size / step_size);
@@ -227,6 +228,8 @@ int main(int argc, char* argv[]) {
     }
 
     ChRealtimeStepTimer realtime_timer;
+    utils::ChRunningAverage RTF_filter(50);
+ 
     while (app.GetDevice()->run()) {
         double time = my_sedan.GetSystem()->GetChTime();
 
@@ -282,6 +285,7 @@ int main(int argc, char* argv[]) {
 
         // Spin in place for real time to catch up
         realtime_timer.Spin(step_size);
+        ////std::cout << RTF_filter.Add(realtime_timer.RTF) << std::endl;
     }
 
     if (driver_mode == RECORD) {

@@ -56,10 +56,12 @@ void Gator_TMeasyTire_Front::SetTMeasyParams() {
 
     double load = 1800;
 
-    GuessTruck80Par(load,     // tire load [N]
-                    w,        // tire width [m]
-                    r,        // aspect ratio []
-                    rim_diam  // rim diameter [m]
+    GuessTruck80Par(load,      // tire load [N]
+                    w,         // tire width [m]
+                    r,         // aspect ratio []
+                    rim_diam,  // rim diameter [m]
+                    1.0, 1.0,  // inflation pressures at load index and use configuration
+                    1.0        // damping ratio
     );
 
     SetFrictionCoefficient(0.6f);
@@ -74,8 +76,8 @@ void Gator_TMeasyTire_Front::GenerateCharacteristicPlots(const std::string& dirn
 
 void Gator_TMeasyTire_Front::AddVisualizationAssets(VisualizationType vis) {
     if (vis == VisualizationType::MESH) {
-        m_trimesh_shape = AddVisualizationMesh(vehicle::GetDataFile(m_meshFile_left),    // left side
-                                               vehicle::GetDataFile(m_meshFile_right));  // right side
+        m_trimesh_shape = AddVisualizationMesh(m_meshFile_left,    // left side
+                                               m_meshFile_right);  // right side
     } else {
         ChTMeasyTire::AddVisualizationAssets(vis);
     }
@@ -102,10 +104,12 @@ void Gator_TMeasyTire_Rear::SetTMeasyParams() {
 
     double load = 2600;
 
-    GuessTruck80Par(load,     // tire load [N]
-                    w,        // tire width [m]
-                    r,        // aspect ratio []
-                    rim_diam  // rim diameter [m]
+    GuessTruck80Par(load,      // tire load [N]
+                    w,         // tire width [m]
+                    r,         // aspect ratio []
+                    rim_diam,  // rim diameter [m]
+                    1.0, 1.0,  // inflation pressures at load index and use configuration
+                    1.0        // damping ratio
     );
 
     SetFrictionCoefficient(0.6f);
@@ -120,8 +124,8 @@ void Gator_TMeasyTire_Rear::GenerateCharacteristicPlots(const std::string& dirna
 
 void Gator_TMeasyTire_Rear::AddVisualizationAssets(VisualizationType vis) {
     if (vis == VisualizationType::MESH) {
-        m_trimesh_shape = AddVisualizationMesh(vehicle::GetDataFile(m_meshFile_left),    // left side
-                                               vehicle::GetDataFile(m_meshFile_right));  // right side
+        m_trimesh_shape = AddVisualizationMesh(m_meshFile_left,    // left side
+                                               m_meshFile_right);  // right side
     } else {
         ChTMeasyTire::AddVisualizationAssets(vis);
     }

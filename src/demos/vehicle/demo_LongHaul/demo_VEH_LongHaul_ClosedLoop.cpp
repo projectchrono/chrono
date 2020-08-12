@@ -12,7 +12,7 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// HMMWV acceleration test.
+// Tractor-trailer acceleration test.
 //
 // The vehicle reference frame has Z up, X towards the front of the vehicle, and
 // Y pointing to the left.
@@ -32,13 +32,11 @@
 #include "chrono_vehicle/terrain/RigidTerrain.h"
 #include "chrono_vehicle/utils/ChVehiclePath.h"
 #include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleIrrApp.h"
-
-#include "chrono_models/vehicle/hmmwv/HMMWV.h"
+#include "chrono_vehicle/wheeled_vehicle/driveline/ChShaftsDriveline4WD.h"
 
 #include "subsystems/SemiTractor_tire.h"
 #include "subsystems/SemiTractor_powertrain.h"
 #include "subsystems/SemiTractor_vehicle.h"
-
 #include "subsystems/SemiTrailer.h"
 #include "subsystems/SemiTrailer_tire.h"
 
@@ -49,7 +47,6 @@
 using namespace chrono;
 using namespace chrono::irrlicht;
 using namespace chrono::vehicle;
-using namespace chrono::vehicle::hmmwv;
 
 // =============================================================================
 
@@ -69,8 +66,6 @@ double tire_step_size = 1e-3;
 
 // Initial vehicle position
 ChVector<> initLoc(0, 0, 0.6);
-// Initial vehicle orientation
-ChQuaternion<> initRot(1, 0, 0, 0);
 
 // =============================================================================
 
@@ -82,7 +77,7 @@ int main(int argc, char* argv[]) {
     // --------------
 
     SemiTractor_vehicle vehicle(false, ChContactMethod::NSC);
-    vehicle.Initialize(ChCoordsys<>(initLoc, initRot));
+    vehicle.Initialize(ChCoordsys<>(initLoc, QUNIT));
     vehicle.SetChassisVisualizationType(chassis_vis_type);
     vehicle.SetSuspensionVisualizationType(VisualizationType::PRIMITIVES);
     vehicle.SetSteeringVisualizationType(VisualizationType::PRIMITIVES);
@@ -91,7 +86,8 @@ int main(int argc, char* argv[]) {
     drvLine->LockCentralDifferential(0, false);
 
     SemiTrailer trailer(vehicle.GetSystem(), false);
-    trailer.Initialize(ChCoordsys<>(initLoc + ChVector<>(-4.64, 0, 0.0), initRot), true, vehicle.GetChassisBody());
+    trailer.Initialize(vehicle.GetChassis(), ChVector<>(-4.64, 0, 0.0));
+    trailer.SetChassisVisualizationType(VisualizationType::PRIMITIVES);
     trailer.SetSuspensionVisualizationType(VisualizationType::PRIMITIVES);
     trailer.SetWheelVisualizationType(VisualizationType::MESH);
 

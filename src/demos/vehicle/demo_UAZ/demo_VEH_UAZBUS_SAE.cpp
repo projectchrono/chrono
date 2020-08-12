@@ -26,6 +26,7 @@
 
 #include "chrono/core/ChRealtimeStep.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
+#include "chrono/utils/ChFilters.h"
 
 #include "chrono_vehicle/ChConfigVehicle.h"
 #include "chrono_vehicle/ChVehicleModelData.h"
@@ -65,7 +66,7 @@ ChVector<> trackPoint(0.0, 0.0, 1.75);
 
 // Simulation step sizes
 double step_size = 1e-3;
-double tire_step_size = step_size;
+double tire_step_size = 1e-3;
 
 // Simulation end time
 double tend = 15;
@@ -187,6 +188,8 @@ int main(int argc, char* argv[]) {
     // Simulation loop
     // ---------------
 
+    uaz.GetVehicle().LogSubsystemTypes();
+
     int render_steps = (int)std::ceil(render_step_size / step_size);
     int step_number = 0;
     int render_frame = 0;
@@ -194,6 +197,8 @@ int main(int argc, char* argv[]) {
     double maxKingpinAngle = 0.0;
 
     ChRealtimeStepTimer realtime_timer;
+    utils::ChRunningAverage RTF_filter(50);
+
     while (app.GetDevice()->run()) {
         double time = uaz.GetSystem()->GetChTime();
 
@@ -207,8 +212,9 @@ int main(int argc, char* argv[]) {
                 char filename[100];
                 sprintf(filename, "%s/data_%03d.dat", pov_dir.c_str(), render_frame + 1);
                 utils::WriteShapesPovray(uaz.GetSystem(), filename);
-                render_frame++;
             }
+
+            render_frame++;
         }
 
         // Collect output data from modules (for inter-module communication)
@@ -242,6 +248,7 @@ int main(int argc, char* argv[]) {
 
         // Spin in place for real time to catch up
         realtime_timer.Spin(step_size);
+        ////std::cout << RTF_filter.Add(realtime_timer.RTF) << std::endl;
     }
 
     std::cout << "Maximum Kingpin Angle = " << maxKingpinAngle << " deg" << std::endl;

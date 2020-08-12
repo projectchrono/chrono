@@ -67,8 +67,6 @@ ChLinActuatorTest::ChLinActuatorTest() : animate(false) {
     ChVector<> axis = rot.GetZaxis();
 
     // Settings
-    int threads = 1;
-    bool thread_tuning = false;
     double tolerance = 1e-5;
     int max_iteration_bilateral = 100;
     int max_iteration_normal = 0;
@@ -89,10 +87,8 @@ ChLinActuatorTest::ChLinActuatorTest() : animate(false) {
     }
     msystem->Set_G_acc(gravity);
 
-    // Set number of threads.
-    CHOMPfunctions::SetNumThreads(threads);
-    msystem->GetSettings()->max_threads = threads;
-    msystem->GetSettings()->perform_thread_tuning = thread_tuning;
+    // Set number of threads
+    msystem->SetNumThreads(1);
 
     // Edit system settings
     msystem->GetSettings()->solver.tolerance = tolerance;

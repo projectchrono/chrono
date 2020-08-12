@@ -19,6 +19,7 @@
 #include "chrono/utils/ChUtilsInputOutput.h"
 #include "chrono/core/ChRealtimeStep.h"
 #include "chrono/solver/ChSolverPSOR.h"
+#include "chrono/solver/ChSolverBB.h"
 
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/driver/ChIrrGuiDriver.h"
@@ -62,13 +63,13 @@ double terrainLength = 100.0;  // size in X direction
 double terrainWidth = 100.0;   // size in Y direction
 
 // Simulation step size
-double step_size = 1e-3;
+double step_size = 5e-4;
 
 // Use HHT + MKL
 bool use_mkl = false;
 
 // Time interval between two render frames
-double render_step_size = 1.0 / 50;  // FPS = 50
+double render_step_size = 1.0 / 60;  // FPS = 60
 
 // Point on chassis tracked by the camera
 ChVector<> trackPoint(0.0, 0.0, 0.0);
@@ -100,6 +101,7 @@ int main(int argc, char* argv[]) {
     ChContactMethod contact_method = ChContactMethod::SMC;
     ChassisCollisionType chassis_collision_type = ChassisCollisionType::NONE;
     TrackShoeType shoe_type = TrackShoeType::SINGLE_PIN;
+    BrakeType brake_type = BrakeType::SIMPLE;
 
     //// TODO
     //// When using SMC, a double-pin shoe type requires MKL or MUMPS.  
@@ -108,49 +110,7 @@ int main(int argc, char* argv[]) {
     if (shoe_type == TrackShoeType::DOUBLE_PIN)
         contact_method = ChContactMethod::NSC;
 
-    M113_Vehicle vehicle(false, shoe_type, contact_method, chassis_collision_type);
-
-    // ------------------------------
-    // Solver and integrator settings
-    // ------------------------------
-
-    // Cannot use HHT + MKL with NSC contact
-    if (contact_method == ChContactMethod::NSC) {
-        use_mkl = false;
-    }
-
-#ifndef CHRONO_MKL
-    // Cannot use HHT + MKL if Chrono::MKL not available
-    use_mkl = false;
-#endif
-
-    if (use_mkl) {
-#ifdef CHRONO_MKL
-        auto mkl_solver = chrono_types::make_shared<ChSolverMKL>();
-        mkl_solver->LockSparsityPattern(true);
-        vehicle.GetSystem()->SetSolver(mkl_solver);
-
-        vehicle.GetSystem()->SetTimestepperType(ChTimestepper::Type::HHT);
-        auto integrator = std::static_pointer_cast<ChTimestepperHHT>(vehicle.GetSystem()->GetTimestepper());
-        integrator->SetAlpha(-0.2);
-        integrator->SetMaxiters(50);
-        integrator->SetAbsTolerances(1e-4, 1e2);
-        integrator->SetMode(ChTimestepperHHT::ACCELERATION);
-        integrator->SetStepControl(false);
-        integrator->SetModifiedNewton(false);
-        integrator->SetScaling(true);
-        integrator->SetVerbose(true);
-#endif
-    } else {
-        auto solver = chrono_types::make_shared<ChSolverPSOR>();
-        solver->SetMaxIterations(60);
-        solver->SetOmega(0.8);
-        solver->SetSharpnessLambda(1.0);
-        vehicle.GetSystem()->SetSolver(solver);
-
-        vehicle.GetSystem()->SetMaxPenetrationRecoverySpeed(1.5);
-        vehicle.GetSystem()->SetMinBounceSpeed(2.0);
-    }
+    M113_Vehicle vehicle(false, shoe_type, brake_type, contact_method, chassis_collision_type);
 
     // Disable gravity in this simulation
     ////vehicle.GetSystem()->Set_G_acc(ChVector<>(0, 0, 0));
@@ -173,6 +133,14 @@ int main(int argc, char* argv[]) {
     vehicle.SetRoadWheelAssemblyVisualizationType(track_vis);
     vehicle.SetRoadWheelVisualizationType(track_vis);
     vehicle.SetTrackShoeVisualizationType(track_vis);
+
+    
+    // ----------------------------
+    // Create the powertrain system
+    // ----------------------------
+
+    auto powertrain = chrono_types::make_shared<M113_SimplePowertrain>("Powertrain");
+    vehicle.InitializePowertrain(powertrain);
 
     // --------------------------------------------------
     // Control internal collisions and contact monitoring
@@ -202,6 +170,58 @@ int main(int argc, char* argv[]) {
     // monitored parts.  Data can be written to a file by invoking ChTrackedVehicle::WriteContacts().
     ////vehicle.SetContactCollection(true);
 
+    // Demonstration of using a callback for specifying contact between road wheels and track shoes.
+    // This particular implementation uses a simple SMC-like contact force (normal only).
+    class MyCustomContact : public ChTrackCustomContact {
+        virtual void ComputeForce(const collision::ChCollisionInfo& cinfo,
+                                  std::shared_ptr<ChBody> wheelBody,
+                                  std::shared_ptr<ChBody> shoeBody,
+                                  bool wheel_is_idler,
+                                  ChVector<>& forceShoe) override {
+            ////std::cout << (wheel_is_idler ? "IDLER " : "WHEEL ") << cinfo.modelA << " " << cinfo.modelB << " "
+            ////          << wheelBody->GetName() << " " << shoeBody->GetName() << std::endl;
+
+            if (cinfo.distance >= 0) {
+                forceShoe = VNULL;
+                return;
+            }
+
+            // Create a fictitious SMC composite contact material
+            // (do not use the shape materials, so that this can work with both an SMC and NSC system)
+            ChMaterialCompositeSMC mat;
+            mat.E_eff = 2e6f;
+            mat.cr_eff = 0.1f;
+            
+            auto delta = -cinfo.distance;
+            auto normal_dir = cinfo.vN;
+            auto p1 = cinfo.vpA;
+            auto p2 = cinfo.vpB;
+            auto objA = cinfo.modelA->GetContactable();
+            auto objB = cinfo.modelB->GetContactable();
+            auto vel1 = objA->GetContactPointSpeed(p1);
+            auto vel2 = objB->GetContactPointSpeed(p2);
+
+            ChVector<> relvel = vel2 - vel1;
+            double relvel_n_mag = relvel.Dot(normal_dir);
+
+            double eff_radius = 0.1;
+            double eff_mass = objA->GetContactableMass() * objB->GetContactableMass() /
+                              (objA->GetContactableMass() + objB->GetContactableMass());
+            double Sn = 2 * mat.E_eff * std::sqrt(eff_radius * delta);
+            double loge = std::log(mat.cr_eff);
+            double beta = loge / std::sqrt(loge * loge + CH_C_PI * CH_C_PI);
+            double kn = (2.0 / 3) * Sn;
+            double gn = -2 * std::sqrt(5.0 / 6) * beta * std::sqrt(Sn * eff_mass);
+
+            double forceN = kn * delta - gn * relvel_n_mag;
+            forceShoe = (forceN < 0) ? VNULL : forceN * normal_dir;
+        }
+    };
+
+    // Enable custom contact force calculation for road wheel - track shoe collisions.
+    // If enabled, the underlying Chrono contact processing does not compute any forces.
+    ////vehicle.EnableCustomContact(chrono_types::make_shared<MyCustomContact>(), false, true);
+
     // ------------------
     // Create the terrain
     // ------------------
@@ -223,13 +243,6 @@ int main(int argc, char* argv[]) {
 
     AddFixedObstacles(vehicle.GetSystem());
     ////AddFallingObjects(vehicle.GetSystem());
-
-    // ----------------------------
-    // Create the powertrain system
-    // ----------------------------
-
-    auto powertrain = chrono_types::make_shared<M113_SimplePowertrain>("Powertrain");
-    vehicle.InitializePowertrain(powertrain);
 
     // ---------------------------------------
     // Create the vehicle Irrlicht application
@@ -258,6 +271,7 @@ int main(int argc, char* argv[]) {
     driver.SetSteeringDelta(render_step_size / steering_time);
     driver.SetThrottleDelta(render_step_size / throttle_time);
     driver.SetBrakingDelta(render_step_size / braking_time);
+    driver.SetGains(2, 5, 5);
 
     driver.Initialize();
 
@@ -292,6 +306,48 @@ int main(int argc, char* argv[]) {
 
     // Generate JSON information with available output channels
     vehicle.ExportComponentList(out_dir + "/component_list.json");
+
+    // ------------------------------
+    // Solver and integrator settings
+    // ------------------------------
+
+    // Cannot use HHT + MKL with NSC contact
+    if (contact_method == ChContactMethod::NSC) {
+        use_mkl = false;
+    }
+
+#ifndef CHRONO_MKL
+    // Cannot use HHT + MKL if Chrono::MKL not available
+    use_mkl = false;
+#endif
+
+    if (use_mkl) {
+#ifdef CHRONO_MKL
+        auto mkl_solver = chrono_types::make_shared<ChSolverMKL>();
+        mkl_solver->LockSparsityPattern(true);
+        vehicle.GetSystem()->SetSolver(mkl_solver);
+
+        vehicle.GetSystem()->SetTimestepperType(ChTimestepper::Type::HHT);
+        auto integrator = std::static_pointer_cast<ChTimestepperHHT>(vehicle.GetSystem()->GetTimestepper());
+        integrator->SetAlpha(-0.2);
+        integrator->SetMaxiters(50);
+        integrator->SetAbsTolerances(1e-4, 1e2);
+        integrator->SetMode(ChTimestepperHHT::ACCELERATION);
+        integrator->SetStepControl(false);
+        integrator->SetModifiedNewton(false);
+        integrator->SetScaling(true);
+        integrator->SetVerbose(true);
+#endif
+    } else {
+        auto solver = chrono_types::make_shared<ChSolverBB>();
+        solver->SetMaxIterations(120);
+        solver->SetOmega(0.8);
+        solver->SetSharpnessLambda(1.0);
+        vehicle.GetSystem()->SetSolver(solver);
+
+        vehicle.GetSystem()->SetMaxPenetrationRecoverySpeed(1.5);
+        vehicle.GetSystem()->SetMinBounceSpeed(2.0);
+    }
 
     // ---------------
     // Simulation loop
@@ -346,12 +402,12 @@ int main(int argc, char* argv[]) {
             cout << endl;
         }
 
-        // Render scene
-        app.BeginScene(true, true, irr::video::SColor(255, 140, 161, 192));
-        app.DrawAll();
-        app.EndScene();
-
         if (step_number % render_steps == 0) {
+            // Render scene
+            app.BeginScene(true, true, irr::video::SColor(255, 140, 161, 192));
+            app.DrawAll();
+            app.EndScene();
+
             if (povray_output) {
                 char filename[100];
                 sprintf(filename, "%s/data_%03d.dat", pov_dir.c_str(), render_frame + 1);

@@ -102,36 +102,40 @@ class CH_VEHICLE_API ChTMeasyTire : public ChTire {
     static double GetTireMaxLoad(unsigned int li);
 
     /// Guess Tire Parameters from characteristic truck tire parameter pattern (Ratio = 80%)
-    void GuessTruck80Par(unsigned int li,        ///< tire load index
-                         double tireWidth,       ///< tire width [m]
-                         double ratio,           ///< use 0.75 meaning 75%
-                         double rimDia,          ///< rim diameter [m]
-                         double pinfl_li = 1.0,  ///< inflation pressure at load index
-                         double pinfl_use = 1.0  ///< inflation pressure in this configuration
+    void GuessTruck80Par(unsigned int li,            ///< tire load index
+                         double tireWidth,           ///< tire width [m]
+                         double ratio,               ///< use 0.75 meaning 75%
+                         double rimDia,              ///< rim diameter [m]
+                         double pinfl_li = 1.0,      ///< inflation pressure at load index
+                         double pinfl_use = 1.0,     ///< inflation pressure in this configuration
+                         double damping_ratio = 0.5  ///< scaling factor for normal damping coefficient
     );
 
-    void GuessTruck80Par(double loadForce,       ///< tire nominal load force [N]
-                         double tireWidth,       ///< tire width [m]
-                         double ratio,           ///< use 0.75 meaning 75%
-                         double rimDia,          ///< rim diameter [m]
-                         double pinfl_li = 1.0,  ///< inflation pressure at load index
-                         double pinfl_use = 1.0  ///< inflation pressure in this configuration
+    void GuessTruck80Par(double loadForce,           ///< tire nominal load force [N]
+                         double tireWidth,           ///< tire width [m]
+                         double ratio,               ///< use 0.75 meaning 75%
+                         double rimDia,              ///< rim diameter [m]
+                         double pinfl_li = 1.0,      ///< inflation pressure at load index
+                         double pinfl_use = 1.0,     ///< inflation pressure in this configuration
+                         double damping_ratio = 0.5  ///< scaling factor for normal damping coefficient
     );
 
     /// Guess Tire Parameters from characteristic passenger car tire parameter pattern (Ratio = 70%)
-    void GuessPassCar70Par(unsigned int li,        ///< tire load index
-                           double tireWidth,       ///< tire width [m]
-                           double ratio,           ///< use 0.75 meaning 75%
-                           double rimDia,          ///< rim diameter [m]
-                           double pinfl_li = 1.0,  ///< inflation pressure at load index
-                           double pinfl_use = 1.0  ///< inflation pressure in this configuration
+    void GuessPassCar70Par(unsigned int li,            ///< tire load index
+                           double tireWidth,           ///< tire width [m]
+                           double ratio,               ///< use 0.75 meaning 75%
+                           double rimDia,              ///< rim diameter [m]
+                           double pinfl_li = 1.0,      ///< inflation pressure at load index
+                           double pinfl_use = 1.0,     ///< inflation pressure in this configuration
+                           double damping_ratio = 0.5  ///< scaling factor for normal damping coefficient
     );
-    void GuessPassCar70Par(double loadForce,       ///< tire nominal load force [N]
-                           double tireWidth,       ///< tire width [m]
-                           double ratio,           ///< use 0.75 meaning 75%
-                           double rimDia,          ///< rim diameter [m]
-                           double pinfl_li = 1.0,  ///< inflation pressure at load index
-                           double pinfl_use = 1.0  ///< inflation pressure in this configuration
+    void GuessPassCar70Par(double loadForce,           ///< tire nominal load force [N]
+                           double tireWidth,           ///< tire width [m]
+                           double ratio,               ///< use 0.75 meaning 75%
+                           double rimDia,              ///< rim diameter [m]
+                           double pinfl_li = 1.0,      ///< inflation pressure at load index
+                           double pinfl_use = 1.0,     ///< inflation pressure in this configuration
+                           double damping_ratio = 0.5  ///< scaling factor for normal damping coefficient
     );
 
     /// Set vertical tire stiffness as linear function by coefficient [N/m].
@@ -260,7 +264,7 @@ class CH_VEHICLE_API ChTMeasyTire : public ChTire {
         return (fz / m_TMeasyCoeff.pn) * (2.0 * w1 - 0.5 * w2 - (w1 - 0.5 * w2) * (fz / m_TMeasyCoeff.pn));
     };
 
-  private:
+  //private:
     void UpdateVerticalStiffness();
 
     /// Get the tire force and moment.

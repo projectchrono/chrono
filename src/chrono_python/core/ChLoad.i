@@ -51,8 +51,14 @@
 %import "chrono_python/core/ChObject.i"
 
 /* Parse the header file to generate wrappers */
+// The user might inherit and construct ChLoadCustom
+%feature("director") chrono::ChLoadBase;
+%feature("director") chrono::ChLoadCustom;
+%feature("director") chrono::ChLoadCustomMultiple;
+%template(vector_ChLoadable) std::vector< std::shared_ptr< chrono::ChLoadable >>;
 %ignore chrono::ChLoadBase::ComputeJacobian;
 %ignore chrono::ChLoadCustom::ComputeJacobian;
+%ignore chrono::ChLoadCustom::Clone;
 %ignore chrono::ChLoadCustomMultiple::ComputeJacobian;
 %include "../chrono/physics/ChLoad.h"
 

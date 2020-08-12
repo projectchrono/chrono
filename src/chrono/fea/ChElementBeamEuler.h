@@ -15,7 +15,7 @@
 #ifndef CHELEMENTBEAMEULER_H
 #define CHELEMENTBEAMEULER_H
 
-#include "chrono/fea/ChBeamSection.h"
+#include "chrono/fea/ChBeamSectionEuler.h"
 #include "chrono/fea/ChElementBeam.h"
 #include "chrono/fea/ChElementCorotational.h"
 #include "chrono/fea/ChNodeFEAxyzrot.h"
@@ -61,9 +61,9 @@ class ChApi ChElementBeamEuler : public ChElementBeam,
 
     /// Set the section & material of beam element .
     /// It is a shared property, so it can be shared between other beams.
-    void SetSection(std::shared_ptr<ChBeamSectionAdvanced> my_material) { section = my_material; }
+    void SetSection(std::shared_ptr<ChBeamSectionEuler> my_material) { section = my_material; }
     /// Get the section & material of the element
-    std::shared_ptr<ChBeamSectionAdvanced> GetSection() { return section; }
+    std::shared_ptr<ChBeamSectionEuler> GetSection() { return section; }
 
     /// Get the first node (beginning)
     std::shared_ptr<ChNodeFEAxyzrot> GetNodeA() { return nodes[0]; }
@@ -152,6 +152,9 @@ class ChApi ChElementBeamEuler : public ChElementBeam,
     /// Computes the internal forces (e.g. the actual position of nodes is not in relaxed reference position) and set
     /// values in the Fi vector.
     virtual void ComputeInternalForces(ChVectorDynamic<>& Fi) override;
+
+    /// Compute gravity forces, grouped in the Fg vector, one node after the other
+    virtual void ComputeGravityForces(ChVectorDynamic<>& Fg, const ChVector<>& G_acc) override;
 
     //
     // Beam-specific functions
@@ -258,7 +261,7 @@ class ChApi ChElementBeamEuler : public ChElementBeam,
 
     std::vector<std::shared_ptr<ChNodeFEAxyzrot> > nodes;
 
-    std::shared_ptr<ChBeamSectionAdvanced> section;
+    std::shared_ptr<ChBeamSectionEuler> section;
 
     ChMatrixDynamic<> StiffnessMatrix;  ///< undeformed local stiffness matrix
 

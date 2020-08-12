@@ -37,7 +37,7 @@ Generic_SimpleDriveline::Generic_SimpleDriveline(const std::string& name) : ChDr
 // Initialize the driveline subsystem.
 // This function connects this driveline subsystem to the specified axles.
 // -----------------------------------------------------------------------------
-void Generic_SimpleDriveline::Initialize(std::shared_ptr<ChBody> chassis,
+void Generic_SimpleDriveline::Initialize(std::shared_ptr<ChChassis> chassis,
                                          const ChAxleList& axles,
                                          const std::vector<int>& driven_axles) {
     assert(axles.size() >= 1);

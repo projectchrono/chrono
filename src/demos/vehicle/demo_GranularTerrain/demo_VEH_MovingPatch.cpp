@@ -17,7 +17,6 @@
 //
 // =============================================================================
 
-#include "chrono/parallel/ChOpenMP.h"
 #include "chrono/utils/ChUtilsCreators.h"
 
 #include "chrono_vehicle/ChVehicleModelData.h"
@@ -87,11 +86,7 @@ int main(int argc, char* argv[]) {
     system->Set_G_acc(gravity);
 
     // Set number of threads
-    int threads = 4;
-    int max_threads = CHOMPfunctions::GetNumProcs();
-    if (threads > max_threads)
-        threads = max_threads;
-    CHOMPfunctions::SetNumThreads(threads);
+    system->SetNumThreads(4);
 
     // Edit system settings
     system->GetSettings()->solver.tolerance = 1e-3;
@@ -106,7 +101,6 @@ int main(int argc, char* argv[]) {
     system->GetSettings()->solver.use_full_inertia_tensor = false;
     system->GetSettings()->solver.contact_recovery_speed = 1000;
     system->GetSettings()->solver.bilateral_clamp_speed = 1e8;
-    system->GetSettings()->min_threads = threads;
     system->ChangeSolverType(SolverType::BB);
 
     system->GetSettings()->collision.collision_envelope = envelope;

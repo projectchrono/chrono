@@ -27,9 +27,10 @@
 #include "chrono_models/vehicle/gator/Gator_SingleWishbone.h"
 #include "chrono_models/vehicle/gator/Gator_RigidSuspension.h"
 #include "chrono_models/vehicle/gator/Gator_BrakeSimple.h"
+#include "chrono_models/vehicle/gator/Gator_BrakeShafts.h"
 #include "chrono_models/vehicle/gator/Gator_RackPinion.h"
 #include "chrono_models/vehicle/gator/Gator_SimpleDriveline.h"
-////#include "chrono_models/vehicle/gator/Gator_Driveline2WD.h"
+#include "chrono_models/vehicle/gator/Gator_Driveline2WD.h"
 #include "chrono_models/vehicle/gator/Gator_Wheel.h"
 
 namespace chrono {
@@ -39,18 +40,27 @@ namespace gator {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 Gator_Vehicle::Gator_Vehicle(const bool fixed,
+                             DrivelineType driveline_type,
+                             BrakeType brake_type,
                              ChContactMethod contact_method,
                              ChassisCollisionType chassis_collision_type)
     : ChWheeledVehicle("Gator", contact_method), m_omega({0, 0, 0, 0}) {
-    Create(fixed, chassis_collision_type);
+    Create(fixed, driveline_type, brake_type, chassis_collision_type);
 }
 
-Gator_Vehicle::Gator_Vehicle(ChSystem* system, const bool fixed, ChassisCollisionType chassis_collision_type)
+Gator_Vehicle::Gator_Vehicle(ChSystem* system,
+                             const bool fixed,
+                             DrivelineType driveline_type,
+                             BrakeType brake_type,
+                             ChassisCollisionType chassis_collision_type)
     : ChWheeledVehicle("Gator", system), m_omega({0, 0, 0, 0}) {
-    Create(fixed, chassis_collision_type);
+    Create(fixed, driveline_type, brake_type, chassis_collision_type);
 }
 
-void Gator_Vehicle::Create(bool fixed, ChassisCollisionType chassis_collision_type) {
+void Gator_Vehicle::Create(bool fixed,
+                           DrivelineType driveline_type,
+                           BrakeType brake_type,
+                           ChassisCollisionType chassis_collision_type) {
     // Create the chassis subsystem
     m_chassis = chrono_types::make_shared<Gator_Chassis>("Chassis", fixed, chassis_collision_type);
 
@@ -69,18 +79,31 @@ void Gator_Vehicle::Create(bool fixed, ChassisCollisionType chassis_collision_ty
     m_axles[1]->m_wheels[0] = chrono_types::make_shared<Gator_Wheel>("Wheel_RL");
     m_axles[1]->m_wheels[1] = chrono_types::make_shared<Gator_Wheel>("Wheel_RR");
 
-    ////m_axles[0]->m_brake_left = chrono_types::make_shared<Gator_BrakeSimple>("Brake_FL");
-    ////m_axles[0]->m_brake_right = chrono_types::make_shared<Gator_BrakeSimple>("Brake_FR");
-    m_axles[1]->m_brake_left = chrono_types::make_shared<Gator_BrakeSimple>("Brake_RL");
-    m_axles[1]->m_brake_right = chrono_types::make_shared<Gator_BrakeSimple>("Brake_RR");
+    // Note: brakes only on rear axle
+    switch (brake_type) {
+        case BrakeType::SIMPLE:
+            m_axles[1]->m_brake_left = chrono_types::make_shared<Gator_BrakeSimple>("Brake_RL");
+            m_axles[1]->m_brake_right = chrono_types::make_shared<Gator_BrakeSimple>("Brake_RR");
+            break;
+        case BrakeType::SHAFTS:
+            m_axles[1]->m_brake_left = chrono_types::make_shared<Gator_BrakeShafts>("Brake_RL");
+            m_axles[1]->m_brake_right = chrono_types::make_shared<Gator_BrakeShafts>("Brake_RR");
+            break;
+    }
 
     // Create the steering subsystem
     m_steerings.resize(1);
     m_steerings[0] = chrono_types::make_shared<Gator_RackPinion>("Steering");
 
     // Create the driveline
-    m_driveline = chrono_types::make_shared<Gator_SimpleDriveline>("Driveline");
-    ////m_driveline = chrono_types::make_shared<Gator_Driveline2WD>("Driveline");
+    switch (driveline_type) {
+        case DrivelineType::SIMPLE:
+            m_driveline = chrono_types::make_shared<Gator_SimpleDriveline>("Driveline");
+            break;
+        case DrivelineType::RWD:
+            m_driveline = chrono_types::make_shared<Gator_Driveline2WD>("Driveline");
+            break;
+    }
 }
 
 Gator_Vehicle::~Gator_Vehicle() {}
@@ -95,17 +118,17 @@ void Gator_Vehicle::Initialize(const ChCoordsys<>& chassisPos, double chassisFwd
     // frame).
     ChVector<> offset = ChVector<>(0.92, 0, 0.08);
     ChQuaternion<> rotation = ChQuaternion<>(1, 0, 0, 0);
-    m_steerings[0]->Initialize(m_chassis->GetBody(), offset, rotation);
+    m_steerings[0]->Initialize(m_chassis, offset, rotation);
 
     // Initialize the axle subsystems.
-    m_axles[0]->Initialize(m_chassis->GetBody(), ChVector<>(0.97, 0, 0), ChVector<>(0),
-                           m_steerings[0]->GetSteeringLink(), 0, 0.0, m_omega[0], m_omega[1]);
-    m_axles[1]->Initialize(m_chassis->GetBody(), ChVector<>(-0.97, 0, 0), ChVector<>(0), m_chassis->GetBody(), -1,
-                           0.0, m_omega[2], m_omega[3]);
+    m_axles[0]->Initialize(m_chassis, nullptr, m_steerings[0], ChVector<>(0.97, 0, 0), ChVector<>(0), 0.0, m_omega[0],
+                           m_omega[1]);
+    m_axles[1]->Initialize(m_chassis, nullptr, nullptr, ChVector<>(-0.97, 0, 0), ChVector<>(0), 0.0, m_omega[2],
+                           m_omega[3]);
 
-    // Initialize the driveline subsystem (FWD)
+    // Initialize the driveline subsystem (RWD)
     std::vector<int> driven_susp_indexes = {1};
-    m_driveline->Initialize(m_chassis->GetBody(), m_axles, driven_susp_indexes);
+    m_driveline->Initialize(m_chassis, m_axles, driven_susp_indexes);
 }
 
 // -----------------------------------------------------------------------------

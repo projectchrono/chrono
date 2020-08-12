@@ -39,6 +39,7 @@ class ChAddContactCallbackP : public chrono::ChContactContainer::AddContactCallb
 
 %shared_ptr(chrono::ChContactContainer::ReportContactCallback)
 %shared_ptr(chrono::ChContactContainer::AddContactCallback)
+%shared_ptr(chrono::ChContactable)
 
 %inline %{
   chrono::ChBody* CastContactableToChBody(chrono::ChContactable* base) {
@@ -58,9 +59,8 @@ class ChAddContactCallbackP : public chrono::ChContactContainer::AddContactCallb
 // Cross-inheritance between Python and c++ for callbacks that must be inherited.
 // Put this 'director' feature _before_ class wrapping declaration.
 
-%feature("director") ChReportContactCallbackP;
-%feature("director") ChAddContactCallbackP;
-%feature("director") ReportContactCallback;
+%feature("director") chrono::ChContactContainer::ReportContactCallback;
+%feature("director") chrono::ChContactContainer::AddContactCallback;
 
 
 // NESTED CLASSES
@@ -99,8 +99,6 @@ class ChAddContactCallbackP {
 	}
 };
 */
-//%ignore chrono::ChContactContainer::RegisterAddContactCallback();
-//%ignore chrono::ChContactContainer::ReportAllContacts();
 
 
 /* Parse the header file to generate wrappers */

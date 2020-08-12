@@ -43,7 +43,7 @@ using namespace chrono::vehicle;
 ChVector<> initLoc(0, 0, 0.6);
 
 // Initial vehicle orientation
-ChQuaternion<> initRot(1, 0, 0, 0);
+double initYaw = 0;  //// CH_C_PI / 6;
 
 // Rigid terrain dimensions
 double terrainHeight = 0;
@@ -66,8 +66,9 @@ ChVector<> trackPoint(0.0, 0.0, 1.75);
 VisualizationType tire_vis_type = VisualizationType::MESH;
 
 int main(int argc, char* argv[]) {
+    // Create tractor and trailer
     SemiTractor_vehicle vehicle(false, ChContactMethod::NSC);
-    vehicle.Initialize(ChCoordsys<>(initLoc, initRot));
+    vehicle.Initialize(ChCoordsys<>(initLoc, Q_from_AngZ(initYaw)));
     vehicle.SetChassisVisualizationType(VisualizationType::MESH);
     vehicle.SetSuspensionVisualizationType(VisualizationType::PRIMITIVES);
     vehicle.SetSteeringVisualizationType(VisualizationType::PRIMITIVES);
@@ -76,7 +77,8 @@ int main(int argc, char* argv[]) {
     drvLine->LockCentralDifferential(0, false);
 
     SemiTrailer trailer(vehicle.GetSystem(), false);
-    trailer.Initialize(ChCoordsys<>(initLoc + ChVector<>(-4.64, 0, 0.0), initRot), true, vehicle.GetChassisBody());
+    trailer.Initialize(vehicle.GetChassis(), ChVector<>(-4.64, 0, 0.0));
+    trailer.SetChassisVisualizationType(VisualizationType::PRIMITIVES);
     trailer.SetSuspensionVisualizationType(VisualizationType::PRIMITIVES);
     trailer.SetWheelVisualizationType(VisualizationType::MESH);
 

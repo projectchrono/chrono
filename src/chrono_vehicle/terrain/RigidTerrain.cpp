@@ -34,7 +34,7 @@
 
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
 
-#include "chrono_thirdparty/Easy_BMP/EasyBMP.h"
+#include "chrono_thirdparty/stb/stb.h"
 
 using namespace rapidjson;
 
@@ -281,13 +281,13 @@ std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(std::shared_ptr<ChMa
     auto patch = chrono_types::make_shared<MeshPatch>();
     AddPatch(patch, position, material);
 
-    // Read the BMP file and extract number of pixels.
-    BMP hmap;
-    if (!hmap.ReadFromFile(heightmap_file.c_str())) {
-        throw ChException("Cannot open height map BMP file");
+    // Read the image file (request only 1 channel) and extract number of pixels.
+    STB hmap;
+    if (!hmap.ReadFromFile(heightmap_file, 1)) {
+        throw ChException("Cannot open height map image file");
     }
-    int nv_x = hmap.TellWidth();
-    int nv_y = hmap.TellHeight();
+    int nv_x = hmap.GetWidth();
+    int nv_y = hmap.GetHeight();
 
     // Construct a triangular mesh of sizeX x sizeY (as specified in an ISO frame).
     // Each pixel in the BMP represents a vertex.
@@ -297,7 +297,7 @@ std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(std::shared_ptr<ChMa
     // We use smoothed vertex normals.
     double dx = length / (nv_x - 1);
     double dy = width / (nv_y - 1);
-    double h_scale = (hMax - hMin) / 255;
+    double h_scale = (hMax - hMin) / hmap.GetRange();
     double x_scale = 1.0 / (nv_x - 1);
     double y_scale = 1.0 / (nv_y - 1);
     unsigned int n_verts = nv_x * nv_y;
@@ -331,13 +331,8 @@ std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(std::shared_ptr<ChMa
         double y = 0.5 * width - iy * dy;
         for (int ix = 0; ix < nv_x; ++ix) {
             double x = ix * dx - 0.5 * length;
-            // Calculate equivalent gray level (RGB -> YUV)
-            ebmpBYTE red = hmap(ix, iy)->Red;
-            ebmpBYTE green = hmap(ix, iy)->Green;
-            ebmpBYTE blue = hmap(ix, iy)->Blue;
-            double gray = 0.299 * red + 0.587 * green + 0.114 * blue;
             // Map gray level to vertex height
-            double z = hMin + gray * h_scale;
+            double z = hMin + hmap.Gray(ix, iy) * h_scale;
             // Set vertex location
             vertices[iv] = ChWorldFrame::FromISO(ChVector<>(x, y, z));
             // Initialize vertex normal to (0, 0, 0).
@@ -604,7 +599,7 @@ bool RigidTerrain::MeshPatch::FindPoint(const ChVector<>& loc, double& height, C
 }
 
 // -----------------------------------------------------------------------------
-// Export all patch meshes as macros in PovRay include files.
+// Export all patch meshes
 // -----------------------------------------------------------------------------
 void RigidTerrain::ExportMeshPovray(const std::string& out_dir, bool smoothed) {
     for (auto patch : m_patches) {
@@ -612,9 +607,22 @@ void RigidTerrain::ExportMeshPovray(const std::string& out_dir, bool smoothed) {
     }
 }
 
+void RigidTerrain::ExportMeshWavefront(const std::string& out_dir) {
+    for (auto patch : m_patches) {
+        patch->ExportMeshWavefront(out_dir);
+    }
+}
+
 void RigidTerrain::MeshPatch::ExportMeshPovray(const std::string& out_dir, bool smoothed) {
     utils::WriteMeshPovray(*m_trimesh, m_mesh_name, out_dir, ChColor(1, 1, 1), ChVector<>(0, 0, 0),
                            ChQuaternion<>(1, 0, 0, 0), smoothed);
+}
+
+void RigidTerrain::MeshPatch::ExportMeshWavefront(const std::string& out_dir) {
+    std::string obj_filename = out_dir + "/" + m_mesh_name + ".obj";
+    std::vector<geometry::ChTriangleMeshConnected> meshes = {*m_trimesh};
+    std::cout << "Exporting to " << obj_filename << std::endl;
+    m_trimesh->WriteWavefront(obj_filename, meshes);
 }
 
 }  // end namespace vehicle

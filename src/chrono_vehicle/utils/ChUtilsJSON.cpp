@@ -19,11 +19,17 @@
 #include <fstream>
 
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
-//
+
 #include "chrono_vehicle/chassis/RigidChassis.h"
-//
+
+#include "chrono_vehicle/powertrain/ShaftsPowertrain.h"
+#include "chrono_vehicle/powertrain/SimpleCVTPowertrain.h"
+#include "chrono_vehicle/powertrain/SimpleMapPowertrain.h"
+#include "chrono_vehicle/powertrain/SimplePowertrain.h"
+
 #include "chrono_vehicle/wheeled_vehicle/antirollbar/AntirollBarRSD.h"
 #include "chrono_vehicle/wheeled_vehicle/brake/BrakeSimple.h"
+#include "chrono_vehicle/wheeled_vehicle/brake/BrakeShafts.h"
 #include "chrono_vehicle/wheeled_vehicle/driveline/ShaftsDriveline2WD.h"
 #include "chrono_vehicle/wheeled_vehicle/driveline/ShaftsDriveline4WD.h"
 #include "chrono_vehicle/wheeled_vehicle/driveline/SimpleDriveline.h"
@@ -58,7 +64,7 @@
 #include "chrono_vehicle/wheeled_vehicle/tire/Pac89Tire.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/Pac02Tire.h"
 #include "chrono_vehicle/wheeled_vehicle/wheel/Wheel.h"
-//
+
 #include "chrono_vehicle/tracked_vehicle/brake/TrackBrakeSimple.h"
 #include "chrono_vehicle/tracked_vehicle/driveline/SimpleTrackDriveline.h"
 #include "chrono_vehicle/tracked_vehicle/driveline/TrackDrivelineBDS.h"
@@ -73,7 +79,7 @@
 #include "chrono_vehicle/tracked_vehicle/track_assembly/TrackAssemblyBandBushing.h"
 #include "chrono_vehicle/tracked_vehicle/track_assembly/TrackAssemblyDoublePin.h"
 #include "chrono_vehicle/tracked_vehicle/track_assembly/TrackAssemblySinglePin.h"
-//
+
 #include "chrono_thirdparty/rapidjson/filereadstream.h"
 #include "chrono_thirdparty/rapidjson/istreamwrapper.h"
 
@@ -167,6 +173,40 @@ std::shared_ptr<ChChassis> ReadChassisJSON(const std::string& filename) {
 
     return chassis;
 }
+
+std::shared_ptr<ChPowertrain> ReadPowertrainJSON(const std::string& filename) {
+    std::shared_ptr<ChPowertrain> powertrain;
+
+    Document d = ReadFileJSON(filename);
+    if (d.IsNull())
+        return nullptr;
+
+    // Check that the given file is a powertrain specification file.
+    assert(d.HasMember("Type"));
+    std::string type = d["Type"].GetString();
+    assert(type.compare("Powertrain") == 0);
+
+    // Extract the powertrain type.
+    assert(d.HasMember("Template"));
+    std::string subtype = d["Template"].GetString();
+
+    // Create the powertrain using the appropriate template.
+    if (subtype.compare("ShaftsPowertrain") == 0) {
+        powertrain = chrono_types::make_shared<ShaftsPowertrain>(d);
+    } else if (subtype.compare("SimpleCVTPowertrain") == 0) {
+        powertrain = chrono_types::make_shared<SimpleCVTPowertrain>(d);
+    } else if (subtype.compare("SimpleMapPowertrain") == 0) {
+        powertrain = chrono_types::make_shared<SimpleMapPowertrain>(d);
+    } else if (subtype.compare("SimplePowertrain") == 0) {
+        powertrain = chrono_types::make_shared<SimplePowertrain>(d);
+    } else {
+        throw ChException("Powertrain type not supported in ReadChassisJSON.");
+    }
+
+    return powertrain;
+}
+
+// -----------------------------------------------------------------------------
 
 std::shared_ptr<ChSuspension> ReadSuspensionJSON(const std::string& filename) {
     std::shared_ptr<ChSuspension> suspension;
@@ -357,6 +397,8 @@ std::shared_ptr<ChBrake> ReadBrakeJSON(const std::string& filename) {
     // Create the brake using the appropriate template.
     if (subtype.compare("BrakeSimple") == 0) {
         brake = chrono_types::make_shared<BrakeSimple>(d);
+    } else if (subtype.compare("BrakeShafts") == 0) {
+        brake = chrono_types::make_shared<BrakeShafts>(d);
     } else {
         throw ChException("Brake type not supported in ReadBrakeJSON.");
     }

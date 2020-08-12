@@ -9,77 +9,108 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Radu Serban, Asher Elmquist
+// Authors: Radu Serban, Rainer Gericke
 // =============================================================================
 //
-// LMTV full vehicle model...
+// LMTV full vehicle model
 //
 // =============================================================================
-
-#include "chrono/assets/ChSphereShape.h"
-#include "chrono/assets/ChTriangleMeshShape.h"
-#include "chrono/utils/ChUtilsInputOutput.h"
 
 #include "chrono_vehicle/ChVehicleModelData.h"
 
 #include "chrono_models/vehicle/mtv/LMTV_Vehicle.h"
+#include "chrono_models/vehicle/mtv/LMTV_ChassisRear.h"
+#include "chrono_models/vehicle/mtv/LMTV_LeafspringAxle.h"
+
+#include "chrono_models/vehicle/mtv/FMTV_ChassisFront.h"
+#include "chrono_models/vehicle/mtv/FMTV_BrakeSimple.h"
+#include "chrono_models/vehicle/mtv/FMTV_BrakeShafts.h"
+#include "chrono_models/vehicle/mtv/FMTV_Driveline4WD.h"
+#include "chrono_models/vehicle/mtv/FMTV_AntiRollBar.h"
+#include "chrono_models/vehicle/mtv/FMTV_RotaryArm.h"
+#include "chrono_models/vehicle/mtv/FMTV_SimpleMapPowertrain.h"
+#include "chrono_models/vehicle/mtv/FMTV_ToebarLeafspringAxle.h"
+#include "chrono_models/vehicle/mtv/FMTV_Wheel.h"
 
 namespace chrono {
 namespace vehicle {
-namespace mtv {
+namespace fmtv {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 LMTV_Vehicle::LMTV_Vehicle(const bool fixed,
+                           BrakeType brake_type,
                            SteeringType steering_model,
                            ChContactMethod contact_method,
                            ChassisCollisionType chassis_collision_type)
     : ChWheeledVehicle("LMTV", contact_method), m_omega({0, 0, 0, 0}) {
-    Create(fixed, steering_model, chassis_collision_type);
+    Create(fixed, brake_type, steering_model, chassis_collision_type);
 }
 
 LMTV_Vehicle::LMTV_Vehicle(ChSystem* system,
                            const bool fixed,
+                           BrakeType brake_type,
                            SteeringType steering_model,
                            ChassisCollisionType chassis_collision_type)
     : ChWheeledVehicle("LMTV", system), m_omega({0, 0, 0, 0}) {
-    Create(fixed, steering_model, chassis_collision_type);
+    Create(fixed, brake_type, steering_model, chassis_collision_type);
 }
 
-void LMTV_Vehicle::Create(bool fixed, SteeringType steering_model, ChassisCollisionType chassis_collision_type) {
-    // Create the chassis subsystem
-    m_chassis = chrono_types::make_shared<LMTV_Chassis>("Chassis", fixed, chassis_collision_type);
+void LMTV_Vehicle::Create(bool fixed,
+                          BrakeType brake_type,
+                          SteeringType steering_model,
+                          ChassisCollisionType chassis_collision_type) {
+    // Create the front and rear chassis subsystems
+    m_chassis = chrono_types::make_shared<FMTV_ChassisFront>("ChassisFront", fixed, chassis_collision_type);
+    m_chassis_rear.resize(1);
+    m_chassis_rear[0] = chrono_types::make_shared<LMTV_ChassisRear>("ChassisRear");
+
+    // Create the torsion articulation between front and rear chassis
+    m_chassis_connectors.resize(1);
+    m_chassis_connectors[0] = chrono_types::make_shared<LMTV_ChassisConnector>("ChassisConnector");
 
     // Create the steering subsystem
     m_steerings.resize(1);
-    m_steerings[0] = chrono_types::make_shared<LMTV_RotaryArm>("Steering");
+    m_steerings[0] = chrono_types::make_shared<FMTV_RotaryArm>("Steering");
 
     // Create the axle subsystems
     m_axles.resize(2);
     m_axles[0] = chrono_types::make_shared<ChAxle>();
     m_axles[1] = chrono_types::make_shared<ChAxle>();
 
-    m_axles[0]->m_suspension = chrono_types::make_shared<LMTV_ToebarLeafspringAxle>("FrontSusp");
+    m_axles[0]->m_suspension = chrono_types::make_shared<FMTV_ToebarLeafspringAxle>("FrontSusp");
     m_axles[1]->m_suspension = chrono_types::make_shared<LMTV_LeafspringAxle>("RearSusp");
 
     m_axles[0]->m_wheels.resize(2);
-    m_axles[0]->m_wheels[0] = chrono_types::make_shared<LMTV_Wheel>("Wheel_FL");
-    m_axles[0]->m_wheels[1] = chrono_types::make_shared<LMTV_Wheel>("Wheel_FR");
+    m_axles[0]->m_wheels[0] = chrono_types::make_shared<FMTV_Wheel>("Wheel_FL");
+    m_axles[0]->m_wheels[1] = chrono_types::make_shared<FMTV_Wheel>("Wheel_FR");
     m_axles[1]->m_wheels.resize(2);
-    m_axles[1]->m_wheels[0] = chrono_types::make_shared<LMTV_Wheel>("Wheel_RL");
-    m_axles[1]->m_wheels[1] = chrono_types::make_shared<LMTV_Wheel>("Wheel_RR");
+    m_axles[1]->m_wheels[0] = chrono_types::make_shared<FMTV_Wheel>("Wheel_RL");
+    m_axles[1]->m_wheels[1] = chrono_types::make_shared<FMTV_Wheel>("Wheel_RR");
 
-    m_axles[0]->m_brake_left = chrono_types::make_shared<LMTV_BrakeSimple>("Brake_FL");
-    m_axles[0]->m_brake_right = chrono_types::make_shared<LMTV_BrakeSimple>("Brake_FR");
-    m_axles[1]->m_brake_left = chrono_types::make_shared<LMTV_BrakeSimple>("Brake_RL");
-    m_axles[1]->m_brake_right = chrono_types::make_shared<LMTV_BrakeSimple>("Brake_RR");
+    switch (brake_type) {
+        case BrakeType::SIMPLE:
+            m_axles[0]->m_brake_left = chrono_types::make_shared<FMTV_BrakeSimple>("Brake_FL");
+            m_axles[0]->m_brake_right = chrono_types::make_shared<FMTV_BrakeSimple>("Brake_FR");
+            m_axles[1]->m_brake_left = chrono_types::make_shared<FMTV_BrakeSimple>("Brake_RL");
+            m_axles[1]->m_brake_right = chrono_types::make_shared<FMTV_BrakeSimple>("Brake_RR");
+            break;
+        case BrakeType::SHAFTS:
+            m_axles[0]->m_brake_left = chrono_types::make_shared<FMTV_BrakeShafts>("Brake_FL");
+            m_axles[0]->m_brake_right = chrono_types::make_shared<FMTV_BrakeShafts>("Brake_FR");
+            m_axles[1]->m_brake_left = chrono_types::make_shared<FMTV_BrakeShafts>("Brake_RL");
+            m_axles[1]->m_brake_right = chrono_types::make_shared<FMTV_BrakeShafts>("Brake_RR");
+            break;
+    }
 
+    /*
     // Create the antirollbar system
-    // m_axles[1]->m_antirollbar = chrono_types::make_shared<LMTV_AntirollBarRSD>("AntirollBar");
+    m_axles[1]->m_antirollbar = chrono_types::make_shared<LMTV_AntirollBarRSD>("AntirollBar");
+    */
 
     // Create the driveline
-    m_driveline = chrono_types::make_shared<LMTV_Driveline4WD>("Driveline");
-    ////m_driveline = chrono_types::make_shared<LMTV_SimpleDriveline>("Driveline");
+    m_driveline = chrono_types::make_shared<FMTV_Driveline4WD>("Driveline");
+    ////m_driveline = chrono_types::make_shared<FMTV_SimpleDriveline>("Driveline");
 }
 
 LMTV_Vehicle::~LMTV_Vehicle() {}
@@ -87,35 +118,31 @@ LMTV_Vehicle::~LMTV_Vehicle() {}
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void LMTV_Vehicle::Initialize(const ChCoordsys<>& chassisPos, double chassisFwdVel) {
-    auto chassis = std::static_pointer_cast<ChTorsionChassis>(m_chassis);
-    // Initialize the chassis subsystem.
-    chassis->Initialize(m_system, chassisPos, chassisFwdVel, WheeledCollisionFamily::CHASSIS);
+    // Initialize the chassis subsystems.
+    m_chassis->Initialize(m_system, chassisPos, chassisFwdVel, WheeledCollisionFamily::CHASSIS);
+    m_chassis_rear[0]->Initialize(m_chassis, ChVector<>(0, 0, 0), WheeledCollisionFamily::CHASSIS);
 
-    // Initialize the steering subsystem (specify the steering subsystem's frame relative to the chassis reference
-    // frame).
+    // Initialize the connection between front and rear chassis
+    m_chassis_connectors[0]->Initialize(m_chassis, m_chassis_rear[0]);
+
+    // Initialize the steering subsystem (specify the steering frame relative to the chassis reference frame)
     ChVector<> offset = ChVector<>(0, 0, 0);
     ChQuaternion<> rotation = Q_from_AngAxis(0, ChVector<>(0, 1, 0));
-    m_steerings[0]->Initialize(chassis->GetBody(), offset, rotation);
+    m_steerings[0]->Initialize(m_chassis, offset, rotation);
 
-    // Initialize the axle subsystems.
-    m_axles[0]->Initialize(chassis->GetBody(), ChVector<>(0, 0, 0), ChVector<>(0), m_steerings[0]->GetSteeringLink(), 0,
-                           0.0, m_omega[0], m_omega[1]);
-    // rear axles, rear axle is 'mounted' to the rear schassis body
-    m_axles[1]->Initialize(chassis->GetRearBody(), ChVector<>(-3.9, 0, 0), ChVector<>(0), chassis->GetRearBody(), -1,
-                           0.0, m_omega[2], m_omega[3]);
+    // Initialize the axle subsystems
+    m_axles[0]->Initialize(m_chassis, nullptr, m_steerings[0], ChVector<>(0, 0, 0), ChVector<>(0), 0.0, m_omega[0],
+                           m_omega[1]);
+    m_axles[1]->Initialize(m_chassis_rear[0], nullptr, nullptr, ChVector<>(-3.9, 0, 0), ChVector<>(0), 0.0, m_omega[2],
+                           m_omega[3]);
 
-    /* Initialize the anti roll bar system.
-    auto sus = std::static_pointer_cast<ChLeafspringAxle>(m_axles[1]->m_suspension);
-    m_axles[1]->m_antirollbar->Initialize(chassis->GetRearBody(), ChVector<>(-3.7, 0, 0.2), sus->GetLeftBody(),
-                                          sus->GetRightBody());
-                                           */
     // Initialize the driveline subsystem
     std::vector<int> driven_susp_indexes(m_driveline->GetNumDrivenAxles());
 
     driven_susp_indexes[0] = 1;
     driven_susp_indexes[1] = 1;
 
-    m_driveline->Initialize(chassis->GetBody(), m_axles, driven_susp_indexes);
+    m_driveline->Initialize(m_chassis, m_axles, driven_susp_indexes);
 }
 
 // -----------------------------------------------------------------------------
@@ -204,27 +231,6 @@ void LMTV_Vehicle::DebugLog(int what) {
     GetLog().SetNumFormat("%g");
 }
 
-// -----------------------------------------------------------------------------
-// Calculate and return the total vehicle mass considering rear mass of chassis
-// Note: do not include the wheels, as these are already accounted for through
-// the associated spindle body.
-// -----------------------------------------------------------------------------
-double LMTV_Vehicle::GetVehicleMass() const {
-    std::shared_ptr<ChTorsionChassis> chassis = std::static_pointer_cast<ChTorsionChassis>(m_chassis);
-    double mass = chassis->GetTotalMass();
-
-    for (auto& axle : m_axles) {
-        mass += axle->m_suspension->GetMass();
-        if (axle->m_antirollbar)
-            mass += axle->m_antirollbar->GetMass();
-    }
-    for (auto& steering : m_steerings) {
-        mass += steering->GetMass();
-    }
-
-    return mass;
-}
-
-}  // namespace mtv
+}  // namespace fmtv
 }  // end namespace vehicle
 }  // end namespace chrono

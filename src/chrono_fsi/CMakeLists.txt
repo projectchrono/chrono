@@ -167,12 +167,6 @@ if(ENABLE_MODULE_PARALLEL)
   list(APPEND LIBRARIES ChronoEngine_parallel)
 endif()
 
-if(ENABLE_MODULE_FEA)
-	set(CXX_FLAGS ${CH_FEA_CXX_FLAGS})
-	include_directories(${CH_FEA_INCLUDES})
-	list(APPEND LIBRARIES ChronoEngine_fea)
-endif()
-
 if(ENABLE_MODULE_VEHICLE)
   include_directories(${CH_VEHICLE_INCLUDES})
   list(APPEND LIBRARIES ChronoEngine_vehicle)

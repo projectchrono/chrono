@@ -20,6 +20,7 @@
 #define CH_DRIVELINE_WV_H
 
 #include "chrono_vehicle/ChDriveline.h"
+#include "chrono_vehicle/ChChassis.h"
 #include "chrono_vehicle/wheeled_vehicle/ChAxle.h"
 
 namespace chrono {
@@ -40,7 +41,7 @@ class CH_VEHICLE_API ChDrivelineWV : public ChDriveline {
 
     /// Initialize the driveline subsystem.
     /// This function connects this driveline subsystem to the specified axle subsystems.
-    virtual void Initialize(std::shared_ptr<ChBody> chassis,      ///< handle to the chassis body
+    virtual void Initialize(std::shared_ptr<ChChassis> chassis,   ///< associated chassis subsystem
                             const ChAxleList& axles,              ///< list of all vehicle axle subsystems
                             const std::vector<int>& driven_axles  ///< indexes of the driven vehicle axles
                             ) = 0;

@@ -45,6 +45,7 @@ void ChTrackShoeSinglePin::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     ChQuaternion<> rot = chassis->GetRot() * rotation;
     m_shoe = std::shared_ptr<ChBody>(sys->NewBody());
     m_shoe->SetNameString(m_name + "_shoe");
+    m_shoe->SetIdentifier(BodyID::SHOE_BODY);
     m_shoe->SetPos(loc);
     m_shoe->SetRot(rot);
     m_shoe->SetMass(GetShoeMass());
@@ -144,8 +145,9 @@ void ChTrackShoeSinglePin::RemoveVisualizationAssets() {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChTrackShoeSinglePin::Connect(std::shared_ptr<ChTrackShoe> next) {
-    ChVector<> loc = m_shoe->TransformPointLocalToParent(ChVector<>(GetPitch() / 2, 0, 0));
+void ChTrackShoeSinglePin::Connect(std::shared_ptr<ChTrackShoe> next, bool ccw) {
+    double sign = ccw ? +1 : -1;
+    ChVector<> loc = m_shoe->TransformPointLocalToParent(ChVector<>(sign * GetPitch() / 2, 0, 0));
 
     if (m_index == 0) {
         // Create and initialize a point-line joint (sliding line along X)

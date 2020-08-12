@@ -30,9 +30,17 @@ namespace fea {
 /// @addtogroup fea_elements
 /// @{
 
-/// Element of IGA type, with Timoshenko shear etc.
-/// et.. etc.  (intro to write)
-/// Note: each IGA element represents one "knot span" of the spline!
+/// Isogeometric formulation (IGA) of a Cosserat rod, with large displacements, based on the Geometrically Exact Beam Theory.
+/// User-defined order n (ex: 1=linear 2=quadratic, 3=cubic), where each element is a span of a b-spline, 
+/// so each element uses n+1 control points, ie. nodes of chrono::fea::ChNodeFEAxyzrot type.
+/// As a thick beam, shear effects are possible, v. Timoshenko theory.
+/// Reduced integration to correct shear locking (*note, use order 1 for the moment, this must be improved)
+/// Initial curved configuration is supported.
+/// The section is defined in a modular way, via a chrono::fea::ChBeamSectionCosserat object that is composed via an 
+/// elastic model, an inertial model, a damping (optional) model, a plastic (optional) model. Some of the ready-to-use 
+/// implementation of those models allow a very generic beam where the center of mass, center of shear etc. are arbitrarily
+/// offset from the beam centerline, thus allowing the simulation of advanced cases like helicopter blades etc.
+
 class ChApi ChElementBeamIGA :  public ChElementBeam,
                                 public ChLoadableU,
 							    public ChLoadableUVW
@@ -128,6 +136,9 @@ class ChApi ChElementBeamIGA :  public ChElementBeam,
                                     ChStateDelta& state_w,                 ///< state speed to evaluate Fi
                                     bool used_for_differentiation = false  ///< used during FD Jacobian evaluation?
     );
+
+    /// Compute gravity forces, grouped in the Fg vector, one node after the other
+    virtual void ComputeGravityForces(ChVectorDynamic<>& Fg, const ChVector<>& G_acc) override;
 
     //
     // Beam-specific functions
@@ -233,7 +244,9 @@ class ChApi ChElementBeamIGA :  public ChElementBeam,
 
     //
     // Functions for interfacing to the solver
-    //            (***not needed, thank to bookkeeping in parent class ChElementGeneric)
+    //            (***most not needed, thank to bookkeeping in parent class ChElementGeneric)
+
+
 
 	virtual void EleDoIntegration() override {
 		for (size_t i = 0; i < this->plastic_data.size(); ++i) {
@@ -324,7 +337,6 @@ class ChApi ChElementBeamIGA :  public ChElementBeam,
 	virtual double GetDensity() override { return this->section->GetInertia()->GetMassPerUnitLength(); } //this->section->GetArea()* this->section->GetDensity();
 
 
-
     ///  For testing purposes:
     enum class QuadratureType {
         FULL_OVER,
@@ -340,6 +352,12 @@ class ChApi ChElementBeamIGA :  public ChElementBeam,
 
     ///  For testing purposes:
     static double Delta;
+
+    /// Set if the element mass matrix is computed in lumped or consistent way
+    static bool lumped_mass;
+
+    /// Set if the element forces will include the gyroscopic and centrifugal terms (slower performance, but might be needed esp. when center of mass is offset)
+    static bool add_gyroscopic_terms;
 
   private:
     /// Initial setup. Precompute mass and matrices that do not change during the simulation. In particular, compute the

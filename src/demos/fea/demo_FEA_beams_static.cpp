@@ -16,7 +16,7 @@
 //
 // =============================================================================
 
-#include "chrono/physics/ChSystemNSC.h"
+#include "chrono/physics/ChSystemSMC.h"
 #include "chrono/physics/ChLinkMate.h"
 #include "chrono/physics/ChLinkLock.h"
 
@@ -43,7 +43,7 @@ int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
     // Create a Chrono::Engine physical system
-    ChSystemNSC my_system;
+    ChSystemSMC my_system;
 
     // Create the Irrlicht visualization (open the Irrlicht device,
     // bind a simple user interface, etc. etc.)
@@ -94,7 +94,7 @@ int main(int argc, char* argv[]) {
 
             // Create a section, i.e. thickness and material properties
             // for beams. This will be shared among some beams.
-            auto msection = chrono_types::make_shared<ChBeamSectionAdvanced>();
+            auto msection = chrono_types::make_shared<ChBeamSectionEulerAdvanced>();
 
             double beam_wz = 0.0032024;  // 3.175;
             double beam_wy = 0.01237;    // 12.7;
@@ -110,7 +110,7 @@ int main(int argc, char* argv[]) {
 
             builder.BuildBeam(
                 my_mesh,   // the mesh where to put the created nodes and elements
-                msection,  // the ChBeamSectionAdvanced to use for the ChElementBeamEuler elements
+                msection,  // the ChBeamSectionEuler to use for the ChElementBeamEuler elements
                 10,        // the number of ChElementBeamEuler to create
                 ChVector<>(0, nload * y_spacing, i * z_spacing),       // the 'A' point in space (beginning of beam)
                 ChVector<>(beam_L, nload * y_spacing, i * z_spacing),  // the 'B' point in space (end of beam)
@@ -193,7 +193,7 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    std::string filename1 = out_dir + "/princeton_L1.dat";
+    std::string filename1 = out_dir + "/benchmark_CE_princeton_L1.dat";
     chrono::ChStreamOutAsciiFile file_out1(filename1.c_str());
     for (int i = 0; i < endnodes[0].size(); ++i) {
         double node_y = endnodes[0][i]->GetPos().y() - 0 * y_spacing;
@@ -204,7 +204,7 @@ int main(int argc, char* argv[]) {
         file_out1 << node_y << " " << node_z << " " << node_a << "\n";
     }
 
-    std::string filename2 = out_dir + "/princeton_L2.dat";
+    std::string filename2 = out_dir + "/benchmark_CE_princeton_L2.dat";
     chrono::ChStreamOutAsciiFile file_out2(filename2.c_str());
     for (int i = 0; i < endnodes[1].size(); ++i) {
         double node_y = endnodes[1][i]->GetPos().y() - 1 * y_spacing;
@@ -215,7 +215,7 @@ int main(int argc, char* argv[]) {
         file_out2 << node_y << " " << node_z << " " << node_a << "\n";
     }
 
-    std::string filename3 = out_dir + "/princeton_L3.dat";
+    std::string filename3 = out_dir + "/benchmark_CE_princeton_L3.dat";
     chrono::ChStreamOutAsciiFile file_out3(filename3.c_str());
     for (int i = 0; i < endnodes[2].size(); ++i) {
         double node_y = endnodes[2][i]->GetPos().y() - 2 * y_spacing;

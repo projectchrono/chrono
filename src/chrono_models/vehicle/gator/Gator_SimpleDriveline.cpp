@@ -30,7 +30,7 @@ const double Gator_SimpleDriveline::m_diff_bias = 2.0;
 // -----------------------------------------------------------------------------
 Gator_SimpleDriveline::Gator_SimpleDriveline(const std::string& name) : ChDrivelineWV(name) {}
 
-void Gator_SimpleDriveline::Initialize(std::shared_ptr<ChBody> chassis,
+void Gator_SimpleDriveline::Initialize(std::shared_ptr<ChChassis> chassis,
                                        const ChAxleList& axles,
                                        const std::vector<int>& driven_axles) {
     assert(axles.size() == 2);

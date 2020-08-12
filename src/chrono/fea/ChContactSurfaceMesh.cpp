@@ -35,8 +35,6 @@
 #include <array>
 #include <algorithm>
 
-using namespace std;
-
 namespace chrono {
 namespace fea {
 
@@ -359,6 +357,13 @@ void ChContactSurfaceMesh::AddFacesFromBoundary(double sphere_swept, bool ccw) {
             this->vfaces_rot.push_back(contact_triangle);
             contact_triangle->SetContactSurface(this);
 
+            double capsule_radius = collision::ChCollisionModel::GetDefaultSuggestedMargin(); // fallback for no draw profile
+            if (auto mdrawshape = mbeam->GetSection()->GetDrawShape()) {
+                double ymin, ymax, zmin, zmax;
+                mdrawshape->GetAABB(ymin, ymax, zmin, zmax);
+                capsule_radius = 0.5 * sqrt(pow(ymax-ymin,2) + pow(zmax-zmin,2));
+            }
+
             contact_triangle->GetCollisionModel()->ClearModel();
             ((collision::ChCollisionModelBullet*)contact_triangle->GetCollisionModel())
                 ->AddTriangleProxy(m_material,                                      // contact material
@@ -366,7 +371,7 @@ void ChContactSurfaceMesh::AddFacesFromBoundary(double sphere_swept, bool ccw) {
                                    0, 0, 0,                                         // no wing vertexes
                                    false, false, false,  // are vertexes owned by this triangle?
                                    true, false, true,    // are edges owned by this triangle?
-                                   mbeam->GetSection()->GetDrawCircularRadius());
+                                   capsule_radius);
             contact_triangle->GetCollisionModel()->BuildModel();
         }
     }
@@ -386,6 +391,13 @@ void ChContactSurfaceMesh::AddFacesFromBoundary(double sphere_swept, bool ccw) {
             this->vfaces.push_back(contact_triangle);
             contact_triangle->SetContactSurface(this);
 
+            double capsule_radius = collision::ChCollisionModel::GetDefaultSuggestedMargin(); // fallback for no draw profile
+            if (auto mdrawshape = mbeam->GetSection()->GetDrawShape()) {
+                double ymin, ymax, zmin, zmax;
+                mdrawshape->GetAABB(ymin, ymax, zmin, zmax);
+                capsule_radius = 0.5 * sqrt(pow(ymax-ymin,2) + pow(zmax-zmin,2));
+            }
+
             contact_triangle->GetCollisionModel()->ClearModel();
             ((collision::ChCollisionModelBullet*)contact_triangle->GetCollisionModel())
                 ->AddTriangleProxy(m_material,                    // contact materials
@@ -393,7 +405,7 @@ void ChContactSurfaceMesh::AddFacesFromBoundary(double sphere_swept, bool ccw) {
                                    0, 0, 0,                       // no wing vertexes
                                    false, false, false,           // are vertexes owned by this triangle?
                                    true, false, true,             // are edges owned by this triangle?
-                                   mbeam->GetSection()->GetDrawCircularRadius());
+                                   capsule_radius);
             contact_triangle->GetCollisionModel()->BuildModel();
         }
     }

@@ -77,7 +77,8 @@ class CH_VEHICLE_API ChTrackShoe : public ChPart {
     /// The track shoe is created within the specified system and initialized
     /// at the specified location and orientation (expressed in the global frame).
     /// All actual work is deferred to derived classes (subsystem templates) which
-    /// must create the bodies, joints, etc.
+    /// must create the bodies, joints, etc.  In addition, a derived class must set
+    /// the track shoe body's identifier to BodyID::SHOES.
     virtual void Initialize(std::shared_ptr<ChBodyAuxRef> chassis,  ///< [in] handle to the chassis body
                             const ChVector<>& location,             ///< [in] location relative to the chassis frame
                             const ChQuaternion<>& rotation          ///< [in] orientation relative to the chassis frame
@@ -85,7 +86,8 @@ class CH_VEHICLE_API ChTrackShoe : public ChPart {
 
     /// Connect this track shoe to the specified neighbor.
     /// This function must be called only after all track shoes have been initialized.
-    virtual void Connect(std::shared_ptr<ChTrackShoe> next  ///< [in] handle to the neighbor track shoe
+    virtual void Connect(std::shared_ptr<ChTrackShoe> next,  ///< [in] handle to the neighbor track shoe
+                         bool ccw                            ///< [in] track assembled in counter clockwise direction
                          ) = 0;
 
   protected:

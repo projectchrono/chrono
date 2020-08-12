@@ -53,7 +53,7 @@ VisualizationType tire_vis_type = VisualizationType::MESH;
 // Collision type for chassis (PRIMITIVES, MESH, or NONE)
 ChassisCollisionType chassis_collision_type = ChassisCollisionType::NONE;
 
-// Type of tire model (RIGID, TMEASY)
+// Type of tire model (RIGID, RIGID_MESH, TMEASY)
 TireModelType tire_model = TireModelType::TMEASY;
 
 // Rigid terrain
@@ -63,7 +63,7 @@ RigidTerrain::PatchType terrain_model = RigidTerrain::PatchType::BOX;
 ChContactMethod contact_method = ChContactMethod::NSC;
 
 // Simulation step sizes
-double step_size = 1e-3;
+double step_size = 2e-3;
 double tire_step_size = step_size;
 
 // Time interval between two render frames
@@ -118,6 +118,8 @@ int main(int argc, char* argv[]) {
         case RigidTerrain::PatchType::BOX:
             patch = terrain.AddPatch(patch_mat, ChVector<>(0, 0, 0), ChVector<>(0, 0, 1), 100.0, 100.0);
             patch->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 200, 200);
+            patch =
+                terrain.AddPatch(patch_mat, ChVector<>(10, 0, 0), Q_from_AngY(-10 * CH_C_DEG_TO_RAD).GetZaxis(), 5, 10);
             break;
         case RigidTerrain::PatchType::HEIGHT_MAP:
             patch = terrain.AddPatch(patch_mat, CSYSNORM, vehicle::GetDataFile("terrain/height_maps/test64.bmp"),
@@ -183,7 +185,8 @@ int main(int argc, char* argv[]) {
     // ---------------
 
     // output vehicle mass
-    std::cout << "VEHICLE MASS: " << gator.GetTotalMass() << std::endl;
+    gator.GetVehicle().LogSubsystemTypes();
+    std::cout << "\nVehicle mass: " << gator.GetTotalMass() << std::endl;
 
     // Number of simulation steps between miscellaneous events
     int render_steps = (int)std::ceil(render_step_size / step_size);

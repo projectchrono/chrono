@@ -19,26 +19,10 @@
 #ifndef CITYBUS_VEHICLE_H
 #define CITYBUS_VEHICLE_H
 
-#include <vector>
-
 #include "chrono_models/ChApiModels.h"
 #include "chrono_models/vehicle/ChVehicleModelDefs.h"
 
-#include "chrono/core/ChCoordsys.h"
-#include "chrono/physics/ChMaterialSurface.h"
-#include "chrono/physics/ChSystem.h"
-
 #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicle.h"
-
-#include "chrono_models/vehicle/citybus/CityBus_Chassis.h"
-#include "chrono_models/vehicle/citybus/CityBus_BrakeSimple.h"
-#include "chrono_models/vehicle/citybus/CityBus_SolidAxle.h"
-#include "chrono_models/vehicle/citybus/CityBus_ToeBarLeafspringAxle.h"
-#include "chrono_models/vehicle/citybus/CityBus_LeafspringAxle.h"
-#include "chrono_models/vehicle/citybus/CityBus_RackPinion.h"
-#include "chrono_models/vehicle/citybus/CityBus_RotaryArm.h"
-#include "chrono_models/vehicle/citybus/CityBus_Driveline2WD.h"
-#include "chrono_models/vehicle/citybus/CityBus_Wheel.h"
 
 namespace chrono {
 namespace vehicle {
@@ -50,12 +34,14 @@ namespace citybus {
 /// Bus model with two axles and double tires on rear axle.
 class CH_MODELS_API CityBus_Vehicle : public ChWheeledVehicle {
   public:
-    CityBus_Vehicle(const bool fixed = false,
+    CityBus_Vehicle(const bool fixed,
+                    BrakeType brake_type,
                     ChContactMethod contact_method = ChContactMethod::NSC,
                     ChassisCollisionType chassis_collision_type = ChassisCollisionType::NONE);
 
     CityBus_Vehicle(ChSystem* system,
-                    const bool fixed = false,
+                    const bool fixed,
+                    BrakeType brake_type,
                     ChassisCollisionType chassis_collision_type = ChassisCollisionType::NONE);
 
     ~CityBus_Vehicle();
@@ -85,7 +71,7 @@ class CH_MODELS_API CityBus_Vehicle : public ChWheeledVehicle {
     void DebugLog(int what);       /// shock forces and lengths, constraints, etc.
 
   private:
-    void Create(bool fixed, ChassisCollisionType chassis_collision_type);
+    void Create(bool fixed, BrakeType brake_type, ChassisCollisionType chassis_collision_type);
 
     std::vector<double> m_omega;
 };

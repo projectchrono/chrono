@@ -19,6 +19,13 @@ In this page you can find a description of their properties.
 
 ![](http://www.projectchrono.org/assets/manual/fea_ChElementSpring.png)
 
+The chrono::fea::ChElementSpring is the simplest element, and it can be used 
+as a starting point to learn how to implement finite elements.
+
+Moreover, it is useful for problems like trusses, suspensions, etc. this base implementation
+This spring assumes linear behavior, but experienced programmers can override this class 
+and implement more advanced non-linear spring models.
+
 - 2 nodes of ChNodeFEAxyz type
 - Large displacements allowed
 - Zero mass element
@@ -26,12 +33,14 @@ In this page you can find a description of their properties.
   - rest length L, 
   - stiffness k, 
   - damping r
-- The simpliest element: a starting point to learn how to implement finite elements
+- Stiffness matrix computed analytically for high performance (both material and geometric stiffness are supported).
 
 
 # ChElementBar    {#manual_ChElementBar}
 
 ![](http://www.projectchrono.org/assets/manual/fea_ChElementBar.png)
+
+The chrono::fea::ChElementBar is quite similar to the ChElementSpring, but adds the effect of mass, and uses different parameters at construction time. 
 
 - 2 nodes of ChNodeFEAxyz type
 - Very similar to ChElementSpring, except it has a mass
@@ -41,13 +50,15 @@ In this page you can find a description of their properties.
   - rest length L, 
   - Section area A, 
   - Young modulus E, 
-  - damping 
-
+  - damping (like in Rayleight beta parameter)
+- Stiffness matrix computed analytically for high performance (both material and geometric stiffness are supported).
 
 
 # ChElementTetra_4    {#manual_ChElementTetra_4}
 
 ![](http://www.projectchrono.org/assets/manual/fea_ChElementTetra_4.png)
+
+The chrono::fea::ChElementTetra_4 is the simplest volume element for simulating 3D problems.
 
 - 4 nodes of ChNodeFEAxyz type
 - Linear interpolation, constant stress
@@ -56,13 +67,15 @@ In this page you can find a description of their properties.
 - Uses polar decomposition for corotated frame
 - Useful for solids
 - Fastest element for solids
-
+- Stiffness matrix computed analytically for high performance (note, geometric stiffness term not added at the moment).
 
   
   
 # ChElementTetra_10    {#manual_ChElementTetra_10}
 
 ![](http://www.projectchrono.org/assets/manual/fea_ChElementTetra_10.png)
+
+The chrono::fea::ChElementTetra_10 is a quadratic volume element based on tetahedrons with intermediate nodes along edges, as in figure.
 
 - 10 nodes of ChNodeFEAxyz type
 - Quadratic interpolation, linear stress 
@@ -71,7 +84,7 @@ In this page you can find a description of their properties.
 - Uses polar decomposition for corotated frame
 - Note: initial position assuming nodes n>4 exactly at mid-length of edges
 - Useful for solids 
-
+- Stiffness matrix computed analytically for high performance (note, geometric stiffness term not added at the moment).
 
   
   
@@ -79,17 +92,21 @@ In this page you can find a description of their properties.
 
 ![](http://www.projectchrono.org/assets/manual/fea_ChElementHexa_8.png)
 
+The chrono::fea::ChElementHexa_8 is a linear isoparametric element of brick type.
+
 - 8 nodes of ChNodeFEAxyz type
 - Linear interpolation
 - 8 integration points
 - Corotational formulation for large displacements
 - Useful for solids, with structured grids
-
+- Stiffness matrix computed analytically for high performance (note, geometric stiffness term not added at the moment).
 
   
 # ChElementHexa_20   {#manual_ChElementHexa_20}
 
 ![](http://www.projectchrono.org/assets/manual/fea_ChElementHexa_20.png)
+
+The chrono::fea::ChElementHexa_20 is a quadratic isoparametric element of brick type.
 
 - 20 nodes of ChNodeFEAxyz type 
 - 8 at vertexes, 12 at edges midpoints
@@ -97,11 +114,13 @@ In this page you can find a description of their properties.
 - 27 integration points
 - Corotational formulation for large displacements
 - Useful for solids, with structured grids
-
+- Stiffness matrix computed analytically for high performance (note, geometric stiffness term not added at the moment).
 
 # ChElementBrick    {#manual_ChElementBrick}
 
 ![](http://www.projectchrono.org/assets/manual/fea_ChElementHexa_8.png)
+
+The chrono::fea::ChElementBrick is a brick element implemented using the ANCF formulation.
 
 - 8 nodes of ChNodeFEAxyz type
 - Linear interpolation
@@ -113,6 +132,8 @@ In this page you can find a description of their properties.
 
 
 # ChElementBrick_9    {#manual_ChElementBrick_9}
+
+The chrono::fea::ChElementBrick_9 is a brick element implemented using the ANCF formulation.
 
 - 9 nodes of ChNodeFEAxyz type (8 at the corners, 1 at the center)
 - Linear interpolation
@@ -132,18 +153,23 @@ In this page you can find a description of their properties.
 
 ![](http://www.projectchrono.org/assets/manual/fea_ChElementCableANCF.png)
 
+The chrono::fea::ChElementCableANCF is a fast element for the simulation of thin beams (cables, wires, ropes) where one is not interested in twisting, shear, etc.
+
 - 2 nodes of @ref chrono::fea::ChNodeFEAxyzD type
 - 3 integration point (stiffness), 4 (mass)
 - ANCF formulation for large displacements
 - Thin beam (no shear)
 - Does not model torsional stiffness (useful for wires, cables)
-- Section property: A, I, E, density, damping
+- Section property: A, I, E, density, damping, defined via a chrono::fea::ChBeamSectionCable object.
 
 
 
 # ChElementBeamANCF   {#manual_ChElementBeamANCF}
 
 ![](http://www.projectchrono.org/assets/manual/fea_ChElementBeamANCF.png)
+
+The chrono::fea::ChElementBeamANCF is a thick beam element implemented using the ANCF formulation. 
+As an alternative, we also provide a chrono::fea::ChElementBeamIGA with more advanced functionality in the field of  Geometrically Exact Beam theory.
 
 - 3 nodes of chrono::fea::ChNodeFEAxyzDD type
 - ANCF formulation for large displacements
@@ -155,17 +181,26 @@ In this page you can find a description of their properties.
 ![](http://www.projectchrono.org/assets/manual/fea_ChElementBeamEuler.png)
 ![](http://www.projectchrono.org/assets/manual/fea_ChElementBeamEuler_section.png)
 
+The chrono::fea::ChElementBeamEuler is a thin beam element, using the corotated Euler-Bernoulli theory in 3D. For low/moderate bending, and if shear effects are not important (thin beam assumption), this formulation is very efficient.
+
 - 2 nodes of chrono::fea::ChNodeFEAxyzrot type
 - Linear interpolation
 - 1 integration point (default)
 - Corotational formulation for large displacements
 - Thin beam (no shear), based on the Euler-Bernoulli thin beam theory 
-- Section property: 
-  - A, Iyy, Izz, E, density, damping
-  - G, J   for torsional stiffness, plus optional:
-  - αe , ze , ye ,  for offset/rotated section
+- Section properties include settings for: 
+  - A, A, Iyy, Izz, (or axial and bending rigidity),
+  - G, J  (or torsional rigidity), 
+  - density, damping
+plus optional:
+  - αe , ze , ye ,   for offset/rotated section
   - zs , ys          for offset shear center
-
+- The section properties are defined via chrono::fea::ChBeamSectionEuler classes, among these:
+  - chrono::fea::ChBeamSectionEulerSimple , for uniform elasticity, uniform density 
+  - chrono::fea::ChBeamSectionEulerAdvanced , as above, adds offset/rotated section and shear center
+  - chrono::fea::ChBeamSectionEulerGeneric , if non-uniform elasticity or non-uniform density
+  - chrono::fea::ChBeamSectionEulerEasyCircular , an easy-to-use shortcut
+  - chrono::fea::ChBeamSectionEulerEasyRectangular , an easy-to-use shortcut
 
 
 
@@ -174,6 +209,9 @@ In this page you can find a description of their properties.
 ![](http://www.projectchrono.org/assets/manual/fea_ChElementBeamIGA.png)
 ![](http://www.projectchrono.org/assets/manual/fea_ChElementBeamIGA_b.png)
 
+The chrono::fea::ChElementBeamIGA is a thick beam element based on the Isogeometric Analysis (IGA) hence with a B-Spline
+shape, and relying on the Geometrically Exact Beam theory.
+
 - Isogeometric formulation (IGA) of a Cosserat rod, with large displacements  
 - User-defined order n (ex: 1=linear 2=quadratic, 3=cubic).
 - Each element is a span of a b-spline, so each element uses n+1 control points, ie. nodes of chrono::fea::ChNodeFEAxyzrot type 
@@ -181,24 +219,32 @@ In this page you can find a description of their properties.
 - Reduced integration to correct shear locking
 - Initial curved configuration is supported
 - Suggestion: use ChBuilderBeamIGA for easy creation a full B-spine, ie. given full knot sequence and points as in the second figure above.
-- Section defined in a modular way, with 
-  - Elasticity model
-  - Plasticity model (optional)
-  - Damping model (optional)
-- Already available models:
-  - chrono::fea::ChElasticityCosseratSimple
-  - chrono::fea::ChElasticityCosseratAdvanced 
-  - chrono::fea::ChElasticityCosseratGeneric
-  - chrono::fea::ChElasticityCosseratMesh
-  - chrono::fea::ChPlasticityCosseratLumped
-  - chrono::fea::ChDampingCosseratLinear
-  - ...
+- Section defined in a modular way, via a  chrono::fea::ChBeamSectionCosserat that is composed via 
+  - Elasticity model from chrono::fea::ChElasticityCosserat, ex:
+    - chrono::fea::ChElasticityCosseratGeneric 
+    - chrono::fea::ChElasticityCosseratSimple 
+	- chrono::fea::ChElasticityCosseratAdvanced
+    - chrono::fea::ChElasticityCosseratMesh
+    - ... 	
+  - Inertial model from chrono::fea::ChInertiaCosserat, ex:
+    - chrono::fea::ChInertiaCosseratSimple
+    - chrono::fea::ChInertiaCosseratAdvanced
+    - chrono::fea::ChInertiaCosseratMassref
+    - ...
+  - Damping model from chrono::fea::ChDampingCosserat (optional), ex:
+    - chrono::fea::ChDampingCosseratLinear 
+    - chrono::fea::ChDampingCosseratRayleigh 	
+  - Plasticity model from chrono::fea::ChPlastcityCosserat (optional)
+- Some of the sectional properties above support the case of offsets in center of mass, center of shear, center of axial elastic forces, as well as rotation of the section axes, for defining complex beams like helicopter blades
+
 
 
   
 # ChElementShellReissner   {#manual_ChElementShellReissner}
 
 ![](http://www.projectchrono.org/assets/manual/fea_ChElementShellReissner.png)
+
+The chrono::fea::ChElementShellReissner is a quadrilateral thick shell element.
 
 - 4 nodes of chrono::fea::ChNodeFEAxyzrot type
 - Bi-linear interpolation
@@ -209,13 +255,24 @@ In this page you can find a description of their properties.
 - Can have multi-layered materials, using CLT thory
 - ANS, shear-lock free
 - Nodes need not to be aligned to shell (rotation offsets auto-computed in initialization)
-
-
+- Section defined in a modular way, via N layers, each with a chrono::fea::ChMaterialShellReissner composed by: 
+  - Elasticity model from chrono::fea::ChElasticityReissner, ex:
+    - chrono::fea::ChElasticityReissnerIsothropic
+    - chrono::fea::ChElasticityReissnerOrthotropic
+    - chrono::fea::ChElasticityReissnerGeneric
+	- ...
+  - Damping model from chrono::fea::ChDampingReissner (optional)
+    - chrono::fea::ChDampingReissnerRayleigh
+	- ...
+  - Plasticity model from chrono::fea::ChPlasticityReissner (optional)
+  
 
   
 # ChElementShellANCF   {#manual_ChElementShellANCF}
 
 ![](http://www.projectchrono.org/assets/manual/fea_ChElementShellANCF.png)
+
+The chrono::fea::ChElementShellReissner is a quadrilateral thick shell element based on the ANCF approach.
 
 - 4 nodes of chrono::fea::ChNodeFEAxyzD type
 - Bi-linear interpolation
@@ -232,6 +289,8 @@ In this page you can find a description of their properties.
 
 ![](http://www.projectchrono.org/assets/manual/fea_ChElementShellANCF_8.png)
 
+The chrono::fea::ChElementShellANCF_8 is a quadrilateral thick shell element based on the ANCF approach.
+
 - 8 nodes of chrono::fea::ChNodeFEAxyzDD type
 - Higher order interpolation
 - Allows large displacements, using ANCF formulation
@@ -245,6 +304,8 @@ In this page you can find a description of their properties.
 
 ![](http://www.projectchrono.org/assets/manual/fea_ChElementShellBST.png)
 
+The chrono::fea::ChElementShellBST is a triangular thin shell element that offers very high computational efficiency. 
+
 - Triangular thin-shell 
 - 6 nodes of chrono::fea::ChNodeFEAxyz type
   - 1,2,3 from the triangle
@@ -253,17 +314,14 @@ In this page you can find a description of their properties.
 - Allows large deformation
 - Can have multi-layered materials
 - Based on Kirchhoff-Love theory (no shear), good for tissues, sails, etc.
-- Section defined with 
-  - Elasticity model
-  - Plasticity model (optional)
-  - Damping model (optional)
-- Already available models:
-  - chrono::fea::ChElasticityKirchhoffIsotropic
-  - chrono::fea::ChElasticityKirchhoffOrthotropic 
-  - chrono::fea::ChElasticityKirchhoffGeneric
-  - … 
-
-
+- Section defined in a modular way, via N layers, each with a chrono::fea::ChMaterialShellKirchhoff composed by: 
+  - Elasticity model from chrono::fea::ChElasticityKirchhoff, ex:
+    - chrono::fea::ChElasticityKirchhoffIsothropic
+    - chrono::fea::ChElasticityKirchhoffOrthotropic
+    - chrono::fea::ChElasticityKirchhoffGeneric
+	- ...
+  - Damping model from chrono::fea::ChDampingKirchhoff (optional)
+  - Plasticity model from chrono::fea::ChPlasticityKirchhoff (optional)
 
 
 

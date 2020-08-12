@@ -10,5 +10,6 @@ using namespace chrono;
 %shared_ptr(chrono::ChObj)
 
 /* Parse the header file to generate wrappers */
+%ignore chrono::ChObj::Clone;
 %include "../../chrono/physics/ChObject.h"    
 

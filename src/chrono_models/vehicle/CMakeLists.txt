@@ -21,6 +21,8 @@ set(CVM_HMMWV_FILES
     hmmwv/HMMWV.h
     hmmwv/HMMWV_BrakeSimple.cpp
     hmmwv/HMMWV_BrakeSimple.h
+    hmmwv/HMMWV_BrakeShafts.cpp
+    hmmwv/HMMWV_BrakeShafts.h
     hmmwv/HMMWV_Chassis.h
     hmmwv/HMMWV_Chassis.cpp
     hmmwv/HMMWV_DoubleWishbone.cpp
@@ -75,44 +77,61 @@ set(CVM_HMMWV_FILES
 )
 source_group("hmmwv" FILES ${CVM_HMMWV_FILES})
 
+set(CVM_FMTV_FILES
+    mtv/FMTV_ChassisFront.cpp
+    mtv/FMTV_ChassisFront.h
+    mtv/FMTV_ToebarLeafspringAxle.cpp
+    mtv/FMTV_ToebarLeafspringAxle.h
+    mtv/FMTV_Wheel.cpp
+    mtv/FMTV_Wheel.h
+    mtv/FMTV_BrakeSimple.cpp
+    mtv/FMTV_BrakeSimple.h
+    mtv/FMTV_BrakeShafts.cpp
+    mtv/FMTV_BrakeShafts.h
+    mtv/FMTV_RotaryArm.cpp
+    mtv/FMTV_RotaryArm.h
+    mtv/FMTV_AntiRollBar.cpp
+    mtv/FMTV_AntiRollBar.h
+    mtv/FMTV_SimpleDriveline.cpp
+    mtv/FMTV_SimpleDriveline.h
+    mtv/FMTV_Driveline4WD.cpp
+    mtv/FMTV_Driveline4WD.h
+    mtv/FMTV_SimpleCVTPowertrain.cpp
+    mtv/FMTV_SimpleCVTPowertrain.h
+    mtv/FMTV_SimpleMapPowertrain.cpp
+    mtv/FMTV_SimpleMapPowertrain.h
+    mtv/FMTV_SimplePowertrain.cpp
+    mtv/FMTV_SimplePowertrain.h
+    mtv/FMTV_Powertrain.cpp
+    mtv/FMTV_Powertrain.h
+    mtv/FMTV_TMeasyTire.cpp
+    mtv/FMTV_TMeasyTire.h
+    mtv/FMTV_RigidTire.cpp
+    mtv/FMTV_RigidTire.h
 
-set(CVM_MTV_FILES
-    mtv/LMTV_AntiRollBar.cpp
-    mtv/LMTV_AntiRollBar.h
-    mtv/LMTV_BrakeSimple.cpp
-    mtv/LMTV_BrakeSimple.h
-    mtv/LMTV_Chassis.cpp
-    mtv/LMTV_Chassis.h
-    mtv/LMTV_Driveline4WD.cpp
-    mtv/LMTV_Driveline4WD.h
-    mtv/LMTV_LeafspringAxle.cpp
-    mtv/LMTV_LeafspringAxle.h
-    mtv/LMTV_RotaryArm.cpp
-    mtv/LMTV_RotaryArm.h
-    mtv/LMTV_RigidTire.cpp
-    mtv/LMTV_RigidTire.h
-    mtv/LMTV_SimpleDriveline.cpp
-    mtv/LMTV_SimpleDriveline.h
-    mtv/LMTV_SimpleCVTPowertrain.cpp
-    mtv/LMTV_SimpleCVTPowertrain.h
-    mtv/LMTV_SimpleMapPowertrain.cpp
-    mtv/LMTV_SimpleMapPowertrain.h
-    mtv/LMTV_SimplePowertrain.cpp
-    mtv/LMTV_SimplePowertrain.h
-    mtv/LMTV_Powertrain.cpp
-    mtv/LMTV_Powertrain.h
-    mtv/LMTV_TMeasyTire.cpp
-    mtv/LMTV_TMeasyTire.h
-    mtv/LMTV_ToebarLeafspringAxle.cpp
-    mtv/LMTV_ToebarLeafspringAxle.h
-    mtv/LMTV_Vehicle.cpp
-    mtv/LMTV_Vehicle.h
-    mtv/LMTV_Wheel.cpp
-    mtv/LMTV_Wheel.h
     mtv/LMTV.cpp
     mtv/LMTV.h
+    mtv/LMTV_Vehicle.cpp
+    mtv/LMTV_Vehicle.h
+    mtv/LMTV_ChassisRear.cpp
+    mtv/LMTV_ChassisRear.h
+    mtv/LMTV_LeafspringAxle.cpp
+    mtv/LMTV_LeafspringAxle.h
+
+    mtv/MTV.cpp
+    mtv/MTV.h
+    mtv/MTV_Vehicle.cpp
+    mtv/MTV_Vehicle.h
+    mtv/MTV_ChassisRear.cpp
+    mtv/MTV_ChassisRear.h
+    mtv/MTV_Balancer.cpp
+    mtv/MTV_Balancer.h
+    mtv/MTV_LeafspringAxle1.cpp
+    mtv/MTV_LeafspringAxle1.h
+    mtv/MTV_LeafspringAxle2.cpp
+    mtv/MTV_LeafspringAxle2.h
 )
-source_group("mtv" FILES ${CVM_MTV_FILES})
+source_group("mtv" FILES ${CVM_FMTV_FILES})
 
 set(CVM_UAZ_FILES
     uaz/UAZBUS.cpp
@@ -121,6 +140,8 @@ set(CVM_UAZ_FILES
     uaz/UAZBUS_SAE.h
     uaz/UAZBUS_BrakeSimple.cpp
     uaz/UAZBUS_BrakeSimple.h
+    uaz/UAZBUS_BrakeShafts.cpp
+    uaz/UAZBUS_BrakeShafts.h
     uaz/UAZBUS_Chassis.cpp
     uaz/UAZBUS_Chassis.h
     uaz/UAZBUS_Driveline2WD.cpp
@@ -159,6 +180,8 @@ set(CVM_MAN_FILES
     man/MAN_5t_BellcrankSolid3LinkAxle.h
     man/MAN_5t_BrakeSimple.cpp
     man/MAN_5t_BrakeSimple.h
+    man/MAN_5t_BrakeShafts.cpp
+    man/MAN_5t_BrakeShafts.h
     man/MAN_5t_Chassis.cpp
     man/MAN_5t_Chassis.h
     man/MAN_5t_Driveline4WD.cpp
@@ -263,6 +286,8 @@ set(CVM_SEDAN_FILES
     sedan/Sedan.h
     sedan/Sedan_BrakeSimple.cpp
     sedan/Sedan_BrakeSimple.h
+    sedan/Sedan_BrakeShafts.cpp
+    sedan/Sedan_BrakeShafts.h
     sedan/Sedan_Chassis.h
     sedan/Sedan_Chassis.cpp
     sedan/Sedan_DoubleWishbone.cpp
@@ -293,6 +318,8 @@ set(CVM_CITYBUS_FILES
     citybus/CityBus.h
     citybus/CityBus_BrakeSimple.cpp
     citybus/CityBus_BrakeSimple.h
+    citybus/CityBus_BrakeShafts.cpp
+    citybus/CityBus_BrakeShafts.h
     citybus/CityBus_Chassis.h
     citybus/CityBus_Chassis.cpp
     citybus/CityBus_SolidAxle.h
@@ -327,6 +354,8 @@ set(CVM_GATOR_FILES
     gator/Gator.h
     gator/Gator_BrakeSimple.cpp
     gator/Gator_BrakeSimple.h
+    gator/Gator_BrakeShafts.cpp
+    gator/Gator_BrakeShafts.h
     gator/Gator_Chassis.h
     gator/Gator_Chassis.cpp
     gator/Gator_SingleWishbone.cpp
@@ -356,6 +385,7 @@ source_group("gator" FILES ${CVM_GATOR_FILES})
 
 set(CVM_M113_FILES
     m113/M113_BrakeSimple.h
+    m113/M113_BrakeShafts.h
     m113/M113_Chassis.h
     m113/M113_Chassis.cpp
     m113/M113_DrivelineBDS.cpp
@@ -399,35 +429,6 @@ set(CVM_M113_FILES
 )
 source_group("m113" FILES ${CVM_M113_FILES})
 
-set(CVM_M113_A_FILES
-    m113a/M113a_BrakeSimple.h
-    m113a/M113a_Chassis.cpp
-    m113a/M113a_Chassis.h
-    m113a/M113a_DrivelineBDS.cpp
-    m113a/M113a_DrivelineBDS.h
-    m113a/M113a_Idler.cpp
-    m113a/M113a_Idler.h
-    m113a/M113a_RoadWheel.cpp
-    m113a/M113a_RoadWheel.h
-    m113a/M113a_ShaftsPowertrain.cpp
-    m113a/M113a_ShaftsPowertrain.h
-    m113a/M113a_SimpleDriveline.cpp
-    m113a/M113a_SimpleDriveline.h
-    m113a/M113a_SimplePowertrain.cpp
-    m113a/M113a_SimplePowertrain.h
-    m113a/M113a_SprocketSinglePin.cpp
-    m113a/M113a_SprocketSinglePin.h
-    m113a/M113a_Suspension.cpp
-    m113a/M113a_Suspension.h
-    m113a/M113a_TrackAssemblySinglePin.cpp
-    m113a/M113a_TrackAssemblySinglePin.h
-    m113a/M113a_TrackShoeSinglePin.cpp
-    m113a/M113a_TrackShoeSinglePin.h
-    m113a/M113a_Vehicle.cpp
-    m113a/M113a_Vehicle.h
- )
-source_group("m113a" FILES ${CVM_M113_A_FILES})
-
 # ----------------------------------------------------------------------------
 # Add the Chrono_vehicle_models library
 # ----------------------------------------------------------------------------
@@ -438,14 +439,13 @@ set(LIBRARIES ChronoEngine ChronoEngine_vehicle)
 add_library(ChronoModels_vehicle SHARED
     ${CVM_COMMON_FILES}
     ${CVM_HMMWV_FILES}
-    ${CVM_MTV_FILES}
+    ${CVM_FMTV_FILES}
     ${CVM_UAZ_FILES}
     ${CVM_GENERIC_FILES}
     ${CVM_SEDAN_FILES}
     ${CVM_CITYBUS_FILES}
     ${CVM_GATOR_FILES}
     ${CVM_M113_FILES}
-    ${CVM_M113_A_FILES}
     ${CVM_MAN_FILES}
  )
 

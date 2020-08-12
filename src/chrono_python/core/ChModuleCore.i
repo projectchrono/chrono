@@ -73,6 +73,8 @@
 #include "chrono/core/ChBezierCurve.h"
 #include "Eigen/src/Core/util/Memory.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
+#include "chrono/utils/ChFilters.h"
+#include "chrono/utils/ChUtilsCreators.h"
 using namespace chrono;
 using namespace chrono::collision;
 using namespace chrono::geometry;
@@ -279,12 +281,11 @@ using namespace chrono::fea;
 %include "ChRealtimeStep.i"
 %include "ChTransform.i"
 
+// geometry/   classes
+%include "ChGeometry.i"
 
 // motion_functions/   classes
 %include "ChFunction.i"
-
-// geometry/   classes
-%include "ChGeometry.i"
 
 %include "ChMaterialSurface.i"
 %include "ChCollisionModel.i"
@@ -368,6 +369,8 @@ using namespace chrono::fea;
 // Utils
 
 %include "../../chrono/utils/ChUtilsInputOutput.h"
+%include "../../chrono/utils/ChFilters.h"
+%include "../../chrono/utils/ChUtilsCreators.h"
 
 //
 // C- DOWNCASTING OF SHARED POINTERS
@@ -384,6 +387,11 @@ using namespace chrono::fea;
 
 // enable _automatic_ downcasting from ChAsset to derived classes (shared pointers versions)
 %downcast_output_sharedptr(chrono::ChAsset, chrono::ChVisualization, chrono::ChObjShapeFile, chrono::ChBoxShape, chrono::ChSphereShape, chrono::ChCylinderShape, chrono::ChTexture, chrono::ChAssetLevel, chrono::ChCamera, chrono::ChColorAsset)
+
+%DefSharedPtrDynamicDowncast(chrono,ChContactable, ChBody)
+
+%DefSharedPtrDynamicDowncast(chrono,ChLoadable, ChBody)
+%DefSharedPtrDynamicDowncast(chrono,ChLoadable, ChNodeBase)
 
 %DefSharedPtrDynamicDowncast(chrono,ChAsset,ChVisualization)
 %DefSharedPtrDynamicDowncast(chrono,ChAsset,ChObjShapeFile)

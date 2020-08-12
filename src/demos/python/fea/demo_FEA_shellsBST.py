@@ -39,7 +39,7 @@ if not os.path.isdir(out_dir):
 	
 
 # Create a Chrono::Engine physical system
-my_system = chrono.ChSystemNSC()
+my_system = chrono.ChSystemSMC()
 
 
 

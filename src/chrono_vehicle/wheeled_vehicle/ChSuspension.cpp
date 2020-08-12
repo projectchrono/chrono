@@ -24,7 +24,7 @@
 namespace chrono {
 namespace vehicle {
 
-ChSuspension::ChSuspension(const std::string& name) : ChPart(name), m_steering_index(-1) {}
+ChSuspension::ChSuspension(const std::string& name) : ChPart(name) {}
 
 ChQuaternion<> ChSuspension::GetSpindleRot(VehicleSide side) const {
     return m_spindle[side]->GetRot() * ChWorldFrame::Quaternion();

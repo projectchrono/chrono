@@ -656,6 +656,11 @@ void SprocketBandContactCB::CheckPinSprocket(std::shared_ptr<ChTrackShoeBand> sh
     if (std::abs(locPin.y()) < m_lateral_backlash)
         return;
 
+    // No contact if pin is too far from sprocket center
+    double OutRad = m_sprocket->GetOuterRadius();
+    if (locPin.x() * locPin.x() + locPin.z() * locPin.z() > OutRad * OutRad)
+        return;
+
     // Fill in contact information and add the contact to the system.
     // Express all vectors in the global frame
     collision::ChCollisionInfo contact;

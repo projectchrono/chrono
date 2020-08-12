@@ -273,7 +273,7 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     /// The provided 3x3 matrix should be symmetric and contain the inertia tensor, expressed in the local coordinate
     /// system: 
     /// <pre>
-    ///               [ int{x^2+z^2}dm    -int{xy}dm    -int{xz}dm    ]
+    ///               [ int{y^2+z^2}dm    -int{xy}dm    -int{xz}dm    ]
     /// newXInertia = [                  int{x^2+z^2}   -int{yz}dm    ]
     ///               [                                int{x^2+y^2}dm ]
     /// </pre>
@@ -282,7 +282,7 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     /// Get the inertia tensor, expressed in the local coordinate system.
     /// The return 3x3 symmetric matrix contains the following values:
     /// <pre>
-    ///  [ int{x^2+z^2}dm    -int{xy}dm    -int{xz}dm    ]
+    ///  [ int{y^2+z^2}dm    -int{xy}dm    -int{xz}dm    ]
     ///  [                  int{x^2+z^2}   -int{yz}dm    ]
     ///  [                                int{x^2+y^2}dm ]
     /// </pre>
@@ -294,14 +294,14 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     /// Set the diagonal part of the inertia tensor (Ixx, Iyy, Izz values).
     /// The provided 3x1 vector should contain the moments of inertia, expressed in the local coordinate frame:
     /// <pre>
-    /// iner = [  int{x^2+z^2}dm   int{x^2+z^2}   int{x^2+y^2}dm ]
+    /// iner = [  int{y^2+z^2}dm   int{x^2+z^2}   int{x^2+y^2}dm ]
     /// </pre>
     void SetInertiaXX(const ChVector<>& iner);
 
     /// Get the diagonal part of the inertia tensor (Ixx, Iyy, Izz values).
     /// The return 3x1 vector contains the following values:
     /// <pre>
-    /// [  int{x^2+z^2}dm   int{x^2+z^2}   int{x^2+y^2}dm ]
+    /// [  int{y^2+z^2}dm   int{x^2+z^2}   int{x^2+y^2}dm ]
     /// </pre>
     ChVector<> GetInertiaXX() const;
 
@@ -516,7 +516,8 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
                                  const ChState& x,
                                  const unsigned int off_v,
                                  const ChStateDelta& v,
-                                 const double T) override;
+                                 const double T,
+                                 bool full_update) override;
     virtual void IntStateGatherAcceleration(const unsigned int off_a, ChStateDelta& a) override;
     virtual void IntStateScatterAcceleration(const unsigned int off_a, const ChStateDelta& a) override;
     virtual void IntStateIncrement(const unsigned int off_x,

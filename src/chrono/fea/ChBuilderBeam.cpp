@@ -23,7 +23,7 @@ namespace fea {
 // ------------------------------------------------------------------
 
 void ChBuilderBeamEuler::BuildBeam(std::shared_ptr<ChMesh> mesh,                 // mesh to store the resulting elements
-                                   std::shared_ptr<ChBeamSectionAdvanced> sect,  // section material for beam elements
+                                   std::shared_ptr<ChBeamSectionEuler> sect,     // section material for beam elements
                                    const int N,                                  // number of elements in the segment
                                    const ChVector<> A,                           // starting point
                                    const ChVector<> B,                           // ending point
@@ -58,7 +58,7 @@ void ChBuilderBeamEuler::BuildBeam(std::shared_ptr<ChMesh> mesh,                
 }
 
 void ChBuilderBeamEuler::BuildBeam(std::shared_ptr<ChMesh> mesh,                 // mesh to store the resulting elements
-                                   std::shared_ptr<ChBeamSectionAdvanced> sect,  // section material for beam elements
+                                   std::shared_ptr<ChBeamSectionEuler> sect,     // section material for beam elements
                                    const int N,                                  // number of elements in the segment
                                    std::shared_ptr<ChNodeFEAxyzrot> nodeA,       // starting point
                                    std::shared_ptr<ChNodeFEAxyzrot> nodeB,       // ending point
@@ -100,7 +100,7 @@ void ChBuilderBeamEuler::BuildBeam(std::shared_ptr<ChMesh> mesh,                
 }
 
 void ChBuilderBeamEuler::BuildBeam(std::shared_ptr<ChMesh> mesh,                 // mesh to store the resulting elements
-                                   std::shared_ptr<ChBeamSectionAdvanced> sect,  // section material for beam elements
+                                   std::shared_ptr<ChBeamSectionEuler> sect,     // section material for beam elements
                                    const int N,                                  // number of elements in the segment
                                    std::shared_ptr<ChNodeFEAxyzrot> nodeA,       // starting point
                                    const ChVector<> B,                           // ending point
@@ -407,7 +407,7 @@ void ChBuilderBeamANCF::BuildBeam(std::shared_ptr<ChMesh> mesh,             // m
 ChExtruderBeamEuler::ChExtruderBeamEuler(
     ChSystem* msystem,                            // system to store the constraints
     std::shared_ptr<ChMesh> mmesh,                // mesh to store the resulting elements
-    std::shared_ptr<ChBeamSectionAdvanced> sect,  // section material for beam elements
+    std::shared_ptr<ChBeamSectionEuler> sect,     // section material for beam elements
     double mh,                                    // element length
     const ChCoordsys<> moutlet,                   // outlet pos & orientation (x is extrusion direction)
     double mspeed                                 // speed

@@ -168,8 +168,13 @@ source_group("base" FILES ${CV_BASE_FILES})
 set(CV_CHASSIS_FILES
     chassis/ChRigidChassis.h
     chassis/ChRigidChassis.cpp
-    chassis/ChTorsionChassis.h
-    chassis/ChTorsionChassis.cpp
+
+    chassis/ChChassisConnectorArticulated.h
+    chassis/ChChassisConnectorArticulated.cpp
+    chassis/ChChassisConnectorHitch.h
+    chassis/ChChassisConnectorHitch.cpp
+    chassis/ChChassisConnectorTorsion.h
+    chassis/ChChassisConnectorTorsion.cpp
 
     chassis/RigidChassis.h
     chassis/RigidChassis.cpp
@@ -222,6 +227,8 @@ set(CV_TERRAIN_FILES
     terrain/FlatTerrain.cpp
     terrain/RigidTerrain.h
     terrain/RigidTerrain.cpp
+    terrain/RandomSurfaceTerrain.h
+    terrain/RandomSurfaceTerrain.cpp
     terrain/SCMDeformableTerrain.h
     terrain/SCMDeformableTerrain.cpp
     terrain/GranularTerrain.h
@@ -291,6 +298,8 @@ set(CV_WV_BASE_FILES
     wheeled_vehicle/ChSuspension.cpp
     wheeled_vehicle/ChSteering.h
     wheeled_vehicle/ChSteering.cpp
+    wheeled_vehicle/ChSubchassis.h
+    wheeled_vehicle/ChSubchassis.cpp
     wheeled_vehicle/ChWheeledVehicle.h
     wheeled_vehicle/ChWheeledVehicle.cpp
     wheeled_vehicle/ChWheel.h
@@ -312,9 +321,13 @@ source_group("wheeled_vehicle\\antirollbar" FILES ${CV_WV_ANTIROLL_FILES})
 set(CV_WV_BRAKE_FILES
     wheeled_vehicle/brake/ChBrakeSimple.h
     wheeled_vehicle/brake/ChBrakeSimple.cpp
+    wheeled_vehicle/brake/ChBrakeShafts.h
+    wheeled_vehicle/brake/ChBrakeShafts.cpp
 
     wheeled_vehicle/brake/BrakeSimple.h
     wheeled_vehicle/brake/BrakeSimple.cpp
+    wheeled_vehicle/brake/BrakeShafts.h
+    wheeled_vehicle/brake/BrakeShafts.cpp
 )
 source_group("wheeled_vehicle\\brake" FILES ${CV_WV_BRAKE_FILES})
 
@@ -357,6 +370,15 @@ set(CV_WV_STEERING_FILES
     wheeled_vehicle/steering/RotaryArm.cpp
 )
 source_group("wheeled_vehicle\\steering" FILES ${CV_WV_STEERING_FILES})
+
+set(CV_WV_SUBCHASSIS_FILES
+    wheeled_vehicle/subchassis/ChBalancer.h
+    wheeled_vehicle/subchassis/ChBalancer.cpp
+
+    #wheeled_vehicle/subchassis/Balancer.h
+    #wheeled_vehicle/subchassis/Balancer.cpp
+)
+source_group("wheeled_vehicle\\subchassis" FILES ${CV_WV_SUBCHASSIS_FILES})
 
 set(CV_WV_SUSPENSION_FILES
     wheeled_vehicle/suspension/ChDoubleWishbone.h
@@ -574,9 +596,13 @@ source_group("tracked_vehicle\\base" FILES ${CV_TV_BASE_FILES})
 set(CV_TV_BRAKE_FILES
     tracked_vehicle/brake/ChTrackBrakeSimple.h
     tracked_vehicle/brake/ChTrackBrakeSimple.cpp
+    tracked_vehicle/brake/ChTrackBrakeShafts.h
+    tracked_vehicle/brake/ChTrackBrakeShafts.cpp
 
     tracked_vehicle/brake/TrackBrakeSimple.h
     tracked_vehicle/brake/TrackBrakeSimple.cpp
+    tracked_vehicle/brake/TrackBrakeShafts.h
+    tracked_vehicle/brake/TrackBrakeShafts.cpp
 )
 source_group("tracked_vehicle\\brake" FILES ${CV_TV_BRAKE_FILES})
 
@@ -744,14 +770,14 @@ source_group("tracked_vehicle\\vehicle" FILES ${CV_TV_VEHICLE_FILES})
 
 # --------------- THIRD-PARTY FILES
 
-set(CV_EASYBMP_FILES
-    ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/Easy_BMP/EasyBMP.h
-    ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/Easy_BMP/EasyBMP.cpp
-    ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/Easy_BMP/EasyBMP_BMP.h
-    ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/Easy_BMP/EasyBMP_DataStructures.h
-    ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/Easy_BMP/EasyBMP_VariousBMPutilities.h
+set(CV_STB_FILES
+    ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/stb/stb.h
+    ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/stb/stb_image.h
+    ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/stb/stb_image.cpp
+    ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/stb/stb_image_write.h
+    ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/stb/stb_image_write.cpp
 )
-source_group("easyBMP" FILES ${CV_EASYBMP_FILES})
+source_group("utils\\stb" FILES ${CV_STB_FILES})
 
 # ----------------------------------------------------------------------------
 # Add the ChronoEngine_vehicle library
@@ -797,6 +823,7 @@ add_library(ChronoEngine_vehicle SHARED
     ${CV_WV_BRAKE_FILES}
     ${CV_WV_DRIVELINE_FILES}
     ${CV_WV_STEERING_FILES}
+    ${CV_WV_SUBCHASSIS_FILES}
     ${CV_WV_SUSPENSION_FILES}
     ${CV_WV_TEST_RIG_FILES}
     ${CV_WV_TIRE_FILES}
@@ -819,7 +846,7 @@ add_library(ChronoEngine_vehicle SHARED
     ${CV_TV_UTILS_FILES}
     ${CV_TV_VEHICLE_FILES}
 #
-    ${CV_EASYBMP_FILES}
+    ${CV_STB_FILES}
 )
 
 set_target_properties(ChronoEngine_vehicle PROPERTIES

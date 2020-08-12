@@ -90,15 +90,16 @@ void ChShaftsMotorSpeed::IntStateGather(const unsigned int off_x,  // offset in 
 }
 
 void ChShaftsMotorSpeed::IntStateScatter(const unsigned int off_x,  // offset in x state vector
-                              const ChState& x,          // state vector, position part
-                              const unsigned int off_v,  // offset in v state vector
-                              const ChStateDelta& v,     // state vector, speed part
-                              const double T             // time
-                              ) {
-    //aux = x(off_x);
+                                         const ChState& x,          // state vector, position part
+                                         const unsigned int off_v,  // offset in v state vector
+                                         const ChStateDelta& v,     // state vector, speed part
+                                         const double T,            // time
+                                         bool full_update           // perform complete update
+) {
+    // aux = x(off_x);
     aux_dt = v(off_v);
 
-    Update(T);
+    Update(T, full_update);
 }
 
 void ChShaftsMotorSpeed::IntStateGatherAcceleration(const unsigned int off_a, ChStateDelta& a) {
