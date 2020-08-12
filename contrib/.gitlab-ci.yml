@@ -499,6 +499,7 @@ macos:macos:deploy:
     - git fetch --prune --unshallow
     - clang --version
     - mv -f ./contrib/packaging-python/conda/buildMacOS.sh ./contrib/packaging-python/conda/build.sh
+    - conda install -c conda-forge llvm-openmp --yes
     - conda build ./contrib/packaging-python/conda --no-remove-work-dir --dirty --python=3.7
     - anaconda -t $ANACONDA_TOKEN upload $HOME/miniconda/conda-bld/osx-64/pychrono*.bz2 -l develop --force
     - conda build purge-all
