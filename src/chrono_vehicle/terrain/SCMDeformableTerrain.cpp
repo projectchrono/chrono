@@ -20,6 +20,7 @@
 #include <cstdio>
 #include <cmath>
 #include <queue>
+#include <limits>
 
 #include "chrono/physics/ChMaterialSurfaceNSC.h"
 #include "chrono/physics/ChMaterialSurfaceSMC.h"
@@ -165,13 +166,12 @@ void SCMDeformableTerrain::SetPlotType(DataPlotType mplot, double mmin, double m
 
 // Enable moving patch
 void SCMDeformableTerrain::AddMovingPatch(std::shared_ptr<ChBody> body,
-                                          const ChVector<>& point_on_body,
-                                          double dimX,
-                                          double dimY) {
+                                          const ChVector<>& OOBB_center,
+                                          const ChVector<>& OOBB_dims) {
     SCMDeformableSoil::MovingPatchInfo pinfo;
     pinfo.m_body = body;
-    pinfo.m_point = point_on_body;
-    pinfo.m_dim = ChVector2<>(dimX, dimY);
+    pinfo.m_center = OOBB_center;
+    pinfo.m_hdims = OOBB_dims / 2;
 
     m_ground->m_patches.push_back(pinfo);
 
@@ -179,19 +179,15 @@ void SCMDeformableTerrain::AddMovingPatch(std::shared_ptr<ChBody> body,
     m_ground->m_moving_patch = true;
 }
 
+
 // Set user-supplied callback for evaluating location-dependent soil parameters
 void SCMDeformableTerrain::RegisterSoilParametersCallback(std::shared_ptr<SoilParametersCallback> cb) {
     m_ground->m_soil_fun = cb;
 }
 
 // Initialize the terrain as a flat grid
-void SCMDeformableTerrain::Initialize(double height, double sizeX, double sizeY, int divX, int divY) {
-    m_ground->Initialize(height, sizeX, sizeY, divX, divY);
-}
-
-// Initialize the terrain from a specified .obj mesh file.
-void SCMDeformableTerrain::Initialize(const std::string& mesh_file) {
-    m_ground->Initialize(mesh_file);
+void SCMDeformableTerrain::Initialize(double sizeX, double sizeY, double delta) {
+    m_ground->Initialize(sizeX, sizeY, delta);
 }
 
 // Initialize the terrain from a specified height map.
@@ -276,7 +272,7 @@ SCMDeformableSoil::SCMDeformableSoil(ChSystem* system, bool visualization_mesh) 
     m_elastic_K = 50000000;
     m_damping_R = 0;
 
-    Initialize(0, 3, 3, 10, 10);
+    Initialize(3, 3, 0.1);
 
     plot_type = SCMDeformableTerrain::PLOT_NONE;
     plot_v_min = 0;
@@ -291,7 +287,7 @@ SCMDeformableSoil::SCMDeformableSoil(ChSystem* system, bool visualization_mesh) 
 }
 
 // Initialize the terrain as a flat grid
-void SCMDeformableSoil::Initialize(double height, double sizeX, double sizeY, int nX, int nY) {
+void SCMDeformableSoil::Initialize(double sizeX, double sizeY, double delta) {
     m_trimesh_shape->GetMesh()->Clear();
     // Readability aliases
     auto trimesh = m_trimesh_shape->GetMesh();
@@ -302,10 +298,13 @@ void SCMDeformableSoil::Initialize(double height, double sizeX, double sizeY, in
     std::vector<ChVector<>>& uv_coords = trimesh->getCoordsUV();
     std::vector<ChVector<float>>& colors = trimesh->getCoordsColors();
 
+    int nX = 2 * static_cast<int>(std::ceil((sizeX / 2) / delta));
+    int nY = 2 * static_cast<int>(std::ceil((sizeY / 2) / delta));
+
+    m_delta = sizeX / nX;
+
     unsigned int nvx = nX + 1;
     unsigned int nvy = nY + 1;
-    double dx = sizeX / nX;
-    double dy = sizeY / nY;
     unsigned int n_verts = nvx * nvy;
     unsigned int n_faces = 2 * nX * nY;
     double x_scale = 1.0 / nX;
@@ -321,11 +320,11 @@ void SCMDeformableSoil::Initialize(double height, double sizeX, double sizeY, in
 
     unsigned int iv = 0;
     for (int iy = nvy - 1; iy >= 0; --iy) {
-        double y = 0.5 * sizeY - iy * dy;
+        double y = 0.5 * sizeY - iy * m_delta;
         for (unsigned int ix = 0; ix < nvx; ++ix) {
-            double x = ix * dx - 0.5 * sizeX;
+            double x = ix * m_delta - 0.5 * sizeX;
             // Set vertex location
-            vertices[iv] = plane * ChVector<>(x, y, height);
+            vertices[iv] = plane * ChVector<>(x, y, 0);
             // Initialize vertex normal to Y up
             normals[iv] = plane.TransformDirectionLocalToParent(ChVector<>(0, 0, 1));
             // Assign color white to all vertices
@@ -353,17 +352,6 @@ void SCMDeformableSoil::Initialize(double height, double sizeX, double sizeY, in
     SetupAuxData();
 
     m_type = PatchType::BOX;
-}
-
-// Initialize the terrain from a specified .obj mesh file.
-void SCMDeformableSoil::Initialize(const std::string& mesh_file) {
-    m_trimesh_shape->GetMesh()->Clear();
-    m_trimesh_shape->GetMesh()->LoadWavefrontMesh(mesh_file, true, true);
-
-    // Precompute aux. topology data structures for the mesh, aux. material data, etc.
-    SetupAuxData();
-
-    m_type = PatchType::MESH;
 }
 
 // Initialize the terrain from a specified height map.
@@ -530,6 +518,25 @@ void SCMDeformableSoil::Initialize(const std::string& heightmap_file,
     ////trimesh->WriteWavefront("foo.obj", meshes);
 }
 
+// Return the terrain height at the specified grid vertex
+double SCMDeformableSoil::GetHeight(const ChVector2<int>& loc) {
+    // First query the hash-map
+    auto p = m_grid_map.find(loc);
+    if (p != m_grid_map.end())
+        return p->second.m_point.z();
+
+    // Else return undeformed height
+    switch (m_type) {
+        case PatchType::BOX:
+            return ChWorldFrame::Height(plane.pos);
+        case PatchType::HEIGHT_MAP:
+            //// TODO
+            return 0;
+        default:
+            return 0;
+    }
+}
+
 // Return the terrain height at the specified location
 double SCMDeformableSoil::GetHeight(const ChVector<>& loc) const {
     //// TODO
@@ -580,6 +587,38 @@ void SCMDeformableSoil::SetupAuxData() {
     m_trimesh_shape->GetMesh()->ComputeNeighbouringTriangleMap(this->tri_map);
 }
 
+// Synchronize information for a moving patch
+void SCMDeformableSoil::UpdateMovingPatch(MovingPatchInfo p) {
+    ChVector2<> p_min(+std::numeric_limits<double>::max());
+    ChVector2<> p_max(-std::numeric_limits<double>::max());
+
+    // Loop over all corners of the OOBB
+    for (int j = 0; j < 8; j++) {
+        int ix = j % 2;
+        int iy = (j / 2) % 2;
+        int iz = (j / 4);
+
+        // OOBB corner in body frame
+        ChVector<> c_body = p.m_center + p.m_hdims * ChVector<>(2.0 * ix - 1, 2.0 * iy - 1, 2.0 * iz - 1);
+        // OOBB corner in absolute frame
+        ChVector<> c_abs = p.m_body->GetFrame_REF_to_abs().TransformPointLocalToParent(c_body);
+        // OOBB corner expressed in SCM frame
+        ChVector<> c_scm = plane.TransformPointParentToLocal(c_abs);
+
+        // Update AABB of patch projection onto SCM plane
+        p_min.x() = std::min(p_min.x(), c_scm.x());
+        p_min.y() = std::min(p_min.y(), c_scm.y());
+        p_max.x() = std::max(p_max.x(), c_scm.x());
+        p_max.y() = std::max(p_max.y(), c_scm.y());
+    }
+
+    // Find index ranges for grid vertices contained in the patch projection AABB
+    p.m_bl.x() = static_cast<int>(std::ceil(p_min.x() / m_delta));
+    p.m_bl.y() = static_cast<int>(std::ceil(p_min.y() / m_delta));
+    p.m_tr.x() = static_cast<int>(std::floor(p_max.x() / m_delta));
+    p.m_tr.y() = static_cast<int>(std::floor(p_max.y() / m_delta));
+}
+
 // Reset the list of forces, and fills it with forces from a soil contact model.
 void SCMDeformableSoil::ComputeInternalForces() {
     m_timer_ray_casting.reset();
@@ -606,6 +645,12 @@ void SCMDeformableSoil::ComputeInternalForces() {
     m_timer_ray_casting.start();
     m_num_ray_casts = 0;
 
+    // Update moving patch information
+    if (m_moving_patch) {
+        for (auto& p : m_patches)
+            UpdateMovingPatch(p);
+    }
+
     struct HitRecord {
         ChContactable* contactable;  // pointer to hit object
         ChVector<> abs_point;        // hit point, expressed in global frame
@@ -613,36 +658,19 @@ void SCMDeformableSoil::ComputeInternalForces() {
                               // frame we are in
         int patch_id;         // index of associated patch id
     };
-    std::unordered_map<std::pair<int, int>, HitRecord, pairhash> hits;
+    std::unordered_map<ChVector2<int>, HitRecord, pairhash> hits;
 
-    // Update the extent of the moving patches (no ray-hit tests performed outside)
+    // Loop through all moving patches (user-defined or default one)
     for (auto& p : m_patches) {
-        // Update the extent of each moving patch
-        ChVector<> center_abs = p.m_body->GetFrame_REF_to_abs().TransformPointLocalToParent(p.m_point);
-        ChVector<> center_loc = plane.TransformPointParentToLocal(center_abs);
-
-        p.m_min.x() = center_loc.x() - p.m_dim.x() / 2;
-        p.m_min.y() = center_loc.y() - p.m_dim.y() / 2;
-        p.m_max.x() = center_loc.x() + p.m_dim.x() / 2;
-        p.m_max.y() = center_loc.y() + p.m_dim.y() / 2;
-
-        // Get the ij coordinates that bound this patch
-        int i_min = std::trunc(p.m_min.x() / m_div_x);
-        int i_max = p.m_max.x() < 0 ? std::floor(p.m_max.x() / m_div_x) : std::ceil(p.m_max.x() / m_div_x);
-        int j_min = std::trunc(p.m_min.y() / m_div_y);
-        int j_max = p.m_max.y() < 0 ? std::floor(p.m_max.y() / m_div_y) : std::ceil(p.m_max.y() / m_div_y);
-
         // Loop through all vertices in this patch
-        for (int i = i_min; i <= i_max; i++) {
-            for (int j = j_min; j <= j_max; j++) {
-                std::pair<int, int> ij = std::make_pair(i, j);
+        for (int i = p.m_bl.x(); i <= p.m_tr.x(); i++) {
+            for (int j = p.m_bl.y(); j <= p.m_tr.y(); j++) {
+                ChVector2<int> ij(i, j);
 
                 // Move from (i, j) to (x, y, z) representation
-                float x = i * m_div_x;
-                float y = j * m_div_y;
-                auto grid_elem = m_grid_map.find(ij);
-                // TODO : Should use lookupInitialValue(x, y) (which may return 0 for a constant height map)
-                float z = grid_elem == m_grid_map.end() ? 0 : grid_elem->second.m_point.z();
+                double x = i * m_delta;
+                double y = j * m_delta;
+                double z = GetHeight(ij);
 
                 // TODO : Might need a parent -> local transformation here
                 ChVector<> vertex_loc(x, y, z);
@@ -658,11 +686,12 @@ void SCMDeformableSoil::ComputeInternalForces() {
                 if (mrayhit_result.hit) {
                     VertexRecord vertex;
                     // If this point has never been hit before we initialize it, otherwise just look it up
+                    auto grid_elem = m_grid_map.find(ij);
                     if (grid_elem == m_grid_map.end()) {
                         vertex = VertexRecord(vertex_loc);
-                        m_grid_map[ij] = vertex;
+                        m_grid_map.insert(std::make_pair(ij, vertex));
                     } else {
-                        vertex = m_grid_map[ij];
+                        vertex = grid_elem->second;
                     }
 
                     // Add to our map of hits to process
@@ -688,11 +717,11 @@ void SCMDeformableSoil::ComputeInternalForces() {
         if (h.second.patch_id != -1)
             continue;
 
-        std::pair<int, int> ij = h.first;
-        int i = ij.first;
-        int j = ij.second;
+        ChVector2<int> ij = h.first;
+        int i = ij.x();
+        int j = ij.y();
 
-        std::queue<std::pair<int, int>> todo;
+        std::queue<ChVector2<int>> todo;
 
         // Make a new patch
         h.second.patch_id = num_patches++;
@@ -712,10 +741,10 @@ void SCMDeformableSoil::ComputeInternalForces() {
             int crt_patch = crt.patch_id;
 
             // TODO : Don't know if we want to do 8-way or not
-            auto north = std::make_pair(i, j + 1);
-            auto south = std::make_pair(i, j - 1);
-            auto west = std::make_pair(i - 1, j);
-            auto east = std::make_pair(i + 1, j);
+            ChVector2<int> north(i, j + 1);
+            ChVector2<int> south(i, j - 1);
+            ChVector2<int> west(i - 1, j);
+            ChVector2<int> east(i + 1, j);
 
             for (auto nbr_ij : {north, south, west, east}) {
                 auto nbr = hits.find(nbr_ij);

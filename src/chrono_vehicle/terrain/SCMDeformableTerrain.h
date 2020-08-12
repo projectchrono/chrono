@@ -143,13 +143,12 @@ class CH_VEHICLE_API SCMDeformableTerrain : public ChTerrain {
 
     /// Add a new moving patch.
     /// Multiple calls to this function can be made, each of them adding a new active patch area.
-    /// If no patches are defined, ray-casting is performed for every single node of the underlying SCM mesh.
-    /// If at least one patch is defined, ray-casting is performed only for mesh nodes within the patch areas
-    /// (that is, nodes that are within the specified range from the given point on the associated body).
-    void AddMovingPatch(std::shared_ptr<ChBody> body,     ///< [in] monitored body
-                        const ChVector<>& point_on_body,  ///< [in] patch center, relative to body
-                        double dimX,                      ///< [in] patch X dimension
-                        double dimY                       ///< [in] patch Y dimension
+    /// If no patches are defined, ray-casting is performed for every single node of the underlying SCM grid.
+    /// If at least one patch is defined, ray-casting is performed only for mesh nodes within the AABB of the
+    /// body OOBB projection onto the SCM plane.
+    void AddMovingPatch(std::shared_ptr<ChBody> body,   ///< [in] monitored body
+                        const ChVector<>& OOBB_center,  ///< [in] OOBB center, relative to body
+                        const ChVector<>& OOBB_dims     ///< [in] OOBB dimensions
     );
 
     /// Class to be used as a callback interface for location-dependent soil parameters.
@@ -200,16 +199,9 @@ class CH_VEHICLE_API SCMDeformableTerrain : public ChTerrain {
 
     /// Initialize the terrain system (flat).
     /// This version creates a flat array of points.
-    void Initialize(double height,  ///< [in] terrain height
-                    double sizeX,   ///< [in] terrain dimension in the X direction
-                    double sizeY,   ///< [in] terrain dimension in the Y direction
-                    int divX,       ///< [in] number of divisions in the X direction
-                    int divY        ///< [in] number of divisions in the Y direction
-    );
-
-    /// Initialize the terrain system (mesh).
-    /// The initial undeformed mesh is provided via a Wavefront .obj file.
-    void Initialize(const std::string& mesh_file  ///< [in] filename of the input mesh (.OBJ file in Wavefront format)
+    void Initialize(double sizeX,  ///< [in] terrain dimension in the X direction
+                    double sizeY,  ///< [in] terrain dimension in the Y direction
+                    double delta    ///< [in] grid spacing (may be slightly decreased)
     );
 
     /// Initialize the terrain system (height map).
@@ -245,16 +237,9 @@ class CH_VEHICLE_API SCMDeformableSoil : public ChLoadContainer {
 
     /// Initialize the terrain system (flat).
     /// This version creates a flat array of points.
-    void Initialize(double height,  ///< [in] terrain height
-                    double sizeX,   ///< [in] terrain dimension in the X direction
-                    double sizeY,   ///< [in] terrain dimension in the Y direction
-                    int divX,       ///< [in] number of divisions in the X direction
-                    int divY        ///< [in] number of divisions in the Y direction
-    );
-
-    /// Initialize the terrain system (mesh).
-    /// The initial undeformed mesh is provided via a Wavefront .obj file.
-    void Initialize(const std::string& mesh_file  ///< [in] filename of the input mesh (.OBJ file in Wavefront format)
+    void Initialize(double hsizeX,  ///< [in] terrain dimension in the X direction
+                    double hsizeY,  ///< [in] terrain dimension in the Y direction
+                    double delta    ///< [in] grid spacing (may be slightly decreased)
     );
 
     /// Initialize the terrain system (height map).
@@ -281,6 +266,9 @@ class CH_VEHICLE_API SCMDeformableSoil : public ChLoadContainer {
 
     // Get the terrain height below the specified location.
     double GetHeight(const ChVector<>& loc) const;
+
+    // Get the terrain height at the specified grid vertex.
+    double GetHeight(const ChVector2<int>& loc);
 
     // Updates the forces and the geometry, at the beginning of each timestep
     virtual void Setup() override {
@@ -321,7 +309,6 @@ class CH_VEHICLE_API SCMDeformableSoil : public ChLoadContainer {
 
     std::shared_ptr<ChColorAsset> m_color;
     std::shared_ptr<ChTriangleMeshShape> m_trimesh_shape;
-    double m_height;
 
     std::vector<ChVector<>> p_vertices_initial;
     std::vector<ChVector<>> p_speeds;
@@ -354,7 +341,7 @@ class CH_VEHICLE_API SCMDeformableSoil : public ChLoadContainer {
     double plot_v_min;
     double plot_v_max;
 
-    ChCoordsys<> plane;
+    ChCoordsys<> plane;  ///< SCM frame (deformation occurs along the z axis of this frame)
     PatchType m_type;
 
     // aux. topology data
@@ -378,13 +365,13 @@ class CH_VEHICLE_API SCMDeformableSoil : public ChLoadContainer {
     // Moving patch parameters
     struct MovingPatchInfo {
         std::shared_ptr<ChBody> m_body;  // tracked body
-        ChVector<> m_point;              // patch center, relative to body
-        ChVector2<> m_dim;               // patch dimensions (X,Y)
-        ChVector2<> m_min;               // current patch AABB (min x,y)
-        ChVector2<> m_max;               // current patch AABB (max x,y)
+        ChVector<> m_center;             // OOBB center, relative to body
+        ChVector<> m_hdims;              // OOBB half-dimensions
+        ChVector2<int> m_bl;             // coordinates of most bottom-left grid vertex
+        ChVector2<int> m_tr;             // coordinates of most top-right grid vertex
     };
     std::vector<MovingPatchInfo> m_patches;  // set of active moving patches
-    bool m_moving_patch;                     // moving patch feature enabled?
+    bool m_moving_patch;                     // user-specified moving patches?
 
     // Callback object for position-dependent soil properties
     std::shared_ptr<SCMDeformableTerrain::SoilParametersCallback> m_soil_fun;
@@ -405,13 +392,12 @@ class CH_VEHICLE_API SCMDeformableSoil : public ChLoadContainer {
     // --------------------
     // New member variables
     // --------------------
-    float m_div_x;
-    float m_div_y;
+    double m_delta;
 
     struct pairhash {
       public:
         // 31 is just a decently-sized prime number to reduce bucket collisions
-        std::size_t operator()(const std::pair<int, int>& x) const { return x.first * 31 + x.second; }
+        std::size_t operator()(const ChVector2<int>& p) const { return p.x() * 31 + p.y(); }
     };
 
     struct VertexRecord {
@@ -443,7 +429,12 @@ class CH_VEHICLE_API SCMDeformableSoil : public ChLoadContainer {
         double oob;                       // approximate value of 1/b
     };
 
-    std::unordered_map<std::pair<int, int>, VertexRecord, pairhash> m_grid_map;
+    std::unordered_map<ChVector2<int>, VertexRecord, pairhash> m_grid_map;
+
+    
+    // Synchronize information for a moving patch
+    void UpdateMovingPatch(MovingPatchInfo p);
+
 
     friend class SCMDeformableTerrain;
 };

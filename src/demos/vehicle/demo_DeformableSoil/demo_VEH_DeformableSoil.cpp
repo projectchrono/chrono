@@ -34,15 +34,15 @@ bool output = false;
 const std::string out_dir = GetChronoOutputPath() + "SCM_DEF_SOIL";
 
 // Enable/disable adaptive mesh refinement
-bool enable_adaptive_refinement = true;
+bool enable_adaptive_refinement = false;
 double init_mesh_resolution = 0.1;
-double min_mesh_resolution = 0.04;
+double min_mesh_resolution = 0.1;
 
 // Enable/disable bulldozing effects
-bool enable_bulldozing = true;
+bool enable_bulldozing = false;
 
 // Enable/disable moving patch feature
-bool enable_moving_patch = false;
+bool enable_moving_patch = true;
 
 // If true, use provided callback to change soil properties based on location
 bool var_params = true;
@@ -154,7 +154,7 @@ int main(int argc, char* argv[]) {
     // Displace/rotate the terrain reference plane.
     // Note that SCMDeformableTerrain uses a default ISO reference frame (Z up). Since the mechanism is modeled here in
     // a Y-up global frame, we rotate the terrain plane by -90 degrees about the X axis.
-    mterrain.SetPlane(ChCoordsys<>(ChVector<>(0, 0, 0), Q_from_AngX(-CH_C_PI_2)));
+    mterrain.SetPlane(ChCoordsys<>(ChVector<>(0, 0.2, 0), Q_from_AngX(-CH_C_PI_2)));
 
     // Initialize the geometry of the soil
     
@@ -162,17 +162,13 @@ int main(int argc, char* argv[]) {
     double length = 6;
     double width = 2;
     if (enable_adaptive_refinement) {
-        int div_length = (int)std::ceil(length / init_mesh_resolution);
-        int div_width = (int)std::ceil(width / init_mesh_resolution);
-        mterrain.Initialize(0.2, width, length, div_width, div_length);
+        mterrain.Initialize(width, length, init_mesh_resolution);
         // Turn on the automatic level of detail refinement, so a coarse terrain mesh
         // is automatically improved by adding more points under the wheel contact patch:
         mterrain.SetAutomaticRefinement(true);
         mterrain.SetAutomaticRefinementResolution(min_mesh_resolution);
     } else {
-        int div_length = (int)std::ceil(length / min_mesh_resolution);
-        int div_width = (int)std::ceil(width / min_mesh_resolution);
-        mterrain.Initialize(0.2, width, length, div_width, div_length);
+        mterrain.Initialize(width, length, min_mesh_resolution);
     }
     
     // Or use a height map:
@@ -218,7 +214,7 @@ int main(int argc, char* argv[]) {
 
     // Optionally, enable moving patch feature (reduces number of ray casts)
     if (enable_moving_patch) {
-        mterrain.AddMovingPatch(mrigidbody, ChVector<>(0, 0, 0), 2 * tire_rad, 2 * tire_rad);
+        mterrain.AddMovingPatch(mrigidbody, ChVector<>(0, 0, 0), ChVector<>(0.5, 2 * tire_rad, 2 * tire_rad));
     }
 
     // Set some visualization parameters: either with a texture, or with falsecolor plot, etc.
