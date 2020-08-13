@@ -201,7 +201,7 @@ class CH_VEHICLE_API SCMDeformableTerrain : public ChTerrain {
     /// This version creates a flat array of points.
     void Initialize(double sizeX,  ///< [in] terrain dimension in the X direction
                     double sizeY,  ///< [in] terrain dimension in the Y direction
-                    double delta    ///< [in] grid spacing (may be slightly decreased)
+                    double delta   ///< [in] grid spacing (may be slightly decreased)
     );
 
     /// Initialize the terrain system (height map).
@@ -431,10 +431,8 @@ class CH_VEHICLE_API SCMDeformableSoil : public ChLoadContainer {
 
     std::unordered_map<ChVector2<int>, VertexRecord, pairhash> m_grid_map;
 
-    
     // Synchronize information for a moving patch
-    void UpdateMovingPatch(MovingPatchInfo p);
-
+    void UpdateMovingPatch(MovingPatchInfo& p);
 
     friend class SCMDeformableTerrain;
 };

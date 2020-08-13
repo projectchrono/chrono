@@ -179,7 +179,6 @@ void SCMDeformableTerrain::AddMovingPatch(std::shared_ptr<ChBody> body,
     m_ground->m_moving_patch = true;
 }
 
-
 // Set user-supplied callback for evaluating location-dependent soil parameters
 void SCMDeformableTerrain::RegisterSoilParametersCallback(std::shared_ptr<SoilParametersCallback> cb) {
     m_ground->m_soil_fun = cb;
@@ -588,7 +587,7 @@ void SCMDeformableSoil::SetupAuxData() {
 }
 
 // Synchronize information for a moving patch
-void SCMDeformableSoil::UpdateMovingPatch(MovingPatchInfo p) {
+void SCMDeformableSoil::UpdateMovingPatch(MovingPatchInfo& p) {
     ChVector2<> p_min(+std::numeric_limits<double>::max());
     ChVector2<> p_max(-std::numeric_limits<double>::max());
 
@@ -660,20 +659,24 @@ void SCMDeformableSoil::ComputeInternalForces() {
     };
     std::unordered_map<ChVector2<int>, HitRecord, pairhash> hits;
 
+    int num_hits = 0;
+
     // Loop through all moving patches (user-defined or default one)
     for (auto& p : m_patches) {
         // Loop through all vertices in this patch
+
+        std::cout << "OOBB_x: " << p.m_bl.x() << ", " << p.m_tr.x() << std::endl;
+        std::cout << "OOBB_y: " << p.m_bl.y() << ", " << p.m_tr.y() << std::endl;
+
         for (int i = p.m_bl.x(); i <= p.m_tr.x(); i++) {
             for (int j = p.m_bl.y(); j <= p.m_tr.y(); j++) {
                 ChVector2<int> ij(i, j);
 
-                // Move from (i, j) to (x, y, z) representation
+                // Move from (i, j) to (x, y, z) representation in the world frame
                 double x = i * m_delta;
                 double y = j * m_delta;
                 double z = GetHeight(ij);
-
-                // TODO : Might need a parent -> local transformation here
-                ChVector<> vertex_loc(x, y, z);
+                ChVector<> vertex_loc = plane.TransformDirectionLocalToParent(ChVector<>(x, y, z));
 
                 // Raycast to see if we need to work on this point later
                 collision::ChCollisionSystem::ChRayhitResult mrayhit_result;
@@ -698,6 +701,17 @@ void SCMDeformableSoil::ComputeInternalForces() {
                     HitRecord record = {mrayhit_result.hitModel->GetContactable(), mrayhit_result.abs_hitPoint, vertex,
                                         -1};
                     hits.insert(std::make_pair(ij, record));
+
+                    std::cout << "ij: " << i << ", " << j << std::endl;
+
+                    std::cout << "vertex_loc: " << vertex_loc.x() << ", " << vertex_loc.y() << ", " << vertex_loc.z()
+                              << std::endl;
+
+                    auto pre_rot = plane.TransformDirectionParentToLocal(vertex_loc);
+
+                    std::cout << "pre_rot: " << pre_rot.x() << ", " << pre_rot.y() << ", " << pre_rot.z() << std::endl;
+
+                    num_hits++;
                 }
             }
         }
@@ -728,11 +742,16 @@ void SCMDeformableSoil::ComputeInternalForces() {
         PatchRecord patch = PatchRecord();
 
         // Add our point to the patch and the queue
-        // TODO : Double-check if we need this parentToLocal transform
+        // Move to local frame where z is always the deformation direction
         ChVector<> v = plane.TransformParentToLocal(h.second.vertex.m_point);
+
+        std::cout << "v: " << v.x() << ", " << v.y() << std::endl;
+
         patches.push_back(patch);
         patch.points.push_back(ChVector2<>(v.x(), v.y()));
         todo.push(ij);
+
+        std::cout << "Patch size: " << patch.points.size() << std::endl;
 
         while (!todo.empty()) {
             auto crt = hits.at(todo.front());
@@ -740,7 +759,7 @@ void SCMDeformableSoil::ComputeInternalForces() {
 
             int crt_patch = crt.patch_id;
 
-            // TODO : Don't know if we want to do 8-way or not
+            // TODO : Likely we are fine with 4-way, but could use 8-way
             ChVector2<int> north(i, j + 1);
             ChVector2<int> south(i, j - 1);
             ChVector2<int> west(i - 1, j);
@@ -756,7 +775,7 @@ void SCMDeformableSoil::ComputeInternalForces() {
 
                 nbr->second.patch_id = crt_patch;
                 // Add neighbor to the patch and the queue
-                // TODO : Double-check if we need this parentToLocal transform
+                // Move to local frame where z is always the deformation direction
                 ChVector<> v = plane.TransformParentToLocal(nbr->second.vertex.m_point);
                 patch.points.push_back(ChVector2<>(v.x(), v.y()));
                 todo.push(nbr_ij);
@@ -764,10 +783,17 @@ void SCMDeformableSoil::ComputeInternalForces() {
         }
     }
 
+    std::cout << "Num_patches: " << num_patches << ", num_hits: " << num_hits << std::endl;
+
     // Calculate area and perimeter of each patch.
     // Calculate approximation to Beker term 1/b.
     for (auto& p : patches) {
+        std::cout << "p.points: " << p.points.size() << std::endl;
+
         utils::ChConvexHull2D ch(p.points);
+
+        std::cout << "Failed while making convex hull" << std::endl;
+
         p.area = ch.GetArea();
         p.perimeter = ch.GetPerimeter();
         if (p.area < 1e-6) {
@@ -775,6 +801,8 @@ void SCMDeformableSoil::ComputeInternalForces() {
         } else {
             p.oob = p.perimeter / (2 * p.area);
         }
+
+        std::cout << "    area: " << p.area << ", perimeter: " << p.perimeter << ", 1/b: " << p.oob << std::endl;
     }
 
     // Initialize local values for the soil parameters
@@ -786,8 +814,6 @@ void SCMDeformableSoil::ComputeInternalForces() {
     double Janosi_shear = m_Janosi_shear;
     double elastic_K = m_elastic_K;
     double damping_R = m_damping_R;
-
-    // TODO : Could go in order of contact patch here to avoid repeated lookups?
 
     // Process only hit vertices
     // for (auto& h : hits) {
@@ -918,102 +944,6 @@ void SCMDeformableSoil::ComputeInternalForces() {
     // }  // end loop on ray hits
 
     m_timer_ray_casting.stop();
-
-    //
-    // Refine the mesh detail
-    //
-
-    m_num_marked_faces = 0;
-    m_timer_refinement.start();
-
-    if (do_refinement) {
-        std::vector<std::vector<double>*> aux_data_double;
-        aux_data_double.push_back(&p_level);
-        aux_data_double.push_back(&p_level_initial);
-        aux_data_double.push_back(&p_hit_level);
-        aux_data_double.push_back(&p_sinkage);
-        aux_data_double.push_back(&p_sinkage_plastic);
-        aux_data_double.push_back(&p_sinkage_elastic);
-        aux_data_double.push_back(&p_step_plastic_flow);
-        aux_data_double.push_back(&p_kshear);
-        aux_data_double.push_back(&p_area);
-        aux_data_double.push_back(&p_sigma);
-        aux_data_double.push_back(&p_sigma_yeld);
-        aux_data_double.push_back(&p_tau);
-        aux_data_double.push_back(&p_massremainder);
-        std::vector<std::vector<int>*> aux_data_int;
-        aux_data_int.push_back(&p_id_island);
-        std::vector<std::vector<bool>*> aux_data_bool;
-        aux_data_bool.push_back(&p_erosion);
-        std::vector<std::vector<ChVector<>>*> aux_data_vect;
-        aux_data_vect.push_back(&p_vertices_initial);
-        aux_data_vect.push_back(&p_speeds);
-
-        // loop on triangles to see which needs refinement
-        std::vector<int> marked_tris;
-        for (int it = 0; it < idx_vertices.size(); ++it) {
-            // see if at least one of the vertexes are touching
-            if (p_sigma[idx_vertices[it][0]] > 0 || p_sigma[idx_vertices[it][1]] > 0 ||
-                p_sigma[idx_vertices[it][2]] > 0) {
-                marked_tris.push_back(it);
-            }
-        }
-        m_num_marked_faces = marked_tris.size();
-
-        // custom edge refinement criterion: do not use default edge length,
-        // length of the edge as projected on soil plane
-        class MyRefinement : public geometry::ChTriangleMeshConnected::ChRefineEdgeCriterion {
-          public:
-            virtual double ComputeLength(const int vert_a, const int vert_b, geometry::ChTriangleMeshConnected* mmesh) {
-                ChVector<> d = A.transpose() * (mmesh->m_vertices[vert_a] - mmesh->m_vertices[vert_b]);
-                d.z() = 0;
-                return d.Length();
-            }
-            ChMatrix33<> A;
-        };
-
-        MyRefinement refinement_criterion;
-        refinement_criterion.A = ChMatrix33<>(this->plane.rot);
-
-        // perform refinement using the LEPP  algorithm, also refining the soil-specific vertex attributes
-        for (int i = 0; i < 1; ++i) {
-            m_trimesh_shape->GetMesh()->RefineMeshEdges(
-                marked_tris, refinement_resolution, &refinement_criterion,
-                0,  //&tri_map, // note, update triangle connectivity map incrementally
-                aux_data_double, aux_data_int, aux_data_bool, aux_data_vect);
-        }
-        // TO DO adjust this incrementally
-
-        connected_vertexes.clear();
-        connected_vertexes.resize(vertices.size());
-        for (unsigned int iface = 0; iface < idx_vertices.size(); ++iface) {
-            connected_vertexes[idx_vertices[iface][0]].insert(idx_vertices[iface][1]);
-            connected_vertexes[idx_vertices[iface][0]].insert(idx_vertices[iface][2]);
-            connected_vertexes[idx_vertices[iface][1]].insert(idx_vertices[iface][0]);
-            connected_vertexes[idx_vertices[iface][1]].insert(idx_vertices[iface][2]);
-            connected_vertexes[idx_vertices[iface][2]].insert(idx_vertices[iface][0]);
-            connected_vertexes[idx_vertices[iface][2]].insert(idx_vertices[iface][1]);
-        }
-
-        // Recompute areas (could be optimized)
-        for (unsigned int iv = 0; iv < vertices.size(); ++iv) {
-            p_area[iv] = 0;
-        }
-        for (unsigned int it = 0; it < idx_vertices.size(); ++it) {
-            ChVector<> AB = vertices[idx_vertices[it][1]] - vertices[idx_vertices[it][0]];
-            ChVector<> AC = vertices[idx_vertices[it][2]] - vertices[idx_vertices[it][0]];
-            AB = plane.TransformDirectionParentToLocal(AB);
-            AC = plane.TransformDirectionParentToLocal(AC);
-            AB.z() = 0;
-            AC.z() = 0;
-            double triangle_area = 0.5 * (Vcross(AB, AC)).Length();
-            p_area[idx_normals[it][0]] += triangle_area / 3.0;
-            p_area[idx_normals[it][1]] += triangle_area / 3.0;
-            p_area[idx_normals[it][2]] += triangle_area / 3.0;
-        }
-    }
-
-    m_timer_refinement.stop();
 
     //
     // Flow material to the side of rut, using heuristics
