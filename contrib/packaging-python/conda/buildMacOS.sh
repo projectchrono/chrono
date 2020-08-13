@@ -52,7 +52,7 @@ cmake -DCMAKE_INSTALL_PREFIX=$PREFIX \
  -DCASCADE_LIBDIR=$HOME/miniconda/lib \
  -DENABLE_MODULE_MKL=ON \
  -DMKL_INCLUDE_DIR=$HOME/miniconda/include \
- -DMKL_RT_LIBRARY=$HOME/miniconda/lib/libmkl_rt.so \
+ -DMKL_RT_LIBRARY=$HOME/miniconda/lib/libmkl_rt.dylib \
  -DEIGEN3_INCLUDE_DIR="/usr/local/include/eigen3" "$HOME/miniconda/include" \
  -DPYCHRONO_DATA_PATH=../../../../../../share/chrono/data/ \
  ./..
