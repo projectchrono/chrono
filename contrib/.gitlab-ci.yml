@@ -494,6 +494,7 @@ macos:macos:deploy:
     - conda config --add channels https://conda.anaconda.org/intel
     - conda install -c dlr-sc opencascade --yes
     - conda install -c intel mkl-devel --yes
+    - ls $HOME/miniconda3/lib/
     - conda build purge-all
     # this command is needed to get the git describe data
     - git fetch --prune --unshallow
