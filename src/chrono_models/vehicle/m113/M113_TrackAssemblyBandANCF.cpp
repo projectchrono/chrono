@@ -18,6 +18,7 @@
 
 #include "chrono_models/vehicle/m113/M113_TrackAssemblyBandANCF.h"
 #include "chrono_models/vehicle/m113/M113_BrakeSimple.h"
+#include "chrono_models/vehicle/m113/M113_BrakeShafts.h"
 #include "chrono_models/vehicle/m113/M113_Idler.h"
 #include "chrono_models/vehicle/m113/M113_RoadWheel.h"
 #include "chrono_models/vehicle/m113/M113_SprocketBand.h"

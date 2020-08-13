@@ -50,6 +50,9 @@ class ChApi ChCollisionSystemBullet : public ChCollisionSystem {
     /// (Contacts will be managed by the Bullet persistent contact cache).
     virtual void Run() override;
 
+    /// Return an AABB bounding all collision shapes in the system
+    virtual void GetBoundingBox(ChVector<>& aabb_min, ChVector<>& aabb_max) const override;
+
     /// Reset timers for collision detection.
     virtual void ResetTimers() override;
 

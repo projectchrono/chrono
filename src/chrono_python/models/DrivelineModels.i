@@ -46,6 +46,9 @@
 
 #include "chrono_models/vehicle/gator/Gator_SimpleDriveline.h"
 #include "chrono_models/vehicle/gator/Gator_Driveline2WD.h"
+
+#include "chrono_models/vehicle/m113/M113_SimpleDriveline.h"
+#include "chrono_models/vehicle/m113/M113_DrivelineBDS.h"
 %}
 
 
@@ -62,6 +65,9 @@
 %shared_ptr(chrono::vehicle::uaz::UAZBUS_Driveline4WD)
 %shared_ptr(chrono::vehicle::gator::Gator_SimpleDriveline)
 %shared_ptr(chrono::vehicle::gator::Gator_Driveline2WD)
+
+%shared_ptr(chrono::vehicle::m113::M113_SimpleDriveline)
+%shared_ptr(chrono::vehicle::m113::M113_DrivelineBDS)
 
 /* Parse the header file to generate wrappers */
 %import "chrono_python/vehicle/ChDriveline.i"
@@ -86,3 +92,6 @@
 
 %include "../../chrono_models/vehicle/gator/Gator_SimpleDriveline.h"
 %include "../../chrono_models/vehicle/gator/Gator_Driveline2WD.h"
+
+%include "../../chrono_models/vehicle/m113/M113_SimpleDriveline.h"
+%include "../../chrono_models/vehicle/m113/M113_DrivelineBDS.h"
