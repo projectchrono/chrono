@@ -57,6 +57,9 @@ class ChApi ChCollisionSystem {
     /// This function will be called at each simulation step.
     virtual void Run() = 0;
 
+    /// Return an AABB bounding all collision shapes in the system
+    virtual void GetBoundingBox(ChVector<>& aabb_min, ChVector<>& aabb_max) const = 0;
+
     /// Return the time (in seconds) for broadphase collision detection.
     virtual double GetTimerCollisionBroad() const = 0;
 
