@@ -36,6 +36,7 @@
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChSubsysDefs.h"
 #include "chrono_vehicle/ChTerrain.h"
+#include "chrono_vehicle/ChWorldFrame.h"
 
 namespace chrono {
 namespace vehicle {
@@ -257,11 +258,46 @@ class CH_VEHICLE_API SCMDeformableSoil : public ChLoadContainer {
     );
 
   private:
-    /// Patch type.
+    // SCM patch type
     enum class PatchType {
-        BOX,        ///< rectangular box
-        MESH,       ///< triangular mesh (from a Wavefront OBJ file)
-        HEIGHT_MAP  ///< triangular mesh (generated from a gray-scale image height-map)
+        BOX,        // rectangular box
+        HEIGHT_MAP  // triangular mesh (generated from a gray-scale image height-map)
+    };
+
+    // Moving patch parameters
+    struct MovingPatchInfo {
+        std::shared_ptr<ChBody> m_body;  // tracked body
+        ChVector<> m_center;             // OOBB center, relative to body
+        ChVector<> m_hdims;              // OOBB half-dimensions
+        ChVector2<int> m_bl;             // coordinates of most bottom-left grid vertex
+        ChVector2<int> m_tr;             // coordinates of most top-right grid vertex
+    };
+
+    // Information at contacted vertex
+    struct VertexRecord {
+        double p_sigma;
+        double p_sinkage_elastic;
+        double p_step_plastic_flow;
+        bool p_erosion;
+        double p_level;
+        double p_hit_level;
+        // TODO: Other necessary data here...
+
+        VertexRecord(double level) {
+            p_sigma = 0;
+            p_sinkage_elastic = 0;
+            p_step_plastic_flow = 0;
+            p_erosion = false;
+            p_level = level;
+            p_hit_level = 1e9;
+        }
+    };
+
+    // Hash function for a pair of integer grid coordinates
+    struct CoordHash {
+      public:
+        // 31 is just a decently-sized prime number to reduce bucket collisions
+        std::size_t operator()(const ChVector2<int>& p) const { return p.x() * 31 + p.y(); }
     };
 
     // Get the terrain height below the specified location.
@@ -269,6 +305,9 @@ class CH_VEHICLE_API SCMDeformableSoil : public ChLoadContainer {
 
     // Get the terrain height at the specified grid vertex.
     double GetHeight(const ChVector2<int>& loc);
+
+    // Complete setup before first simulation step.
+    virtual void SetupInitial() override;
 
     // Updates the forces and the geometry, at the beginning of each timestep
     virtual void Setup() override {
@@ -289,23 +328,47 @@ class CH_VEHICLE_API SCMDeformableSoil : public ChLoadContainer {
         ChTime = mytime;
     }
 
+    // Synchronize information for a moving patch
+    void UpdateMovingPatch(MovingPatchInfo& p);
+
+    // Synchronize information for fixed patch
+    void UpdateFixedPatch(MovingPatchInfo& p);
+
     // Reset the list of forces, and fills it with forces from a soil contact model.
     // This is called automatically during timestepping (only at the beginning of
     // each IntLoadResidual_F() for performance reason, not at each Update() that might be overkill).
     void ComputeInternalForces();
 
     // Override the ChLoadContainer method for computing the generalized force F term:
-    virtual void IntLoadResidual_F(const unsigned int off,  ///< offset in R residual
-                                   ChVectorDynamic<>& R,    ///< result: the R residual, R += c*F
-                                   const double c           ///< a scaling factor
+    virtual void IntLoadResidual_F(const unsigned int off,  // offset in R residual
+                                   ChVectorDynamic<>& R,    // result: the R residual, R += c*F
+                                   const double c           // a scaling factor
                                    ) override {
         // Overloading base class, that takes all F vectors from the list of forces and put all them in R
         ChLoadContainer::IntLoadResidual_F(off, R, c);
     }
 
-    // This is called after Initialize(), it pre-computes aux.topology
-    // data structures for the mesh, aux. material data, etc.
+    // Pre-compute aux. topology data structures for the mesh, aux. material data, etc.
     void SetupAuxData();
+
+    PatchType m_type;    // type of SCM patch
+    ChCoordsys<> plane;  // SCM frame (deformation occurs along the z axis of this frame)
+    double m_delta;      // (initial) grid spacing
+
+    std::unordered_map<ChVector2<int>, VertexRecord, CoordHash> m_grid_map;  // hash-map for hit vertices
+
+    std::vector<MovingPatchInfo> m_patches;  // set of active moving patches
+    bool m_moving_patch;                     // user-specified moving patches?
+
+    // Timers and counters
+    ChTimer<double> m_timer_calc_areas;
+    ChTimer<double> m_timer_ray_casting;
+    ChTimer<double> m_timer_refinement;
+    ChTimer<double> m_timer_bulldozing;
+    ChTimer<double> m_timer_visualization;
+    size_t m_num_ray_casts;
+
+    // ----  OLD MEMBER VARIABLES
 
     std::shared_ptr<ChColorAsset> m_color;
     std::shared_ptr<ChTriangleMeshShape> m_trimesh_shape;
@@ -341,9 +404,6 @@ class CH_VEHICLE_API SCMDeformableSoil : public ChLoadContainer {
     double plot_v_min;
     double plot_v_max;
 
-    ChCoordsys<> plane;  ///< SCM frame (deformation occurs along the z axis of this frame)
-    PatchType m_type;
-
     // aux. topology data
     std::vector<std::set<int>> connected_vertexes;
     std::vector<std::array<int, 4>> tri_map;
@@ -360,79 +420,10 @@ class CH_VEHICLE_API SCMDeformableSoil : public ChLoadContainer {
     double test_high_offset;
     double test_low_offset;
 
-    double last_t;  // for optimization
-
-    // Moving patch parameters
-    struct MovingPatchInfo {
-        std::shared_ptr<ChBody> m_body;  // tracked body
-        ChVector<> m_center;             // OOBB center, relative to body
-        ChVector<> m_hdims;              // OOBB half-dimensions
-        ChVector2<int> m_bl;             // coordinates of most bottom-left grid vertex
-        ChVector2<int> m_tr;             // coordinates of most top-right grid vertex
-    };
-    std::vector<MovingPatchInfo> m_patches;  // set of active moving patches
-    bool m_moving_patch;                     // user-specified moving patches?
-
     // Callback object for position-dependent soil properties
     std::shared_ptr<SCMDeformableTerrain::SoilParametersCallback> m_soil_fun;
 
-    // Timers and counters
-    ChTimer<double> m_timer_calc_areas;
-    ChTimer<double> m_timer_ray_casting;
-    ChTimer<double> m_timer_refinement;
-    ChTimer<double> m_timer_bulldozing;
-    ChTimer<double> m_timer_visualization;
-    size_t m_num_vertices;
-    size_t m_num_faces;
-    size_t m_num_ray_casts;
-    size_t m_num_marked_faces;
-
     std::unordered_map<ChContactable*, TerrainForce> m_contact_forces;
-
-    // --------------------
-    // New member variables
-    // --------------------
-    double m_delta;
-
-    struct pairhash {
-      public:
-        // 31 is just a decently-sized prime number to reduce bucket collisions
-        std::size_t operator()(const ChVector2<int>& p) const { return p.x() * 31 + p.y(); }
-    };
-
-    struct VertexRecord {
-        ChVector<> m_point;
-        double p_sigma;
-        double p_sinkage_elastic;
-        double p_step_plastic_flow;
-        bool p_erosion;
-        double p_level;
-        double p_hit_level;
-        // TODO: Other necessary data here...
-
-        VertexRecord() : VertexRecord(ChVector<>(0, 0, 0)) {}
-
-        VertexRecord(ChVector<> point) : m_point(point) {
-            p_sigma = 0;
-            p_sinkage_elastic = 0;
-            p_step_plastic_flow = 0;
-            p_erosion = false;
-            p_level = point.z();  // global -> local transformation needed ??
-            p_hit_level = 1e9;
-        }
-    };
-
-    struct PatchRecord {
-        std::vector<ChVector2<>> points;  // points in patch (projected on reference plane)
-        double area;                      // patch area
-        double perimeter;                 // patch perimeter
-        double oob;                       // approximate value of 1/b
-    };
-
-    std::unordered_map<ChVector2<int>, VertexRecord, pairhash> m_grid_map;
-
-    // Synchronize information for a moving patch
-    void UpdateMovingPatch(MovingPatchInfo& p);
 
     friend class SCMDeformableTerrain;
 };

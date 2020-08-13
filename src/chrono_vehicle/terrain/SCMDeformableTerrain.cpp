@@ -29,7 +29,6 @@
 #include "chrono/utils/ChConvexHull.h"
 
 #include "chrono_vehicle/ChVehicleModelData.h"
-#include "chrono_vehicle/ChWorldFrame.h"
 #include "chrono_vehicle/terrain/SCMDeformableTerrain.h"
 
 #include "chrono_thirdparty/stb/stb.h"
@@ -224,11 +223,7 @@ void SCMDeformableTerrain::PrintStepStatistics(std::ostream& os) const {
     os << "   Visualization:           " << m_ground->m_timer_visualization() << std::endl;
 
     os << " Counters:" << std::endl;
-    os << "   Number vertices:         " << m_ground->m_num_vertices << std::endl;
     os << "   Number ray-casts:        " << m_ground->m_num_ray_casts << std::endl;
-    os << "   Number faces:            " << m_ground->m_num_faces << std::endl;
-    if (m_ground->do_refinement)
-        os << "   Number faces refinement: " << m_ground->m_num_marked_faces << std::endl;
 }
 
 // -----------------------------------------------------------------------------
@@ -279,8 +274,6 @@ SCMDeformableSoil::SCMDeformableSoil(ChSystem* system, bool visualization_mesh) 
 
     test_high_offset = 0.1;
     test_low_offset = 0.5;
-
-    last_t = 0;
 
     m_moving_patch = false;
 }
@@ -517,12 +510,21 @@ void SCMDeformableSoil::Initialize(const std::string& heightmap_file,
     ////trimesh->WriteWavefront("foo.obj", meshes);
 }
 
+void SCMDeformableSoil::SetupInitial() {
+    // If no user-specified moving patches, create one that will encompass all collision shapes in the system
+    if (!m_moving_patch) {
+        SCMDeformableSoil::MovingPatchInfo pinfo;
+        pinfo.m_body = nullptr;
+        m_patches.push_back(pinfo);
+    }
+}
+
 // Return the terrain height at the specified grid vertex
 double SCMDeformableSoil::GetHeight(const ChVector2<int>& loc) {
     // First query the hash-map
     auto p = m_grid_map.find(loc);
     if (p != m_grid_map.end())
-        return p->second.m_point.z();
+        return p->second.p_level;
 
     // Else return undeformed height
     switch (m_type) {
@@ -618,6 +620,53 @@ void SCMDeformableSoil::UpdateMovingPatch(MovingPatchInfo& p) {
     p.m_tr.y() = static_cast<int>(std::floor(p_max.y() / m_delta));
 }
 
+// Synchronize information for fixed patch
+void SCMDeformableSoil::UpdateFixedPatch(MovingPatchInfo& p) {
+    ChVector2<> p_min(+std::numeric_limits<double>::max());
+    ChVector2<> p_max(-std::numeric_limits<double>::max());
+
+    // Get current bounding box (AABB) of all collision shapes
+    ChVector<> aabb_min;
+    ChVector<> aabb_max;
+    GetSystem()->GetCollisionSystem()->GetBoundingBox(aabb_min, aabb_max);
+
+    // Loop over all corners of the AABB
+    for (int j = 0; j < 8; j++) {
+        int ix = j % 2;
+        int iy = (j / 2) % 2;
+        int iz = (j / 4);
+
+        // AABB corner in absolute frame
+        ChVector<> c_abs = aabb_max * ChVector<>(ix, iy, iz) + aabb_min * ChVector<>(1.0 - ix, 1.0 - iy, 1.0 - iz);
+        // AABB corner in SCM frame
+        ChVector<> c_scm = plane.TransformPointParentToLocal(c_abs);
+
+        // Update AABB of patch projection onto SCM plane
+        p_min.x() = std::min(p_min.x(), c_scm.x());
+        p_min.y() = std::min(p_min.y(), c_scm.y());
+        p_max.x() = std::max(p_max.x(), c_scm.x());
+        p_max.y() = std::max(p_max.y(), c_scm.y());
+    }
+
+    // Find index ranges for grid vertices contained in the patch projection AABB
+    p.m_bl.x() = static_cast<int>(std::ceil(p_min.x() / m_delta));
+    p.m_bl.y() = static_cast<int>(std::ceil(p_min.y() / m_delta));
+    p.m_tr.x() = static_cast<int>(std::floor(p_max.x() / m_delta));
+    p.m_tr.y() = static_cast<int>(std::floor(p_max.y() / m_delta));
+}
+
+// Offsets for the 8 neighbors of a grid vertex
+static const std::vector<ChVector2<int>> neighbors{
+    ChVector2<int>(-1, -1),  // SW
+    ChVector2<int>(0, -1),   // S
+    ChVector2<int>(1, -1),   // SE
+    ChVector2<int>(-1, 0),   // W
+    ChVector2<int>(1, 0),    // E
+    ChVector2<int>(-1, 1),   // NW
+    ChVector2<int>(0, 1),    // N
+    ChVector2<int>(1, 1)     // NE
+};
+
 // Reset the list of forces, and fills it with forces from a soil contact model.
 void SCMDeformableSoil::ComputeInternalForces() {
     m_timer_ray_casting.reset();
@@ -648,26 +697,29 @@ void SCMDeformableSoil::ComputeInternalForces() {
     if (m_moving_patch) {
         for (auto& p : m_patches)
             UpdateMovingPatch(p);
+    } else {
+        assert(m_patches.size() == 1);
+        UpdateFixedPatch(m_patches[0]);
     }
 
     struct HitRecord {
         ChContactable* contactable;  // pointer to hit object
         ChVector<> abs_point;        // hit point, expressed in global frame
-        VertexRecord vertex;  // object containing physical properties of the hit point TODO : Need to figure out which
-                              // frame we are in
-        int patch_id;         // index of associated patch id
+        int patch_id;                // index of associated patch id
     };
-    std::unordered_map<ChVector2<int>, HitRecord, pairhash> hits;
+    std::unordered_map<ChVector2<int>, HitRecord, CoordHash> hits;
 
     int num_hits = 0;
 
     // Loop through all moving patches (user-defined or default one)
     for (auto& p : m_patches) {
-        // Loop through all vertices in this patch
 
-        std::cout << "OOBB_x: " << p.m_bl.x() << ", " << p.m_tr.x() << std::endl;
-        std::cout << "OOBB_y: " << p.m_bl.y() << ", " << p.m_tr.y() << std::endl;
+        ////std::cout << "OOBB_x: [" << p.m_bl.x() << ", " << p.m_tr.x() << "]  ["  //
+        ////          << p.m_bl.x() * m_delta << ", " << p.m_tr.x() * m_delta << "]" << std::endl;
+        ////std::cout << "OOBB_y: [" << p.m_bl.y() << ", " << p.m_tr.y() << "]  ["  //
+        ////          << p.m_bl.y() * m_delta << ", " << p.m_tr.y() * m_delta << "]" << std::endl;
 
+        // Loop through all vertices in this range
         for (int i = p.m_bl.x(); i <= p.m_tr.x(); i++) {
             for (int j = p.m_bl.y(); j <= p.m_tr.y(); j++) {
                 ChVector2<int> ij(i, j);
@@ -685,40 +737,29 @@ void SCMDeformableSoil::ComputeInternalForces() {
                 GetSystem()->GetCollisionSystem()->RayHit(from, to, mrayhit_result);
                 m_num_ray_casts++;
 
-                // Only interact with m_grid_map when we have a hit
                 if (mrayhit_result.hit) {
-                    VertexRecord vertex;
-                    // If this point has never been hit before we initialize it, otherwise just look it up
-                    auto grid_elem = m_grid_map.find(ij);
-                    if (grid_elem == m_grid_map.end()) {
-                        vertex = VertexRecord(vertex_loc);
-                        m_grid_map.insert(std::make_pair(ij, vertex));
-                    } else {
-                        vertex = grid_elem->second;
+                    // If this point has never been hit before, initialize it
+                    if (m_grid_map.find(ij) == m_grid_map.end()) {
+                        m_grid_map.insert(std::make_pair(ij, VertexRecord(z)));
                     }
 
                     // Add to our map of hits to process
-                    HitRecord record = {mrayhit_result.hitModel->GetContactable(), mrayhit_result.abs_hitPoint, vertex,
-                                        -1};
+                    HitRecord record = {mrayhit_result.hitModel->GetContactable(), mrayhit_result.abs_hitPoint, -1};
                     hits.insert(std::make_pair(ij, record));
-
-                    std::cout << "ij: " << i << ", " << j << std::endl;
-
-                    std::cout << "vertex_loc: " << vertex_loc.x() << ", " << vertex_loc.y() << ", " << vertex_loc.z()
-                              << std::endl;
-
-                    auto pre_rot = plane.TransformDirectionParentToLocal(vertex_loc);
-
-                    std::cout << "pre_rot: " << pre_rot.x() << ", " << pre_rot.y() << ", " << pre_rot.z() << std::endl;
-
                     num_hits++;
                 }
             }
         }
     }
 
-    // Collect hit vertices assigned to each patch.
-    std::vector<PatchRecord> patches;
+    // Collect hit vertices assigned to each contact patch.
+    struct ContactPatchRecord {
+        std::vector<ChVector2<>> points;  // points in contact patch (projected on reference plane)
+        double area;                      // contact patch area
+        double perimeter;                 // contact patch perimeter
+        double oob;                       // approximate value of 1/b
+    };
+    std::vector<ContactPatchRecord> contact_patches;
 
     // Profile this flood-fill once the whole thing is complete - there could be some ways to make it faster:
     // - automatically traverse east and west quickly
@@ -726,74 +767,57 @@ void SCMDeformableSoil::ComputeInternalForces() {
     // - a helpful metric is the number of times each vertex is visited
     // - could be cost-effective to remove elements when they are tagged as neighbors - but then we have to add them
     // somewhere else so that they aren't forgotten, this copying may make it not worth it
+
+    // Loop through all hit vertices and determine to which contact patch they belong.
+    // Use a queue-based flood-filling algorithm based on the 8 neighbors of each hit vertex.
     int num_patches = 0;
     for (auto& h : hits) {
         if (h.second.patch_id != -1)
             continue;
 
         ChVector2<int> ij = h.first;
-        int i = ij.x();
-        int j = ij.y();
 
-        std::queue<ChVector2<int>> todo;
-
-        // Make a new patch
+        // Make a new contact patch and add this hit vertex to it
         h.second.patch_id = num_patches++;
-        PatchRecord patch = PatchRecord();
+        ContactPatchRecord patch;
+        patch.points.push_back(ChVector2<>(m_delta * ij.x(), m_delta * ij.y()));
 
-        // Add our point to the patch and the queue
-        // Move to local frame where z is always the deformation direction
-        ChVector<> v = plane.TransformParentToLocal(h.second.vertex.m_point);
-
-        std::cout << "v: " << v.x() << ", " << v.y() << std::endl;
-
-        patches.push_back(patch);
-        patch.points.push_back(ChVector2<>(v.x(), v.y()));
+        // Add current vertex to the work queue
+        std::queue<ChVector2<int>> todo;
         todo.push(ij);
 
-        std::cout << "Patch size: " << patch.points.size() << std::endl;
-
         while (!todo.empty()) {
-            auto crt = hits.at(todo.front());
-            todo.pop();
+            auto crt = hits.at(todo.front());  // Current hit vertex is first element in queue
+            todo.pop();                        // Remove first element from queue
 
             int crt_patch = crt.patch_id;
 
-            // TODO : Likely we are fine with 4-way, but could use 8-way
-            ChVector2<int> north(i, j + 1);
-            ChVector2<int> south(i, j - 1);
-            ChVector2<int> west(i - 1, j);
-            ChVector2<int> east(i + 1, j);
-
-            for (auto nbr_ij : {north, south, west, east}) {
+            // Loop through the 8 neighbors of this hit vertex
+            for (int k = 0; k < 8; k++) {
+                ChVector2<int> nbr_ij = ij + neighbors[k];
+                // If neighbor is not a hit vertex, move on
                 auto nbr = hits.find(nbr_ij);
                 if (nbr == hits.end())
                     continue;
-
                 if (nbr->second.patch_id != -1)
                     continue;
-
+                // Assign neighbor to the same contact patch
                 nbr->second.patch_id = crt_patch;
-                // Add neighbor to the patch and the queue
-                // Move to local frame where z is always the deformation direction
-                ChVector<> v = plane.TransformParentToLocal(nbr->second.vertex.m_point);
-                patch.points.push_back(ChVector2<>(v.x(), v.y()));
+                // Add neighbor to same contact patch and to the queue
+                patch.points.push_back(ChVector2<>(m_delta * nbr_ij.x(), m_delta * nbr_ij.y()));
+                // Add neighbor to end of work queue
                 todo.push(nbr_ij);
             }
         }
+        contact_patches.push_back(patch);
     }
 
-    std::cout << "Num_patches: " << num_patches << ", num_hits: " << num_hits << std::endl;
+    ////std::cout << "Num_patches: " << num_patches << ", num_hits: " << num_hits << std::endl;
 
-    // Calculate area and perimeter of each patch.
+    // Calculate area and perimeter of each contact patch.
     // Calculate approximation to Beker term 1/b.
-    for (auto& p : patches) {
-        std::cout << "p.points: " << p.points.size() << std::endl;
-
+    for (auto& p : contact_patches) {
         utils::ChConvexHull2D ch(p.points);
-
-        std::cout << "Failed while making convex hull" << std::endl;
-
         p.area = ch.GetArea();
         p.perimeter = ch.GetPerimeter();
         if (p.area < 1e-6) {
@@ -801,8 +825,6 @@ void SCMDeformableSoil::ComputeInternalForces() {
         } else {
             p.oob = p.perimeter / (2 * p.area);
         }
-
-        std::cout << "    area: " << p.area << ", perimeter: " << p.perimeter << ", 1/b: " << p.oob << std::endl;
     }
 
     // Initialize local values for the soil parameters

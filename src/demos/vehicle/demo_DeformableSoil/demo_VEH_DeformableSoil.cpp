@@ -78,6 +78,9 @@ class MySoilParams : public vehicle::SCMDeformableTerrain::SoilParametersCallbac
 int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
+    // Set world frame with Y up
+    vehicle::ChWorldFrame::SetYUP();
+
     // Global parameter for tire:
     double tire_rad = 0.8;
     ChVector<> tire_center(0, 0.02 + tire_rad, -1.5);
