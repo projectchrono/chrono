@@ -66,10 +66,10 @@
 #include "chrono/physics/ChLoadsXYZnode.h"
 #include "chrono/physics/ChPhysicsItem.h"
 
+#include "chrono/collision/ChCollisionSystem.h"
+
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChVehicle.h"
-#include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicle.h"
-#include "chrono_vehicle/wheeled_vehicle/vehicle/WheeledVehicle.h"
 #include "chrono_vehicle/ChSubsysDefs.h"
 #include "chrono_vehicle/ChVehicleOutput.h"
 #include "chrono_vehicle/ChVehicleModelData.h"
@@ -81,20 +81,47 @@
 
 #include "chrono_vehicle/ChDriver.h"
 #include "chrono_vehicle/ChTerrain.h"
+
+// Wheeled vehicle
+#include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicle.h"
+#include "chrono_vehicle/wheeled_vehicle/vehicle/WheeledVehicle.h"
+
 #include "chrono_vehicle/wheeled_vehicle/ChWheel.h"
 #include "chrono_vehicle/wheeled_vehicle/wheel/Wheel.h"
+
 #include "chrono_vehicle/wheeled_vehicle/ChAxle.h"
 
 #include "chrono_vehicle/wheeled_vehicle/ChBrake.h"
 #include "chrono_vehicle/wheeled_vehicle/brake/ChBrakeSimple.h"
+#include "chrono_vehicle/wheeled_vehicle/brake/ChBrakeShafts.h"
 #include "chrono_vehicle/wheeled_vehicle/brake/BrakeSimple.h"
+#include "chrono_vehicle/wheeled_vehicle/brake/BrakeShafts.h"
 
+// Tracked vehicle
+#include "chrono_vehicle/tracked_vehicle/ChTrackedVehicle.h"
+#include "chrono_vehicle/tracked_vehicle/vehicle/TrackedVehicle.h"
+
+#include "chrono_vehicle/tracked_vehicle/ChSprocket.h"
+#include "chrono_vehicle/tracked_vehicle/ChIdler.h"
+#include "chrono_vehicle/tracked_vehicle/ChRoadWheel.h"
+#include "chrono_vehicle/tracked_vehicle/ChRoadWheelAssembly.h"
+#include "chrono_vehicle/tracked_vehicle/ChTrackShoe.h"
+
+#include "chrono_vehicle/tracked_vehicle/ChTrackBrake.h"
+#include "chrono_vehicle/tracked_vehicle/brake/ChTrackBrakeSimple.h"
+#include "chrono_vehicle/tracked_vehicle/brake/ChTrackBrakeShafts.h"
+#include "chrono_vehicle/tracked_vehicle/brake/TrackBrakeSimple.h"
+#include "chrono_vehicle/tracked_vehicle/brake/TrackBrakeShafts.h"
+
+#include "chrono_vehicle/tracked_vehicle/ChTrackContactManager.h"
+
+// Vehicle models
 #include "chrono_models/ChApiModels.h"
 #include "chrono_models/vehicle/ChVehicleModelDefs.h"
 
 #include "chrono_thirdparty/rapidjson/document.h"
 #include "Eigen/src/Core/util/Memory.h"
-#include "chrono_models/vehicle/citybus/CityBus.h"
+
 
 using namespace chrono;
 using namespace chrono::vehicle;
@@ -106,6 +133,7 @@ using namespace chrono::vehicle::citybus;
 using namespace chrono::vehicle::man;
 using namespace chrono::vehicle::uaz;
 
+using namespace chrono::vehicle::m113;
 %}
 
 
@@ -173,6 +201,13 @@ using namespace chrono::vehicle::uaz;
 %shared_ptr(chrono::ChBezierCurve)
 %shared_ptr(chrono::ChLinkMarkers)
 
+%shared_ptr(chrono::collision::ChCollisionModel)
+%shared_ptr(chrono::collision::ChCollisionSystem::BroadphaseCallback)
+%shared_ptr(chrono::collision::ChCollisionSystem::NarrowphaseCallback)
+
+%feature("director") chrono::collision::ChCollisionSystem::BroadphaseCallback;
+%feature("director") chrono::collision::ChCollisionSystem::NarrowphaseCallback;
+
 /*
 from this module: pay attention to inheritance in the model namespace (generic, sedan etc). 
 If those classes are wrapped, their parents are marked as shared_ptr while they are not, SWIG can't hanlde them.
@@ -183,14 +218,33 @@ Before adding a shared_ptr, mark as shared ptr all its inheritance tree in the m
 %shared_ptr(chrono::vehicle::ChPart)
 %shared_ptr(chrono::vehicle::ChWheel)
 %shared_ptr(chrono::vehicle::Wheel)
-%shared_ptr(chrono::vehicle::ChBrakeSimple)
 %shared_ptr(chrono::vehicle::ChBrake)
+%shared_ptr(chrono::vehicle::ChBrakeSimple)
+%shared_ptr(chrono::vehicle::ChBrakeShafts)
 %shared_ptr(chrono::vehicle::BrakeSimple)
+%shared_ptr(chrono::vehicle::BrakeShafts)
 %shared_ptr(chrono::vehicle::ChVehicle)
 %shared_ptr(chrono::vehicle::ChAxle)
 %shared_ptr(chrono::vehicle::ChWheeledVehicle)
 %shared_ptr(chrono::vehicle::WheeledVehicle)
 
+%shared_ptr(chrono::vehicle::ChSprocket)
+%shared_ptr(chrono::vehicle::ChIdler)
+%shared_ptr(chrono::vehicle::ChRoadWheel)
+%shared_ptr(chrono::vehicle::ChRoadWheelAssembly)
+%shared_ptr(chrono::vehicle::ChTrackShoe)
+%shared_ptr(chrono::vehicle::ChTrackAssembly)
+%shared_ptr(chrono::vehicle::ChTrackBrake)
+%shared_ptr(chrono::vehicle::ChTrackBrakeSimple)
+%shared_ptr(chrono::vehicle::ChTrackBrakeShafts)
+%shared_ptr(chrono::vehicle::TrackBrakeSimple)
+%shared_ptr(chrono::vehicle::TrackBrakeShafts)
+%shared_ptr(chrono::vehicle::ChTrackedVehicle)
+%shared_ptr(chrono::vehicle::TrackedVehicle)
+
+%shared_ptr(chrono::vehicle::ChTrackContactManager)
+%shared_ptr(chrono::vehicle::ChTrackCollisionManager)
+%shared_ptr(chrono::vehicle::ChTrackCustomContact)
 
 %shared_ptr(chrono::vehicle::LinearSpringForce)
 %shared_ptr(chrono::vehicle::LinearDamperForce)
@@ -253,6 +307,7 @@ Before adding a shared_ptr, mark as shared ptr all its inheritance tree in the m
 %import(module = "pychrono.core")  "chrono_python/core/ChAsset.i"
 %import(module = "pychrono.core")  "chrono_python/core/ChAssetLevel.i"
 %import(module = "pychrono.core")  "chrono_python/core/ChVisualization.i"
+%import(module = "pychrono.core")  "chrono_python/core/ChContactContainer.i"
 %import(module = "pychrono.core")  "../../chrono/motion_functions/ChFunction.h"
 %import(module = "pychrono.core")  "chrono_python/core/ChMaterialSurface.i"
 %import(module = "pychrono.core")  "../../chrono/fea/ChContinuumMaterial.h"
@@ -265,6 +320,8 @@ Before adding a shared_ptr, mark as shared ptr all its inheritance tree in the m
 
 // TODO: 
 //%include "rapidjson.i"
+
+%include "../../chrono/collision/ChCollisionSystem.h"
 
 //%include "../../chrono_vehicle/ChApiVehicle.h"
 %ignore chrono::vehicle::TrackedCollisionFamily::Enum;
@@ -285,19 +342,19 @@ Before adding a shared_ptr, mark as shared ptr all its inheritance tree in the m
 //TODO: antirollbar
 
 
-// Wheeled parts
+// Wheeled vehicles
 %include "ChSuspension.i"
 %include "ChDriveline.i"
 %include "ChSteering.i"
 
 %include "../../chrono_vehicle/wheeled_vehicle/ChWheel.h"
 %include "../../chrono_vehicle/wheeled_vehicle/wheel/Wheel.h"
-%include "chrono_python/models/WheelModels.i"
 
 %include "../../chrono_vehicle/wheeled_vehicle/ChBrake.h"
 %include "../../chrono_vehicle/wheeled_vehicle/brake/ChBrakeSimple.h"
+%include "../../chrono_vehicle/wheeled_vehicle/brake/ChBrakeShafts.h"
 %include "../../chrono_vehicle/wheeled_vehicle/brake/BrakeSimple.h"
-%include "chrono_python/models/BrakeModels.i"
+%include "../../chrono_vehicle/wheeled_vehicle/brake/BrakeShafts.h"
 
 %include "ChTire.i"
 
@@ -305,10 +362,32 @@ Before adding a shared_ptr, mark as shared ptr all its inheritance tree in the m
 
 %include "../../chrono_vehicle/wheeled_vehicle/ChWheeledVehicle.h"
 %include "../../chrono_vehicle/wheeled_vehicle/vehicle/WheeledVehicle.h"
+
+// Tracked vehicles
+%include "ChTrackAssembly.i"
+
+%include "../../chrono_vehicle/tracked_vehicle/ChSprocket.h"
+%include "../../chrono_vehicle/tracked_vehicle/ChIdler.h"
+%include "../../chrono_vehicle/tracked_vehicle/ChRoadWheel.h"
+%include "../../chrono_vehicle/tracked_vehicle/ChRoadWheelAssembly.h"
+%include "../../chrono_vehicle/tracked_vehicle/ChTrackShoe.h"
+
+%include "../../chrono_vehicle/tracked_vehicle/ChTrackBrake.h"
+%include "../../chrono_vehicle/tracked_vehicle/brake/ChTrackBrakeSimple.h"
+%include "../../chrono_vehicle/tracked_vehicle/brake/ChTrackBrakeShafts.h"
+%include "../../chrono_vehicle/tracked_vehicle/brake/TrackBrakeSimple.h"
+%include "../../chrono_vehicle/tracked_vehicle/brake/TrackBrakeShafts.h"
+
+%include "../../chrono_vehicle/tracked_vehicle/ChTrackContactManager.h"
+
+%include "../../chrono_vehicle/tracked_vehicle/ChTrackedVehicle.h"
+%include "../../chrono_vehicle/tracked_vehicle/vehicle/TrackedVehicle.h"
+
+%include "chrono_python/models/WheelModels.i"
+%include "chrono_python/models/BrakeModels.i"
 %include "chrono_python/models/VehicleModels.i"
 
 %include "vehicleUtils.i"
-// Tracked vehicles are not going to be wrapped in the short term
 
 
 //

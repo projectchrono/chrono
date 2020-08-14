@@ -16,6 +16,7 @@
 ////    Serialization/deserialization of unique_ptr members is currently commented
 ////    out until support for unique_ptr is implemented in ChArchive.
 
+#include "chrono/physics/ChSystem.h"
 #include "chrono/physics/ChLinkLock.h"
 
 namespace chrono {
@@ -1953,6 +1954,99 @@ void ChLinkLock::ArchiveIN(ChArchiveIn& marchive) {
     ////marchive >> CHNVP(limit_Rz);
     ////marchive >> CHNVP(limit_Rp);
     ////marchive >> CHNVP(limit_D);
+}
+
+// =======================================================================================
+
+void ChLinkLockRevolute::Lock(bool lock) {
+    BuildLink(true, true, true, false, true, true, lock);
+    if (system) {
+        system->ForceUpdate();
+    }
+}
+
+void ChLinkLockSpherical::Lock(bool lock) {
+    BuildLink(true, true, true, false, lock, lock, lock);
+    if (system) {
+        system->ForceUpdate();
+    }
+}
+
+void ChLinkLockCylindrical::Lock(bool lock) {
+    BuildLink(true, true, lock, false, true, true, lock);
+    if (system) {
+        system->ForceUpdate();
+    }
+}
+
+void ChLinkLockPrismatic::Lock(bool lock) {
+    BuildLink(true, true, lock, false, true, true, true);
+    if (system) {
+        system->ForceUpdate();
+    }
+}
+
+void ChLinkLockPointPlane::Lock(bool lock) {
+    BuildLink(lock, lock, true, false, lock, lock, lock);
+    if (system) {
+        system->ForceUpdate();
+    }
+}
+
+void ChLinkLockPointLine::Lock(bool lock) {
+    BuildLink(lock, true, true, false, lock, lock, lock);
+    if (system) {
+        system->ForceUpdate();
+    }
+}
+
+void ChLinkLockPlanePlane::Lock(bool lock) {
+    BuildLink(lock, lock, true, false, true, true, lock);
+    if (system) {
+        system->ForceUpdate();
+    }
+}
+
+void ChLinkLockOldham::Lock(bool lock) {
+    BuildLink(lock, lock, true, false, true, true, true);
+    if (system) {
+        system->ForceUpdate();
+    }
+}
+
+void ChLinkLockFree::Lock(bool lock) {
+    BuildLink(lock, lock, lock, false, lock, lock, lock);
+    if (system) {
+        system->ForceUpdate();
+    }
+}
+
+void ChLinkLockAlign::Lock(bool lock) {
+    BuildLink(lock, lock, lock, false, true, true, true);
+    if (system) {
+        system->ForceUpdate();
+    }
+}
+
+void ChLinkLockParallel::Lock(bool lock) {
+    BuildLink(lock, lock, lock, false, true, true, lock);
+    if (system) {
+        system->ForceUpdate();
+    }
+}
+
+void ChLinkLockPerpend::Lock(bool lock) {
+    BuildLink(lock, lock, lock, false, true, lock, true);
+    if (system) {
+        system->ForceUpdate();
+    }
+}
+
+void ChLinkLockRevolutePrismatic::Lock(bool lock) {
+    BuildLink(lock, true, true, false, true, true, lock);
+    if (system) {
+        system->ForceUpdate();
+    }
 }
 
 // =======================================================================================

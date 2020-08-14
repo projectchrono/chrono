@@ -231,12 +231,15 @@ void ChTrackShoeDoublePin::AddConnectorVisualization(std::shared_ptr<ChBody> con
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChTrackShoeDoublePin::Connect(std::shared_ptr<ChTrackShoe> next) {
+void ChTrackShoeDoublePin::Connect(std::shared_ptr<ChTrackShoe> next, bool ccw) {
     ChSystem* system = m_shoe->GetSystem();
+    double sign = ccw ? +1 : -1;
 
     // Create and initialize the revolute joints between shoe body and connector bodies.
-    ChVector<> loc_L = m_shoe->TransformPointLocalToParent(ChVector<>(GetShoeLength() / 2, +GetShoeWidth() / 2, 0));
-    ChVector<> loc_R = m_shoe->TransformPointLocalToParent(ChVector<>(GetShoeLength() / 2, -GetShoeWidth() / 2, 0));
+    ChVector<> loc_L =
+        m_shoe->TransformPointLocalToParent(ChVector<>(sign * GetShoeLength() / 2, +GetShoeWidth() / 2, 0));
+    ChVector<> loc_R =
+        m_shoe->TransformPointLocalToParent(ChVector<>(sign * GetShoeLength() / 2, -GetShoeWidth() / 2, 0));
     ChQuaternion<> rot = m_shoe->GetRot() * Q_from_AngX(CH_C_PI_2);
 
     m_revolute_L = chrono_types::make_shared<ChLinkLockRevolute>();
@@ -252,7 +255,7 @@ void ChTrackShoeDoublePin::Connect(std::shared_ptr<ChTrackShoe> next) {
     // Create connections between these connector bodies and the next shoe body
     if (m_index == -1) {
         // Create and initialize a point-line joint for left connector (sliding along X axis)
-        loc_L = m_connector_L->TransformPointLocalToParent(ChVector<>(GetConnectorLength() / 2, 0, 0));
+        loc_L = m_connector_L->TransformPointLocalToParent(ChVector<>(sign * GetConnectorLength() / 2, 0, 0));
         rot = m_connector_L->GetRot() * Q_from_AngZ(CH_C_PI_2);
 
         auto pointline_L = chrono_types::make_shared<ChLinkLockPointLine>();
@@ -261,7 +264,7 @@ void ChTrackShoeDoublePin::Connect(std::shared_ptr<ChTrackShoe> next) {
         system->AddLink(pointline_L);
 
         // Create and initialize a point-line joint for left connector (sliding along X axis)
-        loc_R = m_connector_R->TransformPointLocalToParent(ChVector<>(GetConnectorLength() / 2, 0, 0));
+        loc_R = m_connector_R->TransformPointLocalToParent(ChVector<>(sign * GetConnectorLength() / 2, 0, 0));
         rot = m_connector_R->GetRot() * Q_from_AngZ(CH_C_PI_2);
 
         auto pointline_R = chrono_types::make_shared<ChLinkLockPointLine>();
@@ -270,7 +273,7 @@ void ChTrackShoeDoublePin::Connect(std::shared_ptr<ChTrackShoe> next) {
         system->AddLink(pointline_R);
     } else {
         // Create and initialize a spherical joint for left connector
-        loc_L = m_connector_L->TransformPointLocalToParent(ChVector<>(GetConnectorLength() / 2, 0, 0));
+        loc_L = m_connector_L->TransformPointLocalToParent(ChVector<>(sign * GetConnectorLength() / 2, 0, 0));
 
         auto sph_L = chrono_types::make_shared<ChLinkLockSpherical>();
         sph_L->SetNameString(m_name + "_sph_next_L");
@@ -278,7 +281,7 @@ void ChTrackShoeDoublePin::Connect(std::shared_ptr<ChTrackShoe> next) {
         system->AddLink(sph_L);
 
         // Create and initialize a spherical joint for left connector
-        loc_R = m_connector_R->TransformPointLocalToParent(ChVector<>(GetConnectorLength() / 2, 0, 0));
+        loc_R = m_connector_R->TransformPointLocalToParent(ChVector<>(sign * GetConnectorLength() / 2, 0, 0));
 
         auto sph_R = chrono_types::make_shared<ChLinkLockSpherical>();
         sph_R->SetNameString(m_name + "_sph_next_R");

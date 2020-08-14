@@ -360,7 +360,10 @@ source_group(physics\\shafts FILES
 set(ChronoEngine_fea_SOURCES
     fea/ChBuilderBeam.cpp
     fea/ChBeamSection.cpp
+    fea/ChBeamSectionShape.cpp
     fea/ChBeamSectionCosserat.cpp
+    fea/ChBeamSectionEuler.cpp
+    fea/ChBeamSectionCable.cpp
     fea/ChContinuumMaterial.cpp
     fea/ChGaussIntegrationRule.cpp
     fea/ChGaussPoint.cpp
@@ -389,7 +392,10 @@ set(ChronoEngine_fea_SOURCES
 
 set(ChronoEngine_fea_HEADERS
     fea/ChBeamSection.h
+    fea/ChBeamSectionShape.h
     fea/ChBeamSectionCosserat.h
+    fea/ChBeamSectionEuler.h
+    fea/ChBeamSectionCable.h
     fea/ChBuilderBeam.h
     fea/ChContinuumMaterial.h
     fea/ChContinuumPoisson3D.h
@@ -1284,6 +1290,8 @@ target_compile_definitions(ChronoEngine PRIVATE "CH_IGNORE_DEPRECATED")
 if (USE_BULLET_DOUBLE)
     target_compile_definitions(ChronoEngine PRIVATE "BT_USE_DOUBLE_PRECISION")
 endif()
+
+target_link_libraries(ChronoEngine ${OPENMP_LIBRARIES})
 
 if(XCODE_VERSION)
     set_target_properties(ChronoEngine PROPERTIES XCODE_ATTRIBUTE_ENABLE_OPENMP_SUPPORT ${ENABLE_OPENMP})

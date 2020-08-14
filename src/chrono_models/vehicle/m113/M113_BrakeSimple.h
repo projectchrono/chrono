@@ -16,8 +16,8 @@
 //
 // =============================================================================
 
-#ifndef M113_BRAKESIMPLE_H
-#define M113_BRAKESIMPLE_H
+#ifndef M113_BRAKE_SIMPLE_H
+#define M113_BRAKE_SIMPLE_H
 
 #include "chrono_vehicle/tracked_vehicle/brake/ChTrackBrakeSimple.h"
 

@@ -43,7 +43,7 @@ initRot = chrono.ChQuaternionD(1, 0, 0, 0)
 chassis_vis_type = veh.VisualizationType_MESH
 suspension_vis_type = veh.VisualizationType_PRIMITIVES
 steering_vis_type = veh.VisualizationType_PRIMITIVES
-wheel_vis_type = veh.VisualizationType_MESH
+wheel_vis_type = veh.VisualizationType_NONE
 tire_vis_type = veh.VisualizationType_MESH
 
 # Poon chassis tracked by the camera
@@ -74,6 +74,7 @@ gator = veh.Gator()
 gator.SetContactMethod(chrono.ChContactMethod_NSC)
 gator.SetChassisFixed(False)
 gator.SetInitPosition(chrono.ChCoordsysD(initLoc, initRot))
+gator.SetBrakeType(veh.BrakeType_SHAFTS)
 gator.SetTireType(veh.TireModelType_TMEASY)
 gator.SetTireStepSize(tire_step_size)
 gator.SetInitFwdVel(0.0)
@@ -85,8 +86,12 @@ gator.SetSteeringVisualizationType(steering_vis_type)
 gator.SetWheelVisualizationType(wheel_vis_type)
 gator.SetTireVisualizationType(tire_vis_type)
 
-print("Vehicle mass:               " + str(gator.GetVehicle().GetVehicleMass()) + "\n")
-print("Vehicle mass (with tires):  " + str(gator.GetTotalMass()) + "\n")
+print("Vehicle mass:               " + str(gator.GetVehicle().GetVehicleMass()))
+print("Vehicle mass (with tires):  " + str(gator.GetTotalMass()))
+print("Driveline type: " + gator.GetVehicle().GetDriveline().GetTemplateName())
+print("Brake type:     " + gator.GetVehicle().GetBrake(1, veh.LEFT).GetTemplateName())
+print("Tire type:      " + gator.GetVehicle().GetTire(1, veh.LEFT).GetTemplateName())
+print("\n")
 
 # ------------------
 # Create the terrain

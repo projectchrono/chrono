@@ -233,6 +233,8 @@ int main(int argc, char* argv[]) {
     std::cout << out_json << std::endl;
     vehicle.ExportComponentList(veh_dir + "/component_list.json");
 
+    vehicle.LogSubsystemTypes();
+
     // Simulation loop
     ChRealtimeStepTimer realtime_timer;
     while (app.GetDevice()->run()) {

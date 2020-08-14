@@ -179,10 +179,19 @@ using namespace chrono::fea;
 %shared_ptr(chrono::fea::ChContinuumPlasticVonMises)
 %shared_ptr(chrono::fea::ChContinuumDruckerPrager)
 %shared_ptr(chrono::fea::ChBeamSection)
+%shared_ptr(chrono::fea::ChBeamSectionShape)
+%shared_ptr(chrono::fea::ChBeamSectionShapeCircular)
+%shared_ptr(chrono::fea::ChBeamSectionShapeRectangular)
+%shared_ptr(chrono::fea::ChBeamSectionShapePolyline)
+%shared_ptr(chrono::fea::ChBeamSectionEuler)
+%shared_ptr(chrono::fea::ChBeamSectionEulerSimple)
+%shared_ptr(chrono::fea::ChBeamSectionEulerAdvanced)
+%shared_ptr(chrono::fea::ChBeamSectionEulerGeneric)
+%shared_ptr(chrono::fea::ChBeamSectionEulerEasyCircular)
+%shared_ptr(chrono::fea::ChBeamSectionEulerEasyRectangular)
 %shared_ptr(chrono::fea::ChBeamSectionBasic)
 %shared_ptr(chrono::fea::ChBeamSectionCable)
 %shared_ptr(chrono::fea::ChBeamSectionAdvanced)
-//%shared_ptr(chrono::fea::ChBeamSectionProperties)
 %shared_ptr(chrono::fea::ChBeamSectionCosserat)
 %shared_ptr(chrono::fea::ChBeamSectionCosseratEasyCircular)
 %shared_ptr(chrono::fea::ChBeamSectionCosseratEasyRectangular)
@@ -357,8 +366,11 @@ using namespace chrono::fea;
 %include "../../chrono/fea/ChElementBar.h"
 %include "../../chrono/fea/ChElementSpring.h"
 %include "../../chrono/fea/ChElementCorotational.h"
+%include "../../chrono/fea/ChBeamSectionShape.h"
 %include "../../chrono/fea/ChBeamSection.h"
 %include "../../chrono/fea/ChBeamSectionCosserat.h"
+%include "../../chrono/fea/ChBeamSectionEuler.h"
+%include "../../chrono/fea/ChBeamSectionCable.h"
 %include "../../chrono/fea/ChElementBeam.h"
 %include "../../chrono/fea/ChElementBeamEuler.h"
 %include "../../chrono/fea/ChElementBeamANCF.h"
@@ -469,6 +481,11 @@ using namespace chrono::fea;
 %DefSharedPtrDynamicDowncast(chrono::fea,ChNodeFEAbase,ChNodeFEAxyzDD)
 %DefSharedPtrDynamicDowncast(chrono::fea,ChNodeFEAbase,ChNodeFEAxyzrot)
 %DefSharedPtrDynamicDowncast2NS(chrono,chrono::fea,ChAsset,ChVisualizationFEAmesh)
+%DefSharedPtrDynamicDowncast2NS(chrono,chrono::fea,ChContactable,ChContactTriangleXYZ)
+%DefSharedPtrDynamicDowncast2NS(chrono,chrono::fea,ChContactable,ChContactTriangleXYZROT)
+%DefSharedPtrDynamicDowncast2NS(chrono,chrono::fea,ChContactable,ChContactNodeXYZ)
+%DefSharedPtrDynamicDowncast2NS(chrono,chrono::fea,ChContactable,ChContactNodeXYZROT)
+//%DefSharedPtrDynamicDowncast2NS(chrono,chrono::fea,ChContactable,ChNodeMeshless)
 
 //
 // ADDITIONAL C++ FUNCTIONS / CLASSES THAT ARE USED ONLY FOR PYTHON WRAPPER

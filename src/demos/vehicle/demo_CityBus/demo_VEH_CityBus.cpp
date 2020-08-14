@@ -210,8 +210,8 @@ int main(int argc, char* argv[]) {
         my_bus.LogHardpointLocations();
     }
 
-    // output vehicle mass
-    std::cout << "VEHICLE MASS: " << my_bus.GetVehicle().GetVehicleMass() << std::endl;
+    my_bus.GetVehicle().LogSubsystemTypes();
+    std::cout << "\nVehicle mass: " << my_bus.GetVehicle().GetVehicleMass() << std::endl;
 
     // Number of simulation steps between miscellaneous events
     int render_steps = (int)std::ceil(render_step_size / step_size);

@@ -127,7 +127,7 @@ node_tip = builder_iga.GetLastBeamNodes()[-1]
 node_mid = builder_iga.GetLastBeamNodes()[17]
 
 # Create the vertical beam (Here use Euler beams, for example).
-msection2 = fea.ChBeamSectionAdvanced()
+msection2 = fea.ChBeamSectionEulerAdvanced()
 
 hbeam_d = 0.024
 msection2.SetDensity(2700)
@@ -138,7 +138,7 @@ msection2.SetAsCircularSection(hbeam_d)
 
 builderA = fea.ChBuilderBeamEuler()
 builderA.BuildBeam(my_mesh,               # the mesh where to put the created nodes and elements
-                  msection2,             # the ChBeamSectionAdvanced to use for the ChElementBeamEuler elements
+                  msection2,             # the ChBeamSectionEulerAdvanced to use for the ChElementBeamEuler elements
                   3,                     # the number of ChElementBeamEuler to create
                   vC + vd,               # the 'A' poin space (beginning of beam)
                   vB + vd,               # the 'B' poin space (end of beam)
@@ -160,7 +160,7 @@ msphereconstr2.GetSphereGeometry().rad = 0.01
 constr_bb.AddAsset(msphereconstr2)
 
 # Create a beam as a crank
-msection3 = fea.ChBeamSectionAdvanced()
+msection3 = fea.ChBeamSectionEulerAdvanced()
 
 crankbeam_d = 0.048
 msection3.SetDensity(2700)
@@ -170,7 +170,7 @@ msection3.SetBeamRaleyghDamping(0.000)
 msection3.SetAsCircularSection(crankbeam_d)
 builderB = fea.ChBuilderBeamEuler()
 builderB.BuildBeam(my_mesh,               # the mesh where to put the created nodes and elements
-                  msection3,             # the ChBeamSectionAdvanced to use for the ChElementBeamEuler elements
+                  msection3,             # the ChBeamSectionEulerAdvanced to use for the ChElementBeamEuler elements
                   3,                     # the number of ChElementBeamEuler to create
                   vG + vd,               # the 'A' poin space (beginning of beam)
                   vB + vd,               # the 'B' poin space (end of beam)

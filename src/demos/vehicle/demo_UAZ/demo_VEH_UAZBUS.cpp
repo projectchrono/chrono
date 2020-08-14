@@ -29,6 +29,8 @@
 #include "chrono_vehicle/driver/ChIrrGuiDriver.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
 #include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleIrrApp.h"
+#include "chrono_models/vehicle/uaz/UAZBUS_LeafspringAxle.h"
+#include "chrono_models/vehicle/uaz/UAZBUS_ToeBarLeafspringAxle.h"
 
 #include "chrono_models/vehicle/uaz/UAZBUS.h"
 
@@ -184,6 +186,8 @@ int main(int argc, char* argv[]) {
     // ---------------
     // Simulation loop
     // ---------------
+
+    uaz.GetVehicle().LogSubsystemTypes();
 
     int render_steps = (int)std::ceil(render_step_size / step_size);
     int step_number = 0;

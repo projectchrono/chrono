@@ -231,10 +231,21 @@ void ChWheeledVehicle::SetDrivelineOutput(bool state) {
 }
 
 // -----------------------------------------------------------------------------
-// Get the specified wheel (axle, side, location)
+// Get the specified wheel or tire (axle, side, location)
 // -----------------------------------------------------------------------------
 std::shared_ptr<ChWheel> ChWheeledVehicle::GetWheel(int axle, VehicleSide side, WheelLocation location) const {
     return m_axles[axle]->GetWheel(side, location);
+}
+
+std::shared_ptr<ChTire> ChWheeledVehicle::GetTire(int axle, VehicleSide side, WheelLocation location) const {
+    return m_axles[axle]->GetWheel(side, location)->GetTire();
+}
+
+// -----------------------------------------------------------------------------
+// Get the specified brake (axle, side)
+// -----------------------------------------------------------------------------
+std::shared_ptr<ChBrake> ChWheeledVehicle::GetBrake(int axle, VehicleSide side) const {
+    return m_axles[axle]->GetBrake(side);
 }
 
 // -----------------------------------------------------------------------------
@@ -349,6 +360,31 @@ void ChWheeledVehicle::LogConstraintViolations() {
 
     GetLog().SetNumFormat("%g");
 }
+
+// -----------------------------------------------------------------------------
+
+void ChWheeledVehicle::LogSubsystemTypes() {
+    GetLog() << "\nSubsystem types\n";
+    GetLog() << "Chassis:        " << m_chassis->GetTemplateName().c_str() << "\n";
+    GetLog() << "Powertrain:     " << m_powertrain->GetTemplateName().c_str() << "\n";
+    GetLog() << "Driveline:      " << m_driveline->GetTemplateName().c_str() << "\n";
+
+    for (int i = 0; i < m_steerings.size(); i++) {
+        GetLog() << "Steering " << i << ":     " << m_steerings[i]->GetTemplateName().c_str() << "\n";
+    }
+
+    for (int i = 0; i < m_axles.size(); i++) {
+        GetLog() << "Axle " << i << "\n";
+        GetLog() << "  Suspension:   " << m_axles[i]->m_suspension->GetTemplateName().c_str() << "\n";
+        if (m_axles[i]->m_antirollbar)
+            GetLog() << "  Antiroll bar: " << m_axles[i]->m_brake_left->GetTemplateName().c_str() << "\n";
+        if (m_axles[i]->m_brake_left)
+            GetLog() << "  Brake:        " << m_axles[i]->m_brake_left->GetTemplateName().c_str() << "\n";
+        GetLog() << "  Tire:         " << GetTire(i, LEFT)->GetTemplateName().c_str() << "\n";
+    }
+}
+
+// -----------------------------------------------------------------------------
 
 std::string ChWheeledVehicle::ExportComponentList() const {
     rapidjson::Document jsonDocument;

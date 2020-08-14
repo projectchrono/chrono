@@ -590,7 +590,8 @@ void ChAssembly::IntStateScatter(const unsigned int off_x,
                                  const ChState& x,
                                  const unsigned int off_v,
                                  const ChStateDelta& v,
-                                 const double T) {
+                                 const double T,
+                                 bool full_update) {
     // Notes:
     // 1. All IntStateScatter() calls below will automatically call Update() for each object, therefore:
     //    - do not call Update() on this (assembly).
@@ -604,21 +605,21 @@ void ChAssembly::IntStateScatter(const unsigned int off_x,
 
     for (auto& body : bodylist) {
         if (body->IsActive())
-            body->IntStateScatter(displ_x + body->GetOffset_x(), x, displ_v + body->GetOffset_w(), v, T);
+            body->IntStateScatter(displ_x + body->GetOffset_x(), x, displ_v + body->GetOffset_w(), v, T, full_update);
         else
-            body->Update(T);
+            body->Update(T, full_update);
     }
     for (auto& mesh : meshlist) {
-        mesh->IntStateScatter(displ_x + mesh->GetOffset_x(), x, displ_v + mesh->GetOffset_w(), v, T);
+        mesh->IntStateScatter(displ_x + mesh->GetOffset_x(), x, displ_v + mesh->GetOffset_w(), v, T, full_update);
     }
     for (auto& link : linklist) {
         if (link->IsActive())
-            link->IntStateScatter(displ_x + link->GetOffset_x(), x, displ_v + link->GetOffset_w(), v, T);
+            link->IntStateScatter(displ_x + link->GetOffset_x(), x, displ_v + link->GetOffset_w(), v, T, full_update);
         else
-            link->Update(T);
+            link->Update(T, full_update);
     }
     for (auto& item : otherphysicslist) {
-        item->IntStateScatter(displ_x + item->GetOffset_x(), x, displ_v + item->GetOffset_w(), v, T);
+        item->IntStateScatter(displ_x + item->GetOffset_x(), x, displ_v + item->GetOffset_w(), v, T, full_update);
     }
     SetChTime(T);
 }

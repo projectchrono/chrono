@@ -530,8 +530,11 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     /// From system to state y={x,v}
     virtual void StateGather(ChState& x, ChStateDelta& v, double& T) override;
 
-    /// From state Y={x,v} to system.
-    virtual void StateScatter(const ChState& x, const ChStateDelta& v, const double T) override;
+    /// From state Y={x,v} to system. This also triggers an update operation.
+    virtual void StateScatter(const ChState& x,
+                              const ChStateDelta& v,
+                              const double T,
+                              bool full_update) override;
 
     /// From system to state derivative (acceleration), some timesteppers might need last computed accel.
     virtual void StateGatherAcceleration(ChStateDelta& a) override;
@@ -568,18 +571,19 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     /// for residual R and  G = [ c_a*M + c_v*dF/dv + c_x*dF/dx ].\n
     /// This function returns true if successful and false otherwise.
     virtual bool StateSolveCorrection(
-        ChStateDelta& Dv,                 ///< result: computed Dv
-        ChVectorDynamic<>& L,             ///< result: computed lagrangian multipliers, if any
-        const ChVectorDynamic<>& R,       ///< the R residual
-        const ChVectorDynamic<>& Qc,      ///< the Qc residual
-        const double c_a,                 ///< the factor in c_a*M
-        const double c_v,                 ///< the factor in c_v*dF/dv
-        const double c_x,                 ///< the factor in c_x*dF/dv
-        const ChState& x,                 ///< current state, x part
-        const ChStateDelta& v,            ///< current state, v part
-        const double T,                   ///< current time T
-        bool force_state_scatter = true,  ///< if false, x,v and T are not scattered to the system
-        bool force_setup = true           ///< if true, call the solver's Setup() function
+        ChStateDelta& Dv,             ///< result: computed Dv
+        ChVectorDynamic<>& L,         ///< result: computed lagrangian multipliers, if any
+        const ChVectorDynamic<>& R,   ///< the R residual
+        const ChVectorDynamic<>& Qc,  ///< the Qc residual
+        const double c_a,             ///< the factor in c_a*M
+        const double c_v,             ///< the factor in c_v*dF/dv
+        const double c_x,             ///< the factor in c_x*dF/dv
+        const ChState& x,             ///< current state, x part
+        const ChStateDelta& v,        ///< current state, v part
+        const double T,               ///< current time T
+        bool force_state_scatter,     ///< if false, x and v are not scattered to the system
+        bool full_update,             ///< if true, perform a full update during scatter
+        bool force_setup              ///< if true, call the solver's Setup() function
         ) override;
 
     /// Increment a vector R with the term c*F:

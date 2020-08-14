@@ -165,6 +165,8 @@ int main(int argc, char* argv[]) {
     // Simulation loop
     // ---------------
 
+    my_hmmwv.GetVehicle().LogSubsystemTypes();
+
     // Number of simulation steps between two 3D view render frames
     int render_steps = (int)std::ceil(render_step_size / step_size);
 

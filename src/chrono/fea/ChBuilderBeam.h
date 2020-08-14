@@ -46,7 +46,7 @@ class ChApi ChBuilderBeamEuler {
     /// Add beam FEM elements to the mesh to create a segment beam from point A to point B, using ChElementBeamEuler
     /// type elements. Before running, each time resets lists of beam_elems and beam_nodes.
     void BuildBeam(std::shared_ptr<ChMesh> mesh,                 ///< mesh to store the resulting elements
-                   std::shared_ptr<ChBeamSectionAdvanced> sect,  ///< section material for beam elements
+                   std::shared_ptr<ChBeamSectionEuler> sect,     ///< section material for beam elements
                    const int N,                                  ///< number of elements in the segment
                    const ChVector<> A,                           ///< starting point
                    const ChVector<> B,                           ///< ending point
@@ -56,7 +56,7 @@ class ChApi ChBuilderBeamEuler {
     /// Add beam FEM elements to the mesh to create a segment beam from one existing node to another existing node,
     /// using ChElementBeamEuler type elements. Before running, each time resets lists of beam_elems and beam_nodes.
     void BuildBeam(std::shared_ptr<ChMesh> mesh,                 ///< mesh to store the resulting elements
-                   std::shared_ptr<ChBeamSectionAdvanced> sect,  ///< section material for beam elements
+                   std::shared_ptr<ChBeamSectionEuler> sect,     ///< section material for beam elements
                    const int N,                                  ///< number of elements in the segment
                    std::shared_ptr<ChNodeFEAxyzrot> nodeA,       ///< starting point
                    std::shared_ptr<ChNodeFEAxyzrot> nodeB,       ///< ending point
@@ -66,7 +66,7 @@ class ChApi ChBuilderBeamEuler {
     /// Add beam FEM elements to the mesh to create a segment beam from one existing node to a point B, using
     /// ChElementBeamEuler type elements. Before running, each time resets lists of beam_elems and beam_nodes.
     void BuildBeam(std::shared_ptr<ChMesh> mesh,                 ///< mesh to store the resulting elements
-                   std::shared_ptr<ChBeamSectionAdvanced> sect,  ///< section material for beam elements
+                   std::shared_ptr<ChBeamSectionEuler> sect,     ///< section material for beam elements
                    const int N,                                  ///< number of elements in the segment
                    std::shared_ptr<ChNodeFEAxyzrot> nodeA,       ///< starting point
                    const ChVector<> B,                           ///< ending point
@@ -210,7 +210,7 @@ class ChApi ChExtruderBeamEuler {
     ChSystem* mysystem;
     std::shared_ptr<ChMesh> mesh;
 
-    std::shared_ptr<ChBeamSectionAdvanced> beam_section;
+    std::shared_ptr<ChBeamSectionEuler> beam_section;
     double h;
     ChCoordsys<> outlet;
     double mytime;
@@ -225,7 +225,7 @@ class ChApi ChExtruderBeamEuler {
     /// Initialize and add required constraints to system
     ChExtruderBeamEuler(ChSystem* msystem,                            ///< system to store the constraints
                         std::shared_ptr<ChMesh> mmesh,                ///< mesh to store the resulting elements
-                        std::shared_ptr<ChBeamSectionAdvanced> sect,  ///< section material for beam elements
+                        std::shared_ptr<ChBeamSectionEuler> sect,     ///< section material for beam elements
                         double mh,                                    ///< element length
                         const ChCoordsys<> moutlet,  ///< outlet pos & orientation (x is extrusion direction)
                         double mspeed                ///< speed

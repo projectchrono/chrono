@@ -28,14 +28,6 @@
 #include "chrono_vehicle/powertrain/SimpleMapPowertrain.h"
 #include "chrono_vehicle/powertrain/SimpleCVTPowertrain.h"
 #include "chrono_vehicle/powertrain/ShaftsPowertrain.h"
-
-
-#include "chrono_models/vehicle/generic/Generic_SimplePowertrain.h"
-#include "chrono_models/vehicle/generic/Generic_SimpleMapPowertrain.h"
-#include "chrono_models/vehicle/hmmwv/HMMWV_SimplePowertrain.h"
-#include "chrono_models/vehicle/hmmwv/HMMWV_SimpleMapPowertrain.h"
-#include "chrono_models/vehicle/sedan/Sedan_SimpleMapPowertrain.h"
-
 %}
 
 %shared_ptr(chrono::vehicle::ChPowertrain)

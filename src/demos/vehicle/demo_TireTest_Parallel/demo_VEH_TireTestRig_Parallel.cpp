@@ -43,15 +43,7 @@ int main() {
     ////double step_size = 1e-4;
     ////double tire_step_size = 1e-4;
 
-    int threads = 8;
-    int max_threads = CHOMPfunctions::GetNumProcs();
-    if (threads > max_threads)
-        threads = max_threads;
-    CHOMPfunctions::SetNumThreads(threads);
-#pragma omp parallel
-#pragma omp master
-    std::cout << "Using " << CHOMPfunctions::GetNumThreads() << " threads" << std::endl;
-    system.GetSettings()->perform_thread_tuning = false;
+    system.SetNumThreads(8);
 
     system.GetSettings()->solver.tolerance = 1e-5;
     system.GetSettings()->solver.solver_mode = SolverMode::SLIDING;
@@ -65,7 +57,6 @@ int main() {
     system.GetSettings()->solver.use_full_inertia_tensor = false;
     system.GetSettings()->solver.contact_recovery_speed = 1000;
     system.GetSettings()->solver.bilateral_clamp_speed = 1e8;
-    system.GetSettings()->min_threads = threads;
 
     // Create wheel and tire subsystems
     // --------------------------------

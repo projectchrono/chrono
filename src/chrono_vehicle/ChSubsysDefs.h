@@ -517,6 +517,12 @@ enum class SuspensionType {
     SAE_TOE_BAR_LEAF_SPRING_AXLE      ///< steerable leaf-spring solid axle with kinematic leaf-spring model
 };
 
+/// Enum for available brake model templates.
+enum class BrakeType {
+    SHAFTS, ///< brake model using a clutch between two shafts
+    SIMPLE  ///< brake model using a simple speed-dependent torque
+};
+
 /// Enum for available wheeled-vehicle steering model templates.
 enum class SteeringType {
     PITMAN_ARM,         ///< Pitman arm (input to revolute joint)

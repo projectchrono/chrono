@@ -54,6 +54,7 @@ class CH_MODELS_API CityBus {
     void SetChassisFixed(bool val) { m_fixed = val; }
     void SetChassisCollisionType(ChassisCollisionType val) { m_chassisCollisionType = val; }
 
+    void SetBrakeType(BrakeType brake_type) { m_brake_type = brake_type; }
     void SetTireType(TireModelType val) { m_tireType = val; }
 
     void SetInitPosition(const ChCoordsys<>& pos) { m_initPos = pos; }
@@ -93,6 +94,7 @@ class CH_MODELS_API CityBus {
     bool m_fixed;
     bool m_brake_locking;
 
+    BrakeType m_brake_type;
     TireModelType m_tireType;
 
     double m_tire_step_size;

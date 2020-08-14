@@ -117,7 +117,7 @@ int main(int argc, char* argv[]) {
     // --------------------------
 
     ChassisCollisionType chassis_collision_type = ChassisCollisionType::PRIMITIVES;
-    M113_Vehicle vehicle(false, TrackShoeType::BAND_BUSHING, ChContactMethod::SMC, chassis_collision_type);
+    M113_Vehicle vehicle(false, TrackShoeType::BAND_BUSHING, BrakeType::SIMPLE, ChContactMethod::SMC, chassis_collision_type);
 
     // Disable gravity in this simulation
     ////vehicle.GetSystem()->Set_G_acc(ChVector<>(0, 0, 0));

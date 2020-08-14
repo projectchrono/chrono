@@ -131,13 +131,9 @@ class CH_VEHICLE_API ChDoubleWishbone : public ChSuspension {
     /// Log current constraint violations.
     virtual void LogConstraintViolations(VehicleSide side) override;
 
-    /// Specify the left body for a possible antirollbar subsystem.
-    /// Return a handle to the left Lower Control Arm.
-    virtual std::shared_ptr<ChBody> GetLeftBody() const override { return m_LCA[0]; }
-
-    /// Specify the right body for a possible antirollbar subsystem.
-    /// Return a handle to the right Lower Control Arm.
-    virtual std::shared_ptr<ChBody> GetRightBody() const override { return m_LCA[1]; }
+    /// Specify the suspension body on the specified side to attach a possible antirollbar subsystem.
+    /// Return the corresponding lower control arm.
+    virtual std::shared_ptr<ChBody> GetAntirollBody(VehicleSide side) const override { return m_LCA[side]; }
 
     /// Log the locations of all hardpoints.
     /// The reported locations are expressed in the suspension reference frame.

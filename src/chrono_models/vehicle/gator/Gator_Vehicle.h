@@ -34,13 +34,17 @@ namespace gator {
 /// Gator vehicle system.
 class CH_MODELS_API Gator_Vehicle : public ChWheeledVehicle {
   public:
-    Gator_Vehicle(const bool fixed = false,
-                  ChContactMethod contact_method = ChContactMethod::NSC,
-                  ChassisCollisionType chassis_collision_type = ChassisCollisionType::NONE);
+    Gator_Vehicle(const bool fixed,
+                  DrivelineType driveline_type,
+                  BrakeType brake_type,
+                  ChContactMethod contact_method,
+                  ChassisCollisionType chassis_collision_type);
 
     Gator_Vehicle(ChSystem* system,
-                  const bool fixed = false,
-                  ChassisCollisionType chassis_collision_type = ChassisCollisionType::NONE);
+                  const bool fixed,
+                  DrivelineType driveline_type,
+                  BrakeType brake_type,
+                  ChassisCollisionType chassis_collision_type);
 
     ~Gator_Vehicle();
 
@@ -66,7 +70,10 @@ class CH_MODELS_API Gator_Vehicle : public ChWheeledVehicle {
     void DebugLog(int what);       /// shock forces and lengths, constraints, etc.
 
   private:
-    void Create(bool fixed, ChassisCollisionType chassis_collision_type);
+    void Create(bool fixed,
+                DrivelineType driveline_type,
+                BrakeType brake_type,
+                ChassisCollisionType chassis_collision_type);
 
     std::vector<double> m_omega;
 };

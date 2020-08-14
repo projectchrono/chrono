@@ -87,6 +87,16 @@ class CH_VEHICLE_API ChWheeledVehicle : public ChVehicle {
     /// right wheel; for a double-wheel axle, the order is inner left, inner right, outer left, outer right.
     std::shared_ptr<ChWheel> GetWheel(int axle, VehicleSide side, WheelLocation location = SINGLE) const;
 
+    /// Get the specified vehicle tire, by specifying the axle, side, and wheel location.
+    /// Axles are assumed to be indexed starting from the front of the vehicle. On each axle, wheels are assumed to be
+    /// ordered from inner to outer wheels, first left then right: for a single-wheel axle the order is left wheel,
+    /// right wheel; for a double-wheel axle, the order is inner left, inner right, outer left, outer right.
+    std::shared_ptr<ChTire> GetTire(int axle, VehicleSide side, WheelLocation location = SINGLE) const;
+
+    /// Get the specified vehicle brake, by specifying the axle and side.
+    /// Axles are assumed to be indexed starting from the front of the vehicle.
+    std::shared_ptr<ChBrake> GetBrake(int axle, VehicleSide side) const;
+
     /// Get a handle to the vehicle's driveline subsystem.
     std::shared_ptr<ChDrivelineWV> GetDriveline() const { return m_driveline; }
 
@@ -228,7 +238,7 @@ class CH_VEHICLE_API ChWheeledVehicle : public ChVehicle {
     void EnableBrakeLocking(bool lock);
 
     /// Engage/disengage parking brake.
-    /// If engaged, this locks all suspension spindle revolute joints.
+    /// If engaged and supported by the concrete brake type on this vehicle, this locks all vehicle brakes.
     void ApplyParkingBrake(bool lock);
 
     /// Returns the state of the parking brake (true if enagaged, false otherwise).
@@ -236,6 +246,9 @@ class CH_VEHICLE_API ChWheeledVehicle : public ChVehicle {
 
     /// Log current constraint violations.
     virtual void LogConstraintViolations() override;
+
+    /// Log the types (template names) of current vehicle subsystems.
+    void LogSubsystemTypes();
 
     /// Return a JSON string with information on all modeling components in the vehicle system.
     /// These include bodies, shafts, joints, spring-damper elements, markers, etc.

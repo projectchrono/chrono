@@ -64,7 +64,7 @@ void test_1() {
     my_mesh->AddNode(mnodeB);
 
     // Create beam section & material
-    auto msection = chrono_types::make_shared<ChBeamSectionAdvanced>();
+    auto msection = chrono_types::make_shared<ChBeamSectionEulerAdvanced>();
     double beam_wy = 0.1;
     double beam_wz = 0.2;
     msection->SetAsRectangularSection(beam_wy, beam_wz);

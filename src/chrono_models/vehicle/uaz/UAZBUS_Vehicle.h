@@ -19,25 +19,10 @@
 #ifndef UAZBUS_VEHICLE_H
 #define UAZBUS_VEHICLE_H
 
-#include <vector>
-
-#include "chrono/core/ChCoordsys.h"
-#include "chrono/physics/ChMaterialSurface.h"
-#include "chrono/physics/ChSystem.h"
-
 #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicle.h"
 
 #include "chrono_models/ChApiModels.h"
 #include "chrono_models/vehicle/ChVehicleModelDefs.h"
-
-#include "chrono_models/vehicle/uaz/UAZBUS_BrakeSimple.h"
-#include "chrono_models/vehicle/uaz/UAZBUS_Chassis.h"
-#include "chrono_models/vehicle/uaz/UAZBUS_Driveline4WD.h"
-#include "chrono_models/vehicle/uaz/UAZBUS_LeafspringAxle.h"
-#include "chrono_models/vehicle/uaz/UAZBUS_RotaryArm.h"
-#include "chrono_models/vehicle/uaz/UAZBUS_SimpleMapPowertrain.h"
-#include "chrono_models/vehicle/uaz/UAZBUS_ToeBarLeafspringAxle.h"
-#include "chrono_models/vehicle/uaz/UAZBUS_Wheel.h"
 
 namespace chrono {
 namespace vehicle {
@@ -49,14 +34,16 @@ namespace uaz {
 /// UAZ vehicle system.
 class CH_MODELS_API UAZBUS_Vehicle : public ChWheeledVehicle {
   public:
-    UAZBUS_Vehicle(const bool fixed = false,
-                   SteeringType steering_model = SteeringType::PITMAN_ARM,
+    UAZBUS_Vehicle(const bool fixed,
+                   BrakeType brake_type,
+                   SteeringType steering_model,
                    ChContactMethod contact_method = ChContactMethod::NSC,
                    ChassisCollisionType chassis_collision_type = ChassisCollisionType::NONE);
 
     UAZBUS_Vehicle(ChSystem* system,
-                   const bool fixed = false,
-                   SteeringType steering_model = SteeringType::PITMAN_ARM,
+                   const bool fixed,
+                   BrakeType brake_type,
+                   SteeringType steering_model,
                    ChassisCollisionType chassis_collision_type = ChassisCollisionType::NONE);
 
     ~UAZBUS_Vehicle();
@@ -87,7 +74,10 @@ class CH_MODELS_API UAZBUS_Vehicle : public ChWheeledVehicle {
     void DebugLog(int what);       /// shock forces and lengths, constraints, etc.
 
   private:
-    void Create(bool fixed, SteeringType steering_model, ChassisCollisionType chassis_collision_type);
+    void Create(bool fixed,
+                BrakeType brake_type,
+                SteeringType steering_model,
+                ChassisCollisionType chassis_collision_type);
 
     std::vector<double> m_omega;
 };

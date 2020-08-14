@@ -34,14 +34,16 @@ namespace fmtv {
 /// MTV vehicle system (5t truck).
 class CH_MODELS_API MTV_Vehicle : public ChWheeledVehicle {
   public:
-    MTV_Vehicle(const bool fixed = false,
-                SteeringType steering_model = SteeringType::PITMAN_ARM,
+    MTV_Vehicle(const bool fixed,
+                BrakeType brake_type,
+                SteeringType steering_model,
                 ChContactMethod contact_method = ChContactMethod::NSC,
                 ChassisCollisionType chassis_collision_type = ChassisCollisionType::NONE);
 
     MTV_Vehicle(ChSystem* system,
-                const bool fixed = false,
-                SteeringType steering_model = SteeringType::PITMAN_ARM,
+                const bool fixed,
+                BrakeType brake_type,
+                SteeringType steering_model,
                 ChassisCollisionType chassis_collision_type = ChassisCollisionType::NONE);
 
     ~MTV_Vehicle();
@@ -72,7 +74,10 @@ class CH_MODELS_API MTV_Vehicle : public ChWheeledVehicle {
     void DebugLog(int what);       /// shock forces and lengths, constraints, etc.
 
   private:
-    void Create(bool fixed, SteeringType steering_model, ChassisCollisionType chassis_collision_type);
+    void Create(bool fixed,
+                BrakeType brake_type,
+                SteeringType steering_model,
+                ChassisCollisionType chassis_collision_type);
 
     std::vector<double> m_omega;
 };
