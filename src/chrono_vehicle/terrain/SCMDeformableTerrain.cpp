@@ -294,6 +294,7 @@ void SCMDeformableSoil::Initialize(double sizeX, double sizeY, double delta) {
     int nY = 2 * static_cast<int>(std::ceil((sizeY / 2) / delta));
 
     m_delta = sizeX / nX;
+    m_area = std::pow(m_delta, 2);
 
     unsigned int nvx = nX + 1;
     unsigned int nvy = nY + 1;
@@ -529,7 +530,9 @@ double SCMDeformableSoil::GetHeight(const ChVector2<int>& loc) {
     // Else return undeformed height
     switch (m_type) {
         case PatchType::BOX:
-            return ChWorldFrame::Height(plane.pos);
+            // I think this should just return 0
+            return 0.2;
+            // return ChWorldFrame::Height(plane.pos);
         case PatchType::HEIGHT_MAP:
             //// TODO
             return 0;
@@ -546,6 +549,11 @@ double SCMDeformableSoil::GetHeight(const ChVector<>& loc) const {
 
 // Set up auxiliary data structures.
 void SCMDeformableSoil::SetupAuxData() {
+    // ----------------------
+    // OLD
+    // Don't think we need this except for the m_trimesh initialization if we stick with that for viz
+    // ----------------------
+
     // better readability:
     std::vector<ChVector<int>>& idx_vertices = m_trimesh_shape->GetMesh()->getIndicesVertexes();
     std::vector<ChVector<>>& vertices = m_trimesh_shape->GetMesh()->getCoordsVertices();
@@ -713,12 +721,6 @@ void SCMDeformableSoil::ComputeInternalForces() {
 
     // Loop through all moving patches (user-defined or default one)
     for (auto& p : m_patches) {
-
-        ////std::cout << "OOBB_x: [" << p.m_bl.x() << ", " << p.m_tr.x() << "]  ["  //
-        ////          << p.m_bl.x() * m_delta << ", " << p.m_tr.x() * m_delta << "]" << std::endl;
-        ////std::cout << "OOBB_y: [" << p.m_bl.y() << ", " << p.m_tr.y() << "]  ["  //
-        ////          << p.m_bl.y() * m_delta << ", " << p.m_tr.y() * m_delta << "]" << std::endl;
-
         // Loop through all vertices in this range
         for (int i = p.m_bl.x(); i <= p.m_tr.x(); i++) {
             for (int j = p.m_bl.y(); j <= p.m_tr.y(); j++) {
@@ -812,8 +814,6 @@ void SCMDeformableSoil::ComputeInternalForces() {
         contact_patches.push_back(patch);
     }
 
-    ////std::cout << "Num_patches: " << num_patches << ", num_hits: " << num_hits << std::endl;
-
     // Calculate area and perimeter of each contact patch.
     // Calculate approximation to Beker term 1/b.
     for (auto& p : contact_patches) {
@@ -838,132 +838,144 @@ void SCMDeformableSoil::ComputeInternalForces() {
     double damping_R = m_damping_R;
 
     // Process only hit vertices
-    // for (auto& h : hits) {
-    //     int i = h.first;
-    //     ChContactable* contactable = h.second.contactable;
-    //     const ChVector<>& abs_point = h.second.abs_point;
-    //     int patch_id = h.second.patch_id;
+    for (auto& h : hits) {
+        ChVector2<> ij = h.first;
 
-    //     auto loc_point = plane.TransformParentToLocal(abs_point);
+        auto v = m_grid_map.at(ij);
 
-    //     if (m_soil_fun) {
-    //         m_soil_fun->Set(loc_point.x(), loc_point.y());
+        ChContactable* contactable = h.second.contactable;
+        const ChVector<>& abs_point = h.second.abs_point;
+        int patch_id = h.second.patch_id;
 
-    //         Bekker_Kphi = m_soil_fun->m_Bekker_Kphi;
-    //         Bekker_Kc = m_soil_fun->m_Bekker_Kc;
-    //         Bekker_n = m_soil_fun->m_Bekker_n;
-    //         Mohr_cohesion = m_soil_fun->m_Mohr_cohesion;
-    //         Mohr_friction = m_soil_fun->m_Mohr_friction;
-    //         Janosi_shear = m_soil_fun->m_Janosi_shear;
-    //         elastic_K = m_soil_fun->m_elastic_K;
-    //         damping_R = m_soil_fun->m_damping_R;
-    //     }
+        auto loc_point = plane.TransformParentToLocal(abs_point);
 
-    //     p_hit_level[i] = loc_point.z();
-    //     double p_hit_offset = -p_hit_level[i] + p_level_initial[i];
+        if (m_soil_fun) {
+            m_soil_fun->Set(loc_point.x(), loc_point.y());
 
-    //     p_speeds[i] = contactable->GetContactPointSpeed(vertices[i]);
+            Bekker_Kphi = m_soil_fun->m_Bekker_Kphi;
+            Bekker_Kc = m_soil_fun->m_Bekker_Kc;
+            Bekker_n = m_soil_fun->m_Bekker_n;
+            Mohr_cohesion = m_soil_fun->m_Mohr_cohesion;
+            Mohr_friction = m_soil_fun->m_Mohr_friction;
+            Janosi_shear = m_soil_fun->m_Janosi_shear;
+            elastic_K = m_soil_fun->m_elastic_K;
+            damping_R = m_soil_fun->m_damping_R;
+        }
 
-    //     ChVector<> T = -p_speeds[i];
-    //     T = plane.TransformDirectionParentToLocal(T);
-    //     double Vn = -T.z();
-    //     T.z() = 0;
-    //     T = plane.TransformDirectionLocalToParent(T);
-    //     T.Normalize();
+        v.p_hit_level = loc_point.z();
+        double p_hit_offset = -v.p_hit_level + v.p_level_initial;
 
-    //     // Compute i-th force:
-    //     ChVector<> Fn;
-    //     ChVector<> Ft;
+        ChVector<> vertex =
+            plane.TransformPointLocalToParent(ChVector<>(ij.x() * m_delta, ij.y() * m_delta, v.p_level));
 
-    //     // Elastic try:
-    //     p_sigma[i] = elastic_K * (p_hit_offset - p_sinkage_plastic[i]);
+        v.p_speeds = contactable->GetContactPointSpeed(vertex);
 
-    //     // Handle unilaterality:
-    //     if (p_sigma[i] < 0) {
-    //         p_sigma[i] = 0;
-    //     } else {
-    //         // add compressive speed-proportional damping
-    //         ////if (Vn < 0) {
-    //         ////    p_sigma[i] += -Vn * this->damping_R;
-    //         ////}
+        ChVector<> T = -v.p_speeds;
+        T = plane.TransformDirectionParentToLocal(T);
+        double Vn = -T.z();
+        T.z() = 0;
+        T = plane.TransformDirectionLocalToParent(T);
+        T.Normalize();
 
-    //         p_sinkage[i] = p_hit_offset;
-    //         p_level[i] = p_hit_level[i];
+        // Compute i-th force:
+        ChVector<> Fn;
+        ChVector<> Ft;
 
-    //         // Accumulate shear for Janosi-Hanamoto
-    //         p_kshear[i] += Vdot(p_speeds[i], -T) * GetSystem()->GetStep();
+        // Elastic try:
+        v.p_sigma = elastic_K * (p_hit_offset - v.p_sinkage_plastic);
 
-    //         // Plastic correction:
-    //         if (p_sigma[i] > p_sigma_yeld[i]) {
-    //             // Bekker formula
-    //             p_sigma[i] = (patches[patch_id].oob * Bekker_Kc + Bekker_Kphi) * pow(p_sinkage[i], Bekker_n);
-    //             p_sigma_yeld[i] = p_sigma[i];
-    //             double old_sinkage_plastic = p_sinkage_plastic[i];
-    //             p_sinkage_plastic[i] = p_sinkage[i] - p_sigma[i] / elastic_K;
-    //             p_step_plastic_flow[i] = (p_sinkage_plastic[i] - old_sinkage_plastic) / GetSystem()->GetStep();
-    //         }
+        // Handle unilaterality:
+        if (v.p_sigma < 0) {
+            v.p_sigma = 0;
+        } else {
+            // add compressive speed-proportional damping
+            ////if (Vn < 0) {
+            ////    v.p_sigma += -Vn * this->damping_R;
+            ////}
 
-    //         p_sinkage_elastic[i] = p_sinkage[i] - p_sinkage_plastic[i];
+            v.p_sinkage = p_hit_offset;
+            v.p_level = v.p_hit_level;
 
-    //         // add compressive speed-proportional damping (not clamped by pressure yield)
-    //         ////if (Vn < 0) {
-    //         p_sigma[i] += -Vn * damping_R;
-    //         ////}
+            // Accumulate shear for Janosi-Hanamoto
+            v.p_kshear += Vdot(v.p_speeds, -T) * GetSystem()->GetStep();
 
-    //         // Mohr-Coulomb
-    //         double tau_max = Mohr_cohesion + p_sigma[i] * tan(Mohr_friction * CH_C_DEG_TO_RAD);
+            // Plastic correction:
+            if (v.p_sigma > v.p_sigma_yield) {
+                // Bekker formula
+                v.p_sigma = (contact_patches[patch_id].oob * Bekker_Kc + Bekker_Kphi) * pow(v.p_sinkage, Bekker_n);
+                v.p_sigma_yield = v.p_sigma;
+                double old_sinkage_plastic = v.p_sinkage_plastic;
+                v.p_sinkage_plastic = v.p_sinkage - v.p_sigma / elastic_K;
+                v.p_step_plastic_flow = (v.p_sinkage_plastic - old_sinkage_plastic) / GetSystem()->GetStep();
+            }
 
-    //         // Janosi-Hanamoto
-    //         p_tau[i] = tau_max * (1.0 - exp(-(p_kshear[i] / Janosi_shear)));
+            v.p_sinkage_elastic = v.p_sinkage - v.p_sinkage_plastic;
 
-    //         Fn = N * p_area[i] * p_sigma[i];
-    //         Ft = T * p_area[i] * p_tau[i];
+            // add compressive speed-proportional damping (not clamped by pressure yield)
+            ////if (Vn < 0) {
+            v.p_sigma += -Vn * damping_R;
+            ////}
 
-    //         if (ChBody* rigidbody = dynamic_cast<ChBody*>(contactable)) {
-    //             // [](){} Trick: no deletion for this shared ptr, since 'rigidbody' was not a new ChBody()
-    //             // object, but an already used pointer because mrayhit_result.hitModel->GetPhysicsItem()
-    //             // cannot return it as shared_ptr, as needed by the ChLoadBodyForce:
-    //             std::shared_ptr<ChBody> srigidbody(rigidbody, [](ChBody*) {});
-    //             std::shared_ptr<ChLoadBodyForce> mload(
-    //                 new ChLoadBodyForce(srigidbody, Fn + Ft, false, vertices[i], false));
-    //             this->Add(mload);
+            // Mohr-Coulomb
+            double tau_max = Mohr_cohesion + v.p_sigma * tan(Mohr_friction * CH_C_DEG_TO_RAD);
 
-    //             // Accumulate contact force for this rigid body.
-    //             // The resultant force is assumed to be applied at the body COM.
-    //             // All components of the generalized terrain force are expressed in the global frame.
-    //             auto itr = m_contact_forces.find(contactable);
-    //             if (itr == m_contact_forces.end()) {
-    //                 // Create new entry and initialize generalized force.
-    //                 ChVector<> force = Fn + Ft;
-    //                 TerrainForce frc;
-    //                 frc.point = srigidbody->GetPos();
-    //                 frc.force = force;
-    //                 frc.moment = Vcross(Vsub(vertices[i], srigidbody->GetPos()), force);
-    //                 m_contact_forces.insert(std::make_pair(contactable, frc));
-    //             } else {
-    //                 // Update generalized force.
-    //                 ChVector<> force = Fn + Ft;
-    //                 itr->second.force += force;
-    //                 itr->second.moment += Vcross(Vsub(vertices[i], srigidbody->GetPos()), force);
-    //             }
-    //         } else if (ChLoadableUV* surf = dynamic_cast<ChLoadableUV*>(contactable)) {
-    //             // [](){} Trick: no deletion for this shared ptr
-    //             std::shared_ptr<ChLoadableUV> ssurf(surf, [](ChLoadableUV*) {});
-    //             std::shared_ptr<ChLoad<ChLoaderForceOnSurface>> mload(new ChLoad<ChLoaderForceOnSurface>(ssurf));
-    //             mload->loader.SetForce(Fn + Ft);
-    //             mload->loader.SetApplication(0.5, 0.5);  //***TODO*** set UV, now just in middle
-    //             this->Add(mload);
+            // Janosi-Hanamoto
+            v.p_tau = tau_max * (1.0 - exp(-(v.p_kshear / Janosi_shear)));
 
-    //             // Accumulate contact forces for this surface.
-    //             //// TODO
-    //         }
+            Fn = N * m_area * v.p_sigma;
+            Ft = T * m_area * v.p_tau;
 
-    //         // Update mesh representation
-    //         vertices[i] = p_vertices_initial[i] - N * p_sinkage[i];
+            if (ChBody* rigidbody = dynamic_cast<ChBody*>(contactable)) {
+                // [](){} Trick: no deletion for this shared ptr, since 'rigidbody' was not a new ChBody()
+                // object, but an already used pointer because mrayhit_result.hitModel->GetPhysicsItem()
+                // cannot return it as shared_ptr, as needed by the ChLoadBodyForce:
+                std::shared_ptr<ChBody> srigidbody(rigidbody, [](ChBody*) {});
+                std::shared_ptr<ChLoadBodyForce> mload(new ChLoadBodyForce(srigidbody, Fn + Ft, false, vertex, false));
+                this->Add(mload);
 
-    //     }  // end positive contact force
+                // Accumulate contact force for this rigid body.
+                // The resultant force is assumed to be applied at the body COM.
+                // All components of the generalized terrain force are expressed in the global frame.
+                auto itr = m_contact_forces.find(contactable);
+                if (itr == m_contact_forces.end()) {
+                    // Create new entry and initialize generalized force.
+                    ChVector<> force = Fn + Ft;
+                    TerrainForce frc;
+                    frc.point = srigidbody->GetPos();
+                    frc.force = force;
+                    frc.moment = Vcross(Vsub(vertex, srigidbody->GetPos()), force);
+                    m_contact_forces.insert(std::make_pair(contactable, frc));
+                } else {
+                    // Update generalized force.
+                    ChVector<> force = Fn + Ft;
+                    itr->second.force += force;
+                    itr->second.moment += Vcross(Vsub(vertex, srigidbody->GetPos()), force);
+                }
+            } else if (ChLoadableUV* surf = dynamic_cast<ChLoadableUV*>(contactable)) {
+                // [](){} Trick: no deletion for this shared ptr
+                std::shared_ptr<ChLoadableUV> ssurf(surf, [](ChLoadableUV*) {});
+                std::shared_ptr<ChLoad<ChLoaderForceOnSurface>> mload(new ChLoad<ChLoaderForceOnSurface>(ssurf));
+                mload->loader.SetForce(Fn + Ft);
+                mload->loader.SetApplication(0.5, 0.5);  //***TODO*** set UV, now just in middle
+                this->Add(mload);
 
-    // }  // end loop on ray hits
+                // Accumulate contact forces for this surface.
+                //// TODO
+            }
+
+            // Update mesh representation
+
+            // This might be the correction needed for p_vertices_initial - need to think more to confirm it's in the
+            // right frame and test ChVector<> p_vertices_initial(ij.x() * m_delta, ij.y() * m_delta,
+            // v.p_level_initial); v.p_level = plane.TransformPointParentToLocal(p_vertices_initial - N *
+            // v.p_sinkage).z();
+
+            // Oops, v.p_vertices_initial has not been initialized here...
+            v.p_level = plane.TransformPointParentToLocal(v.p_vertices_initial - N * v.p_sinkage).z();
+
+        }  // end positive contact force
+
+    }  // end loop on ray hits
 
     m_timer_ray_casting.stop();
 
@@ -973,220 +985,220 @@ void SCMDeformableSoil::ComputeInternalForces() {
 
     m_timer_bulldozing.start();
 
-    if (do_bulldozing) {
-        std::set<int> touched_vertexes;
-        for (int iv = 0; iv < vertices.size(); ++iv) {
-            p_id_island[iv] = 0;
-            if (p_sigma[iv] > 0)
-                touched_vertexes.insert(iv);
-        }
+    // if (do_bulldozing) {
+    //     std::set<int> touched_vertexes;
+    //     for (int iv = 0; iv < vertices.size(); ++iv) {
+    //         p_id_island[iv] = 0;
+    //         if (p_sigma[iv] > 0)
+    //             touched_vertexes.insert(iv);
+    //     }
 
-        std::set<int> domain_boundaries;
+    //     std::set<int> domain_boundaries;
 
-        // Compute contact islands (and their displaced material) by flood-filling the mesh
-        int id_island = 0;
-        for (auto fillseed = touched_vertexes.begin(); fillseed != touched_vertexes.end();
-             fillseed = touched_vertexes.begin()) {
-            // new island:
-            ++id_island;
-            std::set<int> fill_front;
+    //     // Compute contact islands (and their displaced material) by flood-filling the mesh
+    //     int id_island = 0;
+    //     for (auto fillseed = touched_vertexes.begin(); fillseed != touched_vertexes.end();
+    //          fillseed = touched_vertexes.begin()) {
+    //         // new island:
+    //         ++id_island;
+    //         std::set<int> fill_front;
 
-            std::set<int> boundary;
-            int n_vert_boundary = 0;
-            double tot_area_boundary = 0;
+    //         std::set<int> boundary;
+    //         int n_vert_boundary = 0;
+    //         double tot_area_boundary = 0;
 
-            int n_vert_island = 1;
-            double tot_step_flow_island =
-                p_area[*fillseed] * p_step_plastic_flow[*fillseed] * this->GetSystem()->GetStep();
-            double tot_Nforce_island = p_area[*fillseed] * p_sigma[*fillseed];
-            double tot_area_island = p_area[*fillseed];
-            fill_front.insert(*fillseed);
-            p_id_island[*fillseed] = id_island;
-            touched_vertexes.erase(fillseed);
-            while (fill_front.size() > 0) {
-                // fill next front
-                std::set<int> fill_front_2;
-                for (const auto& ifront : fill_front) {
-                    for (const auto& ivconnect : connected_vertexes[ifront]) {
-                        if ((p_sigma[ivconnect] > 0) && (p_id_island[ivconnect] == 0)) {
-                            ++n_vert_island;
-                            tot_step_flow_island +=
-                                p_area[ivconnect] * p_step_plastic_flow[ivconnect] * this->GetSystem()->GetStep();
-                            tot_Nforce_island += p_area[ivconnect] * p_sigma[ivconnect];
-                            tot_area_island += p_area[ivconnect];
-                            fill_front_2.insert(ivconnect);
-                            p_id_island[ivconnect] = id_island;
-                            touched_vertexes.erase(ivconnect);
-                        } else if ((p_sigma[ivconnect] == 0) && (p_id_island[ivconnect] <= 0) &&
-                                   (p_id_island[ivconnect] != -id_island)) {
-                            ++n_vert_boundary;
-                            tot_area_boundary += p_area[ivconnect];
-                            p_id_island[ivconnect] = -id_island;  // negative to mark as boundary
-                            boundary.insert(ivconnect);
-                        }
-                    }
-                }
-                // advance to next front
-                fill_front = fill_front_2;
-            }
-            ////GetLog() << " island " << id_island << " flow volume =" << tot_step_flow_island << " N force=" <<
-            /// tot_Nforce_island << "\n";
+    //         int n_vert_island = 1;
+    //         double tot_step_flow_island =
+    //             p_area[*fillseed] * p_step_plastic_flow[*fillseed] * this->GetSystem()->GetStep();
+    //         double tot_Nforce_island = p_area[*fillseed] * p_sigma[*fillseed];
+    //         double tot_area_island = p_area[*fillseed];
+    //         fill_front.insert(*fillseed);
+    //         p_id_island[*fillseed] = id_island;
+    //         touched_vertexes.erase(fillseed);
+    //         while (fill_front.size() > 0) {
+    //             // fill next front
+    //             std::set<int> fill_front_2;
+    //             for (const auto& ifront : fill_front) {
+    //                 for (const auto& ivconnect : connected_vertexes[ifront]) {
+    //                     if ((p_sigma[ivconnect] > 0) && (p_id_island[ivconnect] == 0)) {
+    //                         ++n_vert_island;
+    //                         tot_step_flow_island +=
+    //                             p_area[ivconnect] * p_step_plastic_flow[ivconnect] * this->GetSystem()->GetStep();
+    //                         tot_Nforce_island += p_area[ivconnect] * p_sigma[ivconnect];
+    //                         tot_area_island += p_area[ivconnect];
+    //                         fill_front_2.insert(ivconnect);
+    //                         p_id_island[ivconnect] = id_island;
+    //                         touched_vertexes.erase(ivconnect);
+    //                     } else if ((p_sigma[ivconnect] == 0) && (p_id_island[ivconnect] <= 0) &&
+    //                                (p_id_island[ivconnect] != -id_island)) {
+    //                         ++n_vert_boundary;
+    //                         tot_area_boundary += p_area[ivconnect];
+    //                         p_id_island[ivconnect] = -id_island;  // negative to mark as boundary
+    //                         boundary.insert(ivconnect);
+    //                     }
+    //                 }
+    //             }
+    //             // advance to next front
+    //             fill_front = fill_front_2;
+    //         }
+    //         ////GetLog() << " island " << id_island << " flow volume =" << tot_step_flow_island << " N force=" <<
+    //         /// tot_Nforce_island << "\n";
 
-            // Raise the boundary because of material flow (it gives a sharp spike around the
-            // island boundary, but later we'll use the erosion algorithm to smooth it out)
+    //         // Raise the boundary because of material flow (it gives a sharp spike around the
+    //         // island boundary, but later we'll use the erosion algorithm to smooth it out)
 
-            for (const auto& ibv : boundary) {
-                double d_y = bulldozing_flow_factor *
-                             ((p_area[ibv] / tot_area_boundary) * (1 / p_area[ibv]) * tot_step_flow_island);
-                double clamped_d_y = d_y;  // ChMin(d_y, ChMin(p_hit_level[ibv]-p_level[ibv], test_high_offset) );
-                if (d_y > p_hit_level[ibv] - p_level[ibv]) {
-                    p_massremainder[ibv] += d_y - (p_hit_level[ibv] - p_level[ibv]);
-                    clamped_d_y = p_hit_level[ibv] - p_level[ibv];
-                }
-                p_level[ibv] += clamped_d_y;
-                p_level_initial[ibv] += clamped_d_y;
-                vertices[ibv] += N * clamped_d_y;
-                p_vertices_initial[ibv] += N * clamped_d_y;
-            }
+    //         for (const auto& ibv : boundary) {
+    //             double d_y = bulldozing_flow_factor *
+    //                          ((p_area[ibv] / tot_area_boundary) * (1 / p_area[ibv]) * tot_step_flow_island);
+    //             double clamped_d_y = d_y;  // ChMin(d_y, ChMin(p_hit_level[ibv]-p_level[ibv], test_high_offset) );
+    //             if (d_y > p_hit_level[ibv] - p_level[ibv]) {
+    //                 p_massremainder[ibv] += d_y - (p_hit_level[ibv] - p_level[ibv]);
+    //                 clamped_d_y = p_hit_level[ibv] - p_level[ibv];
+    //             }
+    //             p_level[ibv] += clamped_d_y;
+    //             p_level_initial[ibv] += clamped_d_y;
+    //             vertices[ibv] += N * clamped_d_y;
+    //             p_vertices_initial[ibv] += N * clamped_d_y;
+    //         }
 
-            domain_boundaries.insert(boundary.begin(), boundary.end());
+    //         domain_boundaries.insert(boundary.begin(), boundary.end());
 
-        }  // end for islands
+    //     }  // end for islands
 
-        //***TEST***
-        // int mm = p_massremainder.size();
-        // p_massremainder.clear();p_massremainder.resize(mm);
+    //     //***TEST***
+    //     // int mm = p_massremainder.size();
+    //     // p_massremainder.clear();p_massremainder.resize(mm);
 
-        // Erosion domain area select, by topologically dilation of all the
-        // boundaries of the islands:
-        std::set<int> domain_erosion = domain_boundaries;
-        for (const auto& ie : domain_boundaries)
-            p_erosion[ie] = true;
-        std::set<int> front_erosion = domain_boundaries;
-        for (int iloop = 0; iloop < 10; ++iloop) {
-            std::set<int> front_erosion2;
-            for (const auto& is : front_erosion) {
-                for (const auto& ivconnect : connected_vertexes[is]) {
-                    if ((p_id_island[ivconnect] == 0) && (p_erosion[ivconnect] == 0)) {
-                        front_erosion2.insert(ivconnect);
-                        p_erosion[ivconnect] = true;
-                    }
-                }
-            }
-            domain_erosion.insert(front_erosion2.begin(), front_erosion2.end());
-            front_erosion = front_erosion2;
-        }
-        // Erosion smoothing algorithm on domain
-        for (int ismo = 0; ismo < 3; ++ismo) {
-            for (const auto& is : domain_erosion) {
-                for (const auto& ivc : connected_vertexes[is]) {
-                    ChVector<> vis = this->plane.TransformParentToLocal(vertices[is]);
-                    // flow remainder material
-                    if (true) {
-                        if (p_massremainder[is] > p_massremainder[ivc]) {
-                            double clamped_d_y_i;
-                            double clamped_d_y_c;
+    //     // Erosion domain area select, by topologically dilation of all the
+    //     // boundaries of the islands:
+    //     std::set<int> domain_erosion = domain_boundaries;
+    //     for (const auto& ie : domain_boundaries)
+    //         p_erosion[ie] = true;
+    //     std::set<int> front_erosion = domain_boundaries;
+    //     for (int iloop = 0; iloop < 10; ++iloop) {
+    //         std::set<int> front_erosion2;
+    //         for (const auto& is : front_erosion) {
+    //             for (const auto& ivconnect : connected_vertexes[is]) {
+    //                 if ((p_id_island[ivconnect] == 0) && (p_erosion[ivconnect] == 0)) {
+    //                     front_erosion2.insert(ivconnect);
+    //                     p_erosion[ivconnect] = true;
+    //                 }
+    //             }
+    //         }
+    //         domain_erosion.insert(front_erosion2.begin(), front_erosion2.end());
+    //         front_erosion = front_erosion2;
+    //     }
+    //     // Erosion smoothing algorithm on domain
+    //     for (int ismo = 0; ismo < 3; ++ismo) {
+    //         for (const auto& is : domain_erosion) {
+    //             for (const auto& ivc : connected_vertexes[is]) {
+    //                 ChVector<> vis = this->plane.TransformParentToLocal(vertices[is]);
+    //                 // flow remainder material
+    //                 if (true) {
+    //                     if (p_massremainder[is] > p_massremainder[ivc]) {
+    //                         double clamped_d_y_i;
+    //                         double clamped_d_y_c;
 
-                            // if i higher than c: clamp c upward correction as it might invalidate
-                            // the ceiling constraint, if collision is nearby
-                            double d_y_c = (p_massremainder[is] - p_massremainder[ivc]) *
-                                           (1 / (double)connected_vertexes[is].size()) * p_area[is] /
-                                           (p_area[is] + p_area[ivc]);
-                            clamped_d_y_c = d_y_c;
-                            if (d_y_c > p_hit_level[ivc] - p_level[ivc]) {
-                                p_massremainder[ivc] += d_y_c - (p_hit_level[ivc] - p_level[ivc]);
-                                clamped_d_y_c = p_hit_level[ivc] - p_level[ivc];
-                            }
-                            double d_y_i = -d_y_c * p_area[ivc] / p_area[is];
-                            clamped_d_y_i = d_y_i;
-                            if (p_massremainder[is] > -d_y_i) {
-                                p_massremainder[is] -= -d_y_i;
-                                clamped_d_y_i = 0;
-                            } else if ((p_massremainder[is] < -d_y_i) && (p_massremainder[is] > 0)) {
-                                p_massremainder[is] = 0;
-                                clamped_d_y_i = d_y_i + p_massremainder[is];
-                            }
+    //                         // if i higher than c: clamp c upward correction as it might invalidate
+    //                         // the ceiling constraint, if collision is nearby
+    //                         double d_y_c = (p_massremainder[is] - p_massremainder[ivc]) *
+    //                                        (1 / (double)connected_vertexes[is].size()) * p_area[is] /
+    //                                        (p_area[is] + p_area[ivc]);
+    //                         clamped_d_y_c = d_y_c;
+    //                         if (d_y_c > p_hit_level[ivc] - p_level[ivc]) {
+    //                             p_massremainder[ivc] += d_y_c - (p_hit_level[ivc] - p_level[ivc]);
+    //                             clamped_d_y_c = p_hit_level[ivc] - p_level[ivc];
+    //                         }
+    //                         double d_y_i = -d_y_c * p_area[ivc] / p_area[is];
+    //                         clamped_d_y_i = d_y_i;
+    //                         if (p_massremainder[is] > -d_y_i) {
+    //                             p_massremainder[is] -= -d_y_i;
+    //                             clamped_d_y_i = 0;
+    //                         } else if ((p_massremainder[is] < -d_y_i) && (p_massremainder[is] > 0)) {
+    //                             p_massremainder[is] = 0;
+    //                             clamped_d_y_i = d_y_i + p_massremainder[is];
+    //                         }
 
-                            // correct vertexes
-                            p_level[ivc] += clamped_d_y_c;
-                            p_level_initial[ivc] += clamped_d_y_c;
-                            vertices[ivc] += N * clamped_d_y_c;
-                            p_vertices_initial[ivc] += N * clamped_d_y_c;
+    //                         // correct vertexes
+    //                         p_level[ivc] += clamped_d_y_c;
+    //                         p_level_initial[ivc] += clamped_d_y_c;
+    //                         vertices[ivc] += N * clamped_d_y_c;
+    //                         p_vertices_initial[ivc] += N * clamped_d_y_c;
 
-                            p_level[is] += clamped_d_y_i;
-                            p_level_initial[is] += clamped_d_y_i;
-                            vertices[is] += N * clamped_d_y_i;
-                            p_vertices_initial[is] += N * clamped_d_y_i;
-                        }
-                    }
-                    // smooth
-                    if (p_sigma[ivc] == 0) {
-                        ChVector<> vic = this->plane.TransformParentToLocal(vertices[ivc]);
-                        ChVector<> vdist = vic - vis;
-                        vdist.z() = 0;
-                        double ddist = vdist.Length();
-                        double dy = p_level[is] + p_massremainder[is] - p_level[ivc] - p_massremainder[ivc];
-                        double dy_lim = ddist * tan(bulldozing_erosion_angle * CH_C_DEG_TO_RAD);
-                        if (fabs(dy) > dy_lim) {
-                            double clamped_d_y_i;
-                            double clamped_d_y_c;
-                            if (dy > 0) {
-                                // if i higher than c: clamp c upward correction as it might invalidate
-                                // the ceiling constraint, if collision is nearby
-                                double d_y_c = (fabs(dy) - dy_lim) * (1 / (double)connected_vertexes[is].size()) *
-                                               p_area[is] / (p_area[is] + p_area[ivc]);
-                                clamped_d_y_c = d_y_c;  // clamped_d_y_c = ChMin(d_y_c, p_hit_level[ivc]-p_level[ivc] );
-                                if (d_y_c > p_hit_level[ivc] - p_level[ivc]) {
-                                    p_massremainder[ivc] += d_y_c - (p_hit_level[ivc] - p_level[ivc]);
-                                    clamped_d_y_c = p_hit_level[ivc] - p_level[ivc];
-                                }
-                                double d_y_i = -d_y_c * p_area[ivc] / p_area[is];
-                                clamped_d_y_i = d_y_i;
-                                if (p_massremainder[is] > -d_y_i) {
-                                    p_massremainder[is] -= -d_y_i;
-                                    clamped_d_y_i = 0;
-                                } else if ((p_massremainder[is] < -d_y_i) && (p_massremainder[is] > 0)) {
-                                    p_massremainder[is] = 0;
-                                    clamped_d_y_i = d_y_i + p_massremainder[is];
-                                }
-                            } else {
-                                // if c higher than i: clamp i upward correction as it might invalidate
-                                // the ceiling constraint, if collision is nearby
-                                double d_y_i = (fabs(dy) - dy_lim) * (1 / (double)connected_vertexes[is].size()) *
-                                               p_area[is] / (p_area[is] + p_area[ivc]);
-                                clamped_d_y_i = d_y_i;
-                                if (d_y_i > p_hit_level[is] - p_level[is]) {
-                                    p_massremainder[is] += d_y_i - (p_hit_level[is] - p_level[is]);
-                                    clamped_d_y_i = p_hit_level[is] - p_level[is];
-                                }
-                                double d_y_c = -d_y_i * p_area[is] / p_area[ivc];
-                                clamped_d_y_c = d_y_c;
-                                if (p_massremainder[ivc] > -d_y_c) {
-                                    p_massremainder[ivc] -= -d_y_c;
-                                    clamped_d_y_c = 0;
-                                } else if ((p_massremainder[ivc] < -d_y_c) && (p_massremainder[ivc] > 0)) {
-                                    p_massremainder[ivc] = 0;
-                                    clamped_d_y_c = d_y_c + p_massremainder[ivc];
-                                }
-                            }
+    //                         p_level[is] += clamped_d_y_i;
+    //                         p_level_initial[is] += clamped_d_y_i;
+    //                         vertices[is] += N * clamped_d_y_i;
+    //                         p_vertices_initial[is] += N * clamped_d_y_i;
+    //                     }
+    //                 }
+    //                 // smooth
+    //                 if (p_sigma[ivc] == 0) {
+    //                     ChVector<> vic = this->plane.TransformParentToLocal(vertices[ivc]);
+    //                     ChVector<> vdist = vic - vis;
+    //                     vdist.z() = 0;
+    //                     double ddist = vdist.Length();
+    //                     double dy = p_level[is] + p_massremainder[is] - p_level[ivc] - p_massremainder[ivc];
+    //                     double dy_lim = ddist * tan(bulldozing_erosion_angle * CH_C_DEG_TO_RAD);
+    //                     if (fabs(dy) > dy_lim) {
+    //                         double clamped_d_y_i;
+    //                         double clamped_d_y_c;
+    //                         if (dy > 0) {
+    //                             // if i higher than c: clamp c upward correction as it might invalidate
+    //                             // the ceiling constraint, if collision is nearby
+    //                             double d_y_c = (fabs(dy) - dy_lim) * (1 / (double)connected_vertexes[is].size()) *
+    //                                            p_area[is] / (p_area[is] + p_area[ivc]);
+    //                             clamped_d_y_c = d_y_c;  // clamped_d_y_c = ChMin(d_y_c, p_hit_level[ivc]-p_level[ivc]
+    //                             ); if (d_y_c > p_hit_level[ivc] - p_level[ivc]) {
+    //                                 p_massremainder[ivc] += d_y_c - (p_hit_level[ivc] - p_level[ivc]);
+    //                                 clamped_d_y_c = p_hit_level[ivc] - p_level[ivc];
+    //                             }
+    //                             double d_y_i = -d_y_c * p_area[ivc] / p_area[is];
+    //                             clamped_d_y_i = d_y_i;
+    //                             if (p_massremainder[is] > -d_y_i) {
+    //                                 p_massremainder[is] -= -d_y_i;
+    //                                 clamped_d_y_i = 0;
+    //                             } else if ((p_massremainder[is] < -d_y_i) && (p_massremainder[is] > 0)) {
+    //                                 p_massremainder[is] = 0;
+    //                                 clamped_d_y_i = d_y_i + p_massremainder[is];
+    //                             }
+    //                         } else {
+    //                             // if c higher than i: clamp i upward correction as it might invalidate
+    //                             // the ceiling constraint, if collision is nearby
+    //                             double d_y_i = (fabs(dy) - dy_lim) * (1 / (double)connected_vertexes[is].size()) *
+    //                                            p_area[is] / (p_area[is] + p_area[ivc]);
+    //                             clamped_d_y_i = d_y_i;
+    //                             if (d_y_i > p_hit_level[is] - p_level[is]) {
+    //                                 p_massremainder[is] += d_y_i - (p_hit_level[is] - p_level[is]);
+    //                                 clamped_d_y_i = p_hit_level[is] - p_level[is];
+    //                             }
+    //                             double d_y_c = -d_y_i * p_area[is] / p_area[ivc];
+    //                             clamped_d_y_c = d_y_c;
+    //                             if (p_massremainder[ivc] > -d_y_c) {
+    //                                 p_massremainder[ivc] -= -d_y_c;
+    //                                 clamped_d_y_c = 0;
+    //                             } else if ((p_massremainder[ivc] < -d_y_c) && (p_massremainder[ivc] > 0)) {
+    //                                 p_massremainder[ivc] = 0;
+    //                                 clamped_d_y_c = d_y_c + p_massremainder[ivc];
+    //                             }
+    //                         }
 
-                            // correct vertexes
-                            p_level[ivc] += clamped_d_y_c;
-                            p_level_initial[ivc] += clamped_d_y_c;
-                            vertices[ivc] += N * clamped_d_y_c;
-                            p_vertices_initial[ivc] += N * clamped_d_y_c;
+    //                         // correct vertexes
+    //                         p_level[ivc] += clamped_d_y_c;
+    //                         p_level_initial[ivc] += clamped_d_y_c;
+    //                         vertices[ivc] += N * clamped_d_y_c;
+    //                         p_vertices_initial[ivc] += N * clamped_d_y_c;
 
-                            p_level[is] += clamped_d_y_i;
-                            p_level_initial[is] += clamped_d_y_i;
-                            vertices[is] += N * clamped_d_y_i;
-                            p_vertices_initial[is] += N * clamped_d_y_i;
-                        }
-                    }
-                }
-            }
-        }
+    //                         p_level[is] += clamped_d_y_i;
+    //                         p_level_initial[is] += clamped_d_y_i;
+    //                         vertices[is] += N * clamped_d_y_i;
+    //                         p_vertices_initial[is] += N * clamped_d_y_i;
+    //                     }
+    //                 }
+    //             }
+    //         }
+    //     }
 
-    }  // end bulldozing flow
+    // }  // end bulldozing flow
 
     m_timer_bulldozing.stop();
 

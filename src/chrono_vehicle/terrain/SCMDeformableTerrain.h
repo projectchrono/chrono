@@ -281,15 +281,28 @@ class CH_VEHICLE_API SCMDeformableSoil : public ChLoadContainer {
         bool p_erosion;
         double p_level;
         double p_hit_level;
+        double p_level_initial;
+        Vector p_speeds;
+        double p_sinkage_plastic;
+        double p_sinkage;
+        double p_kshear;
+        double p_sigma_yield;
+        double p_tau;
+
+        // Vector vertices;
+        Vector p_vertices_initial;
         // TODO: Other necessary data here...
 
         VertexRecord(double level) {
             p_sigma = 0;
             p_sinkage_elastic = 0;
+            p_sinkage_plastic = 0;
             p_step_plastic_flow = 0;
             p_erosion = false;
             p_level = level;
+            p_level_initial = level;
             p_hit_level = 1e9;
+            p_sigma_yield = 0;
         }
     };
 
@@ -354,6 +367,7 @@ class CH_VEHICLE_API SCMDeformableSoil : public ChLoadContainer {
     PatchType m_type;    // type of SCM patch
     ChCoordsys<> plane;  // SCM frame (deformation occurs along the z axis of this frame)
     double m_delta;      // (initial) grid spacing
+    double m_area;
 
     std::unordered_map<ChVector2<int>, VertexRecord, CoordHash> m_grid_map;  // hash-map for hit vertices
 

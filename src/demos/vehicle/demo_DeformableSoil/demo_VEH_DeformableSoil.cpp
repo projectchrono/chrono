@@ -36,7 +36,7 @@ const std::string out_dir = GetChronoOutputPath() + "SCM_DEF_SOIL";
 // Enable/disable adaptive mesh refinement
 bool enable_adaptive_refinement = false;
 double init_mesh_resolution = 0.1;
-double min_mesh_resolution = 0.1;
+double min_mesh_resolution = 0.04;
 
 // Enable/disable bulldozing effects
 bool enable_bulldozing = false;
@@ -48,7 +48,7 @@ bool enable_moving_patch = true;
 bool var_params = true;
 
 // Custom callback for setting location-dependent soil properties.
-// Note that the (x,y) location is given in the terrain's reference plane. 
+// Note that the (x,y) location is given in the terrain's reference plane.
 // Here, the vehicle moves in the terrain's negative y direction!
 class MySoilParams : public vehicle::SCMDeformableTerrain::SoilParametersCallback {
   public:
@@ -157,10 +157,10 @@ int main(int argc, char* argv[]) {
     // Displace/rotate the terrain reference plane.
     // Note that SCMDeformableTerrain uses a default ISO reference frame (Z up). Since the mechanism is modeled here in
     // a Y-up global frame, we rotate the terrain plane by -90 degrees about the X axis.
-    mterrain.SetPlane(ChCoordsys<>(ChVector<>(0, 0.2, 0), Q_from_AngX(-CH_C_PI_2)));
+    mterrain.SetPlane(ChCoordsys<>(ChVector<>(0, 0, 0), Q_from_AngX(-CH_C_PI_2)));
 
     // Initialize the geometry of the soil
-    
+
     // Use either a regular grid:
     double length = 6;
     double width = 2;
@@ -173,7 +173,7 @@ int main(int argc, char* argv[]) {
     } else {
         mterrain.Initialize(width, length, min_mesh_resolution);
     }
-    
+
     // Or use a height map:
     ////mterrain.Initialize(vehicle::GetDataFile("terrain/height_maps/test64.bmp"), "test64", 1.6, 1.6, 0, 0.3);
 
