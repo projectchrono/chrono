@@ -530,9 +530,7 @@ double SCMDeformableSoil::GetHeight(const ChVector2<int>& loc) {
     // Else return undeformed height
     switch (m_type) {
         case PatchType::BOX:
-            // I think this should just return 0
-            return 0.2;
-            // return ChWorldFrame::Height(plane.pos);
+            return 0;
         case PatchType::HEIGHT_MAP:
             //// TODO
             return 0;
@@ -730,11 +728,11 @@ void SCMDeformableSoil::ComputeInternalForces() {
                 double x = i * m_delta;
                 double y = j * m_delta;
                 double z = GetHeight(ij);
-                ChVector<> vertex_loc = plane.TransformDirectionLocalToParent(ChVector<>(x, y, z));
+                ChVector<> vertex_abs = plane.TransformPointLocalToParent(ChVector<>(x, y, z));
 
                 // Raycast to see if we need to work on this point later
                 collision::ChCollisionSystem::ChRayhitResult mrayhit_result;
-                ChVector<> to = vertex_loc + N * test_high_offset;
+                ChVector<> to = vertex_abs + N * test_high_offset;
                 ChVector<> from = to - N * test_low_offset;
                 GetSystem()->GetCollisionSystem()->RayHit(from, to, mrayhit_result);
                 m_num_ray_casts++;
