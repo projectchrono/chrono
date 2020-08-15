@@ -282,7 +282,7 @@ class CH_VEHICLE_API SCMDeformableSoil : public ChLoadContainer {
         double p_level;
         double p_hit_level;
         double p_level_initial;
-        Vector p_speeds;
+        ChVector<> p_speeds;
         double p_sinkage_plastic;
         double p_sinkage;
         double p_kshear;
@@ -290,7 +290,7 @@ class CH_VEHICLE_API SCMDeformableSoil : public ChLoadContainer {
         double p_tau;
 
         // Vector vertices;
-        Vector p_vertices_initial;
+        ChVector<> p_vertices_initial;
         // TODO: Other necessary data here...
 
         VertexRecord(double level) {
@@ -302,7 +302,11 @@ class CH_VEHICLE_API SCMDeformableSoil : public ChLoadContainer {
             p_level = level;
             p_level_initial = level;
             p_hit_level = 1e9;
+            p_sinkage_plastic = 0;
+            p_sinkage = 0;
+            p_kshear = 0;
             p_sigma_yield = 0;
+            p_tau = 0;
         }
     };
 
