@@ -35,14 +35,14 @@ vsg::ref_ptr<vsg::Node> ChVSGSphere::createTexturedNode(vsg::vec4 color, vsg::re
 
     vsg::VertexInputState::Bindings vertexBindingsDescriptions{
         VkVertexInputBindingDescription{0, sizeof(vsg::vec3), VK_VERTEX_INPUT_RATE_VERTEX},  // vertex data
-        VkVertexInputBindingDescription{1, sizeof(vsg::vec4), VK_VERTEX_INPUT_RATE_VERTEX},  // colour data
+        VkVertexInputBindingDescription{1, sizeof(vsg::vec3), VK_VERTEX_INPUT_RATE_VERTEX},  // colour data
         VkVertexInputBindingDescription{2, sizeof(vsg::vec2), VK_VERTEX_INPUT_RATE_VERTEX}   // tex coord data
     };
 
     vsg::VertexInputState::Attributes vertexAttributeDescriptions{
-        VkVertexInputAttributeDescription{0, 0, VK_FORMAT_R32G32B32_SFLOAT, 0},     // vertex data
-        VkVertexInputAttributeDescription{1, 1, VK_FORMAT_R32G32B32A32_SFLOAT, 0},  // colour data
-        VkVertexInputAttributeDescription{2, 2, VK_FORMAT_R32G32_SFLOAT, 0},        // tex coord data
+        VkVertexInputAttributeDescription{0, 0, VK_FORMAT_R32G32B32_SFLOAT, 0},  // vertex data
+        VkVertexInputAttributeDescription{1, 1, VK_FORMAT_R32G32B32_SFLOAT, 0},  // colour data
+        VkVertexInputAttributeDescription{2, 2, VK_FORMAT_R32G32_SFLOAT, 0},     // tex coord data
     };
 
     vsg::GraphicsPipelineStates pipelineStates{
@@ -160,7 +160,7 @@ vsg::ref_ptr<vsg::Node> ChVSGSphere::createTexturedNode(vsg::vec4 color, vsg::re
                                 {-0.7485, -0.7485, 0.5256},  {0.9921, 0.9921, -0.0407},   {-0.9921, -0.9921, 0.0407}});
 #endif
 
-    auto colors = vsg::vec4Array::create(vertices->size(), color);
+    auto colors = vsg::vec3Array::create(vertices->size(), vsg::vec3(color.r, color.g, color.b));
 
     auto texcoords = vsg::vec2Array::create(
         {{0.0793455, 0.808896},  {0.282722, 0.877895},  {0.227244, 0.708956}, {0.0398594, 0.636555},
