@@ -195,8 +195,11 @@ class CH_VEHICLE_API SCMDeformableTerrain : public ChTerrain {
     /// Get the current reference plane. The SCM terrain patch is in the (x,y) plane with normal along the Z axis.
     const ChCoordsys<>& GetPlane() const;
 
-    /// Get the underlying triangular mesh.
-    const std::shared_ptr<ChTriangleMeshShape> GetMesh() const;
+    /// Get the visualization triangular mesh.
+    std::shared_ptr<ChTriangleMeshShape> GetMesh() const;
+
+    /// Save the visualization mesh as a Wavefront OBJ file.
+    void WriteMesh(const std::string& filename) const;
 
     /// Initialize the terrain system (flat).
     /// This version creates a flat array of points.
@@ -210,13 +213,11 @@ class CH_VEHICLE_API SCMDeformableTerrain : public ChTerrain {
     /// By default, a mesh vertex is created for each pixel in the image. If divX and divY are non-zero,
     /// the image will be sampled at the specified resolution with linear interpolation as needed.
     void Initialize(const std::string& heightmap_file,  ///< [in] filename for the height map (image file)
-                    const std::string& mesh_name,       ///< [in] name of the mesh asset
                     double sizeX,                       ///< [in] terrain dimension in the X direction
                     double sizeY,                       ///< [in] terrain dimension in the Y direction
                     double hMin,                        ///< [in] minimum height (black level)
                     double hMax,                        ///< [in] maximum height (white level)
-                    int divX = 0,                       ///< [in] number of divisions in the X direction
-                    int divY = 0                        ///< [in] number of divisions in the Y direction
+                    double delta                        ///< [in] grid spacing (may be slightly decreased)
     );
 
     /// Return the current cumulative contact force on the specified body (due to interaction with the SCM terrain).
@@ -248,13 +249,11 @@ class CH_VEHICLE_API SCMDeformableSoil : public ChLoadContainer {
     /// By default, a mesh vertex is created for each pixel in the image. If divX and divY are non-zero,
     /// the image will be sampled at the specified resolution with linear interpolation as needed.
     void Initialize(const std::string& heightmap_file,  ///< [in] filename for the height map (image file)
-                    const std::string& mesh_name,       ///< [in] name of the mesh asset
                     double sizeX,                       ///< [in] terrain dimension in the X direction
                     double sizeY,                       ///< [in] terrain dimension in the Y direction
                     double hMin,                        ///< [in] minimum height (black level)
                     double hMax,                        ///< [in] maximum height (white level)
-                    int divX = 0,                       ///< [in] number of divisions in the X direction
-                    int divY = 0                        ///< [in] number of divisions in the Y direction
+                    double delta                        ///< [in] grid spacing (may be slightly decreased)
     );
 
   private:
@@ -323,24 +322,24 @@ class CH_VEHICLE_API SCMDeformableSoil : public ChLoadContainer {
     // Get the terrain height at the specified grid vertex.
     double GetHeight(const ChVector2<int>& loc);
 
+    // Get index of trimesh vertex corresponding to the specified grid vertex.
+    int GetMeshVertexIndex(const ChVector2<int>& loc);
+
     // Complete setup before first simulation step.
     virtual void SetupInitial() override;
 
     // Updates the forces and the geometry, at the beginning of each timestep
     virtual void Setup() override {
-        // GetLog() << " Setup update soil t= "<< this->ChTime << "\n";
-        this->ComputeInternalForces();
-
+        ComputeInternalForces();
         ChLoadContainer::Update(ChTime, true);
     }
 
     // Updates the forces and the geometry
     virtual void Update(double mytime, bool update_assets = true) override {
         // Note!!! we cannot call ComputeInternalForces here, because Update() could
-        // be called multiple times per timestep (ex. see HHT or RungKutta) and not
-        // necessarily in time-increasing order; this is a problem because in this
-        // force model the force is dissipative and keeps an 'history'. So we do
-        // ComputeInternalForces only at the beginning of the timestep; look Setup().
+        // be called multiple times per timestep and not necessarily in time-increasing order;
+        // this is a problem because in this force model the force is dissipative and keeps a 'history'.
+        // Instead, we invoke ComputeInternalForces only at the beginning of the timestep in Setup().
 
         ChTime = mytime;
     }
@@ -351,9 +350,8 @@ class CH_VEHICLE_API SCMDeformableSoil : public ChLoadContainer {
     // Synchronize information for fixed patch
     void UpdateFixedPatch(MovingPatchInfo& p);
 
-    // Reset the list of forces, and fills it with forces from a soil contact model.
-    // This is called automatically during timestepping (only at the beginning of
-    // each IntLoadResidual_F() for performance reason, not at each Update() that might be overkill).
+    // Reset the list of forces and fill it with forces from the soil contact model.
+    // This is called automatically during timestepping (only at the beginning of each step).
     void ComputeInternalForces();
 
     // Override the ChLoadContainer method for computing the generalized force F term:
@@ -361,35 +359,57 @@ class CH_VEHICLE_API SCMDeformableSoil : public ChLoadContainer {
                                    ChVectorDynamic<>& R,    // result: the R residual, R += c*F
                                    const double c           // a scaling factor
                                    ) override {
-        // Overloading base class, that takes all F vectors from the list of forces and put all them in R
         ChLoadContainer::IntLoadResidual_F(off, R, c);
     }
 
-    // Pre-compute aux. topology data structures for the mesh, aux. material data, etc.
-    void SetupAuxData();
-
     PatchType m_type;    // type of SCM patch
     ChCoordsys<> plane;  // SCM frame (deformation occurs along the z axis of this frame)
-    double m_delta;      // (initial) grid spacing
-    double m_area;
+    double m_delta;      // (base) grid spacing
+    double m_area;       // area of a (base) grid cell
+    int m_nx;            // range for grid indices in X direction: [-m_nx, +m_nx]
+    int m_ny;            // range for grid indices in Y direction: [-m_ny, +m_ny]
+
+    ChMatrixDynamic<> m_heights;  // (base) grid heights (when initializing from height-field map)
 
     std::unordered_map<ChVector2<int>, VertexRecord, CoordHash> m_grid_map;  // hash-map for hit vertices
 
     std::vector<MovingPatchInfo> m_patches;  // set of active moving patches
     bool m_moving_patch;                     // user-specified moving patches?
 
+    double test_low_offset;   // offset for ray start
+    double test_high_offset;  // offset for ray end
+
+    std::shared_ptr<ChTriangleMeshShape> m_trimesh_shape;  // mesh visualization asset
+    std::shared_ptr<ChColorAsset> m_color;                 // mesh edge default color
+
+    // SCM parameters
+    double m_Bekker_Kphi;
+    double m_Bekker_Kc;
+    double m_Bekker_n;
+    double m_Mohr_cohesion;
+    double m_Mohr_friction;
+    double m_Janosi_shear;
+    double m_elastic_K;
+    double m_damping_R;
+
+    // Callback object for position-dependent soil properties
+    std::shared_ptr<SCMDeformableTerrain::SoilParametersCallback> m_soil_fun;
+
+    std::unordered_map<ChContactable*, TerrainForce> m_contact_forces;
+
     // Timers and counters
-    ChTimer<double> m_timer_calc_areas;
     ChTimer<double> m_timer_ray_casting;
+    ChTimer<double> m_timer_contact_patches;
+    ChTimer<double> m_timer_contact_forces;
     ChTimer<double> m_timer_refinement;
     ChTimer<double> m_timer_bulldozing;
     ChTimer<double> m_timer_visualization;
-    size_t m_num_ray_casts;
+
+    int m_num_ray_casts;
+    int m_num_ray_hits;
+    int m_num_contact_patches;
 
     // ----  OLD MEMBER VARIABLES
-
-    std::shared_ptr<ChColorAsset> m_color;
-    std::shared_ptr<ChTriangleMeshShape> m_trimesh_shape;
 
     std::vector<ChVector<>> p_vertices_initial;
     std::vector<ChVector<>> p_speeds;
@@ -409,22 +429,9 @@ class CH_VEHICLE_API SCMDeformableSoil : public ChLoadContainer {
     std::vector<int> p_id_island;
     std::vector<bool> p_erosion;
 
-    double m_Bekker_Kphi;
-    double m_Bekker_Kc;
-    double m_Bekker_n;
-    double m_Mohr_cohesion;
-    double m_Mohr_friction;
-    double m_Janosi_shear;
-    double m_elastic_K;
-    double m_damping_R;
-
     int plot_type;
     double plot_v_min;
     double plot_v_max;
-
-    // aux. topology data
-    std::vector<std::set<int>> connected_vertexes;
-    std::vector<std::array<int, 4>> tri_map;
 
     bool do_bulldozing;
     double bulldozing_flow_factor;
@@ -434,14 +441,6 @@ class CH_VEHICLE_API SCMDeformableSoil : public ChLoadContainer {
 
     bool do_refinement;
     double refinement_resolution;
-
-    double test_high_offset;
-    double test_low_offset;
-
-    // Callback object for position-dependent soil properties
-    std::shared_ptr<SCMDeformableTerrain::SoilParametersCallback> m_soil_fun;
-
-    std::unordered_map<ChContactable*, TerrainForce> m_contact_forces;
 
     friend class SCMDeformableTerrain;
 };
