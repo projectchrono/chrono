@@ -603,10 +603,10 @@ void SCMDeformableSoil::UpdateMovingPatch(MovingPatchInfo& p) {
     }
 
     // Find index ranges for grid vertices contained in the patch projection AABB
-    p.m_bl.x() = static_cast<int>(std::ceil(p_min.x() / m_delta));
-    p.m_bl.y() = static_cast<int>(std::ceil(p_min.y() / m_delta));
-    p.m_tr.x() = static_cast<int>(std::floor(p_max.x() / m_delta));
-    p.m_tr.y() = static_cast<int>(std::floor(p_max.y() / m_delta));
+    p.m_bl.x() = ChClamp(static_cast<int>(std::ceil(p_min.x() / m_delta)), -m_nx, +m_nx);
+    p.m_bl.y() = ChClamp(static_cast<int>(std::ceil(p_min.y() / m_delta)), -m_ny, +m_ny);
+    p.m_tr.x() = ChClamp(static_cast<int>(std::floor(p_max.x() / m_delta)), -m_nx, +m_nx);
+    p.m_tr.y() = ChClamp(static_cast<int>(std::floor(p_max.y() / m_delta)), -m_ny, +m_ny);
 }
 
 // Synchronize information for fixed patch
@@ -638,10 +638,10 @@ void SCMDeformableSoil::UpdateFixedPatch(MovingPatchInfo& p) {
     }
 
     // Find index ranges for grid vertices contained in the patch projection AABB
-    p.m_bl.x() = static_cast<int>(std::ceil(p_min.x() / m_delta));
-    p.m_bl.y() = static_cast<int>(std::ceil(p_min.y() / m_delta));
-    p.m_tr.x() = static_cast<int>(std::floor(p_max.x() / m_delta));
-    p.m_tr.y() = static_cast<int>(std::floor(p_max.y() / m_delta));
+    p.m_bl.x() = ChClamp(static_cast<int>(std::ceil(p_min.x() / m_delta)), -m_nx, +m_nx);
+    p.m_bl.y() = ChClamp(static_cast<int>(std::ceil(p_min.y() / m_delta)), -m_ny, +m_ny);
+    p.m_tr.x() = ChClamp(static_cast<int>(std::floor(p_max.x() / m_delta)), -m_nx, +m_nx);
+    p.m_tr.y() = ChClamp(static_cast<int>(std::floor(p_max.y() / m_delta)), -m_ny, +m_ny);
 }
 
 // Offsets for the 8 neighbors of a grid vertex
