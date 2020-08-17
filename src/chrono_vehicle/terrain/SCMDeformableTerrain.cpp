@@ -645,7 +645,7 @@ void SCMDeformableSoil::UpdateFixedPatch(MovingPatchInfo& p) {
 }
 
 // Offsets for the 8 neighbors of a grid vertex
-static const std::vector<ChVector2<int>> neighbors{
+static const std::vector<ChVector2<int>> neighbors8{
     ChVector2<int>(-1, -1),  // SW
     ChVector2<int>(0, -1),   // S
     ChVector2<int>(1, -1),   // SE
@@ -654,6 +654,13 @@ static const std::vector<ChVector2<int>> neighbors{
     ChVector2<int>(-1, 1),   // NW
     ChVector2<int>(0, 1),    // N
     ChVector2<int>(1, 1)     // NE
+};
+
+static const std::vector<ChVector2<int>> neighbors4{
+    ChVector2<int>(0, -1),  // S
+    ChVector2<int>(-1, 0),  // W
+    ChVector2<int>(1, 0),   // E
+    ChVector2<int>(0, 1)    // N
 };
 
 // Reset the list of forces, and fills it with forces from a soil contact model.
@@ -775,14 +782,15 @@ void SCMDeformableSoil::ComputeInternalForces() {
         todo.push(ij);
 
         while (!todo.empty()) {
-            auto crt = hits.at(todo.front());  // Current hit vertex is first element in queue
-            todo.pop();                        // Remove first element from queue
+            auto crt = hits.find(todo.front());  // Current hit vertex is first element in queue
+            todo.pop();                          // Remove first element from queue
 
-            int crt_patch = crt.patch_id;
+            ChVector2<int> crt_ij = crt->first;
+            int crt_patch = crt->second.patch_id;
 
-            // Loop through the 8 neighbors of this hit vertex
-            for (int k = 0; k < 8; k++) {
-                ChVector2<int> nbr_ij = ij + neighbors[k];
+            // Loop through the neighbors of the current hit vertex
+            for (int k = 0; k < 4; k++) {
+                ChVector2<int> nbr_ij = crt_ij + neighbors4[k];
                 // If neighbor is not a hit vertex, move on
                 auto nbr = hits.find(nbr_ij);
                 if (nbr == hits.end())
