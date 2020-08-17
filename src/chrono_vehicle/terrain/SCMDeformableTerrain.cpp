@@ -321,7 +321,7 @@ void SCMDeformableSoil::Initialize(double sizeX, double sizeY, double delta) {
     vertices.resize(n_verts);
     normals.resize(n_verts);
     uv_coords.resize(n_verts);
-    ////colors.resize(n_verts);
+    colors.resize(n_verts);
     idx_vertices.resize(n_faces);
     idx_normals.resize(n_faces);
 
@@ -339,7 +339,7 @@ void SCMDeformableSoil::Initialize(double sizeX, double sizeY, double delta) {
             // Initialize vertex normal to Y up
             normals[iv] = plane.TransformDirectionLocalToParent(ChVector<>(0, 0, 1));
             // Assign color white to all vertices
-            ////colors[iv] = ChVector<float>(1, 1, 1);
+            colors[iv] = ChVector<float>(1, 1, 1);
             // Set UV coordinates in [0,1] x [0,1]
             uv_coords[iv] = ChVector<>(ix * x_scale, iy * y_scale, 0.0);
             ++iv;
@@ -461,7 +461,7 @@ void SCMDeformableSoil::Initialize(const std::string& heightmap_file,
     vertices.resize(n_verts);
     normals.resize(n_verts);
     uv_coords.resize(n_verts);
-    ////colors.resize(n_verts);
+    colors.resize(n_verts);
     idx_vertices.resize(n_faces);
     idx_normals.resize(n_faces);
 
@@ -479,7 +479,7 @@ void SCMDeformableSoil::Initialize(const std::string& heightmap_file,
             // Initialize vertex normal to Y up
             normals[iv] = plane.TransformDirectionLocalToParent(ChVector<>(0, 0, 1));
             // Assign color white to all vertices
-            ////colors[iv] = ChVector<float>(1, 1, 1);
+            colors[iv] = ChVector<float>(1, 1, 1);
             // Set UV coordinates in [0,1] x [0,1]
             uv_coords[iv] = ChVector<>(ix * x_scale, iy * y_scale, 0.0);
             ++iv;
@@ -1013,57 +1013,63 @@ void SCMDeformableSoil::ComputeInternalForces() {
         std::vector<ChVector<int>>& idx_vertices = trimesh->getIndicesVertexes();
         std::vector<ChVector<int>>& idx_normals = trimesh->getIndicesNormals();
 
-        // Update the visualization colors
-        /*
-        if (plot_type != SCMDeformableTerrain::PLOT_NONE) {
-            colors.resize(vertices.size());
-            for (size_t iv = 0; iv < vertices.size(); ++iv) {
+        // Loop over list of hits and adjust corresponding mesh vertices
+        for (const auto& h : hits) {
+            auto ij = h.first;                // grid location
+            auto v = m_grid_map.at(ij);       // grid vertex record
+            int iv = GetMeshVertexIndex(ij);  // mesh vertex index
+
+            // Update visualization mesh vertex position
+            vertices[iv] = plane.TransformPointLocalToParent(ChVector<>(ij.x() * m_delta, ij.y() * m_delta, v.p_level));
+
+            // Update visualization mesh vertex color
+            if (plot_type != SCMDeformableTerrain::PLOT_NONE) {
                 ChColor mcolor;
                 switch (plot_type) {
                     case SCMDeformableTerrain::PLOT_LEVEL:
-                        mcolor = ChColor::ComputeFalseColor(p_level[iv], plot_v_min, plot_v_max);
+                        mcolor = ChColor::ComputeFalseColor(v.p_level, plot_v_min, plot_v_max);
                         break;
                     case SCMDeformableTerrain::PLOT_LEVEL_INITIAL:
-                        mcolor = ChColor::ComputeFalseColor(p_level_initial[iv], plot_v_min, plot_v_max);
+                        mcolor = ChColor::ComputeFalseColor(v.p_level_initial, plot_v_min, plot_v_max);
                         break;
                     case SCMDeformableTerrain::PLOT_SINKAGE:
-                        mcolor = ChColor::ComputeFalseColor(p_sinkage[iv], plot_v_min, plot_v_max);
+                        mcolor = ChColor::ComputeFalseColor(v.p_sinkage, plot_v_min, plot_v_max);
                         break;
                     case SCMDeformableTerrain::PLOT_SINKAGE_ELASTIC:
-                        mcolor = ChColor::ComputeFalseColor(p_sinkage_elastic[iv], plot_v_min, plot_v_max);
+                        mcolor = ChColor::ComputeFalseColor(v.p_sinkage_elastic, plot_v_min, plot_v_max);
                         break;
                     case SCMDeformableTerrain::PLOT_SINKAGE_PLASTIC:
-                        mcolor = ChColor::ComputeFalseColor(p_sinkage_plastic[iv], plot_v_min, plot_v_max);
+                        mcolor = ChColor::ComputeFalseColor(v.p_sinkage_plastic, plot_v_min, plot_v_max);
                         break;
                     case SCMDeformableTerrain::PLOT_STEP_PLASTIC_FLOW:
-                        mcolor = ChColor::ComputeFalseColor(p_step_plastic_flow[iv], plot_v_min, plot_v_max);
+                        mcolor = ChColor::ComputeFalseColor(v.p_step_plastic_flow, plot_v_min, plot_v_max);
                         break;
                     case SCMDeformableTerrain::PLOT_K_JANOSI:
-                        mcolor = ChColor::ComputeFalseColor(p_kshear[iv], plot_v_min, plot_v_max);
+                        mcolor = ChColor::ComputeFalseColor(v.p_kshear, plot_v_min, plot_v_max);
                         break;
                     case SCMDeformableTerrain::PLOT_PRESSURE:
-                        mcolor = ChColor::ComputeFalseColor(p_sigma[iv], plot_v_min, plot_v_max);
+                        mcolor = ChColor::ComputeFalseColor(v.p_sigma, plot_v_min, plot_v_max);
                         break;
                     case SCMDeformableTerrain::PLOT_PRESSURE_YELD:
-                        mcolor = ChColor::ComputeFalseColor(p_sigma_yeld[iv], plot_v_min, plot_v_max);
+                        mcolor = ChColor::ComputeFalseColor(v.p_sigma_yield, plot_v_min, plot_v_max);
                         break;
                     case SCMDeformableTerrain::PLOT_SHEAR:
-                        mcolor = ChColor::ComputeFalseColor(p_tau[iv], plot_v_min, plot_v_max);
+                        mcolor = ChColor::ComputeFalseColor(v.p_tau, plot_v_min, plot_v_max);
                         break;
-                    case SCMDeformableTerrain::PLOT_MASSREMAINDER:
-                        mcolor = ChColor::ComputeFalseColor(p_massremainder[iv], plot_v_min, plot_v_max);
-                        break;
-                    case SCMDeformableTerrain::PLOT_ISLAND_ID:
-                        mcolor = ChColor(0, 0, 1);
-                        if (p_erosion[iv] == true)
-                            mcolor = ChColor(1, 1, 1);
-                        if (p_id_island[iv] > 0)
-                            mcolor = ChColor::ComputeFalseColor(4.0 + (p_id_island[iv] % 8), 0.0, 12.0);
-                        if (p_id_island[iv] < 0)
-                            mcolor = ChColor(0, 0, 0);
-                        break;
+                    ////case SCMDeformableTerrain::PLOT_MASSREMAINDER:
+                    ////    mcolor = ChColor::ComputeFalseColor(v.p_massremainder, plot_v_min, plot_v_max);
+                    ////    break;
+                    ////case SCMDeformableTerrain::PLOT_ISLAND_ID:
+                    ////    mcolor = ChColor(0, 0, 1);
+                    ////    if (v.p_erosion == true)
+                    ////        mcolor = ChColor(1, 1, 1);
+                    ////    if (v.p_id_island > 0)
+                    ////        mcolor = ChColor::ComputeFalseColor(4.0 + (v.p_id_island % 8), 0.0, 12.0);
+                    ////    if (v.p_id_island < 0)
+                    ////        mcolor = ChColor(0, 0, 0);
+                    ////    break;
                     case SCMDeformableTerrain::PLOT_IS_TOUCHED:
-                        if (p_sigma[iv] > 0)
+                        if (v.p_sigma > 0)
                             mcolor = ChColor(1, 0, 0);
                         else
                             mcolor = ChColor(0, 0, 1);
@@ -1071,12 +1077,9 @@ void SCMDeformableSoil::ComputeInternalForces() {
                 }
                 colors[iv] = {mcolor.R, mcolor.G, mcolor.B};
             }
-        } else {
-            colors.clear();
         }
-        */
 
-        // Update the visualization vertices and normals
+        // Update the visualization normals
         /*
         std::vector<int> accumulators(vertices.size(), 0);
 
