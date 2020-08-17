@@ -843,7 +843,7 @@ void SCMDeformableSoil::ComputeInternalForces() {
     for (auto& h : hits) {
         ChVector2<> ij = h.first;
 
-        auto v = m_grid_map.at(ij);
+        auto& v = m_grid_map.at(ij);
 
         ChContactable* contactable = h.second.contactable;
         const ChVector<>& abs_point = h.second.abs_point;
@@ -965,15 +965,8 @@ void SCMDeformableSoil::ComputeInternalForces() {
                 //// TODO
             }
 
-            // Update mesh representation
-
-            // This might be the correction needed for p_vertices_initial - need to think more to confirm it's in the
-            // right frame and test ChVector<> p_vertices_initial(ij.x() * m_delta, ij.y() * m_delta,
-            // v.p_level_initial); v.p_level = plane.TransformPointParentToLocal(p_vertices_initial - N *
-            // v.p_sinkage).z();
-
-            // Oops, v.p_vertices_initial has not been initialized here...
-            v.p_level = plane.TransformPointParentToLocal(v.p_vertices_initial - N * v.p_sinkage).z();
+            // Update grid vertex height (in local SCM frame)
+            v.p_level = v.p_level_initial - v.p_sinkage;
 
         }  // end positive contact force
 

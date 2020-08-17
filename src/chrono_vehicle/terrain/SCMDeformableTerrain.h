@@ -288,10 +288,6 @@ class CH_VEHICLE_API SCMDeformableSoil : public ChLoadContainer {
         double p_sigma_yield;
         double p_tau;
 
-        // Vector vertices;
-        ChVector<> p_vertices_initial;
-        // TODO: Other necessary data here...
-
         VertexRecord(double level) {
             p_sigma = 0;
             p_sinkage_elastic = 0;
