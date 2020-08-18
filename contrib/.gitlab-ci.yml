@@ -492,7 +492,7 @@ macos:macos:deploy:
     - conda install conda-build anaconda-client conda-verify --yes
     - conda config --add channels https://conda.anaconda.org/conda-forge
     - conda config --add channels https://conda.anaconda.org/intel
-    - conda install -c dlr-sc opencascade --yes
+    #- conda install -c dlr-sc opencascade --yes
     - conda install -c intel mkl-devel --yes
     - ls $HOME/miniconda/lib/
     - conda build purge-all
