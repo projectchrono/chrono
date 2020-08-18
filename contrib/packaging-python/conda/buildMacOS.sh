@@ -19,11 +19,6 @@ export MKL_THREADING_LAYER=INTEL
 
 if [ `uname` == Darwin ]; then
     sed -i '' 's/${PYTHON_LIBRARY}//g' $SRC_DIR/src/chrono_python/CMakeLists.txt
-    sed -i '' 's/find_package(AVX)//g' $SRC_DIR/src/CMakeLists.txt
-    sed -i '' 's/find_package(SSE)//g' $SRC_DIR/src/CMakeLists.txt
-    sed -i '' 's/find_package(NEON)//g' $SRC_DIR/src/CMakeLists.txt
-    sed -i '' 's/find_package(FMA)//g' $SRC_DIR/src/CMakeLists.txt
-    sed -i '' 's/find_package(OpenMP)//g' $SRC_DIR/src/CMakeLists.txt
 fi
 export LDFLAGS="-Wl,-undefined,dynamic_lookup $LDFLAGS"
 
