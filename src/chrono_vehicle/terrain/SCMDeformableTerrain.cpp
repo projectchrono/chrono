@@ -565,7 +565,9 @@ double SCMDeformableSoil::GetHeight(const ChVector2<int>& loc) {
         case PatchType::BOX:
             return 0;
         case PatchType::HEIGHT_MAP:
-            return m_heights(loc.x(), loc.y());
+            assert(loc.x() >= -m_nx && loc.x() <= m_nx);
+            assert(loc.y() >= -m_ny && loc.y() <= m_ny);
+            return m_heights(loc.x() + m_nx, loc.y() + m_ny);
         default:
             return 0;
     }
