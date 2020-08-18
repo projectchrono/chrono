@@ -248,7 +248,7 @@ SCMDeformableSoil::SCMDeformableSoil(ChSystem* system, bool visualization_mesh) 
         // Create the visualization mesh and asset
         m_trimesh_shape = std::shared_ptr<ChTriangleMeshShape>(new ChTriangleMeshShape);
         m_trimesh_shape->SetWireframe(true);
-        ////m_trimesh_shape->SetStatic(true);
+        m_trimesh_shape->SetFixedConnectivity();
         this->AddAsset(m_trimesh_shape);
 
         // Create the default mesh asset
@@ -1015,11 +1015,15 @@ void SCMDeformableSoil::ComputeInternalForces() {
         std::vector<ChVector<int>>& idx_vertices = trimesh->getIndicesVertexes();
         std::vector<ChVector<int>>& idx_normals = trimesh->getIndicesNormals();
 
+        // Indices of modified vertices
+        std::vector<int> modified_vertices;
+
         // Loop over list of hits and adjust corresponding mesh vertices
         for (const auto& h : hits) {
             auto ij = h.first;                // grid location
             auto v = m_grid_map.at(ij);       // grid vertex record
             int iv = GetMeshVertexIndex(ij);  // mesh vertex index
+            modified_vertices.push_back(iv);
 
             // Update visualization mesh vertex position
             vertices[iv] = plane.TransformPointLocalToParent(ChVector<>(ij.x() * m_delta, ij.y() * m_delta, v.p_level));
@@ -1106,6 +1110,8 @@ void SCMDeformableSoil::ComputeInternalForces() {
             normals[in] /= (double)accumulators[in];
         }
         */
+
+        m_trimesh_shape->SetModifiedVertices(modified_vertices);
     }
 
     m_timer_visualization.stop();
