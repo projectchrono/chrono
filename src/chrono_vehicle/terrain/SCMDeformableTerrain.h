@@ -328,6 +328,9 @@ class CH_VEHICLE_API SCMDeformableSoil : public ChLoadContainer {
     // Get index of trimesh vertex corresponding to the specified grid vertex.
     int GetMeshVertexIndex(const ChVector2<int>& loc);
 
+    // Get indices of trimesh faces incident to the specified grid vertex.
+    std::vector<int> GetMeshFaceIndices(const ChVector2<int>& loc);
+
     // Complete setup before first simulation step.
     virtual void SetupInitial() override;
 

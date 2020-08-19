@@ -580,6 +580,31 @@ int SCMDeformableSoil::GetMeshVertexIndex(const ChVector2<int>& loc) {
     return (loc.x() + m_nx) + (2 * m_nx + 1) * (loc.y() + m_ny);
 }
 
+// Get indices of trimesh faces incident to the specified grid vertex.
+std::vector<int> SCMDeformableSoil::GetMeshFaceIndices(const ChVector2<int>& loc) {
+    int i = loc.x();
+    int j = loc.y();
+
+    // Ignore boundary vertices
+    if (i == -m_nx || i == m_nx || j == -m_ny || j == m_ny)
+        return std::vector<int>();
+
+    // Load indices of 6 adjacent faces
+    i += m_nx;
+    j += m_ny;
+    int nx = 2 * m_nx;
+    std::vector<int> faces(6);
+    faces[0] = 2 * ((i - 1) + nx * (j - 1));
+    faces[1] = 2 * ((i - 1) + nx * (j - 1)) + 1;
+    faces[2] = 2 * ((i - 1) + nx * (j - 0));
+    faces[3] = 2 * ((i - 0) + nx * (j - 0));
+    faces[4] = 2 * ((i - 0) + nx * (j - 0)) + 1;
+    faces[5] = 2 * ((i - 0) + nx * (j - 1)) + 1;
+    
+    return faces;
+}
+
+
 // Return the terrain height at the specified grid vertex
 double SCMDeformableSoil::GetHeight(const ChVector2<int>& loc) {
     // First query the hash-map
@@ -1105,31 +1130,23 @@ void SCMDeformableSoil::ComputeInternalForces() {
             }
         }
 
-        // Update the visualization normals
-        /*
-        std::vector<int> accumulators(vertices.size(), 0);
-
-        // Calculate normals and then average the normals from all adjacent faces.
-        for (unsigned int it = 0; it < idx_vertices.size(); ++it) {
-            // Calculate the triangle normal as a normalized cross product.
-            ChVector<> nrm = Vcross(vertices[idx_vertices[it][1]] - vertices[idx_vertices[it][0]],
-                                    vertices[idx_vertices[it][2]] - vertices[idx_vertices[it][0]]);
-            nrm.Normalize();
-            // Increment the normals of all incident vertices by the face normal
-            normals[idx_normals[it][0]] += nrm;
-            normals[idx_normals[it][1]] += nrm;
-            normals[idx_normals[it][2]] += nrm;
-            // Increment the count of all incident vertices by 1
-            accumulators[idx_normals[it][0]] += 1;
-            accumulators[idx_normals[it][1]] += 1;
-            accumulators[idx_normals[it][2]] += 1;
+        // Update the visualization normals for modified vertices
+        if (!m_trimesh_shape->IsWireframe()) {
+            for (const auto& h : m_hits) {
+                auto ij = h.first;                // grid location
+                int iv = GetMeshVertexIndex(ij);  // mesh vertex index
+                // Average normals from adjacent faces
+                normals[iv] = ChVector<>(0, 0, 0);
+                auto& faces = GetMeshFaceIndices(ij);
+                for (auto f : faces) {
+                    ChVector<> nrm = Vcross(vertices[idx_vertices[f][1]] - vertices[idx_vertices[f][0]],
+                                            vertices[idx_vertices[f][2]] - vertices[idx_vertices[f][0]]);
+                    nrm.Normalize();
+                    normals[iv] += nrm;
+                }
+                normals[iv] /= (double)faces.size();
+            }
         }
-
-        // Set the normals to the average values.
-        for (unsigned int in = 0; in < vertices.size(); ++in) {
-            normals[in] /= (double)accumulators[in];
-        }
-        */
 
         m_trimesh_shape->SetModifiedVertices(modified_vertices);
     }
