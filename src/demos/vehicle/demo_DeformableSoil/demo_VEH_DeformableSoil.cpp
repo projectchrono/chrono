@@ -33,10 +33,7 @@ using namespace irr;
 bool output = false;
 const std::string out_dir = GetChronoOutputPath() + "SCM_DEF_SOIL";
 
-// Enable/disable adaptive mesh refinement
-bool enable_adaptive_refinement = false;
-double init_mesh_resolution = 0.1;
-double min_mesh_resolution = 0.04;
+double mesh_resolution = 0.04;
 
 // Enable/disable bulldozing effects
 bool enable_bulldozing = false;
@@ -164,15 +161,7 @@ int main(int argc, char* argv[]) {
     // Use either a regular grid:
     double length = 6;
     double width = 2;
-    if (enable_adaptive_refinement) {
-        mterrain.Initialize(width, length, init_mesh_resolution);
-        // Turn on the automatic level of detail refinement, so a coarse terrain mesh
-        // is automatically improved by adding more points under the wheel contact patch:
-        mterrain.SetAutomaticRefinement(true);
-        mterrain.SetAutomaticRefinementResolution(min_mesh_resolution);
-    } else {
-        mterrain.Initialize(width, length, min_mesh_resolution);
-    }
+    mterrain.Initialize(width, length, mesh_resolution);
 
     // Or use a height map:
     ////mterrain.Initialize(vehicle::GetDataFile("terrain/height_maps/test64.bmp"), "test64", 1.6, 1.6, 0, 0.3);

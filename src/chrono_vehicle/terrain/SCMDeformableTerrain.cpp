@@ -148,22 +148,6 @@ void SCMDeformableTerrain::SetBulldozingParameters(
     m_ground->bulldozing_erosion_n_propagations = mbulldozing_erosion_n_propagations;
 }
 
-void SCMDeformableTerrain::SetAutomaticRefinement(bool mr) {
-    m_ground->do_refinement = mr;
-}
-
-bool SCMDeformableTerrain::GetAutomaticRefinement() const {
-    return m_ground->do_refinement;
-}
-
-void SCMDeformableTerrain::SetAutomaticRefinementResolution(double mr) {
-    m_ground->refinement_resolution = mr;
-}
-
-double SCMDeformableTerrain::GetAutomaticRefinementResolution() const {
-    return m_ground->refinement_resolution;
-}
-
 void SCMDeformableTerrain::SetTestHighOffset(double mr) {
     m_ground->test_high_offset = mr;
 }
@@ -231,7 +215,6 @@ void SCMDeformableTerrain::PrintStepStatistics(std::ostream& os) const {
     os << "   Ray casting:             " << m_ground->m_timer_ray_casting() << std::endl;
     os << "   Contact patches:         " << m_ground->m_timer_contact_patches() << std::endl;
     os << "   Contact forces:          " << m_ground->m_timer_contact_forces() << std::endl;
-    os << "   Refinements:             " << m_ground->m_timer_refinement() << std::endl;
     os << "   Bulldozing:              " << m_ground->m_timer_bulldozing() << std::endl;
     os << "   Visualization:           " << m_ground->m_timer_visualization() << std::endl;
 
@@ -267,9 +250,6 @@ SCMDeformableSoil::SCMDeformableSoil(ChSystem* system, bool visualization_mesh) 
     bulldozing_erosion_angle = 40;
     bulldozing_erosion_n_iterations = 3;
     bulldozing_erosion_n_propagations = 10;
-
-    do_refinement = false;
-    refinement_resolution = 0.01;
 
     // Default soil parameters
     m_Bekker_Kphi = 2e6;
@@ -722,7 +702,6 @@ void SCMDeformableSoil::ComputeInternalForces() {
     m_timer_ray_casting.reset();
     m_timer_contact_patches.reset();
     m_timer_contact_forces.reset();
-    m_timer_refinement.reset();
     m_timer_bulldozing.reset();
     m_timer_visualization.reset();
 
@@ -1020,18 +999,6 @@ void SCMDeformableSoil::ComputeInternalForces() {
     }  // end loop on ray hits
 
     m_timer_contact_forces.stop();
-
-    // --------------------------------------------------
-    // Perform grid refinement
-    // --------------------------------------------------
-
-    m_timer_refinement.start();
-
-    if (do_refinement) {
-        //// TODO
-    }
-
-    m_timer_refinement.stop();
 
     // --------------------------------------------------
     // Flow material to the side of rut, using heuristics

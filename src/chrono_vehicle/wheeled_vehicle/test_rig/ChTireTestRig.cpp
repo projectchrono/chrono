@@ -407,8 +407,6 @@ void ChTireTestRig::CreateTerrainSCM() {
                                m_params_SCM.Mohr_cohesion, m_params_SCM.Mohr_friction, m_params_SCM.Janosi_shear,  //
                                E_elastic, damping);
     terrain->SetPlotType(vehicle::SCMDeformableTerrain::PLOT_SINKAGE, 0, 0.05);
-    terrain->SetAutomaticRefinement(true);
-    terrain->SetAutomaticRefinementResolution(1.0 / 32);
     terrain->Initialize(m_params_SCM.length, m_params_SCM.width, delta);
     terrain->AddMovingPatch(m_chassis_body, ChVector<>(0, 0, 0),
                             ChVector<>(2 * m_tire->GetRadius(), 1.0, 2 * m_tire->GetRadius()));

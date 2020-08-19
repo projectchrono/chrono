@@ -243,11 +243,6 @@ int main(int argc, char* argv[]) {
     ////                                5,    // number of erosion refinements per timestep
     ////                                10);  // number of concentric vertex selections subject to erosion
 
-    // Turn on the automatic level of detail refinement, so a coarse terrain mesh
-    // is automatically improved by adding more points under the wheel contact patch:
-    terrain.SetAutomaticRefinement(true);
-    terrain.SetAutomaticRefinementResolution(0.04);
-
     // Optionally, enable moving patch feature (single patch around vehicle chassis)
     terrain.AddMovingPatch(my_hmmwv.GetChassisBody(), ChVector<>(0, 0, 0), ChVector<>(5, 3, 1));
 

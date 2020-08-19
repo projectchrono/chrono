@@ -109,17 +109,6 @@ class CH_VEHICLE_API SCMDeformableTerrain : public ChTerrain {
         int mbulldozing_erosion_n_propagations = 10  ///< number of concentric vertex selections subject to erosion
     );
 
-    /// Enable/disable dynamic mesh refinement.
-    /// If enabled, additional points are added under contact patches, up to the desired resolution.
-    void SetAutomaticRefinement(bool mr);
-    bool GetAutomaticRefinement() const;
-
-    /// Set the resolution for automatic mesh refinement (specified in meters).
-    /// The mesh is refined, as needed, until the largest side of a triangle reaches trhe specified resolution.
-    /// Triangles out of contact patches are not refined.
-    void SetAutomaticRefinementResolution(double mr);
-    double GetAutomaticRefinementResolution() const;
-
     /// Set the vertical level up to which collision is tested (relative to the reference level at the sample point).
     /// Since the contact is unilateral, this could be zero. However, when computing bulldozing flow, one might also
     /// need to know if in the surrounding there is some potential future contact: so it might be better to use a
@@ -286,6 +275,13 @@ class CH_VEHICLE_API SCMDeformableSoil : public ChLoadContainer {
         ChVector2<int> m_tr;             // coordinates of most top-right grid vertex
     };
 
+    // Information of vertices with ray-cast hits
+    struct HitRecord {
+        ChContactable* contactable;  // pointer to hit object
+        ChVector<> abs_point;        // hit point, expressed in global frame
+        int patch_id;                // index of associated patch id
+    };
+
     // Information at contacted vertex
     struct VertexRecord {
         double p_sigma;
@@ -377,14 +373,8 @@ class CH_VEHICLE_API SCMDeformableSoil : public ChLoadContainer {
 
     ChMatrixDynamic<> m_heights;  // (base) grid heights (when initializing from height-field map)
 
-    struct HitRecord {
-        ChContactable* contactable;  // pointer to hit object
-        ChVector<> abs_point;        // hit point, expressed in global frame
-        int patch_id;                // index of associated patch id
-    };
-    std::unordered_map<ChVector2<int>, HitRecord, CoordHash> m_hits;
-
-    std::unordered_map<ChVector2<int>, VertexRecord, CoordHash> m_grid_map;  // hash-map for hit vertices
+    std::unordered_map<ChVector2<int>, HitRecord, CoordHash> m_hits;         // hash-map for vertices with ray-cast hits
+    std::unordered_map<ChVector2<int>, VertexRecord, CoordHash> m_grid_map;  // hash-map for modified vertices
 
     std::vector<MovingPatchInfo> m_patches;  // set of active moving patches
     bool m_moving_patch;                     // user-specified moving patches?
@@ -414,33 +404,12 @@ class CH_VEHICLE_API SCMDeformableSoil : public ChLoadContainer {
     ChTimer<double> m_timer_ray_casting;
     ChTimer<double> m_timer_contact_patches;
     ChTimer<double> m_timer_contact_forces;
-    ChTimer<double> m_timer_refinement;
     ChTimer<double> m_timer_bulldozing;
     ChTimer<double> m_timer_visualization;
 
     int m_num_ray_casts;
     int m_num_ray_hits;
     int m_num_contact_patches;
-
-    // ----  OLD MEMBER VARIABLES
-
-    std::vector<ChVector<>> p_vertices_initial;
-    std::vector<ChVector<>> p_speeds;
-    std::vector<double> p_level;
-    std::vector<double> p_level_initial;
-    std::vector<double> p_hit_level;
-    std::vector<double> p_sinkage;
-    std::vector<double> p_sinkage_plastic;
-    std::vector<double> p_sinkage_elastic;
-    std::vector<double> p_step_plastic_flow;
-    std::vector<double> p_kshear;  // Janosi-Hanamoto shear accumulator
-    std::vector<double> p_area;
-    std::vector<double> p_sigma;
-    std::vector<double> p_sigma_yeld;
-    std::vector<double> p_tau;
-    std::vector<double> p_massremainder;
-    std::vector<int> p_id_island;
-    std::vector<bool> p_erosion;
 
     int plot_type;
     double plot_v_min;
@@ -451,9 +420,6 @@ class CH_VEHICLE_API SCMDeformableSoil : public ChLoadContainer {
     double bulldozing_erosion_angle;
     int bulldozing_erosion_n_iterations;
     int bulldozing_erosion_n_propagations;
-
-    bool do_refinement;
-    double refinement_resolution;
 
     friend class SCMDeformableTerrain;
 };

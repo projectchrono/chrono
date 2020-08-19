@@ -130,10 +130,6 @@ int main(int argc, char* argv[]) {
                                     0.8, // displaced material vs downward pressed material.
                                     5,   // number of erosion refinements per timestep
                                     10); // number of concentric vertex selections subject to erosion
-    // Turn on the automatic level of detail refinement, so a coarse terrain mesh
-    // is automatically improved by adding more points under the wheel contact patch:
-    mterrain.SetAutomaticRefinement(true);
-    mterrain.SetAutomaticRefinementResolution(0.02);
 
     // Set some visualization parameters: either with a texture, or with falsecolor plot, etc.
     //mterrain.SetTexture(vehicle::GetDataFile("terrain/textures/grass.jpg"), 16, 16);

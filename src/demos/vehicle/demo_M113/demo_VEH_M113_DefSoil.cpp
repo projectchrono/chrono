@@ -156,9 +156,6 @@ int main(int argc, char* argv[]) {
                               3e4    // Damping (Pa s/m), proportional to negative vertical speed (optional)
     );
 
-    terrain.SetAutomaticRefinement(true);
-    terrain.SetAutomaticRefinementResolution(0.04);
-
     terrain.SetPlotType(vehicle::SCMDeformableTerrain::PLOT_PRESSURE_YELD, 0, 30000.2);
     ////terrain.SetPlotType(vehicle::SCMDeformableTerrain::PLOT_SINKAGE, 0, 0.15);
 
