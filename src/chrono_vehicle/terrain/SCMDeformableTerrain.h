@@ -198,6 +198,9 @@ class CH_VEHICLE_API SCMDeformableTerrain : public ChTerrain {
     /// Get the visualization triangular mesh.
     std::shared_ptr<ChTriangleMeshShape> GetMesh() const;
 
+    /// Get the soil that defines the load container for the terrain
+    std::shared_ptr<SCMDeformableSoil> GetSoil() const;
+
     /// Save the visualization mesh as a Wavefront OBJ file.
     void WriteMesh(const std::string& filename) const;
 
@@ -256,6 +259,17 @@ class CH_VEHICLE_API SCMDeformableSoil : public ChLoadContainer {
                     double delta                        ///< [in] grid spacing (may be slightly decreased)
     );
 
+    // Hash function for a pair of integer grid coordinates
+    struct CoordHash {
+      public:
+        // 31 is just a decently-sized prime number to reduce bucket collisions
+        std::size_t operator()(const ChVector2<int>& p) const { return p.x() * 31 + p.y(); }
+    };
+
+    void ModifyVertices(std::unordered_map<ChVector2<>, double, SCMDeformableSoil::CoordHash> modified_vertices);
+
+    std::unordered_map<ChVector2<>, double, SCMDeformableSoil::CoordHash> GetHits();
+
   private:
     // SCM patch type
     enum class PatchType {
@@ -303,13 +317,6 @@ class CH_VEHICLE_API SCMDeformableSoil : public ChLoadContainer {
             p_sigma_yield = 0;
             p_tau = 0;
         }
-    };
-
-    // Hash function for a pair of integer grid coordinates
-    struct CoordHash {
-      public:
-        // 31 is just a decently-sized prime number to reduce bucket collisions
-        std::size_t operator()(const ChVector2<int>& p) const { return p.x() * 31 + p.y(); }
     };
 
     // Get the terrain height below the specified location.
@@ -366,6 +373,13 @@ class CH_VEHICLE_API SCMDeformableSoil : public ChLoadContainer {
     int m_ny;            // range for grid indices in Y direction: [-m_ny, +m_ny]
 
     ChMatrixDynamic<> m_heights;  // (base) grid heights (when initializing from height-field map)
+
+    struct HitRecord {
+        ChContactable* contactable;  // pointer to hit object
+        ChVector<> abs_point;        // hit point, expressed in global frame
+        int patch_id;                // index of associated patch id
+    };
+    std::unordered_map<ChVector2<int>, HitRecord, CoordHash> m_hits;
 
     std::unordered_map<ChVector2<int>, VertexRecord, CoordHash> m_grid_map;  // hash-map for hit vertices
 

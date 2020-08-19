@@ -89,6 +89,11 @@ std::shared_ptr<ChTriangleMeshShape> SCMDeformableTerrain::GetMesh() const {
     return m_ground->m_trimesh_shape;
 }
 
+// Get the soil that defines the load container for the terrain
+std::shared_ptr<SCMDeformableSoil> SCMDeformableTerrain::GetSoil() const {
+    return m_ground;
+}
+
 // Save the visualization mesh as a Wavefront OBJ file.
 void SCMDeformableTerrain::WriteMesh(const std::string& filename) const {
     if (!m_ground->m_trimesh_shape) {
@@ -535,6 +540,28 @@ void SCMDeformableSoil::Initialize(const std::string& heightmap_file,
     ////}
 }
 
+void SCMDeformableSoil::ModifyVertices(
+    std::unordered_map<ChVector2<>, double, SCMDeformableSoil::CoordHash> modified_vertices) {
+    for (auto& mod_v : modified_vertices) {
+        auto v = m_grid_map.find(mod_v.first);
+        if (v != m_grid_map.end()) {
+            // displacement from the modified vertex must be in the local frame
+            m_grid_map.at(mod_v.first).p_level = mod_v.second;
+        } else {
+            std::cerr << "Vertex (" << mod_v.first.x() << ", " << mod_v.first.y() << ") not found" << std::endl;
+        }
+    }
+}
+
+std::unordered_map<ChVector2<>, double, SCMDeformableSoil::CoordHash> SCMDeformableSoil::GetHits() {
+    std::unordered_map<ChVector2<>, double, SCMDeformableSoil::CoordHash> modified_verts;
+
+    for (auto& h : m_hits) {
+    }
+
+    return modified_verts;
+}
+
 void SCMDeformableSoil::SetupInitial() {
     // If no user-specified moving patches, create one that will encompass all collision shapes in the system
     if (!m_moving_patch) {
@@ -687,6 +714,8 @@ void SCMDeformableSoil::ComputeInternalForces() {
 
     m_timer_ray_casting.start();
     m_num_ray_casts = 0;
+    m_num_ray_hits = 0;
+    m_hits.clear();
 
     // Update moving patch information
     if (m_moving_patch) {
@@ -696,15 +725,6 @@ void SCMDeformableSoil::ComputeInternalForces() {
         assert(m_patches.size() == 1);
         UpdateFixedPatch(m_patches[0]);
     }
-
-    struct HitRecord {
-        ChContactable* contactable;  // pointer to hit object
-        ChVector<> abs_point;        // hit point, expressed in global frame
-        int patch_id;                // index of associated patch id
-    };
-    std::unordered_map<ChVector2<int>, HitRecord, CoordHash> hits;
-
-    m_num_ray_hits = 0;
 
     // Loop through all moving patches (user-defined or default one)
     for (auto& p : m_patches) {
@@ -734,7 +754,7 @@ void SCMDeformableSoil::ComputeInternalForces() {
 
                     // Add to our map of hits to process
                     HitRecord record = {mrayhit_result.hitModel->GetContactable(), mrayhit_result.abs_hitPoint, -1};
-                    hits.insert(std::make_pair(ij, record));
+                    m_hits.insert(std::make_pair(ij, record));
                     m_num_ray_hits++;
                 }
             }
@@ -768,7 +788,7 @@ void SCMDeformableSoil::ComputeInternalForces() {
     // Loop through all hit vertices and determine to which contact patch they belong.
     // Use a queue-based flood-filling algorithm based on the 8 neighbors of each hit vertex.
     m_num_contact_patches = 0;
-    for (auto& h : hits) {
+    for (auto& h : m_hits) {
         if (h.second.patch_id != -1)
             continue;
 
@@ -784,8 +804,8 @@ void SCMDeformableSoil::ComputeInternalForces() {
         todo.push(ij);
 
         while (!todo.empty()) {
-            auto crt = hits.find(todo.front());  // Current hit vertex is first element in queue
-            todo.pop();                          // Remove first element from queue
+            auto crt = m_hits.find(todo.front());  // Current hit vertex is first element in queue
+            todo.pop();                            // Remove first element from queue
 
             ChVector2<int> crt_ij = crt->first;
             int crt_patch = crt->second.patch_id;
@@ -794,8 +814,8 @@ void SCMDeformableSoil::ComputeInternalForces() {
             for (int k = 0; k < 4; k++) {
                 ChVector2<int> nbr_ij = crt_ij + neighbors4[k];
                 // If neighbor is not a hit vertex, move on
-                auto nbr = hits.find(nbr_ij);
-                if (nbr == hits.end())
+                auto nbr = m_hits.find(nbr_ij);
+                if (nbr == m_hits.end())
                     continue;
                 if (nbr->second.patch_id != -1)
                     continue;
@@ -842,7 +862,7 @@ void SCMDeformableSoil::ComputeInternalForces() {
     double damping_R = m_damping_R;
 
     // Process only hit vertices
-    for (auto& h : hits) {
+    for (auto& h : m_hits) {
         ChVector2<> ij = h.first;
 
         auto& v = m_grid_map.at(ij);
@@ -1019,7 +1039,7 @@ void SCMDeformableSoil::ComputeInternalForces() {
         std::vector<int> modified_vertices;
 
         // Loop over list of hits and adjust corresponding mesh vertices
-        for (const auto& h : hits) {
+        for (const auto& h : m_hits) {
             auto ij = h.first;                // grid location
             auto v = m_grid_map.at(ij);       // grid vertex record
             int iv = GetMeshVertexIndex(ij);  // mesh vertex index
