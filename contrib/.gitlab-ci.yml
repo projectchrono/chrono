@@ -269,6 +269,8 @@ linux:ubuntu1804:deploy:
     - echo "Build PyChrono and deploy via Anaconda..."
 # Remove build directory because anaconda doesn't want it
     - rm -rf build
+    # this command is needed to get the git describe data needed by the numbering
+    - git fetch --prune --unshallow
     - export CONDA_NPY=19
     - wget "http://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh"
     - bash Miniconda3-latest-Linux-x86_64.sh -b
@@ -381,6 +383,8 @@ windows:vs2019:deploy:
     - Invoke-WebRequest -Uri http://www.projectchrono.org/assets/downloads/libiomp5md.lib  -OutFile $libiomppth
     - mkdir ./logs
     - $Env:LOG_DIR=Join-Path -Path $pwd -ChildPath "\logs"
+    # this command is needed to get the git describe data needed by the numbering
+    - git fetch --prune --unshallow
     # Uncomment the following lines to get a fresh install of Miniconda
     #- $Env:CONDA_INSTALL_LOCN= "C:\Users\builder\Miniconda3"
     #- Invoke-WebRequest -Uri https://repo.anaconda.com/miniconda/Miniconda3-latest-Windows-x86_64.exe  -OutFile ./Miniconda3-latest-Windows-x86_64.exe >temp.txt
@@ -500,7 +504,7 @@ macos:macos:deploy:
     - conda install -c intel mkl-devel --yes
     - ls $HOME/miniconda/lib/
     - conda build purge-all
-    # this command is needed to get the git describe data
+    # this command is needed to get the git describe data needed by the numbering
     - git fetch --prune --unshallow
     - clang --version
     - mv -f ./contrib/packaging-python/conda/buildMacOS.sh ./contrib/packaging-python/conda/build.sh
