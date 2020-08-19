@@ -234,18 +234,19 @@ void ChIrrNodeProxyToAsset::UpdateTriangleMeshFixedConnectivity(std::shared_ptr<
         meshnode->setMaterialFlag(video::EMF_WIREFRAME, trianglemesh->IsWireframe());  // set as wireframe?
         meshnode->setMaterialFlag(video::EMF_LIGHTING, !trianglemesh->IsWireframe());  // no shading if wireframe
         meshnode->setMaterialFlag(video::EMF_BACK_FACE_CULLING, trianglemesh->IsBackfaceCull());
-        meshnode->setMaterialFlag(video::EMF_COLOR_MATERIAL, true);  // color shading = vertexes  color
 
     } else {
         // Incremental update of the Irrlicht mesh
         for (auto i : trianglemesh->GetModifiedVertices()) {
             vertexbuffer[i].Pos = core::vector3df((f32)vertices[i].x(), (f32)vertices[i].y(), (f32)vertices[i].z());
+            vertexbuffer[i].Normal = core::vector3df((f32)normals[i].x(), (f32)normals[i].y(), (f32)normals[i].z());
             vertexbuffer[i].Color =
                 video::SColor(255, (u32)(cols[i].x() * 255), (u32)(cols[i].y() * 255), (u32)(cols[i].z() * 255));
         }
     }
 
-    irrmesh->setDirty();  // to force update of hardware buffers
+    irrmesh->setDirty();                                         // to force update of hardware buffers
+    meshnode->setMaterialFlag(video::EMF_COLOR_MATERIAL, true);  // color shading = vertexes  color
 }
 
 void ChIrrNodeProxyToAsset::UpdateGlyphs(std::shared_ptr<ChGlyphs> glyphs) {
