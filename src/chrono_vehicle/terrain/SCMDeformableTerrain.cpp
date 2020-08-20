@@ -1095,7 +1095,7 @@ void SCMDeformableSoil::UpdateMeshVertexNormal(const ChVector2<int> ij, int iv) 
 
     // Average normals from adjacent faces
     normals[iv] = ChVector<>(0, 0, 0);
-    auto& faces = GetMeshFaceIndices(ij);
+    auto faces = GetMeshFaceIndices(ij);
     for (auto f : faces) {
         ChVector<> nrm = Vcross(vertices[idx_normals[f][1]] - vertices[idx_normals[f][0]],
                                 vertices[idx_normals[f][2]] - vertices[idx_normals[f][0]]);
@@ -1128,10 +1128,10 @@ void SCMDeformableSoil::SetModifiedVertices(const std::vector<SCMDeformableTerra
     // Update visualization
     if (m_trimesh_shape) {
         for (const auto& v : vertices) {
-            auto ij = v.first;                       // grid location
-            auto v = m_grid_map.at(ij);              // grid vertex record
-            int iv = GetMeshVertexIndex(ij);         // mesh vertex index
-            UpdateMeshVertexCoordinates(ij, iv, v);  // update vertex coordinates and color
+            auto ij = v.first;                        // grid location
+            auto vr = m_grid_map.at(ij);              // grid vertex record
+            int iv = GetMeshVertexIndex(ij);          // mesh vertex index
+            UpdateMeshVertexCoordinates(ij, iv, vr);  // update vertex coordinates and color
             m_external_modified_vertices.push_back(iv);
         }
         if (!m_trimesh_shape->IsWireframe()) {
