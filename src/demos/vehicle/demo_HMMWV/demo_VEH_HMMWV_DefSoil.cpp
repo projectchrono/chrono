@@ -56,7 +56,7 @@ using std::endl;
 
 double terrainLength = 16.0;  // size in X direction
 double terrainWidth = 8.0;    // size in Y direction
-double delta = 0.125;         // SCM grid spacing
+double delta = 0.05;          // SCM grid spacing
 
 // -----------------------------------------------------------------------------
 // Vehicle parameters

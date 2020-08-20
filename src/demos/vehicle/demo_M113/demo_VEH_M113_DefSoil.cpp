@@ -53,7 +53,7 @@ ChQuaternion<> initRot(1, 0, 0, 0);
 // Terrain dimensions
 double terrainLength = 20.0;  // size in X direction
 double terrainWidth = 4.0;    // size in Y direction
-double delta = 0.125;         // SCM grid spacing
+double delta = 0.05;          // SCM grid spacing
 
 // Simulation step size
 double step_size = 1e-3;
