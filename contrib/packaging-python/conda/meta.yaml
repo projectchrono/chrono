@@ -32,10 +32,10 @@ requirements:
     - python
     - mkl
 
-#test:
-#  requires:
-#    - wxpython          [py27]
-#    - pyside            [py27]
+test:
+  requires:
+    - wxpython          [py27]
+    - pyside            [py27]
 
 about:
   home: https://github.com/projectchrono/chrono
