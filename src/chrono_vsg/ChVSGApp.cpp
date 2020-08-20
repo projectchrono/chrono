@@ -24,9 +24,7 @@
 #include "chrono/assets/ChSphereShape.h"
 #include "chrono/assets/ChEllipsoidShape.h"
 #include "chrono/assets/ChCylinderShape.h"
-#include "chrono_vsg/shapes/ChVSGBox.h"
-#include "chrono_vsg/shapes/ChVSGSphere.h"
-#include "chrono_vsg/shapes/ChVSGCylinder.h"
+#include "chrono_vsg/shapes/ChVSGShapeFactory.h"
 
 using namespace chrono::vsg3d;
 
@@ -160,7 +158,7 @@ void ChVSGApp::UpdateSceneGraph() {
         for (int i = 0; i < body->GetAssets().size(); i++) {
             auto asset = body->GetAssets().at(i);
 
-            vsg::vec4 color(1, 1, 1, 1);
+            vsg::vec4 color(0.2, 0.2, 0.2, 1);
             if (std::dynamic_pointer_cast<ChColorAsset>(asset)) {
                 ChColorAsset* color_asset = (ChColorAsset*)(asset.get());
                 color[0] = color_asset->GetColor().R;
@@ -198,8 +196,14 @@ void ChVSGApp::UpdateSceneGraph() {
                     transform->setMatrix(vsg::translate(pos_final.x(), pos_final.y(), pos_final.z()) *
                                          vsg::rotate(angle, axis.x(), axis.y(), axis.z()) *
                                          vsg::scale(size.x(), size.y(), size.z()));
-                    ChVSGBox theBox;
-                    vsg::ref_ptr<vsg::Node> node = theBox.createTexturedNode(color, transform);
+                    // ChVSGBox theBox;
+                    std::string texFilePath("vsg/textures/Metal007.jpg");
+                    /*
+                    vsg::ref_ptr<vsg::Node> node =
+                        ChVSGShapeFactory::createBoxTexturedNode(color, texFilePath, transform);
+                         */
+                    vsg::ref_ptr<vsg::Node> node = ChVSGShapeFactory::createBoxPhongNode(color, transform);
+
                     m_scenegraph->addChild(node);
                     m_transformList.push_back(transform);  // we will need it later
                 } else {
@@ -230,8 +234,10 @@ void ChVSGApp::UpdateSceneGraph() {
                     transform->setMatrix(vsg::translate(pos_final.x(), pos_final.y(), pos_final.z()) *
                                          vsg::rotate(angle, axis.x(), axis.y(), axis.z()) *
                                          vsg::scale(size.x(), size.y(), size.z()));
-                    ChVSGSphere theSphere;
-                    vsg::ref_ptr<vsg::Node> node = theSphere.createTexturedNode(color, transform);
+
+                    std::string texFilePath("concrete.jpg");
+                    vsg::ref_ptr<vsg::Node> node =
+                        ChVSGShapeFactory::createSphereTexturedNode(color, texFilePath, transform);
                     m_scenegraph->addChild(node);
                     m_transformList.push_back(transform);  // we will need it later
                 } else {
@@ -265,8 +271,9 @@ void ChVSGApp::UpdateSceneGraph() {
                                          vsg::rotate(angle, axis.x(), axis.y(), axis.z()) *
                                          vsg::scale(size.x(), size.y(), size.z()));
 
-                    ChVSGSphere theSphere;
-                    vsg::ref_ptr<vsg::Node> node = theSphere.createTexturedNode(color, transform);
+                    std::string texFilePath("concrete.jpg");
+                    vsg::ref_ptr<vsg::Node> node =
+                        ChVSGShapeFactory::createSphereTexturedNode(color, texFilePath, transform);
                     m_scenegraph->addChild(node);
                     m_transformList.push_back(transform);  // we will need it later
                 } else {
@@ -287,8 +294,9 @@ void ChVSGApp::UpdateSceneGraph() {
                     transform->setMatrix(vsg::translate(pos_final.x(), pos_final.y(), pos_final.z()) *
                                          vsg::rotate(angle, axis.x(), axis.y(), axis.z()) *
                                          vsg::scale(radius, radius, height));
-                    ChVSGCylinder theCylinder;
-                    vsg::ref_ptr<vsg::Node> node = theCylinder.createTexturedNode(color, transform);
+                    std::string texFilePath("concrete.jpg");
+                    vsg::ref_ptr<vsg::Node> node =
+                        ChVSGShapeFactory::createCylinderTexturedNode(color, texFilePath, transform);
                     m_scenegraph->addChild(node);
                     m_transformList.push_back(transform);  // we will need it later
                 } else {

@@ -8,8 +8,8 @@ layout(push_constant) uniform PushConstants {
 
 layout(location = 0) in vec3 inPosition;
 layout(location = 1) in vec3 inNormal;
-layout(location = 2) in vec3 inColorDiffuse;
-layout(location = 3) in vec2 inTexCoord;
+layout(location = 2) in vec3 inColorAmbient;
+layout(location = 3) in vec3 inColorDiffuse;
 
 layout(location = 0) out vec3 ambientColor;
 layout(location = 1) out vec3 diffuseColor;
@@ -27,7 +27,7 @@ void main() {
     normal = normalize(mat3(pc.modelview) * inNormal);
     eye_vec = vec3(pc.modelview * vec4(inPosition, 1.0));
 
-    ambientColor = 0.1*inColorDiffuse;
+    ambientColor = inColorAmbient;
     diffuseColor = inColorDiffuse;
     specularColor = vec3(1, 1, 1);
 

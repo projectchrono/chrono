@@ -22,19 +22,14 @@ MARK_AS_ADVANCED(CLEAR VSG_ROOT)
 # List all the files in the ChronoEngine_irrlicht lib
 SET(ChronoEngine_VSG_SOURCES
     ChVSGApp.cpp
+    ../chrono_thirdparty/stb/stb_image.cpp
 )
 
 SET(ChronoEngine_VSG_HEADERS
     ChVSGApp.h
     core/ChApiVSG.h
-    shapes/ChVSGBaseShape.h
-    shapes/ChVSGBaseShape.cpp
-    shapes/ChVSGBox.h
-    shapes/ChVSGBox.cpp
-    shapes/ChVSGSphere.h
-    shapes/ChVSGSphere.cpp
-    shapes/ChVSGCylinder.h
-    shapes/ChVSGCylinder.cpp
+    shapes/ChVSGShapeFactory.h
+    shapes/ChVSGShapeFactory.cpp
 )
 
 SOURCE_GROUP("" FILES
