@@ -45,6 +45,7 @@ class CH_VSG_API ChVSGShapeFactory {
                                                               vsg::ref_ptr<vsg::MatrixTransform> transform);
 
     static vsg::ref_ptr<vsg::Node> createBoxPhongNode(vsg::vec4 color, vsg::ref_ptr<vsg::MatrixTransform> transform);
+    static vsg::ref_ptr<vsg::Node> createSpherePhongNode(vsg::vec4 color, vsg::ref_ptr<vsg::MatrixTransform> transform);
 };
 }  // namespace vsg3d
 }  // namespace chrono

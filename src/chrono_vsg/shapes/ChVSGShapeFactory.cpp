@@ -765,10 +765,6 @@ vsg::ref_ptr<vsg::Node> ChVSGShapeFactory::createBoxPhongNode(vsg::vec4 color,
         return {};
     }
 
-    // auto textureData = createRGBATexture(GetChronoDataFile(texFilePath));
-    auto textureData =
-        vsg::vec4Array2D::create(2, 2, vsg::vec4(0, 0, 0, 0), vsg::Data::Layout{VK_FORMAT_R32G32B32A32_SFLOAT});
-    // set up graphics pipeline
     vsg::DescriptorSetLayoutBindings descriptorBindings{
         {0, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_FRAGMENT_BIT,
          nullptr}  // { binding, descriptorTpe, descriptorCount, stageFlags, pImmutableSamplers}
@@ -788,14 +784,12 @@ vsg::ref_ptr<vsg::Node> ChVSGShapeFactory::createBoxPhongNode(vsg::vec4 color,
         VkVertexInputBindingDescription{0, sizeof(vsg::vec3), VK_VERTEX_INPUT_RATE_VERTEX},  // vertex data
         VkVertexInputBindingDescription{1, sizeof(vsg::vec3), VK_VERTEX_INPUT_RATE_VERTEX},  // normal data
         VkVertexInputBindingDescription{2, sizeof(vsg::vec3), VK_VERTEX_INPUT_RATE_VERTEX},  // color data
-        VkVertexInputBindingDescription{3, sizeof(vsg::vec2), VK_VERTEX_INPUT_RATE_VERTEX}   // texture data
     };
 
     vsg::VertexInputState::Attributes vertexAttributeDescriptions{
         VkVertexInputAttributeDescription{0, 0, VK_FORMAT_R32G32B32_SFLOAT, 0},  // vertex data
         VkVertexInputAttributeDescription{1, 1, VK_FORMAT_R32G32B32_SFLOAT, 0},  // normal data
         VkVertexInputAttributeDescription{2, 2, VK_FORMAT_R32G32B32_SFLOAT, 0},  // color data
-        VkVertexInputAttributeDescription{3, 3, VK_FORMAT_R32G32_SFLOAT, 0},     // color data
     };
 
     vsg::GraphicsPipelineStates pipelineStates{
@@ -810,11 +804,7 @@ vsg::ref_ptr<vsg::Node> ChVSGShapeFactory::createBoxPhongNode(vsg::vec4 color,
         vsg::GraphicsPipeline::create(pipelineLayout, vsg::ShaderStages{vertexShader, fragmentShader}, pipelineStates);
     auto bindGraphicsPipeline = vsg::BindGraphicsPipeline::create(graphicsPipeline);
 
-    // create texture image and associated DescriptorSets and binding
-    auto texture = vsg::DescriptorImage::create(vsg::Sampler::create(), textureData, 0, 0,
-                                                VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER);
-
-    auto descriptorSet = vsg::DescriptorSet::create(descriptorSetLayout, vsg::Descriptors{texture});
+    auto descriptorSet = vsg::DescriptorSet::create(descriptorSetLayout, vsg::Descriptors{VK_NULL_HANDLE});
     auto bindDescriptorSets = vsg::BindDescriptorSets::create(
         VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline->getPipelineLayout(), 0, vsg::DescriptorSets{descriptorSet});
 
@@ -839,7 +829,7 @@ vsg::ref_ptr<vsg::Node> ChVSGShapeFactory::createBoxPhongNode(vsg::vec4 color,
 
     auto colors = vsg::vec3Array::create(vertices->size(), vsg::vec3(color.r, color.g, color.b));
 
-#if 1
+#if 0
     auto texcoords = vsg::vec2Array::create({{0, 0}, {1, 0}, {1, 1}, {0, 1}, {0, 0}, {1, 0}, {1, 1}, {0, 1},
                                              {0, 0}, {1, 0}, {1, 1}, {0, 1}, {0, 0}, {1, 0}, {1, 1}, {0, 1},
                                              {0, 0}, {1, 0}, {1, 1}, {0, 1}, {0, 0}, {1, 0}, {1, 1}, {0, 1}});
@@ -852,7 +842,7 @@ vsg::ref_ptr<vsg::Node> ChVSGShapeFactory::createBoxPhongNode(vsg::vec4 color,
 
     // setup geometry
     auto drawCommands = vsg::Commands::create();
-    drawCommands->addChild(vsg::BindVertexBuffers::create(0, vsg::DataList{vertices, normals, colors, texcoords}));
+    drawCommands->addChild(vsg::BindVertexBuffers::create(0, vsg::DataList{vertices, normals, colors}));
     drawCommands->addChild(vsg::BindIndexBuffer::create(indices));
     drawCommands->addChild(vsg::DrawIndexed::create(indices->size(), 1, 0, 0, 0));
 
@@ -860,7 +850,215 @@ vsg::ref_ptr<vsg::Node> ChVSGShapeFactory::createBoxPhongNode(vsg::vec4 color,
     transform->addChild(drawCommands);
     subgraph->addChild(transform);
 
-    // compile(subgraph);
+    return subgraph;
+}
+
+//++++++++++++++++++++++++++++++++++++++++++++ Phong Shaded Sphere +++++++++++++++++++++++++++++++++++++++++++++++++
+vsg::ref_ptr<vsg::Node> ChVSGShapeFactory::createSpherePhongNode(vsg::vec4 color,
+                                                                 vsg::ref_ptr<vsg::MatrixTransform> transform) {
+    // set up search paths to SPIRV shaders and textures
+    vsg::ref_ptr<vsg::ShaderStage> vertexShader = readVertexShader(GetChronoDataFile("vsg/shaders/vert_Phong.spv"));
+    vsg::ref_ptr<vsg::ShaderStage> fragmentShader = readFragmentShader(GetChronoDataFile("vsg/shaders/frag_Phong.spv"));
+    if (!vertexShader || !fragmentShader) {
+        std::cout << "Could not create shaders." << std::endl;
+        return {};
+    }
+
+    vsg::DescriptorSetLayoutBindings descriptorBindings{
+        {0, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_FRAGMENT_BIT,
+         nullptr}  // { binding, descriptorTpe, descriptorCount, stageFlags, pImmutableSamplers}
+    };
+
+    auto descriptorSetLayout = vsg::DescriptorSetLayout::create(descriptorBindings);
+    vsg::DescriptorSetLayouts descriptorSetLayouts{descriptorSetLayout};
+
+    vsg::PushConstantRanges pushConstantRanges{
+        {VK_SHADER_STAGE_VERTEX_BIT, 0, 128}  // projection view, and model matrices, actual push constant calls
+                                              // autoatically provided by the VSG's DispatchTraversal
+    };
+
+    auto pipelineLayout = vsg::PipelineLayout::create(descriptorSetLayouts, pushConstantRanges);
+
+    vsg::VertexInputState::Bindings vertexBindingsDescriptions{
+        VkVertexInputBindingDescription{0, sizeof(vsg::vec3), VK_VERTEX_INPUT_RATE_VERTEX},  // vertex data
+        VkVertexInputBindingDescription{1, sizeof(vsg::vec3), VK_VERTEX_INPUT_RATE_VERTEX},  // normal data
+        VkVertexInputBindingDescription{2, sizeof(vsg::vec3), VK_VERTEX_INPUT_RATE_VERTEX},  // color data
+    };
+
+    vsg::VertexInputState::Attributes vertexAttributeDescriptions{
+        VkVertexInputAttributeDescription{0, 0, VK_FORMAT_R32G32B32_SFLOAT, 0},  // vertex data
+        VkVertexInputAttributeDescription{1, 1, VK_FORMAT_R32G32B32_SFLOAT, 0},  // normal data
+        VkVertexInputAttributeDescription{2, 2, VK_FORMAT_R32G32B32_SFLOAT, 0},  // color data
+    };
+
+    vsg::GraphicsPipelineStates pipelineStates{
+        vsg::VertexInputState::create(vertexBindingsDescriptions, vertexAttributeDescriptions),
+        vsg::InputAssemblyState::create(),
+        vsg::RasterizationState::create(),
+        vsg::MultisampleState::create(),
+        vsg::ColorBlendState::create(),
+        vsg::DepthStencilState::create()};
+
+    auto graphicsPipeline =
+        vsg::GraphicsPipeline::create(pipelineLayout, vsg::ShaderStages{vertexShader, fragmentShader}, pipelineStates);
+    auto bindGraphicsPipeline = vsg::BindGraphicsPipeline::create(graphicsPipeline);
+
+    auto descriptorSet = vsg::DescriptorSet::create(descriptorSetLayout, vsg::Descriptors{VK_NULL_HANDLE});
+    auto bindDescriptorSets = vsg::BindDescriptorSets::create(
+        VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline->getPipelineLayout(), 0, vsg::DescriptorSets{descriptorSet});
+
+    // create StateGroup as the root of the scene/command graph to hold the GraphicsProgram, and binding of
+    // Descriptors to decorate the whole graph
+    auto subgraph = vsg::StateGroup::create();
+    subgraph->add(bindGraphicsPipeline);
+    // subgraph->add(bindDescriptorSets);
+
+    // set up vertex and index arrays
+    auto vertices = vsg::vec3Array::create(
+        {{-0.818828, -0.445779, -0.361665}, {0.14171, -0.679507, -0.719853},    {-0.137781, -0.957064, 0.255038},
+         {-0.732933, -0.187495, 0.653953},  {-0.821265, 0.565674, -0.074407},   {-0.280702, 0.261588, -0.92346},
+         {0.821265, -0.565674, 0.074407},   {0.280702, -0.261588, 0.92346},     {-0.14171, 0.679507, 0.719853},
+         {0.137781, 0.957064, -0.255038},   {0.732933, 0.187495, -0.653953},    {0.818828, 0.445779, 0.361665},
+         {-0.562282, -0.824567, -0.062675}, {-0.398002, -0.661425, -0.635698},  {0.002309, -0.961951, -0.273211},
+         {-0.081697, -0.245646, -0.965911}, {-0.646288, -0.108267, -0.755374},  {-0.912102, -0.372229, 0.171802},
+         {-0.511795, -0.672753, 0.534293},  {-0.964021, 0.070469, -0.256317},   {-0.913535, 0.222286, 0.340651},
+         {-0.647719, 0.486252, -0.586531},  {0.514104, -0.289196, -0.807504},   {0.265817, 0.263965, -0.92718},
+         {0.401742, -0.895045, 0.193644},   {0.566025, -0.731903, -0.379385},   {-0.265817, -0.263965, 0.92718},
+         {0.084008, -0.716309, 0.692708},   {-0.566025, 0.731903, 0.379385},    {-0.514104, 0.289196, 0.807504},
+         {-0.084008, 0.716309, -0.692708},  {-0.401742, 0.895045, -0.193644},   {0.913535, -0.222286, -0.340651},
+         {0.647719, -0.486252, 0.586531},   {0.081697, 0.245646, 0.965911},     {-0.002309, 0.961951, 0.273211},
+         {0.511795, 0.672753, -0.534293},   {0.964021, -0.070469, 0.256317},    {0.912102, 0.372229, -0.171802},
+         {0.646288, 0.108267, 0.755374},    {0.398002, 0.661425, 0.635698},     {0.562282, 0.824567, 0.062675},
+         {-0.717878, -0.660305, -0.220565}, {-0.133216, -0.696995, -0.704593},  {-0.0704161, -0.997473, -0.00944551},
+         {0.0311932, -0.480879, -0.876232}, {-0.481834, 0.0796943, -0.872631},  {-0.899709, -0.425187, -0.0986872},
+         {-0.646989, -0.447143, 0.617631},  {-0.926695, -0.19508, -0.321217},   {-0.901721, 0.409569, 0.138389},
+         {-0.482579, 0.388715, -0.784868},  {0.340882, -0.503516, -0.793896},   {0.519134, 0.234662, -0.821848},
+         {0.137203, -0.962697, 0.233218},   {0.721092, -0.67446, -0.158523},    {-0.519134, -0.234662, 0.821848},
+         {0.18957, -0.508296, 0.840059},    {-0.721092, 0.67446, 0.158523},     {-0.340882, 0.503516, 0.793896},
+         {-0.18957, 0.508296, -0.840059},   {-0.137203, 0.962697, -0.233218},   {0.901721, -0.409569, -0.138389},
+         {0.482579, -0.388715, 0.784868},   {-0.0311932, 0.480879, 0.876232},   {0.0704161, 0.997473, 0.00944551},
+         {0.646989, 0.447143, -0.617631},   {0.927962, -0.330657, 0.171905},    {0.899709, 0.425187, 0.0986872},
+         {0.481834, -0.0796943, 0.872631},  {0.133216, 0.696995, 0.704593},     {0.363881, 0.926063, -0.0999877},
+         {-0.363882, -0.926063, 0.0999876}, {-0.632488, -0.575506, -0.518412},  {0.0748593, -0.853203, -0.516179},
+         {-0.18837, 0.00828639, -0.982063}, {-0.761543, -0.287984, -0.580618},  {-0.855062, -0.290936, 0.429215},
+         {-0.337639, -0.847153, 0.410282},  {-0.927962, 0.330657, -0.171905},   {-0.855807, 0.0180843, 0.516979},
+         {-0.763554, 0.546774, -0.343545},  {0.64819, -0.052862, -0.759641},    {-0.00773751, 0.273174, -0.961934},
+         {0.6357, -0.759258, 0.139329},     {0.36787, -0.733629, -0.571367},    {0.00773751, -0.273174, 0.961934},
+         {-0.0279509, -0.869794, 0.492624}, {-0.36787, 0.733629, 0.571367},     {-0.64819, 0.052862, 0.759641},
+         {0.0279509, 0.869794, -0.492624},  {-0.6357, 0.759258, -0.139329},     {0.855807, -0.0180843, -0.516979},
+         {0.763554, -0.546774, 0.343545},   {0.18837, -0.00828639, 0.982063},   {-0.0748593, 0.853203, 0.516179},
+         {0.337639, 0.847153, -0.410282},   {0.926695, 0.19508, 0.321217},      {0.855062, 0.290936, -0.429215},
+         {0.761543, 0.287984, 0.580618},    {0.632488, 0.575506, 0.518412},     {0.717878, 0.660305, 0.220565},
+         {0.775129, 0.629193, -0.0573709},  {0.748586, 0.549379, -0.371216},    {0.564676, 0.787188, -0.247944},
+         {0.504851, 0.781231, 0.367156},    {0.294395, 0.939228, 0.176586},     {0.208028, 0.853459, 0.477841},
+         {0.549015, 0.40465, 0.731328},     {0.252193, 0.476875, 0.842015},     {0.382725, 0.186062, 0.904932},
+         {0.846588, 0.0198716, 0.531877},   {0.6803, -0.198719, 0.705481},      {0.847342, -0.292685, 0.443111},
+         {0.986335, 0.158645, 0.0444327},   {0.98709, -0.153911, -0.044337},    {0.959793, 0.0788291, -0.269412},
+         {0.408815, 0.492462, -0.768343},   {0.0955832, 0.515361, -0.851626},   {0.224902, 0.730274, -0.645073},
+         {-0.212423, 0.976282, 0.0418314},  {-0.508786, 0.855337, 0.0976503},   {-0.298791, 0.890513, 0.34309},
+         {-0.22733, 0.281183, 0.932339},    {-0.410029, 0.0132652, 0.911976},   {-0.0967976, -0.00963034, 0.995257},
+         {0.384691, -0.632225, 0.672536},   {0.255374, -0.847139, 0.465983},    {0.551736, -0.726192, 0.410163},
+         {0.777852, -0.501647, -0.378546},  {0.567858, -0.536823, -0.623985},   {0.750555, -0.268902, -0.603621},
+         {-0.255374, 0.847139, -0.465983},  {-0.384691, 0.632225, -0.672536},   {-0.551736, 0.726192, -0.410163},
+         {-0.567858, 0.536823, 0.623985},   {-0.777852, 0.501647, 0.378546},    {-0.750555, 0.268902, 0.603621},
+         {-0.0955832, -0.515361, 0.851626}, {-0.408815, -0.492462, 0.768343},   {-0.224902, -0.730274, 0.645073},
+         {0.508786, -0.855337, -0.0976503}, {0.212423, -0.976282, -0.0418314},  {0.298791, -0.890513, -0.34309},
+         {0.410029, -0.0132652, -0.911976}, {0.22733, -0.281183, -0.932339},    {0.0967976, 0.00963034, -0.995257},
+         {-0.6803, 0.198719, -0.705481},    {-0.846588, -0.0198716, -0.531877}, {-0.847342, 0.292685, -0.443111},
+         {-0.98709, 0.153911, 0.044337},    {-0.986335, -0.158645, -0.0444327}, {-0.959793, -0.0788291, 0.269412},
+         {-0.748586, -0.549379, 0.371216},  {-0.775129, -0.629193, 0.0573709},  {-0.564676, -0.787188, 0.247944},
+         {-0.382725, -0.186062, -0.904932}, {-0.252193, -0.476875, -0.842015},  {-0.549015, -0.40465, -0.731328},
+         {-0.294395, -0.939228, -0.176586}, {-0.504851, -0.781231, -0.367156},  {-0.208028, -0.853459, -0.477841}});
+
+    auto normals =
+        vsg::vec3Array::create({{-0.704, -0.704, -0.3736},   {-0.5442, -0.5442, -0.826},  {-0.5913, -0.5913, -0.0591},
+                                {-0.2427, -0.2427, -0.1345}, {-0.1399, -0.1399, -0.4956}, {-0.3992, -0.3992, -0.8929},
+                                {-0.9921, -0.9921, 0.0406},  {-0.4175, -0.4175, 0.7529},  {0.5305, 0.5305, 0.2595},
+                                {0.5419, 0.5419, -0.7576},   {-0.5886, -0.5886, -0.6645}, {-0.8964, -0.8964, 0.4169},
+                                {-0.0428, -0.0428, 0.8593},  {0.7926, 0.7926, 0.0514},    {0.4553, 0.4553, -0.8903},
+                                {-0.2729, -0.2729, -0.0119}, {-0.2207, -0.2207, 0.782},   {0.5442, 0.5442, 0.826},
+                                {0.9647, 0.9647, 0.0592},    {0.4597, 0.4597, -0.4587},   {0.5913, 0.5913, 0.0591},
+                                {0.6671, 0.6671, -0.2296},   {0.852, 0.852, -0.2553},     {0.704, 0.704, 0.3736},
+                                {0.8735, 0.8735, 0.3467},    {0.8231, 0.8231, 0.5562},    {0.425, 0.425, 0.6434},
+                                {0.3623, 0.3623, 0.841},     {0.0644, 0.0644, 0.9298},    {0.1399, 0.1399, 0.4956},
+                                {-0.16, -0.16, 0.5703},      {-0.3757, -0.3757, 0.3492},  {0.2427, 0.2427, 0.1345},
+                                {0.0284, 0.0284, -0.0914},   {0.1111, 0.1111, -0.3833},   {0.4175, 0.4175, -0.7529},
+                                {0.5898, 0.5898, -0.7687},   {0.8099, 0.8099, -0.5495},   {0.9921, 0.9921, -0.0406},
+                                {0.9238, 0.9238, 0.1638},    {0.8506, 0.8506, 0.4564},    {0.3992, 0.3992, 0.8929},
+                                {0.0967, 0.0967, 0.9636},    {-0.0806, -0.0806, 0.9967},  {-0.5419, -0.5419, 0.7576},
+                                {-0.7485, -0.7485, 0.5256},  {-0.6969, -0.6969, 0.3248},  {-0.5305, -0.5305, -0.2595},
+                                {-0.4437, -0.4437, -0.5451}, {-0.1465, -0.1465, -0.6309}, {0.8964, 0.8964, -0.4169},
+                                {0.7485, 0.7485, -0.5256},   {0.6969, 0.6969, -0.3248},   {0.5886, 0.5886, 0.6645},
+                                {0.4437, 0.4437, 0.5451},    {0.1465, 0.1465, 0.6309},    {-0.4553, -0.4553, 0.8903},
+                                {-0.5898, -0.5898, 0.7687},  {-0.8099, -0.8099, 0.5495},  {-0.7926, -0.7926, -0.0514},
+                                {-0.9238, -0.9238, -0.1638}, {-0.8506, -0.8506, -0.4564}, {0.0428, 0.0428, -0.8593},
+                                {-0.0967, -0.0967, -0.9636}, {0.0806, 0.0806, -0.9967},   {0.2207, 0.2207, -0.782},
+                                {0.16, 0.16, -0.5703},       {0.3757, 0.3757, -0.3492},   {0.2729, 0.2729, 0.0119},
+                                {-0.0284, -0.0284, 0.0914},  {-0.1111, -0.1111, 0.3833},  {-0.4597, -0.4597, 0.4587},
+                                {-0.6671, -0.6671, 0.2296},  {-0.852, -0.852, 0.2553},    {-0.0644, -0.0644, -0.9298},
+                                {-0.3623, -0.3623, -0.841},  {-0.425, -0.425, -0.6434},   {-0.9647, -0.9647, -0.0592},
+                                {-0.8735, -0.8735, -0.3467}, {-0.8231, -0.8231, -0.5562}, {0.7485, 0.7485, -0.5256},
+                                {-0.7485, -0.7485, 0.5256},  {0.9921, 0.9921, -0.0407},   {-0.9921, -0.9921, 0.0407}});
+
+    auto colors = vsg::vec3Array::create(vertices->size(), vsg::vec3(color.r, color.g, color.b));
+
+    auto indices = vsg::ushortArray::create(
+        {0,   73,  42,  1,   43,  45,  0,   42,  47,  0,   47,  49,  0,   49,  76,  1,   45,  52,  2,   44,  54,  3,
+         48,  56,  4,   50,  58,  5,   51,  60,  1,   52,  85,  2,   54,  87,  3,   56,  89,  4,   58,  91,  5,   60,
+         83,  6,   62,  67,  7,   63,  69,  8,   64,  70,  9,   65,  71,  10,  66,  98,  38,  102, 68,  38,  103, 102,
+         36,  96,  104, 41,  105, 101, 41,  106, 105, 35,  95,  107, 40,  108, 100, 40,  109, 108, 34,  94,  110, 39,
+         111, 99,  39,  112, 111, 33,  93,  113, 37,  114, 97,  37,  115, 114, 32,  92,  116, 23,  117, 53,  23,  118,
+         117, 30,  90,  119, 31,  120, 61,  31,  121, 120, 28,  88,  122, 29,  123, 59,  29,  124, 123, 26,  86,  125,
+         27,  126, 57,  27,  127, 126, 24,  84,  128, 25,  129, 55,  25,  130, 129, 22,  82,  131, 30,  132, 90,  30,
+         133, 132, 21,  81,  134, 28,  135, 88,  28,  136, 135, 20,  80,  137, 26,  138, 86,  26,  139, 138, 18,  78,
+         140, 24,  141, 84,  24,  142, 141, 14,  74,  143, 22,  144, 82,  22,  145, 144, 15,  75,  146, 16,  147, 46,
+         16,  148, 147, 19,  79,  149, 19,  150, 79,  19,  151, 150, 17,  77,  152, 17,  153, 77,  17,  154, 153, 12,
+         72,  155, 15,  156, 75,  15,  157, 156, 13,  73,  158, 12,  159, 72,  12,  160, 159, 13,  43,  161, 161, 74,
+         14,  161, 43,  74,  43,  1,   74,  159, 161, 14,  159, 160, 161, 160, 13,  161, 72,  44,  2,   72,  159, 44,
+         159, 14,  44,  158, 76,  16,  158, 73,  76,  73,  0,   76,  156, 158, 16,  156, 157, 158, 157, 13,  158, 75,
+         46,  5,   75,  156, 46,  156, 16,  46,  155, 78,  18,  155, 72,  78,  72,  2,   78,  153, 155, 18,  153, 154,
+         155, 154, 12,  155, 77,  48,  3,   77,  153, 48,  153, 18,  48,  152, 80,  20,  152, 77,  80,  77,  3,   80,
+         150, 152, 20,  150, 151, 152, 151, 17,  152, 79,  50,  4,   79,  150, 50,  150, 20,  50,  149, 81,  21,  149,
+         79,  81,  79,  4,   81,  147, 149, 21,  147, 148, 149, 148, 19,  149, 46,  51,  5,   46,  147, 51,  147, 21,
+         51,  146, 83,  23,  146, 75,  83,  75,  5,   83,  144, 146, 23,  144, 145, 146, 145, 15,  146, 82,  53,  10,
+         82,  144, 53,  144, 23,  53,  143, 85,  25,  143, 74,  85,  74,  1,   85,  141, 143, 25,  141, 142, 143, 142,
+         14,  143, 84,  55,  6,   84,  141, 55,  141, 25,  55,  140, 87,  27,  140, 78,  87,  78,  2,   87,  138, 140,
+         27,  138, 139, 140, 139, 18,  140, 86,  57,  7,   86,  138, 57,  138, 27,  57,  137, 89,  29,  137, 80,  89,
+         80,  3,   89,  135, 137, 29,  135, 136, 137, 136, 20,  137, 88,  59,  8,   88,  135, 59,  135, 29,  59,  134,
+         91,  31,  134, 81,  91,  81,  4,   91,  132, 134, 31,  132, 133, 134, 133, 21,  134, 90,  61,  9,   90,  132,
+         61,  132, 31,  61,  131, 92,  32,  131, 82,  92,  82,  10,  92,  129, 131, 32,  129, 130, 131, 130, 22,  131,
+         55,  62,  6,   55,  129, 62,  129, 32,  62,  128, 93,  33,  128, 84,  93,  84,  6,   93,  126, 128, 33,  126,
+         127, 128, 127, 24,  128, 57,  63,  7,   57,  126, 63,  126, 33,  63,  125, 94,  34,  125, 86,  94,  86,  7,
+         94,  123, 125, 34,  123, 124, 125, 124, 26,  125, 59,  64,  8,   59,  123, 64,  123, 34,  64,  122, 95,  35,
+         122, 88,  95,  88,  8,   95,  120, 122, 35,  120, 121, 122, 121, 28,  122, 61,  65,  9,   61,  120, 65,  120,
+         35,  65,  119, 96,  36,  119, 90,  96,  90,  9,   96,  117, 119, 36,  117, 118, 119, 118, 30,  119, 53,  66,
+         10,  53,  117, 66,  117, 36,  66,  116, 98,  38,  116, 92,  98,  92,  10,  98,  114, 116, 38,  114, 115, 116,
+         115, 32,  116, 97,  68,  11,  97,  114, 68,  114, 38,  68,  113, 67,  37,  113, 93,  67,  93,  6,   67,  111,
+         113, 37,  111, 112, 113, 112, 33,  113, 99,  97,  11,  99,  111, 97,  111, 37,  97,  110, 69,  39,  110, 94,
+         69,  94,  7,   69,  108, 110, 39,  108, 109, 110, 109, 34,  110, 100, 99,  11,  100, 108, 99,  108, 39,  99,
+         107, 70,  40,  107, 95,  70,  95,  8,   70,  105, 107, 40,  105, 106, 107, 106, 35,  107, 101, 100, 11,  101,
+         105, 100, 105, 40,  100, 104, 71,  41,  104, 96,  71,  96,  9,   71,  102, 104, 41,  102, 103, 104, 103, 36,
+         104, 68,  101, 11,  68,  102, 101, 102, 41,  101, 98,  103, 38,  98,  66,  103, 66,  36,  103, 71,  106, 41,
+         71,  65,  106, 65,  35,  106, 70,  109, 40,  70,  64,  109, 64,  34,  109, 69,  112, 39,  69,  63,  112, 63,
+         33,  112, 67,  115, 37,  67,  62,  115, 62,  32,  115, 83,  118, 23,  83,  60,  118, 60,  30,  118, 91,  121,
+         31,  91,  58,  121, 58,  28,  121, 89,  124, 29,  89,  56,  124, 56,  26,  124, 87,  127, 27,  87,  54,  127,
+         54,  24,  127, 85,  130, 25,  85,  52,  130, 52,  22,  130, 60,  133, 30,  60,  51,  133, 51,  21,  133, 58,
+         136, 28,  58,  50,  136, 50,  20,  136, 56,  139, 26,  56,  48,  139, 48,  18,  139, 54,  142, 24,  54,  44,
+         142, 44,  14,  142, 52,  145, 22,  52,  45,  145, 45,  15,  145, 76,  148, 16,  76,  49,  148, 49,  19,  148,
+         49,  151, 19,  49,  47,  151, 47,  17,  151, 47,  154, 17,  47,  42,  154, 42,  12,  154, 45,  157, 15,  45,
+         43,  157, 43,  13,  157, 42,  160, 12,  42,  73,  160, 73,  13,  160});
+
+    // VK_SHARING_MODE_EXCLUSIVE
+
+    // setup geometry
+    auto drawCommands = vsg::Commands::create();
+    drawCommands->addChild(vsg::BindVertexBuffers::create(0, vsg::DataList{vertices, normals, colors}));
+    drawCommands->addChild(vsg::BindIndexBuffer::create(indices));
+    drawCommands->addChild(vsg::DrawIndexed::create(indices->size(), 1, 0, 0, 0));
+
+    // add drawCommands to transform
+    transform->addChild(drawCommands);
+    subgraph->addChild(transform);
 
     return subgraph;
 }

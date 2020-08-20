@@ -1,34 +1,31 @@
 #version 450
 #extension GL_ARB_separate_shader_objects : enable
 
-layout(push_constant) uniform PushConstants {
-    mat4 projection;
-    mat4 modelview;
-} pc;
+layout (location = 0) in vec3 inPos;
+layout (location = 1) in vec3 inNormal;
+layout (location = 2) in vec3 inColor;
 
-layout(location = 0) in vec3 inPosition;
-layout(location = 1) in vec3 inNormal;
-layout(location = 2) in vec3 inColorDiffuse;
-layout(location = 3) in vec2 inTexCoord;
+layout (binding = 0) uniform UBO 
+{
+	mat4 projection;
+	mat4 model;
+} ubo;
 
-layout(location = 0) out vec3 ambientColor;
-layout(location = 1) out vec3 diffuseColor;
-layout(location = 2) out vec3 specularColor;
-layout(location = 3) out vec3 normal;
-layout(location = 4) out vec3 eye_vec;
+layout (location = 0) out vec3 outNormal;
+layout (location = 1) out vec3 outColor;
+layout (location = 2) out vec3 outViewVec;
+layout (location = 3) out vec3 outLightVec;
 
-out gl_PerVertex {
-    vec4 gl_Position;
-};
-
-void main() {
-    gl_Position = (pc.projection * pc.modelview) * vec4(inPosition, 1.0);
-    
-    normal = normalize(mat3(pc.modelview) * inNormal);
-    eye_vec = vec3(pc.modelview * vec4(inPosition, 1.0));
-
-    ambientColor = 0.1*inColorDiffuse;
-    diffuseColor = inColorDiffuse;
-    specularColor = vec3(1, 1, 1);
-
+void main() 
+{
+    vec4 lightPos = vec4(100,100,100,1);
+	outNormal = inNormal;
+	outColor = inColor;
+	gl_Position = ubo.projection * ubo.model * vec4(inPos.xyz, 1.0);
+	
+	vec4 pos = ubo.model * vec4(inPos, 1.0);
+	outNormal = mat3(ubo.model) * inNormal;
+	vec3 lPos = mat3(ubo.model) * lightPos.xyz;
+	outLightVec = lPos - pos.xyz;
+	outViewVec = -pos.xyz;		
 }
