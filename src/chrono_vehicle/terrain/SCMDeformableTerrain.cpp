@@ -52,7 +52,7 @@ double SCMDeformableTerrain::GetHeight(const ChVector<>& loc) const {
 // Return the terrain normal at the specified location
 ChVector<> SCMDeformableTerrain::GetNormal(const ChVector<>& loc) const {
     //// TODO
-    return m_ground->plane.TransformDirectionLocalToParent(ChWorldFrame::Vertical());
+    return m_ground->m_plane.TransformDirectionLocalToParent(ChWorldFrame::Vertical());
 }
 
 // Return the terrain coefficient of friction at the specified location
@@ -61,7 +61,7 @@ float SCMDeformableTerrain::GetCoefficientFriction(const ChVector<>& loc) const 
 }
 
 // Set the color of the visualization assets
-void SCMDeformableTerrain::SetColor(ChColor color) {
+void SCMDeformableTerrain::SetColor(const ChColor& color) {
     if (m_ground->m_color)
         m_ground->m_color->SetColor(color);
 }
@@ -75,23 +75,18 @@ void SCMDeformableTerrain::SetTexture(const std::string tex_file, float tex_scal
 }
 
 // Set the plane reference.
-void SCMDeformableTerrain::SetPlane(ChCoordsys<> mplane) {
-    m_ground->plane = mplane;
+void SCMDeformableTerrain::SetPlane(const ChCoordsys<>& plane) {
+    m_ground->m_plane = plane;
 }
 
 // Get the plane reference.
 const ChCoordsys<>& SCMDeformableTerrain::GetPlane() const {
-    return m_ground->plane;
+    return m_ground->m_plane;
 }
 
 // Get the trimesh that defines the ground shape.
 std::shared_ptr<ChTriangleMeshShape> SCMDeformableTerrain::GetMesh() const {
     return m_ground->m_trimesh_shape;
-}
-
-// Get the soil that defines the load container for the terrain
-std::shared_ptr<SCMDeformableSoil> SCMDeformableTerrain::GetSoil() const {
-    return m_ground;
 }
 
 // Save the visualization mesh as a Wavefront OBJ file.
@@ -110,7 +105,7 @@ void SCMDeformableTerrain::SetBulldozingFlow(bool mb) {
     m_ground->do_bulldozing = mb;
 }
 
-bool SCMDeformableTerrain::GetBulldozingFlow() const {
+bool SCMDeformableTerrain::BulldozingFlow() const {
     return m_ground->do_bulldozing;
 }
 
@@ -148,19 +143,19 @@ void SCMDeformableTerrain::SetBulldozingParameters(
     m_ground->bulldozing_erosion_n_propagations = mbulldozing_erosion_n_propagations;
 }
 
-void SCMDeformableTerrain::SetTestHighOffset(double mr) {
-    m_ground->test_high_offset = mr;
+void SCMDeformableTerrain::SetTestHeight(double offset) {
+    m_ground->m_test_offset_up = offset;
 }
 
-double SCMDeformableTerrain::GetTestHighOffset() const {
-    return m_ground->test_high_offset;
+double SCMDeformableTerrain::GetTestHeight() const {
+    return m_ground->m_test_offset_up;
 }
 
 // Set the color plot type.
-void SCMDeformableTerrain::SetPlotType(DataPlotType mplot, double mmin, double mmax) {
-    m_ground->plot_type = mplot;
-    m_ground->plot_v_min = mmin;
-    m_ground->plot_v_max = mmax;
+void SCMDeformableTerrain::SetPlotType(DataPlotType plot_type, double min_val, double max_val) {
+    m_ground->m_plot_type = plot_type;
+    m_ground->m_plot_v_min = min_val;
+    m_ground->m_plot_v_max = max_val;
 }
 
 // Enable moving patch
@@ -198,6 +193,17 @@ void SCMDeformableTerrain::Initialize(const std::string& heightmap_file,
     m_ground->Initialize(heightmap_file, sizeX, sizeY, hMin, hMax, delta);
 }
 
+// Get the grid vertices and their heights that were modified over last step.
+std::vector<SCMDeformableTerrain::VertexLevel> SCMDeformableTerrain::GetModifiedVertices() const {
+    return m_ground->GetModifiedVertices();
+}
+
+// Modify the level of vertices in the underlying grid map from the given list.
+void SCMDeformableTerrain::SetModifiedVertices(const std::vector<VertexLevel>& vertices) {
+    m_ground->SetModifiedVertices(vertices);
+}
+
+// Return the current cumulative contact force on the specified body (due to interaction with the SCM terrain).
 TerrainForce SCMDeformableTerrain::GetContactForce(std::shared_ptr<ChBody> body) const {
     auto itr = m_ground->m_contact_forces.find(body.get());
     if (itr != m_ground->m_contact_forces.end())
@@ -210,6 +216,7 @@ TerrainForce SCMDeformableTerrain::GetContactForce(std::shared_ptr<ChBody> body)
     return frc;
 }
 
+// Print timing and counter information for last step.
 void SCMDeformableTerrain::PrintStepStatistics(std::ostream& os) const {
     os << " Timers:" << std::endl;
     os << "   Ray casting:             " << m_ground->m_timer_ray_casting() << std::endl;
@@ -261,12 +268,12 @@ SCMDeformableSoil::SCMDeformableSoil(ChSystem* system, bool visualization_mesh) 
     m_elastic_K = 50000000;
     m_damping_R = 0;
 
-    plot_type = SCMDeformableTerrain::PLOT_NONE;
-    plot_v_min = 0;
-    plot_v_max = 0.2;
+    m_plot_type = SCMDeformableTerrain::PLOT_NONE;
+    m_plot_v_min = 0;
+    m_plot_v_max = 0.2;
 
-    test_high_offset = 0.1;
-    test_low_offset = 0.5;
+    m_test_offset_up = 0.1;
+    m_test_offset_down = 0.5;
 
     m_moving_patch = false;
 }
@@ -320,9 +327,9 @@ void SCMDeformableSoil::Initialize(double sizeX, double sizeY, double delta) {
         for (int ix = 0; ix < nvx; ix++) {
             double x = ix * m_delta - 0.5 * sizeX;
             // Set vertex location
-            vertices[iv] = plane * ChVector<>(x, y, 0);
+            vertices[iv] = m_plane * ChVector<>(x, y, 0);
             // Initialize vertex normal to Y up
-            normals[iv] = plane.TransformDirectionLocalToParent(ChVector<>(0, 0, 1));
+            normals[iv] = m_plane.TransformDirectionLocalToParent(ChVector<>(0, 0, 1));
             // Assign color white to all vertices
             colors[iv] = ChVector<float>(1, 1, 1);
             // Set UV coordinates in [0,1] x [0,1]
@@ -367,10 +374,6 @@ void SCMDeformableSoil::Initialize(const std::string& heightmap_file,
 
     double dx_img = 1.0 / (nx_img - 1.0);
     double dy_img = 1.0 / (ny_img - 1.0);
-
-    ////std::cout << "image size: " << nx_img << " x " << ny_img << std::endl;
-    ////std::cout << "number channels: " << hmap.GetNumChannels() << std::endl;
-    ////std::cout << "range: " << hmap.GetRange() << std::endl;
 
     m_nx = static_cast<int>(std::ceil((sizeX / 2) / delta));  // half number of divisions in X direction
     m_ny = static_cast<int>(std::ceil((sizeY / 2) / delta));  // number of divisions in Y direction
@@ -460,9 +463,9 @@ void SCMDeformableSoil::Initialize(const std::string& heightmap_file,
         for (int ix = 0; ix < nvx; ix++) {
             double x = ix * m_delta - 0.5 * sizeX;
             // Set vertex location
-            vertices[iv] = plane * ChVector<>(x, y, m_heights(ix, iy));
+            vertices[iv] = m_plane * ChVector<>(x, y, m_heights(ix, iy));
             // Initialize vertex normal to Y up
-            normals[iv] = plane.TransformDirectionLocalToParent(ChVector<>(0, 0, 1));
+            normals[iv] = m_plane.TransformDirectionLocalToParent(ChVector<>(0, 0, 1));
             // Assign color white to all vertices
             colors[iv] = ChVector<float>(1, 1, 1);
             // Set UV coordinates in [0,1] x [0,1]
@@ -510,36 +513,6 @@ void SCMDeformableSoil::Initialize(const std::string& heightmap_file,
     for (int in = 0; in < n_verts; in++) {
         normals[in] /= (double)accumulators[in];
     }
-
-    ////for (int iy = 0; iy < m_nvy; iy++) {
-    ////    for (int ix = 0; ix < nvx; ix++) {
-    ////        int i = ix + iy * nvx;
-    ////        std::cout << "(" << ix << "," << iy << ")  " << G(ix, iy) << "   [" << i << "]  " << vertices[i]
-    ////                  << std::endl;
-    ////    }
-    ////}
-}
-
-void SCMDeformableSoil::ModifyVertices(
-    std::unordered_map<ChVector2<>, double, SCMDeformableSoil::CoordHash> modified_vertices) {
-    for (auto& mod_v : modified_vertices) {
-        auto v = m_grid_map.find(mod_v.first);
-        if (v != m_grid_map.end()) {
-            // displacement from the modified vertex must be in the local frame
-            m_grid_map.at(mod_v.first).p_level = mod_v.second;
-        } else {
-            std::cerr << "Vertex (" << mod_v.first.x() << ", " << mod_v.first.y() << ") not found" << std::endl;
-        }
-    }
-}
-
-std::unordered_map<ChVector2<>, double, SCMDeformableSoil::CoordHash> SCMDeformableSoil::GetHits() {
-    std::unordered_map<ChVector2<>, double, SCMDeformableSoil::CoordHash> modified_verts;
-
-    for (auto& h : m_hits) {
-    }
-
-    return modified_verts;
 }
 
 void SCMDeformableSoil::SetupInitial() {
@@ -580,10 +553,9 @@ std::vector<int> SCMDeformableSoil::GetMeshFaceIndices(const ChVector2<int>& loc
     faces[3] = 2 * ((i - 0) + nx * (j - 0));
     faces[4] = 2 * ((i - 0) + nx * (j - 0)) + 1;
     faces[5] = 2 * ((i - 0) + nx * (j - 1)) + 1;
-    
+
     return faces;
 }
-
 
 // Return the terrain height at the specified grid vertex
 double SCMDeformableSoil::GetHeight(const ChVector2<int>& loc) {
@@ -627,7 +599,7 @@ void SCMDeformableSoil::UpdateMovingPatch(MovingPatchInfo& p) {
         // OOBB corner in absolute frame
         ChVector<> c_abs = p.m_body->GetFrame_REF_to_abs().TransformPointLocalToParent(c_body);
         // OOBB corner expressed in SCM frame
-        ChVector<> c_scm = plane.TransformPointParentToLocal(c_abs);
+        ChVector<> c_scm = m_plane.TransformPointParentToLocal(c_abs);
 
         // Update AABB of patch projection onto SCM plane
         p_min.x() = std::min(p_min.x(), c_scm.x());
@@ -662,7 +634,7 @@ void SCMDeformableSoil::UpdateFixedPatch(MovingPatchInfo& p) {
         // AABB corner in absolute frame
         ChVector<> c_abs = aabb_max * ChVector<>(ix, iy, iz) + aabb_min * ChVector<>(1.0 - ix, 1.0 - iy, 1.0 - iz);
         // AABB corner in SCM frame
-        ChVector<> c_scm = plane.TransformPointParentToLocal(c_abs);
+        ChVector<> c_scm = m_plane.TransformPointParentToLocal(c_abs);
 
         // Update AABB of patch projection onto SCM plane
         p_min.x() = std::min(p_min.x(), c_scm.x());
@@ -710,7 +682,7 @@ void SCMDeformableSoil::ComputeInternalForces() {
     m_contact_forces.clear();
 
     // Express SCM plane normal in absolute frame
-    ChVector<> N = plane.TransformDirectionLocalToParent(ChVector<>(0, 0, 1));
+    ChVector<> N = m_plane.TransformDirectionLocalToParent(ChVector<>(0, 0, 1));
 
     // -------------------------
     // Perform ray casting tests
@@ -741,19 +713,19 @@ void SCMDeformableSoil::ComputeInternalForces() {
                 double x = i * m_delta;
                 double y = j * m_delta;
                 double z = GetHeight(ij);
-                ChVector<> vertex_abs = plane.TransformPointLocalToParent(ChVector<>(x, y, z));
+                ChVector<> vertex_abs = m_plane.TransformPointLocalToParent(ChVector<>(x, y, z));
 
                 // Raycast to see if we need to work on this point later
                 collision::ChCollisionSystem::ChRayhitResult mrayhit_result;
-                ChVector<> to = vertex_abs + N * test_high_offset;
-                ChVector<> from = to - N * test_low_offset;
+                ChVector<> to = vertex_abs + N * m_test_offset_up;
+                ChVector<> from = to - N * m_test_offset_down;
                 GetSystem()->GetCollisionSystem()->RayHit(from, to, mrayhit_result);
                 m_num_ray_casts++;
 
                 if (mrayhit_result.hit) {
                     // If this point has never been hit before, initialize it
                     if (m_grid_map.find(ij) == m_grid_map.end()) {
-                        m_grid_map.insert(std::make_pair(ij, VertexRecord(z)));
+                        m_grid_map.insert(std::make_pair(ij, VertexRecord(z, z)));
                     }
 
                     // Add to our map of hits to process
@@ -875,7 +847,7 @@ void SCMDeformableSoil::ComputeInternalForces() {
         const ChVector<>& abs_point = h.second.abs_point;
         int patch_id = h.second.patch_id;
 
-        auto loc_point = plane.TransformParentToLocal(abs_point);
+        auto loc_point = m_plane.TransformPointParentToLocal(abs_point);
 
         if (m_soil_fun) {
             m_soil_fun->Set(loc_point.x(), loc_point.y());
@@ -894,15 +866,15 @@ void SCMDeformableSoil::ComputeInternalForces() {
         double p_hit_offset = -v.p_hit_level + v.p_level_initial;
 
         ChVector<> vertex =
-            plane.TransformPointLocalToParent(ChVector<>(ij.x() * m_delta, ij.y() * m_delta, v.p_level));
+            m_plane.TransformPointLocalToParent(ChVector<>(ij.x() * m_delta, ij.y() * m_delta, v.p_level));
 
         v.p_speeds = contactable->GetContactPointSpeed(vertex);
 
         ChVector<> T = -v.p_speeds;
-        T = plane.TransformDirectionParentToLocal(T);
+        T = m_plane.TransformDirectionParentToLocal(T);
         double Vn = -T.z();
         T.z() = 0;
-        T = plane.TransformDirectionLocalToParent(T);
+        T = m_plane.TransformDirectionLocalToParent(T);
         T.Normalize();
 
         // Compute i-th force:
@@ -1019,82 +991,16 @@ void SCMDeformableSoil::ComputeInternalForces() {
     m_timer_visualization.start();
 
     if (m_trimesh_shape) {
-        // Readability aliases
-        auto trimesh = m_trimesh_shape->GetMesh();
-        std::vector<ChVector<>>& vertices = trimesh->getCoordsVertices();
-        std::vector<ChVector<>>& normals = trimesh->getCoordsNormals();
-        std::vector<ChVector<float>>& colors = trimesh->getCoordsColors();
-        std::vector<ChVector<int>>& idx_vertices = trimesh->getIndicesVertexes();
-        std::vector<ChVector<int>>& idx_normals = trimesh->getIndicesNormals();
-
-        // Indices of modified vertices
-        std::vector<int> modified_vertices;
+        // Indices of modified vertices (initialize with any externally modified)
+        std::vector<int> modified_vertices = m_external_modified_vertices;
 
         // Loop over list of hits and adjust corresponding mesh vertices
         for (const auto& h : m_hits) {
-            auto ij = h.first;                // grid location
-            auto v = m_grid_map.at(ij);       // grid vertex record
-            int iv = GetMeshVertexIndex(ij);  // mesh vertex index
+            auto ij = h.first;                       // grid location
+            auto v = m_grid_map.at(ij);              // grid vertex record
+            int iv = GetMeshVertexIndex(ij);         // mesh vertex index
+            UpdateMeshVertexCoordinates(ij, iv, v);  // update vertex coordinates and color
             modified_vertices.push_back(iv);
-
-            // Update visualization mesh vertex position
-            vertices[iv] = plane.TransformPointLocalToParent(ChVector<>(ij.x() * m_delta, ij.y() * m_delta, v.p_level));
-
-            // Update visualization mesh vertex color
-            if (plot_type != SCMDeformableTerrain::PLOT_NONE) {
-                ChColor mcolor;
-                switch (plot_type) {
-                    case SCMDeformableTerrain::PLOT_LEVEL:
-                        mcolor = ChColor::ComputeFalseColor(v.p_level, plot_v_min, plot_v_max);
-                        break;
-                    case SCMDeformableTerrain::PLOT_LEVEL_INITIAL:
-                        mcolor = ChColor::ComputeFalseColor(v.p_level_initial, plot_v_min, plot_v_max);
-                        break;
-                    case SCMDeformableTerrain::PLOT_SINKAGE:
-                        mcolor = ChColor::ComputeFalseColor(v.p_sinkage, plot_v_min, plot_v_max);
-                        break;
-                    case SCMDeformableTerrain::PLOT_SINKAGE_ELASTIC:
-                        mcolor = ChColor::ComputeFalseColor(v.p_sinkage_elastic, plot_v_min, plot_v_max);
-                        break;
-                    case SCMDeformableTerrain::PLOT_SINKAGE_PLASTIC:
-                        mcolor = ChColor::ComputeFalseColor(v.p_sinkage_plastic, plot_v_min, plot_v_max);
-                        break;
-                    case SCMDeformableTerrain::PLOT_STEP_PLASTIC_FLOW:
-                        mcolor = ChColor::ComputeFalseColor(v.p_step_plastic_flow, plot_v_min, plot_v_max);
-                        break;
-                    case SCMDeformableTerrain::PLOT_K_JANOSI:
-                        mcolor = ChColor::ComputeFalseColor(v.p_kshear, plot_v_min, plot_v_max);
-                        break;
-                    case SCMDeformableTerrain::PLOT_PRESSURE:
-                        mcolor = ChColor::ComputeFalseColor(v.p_sigma, plot_v_min, plot_v_max);
-                        break;
-                    case SCMDeformableTerrain::PLOT_PRESSURE_YELD:
-                        mcolor = ChColor::ComputeFalseColor(v.p_sigma_yield, plot_v_min, plot_v_max);
-                        break;
-                    case SCMDeformableTerrain::PLOT_SHEAR:
-                        mcolor = ChColor::ComputeFalseColor(v.p_tau, plot_v_min, plot_v_max);
-                        break;
-                    ////case SCMDeformableTerrain::PLOT_MASSREMAINDER:
-                    ////    mcolor = ChColor::ComputeFalseColor(v.p_massremainder, plot_v_min, plot_v_max);
-                    ////    break;
-                    ////case SCMDeformableTerrain::PLOT_ISLAND_ID:
-                    ////    mcolor = ChColor(0, 0, 1);
-                    ////    if (v.p_erosion == true)
-                    ////        mcolor = ChColor(1, 1, 1);
-                    ////    if (v.p_id_island > 0)
-                    ////        mcolor = ChColor::ComputeFalseColor(4.0 + (v.p_id_island % 8), 0.0, 12.0);
-                    ////    if (v.p_id_island < 0)
-                    ////        mcolor = ChColor(0, 0, 0);
-                    ////    break;
-                    case SCMDeformableTerrain::PLOT_IS_TOUCHED:
-                        if (v.p_sigma > 0)
-                            mcolor = ChColor(1, 0, 0);
-                        else
-                            mcolor = ChColor(0, 0, 1);
-                        break;
-                }
-                colors[iv] = {mcolor.R, mcolor.G, mcolor.B};
-            }
         }
 
         // Update the visualization normals for modified vertices
@@ -1102,23 +1008,140 @@ void SCMDeformableSoil::ComputeInternalForces() {
             for (const auto& h : m_hits) {
                 auto ij = h.first;                // grid location
                 int iv = GetMeshVertexIndex(ij);  // mesh vertex index
-                // Average normals from adjacent faces
-                normals[iv] = ChVector<>(0, 0, 0);
-                auto& faces = GetMeshFaceIndices(ij);
-                for (auto f : faces) {
-                    ChVector<> nrm = Vcross(vertices[idx_vertices[f][1]] - vertices[idx_vertices[f][0]],
-                                            vertices[idx_vertices[f][2]] - vertices[idx_vertices[f][0]]);
-                    nrm.Normalize();
-                    normals[iv] += nrm;
-                }
-                normals[iv] /= (double)faces.size();
+                UpdateMeshVertexNormal(ij, iv);   // update vertex normal
             }
         }
 
         m_trimesh_shape->SetModifiedVertices(modified_vertices);
+        m_external_modified_vertices.clear();
     }
 
     m_timer_visualization.stop();
+}
+
+// Update vertex position and color in visualization mesh
+void SCMDeformableSoil::UpdateMeshVertexCoordinates(const ChVector2<int> ij, int iv, const VertexRecord& v) {
+    auto& trimesh = *m_trimesh_shape->GetMesh();
+    std::vector<ChVector<>>& vertices = trimesh.getCoordsVertices();
+    std::vector<ChVector<>>& normals = trimesh.getCoordsNormals();
+    std::vector<ChVector<float>>& colors = trimesh.getCoordsColors();
+
+    // Update visualization mesh vertex position
+    vertices[iv] = m_plane.TransformPointLocalToParent(ChVector<>(ij.x() * m_delta, ij.y() * m_delta, v.p_level));
+
+    // Update visualization mesh vertex color
+    if (m_plot_type != SCMDeformableTerrain::PLOT_NONE) {
+        ChColor mcolor;
+        switch (m_plot_type) {
+            case SCMDeformableTerrain::PLOT_LEVEL:
+                mcolor = ChColor::ComputeFalseColor(v.p_level, m_plot_v_min, m_plot_v_max);
+                break;
+            case SCMDeformableTerrain::PLOT_LEVEL_INITIAL:
+                mcolor = ChColor::ComputeFalseColor(v.p_level_initial, m_plot_v_min, m_plot_v_max);
+                break;
+            case SCMDeformableTerrain::PLOT_SINKAGE:
+                mcolor = ChColor::ComputeFalseColor(v.p_sinkage, m_plot_v_min, m_plot_v_max);
+                break;
+            case SCMDeformableTerrain::PLOT_SINKAGE_ELASTIC:
+                mcolor = ChColor::ComputeFalseColor(v.p_sinkage_elastic, m_plot_v_min, m_plot_v_max);
+                break;
+            case SCMDeformableTerrain::PLOT_SINKAGE_PLASTIC:
+                mcolor = ChColor::ComputeFalseColor(v.p_sinkage_plastic, m_plot_v_min, m_plot_v_max);
+                break;
+            case SCMDeformableTerrain::PLOT_STEP_PLASTIC_FLOW:
+                mcolor = ChColor::ComputeFalseColor(v.p_step_plastic_flow, m_plot_v_min, m_plot_v_max);
+                break;
+            case SCMDeformableTerrain::PLOT_K_JANOSI:
+                mcolor = ChColor::ComputeFalseColor(v.p_kshear, m_plot_v_min, m_plot_v_max);
+                break;
+            case SCMDeformableTerrain::PLOT_PRESSURE:
+                mcolor = ChColor::ComputeFalseColor(v.p_sigma, m_plot_v_min, m_plot_v_max);
+                break;
+            case SCMDeformableTerrain::PLOT_PRESSURE_YELD:
+                mcolor = ChColor::ComputeFalseColor(v.p_sigma_yield, m_plot_v_min, m_plot_v_max);
+                break;
+            case SCMDeformableTerrain::PLOT_SHEAR:
+                mcolor = ChColor::ComputeFalseColor(v.p_tau, m_plot_v_min, m_plot_v_max);
+                break;
+            ////case SCMDeformableTerrain::PLOT_MASSREMAINDER:
+            ////    mcolor = ChColor::ComputeFalseColor(v.p_massremainder, m_plot_v_min, m_plot_v_max);
+            ////    break;
+            ////case SCMDeformableTerrain::PLOT_ISLAND_ID:
+            ////    mcolor = ChColor(0, 0, 1);
+            ////    if (v.p_erosion == true)
+            ////        mcolor = ChColor(1, 1, 1);
+            ////    if (v.p_id_island > 0)
+            ////        mcolor = ChColor::ComputeFalseColor(4.0 + (v.p_id_island % 8), 0.0, 12.0);
+            ////    if (v.p_id_island < 0)
+            ////        mcolor = ChColor(0, 0, 0);
+            ////    break;
+            case SCMDeformableTerrain::PLOT_IS_TOUCHED:
+                if (v.p_sigma > 0)
+                    mcolor = ChColor(1, 0, 0);
+                else
+                    mcolor = ChColor(0, 0, 1);
+                break;
+        }
+        colors[iv] = {mcolor.R, mcolor.G, mcolor.B};
+    }
+}
+
+// Update vertex normal in visualization mesh
+void SCMDeformableSoil::UpdateMeshVertexNormal(const ChVector2<int> ij, int iv) {
+    auto& trimesh = *m_trimesh_shape->GetMesh();
+    std::vector<ChVector<>>& vertices = trimesh.getCoordsVertices();
+    std::vector<ChVector<>>& normals = trimesh.getCoordsNormals();
+    std::vector<ChVector<int>>& idx_normals = trimesh.getIndicesNormals();
+
+    // Average normals from adjacent faces
+    normals[iv] = ChVector<>(0, 0, 0);
+    auto& faces = GetMeshFaceIndices(ij);
+    for (auto f : faces) {
+        ChVector<> nrm = Vcross(vertices[idx_normals[f][1]] - vertices[idx_normals[f][0]],
+                                vertices[idx_normals[f][2]] - vertices[idx_normals[f][0]]);
+        nrm.Normalize();
+        normals[iv] += nrm;
+    }
+    normals[iv] /= (double)faces.size();
+}
+
+// Get the grid vertices and their heights that were modified over last step.
+std::vector<SCMDeformableTerrain::VertexLevel> SCMDeformableSoil::GetModifiedVertices() const {
+    std::vector<SCMDeformableTerrain::VertexLevel> vertices;
+    for (const auto& h : m_hits) {
+        auto p = m_grid_map.find(h.first);
+        assert(p != m_grid_map.end());
+        vertices.push_back(std::make_pair(h.first, p->second.p_level));
+    }
+    return vertices;
+}
+
+// Modify the level of vertices in the underlying grid map from the given list.
+void SCMDeformableSoil::SetModifiedVertices(const std::vector<SCMDeformableTerrain::VertexLevel>& vertices) {
+    for (const auto& v : vertices) {
+        auto ij = v.first;
+        // Modify existing entry in grid map or insert new one
+        double init_level = GetHeight(ij);
+        m_grid_map[ij] = SCMDeformableSoil::VertexRecord(init_level, v.second);
+    }
+
+    // Update visualization
+    if (m_trimesh_shape) {
+        for (const auto& v : vertices) {
+            auto ij = v.first;                       // grid location
+            auto v = m_grid_map.at(ij);              // grid vertex record
+            int iv = GetMeshVertexIndex(ij);         // mesh vertex index
+            UpdateMeshVertexCoordinates(ij, iv, v);  // update vertex coordinates and color
+            m_external_modified_vertices.push_back(iv);
+        }
+        if (!m_trimesh_shape->IsWireframe()) {
+            for (const auto& v : vertices) {
+                auto ij = v.first;                // grid location
+                int iv = GetMeshVertexIndex(ij);  // mesh vertex index
+                UpdateMeshVertexNormal(ij, iv);   // update vertex normal
+            }
+        }
+    }
 }
 
 }  // end namespace vehicle

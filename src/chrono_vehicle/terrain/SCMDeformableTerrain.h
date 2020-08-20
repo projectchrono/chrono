@@ -80,7 +80,11 @@ class CH_VEHICLE_API SCMDeformableTerrain : public ChTerrain {
     /// Set the plane reference.
     /// By default, the reference plane is horizontal with Z up (ISO vehicle reference frame).
     /// To set as Y up, call SetPlane(ChCoordys(VNULL, Q_from_AngX(-CH_C_PI_2)));
-    void SetPlane(ChCoordsys<> mplane);
+    void SetPlane(const ChCoordsys<>& plane);
+
+    /// Get the current reference plane.
+    /// The SCM terrain patch is in the (x,y) plane with normal along the Z axis.
+    const ChCoordsys<>& GetPlane() const;
 
     /// Set the properties of the SCM soil model.
     /// These parameters are described in: "Parameter Identification of a Planetary Rover Wheel-Soil Contact Model via a
@@ -99,7 +103,9 @@ class CH_VEHICLE_API SCMDeformableTerrain : public ChTerrain {
 
     /// Enable/disable the creation of soil inflation at the side of the ruts (bulldozing effects).
     void SetBulldozingFlow(bool mb);
-    bool GetBulldozingFlow() const;
+
+    /// Return true if bulldozing effects are enabled.
+    bool BulldozingFlow() const;
 
     /// Set parameters controlling the creation of side ruts (bulldozing effects).
     void SetBulldozingParameters(
@@ -114,16 +120,17 @@ class CH_VEHICLE_API SCMDeformableTerrain : public ChTerrain {
     /// need to know if in the surrounding there is some potential future contact: so it might be better to use a
     /// positive value (but not higher than the max. expected height of the bulldozed rubble, to avoid slowdown of
     /// collision tests).
-    void SetTestHighOffset(double moff);
-    double GetTestHighOffset() const;
+    void SetTestHeight(double offset);
+
+    ///  Return the current test height level.
+    double GetTestHeight() const;
 
     /// Set the color plot type for the soil mesh.
     /// When a scalar plot is used, also define the range in the pseudo-color colormap.
-    void SetPlotType(DataPlotType mplot, double mmin, double mmax);
+    void SetPlotType(DataPlotType plot_type, double min_val, double max_val);
 
     /// Set visualization color.
-    void SetColor(ChColor color  ///< [in] color of the visualization material
-    );
+    void SetColor(const ChColor& color);
 
     /// Set texture properties.
     void SetTexture(const std::string tex_file,  ///< [in] texture filename
@@ -181,14 +188,8 @@ class CH_VEHICLE_API SCMDeformableTerrain : public ChTerrain {
     /// Otherwise, it returns the constant value of 0.8.
     virtual float GetCoefficientFriction(const ChVector<>& loc) const override;
 
-    /// Get the current reference plane. The SCM terrain patch is in the (x,y) plane with normal along the Z axis.
-    const ChCoordsys<>& GetPlane() const;
-
     /// Get the visualization triangular mesh.
     std::shared_ptr<ChTriangleMeshShape> GetMesh() const;
-
-    /// Get the soil that defines the load container for the terrain
-    std::shared_ptr<SCMDeformableSoil> GetSoil() const;
 
     /// Save the visualization mesh as a Wavefront OBJ file.
     void WriteMesh(const std::string& filename) const;
@@ -212,6 +213,15 @@ class CH_VEHICLE_API SCMDeformableTerrain : public ChTerrain {
                     double delta                        ///< [in] grid spacing (may be slightly decreased)
     );
 
+    /// Vertex height level at a given grid location.
+    typedef std::pair<ChVector2<int>, double> VertexLevel;
+
+    /// Get the grid vertices and their heights that were modified over last step.
+    std::vector<VertexLevel> GetModifiedVertices() const;
+
+    /// Modify the level of vertices in the underlying grid map from the given list.
+    void SetModifiedVertices(const std::vector<VertexLevel>& vertices);
+
     /// Return the current cumulative contact force on the specified body (due to interaction with the SCM terrain).
     TerrainForce GetContactForce(std::shared_ptr<ChBody> body) const;
 
@@ -219,7 +229,7 @@ class CH_VEHICLE_API SCMDeformableTerrain : public ChTerrain {
     void PrintStepStatistics(std::ostream& os) const;
 
   private:
-    std::shared_ptr<SCMDeformableSoil> m_ground;
+    std::shared_ptr<SCMDeformableSoil> m_ground;  ///< undelrying load container for contact force generation
 };
 
 /// This class provides the underlying implementation of the Soil Contact Model.
@@ -247,17 +257,6 @@ class CH_VEHICLE_API SCMDeformableSoil : public ChLoadContainer {
                     double hMax,                        ///< [in] maximum height (white level)
                     double delta                        ///< [in] grid spacing (may be slightly decreased)
     );
-
-    // Hash function for a pair of integer grid coordinates
-    struct CoordHash {
-      public:
-        // 31 is just a decently-sized prime number to reduce bucket collisions
-        std::size_t operator()(const ChVector2<int>& p) const { return p.x() * 31 + p.y(); }
-    };
-
-    void ModifyVertices(std::unordered_map<ChVector2<>, double, SCMDeformableSoil::CoordHash> modified_vertices);
-
-    std::unordered_map<ChVector2<>, double, SCMDeformableSoil::CoordHash> GetHits();
 
   private:
     // SCM patch type
@@ -298,14 +297,16 @@ class CH_VEHICLE_API SCMDeformableSoil : public ChLoadContainer {
         double p_sigma_yield;
         double p_tau;
 
-        VertexRecord(double level) {
+        VertexRecord() : VertexRecord(0, 0) {}
+
+        VertexRecord(double init_level, double level) {
             p_sigma = 0;
             p_sinkage_elastic = 0;
             p_sinkage_plastic = 0;
             p_step_plastic_flow = 0;
             p_erosion = false;
             p_level = level;
-            p_level_initial = level;
+            p_level_initial = init_level;
             p_hit_level = 1e9;
             p_sinkage_plastic = 0;
             p_sinkage = 0;
@@ -313,6 +314,13 @@ class CH_VEHICLE_API SCMDeformableSoil : public ChLoadContainer {
             p_sigma_yield = 0;
             p_tau = 0;
         }
+    };
+
+    // Hash function for a pair of integer grid coordinates
+    struct CoordHash {
+      public:
+        // 31 is just a decently-sized prime number to reduce bucket collisions
+        std::size_t operator()(const ChVector2<int>& p) const { return p.x() * 31 + p.y(); }
     };
 
     // Get the terrain height below the specified location.
@@ -364,12 +372,24 @@ class CH_VEHICLE_API SCMDeformableSoil : public ChLoadContainer {
         ChLoadContainer::IntLoadResidual_F(off, R, c);
     }
 
-    PatchType m_type;    // type of SCM patch
-    ChCoordsys<> plane;  // SCM frame (deformation occurs along the z axis of this frame)
-    double m_delta;      // (base) grid spacing
-    double m_area;       // area of a (base) grid cell
-    int m_nx;            // range for grid indices in X direction: [-m_nx, +m_nx]
-    int m_ny;            // range for grid indices in Y direction: [-m_ny, +m_ny]
+    // Update vertex position and color in visualization mesh
+    void UpdateMeshVertexCoordinates(const ChVector2<int> ij, int iv, const VertexRecord& v);
+
+    // Update vertex normal in visualization mesh
+    void UpdateMeshVertexNormal(const ChVector2<int> ij, int iv);
+
+    /// Get the grid vertices and their heights that were modified over last step.
+    std::vector<SCMDeformableTerrain::VertexLevel> GetModifiedVertices() const;
+
+    // Modify the level of vertices in the underlying grid map from the given list.
+    void SetModifiedVertices(const std::vector<SCMDeformableTerrain::VertexLevel>& vertices);
+
+    PatchType m_type;      // type of SCM patch
+    ChCoordsys<> m_plane;  // SCM frame (deformation occurs along the z axis of this frame)
+    double m_delta;        // (base) grid spacing
+    double m_area;         // area of a (base) grid cell
+    int m_nx;              // range for grid indices in X direction: [-m_nx, +m_nx]
+    int m_ny;              // range for grid indices in Y direction: [-m_ny, +m_ny]
 
     ChMatrixDynamic<> m_heights;  // (base) grid heights (when initializing from height-field map)
 
@@ -379,8 +399,8 @@ class CH_VEHICLE_API SCMDeformableSoil : public ChLoadContainer {
     std::vector<MovingPatchInfo> m_patches;  // set of active moving patches
     bool m_moving_patch;                     // user-specified moving patches?
 
-    double test_low_offset;   // offset for ray start
-    double test_high_offset;  // offset for ray end
+    double m_test_offset_down;  // offset for ray start
+    double m_test_offset_up;    // offset for ray end
 
     std::shared_ptr<ChTriangleMeshShape> m_trimesh_shape;  // mesh visualization asset
     std::shared_ptr<ChColorAsset> m_color;                 // mesh edge default color
@@ -398,7 +418,23 @@ class CH_VEHICLE_API SCMDeformableSoil : public ChLoadContainer {
     // Callback object for position-dependent soil properties
     std::shared_ptr<SCMDeformableTerrain::SoilParametersCallback> m_soil_fun;
 
+    // Contact forces on contactable objects interacting with the SCM terrain
     std::unordered_map<ChContactable*, TerrainForce> m_contact_forces;
+
+    // Bulldozing effects
+    bool do_bulldozing;
+    double bulldozing_flow_factor;
+    double bulldozing_erosion_angle;
+    int bulldozing_erosion_n_iterations;
+    int bulldozing_erosion_n_propagations;
+
+    // Mesh coloring mode
+    SCMDeformableTerrain::DataPlotType m_plot_type;
+    double m_plot_v_min;
+    double m_plot_v_max;
+
+    // Indices of visualization mesh vertices modified externally
+    std::vector<int> m_external_modified_vertices;
 
     // Timers and counters
     ChTimer<double> m_timer_ray_casting;
@@ -406,20 +442,9 @@ class CH_VEHICLE_API SCMDeformableSoil : public ChLoadContainer {
     ChTimer<double> m_timer_contact_forces;
     ChTimer<double> m_timer_bulldozing;
     ChTimer<double> m_timer_visualization;
-
     int m_num_ray_casts;
     int m_num_ray_hits;
     int m_num_contact_patches;
-
-    int plot_type;
-    double plot_v_min;
-    double plot_v_max;
-
-    bool do_bulldozing;
-    double bulldozing_flow_factor;
-    double bulldozing_erosion_angle;
-    int bulldozing_erosion_n_iterations;
-    int bulldozing_erosion_n_propagations;
 
     friend class SCMDeformableTerrain;
 };
