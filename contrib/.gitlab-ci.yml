@@ -488,10 +488,9 @@ macos:macos:deploy:
 #    - rm -rf build
     - export CONDA_NPY=19
     - export BUILD_OC=
-    # uncomment to re-install miniconda
-    #- wget https://repo.anaconda.com/miniconda/Miniconda3-latest-MacOSX-x86_64.sh -O ~/miniconda.sh
-    #- rm -r $HOME/miniconda
-    #- bash ~/miniconda.sh -b -p $HOME/miniconda
+    - wget https://repo.anaconda.com/miniconda/Miniconda3-latest-MacOSX-x86_64.sh -O ~/miniconda.sh
+    - rm -r $HOME/miniconda
+    - bash ~/miniconda.sh -b -p $HOME/miniconda
     - export PATH=$HOME/miniconda/bin:$PATH
     #- conda update --yes conda
     #- conda install --yes pip
