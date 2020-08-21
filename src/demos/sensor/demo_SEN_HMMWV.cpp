@@ -102,7 +102,7 @@ bool contact_vis = false;
 float cam_update_rate = 30;
 float lidar_update_rate = 10;
 
-float exposure_time = 0.02;
+float exposure_time = 0.02f;
 
 int super_samples = 2;
 
@@ -115,13 +115,13 @@ unsigned int horizontal_samples = 4500;
 unsigned int vertical_samples = 32;
 
 // Camera's horizontal field of view
-float cam_fov = 1.408;
+float cam_fov = 1.408f;
 
 // Lidar's horizontal and vertical fov
-float lidar_hfov = 2 * CH_C_PI;   // 360 degrees
-float lidar_vmax = CH_C_PI / 12;  // 15 degrees up
-float lidar_vmin = -CH_C_PI / 6;  // 30 degrees down
-float lidar_max_distance = 100.0;
+float lidar_hfov = (float) (2 * CH_C_PI);   // 360 degrees
+float lidar_vmax = (float) CH_C_PI / 12;  // 15 degrees up
+float lidar_vmin = (float) -CH_C_PI / 6;  // 30 degrees down
+float lidar_max_distance = 100.0f;
 
 // -----------------------------------------------------------------------------
 // Simulation parameters
@@ -216,8 +216,8 @@ int main(int argc, char* argv[]) {
     auto visual_asset = std::dynamic_pointer_cast<ChVisualization>(ground_body->GetAssets()[0]);
     auto vis_mat = chrono_types::make_shared<ChVisualMaterial>();
     vis_mat->SetKdTexture(vehicle::GetDataFile("terrain/textures/grass.jpg"));
-    vis_mat->SetSpecularColor({.2, .2, .2});
-    vis_mat->SetRoughness(1);
+    vis_mat->SetSpecularColor({.2f, .2f, .2f});
+    vis_mat->SetRoughness(1.f);
     visual_asset->material_list.push_back(vis_mat);
 
     terrain.Initialize();

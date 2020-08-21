@@ -132,7 +132,6 @@ int main(int argc, char* argv[]) {
 
         manager->Update();
         mphysicalSystem.DoStepDynamics(step_size);
-        usleep(10000);
     }
 
     return 0;

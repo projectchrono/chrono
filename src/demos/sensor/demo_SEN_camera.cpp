@@ -63,10 +63,10 @@ unsigned int image_width = 1280;
 unsigned int image_height = 720;
 
 // Camera's horizontal field of view
-float fov = CH_C_PI / 3.;
+float fov = (float) CH_C_PI / 3.;
 
 // Lag (in seconds) between sensing and when data becomes accessible
-float lag = .05;
+float lag = .05f;
 
 // Exposure (in seconds) of each image
 float exposure_time = 0.02;
@@ -84,7 +84,7 @@ double step_size = 1e-2;
 float end_time = 20.0f;
 
 // Save camera images
-bool save = false;
+bool save = true;
 
 // Render camera images
 bool vis = true;

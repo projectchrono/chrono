@@ -103,10 +103,10 @@ bool sensor_save = false;
 bool sensor_vis = true;
 
 // Update rates of each sensor in Hz
-float cam_update_rate = 30;
-float lidar_update_rate = 10;
+float cam_update_rate = 30.f;
+float lidar_update_rate = 10.f;
 
-float exposure_time = 0.02;
+float exposure_time = 0.02f;
 
 int super_samples = 2;
 
@@ -119,12 +119,12 @@ unsigned int horizontal_samples = 4500;
 unsigned int vertical_samples = 32;
 
 // Camera's horizontal field of view
-float cam_fov = 1.408;
+float cam_fov = 1.408f;
 
 // Lidar's horizontal and vertical fov
-float lidar_hfov = 2 * CH_C_PI;   // 360 degrees
-float lidar_vmax = CH_C_PI / 12;  // 15 degrees up
-float lidar_vmin = -CH_C_PI / 6;  // 30 degrees down
+float lidar_hfov = (float)(2 * CH_C_PI);   // 360 degrees
+float lidar_vmax = (float)(CH_C_PI / 12);   // 15 degrees up
+float lidar_vmin = (float)(-CH_C_PI / 6);    // 30 degrees down
 
 // -----------------------------------------------------------------------------
 // IMU parameters
@@ -140,10 +140,10 @@ IMUNoiseModel imu_noise_type = NORMAL_DRIFT;
 int imu_update_rate = 100;
 
 // IMU lag (in seconds) between sensing and when data becomes accessible
-float imu_lag = 0;
+float imu_lag = 0.f;
 
 // IMU collection time (in seconds) of each sample
-float imu_collection_time = 0;
+float imu_collection_time = 0.f;
 
 // -----------------------------------------------------------------------------
 // GPS parameters
@@ -159,13 +159,13 @@ GPSNoiseModel gps_noise_type = GPS_NONE;
 int gps_update_rate = 10;
 
 // Camera's horizontal field of view
-float fov = 1.408;
+float fov = 1.408f;
 
 // GPS lag (in seconds) between sensing and when data becomes accessible
-float gps_lag = 0;
+float gps_lag = 0.f;
 
 // Collection time (in seconds) of eacn sample
-float gps_collection_time = 0;
+float gps_collection_time = 0.f;
 
 // Origin used as the gps reference point
 // Located in Madison, WI
@@ -277,7 +277,7 @@ int main(int argc, char* argv[]) {
 
     auto manager = chrono_types::make_shared<ChSensorManager>(gator.GetSystem());
     manager->scene->AddPointLight({100, 100, 100}, {2, 2, 2}, 5000);
-    manager->SetKeyframeSizeFromTimeStep(step_size, exposure_time);
+    manager->SetKeyframeSizeFromTimeStep((float)step_size, exposure_time);
 
     // third person camera
     auto cam = chrono_types::make_shared<ChCameraSensor>(

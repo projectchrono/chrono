@@ -15,6 +15,9 @@
 // RT kernels for sphere geometries
 //
 // =============================================================================
+#ifdef _WIN32
+ #define NOMINMAX
+#endif
 
 #include <optix.h>
 #include <optixu/optixu_aabb_namespace.h>

@@ -17,6 +17,11 @@
 #ifndef CHSENSORBUFFER_H
 #define CHSENSORBUFFER_H
 
+
+#ifdef _WIN32
+ #define NOMINMAX
+#endif
+
 #include <optix.h>
 #include <optixu/optixpp.h>  //needed to make sure things are in the right namespace. Must be done before optixpp_namespace.h
 #include <optixu/optixpp_namespace.h>  //is covered by optixpp.h but will be removed from optixpp.h in the future

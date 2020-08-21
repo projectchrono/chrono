@@ -66,7 +66,7 @@ int main(int argc, char* argv[]) {
                 color->SetDiffuseColor({j / (float)y_dim, 0.0, 1 - j / (float)y_dim});
                 color->SetSpecularColor({j / (float)y_dim, 0.0, 1 - j / (float)y_dim});
                 color->SetFresnelMax(i / (float)x_dim);
-                color->SetFresnelMin(.9 * i / (float)x_dim);
+                color->SetFresnelMin((float)(.9 * i / x_dim));
                 visual_asset->material_list.push_back(color);
             }
             mphysicalSystem.Add(sphere1);

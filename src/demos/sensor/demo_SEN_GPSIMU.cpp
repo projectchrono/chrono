@@ -74,7 +74,7 @@ GPSNoiseModel gps_noise_type = GPS_NONE;
 int gps_update_rate = 10;
 
 // Camera's horizontal field of view
-float fov = 1.408;
+float fov = 1.408f;
 
 // GPS lag (in seconds) between sensing and when data becomes accessible
 float gps_lag = 0;

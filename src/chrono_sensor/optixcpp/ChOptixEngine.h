@@ -66,7 +66,7 @@ class CH_SENSOR_API ChOptixEngine {
             m_tri_group = tri_group;
 
             int device_id = m_normal_buffer->getContext()->getEnabledDevices()[0];
-            m_size = m_mesh->getCoordsVertices().size();
+            m_size = (int)m_mesh->getCoordsVertices().size();
             m_normal_buffer_device_ptr = m_normal_buffer->getDevicePointer(device_id);
             m_vertex_buffer_device_ptr = m_vertex_buffer->getDevicePointer(device_id);
             m_host_normal_buffer = std::vector<float>(m_size * 3);
@@ -270,7 +270,7 @@ class CH_SENSOR_API ChOptixEngine {
     std::vector<std::pair<std::shared_ptr<ChBody>, optix::Transform>>
         m_bodies;  ///< matching bodies to transforms for quicker upgates of the scene
     std::vector<std::shared_ptr<DynamicMesh>> m_dynamicMeshes;  ///< list of dynamic meshes for quick updating
-    int m_deviceId;                                             ///< ID of the GPU the context should be attached to
+    unsigned int m_deviceId;                                             ///< ID of the GPU the context should be attached to
     int m_recursions;                                           ///< number of allowable ray tracing recursions in optix
 };
 

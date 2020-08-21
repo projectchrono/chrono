@@ -66,22 +66,22 @@ LidarModelType lidar_model = RAYCAST;
 LidarReturnMode return_mode = STRONGEST_RETURN;
 
 // Update rate in Hz
-float update_rate = 5;
+float update_rate = 5.f;
 
 // Number of horizontal and vertical samples
 unsigned int horizontal_samples = 4500;
 unsigned int vertical_samples = 32;
 
 // Horizontal and vertical field of view (radians)
-float horizontal_fov = 2 * CH_C_PI;   // 360 degree scan
-float max_vert_angle = CH_C_PI / 12;  // 15 degrees up
-float min_vert_angle = -CH_C_PI / 6;  // 30 degrees down
+float horizontal_fov = (float) (2 * CH_C_PI);   // 360 degree scan
+float max_vert_angle = (float) CH_C_PI / 12;  // 15 degrees up
+float min_vert_angle = (float) -CH_C_PI / 6;  // 30 degrees down
 
 // Lag time
-float lag = 0;
+float lag = 0.f;
 
 // Collection window for the lidar
-float collection_time = 1 / double(update_rate);  // typically 1/update rate
+float collection_time = 1 / update_rate;  // typically 1/update rate
 
 // -----------------------------------------------------------------------------
 // Simulation parameters
@@ -151,7 +151,7 @@ int main(int argc, char* argv[]) {
     // -----------------------
     auto manager = chrono_types::make_shared<ChSensorManager>(&mphysicalSystem);
     manager->SetVerbose(false);
-    manager->SetKeyframeSizeFromTimeStep(step_size, .2);
+    manager->SetKeyframeSizeFromTimeStep((float)step_size, .2f);
 
     // -----------------------------------------------
     // Create a lidar and add it to the sensor manager

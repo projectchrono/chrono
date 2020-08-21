@@ -39,20 +39,20 @@ using namespace chrono::sensor;
 // -----------------------------------------------------------------------------
 
 // Update rate in Hz
-int update_rate = 30;
+float update_rate = 30.f;
 
 // Image width and height
 unsigned int image_width = 720;
 unsigned int image_height = 720;
 
 // Camera's horizontal field of view
-float fov = CH_C_PI / 3.;
+float fov = (float) CH_C_PI / 3;
 
 // Lag (in seconds) between sensing and when data becomes accessible
-float lag = 0;
+float lag = 0.f;
 
 // Exposure (in seconds) of each image
-float exposure_time = 0;
+float exposure_time = 0.f;
 
 // -----------------------------------------------------------------------------
 // Simulation parameters

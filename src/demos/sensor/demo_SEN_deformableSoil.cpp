@@ -105,7 +105,7 @@ unsigned int image_width = 1920;
 unsigned int image_height = 1080;
 
 // Camera's horizontal field of view
-float fov = CH_C_PI / 3.;
+float fov = (float)(CH_C_PI / 3);
 
 // Lag (in seconds) between sensing and when data becomes accessible
 float lag = 0;

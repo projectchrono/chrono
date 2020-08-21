@@ -21,9 +21,6 @@
 
 #include "chrono_sensor/ChApiSensor.h"
 
-#include <optix.h>
-#include <optixu/optixpp.h>  //needed to make sure things are in the right namespace. Must be done before optixpp_namespace.h
-#include <optixu/optixpp_namespace.h>  //is covered by optixpp.h but will be removed from optixpp.h in the future
 #include <list>
 #include <mutex>
 
@@ -32,8 +29,6 @@
 #include "chrono_sensor/ChApiSensor.h"
 #include "chrono_sensor/filters/ChFilter.h"
 #include "chrono_sensor/optixcpp/ChOptixUtils.h"
-
-//#include <memory>
 
 namespace chrono {
 namespace sensor {

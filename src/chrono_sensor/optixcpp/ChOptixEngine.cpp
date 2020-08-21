@@ -122,7 +122,6 @@ void ChOptixEngine::UpdateSensors(std::shared_ptr<ChScene> scene) {
             std::lock_guard<std::mutex> lck(m_renderQueueMutex);
 
             // initialize noise if not done yet
-            // This is fixed pattern noise for now - TODO: should this be changing?
             if (!m_noise_initialized && m_num_noise_vals > 0) {
                 m_noise_initialized = true;
                 /// create and set the noise buffer here
@@ -130,9 +129,9 @@ void ChOptixEngine::UpdateSensors(std::shared_ptr<ChScene> scene) {
                     m_context->createBuffer(RT_BUFFER_INPUT, RT_FORMAT_FLOAT, m_num_noise_vals);
                 m_context["noise_buffer"]->setBuffer(ray_gen_noise_buffer);
 
-                auto generator = std::minstd_rand(std::chrono::high_resolution_clock::now().time_since_epoch().count());
+                auto generator = std::minstd_rand((unsigned int)std::chrono::high_resolution_clock::now().time_since_epoch().count());
                 float* ptr = (float*)ray_gen_noise_buffer->map();
-                for (int i = 0; i < m_num_noise_vals; i++) {
+                for (int i = 0; i < (int)m_num_noise_vals; i++) {
                     ptr[i] = generator() / (float)generator.max();
                 }
 
@@ -145,7 +144,7 @@ void ChOptixEngine::UpdateSensors(std::shared_ptr<ChScene> scene) {
             UpdateSceneDescription(scene);
             UpdateDynamicMeshes();
 
-            float t = m_system->GetChTime();
+            float t = (float)m_system->GetChTime();
             // push the sensors that need updating to the render queue
             for (int i = 0; i < to_be_updated.size(); i++) {
                 m_renderQueue.push_back(m_assignedSensor[to_be_updated[i]]);
@@ -351,7 +350,7 @@ void ChOptixEngine::cylinderVisualization(std::shared_ptr<ChCylinderShape> cylin
     ChVector<double> asset_pos = visual_asset->Pos;
     ChMatrix33<double> asset_rot_mat = visual_asset->Rot;
     float radius = (float)cylinder_shape->GetCylinderGeometry().rad;
-    float height = (cylinder_shape->GetCylinderGeometry().p1 - cylinder_shape->GetCylinderGeometry().p2).Length();
+    float height = (float)(cylinder_shape->GetCylinderGeometry().p1 - cylinder_shape->GetCylinderGeometry().p2).Length();
 
     // create the sphere geometry
     Geometry cylinder = GetOptixCylinderGeometry();  // m_context->createGeometry();
@@ -758,7 +757,7 @@ void ChOptixEngine::Initialize() {
     rtContextGetDevices(m_context->get(), dev_ids.data());
     if (m_verbose) {
         std::cout << "Devices available: ";
-        for (int i = 0; i < n_devices; i++) {
+        for (unsigned int i = 0; i < n_devices; i++) {
             std::cout << i << ", ";
         }
         std::cout << std::endl;
@@ -1041,7 +1040,7 @@ void ChOptixEngine::UpdateCameraTransforms() {
 
         // find index of camera transform that corresponds to sensor start time
         int start_index = 0;
-        for (int j = m_camera_keyframes.size() - 1; j >= 0; j--) {
+        for (int j = (int)m_camera_keyframes.size() - 1; j >= 0; j--) {
             if (std::get<0>(m_camera_keyframes[j]) < start_time + 1e-6) {
                 start_index = j;
                 break;
@@ -1078,7 +1077,7 @@ void ChOptixEngine::UpdateBodyTransforms() {
             }
         }
 
-        auto res = rtTransformSetMotionKeys(t->get(), m_keyframes.size(), RT_MOTIONKEYTYPE_MATRIX_FLOAT12,
+        auto res = rtTransformSetMotionKeys(t->get(), (unsigned int)m_keyframes.size(), RT_MOTIONKEYTYPE_MATRIX_FLOAT12,
                                             &m_internal_keyframes[i * m_keyframes.size() * 12]);
         t->setMotionBorderMode(RT_MOTIONBORDERMODE_CLAMP, RT_MOTIONBORDERMODE_CLAMP);
     }

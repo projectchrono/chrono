@@ -95,32 +95,6 @@ CH_SENSOR_API void ChFilterSave::Apply(std::shared_ptr<ChSensor> pSensor, std::s
 CH_SENSOR_API void ChFilterSave::Initialize(std::shared_ptr<ChSensor> pSensor) {
     std::vector<std::string> split_string;
 
-#ifdef _WIN32
-    std::istringstream istring(m_path);
-
-    std::string substring;
-    while (std::getline(istring, substring, '\\')) {
-        split_string.push_back(substring);
-    }
-
-    std::string partial_path = "";
-    for (auto s : split_string) {
-        if (s != "") {
-            partial_path += s + "\\";
-            if (!filesystem::path(partial_path).exists()) {
-                if (!filesystem::create_directory(filesystem::path(partial_path))) {
-                    std::cerr << "Could not create directory: " << partial_path << std::endl;
-                } else {
-                    std::cout << "Created directory for sensor data: " << partial_path << std::endl;
-                }
-            }
-        }
-    }
-
-    if (m_path.back() != '\\')
-        m_path += '\\';
-#else
-
     std::istringstream istring(m_path);
 
     std::string substring;
@@ -142,9 +116,9 @@ CH_SENSOR_API void ChFilterSave::Initialize(std::shared_ptr<ChSensor> pSensor) {
         }
     }
 
-    if (m_path.back() != '/')
-        m_path += '/';
-#endif
+    if (m_path.back() != '/' && m_path != "")
+		m_path += '/';
+
 }
 
 }  // namespace sensor

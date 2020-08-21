@@ -258,8 +258,8 @@ int main(int argc, char* argv[]) {
         (float)CH_C_PI / 8.f, -(float)CH_C_PI / 8.f, 100.0                  // vertical field of view
     );
     lidar->SetName("Lidar Sensor");
-    lidar->SetLag(.1);
-    lidar->SetCollectionWindow(.1);
+    lidar->SetLag(.1f);
+    lidar->SetCollectionWindow(.1f);
 
     if (display_data)
         lidar->PushFilter(chrono_types::make_shared<ChFilterVisualize>(923, 48, "Raw Lidar Data"));
@@ -310,7 +310,7 @@ int main(int argc, char* argv[]) {
         std::stringstream nm;
         nm << "Camera Sensor " << i + 1;
         cam1->SetName(nm.str());
-        cam1->SetLag(.1);
+        cam1->SetLag(.1f);
         cam1->SetCollectionWindow(0);
 
         // we want to visualize this sensor, so add the visualize filter to the filter list.
@@ -335,14 +335,14 @@ int main(int argc, char* argv[]) {
     // Simulate system
     // ---------------
     float orbit_radius = 15.f;
-    float orbit_rate = .2;
-    float ch_time = 0.0;
+    float orbit_rate = .2f;
+    float ch_time = 0.f;
 
     double render_time = 0;
 
     std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
 
-    float light_change = -.002;
+    float light_change = -.002f;
 
     std::cout << "Sensor Mangager has: " << manager->GetNumEngines() << " engines running.\n";
     while (ch_time < end_time) {
