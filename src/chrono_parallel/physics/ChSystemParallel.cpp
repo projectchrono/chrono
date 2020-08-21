@@ -885,11 +885,11 @@ double ChSystemParallel::GetTimerUpdate() const {
     return data_manager->system_timer.GetTime("update");
 }
 
-double ChSystemParallel::GetTimerSolver() const {
+double ChSystemParallel::GetTimerLSsolve() const {
     return data_manager->system_timer.GetTime("ChIterativeSolverParallel_Solve");
 }
 
-double ChSystemParallel::GetTimerSetup() const {
+double ChSystemParallel::GetTimerLSsetup() const {
     return data_manager->system_timer.GetTime("ChIterativeSolverParallel_Setup");
 }
 

@@ -400,7 +400,7 @@ void DPCapPress() {
     GetLog() << "Simulation Time: " << duration << "\n";
     GetLog() << "Force Time: " << my_mesh->GetTimeInternalForces() << "\n";
     GetLog() << "Jacobian Time: " << my_mesh->GetTimeJacobianLoad() << "\n";
-    GetLog() << "Solver Time: " << my_system.GetTimerSolver() << "\n";
+    GetLog() << "Solver Time: " << my_system.GetTimerLSsolve() << "\n";
     GetLog() << Iter << "\n";
 }
 
@@ -752,7 +752,7 @@ void ShellBrickContact() {
     GetLog() << "Simulation Time: " << duration << "\n";
     GetLog() << "Force Time: " << my_mesh->GetTimeInternalForces() << "\n";
     GetLog() << "Jacobian Time: " << my_mesh->GetTimeJacobianLoad() << "\n";
-    GetLog() << "Solver Time: " << my_system.GetTimerSolver() << "\n";
+    GetLog() << "Solver Time: " << my_system.GetTimerLSsolve() << "\n";
     GetLog() << Iter << "\n";
 }
 
@@ -1051,7 +1051,7 @@ void SimpleBoxContact() {
     GetLog() << "Simulation Time: " << duration << "\n";
     GetLog() << "Force Time: " << my_mesh->GetTimeInternalForces() << "\n";
     GetLog() << "Jacobian Time: " << my_mesh->GetTimeJacobianLoad() << "\n";
-    GetLog() << "Solver Time: " << my_system.GetTimerSolver() << "\n";
+    GetLog() << "Solver Time: " << my_system.GetTimerLSsolve() << "\n";
     GetLog() << Iter << "\n";
 }
 
@@ -1387,7 +1387,7 @@ void SoilBin() {
     GetLog() << "Simulation Time: " << duration << "\n";
     GetLog() << "Force Time: " << my_mesh->GetTimeInternalForces() << "\n";
     GetLog() << "Jacobian Time: " << my_mesh->GetTimeJacobianLoad() << "\n";
-    GetLog() << "Solver Time: " << my_system.GetTimerSolver() << "\n";
+    GetLog() << "Solver Time: " << my_system.GetTimerLSsolve() << "\n";
     GetLog() << Iter << "\n";
 }
 
@@ -1650,7 +1650,7 @@ void AxialDynamics() {
     GetLog() << "Simulation Time: " << duration << "\n";
     GetLog() << "Force Time: " << my_mesh->GetTimeInternalForces() << "\n";
     GetLog() << "Jacobian Time: " << my_mesh->GetTimeJacobianLoad() << "\n";
-    GetLog() << "Solver Time: " << my_system.GetTimerSolver() << "\n";
+    GetLog() << "Solver Time: " << my_system.GetTimerLSsolve() << "\n";
     GetLog() << Iter << "\n";
 }
 
