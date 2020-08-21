@@ -131,17 +131,17 @@ HmmwvScmTest<EnumClass, TIRE_MODEL>::HmmwvScmTest() : m_step(2e-3) {
     );
 
     m_terrain->AddMovingPatch(m_hmmwv->GetVehicle().GetAxle(0)->GetWheel(VehicleSide::LEFT)->GetSpindle(),
-                           ChVector<>(0, 0, 0), 1.25, 1.25);
+                              ChVector<>(0, 0, 0), ChVector<>(1.25, 0.5, 1.25));
     m_terrain->AddMovingPatch(m_hmmwv->GetVehicle().GetAxle(0)->GetWheel(VehicleSide::RIGHT)->GetSpindle(),
-                           ChVector<>(0, 0, 0), 1.25, 1.25);
+                              ChVector<>(0, 0, 0), ChVector<>(1.25, 0.5, 1.25));
     m_terrain->AddMovingPatch(m_hmmwv->GetVehicle().GetAxle(1)->GetWheel(VehicleSide::LEFT)->GetSpindle(),
-                           ChVector<>(0, 0, 0), 1.25, 1.25);
+                              ChVector<>(0, 0, 0), ChVector<>(1.25, 0.5, 1.25));
     m_terrain->AddMovingPatch(m_hmmwv->GetVehicle().GetAxle(1)->GetWheel(VehicleSide::RIGHT)->GetSpindle(),
-                              ChVector<>(0, 0, 0), 1.25, 1.25);
+                              ChVector<>(0, 0, 0), ChVector<>(1.25, 0.5, 1.25));
 
     m_terrain->SetPlotType(vehicle::SCMDeformableTerrain::PLOT_SINKAGE, 0, 0.1);
 
-    m_terrain->Initialize(0.0, size, size, num_div, num_div);
+    m_terrain->Initialize(size, size, size / num_div);
 
     // Custom driver
     m_driver = new HmmwvScmDriver(m_hmmwv->GetVehicle(), 1.0);
