@@ -219,6 +219,7 @@ TerrainForce SCMDeformableTerrain::GetContactForce(std::shared_ptr<ChBody> body)
 // Print timing and counter information for last step.
 void SCMDeformableTerrain::PrintStepStatistics(std::ostream& os) const {
     os << " Timers:" << std::endl;
+    os << "   Moving patches:          " << m_ground->m_timer_moving_patches() << std::endl;
     os << "   Ray casting:             " << m_ground->m_timer_ray_casting() << std::endl;
     os << "   Contact patches:         " << m_ground->m_timer_contact_patches() << std::endl;
     os << "   Contact forces:          " << m_ground->m_timer_contact_forces() << std::endl;
@@ -584,7 +585,7 @@ double SCMDeformableSoil::GetHeight(const ChVector<>& loc) const {
 }
 
 // Synchronize information for a moving patch
-void SCMDeformableSoil::UpdateMovingPatch(MovingPatchInfo& p) {
+void SCMDeformableSoil::UpdateMovingPatch(MovingPatchInfo& p, const ChVector<>& N) {
     ChVector2<> p_min(+std::numeric_limits<double>::max());
     ChVector2<> p_max(-std::numeric_limits<double>::max());
 
@@ -613,6 +614,12 @@ void SCMDeformableSoil::UpdateMovingPatch(MovingPatchInfo& p) {
     p.m_bl.y() = ChClamp(static_cast<int>(std::ceil(p_min.y() / m_delta)), -m_ny, +m_ny);
     p.m_tr.x() = ChClamp(static_cast<int>(std::floor(p_max.x() / m_delta)), -m_nx, +m_nx);
     p.m_tr.y() = ChClamp(static_cast<int>(std::floor(p_max.y() / m_delta)), -m_ny, +m_ny);
+
+    // Calculate inverse of SCM normal expressed in body frame (for optimization of ray-OBB test)
+    ChVector<> dir = p.m_body->TransformDirectionParentToLocal(N);
+    p.m_ooN.x() = (dir.x() == 0) ? 1e10 : 1.0 / dir.x();
+    p.m_ooN.y() = (dir.y() == 0) ? 1e10 : 1.0 / dir.y();
+    p.m_ooN.z() = (dir.z() == 0) ? 1e10 : 1.0 / dir.z();
 }
 
 // Synchronize information for fixed patch
@@ -650,6 +657,29 @@ void SCMDeformableSoil::UpdateFixedPatch(MovingPatchInfo& p) {
     p.m_tr.y() = ChClamp(static_cast<int>(std::floor(p_max.y() / m_delta)), -m_ny, +m_ny);
 }
 
+// Ray-OBB intersection test
+bool SCMDeformableSoil::RayOBBtest(const MovingPatchInfo& p, const ChVector<>& from, const ChVector<>& N) {
+    // Express ray origin in OBB frame
+    ChVector<> orig = p.m_body->TransformPointParentToLocal(from) - p.m_center;
+
+    // Perform ray-AABB test (slab tests)
+    double t1 = (-p.m_hdims.x() - orig.x()) * p.m_ooN.x();
+    double t2 = (+p.m_hdims.x() - orig.x()) * p.m_ooN.x();
+    double t3 = (-p.m_hdims.y() - orig.y()) * p.m_ooN.y();
+    double t4 = (+p.m_hdims.y() - orig.y()) * p.m_ooN.y();
+    double t5 = (-p.m_hdims.z() - orig.z()) * p.m_ooN.z();
+    double t6 = (+p.m_hdims.z() - orig.z()) * p.m_ooN.z();
+
+    double tmin = std::max(std::max(std::min(t1, t2), std::min(t3, t4)), std::min(t5, t6));
+    double tmax = std::min(std::min(std::max(t1, t2), std::max(t3, t4)), std::max(t5, t6));
+
+    if (tmax < 0)
+        return false;
+    if (tmin > tmax)
+        return false;
+    return true;
+}
+
 // Offsets for the 8 neighbors of a grid vertex
 static const std::vector<ChVector2<int>> neighbors8{
     ChVector2<int>(-1, -1),  // SW
@@ -671,6 +701,7 @@ static const std::vector<ChVector2<int>> neighbors4{
 
 // Reset the list of forces, and fills it with forces from a soil contact model.
 void SCMDeformableSoil::ComputeInternalForces() {
+    m_timer_moving_patches.reset();
     m_timer_ray_casting.reset();
     m_timer_contact_patches.reset();
     m_timer_contact_forces.reset();
@@ -688,19 +719,24 @@ void SCMDeformableSoil::ComputeInternalForces() {
     // Perform ray casting tests
     // -------------------------
 
-    m_timer_ray_casting.start();
     m_num_ray_casts = 0;
     m_num_ray_hits = 0;
     m_hits.clear();
 
+    m_timer_moving_patches.start();
+
     // Update moving patch information
     if (m_moving_patch) {
         for (auto& p : m_patches)
-            UpdateMovingPatch(p);
+            UpdateMovingPatch(p, N);
     } else {
         assert(m_patches.size() == 1);
         UpdateFixedPatch(m_patches[0]);
     }
+
+    m_timer_moving_patches.stop();
+
+    m_timer_ray_casting.start();
 
     // Loop through all moving patches (user-defined or default one)
     for (auto& p : m_patches) {
@@ -715,10 +751,16 @@ void SCMDeformableSoil::ComputeInternalForces() {
                 double z = GetHeight(ij);
                 ChVector<> vertex_abs = m_plane.TransformPointLocalToParent(ChVector<>(x, y, z));
 
-                // Raycast to see if we need to work on this point later
+                // Create ray at current grid location
                 collision::ChCollisionSystem::ChRayhitResult mrayhit_result;
                 ChVector<> to = vertex_abs + N * m_test_offset_up;
                 ChVector<> from = to - N * m_test_offset_down;
+
+                // Ray-OBB test (quick rejection)
+                if (m_moving_patch && !RayOBBtest(p, from, N))
+                    continue;
+
+                // Cast ray into collision system
                 GetSystem()->GetCollisionSystem()->RayHit(from, to, mrayhit_result);
                 m_num_ray_casts++;
 

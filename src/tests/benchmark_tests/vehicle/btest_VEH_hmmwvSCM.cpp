@@ -131,13 +131,13 @@ HmmwvScmTest<EnumClass, TIRE_MODEL>::HmmwvScmTest() : m_step(2e-3) {
     );
 
     m_terrain->AddMovingPatch(m_hmmwv->GetVehicle().GetAxle(0)->GetWheel(VehicleSide::LEFT)->GetSpindle(),
-                              ChVector<>(0, 0, 0), ChVector<>(1.25, 0.5, 1.25));
+                              ChVector<>(0, 0, 0), ChVector<>(1.0, 0.3, 1.0));
     m_terrain->AddMovingPatch(m_hmmwv->GetVehicle().GetAxle(0)->GetWheel(VehicleSide::RIGHT)->GetSpindle(),
-                              ChVector<>(0, 0, 0), ChVector<>(1.25, 0.5, 1.25));
+                              ChVector<>(0, 0, 0), ChVector<>(1.0, 0.3, 1.0));
     m_terrain->AddMovingPatch(m_hmmwv->GetVehicle().GetAxle(1)->GetWheel(VehicleSide::LEFT)->GetSpindle(),
-                              ChVector<>(0, 0, 0), ChVector<>(1.25, 0.5, 1.25));
+                              ChVector<>(0, 0, 0), ChVector<>(1.0, 0.3, 1.0));
     m_terrain->AddMovingPatch(m_hmmwv->GetVehicle().GetAxle(1)->GetWheel(VehicleSide::RIGHT)->GetSpindle(),
-                              ChVector<>(0, 0, 0), ChVector<>(1.25, 0.5, 1.25));
+                              ChVector<>(0, 0, 0), ChVector<>(1.0, 0.3, 1.0));
 
     m_terrain->SetPlotType(vehicle::SCMDeformableTerrain::PLOT_SINKAGE, 0, 0.1);
 

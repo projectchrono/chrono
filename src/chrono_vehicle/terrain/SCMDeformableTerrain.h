@@ -270,8 +270,9 @@ class CH_VEHICLE_API SCMDeformableSoil : public ChLoadContainer {
         std::shared_ptr<ChBody> m_body;  // tracked body
         ChVector<> m_center;             // OOBB center, relative to body
         ChVector<> m_hdims;              // OOBB half-dimensions
-        ChVector2<int> m_bl;             // coordinates of most bottom-left grid vertex
-        ChVector2<int> m_tr;             // coordinates of most top-right grid vertex
+        ChVector2<int> m_bl;             // current grid coords of bottom-left corner
+        ChVector2<int> m_tr;             // current grid coords of top-right corner
+        ChVector<> m_ooN;                // current inverse of SCM normal in body frame
     };
 
     // Information of vertices with ray-cast hits
@@ -355,10 +356,13 @@ class CH_VEHICLE_API SCMDeformableSoil : public ChLoadContainer {
     }
 
     // Synchronize information for a moving patch
-    void UpdateMovingPatch(MovingPatchInfo& p);
+    void UpdateMovingPatch(MovingPatchInfo& p, const ChVector<>& N);
 
     // Synchronize information for fixed patch
     void UpdateFixedPatch(MovingPatchInfo& p);
+
+    // Ray-OBB intersection test
+    bool RayOBBtest(const MovingPatchInfo& p, const ChVector<>& from, const ChVector<>& N);
 
     // Reset the list of forces and fill it with forces from the soil contact model.
     // This is called automatically during timestepping (only at the beginning of each step).
@@ -437,6 +441,7 @@ class CH_VEHICLE_API SCMDeformableSoil : public ChLoadContainer {
     std::vector<int> m_external_modified_vertices;
 
     // Timers and counters
+    ChTimer<double> m_timer_moving_patches;
     ChTimer<double> m_timer_ray_casting;
     ChTimer<double> m_timer_contact_patches;
     ChTimer<double> m_timer_contact_forces;
