@@ -44,15 +44,14 @@ SCMDeformableTerrain::SCMDeformableTerrain(ChSystem* system, bool visualization_
     system->Add(m_ground);
 }
 
-// Return the terrain height at the specified location
+// Get the terrain height below the specified location.
 double SCMDeformableTerrain::GetHeight(const ChVector<>& loc) const {
     return m_ground->GetHeight(loc);
 }
 
-// Return the terrain normal at the specified location
+// Get the terrain normal at the point below the specified location.
 ChVector<> SCMDeformableTerrain::GetNormal(const ChVector<>& loc) const {
-    //// TODO
-    return m_ground->m_plane.TransformDirectionLocalToParent(ChWorldFrame::Vertical());
+    return m_ground->GetHeight(loc);
 }
 
 // Return the terrain coefficient of friction at the specified location
@@ -79,7 +78,7 @@ void SCMDeformableTerrain::SetPlane(const ChCoordsys<>& plane) {
     m_ground->m_plane = plane;
 }
 
-// Get the plane reference.
+// Get the SCM reference plane.
 const ChCoordsys<>& SCMDeformableTerrain::GetPlane() const {
     return m_ground->m_plane;
 }
@@ -158,7 +157,7 @@ void SCMDeformableTerrain::SetPlotType(DataPlotType plot_type, double min_val, d
     m_ground->m_plot_v_max = max_val;
 }
 
-// Enable moving patch
+// Enable moving patch.
 void SCMDeformableTerrain::AddMovingPatch(std::shared_ptr<ChBody> body,
                                           const ChVector<>& OOBB_center,
                                           const ChVector<>& OOBB_dims) {
@@ -173,12 +172,12 @@ void SCMDeformableTerrain::AddMovingPatch(std::shared_ptr<ChBody> body,
     m_ground->m_moving_patch = true;
 }
 
-// Set user-supplied callback for evaluating location-dependent soil parameters
+// Set user-supplied callback for evaluating location-dependent soil parameters.
 void SCMDeformableTerrain::RegisterSoilParametersCallback(std::shared_ptr<SoilParametersCallback> cb) {
     m_ground->m_soil_fun = cb;
 }
 
-// Initialize the terrain as a flat grid
+// Initialize the terrain as a flat grid.
 void SCMDeformableTerrain::Initialize(double sizeX, double sizeY, double delta) {
     m_ground->Initialize(sizeX, sizeY, delta);
 }
@@ -281,7 +280,7 @@ SCMDeformableSoil::SCMDeformableSoil(ChSystem* system, bool visualization_mesh) 
 
 // Initialize the terrain as a flat grid
 void SCMDeformableSoil::Initialize(double sizeX, double sizeY, double delta) {
-    m_type = PatchType::BOX;
+    m_type = PatchType::FLAT;
 
     m_nx = static_cast<int>(std::ceil((sizeX / 2) / delta));  // half number of divisions in X direction
     m_ny = static_cast<int>(std::ceil((sizeY / 2) / delta));  // number of divisions in Y direction
@@ -558,8 +557,8 @@ std::vector<int> SCMDeformableSoil::GetMeshFaceIndices(const ChVector2<int>& loc
     return faces;
 }
 
-// Return the terrain height at the specified grid vertex
-double SCMDeformableSoil::GetHeight(const ChVector2<int>& loc) {
+// Get the terrain height (relative to the SCM plane) at the specified grid vertex.
+double SCMDeformableSoil::GetHeight(const ChVector2<int>& loc) const {
     // First query the hash-map
     auto p = m_grid_map.find(loc);
     if (p != m_grid_map.end())
@@ -567,7 +566,7 @@ double SCMDeformableSoil::GetHeight(const ChVector2<int>& loc) {
 
     // Else return undeformed height
     switch (m_type) {
-        case PatchType::BOX:
+        case PatchType::FLAT:
             return 0;
         case PatchType::HEIGHT_MAP:
             assert(loc.x() >= -m_nx && loc.x() <= m_nx);
@@ -578,10 +577,25 @@ double SCMDeformableSoil::GetHeight(const ChVector2<int>& loc) {
     }
 }
 
-// Return the terrain height at the specified location
+// Get the terrain height below the specified location.
 double SCMDeformableSoil::GetHeight(const ChVector<>& loc) const {
+    // Express location in the SCM frame
+    ChVector<> loc_loc = m_plane.TransformPointParentToLocal(loc);
+
+    // Get height (relative to SCM plane) at closest grid vertex (approximation)
+    int i = static_cast<int>(std::round(loc_loc.x() / m_delta));
+    int j = static_cast<int>(std::round(loc_loc.y() / m_delta));
+    loc_loc.z() = GetHeight(ChVector2<int>(i, j));
+
+    // Express in global frame
+    ChVector<> loc_abs = m_plane.TransformPointLocalToParent(loc_loc);
+    return ChWorldFrame::Height(loc_abs);
+}
+
+// Get the terrain normal at the point below the specified location.
+ChVector<> SCMDeformableSoil::GetNormal(const ChVector<>& loc) const {
     //// TODO
-    return 0;
+    return m_plane.TransformDirectionLocalToParent(ChVector<>(0, 0, 1));
 }
 
 // Synchronize information for a moving patch
@@ -796,15 +810,8 @@ void SCMDeformableSoil::ComputeInternalForces() {
     };
     std::vector<ContactPatchRecord> contact_patches;
 
-    // Profile this flood-fill once the whole thing is complete - there could be some ways to make it faster:
-    // - automatically traverse east and west quickly
-    // - only ij-coords and patch_id are needed, may not need the whole hit_record
-    // - a helpful metric is the number of times each vertex is visited
-    // - could be cost-effective to remove elements when they are tagged as neighbors - but then we have to add them
-    // somewhere else so that they aren't forgotten, this copying may make it not worth it
-
     // Loop through all hit vertices and determine to which contact patch they belong.
-    // Use a queue-based flood-filling algorithm based on the 8 neighbors of each hit vertex.
+    // Use a queue-based flood-filling algorithm based on the neighbors of each hit vertex.
     m_num_contact_patches = 0;
     for (auto& h : m_hits) {
         if (h.second.patch_id != -1)
@@ -1128,7 +1135,7 @@ void SCMDeformableSoil::UpdateMeshVertexCoordinates(const ChVector2<int> ij, int
     }
 }
 
-// Update vertex normal in visualization mesh
+// Update vertex normal in visualization mesh.
 void SCMDeformableSoil::UpdateMeshVertexNormal(const ChVector2<int> ij, int iv) {
     auto& trimesh = *m_trimesh_shape->GetMesh();
     std::vector<ChVector<>>& vertices = trimesh.getCoordsVertices();

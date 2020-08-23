@@ -177,7 +177,7 @@ class CH_VEHICLE_API SCMDeformableTerrain : public ChTerrain {
     virtual double GetHeight(const ChVector<>& loc) const override;
 
     /// Get the terrain normal at the point below the specified location.
-    virtual chrono::ChVector<> GetNormal(const ChVector<>& loc) const override;
+    virtual ChVector<> GetNormal(const ChVector<>& loc) const override;
 
     /// Get the terrain coefficient of friction at the point below the specified location.
     /// This coefficient of friction value may be used by certain tire models to modify
@@ -261,7 +261,7 @@ class CH_VEHICLE_API SCMDeformableSoil : public ChLoadContainer {
   private:
     // SCM patch type
     enum class PatchType {
-        BOX,        // rectangular box
+        FLAT,       // flat patch
         HEIGHT_MAP  // triangular mesh (generated from a gray-scale image height-map)
     };
 
@@ -324,11 +324,14 @@ class CH_VEHICLE_API SCMDeformableSoil : public ChLoadContainer {
         std::size_t operator()(const ChVector2<int>& p) const { return p.x() * 31 + p.y(); }
     };
 
+    // Get the terrain normal at the point below the specified location.
+    ChVector<> GetNormal(const ChVector<>& loc) const;
+
     // Get the terrain height below the specified location.
     double GetHeight(const ChVector<>& loc) const;
 
-    // Get the terrain height at the specified grid vertex.
-    double GetHeight(const ChVector2<int>& loc);
+    // Get the terrain height (relative to the SCM plane) at the specified grid vertex.
+    double GetHeight(const ChVector2<int>& loc) const;
 
     // Get index of trimesh vertex corresponding to the specified grid vertex.
     int GetMeshVertexIndex(const ChVector2<int>& loc);
