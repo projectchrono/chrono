@@ -1159,12 +1159,12 @@ std::vector<SCMDeformableTerrain::VertexLevel> SCMDeformableSoil::GetModifiedVer
 }
 
 // Modify the level of vertices in the underlying grid map from the given list.
+// NOTE: We set only the level of the specified vertices and none of the other soil properties.
+//       As such, some plot types may be incorrect at these vertices.
 void SCMDeformableSoil::SetModifiedVertices(const std::vector<SCMDeformableTerrain::VertexLevel>& vertices) {
     for (const auto& v : vertices) {
-        auto ij = v.first;
         // Modify existing entry in grid map or insert new one
-        double init_level = GetHeight(ij);
-        m_grid_map[ij] = SCMDeformableSoil::VertexRecord(init_level, v.second);
+        m_grid_map[v.first] = SCMDeformableSoil::VertexRecord(v.second, v.second);
     }
 
     // Update visualization
