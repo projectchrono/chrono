@@ -6,7 +6,6 @@ SET(TESTS
     utest_SEN_threadsafety
     utest_SEN_gps
     utest_SEN_optixengine
-    utest_SEN_shapes
 )
 
 MESSAGE(STATUS "Unit test programs for SENSOR module...")

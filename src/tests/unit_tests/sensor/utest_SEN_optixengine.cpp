@@ -12,7 +12,7 @@
 // Authors: Asher Elmquist
 // =============================================================================
 //
-// Unit test for MatrMultiplyAVX and MatrMultiplyTAVX.
+// Unit test for ChOptixEngine
 //
 // =============================================================================
 
@@ -24,6 +24,7 @@
 #include "chrono_sensor/ChCameraSensor.h"
 #include "chrono_sensor/ChSensorManager.h"
 #include "chrono_sensor/filters/ChFilterAccess.h"
+#include "chrono_sensor/filters/ChFilterSave.h"
 #include "chrono_sensor/filters/ChFilterGrayscale.h"
 
 using namespace chrono;
@@ -50,16 +51,12 @@ TEST(ChOptixEngine, assign_sensor_safety) {
         48,                                                                 // image height
         CH_C_PI / 3);                                                       // FOV
     cam->SetName("Camera Sensor");
-
-    // cam->PushFilter(chrono_types::make_shared<ChFilterVisualize>(640,480,"RGB Camera"));
-    // cam->PushFilter(chrono_types::make_shared<ChFilterRGBA8Access>());
     manager->AddSensor(cam);
 
     bool success = true;
 
     double ch_time = 0;
 
-    // LockedRGBA8BufferPtr camera_data = cam->GetMostRecentBuffer<LockedRGBA8BufferPtr>();
     while (ch_time < end_time) {
         manager->Update();
         mphysicalSystem.DoStepDynamics(0.01);
@@ -106,7 +103,6 @@ TEST(ChOptixEngine, construct_scene_safety) {
         48,                                                                 // image height
         CH_C_PI / 3);                                                       // FOV
     cam->SetName("Camera Sensor");
-    // cam->PushFilter(chrono_types::make_shared<ChFilterVisualize>(640,480,"RGB Camera"));
     manager->AddSensor(cam);
 
     auto engine = manager->GetEngine(0);
@@ -184,8 +180,7 @@ TEST(ChOptixEngine, construct_scene_safety_2) {
     ASSERT_EQ(success, true);
 }
 
-// for making sure user interaction with the render engine is safe while the simulation is running
-TEST(ChOptixEngine, start_stop_safety) {
+TEST(ChOptixEngine, lights) {
     ChSystemNSC mphysicalSystem;
 
     auto box = chrono_types::make_shared<ChBodyEasyBox>(1, 1, 1, 1000, true, true);
@@ -199,44 +194,27 @@ TEST(ChOptixEngine, start_stop_safety) {
         box,                                                                // body camera is attached to
         10,                                                                 // update rate in Hz
         chrono::ChFrame<double>({-8, 0, 1}, Q_from_AngAxis(0, {0, 1, 0})),  // offset pose
-        64,                                                                 // image width
-        48,                                                                 // image height
+        1,                                                                  // image width
+        1,                                                                  // image height
         CH_C_PI / 3);                                                       // FOV
     cam->SetName("Camera Sensor");
-    // cam->PushFilter(chrono_types::make_shared<ChFilterVisualize>(640,480,"RGB Camera"));
     manager->AddSensor(cam);
 
-    auto engine = manager->GetEngine(0);
-    // engine->Start();
-    // engine->Start();
-    // engine->Start();
-    // engine->Start();
+    ASSERT_EQ(manager->scene->GetPointLights().size(), 1);
 
-    bool success = true;
-
-    double ch_time = 0;
-    int frame = 0;
-
-    while (ch_time < end_time) {
+    while ((float)mphysicalSystem.GetChTime() < end_time) {
         manager->Update();
         mphysicalSystem.DoStepDynamics(0.01);
-
-        ch_time = (float)mphysicalSystem.GetChTime();
-        frame++;
     }
 
-    // engine->Stop();
-    // engine->Stop();
-    // engine->Stop();
-    // engine->Stop();
+    for (int i = 0; i < 10; i++) {
+        manager->scene->AddPointLight({100, 100, 100}, {1, 1, 1}, 500);
+    }
 
-    while (ch_time < 2 * end_time) {
+    while ((float)mphysicalSystem.GetChTime() < 2 * end_time) {
         manager->Update();
         mphysicalSystem.DoStepDynamics(0.01);
-
-        ch_time = (float)mphysicalSystem.GetChTime();
-        frame++;
     }
 
-    ASSERT_EQ(success, true);
+    ASSERT_EQ(manager->scene->GetPointLights().size(), 11);
 }

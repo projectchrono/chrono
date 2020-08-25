@@ -129,7 +129,8 @@ void ChOptixEngine::UpdateSensors(std::shared_ptr<ChScene> scene) {
                     m_context->createBuffer(RT_BUFFER_INPUT, RT_FORMAT_FLOAT, m_num_noise_vals);
                 m_context["noise_buffer"]->setBuffer(ray_gen_noise_buffer);
 
-                auto generator = std::minstd_rand((unsigned int)std::chrono::high_resolution_clock::now().time_since_epoch().count());
+                auto generator = std::minstd_rand(
+                    (unsigned int)std::chrono::high_resolution_clock::now().time_since_epoch().count());
                 float* ptr = (float*)ray_gen_noise_buffer->map();
                 for (int i = 0; i < (int)m_num_noise_vals; i++) {
                     ptr[i] = generator() / (float)generator.max();
@@ -350,7 +351,8 @@ void ChOptixEngine::cylinderVisualization(std::shared_ptr<ChCylinderShape> cylin
     ChVector<double> asset_pos = visual_asset->Pos;
     ChMatrix33<double> asset_rot_mat = visual_asset->Rot;
     float radius = (float)cylinder_shape->GetCylinderGeometry().rad;
-    float height = (float)(cylinder_shape->GetCylinderGeometry().p1 - cylinder_shape->GetCylinderGeometry().p2).Length();
+    float height =
+        (float)(cylinder_shape->GetCylinderGeometry().p1 - cylinder_shape->GetCylinderGeometry().p2).Length();
 
     // create the sphere geometry
     Geometry cylinder = GetOptixCylinderGeometry();  // m_context->createGeometry();
@@ -993,8 +995,7 @@ void ChOptixEngine::ConstructScene() {
                         std::cout << "Ignoring an asset that is set to invisible in otherphysicslist\n";
                     } else if (std::shared_ptr<ChBoxShape> box_shape = std::dynamic_pointer_cast<ChBoxShape>(asset)) {
                         // add box to somesort of data structure
-                        boxVisualization(box_shape, /* box_bounds,  box_intersect,*/ visual_asset, asset_group);
-                        std::cout << "other box stored" << std::endl;
+                        boxVisualization(box_shape, visual_asset, asset_group);
                         added_asset_to_root = true;
                     } else if (std::shared_ptr<ChCylinderShape> cylinder_shape =
                                    std::dynamic_pointer_cast<ChCylinderShape>(asset)) {

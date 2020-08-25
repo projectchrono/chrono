@@ -33,24 +33,18 @@ TEST(ChGPSSensor, gps_conversion) {
 
     // make sure every pair of coordinate-reference locations is handled by the conversion in an invertible way
     for (int i = 0; i < test_coords.size(); i++) {
-        ChVector<double> coord_0 = test_coords[i];
-        const ChVector<double> coord_0_const(coord_0);
+        ChVector<double> coord_copy(test_coords[i]);
+        const ChVector<double> coord_const(test_coords[i]);
         for (int j = 0; j < test_refs.size(); j++) {
-            ChVector<double> ref_0 = test_refs[j];
-            const ChVector<double> ref_0_const(ref_0);
+            ChVector<double> ref = test_refs[j];
 
-            Cartesian2GPS(coord_0, ref_0);
-            GPS2Cartesian(coord_0, ref_0);
+            Cartesian2GPS(coord_copy, ref);
+            GPS2Cartesian(coord_copy, ref);
 
             // make sure our conversions are inverses
-            ASSERT_LT(abs(coord_0.x() - coord_0_const.x()), GPS_TEST_EPSILLON);
-            ASSERT_LT(abs(coord_0.y() - coord_0_const.y()), GPS_TEST_EPSILLON);
-            ASSERT_LT(abs(coord_0.z() - coord_0_const.z()), GPS_TEST_EPSILLON);
-
-            // make sure our conversions never modify the reference location
-            ASSERT_LT(abs(ref_0.x() - ref_0_const.x()), GPS_TEST_EPSILLON);
-            ASSERT_LT(abs(ref_0.y() - ref_0_const.y()), GPS_TEST_EPSILLON);
-            ASSERT_LT(abs(ref_0.z() - ref_0_const.z()), GPS_TEST_EPSILLON);
+            ASSERT_LT(abs(coord_copy.x() - coord_const.x()), GPS_TEST_EPSILLON);
+            ASSERT_LT(abs(coord_copy.y() - coord_const.y()), GPS_TEST_EPSILLON);
+            ASSERT_LT(abs(coord_copy.z() - coord_const.z()), GPS_TEST_EPSILLON);
         }
     }
 }
