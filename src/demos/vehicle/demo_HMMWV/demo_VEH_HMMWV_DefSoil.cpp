@@ -62,27 +62,18 @@ double delta = 0.05;          // SCM grid spacing
 // Vehicle parameters
 // -----------------------------------------------------------------------------
 
-// Type of wheel/tire (controls both contact and visualization)
-enum WheelType { CYLINDRICAL, LUGGED };
-WheelType wheel_type = LUGGED;
+// Type of tire (controls both contact and visualization)
+enum class TireType { CYLINDRICAL, LUGGED };
+TireType tire_type = TireType::LUGGED;
 
-// Type of powertrain model (SHAFTS, SIMPLE)
-PowertrainModelType powertrain_model = PowertrainModelType::SHAFTS;
-
-// Drive type (FWD, RWD, or AWD)
-DrivelineType drive_type = DrivelineType::AWD;
-
-// Chassis visualization (MESH, PRIMITIVES, NONE)
-VisualizationType chassis_vis = VisualizationType::NONE;
+// Tire contact material properties
+float Y_t = 1.0e6f;
+float cr_t = 0.1f;
+float mu_t = 0.8f;
 
 // Initial vehicle position and orientation
 ChVector<> initLoc(-5, -2, 0.6);
 ChQuaternion<> initRot(1, 0, 0, 0);
-
-// Contact material properties
-float Y_t = 1.0e6f;
-float cr_t = 0.1f;
-float mu_t = 0.8f;
 
 // -----------------------------------------------------------------------------
 // Simulation parameters
@@ -189,31 +180,38 @@ int main(int argc, char* argv[]) {
     my_hmmwv.SetContactMethod(ChContactMethod::SMC);
     my_hmmwv.SetChassisFixed(false);
     my_hmmwv.SetInitPosition(ChCoordsys<>(initLoc, initRot));
-    my_hmmwv.SetPowertrainType(powertrain_model);
-    my_hmmwv.SetDriveType(drive_type);
-    my_hmmwv.SetTireType(TireModelType::RIGID);
+    my_hmmwv.SetPowertrainType(PowertrainModelType::SHAFTS);
+    my_hmmwv.SetDriveType(DrivelineType::AWD);
+    switch (tire_type) {
+        case TireType::CYLINDRICAL:
+            my_hmmwv.SetTireType(TireModelType::RIGID_MESH);
+            break;
+        case TireType::LUGGED:
+            my_hmmwv.SetTireType(TireModelType::RIGID);
+            break;
+    }
     my_hmmwv.Initialize();
 
-    VisualizationType wheel_vis = (wheel_type == CYLINDRICAL) ? VisualizationType::MESH : VisualizationType::NONE;
-    my_hmmwv.SetChassisVisualizationType(chassis_vis);
-    my_hmmwv.SetWheelVisualizationType(wheel_vis);
+    my_hmmwv.SetChassisVisualizationType(VisualizationType::NONE);
 
-    ChSystem* system = my_hmmwv.GetSystem();
-
-    // --------------------------------------------------------
-    // Set wheel contact material.
-    // If needed, modify wheel contact and visualization models
-    // --------------------------------------------------------
+    // -----------------------------------------------------------
+    // Set tire contact material, contact model, and visualization
+    // -----------------------------------------------------------
     auto wheel_material = chrono_types::make_shared<ChMaterialSurfaceSMC>();
     wheel_material->SetFriction(mu_t);
     wheel_material->SetYoungModulus(Y_t);
     wheel_material->SetRestitution(cr_t);
 
-    for (auto& axle : my_hmmwv.GetVehicle().GetAxles()) {
-        auto wheelBodyL = axle->m_wheels[0]->GetSpindle();
-        CreateLuggedGeometry(wheelBodyL, wheel_material);
-        auto wheelBodyR = axle->m_wheels[1]->GetSpindle();
-        CreateLuggedGeometry(wheelBodyR, wheel_material);
+    switch (tire_type) {
+        case TireType::CYLINDRICAL:
+            my_hmmwv.SetTireVisualizationType(VisualizationType::MESH);
+            break;
+        case TireType::LUGGED:
+            my_hmmwv.SetTireVisualizationType(VisualizationType::NONE);
+            for (auto& axle : my_hmmwv.GetVehicle().GetAxles()) {
+                CreateLuggedGeometry(axle->m_wheels[0]->GetSpindle(), wheel_material);
+                CreateLuggedGeometry(axle->m_wheels[1]->GetSpindle(), wheel_material);
+            }
     }
 
     // --------------------
@@ -225,6 +223,7 @@ int main(int argc, char* argv[]) {
     // ------------------
     // Create the terrain
     // ------------------
+    ChSystem* system = my_hmmwv.GetSystem();
 
     SCMDeformableTerrain terrain(system);
     terrain.SetSoilParameters(2e6,   // Bekker Kphi
@@ -286,7 +285,6 @@ int main(int argc, char* argv[]) {
     // ---------------
     // Simulation loop
     // ---------------
-
     std::cout << "Total vehicle mass: " << my_hmmwv.GetTotalMass() << std::endl;
 
     // Solver settings.
