@@ -557,6 +557,20 @@ std::vector<int> SCMDeformableSoil::GetMeshFaceIndices(const ChVector2<int>& loc
     return faces;
 }
 
+// Get the initial undeformed terrain height (relative to the SCM plane) at the specified grid vertex.
+double SCMDeformableSoil::GetInitHeight(const ChVector2<int>& loc) const {
+    switch (m_type) {
+        case PatchType::FLAT:
+            return 0;
+        case PatchType::HEIGHT_MAP:
+            assert(loc.x() >= -m_nx && loc.x() <= m_nx);
+            assert(loc.y() >= -m_ny && loc.y() <= m_ny);
+            return m_heights(loc.x() + m_nx, loc.y() + m_ny);
+        default:
+            return 0;
+    }
+}
+
 // Get the terrain height (relative to the SCM plane) at the specified grid vertex.
 double SCMDeformableSoil::GetHeight(const ChVector2<int>& loc) const {
     // First query the hash-map

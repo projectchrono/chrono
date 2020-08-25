@@ -310,7 +310,7 @@ class CH_VEHICLE_API SCMDeformableSoil : public ChLoadContainer {
             p_level_initial = init_level;
             p_hit_level = 1e9;
             p_sinkage_plastic = 0;
-            p_sinkage = 0;
+            p_sinkage = init_level - level;
             p_kshear = 0;
             p_sigma_yield = 0;
             p_tau = 0;
@@ -329,6 +329,9 @@ class CH_VEHICLE_API SCMDeformableSoil : public ChLoadContainer {
 
     // Get the terrain height below the specified location.
     double GetHeight(const ChVector<>& loc) const;
+
+    // Get the initial undeformed terrain height (relative to the SCM plane) at the specified grid vertex.
+    double GetInitHeight(const ChVector2<int>& loc) const;
 
     // Get the terrain height (relative to the SCM plane) at the specified grid vertex.
     double GetHeight(const ChVector2<int>& loc) const;
