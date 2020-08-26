@@ -30,6 +30,10 @@ SET(ChronoEngine_VSG_HEADERS
     core/ChApiVSG.h
     shapes/ChVSGShapeFactory.h
     shapes/ChVSGShapeFactory.cpp
+    shapes/sphere_vertices.h
+    shapes/sphere_normals.h
+    shapes/sphere_texcoords.h
+    shapes/sphere_indices.h
 )
 
 SOURCE_GROUP("" FILES
