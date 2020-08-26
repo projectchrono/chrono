@@ -215,15 +215,50 @@ TerrainForce SCMDeformableTerrain::GetContactForce(std::shared_ptr<ChBody> body)
     return frc;
 }
 
+// Return the number of rays cast at the last step.
+int SCMDeformableTerrain::GetNumRayCasts() const {
+    return m_ground->m_num_ray_casts;
+}
+
+// Return the number of ray hits at the last step.
+int SCMDeformableTerrain::GetNumRayHits() const {
+    return m_ground->m_num_ray_hits;
+}
+
+// Return the number of contact patches at the last step.
+int SCMDeformableTerrain::GetNumContactPatches() const {
+    return m_ground->m_num_contact_patches;
+}
+
+// Timer information
+double SCMDeformableTerrain::GetTimerMovingPatches() const {
+    return 1e3 * m_ground->m_timer_moving_patches();
+}
+double SCMDeformableTerrain::GetTimerRayCasting() const {
+    return 1e3 * m_ground->m_timer_ray_casting();
+}
+double SCMDeformableTerrain::GetTimerContactPatches() const {
+    return 1e3 * m_ground->m_timer_contact_patches();
+}
+double SCMDeformableTerrain::GetTimerContactForces() const {
+    return 1e3 * m_ground->m_timer_contact_forces();
+}
+double SCMDeformableTerrain::GetTimerBulldozing() const {
+    return 1e3 * m_ground->m_timer_bulldozing();
+}
+double SCMDeformableTerrain::GetTimerVisUpdate() const {
+    return 1e3 * m_ground->m_timer_visualization();
+}
+
 // Print timing and counter information for last step.
 void SCMDeformableTerrain::PrintStepStatistics(std::ostream& os) const {
-    os << " Timers:" << std::endl;
-    os << "   Moving patches:          " << m_ground->m_timer_moving_patches() << std::endl;
-    os << "   Ray casting:             " << m_ground->m_timer_ray_casting() << std::endl;
-    os << "   Contact patches:         " << m_ground->m_timer_contact_patches() << std::endl;
-    os << "   Contact forces:          " << m_ground->m_timer_contact_forces() << std::endl;
-    os << "   Bulldozing:              " << m_ground->m_timer_bulldozing() << std::endl;
-    os << "   Visualization:           " << m_ground->m_timer_visualization() << std::endl;
+    os << " Timers (ms):" << std::endl;
+    os << "   Moving patches:          " << 1e3 * m_ground->m_timer_moving_patches() << std::endl;
+    os << "   Ray casting:             " << 1e3 * m_ground->m_timer_ray_casting() << std::endl;
+    os << "   Contact patches:         " << 1e3 * m_ground->m_timer_contact_patches() << std::endl;
+    os << "   Contact forces:          " << 1e3 * m_ground->m_timer_contact_forces() << std::endl;
+    os << "   Bulldozing:              " << 1e3 * m_ground->m_timer_bulldozing() << std::endl;
+    os << "   Visualization:           " << 1e3 * m_ground->m_timer_visualization() << std::endl;
 
     os << " Counters:" << std::endl;
     os << "   Number ray casts:        " << m_ground->m_num_ray_casts << std::endl;

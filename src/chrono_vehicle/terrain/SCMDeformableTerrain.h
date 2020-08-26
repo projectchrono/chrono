@@ -225,6 +225,26 @@ class CH_VEHICLE_API SCMDeformableTerrain : public ChTerrain {
     /// Return the current cumulative contact force on the specified body (due to interaction with the SCM terrain).
     TerrainForce GetContactForce(std::shared_ptr<ChBody> body) const;
 
+    /// Return the number of rays cast at last step.
+    int GetNumRayCasts() const;
+    /// Return the number of ray hits at last step.
+    int GetNumRayHits() const;
+    /// Return the number of contact patches at last step.
+    int GetNumContactPatches() const;
+
+    /// Return time for updating moving patches at last step (ms).
+    double GetTimerMovingPatches() const;
+    /// Return time for ray casting at last step (ms).
+    double GetTimerRayCasting() const;
+    /// Return time for computing contact patches at last step (ms).
+    double GetTimerContactPatches() const;
+    /// Return time for computing contact forces at last step (ms).
+    double GetTimerContactForces() const;
+    /// Return time for computing bulldozing effects at last step (ms).
+    double GetTimerBulldozing() const;
+    /// Return time for visualization assets update at last step (ms).
+    double GetTimerVisUpdate() const;
+
     /// Print timing and counter information for last step.
     void PrintStepStatistics(std::ostream& os) const;
 
