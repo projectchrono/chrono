@@ -1,10 +1,10 @@
 #### For information about the pychrono.sensor module including reasons/motives leveraged in the interfacing of sensor+python, see the sensor_readme.md in src/chrono_python/
 
 # Chrono Sensor Module
-Latest Tested Commit:
+Current Tested Systems:
  - Arch Linux:
- - Ubuntu 20.04:
- - Windows 10:
+ - Ubuntu 20.04: GCC 9.3, CUDA 10.2
+ - Windows 10: VS 2019, CUDA 10.2
 
 ## Supported Sensors
  - RGB Mono Camera

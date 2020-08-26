@@ -75,9 +75,7 @@ FOREACH(PROGRAM ${DEMOS})
 
   # Visual Studio needs to have the debugger working directory set explicitly to the output directory
   # (specifically, so that the data directory is found when running demos in the debugger)
-  IF(${CMAKE_CXX_COMPILER_ID} STREQUAL MSVC)
-	set_property(TARGET ${PROGRAM} PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "$(OutputPath)")
-  ENDIF()
+  SET_PROPERTY(TARGET ${PROGRAM} PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:${PROGRAM}>")
 
   SET_TARGET_PROPERTIES(${PROGRAM}  PROPERTIES
     COMPILE_FLAGS "${CHRONO_COMPILE_FLAGS}"
