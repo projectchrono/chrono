@@ -471,8 +471,50 @@ macos:highsierra:test:
   dependencies: ["macos:highsierra:build"]
 
 
-
-
+macos:macos:deploy:
+  stage: deploy
+  needs: []
+  extends: .macos
+  script:
+    - echo "Build PyChrono and deploy via Anaconda..."
+# Remove build directory because anaconda doesn't want it
+#    - rm -rf build
+    - export CONDA_NPY=19
+    - export BUILD_OC=
+    # uncomment to re-install miniconda
+    #- wget https://repo.anaconda.com/miniconda/Miniconda3-latest-MacOSX-x86_64.sh -O ~/miniconda.sh
+    #- rm -r $HOME/miniconda
+    #- bash ~/miniconda.sh -b -p $HOME/miniconda
+    - export PATH=$HOME/miniconda/bin:$PATH
+    #- conda update --yes conda
+    #- conda install --yes pip
+    - conda install --yes -c intel jinja2
+    - conda config --set show_channel_urls true
+    - conda install conda-build anaconda-client conda-verify --yes
+    - conda config --add channels https://conda.anaconda.org/conda-forge
+    - conda config --add channels https://conda.anaconda.org/intel
+    #- conda install -c dlr-sc opencascade --yes
+    - conda install -c intel mkl-devel --yes
+    - ls $HOME/miniconda/lib/
+    - conda build purge-all
+    # this command is needed to get the git describe data
+    - git fetch --prune --unshallow
+    - clang --version
+    - mv -f ./contrib/packaging-python/conda/buildMacOS.sh ./contrib/packaging-python/conda/build.sh
+    - conda install -c conda-forge llvm-openmp --yes
+    - conda build ./contrib/packaging-python/conda --no-remove-work-dir --dirty --python=3.7
+    - anaconda -t $ANACONDA_TOKEN upload $HOME/miniconda/conda-bld/osx-64/pychrono*.bz2 -l develop --force
+    - conda build purge-all
+    - conda build ./contrib/packaging-python/conda --no-remove-work-dir --dirty --python=3.6
+    - anaconda -t $ANACONDA_TOKEN upload $HOME/miniconda/conda-bld/osx-64/pychrono*.bz2 -l develop --force
+  environment:
+    name: pychrono-macos
+    url: https://anaconda.org/projectchrono/pychrono
+  when: manual
+  artifacts:
+    expire_in: 60m
+    paths:
+      - $SRC_DIR/build/CMakeFiles/
 #-----------------#
 # FreeBSD Builder #
 #-----------------#

@@ -683,7 +683,7 @@ void ChIrrAppInterface::DrawAll() {
     str += " ms \n  CPU Collision time =";
     str += (int)(1000 * system->GetTimerCollision());
     str += " ms \n  CPU Solver time         =";
-    str += (int)(1000 * system->GetTimerSolver());
+    str += (int)(1000 * system->GetTimerLSsolve());
     str += " ms \n  CPU Update time      =";
     str += (int)(1000 * system->GetTimerUpdate());
     str += "\n\nN.of active bodies  : ";
