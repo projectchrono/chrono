@@ -1,31 +1,37 @@
 #version 450
 #extension GL_ARB_separate_shader_objects : enable
 
-layout (location = 0) in vec3 inPos;
-layout (location = 1) in vec3 inNormal;
-layout (location = 2) in vec3 inColor;
+layout(push_constant) uniform PushConstants {
+    mat4 projection;
+    mat4 modelview;
+} pc;
 
-layout (binding = 0) uniform UBO 
-{
-	mat4 projection;
-	mat4 model;
-} ubo;
 
-layout (location = 0) out vec3 outNormal;
-layout (location = 1) out vec3 outColor;
-layout (location = 2) out vec3 outViewVec;
-layout (location = 3) out vec3 outLightVec;
+layout(location = 0) in vec3 vertex_position;
+layout(location = 1) in vec3 vertex_normal;
+layout(location = 2) in vec3 vertex_color_ambient;
+layout(location = 3) in vec3 vertex_color_diffuse;
+layout(location = 4) in vec3 vertex_color_specular;
+layout(location = 5) in float vertex_shininess;
 
-void main() 
-{
-    vec4 lightPos = vec4(100,100,100,1);
-	outNormal = inNormal;
-	outColor = inColor;
-	gl_Position = ubo.projection * ubo.model * vec4(inPos.xyz, 1.0);
-	
-	vec4 pos = ubo.model * vec4(inPos, 1.0);
-	outNormal = mat3(ubo.model) * inNormal;
-	vec3 lPos = mat3(ubo.model) * lightPos.xyz;
-	outLightVec = lPos - pos.xyz;
-	outViewVec = -pos.xyz;		
+layout(location = 0) out vec3 color_ambient;
+layout(location = 1) out vec3 color_diffuse;
+layout(location = 2) out vec3 color_specular;
+layout(location = 3) out float shininess;
+layout(location = 4) out vec3 normal;
+layout(location = 5) out vec3 eye_vec;
+
+void main() {
+  mat4 modelview = pc.modelview;
+  mat4 mvp = pc.projection * modelview;
+  // mat3 normalmatrix = inverse(transpose(mat3(modelview)));;
+
+  gl_Position = mvp * vec4(vertex_position, 1.0);
+  normal = normalize(mat3(modelview) * vertex_normal);
+  eye_vec = vec3(modelview * vec4(vertex_position, 1.0));
+
+  color_ambient = vertex_color_ambient;
+  color_diffuse = vertex_color_diffuse;
+  color_specular = vertex_color_specular;
+  shininess = vertex_shininess;
 }

@@ -17,8 +17,8 @@ int main(int argc, char* argv[]) {
     auto bin = chrono_types::make_shared<ChBody>();
     utils::AddSphereGeometry(bin.get(), mat, 1, ChVector<>(0, 0, 0));
     utils::AddEllipsoidGeometry(bin.get(), mat, ChVector<>(.5, 1, 1), ChVector<>(3, 0, 0));
-    utils::AddCylinderGeometry(bin.get(), mat, 1, 1, ChVector<>(3.5, 0, 0));
-    utils::AddBoxGeometry(bin.get(), mat, ChVector<>(1, 1, 1), ChVector<>(6, 0, 0));
+    utils::AddCylinderGeometry(bin.get(), mat, 1, 1, ChVector<>(6.0, 0, 0));
+    utils::AddBoxGeometry(bin.get(), mat, ChVector<>(1, 1, 1), ChVector<>(9.0, 0, 0));
     sys.AddBody(bin);
 
     ChVSGApp app;
