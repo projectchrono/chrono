@@ -33,6 +33,11 @@ using namespace irr;
 bool output = false;
 const std::string out_dir = GetChronoOutputPath() + "SCM_DEF_SOIL";
 
+// Type of tire (controls both contact and visualization)
+enum class TireType { CYLINDRICAL, LUGGED };
+TireType tire_type = TireType::LUGGED;
+
+// SCM grid spacing
 double mesh_resolution = 0.04;
 
 // Enable/disable bulldozing effects
@@ -111,7 +116,7 @@ int main(int argc, char* argv[]) {
     utils::CSV_writer csv(" ");
 
     //
-    // CREATE A RIGID BODY WITH A MESH
+    // Create a rigid body with a mesh or a cylinder collision shape
     //
 
     std::shared_ptr<ChBody> mrigidbody(new ChBody);
@@ -120,17 +125,35 @@ int main(int argc, char* argv[]) {
     mrigidbody->SetInertiaXX(ChVector<>(20, 20, 20));
     mrigidbody->SetPos(tire_center + ChVector<>(0, 0.3, 0));
 
-    auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
-    trimesh->LoadWavefrontMesh(GetChronoDataFile("tractor_wheel.obj"));
-
-    std::shared_ptr<ChTriangleMeshShape> mrigidmesh(new ChTriangleMeshShape);
-    mrigidmesh->SetMesh(trimesh);
-    mrigidbody->AddAsset(mrigidmesh);
-
     auto material = chrono_types::make_shared<ChMaterialSurfaceSMC>();
-
     mrigidbody->GetCollisionModel()->ClearModel();
-    mrigidbody->GetCollisionModel()->AddTriangleMesh(material, trimesh, false, false, VNULL, ChMatrix33<>(1), 0.01);
+    switch (tire_type) {
+        case TireType::LUGGED: {
+            auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
+            trimesh->LoadWavefrontMesh(GetChronoDataFile("tractor_wheel.obj"));
+
+            std::shared_ptr<ChTriangleMeshShape> mrigidmesh(new ChTriangleMeshShape);
+            mrigidmesh->SetMesh(trimesh);
+            mrigidbody->AddAsset(mrigidmesh);
+
+            mrigidbody->GetCollisionModel()->AddTriangleMesh(material, trimesh, false, false, VNULL, ChMatrix33<>(1),
+                                                             0.01);
+            break;
+        }
+        case TireType::CYLINDRICAL: {
+            double radius = 0.5;
+            double width = 0.4;
+            mrigidbody->GetCollisionModel()->AddCylinder(material, radius, radius, width / 2, ChVector<>(0), Q_from_AngZ(CH_C_PI_2));
+            
+            auto cyl_shape = chrono_types::make_shared<ChCylinderShape>();
+            cyl_shape->GetCylinderGeometry().rad = radius;
+            cyl_shape->GetCylinderGeometry().p1 = ChVector<>(+width / 2, 0, 0);
+            cyl_shape->GetCylinderGeometry().p2 = ChVector<>(-width / 2, 0, 0);
+            mrigidbody->AddAsset(cyl_shape);
+
+            break;
+        }
+    }
     mrigidbody->GetCollisionModel()->BuildModel();
     mrigidbody->SetCollide(true);
 
