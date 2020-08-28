@@ -20,6 +20,7 @@
 #include <cstdio>
 #include <cmath>
 #include <queue>
+#include <unordered_set>
 #include <limits>
 
 #include "chrono/physics/ChMaterialSurfaceNSC.h"
@@ -192,14 +193,14 @@ void SCMDeformableTerrain::Initialize(const std::string& heightmap_file,
     m_ground->Initialize(heightmap_file, sizeX, sizeY, hMin, hMax, delta);
 }
 
-// Get the grid vertices and their heights that were modified over last step.
-std::vector<SCMDeformableTerrain::VertexLevel> SCMDeformableTerrain::GetModifiedVertices() const {
-    return m_ground->GetModifiedVertices();
+// Get the heights of all grid nodes that were modified over last step.
+std::vector<SCMDeformableTerrain::NodeLevel> SCMDeformableTerrain::GetModifiedNodes() const {
+    return m_ground->GetModifiedNodes();
 }
 
-// Modify the level of vertices in the underlying grid map from the given list.
-void SCMDeformableTerrain::SetModifiedVertices(const std::vector<VertexLevel>& vertices) {
-    m_ground->SetModifiedVertices(vertices);
+// Modify the level of grid nodes from the given list.
+void SCMDeformableTerrain::SetModifiedNodes(const std::vector<NodeLevel>& nodes) {
+    m_ground->SetModifiedNodes(nodes);
 }
 
 // Return the current cumulative contact force on the specified body (due to interaction with the SCM terrain).
@@ -764,6 +765,31 @@ static const std::vector<ChVector2<int>> neighbors4{
 
 // Reset the list of forces, and fills it with forces from a soil contact model.
 void SCMDeformableSoil::ComputeInternalForces() {
+    // Initialize list of modified visualization mesh vertices (use any externally modified vertices)
+    std::vector<int> modified_vertices = m_external_modified_vertices;
+    m_external_modified_vertices.clear();
+
+    // Reset quantities at grid nodes modified over previous step
+    // (required for bulldozing effects and for proper visualization coloring)
+    for (const auto& ij : m_modified_nodes) {
+        auto& nr = m_grid_map.at(ij);
+        nr.p_sigma = 0;
+        nr.p_sinkage_elastic = 0;
+        nr.p_step_plastic_flow = 0;
+        nr.p_erosion = false;
+        nr.p_hit_level = 1e9;
+
+        // Update visualization (only color changes relevant here)
+        if (m_trimesh_shape) {
+            int iv = GetMeshVertexIndex(ij);          // mesh vertex index
+            UpdateMeshVertexCoordinates(ij, iv, nr);  // update vertex coordinates and color
+            modified_vertices.push_back(iv);
+        }
+    }
+
+    m_modified_nodes.clear();
+
+    // Reset timers
     m_timer_moving_patches.reset();
     m_timer_ray_casting.reset();
     m_timer_contact_patches.reset();
@@ -778,17 +804,13 @@ void SCMDeformableSoil::ComputeInternalForces() {
     // Express SCM plane normal in absolute frame
     ChVector<> N = m_plane.TransformDirectionLocalToParent(ChVector<>(0, 0, 1));
 
-    // -------------------------
-    // Perform ray casting tests
-    // -------------------------
-
-    m_num_ray_casts = 0;
-    m_num_ray_hits = 0;
-    m_hits.clear();
+    // ---------------------
+    // Update moving patches
+    // ---------------------
 
     m_timer_moving_patches.start();
 
-    // Update moving patch information
+    // Update moving patch information (find range of grid indices) 
     if (m_moving_patch) {
         for (auto& p : m_patches)
             UpdateMovingPatch(p, N);
@@ -798,6 +820,23 @@ void SCMDeformableSoil::ComputeInternalForces() {
     }
 
     m_timer_moving_patches.stop();
+
+    // -------------------------
+    // Perform ray casting tests
+    // -------------------------
+
+    // Information of vertices with ray-cast hits
+    struct HitRecord {
+        ChContactable* contactable;  // pointer to hit object
+        ChVector<> abs_point;        // hit point, expressed in global frame
+        int patch_id;                // index of associated patch id
+    };
+
+    // Hash-map for vertices with ray-cast hits
+    std::unordered_map<ChVector2<int>, HitRecord, CoordHash> hits;
+
+    m_num_ray_casts = 0;
+    m_num_ray_hits = 0;
 
     m_timer_ray_casting.start();
 
@@ -828,14 +867,14 @@ void SCMDeformableSoil::ComputeInternalForces() {
                 m_num_ray_casts++;
 
                 if (mrayhit_result.hit) {
-                    // If this point has never been hit before, initialize it
+                    // If this is the first hit from this node, initialize the node record
                     if (m_grid_map.find(ij) == m_grid_map.end()) {
-                        m_grid_map.insert(std::make_pair(ij, VertexRecord(z, z)));
+                        m_grid_map.insert(std::make_pair(ij, NodeRecord(z, z)));
                     }
 
                     // Add to our map of hits to process
                     HitRecord record = {mrayhit_result.hitModel->GetContactable(), mrayhit_result.abs_hitPoint, -1};
-                    m_hits.insert(std::make_pair(ij, record));
+                    hits.insert(std::make_pair(ij, record));
                     m_num_ray_hits++;
                 }
             }
@@ -852,50 +891,55 @@ void SCMDeformableSoil::ComputeInternalForces() {
 
     // Collect hit vertices assigned to each contact patch.
     struct ContactPatchRecord {
-        std::vector<ChVector2<>> points;  // points in contact patch (projected on reference plane)
-        double area;                      // contact patch area
-        double perimeter;                 // contact patch perimeter
-        double oob;                       // approximate value of 1/b
+        std::vector<ChVector2<>> points;                         // points in contact patch (in reference plane)
+        std::vector<ChVector2<int>> nodes;                       // grid nodes in the contact patch
+        std::unordered_set<ChVector2<int>, CoordHash> boundary;  // boundary of effective contact patch
+        double area;                                             // contact patch area
+        double perimeter;                                        // contact patch perimeter
+        double oob;                                              // approximate value of 1/b
     };
     std::vector<ContactPatchRecord> contact_patches;
 
-    // Loop through all hit vertices and determine to which contact patch they belong.
-    // Use a queue-based flood-filling algorithm based on the neighbors of each hit vertex.
+    // Loop through all hit nodes and determine to which contact patch they belong.
+    // Use a queue-based flood-filling algorithm based on the neighbors of each hit node.
     m_num_contact_patches = 0;
-    for (auto& h : m_hits) {
+    for (auto& h : hits) {
         if (h.second.patch_id != -1)
             continue;
 
         ChVector2<int> ij = h.first;
 
-        // Make a new contact patch and add this hit vertex to it
+        // Make a new contact patch and add this hit node to it
         h.second.patch_id = m_num_contact_patches++;
         ContactPatchRecord patch;
+        patch.nodes.push_back(ij);
         patch.points.push_back(ChVector2<>(m_delta * ij.x(), m_delta * ij.y()));
 
-        // Add current vertex to the work queue
+        // Add current node to the work queue
         std::queue<ChVector2<int>> todo;
         todo.push(ij);
 
         while (!todo.empty()) {
-            auto crt = m_hits.find(todo.front());  // Current hit vertex is first element in queue
-            todo.pop();                            // Remove first element from queue
+            auto crt = hits.find(todo.front());  // Current hit node is first element in queue
+            todo.pop();                          // Remove first element from queue
 
             ChVector2<int> crt_ij = crt->first;
             int crt_patch = crt->second.patch_id;
 
-            // Loop through the neighbors of the current hit vertex
+            // Loop through the neighbors of the current hit node
             for (int k = 0; k < 4; k++) {
                 ChVector2<int> nbr_ij = crt_ij + neighbors4[k];
-                // If neighbor is not a hit vertex, move on
-                auto nbr = m_hits.find(nbr_ij);
-                if (nbr == m_hits.end())
+                // If neighbor is not a hit node, move on
+                auto nbr = hits.find(nbr_ij);
+                if (nbr == hits.end())
                     continue;
+                // If neighbor already assigned to a contact patch, move on
                 if (nbr->second.patch_id != -1)
                     continue;
                 // Assign neighbor to the same contact patch
                 nbr->second.patch_id = crt_patch;
-                // Add neighbor to same contact patch and to the queue
+                // Add neighbor point to patch lists
+                patch.nodes.push_back(nbr_ij);
                 patch.points.push_back(ChVector2<>(m_delta * nbr_ij.x(), m_delta * nbr_ij.y()));
                 // Add neighbor to end of work queue
                 todo.push(nbr_ij);
@@ -935,20 +979,20 @@ void SCMDeformableSoil::ComputeInternalForces() {
     double elastic_K = m_elastic_K;
     double damping_R = m_damping_R;
 
-    // Process only hit vertices
-    for (auto& h : m_hits) {
+    // Process only hit nodes
+    for (auto& h : hits) {
         ChVector2<> ij = h.first;
 
-        auto& v = m_grid_map.at(ij);
+        auto& nr = m_grid_map.at(ij);
 
         ChContactable* contactable = h.second.contactable;
-        const ChVector<>& abs_point = h.second.abs_point;
+        const ChVector<>& hit_point_abs = h.second.abs_point;
         int patch_id = h.second.patch_id;
 
-        auto loc_point = m_plane.TransformPointParentToLocal(abs_point);
+        auto hit_point_loc = m_plane.TransformPointParentToLocal(hit_point_abs);
 
         if (m_soil_fun) {
-            m_soil_fun->Set(loc_point.x(), loc_point.y());
+            m_soil_fun->Set(hit_point_loc.x(), hit_point_loc.y());
 
             Bekker_Kphi = m_soil_fun->m_Bekker_Kphi;
             Bekker_Kc = m_soil_fun->m_Bekker_Kc;
@@ -960,111 +1004,107 @@ void SCMDeformableSoil::ComputeInternalForces() {
             damping_R = m_soil_fun->m_damping_R;
         }
 
-        v.p_hit_level = loc_point.z();
-        double p_hit_offset = -v.p_hit_level + v.p_level_initial;
+        nr.p_hit_level = hit_point_loc.z();
+        double p_hit_offset = -nr.p_hit_level + nr.p_level_initial;
 
-        ChVector<> vertex =
-            m_plane.TransformPointLocalToParent(ChVector<>(ij.x() * m_delta, ij.y() * m_delta, v.p_level));
+        // Elastic try:
+        nr.p_sigma = elastic_K * (p_hit_offset - nr.p_sinkage_plastic);
 
-        v.p_speeds = contactable->GetContactPointSpeed(vertex);
+        // Handle unilaterality
+        if (nr.p_sigma < 0) {
+            nr.p_sigma = 0;
+            continue;
+        }
 
-        ChVector<> T = -v.p_speeds;
+        // Mark current node as modified
+        m_modified_nodes.push_back(ij);
+
+        // Calculate velocity at touched grid node
+        ChVector<> point_abs =
+            m_plane.TransformPointLocalToParent(ChVector<>(ij.x() * m_delta, ij.y() * m_delta, nr.p_level));
+
+        ChVector<> speed = contactable->GetContactPointSpeed(point_abs);
+
+        // Calculate tangent direction
+        ChVector<> T = -speed;
         T = m_plane.TransformDirectionParentToLocal(T);
         double Vn = -T.z();
         T.z() = 0;
         T = m_plane.TransformDirectionLocalToParent(T);
         T.Normalize();
 
-        // Compute i-th force:
-        ChVector<> Fn;
-        ChVector<> Ft;
+        nr.p_sinkage = p_hit_offset;
+        nr.p_level = nr.p_hit_level;
 
-        // Elastic try:
-        v.p_sigma = elastic_K * (p_hit_offset - v.p_sinkage_plastic);
+        // Accumulate shear for Janosi-Hanamoto
+        nr.p_kshear += Vdot(speed, -T) * GetSystem()->GetStep();
 
-        // Handle unilaterality:
-        if (v.p_sigma < 0) {
-            v.p_sigma = 0;
-        } else {
-            // add compressive speed-proportional damping
-            ////if (Vn < 0) {
-            ////    v.p_sigma += -Vn * this->damping_R;
-            ////}
+        // Plastic correction:
+        if (nr.p_sigma > nr.p_sigma_yield) {
+            // Bekker formula
+            nr.p_sigma = (contact_patches[patch_id].oob * Bekker_Kc + Bekker_Kphi) * pow(nr.p_sinkage, Bekker_n);
+            nr.p_sigma_yield = nr.p_sigma;
+            double old_sinkage_plastic = nr.p_sinkage_plastic;
+            nr.p_sinkage_plastic = nr.p_sinkage - nr.p_sigma / elastic_K;
+            nr.p_step_plastic_flow = (nr.p_sinkage_plastic - old_sinkage_plastic) / GetSystem()->GetStep();
+        }
 
-            v.p_sinkage = p_hit_offset;
-            v.p_level = v.p_hit_level;
+        nr.p_sinkage_elastic = nr.p_sinkage - nr.p_sinkage_plastic;
 
-            // Accumulate shear for Janosi-Hanamoto
-            v.p_kshear += Vdot(v.p_speeds, -T) * GetSystem()->GetStep();
+        // add compressive speed-proportional damping (not clamped by pressure yield)
+        ////if (Vn < 0) {
+        nr.p_sigma += -Vn * damping_R;
+        ////}
 
-            // Plastic correction:
-            if (v.p_sigma > v.p_sigma_yield) {
-                // Bekker formula
-                v.p_sigma = (contact_patches[patch_id].oob * Bekker_Kc + Bekker_Kphi) * pow(v.p_sinkage, Bekker_n);
-                v.p_sigma_yield = v.p_sigma;
-                double old_sinkage_plastic = v.p_sinkage_plastic;
-                v.p_sinkage_plastic = v.p_sinkage - v.p_sigma / elastic_K;
-                v.p_step_plastic_flow = (v.p_sinkage_plastic - old_sinkage_plastic) / GetSystem()->GetStep();
+        // Mohr-Coulomb
+        double tau_max = Mohr_cohesion + nr.p_sigma * tan(Mohr_friction * CH_C_DEG_TO_RAD);
+
+        // Janosi-Hanamoto
+        nr.p_tau = tau_max * (1.0 - exp(-(nr.p_kshear / Janosi_shear)));
+
+        ChVector<> Fn = N * m_area * nr.p_sigma;
+        ChVector<> Ft = T * m_area * nr.p_tau;
+
+        if (ChBody* rigidbody = dynamic_cast<ChBody*>(contactable)) {
+            // [](){} Trick: no deletion for this shared ptr, since 'rigidbody' was not a new ChBody()
+            // object, but an already used pointer because mrayhit_result.hitModel->GetPhysicsItem()
+            // cannot return it as shared_ptr, as needed by the ChLoadBodyForce:
+            std::shared_ptr<ChBody> srigidbody(rigidbody, [](ChBody*) {});
+            std::shared_ptr<ChLoadBodyForce> mload(new ChLoadBodyForce(srigidbody, Fn + Ft, false, point_abs, false));
+            this->Add(mload);
+
+            // Accumulate contact force for this rigid body.
+            // The resultant force is assumed to be applied at the body COM.
+            // All components of the generalized terrain force are expressed in the global frame.
+            auto itr = m_contact_forces.find(contactable);
+            if (itr == m_contact_forces.end()) {
+                // Create new entry and initialize generalized force.
+                ChVector<> force = Fn + Ft;
+                TerrainForce frc;
+                frc.point = srigidbody->GetPos();
+                frc.force = force;
+                frc.moment = Vcross(Vsub(point_abs, srigidbody->GetPos()), force);
+                m_contact_forces.insert(std::make_pair(contactable, frc));
+            } else {
+                // Update generalized force.
+                ChVector<> force = Fn + Ft;
+                itr->second.force += force;
+                itr->second.moment += Vcross(Vsub(point_abs, srigidbody->GetPos()), force);
             }
+        } else if (ChLoadableUV* surf = dynamic_cast<ChLoadableUV*>(contactable)) {
+            // [](){} Trick: no deletion for this shared ptr
+            std::shared_ptr<ChLoadableUV> ssurf(surf, [](ChLoadableUV*) {});
+            std::shared_ptr<ChLoad<ChLoaderForceOnSurface>> mload(new ChLoad<ChLoaderForceOnSurface>(ssurf));
+            mload->loader.SetForce(Fn + Ft);
+            mload->loader.SetApplication(0.5, 0.5);  //***TODO*** set UV, now just in middle
+            this->Add(mload);
 
-            v.p_sinkage_elastic = v.p_sinkage - v.p_sinkage_plastic;
+            // Accumulate contact forces for this surface.
+            //// TODO
+        }
 
-            // add compressive speed-proportional damping (not clamped by pressure yield)
-            ////if (Vn < 0) {
-            v.p_sigma += -Vn * damping_R;
-            ////}
-
-            // Mohr-Coulomb
-            double tau_max = Mohr_cohesion + v.p_sigma * tan(Mohr_friction * CH_C_DEG_TO_RAD);
-
-            // Janosi-Hanamoto
-            v.p_tau = tau_max * (1.0 - exp(-(v.p_kshear / Janosi_shear)));
-
-            Fn = N * m_area * v.p_sigma;
-            Ft = T * m_area * v.p_tau;
-
-            if (ChBody* rigidbody = dynamic_cast<ChBody*>(contactable)) {
-                // [](){} Trick: no deletion for this shared ptr, since 'rigidbody' was not a new ChBody()
-                // object, but an already used pointer because mrayhit_result.hitModel->GetPhysicsItem()
-                // cannot return it as shared_ptr, as needed by the ChLoadBodyForce:
-                std::shared_ptr<ChBody> srigidbody(rigidbody, [](ChBody*) {});
-                std::shared_ptr<ChLoadBodyForce> mload(new ChLoadBodyForce(srigidbody, Fn + Ft, false, vertex, false));
-                this->Add(mload);
-
-                // Accumulate contact force for this rigid body.
-                // The resultant force is assumed to be applied at the body COM.
-                // All components of the generalized terrain force are expressed in the global frame.
-                auto itr = m_contact_forces.find(contactable);
-                if (itr == m_contact_forces.end()) {
-                    // Create new entry and initialize generalized force.
-                    ChVector<> force = Fn + Ft;
-                    TerrainForce frc;
-                    frc.point = srigidbody->GetPos();
-                    frc.force = force;
-                    frc.moment = Vcross(Vsub(vertex, srigidbody->GetPos()), force);
-                    m_contact_forces.insert(std::make_pair(contactable, frc));
-                } else {
-                    // Update generalized force.
-                    ChVector<> force = Fn + Ft;
-                    itr->second.force += force;
-                    itr->second.moment += Vcross(Vsub(vertex, srigidbody->GetPos()), force);
-                }
-            } else if (ChLoadableUV* surf = dynamic_cast<ChLoadableUV*>(contactable)) {
-                // [](){} Trick: no deletion for this shared ptr
-                std::shared_ptr<ChLoadableUV> ssurf(surf, [](ChLoadableUV*) {});
-                std::shared_ptr<ChLoad<ChLoaderForceOnSurface>> mload(new ChLoad<ChLoaderForceOnSurface>(ssurf));
-                mload->loader.SetForce(Fn + Ft);
-                mload->loader.SetApplication(0.5, 0.5);  //***TODO*** set UV, now just in middle
-                this->Add(mload);
-
-                // Accumulate contact forces for this surface.
-                //// TODO
-            }
-
-            // Update grid vertex height (in local SCM frame)
-            v.p_level = v.p_level_initial - v.p_sinkage;
-
-        }  // end positive contact force
+        // Update grid node height (in local SCM frame)
+        nr.p_level = nr.p_level_initial - nr.p_sinkage;
 
     }  // end loop on ray hits
 
@@ -1089,39 +1129,32 @@ void SCMDeformableSoil::ComputeInternalForces() {
     m_timer_visualization.start();
 
     if (m_trimesh_shape) {
-        // Indices of modified vertices (initialize with any externally modified)
-        std::vector<int> modified_vertices = m_external_modified_vertices;
-
-        // Loop over list of hits and adjust corresponding mesh vertices
-        for (const auto& h : m_hits) {
-            auto ij = h.first;                       // grid location
-            auto v = m_grid_map.at(ij);              // grid vertex record
-            int iv = GetMeshVertexIndex(ij);         // mesh vertex index
-            UpdateMeshVertexCoordinates(ij, iv, v);  // update vertex coordinates and color
+        // Loop over list of modified nodes and adjust corresponding mesh vertices
+        for (const auto& ij : m_modified_nodes) {
+            auto nr = m_grid_map.at(ij);              // grid node record
+            int iv = GetMeshVertexIndex(ij);          // mesh vertex index
+            UpdateMeshVertexCoordinates(ij, iv, nr);  // update vertex coordinates and color
             modified_vertices.push_back(iv);
         }
 
         // Update the visualization normals for modified vertices
         if (!m_trimesh_shape->IsWireframe()) {
-            for (const auto& h : m_hits) {
-                auto ij = h.first;                // grid location
+            for (const auto& ij : m_modified_nodes) {
                 int iv = GetMeshVertexIndex(ij);  // mesh vertex index
                 UpdateMeshVertexNormal(ij, iv);   // update vertex normal
             }
         }
 
         m_trimesh_shape->SetModifiedVertices(modified_vertices);
-        m_external_modified_vertices.clear();
     }
 
     m_timer_visualization.stop();
 }
 
 // Update vertex position and color in visualization mesh
-void SCMDeformableSoil::UpdateMeshVertexCoordinates(const ChVector2<int> ij, int iv, const VertexRecord& v) {
+void SCMDeformableSoil::UpdateMeshVertexCoordinates(const ChVector2<int> ij, int iv, const NodeRecord& v) {
     auto& trimesh = *m_trimesh_shape->GetMesh();
     std::vector<ChVector<>>& vertices = trimesh.getCoordsVertices();
-    std::vector<ChVector<>>& normals = trimesh.getCoordsNormals();
     std::vector<ChVector<float>>& colors = trimesh.getCoordsColors();
 
     // Update visualization mesh vertex position
@@ -1203,38 +1236,38 @@ void SCMDeformableSoil::UpdateMeshVertexNormal(const ChVector2<int> ij, int iv) 
     normals[iv] /= (double)faces.size();
 }
 
-// Get the grid vertices and their heights that were modified over last step.
-std::vector<SCMDeformableTerrain::VertexLevel> SCMDeformableSoil::GetModifiedVertices() const {
-    std::vector<SCMDeformableTerrain::VertexLevel> vertices;
-    for (const auto& h : m_hits) {
-        auto p = m_grid_map.find(h.first);
-        assert(p != m_grid_map.end());
-        vertices.push_back(std::make_pair(h.first, p->second.p_level));
+// Get the heights of all grid nodes that were modified over last step.
+std::vector<SCMDeformableTerrain::NodeLevel> SCMDeformableSoil::GetModifiedNodes() const {
+    std::vector<SCMDeformableTerrain::NodeLevel> vertices;
+    for (const auto& ij : m_modified_nodes) {
+        auto rec = m_grid_map.find(ij);
+        assert(rec != m_grid_map.end());
+        vertices.push_back(std::make_pair(ij, rec->second.p_level));
     }
     return vertices;
 }
 
-// Modify the level of vertices in the underlying grid map from the given list.
-// NOTE: We set only the level of the specified vertices and none of the other soil properties.
-//       As such, some plot types may be incorrect at these vertices.
-void SCMDeformableSoil::SetModifiedVertices(const std::vector<SCMDeformableTerrain::VertexLevel>& vertices) {
-    for (const auto& v : vertices) {
+// Modify the level of grid nodes from the given list.
+// NOTE: We set only the level of the specified nodes and none of the other soil properties.
+//       As such, some plot types may be incorrect at these nodes.
+void SCMDeformableSoil::SetModifiedNodes(const std::vector<SCMDeformableTerrain::NodeLevel>& nodes) {
+    for (const auto& n : nodes) {
         // Modify existing entry in grid map or insert new one
-        m_grid_map[v.first] = SCMDeformableSoil::VertexRecord(v.second, v.second);
+        m_grid_map[n.first] = SCMDeformableSoil::NodeRecord(n.second, n.second);
     }
 
     // Update visualization
     if (m_trimesh_shape) {
-        for (const auto& v : vertices) {
-            auto ij = v.first;                        // grid location
-            auto vr = m_grid_map.at(ij);              // grid vertex record
+        for (const auto& n : nodes) {
+            auto ij = n.first;                        // grid location
+            auto nr = m_grid_map.at(ij);              // grid node record
             int iv = GetMeshVertexIndex(ij);          // mesh vertex index
-            UpdateMeshVertexCoordinates(ij, iv, vr);  // update vertex coordinates and color
+            UpdateMeshVertexCoordinates(ij, iv, nr);  // update vertex coordinates and color
             m_external_modified_vertices.push_back(iv);
         }
         if (!m_trimesh_shape->IsWireframe()) {
-            for (const auto& v : vertices) {
-                auto ij = v.first;                // grid location
+            for (const auto& n : nodes) {
+                auto ij = n.first;                // grid location
                 int iv = GetMeshVertexIndex(ij);  // mesh vertex index
                 UpdateMeshVertexNormal(ij, iv);   // update vertex normal
             }

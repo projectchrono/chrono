@@ -213,14 +213,14 @@ class CH_VEHICLE_API SCMDeformableTerrain : public ChTerrain {
                     double delta                        ///< [in] grid spacing (may be slightly decreased)
     );
 
-    /// Vertex height level at a given grid location.
-    typedef std::pair<ChVector2<int>, double> VertexLevel;
+    /// Node height level at a given grid location.
+    typedef std::pair<ChVector2<int>, double> NodeLevel;
 
-    /// Get the grid vertices and their heights that were modified over last step.
-    std::vector<VertexLevel> GetModifiedVertices() const;
+    /// Get the heights of all grid nodes that were modified over last step.
+    std::vector<NodeLevel> GetModifiedNodes() const;
 
-    /// Modify the level of vertices in the underlying grid map from the given list.
-    void SetModifiedVertices(const std::vector<VertexLevel>& vertices);
+    /// Modify the level of grid nodes from the given list.
+    void SetModifiedNodes(const std::vector<NodeLevel>& nodes);
 
     /// Return the current cumulative contact force on the specified body (due to interaction with the SCM terrain).
     TerrainForce GetContactForce(std::shared_ptr<ChBody> body) const;
@@ -249,7 +249,7 @@ class CH_VEHICLE_API SCMDeformableTerrain : public ChTerrain {
     void PrintStepStatistics(std::ostream& os) const;
 
   private:
-    std::shared_ptr<SCMDeformableSoil> m_ground;  ///< undelrying load container for contact force generation
+    std::shared_ptr<SCMDeformableSoil> m_ground;  ///< underlying load container for contact force generation
 };
 
 /// This class provides the underlying implementation of the Soil Contact Model.
@@ -295,15 +295,8 @@ class CH_VEHICLE_API SCMDeformableSoil : public ChLoadContainer {
         ChVector<> m_ooN;                // current inverse of SCM normal in body frame
     };
 
-    // Information of vertices with ray-cast hits
-    struct HitRecord {
-        ChContactable* contactable;  // pointer to hit object
-        ChVector<> abs_point;        // hit point, expressed in global frame
-        int patch_id;                // index of associated patch id
-    };
-
-    // Information at contacted vertex
-    struct VertexRecord {
+    // Information at contacted node
+    struct NodeRecord {
         double p_sigma;
         double p_sinkage_elastic;
         double p_step_plastic_flow;
@@ -311,16 +304,16 @@ class CH_VEHICLE_API SCMDeformableSoil : public ChLoadContainer {
         double p_level;
         double p_hit_level;
         double p_level_initial;
-        ChVector<> p_speeds;
         double p_sinkage_plastic;
         double p_sinkage;
         double p_kshear;
         double p_sigma_yield;
         double p_tau;
+        double p_massremainder;
 
-        VertexRecord() : VertexRecord(0, 0) {}
+        NodeRecord() : NodeRecord(0, 0) {}
 
-        VertexRecord(double init_level, double level) {
+        NodeRecord(double init_level, double level) {
             p_sigma = 0;
             p_sinkage_elastic = 0;
             p_sinkage_plastic = 0;
@@ -334,6 +327,7 @@ class CH_VEHICLE_API SCMDeformableSoil : public ChLoadContainer {
             p_kshear = 0;
             p_sigma_yield = 0;
             p_tau = 0;
+            p_massremainder = 0;
         }
     };
 
@@ -350,13 +344,13 @@ class CH_VEHICLE_API SCMDeformableSoil : public ChLoadContainer {
     // Get the terrain height below the specified location.
     double GetHeight(const ChVector<>& loc) const;
 
-    // Get the initial undeformed terrain height (relative to the SCM plane) at the specified grid vertex.
+    // Get the initial undeformed terrain height (relative to the SCM plane) at the specified grid node.
     double GetInitHeight(const ChVector2<int>& loc) const;
 
-    // Get the terrain height (relative to the SCM plane) at the specified grid vertex.
+    // Get the terrain height (relative to the SCM plane) at the specified grid node.
     double GetHeight(const ChVector2<int>& loc) const;
 
-    // Get index of trimesh vertex corresponding to the specified grid vertex.
+    // Get index of trimesh vertex corresponding to the specified grid node.
     int GetMeshVertexIndex(const ChVector2<int>& loc);
 
     // Get indices of trimesh faces incident to the specified grid vertex.
@@ -365,13 +359,12 @@ class CH_VEHICLE_API SCMDeformableSoil : public ChLoadContainer {
     // Complete setup before first simulation step.
     virtual void SetupInitial() override;
 
-    // Updates the forces and the geometry, at the beginning of each timestep
+    // Update the forces and the geometry, at the beginning of each timestep.
     virtual void Setup() override {
         ComputeInternalForces();
         ChLoadContainer::Update(ChTime, true);
     }
 
-    // Updates the forces and the geometry
     virtual void Update(double mytime, bool update_assets = true) override {
         // Note!!! we cannot call ComputeInternalForces here, because Update() could
         // be called multiple times per timestep and not necessarily in time-increasing order;
@@ -403,16 +396,16 @@ class CH_VEHICLE_API SCMDeformableSoil : public ChLoadContainer {
     }
 
     // Update vertex position and color in visualization mesh
-    void UpdateMeshVertexCoordinates(const ChVector2<int> ij, int iv, const VertexRecord& v);
+    void UpdateMeshVertexCoordinates(const ChVector2<int> ij, int iv, const NodeRecord& v);
 
     // Update vertex normal in visualization mesh
     void UpdateMeshVertexNormal(const ChVector2<int> ij, int iv);
 
-    /// Get the grid vertices and their heights that were modified over last step.
-    std::vector<SCMDeformableTerrain::VertexLevel> GetModifiedVertices() const;
+    // Get the heights of all grid nodes that were modified over last step.
+    std::vector<SCMDeformableTerrain::NodeLevel> GetModifiedNodes() const;
 
-    // Modify the level of vertices in the underlying grid map from the given list.
-    void SetModifiedVertices(const std::vector<SCMDeformableTerrain::VertexLevel>& vertices);
+    // Modify the level of grid nodes from the given list.
+    void SetModifiedNodes(const std::vector<SCMDeformableTerrain::NodeLevel>& nodes);
 
     PatchType m_type;      // type of SCM patch
     ChCoordsys<> m_plane;  // SCM frame (deformation occurs along the z axis of this frame)
@@ -423,8 +416,8 @@ class CH_VEHICLE_API SCMDeformableSoil : public ChLoadContainer {
 
     ChMatrixDynamic<> m_heights;  // (base) grid heights (when initializing from height-field map)
 
-    std::unordered_map<ChVector2<int>, HitRecord, CoordHash> m_hits;         // hash-map for vertices with ray-cast hits
-    std::unordered_map<ChVector2<int>, VertexRecord, CoordHash> m_grid_map;  // hash-map for modified vertices
+    std::unordered_map<ChVector2<int>, NodeRecord, CoordHash> m_grid_map;  // modified grid nodes (persistent)
+    std::vector<ChVector2<int>> m_modified_nodes;                          // modified grid nodes (current)
 
     std::vector<MovingPatchInfo> m_patches;  // set of active moving patches
     bool m_moving_patch;                     // user-specified moving patches?
