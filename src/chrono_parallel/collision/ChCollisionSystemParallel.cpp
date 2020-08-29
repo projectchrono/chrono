@@ -256,6 +256,16 @@ void ChCollisionSystemParallel::Run() {
     data_manager->system_timer.stop("collision_narrow");
 }
 
+void ChCollisionSystemParallel::GetBoundingBox(ChVector<>& aabb_min, ChVector<>& aabb_max) const {
+    aabb_min.x() = data_manager->measures.collision.min_bounding_point.x;
+    aabb_min.y() = data_manager->measures.collision.min_bounding_point.y;
+    aabb_min.z() = data_manager->measures.collision.min_bounding_point.z;
+
+    aabb_max.x() = data_manager->measures.collision.max_bounding_point.x;
+    aabb_max.y() = data_manager->measures.collision.max_bounding_point.y;
+    aabb_max.z() = data_manager->measures.collision.max_bounding_point.z;
+}
+
 void ChCollisionSystemParallel::ReportContacts(ChContactContainer* mcontactcontainer) {
     assert(dynamic_cast<ChContactContainerParallel*>(mcontactcontainer));
 

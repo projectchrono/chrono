@@ -536,6 +536,8 @@ void ChSystem::DescriptorPrepareInject(ChSystemDescriptor& mdescriptor) {
 void ChSystem::Setup() {
     CH_PROFILE("Setup");
 
+    timer_setup.start();
+
     ncoords = 0;
     ncoords_w = 0;
     ndoc = 0;
@@ -562,6 +564,8 @@ void ChSystem::Setup() {
     nsysvars_w = ncoords_w + ndoc_w;   // total number of variables (with 6 dof per body)
 
     ndof = ncoords - ndoc;  // number of degrees of freedom (approximate - does not consider constr. redundancy, etc)
+
+    timer_setup.stop();
 
 #ifdef _DEBUG
     // BOOKKEEPING SANITY CHECK
@@ -980,9 +984,9 @@ bool ChSystem::StateSolveCorrection(ChStateDelta& Dv,             // result: com
     // If indicated, first perform a solver setup.
     // Return 'false' if the setup phase fails.
     if (force_setup) {
-        timer_setup.start();
+        timer_ls_setup.start();
         bool success = GetSolver()->Setup(*descriptor);
-        timer_setup.stop();
+        timer_ls_setup.stop();
         setupcount++;
         if (!success)
             return false;
@@ -990,9 +994,9 @@ bool ChSystem::StateSolveCorrection(ChStateDelta& Dv,             // result: com
 
     // Solve the problem
     // The solution is scattered in the provided system descriptor
-    timer_solver.start();
+    timer_ls_solve.start();
     GetSolver()->Solve(*descriptor);
-    timer_solver.stop();
+    timer_ls_solve.stop();
 
     // Dv and L vectors  <-- sparse solver structures
     IntFromDescriptor(0, Dv, 0, L);

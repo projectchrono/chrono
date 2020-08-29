@@ -414,13 +414,15 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     virtual double GetTimerAdvance() const { return timer_advance(); }
     /// Return the time (in seconds) for the solver, within the time step.
     /// Note that this time excludes any calls to the solver's Setup function.
-    virtual double GetTimerSolver() const { return timer_solver(); }
+    virtual double GetTimerLSsolve() const { return timer_ls_solve(); }
     /// Return the time (in seconds) for the solver Setup phase, within the time step.
-    virtual double GetTimerSetup() const { return timer_setup(); }
+    virtual double GetTimerLSsetup() const { return timer_ls_setup(); }
     /// Return the time (in seconds) for calculating/loading Jacobian information, within the time step.
     virtual double GetTimerJacobian() const { return timer_jacobian(); }
     /// Return the time (in seconds) for runnning the collision detection step, within the time step.
     virtual double GetTimerCollision() const { return timer_collision(); }
+    /// Return the time (in seconds) for system setup, within the time step.
+    virtual double GetTimerSetup() const { return timer_setup(); }
     /// Return the time (in seconds) for updating auxiliary data, within the time step.
     virtual double GetTimerUpdate() const { return timer_update(); }
 
@@ -433,10 +435,11 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     void ResetTimers() {
         timer_step.reset();
         timer_advance.reset();
-        timer_solver.reset();
-        timer_setup.reset();
+        timer_ls_solve.reset();
+        timer_ls_setup.reset();
         timer_jacobian.reset();
         timer_collision.reset();
+        timer_setup.reset();
         timer_update.reset();
         collision_system->ResetTimers();
     }
@@ -899,10 +902,11 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     // timers for profiling execution speed
     ChTimer<double> timer_step;       ///< timer for integration step
     ChTimer<double> timer_advance;    ///< timer for time integration
-    ChTimer<double> timer_solver;     ///< timer for solver (excluding setup phase)
-    ChTimer<double> timer_setup;      ///< timer for solver setup
+    ChTimer<double> timer_ls_solve;   ///< timer for solver (excluding setup phase)
+    ChTimer<double> timer_ls_setup;   ///< timer for solver setup
     ChTimer<double> timer_jacobian;   ///< timer for computing/loading Jacobian information
     ChTimer<double> timer_collision;  ///< timer for collision detection
+    ChTimer<double> timer_setup;      ///< timer for system setup
     ChTimer<double> timer_update;     ///< timer for system update
 
     std::shared_ptr<ChTimestepper> timestepper;  ///< time-stepper object

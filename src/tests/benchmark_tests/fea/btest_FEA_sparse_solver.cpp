@@ -97,8 +97,8 @@ class SystemFixture : public ::benchmark::Fixture {
         auto num_it = st.iterations();
         st.counters["SIZE"] = descr->CountActiveVariables() + descr->CountActiveConstraints();
         st.counters["LS_Jacobian"] = m_system->GetTimerJacobian() * 1e3 / num_it;
-        st.counters["LS_Setup"] = m_system->GetTimerSetup() * 1e3 / num_it;
-        st.counters["LS_Solve"] = m_system->GetTimerSolver() * 1e3 / num_it;
+        st.counters["LS_Setup"] = m_system->GetTimerLSsetup() * 1e3 / num_it;
+        st.counters["LS_Solve"] = m_system->GetTimerLSsolve() * 1e3 / num_it;
     }
 
   protected:

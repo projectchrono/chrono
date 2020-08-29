@@ -104,8 +104,8 @@ void ChSystemParallelSMC::PrintStepStats() {
     std::cout << "  Update               " << GetTimerUpdate() << std::endl;
     std::cout << "  Advance              " << GetTimerAdvance() << std::endl;
     std::cout << "    contact force calc " << GetTimerProcessContact() << std::endl;
-    std::cout << "    setup              " << GetTimerSetup() << std::endl;
-    std::cout << "    solve              " << GetTimerSolver() << std::endl;
+    std::cout << "    LS setup           " << GetTimerLSsetup() << std::endl;
+    std::cout << "    LS solve           " << GetTimerLSsolve() << std::endl;
     std::cout << "    stabilization      " << timer_solver_stab << std::endl;
     std::cout << std::endl;
 }

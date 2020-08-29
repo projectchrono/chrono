@@ -105,7 +105,7 @@ void Monitor(chrono::ChSystemParallel* system, int rank) {
     double STEP = system->GetTimerStep();
     double BROD = system->GetTimerCollisionBroad();
     double NARR = system->GetTimerCollisionNarrow();
-    double SOLVER = system->GetTimerSolver();
+    double SOLVER = system->GetTimerLSsolve();
     double UPDT = system->GetTimerUpdate();
     double EXCH = system->data_manager->system_timer.GetTime("Exchange");
     int BODS = system->GetNbodies();

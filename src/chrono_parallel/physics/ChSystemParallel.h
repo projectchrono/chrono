@@ -102,16 +102,19 @@ class CH_PARALLEL_API ChSystemParallel : public ChSystem {
 
     /// Return the time (in seconds) for the solver, within the time step.
     /// Note that this time excludes any calls to the solver's Setup function.
-    virtual double GetTimerSolver() const override;
+    virtual double GetTimerLSsolve() const override;
 
     /// Return the time (in seconds) for the solver Setup phase, within the time step.
-    virtual double GetTimerSetup() const override;
+    virtual double GetTimerLSsetup() const override;
 
     /// Return the time (in seconds) for calculating/loading Jacobian information, within the time step.
     virtual double GetTimerJacobian() const override;
 
     /// Return the time (in seconds) for runnning the collision detection step, within the time step.
     virtual double GetTimerCollision() const override;
+
+    /// Return the time (in seconds) for system setup, within the time step.
+    virtual double GetTimerSetup() const override { return 0; }
 
     /// Return the time (in seconds) for updating auxiliary data, within the time step.
     virtual double GetTimerUpdate() const override;

@@ -115,6 +115,14 @@ void ChCollisionSystemBulletParallel::Run() {
     }
 }
 
+void ChCollisionSystemBulletParallel::GetBoundingBox(ChVector<>& aabb_min, ChVector<>& aabb_max) const {
+    btVector3 aabbMin;
+    btVector3 aabbMax;
+    bt_broadphase->getBroadphaseAabb(aabbMin, aabbMax);
+    aabb_min = ChVector<>((double)aabbMin.x(), (double)aabbMin.y(), (double)aabbMin.z());
+    aabb_max = ChVector<>((double)aabbMax.x(), (double)aabbMax.y(), (double)aabbMax.z());
+}
+
 void ChCollisionSystemBulletParallel::ResetTimers() {
     bt_collision_world->timer_collision_broad.reset();
     bt_collision_world->timer_collision_narrow.reset();

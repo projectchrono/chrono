@@ -6,6 +6,7 @@ endif()
 
 set(TESTS
     btest_VEH_hmmwvDLC
+    btest_VEH_hmmwvSCM
     btest_VEH_m113Acc
     )
 

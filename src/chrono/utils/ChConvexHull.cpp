@@ -18,6 +18,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <cstdlib>
 #include <iostream>
 #include <iterator>
 
@@ -39,7 +40,7 @@ int Orientation(const ChVector2<>& p1, const ChVector2<>& p2, const ChVector2<>&
     static double eps = 1e-10;
     double val = SignedArea(p1, p2, p3);
 
-    if (val == 0)
+    if (std::abs(val) < eps)
         return 0;               // (nearly) colinear
     return (val > 0) ? 1 : -1;  // clock- or counterclock-wise
 }
