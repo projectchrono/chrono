@@ -43,7 +43,7 @@ cmake -G "Ninja" ^
 if errorlevel 1 exit 1
  
 REM Build step 
-cmake --build . --config "%CONFIGURATION%"
+cmake --build . --config "%CONFIGURATION%" >> "%LOG_DIR%"\cmakebuildlog.txt 2>&1
 if errorlevel 1 exit 1
 
 REM Install step 
