@@ -40,6 +40,7 @@ class CH_VSG_API ChVSGSphere : public ChVSGShape {
                                                     vsg::vec4 duffuseColor,
                                                     vsg::vec4 specularColor,
                                                     float shininess,
+                                                    float opacity,
                                                     vsg::ref_ptr<vsg::MatrixTransform> transform) override;
 };
 }  // namespace vsg3d

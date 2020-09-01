@@ -42,6 +42,7 @@ class CH_VSG_API ChVSGShape {
                                                     vsg::vec4 diffuseColor,
                                                     vsg::vec4 specularColor,
                                                     float shininess,
+                                                    float opacity,
                                                     vsg::ref_ptr<vsg::MatrixTransform> transform) = 0;
 };
 }  // namespace vsg3d

@@ -13,13 +13,15 @@ layout(location = 2) in vec3 vertex_color_ambient;
 layout(location = 3) in vec3 vertex_color_diffuse;
 layout(location = 4) in vec3 vertex_color_specular;
 layout(location = 5) in float vertex_shininess;
+layout(location = 6) in float vertex_opacity;
 
 layout(location = 0) out vec3 color_ambient;
 layout(location = 1) out vec3 color_diffuse;
 layout(location = 2) out vec3 color_specular;
 layout(location = 3) out float shininess;
-layout(location = 4) out vec3 normal;
-layout(location = 5) out vec3 eye_vec;
+layout(location = 4) out float opacity;
+layout(location = 5) out vec3 normal;
+layout(location = 6) out vec3 eye_vec;
 
 void main() {
   mat4 modelview = pc.modelview;
@@ -34,4 +36,5 @@ void main() {
   color_diffuse = vertex_color_diffuse;
   color_specular = vertex_color_specular;
   shininess = vertex_shininess;
+  opacity = vertex_opacity;
 }

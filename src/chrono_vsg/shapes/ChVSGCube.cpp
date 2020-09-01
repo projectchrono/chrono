@@ -119,6 +119,7 @@ vsg::ref_ptr<vsg::Node> ChVSGCube::createPhongNode(vsg::vec4 ambientColor,
                                                    vsg::vec4 diffuseColor,
                                                    vsg::vec4 specularColor,
                                                    float shininess,
+                                                   float opacity,
                                                    vsg::ref_ptr<vsg::MatrixTransform> transform) {
     // set up search paths to SPIRV shaders and textures
     vsg::ref_ptr<vsg::ShaderStage> vertexShader = readVertexShader(GetChronoDataFile("vsg/shaders/vert_Phong.spv"));
@@ -150,6 +151,7 @@ vsg::ref_ptr<vsg::Node> ChVSGCube::createPhongNode(vsg::vec4 ambientColor,
         VkVertexInputBindingDescription{3, sizeof(vsg::vec3), VK_VERTEX_INPUT_RATE_VERTEX},  // diffuse color data
         VkVertexInputBindingDescription{4, sizeof(vsg::vec3), VK_VERTEX_INPUT_RATE_VERTEX},  // specular color data
         VkVertexInputBindingDescription{5, sizeof(float), VK_VERTEX_INPUT_RATE_VERTEX},      // shininess data
+        VkVertexInputBindingDescription{6, sizeof(float), VK_VERTEX_INPUT_RATE_VERTEX},      // opacity data
     };
 
     vsg::VertexInputState::Attributes vertexAttributeDescriptions{
@@ -159,6 +161,7 @@ vsg::ref_ptr<vsg::Node> ChVSGCube::createPhongNode(vsg::vec4 ambientColor,
         VkVertexInputAttributeDescription{3, 3, VK_FORMAT_R32G32B32_SFLOAT, 0},  // diffuse color data
         VkVertexInputAttributeDescription{4, 4, VK_FORMAT_R32G32B32_SFLOAT, 0},  // specular color data
         VkVertexInputAttributeDescription{5, 5, VK_FORMAT_R32_SFLOAT, 0},        // shininess data
+        VkVertexInputAttributeDescription{6, 6, VK_FORMAT_R32_SFLOAT, 0},        // opacity data
     };
 
     vsg::GraphicsPipelineStates pipelineStates{
@@ -203,6 +206,7 @@ vsg::ref_ptr<vsg::Node> ChVSGCube::createPhongNode(vsg::vec4 ambientColor,
     auto specularColors =
         vsg::vec3Array::create(vertices->size(), vsg::vec3(specularColor.r, specularColor.g, specularColor.b));
     auto shininesses = vsg::floatArray::create(vertices->size(), shininess);
+    auto opacities = vsg::floatArray::create(vertices->size(), opacity);
 
 #if 0
     auto texcoords = vsg::vec2Array::create({{0, 0}, {1, 0}, {1, 1}, {0, 1}, {0, 0}, {1, 0}, {1, 1}, {0, 1},
@@ -218,7 +222,7 @@ vsg::ref_ptr<vsg::Node> ChVSGCube::createPhongNode(vsg::vec4 ambientColor,
     // setup geometry
     auto drawCommands = vsg::Commands::create();
     drawCommands->addChild(vsg::BindVertexBuffers::create(
-        0, vsg::DataList{vertices, normals, ambientColors, diffuseColors, specularColors, shininesses}));
+        0, vsg::DataList{vertices, normals, ambientColors, diffuseColors, specularColors, shininesses, opacities}));
     drawCommands->addChild(vsg::BindIndexBuffer::create(indices));
     drawCommands->addChild(vsg::DrawIndexed::create(indices->size(), 1, 0, 0, 0));
 

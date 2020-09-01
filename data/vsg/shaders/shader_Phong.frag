@@ -7,8 +7,9 @@ layout(location = 0) in vec3 color_ambient;
 layout(location = 1) in vec3 color_diffuse;
 layout(location = 2) in vec3 color_specular;
 layout(location = 3) in float shininess;
-layout(location = 4) in vec3 normal;
-layout(location = 5) in vec3 eye_vec;
+layout(location = 4) in float opacity;
+layout(location = 5) in vec3 normal;
+layout(location = 6) in vec3 eye_vec;
 
 vec3 light_pos = vec3(100, 100, 100);
 
@@ -28,5 +29,5 @@ void main() {
     final_color += color_specular * specular;
   }
 
-  FragColor = vec4(final_color, 1);
+  FragColor = vec4(final_color, opacity);
 }
