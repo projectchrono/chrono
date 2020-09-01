@@ -230,6 +230,43 @@ linux:arch-llvm:test:
     - git submodule update
     - mkdir -p build
 
+.ubuntu-deploy-base:
+  extends: .ubuntu
+  before_script:
+    # this script overwrites the default ubuntu script to include conda preparations
+    - uname -a
+    - export DEBIAN_FRONTEND=noninteractive
+    - apt-get update; apt-get -y install cuda wget python git 
+        cmake build-essential libboost-dev swig3.0 libeigen3-dev 
+        libglfw3-dev libglm-dev libglew-dev freeglut3-dev libirrlicht-dev
+        libopenmpi-dev python3 python3-dev
+    - ldconfig
+    - wget https://bitbucket.org/blaze-lib/blaze/downloads/blaze-3.5.tar.gz
+    - tar -xf blaze-3.5.tar.gz
+    - cp blaze-3.5/blaze -r /usr/local/include
+    - git submodule init
+    - git submodule update
+    - echo "Build PyChrono and deploy via Anaconda..."
+    # this command is needed to get the git describe data needed by the numbering
+    - git fetch --prune --unshallow
+    - export CONDA_NPY=19
+    - wget "http://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh"
+    - bash Miniconda3-latest-Linux-x86_64.sh -b
+    - export PATH=$HOME/miniconda3/bin:$PATH
+    - conda update --yes conda
+    - conda install --yes pip jinja2
+    - conda config --set show_channel_urls true
+    - conda install conda-build anaconda-client conda-verify --yes
+    - conda update conda --yes
+    - conda config --add channels https://conda.anaconda.org/conda-forge
+    - conda config --add channels https://conda.anaconda.org/intel
+    - conda install --yes conda-build anaconda-client
+    - conda install -c dlr-sc opencascade --yes
+    - conda install -c intel mkl-devel --yes
+  environment:
+    name: pychrono-ubuntu1804
+    url: https://anaconda.org/projectchrono/pychrono
+
 #----------------#
 # Ubuntu Builder #
 #----------------#
@@ -261,39 +298,35 @@ linux:ubuntu1804:test:
   dependencies: ["linux:ubuntu1804:build"]
 
 
-linux:ubuntu1804:deploy:
+linux:ubuntu1804:deploy-python3.6:
   stage: deploy
   needs: []
-  extends: .ubuntu
+  extends: .ubuntu-deploy-base
   script:
-    - echo "Build PyChrono and deploy via Anaconda..."
-# Remove build directory because anaconda doesn't want it
-    - rm -rf build
-    - export CONDA_NPY=19
-    - wget "http://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh"
-    - bash Miniconda3-latest-Linux-x86_64.sh -b
-    - export PATH=$HOME/miniconda3/bin:$PATH
-    - conda update --yes conda
-    - conda install --yes pip jinja2
-    - conda config --set show_channel_urls true
-    - conda install conda-build anaconda-client conda-verify --yes
-    - conda update conda --yes
-    - conda config --add channels https://conda.anaconda.org/conda-forge
-    - conda config --add channels https://conda.anaconda.org/intel
-    - conda install -c dlr-sc opencascade --yes
-    - conda install -c intel mkl-devel --yes
     - conda build purge-all
     - conda build ./contrib/packaging-python/conda --no-remove-work-dir --dirty --python=3.6
     - anaconda -t $ANACONDA_TOKEN upload $HOME/miniconda3/conda-bld/linux-64/pychrono*.bz2 -l develop --force
+  when: manual
+
+linux:ubuntu1804:deploy-python3.7:
+  stage: deploy
+  needs: []
+  extends: .ubuntu-deploy-base
+  script:
     - conda build purge-all
     - conda build ./contrib/packaging-python/conda --no-remove-work-dir --dirty --python=3.7
     - anaconda -t $ANACONDA_TOKEN upload $HOME/miniconda3/conda-bld/linux-64/pychrono*.bz2 -l develop --force
-  environment:
-    name: pychrono-ubuntu1804
-    url: https://anaconda.org/projectchrono/pychrono
   when: manual
 
-
+linux:ubuntu1804:deploy-python3.8:
+  stage: deploy
+  needs: []
+  extends: .ubuntu-deploy-base
+  script:
+    - conda build purge-all
+    - conda build ./contrib/packaging-python/conda --no-remove-work-dir --dirty --python=3.8
+    - anaconda -t $ANACONDA_TOKEN upload $HOME/miniconda3/conda-bld/linux-64/pychrono*.bz2 -l develop --force
+  when: manual
 
 #------------------#
 # Windows Builders #
@@ -378,6 +411,8 @@ windows:vs2019:deploy:
     - Invoke-WebRequest -Uri http://www.projectchrono.org/assets/downloads/libiomp5md.lib  -OutFile $libiomppth
     - mkdir ./logs
     - $Env:LOG_DIR=Join-Path -Path $pwd -ChildPath "\logs"
+    # this command is needed to get the git describe data needed by the numbering
+    - git fetch --prune --unshallow
     # Uncomment the following lines to get a fresh install of Miniconda
     #- $Env:CONDA_INSTALL_LOCN= "C:\Users\builder\Miniconda3"
     #- Invoke-WebRequest -Uri https://repo.anaconda.com/miniconda/Miniconda3-latest-Windows-x86_64.exe  -OutFile ./Miniconda3-latest-Windows-x86_64.exe >temp.txt
@@ -441,7 +476,31 @@ windows:vs2017:build:
   - git submodule init
   - git submodule update
   - mkdir -p build
-
+.macos-deploy-base:
+  extends: .macos
+  before_script:
+    - export CONDA_NPY=19
+    - wget https://repo.anaconda.com/miniconda/Miniconda3-latest-MacOSX-x86_64.sh -O ~/miniconda.sh
+    - rm -r $HOME/miniconda
+    - bash ~/miniconda.sh -b -p $HOME/miniconda
+    - export PATH=$HOME/miniconda/bin:$PATH
+    - conda install --yes -c intel jinja2
+    - conda config --set show_channel_urls true
+    - conda install conda-build anaconda-client conda-verify --yes
+    - conda config --add channels https://conda.anaconda.org/conda-forge
+    - conda config --add channels https://conda.anaconda.org/intel
+    #- conda install -c dlr-sc opencascade --yes
+    - conda install -c intel mkl-devel --yes
+    - ls $HOME/miniconda/lib/
+    - conda build purge-all
+    # this command is needed to get the git describe data needed by the numbering
+    - git fetch --prune --unshallow
+    - clang --version
+    - mv -f ./contrib/packaging-python/conda/buildMacOS.sh ./contrib/packaging-python/conda/build.sh
+    - conda install -c conda-forge llvm-openmp --yes
+  environment:
+    name: pychrono-macos
+    url: https://anaconda.org/projectchrono/pychrono
 macos:highsierra:build:
   stage: build
   extends: .macos
@@ -471,50 +530,37 @@ macos:highsierra:test:
   dependencies: ["macos:highsierra:build"]
 
 
-macos:macos:deploy:
+macos:macos-deploy-python3.6:
   stage: deploy
   needs: []
-  extends: .macos
+  extends: .macos-deploy-base
   script:
-    - echo "Build PyChrono and deploy via Anaconda..."
-# Remove build directory because anaconda doesn't want it
-#    - rm -rf build
-    - export CONDA_NPY=19
-    - export BUILD_OC=
-    # uncomment to re-install miniconda
-    #- wget https://repo.anaconda.com/miniconda/Miniconda3-latest-MacOSX-x86_64.sh -O ~/miniconda.sh
-    #- rm -r $HOME/miniconda
-    #- bash ~/miniconda.sh -b -p $HOME/miniconda
-    - export PATH=$HOME/miniconda/bin:$PATH
-    #- conda update --yes conda
-    #- conda install --yes pip
-    - conda install --yes -c intel jinja2
-    - conda config --set show_channel_urls true
-    - conda install conda-build anaconda-client conda-verify --yes
-    - conda config --add channels https://conda.anaconda.org/conda-forge
-    - conda config --add channels https://conda.anaconda.org/intel
-    #- conda install -c dlr-sc opencascade --yes
-    - conda install -c intel mkl-devel --yes
-    - ls $HOME/miniconda/lib/
-    - conda build purge-all
-    # this command is needed to get the git describe data
-    - git fetch --prune --unshallow
-    - clang --version
-    - mv -f ./contrib/packaging-python/conda/buildMacOS.sh ./contrib/packaging-python/conda/build.sh
-    - conda install -c conda-forge llvm-openmp --yes
-    - conda build ./contrib/packaging-python/conda --no-remove-work-dir --dirty --python=3.7
-    - anaconda -t $ANACONDA_TOKEN upload $HOME/miniconda/conda-bld/osx-64/pychrono*.bz2 -l develop --force
+    - echo "Build PyChrono 3.6 and deploy via Anaconda..."
     - conda build purge-all
     - conda build ./contrib/packaging-python/conda --no-remove-work-dir --dirty --python=3.6
     - anaconda -t $ANACONDA_TOKEN upload $HOME/miniconda/conda-bld/osx-64/pychrono*.bz2 -l develop --force
-  environment:
-    name: pychrono-macos
-    url: https://anaconda.org/projectchrono/pychrono
   when: manual
-  artifacts:
-    expire_in: 60m
-    paths:
-      - $SRC_DIR/build/CMakeFiles/
+macos:macos-deploy-python3.7:
+  stage: deploy
+  needs: []
+  extends: .macos-deploy-base
+  script:
+    - echo "Build PyChrono 3.7 and deploy via Anaconda..."
+    - conda build purge-all
+    - conda build ./contrib/packaging-python/conda --no-remove-work-dir --dirty --python=3.7
+    - anaconda -t $ANACONDA_TOKEN upload $HOME/miniconda/conda-bld/osx-64/pychrono*.bz2 -l develop --force
+  when: manual
+macos:macos-deploy-python3.8:
+  stage: deploy
+  needs: []
+  extends: .macos-deploy-base
+  script:
+    - echo "Build PyChrono 3.8 and deploy via Anaconda..."
+    - conda build purge-all
+    - conda build ./contrib/packaging-python/conda --no-remove-work-dir --dirty --python=3.8
+    - anaconda -t $ANACONDA_TOKEN upload $HOME/miniconda/conda-bld/osx-64/pychrono*.bz2 -l develop --force
+  when: manual
+
 #-----------------#
 # FreeBSD Builder #
 #-----------------#
