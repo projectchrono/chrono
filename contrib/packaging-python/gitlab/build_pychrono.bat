@@ -3,7 +3,7 @@ echo Process begins
 call "%CONDA_INSTALL_LOCN%"\Scripts\activate.bat
 call conda install --yes anaconda-client
 call conda uninstall --yes conda-build
-call conda install --yes conda-build
+call conda install --yes conda-build=3.18.11
 call conda install --yes -c intel mkl-devel
 call conda install -c conda-forge swig=4.0 --yes
 call conda install -c dlr-sc opencascade --yes
