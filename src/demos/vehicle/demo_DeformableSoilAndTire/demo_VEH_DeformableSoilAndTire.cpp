@@ -122,14 +122,15 @@ int main(int argc, char* argv[]) {
                                 0,      // Mohr cohesive limit (Pa)
                                 30,     // Mohr friction limit (degrees)
                                 0.01,   // Janosi shear coefficient (m)
-                                5e7,    // Elastic stiffness (Pa/m), before plastic yield, must be > Kphi
-                                2e4     // Damping (Pa s/m), proportional to negative vertical speed (optional)
-     );
-    mterrain.SetBulldozingFlow(true);    // inflate soil at the border of the rut
-    mterrain.SetBulldozingParameters(55, // angle of friction for erosion of displaced material at the border of the rut
-                                    0.8, // displaced material vs downward pressed material.
-                                    5,   // number of erosion refinements per timestep
-                                    10); // number of concentric vertex selections subject to erosion
+                               5e7,    // Elastic stiffness (Pa/m), before plastic yield, must be > Kphi
+                               2e4     // Damping (Pa s/m), proportional to negative vertical speed (optional)
+    );
+    mterrain.EnableBulldozing(true);  // inflate soil at the border of the rut
+    mterrain.SetBulldozingParameters(
+        55,   // angle of friction for erosion of displaced material at the border of the rut
+        0.8,  // displaced material vs downward pressed material.
+        5,    // number of erosion refinements per timestep
+        10);  // number of concentric vertex selections subject to erosion
 
     // Set some visualization parameters: either with a texture, or with falsecolor plot, etc.
     //mterrain.SetTexture(vehicle::GetDataFile("terrain/textures/grass.jpg"), 16, 16);

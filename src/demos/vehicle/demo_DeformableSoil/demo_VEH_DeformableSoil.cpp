@@ -41,7 +41,7 @@ TireType tire_type = TireType::LUGGED;
 double mesh_resolution = 0.04;
 
 // Enable/disable bulldozing effects
-bool enable_bulldozing = false;
+bool enable_bulldozing = true;
 
 // Enable/disable moving patch feature
 bool enable_moving_patch = true;
@@ -219,12 +219,12 @@ int main(int argc, char* argv[]) {
     }
 
     if (enable_bulldozing) {
-        mterrain.SetBulldozingFlow(true);  // inflate soil at the border of the rut
+        mterrain.EnableBulldozing(true);  // inflate soil at the border of the rut
         mterrain.SetBulldozingParameters(
             55,   // angle of friction for erosion of displaced material at the border of the rut
             1,    // displaced material vs downward pressed material.
             5,    // number of erosion refinements per timestep
-            10);  // number of concentric vertex selections subject to erosion
+            6);  // number of concentric vertex selections subject to erosion
     }
 
     // Optionally, enable moving patch feature (reduces number of ray casts)

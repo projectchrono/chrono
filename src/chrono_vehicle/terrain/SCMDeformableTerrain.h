@@ -20,10 +20,9 @@
 #ifndef SCM_DEFORMABLE_TERRAIN_H
 #define SCM_DEFORMABLE_TERRAIN_H
 
-#include <set>
 #include <string>
-#include <unordered_map>
 #include <ostream>
+#include <unordered_map>
 
 #include "chrono/assets/ChColorAsset.h"
 #include "chrono/assets/ChTriangleMeshShape.h"
@@ -94,32 +93,29 @@ class CH_VEHICLE_API SCMDeformableTerrain : public ChTerrain {
         double Bekker_Kphi,    ///< Kphi, frictional modulus in Bekker model
         double Bekker_Kc,      ///< Kc, cohesive modulus in Bekker model
         double Bekker_n,       ///< n, exponent of sinkage in Bekker model (usually 0.6...1.8)
-        double Mohr_cohesion,  ///< Cohesion in, Pa, for shear failure
-        double Mohr_friction,  ///< Friction angle (in degrees!), for shear failure
-        double Janosi_shear,   ///< J , shear parameter, in meters, in Janosi-Hanamoto formula (usually few mm or cm)
-        double elastic_K,      ///< elastic stiffness K, per unit area, [Pa/m] (must be larger than Kphi)
-        double damping_R       ///< vertical damping R, per unit area [Pa s/m] (proportional to vertical speed)
+        double Mohr_cohesion,  ///< Cohesion for shear failure [Pa]
+        double Mohr_friction,  ///< Friction angle for shear failure [degree]
+        double Janosi_shear,   ///< Shear parameter in Janosi-Hanamoto formula [m]
+        double elastic_K,      ///< elastic stiffness K per unit area, [Pa/m] (must be larger than Kphi)
+        double damping_R       ///< vertical damping R per unit area [Pa.s/m] (proportional to vertical speed)
     );
 
     /// Enable/disable the creation of soil inflation at the side of the ruts (bulldozing effects).
-    void SetBulldozingFlow(bool mb);
-
-    /// Return true if bulldozing effects are enabled.
-    bool BulldozingFlow() const;
+    void EnableBulldozing(bool mb);
 
     /// Set parameters controlling the creation of side ruts (bulldozing effects).
     void SetBulldozingParameters(
-        double mbulldozing_erosion_angle,            ///< angle of erosion of the displaced material (in degrees!)
-        double mbulldozing_flow_factor = 1.0,        ///< growth of lateral volume respect to pressed volume
-        int mbulldozing_erosion_n_iterations = 3,    ///< number of erosion refinements per timestep
-        int mbulldozing_erosion_n_propagations = 10  ///< number of concentric vertex selections subject to erosion
+        double erosion_angle,          ///< angle of erosion of the displaced material (in degrees)
+        double flow_factor = 1.0,      ///< growth of lateral volume relative to pressed volume
+        int erosion_iterations = 3,    ///< number of erosion refinements per timestep
+        int erosion_propagations = 10  ///< number of concentric vertex selections subject to erosion
     );
 
     /// Set the vertical level up to which collision is tested (relative to the reference level at the sample point).
     /// Since the contact is unilateral, this could be zero. However, when computing bulldozing flow, one might also
     /// need to know if in the surrounding there is some potential future contact: so it might be better to use a
     /// positive value (but not higher than the max. expected height of the bulldozed rubble, to avoid slowdown of
-    /// collision tests).
+    /// collision tests). Default: 0.1 m.
     void SetTestHeight(double offset);
 
     ///  Return the current test height level.
@@ -162,11 +158,11 @@ class CH_VEHICLE_API SCMDeformableTerrain : public ChTerrain {
         double m_Bekker_Kphi;    ///< Kphi, frictional modulus in Bekker model
         double m_Bekker_Kc;      ///< Kc, cohesive modulus in Bekker model
         double m_Bekker_n;       ///< n, exponent of sinkage in Bekker model (usually 0.6...1.8)
-        double m_Mohr_cohesion;  ///< Cohesion in, Pa, for shear failure
-        double m_Mohr_friction;  ///< Friction angle (in degrees!), for shear failure
-        double m_Janosi_shear;   ///< J , shear parameter, in meters, in Janosi-Hanamoto formula (usually few mm or cm)
-        double m_elastic_K;      ///< elastic stiffness K, per unit area, [Pa/m] (must be larger than Kphi)
-        double m_damping_R;      ///< vertical damping R, per unit area [Pa s/m] (proportional to vertical speed)
+        double m_Mohr_cohesion;  ///< Cohesion for shear failure [Pa]
+        double m_Mohr_friction;  ///< Friction angle for shear failure [degree]
+        double m_Janosi_shear;   ///< Shear parameter in Janosi-Hanamoto formula [m]
+        double m_elastic_K;      ///< elastic stiffness K per unit area, [Pa/m] (must be larger than Kphi)
+        double m_damping_R;      ///< vertical damping R per unit area [Pa.s/m] (proportional to vertical speed)
     };
 
     /// Specify the callback object to set the soil parameters at given (x,y) locations.
@@ -231,6 +227,8 @@ class CH_VEHICLE_API SCMDeformableTerrain : public ChTerrain {
     int GetNumRayHits() const;
     /// Return the number of contact patches at last step.
     int GetNumContactPatches() const;
+    /// Return the number of nodes in the erosion domain at last step (bulldosing effects).
+    int GetNumErosionNodes() const;
 
     /// Return time for updating moving patches at last step (ms).
     double GetTimerMovingPatches() const;
@@ -356,6 +354,9 @@ class CH_VEHICLE_API SCMDeformableSoil : public ChLoadContainer {
     // Get indices of trimesh faces incident to the specified grid vertex.
     std::vector<int> GetMeshFaceIndices(const ChVector2<int>& loc);
 
+    // Check if the provided grid location is within bounds
+    bool CheckBounds(const ChVector2<int>& loc) const;
+
     // Complete setup before first simulation step.
     virtual void SetupInitial() override;
 
@@ -395,8 +396,14 @@ class CH_VEHICLE_API SCMDeformableSoil : public ChLoadContainer {
         ChLoadContainer::IntLoadResidual_F(off, R, c);
     }
 
+    // Add specified amount of material (possibly clamped) to node.
+    void AddMaterialToNode(double amount, NodeRecord& nr);
+
+    // Remove specified amount of material (possibly clamped) from node.
+    void RemoveMaterialFromNode(double amount, NodeRecord& nr);
+
     // Update vertex position and color in visualization mesh
-    void UpdateMeshVertexCoordinates(const ChVector2<int> ij, int iv, const NodeRecord& v);
+    void UpdateMeshVertexCoordinates(const ChVector2<int> ij, int iv, const NodeRecord& nr);
 
     // Update vertex normal in visualization mesh
     void UpdateMeshVertexNormal(const ChVector2<int> ij, int iv);
@@ -445,11 +452,11 @@ class CH_VEHICLE_API SCMDeformableSoil : public ChLoadContainer {
     std::unordered_map<ChContactable*, TerrainForce> m_contact_forces;
 
     // Bulldozing effects
-    bool do_bulldozing;
-    double bulldozing_flow_factor;
-    double bulldozing_erosion_angle;
-    int bulldozing_erosion_n_iterations;
-    int bulldozing_erosion_n_propagations;
+    bool m_bulldozing;
+    double m_flow_factor;
+    double m_erosion_angle;
+    int m_erosion_iterations;
+    int m_erosion_propagations;
 
     // Mesh coloring mode
     SCMDeformableTerrain::DataPlotType m_plot_type;
@@ -469,6 +476,7 @@ class CH_VEHICLE_API SCMDeformableSoil : public ChLoadContainer {
     int m_num_ray_casts;
     int m_num_ray_hits;
     int m_num_contact_patches;
+    int m_num_erosion_nodes;
 
     friend class SCMDeformableTerrain;
 };
