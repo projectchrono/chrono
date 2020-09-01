@@ -54,14 +54,9 @@ using std::endl;
 // Terrain parameters
 // -----------------------------------------------------------------------------
 
-// Dimensions
-double terrainHeight = 0;
 double terrainLength = 16.0;  // size in X direction
 double terrainWidth = 8.0;    // size in Y direction
-
-// Divisions (X and Y)
-int divLength = 128;
-int divWidth = 64;
+double delta = 0.05;          // SCM grid spacing
 
 // -----------------------------------------------------------------------------
 // Vehicle parameters
@@ -247,25 +242,20 @@ int main(int argc, char* argv[]) {
     ////                                5,    // number of erosion refinements per timestep
     ////                                10);  // number of concentric vertex selections subject to erosion
 
-    // Turn on the automatic level of detail refinement, so a coarse terrain mesh
-    // is automatically improved by adding more points under the wheel contact patch:
-    terrain.SetAutomaticRefinement(true);
-    terrain.SetAutomaticRefinementResolution(0.04);
-
     // Optionally, enable moving patch feature (single patch around vehicle chassis)
-    terrain.AddMovingPatch(my_hmmwv.GetChassisBody(), ChVector<>(0, 0, 0), 5, 3);
+    terrain.AddMovingPatch(my_hmmwv.GetChassisBody(), ChVector<>(0, 0, 0), ChVector<>(5, 3, 1));
 
     // Optionally, enable moving patch feature (multiple patches around each wheel)
     ////for (auto& axle : my_hmmwv.GetVehicle().GetAxles()) {
-    ////    terrain.AddMovingPatch(axle->m_wheels[0]->GetSpindle(), ChVector<>(0, 0, 0), 1, 1);
-    ////    terrain.AddMovingPatch(axle->m_wheels[1]->GetSpindle(), ChVector<>(0, 0, 0), 1, 1);
+    ////    terrain.AddMovingPatch(axle->m_wheels[0]->GetSpindle(), ChVector<>(0, 0, 0), ChVector<>(1, 0.5, 1));
+    ////    terrain.AddMovingPatch(axle->m_wheels[1]->GetSpindle(), ChVector<>(0, 0, 0), ChVector<>(1, 0.5, 1));
     ////}
 
     ////terrain.SetTexture(vehicle::GetDataFile("terrain/textures/grass.jpg"), 80, 16);
     ////terrain.SetPlotType(vehicle::SCMDeformableTerrain::PLOT_PRESSURE_YELD, 0, 30000.2);
     terrain.SetPlotType(vehicle::SCMDeformableTerrain::PLOT_SINKAGE, 0, 0.1);
 
-    terrain.Initialize(terrainHeight, terrainLength, terrainWidth, divLength, divWidth);
+    terrain.Initialize(terrainLength, terrainWidth, delta);
 
     // ---------------------------------------
     // Create the vehicle Irrlicht application

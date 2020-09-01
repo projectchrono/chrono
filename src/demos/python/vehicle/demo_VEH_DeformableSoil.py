@@ -114,8 +114,8 @@ mysystem.Add(motor)
 # Note that SCMDeformableTerrain uses a default ISO reference frame (Z up). Since the mechanism is modeled here in
 # a Y-up global frame, we rotate the terrain plane by -90 degrees about the X axis.
 terrain = veh.SCMDeformableTerrain(mysystem)
-terrain.SetPlane(chrono.ChCoordsysD(chrono.ChVectorD(0,0,0.5), chrono.Q_from_AngX(-math.pi/2)))
-terrain.Initialize(0.2, 1.5, 5, 20, 60)
+terrain.SetPlane(chrono.ChCoordsysD(chrono.ChVectorD(0,0.2,0), chrono.Q_from_AngX(-math.pi/2)))
+terrain.Initialize(2.0, 6.0, 0.04)
 
 my_params = MySoilParams()
 if var_params:
@@ -133,10 +133,6 @@ else :
                                3e4     # Damping (Pa s/m), proportional to negative vertical speed (optional)
     )
 
-# Turn on the automatic mesh refinement
-terrain.SetAutomaticRefinement(True)
-terrain.SetAutomaticRefinementResolution(0.04)
-
 # Set terrain visualization mode
 terrain.SetPlotType(veh.SCMDeformableTerrain.PLOT_PRESSURE, 0, 30000.2)
 
@@ -147,7 +143,7 @@ terrain.SetPlotType(veh.SCMDeformableTerrain.PLOT_PRESSURE, 0, 30000.2)
 myapplication = chronoirr.ChIrrApp(mysystem, 'Deformable soil', chronoirr.dimension2du(1280,720), False, True)
 myapplication.AddTypicalSky()
 myapplication.AddTypicalLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
-myapplication.AddTypicalCamera(chronoirr.vector3df(1.0,1.4,-1.2), chronoirr.vector3df(0,tire_rad,0))
+myapplication.AddTypicalCamera(chronoirr.vector3df(2.0,1.4,0.0), chronoirr.vector3df(0,tire_rad,0))
 myapplication.AddTypicalLights()
 myapplication.AddLightWithShadow(chronoirr.vector3df(1.5,5.5,-2.5),    # point
                                  chronoirr.vector3df(0,0,0),           # aim point
