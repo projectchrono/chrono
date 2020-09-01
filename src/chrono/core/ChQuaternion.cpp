@@ -152,7 +152,7 @@ ChQuaternion<double> Q_from_Vect_to_Vect(const ChVector<double>& fr_vect, const 
         quat.e2() = ChClamp(axis.y(), -1.0, +1.0);
         quat.e3() = ChClamp(axis.z(), -1.0, +1.0);
     }
-    return (quat);
+    return (quat.GetNormalized());
 }
 
 ChQuaternion<double> Q_from_AngZ(double angleZ) {
