@@ -393,15 +393,13 @@ void ChTireTestRig::CreateTerrain() {
 }
 
 void ChTireTestRig::CreateTerrainSCM() {
-    ChVector<> location(m_params_SCM.length / 2 - 2 * m_tire->GetRadius(), m_terrain_offset, 0);
+    ChVector<> location(m_params_SCM.length / 2 - 2 * m_tire->GetRadius(), m_terrain_offset, m_terrain_height);
 
     double E_elastic = 2e8;  // Elastic stiffness (Pa/m), before plastic yeld
     double damping = 3e4;    // Damping coefficient (Pa*s/m)
 
     // Mesh divisions
-    double factor = 8;  // Initial number of divisions per unit (m)
-    int ndivX = (int)std::ceil(m_params_SCM.length * factor);
-    int ndivY = (int)std::ceil(m_params_SCM.width * factor);
+    double delta = 0.125;  // initial SCM grid spacing
 
     auto terrain = chrono_types::make_shared<vehicle::SCMDeformableTerrain>(m_system);
     terrain->SetPlane(ChCoordsys<>(location));
@@ -409,10 +407,9 @@ void ChTireTestRig::CreateTerrainSCM() {
                                m_params_SCM.Mohr_cohesion, m_params_SCM.Mohr_friction, m_params_SCM.Janosi_shear,  //
                                E_elastic, damping);
     terrain->SetPlotType(vehicle::SCMDeformableTerrain::PLOT_SINKAGE, 0, 0.05);
-    terrain->SetAutomaticRefinement(true);
-    terrain->SetAutomaticRefinementResolution(1.0 / 32);
-    terrain->Initialize(m_terrain_height, m_params_SCM.length, m_params_SCM.width, ndivX, ndivY);
-    terrain->AddMovingPatch(m_chassis_body, ChVector<>(0, 0, 0), 2 * m_tire->GetRadius(), 1.0);
+    terrain->Initialize(m_params_SCM.length, m_params_SCM.width, delta);
+    terrain->AddMovingPatch(m_chassis_body, ChVector<>(0, 0, 0),
+                            ChVector<>(2 * m_tire->GetRadius(), 1.0, 2 * m_tire->GetRadius()));
 
     m_terrain = terrain;
 }
