@@ -306,11 +306,9 @@ void ChSystemGranularSMC::writeFile(std::string ofile) const {
             }
 
             if (GET_OUTPUT_SETTING(FORCE_COMPONENTS)) {
-                double massSphere =
-                    (4.0 / 3.0) * CH_C_PI * sphere_radius_UU * sphere_radius_UU * sphere_radius_UU * sphere_density_UU;
-                double fx = (sphere_acc_X.at(n) - gran_params->gravAcc_X_SU) * massSphere * FORCE_SU2UU;
-                double fy = (sphere_acc_Y.at(n) - gran_params->gravAcc_Y_SU) * massSphere * FORCE_SU2UU;
-                double fz = (sphere_acc_Z.at(n) - gran_params->gravAcc_Z_SU) * massSphere * FORCE_SU2UU;
+                double fx = (sphere_acc_X.at(n) - gran_params->gravAcc_X_SU) * gran_params->sphere_mass_SU * FORCE_SU2UU;
+                double fy = (sphere_acc_Y.at(n) - gran_params->gravAcc_Y_SU) * gran_params->sphere_mass_SU * FORCE_SU2UU;
+                double fz = (sphere_acc_Z.at(n) - gran_params->gravAcc_Z_SU) * gran_params->sphere_mass_SU * FORCE_SU2UU;
                 outstrstream << "," << fx << "," << fy << "," << fz;
             }
 
