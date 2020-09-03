@@ -40,6 +40,7 @@ ChVSGApp::ChVSGApp()
       m_wait_counter_max(1) {
     setClearColor(1.0f, 1.0f, 1.0f);
     m_up_vector = vsg::dvec3(0.0, 0.0, 1.0);
+    m_light_position = vsg::vec3(100, 100, 100);
 }
 
 void ChVSGApp::setUpVector(ChVector<> up) {
@@ -212,8 +213,8 @@ void ChVSGApp::UpdateSceneGraph() {
                     vsg::vec4 specular(0.316228, 0.316228, 0.316228, 1.0);
                     float shininess = 0.1 * 128.0;
                     float opacity = 1.0;
-                    vsg::ref_ptr<vsg::Node> node =
-                        cube.createPhongNode(ambient, diffuse, specular, shininess, opacity, transform);
+                    vsg::ref_ptr<vsg::Node> node = cube.createPhongNode(m_light_position, ambient, diffuse, specular,
+                                                                        shininess, opacity, transform);
 
                     m_scenegraph->addChild(node);
                     m_transformList.push_back(transform);  // we will need it later
@@ -254,8 +255,8 @@ void ChVSGApp::UpdateSceneGraph() {
                     float shininess = 0.6 * 128.0;
                     float opacity = 1.0;
                     ChVSGSphere sphere;
-                    vsg::ref_ptr<vsg::Node> node =
-                        sphere.createPhongNode(ambient, diffuse, specular, shininess, opacity, transform);
+                    vsg::ref_ptr<vsg::Node> node = sphere.createPhongNode(m_light_position, ambient, diffuse, specular,
+                                                                          shininess, opacity, transform);
                     // vsg::ref_ptr<vsg::Node> node = ChVSGShapeFactory::createSpherePhongNode(color, transform);
                     m_scenegraph->addChild(node);
                     m_transformList.push_back(transform);  // we will need it later
@@ -297,8 +298,8 @@ void ChVSGApp::UpdateSceneGraph() {
                     vsg::vec4 specular(0.332741, 0.328634, 0.346435, 1.0);
                     float shininess = 0.3 * 128.0;
                     float opacity = 1.0;
-                    vsg::ref_ptr<vsg::Node> node =
-                        ellipsoid.createPhongNode(ambient, diffuse, specular, shininess, opacity, transform);
+                    vsg::ref_ptr<vsg::Node> node = ellipsoid.createPhongNode(m_light_position, ambient, diffuse,
+                                                                             specular, shininess, opacity, transform);
                     m_scenegraph->addChild(node);
                     m_transformList.push_back(transform);  // we will need it later
                 } else {
@@ -327,8 +328,8 @@ void ChVSGApp::UpdateSceneGraph() {
                     vsg::vec4 specular(0.296648, 0.296648, 0.296648, 1.0);
                     float shininess = 0.088 * 128.0;
                     float opacity = 1.0;
-                    vsg::ref_ptr<vsg::Node> node =
-                        cylinder.createPhongNode(ambient, diffuse, specular, shininess, opacity, transform);
+                    vsg::ref_ptr<vsg::Node> node = cylinder.createPhongNode(m_light_position, ambient, diffuse,
+                                                                            specular, shininess, opacity, transform);
                     m_scenegraph->addChild(node);
                     m_transformList.push_back(transform);  // we will need it later
                 } else {

@@ -84,6 +84,8 @@ class CH_VSG_API ChVSGApp {
 
     float m_clearColor[4];
 
+    vsg::vec3 m_light_position;
+
     vsg::dvec3 m_up_vector;
 
     size_t m_wait_counter;

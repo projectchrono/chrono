@@ -38,7 +38,8 @@ class CH_VSG_API ChVSGShape {
                                                        std::string texFilePath,
                                                        vsg::ref_ptr<vsg::MatrixTransform> transform) = 0;
 
-    virtual vsg::ref_ptr<vsg::Node> createPhongNode(vsg::vec4 ambientColor,
+    virtual vsg::ref_ptr<vsg::Node> createPhongNode(vsg::vec3& lightPosition,
+                                                    vsg::vec4 ambientColor,
                                                     vsg::vec4 diffuseColor,
                                                     vsg::vec4 specularColor,
                                                     float shininess,

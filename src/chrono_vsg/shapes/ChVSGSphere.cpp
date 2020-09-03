@@ -113,7 +113,8 @@ vsg::ref_ptr<vsg::Node> ChVSGSphere::createTexturedNode(vsg::vec4 color,
     return subgraph;
 }
 
-vsg::ref_ptr<vsg::Node> ChVSGSphere::createPhongNode(vsg::vec4 ambientColor,
+vsg::ref_ptr<vsg::Node> ChVSGSphere::createPhongNode(vsg::vec3& lightPosition,
+                                                     vsg::vec4 ambientColor,
                                                      vsg::vec4 diffuseColor,
                                                      vsg::vec4 specularColor,
                                                      float shininess,
@@ -126,6 +127,20 @@ vsg::ref_ptr<vsg::Node> ChVSGSphere::createPhongNode(vsg::vec4 ambientColor,
         std::cout << "Could not create shaders." << std::endl;
         return {};
     }
+
+    auto uniformValue = vsg::vec3Value::create(lightPosition);
+    auto uniformBuffer = vsg::DescriptorBuffer::create(uniformValue, 0);
+    vsg::DescriptorSetLayoutBindings lightSettingsDescriptorBindings{
+        //{0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
+        {0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1,
+         VK_SHADER_STAGE_FRAGMENT_BIT,  // we only need it in the fragment shader program
+         nullptr}                       // { binding, descriptorTpe, descriptorCount, stageFlags, pImmutableSamplers}
+    };
+
+    auto lightSettingsDescriptorSetLayout = vsg::DescriptorSetLayout::create(lightSettingsDescriptorBindings);
+
+    auto uniformDscriptorSet =
+        vsg::DescriptorSet::create(lightSettingsDescriptorSetLayout, vsg::Descriptors{uniformBuffer});
 
     vsg::DescriptorSetLayoutBindings descriptorBindings{
         {0, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_FRAGMENT_BIT,
@@ -140,7 +155,12 @@ vsg::ref_ptr<vsg::Node> ChVSGSphere::createPhongNode(vsg::vec4 ambientColor,
                                               // autoatically provided by the VSG's DispatchTraversal
     };
 
-    auto pipelineLayout = vsg::PipelineLayout::create(descriptorSetLayouts, pushConstantRanges);
+    // auto pipelineLayout = vsg::PipelineLayout::create(descriptorSetLayouts, pushConstantRanges);
+
+    auto pipelineLayout = vsg::PipelineLayout::create(
+        vsg::DescriptorSetLayouts{descriptorSetLayout, lightSettingsDescriptorSetLayout}, pushConstantRanges);
+    auto uniformBindDescriptorSet =
+        vsg::BindDescriptorSet::create(VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 1, uniformDscriptorSet);
 
     vsg::VertexInputState::Bindings vertexBindingsDescriptions{
         VkVertexInputBindingDescription{0, sizeof(vsg::vec3), VK_VERTEX_INPUT_RATE_VERTEX},  // vertex data
@@ -173,10 +193,6 @@ vsg::ref_ptr<vsg::Node> ChVSGSphere::createPhongNode(vsg::vec4 ambientColor,
     auto graphicsPipeline =
         vsg::GraphicsPipeline::create(pipelineLayout, vsg::ShaderStages{vertexShader, fragmentShader}, pipelineStates);
     auto bindGraphicsPipeline = vsg::BindGraphicsPipeline::create(graphicsPipeline);
-
-    auto descriptorSet = vsg::DescriptorSet::create(descriptorSetLayout, vsg::Descriptors{VK_NULL_HANDLE});
-    auto bindDescriptorSets = vsg::BindDescriptorSets::create(
-        VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline->getPipelineLayout(), 0, vsg::DescriptorSets{descriptorSet});
 
     // create StateGroup as the root of the scene/command graph to hold the GraphicsProgram, and binding of
     // Descriptors to decorate the whole graph
@@ -219,6 +235,7 @@ vsg::ref_ptr<vsg::Node> ChVSGSphere::createPhongNode(vsg::vec4 ambientColor,
     drawCommands->addChild(vsg::DrawIndexed::create(indices->size(), 1, 0, 0, 0));
 
     // add drawCommands to transform
+    transform->addChild(uniformBindDescriptorSet);
     transform->addChild(drawCommands);
     subgraph->addChild(transform);
 
