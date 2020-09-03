@@ -442,8 +442,8 @@ __host__ double ChSystemGranularSMC::advance_simulation(float duration) {
     float time_elapsed_SU = 0;  // time elapsed in this advance call
 
     // Run the simulation, there are aggressive synchronizations because we want to have no race conditions
-    for (; time_elapsed_SU < stepSize_SU * nsteps; time_elapsed_SU += stepSize_SU) {
-        updateBCPositions();
+    for (unsigned int n = 0; n < nsteps; n++){
+				updateBCPositions();
 
         runSphereBroadphase();
         packSphereDataPointers();
@@ -488,6 +488,7 @@ __host__ double ChSystemGranularSMC::advance_simulation(float duration) {
         }
 
         elapsedSimTime += (float)(stepSize_SU * TIME_SU2UU);  // Advance current time
+				time_elapsed_SU += stepSize_SU;
     }
 
     return time_elapsed_SU * TIME_SU2UU;  // return elapsed UU time
