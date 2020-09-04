@@ -730,7 +730,7 @@ static __global__ void computeSphereContactForces(GranSphereDataPtr sphere_data,
         for (unsigned char contact_id = 0; contact_id < MAX_SPHERES_TOUCHED_BY_SPHERE; contact_id++) {
             // who am I colliding with?
             bool active_contact = sphere_data->contact_active_map[body_A_offset + contact_id];
-
+ 
             if (active_contact) {
                 unsigned int theirSphereID = sphere_data->contact_partners_map[body_A_offset + contact_id];
 
@@ -758,6 +758,8 @@ static __global__ void computeSphereContactForces(GranSphereDataPtr sphere_data,
                                 sphere_data->pos_Z_dt[theirSphereID]),
                     gran_params);
 
+                    sphere_data->normal_contact_force[body_A_offset + contact_id] = force_accum;
+
                 float hertz_force_factor = std::sqrt(2. * (1 - (1. / reciplength)));  // sqrt(delta_n / (2 R_eff)
 
                 // add frictional terms, if needed
@@ -771,7 +773,7 @@ static __global__ void computeSphereContactForces(GranSphereDataPtr sphere_data,
                     // product
                     vrel_t = vrel_t + Cross((my_omega + their_omega), -1.f * delta_r * sphereRadius_SU);
 
-                    // compute alpha due to rolling resistance
+                    // compute alpha due to rolling resistance (zero if rolling mode is no resistance)
                     float3 rolling_resist_ang_acc = computeRollingAngAcc(
                         sphere_data, gran_params, gran_params->rolling_coeff_s2s_SU, gran_params->spinning_coeff_s2s_SU,
                         force_accum, my_omega, their_omega, delta_r * sphereRadius_SU);
@@ -783,6 +785,16 @@ static __global__ void computeSphereContactForces(GranSphereDataPtr sphere_data,
                         gran_params, sphere_data, body_A_offset + contact_id, gran_params->static_friction_coeff_s2s,
                         gran_params->K_t_s2s_SU, gran_params->Gamma_t_s2s_SU, hertz_force_factor, m_eff, force_accum,
                         vrel_t, delta_r * reciplength);
+
+                    if (gran_params->recording_contactInfo == true){
+                        // record friction force
+                        sphere_data->tangential_friction_force[body_A_offset + contact_id] = tangent_force;
+                        // record rolling resistance torque
+                        float3 rolling_resistance_torque = rolling_resist_ang_acc * gran_params->sphereInertia_by_r * gran_params->sphereRadius_SU;
+                        if (gran_params->rolling_mode != GRAN_ROLLING_MODE::NO_RESISTANCE){
+                            sphere_data->rolling_friction_torque[body_A_offset + contact_id] = rolling_resistance_torque;
+                        }
+                    }
 
                     // tau = r cross f = radius * n cross F
                     // 2 * radius * n = -1 * delta_r * sphdiameter

@@ -286,6 +286,25 @@ __host__ void ChSystemGranularSMC::setupSphereDataStructures() {
         TRACK_VECTOR_RESIZE(contact_history_map, 12 * nSpheres, "contact_history_map", null_history);
     }
 
+    // record normal contact force
+    if (gran_params->recording_contactInfo == true){
+        float3 null_force = {0.0f, 0.0f, 0.0f};
+        TRACK_VECTOR_RESIZE(normal_contact_force, 12 * nSpheres, "normal contact force", null_force);
+    }
+
+    // record friction force
+    if (gran_params->recording_contactInfo == true && gran_params->friction_mode != GRAN_FRICTION_MODE::FRICTIONLESS){
+        float3 null_force = {0.0f, 0.0f, 0.0f};
+        TRACK_VECTOR_RESIZE(tangential_friction_force, 12 * nSpheres, "tangential contact force", null_force);
+    }
+
+    // record rolling friction torque
+    if (gran_params->recording_contactInfo == true && gran_params->rolling_mode != GRAN_ROLLING_MODE::NO_RESISTANCE){
+        float3 null_force = {0.0f, 0.0f, 0.0f};
+        TRACK_VECTOR_RESIZE(rolling_friction_torque, 12 * nSpheres, "rolling friction torque", null_force);
+    }
+
+
     if (time_integrator == GRAN_TIME_INTEGRATOR::CHUNG) {
         TRACK_VECTOR_RESIZE(sphere_acc_X_old, nSpheres, "sphere_acc_X_old", 0);
         TRACK_VECTOR_RESIZE(sphere_acc_Y_old, nSpheres, "sphere_acc_Y_old", 0);

@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Conlain Kelly, Nic Olsen, Dan Negrut
+// Authors: Conlain Kelly, Nic Olsen, Dan Negrut, Luning Fang
 // =============================================================================
 
 #include <cuda.h>
@@ -22,6 +22,8 @@
 #include "chrono/core/ChVector.h"
 #include "chrono_granular/utils/ChGranularUtilities.h"
 #include "chrono_granular/physics/ChGranularBoundaryConditions.h"
+#include "chrono_granular/utils/ChCudaMathUtils.cuh"
+
 
 #ifdef USE_HDF5
 #include "H5Cpp.h"
@@ -173,6 +175,18 @@ void ChSystemGranularSMC::packSphereDataPointers() {
 
     if (gran_params->friction_mode == GRAN_FRICTION_MODE::MULTI_STEP) {
         sphere_data->contact_history_map = contact_history_map.data();
+    }
+
+    if (gran_params->recording_contactInfo == true){
+        sphere_data->normal_contact_force = normal_contact_force.data();
+
+        if (gran_params->friction_mode != GRAN_FRICTION_MODE::FRICTIONLESS){
+            sphere_data->tangential_friction_force = tangential_friction_force.data();
+        }
+
+        if (gran_params->rolling_mode != GRAN_ROLLING_MODE::NO_RESISTANCE){
+            sphere_data->rolling_friction_torque = rolling_friction_torque.data();
+        }
     }
 
     // DN: had to comment this prefetch for now; crashing on Windows
@@ -429,6 +443,63 @@ void ChSystemGranularSMC::writeFile(std::string ofile) const {
 #endif
     } else if (file_write_mode == GRAN_OUTPUT_MODE::NONE) {
         // Do nothing, only here for symmetry
+    }
+}
+
+void ChSystemGranularSMC::writeContactInfoFile(std::string ofile) const {
+    if (gran_params->recording_contactInfo == true) {
+        // write contact info as an csv style in the following format
+        // body i, body j, n_mag, fx, fy, fz, mx, my, mz
+
+        std::ofstream ptFile(ofile + ".csv", std::ios::out);
+        // Dump to a stream, write to file only at end
+        std::ostringstream outstrstream;
+        outstrstream << "bi, bj, n_mag";
+
+        if (gran_params->friction_mode != GRAN_FRICTION_MODE::FRICTIONLESS) {
+            outstrstream << ", fx, fy, fz";
+        }
+
+        if (gran_params->rolling_mode != GRAN_ROLLING_MODE::NO_RESISTANCE){
+            outstrstream << ", mx, my, mz";
+        }
+        outstrstream << "\n";
+        for (unsigned int n = 0; n < nSpheres; n++) {
+            unsigned int bodyAoffset = n * MAX_SPHERES_TOUCHED_BY_SPHERE;
+            // go through all possible neighbors
+            for (unsigned int neighborID = 0; neighborID < MAX_SPHERES_TOUCHED_BY_SPHERE; neighborID++) {
+                int theirSphereMappingID = bodyAoffset + neighborID;
+                int theirSphereID = contact_partners_map[theirSphereMappingID];
+                // only write when bi < bj
+                if (theirSphereID >= n && theirSphereID < nSpheres){
+                        outstrstream << n << ", " << theirSphereID;
+                        // std::cout << n << ", " << theirSphereID;
+                        outstrstream << ", " << Length(normal_contact_force[theirSphereMappingID]) * FORCE_SU2UU;
+                        // std::cout << ", " << Length(normal_contact_force[theirSphereMappingID]) * FORCE_SU2UU;                        
+                        if (gran_params->friction_mode != GRAN_FRICTION_MODE::FRICTIONLESS){
+                        outstrstream << ", " << tangential_friction_force[theirSphereMappingID].x * FORCE_SU2UU   
+                                     << ", " << tangential_friction_force[theirSphereMappingID].y * FORCE_SU2UU 
+                                     << ", " << tangential_friction_force[theirSphereMappingID].z * FORCE_SU2UU;
+                        // std::cout << ", " << tangential_friction_force[theirSphereMappingID].x * FORCE_SU2UU   
+                        //              << ", " << tangential_friction_force[theirSphereMappingID].y * FORCE_SU2UU 
+                        //              << ", " << tangential_friction_force[theirSphereMappingID].z * FORCE_SU2UU;
+                            
+                        }
+                        
+                        if (gran_params->rolling_mode != GRAN_ROLLING_MODE::NO_RESISTANCE){
+                        outstrstream << ", " << rolling_friction_torque[theirSphereMappingID].x * FORCE_SU2UU * LENGTH_SU2UU   
+                                     << ", " << rolling_friction_torque[theirSphereMappingID].y * FORCE_SU2UU * LENGTH_SU2UU 
+                                     << ", " << rolling_friction_torque[theirSphereMappingID].z * FORCE_SU2UU * LENGTH_SU2UU;
+
+                        }
+
+                        outstrstream << "\n";
+                        // std::cout << "\n";
+                }
+            }
+        }
+    ptFile << outstrstream.str();
+
     }
 }
 
