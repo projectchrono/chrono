@@ -758,7 +758,8 @@ static __global__ void computeSphereContactForces(GranSphereDataPtr sphere_data,
                                 sphere_data->pos_Z_dt[theirSphereID]),
                     gran_params);
 
-                    sphere_data->normal_contact_force[body_A_offset + contact_id] = force_accum;
+                if (gran_params->recording_contactInfo == true){
+                    sphere_data->normal_contact_force[body_A_offset + contact_id] = force_accum;}
 
                 float hertz_force_factor = std::sqrt(2. * (1 - (1. / reciplength)));  // sqrt(delta_n / (2 R_eff)
 

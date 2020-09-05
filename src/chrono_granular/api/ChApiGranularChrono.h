@@ -53,6 +53,8 @@ class CH_GRANULAR_API ChGranularChronoTriMeshAPI {
     // Set particle positions in UU
     void setElemsPositions(const std::vector<chrono::ChVector<float>>& points);
 
+    // return particle position in UU 
+    chrono::ChVector<float> getPosition(int nSphere);
     /// Set simualtion verbosity -- used to check on very large, slow simulations or debug
     void setVerbosity(MESH_VERBOSITY level) { mesh_verbosity = level; }
 
@@ -78,6 +80,10 @@ class CH_GRANULAR_API ChGranularSMC_API {
     // instead of passing a gran system pointer to the API (the API builds the gran system; not the API coming in after
     // gran system is up
     void setGranSystem(chrono::granular::ChSystemGranularSMC* granSystem) { gran_sys = granSystem; }
+
+    chrono::ChVector<float> getPosition(int nSphere);
+
+
 
   private:
     chrono::granular::ChSystemGranularSMC* gran_sys;

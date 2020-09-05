@@ -852,6 +852,42 @@ void ChSystemGranularSMC::setParticleFixed(const std::vector<bool>& fixed) {
     user_sphere_fixed = fixed;
 }
 
+// return position in user units given sphere index
+float3 ChSystemGranularSMC::getPosition(int nSphere){
+    // owner SD
+	unsigned int ownerSD = sphere_owner_SDs.at(nSphere);
+    int3 ownerSD_trip = getSDTripletFromID(ownerSD);
+    // local position
+	float x_UU = (float)(sphere_local_pos_X[nSphere] * LENGTH_SU2UU);
+    float y_UU = (float)(sphere_local_pos_Y[nSphere] * LENGTH_SU2UU);
+    float z_UU = (float)(sphere_local_pos_Z[nSphere] * LENGTH_SU2UU);
+    // add big domain position
+    x_UU += (float)(gran_params->BD_frame_X * LENGTH_SU2UU);
+	y_UU += (float)(gran_params->BD_frame_Y * LENGTH_SU2UU);
+    z_UU += (float)(gran_params->BD_frame_Z * LENGTH_SU2UU);
+	// add subdomainNum * subdomain size		
+    x_UU += (float)(((int64_t)ownerSD_trip.x * gran_params->SD_size_X_SU) * LENGTH_SU2UU);
+    y_UU += (float)(((int64_t)ownerSD_trip.y * gran_params->SD_size_Y_SU) * LENGTH_SU2UU);
+    z_UU += (float)(((int64_t)ownerSD_trip.z * gran_params->SD_size_Z_SU) * LENGTH_SU2UU);					
+	return make_float3(x_UU, y_UU, z_UU);
+}
+
+// return number of sphere-to-sphere contacts
+int ChSystemGranularSMC::getNumContacts(){
+    auto contact_itr = contact_partners_map.begin();
+    int total_nc = 0;
+
+    while (contact_itr != contact_partners_map.end()){
+        int body_j = *contact_itr;
+        contact_itr++;
+
+        if (body_j != -1){
+            total_nc++;
+        }
+    }
+
+    return total_nc/2;
+}
 // Partitions the big domain (BD) and sets the number of SDs that BD is split in.
 void ChSystemGranularSMC::partitionBD() {
     double sd_length_scale = 2.0 * sphere_radius_UU * AVERAGE_SPHERES_PER_SD_X_DIR;

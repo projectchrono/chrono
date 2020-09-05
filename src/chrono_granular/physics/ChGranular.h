@@ -493,6 +493,12 @@ class CH_GRANULAR_API ChSystemGranularSMC {
     /// Set particle fixity. MUST be called only once and MUST be called before initialize
     void setParticleFixed(const std::vector<bool>& fixed);
 
+    /// return particle position given sphere index
+    float3 getPosition(int nSphere);
+
+    // return number of sphere-to-sphere contacts
+    int getNumContacts();
+
     /// The offset function for the big domain walls
     GranPositionFunction BDOffsetFunction;
 
