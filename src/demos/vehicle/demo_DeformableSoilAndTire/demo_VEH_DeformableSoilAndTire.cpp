@@ -110,12 +110,10 @@ int main(int argc, char* argv[]) {
     // Displace/rotate the terrain reference plane.
     // Note that SCMDeformableTerrain uses a default ISO reference frame (Z up). Since the mechanism is modeled here in
     // a Y-up global frame, we rotate the terrain plane by -90 degrees about the X axis.
-    mterrain.SetPlane(ChCoordsys<>(ChVector<>(0, 0, 0.3), Q_from_AngX(-CH_C_PI_2)));
+    mterrain.SetPlane(ChCoordsys<>(ChVector<>(0, 0.2, 0.3), Q_from_AngX(-CH_C_PI_2)));
 
     // Initialize the geometry of the soil: use either a regular grid:
-     mterrain.Initialize(0.2,1.5,5,20,60);
-    // or use a height map:
-    //mterrain.Initialize(vehicle::GetDataFile("terrain/height_maps/test64.bmp"), "test64", 1.6, 1.6, 0, 0.3);
+    mterrain.Initialize(1.5, 6, 0.075);
 
     // Set the soil terramechanical parameters:
      mterrain.SetSoilParameters(1.2e6,  // Bekker Kphi
@@ -124,18 +122,15 @@ int main(int argc, char* argv[]) {
                                 0,      // Mohr cohesive limit (Pa)
                                 30,     // Mohr friction limit (degrees)
                                 0.01,   // Janosi shear coefficient (m)
-                                5e7,    // Elastic stiffness (Pa/m), before plastic yield, must be > Kphi
-                                2e4     // Damping (Pa s/m), proportional to negative vertical speed (optional)
-     );
-    mterrain.SetBulldozingFlow(true);    // inflate soil at the border of the rut
-    mterrain.SetBulldozingParameters(55, // angle of friction for erosion of displaced material at the border of the rut
-                                    0.8, // displaced material vs downward pressed material.
-                                    5,   // number of erosion refinements per timestep
-                                    10); // number of concentric vertex selections subject to erosion
-    // Turn on the automatic level of detail refinement, so a coarse terrain mesh
-    // is automatically improved by adding more points under the wheel contact patch:
-    mterrain.SetAutomaticRefinement(true);
-    mterrain.SetAutomaticRefinementResolution(0.02);
+                               5e7,    // Elastic stiffness (Pa/m), before plastic yield, must be > Kphi
+                               2e4     // Damping (Pa s/m), proportional to negative vertical speed (optional)
+    );
+    mterrain.EnableBulldozing(true);  // inflate soil at the border of the rut
+    mterrain.SetBulldozingParameters(
+        55,   // angle of friction for erosion of displaced material at the border of the rut
+        0.8,  // displaced material vs downward pressed material.
+        5,    // number of erosion refinements per timestep
+        10);  // number of concentric vertex selections subject to erosion
 
     // Set some visualization parameters: either with a texture, or with falsecolor plot, etc.
     //mterrain.SetTexture(vehicle::GetDataFile("terrain/textures/grass.jpg"), 16, 16);

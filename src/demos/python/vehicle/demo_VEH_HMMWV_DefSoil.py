@@ -57,7 +57,6 @@ def main():
     my_hmmwv.SetPowertrainType(veh.PowertrainModelType_SHAFTS)
     my_hmmwv.SetDriveType(veh.DrivelineType_AWD)
     my_hmmwv.SetTireType(veh.TireModelType_RIGID)
-    my_hmmwv.SetTireStepSize(tire_step_size)
     my_hmmwv.Initialize()
 
     my_hmmwv.SetChassisVisualizationType(veh.VisualizationType_NONE)
@@ -82,18 +81,14 @@ def main():
                               3e4    # Damping (Pa s/m), proportional to negative vertical speed (optional)
     )
 
-    # Use automatic refinement of the SCM mesh
-    terrain.SetAutomaticRefinement(True)
-    terrain.SetAutomaticRefinementResolution(0.04)
-
     # Optionally, enable moving patch feature (single patch around vehicle chassis)
-    terrain.AddMovingPatch(my_hmmwv.GetChassisBody(), chrono.ChVectorD(0, 0, 0), 5, 3)
+    terrain.AddMovingPatch(my_hmmwv.GetChassisBody(), chrono.ChVectorD(0, 0, 0), chrono.ChVectorD(5, 3, 1))
 
     # Set plot type for SCM (false color plotting)
     terrain.SetPlotType(veh.SCMDeformableTerrain.PLOT_SINKAGE, 0, 0.1);
 
     # Initialize the SCM terrain, specifying the initial mesh grid
-    terrain.Initialize(terrainHeight, terrainLength, terrainWidth, divLength, divWidth);
+    terrain.Initialize(terrainLength, terrainWidth, delta);
 
     # Create the vehicle Irrlicht interface
     app = veh.ChWheeledVehicleIrrApp(my_hmmwv.GetVehicle(), 'HMMWV Deformable Soil Demo', irr.dimension2du(1000,800))
@@ -148,9 +143,8 @@ terrainHeight = 0
 terrainLength = 16.0  # size in X direction
 terrainWidth = 8.0    # size in Y direction
 
-# SCM mesh divisions (X and Y)
-divLength = 128
-divWidth = 64
+# SCM grid spacing
+delta = 0.05
 
 # Simulation step sizes
 step_size = 2e-3;

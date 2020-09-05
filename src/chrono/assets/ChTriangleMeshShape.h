@@ -15,6 +15,8 @@
 #ifndef CHTRIANGLEMESHSHAPE_H
 #define CHTRIANGLEMESHSHAPE_H
 
+#include <vector>
+
 #include "chrono/assets/ChVisualization.h"
 #include "chrono/geometry/ChTriangleMeshConnected.h"
 
@@ -26,15 +28,6 @@ namespace chrono {
 /// but remember that depending on the type of visualization system
 /// (POVray, Irrlich,etc.) these flags might not be supported.
 class ChApi ChTriangleMeshShape : public ChVisualization {
-  protected:
-    std::shared_ptr<geometry::ChTriangleMeshConnected> trimesh;
-
-    bool wireframe;
-    bool backface_cull;
-
-    std::string name;
-    ChVector<> scale;
-
   public:
     ChTriangleMeshShape();
     ~ChTriangleMeshShape() {}
@@ -54,11 +47,28 @@ class ChApi ChTriangleMeshShape : public ChVisualization {
     const ChVector<>& GetScale() const { return scale; }
     void SetScale(const ChVector<>& mscale) { scale = mscale; }
 
+    void SetFixedConnectivity() { fixed_connectivity = true; }
+    bool FixedConnectivity() const { return fixed_connectivity; }
+    void SetModifiedVertices(std::vector<int> vertices) { modified_vertices = vertices; }
+    const std::vector<int>& GetModifiedVertices() const { return modified_vertices; }
+
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOUT(ChArchiveOut& marchive) override;
 
     /// Method to allow de-serialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
+
+  protected:
+    std::shared_ptr<geometry::ChTriangleMeshConnected> trimesh;
+
+    bool wireframe;
+    bool backface_cull;
+
+    std::string name;
+    ChVector<> scale;
+
+    bool fixed_connectivity;
+    std::vector<int> modified_vertices;
 };
 
 CH_CLASS_VERSION(ChTriangleMeshShape, 0)
