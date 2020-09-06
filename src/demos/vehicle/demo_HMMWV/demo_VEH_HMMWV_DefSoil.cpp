@@ -236,7 +236,7 @@ int main(int argc, char* argv[]) {
                                 3e4    // Damping (Pa s/m), proportional to negative vertical speed (optional)
     );
 
-    ////terrain.SetBulldozingFlow(true);      // inflate soil at the border of the rut
+    ////terrain.EnableBulldozing(true);      // inflate soil at the border of the rut
     ////terrain.SetBulldozingParameters(55,   // angle of friction for erosion of displaced material at rut border
     ////                                0.8,  // displaced material vs downward pressed material.
     ////                                5,    // number of erosion refinements per timestep

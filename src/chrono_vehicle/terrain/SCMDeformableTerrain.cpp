@@ -261,6 +261,9 @@ void SCMDeformableTerrain::PrintStepStatistics(std::ostream& os) const {
     os << "   Contact patches:         " << 1e3 * m_ground->m_timer_contact_patches() << std::endl;
     os << "   Contact forces:          " << 1e3 * m_ground->m_timer_contact_forces() << std::endl;
     os << "   Bulldozing:              " << 1e3 * m_ground->m_timer_bulldozing() << std::endl;
+    os << "      Raise boundary:       " << 1e3 * m_ground->m_timer_bulldozing_boundary() << std::endl;
+    os << "      Compute domain:       " << 1e3 * m_ground->m_timer_bulldozing_domain() << std::endl;
+    os << "      Apply erosion:        " << 1e3 * m_ground->m_timer_bulldozing_erosion() << std::endl;
     os << "   Visualization:           " << 1e3 * m_ground->m_timer_visualization() << std::endl;
 
     os << " Counters:" << std::endl;
@@ -803,6 +806,9 @@ void SCMDeformableSoil::ComputeInternalForces() {
     m_timer_contact_patches.reset();
     m_timer_contact_forces.reset();
     m_timer_bulldozing.reset();
+    m_timer_bulldozing_boundary.reset();
+    m_timer_bulldozing_domain.reset();
+    m_timer_bulldozing_erosion.reset();
     m_timer_visualization.reset();
 
     // Reset the load list and map of contact forces
@@ -1132,6 +1138,8 @@ void SCMDeformableSoil::ComputeInternalForces() {
         double dy_lim = m_delta * std::tan(m_erosion_angle * CH_C_DEG_TO_RAD);
 
         // (1) Raise boundaries of each contact patch
+        m_timer_bulldozing_boundary.start();
+
         NodeSet boundary;  // union of contact patch boundaries
         for (auto p : contact_patches) {
             NodeSet p_boundary;  // boundary of effective contact patch
@@ -1175,10 +1183,13 @@ void SCMDeformableSoil::ComputeInternalForces() {
 
         }  // end for contact_patches
 
-        // (2) Calculate erosion domain (dilate boundary)
-        NodeSet erosion_domain = boundary;
+        m_timer_bulldozing_boundary.stop();
 
-        NodeSet erosion_front = boundary;  // initialize errosion front to boundary nodes
+        // (2) Calculate erosion domain (dilate boundary)
+        m_timer_bulldozing_domain.start();
+
+        NodeSet erosion_domain = boundary;
+        NodeSet erosion_front = boundary;  // initialize erosion front to boundary nodes
         for (int i = 0; i < m_erosion_propagations; i++) {
             NodeSet front;                                              // new erosion front
             for (const auto& ij : erosion_front) {                      // for each node in current erosion front
@@ -1208,8 +1219,11 @@ void SCMDeformableSoil::ComputeInternalForces() {
         }
 
         m_num_erosion_nodes = static_cast<int>(erosion_domain.size());
+        m_timer_bulldozing_domain.stop();
 
         // (3) Erosion algorithm on domain
+        m_timer_bulldozing_erosion.start();
+
         for (int iter = 0; iter < m_erosion_iterations; iter++) {
             for (const auto& ij : erosion_domain) {
                 auto& nr = m_grid_map.at(ij);
@@ -1244,6 +1258,8 @@ void SCMDeformableSoil::ComputeInternalForces() {
                 }
             }
         }
+
+        m_timer_bulldozing_erosion.stop();
 
     }  // end do_bulldozing
 

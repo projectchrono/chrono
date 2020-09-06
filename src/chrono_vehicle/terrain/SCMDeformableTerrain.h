@@ -472,6 +472,9 @@ class CH_VEHICLE_API SCMDeformableSoil : public ChLoadContainer {
     ChTimer<double> m_timer_contact_patches;
     ChTimer<double> m_timer_contact_forces;
     ChTimer<double> m_timer_bulldozing;
+    ChTimer<double> m_timer_bulldozing_boundary;
+    ChTimer<double> m_timer_bulldozing_domain;
+    ChTimer<double> m_timer_bulldozing_erosion;
     ChTimer<double> m_timer_visualization;
     int m_num_ray_casts;
     int m_num_ray_hits;
