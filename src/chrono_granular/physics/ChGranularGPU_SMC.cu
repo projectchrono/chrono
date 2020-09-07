@@ -274,6 +274,22 @@ __host__ void ChSystemGranularSMC::setupSphereDataStructures() {
         TRACK_VECTOR_RESIZE(sphere_ang_acc_X, nSpheres, "sphere_ang_acc_X", 0);
         TRACK_VECTOR_RESIZE(sphere_ang_acc_Y, nSpheres, "sphere_ang_acc_Y", 0);
         TRACK_VECTOR_RESIZE(sphere_ang_acc_Z, nSpheres, "sphere_ang_acc_Z", 0);
+
+        {
+            bool user_provided_ang_vel = user_sphere_ang_vel.size() != 0;
+            if (user_provided_ang_vel && user_sphere_ang_vel.size() != nSpheres) {
+                printf("Provided angular velocity array has an unacceptable length.");
+                exit(1);
+            }
+            if (user_provided_ang_vel) {
+                for (unsigned int i = 0; i < nSpheres; i++) {
+                    auto ang_vel = user_sphere_ang_vel.at(i);
+                    sphere_Omega_X.at(i) = (float)(ang_vel.x * TIME_SU2UU);
+                    sphere_Omega_Y.at(i) = (float)(ang_vel.y * TIME_SU2UU);
+                    sphere_Omega_Z.at(i) = (float)(ang_vel.z * TIME_SU2UU);
+                }
+            }
+        }
     }
 
     if (gran_params->friction_mode == GRAN_FRICTION_MODE::MULTI_STEP ||

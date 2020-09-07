@@ -488,7 +488,8 @@ class CH_GRANULAR_API ChSystemGranularSMC {
 
     /// Set initial particle positions. MUST be called only once and MUST be called before initialize
     void setParticlePositions(const std::vector<float3>& points,
-                              const std::vector<float3>& vels = std::vector<float3>());
+                              const std::vector<float3>& vels = std::vector<float3>(),
+                              const std::vector<float3>& ang_vels = std::vector<float3>());
 
     /// Set particle fixity. MUST be called only once and MUST be called before initialize
     void setParticleFixed(const std::vector<bool>& fixed);
@@ -814,6 +815,9 @@ class CH_GRANULAR_API ChSystemGranularSMC {
     /// User-provided sphere velocities in UU
     std::vector<float3> user_sphere_vel;
 
+    // User-provided sphere angular velocities in UU
+    std::vector<float3> user_sphere_ang_vel;
+    
     /// User-provided sphere fixity as bools
     std::vector<bool> user_sphere_fixed;
 
