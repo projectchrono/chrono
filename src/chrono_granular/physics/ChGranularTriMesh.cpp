@@ -83,12 +83,12 @@ void ChSystemGranularSMC_trimesh::initializeTriangles() {
     memset(meshRot, 0.0, sizeof(meshRot));
     meshRot[0] = 1.0;
     for (unsigned int fam = 0; fam < meshSoup->numTriangleFamilies; fam++) {
-        generate_rot_matrix<float>(meshPosRot, tri_params->fam_frame_broad[fam].rot_mat);
+        generate_rot_matrix<float>(meshRot, tri_params->fam_frame_broad[fam].rot_mat);
         tri_params->fam_frame_broad[fam].pos[0] = (float)0.0;
         tri_params->fam_frame_broad[fam].pos[1] = (float)0.0;
         tri_params->fam_frame_broad[fam].pos[2] = (float)0.0;
 
-        generate_rot_matrix<double>(meshPosRot, tri_params->fam_frame_narrow[fam].rot_mat);
+        generate_rot_matrix<double>(meshRot, tri_params->fam_frame_narrow[fam].rot_mat);
         tri_params->fam_frame_narrow[fam].pos[0] = (double)0.0;
         tri_params->fam_frame_narrow[fam].pos[1] = (double)0.0;
         tri_params->fam_frame_narrow[fam].pos[2] = (double)0.0;
