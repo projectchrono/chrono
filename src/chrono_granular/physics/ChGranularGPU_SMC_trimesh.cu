@@ -427,7 +427,7 @@ __global__ void interactionTerrain_TriangleSoup(
                         hertz_force_factor, m_eff, force_accum, v_rel, normal);
 
                     force_accum = force_accum + tangent_force;
-                    sphere_AngAcc = sphere_AngAcc + Cross(-1 * delta, tangent_force) / gran_params->sphereInertia_by_r;
+                    sphere_AngAcc = sphere_AngAcc + Cross(-1 * normal, tangent_force) / gran_params->sphereInertia_by_r;
                 }
 
                 // Use the CD information to compute the force and torque on the family of this triangle
