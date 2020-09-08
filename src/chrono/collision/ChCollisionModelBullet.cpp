@@ -22,7 +22,6 @@
 #include "chrono/collision/bullet/BulletCollision/CollisionShapes/bt2DShape.h"
 #include "chrono/collision/bullet/BulletCollision/CollisionShapes/btBarrelShape.h"
 #include "chrono/collision/bullet/BulletCollision/CollisionShapes/btCEtriangleShape.h"
-#include "chrono/collision/bullet/BulletWorldImporter/btBulletWorldImporter.h"
 #include "chrono/collision/bullet/btBulletCollisionCommon.h"
 #include "chrono/collision/gimpact/GIMPACT/Bullet/btGImpactCollisionAlgorithm.h"
 #include "chrono/collision/gimpact/GIMPACTUtils/btGImpactConvexDecompositionShape.h"

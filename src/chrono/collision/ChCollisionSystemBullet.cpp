@@ -1374,8 +1374,8 @@ void ChCollisionSystemBullet::ReportContacts(ChContactContainer* mcontactcontain
 
                     icontact.reaction_cache = pt.reactions_cache;
 
-                    bool compoundA = (obA->getRootCollisionShape()->getShapeType() == COMPOUND_SHAPE_PROXYTYPE);
-                    bool compoundB = (obB->getRootCollisionShape()->getShapeType() == COMPOUND_SHAPE_PROXYTYPE);
+                    bool compoundA = (obA->getCollisionShape()->getShapeType() == COMPOUND_SHAPE_PROXYTYPE);
+                    bool compoundB = (obB->getCollisionShape()->getShapeType() == COMPOUND_SHAPE_PROXYTYPE);
 
                     int indexA = compoundA ? pt.m_index0 : 0;
                     int indexB = compoundB ? pt.m_index1 : 0;
