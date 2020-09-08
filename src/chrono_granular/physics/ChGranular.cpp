@@ -447,7 +447,11 @@ void ChSystemGranularSMC::writeFile(std::string ofile) const {
 }
 
 void ChSystemGranularSMC::writeContactInfoFile(std::string ofile) const {
-    if (gran_params->recording_contactInfo == true) {
+    if (gran_params->recording_contactInfo == false){
+        printf("ERROR: recording_contactInfo set to false!\n");
+        exit(1);
+    }
+    else {
         // write contact info as an csv style in the following format
         // body i, body j, n_mag, fx, fy, fz, mx, my, mz
 
@@ -473,16 +477,13 @@ void ChSystemGranularSMC::writeContactInfoFile(std::string ofile) const {
                 // only write when bi < bj
                 if (theirSphereID >= n && theirSphereID < nSpheres){
                         outstrstream << n << ", " << theirSphereID;
-                        // std::cout << n << ", " << theirSphereID;
+
                         outstrstream << ", " << Length(normal_contact_force[theirSphereMappingID]) * FORCE_SU2UU;
-                        // std::cout << ", " << Length(normal_contact_force[theirSphereMappingID]) * FORCE_SU2UU;                        
+
                         if (gran_params->friction_mode != GRAN_FRICTION_MODE::FRICTIONLESS){
                         outstrstream << ", " << tangential_friction_force[theirSphereMappingID].x * FORCE_SU2UU   
                                      << ", " << tangential_friction_force[theirSphereMappingID].y * FORCE_SU2UU 
                                      << ", " << tangential_friction_force[theirSphereMappingID].z * FORCE_SU2UU;
-                        // std::cout << ", " << tangential_friction_force[theirSphereMappingID].x * FORCE_SU2UU   
-                        //              << ", " << tangential_friction_force[theirSphereMappingID].y * FORCE_SU2UU 
-                        //              << ", " << tangential_friction_force[theirSphereMappingID].z * FORCE_SU2UU;
                             
                         }
                         
@@ -494,7 +495,6 @@ void ChSystemGranularSMC::writeContactInfoFile(std::string ofile) const {
                         }
 
                         outstrstream << "\n";
-                        // std::cout << "\n";
                 }
             }
         }
