@@ -37,22 +37,21 @@ using namespace chrono;
 using namespace chrono::collision;
 
 void CreateContainer(ChSystemParallel* system) {
-    auto mat_walls = std::make_shared<ChMaterialSurfaceNSC>();
+    auto mat_walls = chrono_types::make_shared<ChMaterialSurfaceNSC>();
     mat_walls->SetFriction(0.3f);
 
     std::shared_ptr<ChBody> container(system->NewBody());
-    container->SetMaterialSurface(mat_walls);
     container->SetBodyFixed(true);
     container->SetCollide(true);
     container->SetMass(10000.0);
 
     double hthick = 0.05;
     container->GetCollisionModel()->ClearModel();
-    utils::AddBoxGeometry(container.get(), ChVector<>(1, 1, hthick), ChVector<>(0, 0, -hthick));
-    utils::AddBoxGeometry(container.get(), ChVector<>(hthick, 1, 1), ChVector<>(-1 - hthick, 0, 1));
-    utils::AddBoxGeometry(container.get(), ChVector<>(hthick, 1, 1), ChVector<>(1 + hthick, 0, 1));
-    utils::AddBoxGeometry(container.get(), ChVector<>(1, hthick, 1), ChVector<>(0, -1 - hthick, 1));
-    utils::AddBoxGeometry(container.get(), ChVector<>(1, hthick, 1), ChVector<>(0, 1 + hthick, 1));
+    utils::AddBoxGeometry(container.get(), mat_walls, ChVector<>(1, 1, hthick), ChVector<>(0, 0, -hthick));
+    utils::AddBoxGeometry(container.get(), mat_walls, ChVector<>(hthick, 1, 1), ChVector<>(-1 - hthick, 0, 1));
+    utils::AddBoxGeometry(container.get(), mat_walls, ChVector<>(hthick, 1, 1), ChVector<>(1 + hthick, 0, 1));
+    utils::AddBoxGeometry(container.get(), mat_walls, ChVector<>(1, hthick, 1), ChVector<>(0, -1 - hthick, 1));
+    utils::AddBoxGeometry(container.get(), mat_walls, ChVector<>(1, hthick, 1), ChVector<>(0, 1 + hthick, 1));
     container->GetCollisionModel()->BuildModel();
 
     system->AddBody(container);
@@ -60,7 +59,7 @@ void CreateContainer(ChSystemParallel* system) {
 
 void CreateGranularMaterial(ChSystemParallel* sys) {
     // Common material
-    auto ballMat = std::make_shared<ChMaterialSurfaceNSC>();
+    auto ballMat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
     ballMat->SetFriction(.5);
 
     // Create the falling balls
@@ -76,7 +75,6 @@ void CreateGranularMaterial(ChSystemParallel* sys) {
                 ChVector<> pos(0.4 * ix, 0.4 * iy, 0.4 * iz + 1);
 
                 std::shared_ptr<ChBody> ball(sys->NewBody());
-                ball->SetMaterialSurface(ballMat);
 
                 ball->SetMass(mass);
                 ball->SetInertiaXX(inertia);
@@ -86,7 +84,7 @@ void CreateGranularMaterial(ChSystemParallel* sys) {
                 ball->SetCollide(true);
 
                 ball->GetCollisionModel()->ClearModel();
-                utils::AddSphereGeometry(ball.get(), radius);
+                utils::AddSphereGeometry(ball.get(), ballMat, radius);
                 ball->GetCollisionModel()->BuildModel();
 
                 sys->AddBody(ball);
@@ -115,9 +113,8 @@ void SetupSystem(ChSystemParallelNSC* msystem) {
     msystem->ChangeSolverType(SolverType::APGD);
     msystem->GetSettings()->collision.collision_envelope = 0.00;
     msystem->GetSettings()->collision.bins_per_axis = vec3(10, 10, 10);
-    CHOMPfunctions::SetNumThreads(1);
-    msystem->GetSettings()->max_threads = 1;
-    msystem->GetSettings()->perform_thread_tuning = false;
+
+    msystem->SetNumThreads(1);
 
     CreateContainer(msystem);
     CreateGranularMaterial(msystem);
@@ -223,8 +220,8 @@ void CompareContacts(ChParallelDataManager* data_manager,
 TEST(ChronoParallel, jacobians) {
     bool animate = false;
 
-    CHOMPfunctions::SetNumThreads(1);
     ChSystemParallelNSC* msystem = new ChSystemParallelNSC();
+    msystem->SetNumThreads(1);
 
 #ifdef BULLET
     msystem->ChangeCollisionSystem(CollisionSystemType::COLLSYS_BULLET_PARALLEL);

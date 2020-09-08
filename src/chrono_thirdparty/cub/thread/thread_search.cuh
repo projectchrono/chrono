@@ -1,6 +1,6 @@
 /******************************************************************************
  * Copyright (c) 2011, Duane Merrill.  All rights reserved.
- * Copyright (c) 2011-2015, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2011-2017, NVIDIA CORPORATION.  All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -50,7 +50,7 @@ template <
     typename BIteratorT,
     typename OffsetT,
     typename CoordinateT>
-__device__ __forceinline__ void MergePathSearch(
+__host__ __device__ __forceinline__ void MergePathSearch(
     OffsetT         diagonal,
     AIteratorT      a,
     BIteratorT      b,

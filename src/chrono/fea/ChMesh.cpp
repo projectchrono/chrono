@@ -27,8 +27,7 @@
 #include "chrono/fea/ChElementTetra_4.h"
 #include "chrono/fea/ChMesh.h"
 #include "chrono/fea/ChNodeFEAxyz.h"
-
-using namespace std;
+#include "chrono/fea/ChNodeFEAxyzrot.h"
 
 namespace chrono {
 namespace fea {
@@ -85,21 +84,43 @@ void ChMesh::SetNoSpeedNoAcceleration() {
 void ChMesh::AddNode(std::shared_ptr<ChNodeFEAbase> m_node) {
     m_node->SetIndex(static_cast<unsigned int>(vnodes.size()) + 1);
     vnodes.push_back(m_node);
+
+    // If the mesh is already added to a system, mark the system uninitialized and out-of-date
+    if (system) {
+        system->is_initialized = false;
+        system->is_updated = false;
+    }
 }
 
 void ChMesh::AddElement(std::shared_ptr<ChElementBase> m_elem) {
     velements.push_back(m_elem);
+
+    // If the mesh is already added to a system, mark the system uninitialized and out-of-date
+    if (system) {
+        system->is_initialized = false;
+        system->is_updated = false;
+    }
 }
 
 void ChMesh::ClearElements() {
     velements.clear();
     vcontactsurfaces.clear();
+
+    // If the mesh is already added to a system, mark the system out-of-date
+    if (system) {
+        system->is_updated = false;
+    }
 }
 
 void ChMesh::ClearNodes() {
     velements.clear();
     vnodes.clear();
     vcontactsurfaces.clear();
+
+    // If the mesh is already added to a system, mark the system out-of-date
+    if (system) {
+        system->is_updated = false;
+    }
 }
 
 void ChMesh::AddContactSurface(std::shared_ptr<ChContactSurface> m_surf) {
@@ -191,8 +212,8 @@ void ChMesh::IntStateScatter(const unsigned int off_x,
                              const ChState& x,          
                              const unsigned int off_v,  
                              const ChStateDelta& v,     
-                             const double T)            
-{
+                             const double T,
+                             bool full_update) {
     unsigned int local_off_x = 0;
     unsigned int local_off_v = 0;
     for (unsigned int j = 0; j < vnodes.size(); j++) {
@@ -203,7 +224,7 @@ void ChMesh::IntStateScatter(const unsigned int off_x,
         }
     }
 
-    Update(T);
+    Update(T, full_update);
 }
 
 void ChMesh::IntStateGatherAcceleration(const unsigned int off_a, ChStateDelta& a) {
@@ -250,7 +271,7 @@ void ChMesh::IntLoadResidual_F(const unsigned int off,
                                ChVectorDynamic<>& R,   
                                const double c          
                                ) {
-    // applied nodal forces
+    // nodes applied forces
     unsigned int local_off_v = 0;
     for (unsigned int j = 0; j < vnodes.size(); j++) {
         if (!vnodes[j]->GetFixed()) {
@@ -259,35 +280,44 @@ void ChMesh::IntLoadResidual_F(const unsigned int off,
         }
     }
 
-    // internal forces
+    // elements internal forces
     timer_internal_forces.start();
-#pragma omp parallel for schedule(dynamic, 4)
+    #pragma omp parallel for schedule(dynamic, 4) //***PARALLEL FOR***, must use omp atomic to avoid race condition in writing to R
     for (int ie = 0; ie < velements.size(); ie++) {
         velements[ie]->EleIntLoadResidual_F(R, c);
     }
     timer_internal_forces.stop();
     ncalls_internal_forces++;
 
-    // Apply gravity loads without the need of adding
-    // a ChLoad object to each element: just instance here a single ChLoad and reuse
-    // it for all 'volume' objects.
+    // elements gravity forces 
     if (automatic_gravity_load) {
-        std::shared_ptr<ChLoadableUVW> mloadable;  // still null
-        auto common_gravity_loader = std::make_shared<ChLoad<ChLoaderGravity>>(mloadable);
-        common_gravity_loader->loader.Set_G_acc(GetSystem()->Get_G_acc());
-        common_gravity_loader->loader.SetNumIntPoints(num_points_gravity);
-
-        for (unsigned int ie = 0; ie < velements.size(); ie++) {
-            if ((mloadable = std::dynamic_pointer_cast<ChLoadableUVW>(velements[ie]))) {
-                if (mloadable->GetDensity()) {
-                    // temporary set loader target and compute generalized forces term
-                    common_gravity_loader->loader.loadable = mloadable;
-                    common_gravity_loader->ComputeQ(0, 0);
-                    common_gravity_loader->LoadIntLoadResidual_F(R, c);
+        #pragma omp parallel for schedule(dynamic, 4) //***PARALLEL FOR***, must use omp atomic to avoid race condition in writing to R
+        for (int ie = 0; ie < velements.size(); ie++) {
+            velements[ie]->EleIntLoadResidual_F_gravity(R, GetSystem()->Get_G_acc(), c);
+        }
+    }
+    
+    // nodes gravity forces
+    local_off_v = 0;
+    if (automatic_gravity_load && this->system) {
+        //#pragma omp parallel for schedule(dynamic, 4) //***PARALLEL FOR***, (no need here to use omp atomic to avoid race condition in writing to R)
+        for (int in = 0; in < vnodes.size(); in++) {
+            if (!vnodes[in]->GetFixed()) {
+                if (auto mnode = std::dynamic_pointer_cast<ChNodeFEAxyz>(vnodes[in])) {
+                    ChVector<> fg = c * mnode->GetMass() * this->system->Get_G_acc();
+                    R.segment(off + local_off_v, 3) += fg.eigen();
                 }
+                // odd stuf here... the ChNodeFEAxyzrot is not inherited from ChNodeFEAxyz so must trap it too:
+                if (auto mnode = std::dynamic_pointer_cast<ChNodeFEAxyzrot>(vnodes[in])) {
+                    ChVector<> fg = c * mnode->GetMass() * this->system->Get_G_acc();
+                    R.segment(off + local_off_v, 3) += fg.eigen();
+                }
+                local_off_v += vnodes[in]->Get_ndof_w();
             }
         }
     }
+
+
 }
 
 void ChMesh::ComputeMassProperties(double& mass,           // ChMesh object mass

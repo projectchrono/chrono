@@ -41,9 +41,7 @@ namespace generic {
 /// subsystems (suspensions, steering, tires, etc.)
 class CH_MODELS_API Generic_Vehicle : public ChWheeledVehicle {
   public:
-    Generic_Vehicle(const bool fixed,
-                    SuspensionType suspType,
-                    ChMaterialSurface::ContactMethod contactMethod = ChMaterialSurface::NSC);
+    Generic_Vehicle(const bool fixed, SuspensionType suspType, ChContactMethod contactMethod = ChContactMethod::NSC);
 
     ~Generic_Vehicle() {}
 
@@ -53,13 +51,13 @@ class CH_MODELS_API Generic_Vehicle : public ChWheeledVehicle {
     virtual double GetMinTurningRadius() const override { return 8.0; }
     virtual double GetMaxSteeringAngle() const override { return 25 * CH_C_DEG_TO_RAD; }
 
-    double GetSpringForce(const WheelID& wheel_id) const;
-    double GetSpringLength(const WheelID& wheel_id) const;
-    double GetSpringDeformation(const WheelID& wheel_id) const;
+    double GetSpringForce(int axle, VehicleSide side) const;
+    double GetSpringLength(int axle, VehicleSide side) const;
+    double GetSpringDeformation(int axle, VehicleSide side) const;
 
-    double GetShockForce(const WheelID& wheel_id) const;
-    double GetShockLength(const WheelID& wheel_id) const;
-    double GetShockVelocity(const WheelID& wheel_id) const;
+    double GetShockForce(int axle, VehicleSide side) const;
+    double GetShockLength(int axle, VehicleSide side) const;
+    double GetShockVelocity(int axle, VehicleSide side) const;
 
     virtual void Initialize(const ChCoordsys<>& chassisPos, double chassisFwdVel = 0) override;
 

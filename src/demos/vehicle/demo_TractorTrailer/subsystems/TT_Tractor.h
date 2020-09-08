@@ -27,7 +27,7 @@ class TT_Tractor : public chrono::vehicle::ChWheeledVehicle {
   public:
     TT_Tractor(const bool fixed,
                chrono::vehicle::SuspensionType suspType,
-               chrono::ChMaterialSurface::ContactMethod contactMethod = chrono::ChMaterialSurface::NSC);
+               chrono::ChContactMethod contactMethod = chrono::ChContactMethod::NSC);
 
     ~TT_Tractor() {}
 
@@ -37,13 +37,13 @@ class TT_Tractor : public chrono::vehicle::ChWheeledVehicle {
     virtual double GetMinTurningRadius() const override { return 7.7; }
     virtual double GetMaxSteeringAngle() const override { return 30 * chrono::CH_C_DEG_TO_RAD; }
 
-    double GetSpringForce(const chrono::vehicle::WheelID& wheel_id) const;
-    double GetSpringLength(const chrono::vehicle::WheelID& wheel_id) const;
-    double GetSpringDeformation(const chrono::vehicle::WheelID& wheel_id) const;
+    double GetSpringForce(int axle, chrono::vehicle::VehicleSide side) const;
+    double GetSpringLength(int axle, chrono::vehicle::VehicleSide side) const;
+    double GetSpringDeformation(int axle, chrono::vehicle::VehicleSide side) const;
 
-    double GetShockForce(const chrono::vehicle::WheelID& wheel_id) const;
-    double GetShockLength(const chrono::vehicle::WheelID& wheel_id) const;
-    double GetShockVelocity(const chrono::vehicle::WheelID& wheel_id) const;
+    double GetShockForce(int axle, chrono::vehicle::VehicleSide side) const;
+    double GetShockLength(int axle, chrono::vehicle::VehicleSide side) const;
+    double GetShockVelocity(int axle, chrono::vehicle::VehicleSide side) const;
 
     virtual void Initialize(const chrono::ChCoordsys<>& chassisPos, double chassisFwdVel = 0) override;
 

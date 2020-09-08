@@ -29,7 +29,7 @@ class ChApi ChShaftsCouple : public ChPhysicsItem {
     ChShaft* shaft2;  ///< second shaft
 
   public:
-    ChShaftsCouple() : shaft1(NULL), shaft2(NULL) {}
+    ChShaftsCouple() : shaft1(nullptr), shaft2(nullptr) {}
     ChShaftsCouple(const ChShaftsCouple& other) : ChPhysicsItem(other) {}
     ~ChShaftsCouple() {}
 

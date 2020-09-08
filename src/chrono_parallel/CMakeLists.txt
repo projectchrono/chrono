@@ -73,7 +73,18 @@ ENDIF()
 
 # ----- Thrust library -----
 
-find_package(Thrust)
+
+# Workaround for FreeBSD ports devel/thrust
+if (${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD")
+  find_path(THRUST_INCLUDE_DIR NAMES thrust/version.h PATHS "/usr/local" "/usr/local/include")
+  if (THRUST_INCLUDE_DIR)
+    set(${THRUST_FOUND} TRUE)
+  else()
+    message(FATAL_ERROR "THRUST_INCLUDE_DIR is not set, but it is required.")
+  endif()
+else()
+  find_package(Thrust)
+endif()
 
 if(NOT THRUST_FOUND)
   mark_as_advanced(CLEAR THRUST_INCLUDE_DIR)
@@ -89,6 +100,8 @@ ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
   FIND_PATH(BLAZE_DIR NAMES blaze/Blaze.h PATHS "/usr/include" "/usr/local/include")
 ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
   FIND_PATH(BLAZE_DIR NAMES blaze/Blaze.h PATHS "/usr/include" "/usr/local/include")
+else()
+  find_path(BLAZE_DIR NAMES blaze/Blaze.h PATHS "/usr/include" "/usr/local/include")
 ENDIF()
 
 # Extract Blaze version
@@ -307,6 +320,11 @@ SET(ChronoEngine_Parallel_COLLISION
     collision/ChCollisionSystemParallel.cpp
     collision/ChContactContainerParallel.h
     collision/ChContactContainerParallel.cpp
+    collision/ChContactContainerParallelNSC.h
+    collision/ChContactContainerParallelNSC.cpp
+    collision/ChContactContainerParallelSMC.h
+    collision/ChContactContainerParallelSMC.cpp
+
     )
 
 IF(USE_PARALLEL_BULLET)
@@ -459,7 +477,7 @@ IF(USE_PARALLEL_CUDA)
             ${ChronoEngine_Parallel_SOLVER}
             ${ChronoEngine_Parallel_MATH}
             ) 
-    SET(CHRONO_PARALLEL_LINKED_LIBRARIES ChronoEngine ${CUDA_FRAMEWORK} ${TBB_LIBRARIES})
+    SET(CHRONO_PARALLEL_LINKED_LIBRARIES ChronoEngine ${CUDA_FRAMEWORK} ${OPENMP_LIBRARIES} ${TBB_LIBRARIES})
 ELSE()
     ADD_LIBRARY(ChronoEngine_parallel SHARED
             ${ChronoEngine_Parallel_BASE}
@@ -469,12 +487,20 @@ ELSE()
             ${ChronoEngine_Parallel_SOLVER}
             ${ChronoEngine_Parallel_MATH}
             )
-    SET(CHRONO_PARALLEL_LINKED_LIBRARIES ChronoEngine ${TBB_LIBRARIES})
+    SET(CHRONO_PARALLEL_LINKED_LIBRARIES ChronoEngine ${OPENMP_LIBRARIES} ${TBB_LIBRARIES})
 ENDIF()
 
+# On Visual Studio, disable warning C4146 from Blaze
+# ("unary minus operator applied to unsigned type, result still unsigned")
+if(MSVC)
+    target_compile_options(ChronoEngine_parallel PUBLIC "/wd4146" )
+endif()
+
 SET_TARGET_PROPERTIES(ChronoEngine_parallel PROPERTIES
-                      LINK_FLAGS "${CH_LINKERFLAG_SHARED}"
-                      COMPILE_DEFINITIONS "CH_API_COMPILE_PARALLEL")
+                      LINK_FLAGS "${CH_LINKERFLAG_SHARED}")
+
+target_compile_definitions(ChronoEngine_parallel PRIVATE "CH_API_COMPILE_PARALLEL")
+target_compile_definitions(ChronoEngine_parallel PRIVATE "CH_IGNORE_DEPRECATED")
 
 TARGET_LINK_LIBRARIES(ChronoEngine_parallel ${CHRONO_PARALLEL_LINKED_LIBRARIES})
 

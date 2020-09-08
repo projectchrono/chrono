@@ -98,39 +98,38 @@ int main(int argc, char* argv[]) {
     // Create all the rigid bodies!!!!
     //
 
-    // ..create the five pendulums (bodies are Irrlicht nodes of
-    //   the special class ChBodySceneNode, which encapsulate ChBody items ):
+    // ..create the five pendulums
 
     for (int k = 0; k < 5; k++) {
         double z_step = (double)k * 2.;
 
         // .. the truss
-        auto mrigidBody0 = std::make_shared<ChBodyEasyBox>(5, 1, 0.5,  // x,y,z size
-                                                           100,        // density
-                                                           false,      // collide enable?
-                                                           true);      // visualization?
+        auto mrigidBody0 = chrono_types::make_shared<ChBodyEasyBox>(5, 1, 0.5,  // x,y,z size
+                                                                    100,        // density
+                                                                    true,       // visualization?
+                                                                    false);     // collision?
         mrigidBody0->SetPos(ChVector<>(0, 0, z_step));
         mrigidBody0->SetBodyFixed(true);  // the truss does not move!
         my_system.Add(mrigidBody0);
 
-        auto mrigidBody1 = std::make_shared<ChBodyEasyBox>(1, 6, 1,  // x,y,z size
-                                                           1,        // density
-                                                           false,    // collide enable?
-                                                           true);    // visualization?);
+        auto mrigidBody1 = chrono_types::make_shared<ChBodyEasyBox>(1, 6, 1,  // x,y,z size
+                                                                    1,        // density
+                                                                    true,     // visualization?
+                                                                    false);   // collision?
         mrigidBody1->SetPos(ChVector<>(0, -3, z_step));
         my_system.Add(mrigidBody1);
 
-        auto mrigidBody2 = std::make_shared<ChBodyEasyBox>(1, 6, 1,  // x,y,z size
-                                                           1,        // density
-                                                           false,    // collide enable?
-                                                           true);    // visualization?
+        auto mrigidBody2 = chrono_types::make_shared<ChBodyEasyBox>(1, 6, 1,  // x,y,z size
+                                                                    1,        // density
+                                                                    true,     // visualization?
+                                                                    false);   // collision?
         mrigidBody2->SetPos(ChVector<>(0, -9, z_step));
         my_system.Add(mrigidBody2);
 
-        auto mrigidBody3 = std::make_shared<ChBodyEasyBox>(6, 1, 1,  // x,y,z size
-                                                           1,        // density
-                                                           false,    // collide enable?
-                                                           true);    // visualization?
+        auto mrigidBody3 = chrono_types::make_shared<ChBodyEasyBox>(6, 1, 1,  // x,y,z size
+                                                                    1,        // density
+                                                                    true,     // visualization?
+                                                                    false);   // collision?
         mrigidBody3->SetPos(ChVector<>(3, -12, z_step));
         my_system.Add(mrigidBody3);
 
@@ -140,7 +139,7 @@ int main(int argc, char* argv[]) {
 
         // .. a joint of type 'point on a line', with upper and lower limits on
         //    the X sliding direction, for the pendulum-ground constraint.
-        auto my_link_01 = std::make_shared<ChLinkLockPointLine>();
+        auto my_link_01 = chrono_types::make_shared<ChLinkLockPointLine>();
         my_link_01->Initialize(mrigidBody1, mrigidBody0, ChCoordsys<>(ChVector<>(0, 0, z_step)));
 
         my_link_01->GetLimit_X().SetActive(true);
@@ -150,12 +149,12 @@ int main(int argc, char* argv[]) {
         my_system.AddLink(my_link_01);
 
         // .. a spherical joint
-        auto my_link_12 = std::make_shared<ChLinkLockSpherical>();
+        auto my_link_12 = chrono_types::make_shared<ChLinkLockSpherical>();
         my_link_12->Initialize(mrigidBody2, mrigidBody1, ChCoordsys<>(ChVector<>(0, -6, z_step)));
         my_system.AddLink(my_link_12);
 
         // .. a spherical joint
-        auto my_link_23 = std::make_shared<ChLinkLockSpherical>();
+        auto my_link_23 = chrono_types::make_shared<ChLinkLockSpherical>();
         my_link_23->Initialize(mrigidBody3, mrigidBody2, ChCoordsys<>(ChVector<>(0, -12, z_step)));
         my_system.AddLink(my_link_23);     
     }
@@ -164,9 +163,8 @@ int main(int argc, char* argv[]) {
     // THE SOFT-REAL-TIME CYCLE
     //
 
-    // create a 'fan ventilator' object, using Irrlicht mesh
-    // loading and handling (this object is here for aesthetical reasons,
-    // it is NOT handled by Chrono::Engine).
+    // Create a 'fan ventilator' object, using Irrlicht mesh loading and handling 
+    // (this object is here for aesthetical reasons, it is NOT handled by Chrono)
     double fan_radius = 5.3;
     IAnimatedMesh* fanMesh = application.GetSceneManager()->getMesh(GetChronoDataFile("fan2.obj").c_str());
     IAnimatedMeshSceneNode* fanNode = application.GetSceneManager()->addAnimatedMeshSceneNode(fanMesh);

@@ -23,7 +23,6 @@
 #include <string>
 
 #include "chrono_vehicle/ChApiVehicle.h"
-#include "chrono_vehicle/wheeled_vehicle/test_rig/ChSuspensionTestRig.h"
 
 namespace chrono {
 namespace vehicle {
@@ -32,14 +31,11 @@ namespace vehicle {
 /// @{
 
 /// Base class for a suspension test rig driver system.
-/// A driver system must be able to report the current values of the inputs
-/// (left post, right post, steering). A concrete driver class must set the member
-/// variables m_displacementLeft, m_displacementRight, and m_steering.
+/// A driver system must be able to report the current values of the inputs (left post, right post, steering).
+/// A concrete driver class must set the member variables m_displacementLeft, m_displacementRight, m_steering,
+/// and - if possible - the rates of change for the displacements (otherwise left at their default value of 0).
 class CH_VEHICLE_API ChDriverSTR {
   public:
-    ChDriverSTR(ChSuspensionTestRig& rig  ///< associated rig
-                );
-
     virtual ~ChDriverSTR() {}
 
     /// Get the left post vertical displacement (in the range [-1,+1])
@@ -48,17 +44,21 @@ class CH_VEHICLE_API ChDriverSTR {
     /// Get the right post vertical displacement (in the range [-1,+1])
     double GetDisplacementRight() const { return m_displRight; }
 
+    /// Get the left post displacement rate of change.
+    double GetDisplacementSpeedLeft() const { return m_displSpeedLeft; }
+
+    /// Get the right post displacement rate of change.
+    double GetDisplacementSpeedRight() const { return m_displSpeedRight; }
+
     /// Get the driver steering input (in the range [-1,+1])
     double GetSteering() const { return m_steering; }
 
-    /// Initialize this driver system.
-    virtual void Initialize() {}
+    /// Return false while driver inputs are ignored (while the rig is reaching the ride height configuration) and true
+    /// otherwise. In general, outputs from the test rig should only be collected while Started returns true.
+    bool Started() const;
 
-    /// Update the state of this driver system at the current time.
-    virtual void Synchronize(double time) {}
-
-    /// Advance the state of this driver system by the specified time step.
-    virtual void Advance(double step) {}
+    /// Return true when driver stopped producing inputs.
+    virtual bool Ended() const { return false; }
 
     /// Initialize output file for recording driver inputs.
     bool LogInit(const std::string& filename);
@@ -66,23 +66,37 @@ class CH_VEHICLE_API ChDriverSTR {
     /// Record the current driver inputs to the log file.
     bool Log(double time);
 
-    /// Overwrite the value for the driver left post displacement input.
+  protected:
+    ChDriverSTR();
+
+    /// Initialize this driver system.
+    virtual void Initialize() {}
+
+    /// Update the state of this driver system at the current time.
+    virtual void Synchronize(double time);
+
+    /// Set the value for the driver left post displacement input.
     void SetDisplacementLeft(double val, double min_val = -1, double max_val = 1);
 
-    /// Overwrite the value for the driver right post displacement input.
+    /// Set the value for the driver right post displacement input.
     void SetDisplacementRight(double val, double min_val = -1, double max_val = 1);
 
-    /// Overwrite the value for the driver steering input.
+    /// Set the value for the driver steering input.
     void SetSteering(double val, double min_val = -1, double max_val = 1);
 
-  protected:
-    ChSuspensionTestRig& m_rig;  ///< reference to associated suspension test rig
-    double m_displLeft;          ///< current value of left post displacement
-    double m_displRight;         ///< current value of right post displacement
-    double m_steering;           ///< current value of steering input
+    double m_displLeft;        ///< current value of left post displacement
+    double m_displRight;       ///< current value of right post displacement
+    double m_displSpeedLeft;   ///< current value of left post displacement rate of change
+    double m_displSpeedRight;  ///< current value of right post displacement rate of change
+    double m_steering;         ///< current value of steering input
+
+    double m_delay;  ///< time delay before generating inputs
 
   private:
+    double m_time;               ///< time of last synchronization
     std::string m_log_filename;  ///< name of output file for recording driver inputs
+
+    friend class ChSuspensionTestRig;
 };
 
 /// @} vehicle_wheeled_test_rig

@@ -57,7 +57,7 @@ void AddContainer(ChSystemParallelNSC* sys) {
     int mixerId = -201;
 
     // Create a common material
-    auto mat = std::make_shared<ChMaterialSurfaceNSC>();
+    auto mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
     mat->SetFriction(0.4f);
 
     ChVector<> hdim(.55, .6, .55);
@@ -70,7 +70,7 @@ void AddContainer(ChSystemParallelNSC* sys) {
 // Create the 3DOF particles with spherical contact
 // -----------------------------------------------------------------------------
 void AddParticles(ChSystemParallelNSC* sys) {
-    auto particle_container = std::make_shared<ChParticleContainer>();
+    auto particle_container = chrono_types::make_shared<ChParticleContainer>();
     sys->Add3DOFContainer(particle_container);
 
     particle_container->contact_cohesion = 0;
@@ -110,8 +110,6 @@ void AddParticles(ChSystemParallelNSC* sys) {
 int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
-    int threads = 8;
-
     // Simulation parameters
     // ---------------------
 
@@ -128,13 +126,9 @@ int main(int argc, char* argv[]) {
     // -------------
 
     ChSystemParallelNSC msystem;
-    // omp_set_num_threads(4);
-    // Set number of threads.
-    //    int max_threads = 2;//CHOMPfunctions::GetNumProcs();
-    //    if (threads > max_threads)
-    //        threads = max_threads;
-    //    msystem.SetParallelThreadNumber(threads);
-    //    CHOMPfunctions::SetNumThreads(threads);
+
+    // Set number of threads
+    msystem.SetNumThreads(8);
 
     // Set gravitational acceleration
     msystem.Set_G_acc(ChVector<>(0, 0, -gravity));

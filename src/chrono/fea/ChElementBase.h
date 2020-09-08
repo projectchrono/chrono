@@ -9,16 +9,16 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Andrea Favali, Alessandro Tasora
+// Authors: Andrea Favali, Alessandro Tasora, Radu Serban
 // =============================================================================
 
 #ifndef CHELEMENTBASE_H
 #define CHELEMENTBASE_H
 
-#include "chrono/physics/ChContinuumMaterial.h"
 #include "chrono/physics/ChLoadable.h"
 #include "chrono/core/ChMath.h"
 #include "chrono/solver/ChSystemDescriptor.h"
+#include "chrono/fea/ChContinuumMaterial.h"
 #include "chrono/fea/ChNodeFEAbase.h"
 
 namespace chrono {
@@ -27,12 +27,16 @@ namespace fea {
 /// @addtogroup fea_elements
 /// @{
 
+struct ChStrainStress3D {
+    ChVectorN<double, 6> strain;
+    ChVectorN<double, 6> stress;
+};
+
 /// Base class for all finite elements, that can be used in the ChMesh physics item.
 class ChApi ChElementBase {
-  protected:
   public:
-    ChElementBase(){};
-    virtual ~ChElementBase(){};
+    ChElementBase() {}
+    virtual ~ChElementBase() {}
 
     /// Gets the number of nodes used by this element.
     virtual int GetNnodes() = 0;
@@ -53,17 +57,14 @@ class ChApi ChElementBase {
     // FEM functions
     //
 
-    /// Fills the D vector (column matrix) with the current
-    /// field values at the nodes of the element, with proper ordering.
-    /// If the D vector has not the size of this->GetNdofs(), it will be resized.
+    /// Fills the D vector with the current field values at the nodes of the element, with proper ordering.
+    /// If the D vector size is not this->GetNdofs(), it will be resized.
     /// For corotational elements, field is assumed in local reference!
-    /// CHLDREN CLASSES MUST IMPLEMENT THIS!!!
-    virtual void GetStateBlock(ChMatrixDynamic<>& mD) = 0;
+    virtual void GetStateBlock(ChVectorDynamic<>& mD) = 0;
 
     /// Sets M as the mass matrix.
     /// The matrix is expressed in global reference.
-    /// CHLDREN CLASSES MUST IMPLEMENT THIS!!!
-    virtual void ComputeMmatrixGlobal(ChMatrix<>& M) = 0;
+    virtual void ComputeMmatrixGlobal(ChMatrixRef M) = 0;
 
     /// Compute element's nodal masses.
     virtual void ComputeNodalMass() {}
@@ -72,19 +73,16 @@ class ChApi ChElementBase {
     /// superimposes global damping matrix R, scaled by Rfactor, and mass matrix M,
     /// scaled by Mfactor. Matrices are expressed in global reference.
     /// Corotational elements can take the local Kl & Rl matrices and rotate them.
-    /// CHLDREN CLASSES MUST IMPLEMENT THIS!!!
-    virtual void ComputeKRMmatricesGlobal(ChMatrix<>& H, double Kfactor, double Rfactor = 0, double Mfactor = 0) = 0;
+    virtual void ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfactor, double Rfactor = 0, double Mfactor = 0) = 0;
 
-    /// Computes the internal forces (ex. the actual position of
-    /// nodes is not in relaxed reference position) and set values
-    /// in the Fi vector, with n.rows = n.of dof of element.
-    /// CHLDREN CLASSES MUST IMPLEMENT THIS!!!
-    virtual void ComputeInternalForces(ChMatrixDynamic<>& Fi) = 0;
+    /// Computes the internal forces (ex. the actual position of nodes is not in relaxed reference position) and set
+    /// values in the Fi vector, with n.rows = n.of dof of element.
+    virtual void ComputeInternalForces(ChVectorDynamic<>& Fi) = 0;
 
-    /// Initial setup: This is used mostly to precompute matrices
-    /// that do not change during the simulation, i.e. the local
-    /// stiffness of each element, if any, the mass, etc.
-    virtual void SetupInitial(ChSystem* system) {}
+    /// Computes the gravitational forces and set
+    /// values in the Fi vector, with n.rows = n.of dof of element.
+    virtual void ComputeGravityForces(ChVectorDynamic<>& Fi, const ChVector<>& G_acc) = 0;
+
 
     /// Update: this is called at least at each time step. If the
     /// element has to keep updated some auxiliary data, such as the rotation
@@ -97,7 +95,7 @@ class ChApi ChElementBase {
 
 	/// This is optionally implemented if there is some internal state
 	/// that requires integration.
-	virtual void EleDoIntegration() {};
+	virtual void EleDoIntegration() {}
 
     /// Adds the internal forces (pasted at global nodes offsets) into
     /// a global vector R, multiplied by a scaling factor c, as
@@ -106,8 +104,17 @@ class ChApi ChElementBase {
 
     /// Adds the product of element mass M by a vector w (pasted at global nodes offsets) into
     /// a global vector R, multiplied by a scaling factor c, as
-    ///   R += M * v * c
+    ///   R += M * w * c
     virtual void EleIntLoadResidual_Mv(ChVectorDynamic<>& R, const ChVectorDynamic<>& w, const double c) {}
+
+    /// Adds the contribution of gravity loads, multiplied by a scaling factor c, as: 
+    ///   R += M * g * c
+    /// Note that it is up to the element implementation to build a proper g vector that 
+    /// contains G_acc values in the proper stride (ex. tetahedrons have 4x copies of G_acc in g). 
+    /// Note that elements can provide fast implementations that do not need to build any internal M matrix,
+    /// and not even the g vector, for instance if using lumped masses. 
+    virtual void EleIntLoadResidual_F_gravity(ChVectorDynamic<>& R, const ChVector<>& G_acc, const double c) = 0;
+
 
     //
     // Functions for interfacing to the solver
@@ -133,6 +140,13 @@ class ChApi ChElementBase {
     /// timestepping schemes that do: M*v_new = M*v_old + forces*dt
     /// WILL BE DEPRECATED
     virtual void VariablesFbIncrementMq() {}
+
+  private:
+    /// Initial setup: This is used mostly to precompute matrices that do not change during the simulation, i.e. the
+    /// local stiffness of each element, if any, the mass, etc.
+    virtual void SetupInitial(ChSystem* system) {}
+
+	friend class ChMesh;
 };
 
 /// @} fea_elements

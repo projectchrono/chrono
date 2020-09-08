@@ -1,7 +1,7 @@
 
 /******************************************************************************
  * Copyright (c) 2011, Duane Merrill.  All rights reserved.
- * Copyright (c) 2011-2015, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2011-2017, NVIDIA CORPORATION.  All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -38,7 +38,7 @@
 #include <iterator>
 #include <limits>
 
-#include "dispatch/dispatch_spmv.cuh"
+#include "dispatch/dispatch_spmv_orig.cuh"
 #include "../util_namespace.cuh"
 
 /// Optional outer namespace(s)
@@ -50,7 +50,7 @@ namespace cub {
 
 /**
  * \brief DeviceSpmv provides device-wide parallel operations for performing sparse-matrix * dense-vector multiplication (SpMV).
- * \ingroup DeviceModule
+ * \ingroup SingleModule
  *
  * \par Overview
  * The [<em>SpMV computation</em>](http://en.wikipedia.org/wiki/Sparse_matrix-vector_multiplication)
@@ -75,7 +75,7 @@ struct DeviceSpmv
     //@{
 
     /**
-     * \brief This function performs the matrix-vector operation <em>y</em> = <em>alpha</em>*<b>A</b>*<em>x</em> + <em>beta</em>*<em>y</em>.
+     * \brief This function performs the matrix-vector operation <em>y</em> = <b>A</b>*<em>x</em>.
      *
      * \par Snippet
      * The code snippet below illustrates SpMV upon a 9x9 CSR matrix <b>A</b>
@@ -85,13 +85,11 @@ struct DeviceSpmv
      * \code
      * #include <cub/cub.cuh>   // or equivalently <cub/device/device_spmv.cuh>
      *
-     * // Declare, allocate, and initialize device pointers for input matrix A, input vector x,
+     * // Declare, allocate, and initialize device-accessible pointers for input matrix A, input vector x,
      * // and output vector y
      * int    num_rows = 9;
      * int    num_cols = 9;
      * int    num_nonzeros = 24;
-     * float  alpha = 1.0;
-     * float  beta = 0.0;
      *
      * float* d_values;  // e.g., [1, 1, 1, 1, 1, 1, 1, 1,
      *                   //        1, 1, 1, 1, 1, 1, 1, 1,
@@ -132,7 +130,7 @@ struct DeviceSpmv
         typename            ValueT>
     CUB_RUNTIME_FUNCTION
     static cudaError_t CsrMV(
-        void*               d_temp_storage,                     ///< [in] %Device allocation of temporary storage.  When NULL, the required allocation size is written to \p temp_storage_bytes and no work is done.
+        void*               d_temp_storage,                     ///< [in] %Device-accessible allocation of temporary storage.  When NULL, the required allocation size is written to \p temp_storage_bytes and no work is done.
         size_t&             temp_storage_bytes,                 ///< [in,out] Reference to size in bytes of \p d_temp_storage allocation
         ValueT*             d_values,                           ///< [in] Pointer to the array of \p num_nonzeros values of the corresponding nonzero elements of matrix <b>A</b>.
         int*                d_row_offsets,                      ///< [in] Pointer to the array of \p m + 1 offsets demarcating the start of every row in \p d_column_indices and \p d_values (with the final entry being equal to \p num_nonzeros)
@@ -142,8 +140,6 @@ struct DeviceSpmv
         int                 num_rows,                           ///< [in] number of rows of matrix <b>A</b>.
         int                 num_cols,                           ///< [in] number of columns of matrix <b>A</b>.
         int                 num_nonzeros,                       ///< [in] number of nonzero elements of matrix <b>A</b>.
-        ValueT              alpha,                              ///< [in] Scalar used for multiplication of the matrix <b>A</b> nonzeros.
-        ValueT              beta,                               ///< [in] Scalar used for multiplication of the \p vector_y addend. (If \p beta is zero, vector_y need not comprise valid data elements.)
         cudaStream_t        stream                  = 0,        ///< [in] <b>[optional]</b> CUDA stream to launch kernels within.  Default is stream<sub>0</sub>.
         bool                debug_synchronous       = false)    ///< [in] <b>[optional]</b> Whether or not to synchronize the stream after every kernel launch to check for errors.  May cause significant slowdown.  Default is \p false.
     {
@@ -156,8 +152,8 @@ struct DeviceSpmv
         spmv_params.num_rows             = num_rows;
         spmv_params.num_cols             = num_cols;
         spmv_params.num_nonzeros         = num_nonzeros;
-        spmv_params.alpha                = alpha;
-        spmv_params.beta                 = beta;
+        spmv_params.alpha                = 1.0;
+        spmv_params.beta                 = 0.0;
 
         return DispatchSpmv<ValueT, int>::Dispatch(
             d_temp_storage,

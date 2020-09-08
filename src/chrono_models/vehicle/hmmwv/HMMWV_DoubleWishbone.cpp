@@ -93,7 +93,7 @@ const double HMMWV_DoubleWishboneRear::m_springRestLength = 0.382;
 // -----------------------------------------------------------------------------
 // HMMWV shock functor class - implements a nonlinear damper
 // -----------------------------------------------------------------------------
-class HMMWV_ShockForce : public ChLinkSpringCB::ForceFunctor {
+class HMMWV_ShockForce : public ChLinkTSDA::ForceFunctor {
   public:
     HMMWV_ShockForce(double midstroke_compression_slope,
                      double midstroke_rebound_slope,
@@ -110,7 +110,7 @@ class HMMWV_ShockForce : public ChLinkSpringCB::ForceFunctor {
                               double rest_length,
                               double length,
                               double vel,
-                              ChLinkSpringCB* link) override;
+                              ChLinkTSDA* link) override;
 
   private:
     double m_ms_compr;
@@ -146,7 +146,7 @@ HMMWV_ShockForce::HMMWV_ShockForce(double midstroke_compression_slope,
       m_min_length(metalmetal_lower_bound),
       m_max_length(metalmetal_upper_bound) {}
 
-double HMMWV_ShockForce::operator()(double time, double rest_length, double length, double vel, ChLinkSpringCB* link) {
+double HMMWV_ShockForce::operator()(double time, double rest_length, double length, double vel, ChLinkTSDA* link) {
     /*
     // On midstroke curve
     if (length >= m_min_length && length <= m_max_length)
@@ -179,51 +179,45 @@ double HMMWV_ShockForce::operator()(double time, double rest_length, double leng
 // Constructors
 // -----------------------------------------------------------------------------
 HMMWV_DoubleWishboneFront::HMMWV_DoubleWishboneFront(const std::string& name) : ChDoubleWishbone(name) {
-    m_springForceCB = new LinearSpringForce(m_springCoefficient  // coefficient for linear spring
-                                            );
+    m_springForceCB = chrono_types::make_shared<LinearSpringForce>(m_springCoefficient  // coefficient for linear spring
+    );
 
-    m_shockForceCB = new HMMWV_ShockForce(lbfpin2Npm * 71.50,   // midstroke_compression_slope
-                                          lbfpin2Npm * 128.25,  // midstroke_rebound_slope
-                                          lbfpin2Npm * 33.67,   // bumpstop_compression_slope
-                                          lbfpin2Npm * 343.00,  // bumpstop_rebound_slope
-                                          lbfpin2Npm * 150000,  // metalmetal_slope
-                                          lbf2N * 3350,         // min_bumpstop_compression_force
-                                          in2m * 13.76,         // midstroke_lower_bound
-                                          in2m * 15.85,         // midstroke_upper_bound
-                                          in2m * 12.76,         // metalmetal_lower_bound
-                                          in2m * 16.48          // metalmetal_upper_boun
-                                          );
+    m_shockForceCB = chrono_types::make_shared<HMMWV_ShockForce>(lbfpin2Npm * 71.50,   // midstroke_compression_slope
+                                                                 lbfpin2Npm * 128.25,  // midstroke_rebound_slope
+                                                                 lbfpin2Npm * 33.67,   // bumpstop_compression_slope
+                                                                 lbfpin2Npm * 343.00,  // bumpstop_rebound_slope
+                                                                 lbfpin2Npm * 150000,  // metalmetal_slope
+                                                                 lbf2N * 3350,         // min_bumpstop_compression_force
+                                                                 in2m * 13.76,         // midstroke_lower_bound
+                                                                 in2m * 15.85,         // midstroke_upper_bound
+                                                                 in2m * 12.76,         // metalmetal_lower_bound
+                                                                 in2m * 16.48          // metalmetal_upper_boun
+    );
 }
 
 HMMWV_DoubleWishboneRear::HMMWV_DoubleWishboneRear(const std::string& name) : ChDoubleWishbone(name) {
-    m_springForceCB = new LinearSpringForce(m_springCoefficient  // coefficient for linear spring
-                                            );
+    m_springForceCB = chrono_types::make_shared<LinearSpringForce>(m_springCoefficient  // coefficient for linear spring
+    );
 
-    m_shockForceCB = new HMMWV_ShockForce(lbfpin2Npm * 83.00,   // midstroke_compression_slope
-                                          lbfpin2Npm * 200.00,  // midstroke_rebound_slope
-                                          lbfpin2Npm * 48.75,   // bumpstop_compression_slope
-                                          lbfpin2Npm * 365.00,  // bumpstop_rebound_slope
-                                          lbfpin2Npm * 150000,  // metalmetal_slope
-                                          lbf2N * 3350,         // min_bumpstop_compression_force
-                                          in2m * 13.76,         // midstroke_lower_bound
-                                          in2m * 15.85,         // midstroke_upper_bound
-                                          in2m * 12.76,         // metalmetal_lower_bound
-                                          in2m * 16.48          // metalmetal_upper_bound
-                                          );
+    m_shockForceCB = chrono_types::make_shared<HMMWV_ShockForce>(lbfpin2Npm * 83.00,   // midstroke_compression_slope
+                                                                 lbfpin2Npm * 200.00,  // midstroke_rebound_slope
+                                                                 lbfpin2Npm * 48.75,   // bumpstop_compression_slope
+                                                                 lbfpin2Npm * 365.00,  // bumpstop_rebound_slope
+                                                                 lbfpin2Npm * 150000,  // metalmetal_slope
+                                                                 lbf2N * 3350,         // min_bumpstop_compression_force
+                                                                 in2m * 13.76,         // midstroke_lower_bound
+                                                                 in2m * 15.85,         // midstroke_upper_bound
+                                                                 in2m * 12.76,         // metalmetal_lower_bound
+                                                                 in2m * 16.48          // metalmetal_upper_bound
+    );
 }
 
 // -----------------------------------------------------------------------------
 // Destructors
 // -----------------------------------------------------------------------------
-HMMWV_DoubleWishboneFront::~HMMWV_DoubleWishboneFront() {
-    delete m_springForceCB;
-    delete m_shockForceCB;
-}
+HMMWV_DoubleWishboneFront::~HMMWV_DoubleWishboneFront() {}
 
-HMMWV_DoubleWishboneRear::~HMMWV_DoubleWishboneRear() {
-    delete m_springForceCB;
-    delete m_shockForceCB;
-}
+HMMWV_DoubleWishboneRear::~HMMWV_DoubleWishboneRear() {}
 
 // -----------------------------------------------------------------------------
 // Implementations of the getLocation() virtual methods.

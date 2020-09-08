@@ -1,0 +1,50 @@
+{
+    "Name": "HMMWV Fiala Tire",
+    "Type": "Tire",
+    "Template": "FialaTire",
+    "Mass": 37.6,
+    "Inertia": [
+        3.84,
+        6.69,
+        3.84
+    ],
+    "Coefficient of Friction": 0.8,
+    "Fiala Parameters": {
+        "Unloaded Radius": 0.47,
+        "Width": 0.318,
+        "Vertical Damping": 7500,
+        "Vertical Stiffness": 326332, // linear stiffness (if no curve table present)
+        "Vertical Curve Data":        // nonlinear stifness (has precedence over linear model)
+        [
+            [ 0.000,     0 ],
+            [ 0.005,   585 ],
+            [ 0.010,  1286 ],
+            [ 0.015,  2352 ],
+            [ 0.020,  3477 ],
+            [ 0.025,  4798 ],
+            [ 0.030,  6190 ],
+            [ 0.035,  7540 ],
+            [ 0.040,  9027 ],
+            [ 0.045, 10570 ],
+            [ 0.050, 12139 ],
+            [ 0.055, 13654 ],
+            [ 0.060, 15368 ],
+            [ 0.065, 16904 ],
+            [ 0.070, 18469 ],
+            [ 0.075, 20089 ],
+            [ 0.080, 21699 ]
+        ],
+        "Rolling Resistance": 0.015,
+        "CSLIP": 193929.0,
+        "CALPHA": 50000.0,
+        "UMIN": 0.5568,
+        "UMAX": 0.9835,
+        "X Relaxation Length": 2.0,
+        "Y Relaxation Length": 2.0
+    },
+    "Visualization": {
+        "Mesh Filename Left": "hmmwv/hmmwv_tire_left.obj",
+        "Mesh Filename Right": "hmmwv/hmmwv_tire_right.obj",
+        "Width": 0.318
+    }
+}

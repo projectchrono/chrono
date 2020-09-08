@@ -22,7 +22,7 @@ CH_FACTORY_REGISTER(ChLinkMotorLinearForce)
 ChLinkMotorLinearForce::ChLinkMotorLinearForce() {
     this->c_x = false;
     SetupLinkMask();
-    m_func = std::make_shared<ChFunction_Const>(0.0);
+    m_func = chrono_types::make_shared<ChFunction_Const>(0.0);
 }
 
 ChLinkMotorLinearForce::ChLinkMotorLinearForce(const ChLinkMotorLinearForce& other) : ChLinkMotorLinear(other) {}
@@ -39,7 +39,7 @@ void ChLinkMotorLinearForce::IntLoadResidual_F(const unsigned int off, ChVectorD
 
     ChFrame<> aframe1 = this->frame1 >> (*this->Body1);
     ChFrame<> aframe2 = this->frame2 >> (*this->Body2);
-    Vector m_abs_force = aframe2.GetA().Matr_x_Vect(ChVector<>(mF, 0, 0));
+    Vector m_abs_force = aframe2.GetA() * ChVector<>(mF, 0, 0);
     Vector mbody_force;
     Vector mbody_torque;
 
@@ -48,9 +48,9 @@ void ChLinkMotorLinearForce::IntLoadResidual_F(const unsigned int off, ChVectorD
                                   aframe1.GetPos(),            // absolute application point is always marker1
                                   false,                       // from abs. space
                                   mbody_force, mbody_torque);  // resulting force-torque, both in abs coords
-        R.PasteSumVector(-mbody_force * c, Body2->Variables().GetOffset(), 0);
-        R.PasteSumVector(Body2->TransformDirectionParentToLocal(mbody_torque) * -c, Body2->Variables().GetOffset() + 3,
-                         0);
+        R.segment(Body2->Variables().GetOffset() + 0, 3) -= c * mbody_force.eigen();
+        R.segment(Body2->Variables().GetOffset() + 3, 3) -=
+            c * Body2->TransformDirectionParentToLocal(mbody_torque).eigen();
     }
 
     if (Body1->Variables().IsActive()) {
@@ -58,9 +58,9 @@ void ChLinkMotorLinearForce::IntLoadResidual_F(const unsigned int off, ChVectorD
                                   aframe1.GetPos(),            // absolute application point is always marker1
                                   false,                       // from abs. space
                                   mbody_force, mbody_torque);  // resulting force-torque, both in abs coords
-        R.PasteSumVector(mbody_force * c, Body1->Variables().GetOffset(), 0);
-        R.PasteSumVector(Body1->TransformDirectionParentToLocal(mbody_torque) * c, Body1->Variables().GetOffset() + 3,
-                         0);
+        R.segment(Body1->Variables().GetOffset() + 0, 3) += c * mbody_force.eigen();
+        R.segment(Body1->Variables().GetOffset() + 3, 3) +=
+            c * Body1->TransformDirectionParentToLocal(mbody_torque).eigen();
     }
 }
 
@@ -70,22 +70,22 @@ void ChLinkMotorLinearForce::ConstraintsFbLoadForces(double factor) {
 
     ChFrame<> aframe1 = this->frame1 >> (*this->Body1);
     ChFrame<> aframe2 = this->frame2 >> (*this->Body2);
-    Vector m_abs_force = aframe2.GetA().Matr_x_Vect(ChVector<>(mF, 0, 0));
+    Vector m_abs_force = aframe2.GetA() * ChVector<>(mF, 0, 0);
     Vector mbody_force;
     Vector mbody_torque;
     Body2->To_abs_forcetorque(m_abs_force,
                               aframe1.GetPos(),            // absolute application point is always marker1
                               false,                       // from abs. space
                               mbody_force, mbody_torque);  // resulting force-torque, both in abs coords
-    Body2->Variables().Get_fb().PasteSumVector(-mbody_force * factor, 0, 0);
-    Body2->Variables().Get_fb().PasteSumVector(Body2->TransformDirectionParentToLocal(mbody_torque) * -factor, 3, 0);
+    Body2->Variables().Get_fb().segment(0, 3) -= factor * mbody_force.eigen();
+    Body2->Variables().Get_fb().segment(3, 3) -= factor * Body2->TransformDirectionParentToLocal(mbody_torque).eigen();
 
     Body1->To_abs_forcetorque(m_abs_force,
                               aframe1.GetPos(),            // absolute application point is always marker1
                               false,                       // from abs. space
                               mbody_force, mbody_torque);  // resulting force-torque, both in abs coords
-    Body1->Variables().Get_fb().PasteSumVector(mbody_force * factor, 0, 0);
-    Body1->Variables().Get_fb().PasteSumVector(Body1->TransformDirectionParentToLocal(mbody_torque) * factor, 3, 0);
+    Body1->Variables().Get_fb().segment(0, 3) += factor * mbody_force.eigen();
+    Body1->Variables().Get_fb().segment(3, 3) += factor * Body1->TransformDirectionParentToLocal(mbody_torque).eigen();
 }
 
 void ChLinkMotorLinearForce::ArchiveOUT(ChArchiveOut& marchive) {

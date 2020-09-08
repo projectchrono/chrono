@@ -27,11 +27,11 @@
 #include "chrono/serialization/ChArchiveXML.h"
 #include "chrono/serialization/ChArchiveExplorer.h"
 
-#include "chrono/physics/ChGlobal.h"
+#include "chrono/core/ChGlobal.h"
 
 #include "chrono/core/ChLog.h"
 #include "chrono/core/ChVector.h"
-#include "chrono/core/ChMatrixDynamic.h"
+#include "chrono/core/ChQuaternion.h"
 #include "chrono/core/ChMatrix.h"
 #include "chrono/core/ChException.h"
 #include "chrono/solver/ChConstraintTuple.h"
@@ -294,9 +294,11 @@ void my_serialization_example(ChArchiveOut& marchive)
         std::unordered_map<int, double> m_stlunorderedmap;
         m_stlunorderedmap[12]=11.2;
         m_stlunorderedmap[41]=44.8;
-        m_stlunorderedmap[34]=33.6;
-        ChMatrixDynamic<double> m_matr(3, 5);
-        m_matr.FillRandom(10, 0);
+        m_stlunorderedmap[34]=33.6; 
+        ChMatrixDynamic<double> m_matr_dyn(3, 5);
+        m_matr_dyn.fillRandom(0, 10);
+		ChMatrixNM<double,2,3> m_matr_NM;
+        m_matr_NM.fillRandom(-1, +1);
         ChVector<> m_vect(0.5, 0.6, 0.7);
         ChQuaternion<> m_quat(0.1, 0.2, 0.3, 0.4);
  
@@ -309,7 +311,8 @@ void my_serialization_example(ChArchiveOut& marchive)
         marchive << CHNVP(m_stllist);
         marchive << CHNVP(m_stlpair);
         marchive << CHNVP(m_stlunorderedmap);
-        marchive << CHNVP(m_matr);    
+        marchive << CHNVP(m_matr_dyn);
+		marchive << CHNVP(m_matr_NM);
         marchive << CHNVP(m_vect);
         marchive << CHNVP(m_quat, "m_quaternion", NVP_TRACK_OBJECT);  
         
@@ -353,7 +356,7 @@ void my_serialization_example(ChArchiveOut& marchive)
         // Also store c++ objects referenced by shared pointers.
         // If classes of pointed objects used CH_FACTORY_REGISTER, class abstraction
         // will be automatically used.
-        auto s_boss = std::make_shared<myEmployeeBoss>();
+        auto s_boss = chrono_types::make_shared<myEmployeeBoss>();
         marchive << CHNVP(s_boss);  //  object was referenced by shared pointer.
 
         // Serialize a shared pointer pointing to the same shared resource of s_boss. 
@@ -399,7 +402,8 @@ void my_deserialization_example(ChArchiveIn& marchive)
         std::list< ChVector<> > m_stllist;
         std::pair<int, double> m_stlpair;
         std::unordered_map<int, double> m_stlunorderedmap;
-        ChMatrixDynamic<> m_matr;
+        ChMatrixDynamic<> m_matr_dyn;
+		ChMatrixNM<double, 2,3> m_matr_NM;
         ChVector<> m_vect;
         ChQuaternion<> m_quat;
         myEmployeeBoss m_boss;
@@ -415,7 +419,8 @@ void my_deserialization_example(ChArchiveIn& marchive)
         marchive >> CHNVP(m_stllist);
         marchive >> CHNVP(m_stlpair);
         marchive >> CHNVP(m_stlunorderedmap);
-        marchive >> CHNVP(m_matr);
+        marchive >> CHNVP(m_matr_dyn);
+		marchive >> CHNVP(m_matr_NM);
         marchive >> CHNVP(m_vect);  
         marchive >> CHNVP(m_quat, "m_quaternion", NVP_TRACK_OBJECT);        
 
@@ -475,7 +480,7 @@ void my_deserialization_example(ChArchiveIn& marchive)
         // Just for safety, log some of the restored data:
 
         GetLog() << "\n\nSome results of deserialization I/O: \n\n" << m_text << " \n" << m_int << " \n" << m_double << "\n";
-        GetLog() << m_matr;
+        GetLog() << m_matr_NM;
         GetLog() << m_vect;
         GetLog() << m_quat;
         GetLog() << m_string.c_str() << "\n";

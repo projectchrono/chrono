@@ -57,7 +57,7 @@ class M113_SpringTorque : public ChLinkRotSpringCB::TorqueFunctor {
 // -----------------------------------------------------------------------------
 // M113 shock functor class - implements a (non)linear translational damper
 // -----------------------------------------------------------------------------
-class M113_ShockForce : public ChLinkSpringCB::ForceFunctor {
+class M113_ShockForce : public ChLinkTSDA::ForceFunctor {
   public:
     M113_ShockForce(double c) : m_c(c) {}
 
@@ -65,7 +65,7 @@ class M113_ShockForce : public ChLinkSpringCB::ForceFunctor {
                               double rest_length,
                               double length,
                               double vel,
-                              ChLinkSpringCB* link) override {
+                              ChLinkTSDA* link) override {
         return -m_c * vel;
     }
 
@@ -78,22 +78,19 @@ class M113_ShockForce : public ChLinkSpringCB::ForceFunctor {
 M113_Suspension::M113_Suspension(const std::string& name, VehicleSide side, int index, bool has_shock)
     : ChLinearDamperRWAssembly(name, has_shock), m_side(side) {
     // Instantiate the force callback for the shock (damper).
-    m_shock_forceCB = new M113_ShockForce(m_shock_c);
+    m_shock_forceCB = chrono_types::make_shared<M113_ShockForce>(m_shock_c);
 
     // Instantiate the torque callback for the spring.
-    m_spring_torqueCB = new M113_SpringTorque(m_torsion_k, m_torsion_c, m_torsion_t);
+    m_spring_torqueCB = chrono_types::make_shared<M113_SpringTorque>(m_torsion_k, m_torsion_c, m_torsion_t);
 
     // Create the associated road wheel.
     if (side == LEFT)
-        m_road_wheel = std::make_shared<M113_RoadWheelLeft>(index);
+        m_road_wheel = chrono_types::make_shared<M113_RoadWheelLeft>(index);
     else
-        m_road_wheel = std::make_shared<M113_RoadWheelRight>(index);
+        m_road_wheel = chrono_types::make_shared<M113_RoadWheelRight>(index);
 }
 
-M113_Suspension::~M113_Suspension() {
-    delete m_shock_forceCB;
-    delete m_spring_torqueCB;
-}
+M113_Suspension::~M113_Suspension() {}
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------

@@ -54,13 +54,12 @@ int main(int argc, char* argv[]) {
 
     // Create the vehicle
     Sedan my_sedan;
-    my_sedan.SetContactMethod(ChMaterialSurface::SMC);
+    my_sedan.SetContactMethod(ChContactMethod::SMC);
     my_sedan.SetChassisCollisionType(ChassisCollisionType::NONE);
     my_sedan.SetChassisFixed(false);
     my_sedan.SetInitPosition(ChCoordsys<>(ChVector<>(-40, 0, 1.0)));
-    my_sedan.SetTireType(TireModelType::RIGID);
+    my_sedan.SetTireType(TireModelType::PAC02);
     my_sedan.SetTireStepSize(1e-3);
-    my_sedan.SetVehicleStepSize(step_size);
     my_sedan.Initialize();
 
     my_sedan.SetChassisVisualizationType(VisualizationType::NONE);
@@ -74,25 +73,31 @@ int main(int argc, char* argv[]) {
     // Create the terrain
     RigidTerrain terrain(my_sedan.GetSystem());
 
-    auto patch1 = terrain.AddPatch(ChCoordsys<>(ChVector<>(0, -25, -5), QUNIT), ChVector<>(100, 50, 10));
-    auto patch2 = terrain.AddPatch(ChCoordsys<>(ChVector<>(0, 25, -5), QUNIT), ChVector<>(100, 50, 10));
+    auto patch1_mat = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+    patch1_mat->SetFriction(0.1f);
+    patch1_mat->SetRestitution(0.01f);
+    patch1_mat->SetYoungModulus(2e7f);
+    patch1_mat->SetPoissonRatio(0.3f);
 
-    patch1->SetContactFrictionCoefficient(0.1f);
-    patch1->SetContactRestitutionCoefficient(0.01f);
-    patch1->SetContactMaterialProperties(2e7f, 0.3f);
+    auto patch2_mat = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+    patch2_mat->SetFriction(0.9f);
+    patch2_mat->SetRestitution(0.01f);
+    patch2_mat->SetYoungModulus(2e7f);
+    patch2_mat->SetPoissonRatio(0.3f);
+
+    auto patch1 = terrain.AddPatch(patch1_mat, ChVector<>(0, -25, 0), ChVector<>(0, 0, 1), 100, 50);
+    auto patch2 = terrain.AddPatch(patch2_mat, ChVector<>(0, +25, 0), ChVector<>(0, 0, 1), 100, 50);
+
     patch1->SetColor(ChColor(0.8f, 0.8f, 0.5f));
     patch1->SetTexture(vehicle::GetDataFile("terrain/textures/dirt.jpg"), 200, 50);
 
-    patch2->SetContactFrictionCoefficient(0.9f);
-    patch2->SetContactRestitutionCoefficient(0.01f);
-    patch2->SetContactMaterialProperties(2e7f, 0.3f);
     patch2->SetColor(ChColor(0.5f, 0.5f, 0.8f));
     patch2->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 200, 50);
 
     terrain.Initialize();
 
     // Create the vehicle Irrlicht interface
-    ChWheeledVehicleIrrApp app(&my_sedan.GetVehicle(), &my_sedan.GetPowertrain(), L"Sedan Demo Locked Diff");
+    ChWheeledVehicleIrrApp app(&my_sedan.GetVehicle(), L"Sedan Demo Locked Diff");
     app.SetSkyBox();
     app.AddTypicalLights(irr::core::vector3df(30.f, -30.f, 100.f), irr::core::vector3df(30.f, 50.f, 100.f), 250, 130);
     app.SetChaseCamera(ChVector<>(0.0, 0.0, 1.5), 4.0, 0.5);
@@ -119,13 +124,11 @@ int main(int argc, char* argv[]) {
         app.EndScene();
 
         // Driver inputs
-        double steering_input = 0;
-        double braking_input = 0;
-        double throttle_input = 0;
+        ChDriver::Inputs driver_inputs = {0, 0, 0};
         if (time > 2)
-            throttle_input = 0.6;
+            driver_inputs.m_throttle = 0.6;
         else if (time > 1)
-            throttle_input = 0.6 * (time - 1);
+            driver_inputs.m_throttle = 0.6 * (time - 1);
 
         // Output
         double omega_front_left = my_sedan.GetVehicle().GetSuspension(0)->GetAxleSpeed(LEFT);
@@ -134,8 +137,8 @@ int main(int argc, char* argv[]) {
 
         // Synchronize subsystems
         terrain.Synchronize(time);
-        my_sedan.Synchronize(time, steering_input, braking_input, throttle_input, terrain);
-        app.Synchronize("", steering_input, throttle_input, braking_input);
+        my_sedan.Synchronize(time, driver_inputs, terrain);
+        app.Synchronize("", driver_inputs);
 
         // Advance simulation for all subsystems
         terrain.Advance(step_size);

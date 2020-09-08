@@ -1,37 +1,54 @@
 #=============================================================================
 # CMake configuration file for the GENERIC_VEHICLE demo.
-# This example program works with and without Irrlicht run-time visualization
+# This example program works with and without Irrlicht run-time visualization.
 #=============================================================================
-
-IF(NOT ENABLE_MODULE_IRRLICHT)
-    RETURN()
-ENDIF()
 
 #--------------------------------------------------------------
 # List all model files for this demo
 
-SET(DEMO
-    demo_VEH_WheeledGeneric
-)
-SOURCE_GROUP("" FILES ${DEMO}.cpp)
+SET(PROGRAM demo_VEH_WheeledGeneric)
 
 #--------------------------------------------------------------
 # Additional include directories
 
-INCLUDE_DIRECTORIES(${CH_IRRLICHTINC})
+IF(ENABLE_MODULE_IRRLICHT)
+    INCLUDE_DIRECTORIES(${CH_IRRLICHTINC})
+ENDIF()
+
+#--------------------------------------------------------------
+# List of all required libraries
+
+SET(LIBRARIES
+    ChronoEngine
+    ChronoEngine_vehicle
+    ChronoModels_vehicle)
+
+IF(ENABLE_MODULE_IRRLICHT)
+    SET(LIBRARIES_IRR 
+        ChronoEngine_irrlicht
+        ChronoEngine_vehicle_irrlicht)
+ELSE()
+    SET(LIBRARIES_IRR "")
+ENDIF()
+
+if(ENABLE_MODULE_IRRLICHT)
+  set(MY_CXX_FLAGS "${CH_CXX_FLAGS} ${CH_IRRLICHT_CXX_FLAGS}")
+else()
+  set(MY_CXX_FLAGS "${CH_CXX_FLAGS}")
+endif()
 
 #--------------------------------------------------------------
 # Create the executable
 
-MESSAGE(STATUS "...add ${DEMO}")
+MESSAGE(STATUS "...add ${PROGRAM}")
 
-ADD_EXECUTABLE(${DEMO} ${DEMO}.cpp)
-SET_TARGET_PROPERTIES(${DEMO} PROPERTIES 
-                      COMPILE_FLAGS "${CH_CXX_FLAGS} ${CH_IRRLICHT_CXX_FLAGS}"
+ADD_EXECUTABLE(${PROGRAM} ${PROGRAM}.cpp)
+SOURCE_GROUP("" FILES ${PROGRAM}.cpp)
+
+SET_TARGET_PROPERTIES(${PROGRAM} PROPERTIES 
+                      COMPILE_FLAGS "${MY_CXX_FLAGS}"
                       LINK_FLAGS "${LINKERFLAG_EXE}")
-TARGET_LINK_LIBRARIES(${DEMO}
-                      ChronoEngine
-                      ChronoEngine_irrlicht
-                      ChronoEngine_vehicle
-                      ChronoModels_vehicle)
-INSTALL(TARGETS ${DEMO} DESTINATION ${CH_INSTALL_DEMO})
+SET_PROPERTY(TARGET ${PROGRAM} PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:${PROGRAM}>")
+TARGET_LINK_LIBRARIES(${PROGRAM} ${LIBRARIES} ${LIBRARIES_IRR})
+
+INSTALL(TARGETS ${PROGRAM} DESTINATION ${CH_INSTALL_DEMO})

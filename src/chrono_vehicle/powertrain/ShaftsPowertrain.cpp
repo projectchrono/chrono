@@ -16,30 +16,25 @@
 //
 // =============================================================================
 
-#include "chrono/physics/ChGlobal.h"
+#include "chrono/core/ChGlobal.h"
 
 #include "chrono_vehicle/powertrain/ShaftsPowertrain.h"
-
-#include "chrono_thirdparty/rapidjson/filereadstream.h"
+#include "chrono_vehicle/utils/ChUtilsJSON.h"
 
 using namespace rapidjson;
 
 namespace chrono {
 namespace vehicle {
 
+const double rpm2rads = CH_C_PI / 30;
+
 // -----------------------------------------------------------------------------
 // Constructor a shafts powertrain using data from the specified JSON file.
 // -----------------------------------------------------------------------------
 ShaftsPowertrain::ShaftsPowertrain(const std::string& filename) : ChShaftsPowertrain("") {
-    FILE* fp = fopen(filename.c_str(), "r");
-
-    char readBuffer[65536];
-    FileReadStream is(fp, readBuffer, sizeof(readBuffer));
-
-    fclose(fp);
-
-    Document d;
-    d.ParseStream<ParseFlag::kParseCommentsFlag>(is);
+    Document d = ReadFileJSON(filename);
+    if (d.IsNull())
+        return;
 
     Create(d);
 
@@ -76,6 +71,13 @@ void ShaftsPowertrain::Create(const rapidjson::Document& d) {
     for (unsigned int i = 0; i < np; i++)
         m_fwd_gear[i] = d["Transmission"]["Forward Gear Ratios"][i].GetDouble();
 
+    m_upshift_RPM = d["Transmission"]["Upshift RPM"].GetDouble();
+    m_downshift_RPM = d["Transmission"]["Downshift RPM"].GetDouble();
+
+    if (d["Transmission"].HasMember("Shift Latency")) {
+        SetGearShiftLatency(d["Transmission"]["Shift Latency"].GetDouble());
+    }
+
     // Read torque converter data
     assert(d.HasMember("Torque Converter"));
     ReadMapData(d["Torque Converter"]["Capacity Factor Map"], m_tc_capacity_factor);
@@ -103,10 +105,26 @@ void ShaftsPowertrain::ReadMapData(const rapidjson::Value& a, MapData& map_data)
     }
 }
 
-void ShaftsPowertrain::SetMapData(const MapData& map_data, std::shared_ptr<ChFunction_Recorder>& map) {
+void ShaftsPowertrain::SetMapData(const MapData& map_data,
+                                  double x_factor,
+                                  double y_factor,
+                                  std::shared_ptr<ChFunction_Recorder>& map) {
     for (unsigned int i = 0; i < map_data.m_n; i++) {
-        map->AddPoint(map_data.m_x[i], map_data.m_y[i]);
+        map->AddPoint(x_factor * map_data.m_x[i], y_factor * map_data.m_y[i]);
     }
+}
+
+void ShaftsPowertrain::SetEngineTorqueMap(std::shared_ptr<ChFunction_Recorder>& map) {
+    SetMapData(m_engine_torque, rpm2rads, 1.0, map);
+}
+void ShaftsPowertrain::SetEngineLossesMap(std::shared_ptr<ChFunction_Recorder>& map) {
+    SetMapData(m_engine_losses, rpm2rads, 1.0, map);
+}
+void ShaftsPowertrain::SetTorqueConverterCapacityFactorMap(std::shared_ptr<ChFunction_Recorder>& map) {
+    SetMapData(m_tc_capacity_factor, 1.0, 1.0, map);
+}
+void ShaftsPowertrain::SetTorqeConverterTorqueRatioMap(std::shared_ptr<ChFunction_Recorder>& map) {
+    SetMapData(m_tc_torque_ratio, 1.0, 1.0, map);
 }
 
 }  // end namespace vehicle

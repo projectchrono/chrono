@@ -19,12 +19,9 @@
 
 namespace chrono {
 
-/// Specialized class for representing a 6-DOF item for a
-/// system, that is a 3D rigid body, with mass matrix and
-/// associate variables (a 6 element vector, ex.speed)
-/// Differently from the 'naive' implementation ChVariablesGeneric,
-/// here a full 6x6 mass matrix is not built, since only the 3x3
-/// inertia matrix and the mass value are enough.
+/// Specialized class for representing a 6-DOF item for a system, that is a 3D rigid body, with mass matrix and
+/// associate variables (a 6 element vector, ex.speed) Differently from the 'naive' implementation ChVariablesGeneric,
+/// here a full 6x6 mass matrix is not built, since only the 3x3 inertia matrix and the mass value are enough.
 
 class ChApi ChVariablesBodyOwnMass : public ChVariablesBody {
   private:
@@ -57,33 +54,27 @@ class ChApi ChVariablesBodyOwnMass : public ChVariablesBody {
     /// Set the mass associated with translation of body
     void SetBodyMass(const double mmass);
 
-    /// Computes the product of the inverse mass matrix by a
-    /// vector, and set in result: result = [invMb]*vect
-    virtual void Compute_invMb_v(ChMatrix<double>& result, const ChMatrix<double>& vect) const override;
+    /// Computes the product of the inverse mass matrix by a vector, and set in result: result = [invMb]*vect
+    virtual void Compute_invMb_v(ChVectorRef result, ChVectorConstRef vect) const override;
 
-    /// Computes the product of the inverse mass matrix by a
-    /// vector, and increment result: result += [invMb]*vect
-    virtual void Compute_inc_invMb_v(ChMatrix<double>& result, const ChMatrix<double>& vect) const override;
+    /// Computes the product of the inverse mass matrix by a vector, and increment result: result += [invMb]*vect
+    virtual void Compute_inc_invMb_v(ChVectorRef result, ChVectorConstRef vect) const override;
 
-    /// Computes the product of the mass matrix by a
-    /// vector, and set in result: result = [Mb]*vect
-    virtual void Compute_inc_Mb_v(ChMatrix<double>& result, const ChMatrix<double>& vect) const override;
+    /// Computes the product of the mass matrix by a vector, and set in result: result = [Mb]*vect
+    virtual void Compute_inc_Mb_v(ChVectorRef result, ChVectorConstRef vect) const override;
 
-    /// Computes the product of the corresponding block in the
-    /// system matrix (ie. the mass matrix) by 'vect', scale by c_a, and add to 'result'.
-    /// NOTE: the 'vect' and 'result' vectors must already have
-    /// the size of the total variables&constraints in the system; the procedure
-    /// will use the ChVariable offsets (that must be already updated) to know the
-    /// indexes in result and vect.
-    virtual void MultiplyAndAdd(ChMatrix<double>& result,
-                                const ChMatrix<double>& vect,
-                                const double c_a) const override;
+    /// Computes the product of the corresponding block in the system matrix (ie. the mass matrix) by 'vect', scale by
+    /// c_a, and add to 'result'.
+    /// NOTE: the 'vect' and 'result' vectors must already have the size of the total  variables&constraints in the
+    /// system; the procedure will use the ChVariable offsets (that must be already updated) to know the indexes in
+    /// result and vect.
+    virtual void MultiplyAndAdd(ChVectorRef result, ChVectorConstRef vect, const double c_a) const override;
 
     /// Add the diagonal of the mass matrix scaled by c_a, to 'result'.
-    /// NOTE: the 'result' vector must already have the size of system unknowns, ie
-    /// the size of the total variables&constraints in the system; the procedure
-    /// will use the ChVariable offset (that must be already updated) as index.
-    virtual void DiagonalAdd(ChMatrix<double>& result, const double c_a) const override;
+    /// NOTE: the 'result' vector must already have the size of system unknowns, ie the size of the total
+    /// variables&constraints in the system; the procedure will use the ChVariable offset (that must be already updated)
+    /// as index.
+    virtual void DiagonalAdd(ChVectorRef result, const double c_a) const override;
 
     /// Build the mass matrix (for these variables) scaled by c_a, storing
     /// it in 'storage' sparse matrix, at given column/row offset.

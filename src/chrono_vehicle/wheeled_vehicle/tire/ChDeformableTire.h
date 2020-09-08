@@ -47,8 +47,7 @@ class CH_VEHICLE_API ChDeformableTire : public ChTire {
     enum ContactSurfaceType { NODE_CLOUD, TRIANGLE_MESH };
 
     /// Construct a deformable tire with the specified name.
-    ChDeformableTire(const std::string& name  ///< [in] name of this tire system
-                     );
+    ChDeformableTire(const std::string& name);
 
     virtual ~ChDeformableTire() {}
 
@@ -114,11 +113,6 @@ class CH_VEHICLE_API ChDeformableTire : public ChTire {
     /// Report the tire mass.
     virtual double ReportMass() const override { return GetTireMass(); }
 
-    /// Get the tire force and moment.
-    /// A ChDeformableTire always returns zero forces and moments since tire forces
-    /// are implicitly applied to the associated wheel through the tire-wheel connections.
-    virtual TerrainForce GetTireForce() const override;
-
     /// Report the tire force and moment.
     /// This generalized force encapsulates the tire-terrain forces, as well as the weight
     /// of the tire itself and is calculated as the resultant of all reaction forces and
@@ -126,26 +120,11 @@ class CH_VEHICLE_API ChDeformableTire : public ChTire {
     /// The force and moment are expressed in the global frame.
     virtual TerrainForce ReportTireForce(ChTerrain* terrain) const override;
 
-    /// Initialize this tire system.
-    /// This function creates the tire contact shape and attaches it to the
-    /// associated wheel body.
-    virtual void Initialize(std::shared_ptr<ChBody> wheel,  ///< [in] associated wheel body
-                            VehicleSide side                ///< [in] left/right vehicle side
-                            ) override;
-
     /// Add visualization assets for the rigid tire subsystem.
     virtual void AddVisualizationAssets(VisualizationType vis) override final;
 
     /// Remove visualization assets for the rigid tire subsystem.
     virtual void RemoveVisualizationAssets() override final;
-
-  private:
-    /// The following two functions are marked as final.
-    /// The mass properties of a deformable tire are implicitly included through
-    /// the FEA mesh.  To prevent double counting the mass and inertia of a
-    /// deformable tire, these functions must always return 0.
-    virtual double GetMass() const final { return 0; }
-    virtual ChVector<> GetInertia() const final { return ChVector<>(0, 0, 0); }
 
   protected:
     /// Return the default tire pressure.
@@ -174,6 +153,9 @@ class CH_VEHICLE_API ChDeformableTire : public ChTire {
     virtual void CreateRimConnections(std::shared_ptr<ChBody> wheel  ///< [in] associated wheel body
                                       ) = 0;
 
+    /// Create the SMC contact material.
+    virtual void CreateContactMaterial() = 0;
+
     std::shared_ptr<fea::ChMesh> m_mesh;                                ///< tire mesh
     std::shared_ptr<ChLoadContainer> m_load_container;                  ///< load container (for pressure load)
     std::vector<std::shared_ptr<fea::ChLinkPointFrame>> m_connections;  ///< tire-wheel point connections
@@ -192,6 +174,22 @@ class CH_VEHICLE_API ChDeformableTire : public ChTire {
 
     std::shared_ptr<ChMaterialSurfaceSMC> m_contact_mat;           ///< tire contact material
     std::shared_ptr<fea::ChVisualizationFEAmesh> m_visualization;  ///< tire mesh visualization
+
+  //private:
+    // The following two functions are marked as final.
+    // The mass properties of a deformable tire are implicitly included through
+    // the FEA mesh.  To prevent double counting the mass and inertia of a
+    // deformable tire, these functions must always return 0.
+    virtual double GetMass() const final { return 0; }
+    virtual ChVector<> GetInertia() const final { return ChVector<>(0, 0, 0); }
+
+    /// Initialize this tire by associating it to the specified wheel.
+    virtual void Initialize(std::shared_ptr<ChWheel> wheel) override;
+
+    /// Get the tire force and moment.
+    /// A ChDeformableTire always returns zero forces and moments since tire forces
+    /// are implicitly applied to the associated wheel through the tire-wheel connections.
+    virtual TerrainForce GetTireForce() const override;
 };
 
 /// @} vehicle_wheeled_tire

@@ -32,13 +32,13 @@ using namespace geometry;
 // -----------------------------------------------------------------------------
 void AddMixture(ChSystem* sys) {
     utils::Generator gen(sys);
-    std::shared_ptr<utils::MixtureIngredient> m1 = gen.AddMixtureIngredient(utils::BOX, 0.3);
-    std::shared_ptr<utils::MixtureIngredient> m2 = gen.AddMixtureIngredient(utils::SPHERE, 0.4);
-    std::shared_ptr<utils::MixtureIngredient> m3 = gen.AddMixtureIngredient(utils::CYLINDER, 0.3);
+    std::shared_ptr<utils::MixtureIngredient> m1 = gen.AddMixtureIngredient(utils::MixtureType::BOX, 0.3);
+    std::shared_ptr<utils::MixtureIngredient> m2 = gen.AddMixtureIngredient(utils::MixtureType::SPHERE, 0.4);
+    std::shared_ptr<utils::MixtureIngredient> m3 = gen.AddMixtureIngredient(utils::MixtureType::CYLINDER, 0.3);
     m1->setDefaultSize(ChVector<>(1, .5, 0.7));
     m2->setDefaultSize(ChVector<>(.5, .5, .5));
     m3->setDefaultSize(ChVector<>(1, .5, 1));
-    gen.createObjectsCylinderX(utils::REGULAR_GRID, 2, ChVector<>(0, 0, 0), 20, 20, ChVector<>(0, 0, 0));
+    gen.createObjectsCylinderX(utils::SamplingType::REGULAR_GRID, 2, ChVector<>(0, 0, 0), 20, 20, ChVector<>(0, 0, 0));
 }
 
 // -----------------------------------------------------------------------------

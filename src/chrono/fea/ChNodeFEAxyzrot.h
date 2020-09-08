@@ -38,8 +38,6 @@ class ChApi ChNodeFEAxyzrot : public ChNodeFEAbase, public ChBodyFrame, public C
 
     virtual ChVariables& Variables() override { return variables; }
 
-    virtual ChVariablesBodyOwnMass& VariablesBody() override { return variables; }
-
     /// Set the rest position as the actual position.
     virtual void Relax() override {
         X0 = *this;

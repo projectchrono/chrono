@@ -1,0 +1,82 @@
+# Blender MTL File: 'gator_chassis.blend'
+# Material Count: 7
+
+newmtl Gator_BodySG4
+Ns 0.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.500000 0.500000 0.500000
+Ks 0.050000 0.050000 0.050000
+Ke 0.000000 0.000000 0.000000
+Ni 1.000000
+d 1.000000
+illum 2
+map_Bump Textures/Gator_Texture_Lidar_Generator_Normal.jpg
+map_Kd Textures/Gator_Texture_Lidar_Generator_AlbedoTransparency.jpg
+
+newmtl Gator_BodySG5
+Ns 0.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.500000 0.500000 0.500000
+Ks 0.050000 0.050000 0.050000
+Ke 0.000000 0.000000 0.000000
+Ni 1.000000
+d 1.000000
+illum 2
+map_Bump Textures/Gator_Texture_Server_Mount_Normal.jpg
+map_Kd Textures/Gator_Texture_Server_Mount_AlbedoTransparency.jpg
+
+newmtl Gator_BodySG6
+Ns 0.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.000000 0.240000 0.020000
+Ks 0.250000 0.250000 0.250000
+Ke 0.000000 0.000000 0.000000
+Ni 1.000000
+d 1.000000
+illum 2
+map_Bump Textures/Gator_Texture_Gator_Chassis_F_Bed_Normal.jpg
+map_Kd Textures/Gator_Texture_Gator_Chassis_F_Bed_AlbedoTransparency.jpg
+
+newmtl Gator_BodySG7
+Ns 0.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.040000 0.040000 0.040000
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.000000
+d 1.000000
+illum 1
+
+newmtl Gator_BodySG8
+Ns 0.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.200000 0.200000 0.200000
+Ks 0.100000 0.100000 0.100000
+Ke 0.000000 0.000000 0.000000
+Ni 1.000000
+d 1.000000
+illum 2
+map_Bump Textures/Gator_Texture_Gator_Chairs_Dash_Normal.jpg
+map_Kd Textures/Gator_Texture_Gator_Chairs_Dash_AlbedoTransparency.jpg
+
+newmtl Gator_BodySG9
+Ns 0.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.000000 0.280000 0.030000
+Ks 0.100000 0.100000 0.100000
+Ke 0.000000 0.000000 0.000000
+Ni 1.000000
+d 1.000000
+illum 2
+map_Bump Textures/Gator_Texture_Gator_Chassis_R_Normal.jpg
+map_Kd Textures/Gator_Texture_Gator_Chassis_R_AlbedoTransparency.jpg
+
+newmtl S_WheelSG
+Ns 0.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.230000 0.230000 0.230000
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.000000
+d 1.000000
+illum 1

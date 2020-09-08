@@ -21,8 +21,8 @@ namespace chrono {
 CH_FACTORY_REGISTER(ChFunction_Integrate)
 
 ChFunction_Integrate::ChFunction_Integrate() : order(1), C_start(0), x_start(0), x_end(1), num_samples(2000) {
-    fa = std::make_shared<ChFunction_Const>();  // default
-    array_x = new ChMatrixDynamic<>(num_samples, 1);
+    fa = chrono_types::make_shared<ChFunction_Const>();  // default
+    array_x.resize(num_samples);
 }
 
 ChFunction_Integrate::ChFunction_Integrate(const ChFunction_Integrate& other) {
@@ -32,12 +32,7 @@ ChFunction_Integrate::ChFunction_Integrate(const ChFunction_Integrate& other) {
     x_start = other.x_start;
     x_end = other.x_end;
     num_samples = other.num_samples;
-    array_x->CopyFromMatrix(*other.array_x);
-}
-
-ChFunction_Integrate::~ChFunction_Integrate() {
-    if (array_x)
-        delete array_x;
+    array_x = other.array_x;
 }
 
 void ChFunction_Integrate::ComputeIntegral() {
@@ -46,7 +41,7 @@ void ChFunction_Integrate::ComputeIntegral() {
 
     double F_sum = this->Get_C_start();
 
-    this->array_x->SetElement(0, 0, this->Get_C_start());
+    array_x(0) = this->Get_C_start();
 
     for (int i = 1; i < this->num_samples; i++) {
         x_b = x_start + ((double)i) * (mstep);
@@ -55,7 +50,7 @@ void ChFunction_Integrate::ComputeIntegral() {
         y_b = this->fa->Get_y(x_b);
         // trapezoidal rule..
         F_b = F_sum + mstep * (y_a + y_b) * 0.5;
-        this->array_x->SetElement(i, 0, F_b);
+        array_x(i) = F_b;
         F_sum = F_b;
     }
 }
@@ -69,15 +64,15 @@ double ChFunction_Integrate::Get_y(double x) const {
     i_b = i_a + 1;
 
     if (i_b > num_samples - 1)
-        return array_x->GetElement(num_samples - 1, 0);
+        return array_x(num_samples - 1);
 
     if (i_a < 0)
-        return array_x->GetElement(0, 0);
+        return array_x(0);
 
     double weightB = position - (double)i_a;
     double weightA = 1 - weightB;
 
-    return (weightA * (array_x->GetElement(i_a, 0)) + weightB * (array_x->GetElement(i_b, 0)));
+    return (weightA * (array_x(i_a)) + weightB * (array_x(i_b)));
 }
 
 void ChFunction_Integrate::Estimate_x_range(double& xmin, double& xmax) const {
@@ -111,7 +106,7 @@ void ChFunction_Integrate::ArchiveIN(ChArchiveIn& marchive) {
     marchive >> CHNVP(x_start);
     marchive >> CHNVP(x_end);
     marchive >> CHNVP(num_samples);
-    array_x->Reset(num_samples, 1);
+    array_x.setZero(num_samples);
     ComputeIntegral();
 }
 

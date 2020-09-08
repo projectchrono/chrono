@@ -60,12 +60,11 @@ void AddBody(ChSystemParallelNSC* sys) {
     int mixerId = -201;
 
     // Create a common material
-    auto mat = std::make_shared<ChMaterialSurfaceNSC>();
+    auto mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
     mat->SetFriction(0.4f);
 
     // Create the containing bin (2 x 2 x 1)
-    auto bin = std::make_shared<ChBody>(std::make_shared<ChCollisionModelParallel>());
-    bin->SetMaterialSurface(mat);
+    auto bin = chrono_types::make_shared<ChBody>(chrono_types::make_shared<ChCollisionModelParallel>());
     bin->SetIdentifier(binId);
     bin->SetMass(100);
     bin->SetPos(ChVector<>(0, 0, 1));
@@ -76,12 +75,12 @@ void AddBody(ChSystemParallelNSC* sys) {
     ChVector<> hdim(.5, .5, 0.05);
 
     bin->GetCollisionModel()->ClearModel();
-    utils::AddBoxGeometry(bin.get(), ChVector<>(hdim.x(), hdim.y(), hdim.z()), ChVector<>(0, 0, -hdim.z()));
-    // utils::AddBoxGeometry(bin.get_ptr(), ChVector<>(hdim.x(), hdim.y(), hdim.z()), ChVector<>(0, 0, hdim.z()*10));
+    utils::AddBoxGeometry(bin.get(), mat, ChVector<>(hdim.x(), hdim.y(), hdim.z()), ChVector<>(0, 0, -hdim.z()));
+    // utils::AddBoxGeometry(bin.get(), mat, ChVector<>(hdim.x(), hdim.y(), hdim.z()), ChVector<>(0, 0, hdim.z()*10));
     bin->GetCollisionModel()->SetFamily(1);
     bin->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(2);
     bin->GetCollisionModel()->BuildModel();
-    bin->SetInertiaXX(utils::CalcBoxGyration(hdim).Get_Diag() * 100);
+    bin->SetInertiaXX(utils::CalcBoxGyration(hdim).diagonal() * 100);
 
     sys->AddBody(bin);
 }
@@ -92,12 +91,11 @@ void AddContainer(ChSystemParallelNSC* sys) {
     int mixerId = -201;
 
     // Create a common material
-    auto mat = std::make_shared<ChMaterialSurfaceNSC>();
+    auto mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
     mat->SetFriction(0.4f);
 
     // Create the containing bin (2 x 2 x 1)
-    auto bin = std::make_shared<ChBody>(std::make_shared<ChCollisionModelParallel>());
-    bin->SetMaterialSurface(mat);
+    auto bin = chrono_types::make_shared<ChBody>(chrono_types::make_shared<ChCollisionModelParallel>());
     bin->SetIdentifier(binId);
     bin->SetMass(1);
     bin->SetPos(ChVector<>(0, 0, 0));
@@ -108,8 +106,8 @@ void AddContainer(ChSystemParallelNSC* sys) {
     ChVector<> hdim(.1, .1, .1);
 
     bin->GetCollisionModel()->ClearModel();
-    utils::AddBoxGeometry(bin.get(), ChVector<>(hdim.x(), hdim.y(), hdim.z()), ChVector<>(0, 0, 0));
-    // utils::AddBoxGeometry(bin.get_ptr(), ChVector<>(hdim.x(), hdim.y(), hdim.z()), ChVector<>(0, 0, hdim.z()*10));
+    utils::AddBoxGeometry(bin.get(), mat, ChVector<>(hdim.x(), hdim.y(), hdim.z()), ChVector<>(0, 0, 0));
+    // utils::AddBoxGeometry(bin.get(), mat, ChVector<>(hdim.x(), hdim.y(), hdim.z()), ChVector<>(0, 0, hdim.z()*10));
     bin->GetCollisionModel()->SetFamily(1);
     bin->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(2);
     bin->GetCollisionModel()->BuildModel();
@@ -123,9 +121,9 @@ void AddContainer(ChSystemParallelNSC* sys) {
 void AddMPMContainer(ChSystemParallelNSC* sys) {
 
 #if USE_RIGID
-    auto mpm_container = std::make_shared<ChParticleContainer>();
+    auto mpm_container = chrono_types::make_shared<ChParticleContainer>();
 #else
-    auto mpm_container = std::make_shared<ChFluidContainer>();
+    auto mpm_container = chrono_types::make_shared<ChFluidContainer>();
 #endif
     sys->Add3DOFContainer(mpm_container);
 
@@ -225,8 +223,6 @@ void AddMPMContainer(ChSystemParallelNSC* sys) {
 int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
-    int threads = 8;
-
     // Simulation parameters
     // ---------------------
 
@@ -243,13 +239,9 @@ int main(int argc, char* argv[]) {
     // -------------
 
     ChSystemParallelNSC msystem;
-    // omp_set_num_threads(4);
-    // Set number of threads.
-    //    int max_threads = 2;//CHOMPfunctions::GetNumProcs();
-    //    if (threads > max_threads)
-    //        threads = max_threads;
-    //    msystem.SetParallelThreadNumber(threads);
-    //    CHOMPfunctions::SetNumThreads(threads);
+
+    // Set number of threads
+    msystem.SetNumThreads(8);
 
     // Set gravitational acceleration
     msystem.Set_G_acc(ChVector<>(0, 0, -gravity));

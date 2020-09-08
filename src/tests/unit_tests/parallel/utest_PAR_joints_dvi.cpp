@@ -26,6 +26,7 @@
 #include "chrono_parallel/physics/ChSystemParallel.h"
 
 #include "chrono/ChConfig.h"
+#include "chrono/assets/ChBoxShape.h"
 #include "chrono/utils/ChUtilsCreators.h"
 
 #ifdef CHRONO_OPENGL
@@ -52,9 +53,6 @@ class JointsDVI : public ::testing::TestWithParam<Options> {
         opts = GetParam();
 
         // Additional solver settings
-        int threads = 1;
-        bool thread_tuning = false;
-
         double tolerance = 1e-5;
 
         bool clamp_bilaterals = false;
@@ -68,9 +66,7 @@ class JointsDVI : public ::testing::TestWithParam<Options> {
         system->Set_G_acc(ChVector<>(0, 0, -9.81));
 
         // Set number of threads
-        CHOMPfunctions::SetNumThreads(threads);
-        system->GetSettings()->max_threads = threads;
-        system->GetSettings()->perform_thread_tuning = thread_tuning;
+        system->SetNumThreads(1);
 
         // Edit system settings
         system->GetSettings()->solver.tolerance = tolerance;
@@ -87,14 +83,14 @@ class JointsDVI : public ::testing::TestWithParam<Options> {
         system->ChangeSolverType(opts.type);
 
         // Create the ground body
-        auto ground = std::make_shared<ChBody>(std::make_shared<collision::ChCollisionModelParallel>());
+        auto ground = chrono_types::make_shared<ChBody>(chrono_types::make_shared<collision::ChCollisionModelParallel>());
         ground->SetIdentifier(-1);
         ground->SetBodyFixed(true);
         ground->SetCollide(false);
         system->AddBody(ground);
 
         // Create the sled body
-        auto sled = std::make_shared<ChBody>(std::make_shared<collision::ChCollisionModelParallel>());
+        auto sled = chrono_types::make_shared<ChBody>(chrono_types::make_shared<collision::ChCollisionModelParallel>());
         sled->SetIdentifier(1);
         sled->SetMass(550);
         sled->SetInertiaXX(ChVector<>(100, 100, 100));
@@ -103,7 +99,7 @@ class JointsDVI : public ::testing::TestWithParam<Options> {
         sled->SetBodyFixed(false);
         sled->SetCollide(false);
 
-        auto box_sled = std::make_shared<ChBoxShape>();
+        auto box_sled = chrono_types::make_shared<ChBoxShape>();
         box_sled->GetBoxGeometry().Size = ChVector<>(1, 0.25, 0.25);
         box_sled->Pos = ChVector<>(0, 0, 0);
         box_sled->Rot = ChQuaternion<>(1, 0, 0, 0);
@@ -112,7 +108,7 @@ class JointsDVI : public ::testing::TestWithParam<Options> {
         system->AddBody(sled);
 
         // Create the wheel body
-        auto wheel = std::make_shared<ChBody>(std::make_shared<collision::ChCollisionModelParallel>());
+        auto wheel = chrono_types::make_shared<ChBody>(chrono_types::make_shared<collision::ChCollisionModelParallel>());
         wheel->SetIdentifier(2);
         wheel->SetMass(350);
         wheel->SetInertiaXX(ChVector<>(50, 138, 138));
@@ -122,19 +118,21 @@ class JointsDVI : public ::testing::TestWithParam<Options> {
         wheel->SetBodyFixed(false);
         wheel->SetCollide(true);
 
+        auto wheel_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+
         wheel->GetCollisionModel()->ClearModel();
-        utils::AddCylinderGeometry(wheel.get(), 0.3, 0.1, ChVector<>(0, 0, 0), Q_from_AngZ(CH_C_PI_2));
+        utils::AddCylinderGeometry(wheel.get(), wheel_mat, 0.3, 0.1, ChVector<>(0, 0, 0), Q_from_AngZ(CH_C_PI_2));
         wheel->GetCollisionModel()->BuildModel();
 
         system->AddBody(wheel);
 
         // Create and initialize translational joint ground - sled
-        prismatic = std::make_shared<ChLinkLockPrismatic>();
+        prismatic = chrono_types::make_shared<ChLinkLockPrismatic>();
         prismatic->Initialize(ground, sled, ChCoordsys<>(ChVector<>(0, 0, 0), Q_from_AngY(CH_C_PI_2)));
         system->AddLink(prismatic);
 
         // Create and initialize revolute joint sled - wheel
-        revolute = std::make_shared<ChLinkLockRevolute>();
+        revolute = chrono_types::make_shared<ChLinkLockRevolute>();
         revolute->Initialize(wheel, sled, ChCoordsys<>(ChVector<>(1, 0, 0), Q_from_AngX(CH_C_PI_2)));
         system->AddLink(revolute);
     }
@@ -177,15 +175,15 @@ TEST_P(JointsDVI, simulate) {
             system->DoStepDynamics(time_step);
 
             // Check constraints for prismatic joint
-            ChMatrix<>* pC = prismatic->GetC();
+            ChVectorDynamic<> pC = prismatic->GetC();
             for (int i = 0; i < 5; i++) {
-                ASSERT_NEAR(pC->GetElement(i, 0), 0.0, max_cnstr_violation);
+                ASSERT_NEAR(pC(i), 0.0, max_cnstr_violation);
             }
 
             // Check constraints for revolute joint
-            ChMatrix<>* rC = revolute->GetC();
+            ChVectorDynamic<> rC = revolute->GetC();
             for (int i = 0; i < 5; i++) {
-                ASSERT_NEAR(rC->GetElement(i, 0), 0.0, max_cnstr_violation);
+                ASSERT_NEAR(rC(i), 0.0, max_cnstr_violation);
             }
         }
     }

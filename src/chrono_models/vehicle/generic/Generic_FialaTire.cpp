@@ -58,6 +58,10 @@ double Generic_FialaTire::GetNormalStiffnessForce(double depth) const {
     return (m_normalStiffness * depth);
 }
 
+double Generic_FialaTire::GetNormalDampingForce(double depth, double velocity) const {
+    return m_normalDamping * velocity;
+}
+
 }  // end namespace generic
 }  // end namespace vehicle
 }  // end namespace chrono

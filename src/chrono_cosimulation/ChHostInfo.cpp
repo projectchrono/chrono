@@ -17,8 +17,6 @@
 #include "chrono_cosimulation/ChHostInfo.h"
 #include "chrono_cosimulation/ChExceptionSocket.h"
 
-using namespace std;
-
 namespace chrono {
 namespace cosimul {
 
@@ -38,7 +36,7 @@ ChHostInfo::ChHostInfo() {
         hostPtr = gethostbyname(sName);
         if (hostPtr == NULL) {
             int errorCode;
-            string errorMsg = "";
+            std::string errorMsg = "";
             detectErrorGethostbyname(&errorCode, errorMsg);
             ChExceptionSocket* gethostbynameException = new ChExceptionSocket(errorCode, errorMsg);
             throw gethostbynameException;
@@ -51,7 +49,7 @@ ChHostInfo::ChHostInfo() {
 #endif
 }
 
-ChHostInfo::ChHostInfo(const string& hostName, hostType type) {
+ChHostInfo::ChHostInfo(const std::string& hostName, hostType type) {
 #ifdef UNIX
     searchHostDB = 0;
 #endif
@@ -64,7 +62,7 @@ ChHostInfo::ChHostInfo(const string& hostName, hostType type) {
             if (hostPtr == NULL) {
 #ifdef WINDOWS_XP
                 int errorCode;
-                string errorMsg = "";
+                std::string errorMsg = "";
                 detectErrorGethostbyname(&errorCode, errorMsg);
                 ChExceptionSocket* gethostbynameException = new ChExceptionSocket(errorCode, errorMsg);
                 throw gethostbynameException;
@@ -88,7 +86,7 @@ ChHostInfo::ChHostInfo(const string& hostName, hostType type) {
             if (hostPtr == NULL) {
 #ifdef WINDOWS_XP
                 int errorCode;
-                string errorMsg = "";
+                std::string errorMsg = "";
                 detectErrorGethostbyaddr(&errorCode, errorMsg);
                 ChExceptionSocket* gethostbyaddrException = new ChExceptionSocket(errorCode, errorMsg);
                 throw gethostbyaddrException;
@@ -120,7 +118,7 @@ char* ChHostInfo::getHostIPAddress() {
 }
 
 #ifdef WINDOWS_XP
-void ChHostInfo::detectErrorGethostbyname(int* errCode, string& errorMsg) {
+void ChHostInfo::detectErrorGethostbyname(int* errCode, std::string& errorMsg) {
     *errCode = WSAGetLastError();
 
     if (*errCode == WSANOTINITIALISED)
@@ -147,7 +145,7 @@ void ChHostInfo::detectErrorGethostbyname(int* errCode, string& errorMsg) {
 #endif
 
 #ifdef WINDOWS_XP
-void ChHostInfo::detectErrorGethostbyaddr(int* errCode, string& errorMsg) {
+void ChHostInfo::detectErrorGethostbyaddr(int* errCode, std::string& errorMsg) {
     *errCode = WSAGetLastError();
 
     if (*errCode == WSANOTINITIALISED)

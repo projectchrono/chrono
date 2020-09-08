@@ -144,32 +144,34 @@ void ChCAABBGenerator::GenerateAABB() {
             real3 temp_min;
             real3 temp_max;
 
-            if (type == SPHERE) {
+            if (type == ChCollisionShape::Type::SPHERE) {
                 real radius = data_manager->shape_data.sphere_rigid[start];
                 ComputeAABBSphere(radius + collision_envelope, local_pos, position, body_rot[id], temp_min, temp_max);
 
-            } else if (type == ELLIPSOID || type == BOX || type == CYLINDER || type == CONE) {
+            } else if (type == ChCollisionShape::Type::ELLIPSOID || type == ChCollisionShape::Type::BOX ||
+                       type == ChCollisionShape::Type::CYLINDER || type == ChCollisionShape::Type::CONE) {
                 real3 B = data_manager->shape_data.box_like_rigid[start];
                 ComputeAABBBox(B + collision_envelope, local_pos, position, rotation, body_rot[id], temp_min, temp_max);
 
-            } else if (type == ROUNDEDBOX || type == ROUNDEDCYL || type == ROUNDEDCONE) {
+            } else if (type == ChCollisionShape::Type::ROUNDEDBOX || type == ChCollisionShape::Type::ROUNDEDCYL ||
+                       type == ChCollisionShape::Type::ROUNDEDCONE) {
                 real4 T = data_manager->shape_data.rbox_like_rigid[start];
                 real3 B = real3(T.x, T.y, T.z) + T.w + collision_envelope;
                 ComputeAABBBox(B, local_pos, position, rotation, body_rot[id], temp_min, temp_max);
 
-            } else if (type == CAPSULE) {
+            } else if (type == ChCollisionShape::Type::CAPSULE) {
                 real2 T = data_manager->shape_data.capsule_rigid[start];
                 real3 B_ = real3(T.x, T.x + T.y, T.x) + collision_envelope;
                 ComputeAABBBox(B_, local_pos, position, rotation, body_rot[id], temp_min, temp_max);
 
-            } else if (type == CONVEX) {
+            } else if (type == ChCollisionShape::Type::CONVEX) {
                 int length = data_manager->shape_data.length_rigid[index];
                 ComputeAABBConvex(convex_rigid.data(), start, length, local_pos, position, rotation, temp_min,
                                   temp_max);
                 temp_min -= collision_envelope;
                 temp_max += collision_envelope;
 
-            } else if (type == TRIANGLEMESH) {
+            } else if (type == ChCollisionShape::Type::TRIANGLE) {
                 real3 A, B, C;
 
                 A = data_manager->shape_data.triangle_rigid[start + 0];

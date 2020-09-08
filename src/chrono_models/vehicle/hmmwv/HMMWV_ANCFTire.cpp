@@ -69,7 +69,7 @@ const std::vector<int> HMMWV_ANCFTire::m_material_id_tread{{2, 1, 1, 0}};
 const int HMMWV_ANCFTire::m_div_circumference = 90;
 
 const float HMMWV_ANCFTire::m_friction = 0.9f;
-const float HMMWV_ANCFTire::m_restiturion = 0.1f;
+const float HMMWV_ANCFTire::m_restitution = 0.1f;
 const float HMMWV_ANCFTire::m_Young = 2.0e6f;
 const float HMMWV_ANCFTire::m_Poisson = 0.3f;
 const float HMMWV_ANCFTire::m_kn = 2.0e6f;
@@ -121,17 +121,11 @@ const double HMMWV_ANCFTire::m_profile[71][3] = {
 HMMWV_ANCFTire::HMMWV_ANCFTire(const std::string& name) : ChANCFTire(name) {
     m_div_width = 2 * (m_num_elements_bead + m_num_elements_sidewall + m_num_elements_tread);
 
-    // Set contact material properties
-    SetContactFrictionCoefficient(m_friction);
-    SetContactRestitutionCoefficient(m_restitution);
-    SetContactMaterialProperties(m_Young, m_Poisson);
-    SetContactMaterialCoefficients(m_kn, m_gn, m_kt, m_gt);
-
     // Create the vector of orthotropic layer materials
     m_materials.resize(3);
-    m_materials[0] = std::make_shared<ChMaterialShellANCF>(m_rho_0, m_E_0, m_nu_0, m_G_0);
-    m_materials[1] = std::make_shared<ChMaterialShellANCF>(m_rho_1, m_E_1, m_nu_1, m_G_1);
-    m_materials[2] = std::make_shared<ChMaterialShellANCF>(m_rho_2, m_E_2, m_nu_2, m_G_2);
+    m_materials[0] = chrono_types::make_shared<ChMaterialShellANCF>(m_rho_0, m_E_0, m_nu_0, m_G_0);
+    m_materials[1] = chrono_types::make_shared<ChMaterialShellANCF>(m_rho_1, m_E_1, m_nu_1, m_G_1);
+    m_materials[2] = chrono_types::make_shared<ChMaterialShellANCF>(m_rho_2, m_E_2, m_nu_2, m_G_2);
 
     // Set the profile
     m_profile_t.resize(m_num_points);
@@ -177,7 +171,7 @@ void HMMWV_ANCFTire::CreateMesh(const ChFrameMoving<>& wheel_frame, VehicleSide 
             ChVector<> nrm_prf = Vcross(tan_prf, nrm).GetNormalized();
             ChVector<> dir = wheel_frame.TransformDirectionLocalToParent(nrm_prf);
 
-            auto node = std::make_shared<ChNodeFEAxyzD>(loc, dir);
+            auto node = chrono_types::make_shared<ChNodeFEAxyzD>(loc, dir);
 
             // Node velocity
             ChVector<> vel = wheel_frame.PointSpeedLocalToParent(ChVector<>(x, y, z));
@@ -208,7 +202,7 @@ void HMMWV_ANCFTire::CreateMesh(const ChFrameMoving<>& wheel_frame, VehicleSide 
             auto node3 = std::dynamic_pointer_cast<ChNodeFEAxyzD>(m_mesh->GetNode(inode3));
 
             // Create the element and set its nodes.
-            auto element = std::make_shared<ChElementShellANCF>();
+            auto element = chrono_types::make_shared<ChElementShellANCF>();
             element->SetNodes(node0, node1, node2, node3);
 
             // Element dimensions
@@ -270,6 +264,18 @@ std::vector<std::shared_ptr<fea::ChNodeFEAbase>> HMMWV_ANCFTire::GetConnectedNod
     }
 
     return nodes;
+}
+
+void HMMWV_ANCFTire::CreateContactMaterial() {
+    m_contact_mat = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+    m_contact_mat->SetFriction(m_friction);
+    m_contact_mat->SetRestitution(m_restitution);
+    m_contact_mat->SetYoungModulus(m_Young);
+    m_contact_mat->SetPoissonRatio(m_Poisson);
+    m_contact_mat->SetKn(m_kn);
+    m_contact_mat->SetGn(m_gn);
+    m_contact_mat->SetKt(m_kt);
+    m_contact_mat->SetGt(m_gt);
 }
 
 }  // end namespace hmmwv

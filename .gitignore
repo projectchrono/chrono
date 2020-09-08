@@ -4,6 +4,7 @@
 
 # Where you build the src
 /build
+.vscode
 
 ##---------------------------------------------------
 ## C++
@@ -89,3 +90,4 @@ doxygen/documentation/images/chronoStructure2016.png
 build_chrono_website.sh
 .htaccess
 refman.pdf
+src/chrono_granular/DoxyGenDocs/

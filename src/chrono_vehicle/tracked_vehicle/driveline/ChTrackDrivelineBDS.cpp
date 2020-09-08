@@ -32,50 +32,51 @@ namespace vehicle {
 // could transfer pitch torque to the chassis.
 // -----------------------------------------------------------------------------
 ChTrackDrivelineBDS::ChTrackDrivelineBDS(const std::string& name)
-    : ChTrackDriveline(name), m_dir_motor_block(ChVector<>(1, 0, 0)), m_dir_axle(ChVector<>(0, 1, 0)) {}
+    : ChDrivelineTV(name), m_dir_motor_block(ChVector<>(1, 0, 0)), m_dir_axle(ChVector<>(0, 1, 0)) {}
 
 // -----------------------------------------------------------------------------
 // Initialize the driveline subsystem.
 // This function connects this driveline subsystem to the axles of the specified
 // suspension subsystems.
 // -----------------------------------------------------------------------------
-void ChTrackDrivelineBDS::Initialize(std::shared_ptr<ChBody> chassis,
+void ChTrackDrivelineBDS::Initialize(std::shared_ptr<ChChassis> chassis,
                                      std::shared_ptr<ChTrackAssembly> track_left,
                                      std::shared_ptr<ChTrackAssembly> track_right) {
-    ChSystem* my_system = chassis->GetSystem();
+    auto chassisBody = chassis->GetBody();
+    auto sys = chassisBody->GetSystem();
 
     // Create the driveshaft, a 1 d.o.f. object with rotational inertia which
     // represents the connection of the driveline to the transmission box.
-    m_driveshaft = std::make_shared<ChShaft>();
+    m_driveshaft = chrono_types::make_shared<ChShaft>();
     m_driveshaft->SetInertia(GetDriveshaftInertia());
-    my_system->Add(m_driveshaft);
+    sys->Add(m_driveshaft);
 
     // Create a 1 d.o.f. object: a 'shaft' with rotational inertia.
     // This represents the inertia of the rotating box of the differential.
-    m_differentialbox = std::make_shared<ChShaft>();
+    m_differentialbox = chrono_types::make_shared<ChShaft>();
     m_differentialbox->SetInertia(GetDifferentialBoxInertia());
-    my_system->Add(m_differentialbox);
+    sys->Add(m_differentialbox);
 
     // Create an angled gearbox, i.e a transmission ratio constraint between two
     // non parallel shafts. This is the case of the 90° bevel gears in the
     // differential. Note that, differently from the basic ChShaftsGear, this also
     // provides the possibility of transmitting a reaction torque to the box
     // (the truss).
-    m_conicalgear = std::make_shared<ChShaftsGearboxAngled>();
-    m_conicalgear->Initialize(m_driveshaft, m_differentialbox, chassis, m_dir_motor_block, m_dir_axle);
+    m_conicalgear = chrono_types::make_shared<ChShaftsGearboxAngled>();
+    m_conicalgear->Initialize(m_driveshaft, m_differentialbox, chassisBody, m_dir_motor_block, m_dir_axle);
     m_conicalgear->SetTransmissionRatio(GetConicalGearRatio());
-    my_system->Add(m_conicalgear);
+    sys->Add(m_conicalgear);
 
     // Create a differential, i.e. an epicycloidal mechanism that connects three
     // rotating members. This class of mechanisms can be simulated using
     // ChShaftsPlanetary; a proper 'ordinary' transmission ratio t0 must be
     // assigned according to Willis formula. The case of the differential is
     // simple: t0=-1.
-    m_differential = std::make_shared<ChShaftsPlanetary>();
+    m_differential = chrono_types::make_shared<ChShaftsPlanetary>();
     m_differential->Initialize(m_differentialbox, track_left->GetSprocket()->GetAxle(),
                                track_right->GetSprocket()->GetAxle());
     m_differential->SetTransmissionRatioOrdinary(GetDifferentialRatio());
-    my_system->Add(m_differential);
+    sys->Add(m_differential);
 }
 
 // -----------------------------------------------------------------------------

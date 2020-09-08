@@ -19,19 +19,11 @@
 #ifndef HMMWV_VEHICLE_FULL_H
 #define HMMWV_VEHICLE_FULL_H
 
+#include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicle.h"
+
 #include "chrono_models/ChApiModels.h"
 #include "chrono_models/vehicle/ChVehicleModelDefs.h"
-
 #include "chrono_models/vehicle/hmmwv/HMMWV_Vehicle.h"
-#include "chrono_models/vehicle/hmmwv/HMMWV_Chassis.h"
-#include "chrono_models/vehicle/hmmwv/HMMWV_BrakeSimple.h"
-#include "chrono_models/vehicle/hmmwv/HMMWV_DoubleWishbone.h"
-#include "chrono_models/vehicle/hmmwv/HMMWV_Driveline2WD.h"
-#include "chrono_models/vehicle/hmmwv/HMMWV_Driveline4WD.h"
-#include "chrono_models/vehicle/hmmwv/HMMWV_SimpleDriveline.h"
-#include "chrono_models/vehicle/hmmwv/HMMWV_PitmanArm.h"
-#include "chrono_models/vehicle/hmmwv/HMMWV_PitmanArmShafts.h"
-#include "chrono_models/vehicle/hmmwv/HMMWV_Wheel.h"
 
 namespace chrono {
 namespace vehicle {
@@ -46,27 +38,29 @@ class CH_MODELS_API HMMWV_VehicleFull : public HMMWV_Vehicle {
   public:
     HMMWV_VehicleFull(const bool fixed,
                       DrivelineType drive_type,
+                      BrakeType brake_type,
                       SteeringType steering_type,
                       bool rigid_steering_column,
-                      ChMaterialSurface::ContactMethod contact_method,
+                      ChContactMethod contact_method,
                       ChassisCollisionType chassis_collision_type);
 
     HMMWV_VehicleFull(ChSystem* system,
                       const bool fixed,
                       DrivelineType drive_type,
+                      BrakeType brake_type,
                       SteeringType steering_type,
                       bool rigid_steering_column,
                       ChassisCollisionType chassis_collision_type);
 
     ~HMMWV_VehicleFull();
 
-    double GetSpringForce(const WheelID& wheel_id) const;
-    double GetSpringLength(const WheelID& wheel_id) const;
-    double GetSpringDeformation(const WheelID& wheel_id) const;
+    double GetSpringForce(int axle, VehicleSide side) const;
+    double GetSpringLength(int axle, VehicleSide side) const;
+    double GetSpringDeformation(int axle, VehicleSide side) const;
 
-    double GetShockForce(const WheelID& wheel_id) const;
-    double GetShockLength(const WheelID& wheel_id) const;
-    double GetShockVelocity(const WheelID& wheel_id) const;
+    double GetShockForce(int axle, VehicleSide side) const;
+    double GetShockLength(int axle, VehicleSide side) const;
+    double GetShockVelocity(int axle, VehicleSide side) const;
 
     virtual void Initialize(const ChCoordsys<>& chassisPos, double chassisFwdVel = 0) override;
 
@@ -75,7 +69,11 @@ class CH_MODELS_API HMMWV_VehicleFull : public HMMWV_Vehicle {
     void DebugLog(int what);       /// shock forces and lengths, constraints, etc.
 
   private:
-    void Create(bool fixed, SteeringType steering_type, bool rigid_steering_column, ChassisCollisionType chassis_collision_type);
+    void Create(bool fixed,
+                BrakeType brake_type,
+                SteeringType steering_type,
+                bool rigid_steering_column,
+                ChassisCollisionType chassis_collision_type);
 };
 
 /// @} vehicle_models_hmmwv

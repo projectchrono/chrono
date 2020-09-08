@@ -46,24 +46,12 @@ class CH_VEHICLE_API ChVehicleOutputASCII : public ChVehicleOutput {
     virtual void WriteShafts(const std::vector<std::shared_ptr<ChShaft>>& shafts) override;
     virtual void WriteJoints(const std::vector<std::shared_ptr<ChLink>>& joints) override;
     virtual void WriteCouples(const std::vector<std::shared_ptr<ChShaftsCouple>>& couples) override;
-    virtual void WriteLinSprings(const std::vector<std::shared_ptr<ChLinkSpringCB>>& springs) override;
+    virtual void WriteLinSprings(const std::vector<std::shared_ptr<ChLinkTSDA>>& springs) override;
     virtual void WriteRotSprings(const std::vector<std::shared_ptr<ChLinkRotSpringCB>>& springs) override;
     virtual void WriteBodyLoads(const std::vector<std::shared_ptr<ChLoadBodyBody>>& loads) override;
 
     std::ofstream m_stream;
 };
-
-template <typename T>
-inline std::ostream& operator<<(std::ostream& out, const ChVector<T>& v) {
-    out << v.x() << " " << v.y() << " " << v.z();
-    return out;
-}
-
-template <typename T>
-inline std::ostream& operator<<(std::ostream& out, const ChQuaternion<T>& q) {
-    out << q.e0() << " " << q.e1() << " " << q.e2() << " " << q.e3();
-    return out;
-}
 
 /// @} vehicle
 

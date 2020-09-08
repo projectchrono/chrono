@@ -1,6 +1,6 @@
 /******************************************************************************
  * Copyright (c) 2011, Duane Merrill.  All rights reserved.
- * Copyright (c) 2011-2015, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2011-2017, NVIDIA CORPORATION.  All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -35,6 +35,7 @@
 
 #include <iostream>
 #include <limits>
+#include <cfloat>
 
 #include "util_macro.cuh"
 #include "util_arch.cuh"
@@ -111,6 +112,135 @@ struct Equals <A, A>
 
 
 /******************************************************************************
+ * Static math
+ ******************************************************************************/
+
+/**
+ * \brief Statically determine log2(N), rounded up.
+ *
+ * For example:
+ *     Log2<8>::VALUE   // 3
+ *     Log2<3>::VALUE   // 2
+ */
+template <int N, int CURRENT_VAL = N, int COUNT = 0>
+struct Log2
+{
+    /// Static logarithm value
+    enum { VALUE = Log2<N, (CURRENT_VAL >> 1), COUNT + 1>::VALUE };         // Inductive case
+};
+
+#ifndef DOXYGEN_SHOULD_SKIP_THIS    // Do not document
+
+template <int N, int COUNT>
+struct Log2<N, 0, COUNT>
+{
+    enum {VALUE = (1 << (COUNT - 1) < N) ?                                  // Base case
+        COUNT :
+        COUNT - 1 };
+};
+
+#endif // DOXYGEN_SHOULD_SKIP_THIS
+
+
+/**
+ * \brief Statically determine if N is a power-of-two
+ */
+template <int N>
+struct PowerOfTwo
+{
+    enum { VALUE = ((N & (N - 1)) == 0) };
+};
+
+
+
+/******************************************************************************
+ * Pointer vs. iterator detection
+ ******************************************************************************/
+
+/**
+ * \brief Pointer vs. iterator
+ */
+template <typename Tp>
+struct IsPointer
+{
+    enum { VALUE = 0 };
+};
+
+#ifndef DOXYGEN_SHOULD_SKIP_THIS    // Do not document
+
+template <typename Tp>
+struct IsPointer<Tp*>
+{
+    enum { VALUE = 1 };
+};
+
+#endif // DOXYGEN_SHOULD_SKIP_THIS
+
+
+
+/******************************************************************************
+ * Qualifier detection
+ ******************************************************************************/
+
+/**
+ * \brief Volatile modifier test
+ */
+template <typename Tp>
+struct IsVolatile
+{
+    enum { VALUE = 0 };
+};
+
+#ifndef DOXYGEN_SHOULD_SKIP_THIS    // Do not document
+
+template <typename Tp>
+struct IsVolatile<Tp volatile>
+{
+    enum { VALUE = 1 };
+};
+
+#endif // DOXYGEN_SHOULD_SKIP_THIS
+
+
+/******************************************************************************
+ * Qualifier removal
+ ******************************************************************************/
+
+/**
+ * \brief Removes \p const and \p volatile qualifiers from type \p Tp.
+ *
+ * For example:
+ *     <tt>typename RemoveQualifiers<volatile int>::Type         // int;</tt>
+ */
+template <typename Tp, typename Up = Tp>
+struct RemoveQualifiers
+{
+    /// Type without \p const and \p volatile qualifiers
+    typedef Up Type;
+};
+
+#ifndef DOXYGEN_SHOULD_SKIP_THIS    // Do not document
+
+template <typename Tp, typename Up>
+struct RemoveQualifiers<Tp, volatile Up>
+{
+    typedef Up Type;
+};
+
+template <typename Tp, typename Up>
+struct RemoveQualifiers<Tp, const Up>
+{
+    typedef Up Type;
+};
+
+template <typename Tp, typename Up>
+struct RemoveQualifiers<Tp, const volatile Up>
+{
+    typedef Up Type;
+};
+
+
+/******************************************************************************
  * Marker types
  ******************************************************************************/
 
@@ -122,11 +252,11 @@ struct NullType
 #ifndef DOXYGEN_SHOULD_SKIP_THIS    // Do not document
 
     template <typename T>
-    __host__ __device__ __forceinline__ NullType& operator =(const T& b) { return *this; }
+    __host__ __device__ __forceinline__ NullType& operator =(const T&) { return *this; }
 
-    __host__ __device__ __forceinline__ bool operator ==(const NullType& b) { return true; }
+    __host__ __device__ __forceinline__ bool operator ==(const NullType&) { return true; }
 
-    __host__ __device__ __forceinline__ bool operator !=(const NullType& b) { return false; }
+    __host__ __device__ __forceinline__ bool operator !=(const NullType&) { return false; }
 
 #endif // DOXYGEN_SHOULD_SKIP_THIS
 };
@@ -161,41 +291,52 @@ struct AlignBytes
 
     enum
     {
-        /// The alignment of T in bytes
+        /// The "true CUDA" alignment of T in bytes
         ALIGN_BYTES = sizeof(Pad) - sizeof(T)
     };
+
+    /// The "truly aligned" type
+    typedef T Type;
 };
 
-// Specializations where host C++ compilers (e.g., Windows) may disagree with device C++ compilers (EDG)
+// Specializations where host C++ compilers (e.g., 32-bit Windows) may disagree
+// with device C++ compilers (EDG) on types passed as template parameters through
+// kernel functions
 
-template <> struct AlignBytes<short4>               { enum { ALIGN_BYTES = 8 }; };
-template <> struct AlignBytes<ushort4>              { enum { ALIGN_BYTES = 8 }; };
-template <> struct AlignBytes<int2>                 { enum { ALIGN_BYTES = 8 }; };
-template <> struct AlignBytes<uint2>                { enum { ALIGN_BYTES = 8 }; };
+#define __CUB_ALIGN_BYTES(t, b)         \
+    template <> struct AlignBytes<t>    \
+    { enum { ALIGN_BYTES = b }; typedef __align__(b) t Type; };
+
+__CUB_ALIGN_BYTES(short4, 8)
+__CUB_ALIGN_BYTES(ushort4, 8)
+__CUB_ALIGN_BYTES(int2, 8)
+__CUB_ALIGN_BYTES(uint2, 8)
+__CUB_ALIGN_BYTES(long long, 8)
+__CUB_ALIGN_BYTES(unsigned long long, 8)
+__CUB_ALIGN_BYTES(float2, 8)
+__CUB_ALIGN_BYTES(double, 8)
 #ifdef _WIN32
-    template <> struct AlignBytes<long2>            { enum { ALIGN_BYTES = 8 }; };
-    template <> struct AlignBytes<ulong2>           { enum { ALIGN_BYTES = 8 }; };
+    __CUB_ALIGN_BYTES(long2, 8)
+    __CUB_ALIGN_BYTES(ulong2, 8)
+#else
+    __CUB_ALIGN_BYTES(long2, 16)
+    __CUB_ALIGN_BYTES(ulong2, 16)
 #endif
-template <> struct AlignBytes<long long>            { enum { ALIGN_BYTES = 8 }; };
-template <> struct AlignBytes<unsigned long long>   { enum { ALIGN_BYTES = 8 }; };
-template <> struct AlignBytes<float2>               { enum { ALIGN_BYTES = 8 }; };
-template <> struct AlignBytes<double>               { enum { ALIGN_BYTES = 8 }; };
+__CUB_ALIGN_BYTES(int4, 16)
+__CUB_ALIGN_BYTES(uint4, 16)
+__CUB_ALIGN_BYTES(float4, 16)
+__CUB_ALIGN_BYTES(long4, 16)
+__CUB_ALIGN_BYTES(ulong4, 16)
+__CUB_ALIGN_BYTES(longlong2, 16)
+__CUB_ALIGN_BYTES(ulonglong2, 16)
+__CUB_ALIGN_BYTES(double2, 16)
+__CUB_ALIGN_BYTES(longlong4, 16)
+__CUB_ALIGN_BYTES(ulonglong4, 16)
+__CUB_ALIGN_BYTES(double4, 16)
 
-template <> struct AlignBytes<int4>                 { enum { ALIGN_BYTES = 16 }; };
-template <> struct AlignBytes<uint4>                { enum { ALIGN_BYTES = 16 }; };
-template <> struct AlignBytes<float4>               { enum { ALIGN_BYTES = 16 }; };
-#ifndef _WIN32
-    template <> struct AlignBytes<long2>            { enum { ALIGN_BYTES = 16 }; };
-    template <> struct AlignBytes<ulong2>           { enum { ALIGN_BYTES = 16 }; };
-#endif
-template <> struct AlignBytes<long4>                { enum { ALIGN_BYTES = 16 }; };
-template <> struct AlignBytes<ulong4>               { enum { ALIGN_BYTES = 16 }; };
-template <> struct AlignBytes<longlong2>            { enum { ALIGN_BYTES = 16 }; };
-template <> struct AlignBytes<ulonglong2>           { enum { ALIGN_BYTES = 16 }; };
-template <> struct AlignBytes<double2>              { enum { ALIGN_BYTES = 16 }; };
-template <> struct AlignBytes<longlong4>            { enum { ALIGN_BYTES = 16 }; };
-template <> struct AlignBytes<ulonglong4>           { enum { ALIGN_BYTES = 16 }; };
-template <> struct AlignBytes<double4>              { enum { ALIGN_BYTES = 16 }; };
+template <typename T> struct AlignBytes<volatile T> : AlignBytes<T> {};
+template <typename T> struct AlignBytes<const T> : AlignBytes<T> {};
+template <typename T> struct AlignBytes<const volatile T> : AlignBytes<T> {};
 
 
 /// Unit-words of data movement
@@ -286,6 +427,12 @@ struct UnitWord <char2>
 #endif
     typedef unsigned short      TextureWord;
 };
+
+
+template <typename T> struct UnitWord<volatile T> : UnitWord<T> {};
+template <typename T> struct UnitWord<const T> : UnitWord<T> {};
+template <typename T> struct UnitWord<const volatile T> : UnitWord<T> {};
+
 
 #endif // DOXYGEN_SHOULD_SKIP_THIS
 
@@ -502,57 +649,112 @@ struct Uninitialized
 /**
  * \brief A key identifier paired with a corresponding value
  */
-template <typename _Key, typename _Value>
+template <
+    typename    _Key,
+    typename    _Value
+#if defined(_WIN32) && !defined(_WIN64)
+    , bool KeyIsLT = (AlignBytes<_Key>::ALIGN_BYTES < AlignBytes<_Value>::ALIGN_BYTES)
+    , bool ValIsLT = (AlignBytes<_Value>::ALIGN_BYTES < AlignBytes<_Key>::ALIGN_BYTES)
+#endif // #if defined(_WIN32) && !defined(_WIN64)
+    >
 struct KeyValuePair
 {
     typedef _Key    Key;                ///< Key data type
     typedef _Value  Value;              ///< Value data type
 
-#if (CUB_PTX_ARCH == 0)
-    union
-    {
-        Key                                     key;        ///< Item key
-        typename UnitWord<Value>::DeviceWord    align0;     ///< Alignment/padding (for Win32 consistency between host/device)
-    };
-#else
-    Key                     key;        ///< Item key
-#endif
+    Key     key;                        ///< Item key
+    Value   value;                      ///< Item value
 
-    Value                   value;      ///< Item value
+    /// Constructor
+    __host__ __device__ __forceinline__
+    KeyValuePair() {}
+
+    /// Constructor
+    __host__ __device__ __forceinline__
+    KeyValuePair(Key const& key, Value const& value) : key(key), value(value) {}
 
     /// Inequality operator
     __host__ __device__ __forceinline__ bool operator !=(const KeyValuePair &b)
     {
         return (value != b.value) || (key != b.key);
     }
-
 };
 
-#ifndef DOXYGEN_SHOULD_SKIP_THIS    // Do not document
-
+#if defined(_WIN32) && !defined(_WIN64)
 
 /**
- * Workaround for inability for SM1.x compiler to properly zero-initialize POD structures when it's supposed to
+ * Win32 won't do 16B alignment.  This can present two problems for
+ * should-be-16B-aligned (but actually 8B aligned) built-in and intrinsics members:
+ * 1) If a smaller-aligned item were to be listed first, the host compiler places the
+ *    should-be-16B item at too early an offset (and disagrees with device compiler)
+ * 2) Or, if a smaller-aligned item lists second, the host compiler gets the size
+ *    of the struct wrong (and disagrees with device compiler)
+ *
+ * So we put the larger-should-be-aligned item first, and explicitly pad the
+ * end of the struct
  */
-template <typename T>
-__host__ __device__ __forceinline__ T ZeroInitialize()
+
+/// Smaller key specialization
+template <typename K, typename V>
+struct KeyValuePair<K, V, true, false>
 {
-#if (CUB_PTX_ARCH > 0) && (CUB_PTX_ARCH <= 130)
+    typedef K Key;
+    typedef V Value;
 
-    typedef typename UnitWord<T>::ShuffleWord ShuffleWord;
-    const int MULTIPLE = sizeof(T) / sizeof(ShuffleWord);
-    ShuffleWord words[MULTIPLE];
-    #pragma unroll
-    for (int i = 0; i < MULTIPLE; ++i)
-        words[i] = 0;
-    return *reinterpret_cast<T*>(words);
+    typedef char Pad[AlignBytes<V>::ALIGN_BYTES - AlignBytes<K>::ALIGN_BYTES];
 
-#else
+    Value   value;  // Value has larger would-be alignment and goes first
+    Key     key;
+    Pad     pad;
 
-    return T();
+    /// Constructor
+    __host__ __device__ __forceinline__
+    KeyValuePair() {}
 
-#endif
-}
+    /// Constructor
+    __host__ __device__ __forceinline__
+    KeyValuePair(Key const& key, Value const& value) : key(key), value(value) {}
+
+    /// Inequality operator
+    __host__ __device__ __forceinline__ bool operator !=(const KeyValuePair &b)
+    {
+        return (value != b.value) || (key != b.key);
+    }
+};
+
+
+/// Smaller value specialization
+template <typename K, typename V>
+struct KeyValuePair<K, V, false, true>
+{
+    typedef K Key;
+    typedef V Value;
+
+    typedef char Pad[AlignBytes<K>::ALIGN_BYTES - AlignBytes<V>::ALIGN_BYTES];
+
+    Key     key;    // Key has larger would-be alignment and goes first
+    Value   value;
+    Pad     pad;
+
+    /// Constructor
+    __host__ __device__ __forceinline__
+    KeyValuePair() {}
+
+    /// Constructor
+    __host__ __device__ __forceinline__
+    KeyValuePair(Key const& key, Value const& value) : key(key), value(value) {}
+
+    /// Inequality operator
+    __host__ __device__ __forceinline__ bool operator !=(const KeyValuePair &b)
+    {
+        return (value != b.value) || (key != b.key);
+    }
+};
+
+#endif // #if defined(_WIN32) && !defined(_WIN64)
+
+
+#ifndef DOXYGEN_SHOULD_SKIP_THIS    // Do not document
 
 
 /**
@@ -612,136 +814,6 @@ struct DoubleBuffer
     /// \brief Return pointer to the currently invalid buffer
     __host__ __device__ __forceinline__ T* Alternate() { return d_buffers[selector ^ 1]; }
 
-};
-
-
-
-/******************************************************************************
- * Static math
- ******************************************************************************/
-
-/**
- * \brief Statically determine log2(N), rounded up.
- *
- * For example:
- *     Log2<8>::VALUE   // 3
- *     Log2<3>::VALUE   // 2
- */
-template <int N, int CURRENT_VAL = N, int COUNT = 0>
-struct Log2
-{
-    /// Static logarithm value
-    enum { VALUE = Log2<N, (CURRENT_VAL >> 1), COUNT + 1>::VALUE };         // Inductive case
-};
-
-#ifndef DOXYGEN_SHOULD_SKIP_THIS    // Do not document
-
-template <int N, int COUNT>
-struct Log2<N, 0, COUNT>
-{
-    enum {VALUE = (1 << (COUNT - 1) < N) ?                                  // Base case
-        COUNT :
-        COUNT - 1 };
-};
-
-#endif // DOXYGEN_SHOULD_SKIP_THIS
-
-
-/**
- * \brief Statically determine if N is a power-of-two
- */
-template <int N>
-struct PowerOfTwo
-{
-    enum { VALUE = ((N & (N - 1)) == 0) };
-};
-
-
-
-/******************************************************************************
- * Pointer vs. iterator detection
- ******************************************************************************/
-
-/**
- * \brief Pointer vs. iterator
- */
-template <typename Tp>
-struct IsPointer
-{
-    enum { VALUE = 0 };
-};
-
-#ifndef DOXYGEN_SHOULD_SKIP_THIS    // Do not document
-
-template <typename Tp>
-struct IsPointer<Tp*>
-{
-    enum { VALUE = 1 };
-};
-
-#endif // DOXYGEN_SHOULD_SKIP_THIS
-
-
-
-/******************************************************************************
- * Qualifier detection
- ******************************************************************************/
-
-/**
- * \brief Volatile modifier test
- */
-template <typename Tp>
-struct IsVolatile
-{
-    enum { VALUE = 0 };
-};
-
-#ifndef DOXYGEN_SHOULD_SKIP_THIS    // Do not document
-
-template <typename Tp>
-struct IsVolatile<Tp volatile>
-{
-    enum { VALUE = 1 };
-};
-
-#endif // DOXYGEN_SHOULD_SKIP_THIS
-
-
-/******************************************************************************
- * Qualifier removal
- ******************************************************************************/
-
-/**
- * \brief Removes \p const and \p volatile qualifiers from type \p Tp.
- *
- * For example:
- *     <tt>typename RemoveQualifiers<volatile int>::Type         // int;</tt>
- */
-template <typename Tp, typename Up = Tp>
-struct RemoveQualifiers
-{
-    /// Type without \p const and \p volatile qualifiers
-    typedef Up Type;
-};
-
-#ifndef DOXYGEN_SHOULD_SKIP_THIS    // Do not document
-
-template <typename Tp, typename Up>
-struct RemoveQualifiers<Tp, volatile Up>
-{
-    typedef Up Type;
-};
-
-template <typename Tp, typename Up>
-struct RemoveQualifiers<Tp, const Up>
-{
-    typedef Up Type;
-};
-
-template <typename Tp, typename Up>
-struct RemoveQualifiers<Tp, const volatile Up>
-{
-    typedef Up Type;
 };
 
 
@@ -859,7 +931,7 @@ enum Category
 /**
  * \brief Basic type traits
  */
-template <Category _CATEGORY, bool _PRIMITIVE, bool _NULL_TYPE, typename _UnsignedBits>
+template <Category _CATEGORY, bool _PRIMITIVE, bool _NULL_TYPE, typename _UnsignedBits, typename T>
 struct BaseTraits
 {
     /// Category
@@ -875,13 +947,13 @@ struct BaseTraits
 /**
  * Basic type traits (unsigned primitive specialization)
  */
-template <typename _UnsignedBits>
-struct BaseTraits<UNSIGNED_INTEGER, true, false, _UnsignedBits>
+template <typename _UnsignedBits, typename T>
+struct BaseTraits<UNSIGNED_INTEGER, true, false, _UnsignedBits, T>
 {
     typedef _UnsignedBits       UnsignedBits;
 
     static const Category       CATEGORY    = UNSIGNED_INTEGER;
-    static const UnsignedBits   MIN_KEY     = UnsignedBits(0);
+    static const UnsignedBits   LOWEST_KEY  = UnsignedBits(0);
     static const UnsignedBits   MAX_KEY     = UnsignedBits(-1);
 
     enum
@@ -900,20 +972,32 @@ struct BaseTraits<UNSIGNED_INTEGER, true, false, _UnsignedBits>
     {
         return key;
     }
+
+    static __host__ __device__ __forceinline__ T Max()
+    {
+        UnsignedBits retval = MAX_KEY;
+        return reinterpret_cast<T&>(retval);
+    }
+
+    static __host__ __device__ __forceinline__ T Lowest()
+    {
+        UnsignedBits retval = LOWEST_KEY;
+        return reinterpret_cast<T&>(retval);
+    }
 };
 
 
 /**
  * Basic type traits (signed primitive specialization)
  */
-template <typename _UnsignedBits>
-struct BaseTraits<SIGNED_INTEGER, true, false, _UnsignedBits>
+template <typename _UnsignedBits, typename T>
+struct BaseTraits<SIGNED_INTEGER, true, false, _UnsignedBits, T>
 {
     typedef _UnsignedBits       UnsignedBits;
 
     static const Category       CATEGORY    = SIGNED_INTEGER;
     static const UnsignedBits   HIGH_BIT    = UnsignedBits(1) << ((sizeof(UnsignedBits) * 8) - 1);
-    static const UnsignedBits   MIN_KEY     = HIGH_BIT;
+    static const UnsignedBits   LOWEST_KEY  = HIGH_BIT;
     static const UnsignedBits   MAX_KEY     = UnsignedBits(-1) ^ HIGH_BIT;
 
     enum
@@ -932,21 +1016,65 @@ struct BaseTraits<SIGNED_INTEGER, true, false, _UnsignedBits>
         return key ^ HIGH_BIT;
     };
 
+    static __host__ __device__ __forceinline__ T Max()
+    {
+        UnsignedBits retval = MAX_KEY;
+        return reinterpret_cast<T&>(retval);
+    }
+
+    static __host__ __device__ __forceinline__ T Lowest()
+    {
+        UnsignedBits retval = LOWEST_KEY;
+        return reinterpret_cast<T&>(retval);
+    }
+};
+
+template <typename _T>
+struct FpLimits;
+
+template <>
+struct FpLimits<float>
+{
+    static __host__ __device__ __forceinline__ float Max() {
+        return FLT_MAX;
+    }
+
+    static __host__ __device__ __forceinline__ float Lowest() {
+        return FLT_MAX * float(-1);
+    }
+};
+
+template <>
+struct FpLimits<double>
+{
+    static __host__ __device__ __forceinline__ double Max() {
+        return DBL_MAX;
+    }
+
+    static __host__ __device__ __forceinline__ double Lowest() {
+        return DBL_MAX  * double(-1);
+    }
 };
 
 
 /**
  * Basic type traits (fp primitive specialization)
  */
-template <typename _UnsignedBits>
-struct BaseTraits<FLOATING_POINT, true, false, _UnsignedBits>
+template <typename _UnsignedBits, typename T>
+struct BaseTraits<FLOATING_POINT, true, false, _UnsignedBits, T>
 {
     typedef _UnsignedBits       UnsignedBits;
 
     static const Category       CATEGORY    = FLOATING_POINT;
     static const UnsignedBits   HIGH_BIT    = UnsignedBits(1) << ((sizeof(UnsignedBits) * 8) - 1);
-    static const UnsignedBits   MIN_KEY     = UnsignedBits(-1);
+    static const UnsignedBits   LOWEST_KEY  = UnsignedBits(-1);
     static const UnsignedBits   MAX_KEY     = UnsignedBits(-1) ^ HIGH_BIT;
+
+    enum
+    {
+        PRIMITIVE       = true,
+        NULL_TYPE       = false,
+    };
 
     static __device__ __forceinline__ UnsignedBits TwiddleIn(UnsignedBits key)
     {
@@ -960,38 +1088,40 @@ struct BaseTraits<FLOATING_POINT, true, false, _UnsignedBits>
         return key ^ mask;
     };
 
-    enum
-    {
-        PRIMITIVE       = true,
-        NULL_TYPE       = false,
-    };
+    static __host__ __device__ __forceinline__ T Max() {
+        return FpLimits<T>::Max();
+    }
+
+    static __host__ __device__ __forceinline__ T Lowest() {
+        return FpLimits<T>::Lowest();
+    }
 };
 
 
 /**
  * \brief Numeric type traits
  */
-template <typename T> struct NumericTraits :            BaseTraits<NOT_A_NUMBER, false, false, T> {};
+template <typename T> struct NumericTraits :            BaseTraits<NOT_A_NUMBER, false, false, T, T> {};
 
-template <> struct NumericTraits<NullType> :            BaseTraits<NOT_A_NUMBER, false, true, NullType> {};
+template <> struct NumericTraits<NullType> :            BaseTraits<NOT_A_NUMBER, false, true, NullType, NullType> {};
 
-template <> struct NumericTraits<char> :                BaseTraits<(std::numeric_limits<char>::is_signed) ? SIGNED_INTEGER : UNSIGNED_INTEGER, true, false, unsigned char> {};
-template <> struct NumericTraits<signed char> :         BaseTraits<SIGNED_INTEGER, true, false, unsigned char> {};
-template <> struct NumericTraits<short> :               BaseTraits<SIGNED_INTEGER, true, false, unsigned short> {};
-template <> struct NumericTraits<int> :                 BaseTraits<SIGNED_INTEGER, true, false, unsigned int> {};
-template <> struct NumericTraits<long> :                BaseTraits<SIGNED_INTEGER, true, false, unsigned long> {};
-template <> struct NumericTraits<long long> :           BaseTraits<SIGNED_INTEGER, true, false, unsigned long long> {};
+template <> struct NumericTraits<char> :                BaseTraits<(std::numeric_limits<char>::is_signed) ? SIGNED_INTEGER : UNSIGNED_INTEGER, true, false, unsigned char, char> {};
+template <> struct NumericTraits<signed char> :         BaseTraits<SIGNED_INTEGER, true, false, unsigned char, signed char> {};
+template <> struct NumericTraits<short> :               BaseTraits<SIGNED_INTEGER, true, false, unsigned short, short> {};
+template <> struct NumericTraits<int> :                 BaseTraits<SIGNED_INTEGER, true, false, unsigned int, int> {};
+template <> struct NumericTraits<long> :                BaseTraits<SIGNED_INTEGER, true, false, unsigned long, long> {};
+template <> struct NumericTraits<long long> :           BaseTraits<SIGNED_INTEGER, true, false, unsigned long long, long long> {};
 
-template <> struct NumericTraits<unsigned char> :       BaseTraits<UNSIGNED_INTEGER, true, false, unsigned char> {};
-template <> struct NumericTraits<unsigned short> :      BaseTraits<UNSIGNED_INTEGER, true, false, unsigned short> {};
-template <> struct NumericTraits<unsigned int> :        BaseTraits<UNSIGNED_INTEGER, true, false, unsigned int> {};
-template <> struct NumericTraits<unsigned long> :       BaseTraits<UNSIGNED_INTEGER, true, false, unsigned long> {};
-template <> struct NumericTraits<unsigned long long> :  BaseTraits<UNSIGNED_INTEGER, true, false, unsigned long long> {};
+template <> struct NumericTraits<unsigned char> :       BaseTraits<UNSIGNED_INTEGER, true, false, unsigned char, unsigned char> {};
+template <> struct NumericTraits<unsigned short> :      BaseTraits<UNSIGNED_INTEGER, true, false, unsigned short, unsigned short> {};
+template <> struct NumericTraits<unsigned int> :        BaseTraits<UNSIGNED_INTEGER, true, false, unsigned int, unsigned int> {};
+template <> struct NumericTraits<unsigned long> :       BaseTraits<UNSIGNED_INTEGER, true, false, unsigned long, unsigned long> {};
+template <> struct NumericTraits<unsigned long long> :  BaseTraits<UNSIGNED_INTEGER, true, false, unsigned long long, unsigned long long> {};
 
-template <> struct NumericTraits<float> :               BaseTraits<FLOATING_POINT, true, false, unsigned int> {};
-template <> struct NumericTraits<double> :              BaseTraits<FLOATING_POINT, true, false, unsigned long long> {};
+template <> struct NumericTraits<float> :               BaseTraits<FLOATING_POINT, true, false, unsigned int, float> {};
+template <> struct NumericTraits<double> :              BaseTraits<FLOATING_POINT, true, false, unsigned long long, double> {};
 
-template <> struct NumericTraits<bool> :                BaseTraits<UNSIGNED_INTEGER, true, false, typename UnitWord<bool>::VolatileWord > {};
+template <> struct NumericTraits<bool> :                BaseTraits<UNSIGNED_INTEGER, true, false, typename UnitWord<bool>::VolatileWord, bool> {};
 
 
 

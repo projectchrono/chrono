@@ -1,0 +1,46 @@
+{
+  "Name":                           "CityBus Rear Leafspring Axle",
+  "Type":                           "Suspension",
+  "Template":                       "LeafspringAxle",
+
+  "Spindle" :
+  {
+    "Mass":                         60.2905,
+    "COM":                          [0.0, 0.93986, 0.0],
+    "Inertia":                      [0.2700752, 0.4822912, 0.2700752],
+    "Radius":                       0.10,
+    "Width":                        0.06
+  },
+
+  "Axle Tube" :
+  {
+    "Mass":                         508.4,
+    "COM":                          [0, 0, 0],
+    "Inertia":                      [145.6976, 0.5084, 145.6976],
+    "Radius":                       0.0476
+  },
+
+  "Spring":
+  {
+    "Location Chassis":             [0.0, 0.5142, 0.3476],
+    "Location Axle":                [0.0, 0.5142, 0.0476],
+    "Spring Coefficient":           710402.01005,
+    "Free Length":                  0.462122550720708,
+    "Minimum Length":               0.5,
+    "Maximum Length":               0.3
+  },
+
+  "Shock":
+  {
+    "Location Chassis":             [-0.3648, 0.4193, 0.3298],
+    "Location Axle":                [-0.125, 0.441, -0.0507],
+    "Damping Coefficient":          76070.3517588,
+    "Degressivity Compression":     3,
+    "Degressivity Expansion":       1
+  },
+
+  "Axle":
+  {
+    "Inertia":                      2.624
+  }
+}

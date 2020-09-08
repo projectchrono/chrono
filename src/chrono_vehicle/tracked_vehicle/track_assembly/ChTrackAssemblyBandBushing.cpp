@@ -90,5 +90,9 @@ bool ChTrackAssemblyBandBushing::Assemble(std::shared_ptr<ChBodyAuxRef> chassis)
     return ccw;
 }
 
+void ChTrackAssemblyBandBushing::RemoveTrackShoes() {
+    m_shoes.clear();
+}
+
 }  // end namespace vehicle
 }  // end namespace chrono

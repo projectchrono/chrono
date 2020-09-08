@@ -22,7 +22,7 @@
 #define CH_SIMPLE_TRACK_DRIVELINE_H
 
 #include "chrono_vehicle/ChApiVehicle.h"
-#include "chrono_vehicle/tracked_vehicle/ChTrackDriveline.h"
+#include "chrono_vehicle/tracked_vehicle/ChDrivelineTV.h"
 
 namespace chrono {
 namespace vehicle {
@@ -33,7 +33,7 @@ namespace vehicle {
 /// Simple driveline model for a tracked vehicle.
 /// This template splits the input torque to the left and right tracks using a simple
 /// analytical model of a Torsen limited-slip differential and the given driver steering input.
-class CH_VEHICLE_API ChSimpleTrackDriveline : public ChTrackDriveline {
+class CH_VEHICLE_API ChSimpleTrackDriveline : public ChDrivelineTV {
   public:
     ChSimpleTrackDriveline(const std::string& name);
 
@@ -43,11 +43,10 @@ class CH_VEHICLE_API ChSimpleTrackDriveline : public ChTrackDriveline {
     virtual std::string GetTemplateName() const override { return "SimpleTrackDriveline"; }
 
     /// Initialize the driveline subsystem.
-    /// This function connects this driveline subsystem to the sprockets of the
-    /// two track assembly subsystems.
-    virtual void Initialize(std::shared_ptr<ChBody> chassis,              ///< handle to the chassis body
-                            std::shared_ptr<ChTrackAssembly> track_left,  ///< handle to the left track assembly
-                            std::shared_ptr<ChTrackAssembly> track_right  ///< handle to the right track assembly
+    /// This function connects this driveline subsystem to the sprockets of the two track assembly subsystems.
+    virtual void Initialize(std::shared_ptr<ChChassis> chassis,           ///< associated chassis subsystem
+                            std::shared_ptr<ChTrackAssembly> track_left,  ///< left track assembly
+                            std::shared_ptr<ChTrackAssembly> track_right  ///< right track assembly
                             ) override;
 
     /// Get the angular speed of the driveshaft.

@@ -17,8 +17,6 @@
 #include "chrono_cosimulation/ChSocket.h"
 #include "chrono_cosimulation/ChExceptionSocket.h"
 
-using namespace std;
-
 namespace chrono {
 namespace cosimul {
 
@@ -32,7 +30,7 @@ ChSocket::ChSocket(int pNumber) {
         if ((socketId = (int)socket(AF_INET, SOCK_STREAM, 0)) == -1) {
 #ifdef WINDOWS_XP
             int errorCode;
-            string errorMsg = "";
+            std::string errorMsg = "";
             detectErrorOpenWinSocket(&errorCode, errorMsg);
             ChExceptionSocket* openWinSocketException = new ChExceptionSocket(errorCode, errorMsg);
             throw openWinSocketException;
@@ -74,7 +72,7 @@ void ChSocket::setDebug(int debugToggle) {
         if (setsockopt(socketId, SOL_SOCKET, SO_DEBUG, (char*)&debugToggle, sizeof(debugToggle)) == -1) {
 #ifdef WINDOWS_XP
             int errorCode;
-            string errorMsg = "DEBUG option:";
+            std::string errorMsg = "DEBUG option:";
             detectErrorSetSocketOption(&errorCode, errorMsg);
             ChExceptionSocket* socketOptionException = new ChExceptionSocket(errorCode, errorMsg);
             throw socketOptionException;
@@ -97,7 +95,7 @@ void ChSocket::setReuseAddr(int reuseToggle) {
         if (setsockopt(socketId, SOL_SOCKET, SO_REUSEADDR, (char*)&reuseToggle, sizeof(reuseToggle)) == -1) {
 #ifdef WINDOWS_XP
             int errorCode;
-            string errorMsg = "REUSEADDR option:";
+            std::string errorMsg = "REUSEADDR option:";
             detectErrorSetSocketOption(&errorCode, errorMsg);
             ChExceptionSocket* socketOptionException = new ChExceptionSocket(errorCode, errorMsg);
             throw socketOptionException;
@@ -120,7 +118,7 @@ void ChSocket::setKeepAlive(int aliveToggle) {
         if (setsockopt(socketId, SOL_SOCKET, SO_KEEPALIVE, (char*)&aliveToggle, sizeof(aliveToggle)) == -1) {
 #ifdef WINDOWS_XP
             int errorCode;
-            string errorMsg = "ALIVE option:";
+            std::string errorMsg = "ALIVE option:";
             detectErrorSetSocketOption(&errorCode, errorMsg);
             ChExceptionSocket* socketOptionException = new ChExceptionSocket(errorCode, errorMsg);
             throw socketOptionException;
@@ -151,7 +149,7 @@ void ChSocket::setLingerSeconds(int seconds) {
         if (setsockopt(socketId, SOL_SOCKET, SO_LINGER, (char*)&lingerOption, sizeof(struct linger)) == -1) {
 #ifdef WINDOWS_XP
             int errorCode;
-            string errorMsg = "LINGER option:";
+            std::string errorMsg = "LINGER option:";
             detectErrorSetSocketOption(&errorCode, errorMsg);
             ChExceptionSocket* socketOptionException = new ChExceptionSocket(errorCode, errorMsg);
             throw socketOptionException;
@@ -181,7 +179,7 @@ void ChSocket::setLingerOnOff(bool lingerOn) {
         if (setsockopt(socketId, SOL_SOCKET, SO_LINGER, (char*)&lingerOption, sizeof(struct linger)) == -1) {
 #ifdef WINDOWS_XP
             int errorCode;
-            string errorMsg = "LINGER option:";
+            std::string errorMsg = "LINGER option:";
             detectErrorSetSocketOption(&errorCode, errorMsg);
             ChExceptionSocket* socketOptionException = new ChExceptionSocket(errorCode, errorMsg);
             throw socketOptionException;
@@ -204,7 +202,7 @@ void ChSocket::setSendBufSize(int sendBufSize) {
         if (setsockopt(socketId, SOL_SOCKET, SO_SNDBUF, (char*)&sendBufSize, sizeof(sendBufSize)) == -1) {
 #ifdef WINDOWS_XP
             int errorCode;
-            string errorMsg = "SENDBUFSIZE option:";
+            std::string errorMsg = "SENDBUFSIZE option:";
             detectErrorSetSocketOption(&errorCode, errorMsg);
             ChExceptionSocket* socketOptionException = new ChExceptionSocket(errorCode, errorMsg);
             throw socketOptionException;
@@ -227,7 +225,7 @@ void ChSocket::setReceiveBufSize(int receiveBufSize) {
         if (setsockopt(socketId, SOL_SOCKET, SO_RCVBUF, (char*)&receiveBufSize, sizeof(receiveBufSize)) == -1) {
 #ifdef WINDOWS_XP
             int errorCode;
-            string errorMsg = "RCVBUF option:";
+            std::string errorMsg = "RCVBUF option:";
             detectErrorSetSocketOption(&errorCode, errorMsg);
             ChExceptionSocket* socketOptionException = new ChExceptionSocket(errorCode, errorMsg);
             throw socketOptionException;
@@ -262,7 +260,7 @@ void ChSocket::setSocketBlocking(int blockingToggle) {
 #ifdef WINDOWS_XP
         if (ioctlsocket(socketId, FIONBIO, (unsigned long*)&blocking) == -1) {
             int errorCode;
-            string errorMsg = "Blocking option: ";
+            std::string errorMsg = "Blocking option: ";
             detectErrorSetSocketOption(&errorCode, errorMsg);
             ChExceptionSocket* socketOptionException = new ChExceptionSocket(errorCode, errorMsg);
             throw socketOptionException;
@@ -294,7 +292,7 @@ int ChSocket::getDebug() {
         if (getsockopt(socketId, SOL_SOCKET, SO_DEBUG, (char*)&myOption, &myOptionLen) == -1) {
 #ifdef WINDOWS_XP
             int errorCode;
-            string errorMsg = "get DEBUG option: ";
+            std::string errorMsg = "get DEBUG option: ";
             detectErrorGetSocketOption(&errorCode, errorMsg);
             ChExceptionSocket* socketOptionException = new ChExceptionSocket(errorCode, errorMsg);
             throw socketOptionException;
@@ -326,7 +324,7 @@ int ChSocket::getReuseAddr() {
         if (getsockopt(socketId, SOL_SOCKET, SO_REUSEADDR, (char*)&myOption, &myOptionLen) == -1) {
 #ifdef WINDOWS_XP
             int errorCode;
-            string errorMsg = "get REUSEADDR option: ";
+            std::string errorMsg = "get REUSEADDR option: ";
             detectErrorGetSocketOption(&errorCode, errorMsg);
             ChExceptionSocket* socketOptionException = new ChExceptionSocket(errorCode, errorMsg);
             throw socketOptionException;
@@ -358,7 +356,7 @@ int ChSocket::getKeepAlive() {
         if (getsockopt(socketId, SOL_SOCKET, SO_KEEPALIVE, (char*)&myOption, &myOptionLen) == -1) {
 #ifdef WINDOWS_XP
             int errorCode;
-            string errorMsg = "get KEEPALIVE option: ";
+            std::string errorMsg = "get KEEPALIVE option: ";
             detectErrorGetSocketOption(&errorCode, errorMsg);
             ChExceptionSocket* socketOptionException = new ChExceptionSocket(errorCode, errorMsg);
             throw socketOptionException;
@@ -389,7 +387,7 @@ int ChSocket::getLingerSeconds() {
         if (getsockopt(socketId, SOL_SOCKET, SO_LINGER, (char*)&lingerOption, &myOptionLen) == -1) {
 #ifdef WINDOWS_XP
             int errorCode;
-            string errorMsg = "get LINER option: ";
+            std::string errorMsg = "get LINER option: ";
             detectErrorGetSocketOption(&errorCode, errorMsg);
             ChExceptionSocket* socketOptionException = new ChExceptionSocket(errorCode, errorMsg);
             throw socketOptionException;
@@ -421,7 +419,7 @@ bool ChSocket::getLingerOnOff() {
         if (getsockopt(socketId, SOL_SOCKET, SO_LINGER, (char*)&lingerOption, &myOptionLen) == -1) {
 #ifdef WINDOWS_XP
             int errorCode;
-            string errorMsg = "get LINER option: ";
+            std::string errorMsg = "get LINER option: ";
             detectErrorGetSocketOption(&errorCode, errorMsg);
             ChExceptionSocket* socketOptionException = new ChExceptionSocket(errorCode, errorMsg);
             throw socketOptionException;
@@ -456,7 +454,7 @@ int ChSocket::getSendBufSize() {
         if (getsockopt(socketId, SOL_SOCKET, SO_SNDBUF, (char*)&sendBuf, &myOptionLen) == -1) {
 #ifdef WINDOWS_XP
             int errorCode;
-            string errorMsg = "get SNDBUF option: ";
+            std::string errorMsg = "get SNDBUF option: ";
             detectErrorGetSocketOption(&errorCode, errorMsg);
             ChExceptionSocket* socketOptionException = new ChExceptionSocket(errorCode, errorMsg);
             throw socketOptionException;
@@ -486,7 +484,7 @@ int ChSocket::getReceiveBufSize() {
         if (getsockopt(socketId, SOL_SOCKET, SO_RCVBUF, (char*)&rcvBuf, &myOptionLen) == -1) {
 #ifdef WINDOWS_XP
             int errorCode;
-            string errorMsg = "get RCVBUF option: ";
+            std::string errorMsg = "get RCVBUF option: ";
             detectErrorGetSocketOption(&errorCode, errorMsg);
             ChExceptionSocket* socketOptionException = new ChExceptionSocket(errorCode, errorMsg);
             throw socketOptionException;
@@ -506,7 +504,7 @@ int ChSocket::getReceiveBufSize() {
 }
 
 #ifdef WINDOWS_XP
-void ChSocket::detectErrorOpenWinSocket(int* errCode, string& errMsg) {
+void ChSocket::detectErrorOpenWinSocket(int* errCode, std::string& errMsg) {
     *errCode = WSAGetLastError();
 
     if (*errCode == WSANOTINITIALISED)
@@ -533,7 +531,7 @@ void ChSocket::detectErrorOpenWinSocket(int* errCode, string& errMsg) {
         errMsg.append("unknown problems!");
 }
 
-void ChSocket::detectErrorSetSocketOption(int* errCode, string& errMsg) {
+void ChSocket::detectErrorSetSocketOption(int* errCode, std::string& errMsg) {
     *errCode = WSAGetLastError();
 
     if (*errCode == WSANOTINITIALISED)
@@ -562,7 +560,7 @@ void ChSocket::detectErrorSetSocketOption(int* errCode, string& errMsg) {
         errMsg.append("unknown problem!");
 }
 
-void ChSocket::detectErrorGetSocketOption(int* errCode, string& errMsg) {
+void ChSocket::detectErrorGetSocketOption(int* errCode, std::string& errMsg) {
     *errCode = WSAGetLastError();
 
     if (*errCode == WSANOTINITIALISED)
@@ -590,21 +588,21 @@ void ChSocket::detectErrorGetSocketOption(int* errCode, string& errMsg) {
 
 #endif
 
-ostream& operator<<(ostream& io, ChSocket& s) {
-    string flagStr = "";
+std::ostream& operator<<(std::ostream& io, ChSocket& s) {
+    std::string flagStr = "";
 
-    io << "--------------- Summary of socket settings -------------------" << endl;
-    io << "   Socket Id:     " << s.getSocketId() << endl;
-    io << "   port #:        " << s.getPortNumber() << endl;
-    io << "   debug:         " << (flagStr = s.getDebug() ? "true" : "false") << endl;
-    io << "   reuse addr:    " << (flagStr = s.getReuseAddr() ? "true" : "false") << endl;
-    io << "   keep alive:    " << (flagStr = s.getKeepAlive() ? "true" : "false") << endl;
-    io << "   send buf size: " << s.getSendBufSize() << endl;
-    io << "   recv bug size: " << s.getReceiveBufSize() << endl;
-    io << "   blocking:      " << (flagStr = s.getSocketBlocking() ? "true" : "false") << endl;
-    io << "   linger on:     " << (flagStr = s.getLingerOnOff() ? "true" : "false") << endl;
-    io << "   linger seconds: " << s.getLingerSeconds() << endl;
-    io << "----------- End of Summary of socket settings ----------------" << endl;
+    io << "--------------- Summary of socket settings -------------------" << std::endl;
+    io << "   Socket Id:     " << s.getSocketId() << std::endl;
+    io << "   port #:        " << s.getPortNumber() << std::endl;
+    io << "   debug:         " << (flagStr = s.getDebug() ? "true" : "false") << std::endl;
+    io << "   reuse addr:    " << (flagStr = s.getReuseAddr() ? "true" : "false") << std::endl;
+    io << "   keep alive:    " << (flagStr = s.getKeepAlive() ? "true" : "false") << std::endl;
+    io << "   send buf size: " << s.getSendBufSize() << std::endl;
+    io << "   recv bug size: " << s.getReceiveBufSize() << std::endl;
+    io << "   blocking:      " << (flagStr = s.getSocketBlocking() ? "true" : "false") << std::endl;
+    io << "   linger on:     " << (flagStr = s.getLingerOnOff() ? "true" : "false") << std::endl;
+    io << "   linger seconds: " << s.getLingerSeconds() << std::endl;
+    io << "----------- End of Summary of socket settings ----------------" << std::endl;
     return io;
 }
 
@@ -613,7 +611,7 @@ void ChSocketTCP::bindSocket() {
         if (::bind(socketId, (struct sockaddr*)&clientAddr, sizeof(struct sockaddr_in)) == -1) {
 #ifdef WINDOWS_XP
             int errorCode = 0;
-            string errorMsg = "error calling bind(): \n";
+            std::string errorMsg = "error calling bind(): \n";
             detectErrorBind(&errorCode, errorMsg);
             ChExceptionSocket* socketBindException = new ChExceptionSocket(errorCode, errorMsg);
             throw socketBindException;
@@ -632,7 +630,7 @@ void ChSocketTCP::bindSocket() {
 
 #ifdef WINDOWS_XP
 
-void ChSocketTCP::detectErrorBind(int* errCode, string& errMsg) {
+void ChSocketTCP::detectErrorBind(int* errCode, std::string& errMsg) {
     *errCode = WSAGetLastError();
 
     if (*errCode == WSANOTINITIALISED)
@@ -666,7 +664,7 @@ void ChSocketTCP::detectErrorBind(int* errCode, string& errMsg) {
         errMsg.append("unknown problems!");
 }
 
-void ChSocketTCP::detectErrorRecv(int* errCode, string& errMsg) {
+void ChSocketTCP::detectErrorRecv(int* errCode, std::string& errMsg) {
     *errCode = WSAGetLastError();
 
     if (*errCode == WSANOTINITIALISED)
@@ -719,7 +717,7 @@ void ChSocketTCP::detectErrorRecv(int* errCode, string& errMsg) {
         errMsg.append("unknown problems!");
 }
 
-void ChSocketTCP::detectErrorConnect(int* errCode, string& errMsg) {
+void ChSocketTCP::detectErrorConnect(int* errCode, std::string& errMsg) {
     *errCode = WSAGetLastError();
 
     if (*errCode == WSANOTINITIALISED)
@@ -778,7 +776,7 @@ void ChSocketTCP::detectErrorConnect(int* errCode, string& errMsg) {
         errMsg.append("unknown problems!");
 }
 
-void ChSocketTCP::detectErrorAccept(int* errCode, string& errMsg) {
+void ChSocketTCP::detectErrorAccept(int* errCode, std::string& errMsg) {
     *errCode = WSAGetLastError();
 
     if (*errCode == WSANOTINITIALISED)
@@ -808,7 +806,7 @@ void ChSocketTCP::detectErrorAccept(int* errCode, string& errMsg) {
         errMsg.append("unknown problems!");
 }
 
-void ChSocketTCP::detectErrorListen(int* errCode, string& errMsg) {
+void ChSocketTCP::detectErrorListen(int* errCode, std::string& errMsg) {
     *errCode = WSAGetLastError();
 
     if (*errCode == WSANOTINITIALISED)
@@ -841,7 +839,7 @@ void ChSocketTCP::detectErrorListen(int* errCode, string& errMsg) {
         errMsg.append("unknown problems!");
 }
 
-void ChSocketTCP::detectErrorSend(int* errCode, string& errMsg) {
+void ChSocketTCP::detectErrorSend(int* errCode, std::string& errMsg) {
     *errCode = WSAGetLastError();
 
     if (*errCode == WSANOTINITIALISED)
@@ -907,7 +905,7 @@ void ChSocketTCP::detectErrorSend(int* errCode, string& errMsg) {
 
 #endif
 
-void ChSocketTCP::connectToServer(string& serverNameOrAddr, hostType hType) {
+void ChSocketTCP::connectToServer(std::string& serverNameOrAddr, hostType hType) {
     /*
        when this method is called, a client socket has been built already,
        so we have the socketId and portNumber ready.
@@ -931,7 +929,7 @@ void ChSocketTCP::connectToServer(string& serverNameOrAddr, hostType hType) {
         if (connect(socketId, (struct sockaddr*)&serverAddress, sizeof(serverAddress)) == -1) {
 #ifdef WINDOWS_XP
             int errorCode = 0;
-            string errorMsg = "error calling connect():\n";
+            std::string errorMsg = "error calling connect():\n";
             detectErrorConnect(&errorCode, errorMsg);
             ChExceptionSocket* socketConnectException = new ChExceptionSocket(errorCode, errorMsg);
             throw socketConnectException;
@@ -949,7 +947,7 @@ void ChSocketTCP::connectToServer(string& serverNameOrAddr, hostType hType) {
     }
 }
 
-ChSocketTCP* ChSocketTCP::acceptClient(string& clientHost) {
+ChSocketTCP* ChSocketTCP::acceptClient(std::string& clientHost) {
     int newSocket;  // the new socket file descriptor returned by the accept systme call
 
     // the length of the client's address
@@ -965,7 +963,7 @@ ChSocketTCP* ChSocketTCP::acceptClient(string& clientHost) {
         if ((newSocket = (int)accept(socketId, (struct sockaddr*)&clientAddress, &clientAddressLen)) == -1) {
 #ifdef WINDOWS_XP
             int errorCode = 0;
-            string errorMsg = "error calling accept(): \n";
+            std::string errorMsg = "error calling accept(): \n";
             detectErrorAccept(&errorCode, errorMsg);
             ChExceptionSocket* socketAcceptException = new ChExceptionSocket(errorCode, errorMsg);
             throw socketAcceptException;
@@ -984,9 +982,9 @@ ChSocketTCP* ChSocketTCP::acceptClient(string& clientHost) {
 
     // Get the host name given the address
     char* sAddress = inet_ntoa((struct in_addr)clientAddress.sin_addr);
-    ChHostInfo clientInfo(string(sAddress), ADDRESS);
+    ChHostInfo clientInfo(std::string(sAddress), ADDRESS);
     char* hostName = clientInfo.getHostName();
-    clientHost += string(hostName);
+    clientHost += std::string(hostName);
 
     // Create and return the new ChSocketTCP object
     ChSocketTCP* retSocket = new ChSocketTCP();
@@ -999,7 +997,7 @@ void ChSocketTCP::listenToClient(int totalNumPorts) {
         if (listen(socketId, totalNumPorts) == -1) {
 #ifdef WINDOWS_XP
             int errorCode = 0;
-            string errorMsg = "error calling listen():\n";
+            std::string errorMsg = "error calling listen():\n";
             detectErrorListen(&errorCode, errorMsg);
             ChExceptionSocket* socketListenException = new ChExceptionSocket(errorCode, errorMsg);
             throw socketListenException;
@@ -1018,14 +1016,14 @@ void ChSocketTCP::listenToClient(int totalNumPorts) {
 }
 
 /*
-int ChSocketTCP::sendMessage(string& message)
+int ChSocketTCP::sendMessage(std::string& message)
 {
     int numBytes;  // the number of bytes sent
 
 
     char msgLength[MSG_HEADER_LEN+1];
     sprintf(msgLength,"%6d",message.size());
-    string sendMsg = string(msgLength);
+    std::string sendMsg = std::string(msgLength);
     sendMsg += message;
 
     // Sends the message to the connected host
@@ -1035,7 +1033,7 @@ int ChSocketTCP::sendMessage(string& message)
         {
             #ifdef WINDOWS_XP
                 int errorCode = 0;
-                string errorMsg = "error calling send():\n";
+                std::string errorMsg = "error calling send():\n";
                 detectErrorSend(&errorCode,errorMsg);
                 ChExceptionSocket* socketSendException = new ChExceptionSocket(errorCode,errorMsg);
                 throw socketSendException;
@@ -1057,7 +1055,7 @@ int ChSocketTCP::sendMessage(string& message)
     return numBytes;
 }
 */
-int ChSocketTCP::sendMessage(string& message) {
+int ChSocketTCP::sendMessage(std::string& message) {
     int numBytes;  // the number of bytes sent
 
     /*
@@ -1068,7 +1066,7 @@ int ChSocketTCP::sendMessage(string& message) {
 
     char msgLength[MSG_HEADER_LEN + 1];
     sprintf(msgLength, "%6d", static_cast<int>(message.size()));
-    string sendMsg = string(msgLength);
+    std::string sendMsg = std::string(msgLength);
     sendMsg += message;
 
     // Sends the message to the connected host
@@ -1076,7 +1074,7 @@ int ChSocketTCP::sendMessage(string& message) {
         if (numBytes = send(socketId, sendMsg.c_str(), (int)sendMsg.size(), 0) == -1) {
 #ifdef WINDOWS_XP
             int errorCode = 0;
-            string errorMsg = "error calling send():\n";
+            std::string errorMsg = "error calling send():\n";
             detectErrorSend(&errorCode, errorMsg);
             ChExceptionSocket* socketSendException = new ChExceptionSocket(errorCode, errorMsg);
             throw socketSendException;
@@ -1098,7 +1096,7 @@ int ChSocketTCP::sendMessage(string& message) {
 
 #ifdef WINDOWS_XP
 /*
-int ChSocketTCP::XPrecieveMessage(string& message)
+int ChSocketTCP::XPrecieveMessage(std::string& message)
 {
     int numBytes = 0;                 // The number of bytes received
     int currentSize = MSG_HEADER_LEN; // The number of bytes wanted to receive
@@ -1117,7 +1115,7 @@ int ChSocketTCP::XPrecieveMessage(string& message)
             if (numBytes == -1)
             {
                 int errorCode = 0;
-                string errorMsg = "error calling recv():\n";
+                std::string errorMsg = "error calling recv():\n";
                 detectErrorRecv(&errorCode,errorMsg);
                 ChExceptionSocket* socketRecvException = new ChExceptionSocket(errorCode,errorMsg);
                 throw socketRecvException;
@@ -1141,8 +1139,8 @@ int ChSocketTCP::XPrecieveMessage(string& message)
     currentSize = atoi(msgLength);
     offsetSize = 0;
 
-    cout   << "[RECV:message length] " << msgLength << endl;
-    winLog << "[RECV:message length] " << msgLength << endl;
+    cout   << "[RECV:message length] " << msgLength << std::endl;
+    winLog << "[RECV:message length] " << msgLength << std::endl;
 
     try
     {
@@ -1152,7 +1150,7 @@ int ChSocketTCP::XPrecieveMessage(string& message)
             if (numBytes == -1)
             {
                 int errorCode = 0;
-                string errorMsg = "error calling recv():\n";
+                std::string errorMsg = "error calling recv():\n";
                 detectErrorRecv(&errorCode,errorMsg);
                 ChExceptionSocket* socketRecvException = new ChExceptionSocket(errorCode,errorMsg);
                 throw socketRecvException;
@@ -1172,14 +1170,14 @@ int ChSocketTCP::XPrecieveMessage(string& message)
         exit(1);
     }
 
-    cout   << "[RECV:message] " << message << endl;
-    winLog << "[RECV:message] " << message << endl;
+    cout   << "[RECV:message] " << message << std::endl;
+    winLog << "[RECV:message] " << message << std::endl;
 
     return atoi(msgLength);
 }
 */
 
-int ChSocketTCP::XPrecieveMessage(string& message) {
+int ChSocketTCP::XPrecieveMessage(std::string& message) {
     int received = 0;            // The number of bytes received
     int msgSize = MAX_RECV_LEN;  // The number of bytes wanted to receive
     int numBytes = 0;            // The number of bytes currently received
@@ -1196,7 +1194,7 @@ int ChSocketTCP::XPrecieveMessage(string& message) {
             numBytes = recv(socketId, charMsg + received, 1, 0);
             if (numBytes == -1) {
                 int errorCode = 0;
-                string errorMsg = "error calling recv():\n";
+                std::string errorMsg = "error calling recv():\n";
                 detectErrorRecv(&errorCode, errorMsg);
                 ChExceptionSocket* socketRecvException = new ChExceptionSocket(errorCode, errorMsg);
                 throw socketRecvException;
@@ -1217,7 +1215,7 @@ int ChSocketTCP::XPrecieveMessage(string& message) {
         }
     } catch (ChExceptionSocket* excp) {
         if (excp->getErrCode() == WSAECONNRESET) {
-            cout << "!! your party has shut down the connection... \n";
+            std::cout << "!! your party has shut down the connection... \n";
             // winLog << "!! your party has shut down the connection... \n";
             return -99;
         }
@@ -1226,13 +1224,13 @@ int ChSocketTCP::XPrecieveMessage(string& message) {
         exit(1);
     }
 
-    message.append(string(charMsg));
+    message.append(std::string(charMsg));
     return msgSize;
 }
 
 #endif
 
-int ChSocketTCP::receiveMessage(string& message) {
+int ChSocketTCP::receiveMessage(std::string& message) {
     int numBytes;  // The number of bytes received
 
 #ifdef WINDOWS_XP
@@ -1286,7 +1284,7 @@ int ChSocketTCP::SendBuffer(std::vector<char>& source_buf) {
     if (sentBytes = send(socketId, data, nbytes, 0) == -1) {
 #ifdef WINDOWS_XP
         int errorCode = 0;
-        string errorMsg = "error calling send():\n";
+        std::string errorMsg = "error calling send():\n";
         detectErrorRecv(&errorCode, errorMsg);
         throw ChExceptionSocket(errorCode, errorMsg);
 #endif
@@ -1315,7 +1313,7 @@ int ChSocketTCP::ReceiveBuffer(std::vector<char>& dest_buf, int bsize) {
     if (receivedBytes == -1) {
 #ifdef WINDOWS_XP
         int errorCode = 0;
-        string errorMsg = "error calling recv():\n";
+        std::string errorMsg = "error calling recv():\n";
         detectErrorRecv(&errorCode, errorMsg);
         throw ChExceptionSocket(errorCode, errorMsg);
 #endif

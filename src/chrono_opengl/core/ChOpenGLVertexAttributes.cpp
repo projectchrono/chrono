@@ -93,7 +93,10 @@ ChOpenGLVertexAttributesPCNT::ChOpenGLVertexAttributesPCNT() {
     this->texture_coordinate = vec2(0.0f);
 }
 
-ChOpenGLVertexAttributesPCNT::ChOpenGLVertexAttributesPCNT(const vec3& p, const vec3& c, const vec3& n, const vec2& t) {
+ChOpenGLVertexAttributesPCNT::ChOpenGLVertexAttributesPCNT(const glm::vec3& p,
+                                                           const glm::vec3& c,
+                                                           const glm::vec3& n,
+                                                           const glm::vec2& t) {
     this->position = p;
     this->color = c;
     this->normal = n;
@@ -107,7 +110,7 @@ ChOpenGLVertexAttributesPCNT::ChOpenGLVertexAttributesPCNT(const ChOpenGLVertexA
     this->texture_coordinate = other.texture_coordinate;
 }
 
-ChOpenGLVertexAttributesP::ChOpenGLVertexAttributesP(const vec3& p) {
+ChOpenGLVertexAttributesP::ChOpenGLVertexAttributesP(const glm::vec3& p) {
     this->position = p;
 }
 
@@ -119,7 +122,7 @@ ChOpenGLVertexAttributesP::ChOpenGLVertexAttributesP() {
     this->position = vec3(0.0f);
 }
 
-ChOpenGLVertexAttributesPN::ChOpenGLVertexAttributesPN(const vec3& p, const vec3& n) {
+ChOpenGLVertexAttributesPN::ChOpenGLVertexAttributesPN(const glm::vec3& p, const glm::vec3& n) {
     this->position = p;
     this->normal = n;
 }
@@ -140,7 +143,7 @@ ChOpenGLVertexAttributesPCN::ChOpenGLVertexAttributesPCN() {
     this->normal = vec3(0.0f);
 }
 
-ChOpenGLVertexAttributesPCN::ChOpenGLVertexAttributesPCN(const vec3& p, const vec3& c, const vec3& n) {
+ChOpenGLVertexAttributesPCN::ChOpenGLVertexAttributesPCN(const glm::vec3& p, const glm::vec3& c, const glm::vec3& n) {
     this->position = p;
     this->color = c;
     this->normal = n;

@@ -50,12 +50,12 @@ const double Generic_HendricksonPRIMAXX::m_transversebeamRadius = 0.02;
 const ChVector<> Generic_HendricksonPRIMAXX::m_axlehousingCOM(0, 0, 0);
 const ChVector<> Generic_HendricksonPRIMAXX::m_transversebeamCOM(-0.376, 0, -0.197);
 
-const ChVector<> Generic_HendricksonPRIMAXX::m_axlehousingInertia(7.744, 0.045, 7.744);
+const ChVector<> Generic_HendricksonPRIMAXX::m_axlehousingInertia(0.744, 0.045, 0.744);
 const ChVector<> Generic_HendricksonPRIMAXX::m_knuckleInertia(0.00255, 0.00134, 0.00196);
 const ChVector<> Generic_HendricksonPRIMAXX::m_spindleInertia(0.0000558, 0.0000279, 0.0000558);
 const ChVector<> Generic_HendricksonPRIMAXX::m_torquerodInertia(0.011, 0.011, 0.000142);
 const ChVector<> Generic_HendricksonPRIMAXX::m_lowerbeamInertia(0.0514, 0.0514, 0.00037);
-const ChVector<> Generic_HendricksonPRIMAXX::m_transversebeamInertia(1, 1, 1);
+const ChVector<> Generic_HendricksonPRIMAXX::m_transversebeamInertia(0.5, 0.2, 0.5);
 
 const double Generic_HendricksonPRIMAXX::m_axleInertia = 0.4;
 
@@ -71,17 +71,16 @@ const double Generic_HendricksonPRIMAXX::m_shockLB_restLength = 0.3948;
 // Constructor
 // -----------------------------------------------------------------------------
 Generic_HendricksonPRIMAXX::Generic_HendricksonPRIMAXX(const std::string& name) : ChHendricksonPRIMAXX(name) {
-    m_shockAHForceCB = new LinearSpringDamperForce(m_shockAH_springCoefficient, m_shockAH_dampingCoefficient);
-    m_shockLBForceCB = new LinearSpringDamperForce(m_shockLB_springCoefficient, m_shockLB_dampingCoefficient);
+    m_shockAHForceCB =
+        chrono_types::make_shared<LinearSpringDamperForce>(m_shockAH_springCoefficient, m_shockAH_dampingCoefficient);
+    m_shockLBForceCB =
+        chrono_types::make_shared<LinearSpringDamperForce>(m_shockLB_springCoefficient, m_shockLB_dampingCoefficient);
 }
 
 // -----------------------------------------------------------------------------
 // Destructor
 // -----------------------------------------------------------------------------
-Generic_HendricksonPRIMAXX::~Generic_HendricksonPRIMAXX() {
-    delete m_shockAHForceCB;
-    delete m_shockLBForceCB;
-}
+Generic_HendricksonPRIMAXX::~Generic_HendricksonPRIMAXX() {}
 
 // -----------------------------------------------------------------------------
 // Implementation of the getLocation() virtual method.
@@ -125,11 +124,9 @@ const ChVector<> Generic_HendricksonPRIMAXX::getLocation(PointId which) {
         case KNUCKLE_CM:
             return ChVector<>(-0.006, 0.834, 0.015);  //  knuckle, center of mass
         case TORQUEROD_CM:
-            return ChVector<>(-0.0, 0.65, -0.0);  //  torquerod, center of mass
+            return ChVector<>(0.0, 0.65, 0.0);  //  torquerod, center of mass
         case LOWERBEAM_CM:
-            return ChVector<>(-0.0, 0.65, -0.0);  // lowerbeam, center of mass
-        case TRANSVERSEBEAM_CM:
-            return ChVector<>(-0.0, 0.0, -0.0);  // transverse beam, center of mass
+            return ChVector<>(0.0, 0.65, 0.0);  // lowerbeam, center of mass
         default:
             return ChVector<>(0, 0, 0);
     }

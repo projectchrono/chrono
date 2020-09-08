@@ -19,10 +19,9 @@ namespace chrono {
 
 ChAssemblyAnalysis::ChAssemblyAnalysis(ChIntegrableIIorder& mintegrable) {
     integrable = &mintegrable;
-    L.Reset(0);
-    X.Reset(1, &mintegrable);
-    V.Reset(1, &mintegrable);
-    A.Reset(1, &mintegrable);
+    X.setZero(1, &mintegrable);
+    V.setZero(1, &mintegrable);
+    A.setZero(1, &mintegrable);
     max_assembly_iters = 4;
 }
 
@@ -39,10 +38,10 @@ void ChAssemblyAnalysis::AssemblyAnalysis(int action, double dt) {
 
         for (int m_iter = 0; m_iter < max_assembly_iters; m_iter++) {
             // Set up auxiliary vectors
-            Dx.Reset(integrable->GetNcoords_v(), GetIntegrable());
-            R.Reset(integrable->GetNcoords_v());
-            Qc.Reset(integrable->GetNconstr());
-            L.Reset(integrable->GetNconstr());
+            Dx.setZero(integrable->GetNcoords_v(), GetIntegrable());
+            R.setZero(integrable->GetNcoords_v());
+            Qc.setZero(integrable->GetNconstr());
+            L.setZero(integrable->GetNconstr());
 
             integrable->StateGather(X, V, T);  // state <- system
 
@@ -59,13 +58,14 @@ void ChAssemblyAnalysis::AssemblyAnalysis(int action, double dt) {
                 0,        // factor for  dF/dv
                 0,        // factor for  dF/dx (the stiffness matrix)
                 X, V, T,  // not needed
-                false,    // do not StateScatter update to Xnew Vnew T+dt before computing correction
+                false,    // do not scatter Xnew Vnew T+dt before computing correction
+                false,    // full update? (not used, since no scatter)
                 true      // force a call to the solver's Setup function
                 );
 
             X += Dx;
 
-            integrable->StateScatter(X, V, T);  // state -> system
+            integrable->StateScatter(X, V, T, true);  // state -> system
         }
     }
 
@@ -73,10 +73,10 @@ void ChAssemblyAnalysis::AssemblyAnalysis(int action, double dt) {
         ChStateDelta Vold;
 
         // setup auxiliary vectors
-        Vold.Reset(integrable->GetNcoords_v(), GetIntegrable());
-        R.Reset(integrable->GetNcoords_v());
-        Qc.Reset(integrable->GetNconstr());
-        L.Reset(integrable->GetNconstr());
+        Vold.setZero(integrable->GetNcoords_v(), GetIntegrable());
+        R.setZero(integrable->GetNcoords_v());
+        Qc.setZero(integrable->GetNconstr());
+        L.setZero(integrable->GetNconstr());
 
         integrable->StateGather(X, V, T);  // state <- system
 
@@ -98,11 +98,12 @@ void ChAssemblyAnalysis::AssemblyAnalysis(int action, double dt) {
             -dt,           // factor for  dF/dv
             -dt * dt,      // factor for  dF/dx
             X, V, T + dt,  // not needed
-            false,         // do not StateScatter update to Xnew Vnew T+dt before computing correction
+            false,         // do not scatter Xnew Vnew T+dt before computing correction
+            false,         // full update? (not used, since no scatter)
             true           // force a call to the solver's Setup() function
-            );
+        );
 
-        integrable->StateScatter(X, V, T);  // state -> system
+        integrable->StateScatter(X, V, T, true);  // state -> system
 
         L *= (1.0 / dt);  // Note it is not -(1.0/dt) because we assume StateSolveCorrection already flips sign of L
 

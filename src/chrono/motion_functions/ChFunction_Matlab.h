@@ -19,7 +19,10 @@
 
 namespace chrono {
 
-/// Matlab function: y = matlab evaluation of function y=f(x)
+/// @addtogroup chrono_functions
+/// @{
+
+/// Matlab function: `y = matlab evaluation of function y=f(x)`
 class ChApi ChFunction_Matlab : public ChFunction {
   private:
     static const int CHF_MATLAB_STRING_LEN = 200;
@@ -48,6 +51,8 @@ class ChApi ChFunction_Matlab : public ChFunction {
     /// Method to allow de-serialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
+
+/// @} chrono_functions
 
 CH_CLASS_VERSION(ChFunction_Matlab, 0)
 

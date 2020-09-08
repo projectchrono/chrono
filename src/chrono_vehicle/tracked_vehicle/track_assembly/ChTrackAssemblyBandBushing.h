@@ -64,6 +64,9 @@ class CH_VEHICLE_API ChTrackAssemblyBandBushing : public ChTrackAssemblyBand {
     /// Return true if the track shoes were initialized in a counter clockwise
     /// direction and false otherwise.
     virtual bool Assemble(std::shared_ptr<ChBodyAuxRef> chassis) override final;
+
+    /// Remove all track shoes from assembly.
+    virtual void RemoveTrackShoes() override final;
 };
 
 /// @} vehicle_tracked

@@ -71,7 +71,10 @@ class CH_VEHICLE_API ChTrackAssemblyDoublePin : public ChTrackAssembly {
     /// Assemble track shoes over wheels.
     /// Return true if the track shoes were initialized in a counter clockwise
     /// direction and false otherwise.
-    virtual bool Assemble(std::shared_ptr<ChBodyAuxRef> chassis) override;
+    virtual bool Assemble(std::shared_ptr<ChBodyAuxRef> chassis) override final;
+
+    /// Remove all track shoes from assembly.
+    virtual void RemoveTrackShoes() override final;
 
     /// Utility function to create the bodies of the specified track shoe with
     /// the given configuration. This version specifies locations and orientations
@@ -81,15 +84,6 @@ class CH_VEHICLE_API ChTrackAssemblyDoublePin : public ChTrackAssembly {
                          ChVector2<> pc,  ///< (x-z) location of connector body
                          double as,       ///< shoe body angle
                          double ac        ///< connector body angle
-                         );
-
-    /// Utility function to create the bodies of the specified track shoe with
-    /// the given configuration. This version specifies the location of the center
-    /// the track shoe system (in 2D, in the (x-z) plane) and a common orientation
-    /// angle for both the shoe and connector bodies.
-    void CreateTrackShoe(size_t index,   ///< index of track shoe within assembly
-                         ChVector2<> p,  ///< (x-z) location of track shoe center
-                         double angle    ///< angle of the shoe and connector bodies
                          );
 
     std::shared_ptr<ChBodyAuxRef> m_chassis;

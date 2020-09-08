@@ -165,9 +165,9 @@ void ChShaftsPlanetary::ConstraintsBiLoad_Ct(double factor) {
 
 void ChShaftsPlanetary::ConstraintsLoadJacobians() {
     // compute jacobians
-    constraint.Get_Cq_a()->SetElement(0, 0, r1);
-    constraint.Get_Cq_b()->SetElement(0, 0, r2);
-    constraint.Get_Cq_c()->SetElement(0, 0, r3);
+    constraint.Get_Cq_a()(0) = r1;
+    constraint.Get_Cq_b()(0) = r2;
+    constraint.Get_Cq_c()(0) = r3;
 }
 
 void ChShaftsPlanetary::ConstraintsFetch_react(double factor) {

@@ -20,8 +20,6 @@
 #include "chrono_vehicle/wheeled_vehicle/driveline/ShaftsDriveline2WD.h"
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
 
-#include "chrono_thirdparty/rapidjson/filereadstream.h"
-
 using namespace rapidjson;
 
 namespace chrono {
@@ -30,15 +28,9 @@ namespace vehicle {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 ShaftsDriveline2WD::ShaftsDriveline2WD(const std::string& filename) : ChShaftsDriveline2WD("") {
-    FILE* fp = fopen(filename.c_str(), "r");
-
-    char readBuffer[65536];
-    FileReadStream is(fp, readBuffer, sizeof(readBuffer));
-
-    fclose(fp);
-
-    Document d;
-    d.ParseStream<ParseFlag::kParseCommentsFlag>(is);
+    Document d = ReadFileJSON(filename);
+    if (d.IsNull())
+        return;
 
     Create(d);
 
@@ -55,8 +47,8 @@ void ShaftsDriveline2WD::Create(const rapidjson::Document& d) {
 
     // Get shaft directions.
     assert(d.HasMember("Shaft Direction"));
-    SetMotorBlockDirection(LoadVectorJSON(d["Shaft Direction"]["Motor Block"]));
-    SetAxleDirection(LoadVectorJSON(d["Shaft Direction"]["Axle"]));
+    SetMotorBlockDirection(ReadVectorJSON(d["Shaft Direction"]["Motor Block"]));
+    SetAxleDirection(ReadVectorJSON(d["Shaft Direction"]["Axle"]));
 
     // Read shaft inertias.
     assert(d.HasMember("Shaft Inertia"));

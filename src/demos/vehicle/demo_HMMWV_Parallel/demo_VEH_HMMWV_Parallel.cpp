@@ -28,6 +28,7 @@
 #include <algorithm>
 
 #include "chrono/ChConfig.h"
+#include "chrono/assets/ChLineShape.h"
 #include "chrono/core/ChMathematics.h"
 #include "chrono/core/ChStream.h"
 #include "chrono/geometry/ChLineBezier.h"
@@ -136,9 +137,6 @@ double time_pitch = time_start_engine;
 // Simulation parameters
 // -----------------------------------------------------------------------------
 
-// Enable thread tuning?
-bool thread_tuning = false;
-
 // Number of threads
 int threads = 8;
 
@@ -172,7 +170,7 @@ class HMMWV_Driver : public ChDriver {
                  std::shared_ptr<chrono::ChBezierCurve> path,  // target path
                  double time_start,                            // time throttle start
                  double time_max                               // time throttle max
-                 );
+    );
 
     void SetGains(double Kp, double Ki, double Kd) { m_steeringPID.SetGains(Kp, Ki, Kd); }
     void SetLookAheadDistance(double dist) { m_steeringPID.SetLookAheadDistance(dist); }
@@ -202,8 +200,8 @@ HMMWV_Driver::HMMWV_Driver(chrono::vehicle::ChVehicle& vehicle,
     road->SetBodyFixed(true);
     m_vehicle.GetSystem()->AddBody(road);
 
-    auto path_asset = std::make_shared<chrono::ChLineShape>();
-    path_asset->SetLineGeometry(std::make_shared<geometry::ChLineBezier>(m_steeringPID.GetPath()));
+    auto path_asset = chrono_types::make_shared<chrono::ChLineShape>();
+    path_asset->SetLineGeometry(chrono_types::make_shared<geometry::ChLineBezier>(m_steeringPID.GetPath()));
     path_asset->SetColor(chrono::ChColor(0.0f, 0.8f, 0.0f));
     path_asset->SetName("straight_path");
     road->AddAsset(path_asset);
@@ -235,9 +233,9 @@ void HMMWV_Driver::ExportPathPovray(const std::string& out_dir) {
 
 // Custom material composition law.
 // Use the maximum coefficient of friction.
-class CustomCompositionStrategy : public ChMaterialCompositionStrategy<real> {
+class CustomCompositionStrategy : public ChMaterialCompositionStrategy {
   public:
-    virtual real CombineFriction(real a1, real a2) const override { return std::max<real>(a1, a2); }
+    virtual float CombineFriction(float a1, float a2) const override { return std::max<float>(a1, a2); }
 };
 
 // =============================================================================
@@ -310,16 +308,7 @@ int main(int argc, char* argv[]) {
     std::unique_ptr<CustomCompositionStrategy> strategy(new CustomCompositionStrategy);
     system->SetMaterialCompositionStrategy(std::move(strategy));
 
-    int max_threads = CHOMPfunctions::GetNumProcs();
-    if (threads > max_threads)
-        threads = max_threads;
-    system->SetParallelThreadNumber(threads);
-    CHOMPfunctions::SetNumThreads(threads);
-#pragma omp parallel
-#pragma omp master
-    cout << "Using " << CHOMPfunctions::GetNumThreads() << " threads" << endl;
-
-    system->GetSettings()->perform_thread_tuning = thread_tuning;
+    system->SetNumThreads(threads);
 
     // --------------------
     // Edit system settings
@@ -337,7 +326,6 @@ int main(int argc, char* argv[]) {
     system->GetSettings()->solver.use_full_inertia_tensor = false;
     system->GetSettings()->solver.contact_recovery_speed = contact_recovery_speed;
     system->GetSettings()->solver.bilateral_clamp_speed = 1e8;
-    system->GetSettings()->min_threads = threads;
     system->ChangeSolverType(SolverType::BB);
 
     system->GetSettings()->collision.collision_envelope = envelope;
@@ -355,8 +343,10 @@ int main(int argc, char* argv[]) {
     // ------------------
 
     GranularTerrain terrain(system);
-    terrain.SetContactFrictionCoefficient((float)mu_g);
-    terrain.SetContactCohesion((float)coh_g);
+    auto mat = std::static_pointer_cast<ChMaterialSurfaceNSC>(terrain.GetContactMaterial());
+    mat->SetFriction((float)mu_g);
+    mat->SetCohesion((float)coh_g);
+    terrain.SetContactMaterial(mat);
     terrain.SetCollisionEnvelope(envelope / 5);
     if (rough) {
         int nx = (int)std::round((2 * hdimX) / (4 * r_g));
@@ -451,7 +441,7 @@ int main(int argc, char* argv[]) {
         if (!hmmwv && time > time_create_vehicle) {
             cout << time << "    Create vehicle" << endl;
 
-            double max_height = terrain.GetHeight(0, 0);
+            double max_height = terrain.GetHeight(ChVector<>(0, 0, 0));
             hmmwv = CreateVehicle(system, max_height);
             driver = CreateDriver(hmmwv);
 
@@ -474,13 +464,11 @@ int main(int argc, char* argv[]) {
 
         if (hmmwv) {
             // Extract current driver inputs
-            double steering_input = driver->GetSteering();
-            double braking_input = driver->GetBraking();
-            double throttle_input = driver->GetThrottle();
+            ChDriver::Inputs driver_inputs = driver->GetInputs();
 
             // Synchronize vehicle systems
             driver->Synchronize(time);
-            hmmwv->Synchronize(time, steering_input, braking_input, throttle_input, terrain);
+            hmmwv->Synchronize(time, driver_inputs, terrain);
 
             // Update vehicle x position
             x_pos = hmmwv->GetChassis()->GetPos().x();
@@ -492,7 +480,7 @@ int main(int argc, char* argv[]) {
                 ChVector<> av = hmmwv->GetChassisBody()->GetFrame_REF_to_abs().GetPos_dtdt();
 
                 ofile << system->GetChTime() << del;
-                ofile << throttle_input << del << steering_input << del;
+                ofile << driver_inputs.m_throttle << del << driver_inputs.m_steering << del;
 
                 ofile << pv.x() << del << pv.y() << del << pv.z() << del;
                 ofile << vv.x() << del << vv.y() << del << vv.z() << del;
@@ -511,7 +499,6 @@ int main(int argc, char* argv[]) {
 
         // Advance system state (no vehicle created yet)
         system->DoStepDynamics(time_step);
-
 
 #ifdef CHRONO_OPENGL
         if (render) {
@@ -553,14 +540,13 @@ int main(int argc, char* argv[]) {
 HMMWV_Full* CreateVehicle(ChSystem* system, double vertical_offset) {
     auto hmmwv = new HMMWV_Full(system);
 
-    hmmwv->SetContactMethod(ChMaterialSurface::NSC);
+    hmmwv->SetContactMethod(ChContactMethod::NSC);
     hmmwv->SetChassisFixed(false);
     hmmwv->SetInitPosition(ChCoordsys<>(initLoc + ChVector<>(0, 0, vertical_offset), initRot));
     hmmwv->SetInitFwdVel(initSpeed);
     hmmwv->SetPowertrainType(PowertrainModelType::SIMPLE_MAP);
     hmmwv->SetDriveType(DrivelineType::AWD);
     hmmwv->SetTireType(TireModelType::RIGID);
-    hmmwv->SetVehicleStepSize(time_step);
 
     hmmwv->Initialize();
 
@@ -568,7 +554,7 @@ HMMWV_Full* CreateVehicle(ChSystem* system, double vertical_offset) {
     hmmwv->SetSuspensionVisualizationType(VisualizationType::PRIMITIVES);
     hmmwv->SetSteeringVisualizationType(VisualizationType::PRIMITIVES);
     hmmwv->SetWheelVisualizationType(VisualizationType::MESH);
-    hmmwv->SetTireVisualizationType(VisualizationType::NONE);
+    hmmwv->SetTireVisualizationType(VisualizationType::MESH);
 
     return hmmwv;
 }
@@ -589,7 +575,7 @@ HMMWV_Driver* CreateDriver(HMMWV_Full* hmmwv) {
     inCV.push_back(ChVector<>(9 * hdimX, 0, height));
     outCV.push_back(ChVector<>(10 * hdimX, 0, height));
 
-    auto path = std::make_shared<ChBezierCurve>(points, inCV, outCV);
+    auto path = chrono_types::make_shared<ChBezierCurve>(points, inCV, outCV);
 
     double look_ahead_dist = 5;
     double Kp_steering = 0.5;
@@ -638,7 +624,7 @@ void TimingOutput(chrono::ChSystem* mSys, chrono::ChStreamOutAsciiFile* ofile) {
     int CNTC = mSys->GetNcontacts();
     if (chrono::ChSystemParallel* parallel_sys = dynamic_cast<chrono::ChSystemParallel*>(mSys)) {
         RESID = std::static_pointer_cast<chrono::ChIterativeSolverParallel>(mSys->GetSolver())->GetResidual();
-        REQ_ITS = std::static_pointer_cast<chrono::ChIterativeSolverParallel>(mSys->GetSolver())->GetTotalIterations();
+        REQ_ITS = std::static_pointer_cast<chrono::ChIterativeSolverParallel>(mSys->GetSolver())->GetIterations();
         BODS = parallel_sys->GetNbodies();
         CNTC = parallel_sys->GetNcontacts();
     }

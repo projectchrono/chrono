@@ -85,25 +85,22 @@ class CH_MODELS_API Generic_SimpleMapPowertrain : public ChPowertrain {
     /// Note, index starts from 0.
     void SetSelectedGear(int igear);
 
+  private:
     /// Initialize the powertrain system.
-    virtual void Initialize(std::shared_ptr<ChBody> chassis,     ///< [in] chassis o the associated vehicle
-                            std::shared_ptr<ChShaft> driveshaft  ///< [in] shaft connection to the vehicle driveline
+    virtual void Initialize(std::shared_ptr<ChChassis> chassis,     ///< [in] chassis of the associated vehicle
+                            std::shared_ptr<ChDriveline> driveline  ///< [in] driveline of the associated vehicle
                             ) override;
 
     /// Update the state of this powertrain system at the current time.
-    /// The powertrain system is provided the current driver throttle input, a
-    /// value in the range [0,1], and the current angular speed of the transmission
-    /// shaft (from the driveline).
-    virtual void Synchronize(double time,        ///< [in] current time
-                             double throttle,    ///< [in] current throttle input [0,1]
-                             double shaft_speed  ///< [in] current angular speed of the transmission shaft
+    /// The powertrain system is provided the current driver throttle input, a value in the range [0,1].
+    virtual void Synchronize(double time,     ///< [in] current time
+                             double throttle  ///< [in] current throttle input [0,1]
                              ) override;
 
     /// Advance the state of this powertrain system by the specified time step.
     /// This function does nothing for this simplified powertrain model.
     virtual void Advance(double step) override {}
 
-  private:
     double m_current_gear_ratio;
     double m_motorSpeed;
     double m_motorTorque;

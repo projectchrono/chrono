@@ -105,13 +105,13 @@ void Monitor(chrono::ChSystemParallel* system, int rank) {
     double STEP = system->GetTimerStep();
     double BROD = system->GetTimerCollisionBroad();
     double NARR = system->GetTimerCollisionNarrow();
-    double SOLVER = system->GetTimerSolver();
+    double SOLVER = system->GetTimerLSsolve();
     double UPDT = system->GetTimerUpdate();
     double EXCH = system->data_manager->system_timer.GetTime("Exchange");
     int BODS = system->GetNbodies();
     int CNTC = system->GetNcontacts();
     double RESID = std::static_pointer_cast<chrono::ChIterativeSolverParallel>(system->GetSolver())->GetResidual();
-    int ITER = std::static_pointer_cast<chrono::ChIterativeSolverParallel>(system->GetSolver())->GetTotalIterations();
+    int ITER = std::static_pointer_cast<chrono::ChIterativeSolverParallel>(system->GetSolver())->GetIterations();
 
     printf("%d|   %8.5f | %7.4f | E%7.4f | B%7.4f | N%7.4f | %7.4f | %7.4f | %7d | %7d | %7d | %7.4f\n",  ////
            rank, TIME, STEP, EXCH, BROD, NARR, SOLVER, UPDT, BODS, CNTC, ITER, RESID);
@@ -121,13 +121,13 @@ void AddContainer(ChSystemDistributed* sys) {
     // TODO Any of this body stuff needed for custom collision?
     int binId = -200;
 
-    auto mat = std::make_shared<ChMaterialSurfaceSMC>();
+    auto mat = chrono_types::make_shared<ChMaterialSurfaceSMC>();
     mat->SetYoungModulus(Y);
     mat->SetFriction(mu);
     mat->SetRestitution(cr);
 
-    auto bin = std::make_shared<ChBody>(std::make_shared<ChCollisionModelParallel>(), ChMaterialSurface::SMC);
-    bin->SetMaterialSurface(mat);
+    auto bin =
+        chrono_types::make_shared<ChBody>(chrono_types::make_shared<ChCollisionModelParallel>());
     bin->SetIdentifier(binId);
     bin->SetMass(1);
     bin->SetPos(ChVector<>(0, 0, 0));
@@ -135,7 +135,7 @@ void AddContainer(ChSystemDistributed* sys) {
     bin->SetBodyFixed(true);
     sys->AddBodyAllRanks(bin);
 
-    auto cb = new ChBoundary(bin);
+    auto cb = new ChBoundary(bin, mat);
     // Floor
     cb->AddPlane(ChFrame<>(ChVector<>(0, 0, 0), QUNIT), ChVector2<>(2.0 * hx, 2.0 * hy));
     // low x
@@ -155,9 +155,7 @@ inline std::shared_ptr<ChBody> CreateBall(const ChVector<>& pos,
                                           double m,
                                           ChVector<> inertia,
                                           double radius) {
-    auto ball = std::make_shared<ChBody>(std::make_shared<ChCollisionModelDistributed>(), ChMaterialSurface::SMC);
-    ball->SetMaterialSurface(ballMat);
-
+    auto ball = chrono_types::make_shared<ChBody>(chrono_types::make_shared<ChCollisionModelDistributed>());
     ball->SetIdentifier(*ballId++);
     ball->SetMass(m);
     ball->SetInertiaXX(inertia);
@@ -167,7 +165,7 @@ inline std::shared_ptr<ChBody> CreateBall(const ChVector<>& pos,
     ball->SetCollide(true);
 
     ball->GetCollisionModel()->ClearModel();
-    utils::AddSphereGeometry(ball.get(), radius);
+    utils::AddSphereGeometry(ball.get(), ballMat, radius);
     ball->GetCollisionModel()->BuildModel();
     return ball;
 }
@@ -182,7 +180,7 @@ size_t AddFallingBalls(ChSystemDistributed* sys) {
 
     auto points = sampler.SampleBox(box_center, half_dims);
 
-    auto ballMat = std::make_shared<ChMaterialSurfaceSMC>();
+    auto ballMat = chrono_types::make_shared<ChMaterialSurfaceSMC>();
     ballMat->SetYoungModulus(Y);
     ballMat->SetFriction(mu);
     ballMat->SetRestitution(cr);
@@ -259,8 +257,7 @@ int main(int argc, char* argv[]) {
         std::cout << "Rank: " << my_rank << " Node name: " << my_sys.node_name << std::endl;
     }
 
-    my_sys.SetParallelThreadNumber(num_threads);
-    CHOMPfunctions::SetNumThreads(num_threads);
+    my_sys.SetNumThreads(num_threads);
 
     my_sys.Set_G_acc(ChVector<double>(0, 0, -9.8));
 

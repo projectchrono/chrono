@@ -29,8 +29,9 @@
 #include "chrono/physics/ChBody.h"
 #include "chrono/physics/ChBodyAuxRef.h"
 #include "chrono/physics/ChContactSMC.h"
-#include "chrono/physics/ChGlobal.h"
 #include "chrono/physics/ChShaft.h"
+#include "chrono/physics/ChLinkMotorLinearSpeed.h"
+#include "chrono/physics/ChLinkMotorRotationSpeed.h"
 
 #include "chrono/fea/ChMesh.h"
 
@@ -60,6 +61,7 @@ class CH_PARALLEL_API ChSystemParallel : public ChSystem {
 
     virtual bool Integrate_Y() override;
     virtual void AddBody(std::shared_ptr<ChBody> newbody) override;
+    virtual void AddLink(std::shared_ptr<ChLinkBase> link) override;
     virtual void AddMesh(std::shared_ptr<fea::ChMesh> mesh) override;
     virtual void AddOtherPhysicsItem(std::shared_ptr<ChPhysicsItem> newitem) override;
 
@@ -70,8 +72,12 @@ class CH_PARALLEL_API ChSystemParallel : public ChSystem {
     virtual void UpdateOtherPhysics();
     virtual void UpdateRigidBodies();
     virtual void UpdateShafts();
+    virtual void UpdateMotorLinks();
     virtual void Update3DOFBodies();
     void RecomputeThreads();
+
+    virtual ChBody* NewBody() override;
+    virtual ChBodyAuxRef* NewBodyAuxRef() override;
 
     virtual void AddMaterialSurfaceData(std::shared_ptr<ChBody> newbody) = 0;
     virtual void UpdateMaterialSurfaceData(int index, ChBody* body) = 0;
@@ -80,7 +86,7 @@ class CH_PARALLEL_API ChSystemParallel : public ChSystem {
 
     /// Change the default composition laws for contact surface materials
     /// (coefficient of friction, cohesion, compliance, etc.).
-    void SetMaterialCompositionStrategy(std::unique_ptr<ChMaterialCompositionStrategy<real>>&& strategy);
+    virtual void SetMaterialCompositionStrategy(std::unique_ptr<ChMaterialCompositionStrategy>&& strategy) override;
 
     virtual void PrintStepStats();
     unsigned int GetNumBodies();
@@ -96,10 +102,10 @@ class CH_PARALLEL_API ChSystemParallel : public ChSystem {
 
     /// Return the time (in seconds) for the solver, within the time step.
     /// Note that this time excludes any calls to the solver's Setup function.
-    virtual double GetTimerSolver() const override;
+    virtual double GetTimerLSsolve() const override;
 
     /// Return the time (in seconds) for the solver Setup phase, within the time step.
-    virtual double GetTimerSetup() const override;
+    virtual double GetTimerLSsetup() const override;
 
     /// Return the time (in seconds) for calculating/loading Jacobian information, within the time step.
     virtual double GetTimerJacobian() const override;
@@ -107,28 +113,62 @@ class CH_PARALLEL_API ChSystemParallel : public ChSystem {
     /// Return the time (in seconds) for runnning the collision detection step, within the time step.
     virtual double GetTimerCollision() const override;
 
+    /// Return the time (in seconds) for system setup, within the time step.
+    virtual double GetTimerSetup() const override { return 0; }
+
     /// Return the time (in seconds) for updating auxiliary data, within the time step.
     virtual double GetTimerUpdate() const override;
-
-    /// Calculate cummulative contact forces for all bodies in the system.
-    virtual void CalculateContactForces() {}
 
     /// Calculate current body AABBs.
     void CalculateBodyAABB();
 
+    /// Calculate cummulative contact forces for all bodies in the system.
+    /// Note that this function must be explicitly called by the user at each time where
+    /// calls to GetContactableForce or ContactableTorque are made.
+    virtual void CalculateContactForces() {}
+
+    /// Return the resultant applied force on the specified body.
+    /// This resultant force includes all external applied loads acting on the body (from gravity, loads, springs,
+    /// etc). However, this does *not* include any constraint forces. In particular, contact forces are not included if
+    /// using the NSC formulation, but are included when using the SMC formulation.
+    virtual ChVector<> GetBodyAppliedForce(ChBody* body) override;
+
+    /// Return the resultant applied torque on the specified body.
+    /// This resultant torque includes all external applied loads acting on the body (from gravity, loads, springs,
+    /// etc). However, this does *not* include any constraint forces. In particular, contact torques are not included if
+    /// using the NSC formulation, but are included when using the SMC formulation.
+    virtual ChVector<> GetBodyAppliedTorque(ChBody* body) override;
+
     /// Get the contact force on the body with specified id.
+    /// Note that ComputeContactForces must be called prior to calling this function
+    /// at any time where reporting of contact forces is desired.
     virtual real3 GetBodyContactForce(uint body_id) const = 0;
+
     /// Get the contact torque on the body with specified id.
+    /// Note that ComputeContactForces must be called prior to calling this function
+    /// at any time where reporting of contact torques is desired.
     virtual real3 GetBodyContactTorque(uint body_id) const = 0;
+
     /// Get the contact force on the specified body.
+    /// Note that ComputeContactForces must be called prior to calling this function
+    /// at any time where reporting of contact forces is desired.
     real3 GetBodyContactForce(std::shared_ptr<ChBody> body) const { return GetBodyContactForce(body->GetId()); }
+
     /// Get the contact torque on the specified body.
+    /// Note that ComputeContactForces must be called prior to calling this function
+    /// at any time where reporting of contact torques is desired.
     real3 GetBodyContactTorque(std::shared_ptr<ChBody> body) const { return GetBodyContactTorque(body->GetId()); }
 
     settings_container* GetSettings();
 
-    // Based on the specified logging level and the state of that level, enable or
-    // disable logging level.
+    /// Set the number of OpenMP threads.
+    /// If non-zero values are provided for 'min_threads' and 'max_threads', a heuristic is used to dynamically adjust
+    /// the number of threads between the specified limits as the simulation proceeds. 
+    /// Valid arguments must satisfy: 1 <= min_threads < max_threads <= omp_get_max_threads().
+    /// The function returns 'true' if successful and 'false' for incorrect input arguments.
+    bool SetNumThreads(int num_threads, int min_threads = 0, int max_threads = 0);
+
+    // Based on the specified logging level and the state of that level, enable or disable logging level.
     void SetLoggingLevel(LoggingLevel level, bool state = true);
 
     /// Calculate the (linearized) bilateral constraint violations.
@@ -154,6 +194,8 @@ class CH_PARALLEL_API ChSystemParallel : public ChSystem {
     void AddShaft(std::shared_ptr<ChShaft> shaft);
 
     std::vector<ChShaft*> shaftlist;
+    std::vector<ChLinkMotorLinearSpeed*> linmotorlist;
+    std::vector<ChLinkMotorRotationSpeed*> rotmotorlist;
 };
 
 //====================================================================================================
@@ -171,9 +213,7 @@ class CH_PARALLEL_API ChSystemParallelNSC : public ChSystemParallel {
     void ChangeSolverType(SolverType type);
     void Initialize();
 
-    virtual ChMaterialSurface::ContactMethod GetContactMethod() const override { return ChMaterialSurface::NSC; }
-    virtual ChBody* NewBody() override;
-    virtual ChBodyAuxRef* NewBodyAuxRef() override;
+    virtual ChContactMethod GetContactMethod() const override { return ChContactMethod::NSC; }
     virtual void AddMaterialSurfaceData(std::shared_ptr<ChBody> newbody) override;
     virtual void UpdateMaterialSurfaceData(int index, ChBody* body) override;
 
@@ -204,9 +244,7 @@ class CH_PARALLEL_API ChSystemParallelSMC : public ChSystemParallel {
     /// "Virtual" copy constructor (covariant return type).
     virtual ChSystemParallelSMC* Clone() const override { return new ChSystemParallelSMC(*this); }
 
-    virtual ChMaterialSurfaceNSC::ContactMethod GetContactMethod() const override { return ChMaterialSurface::SMC; }
-    virtual ChBody* NewBody() override;
-    virtual ChBodyAuxRef* NewBodyAuxRef() override;
+    virtual ChContactMethod GetContactMethod() const override { return ChContactMethod::SMC; }
     virtual void AddMaterialSurfaceData(std::shared_ptr<ChBody> newbody) override;
     virtual void UpdateMaterialSurfaceData(int index, ChBody* body) override;
 

@@ -30,6 +30,7 @@
 #include "chrono_models/vehicle/sedan/Sedan_SimpleMapPowertrain.h"
 #include "chrono_models/vehicle/sedan/Sedan_RigidTire.h"
 #include "chrono_models/vehicle/sedan/Sedan_TMeasyTire.h"
+#include "chrono_models/vehicle/sedan/Sedan_Pac02Tire.h"
 
 namespace chrono {
 namespace vehicle {
@@ -38,6 +39,9 @@ namespace sedan {
 /// @addtogroup vehicle_models_sedan
 /// @{
 
+/// Definition of the sedan assembly.
+/// This class encapsulates a concrete wheeled vehicle model with parameters corresponding to
+/// a typical passenger, the powertrain model, and the 4 tires.
 class CH_MODELS_API Sedan {
   public:
     Sedan();
@@ -45,26 +49,27 @@ class CH_MODELS_API Sedan {
 
     ~Sedan();
 
-    void SetContactMethod(ChMaterialSurface::ContactMethod val) { m_contactMethod = val; }
+    void SetContactMethod(ChContactMethod val) { m_contactMethod = val; }
 
     void SetChassisFixed(bool val) { m_fixed = val; }
     void SetChassisCollisionType(ChassisCollisionType val) { m_chassisCollisionType = val; }
 
+    void SetBrakeType(BrakeType brake_type) { m_brake_type = brake_type; }
     void SetTireType(TireModelType val) { m_tireType = val; }
 
     void SetInitPosition(const ChCoordsys<>& pos) { m_initPos = pos; }
     void SetInitFwdVel(double fwdVel) { m_initFwdVel = fwdVel; }
     void SetInitWheelAngVel(const std::vector<double>& omega) { m_initOmega = omega; }
 
-    void SetVehicleStepSize(double step_size) { m_vehicle_step_size = step_size; }
     void SetTireStepSize(double step_size) { m_tire_step_size = step_size; }
+
+    void EnableBrakeLocking(bool lock) { m_brake_locking = lock; }
 
     ChSystem* GetSystem() const { return m_vehicle->GetSystem(); }
     ChWheeledVehicle& GetVehicle() const { return *m_vehicle; }
     std::shared_ptr<ChChassis> GetChassis() const { return m_vehicle->GetChassis(); }
     std::shared_ptr<ChBodyAuxRef> GetChassisBody() const { return m_vehicle->GetChassisBody(); }
-    ChPowertrain& GetPowertrain() const { return *m_powertrain; }
-    ChTire* GetTire(WheelID which) const { return m_tires[which.id()]; }
+    std::shared_ptr<ChPowertrain> GetPowertrain() const { return m_vehicle->GetPowertrain(); }
     double GetTotalMass() const;
 
     void Initialize();
@@ -79,25 +84,21 @@ class CH_MODELS_API Sedan {
     void SetWheelVisualizationType(VisualizationType vis) { m_vehicle->SetWheelVisualizationType(vis); }
     void SetTireVisualizationType(VisualizationType vis);
 
-    void Synchronize(double time,
-                     double steering_input,
-                     double braking_input,
-                     double throttle_input,
-                     const ChTerrain& terrain);
-
+    void Synchronize(double time, const ChDriver::Inputs& driver_inputs, const ChTerrain& terrain);
     void Advance(double step);
 
     void LogHardpointLocations() { m_vehicle->LogHardpointLocations(); }
     void DebugLog(int what) { m_vehicle->DebugLog(what); }
 
   protected:
-    ChMaterialSurface::ContactMethod m_contactMethod;
+    ChContactMethod m_contactMethod;
     ChassisCollisionType m_chassisCollisionType;
     bool m_fixed;
+    bool m_brake_locking;
 
+    BrakeType m_brake_type;
     TireModelType m_tireType;
 
-    double m_vehicle_step_size;
     double m_tire_step_size;
 
     ChCoordsys<> m_initPos;
@@ -111,8 +112,6 @@ class CH_MODELS_API Sedan {
 
     ChSystem* m_system;
     Sedan_Vehicle* m_vehicle;
-    ChPowertrain* m_powertrain;
-    std::array<ChTire*, 4> m_tires;
 
     double m_tire_mass;
 };

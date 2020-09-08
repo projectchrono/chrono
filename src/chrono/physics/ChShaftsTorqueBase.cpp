@@ -51,8 +51,8 @@ void ChShaftsTorqueBase::IntLoadResidual_F(const unsigned int off,  // offset in
 
 void ChShaftsTorqueBase::VariablesFbLoadForces(double factor) {
     // add applied torques to 'fb' vector
-    shaft1->Variables().Get_fb().ElementN(0) += torque * factor;
-    shaft2->Variables().Get_fb().ElementN(0) += -torque * factor;
+    shaft1->Variables().Get_fb()(0) += torque * factor;
+    shaft2->Variables().Get_fb()(0) += -torque * factor;
 }
 
 //////// FILE I/O

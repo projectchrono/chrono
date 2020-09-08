@@ -212,15 +212,15 @@ void ChShaftsMotor::ConstraintsBiLoad_Ct(double factor) {
 
 void ChShaftsMotor::ConstraintsFbLoadForces(double factor) {
     if (motor_mode == MOT_MODE_TORQUE) {
-        shaft1->Variables().Get_fb().ElementN(0) += motor_torque * factor;
-        shaft2->Variables().Get_fb().ElementN(0) += -motor_torque * factor;
+        shaft1->Variables().Get_fb()(0) += motor_torque * factor;
+        shaft2->Variables().Get_fb()(0) += -motor_torque * factor;
     }
 }
 
 void ChShaftsMotor::ConstraintsLoadJacobians() {
     if (motor_mode != MOT_MODE_TORQUE) {
-        constraint.Get_Cq_a()->SetElement(0, 0, 1);
-        constraint.Get_Cq_b()->SetElement(0, 0, -1);
+        constraint.Get_Cq_a()(0) = 1;
+        constraint.Get_Cq_b()(0) = -1;
     }
 }
 

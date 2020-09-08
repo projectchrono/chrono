@@ -18,7 +18,7 @@
 // =============================================================================
 
 #include "chrono/physics/ChSystemNSC.h"
-#include "chrono/solver/ChSolverMINRES.h"
+#include "chrono/solver/ChIterativeSolverLS.h"
 #include "chrono/fea/ChElementBrick_9.h"
 #include "chrono/fea/ChMesh.h"
 
@@ -38,11 +38,11 @@ int main(int argc, char* argv[]) {
     ChMatrixDynamic<> FileInputJ2(510, 4);
     ChMatrixDynamic<> FileInputDP(510, 4);
 
-    std::string ShellBrick9_Val_File = GetChronoDataPath() + "testing/" + "UT_SwingingShellBrick9.txt";
-    std::string BendingBrick9_Val_File = GetChronoDataPath() + "testing/" + "UT_QuasiBendingBrick9.txt";
-    std::string J2PlasticBrick9_Val_File = GetChronoDataPath() + "testing/" + "UT_J2PlasticBrick9.txt";
+    std::string ShellBrick9_Val_File = GetChronoDataPath() + "testing/fea/UT_SwingingShellBrick9.txt";
+    std::string BendingBrick9_Val_File = GetChronoDataPath() + "testing/fea/UT_QuasiBendingBrick9.txt";
+    std::string J2PlasticBrick9_Val_File = GetChronoDataPath() + "testing/fea/UT_J2PlasticBrick9.txt";
     std::string DruckerPragerPlasticBrick9_Val_File =
-        GetChronoDataPath() + "testing/" + "UT_DruckerPragerPlasticBrick9.txt";
+        GetChronoDataPath() + "testing/fea/UT_DruckerPragerPlasticBrick9.txt";
 
     std::ifstream fileMid(ShellBrick9_Val_File);
     if (!fileMid.is_open()) {
@@ -53,7 +53,7 @@ int main(int argc, char* argv[]) {
         exit(1);
     }
     for (int x = 0; x < 41; x++) {
-        fileMid >> FileInputMat[x][0] >> FileInputMat[x][1] >> FileInputMat[x][2] >> FileInputMat[x][3];
+        fileMid >> FileInputMat(x, 0) >> FileInputMat(x, 1) >> FileInputMat(x, 2) >> FileInputMat(x, 3);
     }
     fileMid.close();
 
@@ -66,7 +66,7 @@ int main(int argc, char* argv[]) {
         exit(1);
     }
     for (int x = 0; x < 1900; x++) {
-        fileBending >> FileInputBend[x][0] >> FileInputBend[x][1] >> FileInputBend[x][2] >> FileInputBend[x][3];
+        fileBending >> FileInputBend(x, 0) >> FileInputBend(x, 1) >> FileInputBend(x, 2) >> FileInputBend(x, 3);
     }
     fileBending.close();
 
@@ -79,7 +79,7 @@ int main(int argc, char* argv[]) {
         exit(1);
     }
     for (int x = 0; x < 510; x++) {
-        fileJ2 >> FileInputJ2[x][0] >> FileInputJ2[x][1] >> FileInputJ2[x][2] >> FileInputJ2[x][3];
+        fileJ2 >> FileInputJ2(x, 0) >> FileInputJ2(x, 1) >> FileInputJ2(x, 2) >> FileInputJ2(x, 3);
     }
     fileJ2.close();
 
@@ -92,18 +92,28 @@ int main(int argc, char* argv[]) {
         exit(1);
     }
     for (int x = 0; x < 510; x++) {
-        fileDruckerPrager >> FileInputDP[x][0] >> FileInputDP[x][1] >> FileInputDP[x][2] >> FileInputDP[x][3];
+        fileDruckerPrager >> FileInputDP(x, 0) >> FileInputDP(x, 1) >> FileInputDP(x, 2) >> FileInputDP(x, 3);
     }
     fileDruckerPrager.close();
 
     bool passBending = BendingQuasiStatic(FileInputBend);
+    if (passBending)
+        GetLog() << "Passed\n";
     bool passSwinging = SwingingShell(FileInputMat);
+    if (passSwinging)
+        GetLog() << "Passed\n";
     bool passJ2 = J2Plastic(FileInputJ2);
+    if (passJ2)
+        GetLog() << "Passed\n";
     bool passDP = DruckerPragerPlastic(FileInputDP);
+    if (passDP)
+        GetLog() << "Passed\n";
+
     if (passBending && passSwinging && passJ2 && passDP) {
         return 0;
-    } else
-        return 1;
+    }
+
+    return 1;
 }
 
 // QuasiStatic
@@ -121,7 +131,7 @@ bool BendingQuasiStatic(ChMatrixDynamic<> FileInputMat) {
     GetLog() << "-----------------------------------------------------------\n";
 
     // Create a mesh, that is a container for groups of elements and their referenced nodes.
-    auto my_mesh = std::make_shared<ChMesh>();
+    auto my_mesh = chrono_types::make_shared<ChMesh>();
 
     // Geometry of the plate
     double plate_lenght_x = 1;
@@ -152,7 +162,7 @@ bool BendingQuasiStatic(ChMatrixDynamic<> FileInputMat) {
             double loc_z = j * dz;
 
             // Create the node
-            auto node = std::make_shared<ChNodeFEAxyz>(ChVector<>(loc_x, loc_y, loc_z));
+            auto node = chrono_types::make_shared<ChNodeFEAxyz>(ChVector<>(loc_x, loc_y, loc_z));
             node->SetMass(0);
 
             // Fix all nodes along the axis X=0
@@ -165,8 +175,8 @@ bool BendingQuasiStatic(ChMatrixDynamic<> FileInputMat) {
     }
 
     for (int i = 0; i < TotalNumElements; i++) {
-        auto node = std::make_shared<ChNodeFEAcurv>(ChVector<>(0.0, 0.0, 0.0), ChVector<>(0.0, 0.0, 0.0),
-                                                    ChVector<>(0.0, 0.0, 0.0));
+        auto node = chrono_types::make_shared<ChNodeFEAcurv>(ChVector<>(0.0, 0.0, 0.0), ChVector<>(0.0, 0.0, 0.0),
+                                                             ChVector<>(0.0, 0.0, 0.0));
         node->SetMass(0);
         my_mesh->AddNode(node);
     }
@@ -179,7 +189,7 @@ bool BendingQuasiStatic(ChMatrixDynamic<> FileInputMat) {
     ChVector<> E(2.1e8, 2.1e8, 2.1e8);
     ChVector<> nu(0.3, 0.3, 0.3);
     ChVector<> G(8.0769231e7, 8.0769231e7, 8.0769231e7);
-    auto material = std::make_shared<ChContinuumElastic>();
+    auto material = chrono_types::make_shared<ChContinuumElastic>();
     material->Set_RayleighDampingK(0.0);
     material->Set_RayleighDampingM(0.0);
     material->Set_density(rho);
@@ -201,7 +211,7 @@ bool BendingQuasiStatic(ChMatrixDynamic<> FileInputMat) {
         int node8 = 2 * XYNumNodes + i;
 
         // Create the element and set its nodes.
-        auto element = std::make_shared<ChElementBrick_9>();
+        auto element = chrono_types::make_shared<ChElementBrick_9>();
         element->SetNodes(std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(node0)),
                           std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(node1)),
                           std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(node2)),
@@ -234,15 +244,13 @@ bool BendingQuasiStatic(ChMatrixDynamic<> FileInputMat) {
 
     my_system.Set_G_acc(ChVector<>(0.0, 0.0, 0.0));
 
-    // Mark completion of system construction
-    my_system.SetupInitial();
-
     // Set up solver
-    my_system.SetSolverType(ChSolver::Type::MINRES);
-    auto msolver = std::static_pointer_cast<ChSolverMINRES>(my_system.GetSolver());
-    msolver->SetDiagonalPreconditioning(true);
-    my_system.SetMaxItersSolverSpeed(900);
-    my_system.SetTolForce(1e-13);
+    auto solver = chrono_types::make_shared<ChSolverMINRES>();
+    my_system.SetSolver(solver);
+    solver->SetMaxIterations(500);
+    solver->SetTolerance(1e-10);
+    solver->EnableDiagonalPreconditioner(true);
+    solver->SetVerbose(false);
 
     // Set the time integrator parameters
     my_system.SetTimestepperType(ChTimestepper::Type::HHT);
@@ -286,9 +294,9 @@ bool BendingQuasiStatic(ChMatrixDynamic<> FileInputMat) {
             fprintf(outputfile, "%15.7e  ", nodetip->GetPos().z());
             fprintf(outputfile, "\n  ");
         } else {
-            RelVal1 = std::abs(nodetip->pos.x() - FileInputMat[it][1]) / std::abs(FileInputMat[it][1]);
-            RelVal2 = std::abs(nodetip->pos.y() - FileInputMat[it][2]) / std::abs(FileInputMat[it][2]);
-            RelVal3 = std::abs(nodetip->pos.z() - FileInputMat[it][3]) / std::abs(FileInputMat[it][3]);
+            RelVal1 = std::abs(nodetip->pos.x() - FileInputMat(it, 1)) / std::abs(FileInputMat(it, 1));
+            RelVal2 = std::abs(nodetip->pos.y() - FileInputMat(it, 2)) / std::abs(FileInputMat(it, 2));
+            RelVal3 = std::abs(nodetip->pos.z() - FileInputMat(it, 3)) / std::abs(FileInputMat(it, 3));
             RelVal = RelVal1 + RelVal2 + RelVal3;
             // GetLog() << RelVal1 << RelVal2 << RelVal3 << RelVal << "\n";
             if (RelVal > precision) {
@@ -315,7 +323,7 @@ bool SwingingShell(ChMatrixDynamic<> FileInputMat) {
     GetLog() << "--------------------------------------------------------------------\n";
 
     // Create a mesh, that is a container for groups of elements and their referenced nodes.
-    auto my_mesh = std::make_shared<ChMesh>();
+    auto my_mesh = chrono_types::make_shared<ChMesh>();
 
     // Geometry of the plate
     double plate_lenght_x = 1;
@@ -350,7 +358,7 @@ bool SwingingShell(ChMatrixDynamic<> FileInputMat) {
             double loc_z = j * dz;
 
             // Create the node
-            auto node = std::make_shared<ChNodeFEAxyz>(ChVector<>(loc_x, loc_y, loc_z));
+            auto node = chrono_types::make_shared<ChNodeFEAxyz>(ChVector<>(loc_x, loc_y, loc_z));
             node->SetMass(0);
             // Fix all nodes along the axis X=0
             if (i == 0 && j == 0)
@@ -362,8 +370,8 @@ bool SwingingShell(ChMatrixDynamic<> FileInputMat) {
     }
 
     for (int i = 0; i < TotalNumElements; i++) {
-        auto node = std::make_shared<ChNodeFEAcurv>(ChVector<>(0.0, 0.0, 0.0), ChVector<>(0.0, 0.0, 0.0),
-                                                    ChVector<>(0.0, 0.0, 0.0));
+        auto node = chrono_types::make_shared<ChNodeFEAcurv>(ChVector<>(0.0, 0.0, 0.0), ChVector<>(0.0, 0.0, 0.0),
+                                                             ChVector<>(0.0, 0.0, 0.0));
         node->SetMass(0);
         my_mesh->AddNode(node);
     }
@@ -378,7 +386,7 @@ bool SwingingShell(ChMatrixDynamic<> FileInputMat) {
     ChVector<> E(2.1e7, 2.1e7, 2.1e7);
     ChVector<> nu(0.3, 0.3, 0.3);
     ChVector<> G(8.0769231e6, 8.0769231e6, 8.0769231e6);
-    auto material = std::make_shared<ChContinuumElastic>();
+    auto material = chrono_types::make_shared<ChContinuumElastic>();
     material->Set_RayleighDampingK(0.0);
     material->Set_RayleighDampingM(0.0);
     material->Set_density(rho);
@@ -400,7 +408,7 @@ bool SwingingShell(ChMatrixDynamic<> FileInputMat) {
         int node8 = 2 * XYNumNodes + i;
 
         // Create the element and set its nodes.
-        auto element = std::make_shared<ChElementBrick_9>();
+        auto element = chrono_types::make_shared<ChElementBrick_9>();
         element->SetNodes(std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(node0)),
                           std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(node1)),
                           std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(node2)),
@@ -438,19 +446,17 @@ bool SwingingShell(ChMatrixDynamic<> FileInputMat) {
     my_system.Set_G_acc(ChVector<>(0.0, 0.0, -9.81));
     my_mesh->SetAutomaticGravity(false);
 
-    // Mark completion of system construction
-    my_system.SetupInitial();
-
     // ----------------------------------
     // Perform a dynamic time integration
     // ----------------------------------
 
     // Set up solver
-    my_system.SetSolverType(ChSolver::Type::MINRES);
-    auto msolver = std::static_pointer_cast<ChSolverMINRES>(my_system.GetSolver());
-    msolver->SetDiagonalPreconditioning(true);
-    my_system.SetMaxItersSolverSpeed(500);
-    my_system.SetTolForce(1e-08);
+    auto solver = chrono_types::make_shared<ChSolverMINRES>();
+    my_system.SetSolver(solver);
+    solver->SetMaxIterations(500);
+    solver->SetTolerance(1e-10);
+    solver->EnableDiagonalPreconditioner(true);
+    solver->SetVerbose(false);
 
     // Set the time integrator parameters
     my_system.SetTimestepperType(ChTimestepper::Type::HHT);
@@ -487,9 +493,9 @@ bool SwingingShell(ChMatrixDynamic<> FileInputMat) {
             fprintf(outputfile, "%15.7e  ", nodetip->GetPos().z());
             fprintf(outputfile, "\n  ");
         } else {
-            RelVal1 = std::abs(nodetip->pos.x() - FileInputMat[it][1]) / std::abs(FileInputMat[it][1]);
-            RelVal2 = std::abs(nodetip->pos.y() - FileInputMat[it][2]) / std::abs(FileInputMat[it][2]);
-            RelVal3 = std::abs(nodetip->pos.z() - FileInputMat[it][3]) / std::abs(FileInputMat[it][3]);
+            RelVal1 = std::abs(nodetip->pos.x() - FileInputMat(it, 1)) / std::abs(FileInputMat(it, 1));
+            RelVal2 = std::abs(nodetip->pos.y() - FileInputMat(it, 2)) / std::abs(FileInputMat(it, 2));
+            RelVal3 = std::abs(nodetip->pos.z() - FileInputMat(it, 3)) / std::abs(FileInputMat(it, 3));
             RelVal = RelVal1 + RelVal2 + RelVal3;
             // GetLog() << RelVal << "\n";
             if (RelVal > precision) {
@@ -516,7 +522,7 @@ bool J2Plastic(ChMatrixDynamic<> FileInputMat) {
     GetLog() << "-----------------------------------------------------------------\n";
 
     // Create a mesh, that is a container for groups of elements and their referenced nodes.
-    auto my_mesh = std::make_shared<ChMesh>();
+    auto my_mesh = chrono_types::make_shared<ChMesh>();
 
     // Geometry of the plate
     double plate_lenght_x = 1;
@@ -547,7 +553,7 @@ bool J2Plastic(ChMatrixDynamic<> FileInputMat) {
             double loc_z = j * dz;
 
             // Create the node
-            auto node = std::make_shared<ChNodeFEAxyz>(ChVector<>(loc_x, loc_y, loc_z));
+            auto node = chrono_types::make_shared<ChNodeFEAxyz>(ChVector<>(loc_x, loc_y, loc_z));
             node->SetMass(0);
 
             // Fix all nodes along the axis X=0
@@ -560,8 +566,8 @@ bool J2Plastic(ChMatrixDynamic<> FileInputMat) {
     }
 
     for (int i = 0; i < TotalNumElements; i++) {
-        auto node = std::make_shared<ChNodeFEAcurv>(ChVector<>(0.0, 0.0, 0.0), ChVector<>(0.0, 0.0, 0.0),
-                                                    ChVector<>(0.0, 0.0, 0.0));
+        auto node = chrono_types::make_shared<ChNodeFEAcurv>(ChVector<>(0.0, 0.0, 0.0), ChVector<>(0.0, 0.0, 0.0),
+                                                             ChVector<>(0.0, 0.0, 0.0));
         node->SetMass(0);
         my_mesh->AddNode(node);
     }
@@ -577,7 +583,7 @@ bool J2Plastic(ChMatrixDynamic<> FileInputMat) {
     ChVector<> E(1.0e7, 1.0e7, 1.0e7);
     ChVector<> nu(0.3, 0.3, 0.3);
     ChVector<> G(3.8461538e6, 3.8461538e6, 3.8461538e6);
-    auto material = std::make_shared<ChContinuumElastic>();
+    auto material = chrono_types::make_shared<ChContinuumElastic>();
     material->Set_RayleighDampingK(0.0);
     material->Set_RayleighDampingM(0.0);
     material->Set_density(rho);
@@ -585,6 +591,7 @@ bool J2Plastic(ChMatrixDynamic<> FileInputMat) {
     material->Set_G(G.x());
     material->Set_v(nu.x());
     ChMatrixNM<double, 9, 8> CCPInitial;
+    CCPInitial.setZero();
     for (int k = 0; k < 8; k++) {
         CCPInitial(0, k) = 1;
         CCPInitial(4, k) = 1;
@@ -604,7 +611,7 @@ bool J2Plastic(ChMatrixDynamic<> FileInputMat) {
         int node8 = 2 * XYNumNodes + i;
 
         // Create the element and set its nodes.
-        auto element = std::make_shared<ChElementBrick_9>();
+        auto element = chrono_types::make_shared<ChElementBrick_9>();
         element->SetNodes(std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(node0)),
                           std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(node1)),
                           std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(node2)),
@@ -641,15 +648,13 @@ bool J2Plastic(ChMatrixDynamic<> FileInputMat) {
 
     my_system.Set_G_acc(ChVector<>(0.0, 0.0, 0.0));
 
-    // Mark completion of system construction
-    my_system.SetupInitial();
-
     // Set up solver
-    my_system.SetSolverType(ChSolver::Type::MINRES);
-    auto msolver = std::static_pointer_cast<ChSolverMINRES>(my_system.GetSolver());
-    msolver->SetDiagonalPreconditioning(true);
-    my_system.SetMaxItersSolverSpeed(900);
-    my_system.SetTolForce(1e-13);
+    auto solver = chrono_types::make_shared<ChSolverMINRES>();
+    my_system.SetSolver(solver);
+    solver->SetMaxIterations(500);
+    solver->SetTolerance(1e-10);
+    solver->EnableDiagonalPreconditioner(true);
+    solver->SetVerbose(false);
 
     // Set the time integrator parameters
     my_system.SetTimestepperType(ChTimestepper::Type::HHT);
@@ -691,9 +696,9 @@ bool J2Plastic(ChMatrixDynamic<> FileInputMat) {
             fprintf(outputfile, "%15.7e  ", nodetip1->GetPos().z());
             fprintf(outputfile, "\n  ");
         } else {
-            RelVal1 = std::abs(nodetip1->pos.x() - FileInputMat[it][1]) / std::abs(FileInputMat[it][1]);
-            RelVal2 = std::abs(nodetip1->pos.y() - FileInputMat[it][2]) / std::abs(FileInputMat[it][2]);
-            RelVal3 = std::abs(nodetip1->pos.z() - FileInputMat[it][3]) / std::abs(FileInputMat[it][3]);
+            RelVal1 = std::abs(nodetip1->pos.x() - FileInputMat(it, 1)) / std::abs(FileInputMat(it, 1));
+            RelVal2 = std::abs(nodetip1->pos.y() - FileInputMat(it, 2)) / std::abs(FileInputMat(it, 2));
+            RelVal3 = std::abs(nodetip1->pos.z() - FileInputMat(it, 3)) / std::abs(FileInputMat(it, 3));
             RelVal = RelVal1 + RelVal2 + RelVal3;
             // GetLog() << RelVal1 << RelVal2 << RelVal3 << RelVal << "\n";
             if (RelVal > precision) {
@@ -721,7 +726,7 @@ bool DruckerPragerPlastic(ChMatrixDynamic<> FileInputMat) {
     GetLog() << "-----------------------------------------------------------------------------\n";
 
     // Create a mesh, that is a container for groups of elements and their referenced nodes.
-    auto my_mesh = std::make_shared<ChMesh>();
+    auto my_mesh = chrono_types::make_shared<ChMesh>();
 
     // Geometry of the plate
     double plate_lenght_x = 1;
@@ -752,7 +757,7 @@ bool DruckerPragerPlastic(ChMatrixDynamic<> FileInputMat) {
             double loc_z = j * dz;
 
             // Create the node
-            auto node = std::make_shared<ChNodeFEAxyz>(ChVector<>(loc_x, loc_y, loc_z));
+            auto node = chrono_types::make_shared<ChNodeFEAxyz>(ChVector<>(loc_x, loc_y, loc_z));
             node->SetMass(0);
 
             // Fix all nodes along the axis X=0
@@ -765,8 +770,8 @@ bool DruckerPragerPlastic(ChMatrixDynamic<> FileInputMat) {
     }
 
     for (int i = 0; i < TotalNumElements; i++) {
-        auto node = std::make_shared<ChNodeFEAcurv>(ChVector<>(0.0, 0.0, 0.0), ChVector<>(0.0, 0.0, 0.0),
-                                                    ChVector<>(0.0, 0.0, 0.0));
+        auto node = chrono_types::make_shared<ChNodeFEAcurv>(ChVector<>(0.0, 0.0, 0.0), ChVector<>(0.0, 0.0, 0.0),
+                                                             ChVector<>(0.0, 0.0, 0.0));
         node->SetMass(0);
         my_mesh->AddNode(node);
     }
@@ -782,7 +787,7 @@ bool DruckerPragerPlastic(ChMatrixDynamic<> FileInputMat) {
     ChVector<> E(1.0e7, 1.0e7, 1.0e7);
     ChVector<> nu(0.3, 0.3, 0.3);
     ChVector<> G(3.8461538e6, 3.8461538e6, 3.8461538e6);
-    auto material = std::make_shared<ChContinuumElastic>();
+    auto material = chrono_types::make_shared<ChContinuumElastic>();
     material->Set_RayleighDampingK(0.0);
     material->Set_RayleighDampingM(0.0);
     material->Set_density(rho);
@@ -790,6 +795,7 @@ bool DruckerPragerPlastic(ChMatrixDynamic<> FileInputMat) {
     material->Set_G(G.x());
     material->Set_v(nu.x());
     ChMatrixNM<double, 9, 8> CCPInitial;
+    CCPInitial.setZero();
     for (int k = 0; k < 8; k++) {
         CCPInitial(0, k) = 1;
         CCPInitial(4, k) = 1;
@@ -809,7 +815,7 @@ bool DruckerPragerPlastic(ChMatrixDynamic<> FileInputMat) {
         int node8 = 2 * XYNumNodes + i;
 
         // Create the element and set its nodes.
-        auto element = std::make_shared<ChElementBrick_9>();
+        auto element = chrono_types::make_shared<ChElementBrick_9>();
         element->SetNodes(std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(node0)),
                           std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(node1)),
                           std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(node2)),
@@ -851,15 +857,13 @@ bool DruckerPragerPlastic(ChMatrixDynamic<> FileInputMat) {
 
     my_system.Set_G_acc(ChVector<>(0.0, 0.0, 0.0));
 
-    // Mark completion of system construction
-    my_system.SetupInitial();
-
     // Set up solver
-    my_system.SetSolverType(ChSolver::Type::MINRES);
-    auto msolver = std::static_pointer_cast<ChSolverMINRES>(my_system.GetSolver());
-    msolver->SetDiagonalPreconditioning(true);
-    my_system.SetMaxItersSolverSpeed(900);
-    my_system.SetTolForce(1e-13);
+    auto solver = chrono_types::make_shared<ChSolverMINRES>();
+    my_system.SetSolver(solver);
+    solver->SetMaxIterations(500);
+    solver->SetTolerance(1e-10);
+    solver->EnableDiagonalPreconditioner(true);
+    solver->SetVerbose(false);
 
     // Set the time integrator parameters
     my_system.SetTimestepperType(ChTimestepper::Type::HHT);
@@ -901,9 +905,9 @@ bool DruckerPragerPlastic(ChMatrixDynamic<> FileInputMat) {
             fprintf(outputfile, "%15.7e  ", nodetip1->GetPos().z());
             fprintf(outputfile, "\n  ");
         } else {
-            RelVal1 = std::abs(nodetip1->pos.x() - FileInputMat[it][1]) / std::abs(FileInputMat[it][1]);
-            RelVal2 = std::abs(nodetip1->pos.y() - FileInputMat[it][2]) / std::abs(FileInputMat[it][2]);
-            RelVal3 = std::abs(nodetip1->pos.z() - FileInputMat[it][3]) / std::abs(FileInputMat[it][3]);
+            RelVal1 = std::abs(nodetip1->pos.x() - FileInputMat(it, 1)) / std::abs(FileInputMat(it, 1));
+            RelVal2 = std::abs(nodetip1->pos.y() - FileInputMat(it, 2)) / std::abs(FileInputMat(it, 2));
+            RelVal3 = std::abs(nodetip1->pos.z() - FileInputMat(it, 3)) / std::abs(FileInputMat(it, 3));
 
             RelVal = RelVal1 + RelVal2 + RelVal3;
             if (RelVal > precision) {

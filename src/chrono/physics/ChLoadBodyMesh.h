@@ -94,9 +94,9 @@ class ChApi ChLoadBodyMesh : public ChLoadBase {
     /// Not needed when forces are constant, btw.
     virtual void ComputeJacobian(ChState* state_x,       ///< state position to evaluate jacobians
                                  ChStateDelta* state_w,  ///< state speed to evaluate jacobians
-                                 ChMatrix<>& mK,         ///< result dQ/dx
-                                 ChMatrix<>& mR,         ///< result dQ/dv
-                                 ChMatrix<>& mM          ///< result dQ/da
+                                 ChMatrixRef mK,         ///< result dQ/dx
+                                 ChMatrixRef mR,         ///< result dQ/dv
+                                 ChMatrixRef mM          ///< result dQ/da
                                  ) override;
 
     virtual bool IsStiff() override { return false; }

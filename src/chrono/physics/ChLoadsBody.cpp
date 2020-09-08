@@ -31,7 +31,7 @@ ChLoadBodyForce::ChLoadBodyForce(std::shared_ptr<ChBody> body,
       m_local_force(local_force),
       m_local_point(local_point),
       m_scale(1) {
-    m_modulation = std::make_shared<ChFunction_Const>(1.0);
+    m_modulation = chrono_types::make_shared<ChFunction_Const>(1.0);
 }
 
 void ChLoadBodyForce::ComputeQ(ChState* state_x, ChStateDelta* state_w) {
@@ -57,6 +57,9 @@ void ChLoadBodyForce::ComputeQ(ChState* state_x, ChStateDelta* state_w) {
     mF(0) = abs_force.x();
     mF(1) = abs_force.y();
     mF(2) = abs_force.z();
+    mF(3) = 0;
+    mF(4) = 0;
+    mF(5) = 0;
 
     // Compute Q = N(u,v,w)'*F
     mbody->ComputeNF(abs_point.x(), abs_point.y(), abs_point.z(), load_Q, detJ, mF, state_x, state_w);
@@ -88,7 +91,7 @@ ChVector<> ChLoadBodyForce::GetForce() const {
 
 ChLoadBodyTorque::ChLoadBodyTorque(std::shared_ptr<ChBody> body, const ChVector<>& torque, bool local_torque)
     : ChLoadCustom(body), m_torque(torque), m_local_torque(local_torque), m_scale(1) {
-    m_modulation = std::make_shared<ChFunction_Const>(1.0);
+    m_modulation = chrono_types::make_shared<ChFunction_Const>(1.0);
 }
 
 void ChLoadBodyTorque::ComputeQ(ChState* state_x, ChStateDelta* state_w) {
@@ -105,6 +108,9 @@ void ChLoadBodyTorque::ComputeQ(ChState* state_x, ChStateDelta* state_w) {
 
     // ChBody assumes F={force_abs, torque_abs}
     ChVectorDynamic<> mF(loadable->Get_field_ncoords());
+    mF(1) = 0;
+    mF(2) = 0;
+    mF(3) = 0;
     mF(3) = abs_torque.x();
     mF(4) = abs_torque.y();
     mF(5) = abs_torque.z();
@@ -147,8 +153,8 @@ void ChLoadBodyBody::ComputeQ(ChState* state_x, ChStateDelta* state_w) {
     ChFrameMoving<> bodycoordA, bodycoordB;
     if (state_x) {
         // the numerical jacobian algo might change state_x
-        bodycoordA.SetCoord(state_x->ClipCoordsys(0, 0));
-        bodycoordB.SetCoord(state_x->ClipCoordsys(7, 0));
+        bodycoordA.SetCoord(state_x->segment(0, 7));
+        bodycoordB.SetCoord(state_x->segment(7, 7));
     } else {
         bodycoordA.SetCoord(mbodyA->coord);
         bodycoordB.SetCoord(mbodyB->coord);
@@ -156,10 +162,10 @@ void ChLoadBodyBody::ComputeQ(ChState* state_x, ChStateDelta* state_w) {
 
     if (state_w) {
         // the numerical jacobian algo might change state_w
-        bodycoordA.SetPos_dt(state_w->ClipVector(0, 0));
-        bodycoordA.SetWvel_loc(state_w->ClipVector(3, 0));
-        bodycoordB.SetPos_dt(state_w->ClipVector(6, 0));
-        bodycoordB.SetWvel_loc(state_w->ClipVector(9, 0));
+        bodycoordA.SetPos_dt(state_w->segment(0, 3));
+        bodycoordA.SetWvel_loc(state_w->segment(3, 3));
+        bodycoordB.SetPos_dt(state_w->segment(6, 3));
+        bodycoordB.SetWvel_loc(state_w->segment(9, 3));
     } else {
         bodycoordA.SetCoord_dt(mbodyA->GetCoord_dt());
         bodycoordB.SetCoord_dt(mbodyB->GetCoord_dt());
@@ -180,13 +186,13 @@ void ChLoadBodyBody::ComputeQ(ChState* state_x, ChStateDelta* state_w) {
 
     ChVector<> loc_ftorque = bodycoordA.GetRot().RotateBack(((frame_Aw.GetPos() - bodycoordA.GetPos()) % -abs_force));
     ChVector<> loc_torque = bodycoordA.GetRot().RotateBack(-abs_torque);
-    this->load_Q.PasteVector(-abs_force, 0, 0);
-    this->load_Q.PasteVector(loc_ftorque + loc_torque, 3, 0);
+    load_Q.segment(0, 3) = -abs_force.eigen();
+    load_Q.segment(3, 3) = (loc_ftorque + loc_torque).eigen();
 
     loc_ftorque = bodycoordB.GetRot().RotateBack(((frame_Bw.GetPos() - bodycoordB.GetPos()) % abs_force));
     loc_torque = bodycoordB.GetRot().RotateBack(abs_torque);
-    this->load_Q.PasteVector(abs_force, 6, 0);
-    this->load_Q.PasteVector(loc_ftorque + loc_torque, 9, 0);
+    load_Q.segment(6, 3) = abs_force.eigen();
+    load_Q.segment(9, 3) = (loc_ftorque + loc_torque).eigen();
 }
 
 std::shared_ptr<ChBody> ChLoadBodyBody::GetBodyA() const {
@@ -206,7 +212,7 @@ ChLoadBodyBodyTorque::ChLoadBodyBodyTorque(std::shared_ptr<ChBody> bodyA,
                                            const ChVector<> torque,
                                            bool local_torque)
     : ChLoadBodyBody(bodyA, bodyB, ChFrame<>()), m_torque(torque), m_local_torque(local_torque), m_scale(1) {
-    m_modulation = std::make_shared<ChFunction_Const>(1.0);
+    m_modulation = chrono_types::make_shared<ChFunction_Const>(1.0);
 }
 
 void ChLoadBodyBodyTorque::ComputeBodyBodyForceTorque(const ChFrameMoving<>& rel_AB,
@@ -335,7 +341,7 @@ void ChLoadBodyBodyBushingMate::ComputeBodyBodyForceTorque(const ChFrameMoving<>
     ChVector<> vect_rot = dir_rot * angle_rot;
 
     loc_torque = vect_rot * rot_stiffness           // element-wise product!
-                 + rel_AB.GetWvel_par() * damping;  // element-wise product!
+                 + rel_AB.GetWvel_par() * rot_damping;  // element-wise product!
 }
 
 // -----------------------------------------------------------------------------
@@ -345,8 +351,8 @@ void ChLoadBodyBodyBushingMate::ComputeBodyBodyForceTorque(const ChFrameMoving<>
 ChLoadBodyBodyBushingGeneric::ChLoadBodyBodyBushingGeneric(std::shared_ptr<ChBody> mbodyA,
                                                            std::shared_ptr<ChBody> mbodyB,
                                                            const ChFrame<>& abs_application,
-                                                           const ChMatrix<>& mstiffness,
-                                                           const ChMatrix<>& mdamping)
+                                                           ChMatrixConstRef mstiffness,
+                                                           ChMatrixConstRef mdamping)
     : ChLoadBodyBody(mbodyA, mbodyB, abs_application), stiffness(mstiffness), damping(mdamping) {}
 
 void ChLoadBodyBodyBushingGeneric::ComputeBodyBodyForceTorque(const ChFrameMoving<>& rel_AB,
@@ -367,15 +373,15 @@ void ChLoadBodyBodyBushingGeneric::ComputeBodyBodyForceTorque(const ChFrameMovin
         angle_rot += CH_C_2PI;
     ChVector<> vect_rot = dir_rot * angle_rot;
 
-    mS.PasteVector(rel_pos, 0, 0);
-    mS.PasteVector(vect_rot, 3, 0);
-    mSdt.PasteVector(rel_AB.GetPos_dt(), 0, 0);
-    mSdt.PasteVector(rel_AB.GetWvel_par(), 3, 0);
+    mS.segment(0, 3) = rel_pos.eigen();
+    mS.segment(3, 3) = vect_rot.eigen();
+    mSdt.segment(0, 3) = rel_AB.GetPos_dt().eigen();
+    mSdt.segment(3, 3) = rel_AB.GetWvel_par().eigen();
 
     mF = stiffness * mS + damping * mSdt;
 
-    loc_force = mF.ClipVector(0, 0) - neutral_force;
-    loc_torque = mF.ClipVector(3, 0) - neutral_torque;
+    loc_force = ChVector<>(mF.segment(0, 3)) - neutral_force;
+    loc_torque = ChVector<>(mF.segment(3, 3)) - neutral_torque;
 }
 
 }  // end namespace chrono

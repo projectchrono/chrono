@@ -27,16 +27,15 @@ ChLinkTrajectory::ChLinkTrajectory() : modulo_s(false) {
     type = LinkType::TRAJECTORY;
 
     // default s(t) function. User will provide better fx.
-    space_fx = std::make_shared<ChFunction_Ramp>(0, 1.);
+    space_fx = chrono_types::make_shared<ChFunction_Ramp>(0, 1.);
 
     // default trajectory is a segment
-    trajectory_line = std::make_shared<ChLineSegment>();
+    trajectory_line = chrono_types::make_shared<ChLineSegment>();
 
-    // Mask: initialize our LinkMaskLF (lock formulation mask)
-    // to X  only. It was a LinkMaskLF because this class inherited from LinkLock.
-    ((ChLinkMaskLF*)mask)->SetLockMask(true, true, true, false, false, false, false);
+    // Mask: initialize our LinkMaskLF (lock formulation mask) to X  only
+    mask.SetLockMask(true, true, true, false, false, false, false);
 
-    ChangedLinkMask();
+    BuildLink();
 }
 
 ChLinkTrajectory::ChLinkTrajectory(const ChLinkTrajectory& other) : ChLinkLockLock(other) {
@@ -77,18 +76,15 @@ void ChLinkTrajectory::UpdateTime(double time) {
         // if line coordinate is relative to body2:
         marker2->Impose_Rel_Coord(CSYSNORM);
         deltaC.pos = result;
-        deltaC_dt.pos = (resultB - resultA) * 1 / (2 * tstep);
-        deltaC_dtdt.pos = (resultA + resultB - result * 2) * 4 / pow(2 * tstep, 2);
+        deltaC_dt.pos = (resultB - resultA) * (1 / (2 * tstep));
+        deltaC_dtdt.pos = (resultA + resultB - result * 2) * (4 / pow(2 * tstep, 2));
         /*
         // if line coordinate is relative to absolute space:
-        deltaC.pos = mw.MatrT_x_Vect(
-                            Vsub (result, marker2->GetAbsCoord().pos));  // ***  CORRECT?
-        deltaC_dt.pos =  mw.MatrT_x_Vect(
-                            Vmul( Vsub(resultB, resultA), 1/(2*tstep)) );
-        deltaC_dtdt.pos =  mw.MatrT_x_Vect (
-                            Vmul   ( Vadd (Vadd (resultA, resultB),
-                                   Vmul (result,-2)), 4/pow(2*tstep, 2) ) );
+        deltaC.pos = mw.transpose() * (result - marker2->GetAbsCoord().pos);  //// CORRECT?
+        deltaC_dt.pos = mw.transpose() * ((resultB - resultA) * (1 / (2 * tstep)));
+        deltaC_dtdt.pos = mw.transpose() * ((resultA + resultB - result * 2) * (4 / pow(2 * tstep, 2)));
         */
+
         deltaC.rot = QUNIT;
         deltaC_dt.rot = QNULL;
         deltaC_dtdt.rot = QNULL;

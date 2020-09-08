@@ -16,10 +16,9 @@
 //
 // =============================================================================
 
-#include "chrono/physics/ChSystemNSC.h"
+#include "chrono/physics/ChSystemSMC.h"
 #include "chrono/physics/ChLinkMate.h"
 #include "chrono/physics/ChLinkLock.h"
-#include "chrono/solver/ChSolverMINRES.h"
 
 #include "chrono/fea/ChElementBeamEuler.h"
 #include "chrono/fea/ChBuilderBeam.h"
@@ -44,7 +43,7 @@ int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
     // Create a Chrono::Engine physical system
-    ChSystemNSC my_system;
+    ChSystemSMC my_system;
 
     // Create the Irrlicht visualization (open the Irrlicht device,
     // bind a simple user interface, etc. etc.)
@@ -57,25 +56,25 @@ int main(int argc, char* argv[]) {
     application.AddTypicalCamera(core::vector3df(0.f, 0.6f, -1.f));
 
     // Create a truss:
-    auto my_body_A = std::make_shared<ChBody>();
+    auto my_body_A = chrono_types::make_shared<ChBody>();
 
     my_body_A->SetBodyFixed(true);
     my_system.AddBody(my_body_A);
 
     // Attach a 'box' shape asset for visualization.
-    auto mboxtruss = std::make_shared<ChBoxShape>();
+    auto mboxtruss = chrono_types::make_shared<ChBoxShape>();
     mboxtruss->GetBoxGeometry().Pos = ChVector<>(-0.01, -0.2, -0.25);
     mboxtruss->GetBoxGeometry().SetLengths(ChVector<>(0.02, 0.5, 0.5));
     my_body_A->AddAsset(mboxtruss);
 
     // Create a FEM mesh, that is a container for groups
     // of elements and their referenced nodes.
-    auto my_mesh = std::make_shared<ChMesh>();
+    auto my_mesh = chrono_types::make_shared<ChMesh>();
 
     double rotstep = 15;
     double rotmax = 90;
 
-    ChMatrixNM<double, 3, 1> loads;
+    ChVectorN<double, 3> loads;
     loads(0) = -4.448;
     loads(1) = -8.896;
     loads(2) = -13.345;
@@ -95,7 +94,7 @@ int main(int argc, char* argv[]) {
 
             // Create a section, i.e. thickness and material properties
             // for beams. This will be shared among some beams.
-            auto msection = std::make_shared<ChBeamSectionAdvanced>();
+            auto msection = chrono_types::make_shared<ChBeamSectionEulerAdvanced>();
 
             double beam_wz = 0.0032024;  // 3.175;
             double beam_wy = 0.01237;    // 12.7;
@@ -107,11 +106,11 @@ int main(int argc, char* argv[]) {
             msection->SetAsRectangularSection(beam_wy, beam_wz);
 
             // This helps creating sequences of nodes and ChElementBeamEuler elements:
-            ChBuilderBeam builder;
+            ChBuilderBeamEuler builder;
 
             builder.BuildBeam(
                 my_mesh,   // the mesh where to put the created nodes and elements
-                msection,  // the ChBeamSectionAdvanced to use for the ChElementBeamEuler elements
+                msection,  // the ChBeamSectionEuler to use for the ChElementBeamEuler elements
                 10,        // the number of ChElementBeamEuler to create
                 ChVector<>(0, nload * y_spacing, i * z_spacing),       // the 'A' point in space (beginning of beam)
                 ChVector<>(beam_L, nload * y_spacing, i * z_spacing),  // the 'B' point in space (end of beam)
@@ -150,14 +149,14 @@ int main(int argc, char* argv[]) {
     // Such triangle mesh can be rendered by Irrlicht or POVray or whatever
     // postprocessor that can handle a colored ChTriangleMeshShape).
     // Do not forget AddAsset() at the end!
-    auto mvisualizebeamA = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
+    auto mvisualizebeamA = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
     mvisualizebeamA->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_ELEM_BEAM_MY);
     mvisualizebeamA->SetColorscaleMinMax(-0.001, 6);
     mvisualizebeamA->SetSmoothFaces(true);
     mvisualizebeamA->SetWireframe(false);
     my_mesh->AddAsset(mvisualizebeamA);
 
-    auto mvisualizebeamC = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
+    auto mvisualizebeamC = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
     mvisualizebeamC->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_NODE_CSYS);
     mvisualizebeamC->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NONE);
     mvisualizebeamC->SetSymbolsThickness(0.02);
@@ -177,40 +176,15 @@ int main(int argc, char* argv[]) {
 
     application.AssetUpdateAll();
 
-    // Mark completion of system construction
-    my_system.SetupInitial();
-
-    //
-    // THE SOFT-REAL-TIME CYCLE
-    //
-
     // Use a solver that can handle stiffness matrices:
-
-    //***TEST***
-    /*
-    my_system.SetSolverType(ChSolver::Type::MINRES);
-    my_system.SetSolverWarmStarting(true);
-    my_system.SetMaxItersSolverSpeed(600);
-    my_system.SetMaxItersSolverStab(600);
-    my_system.SetTolForce(1e-12);
-    auto msolver = std::static_pointer_cast<ChSolverMINRES>(my_system.GetSolver());
-    msolver->SetDiagonalPreconditioning(true);
-    */
-
-    ////***TEST***
-    // ChMatlabEngine matlab_engine;
-    // auto matlab_solver = std::make_shared<ChSolverMatlab>(matlab_engine);
-    // my_system.SetSolver(matlab_solver);
-
-    //***TEST***
-    auto mkl_solver = std::make_shared<ChSolverMKL<>>();
+    auto mkl_solver = chrono_types::make_shared<ChSolverMKL>();
     my_system.SetSolver(mkl_solver);
 
     application.SetTimestep(0.001);
     application.SetVideoframeSaveInterval(10);
 
     // Perform nonlinear statics
-    my_system.DoStaticNonlinear(20);
+    my_system.DoStaticNonlinear(20, true);
     application.SetPaused(true);
 
     // Output data
@@ -219,7 +193,7 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    std::string filename1 = out_dir + "/princeton_L1.dat";
+    std::string filename1 = out_dir + "/benchmark_CE_princeton_L1.dat";
     chrono::ChStreamOutAsciiFile file_out1(filename1.c_str());
     for (int i = 0; i < endnodes[0].size(); ++i) {
         double node_y = endnodes[0][i]->GetPos().y() - 0 * y_spacing;
@@ -230,7 +204,7 @@ int main(int argc, char* argv[]) {
         file_out1 << node_y << " " << node_z << " " << node_a << "\n";
     }
 
-    std::string filename2 = out_dir + "/princeton_L2.dat";
+    std::string filename2 = out_dir + "/benchmark_CE_princeton_L2.dat";
     chrono::ChStreamOutAsciiFile file_out2(filename2.c_str());
     for (int i = 0; i < endnodes[1].size(); ++i) {
         double node_y = endnodes[1][i]->GetPos().y() - 1 * y_spacing;
@@ -241,7 +215,7 @@ int main(int argc, char* argv[]) {
         file_out2 << node_y << " " << node_z << " " << node_a << "\n";
     }
 
-    std::string filename3 = out_dir + "/princeton_L3.dat";
+    std::string filename3 = out_dir + "/benchmark_CE_princeton_L3.dat";
     chrono::ChStreamOutAsciiFile file_out3(filename3.c_str());
     for (int i = 0; i < endnodes[2].size(); ++i) {
         double node_y = endnodes[2][i]->GetPos().y() - 2 * y_spacing;

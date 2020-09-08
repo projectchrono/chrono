@@ -43,12 +43,9 @@ class ChApi ChSurfaceNurbs : public ChSurface {
     /// If the weights are not provided, a constant weight vector is made.
     ChSurfaceNurbs(int morder_u,  ///< order pu: 1= linear, 2=quadratic, etc.
                    int morder_v,  ///< order pv: 1= linear, 2=quadratic, etc.
-                   ChMatrixDynamic<ChVector<> >&
-                       mpoints,  ///< control points, size nuxnv. Required: at least nu >= pu+1, same for v
-                   ChVectorDynamic<>* mknots_u =
-                       0,  ///< knots, size ku. Required ku=nu+pu+1. If not provided, initialized to uniform.
-                   ChVectorDynamic<>* mknots_v =
-                       0,  ///< knots, size kv. Required ku=nu+pu+1. If not provided, initialized to uniform.
+                   ChMatrixDynamic<ChVector<>>& mpoints,  ///< control points, size nuxnv. Required: nu at least pu+1, same for v
+                   ChVectorDynamic<>* mknots_u = 0,  ///< knots, size ku. Required ku=nu+pu+1. If not provided, initialized to uniform.
+                   ChVectorDynamic<>* mknots_v = 0,  ///< knots, size kv. Required ku=nu+pu+1. If not provided, initialized to uniform.
                    ChMatrixDynamic<>* weights = 0  ///< weights, size nuxnv. If not provided, all weights as 1.
     );
 
@@ -76,26 +73,26 @@ class ChApi ChSurfaceNurbs : public ChSurface {
     /// but knot range is not necessarily in 0..1. So you can convert u->U,
     /// where u is in knot range, calling this:
     double ComputeUfromKnotU(const double u) const {
-        return (u - this->knots_u(0)) / (knots_u(knots_u.GetRows() - 1) - knots_u(0));
+        return (u - knots_u(p_u)) / (knots_u(knots_u.size() - 1-p_u) - knots_u(p_u));
     }
     /// When using Evaluate() etc. you need U parameter to be in 0..1 range,
     /// but knot range is not necessarily in 0..1. So you can convert U->u,
     /// where u is in knot range, calling this:
     double ComputeKnotUfromU(const double U) const {
-        return U * (knots_u(knots_u.GetRows() - 1) - knots_u(0)) + this->knots_u(0);
+        return U * (knots_u(knots_u.size() - 1-p_u) - knots_u(p_u)) + knots_u(p_u);
     }
 
     /// When using Evaluate() etc. you need V parameter to be in 0..1 range,
     /// but knot range is not necessarily in 0..1. So you can convert v->V,
     /// where v is in knot range, calling this:
     double ComputeVfromKnotV(const double v) const {
-        return (v - this->knots_v(0)) / (knots_v(knots_v.GetRows() - 1) - knots_v(0));
+        return (v - knots_v(p_v)) / (knots_v(knots_v.size() - 1-p_v) - knots_v(p_v));
     }
     /// When using Evaluate() etc. you need V parameter to be in 0..1 range,
     /// but knot range is not necessarily in 0..1. So you can convert V->v,
     /// where v is in knot range, calling this:
     double ComputeKnotVfromV(const double V) const {
-        return V * (knots_v(knots_v.GetRows() - 1) - knots_v(0)) + this->knots_v(0);
+        return V * (knots_v(knots_v.size() - 1-p_v) - knots_v(p_v)) + knots_v(p_v);
     }
 
     /// Access the points

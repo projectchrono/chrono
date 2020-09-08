@@ -16,8 +16,8 @@
 //
 // =============================================================================
 
-#include "chrono/physics/ChSystemNSC.h"
-#include "chrono/solver/ChSolverMINRES.h"
+#include "chrono/physics/ChSystemSMC.h"
+#include "chrono/solver/ChIterativeSolverLS.h"
 
 #include "chrono/fea/ChElementSpring.h"
 #include "chrono/fea/ChElementShellANCF.h"
@@ -42,17 +42,17 @@ void test_1() {
     GetLog() << "TEST: spring FEM dynamics,  implicit integration \n\n";
 
     // The physical system: it contains all physical objects.
-    ChSystemNSC my_system;
+    ChSystemSMC my_system;
 
     // Create a mesh, that is a container for groups
     // of elements and their referenced nodes.
-    auto my_mesh = std::make_shared<ChMesh>();
+    auto my_mesh = chrono_types::make_shared<ChMesh>();
 
     // Create some nodes. These are the classical point-like
     // nodes with x,y,z degrees of freedom, that can be used
     // for many types of FEM elements in space.
-    auto mnodeA = std::make_shared<ChNodeFEAxyz>(ChVector<>(0, 0, 0));
-    auto mnodeB = std::make_shared<ChNodeFEAxyz>(ChVector<>(0, 1, 0));
+    auto mnodeA = chrono_types::make_shared<ChNodeFEAxyz>(ChVector<>(0, 0, 0));
+    auto mnodeB = chrono_types::make_shared<ChNodeFEAxyz>(ChVector<>(0, 1, 0));
 
     // Default mass for FEM nodes is zero, so set point-like
     // masses because the ChElementSpring FEM element that we
@@ -72,7 +72,7 @@ void test_1() {
 
     // Create some elements of 'spring-damper' type, each connecting
     // two 3D nodes:
-    auto melementA = std::make_shared<ChElementSpring>();
+    auto melementA = chrono_types::make_shared<ChElementSpring>();
     melementA->SetNodes(mnodeA, mnodeB);
     melementA->SetSpringK(2000);
     melementA->SetDamperR(0);
@@ -84,12 +84,12 @@ void test_1() {
     my_system.Add(my_mesh);
 
     // Create also a truss
-    auto truss = std::make_shared<ChBody>();
+    auto truss = chrono_types::make_shared<ChBody>();
     truss->SetBodyFixed(true);
     my_system.Add(truss);
 
     // Create a constraint between a node and the truss
-    auto constraintA = std::make_shared<ChLinkPointFrame>();
+    auto constraintA = chrono_types::make_shared<ChLinkPointFrame>();
 
     constraintA->Initialize(mnodeA,  // node
                             truss);  // body to be connected to
@@ -99,15 +99,12 @@ void test_1() {
     // Set no gravity
     // my_system.Set_G_acc(VNULL);
 
-    // Mark completion of system construction
-    my_system.SetupInitial();
-
     // Perform a dynamic time integration:
+    auto solver = chrono_types::make_shared<ChSolverMINRES>();
+    my_system.SetSolver(solver);
+    solver->SetMaxIterations(40);
 
-    my_system.SetSolverType(ChSolver::Type::MINRES);
-    auto msolver = std::static_pointer_cast<ChSolverMINRES>(my_system.GetSolver());
-    my_system.SetMaxItersSolverSpeed(40);
-    my_system.SetTolForce(1e-10);
+    my_system.SetSolverForceTolerance(1e-10);
 
     my_system.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);
 
@@ -124,17 +121,17 @@ void test_2() {
     GetLog() << "TEST: bar FEM dynamics,  implicit integration \n\n";
 
     // The physical system: it contains all physical objects.
-    ChSystemNSC my_system;
+    ChSystemSMC my_system;
 
     // Create a mesh, that is a container for groups
     // of elements and their referenced nodes.
-    auto my_mesh = std::make_shared<ChMesh>();
+    auto my_mesh = chrono_types::make_shared<ChMesh>();
 
     // Create some nodes. These are the classical point-like
     // nodes with x,y,z degrees of freedom, that can be used
     // for many types of FEM elements in space.
-    auto mnodeA = std::make_shared<ChNodeFEAxyz>(ChVector<>(0, 0, 0));
-    auto mnodeB = std::make_shared<ChNodeFEAxyz>(ChVector<>(0, 1, 0));
+    auto mnodeA = chrono_types::make_shared<ChNodeFEAxyz>(ChVector<>(0, 0, 0));
+    auto mnodeB = chrono_types::make_shared<ChNodeFEAxyz>(ChVector<>(0, 1, 0));
 
     // Set no point-like masses because mass is already in bar element:
     mnodeA->SetMass(0.0);
@@ -152,7 +149,7 @@ void test_2() {
 
     // Create some elements of 'bar' type, each connecting
     // two 3D nodes:
-    auto melementA = std::make_shared<ChElementBar>();
+    auto melementA = chrono_types::make_shared<ChElementBar>();
     melementA->SetNodes(mnodeA, mnodeB);
     melementA->SetBarArea(0.1 * 0.02);
     melementA->SetBarYoungModulus(0.01e9);  // rubber 0.01e9, steel 200e9
@@ -167,12 +164,12 @@ void test_2() {
     my_system.Add(my_mesh);
 
     // Create also a truss
-    auto truss = std::make_shared<ChBody>();
+    auto truss = chrono_types::make_shared<ChBody>();
     truss->SetBodyFixed(true);
     my_system.Add(truss);
 
     // Create a constraint between a node and the truss
-    auto constraintA = std::make_shared<ChLinkPointFrame>();
+    auto constraintA = chrono_types::make_shared<ChLinkPointFrame>();
 
     constraintA->Initialize(mnodeA,  // node
                             truss);  // body to be connected to
@@ -182,16 +179,15 @@ void test_2() {
     // Set no gravity
     // my_system.Set_G_acc(VNULL);
 
-    // Mark completion of system construction
-    my_system.SetupInitial();
-
     // Perform a dynamic time integration:
 
-    my_system.SetSolverType(ChSolver::Type::MINRES);
-    auto msolver = std::static_pointer_cast<ChSolverMINRES>(my_system.GetSolver());
-    msolver->SetDiagonalPreconditioning(true);
-    my_system.SetMaxItersSolverSpeed(100);
-    my_system.SetTolForce(1e-10);
+    auto solver = chrono_types::make_shared<ChSolverMINRES>();
+    my_system.SetSolver(solver);
+    solver->SetMaxIterations(100);
+    solver->SetTolerance(1e-8);
+    solver->EnableDiagonalPreconditioner(true);
+
+    my_system.SetSolverForceTolerance(1e-10);
 
     my_system.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT);
 
@@ -210,17 +206,17 @@ void test_2b() {
     GetLog() << "TEST: spring FEM dynamics compare to bar \n\n";
 
     // The physical system: it contains all physical objects.
-    ChSystemNSC my_system;
+    ChSystemSMC my_system;
 
     // Create a mesh, that is a container for groups
     // of elements and their referenced nodes.
-    auto my_mesh = std::make_shared<ChMesh>();
+    auto my_mesh = chrono_types::make_shared<ChMesh>();
 
     // Create some nodes. These are the classical point-like
     // nodes with x,y,z degrees of freedom, that can be used
     // for many types of FEM elements in space.
-    auto mnodeA = std::make_shared<ChNodeFEAxyz>(ChVector<>(0, 0, 0));
-    auto mnodeB = std::make_shared<ChNodeFEAxyz>(ChVector<>(0, 1, 0));
+    auto mnodeA = chrono_types::make_shared<ChNodeFEAxyz>(ChVector<>(0, 0, 0));
+    auto mnodeB = chrono_types::make_shared<ChNodeFEAxyz>(ChVector<>(0, 1, 0));
 
     // Default mass for FEM nodes is zero, so set point-like
     // masses because the ChElementSpring FEM element that we
@@ -240,7 +236,7 @@ void test_2b() {
 
     // Create some elements of 'spring-damper' type, each connecting
     // two 3D nodes:
-    auto melementA = std::make_shared<ChElementSpring>();
+    auto melementA = chrono_types::make_shared<ChElementSpring>();
     melementA->SetNodes(mnodeA, mnodeB);
     melementA->SetSpringK(20000);
     melementA->SetDamperR(200);
@@ -252,12 +248,12 @@ void test_2b() {
     my_system.Add(my_mesh);
 
     // Create also a truss
-    auto truss = std::make_shared<ChBody>();
+    auto truss = chrono_types::make_shared<ChBody>();
     truss->SetBodyFixed(true);
     my_system.Add(truss);
 
     // Create a constraint between a node and the truss
-    auto constraintA = std::make_shared<ChLinkPointFrame>();
+    auto constraintA = chrono_types::make_shared<ChLinkPointFrame>();
 
     constraintA->Initialize(mnodeA,  // node
                             truss);  // body to be connected to
@@ -267,15 +263,14 @@ void test_2b() {
     // Set no gravity
     // my_system.Set_G_acc(VNULL);
 
-    // Mark completion of system construction
-    my_system.SetupInitial();
-
     // Perform a dynamic time integration:
 
-    my_system.SetSolverType(ChSolver::Type::MINRES);
-    auto msolver = std::static_pointer_cast<ChSolverMINRES>(my_system.GetSolver());
-    my_system.SetMaxItersSolverSpeed(200);
-    my_system.SetTolForce(1e-10);
+    auto solver = chrono_types::make_shared<ChSolverMINRES>();
+    my_system.SetSolver(solver);
+    solver->SetMaxIterations(200);
+    solver->SetTolerance(1e-12);
+
+    my_system.SetSolverForceTolerance(1e-10);
 
     my_system.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT);
 
@@ -292,15 +287,15 @@ void test_3() {
     GetLog() << "TEST: tetrahedron FEM dynamics, implicit integration \n\n";
 
     // The physical system: it contains all physical objects.
-    ChSystemNSC my_system;
+    ChSystemSMC my_system;
 
     // Create a mesh, that is a container for groups
     // of elements and their referenced nodes.
-    auto my_mesh = std::make_shared<ChMesh>();
+    auto my_mesh = chrono_types::make_shared<ChMesh>();
 
     // Create a material, that must be assigned to each element,
     // and set its parameters
-    auto mmaterial = std::make_shared<ChContinuumElastic>();
+    auto mmaterial = chrono_types::make_shared<ChContinuumElastic>();
     mmaterial->Set_E(0.01e9);  // rubber 0.01e9, steel 200e9
     mmaterial->Set_v(0.3);
     mmaterial->Set_RayleighDampingK(0.01);
@@ -309,10 +304,10 @@ void test_3() {
     // Create some nodes. These are the classical point-like
     // nodes with x,y,z degrees of freedom, that can be used
     // for many types of FEM elements in space.
-    auto mnode1 = std::make_shared<ChNodeFEAxyz>(ChVector<>(0, 0, 0));
-    auto mnode2 = std::make_shared<ChNodeFEAxyz>(ChVector<>(0, 0, 1));
-    auto mnode3 = std::make_shared<ChNodeFEAxyz>(ChVector<>(0, 1, 0));
-    auto mnode4 = std::make_shared<ChNodeFEAxyz>(ChVector<>(1, 0, 0));
+    auto mnode1 = chrono_types::make_shared<ChNodeFEAxyz>(ChVector<>(0, 0, 0));
+    auto mnode2 = chrono_types::make_shared<ChNodeFEAxyz>(ChVector<>(0, 0, 1));
+    auto mnode3 = chrono_types::make_shared<ChNodeFEAxyz>(ChVector<>(0, 1, 0));
+    auto mnode4 = chrono_types::make_shared<ChNodeFEAxyz>(ChVector<>(1, 0, 0));
 
     // For example, set a point-like mass at a node:
     mnode1->SetMass(200);
@@ -330,7 +325,7 @@ void test_3() {
 
     // Create the tetrahedron element, and assign
     // nodes and material
-    auto melement1 = std::make_shared<ChElementTetra_4>();
+    auto melement1 = chrono_types::make_shared<ChElementTetra_4>();
     melement1->SetNodes(mnode1, mnode2, mnode3, mnode4);
     melement1->SetMaterial(mmaterial);
 
@@ -341,14 +336,14 @@ void test_3() {
     my_system.Add(my_mesh);
 
     // Create also a truss
-    auto truss = std::make_shared<ChBody>();
+    auto truss = chrono_types::make_shared<ChBody>();
     truss->SetBodyFixed(true);
     my_system.Add(truss);
 
     // Create a constraint between a node and the truss
-    auto constraint1 = std::make_shared<ChLinkPointFrame>();
-    auto constraint2 = std::make_shared<ChLinkPointFrame>();
-    auto constraint3 = std::make_shared<ChLinkPointFrame>();
+    auto constraint1 = chrono_types::make_shared<ChLinkPointFrame>();
+    auto constraint2 = chrono_types::make_shared<ChLinkPointFrame>();
+    auto constraint3 = chrono_types::make_shared<ChLinkPointFrame>();
 
     constraint1->Initialize(mnode1,  // node
                             truss);  // body to be connected to
@@ -363,15 +358,14 @@ void test_3() {
     my_system.Add(constraint2);
     my_system.Add(constraint3);
 
-    // Mark completion of system construction
-    my_system.SetupInitial();
-
     // Perform a dynamic time integration:
 
-    my_system.SetSolverType(ChSolver::Type::MINRES);
-    auto msolver = std::static_pointer_cast<ChSolverMINRES>(my_system.GetSolver());
-    my_system.SetMaxItersSolverSpeed(40);
-    my_system.SetTolForce(1e-10);
+    auto solver = chrono_types::make_shared<ChSolverMINRES>();
+    my_system.SetSolver(solver);
+    solver->SetMaxIterations(40);
+    solver->SetTolerance(1e-8);
+
+    my_system.SetSolverForceTolerance(1e-10);
 
     my_system.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);
 
@@ -388,18 +382,18 @@ void test_4() {
     GetLog() << "TEST: bar FEM dynamics (2 elements),  implicit integration \n\n";
 
     // The physical system: it contains all physical objects.
-    ChSystemNSC my_system;
+    ChSystemSMC my_system;
 
     // Create a mesh, that is a container for groups
     // of elements and their referenced nodes.
-    auto my_mesh = std::make_shared<ChMesh>();
+    auto my_mesh = chrono_types::make_shared<ChMesh>();
 
     // Create some nodes. These are the classical point-like
     // nodes with x,y,z degrees of freedom, that can be used
     // for many types of FEM elements in space.
-    auto mnodeA = std::make_shared<ChNodeFEAxyz>(ChVector<>(0, 0, 0));
-    auto mnodeB = std::make_shared<ChNodeFEAxyz>(ChVector<>(0, 1, 0));
-    auto mnodeC = std::make_shared<ChNodeFEAxyz>(ChVector<>(0, 2, 0));
+    auto mnodeA = chrono_types::make_shared<ChNodeFEAxyz>(ChVector<>(0, 0, 0));
+    auto mnodeB = chrono_types::make_shared<ChNodeFEAxyz>(ChVector<>(0, 1, 0));
+    auto mnodeC = chrono_types::make_shared<ChNodeFEAxyz>(ChVector<>(0, 2, 0));
 
     // Set no point-like masses because mass is already in bar element:
     mnodeA->SetMass(0.0);
@@ -421,14 +415,14 @@ void test_4() {
 
     // Create some elements of 'bar' type, each connecting
     // two 3D nodes:
-    auto melementA = std::make_shared<ChElementBar>();
+    auto melementA = chrono_types::make_shared<ChElementBar>();
     melementA->SetNodes(mnodeA, mnodeB);
     melementA->SetBarArea(0.1 * 0.02);
     melementA->SetBarYoungModulus(0.01e9);  // rubber 0.01e9, steel 200e9
     melementA->SetBarRaleyghDamping(0.01);
     melementA->SetBarDensity(2. * 0.1 / (melementA->GetBarArea() * 1.0));
 
-    auto melementB = std::make_shared<ChElementBar>();
+    auto melementB = chrono_types::make_shared<ChElementBar>();
     melementB->SetNodes(mnodeB, mnodeC);
     melementB->SetBarArea(0.1 * 0.02);
     melementB->SetBarYoungModulus(0.01e9);  // rubber 0.01e9, steel 200e9
@@ -443,12 +437,12 @@ void test_4() {
     my_system.Add(my_mesh);
 
     // Create also a truss
-    auto truss = std::make_shared<ChBody>();
+    auto truss = chrono_types::make_shared<ChBody>();
     truss->SetBodyFixed(true);
     my_system.Add(truss);
 
     // Create a constraint between a node and the truss
-    auto constraintA = std::make_shared<ChLinkPointFrame>();
+    auto constraintA = chrono_types::make_shared<ChLinkPointFrame>();
 
     constraintA->Initialize(mnodeA,  // node
                             truss);  // body to be connected to
@@ -458,16 +452,15 @@ void test_4() {
     // Set no gravity
     // my_system.Set_G_acc(VNULL);
 
-    // Mark completion of system construction
-    my_system.SetupInitial();
-
     // Perform a dynamic time integration:
 
-    my_system.SetSolverType(ChSolver::Type::MINRES);
-    auto msolver = std::static_pointer_cast<ChSolverMINRES>(my_system.GetSolver());
-    msolver->SetDiagonalPreconditioning(true);
-    my_system.SetMaxItersSolverSpeed(100);
-    my_system.SetTolForce(1e-10);
+    auto solver = chrono_types::make_shared<ChSolverMINRES>();
+    my_system.SetSolver(solver);
+    solver->SetMaxIterations(100);
+    solver->SetTolerance(1e-8);
+    solver->EnableDiagonalPreconditioner(true);
+
+    my_system.SetSolverForceTolerance(1e-10);
 
     my_system.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT);
 
@@ -483,7 +476,10 @@ void test_4() {
 int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
+    //test_1();
+    //test_2();
     test_3();
+    //test_4();
 
     return 0;
 }

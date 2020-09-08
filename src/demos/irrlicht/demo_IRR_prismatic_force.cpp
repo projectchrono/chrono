@@ -38,28 +38,28 @@ int main(int argc, char* argv[]) {
     system.Set_G_acc(ChVector<>(0, 0, 0));
 
     // Create the ground body
-    auto ground = std::make_shared<ChBody>();
+    auto ground = chrono_types::make_shared<ChBody>();
     system.AddBody(ground);
     ground->SetIdentifier(-1);
     ground->SetBodyFixed(true);
     ground->SetCollide(false);
 
-    auto rail1 = std::make_shared<ChBoxShape>();
+    auto rail1 = chrono_types::make_shared<ChBoxShape>();
     rail1->GetBoxGeometry().SetLengths(ChVector<>(8, 0.1, 0.1));
     rail1->GetBoxGeometry().Pos = ChVector<>(0, 0, -1);
     ground->AddAsset(rail1);
 
-    auto rail2 = std::make_shared<ChBoxShape>();
+    auto rail2 = chrono_types::make_shared<ChBoxShape>();
     rail2->GetBoxGeometry().SetLengths(ChVector<>(8, 0.1, 0.1));
     rail2->GetBoxGeometry().Pos = ChVector<>(0, 0, +1);
     ground->AddAsset(rail2);
 
-    auto col = std::make_shared<ChColorAsset>();
+    auto col = chrono_types::make_shared<ChColorAsset>();
     col->SetColor(ChColor(0.6f, 0.6f, 0.6f));
     ground->AddAsset(col);
 
     // Create the slider bodies
-    auto slider1 = std::make_shared<ChBody>();
+    auto slider1 = chrono_types::make_shared<ChBody>();
     system.AddBody(slider1);
     slider1->SetIdentifier(1);
     slider1->SetBodyFixed(false);
@@ -68,17 +68,17 @@ int main(int argc, char* argv[]) {
     slider1->SetInertiaXX(ChVector<>(0.1, 0.1, 0.1));
     slider1->SetPos(ChVector<>(-4, 0, -1));
 
-    auto cyl1 = std::make_shared<ChCylinderShape>();
+    auto cyl1 = chrono_types::make_shared<ChCylinderShape>();
     cyl1->GetCylinderGeometry().p1 = ChVector<>(-0.2, 0, 0);
     cyl1->GetCylinderGeometry().p2 = ChVector<>(+0.2, 0, 0);
     cyl1->GetCylinderGeometry().rad = 0.2;
     slider1->AddAsset(cyl1);
 
-    auto col1 = std::make_shared<ChColorAsset>();
+    auto col1 = chrono_types::make_shared<ChColorAsset>();
     col1->SetColor(ChColor(0.6f, 0, 0));
     slider1->AddAsset(col1);
 
-    auto slider2 = std::make_shared<ChBody>();
+    auto slider2 = chrono_types::make_shared<ChBody>();
     system.AddBody(slider2);
     slider2->SetIdentifier(1);
     slider2->SetBodyFixed(false);
@@ -87,22 +87,22 @@ int main(int argc, char* argv[]) {
     slider2->SetInertiaXX(ChVector<>(0.1, 0.1, 01));
     slider2->SetPos(ChVector<>(-4, 0, +1));
 
-    auto cyl2 = std::make_shared<ChCylinderShape>();
+    auto cyl2 = chrono_types::make_shared<ChCylinderShape>();
     cyl2->GetCylinderGeometry().p1 = ChVector<>(-0.2, 0, 0);
     cyl2->GetCylinderGeometry().p2 = ChVector<>(+0.2, 0, 0);
     cyl2->GetCylinderGeometry().rad = 0.2;
     slider2->AddAsset(cyl2);
 
-    auto col2 = std::make_shared<ChColorAsset>();
+    auto col2 = chrono_types::make_shared<ChColorAsset>();
     col2->SetColor(ChColor(0, 0, 0.6f));
     slider2->AddAsset(col2);
 
     // Create prismatic joints between ground and sliders
-    auto prismatic1 = std::make_shared<ChLinkLockPrismatic>();
+    auto prismatic1 = chrono_types::make_shared<ChLinkLockPrismatic>();
     prismatic1->Initialize(slider1, ground, ChCoordsys<>(ChVector<>(0, 0, -1), Q_from_AngY(CH_C_PI_2)));
     system.AddLink(prismatic1);
 
-    auto prismatic2 = std::make_shared<ChLinkLockPrismatic>();
+    auto prismatic2 = chrono_types::make_shared<ChLinkLockPrismatic>();
     prismatic2->Initialize(slider2, ground, ChCoordsys<>(ChVector<>(0, 0, +1), Q_from_AngY(CH_C_PI_2)));
     system.AddLink(prismatic2);
 
@@ -110,7 +110,7 @@ int main(int argc, char* argv[]) {
     double freq = 1;
     double ampl = 4;
     double omg = 2 * CH_C_PI * freq;
-    auto mod = std::make_shared<ChFunction_Sine>(0.0, freq, ampl);
+    auto mod = chrono_types::make_shared<ChFunction_Sine>(0.0, freq, ampl);
 
     // Actuate first slider using a link force
     prismatic1->GetForce_Z().SetActive(true);
@@ -118,7 +118,7 @@ int main(int argc, char* argv[]) {
     prismatic1->GetForce_Z().SetModulationF(mod);
 
     // Actuate second slider using a body force
-    auto frc2 = std::make_shared<ChForce>();
+    auto frc2 = chrono_types::make_shared<ChForce>();
     frc2->SetF_x(mod);
     slider2->AddForce(frc2);
 

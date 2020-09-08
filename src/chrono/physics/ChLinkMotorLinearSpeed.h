@@ -62,13 +62,15 @@ class ChApi ChLinkMotorLinearSpeed : public ChLinkMotorLinear {
     /// Get the current actuator reaction force [N]
     virtual double GetMotorForce() const override { return -this->react_force.x(); }
 
-    void Update(double mytime, bool update_assets) override;
+    void Update(double mytime, bool update_assets = true) override;
 
     //
     // STATE FUNCTIONS
     //
 
     virtual int GetDOF() override { return 1; }
+
+    ChVariablesGeneric& Variables() { return variable; }
 
     virtual void IntStateGather(const unsigned int off_x,
                                 ChState& x,
@@ -79,7 +81,8 @@ class ChApi ChLinkMotorLinearSpeed : public ChLinkMotorLinear {
                                  const ChState& x,
                                  const unsigned int off_v,
                                  const ChStateDelta& v,
-                                 const double T) override;
+                                 const double T,
+                                 bool full_update) override;
     virtual void IntStateGatherAcceleration(const unsigned int off_a, ChStateDelta& a) override;
     virtual void IntStateScatterAcceleration(const unsigned int off_a, const ChStateDelta& a) override;
     virtual void IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, const double c) override;

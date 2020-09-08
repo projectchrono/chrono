@@ -14,7 +14,7 @@
 //
 // Demo code about
 // - modeling a complex mechanism (a quarter car model)
-// - using the ChLinkSpring to make spring-damper system
+// - using the ChLinkTSDA to make spring-damper system
 // - using the ChLinkDistance class to represent long and thin massless rods,
 //   whose mass is negligible for dynamical analysis (as often happens in
 //   mechanisms) so they can be modeled as 'distance' constraints instead of
@@ -67,8 +67,8 @@ class MySimpleCar {
     std::shared_ptr<ChLinkDistance> link_distRFU2;
     std::shared_ptr<ChLinkDistance> link_distRFL1;
     std::shared_ptr<ChLinkDistance> link_distRFL2;
-    std::shared_ptr<ChLinkSpring> link_springRF;
     std::shared_ptr<ChLinkDistance> link_distRSTEER;
+    std::shared_ptr<ChLinkTSDA> link_springRF;
     // .. left front suspension:
     std::shared_ptr<ChBody> spindleLF;
     std::shared_ptr<ChBody> wheelLF;
@@ -77,8 +77,8 @@ class MySimpleCar {
     std::shared_ptr<ChLinkDistance> link_distLFU2;
     std::shared_ptr<ChLinkDistance> link_distLFL1;
     std::shared_ptr<ChLinkDistance> link_distLFL2;
-    std::shared_ptr<ChLinkSpring> link_springLF;
     std::shared_ptr<ChLinkDistance> link_distLSTEER;
+    std::shared_ptr<ChLinkTSDA> link_springLF;
     // .. right back suspension:
     std::shared_ptr<ChBody> spindleRB;
     std::shared_ptr<ChBody> wheelRB;
@@ -87,8 +87,8 @@ class MySimpleCar {
     std::shared_ptr<ChLinkDistance> link_distRBU2;
     std::shared_ptr<ChLinkDistance> link_distRBL1;
     std::shared_ptr<ChLinkDistance> link_distRBL2;
-    std::shared_ptr<ChLinkSpring> link_springRB;
     std::shared_ptr<ChLinkDistance> link_distRBlat;
+    std::shared_ptr<ChLinkTSDA> link_springRB;
     std::shared_ptr<ChLinkMotorRotationTorque> link_motorL;
     // .. left back suspension:
     std::shared_ptr<ChBody> spindleLB;
@@ -98,8 +98,8 @@ class MySimpleCar {
     std::shared_ptr<ChLinkDistance> link_distLBU2;
     std::shared_ptr<ChLinkDistance> link_distLBL1;
     std::shared_ptr<ChLinkDistance> link_distLBL2;
-    std::shared_ptr<ChLinkSpring> link_springLB;
     std::shared_ptr<ChLinkDistance> link_distLBlat;
+    std::shared_ptr<ChLinkTSDA> link_springLB;
     std::shared_ptr<ChLinkMotorRotationTorque> link_motorR;
 
     // THE FUNCTIONS
@@ -118,11 +118,17 @@ class MySimpleCar {
         max_motor_speed = 800;
 
         // Texture for wheels
-        auto texture = std::make_shared<ChTexture>();
+        auto texture = chrono_types::make_shared<ChTexture>();
         texture->SetTextureFilename(GetChronoDataFile("bluwhite.png"));
 
+        // Contact materials for the various components
+        auto chassis_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+
+        auto wheel_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+        wheel_mat->SetFriction(1.0f);
+
         // --- The car body ---
-        chassis = std::make_shared<ChBodyEasyBox>(1, 0.5, 3, 1.0, true, true);
+        chassis = chrono_types::make_shared<ChBodyEasyBox>(1, 0.5, 3, 1.0, true, true, chassis_mat);
         chassis->SetPos(ChVector<>(0, 1, 0));
         chassis->SetMass(150);
         chassis->SetInertiaXX(ChVector<>(4.8, 4.5, 1));
@@ -132,108 +138,106 @@ class MySimpleCar {
         // --- Right Front suspension ---
 
         // ..the car right-front spindle
-        spindleRF = std::make_shared<ChBodyEasyBox>(0.1, 0.4, 0.4, 1.0, false, true);
+        spindleRF = chrono_types::make_shared<ChBodyEasyBox>(0.1, 0.4, 0.4, 1.0, true, false);
         spindleRF->SetPos(ChVector<>(1.3, 1, 1));
         spindleRF->SetMass(8);
         spindleRF->SetInertiaXX(ChVector<>(0.2, 0.2, 0.2));
         my_system.AddBody(spindleRF);
 
         // ..the car right-front wheel
-        wheelRF = std::make_shared<ChBodyEasyCylinder>(0.45, 0.3, 1.0, true, true);
+        wheelRF = chrono_types::make_shared<ChBodyEasyCylinder>(0.45, 0.3, 1.0, true, true, wheel_mat);
         wheelRF->SetPos(ChVector<>(1.5, 1, 1));
         wheelRF->SetRot(chrono::Q_from_AngAxis(CH_C_PI / 2, VECT_Z));
         wheelRF->SetMass(3);
         wheelRF->SetInertiaXX(ChVector<>(0.2, 0.2, 0.2));
-        wheelRF->GetMaterialSurfaceNSC()->SetFriction(1.0);
         wheelRF->AddAsset(texture);
         my_system.AddBody(wheelRF);
 
         // .. create the revolute joint between the wheel and the spindle
-        link_revoluteRF = std::make_shared<ChLinkLockRevolute>();  // right, front, upper, 1
+        link_revoluteRF = chrono_types::make_shared<ChLinkLockRevolute>();  // right, front, upper, 1
         link_revoluteRF->Initialize(wheelRF, spindleRF,
                                     ChCoordsys<>(ChVector<>(1.5, 1, 1), chrono::Q_from_AngAxis(CH_C_PI / 2, VECT_Y)));
         my_system.AddLink(link_revoluteRF);
 
         // .. impose distance between two parts (as a massless rod with two spherical joints at the end)
-        link_distRFU1 = std::make_shared<ChLinkDistance>();  // right, front, upper, 1
+        link_distRFU1 = chrono_types::make_shared<ChLinkDistance>();  // right, front, upper, 1
         link_distRFU1->Initialize(chassis, spindleRF, false, ChVector<>(0.5, 1.2, 1.2), ChVector<>(1.25, 1.2, 1));
         my_system.AddLink(link_distRFU1);
 
-        link_distRFU2 = std::make_shared<ChLinkDistance>();  // right, front, upper, 2
+        link_distRFU2 = chrono_types::make_shared<ChLinkDistance>();  // right, front, upper, 2
         link_distRFU2->Initialize(chassis, spindleRF, false, ChVector<>(0.5, 1.2, 0.8), ChVector<>(1.25, 1.2, 1));
         my_system.AddLink(link_distRFU2);
 
-        link_distRFL1 = std::make_shared<ChLinkDistance>();  // right, front, lower, 1
+        link_distRFL1 = chrono_types::make_shared<ChLinkDistance>();  // right, front, lower, 1
         link_distRFL1->Initialize(chassis, spindleRF, false, ChVector<>(0.5, 0.8, 1.2), ChVector<>(1.25, 0.8, 1));
         my_system.AddLink(link_distRFL1);
 
-        link_distRFL2 = std::make_shared<ChLinkDistance>();  // right, front, lower, 2
+        link_distRFL2 = chrono_types::make_shared<ChLinkDistance>();  // right, front, lower, 2
         link_distRFL2->Initialize(chassis, spindleRF, false, ChVector<>(0.5, 0.8, 0.8), ChVector<>(1.25, 0.8, 1));
         my_system.AddLink(link_distRFL2);
 
         // .. create the spring between the truss and the spindle
-        link_springRF = std::make_shared<ChLinkSpring>();
+        link_springRF = chrono_types::make_shared<ChLinkTSDA>();
         link_springRF->Initialize(chassis, spindleRF, false, ChVector<>(0.5, 1.2, 1.0), ChVector<>(1.25, 0.8, 1));
-        link_springRF->Set_SpringK(28300);
-        link_springRF->Set_SpringR(80);
+        link_springRF->SetSpringCoefficient(28300);
+        link_springRF->SetDampingCoefficient(80);
         my_system.AddLink(link_springRF);
 
         // .. create the rod for steering the wheel
-        link_distRSTEER = std::make_shared<ChLinkDistance>();  // right steer
+        link_distRSTEER = chrono_types::make_shared<ChLinkDistance>();  // right steer
         link_distRSTEER->Initialize(chassis, spindleRF, false, ChVector<>(0.5, 1.21, 1.4), ChVector<>(1.25, 1.21, 1.3));
         my_system.AddLink(link_distRSTEER);
 
         // --- Left Front suspension ---
 
         // ..the car right-front spindle
-        spindleLF = std::make_shared<ChBodyEasyBox>(0.1, 0.4, 0.4, 1.0, false, true);
+        spindleLF = chrono_types::make_shared<ChBodyEasyBox>(0.1, 0.4, 0.4, 1.0, true, false);
         spindleLF->SetPos(ChVector<>(-1.3, 1, 1));
         spindleLF->SetMass(8);
         spindleLF->SetInertiaXX(ChVector<>(0.2, 0.2, 0.2));
         my_system.AddBody(spindleLF);
 
         // ..the car left-front wheel
-        wheelLF = std::make_shared<ChBodyEasyCylinder>(0.45, 0.3, 1.0, true, true);
+        wheelLF = chrono_types::make_shared<ChBodyEasyCylinder>(0.45, 0.3, 1.0, true, true, wheel_mat);
         wheelLF->SetPos(ChVector<>(-1.5, 1, 1));
         wheelLF->SetRot(chrono::Q_from_AngAxis(CH_C_PI / 2, VECT_Z));
         wheelLF->SetMass(3);
         wheelLF->SetInertiaXX(ChVector<>(0.2, 0.2, 0.2));
-        wheelLF->GetMaterialSurfaceNSC()->SetFriction(1.0);
         wheelLF->AddAsset(texture);
         my_system.AddBody(wheelLF);
 
         // .. create the revolute joint between the wheel and the spindle
-        link_revoluteLF = std::make_shared<ChLinkLockRevolute>();  // left, front, upper, 1
+        link_revoluteLF = chrono_types::make_shared<ChLinkLockRevolute>();  // left, front, upper, 1
         link_revoluteLF->Initialize(wheelLF, spindleLF,
                                     ChCoordsys<>(ChVector<>(-1.5, 1, 1), chrono::Q_from_AngAxis(CH_C_PI / 2, VECT_Y)));
         my_system.AddLink(link_revoluteLF);
 
         // .. impose distance between two parts (as a massless rod with two spherical joints at the end)
-        link_distLFU1 = std::make_shared<ChLinkDistance>();  // left, front, upper, 1
+        link_distLFU1 = chrono_types::make_shared<ChLinkDistance>();  // left, front, upper, 1
         link_distLFU1->Initialize(chassis, spindleLF, false, ChVector<>(-0.5, 1.2, 1.2), ChVector<>(-1.25, 1.2, 1));
         my_system.AddLink(link_distLFU1);
 
-        link_distLFU2 = std::make_shared<ChLinkDistance>();  // left, front, upper, 2
+        link_distLFU2 = chrono_types::make_shared<ChLinkDistance>();  // left, front, upper, 2
         link_distLFU2->Initialize(chassis, spindleLF, false, ChVector<>(-0.5, 1.2, 0.8), ChVector<>(-1.25, 1.2, 1));
         my_system.AddLink(link_distLFU2);
 
-        link_distLFL1 = std::make_shared<ChLinkDistance>();  // left, front, lower, 1
+        link_distLFL1 = chrono_types::make_shared<ChLinkDistance>();  // left, front, lower, 1
         link_distLFL1->Initialize(chassis, spindleLF, false, ChVector<>(-0.5, 0.8, 1.2), ChVector<>(-1.25, 0.8, 1));
         my_system.AddLink(link_distLFL1);
 
-        link_distLFL2 = std::make_shared<ChLinkDistance>();  // left, front, lower, 2
+        link_distLFL2 = chrono_types::make_shared<ChLinkDistance>();  // left, front, lower, 2
         link_distLFL2->Initialize(chassis, spindleLF, false, ChVector<>(-0.5, 0.8, 0.8), ChVector<>(-1.25, 0.8, 1));
         my_system.AddLink(link_distLFL2);
 
         // .. create the spring between the truss and the spindle
-        link_springLF = std::make_shared<ChLinkSpring>();
+        link_springLF = chrono_types::make_shared<ChLinkTSDA>();
         link_springLF->Initialize(chassis, spindleLF, false, ChVector<>(-0.5, 1.2, 1.0), ChVector<>(-1.25, 0.8, 1));
-        link_springLF->Set_SpringK(28300);
-        link_springLF->Set_SpringR(80);
+        link_springLF->SetSpringCoefficient(28300);
+        link_springLF->SetDampingCoefficient(80);
         my_system.AddLink(link_springLF);
 
         // .. create the rod for steering the wheel
-        link_distLSTEER = std::make_shared<ChLinkDistance>();  // right steer
+        link_distLSTEER = chrono_types::make_shared<ChLinkDistance>();  // right steer
         link_distLSTEER->Initialize(chassis, spindleLF, false, ChVector<>(-0.5, 1.21, 1.4),
                                     ChVector<>(-1.25, 1.21, 1.3));
         my_system.AddLink(link_distLSTEER);
@@ -241,60 +245,59 @@ class MySimpleCar {
         // --- Right Back suspension ---
 
         // ..the car right-back spindle
-        spindleRB = std::make_shared<ChBodyEasyBox>(0.1, 0.4, 0.4, 1.0, false, true);
+        spindleRB = chrono_types::make_shared<ChBodyEasyBox>(0.1, 0.4, 0.4, 1.0, true, false);
         spindleRB->SetPos(ChVector<>(1.3, 1, -1));
         spindleRB->SetMass(8);
         spindleRB->SetInertiaXX(ChVector<>(0.2, 0.2, 0.2));
         my_system.AddBody(spindleRB);
 
         // ..the car right-back wheel
-        wheelRB = std::make_shared<ChBodyEasyCylinder>(0.45, 0.3, 1.0, true, true);
+        wheelRB = chrono_types::make_shared<ChBodyEasyCylinder>(0.45, 0.3, 1.0, true, true, wheel_mat);
         wheelRB->SetPos(ChVector<>(1.5, 1, -1));
         wheelRB->SetRot(chrono::Q_from_AngAxis(CH_C_PI / 2, VECT_Z));
         wheelRB->SetMass(3);
         wheelRB->SetInertiaXX(ChVector<>(0.2, 0.2, 0.2));
-        wheelRB->GetMaterialSurfaceNSC()->SetFriction(1.0);
         wheelRB->AddAsset(texture);
         my_system.AddBody(wheelRB);
 
         // .. create the revolute joint between the wheel and the spindle
-        link_revoluteRB = std::make_shared<ChLinkLockRevolute>();  // right, back, upper, 1
+        link_revoluteRB = chrono_types::make_shared<ChLinkLockRevolute>();  // right, back, upper, 1
         link_revoluteRB->Initialize(wheelRB, spindleRB,
                                     ChCoordsys<>(ChVector<>(1.5, 1, -1), chrono::Q_from_AngAxis(CH_C_PI / 2, VECT_Y)));
         my_system.AddLink(link_revoluteRB);
 
         // .. create the motor transmission joint between the wheel and the truss (assuming small changes of alignment)
-        link_motorR = std::make_shared<ChLinkMotorRotationTorque>();
+        link_motorR = chrono_types::make_shared<ChLinkMotorRotationTorque>();
         link_motorR->Initialize(wheelRB, chassis,
                                 ChFrame<>(ChVector<>(1.5, 1, -1), chrono::Q_from_AngAxis(CH_C_PI / 2, VECT_Y)));
         my_system.AddLink(link_motorR);
 
         // .. impose distance between two parts (as a massless rod with two spherical joints at the end)
-        link_distRBU1 = std::make_shared<ChLinkDistance>();  // right, back, upper, 1
+        link_distRBU1 = chrono_types::make_shared<ChLinkDistance>();  // right, back, upper, 1
         link_distRBU1->Initialize(chassis, spindleRB, false, ChVector<>(0.5, 1.2, -1.2), ChVector<>(1.25, 1.2, -1));
         my_system.AddLink(link_distRBU1);
 
-        link_distRBU2 = std::make_shared<ChLinkDistance>();  // right, back, upper, 2
+        link_distRBU2 = chrono_types::make_shared<ChLinkDistance>();  // right, back, upper, 2
         link_distRBU2->Initialize(chassis, spindleRB, false, ChVector<>(0.5, 1.2, -0.8), ChVector<>(1.25, 1.2, -1));
         my_system.AddLink(link_distRBU2);
 
-        link_distRBL1 = std::make_shared<ChLinkDistance>();  // right, back, lower, 1
+        link_distRBL1 = chrono_types::make_shared<ChLinkDistance>();  // right, back, lower, 1
         link_distRBL1->Initialize(chassis, spindleRB, false, ChVector<>(0.5, 0.8, -1.2), ChVector<>(1.25, 0.8, -1));
         my_system.AddLink(link_distRBL1);
 
-        link_distRBL2 = std::make_shared<ChLinkDistance>();  // right, back, lower, 2
+        link_distRBL2 = chrono_types::make_shared<ChLinkDistance>();  // right, back, lower, 2
         link_distRBL2->Initialize(chassis, spindleRB, false, ChVector<>(0.5, 0.8, -0.8), ChVector<>(1.25, 0.8, -1));
         my_system.AddLink(link_distRBL2);
 
         // .. create the spring between the truss and the spindle
-        link_springRB = std::make_shared<ChLinkSpring>();
+        link_springRB = chrono_types::make_shared<ChLinkTSDA>();
         link_springRB->Initialize(chassis, spindleRB, false, ChVector<>(0.5, 1.2, -1.0), ChVector<>(1.25, 0.8, -1));
-        link_springRB->Set_SpringK(28300);
-        link_springRB->Set_SpringR(80);
+        link_springRB->SetSpringCoefficient(28300);
+        link_springRB->SetDampingCoefficient(80);
         my_system.AddLink(link_springRB);
 
         // .. create the rod for avoid the steering of the wheel
-        link_distRBlat = std::make_shared<ChLinkDistance>();  // right rod
+        link_distRBlat = chrono_types::make_shared<ChLinkDistance>();  // right rod
         link_distRBlat->Initialize(chassis, spindleRB, false, ChVector<>(0.5, 1.21, -1.4),
                                    ChVector<>(1.25, 1.21, -1.3));
         my_system.AddLink(link_distRBlat);
@@ -302,60 +305,59 @@ class MySimpleCar {
         // --- Left Back suspension ---
 
         // ..the car right-back spindle
-        spindleLB = std::make_shared<ChBodyEasyBox>(0.1, 0.4, 0.4, 1.0, false, true);
+        spindleLB = chrono_types::make_shared<ChBodyEasyBox>(0.1, 0.4, 0.4, 1.0, true, false);
         spindleLB->SetPos(ChVector<>(-1.3, 1, -1));
         spindleLB->SetMass(8);
         spindleLB->SetInertiaXX(ChVector<>(0.2, 0.2, 0.2));
         my_system.AddBody(spindleLB);
 
         // ..the car left-back wheel
-        wheelLB = std::make_shared<ChBodyEasyCylinder>(0.45, 0.3, 1.0, true, true);
+        wheelLB = chrono_types::make_shared<ChBodyEasyCylinder>(0.45, 0.3, 1.0, true, true, wheel_mat);
         wheelLB->SetPos(ChVector<>(-1.5, 1, -1));
         wheelLB->SetRot(chrono::Q_from_AngAxis(CH_C_PI / 2, VECT_Z));
         wheelLB->SetMass(3);
         wheelLB->SetInertiaXX(ChVector<>(0.2, 0.2, 0.2));
-        wheelLB->GetMaterialSurfaceNSC()->SetFriction(1.0);
         wheelLB->AddAsset(texture);
         my_system.AddBody(wheelLB);
 
         // .. create the revolute joint between the wheel and the spindle
-        link_revoluteLB = std::make_shared<ChLinkLockRevolute>();  // left, back, upper, 1
+        link_revoluteLB = chrono_types::make_shared<ChLinkLockRevolute>();  // left, back, upper, 1
         link_revoluteLB->Initialize(wheelLB, spindleLB,
                                     ChCoordsys<>(ChVector<>(-1.5, 1, -1), chrono::Q_from_AngAxis(CH_C_PI / 2, VECT_Y)));
         my_system.AddLink(link_revoluteLB);
 
         // .. create the motor transmission joint between the wheel and the truss (assuming small changes of alignment)
-        link_motorL = std::make_shared<ChLinkMotorRotationTorque>();
+        link_motorL = chrono_types::make_shared<ChLinkMotorRotationTorque>();
         link_motorL->Initialize(wheelLB, chassis,
                                 ChFrame<>(ChVector<>(-1.5, 1, -1), chrono::Q_from_AngAxis(CH_C_PI / 2, VECT_Y)));
         my_system.AddLink(link_motorL);
 
         // .. impose distance between two parts (as a massless rod with two spherical joints at the end)
-        link_distLBU1 = std::make_shared<ChLinkDistance>();  // left, front, upper, 1
+        link_distLBU1 = chrono_types::make_shared<ChLinkDistance>();  // left, front, upper, 1
         link_distLBU1->Initialize(chassis, spindleLB, false, ChVector<>(-0.5, 1.2, -1.2), ChVector<>(-1.25, 1.2, -1));
         my_system.AddLink(link_distLBU1);
 
-        link_distLBU2 = std::make_shared<ChLinkDistance>();  // left, back, upper, 2
+        link_distLBU2 = chrono_types::make_shared<ChLinkDistance>();  // left, back, upper, 2
         link_distLBU2->Initialize(chassis, spindleLB, false, ChVector<>(-0.5, 1.2, -0.8), ChVector<>(-1.25, 1.2, -1));
         my_system.AddLink(link_distLBU2);
 
-        link_distLBL1 = std::make_shared<ChLinkDistance>();  // left, back, lower, 1
+        link_distLBL1 = chrono_types::make_shared<ChLinkDistance>();  // left, back, lower, 1
         link_distLBL1->Initialize(chassis, spindleLB, false, ChVector<>(-0.5, 0.8, -1.2), ChVector<>(-1.25, 0.8, -1));
         my_system.AddLink(link_distLBL1);
 
-        link_distLBL2 = std::make_shared<ChLinkDistance>();  // left, back, lower, 2
+        link_distLBL2 = chrono_types::make_shared<ChLinkDistance>();  // left, back, lower, 2
         link_distLBL2->Initialize(chassis, spindleLB, false, ChVector<>(-0.5, 0.8, -0.8), ChVector<>(-1.25, 0.8, -1));
         my_system.AddLink(link_distLBL2);
 
         // .. create the spring between the truss and the spindle
-        link_springLB = std::make_shared<ChLinkSpring>();
+        link_springLB = chrono_types::make_shared<ChLinkTSDA>();
         link_springLB->Initialize(chassis, spindleLB, false, ChVector<>(-0.5, 1.2, -1.0), ChVector<>(-1.25, 0.8, -1));
-        link_springLB->Set_SpringK(28300);
-        link_springLB->Set_SpringR(80);
+        link_springLB->SetSpringCoefficient(28300);
+        link_springLB->SetDampingCoefficient(80);
         my_system.AddLink(link_springLB);
 
         // .. create the rod for avoid the steering of the wheel
-        link_distLBlat = std::make_shared<ChLinkDistance>();  // right
+        link_distLBlat = chrono_types::make_shared<ChLinkDistance>();  // right
         link_distLBlat->Initialize(chassis, spindleLB, false, ChVector<>(-0.5, 1.21, -1.4),
                                    ChVector<>(-1.25, 1.21, -1.3));
         my_system.AddLink(link_distLBlat);
@@ -366,9 +368,6 @@ class MySimpleCar {
     // removes constraints from the system.
     ~MySimpleCar() {
         ChSystem* mysystem = spindleRF->GetSystem();  // trick to get the system here
-        // When a ChBodySceneNode is removed via ->remove() from Irrlicht 3D scene manager,
-        // it is also automatically removed from the ChSystemNSC (the ChSystemNSC::RemoveBody() is
-        // automatically called at Irrlicht node deletion - see ChBodySceneNode.h ).
 
         // For links, just remove them from the ChSystemNSC using ChSystemNSC::RemoveLink()
         mysystem->RemoveLink(link_revoluteRF);
@@ -460,33 +459,35 @@ class MyEventReceiver : public IEventReceiver {
         scrollbar_throttle = mdevice->getGUIEnvironment()->addScrollBar(true, rect<s32>(10, 85, 150, 100), 0, 100);
         scrollbar_throttle->setMax(100);
         scrollbar_throttle->setPos(0);
-        text_throttle = mdevice->getGUIEnvironment()->addStaticText(L"Throttle", rect<s32>(150, 85, 250, 100), false);
+        text_throttle = mdevice->getGUIEnvironment()->addStaticText(L"Throttle", rect<s32>(155, 85, 300, 100), false);
 
         // ..add a GUI slider to control steering via mouse
         scrollbar_steer = mdevice->getGUIEnvironment()->addScrollBar(true, rect<s32>(10, 105, 150, 120), 0, 101);
         scrollbar_steer->setMax(100);
         scrollbar_steer->setPos(50);
+        text_steer = mdevice->getGUIEnvironment()->addStaticText(L"Steering", rect<s32>(155, 105, 300, 120), false);
 
         // ..add a GUI text and GUI slider to control the stiffness
         scrollbar_FspringK = mdevice->getGUIEnvironment()->addScrollBar(true, rect<s32>(10, 125, 150, 140), 0, 102);
         scrollbar_FspringK->setMax(100);
-        scrollbar_FspringK->setPos((s32)(50 + 50.0 * (acar->link_springRF->Get_SpringK() - 80000.0) / 60000.0));
+        scrollbar_FspringK->setPos(
+            (s32)(50 + 50.0 * (acar->link_springRF->GetSpringCoefficient() - 80000.0) / 60000.0));
         text_FspringK =
-            mdevice->getGUIEnvironment()->addStaticText(L"Spring K [N/m]:", rect<s32>(150, 125, 250, 140), false);
+            mdevice->getGUIEnvironment()->addStaticText(L"Spring K [N/m]:", rect<s32>(155, 125, 300, 140), false);
 
         // ..add a GUI text and GUI slider to control the damping
         scrollbar_FdamperR = mdevice->getGUIEnvironment()->addScrollBar(true, rect<s32>(10, 145, 150, 160), 0, 103);
         scrollbar_FdamperR->setMax(100);
-        scrollbar_FdamperR->setPos((s32)(50 + 50.0 * (acar->link_springRF->Get_SpringR() - 800.0) / 800.0));
+        scrollbar_FdamperR->setPos((s32)(50 + 50.0 * (acar->link_springRF->GetDampingCoefficient() - 800.0) / 800.0));
         text_FdamperR =
-            mdevice->getGUIEnvironment()->addStaticText(L"Damper R [Ns/m]:", rect<s32>(150, 145, 250, 160), false);
+            mdevice->getGUIEnvironment()->addStaticText(L"Damper R [Ns/m]:", rect<s32>(155, 145, 300, 160), false);
 
         // ..add a GUI text and GUI slider to control the original undeformed spring length
         scrollbar_FspringL = mdevice->getGUIEnvironment()->addScrollBar(true, rect<s32>(10, 165, 150, 180), 0, 104);
         scrollbar_FspringL->setMax(100);
-        scrollbar_FspringL->setPos((s32)(50 + 50.0 * (acar->link_springRF->Get_SpringRestLength() - 0.9) / 0.1));
+        scrollbar_FspringL->setPos((s32)(50 + 50.0 * (acar->link_springRF->GetRestLength() - 0.9) / 0.1));
         text_FspringL =
-            mdevice->getGUIEnvironment()->addStaticText(L"Spring L [m]:", rect<s32>(150, 165, 250, 180), false);
+            mdevice->getGUIEnvironment()->addStaticText(L"Spring L [m]:", rect<s32>(155, 165, 300, 180), false);
     }
 
     bool OnEvent(const SEvent& event) {
@@ -510,14 +511,17 @@ class MyEventReceiver : public IEventReceiver {
                         s32 pos = ((IGUIScrollBar*)event.GUIEvent.Caller)->getPos();
                         double newstiff = 80000 + 60000 * (((double)(pos - 50)) / 50.0);
                         // set the stiffness of all 4 springs
-                        this->mcar->link_springRF->Set_SpringK(newstiff);
-                        this->mcar->link_springLF->Set_SpringK(newstiff);
-                        this->mcar->link_springRB->Set_SpringK(newstiff);
-                        this->mcar->link_springLB->Set_SpringK(newstiff);
+                        this->mcar->link_springRF->SetSpringCoefficient(newstiff);
+                        this->mcar->link_springLF->SetSpringCoefficient(newstiff);
+                        this->mcar->link_springRB->SetSpringCoefficient(newstiff);
+                        this->mcar->link_springLB->SetSpringCoefficient(newstiff);
 
                         // show stiffness as formatted text in interface screen
-                        char message[50];
+                        char message[150];
                         sprintf(message, "Spring K [N/m]: %g", newstiff);
+
+                        std::cout << "K = " << newstiff << std::endl;
+
                         text_FspringK->setText(core::stringw(message).c_str());
                     }
                     if (id == 103)  // id of 'damping' slider..
@@ -525,14 +529,14 @@ class MyEventReceiver : public IEventReceiver {
                         s32 pos = ((IGUIScrollBar*)event.GUIEvent.Caller)->getPos();
                         double newdamping = 800 + 800 * (((double)(pos - 50)) / 50.0);
                         // set the damping of all 4 springs
-                        this->mcar->link_springRF->Set_SpringR(newdamping);
-                        this->mcar->link_springLF->Set_SpringR(newdamping);
-                        this->mcar->link_springRB->Set_SpringR(newdamping);
-                        this->mcar->link_springLB->Set_SpringR(newdamping);
+                        this->mcar->link_springRF->SetDampingCoefficient(newdamping);
+                        this->mcar->link_springLF->SetDampingCoefficient(newdamping);
+                        this->mcar->link_springRB->SetDampingCoefficient(newdamping);
+                        this->mcar->link_springLB->SetDampingCoefficient(newdamping);
 
                         // show stiffness as formatted text in interface screen
-                        char message[50];
-                        sprintf(message, "Damping R [Ns/m]: %g", newdamping);
+                        char message[150];
+                        sprintf(message, "Damper R [Ns/m]: %g", newdamping);
                         text_FdamperR->setText(core::stringw(message).c_str());
                     }
                     if (id == 104)  // id of 'spring rest length' slider..
@@ -540,10 +544,10 @@ class MyEventReceiver : public IEventReceiver {
                         s32 pos = ((IGUIScrollBar*)event.GUIEvent.Caller)->getPos();
                         double newlength = 0.9 + 0.1 * (((double)(pos - 50)) / 50.0);
                         // set the rest length of all 4 springs
-                        this->mcar->link_springRF->Set_SpringRestLength(newlength);
-                        this->mcar->link_springLF->Set_SpringRestLength(newlength);
-                        this->mcar->link_springRB->Set_SpringRestLength(newlength);
-                        this->mcar->link_springLB->Set_SpringRestLength(newlength);
+                        this->mcar->link_springRF->SetRestLength(newlength);
+                        this->mcar->link_springLF->SetRestLength(newlength);
+                        this->mcar->link_springRB->SetRestLength(newlength);
+                        this->mcar->link_springLB->SetRestLength(newlength);
 
                         // show stiffness as formatted text in interface screen
                         char message[50];
@@ -574,6 +578,7 @@ class MyEventReceiver : public IEventReceiver {
     IrrlichtDevice* mdevice;
     MySimpleCar* mcar;
 
+    IGUIStaticText* text_steer;
     IGUIScrollBar* scrollbar_steer;
     IGUIStaticText* text_FspringK;
     IGUIScrollBar* scrollbar_FspringK;
@@ -612,20 +617,26 @@ int main(int argc, char* argv[]) {
     //   their center of mass (COG) etc.
 
     // ..the world
-    auto texture = std::make_shared<ChTexture>();
+    auto texture = chrono_types::make_shared<ChTexture>();
     texture->SetTextureFilename(GetChronoDataFile("blu.png"));
 
-    auto my_ground = std::make_shared<ChBodyEasyBox>(60, 2, 60, 1.0, true, true);
+    // ..contact materials
+    auto ground_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    ground_mat->SetSfriction(1.0);
+    ground_mat->SetKfriction(1.0);
+
+    auto obstacle_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+
+    // ..ground body
+    auto my_ground = chrono_types::make_shared<ChBodyEasyBox>(60, 2, 60, 1.0, true, true, ground_mat);
     my_ground->SetPos(ChVector<>(0, -1, 0));
     my_ground->SetBodyFixed(true);
-    my_ground->GetMaterialSurfaceNSC()->SetSfriction(1.0);
-    my_ground->GetMaterialSurfaceNSC()->SetKfriction(1.0);
     my_ground->AddAsset(texture);
     my_system.AddBody(my_ground);
 
-    // ..some obstacles on the ground:
+    // ..some obstacles on the ground
     for (int i = 0; i < 6; i++) {
-        auto my_obstacle = std::make_shared<ChBodyEasyBox>(1, 0.1, 0.5, 60.0, true, true);
+        auto my_obstacle = chrono_types::make_shared<ChBodyEasyBox>(1, 0.1, 0.5, 60.0, true, true, obstacle_mat);
         my_obstacle->SetPos(ChVector<>(20 * ChRandom(), 2, 20 * ChRandom()));
         my_obstacle->SetMass(3);
         my_system.AddBody(my_obstacle);
@@ -659,8 +670,8 @@ int main(int argc, char* argv[]) {
     };
 
     // Use the above callback to process each contact as it is created.
-    MyContactCallback mycontact_callback;
-    my_system.GetContactContainer()->RegisterAddContactCallback(&mycontact_callback);
+    auto mycontact_callback = chrono_types::make_shared<MyContactCallback>();
+    my_system.GetContactContainer()->RegisterAddContactCallback(mycontact_callback);
 
     // Bind visualization assets.
     application.AssetBindAll();
@@ -678,15 +689,15 @@ int main(int argc, char* argv[]) {
     // SETTINGS
     //
 
-    my_system.SetMaxItersSolverSpeed(20);  // the higher, the easier to keep the constraints 'mounted'.
+    my_system.SetSolverMaxIterations(20);  // the higher, the easier to keep the constraints satisifed.
 
     //
     // THE SOFT-REAL-TIME CYCLE, SHOWING THE SIMULATION
     //
 
-    // This will help choosing an integration step which matches the
-    // real-time step of the simulation..
-    ChRealtimeStepTimer m_realtime_timer;
+    // Timer for enforcing sodt real-time
+    ChRealtimeStepTimer realtime_timer;
+    double time_step = 0.005;
 
     while (application.GetDevice()->run()) {
         // Irrlicht must prepare frame to draw
@@ -712,9 +723,9 @@ int main(int argc, char* argv[]) {
             if (auto linkdist = std::dynamic_pointer_cast<ChLinkDistance>(link)) {
                 ChIrrTools::drawSegment(application.GetVideoDriver(), linkdist->GetEndPoint1Abs(),
                                         linkdist->GetEndPoint2Abs(), video::SColor(255, 0, 20, 0), true);
-            } else if (auto linkspring = std::dynamic_pointer_cast<ChLinkSpring>(link)) {
-                ChIrrTools::drawSpring(application.GetVideoDriver(), 0.03, linkspring->GetEndPoint1Abs(),
-                                       linkspring->GetEndPoint2Abs(), video::SColor(255, 150, 20, 20), 80, 5, true);
+            } else if (auto linkspring = std::dynamic_pointer_cast<ChLinkTSDA>(link)) {
+                ChIrrTools::drawSpring(application.GetVideoDriver(), 0.03, linkspring->GetPoint1Abs(),
+                                       linkspring->GetPoint2Abs(), video::SColor(255, 150, 20, 20), 80, 10, true);
             }
         }
 
@@ -722,11 +733,10 @@ int main(int argc, char* argv[]) {
         // wheels and truss, depends on many parameters (gear, throttle, etc):
         mycar->ComputeWheelTorque();
 
-        // HERE CHRONO INTEGRATION IS PERFORMED: THE
-        // TIME OF THE SIMULATION ADVANCES FOR A SINGLE
-        // STEP:
-
-        my_system.DoStepDynamics(m_realtime_timer.SuggestSimulationStep(0.005));
+        // ADVANCE SYSTEM STATE BY ONE STEP
+        my_system.DoStepDynamics(time_step);
+        // Enforce soft real-time
+        realtime_timer.Spin(time_step);
 
         // Irrlicht must finish drawing the frame
         application.EndScene();

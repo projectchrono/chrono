@@ -19,7 +19,7 @@
 namespace chrono {
 
 ChFseqNode::ChFseqNode() {
-    fx = std::make_shared<ChFunction_Const>(0);
+    fx = chrono_types::make_shared<ChFunction_Const>(0);
     duration = 1;
     weight = 1;
     t_start = 0;

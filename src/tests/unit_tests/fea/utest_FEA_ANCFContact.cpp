@@ -21,20 +21,14 @@
 #include <algorithm>
 #include <functional>
 
-#include "chrono/collision/ChCCollisionModel.h"
 #include "chrono/physics/ChContactContainerSMC.h"
-#include "chrono/physics/ChContactSMC.h"
-#include "chrono/physics/ChContactTuple.h"
-#include "chrono/physics/ChContactable.h"
-#include "chrono/physics/ChMaterialSurfaceSMC.h"
 #include "chrono/physics/ChSystemSMC.h"
-#include "chrono/solver/ChSolverMINRES.h"
+
+#include "chrono/solver/ChIterativeSolverLS.h"
 
 #include "chrono/fea/ChElementShellANCF.h"
 #include "chrono/fea/ChMesh.h"
 #include "chrono/fea/ChContactSurfaceMesh.h"
-#include "chrono/fea/ChLoadContactSurfaceMesh.h"
-#include "chrono/fea/ChContactSurfaceNodeCloud.h"
 #include "chrono/fea/ChVisualizationFEAmesh.h"
 
 using namespace chrono;
@@ -60,9 +54,9 @@ int main(int argc, char* argv[]) {
     double rho = 1000;  ///< material density
     double E = 5e8;     ///< Young's modulus
     double nu = 0.3;    ///< Poisson ratio
-    auto my_material = std::make_shared<ChMaterialShellANCF>(rho, E, nu);
+    auto my_material = chrono_types::make_shared<ChMaterialShellANCF>(rho, E, nu);
     // You can also change the contact surface properties for further investigation.
-    auto mysurfmaterial = std::make_shared<ChMaterialSurfaceSMC>();
+    auto mysurfmaterial = chrono_types::make_shared<ChMaterialSurfaceSMC>();
     mysurfmaterial->SetKn(1e0);
     mysurfmaterial->SetKt(0);
     mysurfmaterial->SetGn(1e0);
@@ -226,23 +220,23 @@ bool EvaluateContact(std::shared_ptr<ChMaterialShellANCF> material,
 
     ChVector<> direction1 (0, 1, 0);
     ChVector<> direction2(0, -1, 0);
-    auto my_meshes_1 = std::make_shared<ChMesh>();
-    auto my_meshes_2 = std::make_shared<ChMesh>();
+    auto my_meshes_1 = chrono_types::make_shared<ChMesh>();
+    auto my_meshes_2 = chrono_types::make_shared<ChMesh>();
 
     // Note that two elements are added in two different meshes
     for (int i = 0; i < 4; i++) {
-        auto node = std::make_shared<ChNodeFEAxyzD>(N1[i], direction1);
+        auto node = chrono_types::make_shared<ChNodeFEAxyzD>(N1[i], direction1);
         node->SetMass(0);
         my_meshes_1->AddNode(node);
     }
     for (int i = 0; i < 4; i++) {
-        auto node = std::make_shared<ChNodeFEAxyzD>(N2[i], direction2);
+        auto node = chrono_types::make_shared<ChNodeFEAxyzD>(N2[i], direction2);
         node->SetMass(0);
         my_meshes_2->AddNode(node);
     }
 
     // Create the element 1 and 2 and add them to their relevant mesh.
-    auto Element1 = std::make_shared<ChElementShellANCF>();  // To add nodes of the first element
+    auto Element1 = chrono_types::make_shared<ChElementShellANCF>();  // To add nodes of the first element
     Element1->SetNodes(std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_meshes_1->GetNode(0)),
                        std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_meshes_1->GetNode(1)),
                        std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_meshes_1->GetNode(2)),
@@ -254,7 +248,7 @@ bool EvaluateContact(std::shared_ptr<ChMaterialShellANCF> material,
     Element1->SetGravityOn(false);  // turn internal gravitational force calculation off
     my_meshes_1->AddElement(Element1);
 
-    auto Element2 = std::make_shared<ChElementShellANCF>();  // To add nodes of the first element
+    auto Element2 = chrono_types::make_shared<ChElementShellANCF>();  // To add nodes of the first element
 
     Element2->SetNodes(std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_meshes_2->GetNode(0)),
                        std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_meshes_2->GetNode(1)),
@@ -267,14 +261,12 @@ bool EvaluateContact(std::shared_ptr<ChMaterialShellANCF> material,
     my_meshes_2->AddElement(Element2);
     std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_meshes_1->GetNode(0))->SetFixed(true);
 
-    auto mcontactsurf_1 = std::make_shared<ChContactSurfaceMesh>();
-    auto mcontactsurf_2 = std::make_shared<ChContactSurfaceMesh>();
+    auto mcontactsurf_1 = chrono_types::make_shared<ChContactSurfaceMesh>(mysurfmaterial);
+    auto mcontactsurf_2 = chrono_types::make_shared<ChContactSurfaceMesh>(mysurfmaterial);
     my_meshes_1->AddContactSurface(mcontactsurf_1);
     my_meshes_2->AddContactSurface(mcontactsurf_2);
     mcontactsurf_1->AddFacesFromBoundary(sphere_swept_thickness);  // do this after my_mesh->AddContactSurface
-    mcontactsurf_1->SetMaterialSurface(mysurfmaterial);            // use the SMC penalty contacts
     mcontactsurf_2->AddFacesFromBoundary(sphere_swept_thickness);  // do this after my_mesh->AddContactSurface
-    mcontactsurf_2->SetMaterialSurface(mysurfmaterial);
 
     // use the SMC penalty contacts
     my_meshes_1->SetAutomaticGravity(addGravity);
@@ -288,16 +280,18 @@ bool EvaluateContact(std::shared_ptr<ChMaterialShellANCF> material,
     my_system.Add(my_meshes_1);
     my_system.Add(my_meshes_2);
 
-    my_system.SetupInitial();
     // ---------------
 
-    my_system.SetSolverType(ChSolver::Type::MINRES);
-    auto msolver = std::static_pointer_cast<ChSolverMINRES>(my_system.GetSolver());
-    msolver->SetDiagonalPreconditioning(true);
-    my_system.SetSolverWarmStarting(true);  // this helps a lot to speedup convergence in this class of problems
-    my_system.SetMaxItersSolverSpeed(100000);
-    my_system.SetMaxItersSolverStab(100);
-    my_system.SetTolForce(1e-6);
+    // Attention:  this test is not properly set up from a dynamics point of view, as it is only concerned with
+    // collision checks.  However, this means that the resulting system matrix has negative diagonal elements and this
+    // would result in a non-PD diagonal preconditioner which is not allowed with MINRES. For this reason, we use GMRES.
+    // Alternatively, we could use MINRES with *no* preconditioning.
+    auto solver = chrono_types::make_shared<ChSolverGMRES>();
+    my_system.SetSolver(solver);
+    solver->SetMaxIterations(200);
+    solver->SetTolerance(1e-10);
+    //solver->EnableDiagonalPreconditioner(false);
+    solver->SetVerbose(false);
 
     my_system.SetTimestepperType(ChTimestepper::Type::HHT);
     auto mystepper = std::dynamic_pointer_cast<ChTimestepperHHT>(my_system.GetTimestepper());
@@ -307,8 +301,8 @@ bool EvaluateContact(std::shared_ptr<ChMaterialShellANCF> material,
     mystepper->SetMode(ChTimestepperHHT::POSITION);  // POSITION //ACCELERATION
     mystepper->SetScaling(true);
     mystepper->SetVerbose(false);
-    auto container = std::make_shared<MyContactContainer>();
-    //    auto contacts = std::make_shared<MyContacts>();
+    auto container = chrono_types::make_shared<MyContactContainer>();
+    //    auto contacts = chrono_types::make_shared<MyContacts>();
 
     my_system.SetContactContainer(container);
     bool thereIsContact;

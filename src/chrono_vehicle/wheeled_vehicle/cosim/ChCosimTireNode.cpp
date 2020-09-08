@@ -48,7 +48,7 @@ void ChCosimTireNode::Initialize() {
     }
 
     // Dummy terrain (needed for tire synchronization)
-    m_terrain = std::make_shared<FlatTerrain>(0);
+    m_terrain = chrono_types::make_shared<FlatTerrain>(0);
 
     // Ensure that tire contact is enabled and enforce TRIANGLE_MESH contact surface type
     //// TODO:
@@ -63,7 +63,7 @@ void ChCosimTireNode::Initialize() {
 
     // Create a mesh load for contact forces and add it to the tire's load container.
     auto contact_surface = std::static_pointer_cast<fea::ChContactSurfaceMesh>(m_tire->GetContactSurface());
-    m_contact_load = std::make_shared<fea::ChLoadContactSurfaceMesh>(contact_surface);
+    m_contact_load = chrono_types::make_shared<fea::ChLoadContactSurfaceMesh>(contact_surface);
     m_tire->GetLoadContainer()->Add(m_contact_load);
 
     // Send contact specification to terrain node

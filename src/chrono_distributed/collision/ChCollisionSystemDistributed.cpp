@@ -45,7 +45,7 @@ void ChCollisionSystemDistributed::Add(ChCollisionModel* model) {
     // Find space in ddm vectors - need one index for both start and count
     // need a chunk of body_shapes large enough for all shapes on this body
     int body_index = pmodel->GetBody()->GetId();  // NOTE: Assumes this is set
-    int needed_count = pmodel->GetNObjects();     // Minimum size needed in ddm->body_shapes
+    int needed_count = pmodel->GetNumShapes();    // Minimum size needed in ddm->body_shapes
     ChVector<> pos(pmodel->GetBody()->GetPos());
 
     // TODO Only include shapes relevant to this sub-domain
@@ -161,7 +161,8 @@ void ChCollisionSystemDistributed::Add(ChCollisionModel* model) {
             // Search data_manager->shape_data for a free and shape-matching spot
             for (int j = 0; j < dm->shape_data.id_rigid.size(); j++) {
                 // If the index in the data manager is open and corresponds to the same shape type
-                if (dm->shape_data.id_rigid[j] == UINT_MAX && dm->shape_data.typ_rigid[j] == pmodel->mData[i].type) {
+                if (dm->shape_data.id_rigid[j] == UINT_MAX &&
+                    dm->shape_data.typ_rigid[j] == pmodel->GetShape(i)->GetType()) {
                     free_dm_shapes.push_back(j);
                     break;  // Found spot for this shape, break inner loop to get new i (shape)
                 }
@@ -174,6 +175,7 @@ void ChCollisionSystemDistributed::Add(ChCollisionModel* model) {
     if (free_dm_shapes.size() == needed_count) {
         for (int i = 0; i < needed_count; i++) {
             // i identifies a shape in the MODEL
+            auto shape = std::static_pointer_cast<ChCollisionShapeParallel>(pmodel->GetShape(i));
 
             int j = free_dm_shapes[i];  // Index into dm->shape_data
 
@@ -184,43 +186,43 @@ void ChCollisionSystemDistributed::Add(ChCollisionModel* model) {
             // type_rigid and start_rigid are unchanged because the shape type is the same
             int start = dm->shape_data.start_rigid[j];
 
-            real3 obA = pmodel->mData[i].A;
-            real3 obB = pmodel->mData[i].B;
-            real3 obC = pmodel->mData[i].C;
+            real3 obA = shape->A;
+            real3 obB = shape->B;
+            real3 obC = shape->C;
 
             short2 fam = S2(pmodel->GetFamilyGroup(), pmodel->GetFamilyMask());
 
-            switch (pmodel->mData[i].type) {
-                case chrono::collision::SPHERE:
+            switch (shape->GetType()) {
+                case ChCollisionShape::Type::SPHERE:
                     dm->shape_data.sphere_rigid[start] = obB.x;
                     break;
-                case chrono::collision::TRIANGLEMESH:  // NOTE: There is space for all 3
+                case ChCollisionShape::Type::TRIANGLEMESH:  // NOTE: There is space for all 3
                     dm->shape_data.triangle_rigid[start] = obA;
                     dm->shape_data.triangle_rigid[start + 1] = obB;
                     dm->shape_data.triangle_rigid[start + 2] = obC;
                     break;
-                case chrono::collision::ELLIPSOID:
+                case ChCollisionShape::Type::ELLIPSOID:
                     dm->shape_data.box_like_rigid[start] = obB;
                     break;
-                case chrono::collision::BOX:
+                case ChCollisionShape::Type::BOX:
                     dm->shape_data.box_like_rigid[start] = obB;
                     break;
-                case chrono::collision::CYLINDER:
+                case ChCollisionShape::Type::CYLINDER:
                     dm->shape_data.box_like_rigid[start] = obB;
                     break;
-                case chrono::collision::CONE:
+                case ChCollisionShape::Type::CONE:
                     dm->shape_data.box_like_rigid[start] = obB;
                     break;
-                case chrono::collision::CAPSULE:
+                case ChCollisionShape::Type::CAPSULE:
                     dm->shape_data.capsule_rigid[start] = real2(obB.x, obB.y);
                     break;
-                case chrono::collision::ROUNDEDBOX:
+                case ChCollisionShape::Type::ROUNDEDBOX:
                     dm->shape_data.rbox_like_rigid[start] = real4(obB, obC.x);
                     break;
-                case chrono::collision::ROUNDEDCYL:
+                case ChCollisionShape::Type::ROUNDEDCYL:
                     dm->shape_data.rbox_like_rigid[start] = real4(obB, obC.x);
                     break;
-                case chrono::collision::ROUNDEDCONE:
+                case ChCollisionShape::Type::ROUNDEDCONE:
                     dm->shape_data.rbox_like_rigid[start] = real4(obB, obC.x);
                     break;
                 default:
@@ -228,7 +230,7 @@ void ChCollisionSystemDistributed::Add(ChCollisionModel* model) {
             }
 
             dm->shape_data.ObA_rigid[j] = obA;
-            dm->shape_data.ObR_rigid[j] = pmodel->mData[i].R;
+            dm->shape_data.ObR_rigid[j] = shape->R;
             dm->shape_data.fam_rigid[j] = fam;
         }
     }
@@ -254,7 +256,7 @@ void ChCollisionSystemDistributed::Add(ChCollisionModel* model) {
 //     // Find space in ddm vectors - need one index for both start and count
 //     // need a chunk of body_shapes large enough for all shapes on this body
 //     int body_index = pmodel->GetBody()->GetId();  // NOTE: Assumes this is set
-//     int needed_count = pmodel->GetNObjects();     // Minimum size needed in ddm->body_shapes
+//     int needed_count = pmodel->GetNumShapes();    // Minimum size needed in ddm->body_shapes
 //     ChVector<> pos(pmodel->GetBody()->GetPos());
 //
 //     // TODO Only include shapes relevant to this sub-domain
@@ -439,7 +441,7 @@ void ChCollisionSystemDistributed::Add(ChCollisionModel* model) {
 void ChCollisionSystemDistributed::Remove(ChCollisionModel* model) {
     ChCollisionModelParallel* pmodel = static_cast<ChCollisionModelParallel*>(model);
     uint id = pmodel->GetBody()->GetId();
-    int count = pmodel->GetNObjects();
+    int count = pmodel->GetNumShapes();
     int start = ddm->body_shape_start[id];
 
     for (int i = 0; i < count; i++) {

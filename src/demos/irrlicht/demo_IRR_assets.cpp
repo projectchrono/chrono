@@ -63,19 +63,20 @@ int main(int argc, char* argv[]) {
     // EXAMPLE 1:
     //
 
-    // Create a ChBody, and attach some 'assets'
-    // that define 3D shapes. These shapes can be shown
-    // by Irrlicht or POV postprocessing, etc...
+    // Create a ChBody, and attach some 'assets' that define 3D shapes for visualization purposes.
     // Note: these assets are independent from collision shapes!
 
     // Create a rigid body as usual, and add it
     // to the physical system:
-    auto mfloor = std::make_shared<ChBody>();
+    auto mfloor = chrono_types::make_shared<ChBody>();
     mfloor->SetBodyFixed(true);
+
+    // Contact material
+    auto floor_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
 
     // Define a collision shape
     mfloor->GetCollisionModel()->ClearModel();
-    mfloor->GetCollisionModel()->AddBox(10, 0.5, 10, ChVector<>(0, -1, 0));
+    mfloor->GetCollisionModel()->AddBox(floor_mat, 10, 0.5, 10, ChVector<>(0, -1, 0));
     mfloor->GetCollisionModel()->BuildModel();
     mfloor->SetCollide(true);
 
@@ -85,18 +86,18 @@ int main(int argc, char* argv[]) {
     // ==Asset== attach a 'box' shape.
     // Note that assets are managed via shared pointer, so they
     // can also be shared). Do not forget AddAsset() at the end!
-    auto mboxfloor = std::make_shared<ChBoxShape>();
+    auto mboxfloor = chrono_types::make_shared<ChBoxShape>();
     mboxfloor->GetBoxGeometry().Pos = ChVector<>(0, -1, 0);
     mboxfloor->GetBoxGeometry().Size = ChVector<>(10, 0.5, 10);
     mfloor->AddAsset(mboxfloor);
 
     // ==Asset== attach color asset.
-    auto mfloorcolor = std::make_shared<ChColorAsset>();
+    auto mfloorcolor = chrono_types::make_shared<ChColorAsset>();
     mfloorcolor->SetColor(ChColor(0.3f, 0.3f, 0.6f));
     mfloor->AddAsset(mfloorcolor);
 
     // ==Asset== attach a 'path' shape populated with segments and arc fillets:
-    auto mpathfloor = std::make_shared<ChPathShape>();
+    auto mpathfloor = chrono_types::make_shared<ChPathShape>();
     ChLineSegment mseg1(ChVector<>(1, 2, 0), ChVector<>(1, 3, 0));
     mpathfloor->GetPathGeometry()->AddSubLine(mseg1);
     ChLineSegment mseg2(ChVector<>(1, 3, 0), ChVector<>(2, 3, 0));
@@ -108,11 +109,11 @@ int main(int argc, char* argv[]) {
 	// ==Asset== attach a 'nurbs line' shape:
 	// (first you create the ChLineNurbs geometry, 
 	// then you put it inside a ChLineShape asset)
-	auto mnurbs = std::make_shared<ChLineNurbs>();
+	auto mnurbs = chrono_types::make_shared<ChLineNurbs>();
 	std::vector<ChVector<>> controlpoints = { ChVector<>(1,2,-1), ChVector<>(1,3,-1), ChVector<>(1,3,-2), ChVector<>(1,4,-2) };
 	mnurbs->SetupData(3, controlpoints);
 
-	auto mnurbsasset = std::make_shared<ChLineShape>();
+	auto mnurbsasset = chrono_types::make_shared<ChLineShape>();
 	mnurbsasset->SetLineGeometry(mnurbs);
 	mfloor->AddAsset(mnurbsasset);
 
@@ -120,7 +121,7 @@ int main(int argc, char* argv[]) {
 	// ==Asset== attach a 'nurbs surface' shape:
 	// (first you create the ChSurfaceNurbs geometry, 
 	// then you put it inside a ChSurfaceShape asset)
-	auto msurf = std::make_shared<ChSurfaceNurbs>();
+	auto msurf = chrono_types::make_shared<ChSurfaceNurbs>();
 	ChMatrixDynamic<ChVector<>> surfpoints(4, 2); // u points, v points
 	surfpoints(0, 0) = ChVector<>(1, 2, 3);
 	surfpoints(1, 0) = ChVector<>(1, 3, 3);
@@ -132,7 +133,7 @@ int main(int argc, char* argv[]) {
 	surfpoints(3, 1) = ChVector<>(2, 4, 1);
 	msurf->SetupData(3, 1, surfpoints);
 
-	auto msurfasset = std::make_shared<ChSurfaceShape>();
+	auto msurfasset = chrono_types::make_shared<ChSurfaceShape>();
 	msurfasset->Pos = ChVector<>(3, -1, 3);
 	msurfasset->SetSurfaceGeometry(msurf);
 	msurfasset->SetWireframe(true);
@@ -148,31 +149,31 @@ int main(int argc, char* argv[]) {
 
     // Create the rigid body as usual (this won't move,
     // it is only for visualization tests)
-    auto mbody = std::make_shared<ChBody>();
+    auto mbody = chrono_types::make_shared<ChBody>();
     mbody->SetBodyFixed(true);
     application.GetSystem()->Add(mbody);
 
     // ==Asset== Attach a 'sphere' shape
-    auto msphere = std::make_shared<ChSphereShape>();
+    auto msphere = chrono_types::make_shared<ChSphereShape>();
     msphere->GetSphereGeometry().rad = 0.5;
     msphere->GetSphereGeometry().center = ChVector<>(-1, 0, 0);
     mbody->AddAsset(msphere);
 
     // ==Asset== Attach also a 'box' shape
-    auto mbox = std::make_shared<ChBoxShape>();
+    auto mbox = chrono_types::make_shared<ChBoxShape>();
     mbox->GetBoxGeometry().Pos = ChVector<>(1, 1, 0);
     mbox->GetBoxGeometry().Size = ChVector<>(0.3, 0.5, 0.1);
     mbody->AddAsset(mbox);
 
     // ==Asset== Attach also a 'cylinder' shape
-    auto mcyl = std::make_shared<ChCylinderShape>();
+    auto mcyl = chrono_types::make_shared<ChCylinderShape>();
     mcyl->GetCylinderGeometry().p1 = ChVector<>(2, -0.2, 0);
     mcyl->GetCylinderGeometry().p2 = ChVector<>(2.2, 0.5, 0);
     mcyl->GetCylinderGeometry().rad = 0.3;
     mbody->AddAsset(mcyl);
 
     // ==Asset== Attach also a 'triangle mesh' shape
-    auto mmesh = std::make_shared<ChTriangleMeshShape>();
+    auto mmesh = chrono_types::make_shared<ChTriangleMeshShape>();
     mmesh->GetMesh()->getCoordsVertices().push_back(ChVector<>(0, 1, 0));
     mmesh->GetMesh()->getCoordsVertices().push_back(ChVector<>(0, 1, 0.5));
     mmesh->GetMesh()->getCoordsVertices().push_back(ChVector<>(1, 1, 0));
@@ -181,24 +182,24 @@ int main(int argc, char* argv[]) {
 
     // ==Asset== Attach color. To set colors for all assets
     // in the same level, just add this:
-    auto mvisual = std::make_shared<ChColorAsset>();
+    auto mvisual = chrono_types::make_shared<ChColorAsset>();
     mvisual->SetColor(ChColor(0.9f, 0.4f, 0.2f));
     mbody->AddAsset(mvisual);
 
     // ==Asset== Attach a level that contains other assets.
     // Note: a ChAssetLevel can define a rotation/translation respect to paren level,
     // Note: a ChAssetLevel can contain colors or textures: if any, they affect only objects in the level.
-    auto mlevelA = std::make_shared<ChAssetLevel>();
+    auto mlevelA = chrono_types::make_shared<ChAssetLevel>();
 
     // ==Asset== Attach, in this level, a 'Wavefront mesh' asset,
     // referencing a .obj file:
-    auto mobjmesh = std::make_shared<ChObjShapeFile>();
+    auto mobjmesh = chrono_types::make_shared<ChObjShapeFile>();
     mobjmesh->SetFilename(GetChronoDataFile("forklift_body.obj"));
     mlevelA->AddAsset(mobjmesh);
 
     // ==Asset== Attach also a texture, that will affect only the
     // assets in mlevelA:
-    auto mtexture = std::make_shared<ChTexture>();
+    auto mtexture = chrono_types::make_shared<ChTexture>();
     mtexture->SetTextureFilename(GetChronoDataFile("bluwhite.png"));
     mlevelA->AddAsset(mtexture);
 
@@ -209,16 +210,19 @@ int main(int argc, char* argv[]) {
     // ==Asset== Attach sub level, then add to it an array of sub-levels,
     // each rotated, and each containing a displaced box, thus making a
     // spiral of cubes
-    auto mlevelB = std::make_shared<ChAssetLevel>();
+    auto mlevelB = chrono_types::make_shared<ChAssetLevel>();
     for (int j = 0; j < 20; j++) {
         // ==Asset== the sub sub level..
-        auto mlevelC = std::make_shared<ChAssetLevel>();
+        auto mlevelC = chrono_types::make_shared<ChAssetLevel>();
 
         // ==Asset== the contained box..
-        auto msmallbox = std::make_shared<ChBoxShape>();
+        auto msmallbox = chrono_types::make_shared<ChBoxShape>();
         msmallbox->GetBoxGeometry().Pos = ChVector<>(0.4, 0, 0);
         msmallbox->GetBoxGeometry().Size = ChVector<>(0.1, 0.1, 0.01);
         mlevelC->AddAsset(msmallbox);
+
+        auto boxcol = chrono_types::make_shared<ChColorAsset>(j * 0.05f, 1 - j * 0.05f, 0.0f);
+        mlevelC->AddAsset(boxcol);
 
         ChQuaternion<> mrot;
         mrot.Q_from_AngAxis(j * 21 * CH_C_DEG_TO_RAD, ChVector<>(0, 1, 0));
@@ -233,7 +237,7 @@ int main(int argc, char* argv[]) {
     // ==Asset== Attach a video camera. This will be used by Irrlicht,
     // or POVray postprocessing, etc. Note that a camera can also be
     // put in a moving object.
-    auto mcamera = std::make_shared<ChCamera>();
+    auto mcamera = chrono_types::make_shared<ChCamera>();
     mcamera->SetAngle(50);
     mcamera->SetPosition(ChVector<>(-3, 4, -5));
     mcamera->SetAimPoint(ChVector<>(0, 1, 0));
@@ -250,12 +254,14 @@ int main(int argc, char* argv[]) {
 
     // Create the ChParticleClones, populate it with some random particles,
     // and add it to physical system:
-    auto mparticles = std::make_shared<ChParticlesClones>();
+    auto mparticles = chrono_types::make_shared<ChParticlesClones>();
 
     // Note: coll. shape, if needed, must be specified before creating particles.
     // This will be shared among all particles in the ChParticlesClones.
+    auto particle_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+
     mparticles->GetCollisionModel()->ClearModel();
-    mparticles->GetCollisionModel()->AddSphere(0.05);
+    mparticles->GetCollisionModel()->AddSphere(particle_mat, 0.05);
     mparticles->GetCollisionModel()->BuildModel();
     mparticles->SetCollide(true);
 
@@ -273,7 +279,7 @@ int main(int argc, char* argv[]) {
 
     //  ==Asset== Attach a 'sphere' shape asset.. it will be used as a sample
     // shape to display all particles when rendering in 3D!
-    auto mspherepart = std::make_shared<ChSphereShape>();
+    auto mspherepart = chrono_types::make_shared<ChSphereShape>();
     mspherepart->GetSphereGeometry().rad = 0.05;
     mparticles->AddAsset(mspherepart);
 
@@ -285,7 +291,8 @@ int main(int argc, char* argv[]) {
     mpoints.push_back( ChVector<>(0.0,0.3,0.3)+displ );
     mpoints.push_back( ChVector<>(0.0,0.0,0.3)+displ );
     mpoints.push_back( ChVector<>(0.8,0.0,0.3)+displ );
-    auto mhull = std::make_shared<ChBodyEasyConvexHullAuxRef>(mpoints, 1000, true, true);
+    auto mhull = chrono_types::make_shared<ChBodyEasyConvexHullAuxRef>(
+        mpoints, 1000, true, true, chrono_types::make_shared<ChMaterialSurfaceNSC>());
     //mhull->SetFrame_REF_to_abs(ChFrame<>(ChVector<>(2,0.3,0)));
     //mhull->SetPos(ChVector<>(2,0.3,0));
     mhull->Move(ChVector<>(2,0.3,0));
@@ -309,7 +316,6 @@ int main(int argc, char* argv[]) {
     // THE SOFT-REAL-TIME CYCLE
     //
 
-    application.SetStepManage(true);
     application.SetTimestep(0.01);
     application.SetTryRealtime(true);
 

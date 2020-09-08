@@ -16,6 +16,7 @@
 // =============================================================================
 
 #include "chrono_parallel/math/matrix.h"
+#include "chrono/core/ChMatrixMBD.h"
 
 #include "unit_testing.h"
 
@@ -139,21 +140,18 @@ TEST_F(Mat33Test, functions) {
     {
         // Cross Matrix
         Mat33 cross_m1 = SkewSymmetric(n);
-        ChMatrix33<real> cross_m2;
-        cross_m2.Set_X_matrix(ToChVector(n));
+        ChStarMatrix33<real> cross_m2(ToChVector(n));
         Assert_near(cross_m1, ToMat33(cross_m2));
     }
     {
         // Multiply T Matrix
         Mat33 Res1 = TransposeMult(A1, A2);
-        ChMatrix33<real> Res2;
-        Res2.MatrTMultiply(B1, B2);
+        ChMatrix33<real> Res2 = B1.transpose() * B2;
         Assert_near(Res1, ToMat33(Res2), C_EPSILON * 2);
     }
     {
         // Multiply Matrix T
-        ChMatrix33<real> Res2;
-        Res2.MatrMultiplyT(B1, B2);
+        ChMatrix33<real> Res2 = B1 * B2.transpose();
         Assert_near(MultTranspose(A1, A2), ToMat33(Res2), C_EPSILON * 2);
     }
     {

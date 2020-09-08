@@ -9,9 +9,9 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Alessandro Tasora
+// Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
-// Utilities for rotations in 3D. Adapted from MBDyn
+// Utilities for rotations in 3D. Adapted from MBDyn.
 // =============================================================================
 
 #ifndef CHROTUTILS_H
@@ -166,106 +166,89 @@ void CoeffEStar(const T1& phi, const ChVector<>& p, T2* const coeff, T2* const c
     coeffs[1] = -(coeff[4] + coeff[5]) / (coeff[1] * 4.);
 };
 
-/// Compute the rotation matrix Phi from Euler Rogriguez's parameters phi
+/// Compute the rotation matrix Phi from Euler Rogriguez's parameters phi.
 static ChMatrix33<> Rot(const ChVector<>& phi) {
     double coeff[COEFF_B];
 
     CoeffB(phi, phi, coeff);
 
     ChMatrix33<> Eye(1);
-    ChMatrix33<> Phix;
-    Phix.Set_X_matrix(phi * coeff[0]);
-    ChMatrix33<> Phi(Eye + Phix); /* I + c[0] * phi x */
-    ChMatrix33<> pxpx;
-    pxpx.Set_XY_matrix(phi, phi * coeff[1]);
-    Phi += pxpx; /* += c[1] * phi x phi x */
+    ChStarMatrix33<> Phix(phi * coeff[0]);
+    ChStarMatrix33<> pxpx(phi, phi * coeff[1]);
 
-    return Phi;
+    return Eye + Phix + pxpx; // I + c[0] * phi x + c[1] * phi x phi x
 }
 
-/// Compute a G matrix from Euler Rogriguez's parameters Phi
-/// G defined in such a way that dPhi * PhiT = G * dphi
+/// Compute a G matrix from Euler Rogriguez's parameters Phi.
+/// G is defined in such a way that dPhi * PhiT = G * dphi.
 static ChMatrix33<> DRot(const ChVector<>& phi) {
     double coeff[COEFF_C];
 
     CoeffC(phi, phi, coeff);
 
     ChMatrix33<> Eye(1);
-    ChMatrix33<> Phix;
-    Phix.Set_X_matrix(phi * coeff[1]);
-    ChMatrix33<> Ga(Eye + Phix); /* I + c[1] * phi x */
-    ChMatrix33<> pxpx;
-    pxpx.Set_XY_matrix(phi, phi * coeff[2]);
-    Ga += pxpx; /* += c[2] * phi x phi x */
+    ChStarMatrix33<> Phix(phi * coeff[1]);
+    ChStarMatrix33<> pxpx(phi, phi * coeff[2]);
 
-    return Ga;
+    return Eye + Phix + pxpx; // I + c[1] * phi x += c[2] * phi x phi x
 }
 
-/// Compute rotation matrix Phi and Ga matrix
-/// from Euler Rogriguez's parameters Phi
+/// Compute rotation matrix Phi and Ga matrix from Euler Rogriguez's parameters Phi.
 static void RotAndDRot(const ChVector<>& phi, ChMatrix33<>& Phi, ChMatrix33<>& Ga) {
     double coeff[COEFF_C];
 
     CoeffC(phi, phi, coeff);
 
     ChMatrix33<> Eye(1);
-    ChMatrix33<> Phix;
-    Phix.Set_X_matrix(phi * coeff[0]);
-    Phi = (Eye + Phix); /* I + c[0] * phi x */
-    ChMatrix33<> pxpx;
-    pxpx.Set_XY_matrix(phi, phi * coeff[1]);
-    Phi += pxpx; /* += c[1] * phi x phi x */
+    
+    {
+        ChStarMatrix33<> Phix(phi * coeff[0]);
+        ChStarMatrix33<> pxpx(phi, phi * coeff[1]);
+        Phi = Eye + Phix + pxpx;  // I + c[0] * phi x + c[1] * phi x phi x
+    }
 
-    Phix.Set_X_matrix(phi * coeff[1]);
-    Ga = (Eye + Phix); /* I + c[1] * phi x */
-    pxpx.Set_XY_matrix(phi, phi * coeff[2]);
-    Ga += pxpx; /* += c[2] * phi x phi x */
+    {
+        ChStarMatrix33<> Phix(phi * coeff[1]);
+        ChStarMatrix33<> pxpx(phi, phi * coeff[2]);
+        Ga = Eye + Phix + pxpx; // I + c[1] * phi x + c[2] * phi x phi x
+    }
 
     return;
 }
 
-/// Compute the inverse transpose of G matrix from
-/// Euler Rogriguez's parameters Phi
+/// Compute the inverse transpose of G matrix from Euler Rogriguez's parameters Phi.
 static ChMatrix33<> DRot_IT(const ChVector<>& phi) {
     double coeff[COEFF_D], coeffs[COEFF_C_STAR];
 
     CoeffCStar(phi, phi, coeff, coeffs);
 
     ChMatrix33<> Eye(1);
-    ChMatrix33<> Phix;
-    Phix.Set_X_matrix(phi * 0.5);
-    ChMatrix33<> GaIT(Eye + Phix); /* I +  0.5 phi x */
-    ChMatrix33<> pxpx;
-    pxpx.Set_XY_matrix(phi, phi * coeffs[0]);
-    GaIT += pxpx;
+    ChStarMatrix33<> Phix(phi * 0.5);
+    ChStarMatrix33<> pxpx(phi, phi * coeffs[0]);
 
-    return GaIT;
+    return Eye + Phix + pxpx;
 }
 
-/// Compute the inverse of G matrix from Euler Rogriguez's parameters Phi
+/// Compute the inverse of G matrix from Euler Rogriguez's parameters Phi.
 static ChMatrix33<> DRot_I(const ChVector<>& phi) {
     double coeff[COEFF_D], coeffs[COEFF_C_STAR];
 
     CoeffCStar(phi, phi, coeff, coeffs);
 
     ChMatrix33<> Eye(1);
-    ChMatrix33<> Phix;
-    Phix.Set_X_matrix(phi * (-0.5));
-    ChMatrix33<> GaI(Eye + Phix); /* I +  -0.5 phi x */
-    ChMatrix33<> pxpx;
-    pxpx.Set_XY_matrix(phi, phi * coeffs[0]);
-    GaI += pxpx;
+    ChStarMatrix33<> Phix(phi * (-0.5));
+    ChStarMatrix33<> pxpx(phi, phi * coeffs[0]);
 
-    return GaI;
+    return Eye + Phix + pxpx;
 }
 
 
-/// Compute Euler Rogriguez's parameters phi from rotation matrix Phi
+/// Compute Euler Rogriguez's parameters phi from rotation matrix Phi.
 static ChVector<> VecRot(const ChMatrix33<>& Phi) {
     double a, cosphi, sinphi;
     ChVector<> unit;
 
-    cosphi = (Phi.GetTrace() - 1.) / 2.;
+    cosphi = (Phi.trace() - 1.) / 2.;
     if (cosphi > 0.) {
         unit = Phi.GetAx();
         sinphi = unit.Length();
@@ -274,7 +257,7 @@ static ChVector<> VecRot(const ChMatrix33<>& Phi) {
         unit /= a;
     } else {
         // -1 <= cosphi <= 0
-        ChMatrix33<> eet(Phi.GetSymm());
+        ChMatrix33<> eet = 0.5 * (Phi + Phi.transpose());
         eet(0, 0) -= cosphi;
         eet(1, 1) -= cosphi;
         eet(2, 2) -= cosphi;
@@ -289,30 +272,22 @@ static ChVector<> VecRot(const ChMatrix33<>& Phi) {
             col = eet.Get_A_Zaxis();
         }
         unit = (col / sqrt(eet(maxcol, maxcol) * (1. - cosphi)));
-        ChMatrix33<> unitx;
-        unitx.Set_X_matrix(unit);
-        sinphi = -(unitx * Phi).GetTrace() / 2.;
+        ChStarMatrix33<> unitx(unit);
+        sinphi = -(unitx * Phi).trace() / 2.;
         unit *= atan2(sinphi, cosphi);
     }
     return unit;
 }
 
 /// Compute, given Euler Rogriguez's parameters phi, a L matrix such that
-/// dG * a = L(phi, a) * dphi
+/// dG * a = L(phi, a) * dphi.
 static ChMatrix33<> Elle(const ChVector<>& phi, const ChVector<>& a) {
     double coeff[COEFF_E];
     CoeffE(phi, phi, coeff);
 
-    ChMatrix33<> L;
-    L.Set_X_matrix(a * (-coeff[1]));
-    ChMatrix33<> mx;
-    mx.Set_XY_matrix(phi, a * coeff[2]);
-    L -= mx;
-    mx.Set_X_matrix(Vcross(phi, a * coeff[2]));
-    L -= mx;
-    L += TensorProduct(Vcross(phi, a), phi * coeff[3]);
-    mx.Set_XY_matrix(phi, phi);
-    L += TensorProduct(mx * a, phi * coeff[4]);
+    ChStarMatrix33<> L(a * (-coeff[1]));
+    L -= ChStarMatrix33<>(phi, a * coeff[2]) + ChStarMatrix33<>(Vcross(phi, a * coeff[2]));
+    L += TensorProduct(Vcross(phi, a), phi * coeff[3]) + TensorProduct(ChStarMatrix33<>(phi, phi) * a, phi * coeff[4]);
 
     return L;
 }

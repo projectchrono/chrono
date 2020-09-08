@@ -21,7 +21,7 @@
 #include "chrono/assets/ChColorAsset.h"
 #include "chrono/assets/ChCylinderShape.h"
 #include "chrono/assets/ChTexture.h"
-#include "chrono/physics/ChGlobal.h"
+#include "chrono/core/ChGlobal.h"
 
 #include "chrono/physics/ChLoadContainer.h"
 
@@ -85,28 +85,10 @@ void ChTrackShoeBandBushing::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
         m_web_segments[is]->SetRot(rot);
         m_web_segments[is]->SetMass(m_seg_mass);
         m_web_segments[is]->SetInertiaXX(m_seg_inertia);
+        m_web_segments[is]->SetCollide(true);
         chassis->GetSystem()->AddBody(m_web_segments[is]);
 
-        // Add contact geometry.
-        m_web_segments[is]->SetCollide(true);
-
-        switch (m_web_segments[is]->GetContactMethod()) {
-            case ChMaterialSurface::NSC:
-                m_web_segments[is]->GetMaterialSurfaceNSC()->SetFriction(m_friction);
-                m_web_segments[is]->GetMaterialSurfaceNSC()->SetRestitution(m_restitution);
-                break;
-            case ChMaterialSurface::SMC:
-                m_web_segments[is]->GetMaterialSurfaceSMC()->SetFriction(m_friction);
-                m_web_segments[is]->GetMaterialSurfaceSMC()->SetRestitution(m_restitution);
-                m_web_segments[is]->GetMaterialSurfaceSMC()->SetYoungModulus(m_young_modulus);
-                m_web_segments[is]->GetMaterialSurfaceSMC()->SetPoissonRatio(m_poisson_ratio);
-                m_web_segments[is]->GetMaterialSurfaceSMC()->SetKn(m_kn);
-                m_web_segments[is]->GetMaterialSurfaceSMC()->SetGn(m_gn);
-                m_web_segments[is]->GetMaterialSurfaceSMC()->SetKt(m_kt);
-                m_web_segments[is]->GetMaterialSurfaceSMC()->SetGt(m_gt);
-                break;
-        }
-
+        // Add contact geometry
         AddWebContact(m_web_segments[is]);
     }
 }
@@ -139,7 +121,7 @@ void ChTrackShoeBandBushing::AddWebContact(std::shared_ptr<ChBody> segment) {
     segment->GetCollisionModel()->SetFamily(TrackedCollisionFamily::SHOES);
     segment->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(TrackedCollisionFamily::SHOES);
 
-    segment->GetCollisionModel()->AddBox(m_seg_length / 2, GetBeltWidth() / 2, GetWebThickness() / 2);
+    segment->GetCollisionModel()->AddBox(m_body_material, m_seg_length / 2, GetBeltWidth() / 2, GetWebThickness() / 2);
 
     segment->GetCollisionModel()->BuildModel();
 }
@@ -163,13 +145,15 @@ void ChTrackShoeBandBushing::RemoveVisualizationAssets() {
 }
 
 void ChTrackShoeBandBushing::AddWebVisualization(std::shared_ptr<ChBody> segment) {
-    segment->AddAsset(std::make_shared<ChColorAsset>(GetColor(m_index)));
+    ChColor col1 = GetColor(m_index);
+    ChColor col2(col1.R + 0.1f, col1.G + 0.1f, col1.B + 0.1f);
+    segment->AddAsset(chrono_types::make_shared<ChColorAsset>(col2));
 
-    auto box = std::make_shared<ChBoxShape>();
+    auto box = chrono_types::make_shared<ChBoxShape>();
     box->GetBoxGeometry().SetLengths(ChVector<>(m_seg_length, GetBeltWidth(), GetWebThickness()));
     segment->AddAsset(box);
 
-    auto cyl = std::make_shared<ChCylinderShape>();
+    auto cyl = chrono_types::make_shared<ChCylinderShape>();
     double radius = GetWebThickness() / 4;
     cyl->GetCylinderGeometry().rad = radius;
     cyl->GetCylinderGeometry().p1 = ChVector<>(m_seg_length / 2, -GetBeltWidth() / 2 - 2 * radius, 0);
@@ -179,14 +163,17 @@ void ChTrackShoeBandBushing::AddWebVisualization(std::shared_ptr<ChBody> segment
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChTrackShoeBandBushing::Connect(std::shared_ptr<ChTrackShoe> next) {
+void ChTrackShoeBandBushing::Connect(std::shared_ptr<ChTrackShoe> next, bool ccw) {
     // Bushings are inherited from ChLoad, so they require a 'load container'
-    auto loadcontainer = std::make_shared<ChLoadContainer>();
+    auto loadcontainer = chrono_types::make_shared<ChLoadContainer>();
     m_shoe->GetSystem()->Add(loadcontainer);
 
     // Stiffness and Damping matrix values
     ChMatrixNM<double, 6, 6> K_matrix;
     ChMatrixNM<double, 6, 6> R_matrix;
+
+    K_matrix.setZero();
+    R_matrix.setZero();
 
     K_matrix(0, 0) = m_Klin;
     K_matrix(1, 1) = m_Klin;
@@ -208,7 +195,7 @@ void ChTrackShoeBandBushing::Connect(std::shared_ptr<ChTrackShoe> next) {
     {
         ChVector<> loc = m_shoe->TransformPointLocalToParent(ChVector<>(GetToothBaseLength() / 2, 0, 0));
         ChQuaternion<>& rot = m_shoe->GetRot();
-        auto loadbushing = std::make_shared<ChLoadBodyBodyBushingGeneric>(
+        auto loadbushing = chrono_types::make_shared<ChLoadBodyBodyBushingGeneric>(
             m_shoe,               // body A
             m_web_segments[0],    // body B
             ChFrame<>(loc, rot),  // initial frame of bushing in abs space
@@ -226,7 +213,7 @@ void ChTrackShoeBandBushing::Connect(std::shared_ptr<ChTrackShoe> next) {
     for (size_t is = 0; is < GetNumWebSegments() - 1; is++) {
         ChVector<> loc = m_web_segments[is]->TransformPointLocalToParent(ChVector<>(m_seg_length / 2, 0, 0));
         ChQuaternion<>& rot = m_web_segments[is]->GetRot();
-        auto loadbushing = std::make_shared<ChLoadBodyBodyBushingGeneric>(
+        auto loadbushing = chrono_types::make_shared<ChLoadBodyBodyBushingGeneric>(
             m_web_segments[is],      // body A
             m_web_segments[is + 1],  // body B
             ChFrame<>(loc, rot),     // initial frame of bushing in abs space
@@ -245,7 +232,7 @@ void ChTrackShoeBandBushing::Connect(std::shared_ptr<ChTrackShoe> next) {
         int is = GetNumWebSegments() - 1;
         ChVector<> loc = m_web_segments[is]->TransformPointLocalToParent(ChVector<>(m_seg_length / 2, 0, 0));
         ChQuaternion<>& rot = m_web_segments[is]->GetRot();
-        auto loadbushing = std::make_shared<ChLoadBodyBodyBushingGeneric>(
+        auto loadbushing = chrono_types::make_shared<ChLoadBodyBodyBushingGeneric>(
             m_web_segments[is],   // body A
             next->GetShoeBody(),  // body B
             ChFrame<>(loc, rot),  // initial frame of bushing in abs space

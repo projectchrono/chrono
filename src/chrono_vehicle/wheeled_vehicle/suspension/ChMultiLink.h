@@ -68,22 +68,19 @@ class CH_VEHICLE_API ChMultiLink : public ChSuspension {
     virtual bool IsIndependent() const final override { return true; }
 
     /// Initialize this suspension subsystem.
-    /// The suspension subsystem is initialized by attaching it to the specified
-    /// chassis body at the specified location (with respect to and expressed in
-    /// the reference frame of the chassis). It is assumed that the suspension
-    /// reference frame is always aligned with the chassis reference frame.
-    /// 'tierod_body' is a handle to the body to which the suspension tierods
-    /// are to be attached. For a steered suspension, this will be the steering
-    /// (central) link of a suspension subsystem.  Otherwise, this is the chassis.
-    /// If this suspension is steered, 'steering_index' indicates the index of the
-    /// associated steering mechanism in the vehicle's list (-1 for a non-steered suspension).
-    virtual void Initialize(std::shared_ptr<ChBodyAuxRef> chassis,  ///< [in] handle to the chassis body
-                            const ChVector<>& location,             ///< [in] location relative to the chassis frame
-                            std::shared_ptr<ChBody> tierod_body,    ///< [in] body to which tireods are connected
-                            int steering_index,                     ///< [in] index of the associated steering mechanism
-                            double left_ang_vel = 0,                ///< [in] initial angular velocity of left wheel
-                            double right_ang_vel = 0                ///< [in] initial angular velocity of right wheel
-                            ) override;
+    /// The suspension subsystem is initialized by attaching it to the specified chassis and (if provided) to the
+    /// specified subchassis, at the specified location (with respect to and expressed in the reference frame of the
+    /// chassis). It is assumed that the suspension reference frame is always aligned with the chassis reference frame.
+    /// If a steering subsystem is provided, the suspension tierods are to be attached to the steering's central link
+    /// body (steered suspension); otherwise they are to be attached to the chassis (non-steered suspension).
+    virtual void Initialize(
+        std::shared_ptr<ChChassis> chassis,        ///< [in] associated chassis subsystem
+        std::shared_ptr<ChSubchassis> subchassis,  ///< [in] associated subchassis subsystem (may be null)
+        std::shared_ptr<ChSteering> steering,      ///< [in] associated steering subsystem (may be null)
+        const ChVector<>& location,                ///< [in] location relative to the chassis frame
+        double left_ang_vel = 0,                   ///< [in] initial angular velocity of left wheel
+        double right_ang_vel = 0                   ///< [in] initial angular velocity of right wheel
+        ) override;
 
     /// Add visualization assets for the suspension subsystem.
     /// This default implementation uses primitives.
@@ -102,36 +99,35 @@ class CH_VEHICLE_API ChMultiLink : public ChSuspension {
     virtual double GetTrack() override;
 
     /// Get a handle to the specified spring element.
-    std::shared_ptr<ChLinkSpringCB> GetSpring(VehicleSide side) const { return m_spring[side]; }
-
-    /// Get the force in the spring element.
-    double GetSpringForce(VehicleSide side) const { return m_spring[side]->GetSpringReact(); }
-
-    /// Get the current length of the spring element
-    double GetSpringLength(VehicleSide side) const { return m_spring[side]->GetSpringLength(); }
-
-    /// Get the current deformation of the spring element.
-    double GetSpringDeformation(VehicleSide side) const { return m_spring[side]->GetSpringDeform(); }
+    std::shared_ptr<ChLinkTSDA> GetSpring(VehicleSide side) const { return m_spring[side]; }
 
     /// Get a handle to the specified shock (damper) element.
-    std::shared_ptr<ChLinkSpringCB> GetShock(VehicleSide side) const { return m_shock[side]; }
+    std::shared_ptr<ChLinkTSDA> GetShock(VehicleSide side) const { return m_shock[side]; }
+
+    /// Return current suspension forces (spring and shock) on the specified side.
+    virtual ChSuspension::Force ReportSuspensionForce(VehicleSide side) const override;
+
+    /// Get the force in the spring element.
+    double GetSpringForce(VehicleSide side) const { return m_spring[side]->GetForce(); }
+
+    /// Get the current length of the spring element
+    double GetSpringLength(VehicleSide side) const { return m_spring[side]->GetLength(); }
+
+    /// Get the current deformation of the spring element.
+    double GetSpringDeformation(VehicleSide side) const { return m_spring[side]->GetDeformation(); }
 
     /// Get the force in the shock (damper) element.
-    double GetShockForce(VehicleSide side) const { return m_shock[side]->GetSpringReact(); }
+    double GetShockForce(VehicleSide side) const { return m_shock[side]->GetForce(); }
 
     /// Get the current length of the shock (damper) element.
-    double GetShockLength(VehicleSide side) const { return m_shock[side]->GetSpringLength(); }
+    double GetShockLength(VehicleSide side) const { return m_shock[side]->GetLength(); }
 
     /// Get the current deformation velocity of the shock (damper) element.
-    double GetShockVelocity(VehicleSide side) const { return m_shock[side]->GetSpringVelocity(); }
+    double GetShockVelocity(VehicleSide side) const { return m_shock[side]->GetVelocity(); }
 
-    /// Specify the left body for a possible antirollbar subsystem.
-    /// Return a handle to the left trailing link.
-    virtual std::shared_ptr<ChBody> GetLeftBody() const override { return m_trailingLink[0]; }
-
-    /// Specify the right body for a possible antirollbar subsystem.
-    /// Return a handle to the right trailing link.
-    virtual std::shared_ptr<ChBody> GetRightBody() const override { return m_trailingLink[1]; }
+    /// Specify the suspension body on the specified side to attach a possible antirollbar subsystem.
+    /// Return the corresponding trailing link.
+    virtual std::shared_ptr<ChBody> GetAntirollBody(VehicleSide side) const override { return m_trailingLink[side]; }
 
     /// Log current constraint violations.
     virtual void LogConstraintViolations(VehicleSide side) override;
@@ -219,9 +215,9 @@ class CH_VEHICLE_API ChMultiLink : public ChSuspension {
     /// Return the free (rest) length of the spring element.
     virtual double getSpringRestLength() const = 0;
     /// Return the functor object for spring force.
-    virtual ChLinkSpringCB::ForceFunctor* getSpringForceFunctor() const = 0;
+    virtual std::shared_ptr<ChLinkTSDA::ForceFunctor> getSpringForceFunctor() const = 0;
     /// Return the functor object for shock force.
-    virtual ChLinkSpringCB::ForceFunctor* getShockForceFunctor() const = 0;
+    virtual std::shared_ptr<ChLinkTSDA::ForceFunctor> getShockForceFunctor() const = 0;
 
     std::shared_ptr<ChBody> m_upright[2];       ///< handles to the upright bodies (left/right)
     std::shared_ptr<ChBody> m_upperArm[2];      ///< handles to the upper arm bodies (left/right)
@@ -240,8 +236,8 @@ class CH_VEHICLE_API ChMultiLink : public ChSuspension {
         m_sphericalTLUpright[2];  ///< handles to the upright-trailing link spherical joints (left/right)
     std::shared_ptr<ChLinkDistance> m_distTierod[2];  ///< handles to the tierod distance constraints (left/right)
 
-    std::shared_ptr<ChLinkSpringCB> m_shock[2];   ///< handles to the spring links (left/right)
-    std::shared_ptr<ChLinkSpringCB> m_spring[2];  ///< handles to the shock links (left/right)
+    std::shared_ptr<ChLinkTSDA> m_shock[2];   ///< handles to the spring links (left/right)
+    std::shared_ptr<ChLinkTSDA> m_spring[2];  ///< handles to the shock links (left/right)
 
   private:
     // Hardpoint absolute locations and directions

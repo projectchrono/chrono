@@ -29,12 +29,17 @@ const double M113_ShaftsPowertrain::m_motorblock_inertia = 10.5;
 const double M113_ShaftsPowertrain::m_crankshaft_inertia = 1.1;
 const double M113_ShaftsPowertrain::m_ingear_shaft_inertia = 0.3;
 
+const double M113_ShaftsPowertrain::m_upshift_RPM = 2500;
+const double M113_ShaftsPowertrain::m_downshift_RPM = 1500;
+
 // -----------------------------------------------------------------------------
 // Constructor of the M113_ShaftsPowertrain.
 // the direction of the motor block is along the X axis, while the directions of
 // the axles is along the Y axis (relative to the chassis coordinate frame),
 // -----------------------------------------------------------------------------
-M113_ShaftsPowertrain::M113_ShaftsPowertrain(const std::string& name) : ChShaftsPowertrain(name, ChVector<>(1, 0, 0)) {}
+M113_ShaftsPowertrain::M113_ShaftsPowertrain(const std::string& name) : ChShaftsPowertrain(name, ChVector<>(1, 0, 0)) {
+    SetGearShiftLatency(0.5);
+}
 
 // -----------------------------------------------------------------------------
 // Initialize vector of gear ratios

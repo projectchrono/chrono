@@ -79,17 +79,18 @@ class CH_VEHICLE_API ChLeafspringAxle : public ChSuspension {
     virtual bool IsIndependent() const final override { return false; }
 
     /// Initialize this suspension subsystem.
-    /// The suspension subsystem is initialized by attaching it to the specified
-    /// chassis body at the specified location (with respect to and expressed in
-    /// the reference frame of the chassis). It is assumed that the suspension
-    /// reference frame is always aligned with the chassis reference frame.
-    virtual void Initialize(std::shared_ptr<ChBodyAuxRef> chassis,  ///< [in] handle to the chassis body
-                            const ChVector<>& location,             ///< [in] location relative to the chassis frame
-                            std::shared_ptr<ChBody> tierod_body,    ///< [in] body to which tireods are connected
-                            int steering_index,                     ///< [in] index of the associated steering mechanism
-                            double left_ang_vel = 0,                ///< [in] initial angular velocity of left wheel
-                            double right_ang_vel = 0                ///< [in] initial angular velocity of right wheel
-                            ) override;
+    /// The suspension subsystem is initialized by attaching it to the specified chassis and (if provided) to the
+    /// specified subchassis, at the specified location (with respect to and expressed in the reference frame of the
+    /// chassis). It is assumed that the suspension reference frame is always aligned with the chassis reference frame.
+    /// Since this suspension is non-steerable, the steering subsystem is always ignored.
+    virtual void Initialize(
+        std::shared_ptr<ChChassis> chassis,        ///< [in] associated chassis subsystem
+        std::shared_ptr<ChSubchassis> subchassis,  ///< [in] associated subchassis subsystem (may be null)
+        std::shared_ptr<ChSteering> steering,      ///< [in] associated steering subsystem (may be null)
+        const ChVector<>& location,                ///< [in] location relative to the chassis frame
+        double left_ang_vel = 0,                   ///< [in] initial angular velocity of left wheel
+        double right_ang_vel = 0                   ///< [in] initial angular velocity of right wheel
+        ) override;
 
     /// Add visualization assets for the suspension subsystem.
     /// This default implementation uses primitives.
@@ -108,28 +109,31 @@ class CH_VEHICLE_API ChLeafspringAxle : public ChSuspension {
     virtual double GetTrack() override;
 
     /// Get a handle to the specified spring element.
-    std::shared_ptr<ChLinkSpringCB> GetSpring(VehicleSide side) const { return m_spring[side]; }
-
-    /// Get the force in the spring element.
-    double GetSpringForce(VehicleSide side) const { return m_spring[side]->GetSpringReact(); }
-
-    /// Get the current length of the spring element
-    double GetSpringLength(VehicleSide side) const { return m_spring[side]->GetSpringLength(); }
-
-    /// Get the current deformation of the spring element.
-    double GetSpringDeformation(VehicleSide side) const { return m_spring[side]->GetSpringDeform(); }
+    std::shared_ptr<ChLinkTSDA> GetSpring(VehicleSide side) const { return m_spring[side]; }
 
     /// Get a handle to the specified shock (damper) element.
-    std::shared_ptr<ChLinkSpringCB> GetShock(VehicleSide side) const { return m_shock[side]; }
+    std::shared_ptr<ChLinkTSDA> GetShock(VehicleSide side) const { return m_shock[side]; }
+
+    /// Return current suspension forces (spring and shock) on the specified side.
+    virtual ChSuspension::Force ReportSuspensionForce(VehicleSide side) const override;
+
+    /// Get the force in the spring element.
+    double GetSpringForce(VehicleSide side) const { return m_spring[side]->GetForce(); }
+
+    /// Get the current length of the spring element
+    double GetSpringLength(VehicleSide side) const { return m_spring[side]->GetLength(); }
+
+    /// Get the current deformation of the spring element.
+    double GetSpringDeformation(VehicleSide side) const { return m_spring[side]->GetDeformation(); }
 
     /// Get the force in the shock (damper) element.
-    double GetShockForce(VehicleSide side) const { return m_shock[side]->GetSpringReact(); }
+    double GetShockForce(VehicleSide side) const { return m_shock[side]->GetForce(); }
 
     /// Get the current length of the shock (damper) element.
-    double GetShockLength(VehicleSide side) const { return m_shock[side]->GetSpringLength(); }
+    double GetShockLength(VehicleSide side) const { return m_shock[side]->GetLength(); }
 
     /// Get the current deformation velocity of the shock (damper) element.
-    double GetShockVelocity(VehicleSide side) const { return m_shock[side]->GetSpringVelocity(); }
+    double GetShockVelocity(VehicleSide side) const { return m_shock[side]->GetVelocity(); }
 
     /// Log current constraint violations.
     virtual void LogConstraintViolations(VehicleSide side) override;
@@ -173,9 +177,9 @@ class CH_VEHICLE_API ChLeafspringAxle : public ChSuspension {
     /// Return the free (rest) length of the spring element.
     virtual double getSpringRestLength() const = 0;
     /// Return the functor object for spring force.
-    virtual ChLinkSpringCB::ForceFunctor* getSpringForceFunctor() const = 0;
+    virtual std::shared_ptr<ChLinkTSDA::ForceFunctor> getSpringForceFunctor() const = 0;
     /// Return the functor object for shock force.
-    virtual ChLinkSpringCB::ForceFunctor* getShockForceFunctor() const = 0;
+    virtual std::shared_ptr<ChLinkTSDA::ForceFunctor> getShockForceFunctor() const = 0;
 
     std::shared_ptr<ChBody> m_axleTube;  ///< handles to the axle tube body
     std::shared_ptr<ChBody> m_tierod;    ///< handles to the tierod body
@@ -183,8 +187,8 @@ class CH_VEHICLE_API ChLeafspringAxle : public ChSuspension {
     std::shared_ptr<ChLinkLockRevolutePrismatic> m_axleTubeGuide;  ///< allows translation Z and rotation X
     std::shared_ptr<ChLinkLockSpherical> m_sphericalTierod;        ///< knuckle-tierod spherical joint (left)
 
-    std::shared_ptr<ChLinkSpringCB> m_shock[2];   ///< handles to the spring links (L/R)
-    std::shared_ptr<ChLinkSpringCB> m_spring[2];  ///< handles to the shock links (L/R)
+    std::shared_ptr<ChLinkTSDA> m_shock[2];   ///< handles to the spring links (L/R)
+    std::shared_ptr<ChLinkTSDA> m_spring[2];  ///< handles to the shock links (L/R)
 
   private:
     // Hardpoint absolute locations
@@ -201,7 +205,7 @@ class CH_VEHICLE_API ChLeafspringAxle : public ChSuspension {
 
     void InitializeSide(VehicleSide side,
                         std::shared_ptr<ChBodyAuxRef> chassis,
-                        std::shared_ptr<ChBody> tierod_body,
+                        std::shared_ptr<ChBody> scbeam,
                         const std::vector<ChVector<>>& points,
                         double ang_vel);
 

@@ -20,6 +20,7 @@
 // =============================================================================
 
 #include "chrono/ChConfig.h"
+#include "chrono/assets/ChSphereShape.h"
 #include "chrono/utils/ChUtilsCreators.h"
 
 #include "chrono_parallel/physics/ChSystemParallel.h"
@@ -33,7 +34,7 @@
 
 using namespace chrono;
 
-class ContactForceTest : public ::testing::TestWithParam<ChMaterialSurface::ContactMethod> {
+class ContactForceTest : public ::testing::TestWithParam<ChContactMethod> {
   protected:
     ContactForceTest();
     ~ContactForceTest() { delete system; }
@@ -60,14 +61,14 @@ ContactForceTest::ContactForceTest() {
 
     std::shared_ptr<ChMaterialSurface> material;
     switch (GetParam()) {
-        case ChMaterialSurface::SMC: {
+        case ChContactMethod::SMC: {
             ChSystemParallelSMC* sys = new ChSystemParallelSMC;
             sys->GetSettings()->solver.contact_force_model = force_model;
             sys->GetSettings()->solver.tangential_displ_mode = tdispl_model;
             sys->GetSettings()->solver.use_material_properties = use_mat_properties;
             system = sys;
 
-            auto mat = std::make_shared<ChMaterialSurfaceSMC>();
+            auto mat = chrono_types::make_shared<ChMaterialSurfaceSMC>();
             mat->SetYoungModulus(young_modulus);
             mat->SetRestitution(restitution);
             mat->SetFriction(friction);
@@ -80,7 +81,7 @@ ContactForceTest::ContactForceTest() {
 
             break;
         }
-        case ChMaterialSurface::NSC: {
+        case ChContactMethod::NSC: {
             ChSystemParallelNSC* sys = new ChSystemParallelNSC;
             sys->GetSettings()->solver.solver_mode = SolverMode::SLIDING;
             sys->GetSettings()->solver.max_iteration_normal = 0;
@@ -89,7 +90,7 @@ ContactForceTest::ContactForceTest() {
             sys->ChangeSolverType(SolverType::APGD);
             system = sys;
 
-            auto mat = std::make_shared<ChMaterialSurfaceNSC>();
+            auto mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
             mat->SetRestitution(restitution);
             mat->SetFriction(friction);
             material = mat;
@@ -128,13 +129,12 @@ ContactForceTest::ContactForceTest() {
         ball->SetWvel_par(init_omg);
         ball->SetCollide(true);
         ball->SetBodyFixed(false);
-        ball->SetMaterialSurface(material);
 
         ball->GetCollisionModel()->ClearModel();
-        ball->GetCollisionModel()->AddSphere(radius);
+        ball->GetCollisionModel()->AddSphere(material, radius);
         ball->GetCollisionModel()->BuildModel();
 
-        auto sphere = std::make_shared<ChSphereShape>();
+        auto sphere = chrono_types::make_shared<ChSphereShape>();
         sphere->GetSphereGeometry().rad = radius;
         sphere->SetColor(ChColor(1, 0, 1));
         ball->AddAsset(sphere);
@@ -179,18 +179,17 @@ TEST_P(ContactForceTest, simulate) {
         system->DoStepDynamics(time_step);
 #endif
 
-        system->CalculateContactForces();
-
-        real3 contact_force = system->GetBodyContactForce(ground);
+        system->GetContactContainer()->ComputeContactForces();
+        ChVector<> contact_force = ground->GetContactForce();
         ////std::cout << "t = " << system->GetChTime() << " num contacts = " << system->GetNumContacts()
-        ////          << "  force =  " << contact_force.y << std::endl;
+        ////          << "  force =  " << contact_force.y() << std::endl;
 
         if (system->GetChTime() > start_time) {
-            ASSERT_LT(std::abs(1 - contact_force.y / total_weight), rtol);
+            ASSERT_LT(std::abs(1 - contact_force.y() / total_weight), rtol);
         }
     }
 }
 
 INSTANTIATE_TEST_CASE_P(ChronoParallel,
                         ContactForceTest,
-                        ::testing::Values(ChMaterialSurface::NSC, ChMaterialSurface::SMC));
+                        ::testing::Values(ChContactMethod::NSC, ChContactMethod::SMC));

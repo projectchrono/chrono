@@ -16,7 +16,7 @@
 #define CHPHYSICSITEM_H
 
 #include "chrono/assets/ChAsset.h"
-#include "chrono/collision/ChCCollisionModel.h"
+#include "chrono/collision/ChCollisionModel.h"
 #include "chrono/core/ChFrame.h"
 #include "chrono/physics/ChObject.h"
 #include "chrono/solver/ChSystemDescriptor.h"
@@ -31,21 +31,6 @@ class ChSystem;
 /// such as rigid bodies, mechanical joints, etc.
 
 class ChApi ChPhysicsItem : public ChObj {
-
-    friend class ChSystem;
-
-  protected:
-    ChSystem* system;  ///< parent system
-
-    std::vector<std::shared_ptr<ChAsset> > assets;  ///< set of assets
-
-    unsigned int offset_x;  ///< offset in vector of state (position part)
-    unsigned int offset_w;  ///< offset in vector of state (speed part)
-    unsigned int offset_L;  ///< offset in vector of lagrangian multipliers
-
-  private:
-    virtual void SetupInitial() {}
-
   public:
     ChPhysicsItem() : system(NULL), offset_x(0), offset_w(0), offset_L(0) {}
     ChPhysicsItem(const ChPhysicsItem& other);
@@ -199,8 +184,7 @@ class ChApi ChPhysicsItem : public ChObj {
     /// Note: only the ChSystem::Setup function should use this
     void SetOffset_L(const unsigned int moff) { offset_L = moff; }
 
-    /// From item's state to global state vectors y={x,v}
-    /// pasting the states at the specified offsets.
+    /// From item's state to global state vectors y={x,v} pasting the states at the specified offsets.
     virtual void IntStateGather(const unsigned int off_x,  ///< offset in x state vector
                                 ChState& x,                ///< state vector, position part
                                 const unsigned int off_v,  ///< offset in v state vector
@@ -208,16 +192,16 @@ class ChApi ChPhysicsItem : public ChObj {
                                 double& T                  ///< time
     ) {}
 
-    /// From global state vectors y={x,v} to  item's state (and update)
-    /// fetching the states at the specified offsets.
+    /// From global state vectors y={x,v} to  item's state (and update) fetching the states at the specified offsets.
     virtual void IntStateScatter(const unsigned int off_x,  ///< offset in x state vector
                                  const ChState& x,          ///< state vector, position part
                                  const unsigned int off_v,  ///< offset in v state vector
                                  const ChStateDelta& v,     ///< state vector, speed part
-                                 const double T             ///< time
+                                 const double T,            ///< time
+                                 bool full_update           ///< perform complete update
     ) {
         // Default behavior: even if no state is used, at least call Update()
-        Update(T);
+        Update(T, full_update);
     }
 
     /// From item's state acceleration to global acceleration vector
@@ -407,6 +391,21 @@ class ChApi ChPhysicsItem : public ChObj {
 
     /// Method to allow deserialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
+
+  protected:
+    ChSystem* system;  ///< parent system
+
+    std::vector<std::shared_ptr<ChAsset> > assets;  ///< set of assets
+
+    unsigned int offset_x;  ///< offset in vector of state (position part)
+    unsigned int offset_w;  ///< offset in vector of state (speed part)
+    unsigned int offset_L;  ///< offset in vector of lagrangian multipliers
+
+  private:
+    virtual void SetupInitial() {}
+
+    friend class ChSystem;
+    friend class ChAssembly;
 };
 
 CH_CLASS_VERSION(ChPhysicsItem, 0)

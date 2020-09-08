@@ -16,7 +16,7 @@
 //
 // =============================================================================
 
-#include "chrono/physics/ChGlobal.h"
+#include "chrono/core/ChGlobal.h"
 #include "chrono/motion_functions/ChFunction.h"
 
 #include "chrono_thirdparty/filesystem/path.h"
@@ -121,15 +121,15 @@ int main(int argc, char* argv[]) {
 
     ChFunction_Sequence f_sequence;
 
-    auto f_constacc1 = std::make_shared<ChFunction_ConstAcc>();
+    auto f_constacc1 = chrono_types::make_shared<ChFunction_ConstAcc>();
     f_constacc1->Set_end(0.5);  // length of ramp
     f_constacc1->Set_h(0.3);    // height of ramp
     f_sequence.InsertFunct(f_constacc1, 0.5, 1, false, false, false, 0);
 
-    auto f_const = std::make_shared<ChFunction_Const>();
+    auto f_const = chrono_types::make_shared<ChFunction_Const>();
     f_sequence.InsertFunct(f_const, 0.4, 1, true, false, false, -1);
 
-    auto f_constacc2 = std::make_shared<ChFunction_ConstAcc>();
+    auto f_constacc2 = chrono_types::make_shared<ChFunction_ConstAcc>();
     f_constacc2->Set_end(0.6);  // length of ramp
     f_constacc2->Set_av(0.3);   // acceleration ends after 30% length
     f_constacc2->Set_aw(0.7);   // deceleration starts after 70% length
@@ -157,19 +157,19 @@ int main(int argc, char* argv[]) {
 
     GetLog() << "==== Test 5...\n\n";
 
-    auto f_part1 = std::make_shared<ChFunction_Ramp>();
+    auto f_part1 = chrono_types::make_shared<ChFunction_Ramp>();
     f_part1->Set_ang(.50);
-    auto f_part2 = std::make_shared<ChFunction_Const>();
+    auto f_part2 = chrono_types::make_shared<ChFunction_Const>();
     f_part2->Set_yconst(1.0);
-    auto f_part3 = std::make_shared<ChFunction_Ramp>();
+    auto f_part3 = chrono_types::make_shared<ChFunction_Ramp>();
     f_part3->Set_ang(-.50);
 
-    auto f_seq = std::make_shared<ChFunction_Sequence>();
+    auto f_seq = chrono_types::make_shared<ChFunction_Sequence>();
     f_seq->InsertFunct(f_part1, 1.0, 1, true);
     f_seq->InsertFunct(f_part2, 1.0, 1., true);
     f_seq->InsertFunct(f_part3, 1.0, 1., true);
 
-    auto f_rep_seq = std::make_shared<ChFunction_Repeat>();
+    auto f_rep_seq = chrono_types::make_shared<ChFunction_Repeat>();
     f_rep_seq->Set_fa(f_seq);
     f_rep_seq->Set_window_length(3.0);
     f_rep_seq->Set_window_start(0.0);

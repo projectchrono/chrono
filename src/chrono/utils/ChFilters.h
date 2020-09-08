@@ -26,7 +26,6 @@
 #include <chrono/motion_functions/ChFunction_Recorder.h>
 #include "chrono/core/ChApiCE.h"
 #include "chrono/core/ChMathematics.h"
-#include "chrono/core/ChMatrixDynamic.h"
 #include "chrono/core/ChVector.h"
 
 namespace chrono {
@@ -429,18 +428,18 @@ class ChApi ChISO2631_Vibration_SeatCushionLogger {
     void AddData(double speed, double acc_x, double acc_y, double acc_z);
     void AddData(double speed, ChVector<>& acc_v) { AddData(speed, acc_v.x(), acc_v.y(), acc_v.z()); }
     void Reset();
-    double GetExposureTime() { return m_logging_time; }
-    double GetInputRMS_X() { return rms(m_data_acc_x); }
-    double GetInputRMS_Y() { return rms(m_data_acc_y); }
-    double GetInputRMS_Z() { return rms(m_data_acc_z); }
-    double GetAW_X() { return m_data_aw_x_avg.back(); }
-    double GetAW_Y() { return m_data_aw_y_avg.back(); }
-    double GetAW_Z() { return m_data_aw_z_avg.back(); }
-    double GetAW_V();
-    double GetCrestFactor() { return maxval(m_data_acc_z) / rms(m_data_acc_z); }
-    double GetVDV();
-    double GetAVGSpeed() { return mean(m_data_speed); }
-    double GetSeverityVDV() { return GetVDV() / (GetAW_V() * pow(m_logging_time, 0.25)); }
+    double GetExposureTime() const { return m_logging_time; }
+    double GetInputRMS_X() const;
+    double GetInputRMS_Y() const;
+    double GetInputRMS_Z() const;
+    double GetAW_X() const;
+    double GetAW_Y() const;
+    double GetAW_Z() const;
+    double GetAW_V() const;
+    double GetCrestFactor() const;
+    double GetVDV() const;
+    double GetAVGSpeed() const;
+    double GetSeverityVDV() const;
     double GetAbsorbedPowerVertical();
     void GeneratePlotFile(std::string fName, std::string testInfo);
 
@@ -501,11 +500,6 @@ class ChApi ChISO2631_Vibration_SeatCushionLogger {
     ChFilterI m_filter_int_vdv_x;
     ChFilterI m_filter_int_vdv_y;
     ChFilterI m_filter_int_vdv_z;
-
-    // helper functions
-    double mean(std::vector<double>& v);
-    double rms(std::vector<double>& v);
-    double maxval(std::vector<double>& v);
 };
 
 // Easy to use class for evaluation of ISO 2361-5 shock load on sitting vehicle occupants

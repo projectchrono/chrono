@@ -19,8 +19,6 @@
 #include "chrono_vehicle/wheeled_vehicle/steering/RackPinion.h"
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
 
-#include "chrono_thirdparty/rapidjson/filereadstream.h"
-
 using namespace rapidjson;
 
 namespace chrono {
@@ -29,15 +27,9 @@ namespace vehicle {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 RackPinion::RackPinion(const std::string& filename) : ChRackPinion("") {
-    FILE* fp = fopen(filename.c_str(), "r");
-
-    char readBuffer[65536];
-    FileReadStream is(fp, readBuffer, sizeof(readBuffer));
-
-    fclose(fp);
-
-    Document d;
-    d.ParseStream<ParseFlag::kParseCommentsFlag>(is);
+    Document d = ReadFileJSON(filename);
+    if (d.IsNull())
+        return;
 
     Create(d);
 
@@ -54,7 +46,7 @@ void RackPinion::Create(const rapidjson::Document& d) {
 
     // Read steering link data
     m_steeringLinkMass = d["Steering Link"]["Mass"].GetDouble();
-    m_steeringLinkInertia = LoadVectorJSON(d["Steering Link"]["Inertia"]);
+    m_steeringLinkInertia = ReadVectorJSON(d["Steering Link"]["Inertia"]);
     m_steeringLinkCOM = d["Steering Link"]["COM"].GetDouble();
     m_steeringLinkRadius = d["Steering Link"]["Radius"].GetDouble();
     m_steeringLinkLength = d["Steering Link"]["Length"].GetDouble();

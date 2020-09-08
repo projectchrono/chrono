@@ -17,7 +17,7 @@
 //
 // =============================================================================
 
-#include "chrono/physics/ChGlobal.h"
+#include "chrono/core/ChGlobal.h"
 #include "chrono/assets/ChCylinderShape.h"
 #include "chrono/assets/ChTexture.h"
 
@@ -38,6 +38,9 @@ void ChSingleIdler::Initialize(std::shared_ptr<ChBodyAuxRef> chassis, const ChVe
     // Invoke the base class method
     ChIdler::Initialize(chassis, location);
 
+    CreateContactMaterial(m_wheel->GetSystem()->GetContactMethod());
+    assert(m_material && m_material->GetContactMethod() == m_wheel->GetSystem()->GetContactMethod());
+
     // Add contact geometry.
     double radius = GetWheelRadius();
     double width = GetWheelWidth();
@@ -49,7 +52,7 @@ void ChSingleIdler::Initialize(std::shared_ptr<ChBodyAuxRef> chassis, const ChVe
     m_wheel->GetCollisionModel()->SetFamily(TrackedCollisionFamily::IDLERS);
     m_wheel->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(TrackedCollisionFamily::WHEELS);
 
-    m_wheel->GetCollisionModel()->AddCylinder(radius, radius, width / 2);
+    m_wheel->GetCollisionModel()->AddCylinder(m_material, radius, radius, width / 2);
 
     m_wheel->GetCollisionModel()->BuildModel();
 }
@@ -65,13 +68,13 @@ void ChSingleIdler::AddVisualizationAssets(VisualizationType vis) {
     double radius = GetWheelRadius();
     double width = GetWheelWidth();
 
-    auto cyl = std::make_shared<ChCylinderShape>();
+    auto cyl = chrono_types::make_shared<ChCylinderShape>();
     cyl->GetCylinderGeometry().p1 = ChVector<>(0, width / 2, 0);
     cyl->GetCylinderGeometry().p2 = ChVector<>(0, -width / 2, 0);
     cyl->GetCylinderGeometry().rad = radius;
     m_wheel->AddAsset(cyl);
 
-    auto tex = std::make_shared<ChTexture>();
+    auto tex = chrono_types::make_shared<ChTexture>();
     tex->SetTextureFilename(chrono::GetChronoDataFile("bluwhite.png"));
     m_wheel->AddAsset(tex);
 }

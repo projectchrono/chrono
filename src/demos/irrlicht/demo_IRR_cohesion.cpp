@@ -127,73 +127,57 @@ void create_some_falling_items(ChSystemNSC& mphysicalSystem) {
     // to allow some compliance with the plastic deformation of cohesive bounds
     ChCollisionModel::SetDefaultSuggestedEnvelope(0.3);
 
+    // Shared contact material for falling objects
+    auto obj_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    obj_mat->SetFriction(0.3f);
+
     for (int bi = 0; bi < 400; bi++) {
         // Create a bunch of ChronoENGINE rigid bodies which will fall..
-        auto mrigidBody = std::make_shared<ChBodyEasySphere>(0.81,   // radius
-                                                             1000,   // density
-                                                             true,   // collide enable?
-                                                             true);  // visualization?
+        auto mrigidBody = chrono_types::make_shared<ChBodyEasySphere>(0.81,      // radius
+                                                                      1000,      // density
+                                                                      true,      // visualization?
+                                                                      true,      // collision?
+                                                                      obj_mat);  // contact material
         mrigidBody->SetPos(ChVector<>(-5 + ChRandom() * 10, 4 + bi * 0.05, -5 + ChRandom() * 10));
-        mrigidBody->GetMaterialSurfaceNSC()->SetFriction(0.3f);
-
         mphysicalSystem.Add(mrigidBody);
 
         // optional, attach a texture for better visualization
-        auto mtexture = std::make_shared<ChTexture>();
+        auto mtexture = chrono_types::make_shared<ChTexture>();
         mtexture->SetTextureFilename(GetChronoDataFile("rock.jpg"));
         mrigidBody->AddAsset(mtexture);
     }
 
-    // Create the five walls of the rectangular container, using
-    // fixed rigid bodies of 'box' type:
+    // Contact material for container
+    auto ground_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
 
-    auto floorBody = std::make_shared<ChBodyEasyBox>(20, 1, 20,  // x,y,z size
-                                                     1000,       // density
-                                                     true,       // collide enable?
-                                                     true);      // visualization?
+    // Create the five walls of the rectangular container, using fixed rigid bodies of 'box' type
+    auto floorBody = chrono_types::make_shared<ChBodyEasyBox>(20, 1, 20, 1000, true, true, ground_mat);
     floorBody->SetPos(ChVector<>(0, -5, 0));
     floorBody->SetBodyFixed(true);
-
     mphysicalSystem.Add(floorBody);
 
-    auto wallBody1 = std::make_shared<ChBodyEasyBox>(1, 10, 20.99,  // x,y,z size
-                                                     1000,          // density
-                                                     true,          // collide enable?
-                                                     true);         // visualization?
+    auto wallBody1 = chrono_types::make_shared<ChBodyEasyBox>(1, 10, 20.99, 1000, true, true, ground_mat);
     wallBody1->SetPos(ChVector<>(-10, 0, 0));
     wallBody1->SetBodyFixed(true);
-
     mphysicalSystem.Add(wallBody1);
 
-    auto wallBody2 = std::make_shared<ChBodyEasyBox>(1, 10, 20.99,  // x,y,z size
-                                                     1000,          // density
-                                                     true,          // collide enable?
-                                                     true);         // visualization?
+    auto wallBody2 = chrono_types::make_shared<ChBodyEasyBox>(1, 10, 20.99, 1000, true, true, ground_mat);
     wallBody2->SetPos(ChVector<>(10, 0, 0));
     wallBody2->SetBodyFixed(true);
-
     mphysicalSystem.Add(wallBody2);
 
-    auto wallBody3 = std::make_shared<ChBodyEasyBox>(20.99, 10, 1,  // x,y,z size
-                                                     1000,          // density
-                                                     true,          // collide enable?
-                                                     true);         // visualization?
+    auto wallBody3 = chrono_types::make_shared<ChBodyEasyBox>(20.99, 10, 1, 1000, true, true, ground_mat);
     wallBody3->SetPos(ChVector<>(0, 0, -10));
     wallBody3->SetBodyFixed(true);
-
     mphysicalSystem.Add(wallBody3);
 
-    auto wallBody4 = std::make_shared<ChBodyEasyBox>(20.99, 10, 1,  // x,y,z size
-                                                     1000,          // density
-                                                     true,          // collide enable?
-                                                     true);         // visualization?
+    auto wallBody4 = chrono_types::make_shared<ChBodyEasyBox>(20.99, 10, 1, 1000, true, true, ground_mat);
     wallBody4->SetPos(ChVector<>(0, 0, 10));
     wallBody4->SetBodyFixed(true);
-
     mphysicalSystem.Add(wallBody4);
 
     // optional, attach  textures for better visualization
-    auto mtexturewall = std::make_shared<ChTexture>();
+    auto mtexturewall = chrono_types::make_shared<ChTexture>();
     mtexturewall->SetTextureFilename(GetChronoDataFile("concrete.jpg"));
     wallBody1->AddAsset(mtexturewall);  // note: most assets can be shared
     wallBody2->AddAsset(mtexturewall);
@@ -202,19 +186,21 @@ void create_some_falling_items(ChSystemNSC& mphysicalSystem) {
     floorBody->AddAsset(mtexturewall);
 
     // Add the rotating mixer
-    auto rotatingBody = std::make_shared<ChBodyEasyBox>(10, 5, 1,  // x,y,z size
-                                                        4000,      // density
-                                                        true,      // collide enable?
-                                                        true);     // visualization?
-    rotatingBody->SetPos(ChVector<>(0, -1.6, 0));
-    rotatingBody->GetMaterialSurfaceNSC()->SetFriction(0.4f);
+    auto mixer_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    mixer_mat->SetFriction(0.4f);
 
+    auto rotatingBody = chrono_types::make_shared<ChBodyEasyBox>(10, 5, 1,    // x,y,z size
+                                                                 4000,        // density
+                                                                 true,        // visualization?
+                                                                 true,        // collision?
+                                                                 mixer_mat);  // contact material
+    rotatingBody->SetPos(ChVector<>(0, -1.6, 0));
     mphysicalSystem.Add(rotatingBody);
 
     // .. a motor between mixer and truss
-    auto motor = std::make_shared<ChLinkMotorRotationSpeed>();
+    auto motor = chrono_types::make_shared<ChLinkMotorRotationSpeed>();
     motor->Initialize(rotatingBody, floorBody, ChFrame<>(ChVector<>(0, 0, 0), Q_from_AngAxis(CH_C_PI_2, VECT_X)));
-    motor->SetSpeedFunction(std::make_shared<ChFunction_Const>(CH_C_PI / 2.0));
+    motor->SetSpeedFunction(chrono_types::make_shared<ChFunction_Const>(CH_C_PI / 2.0));
     mphysicalSystem.AddLink(motor);
 }
 
@@ -252,9 +238,8 @@ int main(int argc, char* argv[]) {
 
     // Modify some setting of the physical system for the simulation, if you want
 
-    mphysicalSystem.SetSolverType(ChSolver::Type::SOR_MULTITHREAD);
-    mphysicalSystem.SetMaxItersSolverSpeed(20);
-    // mphysicalSystem.SetMaxItersSolverStab(5);
+    mphysicalSystem.SetSolverType(ChSolver::Type::PSOR);
+    mphysicalSystem.SetSolverMaxIterations(20);
 
     // Cohesion in a contact depends on the cohesion in the surface property of the
     // touching bodies, but the user can override this value when each contact is created,
@@ -293,16 +278,13 @@ int main(int argc, char* argv[]) {
         ChSystemNSC* msystem;
     };
 
-    MyContactCallback mycontact_callback;           // create the callback object
-    mycontact_callback.msystem = &mphysicalSystem;  // will be used by callback
+    auto mycontact_callback = chrono_types::make_shared<MyContactCallback>();  // create the callback object
+    mycontact_callback->msystem = &mphysicalSystem;                            // will be used by callback
 
     // Use the above callback to process each contact as it is created.
-    mphysicalSystem.GetContactContainer()->RegisterAddContactCallback(&mycontact_callback);
+    mphysicalSystem.GetContactContainer()->RegisterAddContactCallback(mycontact_callback);
 
-    //
-    // THE SOFT-REAL-TIME CYCLE
-    //
-    application.SetStepManage(true);
+    // Simulation loop
     application.SetTimestep(0.01);
 
     while (application.GetDevice()->run()) {

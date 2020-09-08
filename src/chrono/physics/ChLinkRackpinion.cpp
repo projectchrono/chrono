@@ -120,8 +120,7 @@ void ChLinkRackpinion::UpdateTime(double mytime) {
     // ChVector<> abs_runX    = Vdot( abs_distpr, abs_Dx );
 
     // Absolute frame of link reference
-    ChMatrix33<> ma1;
-    ma1.Set_A_axis(abs_Dx, abs_Dy, abs_Dz);
+    ChMatrix33<> ma1(abs_Dx, abs_Dy, abs_Dz);
     ChFrame<> abs_contact(this->contact_pt, ma1);
 
     ChMatrix33<> mrot;

@@ -34,7 +34,7 @@ const double HMMWV_RackPinion::m_steeringLinkRadius = 0.03;
 
 const double HMMWV_RackPinion::m_pinionRadius = 0.1;
 
-const double HMMWV_RackPinion::m_maxAngle = 50.0 * (CH_C_PI / 180);
+const double HMMWV_RackPinion::m_maxAngle = 30.0 * (CH_C_PI / 180);
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------

@@ -41,17 +41,17 @@ ChRigidSuspension::ChRigidSuspension(const std::string& name) : ChSuspension(nam
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChRigidSuspension::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
+void ChRigidSuspension::Initialize(std::shared_ptr<ChChassis> chassis,
+                                   std::shared_ptr<ChSubchassis> subchassis,
+                                   std::shared_ptr<ChSteering> steering,
                                    const ChVector<>& location,
-                                   std::shared_ptr<ChBody> tierod_body,
-                                   int steering_index,
                                    double left_ang_vel,
                                    double right_ang_vel) {
     m_location = location;
 
     // Express the suspension reference frame in the absolute coordinate system.
     ChFrame<> suspension_to_abs(location);
-    suspension_to_abs.ConcatenatePreTransformation(chassis->GetFrame_REF_to_abs());
+    suspension_to_abs.ConcatenatePreTransformation(chassis->GetBody()->GetFrame_REF_to_abs());
 
     // Transform all hardpoints to absolute frame.
     m_pointsL.resize(NUM_POINTS);
@@ -64,13 +64,12 @@ void ChRigidSuspension::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     }
 
     // Initialize left and right sides.
-    InitializeSide(LEFT, chassis, tierod_body, m_pointsL, left_ang_vel);
-    InitializeSide(RIGHT, chassis, tierod_body, m_pointsR, right_ang_vel);
+    InitializeSide(LEFT, chassis->GetBody(), m_pointsL, left_ang_vel);
+    InitializeSide(RIGHT, chassis->GetBody(), m_pointsR, right_ang_vel);
 }
 
 void ChRigidSuspension::InitializeSide(VehicleSide side,
                                        std::shared_ptr<ChBodyAuxRef> chassis,
-                                       std::shared_ptr<ChBody> tierod_body,
                                        const std::vector<ChVector<> >& points,
                                        double ang_vel) {
     std::string suffix = (side == LEFT) ? "_L" : "_R";
@@ -91,20 +90,20 @@ void ChRigidSuspension::InitializeSide(VehicleSide side,
 
     // Create and initialize joints
     ChCoordsys<> rev_csys(points[SPINDLE], chassisRot * Q_from_AngAxis(CH_C_PI / 2.0, VECT_X));
-    m_revolute[side] = std::make_shared<ChLinkLockRevolute>();
+    m_revolute[side] = chrono_types::make_shared<ChLinkLockRevolute>();
     m_revolute[side]->SetNameString(m_name + "_revolute" + suffix);
     m_revolute[side]->Initialize(chassis, m_spindle[side], rev_csys);
     chassis->GetSystem()->AddLink(m_revolute[side]);
 
     // Create and initialize the axle shaft and its connection to the spindle.
     // Note that the spindle rotates about the Y axis.
-    m_axle[side] = std::make_shared<ChShaft>();
+    m_axle[side] = chrono_types::make_shared<ChShaft>();
     m_axle[side]->SetNameString(m_name + "_axle" + suffix);
     m_axle[side]->SetInertia(getAxleInertia());
     m_axle[side]->SetPos_dt(-ang_vel);
     chassis->GetSystem()->Add(m_axle[side]);
 
-    m_axle_to_spindle[side] = std::make_shared<ChShaftsBody>();
+    m_axle_to_spindle[side] = chrono_types::make_shared<ChShaftsBody>();
     m_axle_to_spindle[side]->SetNameString(m_name + "_axle_to_spindle" + suffix);
     m_axle_to_spindle[side]->Initialize(m_axle[side], m_spindle[side], ChVector<>(0, -1, 0));
     chassis->GetSystem()->Add(m_axle_to_spindle[side]);
@@ -137,17 +136,25 @@ double ChRigidSuspension::GetTrack() {
 }
 
 // -----------------------------------------------------------------------------
+// Return current suspension forces
+// -----------------------------------------------------------------------------
+ChSuspension::Force ChRigidSuspension::ReportSuspensionForce(VehicleSide side) const {
+    ChSuspension::Force force{0, 0, 0, 0, 0, 0};
+    return force;
+}
+
+// -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChRigidSuspension::LogConstraintViolations(VehicleSide side) {
     // Revolute joint
     {
-        ChMatrix<>* C = m_revolute[side]->GetC();
+        ChVectorDynamic<> C = m_revolute[side]->GetC();
         GetLog() << "Spindle revolute      ";
-        GetLog() << "  " << C->GetElement(0, 0) << "  ";
-        GetLog() << "  " << C->GetElement(1, 0) << "  ";
-        GetLog() << "  " << C->GetElement(2, 0) << "  ";
-        GetLog() << "  " << C->GetElement(3, 0) << "  ";
-        GetLog() << "  " << C->GetElement(4, 0) << "\n";
+        GetLog() << "  " << C(0) << "  ";
+        GetLog() << "  " << C(1) << "  ";
+        GetLog() << "  " << C(2) << "  ";
+        GetLog() << "  " << C(3) << "  ";
+        GetLog() << "  " << C(4) << "\n";
     }
 }
 // -----------------------------------------------------------------------------

@@ -30,8 +30,7 @@ namespace sedan {
 // Static variables
 // -----------------------------------------------------------------------------
 
-const std::string Sedan_TMeasyTire::m_meshName = "sedan_tire_POV_geom";
-const std::string Sedan_TMeasyTire::m_meshFile = "sedan/tire.obj";
+const std::string Sedan_TMeasyTire::m_meshFile = "sedan/sedan_tire.obj";
 
 const double Sedan_TMeasyTire::m_mass = 12.0;
 const ChVector<> Sedan_TMeasyTire::m_inertia(.156, .679, .156);
@@ -76,13 +75,8 @@ void Sedan_TMeasyTire::GenerateCharacteristicPlots(const std::string& dirname) {
 // -----------------------------------------------------------------------------
 void Sedan_TMeasyTire::AddVisualizationAssets(VisualizationType vis) {
     if (vis == VisualizationType::MESH) {
-        auto trimesh = std::make_shared<geometry::ChTriangleMeshConnected>();
-        trimesh->LoadWavefrontMesh(vehicle::GetDataFile(m_meshFile), false, false);
-        m_trimesh_shape = std::make_shared<ChTriangleMeshShape>();
-        m_trimesh_shape->SetMesh(trimesh);
-        m_trimesh_shape->SetStatic(true);
-        m_trimesh_shape->SetName(m_meshName);
-        m_wheel->AddAsset(m_trimesh_shape);
+        m_trimesh_shape = AddVisualizationMesh(m_meshFile,   // left side
+                                               m_meshFile);  // right side
     } else {
         ChTMeasyTire::AddVisualizationAssets(vis);
     }
@@ -90,13 +84,7 @@ void Sedan_TMeasyTire::AddVisualizationAssets(VisualizationType vis) {
 
 void Sedan_TMeasyTire::RemoveVisualizationAssets() {
     ChTMeasyTire::RemoveVisualizationAssets();
-
-    // Make sure we only remove the assets added by WVP_FialaTire::AddVisualizationAssets.
-    // This is important for the ChTire object because a wheel may add its own assets
-    // to the same body (the spindle/wheel).
-    auto it = std::find(m_wheel->GetAssets().begin(), m_wheel->GetAssets().end(), m_trimesh_shape);
-    if (it != m_wheel->GetAssets().end())
-        m_wheel->GetAssets().erase(it);
+    RemoveVisualizationMesh(m_trimesh_shape);
 }
 
 }  // end namespace sedan

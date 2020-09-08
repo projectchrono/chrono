@@ -18,21 +18,25 @@
 
 #include <algorithm>
 
+#include "chrono_vehicle/ChWorldFrame.h"
 #include "chrono_vehicle/wheeled_vehicle/ChSuspension.h"
 
 namespace chrono {
 namespace vehicle {
 
-ChSuspension::ChSuspension(const std::string& name) : ChPart(name), m_steering_index(-1) {}
+ChSuspension::ChSuspension(const std::string& name) : ChPart(name) {}
+
+ChQuaternion<> ChSuspension::GetSpindleRot(VehicleSide side) const {
+    return m_spindle[side]->GetRot() * ChWorldFrame::Quaternion();
+}
 
 void ChSuspension::ApplyAxleTorque(VehicleSide side, double torque) {
     m_axle[side]->SetAppliedTorque(torque);
 }
 
-void ChSuspension::Synchronize(VehicleSide side, const TerrainForce& tire_force) {
-    m_spindle[side]->Empty_forces_accumulators();
-    m_spindle[side]->Accumulate_force(tire_force.force, tire_force.point, false);
-    m_spindle[side]->Accumulate_torque(tire_force.moment, false);
+void ChSuspension::Synchronize() {
+    m_spindle[LEFT]->Empty_forces_accumulators();
+    m_spindle[RIGHT]->Empty_forces_accumulators();
 }
 
 void ChSuspension::AddVisualizationAssets(VisualizationType vis) {
@@ -63,11 +67,16 @@ void ChSuspension::RemoveVisualizationAssets() {
 }
 
 void ChSuspension::AddVisualizationSpindle(VehicleSide side, double radius, double width) {
-    m_spindle_shapes[side] = std::make_shared<ChCylinderShape>();
+    m_spindle_shapes[side] = chrono_types::make_shared<ChCylinderShape>();
     m_spindle_shapes[side]->GetCylinderGeometry().p1 = ChVector<>(0, width / 2, 0);
     m_spindle_shapes[side]->GetCylinderGeometry().p2 = ChVector<>(0, -width / 2, 0);
     m_spindle_shapes[side]->GetCylinderGeometry().rad = radius;
     m_spindle[side]->AddAsset(m_spindle_shapes[side]);
+}
+
+void ChSuspension::ApplyParkingBrake(bool brake) {
+    m_revolute[0]->Lock(brake);
+    m_revolute[1]->Lock(brake);
 }
 
 }  // end namespace vehicle

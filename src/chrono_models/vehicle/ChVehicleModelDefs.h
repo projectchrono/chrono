@@ -41,11 +41,23 @@ namespace sedan {}
 /// Namespace for the UAZ vehicle model
 namespace uaz {}
 
+/// Namespace for the bus vehicle model
+namespace citybus {}
+
 /// Namespace for the generic wheeled vehicle model
 namespace generic {}
 
-/// Namespace for the M113 segmented track vehicle
+/// Namespace for the M113 track vehicle
 namespace m113 {}
+
+/// Namespace for the MAN truck models
+namespace man {}
+
+/// Namespace for the Gator vehicle
+namespace gator {}
+
+/// Namespace for the FMTV vehicles
+namespace fmtv {}
 
 /// @} vehicle_models
 

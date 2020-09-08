@@ -23,6 +23,7 @@
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChSystemSMC.h"
 
+#include "chrono_vehicle/ChWorldFrame.h"
 #include "chrono_vehicle/ChVehicle.h"
 
 #include "chrono_vehicle/output/ChVehicleOutputASCII.h"
@@ -37,25 +38,29 @@ namespace vehicle {
 // Constructor for a ChVehicle using a default Chrono system.
 // Specify default step size and solver parameters.
 // -----------------------------------------------------------------------------
-ChVehicle::ChVehicle(const std::string& name, ChMaterialSurface::ContactMethod contact_method)
-    : m_name(name), m_ownsSystem(true), m_stepsize(1e-3), m_output(false), m_output_db(nullptr), m_next_output_time(0), m_output_frame(0) {
-    m_system = (contact_method == ChMaterialSurface::NSC) ? static_cast<ChSystem*>(new ChSystemNSC)
-                                                          : static_cast<ChSystem*>(new ChSystemSMC);
+ChVehicle::ChVehicle(const std::string& name, ChContactMethod contact_method)
+    : m_name(name),
+      m_ownsSystem(true),
+      m_output(false),
+      m_output_db(nullptr),
+      m_next_output_time(0),
+      m_output_frame(0) {
+    m_system = (contact_method == ChContactMethod::NSC) ? static_cast<ChSystem*>(new ChSystemNSC)
+                                                        : static_cast<ChSystem*>(new ChSystemSMC);
 
-    m_system->Set_G_acc(ChVector<>(0, 0, -9.81));
+    m_system->Set_G_acc(-9.81 * ChWorldFrame::Vertical());
 
     // Integration and Solver settings
-    m_system->SetMaxItersSolverSpeed(150);
-    m_system->SetMaxItersSolverStab(150);
-    m_system->SetMaxPenetrationRecoverySpeed(4.0);
-
     switch (contact_method) {
-        case ChMaterialSurface::NSC:
+        case ChContactMethod::NSC:
             m_system->SetSolverType(ChSolver::Type::BARZILAIBORWEIN);
             break;
         default:
             break;
     }
+
+    m_system->SetSolverMaxIterations(150);
+    m_system->SetMaxPenetrationRecoverySpeed(4.0);
 }
 
 // -----------------------------------------------------------------------------
@@ -65,7 +70,6 @@ ChVehicle::ChVehicle(const std::string& name, ChSystem* system)
     : m_name(name),
       m_system(system),
       m_ownsSystem(false),
-      m_stepsize(1e-3),
       m_output(false),
       m_output_db(nullptr),
       m_next_output_time(0),
@@ -106,8 +110,7 @@ void ChVehicle::SetOutput(ChVehicleOutput::Type type,
 }
 
 // -----------------------------------------------------------------------------
-// Advance the state of the system, taking as many steps as needed to exactly
-// reach the specified value 'step'.
+// Advance the state of the system.
 // ---------------------------------------------------------------------------- -
 void ChVehicle::Advance(double step) {
     if (m_output && m_system->GetChTime() >= m_next_output_time) {
@@ -116,14 +119,8 @@ void ChVehicle::Advance(double step) {
         m_output_frame++;
     }
 
-    if (!m_ownsSystem)
-        return;
-
-    double t = 0;
-    while (t < step) {
-        double h = std::min<>(m_stepsize, step - t);
-        m_system->DoStepDynamics(h);
-        t += h;
+    if (m_ownsSystem) {
+        m_system->DoStepDynamics(step);
     }
 }
 
@@ -133,12 +130,21 @@ void ChVehicle::SetChassisVisualizationType(VisualizationType vis) {
     m_chassis->SetVisualizationType(vis);
 }
 
+void ChVehicle::SetChassisRearVisualizationType(VisualizationType vis) {
+    for (auto& c : m_chassis_rear)
+        c->SetVisualizationType(vis);
+}
+
 void ChVehicle::SetChassisCollide(bool state) {
     m_chassis->SetCollide(state);
+    for (auto& c : m_chassis_rear)
+        c->SetCollide(state);
 }
 
 void ChVehicle::SetChassisOutput(bool state) {
     m_chassis->SetOutput(state);
+    for (auto& c : m_chassis_rear)
+        c->SetOutput(state);
 }
 
 }  // end namespace vehicle

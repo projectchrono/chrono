@@ -6,18 +6,18 @@
 
 option(ENABLE_MODULE_MKL "Enable the Chrono MKL module" OFF)
 
-IF(NOT ENABLE_MODULE_MKL)
-    MARK_AS_ADVANCED(FORCE MKL_ROOT)
-    MARK_AS_ADVANCED(FORCE MATH_LIBRARY)
-    MARK_AS_ADVANCED(FORCE IOMP5_LIBRARY)
-    RETURN()
-ENDIF()
+if(NOT ENABLE_MODULE_MKL)
+    mark_as_advanced(FORCE MKL_ROOT)
+    mark_as_advanced(FORCE MATH_LIBRARY)
+    mark_as_advanced(FORCE IOMP5_LIBRARY)
+    return()
+endif()
 
-MESSAGE(STATUS "==== Chrono MKL module ====")
+message(STATUS "==== Chrono MKL module ====")
 
-MARK_AS_ADVANCED(CLEAR MKL_ROOT)
-MARK_AS_ADVANCED(CLEAR MATH_LIBRARY)
-MARK_AS_ADVANCED(CLEAR IOMP5_LIBRARY)
+mark_as_advanced(CLEAR MKL_ROOT)
+mark_as_advanced(CLEAR MATH_LIBRARY)
+mark_as_advanced(CLEAR IOMP5_LIBRARY)
 
 # ------------------------------------------------------------------------------
 # Dependencies for MKL module
@@ -41,7 +41,7 @@ endif()
 
 # Make required libraries visible from outside current directory
 set(CH_MKL_LIBRARIES ${MKL_LIBRARIES} ${IOMP5_LIBRARY})
-SET(CH_MKL_LIBRARIES "${CH_MKL_LIBRARIES}" PARENT_SCOPE)
+set(CH_MKL_LIBRARIES "${CH_MKL_LIBRARIES}" PARENT_SCOPE)
 
 # ------------------------------------------------------------------------------
 # Set up linking line for Intel OpenMP library
@@ -49,60 +49,63 @@ SET(CH_MKL_LIBRARIES "${CH_MKL_LIBRARIES}" PARENT_SCOPE)
 
 if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX)
   if (NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-	  set(CH_MKL_LINK_FLAGS	"-Wl,--as-needed")
+    set(CH_MKL_LINK_FLAGS	"-Wl,--as-needed")
   endif()
 endif ()
 
 set(CH_MKL_LINK_FLAGS "${CH_MKL_LINK_FLAGS}" PARENT_SCOPE)
-	
+
 # ------------------------------------------------------------------------------
 # Collect all additional include directories necessary for the MKL module
 # ------------------------------------------------------------------------------
 
-SET(CH_MKL_INCLUDES ${MKL_INCLUDE_DIRS})
+set(CH_MKL_INCLUDES ${MKL_INCLUDE_DIRS})
 
-INCLUDE_DIRECTORIES(${CH_MKL_INCLUDES})
-SET(CH_MKL_INCLUDES "${CH_MKL_INCLUDES}" PARENT_SCOPE)
+include_directories(${CH_MKL_INCLUDES})
+set(CH_MKL_INCLUDES "${CH_MKL_INCLUDES}" PARENT_SCOPE)
 
 # ------------------------------------------------------------------------------
 # List all files in the Chrono mkl module
 # ------------------------------------------------------------------------------
 
-SET(ChronoEngine_MKL_HEADERS
+set(ChronoEngine_MKL_HEADERS
   ChApiMkl.h
   ChSolverMKL.h
-  ChMklEngine.h
 )
 
-SET(ChronoEngine_MKL_SOURCES
-  ChMklEngine.cpp
+set(ChronoEngine_MKL_SOURCES
+  ChSolverMKL.cpp
 )
 
-SOURCE_GROUP("" FILES ${ChronoEngine_MKL_HEADERS} ${ChronoEngine_MKL_SOURCES})
+source_group("" FILES ${ChronoEngine_MKL_HEADERS} ${ChronoEngine_MKL_SOURCES})
 
 # ------------------------------------------------------------------------------
 # Add the ChronoEngine_mkl library
 # ------------------------------------------------------------------------------
 
-ADD_LIBRARY(ChronoEngine_mkl SHARED
+add_library(ChronoEngine_mkl SHARED
             ${ChronoEngine_MKL_SOURCES}
             ${ChronoEngine_MKL_HEADERS})
 
-SET_TARGET_PROPERTIES(ChronoEngine_mkl PROPERTIES
+set_target_properties(ChronoEngine_mkl PROPERTIES
                       COMPILE_FLAGS "${CH_CXX_FLAGS}"
-                      LINK_FLAGS "${CH_LINKERFLAG_SHARED} ${CH_MKL_LINK_FLAGS}"
-                      COMPILE_DEFINITIONS "CH_API_COMPILE_MKL")
+                      LINK_FLAGS "${CH_LINKERFLAG_SHARED} ${CH_MKL_LINK_FLAGS}")
 
-TARGET_LINK_LIBRARIES(ChronoEngine_mkl
+target_compile_definitions(ChronoEngine_mkl PRIVATE "CH_API_COMPILE_MKL")
+target_compile_definitions(ChronoEngine_mkl PRIVATE "EIGEN_USE_MKL_ALL")
+target_compile_definitions(ChronoEngine_mkl PRIVATE "MKL_LP64")
+target_compile_definitions(ChronoEngine_mkl PRIVATE "CH_IGNORE_DEPRECATED")
+
+target_link_libraries(ChronoEngine_mkl
                       ChronoEngine
                       ${MKL_LIBRARIES}
-					  ${IOMP5_LIBRARY}
-					  )
+                      ${IOMP5_LIBRARY}
+                      )
 
-INSTALL(TARGETS ChronoEngine_mkl
+install(TARGETS ChronoEngine_mkl
         RUNTIME DESTINATION bin
         LIBRARY DESTINATION lib
         ARCHIVE DESTINATION lib)
 
-INSTALL(FILES ${ChronoEngine_MKL_HEADERS} 
+install(FILES ${ChronoEngine_MKL_HEADERS}
         DESTINATION include/chrono_mkl)

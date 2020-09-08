@@ -15,9 +15,8 @@
 #include <cstdlib>
 #include <algorithm>
 
-#include "chrono/core/ChLinearAlgebra.h"
+#include "chrono/core/ChGlobal.h"
 #include "chrono/core/ChTransform.h"
-#include "chrono/physics/ChGlobal.h"
 #include "chrono/physics/ChIndexedParticles.h"
 #include "chrono/physics/ChSystem.h"
 

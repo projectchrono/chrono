@@ -17,6 +17,8 @@
 //
 // =============================================================================
 
+#include "chrono/collision/ChCollisionModelBullet.h"
+
 #include "chrono_parallel/collision/ChCollisionSystemBulletParallel.h"
 #include "chrono_parallel/ChDataManager.h"
 
@@ -89,7 +91,7 @@ void ChCollisionSystemBulletParallel::Clear(void) {
 }
 
 void ChCollisionSystemBulletParallel::Add(ChCollisionModel* model) {
-    ChModelBullet* bmodel = static_cast<ChModelBullet*>(model);
+    ChCollisionModelBullet* bmodel = static_cast<ChCollisionModelBullet*>(model);
     if (bmodel->GetBulletModel()->getCollisionShape()) {
         bmodel->SyncPosition();
         bmodel->GetBulletModel()->setCompanionId(counter);
@@ -101,7 +103,7 @@ void ChCollisionSystemBulletParallel::Add(ChCollisionModel* model) {
 }
 
 void ChCollisionSystemBulletParallel::Remove(ChCollisionModel* model) {
-    ChModelBullet* bmodel = static_cast<ChModelBullet*>(model);
+    ChCollisionModelBullet* bmodel = static_cast<ChCollisionModelBullet*>(model);
     if (bmodel->GetBulletModel()->getCollisionShape()) {
         bt_collision_world->removeCollisionObject(bmodel->GetBulletModel());
     }
@@ -111,6 +113,14 @@ void ChCollisionSystemBulletParallel::Run() {
     if (bt_collision_world) {
         bt_collision_world->performDiscreteCollisionDetection();
     }
+}
+
+void ChCollisionSystemBulletParallel::GetBoundingBox(ChVector<>& aabb_min, ChVector<>& aabb_max) const {
+    btVector3 aabbMin;
+    btVector3 aabbMax;
+    bt_broadphase->getBroadphaseAabb(aabbMin, aabbMax);
+    aabb_min = ChVector<>((double)aabbMin.x(), (double)aabbMin.y(), (double)aabbMin.z());
+    aabb_max = ChVector<>((double)aabbMax.x(), (double)aabbMax.y(), (double)aabbMax.z());
 }
 
 void ChCollisionSystemBulletParallel::ResetTimers() {
@@ -143,9 +153,14 @@ void ChCollisionSystemBulletParallel::ReportContacts(ChContactContainer* mcontac
 
     int numManifolds = bt_collision_world->getDispatcher()->getNumManifolds();
     for (int i = 0; i < numManifolds; i++) {
-        auto contactManifold = bt_collision_world->getDispatcher()->getManifoldByIndexInternal(i);
-        auto obA = contactManifold->getBody0();
-        auto obB = contactManifold->getBody1();
+        btPersistentManifold* contactManifold = bt_collision_world->getDispatcher()->getManifoldByIndexInternal(i);
+        btCollisionObject* obA = static_cast<btCollisionObject*>(contactManifold->getBody0());
+        btCollisionObject* obB = static_cast<btCollisionObject*>(contactManifold->getBody1());
+        if (obB->getCompanionId() < obA->getCompanionId()) {
+            auto tmp = obA;
+            obA = obB;
+            obB = tmp;
+        }
         contactManifold->refreshContactPoints(obA->getWorldTransform(), obB->getWorldTransform());
 
         icontact.modelA = (ChCollisionModel*)obA->getUserPointer();
@@ -191,10 +206,18 @@ void ChCollisionSystemBulletParallel::ReportContacts(ChContactContainer* mcontac
 
                     icontact.vpA = icontact.vpA - icontact.vN * envelopeA;
                     icontact.vpB = icontact.vpB + icontact.vN * envelopeB;
-
                     icontact.distance = ptdist + envelopeA + envelopeB;
 
                     icontact.reaction_cache = pt.reactions_cache;
+
+                    bool compoundA = (obA->getRootCollisionShape()->getShapeType() == COMPOUND_SHAPE_PROXYTYPE);
+                    bool compoundB = (obB->getRootCollisionShape()->getShapeType() == COMPOUND_SHAPE_PROXYTYPE);
+
+                    int indexA = compoundA ? pt.m_index0 : 0;
+                    int indexB = compoundB ? pt.m_index1 : 0;
+
+                    icontact.shapeA = icontact.modelA->GetShape(indexA).get();
+                    icontact.shapeB = icontact.modelB->GetShape(indexB).get();
 
                     // Execute some user custom callback, if any
                     bool add_contact = true;
@@ -202,6 +225,10 @@ void ChCollisionSystemBulletParallel::ReportContacts(ChContactContainer* mcontac
                         add_contact = this->narrow_callback->OnNarrowphase(icontact);
 
                     if (add_contact) {
+                        ////std::cout << " add indexA=" << indexA << " indexB=" << indexB << std::endl;
+                        ////std::cout << "     typeA=" << icontact.shapeA->m_type << " typeB=" << icontact.shapeB->m_type
+                        ////          << std::endl;
+
                         data_manager->host_data.norm_rigid_rigid.push_back(
                             real3(icontact.vN.x(), icontact.vN.y(), icontact.vN.z()));
                         data_manager->host_data.cpta_rigid_rigid.push_back(

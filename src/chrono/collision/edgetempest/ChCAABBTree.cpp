@@ -77,7 +77,7 @@ void recurse_scan_AABBs(CHAABBTree* mmodel,
 
     // compute root-relative coords for each box
     ChMatrix33<> Rot;
-    Rot.Set33Identity();
+    Rot.setIdentity();
 
     // execute callback
     callback(Rot, mmodel->child(nb)->To, mmodel->child(nb)->d, current_level, userdata);

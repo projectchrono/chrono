@@ -44,9 +44,9 @@ UAZBUS_RotaryArm::UAZBUS_RotaryArm(const std::string& name) : ChRotaryArm(name) 
 // -----------------------------------------------------------------------------
 const ChVector<> UAZBUS_RotaryArm::getLocation(PointId which) {
     switch (which) {
-        case PITMANARM:
+        case ARM_L:
             return ChVector<>(0.6, 0.7325-0.2, 0.2);
-        case REV:
+        case ARM_C:
             return ChVector<>(0.6, 0.7325-0.2, 0.4);
         default:
             return ChVector<>(0, 0, 0);

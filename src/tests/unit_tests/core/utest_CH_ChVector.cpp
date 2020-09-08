@@ -9,6 +9,12 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
+// Authors: Radu Serban
+// =============================================================================
+//
+// Test of operations with 3d vectors
+//
+// =============================================================================
 
 #include "gtest/gtest.h"
 #include "chrono/core/ChVector.h"

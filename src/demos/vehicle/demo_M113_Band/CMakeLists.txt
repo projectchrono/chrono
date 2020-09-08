@@ -1,16 +1,11 @@
 #=============================================================================
 # CMake configuration file for the M113 with continuous band track demos.
-# These example programs requires Irrlicht run-time visualization and the
-# MKL or MUMPS Chrono modules.
+# This example program works with and without Irrlicht run-time visualization
+# and requires the MKL or MUMPS Chrono modules.
 #=============================================================================
 
-# Irrlicht required
-if(NOT ENABLE_MODULE_IRRLICHT)
-    return()
-endif()
-
-# MUMPS or MKL required
-if (NOT ENABLE_MODULE_MKL AND NOT ENABLE_MODULE_MUMPS)
+# MUMPS or MKL required. IRRLICHT required
+if ((NOT ENABLE_MODULE_MKL AND NOT ENABLE_MODULE_MUMPS) OR NOT ENABLE_MODULE_IRRLICHT)
     return()
 endif()
 
@@ -33,6 +28,7 @@ set(LIBRARIES
     ChronoEngine
     ChronoEngine_irrlicht
     ChronoEngine_vehicle
+    ChronoEngine_vehicle_irrlicht
     ChronoModels_vehicle
     )
 
@@ -51,16 +47,17 @@ endif()
 #--------------------------------------------------------------
 # Add executables
 
-foreach(DEMO ${DEMOS})
+foreach(PROGRAM ${DEMOS})
+    message(STATUS "...add ${PROGRAM}")
 
-    message(STATUS "...add ${DEMO}")
-
-    add_executable(${DEMO} ${DEMO}.cpp ${MODEL_FILES})
-    source_group("" FILES ${DEMO}.cpp)
-    set_target_properties(${DEMO} PROPERTIES 
+    add_executable(${PROGRAM} ${PROGRAM}.cpp)
+    source_group("" FILES ${PROGRAM}.cpp)
+    
+    set_target_properties(${PROGRAM} PROPERTIES 
                           COMPILE_FLAGS "${COMPILER_FLAGS}"
                           LINK_FLAGS "${LINKER_FLAGS}")
-    target_link_libraries(${DEMO} ${LIBRARIES})
-    install(TARGETS ${DEMO} DESTINATION ${CH_INSTALL_DEMO})
-    
+    set_property(TARGET ${PROGRAM} PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:${PROGRAM}>")
+    target_link_libraries(${PROGRAM} ${LIBRARIES})
+
+    install(TARGETS ${PROGRAM} DESTINATION ${CH_INSTALL_DEMO})
 endforeach()

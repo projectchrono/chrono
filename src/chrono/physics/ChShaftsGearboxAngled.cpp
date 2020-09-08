@@ -156,18 +156,18 @@ void ChShaftsGearboxAngled::ConstraintsBiLoad_Ct(double factor) {
 
 void ChShaftsGearboxAngled::ConstraintsLoadJacobians() {
     // compute jacobians
-    constraint.Get_Cq_a()->SetElement(0, 0, t0);
-    constraint.Get_Cq_b()->SetElement(0, 0, -1.0);
+    constraint.Get_Cq_a()(0) = t0;
+    constraint.Get_Cq_b()(0) = -1.0;
 
     // ChVector<> jacw = body->TransformDirectionParentToLocal(t0*shaft_dir1 - shaft_dir2);
     ChVector<> jacw = (t0 * shaft_dir1 - shaft_dir2);
 
-    constraint.Get_Cq_c()->ElementN(0) = 0;
-    constraint.Get_Cq_c()->ElementN(1) = 0;
-    constraint.Get_Cq_c()->ElementN(2) = 0;
-    constraint.Get_Cq_c()->ElementN(3) = jacw.x();
-    constraint.Get_Cq_c()->ElementN(4) = jacw.y();
-    constraint.Get_Cq_c()->ElementN(5) = jacw.z();
+    constraint.Get_Cq_c()(0) = 0;
+    constraint.Get_Cq_c()(1) = 0;
+    constraint.Get_Cq_c()(2) = 0;
+    constraint.Get_Cq_c()(3) = jacw.x();
+    constraint.Get_Cq_c()(4) = jacw.y();
+    constraint.Get_Cq_c()(5) = jacw.z();
 }
 
 void ChShaftsGearboxAngled::ConstraintsFetch_react(double factor) {

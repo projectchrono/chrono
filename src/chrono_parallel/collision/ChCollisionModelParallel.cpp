@@ -25,12 +25,12 @@
 namespace chrono {
 namespace collision {
 
-ChCollisionModelParallel::ChCollisionModelParallel() : nObjects(0), aabb_min(C_LARGE_REAL), aabb_max(-C_LARGE_REAL) {
+ChCollisionModelParallel::ChCollisionModelParallel() : aabb_min(C_LARGE_REAL), aabb_max(-C_LARGE_REAL) {
     model_safe_margin = 0;
 }
 
 ChCollisionModelParallel::~ChCollisionModelParallel() {
-    mData.clear();
+    m_shapes.clear();
 }
 
 int ChCollisionModelParallel::ClearModel() {
@@ -39,10 +39,9 @@ int ChCollisionModelParallel::ClearModel() {
     }
 
     local_convex_data.clear();
-    mData.clear();
+    m_shapes.clear();
     aabb_min = real3(C_LARGE_REAL);
     aabb_max = real3(-C_LARGE_REAL);
-    nObjects = 0;
     family_group = 1;
     family_mask = 0x7FFF;
 
@@ -69,24 +68,25 @@ void TransformToCOG(ChBody* body, const ChVector<>& pos, const ChMatrix33<>& rot
     }
 }
 
-bool ChCollisionModelParallel::AddSphere(double radius, const ChVector<>& pos) {
+bool ChCollisionModelParallel::AddSphere(std::shared_ptr<ChMaterialSurface> material,
+                                         double radius,
+                                         const ChVector<>& pos) {
     ChFrame<> frame;
     TransformToCOG(GetBody(), pos, ChMatrix33<>(1), frame);
     const ChVector<>& position = frame.GetPos();
 
-    nObjects++;
-    ConvexModel tData;
-    tData.A = real3(position.x(), position.y(), position.z());
-    tData.B = real3(radius, 0, 0);
-    tData.C = real3(0, 0, 0);
-    tData.R = quaternion(1, 0, 0, 0);
-    tData.type = SPHERE;
-    mData.push_back(tData);
+    auto shape = new ChCollisionShapeParallel(ChCollisionShape::Type::SPHERE, material);
+    shape->A = real3(position.x(), position.y(), position.z());
+    shape->B = real3(radius, 0, 0);
+    shape->C = real3(0, 0, 0);
+    shape->R = quaternion(1, 0, 0, 0);
+    m_shapes.push_back(std::shared_ptr<ChCollisionShape>(shape));
 
     return true;
 }
 
-bool ChCollisionModelParallel::AddEllipsoid(double rx,
+bool ChCollisionModelParallel::AddEllipsoid(std::shared_ptr<ChMaterialSurface> material,
+                                            double rx,
                                             double ry,
                                             double rz,
                                             const ChVector<>& pos,
@@ -96,37 +96,39 @@ bool ChCollisionModelParallel::AddEllipsoid(double rx,
     const ChVector<>& position = frame.GetPos();
     const ChQuaternion<>& rotation = frame.GetRot();
 
-    nObjects++;
-    ConvexModel tData;
-    tData.A = real3(position.x(), position.y(), position.z());
-    tData.B = real3(rx, ry, rz);
-    tData.C = real3(0, 0, 0);
-    tData.R = quaternion(rotation.e0(), rotation.e1(), rotation.e2(), rotation.e3());
-    tData.type = ELLIPSOID;
-    mData.push_back(tData);
+    auto shape = new ChCollisionShapeParallel(ChCollisionShape::Type::ELLIPSOID, material);
+    shape->A = real3(position.x(), position.y(), position.z());
+    shape->B = real3(rx, ry, rz);
+    shape->C = real3(0, 0, 0);
+    shape->R = quaternion(rotation.e0(), rotation.e1(), rotation.e2(), rotation.e3());
+    m_shapes.push_back(std::shared_ptr<ChCollisionShape>(shape));
 
     return true;
 }
 
-bool ChCollisionModelParallel::AddBox(double rx, double ry, double rz, const ChVector<>& pos, const ChMatrix33<>& rot) {
+bool ChCollisionModelParallel::AddBox(std::shared_ptr<ChMaterialSurface> material,
+                                      double rx,
+                                      double ry,
+                                      double rz,
+                                      const ChVector<>& pos,
+                                      const ChMatrix33<>& rot) {
     ChFrame<> frame;
     TransformToCOG(GetBody(), pos, rot, frame);
     const ChVector<>& position = frame.GetPos();
     const ChQuaternion<>& rotation = frame.GetRot();
 
-    nObjects++;
-    ConvexModel tData;
-    tData.A = real3(position.x(), position.y(), position.z());
-    tData.B = real3(rx, ry, rz);
-    tData.C = real3(0, 0, 0);
-    tData.R = quaternion(rotation.e0(), rotation.e1(), rotation.e2(), rotation.e3());
-    tData.type = BOX;
-    mData.push_back(tData);
+    auto shape = new ChCollisionShapeParallel(ChCollisionShape::Type::BOX, material);
+    shape->A = real3(position.x(), position.y(), position.z());
+    shape->B = real3(rx, ry, rz);
+    shape->C = real3(0, 0, 0);
+    shape->R = quaternion(rotation.e0(), rotation.e1(), rotation.e2(), rotation.e3());
+    m_shapes.push_back(std::shared_ptr<ChCollisionShape>(shape));
 
     return true;
 }
 
-bool ChCollisionModelParallel::AddRoundedBox(double rx,
+bool ChCollisionModelParallel::AddRoundedBox(std::shared_ptr<ChMaterialSurface> material,
+                                             double rx,
                                              double ry,
                                              double rz,
                                              double sphere_r,
@@ -137,19 +139,18 @@ bool ChCollisionModelParallel::AddRoundedBox(double rx,
     const ChVector<>& position = frame.GetPos();
     const ChQuaternion<>& rotation = frame.GetRot();
 
-    nObjects++;
-    ConvexModel tData;
-    tData.A = real3(position.x(), position.y(), position.z());
-    tData.B = real3(rx, ry, rz);
-    tData.C = real3(sphere_r, 0, 0);
-    tData.R = quaternion(rotation.e0(), rotation.e1(), rotation.e2(), rotation.e3());
-    tData.type = ROUNDEDBOX;
-    mData.push_back(tData);
+    auto shape = new ChCollisionShapeParallel(ChCollisionShape::Type::ROUNDEDBOX, material);
+    shape->A = real3(position.x(), position.y(), position.z());
+    shape->B = real3(rx, ry, rz);
+    shape->C = real3(sphere_r, 0, 0);
+    shape->R = quaternion(rotation.e0(), rotation.e1(), rotation.e2(), rotation.e3());
+    m_shapes.push_back(std::shared_ptr<ChCollisionShape>(shape));
 
     return true;
 }
 
-bool ChCollisionModelParallel::AddTriangle(ChVector<> A,
+bool ChCollisionModelParallel::AddTriangle(std::shared_ptr<ChMaterialSurface> material,
+                                           ChVector<> A,
                                            ChVector<> B,
                                            ChVector<> C,
                                            const ChVector<>& pos,
@@ -159,19 +160,18 @@ bool ChCollisionModelParallel::AddTriangle(ChVector<> A,
     const ChVector<>& position = frame.GetPos();
     const ChQuaternion<>& rotation = frame.GetRot();
 
-    nObjects++;
-    ConvexModel tData;
-    tData.A = real3(A.x() + position.x(), A.y() + position.y(), A.z() + position.z());
-    tData.B = real3(B.x() + position.x(), B.y() + position.y(), B.z() + position.z());
-    tData.C = real3(C.x() + position.x(), C.y() + position.y(), C.z() + position.z());
-    tData.R = quaternion(rotation.e0(), rotation.e1(), rotation.e2(), rotation.e3());
-    tData.type = TRIANGLEMESH;
-    mData.push_back(tData);
+    auto shape = new ChCollisionShapeParallel(ChCollisionShape::Type::TRIANGLE, material);
+    shape->A = real3(A.x() + position.x(), A.y() + position.y(), A.z() + position.z());
+    shape->B = real3(B.x() + position.x(), B.y() + position.y(), B.z() + position.z());
+    shape->C = real3(C.x() + position.x(), C.y() + position.y(), C.z() + position.z());
+    shape->R = quaternion(rotation.e0(), rotation.e1(), rotation.e2(), rotation.e3());
+    m_shapes.push_back(std::shared_ptr<ChCollisionShape>(shape));
 
     return true;
 }
 
-bool ChCollisionModelParallel::AddCylinder(double rx,
+bool ChCollisionModelParallel::AddCylinder(std::shared_ptr<ChMaterialSurface> material,
+                                           double rx,
                                            double rz,
                                            double hy,
                                            const ChVector<>& pos,
@@ -181,19 +181,18 @@ bool ChCollisionModelParallel::AddCylinder(double rx,
     const ChVector<>& position = frame.GetPos();
     const ChQuaternion<>& rotation = frame.GetRot();
 
-    nObjects++;
-    ConvexModel tData;
-    tData.A = real3(position.x(), position.y(), position.z());
-    tData.B = real3(rx, hy, rz);
-    tData.C = real3(0, 0, 0);
-    tData.R = quaternion(rotation.e0(), rotation.e1(), rotation.e2(), rotation.e3());
-    tData.type = CYLINDER;
-    mData.push_back(tData);
+    auto shape = new ChCollisionShapeParallel(ChCollisionShape::Type::CYLINDER, material);
+    shape->A = real3(position.x(), position.y(), position.z());
+    shape->B = real3(rx, hy, rz);
+    shape->C = real3(0, 0, 0);
+    shape->R = quaternion(rotation.e0(), rotation.e1(), rotation.e2(), rotation.e3());
+    m_shapes.push_back(std::shared_ptr<ChCollisionShape>(shape));
 
     return true;
 }
 
-bool ChCollisionModelParallel::AddRoundedCylinder(double rx,
+bool ChCollisionModelParallel::AddRoundedCylinder(std::shared_ptr<ChMaterialSurface> material,
+                                                  double rx,
                                                   double rz,
                                                   double hy,
                                                   double sphere_r,
@@ -204,19 +203,18 @@ bool ChCollisionModelParallel::AddRoundedCylinder(double rx,
     const ChVector<>& position = frame.GetPos();
     const ChQuaternion<>& rotation = frame.GetRot();
 
-    nObjects++;
-    ConvexModel tData;
-    tData.A = real3(position.x(), position.y(), position.z());
-    tData.B = real3(rx, hy, rz);
-    tData.C = real3(sphere_r, 0, 0);
-    tData.R = quaternion(rotation.e0(), rotation.e1(), rotation.e2(), rotation.e3());
-    tData.type = ROUNDEDCYL;
-    mData.push_back(tData);
+    auto shape = new ChCollisionShapeParallel(ChCollisionShape::Type::ROUNDEDCYL, material);
+    shape->A = real3(position.x(), position.y(), position.z());
+    shape->B = real3(rx, hy, rz);
+    shape->C = real3(sphere_r, 0, 0);
+    shape->R = quaternion(rotation.e0(), rotation.e1(), rotation.e2(), rotation.e3());
+    m_shapes.push_back(std::shared_ptr<ChCollisionShape>(shape));
 
     return true;
 }
 
-bool ChCollisionModelParallel::AddCone(double rx,
+bool ChCollisionModelParallel::AddCone(std::shared_ptr<ChMaterialSurface> material,
+                                       double rx,
                                        double rz,
                                        double hy,
                                        const ChVector<>& pos,
@@ -226,19 +224,18 @@ bool ChCollisionModelParallel::AddCone(double rx,
     const ChVector<>& position = frame.GetPos();
     const ChQuaternion<>& rotation = frame.GetRot();
 
-    nObjects++;
-    ConvexModel tData;
-    tData.A = real3(position.x(), position.y(), position.z());
-    tData.B = real3(rx, hy, rz);
-    tData.C = real3(0, 0, 0);
-    tData.R = quaternion(rotation.e0(), rotation.e1(), rotation.e2(), rotation.e3());
-    tData.type = CONE;
-    mData.push_back(tData);
+    auto shape = new ChCollisionShapeParallel(ChCollisionShape::Type::CONE, material);
+    shape->A = real3(position.x(), position.y(), position.z());
+    shape->B = real3(rx, hy, rz);
+    shape->C = real3(0, 0, 0);
+    shape->R = quaternion(rotation.e0(), rotation.e1(), rotation.e2(), rotation.e3());
+    m_shapes.push_back(std::shared_ptr<ChCollisionShape>(shape));
 
     return true;
 }
 
-bool ChCollisionModelParallel::AddRoundedCone(double rx,
+bool ChCollisionModelParallel::AddRoundedCone(std::shared_ptr<ChMaterialSurface> material,
+                                              double rx,
                                               double rz,
                                               double hy,
                                               double sphere_r,
@@ -249,37 +246,38 @@ bool ChCollisionModelParallel::AddRoundedCone(double rx,
     const ChVector<>& position = frame.GetPos();
     const ChQuaternion<>& rotation = frame.GetRot();
 
-    nObjects++;
-    ConvexModel tData;
-    tData.A = real3(position.x(), position.y(), position.z());
-    tData.B = real3(rx, hy, rz);
-    tData.C = real3(sphere_r, 0, 0);
-    tData.R = quaternion(rotation.e0(), rotation.e1(), rotation.e2(), rotation.e3());
-    tData.type = ROUNDEDCONE;
-    mData.push_back(tData);
+    auto shape = new ChCollisionShapeParallel(ChCollisionShape::Type::ROUNDEDCONE, material);
+    shape->A = real3(position.x(), position.y(), position.z());
+    shape->B = real3(rx, hy, rz);
+    shape->C = real3(sphere_r, 0, 0);
+    shape->R = quaternion(rotation.e0(), rotation.e1(), rotation.e2(), rotation.e3());
+    m_shapes.push_back(std::shared_ptr<ChCollisionShape>(shape));
 
     return true;
 }
 
-bool ChCollisionModelParallel::AddCapsule(double radius, double hlen, const ChVector<>& pos, const ChMatrix33<>& rot) {
+bool ChCollisionModelParallel::AddCapsule(std::shared_ptr<ChMaterialSurface> material,
+                                          double radius,
+                                          double hlen,
+                                          const ChVector<>& pos,
+                                          const ChMatrix33<>& rot) {
     ChFrame<> frame;
     TransformToCOG(GetBody(), pos, rot, frame);
     const ChVector<>& position = frame.GetPos();
     const ChQuaternion<>& rotation = frame.GetRot();
 
-    nObjects++;
-    ConvexModel tData;
-    tData.A = real3(position.x(), position.y(), position.z());
-    tData.B = real3(radius, hlen, radius);
-    tData.C = real3(0, 0, 0);
-    tData.R = quaternion(rotation.e0(), rotation.e1(), rotation.e2(), rotation.e3());
-    tData.type = CAPSULE;
-    mData.push_back(tData);
+    auto shape = new ChCollisionShapeParallel(ChCollisionShape::Type::CAPSULE, material);
+    shape->A = real3(position.x(), position.y(), position.z());
+    shape->B = real3(radius, hlen, radius);
+    shape->C = real3(0, 0, 0);
+    shape->R = quaternion(rotation.e0(), rotation.e1(), rotation.e2(), rotation.e3());
+    m_shapes.push_back(std::shared_ptr<ChCollisionShape>(shape));
 
     return true;
 }
 
-bool ChCollisionModelParallel::AddConvexHull(const std::vector<ChVector<double> >& pointlist,
+bool ChCollisionModelParallel::AddConvexHull(std::shared_ptr<ChMaterialSurface> material,
+                                             const std::vector<ChVector<double> >& pointlist,
                                              const ChVector<>& pos,
                                              const ChMatrix33<>& rot) {
     ChFrame<> frame;
@@ -287,24 +285,23 @@ bool ChCollisionModelParallel::AddConvexHull(const std::vector<ChVector<double> 
     const ChVector<>& position = frame.GetPos();
     const ChQuaternion<>& rotation = frame.GetRot();
 
-    nObjects++;
-    ConvexModel tData;
-    tData.A = real3(position.x(), position.y(), position.z());
-    tData.B = real3((chrono::real)pointlist.size(), (chrono::real)local_convex_data.size(), 0);
-    tData.C = real3(0, 0, 0);
-    tData.R = quaternion(rotation.e0(), rotation.e1(), rotation.e2(), rotation.e3());
-    tData.type = CONVEX;
-
-    mData.push_back(tData);
+    auto shape = new ChCollisionShapeParallel(ChCollisionShape::Type::CONVEX, material);
+    shape->A = real3(position.x(), position.y(), position.z());
+    shape->B = real3((chrono::real)pointlist.size(), (chrono::real)local_convex_data.size(), 0);
+    shape->C = real3(0, 0, 0);
+    shape->R = quaternion(rotation.e0(), rotation.e1(), rotation.e2(), rotation.e3());
 
     for (int i = 0; i < pointlist.size(); i++) {
         local_convex_data.push_back(real3(pointlist[i].x(), pointlist[i].y(), pointlist[i].z()));
     }
 
+    m_shapes.push_back(std::shared_ptr<ChCollisionShape>(shape));
+
     return true;
 }
 
-bool ChCollisionModelParallel::AddBarrel(double Y_low,
+bool ChCollisionModelParallel::AddBarrel(std::shared_ptr<ChMaterialSurface> material,
+                                         double Y_low,
                                          double Y_high,
                                          double R_vert,
                                          double R_hor,
@@ -316,7 +313,8 @@ bool ChCollisionModelParallel::AddBarrel(double Y_low,
 }
 
 /// Add a triangle mesh to this model
-bool ChCollisionModelParallel::AddTriangleMesh(std::shared_ptr<geometry::ChTriangleMesh> trimesh,
+bool ChCollisionModelParallel::AddTriangleMesh(std::shared_ptr<ChMaterialSurface> material,
+                                               std::shared_ptr<geometry::ChTriangleMesh> trimesh,
                                                bool is_static,
                                                bool is_convex,
                                                const ChVector<>& pos,
@@ -327,17 +325,14 @@ bool ChCollisionModelParallel::AddTriangleMesh(std::shared_ptr<geometry::ChTrian
     const ChVector<>& position = frame.GetPos();
     const ChQuaternion<>& rotation = frame.GetRot();
 
-    nObjects += trimesh->getNumTriangles();
-    ConvexModel tData;
     for (int i = 0; i < trimesh->getNumTriangles(); i++) {
+        auto shape = new ChCollisionShapeParallel(ChCollisionShape::Type::TRIANGLE, material);
         geometry::ChTriangle temptri = trimesh->getTriangle(i);
-        tData.A = real3(temptri.p1.x() + position.x(), temptri.p1.y() + position.y(), temptri.p1.z() + position.z());
-        tData.B = real3(temptri.p2.x() + position.x(), temptri.p2.y() + position.y(), temptri.p2.z() + position.z());
-        tData.C = real3(temptri.p3.x() + position.x(), temptri.p3.y() + position.y(), temptri.p3.z() + position.z());
-        tData.R = quaternion(rotation.e0(), rotation.e1(), rotation.e2(), rotation.e3());
-        tData.type = TRIANGLEMESH;
-
-        mData.push_back(tData);
+        shape->A = real3(temptri.p1.x() + position.x(), temptri.p1.y() + position.y(), temptri.p1.z() + position.z());
+        shape->B = real3(temptri.p2.x() + position.x(), temptri.p2.y() + position.y(), temptri.p2.z() + position.z());
+        shape->C = real3(temptri.p3.x() + position.x(), temptri.p3.y() + position.y(), temptri.p3.z() + position.z());
+        shape->R = quaternion(rotation.e0(), rotation.e1(), rotation.e2(), rotation.e3());
+        m_shapes.push_back(std::shared_ptr<ChCollisionShape>(shape));
     }
 
     return true;
@@ -349,8 +344,57 @@ bool ChCollisionModelParallel::AddCopyOfAnotherModel(ChCollisionModel* another) 
 }
 
 void ChCollisionModelParallel::GetAABB(ChVector<>& bbmin, ChVector<>& bbmax) const {
-    bbmin.x() = aabb_min.x; bbmin.y() = aabb_min.y; bbmin.z() = aabb_min.z;
-    bbmax.x() = aabb_max.x; bbmax.y() = aabb_max.y; bbmax.z() = aabb_max.z;
+    bbmin.x() = aabb_min.x;
+    bbmin.y() = aabb_min.y;
+    bbmin.z() = aabb_min.z;
+    bbmax.x() = aabb_max.x;
+    bbmax.y() = aabb_max.y;
+    bbmax.z() = aabb_max.z;
+}
+
+ChCoordsys<> ChCollisionModelParallel::GetShapePos(int index) const {
+    auto shape = std::static_pointer_cast<ChCollisionShapeParallel>(m_shapes[index]);
+    const real3& p = shape->A;
+    const quaternion& q = shape->R;
+    return ChCoordsys<>(ChVector<>((double)p.x, (double)p.y, (double)p.z),
+                        ChQuaternion<>((double)q.w, (double)q.x, (double)q.y, (double)q.z));
+}
+
+std::vector<double> ChCollisionModelParallel::GetShapeDimensions(int index) const {
+    assert(index < GetNumShapes());
+
+    auto shape = std::static_pointer_cast<ChCollisionShapeParallel>(m_shapes[index]);
+
+    std::vector<double> dims;
+    switch (m_shapes[index]->GetType()) {
+        case ChCollisionShape::Type::SPHERE:
+            dims = {shape->B.x};
+            break;
+        case ChCollisionShape::Type::ELLIPSOID:
+            dims = {shape->B.x, shape->B.y, shape->B.z};
+            break;
+        case ChCollisionShape::Type::BOX:
+            dims = {shape->B.x, shape->B.y, shape->B.z};
+            break;
+        case ChCollisionShape::Type::CYLINDER:
+            dims = {shape->B.x, shape->B.z, shape->B.y};
+            break;
+        case ChCollisionShape::Type::CAPSULE:
+            dims = {shape->B.x, shape->B.y};
+            break;
+        case ChCollisionShape::Type::CONE:
+            dims = {shape->B.x, shape->B.z, shape->B.y};
+            break;
+        case ChCollisionShape::Type::ROUNDEDBOX:
+            dims = {shape->B.x, shape->B.y, shape->B.z, shape->C.x};
+            break;
+        case ChCollisionShape::Type::ROUNDEDCYL:
+            dims = {shape->B.x, shape->B.z, shape->B.y, shape->C.x};
+            break;
+        default:
+            break;
+    }
+    return dims;
 }
 
 void ChCollisionModelParallel::SyncPosition() {

@@ -25,6 +25,8 @@
 
 #include "chrono_models/vehicle/m113/M113_TrackShoeBandBushing.h"
 
+#include "chrono_thirdparty/filesystem/path.h"
+
 namespace chrono {
 namespace vehicle {
 namespace m113 {
@@ -60,19 +62,45 @@ const double M113_TrackShoeBandBushing::m_tread_thickness = 0.0157 * 1.04;
 const ChVector<> M113_TrackShoeBandBushing::m_guide_box_dims(0.0529, 0.0114, 0.075);
 const double M113_TrackShoeBandBushing::m_guide_box_offset_x = 0;
 
-const std::string M113_TrackShoeBandBushing::m_meshName = "TrackShoeBandBushing_POV_geom";
 const std::string M113_TrackShoeBandBushing::m_meshFile = "M113/TrackShoeBandBushing.obj";
 const std::string M113_TrackShoeBandBushing::m_tread_meshName = "M113_Tread";
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 M113_TrackShoeBandBushing::M113_TrackShoeBandBushing(const std::string& name) : ChTrackShoeBandBushing(name) {
-    SetContactFrictionCoefficient(0.8f);
-    SetContactRestitutionCoefficient(0.1f);
-    SetContactMaterialProperties(1e7f, 0.3f);
-    SetContactMaterialCoefficients(2e5f, 40.0f, 2e5f, 20.0f);
-
     SetBushingParameters(7e7, 500, 1e5, 0.05 * 7e7, 0.05 * 500, 0.05 * 1e5);
+}
+
+void M113_TrackShoeBandBushing::CreateContactMaterials(ChContactMethod contact_method) {
+    // Pad material (ground contact)
+    {
+        MaterialInfo minfo;
+        minfo.mu = 0.8f;
+        minfo.cr = 0.1f;
+        minfo.Y = 1e7f;
+        m_pad_material = minfo.CreateMaterial(contact_method);
+    }
+
+    // Body material (wheel contact)
+    {
+        MaterialInfo minfo;
+        minfo.mu = 0.8f;
+        minfo.cr = 0.1f;
+        minfo.Y = 1e7f;
+        m_body_material = minfo.CreateMaterial(contact_method);
+    }
+
+    // Guide material (wheel contact)
+    m_guide_material = m_body_material;
+
+    // Tooth material (sprocket contact)
+    {
+        MaterialInfo minfo;
+        minfo.mu = 0.8f;
+        minfo.cr = 0.1f;
+        minfo.Y = 1e7f;
+        m_tooth_material = minfo.CreateMaterial(contact_method);
+    }
 }
 
 // -----------------------------------------------------------------------------

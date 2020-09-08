@@ -17,7 +17,6 @@
 //
 // =============================================================================
 
-#include "chrono/parallel/ChOpenMP.h"
 #include "chrono/utils/ChUtilsCreators.h"
 
 #include "chrono_vehicle/ChVehicleModelData.h"
@@ -87,12 +86,7 @@ int main(int argc, char* argv[]) {
     system->Set_G_acc(gravity);
 
     // Set number of threads
-    int threads = 4;
-    int max_threads = CHOMPfunctions::GetNumProcs();
-    if (threads > max_threads)
-        threads = max_threads;
-    system->SetParallelThreadNumber(threads);
-    CHOMPfunctions::SetNumThreads(threads);
+    system->SetNumThreads(4);
 
     // Edit system settings
     system->GetSettings()->solver.tolerance = 1e-3;
@@ -107,7 +101,6 @@ int main(int argc, char* argv[]) {
     system->GetSettings()->solver.use_full_inertia_tensor = false;
     system->GetSettings()->solver.contact_recovery_speed = 1000;
     system->GetSettings()->solver.bilateral_clamp_speed = 1e8;
-    system->GetSettings()->min_threads = threads;
     system->ChangeSolverType(SolverType::BB);
 
     system->GetSettings()->collision.collision_envelope = envelope;
@@ -120,8 +113,10 @@ int main(int argc, char* argv[]) {
     // ------------------
 
     GranularTerrain terrain(system);
-    terrain.SetContactFrictionCoefficient((float)mu_g);
-    terrain.SetContactCohesion((float)coh_g);
+    auto mat = std::static_pointer_cast<ChMaterialSurfaceNSC>(terrain.GetContactMaterial());
+    mat->SetFriction((float)mu_g);
+    mat->SetCohesion((float)coh_g);
+    terrain.SetContactMaterial(mat);
     terrain.SetCollisionEnvelope(envelope / 5);
     if (rough) {
         int nx = (int)std::round((2 * hdimX) / (4 * r_g));
@@ -133,7 +128,7 @@ int main(int argc, char* argv[]) {
 
     terrain.Initialize(center, 2 * hdimX, 2 * hdimY, num_layers, r_g, rho_g, ChVector<>(0, 0, -2));
     uint actual_num_particles = terrain.GetNumParticles();
-    double terrain_height = terrain.GetHeight(0, 0);
+    double terrain_height = terrain.GetHeight(ChVector<>(0, 0, 0));
 
     std::cout << "Number of particles: " << actual_num_particles << std::endl;
     std::cout << "Terrain height:      " << terrain_height << std::endl;
@@ -151,11 +146,13 @@ int main(int argc, char* argv[]) {
     body->SetPos(pos);
     system->AddBody(body);
 
+    auto body_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+
     body->GetCollisionModel()->ClearModel();
-    utils::AddSphereGeometry(body.get(), body_rad, ChVector<>(0, 0, 0));
+    utils::AddSphereGeometry(body.get(), body_mat, body_rad, ChVector<>(0, 0, 0));
     body->GetCollisionModel()->BuildModel();
 
-    auto joint = std::make_shared<ChLinkLockPrismatic>();
+    auto joint = chrono_types::make_shared<ChLinkLockPrismatic>();
     joint->Initialize(terrain.GetGroundBody(), body, ChCoordsys<>(pos, Q_from_AngY(CH_C_PI_2)));
     system->AddLink(joint);
 

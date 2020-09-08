@@ -31,11 +31,9 @@ namespace vehicle {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-ChSprocket::ChSprocket(const std::string& name) : ChPart(name), m_callback(NULL) {}
+ChSprocket::ChSprocket(const std::string& name) : ChPart(name), m_lateral_contact(true) {}
 
-ChSprocket::~ChSprocket() {
-    delete m_callback;
-}
+ChSprocket::~ChSprocket() {}
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -52,6 +50,7 @@ void ChSprocket::Initialize(std::shared_ptr<ChBodyAuxRef> chassis, const ChVecto
     // Create and initialize the gear body (same orientation as the chassis).
     m_gear = std::shared_ptr<ChBody>(chassis->GetSystem()->NewBody());
     m_gear->SetNameString(m_name + "_gear");
+    m_gear->SetIdentifier(BodyID::SPROCKET_BODY);
     m_gear->SetPos(loc);
     m_gear->SetRot(chassisRot);
     m_gear->SetMass(GetGearMass());
@@ -60,42 +59,26 @@ void ChSprocket::Initialize(std::shared_ptr<ChBodyAuxRef> chassis, const ChVecto
 
     // Create and initialize the revolute joint between chassis and gear.
     ChCoordsys<> rev_csys(loc, chassisRot * y2z);
-    m_revolute = std::make_shared<ChLinkLockRevolute>();
+    m_revolute = chrono_types::make_shared<ChLinkLockRevolute>();
     m_revolute->SetNameString(m_name + "_revolute");
     m_revolute->Initialize(chassis, m_gear, rev_csys);
     chassis->GetSystem()->AddLink(m_revolute);
 
     // Create and initialize the axle shaft and its connection to the gear. Note that the
     // gear rotates about the Y axis.
-    m_axle = std::make_shared<ChShaft>();
+    m_axle = chrono_types::make_shared<ChShaft>();
     m_axle->SetNameString(m_name + "_axle");
     m_axle->SetInertia(GetAxleInertia());
     chassis->GetSystem()->Add(m_axle);
 
-    m_axle_to_spindle = std::make_shared<ChShaftsBody>();
+    m_axle_to_spindle = chrono_types::make_shared<ChShaftsBody>();
     m_axle_to_spindle->SetNameString(m_name + "_axle_to_spindle");
     m_axle_to_spindle->Initialize(m_axle, m_gear, ChVector<>(0, -1, 0));
     chassis->GetSystem()->Add(m_axle_to_spindle);
 
     // Enable contact for the gear body and set contact material properties.
     m_gear->SetCollide(true);
-
-    switch (m_gear->GetContactMethod()) {
-        case ChMaterialSurface::NSC:
-            m_gear->GetMaterialSurfaceNSC()->SetFriction(m_friction);
-            m_gear->GetMaterialSurfaceNSC()->SetRestitution(m_restitution);
-            break;
-        case ChMaterialSurface::SMC:
-            m_gear->GetMaterialSurfaceSMC()->SetFriction(m_friction);
-            m_gear->GetMaterialSurfaceSMC()->SetRestitution(m_restitution);
-            m_gear->GetMaterialSurfaceSMC()->SetYoungModulus(m_young_modulus);
-            m_gear->GetMaterialSurfaceSMC()->SetPoissonRatio(m_poisson_ratio);
-            m_gear->GetMaterialSurfaceSMC()->SetKn(m_kn);
-            m_gear->GetMaterialSurfaceSMC()->SetGn(m_gn);
-            m_gear->GetMaterialSurfaceSMC()->SetKt(m_kt);
-            m_gear->GetMaterialSurfaceSMC()->SetGt(m_gt);
-            break;
-    }
+    CreateContactMaterial(chassis->GetSystem()->GetContactMethod());
 
     // Set user-defined custom collision callback class for sprocket-shoes contact.
     chassis->GetSystem()->RegisterCustomCollisionCallback(GetCollisionCallback(track));
@@ -119,14 +102,14 @@ void ChSprocket::AddVisualizationAssets(VisualizationType vis) {
     double sep = GetSeparation();
     std::shared_ptr<geometry::ChLinePath> profile = GetProfile();
 
-    auto asset_1 = std::make_shared<ChLineShape>();
+    auto asset_1 = chrono_types::make_shared<ChLineShape>();
     asset_1->SetLineGeometry(profile);
     asset_1->Pos = ChVector<>(0, sep / 2, 0);
     asset_1->Rot = rot_y2z;
     asset_1->SetColor(ChColor(1, 0, 0));
     m_gear->AddAsset(asset_1);
 
-    auto asset_2 = std::make_shared<ChLineShape>();
+    auto asset_2 = chrono_types::make_shared<ChLineShape>();
     asset_2->SetLineGeometry(profile);
     asset_2->Pos = ChVector<>(0, -sep / 2, 0);
     asset_2->Rot = rot_y2z;
@@ -149,13 +132,13 @@ void ChSprocket::ApplyAxleTorque(double torque) {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChSprocket::LogConstraintViolations() {
-    ChMatrix<>* C = m_revolute->GetC();
+    ChVectorDynamic<> C = m_revolute->GetC();
     GetLog() << "  Sprocket-chassis revolute\n";
-    GetLog() << "  " << C->GetElement(0, 0) << "  ";
-    GetLog() << "  " << C->GetElement(1, 0) << "  ";
-    GetLog() << "  " << C->GetElement(2, 0) << "  ";
-    GetLog() << "  " << C->GetElement(3, 0) << "  ";
-    GetLog() << "  " << C->GetElement(4, 0) << "\n";
+    GetLog() << "  " << C(0) << "  ";
+    GetLog() << "  " << C(1) << "  ";
+    GetLog() << "  " << C(2) << "  ";
+    GetLog() << "  " << C(3) << "  ";
+    GetLog() << "  " << C(4) << "\n";
 }
 
 // -----------------------------------------------------------------------------

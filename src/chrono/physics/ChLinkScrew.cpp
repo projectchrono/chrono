@@ -22,11 +22,11 @@ CH_FACTORY_REGISTER(ChLinkScrew)
 ChLinkScrew::ChLinkScrew() {
     Set_thread(0.05);
 
-    // Mask: initialize our LinkMaskLF (lock formulation mask)
-    // to X,Y,Z,Rx Ry, (note: the Z lock is'nt a standard LinkLock z-lock and will
-    // be handled as a custom screw constraint z = tau *alpha, later in updating functions).
-    ((ChLinkMaskLF*)mask)->SetLockMask(true, true, true, false, true, true, false);
-    ChangedLinkMask();
+    // Mask: initialize our LinkMaskLF (lock formulation mask) to X,Y,Z,Rx Ry,
+    // (note: the Z lock is not a standard LinkLock z-lock and will be handled as a custom screw constraint
+    // z = tau*alpha, later in the updating functions).
+    mask.SetLockMask(true, true, true, false, true, true, false);
+    BuildLink();
 }
 
 ChLinkScrew::ChLinkScrew(const ChLinkScrew& other) : ChLinkLock(other) {
@@ -68,13 +68,11 @@ void ChLinkScrew::UpdateState() {
         scr_C_dt = relM_dt.pos.z() + relM_dt.rot.e0() * coeffa;
         scr_C_dtdt = relM_dtdt.pos.z() + relM_dt.rot.e0() * coeffb + relM_dtdt.rot.e0() * coeffa;
         scr_Ct = Ct_temp.pos.z() + coeffa * Ct_temp.rot.e0();
-        scr_Qc = Qc_temp->GetElement(2, 0) + coeffa * Qc_temp->GetElement(3, 0) - relM_dt.rot.e0() * coeffb;
-        scr_Cq1.Reset();
-        scr_Cq2.Reset();
-        scr_Cq1.PasteClippedMatrix(*Cq1_temp, 3, 3, 1, 4, 0, 3);
-        scr_Cq2.PasteClippedMatrix(*Cq2_temp, 3, 3, 1, 4, 0, 3);
-        scr_Cq1.MatrScale(coeffa);
-        scr_Cq2.MatrScale(coeffa);
+        scr_Qc = Qc_temp(2) + coeffa * Qc_temp(3) - relM_dt.rot.e0() * coeffb;
+        scr_Cq1.setZero();
+        scr_Cq2.setZero();
+        scr_Cq1.block(0, 3, 1, 4) = coeffa * Cq1_temp.block(3, 3, 1, 4);
+        scr_Cq2.block(0, 3, 1, 4) = coeffa * Cq2_temp.block(3, 3, 1, 4);
     } else {
         Crz = relM.rot.e3();  // Zz*sin(alpha/2)
         msign = +1;
@@ -98,24 +96,21 @@ void ChLinkScrew::UpdateState() {
         scr_C_dt = relM_dt.pos.z() + relM_dt.rot.e3() * coeffa;
         scr_C_dtdt = relM_dtdt.pos.z() + relM_dt.rot.e3() * coeffb + relM_dtdt.rot.e3() * coeffa;
         scr_Ct = Ct_temp.pos.z() + coeffa * Ct_temp.rot.e3();
-        scr_Qc = Qc_temp->GetElement(2, 0) + coeffa * Qc_temp->GetElement(6, 0) - relM_dt.rot.e3() * coeffb;
-        scr_Cq1.Reset();
-        scr_Cq2.Reset();
-        scr_Cq1.PasteClippedMatrix(*Cq1_temp, 6, 3, 1, 4, 0, 3);
-        scr_Cq2.PasteClippedMatrix(*Cq2_temp, 6, 3, 1, 4, 0, 3);
-        scr_Cq1.MatrScale(coeffa);
-        scr_Cq2.MatrScale(coeffa);
+        scr_Qc = Qc_temp(2) + coeffa * Qc_temp(6) - relM_dt.rot.e3() * coeffb;
+        scr_Cq1.setZero();
+        scr_Cq2.setZero();
+        scr_Cq1.block(0, 3, 1, 4) = coeffa * Cq1_temp.block(6, 3, 1, 4);
+        scr_Cq2.block(0, 3, 1, 4) = coeffa * Cq2_temp.block(6, 3, 1, 4);
     }
 
-    Cq1->PasteClippedMatrix(*Cq1_temp, 2, 0, 1, 7, 2, 0);
-    Cq2->PasteClippedMatrix(*Cq2_temp, 2, 0, 1, 7, 2, 0);
-    Cq1->PasteSumMatrix(scr_Cq1, 2, 0);
-    Cq2->PasteSumMatrix(scr_Cq2, 2, 0);
-    Qc->SetElement(2, 0, scr_Qc);
-    C->SetElement(2, 0, scr_C);
-    C_dt->SetElement(2, 0, scr_C_dt);
-    C_dtdt->SetElement(2, 0, scr_C_dtdt);
-    Ct->SetElement(2, 0, scr_Ct);
+    Cq1.block(2, 0, 1, 7) = Cq1_temp.block(2, 0, 1, 7) + scr_Cq1;
+    Cq2.block(2, 0, 1, 7) = Cq2_temp.block(2, 0, 1, 7) + scr_Cq2;
+
+    Qc(2) = scr_Qc;
+    C(2) = scr_C;
+    C_dt(2) = scr_C_dt;
+    C_dtdt(2) = scr_C_dtdt;
+    Ct(2) = scr_Ct;
 }
 
 void ChLinkScrew::ArchiveOUT(ChArchiveOut& marchive) {

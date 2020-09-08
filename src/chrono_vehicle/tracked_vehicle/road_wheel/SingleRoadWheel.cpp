@@ -21,7 +21,7 @@
 #include "chrono_vehicle/tracked_vehicle/road_wheel/SingleRoadWheel.h"
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
 
-#include "chrono_thirdparty/rapidjson/filereadstream.h"
+#include "chrono_thirdparty/filesystem/path.h"
 
 using namespace rapidjson;
 
@@ -31,15 +31,9 @@ namespace vehicle {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 SingleRoadWheel::SingleRoadWheel(const std::string& filename) : ChSingleRoadWheel(""), m_has_mesh(false) {
-    FILE* fp = fopen(filename.c_str(), "r");
-
-    char readBuffer[65536];
-    FileReadStream is(fp, readBuffer, sizeof(readBuffer));
-
-    fclose(fp);
-
-    Document d;
-    d.ParseStream<ParseFlag::kParseCommentsFlag>(is);
+    Document d = ReadFileJSON(filename);
+    if (d.IsNull())
+        return;
 
     Create(d);
 
@@ -59,49 +53,33 @@ void SingleRoadWheel::Create(const rapidjson::Document& d) {
     m_wheel_radius = d["Wheel"]["Radius"].GetDouble();
     m_wheel_width = d["Wheel"]["Width"].GetDouble();
     m_wheel_mass = d["Wheel"]["Mass"].GetDouble();
-    m_wheel_inertia = LoadVectorJSON(d["Wheel"]["Inertia"]);
+    m_wheel_inertia = ReadVectorJSON(d["Wheel"]["Inertia"]);
 
     // Read contact material data
     assert(d.HasMember("Contact Material"));
-
-    float mu = d["Contact Material"]["Coefficient of Friction"].GetFloat();
-    float cr = d["Contact Material"]["Coefficient of Restitution"].GetFloat();
-
-    SetContactFrictionCoefficient(mu);
-    SetContactRestitutionCoefficient(cr);
-
-    if (d["Contact Material"].HasMember("Properties")) {
-        float ym = d["Contact Material"]["Properties"]["Young Modulus"].GetFloat();
-        float pr = d["Contact Material"]["Properties"]["Poisson Ratio"].GetFloat();
-        SetContactMaterialProperties(ym, pr);
-    }
-    if (d["Contact Material"].HasMember("Coefficients")) {
-        float kn = d["Contact Material"]["Coefficients"]["Normal Stiffness"].GetFloat();
-        float gn = d["Contact Material"]["Coefficients"]["Normal Damping"].GetFloat();
-        float kt = d["Contact Material"]["Coefficients"]["Tangential Stiffness"].GetFloat();
-        float gt = d["Contact Material"]["Coefficients"]["Tangential Damping"].GetFloat();
-        SetContactMaterialCoefficients(kn, gn, kt, gt);
-    }
+    m_mat_info = ReadMaterialInfoJSON(d["Contact Material"]);
 
     // Read wheel visualization
     if (d.HasMember("Visualization")) {
-        assert(d["Visualization"].HasMember("Mesh Filename"));
-        assert(d["Visualization"].HasMember("Mesh Name"));
-        m_meshFile = d["Visualization"]["Mesh Filename"].GetString();
-        m_meshName = d["Visualization"]["Mesh Name"].GetString();
+        assert(d["Visualization"].HasMember("Mesh"));
+        m_meshFile = d["Visualization"]["Mesh"].GetString();
         m_has_mesh = true;
     }
 }
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
+void SingleRoadWheel::CreateContactMaterial(ChContactMethod contact_method) {
+    m_material = m_mat_info.CreateMaterial(contact_method);
+}
+
 void SingleRoadWheel::AddVisualizationAssets(VisualizationType vis) {
     if (vis == VisualizationType::MESH && m_has_mesh) {
-        auto trimesh = std::make_shared<geometry::ChTriangleMeshConnected>();
+        auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
         trimesh->LoadWavefrontMesh(vehicle::GetDataFile(m_meshFile), false, false);
-        auto trimesh_shape = std::make_shared<ChTriangleMeshShape>();
+        auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
         trimesh_shape->SetMesh(trimesh);
-        trimesh_shape->SetName(m_meshName);
+        trimesh_shape->SetName(filesystem::path(m_meshFile).stem());
         trimesh_shape->SetStatic(true);
         m_wheel->AddAsset(trimesh_shape);
     } else {

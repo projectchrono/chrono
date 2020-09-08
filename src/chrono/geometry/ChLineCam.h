@@ -32,6 +32,7 @@ enum eChCamType {
     CAM_TYPE_FLATOSCILLATE,
 };
 
+/// @cond
 CH_ENUM_MAPPER_BEGIN(eChCamType);
 CH_ENUM_VAL(CAM_TYPE_SLIDEFOLLOWER);
 CH_ENUM_VAL(CAM_TYPE_ROTATEFOLLOWER);
@@ -39,6 +40,7 @@ CH_ENUM_VAL(CAM_TYPE_ECCENTRICFOLLOWER);
 CH_ENUM_VAL(CAM_TYPE_FLAT);
 CH_ENUM_VAL(CAM_TYPE_FLATOSCILLATE);
 CH_ENUM_MAPPER_END(eChCamType);
+/// @endcond
 
 /// Geometric object describing the profile of a cam.
 /// The shape of a cam is specified through a ChFunction which defines the motion law of the follower.

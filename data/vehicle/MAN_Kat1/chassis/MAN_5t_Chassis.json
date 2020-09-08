@@ -1,0 +1,30 @@
+{
+  "Name":     "MAN 5t chassis",
+  "Type":     "Chassis",
+  "Template": "RigidChassis",
+
+  "Components":
+  [
+   {
+     "Centroidal Frame":    {
+                              "Location":    [-1.748, 0, 0.744], 
+                              "Orientation": [1, 0, 0, 0]
+                            },
+     "Mass":                7085,
+     "Moments of Inertia":  [3441, 28485, 29395],
+     "Products of Inertia": [0, 0, 0],
+     "Void":                false
+   }
+  ],
+ 
+  "Driver Position":
+  {
+    "Location":     [0, 0.5, 1.2],
+    "Orientation":  [1, 0, 0, 0]
+  },
+
+  "Visualization":
+  {
+    "Mesh":  "MAN_Kat1/meshes/MAN_5t_chassis.obj"
+  }
+}

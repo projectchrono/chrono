@@ -66,14 +66,13 @@ class ChMPMContainer;
 class ChFLIPContainer;
 class ChConstraintRigidRigid;
 class ChConstraintBilateral;
-template <typename T>
 class ChMaterialCompositionStrategy;
 
 namespace collision {
 class ChCBroadphase;           // forward declaration
 class ChCNarrowphaseDispatch;  // forward declaration
 class ChCAABBGenerator;        // forward declaration
-}
+}  // namespace collision
 
 #if BLAZE_MAJOR_VERSION == 2
 typedef blaze::SparseSubmatrix<CompressedMatrix<real>> SubMatrixType;
@@ -92,6 +91,7 @@ typedef blaze::Subvector<const DynamicVector<real>> ConstSubVectorType;
 #define _num_dof_ data_manager->num_dof
 #define _num_rigid_dof_ data_manager->num_rigid_bodies * 6
 #define _num_shaft_dof_ data_manager->num_shafts
+#define _num_motor_dof_ data_manager->num_motors
 #define _num_fluid_dof_ data_manager->num_fluid_bodies * 3
 #define _num_bil_ data_manager->num_bilaterals
 #define _num_uni_ data_manager->num_unilaterals
@@ -102,6 +102,7 @@ typedef blaze::Subvector<const DynamicVector<real>> ConstSubVectorType;
 // 0
 //_num_rigid_dof_
 //_num_shaft_dof_
+//_num_motor_dof_
 //_num_fluid_dof_
 
 // 0
@@ -123,52 +124,52 @@ typedef blaze::Subvector<const DynamicVector<real>> ConstSubVectorType;
 #define _DT_ submatrix(_D_, 0, _num_r_c_, _num_rigid_dof_, 2 * _num_r_c_)
 #define _DS_ submatrix(_D_, 0, 3 * _num_r_c_, _num_rigid_dof_, 3 * _num_r_c_)
 // D Bilateral
-#define _DB_ submatrix(_D_, 0, _num_uni_, _num_rigid_dof_ + _num_shaft_dof_, _num_bil_)
+#define _DB_ submatrix(_D_, 0, _num_uni_, _num_rigid_dof_ + _num_shaft_dof_ + _num_motor_dof_, _num_bil_)
 // D Rigid Fluid
 #define _DRFN_ submatrix(_D_, 0, _num_uni_ + _num_bil_, _num_dof_, _num_rf_c_)
 #define _DRFT_ submatrix(_D_, 0, _num_uni_ + _num_bil_ + _num_rf_c_, _num_dof_, 2 * _num_rf_c_)
 // D fluid fluid density
-#define _DFFD_                                                                                                 \
-    submatrix(_D_, _num_rigid_dof_ + _num_shaft_dof_, _num_uni_ + _num_bil_ + 3 * _num_rf_c_, _num_fluid_dof_, \
-              _num_fluid_)
+#define _DFFD_                                                                                                  \
+    submatrix(_D_, _num_rigid_dof_ + _num_shaft_dof_ + _num_motor_dof_, _num_uni_ + _num_bil_ + 3 * _num_rf_c_, \
+              _num_fluid_dof_, _num_fluid_)
 // D fluid fluid viscosity
-#define _DFFV_                                                                                              \
-    submatrix(_D_, _num_rigid_dof_ + _num_shaft_dof_, _num_uni_ + _num_bil_ + 3 * _num_rf_c_ + _num_fluid_, \
-              _num_fluid_dof_, 3 * _num_fluid_)
+#define _DFFV_                                                          \
+    submatrix(_D_, _num_rigid_dof_ + _num_shaft_dof_ + _num_motor_dof_, \
+              _num_uni_ + _num_bil_ + 3 * _num_rf_c_ + _num_fluid_, _num_fluid_dof_, 3 * _num_fluid_)
 //======
 #define _MINVDN_ submatrix(_M_invD_, 0, 0, _num_rigid_dof_, 1 * _num_r_c_)
 #define _MINVDT_ submatrix(_M_invD_, 0, _num_r_c_, _num_rigid_dof_, 2 * _num_r_c_)
 #define _MINVDS_ submatrix(_M_invD_, 0, 3 * _num_r_c_, _num_rigid_dof_, 3 * _num_r_c_)
 // Bilateral
-#define _MINVDB_ submatrix(_M_invD_, 0, _num_uni_, _num_rigid_dof_ + _num_shaft_dof_, _num_bil_)
+#define _MINVDB_ submatrix(_M_invD_, 0, _num_uni_, _num_rigid_dof_ + _num_shaft_dof_ + _num_motor_dof_, _num_bil_)
 // Rigid Fluid
 #define _MINVDRFN_ submatrix(_M_invD_, 0, _num_uni_ + _num_bil_, _num_dof_, _num_rf_c_)
 #define _MINVDRFT_ submatrix(_M_invD_, 0, _num_uni_ + _num_bil_ + _num_rf_c_, _num_dof_, 2 * _num_rf_c_)
 // Density
-#define _MINVDFFD_                                                                                                  \
-    submatrix(_M_invD_, _num_rigid_dof_ + _num_shaft_dof_, _num_uni_ + _num_bil_ + 3 * _num_rf_c_, _num_fluid_dof_, \
-              _num_fluid_)
+#define _MINVDFFD_                                                                                                   \
+    submatrix(_M_invD_, _num_rigid_dof_ + _num_shaft_dof_ + _num_motor_dof_, _num_uni_ + _num_bil_ + 3 * _num_rf_c_, \
+              _num_fluid_dof_, _num_fluid_)
 // Viscosity
-#define _MINVDFFV_                                                                                               \
-    submatrix(_M_invD_, _num_rigid_dof_ + _num_shaft_dof_, _num_uni_ + _num_bil_ + 3 * _num_rf_c_ + _num_fluid_, \
-              _num_fluid_dof_, 3 * _num_fluid_)
+#define _MINVDFFV_                                                           \
+    submatrix(_M_invD_, _num_rigid_dof_ + _num_shaft_dof_ + _num_motor_dof_, \
+              _num_uni_ + _num_bil_ + 3 * _num_rf_c_ + _num_fluid_, _num_fluid_dof_, 3 * _num_fluid_)
 //======
 #define _DNT_ submatrix(_D_T_, 0, 0, _num_r_c_, _num_rigid_dof_)
 #define _DTT_ submatrix(_D_T_, _num_r_c_, 0, 2 * _num_r_c_, _num_rigid_dof_)
 #define _DST_ submatrix(_D_T_, 3 * _num_r_c_, 0, 3 * _num_r_c_, _num_rigid_dof_)
 // Bilateral
-#define _DBT_ submatrix(_D_T_, _num_uni_, 0, _num_bil_, _num_rigid_dof_ + _num_shaft_dof_)
+#define _DBT_ submatrix(_D_T_, _num_uni_, 0, _num_bil_, _num_rigid_dof_ + _num_shaft_dof_ + _num_motor_dof_)
 // Rigid Fluid
 #define _DRFNT_ submatrix(_D_T_, _num_uni_ + _num_bil_, 0, _num_rf_c_, _num_dof_)
 #define _DRFTT_ submatrix(_D_T_, _num_uni_ + _num_bil_ + _num_rf_c_, 0, 2 * _num_rf_c_, _num_dof_)
 // Density
-#define _DFFDT_                                                                                              \
-    submatrix(_D_T_, _num_uni_ + _num_bil_ + 3 * _num_rf_c_, _num_rigid_dof_ + _num_shaft_dof_, _num_fluid_, \
-              _num_fluid_dof_)
+#define _DFFDT_                                                                                                   \
+    submatrix(_D_T_, _num_uni_ + _num_bil_ + 3 * _num_rf_c_, _num_rigid_dof_ + _num_shaft_dof_ + _num_motor_dof_, \
+              _num_fluid_, _num_fluid_dof_)
 // Viscosity
-#define _DFFVT_                                                                                               \
-    submatrix(_D_T_, _num_uni_ + _num_bil_ + 3 * _num_rf_c_ + _num_fluid_, _num_rigid_dof_ + _num_shaft_dof_, \
-              3 * _num_fluid_, _num_fluid_dof_)
+#define _DFFVT_                                                            \
+    submatrix(_D_T_, _num_uni_ + _num_bil_ + 3 * _num_rf_c_ + _num_fluid_, \
+              _num_rigid_dof_ + _num_shaft_dof_ + _num_motor_dof_, 3 * _num_fluid_, _num_fluid_dof_)
 //======
 #define _EN_ subvector(_E_, 0, _num_r_c_)
 #define _ET_ subvector(_E_, _num_r_c_, 2 * _num_r_c_)
@@ -205,21 +206,23 @@ typedef blaze::Subvector<const DynamicVector<real>> ConstSubVectorType;
 
 /// Structure of arrays containing contact shape information.
 struct shape_container {
-    custom_vector<short2> fam_rigid;      ///< Family information
-    custom_vector<uint> id_rigid;         ///< Body identifier for each shape
-    custom_vector<int> typ_rigid;         ///< Shape type
-    custom_vector<int> start_rigid;       ///< Index for shape start
-    custom_vector<int> length_rigid;      ///< Usually 1, except for convex
+    custom_vector<short2> fam_rigid;  ///< family information
+    custom_vector<uint> id_rigid;     ///< ID of associated body
+    custom_vector<int> typ_rigid;     ///< shape type
+    custom_vector<int> local_rigid;   ///< local shape index in collision model of associated body
+    custom_vector<int> start_rigid;   ///< start index in the appropriate container of dimensions
+    custom_vector<int> length_rigid;  ///< usually 1, except for convex
+
     custom_vector<quaternion> ObR_rigid;  ///< Shape rotation
     custom_vector<real3> ObA_rigid;       ///< Position of shape
 
-    custom_vector<real> sphere_rigid;
-    custom_vector<real3> box_like_rigid;
-    custom_vector<real3> triangle_rigid;
-    custom_vector<real2> capsule_rigid;
-    custom_vector<real4> rbox_like_rigid;
-    custom_vector<real3> convex_rigid;
-    custom_vector<int> tetrahedron_rigid;
+    custom_vector<real> sphere_rigid;      ///< radius for sphere shapes
+    custom_vector<real3> box_like_rigid;   ///< dimensions for box-like shapes
+    custom_vector<real3> triangle_rigid;   ///< vertices of all triangle shapes (3 per shape)
+    custom_vector<real2> capsule_rigid;    ///< radius and half-length for capsule shapes
+    custom_vector<real4> rbox_like_rigid;  ///< dimensions and radius for rbox-like shapes
+    custom_vector<real3> convex_rigid;     ///<
+    custom_vector<int> tetrahedron_rigid;  ///<
 
     custom_vector<real3> triangle_global;
     custom_vector<real3> obj_data_A_global;
@@ -291,26 +294,39 @@ struct host_container {
     custom_vector<real3> ct_body_torque;  ///< Total contact torque on these bodies
 
     // Contact shear history (SMC)
-    custom_vector<vec3> shear_neigh;  ///< Neighbor list of contacting bodies and shapes
-    custom_vector<real3> shear_disp;  ///< Accumulated shear displacement for each neighbor
+    custom_vector<vec3> shear_neigh;          ///< Neighbor list of contacting bodies and shapes
+    custom_vector<real3> shear_disp;          ///< Accumulated shear displacement for each neighbor
+    custom_vector<real> contact_relvel_init;  ///< Initial relative normal velocity manitude per contact pair
+    custom_vector<real> contact_duration;     ///< Accumulated contact duration, per contact pair
 
     /// Mapping from all bodies in the system to bodies involved in a contact.
     /// For bodies that are currently not in contact, the mapping entry is -1.
     /// Otherwise, the mapping holds the appropriate index in the vectors above.
     custom_vector<int> ct_body_map;
 
-    /// This vector holds the friction information as a triplet:
+    /// This vector holds the friction information (composite material) as a triplet:
     /// x - Sliding friction,
     /// y - Rolling friction,
     /// z - Spinning Friction.
     /// This is precomputed at every timestep for all contacts in parallel.
     /// Improves performance and reduces conditionals later on.
+    // Used for both NSC and SMC contacts.
     custom_vector<real3> fric_rigid_rigid;
-    /// Holds the cohesion value for each contact.
+
+    /// Holds the cohesion value (composite material) for each contact.
     /// Similar to friction this is precomputed for all contacts in parallel.
+    /// Used for NSC only.
     custom_vector<real> coh_rigid_rigid;
-    /// Precomputed compliance values for all contacts.
+
+    /// Precomputed compliance (composite material) values for all contacts.
+    /// Used for NSC only.
     custom_vector<real4> compliance_rigid_rigid;
+
+    /// Precomputed composite material quantities for SMC only
+    custom_vector<real2> modulus_rigid_rigid;   ///< E_eff and G_eff
+    custom_vector<real3> adhesion_rigid_rigid;  ///< adhesion_eff, adhesionMultDMT_eff, and adhesionSPerko_eff
+    custom_vector<real> cr_rigid_rigid;         ///< cr_eff (effective coefficient of restitution)
+    custom_vector<real4> smc_rigid_rigid;       ///< kn, kt, gn, gt
 
     // Object data
     custom_vector<real3> pos_rigid;
@@ -336,7 +352,7 @@ struct host_container {
     custom_vector<uint> boundary_element_fea;
     custom_vector<short2> boundary_family_fea;
 
-    /// Bilateral constraint type (all supported constraints).
+    /// Bilateral constraint type (all supported constraints)
     custom_vector<int> bilateral_type;
 
     /// Keeps track of active bilateral constraints.
@@ -347,22 +363,9 @@ struct host_container {
     custom_vector<real> shaft_inr;     ///< shaft inverse inertias
     custom_vector<char> shaft_active;  ///< shaft active (not sleeping nor fixed) flags
 
-    // Material properties (NSC)
-    custom_vector<real3> fric_data;        ///< friction information (sliding, rolling, spinning)
-    custom_vector<real> cohesion_data;     ///< constant cohesion forces (NSC and SMC)
-    custom_vector<real4> compliance_data;  ///< compliance (NSC only)
-
-    // Material properties (SMC)
-    custom_vector<real2> elastic_moduli;       ///< Young's modulus and Poisson ratio (SMC only)
-    custom_vector<real> mu;                    ///< Coefficient of friction (SMC only)
-    custom_vector<real> cr;                    ///< Coefficient of restitution (SMC only)
-    custom_vector<real4> smc_coeffs;           ///< Stiffness and damping coefficients (SMC only)
-    custom_vector<real> adhesionMultDMT_data;  ///< Adhesion multipliers used in DMT model (SMC only)
-    // Derjaguin-Muller-Toporov (DMT) model:
-    // adhesion = adhesionMult * Sqrt(R_eff). Given the surface energy, w,
-    //    adhesionMult = 2 * CH_C_PI * w * Sqrt(R_eff).
-    // Given the equilibrium penetration distance, y_eq,
-    //    adhesionMult = 4.0 / 3.0 * E_eff * powf(y_eq, 1.5)
+    // Material properties (NSC, only for fluid-rigid and FEA-rigid contacts)
+    custom_vector<float> sliding_friction;  ///< sliding coefficients of friction
+    custom_vector<float> cohesion;          ///< constant cohesion forces
 
     /// This matrix, if used will hold D^TxM^-1xD in sparse form.
     CompressedMatrix<real> Nshur;
@@ -433,13 +436,16 @@ class CH_PARALLEL_API ChParallelDataManager {
     // These pointers are used to compute the mass matrix instead of filling a
     // a temporary data structure
     std::vector<std::shared_ptr<ChBody>>* body_list;                  ///< List of bodies
-    std::vector<std::shared_ptr<ChLink>>* link_list;                  ///< List of bilaterals
+    std::vector<std::shared_ptr<ChLinkBase>>* link_list;              ///< List of bilaterals
     std::vector<std::shared_ptr<ChPhysicsItem>>* other_physics_list;  ///< List to other items
 
     // Indexing variables
     uint num_rigid_bodies;             ///< The number of rigid bodies in a system
     uint num_fluid_bodies;             ///< The number of fluid bodies in the system
     uint num_shafts;                   ///< The number of shafts in a system
+    uint num_motors;                   ///< The number of motor links with 1 state variable
+    uint num_linmotors;                ///< The number of linear speed motors
+    uint num_rotmotors;                ///< The number of rotation speed motors
     uint num_dof;                      ///< The number of degrees of freedom in the system
     uint num_rigid_shapes;             ///< The number of collision models in a system
     uint num_rigid_contacts;           ///< The number of contacts between rigid bodies in a system
@@ -464,10 +470,10 @@ class CH_PARALLEL_API ChParallelDataManager {
     measures_container measures;
 
     /// Material composition strategy.
-    std::unique_ptr<ChMaterialCompositionStrategy<real>> composition_strategy;
+    std::unique_ptr<ChMaterialCompositionStrategy> composition_strategy;
 
     /// User-provided callback for overriding coposite material properties.
-    ChContactContainer::AddContactCallback* add_contact_callback;
+    std::shared_ptr<ChContactContainer::AddContactCallback> add_contact_callback;
 
     /// Output a vector (one dimensional matrix) from blaze to a file.
     int OutputBlazeVector(DynamicVector<real> src, std::string filename);

@@ -77,7 +77,7 @@ ChPovRay::ChPovRay(ChSystem* system) : ChPostProcessBase(system) {
 void ChPovRay::Add(std::shared_ptr<ChPhysicsItem> mitem) {
     // flag as renderable by adding a ChPovAsset into assets of the item
     if (!this->IsAdded(mitem)) {
-        auto mpov_asset = std::make_shared<ChPovRayAsset>();
+        auto mpov_asset = chrono_types::make_shared<ChPovRayAsset>();
         mitem->AddAsset(mpov_asset);
     }
 }
@@ -957,11 +957,11 @@ void ChPovRay::ExportData(const std::string& filename) {
                   ChStreamOutAsciiFile* mfile;
               };
 
-              _reporter_class my_contact_reporter;
-              my_contact_reporter.mfile = &data_contacts;
+              auto my_contact_reporter = chrono_types::make_shared<_reporter_class>();
+              my_contact_reporter->mfile = &data_contacts;
 
               // scan all contacts
-              this->mSystem->GetContactContainer()->ReportAllContacts(&my_contact_reporter);
+              this->mSystem->GetContactContainer()->ReportAllContacts(my_contact_reporter);
         }
 
         // If a camera have been found in assets, create it and override the default one

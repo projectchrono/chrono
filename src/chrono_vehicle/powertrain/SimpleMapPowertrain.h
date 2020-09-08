@@ -35,7 +35,7 @@ namespace vehicle {
 /// @addtogroup vehicle_powertrain
 /// @{
 
-/// Simple powertrain subsystem (based on engine speed-torque maps via JSON file).
+/// Simple speed-torque engine map powertrain subsystem (specified through JSON file).
 class CH_VEHICLE_API SimpleMapPowertrain : public ChSimpleMapPowertrain {
   public:
     SimpleMapPowertrain(const std::string& filename);

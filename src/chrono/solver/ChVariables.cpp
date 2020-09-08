@@ -16,22 +16,16 @@
 
 namespace chrono {
 
-// Register into the object factory, to enable run-time
-// dynamic creation and persistence
+// Register into the object factory, to enable run-time dynamic creation and persistence
 //CH_FACTORY_REGISTER(ChVariables)
 
-ChVariables::ChVariables(int m_ndof) : disabled(false), ndof(m_ndof), offset(0) {
-    if (Get_ndof() > 0) {
-        qb = new ChMatrixDynamic<>(Get_ndof(), 1);
-        fb = new ChMatrixDynamic<>(Get_ndof(), 1);
-    } else {
-        qb = fb = NULL;
-    }
-}
+ChVariables::ChVariables() : disabled(false), ndof(0), offset(0) {}
 
-ChVariables::~ChVariables() {
-    delete qb;
-    delete fb;
+ChVariables::ChVariables(int m_ndof) : disabled(false), ndof(m_ndof), offset(0) {
+    if (ndof > 0) {
+        qb.setZero(Get_ndof());
+        fb.setZero(Get_ndof());
+    }
 }
 
 ChVariables& ChVariables::operator=(const ChVariables& other) {
@@ -40,23 +34,8 @@ ChVariables& ChVariables::operator=(const ChVariables& other) {
 
     this->disabled = other.disabled;
 
-    if (other.qb) {
-        if (qb == NULL)
-            qb = new ChMatrixDynamic<>;
-        qb->CopyFromMatrix(*other.qb);
-    } else {
-        delete qb;
-        qb = NULL;
-    }
-
-    if (other.fb) {
-        if (fb == NULL)
-            fb = new ChMatrixDynamic<>;
-        fb->CopyFromMatrix(*other.fb);
-    } else {
-        delete fb;
-        fb = NULL;
-    }
+    this->qb = other.qb;
+    this->fb = other.fb;
 
     this->ndof = other.ndof;
     this->offset = other.offset;

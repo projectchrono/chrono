@@ -40,13 +40,13 @@ int main(int argc, char* argv[]) {
     // Create the ground body
     // ----------------------
 
-    auto ground = std::make_shared<ChBody>();
+    auto ground = chrono_types::make_shared<ChBody>();
     system.AddBody(ground);
     ground->SetIdentifier(-1);
     ground->SetBodyFixed(true);
     ground->SetCollide(false);
 
-    auto cyl = std::make_shared<ChCylinderShape>();
+    auto cyl = chrono_types::make_shared<ChCylinderShape>();
     cyl->GetCylinderGeometry().p1 = ChVector<>(0, 0, 1.2);
     cyl->GetCylinderGeometry().p2 = ChVector<>(0, 0, 0.8);
     cyl->GetCylinderGeometry().rad = 0.04;
@@ -55,7 +55,7 @@ int main(int argc, char* argv[]) {
     // Create a pendulum body
     // ----------------------
 
-    auto pend = std::make_shared<ChBody>();
+    auto pend = chrono_types::make_shared<ChBody>();
     system.AddBody(pend);
     pend->SetIdentifier(1);
     pend->SetBodyFixed(false);
@@ -67,23 +67,23 @@ int main(int argc, char* argv[]) {
     pend->SetPos(ChVector<>(1.5, 0, 1));
 
     // Attach visualization assets.
-    auto cyl_p = std::make_shared<ChCylinderShape>();
+    auto cyl_p = chrono_types::make_shared<ChCylinderShape>();
     cyl_p->GetCylinderGeometry().p1 = ChVector<>(-0.96, 0, 0);
     cyl_p->GetCylinderGeometry().p2 = ChVector<>(0.96, 0, 0);
     cyl_p->GetCylinderGeometry().rad = 0.2;
     pend->AddAsset(cyl_p);
 
-    auto sph_p = std::make_shared<ChSphereShape>();
+    auto sph_p = chrono_types::make_shared<ChSphereShape>();
     sph_p->Pos = ChVector<>(-1, 0, 0);
     sph_p->GetSphereGeometry().rad = 0.04;
     pend->AddAsset(sph_p);
 
-    auto col_p = std::make_shared<ChColorAsset>();
+    auto col_p = chrono_types::make_shared<ChColorAsset>();
     col_p->SetColor(ChColor(0.6f, 0, 0));
     pend->AddAsset(col_p);
 
     // Create a revolute-spherical joint to connect pendulum to ground.
-    auto rev_sph = std::make_shared<ChLinkRevoluteSpherical>();
+    auto rev_sph = chrono_types::make_shared<ChLinkRevoluteSpherical>();
     system.AddLink(rev_sph);
 
     // Initialize the pendulum specifying a coordinate system (expressed in the

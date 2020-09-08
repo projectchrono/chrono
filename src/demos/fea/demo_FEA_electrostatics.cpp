@@ -16,14 +16,13 @@
 //
 // =============================================================================
 
-#include "chrono/physics/ChSystemNSC.h"
-#include "chrono/solver/ChSolverMINRES.h"
+#include "chrono/physics/ChSystemSMC.h"
+#include "chrono/solver/ChIterativeSolverLS.h"
 
 #include "chrono/fea/ChContinuumElectrostatics.h"
 #include "chrono/fea/ChElementBar.h"
 #include "chrono/fea/ChElementHexa_20.h"
 #include "chrono/fea/ChElementHexa_8.h"
-#include "chrono/fea/ChElementSpring.h"
 #include "chrono/fea/ChElementTetra_10.h"
 #include "chrono/fea/ChElementTetra_4.h"
 #include "chrono/fea/ChLinkPointFrame.h"
@@ -47,7 +46,7 @@ int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
     // Create a Chrono::Engine physical system
-    ChSystemNSC my_system;
+    ChSystemSMC my_system;
 
     // Create the Irrlicht visualization (open the Irrlicht device,
     // bind a simple user interface, etc. etc.)
@@ -62,12 +61,12 @@ int main(int argc, char* argv[]) {
 
     // Create a mesh, that is a container for groups
     // of elements and their referenced nodes.
-    auto my_mesh = std::make_shared<ChMesh>();
+    auto my_mesh = chrono_types::make_shared<ChMesh>();
     my_mesh->SetAutomaticGravity(false);
 
     // Create a material, that must be assigned to each element,
     // and set its parameters
-    auto mmaterial = std::make_shared<ChContinuumElectrostatics>();
+    auto mmaterial = chrono_types::make_shared<ChContinuumElectrostatics>();
     mmaterial->SetPermittivity(1);
     // mmaterial->SetRelativePermettivity(1000.01);
 
@@ -124,20 +123,20 @@ int main(int argc, char* argv[]) {
     // This will paint the colored mesh with temperature scale (E_PLOT_NODE_P is the scalar field of the Poisson
     // problem)
 
-    auto mvisualizemesh = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
+    auto mvisualizemesh = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
     mvisualizemesh->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NODE_P);  // plot V, potential field
     mvisualizemesh->SetColorscaleMinMax(-0.1, 24);
     my_mesh->AddAsset(mvisualizemesh);
 
     // This will paint the wireframe
-    auto mvisualizemeshB = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
+    auto mvisualizemeshB = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
     mvisualizemeshB->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_SURFACE);
     mvisualizemeshB->SetColorscaleMinMax(-0.1, 24);
     mvisualizemeshB->SetWireframe(true);
     my_mesh->AddAsset(mvisualizemeshB);
 
     // This will paint the E vector field as line vectors
-    auto mvisualizemeshC = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
+    auto mvisualizemeshC = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
     mvisualizemeshC->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NONE);
     mvisualizemeshC->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_ELEM_VECT_DP);
     mvisualizemeshC->SetSymbolsScale(0.00002);
@@ -157,23 +156,17 @@ int main(int argc, char* argv[]) {
 
     application.AssetUpdateAll();
 
-    // Mark completion of system construction
-    my_system.SetupInitial();
+    // SIMULATION LOOP
 
-    //
-    // THE SOFT-REAL-TIME CYCLE
-    //
+    auto solver = chrono_types::make_shared<ChSolverMINRES>();
+    my_system.SetSolver(solver);
+    solver->SetMaxIterations(300);
+    solver->SetTolerance(1e-20);
+    solver->EnableDiagonalPreconditioner(true);
+    solver->SetVerbose(true);
 
-    my_system.SetSolverType(ChSolver::Type::MINRES);
-    my_system.SetSolverWarmStarting(false);
-    my_system.SetMaxItersSolverSpeed(538);
-    auto msolver = std::static_pointer_cast<ChSolverMINRES>(my_system.GetSolver());
-    msolver->SetRelTolerance(1e-20);
-    msolver->SetTolerance(1e-20);
-    // msolver->SetVerbose(true);
-    msolver->SetDiagonalPreconditioning(true);
-    my_system.SetTolForce(1e-20);
-    // my_system.SetParallelThreadNumber(1);
+    my_system.SetSolverForceTolerance(1e-20);
+
 
     // Note: in electrostatics, here you can have only a single linear (non transient) solution
     // so at this point you must do:

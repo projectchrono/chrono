@@ -15,10 +15,7 @@
 #ifndef CHRANDOMPARTICLEALIGNMENT_H
 #define CHRANDOMPARTICLEALIGNMENT_H
 
-#include "chrono/core/ChMathematics.h"
-#include "chrono/core/ChVector.h"
-#include "chrono/core/ChMatrix.h"
-#include "chrono/core/ChDistribution.h"
+#include "chrono/core/ChQuaternion.h"
 
 namespace chrono {
 namespace particlefactory {

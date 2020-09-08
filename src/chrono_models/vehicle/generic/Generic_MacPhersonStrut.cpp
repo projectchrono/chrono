@@ -58,17 +58,14 @@ const double Generic_MacPhersonStrut::m_springRestLength = 0.306;
 // Constructor
 // -----------------------------------------------------------------------------
 Generic_MacPhersonStrut::Generic_MacPhersonStrut(const std::string& name) : ChMacPhersonStrut(name) {
-    m_springForceCB = new LinearSpringForce(m_springCoefficient);
-    m_shockForceCB = new LinearDamperForce(m_dampingCoefficient);
+    m_springForceCB = chrono_types::make_shared<LinearSpringForce>(m_springCoefficient);
+    m_shockForceCB = chrono_types::make_shared<LinearDamperForce>(m_dampingCoefficient);
 }
 
 // -----------------------------------------------------------------------------
 // Destructor
 // -----------------------------------------------------------------------------
-Generic_MacPhersonStrut::~Generic_MacPhersonStrut() {
-    delete m_springForceCB;
-    delete m_shockForceCB;
-}
+Generic_MacPhersonStrut::~Generic_MacPhersonStrut() {}
 
 // -----------------------------------------------------------------------------
 // Implementation of the getLocation() virtual method.

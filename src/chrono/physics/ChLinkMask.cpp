@@ -19,46 +19,60 @@ namespace chrono {
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChLinkMask)
 
-ChLinkMask::ChLinkMask() : nconstr(1) {
-    constraints.resize(1);
-    constraints[0] = new ChConstraintTwoBodies;
-}
+ChLinkMask::ChLinkMask() : nconstr(0) {}
 
 ChLinkMask::ChLinkMask(int mnconstr) {
     nconstr = mnconstr;
-
     constraints.resize(nconstr);
-    for (int i = 0; i < nconstr; i++)
+    for (int i = 0; i < nconstr; i++) {
         constraints[i] = new ChConstraintTwoBodies;
+    }
 }
 
 ChLinkMask::ChLinkMask(const ChLinkMask& other) {
     nconstr = other.nconstr;
     constraints.resize(other.nconstr);
-    for (int i = 0; i < nconstr; i++)
+    for (int i = 0; i < nconstr; i++) {
         constraints[i] = other.constraints[i]->Clone();
+    }
 }
 
 ChLinkMask::~ChLinkMask() {
     for (int i = 0; i < nconstr; i++) {
-        if (constraints[i])
+        if (constraints[i]) {
             delete constraints[i];
+        }
     }
+}
+
+ChLinkMask& ChLinkMask::operator=(const ChLinkMask& other) {
+    if (this == &other)
+        return *this;
+
+    nconstr = other.nconstr;
+    constraints.resize(nconstr);
+    for (int i = 0; i < nconstr; i++) {
+        constraints[i] = other.constraints[i]->Clone();
+    }
+
+    return *this;
 }
 
 void ChLinkMask::ResetNconstr(int newnconstr) {
     if (nconstr != newnconstr) {
-        int i;
-        for (i = 0; i < nconstr; i++)
-            if (constraints[i])
+        for (int i = 0; i < nconstr; i++)
+            if (constraints[i]) {
                 delete constraints[i];
+                constraints[i] = nullptr;
+            }
 
         nconstr = newnconstr;
 
         constraints.resize(nconstr);
 
-        for (i = 0; i < nconstr; i++)
+        for (int i = 0; i < nconstr; i++) {
             constraints[i] = new ChConstraintTwoBodies;
+        }
     }
 }
 
@@ -82,12 +96,6 @@ bool ChLinkMask::IsEqual(ChLinkMask& mask2) {
     return true;
 }
 
-bool ChLinkMask::IsUnilateral(int i) {
-    if (Constr_N(i).IsUnilateral())
-        return true;
-    return false;
-}
-
 int ChLinkMask::GetMaskDoc() {
     int tot = 0;
     for (int j = 0; j < nconstr; j++) {
@@ -100,9 +108,8 @@ int ChLinkMask::GetMaskDoc() {
 int ChLinkMask::GetMaskDoc_d() {
     int cnt = 0;
     for (int i = 0; i < nconstr; i++) {
-        if (Constr_N(i).IsActive())
-            if (this->IsUnilateral(i))  // if (Constr_N(i).IsUnilateral())  BETTER?
-                cnt++;
+        if (Constr_N(i).IsActive() && Constr_N(i).IsUnilateral())
+            cnt++;
     }
     return cnt;
 }
@@ -126,13 +133,13 @@ ChConstraintTwoBodies* ChLinkMask::GetActiveConstrByNum(int mnum) {
 int ChLinkMask::SetActiveRedundantByArray(int* mvector, int mcount) {
     int cnt;
 
-    ChLinkMask* newmask = Clone();
+    ChLinkMask newmask = *this;
     for (int elem = 0; elem < mcount; elem++) {
         cnt = 0;
         for (int i = 0; i < nconstr; i++) {
             if (constraints[i]->IsActive()) {
                 if (cnt == mvector[elem])
-                    newmask->constraints[i]->SetRedundant(true);
+                    newmask.constraints[i]->SetRedundant(true);
                 cnt++;
             }
         }
@@ -141,7 +148,7 @@ int ChLinkMask::SetActiveRedundantByArray(int* mvector, int mcount) {
     // Replace the mask with updated one.
     for (int i = 0; i < nconstr; i++) {
         delete constraints[i];
-        constraints[i] = newmask->constraints[i]->Clone();
+        constraints[i] = newmask.constraints[i]->Clone();
     }
 
     return mcount;
@@ -197,12 +204,16 @@ void ChLinkMask::ArchiveIN(ChArchiveIn& marchive) {
 // Lock formulation LF link mask:
 // -----------------------------------------------------------------------------
 
-// Register into the object factory, to enable run-time
-// dynamic creation and persistence
+// Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChLinkMaskLF)
 
 ChLinkMaskLF::ChLinkMaskLF() {
     ResetNconstr(7);  // the LF formulation uses 7 constraint flags
+}
+
+ChLinkMaskLF& ChLinkMaskLF::operator=(const ChLinkMaskLF& other) {
+    ChLinkMask::operator=(other);
+    return *this;
 }
 
 void ChLinkMaskLF::SetLockMask(bool x, bool y, bool z, bool e0, bool e1, bool e2, bool e3) {

@@ -71,7 +71,7 @@ const double UAZBUS_ToeBarLeafspringAxle::m_axleShaftInertia = 0.4;
 // ---------------------------------------------------------------------------------------
 // UAZBUS spring functor class - implements a linear spring + bump stop + rebound stop
 // ---------------------------------------------------------------------------------------
-class UAZBUS_SpringForceFront : public ChLinkSpringCB::ForceFunctor {
+class UAZBUS_SpringForceFront : public ChLinkTSDA::ForceFunctor {
   public:
     UAZBUS_SpringForceFront(double spring_constant, double min_length, double max_length);
 
@@ -79,7 +79,7 @@ class UAZBUS_SpringForceFront : public ChLinkSpringCB::ForceFunctor {
                               double rest_length,
                               double length,
                               double vel,
-                              ChLinkSpringCB* link) override;
+                              ChLinkTSDA* link) override;
 
   private:
     double m_spring_constant;
@@ -109,7 +109,7 @@ UAZBUS_SpringForceFront::UAZBUS_SpringForceFront(double spring_constant, double 
 
 }
 
-double UAZBUS_SpringForceFront::operator()(double time, double rest_length, double length, double vel, ChLinkSpringCB* link) {
+double UAZBUS_SpringForceFront::operator()(double time, double rest_length, double length, double vel, ChLinkTSDA* link) {
     /*
      * 
     */
@@ -136,7 +136,7 @@ double UAZBUS_SpringForceFront::operator()(double time, double rest_length, doub
 // -----------------------------------------------------------------------------
 // UAZBUS shock functor class - implements a nonlinear damper
 // -----------------------------------------------------------------------------
-class UAZBUS_ShockForceFront : public ChLinkSpringCB::ForceFunctor {
+class UAZBUS_ShockForceFront : public ChLinkTSDA::ForceFunctor {
   public:
     UAZBUS_ShockForceFront(double compression_slope,
                      double compression_degressivity,
@@ -147,7 +147,7 @@ class UAZBUS_ShockForceFront : public ChLinkSpringCB::ForceFunctor {
                               double rest_length,
                               double length,
                               double vel,
-                              ChLinkSpringCB* link) override;
+                              ChLinkTSDA* link) override;
 
   private:
     double m_slope_compr;
@@ -165,7 +165,7 @@ UAZBUS_ShockForceFront::UAZBUS_ShockForceFront(double compression_slope,
       m_slope_expand(expansion_slope),
       m_degres_expand(expansion_degressivity) {}
 
-double UAZBUS_ShockForceFront::operator()(double time, double rest_length, double length, double vel, ChLinkSpringCB* link) {
+double UAZBUS_ShockForceFront::operator()(double time, double rest_length, double length, double vel, ChLinkTSDA* link) {
     /*
      * Simple model of a degressive damping characteristic
     */
@@ -182,30 +182,18 @@ double UAZBUS_ShockForceFront::operator()(double time, double rest_length, doubl
     return force;
 }
 
-
 UAZBUS_ToeBarLeafspringAxle::UAZBUS_ToeBarLeafspringAxle(const std::string& name) : ChToeBarLeafspringAxle(name) {
-/*
-    m_springForceCB = new LinearSpringForce(m_springCoefficient  // coefficient for linear spring
-                                            );
+    m_springForceCB =
+        chrono_types::make_shared<UAZBUS_SpringForceFront>(m_springCoefficient, m_springMinLength, m_springMaxLength);
 
-    m_shockForceCB = new LinearDamperForce(m_damperCoefficient  // coefficient for linear damper
-                    );
-*/
-    m_springForceCB = new UAZBUS_SpringForceFront(m_springCoefficient,m_springMinLength,m_springMaxLength);
-    
-    m_shockForceCB = new UAZBUS_ShockForceFront(m_damperCoefficient,
-        m_damperDegressivityCompression,
-        m_damperCoefficient,
-        m_damperDegressivityExpansion);
+    m_shockForceCB = chrono_types::make_shared<UAZBUS_ShockForceFront>(
+        m_damperCoefficient, m_damperDegressivityCompression, m_damperCoefficient, m_damperDegressivityExpansion);
 }
 
 // -----------------------------------------------------------------------------
 // Destructors
 // -----------------------------------------------------------------------------
-UAZBUS_ToeBarLeafspringAxle::~UAZBUS_ToeBarLeafspringAxle() {
-    delete m_springForceCB;
-    delete m_shockForceCB;
-}
+UAZBUS_ToeBarLeafspringAxle::~UAZBUS_ToeBarLeafspringAxle() {}
 
 const ChVector<> UAZBUS_ToeBarLeafspringAxle::getLocation(PointId which) {
     switch (which) {

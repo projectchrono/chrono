@@ -19,8 +19,8 @@
 #include <algorithm>
 
 #include "chrono_vehicle/ChVehicleModelData.h"
-
 #include "chrono_models/vehicle/sedan/Sedan_Wheel.h"
+#include "chrono_thirdparty/filesystem/path.h"
 
 namespace chrono {
 namespace vehicle {
@@ -36,45 +36,10 @@ const ChVector<> Sedan_Wheel::m_inertia(0.100, 0.100, 0.100);
 const double Sedan_Wheel::m_radius = 0.3365;
 const double Sedan_Wheel::m_width = 0.205;
 
-const std::string Sedan_WheelLeft::m_meshName = "wheel_L_POV_geom";
-const std::string Sedan_WheelLeft::m_meshFile = "sedan/wheel_hub_right.obj";
-
-const std::string Sedan_WheelRight::m_meshName = "wheel_R_POV_geom";
-const std::string Sedan_WheelRight::m_meshFile = "sedan/wheel_hub_left.obj";
-
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-Sedan_Wheel::Sedan_Wheel(const std::string& name) : ChWheel(name) {}
-
-Sedan_WheelLeft::Sedan_WheelLeft(const std::string& name) : Sedan_Wheel(name) {}
-
-Sedan_WheelRight::Sedan_WheelRight(const std::string& name) : Sedan_Wheel(name) {}
-
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-void Sedan_Wheel::AddVisualizationAssets(VisualizationType vis) {
-    if (vis == VisualizationType::MESH) {
-        auto trimesh = std::make_shared<geometry::ChTriangleMeshConnected>();
-        trimesh->LoadWavefrontMesh(GetMeshFile(), false, false);
-        m_trimesh_shape = std::make_shared<ChTriangleMeshShape>();
-        m_trimesh_shape->SetMesh(trimesh);
-        m_trimesh_shape->SetStatic(true);
-        m_trimesh_shape->SetName(GetMeshName());
-        m_spindle->AddAsset(m_trimesh_shape);
-    } else {
-        ChWheel::AddVisualizationAssets(vis);
-    }
-}
-
-void Sedan_Wheel::RemoveVisualizationAssets() {
-    ChWheel::RemoveVisualizationAssets();
-
-    // Make sure we only remove the assets added by Sedan_Wheel::AddVisualizationAssets.
-    // This is important for the ChWheel object because a tire may add its own assets
-    // to the same body (the spindle).
-    auto it = std::find(m_spindle->GetAssets().begin(), m_spindle->GetAssets().end(), m_trimesh_shape);
-    if (it != m_spindle->GetAssets().end())
-        m_spindle->GetAssets().erase(it);
+Sedan_Wheel::Sedan_Wheel(const std::string& name) : ChWheel(name) {
+    m_vis_mesh_file = "sedan/sedan_rim.obj";
 }
 
 }  // end namespace sedan

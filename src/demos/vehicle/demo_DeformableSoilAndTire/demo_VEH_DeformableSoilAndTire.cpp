@@ -19,13 +19,13 @@
 #include "chrono/physics/ChLinkMotorRotationAngle.h"
 #include "chrono/physics/ChLoadContainer.h"
 #include "chrono/physics/ChSystemSMC.h"
-#include "chrono/solver/ChSolverMINRES.h"
 
 #include "chrono_irrlicht/ChIrrApp.h"
 #include "chrono_mkl/ChSolverMKL.h"
 
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/terrain/SCMDeformableTerrain.h"
+#include "chrono_vehicle/wheeled_vehicle/wheel/Wheel.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/ReissnerTire.h"
 
 using namespace chrono;
@@ -68,31 +68,34 @@ int main(int argc, char* argv[]) {
     // CREATE A DEFORMABLE TIRE
     //
  
-    // the rim: 
-
-    std::shared_ptr<ChBody> mrim (new ChBody);
+    // The rim body: 
+    auto mrim = chrono_types::make_shared<ChBody>();
     my_system.Add(mrim);
-    mrim->SetMass(100);
-    mrim->SetInertiaXX(ChVector<>(2,2,2));
+    mrim->SetMass(80);
+    mrim->SetInertiaXX(ChVector<>(1,1,1));
     mrim->SetPos(tire_center + ChVector<>(0,0.2,0));
     mrim->SetRot(Q_from_AngAxis(CH_C_PI_2, VECT_Z));
 
-    // the tire:
+    // The wheel object:
+    auto wheel = chrono_types::make_shared<Wheel>(vehicle::GetDataFile("hmmwv/wheel/HMMWV_Wheel.json"));
+    wheel->Initialize(mrim, LEFT);
 
-    std::shared_ptr<ChReissnerTire> tire_reissner;
-    tire_reissner = std::make_shared<ReissnerTire>(vehicle::GetDataFile("hmmwv/tire/HMMWV_ReissnerTire.json"));
+    // The tire:
+    auto tire_reissner = chrono_types::make_shared<ReissnerTire>(vehicle::GetDataFile("hmmwv/tire/HMMWV_ReissnerTire.json"));
     tire_reissner->EnablePressure(false);
     tire_reissner->EnableContact(true);
     tire_reissner->SetContactSurfaceType(ChDeformableTire::TRIANGLE_MESH);
     tire_reissner->EnableRimConnection(true);
-    tire_reissner->Initialize(mrim, LEFT);
+    std::static_pointer_cast<ChTire>(tire_reissner)->Initialize(wheel);
     tire_reissner->SetVisualizationType(VisualizationType::MESH);
 
-    // the motor that rotates the rim:
+    // Attach tire to wheel
+    wheel->GetTire() = tire_reissner;
 
-    auto motor = std::make_shared<ChLinkMotorRotationAngle>();
+    // The motor that rotates the rim:
+    auto motor = chrono_types::make_shared<ChLinkMotorRotationAngle>();
     motor->SetSpindleConstraint(ChLinkMotorRotation::SpindleConstraint::OLDHAM);
-    motor->SetAngleFunction(std::make_shared<ChFunction_Ramp>(0, CH_C_PI / 4.0));
+    motor->SetAngleFunction(chrono_types::make_shared<ChFunction_Ramp>(0, CH_C_PI / 4.0));
     motor->Initialize(mrim, mtruss, ChFrame<>(tire_center, Q_from_AngAxis(CH_C_PI_2, VECT_Y)));
     my_system.Add(motor);
 
@@ -104,33 +107,30 @@ int main(int argc, char* argv[]) {
     // Create the 'deformable terrain' object
     vehicle::SCMDeformableTerrain mterrain(&my_system);
 
-    // Optionally, displace/tilt/rotate the terrain reference plane:
-    mterrain.SetPlane(ChCoordsys<>(ChVector<>(0, 0, 0.3)));
+    // Displace/rotate the terrain reference plane.
+    // Note that SCMDeformableTerrain uses a default ISO reference frame (Z up). Since the mechanism is modeled here in
+    // a Y-up global frame, we rotate the terrain plane by -90 degrees about the X axis.
+    mterrain.SetPlane(ChCoordsys<>(ChVector<>(0, 0.2, 0.3), Q_from_AngX(-CH_C_PI_2)));
 
     // Initialize the geometry of the soil: use either a regular grid:
-     mterrain.Initialize(0.2,1.5,5,20,60);
-    // or use a height map:
-    //mterrain.Initialize(vehicle::GetDataFile("terrain/height_maps/test64.bmp"), "test64", 1.6, 1.6, 0, 0.3);
+    mterrain.Initialize(1.5, 6, 0.075);
 
     // Set the soil terramechanical parameters:
-    mterrain.SetSoilParametersSCM(1.2e6,  // Bekker Kphi
-                                    0,   // Bekker Kc
-                                    1.1, // Bekker n exponent
-                                    0,   // Mohr cohesive limit (Pa)
-                                    30,  // Mohr friction limit (degrees)
-                                    0.01,// Janosi shear coefficient (m)
-                                    5e7, // Elastic stiffness (Pa/m), before plastic yield, must be > Kphi
-                                    2e4  // Damping (Pa s/m), proportional to negative vertical speed (optional)
-                                    );
-    mterrain.SetBulldozingFlow(true);    // inflate soil at the border of the rut
-    mterrain.SetBulldozingParameters(55, // angle of friction for erosion of displaced material at the border of the rut
-                                    0.8, // displaced material vs downward pressed material.
-                                    5,   // number of erosion refinements per timestep
-                                    10); // number of concentric vertex selections subject to erosion
-    // Turn on the automatic level of detail refinement, so a coarse terrain mesh
-    // is automatically improved by adding more points under the wheel contact patch:
-    mterrain.SetAutomaticRefinement(true);
-    mterrain.SetAutomaticRefinementResolution(0.02);
+     mterrain.SetSoilParameters(1.2e6,  // Bekker Kphi
+                                0,      // Bekker Kc
+                                1.1,    // Bekker n exponent
+                                0,      // Mohr cohesive limit (Pa)
+                                30,     // Mohr friction limit (degrees)
+                                0.01,   // Janosi shear coefficient (m)
+                               5e7,    // Elastic stiffness (Pa/m), before plastic yield, must be > Kphi
+                               2e4     // Damping (Pa s/m), proportional to negative vertical speed (optional)
+    );
+    mterrain.EnableBulldozing(true);  // inflate soil at the border of the rut
+    mterrain.SetBulldozingParameters(
+        55,   // angle of friction for erosion of displaced material at the border of the rut
+        0.8,  // displaced material vs downward pressed material.
+        5,    // number of erosion refinements per timestep
+        10);  // number of concentric vertex selections subject to erosion
 
     // Set some visualization parameters: either with a texture, or with falsecolor plot, etc.
     //mterrain.SetTexture(vehicle::GetDataFile("terrain/textures/grass.jpg"), 16, 16);
@@ -155,9 +155,6 @@ int main(int argc, char* argv[]) {
     // Use shadows in realtime view
     application.AddShadowAll();
 
-    // ==IMPORTANT!== Mark completion of system construction
-    my_system.SetupInitial();
-
 
     //
     // THE SOFT-REAL-TIME CYCLE
@@ -165,8 +162,8 @@ int main(int argc, char* argv[]) {
 
     // change the solver to MKL: 
     GetLog() << "Using MKL solver\n";
-    auto mkl_solver = std::make_shared<ChSolverMKL<>>();
-    mkl_solver->SetSparsityPatternLock(true);
+    auto mkl_solver = chrono_types::make_shared<ChSolverMKL>();
+    mkl_solver->LockSparsityPattern(true);
     my_system.SetSolver(mkl_solver);
     
     

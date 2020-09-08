@@ -23,10 +23,9 @@
 #include <algorithm>
 #include <limits>
 
-#include "chrono/collision/ChCCollisionModel.h"
+#include "chrono/collision/ChCollisionModel.h"
 #include "chrono/core/ChFrame.h"
-#include "chrono/core/ChMatrixDynamic.h"
-#include "chrono/core/ChVectorDynamic.h"
+#include "chrono/core/ChMatrix.h"
 #include "chrono/solver/ChKblockGeneric.h"
 #include "chrono/solver/ChSystemDescriptor.h"
 #include "chrono/physics/ChContactContainer.h"
@@ -58,19 +57,20 @@ class ChContactSMC : public ChContactTuple<Ta, Tb> {
   public:
     ChContactSMC() : m_Jac(NULL) {}
 
-    ChContactSMC(ChContactContainer* mcontainer,      ///< contact container
-                 Ta* mobjA,                               ///< collidable object A
-                 Tb* mobjB,                               ///< collidable object B
-                 const collision::ChCollisionInfo& cinfo  ///< data for the contact pair
+    ChContactSMC(ChContactContainer* mcontainer,           ///< contact container
+                 Ta* mobjA,                                ///< collidable object A
+                 Tb* mobjB,                                ///< collidable object B
+                 const collision::ChCollisionInfo& cinfo,  ///< data for the collision pair
+                 const ChMaterialCompositeSMC& mat         ///< composite material
                  )
         : ChContactTuple<Ta, Tb>(mcontainer, mobjA, mobjB, cinfo), m_Jac(NULL) {
-        Reset(mobjA, mobjB, cinfo);
+        Reset(mobjA, mobjB, cinfo, mat);
     }
 
     ~ChContactSMC() { delete m_Jac; }
 
     /// Get the contact force, if computed, in contact coordinate system
-    virtual ChVector<> GetContactForce() const override { return this->contact_plane.MatrT_x_Vect(m_force); }
+    virtual ChVector<> GetContactForce() const override { return this->contact_plane.transpose() * m_force; }
 
     /// Get the contact penetration (positive if there is overlap).
     double GetContactPenetration() const { return -this->norm_dist; }
@@ -83,27 +83,17 @@ class ChContactSMC : public ChContactTuple<Ta, Tb> {
     const ChMatrixDynamic<double>* GetJacobianK() const { return m_Jac ? &(m_Jac->m_K) : NULL; }
     const ChMatrixDynamic<double>* GetJacobianR() const { return m_Jac ? &(m_Jac->m_R) : NULL; }
 
-    /// Reinitialize this contact.
-    virtual void Reset(Ta* mobjA,                               ///< collidable object A
-                       Tb* mobjB,                               ///< collidable object B
-                       const collision::ChCollisionInfo& cinfo  ///< data for the contact pair
-                       ) override {
-        // Inherit base class.
-        ChContactTuple<Ta, Tb>::Reset(mobjA, mobjB, cinfo);
+    /// Reinitialize this contact for reuse.
+    void Reset(Ta* mobjA,                                ///< collidable object A
+               Tb* mobjB,                                ///< collidable object B
+               const collision::ChCollisionInfo& cinfo,  ///< data for the collision pair
+               const ChMaterialCompositeSMC& mat         ///< composite material
+    ) {
+        // Reset geometric information
+        this->Reset_cinfo(mobjA, mobjB, cinfo);
 
         // Note: cinfo.distance is the same as this->norm_dist.
         assert(cinfo.distance < 0);
-
-        // Calculate composite material properties
-        ChMaterialCompositeSMC mat(
-            this->container->GetSystem()->composition_strategy.get(),
-            std::static_pointer_cast<ChMaterialSurfaceSMC>(this->objA->GetMaterialSurface()),
-            std::static_pointer_cast<ChMaterialSurfaceSMC>(this->objB->GetMaterialSurface()));
-
-        // Check for a user-provided callback to modify the material
-        if (this->container->GetAddContactCallback()) {
-            this->container->GetAddContactCallback()->OnAddContact(cinfo, &mat);
-        }
 
         // Calculate contact force.
         m_force = CalculateForce(-this->norm_dist,                            // overlap (here, always positive)
@@ -366,9 +356,9 @@ class ChContactSMC : public ChContactTuple<Ta, Tb> {
         ndof_w += this->objB->ContactableGet_ndof_w();
 
         m_Jac->m_KRM.SetVariables(vars);
-        m_Jac->m_K.Reset(ndof_w, ndof_w);
-        m_Jac->m_R.Reset(ndof_w, ndof_w);
-        assert(m_Jac->m_KRM.Get_K()->GetColumns() == ndof_w);
+        m_Jac->m_K.setZero(ndof_w, ndof_w);
+        m_Jac->m_R.setZero(ndof_w, ndof_w);
+        assert(m_Jac->m_KRM.Get_K().cols() == ndof_w);
     }
 
     /// Calculate Jacobian of generalized contact forces.
@@ -410,7 +400,6 @@ class ChContactSMC : public ChContactTuple<Ta, Tb> {
         ChStateDelta prtrbB(ndofB_w, NULL);
 
         ChVectorDynamic<> Q1(ndofA_w + ndofB_w);
-        ChVectorDynamic<> Jcolumn(ndofA_w + ndofB_w);
 
         // Jacobian w.r.t. variables of objA
         for (int i = 0; i < ndofA_w; i++) {
@@ -419,15 +408,13 @@ class ChContactSMC : public ChContactTuple<Ta, Tb> {
             CalculateQ(stateA_x1, stateA_w, stateB_x, stateB_w, mat, Q1);
             prtrbA(i) -= perturbation;
 
-            Jcolumn = (Q1 - Q0) * (-1 / perturbation);  // note sign change
-            m_Jac->m_K.PasteMatrix(Jcolumn, 0, i);
+            m_Jac->m_K.col(i) = (Q1 - Q0) * (-1 / perturbation);  // note sign change
 
             stateA_w(i) += perturbation;
             CalculateQ(stateA_x, stateA_w, stateB_x, stateB_w, mat, Q1);
             stateA_w(i) -= perturbation;
 
-            Jcolumn = (Q1 - Q0) * (-1 / perturbation);  // note sign change
-            m_Jac->m_R.PasteMatrix(Jcolumn, 0, i);
+            m_Jac->m_R.col(i) = (Q1 - Q0) * (-1 / perturbation);  // note sign change
         }
 
         // Jacobian w.r.t. variables of objB
@@ -437,15 +424,13 @@ class ChContactSMC : public ChContactTuple<Ta, Tb> {
             CalculateQ(stateA_x, stateA_w, stateB_x1, stateB_w, mat, Q1);
             prtrbB(i) -= perturbation;
 
-            Jcolumn = (Q1 - Q0) * (-1 / perturbation);  // note sign change
-            m_Jac->m_K.PasteMatrix(Jcolumn, 0, ndofA_w + i);
+            m_Jac->m_K.col(ndofA_w + i) = (Q1 - Q0) * (-1 / perturbation);  // note sign change
 
             stateB_w(i) += perturbation;
             CalculateQ(stateA_x, stateA_w, stateB_x, stateB_w, mat, Q1);
             stateB_w(i) -= perturbation;
 
-            Jcolumn = (Q1 - Q0) * (-1 / perturbation);  // note sign change
-            m_Jac->m_R.PasteMatrix(Jcolumn, 0, ndofA_w + i);
+            m_Jac->m_R.col(ndofA_w + i) = (Q1 - Q0) * (-1 / perturbation);  // note sign change
         }
     }
 
@@ -472,10 +457,10 @@ class ChContactSMC : public ChContactTuple<Ta, Tb> {
     /// Compute Jacobian of contact forces.
     virtual void ContKRMmatricesLoad(double Kfactor, double Rfactor) override {
         if (m_Jac) {
-            m_Jac->m_KRM.Get_K()->FillElem(0);
+            m_Jac->m_KRM.Get_K().setZero();
 
-            m_Jac->m_KRM.Get_K()->MatrInc(m_Jac->m_K * Kfactor);
-            m_Jac->m_KRM.Get_K()->MatrInc(m_Jac->m_R * Rfactor);
+            m_Jac->m_KRM.Get_K() += m_Jac->m_K * Kfactor;
+            m_Jac->m_KRM.Get_K() += m_Jac->m_R * Rfactor;
         }
     }
 };

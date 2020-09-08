@@ -21,21 +21,9 @@
 
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChContactContainerNSC.h"
-
 #include "chrono/physics/ChProximityContainer.h"
-
 #include "chrono/physics/ChSystem.h"
-#include "chrono/solver/ChSolverAPGD.h"
-#include "chrono/solver/ChSolverBB.h"
-#include "chrono/solver/ChSolverJacobi.h"
-#include "chrono/solver/ChSolverMINRES.h"
-#include "chrono/solver/ChSolverPCG.h"
-#include "chrono/solver/ChSolverPMINRES.h"
-#include "chrono/solver/ChSolverSOR.h"
-#include "chrono/solver/ChSolverSORmultithread.h"
-#include "chrono/solver/ChSolverSymmSOR.h"
-
-#include "chrono/collision/ChCCollisionSystemBullet.h"
+#include "chrono/collision/ChCollisionSystemBullet.h"
 
 namespace chrono {
 
@@ -46,18 +34,17 @@ ChSystemNSC::ChSystemNSC(unsigned int max_objects, double scene_size, bool init_
     : ChSystem() {
     if (init_sys) {
         // Set default contact container
-        contact_container = std::make_shared<ChContactContainerNSC>();
+        contact_container = chrono_types::make_shared<ChContactContainerNSC>();
         contact_container->SetSystem(this);
 
         // Set default collision engine
-        collision_system = std::make_shared<collision::ChCollisionSystemBullet>(max_objects, scene_size);
+        collision_system = chrono_types::make_shared<collision::ChCollisionSystemBullet>(max_objects, scene_size);
 
         // Set the system descriptor
-        descriptor = std::make_shared<ChSystemDescriptor>();
-        descriptor->SetNumThreads(parallel_thread_number);
+        descriptor = chrono_types::make_shared<ChSystemDescriptor>();
 
         // Set default solver
-        SetSolverType(ChSolver::Type::SYMMSOR);
+        SetSolverType(ChSolver::Type::PSOR);
     }
 
     // Set default collision envelope and margin.

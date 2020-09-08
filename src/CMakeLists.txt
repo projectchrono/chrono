@@ -9,38 +9,46 @@
 #-----------------------------------------------------------------------------
 
 option(BUILD_DEMOS "Build demo programs" ON)
-option(BUILD_BENCHMARKING "Build benchmark tests" ON)
+option(BUILD_BENCHMARKING "Build benchmark tests" OFF)
 
 #-----------------------------------------------------------------------------
 # Collect compiler flags required to build the Chrono libraries
 #-----------------------------------------------------------------------------
 
-set(CH_C_FLAGS "")
-set(CH_CXX_FLAGS "")
+set(CH_C_FLAGS "${CMAKE_C_FLAGS}")
+set(CH_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
 
 #-----------------------------------------------------------------------------
 # Enable C++11 support.  Check for C++14 support
 #-----------------------------------------------------------------------------
 
+# Allow user to enforce strict C++11 standard
+option(CH_ENFORCE_CXX11 "Enforce strict C++11 standard" OFF)
+
 find_package(ModernCXX)
-#set(CH_CXX_FLAGS "${CH_CXX_FLAGS} ${CMAKE_CXX11_STANDARD_COMPILE_OPTION}")
-set(CH_CXX_FLAGS "${CH_CXX_FLAGS} ${CMAKE_CXX14_STANDARD_COMPILE_OPTION}")
+
+if (CH_ENFORCE_CXX11)
+  set(CH_CXX_FLAGS "${CH_CXX_FLAGS} ${CMAKE_CXX11_STANDARD_COMPILE_OPTION}")
+else()
+  set(CH_CXX_FLAGS "${CH_CXX_FLAGS} ${CMAKE_CXX14_STANDARD_COMPILE_OPTION}")
+endif()
 
 # This is a hack -- look for a more robust solution
 set(CH_CXX14 FALSE)
+
 if(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
   message(STATUS "GCC version:  ${CMAKE_CXX_COMPILER_VERSION}")
-  if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 4.9.9)
+  if(NOT CH_ENFORCE_CXX11 AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 4.9.9)
     set(CH_CXX14 TRUE)
   endif()
 elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   message(STATUS "Clang version:  ${CMAKE_CXX_COMPILER_VERSION}")
-  if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 3.4)
+  if(NOT CH_ENFORCE_Cxx11 AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 3.4)
     set(CH_CXX14 TRUE)
   endif()
 elseif(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
   message(STATUS "Visual Studio version:  ${MSVC_VERSION}")
-  if(MSVC_VERSION GREATER 1800)
+  if(NOT CH_ENFORCE_CXX11 AND MSVC_VERSION GREATER 1800)
     set(CH_CXX14 TRUE)
   endif()
 endif()
@@ -50,7 +58,7 @@ message(STATUS "Compiler supports C++14:  ${CH_CXX14}")
 if (CMAKE_CXX_COMPILER_ID MATCHES "PGI")
   set(CH_CXX_FLAGS "")
   message(STATUS "PGI version: ${CMAKE_CXX_COMPILER_VERSION}")
-  if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 17.4)
+  if(NOT CH_ENFORCE_CXX11 AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 17.4)
     message(STATUS "CMAKE_CXX14_STANDARD_COMPILE_OPTION can't be trusted for PGI, manually adding C++14 support")
     set(CH_CXX14 TRUE)
     set(CH_CXX_FLAGS "-std=c++14")
@@ -114,13 +122,20 @@ endif()
 cmake_dependent_option(ENABLE_OPENMP "Enable OpenMP support in Chrono::Engine" ON
                        "OPENMP_FOUND" OFF)
 
+set(OPENMP_INCLUDE_DIR "")
+set(OPENMP_LIBRARIES "")
 if(ENABLE_OPENMP)
   message(STATUS "  OpenMP CXX flags: ${OpenMP_CXX_FLAGS}")
   message(STATUS "  OpenMP C flags:   ${OpenMP_C_FLAGS}")
+  message(STATUS "  OpenMP includes:  ${OpenMP_CXX_INCLUDE_DIRS}")
+  message(STATUS "  OpenMP library:   ${OpenMP_CXX_LIBRARY}")
+  message(STATUS "  OpenMP libraries: ${OpenMP_CXX_LIBRARIES}")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
   set(CH_CXX_FLAGS "${CH_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
   set(CH_C_FLAGS "${CH_C_FLAGS} ${OpenMP_C_FLAGS}")
+  set(OPENMP_INCLUDE_DIR "${OpenMP_CXX_INCLUDE_DIRS}")
+  set(OPENMP_LIBRARIES "${OpenMP_CXX_LIBRARIES}")
 else()
 	# As an alternative, if TBB is located the Parallel module will use it for all thrust calls
 	find_package("TBB")
@@ -203,6 +218,27 @@ endif()
 # Note that these flags are already added to CMake compiler flags
 set(CH_CXX_FLAGS "${CH_CXX_FLAGS} ${NEON_FLAGS}")
 set(CH_C_FLAGS "${CH_C_FLAGS} ${NEON_FLAGS}")
+
+#-----------------------------------------------------------------------------
+# Eigen library
+#-----------------------------------------------------------------------------
+
+find_package(Eigen3 3.3.0)
+if(EIGEN3_FOUND)
+  message(STATUS "Eigen3 version: ${EIGEN3_VERSION}")
+  message(STATUS "Eigen3 include directory: ${EIGEN3_INCLUDE_DIR}")
+else()
+  mark_as_advanced(CLEAR EIGEN3_INCLUDE_DIR)
+  mark_as_advanced(FORCE Eigen3_DIR)
+  message(FATAL_ERROR "Eigen3 not found. Specify EIGEN3_INCLUDE_DIR")
+endif()
+
+# Fix for VS 2017 15.8 and newer to handle alignment specification with Eigen.
+if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+	if(MSVC AND ${MSVC_VERSION} GREATER_EQUAL 1915)
+	  add_definitions( "-D_ENABLE_EXTENDED_ALIGNED_STORAGE" )
+	endif()
+endif()
 
 #-----------------------------------------------------------------------------
 # MPI support
@@ -289,6 +325,8 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
         add_definitions( "-D_SCL_SECURE_NO_DEPRECATE" )  # avoids deprecation warnings
         add_definitions( "-DNOMINMAX" ) # do not use MSVC's min/max macros
         add_definitions( "-MP" ) # perform parallel builds
+
+        set(CH_CXX_FLAGS "${CH_CXX_FLAGS} /Zc:__cplusplus")
     endif(MSVC)
 
     if(MINGW OR CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX)
@@ -347,6 +385,8 @@ if(ENABLE_HDF5)
         if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
             set(HDF5_COMPILE_DEFS "H5_BUILT_AS_DYNAMIC_LIB")
             message(STATUS "  HDF5 compile defs  (HDF5_COMPILE_DEFS)  ${HDF5_COMPILE_DEFS}")
+        else()
+            set(HDF5_COMPILE_DEFS "")
         endif()
     
         set(CHRONO_HAS_HDF5 "#define CHRONO_HAS_HDF5")
@@ -379,6 +419,8 @@ add_definitions( "-DBP_USE_FIXEDPOINT_INT_32" )
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 include_directories(${PROJECT_BINARY_DIR})
+include_directories(${EIGEN3_INCLUDE_DIR})
+include_directories(${OPENMP_INCLUDE_DIR})
 
 #------------------------------------------------------------
 # Build submodules
@@ -461,15 +503,15 @@ include_directories(${CH_INCLUDES})
 add_subdirectory(chrono_mkl)
 add_subdirectory(chrono_mumps)
 add_subdirectory(chrono_matlab)
-add_subdirectory(chrono_cascade)
 add_subdirectory(chrono_irrlicht)
+add_subdirectory(chrono_cascade)
 add_subdirectory(chrono_postprocess)
 add_subdirectory(chrono_cosimulation)
 add_subdirectory(chrono_python)
 add_subdirectory(chrono_parallel)
+add_subdirectory(chrono_granular)
 add_subdirectory(chrono_opengl)
 add_subdirectory(chrono_distributed)
-#add_subdirectory(chrono_ogre)
 add_subdirectory(chrono_vehicle)
 add_subdirectory(chrono_fsi)
 
@@ -624,11 +666,15 @@ install(FILES "${PROJECT_BINARY_DIR}/chrono/ChVersion.h"
 
 # For the BUILD tree
 set(CH_INCLUDE_DIRS "${PROJECT_SOURCE_DIR}/src")
-set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${PROJECT_SOURCE_DIR}/src/chrono" )
-set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${PROJECT_SOURCE_DIR}/src/chrono/collision/bullet" )
-set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${PROJECT_SOURCE_DIR}/src/chrono/collision/gimpact" )
-set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${PROJECT_SOURCE_DIR}/src/chrono/collision/convexdecomposition/HACD" )
+set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${PROJECT_SOURCE_DIR}/src/chrono")
+set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${PROJECT_SOURCE_DIR}/src/chrono/collision/bullet")
+set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${PROJECT_SOURCE_DIR}/src/chrono/collision/gimpact")
+set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${PROJECT_SOURCE_DIR}/src/chrono_thirdparty/HACD")
+set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${PROJECT_SOURCE_DIR}/src/chrono_thirdparty/HACDv2")
 set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${PROJECT_BINARY_DIR}")
+set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${EIGEN3_INCLUDE_DIR}")
+set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${OPENMP_INCLUDE_DIR}")
+
 set(CH_BINARY_DIR "${PROJECT_BINARY_DIR}")
 set(CH_DATA_DIR "${PROJECT_SOURCE_DIR}/data/")
 
@@ -638,10 +684,14 @@ configure_file("${PROJECT_SOURCE_DIR}/cmake/ChronoConfig.cmake.in"
 
 # For the INSTALL tree
 set(CH_INCLUDE_DIRS "${CMAKE_INSTALL_PREFIX}/include")
-set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${CMAKE_INSTALL_PREFIX}/include/chrono" )
-set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${CMAKE_INSTALL_PREFIX}/include/chrono/collision/bullet" )
-set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${CMAKE_INSTALL_PREFIX}/include/chrono/collision/gimpact" )
-set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${CMAKE_INSTALL_PREFIX}/include/chrono/collision/convexdecomposition/HACD" )
+set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${CMAKE_INSTALL_PREFIX}/include/chrono")
+set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${CMAKE_INSTALL_PREFIX}/include/chrono/collision/bullet")
+set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${CMAKE_INSTALL_PREFIX}/include/chrono/collision/gimpact")
+set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${CMAKE_INSTALL_PREFIX}/include/chrono_thirdparty/HACD")
+set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${CMAKE_INSTALL_PREFIX}/include/chrono_thirdparty/HACDv2")
+set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${EIGEN3_INCLUDE_DIR}")
+set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${OPENMP_INCLUDE_DIR}")
+
 set(CH_BINARY_DIR ${CMAKE_INSTALL_PREFIX})
 set(CH_DATA_DIR "${CMAKE_INSTALL_PREFIX}/${CH_INSTALL_DATA}/")
 

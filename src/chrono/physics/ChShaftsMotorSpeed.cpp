@@ -26,7 +26,7 @@ ChShaftsMotorSpeed::ChShaftsMotorSpeed() : motor_torque(0) {
     this->variable.GetMass()(0,0) = 1.0;
     this->variable.GetInvMass()(0,0) = 1.0;
 
-    this->f_speed = std::make_shared<ChFunction_Const>(1.0);
+    this->f_speed = chrono_types::make_shared<ChFunction_Const>(1.0);
 
     this->rot_offset = 0;
 
@@ -90,13 +90,16 @@ void ChShaftsMotorSpeed::IntStateGather(const unsigned int off_x,  // offset in 
 }
 
 void ChShaftsMotorSpeed::IntStateScatter(const unsigned int off_x,  // offset in x state vector
-                              const ChState& x,          // state vector, position part
-                              const unsigned int off_v,  // offset in v state vector
-                              const ChStateDelta& v,     // state vector, speed part
-                              const double T             // time
-                              ) {
-    //aux = x(off_x);
+                                         const ChState& x,          // state vector, position part
+                                         const unsigned int off_v,  // offset in v state vector
+                                         const ChStateDelta& v,     // state vector, speed part
+                                         const double T,            // time
+                                         bool full_update           // perform complete update
+) {
+    // aux = x(off_x);
     aux_dt = v(off_v);
+
+    Update(T, full_update);
 }
 
 void ChShaftsMotorSpeed::IntStateGatherAcceleration(const unsigned int off_a, ChStateDelta& a) {
@@ -206,13 +209,13 @@ void ChShaftsMotorSpeed::InjectVariables(ChSystemDescriptor& mdescriptor) {
 }
 
 void ChShaftsMotorSpeed::VariablesFbReset() {
-    variable.Get_fb().FillElem(0.0);
+    variable.Get_fb().setZero();
 }
 
 void ChShaftsMotorSpeed::VariablesFbLoadForces(double factor) {
     
     double imposed_speed = this->f_speed->Get_y(this->GetChTime());
-    variable.Get_fb().ElementN(0) += imposed_speed * factor;
+    variable.Get_fb()(0) += imposed_speed * factor;
 }
 
 void ChShaftsMotorSpeed::VariablesFbIncrementMq() {
@@ -221,14 +224,14 @@ void ChShaftsMotorSpeed::VariablesFbIncrementMq() {
 
 void ChShaftsMotorSpeed::VariablesQbLoadSpeed() {
     // set current speed in 'qb', it can be used by the solver when working in incremental mode
-    variable.Get_qb().SetElement(0, 0, aux_dt);
+    variable.Get_qb()(0) = aux_dt;
 }
 
 void ChShaftsMotorSpeed::VariablesQbSetSpeed(double step) {
     double old_dt = aux_dt;
 
     // from 'qb' vector, sets body speed, and updates auxiliary data
-    aux_dt = variable.Get_qb().GetElement(0, 0);
+    aux_dt = variable.Get_qb()(0);
 
     // Compute accel. by BDF (approximate by differentiation); not needed
 }
@@ -263,8 +266,8 @@ void ChShaftsMotorSpeed::ConstraintsBiLoad_Ct(double factor) {
 }
 
 void ChShaftsMotorSpeed::ConstraintsLoadJacobians() {
-    constraint.Get_Cq_a()->SetElement(0, 0, 1);
-    constraint.Get_Cq_b()->SetElement(0, 0, -1);
+    constraint.Get_Cq_a()(0) = 1;
+    constraint.Get_Cq_b()(0) = -1;
 }
 
 void ChShaftsMotorSpeed::ConstraintsFetch_react(double factor) {

@@ -53,13 +53,12 @@ class CH_VEHICLE_API ChRotaryArm : public ChSteering {
     virtual std::string GetTemplateName() const override { return "RotaryArm"; }
 
     /// Initialize this steering subsystem.
-    /// The steering subsystem is initialized by attaching it to the specified
-    /// chassis body at the specified location (with respect to and expressed in
-    /// the reference frame of the chassis) and with specified orientation (with
-    /// respect to the chassis reference frame).
-    virtual void Initialize(std::shared_ptr<ChBodyAuxRef> chassis,  ///< [in] handle to the chassis body
-                            const ChVector<>& location,             ///< [in] location relative to the chassis frame
-                            const ChQuaternion<>& rotation          ///< [in] orientation relative to the chassis frame
+    /// The steering subsystem is initialized by attaching it to the specified chassis at the specified location (with
+    /// respect to and expressed in the reference frame of the chassis) and with specified orientation (with respect to
+    /// the chassis reference frame).
+    virtual void Initialize(std::shared_ptr<ChChassis> chassis,  ///< [in] associated chassis subsystem
+                            const ChVector<>& location,          ///< [in] location relative to the chassis frame
+                            const ChQuaternion<>& rotation       ///< [in] orientation relative to the chassis frame
                             ) override;
 
     /// Add visualization assets for the steering subsystem.
@@ -89,15 +88,15 @@ class CH_VEHICLE_API ChRotaryArm : public ChSteering {
   protected:
     /// Identifiers for the various hardpoints.
     enum PointId {
-        PITMANARM,  ///< Pitman arm location (com)
-        REV,        ///< location of joint between Pitman arm and chassis
-        NUM_POINTS
+        ARM_L,      ///< location of joint between Pitman arm and suspension dragling
+        ARM_C,      ///< location of joint between Pitman arm and chassis
+        NUM_POINTS  ///<
     };
 
     /// Identifiers for the various direction unit vectors.
     enum DirectionId {
-        REV_AXIS,  ///< revolute joint
-        NUM_DIRS
+        REV_AXIS,  ///< orientation of arm-chassis revolute joint
+        NUM_DIRS   ///<
     };
 
     /// Protected constructor.

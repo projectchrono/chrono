@@ -16,6 +16,7 @@
 #include "chrono_parallel/physics/ChSystemParallel.h"
 #include "chrono_parallel/solver/ChSolverParallel.h"
 #include "chrono_parallel/solver/ChIterativeSolverParallel.h"
+#include "chrono_parallel/collision/ChContactContainerParallelNSC.h"
 #include "chrono_parallel/collision/ChCollisionSystemParallel.h"
 #ifdef CHRONO_PARALLEL_USE_BULLET
 #include "chrono_parallel/collision/ChCollisionSystemBulletParallel.h"
@@ -24,7 +25,10 @@
 using namespace chrono;
 
 ChSystemParallelNSC::ChSystemParallelNSC() : ChSystemParallel() {
-    solver_speed = std::make_shared<ChIterativeSolverParallelNSC>(data_manager);
+    contact_container = chrono_types::make_shared<ChContactContainerParallelNSC>(data_manager);
+    contact_container->SetSystem(this);
+
+    solver = chrono_types::make_shared<ChIterativeSolverParallelNSC>(data_manager);
 
     // Set this so that the CD can check what type of system it is (needed for narrowphase)
     data_manager->settings.system_type = SystemType::SYSTEM_NSC;
@@ -49,22 +53,8 @@ ChSystemParallelNSC::ChSystemParallelNSC(const ChSystemParallelNSC& other) : ChS
     //// TODO
 }
 
-ChBody* ChSystemParallelNSC::NewBody() {
-    if (collision_system_type == CollisionSystemType::COLLSYS_PARALLEL)
-        return new ChBody(std::make_shared<collision::ChCollisionModelParallel>(), ChMaterialSurface::NSC);
-
-    return new ChBody(ChMaterialSurface::NSC);
-}
-
 void ChSystemParallelNSC::ChangeSolverType(SolverType type) {
-    std::static_pointer_cast<ChIterativeSolverParallelNSC>(solver_speed)->ChangeSolverType(type);
-}
-
-ChBodyAuxRef* ChSystemParallelNSC::NewBodyAuxRef() {
-    if (collision_system_type == CollisionSystemType::COLLSYS_PARALLEL)
-        return new ChBodyAuxRef(std::make_shared<collision::ChCollisionModelParallel>(), ChMaterialSurface::NSC);
-
-    return new ChBodyAuxRef(ChMaterialSurface::NSC);
+    std::static_pointer_cast<ChIterativeSolverParallelNSC>(solver)->ChangeSolverType(type);
 }
 
 void ChSystemParallelNSC::Add3DOFContainer(std::shared_ptr<Ch3DOFContainer> container) {
@@ -79,34 +69,31 @@ void ChSystemParallelNSC::Add3DOFContainer(std::shared_ptr<Ch3DOFContainer> cont
 }
 
 void ChSystemParallelNSC::AddMaterialSurfaceData(std::shared_ptr<ChBody> newbody) {
-    assert(newbody->GetContactMethod() == ChMaterialSurface::NSC);
-
-    // Reserve space for material properties for the specified body. Not that the
-    // actual data is set in UpdateMaterialProperties().
-    data_manager->host_data.fric_data.push_back(real3(0));
-    data_manager->host_data.cohesion_data.push_back(0);
-    data_manager->host_data.compliance_data.push_back(real4(0));
+    // Reserve space for material properties for the specified body.
+    // Notes:
+    //  - the actual data is set in UpdateMaterialProperties()
+    //  - coefficients of sliding friction are only needed for fluid-rigid and FEA-rigid contacts;
+    //    for now, we store a single value per body (corresponding to the first collision shape,
+    //    if any, in the associated collision model)
+    data_manager->host_data.sliding_friction.push_back(0);
+    data_manager->host_data.cohesion.push_back(0);
 }
 
 void ChSystemParallelNSC::UpdateMaterialSurfaceData(int index, ChBody* body) {
-    custom_vector<real>& cohesion = data_manager->host_data.cohesion_data;
-    custom_vector<real3>& friction = data_manager->host_data.fric_data;
-    custom_vector<real4>& compliance = data_manager->host_data.compliance_data;
+    custom_vector<float>& friction = data_manager->host_data.sliding_friction;
+    custom_vector<float>& cohesion = data_manager->host_data.cohesion;
 
-    // Since this function is called in a parallel for loop, we must access the
-    // material properties in a thread-safe manner (we cannot use the function
-    // ChBody::GetMaterialSurfaceNSC since that returns a copy of the reference
-    // counted shared pointer).
-    std::shared_ptr<ChMaterialSurface>& mat = body->GetMaterialSurface();
-    ChMaterialSurfaceNSC* mat_ptr = static_cast<ChMaterialSurfaceNSC*>(mat.get());
-
-    friction[index] = real3(mat_ptr->GetKfriction(), mat_ptr->GetRollingFriction(), mat_ptr->GetSpinningFriction());
-    cohesion[index] = mat_ptr->GetCohesion();
-    compliance[index] = real4(mat_ptr->GetCompliance(), mat_ptr->GetComplianceT(), mat_ptr->GetComplianceRolling(),
-                              mat_ptr->GetComplianceSpinning());
+    if (body->GetCollisionModel() && body->GetCollisionModel()->GetNumShapes() > 0) {
+        auto mat =
+            std::static_pointer_cast<ChMaterialSurfaceNSC>(body->GetCollisionModel()->GetShape(0)->GetMaterial());
+        friction[index] = mat->GetKfriction();
+        cohesion[index] = mat->GetCohesion();
+    }
 }
 
 void ChSystemParallelNSC::CalculateContactForces() {
+    uint num_unilaterals = data_manager->num_unilaterals;
+    uint num_rigid_dof = data_manager->num_rigid_bodies * 6;
     uint num_contacts = data_manager->num_rigid_contacts;
     DynamicVector<real>& Fc = data_manager->host_data.Fc;
 
@@ -120,8 +107,9 @@ void ChSystemParallelNSC::CalculateContactForces() {
 
     LOG(INFO) << "ChSystemParallelNSC::CalculateContactForces() ";
 
-    DynamicVector<real>& gamma = data_manager->host_data.gamma;
-    Fc = data_manager->host_data.D * gamma / data_manager->settings.step_size;
+    const SubMatrixType& D_u = blaze::submatrix(data_manager->host_data.D, 0, 0, num_rigid_dof, num_unilaterals);
+    DynamicVector<real> gamma_u = blaze::subvector(data_manager->host_data.gamma, 0, num_unilaterals);
+    Fc = D_u * gamma_u / data_manager->settings.step_size;
 }
 
 real3 ChSystemParallelNSC::GetBodyContactForce(uint body_id) const {
@@ -155,12 +143,14 @@ void ChSystemParallelNSC::SolveSystem() {
     collision_system->ReportContacts(this->contact_container.get());
     data_manager->system_timer.stop("collision");
     data_manager->system_timer.start("advance");
-    std::static_pointer_cast<ChIterativeSolverParallelNSC>(solver_speed)->RunTimeStep();
+    std::static_pointer_cast<ChIterativeSolverParallelNSC>(solver)->RunTimeStep();
     data_manager->system_timer.stop("advance");
     data_manager->system_timer.stop("step");
 }
 
 void ChSystemParallelNSC::AssembleSystem() {
+    //// TODO: load colliding shape information in icontact? Not really needed here.
+
     Setup();
 
     collision_system->Run();
@@ -170,8 +160,8 @@ void ChSystemParallelNSC::AssembleSystem() {
     chrono::collision::ChCollisionInfo icontact;
     for (int i = 0; i < (signed)data_manager->num_rigid_contacts; i++) {
         vec2 cd_pair = data_manager->host_data.bids_rigid_rigid[i];
-        icontact.modelA = bodylist[cd_pair.x]->GetCollisionModel().get();
-        icontact.modelB = bodylist[cd_pair.y]->GetCollisionModel().get();
+        icontact.modelA = Get_bodylist()[cd_pair.x]->GetCollisionModel().get();
+        icontact.modelB = Get_bodylist()[cd_pair.y]->GetCollisionModel().get();
         icontact.vN = ToChVector(data_manager->host_data.norm_rigid_rigid[i]);
         icontact.vpA =
             ToChVector(data_manager->host_data.cpta_rigid_rigid[i] + data_manager->host_data.pos_rigid[cd_pair.x]);
@@ -184,11 +174,11 @@ void ChSystemParallelNSC::AssembleSystem() {
     contact_container->EndAddContact();
 
     // Reset sparse representation accumulators.
-    for (int ip = 0; ip < linklist.size(); ++ip) {
-        linklist[ip]->ConstraintsBiReset();
+    for (auto& link : Get_linklist()) {
+        link->ConstraintsBiReset();
     }
-    for (int ip = 0; ip < bodylist.size(); ++ip) {
-        bodylist[ip]->VariablesFbReset();
+    for (auto& body : Get_bodylist()) {
+        body->VariablesFbReset();
     }
     contact_container->ConstraintsBiReset();
 
@@ -201,36 +191,32 @@ void ChSystemParallelNSC::AssembleSystem() {
     double Ct_factor = 1;
     double C_factor = 1 / step;
 
-    for (int ip = 0; ip < linklist.size(); ++ip) {
-        std::shared_ptr<ChLink> Lpointer = linklist[ip];
-
-        Lpointer->ConstraintsBiLoad_C(C_factor, max_penetration_recovery_speed, true);
-        Lpointer->ConstraintsBiLoad_Ct(Ct_factor);
-        Lpointer->VariablesQbLoadSpeed();
-        Lpointer->VariablesFbIncrementMq();
-        Lpointer->ConstraintsLoadJacobians();
-        Lpointer->ConstraintsFbLoadForces(F_factor);
+    for (auto& link : Get_linklist()) {
+        link->ConstraintsBiLoad_C(C_factor, max_penetration_recovery_speed, true);
+        link->ConstraintsBiLoad_Ct(Ct_factor);
+        link->VariablesQbLoadSpeed();
+        link->VariablesFbIncrementMq();
+        link->ConstraintsLoadJacobians();
+        link->ConstraintsFbLoadForces(F_factor);
     }
 
-    for (int ip = 0; ip < bodylist.size(); ++ip) {
-        std::shared_ptr<ChBody> Bpointer = bodylist[ip];
+    for (int ip = 0; ip < Get_bodylist().size(); ++ip) {
+        std::shared_ptr<ChBody> Bpointer = Get_bodylist()[ip];
 
         Bpointer->VariablesFbLoadForces(F_factor);
         Bpointer->VariablesQbLoadSpeed();
         Bpointer->VariablesFbIncrementMq();
     }
 
-    for (int ip = 0; ip < otherphysicslist.size(); ++ip) {
-        std::shared_ptr<ChPhysicsItem> PHpointer = otherphysicslist[ip];
-
-        PHpointer->VariablesFbLoadForces(F_factor);
-        PHpointer->VariablesQbLoadSpeed();
-        PHpointer->VariablesFbIncrementMq();
-        PHpointer->ConstraintsBiLoad_C(C_factor, max_penetration_recovery_speed, true);
-        PHpointer->ConstraintsBiLoad_Ct(Ct_factor);
-        PHpointer->ConstraintsLoadJacobians();
-        PHpointer->KRMmatricesLoad(K_factor, R_factor, M_factor);
-        PHpointer->ConstraintsFbLoadForces(F_factor);
+    for (auto& item : Get_otherphysicslist()) {
+        item->VariablesFbLoadForces(F_factor);
+        item->VariablesQbLoadSpeed();
+        item->VariablesFbIncrementMq();
+        item->ConstraintsBiLoad_C(C_factor, max_penetration_recovery_speed, true);
+        item->ConstraintsBiLoad_Ct(Ct_factor);
+        item->ConstraintsLoadJacobians();
+        item->KRMmatricesLoad(K_factor, R_factor, M_factor);
+        item->ConstraintsFbLoadForces(F_factor);
     }
 
     contact_container->ConstraintsBiLoad_C(C_factor, max_penetration_recovery_speed, true);
@@ -239,11 +225,11 @@ void ChSystemParallelNSC::AssembleSystem() {
 
     // Inject all variables and constraints into the system descriptor.
     descriptor->BeginInsertion();
-    for (int ip = 0; ip < bodylist.size(); ++ip) {
-        bodylist[ip]->InjectVariables(*descriptor);
+    for (auto& body : Get_bodylist()) {
+        body->InjectVariables(*descriptor);
     }
-    for (int ip = 0; ip < linklist.size(); ++ip) {
-        linklist[ip]->InjectConstraints(*descriptor);
+    for (auto& link : Get_linklist()) {
+        link->InjectConstraints(*descriptor);
     }
     contact_container->InjectConstraints(*descriptor);
     descriptor->EndInsertion();

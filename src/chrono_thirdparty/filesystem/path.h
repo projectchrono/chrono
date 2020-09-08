@@ -30,7 +30,7 @@
 # include <linux/limits.h>
 #endif
 
-#ifdef __APPLE__
+#if defined(__APPLE__) || defined(__FreeBSD__)
 # include <limits.h>
 #endif
 
@@ -353,6 +353,25 @@ inline bool create_directory(const path& p) {
 #else
     return mkdir(p.str().c_str(), S_IRUSR | S_IWUSR | S_IXUSR) == 0;
 #endif
+}
+
+//// Radu: function to create a hierarchy of directories
+inline bool create_subdirectory(const path& p) {
+    auto tmp = p;
+    std::vector<path> hierarchy;
+    while (!tmp.empty()) {
+        hierarchy.push_back(tmp);
+        tmp = tmp.parent_path();
+    }
+
+    for (auto ancestor = hierarchy.rbegin(); ancestor != hierarchy.rend(); ++ancestor) {
+        if (ancestor->exists())
+            continue;
+        if (!create_directory(*ancestor))
+            return false;
+    }
+
+    return true;
 }
 
 NAMESPACE_END(filesystem)

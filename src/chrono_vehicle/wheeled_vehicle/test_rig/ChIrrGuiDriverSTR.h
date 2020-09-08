@@ -42,13 +42,9 @@ namespace vehicle {
 /// and update the current driver inputs.
 class CH_VEHICLE_API ChIrrGuiDriverSTR : public ChDriverSTR, public irr::IEventReceiver {
   public:
-    ChIrrGuiDriverSTR(ChVehicleIrrApp& app  ///< handle to the vehicle Irrlicht application
-                      );
+    ChIrrGuiDriverSTR(irrlicht::ChIrrApp& app);
 
     ~ChIrrGuiDriverSTR() {}
-
-    /// Override for OnEvent.
-    virtual bool OnEvent(const irr::SEvent& event) override;
 
     /// Set the time response for steering control.
     /// The provided value represents the time (in seconds) for increasing the
@@ -61,7 +57,10 @@ class CH_VEHICLE_API ChIrrGuiDriverSTR : public ChDriverSTR, public irr::IEventR
     void SetDisplacementDelta(double delta) { m_displDelta = delta; }
 
   private:
-    ChVehicleIrrApp& m_app;
+    /// Override for OnEvent.
+    virtual bool OnEvent(const irr::SEvent& event) override;
+
+    irrlicht::ChIrrApp& m_app;
 
     double m_steeringDelta;
     double m_displDelta;

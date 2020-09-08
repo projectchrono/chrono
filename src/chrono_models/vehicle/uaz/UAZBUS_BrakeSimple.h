@@ -30,7 +30,7 @@ namespace uaz {
 /// @addtogroup vehicle_models_uaz
 /// @{
 
-/// Simple UAZBUS brake subsystem (torque applied directly to the spindle joint).
+/// Simple UAZBUS front brake subsystem (torque applied directly to the spindle joint).
 class CH_MODELS_API UAZBUS_BrakeSimpleFront : public ChBrakeSimple {
   public:
     UAZBUS_BrakeSimpleFront(const std::string& name);
@@ -42,6 +42,7 @@ class CH_MODELS_API UAZBUS_BrakeSimpleFront : public ChBrakeSimple {
     static const double m_maxtorque;
 };
 
+/// Simple UAZBUS rear brake subsystem (torque applied directly to the spindle joint).
 class CH_MODELS_API UAZBUS_BrakeSimpleRear : public ChBrakeSimple {
   public:
     UAZBUS_BrakeSimpleRear(const std::string& name);

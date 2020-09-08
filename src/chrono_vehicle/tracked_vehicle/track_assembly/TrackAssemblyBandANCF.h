@@ -47,14 +47,12 @@ class CH_VEHICLE_API TrackAssemblyBandANCF : public ChTrackAssemblyBandANCF {
   private:
     virtual void Create(const rapidjson::Document& d) override;
 
-    void LoadSprocket(const std::string& filename, int output);
-    void LoadBrake(const std::string& filename, int output);
-    void LoadIdler(const std::string& filename, int output);
-    void LoadSuspension(const std::string& filename, int which, bool has_shock, int output);
-    void LoadRoller(const std::string& filename, int which, int output);
-    void LoadTrackShoes(const std::string& filename, int num_shoes, int output);
+    /// Create the contact material for the web mesh, consistent with the specified contact method.
+    virtual void CreateContactMaterial(ChContactMethod contact_method) override;
 
-  private:
+    void ReadSprocket(const std::string& filename, int output);
+    void ReadTrackShoes(const std::string& filename, int num_shoes, int output);
+
     int m_num_susp;
     int m_num_rollers;
     int m_num_track_shoes;
@@ -63,6 +61,8 @@ class CH_VEHICLE_API TrackAssemblyBandANCF : public ChTrackAssemblyBandANCF {
     ChVector<> m_idler_loc;
     std::vector<ChVector<>> m_susp_locs;
     std::vector<ChVector<>> m_roller_locs;
+
+    MaterialInfo m_mat_info;
 };
 
 /// @} vehicle_tracked

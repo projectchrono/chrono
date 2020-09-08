@@ -20,8 +20,6 @@
 #include "chrono_vehicle/wheeled_vehicle/tire/ANCFTire.h"
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
 
-#include "chrono_thirdparty/rapidjson/filereadstream.h"
-
 using namespace chrono::fea;
 using namespace rapidjson;
 
@@ -32,15 +30,9 @@ namespace vehicle {
 // Constructors for ANCFTire
 // -----------------------------------------------------------------------------
 ANCFTire::ANCFTire(const std::string& filename) : ChANCFTire("") {
-    FILE* fp = fopen(filename.c_str(), "r");
-
-    char readBuffer[65536];
-    FileReadStream is(fp, readBuffer, sizeof(readBuffer));
-
-    fclose(fp);
-
-    Document d;
-    d.ParseStream<ParseFlag::kParseCommentsFlag>(is);
+    Document d = ReadFileJSON(filename);
+    if (d.IsNull())
+        return;
 
     ProcessJSON(d);
 
@@ -69,25 +61,7 @@ void ANCFTire::ProcessJSON(const rapidjson::Document& d) {
 
     // Read contact material data
     assert(d.HasMember("Contact Material"));
-
-    float mu = d["Contact Material"]["Coefficient of Friction"].GetFloat();
-    float cr = d["Contact Material"]["Coefficient of Restitution"].GetFloat();
-
-    SetContactFrictionCoefficient(mu);
-    SetContactRestitutionCoefficient(cr);
-
-    if (d["Contact Material"].HasMember("Properties")) {
-        float ym = d["Contact Material"]["Properties"]["Young Modulus"].GetFloat();
-        float pr = d["Contact Material"]["Properties"]["Poisson Ratio"].GetFloat();
-        SetContactMaterialProperties(ym, pr);
-    }
-    if (d["Contact Material"].HasMember("Coefficients")) {
-        float kn = d["Contact Material"]["Coefficients"]["Normal Stiffness"].GetFloat();
-        float gn = d["Contact Material"]["Coefficients"]["Normal Damping"].GetFloat();
-        float kt = d["Contact Material"]["Coefficients"]["Tangential Stiffness"].GetFloat();
-        float gt = d["Contact Material"]["Coefficients"]["Tangential Damping"].GetFloat();
-        SetContactMaterialCoefficients(kn, gn, kt, gt);
-    }
+    m_mat_info = ReadMaterialInfoJSON(d["Contact Material"]);
 
     // Read the list of materials (note that order is important)
     int num_materials = d["Materials"].Size();
@@ -98,13 +72,13 @@ void ANCFTire::ProcessJSON(const rapidjson::Document& d) {
             double rho = d["Materials"][i]["Density"].GetDouble();
             double E = d["Materials"][i]["E"].GetDouble();
             double nu = d["Materials"][i]["nu"].GetDouble();
-            m_materials[i] = std::make_shared<ChMaterialShellANCF>(rho, E, nu);
+            m_materials[i] = chrono_types::make_shared<ChMaterialShellANCF>(rho, E, nu);
         } else if (type.compare("Orthotropic") == 0) {
             double rho = d["Materials"][i]["Density"].GetDouble();
-            ChVector<> E = LoadVectorJSON(d["Materials"][i]["E"]);
-            ChVector<> nu = LoadVectorJSON(d["Materials"][i]["nu"]);
-            ChVector<> G = LoadVectorJSON(d["Materials"][i]["G"]);
-            m_materials[i] = std::make_shared<ChMaterialShellANCF>(rho, E, nu, G);
+            ChVector<> E = ReadVectorJSON(d["Materials"][i]["E"]);
+            ChVector<> nu = ReadVectorJSON(d["Materials"][i]["nu"]);
+            ChVector<> G = ReadVectorJSON(d["Materials"][i]["G"]);
+            m_materials[i] = chrono_types::make_shared<ChMaterialShellANCF>(rho, E, nu, G);
         }
     }
 
@@ -211,7 +185,7 @@ void ANCFTire::CreateMesh(const ChFrameMoving<>& wheel_frame, VehicleSide side) 
             ChVector<> nrm_prf = Vcross(tan_prf, nrm).GetNormalized();
             ChVector<> dir = wheel_frame.TransformDirectionLocalToParent(nrm_prf);
 
-            auto node = std::make_shared<ChNodeFEAxyzD>(loc, dir);
+            auto node = chrono_types::make_shared<ChNodeFEAxyzD>(loc, dir);
 
             // Node velocity
             ChVector<> vel = wheel_frame.PointSpeedLocalToParent(ChVector<>(x, y, z));
@@ -242,7 +216,7 @@ void ANCFTire::CreateMesh(const ChFrameMoving<>& wheel_frame, VehicleSide side) 
             auto node3 = std::dynamic_pointer_cast<ChNodeFEAxyzD>(m_mesh->GetNode(inode3));
 
             // Create the element and set its nodes.
-            auto element = std::make_shared<ChElementShellANCF>();
+            auto element = chrono_types::make_shared<ChElementShellANCF>();
             element->SetNodes(node0, node1, node2, node3);
 
             // Element dimensions
@@ -304,6 +278,18 @@ std::vector<std::shared_ptr<fea::ChNodeFEAbase>> ANCFTire::GetConnectedNodes() c
     }
 
     return nodes;
+}
+
+void ANCFTire::CreateContactMaterial() {
+    m_contact_mat = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+    m_contact_mat->SetFriction(m_mat_info.mu);
+    m_contact_mat->SetRestitution(m_mat_info.cr);
+    m_contact_mat->SetYoungModulus(m_mat_info.Y);
+    m_contact_mat->SetPoissonRatio(m_mat_info.nu);
+    m_contact_mat->SetKn(m_mat_info.kn);
+    m_contact_mat->SetGn(m_mat_info.gn);
+    m_contact_mat->SetKt(m_mat_info.kt);
+    m_contact_mat->SetGt(m_mat_info.gt);
 }
 
 }  // end namespace vehicle

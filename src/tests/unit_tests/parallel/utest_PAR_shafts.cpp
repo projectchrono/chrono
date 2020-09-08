@@ -29,13 +29,10 @@
 using namespace chrono;
 using namespace chrono::collision;
 
-class ChShaftTest : public ::testing::TestWithParam<int> {
+class ChShaftTest : public ::testing::TestWithParam<ChContactMethod> {
   protected:
     ChShaftTest() {
         // Settings
-        int threads = 1;
-        bool thread_tuning = false;
-
         double tolerance = 1e-5;
 
         int max_iteration_bilateral = 100;
@@ -50,18 +47,16 @@ class ChShaftTest : public ::testing::TestWithParam<int> {
 
         // Create the mechanical system
         switch (GetParam()) {
-            case ChMaterialSurface::SMC:
+            case ChContactMethod::SMC:
                 system = new ChSystemParallelSMC();
                 break;
-            case ChMaterialSurface::NSC:
+            case ChContactMethod::NSC:
                 system = new ChSystemParallelNSC();
                 break;
         }
 
-        // Set number of threads.
-        CHOMPfunctions::SetNumThreads(threads);
-        system->GetSettings()->max_threads = threads;
-        system->GetSettings()->perform_thread_tuning = thread_tuning;
+        // Set number of threads
+        system->SetNumThreads(1);
 
         // Edit system settings
         system->GetSettings()->solver.tolerance = tolerance;
@@ -69,7 +64,7 @@ class ChShaftTest : public ::testing::TestWithParam<int> {
         system->GetSettings()->solver.clamp_bilaterals = clamp_bilaterals;
         system->GetSettings()->solver.bilateral_clamp_speed = bilateral_clamp_speed;
 
-        if (GetParam() == ChMaterialSurface::NSC) {
+        if (GetParam() == ChContactMethod::NSC) {
             ChSystemParallelNSC* systemNSC = static_cast<ChSystemParallelNSC*>(system);
             systemNSC->GetSettings()->solver.solver_mode = SolverMode::SLIDING;
             systemNSC->GetSettings()->solver.max_iteration_normal = max_iteration_normal;
@@ -111,17 +106,17 @@ TEST_P(ChShaftTest, shaft_shaft) {
 
     // Create two 1-D shaft objects, with a constant torque applied to the first shaft.
     // By default, a ChShaft is free to rotate.
-    auto shaftA = std::make_shared<ChShaft>();
+    auto shaftA = chrono_types::make_shared<ChShaft>();
     shaftA->SetInertia(J1);
     shaftA->SetAppliedTorque(T);
     system->Add(shaftA);
 
-    auto shaftB = std::make_shared<ChShaft>();
+    auto shaftB = chrono_types::make_shared<ChShaft>();
     shaftB->SetInertia(J2);
     system->Add(shaftB);
 
     // Create a connection between the two shafts with a given trnsmission ratio.
-    auto gearAB = std::make_shared<ChShaftsGear>();
+    auto gearAB = chrono_types::make_shared<ChShaftsGear>();
     gearAB->Initialize(shaftA, shaftB);
     gearAB->SetTransmissionRatio(r);
     system->Add(gearAB);
@@ -198,12 +193,12 @@ TEST_P(ChShaftTest, shaft_shaft) {
 // -----------------------------------------------------------------------------
 TEST_P(ChShaftTest, shaft_body) {
     // Create 'A', a 1D shaft
-    auto shaftA = std::make_shared<ChShaft>();
+    auto shaftA = chrono_types::make_shared<ChShaft>();
     shaftA->SetInertia(9);
     system->Add(shaftA);
 
     // Create 'C', a 1D shaft, fixed
-    auto shaftC = std::make_shared<ChShaft>();
+    auto shaftC = chrono_types::make_shared<ChShaft>();
     shaftC->SetShaftFixed(true);
     system->Add(shaftC);
 
@@ -214,7 +209,7 @@ TEST_P(ChShaftTest, shaft_body) {
     system->Add(bodyB);
 
     // Make the torsional spring-damper between shafts A and C.
-    auto shaft_torsionAC = std::make_shared<ChShaftsTorsionSpring>();
+    auto shaft_torsionAC = chrono_types::make_shared<ChShaftsTorsionSpring>();
     shaft_torsionAC->Initialize(shaftA, shaftC);
     shaft_torsionAC->SetTorsionalStiffness(40);
     shaft_torsionAC->SetTorsionalDamping(0);
@@ -223,7 +218,7 @@ TEST_P(ChShaftTest, shaft_body) {
     // Make the shaft 'A' connected to the rotation of the 3D body 'B'.
     // We must specify the direction (in body coordinates) along which the
     // shaft will affect the body.
-    auto shaftbody_connection = std::make_shared<ChShaftsBody>();
+    auto shaftbody_connection = chrono_types::make_shared<ChShaftsBody>();
     ChVector<> shaftdir(VECT_Z);
     shaftbody_connection->Initialize(shaftA, bodyB, shaftdir);
     system->Add(shaftbody_connection);
@@ -296,13 +291,13 @@ TEST_P(ChShaftTest, shaft_body) {
 // -----------------------------------------------------------------------------
 TEST_P(ChShaftTest, clutch) {
     // Create a ChShaft that starts with nonzero angular velocity
-    auto shaftA = std::make_shared<ChShaft>();
+    auto shaftA = chrono_types::make_shared<ChShaft>();
     shaftA->SetInertia(0.5);
     shaftA->SetPos_dt(30);
     system->Add(shaftA);
 
     // Create another ChShaft, with opposite initial angular velocity
-    auto shaftB = std::make_shared<ChShaft>();
+    auto shaftB = chrono_types::make_shared<ChShaft>();
     shaftB->SetInertia(0.6);
     shaftB->SetPos_dt(-10);
     system->Add(shaftB);
@@ -310,7 +305,7 @@ TEST_P(ChShaftTest, clutch) {
     // Create a ChShaftsClutch, that represents a simplified model
     // of a clutch between two ChShaft objects (something that limits
     // the max transmitted torque, up to slippage).
-    auto clutchAB = std::make_shared<ChShaftsClutch>();
+    auto clutchAB = chrono_types::make_shared<ChShaftsClutch>();
     clutchAB->Initialize(shaftA, shaftB);
     clutchAB->SetTorqueLimit(60);
     clutchAB->SetModulation(0);
@@ -356,25 +351,25 @@ TEST_P(ChShaftTest, clutch) {
 // -----------------------------------------------------------------------------
 TEST_P(ChShaftTest, shaft_shaft_shaft) {
     // Create shaft A, with applied torque
-    auto shaftA = std::make_shared<ChShaft>();
+    auto shaftA = chrono_types::make_shared<ChShaft>();
     shaftA->SetInertia(0.5);
     shaftA->SetAppliedTorque(10);
     system->Add(shaftA);
 
     // Create shaft B
-    auto shaftB = std::make_shared<ChShaft>();
+    auto shaftB = chrono_types::make_shared<ChShaft>();
     shaftB->SetInertia(0.5);
     system->Add(shaftB);
 
     // Create shaft C, that will be fixed (to be used as truss of epicycloidal reducer)
-    auto shaftC = std::make_shared<ChShaft>();
+    auto shaftC = chrono_types::make_shared<ChShaft>();
     shaftC->SetShaftFixed(true);
     system->Add(shaftC);
 
     // Create a ChShaftsPlanetary, that represents a simplified model
     // of a planetary gear between THREE ChShaft objects (ex.: a car differential)
     // An epicycloidal reducer is a special type of planetary gear.
-    auto planetaryBAC = std::make_shared<ChShaftsPlanetary>();
+    auto planetaryBAC = chrono_types::make_shared<ChShaftsPlanetary>();
     planetaryBAC->Initialize(shaftB, shaftA, shaftC);  // output, carrier, fixed
 
     // We can set the ratios of the planetary using a simplified formula, for the
@@ -388,13 +383,13 @@ TEST_P(ChShaftTest, shaft_shaft_shaft) {
 
     // Now, let's make a shaft D, that is fixed, and used for the right side
     // of a clutch (so the clutch will act as a brake).
-    auto shaftD = std::make_shared<ChShaft>();
+    auto shaftD = chrono_types::make_shared<ChShaft>();
     shaftD->SetShaftFixed(true);
     system->Add(shaftD);
 
     // Make the brake. It is, in fact a clutch between shafts B and D, where
     // D is fixed as a truss, so the clutch will operate as a brake.
-    auto clutchBD = std::make_shared<ChShaftsClutch>();
+    auto clutchBD = chrono_types::make_shared<ChShaftsClutch>();
     clutchBD->Initialize(shaftB, shaftD);
     clutchBD->SetTorqueLimit(60);
     system->Add(clutchBD);
@@ -435,4 +430,4 @@ TEST_P(ChShaftTest, shaft_shaft_shaft) {
     ////          << "     on C: " << planetaryBAC->GetTorqueReactionOn3() << "\n\n\n";
 }
 
-INSTANTIATE_TEST_CASE_P(ChronoParallel, ChShaftTest, ::testing::Values(ChMaterialSurface::NSC, ChMaterialSurface::SMC));
+INSTANTIATE_TEST_CASE_P(ChronoParallel, ChShaftTest, ::testing::Values(ChContactMethod::NSC, ChContactMethod::SMC));

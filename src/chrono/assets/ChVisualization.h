@@ -71,6 +71,9 @@ class ChApi ChVisualization : public ChAsset {
     bool is_static;
     ChColor color;
     float fading;
+
+  public:
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 };
 
 CH_CLASS_VERSION(ChVisualization, 0)

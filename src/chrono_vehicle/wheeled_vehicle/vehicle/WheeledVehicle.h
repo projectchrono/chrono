@@ -34,8 +34,7 @@ namespace vehicle {
 /// Wheeled vehicle model constructed from a JSON specification file.
 class CH_VEHICLE_API WheeledVehicle : public ChWheeledVehicle {
   public:
-    WheeledVehicle(const std::string& filename,
-                   ChMaterialSurface::ContactMethod contact_method = ChMaterialSurface::NSC);
+    WheeledVehicle(const std::string& filename, ChContactMethod contact_method = ChContactMethod::NSC);
 
     WheeledVehicle(ChSystem* system, const std::string& filename);
 
@@ -52,28 +51,20 @@ class CH_VEHICLE_API WheeledVehicle : public ChWheeledVehicle {
   private:
     void Create(const std::string& filename);
 
-    void LoadChassis(const std::string& filename, int output);
-    void LoadSteering(const std::string& filename, int which, int output);
-    void LoadDriveline(const std::string& filename, int output);
-    void LoadSuspension(const std::string& filename, int axle, int output);
-    void LoadAntirollbar(const std::string& filename, int output);
-    void LoadWheel(const std::string& filename, int axle, int side, int output);
-    void LoadBrake(const std::string& filename, int axle, int side, int output);
-
   private:
     int m_num_axles;                           // number of axles for this vehicle
     std::vector<ChVector<> > m_suspLocations;  // locations of the suspensions relative to chassis
+    std::vector<ChVector<> > m_arbLocations;   // locations of the antirollbar subsystems relative to chassis
     std::vector<int> m_suspSteering;           // indexes of steering subsystems (-1 indicates a non-steered suspension)
     double m_wheelbase;                        // vehicle wheel base
-
-    std::vector<ChVector<> > m_arbLocations;  // locations of the antirollbar subsystems relative to chassis
-    std::vector<int> m_arbSuspension;         // indexes of steering subsystems
 
     int m_num_strs;                               // number of steering subsystems
     std::vector<ChVector<> > m_strLocations;      // locations of the steering subsystems relative to chassis
     std::vector<ChQuaternion<> > m_strRotations;  // orientations of the steering subsystems relative to chassis
 
-    std::vector<int> m_driven_susp;  // indexes of the driven suspensions
+    std::vector<int> m_driven_axles;  // indexes of the driven axles
+
+    std::vector<double> m_wheelSeparations; // wheel separations for each axle
 
     double m_turn_radius;  // minimum turning radius
     double m_steer_angle;  // maximum steering angle

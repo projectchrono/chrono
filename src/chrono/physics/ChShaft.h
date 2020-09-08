@@ -16,7 +16,9 @@
 #define CHSHAFT_H
 
 #include "chrono/physics/ChPhysicsItem.h"
+#include "chrono/physics/ChLoadable.h"
 #include "chrono/solver/ChVariablesShaft.h"
+
 
 namespace chrono {
 
@@ -29,7 +31,7 @@ class ChSystem;
 ///  of power trains. This is more efficient than simulating power trains
 ///  modeled with full 3D ChBody objects.
 
-class ChApi ChShaft : public ChPhysicsItem {
+class ChApi ChShaft : public ChPhysicsItem, public ChLoadable {
 
   private:
     double torque;  ///< The torque acting on shaft (force, if used as linear DOF)
@@ -131,7 +133,8 @@ class ChApi ChShaft : public ChPhysicsItem {
                                  const ChState& x,
                                  const unsigned int off_v,
                                  const ChStateDelta& v,
-                                 const double T) override;
+                                 const double T,
+                                 bool full_update) override;
     virtual void IntStateGatherAcceleration(const unsigned int off_a, ChStateDelta& a) override;
     virtual void IntStateScatterAcceleration(const unsigned int off_a, const ChStateDelta& a) override;
     virtual void IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, const double c) override;
@@ -187,6 +190,25 @@ class ChApi ChShaft : public ChPhysicsItem {
     /// Tell to a system descriptor that there are variables of type
     /// ChVariables in this object (for further passing it to a solver)
     virtual void InjectVariables(ChSystemDescriptor& mdescriptor) override;
+
+	//
+	// INTERFACE to ChLoadable
+	// 
+	virtual int LoadableGet_ndof_x() override { return 1; }
+    virtual int LoadableGet_ndof_w() override { return 1; }
+    virtual void LoadableGetStateBlock_x(int block_offset, ChState& mD) override { mD(block_offset) = this->GetPos(); }
+    virtual void LoadableGetStateBlock_w(int block_offset, ChStateDelta& mD) override { mD(block_offset) = this->GetPos_dt(); }
+    virtual void LoadableStateIncrement(const unsigned int off_x,
+                                        ChState& x_new,
+                                        const ChState& x,
+                                        const unsigned int off_v,
+                                        const ChStateDelta& Dv) override { x_new(off_x) = x(off_x) + Dv(off_v); }
+    virtual int Get_field_ncoords() override { return 1; }
+    virtual int GetSubBlocks() override { return 1; }
+    virtual unsigned int GetSubBlockOffset(int nblock) override { return this->GetOffset_w(); }
+    virtual unsigned int GetSubBlockSize(int nblock) override { return 1; }
+    virtual void LoadableGetVariables(std::vector<ChVariables*>& mvars) override { mvars.push_back(&this->Variables()); };
+
 
     // Other functions
 

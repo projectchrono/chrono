@@ -19,6 +19,9 @@ namespace chrono {
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChConstraintTwoGenericBoxed)
 
+ChConstraintTwoGenericBoxed::ChConstraintTwoGenericBoxed(ChVariables* mvariables_a, ChVariables* mvariables_b)
+    : ChConstraintTwoGeneric(mvariables_a, mvariables_b), l_min(-1), l_max(1) {}
+
 ChConstraintTwoGenericBoxed::ChConstraintTwoGenericBoxed(const ChConstraintTwoGenericBoxed& other)
     : ChConstraintTwoGeneric(other) {
     l_min = other.l_min;

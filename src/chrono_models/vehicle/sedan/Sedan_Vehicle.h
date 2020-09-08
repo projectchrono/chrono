@@ -19,24 +19,10 @@
 #ifndef SEDAN_VEHICLE_H
 #define SEDAN_VEHICLE_H
 
-#include <vector>
-
-#include "chrono/core/ChCoordsys.h"
-#include "chrono/physics/ChMaterialSurface.h"
-#include "chrono/physics/ChSystem.h"
-
 #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicle.h"
 
 #include "chrono_models/ChApiModels.h"
 #include "chrono_models/vehicle/ChVehicleModelDefs.h"
-
-#include "chrono_models/vehicle/sedan/Sedan_BrakeSimple.h"
-#include "chrono_models/vehicle/sedan/Sedan_Chassis.h"
-#include "chrono_models/vehicle/sedan/Sedan_DoubleWishbone.h"
-#include "chrono_models/vehicle/sedan/Sedan_Driveline2WD.h"
-#include "chrono_models/vehicle/sedan/Sedan_MultiLink.h"
-#include "chrono_models/vehicle/sedan/Sedan_RackPinion.h"
-#include "chrono_models/vehicle/sedan/Sedan_Wheel.h"
 
 namespace chrono {
 namespace vehicle {
@@ -48,12 +34,14 @@ namespace sedan {
 /// Sedan vehicle system.
 class CH_MODELS_API Sedan_Vehicle : public ChWheeledVehicle {
   public:
-    Sedan_Vehicle(const bool fixed = false,
-                  ChMaterialSurface::ContactMethod contact_method = ChMaterialSurface::NSC,
+    Sedan_Vehicle(const bool fixed,
+                  BrakeType brake_type,
+                  ChContactMethod contact_method = ChContactMethod::NSC,
                   ChassisCollisionType chassis_collision_type = ChassisCollisionType::NONE);
 
     Sedan_Vehicle(ChSystem* system,
-                  const bool fixed = false,
+                  const bool fixed,
+                  BrakeType brake_type,
                   ChassisCollisionType chassis_collision_type = ChassisCollisionType::NONE);
 
     ~Sedan_Vehicle();
@@ -69,13 +57,13 @@ class CH_MODELS_API Sedan_Vehicle : public ChWheeledVehicle {
         m_omega = omega;
     }
 
-    double GetSpringForce(const WheelID& wheel_id) const;
-    double GetSpringLength(const WheelID& wheel_id) const;
-    double GetSpringDeformation(const WheelID& wheel_id) const;
+    double GetSpringForce(int axle, VehicleSide side) const;
+    double GetSpringLength(int axle, VehicleSide side) const;
+    double GetSpringDeformation(int axle, VehicleSide side) const;
 
-    double GetShockForce(const WheelID& wheel_id) const;
-    double GetShockLength(const WheelID& wheel_id) const;
-    double GetShockVelocity(const WheelID& wheel_id) const;
+    double GetShockForce(int axle, VehicleSide side) const;
+    double GetShockLength(int axle, VehicleSide side) const;
+    double GetShockVelocity(int axle, VehicleSide side) const;
 
     virtual void Initialize(const ChCoordsys<>& chassisPos, double chassisFwdVel = 0) override;
 
@@ -84,7 +72,7 @@ class CH_MODELS_API Sedan_Vehicle : public ChWheeledVehicle {
     void DebugLog(int what);       /// shock forces and lengths, constraints, etc.
 
   private:
-    void Create(bool fixed, ChassisCollisionType chassis_collision_type);
+    void Create(bool fixed, BrakeType brake_type, ChassisCollisionType chassis_collision_type);
 
     std::vector<double> m_omega;
 };

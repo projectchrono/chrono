@@ -33,11 +33,21 @@ ReissnerToroidalTire::ReissnerToroidalTire(const std::string& name)
       m_div_circumference(60),
       m_div_width(12),
       m_default_pressure(320.0e3),
-      m_alpha(0.015) {}
+      m_alpha(0.015) {
+    // default contact material
+    m_mat = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+}
 
 void ReissnerToroidalTire::CreateMesh(const ChFrameMoving<>& wheel_frame, VehicleSide side) {
     // Create an isotropic material (shared by all elements)
-    auto mat = std::make_shared<ChMaterialShellReissnerIsothropic>(500, 9.0e7, 0.3);
+	auto melasticity = chrono_types::make_shared<ChElasticityReissnerIsothropic>(9.0e7, 0.3, 1.0, 0.01);
+	auto mdamping    = chrono_types::make_shared<ChDampingReissnerRayleigh>(melasticity, m_alpha);
+	auto mat = chrono_types::make_shared<ChMaterialShellReissner>(melasticity, nullptr, mdamping);
+	mat->SetDensity(500);
+
+		// In case you need also damping it would add...
+		//auto mdamping = chrono_types::make_shared<ChDampingReissnerRayleigh>(melasticity,0.01);
+		//auto mat = chrono_types::make_shared<ChMaterialShellReissner>(melasticity, nullptr, mdamping);
 
     // Create the mesh nodes.
     // The nodes are first created in the wheel local frame, assuming Y as the tire axis,
@@ -59,7 +69,7 @@ void ReissnerToroidalTire::CreateMesh(const ChFrameMoving<>& wheel_frame, Vehicl
             ChVector<> dir = wheel_frame.TransformDirectionLocalToParent(ChVector<>(nx, ny, nz));
             ChMatrix33<> mrot; mrot.Set_A_Xdir(dir,VECT_Y);
 
-            auto node = std::make_shared<ChNodeFEAxyzrot>(ChFrame<>(loc, mrot));         
+            auto node = chrono_types::make_shared<ChNodeFEAxyzrot>(ChFrame<>(loc, mrot));         
 
             m_mesh->AddNode(node);
         }
@@ -92,14 +102,11 @@ void ReissnerToroidalTire::CreateMesh(const ChFrameMoving<>& wheel_frame, Vehicl
             auto node3 = std::dynamic_pointer_cast<ChNodeFEAxyzrot>(m_mesh->GetNode(inode3));
 
             // Create the element and set its nodes.
-            auto element = std::make_shared<ChElementShellReissner4>();
+            auto element = chrono_types::make_shared<ChElementShellReissner4>();
             element->SetNodes(node0, node1, node2, node3);
 
             // Add a single layers with a fiber angle of 0 degrees.
             element->AddLayer(dz, 0 * CH_C_DEG_TO_RAD, mat);
-
-            // Set other element properties
-            element->SetAlphaDamp(m_alpha);
 
             // Add element to mesh
             m_mesh->AddElement(element);
@@ -124,6 +131,10 @@ std::vector<std::shared_ptr<ChNodeFEAbase>> ReissnerToroidalTire::GetConnectedNo
     }
 
     return nodes;
+}
+
+void ReissnerToroidalTire::CreateContactMaterial() {
+    m_contact_mat = m_mat;
 }
 
 }  // end namespace vehicle

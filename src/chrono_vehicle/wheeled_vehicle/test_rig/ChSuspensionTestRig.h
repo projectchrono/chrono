@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Radu Serban, Justin Madsen
+// Authors: Radu Serban
 // =============================================================================
 //
 // Definition of a suspension testing mechanism (as a vehicle).
@@ -30,12 +30,12 @@
 #include <vector>
 
 #include "chrono/assets/ChColor.h"
+#include "chrono/physics/ChLinkMotorLinearPosition.h"
+#include "chrono/utils/ChUtilsInputOutput.h"
 
-#include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicle.h"
-#include "chrono_vehicle/wheeled_vehicle/ChSuspension.h"
-#include "chrono_vehicle/wheeled_vehicle/ChSteering.h"
-#include "chrono_vehicle/wheeled_vehicle/ChWheel.h"
 #include "chrono_vehicle/wheeled_vehicle/ChTire.h"
+#include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicle.h"
+#include "chrono_vehicle/wheeled_vehicle/test_rig/ChDriverSTR.h"
 
 namespace chrono {
 namespace vehicle {
@@ -43,78 +43,70 @@ namespace vehicle {
 /// @addtogroup vehicle_wheeled_test_rig
 /// @{
 
-/// Definition of a suspension test rig.
+/// Base class for a suspension test rig.
 class CH_VEHICLE_API ChSuspensionTestRig : public ChVehicle {
   public:
-    /// Construct a test rig for a specified axle of a given vehicle.
-    /// This version uses a concrete vehicle object.
-    ChSuspensionTestRig(ChWheeledVehicle& vehicle,           ///< vehicle source
-                        int axle_index,                      ///< index of the suspension to be tested
-                        double displ_limit,                  ///< limits for post displacement
-                        std::shared_ptr<ChTire> tire_left,   ///< left tire
-                        std::shared_ptr<ChTire> tire_right,  ///< right tire
-                        ChMaterialSurface::ContactMethod contact_method = ChMaterialSurface::NSC  ///< contact method
-                        );
-
-    /// Construct a test rig for a specified axle of a given vehicle.
-    /// This version assumes the vehicle is specified through a JSON file.
-    ChSuspensionTestRig(const std::string& filename,         ///< JSON file with vehicle specification
-                        int axle_index,                      ///< index of the suspension to be tested
-                        double displ_limit,                  ///< limits for post displacement
-                        std::shared_ptr<ChTire> tire_left,   ///< left tire
-                        std::shared_ptr<ChTire> tire_right,  ///< right tire
-                        ChMaterialSurface::ContactMethod contact_method = ChMaterialSurface::NSC  ///< contact method
-                        );
-
-    /// Construct a test rig from specified (JSON) file.
-    ChSuspensionTestRig(const std::string& filename,         ///< JSON file with test rig specification
-                        std::shared_ptr<ChTire> tire_left,   ///< left tire
-                        std::shared_ptr<ChTire> tire_right,  ///< right tire
-                        ChMaterialSurface::ContactMethod contact_method = ChMaterialSurface::NSC  ///< contact method
-                        );
-
     /// Destructor
-    ~ChSuspensionTestRig() {}
+    virtual ~ChSuspensionTestRig();
 
-    /// Get the name of the vehicle system template.
-    virtual std::string GetTemplateName() const override { return "SuspensionTestRig"; }
+    /// Set driver system.
+    void SetDriver(std::shared_ptr<ChDriverSTR> driver);
 
-    /// Set the limits for post displacement.
-    /// Each post will move between [-val, +val].
-    void SetDisplacementLimit(double val) { m_displ_limit = val; }
+    /// Set the initial ride height (relative to the chassis reference frame).
+    /// If not specified, the reference height is the suspension design configuration.
+    void SetInitialRideHeight(double height) { m_ride_height = height; }
 
-    /// Set the actuator function on the specified post (currently NOT USED).
-    void SetActuatorFunction(VehicleSide side, const std::shared_ptr<ChFunction>& func) {
-        m_actuator_func[side] = func;
-    }
+    /// Set the limits for post displacement (same for jounce and rebound).
+    void SetDisplacementLimit(double limit) { m_displ_limit = limit; }
 
-    /// Get a handle to the specified wheel body.
-    std::shared_ptr<ChBody> GetWheelBody(VehicleSide side) const { return m_suspension->GetSpindle(side); }
+    /// Set visualization type for the suspension subsystem (default: PRIMITIVES).
+    void SetSuspensionVisualizationType(VisualizationType vis) { m_vis_suspension = vis; }
 
-    /// Get the global location of the specified wheel.
-    const ChVector<>& GetWheelPos(VehicleSide side) const { return m_suspension->GetSpindlePos(side); }
+    /// Set visualization type for the steering subsystems (default: PRIMITIVES).
+    void SetSteeringVisualizationType(VisualizationType vis) { m_vis_steering = vis; }
 
-    /// Get the global rotation of the specified wheel.
-    const ChQuaternion<>& GetWheelRot(VehicleSide side) const { return m_suspension->GetSpindleRot(side); }
+    /// Set visualization type for the wheel subsystems (default: NONE).
+    void SetWheelVisualizationType(VisualizationType vis) { m_vis_wheel = vis; }
 
-    /// Get the global linear velocity of wheel.
-    const ChVector<>& GetWheelLinVel(VehicleSide side) const { return m_suspension->GetSpindleLinVel(side); }
+    /// Set visualization type for the tire subsystems (default: PRIMITIVES).
+    void SetTireVisualizationType(VisualizationType vis) { m_vis_tire = vis; }
 
-    /// Get the global angular velocity of wheel.
-    ChVector<> GetWheelAngVel(VehicleSide side) const { return m_suspension->GetSpindleAngVel(side); }
+    /// Enable/disable output from the suspension subsystem.
+    /// See also ChVehicle::SetOuput.
+    void SetSuspensionOutput(bool state);
 
-    /// Get the complete state for the specified wheel.
-    WheelState GetWheelState(VehicleSide side) const;
+    /// Enable/disable output from the steering subsystem (if one exists).
+    /// See also ChVehicle::SetOuput.
+    void SetSteeringOutput(bool state);
 
-    /// Get a handle to the specified post body.
-    std::shared_ptr<ChBody> GetPostBody(VehicleSide side) const { return m_post[side]; }
+    /// Enable/disable output from the anti-roll bar subsystem (if one exists).
+    /// See also ChVehicle::SetOuput.
+    void SetAntirollbarOutput(bool state);
 
-    /// Get the global location of the specified post body.
-    const ChVector<>& GetPostPos(VehicleSide side) const { return m_post[side]->GetPos(); }
+    /// Initialize this suspension test rig.
+    void Initialize();
 
-    double GetActuatorDisp(VehicleSide side);
-    double GetActuatorForce(VehicleSide side);
-    double GetActuatorMarkerDist(VehicleSide side);
+    /// Advance the state of the suspension test rig by the specified time step.
+    virtual void Advance(double step) override;
+
+    /// Get the global location of the specified spindle.
+    const ChVector<>& GetSpindlePos(VehicleSide side) const { return m_suspension->GetSpindlePos(side); }
+
+    /// Get the global rotation of the specified spindle.
+    ChQuaternion<> GetSpindleRot(VehicleSide side) const { return m_suspension->GetSpindleRot(side); }
+
+    /// Get the linear velocity of the specified spindle (expressed in the global reference frame).
+    const ChVector<>& GetSpindleLinVel(VehicleSide side) const { return m_suspension->GetSpindleLinVel(side); }
+
+    /// Get the angular velocity of the specified spindle (expressed in the global reference frame).
+    ChVector<> GetSpindleAngVel(VehicleSide side) const { return m_suspension->GetSpindleAngVel(side); }
+
+    double GetSteeringInput() const { return m_steering_input; }
+    double GetLeftInput() const { return m_left_input; }
+    double GetRightInput() const { return m_right_input; }
+
+    virtual double GetActuatorDisp(VehicleSide side) = 0;
+    virtual double GetActuatorForce(VehicleSide side) = 0;
 
     /// Return true if a steering system is attached.
     bool HasSteering() const { return m_steering != nullptr; }
@@ -134,110 +126,290 @@ class CH_VEHICLE_API ChSuspensionTestRig : public ChVehicle {
     /// Get a handle to the specified wheel subsystem.
     std::shared_ptr<ChWheel> GetWheel(VehicleSide side) const { return m_wheel[side]; }
 
-    /// Get a handle to the vehicle's driveshaft body.
-    virtual std::shared_ptr<ChShaft> GetDriveshaft() const override { return m_dummy_shaft; }
-
-    /// Get the angular speed of the driveshaft.
-    virtual double GetDriveshaftSpeed() const override { return 0; }
-
     /// Get the rig total mass.
     /// This includes the mass of the suspension and wheels, and (if present) the mass of the
     /// steering mechanism.
-    virtual double GetVehicleMass() const override;
+    double GetMass() const;
 
-    /// Get the current global rig COM location.
-    virtual ChVector<> GetVehicleCOMPos() const override {
-        //// TODO
-        return ChVector<>(0, 0, 0);
-    }
+    /// Get the tire force and moment on the specified side.
+    TerrainForce ReportTireForce(VehicleSide side) const;
 
-    /// Initialize this chassis at the specified global location and orientation.
-    virtual void Initialize(const ChCoordsys<>& chassisPos,  ///< [in] initial global position and orientation
-                            double chassisFwdVel = 0         ///< [in] initial forward velocity (ignored)
-                            ) override;
+    /// Get the suspension forces on the specified side.
+    ChSuspension::Force ReportSuspensionForce(VehicleSide side) const;
 
-    /// Set visualization type for the suspension subsystem.
-    void SetSuspensionVisualizationType(VisualizationType vis);
+    /// Get wheel travel, defined here as the vertical displacement of the spindle center from its position at
+    /// the initial specified ride height (or initial configuration, if an initial ride height is not specified).
+    double GetWheelTravel(VehicleSide side) const;
 
-    /// Set visualization type for the steering subsystems.
-    void SetSteeringVisualizationType(VisualizationType vis);
-
-    /// Set visualization type for the wheel subsystems.
-    void SetWheelVisualizationType(VisualizationType vis);
-
-    /// Set visualization type for the tire subsystems.
-    void SetTireVisualizationType(VisualizationType vis);
-
-    /// Update the state at the current time.
-    /// steering between -1 and +1, and no force need be applied if using external actuation
-    void Synchronize(double time,      ///< [in] current time
-                     double steering,  ///< [in] current steering input [-1,+1]
-                     double disp_L,    ///< [in] left post displacement
-                     double disp_R     ///< [in] right post displacement
-                     );
-
-    /// Advance the state of the suspension test rig by the specified time step.
-    /// Note that this function also advances the tire states.
-    virtual void Advance(double step) override;
+    /// Get current ride height (relative to the chassis reference frame).
+    /// This estimate uses the average of the left and right posts.
+    virtual double GetRideHeight() const = 0;
 
     /// Log current constraint violations.
     virtual void LogConstraintViolations() override;
 
-    /// Return a JSON string with information on all modeling components in the vehicle system.
-    /// These include bodies, shafts, joints, spring-damper elements, markers, etc.
-    virtual std::string ExportComponentList() const override;
+    /// Enable/disable data collection for plot generation (default: false).
+    /// See ChSuspensionTestRigPlatform::plotOutput and ChSuspensionTestRigPushrod::plotOutput for details on data
+    /// collected for a specific type of test rig.
+    void SetPlotOutput(double output_step);
 
-    /// Write a JSON-format file with information on all modeling components in the vehicle system.
-    /// These include bodies, shafts, joints, spring-damper elements, markers, etc.
-    virtual void ExportComponentList(const std::string& filename) const override;
+    /// Plot collected data.
+    /// When called (typically at the end of the simulation loop), the collected data is saved in ASCII format in a file
+    /// with the specified name (and 'txt' extension) in the specified output directory. If the Chrono::Postprocess
+    /// module is available (with gnuplot support), selected plots are generated.
+    virtual void PlotOutput(const std::string& out_dir, const std::string& out_name) = 0;
 
-  private:
-    /// Definition of a terrain object for use by a suspension test rig.
-    class Terrain : public ChTerrain {
-      public:
-        Terrain();
-        virtual double GetHeight(double x, double y) const override;
-        virtual ChVector<> GetNormal(double x, double y) const override;
-        virtual float GetCoefficientFriction(double x, double y) const override;
-        double m_height_L;
-        double m_height_R;
-    };
+  protected:
+    /// Construct a test rig for a specified axle of a given vehicle.
+    /// This version uses a concrete vehicle object.
+    ChSuspensionTestRig(ChWheeledVehicle& vehicle,  ///< vehicle source
+                        int axle_index,             ///< index of the suspension to be tested
+                        int steering_index,         ///< index of associated steering subsystem (-1 for no steering)
+                        double displ_limit,         ///< limits for post displacement
+                        std::shared_ptr<ChTire> tire_left,                     ///< left tire
+                        std::shared_ptr<ChTire> tire_right,                    ///< right tire
+                        ChContactMethod contact_method = ChContactMethod::NSC  ///< contact method
+    );
 
-    /// Output data for all modeling components in the vehicle system.
+    /// Construct a test rig for a specified axle of a given vehicle.
+    /// This version assumes the vehicle is specified through a JSON file.
+    ChSuspensionTestRig(const std::string& filename,                           ///< JSON file with vehicle specification
+                        int axle_index,                                        ///< index of the suspension to be tested
+                        double displ_limit,                                    ///< limits for post displacement
+                        std::shared_ptr<ChTire> tire_left,                     ///< left tire
+                        std::shared_ptr<ChTire> tire_right,                    ///< right tire
+                        ChContactMethod contact_method = ChContactMethod::NSC  ///< contact method
+    );
+
+    /// Construct a test rig from specified (JSON) file.
+    ChSuspensionTestRig(const std::string& filename,         ///< JSON file with test rig specification
+                        std::shared_ptr<ChTire> tire_left,   ///< left tire
+                        std::shared_ptr<ChTire> tire_right,  ///< right tire
+                        ChContactMethod contact_method = ChContactMethod::NSC  ///< contact method
+    );
+
+    /// Initialize all underlying vehicle subsystems
+    void InitializeSubsystems();
+
+    /// Output data for all modeling components in the suspension test rig system.
     virtual void Output(int frame, ChVehicleOutput& database) const override;
 
-    /// Utility functions to load subsystems from JSON files.
-    void LoadSteering(const std::string& filename);
-    void LoadSuspension(const std::string& filename);
-    void LoadWheel(const std::string& filename, int side);
-    void LoadAntirollbar(const std::string& filename);
+    // Calculate required actuator displacement offset to impose specified ride height
+    virtual double CalcDisplacementOffset() = 0;
 
-    /// Utility function to add visualization to post bodies.
-    void AddVisualize_post(VehicleSide side, const ChColor& color);
+    // Calculate current terrain height
+    virtual double CalcTerrainHeight(VehicleSide side) = 0;
 
-    std::shared_ptr<ChSuspension> m_suspension;    ///< handle to suspension subsystem
-    std::shared_ptr<ChSteering> m_steering;        ///< handle to the steering subsystem
-    std::shared_ptr<ChAntirollBar> m_antirollbar;  ///< handle to the anti-roll bar subsystem
+    // Update actuators at current time
+    virtual void UpdateActuators(double displ_left,
+                                 double displ_speed_left,
+                                 double displ_right,
+                                 double displ_speed_right) = 0;
+
+    // Collect data for plot output.
+    virtual void CollectPlotData(double time) = 0;
+
+    std::shared_ptr<ChSuspension> m_suspension;    ///< suspension subsystem
+    std::shared_ptr<ChSteering> m_steering;        ///< steering subsystem
+    std::shared_ptr<ChAntirollBar> m_antirollbar;  ///< anti-roll bar subsystem
     std::shared_ptr<ChShaft> m_dummy_shaft;        ///< dummy driveshaft
-    std::shared_ptr<ChWheel> m_wheel[2];           ///< handles to wheel subsystems
-    std::shared_ptr<ChTire> m_tire[2];             ///< handles to tire subsystems
+    std::shared_ptr<ChWheel> m_wheel[2];           ///< wheel subsystems
+    std::shared_ptr<ChTire> m_tire[2];             ///< tire subsystems
 
-    std::shared_ptr<ChBody> m_post[2];                         ///< handles to post bodies
-    std::shared_ptr<ChLinkLockPrismatic> m_post_prismatic[2];  ///< handles to post prismatic joints
-    std::shared_ptr<ChLinkLinActuator> m_post_linact[2];       ///< handles to post linear actuators
-    std::shared_ptr<ChFunction> m_actuator_func[2];            ///< actuator functions applied to left/right posts
+    double m_ride_height;   ///< ride height
+    double m_displ_offset;  ///< post displacement offset (to set reference position)
+    double m_displ_delay;   ///< time interval for assuming reference position
+    double m_displ_limit;   ///< scale factor for post displacement
 
-    double m_displ_limit;  ///< scale factor for post displacement
+    bool m_plot_output;
+    double m_plot_output_step;
+    double m_next_plot_output_time;
+    utils::CSV_writer* m_csv;
 
-    Terrain m_terrain;  ///< terrain object to provide height to the tires
+  private:
+    // Overrides of ChVehicle methods
+    virtual std::string GetTemplateName() const override { return "SuspensionTestRig"; }
+    virtual std::shared_ptr<ChShaft> GetDriveshaft() const override { return m_dummy_shaft; }
+    virtual double GetDriveshaftSpeed() const override { return 0; }
+    virtual ChVector<> GetVehicleCOMPos() const override { return ChVector<>(0, 0, 0); }
+    virtual std::string ExportComponentList() const override { return ""; }
+    virtual void ExportComponentList(const std::string& filename) const override {}
+    virtual void Initialize(const ChCoordsys<>& chassisPos, double chassisFwdVel = 0) override { Initialize(); }
+    virtual double GetVehicleMass() const override { return GetMass(); }
 
-    ChVector<> m_suspLoc;
-    ChVector<> m_steeringLoc;
-    ChQuaternion<> m_steeringRot;
-    ChVector<> m_antirollbarLoc;
+    std::shared_ptr<ChDriverSTR> m_driver;  ///< driver system
+    double m_steering_input;                ///< current driver steering input
+    double m_left_input;                    ///< current driver left post displacement input
+    double m_right_input;                   ///< current driver right post displacement input
 
-    static const double m_post_radius;  ///< radius of the post cylindrical platform
-    static const double m_post_height;  ///< height of the post cylindrical platform
+    double m_spindle_ref[2];  ///< reference spindle vertical positions (for wheel travel calculation)
+
+    std::unique_ptr<ChTerrain> m_terrain;  ///< terrain object to provide height to the tires
+
+    ChVector<> m_suspLoc;          ///< suspension location (relative to chassis)
+    ChVector<> m_steeringLoc;      ///< steering location (relative to chassis)
+    ChQuaternion<> m_steeringRot;  ///< steering orientation (relative to chassis)
+    ChVector<> m_antirollbarLoc;   ///< antiroll bar location (relative to chassis)
+
+    VisualizationType m_vis_steering;
+    VisualizationType m_vis_suspension;
+    VisualizationType m_vis_wheel;
+    VisualizationType m_vis_tire;
+};
+
+// -----------------------------------------------------------------------------
+
+/// Definition of a suspension test rig using platforms to actuate the tires.
+class CH_VEHICLE_API ChSuspensionTestRigPlatform : public ChSuspensionTestRig {
+  public:
+    /// Construct a test rig for a specified axle of a given vehicle.
+    /// This version uses a concrete vehicle object.
+    ChSuspensionTestRigPlatform(ChWheeledVehicle& vehicle,  ///< vehicle source
+                                int axle_index,             ///< index of the suspension to be tested
+                                int steering_index,  ///< index of associated steering subsystem (-1 for no steering)
+                                double displ_limit,  ///< limits for post displacement
+                                std::shared_ptr<ChTire> tire_left,                     ///< left tire
+                                std::shared_ptr<ChTire> tire_right,                    ///< right tire
+                                ChContactMethod contact_method = ChContactMethod::NSC  ///< contact method
+    );
+
+    /// Construct a test rig for a specified axle of a given vehicle.
+    /// This version assumes the vehicle is specified through a JSON file.
+    ChSuspensionTestRigPlatform(const std::string& filename,         ///< JSON file with vehicle specification
+                                int axle_index,                      ///< index of the suspension to be tested
+                                double displ_limit,                  ///< limits for post displacement
+                                std::shared_ptr<ChTire> tire_left,   ///< left tire
+                                std::shared_ptr<ChTire> tire_right,  ///< right tire
+                                ChContactMethod contact_method = ChContactMethod::NSC  ///< contact method
+    );
+
+    /// Construct a test rig from specified (JSON) file.
+    ChSuspensionTestRigPlatform(const std::string& filename,         ///< JSON file with test rig specification
+                                std::shared_ptr<ChTire> tire_left,   ///< left tire
+                                std::shared_ptr<ChTire> tire_right,  ///< right tire
+                                ChContactMethod contact_method = ChContactMethod::NSC  ///< contact method
+    );
+
+    virtual double GetActuatorDisp(VehicleSide side) override;
+    virtual double GetActuatorForce(VehicleSide side) override;
+
+    /// Get current ride height (relative to the chassis reference frame).
+    /// This estimate uses the average of the left and right posts.
+    virtual double GetRideHeight() const override;
+
+    /// Plot collected data.
+    /// When called (typically at the end of the simulation loop), the collected data is saved in ASCII format in a file
+    /// with the specified name (and 'txt' extension) in the specified output directory. If the Chrono::Postprocess
+    /// module is available (with gnuplot support), selected plots are generated.\n
+    /// Collected data includes:
+    ///  - [col 1]      time (s)
+    ///  - [col 2-5]    left input, left spindle z (m), left spindle z velocity (m/s), left wheel travel (m)
+    ///  - [col 6-7]    left spring force (N), left shock force (N)
+    ///  - [col 8-11]   right input, right spindle z (m), right spindle z velocity (m/s), right wheel travel (m)
+    ///  - [col 12-13]  right spring force (N), right shock force (N)
+    ///  - [col 14]     estimated ride height (m)
+    ///  - [col 15]     left camber angle, gamma (deg)
+    ///  - [col 16]     right camber angle, gamma (deg)
+    ///  - [col 17-19]  application point for left tire force (m)
+    ///  - [col 20-22]  left tire force (N)
+    ///  - [col 23-25]  left tire moment (Nm)
+    ///  - [col 26-28]  application point for right tire force (m)
+    ///  - [col 29-31]  right tire force (N)
+    ///  - [col 32-34]  right tire moment (Nm)
+    /// Tire forces are expressed in the global frame, as applied to the center of the associated wheel.
+    virtual void PlotOutput(const std::string& out_dir, const std::string& out_name) override;
+
+  private:
+    void Create();
+    virtual double CalcDisplacementOffset() override;
+    virtual double CalcTerrainHeight(VehicleSide side) override;
+    virtual void UpdateActuators(double displ_left,
+                                 double displ_speed_left,
+                                 double displ_right,
+                                 double displ_speed_right) override;
+    virtual void CollectPlotData(double time) override;
+
+    void AddPostVisualization(VehicleSide side, const ChColor& color);
+
+    std::shared_ptr<ChBody> m_post[2];                            ///< post bodies
+    std::shared_ptr<ChLinkMotorLinearPosition> m_post_linact[2];  ///< post linear actuators
+
+    static const double m_post_radius;   ///< radius of the post cylindrical platform
+    static const double m_post_hheight;  ///< half-height of the post cylindrical platform
+};
+
+// -----------------------------------------------------------------------------
+
+/// Definition of a suspension test rig with direct actuation on the spindle bodies.
+class CH_VEHICLE_API ChSuspensionTestRigPushrod : public ChSuspensionTestRig {
+  public:
+    /// Construct a test rig for a specified axle of a given vehicle.
+    /// This version uses a concrete vehicle object.
+    ChSuspensionTestRigPushrod(ChWheeledVehicle& vehicle,  ///< vehicle source
+                               int axle_index,             ///< index of the suspension to be tested
+                               int steering_index,  ///< index of associated steering subsystem (-1 for no steering)
+                               double displ_limit,  ///< limits for post displacement
+                               std::shared_ptr<ChTire> tire_left,                     ///< left tire
+                               std::shared_ptr<ChTire> tire_right,                    ///< right tire
+                               ChContactMethod contact_method = ChContactMethod::NSC  ///< contact method
+    );
+
+    /// Construct a test rig for a specified axle of a given vehicle.
+    /// This version assumes the vehicle is specified through a JSON file.
+    ChSuspensionTestRigPushrod(const std::string& filename,         ///< JSON file with vehicle specification
+                               int axle_index,                      ///< index of the suspension to be tested
+                               double displ_limit,                  ///< limits for post displacement
+                               std::shared_ptr<ChTire> tire_left,   ///< left tire
+                               std::shared_ptr<ChTire> tire_right,  ///< right tire
+                               ChContactMethod contact_method = ChContactMethod::NSC  ///< contact method
+    );
+
+    /// Construct a test rig from specified (JSON) file.
+    ChSuspensionTestRigPushrod(const std::string& filename,         ///< JSON file with test rig specification
+                               std::shared_ptr<ChTire> tire_left,   ///< left tire
+                               std::shared_ptr<ChTire> tire_right,  ///< right tire
+                               ChContactMethod contact_method = ChContactMethod::NSC  ///< contact method
+    );
+
+    virtual double GetActuatorDisp(VehicleSide side) override;
+    virtual double GetActuatorForce(VehicleSide side) override;
+
+    /// Get current ride height (relative to the chassis reference frame).
+    /// This estimate uses the average of the left and right posts.
+    virtual double GetRideHeight() const override;
+
+    /// Plot collected data.
+    /// When called (typically at the end of the simulation loop), the collected data is saved in ASCII format in a file
+    /// with the specified name (and 'txt' extension) in the specified output directory. If the Chrono::Postprocess
+    /// module is available (with gnuplot support), selected plots are generated.\n
+    /// Collected data includes:
+    ///  - [col 1]      time (s)
+    ///  - [col 2-5]    left input, left spindle z (m), left spindle z velocity (m/s), left wheel travel (m)
+    ///  - [col 6-7]    left spring force (N), left shock force (N)
+    ///  - [col 8-11]   right input, right spindle z (m), right spindle z velocity (m/s), right wheel travel (m)
+    ///  - [col 12-13]  right spring force (N), right shock force (N)
+    ///  - [col 14]     estimated ride height (m)
+    ///  - [col 15]     left camber angle, gamma (deg)
+    ///  - [col 16]     right camber angle, gamma (deg)
+    virtual void PlotOutput(const std::string& out_dir, const std::string& out_name) override;
+
+  private:
+    void Create();
+    virtual double CalcDisplacementOffset() override;
+    virtual double CalcTerrainHeight(VehicleSide side) override;
+    virtual void UpdateActuators(double displ_left,
+                                 double displ_speed_left,
+                                 double displ_right,
+                                 double displ_speed_right) override;
+    virtual void CollectPlotData(double time) override;
+
+    void AddRodVisualization(VehicleSide side, const ChColor& color);
+
+    std::shared_ptr<ChLinkLinActuator> m_rod_linact[2];  ///< rod linear actuators
+    std::shared_ptr<ChBody> m_rod[2];                    ///< rod bodies (for visualization only)
+
+    static const double m_rod_length;
+    static const double m_rod_radius;
 };
 
 /// @} vehicle_wheeled_test_rig

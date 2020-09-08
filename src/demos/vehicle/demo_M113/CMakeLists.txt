@@ -1,6 +1,6 @@
 #=============================================================================
 # CMake configuration file for the M113 demos.
-# These example programs requires Irrlicht run-time visualization
+# These example programs require Irrlicht run-time visualization.
 #=============================================================================
 
 IF(NOT ENABLE_MODULE_IRRLICHT)
@@ -34,21 +34,23 @@ endif()
 #--------------------------------------------------------------
 # Add executables
 
-FOREACH(DEMO ${DEMOS})
+FOREACH(PROGRAM ${DEMOS})
+    MESSAGE(STATUS "...add ${PROGRAM}")
 
-    MESSAGE(STATUS "...add ${DEMO}")
+    ADD_EXECUTABLE(${PROGRAM} ${PROGRAM}.cpp)
+    SOURCE_GROUP("" FILES ${PROGRAM}.cpp)
 
-    ADD_EXECUTABLE(${DEMO} ${DEMO}.cpp ${MODEL_FILES})
-    SOURCE_GROUP("" FILES ${DEMO}.cpp)
-    SET_TARGET_PROPERTIES(${DEMO} PROPERTIES 
+    SET_TARGET_PROPERTIES(${PROGRAM} PROPERTIES 
                           COMPILE_FLAGS "${COMPILER_FLAGS}"
                           LINK_FLAGS "${LINKER_FLAGS}")
-    TARGET_LINK_LIBRARIES(${DEMO} 
+    SET_PROPERTY(TARGET ${PROGRAM} PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:${PROGRAM}>")
+    TARGET_LINK_LIBRARIES(${PROGRAM} 
                           ChronoEngine
                           ChronoEngine_irrlicht
                           ChronoEngine_vehicle
+                          ChronoEngine_vehicle_irrlicht
                           ChronoModels_vehicle
                           ${LIBS})
-    INSTALL(TARGETS ${DEMO} DESTINATION ${CH_INSTALL_DEMO})
-    
+                          
+    INSTALL(TARGETS ${PROGRAM} DESTINATION ${CH_INSTALL_DEMO})  
 ENDFOREACH()

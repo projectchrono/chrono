@@ -16,10 +16,9 @@
 #define CH_CONTACT_NSC_H
 
 #include "chrono/core/ChFrame.h"
-#include "chrono/core/ChVectorDynamic.h"
 #include "chrono/solver/ChConstraintTwoTuplesContactN.h"
 #include "chrono/solver/ChSystemDescriptor.h"
-#include "chrono/collision/ChCCollisionModel.h"
+#include "chrono/collision/ChCollisionModel.h"
 #include "chrono/physics/ChContactTuple.h"
 #include "chrono/physics/ChContactContainer.h"
 #include "chrono/physics/ChSystem.h"
@@ -57,27 +56,29 @@ class ChContactNSC : public ChContactTuple<Ta, Tb> {
         Nx.SetTangentialConstraintV(&Tv);
     }
 
-    ChContactNSC(ChContactContainer* mcontainer,          ///< contact container
-                 Ta* mobjA,                               ///< collidable object A
-                 Tb* mobjB,                               ///< collidable object B
-                 const collision::ChCollisionInfo& cinfo  ///< data for the contact pair
+    ChContactNSC(ChContactContainer* mcontainer,           ///< contact container
+                 Ta* mobjA,                                ///< collidable object A
+                 Tb* mobjB,                                ///< collidable object B
+                 const collision::ChCollisionInfo& cinfo,  ///< data for the collision pair
+                 const ChMaterialCompositeNSC&  mat        ///< composite material
                  )
         : ChContactTuple<Ta, Tb>(mcontainer, mobjA, mobjB, cinfo) {
         Nx.SetTangentialConstraintU(&Tu);
         Nx.SetTangentialConstraintV(&Tv);
 
-        Reset(mobjA, mobjB, cinfo);
+        Reset(mobjA, mobjB, cinfo, mat);
     }
 
     ~ChContactNSC() {}
 
-    /// Initialize again this constraint.
-    virtual void Reset(Ta* mobjA,                               ///< collidable object A
-                       Tb* mobjB,                               ///< collidable object B
-                       const collision::ChCollisionInfo& cinfo  ///< data for the contact pair
-                       ) override {
-        // inherit base class:
-        ChContactTuple<Ta, Tb>::Reset(mobjA, mobjB, cinfo);
+    /// Reinitialize this contact for reuse.
+    virtual void Reset(Ta* mobjA,                                ///< collidable object A
+                       Tb* mobjB,                                ///< collidable object B
+                       const collision::ChCollisionInfo& cinfo,  ///< data for the collision pair
+                       const ChMaterialCompositeNSC& mat         ///< composite material
+    ) {
+        // Reset geometric information
+        this->Reset_cinfo(mobjA, mobjB, cinfo);
 
         Nx.Get_tuple_a().SetVariables(*this->objA);
         Nx.Get_tuple_b().SetVariables(*this->objB);
@@ -86,17 +87,7 @@ class ChContactNSC : public ChContactTuple<Ta, Tb> {
         Tv.Get_tuple_a().SetVariables(*this->objA);
         Tv.Get_tuple_b().SetVariables(*this->objB);
 
-        // Calculate composite material properties
-        ChMaterialCompositeNSC mat(
-            this->container->GetSystem()->composition_strategy.get(),
-            std::static_pointer_cast<ChMaterialSurfaceNSC>(this->objA->GetMaterialSurface()),
-            std::static_pointer_cast<ChMaterialSurfaceNSC>(this->objB->GetMaterialSurface()));
-
-        // Check for a user-provided callback to modify the material
-        if (this->container->GetAddContactCallback()) {
-            this->container->GetAddContactCallback()->OnAddContact(cinfo, &mat);
-        }
-
+        // Cache composite material properties
         Nx.SetFrictionCoefficient(mat.static_friction);
         Nx.SetCohesion(mat.cohesion);
 
@@ -184,7 +175,7 @@ class ChContactNSC : public ChContactTuple<Ta, Tb> {
                 Vector V1_w = this->objA->GetContactPointSpeed(this->p1);
                 Vector V2_w = this->objB->GetContactPointSpeed(this->p2);
                 Vector Vrel_w = V2_w - V1_w;
-                Vector Vrel_cplane = this->contact_plane.MatrT_x_Vect(Vrel_w);
+                Vector Vrel_cplane = this->contact_plane.transpose() * Vrel_w;
 
                 double h = this->container->GetSystem()->GetStep();  // = 1.0 / c;  // not all steppers have c = 1/h
 
@@ -283,7 +274,7 @@ class ChContactNSC : public ChContactTuple<Ta, Tb> {
                 Vector V1_w = this->objA->GetContactPointSpeed(this->p1);
                 Vector V2_w = this->objB->GetContactPointSpeed(this->p2);
                 Vector Vrel_w = V2_w - V1_w;
-                Vector Vrel_cplane = this->contact_plane.MatrT_x_Vect(Vrel_w);
+                Vector Vrel_cplane = this->contact_plane.transpose() * Vrel_w;
 
                 double h = 1.0 / factor;  // inverse timestep is factor
 

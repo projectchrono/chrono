@@ -35,7 +35,7 @@ void ChCapsule::GetBoundingBox(double& xmin,
                                double& zmin,
                                double& zmax,
                                ChMatrix33<>* Rot) const {
-    ChVector<> trsfCenter = Rot ? Rot->MatrT_x_Vect(center) : center;
+    ChVector<> trsfCenter = Rot ? Rot->transpose() * center : center;
 
     xmin = trsfCenter.x() - rad;
     xmax = trsfCenter.x() + rad;
@@ -46,7 +46,7 @@ void ChCapsule::GetBoundingBox(double& xmin,
 }
 
 void ChCapsule::CovarianceMatrix(ChMatrix33<>& C) const {
-    C.Reset();
+    C.setZero();
     C(0, 0) = center.x() * center.x();
     C(1, 1) = center.y() * center.y();
     C(2, 2) = center.z() * center.z();

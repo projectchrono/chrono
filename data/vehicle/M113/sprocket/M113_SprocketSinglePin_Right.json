@@ -8,6 +8,7 @@
   "Gear Inertia":                   [0.646, 0.883, 0.646],
   "Axle Inertia":                   0.02,
   "Gear Separation":                0.225,
+  "Lateral Backlash":               0.02,
 
   "Profile": 
   {
@@ -37,7 +38,6 @@
 
   "Visualization":
   {
-      "Mesh Filename":              "M113/Sprocket_R.obj",
-      "Mesh Name":                  "Sprocket_R_POV_geom"
+      "Mesh":              "M113/Sprocket_R.obj"
   }
 }

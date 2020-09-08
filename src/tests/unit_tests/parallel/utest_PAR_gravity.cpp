@@ -25,10 +25,9 @@ TEST(ChronoParallel, gravity) {
   ChVector<> gravity = ChVector<>(0, -9.80665, 0);
   ChSystemParallelNSC msystem;
   msystem.Set_G_acc(gravity);
-  CHOMPfunctions::SetNumThreads(1);
-  msystem.GetSettings()->max_threads = 1;
+  msystem.SetNumThreads(1);
 
-  auto ball = std::make_shared<ChBody>(std::make_shared<collision::ChCollisionModelParallel>());
+  auto ball = chrono_types::make_shared<ChBody>(chrono_types::make_shared<collision::ChCollisionModelParallel>());
   ChVector<> pos = ChVector<>(0, 0, 0);
   ChVector<> vel = ChVector<>(2, 2, 0);
   ball->SetMass(1);

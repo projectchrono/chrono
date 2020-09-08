@@ -68,22 +68,19 @@ class CH_VEHICLE_API ChDoubleWishboneReduced : public ChSuspension {
     virtual bool IsIndependent() const final override { return true; }
 
     /// Initialize this suspension subsystem.
-    /// The suspension subsystem is initialized by attaching it to the specified
-    /// chassis body at the specified location (with respect to and expressed in
-    /// the reference frame of the chassis). It is assumed that the suspension
-    /// reference frame is always aligned with the chassis reference frame.
-    /// 'tierod_body' is a handle to the body to which the suspension tierods
-    /// are to be attached. For a steered suspension, this will be the steering
-    /// (central) link of a suspension subsystem.  Otherwise, this is the chassis.
-    /// If this suspension is steered, 'steering_index' indicates the index of the
-    /// associated steering mechanism in the vehicle's list (-1 for a non-steered suspension).
-    virtual void Initialize(std::shared_ptr<ChBodyAuxRef> chassis,  ///< [in] handle to the chassis body
-                            const ChVector<>& location,             ///< [in] location relative to the chassis frame
-                            std::shared_ptr<ChBody> tierod_body,    ///< [in] body to which tireods are connected
-                            int steering_index,                     ///< [in] index of the associated steering mechanism
-                            double left_ang_vel = 0,                ///< [in] initial angular velocity of left wheel
-                            double right_ang_vel = 0                ///< [in] initial angular velocity of right wheel
-                            ) override;
+    /// The suspension subsystem is initialized by attaching it to the specified chassis and (if provided) to the
+    /// specified subchassis, at the specified location (with respect to and expressed in the reference frame of the
+    /// chassis). It is assumed that the suspension reference frame is always aligned with the chassis reference frame.
+    /// If a steering subsystem is provided, the suspension tierods are to be attached to the steering's central link
+    /// body (steered suspension); otherwise they are to be attached to the chassis (non-steered suspension).
+    virtual void Initialize(
+        std::shared_ptr<ChChassis> chassis,        ///< [in] associated chassis subsystem
+        std::shared_ptr<ChSubchassis> subchassis,  ///< [in] associated subchassis subsystem (may be null)
+        std::shared_ptr<ChSteering> steering,      ///< [in] associated steering subsystem (may be null)
+        const ChVector<>& location,                ///< [in] location relative to the chassis frame
+        double left_ang_vel = 0,                   ///< [in] initial angular velocity of left wheel
+        double right_ang_vel = 0                   ///< [in] initial angular velocity of right wheel
+        ) override;
 
     /// Add visualization assets for the suspension subsystem.
     /// This default implementation uses primitives.
@@ -102,15 +99,16 @@ class CH_VEHICLE_API ChDoubleWishboneReduced : public ChSuspension {
     virtual double GetTrack() override;
 
     /// Get a handle to the specified shock (spring-damper) element.
-    std::shared_ptr<ChLinkSpringCB> GetShock(VehicleSide side) const { return m_shock[side]; }
+    std::shared_ptr<ChLinkTSDA> GetShock(VehicleSide side) const { return m_shock[side]; }
 
-    /// Specify the left body for a possible antirollbar subsystem.
-    /// Return a handle to the left upright.
-    virtual std::shared_ptr<ChBody> GetLeftBody() const override { return m_upright[0]; }
+    /// Return current suspension forces (spring and shock) on the specified side.
+    /// Since this suspension type has a combined spring-damper element, the same information is duplicated in the
+    /// "spring" and "shock" members of the return struct.
+    virtual ChSuspension::Force ReportSuspensionForce(VehicleSide side) const override;
 
-    /// Specify the right body for a possible antirollbar subsystem.
-    /// Return a handle to the right upright.
-    virtual std::shared_ptr<ChBody> GetRightBody() const override { return m_upright[1]; }
+    /// Specify the suspension body on the specified side to attach a possible antirollbar subsystem.
+    /// Return the corresponding upright body.
+    virtual std::shared_ptr<ChBody> GetAntirollBody(VehicleSide side) const override { return m_upright[side]; }
 
     /// Log current constraint violations.
     virtual void LogConstraintViolations(VehicleSide side) override;
@@ -156,7 +154,7 @@ class CH_VEHICLE_API ChDoubleWishboneReduced : public ChSuspension {
     /// Return the free (rest) length of the spring-damper element.
     virtual double getSpringRestLength() const = 0;
     /// Return the functor object for shock force (spring-damper).
-    virtual ChLinkSpringCB::ForceFunctor* getShockForceFunctor() const = 0;
+    virtual std::shared_ptr<ChLinkTSDA::ForceFunctor> getShockForceFunctor() const = 0;
 
     std::shared_ptr<ChBody> m_upright[2];  ///< handles to the upright bodies (left/right)
 
@@ -166,7 +164,7 @@ class CH_VEHICLE_API ChDoubleWishboneReduced : public ChSuspension {
     std::shared_ptr<ChLinkDistance> m_distLCA_B[2];   ///< handles to the back LCA distance constraints (left/right)
     std::shared_ptr<ChLinkDistance> m_distTierod[2];  ///< handles to the tierod distance constraints (left/right)
 
-    std::shared_ptr<ChLinkSpringCB> m_shock[2];  ///< handles to the spring-damper force elements (left/right)
+    std::shared_ptr<ChLinkTSDA> m_shock[2];  ///< handles to the spring-damper force elements (left/right)
 
   private:
     // Hardpoint absolute locations

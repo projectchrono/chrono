@@ -17,10 +17,10 @@
 //
 // =============================================================================
 
-#include "chrono/physics/ChSystemNSC.h"
+#include "chrono/physics/ChSystemSMC.h"
 #include "chrono/timestepper/ChTimestepper.h"
-#include "chrono_irrlicht/ChIrrApp.h"
 #include "chrono_mkl/ChSolverMKL.h"
+#include "chrono_irrlicht/ChIrrApp.h"
 
 #include "FEAcables.h"
 
@@ -28,7 +28,7 @@ int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
     // Create a Chrono::Engine physical system
-    ChSystemNSC my_system;
+    ChSystemSMC my_system;
 
     // Create the Irrlicht visualization (open the Irrlicht device,
     // bind a simple user interface, etc. etc.)
@@ -42,10 +42,10 @@ int main(int argc, char* argv[]) {
 
     // Create a mesh, that is a container for groups of elements and
     // their referenced nodes.
-    auto my_mesh = std::make_shared<ChMesh>();
+    auto my_mesh = chrono_types::make_shared<ChMesh>();
 
     // Create the model (defined in FEAcables.h)
-    model3(my_system, my_mesh);
+    auto model = Model3(my_system, my_mesh);
 
     // Remember to add the mesh to the system!
     my_system.Add(my_mesh);
@@ -58,14 +58,14 @@ int main(int argc, char* argv[]) {
     // postprocessor that can handle a colored ChTriangleMeshShape).
     // Do not forget AddAsset() at the end!
 
-    auto mvisualizebeamA = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
+    auto mvisualizebeamA = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
     mvisualizebeamA->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_ELEM_BEAM_MZ);
     mvisualizebeamA->SetColorscaleMinMax(-0.4, 0.4);
     mvisualizebeamA->SetSmoothFaces(true);
     mvisualizebeamA->SetWireframe(false);
     my_mesh->AddAsset(mvisualizebeamA);
 
-    auto mvisualizebeamC = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
+    auto mvisualizebeamC = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
     mvisualizebeamC->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_NODE_CSYS);
     mvisualizebeamC->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NONE);
     mvisualizebeamC->SetSymbolsThickness(0.006);
@@ -83,33 +83,21 @@ int main(int argc, char* argv[]) {
     // that you added to the bodies into 3D shapes, they can be visualized by Irrlicht!
     application.AssetUpdateAll();
 
-    // Mark completion of system construction
-    my_system.SetupInitial();
-
-    // Change solver to MKL
-    auto mkl_solver = std::make_shared<ChSolverMKL<>>();
-    mkl_solver->SetSparsityPatternLock(false);
+    // Configure MKL solver.
+    // For this simple and relatively small problem, use of the sparsity pattern learner may introduce additional
+    // overhead (if the sparsity pattern is not locked).
+    auto mkl_solver = chrono_types::make_shared<ChSolverMKL>();
+    mkl_solver->UseSparsityPatternLearner(false);
+    mkl_solver->LockSparsityPattern(false);
+    mkl_solver->SetVerbose(false);
     my_system.SetSolver(mkl_solver);
 
-    // WARNING: due to known issues on MKL Pardiso, if CSR matrix is used, sparsity pattern lock should be put OFF
-    // Look at ChCSMatrix::SetElement comments to further details.
     my_system.Update();
 
-    // Change type of integrator:
-    my_system.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);  // fast, less precise
-    // my_system.SetTimestepperType(chrono::ChTimestepper::Type::HHT);  // precise,slower, might iterate each step
+    // Set integrator
+    my_system.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);
 
-    // if later you want to change integrator settings:
-    if (auto mystepper = std::dynamic_pointer_cast<ChTimestepperHHT>(my_system.GetTimestepper())) {
-        mystepper->SetAlpha(-0.2);
-        mystepper->SetMaxiters(2);
-        mystepper->SetAbsTolerances(1e-6);
-    }
-
-    //
-    // THE SOFT-REAL-TIME CYCLE
-    //
-
+    // SIMULATION LOOP
     application.SetTimestep(0.01);
 
     while (application.GetDevice()->run()) {
@@ -117,6 +105,7 @@ int main(int argc, char* argv[]) {
         application.DrawAll();
         application.DoStep();
         application.EndScene();
+        ////model.PrintBodyPositions();
     }
 
     return 0;

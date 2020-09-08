@@ -12,8 +12,8 @@
       "Suspension Input File": "uaz/suspension/UAZ469_FrontLeafspringAxle.json",
       "Suspension Location": [ 0, 0, 0 ],
       "Steering Index": 0,
-      "Left Wheel Input File": "uaz/wheel/UAZBUS_Wheel_FrontLeft.json",
-      "Right Wheel Input File": "uaz/wheel/UAZBUS_Wheel_FrontRight.json",
+      "Left Wheel Input File": "uaz/wheel/UAZBUS_Wheel.json",
+      "Right Wheel Input File": "uaz/wheel/UAZBUS_Wheel.json",
       "Left Brake Input File": "uaz/brake/UAZBUS_BrakeSimple_Front.json",
       "Right Brake Input File": "uaz/brake/UAZBUS_BrakeSimple_Front.json"
     },
@@ -21,8 +21,8 @@
     {
       "Suspension Input File": "uaz/suspension/UAZBUS_RearLeafspringAxle.json",
       "Suspension Location": [ -2.38, 0, 0 ],
-      "Left Wheel Input File": "uaz/wheel/UAZBUS_Wheel_RearLeft.json",
-      "Right Wheel Input File": "uaz/wheel/UAZBUS_Wheel_RearRight.json",
+      "Left Wheel Input File": "uaz/wheel/UAZBUS_Wheel.json",
+      "Right Wheel Input File": "uaz/wheel/UAZBUS_Wheel.json",
       "Left Brake Input File": "uaz/brake/UAZBUS_BrakeSimple_Rear.json",
       "Right Brake Input File": "uaz/brake/UAZBUS_BrakeSimple_Rear.json"
     }

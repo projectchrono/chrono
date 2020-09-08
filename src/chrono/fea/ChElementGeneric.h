@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Andrea Favali, Alessandro Tasora
+// Authors: Andrea Favali, Alessandro Tasora, Radu Serban
 // =============================================================================
 
 #ifndef CHELEMENTGENERIC_H
@@ -31,14 +31,15 @@ namespace fea {
 /// it implements some bookkeeping for the interface with solver.
 /// This means that most FEA elements inherited from ChElementGeneric
 /// need to implement at most the following two fundamental methods:
-///	ComputeKRMmatricesGlobal(), ComputeInternalForces()
+///	ComputeKRMmatricesGlobal(), ComputeInternalForces(), 
+/// and optionally ComputeGravityForces().
 class ChApi ChElementGeneric : public ChElementBase {
   protected:
     ChKblockGeneric Kmatr;
 
   public:
-    ChElementGeneric(){};
-    virtual ~ChElementGeneric(){};
+    ChElementGeneric() {}
+    virtual ~ChElementGeneric() {}
 
     /// Access the proxy to stiffness, for sparse solver
     ChKblockGeneric& Kstiffness() { return Kmatr; }
@@ -46,6 +47,8 @@ class ChApi ChElementGeneric : public ChElementBase {
     //
     // Functions for interfacing to the state bookkeeping
     //
+
+    
 
     /// (This is a default (a bit unoptimal) book keeping so that in children classes you can avoid
     /// implementing this EleIntLoadResidual_F function, unless you need faster code)
@@ -55,14 +58,27 @@ class ChApi ChElementGeneric : public ChElementBase {
     /// implementing this EleIntLoadResidual_Mv function, unless you need faster code.)
     virtual void EleIntLoadResidual_Mv(ChVectorDynamic<>& R, const ChVectorDynamic<>& w, const double c) override;
 
+    /// (This is a default (VERY UNOPTIMAL) book keeping so that in children classes you can avoid
+    /// implementing this EleIntLoadResidual_F_gravity function, unless you need faster code.
+    /// This fallback implementation uses a temp ChLoaderGravity that applies the load to elements
+    /// only if they are inherited by ChLoadableUVW so it can use GetDensity() and Gauss quadrature.
+    virtual void EleIntLoadResidual_F_gravity(ChVectorDynamic<>& R, const ChVector<>& G_acc, const double c) override;
+
+
     //
     // FEM functions
     //
 
+    /// (This is the default implementation (POTENTIALLY INEFFICIENT) so that in children classes you can avoid
+    /// implementing this ComputeGravityForces() function, unless you need faster code.)
+    /// This fallback implementation uses a temp ChLoaderGravity that applies the load to elements
+    /// only if they are inherited by ChLoadableUVW so it can use GetDensity() and Gauss quadrature.
+    virtual void ComputeGravityForces(ChVectorDynamic<>& Fg, const ChVector<>& G_acc) override;
+
     /// Returns the global mass matrix.
     /// This is the default implementation, POTENTIALLY VERY INEFFICIENT.
     /// Children classes may need to override this with a more efficient version.
-    virtual void ComputeMmatrixGlobal(ChMatrix<>& M) override { ComputeKRMmatricesGlobal(M, 0, 0, 1.0); }
+    virtual void ComputeMmatrixGlobal(ChMatrixRef M) override { ComputeKRMmatricesGlobal(M, 0, 0, 1.0); }
 
     //
     // Functions for interfacing to the solver
@@ -76,7 +92,7 @@ class ChApi ChElementGeneric : public ChElementBase {
     /// ChKblock item(s), if any. The K, R, M matrices are load with scaling
     /// values Kfactor, Rfactor, Mfactor.
     virtual void KRMmatricesLoad(double Kfactor, double Rfactor, double Mfactor) override {
-        this->ComputeKRMmatricesGlobal(*this->Kmatr.Get_K(), Kfactor, Rfactor, Mfactor);
+        this->ComputeKRMmatricesGlobal(this->Kmatr.Get_K(), Kfactor, Rfactor, Mfactor);
     }
 
     /// Adds the internal forces, expressed as nodal forces, into the

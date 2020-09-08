@@ -12,7 +12,6 @@
 // Authors: Nic Olsen
 // =============================================================================
 
-#include "chrono_distributed/other_types.h"
 #include "chrono_distributed/physics/ChDomainDistributed.h"
 #include "chrono_distributed/physics/ChSystemDistributed.h"
 

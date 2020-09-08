@@ -51,11 +51,9 @@ ChQuaternion<> initRot(1, 0, 0, 0);
 // ChQuaternion<> initRot(0, 0, 0, 1);
 
 // Terrain dimensions
-double terrainHeight = 0;
 double terrainLength = 20.0;  // size in X direction
 double terrainWidth = 4.0;    // size in Y direction
-int divLength = 160;          // initial number of divisions in X direction
-int divWidth = 32;            // initial number of divisions in Y direction
+double delta = 0.05;          // SCM grid spacing
 
 // Simulation step size
 double step_size = 1e-3;
@@ -92,7 +90,7 @@ int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
     // Construct the M113 vehicle
-    M113_Vehicle vehicle(false, TrackShoeType::SINGLE_PIN, ChMaterialSurface::SMC);
+    M113_Vehicle vehicle(false, TrackShoeType::SINGLE_PIN, BrakeType::SIMPLE, ChContactMethod::SMC);
 
 #ifndef CHRONO_MKL
     // Do not use MKL if not available
@@ -103,8 +101,8 @@ int main(int argc, char* argv[]) {
     if (use_mkl) {
 #ifdef CHRONO_MKL
         GetLog() << "Using MKL solver\n";
-        auto mkl_solver = std::make_shared<ChSolverMKL<>>();
-        mkl_solver->SetSparsityPatternLock(true);
+        auto mkl_solver = chrono_types::make_shared<ChSolverMKL>();
+        mkl_solver->LockSparsityPattern(true);
         vehicle.GetSystem()->SetSolver(mkl_solver);
 
         vehicle.GetSystem()->SetTimestepperType(ChTimestepper::Type::HHT);
@@ -118,8 +116,7 @@ int main(int argc, char* argv[]) {
         integrator->SetVerbose(true);
 #endif
     } else {
-        vehicle.GetSystem()->SetMaxItersSolverSpeed(50);
-        vehicle.GetSystem()->SetMaxItersSolverStab(50);
+        vehicle.GetSystem()->SetSolverMaxIterations(50);
     }
 
     // Control steering type (enable crossdrive capability)
@@ -149,34 +146,30 @@ int main(int argc, char* argv[]) {
 
     // Create the terrain
     SCMDeformableTerrain terrain(vehicle.GetSystem());
-    terrain.SetPlane(ChCoordsys<>(VNULL, Q_from_AngX(CH_C_PI_2)));
-    terrain.SetSoilParametersSCM(2e7,   // Bekker Kphi
-                                 0,     // Bekker Kc
-                                 1.1,   // Bekker n exponent
-                                 0,     // Mohr cohesive limit (Pa)
-                                 20,    // Mohr friction limit (degrees)
-                                 0.01,  // Janosi shear coefficient (m)
-                                 2e8,   // Elastic stiffness (Pa/m), before plastic yield
-                                 3e4    // Damping (Pa s/m), proportional to negative vertical speed (optional)
-                                 );
-
-    terrain.SetAutomaticRefinement(true);
-    terrain.SetAutomaticRefinementResolution(0.04);
+    terrain.SetSoilParameters(2e7,   // Bekker Kphi
+                              0,     // Bekker Kc
+                              1.1,   // Bekker n exponent
+                              0,     // Mohr cohesive limit (Pa)
+                              20,    // Mohr friction limit (degrees)
+                              0.01,  // Janosi shear coefficient (m)
+                              2e8,   // Elastic stiffness (Pa/m), before plastic yield
+                              3e4    // Damping (Pa s/m), proportional to negative vertical speed (optional)
+    );
 
     terrain.SetPlotType(vehicle::SCMDeformableTerrain::PLOT_PRESSURE_YELD, 0, 30000.2);
     ////terrain.SetPlotType(vehicle::SCMDeformableTerrain::PLOT_SINKAGE, 0, 0.15);
 
-    terrain.Initialize(terrainHeight, terrainLength, terrainWidth, divLength, divWidth);
+    terrain.Initialize(terrainLength, terrainWidth, delta);
 
     AddFixedObstacles(vehicle.GetSystem());
     ////AddMovingObstacles(vehicle.GetSystem());
 
     // Create the powertrain system
-    M113_SimplePowertrain powertrain("Powertrain");
-    powertrain.Initialize(vehicle.GetChassisBody(), vehicle.GetDriveshaft());
+    auto powertrain = chrono_types::make_shared<M113_SimplePowertrain>("Powertrain");
+    vehicle.InitializePowertrain(powertrain);
 
     // Create the vehicle Irrlicht application
-    ChTrackedVehicleIrrApp app(&vehicle, &powertrain, L"M113 Vehicle Demo");
+    ChTrackedVehicleIrrApp app(&vehicle, L"M113 Vehicle Demo");
     app.SetSkyBox();
     app.AddTypicalLights(irr::core::vector3df(30.f, -30.f, 100.f), irr::core::vector3df(30.f, 50.f, 100.f), 250, 130);
     app.SetChaseCamera(trackPoint, 4.0, 1.0);
@@ -220,8 +213,6 @@ int main(int argc, char* argv[]) {
     // Simulation loop
     // ---------------
 
-    vehicle.GetSystem()->SetupInitial();
-
     // Inter-module communication data
     BodyStates shoe_states_left(vehicle.GetNumTrackShoes(LEFT));
     BodyStates shoe_states_right(vehicle.GetNumTrackShoes(RIGHT));
@@ -251,11 +242,7 @@ int main(int argc, char* argv[]) {
         }
 
         // Collect output data from modules
-        double throttle_input = driver.GetThrottle();
-        double steering_input = driver.GetSteering();
-        double braking_input = driver.GetBraking();
-        double powertrain_torque = powertrain.GetOutputTorque();
-        double driveshaft_speed = vehicle.GetDriveshaftSpeed();
+        ChDriver::Inputs driver_inputs = driver.GetInputs();
         vehicle.GetTrackShoeStates(LEFT, shoe_states_left);
         vehicle.GetTrackShoeStates(RIGHT, shoe_states_right);
 
@@ -263,15 +250,12 @@ int main(int argc, char* argv[]) {
         double time = vehicle.GetChTime();
         driver.Synchronize(time);
         terrain.Synchronize(time);
-        powertrain.Synchronize(time, throttle_input, driveshaft_speed);
-        vehicle.Synchronize(time, steering_input, braking_input, powertrain_torque, shoe_forces_left,
-                            shoe_forces_right);
-        app.Synchronize("", steering_input, throttle_input, braking_input);
+        vehicle.Synchronize(time, driver_inputs, shoe_forces_left, shoe_forces_right);
+        app.Synchronize("", driver_inputs);
 
         // Advance simulation for one timestep for all modules
         driver.Advance(step_size);
         terrain.Advance(step_size);
-        powertrain.Advance(step_size);
         vehicle.Advance(step_size);
         app.Advance(step_size);
 
@@ -296,49 +280,37 @@ void AddFixedObstacles(ChSystem* system) {
     double radius = 2;
     double length = 10;
 
-    float friction_coefficient = 0.9f;
-    float restitution_coefficient = 0.01f;
-    float young_modulus = 2e7f;
-    float poisson_ratio = 0.3f;
-
     auto obstacle = std::shared_ptr<ChBody>(system->NewBody());
     obstacle->SetPos(ChVector<>(0, 0, -1.8));
     obstacle->SetBodyFixed(true);
     obstacle->SetCollide(true);
 
     // Visualization
-    auto shape = std::make_shared<ChCylinderShape>();
+    auto shape = chrono_types::make_shared<ChCylinderShape>();
     shape->GetCylinderGeometry().p1 = ChVector<>(0, -length * 0.5, 0);
     shape->GetCylinderGeometry().p2 = ChVector<>(0, length * 0.5, 0);
     shape->GetCylinderGeometry().rad = radius;
     obstacle->AddAsset(shape);
 
-    auto color = std::make_shared<ChColorAsset>();
+    auto color = chrono_types::make_shared<ChColorAsset>();
     color->SetColor(ChColor(1, 1, 1));
     obstacle->AddAsset(color);
 
-    auto texture = std::make_shared<ChTexture>();
+    auto texture = chrono_types::make_shared<ChTexture>();
     texture->SetTextureFilename(vehicle::GetDataFile("terrain/textures/tile4.jpg"));
     texture->SetTextureScale(10, 10);
     obstacle->AddAsset(texture);
 
     // Contact
-    obstacle->GetCollisionModel()->ClearModel();
-    obstacle->GetCollisionModel()->AddCylinder(radius, radius, length * 0.5);
-    obstacle->GetCollisionModel()->BuildModel();
+    MaterialInfo minfo;
+    minfo.mu = 0.9f;
+    minfo.cr = 0.01f;
+    minfo.Y = 2e7f;
+    auto obst_mat = minfo.CreateMaterial(system->GetContactMethod());
 
-    switch (obstacle->GetContactMethod()) {
-        case ChMaterialSurface::NSC:
-            obstacle->GetMaterialSurfaceNSC()->SetFriction(friction_coefficient);
-            obstacle->GetMaterialSurfaceNSC()->SetRestitution(restitution_coefficient);
-            break;
-        case ChMaterialSurface::SMC:
-            obstacle->GetMaterialSurfaceSMC()->SetFriction(friction_coefficient);
-            obstacle->GetMaterialSurfaceSMC()->SetRestitution(restitution_coefficient);
-            obstacle->GetMaterialSurfaceSMC()->SetYoungModulus(young_modulus);
-            obstacle->GetMaterialSurfaceSMC()->SetPoissonRatio(poisson_ratio);
-            break;
-    }
+    obstacle->GetCollisionModel()->ClearModel();
+    obstacle->GetCollisionModel()->AddCylinder(obst_mat, radius, radius, length * 0.5);
+    obstacle->GetCollisionModel()->BuildModel();
 
     system->AddBody(obstacle);
 }
@@ -352,7 +324,7 @@ void AddMovingObstacles(ChSystem* system) {
     ChVector<> init_ang_vel(0, 30, 0);
 
     // Create a material
-    auto material = std::make_shared<ChMaterialSurfaceSMC>();
+    auto material = chrono_types::make_shared<ChMaterialSurfaceSMC>();
     material->SetRestitution(0.1f);
     material->SetFriction(0.4f);
 
@@ -365,21 +337,19 @@ void AddMovingObstacles(ChSystem* system) {
     ball->SetPos_dt(init_vel);
     ball->SetWvel_loc(init_ang_vel);
     ball->SetBodyFixed(false);
-    ball->SetMaterialSurface(material);
-
     ball->SetCollide(true);
 
     ball->GetCollisionModel()->ClearModel();
-    ball->GetCollisionModel()->AddSphere(radius);
+    ball->GetCollisionModel()->AddSphere(material, radius);
     ball->GetCollisionModel()->BuildModel();
 
     ball->SetInertiaXX(0.4 * mass * radius * radius * ChVector<>(1, 1, 1));
 
-    auto sphere = std::make_shared<ChSphereShape>();
+    auto sphere = chrono_types::make_shared<ChSphereShape>();
     sphere->GetSphereGeometry().rad = radius;
     ball->AddAsset(sphere);
 
-    auto mtexture = std::make_shared<ChTexture>();
+    auto mtexture = chrono_types::make_shared<ChTexture>();
     mtexture->SetTextureFilename(GetChronoDataFile("bluwhite.png"));
     ball->AddAsset(mtexture);
 

@@ -26,11 +26,11 @@ ChLinkSpring::ChLinkSpring() {
     spr_r = 5;
     spr_f = 0;
 
-    mod_f_time = std::make_shared<ChFunction_Const>(1);
-    mod_k_d = std::make_shared<ChFunction_Const>(1);
-    mod_k_speed = std::make_shared<ChFunction_Const>(1);
-    mod_r_d = std::make_shared<ChFunction_Const>(1);
-    mod_r_speed = std::make_shared<ChFunction_Const>(1);
+    mod_f_time = chrono_types::make_shared<ChFunction_Const>(1);
+    mod_k_d = chrono_types::make_shared<ChFunction_Const>(1);
+    mod_k_speed = chrono_types::make_shared<ChFunction_Const>(1);
+    mod_r_d = chrono_types::make_shared<ChFunction_Const>(1);
+    mod_r_speed = chrono_types::make_shared<ChFunction_Const>(1);
 
     spr_react = 0.0;
 }
@@ -47,6 +47,10 @@ ChLinkSpring::ChLinkSpring(const ChLinkSpring& other) : ChLinkMarkers(other) {
     mod_k_speed = std::shared_ptr<ChFunction>(other.mod_k_speed->Clone());
     mod_r_d = std::shared_ptr<ChFunction>(other.mod_r_d->Clone());
     mod_r_speed = std::shared_ptr<ChFunction>(other.mod_r_speed->Clone());
+}
+
+ChLinkSpring* ChLinkSpring::Clone() const {
+    return new ChLinkSpring(*this);
 }
 
 void ChLinkSpring::Initialize(std::shared_ptr<ChBody> mbody1,

@@ -15,7 +15,7 @@
 #ifndef CH_PROXIMITY_CONTAINER_H
 #define CH_PROXIMITY_CONTAINER_H
 
-#include "chrono/collision/ChCCollisionInfo.h"
+#include "chrono/collision/ChCollisionInfo.h"
 #include "chrono/physics/ChPhysicsItem.h"
 
 namespace chrono {
@@ -30,7 +30,7 @@ namespace chrono {
 /// This is only the basic interface with the features that are in common.
 class ChApi ChProximityContainer : public ChPhysicsItem {
   public:
-    ChProximityContainer() : add_proximity_callback(NULL), report_proximity_callback(NULL) {}
+    ChProximityContainer() : add_proximity_callback(nullptr), report_proximity_callback(nullptr) {}
     ChProximityContainer(const ChProximityContainer& other);
     virtual ~ChProximityContainer() {}
 

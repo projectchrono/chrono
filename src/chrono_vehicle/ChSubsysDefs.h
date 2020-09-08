@@ -24,7 +24,7 @@
 #include "chrono/core/ChQuaternion.h"
 #include "chrono/core/ChVector.h"
 #include "chrono/physics/ChLinkRotSpringCB.h"
-#include "chrono/physics/ChLinkSpringCB.h"
+#include "chrono/physics/ChLinkTSDA.h"
 
 #include "chrono_vehicle/ChApiVehicle.h"
 
@@ -44,37 +44,12 @@ enum VehicleSide {
     RIGHT = 1  ///< right side of vehicle is always 1
 };
 
-/// Class to encode the ID of a vehicle wheel.
-/// By convention, wheels are counted front to rear and left to right. In other
-/// words, for a vehicle with 2 axles, the order is: front-left, front-right,
-/// rear-left, rear-right.
-class WheelID {
-  public:
-    WheelID(int id) : m_id(id), m_axle(id / 2), m_side(VehicleSide(id % 2)) {}
-    WheelID(int axle, VehicleSide side) : m_id(2 * axle + side), m_axle(axle), m_side(side) {}
-
-    /// Return the wheel ID.
-    int id() const { return m_id; }
-
-    /// Return the axle index for this wheel ID.
-    /// Axles are counted from the front of the vehicle.
-    int axle() const { return m_axle; }
-
-    /// Return the side for this wheel ID.
-    /// By convention, left is 0 and right is 1.
-    VehicleSide side() const { return m_side; }
-
-  private:
-    int m_id;            ///< wheel ID
-    int m_axle;          ///< axle index (counted from the front)
-    VehicleSide m_side;  ///< vehicle side (LEFT: 0, RIGHT: 1)
+/// Enum for wheel location on spindle.
+enum WheelLocation {
+    SINGLE = 0,  ///< wheel on one side of a single-wheel axle
+    INNER = 1,   ///< inner wheel on one side of a double-wheel axle
+    OUTER = 2    ///< outer wheel on one side of a double-wheel axle
 };
-
-/// Global constant wheel IDs for the common topology of a 2-axle vehicle.
-static const WheelID FRONT_LEFT(0, LEFT);
-static const WheelID FRONT_RIGHT(0, RIGHT);
-static const WheelID REAR_LEFT(1, LEFT);
-static const WheelID REAR_RIGHT(1, RIGHT);
 
 /// Structure to communicate a full body state.
 struct BodyState {
@@ -116,14 +91,10 @@ typedef std::vector<TerrainForce> TerrainForces;
 // -----------------------------------------------------------------------------
 
 /// Utility class for specifying a linear translational spring force.
-class LinearSpringForce : public ChLinkSpringCB::ForceFunctor {
+class LinearSpringForce : public ChLinkTSDA::ForceFunctor {
   public:
     LinearSpringForce(double k) : m_k(k) {}
-    virtual double operator()(double time,
-                              double rest_length,
-                              double length,
-                              double vel,
-                              ChLinkSpringCB* link) override {
+    virtual double operator()(double time, double rest_length, double length, double vel, ChLinkTSDA* link) override {
         return -m_k * (length - rest_length);
     }
 
@@ -132,14 +103,10 @@ class LinearSpringForce : public ChLinkSpringCB::ForceFunctor {
 };
 
 /// Utility class for specifying a linear translational damper force.
-class LinearDamperForce : public ChLinkSpringCB::ForceFunctor {
+class LinearDamperForce : public ChLinkTSDA::ForceFunctor {
   public:
     LinearDamperForce(double c) : m_c(c) {}
-    virtual double operator()(double time,
-                              double rest_length,
-                              double length,
-                              double vel,
-                              ChLinkSpringCB* link) override {
+    virtual double operator()(double time, double rest_length, double length, double vel, ChLinkTSDA* link) override {
         return -m_c * vel;
     }
 
@@ -148,14 +115,10 @@ class LinearDamperForce : public ChLinkSpringCB::ForceFunctor {
 };
 
 /// Utility class for specifying a linear translational spring-damper force.
-class LinearSpringDamperForce : public ChLinkSpringCB::ForceFunctor {
+class LinearSpringDamperForce : public ChLinkTSDA::ForceFunctor {
   public:
     LinearSpringDamperForce(double k, double c) : m_k(k), m_c(c) {}
-    virtual double operator()(double time,
-                              double rest_length,
-                              double length,
-                              double vel,
-                              ChLinkSpringCB* link) override {
+    virtual double operator()(double time, double rest_length, double length, double vel, ChLinkTSDA* link) override {
         return -m_k * (length - rest_length) - m_c * vel;
     }
 
@@ -165,14 +128,10 @@ class LinearSpringDamperForce : public ChLinkSpringCB::ForceFunctor {
 };
 
 /// Utility class for specifying a linear translational spring-damper force with pre-tension.
-class LinearSpringDamperActuatorForce : public ChLinkSpringCB::ForceFunctor {
+class LinearSpringDamperActuatorForce : public ChLinkTSDA::ForceFunctor {
   public:
     LinearSpringDamperActuatorForce(double k, double c, double f) : m_k(k), m_c(c), m_f(f) {}
-    virtual double operator()(double time,
-                              double rest_length,
-                              double length,
-                              double vel,
-                              ChLinkSpringCB* link) override {
+    virtual double operator()(double time, double rest_length, double length, double vel, ChLinkTSDA* link) override {
         return m_f - m_k * (length - rest_length) - m_c * vel;
     }
 
@@ -183,7 +142,7 @@ class LinearSpringDamperActuatorForce : public ChLinkSpringCB::ForceFunctor {
 };
 
 /// Utility class for specifying a map translational spring force.
-class MapSpringForce : public ChLinkSpringCB::ForceFunctor {
+class MapSpringForce : public ChLinkTSDA::ForceFunctor {
   public:
     MapSpringForce() {}
     MapSpringForce(const std::vector<std::pair<double, double>>& data) {
@@ -192,11 +151,7 @@ class MapSpringForce : public ChLinkSpringCB::ForceFunctor {
         }
     }
     void add_point(double x, double y) { m_map.AddPoint(x, y); }
-    virtual double operator()(double time,
-                              double rest_length,
-                              double length,
-                              double vel,
-                              ChLinkSpringCB* link) override {
+    virtual double operator()(double time, double rest_length, double length, double vel, ChLinkTSDA* link) override {
         return -m_map.Get_y(length - rest_length);
     }
 
@@ -204,8 +159,73 @@ class MapSpringForce : public ChLinkSpringCB::ForceFunctor {
     ChFunction_Recorder m_map;
 };
 
+/// Utility class for specifying a map translational spring force with bump and rebound stop.
+class MapSpringBistopForce : public ChLinkTSDA::ForceFunctor {
+  public:
+    MapSpringBistopForce(double spring_min_length, double spring_max_length)
+        : m_min_length(spring_min_length), m_max_length(spring_max_length) {
+        setup_stop_maps();
+    }
+    MapSpringBistopForce(const std::vector<std::pair<double, double>>& data,
+                         double spring_min_length,
+                         double spring_max_length)
+        : m_min_length(spring_min_length), m_max_length(spring_max_length) {
+        setup_stop_maps();
+        for (unsigned int i = 0; i < data.size(); ++i) {
+            m_map.AddPoint(data[i].first, data[i].second);
+        }
+    }
+    void add_point(double x, double y) { m_map.AddPoint(x, y); }
+    virtual double operator()(double time, double rest_length, double length, double vel, ChLinkTSDA* link) override {
+        double defl_bump = 0.0;
+        double defl_rebound = 0.0;
+
+        if (length < m_min_length) {
+            defl_bump = m_min_length - length;
+        }
+
+        if (length > m_max_length) {
+            defl_rebound = length - m_max_length;
+        }
+
+        return -m_map.Get_y(length - rest_length) + m_bump.Get_y(defl_bump) - m_rebound.Get_y(defl_rebound);
+    }
+
+  private:
+    void setup_stop_maps() {
+        m_bump.AddPoint(0.0, 0.0);
+        m_bump.AddPoint(2.0e-3, 200.0);
+        m_bump.AddPoint(4.0e-3, 400.0);
+        m_bump.AddPoint(6.0e-3, 600.0);
+        m_bump.AddPoint(8.0e-3, 800.0);
+        m_bump.AddPoint(10.0e-3, 1000.0);
+        m_bump.AddPoint(20.0e-3, 2500.0);
+        m_bump.AddPoint(30.0e-3, 4500.0);
+        m_bump.AddPoint(40.0e-3, 7500.0);
+        m_bump.AddPoint(50.0e-3, 12500.0);
+        m_bump.AddPoint(60.0e-3, 125000.0);
+
+        m_rebound.AddPoint(0.0, 0.0);
+        m_rebound.AddPoint(2.0e-3, 200.0);
+        m_rebound.AddPoint(4.0e-3, 400.0);
+        m_rebound.AddPoint(6.0e-3, 600.0);
+        m_rebound.AddPoint(8.0e-3, 800.0);
+        m_rebound.AddPoint(10.0e-3, 1000.0);
+        m_rebound.AddPoint(20.0e-3, 2500.0);
+        m_rebound.AddPoint(30.0e-3, 4500.0);
+        m_rebound.AddPoint(40.0e-3, 7500.0);
+        m_rebound.AddPoint(50.0e-3, 12500.0);
+        m_rebound.AddPoint(60.0e-3, 125000.0);
+    }
+    ChFunction_Recorder m_map;
+    ChFunction_Recorder m_bump;
+    ChFunction_Recorder m_rebound;
+    double m_min_length;
+    double m_max_length;
+};
+
 /// Utility class for specifying a linear translational spring force with bump and rebound stop.
-class LinearSpringBistopForce : public ChLinkSpringCB::ForceFunctor {
+class LinearSpringBistopForce : public ChLinkTSDA::ForceFunctor {
   public:
     /// Use default bump stop and rebound stop maps
     LinearSpringBistopForce(double k, double min_length, double max_length)
@@ -236,11 +256,7 @@ class LinearSpringBistopForce : public ChLinkSpringCB::ForceFunctor {
         m_rebound.AddPoint(60.0e-3, 125000.0);
     }
 
-    virtual double operator()(double time,
-                              double rest_length,
-                              double length,
-                              double vel,
-                              ChLinkSpringCB* link) override {
+    virtual double operator()(double time, double rest_length, double length, double vel, ChLinkTSDA* link) override {
         double force = 0;
 
         double defl_spring = rest_length - length;
@@ -270,12 +286,12 @@ class LinearSpringBistopForce : public ChLinkSpringCB::ForceFunctor {
 };
 
 /// Utility class for specifying a degressive translational damper force.
-class DegressiveDamperForce : public ChLinkSpringCB::ForceFunctor {
+class DegressiveDamperForce : public ChLinkTSDA::ForceFunctor {
   public:
     /// Fallback to LinearDamperForce
     DegressiveDamperForce(double c_compression)
         : m_c_compression(c_compression), m_degr_compression(0), m_c_expansion(c_compression), m_degr_expansion(0) {}
-    
+
     /// Fallback to LinearDamperForce with different compression and expansion bins
     DegressiveDamperForce(double c_compression, double c_expansion)
         : m_c_compression(c_compression), m_degr_compression(0), m_c_expansion(c_expansion), m_degr_expansion(0) {}
@@ -294,15 +310,11 @@ class DegressiveDamperForce : public ChLinkSpringCB::ForceFunctor {
           m_c_expansion(c_expansion),
           m_degr_expansion(degr_expansion) {}
 
-    virtual double operator()(double time,
-                              double rest_length,
-                              double length,
-                              double vel,
-                              ChLinkSpringCB* link) override {
+    virtual double operator()(double time, double rest_length, double length, double vel, ChLinkTSDA* link) override {
         if (vel >= 0) {
             return -m_c_expansion * vel / (1.0 + m_degr_expansion * vel);
         } else {
-            return -m_c_compression * vel / (1.0 + m_degr_compression * std::abs(vel));
+            return -m_c_compression * vel / (1.0 - m_degr_compression * vel);
         }
     }
 
@@ -314,7 +326,7 @@ class DegressiveDamperForce : public ChLinkSpringCB::ForceFunctor {
 };
 
 /// Utility class for specifying a map translational damper force.
-class MapDamperForce : public ChLinkSpringCB::ForceFunctor {
+class MapDamperForce : public ChLinkTSDA::ForceFunctor {
   public:
     MapDamperForce() {}
     MapDamperForce(const std::vector<std::pair<double, double>>& data) {
@@ -323,11 +335,7 @@ class MapDamperForce : public ChLinkSpringCB::ForceFunctor {
         }
     }
     void add_point(double x, double y) { m_map.AddPoint(x, y); }
-    virtual double operator()(double time,
-                              double rest_length,
-                              double length,
-                              double vel,
-                              ChLinkSpringCB* link) override {
+    virtual double operator()(double time, double rest_length, double length, double vel, ChLinkTSDA* link) override {
         return -m_map.Get_y(vel);
     }
 
@@ -336,7 +344,7 @@ class MapDamperForce : public ChLinkSpringCB::ForceFunctor {
 };
 
 /// Utility class for specifying a map translational spring-damper force with pre-tension.
-class MapSpringDamperActuatorForce : public ChLinkSpringCB::ForceFunctor {
+class MapSpringDamperActuatorForce : public ChLinkTSDA::ForceFunctor {
   public:
     MapSpringDamperActuatorForce() {}
     MapSpringDamperActuatorForce(const std::vector<std::pair<double, double>>& dataK,
@@ -352,11 +360,7 @@ class MapSpringDamperActuatorForce : public ChLinkSpringCB::ForceFunctor {
     void add_pointK(double x, double y) { m_mapK.AddPoint(x, y); }
     void add_pointC(double x, double y) { m_mapC.AddPoint(x, y); }
     void set_f(double f) { m_f = f; }
-    virtual double operator()(double time,
-                              double rest_length,
-                              double length,
-                              double vel,
-                              ChLinkSpringCB* link) override {
+    virtual double operator()(double time, double rest_length, double length, double vel, ChLinkTSDA* link) override {
         return m_f - m_mapK.Get_y(length - rest_length) - m_mapC.Get_y(vel);
     }
 
@@ -481,28 +485,42 @@ enum class TireModelType {
     REISSNER,    ///< Reissner 6-field shell element-based tire
     FEA,         ///< FEA co-rotational tire
     PAC89,       ///< Pacejka 89 (magic formula) tire
-    TMEASY       ///< Tire Model Made Easy tire (G. Rill)
+    TMEASY,      ///< Tire Model Made Easy tire (G. Rill)
+    PAC02        ///< Pacejka 02 (magic formula) tire, redesign of PACEJKA
 };
 
 /// Enum for available powertrain model templates.
 enum class PowertrainModelType {
     SHAFTS,      ///< powertrain based on ChShaft elements
     SIMPLE_MAP,  ///< simple powertrain model (based on engine-map)
-    SIMPLE       ///< simple powertrain model (similar to a DC motor)
+    SIMPLE,      ///< simple powertrain model (similar to a DC motor)
+    SIMPLE_CVT   ///< simple cvt powertrain model (like a DC motor / CVT gearbox)
 };
 
 /// Enum for available wheeled-vehicle suspension model templates.
 enum class SuspensionType {
-    DOUBLE_WISHBONE,          ///< double wishbone
-    DOUBLE_WISHBONE_REDUCED,  ///< simplified double wishbone (constraint-based)
-    SOLID_AXLE,               ///< solid axle
-    MULTI_LINK,               ///< multi-link
-    HENDRICKSON_PRIMAXX,      ///< Hendrickson PRIMAXX (walking beam)
-    MACPHERSON_STRUT,         ///< MacPherson strut
-    SEMI_TRAILING_ARM,        ///< semi trailing arm
-    THREE_LINK_IRS,           ///< three-link independent rear suspension
-    RIGID_PINNED,             ///< pinned rigid beam
-    RIGID_SUSPENSION          ///< rigid suspension
+    DOUBLE_WISHBONE,                  ///< double wishbone
+    DOUBLE_WISHBONE_REDUCED,          ///< simplified double wishbone (constraint-based)
+    HENDRICKSON_PRIMAXX,              ///< Hendrickson PRIMAXX (walking beam)
+    LEAF_SPRING_AXLE,                 ///< leaf-spring solid axle
+    SAE_LEAF_SPRING_AXLE,             ///< leaf-spring solid axle with kinematic leaf-spring model
+    MACPHERSON_STRUT,                 ///< MacPherson strut
+    MULTI_LINK,                       ///< multi-link
+    RIGID_PINNED,                     ///< pinned rigid beam
+    RIGID_SUSPENSION,                 ///< rigid suspension
+    SEMI_TRAILING_ARM,                ///< semi trailing arm
+    SOLID_AXLE,                       ///< solid axle
+    SOLID_THREE_LINK_AXLE,            ///< rigid suspension + 3 guiding links
+    SOLID_BELLCRANK_THREE_LINK_AXLE,  ///< rigid suspension + 3 guiding linls + bellcrank steering mechanism
+    THREE_LINK_IRS,                   ///< three-link independent rear suspension
+    TOE_BAR_LEAF_SPRING_AXLE,         ///< steerable leaf-spring solid axle
+    SAE_TOE_BAR_LEAF_SPRING_AXLE      ///< steerable leaf-spring solid axle with kinematic leaf-spring model
+};
+
+/// Enum for available brake model templates.
+enum class BrakeType {
+    SHAFTS, ///< brake model using a clutch between two shafts
+    SIMPLE  ///< brake model using a simple speed-dependent torque
 };
 
 /// Enum for available wheeled-vehicle steering model templates.
@@ -582,6 +600,16 @@ enum OutputInformation {
     OUT_SHOCKS = 1 << 1,       ///< suspension shock information
     OUT_CONSTRAINTS = 1 << 2,  ///< constraint violation information
     OUT_TESTRIG = 1 << 3       ///< test-rig specific information
+};
+
+/// Identifiers for specific component bodies.
+enum BodyID {
+    CHASSIS_BODY = -99990,
+    SPROCKET_BODY = -99991,
+    IDLER_BODY = -99992,
+    WHEEL_BODY = -99993,
+    ROLER_BODY = -99994,
+    SHOE_BODY = -99995
 };
 
 /// @} vehicle

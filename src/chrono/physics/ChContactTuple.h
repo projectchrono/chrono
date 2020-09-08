@@ -14,11 +14,10 @@
 #define CHCONTACTTUPLE_H
 
 #include "chrono/core/ChFrame.h"
-#include "chrono/core/ChVectorDynamic.h"
 #include "chrono/solver/ChConstraintTwoTuplesContactN.h"
 #include "chrono/solver/ChSystemDescriptor.h"
-#include "chrono/collision/ChCCollisionModel.h"
-#include "chrono/collision/ChCCollisionInfo.h"
+#include "chrono/collision/ChCollisionModel.h"
+#include "chrono/collision/ChCollisionInfo.h"
 
 namespace chrono {
 
@@ -55,18 +54,16 @@ class ChContactTuple {
 
     ChContactTuple() {}
 
-    ChContactTuple(ChContactContainer* mcontainer,      ///< contact container
+    ChContactTuple(ChContactContainer* mcontainer,          ///< contact container
                    Ta* mobjA,                               ///< ChContactable object A
                    Tb* mobjB,                               ///< ChContactable object B
                    const collision::ChCollisionInfo& cinfo  ///< data for the contact pair
-                   ) {
+    ) {
         assert(mcontainer);
         assert(mobjA);
         assert(mobjB);
 
         container = mcontainer;
-
-        Reset(mobjA, mobjB, cinfo);
     }
 
     virtual ~ChContactTuple() {}
@@ -75,11 +72,11 @@ class ChContactTuple {
     // FUNCTIONS
     //
 
-    /// Initialize again this constraint.
-    virtual void Reset(Ta* mobjA,                               ///< ChContactable object A
-                       Tb* mobjB,                               ///< ChContactable object B
-                       const collision::ChCollisionInfo& cinfo  ///< data for the contact pair
-                       ) {
+    /// Reinitialize geometric information for this contact for reuse.
+    void Reset_cinfo(Ta* mobjA,                               ///< ChContactable object A
+                     Tb* mobjB,                               ///< ChContactable object B
+                     const collision::ChCollisionInfo& cinfo  ///< data for the contact pair
+    ) {
         assert(mobjA);
         assert(mobjB);
 

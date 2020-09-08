@@ -31,8 +31,8 @@
 #include "chrono_irrlicht/ChIrrApp.h"
 
 #include "chrono_vehicle/ChApiVehicle.h"
-#include "chrono_vehicle/ChPowertrain.h"
 #include "chrono_vehicle/ChVehicle.h"
+#include "chrono_vehicle/ChDriver.h"
 
 #ifdef CHRONO_IRRKLANG
 #include <irrKlang.h>
@@ -56,12 +56,11 @@ class ChCameraEventReceiver;  ///< custom event receiver for chase-cam control
 class CH_VEHICLE_API ChVehicleIrrApp : public irrlicht::ChIrrApp {
   public:
     /// Construct a vehicle Irrlicht application.
-    ChVehicleIrrApp(
-        ChVehicle* vehicle,        ///< pointer to the associated vehicle system
-        ChPowertrain* powertrain,  ///< pointer to the associated powertrain system
-        const wchar_t* title = 0,  ///< window title
-        irr::core::dimension2d<irr::u32> dims = irr::core::dimension2d<irr::u32>(1000, 800),  ///< window dimensions
-        irr::ELOG_LEVEL log_level = irr::ELL_INFORMATION  ///< Irrlicht logging level
+    ChVehicleIrrApp(ChVehicle* vehicle,                              ///< pointer to the associated vehicle system
+                    const std::wstring& title = L"Chrono::Vehicle",  ///< window title
+                    const irr::core::dimension2d<irr::u32>& dims =
+                        irr::core::dimension2d<irr::u32>(1000, 800),  ///< window dimensions
+                    irr::ELOG_LEVEL log_level = irr::ELL_INFORMATION  ///< Irrlicht logging level
     );
 
     virtual ~ChVehicleIrrApp();
@@ -93,14 +92,8 @@ class CH_VEHICLE_API ChVehicleIrrApp : public irrlicht::ChIrrApp {
         m_HUD_y = HUD_y;
     }
 
-    /// Turn on/off rendering of the grid.
-    void EnableGrid(bool val) { m_renderGrid = val; }
-
     /// Turn on/off rendering of stats (HUD).
     void EnableStats(bool val) { m_renderStats = val; }
-
-    /// Set the height at which the horizontal grid is rendered.
-    void SetGridHeight(double height) { m_gridHeight = height; }
 
     /// Turn on/off Irrklang sound generation.
     /// Note that this has an effect only if Irrklang support was enabled at configuration.
@@ -109,8 +102,14 @@ class CH_VEHICLE_API ChVehicleIrrApp : public irrlicht::ChIrrApp {
     /// Render the Irrlicht scene and additional visual elements.
     virtual void DrawAll() override;
 
+    /// Render a horizontal grid at the specified location.
+    void RenderGrid(const ChVector<>& loc, int num_divs, double delta);
+
+    /// Render a reference frame (aligned with the world frame) at the specified location.
+    void RenderFrame(const ChVector<>& loc, double axis_length = 1);
+
     /// Update information related to driver inputs.
-    void Synchronize(const std::string& msg, double steering, double throttle, double braking);
+    void Synchronize(const std::string& msg, const ChDriver::Inputs& driver_inputs);
 
     /// Advance the dynamics of the chase camera.
     /// The integration of the underlying ODEs is performed using as many steps as needed to advance
@@ -143,11 +142,9 @@ class CH_VEHICLE_API ChVehicleIrrApp : public irrlicht::ChIrrApp {
                        int height = 15,
                        irr::video::SColor color = irr::video::SColor(255, 20, 20, 20));
 
-    ChVehicle* m_vehicle;        ///< pointer to the associated vehicle system
-    ChPowertrain* m_powertrain;  ///< pointer to the associated powertrain system
+    ChVehicle* m_vehicle;  ///< pointer to the associated vehicle system
 
   protected:
-    void renderGrid();
     void renderStats();
 
     utils::ChChaseCamera m_camera;            ///< chase camera
@@ -155,10 +152,7 @@ class CH_VEHICLE_API ChVehicleIrrApp : public irrlicht::ChIrrApp {
 
     double m_stepsize;  ///< integration step size for chase-cam dynamics
 
-    bool m_renderGrid;     ///< turn on/off rendering of grid
     bool m_renderStats;    ///< turn on/off rendering of stats
-
-    double m_gridHeight;  ///< height of grid
 
     int m_HUD_x;  ///< x-coordinate of upper-left corner of HUD elements
     int m_HUD_y;  ///< y-coordinate of upper-left corner of HUD elements

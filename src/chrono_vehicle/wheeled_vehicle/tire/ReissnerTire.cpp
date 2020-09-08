@@ -23,8 +23,6 @@
 #include "chrono_vehicle/wheeled_vehicle/tire/ReissnerTire.h"
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
 
-#include "chrono_thirdparty/rapidjson/filereadstream.h"
-
 using namespace chrono::fea;
 using namespace rapidjson;
 
@@ -35,15 +33,9 @@ namespace vehicle {
 // Constructors for ReissnerTire
 // -----------------------------------------------------------------------------
 ReissnerTire::ReissnerTire(const std::string& filename) : ChReissnerTire("") {
-    FILE* fp = fopen(filename.c_str(), "r");
-
-    char readBuffer[65536];
-    FileReadStream is(fp, readBuffer, sizeof(readBuffer));
-
-    fclose(fp);
-
-    Document d;
-    d.ParseStream<ParseFlag::kParseCommentsFlag>(is);
+    Document d = ReadFileJSON(filename);
+    if (d.IsNull())
+        return;
 
     ProcessJSON(d);
 
@@ -72,25 +64,10 @@ void ReissnerTire::ProcessJSON(const rapidjson::Document& d) {
 
     // Read contact material data
     assert(d.HasMember("Contact Material"));
+    m_mat_info = ReadMaterialInfoJSON(d["Contact Material"]);
 
-    float mu = d["Contact Material"]["Coefficient of Friction"].GetFloat();
-    float cr = d["Contact Material"]["Coefficient of Restitution"].GetFloat();
-
-    SetContactFrictionCoefficient(mu);
-    SetContactRestitutionCoefficient(cr);
-
-    if (d["Contact Material"].HasMember("Properties")) {
-        float ym = d["Contact Material"]["Properties"]["Young Modulus"].GetFloat();
-        float pr = d["Contact Material"]["Properties"]["Poisson Ratio"].GetFloat();
-        SetContactMaterialProperties(ym, pr);
-    }
-    if (d["Contact Material"].HasMember("Coefficients")) {
-        float kn = d["Contact Material"]["Coefficients"]["Normal Stiffness"].GetFloat();
-        float gn = d["Contact Material"]["Coefficients"]["Normal Damping"].GetFloat();
-        float kt = d["Contact Material"]["Coefficients"]["Tangential Stiffness"].GetFloat();
-        float gt = d["Contact Material"]["Coefficients"]["Tangential Damping"].GetFloat();
-        SetContactMaterialCoefficients(kn, gn, kt, gt);
-    }
+	// Structural damping
+    m_alpha = d["Structural Damping Coefficient"].GetDouble();
 
     // Read the list of materials (note that order is important)
     int num_materials = d["Materials"].Size();
@@ -101,7 +78,9 @@ void ReissnerTire::ProcessJSON(const rapidjson::Document& d) {
             double rho = d["Materials"][i]["Density"].GetDouble();
             double E = d["Materials"][i]["E"].GetDouble();
             double nu = d["Materials"][i]["nu"].GetDouble();
-            m_materials[i] = std::make_shared<ChMaterialShellReissnerIsothropic>(rho, E, nu);
+            m_materials[i] = chrono_types::make_shared<ChMaterialShellReissnerIsothropic>(rho, E, nu);
+			auto mdamping = chrono_types::make_shared<ChDampingReissnerRayleigh>(m_materials[i]->GetElasticity(),m_alpha);
+			m_materials[i]->SetDamping(mdamping);
         } else if (type.compare("Orthotropic") == 0) {
             double rho = d["Materials"][i]["Density"].GetDouble();
             double Ex = d["Materials"][i]["Ex"].GetDouble();
@@ -110,12 +89,11 @@ void ReissnerTire::ProcessJSON(const rapidjson::Document& d) {
             double Gxy =d["Materials"][i]["Gxy"].GetDouble();
             double Gxz =d["Materials"][i]["Gxz"].GetDouble();
             double Gyz =d["Materials"][i]["Gyz"].GetDouble();
-            m_materials[i] = std::make_shared<ChMaterialShellReissnerOrthotropic>(rho, Ex, Ey, nu, Gxy, Gxz, Gyz);
+            m_materials[i] = chrono_types::make_shared<ChMaterialShellReissnerOrthotropic>(rho, Ex, Ey, nu, Gxy, Gxz, Gyz);
+			auto mdamping = chrono_types::make_shared<ChDampingReissnerRayleigh>(m_materials[i]->GetElasticity(),m_alpha);
+			m_materials[i]->SetDamping(mdamping);
         }
-    }
-
-    // Structural damping
-    m_alpha = d["Structural Damping Coefficient"].GetDouble();
+    }  
 
     // Default tire pressure
     m_default_pressure = d["Default Pressure"].GetDouble();
@@ -272,7 +250,7 @@ void AttachNodeToShell(std::shared_ptr<ChMesh> m_mesh, std::shared_ptr<ChNodeFEA
              }
          }
     }
-    auto mlink = std::make_shared<ChLinkPointTrifaceRot>();
+    auto mlink = chrono_types::make_shared<ChLinkPointTrifaceRot>();
     mlink->Initialize(m_node, best_fit_n1, best_fit_n2, best_fit_n3);
     m_mesh->GetSystem()->Add(mlink);
 }
@@ -313,7 +291,7 @@ void ReissnerTire::CreateMesh(const ChFrameMoving<>& wheel_frame, VehicleSide si
             ChVector<> nrm_prf = Vcross(tan_prf, nrm).GetNormalized();
             ChVector<> dir = wheel_frame.TransformDirectionLocalToParent(nrm_prf);
             ChMatrix33<> mrot; mrot.Set_A_Xdir(tan_prf,nrm_prf);
-            auto node = std::make_shared<ChNodeFEAxyzrot>(ChFrame<>(loc, mrot));
+            auto node = chrono_types::make_shared<ChNodeFEAxyzrot>(ChFrame<>(loc, mrot));
 
             // Node velocity
             ChVector<> vel = wheel_frame.PointSpeedLocalToParent(ChVector<>(x, y, z));
@@ -344,7 +322,7 @@ void ReissnerTire::CreateMesh(const ChFrameMoving<>& wheel_frame, VehicleSide si
             auto node3 = std::dynamic_pointer_cast<ChNodeFEAxyzrot>(m_mesh->GetNode(inode3));
 
             // Create the element and set its nodes.
-            auto element = std::make_shared<ChElementShellReissner4>();
+            auto element = chrono_types::make_shared<ChElementShellReissner4>();
             element->SetNodes(node0, node1, node2, node3);
 
             // Figure out the section for this element
@@ -372,8 +350,7 @@ void ReissnerTire::CreateMesh(const ChFrameMoving<>& wheel_frame, VehicleSide si
                 }
             }
 
-            // Set other element properties
-            element->SetAlphaDamp(m_alpha);
+
             //***TODO*** add gravity load 
             //element->SetGravityOn(true); 
 
@@ -387,7 +364,7 @@ void ReissnerTire::CreateMesh(const ChFrameMoving<>& wheel_frame, VehicleSide si
     //
 
     // Create a material for lugs
-    auto m_lugs_material = std::make_shared<ChContinuumElastic>();
+    auto m_lugs_material = chrono_types::make_shared<ChContinuumElastic>();
     m_lugs_material->Set_E(lugs_young);  
     m_lugs_material->Set_v(lugs_poisson);
     m_lugs_material->Set_RayleighDampingK(lugs_damping);
@@ -423,7 +400,7 @@ void ReissnerTire::CreateMesh(const ChFrameMoving<>& wheel_frame, VehicleSide si
                 // Node position in global frame (actual coordinate values)
                 ChVector<> loc = wheel_frame.TransformPointLocalToParent(ChVector<>(x, y, z));
                 ChVector<> vel = wheel_frame.PointSpeedLocalToParent(ChVector<>(x, y, z));
-                auto node1 = std::make_shared<ChNodeFEAxyz>(loc);
+                auto node1 = chrono_types::make_shared<ChNodeFEAxyz>(loc);
                 node1->SetPos_dt(vel);
                 m_mesh->AddNode(node1);
                 // attach to underlying shells
@@ -440,7 +417,7 @@ void ReissnerTire::CreateMesh(const ChFrameMoving<>& wheel_frame, VehicleSide si
                 // Node position in global frame (actual coordinate values)
                 loc = wheel_frame.TransformPointLocalToParent(ChVector<>(x, y, z));
                 vel = wheel_frame.PointSpeedLocalToParent(ChVector<>(x, y, z));
-                auto node2 = std::make_shared<ChNodeFEAxyz>(loc);
+                auto node2 = chrono_types::make_shared<ChNodeFEAxyz>(loc);
                 node2->SetPos_dt(vel);
                 m_mesh->AddNode(node2);
                 // attach to underlying shells
@@ -457,7 +434,7 @@ void ReissnerTire::CreateMesh(const ChFrameMoving<>& wheel_frame, VehicleSide si
                 // Node position in global frame (actual coordinate values)
                 loc = wheel_frame.TransformPointLocalToParent(ChVector<>(x, y, z));
                 vel = wheel_frame.PointSpeedLocalToParent(ChVector<>(x, y, z));
-                auto node3 = std::make_shared<ChNodeFEAxyz>(loc);
+                auto node3 = chrono_types::make_shared<ChNodeFEAxyz>(loc);
                 node3->SetPos_dt(vel);
                 m_mesh->AddNode(node3);
 
@@ -472,13 +449,13 @@ void ReissnerTire::CreateMesh(const ChFrameMoving<>& wheel_frame, VehicleSide si
                 // Node position in global frame (actual coordinate values)
                 loc = wheel_frame.TransformPointLocalToParent(ChVector<>(x, y, z));
                 vel = wheel_frame.PointSpeedLocalToParent(ChVector<>(x, y, z));
-                auto node4 = std::make_shared<ChNodeFEAxyz>(loc);
+                auto node4 = chrono_types::make_shared<ChNodeFEAxyz>(loc);
                 node4->SetPos_dt(vel);
                 m_mesh->AddNode(node4);
 
                 // create the hexahedron element
                 if (is>0) {
-                    auto helement1 = std::make_shared<ChElementHexa_8>();
+                    auto helement1 = chrono_types::make_shared<ChElementHexa_8>();
                     helement1->SetNodes(n1, n2, n3, n4, node1, node2, node3, node4);
                     helement1->SetMaterial(m_lugs_material);
                     m_mesh->AddElement(helement1);
@@ -512,6 +489,19 @@ std::vector<std::shared_ptr<fea::ChNodeFEAbase>> ReissnerTire::GetConnectedNodes
 
     return nodes;
 }
+
+void ReissnerTire::CreateContactMaterial() {
+    m_contact_mat = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+    m_contact_mat->SetFriction(m_mat_info.mu);
+    m_contact_mat->SetRestitution(m_mat_info.cr);
+    m_contact_mat->SetYoungModulus(m_mat_info.Y);
+    m_contact_mat->SetPoissonRatio(m_mat_info.nu);
+    m_contact_mat->SetKn(m_mat_info.kn);
+    m_contact_mat->SetGn(m_mat_info.gn);
+    m_contact_mat->SetKt(m_mat_info.kt);
+    m_contact_mat->SetGt(m_mat_info.gt);
+}
+
 
 }  // end namespace vehicle
 }  // end namespace chrono

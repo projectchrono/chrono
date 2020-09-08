@@ -23,7 +23,7 @@
 #include <algorithm>
 #include <cmath>
 
-#include "chrono/physics/ChGlobal.h"
+#include "chrono/core/ChGlobal.h"
 
 #include "chrono_vehicle/wheeled_vehicle/tire/ChLugreTire.h"
 
@@ -40,8 +40,8 @@ ChLugreTire::ChLugreTire(const std::string& name) : ChTire(name) {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChLugreTire::Initialize(std::shared_ptr<ChBody> wheel, VehicleSide side) {
-    ChTire::Initialize(wheel, side);
+void ChLugreTire::Initialize(std::shared_ptr<ChWheel> wheel) {
+    ChTire::Initialize(wheel);
 
     m_data.resize(GetNumDiscs());
     m_state.resize(GetNumDiscs());
@@ -67,31 +67,32 @@ void ChLugreTire::AddVisualizationAssets(VisualizationType vis) {
 
     m_cyl_shapes.resize(GetNumDiscs());
     for (int id = 0; id < GetNumDiscs(); id++) {
-        m_cyl_shapes[id] = std::make_shared<ChCylinderShape>();
+        m_cyl_shapes[id] = chrono_types::make_shared<ChCylinderShape>();
         m_cyl_shapes[id]->GetCylinderGeometry().rad = disc_radius;
-        m_cyl_shapes[id]->GetCylinderGeometry().p1 = ChVector<>(0, disc_locs[id] + discWidth / 2, 0);
-        m_cyl_shapes[id]->GetCylinderGeometry().p2 = ChVector<>(0, disc_locs[id] - discWidth / 2, 0);
-        m_wheel->AddAsset(m_cyl_shapes[id]);
+        m_cyl_shapes[id]->GetCylinderGeometry().p1 = ChVector<>(0, GetOffset() + disc_locs[id] + discWidth / 2, 0);
+        m_cyl_shapes[id]->GetCylinderGeometry().p2 = ChVector<>(0, GetOffset() + disc_locs[id] - discWidth / 2, 0);
+        m_wheel->GetSpindle()->AddAsset(m_cyl_shapes[id]);
     }
 
-    m_texture = std::make_shared<ChTexture>();
+    m_texture = chrono_types::make_shared<ChTexture>();
     m_texture->SetTextureFilename(GetChronoDataFile("greenwhite.png"));
-    m_wheel->AddAsset(m_texture);
+    m_wheel->GetSpindle()->AddAsset(m_texture);
 }
 
 void ChLugreTire::RemoveVisualizationAssets() {
     // Make sure we only remove the assets added by ChLugreTire::AddVisualizationAssets.
     // This is important for the ChTire object because a wheel may add its own assets
     // to the same body (the spindle/wheel).
+    auto& assets = m_wheel->GetSpindle()->GetAssets();
     for (int id = 0; id < m_cyl_shapes.size(); id++) {
-        auto it = std::find(m_wheel->GetAssets().begin(), m_wheel->GetAssets().end(), m_cyl_shapes[id]);
-        if (it != m_wheel->GetAssets().end())
-            m_wheel->GetAssets().erase(it);
+        auto it = std::find(assets.begin(), assets.end(), m_cyl_shapes[id]);
+        if (it != assets.end())
+            assets.erase(it);
     }
     {
-        auto it = std::find(m_wheel->GetAssets().begin(), m_wheel->GetAssets().end(), m_texture);
-        if (it != m_wheel->GetAssets().end())
-            m_wheel->GetAssets().erase(it);
+        auto it = std::find(assets.begin(), assets.end(), m_texture);
+        if (it != assets.end())
+            assets.erase(it);
     }
     m_cyl_shapes.clear();
 }
@@ -105,20 +106,12 @@ double ChLugreTire::GetWidth() const {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChLugreTire::Synchronize(double time,
-                              const WheelState& wheel_state,
-                              const ChTerrain& terrain,
-                              CollisionType collision_type) {
-    // Invoke the base class function.
-    ChTire::Synchronize(time, wheel_state, terrain);
+                              const ChTerrain& terrain) {
+    WheelState wheel_state = m_wheel->GetState();
+    CalculateKinematics(time, wheel_state, terrain);
 
     double disc_radius = GetRadius();
     const double* disc_locs = GetDiscLocations();
-
-    // Clear the force accumulators and set the application point to the wheel
-    // center.
-    m_tireForce.force = ChVector<>(0, 0, 0);
-    m_tireForce.moment = ChVector<>(0, 0, 0);
-    m_tireForce.point = wheel_state.pos;
 
     // Extract the wheel normal (expressed in global frame)
     ChMatrix33<> A(wheel_state.rot);
@@ -138,26 +131,16 @@ void ChLugreTire::Synchronize(double time,
         if (!m_data[id].in_contact)
             continue;
 
-        // Relative velocity at contact point (expressed in the global frame and in
-        // the contact frame)
+        // Relative velocity at contact point (expressed in the global frame and in the contact frame)
         ChVector<> vel = wheel_state.lin_vel + Vcross(wheel_state.ang_vel, m_data[id].frame.pos - wheel_state.pos);
         m_data[id].vel = m_data[id].frame.TransformDirectionParentToLocal(vel);
 
-        // Generate normal contact force and add to accumulators (recall, all forces
-        // are reduced to the wheel center). If the resulting force is negative, the
-        // disc is moving away from the terrain so fast that no contact force is
-        // generated.
-        double Fn_mag = GetNormalStiffness() * depth - GetNormalDamping() * m_data[id].vel.z();
-
+        // Calculate normal contact force. If the resulting force is negative, the disc is moving away from the terrain
+        // so fast that no contact force is generated.
+        double Fn_mag = (GetNormalStiffness() * depth - GetNormalDamping() * m_data[id].vel.z()) / GetNumDiscs();
         if (Fn_mag < 0)
             Fn_mag = 0;
-
-        ChVector<> Fn = Fn_mag * m_data[id].frame.rot.GetZaxis();
-
         m_data[id].normal_force = Fn_mag;
-
-        m_tireForce.force += Fn;
-        m_tireForce.moment += Vcross(m_data[id].frame.pos - m_tireForce.point, Fn);
 
         // ODE coefficients for longitudinal direction: z' = a + b * z
         {
@@ -181,6 +164,11 @@ void ChLugreTire::Synchronize(double time,
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChLugreTire::Advance(double step) {
+    // Set tire forces to zero.
+    m_tireForce.point = m_wheel->GetPos();
+    m_tireForce.force = ChVector<>(0, 0, 0);
+    m_tireForce.moment = ChVector<>(0, 0, 0);
+
     for (int id = 0; id < GetNumDiscs(); id++) {
         // Nothing to do if this disc is not in contact
         if (!m_data[id].in_contact)
@@ -224,6 +212,9 @@ void ChLugreTire::Advance(double step) {
 
         // Magnitude of normal contact force for this disc
         double Fn_mag = m_data[id].normal_force;
+        ChVector<> Fn = Fn_mag * m_data[id].frame.rot.GetZaxis();
+        m_tireForce.force += Fn;
+        m_tireForce.moment += Vcross(m_data[id].frame.pos - m_tireForce.point, Fn);
 
         // Evaluate friction force and add to accumulators for tire force
         {

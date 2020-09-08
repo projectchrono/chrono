@@ -18,7 +18,7 @@
 
 #pragma once
 
-#include "chrono/collision/ChCCollisionModel.h"
+#include "chrono/collision/ChCollisionModel.h"
 #include "chrono_parallel/collision/ChDataStructures.h"
 
 namespace chrono {
@@ -264,37 +264,37 @@ inline real3 SupportVertNoMargin(const chrono::collision::ConvexBase* Shape, con
     real3 localSupport;
     real3 n = Normalize(nv);
     switch (Shape->Type()) {
-        case chrono::collision::SPHERE:
+        case ChCollisionShape::Type::SPHERE:
             localSupport = GetSupportPoint_Sphere(Shape->Radius(), n);
             break;
-        case chrono::collision::ELLIPSOID:
+        case ChCollisionShape::Type::ELLIPSOID:
             localSupport = GetSupportPoint_Ellipsoid(Shape->Box(), n);
             break;
-        case chrono::collision::BOX:
+        case ChCollisionShape::Type::BOX:
             localSupport = GetSupportPoint_Box(Shape->Box(), n);
             break;
-        case chrono::collision::CYLINDER:
+        case ChCollisionShape::Type::CYLINDER:
             localSupport = GetSupportPoint_Cylinder(Shape->Box(), n);
             break;
-        case chrono::collision::CONE:
+        case ChCollisionShape::Type::CONE:
             localSupport = GetSupportPoint_Cone(Shape->Box(), n);
             break;
-        case chrono::collision::CAPSULE:
+        case ChCollisionShape::Type::CAPSULE:
             localSupport = GetSupportPoint_Capsule(Shape->Capsule(), n);
             break;
-        case chrono::collision::ROUNDEDBOX:
+        case ChCollisionShape::Type::ROUNDEDBOX:
             localSupport = GetSupportPoint_RoundedBox(Shape->Rbox(), n);
             break;
-        case chrono::collision::ROUNDEDCYL:
+        case ChCollisionShape::Type::ROUNDEDCYL:
             localSupport = GetSupportPoint_RoundedCylinder(Shape->Rbox(), n);
             break;
-        case chrono::collision::ROUNDEDCONE:
+        case ChCollisionShape::Type::ROUNDEDCONE:
             localSupport = GetSupportPoint_RoundedCone(Shape->Rbox(), n);
             break;
-        case chrono::collision::CONVEX:
+        case ChCollisionShape::Type::CONVEX:
             localSupport = GetSupportPoint_Convex(Shape->Size(), Shape->Convex(), n);
             break;
-        case chrono::collision::TETRAHEDRON:
+        case ChCollisionShape::Type::TETRAHEDRON:
             localSupport = GetSupportPoint_Tetrahedron(Shape->TetIndex(), Shape->TetNodes(), n);
             break;
     }
@@ -314,7 +314,7 @@ inline real3 TransformSupportVert(const chrono::collision::ConvexBase* Shape, co
     real3 localSupport;
 
     switch (Shape->Type()) {
-        case chrono::collision::TRIANGLEMESH: {
+        case ChCollisionShape::Type::TRIANGLE: {
             // Triangles are handled differently than other convex shapes but they
             // still have an envelope around them. Prior to this there was no way
             // to define envelopes for triangle meshes.

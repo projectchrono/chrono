@@ -26,8 +26,11 @@
 #include "chrono_models/vehicle/m113/M113_SimplePowertrain.h"
 #include "chrono_models/vehicle/m113/M113_Vehicle.h"
 
+#ifdef CHRONO_IRRLICHT
 #include "chrono_vehicle/driver/ChIrrGuiDriver.h"
 #include "chrono_vehicle/tracked_vehicle/utils/ChTrackedVehicleIrrApp.h"
+#define USE_IRRLICHT
+#endif
 
 #ifdef CHRONO_MUMPS
 #include "chrono_mumps/ChSolverMumps.h"
@@ -38,8 +41,6 @@
 #endif
 
 #include "chrono_thirdparty/filesystem/path.h"
-
-#define USE_IRRLICHT
 
 using namespace chrono;
 using namespace chrono::vehicle;
@@ -116,7 +117,7 @@ int main(int argc, char* argv[]) {
     // --------------------------
 
     ChassisCollisionType chassis_collision_type = ChassisCollisionType::PRIMITIVES;
-    M113_Vehicle vehicle(false, TrackShoeType::BAND_BUSHING, ChMaterialSurface::SMC, chassis_collision_type);
+    M113_Vehicle vehicle(false, TrackShoeType::BAND_BUSHING, BrakeType::SIMPLE, ChContactMethod::SMC, chassis_collision_type);
 
     // Disable gravity in this simulation
     ////vehicle.GetSystem()->Set_G_acc(ChVector<>(0, 0, 0));
@@ -171,11 +172,12 @@ int main(int argc, char* argv[]) {
     // ------------------
 
     RigidTerrain terrain(vehicle.GetSystem());
-    auto patch = terrain.AddPatch(ChCoordsys<>(ChVector<>(0, 0, -5), QUNIT),
-                                  ChVector<>(terrainLength, terrainWidth, 10));
-    patch->SetContactFrictionCoefficient(0.9f);
-    patch->SetContactRestitutionCoefficient(0.01f);
-    patch->SetContactMaterialProperties(2e7f, 0.3f);
+    auto patch_mat = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+    patch_mat->SetFriction(0.9f);
+    patch_mat->SetRestitution(0.01f);
+    patch_mat->SetYoungModulus(2e7f);
+    patch_mat->SetPoissonRatio(0.3f);
+    auto patch = terrain.AddPatch(patch_mat, ChVector<>(0, 0, 0), ChVector<>(0, 0, 1), terrainLength, terrainWidth);
     patch->SetColor(ChColor(0.5f, 0.8f, 0.5f));
     patch->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 200, 200);
     terrain.Initialize();
@@ -190,15 +192,15 @@ int main(int argc, char* argv[]) {
     // Create the powertrain system
     // ----------------------------
 
-    M113_SimplePowertrain powertrain("powertrain");
-    powertrain.Initialize(vehicle.GetChassisBody(), vehicle.GetDriveshaft());
+    auto powertrain = chrono_types::make_shared<M113_SimplePowertrain>("powertrain");
+    vehicle.InitializePowertrain(powertrain);
 
 #ifdef USE_IRRLICHT
     // ---------------------------------------
     // Create the vehicle Irrlicht application
     // ---------------------------------------
 
-    ChTrackedVehicleIrrApp app(&vehicle, &powertrain, L"M113 Band-track Vehicle Demo");
+    ChTrackedVehicleIrrApp app(&vehicle, L"M113 Band-track Vehicle Demo");
     app.SetSkyBox();
     irrlicht::ChIrrWizard::add_typical_Logo(app.GetDevice());
     app.AddTypicalLights(irr::core::vector3df(30.f, -30.f, 100.f), irr::core::vector3df(30.f, 50.f, 100.f), 250, 130);
@@ -290,8 +292,8 @@ int main(int argc, char* argv[]) {
     switch (solver_type) {
 #ifdef CHRONO_MUMPS
         case MUMPS: {
-            auto mumps_solver = std::make_shared<ChSolverMumps>();
-            mumps_solver->SetSparsityPatternLock(true);
+            auto mumps_solver = chrono_types::make_shared<ChSolverMumps>();
+            mumps_solver->LockSparsityPattern(true);
             mumps_solver->SetVerbose(verbose_solver);
             vehicle.GetSystem()->SetSolver(mumps_solver);
             break;
@@ -299,8 +301,8 @@ int main(int argc, char* argv[]) {
 #endif
 #ifdef CHRONO_MKL
         case MKL: {
-            auto mkl_solver = std::make_shared<ChSolverMKL<>>();
-            mkl_solver->SetSparsityPatternLock(true);
+            auto mkl_solver = chrono_types::make_shared<ChSolverMKL>();
+            mkl_solver->LockSparsityPattern(true);
             mkl_solver->SetVerbose(verbose_solver);
             vehicle.GetSystem()->SetSolver(mkl_solver);
             break;
@@ -322,9 +324,6 @@ int main(int argc, char* argv[]) {
     // ---------------
     // Simulation loop
     // ---------------
-
-    // IMPORTANT: Mark completion of system construction
-    vehicle.GetSystem()->SetupInitial();
 
     // Inter-module communication data
     BodyStates shoe_states_left(vehicle.GetNumTrackShoes(LEFT));
@@ -413,11 +412,7 @@ int main(int argc, char* argv[]) {
         }
 
         // Collect data from modules
-        double throttle_input = driver.GetThrottle();
-        double steering_input = driver.GetSteering();
-        double braking_input = driver.GetBraking();
-        double powertrain_torque = powertrain.GetOutputTorque();
-        double driveshaft_speed = vehicle.GetDriveshaftSpeed();
+        ChDriver::Inputs driver_inputs = driver.GetInputs();
         vehicle.GetTrackShoeStates(LEFT, shoe_states_left);
         vehicle.GetTrackShoeStates(RIGHT, shoe_states_right);
 
@@ -425,17 +420,14 @@ int main(int argc, char* argv[]) {
         double time = vehicle.GetChTime();
         driver.Synchronize(time);
         terrain.Synchronize(time);
-        powertrain.Synchronize(time, throttle_input, driveshaft_speed);
-        vehicle.Synchronize(time, steering_input, braking_input, powertrain_torque, shoe_forces_left,
-                            shoe_forces_right);
+        vehicle.Synchronize(time, driver_inputs, shoe_forces_left, shoe_forces_right);
 #ifdef USE_IRRLICHT
-        app.Synchronize("", steering_input, throttle_input, braking_input);
+        app.Synchronize("", driver_inputs);
 #endif
 
         // Advance simulation for one timestep for all modules
         driver.Advance(step_size);
         terrain.Advance(step_size);
-        powertrain.Advance(step_size);
         vehicle.Advance(step_size);
 #ifdef USE_IRRLICHT
         app.Advance(step_size);
@@ -474,14 +466,10 @@ int main(int argc, char* argv[]) {
 }
 
 // =============================================================================
+
 void AddFixedObstacles(ChSystem* system) {
     double radius = 2.2;
     double length = 6;
-
-    float friction_coefficient = 0.9f;
-    float restitution_coefficient = 0.01f;
-    float young_modulus = 2e7f;
-    float poisson_ratio = 0.3f;
 
     auto obstacle = std::shared_ptr<ChBody>(system->NewBody());
     obstacle->SetPos(ChVector<>(10, 0, -1.8));
@@ -489,40 +477,33 @@ void AddFixedObstacles(ChSystem* system) {
     obstacle->SetCollide(true);
 
     // Visualization
-    auto shape = std::make_shared<ChCylinderShape>();
+    auto shape = chrono_types::make_shared<ChCylinderShape>();
     shape->GetCylinderGeometry().p1 = ChVector<>(0, -length * 0.5, 0);
     shape->GetCylinderGeometry().p2 = ChVector<>(0, length * 0.5, 0);
     shape->GetCylinderGeometry().rad = radius;
     obstacle->AddAsset(shape);
 
-    auto color = std::make_shared<ChColorAsset>();
+    auto color = chrono_types::make_shared<ChColorAsset>();
     color->SetColor(ChColor(1, 1, 1));
     obstacle->AddAsset(color);
 
 #ifdef USE_IRRLICHT
-    auto texture = std::make_shared<ChTexture>();
+    auto texture = chrono_types::make_shared<ChTexture>();
     texture->SetTextureFilename(vehicle::GetDataFile("terrain/textures/tile4.jpg"));
     texture->SetTextureScale(10, 10);
     obstacle->AddAsset(texture);
 #endif
 
     // Contact
-    obstacle->GetCollisionModel()->ClearModel();
-    obstacle->GetCollisionModel()->AddCylinder(radius, radius, length * 0.5);
-    obstacle->GetCollisionModel()->BuildModel();
+    auto obst_mat = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+    obst_mat->SetFriction(0.9f);
+    obst_mat->SetRestitution(0.01f);
+    obst_mat->SetYoungModulus(2e7f);
+    obst_mat->SetPoissonRatio(0.3f);
 
-    switch (obstacle->GetContactMethod()) {
-        case ChMaterialSurface::NSC:
-            obstacle->GetMaterialSurfaceNSC()->SetFriction(friction_coefficient);
-            obstacle->GetMaterialSurfaceNSC()->SetRestitution(restitution_coefficient);
-            break;
-        case ChMaterialSurface::SMC:
-            obstacle->GetMaterialSurfaceSMC()->SetFriction(friction_coefficient);
-            obstacle->GetMaterialSurfaceSMC()->SetRestitution(restitution_coefficient);
-            obstacle->GetMaterialSurfaceSMC()->SetYoungModulus(young_modulus);
-            obstacle->GetMaterialSurfaceSMC()->SetPoissonRatio(poisson_ratio);
-            break;
-    }
+    obstacle->GetCollisionModel()->ClearModel();
+    obstacle->GetCollisionModel()->AddCylinder(obst_mat, radius, radius, length * 0.5);
+    obstacle->GetCollisionModel()->BuildModel();
 
     system->AddBody(obstacle);
 }

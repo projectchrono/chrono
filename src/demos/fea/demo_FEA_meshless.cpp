@@ -142,14 +142,13 @@ int main(int argc, char* argv[]) {
 
     // Modify some setting of the physical system for the simulation, if you want
 
-    mphysicalSystem.SetMaxItersSolverSpeed(25);  // lower the LCP iters, no needed here
+    mphysicalSystem.SetSolverMaxIterations(25);  // lower the LCP iters, no needed here
 
     //
     // THE SOFT-REAL-TIME CYCLE
     //
 
     static int printed_prox = 0;
-    application.SetStepManage(true);
     application.SetTimestep(0.002);
 
     while (application.GetDevice()->run()) {

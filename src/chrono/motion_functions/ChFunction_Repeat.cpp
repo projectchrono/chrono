@@ -20,7 +20,7 @@ namespace chrono {
 CH_FACTORY_REGISTER(ChFunction_Repeat)
 
 ChFunction_Repeat::ChFunction_Repeat() : window_start(0), window_length(1), window_phase(0) {
-    fa = std::make_shared<ChFunction_Const>();  // default
+    fa = chrono_types::make_shared<ChFunction_Const>();  // default
 }
 
 ChFunction_Repeat::ChFunction_Repeat(const ChFunction_Repeat& other) {

@@ -90,6 +90,12 @@ class CH_VEHICLE_API ChSprocket : public ChPart {
     /// Get the mass of the sprocket subsystem.
     virtual double GetMass() const;
 
+    /// Get the sprocket contact material.
+    std::shared_ptr<ChMaterialSurface> GetContactMaterial() const { return m_material; }
+
+    /// Disable lateral contact for preventing detracking (default: enabled).
+    void DisableLateralContact() { m_lateral_contact = false; }
+
     /// Initialize this sprocket subsystem.
     /// The sprocket subsystem is initialized by attaching it to the specified
     /// chassis body at the specified location (with respect to and expressed in
@@ -127,6 +133,9 @@ class CH_VEHICLE_API ChSprocket : public ChPart {
     /// Return the distance between the two gear profiles.
     virtual double GetSeparation() const = 0;
 
+    /// Return the allowed backlash (play) before lateral contact with track shoes is enabled (to prevent detracking).
+    virtual double GetLateralBacklash() const = 0;
+
     /// Return the 2D gear profile.
     /// The gear profile, a ChLinePath geometric object, is made up of an arbitrary number
     /// of sub-paths of type ChLineArc or ChLineSegment sub-lines. These must be added in
@@ -134,13 +143,13 @@ class CH_VEHICLE_API ChSprocket : public ChPart {
     /// sub-path i+1.
     virtual std::shared_ptr<geometry::ChLinePath> GetProfile() = 0;
 
+    /// Create the contact material consistent with the specified contact method.
+    virtual void CreateContactMaterial(ChContactMethod contact_method) = 0;
+
     /// Return the custom collision callback object.
-    /// Note that the derived need not delete this object (it is deleted in the
-    /// destructor of this base class).
-    virtual ChSystem::CustomCollisionCallback* GetCollisionCallback(
+    virtual std::shared_ptr<ChSystem::CustomCollisionCallback> GetCollisionCallback(
         ChTrackAssembly* track  ///< [in] pointer to containing track assembly
         ) = 0;
-
 
     virtual void ExportComponentList(rapidjson::Document& jsonDocument) const override;
 
@@ -150,8 +159,9 @@ class CH_VEHICLE_API ChSprocket : public ChPart {
     std::shared_ptr<ChShaft> m_axle;                  ///< handle to gear shafts
     std::shared_ptr<ChShaftsBody> m_axle_to_spindle;  ///< handle to gear-shaft connector
     std::shared_ptr<ChLinkLockRevolute> m_revolute;   ///< handle to sprocket revolute joint
+    std::shared_ptr<ChMaterialSurface> m_material;    ///< contact material;
 
-    ChSystem::CustomCollisionCallback* m_callback;  ///< custom collision functor object
+    bool m_lateral_contact;  ///< if 'true', enable lateral conatact to prevent detracking
 
     friend class ChTrackAssembly;
 };

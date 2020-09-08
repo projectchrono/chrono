@@ -75,7 +75,7 @@ class ChApi ChNodeFEAcurv : public ChNodeFEAbase {
 
     /// Set mass of the node.
     //// TODO  is this even meaningful/needed for this type of node?
-    void SetMass(double mass) { m_variables->GetMassDiagonal().FillElem(mass); }
+    void SetMass(double mass) { m_variables->GetMassDiagonal().setConstant(mass); }
 
     ChVariables& Variables() { return *m_variables; }
 

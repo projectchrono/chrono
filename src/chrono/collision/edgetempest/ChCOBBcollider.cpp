@@ -83,7 +83,7 @@ void CHOBBcollider::CollideRecurse(ChMatrix33<>& boR,
         int c1 = box1->GetFirstChildIndex();
         int c2 = box1->GetSecondChildIndex();
 
-        Rc.MatrTMultiply(o1->child(c1)->Rot, boR);
+        Rc = o1->child(c1)->Rot.transpose() * boR;
 
         Tc = ChTransform<>::TransformParentToLocal(boT, o1->child(c1)->To, o1->child(c1)->Rot);
 
@@ -92,7 +92,7 @@ void CHOBBcollider::CollideRecurse(ChMatrix33<>& boR,
         if ((flag == ChC_FIRST_CONTACT) && (this->GetNumPairs() > 0))
             return;
 
-        Rc.MatrTMultiply(o1->child(c2)->Rot, boR);
+        Rc = o1->child(c2)->Rot.transpose() * boR;
 
         Tc = ChTransform<>::TransformParentToLocal(boT, o1->child(c2)->To, o1->child(c2)->Rot);
 
@@ -101,7 +101,7 @@ void CHOBBcollider::CollideRecurse(ChMatrix33<>& boR,
         int c1 = box2->GetFirstChildIndex();
         int c2 = box2->GetSecondChildIndex();
 
-        Rc.MatrMultiply(boR, o2->child(c1)->Rot);
+        Rc = boR * o2->child(c1)->Rot;
 
         Tc = ChTransform<>::TransformLocalToParent(o2->child(c1)->To, boT, boR);
 
@@ -110,7 +110,7 @@ void CHOBBcollider::CollideRecurse(ChMatrix33<>& boR,
         if ((flag == ChC_FIRST_CONTACT) && (this->GetNumPairs() > 0))
             return;
 
-        Rc.MatrMultiply(boR, o2->child(c2)->Rot);
+        Rc = boR * o2->child(c2)->Rot;
 
         Tc = ChTransform<>::TransformLocalToParent(o2->child(c2)->To, boT, boR);
 
@@ -152,14 +152,14 @@ ChNarrowPhaseCollider::eCollSuccess CHOBBcollider::ComputeCollisions(ChMatrix33<
     static Vector bT;
     static Vector Ttemp;
 
-    Rtemp.MatrMultiply(this->R, o2->child(0)->Rot);  // MxM(Rtemp,this->R,o2->child(0)->R);
-    bR.MatrMultiply(o1->child(0)->Rot, Rtemp);       // MTxM(R,o1->child(0)->R,Rtemp);
+    Rtemp = this->R * o2->child(0)->Rot;  // MxM(Rtemp,this->R,o2->child(0)->R);
+    bR = o1->child(0)->Rot * Rtemp;       // MTxM(R,o1->child(0)->R,Rtemp);
 
     Ttemp = ChTransform<>::TransformLocalToParent(o2->child(0)->To, this->T,
                                                   this->R);  // MxVpV(Ttemp,this->R,o2->child(0)->To,this->T);
     Ttemp = Vsub(Ttemp, o1->child(0)->To);                   // VmV(Ttemp,Ttemp,o1->child(0)->To);
 
-    bT = o1->child(0)->Rot.MatrT_x_Vect(Ttemp);  // MTxV(T,o1->child(0)->R,Ttemp);
+    bT = o1->child(0)->Rot.transpose() * Ttemp;  // MTxV(T,o1->child(0)->R,Ttemp);
 
     // now start with both top level BVs
 

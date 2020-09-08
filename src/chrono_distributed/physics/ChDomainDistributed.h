@@ -20,7 +20,7 @@
 #include "chrono/physics/ChBody.h"
 
 #include "chrono_distributed/ChApiDistributed.h"
-#include "chrono_distributed/other_types.h"
+#include "chrono_distributed/ChTypesDistributed.h"
 #include "chrono_distributed/physics/ChSystemDistributed.h"
 
 namespace chrono {
@@ -117,8 +117,8 @@ class CH_DISTR_API ChDomainDistributed {
 
     /// Return the location of the specified body within this rank based on the data manager
     virtual distributed::COMM_STATUS GetBodyRegion(int index);
-    /// Returns the location of the specified body within this rank based on the body-list
 
+    /// Returns the location of the specified body within this rank based on the body-list
     virtual distributed::COMM_STATUS GetBodyRegion(std::shared_ptr<ChBody> body);
 
     /// Get the lower bounds of the global simulation domain

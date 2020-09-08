@@ -23,8 +23,6 @@
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
 
-#include "chrono_thirdparty/rapidjson/filereadstream.h"
-
 using namespace chrono::fea;
 using namespace rapidjson;
 
@@ -35,15 +33,9 @@ namespace vehicle {
 // Constructors for FEATire
 // -----------------------------------------------------------------------------
 FEATire::FEATire(const std::string& filename) : ChFEATire("") {
-    FILE* fp = fopen(filename.c_str(), "r");
-
-    char readBuffer[65536];
-    FileReadStream is(fp, readBuffer, sizeof(readBuffer));
-
-    fclose(fp);
-
-    Document d;
-    d.ParseStream<ParseFlag::kParseCommentsFlag>(is);
+    Document d = ReadFileJSON(filename);
+    if (d.IsNull())
+        return;
 
     ProcessJSON(d);
 
@@ -72,25 +64,7 @@ void FEATire::ProcessJSON(const rapidjson::Document& d) {
 
     // Read contact material data
     assert(d.HasMember("Contact Material"));
-
-    float mu = d["Contact Material"]["Coefficient of Friction"].GetFloat();
-    float cr = d["Contact Material"]["Coefficient of Restitution"].GetFloat();
-
-    SetContactFrictionCoefficient(mu);
-    SetContactRestitutionCoefficient(cr);
-
-    if (d["Contact Material"].HasMember("Properties")) {
-        float ym = d["Contact Material"]["Properties"]["Young Modulus"].GetFloat();
-        float pr = d["Contact Material"]["Properties"]["Poisson Ratio"].GetFloat();
-        SetContactMaterialProperties(ym, pr);
-    }
-    if (d["Contact Material"].HasMember("Coefficients")) {
-        float kn = d["Contact Material"]["Coefficients"]["Normal Stiffness"].GetFloat();
-        float gn = d["Contact Material"]["Coefficients"]["Normal Damping"].GetFloat();
-        float kt = d["Contact Material"]["Coefficients"]["Tangential Stiffness"].GetFloat();
-        float gt = d["Contact Material"]["Coefficients"]["Tangential Damping"].GetFloat();
-        SetContactMaterialCoefficients(kn, gn, kt, gt);
-    }
+    m_mat_info = ReadMaterialInfoJSON(d["Contact Material"]);
 
     // Read continuum material data
     double E = d["Continuum Material"]["Elasticity Modulus"].GetDouble();
@@ -98,7 +72,7 @@ void FEATire::ProcessJSON(const rapidjson::Document& d) {
     double rd = d["Continuum Material"]["Rayleigh Damping"].GetDouble();
     double density = d["Continuum Material"]["Density"].GetDouble();
 
-    m_material = std::make_shared<ChContinuumElastic>();
+    m_material = chrono_types::make_shared<ChContinuumElastic>();
     m_material->Set_E(E);
     m_material->Set_v(nu);
     m_material->Set_RayleighDampingK(rd);
@@ -137,6 +111,18 @@ std::vector<std::shared_ptr<ChNodeFEAbase>> FEATire::GetInternalNodes() const {
 
 std::vector<std::shared_ptr<fea::ChNodeFEAbase>> FEATire::GetConnectedNodes() const {
     return m_node_sets.at("BC_CONN");
+}
+
+void FEATire::CreateContactMaterial() {
+    m_contact_mat = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+    m_contact_mat->SetFriction(m_mat_info.mu);
+    m_contact_mat->SetRestitution(m_mat_info.cr);
+    m_contact_mat->SetYoungModulus(m_mat_info.Y);
+    m_contact_mat->SetPoissonRatio(m_mat_info.nu);
+    m_contact_mat->SetKn(m_mat_info.kn);
+    m_contact_mat->SetGn(m_mat_info.gn);
+    m_contact_mat->SetKt(m_mat_info.kt);
+    m_contact_mat->SetGt(m_mat_info.gt);
 }
 
 }  // end namespace vehicle

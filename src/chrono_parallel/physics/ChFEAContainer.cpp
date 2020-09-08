@@ -185,20 +185,23 @@ void ChFEAContainer::Update(double ChTime) {
     uint num_fluid_bodies = data_manager->num_fluid_bodies;
     uint num_rigid_bodies = data_manager->num_rigid_bodies;
     uint num_shafts = data_manager->num_shafts;
+    uint num_motors = data_manager->num_motors;
     custom_vector<real3>& pos_node = data_manager->host_data.pos_node_fea;
     custom_vector<real3>& vel_node = data_manager->host_data.vel_node_fea;
     real3 g_acc = data_manager->settings.gravity;
     custom_vector<real>& mass_node = data_manager->host_data.mass_node_fea;
+
+    uint offset = num_rigid_bodies * 6 + num_shafts + num_motors + num_fluid_bodies * 3;
     for (int i = 0; i < (signed)num_nodes; i++) {
         real3 vel = vel_node[i];
         real3 h_gravity = data_manager->settings.step_size * mass_node[i] * g_acc;
-        data_manager->host_data.v[num_rigid_bodies * 6 + num_shafts + num_fluid_bodies * 3 + i * 3 + 0] = vel.x;
-        data_manager->host_data.v[num_rigid_bodies * 6 + num_shafts + num_fluid_bodies * 3 + i * 3 + 1] = vel.y;
-        data_manager->host_data.v[num_rigid_bodies * 6 + num_shafts + num_fluid_bodies * 3 + i * 3 + 2] = vel.z;
+        data_manager->host_data.v[offset + i * 3 + 0] = vel.x;
+        data_manager->host_data.v[offset + i * 3 + 1] = vel.y;
+        data_manager->host_data.v[offset + i * 3 + 2] = vel.z;
 
-        data_manager->host_data.hf[num_rigid_bodies * 6 + num_shafts + num_fluid_bodies * 3 + i * 3 + 0] = h_gravity.x;
-        data_manager->host_data.hf[num_rigid_bodies * 6 + num_shafts + num_fluid_bodies * 3 + i * 3 + 1] = h_gravity.y;
-        data_manager->host_data.hf[num_rigid_bodies * 6 + num_shafts + num_fluid_bodies * 3 + i * 3 + 2] = h_gravity.z;
+        data_manager->host_data.hf[offset + i * 3 + 0] = h_gravity.x;
+        data_manager->host_data.hf[offset + i * 3 + 1] = h_gravity.y;
+        data_manager->host_data.hf[offset + i * 3 + 2] = h_gravity.z;
     }
 }
 
@@ -212,15 +215,18 @@ void ChFEAContainer::UpdatePosition(double ChTime) {
     uint num_fluid_bodies = data_manager->num_fluid_bodies;
     uint num_rigid_bodies = data_manager->num_rigid_bodies;
     uint num_shafts = data_manager->num_shafts;
+    uint num_motors = data_manager->num_motors;
     //
     custom_vector<real3>& pos_node = data_manager->host_data.pos_node_fea;
     custom_vector<real3>& vel_node = data_manager->host_data.vel_node_fea;
+    //
+    uint offset = num_rigid_bodies * 6 + num_shafts + num_motors + num_fluid_bodies * 3;
 #pragma omp parallel for
     for (int i = 0; i < (signed)num_nodes; i++) {
         real3 vel;
-        vel.x = data_manager->host_data.v[num_rigid_bodies * 6 + num_shafts + num_fluid_bodies * 3 + i * 3 + 0];
-        vel.y = data_manager->host_data.v[num_rigid_bodies * 6 + num_shafts + num_fluid_bodies * 3 + i * 3 + 1];
-        vel.z = data_manager->host_data.v[num_rigid_bodies * 6 + num_shafts + num_fluid_bodies * 3 + i * 3 + 2];
+        vel.x = data_manager->host_data.v[offset + i * 3 + 0];
+        vel.y = data_manager->host_data.v[offset + i * 3 + 1];
+        vel.z = data_manager->host_data.v[offset + i * 3 + 2];
 
         real speed = Length(vel);
         if (speed > max_velocity) {
@@ -237,7 +243,7 @@ void ChFEAContainer::UpdatePosition(double ChTime) {
 
     custom_vector<uvec4>& tet_indices = data_manager->host_data.tet_indices;
     CompressedMatrix<real>& D_T = data_manager->host_data.D_T;
-    uint b_off = num_rigid_bodies * 6 + num_shafts + num_fluid_bodies * 3;
+    uint b_off = num_rigid_bodies * 6 + num_shafts + num_motors + num_fluid_bodies * 3;
     SubVectorType b_sub = blaze::subvector(data_manager->host_data.b, start_tet, num_tet_constraints);
 
     real lame_lambda = youngs_modulus * poisson_ratio / ((1. + poisson_ratio) * (1. - 2. * poisson_ratio));
@@ -422,8 +428,9 @@ bool Cone_generalized_rnode(real& gamma_n, real& gamma_u, real& gamma_v, const r
 }
 
 void ChFEAContainer::Project(real* gamma) {
-    real mu = data_manager->fea_container->contact_mu;
-    real coh = data_manager->fea_container->contact_cohesion;
+    float mu = (float)data_manager->fea_container->contact_mu;
+    float coh = (float)data_manager->fea_container->contact_cohesion;
+
     if (data_manager->num_rigid_tet_contacts > 0) {
         uint num_rigid_tet_contacts = data_manager->num_rigid_tet_contacts;
         custom_vector<int>& neighbor_rigid_tet = data_manager->host_data.neighbor_rigid_tet;
@@ -436,8 +443,8 @@ void ChFEAContainer::Project(real* gamma) {
             for (int index = start; index < end; index++) {
                 int i = index - start;                                        // index that goes from 0
                 int rigid = neighbor_rigid_tet[p * max_rigid_neighbors + i];  // rigid is stored in the first index
-                real rigid_coh = data_manager->host_data.cohesion_data[rigid];
-                real rigid_mu = data_manager->host_data.fric_data[rigid].x;
+                float rigid_coh = data_manager->host_data.cohesion[rigid];
+                float rigid_mu = data_manager->host_data.sliding_friction[rigid];
                 real cohesion = data_manager->composition_strategy->CombineCohesion(rigid_coh, coh);
                 real friction = data_manager->composition_strategy->CombineFriction(rigid_mu, mu);
 
@@ -479,8 +486,8 @@ void ChFEAContainer::Project(real* gamma) {
             for (int index = start; index < end; index++) {
                 int i = index - start;                                        // index that goes from 0
                 int rigid = neighbor_rigid_tet[p * max_rigid_neighbors + i];  // rigid is stored in the first index
-                real rigid_coh = data_manager->host_data.cohesion_data[rigid];
-                real rigid_mu = data_manager->host_data.fric_data[rigid].x;
+                float rigid_coh = data_manager->host_data.cohesion[rigid];
+                float rigid_mu = data_manager->host_data.sliding_friction[rigid];
                 real cohesion = data_manager->composition_strategy->CombineCohesion(rigid_coh, coh);
                 real friction = data_manager->composition_strategy->CombineFriction(rigid_mu, mu);
 
@@ -524,8 +531,8 @@ void ChFEAContainer::Project(real* gamma) {
             for (int index = start; index < end; index++) {
                 int i = index - start;                                         // index that goes from 0
                 int rigid = neighbor_marker_tet[p * max_rigid_neighbors + i];  // rigid is stored in the first index
-                real rigid_coh = data_manager->host_data.cohesion_data[rigid];
-                real rigid_mu = data_manager->host_data.fric_data[rigid].x;
+                float rigid_coh = data_manager->host_data.cohesion[rigid];
+                float rigid_mu = data_manager->host_data.sliding_friction[rigid];
                 real cohesion = data_manager->composition_strategy->CombineCohesion(rigid_coh, coh);
                 real friction = data_manager->composition_strategy->CombineFriction(rigid_mu, mu);
 
@@ -561,13 +568,14 @@ void ChFEAContainer::Build_D() {
     uint num_fluid_bodies = data_manager->num_fluid_bodies;
     uint num_rigid_bodies = data_manager->num_rigid_bodies;
     uint num_shafts = data_manager->num_shafts;
+    uint num_motors = data_manager->num_motors;
     uint num_tets = data_manager->num_fea_tets;
     real step_size = data_manager->settings.step_size;
     custom_vector<real3>& pos_node = data_manager->host_data.pos_node_fea;
     custom_vector<uvec4>& tet_indices = data_manager->host_data.tet_indices;
     CompressedMatrix<real>& D_T = data_manager->host_data.D_T;
-    uint b_off = num_rigid_bodies * 6 + num_shafts + num_fluid_bodies * 3;
-    uint f_off = num_rigid_bodies * 6 + num_shafts;
+    uint b_off = num_rigid_bodies * 6 + num_shafts + num_motors + + num_fluid_bodies * 3;
+    uint f_off = num_rigid_bodies * 6 + num_shafts + num_motors;
     SubVectorType b_sub = blaze::subvector(data_manager->host_data.b, start_tet, num_tet_constraints);
 #pragma omp parallel for
     for (int i = 0; i < (signed)num_tets; i++) {
@@ -1071,11 +1079,12 @@ void ChFEAContainer::GenerateSparsity() {
     uint num_tets = data_manager->num_fea_tets;
     uint num_rigid_bodies = data_manager->num_rigid_bodies;
     uint num_shafts = data_manager->num_shafts;
+    uint num_motors = data_manager->num_motors;
     uint num_fluid_bodies = data_manager->num_fluid_bodies;
     uint num_rigid_tet_contacts = data_manager->num_rigid_tet_contacts;
 
-    uint body_offset = num_rigid_bodies * 6 + num_shafts + num_fluid_bodies * 3;
-    uint fluid_offset = num_rigid_bodies * 6 + num_shafts;
+    uint body_offset = num_rigid_bodies * 6 + num_shafts + num_motors + num_fluid_bodies * 3;
+    uint fluid_offset = num_rigid_bodies * 6 + num_shafts + num_motors;
 
     CompressedMatrix<real>& D_T = data_manager->host_data.D_T;
     custom_vector<uvec4>& tet_indices = data_manager->host_data.tet_indices;
@@ -1301,7 +1310,7 @@ struct FaceData {
     FaceData(const uvec3& t, int face, uint e) : tri(t), f(face), element(e) {}
 };
 
-struct {
+struct FaceCompare {
     bool operator()(const FaceData& face1, const FaceData& face2) {
         uvec3 a = face1.tri;
         uvec3 b = face2.tri;
@@ -1326,7 +1335,7 @@ struct {
         }
         return false;
     }
-} customSort;
+};
 
 bool customCompare(const FaceData& face1, const FaceData& face2) {
     uvec3 a = face1.tri;
@@ -1368,6 +1377,7 @@ void ChFEAContainer::FindSurface() {
         faces[4 * e + 3] = FaceData(Sort(_make_uvec3(i, j, k)), 3, e);
     }
 
+    FaceCompare customSort;
     std::sort(faces.begin(), faces.end(), customSort);
 
     uint face = 0;

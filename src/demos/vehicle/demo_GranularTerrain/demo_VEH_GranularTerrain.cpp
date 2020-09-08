@@ -83,12 +83,7 @@ int main(int argc, char* argv[]) {
     system->Set_G_acc(gravity);
 
     // Set number of threads
-    int threads = 4;
-    int max_threads = CHOMPfunctions::GetNumProcs();
-    if (threads > max_threads)
-        threads = max_threads;
-    system->SetParallelThreadNumber(threads);
-    CHOMPfunctions::SetNumThreads(threads);
+    system->SetNumThreads(4);
 
     // Edit system settings
     system->GetSettings()->solver.tolerance = 1e-3;
@@ -103,7 +98,6 @@ int main(int argc, char* argv[]) {
     system->GetSettings()->solver.use_full_inertia_tensor = false;
     system->GetSettings()->solver.contact_recovery_speed = 1000;
     system->GetSettings()->solver.bilateral_clamp_speed = 1e8;
-    system->GetSettings()->min_threads = threads;
     system->ChangeSolverType(SolverType::BB);
 
     system->GetSettings()->collision.collision_envelope = envelope;
@@ -116,8 +110,10 @@ int main(int argc, char* argv[]) {
     // ------------------
 
     GranularTerrain terrain(system);
-    terrain.SetContactFrictionCoefficient((float)mu_g);
-    terrain.SetContactCohesion((float)coh_g);
+    auto mat = std::static_pointer_cast<ChMaterialSurfaceNSC>(terrain.GetContactMaterial());
+    mat->SetFriction((float)mu_g);
+    mat->SetCohesion((float)coh_g);
+    terrain.SetContactMaterial(mat);
     terrain.SetCollisionEnvelope(envelope / 5);
     if (rough) {
         int nx = (int)std::round((2 * hdimX) / (4 * r_g));
@@ -129,7 +125,7 @@ int main(int argc, char* argv[]) {
 
     terrain.Initialize(center, 2 * hdimX, 2 * hdimY, num_layers, r_g, rho_g);
     uint actual_num_particles = terrain.GetNumParticles();
-    double terrain_height = terrain.GetHeight(0, 0);
+    double terrain_height = terrain.GetHeight(ChVector<>(0, 0, 0));
 
     std::cout << "Number of particles: " << actual_num_particles << std::endl;
     std::cout << "Terrain height:      " << terrain_height << std::endl;
@@ -147,28 +143,29 @@ int main(int argc, char* argv[]) {
     body->SetRot(Q_from_AngZ(CH_C_PI_2));
     system->AddBody(body);
 
-    auto trimesh = std::make_shared<geometry::ChTriangleMeshConnected>();
+    auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
     trimesh->LoadWavefrontMesh(GetChronoDataFile("tractor_wheel.obj"));
 
-    auto trimesh_shape = std::make_shared<ChTriangleMeshShape>();
+    auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
     trimesh_shape->SetMesh(trimesh);
     body->AddAsset(trimesh_shape);
 
-    body->GetCollisionModel()->ClearModel();
-    body->GetCollisionModel()->AddTriangleMesh(trimesh, false, false, VNULL, ChMatrix33<>(1), 0.01);
-    body->GetCollisionModel()->BuildModel();
+    auto body_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
 
-    ////utils::AddSphereGeometry(body.get(), tire_rad, ChVector<>(0, 0, 0));
+    body->GetCollisionModel()->ClearModel();
+    body->GetCollisionModel()->AddTriangleMesh(body_mat, trimesh, false, false, VNULL, ChMatrix33<>(1), 0.01);
+    ////utils::AddSphereGeometry(body.get(), body_mat, tire_rad, ChVector<>(0, 0, 0));
+    body->GetCollisionModel()->BuildModel();
 
     body->SetCollide(true);
 
-    auto col = std::make_shared<ChColorAsset>();
+    auto col = chrono_types::make_shared<ChColorAsset>();
     col->SetColor(ChColor(0.3f, 0.3f, 0.3f));
     body->AddAsset(col);
 
-    auto motor = std::make_shared<ChLinkMotorRotationAngle>();
+    auto motor = chrono_types::make_shared<ChLinkMotorRotationAngle>();
     motor->SetSpindleConstraint(ChLinkMotorRotation::SpindleConstraint::OLDHAM);
-    motor->SetAngleFunction(std::make_shared<ChFunction_Ramp>(0, -tire_ang_vel));
+    motor->SetAngleFunction(chrono_types::make_shared<ChFunction_Ramp>(0, -tire_ang_vel));
     motor->Initialize(body, terrain.GetGroundBody(), ChFrame<>(tire_center, Q_from_AngX(CH_C_PI_2)));
     system->Add(motor);
 

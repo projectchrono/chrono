@@ -49,18 +49,7 @@ class ChApi ChSystemNSC : public ChSystem {
     virtual ChSystemNSC* Clone() const override { return new ChSystemNSC(*this); }
 
     /// Return the contact method supported by this system.
-    /// Bodies added to this system must be compatible.
-    virtual ChMaterialSurface::ContactMethod GetContactMethod() const override {
-        return ChMaterialSurface::NSC;
-    }
-
-    /// Create a new body, consistent with the contact method and collision model used by this system.
-    /// The returned body is not added to the system.
-    virtual ChBody* NewBody() override { return new ChBody(ChMaterialSurface::NSC); }
-
-    /// Create a new body with non-centroidal reference frame, consistent with the contact method and
-    /// collision model used by this system.  The returned body is not added to the system.
-    virtual ChBodyAuxRef* NewBodyAuxRef() override { return new ChBodyAuxRef(ChMaterialSurface::NSC); }
+    virtual ChContactMethod GetContactMethod() const override final { return ChContactMethod::NSC; }
 
     /// Replace the contact container.
     virtual void SetContactContainer(std::shared_ptr<ChContactContainer> container) override;
