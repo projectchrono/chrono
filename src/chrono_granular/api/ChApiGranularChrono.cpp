@@ -157,26 +157,35 @@ void ChGranularChronoTriMeshAPI::setupTriMesh(const std::vector<chrono::geometry
     }
 }
 
+// set particle positions, velocity and angular velocity in user units
 void ChGranularSMC_API::setElemsPositions(const std::vector<chrono::ChVector<float>>& points,
-                                          const std::vector<chrono::ChVector<float>>& vels) {
+                                          const std::vector<chrono::ChVector<float>>& vels,
+                                          const std::vector<chrono::ChVector<float>>& ang_vel) {
     std::vector<float3> pointsFloat3;
     std::vector<float3> velsFloat3;
+    std::vector<float3> angVelsFloat3;
     convertChVector2Float3Vec(points, pointsFloat3);
     convertChVector2Float3Vec(vels, velsFloat3);
-    gran_sys->setParticlePositions(pointsFloat3, velsFloat3);
+    convertChVector2Float3Vec(ang_vel, angVelsFloat3);
+    gran_sys->setParticlePositions(pointsFloat3, velsFloat3, angVelsFloat3);
+}
+
+void ChGranularChronoTriMeshAPI::setElemsPositions(const std::vector<chrono::ChVector<float>>& points,
+                                                   const std::vector<chrono::ChVector<float>>& vels,
+                                                   const std::vector<chrono::ChVector<float>>& ang_vel) {
+    std::vector<float3> pointsFloat3;
+    std::vector<float3> velsFloat3;
+    std::vector<float3> angVelsFloat3;
+    convertChVector2Float3Vec(points, pointsFloat3);
+    convertChVector2Float3Vec(vels, velsFloat3);
+    convertChVector2Float3Vec(ang_vel, angVelsFloat3);
+    pGranSystemSMC_TriMesh->setParticlePositions(pointsFloat3, velsFloat3, angVelsFloat3);
 }
 
 chrono::ChVector<float> ChGranularSMC_API::getPosition(int nSphere){
     float3 pos = gran_sys->getPosition(nSphere);
     chrono::ChVector<float> pos_vec(pos.x, pos.y, pos.z); 
     return pos_vec;
-}
-
-// Set particle positions in UU
-void ChGranularChronoTriMeshAPI::setElemsPositions(const std::vector<chrono::ChVector<float>>& points) {
-    std::vector<float3> pointsFloat3;
-    convertChVector2Float3Vec(points, pointsFloat3);
-    pGranSystemSMC_TriMesh->setParticlePositions(pointsFloat3);
 }
 
 chrono::ChVector<float> ChGranularChronoTriMeshAPI::getPosition(int nSphere){
