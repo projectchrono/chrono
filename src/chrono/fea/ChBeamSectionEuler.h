@@ -35,7 +35,8 @@ namespace fea {
 class ChApi ChBeamSectionEuler : public ChBeamSection {
 public:
     ChBeamSectionEuler() :
-        rdamping(0.01)  // default Rayleigh damping.
+        rdamping(0.01),  // default Rayleigh damping.
+        JzzJyy_factor(1./500.) // default tiny rotational inertia of section on Y and Z to avoid singular mass 
     { }
     virtual ~ChBeamSectionEuler() {}
 
@@ -90,6 +91,17 @@ public:
                                        const ChVector<>& mW    ///< current angular velocity of section, in material frame
                                       ) = 0;
 
+    /// The Euler beam model has no rotational inertia per each section, assuming mass is concentrated on 
+    /// the centerline. However this creates a singular mass matrix, that might end in problems when doing modal analysis etc.
+    /// A solution is to force Jyy and Jzz inertials per unit lengths to be a percent of the mass per unit length. By default it is 1/500.
+    /// Use this function to set such factor. You can also turn it to zero. Note that the effect becomes negligible anyway for finer meshing.
+    void SetArtificialJyyJzzFactor(double mf) {
+        JzzJyy_factor = mf;
+    }
+    double GetArtificialJyyJzzFactor() {
+        return JzzJyy_factor;
+    }
+
     // DAMPING INTERFACE
 
     /// Set the Rayleigh damping ratio r (as in: R = r * K ), to do: also mass-proportional term
@@ -99,6 +111,8 @@ public:
 
 private:
     double rdamping;
+protected:
+    double JzzJyy_factor;
 };
 
 
