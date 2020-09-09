@@ -18,6 +18,7 @@ SET(DEMOS
         demo_GRAN_ballcosim
         demo_GRAN_movingBoundary
         demo_GRAN_fixedterrain
+        demo_GRAN_mixer
 )
 
 # ------------------------------------------------------------------------------
