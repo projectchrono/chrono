@@ -7,3 +7,6 @@ glslc shader_PushConstants.frag -o frag_PushConstants.spv
 # actually 10 material parameters are needed as input.
 glslc shader_Phong.vert -o vert_Phong.spv
 glslc shader_Phong.frag -o frag_Phong.spv
+#
+glslc shader_Wireframe.vert -o vert_Wireframe.spv
+glslc shader_Wireframe.frag -o frag_Wireframe.spv

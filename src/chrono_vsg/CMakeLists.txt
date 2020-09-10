@@ -25,10 +25,8 @@ SET(ChronoEngine_VSG_SOURCES
     resources/ChVSGPhongMaterial.cpp
     shapes/ChVSGIndexedMesh.cpp
     shapes/VSGBox.cpp
-    shapes/ChVSGShape.cpp
-    shapes/ChVSGCube.cpp
-    shapes/ChVSGSphere.cpp
-    shapes/ChVSGCylinder.cpp
+    shapes/VSGSphere.cpp
+    shapes/VSGCylinder.cpp
     ../chrono_thirdparty/stb/stb_image.cpp
 )
 
@@ -39,18 +37,8 @@ SET(ChronoEngine_VSG_HEADERS
     resources/ChVSGPhongMaterial.h
     shapes/ChVSGIndexedMesh.h
     shapes/VSGBox.h
-    shapes/ChVSGCube.h
-    shapes/ChVSGShape.h
-    shapes/ChVSGSphere.h
-    shapes/ChVSGCylinder.h
-    shapes/sphere_vertices.h
-    shapes/sphere_normals.h
-    shapes/sphere_texcoords.h
-    shapes/sphere_indices.h
-    shapes/cylinder_indices.h
-    shapes/cylinder_vertices.h
-    shapes/cylinder_normals.h
-    shapes/cylinder_texcoords.h
+    shapes/VSGSphere.h
+    shapes/VSGCylinder.h
 )
 
 SOURCE_GROUP("" FILES

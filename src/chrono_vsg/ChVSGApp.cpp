@@ -27,10 +27,8 @@
 #include "chrono_vsg/resources/ChVSGSettings.h"
 #include "chrono_vsg/resources/ChVSGPhongMaterial.h"
 #include "chrono_vsg/shapes/VSGBox.h"
-#include "chrono_vsg/shapes/ChVSGShape.h"
-#include "chrono_vsg/shapes/ChVSGCube.h"
-#include "chrono_vsg/shapes/ChVSGSphere.h"
-#include "chrono_vsg/shapes/ChVSGCylinder.h"
+#include "chrono_vsg/shapes/VSGSphere.h"
+#include "chrono_vsg/shapes/VSGCylinder.h"
 
 using namespace chrono::vsg3d;
 
@@ -38,7 +36,7 @@ ChVSGApp::ChVSGApp()
     : m_horizonMountainHeight(0.0),
       m_timeStep(0.001),
       m_outputStep(0.001),
-      m_drawMode(DrawMode::Textured),
+      m_drawMode(DrawMode::Wireframe),
       m_build_graph(true),
       m_wait_counter(1),
       m_wait_counter_max(1) {
@@ -241,6 +239,7 @@ void ChVSGApp::UpdateSceneGraph() {
                                          vsg::scale(size.x(), size.y(), size.z()));
 
                     std::string texFilePath("concrete.jpg");
+                    /*
                     // vsg::ref_ptr<vsg::Node> node =
                     //    ChVSGShapeFactory::createSphereTexturedNode(color, texFilePath, transform);
                     vsg::vec4 ambient(0.0215, 0.1745, 0.0215, 1.0), diffuse(0.07568, 0.61424, 0.07568, 1.0);
@@ -250,6 +249,11 @@ void ChVSGApp::UpdateSceneGraph() {
                     ChVSGSphere sphere;
                     vsg::ref_ptr<vsg::Node> node = sphere.createPhongNode(m_light_position, ambient, diffuse, specular,
                                                                           shininess, opacity, transform);
+                                                                           * */
+                    ChVSGPhongMaterial gold(PhongPresets::Gold);
+                    VSGSphere sphere;
+                    sphere.Initialize(m_light_position, gold, texFilePath);
+                    vsg::ref_ptr<vsg::Node> node = sphere.createVSGNode(m_drawMode, transform);
                     // vsg::ref_ptr<vsg::Node> node = ChVSGShapeFactory::createSpherePhongNode(color, transform);
                     m_scenegraph->addChild(node);
                     m_transformList.push_back(transform);  // we will need it later
@@ -285,14 +289,10 @@ void ChVSGApp::UpdateSceneGraph() {
                                          vsg::scale(size.x(), size.y(), size.z()));
 
                     std::string texFilePath("concrete.jpg");
-                    ChVSGSphere ellipsoid;
-                    // opengl material 'obsidian'
-                    vsg::vec4 ambient(0.05375, 0.05, 0.06625, 1.0), diffuse(0.18275, 0.17, 0.22525, 1.0);
-                    vsg::vec4 specular(0.332741, 0.328634, 0.346435, 1.0);
-                    float shininess = 0.3 * 128.0;
-                    float opacity = 1.0;
-                    vsg::ref_ptr<vsg::Node> node = ellipsoid.createPhongNode(m_light_position, ambient, diffuse,
-                                                                             specular, shininess, opacity, transform);
+                    ChVSGPhongMaterial polishedBronze(PhongPresets::PolishedBronze);
+                    VSGSphere ellipsoid;
+                    ellipsoid.Initialize(m_light_position, polishedBronze, texFilePath);
+                    vsg::ref_ptr<vsg::Node> node = ellipsoid.createVSGNode(m_drawMode, transform);
                     m_scenegraph->addChild(node);
                     m_transformList.push_back(transform);  // we will need it later
                 } else {
@@ -314,15 +314,10 @@ void ChVSGApp::UpdateSceneGraph() {
                                          vsg::rotate(angle, axis.x(), axis.y(), axis.z()) *
                                          vsg::scale(radius, radius, height));
                     std::string texFilePath("concrete.jpg");
-                    ChVSGCylinder cylinder;
-                    // vsg::ref_ptr<vsg::Node> node = cylinder.createTexturedNode(color, texFilePath, transform);
-                    // opengl material 'pearl'
-                    vsg::vec4 ambient(0.25, 0.20725, 0.20725, 1.0), diffuse(1, 0.829, 0.829, 1.0);
-                    vsg::vec4 specular(0.296648, 0.296648, 0.296648, 1.0);
-                    float shininess = 0.088 * 128.0;
-                    float opacity = 1.0;
-                    vsg::ref_ptr<vsg::Node> node = cylinder.createPhongNode(m_light_position, ambient, diffuse,
-                                                                            specular, shininess, opacity, transform);
+                    ChVSGPhongMaterial bluePlastic(PhongPresets::BluePlastic);
+                    VSGCylinder cylinder;
+                    cylinder.Initialize(m_light_position, bluePlastic, texFilePath);
+                    vsg::ref_ptr<vsg::Node> node = cylinder.createVSGNode(m_drawMode, transform);
                     m_scenegraph->addChild(node);
                     m_transformList.push_back(transform);  // we will need it later
                 } else {

@@ -14,8 +14,8 @@
 // Header for an helper class defining common methods for shape node classes
 // =============================================================================
 
-#ifndef VSG_BOX_H
-#define VSG_BOX_H
+#ifndef VSG_CYLINDER_H
+#define VSG_CYLINDER_H
 
 #include <iostream>
 #include "chrono/core/ChVector.h"
@@ -28,9 +28,9 @@
 namespace chrono {
 namespace vsg3d {
 
-class CH_VSG_API VSGBox : public ChVSGIndexedMesh {
+class CH_VSG_API VSGCylinder : public ChVSGIndexedMesh {
   public:
-    VSGBox();
+    VSGCylinder();
     virtual void Initialize(vsg::vec3& lightPosition, ChVSGPhongMaterial& mat, std::string& texFilePath) override;
 };
 }  // namespace vsg3d

@@ -13,10 +13,6 @@ layout(location = 2) in vec2 inTexCoord;
 layout(location = 0) out vec3 fragColor;
 layout(location = 1) out vec2 fragTexCoord;
 
-out gl_PerVertex {
-    vec4 gl_Position;
-};
-
 void main() {
     gl_Position = (pc.projection * pc.modelview) * vec4(inPosition, 1.0);
     fragColor = inColor;
