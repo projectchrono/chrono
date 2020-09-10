@@ -21,7 +21,6 @@
 #pragma once
 
 #include "chrono_parallel/ChParallelDefines.h"
-#include "chrono/parallel/ChOpenMP.h"
 #include "chrono_parallel/math/other_types.h"  // for uint, vec2, vec3
 #include "chrono_parallel/math/real.h"         // for real
 #include "chrono_parallel/math/real2.h"        // for real2

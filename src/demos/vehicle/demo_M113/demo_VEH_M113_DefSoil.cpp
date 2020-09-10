@@ -51,11 +51,9 @@ ChQuaternion<> initRot(1, 0, 0, 0);
 // ChQuaternion<> initRot(0, 0, 0, 1);
 
 // Terrain dimensions
-double terrainHeight = 0;
 double terrainLength = 20.0;  // size in X direction
 double terrainWidth = 4.0;    // size in Y direction
-int divLength = 160;          // initial number of divisions in X direction
-int divWidth = 32;            // initial number of divisions in Y direction
+double delta = 0.05;          // SCM grid spacing
 
 // Simulation step size
 double step_size = 1e-3;
@@ -92,7 +90,7 @@ int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
     // Construct the M113 vehicle
-    M113_Vehicle vehicle(false, TrackShoeType::SINGLE_PIN, ChContactMethod::SMC);
+    M113_Vehicle vehicle(false, TrackShoeType::SINGLE_PIN, BrakeType::SIMPLE, ChContactMethod::SMC);
 
 #ifndef CHRONO_MKL
     // Do not use MKL if not available
@@ -158,13 +156,10 @@ int main(int argc, char* argv[]) {
                               3e4    // Damping (Pa s/m), proportional to negative vertical speed (optional)
     );
 
-    terrain.SetAutomaticRefinement(true);
-    terrain.SetAutomaticRefinementResolution(0.04);
-
     terrain.SetPlotType(vehicle::SCMDeformableTerrain::PLOT_PRESSURE_YELD, 0, 30000.2);
     ////terrain.SetPlotType(vehicle::SCMDeformableTerrain::PLOT_SINKAGE, 0, 0.15);
 
-    terrain.Initialize(terrainHeight, terrainLength, terrainWidth, divLength, divWidth);
+    terrain.Initialize(terrainLength, terrainWidth, delta);
 
     AddFixedObstacles(vehicle.GetSystem());
     ////AddMovingObstacles(vehicle.GetSystem());

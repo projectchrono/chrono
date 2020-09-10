@@ -43,9 +43,9 @@ class CH_VEHICLE_API ChTrackBrakeSimple : public ChTrackBrake {
     virtual std::string GetTemplateName() const override { return "TrackBrakeSimple"; }
 
     /// Initialize the brake by providing the chassis and associated sprocket.
-    virtual void Initialize(std::shared_ptr<ChChassis> chassis,  ///< associated chassis subsystem
-                            std::shared_ptr<ChSprocket> sprocket
-    ) override;
+    virtual void Initialize(std::shared_ptr<ChChassis> chassis,   ///< associated chassis subsystem
+                            std::shared_ptr<ChSprocket> sprocket  ///< associated sprocket subsystem
+                            ) override;
 
     /// Update the brake subsystem for the given braking driver input.
     /// <pre>

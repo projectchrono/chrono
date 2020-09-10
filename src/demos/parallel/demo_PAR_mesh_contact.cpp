@@ -117,8 +117,8 @@ int main(int argc, char* argv[]) {
 
     sys->Set_G_acc(ChVector<>(0, -gravity, 0));
 
-    CHOMPfunctions::SetNumThreads(2);
-    sys->GetSettings()->perform_thread_tuning = false;
+    // Set number of threads
+    sys->SetNumThreads(2);
 
     sys->GetSettings()->solver.use_full_inertia_tensor = false;
     sys->GetSettings()->solver.tolerance = tolerance;

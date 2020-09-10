@@ -53,9 +53,6 @@ class JointsDVI : public ::testing::TestWithParam<Options> {
         opts = GetParam();
 
         // Additional solver settings
-        int threads = 1;
-        bool thread_tuning = false;
-
         double tolerance = 1e-5;
 
         bool clamp_bilaterals = false;
@@ -69,9 +66,7 @@ class JointsDVI : public ::testing::TestWithParam<Options> {
         system->Set_G_acc(ChVector<>(0, 0, -9.81));
 
         // Set number of threads
-        CHOMPfunctions::SetNumThreads(threads);
-        system->GetSettings()->max_threads = threads;
-        system->GetSettings()->perform_thread_tuning = thread_tuning;
+        system->SetNumThreads(1);
 
         // Edit system settings
         system->GetSettings()->solver.tolerance = tolerance;

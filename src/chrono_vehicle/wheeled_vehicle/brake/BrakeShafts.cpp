@@ -12,7 +12,8 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// Vehicle shafts-based brake model constructed with data from file (JSON format).
+// Wheeled vehicle shafts-based brake model constructed with data from file
+// (JSON format).
 //
 // =============================================================================
 

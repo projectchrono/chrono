@@ -334,14 +334,15 @@ void ChMatterSPH::IntStateScatter(const unsigned int off_x,  // offset in x stat
                                   const ChState& x,          // state vector, position part
                                   const unsigned int off_v,  // offset in v state vector
                                   const ChStateDelta& v,     // state vector, speed part
-                                  const double T)            // time
-{
+                                  const double T,            // time
+                                  bool full_update           // perform complete update
+) {
     for (unsigned int j = 0; j < nodes.size(); j++) {
         nodes[j]->pos = x.segment(off_x + 3 * j, 3);
         nodes[j]->pos_dt = v.segment(off_v + 3 * j, 3);
     }
     SetChTime(T);
-    Update(T);
+    Update(T, full_update);
 }
 
 void ChMatterSPH::IntStateGatherAcceleration(const unsigned int off_a, ChStateDelta& a) {

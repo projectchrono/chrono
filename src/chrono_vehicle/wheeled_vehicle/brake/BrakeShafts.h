@@ -12,7 +12,8 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// Vehicle shafts-based brake model constructed with data from file (JSON format).
+// Wheeled vehicle shafts-based brake model constructed with data from file
+// (JSON format).
 //
 // =============================================================================
 
@@ -30,7 +31,7 @@ namespace vehicle {
 /// @addtogroup vehicle_wheeled_brake
 /// @{
 
-/// Vehicle shafts-based brake model constructed with data from file (JSON format).
+/// Wheeled vehicle shafts-based brake model constructed with data from file (JSON format).
 class CH_VEHICLE_API BrakeShafts : public ChBrakeShafts {
   public:
     BrakeShafts(const std::string& filename);

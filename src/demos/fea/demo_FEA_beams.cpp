@@ -61,7 +61,7 @@ int main(int argc, char* argv[]) {
     // Create a section, i.e. thickness and material properties
     // for beams. This will be shared among some beams.
 
-    auto msection = chrono_types::make_shared<ChBeamSectionAdvanced>();
+    auto msection = chrono_types::make_shared<ChBeamSectionEulerAdvanced>();
 
     double beam_wy = 0.012;
     double beam_wz = 0.025;
@@ -136,7 +136,7 @@ int main(int argc, char* argv[]) {
 
     // Now, simply use BuildBeam to create a beam from a point to another:
     builder.BuildBeam(my_mesh,                   // the mesh where to put the created nodes and elements
-                      msection,                  // the ChBeamSectionAdvanced to use for the ChElementBeamEuler elements
+                      msection,                  // the ChBeamSectionEulerAdvanced to use for the ChElementBeamEuler elements
                       5,                         // the number of ChElementBeamEuler to create
                       ChVector<>(0, 0, -0.1),    // the 'A' point in space (beginning of beam)
                       ChVector<>(0.2, 0, -0.1),  // the 'B' point in space (end of beam)

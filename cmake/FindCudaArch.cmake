@@ -5,7 +5,7 @@
 
 # Known NVIDIA GPU achitectures Chrono can be compiled for.
 # This list will be used for CUDA_ARCH_NAME = All option
-SET(KNOWN_GPU_ARCHITECTURES "3.0 3.5 5.0 6.0 6.1 7.0 7.5")
+SET(KNOWN_GPU_ARCHITECTURES "3.5 3.7 5.0 5.2 5.3 6.0 6.1 6.2 7.0 7.2 7.5")
 
 ################################################################################################
 # Removes duplicates from LIST(s)
@@ -103,23 +103,25 @@ FUNCTION(SELECT_NVCC_ARCH_FLAGS out_variable)
 
   # IF(${CUDA_ARCH_NAME} STREQUAL "Fermi")
   #   SET(__cuda_arch_bin "2.0 2.1(2.0)")
-  IF(${CUDA_ARCH_NAME} STREQUAL "Kepler")
-    SET(__cuda_arch_bin "3.0 3.5")
-  elseIF(${CUDA_ARCH_NAME} STREQUAL "Maxwell")
-    SET(__cuda_arch_bin "5.0")
-  elseIF(${CUDA_ARCH_NAME} STREQUAL "Pascal")
-    SET(__cuda_arch_bin "6.0 6.1")
+  #IF(${CUDA_ARCH_NAME} STREQUAL "Kepler")
+  #  SET(__cuda_arch_bin "3.0 3.5")
+  if(${CUDA_ARCH_NAME} STREQUAL "Kepler")
+    SET(__cuda_arch_bin "3.5 3.7")
+  elseif(${CUDA_ARCH_NAME} STREQUAL "Maxwell")
+    SET(__cuda_arch_bin "5.0 5.2 5.3")
+  elseif(${CUDA_ARCH_NAME} STREQUAL "Pascal")
+    SET(__cuda_arch_bin "6.0 6.1 6.2")
   elseIF(${CUDA_ARCH_NAME} STREQUAL "Volta")
-    SET(__cuda_arch_bin "7.0")
-  elseIF(${CUDA_ARCH_NAME} STREQUAL "Turing")
+    SET(__cuda_arch_bin "7.0 7.2")
+  elseif(${CUDA_ARCH_NAME} STREQUAL "Turing")
     SET(__cuda_arch_bin "7.5")
-  elseIF(${CUDA_ARCH_NAME} STREQUAL "All")
+  elseif(${CUDA_ARCH_NAME} STREQUAL "All")
     SET(__cuda_arch_bin ${KNOWN_GPU_ARCHITECTURES})
-  elseIF(${CUDA_ARCH_NAME} STREQUAL "Auto")
+  elseif(${CUDA_ARCH_NAME} STREQUAL "Auto")
     DETECT_INSTALLED_GPUS(__cuda_arch_bin)
   else()  # (${CUDA_ARCH_NAME} STREQUAL "Manual")
     SET(__cuda_arch_bin ${CUDA_ARCH_BIN})
-  ENDIF()
+  endif()
 
   MESSAGE(STATUS "Compiling for CUDA architecture: ${__cuda_arch_bin}")
 

@@ -121,9 +121,10 @@ void ChLinkSpringCB::IntStateScatter(const unsigned int off_x,  // offset in x s
                                      const ChState& x,          // state vector, position part
                                      const unsigned int off_v,  // offset in v state vector
                                      const ChStateDelta& v,     // state vector, speed part
-                                     const double T             // time
+                                     const double T,            // time
+                                     bool full_update           // perform complete update
 ) {
-    Update(T);
+    Update(T, full_update);
 
     if (!m_variables)
         return;

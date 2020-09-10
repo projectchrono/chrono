@@ -18,6 +18,7 @@
 
 #include "chrono_models/vehicle/m113/M113_TrackAssemblyBandANCF.h"
 #include "chrono_models/vehicle/m113/M113_BrakeSimple.h"
+#include "chrono_models/vehicle/m113/M113_BrakeShafts.h"
 #include "chrono_models/vehicle/m113/M113_Idler.h"
 #include "chrono_models/vehicle/m113/M113_RoadWheel.h"
 #include "chrono_models/vehicle/m113/M113_SprocketBand.h"
@@ -51,7 +52,8 @@ const ChVector<> M113_TrackAssemblyBandANCF::m_susp_locs_R[5] = {  //
 // track shoes.
 // Create the suspensions, idler, brake, sprocket, and track shoes.
 // -----------------------------------------------------------------------------
-M113_TrackAssemblyBandANCF::M113_TrackAssemblyBandANCF(VehicleSide side) : ChTrackAssemblyBandANCF("", side) {
+M113_TrackAssemblyBandANCF::M113_TrackAssemblyBandANCF(VehicleSide side, BrakeType brake_type)
+    : ChTrackAssemblyBandANCF("", side) {
     size_t num_shoes;
     std::string suspName("M113_Suspension");
     std::string shoeName("M113_TrackShoe");

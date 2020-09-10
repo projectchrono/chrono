@@ -54,40 +54,26 @@ using std::endl;
 // Terrain parameters
 // -----------------------------------------------------------------------------
 
-// Dimensions
-double terrainHeight = 0;
 double terrainLength = 16.0;  // size in X direction
 double terrainWidth = 8.0;    // size in Y direction
-
-// Divisions (X and Y)
-int divLength = 128;
-int divWidth = 64;
+double delta = 0.05;          // SCM grid spacing
 
 // -----------------------------------------------------------------------------
 // Vehicle parameters
 // -----------------------------------------------------------------------------
 
-// Type of wheel/tire (controls both contact and visualization)
-enum WheelType { CYLINDRICAL, LUGGED };
-WheelType wheel_type = LUGGED;
+// Type of tire (controls both contact and visualization)
+enum class TireType { CYLINDRICAL, LUGGED };
+TireType tire_type = TireType::LUGGED;
 
-// Type of powertrain model (SHAFTS, SIMPLE)
-PowertrainModelType powertrain_model = PowertrainModelType::SHAFTS;
-
-// Drive type (FWD, RWD, or AWD)
-DrivelineType drive_type = DrivelineType::AWD;
-
-// Chassis visualization (MESH, PRIMITIVES, NONE)
-VisualizationType chassis_vis = VisualizationType::NONE;
+// Tire contact material properties
+float Y_t = 1.0e6f;
+float cr_t = 0.1f;
+float mu_t = 0.8f;
 
 // Initial vehicle position and orientation
 ChVector<> initLoc(-5, -2, 0.6);
 ChQuaternion<> initRot(1, 0, 0, 0);
-
-// Contact material properties
-float Y_t = 1.0e6f;
-float cr_t = 0.1f;
-float mu_t = 0.8f;
 
 // -----------------------------------------------------------------------------
 // Simulation parameters
@@ -194,31 +180,38 @@ int main(int argc, char* argv[]) {
     my_hmmwv.SetContactMethod(ChContactMethod::SMC);
     my_hmmwv.SetChassisFixed(false);
     my_hmmwv.SetInitPosition(ChCoordsys<>(initLoc, initRot));
-    my_hmmwv.SetPowertrainType(powertrain_model);
-    my_hmmwv.SetDriveType(drive_type);
-    my_hmmwv.SetTireType(TireModelType::RIGID);
+    my_hmmwv.SetPowertrainType(PowertrainModelType::SHAFTS);
+    my_hmmwv.SetDriveType(DrivelineType::AWD);
+    switch (tire_type) {
+        case TireType::CYLINDRICAL:
+            my_hmmwv.SetTireType(TireModelType::RIGID_MESH);
+            break;
+        case TireType::LUGGED:
+            my_hmmwv.SetTireType(TireModelType::RIGID);
+            break;
+    }
     my_hmmwv.Initialize();
 
-    VisualizationType wheel_vis = (wheel_type == CYLINDRICAL) ? VisualizationType::MESH : VisualizationType::NONE;
-    my_hmmwv.SetChassisVisualizationType(chassis_vis);
-    my_hmmwv.SetWheelVisualizationType(wheel_vis);
+    my_hmmwv.SetChassisVisualizationType(VisualizationType::NONE);
 
-    ChSystem* system = my_hmmwv.GetSystem();
-
-    // --------------------------------------------------------
-    // Set wheel contact material.
-    // If needed, modify wheel contact and visualization models
-    // --------------------------------------------------------
+    // -----------------------------------------------------------
+    // Set tire contact material, contact model, and visualization
+    // -----------------------------------------------------------
     auto wheel_material = chrono_types::make_shared<ChMaterialSurfaceSMC>();
     wheel_material->SetFriction(mu_t);
     wheel_material->SetYoungModulus(Y_t);
     wheel_material->SetRestitution(cr_t);
 
-    for (auto& axle : my_hmmwv.GetVehicle().GetAxles()) {
-        auto wheelBodyL = axle->m_wheels[0]->GetSpindle();
-        CreateLuggedGeometry(wheelBodyL, wheel_material);
-        auto wheelBodyR = axle->m_wheels[1]->GetSpindle();
-        CreateLuggedGeometry(wheelBodyR, wheel_material);
+    switch (tire_type) {
+        case TireType::CYLINDRICAL:
+            my_hmmwv.SetTireVisualizationType(VisualizationType::MESH);
+            break;
+        case TireType::LUGGED:
+            my_hmmwv.SetTireVisualizationType(VisualizationType::NONE);
+            for (auto& axle : my_hmmwv.GetVehicle().GetAxles()) {
+                CreateLuggedGeometry(axle->m_wheels[0]->GetSpindle(), wheel_material);
+                CreateLuggedGeometry(axle->m_wheels[1]->GetSpindle(), wheel_material);
+            }
     }
 
     // --------------------
@@ -230,6 +223,7 @@ int main(int argc, char* argv[]) {
     // ------------------
     // Create the terrain
     // ------------------
+    ChSystem* system = my_hmmwv.GetSystem();
 
     SCMDeformableTerrain terrain(system);
     terrain.SetSoilParameters(2e6,   // Bekker Kphi
@@ -242,31 +236,26 @@ int main(int argc, char* argv[]) {
                                 3e4    // Damping (Pa s/m), proportional to negative vertical speed (optional)
     );
 
-    ////terrain.SetBulldozingFlow(true);      // inflate soil at the border of the rut
+    ////terrain.EnableBulldozing(true);      // inflate soil at the border of the rut
     ////terrain.SetBulldozingParameters(55,   // angle of friction for erosion of displaced material at rut border
     ////                                0.8,  // displaced material vs downward pressed material.
     ////                                5,    // number of erosion refinements per timestep
     ////                                10);  // number of concentric vertex selections subject to erosion
 
-    // Turn on the automatic level of detail refinement, so a coarse terrain mesh
-    // is automatically improved by adding more points under the wheel contact patch:
-    terrain.SetAutomaticRefinement(true);
-    terrain.SetAutomaticRefinementResolution(0.04);
-
     // Optionally, enable moving patch feature (single patch around vehicle chassis)
-    terrain.AddMovingPatch(my_hmmwv.GetChassisBody(), ChVector<>(0, 0, 0), 5, 3);
+    terrain.AddMovingPatch(my_hmmwv.GetChassisBody(), ChVector<>(0, 0, 0), ChVector<>(5, 3, 1));
 
     // Optionally, enable moving patch feature (multiple patches around each wheel)
     ////for (auto& axle : my_hmmwv.GetVehicle().GetAxles()) {
-    ////    terrain.AddMovingPatch(axle->m_wheels[0]->GetSpindle(), ChVector<>(0, 0, 0), 1, 1);
-    ////    terrain.AddMovingPatch(axle->m_wheels[1]->GetSpindle(), ChVector<>(0, 0, 0), 1, 1);
+    ////    terrain.AddMovingPatch(axle->m_wheels[0]->GetSpindle(), ChVector<>(0, 0, 0), ChVector<>(1, 0.5, 1));
+    ////    terrain.AddMovingPatch(axle->m_wheels[1]->GetSpindle(), ChVector<>(0, 0, 0), ChVector<>(1, 0.5, 1));
     ////}
 
     ////terrain.SetTexture(vehicle::GetDataFile("terrain/textures/grass.jpg"), 80, 16);
     ////terrain.SetPlotType(vehicle::SCMDeformableTerrain::PLOT_PRESSURE_YELD, 0, 30000.2);
     terrain.SetPlotType(vehicle::SCMDeformableTerrain::PLOT_SINKAGE, 0, 0.1);
 
-    terrain.Initialize(terrainHeight, terrainLength, terrainWidth, divLength, divWidth);
+    terrain.Initialize(terrainLength, terrainWidth, delta);
 
     // ---------------------------------------
     // Create the vehicle Irrlicht application
@@ -296,7 +285,6 @@ int main(int argc, char* argv[]) {
     // ---------------
     // Simulation loop
     // ---------------
-
     std::cout << "Total vehicle mass: " << my_hmmwv.GetTotalMass() << std::endl;
 
     // Solver settings.

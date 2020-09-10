@@ -117,9 +117,8 @@ void SetupSystem(ChSystemParallelNSC* msystem) {
     msystem->ChangeSolverType(SolverType::APGD);
     msystem->GetSettings()->collision.collision_envelope = 0;
     msystem->GetSettings()->collision.bins_per_axis = vec3(10, 10, 10);
-    CHOMPfunctions::SetNumThreads(1);
-    msystem->GetSettings()->max_threads = 1;
-    msystem->GetSettings()->perform_thread_tuning = false;
+
+    msystem->SetNumThreads(1);
 
     CreateContainer(msystem);
     CreateGranularMaterial(msystem);

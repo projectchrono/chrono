@@ -12,25 +12,38 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// A simplified M113 driveline.
+// M113 shafts-based brake model
 //
 // =============================================================================
 
-#include "chrono_models/vehicle/m113a/M113a_SimpleDriveline.h"
+#ifndef M113_BRAKE_SHAFTS_H
+#define M113_BRAKE_SHAFTS_H
+
+#include "chrono_vehicle/tracked_vehicle/brake/ChTrackBrakeShafts.h"
+
+#include "chrono_models/ChApiModels.h"
 
 namespace chrono {
 namespace vehicle {
 namespace m113 {
 
-// -----------------------------------------------------------------------------
-// Static variables
-// -----------------------------------------------------------------------------
-const double M113a_SimpleDriveline::m_diff_maxBias = 1;  //// 3;
+/// @addtogroup vehicle_models_m113
+/// @{
 
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-M113a_SimpleDriveline::M113a_SimpleDriveline() : ChSimpleTrackDriveline("M113a_SimpleDriveline") {}
+/// Shafts-based M113 brake subsystem (uses a clutch between two shafts).
+class CH_MODELS_API M113_BrakeShafts : public ChTrackBrakeShafts {
+  public:
+    M113_BrakeShafts(const std::string& name) : ChTrackBrakeShafts(name) {}
+    ~M113_BrakeShafts() {}
+
+    virtual double GetMaxBrakingTorque() override { return 10000.0; }
+    virtual double GetShaftInertia() override { return 0.4; }
+};
+
+/// @} vehicle_models_m113
 
 }  // end namespace m113
 }  // end namespace vehicle
 }  // end namespace chrono
+
+#endif

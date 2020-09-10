@@ -261,7 +261,7 @@ void MakeAndRunDemo2(ChIrrApp& myapp) {
     // of elements and their referenced nodes.
     // Remember to add it to the system.
     auto my_mesh = chrono_types::make_shared<ChMesh>();
-    my_mesh->SetAutomaticGravity(false);
+
     myapp.GetSystem()->Add(my_mesh);
 
     // Create a section, i.e. thickness and material properties

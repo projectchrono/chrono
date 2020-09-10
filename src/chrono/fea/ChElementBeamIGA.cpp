@@ -274,7 +274,7 @@ void ChElementBeamIGA::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfactor, d
     }
 
     //
-    // The M mass matrix of this element span: (lumped version)
+    // The M mass matrix of this element span: 
     //
 
     if (Mfactor) {
@@ -695,7 +695,7 @@ void ChElementBeamIGA::ComputeGravityForces(ChVectorDynamic<>& Fg, const ChVecto
 /// F is a load, N'*F is the resulting generalized load
 /// Returns also det[J] with J=[dx/du,..], that might be useful in gauss quadrature.
 
-inline void ChElementBeamIGA::ComputeNF(const double U, ChVectorDynamic<>& Qi, double& detJ, const ChVectorDynamic<>& F, ChVectorDynamic<>* state_x, ChVectorDynamic<>* state_w) {
+void ChElementBeamIGA::ComputeNF(const double U, ChVectorDynamic<>& Qi, double& detJ, const ChVectorDynamic<>& F, ChVectorDynamic<>* state_x, ChVectorDynamic<>* state_w) {
     // get two values of absyssa at extreme of span
     double u1 = knots(order);
     double u2 = knots(knots.size() - order - 1);
@@ -740,7 +740,7 @@ inline void ChElementBeamIGA::ComputeNF(const double U, ChVectorDynamic<>& Qi, d
 /// F is a load, N'*F is the resulting generalized load
 /// Returns also det[J] with J=[dx/du,..], that might be useful in gauss quadrature.
 
-inline void ChElementBeamIGA::ComputeNF(const double U, const double V, const double W, ChVectorDynamic<>& Qi, double& detJ, const ChVectorDynamic<>& F, ChVectorDynamic<>* state_x, ChVectorDynamic<>* state_w) {
+void ChElementBeamIGA::ComputeNF(const double U, const double V, const double W, ChVectorDynamic<>& Qi, double& detJ, const ChVectorDynamic<>& F, ChVectorDynamic<>* state_x, ChVectorDynamic<>* state_w) {
     this->ComputeNF(U, Qi, detJ, F, state_x, state_w);
     detJ /= 4.0;  // because volume
 }

@@ -29,7 +29,7 @@ namespace vehicle {
 /// @addtogroup vehicle_wheeled_brake
 /// @{
 
-/// Template for a shafts-based brake subsystem.
+/// Brake for wheeled vehicles modeled using a clutch between two shafts.
 class CH_VEHICLE_API ChBrakeShafts : public ChBrake {
   public:
     ChBrakeShafts(const std::string& name);

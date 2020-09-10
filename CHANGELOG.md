@@ -15,7 +15,22 @@ Change Log
 
 ## Unreleased (development branch)
 
-### [Changed] Constitutive models for beams
+
+### [Changed] Constitutive models for EULER beams
+
+Section properties of the ChElementBeamEuler are now defined via a **new class** `ChBeamSectionEuler` and subclasses. Old classes for Euler sections have been renamed and rewritten, the old classes have been **deprecated** and will be removed in future:
+ - `ChBeamSectionBasic`, use  `ChBeamSectionEulerSimple` instead
+ - `ChBeamSectionAdvanced`, use  `ChBeamSectionEulerAdvanced` instead
+ 
+Note that in the previous release, the Sy and Sz values for **shear center** offset in `ChBeamSectionAdvanced` were assumed with **opposite sign** respect to the description and illustrative figure: now this bug is fixed, and shear center offset works the same as in Cosserat beams.
+
+Also, a new class  `ChBeamSectionEulerGeneric` has been added, that does not make the assumption of uniform density and uniform elasticity, so it accepts directly the beam rigidity values bypassing the E and Izz Iyy values. 
+ 
+To speedup coding in case of simple beams, two new classes `ChBeamSectionEulerEasyRectangular` and `ChBeamSectionEulerEasyCircular` have been added.
+
+
+
+### [Changed] Constitutive models for IGA beams
 
 Inertial properties of Cosserat beams, such as the ChElementBeamIGA, are now defined via a **new class** `ChInertiaCosserat` and subclasses, that can be composed into `ChBeamSectionCosserat` just like we do for elastic properties, damping, etc. This is more flexible than before. Therefore these functions have been **removed**:
  - `ChBeamSectionCosserat::SetDensity()`

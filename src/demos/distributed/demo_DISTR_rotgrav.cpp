@@ -108,7 +108,7 @@ void Monitor(chrono::ChSystemParallel* system, int rank) {
     double STEP = system->GetTimerStep();
     double BROD = system->GetTimerCollisionBroad();
     double NARR = system->GetTimerCollisionNarrow();
-    double SOLVER = system->GetTimerSolver();
+    double SOLVER = system->GetTimerLSsolve();
     double UPDT = system->GetTimerUpdate();
     double EXCH = system->data_manager->system_timer.GetTime("Exchange");
     int BODS = system->GetNbodies();
@@ -264,9 +264,8 @@ int main(int argc, char* argv[]) {
         std::cout << "Rank: " << my_rank << " Node name: " << my_sys.node_name << std::endl;
     }
 
-    CHOMPfunctions::SetNumThreads(num_threads);
-
     my_sys.Set_G_acc(ChVector<double>(0, 0, -9.8));
+    my_sys.SetNumThreads(num_threads);
 
     // Domain decomposition
     ChVector<double> domlo(-hx - spacing, -hy - spacing, -2.0 * gran_radius);

@@ -184,8 +184,7 @@ class ChApi ChPhysicsItem : public ChObj {
     /// Note: only the ChSystem::Setup function should use this
     void SetOffset_L(const unsigned int moff) { offset_L = moff; }
 
-    /// From item's state to global state vectors y={x,v}
-    /// pasting the states at the specified offsets.
+    /// From item's state to global state vectors y={x,v} pasting the states at the specified offsets.
     virtual void IntStateGather(const unsigned int off_x,  ///< offset in x state vector
                                 ChState& x,                ///< state vector, position part
                                 const unsigned int off_v,  ///< offset in v state vector
@@ -193,16 +192,16 @@ class ChApi ChPhysicsItem : public ChObj {
                                 double& T                  ///< time
     ) {}
 
-    /// From global state vectors y={x,v} to  item's state (and update)
-    /// fetching the states at the specified offsets.
+    /// From global state vectors y={x,v} to  item's state (and update) fetching the states at the specified offsets.
     virtual void IntStateScatter(const unsigned int off_x,  ///< offset in x state vector
                                  const ChState& x,          ///< state vector, position part
                                  const unsigned int off_v,  ///< offset in v state vector
                                  const ChStateDelta& v,     ///< state vector, speed part
-                                 const double T             ///< time
+                                 const double T,            ///< time
+                                 bool full_update           ///< perform complete update
     ) {
         // Default behavior: even if no state is used, at least call Update()
-        Update(T);
+        Update(T, full_update);
     }
 
     /// From item's state acceleration to global acceleration vector

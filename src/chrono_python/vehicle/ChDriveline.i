@@ -18,6 +18,7 @@
 #include "chrono_vehicle/wheeled_vehicle/ChSuspension.h"
 
 #include "chrono_vehicle/ChDriveline.h"
+
 #include "chrono_vehicle/wheeled_vehicle/ChDrivelineWV.h"
 #include "chrono_vehicle/wheeled_vehicle/driveline/ChShaftsDriveline2WD.h"
 #include "chrono_vehicle/wheeled_vehicle/driveline/ChShaftsDriveline4WD.h"
@@ -28,11 +29,18 @@
 #include "chrono_vehicle/wheeled_vehicle/driveline/ShaftsDriveline4WD.h"
 #include "chrono_vehicle/wheeled_vehicle/driveline/SimpleDrivelineXWD.h"
 
+#include "chrono_vehicle/tracked_vehicle/ChDrivelineTV.h"
+#include "chrono_vehicle/tracked_vehicle/driveline/ChSimpleTrackDriveline.h"
+#include "chrono_vehicle/tracked_vehicle/driveline/ChTrackDrivelineBDS.h"
+#include "chrono_vehicle/tracked_vehicle/driveline/SimpleTrackDriveline.h"
+#include "chrono_vehicle/tracked_vehicle/driveline/TrackDrivelineBDS.h"
+
 #include "chrono_thirdparty/rapidjson/document.h"
 
 %}
 
 %shared_ptr(chrono::vehicle::ChDriveline)
+
 %shared_ptr(chrono::vehicle::ChDrivelineWV)
 %shared_ptr(chrono::vehicle::ChShaftsDriveline2WD)
 %shared_ptr(chrono::vehicle::ChShaftsDriveline4WD)
@@ -43,10 +51,17 @@
 %shared_ptr(chrono::vehicle::ShaftsDriveline4WD)
 %shared_ptr(chrono::vehicle::SimpleDrivelineXWD)
 
+%shared_ptr(chrono::vehicle::ChDrivelineTV)
+%shared_ptr(chrono::vehicle::ChSimpleTrackDriveline)
+%shared_ptr(chrono::vehicle::ChTrackDrivelineBDS)
+%shared_ptr(chrono::vehicle::SimpleTrackDriveline)
+%shared_ptr(chrono::vehicle::TrackDrivelineBDS)
+
 %import(module = "pychrono.core") "chrono_python/core/ChShaft.i"
 
 /* Parse the header file to generate wrappers */
 %include "../../chrono_vehicle/ChDriveline.h"
+
 %include "../../chrono_vehicle/wheeled_vehicle/ChDrivelineWV.h"
 %include "../../chrono_vehicle/wheeled_vehicle/driveline/ChShaftsDriveline2WD.h"
 %include "../../chrono_vehicle/wheeled_vehicle/driveline/ChShaftsDriveline4WD.h"
@@ -56,5 +71,11 @@
 %include "../../chrono_vehicle/wheeled_vehicle/driveline/SimpleDriveline.h"
 %include "../../chrono_vehicle/wheeled_vehicle/driveline/ShaftsDriveline4WD.h"
 %include "../../chrono_vehicle/wheeled_vehicle/driveline/SimpleDrivelineXWD.h"
+
+%include "../../chrono_vehicle/tracked_vehicle/ChDrivelineTV.h"
+%include "../../chrono_vehicle/tracked_vehicle/driveline/ChSimpleTrackDriveline.h"
+%include "../../chrono_vehicle/tracked_vehicle/driveline/ChTrackDrivelineBDS.h"
+%include "../../chrono_vehicle/tracked_vehicle/driveline/SimpleTrackDriveline.h"
+%include "../../chrono_vehicle/tracked_vehicle/driveline/TrackDrivelineBDS.h"
 
 %include "chrono_python/models/DrivelineModels.i"

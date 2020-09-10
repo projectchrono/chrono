@@ -7,6 +7,7 @@
 #include "chrono/physics/ChMaterialSurface.h"
 
 #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicle.h"
+#include "chrono_vehicle/tracked_vehicle/ChTrackedVehicle.h"
 
 #include "chrono_models/ChApiModels.h"
 
@@ -36,6 +37,8 @@
 
 #include "chrono_models/vehicle/gator/Gator.h"
 #include "chrono_models/vehicle/gator/Gator_Vehicle.h"
+
+#include "chrono_models/vehicle/m113/M113_Vehicle.h"
 %}
 
 
@@ -67,6 +70,7 @@
 %shared_ptr(chrono::vehicle::gator::Gator)
 %shared_ptr(chrono::vehicle::gator::Gator_Vehicle)
 
+%shared_ptr(chrono::vehicle::m113::M113_Vehicle)
 
 %import(module = "pychrono.core") "chrono_python/core/ChMaterialSurface.i"
 %import "chrono_python/vehicle/ChSuspension.i"
@@ -75,8 +79,12 @@
 %import "chrono_python/vehicle/ChPowertrain.i"
 %import "chrono_python/vehicle/ChChassis.i"
 %import "chrono_python/vehicle/ChTire.i"
+%import "chrono_python/vehicle/ChTrackAssembly.i"
+
 %import "../../chrono_vehicle/wheeled_vehicle/ChWheeledVehicle.h"
 %import "../../chrono_vehicle/wheeled_vehicle/vehicle/WheeledVehicle.h"
+%import "../../chrono_vehicle/tracked_vehicle/ChTrackedVehicle.h"
+%import "../../chrono_vehicle/tracked_vehicle/vehicle/TrackedVehicle.h"
 %import "../../chrono_vehicle/ChVehicle.h"
 
 // Model:
@@ -106,3 +114,5 @@
 
 %include "../../chrono_models/vehicle/gator/Gator.h"
 %include "../../chrono_models/vehicle/gator/Gator_Vehicle.h"
+
+%include "../../chrono_models/vehicle/m113/M113_Vehicle.h"

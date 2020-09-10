@@ -11,18 +11,17 @@
 #include "chrono_vehicle/ChPart.h"
 
 #include "chrono_vehicle/wheeled_vehicle/ChSteering.h"
+
 #include "chrono_vehicle/wheeled_vehicle/steering/ChPitmanArm.h"
 #include "chrono_vehicle/wheeled_vehicle/steering/ChPitmanArmShafts.h"
 #include "chrono_vehicle/wheeled_vehicle/steering/ChRackPinion.h"
-
 #include "chrono_vehicle/wheeled_vehicle/steering/ChRotaryArm.h"
+
 #include "chrono_vehicle/wheeled_vehicle/steering/PitmanArm.h"
 #include "chrono_vehicle/wheeled_vehicle/steering/RackPinion.h"
 #include "chrono_vehicle/wheeled_vehicle/steering/RotaryArm.h"
 
-
 #include "chrono_thirdparty/rapidjson/document.h"
-
 %}
 
 %shared_ptr(chrono::vehicle::ChSteering)
@@ -36,9 +35,6 @@
 
 %import(module = "pychrono.core") "chrono_python/core/ChShaft.i"
 %import "../../chrono_vehicle/ChPart.h"
-
-
-//%shared_ptr(chrono::vehicle::RigidTerrain::Patch)
 
 /* Parse the header file to generate wrappers */
 
@@ -54,5 +50,6 @@
 %include "../../chrono_vehicle/wheeled_vehicle/steering/PitmanArm.h"
 %include "../../chrono_vehicle/wheeled_vehicle/steering/RackPinion.h"
 %include "../../chrono_vehicle/wheeled_vehicle/steering/RotaryArm.h"
+
 %include "chrono_python/models/SteeringModels.i"
 

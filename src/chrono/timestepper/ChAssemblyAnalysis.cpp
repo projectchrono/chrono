@@ -58,13 +58,14 @@ void ChAssemblyAnalysis::AssemblyAnalysis(int action, double dt) {
                 0,        // factor for  dF/dv
                 0,        // factor for  dF/dx (the stiffness matrix)
                 X, V, T,  // not needed
-                false,    // do not StateScatter update to Xnew Vnew T+dt before computing correction
+                false,    // do not scatter Xnew Vnew T+dt before computing correction
+                false,    // full update? (not used, since no scatter)
                 true      // force a call to the solver's Setup function
                 );
 
             X += Dx;
 
-            integrable->StateScatter(X, V, T);  // state -> system
+            integrable->StateScatter(X, V, T, true);  // state -> system
         }
     }
 
@@ -97,11 +98,12 @@ void ChAssemblyAnalysis::AssemblyAnalysis(int action, double dt) {
             -dt,           // factor for  dF/dv
             -dt * dt,      // factor for  dF/dx
             X, V, T + dt,  // not needed
-            false,         // do not StateScatter update to Xnew Vnew T+dt before computing correction
+            false,         // do not scatter Xnew Vnew T+dt before computing correction
+            false,         // full update? (not used, since no scatter)
             true           // force a call to the solver's Setup() function
-            );
+        );
 
-        integrable->StateScatter(X, V, T);  // state -> system
+        integrable->StateScatter(X, V, T, true);  // state -> system
 
         L *= (1.0 / dt);  // Note it is not -(1.0/dt) because we assume StateSolveCorrection already flips sign of L
 

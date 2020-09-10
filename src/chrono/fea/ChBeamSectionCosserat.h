@@ -62,7 +62,8 @@ class ChApi ChElasticityCosserat {
 };
 
 /// Simple linear elasticity model for a Cosserat beam, using basic material
-/// properties (zz and yy moments of inertia, area, Young modulus, etc.)
+/// properties (zz and yy moments of inertia, area, Young modulus, etc.).
+/// Uniform stiffness properties E,G are hence assumed through the section.
 /// The classical Timoshenko beam theory is encompassed in this model, that
 /// can be interpreted as a 3D extension of the Timoshenko beam theory.
 /// This can be shared between multiple beams.
@@ -82,6 +83,19 @@ class ChApi ChElasticityCosseratSimple : public ChElasticityCosserat {
 
     ChElasticityCosseratSimple();
 
+    ChElasticityCosseratSimple(
+        const double mIyy,   ///< Iyy second moment of area of the beam \f$ I_y =  \int_\Omega z^2 dA \f$
+        const double mIzz,   ///< Izz second moment of area of the beam \f$ I_z =  \int_\Omega y^2 dA \f$
+        const double mJ,     ///< torsion constant (torsion rigidity will be G*J, torsional stiffness = G*J*length)
+        const double mG,     ///< G shear modulus
+        const double mE,     ///< E young modulus 
+        const double mA,     ///< A area
+        const double mKs_y,  ///< Timoshenko shear coefficient Ks for y shear
+        const double mKs_z   ///< Timoshenko shear coefficient Ks for z shear
+    ) :
+        Iyy(mIyy), Izz(mIzz), J(mJ), G(mG), E(mE), A(mA), Ks_y(mKs_y), Ks_z(mKs_z)
+    {}
+
     virtual ~ChElasticityCosseratSimple() {}
 
 	/// Set the A area of the beam.
@@ -89,14 +103,14 @@ class ChApi ChElasticityCosseratSimple : public ChElasticityCosserat {
     double GetArea() const { return this->A; }
 
     /// Set the Iyy second moment of area of the beam (for bending about y in xz plane),
-	/// defined as \f$ I_y =  \int_\Omega \rho z^2 dA \f$.
+	/// defined as \f$ I_y =  \int_\Omega z^2 dA \f$.
     /// Note: some textbook calls this Iyy as Iy
 	/// Ex SI units: [m^4]
     void SetIyy(double ma) { this->Iyy = ma; }
     double GetIyy() const { return this->Iyy; }
 
     /// Set the Izz second moment of area of the beam (for bending about z in xy plane). 
-	/// defined as \f$ I_z =  \int_\Omega \rho y^2 dA \f$.
+	/// defined as \f$ I_z =  \int_\Omega y^2 dA \f$.
     /// Note: some textbook calls this Izz as Iz
 	/// Ex SI units: [m^4]
     void SetIzz(double ma) { this->Izz = ma; }
@@ -208,6 +222,7 @@ class ChApi ChElasticityCosseratGeneric : public ChElasticityCosserat {
 /// properties. It also supports the advanced case of
 /// Iyy and Izz axes rotated respect reference, elastic center with offset
 /// from reference, and shear center with offset from reference.
+/// Uniform stiffness properties E,G are assumed through the section.
 /// This material can be shared between multiple beams.
 /// The linear elasticity is uncoupled between shear terms S and axial terms A
 /// as to have this stiffness matrix pattern:
@@ -231,6 +246,26 @@ class ChApi ChElasticityCosseratAdvanced : public ChElasticityCosseratSimple {
     double Sz;     ///<
 
     ChElasticityCosseratAdvanced();
+
+    ChElasticityCosseratAdvanced(
+        const double mIyy,   ///< Iyy second moment of area of the beam \f$ I_y =  \int_\Omega z^2 dA \f$
+        const double mIzz,   ///< Izz second moment of area of the beam \f$ I_z =  \int_\Omega y^2 dA \f$
+        const double mJ,     ///< torsion constant (torsion rigidity will be G*J, torsional stiffness = G*J*length)
+        const double mG,     ///< G shear modulus
+        const double mE,     ///< E young modulus 
+        const double mA,     ///< A area
+        const double mKs_y,  ///< Timoshenko shear coefficient Ks for y shear
+        const double mKs_z,  ///< Timoshenko shear coefficient Ks for z shear
+        const double malpha, ///< section rotation for which Iyy Izz are computed
+        const double mCy,    ///< Cy offset of elastic center about which Iyy Izz are computed
+        const double mCz,    ///< Cz offset of elastic center about which Iyy Izz are computed
+        const double mbeta, ///< section rotation for which Ks_y Ks_z are computed
+        const double mSy,    ///< Sy offset of shear center
+        const double mSz     ///< Sz offset of shear center
+    ) :
+        ChElasticityCosseratSimple(mIyy, mIzz, mJ, mG, mE, mA, mKs_y, mKs_z), alpha(malpha), Cy(mCy), Cz(mCz), beta(mbeta), Sy(mSy), Sz(mSz)
+    {}
+
 
     virtual ~ChElasticityCosseratAdvanced() {}
 
@@ -864,7 +899,7 @@ class ChApi ChInertiaCosseratAdvanced : public ChInertiaCosserat {
 	virtual double GetMassPerUnitLength() override { return this->mu; }
 
 
-    /// Set mass per unit length, ex.SI units [kg/m].
+    /// Set mass c, ex.SI units [kg/m].
     /// Note that for uniform volumetric density \f$ \rho \f$, and area \f$ A \f$, this is also \f$ \mu = \rho A \f$.
     virtual void SetMassPerUnitLength(double mmu) { mu = mmu; }
 
@@ -925,7 +960,7 @@ class ChApi ChInertiaCosseratAdvanced : public ChInertiaCosserat {
     virtual void GetMainInertiasInMassReference(double& Jmyy, double& Jmzz, double& phi);
 
 private:
-	double mu; // density
+	double mu;   // mass per unit length
     double cm_y; // center of mass offset along Y of section
     double cm_z; // center of mass offset along Z of section
 	double Jzz;  
@@ -1141,7 +1176,7 @@ public:
 		double width_z,			///< width of section in z direction
 		double E,				///< Young modulus
 		double G,				///< shear modulus
-		double density			///< volumetric density (ex. in SI units: [kg/m])
+		double density			///< volumetric density (ex. in SI units: [kg/m^3])
 	);
 };
 
@@ -1160,7 +1195,7 @@ public:
 		double diameter,		///< diameter of section 
 		double E,				///< Young modulus
 		double G,				///< shear modulus
-		double density			///< volumetric density (ex. in SI units: [kg/m])
+		double density			///< volumetric density (ex. in SI units: [kg/m^3])
 	);
 };
 

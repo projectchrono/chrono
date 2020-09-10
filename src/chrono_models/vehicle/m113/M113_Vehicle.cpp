@@ -40,41 +40,43 @@ namespace m113 {
 // -----------------------------------------------------------------------------
 M113_Vehicle::M113_Vehicle(bool fixed,
                            TrackShoeType shoe_type,
+                           BrakeType brake_type,
                            ChContactMethod contact_method,
                            ChassisCollisionType chassis_collision_type)
     : ChTrackedVehicle("M113", contact_method), m_type(shoe_type) {
-    Create(fixed, chassis_collision_type);
+    Create(fixed, brake_type, chassis_collision_type);
 }
 
 M113_Vehicle::M113_Vehicle(bool fixed,
                            TrackShoeType shoe_type,
+                           BrakeType brake_type,
                            ChSystem* system,
                            ChassisCollisionType chassis_collision_type)
     : ChTrackedVehicle("M113", system), m_type(shoe_type) {
-    Create(fixed, chassis_collision_type);
+    Create(fixed, brake_type, chassis_collision_type);
 }
 
-void M113_Vehicle::Create(bool fixed, ChassisCollisionType chassis_collision_type) {
+void M113_Vehicle::Create(bool fixed, BrakeType brake_type, ChassisCollisionType chassis_collision_type) {
     // Create the chassis subsystem
     m_chassis = chrono_types::make_shared<M113_Chassis>("Chassis", fixed, chassis_collision_type);
 
     // Create the track assembly subsystems
     switch (m_type) {
         case TrackShoeType::SINGLE_PIN:
-            m_tracks[0] = chrono_types::make_shared<M113_TrackAssemblySinglePin>(LEFT);
-            m_tracks[1] = chrono_types::make_shared<M113_TrackAssemblySinglePin>(RIGHT);
+            m_tracks[0] = chrono_types::make_shared<M113_TrackAssemblySinglePin>(LEFT, brake_type);
+            m_tracks[1] = chrono_types::make_shared<M113_TrackAssemblySinglePin>(RIGHT, brake_type);
             break;
         case TrackShoeType::DOUBLE_PIN:
-            m_tracks[0] = chrono_types::make_shared<M113_TrackAssemblyDoublePin>(LEFT);
-            m_tracks[1] = chrono_types::make_shared<M113_TrackAssemblyDoublePin>(RIGHT);
+            m_tracks[0] = chrono_types::make_shared<M113_TrackAssemblyDoublePin>(LEFT, brake_type);
+            m_tracks[1] = chrono_types::make_shared<M113_TrackAssemblyDoublePin>(RIGHT, brake_type);
             break;
         case TrackShoeType::BAND_BUSHING:
-            m_tracks[0] = chrono_types::make_shared<M113_TrackAssemblyBandBushing>(LEFT);
-            m_tracks[1] = chrono_types::make_shared<M113_TrackAssemblyBandBushing>(RIGHT);
+            m_tracks[0] = chrono_types::make_shared<M113_TrackAssemblyBandBushing>(LEFT, brake_type);
+            m_tracks[1] = chrono_types::make_shared<M113_TrackAssemblyBandBushing>(RIGHT, brake_type);
             break;
         case TrackShoeType::BAND_ANCF:
-            m_tracks[0] = chrono_types::make_shared<M113_TrackAssemblyBandANCF>(LEFT);
-            m_tracks[1] = chrono_types::make_shared<M113_TrackAssemblyBandANCF>(RIGHT);
+            m_tracks[0] = chrono_types::make_shared<M113_TrackAssemblyBandANCF>(LEFT, brake_type);
+            m_tracks[1] = chrono_types::make_shared<M113_TrackAssemblyBandANCF>(RIGHT, brake_type);
             break;
     }
 

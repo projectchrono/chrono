@@ -114,10 +114,7 @@ std::string simplepowertrain_file("generic/powertrain/SimplePowertrain.json");
 // -----------------------------------------------------------------------------
 
 // Desired number of OpenMP threads (will be clamped to maximum available)
-int threads = 20;
-
-// Perform dynamic tuning of number of threads?
-bool thread_tuning = false;
+int threads = 8;
 
 // Total simulation duration.
 double time_end = 7;
@@ -269,13 +266,7 @@ int main(int argc, char* argv[]) {
 #else
 
     // Set number of threads
-    int max_threads = CHOMPfunctions::GetNumProcs();
-    if (threads > max_threads)
-        threads = max_threads;
-    CHOMPfunctions::SetNumThreads(threads);
-    std::cout << "Using " << threads << " threads" << std::endl;
-
-    system->GetSettings()->perform_thread_tuning = thread_tuning;
+    system->SetNumThreads(threads);
 
     // Set solver parameters
     system->GetSettings()->solver.max_iteration_bilateral = max_iteration_bilateral;
@@ -371,7 +362,7 @@ int main(int argc, char* argv[]) {
     // --------------------------
 
     // Create and initialize vehicle system
-    M113_Vehicle vehicle(true, TrackShoeType::SINGLE_PIN, system);
+    M113_Vehicle vehicle(true, TrackShoeType::SINGLE_PIN, BrakeType::SIMPLE, system);
     ////vehicle.SetStepsize(0.0001);
 
     vehicle.Initialize(ChCoordsys<>(initLoc, initRot));
