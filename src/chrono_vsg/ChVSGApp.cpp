@@ -24,7 +24,10 @@
 #include "chrono/assets/ChSphereShape.h"
 #include "chrono/assets/ChEllipsoidShape.h"
 #include "chrono/assets/ChCylinderShape.h"
-#include "chrono_vsg/shapes/ChVSGShapeFactory.h"
+#include "chrono_vsg/resources/ChVSGSettings.h"
+#include "chrono_vsg/resources/ChVSGPhongMaterial.h"
+#include "chrono_vsg/shapes/VSGBox.h"
+#include "chrono_vsg/shapes/ChVSGShape.h"
 #include "chrono_vsg/shapes/ChVSGCube.h"
 #include "chrono_vsg/shapes/ChVSGSphere.h"
 #include "chrono_vsg/shapes/ChVSGCylinder.h"
@@ -35,6 +38,7 @@ ChVSGApp::ChVSGApp()
     : m_horizonMountainHeight(0.0),
       m_timeStep(0.001),
       m_outputStep(0.001),
+      m_drawMode(DrawMode::Textured),
       m_build_graph(true),
       m_wait_counter(1),
       m_wait_counter_max(1) {
@@ -200,22 +204,11 @@ void ChVSGApp::UpdateSceneGraph() {
                     transform->setMatrix(vsg::translate(pos_final.x(), pos_final.y(), pos_final.z()) *
                                          vsg::rotate(angle, axis.x(), axis.y(), axis.z()) *
                                          vsg::scale(size.x(), size.y(), size.z()));
-                    // ChVSGBox theBox;
                     std::string texFilePath("vsg/textures/Metal007.jpg");
-                    /*
-                    vsg::ref_ptr<vsg::Node> node =
-                        ChVSGShapeFactory::createBoxTexturedNode(color, texFilePath, transform);
-                         */
-                    ChVSGCube cube;
-                    // vsg::ref_ptr<vsg::Node> node = cube.createTexturedNode(color, texFilePath, transform);
-                    // opengl material 'jade'
-                    vsg::vec4 ambient(0.135, 0.2225, 0.1575, 1.0), diffuse(0.54, 0.89, 0.63, 1.0);
-                    vsg::vec4 specular(0.316228, 0.316228, 0.316228, 1.0);
-                    float shininess = 0.1 * 128.0;
-                    float opacity = 1.0;
-                    vsg::ref_ptr<vsg::Node> node = cube.createPhongNode(m_light_position, ambient, diffuse, specular,
-                                                                        shininess, opacity, transform);
-
+                    ChVSGPhongMaterial jade(PhongPresets::Jade);
+                    VSGBox box;
+                    box.Initialize(m_light_position, jade, texFilePath);
+                    vsg::ref_ptr<vsg::Node> node = box.createVSGNode(m_drawMode, transform);
                     m_scenegraph->addChild(node);
                     m_transformList.push_back(transform);  // we will need it later
                 } else {

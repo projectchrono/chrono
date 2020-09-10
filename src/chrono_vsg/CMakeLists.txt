@@ -23,6 +23,8 @@ MARK_AS_ADVANCED(CLEAR VSG_ROOT)
 SET(ChronoEngine_VSG_SOURCES
     ChVSGApp.cpp
     resources/ChVSGPhongMaterial.cpp
+    shapes/ChVSGIndexedMesh.cpp
+    shapes/VSGBox.cpp
     shapes/ChVSGShape.cpp
     shapes/ChVSGCube.cpp
     shapes/ChVSGSphere.cpp
@@ -33,7 +35,10 @@ SET(ChronoEngine_VSG_SOURCES
 SET(ChronoEngine_VSG_HEADERS
     ChVSGApp.h
     core/ChApiVSG.h
+    resources/ChVSGSettings.h
     resources/ChVSGPhongMaterial.h
+    shapes/ChVSGIndexedMesh.h
+    shapes/VSGBox.h
     shapes/ChVSGCube.h
     shapes/ChVSGShape.h
     shapes/ChVSGSphere.h

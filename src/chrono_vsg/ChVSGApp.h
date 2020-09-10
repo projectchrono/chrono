@@ -20,6 +20,7 @@
 
 #include <iostream>
 #include "chrono_vsg/core/ChApiVSG.h"
+#include "chrono_vsg/resources/ChVSGSettings.h"
 #include "chrono/physics/ChSystem.h"
 #include "chrono/core/ChTimer.h"
 #include "chrono/core/ChVector.h"
@@ -63,6 +64,8 @@ class CH_VSG_API ChVSGApp {
 
     double m_timeStep;
     double m_outputStep;
+
+    DrawMode m_drawMode;
 
     bool m_build_graph;
 
