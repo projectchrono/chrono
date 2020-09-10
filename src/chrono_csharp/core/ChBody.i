@@ -79,6 +79,7 @@ ChVector<double> GetWacc_par() const            {return $self->GetWacc_par();}
 //%import "ChPhysicsItem.i"   // (parent class does not need %import if all .i are included in proper order
 %import "chrono_csharp/core/ChMaterialSurface.i"
 %import "chrono_csharp/core/ChCollisionModel.i"
+%import "chrono_csharp/core/ChMarker.i"
 
 /* Parse the header file to generate wrappers */
 %include "../../chrono/physics/ChBody.h"  
