@@ -421,6 +421,7 @@ windows:vs2019:deploy:
     - Start-Process "cmd.exe" "/c .\contrib\packaging-python\gitlab\build_pychrono.bat >outputfile.txt" -Wait
     - get-content outputfile.txt
     - Copy-Item "./outputfile.txt" -Destination "./logs/"
+    - Remove-Item $Env:CONDA_INSTALL_LOCN\conda-bld\*pychrono* -Recurse -Force
 
   environment:
     name: pychrono-win64
