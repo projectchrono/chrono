@@ -497,7 +497,8 @@ class btTaskSchedulerOpenMP : public btITaskScheduler
 public:
 	btTaskSchedulerOpenMP() : btITaskScheduler("OpenMP")
 	{
-		m_numThreads = 0;
+      /* ***CHRONO*** Set default num threads to 1, not 0 */
+		m_numThreads = 1;
 	}
 	virtual int getMaxNumThreads() const BT_OVERRIDE
 	{
@@ -513,8 +514,9 @@ public:
 		// know for sure if every implementation has the same behavior of destroying all
 		// previous threads when resizing the threadpool
 		m_numThreads = (std::max)(1, (std::min)(int(BT_MAX_THREAD_COUNT), numThreads));
-		omp_set_num_threads(1);  // hopefully, all previous threads get destroyed here
-		omp_set_num_threads(m_numThreads);
+        /* ***CHRONO*** No global setting of OMP num threads */
+		////omp_set_num_threads(1);  // hopefully, all previous threads get destroyed here
+		////omp_set_num_threads(m_numThreads);
 		m_savedThreadCounter = 0;
 		if (m_isActive)
 		{
@@ -525,7 +527,8 @@ public:
 	{
 		BT_PROFILE("parallelFor_OpenMP");
 		btPushThreadsAreRunning();
-#pragma omp parallel for schedule(static, 1)
+        /* ***CHRONO*** Explicitly set number of threads in OMP for loop */
+#pragma omp parallel for schedule(static, 1) num_threads(m_numThreads)
 		for (int i = iBegin; i < iEnd; i += grainSize)
 		{
 			BT_PROFILE("OpenMP_forJob");
@@ -538,8 +541,8 @@ public:
 		BT_PROFILE("parallelFor_OpenMP");
 		btPushThreadsAreRunning();
 		btScalar sum = btScalar(0);
-#pragma omp parallel for schedule(static, 1) reduction(+ \
-													   : sum)
+        /* ***CHRONO*** Explicitly set number of threads in OMP for loop */
+#pragma omp parallel for schedule(static, 1) reduction(+ : sum) num_threads(m_numThreads)
 		for (int i = iBegin; i < iEnd; i += grainSize)
 		{
 			BT_PROFILE("OpenMP_sumJob");
