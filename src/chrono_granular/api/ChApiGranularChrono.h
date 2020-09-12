@@ -51,7 +51,10 @@ class CH_GRANULAR_API ChGranularChronoTriMeshAPI {
     chrono::granular::ChSystemGranularSMC_trimesh& getGranSystemSMC_TriMesh() { return *pGranSystemSMC_TriMesh; }
 
     // Set particle positions in UU
-    void setElemsPositions(const std::vector<chrono::ChVector<float>>& points);
+    void setElemsPositions(const std::vector<chrono::ChVector<float>>& points,
+                           const std::vector<chrono::ChVector<float>>& vels = std::vector<chrono::ChVector<float>>(),
+                           const std::vector<chrono::ChVector<float>>& ang_vels = 
+                           std::vector<chrono::ChVector<float>>());
 
     // return particle position in UU 
     chrono::ChVector<float> getPosition(int nSphere);
@@ -74,7 +77,9 @@ class CH_GRANULAR_API ChGranularSMC_API {
     ChGranularSMC_API() : gran_sys(NULL) {}
     // Set particle positions in UU
     void setElemsPositions(const std::vector<chrono::ChVector<float>>& points,
-                           const std::vector<chrono::ChVector<float>>& vels = std::vector<chrono::ChVector<float>>());
+                           const std::vector<chrono::ChVector<float>>& vels = std::vector<chrono::ChVector<float>>(),
+                           const std::vector<chrono::ChVector<float>>& ang_vels = 
+                           std::vector<chrono::ChVector<float>>());
 
     // set the gran systems that the user talks to; beef up the API so that the gran system is built through the API,
     // instead of passing a gran system pointer to the API (the API builds the gran system; not the API coming in after
