@@ -171,12 +171,16 @@ class ChApi ChElasticityCosseratSimple : public ChElasticityCosserat {
         ) override;
 };
 
-/// Generic linear elasticity for a Cosserat beam, using a 6x6 matrix [E]
-/// from user-input data. The [E] matrix can be computed from a preprocessing
+/// Generic linear elasticity for a Cosserat beam using directly a 6x6 matrix [E] 
+/// as user-input data. 
+/// The [E] matrix values ("rigidity" values) can be computed from a preprocessing
 /// stage using a FEA analysis over a detailed 3D model of a chunk of beam,
 /// hence recovering the 6x6 matrix that connects yxz displacements "e" and
 /// xyz rotations "k" to the xyz cut-force "n" and xyz cut-torque "m" as in
-/// {m,n}=[E]{e,k}.
+///   \f$ (m,n)=[E](e,k) \f$ 
+/// where \f$ e, k, m, n \f$  are expressed in the centerline reference.
+/// Using a matrix of rigidity values, the model does not assume homogeneous elasticity
+/// and bypasses the need of entering E or G values.
 /// This can be shared between multiple beams.
 /// \image html "http://www.projectchrono.org/assets/manual/fea_ChElasticityCosseratGeneric.png"
 /// 
@@ -190,7 +194,7 @@ class ChApi ChElasticityCosseratGeneric : public ChElasticityCosserat {
     /// This is the matrix that defines the linear elastic constitutive model
     /// as it maps  yxz displacements "e" and xyz rotations "k"
     /// to the xyz cut-force "n" and xyz cut-torque "m" as in
-    ///   {m,n}=[E]{e,k}.
+    ///    \f$ (m,n)=[E](e,k) \f$ 
     ChMatrixNM<double, 6, 6>& Ematrix() { return this->mE; }
 
 
@@ -218,11 +222,11 @@ class ChApi ChElasticityCosseratGeneric : public ChElasticityCosserat {
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 };
 
-/// Elasticity for a beam section in 3D, along with basic material
-/// properties. It also supports the advanced case of
+/// Advanced linear elasticity for a Cosserat beam.
+/// Uniform stiffness properties E,G are assumed through the section as in
+/// ChElasticityCosseratSimple, but here it also supports the advanced case of
 /// Iyy and Izz axes rotated respect reference, elastic center with offset
 /// from reference, and shear center with offset from reference.
-/// Uniform stiffness properties E,G are assumed through the section.
 /// This material can be shared between multiple beams.
 /// The linear elasticity is uncoupled between shear terms S and axial terms A
 /// as to have this stiffness matrix pattern:
@@ -328,11 +332,13 @@ class ChApi ChElasticityCosseratAdvanced : public ChElasticityCosseratSimple {
 /// Each vertex has its own material.
 /// Section is assumed always flat, even if the section mesh is not connected, ex.
 /// if one models a section like a "8" shape where the two "o" are not connected.
+///
 /// Benefits:
 /// - no need to provide I_y, I_z, A, etc.
 /// - possibility of getting values of stresses in different points of the section
 /// - possibility of using some 1D plasticity to discover plasticizing zones in the section
-/// Limitations:
+///
+/// Limitations (TO BE REMOVED IN FUTURE using Vlasov / Prandtl theories):
 /// - section torsional warping not included,
 /// - torsion stresses are correct only in tube-like shapes, or similar; other models such as
 ///   ChElasticityCosseratAdvanced contain torsional effects via the macroscopic J constant; here there is
@@ -342,6 +348,7 @@ class ChApi ChElasticityCosseratAdvanced : public ChElasticityCosseratSimple {
 ///   here would be constant. Other models such as ChElasticityCosseratAdvanced correct this effect at the macroscopic
 ///   level using the Timoshenko correction factors Ks_y and Ks_z, here they are used as well, but if so, shear in
 ///   material points would have less meaning.
+///
 /// This material can be shared between multiple beams.
 ///
 /// \image html "http://www.projectchrono.org/assets/manual/fea_ChElasticityCosseratMesh.png"

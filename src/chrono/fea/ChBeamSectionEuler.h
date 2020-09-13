@@ -412,21 +412,21 @@ public:
         Ax = mv;
     }
 
-    /// Gets the torsion rigidity, for torsion about X axis, at elastic center, 
+    /// Sets the torsion rigidity, for torsion about X axis, at elastic center, 
     /// usually J*G for uniform elasticity, but for nonuniform elasticity
     /// here you can put a value ad-hoc from a preprocessor 
     virtual void SetXtorsionRigidity(const double mv) {
         Txx = mv;
     }
 
-    /// Gets the bending rigidity, for bending about Y axis, at elastic center, 
+    /// Sets the bending rigidity, for bending about Y axis, at elastic center, 
     /// usually Iyy*E for uniform elasticity, but for nonuniform elasticity
     /// here you can put a value ad-hoc from a preprocessor
     virtual void SetYbendingRigidity(const double mv) {
         Byy = mv;
     }
 
-    /// Gets the bending rigidity, for bending about Z axis, at elastic center, 
+    /// Sets the bending rigidity, for bending about Z axis, at elastic center, 
     /// usually Izz*E for uniform elasticity, but for nonuniform elasticity
     /// here you can put a value ad-hoc from a preprocessor
     virtual void SetZbendingRigidity(const double mv) {
@@ -439,32 +439,32 @@ public:
         alpha = mv;
     }
 
-    /// Gets the Y position of the elastic center respect to centerline.
+    /// Sets the Y position of the elastic center respect to centerline.
     virtual void SetCentroidY(const double mv) {
         Cy = mv;
     }
-    /// Gets the Z position of the elastic center respect to centerline.
+    /// Sets the Z position of the elastic center respect to centerline.
     virtual void SetCentroidZ(const double mv) {
         Cz = mv;
     }
 
-    /// Gets the Y position of the shear center respect to centerline.
+    /// Sets the Y position of the shear center respect to centerline.
     virtual void SetShearCenterY(const double mv) {
         Sy = mv;
     }
-    /// Gets the Z position of the shear center respect to centerline.
+    /// Sets the Z position of the shear center respect to centerline.
     virtual void SetShearCenterZ(const double mv) {
         Sz = mv;
     }
 
-    /// Get mass per unit length, ex.SI units [kg/m]
+    /// Set mass per unit length, ex.SI units [kg/m]
     /// For uniform density it would be A*density, but for nonuniform density
     /// here you can put a value ad-hoc from a preprocessor
     virtual void SetMassPerUnitLength(const double mv){
         mu = mv;
     }
 
-    /// Get the Jxx component of the inertia per unit length (polar inertia), computed at centerline.
+    /// Set the Jxx component of the inertia per unit length (polar inertia), computed at centerline.
     /// For uniform density it would be Ixx*density or, by polar theorem, (Izz+Iyy)*density, but for 
     /// nonuniform density here you can put a value ad-hoc from a preprocessor
     virtual void SetInertiaJxxPerUnitLength(const double mv)  {
