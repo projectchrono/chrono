@@ -23,7 +23,8 @@ subject to the following restrictions:
 #define btCollisionObjectData btCollisionObjectFloatData
 #endif
 
-btScalar  gContactBreakingThreshold = btScalar(0.004); //***ALEX***, 0.004, original 0.02, warning: do not set too low or you get troubles with aabb
+/* ***CHRONO***, 0.004, original 0.02, warning: do not set too low or you get troubles with aabb */
+btScalar gContactBreakingThreshold = btScalar(0.004);
 ContactDestroyedCallback gContactDestroyedCallback = 0;
 ContactProcessedCallback gContactProcessedCallback = 0;
 ContactStartedCallback gContactStartedCallback = 0;
@@ -56,10 +57,10 @@ void btPersistentManifold::DebugPersistency()
 }
 #endif  //DEBUG_PERSISTENCY
 
-void btPersistentManifold::clearUserCache(btManifoldPoint& pt)
-{
-	pt.reactions_cache[0]=pt.reactions_cache[1]=pt.reactions_cache[2]=0; //***ALEX***
-	pt.reactions_cache[3]=pt.reactions_cache[4]=pt.reactions_cache[5]=0; //***ALEX***
+void btPersistentManifold::clearUserCache(btManifoldPoint& pt) {
+    /* ***CHRONO*** */
+    pt.reactions_cache[0] = pt.reactions_cache[1] = pt.reactions_cache[2] = 0;
+    pt.reactions_cache[3] = pt.reactions_cache[4] = pt.reactions_cache[5] = 0;
 
 	void* oldPtr = pt.m_userPersistentData;
 	if (oldPtr)

@@ -41,11 +41,9 @@ void btCollisionShape::getBoundingSphere(btVector3& center, btScalar& radius) co
 
 btScalar btCollisionShape::getContactBreakingThreshold(btScalar defaultContactThreshold) const
 {
-	// return getAngularMotionDisc() * defaultContactThreshold; // <-- original!
-	//return 0.001; // <-- ***ALEX***TEST: fixed and small, for small objects
-	//return getAngularMotionDisc() * getMargin()*0.2; //***ALEX*** modified because defaultContactThreshold is zero in C::E, with inward breaking threshold
-	//return 0.001+ getAngularMotionDisc() * getMargin()*0.2; //***ALEX*** hybryd!
-	return btScalar(0.3) * getMargin();  //***ALEX*** fixed to be comparable to Bullet margin
+    /* ***CHRONO*** Adjust to be comparable to Bullet margin */
+    ////return getAngularMotionDisc() * defaultContactThreshold; // <-- original!
+	return btScalar(0.3) * getMargin();
 }
 
 btScalar btCollisionShape::getAngularMotionDisc() const

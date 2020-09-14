@@ -30,7 +30,7 @@ subject to the following restrictions:
 #include "BulletCollision/BroadphaseCollision/btCollisionAlgorithm.h"
 #include "BulletCollision/BroadphaseCollision/btBroadphaseInterface.h"
 #include "BulletCollision/BroadphaseCollision/btDbvt.h"
-#include "BulletCollision/CollisionShapes/btCEtriangleShape.h" //***ALEX***
+#include "BulletCollision/CollisionShapes/btCEtriangleShape.h" //***CHRONO***
 #include "LinearMath/btAabbUtil2.h"
 #include "LinearMath/btQuickprof.h"
 #include "LinearMath/btSerializer.h"
@@ -156,8 +156,9 @@ void btCollisionWorld::updateSingleAabb(btCollisionObject* colObj)
 	colObj->getCollisionShape()->getAabb(colObj->getWorldTransform(), minAabb, maxAabb);
 	//need to increase the aabb for contact thresholds
 	btVector3 contactThreshold(gContactBreakingThreshold, gContactBreakingThreshold, gContactBreakingThreshold);
-	//minAabb -= contactThreshold; ***ALEX***  not needed because in C::E the margin also includes the contact breaking layer
-	//maxAabb += contactThreshold; ***ALEX***  not needed because in C::E the margin also includes the contact breaking layer
+    /* ***CHRONO*** minAabb and maxAabb not needed because the margin in Chrono also icludes the contact braking layer */
+	////minAabb -= contactThreshold;
+	////maxAabb += contactThreshold;
 
 	if (getDispatchInfo().m_useContinuous && colObj->getInternalType() == btCollisionObject::CO_RIGID_BODY && !colObj->isStaticOrKinematicObject())
 	{
@@ -227,21 +228,23 @@ void btCollisionWorld::performDiscreteCollisionDetection()
 	updateAabbs();
 
 	{
+        /* ***CHRONO*** Add Chrono-specific timers */
 		BT_PROFILE("computeOverlappingPairs");
-        CH_PROFILE("Broad-phase"); //***ALEX***
-        timer_collision_broad.start(); //***RADU***
+        CH_PROFILE("Broad-phase");
+        timer_collision_broad.start();
 		computeOverlappingPairs();
-        timer_collision_broad.stop(); //***RADU***
+        timer_collision_broad.stop();
 	}
 
 	btDispatcher* dispatcher = getDispatcher();
 	{
-		BT_PROFILE("dispatchAllCollisionPairs");
-		CH_PROFILE("Narrow-phase"); //***ALEX***
-        timer_collision_narrow.start(); //***RADU***
+        /* ***CHRONO*** Add Chrono-specific timers */
+        BT_PROFILE("dispatchAllCollisionPairs");
+		CH_PROFILE("Narrow-phase");
+        timer_collision_narrow.start();
 		if (dispatcher)
 			dispatcher->dispatchAllCollisionPairs(m_broadphasePairCache->getOverlappingPairCache(), dispatchInfo, m_dispatcher1);
-		timer_collision_narrow.stop(); //***RADU***
+		timer_collision_narrow.stop();
 	}
 }
 
@@ -1300,7 +1303,8 @@ void btCollisionWorld::debugDrawObject(const btTransform& worldTransform, const 
 	// Draw a small simplex at the center of the object
 	if (getDebugDrawer() && getDebugDrawer()->getDebugMode() & btIDebugDraw::DBG_DrawFrames)
 	{
-		//getDebugDrawer()->drawTransform(worldTransform, .1); //***ALEX***
+        /* ***CHRONO*** Comment out */
+		////getDebugDrawer()->drawTransform(worldTransform, .1);
 	}
 
 	if (shape->getShapeType() == COMPOUND_SHAPE_PROXYTYPE)
