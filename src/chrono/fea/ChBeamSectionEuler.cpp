@@ -43,7 +43,7 @@ namespace fea {
 	}
 
 
-	void  ChBeamSectionEulerGeneric::ComputeInertiaMatrix(ChMatrixNM<double, 6, 6>& M) {
+	void  ChBeamSectionEulerAdvancedGeneric::ComputeInertiaMatrix(ChMatrixNM<double, 6, 6>& M) {
 		M.setZero();
 		M(0, 0) = this->mu;
 		M(1, 1) = this->mu;
@@ -71,7 +71,7 @@ namespace fea {
 		//M(5, 4) = -this->Jyz;
 	}
 
-	void ChBeamSectionEulerGeneric::ComputeQuadraticTerms(ChVector<>& mF,   ///< centrifugal term (if any) returned here
+	void ChBeamSectionEulerAdvancedGeneric::ComputeQuadraticTerms(ChVector<>& mF,   ///< centrifugal term (if any) returned here
 		ChVector<>& mT,                ///< gyroscopic term  returned here
 		const ChVector<>& mW           ///< current angular velocity of section, in material frame
 	) {

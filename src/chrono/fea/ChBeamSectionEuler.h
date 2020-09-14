@@ -365,9 +365,10 @@ using ChBeamSectionAdvanced = ChBeamSectionEulerAdvanced;
 /// To be used with ChElementBeamEuler.
 /// This material can be shared between multiple beams.
 /// 
+/// \image html "http://www.projectchrono.org/assets/manual/fea_ChElementBeamEuler_section.png"
 ///
 
-class ChApi ChBeamSectionEulerGeneric : public ChBeamSectionEuler {
+class ChApi ChBeamSectionEulerAdvancedGeneric : public ChBeamSectionEuler {
 private:
     double Ax;      // axial rigidity
     double Txx;     // torsion rigidity
@@ -384,9 +385,9 @@ private:
     double Mz;
 public:
 
-    ChBeamSectionEulerGeneric() : Ax(1), Txx(1), Byy(1), Bzz(1),alpha(0),Cy(0),Cz(0),Sy(0),Sz(0),mu(1000),Jxx(1), My(0), Mz(0) {}
+    ChBeamSectionEulerAdvancedGeneric() : Ax(1), Txx(1), Byy(1), Bzz(1),alpha(0),Cy(0),Cz(0),Sy(0),Sz(0),mu(1000),Jxx(1), My(0), Mz(0) {}
 
-    ChBeamSectionEulerGeneric(  const double mAx,      ///< axial rigidity
+    ChBeamSectionEulerAdvancedGeneric(  const double mAx,      ///< axial rigidity
                                 const double mTxx,     ///< torsion rigidity
                                 const double mByy,     ///< bending regidity about yy 
                                 const double mBzz,     ///< bending rigidity about zz 
@@ -403,7 +404,7 @@ public:
         Ax(mAx), Txx(mTxx), Byy(mByy), Bzz(mBzz), alpha(malpha), Cy(mCy), Cz(mCz), Sy(mSy), Sz(mSz), mu(mmu), Jxx(mJxx), My(mMy), Mz(mMz) {}
 
 
-    virtual ~ChBeamSectionEulerGeneric() {}
+    virtual ~ChBeamSectionEulerAdvancedGeneric() {}
 
 
     /// Sets the axial rigidity, usually A*E for uniform elasticity, but for nonuniform elasticity
