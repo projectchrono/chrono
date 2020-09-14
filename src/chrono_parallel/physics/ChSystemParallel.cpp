@@ -913,37 +913,32 @@ settings_container* ChSystemParallel::GetSettings() {
     return &(data_manager->settings);
 }
 
-bool ChSystemParallel::SetNumThreads(int num_threads, int min_threads, int max_threads) {
+// -------------------------------------------------------------
+
+void ChSystemParallel::SetNumThreads(int num_threads_chrono, int num_threads_collision, int num_threads_eigen) {
+    ChSystem::SetNumThreads(num_threads_chrono, num_threads_chrono, num_threads_eigen);
+
 #ifdef _OPENMP
     int max_avail_threads = omp_get_max_threads();
 
-    if (min_threads <= 0 && max_threads <= 0) {
-        if (num_threads > max_avail_threads) {
-            std::cout << "WARNING! Requested number of threads (" << num_threads << ") ";
-            std::cout << "larger than maximum available (" << max_avail_threads << ")" << std::endl;
-        }
-        data_manager->settings.perform_thread_tuning = false;
-        omp_set_num_threads(num_threads);
-        return true;
+    if (num_threads_chrono > max_avail_threads) {
+        std::cout << "WARNING! Requested number of threads (" << num_threads_chrono << ") ";
+        std::cout << "larger than maximum available (" << max_avail_threads << ")" << std::endl;
     }
+    omp_set_num_threads(num_threads_chrono);
+#else
+    std::cout << "WARNING! OpenMP not enabled" << std::endl;
+#endif
+}
 
-    if (min_threads < 1 || min_threads >= max_threads || max_threads > max_avail_threads) {
-        std::cout << "Incorrect min/max number of threads = " << min_threads << " and " << max_threads << std::endl;
-        std::cout << "   Must satisfy 1 <= min_threads < max_threads <= " << max_avail_threads << std::endl;
-        std::cout << "   No action taken." << std::endl;
-        return false;
-    }
-
-    // Enable dynamic thread tuning
+void ChSystemParallel::EnableThreadTuning(int min_threads, int max_threads) {
+#ifdef _OPENMP
     data_manager->settings.perform_thread_tuning = true;
     data_manager->settings.min_threads = min_threads;
     data_manager->settings.max_threads = max_threads;
     omp_set_num_threads(min_threads);
-
-    return true;
 #else
     std::cout << "WARNING! OpenMP not enabled" << std::endl;
-    return false;
 #endif
 }
 

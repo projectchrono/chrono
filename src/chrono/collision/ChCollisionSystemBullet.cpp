@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Alessandro Tasora
+// Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 
 #include "chrono/collision/ChCollisionSystemBullet.h"
@@ -20,6 +20,7 @@
 #include "chrono/physics/ChContactContainer.h"
 #include "chrono/physics/ChProximityContainer.h"
 #include "chrono/collision/bullet/LinearMath/btPoolAllocator.h"
+#include "chrono/collision/bullet/LinearMath/btThreads.h"
 #include "chrono/collision/bullet/BulletCollision/CollisionShapes/btSphereShape.h"
 #include "chrono/collision/bullet/BulletCollision/CollisionShapes/btCylinderShape.h"
 #include "chrono/collision/bullet/BulletCollision/CollisionShapes/bt2DShape.h"
@@ -1185,10 +1186,12 @@ ChCollisionSystemBullet::ChCollisionSystemBullet(unsigned int max_objects, doubl
     // btDefaultCollisionConstructionInfo conf_info(...); ***TODO***
     bt_collision_configuration = new btDefaultCollisionConfiguration();
 
-    //bt_dispatcher = new btCollisionDispatcher(bt_collision_configuration); // serial version
-
-	bt_dispatcher = new btCollisionDispatcherMt(bt_collision_configuration); // parallel version
-	btSetTaskScheduler( btGetOpenMPTaskScheduler() );
+#ifdef BT_USE_OPENMP
+    bt_dispatcher = new btCollisionDispatcherMt(bt_collision_configuration);  // parallel version
+    btSetTaskScheduler(btGetOpenMPTaskScheduler());
+#else
+    bt_dispatcher = new btCollisionDispatcher(bt_collision_configuration);  // serial version
+#endif
 
     //((btDefaultCollisionConfiguration*)bt_collision_configuration)->setConvexConvexMultipointIterations(4,4);
 
@@ -1262,6 +1265,12 @@ ChCollisionSystemBullet::~ChCollisionSystemBullet() {
     delete m_collision_cetri_cetri;
     m_emptyCreateFunc->~btCollisionAlgorithmCreateFunc();
     btAlignedFree(m_tmp_mem);
+}
+
+void ChCollisionSystemBullet::SetNumThreads(int nthreads) {
+#ifdef BT_USE_OPENMP
+    btGetOpenMPTaskScheduler()->setNumThreads(nthreads);
+#endif
 }
 
 void ChCollisionSystemBullet::Clear(void) {

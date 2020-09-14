@@ -69,6 +69,10 @@ class ChApi ChCollisionSystem {
     /// Reset any timers associated with collision detection.
     virtual void ResetTimers() {}
 
+    /// Set the number of OpenMP threads for collision detection.
+    /// The default implementation does nothing. Derived classes implement this function as applicable.
+    virtual void SetNumThreads(int nthreads) {}
+
     /// After the Run() has completed, you can call this function to
     /// fill a 'contact container', that is an object inherited from class
     /// ChContactContainer. For instance ChSystem, after each Run()

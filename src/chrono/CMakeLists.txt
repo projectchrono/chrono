@@ -10,7 +10,7 @@ message(STATUS "==== Chrono Engine core module ====")
 # Double precision support for Bullet
 #-----------------------------------------------------------------------------
 option(USE_BULLET_DOUBLE "Compile Chrono::Engine with double precision support in Bullet" OFF)
-option(USE_BULLET_MULTITHREAD "Compile Chrono::Engine with parallel multithreading support in Bullet" ON)
+cmake_dependent_option(USE_BULLET_OPENMP "Compile Chrono::Engine with OpenMP support in Bullet" ON "ENABLE_OPENMP" OFF)
 
 #-----------------------------------------------------------------------------
 # Includes for the main library
@@ -1305,7 +1305,7 @@ if (USE_BULLET_DOUBLE)
     target_compile_definitions(ChronoEngine PRIVATE "BT_USE_DOUBLE_PRECISION")
 endif()
 
-if (USE_BULLET_MULTITHREAD)
+if (USE_BULLET_OPENMP)
     target_compile_definitions(ChronoEngine PRIVATE "BT_USE_OPENMP")
 	target_compile_definitions(ChronoEngine PRIVATE "BT_THREADSAFE")
 endif()
