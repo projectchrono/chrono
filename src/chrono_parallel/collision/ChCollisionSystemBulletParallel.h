@@ -47,9 +47,7 @@ namespace collision {
 /// Contains both the broadphase and the narrow phase Bullet methods.
 class CH_PARALLEL_API ChCollisionSystemBulletParallel : public ChCollisionSystem {
   public:
-    ChCollisionSystemBulletParallel(ChParallelDataManager* dc,
-                                    unsigned int max_objects = 16000,
-                                    double scene_size = 500);
+    ChCollisionSystemBulletParallel(ChParallelDataManager* dc);
     virtual ~ChCollisionSystemBulletParallel();
 
     /// Clear all data instanced by this algorithm if any (like persistent contact manifolds)

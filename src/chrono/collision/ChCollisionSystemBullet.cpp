@@ -1182,7 +1182,7 @@ class btCEtriangleShapeCollisionAlgorithm : public btActivatingCollisionAlgorith
 ////////////////////////////////////
 ////////////////////////////////////
 
-ChCollisionSystemBullet::ChCollisionSystemBullet(unsigned int max_objects, double scene_size) {
+ChCollisionSystemBullet::ChCollisionSystemBullet() {
     // btDefaultCollisionConstructionInfo conf_info(...); ***TODO***
     bt_collision_configuration = new btDefaultCollisionConfiguration();
 
@@ -1193,17 +1193,7 @@ ChCollisionSystemBullet::ChCollisionSystemBullet(unsigned int max_objects, doubl
     bt_dispatcher = new btCollisionDispatcher(bt_collision_configuration);  // serial version
 #endif
 
-    //((btDefaultCollisionConfiguration*)bt_collision_configuration)->setConvexConvexMultipointIterations(4,4);
-
-    //***OLD***
-    ////btScalar sscene_size = (btScalar)scene_size;
-    ////btVector3 worldAabbMin(-sscene_size, -sscene_size, -sscene_size);
-    ////btVector3 worldAabbMax(sscene_size, sscene_size, sscene_size);
-    ////bt_broadphase = new bt32BitAxisSweep3(worldAabbMin,worldAabbMax, max_objects, 0, true); // true for disabling raycast accelerator
-
-    //***NEW***
     bt_broadphase = new btDbvtBroadphase();
-
     bt_collision_world = new btCollisionWorld(bt_dispatcher, bt_broadphase, bt_collision_configuration);
 
     // custom collision for sphere-sphere case ***OBSOLETE*** // already registered by btDefaultCollisionConfiguration

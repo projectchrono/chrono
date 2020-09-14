@@ -27,7 +27,7 @@ namespace collision {
 /// Contains both the broadphase and the narrow phase Bullet methods.
 class ChApi ChCollisionSystemBullet : public ChCollisionSystem {
   public:
-    ChCollisionSystemBullet(unsigned int max_objects = 16000, double scene_size = 500);
+    ChCollisionSystemBullet();
     virtual ~ChCollisionSystemBullet();
 
     /// Clears all data instanced by this algorithm

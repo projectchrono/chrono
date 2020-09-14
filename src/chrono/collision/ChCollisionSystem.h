@@ -33,8 +33,7 @@ namespace collision {
 /// Base class for generic collision engine.
 class ChApi ChCollisionSystem {
   public:
-    ChCollisionSystem(unsigned int max_objects = 16000, double scene_size = 500) {}
-
+    ChCollisionSystem() {}
     virtual ~ChCollisionSystem() {}
 
     /// Clears all data instanced by this algorithm
