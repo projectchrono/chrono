@@ -493,14 +493,12 @@ target_compile_definitions(ChronoEngine_parallel PRIVATE "CH_API_COMPILE_PARALLE
 target_compile_definitions(ChronoEngine_parallel PRIVATE "CH_IGNORE_DEPRECATED")
 
 if (USE_BULLET_DOUBLE)
-    target_compile_definitions(ChronoEngine PRIVATE "BT_USE_DOUBLE_PRECISION")
-    message(">>>>>>>>>>>  USE DOUBLE")
+    target_compile_definitions(ChronoEngine_parallel PRIVATE "BT_USE_DOUBLE_PRECISION")
 endif()
 
 if (USE_BULLET_OPENMP)
-    target_compile_definitions(ChronoEngine PRIVATE "BT_USE_OPENMP")
-	target_compile_definitions(ChronoEngine PRIVATE "BT_THREADSAFE")
-    message(">>>>>>>>>>>  USE OPENMP")
+    target_compile_definitions(ChronoEngine_parallel PRIVATE "BT_USE_OPENMP")
+	target_compile_definitions(ChronoEngine_parallel PRIVATE "BT_THREADSAFE")
 endif()
 
 TARGET_LINK_LIBRARIES(ChronoEngine_parallel ${CHRONO_PARALLEL_LINKED_LIBRARIES})

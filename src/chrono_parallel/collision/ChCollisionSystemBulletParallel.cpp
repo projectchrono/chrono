@@ -27,6 +27,8 @@
 #include "chrono_parallel/collision/ChCollisionModelParallel.h"
 #include "chrono_parallel/collision/ChDataStructures.h"
 
+#include "chrono/collision/bullet/BulletCollision/CollisionDispatch/btCollisionDispatcherMt.h"
+
 namespace chrono {
 namespace collision {
 
