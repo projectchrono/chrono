@@ -61,6 +61,9 @@ class CH_PARALLEL_API ChCollisionSystemBulletParallel : public ChCollisionSystem
     /// Remove a collision model from the collision engine.
     virtual void Remove(ChCollisionModel* model) override;
 
+    /// Set the number of OpenMP threads for collision detection.
+    virtual void SetNumThreads(int nthreads) override;
+
     /// Run the algorithm and finds all the contacts.
     /// (Contacts will be managed by the Bullet persistent contact cache).
     virtual void Run() override;

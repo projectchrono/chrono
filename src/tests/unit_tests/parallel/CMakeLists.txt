@@ -51,8 +51,6 @@ ENDFOREACH(PROGRAM)
 #--------------------------------------------------------------
 # Executables that use Bullet
 
-if(USE_PARALLEL_BULLET)
-
 SET(TESTS_B
     utest_PAR_mpr
 )
@@ -80,6 +78,9 @@ IF (MSVC)
         ${CMAKE_SOURCE_DIR}/src/chrono/collision/bullet/BulletCollision/CollisionShapes/btSphereShape.cpp
         ${CMAKE_SOURCE_DIR}/src/chrono/collision/bullet/LinearMath/btAlignedAllocator.h
         ${CMAKE_SOURCE_DIR}/src/chrono/collision/bullet/LinearMath/btAlignedAllocator.cpp
+        ${CMAKE_SOURCE_DIR}/src/chrono/collision/bullet/LinearMath/btGeometryUtil.cpp
+        ${CMAKE_SOURCE_DIR}/src/chrono/collision/bullet/LinearMath/btVector3.cpp
+        ${CMAKE_SOURCE_DIR}/src/chrono/collision/bullet/LinearMath/btConvexHullComputer.cpp
   )
   SOURCE_GROUP(bullet FILES ${BULLET_FILES})
 ELSE()
@@ -103,7 +104,6 @@ FOREACH(PROGRAM ${TESTS_B})
     ADD_TEST(${PROGRAM} ${PROJECT_BINARY_DIR}/bin/${PROGRAM})
 ENDFOREACH(PROGRAM)
 
-endif()
 
 #--------------------------------------------------------------
 # Executables that use OpenGL if it is available

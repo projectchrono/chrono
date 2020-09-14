@@ -1196,11 +1196,10 @@ ChCollisionSystemBullet::ChCollisionSystemBullet(unsigned int max_objects, doubl
     //((btDefaultCollisionConfiguration*)bt_collision_configuration)->setConvexConvexMultipointIterations(4,4);
 
     //***OLD***
-    btScalar sscene_size = (btScalar)scene_size;
-    btVector3 worldAabbMin(-sscene_size, -sscene_size, -sscene_size);
-    btVector3 worldAabbMax(sscene_size, sscene_size, sscene_size);
-    // bt_broadphase = new bt32BitAxisSweep3(worldAabbMin,worldAabbMax, max_objects, 0, true); // true for disabling
-    // raycast accelerator
+    ////btScalar sscene_size = (btScalar)scene_size;
+    ////btVector3 worldAabbMin(-sscene_size, -sscene_size, -sscene_size);
+    ////btVector3 worldAabbMax(sscene_size, sscene_size, sscene_size);
+    ////bt_broadphase = new bt32BitAxisSweep3(worldAabbMin,worldAabbMax, max_objects, 0, true); // true for disabling raycast accelerator
 
     //***NEW***
     bt_broadphase = new btDbvtBroadphase();

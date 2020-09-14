@@ -63,14 +63,6 @@ IF(USE_PARALLEL_DOUBLE)
   SET(CHRONO_PARALLEL_USE_DOUBLE "#define CHRONO_PARALLEL_USE_DOUBLE")
 ENDIF()
 
-# ----- Bullet collision support -----
-
-OPTION(USE_PARALLEL_BULLET "Include Chrono::Parallel support for collision detection through Bullet" OFF)
-
-IF(USE_PARALLEL_BULLET)
-  SET(CHRONO_PARALLEL_USE_BULLET "#define CHRONO_PARALLEL_USE_BULLET")
-ENDIF()
-
 # ----- Thrust library -----
 
 
@@ -327,17 +319,15 @@ SET(ChronoEngine_Parallel_COLLISION
 
     )
 
-IF(USE_PARALLEL_BULLET)
-    SET(ChronoEngine_Parallel_COLLISION ${ChronoEngine_Parallel_COLLISION}
-        collision/ChCollisionSystemBulletParallel.h
-        collision/ChCollisionSystemBulletParallel.cpp
-        )
-ENDIF()    
+SET(ChronoEngine_Parallel_COLLISION ${ChronoEngine_Parallel_COLLISION}
+    collision/ChCollisionSystemBulletParallel.h
+    collision/ChCollisionSystemBulletParallel.cpp
+    )
 
 SOURCE_GROUP(collision FILES ${ChronoEngine_Parallel_COLLISION})
 
 # Windows doesn't automatically pick up Bullet sources from Chrono
-IF(USE_PARALLEL_BULLET AND MSVC)
+IF(MSVC)
     SET(ChronoEngine_Parallel_COLLISION_BULLET
     # CollisionDispatch
         ${CMAKE_SOURCE_DIR}/src/chrono/collision/bullet/BulletCollision/CollisionDispatch/btUnionFind.cpp
@@ -501,6 +491,17 @@ SET_TARGET_PROPERTIES(ChronoEngine_parallel PROPERTIES
 
 target_compile_definitions(ChronoEngine_parallel PRIVATE "CH_API_COMPILE_PARALLEL")
 target_compile_definitions(ChronoEngine_parallel PRIVATE "CH_IGNORE_DEPRECATED")
+
+if (USE_BULLET_DOUBLE)
+    target_compile_definitions(ChronoEngine PRIVATE "BT_USE_DOUBLE_PRECISION")
+    message(">>>>>>>>>>>  USE DOUBLE")
+endif()
+
+if (USE_BULLET_OPENMP)
+    target_compile_definitions(ChronoEngine PRIVATE "BT_USE_OPENMP")
+	target_compile_definitions(ChronoEngine PRIVATE "BT_THREADSAFE")
+    message(">>>>>>>>>>>  USE OPENMP")
+endif()
 
 TARGET_LINK_LIBRARIES(ChronoEngine_parallel ${CHRONO_PARALLEL_LINKED_LIBRARIES})
 
