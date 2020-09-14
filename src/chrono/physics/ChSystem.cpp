@@ -15,7 +15,6 @@
 #include <algorithm>
 
 #include "chrono/collision/ChCollisionSystemBullet.h"
-#include "chrono/parallel/ChOpenMP.h"
 #include "chrono/physics/ChProximityContainer.h"
 #include "chrono/physics/ChSystem.h"
 #include "chrono/solver/ChSolverAPGD.h"
@@ -51,9 +50,9 @@ ChSystem::ChSystem()
       step_min(0.002),
       step_max(0.04),
       tol_force(-1),
-      nthreads_chrono(1),
-      nthreads_eigen(1),
+      nthreads_chrono(ChOMP::GetNumProcs()),
       nthreads_collision(1),
+      nthreads_eigen(1),
       is_initialized(false),
       is_updated(false),
       applied_forces_current(false),

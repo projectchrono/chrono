@@ -28,6 +28,7 @@
 #include "chrono/core/ChLog.h"
 #include "chrono/core/ChMath.h"
 #include "chrono/core/ChTimer.h"
+#include "chrono/parallel/ChOpenMP.h"
 #include "chrono/physics/ChAssembly.h"
 #include "chrono/physics/ChBodyAuxRef.h"
 #include "chrono/physics/ChContactContainer.h"
@@ -233,16 +234,19 @@ class ChApi ChSystem : public ChIntegrableIIorder {
 
     /// Set the number of OpenMP threads used by Chrono itself, Eigen, and the collision detection system.
     /// <pre>
-    ///  num_threads_chrono    - used in FEA (parallel evaluation of internal forces and Jacobians) and
-    ///                          in SCM deformable terrain calculations
-    ///  num_threads_collision - used in parallelization of collision detection.
-    ///                          If passing 0, then num_threads_collision = num_threads_chrono.
-    ///  num_threads_eigen     - used in the Eigen sparse direct solvers and a few linear algebra operations.
-    ///                          Note that Eigen enables multi-threaded execution only under certain size conditions.
-    ///                          See the Eigen documentation.
-    ///                          If passing 0, then num_threads_eigen = num_threads_chrono.
+    ///   num_threads_chrono    - used in FEA (parallel evaluation of internal forces and Jacobians) and
+    ///                           in SCM deformable terrain calculations.
+    ///   num_threads_collision - used in parallelization of collision detection (if applicable).
+    ///                           If passing 0, then num_threads_collision = num_threads_chrono.
+    ///   num_threads_eigen     - used in the Eigen sparse direct solvers and a few linear algebra operations.
+    ///                           Note that Eigen enables multi-threaded execution only under certain size conditions.
+    ///                           See the Eigen documentation.
+    ///                           If passing 0, then num_threads_eigen = num_threads_chrono.
+    /// By default (if this function is not called), the following values are used:
+    ///   num_threads_chrono = omp_get_num_procs()
+    ///   num_threads_collision = 1
+    ///   num_threads_eigen = 1
     /// </pre>
-    /// By default, all values are set to 1 (single-threaded).
     /// Note that a derived class may ignore some or all of these settings.
     virtual void SetNumThreads(int num_threads_chrono, int num_threads_collision = 0, int num_threads_eigen = 0);
 
