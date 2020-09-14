@@ -44,7 +44,7 @@
 using namespace chrono;
 using namespace chrono::fea;
 
-enum class SolverType {MINRES, MKL, MUMPS};
+enum class SolverType {MINRES, MKL, MUMPS, SparseQR};
 
 template <int N>
 class ANCFshell : public utils::ChBenchmarkTest {
@@ -69,6 +69,12 @@ class ANCFshell_MINRES : public ANCFshell<N> {
 };
 
 template <int N>
+class ANCFshell_SparseQR : public ANCFshell<N> {
+  public:
+    ANCFshell_SparseQR() : ANCFshell<N>(SolverType::SparseQR) {}
+};
+
+template <int N>
 class ANCFshell_MKL : public ANCFshell<N> {
   public:
     ANCFshell_MKL() : ANCFshell<N>(SolverType::MKL) {}
@@ -84,6 +90,7 @@ template <int N>
 ANCFshell<N>::ANCFshell(SolverType solver_type) {
     m_system = new ChSystemSMC();
     m_system->Set_G_acc(ChVector<>(0, -9.8, 0));
+    m_system->SetNumThreads(std::min(8, ChOMP::GetNumProcs()));
 
     // Set solver parameters
 #ifndef CHRONO_MKL
@@ -131,6 +138,10 @@ ANCFshell<N>::ANCFshell(SolverType solver_type) {
             m_system->SetSolver(solver);
 #endif
             break;
+        }
+        case SolverType::SparseQR: {
+            auto solver = chrono_types::make_shared<ChSolverSparseQR>();
+            m_system->SetSolver(solver);
         }
     }
 
@@ -237,6 +248,11 @@ CH_BM_SIMULATION_LOOP(ANCFshell08_MINRES, ANCFshell_MINRES<8>, NUM_SKIP_STEPS, N
 CH_BM_SIMULATION_LOOP(ANCFshell16_MINRES, ANCFshell_MINRES<16>, NUM_SKIP_STEPS, NUM_SIM_STEPS, 10);
 CH_BM_SIMULATION_LOOP(ANCFshell32_MINRES, ANCFshell_MINRES<32>, NUM_SKIP_STEPS, NUM_SIM_STEPS, 10);
 CH_BM_SIMULATION_LOOP(ANCFshell64_MINRES, ANCFshell_MINRES<64>, NUM_SKIP_STEPS, NUM_SIM_STEPS, 10);
+
+CH_BM_SIMULATION_LOOP(ANCFshell08_SparseQR, ANCFshell_SparseQR<8>, NUM_SKIP_STEPS, NUM_SIM_STEPS, 10);
+CH_BM_SIMULATION_LOOP(ANCFshell16_SparseQR, ANCFshell_SparseQR<16>, NUM_SKIP_STEPS, NUM_SIM_STEPS, 10);
+CH_BM_SIMULATION_LOOP(ANCFshell32_SparseQR, ANCFshell_SparseQR<32>, NUM_SKIP_STEPS, NUM_SIM_STEPS, 10);
+CH_BM_SIMULATION_LOOP(ANCFshell64_SparseQR, ANCFshell_SparseQR<64>, NUM_SKIP_STEPS, NUM_SIM_STEPS, 10);
 
 #ifdef CHRONO_MKL
 CH_BM_SIMULATION_LOOP(ANCFshell08_MKL, ANCFshell_MKL<8>, NUM_SKIP_STEPS, NUM_SIM_STEPS, 10);
