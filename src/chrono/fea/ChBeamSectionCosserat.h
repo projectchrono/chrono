@@ -329,7 +329,19 @@ class ChApi ChElasticityCosseratAdvanced : public ChElasticityCosseratSimple {
 /// have collective values of bending/shear/axial rigidities. This class allows using these values directly,
 /// bypassing any knowledge of area, Izz Iyy, E young modulus, etc.
 /// This material can be shared between multiple beams.
+/// The linear elasticity is uncoupled between shear terms S and axial terms A
+/// as to have this stiffness matrix pattern:
+/// <pre>
+///  n_x   [A       A A ]   e_x
+///  n_y   [  S S S     ]   e_y
+///  n_z = [  S S S     ] * e_z
+///  m_x   [  S S S     ]   k_x
+///  m_y   [A       A A ]   k_y
+///  m_z   [A       A A ]   k_z
+///  </pre>
+/// \image html "http://www.projectchrono.org/assets/manual/fea_ChElasticityCosseratAdvanced.png"
 /// 
+
 class ChApi ChElasticityCosseratAdvancedGeneric : public ChElasticityCosserat {
 private:
     double Ax;      // axial rigidity
