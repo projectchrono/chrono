@@ -157,7 +157,7 @@ void ChGranularChronoTriMeshAPI::setupTriMesh(const std::vector<chrono::geometry
     }
 }
 
-// set particle positions, velocity and angular velocity in user units
+// initialize particle positions, velocity and angular velocity in user units
 void ChGranularSMC_API::setElemsPositions(const std::vector<chrono::ChVector<float>>& points,
                                           const std::vector<chrono::ChVector<float>>& vels,
                                           const std::vector<chrono::ChVector<float>>& ang_vel) {
@@ -182,6 +182,7 @@ void ChGranularChronoTriMeshAPI::setElemsPositions(const std::vector<chrono::ChV
     pGranSystemSMC_TriMesh->setParticlePositions(pointsFloat3, velsFloat3, angVelsFloat3);
 }
 
+// return particle position
 chrono::ChVector<float> ChGranularSMC_API::getPosition(int nSphere){
     float3 pos = gran_sys->getPosition(nSphere);
     chrono::ChVector<float> pos_vec(pos.x, pos.y, pos.z); 
@@ -192,4 +193,30 @@ chrono::ChVector<float> ChGranularChronoTriMeshAPI::getPosition(int nSphere){
     float3 pos = pGranSystemSMC_TriMesh->getPosition(nSphere);
     chrono::ChVector<float> pos_vec(pos.x, pos.y, pos.z); 
     return pos_vec;
+}
+
+// return particle velocity
+chrono::ChVector<float> ChGranularSMC_API::getVelo(int nSphere){
+    float3 velo = gran_sys->getVelocity(nSphere);
+    chrono::ChVector<float> velo_vec(velo.x, velo.y, velo.z); 
+    return velo_vec;
+}
+
+chrono::ChVector<float> ChGranularChronoTriMeshAPI::getVelo(int nSphere){
+    float3 velo = pGranSystemSMC_TriMesh->getVelocity(nSphere);
+    chrono::ChVector<float> velo_vec(velo.x, velo.y, velo.z); 
+    return velo_vec;
+}
+
+// return particle angular velocity
+chrono::ChVector<float> ChGranularSMC_API::getAngularVelo(int nSphere){
+    float3 omega = gran_sys->getAngularVelocity(nSphere);
+    chrono::ChVector<float> omega_vec(omega.x, omega.y, omega.z); 
+    return omega_vec;
+}
+
+chrono::ChVector<float> ChGranularChronoTriMeshAPI::getAngularVelo(int nSphere){
+    float3 omega = pGranSystemSMC_TriMesh->getAngularVelocity(nSphere);
+    chrono::ChVector<float> omega_vec(omega.x, omega.y, omega.z); 
+    return omega_vec;
 }

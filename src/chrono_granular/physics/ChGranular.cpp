@@ -873,6 +873,31 @@ float3 ChSystemGranularSMC::getPosition(int nSphere){
 	return make_float3(x_UU, y_UU, z_UU);
 }
 
+// return absolute velocity
+float ChSystemGranularSMC::getAbsVelocity(int nSphere){
+    float absv_SU = std::sqrt(pos_X_dt[nSphere]*pos_X_dt[nSphere]
+                             +pos_Y_dt[nSphere]*pos_Y_dt[nSphere]
+                             +pos_Z_dt[nSphere]*pos_Z_dt[nSphere]); 
+    float absv_UU = (float)(absv_SU * LENGTH_SU2UU / TIME_SU2UU);
+    return absv_UU;
+}
+
+// return velocity
+float3 ChSystemGranularSMC::getVelocity(int nSphere){
+	float vx_UU = (float)(pos_X_dt[nSphere] * LENGTH_SU2UU / TIME_SU2UU);
+    float vy_UU = (float)(pos_Y_dt[nSphere] * LENGTH_SU2UU / TIME_SU2UU);
+    float vz_UU = (float)(pos_Z_dt[nSphere] * LENGTH_SU2UU / TIME_SU2UU);
+	return make_float3(vx_UU, vy_UU, vz_UU);
+}
+
+// get angular velocity of a particle
+float3 ChSystemGranularSMC::getAngularVelocity(int nSphere){
+		float wx_UU = sphere_Omega_X.at(nSphere) / TIME_SU2UU;
+		float wy_UU = sphere_Omega_Y.at(nSphere) / TIME_SU2UU;
+		float wz_UU = sphere_Omega_Z.at(nSphere) / TIME_SU2UU;
+		return make_float3(wx_UU, wy_UU, wz_UU);
+}
+
 // return number of sphere-to-sphere contacts
 int ChSystemGranularSMC::getNumContacts(){
     auto contact_itr = contact_partners_map.begin();

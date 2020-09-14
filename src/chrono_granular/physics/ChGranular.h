@@ -497,6 +497,15 @@ class CH_GRANULAR_API ChSystemGranularSMC {
     /// return particle position given sphere index
     float3 getPosition(int nSphere);
 
+    // return absolute velocity
+    float getAbsVelocity(int nSphere);
+    
+    // return velocity
+    float3 getVelocity(int nSphere);
+
+    // get angular velocity of a particle
+    float3 getAngularVelocity(int nSphere);
+
     // return number of sphere-to-sphere contacts
     int getNumContacts();
 
