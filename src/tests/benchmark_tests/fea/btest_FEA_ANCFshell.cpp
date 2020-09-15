@@ -24,6 +24,7 @@
 
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/solver/ChIterativeSolverLS.h"
+#include "chrono/solver/ChDirectSolverLS.h"
 
 #include "chrono/fea/ChElementShellANCF.h"
 #include "chrono/fea/ChMesh.h"
