@@ -93,6 +93,8 @@ class CH_GRANULAR_API ChGranularSMC_API {
     chrono::ChVector<float> getPosition(int nSphere);
     chrono::ChVector<float> getAngularVelo(int nSphere);
     chrono::ChVector<float> getVelo(int nSphere);
+    chrono::ChVector<float> getBCPlanePos(size_t plane_id);
+
 
 
 

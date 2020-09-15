@@ -220,3 +220,10 @@ chrono::ChVector<float> ChGranularChronoTriMeshAPI::getAngularVelo(int nSphere){
     chrono::ChVector<float> omega_vec(omega.x, omega.y, omega.z); 
     return omega_vec;
 }
+
+// return BC plane position
+chrono::ChVector<float> ChGranularSMC_API::getBCPlanePos(size_t plane_id){
+    //todo: throw an error if BC not a plane type
+    float3 pos = gran_sys->Get_BC_Plane_Position(plane_id);
+    return chrono::ChVector<float> (pos.x, pos.y, pos.z);
+}
