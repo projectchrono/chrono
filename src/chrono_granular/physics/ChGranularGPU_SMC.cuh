@@ -547,8 +547,10 @@ inline __device__ void applyExternalForces(unsigned int currSphereID,
                 break;
             }
             case BC_type::CYLINDER: {
-                addBCForces_Zcyl_frictionless(sphPos_global, sphVel, sphere_force, gran_params, bc_params_list[BC_id],
-                                              bc_params_list[BC_id].track_forces);
+                addBCForces_Zcyl(currSphereID, BC_id, sphPos_global, sphVel, sphOmega, sphere_force, sphere_ang_acc,
+                                  gran_params, sphere_data, bc_params_list[BC_id], bc_params_list[BC_id].track_forces);
+
+
                 break;
             }
         }
