@@ -35,7 +35,8 @@ namespace fea {
 class ChApi ChBeamSectionEuler : public ChBeamSection {
 public:
     ChBeamSectionEuler() :
-        rdamping(0.01)  // default Rayleigh damping.
+        rdamping(0.01),  // default Rayleigh damping.
+        JzzJyy_factor(1./500.) // default tiny rotational inertia of section on Y and Z to avoid singular mass 
     { }
     virtual ~ChBeamSectionEuler() {}
 
@@ -90,6 +91,17 @@ public:
                                        const ChVector<>& mW    ///< current angular velocity of section, in material frame
                                       ) = 0;
 
+    /// The Euler beam model has no rotational inertia per each section, assuming mass is concentrated on 
+    /// the centerline. However this creates a singular mass matrix, that might end in problems when doing modal analysis etc.
+    /// A solution is to force Jyy and Jzz inertials per unit lengths to be a percent of the mass per unit length. By default it is 1/500.
+    /// Use this function to set such factor. You can also turn it to zero. Note that the effect becomes negligible anyway for finer meshing.
+    void SetArtificialJyyJzzFactor(double mf) {
+        JzzJyy_factor = mf;
+    }
+    double GetArtificialJyyJzzFactor() {
+        return JzzJyy_factor;
+    }
+
     // DAMPING INTERFACE
 
     /// Set the Rayleigh damping ratio r (as in: R = r * K ), to do: also mass-proportional term
@@ -99,6 +111,8 @@ public:
 
 private:
     double rdamping;
+protected:
+    double JzzJyy_factor;
 };
 
 
@@ -351,9 +365,10 @@ using ChBeamSectionAdvanced = ChBeamSectionEulerAdvanced;
 /// To be used with ChElementBeamEuler.
 /// This material can be shared between multiple beams.
 /// 
+/// \image html "http://www.projectchrono.org/assets/manual/fea_ChElementBeamEuler_section.png"
 ///
 
-class ChApi ChBeamSectionEulerGeneric : public ChBeamSectionEuler {
+class ChApi ChBeamSectionEulerAdvancedGeneric : public ChBeamSectionEuler {
 private:
     double Ax;      // axial rigidity
     double Txx;     // torsion rigidity
@@ -370,9 +385,9 @@ private:
     double Mz;
 public:
 
-    ChBeamSectionEulerGeneric() : Ax(1), Txx(1), Byy(1), Bzz(1),alpha(0),Cy(0),Cz(0),Sy(0),Sz(0),mu(1000),Jxx(1), My(0), Mz(0) {}
+    ChBeamSectionEulerAdvancedGeneric() : Ax(1), Txx(1), Byy(1), Bzz(1),alpha(0),Cy(0),Cz(0),Sy(0),Sz(0),mu(1000),Jxx(1), My(0), Mz(0) {}
 
-    ChBeamSectionEulerGeneric(  const double mAx,      ///< axial rigidity
+    ChBeamSectionEulerAdvancedGeneric(  const double mAx,      ///< axial rigidity
                                 const double mTxx,     ///< torsion rigidity
                                 const double mByy,     ///< bending regidity about yy 
                                 const double mBzz,     ///< bending rigidity about zz 
@@ -389,7 +404,7 @@ public:
         Ax(mAx), Txx(mTxx), Byy(mByy), Bzz(mBzz), alpha(malpha), Cy(mCy), Cz(mCz), Sy(mSy), Sz(mSz), mu(mmu), Jxx(mJxx), My(mMy), Mz(mMz) {}
 
 
-    virtual ~ChBeamSectionEulerGeneric() {}
+    virtual ~ChBeamSectionEulerAdvancedGeneric() {}
 
 
     /// Sets the axial rigidity, usually A*E for uniform elasticity, but for nonuniform elasticity
@@ -398,21 +413,21 @@ public:
         Ax = mv;
     }
 
-    /// Gets the torsion rigidity, for torsion about X axis, at elastic center, 
+    /// Sets the torsion rigidity, for torsion about X axis, at elastic center, 
     /// usually J*G for uniform elasticity, but for nonuniform elasticity
     /// here you can put a value ad-hoc from a preprocessor 
     virtual void SetXtorsionRigidity(const double mv) {
         Txx = mv;
     }
 
-    /// Gets the bending rigidity, for bending about Y axis, at elastic center, 
+    /// Sets the bending rigidity, for bending about Y axis, at elastic center, 
     /// usually Iyy*E for uniform elasticity, but for nonuniform elasticity
     /// here you can put a value ad-hoc from a preprocessor
     virtual void SetYbendingRigidity(const double mv) {
         Byy = mv;
     }
 
-    /// Gets the bending rigidity, for bending about Z axis, at elastic center, 
+    /// Sets the bending rigidity, for bending about Z axis, at elastic center, 
     /// usually Izz*E for uniform elasticity, but for nonuniform elasticity
     /// here you can put a value ad-hoc from a preprocessor
     virtual void SetZbendingRigidity(const double mv) {
@@ -425,32 +440,32 @@ public:
         alpha = mv;
     }
 
-    /// Gets the Y position of the elastic center respect to centerline.
+    /// Sets the Y position of the elastic center respect to centerline.
     virtual void SetCentroidY(const double mv) {
         Cy = mv;
     }
-    /// Gets the Z position of the elastic center respect to centerline.
+    /// Sets the Z position of the elastic center respect to centerline.
     virtual void SetCentroidZ(const double mv) {
         Cz = mv;
     }
 
-    /// Gets the Y position of the shear center respect to centerline.
+    /// Sets the Y position of the shear center respect to centerline.
     virtual void SetShearCenterY(const double mv) {
         Sy = mv;
     }
-    /// Gets the Z position of the shear center respect to centerline.
+    /// Sets the Z position of the shear center respect to centerline.
     virtual void SetShearCenterZ(const double mv) {
         Sz = mv;
     }
 
-    /// Get mass per unit length, ex.SI units [kg/m]
+    /// Set mass per unit length, ex.SI units [kg/m]
     /// For uniform density it would be A*density, but for nonuniform density
     /// here you can put a value ad-hoc from a preprocessor
     virtual void SetMassPerUnitLength(const double mv){
         mu = mv;
     }
 
-    /// Get the Jxx component of the inertia per unit length (polar inertia), computed at centerline.
+    /// Set the Jxx component of the inertia per unit length (polar inertia), computed at centerline.
     /// For uniform density it would be Ixx*density or, by polar theorem, (Izz+Iyy)*density, but for 
     /// nonuniform density here you can put a value ad-hoc from a preprocessor
     virtual void SetInertiaJxxPerUnitLength(const double mv)  {
