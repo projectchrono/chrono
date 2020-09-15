@@ -509,6 +509,9 @@ class CH_GRANULAR_API ChSystemGranularSMC {
     // return number of sphere-to-sphere contacts
     int getNumContacts();
 
+    // return position of BC plane
+    float3 Get_BC_Plane_Position(size_t plane_id);
+
     /// The offset function for the big domain walls
     GranPositionFunction BDOffsetFunction;
 

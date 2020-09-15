@@ -493,7 +493,6 @@ void ChSystemGranularSMC::writeContactInfoFile(std::string ofile) const {
                                      << ", " << rolling_friction_torque[theirSphereMappingID].z * FORCE_SU2UU * LENGTH_SU2UU;
 
                         }
-
                         outstrstream << "\n";
                 }
             }
@@ -733,6 +732,18 @@ void ChSystemGranularSMC::setBCOffset(const BC_type& bc_type,
     }
 }
 
+
+float3 ChSystemGranularSMC::Get_BC_Plane_Position(size_t plane_id){
+    BC_params_t<float, float3> p = BC_params_list_UU[plane_id];
+    auto offset_function = BC_offset_function_list[plane_id];
+    double3 offset_UU = offset_function(elapsedSimTime);
+    float3 currPos;
+    currPos.x = p.plane_params.position.x + offset_UU.x;
+    currPos.y = p.plane_params.position.y + offset_UU.y;
+    currPos.z = p.plane_params.position.z + offset_UU.z;
+    return currPos;
+}
+
 void ChSystemGranularSMC::convertBCUnits() {
     for (int i = 0; i < BC_type_list.size(); i++) {
         auto bc_type = BC_type_list.at(i);
@@ -914,6 +925,9 @@ int ChSystemGranularSMC::getNumContacts(){
 
     return total_nc/2;
 }
+
+
+
 // Partitions the big domain (BD) and sets the number of SDs that BD is split in.
 void ChSystemGranularSMC::partitionBD() {
     double sd_length_scale = 2.0 * sphere_radius_UU * AVERAGE_SPHERES_PER_SD_X_DIR;
