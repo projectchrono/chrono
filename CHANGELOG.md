@@ -2,8 +2,11 @@ Change Log
 ==========
 
 - [Unreleased (development version)](#unreleased-development-branch)
-    - [Constitutive models for beams](#constitutive-models-for-beams)
-	- [Applied forces](#added-applied-forces)
+	- [Redesigned SCM deformable terrain](#changed-redesigned-scm-deformable-terrain)
+	- [Tracked vehicle support in PyChrono](#added-tracked-vehicle-support-in-pychrono)
+    - [Constitutive models for Euler beams](#changed-constitutive-models-for-euler-beams)
+    - [Constitutive models for IGA beams](#changed-constitutive-models-for-iga-beams)
+    - [Applied forces](#added-applied-forces)
     - [Chrono::Vehicle simulation world frame](#added-chronovehicle-simulation-world-frame)
     - [CASCADE module](#changed-cascade-module)
 	- [Collision shapes and contact materials](#changed-collision-shapes-and-contact-materials)
@@ -14,6 +17,41 @@ Change Log
 - [Release 4.0.0](#release-400---2019-02-22)
 
 ## Unreleased (development branch)
+
+### [Changed] Redesigned SCM deformable terrain
+
+The SCM deformable terrain was completely redesigned for improved performance. Compared to the previous implementation based on an underlying trimesh representation, the new code - using a Cartesian grid - is significantly faster (speedups of 50x and more).  The API changes are minimal:
+
+- Initialization from a Wavefront OBJ file was removed.  An SCM terrain patch can be specified as a flat rectangular area or else as a height-field obtained from a (gray-scale) image.
+  
+  A flat SCM terrain patch can be initialized using
+  ```cpp
+    terrain.Initialize(length, width, resolution);
+  ```
+  where `length` and `height` are the patch dimensions in the reference plane and `resolution` is the grid spacing. Note that the height (level) of the patch is implicitly defined by the center of the ACM reference plane (specified through `SCMDeformableTerrain::SetPlane`).
+
+  A height-field SCM terrain patch can be initialized using
+  ```cpp
+    terrain.Initialize(filename, sizeX, sizeY, min_height, max_height, resolution);
+  ```
+  where `filename` is the name of an image file, `sizeX` and `sizeY` specify the patchg extents in the reference plane, `min_height` and `max_height` define the height range (a purely black image pixel corresponds to min_height, a purely white pixel corresponds to max_height) and `resolution` is the SCM grid spacing.
+
+- The option for adaptive mesh refinement was obsoleted. Performance of the new implementation is limited by the ray-casting operations and as such no additional benefits are obtained from starting with a coarse grid.
+
+- A "moving patch" is now defined by specifying an object-oriented-box attached to a moving body. For example,
+  ```cpp
+    terrain.AddMovingPatch(my_body, ChVector<>(0, 0, 0), ChVector<>(5, 3, 1));
+  ``` 
+  associates a moving patch with the box of size (5,3,1) attached at the center of the body reference frame of `my_body`.  Ray casting is performed only for the SCM grid nodes that are in the current projection of this OBB onto the SCM reference plane.
+
+  If the user does not define any moving patches, SCM uses the projection of the current bounding box of all collision shapes in the system.
+
+- Bulldozing effects are enabled using `SCMDeformableTerrain::EnableBulldozing`.
+- SCM soil parameters and bulldozing settings are specified as before.
+
+### [Added] Tracked vehicle support in PyChrono
+
+Tracked vehicle templates and models are now exposed in Chrono::Python and available for use through PyChrono.
 
 
 ### [Changed] Constitutive models for EULER beams
@@ -26,8 +64,7 @@ Note that in the previous release, the Sy and Sz values for **shear center** off
 
 Also, a new class  `ChBeamSectionEulerGeneric` has been added, that does not make the assumption of uniform density and uniform elasticity, so it accepts directly the beam rigidity values bypassing the E and Izz Iyy values. 
  
-To speedup coding in case of simple beams, two new classes `ChBeamSectionEulerEasyRectangular` and `ChBeamSectionEulerEasyCircular` have been added.
-
+To speed up coding in case of simple beams, two new classes `ChBeamSectionEulerEasyRectangular` and `ChBeamSectionEulerEasyCircular` have been added.
 
 
 ### [Changed] Constitutive models for IGA beams
