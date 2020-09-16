@@ -268,7 +268,7 @@ void ChSystemGranularSMC::writeFile(std::string ofile) const {
         }
 
         if (gran_params->friction_mode != GRAN_FRICTION_MODE::FRICTIONLESS && GET_OUTPUT_SETTING(ANG_VEL_COMPONENTS)) {
-            outstrstream << ",wx,wy,wz";
+            outstrstream << ",wx,wy,wz,wmag";
         }
 
         if (GET_OUTPUT_SETTING(FORCE_COMPONENTS)) {
@@ -315,8 +315,13 @@ void ChSystemGranularSMC::writeFile(std::string ofile) const {
 
             if (gran_params->friction_mode != GRAN_FRICTION_MODE::FRICTIONLESS &&
                 GET_OUTPUT_SETTING(ANG_VEL_COMPONENTS)) {
+            
                 outstrstream << "," << sphere_Omega_X.at(n) / TIME_SU2UU << "," << sphere_Omega_Y.at(n) / TIME_SU2UU
                              << "," << sphere_Omega_Z.at(n) / TIME_SU2UU;
+                float omic_abs = std::sqrt(sphere_Omega_X.at(n) * sphere_Omega_X.at(n)
+                                         + sphere_Omega_Y.at(n) * sphere_Omega_Y.at(n)
+                                         + sphere_Omega_Z.at(n) * sphere_Omega_Z.at(n));
+                outstrstream << ","  << omic_abs/TIME_SU2UU;
             }
 
             if (GET_OUTPUT_SETTING(FORCE_COMPONENTS)) {
@@ -990,6 +995,9 @@ void ChSystemGranularSMC::switchToSimUnits() {
     // These two are independent of hooke/hertz
     this->MASS_SU2UU = massSphere / gran_params->sphere_mass_SU;
     this->TIME_SU2UU = sqrt(massSphere / K_star) / psi_T;
+    // copy this to gran_params for device to use
+    gran_params->TIME_UNIT = this->TIME_SU2UU;
+
     // old hooke way
     // LENGTH_SU2UU = massSphere * magGravAcc / (psi_L * K_star);
     // new hertz way
@@ -1020,7 +1028,6 @@ void ChSystemGranularSMC::switchToSimUnits() {
     this->TORQUE_SU2UU = FORCE_SU2UU * LENGTH_SU2UU;
     // copy into gran params for now
     gran_params->LENGTH_UNIT = LENGTH_SU2UU;
-
     gran_params->sphereRadius_SU = (unsigned int)(sphere_radius_UU / LENGTH_SU2UU);
 
     gran_params->gravAcc_X_SU = (float)(X_accGrav / ACC_SU2UU);

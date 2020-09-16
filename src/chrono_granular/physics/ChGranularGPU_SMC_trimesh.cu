@@ -412,9 +412,11 @@ __global__ void interactionTerrain_TriangleSoup(
                 force_accum = force_accum - hertz_force_factor * mesh_params->Gamma_n_s2m_SU * m_eff * vrel_n;
 
                 if (gran_params->friction_mode != chrono::granular::GRAN_FRICTION_MODE::FRICTIONLESS) {
+                    // radius pointing from the contact point to the center of particle
+                    float3 Rc = (gran_params->sphereRadius_SU + depth / 2.f) * normal;
                     float3 roll_ang_acc = computeRollingAngAcc(
                         sphere_data, gran_params, mesh_params->rolling_coeff_s2m_SU, mesh_params->spinning_coeff_s2m_SU,
-                        force_accum, omega[sphereIDLocal], d_triangleSoup->omega[fam], delta);
+                        force_accum, omega[sphereIDLocal], d_triangleSoup->omega[fam], Rc);
 
                     sphere_AngAcc = sphere_AngAcc + roll_ang_acc;
 
