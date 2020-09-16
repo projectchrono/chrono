@@ -28,6 +28,7 @@
 #include "chrono/core/ChLog.h"
 #include "chrono/core/ChMath.h"
 #include "chrono/core/ChTimer.h"
+#include "chrono/parallel/ChOpenMP.h"
 #include "chrono/physics/ChAssembly.h"
 #include "chrono/physics/ChBodyAuxRef.h"
 #include "chrono/physics/ChContactContainer.h"
@@ -230,6 +231,28 @@ class ChApi ChSystem : public ChIntegrableIIorder {
 
     /// Set (overwrite) the simulation time of this system.
     void SetChTime(double time) { ch_time = time; }
+
+    /// Set the number of OpenMP threads used by Chrono itself, Eigen, and the collision detection system.
+    /// <pre>
+    ///   num_threads_chrono    - used in FEA (parallel evaluation of internal forces and Jacobians) and
+    ///                           in SCM deformable terrain calculations.
+    ///   num_threads_collision - used in parallelization of collision detection (if applicable).
+    ///                           If passing 0, then num_threads_collision = num_threads_chrono.
+    ///   num_threads_eigen     - used in the Eigen sparse direct solvers and a few linear algebra operations.
+    ///                           Note that Eigen enables multi-threaded execution only under certain size conditions.
+    ///                           See the Eigen documentation.
+    ///                           If passing 0, then num_threads_eigen = num_threads_chrono.
+    /// By default (if this function is not called), the following values are used:
+    ///   num_threads_chrono = omp_get_num_procs()
+    ///   num_threads_collision = 1
+    ///   num_threads_eigen = 1
+    /// </pre>
+    /// Note that a derived class may ignore some or all of these settings.
+    virtual void SetNumThreads(int num_threads_chrono, int num_threads_collision = 0, int num_threads_eigen = 0);
+
+    int GetNumThreadsChrono() const { return nthreads_chrono; }
+    int GetNumthreadsCollision() const { return nthreads_collision; }
+    int GetNumthreadsEigen() const { return nthreads_eigen; }
 
     //
     // DATABASE HANDLING
@@ -893,11 +916,14 @@ class ChApi ChSystem : public ChIntegrableIIorder {
 
     int ncontacts;  ///< total number of contacts
 
-    std::shared_ptr<collision::ChCollisionSystem> collision_system;  ///< collision engine
+    std::shared_ptr<collision::ChCollisionSystem> collision_system;             ///< collision engine
+    std::vector<std::shared_ptr<CustomCollisionCallback>> collision_callbacks;  ///< user-defined collision callbacks
+    std::unique_ptr<ChMaterialCompositionStrategy> composition_strategy;        /// material composition strategy
 
-    std::vector<std::shared_ptr<CustomCollisionCallback>> collision_callbacks;
-
-    std::unique_ptr<ChMaterialCompositionStrategy> composition_strategy; /// material composition strategy
+    // OpenMP
+    int nthreads_chrono;
+    int nthreads_eigen;
+    int nthreads_collision;
 
     // timers for profiling execution speed
     ChTimer<double> timer_step;       ///< timer for integration step

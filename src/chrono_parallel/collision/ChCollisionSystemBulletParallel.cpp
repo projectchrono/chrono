@@ -27,6 +27,8 @@
 #include "chrono_parallel/collision/ChCollisionModelParallel.h"
 #include "chrono_parallel/collision/ChDataStructures.h"
 
+#include "chrono/collision/bullet/BulletCollision/CollisionDispatch/btCollisionDispatcherMt.h"
+
 namespace chrono {
 namespace collision {
 
@@ -40,30 +42,20 @@ namespace collision {
  }
 */
 
-ChCollisionSystemBulletParallel::ChCollisionSystemBulletParallel(ChParallelDataManager* dc,
-                                                                 unsigned int max_objects,
-                                                                 double scene_size)
+ChCollisionSystemBulletParallel::ChCollisionSystemBulletParallel(ChParallelDataManager* dc)
     : data_manager(dc) {
     // btDefaultCollisionConstructionInfo conf_info(...); ***TODO***
     bt_collision_configuration = new btDefaultCollisionConfiguration();
-    bt_dispatcher = new btCollisionDispatcher(bt_collision_configuration);
 
-    //***OLD***
+#ifdef BT_USE_OPENMP
+    bt_dispatcher = new btCollisionDispatcherMt(bt_collision_configuration);  // parallel version
+    btSetTaskScheduler(btGetOpenMPTaskScheduler());
+#else
+    bt_dispatcher = new btCollisionDispatcher(bt_collision_configuration);  // serial version
+#endif
 
-    btScalar sscene_size = (btScalar)scene_size;
-    btVector3 worldAabbMin(-sscene_size, -sscene_size, -sscene_size);
-    btVector3 worldAabbMax(sscene_size, sscene_size, sscene_size);
-    bt_broadphase = new bt32BitAxisSweep3(worldAabbMin, worldAabbMax, max_objects, 0,
-                                          true);  // true for disabling raycast accelerator
-
-    //***NEW***
-    // bt_broadphase = new btDbvtBroadphase();
-
+    bt_broadphase = new btDbvtBroadphase();
     bt_collision_world = new btCollisionWorld(bt_dispatcher, bt_broadphase, bt_collision_configuration);
-
-    // custom collision for sphere-sphere case ***OBSOLETE***
-    // bt_dispatcher->registerCollisionCreateFunc(SPHERE_SHAPE_PROXYTYPE,SPHERE_SHAPE_PROXYTYPE,new
-    // btSphereSphereCollisionAlgorithm::CreateFunc);
 
     // register custom collision for GIMPACT mesh case too
     btGImpactCollisionAlgorithm::registerAlgorithm(bt_dispatcher);
@@ -80,6 +72,12 @@ ChCollisionSystemBulletParallel::~ChCollisionSystemBulletParallel() {
         delete bt_dispatcher;
     if (bt_collision_configuration)
         delete bt_collision_configuration;
+}
+
+void ChCollisionSystemBulletParallel::SetNumThreads(int nthreads) {
+#ifdef BT_USE_OPENMP
+    btGetOpenMPTaskScheduler()->setNumThreads(nthreads);
+#endif
 }
 
 void ChCollisionSystemBulletParallel::Clear(void) {
@@ -154,8 +152,8 @@ void ChCollisionSystemBulletParallel::ReportContacts(ChContactContainer* mcontac
     int numManifolds = bt_collision_world->getDispatcher()->getNumManifolds();
     for (int i = 0; i < numManifolds; i++) {
         btPersistentManifold* contactManifold = bt_collision_world->getDispatcher()->getManifoldByIndexInternal(i);
-        btCollisionObject* obA = static_cast<btCollisionObject*>(contactManifold->getBody0());
-        btCollisionObject* obB = static_cast<btCollisionObject*>(contactManifold->getBody1());
+        const btCollisionObject* obA = contactManifold->getBody0();
+        const btCollisionObject* obB = contactManifold->getBody1();
         if (obB->getCompanionId() < obA->getCompanionId()) {
             auto tmp = obA;
             obA = obB;
@@ -210,8 +208,8 @@ void ChCollisionSystemBulletParallel::ReportContacts(ChContactContainer* mcontac
 
                     icontact.reaction_cache = pt.reactions_cache;
 
-                    bool compoundA = (obA->getRootCollisionShape()->getShapeType() == COMPOUND_SHAPE_PROXYTYPE);
-                    bool compoundB = (obB->getRootCollisionShape()->getShapeType() == COMPOUND_SHAPE_PROXYTYPE);
+                    bool compoundA = (obA->getCollisionShape()->getShapeType() == COMPOUND_SHAPE_PROXYTYPE);
+                    bool compoundB = (obB->getCollisionShape()->getShapeType() == COMPOUND_SHAPE_PROXYTYPE);
 
                     int indexA = compoundA ? pt.m_index0 : 0;
                     int indexB = compoundB ? pt.m_index1 : 0;

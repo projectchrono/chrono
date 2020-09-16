@@ -12,6 +12,7 @@
 // Authors: Hammad Mazhar, Radu Serban
 // =============================================================================
 
+#include "chrono_parallel/ChConfigParallel.h"
 #include "chrono_parallel/physics/ChSystemParallel.h"
 #include "chrono_parallel/solver/ChSolverParallel.h"
 #include "chrono_parallel/solver/ChIterativeSolverParallel.h"

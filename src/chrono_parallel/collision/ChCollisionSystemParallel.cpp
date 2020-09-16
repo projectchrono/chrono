@@ -208,6 +208,11 @@ void ChCollisionSystemParallel::Remove(ChCollisionModel* model) {
 #undef ERASE_MACRO
 #undef ERASE_MACRO_LEN
 
+void ChCollisionSystemParallel::SetNumThreads(int nthreads) {
+    // Nothing to do here.  
+    // The parallel collision system uses the number of threads set by ChSystemParallel.
+}
+
 void ChCollisionSystemParallel::Run() {
     LOG(INFO) << "ChCollisionSystemParallel::Run()";
     if (data_manager->settings.collision.use_aabb_active) {

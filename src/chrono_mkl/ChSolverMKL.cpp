@@ -13,8 +13,14 @@
 // =============================================================================
 
 #include "chrono_mkl/ChSolverMKL.h"
+#include "chrono/parallel/ChOpenMP.h"
 
 namespace chrono {
+
+ChSolverMKL::ChSolverMKL(int num_threads) {
+    int nthreads = (num_threads <= 0) ? ChOMP::GetNumProcs() : num_threads;
+    ChOMP::SetNumThreads(nthreads);
+}
 
 bool ChSolverMKL::FactorizeMatrix() {
     m_engine.compute(m_mat);

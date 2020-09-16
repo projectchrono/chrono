@@ -22,7 +22,6 @@
 #include "chrono/collision/bullet/BulletCollision/CollisionShapes/bt2DShape.h"
 #include "chrono/collision/bullet/BulletCollision/CollisionShapes/btBarrelShape.h"
 #include "chrono/collision/bullet/BulletCollision/CollisionShapes/btCEtriangleShape.h"
-#include "chrono/collision/bullet/BulletWorldImporter/btBulletWorldImporter.h"
 #include "chrono/collision/bullet/btBulletCollisionCommon.h"
 #include "chrono/collision/gimpact/GIMPACT/Bullet/btGImpactCollisionAlgorithm.h"
 #include "chrono/collision/gimpact/GIMPACTUtils/btGImpactConvexDecompositionShape.h"
@@ -128,6 +127,7 @@ void ChCollisionModelBullet::injectShape(const ChVector<>& pos,
             // shape vector: {centered shape}
         } else {
             bt_compound_shape = chrono_types::make_shared<btCompoundShape>(true);
+            bt_compound_shape->setMargin(GetSuggestedFullMargin());
             btTransform mtransform;
             ChPosMatrToBullet(pos, rot, mtransform);
             bt_compound_shape->addChildShape(mtransform, shape->m_bt_shape);
@@ -142,6 +142,7 @@ void ChCollisionModelBullet::injectShape(const ChVector<>& pos,
         // shape vector: {centered shape}
         m_shapes.push_back(std::shared_ptr<ChCollisionShape>(shape));
         bt_compound_shape = chrono_types::make_shared<btCompoundShape>(true);
+        bt_compound_shape->setMargin(GetSuggestedFullMargin());
         btTransform mtransform;
         mtransform.setIdentity();
         bt_compound_shape->addChildShape(mtransform, ((ChCollisionShapeBullet*)m_shapes[0].get())->m_bt_shape);

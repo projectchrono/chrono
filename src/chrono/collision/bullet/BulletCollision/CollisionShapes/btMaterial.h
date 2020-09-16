@@ -15,21 +15,24 @@ subject to the following restrictions:
 
 /// This file was created by Alex Silverman
 
-#ifndef MATERIAL_H
-#define MATERIAL_H
+#ifndef BT_MATERIAL_H
+#define BT_MATERIAL_H
 
 // Material class to be used by btMultimaterialTriangleMeshShape to store triangle properties
 class btMaterial
 {
-    // public members so that materials can change due to world events
+	// public members so that materials can change due to world events
 public:
-    btScalar m_friction;
-    btScalar m_restitution;
-    int pad[2];
+	btScalar m_friction;
+	btScalar m_restitution;
+	int pad[2];
 
-    btMaterial(){}
-    btMaterial(btScalar fric, btScalar rest) { m_friction = fric; m_restitution = rest; }
+	btMaterial() {}
+	btMaterial(btScalar fric, btScalar rest)
+	{
+		m_friction = fric;
+		m_restitution = rest;
+	}
 };
 
-#endif // MATERIAL_H
-
+#endif  // BT_MATERIAL_H

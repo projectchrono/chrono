@@ -53,8 +53,13 @@ See ChSystemDescriptor for more information about the problem formulation and th
 */
 class ChApiMkl ChSolverMKL : public ChDirectSolverLS {
   public:
-    ChSolverMKL() {}
+    /// Construct an MKL Pardiso sparse direct solver object and specify the number of OpenMP threads.
+    /// Passing the default value num_threads=0 results in using a number of threads equal to the number
+    /// of available processors (as returned by the function omp_get_num_procs)
+    ChSolverMKL(int num_threads = 0);
+
     ~ChSolverMKL() {}
+
     virtual Type GetType() const override { return Type::PARDISO; }
 
     /// Get a handle to the underlying MKL engine.
