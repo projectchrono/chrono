@@ -492,13 +492,12 @@ SET_TARGET_PROPERTIES(ChronoEngine_parallel PROPERTIES
 target_compile_definitions(ChronoEngine_parallel PRIVATE "CH_API_COMPILE_PARALLEL")
 target_compile_definitions(ChronoEngine_parallel PRIVATE "CH_IGNORE_DEPRECATED")
 
+target_compile_definitions(ChronoEngine_parallel PRIVATE "BT_THREADSAFE")
 if (USE_BULLET_DOUBLE)
     target_compile_definitions(ChronoEngine_parallel PRIVATE "BT_USE_DOUBLE_PRECISION")
 endif()
-
 if (USE_BULLET_OPENMP)
     target_compile_definitions(ChronoEngine_parallel PRIVATE "BT_USE_OPENMP")
-	target_compile_definitions(ChronoEngine_parallel PRIVATE "BT_THREADSAFE")
 endif()
 
 TARGET_LINK_LIBRARIES(ChronoEngine_parallel ${CHRONO_PARALLEL_LINKED_LIBRARIES})

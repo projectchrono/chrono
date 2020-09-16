@@ -250,6 +250,10 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     /// Note that a derived class may ignore some or all of these settings.
     virtual void SetNumThreads(int num_threads_chrono, int num_threads_collision = 0, int num_threads_eigen = 0);
 
+    int GetNumThreadsChrono() const { return nthreads_chrono; }
+    int GetNumthreadsCollision() const { return nthreads_collision; }
+    int GetNumthreadsEigen() const { return nthreads_eigen; }
+
     //
     // DATABASE HANDLING
     //
