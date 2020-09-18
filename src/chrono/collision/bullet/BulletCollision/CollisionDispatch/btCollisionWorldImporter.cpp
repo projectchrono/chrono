@@ -329,6 +329,7 @@ btCollisionShape* btCollisionWorldImporter::convertCollisionShape(btCollisionSha
 			break;
 		}
 		case CYLINDER_SHAPE_PROXYTYPE:
+        case CYLSHELL_SHAPE_PROXYTYPE:
 		case CONE_SHAPE_PROXYTYPE:
 		case BOX_SHAPE_PROXYTYPE:
 		case SPHERE_SHAPE_PROXYTYPE:
@@ -386,6 +387,18 @@ btCollisionShape* btCollisionWorldImporter::convertCollisionShape(btCollisionSha
 
 					break;
 				}
+
+                case CYLSHELL_SHAPE_PROXYTYPE: { /* ***CHRONO*** */
+                    btCylindricalShellShapeData* cylData = (btCylindricalShellShapeData*)shapeData;
+                    btVector3 halfExtents = implicitShapeDimensions + margin;
+                    btScalar sphere_r = cylData->m_sphere_r;
+                    btScalar radius = halfExtents.getX() - sphere_r;
+                    btScalar hlen = halfExtents.getY() - sphere_r;
+					shape = createCylindricalShellShape(radius, hlen, sphere_r);
+
+                    break;
+                }
+
 				case CONE_SHAPE_PROXYTYPE:
 				{
 					btConeShapeData* conData = (btConeShapeData*)shapeData;
@@ -929,6 +942,15 @@ btCollisionShape* btCollisionWorldImporter::createCylinderShapeZ(btScalar radius
 	btCylinderShapeZ* shape = new btCylinderShapeZ(btVector3(radius, radius, height));
 	m_allocatedCollisionShapes.push_back(shape);
 	return shape;
+}
+
+/* ***CHRONO*** */
+btCollisionShape* btCollisionWorldImporter::createCylindricalShellShape(btScalar radius,
+                                                                        btScalar height,
+                                                                        btScalar sphere_r) {
+    btCylindricalShellShape* shape = new btCylindricalShellShape(radius, height, sphere_r);
+    m_allocatedCollisionShapes.push_back(shape);
+    return shape;
 }
 
 btCollisionShape* btCollisionWorldImporter::createConeShapeX(btScalar radius, btScalar height)

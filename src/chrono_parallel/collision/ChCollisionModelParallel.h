@@ -133,6 +133,16 @@ class CH_PARALLEL_API ChCollisionModelParallel : public ChCollisionModel {
         const ChMatrix33<>& rot = ChMatrix33<>(1)     ///< rotation in model coordinates
         ) override;
 
+    /// Add a cylindrical shell to this collision model (default axis in Y direction).
+    virtual bool AddCylindricalShell(                 //
+        std::shared_ptr<ChMaterialSurface> material,  ///< surface contact material
+        double radius,                                ///< cylinder radius
+        double hlen,                                  ///< cylinder half length
+        double sphere_r,                              ///< radius of sweeping sphere
+        const ChVector<>& pos = ChVector<>(),         ///< center position in model coordinates
+        const ChMatrix33<>& rot = ChMatrix33<>(1)     ///< rotation in model coordinates
+        ) override;
+
     /// Add a rounded cylinder to this collision model (default axis on Y direction).
     virtual bool AddRoundedCylinder(                  //
         std::shared_ptr<ChMaterialSurface> material,  ///< surface contact material
@@ -235,6 +245,7 @@ class CH_PARALLEL_API ChCollisionModelParallel : public ChCollisionModel {
     /// CAPSULE      radius halflength
     /// ROUNDEDBOX   x-halfdim y-halfdim z-halfdim sphere_rad
     /// ROUNDEDCYL   x-radius z-radius halflength sphere_rad
+    /// CYLSHELL     radius halflength sphere_rad
     /// </pre>
     virtual std::vector<double> GetShapeDimensions(int index) const override;
 

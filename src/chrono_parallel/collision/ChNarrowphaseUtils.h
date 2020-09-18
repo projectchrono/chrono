@@ -173,6 +173,11 @@ inline real3 GetSupportPoint_RoundedCylinder(const real4& B, const real3& n) {
     return GetSupportPoint_Cylinder(real3(B.x, B.y, B.z), n) + GetSupportPoint_Sphere(B.w, n);
 }
 
+/// Support point for a cylindrical shell, i.e. a sphere-swept cylinder (for GJK and MPR).
+inline real3 GetSupportPoint_CylindricalShell(const real4& B, const real3& n) {
+    return GetSupportPoint_Cylinder(real3(B.x, B.y, B.z), n) + GetSupportPoint_Sphere(B.w, n);
+}
+
 /// Support point for a rounded cone, i.e. a sphere-swept cone (for GJK and MPR).
 inline real3 GetSupportPoint_RoundedCone(const real4& B, const real3& n) {
     return GetSupportPoint_Cone(real3(B.x, B.y, B.z), n) + GetSupportPoint_Sphere(B.w, n);
@@ -287,6 +292,9 @@ inline real3 SupportVertNoMargin(const chrono::collision::ConvexBase* Shape, con
             break;
         case ChCollisionShape::Type::ROUNDEDCYL:
             localSupport = GetSupportPoint_RoundedCylinder(Shape->Rbox(), n);
+            break;
+        case ChCollisionShape::Type::CYLSHELL:
+            localSupport = GetSupportPoint_CylindricalShell(Shape->Rbox(), n);
             break;
         case ChCollisionShape::Type::ROUNDEDCONE:
             localSupport = GetSupportPoint_RoundedCone(Shape->Rbox(), n);

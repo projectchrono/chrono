@@ -23,6 +23,7 @@
 #include "chrono/collision/bullet/LinearMath/btThreads.h"
 #include "chrono/collision/bullet/BulletCollision/CollisionShapes/btSphereShape.h"
 #include "chrono/collision/bullet/BulletCollision/CollisionShapes/btCylinderShape.h"
+#include "chrono/collision/bullet/BulletCollision/CollisionShapes/btCylindricalShellShape.h"
 #include "chrono/collision/bullet/BulletCollision/CollisionShapes/bt2DShape.h"
 #include "chrono/collision/bullet/BulletCollision/CollisionShapes/btCEtriangleShape.h"
 #include "chrono/collision/bullet/BulletCollision/CollisionDispatch/btEmptyCollisionAlgorithm.h"

@@ -1022,6 +1022,7 @@ set(ChronoEngine_collision_bullet_SOURCES
     collision/bullet/BulletCollision/CollisionShapes/btConvexTriangleMeshShape.cpp
     collision/bullet/BulletCollision/CollisionShapes/btOptimizedBvh.cpp
     collision/bullet/BulletCollision/CollisionShapes/btCylinderShape.cpp
+    collision/bullet/BulletCollision/CollisionShapes/btCylindricalShellShape.cpp
     collision/bullet/BulletCollision/CollisionShapes/btMultiSphereShape.cpp
     collision/bullet/BulletCollision/CollisionShapes/btEmptyShape.cpp
     collision/bullet/BulletCollision/CollisionShapes/btMinkowskiSumShape.cpp

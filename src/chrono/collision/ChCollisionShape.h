@@ -30,6 +30,7 @@ class ChApi ChCollisionShape {
         ELLIPSOID,
         BOX,
         CYLINDER,
+        CYLSHELL,
         CONVEXHULL,
         TRIANGLEMESH,
         BARREL,

@@ -103,6 +103,16 @@ class ChApi ChCollisionModelBullet : public ChCollisionModel {
         const ChMatrix33<>& rot = ChMatrix33<>(1)     ///< rotation in model coordinates
         ) override;
 
+    /// Add a cylindrical shell to this collision model (default axis in Y direction).
+    virtual bool AddCylindricalShell(                 //
+        std::shared_ptr<ChMaterialSurface> material,  ///< surface contact material
+        double radius,                                ///< cylinder radius
+        double hlen,                                  ///< cylinder half length
+        double sphere_r,                              ///< radius of sweeping sphere
+        const ChVector<>& pos = ChVector<>(),         ///< center position in model coordinates
+        const ChMatrix33<>& rot = ChMatrix33<>(1)     ///< rotation in model coordinates
+        ) override;
+
     /// Add a cone to this collision model (default axis on Y direction).
     virtual bool AddCone(                             //
         std::shared_ptr<ChMaterialSurface> material,  ///< surface contact material
@@ -321,6 +331,7 @@ class ChApi ChCollisionModelBullet : public ChCollisionModel {
     /// BOX          x-halfdim y-halfdim z-halfdim
     /// ELLIPSOID    x-radius y-radius z-radius
     /// CYLINDER     x-radius z-radius halflength
+    /// CYLSHELL     radius halflength sphere_radius
     /// </pre>
     virtual std::vector<double> GetShapeDimensions(int index) const override;
 

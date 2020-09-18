@@ -21,6 +21,7 @@ subject to the following restrictions:
 #include "btTriangleShape.h"
 #include "btSphereShape.h"
 #include "btCylinderShape.h"
+#include "btCylindricalShellShape.h"  /* ***CHRONO*** */
 #include "btConeShape.h"
 #include "btCapsuleShape.h"
 #include "btConvexHullShape.h"
@@ -225,6 +226,38 @@ btVector3 btConvexShape::localGetSupportVertexWithoutMarginNonVirtual(const btVe
 				return btVector3(tmp.getX(), tmp.getY(), tmp.getZ());
 			}
 		}
+        case CYLSHELL_SHAPE_PROXYTYPE: { /* ***CHRONO*** */
+            btCylindricalShellShape* cylShape = (btCylindricalShellShape*)this;
+            // mapping of halfextents/dimension onto radius/height depends on how cylinder local orientation is (upAxis)
+
+            btVector3 halfExtents = cylShape->getImplicitShapeDimensions();
+            btVector3 v(localDir.getX(), localDir.getY(), localDir.getZ());
+
+			// Cylindrical shell always along Y axis.
+            int XX = 0;
+            int YY = 1;
+            int ZZ = 2;
+
+            btScalar radius = halfExtents[XX];
+            btScalar halfHeight = halfExtents[YY];
+
+            btVector3 tmp;
+            btScalar d;
+
+            btScalar s = btSqrt(v[XX] * v[XX] + v[ZZ] * v[ZZ]);
+            if (s != btScalar(0.0)) {
+                d = radius / s;
+                tmp[XX] = v[XX] * d;
+                tmp[YY] = v[YY] < 0.0 ? -halfHeight : halfHeight;
+                tmp[ZZ] = v[ZZ] * d;
+                return btVector3(tmp.getX(), tmp.getY(), tmp.getZ());
+            } else {
+                tmp[XX] = radius;
+                tmp[YY] = v[YY] < 0.0 ? -halfHeight : halfHeight;
+                tmp[ZZ] = btScalar(0.0);
+                return btVector3(tmp.getX(), tmp.getY(), tmp.getZ());
+            }
+        }
 		case CAPSULE_SHAPE_PROXYTYPE:
 		{
 			btVector3 vec0(localDir.getX(), localDir.getY(), localDir.getZ());
@@ -341,7 +374,11 @@ btScalar btConvexShape::getMarginNonVirtual() const
 			btCylinderShape* cylShape = (btCylinderShape*)this;
 			return cylShape->getMarginNV();
 		}
-		case CONE_SHAPE_PROXYTYPE:
+        case CYLSHELL_SHAPE_PROXYTYPE: { /* ***CHRONO*** */
+            btCylindricalShellShape* cylShape = (btCylindricalShellShape*)this;
+            return cylShape->getMarginNV();
+        }
+        case CONE_SHAPE_PROXYTYPE:
 		{
 			btConeShape* conShape = (btConeShape*)this;
 			return conShape->getMarginNV();
@@ -387,6 +424,7 @@ void btConvexShape::getAabbNonVirtual(const btTransform& t, btVector3& aabbMin, 
 		}
 		break;
 		case CYLINDER_SHAPE_PROXYTYPE:
+        case CYLSHELL_SHAPE_PROXYTYPE:
 		/* fall through */
 		case BOX_SHAPE_PROXYTYPE:
 		{

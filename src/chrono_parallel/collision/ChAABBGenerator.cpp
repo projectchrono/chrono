@@ -154,7 +154,7 @@ void ChCAABBGenerator::GenerateAABB() {
                 ComputeAABBBox(B + collision_envelope, local_pos, position, rotation, body_rot[id], temp_min, temp_max);
 
             } else if (type == ChCollisionShape::Type::ROUNDEDBOX || type == ChCollisionShape::Type::ROUNDEDCYL ||
-                       type == ChCollisionShape::Type::ROUNDEDCONE) {
+                       type == ChCollisionShape::Type::CYLSHELL || type == ChCollisionShape::Type::ROUNDEDCONE) {
                 real4 T = data_manager->shape_data.rbox_like_rigid[start];
                 real3 B = real3(T.x, T.y, T.z) + T.w + collision_envelope;
                 ComputeAABBBox(B, local_pos, position, rotation, body_rot[id], temp_min, temp_max);
