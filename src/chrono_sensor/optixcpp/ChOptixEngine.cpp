@@ -927,11 +927,7 @@ void ChOptixEngine::ConstructScene() {
                             //                            std::cout<<"mesh is stored"<<std::endl;
                             added_asset_for_body = true;
                         } else {
-                            // create a list of dynamic meshes
-                            // TODO: Why do we need to pass m_dynamicMeshes?
                             dynamicTrimeshVisualization(trimesh_shape, visual_asset, asset_group);
-                            std::cout << "Found a dynamic mesh and ignoring it...\n";
-                            std::cout << "TODO: allow visulization of these assets...\n";
                         }
 
                     } else if (std::shared_ptr<ChEllipsoidShape> ellipsoid_shape =

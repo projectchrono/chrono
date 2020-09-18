@@ -12,9 +12,13 @@
 // Author: Radu Serban
 // =============================================================================
 //
-// Chrono demonstration of a HMMWV on SCMDeformableTerrain
-// Sensors are used to visualize the scene
+// Chrono::Vehicle + ChronoParallel demo program for simulating a HMMWV vehicle
+// over rigid or granular material.
 //
+// Contact uses the SMC (penalty) formulation.
+//
+// The global reference frame has Z up.
+// All units SI.
 // =============================================================================
 
 #include <cstdio>
@@ -50,54 +54,41 @@ using namespace chrono::sensor;
 using std::cout;
 using std::endl;
 
+// =============================================================================
+// USER SETTINGS
+// =============================================================================
+
 // -----------------------------------------------------------------------------
 // Terrain parameters
 // -----------------------------------------------------------------------------
 
-// Dimensions
-double terrainHeight = 0;
-double terrainLength = 20.0;  // size in X direction
-double terrainWidth = 20.0;   // size in Y direction
-
-// Divisions (X and Y)
-int divLength = 20 * 20;  // 1024;
-int divWidth = 20 * 20;   // 512;
+double terrainLength = 16.0;  // size in X direction
+double terrainWidth = 8.0;    // size in Y direction
+double delta = 0.05;          // SCM grid spacing
 
 // -----------------------------------------------------------------------------
 // Vehicle parameters
 // -----------------------------------------------------------------------------
 
-// Type of wheel/tire (controls both contact and visualization)
-enum WheelType { CYLINDRICAL, LUGGED };
-WheelType wheel_type = LUGGED;
+// Type of tire (controls both contact and visualization)
+enum class TireType { CYLINDRICAL, LUGGED };
+TireType tire_type = TireType::LUGGED;
 
-// Type of terrain
-enum TerrainType { DEFORMABLE_SOIL, RIGID_SOIL };
-TerrainType terrain_type = DEFORMABLE_SOIL;
-
-// Type of powertrain model (SHAFTS, SIMPLE)
-PowertrainModelType powertrain_model = PowertrainModelType::SHAFTS;
-
-// Drive type (FWD, RWD, or AWD)
-DrivelineType drive_type = DrivelineType::AWD;
-
-// Chassis visualization (MESH, PRIMITIVES, NONE)
-VisualizationType chassis_vis = VisualizationType::PRIMITIVES;
+// Tire contact material properties
+float Y_t = 1.0e6f;
+float cr_t = 0.1f;
+float mu_t = 0.8f;
 
 // Initial vehicle position and orientation
 ChVector<> initLoc(-5, -2, 0.6);
 ChQuaternion<> initRot(1, 0, 0, 0);
 
-// Contact material properties
-float Y_t = 1.0e6f;
-float cr_t = 0.1f;
-float mu_t = 0.8f;
 
 // -----------------------------------------------------------------------------
 // Camera parameters
 // -----------------------------------------------------------------------------
 
-// Update rate in Hz
+// Update Rate in Hz
 int update_rate = 30;
 
 // Image width and height
@@ -142,6 +133,9 @@ bool save = false;
 
 // Render camera images
 bool vis = true;
+
+
+// =============================================================================
 
 class MyDriver : public ChDriver {
   public:
@@ -208,18 +202,10 @@ void CreateLuggedGeometry(std::shared_ptr<ChBody> wheel_body, std::shared_ptr<Ch
     auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
     trimesh_shape->SetMesh(trimesh);
     trimesh_shape->SetName("lugged_wheel");
-    trimesh_shape->SetStatic(true);
     wheel_body->AddAsset(trimesh_shape);
 
     auto mcolor = chrono_types::make_shared<ChColorAsset>(0.3f, 0.3f, 0.3f);
     wheel_body->AddAsset(mcolor);
-
-    auto vis_mat = chrono_types::make_shared<ChVisualMaterial>();
-    vis_mat->SetDiffuseColor({.2f, .2f, .2f});
-    vis_mat->SetSpecularColor({.1f, .1f, .1f});
-    vis_mat->SetRoughness(.5);
-    vis_mat->SetFresnelMax(.1);
-    trimesh_shape->material_list.push_back(vis_mat);
 }
 
 // =============================================================================
@@ -234,31 +220,38 @@ int main(int argc, char* argv[]) {
     my_hmmwv.SetContactMethod(ChContactMethod::SMC);
     my_hmmwv.SetChassisFixed(false);
     my_hmmwv.SetInitPosition(ChCoordsys<>(initLoc, initRot));
-    my_hmmwv.SetPowertrainType(powertrain_model);
-    my_hmmwv.SetDriveType(drive_type);
-    my_hmmwv.SetTireType(TireModelType::RIGID);
+    my_hmmwv.SetPowertrainType(PowertrainModelType::SHAFTS);
+    my_hmmwv.SetDriveType(DrivelineType::AWD);
+    switch (tire_type) {
+        case TireType::CYLINDRICAL:
+            my_hmmwv.SetTireType(TireModelType::RIGID_MESH);
+            break;
+        case TireType::LUGGED:
+            my_hmmwv.SetTireType(TireModelType::RIGID);
+            break;
+    }
     my_hmmwv.Initialize();
 
-    VisualizationType wheel_vis = (wheel_type == CYLINDRICAL) ? VisualizationType::MESH : VisualizationType::NONE;
-    my_hmmwv.SetChassisVisualizationType(chassis_vis);
-    my_hmmwv.SetWheelVisualizationType(wheel_vis);
+    my_hmmwv.SetChassisVisualizationType(VisualizationType::NONE);
 
-    ChSystem* system = my_hmmwv.GetSystem();
-
-    // --------------------------------------------------------
-    // Set wheel contact material.
-    // If needed, modify wheel contact and visualization models
-    // --------------------------------------------------------
+    // -----------------------------------------------------------
+    // Set tire contact material, contact model, and visualization
+    // -----------------------------------------------------------
     auto wheel_material = chrono_types::make_shared<ChMaterialSurfaceSMC>();
     wheel_material->SetFriction(mu_t);
     wheel_material->SetYoungModulus(Y_t);
     wheel_material->SetRestitution(cr_t);
 
-    for (auto& axle : my_hmmwv.GetVehicle().GetAxles()) {
-        auto wheelBodyL = axle->m_wheels[0]->GetSpindle();
-        CreateLuggedGeometry(wheelBodyL, wheel_material);
-        auto wheelBodyR = axle->m_wheels[1]->GetSpindle();
-        CreateLuggedGeometry(wheelBodyR, wheel_material);
+    switch (tire_type) {
+        case TireType::CYLINDRICAL:
+            my_hmmwv.SetTireVisualizationType(VisualizationType::MESH);
+            break;
+        case TireType::LUGGED:
+            my_hmmwv.SetTireVisualizationType(VisualizationType::NONE);
+            for (auto& axle : my_hmmwv.GetVehicle().GetAxles()) {
+                CreateLuggedGeometry(axle->m_wheels[0]->GetSpindle(), wheel_material);
+                CreateLuggedGeometry(axle->m_wheels[1]->GetSpindle(), wheel_material);
+            }
     }
 
     // --------------------
@@ -270,27 +263,39 @@ int main(int argc, char* argv[]) {
     // ------------------
     // Create the terrain
     // ------------------
+    ChSystem* system = my_hmmwv.GetSystem();
+
     SCMDeformableTerrain terrain(system);
     terrain.SetSoilParameters(2e6,   // Bekker Kphi
-                              0,     // Bekker Kc
-                              1.1,   // Bekker n exponent
-                              0,     // Mohr cohesive limit (Pa)
-                              30,    // Mohr friction limit (degrees)
-                              0.01,  // Janosi shear coefficient (m)
-                              2e8,   // Elastic stiffness (Pa/m), before plastic yield
-                              3e4    // Damping (Pa s/m), proportional to negative vertical speed (optional)
+                                0,     // Bekker Kc
+                                1.1,   // Bekker n exponent
+                                0,     // Mohr cohesive limit (Pa)
+                                30,    // Mohr friction limit (degrees)
+                                0.01,  // Janosi shear coefficient (m)
+                                2e8,   // Elastic stiffness (Pa/m), before plastic yield
+                                3e4    // Damping (Pa s/m), proportional to negative vertical speed (optional)
     );
-    terrain.SetAutomaticRefinement(false);
-    terrain.SetAutomaticRefinementResolution(0.04);
-    terrain.AddMovingPatch(my_hmmwv.GetChassisBody(), ChVector<>(0, 0, 0), 5, 3);
+
+    ////terrain.SetBulldozingFlow(true);      // inflate soil at the border of the rut
+    ////terrain.SetBulldozingParameters(55,   // angle of friction for erosion of displaced material at rut border
+    ////                                0.8,  // displaced material vs downward pressed material.
+    ////                                5,    // number of erosion refinements per timestep
+    ////                                10);  // number of concentric vertex selections subject to erosion
+
+    // Optionally, enable moving patch feature (single patch around vehicle chassis)
+    terrain.AddMovingPatch(my_hmmwv.GetChassisBody(), ChVector<>(0, 0, 0), ChVector<>(5, 3, 1));
+
+    // Optionally, enable moving patch feature (multiple patches around each wheel)
+    ////for (auto& axle : my_hmmwv.GetVehicle().GetAxles()) {
+    ////    terrain.AddMovingPatch(axle->m_wheels[0]->GetSpindle(), ChVector<>(0, 0, 0), ChVector<>(1, 0.5, 1));
+    ////    terrain.AddMovingPatch(axle->m_wheels[1]->GetSpindle(), ChVector<>(0, 0, 0), ChVector<>(1, 0.5, 1));
+    ////}
+
+    ////terrain.SetTexture(vehicle::GetDataFile("terrain/textures/grass.jpg"), 80, 16);
+    ////terrain.SetPlotType(vehicle::SCMDeformableTerrain::PLOT_PRESSURE_YELD, 0, 30000.2);
     terrain.SetPlotType(vehicle::SCMDeformableTerrain::PLOT_SINKAGE, 0, 0.1);
 
-    terrain.Initialize(terrainHeight, terrainLength, terrainWidth, divLength, divWidth);
-
-    auto vis_mat = chrono_types::make_shared<ChVisualMaterial>();
-    vis_mat->SetSpecularColor({.1f, .1f, .1f});
-    vis_mat->SetKdTexture(GetChronoDataFile("sensor/textures/grass_texture.jpg"));
-    terrain.GetMesh()->material_list.push_back(vis_mat);
+    terrain.Initialize(terrainLength, terrainWidth, delta);
 
     // ---------------------------------------
     // Create the vehicle Irrlicht application
@@ -317,10 +322,45 @@ int main(int argc, char* argv[]) {
         }
     }
 
+    // Create the sensor manager 
+    auto manager = chrono_types::make_shared<ChSensorManager>(my_hmmwv.GetSystem());
+
+    // Set lights
+    manager->scene->AddPointLight({100, 100, 100}, {1, 1, 1}, 2000);
+    manager->scene->AddPointLight({100, 100, 100}, {1, 1, 1}, 2000);
+
+    // Set up Camera
+    chrono::ChFrame<double> offset_pose1({-8, 0, 3}, Q_from_AngAxis(.2, {0, 1, 0}));
+    auto cam = chrono_types::make_shared<ChCameraSensor>(my_hmmwv.GetChassisBody(),
+                                                         update_rate,
+                                                         offset_pose1,
+                                                         image_width,
+                                                         image_height,
+                                                         fov
+    );
+    cam->SetName("Camera Sensor");
+    cam->SetLag(lag);
+    cam->SetCollectionWindow(exposure_time);
+
+    // Renders the image at current point in the filter graph
+    if(vis)
+        cam->PushFilter(chrono_types::make_shared<ChFilterVisualize>(int(image_width * 3 / 4),
+                                                                     int(image_height * 3 / 4), "SCM Camera"));
+
+    // Provides the host access to this RGBA8_buffer
+    cam->PushFilter(chrono_types::make_shared<ChFilterRGBA8Access>());
+
+    if(save)
+        cam->PushFilter(chrono_types::make_shared<ChFilterSave>(sens_dir + "/came/"));
+
+    // Add sensor to the manager
+//    manager->AddSensor(cam);
+
+    
+
     // ---------------
     // Simulation loop
     // ---------------
-
     std::cout << "Total vehicle mass: " << my_hmmwv.GetTotalMass() << std::endl;
 
     // Solver settings.
@@ -333,82 +373,34 @@ int main(int argc, char* argv[]) {
     int step_number = 0;
     int render_frame = 0;
 
-    // Create the sensor manager and a camera
-    auto manager = chrono_types::make_shared<ChSensorManager>(my_hmmwv.GetSystem());
-
-    // set lights
-    manager->scene->AddPointLight({100, 100, 100}, {1, 1, 1}, 2000);
-    manager->scene->AddPointLight({-100, 100, 100}, {1, 1, 1}, 2000);
-
-    // set environment map
-    // manager->scene->GetBackground().has_texture = true;
-    // manager->scene->GetBackground().env_tex = "sensor/textures/cloud_layers_8k.hdr";
-    // manager->scene->GetBackground().has_changed = true;
-
-    // set up camera
-    chrono::ChFrame<double> offset_pose1({-8, 0, 3}, Q_from_AngAxis(.2, {0, 1, 0}));
-    auto cam = chrono_types::make_shared<ChCameraSensor>(my_hmmwv.GetChassisBody(),  // body camera is attached to
-                                                         update_rate,                // update rate in Hz
-                                                         offset_pose1,               // offset pose
-                                                         image_width,                // image width
-                                                         image_height,               // image height
-                                                         fov  // camera's horizontal field of view
-    );
-    cam->SetName("Camera Sensor");
-    cam->SetLag(lag);
-    cam->SetCollectionWindow(exposure_time);
-
-    // Renders the image at current point in the filter graph
-    if (vis)
-        cam->PushFilter(chrono_types::make_shared<ChFilterVisualize>(int(image_width * 3 / 4),
-                                                                     int(image_height * 3 / 4), "SCM Camera"));
-
-    // Provides the host access to this RGBA8 buffer
-    cam->PushFilter(chrono_types::make_shared<ChFilterRGBA8Access>());
-
-    if (save)
-        // Save the current image to a png file at the specified path
-        cam->PushFilter(chrono_types::make_shared<ChFilterSave>(sens_dir + "/cam/"));
-
-    // Add sensor to the manager
-    manager->AddSensor(cam);
-
-    auto cam2 = chrono_types::make_shared<ChCameraSensor>(my_hmmwv.GetChassisBody(),  // body camera is attached to
-                                                          update_rate,                // update rate in Hz
-                                                          offset_pose1,               // offset pose
-                                                          image_width,                // image width
-                                                          image_height,               // image height
-                                                          fov  // camera's horizontal field of view
-    );
-    cam2->SetName("Camera Sensor");
-    cam2->SetLag(lag);
-    cam2->SetCollectionWindow(exposure_time);
-    if (vis)
-        cam2->PushFilter(chrono_types::make_shared<ChFilterVisualize>(int(image_width * 3 / 4),
-                                                                      int(image_height * 3 / 4), "SCM Camera"));
-    manager->AddSensor(cam2);
+    ChTimer<> timer;
 
     while (app.GetDevice()->run()) {
         double time = system->GetChTime();
 
-        // End simulation if end time exceeded
-        if (time > end_time)
-            break;
+        if (step_number == 800) {
+            std::cout << "\nstart timer at t = " << time << std::endl;
+            timer.start();
+        }
+        if (step_number == 1400) {
+            timer.stop();
+            std::cout << "stop timer at t = " << time << std::endl;
+            std::cout << "elapsed: " << timer() << std::endl;
+            std::cout << "\nSCM stats for last step:" << std::endl;
+            terrain.PrintStepStatistics(std::cout);
+        }
 
         // Render scene
+        app.BeginScene(true, true, irr::video::SColor(255, 140, 161, 192));
+        app.DrawAll();
+        ChIrrTools::drawColorbar(0, 0.1, "Sinkage", app.GetDevice(), 30);
+        app.EndScene();
 
         if (img_output && step_number % render_steps == 0) {
             char filename[100];
             sprintf(filename, "%s/img_%03d.jpg", img_dir.c_str(), render_frame + 1);
             app.WriteImageToFile(filename);
             render_frame++;
-        }
-
-        if (step_number % render_steps == 0) {
-            app.BeginScene(true, true, irr::video::SColor(255, 140, 161, 192));
-            app.DrawAll();
-            ChIrrTools::drawColorbar(0, 0.1, "Sinkage", app.GetDevice(), 30);
-            app.EndScene();
         }
 
         // Driver inputs
