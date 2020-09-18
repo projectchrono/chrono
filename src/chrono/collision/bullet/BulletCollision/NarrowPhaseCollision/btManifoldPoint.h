@@ -64,7 +64,8 @@ public:
 		  m_frictionCFM(0.f),
 		  m_lifeTime(0)
 	{
-		reactions_cache[0]=reactions_cache[1]=reactions_cache[2]=reactions_cache[3]=reactions_cache[4]=reactions_cache[5]=0; //***ALEX***
+		// ***CHRONO***
+		reactions_cache[0]=reactions_cache[1]=reactions_cache[2]=reactions_cache[3]=reactions_cache[4]=reactions_cache[5]=0;
 	}
 
 	btManifoldPoint(const btVector3& pointA, const btVector3& pointB,
@@ -89,10 +90,11 @@ public:
 										 m_frictionCFM(0.f),
 										 m_lifeTime(0)
 	{
-		reactions_cache[0]=reactions_cache[1]=reactions_cache[2]=reactions_cache[3]=reactions_cache[4]=reactions_cache[5]=0; //***ALEX***
+		// ***CHRONO***
+		reactions_cache[0]=reactions_cache[1]=reactions_cache[2]=reactions_cache[3]=reactions_cache[4]=reactions_cache[5]=0;
 	}
 
-	float reactions_cache[6]; //***ALEX***  cache here the three multipliers N,U,V for warm starting the NCP solver.
+	float reactions_cache[6]; // ***CHRONO***  cache here the three multipliers N,U,V for warm starting the NCP solver.
 
 	btVector3 m_localPointA;
 	btVector3 m_localPointB;
