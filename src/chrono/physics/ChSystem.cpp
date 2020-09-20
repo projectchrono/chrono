@@ -15,7 +15,6 @@
 #include <algorithm>
 
 #include "chrono/collision/ChCollisionSystemBullet.h"
-#include "chrono/parallel/ChOpenMP.h"
 #include "chrono/physics/ChProximityContainer.h"
 #include "chrono/physics/ChSystem.h"
 #include "chrono/solver/ChSolverAPGD.h"
@@ -51,6 +50,9 @@ ChSystem::ChSystem()
       step_min(0.002),
       step_max(0.04),
       tol_force(-1),
+      nthreads_chrono(ChOMP::GetNumProcs()),
+      nthreads_collision(1),
+      nthreads_eigen(1),
       is_initialized(false),
       is_updated(false),
       applied_forces_current(false),
@@ -101,6 +103,9 @@ ChSystem::ChSystem(const ChSystem& other) {
     dump_matrices = other.dump_matrices;
     SetTimestepperType(other.GetTimestepperType());
     tol_force = other.tol_force;
+    nthreads_chrono = other.nthreads_chrono;
+    nthreads_eigen = other.nthreads_eigen;
+    nthreads_collision = other.nthreads_collision;
     is_initialized = false;
     is_updated = false;
     applied_forces_current = false;
@@ -277,15 +282,32 @@ void ChSystem::SetCollisionSystem(std::shared_ptr<ChCollisionSystem> newcollsyst
     assert(assembly.GetNbodies() == 0);
     assert(newcollsystem);
     collision_system = newcollsystem;
+    collision_system->SetNumThreads(nthreads_collision);
 }
 
 void ChSystem::SetMaterialCompositionStrategy(std::unique_ptr<ChMaterialCompositionStrategy>&& strategy) {
     composition_strategy = std::move(strategy);
 }
 
+void ChSystem::SetNumThreads(int num_threads_chrono, int num_threads_collision, int num_threads_eigen) {
+    nthreads_chrono = std::max(1, num_threads_chrono);
+    nthreads_collision = (num_threads_collision == 0) ? num_threads_chrono : num_threads_collision;
+    nthreads_eigen = (num_threads_eigen == 0) ? num_threads_chrono : num_threads_eigen;
+}
+
+// -----------------------------------------------------------------------------
+
 // Initial system setup before analysis.
 // This function must be called once the system construction is completed.
 void ChSystem::SetupInitial() {
+    // Set num threads for Eigen
+    Eigen::setNbThreads(nthreads_eigen);
+
+    // Set num threads for the collision system
+    if (collision_system) {
+        collision_system->SetNumThreads(nthreads_collision);
+    }
+
     assembly.SetupInitial();
     is_initialized = true;
 }

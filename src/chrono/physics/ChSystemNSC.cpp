@@ -30,7 +30,7 @@ namespace chrono {
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChSystemNSC)
 
-ChSystemNSC::ChSystemNSC(unsigned int max_objects, double scene_size, bool init_sys)
+ChSystemNSC::ChSystemNSC(bool init_sys)
     : ChSystem() {
     if (init_sys) {
         // Set default contact container
@@ -38,7 +38,7 @@ ChSystemNSC::ChSystemNSC(unsigned int max_objects, double scene_size, bool init_
         contact_container->SetSystem(this);
 
         // Set default collision engine
-        collision_system = chrono_types::make_shared<collision::ChCollisionSystemBullet>(max_objects, scene_size);
+        collision_system = chrono_types::make_shared<collision::ChCollisionSystemBullet>();
 
         // Set the system descriptor
         descriptor = chrono_types::make_shared<ChSystemDescriptor>();

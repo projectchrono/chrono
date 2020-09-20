@@ -421,6 +421,7 @@ windows:vs2019:deploy:
     - Start-Process "cmd.exe" "/c .\contrib\packaging-python\gitlab\build_pychrono.bat >outputfile.txt" -Wait
     - get-content outputfile.txt
     - Copy-Item "./outputfile.txt" -Destination "./logs/"
+    - Remove-Item $Env:CONDA_INSTALL_LOCN\conda-bld\*pychrono* -Recurse -Force
 
   environment:
     name: pychrono-win64
@@ -486,7 +487,7 @@ windows:vs2017:build:
     - export PATH=$HOME/miniconda/bin:$PATH
     - conda install --yes -c intel jinja2
     - conda config --set show_channel_urls true
-    - conda install conda-build anaconda-client conda-verify --yes
+    - conda install conda-build=3.18.11 anaconda-client conda-verify --yes
     - conda config --add channels https://conda.anaconda.org/conda-forge
     - conda config --add channels https://conda.anaconda.org/intel
     #- conda install -c dlr-sc opencascade --yes

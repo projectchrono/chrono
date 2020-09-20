@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Alessandro Tasora
+// Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 
 #include "chrono/collision/ChCollisionSystemBullet.h"
@@ -20,11 +20,13 @@
 #include "chrono/physics/ChContactContainer.h"
 #include "chrono/physics/ChProximityContainer.h"
 #include "chrono/collision/bullet/LinearMath/btPoolAllocator.h"
+#include "chrono/collision/bullet/LinearMath/btThreads.h"
 #include "chrono/collision/bullet/BulletCollision/CollisionShapes/btSphereShape.h"
 #include "chrono/collision/bullet/BulletCollision/CollisionShapes/btCylinderShape.h"
 #include "chrono/collision/bullet/BulletCollision/CollisionShapes/bt2DShape.h"
 #include "chrono/collision/bullet/BulletCollision/CollisionShapes/btCEtriangleShape.h"
 #include "chrono/collision/bullet/BulletCollision/CollisionDispatch/btEmptyCollisionAlgorithm.h"
+#include "chrono/collision/bullet/BulletCollision/CollisionDispatch/btCollisionDispatcherMt.h"
 
 extern btScalar gContactBreakingThreshold;
 
@@ -49,18 +51,18 @@ class btSphereCylinderCollisionAlgorithm : public btActivatingCollisionAlgorithm
   public:
     btSphereCylinderCollisionAlgorithm(btPersistentManifold* mf,
                                        const btCollisionAlgorithmConstructionInfo& ci,
-                                       btCollisionObject* col0,
-                                       btCollisionObject* col1,
+                                       const btCollisionObjectWrapper* col0,
+                                       const btCollisionObjectWrapper* col1,
                                        bool isSwapped)
         : btActivatingCollisionAlgorithm(ci, col0, col1),
           m_ownManifold(false),
           m_manifoldPtr(mf),
           m_isSwapped(isSwapped) {
-        btCollisionObject* sphereObj = m_isSwapped ? col1 : col0;
-        btCollisionObject* cylObj = m_isSwapped ? col0 : col1;
+        const btCollisionObjectWrapper* sphereObj = m_isSwapped ? col1 : col0;
+        const btCollisionObjectWrapper* cylObj = m_isSwapped ? col0 : col1;
 
-        if (!m_manifoldPtr) {
-            m_manifoldPtr = m_dispatcher->getNewManifold(sphereObj, cylObj);
+        if (!m_manifoldPtr && m_dispatcher->needsCollision(sphereObj->getCollisionObject(), cylObj->getCollisionObject())) {
+            m_manifoldPtr = m_dispatcher->getNewManifold(sphereObj->getCollisionObject(), cylObj->getCollisionObject());
             m_ownManifold = true;
         }
     }
@@ -68,26 +70,26 @@ class btSphereCylinderCollisionAlgorithm : public btActivatingCollisionAlgorithm
     btSphereCylinderCollisionAlgorithm(const btCollisionAlgorithmConstructionInfo& ci)
         : btActivatingCollisionAlgorithm(ci) {}
 
-    virtual void processCollision(btCollisionObject* body0,
-                                  btCollisionObject* body1,
+    virtual void processCollision(const btCollisionObjectWrapper* body0,
+                                  const btCollisionObjectWrapper* body1,
                                   const btDispatcherInfo& dispatchInfo,
                                   btManifoldResult* resultOut) {
         (void)dispatchInfo;
-
+		(void)resultOut;
         if (!m_manifoldPtr)
             return;
 
-        btCollisionObject* sphereObj = m_isSwapped ? body1 : body0;
-        btCollisionObject* cylObj = m_isSwapped ? body0 : body1;
+        const btCollisionObjectWrapper* sphereObjWrap = m_isSwapped ? body1 : body0;
+        const btCollisionObjectWrapper* cylObjWrap = m_isSwapped ? body0 : body1;
 
         resultOut->setPersistentManifold(m_manifoldPtr);
 
-        btSphereShape* sphere0 = (btSphereShape*)sphereObj->getCollisionShape();
-        btCylinderShape* cylinder = (btCylinderShape*)cylObj->getCollisionShape();
+        const btSphereShape* sphere0 = (btSphereShape*)sphereObjWrap->getCollisionShape();
+        const btCylinderShape* cylinder = (btCylinderShape*)cylObjWrap->getCollisionShape();
 
-        const btTransform& m44T = cylObj->getWorldTransform();
+        const btTransform& m44T = cylObjWrap->getCollisionObject()->getWorldTransform();
         btVector3 diff = m44T.invXform(
-            sphereObj->getWorldTransform()
+            sphereObjWrap->getCollisionObject()->getWorldTransform()
                 .getOrigin());  // col0->getWorldTransform().getOrigin()-  col1->getWorldTransform().getOrigin();
         btScalar radius0 = sphere0->getRadius();
         btScalar radius1 = cylinder->getHalfExtentsWithMargin().getX();  // cylinder->getRadius();
@@ -130,7 +132,7 @@ class btSphereCylinderCollisionAlgorithm : public btActivatingCollisionAlgorithm
                 // case B
                 btVector3 pos_loc = r1.normalized() * radius1 + btVector3(0, H1 * side, 0);
                 pos1 = m44T(pos_loc);
-                btVector3 d = sphereObj->getWorldTransform().getOrigin() - pos1;
+                btVector3 d = sphereObjWrap->getCollisionObject()->getWorldTransform().getOrigin() - pos1;
                 normalOnSurfaceB = d.normalized();
                 dist = d.length() - radius0;
             } else {
@@ -169,17 +171,18 @@ class btSphereCylinderCollisionAlgorithm : public btActivatingCollisionAlgorithm
     }
 
     struct CreateFunc : public btCollisionAlgorithmCreateFunc {
-        virtual btCollisionAlgorithm* CreateCollisionAlgorithm(btCollisionAlgorithmConstructionInfo& ci,
-                                                               btCollisionObject* body0,
-                                                               btCollisionObject* body1) {
+        virtual btCollisionAlgorithm* CreateCollisionAlgorithm(btCollisionAlgorithmConstructionInfo& ci, 
+																const btCollisionObjectWrapper* body0Wrap, 
+																const btCollisionObjectWrapper* body1Wrap) {
             void* mem = ci.m_dispatcher1->allocateCollisionAlgorithm(sizeof(btSphereCylinderCollisionAlgorithm));
             if (!m_swapped) {
-                return new (mem) btSphereCylinderCollisionAlgorithm(0, ci, body0, body1, false);
+                return new (mem) btSphereCylinderCollisionAlgorithm(0, ci, body0Wrap, body1Wrap, false);
             } else {
-                return new (mem) btSphereCylinderCollisionAlgorithm(0, ci, body0, body1, true);
+                return new (mem) btSphereCylinderCollisionAlgorithm(0, ci, body0Wrap, body1Wrap, true);
             }
         }
     };
+	
 };
 
 ////////////////////////////////////
@@ -194,19 +197,19 @@ class btArcSegmentCollisionAlgorithm : public btActivatingCollisionAlgorithm {
 
   public:
     btArcSegmentCollisionAlgorithm(btPersistentManifold* mf,
-                                   const btCollisionAlgorithmConstructionInfo& ci,
-                                   btCollisionObject* col0,
-                                   btCollisionObject* col1,
-                                   bool isSwapped)
+                                       const btCollisionAlgorithmConstructionInfo& ci,
+                                       const btCollisionObjectWrapper* col0,
+                                       const btCollisionObjectWrapper* col1,
+                                       bool isSwapped)
         : btActivatingCollisionAlgorithm(ci, col0, col1),
           m_ownManifold(false),
           m_manifoldPtr(mf),
           m_isSwapped(isSwapped) {
-        btCollisionObject* arcObj = m_isSwapped ? col1 : col0;
-        btCollisionObject* segmentObj = m_isSwapped ? col0 : col1;
+        const btCollisionObjectWrapper* arcObjWrap = m_isSwapped ? col1 : col0;
+        const btCollisionObjectWrapper* segmentObjWrap = m_isSwapped ? col0 : col1;
 
-        if (!m_manifoldPtr) {
-            m_manifoldPtr = m_dispatcher->getNewManifold(arcObj, segmentObj);
+        if (!m_manifoldPtr  && m_dispatcher->needsCollision(arcObjWrap->getCollisionObject(), segmentObjWrap->getCollisionObject())) {
+            m_manifoldPtr = m_dispatcher->getNewManifold(arcObjWrap->getCollisionObject(), segmentObjWrap->getCollisionObject());
             m_ownManifold = true;
         }
     }
@@ -214,32 +217,32 @@ class btArcSegmentCollisionAlgorithm : public btActivatingCollisionAlgorithm {
     btArcSegmentCollisionAlgorithm(const btCollisionAlgorithmConstructionInfo& ci)
         : btActivatingCollisionAlgorithm(ci) {}
 
-    virtual void processCollision(btCollisionObject* body0,
-                                  btCollisionObject* body1,
+    virtual void processCollision(const btCollisionObjectWrapper* body0,
+                                  const btCollisionObjectWrapper* body1,
                                   const btDispatcherInfo& dispatchInfo,
                                   btManifoldResult* resultOut) {
         (void)dispatchInfo;
-
+		(void)resultOut;
         if (!m_manifoldPtr)
             return;
 
-        btCollisionObject* arcObj = m_isSwapped ? body1 : body0;
-        btCollisionObject* segmentObj = m_isSwapped ? body0 : body1;
+        const btCollisionObjectWrapper* arcObjWrap = m_isSwapped ? body1 : body0;
+        const btCollisionObjectWrapper* segmentObjWrap = m_isSwapped ? body0 : body1;
 
         resultOut->setPersistentManifold(m_manifoldPtr);
 
         // only 1 contact per pair, avoid persistence
         resultOut->getPersistentManifold()->clearManifold();
 
-        bt2DarcShape* arc = (bt2DarcShape*)arcObj->getCollisionShape();
-        bt2DsegmentShape* segment = (bt2DsegmentShape*)segmentObj->getCollisionShape();
+        const bt2DarcShape* arc = (bt2DarcShape*)arcObjWrap->getCollisionShape();
+        const bt2DsegmentShape* segment = (bt2DsegmentShape*)segmentObjWrap->getCollisionShape();
 
         // A concave arc (i.e.with outward volume, counterclockwise abscissa) will never collide with segments
         if (arc->get_counterclock())
             return;
 
-        const btTransform& m44Tarc = arcObj->getWorldTransform();
-        const btTransform& m44Tsegment = segmentObj->getWorldTransform();
+        const btTransform& m44Tarc= arcObjWrap->getCollisionObject()->getWorldTransform();
+        const btTransform& m44Tsegment = segmentObjWrap->getCollisionObject()->getWorldTransform();  
 
         // Shapes on two planes that are not so parallel? no collisions!
         btVector3 Zarc = m44Tarc.getBasis().getColumn(2);
@@ -359,14 +362,14 @@ class btArcSegmentCollisionAlgorithm : public btActivatingCollisionAlgorithm {
     }
 
     struct CreateFunc : public btCollisionAlgorithmCreateFunc {
-        virtual btCollisionAlgorithm* CreateCollisionAlgorithm(btCollisionAlgorithmConstructionInfo& ci,
-                                                               btCollisionObject* body0,
-                                                               btCollisionObject* body1) {
+        virtual btCollisionAlgorithm* CreateCollisionAlgorithm(btCollisionAlgorithmConstructionInfo& ci, 
+																const btCollisionObjectWrapper* body0Wrap, 
+																const btCollisionObjectWrapper* body1Wrap) {
             void* mem = ci.m_dispatcher1->allocateCollisionAlgorithm(sizeof(btArcSegmentCollisionAlgorithm));
             if (!m_swapped) {
-                return new (mem) btArcSegmentCollisionAlgorithm(0, ci, body0, body1, false);
+                return new (mem) btArcSegmentCollisionAlgorithm(0, ci, body0Wrap, body1Wrap, false);
             } else {
-                return new (mem) btArcSegmentCollisionAlgorithm(0, ci, body0, body1, true);
+                return new (mem) btArcSegmentCollisionAlgorithm(0, ci, body0Wrap, body1Wrap, true);
             }
         }
     };
@@ -385,46 +388,46 @@ class btArcArcCollisionAlgorithm : public btActivatingCollisionAlgorithm {
   public:
     btArcArcCollisionAlgorithm(btPersistentManifold* mf,
                                const btCollisionAlgorithmConstructionInfo& ci,
-                               btCollisionObject* col0,
-                               btCollisionObject* col1,
+                               const btCollisionObjectWrapper* col0,
+                               const btCollisionObjectWrapper* col1,
                                bool isSwapped)
         : btActivatingCollisionAlgorithm(ci, col0, col1),
           m_ownManifold(false),
           m_manifoldPtr(mf),
           m_isSwapped(isSwapped) {
-        btCollisionObject* arcObj1 = m_isSwapped ? col1 : col0;
-        btCollisionObject* arcObj2 = m_isSwapped ? col0 : col1;
+        const btCollisionObjectWrapper* arcObj1Wrap = m_isSwapped ? col1 : col0;
+        const btCollisionObjectWrapper* arcObj2Wrap = m_isSwapped ? col0 : col1;
 
-        if (!m_manifoldPtr) {
-            m_manifoldPtr = m_dispatcher->getNewManifold(arcObj1, arcObj2);
+        if (!m_manifoldPtr  && m_dispatcher->needsCollision(arcObj1Wrap->getCollisionObject(), arcObj2Wrap->getCollisionObject())) {
+            m_manifoldPtr = m_dispatcher->getNewManifold(arcObj1Wrap->getCollisionObject(), arcObj2Wrap->getCollisionObject());
             m_ownManifold = true;
         }
     }
 
     btArcArcCollisionAlgorithm(const btCollisionAlgorithmConstructionInfo& ci) : btActivatingCollisionAlgorithm(ci) {}
 
-    virtual void processCollision(btCollisionObject* body0,
-                                  btCollisionObject* body1,
+    virtual void processCollision(const btCollisionObjectWrapper* body0,
+                                  const btCollisionObjectWrapper* body1,
                                   const btDispatcherInfo& dispatchInfo,
                                   btManifoldResult* resultOut) {
         (void)dispatchInfo;
-
+		(void)resultOut;
         if (!m_manifoldPtr)
             return;
 
-        btCollisionObject* arcObj1 = m_isSwapped ? body1 : body0;
-        btCollisionObject* arcObj2 = m_isSwapped ? body0 : body1;
+        const btCollisionObjectWrapper* arcObj1Wrap = m_isSwapped ? body1 : body0;
+        const btCollisionObjectWrapper* arcObj2Wrap = m_isSwapped ? body0 : body1;
 
         resultOut->setPersistentManifold(m_manifoldPtr);
 
         // only 1 contact per pair, avoid persistence
         resultOut->getPersistentManifold()->clearManifold();
 
-        bt2DarcShape* arc1 = (bt2DarcShape*)arcObj1->getCollisionShape();
-        bt2DarcShape* arc2 = (bt2DarcShape*)arcObj2->getCollisionShape();
+        const bt2DarcShape* arc1 = (bt2DarcShape*)arcObj1Wrap->getCollisionShape();
+        const bt2DarcShape* arc2 = (bt2DarcShape*)arcObj2Wrap->getCollisionShape();
 
-        const btTransform& m44Tarc1 = arcObj1->getWorldTransform();
-        const btTransform& m44Tarc2 = arcObj2->getWorldTransform();
+        const btTransform& m44Tarc1 = arcObj1Wrap->getCollisionObject()->getWorldTransform();
+        const btTransform& m44Tarc2 = arcObj2Wrap->getCollisionObject()->getWorldTransform();  
 
         // Shapes on two planes that are not so parallel? no collisions!
         btVector3 Zarc1 = m44Tarc1.getBasis().getColumn(2);
@@ -602,14 +605,14 @@ class btArcArcCollisionAlgorithm : public btActivatingCollisionAlgorithm {
     }
 
     struct CreateFunc : public btCollisionAlgorithmCreateFunc {
-        virtual btCollisionAlgorithm* CreateCollisionAlgorithm(btCollisionAlgorithmConstructionInfo& ci,
-                                                               btCollisionObject* body0,
-                                                               btCollisionObject* body1) {
+        virtual btCollisionAlgorithm* CreateCollisionAlgorithm(btCollisionAlgorithmConstructionInfo& ci, 
+																const btCollisionObjectWrapper* body0Wrap, 
+																const btCollisionObjectWrapper* body1Wrap) {
             void* mem = ci.m_dispatcher1->allocateCollisionAlgorithm(sizeof(btArcArcCollisionAlgorithm));
             if (!m_swapped) {
-                return new (mem) btArcArcCollisionAlgorithm(0, ci, body0, body1, false);
+                return new (mem) btArcArcCollisionAlgorithm(0, ci, body0Wrap, body1Wrap, false);
             } else {
-                return new (mem) btArcArcCollisionAlgorithm(0, ci, body0, body1, true);
+                return new (mem) btArcArcCollisionAlgorithm(0, ci, body0Wrap, body1Wrap, true);
             }
         }
     };
@@ -625,18 +628,18 @@ class btCEtriangleShapeCollisionAlgorithm : public btActivatingCollisionAlgorith
   public:
     btCEtriangleShapeCollisionAlgorithm(btPersistentManifold* mf,
                                         const btCollisionAlgorithmConstructionInfo& ci,
-                                        btCollisionObject* col0,
-                                        btCollisionObject* col1,
+                                        const btCollisionObjectWrapper* col0,
+                                        const btCollisionObjectWrapper* col1,
                                         bool isSwapped)
         : btActivatingCollisionAlgorithm(ci, col0, col1),
           m_ownManifold(false),
           m_manifoldPtr(mf),
           m_isSwapped(isSwapped) {
-        btCollisionObject* triObj1 = m_isSwapped ? col1 : col0;
-        btCollisionObject* triObj2 = m_isSwapped ? col0 : col1;
+        const btCollisionObjectWrapper* triObj1Wrap = m_isSwapped ? col1 : col0;
+        const btCollisionObjectWrapper* triObj2Wrap = m_isSwapped ? col0 : col1;
 
-        if (!m_manifoldPtr) {
-            m_manifoldPtr = m_dispatcher->getNewManifold(triObj1, triObj2);
+        if (!m_manifoldPtr && m_dispatcher->needsCollision(triObj1Wrap->getCollisionObject(), triObj2Wrap->getCollisionObject())) {
+            m_manifoldPtr = m_dispatcher->getNewManifold(triObj1Wrap->getCollisionObject(), triObj2Wrap->getCollisionObject());
             m_ownManifold = true;
         }
     }
@@ -644,25 +647,25 @@ class btCEtriangleShapeCollisionAlgorithm : public btActivatingCollisionAlgorith
     btCEtriangleShapeCollisionAlgorithm(const btCollisionAlgorithmConstructionInfo& ci)
         : btActivatingCollisionAlgorithm(ci) {}
 
-    virtual void processCollision(btCollisionObject* body0,
-                                  btCollisionObject* body1,
+    virtual void processCollision(const btCollisionObjectWrapper* body0,
+                                  const btCollisionObjectWrapper* body1,
                                   const btDispatcherInfo& dispatchInfo,
                                   btManifoldResult* resultOut) {
         (void)dispatchInfo;
-
+		(void)resultOut;
         if (!m_manifoldPtr)
             return;
-
-        btCollisionObject* triObj1 = m_isSwapped ? body1 : body0;
-        btCollisionObject* triObj2 = m_isSwapped ? body0 : body1;
+        
+        const btCollisionObjectWrapper* triObj1Wrap = m_isSwapped ? body1 : body0;
+        const btCollisionObjectWrapper* triObj2Wrap = m_isSwapped ? body0 : body1;
 
         resultOut->setPersistentManifold(m_manifoldPtr);
 
         // avoid persistence of contacts in manifold:
         resultOut->getPersistentManifold()->clearManifold();
 
-        btCEtriangleShape* triA = (btCEtriangleShape*)triObj1->getCollisionShape();
-        btCEtriangleShape* triB = (btCEtriangleShape*)triObj2->getCollisionShape();
+        const btCEtriangleShape* triA = (btCEtriangleShape*)triObj1Wrap->getCollisionShape();
+        const btCEtriangleShape* triB = (btCEtriangleShape*)triObj2Wrap->getCollisionShape();
         ChCollisionModelBullet* triModelA = (ChCollisionModelBullet*)triA->getUserPointer();
         ChCollisionModelBullet* triModelB = (ChCollisionModelBullet*)triB->getUserPointer();
 
@@ -688,8 +691,8 @@ class btCEtriangleShapeCollisionAlgorithm : public btActivatingCollisionAlgorith
         offset_A += triModelA->GetEnvelope();
         offset_B += triModelB->GetEnvelope();
 
-        const btTransform& m44Ta = triObj1->getWorldTransform();
-        const btTransform& m44Tb = triObj2->getWorldTransform();
+        const btTransform& m44Ta = triObj1Wrap->getCollisionObject()->getWorldTransform();
+        const btTransform& m44Tb = triObj2Wrap->getCollisionObject()->getWorldTransform();  
         const btMatrix3x3& mbtRa = m44Ta.getBasis();
         const btMatrix3x3& mbtRb = m44Tb.getBasis();
         ChMatrix33<> mRa;
@@ -1163,14 +1166,14 @@ class btCEtriangleShapeCollisionAlgorithm : public btActivatingCollisionAlgorith
     }
 
     struct CreateFunc : public btCollisionAlgorithmCreateFunc {
-        virtual btCollisionAlgorithm* CreateCollisionAlgorithm(btCollisionAlgorithmConstructionInfo& ci,
-                                                               btCollisionObject* body0,
-                                                               btCollisionObject* body1) {
+        virtual btCollisionAlgorithm* CreateCollisionAlgorithm(btCollisionAlgorithmConstructionInfo& ci, 
+																const btCollisionObjectWrapper* body0Wrap, 
+																const btCollisionObjectWrapper* body1Wrap) {
             void* mem = ci.m_dispatcher1->allocateCollisionAlgorithm(sizeof(btCEtriangleShapeCollisionAlgorithm));
             if (!m_swapped) {
-                return new (mem) btCEtriangleShapeCollisionAlgorithm(0, ci, body0, body1, false);
+                return new (mem) btCEtriangleShapeCollisionAlgorithm(0, ci, body0Wrap, body1Wrap, false);
             } else {
-                return new (mem) btCEtriangleShapeCollisionAlgorithm(0, ci, body0, body1, true);
+                return new (mem) btCEtriangleShapeCollisionAlgorithm(0, ci, body0Wrap, body1Wrap, true);
             }
         }
     };
@@ -1179,23 +1182,18 @@ class btCEtriangleShapeCollisionAlgorithm : public btActivatingCollisionAlgorith
 ////////////////////////////////////
 ////////////////////////////////////
 
-ChCollisionSystemBullet::ChCollisionSystemBullet(unsigned int max_objects, double scene_size) {
+ChCollisionSystemBullet::ChCollisionSystemBullet() {
     // btDefaultCollisionConstructionInfo conf_info(...); ***TODO***
     bt_collision_configuration = new btDefaultCollisionConfiguration();
 
-    bt_dispatcher = new btCollisionDispatcher(bt_collision_configuration);
-    //((btDefaultCollisionConfiguration*)bt_collision_configuration)->setConvexConvexMultipointIterations(4,4);
+#ifdef BT_USE_OPENMP
+    bt_dispatcher = new btCollisionDispatcherMt(bt_collision_configuration);  // parallel version
+    btSetTaskScheduler(btGetOpenMPTaskScheduler());
+#else
+    bt_dispatcher = new btCollisionDispatcher(bt_collision_configuration);  // serial version
+#endif
 
-    //***OLD***
-    btScalar sscene_size = (btScalar)scene_size;
-    btVector3 worldAabbMin(-sscene_size, -sscene_size, -sscene_size);
-    btVector3 worldAabbMax(sscene_size, sscene_size, sscene_size);
-    // bt_broadphase = new bt32BitAxisSweep3(worldAabbMin,worldAabbMax, max_objects, 0, true); // true for disabling
-    // raycast accelerator
-
-    //***NEW***
     bt_broadphase = new btDbvtBroadphase();
-
     bt_collision_world = new btCollisionWorld(bt_dispatcher, bt_broadphase, bt_collision_configuration);
 
     // custom collision for sphere-sphere case ***OBSOLETE*** // already registered by btDefaultCollisionConfiguration
@@ -1258,6 +1256,12 @@ ChCollisionSystemBullet::~ChCollisionSystemBullet() {
     btAlignedFree(m_tmp_mem);
 }
 
+void ChCollisionSystemBullet::SetNumThreads(int nthreads) {
+#ifdef BT_USE_OPENMP
+    btGetOpenMPTaskScheduler()->setNumThreads(nthreads);
+#endif
+}
+
 void ChCollisionSystemBullet::Clear(void) {
     int numManifolds = bt_collision_world->getDispatcher()->getNumManifolds();
     for (int i = 0; i < numManifolds; i++) {
@@ -1286,6 +1290,10 @@ void ChCollisionSystemBullet::Run() {
     if (bt_collision_world) {
         bt_collision_world->performDiscreteCollisionDetection();
     }
+	
+	int numPairs = bt_collision_world->getBroadphase()->getOverlappingPairCache()->getNumOverlappingPairs();	
+	//GetLog() << "tot pairs: " << numPairs << "\n";
+	
 }
 
 void ChCollisionSystemBullet::GetBoundingBox(ChVector<>& aabb_min, ChVector<>& aabb_max) const {
@@ -1320,8 +1328,8 @@ void ChCollisionSystemBullet::ReportContacts(ChContactContainer* mcontactcontain
     int numManifolds = bt_collision_world->getDispatcher()->getNumManifolds();
     for (int i = 0; i < numManifolds; i++) {
         btPersistentManifold* contactManifold = bt_collision_world->getDispatcher()->getManifoldByIndexInternal(i);
-        btCollisionObject* obA = static_cast<btCollisionObject*>(contactManifold->getBody0());
-        btCollisionObject* obB = static_cast<btCollisionObject*>(contactManifold->getBody1());
+        const btCollisionObject* obA = contactManifold->getBody0();
+        const btCollisionObject* obB = contactManifold->getBody1();
         contactManifold->refreshContactPoints(obA->getWorldTransform(), obB->getWorldTransform());
 
         icontact.modelA = (ChCollisionModel*)obA->getUserPointer();
@@ -1364,8 +1372,8 @@ void ChCollisionSystemBullet::ReportContacts(ChContactContainer* mcontactcontain
 
                     icontact.reaction_cache = pt.reactions_cache;
 
-                    bool compoundA = (obA->getRootCollisionShape()->getShapeType() == COMPOUND_SHAPE_PROXYTYPE);
-                    bool compoundB = (obB->getRootCollisionShape()->getShapeType() == COMPOUND_SHAPE_PROXYTYPE);
+                    bool compoundA = (obA->getCollisionShape()->getShapeType() == COMPOUND_SHAPE_PROXYTYPE);
+                    bool compoundB = (obB->getCollisionShape()->getShapeType() == COMPOUND_SHAPE_PROXYTYPE);
 
                     int indexA = compoundA ? pt.m_index0 : 0;
                     int indexB = compoundB ? pt.m_index1 : 0;
@@ -1397,21 +1405,7 @@ void ChCollisionSystemBullet::ReportContacts(ChContactContainer* mcontactcontain
 
 void ChCollisionSystemBullet::ReportProximities(ChProximityContainer* mproximitycontainer) {
     mproximitycontainer->BeginAddProximities();
-    /*
-    int numManifolds = bt_collision_world->getDispatcher()->getNumManifolds();
-    for (int i = 0; i < numManifolds; i++) {
-        btPersistentManifold* contactManifold = bt_collision_world->getDispatcher()->getManifoldByIndexInternal(i);
-        btCollisionObject* obA = static_cast<btCollisionObject*>(contactManifold->getBody0());
-        btCollisionObject* obB = static_cast<btCollisionObject*>(contactManifold->getBody1());
-        contactManifold->refreshContactPoints(obA->getWorldTransform(), obB->getWorldTransform());
 
-        ChCollisionModel* modelA = (ChCollisionModel*)obA->getUserPointer();
-        ChCollisionModel* modelB = (ChCollisionModel*)obB->getUserPointer();
-
-        // Add to proximity container
-        mproximitycontainer->AddProximity(modelA, modelB);
-    }
-    */
     int numPairs = bt_collision_world->getBroadphase()->getOverlappingPairCache()->getNumOverlappingPairs();
     for (int i = 0; i < numPairs; i++) {
         btBroadphasePair mp =
