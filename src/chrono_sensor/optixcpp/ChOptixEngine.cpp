@@ -139,11 +139,13 @@ void ChOptixEngine::UpdateSensors(std::shared_ptr<ChScene> scene) {
                 ray_gen_noise_buffer->unmap();
             }
 
+            // std::cout << "Starting optix scene update\n";
             // update the scene for the optix context
             UpdateCameraTransforms();
             UpdateBodyTransforms();
             UpdateSceneDescription(scene);
             UpdateDynamicMeshes();
+            // std::cout << "Updated optix scene\n";
 
             float t = (float)m_system->GetChTime();
             // push the sensors that need updating to the render queue

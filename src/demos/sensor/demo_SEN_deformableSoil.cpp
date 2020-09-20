@@ -83,7 +83,6 @@ float mu_t = 0.8f;
 ChVector<> initLoc(-5, -2, 0.6);
 ChQuaternion<> initRot(1, 0, 0, 0);
 
-
 // -----------------------------------------------------------------------------
 // Camera parameters
 // -----------------------------------------------------------------------------
@@ -133,7 +132,6 @@ bool save = false;
 
 // Render camera images
 bool vis = true;
-
 
 // =============================================================================
 
@@ -202,6 +200,7 @@ void CreateLuggedGeometry(std::shared_ptr<ChBody> wheel_body, std::shared_ptr<Ch
     auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
     trimesh_shape->SetMesh(trimesh);
     trimesh_shape->SetName("lugged_wheel");
+    trimesh_shape->SetStatic(true);
     wheel_body->AddAsset(trimesh_shape);
 
     auto mcolor = chrono_types::make_shared<ChColorAsset>(0.3f, 0.3f, 0.3f);
@@ -230,6 +229,7 @@ int main(int argc, char* argv[]) {
             my_hmmwv.SetTireType(TireModelType::RIGID);
             break;
     }
+
     my_hmmwv.Initialize();
 
     my_hmmwv.SetChassisVisualizationType(VisualizationType::NONE);
@@ -267,13 +267,13 @@ int main(int argc, char* argv[]) {
 
     SCMDeformableTerrain terrain(system);
     terrain.SetSoilParameters(2e6,   // Bekker Kphi
-                                0,     // Bekker Kc
-                                1.1,   // Bekker n exponent
-                                0,     // Mohr cohesive limit (Pa)
-                                30,    // Mohr friction limit (degrees)
-                                0.01,  // Janosi shear coefficient (m)
-                                2e8,   // Elastic stiffness (Pa/m), before plastic yield
-                                3e4    // Damping (Pa s/m), proportional to negative vertical speed (optional)
+                              0,     // Bekker Kc
+                              1.1,   // Bekker n exponent
+                              0,     // Mohr cohesive limit (Pa)
+                              30,    // Mohr friction limit (degrees)
+                              0.01,  // Janosi shear coefficient (m)
+                              2e8,   // Elastic stiffness (Pa/m), before plastic yield
+                              3e4    // Damping (Pa s/m), proportional to negative vertical speed (optional)
     );
 
     ////terrain.SetBulldozingFlow(true);      // inflate soil at the border of the rut
@@ -296,6 +296,11 @@ int main(int argc, char* argv[]) {
     terrain.SetPlotType(vehicle::SCMDeformableTerrain::PLOT_SINKAGE, 0, 0.1);
 
     terrain.Initialize(terrainLength, terrainWidth, delta);
+
+    auto vis_mat = chrono_types::make_shared<ChVisualMaterial>();
+    vis_mat->SetSpecularColor({.1f, .1f, .1f});
+    vis_mat->SetKdTexture(GetChronoDataFile("sensor/textures/grass_texture.jpg"));
+    terrain.GetMesh()->material_list.push_back(vis_mat);
 
     // ---------------------------------------
     // Create the vehicle Irrlicht application
@@ -322,41 +327,35 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    // Create the sensor manager 
+    // Create the sensor manager
     auto manager = chrono_types::make_shared<ChSensorManager>(my_hmmwv.GetSystem());
+    manager->SetVerbose(true);
 
     // Set lights
     manager->scene->AddPointLight({100, 100, 100}, {1, 1, 1}, 2000);
-    manager->scene->AddPointLight({100, 100, 100}, {1, 1, 1}, 2000);
+    manager->scene->AddPointLight({-100, 100, 100}, {1, 1, 1}, 2000);
 
     // Set up Camera
     chrono::ChFrame<double> offset_pose1({-8, 0, 3}, Q_from_AngAxis(.2, {0, 1, 0}));
-    auto cam = chrono_types::make_shared<ChCameraSensor>(my_hmmwv.GetChassisBody(),
-                                                         update_rate,
-                                                         offset_pose1,
-                                                         image_width,
-                                                         image_height,
-                                                         fov
-    );
+    auto cam = chrono_types::make_shared<ChCameraSensor>(my_hmmwv.GetChassisBody(), update_rate, offset_pose1,
+                                                         image_width, image_height, fov);
     cam->SetName("Camera Sensor");
     cam->SetLag(lag);
     cam->SetCollectionWindow(exposure_time);
 
     // Renders the image at current point in the filter graph
-    if(vis)
+    if (vis)
         cam->PushFilter(chrono_types::make_shared<ChFilterVisualize>(int(image_width * 3 / 4),
                                                                      int(image_height * 3 / 4), "SCM Camera"));
 
     // Provides the host access to this RGBA8_buffer
     cam->PushFilter(chrono_types::make_shared<ChFilterRGBA8Access>());
 
-    if(save)
-        cam->PushFilter(chrono_types::make_shared<ChFilterSave>(sens_dir + "/came/"));
+    if (save)
+        cam->PushFilter(chrono_types::make_shared<ChFilterSave>(sens_dir + "/cam/"));
 
     // Add sensor to the manager
-//    manager->AddSensor(cam);
-
-    
+    manager->AddSensor(cam);
 
     // ---------------
     // Simulation loop
