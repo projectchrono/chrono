@@ -1074,14 +1074,8 @@ static __global__ void integrateSpheres(const float stepsize_SU,
                       sphere_data->sphere_local_pos_Y[mySphereID] + position_update_y,
                       sphere_data->sphere_local_pos_Z[mySphereID] + position_update_z);  // TODO Rounding occurs here
 
-
-
-
         int64_t3 sphPos_global =
             convertPosLocalToGlobal(sphere_data->sphere_owner_SDs[mySphereID], sphere_pos_local, gran_params);
-
-            globalPos = globalPos * gran_params->LENGTH_UNIT;
-        }
 
 
         findNewLocalCoords(sphere_data, mySphereID, sphPos_global.x, sphPos_global.y, sphPos_global.z, gran_params);
