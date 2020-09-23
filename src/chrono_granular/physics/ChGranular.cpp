@@ -997,6 +997,7 @@ void ChSystemGranularSMC::switchToSimUnits() {
     this->TIME_SU2UU = sqrt(massSphere / K_star) / psi_T;
     // copy this to gran_params for device to use
     gran_params->TIME_UNIT = this->TIME_SU2UU;
+    gran_params->MASS_UNIT = this->MASS_SU2UU;
 
     // old hooke way
     // LENGTH_SU2UU = massSphere * magGravAcc / (psi_L * K_star);
