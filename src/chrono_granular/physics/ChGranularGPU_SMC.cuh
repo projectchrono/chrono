@@ -391,10 +391,15 @@ inline __device__ void findNewLocalCoords(GranSphereDataPtr sphere_data,
     unsigned int SDID = SDTripletID(ownerSD, gran_params);
 
     if (sphere_pos_local_X < 0 || sphere_pos_local_Y < 0 || sphere_pos_local_Z < 0) {
-        ABORTABORTABORT(
-            "ERROR! negative local coordinate computed in SD %u, sphere %u, trip %d, %d, %d! local pos is %d, %d, %d",
-            SDID, mySphereID, ownerSD.x, ownerSD.y, ownerSD.z, sphere_pos_local_X, sphere_pos_local_Y,
-            sphere_pos_local_Z);
+
+        float l_unit = gran_params->LENGTH_UNIT;
+        printf("error! negative local coordinate computed in SD %u, sphere %u, trip %d, %d, %d!\n", SDID, mySphereID, ownerSD.x, ownerSD.y, ownerSD.z);
+        printf("local position: %e, %e, %e, global position: %e, %e, %e, BD frame starts at : %e, %e, %e\n",
+                (float)sphere_pos_local_X * l_unit, (float)sphere_pos_local_Y * l_unit, (float)sphere_pos_local_Z * l_unit, (float)global_pos_X * l_unit, (float)global_pos_Y * l_unit, (float)global_pos_Z * l_unit, 
+                (float)gran_params->BD_frame_X * l_unit, (float)gran_params->BD_frame_Y * l_unit, (float)gran_params->BD_frame_Z * l_unit);
+        __threadfence();
+        cub::ThreadTrap();
+
     }
 
     // write local pos back to global memory
@@ -702,6 +707,8 @@ static __global__ void computeSphereContactForces(GranSphereDataPtr sphere_data,
     // my sphere ID, we're using a 1D thread->sphere map
     unsigned int mySphereID = threadIdx.x + blockIdx.x * blockDim.x;
 
+//    float force_unit = gran_params->MASS_UNIT * gran_params->LENGTH_UNIT / (gran_params->TIME_UNIT * gran_params->TIME_UNIT);
+
     // don't overrun the array
     if (mySphereID < nSpheres) {
         // my offset in the contact map
@@ -817,7 +824,7 @@ static __global__ void computeSphereContactForces(GranSphereDataPtr sphere_data,
                 bodyA_force = bodyA_force + force_accum;
             }
         }
-
+        
         // add in gravity and wall forces
         applyExternalForces(mySphereID, myOwnerSD, my_sphere_pos, my_sphere_vel, my_omega, bodyA_force, bodyA_AngAcc,
                             gran_params, sphere_data, bc_type_list, bc_params_list, nBCs);
@@ -1062,14 +1069,20 @@ static __global__ void integrateSpheres(const float stepsize_SU,
                 break;
             }
         }
-
         int3 sphere_pos_local =
             make_int3(sphere_data->sphere_local_pos_X[mySphereID] + position_update_x,
                       sphere_data->sphere_local_pos_Y[mySphereID] + position_update_y,
                       sphere_data->sphere_local_pos_Z[mySphereID] + position_update_z);  // TODO Rounding occurs here
 
+
+
+
         int64_t3 sphPos_global =
             convertPosLocalToGlobal(sphere_data->sphere_owner_SDs[mySphereID], sphere_pos_local, gran_params);
+
+            globalPos = globalPos * gran_params->LENGTH_UNIT;
+        }
+
 
         findNewLocalCoords(sphere_data, mySphereID, sphPos_global.x, sphPos_global.y, sphPos_global.z, gran_params);
     }
