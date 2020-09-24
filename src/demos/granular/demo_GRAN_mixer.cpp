@@ -96,7 +96,7 @@ int main(int argc, char* argv[]) {
 
     float cyl_center[3] = {0, 0, 0};
     const float cyl_rad = Bx / 2.f;
-    //gran_sys.Create_BC_Cyl_Z(cyl_center, cyl_rad, false, false);
+    gran_sys.Create_BC_Cyl_Z(cyl_center, cyl_rad, false, false);
 
     utils::HCPSampler<float> sampler(2.1 * params.sphere_radius);
     std::vector<ChVector<float>> body_points;
@@ -125,7 +125,7 @@ int main(int argc, char* argv[]) {
     float g[3];
     std::vector<string> mesh_filenames;
     std::string mesh_filename;
-    mesh_filename = granular::GetDataFile("demo_GRAN_mixer/external_mixer_angled.obj");
+    mesh_filename = granular::GetDataFile("demo_GRAN_mixer/internal_mixer.obj");
     g[0] = 0;
     g[1] = 0;
     g[2] = -980;
@@ -154,7 +154,7 @@ int main(int argc, char* argv[]) {
     double* mesh_pos_rot = new double[7 * nSoupFamilies];
     float* mesh_vel = new float[6 * nSoupFamilies]();
 
-    float rev_per_sec = 0.5f;
+    float rev_per_sec = 1.f;
     float ang_vel_Z = rev_per_sec * 2 * CH_C_PI;
     mesh_vel[5] = ang_vel_Z;
 
