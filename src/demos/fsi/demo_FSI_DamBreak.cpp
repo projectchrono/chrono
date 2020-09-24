@@ -198,7 +198,7 @@ int main(int argc, char* argv[]) {
     fsi::utils::PrepareOutputDir(paramsH, demo_dir, out_dir, inputJson);
 
     // Create Fluid region and discretize with SPH particles
-    ChVector<> boxCenter(0.0, 0.0, fzDim / 2);
+    ChVector<> boxCenter(-bxDim/2 + fxDim/2, 0.0, fzDim / 2);
     ChVector<> boxHalfDim(fxDim / 2, fyDim / 2, fzDim / 2);
     
     // Use a chrono sampler to create a bucket of points

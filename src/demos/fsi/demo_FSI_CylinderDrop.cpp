@@ -212,18 +212,18 @@ void CreateSolidPhase(ChSystemSMC& mphysicalSystem,
 
     // Bottom and Top wall - size and position
     ChVector<> size_XY(bxDim / 2 + 3 * initSpace0, byDim / 2 + 3 * initSpace0, 2 * initSpace0);
-    ChVector<> pos_zp(0, 0, bzDim + 2 * initSpace0);
-    ChVector<> pos_zn(0, 0, -2 * initSpace0);
+    ChVector<> pos_zp(0, 0, bzDim + 1 * initSpace0);
+    ChVector<> pos_zn(0, 0, -3 * initSpace0);
 
     // Left and right Wall - size and position
     ChVector<> size_YZ(2 * initSpace0, byDim / 2 + 3 * initSpace0, bzDim / 2);
-    ChVector<> pos_xp(bxDim / 2 + initSpace0, 0.0, bzDim / 2 + 1 * initSpace0);
-    ChVector<> pos_xn(-bxDim / 2 - 3 * initSpace0, 0.0, bzDim / 2 + 1 * initSpace0);
+    ChVector<> pos_xp(bxDim / 2 + initSpace0, 0.0, bzDim / 2 + 0 * initSpace0);
+    ChVector<> pos_xn(-bxDim / 2 - 3 * initSpace0, 0.0, bzDim / 2 + 0 * initSpace0);
 
     // Front and back Wall - size and position
     ChVector<> size_XZ(bxDim / 2, 2 * initSpace0, bzDim / 2);
-    ChVector<> pos_yp(0, byDim / 2 + initSpace0, bzDim / 2 + 1 * initSpace0);
-    ChVector<> pos_yn(0, -byDim / 2 - 3 * initSpace0, bzDim / 2 + 1 * initSpace0);
+    ChVector<> pos_yp(0, byDim / 2 + initSpace0, bzDim / 2 + 0 * initSpace0);
+    ChVector<> pos_yn(0, -byDim / 2 - 3 * initSpace0, bzDim / 2 + 0 * initSpace0);
 
     // Create a container
     auto bin = chrono_types::make_shared<ChBody>();
@@ -235,12 +235,12 @@ void CreateSolidPhase(ChSystemSMC& mphysicalSystem,
     bin->GetCollisionModel()->SetSafeMargin(initSpace0 / 2);
 
     // Add the walls into chrono system
-    AddWall(bin, size_XY, mysurfmaterial, pos_zp + ChVector<>(0.0, 0.0, 3 * initSpace0));
+    AddWall(bin, size_XY, mysurfmaterial, pos_zp);
     AddWall(bin, size_XY, mysurfmaterial, pos_zn);
     AddWall(bin, size_YZ, mysurfmaterial, pos_xp);
     AddWall(bin, size_YZ, mysurfmaterial, pos_xn);
-    AddWall(bin, size_XZ, mysurfmaterial, pos_yp + ChVector<>(+1.5 * initSpace0, +1.5 * initSpace0, 0.0));
-    AddWall(bin, size_XZ, mysurfmaterial, pos_yn + ChVector<>(-0.5 * initSpace0, -0.5 * initSpace0, 0.0));
+    AddWall(bin, size_XZ, mysurfmaterial, pos_yp);
+    AddWall(bin, size_XZ, mysurfmaterial, pos_yn);
     bin->GetCollisionModel()->BuildModel();
     bin->SetCollide(true);
     mphysicalSystem.AddBody(bin);
@@ -340,7 +340,7 @@ int main(int argc, char* argv[]) {
     fsi::utils::PrepareOutputDir(paramsH, demo_dir, out_dir, inputJson);
 
     // Create Fluid region and discretize with SPH particles
-    ChVector<> boxCenter(0, 0 * initSpace0, fzDim / 2 + 1 * initSpace0);
+    ChVector<> boxCenter(0.0, 0.0, fzDim / 2);
     ChVector<> boxHalfDim(fxDim / 2, fyDim / 2, fzDim / 2);
 
     // Use a chrono sampler to create a bucket of points
