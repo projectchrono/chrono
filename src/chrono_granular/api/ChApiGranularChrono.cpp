@@ -227,3 +227,8 @@ chrono::ChVector<float> ChGranularSMC_API::getBCPlanePos(size_t plane_id){
     float3 pos = gran_sys->Get_BC_Plane_Position(plane_id);
     return chrono::ChVector<float> (pos.x, pos.y, pos.z);
 }
+
+// return number of sphere-to-sphere contact
+int ChGranularSMC_API::getNumContacts(){
+    return gran_sys->getNumContacts();
+}
