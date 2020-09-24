@@ -2,6 +2,7 @@ Change Log
 ==========
 
 - [Unreleased (development version)](#unreleased-development-branch)
+  - [Enhancements to Chrono::FSI](#changed-enhancements-to-chronofsi)
   - [New Chrono::Sensor module](#added-new-chronosensor-module)
   - [Setting OpenMP number of threads](#changed-setting-openmp-number-of-threads)
   - [Redesigned SCM deformable terrain](#changed-redesigned-scm-deformable-terrain)
@@ -19,6 +20,10 @@ Change Log
 - [Release 4.0.0](#release-400---2019-02-22)
 
 ## Unreleased (development branch)
+
+### [Changed] Enhancements to Chrono::FSI
+
+TODO
 
 ### [Added] New Chrono::Sensor module
 
