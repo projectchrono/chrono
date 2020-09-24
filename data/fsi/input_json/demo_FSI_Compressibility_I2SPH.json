@@ -16,8 +16,8 @@
   "SPH Parameters":
   {
     "Method":                         "I2SPH",//WCSPH, IISPH, I2SPHH
-    "Kernel h":                       0.1,
-    "Initial Spacing":                0.1,
+    "Kernel h":                       0.025,
+    "Initial Spacing":                0.025,
     "Epsilon":                        0.001,
     "Maximum Velocity":               1.5,
     "XSPH Coefficient":               0.05,
