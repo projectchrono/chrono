@@ -19,6 +19,7 @@ SET(DEMOS
         demo_GRAN_movingBoundary
         demo_GRAN_fixedterrain
         demo_GRAN_mixer
+		demo_GRAN_compression
 )
 
 # ------------------------------------------------------------------------------

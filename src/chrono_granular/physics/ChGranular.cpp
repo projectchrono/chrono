@@ -268,7 +268,7 @@ void ChSystemGranularSMC::writeFile(std::string ofile) const {
         }
 
         if (gran_params->friction_mode != GRAN_FRICTION_MODE::FRICTIONLESS && GET_OUTPUT_SETTING(ANG_VEL_COMPONENTS)) {
-            outstrstream << ",wx,wy,wz,wmag";
+            outstrstream << ",wx,wy,wz";
         }
 
         if (GET_OUTPUT_SETTING(FORCE_COMPONENTS)) {
@@ -318,10 +318,6 @@ void ChSystemGranularSMC::writeFile(std::string ofile) const {
             
                 outstrstream << "," << sphere_Omega_X.at(n) / TIME_SU2UU << "," << sphere_Omega_Y.at(n) / TIME_SU2UU
                              << "," << sphere_Omega_Z.at(n) / TIME_SU2UU;
-                float omic_abs = std::sqrt(sphere_Omega_X.at(n) * sphere_Omega_X.at(n)
-                                         + sphere_Omega_Y.at(n) * sphere_Omega_Y.at(n)
-                                         + sphere_Omega_Z.at(n) * sphere_Omega_Z.at(n));
-                outstrstream << ","  << omic_abs/TIME_SU2UU;
             }
 
             if (GET_OUTPUT_SETTING(FORCE_COMPONENTS)) {

@@ -393,10 +393,15 @@ inline __device__ void findNewLocalCoords(GranSphereDataPtr sphere_data,
     if (sphere_pos_local_X < 0 || sphere_pos_local_Y < 0 || sphere_pos_local_Z < 0) {
 
         float l_unit = gran_params->LENGTH_UNIT;
-        printf("error! negative local coordinate computed in SD %u, sphere %u, trip %d, %d, %d!\n", SDID, mySphereID, ownerSD.x, ownerSD.y, ownerSD.z);
-        printf("local position: %e, %e, %e, global position: %e, %e, %e, BD frame starts at : %e, %e, %e\n",
-                (float)sphere_pos_local_X * l_unit, (float)sphere_pos_local_Y * l_unit, (float)sphere_pos_local_Z * l_unit, (float)global_pos_X * l_unit, (float)global_pos_Y * l_unit, (float)global_pos_Z * l_unit, 
-                (float)gran_params->BD_frame_X * l_unit, (float)gran_params->BD_frame_Y * l_unit, (float)gran_params->BD_frame_Z * l_unit);
+        printf("error! sphere %u has negative local pos in SD %u (%d, %d, %d), pos_local: %e, %e, %e, pos_global: %e, %e, %e, BD starts at: %e, %e, %e\n", 
+        mySphereID, SDID, ownerSD.x, ownerSD.y, ownerSD.z, 
+        (float)sphere_pos_local_X * l_unit, 
+        (float)sphere_pos_local_Y * l_unit, 
+        (float)sphere_pos_local_Z * l_unit, 
+        (float)global_pos_X * l_unit, (float)global_pos_Y * l_unit, (float)global_pos_Z * l_unit, 
+        (float)gran_params->BD_frame_X * l_unit, 
+        (float)gran_params->BD_frame_Y * l_unit, 
+        (float)gran_params->BD_frame_Z * l_unit);
         __threadfence();
         cub::ThreadTrap();
 
