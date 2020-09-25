@@ -36,7 +36,7 @@ ChVSGApp::ChVSGApp()
     : m_horizonMountainHeight(0.0),
       m_timeStep(0.001),
       m_outputStep(0.001),
-      m_drawMode(DrawMode::Wireframe),
+      m_drawMode(DrawMode::Phong),
       m_build_graph(true),
       m_wait_counter(1),
       m_wait_counter_max(1) {

@@ -114,7 +114,7 @@ vsg::ref_ptr<vsg::Node> ChVSGIndexedMesh::createVSGNode(DrawMode drawMode,
 
             auto descriptorSet = vsg::DescriptorSet::create(descriptorSetLayout, vsg::Descriptors{texture});
             auto bindDescriptorSets =
-                vsg::BindDescriptorSets::create(VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline->getPipelineLayout(),
+                vsg::BindDescriptorSets::create(VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline->layout,
                                                 0, vsg::DescriptorSets{descriptorSet});
 
             // create StateGroup as the root of the scene/command graph to hold the GraphicsProgram, and binding of
