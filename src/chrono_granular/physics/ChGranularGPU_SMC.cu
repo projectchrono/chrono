@@ -274,6 +274,22 @@ __host__ void ChSystemGranularSMC::setupSphereDataStructures() {
         TRACK_VECTOR_RESIZE(sphere_ang_acc_X, nSpheres, "sphere_ang_acc_X", 0);
         TRACK_VECTOR_RESIZE(sphere_ang_acc_Y, nSpheres, "sphere_ang_acc_Y", 0);
         TRACK_VECTOR_RESIZE(sphere_ang_acc_Z, nSpheres, "sphere_ang_acc_Z", 0);
+
+        {
+            bool user_provided_ang_vel = user_sphere_ang_vel.size() != 0;
+            if (user_provided_ang_vel && user_sphere_ang_vel.size() != nSpheres) {
+                printf("Provided angular velocity array has an unacceptable length.");
+                exit(1);
+            }
+            if (user_provided_ang_vel) {
+                for (unsigned int i = 0; i < nSpheres; i++) {
+                    auto ang_vel = user_sphere_ang_vel.at(i);
+                    sphere_Omega_X.at(i) = (float)(ang_vel.x * TIME_SU2UU);
+                    sphere_Omega_Y.at(i) = (float)(ang_vel.y * TIME_SU2UU);
+                    sphere_Omega_Z.at(i) = (float)(ang_vel.z * TIME_SU2UU);
+                }
+            }
+        }
     }
 
     if (gran_params->friction_mode == GRAN_FRICTION_MODE::MULTI_STEP ||
@@ -285,6 +301,25 @@ __host__ void ChSystemGranularSMC::setupSphereDataStructures() {
         float3 null_history = {0., 0., 0.};
         TRACK_VECTOR_RESIZE(contact_history_map, 12 * nSpheres, "contact_history_map", null_history);
     }
+
+    // record normal contact force
+    if (gran_params->recording_contactInfo == true){
+        float3 null_force = {0.0f, 0.0f, 0.0f};
+        TRACK_VECTOR_RESIZE(normal_contact_force, 12 * nSpheres, "normal contact force", null_force);
+    }
+
+    // record friction force
+    if (gran_params->recording_contactInfo == true && gran_params->friction_mode != GRAN_FRICTION_MODE::FRICTIONLESS){
+        float3 null_force = {0.0f, 0.0f, 0.0f};
+        TRACK_VECTOR_RESIZE(tangential_friction_force, 12 * nSpheres, "tangential contact force", null_force);
+    }
+
+    // record rolling friction torque
+    if (gran_params->recording_contactInfo == true && gran_params->rolling_mode != GRAN_ROLLING_MODE::NO_RESISTANCE){
+        float3 null_force = {0.0f, 0.0f, 0.0f};
+        TRACK_VECTOR_RESIZE(rolling_friction_torque, 12 * nSpheres, "rolling friction torque", null_force);
+    }
+
 
     if (time_integrator == GRAN_TIME_INTEGRATOR::CHUNG) {
         TRACK_VECTOR_RESIZE(sphere_acc_X_old, nSpheres, "sphere_acc_X_old", 0);
@@ -442,8 +477,8 @@ __host__ double ChSystemGranularSMC::advance_simulation(float duration) {
     float time_elapsed_SU = 0;  // time elapsed in this advance call
 
     // Run the simulation, there are aggressive synchronizations because we want to have no race conditions
-    for (; time_elapsed_SU < stepSize_SU * nsteps; time_elapsed_SU += stepSize_SU) {
-        updateBCPositions();
+    for (unsigned int n = 0; n < nsteps; n++){
+				updateBCPositions();
 
         runSphereBroadphase();
         packSphereDataPointers();
@@ -488,6 +523,7 @@ __host__ double ChSystemGranularSMC::advance_simulation(float duration) {
         }
 
         elapsedSimTime += (float)(stepSize_SU * TIME_SU2UU);  // Advance current time
+				time_elapsed_SU += stepSize_SU;
     }
 
     return time_elapsed_SU * TIME_SU2UU;  // return elapsed UU time

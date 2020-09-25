@@ -354,6 +354,7 @@ __global__ void interactionTerrain_TriangleSoup(
                 convert_pos_UU2SU<double3>(meshCenter_double, gran_params);
 
                 double3 fromCenter_double = pt1 - meshCenter_double;
+                
                 fromCenter = make_float3(fromCenter_double.x, fromCenter_double.y, fromCenter_double.z);
             }
 
@@ -388,7 +389,7 @@ __global__ void interactionTerrain_TriangleSoup(
                 float3 r = pt1_float + normal * (depth / 2) - meshCenter;
 
                 // Add angular velocity contribution from mesh
-                v_rel = v_rel + Cross(d_triangleSoup->omega[fam], r);
+                v_rel = v_rel - Cross(d_triangleSoup->omega[fam], r);
 
                 // add tangential components if they exist
                 if (gran_params->friction_mode != chrono::granular::GRAN_FRICTION_MODE::FRICTIONLESS) {
@@ -407,14 +408,16 @@ __global__ void interactionTerrain_TriangleSoup(
                 float m_eff = sphere_mass_SU * fam_mass_SU / (sphere_mass_SU + fam_mass_SU);
                 float3 vrel_n = Dot(v_rel, normal) * normal;
                 v_rel = v_rel - vrel_n;  // v_rel is now tangential relative velocity
-
+                
                 // Add normal damping term
                 force_accum = force_accum - hertz_force_factor * mesh_params->Gamma_n_s2m_SU * m_eff * vrel_n;
-
+        
                 if (gran_params->friction_mode != chrono::granular::GRAN_FRICTION_MODE::FRICTIONLESS) {
+                    // radius pointing from the contact point to the center of particle
+                    float3 Rc = (gran_params->sphereRadius_SU + depth / 2.f) * normal;
                     float3 roll_ang_acc = computeRollingAngAcc(
                         sphere_data, gran_params, mesh_params->rolling_coeff_s2m_SU, mesh_params->spinning_coeff_s2m_SU,
-                        force_accum, omega[sphereIDLocal], d_triangleSoup->omega[fam], delta);
+                        force_accum, omega[sphereIDLocal], d_triangleSoup->omega[fam], Rc);
 
                     sphere_AngAcc = sphere_AngAcc + roll_ang_acc;
 
@@ -427,7 +430,7 @@ __global__ void interactionTerrain_TriangleSoup(
                         hertz_force_factor, m_eff, force_accum, v_rel, normal);
 
                     force_accum = force_accum + tangent_force;
-                    sphere_AngAcc = sphere_AngAcc + Cross(-1 * delta, tangent_force) / gran_params->sphereInertia_by_r;
+                    sphere_AngAcc = sphere_AngAcc + Cross(-1.f * normal, tangent_force) / gran_params->sphereInertia_by_r;
                 }
 
                 // Use the CD information to compute the force and torque on the family of this triangle
