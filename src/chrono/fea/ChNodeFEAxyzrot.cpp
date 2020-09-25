@@ -29,7 +29,7 @@ ChNodeFEAxyzrot::ChNodeFEAxyzrot(const ChNodeFEAxyzrot& other) : ChNodeFEAbase(o
     X0 = other.X0;
 
     Force = other.Force;
-    Force = other.Torque;
+    Torque = other.Torque;
 
     variables = other.variables;
 }
@@ -44,7 +44,7 @@ ChNodeFEAxyzrot& ChNodeFEAxyzrot::operator=(const ChNodeFEAxyzrot& other) {
     X0 = other.X0;
 
     Force = other.Force;
-    Force = other.Torque;
+    Torque = other.Torque;
 
     variables = other.variables;
 
