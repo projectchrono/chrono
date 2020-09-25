@@ -142,8 +142,8 @@ class CH_GRANULAR_API ChSystemGranularSMC_trimesh : public ChSystemGranularSMC {
     // these quantities are unitless anyways
     void set_static_friction_coeff_SPH2MESH(float mu) { tri_params->static_friction_coeff_s2m = mu; }
     // set internally and convert later
-    void set_rolling_coeff_SPH2MESH(float mu) { rolling_coeff_s2s_UU = mu; }
-    void set_spinning_coeff_SPH2MESH(float mu) { spinning_coeff_s2s_UU = mu; }
+    void set_rolling_coeff_SPH2MESH(float mu) { rolling_coeff_s2m_UU = mu; }
+    void set_spinning_coeff_SPH2MESH(float mu) { spinning_coeff_s2m_UU = mu; }
 
     /// Enable mesh contact
     void enableMeshCollision() { mesh_collision_enabled = true; }

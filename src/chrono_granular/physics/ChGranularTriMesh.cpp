@@ -79,6 +79,21 @@ void ChSystemGranularSMC_trimesh::initializeTriangles() {
 
     tri_params->rolling_coeff_s2m_SU = (float)rolling_coeff_s2m_UU;
 
+    double* meshRot = new double[4];
+    memset(meshRot, 0.0, sizeof(meshRot));
+    meshRot[0] = 1.0;
+    for (unsigned int fam = 0; fam < meshSoup->numTriangleFamilies; fam++) {
+        generate_rot_matrix<float>(meshRot, tri_params->fam_frame_broad[fam].rot_mat);
+        tri_params->fam_frame_broad[fam].pos[0] = (float)0.0;
+        tri_params->fam_frame_broad[fam].pos[1] = (float)0.0;
+        tri_params->fam_frame_broad[fam].pos[2] = (float)0.0;
+
+        generate_rot_matrix<double>(meshRot, tri_params->fam_frame_narrow[fam].rot_mat);
+        tri_params->fam_frame_narrow[fam].pos[0] = (double)0.0;
+        tri_params->fam_frame_narrow[fam].pos[1] = (double)0.0;
+        tri_params->fam_frame_narrow[fam].pos[2] = (double)0.0;
+    }
+
     TRACK_VECTOR_RESIZE(SD_numTrianglesTouching, nSDs, "SD_numTrianglesTouching", 0);
     TRACK_VECTOR_RESIZE(SD_TriangleCompositeOffsets, nSDs, "SD_TriangleCompositeOffsets", 0);
 

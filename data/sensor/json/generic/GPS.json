@@ -1,0 +1,34 @@
+{
+  "Name": "Generic sensor",
+  "Type": "Sensor",
+  "Template": "GPS",
+
+  "Properties": {
+    "Update Rate": 10,
+    "Lag": 0.1,
+    "Collection Time": 0.1,
+    "GPS Reference": [-89.400, 43.070, 260.0],
+    "GPS Noise Model": {
+      "Noise Model": "ChGPSNoiseNone"
+    }
+  },
+
+  "Filters":
+  [
+    {
+      "Filter": "ChFilterGPSAccess"
+    },
+    {
+      "Filter": "ChFilterGPSUpdate",
+      "GPS Reference": [-89.400, 43.070, 260.0],
+      "GPS Noise Model": {
+        "Noise Model": "ChGPSNoiseNormal",
+        "Mean": [1.0, 1.0, 1.0],
+        "Standard Deviation": [2.0, 3.0, 1.0]
+      }
+    },
+    {
+      "Filter": "ChFilterGPSAccess"
+    }
+  ]
+}
