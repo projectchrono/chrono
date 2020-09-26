@@ -163,6 +163,14 @@ void Gator::Initialize() {
 }
 
 // -----------------------------------------------------------------------------
+void Gator::SetWheelVisualizationType(VisualizationType vis) {
+    if (vis == VisualizationType::MESH) {
+        m_vehicle->SetWheelVisualizationType(VisualizationType::NONE);
+        return;
+    }
+    m_vehicle->SetWheelVisualizationType(vis);
+}
+
 void Gator::SetTireVisualizationType(VisualizationType vis) {
     for (auto& axle : m_vehicle->GetAxles()) {
         for (auto& wheel : axle->GetWheels()) {
