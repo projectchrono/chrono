@@ -285,12 +285,11 @@ class CH_VEHICLE_API SCMDeformableSoil : public ChLoadContainer {
 
     // Moving patch parameters
     struct MovingPatchInfo {
-        std::shared_ptr<ChBody> m_body;  // tracked body
-        ChVector<> m_center;             // OOBB center, relative to body
-        ChVector<> m_hdims;              // OOBB half-dimensions
-        ChVector2<int> m_bl;             // current grid coords of bottom-left corner
-        ChVector2<int> m_tr;             // current grid coords of top-right corner
-        ChVector<> m_ooN;                // current inverse of SCM normal in body frame
+        std::shared_ptr<ChBody> m_body;       // tracked body
+        ChVector<> m_center;                  // OOBB center, relative to body
+        ChVector<> m_hdims;                   // OOBB half-dimensions
+        std::vector<ChVector2<int>> m_range;  // current grid nodes covered by the patch
+        ChVector<> m_ooN;                     // current inverse of SCM normal in body frame
     };
 
     // Information at contacted node

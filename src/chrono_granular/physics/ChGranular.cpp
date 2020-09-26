@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Conlain Kelly, Nic Olsen, Dan Negrut
+// Authors: Conlain Kelly, Nic Olsen, Dan Negrut, Luning Fang
 // =============================================================================
 
 #include <cuda.h>
@@ -22,6 +22,8 @@
 #include "chrono/core/ChVector.h"
 #include "chrono_granular/utils/ChGranularUtilities.h"
 #include "chrono_granular/physics/ChGranularBoundaryConditions.h"
+#include "chrono_granular/utils/ChCudaMathUtils.cuh"
+
 
 #ifdef USE_HDF5
 #include "H5Cpp.h"
@@ -175,6 +177,18 @@ void ChSystemGranularSMC::packSphereDataPointers() {
         sphere_data->contact_history_map = contact_history_map.data();
     }
 
+    if (gran_params->recording_contactInfo == true){
+        sphere_data->normal_contact_force = normal_contact_force.data();
+
+        if (gran_params->friction_mode != GRAN_FRICTION_MODE::FRICTIONLESS){
+            sphere_data->tangential_friction_force = tangential_friction_force.data();
+        }
+
+        if (gran_params->rolling_mode != GRAN_ROLLING_MODE::NO_RESISTANCE){
+            sphere_data->rolling_friction_torque = rolling_friction_torque.data();
+        }
+    }
+
     // DN: had to comment this prefetch for now; crashing on Windows
     //// force prefetch the sphere data pointer after update:
     // int dev_ID;
@@ -301,16 +315,15 @@ void ChSystemGranularSMC::writeFile(std::string ofile) const {
 
             if (gran_params->friction_mode != GRAN_FRICTION_MODE::FRICTIONLESS &&
                 GET_OUTPUT_SETTING(ANG_VEL_COMPONENTS)) {
+            
                 outstrstream << "," << sphere_Omega_X.at(n) / TIME_SU2UU << "," << sphere_Omega_Y.at(n) / TIME_SU2UU
                              << "," << sphere_Omega_Z.at(n) / TIME_SU2UU;
             }
 
             if (GET_OUTPUT_SETTING(FORCE_COMPONENTS)) {
-                double massSphere =
-                    (4.0 / 3.0) * CH_C_PI * sphere_radius_UU * sphere_radius_UU * sphere_radius_UU * sphere_density_UU;
-                double fx = (sphere_acc_X.at(n) - gran_params->gravAcc_X_SU) * massSphere * FORCE_SU2UU;
-                double fy = (sphere_acc_Y.at(n) - gran_params->gravAcc_Y_SU) * massSphere * FORCE_SU2UU;
-                double fz = (sphere_acc_Z.at(n) - gran_params->gravAcc_Z_SU) * massSphere * FORCE_SU2UU;
+                double fx = (sphere_acc_X.at(n) - gran_params->gravAcc_X_SU) * gran_params->sphere_mass_SU * FORCE_SU2UU;
+                double fy = (sphere_acc_Y.at(n) - gran_params->gravAcc_Y_SU) * gran_params->sphere_mass_SU * FORCE_SU2UU;
+                double fz = (sphere_acc_Z.at(n) - gran_params->gravAcc_Z_SU) * gran_params->sphere_mass_SU * FORCE_SU2UU;
                 outstrstream << "," << fx << "," << fy << "," << fz;
             }
 
@@ -431,6 +444,62 @@ void ChSystemGranularSMC::writeFile(std::string ofile) const {
 #endif
     } else if (file_write_mode == GRAN_OUTPUT_MODE::NONE) {
         // Do nothing, only here for symmetry
+    }
+}
+
+void ChSystemGranularSMC::writeContactInfoFile(std::string ofile) const {
+    if (gran_params->recording_contactInfo == false){
+        printf("ERROR: recording_contactInfo set to false!\n");
+        exit(1);
+    }
+    else {
+        // write contact info as an csv style in the following format
+        // body i, body j, n_mag, fx, fy, fz, mx, my, mz
+
+        std::ofstream ptFile(ofile + ".csv", std::ios::out);
+        // Dump to a stream, write to file only at end
+        std::ostringstream outstrstream;
+        outstrstream << "bi, bj, n_mag";
+
+        if (gran_params->friction_mode != GRAN_FRICTION_MODE::FRICTIONLESS) {
+            outstrstream << ", fx, fy, fz";
+        }
+
+        if (gran_params->rolling_mode != GRAN_ROLLING_MODE::NO_RESISTANCE){
+            outstrstream << ", mx, my, mz";
+        }
+        outstrstream << "\n";
+        for (unsigned int n = 0; n < nSpheres; n++) {
+            unsigned int bodyAoffset = n * MAX_SPHERES_TOUCHED_BY_SPHERE;
+            // go through all possible neighbors
+            for (unsigned int neighborID = 0; neighborID < MAX_SPHERES_TOUCHED_BY_SPHERE; neighborID++) {
+                int theirSphereMappingID = bodyAoffset + neighborID;
+                int theirSphereID = contact_partners_map[theirSphereMappingID];
+                // only write when bi < bj
+                if (theirSphereID >= n && theirSphereID < nSpheres){
+                        outstrstream << n << ", " << theirSphereID;
+
+                        outstrstream << ", " << Length(normal_contact_force[theirSphereMappingID]) * FORCE_SU2UU;
+
+                        if (gran_params->friction_mode != GRAN_FRICTION_MODE::FRICTIONLESS){
+                        outstrstream << ", " << tangential_friction_force[theirSphereMappingID].x * FORCE_SU2UU   
+                                     << ", " << tangential_friction_force[theirSphereMappingID].y * FORCE_SU2UU 
+                                     << ", " << tangential_friction_force[theirSphereMappingID].z * FORCE_SU2UU;
+                            
+                        }
+                        
+                        if (gran_params->rolling_mode != GRAN_ROLLING_MODE::NO_RESISTANCE){
+                        outstrstream << ", " << rolling_friction_torque[theirSphereMappingID].x * FORCE_SU2UU * LENGTH_SU2UU   
+                                     << ", " << rolling_friction_torque[theirSphereMappingID].y * FORCE_SU2UU * LENGTH_SU2UU 
+                                     << ", " << rolling_friction_torque[theirSphereMappingID].z * FORCE_SU2UU * LENGTH_SU2UU;
+
+                        }
+                        outstrstream << "\n";
+                }
+            }
+        }
+    ptFile << outstrstream.str();
+
     }
 }
 
@@ -664,6 +733,18 @@ void ChSystemGranularSMC::setBCOffset(const BC_type& bc_type,
     }
 }
 
+
+float3 ChSystemGranularSMC::Get_BC_Plane_Position(size_t plane_id){
+    BC_params_t<float, float3> p = BC_params_list_UU[plane_id];
+    auto offset_function = BC_offset_function_list[plane_id];
+    double3 offset_UU = offset_function(elapsedSimTime);
+    float3 currPos;
+    currPos.x = p.plane_params.position.x + offset_UU.x;
+    currPos.y = p.plane_params.position.y + offset_UU.y;
+    currPos.z = p.plane_params.position.z + offset_UU.z;
+    return currPos;
+}
+
 void ChSystemGranularSMC::convertBCUnits() {
     for (int i = 0; i < BC_type_list.size(); i++) {
         auto bc_type = BC_type_list.at(i);
@@ -774,14 +855,79 @@ void ChSystemGranularSMC::initialize() {
 }
 
 // Set particle positions in UU
-void ChSystemGranularSMC::setParticlePositions(const std::vector<float3>& points, const std::vector<float3>& vels) {
+void ChSystemGranularSMC::setParticlePositions(const std::vector<float3>& points, const std::vector<float3>& vels, const std::vector<float3>& ang_vels) {
     user_sphere_positions = points;  // Copy points to class vector
     user_sphere_vel = vels;
+    user_sphere_ang_vel = ang_vels;
 }
 
 void ChSystemGranularSMC::setParticleFixed(const std::vector<bool>& fixed) {
     user_sphere_fixed = fixed;
 }
+
+// return position in user units given sphere index
+float3 ChSystemGranularSMC::getPosition(int nSphere){
+    // owner SD
+	unsigned int ownerSD = sphere_owner_SDs.at(nSphere);
+    int3 ownerSD_trip = getSDTripletFromID(ownerSD);
+    // local position
+	float x_UU = (float)(sphere_local_pos_X[nSphere] * LENGTH_SU2UU);
+    float y_UU = (float)(sphere_local_pos_Y[nSphere] * LENGTH_SU2UU);
+    float z_UU = (float)(sphere_local_pos_Z[nSphere] * LENGTH_SU2UU);
+    // add big domain position
+    x_UU += (float)(gran_params->BD_frame_X * LENGTH_SU2UU);
+	y_UU += (float)(gran_params->BD_frame_Y * LENGTH_SU2UU);
+    z_UU += (float)(gran_params->BD_frame_Z * LENGTH_SU2UU);
+	// add subdomainNum * subdomain size		
+    x_UU += (float)(((int64_t)ownerSD_trip.x * gran_params->SD_size_X_SU) * LENGTH_SU2UU);
+    y_UU += (float)(((int64_t)ownerSD_trip.y * gran_params->SD_size_Y_SU) * LENGTH_SU2UU);
+    z_UU += (float)(((int64_t)ownerSD_trip.z * gran_params->SD_size_Z_SU) * LENGTH_SU2UU);					
+	return make_float3(x_UU, y_UU, z_UU);
+}
+
+// return absolute velocity
+float ChSystemGranularSMC::getAbsVelocity(int nSphere){
+    float absv_SU = std::sqrt(pos_X_dt[nSphere]*pos_X_dt[nSphere]
+                             +pos_Y_dt[nSphere]*pos_Y_dt[nSphere]
+                             +pos_Z_dt[nSphere]*pos_Z_dt[nSphere]); 
+    float absv_UU = (float)(absv_SU * LENGTH_SU2UU / TIME_SU2UU);
+    return absv_UU;
+}
+
+// return velocity
+float3 ChSystemGranularSMC::getVelocity(int nSphere){
+	float vx_UU = (float)(pos_X_dt[nSphere] * LENGTH_SU2UU / TIME_SU2UU);
+    float vy_UU = (float)(pos_Y_dt[nSphere] * LENGTH_SU2UU / TIME_SU2UU);
+    float vz_UU = (float)(pos_Z_dt[nSphere] * LENGTH_SU2UU / TIME_SU2UU);
+	return make_float3(vx_UU, vy_UU, vz_UU);
+}
+
+// get angular velocity of a particle
+float3 ChSystemGranularSMC::getAngularVelocity(int nSphere){
+		float wx_UU = sphere_Omega_X.at(nSphere) / TIME_SU2UU;
+		float wy_UU = sphere_Omega_Y.at(nSphere) / TIME_SU2UU;
+		float wz_UU = sphere_Omega_Z.at(nSphere) / TIME_SU2UU;
+		return make_float3(wx_UU, wy_UU, wz_UU);
+}
+
+// return number of sphere-to-sphere contacts
+int ChSystemGranularSMC::getNumContacts(){
+    auto contact_itr = contact_partners_map.begin();
+    int total_nc = 0;
+
+    while (contact_itr != contact_partners_map.end()){
+        int body_j = *contact_itr;
+        contact_itr++;
+
+        if (body_j != -1){
+            total_nc++;
+        }
+    }
+
+    return total_nc/2;
+}
+
+
 
 // Partitions the big domain (BD) and sets the number of SDs that BD is split in.
 void ChSystemGranularSMC::partitionBD() {
@@ -845,6 +991,10 @@ void ChSystemGranularSMC::switchToSimUnits() {
     // These two are independent of hooke/hertz
     this->MASS_SU2UU = massSphere / gran_params->sphere_mass_SU;
     this->TIME_SU2UU = sqrt(massSphere / K_star) / psi_T;
+    // copy this to gran_params for device to use
+    gran_params->TIME_UNIT = this->TIME_SU2UU;
+    gran_params->MASS_UNIT = this->MASS_SU2UU;
+
     // old hooke way
     // LENGTH_SU2UU = massSphere * magGravAcc / (psi_L * K_star);
     // new hertz way
@@ -875,7 +1025,6 @@ void ChSystemGranularSMC::switchToSimUnits() {
     this->TORQUE_SU2UU = FORCE_SU2UU * LENGTH_SU2UU;
     // copy into gran params for now
     gran_params->LENGTH_UNIT = LENGTH_SU2UU;
-
     gran_params->sphereRadius_SU = (unsigned int)(sphere_radius_UU / LENGTH_SU2UU);
 
     gran_params->gravAcc_X_SU = (float)(X_accGrav / ACC_SU2UU);

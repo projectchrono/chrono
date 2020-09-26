@@ -34,37 +34,11 @@
 #include "chrono_thirdparty/filesystem/path.h"
 #include "chrono_thirdparty/filesystem/resolver.h"
 
+using namespace std;
 namespace chrono {
 namespace fsi {
-
 namespace utils {
 
-//#define W_KERNEL W3h_Spline
-
-// Real W2h(Real d, Real h) {
-//    Real q = fabs(d) / h;
-//    if (q < 1) {
-//        return (0.25f / (PI * h * h * h) * (pow(2 - q, Real(3)) - 4 * pow(1 - q, Real(3))));
-//    }
-//    if (q < 2) {
-//        return (0.25f / (PI * h * h * h) * pow(2 - q, Real(3)));
-//    }
-//    return 0;
-//}
-// Real W3h(Real d, Real h) {
-//    Real q = fabs(d) / h;
-//    if (q < 1) {
-//        return (3.0 / (359 * PI * h * h * h) *
-//                (pow(3 - q, Real(5)) - 6 * pow(2 - q, Real(5)) + 15 * pow(1 - q, Real(5))));
-//    }
-//    if (q < 2) {
-//        return (3.0 / (359 * PI * h * h * h) * (pow(3 - q, Real(5)) - 6 * pow(2 - q, Real(5))));
-//    }
-//    if (q < 3) {
-//        return (3.0 / (359 * PI * h * h * h) * (pow(3 - q, Real(5))));
-//    }
-//    return 0;
-//}
 
 Real3 LoadVectorJSON(const Value& a) {
     assert(a.IsArray());
@@ -73,24 +47,20 @@ Real3 LoadVectorJSON(const Value& a) {
 }
 
 Real massCalculator(int& num_nei, Real Kernel_h, Real InitialSpacing, Real rho0) {
-    int IDX = 5;
+    int IDX = 10;
     Real sum_wij = 0;
     int count = 0;
     for (int i = -IDX; i <= IDX; i++)
         for (int j = -IDX; j <= IDX; j++)
             for (int k = -IDX; k <= IDX; k++) {
                 Real3 pos = mR3(i, j, k) * InitialSpacing;
-
                 Real W = W3h_Spline(length(pos), Kernel_h);
-                //                Real W = W2h(length(pos), Kernel_h);
-
-                if (W > 0) {
-                    //                    printf("%f,%f,%f,   %f\n", pos.x, pos.y, pos.z, W3);
+                if (W > 0) {              
                     count++;
                 }
                 sum_wij += W;
             }
-    printf("Kernel_h=%f, InitialSpacing=%f, number of Neighbors=%d, m_i= %f, w_i= %f\n", Kernel_h, InitialSpacing,
+    printf("Kernel_h=%f, InitialSpacing=%f, Number of Neighbors=%d, Mass_i= %f, Sum_wi= %f\n", Kernel_h, InitialSpacing,
            count, rho0 / sum_wij, sum_wij);
     num_nei = count;
     return rho0 / sum_wij;
@@ -186,8 +156,6 @@ bool ParseJSON(std::string json_file, std::shared_ptr<SimParams> paramsH, Real3 
         else
             paramsH->HSML = 0.02;
 
-        std::cout << "paramsH->HSML: " << paramsH->HSML << std::endl;
-
         if (doc["SPH Parameters"].HasMember("Initial Spacing"))
             paramsH->MULT_INITSPACE = doc["SPH Parameters"]["Initial Spacing"].GetDouble() / paramsH->HSML;
         else
@@ -203,13 +171,12 @@ bool ParseJSON(std::string json_file, std::shared_ptr<SimParams> paramsH, Real3 
         else
             paramsH->epsMinMarkersDis = 0.01;
 
-        if (doc["SPH Parameters"].HasMember("Maximum Velocity")) {
+        if (doc["SPH Parameters"].HasMember("Maximum Velocity")){
             paramsH->v_Max = doc["SPH Parameters"]["Maximum Velocity"].GetDouble();
-            paramsH->Cs = 10.0 * paramsH->v_Max;
-        } else {
+            paramsH->Cs = 10.0*paramsH->v_Max;}
+        else{
             paramsH->v_Max = 1.0;
-            paramsH->Cs = 10.0 * paramsH->v_Max;
-        }
+            paramsH->Cs = 10.0*paramsH->v_Max;}
 
         if (doc["SPH Parameters"].HasMember("XSPH Coefficient"))
             paramsH->EPS_XSPH = doc["SPH Parameters"]["XSPH Coefficient"].GetDouble();
@@ -416,6 +383,20 @@ bool ParseJSON(std::string json_file, std::shared_ptr<SimParams> paramsH, Real3 
         paramsH->fluidDimX = doc["Geometry Inf"]["FluidDimensionX"].GetDouble();
         paramsH->fluidDimY = doc["Geometry Inf"]["FluidDimensionY"].GetDouble();
         paramsH->fluidDimZ = doc["Geometry Inf"]["FluidDimensionZ"].GetDouble();
+    }
+
+    // Body Information
+    if (doc.HasMember("Body Inf")) {
+        paramsH->bodyDimX = doc["Body Inf"]["BodyDimensionX"].GetDouble();
+        paramsH->bodyDimY = doc["Body Inf"]["BodyDimensionY"].GetDouble();
+        paramsH->bodyDimZ = doc["Body Inf"]["BodyDimensionZ"].GetDouble();
+        paramsH->bodyRad = doc["Body Inf"]["BodyRadius"].GetDouble();
+        paramsH->bodyLength = doc["Body Inf"]["BodyLength"].GetDouble();
+        paramsH->bodyIniPosX = doc["Body Inf"]["BodyIniPosX"].GetDouble();
+        paramsH->bodyIniPosY = doc["Body Inf"]["BodyIniPosY"].GetDouble();
+        paramsH->bodyIniPosZ = doc["Body Inf"]["BodyIniPosZ"].GetDouble();
+        paramsH->bodyMass = doc["Body Inf"]["BodyMass"].GetDouble();
+        paramsH->bodyDensity = doc["Body Inf"]["BodyDensity"].GetDouble();
     }
 
     //===============================================================

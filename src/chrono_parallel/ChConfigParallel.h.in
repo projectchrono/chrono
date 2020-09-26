@@ -36,5 +36,4 @@
 //   #define CHRONO_PARALLEL_USE_CUDA
 @CHRONO_PARALLEL_USE_CUDA@
 
-
 #endif

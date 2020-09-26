@@ -685,10 +685,19 @@ void SCMDeformableSoil::UpdateMovingPatch(MovingPatchInfo& p, const ChVector<>& 
     }
 
     // Find index ranges for grid vertices contained in the patch projection AABB
-    p.m_bl.x() = ChClamp(static_cast<int>(std::ceil(p_min.x() / m_delta)), -m_nx, +m_nx);
-    p.m_bl.y() = ChClamp(static_cast<int>(std::ceil(p_min.y() / m_delta)), -m_ny, +m_ny);
-    p.m_tr.x() = ChClamp(static_cast<int>(std::floor(p_max.x() / m_delta)), -m_nx, +m_nx);
-    p.m_tr.y() = ChClamp(static_cast<int>(std::floor(p_max.y() / m_delta)), -m_ny, +m_ny);
+    int x_min = ChClamp(static_cast<int>(std::ceil(p_min.x() / m_delta)), -m_nx, +m_nx);
+    int y_min = ChClamp(static_cast<int>(std::ceil(p_min.y() / m_delta)), -m_ny, +m_ny);
+    int x_max = ChClamp(static_cast<int>(std::floor(p_max.x() / m_delta)), -m_nx, +m_nx);
+    int y_max = ChClamp(static_cast<int>(std::floor(p_max.y() / m_delta)), -m_ny, +m_ny);
+    int n_x = x_max - x_min + 1;
+    int n_y = y_max - y_min + 1;
+
+    p.m_range.resize(n_x * n_y);
+    for (int i = 0; i < n_x; i++) {
+        for (int j = 0; j < n_y; j++) {
+            p.m_range[j * n_x + i] = ChVector2<int>(i + x_min, j + y_min);
+        }
+    }
 
     // Calculate inverse of SCM normal expressed in body frame (for optimization of ray-OBB test)
     ChVector<> dir = p.m_body->TransformDirectionParentToLocal(N);
@@ -726,10 +735,19 @@ void SCMDeformableSoil::UpdateFixedPatch(MovingPatchInfo& p) {
     }
 
     // Find index ranges for grid vertices contained in the patch projection AABB
-    p.m_bl.x() = ChClamp(static_cast<int>(std::ceil(p_min.x() / m_delta)), -m_nx, +m_nx);
-    p.m_bl.y() = ChClamp(static_cast<int>(std::ceil(p_min.y() / m_delta)), -m_ny, +m_ny);
-    p.m_tr.x() = ChClamp(static_cast<int>(std::floor(p_max.x() / m_delta)), -m_nx, +m_nx);
-    p.m_tr.y() = ChClamp(static_cast<int>(std::floor(p_max.y() / m_delta)), -m_ny, +m_ny);
+    int x_min = ChClamp(static_cast<int>(std::ceil(p_min.x() / m_delta)), -m_nx, +m_nx);
+    int y_min = ChClamp(static_cast<int>(std::ceil(p_min.y() / m_delta)), -m_ny, +m_ny);
+    int x_max = ChClamp(static_cast<int>(std::floor(p_max.x() / m_delta)), -m_nx, +m_nx);
+    int y_max = ChClamp(static_cast<int>(std::floor(p_max.y() / m_delta)), -m_ny, +m_ny);
+    int n_x = x_max - x_min + 1;
+    int n_y = y_max - y_min + 1;
+
+    p.m_range.resize(n_x * n_y);
+    for (int i = 0; i < n_x; i++) {
+        for (int j = 0; j < n_y; j++) {
+            p.m_range[j * n_x + i] = ChVector2<int>(i + x_min, j + y_min);
+        }
+    }
 }
 
 // Ray-OBB intersection test
@@ -824,7 +842,7 @@ void SCMDeformableSoil::ComputeInternalForces() {
 
     m_timer_moving_patches.start();
 
-    // Update moving patch information (find range of grid indices)
+    // Update patch information (find range of grid indices)
     if (m_moving_patch) {
         for (auto& p : m_patches)
             UpdateMovingPatch(p, N);
@@ -854,33 +872,41 @@ void SCMDeformableSoil::ComputeInternalForces() {
 
     m_timer_ray_casting.start();
 
+    int nthreads = GetSystem()->GetNumThreadsChrono();
+
     // Loop through all moving patches (user-defined or default one)
     for (auto& p : m_patches) {
-        // Loop through all vertices in this range
-        for (int i = p.m_bl.x(); i <= p.m_tr.x(); i++) {
-            for (int j = p.m_bl.y(); j <= p.m_tr.y(); j++) {
-                ChVector2<int> ij(i, j);
+        // Loop through all vertices in the patch range
+#pragma omp parallel for num_threads(nthreads)
+        for (int k = 0; k < p.m_range.size(); k++) {
+            ChVector2<int> ij = p.m_range[k];
 
-                // Move from (i, j) to (x, y, z) representation in the world frame
-                double x = i * m_delta;
-                double y = j * m_delta;
-                double z = GetHeight(ij);
-                ChVector<> vertex_abs = m_plane.TransformPointLocalToParent(ChVector<>(x, y, z));
+            // Move from (i, j) to (x, y, z) representation in the world frame
+            double x = ij.x() * m_delta;
+            double y = ij.y() * m_delta;
+            double z;
+#pragma omp critical(SCM_ray_casting)
+            z = GetHeight(ij);
 
-                // Create ray at current grid location
-                collision::ChCollisionSystem::ChRayhitResult mrayhit_result;
-                ChVector<> to = vertex_abs + N * m_test_offset_up;
-                ChVector<> from = to - N * m_test_offset_down;
+            ChVector<> vertex_abs = m_plane.TransformPointLocalToParent(ChVector<>(x, y, z));
 
-                // Ray-OBB test (quick rejection)
-                if (m_moving_patch && !RayOBBtest(p, from, N))
-                    continue;
+            // Create ray at current grid location
+            collision::ChCollisionSystem::ChRayhitResult mrayhit_result;
+            ChVector<> to = vertex_abs + N * m_test_offset_up;
+            ChVector<> from = to - N * m_test_offset_down;
 
-                // Cast ray into collision system
-                GetSystem()->GetCollisionSystem()->RayHit(from, to, mrayhit_result);
-                m_num_ray_casts++;
+            // Ray-OBB test (quick rejection)6
+            if (m_moving_patch && !RayOBBtest(p, from, N))
+                continue;
 
-                if (mrayhit_result.hit) {
+            // Cast ray into collision system
+            GetSystem()->GetCollisionSystem()->RayHit(from, to, mrayhit_result);
+#pragma omp atomic
+            m_num_ray_casts++;
+
+            if (mrayhit_result.hit) {
+#pragma omp critical(SCM_ray_casting)
+                {
                     // If this is the first hit from this node, initialize the node record
                     if (m_grid_map.find(ij) == m_grid_map.end()) {
                         m_grid_map.insert(std::make_pair(ij, NodeRecord(z, z)));

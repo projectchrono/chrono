@@ -13,8 +13,8 @@ subject to the following restrictions:
 3. This notice may not be removed or altered from any source distribution.
 */
 
-#ifndef MINKOWSKI_PENETRATION_DEPTH_SOLVER_H
-#define MINKOWSKI_PENETRATION_DEPTH_SOLVER_H
+#ifndef BT_MINKOWSKI_PENETRATION_DEPTH_SOLVER_H
+#define BT_MINKOWSKI_PENETRATION_DEPTH_SOLVER_H
 
 #include "btConvexPenetrationDepthSolver.h"
 
@@ -23,18 +23,14 @@ subject to the following restrictions:
 class btMinkowskiPenetrationDepthSolver : public btConvexPenetrationDepthSolver
 {
 protected:
-
-	static btVector3*	getPenetrationDirections();
+	static btVector3* getPenetrationDirections();
 
 public:
-
-	virtual bool calcPenDepth( btSimplexSolverInterface& simplexSolver,
-	const btConvexShape* convexA,const btConvexShape* convexB,
-				const btTransform& transA,const btTransform& transB,
-			btVector3& v, btVector3& pa, btVector3& pb,
-			class btIDebugDraw* debugDraw,btStackAlloc* stackAlloc
-			);
+	virtual bool calcPenDepth(btSimplexSolverInterface& simplexSolver,
+							  const btConvexShape* convexA, const btConvexShape* convexB,
+							  const btTransform& transA, const btTransform& transB,
+							  btVector3& v, btVector3& pa, btVector3& pb,
+							  class btIDebugDraw* debugDraw);
 };
 
-#endif //MINKOWSKI_PENETRATION_DEPTH_SOLVER_H
-
+#endif  //BT_MINKOWSKI_PENETRATION_DEPTH_SOLVER_H

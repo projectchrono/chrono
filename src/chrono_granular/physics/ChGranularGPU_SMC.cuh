@@ -391,10 +391,20 @@ inline __device__ void findNewLocalCoords(GranSphereDataPtr sphere_data,
     unsigned int SDID = SDTripletID(ownerSD, gran_params);
 
     if (sphere_pos_local_X < 0 || sphere_pos_local_Y < 0 || sphere_pos_local_Z < 0) {
-        ABORTABORTABORT(
-            "ERROR! negative local coordinate computed in SD %u, sphere %u, trip %d, %d, %d! local pos is %d, %d, %d",
-            SDID, mySphereID, ownerSD.x, ownerSD.y, ownerSD.z, sphere_pos_local_X, sphere_pos_local_Y,
-            sphere_pos_local_Z);
+
+        float l_unit = gran_params->LENGTH_UNIT;
+        printf("error! sphere %u has negative local pos in SD %u (%d, %d, %d), pos_local: %e, %e, %e, pos_global: %e, %e, %e, BD starts at: %e, %e, %e\n", 
+        mySphereID, SDID, ownerSD.x, ownerSD.y, ownerSD.z, 
+        (float)sphere_pos_local_X * l_unit, 
+        (float)sphere_pos_local_Y * l_unit, 
+        (float)sphere_pos_local_Z * l_unit, 
+        (float)global_pos_X * l_unit, (float)global_pos_Y * l_unit, (float)global_pos_Z * l_unit, 
+        (float)gran_params->BD_frame_X * l_unit, 
+        (float)gran_params->BD_frame_Y * l_unit, 
+        (float)gran_params->BD_frame_Z * l_unit);
+        __threadfence();
+        cub::ThreadTrap();
+
     }
 
     // write local pos back to global memory
@@ -547,8 +557,10 @@ inline __device__ void applyExternalForces(unsigned int currSphereID,
                 break;
             }
             case BC_type::CYLINDER: {
-                addBCForces_Zcyl_frictionless(sphPos_global, sphVel, sphere_force, gran_params, bc_params_list[BC_id],
-                                              bc_params_list[BC_id].track_forces);
+                addBCForces_Zcyl(currSphereID, BC_id, sphPos_global, sphVel, sphOmega, sphere_force, sphere_ang_acc,
+                                  gran_params, sphere_data, bc_params_list[BC_id], bc_params_list[BC_id].track_forces);
+
+
                 break;
             }
         }
@@ -700,6 +712,8 @@ static __global__ void computeSphereContactForces(GranSphereDataPtr sphere_data,
     // my sphere ID, we're using a 1D thread->sphere map
     unsigned int mySphereID = threadIdx.x + blockIdx.x * blockDim.x;
 
+//    float force_unit = gran_params->MASS_UNIT * gran_params->LENGTH_UNIT / (gran_params->TIME_UNIT * gran_params->TIME_UNIT);
+
     // don't overrun the array
     if (mySphereID < nSpheres) {
         // my offset in the contact map
@@ -730,7 +744,7 @@ static __global__ void computeSphereContactForces(GranSphereDataPtr sphere_data,
         for (unsigned char contact_id = 0; contact_id < MAX_SPHERES_TOUCHED_BY_SPHERE; contact_id++) {
             // who am I colliding with?
             bool active_contact = sphere_data->contact_active_map[body_A_offset + contact_id];
-
+ 
             if (active_contact) {
                 unsigned int theirSphereID = sphere_data->contact_partners_map[body_A_offset + contact_id];
 
@@ -758,6 +772,9 @@ static __global__ void computeSphereContactForces(GranSphereDataPtr sphere_data,
                                 sphere_data->pos_Z_dt[theirSphereID]),
                     gran_params);
 
+                if (gran_params->recording_contactInfo == true){
+                    sphere_data->normal_contact_force[body_A_offset + contact_id] = force_accum;}
+
                 float hertz_force_factor = std::sqrt(2. * (1 - (1. / reciplength)));  // sqrt(delta_n / (2 R_eff)
 
                 // add frictional terms, if needed
@@ -771,7 +788,7 @@ static __global__ void computeSphereContactForces(GranSphereDataPtr sphere_data,
                     // product
                     vrel_t = vrel_t + Cross((my_omega + their_omega), -1.f * delta_r * sphereRadius_SU);
 
-                    // compute alpha due to rolling resistance
+                    // compute alpha due to rolling resistance (zero if rolling mode is no resistance)
                     float3 rolling_resist_ang_acc = computeRollingAngAcc(
                         sphere_data, gran_params, gran_params->rolling_coeff_s2s_SU, gran_params->spinning_coeff_s2s_SU,
                         force_accum, my_omega, their_omega, delta_r * sphereRadius_SU);
@@ -783,6 +800,16 @@ static __global__ void computeSphereContactForces(GranSphereDataPtr sphere_data,
                         gran_params, sphere_data, body_A_offset + contact_id, gran_params->static_friction_coeff_s2s,
                         gran_params->K_t_s2s_SU, gran_params->Gamma_t_s2s_SU, hertz_force_factor, m_eff, force_accum,
                         vrel_t, delta_r * reciplength);
+
+                    if (gran_params->recording_contactInfo == true){
+                        // record friction force
+                        sphere_data->tangential_friction_force[body_A_offset + contact_id] = tangent_force;
+                        // record rolling resistance torque
+                        float3 rolling_resistance_torque = rolling_resist_ang_acc * gran_params->sphereInertia_by_r * gran_params->sphereRadius_SU;
+                        if (gran_params->rolling_mode != GRAN_ROLLING_MODE::NO_RESISTANCE){
+                            sphere_data->rolling_friction_torque[body_A_offset + contact_id] = rolling_resistance_torque;
+                        }
+                    }
 
                     // tau = r cross f = radius * n cross F
                     // 2 * radius * n = -1 * delta_r * sphdiameter
@@ -802,7 +829,7 @@ static __global__ void computeSphereContactForces(GranSphereDataPtr sphere_data,
                 bodyA_force = bodyA_force + force_accum;
             }
         }
-
+        
         // add in gravity and wall forces
         applyExternalForces(mySphereID, myOwnerSD, my_sphere_pos, my_sphere_vel, my_omega, bodyA_force, bodyA_AngAcc,
                             gran_params, sphere_data, bc_type_list, bc_params_list, nBCs);
@@ -1047,7 +1074,6 @@ static __global__ void integrateSpheres(const float stepsize_SU,
                 break;
             }
         }
-
         int3 sphere_pos_local =
             make_int3(sphere_data->sphere_local_pos_X[mySphereID] + position_update_x,
                       sphere_data->sphere_local_pos_Y[mySphereID] + position_update_y,
@@ -1055,6 +1081,7 @@ static __global__ void integrateSpheres(const float stepsize_SU,
 
         int64_t3 sphPos_global =
             convertPosLocalToGlobal(sphere_data->sphere_owner_SDs[mySphereID], sphere_pos_local, gran_params);
+
 
         findNewLocalCoords(sphere_data, mySphereID, sphPos_global.x, sphPos_global.y, sphPos_global.z, gran_params);
     }

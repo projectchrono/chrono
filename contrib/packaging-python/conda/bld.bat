@@ -9,9 +9,8 @@ REM set env variables needed by MKL
 set MKL_INTERFACE_LAYER = LP64
 set MKL_THREADING_LAYER = INTEL
 set CONFIGURATION=Release
-REM Use Ninja (conda build could fail to interface directly with VS). 
 REM Configure step
-cmake -G "Ninja" ^
+cmake -G "Visual Studio 16 2019" ^
  -DCMAKE_INSTALL_PREFIX="%LIBRARY_PREFIX%" ^
  -DCMAKE_PREFIX_PATH="%LIBRARY_PREFIX%" ^
  -DCMAKE_SYSTEM_PREFIX_PATH="%LIBRARY_PREFIX%" ^

@@ -198,7 +198,7 @@ plus optional:
 - The section properties are defined via chrono::fea::ChBeamSectionEuler classes, among these:
   - chrono::fea::ChBeamSectionEulerSimple , for uniform elasticity, uniform density 
   - chrono::fea::ChBeamSectionEulerAdvanced , as above, adds offset/rotated section and shear center
-  - chrono::fea::ChBeamSectionEulerGeneric , if non-uniform elasticity or non-uniform density
+  - chrono::fea::ChBeamSectionEulerAdvancedGeneric , if non-uniform elasticity or non-uniform density
   - chrono::fea::ChBeamSectionEulerEasyCircular , an easy-to-use shortcut
   - chrono::fea::ChBeamSectionEulerEasyRectangular , an easy-to-use shortcut
 
@@ -224,6 +224,7 @@ shape, and relying on the Geometrically Exact Beam theory.
     - chrono::fea::ChElasticityCosseratGeneric 
     - chrono::fea::ChElasticityCosseratSimple 
 	- chrono::fea::ChElasticityCosseratAdvanced
+	- chrono::fea::ChElasticityCosseratAdvancedGeneric
     - chrono::fea::ChElasticityCosseratMesh
     - ... 	
   - Inertial model from chrono::fea::ChInertiaCosserat, ex:

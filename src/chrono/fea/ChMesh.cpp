@@ -267,10 +267,7 @@ void ChMesh::IntStateIncrement(const unsigned int off_x,
 	}
 }
 
-void ChMesh::IntLoadResidual_F(const unsigned int off, 
-                               ChVectorDynamic<>& R,   
-                               const double c          
-                               ) {
+void ChMesh::IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, const double c) {
     // nodes applied forces
     unsigned int local_off_v = 0;
     for (unsigned int j = 0; j < vnodes.size(); j++) {
@@ -280,27 +277,32 @@ void ChMesh::IntLoadResidual_F(const unsigned int off,
         }
     }
 
+    int nthreads = GetSystem()->nthreads_chrono;
+
     // elements internal forces
     timer_internal_forces.start();
-    #pragma omp parallel for schedule(dynamic, 4) //***PARALLEL FOR***, must use omp atomic to avoid race condition in writing to R
+    //***PARALLEL FOR***, must use omp atomic to avoid race condition in writing to R
+#pragma omp parallel for schedule(dynamic, 4) num_threads(nthreads)
     for (int ie = 0; ie < velements.size(); ie++) {
         velements[ie]->EleIntLoadResidual_F(R, c);
     }
     timer_internal_forces.stop();
     ncalls_internal_forces++;
 
-    // elements gravity forces 
+    // elements gravity forces
     if (automatic_gravity_load) {
-        #pragma omp parallel for schedule(dynamic, 4) //***PARALLEL FOR***, must use omp atomic to avoid race condition in writing to R
+        //***PARALLEL FOR***, must use omp atomic to avoid race condition in writing to R
+#pragma omp parallel for schedule(dynamic, 4) num_threads(nthreads)
         for (int ie = 0; ie < velements.size(); ie++) {
             velements[ie]->EleIntLoadResidual_F_gravity(R, GetSystem()->Get_G_acc(), c);
         }
     }
-    
+
     // nodes gravity forces
     local_off_v = 0;
     if (automatic_gravity_load && this->system) {
-        //#pragma omp parallel for schedule(dynamic, 4) //***PARALLEL FOR***, (no need here to use omp atomic to avoid race condition in writing to R)
+        //#pragma omp parallel for schedule(dynamic, 4) num_threads(nthreads)
+        //***PARALLEL FOR***, (no need here to use omp atomic to avoid race condition in writing to R)
         for (int in = 0; in < vnodes.size(); in++) {
             if (!vnodes[in]->GetFixed()) {
                 if (auto mnode = std::dynamic_pointer_cast<ChNodeFEAxyz>(vnodes[in])) {
@@ -397,8 +399,10 @@ void ChMesh::InjectKRMmatrices(ChSystemDescriptor& mdescriptor) {
 }
 
 void ChMesh::KRMmatricesLoad(double Kfactor, double Rfactor, double Mfactor) {
+    int nthreads = GetSystem()->nthreads_chrono;
+
     timer_KRMload.start();
-#pragma omp parallel for
+#pragma omp parallel for num_threads(nthreads)
     for (int ie = 0; ie < velements.size(); ie++)
         velements[ie]->KRMmatricesLoad(Kfactor, Rfactor, Mfactor);
     timer_KRMload.stop();

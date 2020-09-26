@@ -47,9 +47,7 @@ namespace collision {
 /// Contains both the broadphase and the narrow phase Bullet methods.
 class CH_PARALLEL_API ChCollisionSystemBulletParallel : public ChCollisionSystem {
   public:
-    ChCollisionSystemBulletParallel(ChParallelDataManager* dc,
-                                    unsigned int max_objects = 16000,
-                                    double scene_size = 500);
+    ChCollisionSystemBulletParallel(ChParallelDataManager* dc);
     virtual ~ChCollisionSystemBulletParallel();
 
     /// Clear all data instanced by this algorithm if any (like persistent contact manifolds)
@@ -60,6 +58,9 @@ class CH_PARALLEL_API ChCollisionSystemBulletParallel : public ChCollisionSystem
 
     /// Remove a collision model from the collision engine.
     virtual void Remove(ChCollisionModel* model) override;
+
+    /// Set the number of OpenMP threads for collision detection.
+    virtual void SetNumThreads(int nthreads) override;
 
     /// Run the algorithm and finds all the contacts.
     /// (Contacts will be managed by the Bullet persistent contact cache).
