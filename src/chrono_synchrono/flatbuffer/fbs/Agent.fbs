@@ -1,0 +1,113 @@
+// =============================================================================
+// PROJECT CHRONO - http://projectchrono.org
+//
+// Copyright (c) 2020 projectchrono.org
+// All rights reserved.
+//
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
+//
+// =============================================================================
+// Authors: Aaron Young
+// =============================================================================
+//
+// Schema file that defines state synchronization and initial information for an
+// agent. 
+//    - State data should allow a zombie agent to be re-created in other worlds
+//    - Description data allows an initial zombie agent to be created
+//
+// =============================================================================
+
+include "SPAT.fbs";
+include "MAP.fbs";
+include "Utils.fbs";
+
+// Derived "class" of Agent
+// Creates a vehicle agent message
+namespace SynFlatBuffers.Agent.WheeledVehicle;
+
+table State {
+  time:double;
+
+  chassis:Pose;
+
+  wheels:[Pose];
+}
+
+table Description {
+  chassis_vis_file:string;
+  wheel_vis_file:string;
+  tire_vis_file:string;
+
+  num_wheels:int;
+}
+
+root_type State;
+
+// Derived "class" of Agent
+// Creates a vehicle agent message
+namespace SynFlatBuffers.Agent.TrackedVehicle;
+
+table State {
+  time:double;
+
+  chassis:Pose;
+
+  track_shoes:[Pose];
+  sprockets:[Pose];
+  idlers:[Pose];
+  road_wheels:[Pose];
+}
+
+table Description {
+  chassis_vis_file:string;
+  track_shoe_vis_file:string;
+  left_sprocket_vis_file:string;
+  right_sprocket_vis_file:string;
+  left_idler_vis_file:string;
+  right_idler_vis_file:string;
+  left_road_wheel_vis_file:string;
+  right_road_wheel_vis_file:string;
+
+  num_track_shoes:int;
+  num_sprockets:int;
+  num_idlers:int;
+  num_road_wheels:int;
+}
+
+root_type State;
+
+namespace SynFlatBuffers.Agent.Environment;
+
+// Environment agents have no state to synchronize for now, unlike other agents
+table State {}
+
+// Do need a description message (even if blank) to initialize everything
+table Description {}
+
+root_type State;
+
+// Base "class"
+// Creates an agent message
+namespace SynFlatBuffers.Agent;
+
+union Type { 
+  WheeledVehicle.State, 
+  WheeledVehicle.Description, 
+  TrackedVehicle.State, 
+  TrackedVehicle.Description, 
+  Environment.State,
+  Environment.Description
+}
+
+table State {
+  message:Type;
+}
+
+table Description {
+  description:Type;
+  json:string;
+}
+
+root_type State;

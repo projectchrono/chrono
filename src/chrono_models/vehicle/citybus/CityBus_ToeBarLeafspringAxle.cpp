@@ -38,11 +38,11 @@ static const double lb2kg = 0.453592;
 static const double lbf2N = 4.44822162;
 static const double lbfpin2Npm = 175.12677;
 
-const double CityBus_ToeBarLeafspringAxle::m_axleTubeMass = 124.0 * 4.1;
-const double CityBus_ToeBarLeafspringAxle::m_spindleMass = 14.705 * 4.1;
-const double CityBus_ToeBarLeafspringAxle::m_knuckleMass = 10.0 * 4.1;
-const double CityBus_ToeBarLeafspringAxle::m_tierodMass  = 5.0 * 4.1;
-const double CityBus_ToeBarLeafspringAxle::m_draglinkMass = 5.0 * 4.1;
+const double CityBus_ToeBarLeafspringAxle::m_axleTubeMass = 508.4;
+const double CityBus_ToeBarLeafspringAxle::m_spindleMass = 60.2905;
+const double CityBus_ToeBarLeafspringAxle::m_knuckleMass = 41.0;
+const double CityBus_ToeBarLeafspringAxle::m_tierodMass  = 20.5;
+const double CityBus_ToeBarLeafspringAxle::m_draglinkMass = 20.5;
 
 const double CityBus_ToeBarLeafspringAxle::m_axleTubeRadius = 0.0476;
 const double CityBus_ToeBarLeafspringAxle::m_spindleRadius = 0.10;
@@ -51,21 +51,21 @@ const double CityBus_ToeBarLeafspringAxle::m_knuckleRadius = 0.05;
 const double CityBus_ToeBarLeafspringAxle::m_tierodRadius = 0.02;
 const double CityBus_ToeBarLeafspringAxle::m_draglinkRadius = 0.02;
 
-const ChVector<> CityBus_ToeBarLeafspringAxle::m_axleTubeInertia(22.21 * 6.56, 0.0775 * 6.56, 22.21 * 6.56);
-const ChVector<> CityBus_ToeBarLeafspringAxle::m_spindleInertia(0.04117 * 6.56, 0.07352 * 6.56, 0.04117 * 6.56);
-const ChVector<> CityBus_ToeBarLeafspringAxle::m_knuckleInertia(0.1 * 6.56, 0.1 * 6.56, 0.1 * 6.56);
-const ChVector<> CityBus_ToeBarLeafspringAxle::m_tierodInertia(1.0 * 6.56, 0.1 * 6.56, 1.0 * 6.56);
-const ChVector<> CityBus_ToeBarLeafspringAxle::m_draglinkInertia(0.1 * 6.56, 1.0 * 6.56, 0.1 * 6.56);
+const ChVector<> CityBus_ToeBarLeafspringAxle::m_axleTubeInertia(145.6976, 0.5084, 145.6975);
+const ChVector<> CityBus_ToeBarLeafspringAxle::m_spindleInertia(0.2700752, 0.4822912, 0.2700752);
+const ChVector<> CityBus_ToeBarLeafspringAxle::m_knuckleInertia(0.656, 0.656, 0.656);
+const ChVector<> CityBus_ToeBarLeafspringAxle::m_tierodInertia(6.56, 0.656, 6.56);
+const ChVector<> CityBus_ToeBarLeafspringAxle::m_draglinkInertia(0.656, 6.56, 0.656);
 
 const double CityBus_ToeBarLeafspringAxle::m_springDesignLength = 0.4;
 const double CityBus_ToeBarLeafspringAxle::m_springCoefficient = 565480;
 const double CityBus_ToeBarLeafspringAxle::m_springRestLength = m_springDesignLength + 0.0621225507207084;
 const double CityBus_ToeBarLeafspringAxle::m_springMinLength = m_springDesignLength - 0.10;
 const double CityBus_ToeBarLeafspringAxle::m_springMaxLength = m_springDesignLength + 0.10;
-const double CityBus_ToeBarLeafspringAxle::m_damperCoefficient = 30276*2;
+const double CityBus_ToeBarLeafspringAxle::m_damperCoefficient = 60552;
 const double CityBus_ToeBarLeafspringAxle::m_damperDegressivityCompression = 3.0;
 const double CityBus_ToeBarLeafspringAxle::m_damperDegressivityExpansion = 1.0;
-const double CityBus_ToeBarLeafspringAxle::m_axleShaftInertia = 0.4 * 6.56;
+const double CityBus_ToeBarLeafspringAxle::m_axleShaftInertia = 2.624;
 
 
 // ---------------------------------------------------------------------------------------
@@ -85,7 +85,7 @@ class CityBus_SpringForceFront : public ChLinkTSDA::ForceFunctor {
     double m_spring_constant;
     double m_min_length;
     double m_max_length;
-    
+
     ChFunction_Recorder m_bump;
 
 };
@@ -94,7 +94,7 @@ CityBus_SpringForceFront::CityBus_SpringForceFront(double spring_constant, doubl
     m_spring_constant(spring_constant),
     m_min_length(min_length),
     m_max_length(max_length)  {
-    
+
     // From ADAMS/Car
     m_bump.AddPoint(0.0,          0.0);
     m_bump.AddPoint(2.0e-3,     200.0);
@@ -111,7 +111,7 @@ CityBus_SpringForceFront::CityBus_SpringForceFront(double spring_constant, doubl
 
 double CityBus_SpringForceFront::operator()(double time, double rest_length, double length, double vel, ChLinkTSDA* link) {
     /*
-     * 
+     *
     */
 
     double force = 0;
@@ -119,17 +119,17 @@ double CityBus_SpringForceFront::operator()(double time, double rest_length, dou
     double defl_spring  = rest_length - length;
     double defl_bump    = 0.0;
     double defl_rebound = 0.0;
-    
+
     if(length < m_min_length) {
         defl_bump = m_min_length - length;
     }
-    
+
     if(length > m_max_length) {
         defl_rebound = length - m_max_length;
     }
-    
+
     force = defl_spring * m_spring_constant + m_bump.Get_y(defl_bump) - m_bump.Get_y(defl_rebound);
-    
+
     return force;
 }
 
@@ -205,21 +205,21 @@ const ChVector<> CityBus_ToeBarLeafspringAxle::getLocation(PointId which) {
         case SHOCK_A:
             return ChVector<>(-0.125, 0.441, -0.0507);
         case SHOCK_C:
-            return ChVector<>(-0.2,  0.4193, 0.5298-0.1);
+            return ChVector<>(-0.2,  0.4193, 0.4298);
         case SPINDLE:
-            return ChVector<>(0.0, 0.7325+0.275, 0.0);
+            return ChVector<>(0.0, 1.0075, 0.0);
         case KNUCKLE_CM:
-            return ChVector<>(0.0, 0.7325+0.08, 0.0);
+            return ChVector<>(0.0, 0.8125, 0.0);
         case KNUCKLE_L:
-            return ChVector<>(0.0, 0.7325+0.08+0.0098058067569092, -0.1);
+            return ChVector<>(0.0, 0.8223058067569092, -0.1);
         case KNUCKLE_U :
-            return ChVector<>(0.0, 0.7325+0.08-0.0098058067569092, 0.1);
+            return ChVector<>(0.0, 0.8026941932430908, 0.1);
         case KNUCKLE_DRL:
-            return ChVector<>(0.02909228*2, 0.7325+0.08-0.19787278*1.5, 0.2);
+            return ChVector<>(0.05818456, 0.51569083, 0.2);
         case TIEROD_K:
-            return ChVector<>(-0.24777*2, 0.7325+0.08-0.033323*1.5, 0.0);
+            return ChVector<>(-0.49554, 0.7625155, 0.0);
         case DRAGLINK_C:
-            return ChVector<>(0.6 + 0.6 + 0.4, 0.7325 + 0.08 - 0.19787278 * 1.5, 0.1);
+            return ChVector<>(1.6, 0.51569083, 0.1);
         default:
             return ChVector<>(0, 0, 0);
     }

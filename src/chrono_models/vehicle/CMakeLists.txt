@@ -384,6 +384,8 @@ set(CVM_GATOR_FILES
 source_group("gator" FILES ${CVM_GATOR_FILES})
 
 set(CVM_M113_FILES
+    m113/M113.h
+    m113/M113.cpp
     m113/M113_BrakeSimple.h
     m113/M113_BrakeShafts.h
     m113/M113_Chassis.h

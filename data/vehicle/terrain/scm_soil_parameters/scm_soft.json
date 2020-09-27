@@ -1,0 +1,16 @@
+{
+  "Name": "Snow-Like SCM Parameters",
+  "Type": "Terrain Properties",
+  "Template": "SCM Soil Parameters",
+
+  "Soil Parameters": {
+    "Bekker Kphi": 0.2e6,
+    "Bekker Kc": 0,
+    "Bekker n": 1.1,
+    "Mohr Cohesion": 0,
+    "Mohr Friction": 30,
+    "Janosi Shear": 0.01,
+    "Elastic K": 4e7,
+    "Dampening R": 3e4
+  }
+}

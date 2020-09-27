@@ -2,6 +2,7 @@ Change Log
 ==========
 
 - [Unreleased (development version)](#unreleased-development-branch)
+  - [New SynChrono module](#added-new-synchrono-module)
   - [Enhancements to Chrono::FSI](#changed-enhancements-to-chronofsi)
   - [New Chrono::Sensor module](#added-new-chronosensor-module)
   - [Setting OpenMP number of threads](#changed-setting-openmp-number-of-threads)
@@ -20,6 +21,18 @@ Change Log
 - [Release 4.0.0](#release-400---2019-02-22)
 
 ## Unreleased (development branch)
+
+### [Added] New SynChrono module
+
+SynChrono is a new optional module that allows for MPI-based parallelization of simulations among distinct 'agents'. The dynamics of each agent (e.g. vehicle) are simulated on distinct MPI ranks and the resulting outcome (e.g. positions/orientations of wheels + COM) are synchronized among all ranks for the purposes of sensing
+
+- SynChrono has been largely based around Chrono::Vehicle although it is compatible with any Chrono physics object
+
+  - Automatically wraps any Chrono::Vehicle object
+  - VehicleAgents can be driven using ChDrivers 
+  - Wraps both rigid and SCM terrain, SCM terrain is time coherent across MPI ranks
+- Provides an interface to ROS using DDS connections
+- Supports visualization using Chrono::Irrlicht or Chrono::Sensor
 
 ### [Changed] Enhancements to Chrono::FSI
 

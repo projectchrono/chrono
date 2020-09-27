@@ -28,7 +28,7 @@
 
   "Visualization":
   {
-    "Mesh Filename Left":       "CityBus/CityBusTire.obj",
-    "Mesh Filename Right":      "CityBus/CityBusTire.obj"
+    "Mesh Filename Left":       "citybus/CityBusTire.obj",
+    "Mesh Filename Right":      "citybus/CityBusTire.obj"
   }
 }

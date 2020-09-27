@@ -1,0 +1,42 @@
+{
+  "Name": "SCM plane",
+  "Type": "Terrain",
+  "Template": "SCMDeformableTerrain",
+
+  "Bulldozing Parameters": {
+    "Do Bulldozing": true,
+    "Erosion Angle": 55,
+    "Flow Factor": 1,
+    "Erosion Iterations": 5,
+    "Erosion Propagation": 10
+  },
+
+  "Refinement Parameters": {
+    "Do Refinement": false,
+    "Resolution": 0.01
+  },
+
+  "Soil Parameters": {
+    "Input File": "terrain/scm_soil_parameters/scm_soft.json"
+  },
+
+  "Geometry": {
+    "Height": 0,
+    "Size": [15, 30],
+    "Divisions": [75, 150]
+  },
+
+  "Visualization": {
+    "Color": [0.5, 0.5, 0.8],
+    "Plot": {
+      "Type": "Sinkage",
+      "Minimum": 0,
+      "Maximum": 0.1
+    }
+  },
+
+  "Offset": {
+    "High": 0.1,
+    "Low": 0.5
+  }
+}

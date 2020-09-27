@@ -1,0 +1,31 @@
+include "Utils.fbs";
+
+// Derived "class" of Terrain
+// Creates a SCM terrain message
+namespace SynFlatBuffers.Terrain.SCM;
+
+struct NodeLevel {
+    x:int;
+    y:int;
+    level:double;
+}
+
+table State {
+    time:double;
+    
+    nodes:[NodeLevel];
+}
+
+root_type State;
+
+// Base "class"
+// Creates a terrain message
+namespace SynFlatBuffers.Terrain;
+
+union Type { SCM.State }
+
+table State {
+  message:Type;
+}
+
+root_type State;

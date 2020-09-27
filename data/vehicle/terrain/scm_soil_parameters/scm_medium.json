@@ -1,0 +1,16 @@
+{
+  "Name": "Wet Sand-Like SCM Parameters",
+  "Type": "Terrain Properties",
+  "Template": "SCM Soil Parameters",
+
+  "Soil Parameters": {
+    "Bekker Kphi": 2e6,
+    "Bekker Kc": 0,
+    "Bekker n": 1.1,
+    "Mohr Cohesion": 0,
+    "Mohr Friction": 30,
+    "Janosi Shear": 0.01,
+    "Elastic K": 2e8,
+    "Dampening R": 3e4
+  }
+}

@@ -1,0 +1,28 @@
+namespace SynFlatBuffers;
+
+// "Public" tables that should be available to each class
+// TODO: Make structs
+
+table Vector {
+  x:double;
+  y:double;
+  z:double;
+}
+
+table Quaternion {
+  e0:double;
+  e1:double;
+  e2:double;
+  e3:double;
+}
+
+table Pose {
+  pos:Vector;
+  rot:Quaternion;
+
+  pos_dt:Vector;
+  rot_dt:Quaternion;
+
+  pos_dtdt:Vector;
+  rot_dtdt:Quaternion;
+}

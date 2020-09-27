@@ -19,7 +19,7 @@
     },
 
     {
-      "Suspension Input File": "sedan/suspension/Sedan_DoubleWishbone.json",
+      "Suspension Input File": "sedan/suspension/Sedan_MultiLink.json",
       "Suspension Location": [ -1.388, 0, 0.125 ],
       "Left Wheel Input File": "sedan/wheel/Sedan_Wheel.json",
       "Right Wheel Input File": "sedan/wheel/Sedan_Wheel.json",

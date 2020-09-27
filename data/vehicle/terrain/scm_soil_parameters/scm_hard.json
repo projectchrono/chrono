@@ -1,0 +1,16 @@
+{
+  "Name": "Dirt-Like SCM Parameters",
+  "Type": "Terrain Properties",
+  "Template": "SCM Soil Parameters",
+
+  "Soil Parameters": {
+    "Bekker Kphi": 5301e3,
+    "Bekker Kc": 102e3,
+    "Bekker n": 0.793,
+    "Mohr Cohesion": 1.3e3,
+    "Mohr Friction": 31.1,
+    "Janosi Shear": 1.2e-3,
+    "Elastic K": 4e8,
+    "Dampening R": 3e4
+  }
+}

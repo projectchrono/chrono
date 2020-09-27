@@ -1,0 +1,29 @@
+{
+  "Name": "HMMWV",
+  "Type": "Vehicle",
+  "Template": "WheeledVehicle",
+
+  "Vehicle": {
+    "Input File": "hmmwv/vehicle/HMMWV_Vehicle.json",
+    "Chassis Visualization Type": "Mesh",
+    "Suspension Visualization Type": "Primitives",
+    "Steering Visualization Type": "Primitives",
+    "Wheel Visualization Type": "Mesh"
+  },
+
+  "Powertrain": {
+    "Input File": "hmmwv/powertrain/HMMWV_SimplePowertrain.json"
+  },
+
+  "Tire": {
+    "Input File": "hmmwv/tire/HMMWV_RigidTire.json",
+    "Visualization Type": "Mesh"
+  },
+
+  "Zombie": {
+    "Chassis Visualization File": "hmmwv/hmmwv_chassis.obj",
+    "Wheel Visualization File": "hmmwv/hmmwv_rim.obj",
+    "Tire Visualization File": "hmmwv/hmmwv_tire_left.obj",
+    "Number Of Wheels": 4
+  }
+}
