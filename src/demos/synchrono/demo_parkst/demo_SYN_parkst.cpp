@@ -321,16 +321,6 @@ int main(int argc, char* argv[]) {
             std::cout << step << "." << rank << " syn: " << inc << std::endl;
         }
 
-        // Broadcast
-        mpi_manager.Broadcast();
-        std::chrono::high_resolution_clock::time_point t3 = std::chrono::high_resolution_clock::now();
-        t = std::chrono::duration_cast<std::chrono::microseconds>(t3 - t2);
-        inc = t.count() / 1e6;
-        wall_time += inc;
-        if (VERBOSE && inc > 1e-4) {
-            std::cout << step << "." << rank << " bro: " << inc << std::endl;
-        }
-
         // Update
         mpi_manager.Update();
         std::chrono::high_resolution_clock::time_point t4 = std::chrono::high_resolution_clock::now();

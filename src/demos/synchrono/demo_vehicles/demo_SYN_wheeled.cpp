@@ -148,7 +148,6 @@ int main(int argc, char* argv[]) {
     while (mpi_manager.IsOk()) {
         mpi_manager.Advance();
         mpi_manager.Synchronize();
-        mpi_manager.Broadcast();
         mpi_manager.Update();
     }
 

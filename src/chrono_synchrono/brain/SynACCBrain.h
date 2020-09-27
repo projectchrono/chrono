@@ -5,7 +5,6 @@
 
 #include "chrono_synchrono/SynApi.h"
 #include "chrono_synchrono/brain/SynVehicleBrain.h"
-#include "chrono_synchrono/brain/SynVehicleBrain.h"
 #include "chrono_synchrono/brain/driver/SynMultipathDriver.h"
 
 #include "chrono_synchrono/flatbuffer/message/SynEnvironmentMessage.h"

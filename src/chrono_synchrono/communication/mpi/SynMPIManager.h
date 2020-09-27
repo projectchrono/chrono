@@ -27,7 +27,7 @@ enum class SynMPIMemoryMode {
 struct SYN_API SynMPIConfig {
     SynMPIMemoryMode memory_mode = SynMPIMemoryMode::PREALLOCATED_WITH_REALLOC;
 
-    int max_msg_length = 1028;  ///< Maximum message size. Sets to reasonable value to start.
+    int max_msg_length = 1024;  ///< Maximum message size. Sets to reasonable value to start.
 };
 
 SYN_API extern const SynMPIConfig MPI_CONFIG_DEFAULT;
@@ -53,11 +53,6 @@ class SYN_API SynMPIManager : public SynCommunicationManager {
 
     /// @brief Gather messages from all ranks and synchronize the simulation
     virtual void Synchronize() override;
-
-    /// @brief Broadcast msgs and state info to agents on other ranks
-    ///
-    /// All ranks should have access to messages from all other ranks when this function returns
-    virtual void Broadcast() {}
 
     /// @brief Update the zombie agents and process messages
     ///

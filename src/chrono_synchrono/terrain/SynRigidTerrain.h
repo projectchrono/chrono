@@ -35,7 +35,6 @@ class SYN_API SynRigidTerrain : public SynTerrain {
   private:
     void AddVisualizationAssetsJSON(const rapidjson::Value& a);
 
-  private:
     std::shared_ptr<RigidTerrain> m_rigid_terrain;
 };
 
