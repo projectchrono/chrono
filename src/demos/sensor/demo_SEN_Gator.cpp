@@ -288,7 +288,7 @@ int main(int argc, char* argv[]) {
         image_height,                                                        // image height
         cam_fov,
         super_samples);  // fov, lag, exposure
-    cam->SetName("Camera Sensor");
+    cam->SetName("3rd Person Camera Sensor");
     cam->SetCollectionWindow(exposure_time);
     if (sensor_vis)
         cam->PushFilter(chrono_types::make_shared<ChFilterVisualize>(image_width, image_height));
