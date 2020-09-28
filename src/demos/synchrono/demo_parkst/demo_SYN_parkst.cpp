@@ -94,37 +94,37 @@ int main(int argc, char* argv[]) {
 
         // The schedule will be affected by the initial color. First indice is the color of the initialized color,
         // second one is the next color
-        std::vector<double> scheduleGreenStart = {10, 1, 10};
-        std::vector<double> scheduleRedStart = {10, 10, 1};
-        std::vector<double> scheduleRedStartSlow = {20, 10, 1};
+        std::vector<double> schedule_green_start = {10, 1, 10};
+        std::vector<double> schedule_red_start = {10, 10, 1};
+        std::vector<double> schedule_red_start_slow = {20, 10, 1};
 
         std::vector<ChVector<>> Lane0Points = {{1.5, -15, 1}, {1.5, -35, 1}};
         ApproachLane Lane0(2.5, Lane0Points);
-        agent->AddLane(0, 0, Lane0, LaneColor::GREEN, scheduleGreenStart);
+        agent->AddLane(0, 0, Lane0, LaneColor::GREEN, schedule_green_start);
 
         std::vector<ChVector<>> Lane1Points = {{6.5, -15, 1}, {6.5, -35, 1}};
         ApproachLane Lane1(2.5, Lane1Points);
-        agent->AddLane(0, 0, Lane1, LaneColor::GREEN, scheduleGreenStart);
+        agent->AddLane(0, 0, Lane1, LaneColor::GREEN, schedule_green_start);
 
         std::vector<ChVector<>> Lane2Points = {{14, -6, 1}, {34, -6, 1}};
         ApproachLane Lane2(2.5, Lane2Points);
-        agent->AddLane(0, 1, Lane2, LaneColor::RED, scheduleRedStartSlow);
+        agent->AddLane(0, 1, Lane2, LaneColor::RED, schedule_red_start_slow);
 
         std::vector<ChVector<>> Lane3Points = {{14, -2.75, 1}, {34, -2.75, 1}};
         ApproachLane Lane3(2.5, Lane3Points);
-        agent->AddLane(0, 1, Lane3, LaneColor::RED, scheduleRedStartSlow);
+        agent->AddLane(0, 1, Lane3, LaneColor::RED, schedule_red_start_slow);
 
         std::vector<ChVector<>> Lane4Points = {{14, 0.5, 1}, {34, 0.5, 1}};
         ApproachLane Lane4(2.5, Lane4Points);
-        agent->AddLane(0, 1, Lane4, LaneColor::RED, scheduleRedStartSlow);
+        agent->AddLane(0, 1, Lane4, LaneColor::RED, schedule_red_start_slow);
 
         std::vector<ChVector<>> Lane5Points = {{14, 3.75, 1}, {34, 3.75, 1}};
         ApproachLane Lane5(2.5, Lane5Points);
-        agent->AddLane(0, 1, Lane5, LaneColor::RED, scheduleRedStartSlow);
+        agent->AddLane(0, 1, Lane5, LaneColor::RED, schedule_red_start_slow);
 
         std::vector<ChVector<>> Lane6Points = {{-3.5, 14, 1}, {-3.5, 50, 1}};
         ApproachLane Lane6(2.5, Lane6Points);
-        agent->AddLane(0, 2, Lane6, LaneColor::RED, scheduleRedStart);
+        agent->AddLane(0, 2, Lane6, LaneColor::RED, schedule_red_start);
     } else {
         // Sedan Agent
         auto agent = chrono_types::make_shared<SynWheeledVehicleAgent>(rank);

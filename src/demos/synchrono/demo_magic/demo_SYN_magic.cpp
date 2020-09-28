@@ -84,10 +84,6 @@ int main(int argc, char* argv[]) {
     agent->SetVehicle(InitializeVehicle(rank));
     mpi_manager.AddAgent(agent, rank);
 
-    auto driver = chrono_types::make_shared<ChDriver>(agent->GetChVehicle());
-    auto brain = chrono_types::make_shared<SynVehicleBrain>(rank, driver, agent->GetChVehicle());
-    agent->SetBrain(brain);
-
     // -------
     // Terrain
     // -------
@@ -121,6 +117,16 @@ int main(int argc, char* argv[]) {
     double current_distance = 100;
     bool is_path_closed = false;
 
+    auto acc_driver = chrono_types::make_shared<ChPathFollowerACCDriver>(
+        agent->GetChVehicle(), path, "Highway", target_speed, target_following_time, target_min_distance,
+        current_distance, is_path_closed);
+    acc_driver->GetSpeedController().SetGains(0.4, 0.0, 0.0);
+    acc_driver->GetSteeringController().SetGains(0.4, 0.1, 0.2);
+    acc_driver->GetSteeringController().SetLookAheadDistance(5);
+
+    auto brain = chrono_types::make_shared<SynVehicleBrain>(rank, acc_driver, agent->GetChVehicle());
+    agent->SetBrain(brain);
+
     // -------------
     // Visualization
     // -------------
@@ -129,7 +135,7 @@ int main(int argc, char* argv[]) {
 
 #ifdef CHRONO_IRRLICHT
     if (cli.HasValueInVector<int>("irr", rank)) {
-        auto irr_vis = chrono_types::make_shared<SynIrrVehicleVisualization>(driver);
+        auto irr_vis = chrono_types::make_shared<SynIrrVehicleVisualization>(acc_driver);
         irr_vis->InitializeAsDefaultChaseCamera(agent->GetVehicle());
         vis_manager->AddVisualization(irr_vis);
     }
