@@ -4,7 +4,10 @@
 
 using namespace chrono::vsg3d;
 
-VSGBox::VSGBox() {}
+VSGBox::VSGBox(std::shared_ptr<ChBody> body,
+               std::shared_ptr<ChAsset> asset,
+               vsg::ref_ptr<vsg::MatrixTransform> transform)
+    : ChVSGIndexedMesh(body, asset, transform) {}
 
 void VSGBox::Initialize(vsg::vec3& lightPosition, ChVSGPhongMaterial& mat, std::string& texFilePath) {
     m_lightPosition = lightPosition;

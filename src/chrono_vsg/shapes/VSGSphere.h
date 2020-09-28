@@ -30,7 +30,9 @@ namespace vsg3d {
 
 class CH_VSG_API VSGSphere : public ChVSGIndexedMesh {
   public:
-    VSGSphere();
+    VSGSphere(std::shared_ptr<ChBody> body,
+              std::shared_ptr<ChAsset> asset,
+              vsg::ref_ptr<vsg::MatrixTransform> transform);
     virtual void Initialize(vsg::vec3& lightPosition, ChVSGPhongMaterial& mat, std::string& texFilePath) override;
 };
 }  // namespace vsg3d

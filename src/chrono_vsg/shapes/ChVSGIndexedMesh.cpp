@@ -5,7 +5,10 @@
 
 using namespace chrono::vsg3d;
 
-ChVSGIndexedMesh::ChVSGIndexedMesh() {}
+ChVSGIndexedMesh::ChVSGIndexedMesh(std::shared_ptr<ChBody> body,
+                                   std::shared_ptr<ChAsset> asset,
+                                   vsg::ref_ptr<vsg::MatrixTransform> transform)
+    : m_bodyPtr(body), m_assetPtr(asset), m_transform(transform) {}
 
 vsg::ref_ptr<vsg::ShaderStage> ChVSGIndexedMesh::readVertexShader(std::string filePath) {
     return vsg::ShaderStage::read(VK_SHADER_STAGE_VERTEX_BIT, "main", filePath);
@@ -52,9 +55,11 @@ vsg::ref_ptr<vsg::vec4Array2D> ChVSGIndexedMesh::createRGBATexture(
     return image;
 }
 
-vsg::ref_ptr<vsg::Node> ChVSGIndexedMesh::createVSGNode(DrawMode drawMode,
-                                                        vsg::ref_ptr<vsg::MatrixTransform> transform) {
+vsg::ref_ptr<vsg::Node> ChVSGIndexedMesh::createVSGNode(DrawMode drawMode) {
     auto subgraph = vsg::StateGroup::create();
+    subgraph->setValue("bodyPtr", m_bodyPtr);
+    subgraph->setValue("assetPtr", m_assetPtr);
+    subgraph->setValue("transform", m_transform);
     switch (drawMode) {
         case DrawMode::Textured: {
             // set up search paths to SPIRV shaders and textures
@@ -131,7 +136,7 @@ vsg::ref_ptr<vsg::Node> ChVSGIndexedMesh::createVSGNode(DrawMode drawMode,
             drawCommands->addChild(vsg::DrawIndexed::create(m_indices->size(), 1, 0, 0, 0));
 
             // add drawCommands to transform
-            transform->addChild(drawCommands);
+            m_transform->addChild(drawCommands);
 
         } break;
         case DrawMode::Wireframe: {
@@ -211,7 +216,7 @@ vsg::ref_ptr<vsg::Node> ChVSGIndexedMesh::createVSGNode(DrawMode drawMode,
             drawCommands->addChild(vsg::DrawIndexed::create(m_indices->size(), 1, 0, 0, 0));
 
             // add drawCommands to transform
-            transform->addChild(drawCommands);
+           m_transform->addChild(drawCommands);
 
         } break;
         case DrawMode::Phong: {
@@ -305,13 +310,13 @@ vsg::ref_ptr<vsg::Node> ChVSGIndexedMesh::createVSGNode(DrawMode drawMode,
             drawCommands->addChild(vsg::BindIndexBuffer::create(m_indices));
             drawCommands->addChild(vsg::DrawIndexed::create(m_indices->size(), 1, 0, 0, 0));
 
-            // add drawCommands to transform
-            transform->addChild(uniformBindDescriptorSet);
-            transform->addChild(drawCommands);
+            // add drawCommands to m_transform
+            m_transform->addChild(uniformBindDescriptorSet);
+            m_transform->addChild(drawCommands);
 
         } break;
     }
-    subgraph->addChild(transform);
+    subgraph->addChild(m_transform);
 
     return subgraph;
 }

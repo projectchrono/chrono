@@ -87,7 +87,7 @@ bool ChVSGApp::Initialize(int windowWidth, int windowHeight, const char* windowT
         m_wait_counter_max = size_t(m_outputStep / m_timeStep);
     }
     // fill the scenegraph with asset definitions from the physical system
-    UpdateSceneGraph();
+    BuildSceneGraph();
 
     // create viewer
     m_viewer = ::vsg::Viewer::create();
@@ -149,11 +149,9 @@ void ChVSGApp::Render() {
     m_viewer->present();
 }
 
-void ChVSGApp::UpdateSceneGraph() {
+void ChVSGApp::BuildSceneGraph() {
     // analyse system, look for bodies and assets
-    size_t idx_transform = 0;
     for (auto body : m_system->Get_bodylist()) {
-        GetLog() << "ChVSGApp::ChVSGApp(): Body " << body << "\n";
         // position of the body
         const Vector pos = body->GetFrame_REF_to_abs().GetPos();
         // rotation of the body
@@ -187,101 +185,44 @@ void ChVSGApp::UpdateSceneGraph() {
             lrot.Normalize();
             lrot.Q_to_AngAxis(angle, axis);
             if (ChBoxShape* box_shape = dynamic_cast<ChBoxShape*>(asset.get())) {
-                GetLog() << "Found BoxShape!\n";
+                //GetLog() << "Found BoxShape!\n";
                 ChVector<> size = box_shape->GetBoxGeometry().GetSize();
-                ChVector<> pos_final = pos + center;
-                // GetLog() << "pos final = " << pos_final << "\n";
-
-                // model = glm::translate(glm::mat4(1), glm::vec3(pos_final.x(), pos_final.y(), pos_final.z()));
-                // model = glm::rotate(model, float(angle), glm::vec3(axis.x(), axis.y(), axis.z()));
-                // model = glm::scale(model, glm::vec3(radius, radius, radius));
-                // model_sphere.push_back(model);
-                if (m_build_graph) {
+                ChVector<> pos_final = pos + center; 
                     auto transform = vsg::MatrixTransform::create();
-
                     transform->setMatrix(vsg::translate(pos_final.x(), pos_final.y(), pos_final.z()) *
                                          vsg::rotate(angle, axis.x(), axis.y(), axis.z()) *
                                          vsg::scale(size.x(), size.y(), size.z()));
                     std::string texFilePath("vsg/textures/Metal007.jpg");
                     ChVSGPhongMaterial jade(PhongPresets::Jade);
-                    VSGBox box;
+                    VSGBox box(body,asset, transform);
                     box.Initialize(m_light_position, jade, texFilePath);
-                    vsg::ref_ptr<vsg::Node> node = box.createVSGNode(m_drawMode, transform);
+                    vsg::ref_ptr<vsg::Node> node = box.createVSGNode(m_drawMode);
                     m_scenegraph->addChild(node);
-                    m_transformList.push_back(transform);  // we will need it later
-                } else {
-                    m_transformList[idx_transform]->setMatrix(
-                        vsg::translate(pos_final.x(), pos_final.y(), pos_final.z()) *
-                        vsg::rotate(angle, axis.x(), axis.y(), axis.z()) * vsg::scale(size.x(), size.y(), size.z()));
-                }
-                idx_transform++;
             }
             if (ChSphereShape* sphere_shape = dynamic_cast<ChSphereShape*>(asset.get())) {
-                GetLog() << "Found SphereShape!\n";
+                //GetLog() << "Found SphereShape!\n";
                 double radius = sphere_shape->GetSphereGeometry().rad;
                 ChVector<> size(radius, radius, radius);
                 ChVector<> pos_final = pos + center;
-                // GetLog() << "pos final = " << pos_final << "\n";
-
-                // model = glm::translate(glm::mat4(1), glm::vec3(pos_final.x(), pos_final.y(), pos_final.z()));
-                // model = glm::rotate(model, float(angle), glm::vec3(axis.x(), axis.y(), axis.z()));
-                // model = glm::scale(model, glm::vec3(radius, radius, radius));
-                // model_sphere.push_back(model);
-                if (m_build_graph) {
+                
                     auto transform = vsg::MatrixTransform::create();
-                    /*
-                                        transform->setMatrix(vsg::scale(size.x(), size.y(), size.z()) *
-                                                             vsg::translate(pos_final.x(), pos_final.y(), pos_final.z())
-                       * vsg::rotate(angle, axis.x(), axis.y(), axis.z()));
-                                                              */
                     transform->setMatrix(vsg::translate(pos_final.x(), pos_final.y(), pos_final.z()) *
                                          vsg::rotate(angle, axis.x(), axis.y(), axis.z()) *
                                          vsg::scale(size.x(), size.y(), size.z()));
 
                     std::string texFilePath("concrete.jpg");
-                    /*
-                    // vsg::ref_ptr<vsg::Node> node =
-                    //    ChVSGShapeFactory::createSphereTexturedNode(color, texFilePath, transform);
-                    vsg::vec4 ambient(0.0215, 0.1745, 0.0215, 1.0), diffuse(0.07568, 0.61424, 0.07568, 1.0);
-                    vsg::vec4 specular(0.633, 0.727811, 0.633, 1.0);
-                    float shininess = 0.6 * 128.0;
-                    float opacity = 1.0;
-                    ChVSGSphere sphere;
-                    vsg::ref_ptr<vsg::Node> node = sphere.createPhongNode(m_light_position, ambient, diffuse, specular,
-                                                                          shininess, opacity, transform);
-                                                                           * */
                     ChVSGPhongMaterial gold(PhongPresets::Gold);
-                    VSGSphere sphere;
+                    VSGSphere sphere(body, asset, transform);
                     sphere.Initialize(m_light_position, gold, texFilePath);
-                    vsg::ref_ptr<vsg::Node> node = sphere.createVSGNode(m_drawMode, transform);
+                    vsg::ref_ptr<vsg::Node> node = sphere.createVSGNode(m_drawMode);
                     // vsg::ref_ptr<vsg::Node> node = ChVSGShapeFactory::createSpherePhongNode(color, transform);
                     m_scenegraph->addChild(node);
-                    m_transformList.push_back(transform);  // we will need it later
-                } else {
-                    /*
-                    m_transformList[idx_transform]->setMatrix(
-                        vsg::scale(size.x(), size.y(), size.z()) *
-                        vsg::translate(pos_final.x(), pos_final.y(), pos_final.z()) *
-                        vsg::rotate(angle, axis.x(), axis.y(), axis.z()));
-                         */
-                    m_transformList[idx_transform]->setMatrix(
-                        vsg::translate(pos_final.x(), pos_final.y(), pos_final.z()) *
-                        vsg::rotate(angle, axis.x(), axis.y(), axis.z()) * vsg::scale(size.x(), size.y(), size.z()));
-                }
-                idx_transform++;
             }
             if (ChEllipsoidShape* ellipsoid_shape = dynamic_cast<ChEllipsoidShape*>(asset.get())) {
-                GetLog() << "Found ElipsoidShape!\n";
+                //GetLog() << "Found ElipsoidShape!\n";
                 Vector radius = ellipsoid_shape->GetEllipsoidGeometry().rad;
                 ChVector<> size(radius.x(), radius.y(), radius.z());
                 ChVector<> pos_final = pos + center;
-                // GetLog() << "pos final = " << pos_final << "\n";
-
-                // model = glm::translate(glm::mat4(1), glm::vec3(pos_final.x(), pos_final.y(), pos_final.z()));
-                // model = glm::rotate(model, float(angle), glm::vec3(axis.x(), axis.y(), axis.z()));
-                // model = glm::scale(model, glm::vec3(radius, radius, radius));
-                // model_sphere.push_back(model);
-                if (m_build_graph) {
                     auto transform = vsg::MatrixTransform::create();
 
                     transform->setMatrix(vsg::translate(pos_final.x(), pos_final.y(), pos_final.z()) *
@@ -290,44 +231,129 @@ void ChVSGApp::UpdateSceneGraph() {
 
                     std::string texFilePath("concrete.jpg");
                     ChVSGPhongMaterial polishedBronze(PhongPresets::PolishedBronze);
-                    VSGSphere ellipsoid;
+                    VSGSphere ellipsoid(body,asset,transform);
                     ellipsoid.Initialize(m_light_position, polishedBronze, texFilePath);
-                    vsg::ref_ptr<vsg::Node> node = ellipsoid.createVSGNode(m_drawMode, transform);
+                    vsg::ref_ptr<vsg::Node> node = ellipsoid.createVSGNode(m_drawMode);
                     m_scenegraph->addChild(node);
-                    m_transformList.push_back(transform);  // we will need it later
-                } else {
-                    m_transformList[idx_transform]->setMatrix(
-                        vsg::translate(pos_final.x(), pos_final.y(), pos_final.z()) *
-                        vsg::rotate(angle, axis.x(), axis.y(), axis.z()) * vsg::scale(size.x(), size.y(), size.z()));
-                }
-                idx_transform++;
             }
             if (ChCylinderShape* cylinder_shape = dynamic_cast<ChCylinderShape*>(asset.get())) {
-                GetLog() << "Found CylinderShape!\n";
+                //GetLog() << "Found CylinderShape!\n";
                 double radius = cylinder_shape->GetCylinderGeometry().rad;
                 ChVector<> dir = cylinder_shape->GetCylinderGeometry().p1 - cylinder_shape->GetCylinderGeometry().p2;
                 double height = dir.Length();
                 ChVector<> pos_final = pos + center;
-                if (m_build_graph) {
                     auto transform = vsg::MatrixTransform::create();
                     transform->setMatrix(vsg::translate(pos_final.x(), pos_final.y(), pos_final.z()) *
                                          vsg::rotate(angle, axis.x(), axis.y(), axis.z()) *
                                          vsg::scale(radius, radius, height));
                     std::string texFilePath("concrete.jpg");
                     ChVSGPhongMaterial bluePlastic(PhongPresets::BluePlastic);
-                    VSGCylinder cylinder;
+                    VSGCylinder cylinder(body,asset,transform);
                     cylinder.Initialize(m_light_position, bluePlastic, texFilePath);
-                    vsg::ref_ptr<vsg::Node> node = cylinder.createVSGNode(m_drawMode, transform);
+                    vsg::ref_ptr<vsg::Node> node = cylinder.createVSGNode(m_drawMode);
                     m_scenegraph->addChild(node);
-                    m_transformList.push_back(transform);  // we will need it later
-                } else {
-                    m_transformList[idx_transform]->setMatrix(
-                        vsg::translate(pos_final.x(), pos_final.y(), pos_final.z()) *
-                        vsg::rotate(angle, axis.x(), axis.y(), axis.z()) * vsg::scale(radius, radius, height));
-                }
-                idx_transform++;
             }
         }
     }
     m_build_graph = false;
+}
+
+void ChVSGApp::UpdateSceneGraph()
+{
+    for (auto body : m_system->Get_bodylist()) {
+        // position of the body
+        const Vector pos = body->GetFrame_REF_to_abs().GetPos();
+        // rotation of the body
+        Quaternion rot = body->GetFrame_REF_to_abs().GetRot();
+        double angle;
+        Vector axis;
+        rot.Q_to_AngAxis(angle, axis);
+        for (int i = 0; i < body->GetAssets().size(); i++) {
+            auto asset = body->GetAssets().at(i);
+
+            vsg::vec4 color(0.4, 0.8, 0.8, 1);
+            if (std::dynamic_pointer_cast<ChColorAsset>(asset)) {
+                ChColorAsset* color_asset = (ChColorAsset*)(asset.get());
+                color[0] = color_asset->GetColor().R;
+                color[1] = color_asset->GetColor().G;
+                color[2] = color_asset->GetColor().B;
+                color[3] = color_asset->GetColor().A;
+            }
+            if (!std::dynamic_pointer_cast<ChVisualization>(asset)) {
+                continue;
+            }
+            ChVisualization* visual_asset = ((ChVisualization*)(asset.get()));
+            // position of the asset
+            Vector center = visual_asset->Pos;
+            // rotate asset pos into global frame
+            center = rot.Rotate(center);
+            // Get the local rotation of the asset
+            Quaternion lrot = visual_asset->Rot.Get_A_quaternion();
+            // add the local rotation to the rotation of the body
+            lrot = rot % lrot;
+            lrot.Normalize();
+            lrot.Q_to_AngAxis(angle, axis);
+            if (ChBoxShape* box_shape = dynamic_cast<ChBoxShape*>(asset.get())) {
+                // GetLog() << "Found BoxShape!\n";
+                ChVector<> size = box_shape->GetBoxGeometry().GetSize();
+                ChVector<> pos_final = pos + center;
+                auto tm = GetTransform(body, asset);
+                tm->setMatrix(vsg::translate(pos_final.x(), pos_final.y(), pos_final.z()) *
+                                     vsg::rotate(angle, axis.x(), axis.y(), axis.z()) *
+                                     vsg::scale(size.x(), size.y(), size.z()));
+
+            }
+            if (ChSphereShape* sphere_shape = dynamic_cast<ChSphereShape*>(asset.get())) {
+                // GetLog() << "Found SphereShape!\n";
+                double radius = sphere_shape->GetSphereGeometry().rad;
+                ChVector<> size(radius, radius, radius);
+                ChVector<> pos_final = pos + center;
+                auto tm = GetTransform(body, asset);
+                tm->setMatrix(vsg::translate(pos_final.x(), pos_final.y(), pos_final.z()) *
+                                     vsg::rotate(angle, axis.x(), axis.y(), axis.z()) *
+                                     vsg::scale(size.x(), size.y(), size.z()));
+            }
+            if (ChEllipsoidShape* ellipsoid_shape = dynamic_cast<ChEllipsoidShape*>(asset.get())) {
+                // GetLog() << "Found ElipsoidShape!\n";
+                Vector radius = ellipsoid_shape->GetEllipsoidGeometry().rad;
+                ChVector<> size(radius.x(), radius.y(), radius.z());
+                ChVector<> pos_final = pos + center;
+                auto tm = GetTransform(body, asset);
+                tm->setMatrix(vsg::translate(pos_final.x(), pos_final.y(), pos_final.z()) *
+                                     vsg::rotate(angle, axis.x(), axis.y(), axis.z()) *
+                                     vsg::scale(size.x(), size.y(), size.z()));
+            }
+            if (ChCylinderShape* cylinder_shape = dynamic_cast<ChCylinderShape*>(asset.get())) {
+                // GetLog() << "Found CylinderShape!\n";
+                double radius = cylinder_shape->GetCylinderGeometry().rad;
+                ChVector<> dir = cylinder_shape->GetCylinderGeometry().p1 - cylinder_shape->GetCylinderGeometry().p2;
+                double height = dir.Length();
+                ChVector<> pos_final = pos + center;
+                auto tm = GetTransform(body, asset);
+                tm->setMatrix(vsg::translate(pos_final.x(), pos_final.y(), pos_final.z()) *
+                                     vsg::rotate(angle, axis.x(), axis.y(), axis.z()) *
+                                     vsg::scale(radius, radius, height));
+            }
+        }
+    }
+}
+vsg::ref_ptr<vsg::MatrixTransform> ChVSGApp::GetTransform(std::shared_ptr<ChBody> body, std::shared_ptr<ChAsset> asset) {
+    vsg::ref_ptr<vsg::MatrixTransform> transform;
+    size_t numCh = m_scenegraph->getNumChildren();
+    for (size_t iChild = 0; iChild < numCh; iChild++) {
+        auto myNode = m_scenegraph->getChild(iChild);
+        std::shared_ptr<ChBody> bodyInNode;
+        bool bodyOk = myNode->getValue("bodyPtr", bodyInNode);
+        std::shared_ptr<ChAsset> assetInNode;
+        bool assetOk = myNode->getValue("assetPtr", assetInNode);
+        if (assetOk && bodyOk && (body == bodyInNode) && (asset == assetInNode)) {
+            bool transformOk = myNode->getValue("transform", transform);
+            if (transformOk) {
+                break;
+            } else {
+                GetLog() << "UpdateSceneGraph(): ill shaped group node, should never happen.\n";
+            }
+        }
+    }
+    return transform;
 }

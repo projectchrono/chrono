@@ -639,9 +639,9 @@ else()
 endif()
 
 if(ENABLE_MODULE_VSG)
-  set(CHRONO_SENSOR "#define CHRONO_VSG")
+  set(CHRONO_VSG "#define CHRONO_VSG")
 else()
-  set(CHRONO_SENSOR "#undef CHRONO_VSG")
+  set(CHRONO_VSG "#undef CHRONO_VSG")
 endif()
 
 if(ENABLE_OPENMP)

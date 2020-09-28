@@ -56,7 +56,9 @@ class CH_VSG_API ChVSGApp {
     void doTimeStep();
 
   protected:
+    void BuildSceneGraph();
     void UpdateSceneGraph();
+    vsg::ref_ptr<vsg::MatrixTransform> GetTransform(std::shared_ptr<ChBody> body, std::shared_ptr<ChAsset> asset);
     void IncreaseWaitCounter();
 
   private:
@@ -75,11 +77,7 @@ class CH_VSG_API ChVSGApp {
 
     vsg::Paths m_searchPaths;
 
-    std::vector<vsg::ref_ptr<::vsg::Node>> m_nodes;
-
     vsg::ref_ptr<vsg::Group> m_scenegraph;
-
-    std::vector<vsg::ref_ptr<vsg::MatrixTransform>> m_transformList;
 
     vsg::ref_ptr<vsg::Viewer> m_viewer;
 
