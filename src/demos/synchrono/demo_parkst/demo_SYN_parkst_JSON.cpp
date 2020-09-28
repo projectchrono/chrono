@@ -278,68 +278,13 @@ int main(int argc, char* argv[]) {
 #endif  // SENSOR
     }
 
-    mpi_manager.Barrier();
     mpi_manager.Initialize();
-    mpi_manager.Barrier();
-
-    double step = 0;
-    double wall_time = 0;
-
-    std::chrono::high_resolution_clock::time_point start = std::chrono::high_resolution_clock::now();
 
     // Simulation Loop
     while (mpi_manager.IsOk()) {
-        std::chrono::high_resolution_clock::time_point t0 = std::chrono::high_resolution_clock::now();
-
-        // Advance
         mpi_manager.Advance();
-        std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
-        auto t = std::chrono::duration_cast<std::chrono::microseconds>(t1 - t0);
-        auto inc = t.count() / 1e6;
-        wall_time += inc;
-        if (VERBOSE && inc > 1e-4) {
-            std::cout << step << "." << rank << " adv: " << t.count() / 1e6 << std::endl;
-        }
-
-        // Synchronize
         mpi_manager.Synchronize();
-        std::chrono::high_resolution_clock::time_point t2 = std::chrono::high_resolution_clock::now();
-        t = std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1);
-        inc = t.count() / 1e6;
-        wall_time += inc;
-        if (VERBOSE && inc > 1e-4) {
-            std::cout << step << "." << rank << " syn: " << inc << std::endl;
-        }
-
-        // Update
         mpi_manager.Update();
-        std::chrono::high_resolution_clock::time_point t4 = std::chrono::high_resolution_clock::now();
-        t = std::chrono::duration_cast<std::chrono::microseconds>(t4 - t3);
-        inc = t.count() / 1e6;
-        wall_time += inc;
-        if (VERBOSE && inc > 1e-4) {
-            std::cout << step << "." << rank << " upd: " << inc << std::endl;
-        }
-
-        // increment the step
-        step++;
-
-        std::chrono::high_resolution_clock::time_point t5 = std::chrono::high_resolution_clock::now();
-        t = std::chrono::duration_cast<std::chrono::microseconds>(t5 - t0);
-        wall_time += t.count() / 1e6;
-
-        if (fmod(step * HEARTBEAT, 1.0) <= 1e-5) {
-            // std::cout << "Wall Time (" << rank << "):: " << wall_time << std::endl;
-            wall_time = 0;
-        }
-    }
-
-    if (rank == 0) {
-        std::chrono::high_resolution_clock::time_point end = std::chrono::high_resolution_clock::now();
-        auto time_span = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
-        // std::cout << "Total Wall Time: " << time_span.count() / 1e6 << "." << std::endl;
-
-        std::cout << "Fraction of real time: " << (time_span.count() / 1e6) / END_TIME << std::endl;
     }
 
     return 0;
