@@ -127,15 +127,15 @@ vsg::ref_ptr<vsg::Node> ChVSGIndexedMesh::createVSGNode(DrawMode drawMode) {
 
             // create StateGroup as the root of the scene/command graph to hold the GraphicsProgram, and binding of
             // Descriptors to decorate the whole graph
-            auto scenegraph = vsg::StateGroup::create();
-            scenegraph->add(bindGraphicsPipeline);
-            scenegraph->add(bindDescriptorSet);
+            //auto scenegraph = vsg::StateGroup::create();
+            subgraph->add(bindGraphicsPipeline);
+            subgraph->add(bindDescriptorSet);
 
             // set up model transformation node
             //auto transform = vsg::MatrixTransform::create();  // VK_SHADER_STAGE_VERTEX_BIT
 
             // add transform to root of the scene graph
-            scenegraph->addChild(m_transform);
+            subgraph->addChild(m_transform);
 
             // setup geometry
             auto drawCommands = vsg::Commands::create();
@@ -229,7 +229,7 @@ vsg::ref_ptr<vsg::Node> ChVSGIndexedMesh::createVSGNode(DrawMode drawMode) {
             subgraph->add(bindGraphicsPipeline);
             // subgraph->add(bindDescriptorSets);
             subgraph->addChild(m_transform);
-
+           
             // setup geometry
             auto drawCommands = vsg::Commands::create();
             drawCommands->addChild(
@@ -240,6 +240,87 @@ vsg::ref_ptr<vsg::Node> ChVSGIndexedMesh::createVSGNode(DrawMode drawMode) {
 
             // add drawCommands to m_transform
             m_transform->addChild(uniformBindDescriptorSet);
+            m_transform->addChild(drawCommands);
+
+        } break;
+        case DrawMode::Wireframe: {
+            // set up search paths to SPIRV shaders and textures
+            vsg::ref_ptr<vsg::ShaderStage> vertexShader =
+                readVertexShader(GetChronoDataFile("vsg/shaders/vert_Wireframe.spv"));
+            vsg::ref_ptr<vsg::ShaderStage> fragmentShader =
+                readFragmentShader(GetChronoDataFile("vsg/shaders/frag_Wireframe.spv"));
+            if (!vertexShader || !fragmentShader) {
+                std::cout << "Could not create shaders." << std::endl;
+                return {};
+            }
+
+            auto uniformValue = vsg::vec3Value::create(m_lightPosition);
+            auto uniformBuffer = vsg::DescriptorBuffer::create(uniformValue, 0);
+            vsg::DescriptorSetLayoutBindings lightSettingsDescriptorBindings{
+                //{0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
+                {0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1,
+                 VK_SHADER_STAGE_FRAGMENT_BIT,  // we only need it in the fragment shader program
+                 nullptr}  // { binding, descriptorTpe, descriptorCount, stageFlags, pImmutableSamplers}
+            };
+
+            auto lightSettingsDescriptorSetLayout = vsg::DescriptorSetLayout::create(lightSettingsDescriptorBindings);
+
+            auto uniformDscriptorSet =
+                vsg::DescriptorSet::create(lightSettingsDescriptorSetLayout, vsg::Descriptors{uniformBuffer});
+
+            vsg::DescriptorSetLayoutBindings descriptorBindings{
+                {0, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_FRAGMENT_BIT,
+                 nullptr}  // { binding, descriptorTpe, descriptorCount, stageFlags, pImmutableSamplers}
+            };
+
+            auto descriptorSetLayout = vsg::DescriptorSetLayout::create(descriptorBindings);
+            vsg::DescriptorSetLayouts descriptorSetLayouts{descriptorSetLayout};
+
+            vsg::PushConstantRanges pushConstantRanges{
+                {VK_SHADER_STAGE_VERTEX_BIT, 0, 128}  // projection view, and model matrices, actual push constant calls
+                                                      // autoatically provided by the VSG's DispatchTraversal
+            };
+
+            auto pipelineLayout = vsg::PipelineLayout::create(
+                vsg::DescriptorSetLayouts{descriptorSetLayout, lightSettingsDescriptorSetLayout}, pushConstantRanges);
+
+            vsg::VertexInputState::Bindings vertexBindingsDescriptions{
+                VkVertexInputBindingDescription{0, sizeof(vsg::vec3), VK_VERTEX_INPUT_RATE_VERTEX},  // vertex data
+                VkVertexInputBindingDescription{1, sizeof(vsg::vec3), VK_VERTEX_INPUT_RATE_VERTEX},  // normal data
+            };
+
+            vsg::VertexInputState::Attributes vertexAttributeDescriptions{
+                VkVertexInputAttributeDescription{0, 0, VK_FORMAT_R32G32B32_SFLOAT, 0},  // vertex data
+                VkVertexInputAttributeDescription{1, 1, VK_FORMAT_R32G32B32_SFLOAT, 0},  // normal data
+            };
+
+            auto rasterizationState = vsg::RasterizationState::create();
+            rasterizationState->polygonMode = VK_POLYGON_MODE_LINE;
+            vsg::GraphicsPipelineStates pipelineStates{
+                vsg::VertexInputState::create(vertexBindingsDescriptions, vertexAttributeDescriptions),
+                vsg::InputAssemblyState::create(),
+                rasterizationState,
+                vsg::MultisampleState::create(),
+                vsg::ColorBlendState::create(),
+                vsg::DepthStencilState::create()};
+
+            auto graphicsPipeline = vsg::GraphicsPipeline::create(
+                pipelineLayout, vsg::ShaderStages{vertexShader, fragmentShader}, pipelineStates);
+            auto bindGraphicsPipeline = vsg::BindGraphicsPipeline::create(graphicsPipeline);
+
+            // create StateGroup as the root of the scene/command graph to hold the GraphicsProgram, and binding of
+            // Descriptors to decorate the whole graph
+            subgraph->add(bindGraphicsPipeline);
+            // subgraph->add(bindDescriptorSets);
+            subgraph->addChild(m_transform);
+
+            // setup geometry
+            auto drawCommands = vsg::Commands::create();
+            drawCommands->addChild(vsg::BindVertexBuffers::create(0, vsg::DataList{m_vertices, m_diffuseColor}));
+            drawCommands->addChild(vsg::BindIndexBuffer::create(m_indices));
+            drawCommands->addChild(vsg::DrawIndexed::create(m_indices->size(), 1, 0, 0, 0));
+
+            // add drawCommands to transform
             m_transform->addChild(drawCommands);
 
         } break;
