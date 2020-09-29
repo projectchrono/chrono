@@ -27,10 +27,10 @@
 namespace chrono {
 namespace synchrono {
 
-SynACCBrain::SynACCBrain(int rank, std::shared_ptr<ChDriver> driver, ChVehicle& vehicle)
+SynACCBrain::SynACCBrain(int rank, std::shared_ptr<ChDriver> driver, ChVehicle& vehicle, bool is_multi_path)
     : SynVehicleBrain(rank, driver, vehicle) {
     m_nearest_vehicle = 1000;
-    m_is_multi_path = false;
+    m_is_multi_path = is_multi_path;
     m_rank = rank;
 }
 

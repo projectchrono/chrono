@@ -31,7 +31,7 @@ namespace synchrono {
 
 class SYN_API SynACCBrain : public SynVehicleBrain {
   public:
-    SynACCBrain(int rank, std::shared_ptr<ChDriver> driver, ChVehicle& vehicle);
+    SynACCBrain(int rank, std::shared_ptr<ChDriver> driver, ChVehicle& vehicle, bool is_multi_path = false);
 #ifdef SENSOR
     SynACCBrain(int rank, std::shared_ptr<ChDriver> driver, ChVehicle& vehicle, std::shared_ptr<ChLidarSensor> lidar);
 #endif
