@@ -14,6 +14,8 @@ int main(int argc, char* argv[]) {
     // Create a physical system
     ChSystemNSC mphysicalSystem;
 
+    mphysicalSystem.Set_G_acc(ChVector<>(0, -9.81, 0));
+
     // Create all the rigid bodies.
     double mradius = 0.5;
     double density = 1000;
@@ -25,7 +27,7 @@ int main(int argc, char* argv[]) {
         mat->SetRollingFriction(((float)bi / 10) * 0.05f);
 
         auto msphereBody = chrono_types::make_shared<ChBodyEasySphere>(mradius,  // radius size
-                                                                       1000,     // density
+                                                                       density,     // density
                                                                        true,     // visualization?
                                                                        true,     // collision?
                                                                        mat);     // contact material
@@ -51,7 +53,7 @@ int main(int argc, char* argv[]) {
         mat->SetSpinningFriction(((float)bi / 10) * 0.02f);
 
         auto msphereBody = chrono_types::make_shared<ChBodyEasySphere>(mradius,  // radius size
-                                                                       1000,     // density
+                                                                       density,  // density
                                                                        true,     // visualization?
                                                                        true,     // collision?
                                                                        mat);     // contact material
@@ -100,7 +102,7 @@ int main(int argc, char* argv[]) {
     ChVSGApp app;
 
     app.setTimeStep(0.005);
-    app.setOutputStep(0.05);
+    app.setOutputStep(0.015);
     app.setUpVector(ChVector<>(0.0, 0.0, -1.0));
 
     bool ok = app.Initialize(1200, 800, "VSG Friction Demo", &mphysicalSystem);

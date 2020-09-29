@@ -192,7 +192,7 @@ void ChVSGApp::BuildSceneGraph() {
                     transform->setMatrix(vsg::translate(pos_final.x(), pos_final.y(), pos_final.z()) *
                                          vsg::rotate(angle, axis.x(), axis.y(), axis.z()) *
                                          vsg::scale(size.x(), size.y(), size.z()));
-                    std::string texFilePath("vsg/textures/Metal007.jpg");
+                    std::string texFilePath(GetChronoDataFile("vsg/textures/Metal007.jpg"));
                     ChVSGPhongMaterial jade(PhongPresets::Jade);
                     VSGBox box(body,asset, transform);
                     box.Initialize(m_light_position, jade, texFilePath);
@@ -210,7 +210,7 @@ void ChVSGApp::BuildSceneGraph() {
                                          vsg::rotate(angle, axis.x(), axis.y(), axis.z()) *
                                          vsg::scale(size.x(), size.y(), size.z()));
 
-                    std::string texFilePath("concrete.jpg");
+                    std::string texFilePath(GetChronoDataFile("concrete.jpg"));
                     ChVSGPhongMaterial gold(PhongPresets::Gold);
                     VSGSphere sphere(body, asset, transform);
                     sphere.Initialize(m_light_position, gold, texFilePath);
@@ -229,7 +229,7 @@ void ChVSGApp::BuildSceneGraph() {
                                          vsg::rotate(angle, axis.x(), axis.y(), axis.z()) *
                                          vsg::scale(size.x(), size.y(), size.z()));
 
-                    std::string texFilePath("concrete.jpg");
+                    std::string texFilePath(GetChronoDataFile("concrete.jpg"));
                     ChVSGPhongMaterial polishedBronze(PhongPresets::PolishedBronze);
                     VSGSphere ellipsoid(body,asset,transform);
                     ellipsoid.Initialize(m_light_position, polishedBronze, texFilePath);
@@ -246,7 +246,7 @@ void ChVSGApp::BuildSceneGraph() {
                     transform->setMatrix(vsg::translate(pos_final.x(), pos_final.y(), pos_final.z()) *
                                          vsg::rotate(angle, axis.x(), axis.y(), axis.z()) *
                                          vsg::scale(radius, radius, height));
-                    std::string texFilePath("concrete.jpg");
+                    std::string texFilePath(GetChronoDataFile("concrete.jpg"));
                     ChVSGPhongMaterial bluePlastic(PhongPresets::BluePlastic);
                     VSGCylinder cylinder(body,asset,transform);
                     cylinder.Initialize(m_light_position, bluePlastic, texFilePath);
