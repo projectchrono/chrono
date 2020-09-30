@@ -23,6 +23,7 @@
 #include "chrono/collision/bullet/LinearMath/btThreads.h"
 #include "chrono/collision/bullet/BulletCollision/CollisionShapes/btSphereShape.h"
 #include "chrono/collision/bullet/BulletCollision/CollisionShapes/btCylinderShape.h"
+#include "chrono/collision/bullet/BulletCollision/CollisionShapes/btBoxShape.h"
 #include "chrono/collision/bullet/BulletCollision/CollisionShapes/btCylindricalShellShape.h"
 #include "chrono/collision/bullet/BulletCollision/CollisionShapes/bt2DShape.h"
 #include "chrono/collision/bullet/BulletCollision/CollisionShapes/btCEtriangleShape.h"
@@ -38,12 +39,237 @@ namespace collision {
 // dynamic creation and persistence
 CH_FACTORY_REGISTER(ChCollisionSystemBullet)
 
-////////////////////////////////////
-////////////////////////////////////
+// ================================================================================================
 
-// Utility class that we use to override the default cylinder-sphere collision
-// case, because the default behavior in Bullet was using the GJK algorithm, that
-// gives not 100% precise results if the cylinder is much larger than the sphere:
+// Utility class to override the default cylshell-box collision case.
+class btCylshellBoxCollisionAlgorithm : public btActivatingCollisionAlgorithm {
+    bool m_ownManifold;
+    btPersistentManifold* m_manifoldPtr;
+    bool m_isSwapped;
+
+  public:
+    btCylshellBoxCollisionAlgorithm(btPersistentManifold* mf,
+                                    const btCollisionAlgorithmConstructionInfo& ci,
+                                    const btCollisionObjectWrapper* col0,
+                                    const btCollisionObjectWrapper* col1,
+                                    bool isSwapped)
+        : btActivatingCollisionAlgorithm(ci, col0, col1),
+          m_ownManifold(false),
+          m_manifoldPtr(mf),
+          m_isSwapped(isSwapped) {
+        const btCollisionObjectWrapper* arcObjWrap = m_isSwapped ? col1 : col0;
+        const btCollisionObjectWrapper* segmentObjWrap = m_isSwapped ? col0 : col1;
+
+        if (!m_manifoldPtr &&
+            m_dispatcher->needsCollision(arcObjWrap->getCollisionObject(), segmentObjWrap->getCollisionObject())) {
+            m_manifoldPtr =
+                m_dispatcher->getNewManifold(arcObjWrap->getCollisionObject(), segmentObjWrap->getCollisionObject());
+            m_ownManifold = true;
+        }
+    }
+
+    btCylshellBoxCollisionAlgorithm(const btCollisionAlgorithmConstructionInfo& ci)
+        : btActivatingCollisionAlgorithm(ci) {}
+
+    // Cylshell-box intersection test:
+    //   - cylinder caps are ignored
+    //   - the cylshell is replaced with a capsule on the surface of the cylshell
+    //   - capsule-box intersection is then reduced to a segment-box intersection
+    //   - a replacement capsule (one for each direction of the box) may generate 0, 1, or 2 contacts
+    virtual void processCollision(const btCollisionObjectWrapper* body0,
+                                  const btCollisionObjectWrapper* body1,
+                                  const btDispatcherInfo& dispatchInfo,
+                                  btManifoldResult* resultOut) {
+        (void)dispatchInfo;
+        (void)resultOut;
+        if (!m_manifoldPtr)
+            return;
+
+        const btCollisionObjectWrapper* cylObjWrap = m_isSwapped ? body1 : body0;
+        const btCollisionObjectWrapper* boxObjWrap = m_isSwapped ? body0 : body1;
+
+        resultOut->setPersistentManifold(m_manifoldPtr);
+
+        const btCylindricalShellShape* cyl = (btCylindricalShellShape*)cylObjWrap->getCollisionShape();
+        const btBoxShape* box = (btBoxShape*)boxObjWrap->getCollisionShape();
+
+        // Express cylinder in the box frame.
+        const btTransform& abs_X_cyl = cylObjWrap->getWorldTransform();
+        const btTransform& abs_X_box = boxObjWrap->getWorldTransform();
+        btTransform box_X_cyl = abs_X_box.inverseTimes(abs_X_cyl);
+
+        btVector3 a = box_X_cyl.getBasis().getColumn(1);  // cylinder axis (expressed in box frame)
+        btVector3 c = box_X_cyl.getOrigin();              // cylinder center (expressed in box frame)
+
+        // Box dimensions
+        btVector3 hdims = box->getHalfExtentsWithMargin();
+
+        // Cylindrical shell dimension
+        btScalar sphere_r = cyl->getSphereRadius();  // radius of sweep sphere
+        btScalar radius = cyl->getRadius();          // cylinder radius
+        btScalar hlen = cyl->getHalfLength();        // cylinder half-length
+
+        // Contact distance
+        btScalar contactDist = sphere_r + m_manifoldPtr->getContactBreakingThreshold();
+
+        // Threshold for line parallel to face tests
+        const btScalar threshold = btScalar(1e-5);
+
+        // For each of the 3 directions of the box
+        for (int i = 0; i < 3; i++) {
+            int j = (i + 1) % 3;  // box face direction u
+            int k = (i + 2) % 3;  // box face direction v
+
+            // Set face normal. Pick the positive or negative box face (based on relative cylinder location)
+            btVector3 n(0, 0, 0);
+            n[i] = +1;
+            btScalar sign = +1;
+            if (c.dot(n) < 0) {
+                sign = -1;
+                n[i] = -1;
+            }
+
+            // Skip this face if cylinder axis perpendicular to it (we cannot decide on replacement segment)
+            btVector3 aXn = a.cross(n);
+            btScalar len2 = aXn.length2();
+            if (len2 < 3e-3)  // about 3 degrees or less
+                continue;
+
+            // Find center of replacement segment
+            btVector3 s = c + a.cross(aXn) * radius;
+
+            // Intersect the box (expanded by the radius of the replacement capsule) with the segment supporting line
+            // by clamping the line to the volume between parallel faces of the box. In each case, bail out if the line
+            // is parallel to the face and too far from it.
+
+            btScalar tMin = -BT_LARGE_FLOAT;
+            btScalar tMax = +BT_LARGE_FLOAT;
+
+            if (std::abs(a[i]) < threshold) {  // intersect line with slab in 'n' direction
+                if (std::abs(s[i]) > hdims[i] + sphere_r)
+                    continue;
+            } else {
+                btScalar t1 = (-hdims[i] - sphere_r - s[i]) / a[i];
+                btScalar t2 = (+hdims[i] + sphere_r - s[i]) / a[i];
+                tMin = btMax(tMin, btMin(t1, t2));
+                tMax = btMin(tMax, btMax(t1, t2));
+                if (tMin > tMax)
+                    continue;
+            }
+
+            if (std::abs(a[j]) < threshold) {  // intersect line with slab in 'u' direction
+                if (std::abs(s[j]) > hdims[j] + sphere_r)
+                    continue;
+            } else {
+                btScalar t1 = (-hdims[j] - sphere_r - s[j]) / a[j];
+                btScalar t2 = (+hdims[j] + sphere_r - s[j]) / a[j];
+                tMin = btMax(tMin, btMin(t1, t2));
+                tMax = btMin(tMax, btMax(t1, t2));
+                if (tMin > tMax)
+                    continue;
+            }
+
+            if (std::abs(a[k]) < threshold) {  // intersect line with slab in 'v' direction
+                if (std::abs(s[k]) > hdims[k] + sphere_r)
+                    continue;
+            } else {
+                btScalar t1 = (-hdims[k] - sphere_r - s[k]) / a[k];
+                btScalar t2 = (+hdims[k] + sphere_r - s[k]) / a[k];
+                tMin = btMax(tMin, btMin(t1, t2));
+                tMax = btMin(tMax, btMax(t1, t2));
+                if (tMin > tMax)
+                    continue;
+            }
+
+            // Generate the two points on the box face where the cylinder centerline intersect the box
+            btVector3 locs[2] = {s + a * tMin, s + a * tMax};
+
+            // Snap points to segment and add to the set
+            //// TODO: should snap back to original (un-inflated) box first?
+            btScalar t[2];
+            t[0] = btClamped(a.dot(locs[0] - s), -hlen, +hlen);
+            t[1] = btClamped(a.dot(locs[1] - s), -hlen, +hlen);
+
+            // Check if the two points almost coincide (in which case consider only one of them)
+            int numPoints = std::abs(t[0] - t[1]) < 1e-4 ? 1 : 2;
+
+            // Perform 1 or 2 sphere-box face tests
+            for (int itest = 0; itest < numPoints; itest++) {
+                // Calculate center of replacement sphere (expressed in box frame)
+                btVector3 sphCenter = s + a * t[itest];
+
+                // Find closest point on box face to sphere center
+                btVector3 boxPoint = sphCenter;
+                boxPoint[i] = sign * hdims[i];
+                boxPoint[j] = btMax(btMin(boxPoint[j], hdims[j]), -hdims[j]);
+                boxPoint[k] = btMax(btMin(boxPoint[k], hdims[k]), -hdims[k]);
+
+                btScalar dist = sign * (sphCenter[i] - boxPoint[i]);
+                if (dist > contactDist)
+                    continue;
+
+                // Contact distance (negative for actual penetration)
+                btScalar penetration = dist - sphere_r;
+
+                // Transform to absolute frame
+                btVector3 normal = abs_X_box.getBasis() * n;
+                btVector3 point = abs_X_box(boxPoint);
+
+                // A new contact point must specify:
+                //   normal, pointing from B towards A
+                //   point, located on surface of B
+                //   distance, negative for penetration
+                resultOut->addContactPoint(normal, point, penetration);
+
+                ////std::cout << "add contact --  t= " << t[itest] << "  face " << i << "  dist= " << dist << "  depth= " << penetration << std::endl;
+             }
+        }
+
+        if (m_ownManifold && m_manifoldPtr->getNumContacts()) {
+            resultOut->refreshContactPoints();
+        }
+    }
+
+    virtual btScalar calculateTimeOfImpact(btCollisionObject* body0,
+                                           btCollisionObject* body1,
+                                           const btDispatcherInfo& dispatchInfo,
+                                           btManifoldResult* resultOut) {
+        // not yet
+        return btScalar(1.);
+    }
+
+    virtual void getAllContactManifolds(btManifoldArray& manifoldArray) {
+        if (m_manifoldPtr && m_ownManifold) {
+            manifoldArray.push_back(m_manifoldPtr);
+        }
+    }
+
+    virtual ~btCylshellBoxCollisionAlgorithm() {
+        if (m_ownManifold) {
+            if (m_manifoldPtr)
+                m_dispatcher->releaseManifold(m_manifoldPtr);
+        }
+    }
+
+    struct CreateFunc : public btCollisionAlgorithmCreateFunc {
+        virtual btCollisionAlgorithm* CreateCollisionAlgorithm(btCollisionAlgorithmConstructionInfo& ci,
+                                                               const btCollisionObjectWrapper* body0Wrap,
+                                                               const btCollisionObjectWrapper* body1Wrap) {
+            void* mem = ci.m_dispatcher1->allocateCollisionAlgorithm(sizeof(btCylshellBoxCollisionAlgorithm));
+            if (!m_swapped) {
+                return new (mem) btCylshellBoxCollisionAlgorithm(0, ci, body0Wrap, body1Wrap, false);
+            } else {
+                return new (mem) btCylshellBoxCollisionAlgorithm(0, ci, body0Wrap, body1Wrap, true);
+            }
+        }
+    };
+};
+
+// ================================================================================================
+
+// Utility class to override the default cylinder-sphere collision case. 
+// This replaces the default GJK algorithm in Bullet which is inaccurate if the cylinder is much
+// larger than the sphere.
 class btSphereCylinderCollisionAlgorithm : public btActivatingCollisionAlgorithm {
     bool m_ownManifold;
     btPersistentManifold* m_manifoldPtr;
@@ -186,11 +412,9 @@ class btSphereCylinderCollisionAlgorithm : public btActivatingCollisionAlgorithm
 	
 };
 
-////////////////////////////////////
-////////////////////////////////////
+// ================================================================================================
 
-// Utility class that we use to override the default 2Dsegment-2Darc collision
-// case (it works only of the two are coplanar)
+// Utility to override the default 2Dsegment-2Darc collision case (works only if the two are coplanar)
 class btArcSegmentCollisionAlgorithm : public btActivatingCollisionAlgorithm {
     bool m_ownManifold;
     btPersistentManifold* m_manifoldPtr;
@@ -376,11 +600,9 @@ class btArcSegmentCollisionAlgorithm : public btActivatingCollisionAlgorithm {
     };
 };
 
-////////////////////////////////////
-////////////////////////////////////
+// ================================================================================================
 
-// Utility class that we use to override the default 2Darc-2Darc collision
-// case (it works only of the two are coplanar)
+// Utility class to override the default 2Darc-2Darc collision case (works only of the two are coplanar)
 class btArcArcCollisionAlgorithm : public btActivatingCollisionAlgorithm {
     bool m_ownManifold;
     btPersistentManifold* m_manifoldPtr;
@@ -619,8 +841,9 @@ class btArcArcCollisionAlgorithm : public btActivatingCollisionAlgorithm {
     };
 };
 
-// Utility class that we use to override the btCEtriangleShape vs btCEtriangleShape
+// ================================================================================================
 
+// Utility class to override the btCEtriangleShape vs btCEtriangleShape
 class btCEtriangleShapeCollisionAlgorithm : public btActivatingCollisionAlgorithm {
     bool m_ownManifold;
     btPersistentManifold* m_manifoldPtr;
@@ -1180,8 +1403,7 @@ class btCEtriangleShapeCollisionAlgorithm : public btActivatingCollisionAlgorith
     };
 };
 
-////////////////////////////////////
-////////////////////////////////////
+// ================================================================================================
 
 ChCollisionSystemBullet::ChCollisionSystemBullet() {
     // btDefaultCollisionConstructionInfo conf_info(...); ***TODO***
@@ -1210,6 +1432,13 @@ ChCollisionSystemBullet::ChCollisionSystemBullet() {
        m_collision_sph_cyl); bt_dispatcher->registerCollisionCreateFunc(CYLINDER_SHAPE_PROXYTYPE,
        SPHERE_SHAPE_PROXYTYPE, m_collision_cyl_sph);
     */
+
+    // custom collision for cylshell-box case
+    btCollisionAlgorithmCreateFunc* m_collision_cylshell_box = new btCylshellBoxCollisionAlgorithm::CreateFunc;
+    btCollisionAlgorithmCreateFunc* m_collision_box_cylshell = new btCylshellBoxCollisionAlgorithm::CreateFunc;
+    m_collision_box_cylshell->m_swapped = true;
+    bt_dispatcher->registerCollisionCreateFunc(CYLSHELL_SHAPE_PROXYTYPE, BOX_SHAPE_PROXYTYPE, m_collision_cylshell_box);
+    bt_dispatcher->registerCollisionCreateFunc(BOX_SHAPE_PROXYTYPE, CYLSHELL_SHAPE_PROXYTYPE, m_collision_box_cylshell);
 
     // custom collision for 2D arc-segment case
     m_collision_arc_seg = new btArcSegmentCollisionAlgorithm::CreateFunc;
