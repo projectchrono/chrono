@@ -86,8 +86,8 @@ btCylindricalShellShape : public btConvexInternalShape {
         return aniDir;
     }
 
-    virtual btScalar getRadius() const { return getHalfExtentsWithMargin().getX(); }
-
+    btScalar getRadius() const { return getHalfExtentsWithMargin().getX() - m_sphere_r; }
+    btScalar getHalfLength() const { return getHalfExtentsWithMargin().getY() - m_sphere_r; }
     btScalar getSphereRadius() const { return m_sphere_r; }
 
     virtual void setLocalScaling(const btVector3& scaling) {
