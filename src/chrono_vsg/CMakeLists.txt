@@ -22,6 +22,7 @@ MARK_AS_ADVANCED(CLEAR VSG_ROOT)
 # List all the files in the ChronoEngine_irrlicht lib
 SET(ChronoEngine_VSG_SOURCES
     ChVSGApp.cpp
+    resources/ChVSGPbrMaterial.cpp
     resources/ChVSGPhongMaterial.cpp
     shapes/ChVSGIndexedMesh.cpp
     shapes/VSGBox.cpp
@@ -34,6 +35,7 @@ SET(ChronoEngine_VSG_HEADERS
     ChVSGApp.h
     core/ChApiVSG.h
     resources/ChVSGSettings.h
+    resources/ChVSGPbrMaterial.h
     resources/ChVSGPhongMaterial.h
     shapes/ChVSGIndexedMesh.h
     shapes/VSGBox.h

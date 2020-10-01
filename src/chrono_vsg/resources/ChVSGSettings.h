@@ -45,6 +45,10 @@ typedef enum {
     YellowRubber,
     BlueRubber
 } PhongPresets;
+
+typedef enum { 
+TestMat} PbrPresets;
+
 }  // namespace vsg3d
 }  // namespace chrono
 #endif
