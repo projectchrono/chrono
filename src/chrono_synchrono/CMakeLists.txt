@@ -16,7 +16,8 @@ set(SYN_INCLUDES ${SYN_INCLUDES})
 
 set(SYN_CXX_FLAGS "${CH_CXX_FLAGS}")
 set(SYN_LINKER_FLAGS "${CH_LINKERFLAG_SHARED}")
-set(SYN_LIBRARIES ChronoEngine)
+set(SYN_LIBRARIES "")
+set(SYN_LIB_NAMES "ChronoEngine")
 
 #-----------------------------------------------------------------------------
 # Find FlatBuffers
@@ -303,30 +304,36 @@ source_group("visualization" FILES ${SYN_VISUALIZATION_FILES})
 #-----------------------------------------------------------------------------
 
 if (ENABLE_MODULE_SENSOR)
-  list(APPEND SYN_LIBRARIES ChronoEngine_sensor)
+  # list(APPEND SYN_LIBRARIES ChronoEngine_sensor)
+  list(APPEND SYN_LIB_NAMES ChronoEngine_sensor)
 endif()
 
 if (ENABLE_MODULE_MKL)
-  list(APPEND SYN_LIBRARIES ChronoEngine_mkl)
+  #list(APPEND SYN_LIBRARIES ChronoEngine_mkl)
+  list(APPEND SYN_LIB_NAMES ChronoEngine_mkl)
   list(APPEND SYN_INCLUDES  ${CH_MKL_INCLUDES})
   list(APPEND SYN_CXX_FLAGS ${CH_MKL_CXX_FLAGS})
   list(APPEND SYN_LINKER_FLAGS ${CH_MKL_LINK_FLAGS})
 endif()
 
 if (ENABLE_MODULE_IRRLICHT AND ENABLE_MODULE_VEHICLE)
-  list(APPEND SYN_LIBRARIES ChronoEngine_vehicle_irrlicht)
+  # list(APPEND SYN_LIBRARIES ChronoEngine_vehicle_irrlicht)
+  list(APPEND SYN_LIB_NAMES ChronoEngine_vehicle_irrlicht)
 endif()
 
 if (ENABLE_MODULE_IRRLICHT)
-  list(APPEND SYN_LIBRARIES ChronoEngine_irrlicht)
+  # list(APPEND SYN_LIBRARIES ChronoEngine_irrlicht)
+  list(APPEND SYN_LIB_NAMES ChronoEngine_irrlicht)
 
   list(APPEND SYN_INCLUDES  ${CH_IRRLICHTINC})
   list(APPEND SYN_CXX_FLAGS ${CH_IRRLICHT_CXX_FLAGS})
 endif()
 
 if (ENABLE_MODULE_VEHICLE)
-  list(APPEND SYN_LIBRARIES ChronoEngine_vehicle)
-  list(APPEND SYN_LIBRARIES ChronoModels_vehicle)
+  # list(APPEND SYN_LIBRARIES ChronoEngine_vehicle)
+  # list(APPEND SYN_LIBRARIES ChronoModels_vehicle)
+  list(APPEND SYN_LIB_NAMES ChronoEngine_vehicle)
+  list(APPEND SYN_LIB_NAMES ChronoModels_vehicle)
 endif()
 
 # Set some variables to be visible outside this directory
@@ -369,7 +376,9 @@ set_target_properties(ChronoEngine_synchrono PROPERTIES
 
 target_compile_definitions(ChronoEngine_synchrono PRIVATE "SYN_API_COMPILE")
 
-target_link_libraries(ChronoEngine_synchrono ${SYN_LIBRARIES} ${SYN_OTHER_LIBRARIES})
+target_include_directories(ChronoEngine_synchrono PUBLIC ${SYN_INCLUDES})
+
+target_link_libraries(ChronoEngine_synchrono ${SYN_LIB_NAMES} ${SYN_LIBRARIES} ${SYN_OTHER_LIBRARIES})
 
 install(TARGETS ChronoEngine_synchrono
         RUNTIME DESTINATION bin
