@@ -149,9 +149,9 @@ vsg::ref_ptr<vsg::Node> ChVSGIndexedMesh::createVSGNode(DrawMode drawMode) {
         case DrawMode::Phong: {
             // set up search paths to SPIRV shaders and textures
             vsg::ref_ptr<vsg::ShaderStage> vertexShader =
-                readVertexShader(GetChronoDataFile("vsg/shaders/vert_Phong.spv"));
+                readVertexShader(GetChronoDataFile("vsg/shaders/vert_BlinnPhong.spv"));
             vsg::ref_ptr<vsg::ShaderStage> fragmentShader =
-                readFragmentShader(GetChronoDataFile("vsg/shaders/frag_Phong.spv"));
+                readFragmentShader(GetChronoDataFile("vsg/shaders/frag_BlinnPhong.spv"));
             if (!vertexShader || !fragmentShader) {
                 std::cout << "Could not create shaders." << std::endl;
                 return {};
