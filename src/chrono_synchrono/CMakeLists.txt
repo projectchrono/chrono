@@ -138,7 +138,6 @@ set(SYN_BRAIN_FILES
 	brain/SynTrackingBrain.h
     brain/SynTrackingBrain.cpp
     brain/SynEnvironmentBrain.h
-	brain/SynEnvironmentBrain.cpp
 
     brain/driver/SynMultipathDriver.cpp
     brain/driver/SynMultipathDriver.h

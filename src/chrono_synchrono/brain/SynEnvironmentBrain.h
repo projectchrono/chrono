@@ -6,11 +6,11 @@
 namespace chrono {
 namespace synchrono {
 
-class SYN_API SynEnvironmentBrain : public SynBrain {
+class SynEnvironmentBrain : public SynBrain {
   public:
     SynEnvironmentBrain(int rank) : SynBrain(rank){};
 
-    virtual void Synchronize(double time) override;
+    virtual void Synchronize(double time) override{};
     virtual void Advance(double step) override{};
     virtual void ProcessMessage(SynMessage* msg) override{};
     virtual void GenerateMessagesToSend(std::vector<SynMessage*>& messages) override{};
