@@ -13,7 +13,7 @@ class SYN_API SynBrain {
     SynBrain(int rank) : m_rank(rank) {}
 
     /// Destructor
-    ~SynBrain() {}
+    virtual ~SynBrain() {}
 
     /// Advance the state of this brain until brain time syncs with passed time
     virtual void Advance(double step) = 0;
