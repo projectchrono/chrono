@@ -101,7 +101,7 @@ linux:doxygen:deploy:
     url: http://api.projectchrono.org/
   rules:
     - if: '$CI_COMMIT_REF_NAME == "develop"'
-      when: on_success
+      when: always
   
 
 
@@ -507,7 +507,7 @@ macos:highsierra:build:
   extends: .macos
   script:
   - cd build
-  - cmake ../ $CHRONO_UNIX_SHARED -DENABLE_MODULE_DISTRIBUTED=FALSE 
+  - cmake ../ $CHRONO_UNIX_SHARED -DENABLE_MODULE_DISTRIBUTED=FALSE -DENABLE_MODULE_OPENGL=FALSE
     -DENABLE_MODULE_FSI=FALSE -DCMAKE_C_COMPILER=$(which clang)
     -DCMAKE_CXX_COMPILER=$(which clang++)
     -DCMAKE_CXX_FLAGS="-Wno-deprecated-declarations -Xpreprocessor -fopenmp -lomp -Wno-unused-command-line-argument"
