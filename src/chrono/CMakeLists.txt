@@ -1288,6 +1288,7 @@ set(ChronoEngine_FILES
 # Add the ChronoEngine library to the project
 add_library(ChronoEngine SHARED ${ChronoEngine_FILES})
 
+target_link_libraries(ChronoEngine ${OPENMP_LIBRARIES})
 if (UNIX)
   target_link_libraries(ChronoEngine pthread)
 endif()
