@@ -1,5 +1,5 @@
-#ifndef CH_VSG_INDEXED_MESH_H
-#define CH_VSG_INDEXED_MESH_H
+#ifndef CH_VSG_PBR_IDX_MESH_H
+#define CH_VSG_PBR_IDX_MESH_H
 
 #include <iostream>
 #include <string>
@@ -9,20 +9,20 @@
 #include "chrono/assets/ChAsset.h"
 #include "chrono_vsg/core/ChApiVSG.h"
 #include "chrono_vsg/resources/ChVSGSettings.h"
-#include "chrono_vsg/resources/ChVSGPhongMaterial.h"
+#include "chrono_vsg/resources/ChVSGPbrMaterial.h"
 
 #include <vsg/all.h>
 
 namespace chrono {
 namespace vsg3d {
 
-class CH_VSG_API ChVSGIndexedMesh {
+class CH_VSG_API ChVSGPbrIdxMesh {
   public:
-    ChVSGIndexedMesh(std::shared_ptr<ChBody> body,
+    ChVSGPbrIdxMesh(std::shared_ptr<ChBody> body,
                      std::shared_ptr<ChAsset> asset,
                      vsg::ref_ptr<vsg::MatrixTransform> transform);
 
-    virtual void Initialize(vsg::vec3& lightPosition, ChVSGPhongMaterial& mat, std::string& texFilePath) = 0;
+    virtual void Initialize(vsg::vec3& lightPosition, ChVSGPbrMaterial& mat, std::string& texFilePath) = 0;
     vsg::ref_ptr<vsg::Node> createVSGNode(DrawMode drawMode);
  
   protected:
@@ -38,11 +38,10 @@ class CH_VSG_API ChVSGIndexedMesh {
     vsg::ref_ptr<vsg::vec2Array> m_texcoords;
     vsg::ref_ptr<vsg::ushortArray> m_indices;
 
-    vsg::ref_ptr<vsg::vec3Array> m_ambientColor;
-    vsg::ref_ptr<vsg::vec3Array> m_diffuseColor;
-    vsg::ref_ptr<vsg::vec3Array> m_specularColor;
-    vsg::ref_ptr<vsg::floatArray> m_shininess;
-    vsg::ref_ptr<vsg::floatArray> m_opacity;
+    vsg::vec3 m_albedo;
+    float m_metallic;
+    float m_roughness;
+    float m_ao;
 
     std::shared_ptr<ChBody> m_bodyPtr;
     std::shared_ptr<ChAsset> m_assetPtr;

@@ -26,7 +26,7 @@
 #include "chrono/assets/ChCylinderShape.h"
 #include "chrono_vsg/resources/ChVSGSettings.h"
 #include "chrono_vsg/resources/ChVSGPhongMaterial.h"
-#include "chrono_vsg/shapes/VSGBox.h"
+#include "chrono_vsg/shapes/VSGPbrBox.h"
 #include "chrono_vsg/shapes/VSGSphere.h"
 #include "chrono_vsg/shapes/VSGCylinder.h"
 
@@ -194,8 +194,9 @@ void ChVSGApp::BuildSceneGraph() {
                                          vsg::scale(size.x(), size.y(), size.z()));
                     std::string texFilePath(GetChronoDataFile("vsg/textures/Metal007.jpg"));
                     ChVSGPhongMaterial jade(PhongPresets::Jade);
-                    VSGBox box(body,asset, transform);
-                    box.Initialize(m_light_position, jade, texFilePath);
+                    ChVSGPbrMaterial tmat(PbrPresets::TestMat);
+                    VSGPbrBox box(body,asset, transform);
+                    box.Initialize(m_light_position, tmat, texFilePath);
                     vsg::ref_ptr<vsg::Node> node = box.createVSGNode(m_drawMode);
                     m_scenegraph->addChild(node);
             }

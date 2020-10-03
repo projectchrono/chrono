@@ -21,14 +21,14 @@
 #include "chrono/core/ChVector.h"
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono_vsg/core/ChApiVSG.h"
-#include "chrono_vsg/shapes/ChVSGIndexedMesh.h"
+#include "chrono_vsg/shapes/ChVSGIdxMesh.h"
 
 #include <vsg/all.h>
 
 namespace chrono {
 namespace vsg3d {
 
-class CH_VSG_API VSGSphere : public ChVSGIndexedMesh {
+class CH_VSG_API VSGSphere : public ChVSGIdxMesh {
   public:
     VSGSphere(std::shared_ptr<ChBody> body,
               std::shared_ptr<ChAsset> asset,

@@ -1,24 +1,24 @@
-#include "chrono_vsg/shapes/ChVSGIndexedMesh.h"
+#include "chrono_vsg/shapes/ChVSGIdxMesh.h"
 
 #include "chrono_thirdparty/stb/stb_image.h"
 #include "chrono_thirdparty/filesystem/path.h"
 
 using namespace chrono::vsg3d;
 
-ChVSGIndexedMesh::ChVSGIndexedMesh(std::shared_ptr<ChBody> body,
+ChVSGIdxMesh::ChVSGIdxMesh(std::shared_ptr<ChBody> body,
                                    std::shared_ptr<ChAsset> asset,
                                    vsg::ref_ptr<vsg::MatrixTransform> transform)
     : m_bodyPtr(body), m_assetPtr(asset), m_transform(transform) {}
 
-vsg::ref_ptr<vsg::ShaderStage> ChVSGIndexedMesh::readVertexShader(std::string filePath) {
+vsg::ref_ptr<vsg::ShaderStage> ChVSGIdxMesh::readVertexShader(std::string filePath) {
     return vsg::ShaderStage::read(VK_SHADER_STAGE_VERTEX_BIT, "main", filePath);
 }
 
-vsg::ref_ptr<vsg::ShaderStage> ChVSGIndexedMesh::readFragmentShader(std::string filePath) {
+vsg::ref_ptr<vsg::ShaderStage> ChVSGIdxMesh::readFragmentShader(std::string filePath) {
     return vsg::ShaderStage::read(VK_SHADER_STAGE_FRAGMENT_BIT, "main", filePath);
 }
 
-vsg::ref_ptr<vsg::vec4Array2D> ChVSGIndexedMesh::createRGBATexture(
+vsg::ref_ptr<vsg::vec4Array2D> ChVSGIdxMesh::createRGBATexture(
     std::string filePath) {  // read texture image file with stb_image
 
     vsg::ref_ptr<vsg::vec4Array2D> image;
@@ -55,7 +55,7 @@ vsg::ref_ptr<vsg::vec4Array2D> ChVSGIndexedMesh::createRGBATexture(
     return image;
 }
 
-vsg::ref_ptr<vsg::Node> ChVSGIndexedMesh::createVSGNode(DrawMode drawMode) {
+vsg::ref_ptr<vsg::Node> ChVSGIdxMesh::createVSGNode(DrawMode drawMode) {
     auto subgraph = vsg::StateGroup::create();
     subgraph->setValue("bodyPtr", m_bodyPtr);
     subgraph->setValue("assetPtr", m_assetPtr);

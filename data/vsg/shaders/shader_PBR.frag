@@ -3,10 +3,9 @@
 
 layout(location=0) out vec4 FragColor;
 
-layout(location=0) in vec2 TexCoords;
-layout(location=1) in vec3 WorldPos;
-layout(location=2) in vec3 Normal;
-layout(location=3) in vec3 camPos;
+layout (location = 0) in vec3 WorldPos;
+layout (location = 1) in vec3 Normal;
+layout (location = 2) in vec2 TexCoords;
 
 // material parameters
 vec3 albedo = {0.5,0,0};
@@ -14,6 +13,7 @@ float metallic = 0.5;
 float roughness = 0.7;
 float ao = 1.0;
 
+vec3 camPos = {0,0,100};
 // lights
 vec3[4] lightPositions = {     
         {-10.0f,  10.0f, 10.0f},
