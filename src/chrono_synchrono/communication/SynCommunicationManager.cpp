@@ -6,10 +6,21 @@ namespace chrono {
 namespace synchrono {
 
 SynCommunicationManager::SynCommunicationManager()
-    : m_initialized(false), m_num_advances(0), m_is_synchronized(true), m_ok(true) {}
+    : m_initialized(false),
+      m_num_advances(0),
+      m_is_synchronized(true),
+      m_ok(true),
+      m_heartbeat(1e-2),
+      m_end_time(1000) {}
 
 SynCommunicationManager::SynCommunicationManager(int msg_length)
-    : m_flatbuffers_manager(msg_length), m_initialized(false), m_num_advances(0), m_is_synchronized(true), m_ok(true) {}
+    : m_flatbuffers_manager(msg_length),
+      m_initialized(false),
+      m_num_advances(0),
+      m_is_synchronized(true),
+      m_ok(true),
+      m_heartbeat(1e-2),
+      m_end_time(1000) {}
 
 SynCommunicationManager::~SynCommunicationManager() {}
 
@@ -61,7 +72,7 @@ bool SynCommunicationManager::Initialize() {
 }
 
 // Gather updated state info and msgs to send for agents on this rank
-void SynCommunicationManager::Advance() {
+void SynCommunicationManager::Advance(double time_to_next_sync) {
     // Reset FlatBuffer buffer
     m_flatbuffers_manager.Reset();
 
@@ -98,7 +109,6 @@ void SynCommunicationManager::Advance() {
         return;
 
     // currently one agent per rank
-    double time_to_next_sync = m_num_advances * HEARTBEAT;
     m_agent->Advance(time_to_next_sync);
     m_num_advances++;
 }
@@ -172,7 +182,7 @@ void SynCommunicationManager::ProcessMessageBuffer(const SynFlatBuffers::Buffer*
             continue;
 
         // Verify we are still in sync
-        m_is_synchronized = msg->GetState()->time < HEARTBEAT * (m_num_advances - 1) ? false : m_is_synchronized;
+        m_is_synchronized = msg->GetState()->time < m_heartbeat * (m_num_advances - 1) ? false : m_is_synchronized;
 
         // Store messages to be processed next
         m_message_list[rank].push_back(msg);

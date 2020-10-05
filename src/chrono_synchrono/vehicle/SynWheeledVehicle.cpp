@@ -30,19 +30,22 @@ SynWheeledVehicle::SynWheeledVehicle(ChWheeledVehicle* wheeled_vehicle)
     m_description = chrono_types::make_shared<SynWheeledVehicleDescription>();
 }
 
-SynWheeledVehicle::SynWheeledVehicle(const std::string& filename, ChContactMethod contact_method)
+SynWheeledVehicle::SynWheeledVehicle(const ChCoordsys<>& coord_sys,
+                                     const std::string& filename,
+                                     ChContactMethod contact_method)
     : SynVehicle(filename, contact_method) {
     m_state = chrono_types::make_shared<SynWheeledVehicleState>();
     m_description = chrono_types::make_shared<SynWheeledVehicleDescription>();
 
-    CreateVehicle(filename, m_system);
+    CreateVehicle(coord_sys, filename, m_system);
 }
 
-SynWheeledVehicle::SynWheeledVehicle(const std::string& filename, ChSystem* system) : SynVehicle(filename, system) {
+SynWheeledVehicle::SynWheeledVehicle(const ChCoordsys<>& coord_sys, const std::string& filename, ChSystem* system)
+    : SynVehicle(filename, system) {
     m_state = chrono_types::make_shared<SynWheeledVehicleState>();
     m_description = chrono_types::make_shared<SynWheeledVehicleDescription>();
 
-    CreateVehicle(filename, m_system);
+    CreateVehicle(coord_sys, filename, m_system);
 }
 
 SynWheeledVehicle::SynWheeledVehicle(const std::string& filename) : SynVehicle(filename) {
@@ -52,48 +55,22 @@ SynWheeledVehicle::SynWheeledVehicle(const std::string& filename) : SynVehicle(f
     CreateZombie(filename);
 }
 
-void SynWheeledVehicle::Initialize(ChCoordsys<> coord_sys) {
-    if (!m_wheeled_vehicle) {
-        std::cout << "SynVehicle::Initialize: Vehicle is NULL. Exitting..." << std::endl;
-        exit(-1);
-    }
+SynWheeledVehicle::~SynWheeledVehicle() {
+    if (m_wheeled_vehicle && m_owns_vehicle) {
+        delete m_wheeled_vehicle;
 
-    m_wheeled_vehicle->Initialize(coord_sys);
-
-    if (m_is_json) {
-        // Set vehicle visualization types
-        m_wheeled_vehicle->SetChassisVisualizationType(
-            ReadVisualizationTypeJSON(d["Vehicle"]["Chassis Visualization Type"].GetString()));
-        m_wheeled_vehicle->SetSuspensionVisualizationType(
-            ReadVisualizationTypeJSON(d["Vehicle"]["Suspension Visualization Type"].GetString()));
-        m_wheeled_vehicle->SetSteeringVisualizationType(
-            ReadVisualizationTypeJSON(d["Vehicle"]["Steering Visualization Type"].GetString()));
-        m_wheeled_vehicle->SetWheelVisualizationType(
-            ReadVisualizationTypeJSON(d["Vehicle"]["Wheel Visualization Type"].GetString()));
-
-        // Create and initialize the powertrain system
-        std::string powertrain_filename = d["Powertrain"]["Input File"].GetString();
-        auto powertrain = ReadPowertrainJSON(vehicle::GetDataFile(powertrain_filename));
-        m_wheeled_vehicle->InitializePowertrain(powertrain);
-
-        // Create and initialize the tires
-        std::string tire_filename = d["Tire"]["Input File"].GetString();
-        VisualizationType tire_visualization = ReadVisualizationTypeJSON(d["Tire"]["Visualization Type"].GetString());
-        for (auto& axle : m_wheeled_vehicle->GetAxles()) {
-            for (auto& wheel : axle->GetWheels()) {
-                auto tire = ReadTireJSON(vehicle::GetDataFile(tire_filename));
-                m_wheeled_vehicle->InitializeTire(tire, wheel, tire_visualization);
-            }
-        }
+        if (m_system)
+            delete m_system;
     }
 }
 
 void SynWheeledVehicle::InitializeZombie(ChSystem* system) {
     CreateChassisZombieBody(m_description->m_chassis_vis_file, system);
 
-    int i = 0;
-    m_wheel_list.resize(m_description->m_num_wheels);
-    for (auto& wheel : m_wheel_list) {
+    // For each wheel, create a tire mesh and wheel mesh.
+    // If it is a right side wheel, a 180 degree rotation is made
+
+    for (int i = 0; i < m_description->m_num_wheels; i++) {
         auto tire_trimesh = CreateMeshZombieComponent(m_description->m_tire_vis_file);
         auto wheel_trimesh = CreateMeshZombieComponent(m_description->m_wheel_vis_file);
 
@@ -101,7 +78,7 @@ void SynWheeledVehicle::InitializeZombie(ChSystem* system) {
         wheel_trimesh->GetMesh()->Transform(ChVector<>(), ChMatrix33<>(rot));
         tire_trimesh->GetMesh()->Transform(ChVector<>(), ChMatrix33<>(rot));
 
-        wheel = chrono_types::make_shared<ChBodyAuxRef>();
+        auto wheel = chrono_types::make_shared<ChBodyAuxRef>();
         wheel->AddAsset(wheel_trimesh);
         wheel->AddAsset(tire_trimesh);
         wheel->SetCollide(false);
@@ -123,9 +100,9 @@ void SynWheeledVehicle::SynchronizeZombie(SynMessage* message) {
         m_state = ((SynWheeledVehicleMessage*)message)->GetWheeledState();
     } else {
         // Dead reckon if state was not received
-        m_state->chassis.Step(HEARTBEAT);
-        for (auto& wheel : m_state->wheels)
-            wheel.Step(HEARTBEAT);
+        // m_state->chassis.Step(HEARTBEAT);
+        // for (auto& wheel : m_state->wheels)
+        //     wheel.Step(HEARTBEAT);
     }
 
     m_zombie_body->SetFrame_REF_to_abs(m_state->chassis.GetFrame());
@@ -151,8 +128,24 @@ void SynWheeledVehicle::Update() {
 
 // ---------------------------------------------------------------------------
 
-void SynWheeledVehicle::ParseVehicleFileJSON(const std::string& filename) {
-    SynVehicle::ParseVehicleFileJSON(filename);
+void SynWheeledVehicle::SetZombieVisualizationFiles(std::string chassis_vis_file,
+                                                    std::string wheel_vis_file,
+                                                    std::string tire_vis_file) {
+    m_description->m_chassis_vis_file = chassis_vis_file;
+    m_description->m_wheel_vis_file = wheel_vis_file;
+    m_description->m_tire_vis_file = tire_vis_file;
+}
+
+// ---------------------------------------------------------------------------
+
+void SynWheeledVehicle::Synchronize(double time, const ChDriver::Inputs& driver_inputs, const ChTerrain& terrain) {
+    m_wheeled_vehicle->Synchronize(time, driver_inputs, terrain);
+}
+
+// ---------------------------------------------------------------------------
+
+rapidjson::Document SynWheeledVehicle::ParseVehicleFileJSON(const std::string& filename) {
+    auto d = SynVehicle::ParseVehicleFileJSON(filename);
 
     // -----------------------------------
     // Further validation of the JSON file
@@ -175,20 +168,45 @@ void SynWheeledVehicle::ParseVehicleFileJSON(const std::string& filename) {
 
     // Set number of wheels
     m_description->m_num_wheels = d["Zombie"]["Number Of Wheels"].GetInt();
+
+    return d;
 }
 
-void SynWheeledVehicle::CreateVehicle(const std::string& filename, ChSystem* system) {
+void SynWheeledVehicle::CreateVehicle(const ChCoordsys<>& coord_sys, const std::string& filename, ChSystem* system) {
     // Parse file
-    ParseVehicleFileJSON(filename);
+    auto d = ParseVehicleFileJSON(filename);
 
     // Create the vehicle system
     std::string vehicle_filename = d["Vehicle"]["Input File"].GetString();
     m_wheeled_vehicle = new WheeledVehicle(system, vehicle::GetDataFile(vehicle_filename));
-}
 
-void SynWheeledVehicle::CreateZombie(const std::string& filename) {
-    // Parse file
-    ParseVehicleFileJSON(filename);
+    // Initialize the vehicle
+    m_wheeled_vehicle->Initialize(coord_sys);
+
+    // Set vehicle visualization types
+    m_wheeled_vehicle->SetChassisVisualizationType(
+        ReadVisualizationTypeJSON(d["Vehicle"]["Chassis Visualization Type"].GetString()));
+    m_wheeled_vehicle->SetSuspensionVisualizationType(
+        ReadVisualizationTypeJSON(d["Vehicle"]["Suspension Visualization Type"].GetString()));
+    m_wheeled_vehicle->SetSteeringVisualizationType(
+        ReadVisualizationTypeJSON(d["Vehicle"]["Steering Visualization Type"].GetString()));
+    m_wheeled_vehicle->SetWheelVisualizationType(
+        ReadVisualizationTypeJSON(d["Vehicle"]["Wheel Visualization Type"].GetString()));
+
+    // Create and initialize the powertrain system
+    std::string powertrain_filename = d["Powertrain"]["Input File"].GetString();
+    auto powertrain = ReadPowertrainJSON(vehicle::GetDataFile(powertrain_filename));
+    m_wheeled_vehicle->InitializePowertrain(powertrain);
+
+    // Create and initialize the tires
+    std::string tire_filename = d["Tire"]["Input File"].GetString();
+    VisualizationType tire_visualization = ReadVisualizationTypeJSON(d["Tire"]["Visualization Type"].GetString());
+    for (auto& axle : m_wheeled_vehicle->GetAxles()) {
+        for (auto& wheel : axle->GetWheels()) {
+            auto tire = ReadTireJSON(vehicle::GetDataFile(tire_filename));
+            m_wheeled_vehicle->InitializeTire(tire, wheel, tire_visualization);
+        }
+    }
 }
 
 }  // namespace synchrono

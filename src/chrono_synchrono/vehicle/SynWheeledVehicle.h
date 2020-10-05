@@ -16,57 +16,72 @@ namespace synchrono {
 
 class SYN_API SynWheeledVehicle : public SynVehicle {
   public:
-    // Constructor for zombie vehicle
+    ///@brief Default constructor for a SynWheeledVehicle
     SynWheeledVehicle();
 
-    // Constructor for vehicle
-    SynWheeledVehicle(ChWheeledVehicle* vehicle);
+    ///@brief Constructor for a SynWheeledVehicle where a vehicle pointer is passed
+    /// In this case, the system is assumed to have been created by the vehicle,
+    /// so the system will subsequently not be advanced or destroyed.
+    ///
+    ///@param wheeled_vehicle the vehicle to wrap
+    SynWheeledVehicle(ChWheeledVehicle* wheeled_vehicle);
 
-    // Constructor for vehicles specified through json
-    // Vehicle will create a system itself
-    SynWheeledVehicle(const std::string& filename, ChContactMethod contact_method);
+    ///@brief Constructor for a wheeled vehicle specified through json and a contact method
+    /// This constructor will create it's own system
+    ///
+    ///@param coord_sys the initial position and orientation of the vehicle
+    ///@param filename the json specification file to build the vehicle from
+    ///@param contact_method the contact method used for the Chrono dynamics
+    SynWheeledVehicle(const ChCoordsys<>& coord_sys, const std::string& filename, ChContactMethod contact_method);
 
-    // Constructor for vehicles specified through json
-    // Vehicle will use the passed system
-    SynWheeledVehicle(const std::string& filename, ChSystem* system);
+    ///@brief Constructor for a wheeled vehicle specified through json and a contact method
+    /// This vehicle will use the passed system and not create its own
+    ///
+    ///@param coord_sys the initial position and orientation of the vehicle
+    ///@param filename the json specification file to build the vehicle from
+    ///@param system the system to be used for Chrono dynamics and to add bodies to
+    SynWheeledVehicle(const ChCoordsys<>& coord_sys, const std::string& filename, ChSystem* system);
 
-    // Constructor for zombie vehicles specified through json
+    ///@brief Construct a zombie SynWheeledVehicle from a json specification file
+    ///
+    ///@param filename the json specification file to build the zombie from
     SynWheeledVehicle(const std::string& filename);
 
-    // Destructor
-    virtual ~SynWheeledVehicle() {
-        if (m_wheeled_vehicle && m_owns_vehicle) {
-            delete m_wheeled_vehicle;
+    ///@brief Destructor for a SynWheeledVehicle
+    virtual ~SynWheeledVehicle();
 
-            if (m_system)
-                delete m_system;
-        }
-    }
-
-    // Initialize the underlying vehicle
-    virtual void Initialize(ChCoordsys<> coord_sys) override;
-
-    // Initialize the zombie vehicle
+    ///@brief Initialize the zombie representation of the vehicle.
+    /// Will create and add bodies that are visual representation of the vehicle.
+    /// The position and orientation is updated by SynChrono and the passed messages
+    ///
+    ///@param system the system used to add bodies to for consistent visualization
     virtual void InitializeZombie(ChSystem* system) override;
 
-    // Synchronize zombie with other ranks
+    ///@brief Synchronize the position and orientation of this vehicle with other ranks.
+    /// Any message can be passed, so a check should be done to ensure this message was intended for this agent
+    ///
+    ///@param message the received message that describes the position and orientation
     virtual void SynchronizeZombie(SynMessage* message) override;
 
-    // Update the current state of this vehicle
+    ///@brief Update the current state of this vehicle
     virtual void Update() override;
 
     // ------------------------------------------------------------------------
 
-    // Setters for the visualization files
+    ///@brief Set the zombie visualization files
+    ///
+    ///@param chassis_vis_file the file used for chassis visualization
+    ///@param wheel_vis_file the file used for wheel visualization
+    ///@param tire_vis_file the file used for tire visualization
     void SetZombieVisualizationFiles(std::string chassis_vis_file,
                                      std::string wheel_vis_file,
-                                     std::string tire_vis_file) {
-        m_description->m_chassis_vis_file = chassis_vis_file;
-        m_description->m_wheel_vis_file = wheel_vis_file;
-        m_description->m_tire_vis_file = tire_vis_file;
-    }
+                                     std::string tire_vis_file);
 
     // Set the number of wheels this vehicle has
+
+    ///@brief Set the number of wheels of the underlying vehicle
+    ///
+    ///@param num_wheels number of wheels of the underlying vehicle
     void SetNumWheels(int num_wheels) { m_description->m_num_wheels = num_wheels; }
 
     // ------------------------------------------------------------------------
@@ -75,26 +90,36 @@ class SYN_API SynWheeledVehicle : public SynVehicle {
     // Helper methods for convenience
     // ------------------------------
 
-    // Update the state of this vehicle at the current time.
-    void Synchronize(double time, const ChDriver::Inputs& driver_inputs, const ChTerrain& terrain) {
-        m_wheeled_vehicle->Synchronize(time, driver_inputs, terrain);
-    }
+    ///@brief Update the state of this vehicle at the current time.
+    ///
+    ///@param time the time to synchronize to
+    ///@param driver_inputs the driver inputs (i.e. throttle, braking, steering)
+    ///@param terrain reference to the terrain the vehicle should contact
+    void Synchronize(double time, const ChDriver::Inputs& driver_inputs, const ChTerrain& terrain);
 
-    // Get the underlying vehicle
+    ///@brief Get the underlying vehicle
+    ///
+    ///@return ChVehicle&
     virtual ChVehicle& GetVehicle() override { return *m_wheeled_vehicle; }
 
   protected:
-    virtual void ParseVehicleFileJSON(const std::string& filename) override;
+    ///@brief Parse a JSON specification file that describes a vehicle
+    ///
+    ///@param filename the json specification file
+    virtual rapidjson::Document ParseVehicleFileJSON(const std::string& filename) override;
 
-    virtual void CreateVehicle(const std::string& filename, ChSystem* system) override;
-
-    virtual void CreateZombie(const std::string& filename) override;
+    ///@brief Helper method for creating a vehicle from a json specification file
+    ///
+    ///@param coord_sys the initial position and orientation of the vehicle
+    ///@param filename the json specification file
+    ///@param system a ChSystem to be used when constructing a vehicle
+    virtual void CreateVehicle(const ChCoordsys<>& coord_sys, const std::string& filename, ChSystem* system) override;
 
   private:
-    ChWheeledVehicle* m_wheeled_vehicle;
+    ChWheeledVehicle* m_wheeled_vehicle;  ///< Pointer to the ChWheeledVehicle this class wraps
 
-    std::shared_ptr<SynWheeledVehicleState> m_state;
-    std::shared_ptr<SynWheeledVehicleDescription> m_description;
+    std::shared_ptr<SynWheeledVehicleState> m_state;  ///< State of the vehicle (See SynWheeledVehicleMessage)
+    std::shared_ptr<SynWheeledVehicleDescription> m_description;  ///< Description for zombie creation on discovery
 
     std::vector<std::shared_ptr<ChBodyAuxRef>> m_wheel_list;  ///< vector of this agent's zombie wheels
 

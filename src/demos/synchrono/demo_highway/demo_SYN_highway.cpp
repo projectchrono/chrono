@@ -28,7 +28,34 @@ using namespace chrono;
 using namespace chrono::geometry;
 using namespace chrono::synchrono;
 
-// ------------------------------------------------------------------------------------
+// =============================================================================
+
+// Better conserve mass by displacing soil to the sides of a rut
+bool bulldozing = true;
+
+// Contact method
+ChContactMethod contact_method = ChContactMethod::NSC;
+
+// Simulation end time
+double end_time = 1000;
+
+// Simulation step sizes
+double step_size = 3e-3;
+
+// Time interval between two render frames
+double render_step_size = 1.0 / 50;  // FPS = 50
+
+// Render rank
+int render_rank = 0;
+
+// SynChrono synchronization heartbeat
+float heartbeat = 1e-2;  // 100[Hz]
+
+// Sensor saving and/or visualizing
+bool sens_save = false;
+bool sens_vis = true;
+
+// =============================================================================
 
 std::shared_ptr<SynWheeledVehicle> InitializeVehicle(int rank) {
     ChVector<> init_loc;
@@ -61,8 +88,8 @@ std::shared_ptr<SynWheeledVehicle> InitializeVehicle(int rank) {
             }
             init_rot = Q_from_AngZ(-90 * CH_C_DEG_TO_RAD);
     }
-    auto vehicle = chrono_types::make_shared<SynWheeledVehicle>(GetSynDataFile(filename), CONTACT_METHOD);
-    vehicle->Initialize(ChCoordsys<>(init_loc, init_rot));
+    ChCoordsys<> init_pos(init_loc, init_rot);
+    auto vehicle = chrono_types::make_shared<SynWheeledVehicle>(init_pos, GetSynDataFile(filename), contact_method);
 
     return vehicle;
 }
@@ -72,14 +99,10 @@ std::shared_ptr<SynWheeledVehicle> InitializeVehicle(int rank) {
 int main(int argc, char* argv[]) {
     // Initialize the MPIManager
     SynMPIManager mpi_manager(argc, argv, MPI_CONFIG_DEFAULT);
+    mpi_manager.SetHeartbeat(heartbeat);
+    mpi_manager.SetEndTime(end_time);
     int rank = mpi_manager.GetRank();
     int num_ranks = mpi_manager.GetNumRanks();
-
-    // CLI tools for default synchrono demos
-    SynCLI cli(argv[0]);
-    cli.AddDefaultDemoOptions();
-    if (!cli.Parse(argc, argv, rank == 0))
-        mpi_manager.Exit();
 
     std::shared_ptr<ChDriver> driver;
 
@@ -93,21 +116,23 @@ int main(int argc, char* argv[]) {
     // -------
     // Terrain
     // -------
-    auto terrain = chrono_types::make_shared<RigidTerrain>(agent->GetSystem());
+    MaterialInfo minfo;
+    minfo.mu = 0.9f;
+    minfo.cr = 0.01f;
+    minfo.Y = 2e7f;
+    auto patch_mat = minfo.CreateMaterial(contact_method);
 
-    auto patch = terrain->AddPatch(DefaultMaterialSurface(), CSYSNORM, GetSynDataFile("meshes/Highway_col.obj"), "",
-                                   0.01, false);
+    auto terrain = chrono_types::make_shared<RigidTerrain>(agent->GetSystem());
+    auto patch = terrain->AddPatch(patch_mat, CSYSNORM, GetSynDataFile("meshes/Highway_col.obj"), "", 0.01, false);
 
     auto vis_mesh = chrono_types::make_shared<ChTriangleMeshConnected>();
     vis_mesh->LoadWavefrontMesh(GetSynDataFile("meshes/Highway_vis.obj"), true, true);
-
     auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
     trimesh_shape->SetMesh(vis_mesh);
     trimesh_shape->SetStatic(true);
-
     patch->GetGroundBody()->AddAsset(trimesh_shape);
-
     terrain->Initialize();
+
     agent->SetTerrain(chrono_types::make_shared<SynRigidTerrain>(terrain));
 
     // ----------
@@ -158,11 +183,13 @@ int main(int argc, char* argv[]) {
     agent->SetBrain(brain);
 
     auto vis_manager = chrono_types::make_shared<SynVisualizationManager>();
-    agent->AttachVisualizationManager(vis_manager);
+    agent->SetVisualizationManager(vis_manager);
 
 #ifdef CHRONO_IRRLICHT
-    if (cli.HasValueInVector<int>("irr", rank)) {
+    if (rank == render_rank) {
         auto irr_vis = chrono_types::make_shared<SynIrrVehicleVisualization>(driver);
+        irr_vis->SetRenderStepSize(render_step_size);
+        irr_vis->SetStepSize(step_size);
         irr_vis->InitializeAsDefaultChaseCamera(agent->GetVehicle());
         vis_manager->AddVisualization(irr_vis);
     }
@@ -171,7 +198,7 @@ int main(int argc, char* argv[]) {
 #ifdef CHRONO_SENSOR
     std::shared_ptr<ChCameraSensor> intersection_camera;
     ChVector<double> camera_loc(20, -85, 15);
-    if (cli.HasValueInVector<int>("sens", rank)) {
+    if (rank == render_rank) {
         auto sen_vis = chrono_types::make_shared<SynSensorVisualization>();
 
         auto manager = chrono_types::make_shared<ChSensorManager>(agent->GetSystem());
@@ -214,25 +241,28 @@ int main(int argc, char* argv[]) {
         intersection_camera->SetName("Intersection Cam");
         intersection_camera->PushFilter(chrono_types::make_shared<ChFilterRGBA8Access>());
 
-        if (cli.GetAsType<bool>("sens_vis"))
+        if (sens_vis)
             intersection_camera->PushFilter(
                 chrono_types::make_shared<ChFilterVisualize>(cam_res_width, cam_res_height, "Main Camera"));
 
         std::string path = std::string("SENSOR_OUTPUT/Highway") + std::to_string(rank) + std::string("/");
-        if (cli.GetAsType<bool>("sens_save")) {
+        if (sens_save)
             intersection_camera->PushFilter(chrono_types::make_shared<ChFilterSave>(path));
-        }
 
         sen_vis->SetSensor(intersection_camera);
         vis_manager->AddVisualization(sen_vis);
     }
 #endif
 
+    mpi_manager.Barrier();
     mpi_manager.Initialize();
+    mpi_manager.Barrier();
+
+    int step_number = 0;
 
     // Simulation Loop
     while (mpi_manager.IsOk()) {
-        mpi_manager.Advance();
+        mpi_manager.Advance(heartbeat * step_number++);
         mpi_manager.Synchronize();
 
 #ifdef SENSOR

@@ -51,8 +51,30 @@ using namespace chrono::vehicle;
 using namespace chrono::synchrono;
 using namespace chrono::vehicle::hmmwv;
 
+// =============================================================================
+
 // Better conserve mass by displacing soil to the sides of a rut
-const bool ENABLE_BULLDOZING = true;
+bool bulldozing = true;
+
+// Contact method
+ChContactMethod contact_method = ChContactMethod::NSC;
+
+// Simulation end time
+double end_time = 1000;
+
+// Simulation step sizes
+double step_size = 3e-3;
+
+// Time interval between two render frames
+double render_step_size = 1.0 / 50;  // FPS = 50
+
+// Render rank
+int render_rank = 0;
+
+// SynChrono synchronization heartbeat
+float heartbeat = 1e-2;  // 100[Hz]
+
+// =============================================================================
 
 int main(int argc, char* argv[]) {
     SynMPIConfig config = MPI_CONFIG_DEFAULT;
@@ -61,6 +83,8 @@ int main(int argc, char* argv[]) {
     config.memory_mode = SynMPIMemoryMode::DYNAMIC_RESERVE;
 
     SynMPIManager mpi_manager(argc, argv, config);
+    mpi_manager.SetHeartbeat(heartbeat);
+    mpi_manager.SetEndTime(end_time);
     int rank = mpi_manager.GetRank();
     int num_ranks = mpi_manager.GetNumRanks();
 
@@ -128,7 +152,7 @@ int main(int argc, char* argv[]) {
     // -------------------------
     auto hmmwv = chrono_types::make_shared<HMMWV_Full>();
 
-    hmmwv->SetContactMethod(CONTACT_METHOD);
+    hmmwv->SetContactMethod(contact_method);
     hmmwv->SetChassisCollisionType(ChassisCollisionType::NONE);
     hmmwv->SetChassisFixed(false);
     hmmwv->SetInitPosition(ChCoordsys<>(init_loc, init_rot));
@@ -137,7 +161,7 @@ int main(int argc, char* argv[]) {
     if (using_scm_terrain)
         hmmwv->SetTireType(TireModelType::RIGID);
 
-    hmmwv->SetTireStepSize(STEP_SIZE);
+    hmmwv->SetTireStepSize(step_size);
     hmmwv->Initialize();
 
     hmmwv->SetChassisVisualizationType(VisualizationType::MESH);
@@ -161,8 +185,8 @@ int main(int argc, char* argv[]) {
         auto scm = chrono_types::make_shared<SCMDeformableTerrain>(agent->GetSystem());
 
         // Configure the SCM terrain
-        if (ENABLE_BULLDOZING) {
-            scm->EnableBulldozing(ENABLE_BULLDOZING);
+        if (bulldozing) {
+            scm->EnableBulldozing(bulldozing);
             scm->SetBulldozingParameters(
                 55,   // angle of friction for erosion of displaced material at the border of the rut
                 1,    // displaced material vs downward pressed material.
@@ -188,27 +212,29 @@ int main(int argc, char* argv[]) {
         params.InitializeParametersAsSoft();
         terrain->SetSoilParametersFromStruct(&params);
 
-#ifdef CHRONO_SENSOR
         // Add texture for the terrain
         auto vis_mat = chrono_types::make_shared<ChVisualMaterial>();
         vis_mat->SetSpecularColor({.1f, .1f, .1f});
         vis_mat->SetKdTexture(GetChronoDataFile("sensor/textures/grass_texture.jpg"));
         scm->GetMesh()->material_list.push_back(vis_mat);
-#endif
     } else {
+        MaterialInfo minfo;
+        minfo.mu = 0.9f;
+        minfo.cr = 0.01f;
+        minfo.Y = 2e7f;
+        auto patch_mat = minfo.CreateMaterial(contact_method);
+
         auto rigid = chrono_types::make_shared<RigidTerrain>(agent->GetSystem());
+        auto patch = rigid->AddPatch(patch_mat, ChVector<>(0, 0, 0), ChVector<>(0, 0, 1), size_x, size_y);
+        rigid->Initialize();
 
-        auto patch =
-            rigid->AddPatch(DefaultMaterialSurface(), ChVector<>(0, 0, 0), ChVector<>(0, 0, 1), size_x, size_y);
+        // Terrain visualization
+        // For irrlicht
         patch->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 200, 200);
-
-#ifdef CHRONO_SENSOR
-        // For OptiX
-        // Note: might not always be the 0th texture, may need to loop until you find one that
-        //          casts correctly
+        // For sensor
         auto patch_asset = patch->GetGroundBody()->GetAssets()[0];
-        if (std::shared_ptr<ChVisualization> visual_asset = std::dynamic_pointer_cast<ChVisualization>(patch_asset)) {
-            std::shared_ptr<ChVisualMaterial> box_texture = chrono_types::make_shared<ChVisualMaterial>();
+        if (auto visual_asset = std::dynamic_pointer_cast<ChVisualization>(patch_asset)) {
+            auto box_texture = chrono_types::make_shared<ChVisualMaterial>();
             box_texture->SetKdTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"));
             // FresnelMax and SpecularColor should make it less shiny
             box_texture->SetFresnelMax(0.2);
@@ -216,8 +242,6 @@ int main(int argc, char* argv[]) {
 
             visual_asset->material_list.push_back(box_texture);
         }
-#endif
-        rigid->Initialize();
         agent->SetTerrain(chrono_types::make_shared<SynRigidTerrain>(rigid));
     }
 
@@ -244,11 +268,11 @@ int main(int argc, char* argv[]) {
 
     // Visualization manager is a convenient way to bring Sensor and Irrlicht under one roof
     auto vis_manager = chrono_types::make_shared<SynVisualizationManager>();
-    agent->AttachVisualizationManager(vis_manager);
+    agent->SetVisualizationManager(vis_manager);
 
 #ifdef CHRONO_IRRLICHT
     if (cli.HasValueInVector<int>("irr", rank)) {
-        auto irr_vis = chrono_types::make_shared<SynIrrVehicleVisualization>(driver, STEP_SIZE);
+        auto irr_vis = chrono_types::make_shared<SynIrrVehicleVisualization>(driver, step_size, render_step_size);
         irr_vis->InitializeAsDefaultChaseCamera(agent->GetVehicle());
         vis_manager->AddVisualization(irr_vis);
     }
@@ -313,9 +337,11 @@ int main(int argc, char* argv[]) {
 
     std::cout << "Rank " << rank << " entering simulation loop." << std::endl;
 
+    int step_number = 0;
+
     // Simulation Loop
     while (mpi_manager.IsOk()) {
-        mpi_manager.Advance();
+        mpi_manager.Advance(heartbeat * step_number++);
         mpi_manager.Synchronize();
         mpi_manager.Update();
     }

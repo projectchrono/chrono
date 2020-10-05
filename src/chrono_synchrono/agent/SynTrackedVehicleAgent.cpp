@@ -17,9 +17,12 @@ SynTrackedVehicleAgent::SynTrackedVehicleAgent(unsigned int rank, ChSystem* syst
                                                                 m_tracked_vehicle->m_description);  //
 }
 
-SynTrackedVehicleAgent::SynTrackedVehicleAgent(unsigned int rank, const std::string& filename, ChSystem* system)
+SynTrackedVehicleAgent::SynTrackedVehicleAgent(unsigned int rank,
+                                               ChCoordsys<> coord_sys,
+                                               const std::string& filename,
+                                               ChSystem* system)
     : SynVehicleAgent(rank, system) {
-    VehicleAgentFromJSON(filename, system);
+    VehicleAgentFromJSON(coord_sys, filename, system);
 
     m_msg = chrono_types::make_shared<SynTrackedVehicleMessage>(rank,                               //
                                                                 filename,                           //
@@ -28,10 +31,11 @@ SynTrackedVehicleAgent::SynTrackedVehicleAgent(unsigned int rank, const std::str
 }
 
 SynTrackedVehicleAgent::SynTrackedVehicleAgent(unsigned int rank,
+                                               ChCoordsys<> coord_sys,
                                                const std::string& filename,
                                                ChContactMethod contact_method)
     : SynVehicleAgent(rank) {
-    VehicleAgentFromJSON(filename, contact_method);
+    VehicleAgentFromJSON(coord_sys, filename, contact_method);
 
     m_msg = chrono_types::make_shared<SynTrackedVehicleMessage>(rank,                               //
                                                                 filename,                           //
@@ -82,25 +86,31 @@ void SynTrackedVehicleAgent::VehicleAgentFromJSON(const std::string& filename) {
     m_tracked_vehicle = chrono_types::make_shared<SynTrackedVehicle>(GetSynDataFile(vehicle_filename));
 }
 
-void SynTrackedVehicleAgent::VehicleAgentFromJSON(const std::string& filename, ChSystem* system) {
+void SynTrackedVehicleAgent::VehicleAgentFromJSON(ChCoordsys<> coord_sys,
+                                                  const std::string& filename,
+                                                  ChSystem* system) {
     // Parse file
     Document d = ParseVehicleAgentFileJSON(filename);
 
     // Create the vehicle
     std::string vehicle_filename = d["Vehicle Input File"].GetString();
-    m_tracked_vehicle = chrono_types::make_shared<SynTrackedVehicle>(GetSynDataFile(vehicle_filename), system);
+    m_tracked_vehicle =
+        chrono_types::make_shared<SynTrackedVehicle>(coord_sys, GetSynDataFile(vehicle_filename), system);
 
     // Create the rest of the agent
     SynVehicleAgent::VehicleAgentFromJSON(d);
 }
 
-void SynTrackedVehicleAgent::VehicleAgentFromJSON(const std::string& filename, ChContactMethod contact_method) {
+void SynTrackedVehicleAgent::VehicleAgentFromJSON(ChCoordsys<> coord_sys,
+                                                  const std::string& filename,
+                                                  ChContactMethod contact_method) {
     // Parse file
     Document d = ParseVehicleAgentFileJSON(filename);
 
     // Create the vehicle
     std::string vehicle_filename = d["Vehicle Input File"].GetString();
-    m_tracked_vehicle = chrono_types::make_shared<SynTrackedVehicle>(GetSynDataFile(vehicle_filename), contact_method);
+    m_tracked_vehicle =
+        chrono_types::make_shared<SynTrackedVehicle>(coord_sys, GetSynDataFile(vehicle_filename), contact_method);
 
     m_system = m_tracked_vehicle->GetSystem();
 

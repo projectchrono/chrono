@@ -3,11 +3,14 @@
 namespace chrono {
 namespace synchrono {
 
-SynIrrVehicleVisualization::SynIrrVehicleVisualization(std::shared_ptr<ChDriver> driver, double render_step_size)
+SynIrrVehicleVisualization::SynIrrVehicleVisualization(std::shared_ptr<ChDriver> driver,
+                                                       double step_size,
+                                                       double render_step_size)
     : SynVisualization(SynVisualization::IRRLICHT),
       m_driver(driver),
+      m_step_size(step_size),
       m_render_step_size(render_step_size),
-      m_render_steps(std::ceil(render_step_size / STEP_SIZE)),
+      m_render_steps(std::ceil(render_step_size / step_size)),
       m_step_number(0) {}
 
 void SynIrrVehicleVisualization::InitializeAsDefaultChaseCamera(std::shared_ptr<SynVehicle> vehicle,
@@ -17,18 +20,18 @@ void SynIrrVehicleVisualization::InitializeAsDefaultChaseCamera(std::shared_ptr<
     m_app->SetSkyBox();
     m_app->AddTypicalLights(irr::core::vector3df(30.f, -30.f, 100.f), irr::core::vector3df(30.f, 50.f, 100.f), 250,
                             130);
-    m_app->SetTimestep(STEP_SIZE);
+    m_app->SetTimestep(m_step_size);
     m_app->SetChaseCamera(ChVector<>(0.0, 0.0, 1.75), following_distance, 0.5);
 }
 
 void SynIrrVehicleVisualization::InitializeAsDefaultTrackedChaseCamera(std::shared_ptr<SynTrackedVehicle> vehicle,
-                                                                double following_distance,
-                                                                std::wstring window_title) {
+                                                                       double following_distance,
+                                                                       std::wstring window_title) {
     m_app = chrono_types::make_shared<ChTrackedVehicleIrrApp>(&vehicle->GetVehicle(), window_title.c_str());
     m_app->SetSkyBox();
     m_app->AddTypicalLights(irr::core::vector3df(30.f, -30.f, 100.f), irr::core::vector3df(30.f, 50.f, 100.f), 250,
                             130);
-    m_app->SetTimestep(STEP_SIZE);
+    m_app->SetTimestep(m_step_size);
     m_app->SetChaseCamera(ChVector<>(0.0, 0.0, 1.75), following_distance, 0.5);
 }
 

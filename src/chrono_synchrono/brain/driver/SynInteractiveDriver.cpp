@@ -27,8 +27,6 @@
 
 #include "chrono_synchrono/brain/driver/SynInteractiveDriver.h"
 
-#include "chrono_synchrono/simulation/SynSimulationConfig.h"
-
 namespace chrono {
 namespace synchrono {
 
@@ -39,7 +37,7 @@ SynInteractiveDriver::SynInteractiveDriver(ChVehicle& vehicle)
       m_steering_target(0),
       m_throttle_target(0),
       m_braking_target(0),
-      m_stepsize(STEP_SIZE),
+      m_stepsize(1e-3),
       m_steering_delta(1.0 / 50),
       m_throttle_delta(1.0 / 50),
       m_braking_delta(1.0 / 50),
@@ -68,7 +66,7 @@ bool SynInteractiveDriver::Sample() {
                 // printf("Button %u is %s\n", event.number, event.value == 0 ? "up" : "down");
                 return true;
             } else if (event.isAxis()) {
-                if (VERBOSE && event.number != 1)
+                if (event.number != 1)
                     printf("Axis %u is at position %d\n", event.number, event.value);
 
                 if (event.number == 2) {

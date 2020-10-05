@@ -32,6 +32,32 @@ using namespace chrono::geometry;
 using namespace chrono::synchrono;
 using namespace chrono::vehicle::sedan;
 
+// =============================================================================
+
+// Contact method
+ChContactMethod contact_method = ChContactMethod::NSC;
+
+// Simulation end time
+double end_time = 1000;
+
+// Simulation step sizes
+double step_size = 3e-3;
+
+// Time interval between two render frames
+double render_step_size = 1.0 / 50;  // FPS = 50
+
+// Render rank
+int render_rank = 0;
+
+// SynChrono synchronization heartbeat
+float heartbeat = 1e-2;  // 100[Hz]
+
+// Sensor saving and visualizing
+bool sens_save = false;
+bool sens_vis = true;
+
+// =============================================================================
+
 ChCoordsys<> GetInitialState(int rank) {
     ChVector<> initLoc;
     ChQuaternion<> initRot;
@@ -76,12 +102,6 @@ int main(int argc, char* argv[]) {
     SynMPIManager mpi_manager(argc, argv, MPI_CONFIG_DEFAULT);
     int rank = mpi_manager.GetRank();
     int num_ranks = mpi_manager.GetNumRanks();
-
-    // CLI tools for default synchrono demos
-    SynCLI cli(argv[0]);
-    cli.AddDefaultDemoOptions();
-    if (!cli.Parse(argc, argv, rank == 0))
-        mpi_manager.Exit();
 
     // -------------
     // Traffic light
@@ -134,12 +154,12 @@ int main(int argc, char* argv[]) {
         // Vehicle
         // -------
         auto sedan = chrono_types::make_shared<Sedan>();
-        sedan->SetContactMethod(CONTACT_METHOD);
+        sedan->SetContactMethod(contact_method);
         sedan->SetChassisCollisionType(ChassisCollisionType::NONE);
         sedan->SetChassisFixed(false);
         sedan->SetInitPosition(GetInitialState(rank));
         sedan->SetTireType(TireModelType::TMEASY);
-        sedan->SetTireStepSize(STEP_SIZE);
+        sedan->SetTireStepSize(step_size);
         sedan->Initialize();
 
         sedan->SetChassisVisualizationType(VisualizationType::MESH);
@@ -221,18 +241,20 @@ int main(int argc, char* argv[]) {
         agent->SetBrain(brain);
 
         auto vis_manager = chrono_types::make_shared<SynVisualizationManager>();
-        agent->AttachVisualizationManager(vis_manager);
+        agent->SetVisualizationManager(vis_manager);
 
 #ifdef CHRONO_IRRLICHT
-        if (cli.HasValueInVector<int>("irr", rank)) {
+        if (rank == render_rank) {
             auto irr_vis = chrono_types::make_shared<SynIrrVehicleVisualization>(driver);
+            irr_vis->SetRenderStepSize(render_step_size);
+            irr_vis->SetStepSize(step_size);
             irr_vis->InitializeAsDefaultChaseCamera(agent->GetVehicle());
             vis_manager->AddVisualization(irr_vis);
         }
 #endif
 
 #ifdef CHRONO_SENSOR
-        if (cli.HasValueInVector<int>("sens", rank)) {
+        if (rank == render_rank) {
             auto sen_vis = chrono_types::make_shared<SynSensorVisualization>();
 
             auto manager = chrono_types::make_shared<ChSensorManager>(agent->GetSystem());
@@ -273,14 +295,13 @@ int main(int argc, char* argv[]) {
 
             intersection_camera->SetName("Intersection Cam");
             intersection_camera->PushFilter(chrono_types::make_shared<ChFilterRGBA8Access>());
-            if (cli.GetAsType<bool>("sens_vis"))
+            if (sens_vis)
                 intersection_camera->PushFilter(
                     chrono_types::make_shared<ChFilterVisualize>(cam_res_width, cam_res_height));
 
             std::string path = std::string("SENSOR_OUTPUT/Sedan") + std::to_string(rank) + std::string("/");
-            if (cli.GetAsType<bool>("sens_save")) {
+            if (sens_save)
                 intersection_camera->PushFilter(chrono_types::make_shared<ChFilterSave>(path));
-            }
 
             sen_vis->SetSensor(intersection_camera);
             vis_manager->AddVisualization(sen_vis);

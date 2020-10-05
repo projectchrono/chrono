@@ -2,9 +2,13 @@
 # List of demos according their dependencies
 # ------------------------------------------------------------------------------
 
+if (NOT USE_FAST_DDS)
+	return()
+endif()
+
 set(DEMOS
-	demo_SYN_dds
-	demo_SYN_mpi_dds
+	# demo_SYN_dds
+	# demo_SYN_mpi_dds
 )
 
 message(STATUS "SynChrono Libraries: ${SYN_LIBRARIES}")

@@ -7,9 +7,6 @@
 #include "chrono/physics/ChSystemSMC.h"
 
 #include "chrono/solver/ChSolverBB.h"
-#ifdef CHRONO_MKL
-#include "chrono_mkl/ChSolverMKL.h"
-#endif
 
 using namespace rapidjson;
 
@@ -37,19 +34,22 @@ SynTrackedVehicle::SynTrackedVehicle(ChTrackedVehicle* tracked_vehicle)
     m_shoe_forces_right = TerrainForces(m_tracked_vehicle->GetNumTrackShoes(RIGHT));
 }
 
-SynTrackedVehicle::SynTrackedVehicle(const std::string& filename, ChContactMethod contact_method)
+SynTrackedVehicle::SynTrackedVehicle(const ChCoordsys<>& coord_sys,
+                                     const std::string& filename,
+                                     ChContactMethod contact_method)
     : SynVehicle(filename, contact_method) {
     m_state = chrono_types::make_shared<SynTrackedVehicleState>();
     m_description = chrono_types::make_shared<SynTrackedVehicleDescription>();
 
-    CreateVehicle(filename, m_system);
+    CreateVehicle(coord_sys, filename, m_system);
 }
 
-SynTrackedVehicle::SynTrackedVehicle(const std::string& filename, ChSystem* system) : SynVehicle(filename, system) {
+SynTrackedVehicle::SynTrackedVehicle(const ChCoordsys<>& coord_sys, const std::string& filename, ChSystem* system)
+    : SynVehicle(filename, system) {
     m_state = chrono_types::make_shared<SynTrackedVehicleState>();
     m_description = chrono_types::make_shared<SynTrackedVehicleDescription>();
 
-    CreateVehicle(filename, system);
+    CreateVehicle(coord_sys, filename, system);
 }
 
 SynTrackedVehicle::SynTrackedVehicle(const std::string& filename) : SynVehicle(filename) {
@@ -59,80 +59,12 @@ SynTrackedVehicle::SynTrackedVehicle(const std::string& filename) : SynVehicle(f
     CreateZombie(filename);
 }
 
-void SynTrackedVehicle::Initialize(ChCoordsys<> coord_sys) {
-    if (!m_tracked_vehicle) {
-        std::cout << "SynTrackedVehicle::Initialize: Vehicle is NULL. Exitting..." << std::endl;
-        exit(-1);
-    }
+SynTrackedVehicle::~SynTrackedVehicle() {
+    if (m_tracked_vehicle && m_owns_vehicle) {
+        delete m_tracked_vehicle;
 
-    m_tracked_vehicle->Initialize(coord_sys);
-
-    m_shoe_forces_left = TerrainForces(m_tracked_vehicle->GetNumTrackShoes(LEFT));
-    m_shoe_forces_right = TerrainForces(m_tracked_vehicle->GetNumTrackShoes(RIGHT));
-
-    if (m_is_json) {
-        // Set vehicle visualization types
-        m_tracked_vehicle->SetChassisVisualizationType(
-            ReadVisualizationTypeJSON(d["Vehicle"]["Chassis Visualization Type"].GetString()));
-        m_tracked_vehicle->SetTrackShoeVisualizationType(
-            ReadVisualizationTypeJSON(d["Vehicle"]["Track Shoe Visualization Type"].GetString()));
-        m_tracked_vehicle->SetSprocketVisualizationType(
-            ReadVisualizationTypeJSON(d["Vehicle"]["Sprocket Visualization Type"].GetString()));
-        m_tracked_vehicle->SetIdlerVisualizationType(
-            ReadVisualizationTypeJSON(d["Vehicle"]["Idler Visualization Type"].GetString()));
-        m_tracked_vehicle->SetRoadWheelVisualizationType(
-            ReadVisualizationTypeJSON(d["Vehicle"]["Road Wheel Visualization Type"].GetString()));
-        m_tracked_vehicle->SetRoadWheelAssemblyVisualizationType(
-            ReadVisualizationTypeJSON(d["Vehicle"]["Road Wheel Assembly Visualization Type"].GetString()));
-
-        // Create and initialize the powertrain system
-        std::string powertrain_filename = d["Powertrain"]["Input File"].GetString();
-        auto powertrain = ReadPowertrainJSON(vehicle::GetDataFile(powertrain_filename));
-        m_tracked_vehicle->InitializePowertrain(powertrain);
-    }
-
-    // ------------------------------
-    // Solver and integrator settings
-    // ------------------------------
-    bool use_mkl = false;
-
-    // Cannot use HHT + MKL with NSC contact
-    if (CONTACT_METHOD == ChContactMethod::NSC) {
-        use_mkl = false;
-    }
-
-#ifndef CHRONO_MKL
-    // Cannot use HHT + MKL if Chrono::MKL not available
-    use_mkl = false;
-#endif
-
-    // Cannot use HHT + MKL if Chrono::MKL not available
-    if (use_mkl) {
-#ifdef CHRONO_MKL
-        auto mkl_solver = chrono_types::make_shared<ChSolverMKL>();
-        mkl_solver->LockSparsityPattern(true);
-        m_system->SetSolver(mkl_solver);
-
-        m_system->SetTimestepperType(ChTimestepper::Type::HHT);
-        auto integrator = std::static_pointer_cast<ChTimestepperHHT>(m_system->GetTimestepper());
-        integrator->SetAlpha(-0.2);
-        integrator->SetMaxiters(50);
-        integrator->SetAbsTolerances(1e-4, 1e2);
-        integrator->SetMode(ChTimestepperHHT::ACCELERATION);
-        integrator->SetStepControl(false);
-        integrator->SetModifiedNewton(false);
-        integrator->SetScaling(true);
-        integrator->SetVerbose(false);
-#endif
-    } else {
-        auto solver = chrono_types::make_shared<ChSolverBB>();
-        solver->SetMaxIterations(120);
-        solver->SetOmega(0.8);
-        solver->SetSharpnessLambda(1.0);
-        m_system->SetSolver(solver);
-
-        m_system->SetMaxPenetrationRecoverySpeed(1.5);
-        m_system->SetMinBounceSpeed(2.0);
+        if (m_system)
+            delete m_system;
     }
 }
 
@@ -171,15 +103,15 @@ void SynTrackedVehicle::SynchronizeZombie(SynMessage* message) {
         m_state = ((SynTrackedVehicleMessage*)message)->GetTrackedState();
     } else {
         // Dead reckon if state is not received
-        m_state->chassis.Step(HEARTBEAT);
-        for (auto& track_shoe : m_state->track_shoes)
-            track_shoe.Step(HEARTBEAT);
-        for (auto& sprocket : m_state->sprockets)
-            sprocket.Step(HEARTBEAT);
-        for (auto& idler : m_state->idlers)
-            idler.Step(HEARTBEAT);
-        for (auto& road_wheel : m_state->road_wheels)
-            road_wheel.Step(HEARTBEAT);
+        // m_state->chassis.Step(HEARTBEAT);
+        // for (auto& track_shoe : m_state->track_shoes)
+        //     track_shoe.Step(HEARTBEAT);
+        // for (auto& sprocket : m_state->sprockets)
+        //     sprocket.Step(HEARTBEAT);
+        // for (auto& idler : m_state->idlers)
+        //     idler.Step(HEARTBEAT);
+        // for (auto& road_wheel : m_state->road_wheels)
+        //     road_wheel.Step(HEARTBEAT);
     }
 
     m_zombie_body->SetFrame_REF_to_abs(m_state->chassis.GetFrame());
@@ -195,7 +127,7 @@ void SynTrackedVehicle::SynchronizeZombie(SynMessage* message) {
 
 void SynTrackedVehicle::Update() {
     SynPose chassis(m_tracked_vehicle->GetChassisBody()->GetFrame_REF_to_abs().GetPos(),
-                 m_tracked_vehicle->GetChassisBody()->GetRot());
+                    m_tracked_vehicle->GetChassisBody()->GetRot());
 
     std::vector<SynPose> track_shoes;
     BodyStates left_states(m_tracked_vehicle->GetNumTrackShoes(LEFT));
@@ -231,8 +163,44 @@ void SynTrackedVehicle::Update() {
 
 // ---------------------------------------------------------------------------
 
-void SynTrackedVehicle::ParseVehicleFileJSON(const std::string& filename) {
-    SynVehicle::ParseVehicleFileJSON(filename);
+void SynTrackedVehicle::SetZombieVisualizationFiles(std::string chassis_vis_file,
+                                                    std::string track_shoe_vis_file,
+                                                    std::string left_sprocket_vis_file,
+                                                    std::string right_sprocket_vis_file,
+                                                    std::string left_idler_vis_file,
+                                                    std::string right_idler_vis_file,
+                                                    std::string left_road_wheel_vis_file,
+                                                    std::string right_road_wheel_vis_file) {
+    m_description->m_chassis_vis_file = chassis_vis_file;
+    m_description->m_track_shoe_vis_file = track_shoe_vis_file;
+    m_description->m_left_sprocket_vis_file = left_sprocket_vis_file;
+    m_description->m_right_sprocket_vis_file = right_sprocket_vis_file;
+    m_description->m_left_idler_vis_file = left_idler_vis_file;
+    m_description->m_right_idler_vis_file = right_idler_vis_file;
+    m_description->m_left_road_wheel_vis_file = left_road_wheel_vis_file;
+    m_description->m_right_road_wheel_vis_file = right_road_wheel_vis_file;
+}
+
+void SynTrackedVehicle::SetNumAssemblyComponents(int num_track_shoes,
+                                                 int num_sprockets,
+                                                 int num_idlers,
+                                                 int num_road_wheels) {
+    m_description->m_num_track_shoes = num_track_shoes;
+    m_description->m_num_sprockets = num_sprockets;
+    m_description->m_num_idlers = num_idlers;
+    m_description->m_num_road_wheels = num_road_wheels;
+}
+
+// ---------------------------------------------------------------------------
+
+void SynTrackedVehicle::Synchronize(double time, const ChDriver::Inputs& driver_inputs) {
+    m_tracked_vehicle->Synchronize(time, driver_inputs, m_shoe_forces_left, m_shoe_forces_right);
+}
+
+// ---------------------------------------------------------------------------
+
+rapidjson::Document SynTrackedVehicle::ParseVehicleFileJSON(const std::string& filename) {
+    auto d = SynVehicle::ParseVehicleFileJSON(filename);
 
     // -----------------------------------
     // Further validation of the JSON file
@@ -271,20 +239,53 @@ void SynTrackedVehicle::ParseVehicleFileJSON(const std::string& filename) {
     m_description->m_num_sprockets = d["Zombie"]["Number Of Sprockets"].GetInt();
     m_description->m_num_idlers = d["Zombie"]["Number Of Idlers"].GetInt();
     m_description->m_num_road_wheels = d["Zombie"]["Number Of Road Wheels"].GetInt();
+
+    return d;
 }
 
-void SynTrackedVehicle::CreateVehicle(const std::string& filename, ChSystem* system) {
+void SynTrackedVehicle::CreateVehicle(const ChCoordsys<>& coord_sys, const std::string& filename, ChSystem* system) {
     // Parse file
-    ParseVehicleFileJSON(filename);
+    auto d = ParseVehicleFileJSON(filename);
 
     // Create the vehicle system
     std::string vehicle_filename = d["Vehicle"]["Input File"].GetString();
     m_tracked_vehicle = new TrackedVehicle(system, vehicle::GetDataFile(vehicle_filename));
-}
 
-void SynTrackedVehicle::CreateZombie(const std::string& filename) {
-    // Parse file
-    ParseVehicleFileJSON(filename);
+    m_tracked_vehicle->Initialize(coord_sys);
+
+    m_shoe_forces_left = TerrainForces(m_tracked_vehicle->GetNumTrackShoes(LEFT));
+    m_shoe_forces_right = TerrainForces(m_tracked_vehicle->GetNumTrackShoes(RIGHT));
+
+    // Set vehicle visualization types
+    m_tracked_vehicle->SetChassisVisualizationType(
+        ReadVisualizationTypeJSON(d["Vehicle"]["Chassis Visualization Type"].GetString()));
+    m_tracked_vehicle->SetTrackShoeVisualizationType(
+        ReadVisualizationTypeJSON(d["Vehicle"]["Track Shoe Visualization Type"].GetString()));
+    m_tracked_vehicle->SetSprocketVisualizationType(
+        ReadVisualizationTypeJSON(d["Vehicle"]["Sprocket Visualization Type"].GetString()));
+    m_tracked_vehicle->SetIdlerVisualizationType(
+        ReadVisualizationTypeJSON(d["Vehicle"]["Idler Visualization Type"].GetString()));
+    m_tracked_vehicle->SetRoadWheelVisualizationType(
+        ReadVisualizationTypeJSON(d["Vehicle"]["Road Wheel Visualization Type"].GetString()));
+    m_tracked_vehicle->SetRoadWheelAssemblyVisualizationType(
+        ReadVisualizationTypeJSON(d["Vehicle"]["Road Wheel Assembly Visualization Type"].GetString()));
+
+    // Create and initialize the powertrain system
+    std::string powertrain_filename = d["Powertrain"]["Input File"].GetString();
+    auto powertrain = ReadPowertrainJSON(vehicle::GetDataFile(powertrain_filename));
+    m_tracked_vehicle->InitializePowertrain(powertrain);
+
+    // ------------------------------
+    // Solver and integrator settings
+    // ------------------------------
+    auto solver = chrono_types::make_shared<ChSolverBB>();
+    solver->SetMaxIterations(120);
+    solver->SetOmega(0.8);
+    solver->SetSharpnessLambda(1.0);
+    m_system->SetSolver(solver);
+
+    m_system->SetMaxPenetrationRecoverySpeed(1.5);
+    m_system->SetMinBounceSpeed(2.0);
 }
 
 // ---------------------------------------------------------------------------

@@ -1,7 +1,5 @@
 #include "chrono_synchrono/cli/SynCLI.h"
 
-#include "chrono_synchrono/simulation/SynSimulationConfig.h"
-
 namespace chrono {
 namespace synchrono {
 
@@ -27,20 +25,20 @@ bool SynCLI::Parse(int argc, char* argv[], bool show_help, bool update_config) {
         return false;
     }
 
-    if (update_config)
-        ConfigFromCLI(this);
+    // if (update_config)
+    //     ConfigFromCLI(this);
 
     return true;
 }
 
 void SynCLI::AddDefaultDemoOptions() {
     // General simulation options
-    AddOption<double>("Simulation", "step_size", "Step size", std::to_string(STEP_SIZE));
-    AddOption<double>("Simulation", "end_time", "End time", std::to_string(END_TIME));
-    AddOption<double>("Simulation", "heartbeat", "Heartbeat", std::to_string(HEARTBEAT));
-    AddOption<bool>("Simulation", "verbose", "Verbosity", std::to_string(VERBOSE));
-    AddOption<std::string>("Simulation", "contact_method", "Contact Method", ContactMethodToString(CONTACT_METHOD),
-                           "NSC/SMC");
+    // AddOption<double>("Simulation", "step_size", "Step size", std::to_string(STEP_SIZE));
+    // AddOption<double>("Simulation", "end_time", "End time", std::to_string(END_TIME));
+    // AddOption<double>("Simulation", "heartbeat", "Heartbeat", std::to_string(HEARTBEAT));
+    // AddOption<bool>("Simulation", "verbose", "Verbosity", std::to_string(VERBOSE));
+    // AddOption<std::string>("Simulation", "contact_method", "Contact Method", ContactMethodToString(CONTACT_METHOD),
+    //                        "NSC/SMC");
 
     // TODO: Can't find CHRONO_IRRLICHT for some reason
     // #ifdef CHRONO_IRRLICHT

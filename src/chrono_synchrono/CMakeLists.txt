@@ -234,16 +234,10 @@ set(SYN_FRAMEWORK_FILES
 source_group("frameworks" FILES ${SYN_FRAMEWORK_FILES})
 
 set(SYN_SCENARIO_FILES
-	scenario/SynScenarioManager.h
-	scenario/SynScenarioManager.cpp
+	# scenario/SynScenarioManager.h
+	# scenario/SynScenarioManager.cpp
 )
 source_group("scenario" FILES ${SYN_SCENARIO_FILES})
-
-set(SYN_SIMULATION_FILES
-	simulation/SynSimulationConfig.h
-	simulation/SynSimulationConfig.cpp
-)
-source_group("simulation" FILES ${SYN_SIMULATION_FILES})
 
 set(SYN_TERRAIN_FILES
 	terrain/SynTerrain.h
@@ -355,7 +349,6 @@ add_library(ChronoEngine_synchrono SHARED
 	${SYN_FLATBUFFER_FILES}
 	${SYN_FRAMEWORK_FILES}
 	${SYN_SCENARIO_FILES}
-	${SYN_SIMULATION_FILES}
 	${SYN_TERRAIN_FILES}
 	${SYN_UTILS_FILES}
 	${SYN_VEHICLE_FILES}

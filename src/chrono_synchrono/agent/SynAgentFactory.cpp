@@ -75,6 +75,7 @@ std::shared_ptr<SynAgent> SynAgentFactory::CreateAgent(SynAgentMessage* message)
 }
 
 std::shared_ptr<SynAgent> SynAgentFactory::CreateAgent(unsigned int rank,
+                                                       ChCoordsys<> coord_sys,
                                                        const std::string& filename,
                                                        ChSystem* system) {
     // Create the agent
@@ -85,7 +86,7 @@ std::shared_ptr<SynAgent> SynAgentFactory::CreateAgent(unsigned int rank,
     std::string type = d["Template"].GetString();
 
     if (type.compare("VehicleAgent") == 0) {
-        agent = chrono_types::make_shared<SynWheeledVehicleAgent>(rank, filename, system);
+        agent = chrono_types::make_shared<SynWheeledVehicleAgent>(rank, coord_sys, filename, system);
     } else {
         std::string message = "Agent type \"" + type + "\" not recognized.";
         throw ChException(message);
@@ -95,6 +96,7 @@ std::shared_ptr<SynAgent> SynAgentFactory::CreateAgent(unsigned int rank,
 }
 
 std::shared_ptr<SynAgent> SynAgentFactory::CreateAgent(unsigned int rank,
+                                                       ChCoordsys<> coord_sys,
                                                        const std::string& filename,
                                                        ChContactMethod contact_method) {
     // Create the agent
@@ -105,7 +107,7 @@ std::shared_ptr<SynAgent> SynAgentFactory::CreateAgent(unsigned int rank,
     std::string type = d["Template"].GetString();
 
     if (type.compare("VehicleAgent") == 0) {
-        agent = chrono_types::make_shared<SynWheeledVehicleAgent>(rank, filename, contact_method);
+        agent = chrono_types::make_shared<SynWheeledVehicleAgent>(rank, coord_sys, filename, contact_method);
     } else {
         std::string message = "Agent type \"" + type + "\" not recognized.";
         throw ChException(message);

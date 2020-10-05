@@ -23,7 +23,9 @@ namespace synchrono {
 class SYN_API SynIrrVehicleVisualization : public SynVisualization {
   public:
     /// Constructs a wheeled vehicle irrlicht visualization
-    SynIrrVehicleVisualization(std::shared_ptr<ChDriver> driver = nullptr, double render_step_size = 1. / 50);
+    SynIrrVehicleVisualization(std::shared_ptr<ChDriver> driver = nullptr,
+                               double step_size = 1e-3,
+                               double render_step_size = 1. / 50);
 
     /// Destructor
     ~SynIrrVehicleVisualization() {}
@@ -35,8 +37,8 @@ class SYN_API SynIrrVehicleVisualization : public SynVisualization {
 
     /// Initialze as default irrlicht wheeled vehicle app
     void InitializeAsDefaultTrackedChaseCamera(std::shared_ptr<SynTrackedVehicle> vehicle,
-                                        double following_distance = 6.0,
-                                        std::wstring window_title = L"");
+                                               double following_distance = 6.0,
+                                               std::wstring window_title = L"");
 
     /// Allow external creation and attachment of a IrrApp
     void AttachIrrApp(std::shared_ptr<ChVehicleIrrApp> app);
@@ -65,10 +67,20 @@ class SYN_API SynIrrVehicleVisualization : public SynVisualization {
     /// Get the visualize value
     bool GetVisualize() { return m_visualize; }
 
+    /// Get/Set render step size
+    double GetRenderStepSize() { return m_render_step_size; }
+    void SetRenderStepSize(double render_step_size) { m_render_step_size = render_step_size; }
+
+    /// Get/Set step size
+    double GetStepSize() { return m_step_size; }
+    void SetStepSize(double step_size) { m_step_size = step_size; }
+
   private:
-    int m_step_number;       ///< times update has been called
-    int m_render_step_size;  ///< time interval between two render frame [FPS]
-    int m_render_steps;      ///< updates between each render frame
+    double m_step_size;         ///< simulation step size
+    double m_render_step_size;  ///< time interval between two render frame [FPS]
+
+    int m_step_number;   ///< times update has been called
+    int m_render_steps;  ///< updates between each render frame
 
     bool m_visualize = true;  ///< if should visualize irrlicht window
 

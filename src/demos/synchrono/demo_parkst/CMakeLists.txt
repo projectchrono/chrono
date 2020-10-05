@@ -2,6 +2,13 @@
 # List of demos according their dependencies
 # ------------------------------------------------------------------------------
 
+option(BUILD_PARKST "Build the Park St. demo (requires an SBEL only mesh)" OFF)
+mark_as_advanced(BUILD_PARKST)
+
+if (NOT BUILD_PARKST)
+	return()
+endif()
+
 set(PARKST_DIRECTORY "$ENV{HOME}/Continental/MeshExport" CACHE FILEPATH "Directory location of the Park St. assets")
 
 set(PARKST_COL_MESH_PATH "${PARKST_DIRECTORY}/park_street_col_2.obj" CACHE FILEPATH "Location on disk of the Park St. collision mesh" FORCE)
@@ -25,15 +32,8 @@ endif()
 
 set(DEMOS
     demo_SYN_parkst
-    demo_SYN_parkst_JSON
 )
 message(${DEMOS})
-
-if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-	# _interactive includes a joystick file that only works on Linux
-	list(APPEND DEMOS
-		demo_SYN_parkst_interactive)
-endif()
 
 #--------------------------------------------------------------
 

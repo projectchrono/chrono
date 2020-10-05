@@ -21,20 +21,15 @@ void SynVehicleAgent::Advance(double time_of_next_sync) {
         Synchronize(time, driver_inputs);
 
         // Advance simulation for one timestep for all modules
-        m_brain->Advance(STEP_SIZE);
-        m_terrain->Advance(STEP_SIZE);
-        GetVehicle()->Advance(STEP_SIZE);
+        m_brain->Advance(m_step_size);
+        m_terrain->Advance(m_step_size);
+        GetVehicle()->Advance(m_step_size);
 
-        m_vis_manager->Update(STEP_SIZE);
+        m_vis_manager->Update(m_step_size);
     }
 
     GetVehicle()->Update();
 }
-
-// std::shared_ptr<SynMessageState> SynVehicleAgent::GetState() {
-//     m_msg = chrono_types::make_shared<SynWheeledVehicleMessage>(m_rank, GetVehicle()->GetState());
-//     return m_msg->GetState();
-// }
 
 void SynVehicleAgent::ProcessMessage(SynMessage* msg) {
     switch (msg->GetType()) {
@@ -46,13 +41,6 @@ void SynVehicleAgent::ProcessMessage(SynMessage* msg) {
             break;
     }
 }
-
-// void SynVehicleAgent::GenerateMessagesToSend(std::vector<SynMessage*>& messages) {
-//     m_terrain->GenerateMessagesToSend(messages, m_rank);
-//     m_brain->GenerateMessagesToSend(messages);
-
-//     messages.push_back(new SynWheeledVehicleMessage(m_rank, GetVehicle()->GetState()));
-// }
 
 Document SynVehicleAgent::ParseVehicleAgentFileJSON(const std::string& filename) {
     // Open and parse the input file

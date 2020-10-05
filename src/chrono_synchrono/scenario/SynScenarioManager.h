@@ -6,8 +6,6 @@
 
 #include "chrono_synchrono/utils/SynUtilsJSON.h"
 
-#include "chrono_synchrono/simulation/SynSimulationConfig.h"
-
 using namespace chrono;
 
 namespace chrono {
@@ -27,6 +25,8 @@ class SYN_API SynScenarioManager {
   private:
     unsigned int m_rank;
     unsigned int m_num_ranks;
+
+    ChContactMethod m_method;
 
     SynMPIManager& m_mpi_manager;
 

@@ -16,10 +16,14 @@ class SYN_API SynAgentFactory {
     static std::shared_ptr<SynAgent> CreateAgent(SynAgentMessage* message);
 
     /// Generate the corresponding SynAgent from a JSON specification file
-    static std::shared_ptr<SynAgent> CreateAgent(unsigned int rank, const std::string& filename, ChSystem* system);
+    static std::shared_ptr<SynAgent> CreateAgent(unsigned int rank,
+                                                 ChCoordsys<> coord_sys,
+                                                 const std::string& filename,
+                                                 ChSystem* system);
 
     /// Generate the corresponding SynAgent from a JSON specification file
     static std::shared_ptr<SynAgent> CreateAgent(unsigned int rank,
+                                                 ChCoordsys<> coord_sys,
                                                  const std::string& filename,
                                                  ChContactMethod contact_method = ChContactMethod::NSC);
 };

@@ -4,7 +4,6 @@
 
 set(DEMOS
 	demo_SYN_scm
-	# demo_SYN_scm_JSON
 	demo_SYN_scm_tracked
 )
 

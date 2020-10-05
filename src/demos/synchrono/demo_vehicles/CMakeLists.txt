@@ -4,9 +4,7 @@
 
 set(DEMOS
 	demo_SYN_wheeled
-	demo_SYN_wheeled_JSON
 	demo_SYN_tracked
-	demo_SYN_tracked_JSON
 )
 
 #--------------------------------------------------------------

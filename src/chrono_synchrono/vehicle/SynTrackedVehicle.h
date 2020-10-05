@@ -18,47 +18,74 @@ namespace synchrono {
 // ALWAYS owns system
 class SYN_API SynTrackedVehicle : public SynVehicle {
   public:
-    // Constructor for zombie vehicle
+    ///@brief Default constructor for a SynWheeledVehicle
     SynTrackedVehicle();
 
-    // Constructor for vehicle
-    SynTrackedVehicle(ChTrackedVehicle* vehicle);
+    ///@brief Constructor for a SynWheeledVehicle where a vehicle pointer is passed
+    /// In this case, the system is assumed to have been created by the vehicle,
+    /// so the system will subsequently not be advanced or destroyed.
+    ///
+    ///@param tracked_vehicle the vehicle to wrap
+    SynTrackedVehicle(ChTrackedVehicle* tracked_vehicle);
 
-    // Constructor for vehicles specified through json
-    // Vehicle will create a system itself
-    SynTrackedVehicle(const std::string& filename, ChContactMethod contact_method);
+    ///@brief Constructor for a tracked vehicle specified through json and a contact method
+    /// This constructor will create it's own system
+    ///
+    ///@param coord_sys the initial position and orientation of the vehicle
+    ///@param filename the json specification file to build the vehicle from
+    ///@param contact_method the contact method used for the Chrono dynamics
+    SynTrackedVehicle(const ChCoordsys<>& coord_sys, const std::string& filename, ChContactMethod contact_method);
 
-    // Constructor for vehicles specified through json
-    // Vehicle will use the passed system
-    SynTrackedVehicle(const std::string& filename, ChSystem* system);
+    ///@brief Constructor for a tracked vehicle specified through json and a contact method
+    /// This constructor will create it's own system
+    ///
+    ///@param coord_sys the initial position and orientation of the vehicle
+    ///@param filename the json specification file to build the vehicle from
+    ///@param system the system to be used for Chrono dynamics and to add bodies to
+    SynTrackedVehicle(const ChCoordsys<>& coord_sys, const std::string& filename, ChSystem* system);
 
-    // Constructor for zombie vehicles specified through json
+    ///@brief Construct a zombie SynTrackedVehicle from a json specification file
+    ///
+    ///@param filename the json specification file to build the zombie from
     SynTrackedVehicle(const std::string& filename);
 
-    // Destructor
-    virtual ~SynTrackedVehicle() {
-        if (m_tracked_vehicle && m_owns_vehicle) {
-            delete m_tracked_vehicle;
+    ///@brief Destructor for a SynTrackedVehicle
+    virtual ~SynTrackedVehicle();
 
-            if (m_system)
-                delete m_system;
-        }
-    }
-
-    // Initialize the underlying vehicle
-    virtual void Initialize(ChCoordsys<> coord_sys) override;
-
-    // Initialize the zombie vehicle
+    ///@brief Initialize the zombie representation of the vehicle.
+    /// Will create and add bodies that are visual representation of the vehicle.
+    /// The position and orientation is updated by SynChrono and the passed messages
+    ///
+    ///@param system the system used to add bodies to for consistent visualization
     virtual void InitializeZombie(ChSystem* system) override;
 
-    // Synchronize zombie with other ranks
+    ///@brief Synchronize the position and orientation of this vehicle with other ranks.
+    /// Any message can be passed, so a check should be done to ensure this message was intended for this agent
+    ///
+    ///@param message the received message that describes the position and orientation
     virtual void SynchronizeZombie(SynMessage* message) override;
 
-    // Update the current state of this vehicle
+    ///@brief Update the current state of this vehicle
     virtual void Update() override;
 
     // ------------------------------------------------------------------------
 
+    ///@brief Set the zombie visualization files
+    ///
+    ///@param chassis_vis_file the file used for chassis visualization
+    ///@param wheel_vis_file the file used for wheel visualization
+    ///@param tire_vis_file the file used for tire visualization
+
+    ///@brief Set the zombie visualization files
+    ///
+    ///@param chassis_vis_file the file used for chassis visualization
+    ///@param track_shoe_vis_file the file used for track shoe visualization
+    ///@param left_sprocket_vis_file the file used for left sprocket visualization
+    ///@param right_sprocket_vis_file the file used for right sprocket visualization
+    ///@param left_idler_vis_file the file used for left idler visualization
+    ///@param right_idler_vis_file the file used for right idler visualization
+    ///@param left_road_wheel_vis_file the file used for left road_wheel visualization
+    ///@param right_road_wheel_vis_file the file used for right road_wheel visualization
     void SetZombieVisualizationFiles(std::string chassis_vis_file,
                                      std::string track_shoe_vis_file,
                                      std::string left_sprocket_vis_file,
@@ -66,60 +93,78 @@ class SYN_API SynTrackedVehicle : public SynVehicle {
                                      std::string left_idler_vis_file,
                                      std::string right_idler_vis_file,
                                      std::string left_road_wheel_vis_file,
-                                     std::string right_road_wheel_vis_file) {
-        m_description->m_chassis_vis_file = chassis_vis_file;
-        m_description->m_track_shoe_vis_file = track_shoe_vis_file;
-        m_description->m_left_sprocket_vis_file = left_sprocket_vis_file;
-        m_description->m_right_sprocket_vis_file = right_sprocket_vis_file;
-        m_description->m_left_idler_vis_file = left_idler_vis_file;
-        m_description->m_right_idler_vis_file = right_idler_vis_file;
-        m_description->m_left_road_wheel_vis_file = left_road_wheel_vis_file;
-        m_description->m_right_road_wheel_vis_file = right_road_wheel_vis_file;
-    }
+                                     std::string right_road_wheel_vis_file);
 
-    void SetNumAssemblyComponents(int num_track_shoes, int num_sprockets, int num_idlers, int num_road_wheels) {
-        m_description->m_num_track_shoes = num_track_shoes;
-        m_description->m_num_sprockets = num_sprockets;
-        m_description->m_num_idlers = num_idlers;
-        m_description->m_num_road_wheels = num_road_wheels;
-    }
+    ///@brief Set the number of assembly components
+    ///
+    ///@param num_track_shoes number of track shoes
+    ///@param num_sprockets number of sprockets
+    ///@param num_idlers number of idlers
+    ///@param num_road_wheels number of road_wheels
+    void SetNumAssemblyComponents(int num_track_shoes, int num_sprockets, int num_idlers, int num_road_wheels);
+
+    // ------------------------------------------------------------------------
 
     // ------------------------------
     // Helper methods for convenience
     // ------------------------------
 
     // Update the state of this vehicle at the current time.
-    void Synchronize(double time, const ChDriver::Inputs& driver_inputs) {
-        m_tracked_vehicle->Synchronize(time, driver_inputs, m_shoe_forces_left, m_shoe_forces_right);
-    }
 
-    // Get the underlying vehicle
+    ///@brief Update the state of this vehicle at the current time.
+    ///
+    ///@param time the time to synchronize to
+    ///@param driver_inputs the driver inputs (i.e. throttle, braking, steering)
+    void Synchronize(double time, const ChDriver::Inputs& driver_inputs);
+
+    ///@brief Get the underlying vehicle
+    ///
+    ///@return ChVehicle&
     virtual ChVehicle& GetVehicle() override { return *m_tracked_vehicle; }
 
   private:
-    virtual void ParseVehicleFileJSON(const std::string& filename) override;
+    ///@brief Parse a JSON specification file that describes a vehicle
+    ///
+    ///@param filename the json specification file
+    virtual rapidjson::Document ParseVehicleFileJSON(const std::string& filename) override;
 
-    virtual void CreateVehicle(const std::string& filename, ChSystem* system) override;
+    ///@brief Helper method for creating a vehicle from a json specification file
+    ///
+    ///@param coord_sys the initial position and orientation of the vehicle
+    ///@param filename the json specification file
+    ///@param system a ChSystem to be used when constructing a vehicle
+    virtual void CreateVehicle(const ChCoordsys<>& coord_sys, const std::string& filename, ChSystem* system) override;
 
-    virtual void CreateZombie(const std::string& filename) override;
-
+    ///@brief Helper function for adding multiple trimeshes to a vector
+    /// Will essentially instantiate a ChBodyAuxRef and set the trimesh as the asset for each
+    ///
+    ///@param trimesh the original trimesh
+    ///@param ref_list the ref list to add the created bodies to
+    ///@param system the system that each body must be added to so it can be visualized
     void AddMeshToVector(std::shared_ptr<ChTriangleMeshShape> trimesh,
                          std::vector<std::shared_ptr<ChBodyAuxRef>>& ref_list,
                          ChSystem* system);
 
+    ///@brief Helper function for adding multiple left and right trimeshes to a vector
+    /// Will essentially instantiate a ChBodyAuxRef and set the trimesh as the asset for each
+    ///
+    ///@param left the original left trimesh
+    ///@param right the original right trimesh
+    ///@param ref_list the ref list to add the created bodies to
+    ///@param system the system that each body must be added to so it can be visualized
     void AddMeshToVector(std::shared_ptr<ChTriangleMeshShape> left,
                          std::shared_ptr<ChTriangleMeshShape> right,
                          std::vector<std::shared_ptr<ChBodyAuxRef>>& ref_list,
                          ChSystem* system);
 
   protected:
-    ChTrackedVehicle* m_tracked_vehicle;  ///< pointer to the chrono vehicle
+    ChTrackedVehicle* m_tracked_vehicle;  ///< Pointer to the ChTrackedVehicle that this class wraps
 
-    std::shared_ptr<SynTrackedVehicleState> m_state;
-    std::shared_ptr<SynTrackedVehicleDescription> m_description;
+    std::shared_ptr<SynTrackedVehicleState> m_state;  ///< State of the vehicle (See SynTrackedVehicleMessage)
+    std::shared_ptr<SynTrackedVehicleDescription> m_description;  ///< Description for zombie creation on discovery
 
-    TerrainForces m_shoe_forces_left;
-    TerrainForces m_shoe_forces_right;
+    TerrainForces m_shoe_forces_left;   ///< Terrain forces at the track shoes on the left side
+    TerrainForces m_shoe_forces_right;  ///< Terrain forces at the track shoes on the right side
 
     std::vector<std::shared_ptr<ChBodyAuxRef>> m_track_shoe_list;  ///< vector of this agent's zombie track shoes
     std::vector<std::shared_ptr<ChBodyAuxRef>> m_sprocket_list;    ///< vector of this agent's zombie sprockets

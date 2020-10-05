@@ -45,7 +45,7 @@ int main(int argc, char** argv) {
         agent->SetBrain(brain);
         vis->SetDriver(driver);
 
-        agent->AttachVisualizationManager(vis_manager);
+        agent->SetVisualizationManager(vis_manager);
     }
 
     dds_manager.AddAgent(agent, rank);

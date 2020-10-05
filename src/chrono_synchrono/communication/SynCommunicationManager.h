@@ -1,5 +1,5 @@
-#ifndef SYN_CHRONO_MANAGER_H
-#define SYN_CHRONO_MANAGER_H
+#ifndef SYN_COMMUNICATION_MANAGER_H
+#define SYN_COMMUNICATION_MANAGER_H
 
 #include <map>
 
@@ -10,8 +10,6 @@
 #include "chrono_synchrono/flatbuffer/SynFlatBuffersManager.h"
 #include "chrono_synchrono/flatbuffer/message/SynMessage.h"
 #include "chrono_synchrono/flatbuffer/message/SynMessageFactory.h"
-
-#include "chrono_synchrono/simulation/SynSimulationConfig.h"
 
 using namespace chrono;
 
@@ -48,8 +46,8 @@ class SYN_API SynCommunicationManager {
 
     /// @brief Advance the state of the agent simulated by this rank to the specified timestep
     ///
-    /// @param time Timestep to advance the agent's ChSystem to
-    virtual void Advance();
+    /// @param time_to_next_sync Timestep to advance the agent's ChSystem to
+    virtual void Advance(double time_to_next_sync);
 
     /// @brief Synchronize all zombie agents within each ranks environment
     virtual void Synchronize() = 0;
@@ -81,6 +79,8 @@ class SYN_API SynCommunicationManager {
     /// @param buffer A buffer that contains messages received from a particular rank. e.g. state data + other messages
     virtual std::shared_ptr<SynAgent> AgentFromDescription(const SynFlatBuffers::Buffer* buffer) final;
 
+    // --------------------------------------------------------------------------------------------------------------
+
     /// @brief Get agent at specified rank
     std::shared_ptr<SynAgent> GetAgent(int rank) { return m_agent_list[rank]; }
 
@@ -94,10 +94,22 @@ class SYN_API SynCommunicationManager {
     virtual std::map<int, std::shared_ptr<SynAgent>> GetAgentList() final { return m_agent_list; }
 
     ///@brief Is the simulation still running?
-    bool IsOk() { return m_ok && m_num_advances * HEARTBEAT < END_TIME; }
+    bool IsOk() { return m_ok && m_num_advances * m_heartbeat < m_end_time; }
+
+    /// Get/Set the heartbeat
+    double GetHeartbeat() { return m_heartbeat; }
+    void SetHeartbeat(double heartbeat) { m_heartbeat = heartbeat; }
+
+    /// Get/Set the end time
+    double GetEndTime() { return m_end_time; }
+    void SetEndTime(double end_time) { m_end_time = end_time; }
 
   protected:
     bool m_ok;  ///< Is everything ok?
+
+    // Time variables
+    double m_heartbeat;
+    double m_end_time;
 
     int m_num_advances;      ///< keeps track of the number of updates that have occured so far
     bool m_is_synchronized;  ///< keeps track of the whether ranks are time synchronized

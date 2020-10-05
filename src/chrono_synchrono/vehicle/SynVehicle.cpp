@@ -1,3 +1,31 @@
+// =============================================================================
+// PROJECT CHRONO - http://projectchrono.org
+//
+// Copyright (c) 2014 projectchrono.org
+// All rights reserved.
+//
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
+//
+// =============================================================================
+// =============================================================================
+//
+// Class that wraps a ChVehicle. The underlying vehicle dynamics remain
+// untouched; however, additional functionality is added to allow for SynChrono
+// to pass messages and remain synchronized across ranks.
+//
+// Currently, both wheeled and tracked vehicles are wrapped. See
+// SynWheeledVehicle and SynTrackedVehicle for their additional methods.
+//
+// A SynVehicle will always on the system unless a vehicle is passed in through
+// the SynCustom__Vehicle classes. This means that either the system is
+// passed on instantiation or is created by this class. If this was not the case
+// the underlying ChVehicle may instantiate its own. This can cause issues with
+// destruction and nullptrs associated with the systems.
+//
+// =============================================================================
+
 #include "chrono_synchrono/vehicle/SynVehicle.h"
 
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
@@ -10,11 +38,10 @@ using namespace rapidjson;
 namespace chrono {
 namespace synchrono {
 
-SynVehicle::SynVehicle(bool is_zombie)
-    : m_is_zombie(is_zombie), m_owns_vehicle(false), m_is_json(false), m_system(nullptr) {}
+SynVehicle::SynVehicle(bool is_zombie) : m_is_zombie(is_zombie), m_owns_vehicle(false), m_system(nullptr) {}
 
 SynVehicle::SynVehicle(const std::string& filename, ChContactMethod contact_method)
-    : m_is_zombie(false), m_owns_vehicle(true), m_is_json(true) {
+    : m_is_zombie(false), m_owns_vehicle(true) {
     m_system = (contact_method == ChContactMethod::NSC) ? static_cast<ChSystem*>(new ChSystemNSC)
                                                         : static_cast<ChSystem*>(new ChSystemSMC);
 
@@ -34,15 +61,34 @@ SynVehicle::SynVehicle(const std::string& filename, ChContactMethod contact_meth
 }
 
 SynVehicle::SynVehicle(const std::string& filename, ChSystem* system)
-    : m_system(system), m_is_zombie(false), m_owns_vehicle(true), m_is_json(true) {}
+    : m_system(system), m_is_zombie(false), m_owns_vehicle(true) {}
 
-SynVehicle::SynVehicle(const std::string& filename) : m_is_zombie(true), m_owns_vehicle(false), m_is_json(true) {}
+SynVehicle::SynVehicle(const std::string& filename) : m_is_zombie(true), m_owns_vehicle(false) {}
+
+SynVehicle::~SynVehicle() {
+    // Will delete the system if the vehicle was created by this object
+    // If it wasn't, it must have been passed in and the vehicle is then
+    // responsible for deleting the system
+    if (m_owns_vehicle && m_system)
+        delete m_system;
+}
 
 // ---------------------------------------------------------------------------
 
-void SynVehicle::ParseVehicleFileJSON(const std::string& filename) {
+void SynVehicle::Advance(double step) {
+    GetVehicle().Advance(step);
+
+    // Will usually own the system, so the system also needs to be advanced
+    // If this object does not own the system, this method should be overridden.
+    if (m_owns_vehicle)
+        m_system->DoStepDynamics(step);
+}
+
+// ---------------------------------------------------------------------------
+
+Document SynVehicle::ParseVehicleFileJSON(const std::string& filename) {
     // Open and parse the input file
-    d = ReadFileJSON(filename);
+    auto d = ReadFileJSON(filename);
     if (d.IsNull())
         throw ChException("Vehicle file not read properly in ParseVehicleFileJSON.");
 
@@ -65,6 +111,8 @@ void SynVehicle::ParseVehicleFileJSON(const std::string& filename) {
     assert(d["Vehicle"].HasMember("Chassis Visualization Type"));
 
     assert(d["Zombie"].HasMember("Chassis Visualization File"));
+
+    return d;
 }
 
 // ---------------------------------------------------------------------------
