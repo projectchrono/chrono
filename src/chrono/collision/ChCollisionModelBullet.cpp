@@ -251,7 +251,7 @@ bool ChCollisionModelBullet::AddCylindricalShell(std::shared_ptr<ChMaterialSurfa
     SetSafeMargin(ChMin(GetSafeMargin(), 0.2 * ChMin(radius, 0.5 * hlen)));
 
     auto shape = new ChCollisionShapeBullet(ChCollisionShape::Type::CYLSHELL, material);
-    shape->m_bt_shape = new btCylindricalShellShape(radius, hlen, (btScalar)(sphere_r + GetEnvelope()));
+    shape->m_bt_shape = new btCylindricalShellShape((btScalar)radius, (btScalar)hlen, (btScalar)(sphere_r + GetEnvelope()));
     shape->m_bt_shape->setMargin((btScalar)GetSuggestedFullMargin());
 
     injectShape(pos, rot, shape);

@@ -201,6 +201,23 @@ bool RCollision(const ConvexBase* shapeA,  // first candidate shape
         return true;
     }
 
+    if (shapeA->Type() == ChCollisionShape::Type::BOX && shapeB->Type() == ChCollisionShape::Type::CYLSHELL) {
+        nC = box_cylshell(shapeA->A(), shapeA->R(), shapeA->Box(), shapeB->A(), shapeB->R(), shapeB->Cylshell().x,
+                          shapeB->Cylshell().y, shapeB->Cylshell().w, separation, ct_norm, ct_depth, ct_pt1, ct_pt2,
+                          ct_eff_rad);
+        return true;
+    }
+
+    if (shapeA->Type() == ChCollisionShape::Type::CYLSHELL && shapeB->Type() == ChCollisionShape::Type::BOX) {
+        nC = box_cylshell(shapeB->A(), shapeB->R(), shapeB->Box(), shapeA->A(), shapeA->R(), shapeA->Cylshell().x,
+                          shapeA->Cylshell().y, shapeA->Cylshell().w, separation, ct_norm, ct_depth, ct_pt2, ct_pt1,
+                          ct_eff_rad);
+        for (int i = 0; i < nC; i++) {
+            *(ct_norm + i) = -(*(ct_norm + i));
+        }
+        return true;
+    }
+
     if (shapeA->Type() == ChCollisionShape::Type::BOX && shapeB->Type() == ChCollisionShape::Type::BOX) {
         nC = box_box(shapeA->A(), shapeA->R(), shapeA->Box(), shapeB->A(), shapeB->R(), shapeB->Box(), ct_norm,
                      ct_depth, ct_pt1, ct_pt2, ct_eff_rad);
@@ -887,6 +904,152 @@ int box_capsule(const real3& pos1,
 
     // Return the number of actual contacts
     return j;
+}
+
+// =============================================================================
+//              BOX - CYLSHELL
+
+// Box-cylshell narrow phase collision detection.
+// In:  box at position pos1, with orientation rot1, and half-dimensions hdims1
+//      cylshell at pos2, with orientation rot2
+//         radius2, half-length hlen2 (in Y direction), and sphere_radius srad2
+// Notes:
+// - collisions with the caps of the cylshell are ignored!
+// - a box-cylshell collision may return 0, 1, or more contacts
+
+int box_cylshell(const real3& pos1,
+                 const quaternion& rot1,
+                 const real3& hdims,
+                 const real3& pos2,
+                 const quaternion& rot2,
+                 const real& radius,
+                 const real& hlen,
+                 const real& sphere_r,
+                 const real& separation,
+                 real3* norm,
+                 real* depth,
+                 real3* pt1,
+                 real3* pt2,
+                 real* eff_radius) {
+    // Express the capsule in the frame of the box.
+    real3 c = RotateT(pos2 - pos1, rot1);    // cylinder center (expressed in box frame)
+    quaternion rot = Mult(Inv(rot1), rot2);  // cylinder orientation (expressed in box frame)
+    real3 a = AMatV(rot);                    // cylinder axis (expressed in box frame)
+
+    // Contact distance
+    real contactDist = sphere_r + separation;
+
+    // Threshold for line parallel to face tests
+    const real threshold = real(1e-5);
+
+    // Keep track of the number of contacts generated
+    int i_ct = 0;
+
+    // For each of the 3 directions of the box
+    for (int i = 0; i < 3; i++) {
+        int j = (i + 1) % 3;  // box face direction u
+        int k = (i + 2) % 3;  // box face direction v
+
+        // Set face normal. Pick the positive or negative box face (based on relative cylinder location)
+        real3 n(0, 0, 0);
+        n[i] = +1;
+        real sign = +1;
+        if (Dot(c, n) < 0) {
+            sign = -1;
+            n[i] = -1;
+        }
+
+        // Skip this face if cylinder axis perpendicular to it (we cannot decide on replacement segment)
+        real3 aXn = Cross(a, n);
+        real len2 = Dot(aXn, aXn);
+        if (len2 < 3e-3)  // about 3 degrees or less
+            continue;
+
+        // Find center of replacement segment
+        real3 s = c + Cross(a, aXn) * radius;
+
+        // Intersect the box (expanded by the radius of the replacement capsule) with the segment supporting line
+        // by clamping the line to the volume between parallel faces of the box. In each case, bail out if the line
+        // is parallel to the face and too far from it.
+
+        real tMin = -C_LARGE_REAL;
+        real tMax = +C_LARGE_REAL;
+
+        if (std::abs(a[i]) < threshold) {  // intersect line with slab in 'n' direction
+            if (std::abs(s[i]) > hdims[i] + sphere_r)
+                continue;
+        } else {
+            real t1 = (-hdims[i] - sphere_r - s[i]) / a[i];
+            real t2 = (+hdims[i] + sphere_r - s[i]) / a[i];
+            tMin = Max(tMin, Min(t1, t2));
+            tMax = Min(tMax, Max(t1, t2));
+            if (tMin > tMax)
+                continue;
+        }
+
+        if (std::abs(a[j]) < threshold) {  // intersect line with slab in 'u' direction
+            if (std::abs(s[j]) > hdims[j] + sphere_r)
+                continue;
+        } else {
+            real t1 = (-hdims[j] - sphere_r - s[j]) / a[j];
+            real t2 = (+hdims[j] + sphere_r - s[j]) / a[j];
+            tMin = Max(tMin, Min(t1, t2));
+            tMax = Min(tMax, Max(t1, t2));
+            if (tMin > tMax)
+                continue;
+        }
+
+        if (std::abs(a[k]) < threshold) {  // intersect line with slab in 'v' direction
+            if (std::abs(s[k]) > hdims[k] + sphere_r)
+                continue;
+        } else {
+            real t1 = (-hdims[k] - sphere_r - s[k]) / a[k];
+            real t2 = (+hdims[k] + sphere_r - s[k]) / a[k];
+            tMin = Max(tMin, Min(t1, t2));
+            tMax = Min(tMax, Max(t1, t2));
+            if (tMin > tMax)
+                continue;
+        }
+
+        // Generate the two points on the box face where the cylinder centerline intersect the box
+        real3 locs[2] = {s + a * tMin, s + a * tMax};
+
+        // Snap points to segment and add to the set
+        //// TODO: should snap back to original (un-inflated) box first?
+        real t[2];
+        t[0] = Clamp(Dot(a, locs[0] - s), -hlen, +hlen);
+        t[1] = Clamp(Dot(a, locs[1] - s), -hlen, +hlen);
+
+        // Check if the two points almost coincide (in which case consider only one of them)
+        int numPoints = IsEqual(t[0], t[1]) ? 1 : 2;
+
+        // Perform 1 or 2 sphere-box face tests
+        for (int itest = 0; itest < numPoints; itest++) {
+            // Calculate center of replacement sphere (expressed in box frame)
+            real3 sphCenter = s + a * t[itest];
+
+            // Find closest point on box face to sphere center
+            real3 boxPoint = sphCenter;
+            boxPoint[i] = sign * hdims[i];
+            boxPoint[j] = Max(Min(boxPoint[j], hdims[j]), -hdims[j]);
+            boxPoint[k] = Max(Min(boxPoint[k], hdims[k]), -hdims[k]);
+
+            real dist = sign * (sphCenter[i] - boxPoint[i]);
+            if (dist > contactDist)
+                continue;
+
+            // Generate contact information
+            *(depth + i_ct) = dist - sphere_r;
+            *(norm + i_ct) = Rotate(n, rot1);
+            *(pt1 + i_ct) = TransformLocalToParent(pos1, rot1, boxPoint);
+            *(pt2 + i_ct) = TransformLocalToParent(pos1, rot1, sphCenter) - (*(norm + i_ct)) * sphere_r;
+            *(eff_radius + i_ct) = sphere_r;
+
+            i_ct++;
+        }
+    }
+
+    return i_ct;
 }
 
 // =============================================================================
