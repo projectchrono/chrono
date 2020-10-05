@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Hammad Mazhar
+// Authors: Hammad Mazhar, Radu Serban
 // =============================================================================
 //
 // Description: Class definitions for the AABB generator, Broadpahse
@@ -68,7 +68,9 @@ class CH_PARALLEL_API ChCNarrowphaseDispatch {
     /// Perform collision detection.
     void ProcessRigids();
 
-    void PreprocessCount();
+    /// Calculate total number of potential contacts.
+    int PreprocessCount();
+
     /// Transform the shape data to the global reference frame.
     /// Perform this as a preprocessing step to improve performance.
     /// Performance is improved because the amount of data loaded is still the same

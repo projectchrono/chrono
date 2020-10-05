@@ -670,8 +670,8 @@ void ChIterativeSolverParallelSMC::ProcessContacts() {
         Thrust_Fill(shear_touch, false);
 #pragma omp parallel for
         for (int i = 0; i < (signed)data_manager->num_rigid_contacts; i++) {
-            vec2 pair = I2(int(data_manager->host_data.contact_pairs[i] >> 32),
-                           int(data_manager->host_data.contact_pairs[i] & 0xffffffff));
+            vec2 pair = I2(int(data_manager->host_data.contact_shapeIDs[i] >> 32),
+                           int(data_manager->host_data.contact_shapeIDs[i] & 0xffffffff));
             shape_pairs[i] = pair;
         }
     }

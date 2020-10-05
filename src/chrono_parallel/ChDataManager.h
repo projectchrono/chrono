@@ -239,7 +239,8 @@ struct host_container {
     custom_vector<real3> aabb_min_tet;  ///< List of bounding boxes minimum point for tets
     custom_vector<real3> aabb_max_tet;  ///< List of bounding boxes maximum point for tets
 
-    custom_vector<long long> contact_pairs;  ///< Contact pairs (encoded in a single long log)
+    custom_vector<long long> pair_shapeIDs;     ///< Shape IDs for each shape pair (encoded in a single long long)
+    custom_vector<long long> contact_shapeIDs;  ///< Shape IDs for each contact (encoded in a single long long)
 
     // Contact data
     custom_vector<real3> norm_rigid_rigid;
@@ -253,16 +254,12 @@ struct host_container {
     custom_vector<real3> cpta_rigid_fluid;
     custom_vector<real> dpth_rigid_fluid;
     custom_vector<int> neighbor_rigid_fluid;
-    // custom_vector<vec2> bids_rigid_fluid;
     custom_vector<int> c_counts_rigid_fluid;
 
-    // custom_vector<vec2> bids_fluid_fluid;
     // each particle has a finite number of neighbors preallocated
     custom_vector<int> neighbor_3dof_3dof;
     custom_vector<int> c_counts_3dof_3dof;
     custom_vector<int> particle_indices_3dof;
-    // custom_vector<int> fluid_contact_index;
-    // custom_vector<long long> bids_fluid_fluid;
     custom_vector<int> reverse_mapping_3dof;
 
     custom_vector<real3> norm_rigid_tet;
