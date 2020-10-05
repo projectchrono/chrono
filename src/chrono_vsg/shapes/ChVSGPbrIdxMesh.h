@@ -22,7 +22,7 @@ class CH_VSG_API ChVSGPbrIdxMesh {
                      std::shared_ptr<ChAsset> asset,
                      vsg::ref_ptr<vsg::MatrixTransform> transform);
 
-    virtual void Initialize(vsg::vec3& lightPosition, ChVSGPbrMaterial& mat, std::string& texFilePath) = 0;
+    virtual void Initialize(std::vector<vsg::vec3>& lightPositions, ChVSGPbrMaterial& mat, std::string& texFilePath) = 0;
     vsg::ref_ptr<vsg::Node> createVSGNode(DrawMode drawMode);
  
   protected:
@@ -30,7 +30,8 @@ class CH_VSG_API ChVSGPbrIdxMesh {
     vsg::ref_ptr<vsg::ShaderStage> readFragmentShader(std::string filePath);
     vsg::ref_ptr<vsg::vec4Array2D> createRGBATexture(std::string filePath);
 
-    vsg::vec3 m_lightPosition;
+    vsg::vec3 m_camPos;
+    std::vector<vsg::vec3> m_lightPositions;
     std::string m_textureFilePath;
 
     vsg::ref_ptr<vsg::vec3Array> m_vertices;

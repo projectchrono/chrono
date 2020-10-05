@@ -31,7 +31,7 @@ namespace vsg3d {
 class CH_VSG_API VSGPbrBox : public ChVSGPbrIdxMesh {
   public:
     VSGPbrBox(std::shared_ptr<ChBody> body, std::shared_ptr<ChAsset> asset, vsg::ref_ptr<vsg::MatrixTransform> transform);
-    virtual void Initialize(vsg::vec3& lightPosition, ChVSGPbrMaterial& mat, std::string& texFilePath) override;
+    virtual void Initialize(std::vector<vsg::vec3>& lightPositions, ChVSGPbrMaterial& mat, std::string& texFilePath) override;
 };
 }  // namespace vsg3d
 }  // namespace chrono

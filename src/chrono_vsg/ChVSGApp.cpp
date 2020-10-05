@@ -43,6 +43,10 @@ ChVSGApp::ChVSGApp()
     setClearColor(1.0f, 1.0f, 1.0f);
     m_up_vector = vsg::dvec3(0.0, 0.0, 1.0);
     m_light_position = vsg::vec3(100, 100, 100);
+    m_light_positions.push_back({-100.0f, 100.0f, 100.0f});
+    m_light_positions.push_back({100.0f, 100.0f, 100.0f});
+    m_light_positions.push_back({-100.0f, -100.0f, 100.0f});
+    m_light_positions.push_back({100.0f, -100.0f, 100.0f});
 }
 
 void ChVSGApp::setUpVector(ChVector<> up) {
@@ -196,7 +200,7 @@ void ChVSGApp::BuildSceneGraph() {
                     ChVSGPhongMaterial jade(PhongPresets::Jade);
                     ChVSGPbrMaterial tmat(PbrPresets::TestMat);
                     VSGPbrBox box(body,asset, transform);
-                    box.Initialize(m_light_position, tmat, texFilePath);
+                    box.Initialize(m_light_positions, tmat, texFilePath);
                     vsg::ref_ptr<vsg::Node> node = box.createVSGNode(m_drawMode);
                     m_scenegraph->addChild(node);
             }

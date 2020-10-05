@@ -9,8 +9,10 @@ VSGPbrBox::VSGPbrBox(std::shared_ptr<ChBody> body,
                vsg::ref_ptr<vsg::MatrixTransform> transform)
     : ChVSGPbrIdxMesh(body, asset, transform) {}
 
-void VSGPbrBox::Initialize(vsg::vec3& lightPosition, ChVSGPbrMaterial& mat, std::string& texFilePath) {
-    m_lightPosition = lightPosition;
+void VSGPbrBox::Initialize(std::vector<vsg::vec3>& lightPositions, ChVSGPbrMaterial& mat, std::string& texFilePath) {
+    for (size_t i = 0; i < 4; i++) {
+        m_lightPositions[i] = lightPositions[i];
+    }
     m_textureFilePath = texFilePath;
     m_albedo = mat.albedo;
     m_metallic = mat.metallic;

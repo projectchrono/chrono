@@ -1,6 +1,18 @@
 #version 450
 #extension GL_ARB_separate_shader_objects : enable
 
+layout(set = 1, binding = 0) uniform CamSettings {
+    vec3 pos;
+} cam;
+
+layout(set = 2, binding = 0) uniform MatSettings {
+    vec3 albedo;
+    float metallic;
+    float roughness;
+    float ao;
+} mat;
+
+
 layout(location=0) out vec4 FragColor;
 
 layout (location = 0) in vec3 WorldPos;
@@ -8,12 +20,12 @@ layout (location = 1) in vec3 Normal;
 layout (location = 2) in vec2 TexCoords;
 
 // material parameters
-vec3 albedo = {0.5,0,0};
-float metallic = 0.5;
-float roughness = 0.7;
-float ao = 1.0;
+// vec3 albedo = {0.5,0,0};
+// float metallic = 0.5;
+// float roughness = 0.7;
+// float ao = 1.0;
 
-vec3 camPos = {0,0,100};
+//vec3 camPos = {0,0,100};
 // lights
 vec3[4] lightPositions = {     
         {-10.0f,  10.0f, 10.0f},
@@ -74,12 +86,12 @@ vec3 fresnelSchlick(float cosTheta, vec3 F0)
 void main()
 {		
     vec3 N = normalize(Normal);
-    vec3 V = normalize(camPos - WorldPos);
+    vec3 V = normalize(cam.pos - WorldPos);
 
     // calculate reflectance at normal incidence; if dia-electric (like plastic) use F0 
     // of 0.04 and if it's a metal, use the albedo color as F0 (metallic workflow)    
     vec3 F0 = vec3(0.04); 
-    F0 = mix(F0, albedo, metallic);
+    F0 = mix(F0, mat.albedo, mat.metallic);
 
     // reflectance equation
     vec3 Lo = vec3(0.0);
@@ -93,8 +105,8 @@ void main()
         vec3 radiance = lightColors[i] * attenuation;
 
         // Cook-Torrance BRDF
-        float NDF = DistributionGGX(N, H, roughness);   
-        float G   = GeometrySmith(N, V, L, roughness);      
+        float NDF = DistributionGGX(N, H, mat.roughness);   
+        float G   = GeometrySmith(N, V, L, mat.roughness);      
         vec3 F    = fresnelSchlick(clamp(dot(H, V), 0.0, 1.0), F0);
            
         vec3 nominator    = NDF * G * F; 
@@ -110,18 +122,18 @@ void main()
         // multiply kD by the inverse metalness such that only non-metals 
         // have diffuse lighting, or a linear blend if partly metal (pure metals
         // have no diffuse light).
-        kD *= 1.0 - metallic;	  
+        kD *= 1.0 - mat.metallic;	  
 
         // scale light by NdotL
         float NdotL = max(dot(N, L), 0.0);        
 
         // add to outgoing radiance Lo
-        Lo += (kD * albedo / PI + specular) * radiance * NdotL;  // note that we already multiplied the BRDF by the Fresnel (kS) so we won't multiply by kS again
+        Lo += (kD * mat.albedo / PI + specular) * radiance * NdotL;  // note that we already multiplied the BRDF by the Fresnel (kS) so we won't multiply by kS again
     }   
     
     // ambient lighting (note that the next IBL tutorial will replace 
     // this ambient lighting with environment lighting).
-    vec3 ambient = vec3(0.03) * albedo * ao;
+    vec3 ambient = vec3(0.03) * mat.albedo * mat.ao;
 
     vec3 color = ambient + Lo;
 

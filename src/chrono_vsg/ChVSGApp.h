@@ -85,7 +85,8 @@ class CH_VSG_API ChVSGApp {
 
     float m_clearColor[4];
 
-    vsg::vec3 m_light_position;
+    vsg::vec3 m_light_position; // for Blinn-Phonh
+    std::vector<vsg::vec3> m_light_positions; // for PBR
 
     vsg::dvec3 m_up_vector;
 
