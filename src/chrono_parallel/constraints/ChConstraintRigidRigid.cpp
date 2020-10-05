@@ -187,8 +187,6 @@ void ChConstraintRigidRigid::Setup(ChParallelDataManager* dm) {
     // Readability replacements
     auto& bids = data_manager->host_data.bids_rigid_rigid;  // global IDs of bodies in contact
     auto& abody = data_manager->host_data.active_rigid;     // flags for active bodies
-    auto& sids = data_manager->host_data.contact_pairs;     // global IDs of shapes in contact
-    auto& sindex = data_manager->shape_data.local_rigid;    // collision model indexes of shapes in contact
     auto& blist = *data_manager->body_list;
 
 #pragma omp parallel for
