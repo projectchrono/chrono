@@ -33,12 +33,6 @@
 #include <thrust/count.h>
 #include <thrust/iterator/constant_iterator.h>
 
-#if defined(CHRONO_OPENMP_ENABLED)
-#include <thrust/system/omp/execution_policy.h>
-#elif defined(CHRONO_TBB_ENABLED)
-#include <thrust/system/tbb/execution_policy.h>
-#endif
-
 namespace chrono {
 namespace collision {
 

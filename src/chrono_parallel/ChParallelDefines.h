@@ -28,6 +28,13 @@
 #include <thrust/scan.h>
 #include <thrust/fill.h>
 #include <thrust/copy.h>
+#include <thrust/iterator/counting_iterator.h>
+
+#if defined(CHRONO_OPENMP_ENABLED)
+#include <thrust/system/omp/execution_policy.h>
+#elif defined(CHRONO_TBB_ENABLED)
+#include <thrust/system/tbb/execution_policy.h>
+#endif
 
 #ifndef _MSC_VER
 #include <cfenv>

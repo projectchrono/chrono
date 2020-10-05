@@ -46,7 +46,7 @@ linux:arch-gcc:build:
   - cd build
   - cmake ../ $CHRONO_UNIX_SHARED -DENABLE_MODULE_DISTRIBUTED=TRUE 
     -DENABLE_MODULE_FSI=TRUE -DCMAKE_C_COMPILER=/usr/bin/gcc 
-    -DCMAKE_CXX_COMPILER=/usr/bin/g++ -DCUDA_HOST_COMPILER=/usr/bin/gcc-9 
+    -DCMAKE_CXX_COMPILER=/usr/bin/g++ 
     -DEIGEN3_INCLUDE_DIR=/usr/include/eigen3 -DENABLE_MODULE_GRANULAR=TRUE
   - make -j 8
   artifacts:
@@ -113,7 +113,7 @@ linux:arch-llvm:build:
   - cd build
   - cmake ../ $CHRONO_UNIX_SHARED -DENABLE_MODULE_DISTRIBUTED=TRUE 
     -DENABLE_MODULE_FSI=TRUE -DCMAKE_C_COMPILER=/usr/bin/clang 
-    -DCMAKE_CXX_COMPILER=/usr/bin/clang++ -DCUDA_HOST_COMPILER=/usr/bin/gcc-9 
+    -DCMAKE_CXX_COMPILER=/usr/bin/clang++ -DCUDA_HOST_COMPILER=/usr/bin/gcc 
     -DEIGEN3_INCLUDE_DIR=/usr/include/eigen3 -DENABLE_MODULE_GRANULAR=TRUE
   - make -j 8
   artifacts:

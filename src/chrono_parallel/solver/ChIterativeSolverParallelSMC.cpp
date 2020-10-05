@@ -36,12 +36,6 @@
 #include "chrono/physics/ChMaterialSurfaceSMC.h"
 #include "chrono_parallel/solver/ChIterativeSolverParallel.h"
 
-#if defined(CHRONO_OPENMP_ENABLED)
-#include <thrust/system/omp/execution_policy.h>
-#elif defined(CHRONO_TBB_ENABLED)
-#include <thrust/system/tbb/execution_policy.h>
-#endif
-
 #if defined _WIN32
 #include <cstdint>
 #endif
