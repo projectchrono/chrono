@@ -74,7 +74,7 @@ void SynWheeledVehicle::InitializeZombie(ChSystem* system) {
         auto tire_trimesh = CreateMeshZombieComponent(m_description->m_tire_vis_file);
         auto wheel_trimesh = CreateMeshZombieComponent(m_description->m_wheel_vis_file);
 
-        ChQuaternion<> rot = (i++ % 2 == 0) ? Q_from_AngZ(0) : Q_from_AngZ(CH_C_PI);
+        ChQuaternion<> rot = (i + 1 % 2 == 0) ? Q_from_AngZ(0) : Q_from_AngZ(CH_C_PI);
         wheel_trimesh->GetMesh()->Transform(ChVector<>(), ChMatrix33<>(rot));
         tire_trimesh->GetMesh()->Transform(ChVector<>(), ChMatrix33<>(rot));
 
@@ -84,6 +84,8 @@ void SynWheeledVehicle::InitializeZombie(ChSystem* system) {
         wheel->SetCollide(false);
         wheel->SetBodyFixed(true);
         system->Add(wheel);
+
+        m_wheel_list.push_back(wheel);
     }
 
     m_system = system;
