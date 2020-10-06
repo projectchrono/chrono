@@ -43,7 +43,7 @@ namespace fea {
 	}
 
 
-	void  ChBeamSectionEulerGeneric::ComputeInertiaMatrix(ChMatrixNM<double, 6, 6>& M) {
+	void  ChBeamSectionEulerAdvancedGeneric::ComputeInertiaMatrix(ChMatrixNM<double, 6, 6>& M) {
 		M.setZero();
 		M(0, 0) = this->mu;
 		M(1, 1) = this->mu;
@@ -60,18 +60,18 @@ namespace fea {
 		M(0, 5) = - this->mu * this->My;
 
 		M(3, 3) = this->Jxx;
-		// M(4, 4) M(5, 5)the following are zero in Euler theory  
-		//..or just make a tiny nonzero value to avoid singularity
-		//M(4, 4) = 1./500. * M(0, 0);
-		//M(5, 5) = 1./500. * M(0, 0);
-		// .. but Rayleigh beam theory may add it, etc
+		// M(4, 4) M(5, 5) are zero in Euler theory, as Jzz = 0 Jyy = 0 
+		// .. but just make them a tiny nonzero value to avoid singularity, if small JzzJyy_factor
+		M(4, 4) = JzzJyy_factor * M(0, 0);
+		M(5, 5) = JzzJyy_factor * M(0, 0);
+		// .. but Rayleigh beam theory may add it as:
 		//M(4, 4) = this->Jyy;
 		//M(5, 5) = this->Jzz;
 		//M(4, 5) = -this->Jyz;
 		//M(5, 4) = -this->Jyz;
 	}
 
-	void ChBeamSectionEulerGeneric::ComputeQuadraticTerms(ChVector<>& mF,   ///< centrifugal term (if any) returned here
+	void ChBeamSectionEulerAdvancedGeneric::ComputeQuadraticTerms(ChVector<>& mF,   ///< centrifugal term (if any) returned here
 		ChVector<>& mT,                ///< gyroscopic term  returned here
 		const ChVector<>& mW           ///< current angular velocity of section, in material frame
 	) {

@@ -23,6 +23,26 @@ namespace chrono {
 
 #ifdef _OPENMP
 
+/// Wrappers around OpenMP functions.
+class ChApi ChOMP {
+  public:
+    /// Set the number of threads in subsequent parallel regions, unless overridden by a 'num_threads' clause
+    static void SetNumThreads(int nthreads) { omp_set_num_threads(nthreads); }
+
+    /// Return the number of threads in the parallel region.
+    static int GetNumThreads() { return omp_get_num_threads(); }
+
+    /// Return the thread number of the thread executing within its thread team.
+    static int GetThreadNum() { return omp_get_thread_num(); }
+
+    /// Return the number of available processors on this machine
+    static int GetNumProcs() { return omp_get_num_procs(); }
+
+    /// Return the max. number of threads that would be used by default if num_threads not specified.
+    /// This is the same number as GetNumProcs() on most OMP implementations.
+    static int GetMaxThreads() { return omp_get_max_threads(); }
+};
+
 /// Class that wraps a 'omp_lock_t' for doing a mutex in OpenMP parallel sections.
 class ChApi CHOMPmutex {
   public:
@@ -38,43 +58,23 @@ class ChApi CHOMPmutex {
     omp_lock_t lock;
 };
 
-/// Class that wraps some useful functions in OpenMP
-/// (in case no OpenMP is used, it defaults to no-op functions)
-class ChApi CHOMPfunctions {
+#else
+
+/// Dummy no-op functions in case that no parallel multithreading via OpenMP is available.
+class ChApi ChOMP {
   public:
-    /// Sets the number of threads in subsequent parallel regions, unless overridden by a 'num_threads' clause
-    static void SetNumThreads(int mth) { omp_set_num_threads(mth); }
-
-    /// Returns the number of threads in the parallel region.
-    static int GetNumThreads() { return omp_get_num_threads(); }
-
-    /// Returns the thread number of the thread executing within its thread team.
-    static int GetThreadNum() { return omp_get_thread_num(); }
-
-    /// Returns the number of available processors on this machine
-    static int GetNumProcs() { return omp_get_num_procs(); }
-
-    /// Returns the max.number of threads that would be used by default if num_threads not specified.
-    /// This is the same number as GetNumProcs() on most OMP implementations.
-    static int GetMaxThreads() { return omp_get_max_threads(); }
+    static void SetNumThreads(int nthreads) {}
+    static int GetNumThreads() { return 1; }
+    static int GetThreadNum() { return 0; }
+    static int GetNumProcs() { return 1; }
+    static int GetMaxThreads() { return 1; }
 };
 
-#else
 /// Dummy no-op mutex in case that no parallel multithreading via OpenMP is available.
 class ChApi CHOMPmutex {
   public:
     void Lock() {}
     void Unlock() {}
-};
-
-/// Dummy no-op functions in case that no parallel multithreading via OpenMP is available.
-class ChApi CHOMPfunctions {
-  public:
-    static void SetNumThreads(int mth) {}
-    static int GetNumThreads() { return 1; }
-    static int GetThreadNum() { return 0; }
-    static int GetNumProcs() { return 1; }
-    static int GetMaxThreads() { return 1; }
 };
 
 #endif
@@ -86,7 +86,7 @@ class ChApi CHOMPfunctions {
 /// by the compiler when exiting the scope of the section or in case
 /// of premature exit because of an exception throw)
 struct CHOMPscopedLock {
-    explicit CHOMPscopedLock(CHOMPmutex& m) : mut(m), locked(true) { mut.Lock(); }
+    explicit CHOMPscopedLock(CHOMPmutex& m) : mutex(m), locked(true) { mutex.Lock(); }
 
     ~CHOMPscopedLock() { Unlock(); }
 
@@ -94,22 +94,22 @@ struct CHOMPscopedLock {
         if (!locked)
             return;
         locked = false;
-        mut.Unlock();
+        mutex.Unlock();
     }
 
     void LockAgain() {
         if (locked)
             return;
-        mut.Lock();
+        mutex.Lock();
         locked = true;
     }
 
   private:
-    CHOMPmutex& mut;
+    CHOMPmutex& mutex;
     bool locked;
 
   private:
-    // trick to prevent copying the scoped lock
+    // Prevent copying the scoped lock
     void operator=(const CHOMPscopedLock&);
     CHOMPscopedLock(const CHOMPscopedLock&);
 };

@@ -295,7 +295,6 @@ void BuildRigidFluidBoundary(const real contact_mu,
         custom_vector<real3>& pos_rigid = data_manager->host_data.pos_rigid;
         custom_vector<quaternion>& rot_rigid = data_manager->host_data.rot_rigid;
 
-        // custom_vector<vec2>& bids = data_manager->host_data.bids_rigid_fluid;
         custom_vector<real3>& cpta = data_manager->host_data.cpta_rigid_fluid;
         custom_vector<real3>& norm = data_manager->host_data.norm_rigid_fluid;
         custom_vector<int>& neighbor_rigid_fluid = data_manager->host_data.neighbor_rigid_fluid;

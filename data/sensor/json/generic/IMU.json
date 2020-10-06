@@ -1,0 +1,39 @@
+{
+  "Name": "Generic sensor",
+  "Type": "Sensor",
+  "Template": "IMU",
+
+  "Properties": {
+    "Update Rate": 100,
+    "Lag": 0.01,
+    "Collection Time": 0.01,
+    "IMU Noise Model": {
+      "Noise Model": "ChIMUNoiseNone"
+    }
+  },
+
+  "Filters":
+  [
+    {
+      "Filter": "ChFilterIMUAccess"
+    },
+    {
+      "Filter": "ChFilterIMUUpdate",
+      "IMU Noise Model": {
+        "Noise Model": "ChIMUNoiseNormalDrift",
+        "Update Rate": 100.0,
+        "Gaussian Mean": 0.0,
+        "Gaussian Standard Deviation": 0.001,
+        "Gaussian Bias Drift": 0.0,
+        "Gaussian Tau Drift": 0.1,
+        "A Mean": 0.0,
+        "A Standard Deviation": 0.0075,
+        "A Bias Drift": 0.001,
+        "A Tau Drift": 0.1
+      }
+    },
+    {
+      "Filter": "ChFilterIMUAccess"
+    }
+  ]
+}

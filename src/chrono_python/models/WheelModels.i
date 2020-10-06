@@ -17,6 +17,7 @@
 #include "chrono_models/vehicle/man/MAN_5t_Wheel.h"
 #include "chrono_models/vehicle/uaz/UAZBUS_Wheel.h"
 #include "chrono_models/vehicle/gator/Gator_Wheel.h"
+#include "chrono_models/vehicle/rccar/RCCar_Wheel.h"
 %}
 
 
@@ -42,6 +43,10 @@
 
 %shared_ptr(chrono::vehicle::gator::Gator_Wheel)
 
+%shared_ptr(chrono::vehicle::rccar::RCCar_Wheel)
+%shared_ptr(chrono::vehicle::rccar::RCCar_WheelLeft)
+%shared_ptr(chrono::vehicle::rccar::RCCar_WheelRight)
+
 %import "../../chrono_vehicle/wheeled_vehicle/ChWheel.h"
 
 // Model:
@@ -53,3 +58,4 @@
 %include "../../chrono_models/vehicle/man/MAN_5t_Wheel.h"
 %include "../../chrono_models/vehicle/uaz/UAZBUS_Wheel.h"
 %include "../../chrono_models/vehicle/gator/Gator_Wheel.h"
+%include "../../chrono_models/vehicle/rccar/RCCar_Wheel.h"

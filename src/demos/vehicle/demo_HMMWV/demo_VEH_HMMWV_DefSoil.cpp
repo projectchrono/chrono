@@ -224,6 +224,7 @@ int main(int argc, char* argv[]) {
     // Create the terrain
     // ------------------
     ChSystem* system = my_hmmwv.GetSystem();
+    system->SetNumThreads(std::min(8, ChOMP::GetNumProcs()));
 
     SCMDeformableTerrain terrain(system);
     terrain.SetSoilParameters(2e6,   // Bekker Kphi

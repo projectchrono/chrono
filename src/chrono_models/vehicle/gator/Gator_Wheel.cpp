@@ -38,9 +38,7 @@ const double Gator_Wheel::m_width = 0.205;
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-Gator_Wheel::Gator_Wheel(const std::string& name) : ChWheel(name) {
-    m_vis_mesh_file = "gator/gator_rim.obj";
-}
+Gator_Wheel::Gator_Wheel(const std::string& name) : ChWheel(name) {}
 
 }  // end namespace gator
 }  // end namespace vehicle

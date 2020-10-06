@@ -54,14 +54,7 @@ class ChApi ChSystemSMC : public ChSystem {
     };
 
     /// Constructor for ChSystemSMC.
-    /// Note that, in case you will use collision detection, the values of
-    /// 'max_objects' and 'scene_size' can be used to initialize the broadphase
-    /// collision algorithm in an optimal way. Scene size should be approximately
-    /// the radius of the expected area where colliding objects will move.
-    ChSystemSMC(bool use_material_properties = true,  ///< use physical contact material properties
-                unsigned int max_objects = 16000,     ///< maximum number of contactable objects
-                double scene_size = 500               ///< approximate bounding radius of the scene
-                );
+    ChSystemSMC(bool use_material_properties = true);
 
     /// Copy constructor
     ChSystemSMC(const ChSystemSMC& other);

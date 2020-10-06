@@ -39,7 +39,8 @@ void FinalizeDomain(std::shared_ptr<fsi::SimParams> paramsH) {
     int3 side0 = mI3((int)floor((paramsH->cMax.x - paramsH->cMin.x) / (2 * paramsH->HSML)),
                      (int)floor((paramsH->cMax.y - paramsH->cMin.y) / (2 * paramsH->HSML)),
                      (int)floor((paramsH->cMax.z - paramsH->cMin.z) / (2 * paramsH->HSML)));
-    Real3 binSize3 = mR3((paramsH->cMax.x - paramsH->cMin.x) / side0.x, (paramsH->cMax.y - paramsH->cMin.y) / side0.y,
+    Real3 binSize3 = mR3((paramsH->cMax.x - paramsH->cMin.x) / side0.x, 
+                         (paramsH->cMax.y - paramsH->cMin.y) / side0.y,
                          (paramsH->cMax.z - paramsH->cMin.z) / side0.z);
     paramsH->binSize0 = (binSize3.x > binSize3.y) ? binSize3.x : binSize3.y;
     paramsH->binSize0 = binSize3.x;
@@ -466,18 +467,7 @@ void AddSphereBce(std::shared_ptr<ChFsiDataManager> fsiData,
                   Real radius) {
     thrust::host_vector<Real4> posRadBCE;
     CreateBCE_On_Sphere(posRadBCE, radius, paramsH);
-
-    //	if (fsiData->sphMarkersH->posRadH.size() !=
-    // fsiData->numObjects->numAllMarkers) {
-    //		printf("Error! numMarkers, %d, does not match posRadH.size(),
-    //%d\n",
-    //				fsiData->numObjects->numAllMarkers,
-    // fsiData->sphMarkersH->posRadH.size());
-    //		std::cin.get();
-    //	}
-
     CreateBceGlobalMarkersFromBceLocalPos(fsiData, paramsH, posRadBCE, body);
-
     posRadBCE.clear();
 }
 // =============================================================================
@@ -545,15 +535,8 @@ void AddSphereSurfaceBce(std::shared_ptr<ChFsiDataManager> fsiData,
     posRadBCE.clear();
     normals.clear();
 }
+
 // =============================================================================
-// Arman note, the function in the current implementation creates boundary bce
-// (accesses only referenceArray[1])
-
-// Arman thrust::host_vector<uint>& bodyIndex,
-
-// Arman later on, you can remove numObjects since the Finalize function will
-// take care of setting up the numObjects
-
 void AddBoxBce(std::shared_ptr<ChFsiDataManager> fsiData,
                std::shared_ptr<fsi::SimParams> paramsH,
                std::shared_ptr<ChBody> body,
@@ -564,19 +547,7 @@ void AddBoxBce(std::shared_ptr<ChFsiDataManager> fsiData,
                bool isSolid,
                bool add_to_previous) {
     thrust::host_vector<Real4> posRadBCE;
-
     CreateBCE_On_Box(posRadBCE, ChUtilsTypeConvert::ChVectorToReal3(size), plane, paramsH);
-    //	if (fsiData->sphMarkersH->posRadH.size() !=
-    // fsiData->numObjects->numAllMarkers) {
-    //		printf("Error! numMarkers, %d, does not match posRadH.size(),
-    //%d\n",
-    //				fsiData->numObjects->numAllMarkers,
-    // fsiData->sphMarkersH->posRadH.size());
-    //		std::cin.get();
-    //	}
-    //    printf("in AddBoxBce Ref size=%d,posRadBCE.size()=%d\n", fsiData->fsiGeneralData->referenceArray.size(),
-    //           posRadBCE.size());
-
     CreateBceGlobalMarkersFromBceLocalPosBoundary(fsiData, paramsH, posRadBCE, body, relPos, relRot, isSolid,
                                                   add_to_previous);
     posRadBCE.clear();
@@ -590,22 +561,8 @@ void AddBCE_FromFile(std::shared_ptr<ChFsiDataManager> fsiData,
                      ChVector<> collisionShapeRelativePos,
                      ChQuaternion<> collisionShapeRelativeRot,
                      double scale) {
-    //----------------------------
-    //  chassis
-    //----------------------------
     thrust::host_vector<Real4> posRadBCE;
-
-    LoadBCE_fromFile(posRadBCE, dataPath, scale);
-
-    //	if (fsiData->sphMarkersH->posRadH.size() !=
-    // fsiData->numObjects->numAllMarkers) {
-    //		printf("Error! numMarkers, %d, does not match posRadH.size(),
-    //%d\n",
-    //				fsiData->numObjects->numAllMarkers,
-    // fsiData->sphMarkersH->posRadH.size());
-    //		std::cin.get();
-    //	}
-
+    LoadBCE_fromFile(posRadBCE, dataPath, scale, paramsH->HSML);
     CreateBceGlobalMarkersFromBceLocalPos(fsiData, paramsH, posRadBCE, body, collisionShapeRelativePos,
                                           collisionShapeRelativeRot);
     posRadBCE.clear();

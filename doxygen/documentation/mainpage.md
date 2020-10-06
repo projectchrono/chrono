@@ -6,7 +6,7 @@ High level overview of Chrono's features and capabilities.
 
 ---
 
-@subpage tutorial_table_of_content_install 
+@subpage tutorial_table_of_content_install
 
 Instructions for configuring, building, and installing Chrono and its optional modules.
 
@@ -23,6 +23,12 @@ Detailed documentation of Chrono's main features.
 @subpage manual_vehicle
 
 Ground vehicle modeling and simulation with the Chrono::Vehicle module
+
+---
+
+@subpage manual_sensor
+
+Sensor modeling and simulation with the Chrono::Sensor module
 
 ---
 

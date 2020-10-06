@@ -10,7 +10,7 @@ SET(CMAKE_SKIP_BUILD_RPATH  FALSE)
 
 # when building, don't use the install RPATH already
 # (but later on when installing)
-SET(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE) 
+SET(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE)
 
 SET(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
 
@@ -49,4 +49,10 @@ option(BUILD_BENCHMARKING_VEHICLE "Build benchmark tests for VEHICLE module" TRU
 mark_as_advanced(FORCE BUILD_BENCHMARKING_VEHICLE)
 if(BUILD_BENCHMARKING_VEHICLE)
 	ADD_SUBDIRECTORY(vehicle)
+endif()
+
+option(BUILD_BENCHMARKING_SENSOR "Build benchmark tests for SENSOR module" TRUE)
+mark_as_advanced(FORCE BUILD_BENCHMARKING_SENSOR)
+if(BUILD_BENCHMARKING_SENSOR)
+	ADD_SUBDIRECTORY(sensor)
 endif()

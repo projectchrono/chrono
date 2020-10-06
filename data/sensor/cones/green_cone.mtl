@@ -1,0 +1,12 @@
+# Blender MTL File: 'green_cone.blend'
+# Material Count: 1
+
+newmtl Silicone_(White).002
+Ns 225.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.017625 0.731241 0.028176
+Ks 0.150000 0.150000 0.150000
+Ke 0.000000 0.000000 0.000000
+Ni 1.000000
+d 1.000000
+illum 2

@@ -157,18 +157,78 @@ void ChGranularChronoTriMeshAPI::setupTriMesh(const std::vector<chrono::geometry
     }
 }
 
+// initialize particle positions, velocity and angular velocity in user units
 void ChGranularSMC_API::setElemsPositions(const std::vector<chrono::ChVector<float>>& points,
-                                          const std::vector<chrono::ChVector<float>>& vels) {
+                                          const std::vector<chrono::ChVector<float>>& vels,
+                                          const std::vector<chrono::ChVector<float>>& ang_vel) {
     std::vector<float3> pointsFloat3;
     std::vector<float3> velsFloat3;
+    std::vector<float3> angVelsFloat3;
     convertChVector2Float3Vec(points, pointsFloat3);
     convertChVector2Float3Vec(vels, velsFloat3);
-    gran_sys->setParticlePositions(pointsFloat3, velsFloat3);
+    convertChVector2Float3Vec(ang_vel, angVelsFloat3);
+    gran_sys->setParticlePositions(pointsFloat3, velsFloat3, angVelsFloat3);
 }
 
-// Set particle positions in UU
-void ChGranularChronoTriMeshAPI::setElemsPositions(const std::vector<chrono::ChVector<float>>& points) {
+void ChGranularChronoTriMeshAPI::setElemsPositions(const std::vector<chrono::ChVector<float>>& points,
+                                                   const std::vector<chrono::ChVector<float>>& vels,
+                                                   const std::vector<chrono::ChVector<float>>& ang_vel) {
     std::vector<float3> pointsFloat3;
+    std::vector<float3> velsFloat3;
+    std::vector<float3> angVelsFloat3;
     convertChVector2Float3Vec(points, pointsFloat3);
-    pGranSystemSMC_TriMesh->setParticlePositions(pointsFloat3);
+    convertChVector2Float3Vec(vels, velsFloat3);
+    convertChVector2Float3Vec(ang_vel, angVelsFloat3);
+    pGranSystemSMC_TriMesh->setParticlePositions(pointsFloat3, velsFloat3, angVelsFloat3);
+}
+
+// return particle position
+chrono::ChVector<float> ChGranularSMC_API::getPosition(int nSphere){
+    float3 pos = gran_sys->getPosition(nSphere);
+    chrono::ChVector<float> pos_vec(pos.x, pos.y, pos.z); 
+    return pos_vec;
+}
+
+chrono::ChVector<float> ChGranularChronoTriMeshAPI::getPosition(int nSphere){
+    float3 pos = pGranSystemSMC_TriMesh->getPosition(nSphere);
+    chrono::ChVector<float> pos_vec(pos.x, pos.y, pos.z); 
+    return pos_vec;
+}
+
+// return particle velocity
+chrono::ChVector<float> ChGranularSMC_API::getVelo(int nSphere){
+    float3 velo = gran_sys->getVelocity(nSphere);
+    chrono::ChVector<float> velo_vec(velo.x, velo.y, velo.z); 
+    return velo_vec;
+}
+
+chrono::ChVector<float> ChGranularChronoTriMeshAPI::getVelo(int nSphere){
+    float3 velo = pGranSystemSMC_TriMesh->getVelocity(nSphere);
+    chrono::ChVector<float> velo_vec(velo.x, velo.y, velo.z); 
+    return velo_vec;
+}
+
+// return particle angular velocity
+chrono::ChVector<float> ChGranularSMC_API::getAngularVelo(int nSphere){
+    float3 omega = gran_sys->getAngularVelocity(nSphere);
+    chrono::ChVector<float> omega_vec(omega.x, omega.y, omega.z); 
+    return omega_vec;
+}
+
+chrono::ChVector<float> ChGranularChronoTriMeshAPI::getAngularVelo(int nSphere){
+    float3 omega = pGranSystemSMC_TriMesh->getAngularVelocity(nSphere);
+    chrono::ChVector<float> omega_vec(omega.x, omega.y, omega.z); 
+    return omega_vec;
+}
+
+// return BC plane position
+chrono::ChVector<float> ChGranularSMC_API::getBCPlanePos(size_t plane_id){
+    //todo: throw an error if BC not a plane type
+    float3 pos = gran_sys->Get_BC_Plane_Position(plane_id);
+    return chrono::ChVector<float> (pos.x, pos.y, pos.z);
+}
+
+// return number of sphere-to-sphere contact
+int ChGranularSMC_API::getNumContacts(){
+    return gran_sys->getNumContacts();
 }

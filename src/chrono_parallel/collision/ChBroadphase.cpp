@@ -26,12 +26,6 @@
 #include <thrust/sequence.h>
 #include <thrust/iterator/constant_iterator.h>
 
-#if defined(CHRONO_OPENMP_ENABLED)
-#include <thrust/system/omp/execution_policy.h>
-#elif defined(CHRONO_TBB_ENABLED)
-#include <thrust/system/tbb/execution_policy.h>
-#endif
-
 using thrust::transform;
 using thrust::transform_reduce;
 
@@ -254,7 +248,7 @@ void ChCBroadphase::OneLevelBroadphase() {
     const custom_vector<char>& obj_active = data_manager->host_data.active_rigid;
     const custom_vector<char>& obj_collide = data_manager->host_data.collide_rigid;
     const custom_vector<uint>& obj_data_id = data_manager->shape_data.id_rigid;
-    custom_vector<long long>& contact_pairs = data_manager->host_data.contact_pairs;
+    custom_vector<long long>& pair_shapeIDs = data_manager->host_data.pair_shapeIDs;
 
     custom_vector<uint>& bin_intersections = data_manager->host_data.bin_intersections;
     custom_vector<uint>& bin_number = data_manager->host_data.bin_number;
@@ -327,17 +321,17 @@ void ChCBroadphase::OneLevelBroadphase() {
 
     thrust::exclusive_scan(bin_num_contact.begin(), bin_num_contact.end(), bin_num_contact.begin());
     number_of_contacts_possible = bin_num_contact.back();
-    contact_pairs.resize(number_of_contacts_possible);
+    pair_shapeIDs.resize(number_of_contacts_possible);
     LOG(TRACE) << "Number of possible collisions: " << number_of_contacts_possible;
 
 #pragma omp parallel for
     for (int index = 0; index < (signed)number_of_bins_active; index++) {
         f_Store_AABB_AABB_Intersection(index, inv_bin_size, bins_per_axis, aabb_min, aabb_max, bin_number_out,
                                        bin_aabb_number, bin_start_index, bin_num_contact, fam_data, obj_active,
-                                       obj_collide, obj_data_id, contact_pairs);
+                                       obj_collide, obj_data_id, pair_shapeIDs);
     }
 
-    contact_pairs.resize(number_of_contacts_possible);
+    pair_shapeIDs.resize(number_of_contacts_possible);
     LOG(TRACE) << "Number of unique collisions: " << number_of_contacts_possible;
 }
 

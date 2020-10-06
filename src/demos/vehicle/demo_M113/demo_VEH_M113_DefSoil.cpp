@@ -92,6 +92,9 @@ int main(int argc, char* argv[]) {
     // Construct the M113 vehicle
     M113_Vehicle vehicle(false, TrackShoeType::SINGLE_PIN, BrakeType::SIMPLE, ChContactMethod::SMC);
 
+    ChSystem* system = vehicle.GetSystem();
+    system->SetNumThreads(std::min(8, ChOMP::GetNumProcs()));
+
 #ifndef CHRONO_MKL
     // Do not use MKL if not available
     use_mkl = false;
@@ -103,10 +106,10 @@ int main(int argc, char* argv[]) {
         GetLog() << "Using MKL solver\n";
         auto mkl_solver = chrono_types::make_shared<ChSolverMKL>();
         mkl_solver->LockSparsityPattern(true);
-        vehicle.GetSystem()->SetSolver(mkl_solver);
+        system->SetSolver(mkl_solver);
 
-        vehicle.GetSystem()->SetTimestepperType(ChTimestepper::Type::HHT);
-        auto integrator = std::static_pointer_cast<ChTimestepperHHT>(vehicle.GetSystem()->GetTimestepper());
+        system->SetTimestepperType(ChTimestepper::Type::HHT);
+        auto integrator = std::static_pointer_cast<ChTimestepperHHT>(system->GetTimestepper());
         integrator->SetAlpha(-0.2);
         integrator->SetMaxiters(50);
         integrator->SetAbsTolerances(5e-05, 1.8e00);
@@ -116,7 +119,7 @@ int main(int argc, char* argv[]) {
         integrator->SetVerbose(true);
 #endif
     } else {
-        vehicle.GetSystem()->SetSolverMaxIterations(50);
+        system->SetSolverMaxIterations(50);
     }
 
     // Control steering type (enable crossdrive capability)
@@ -145,7 +148,7 @@ int main(int argc, char* argv[]) {
     ////vehicle.SetContactCollection(true);
 
     // Create the terrain
-    SCMDeformableTerrain terrain(vehicle.GetSystem());
+    SCMDeformableTerrain terrain(system);
     terrain.SetSoilParameters(2e7,   // Bekker Kphi
                               0,     // Bekker Kc
                               1.1,   // Bekker n exponent
@@ -161,8 +164,8 @@ int main(int argc, char* argv[]) {
 
     terrain.Initialize(terrainLength, terrainWidth, delta);
 
-    AddFixedObstacles(vehicle.GetSystem());
-    ////AddMovingObstacles(vehicle.GetSystem());
+    AddFixedObstacles(system);
+    ////AddMovingObstacles(system);
 
     // Create the powertrain system
     auto powertrain = chrono_types::make_shared<M113_SimplePowertrain>("Powertrain");
@@ -265,7 +268,7 @@ int main(int argc, char* argv[]) {
         app.EndScene();
 
         // Execution time 
-        double step_timing = vehicle.GetSystem()->GetTimerStep();
+        double step_timing = system->GetTimerStep();
         total_timing += step_timing;
         ////std::cout << step_number << " " << step_timing << " " << total_timing << std::endl;
     }

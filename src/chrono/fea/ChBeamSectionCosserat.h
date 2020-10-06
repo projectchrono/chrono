@@ -171,12 +171,16 @@ class ChApi ChElasticityCosseratSimple : public ChElasticityCosserat {
         ) override;
 };
 
-/// Generic linear elasticity for a Cosserat beam, using a 6x6 matrix [E]
-/// from user-input data. The [E] matrix can be computed from a preprocessing
+/// Generic linear elasticity for a Cosserat beam using directly a 6x6 matrix [E] 
+/// as user-input data. 
+/// The [E] matrix values ("rigidity" values) can be computed from a preprocessing
 /// stage using a FEA analysis over a detailed 3D model of a chunk of beam,
 /// hence recovering the 6x6 matrix that connects yxz displacements "e" and
 /// xyz rotations "k" to the xyz cut-force "n" and xyz cut-torque "m" as in
-/// {m,n}=[E]{e,k}.
+///   \f$ (m,n)=[E](e,k) \f$ 
+/// where \f$ e, k, m, n \f$  are expressed in the centerline reference.
+/// Using a matrix of rigidity values, the model does not assume homogeneous elasticity
+/// and bypasses the need of entering E or G values.
 /// This can be shared between multiple beams.
 /// \image html "http://www.projectchrono.org/assets/manual/fea_ChElasticityCosseratGeneric.png"
 /// 
@@ -190,7 +194,7 @@ class ChApi ChElasticityCosseratGeneric : public ChElasticityCosserat {
     /// This is the matrix that defines the linear elastic constitutive model
     /// as it maps  yxz displacements "e" and xyz rotations "k"
     /// to the xyz cut-force "n" and xyz cut-torque "m" as in
-    ///   {m,n}=[E]{e,k}.
+    ///    \f$ (m,n)=[E](e,k) \f$ 
     ChMatrixNM<double, 6, 6>& Ematrix() { return this->mE; }
 
 
@@ -218,11 +222,11 @@ class ChApi ChElasticityCosseratGeneric : public ChElasticityCosserat {
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 };
 
-/// Elasticity for a beam section in 3D, along with basic material
-/// properties. It also supports the advanced case of
+/// Advanced linear elasticity for a Cosserat beam.
+/// Uniform stiffness properties E,G are assumed through the section as in
+/// ChElasticityCosseratSimple, but here it also supports the advanced case of
 /// Iyy and Izz axes rotated respect reference, elastic center with offset
 /// from reference, and shear center with offset from reference.
-/// Uniform stiffness properties E,G are assumed through the section.
 /// This material can be shared between multiple beams.
 /// The linear elasticity is uncoupled between shear terms S and axial terms A
 /// as to have this stiffness matrix pattern:
@@ -318,6 +322,155 @@ class ChApi ChElasticityCosseratAdvanced : public ChElasticityCosseratSimple {
         ) override;
 };
 
+/// Advanced linear elasticity for a Cosserat section, not assuming homogeneous elasticity. 
+/// This is the case where one uses a FEA preprocessor to compute the rigidity of a complex beam 
+/// made with multi-layered reinforcements with different elasticity - in such a case you could not
+/// use ChElasticityCosseratAdvanced because you do not have a single E or G, but you rather
+/// have collective values of bending/shear/axial rigidities. This class allows using these values directly,
+/// bypassing any knowledge of area, Izz Iyy, E young modulus, etc.
+/// This material can be shared between multiple beams.
+/// The linear elasticity is uncoupled between shear terms S and axial terms A
+/// as to have this stiffness matrix pattern:
+/// <pre>
+///  n_x   [A       A A ]   e_x
+///  n_y   [  S S S     ]   e_y
+///  n_z = [  S S S     ] * e_z
+///  m_x   [  S S S     ]   k_x
+///  m_y   [A       A A ]   k_y
+///  m_z   [A       A A ]   k_z
+///  </pre>
+/// \image html "http://www.projectchrono.org/assets/manual/fea_ChElasticityCosseratAdvanced.png"
+/// 
+
+class ChApi ChElasticityCosseratAdvancedGeneric : public ChElasticityCosserat {
+private:
+    double Ax;      // axial rigidity
+    double Txx;     // torsion rigidity
+    double Byy;     // bending rigidity
+    double Bzz;     // bending rigidity
+    double Hyy;     // shear rigidity
+    double Hzz;     // shear rigidity
+    double alpha;   // rotation of reference at elastic center, for bending effects [rad]
+    double Cy;      // Centroid (elastic center, tension center)
+    double Cz;
+    double beta;    // rotation of reference at shear center, for shear effects [rad]
+    double Sy;      // Shear center
+    double Sz;
+public:
+
+    ChElasticityCosseratAdvancedGeneric() : Ax(1), Txx(1), Byy(1), Bzz(1), Hyy(1), Hzz(1), alpha(0),Cy(0),Cz(0), beta(0), Sy(0),Sz(0) {}
+
+    ChElasticityCosseratAdvancedGeneric(    const double mAx,      ///< axial rigidity
+                                            const double mTxx,     ///< torsion rigidity
+                                            const double mByy,     ///< bending regidity on Y of reference at elastic center
+                                            const double mBzz,     ///< bending rigidity on Z of reference at elastic center
+                                            const double mHyy,     ///< shear rigidity on Y of reference at shear center
+                                            const double mHzz,     ///< shear rigidity on Y of reference at shear center
+                                            const double malpha,   ///< rotation of reference at elastic center, for bending effects [rad]
+                                            const double mCy,      ///< elastic center y displacement respect to centerline
+                                            const double mCz,      ///< elastic center z displacement respect to centerline
+                                            const double mbeta,    ///< rotation of reference at shear center, for shear effects [rad]
+                                            const double mSy,      ///< shear center y displacement respect to centerline
+                                            const double mSz       ///< shear center z displacement respect to centerline
+    ) :
+        Ax(mAx), Txx(mTxx), Byy(mByy), Bzz(mBzz), Hyy(mHyy), Hzz(mHzz), alpha(malpha), Cy(mCy), Cz(mCz), beta(mbeta), Sy(mSy), Sz(mSz) {}
+
+
+    virtual ~ChElasticityCosseratAdvancedGeneric() {}
+
+
+    /// Sets the axial rigidity, usually A*E for uniform elasticity, but for nonuniform elasticity
+    /// here you can put a value ad-hoc from a preprocessor
+    virtual void SetAxialRigidity(const double mv) {
+        Ax = mv;
+    }
+
+    /// Sets the torsion rigidity, for torsion about X axis, at elastic center, 
+    /// usually J*G for uniform elasticity, but for nonuniform elasticity
+    /// here you can put a value ad-hoc from a preprocessor 
+    virtual void SetXtorsionRigidity(const double mv) {
+        Txx = mv;
+    }
+
+    /// Sets the bending rigidity, for bending about Y axis, at elastic center, 
+    /// usually Iyy*E for uniform elasticity, but for nonuniform elasticity
+    /// here you can put a value ad-hoc from a preprocessor
+    virtual void SetYbendingRigidity(const double mv) {
+        Byy = mv;
+    }
+
+    /// Sets the bending rigidity, for bending about Z axis, at elastic center, 
+    /// usually Izz*E for uniform elasticity, but for nonuniform elasticity
+    /// here you can put a value ad-hoc from a preprocessor
+    virtual void SetZbendingRigidity(const double mv) {
+        Bzz = mv;
+    }
+
+    /// Sets the shear rigidity, for shear about Y axis, at shear center, 
+    /// usually A*G*(Timoshenko correction factor) for uniform elasticity, but for nonuniform elasticity
+    /// here you can put a value ad-hoc from a preprocessor
+    virtual void SetYshearRigidity(const double mv) {
+        Hyy = mv;
+    }
+
+    /// Sets the shear rigidity, for shear about Z axis, at shear center, 
+    /// usually A*G*(Timoshenko correction factor) for uniform elasticity, but for nonuniform elasticity
+    /// here you can put a value ad-hoc from a preprocessor
+    virtual void SetZshearRigidity(const double mv) {
+        Hzz = mv;
+    }
+
+    /// Set the rotation in [rad]  of the Y Z axes for which the 
+    /// YbendingRigidity and ZbendingRigidity values are defined. 
+    void SetSectionRotation(double ma) { this->alpha = ma; }
+    double GetSectionRotation() { return this->alpha; }
+
+    /// "Elastic reference": set the displacement of the elastic center 
+    /// (or tension center) respect to the reference section coordinate system placed at centerline.
+    void SetCentroid(double my, double mz) {
+        this->Cy = my;
+        this->Cz = mz;
+    }
+    double GetCentroidY() { return this->Cy; }
+    double GetCentroidZ() { return this->Cz; }
+
+    /// Set the rotation in [rad] of the Y Z axes for which the 
+    /// YshearRigidity and ZshearRigidity values are defined. 
+    void SetShearRotation(double mb) { this->beta = mb; }
+    double GetShearRotation() { return this->beta; }
+
+    /// "Shear reference": set the displacement of the shear center S
+    /// respect to the reference beam line placed at centerline. For shapes like rectangles,
+    /// rotated rectangles, etc., it corresponds to the elastic center C, but
+    /// for "L" shaped or "U" shaped beams this is not always true, and
+    /// the shear center accounts for torsion effects when a shear force is applied.
+    void SetShearCenter(double my, double mz) {
+        this->Sy = my;
+        this->Sz = mz;
+    }
+    double GetShearCenterY() { return this->Sy; }
+    double GetShearCenterZ() { return this->Sz; }
+
+    // Interface to base:
+
+    /// Compute the generalized cut force and cut torque.
+    virtual void ComputeStress(
+        ChVector<>& stress_n,        ///< local stress (generalized force), x component = traction along beam
+        ChVector<>& stress_m,        ///< local stress (generalized torque), x component = torsion torque along beam
+        const ChVector<>& strain_e,  ///< local strain (deformation part): x= elongation, y and z are shear
+        const ChVector<>& strain_k   ///< local strain (curvature part), x= torsion, y and z are line curvatures
+        ) override;
+
+    /// Compute the 6x6 tangent material stiffness matrix [Km] = d&sigma;/d&epsilon;
+    virtual void ComputeStiffnessMatrix(
+        ChMatrixNM<double, 6, 6>& K, ///< 6x6 stiffness matrix
+        const ChVector<>& strain_e,  ///< local strain (deformation part): x= elongation, y and z are shear
+        const ChVector<>& strain_k   ///< local strain (curvature part), x= torsion, y and z are line curvatures
+        ) override;
+
+};
+
+
 /// Elasticity for a beam section in 3D, where the section is
 /// defined by a mesh of triangles.
 /// This model saves you from the need of knowing I_z, I_y, A, etc.,
@@ -328,11 +481,13 @@ class ChApi ChElasticityCosseratAdvanced : public ChElasticityCosseratSimple {
 /// Each vertex has its own material.
 /// Section is assumed always flat, even if the section mesh is not connected, ex.
 /// if one models a section like a "8" shape where the two "o" are not connected.
+///
 /// Benefits:
 /// - no need to provide I_y, I_z, A, etc.
 /// - possibility of getting values of stresses in different points of the section
 /// - possibility of using some 1D plasticity to discover plasticizing zones in the section
-/// Limitations:
+///
+/// Limitations (TO BE REMOVED IN FUTURE using Vlasov / Prandtl theories):
 /// - section torsional warping not included,
 /// - torsion stresses are correct only in tube-like shapes, or similar; other models such as
 ///   ChElasticityCosseratAdvanced contain torsional effects via the macroscopic J constant; here there is
@@ -342,6 +497,7 @@ class ChApi ChElasticityCosseratAdvanced : public ChElasticityCosseratSimple {
 ///   here would be constant. Other models such as ChElasticityCosseratAdvanced correct this effect at the macroscopic
 ///   level using the Timoshenko correction factors Ks_y and Ks_z, here they are used as well, but if so, shear in
 ///   material points would have less meaning.
+///
 /// This material can be shared between multiple beams.
 ///
 /// \image html "http://www.projectchrono.org/assets/manual/fea_ChElasticityCosseratMesh.png"

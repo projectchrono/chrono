@@ -124,6 +124,8 @@ HmmwvScmTest<TIRE_TYPE, OBJECTS>::HmmwvScmTest() : m_step(2e-3) {
     m_hmmwv->SetWheelVisualizationType(VisualizationType::NONE);
     m_hmmwv->SetTireVisualizationType(tire_vis);
 
+    m_hmmwv->GetSystem()->SetNumThreads(std::min(8, ChOMP::GetNumProcs()));
+
     // Create the terrain using 4 moving patches
     m_terrain = new SCMDeformableTerrain(m_hmmwv->GetSystem());
     m_terrain->SetSoilParameters(2e6,   // Bekker Kphi

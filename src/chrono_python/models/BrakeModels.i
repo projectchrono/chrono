@@ -23,6 +23,7 @@
 #include "chrono_models/vehicle/uaz/UAZBUS_BrakeSimple.h"
 #include "chrono_models/vehicle/uaz/UAZBUS_BrakeShafts.h"
 #include "chrono_models/vehicle/gator/Gator_BrakeSimple.h"
+#include "chrono_models/vehicle/rccar/RCCar_BrakeSimple.h"
 #include "chrono_models/vehicle/gator/Gator_BrakeShafts.h"
 
 #include "chrono_models/vehicle/m113/M113_BrakeSimple.h"
@@ -48,13 +49,13 @@
 %shared_ptr(chrono::vehicle::uaz::UAZBUS_BrakeShaftsFront)
 %shared_ptr(chrono::vehicle::uaz::UAZBUS_BrakeShaftsRear)
 %shared_ptr(chrono::vehicle::gator::Gator_BrakeSimple)
+%shared_ptr(chrono::vehicle::rccar::RCCar_BrakeSimple)
 %shared_ptr(chrono::vehicle::gator::Gator_BrakeShafts)
 
 %shared_ptr(chrono::vehicle::m113::M113_BrakeSimple)
 %shared_ptr(chrono::vehicle::m113::M113_BrakeShafts)
 
 // Model:
-
 %include "../../chrono_models/vehicle/generic/Generic_BrakeSimple.h"
 %include "../../chrono_models/vehicle/hmmwv/HMMWV_BrakeSimple.h"
 %include "../../chrono_models/vehicle/hmmwv/HMMWV_BrakeShafts.h"
@@ -67,6 +68,7 @@
 %include "../../chrono_models/vehicle/uaz/UAZBUS_BrakeSimple.h"
 %include "../../chrono_models/vehicle/uaz/UAZBUS_BrakeShafts.h"
 %include "../../chrono_models/vehicle/gator/Gator_BrakeSimple.h"
+%include "../../chrono_models/vehicle/rccar/RCCar_BrakeSimple.h"
 %include "../../chrono_models/vehicle/gator/Gator_BrakeShafts.h"
 
 %include "../../chrono_models/vehicle/m113/M113_BrakeSimple.h"

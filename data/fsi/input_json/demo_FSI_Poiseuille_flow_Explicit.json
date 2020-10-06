@@ -19,38 +19,32 @@
     "Kernel h":                       0.01,
     "Initial Spacing":                0.01,
     "Epsilon":                        0.0001,
-    "Maximum Velocity":               0.2,
+    "Maximum Velocity":               0.1,
     "XSPH Coefficient":               0.0,
     "Shifting Coefficient":           0.0,
-    "Density Reinitialization":       5000,
+    "Density Reinitialization":       10000,
     "Conservative Discretization":    false
 
   },
 
   "Time Stepping":
   {
-    "Adaptive Time stepping":        true,
+    "Adaptive Time stepping":        false,
     "CFL number":                    0.1,
-    "Fluid time step":               0.0001,
-    "Solid time step":               0.0001,
-    "Maximum time step":             1.0,
+    "Fluid time step":               0.002,
+    "Solid time step":               0.002,
+    "Maximum time step":             0.002,
     "End time":                      100,
-    "Write frame per second":        100
+    "Write frame per second":        10
   },
 
-
-  "Pressure Equation":
+  "Geometry Inf":
   {
-    "Boundary Conditions":     "Generalized Wall BC",
-    "Linear solver":           "Jacobi",
-    "Poisson source term":     "Velocity-Based",
-    "Projection method":       "Non-Incremental",
-    "Under-relaxation":         0.99,
-    "Absolute residual":        1e-6,
-    "Relative residual":        1e-8,
-    "Maximum Iterations":       100,
-    "Verbose monitoring":       false,
-    "Constraint Pressure":      true,
-    "Average Pressure":         0.0
+    "BoxDimensionX":                0.2,
+    "BoxDimensionY":                0.1,
+    "BoxDimensionZ":                0.2,
+    "FluidDimensionX":              0.2,
+    "FluidDimensionY":              0.1,
+    "FluidDimensionZ":              0.2
   }
 }

@@ -161,12 +161,23 @@ class CH_PARALLEL_API ChSystemParallel : public ChSystem {
 
     settings_container* GetSettings();
 
-    /// Set the number of OpenMP threads.
-    /// If non-zero values are provided for 'min_threads' and 'max_threads', a heuristic is used to dynamically adjust
-    /// the number of threads between the specified limits as the simulation proceeds. 
-    /// Valid arguments must satisfy: 1 <= min_threads < max_threads <= omp_get_max_threads().
-    /// The function returns 'true' if successful and 'false' for incorrect input arguments.
-    bool SetNumThreads(int num_threads, int min_threads = 0, int max_threads = 0);
+    /// Set the number of OpenMP threads used by Chrono itself, Eigen, and the collision detection system.
+    /// <pre>
+    ///  num_threads_chrono    - used for all OpenMP constructs and thrust algorithms in Chrono::Parallel.
+    ///  num_threads_collision - Ignored.  Chrono::Parallel sets num_threads_collision = num_threads_chrono.
+    ///  num_threads_eigen     - used in the Eigen sparse direct solvers and a few linear algebra operations.
+    ///                          Note that Eigen enables multi-threaded execution only under certain size conditions.
+    ///                          See the Eigen documentation.
+    ///                          If passing 0, then num_threads_eigen = num_threads_chrono.
+    /// </pre>
+    /// By default, num_threads_chrono is set to omp_get_num_procs() and num_threads_eigen is set to 1.
+    virtual void SetNumThreads(int num_threads_chrono,
+                               int num_threads_collision = 0,
+                               int num_threads_eigen = 0) override;
+
+    /// Enable dynamic adjustment of number of threads between the specified limits.
+    /// The initial number of threads is set to min_threads.
+    void EnableThreadTuning(int min_threads, int max_threads);
 
     // Based on the specified logging level and the state of that level, enable or disable logging level.
     void SetLoggingLevel(LoggingLevel level, bool state = true);

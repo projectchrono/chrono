@@ -29,11 +29,15 @@ Additional Chrono functionality is provided through optional modules. Building o
 
 -   [PARALLEL module](@ref module_parallel_installation)
 
--   [POSTPROCESS module](@ref module_postprocess_installation) 
+-   [POSTPROCESS module](@ref module_postprocess_installation)
 
 -   [PYTHON module](@ref module_python_installation)
 
--   [VEHICLE module](@ref module_vehicle_installation)	
+-   [SENSOR module](@ref module_sensor_installation)	
+
+-   [VEHICLE module](@ref module_vehicle_installation)
+
+
 
 
 ## Building a project that uses Chrono
@@ -52,4 +56,3 @@ Additional Chrono functionality is provided through optional modules. Building o
 
 - [Chrono::SolidWorks](@ref introduction_chrono_solidworks), brief overview
 - @subpage tutorial_install_chrono_solidworks
-  

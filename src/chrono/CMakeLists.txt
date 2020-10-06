@@ -10,6 +10,7 @@ message(STATUS "==== Chrono Engine core module ====")
 # Double precision support for Bullet
 #-----------------------------------------------------------------------------
 option(USE_BULLET_DOUBLE "Compile Chrono::Engine with double precision support in Bullet" OFF)
+cmake_dependent_option(USE_BULLET_OPENMP "Compile Chrono::Engine with OpenMP support in Bullet" ON "ENABLE_OPENMP" OFF)
 
 #-----------------------------------------------------------------------------
 # Includes for the main library
@@ -158,7 +159,7 @@ set(ChronoEngine_physics_HEADERS
     physics/ChProximityContainerSPH.h
     physics/ChSystem.h
     physics/ChSystemNSC.h
-    physics/ChSystemSMC.h    
+    physics/ChSystemSMC.h
     physics/ChAssembly.h
     physics/ChInertiaUtils.h
     )
@@ -447,7 +448,7 @@ set(ChronoEngine_fea_nodes_SOURCES
 )
 
 set(ChronoEngine_fea_nodes_HEADERS
-    fea/ChNodeFEAbase.h 
+    fea/ChNodeFEAbase.h
     fea/ChNodeFEAxyz.h
     fea/ChNodeFEAxyzrot.h
     fea/ChNodeFEAxyzP.h
@@ -471,7 +472,7 @@ set(ChronoEngine_fea_elements_SOURCES
     fea/ChElementTetra_4.cpp
     fea/ChElementTetra_10.cpp
     fea/ChElementHexa_8.cpp
-    fea/ChElementHexa_20.cpp 
+    fea/ChElementHexa_20.cpp
     fea/ChElementShellANCF.cpp
     fea/ChElementShellANCF_8.cpp
     fea/ChElementShellReissner4.cpp
@@ -491,7 +492,7 @@ set(ChronoEngine_fea_elements_HEADERS
     fea/ChElementBeamEuler.h
     fea/ChElementBeamIGA.h
     fea/ChElementCableANCF.h
-    fea/ChElementBrick.h 
+    fea/ChElementBrick.h
     fea/ChElementBrick_9.h
     fea/ChElementTetrahedron.h
     fea/ChElementTetra_4.h
@@ -585,7 +586,7 @@ set(ChronoEngine_assets_SOURCES
     assets/ChSphereShape.cpp
     assets/ChEllipsoidShape.cpp
     assets/ChBoxShape.cpp
-	assets/ChBarrelShape.cpp
+  	assets/ChBarrelShape.cpp
     assets/ChConeShape.cpp
     assets/ChCylinderShape.cpp
     assets/ChCapsuleShape.cpp
@@ -603,6 +604,7 @@ set(ChronoEngine_assets_SOURCES
     assets/ChEmitterAsset.cpp
     assets/ChPointPointDrawing.cpp
     assets/ChSurfaceShape.cpp
+    assets/ChVisualMaterial.cpp
     )
 
 set(ChronoEngine_assets_HEADERS
@@ -612,7 +614,7 @@ set(ChronoEngine_assets_HEADERS
     assets/ChTriangleMeshShape.h
     assets/ChSphereShape.h
     assets/ChEllipsoidShape.h
-	assets/ChBarrelShape.h
+  	assets/ChBarrelShape.h
     assets/ChBoxShape.h
     assets/ChConeShape.h
     assets/ChCylinderShape.h
@@ -633,6 +635,7 @@ set(ChronoEngine_assets_HEADERS
     assets/ChEmitterAsset.h
     assets/ChPointPointDrawing.h
     assets/ChSurfaceShape.h
+    assets/ChVisualMaterial.h
     )
 
 source_group(assets FILES
@@ -967,19 +970,21 @@ set(ChronoEngine_collision_bullet_SOURCES
     collision/bullet/BulletCollision/BroadphaseCollision/btOverlappingPairCache.cpp
     collision/bullet/BulletCollision/BroadphaseCollision/btBroadphaseProxy.cpp
     collision/bullet/BulletCollision/BroadphaseCollision/btDispatcher.cpp
-    collision/bullet/BulletCollision/BroadphaseCollision/btMultiSapBroadphase.cpp
     collision/bullet/BulletCollision/BroadphaseCollision/btCollisionAlgorithm.cpp
     collision/bullet/BulletCollision/BroadphaseCollision/btDbvt.cpp
     collision/bullet/BulletCollision/BroadphaseCollision/btDbvtBroadphase.cpp
     collision/bullet/BulletCollision/BroadphaseCollision/btQuantizedBvh.cpp
     collision/bullet/BulletCollision/CollisionDispatch/btUnionFind.cpp
     collision/bullet/BulletCollision/CollisionDispatch/btCollisionDispatcher.cpp
+    collision/bullet/BulletCollision/CollisionDispatch/btCollisionDispatcherMt.cpp
     collision/bullet/BulletCollision/CollisionDispatch/btSphereSphereCollisionAlgorithm.cpp
     collision/bullet/BulletCollision/CollisionDispatch/btCollisionObject.cpp
     collision/bullet/BulletCollision/CollisionDispatch/btSphereBoxCollisionAlgorithm.cpp
     collision/bullet/BulletCollision/CollisionDispatch/btCollisionWorld.cpp
+    collision/bullet/BulletCollision/CollisionDispatch/btCollisionWorldImporter.cpp
     collision/bullet/BulletCollision/CollisionDispatch/btSimulationIslandManager.cpp
     collision/bullet/BulletCollision/CollisionDispatch/btCompoundCollisionAlgorithm.cpp
+    collision/bullet/BulletCollision/CollisionDispatch/btCompoundCompoundCollisionAlgorithm.cpp
     collision/bullet/BulletCollision/CollisionDispatch/btManifoldResult.cpp
     collision/bullet/BulletCollision/CollisionDispatch/btConvexConcaveCollisionAlgorithm.cpp
     collision/bullet/BulletCollision/CollisionDispatch/btEmptyCollisionAlgorithm.cpp
@@ -995,6 +1000,7 @@ set(ChronoEngine_collision_bullet_SOURCES
     collision/bullet/BulletCollision/CollisionDispatch/btGhostObject.cpp
     collision/bullet/BulletCollision/CollisionDispatch/btConvex2dConvex2dAlgorithm.cpp
     collision/bullet/BulletCollision/CollisionDispatch/btInternalEdgeUtility.cpp
+    collision/bullet/BulletCollision/CollisionDispatch/btHashedSimplePairCache.cpp
     collision/bullet/BulletCollision/CollisionShapes/btBarrelShape.cpp
     collision/bullet/BulletCollision/CollisionShapes/bt2DShape.cpp
     collision/bullet/BulletCollision/CollisionShapes/btCEtriangleShape.cpp
@@ -1033,6 +1039,9 @@ set(ChronoEngine_collision_bullet_SOURCES
     collision/bullet/BulletCollision/CollisionShapes/btScaledBvhTriangleMeshShape.cpp
     collision/bullet/BulletCollision/CollisionShapes/btShapeHull.cpp
     collision/bullet/BulletCollision/CollisionShapes/btTriangleIndexVertexMaterialArray.cpp
+    collision/bullet/BulletCollision/CollisionShapes/btSdfCollisionShape.cpp
+    collision/bullet/BulletCollision/CollisionShapes/btMiniSDF.cpp
+    collision/bullet/BulletCollision/CollisionShapes/btConvexPolyhedron.cpp
     collision/bullet/BulletCollision/NarrowPhaseCollision/btContinuousConvexCollision.cpp
     collision/bullet/BulletCollision/NarrowPhaseCollision/btSubSimplexConvexCast.cpp
     collision/bullet/BulletCollision/NarrowPhaseCollision/btConvexCast.cpp
@@ -1044,16 +1053,20 @@ set(ChronoEngine_collision_bullet_SOURCES
     collision/bullet/BulletCollision/NarrowPhaseCollision/btVoronoiSimplexSolver.cpp
     collision/bullet/BulletCollision/NarrowPhaseCollision/btGjkPairDetector.cpp
     collision/bullet/BulletCollision/NarrowPhaseCollision/btGjkEpa2.cpp
-    collision/bullet/BulletFileLoader/bChunk.cpp
-    collision/bullet/BulletFileLoader/bDNA.cpp
-    collision/bullet/BulletFileLoader/bFile.cpp
-    collision/bullet/BulletFileLoader/btBulletFile.cpp
-    collision/bullet/BulletWorldImporter/btBulletWorldImporter.cpp
+    collision/bullet/BulletCollision/NarrowPhaseCollision/btPolyhedralContactClipping.cpp
     collision/bullet/LinearMath/btQuickprof.cpp
     collision/bullet/LinearMath/btAlignedAllocator.cpp
     collision/bullet/LinearMath/btGeometryUtil.cpp
     collision/bullet/LinearMath/btConvexHull.cpp
+    collision/bullet/LinearMath/btConvexHullComputer.cpp
     collision/bullet/LinearMath/btSerializer.cpp
+    collision/bullet/LinearMath/btSerializer64.cpp
+    collision/bullet/LinearMath/btPolarDecomposition.cpp
+    collision/bullet/LinearMath/btThreads.cpp
+    collision/bullet/LinearMath/btVector3.cpp
+    collision/bullet/LinearMath/TaskScheduler/btTaskScheduler.cpp
+    collision/bullet/LinearMath/TaskScheduler/btThreadSupportPosix.cpp
+    collision/bullet/LinearMath/TaskScheduler/btThreadSupportWin32.cpp
     )
 
 source_group("collision\\bullet" FILES
@@ -1073,7 +1086,7 @@ set(ChronoEngine_collision_gimpact_SOURCES
     collision/gimpact/GIMPACT/Bullet/btGImpactQuantizedBvh.cpp
     collision/gimpact/GIMPACT/Bullet/btGImpactShape.cpp
     collision/gimpact/GIMPACT/Bullet/btTriangleShapeEx.cpp
-    collision/gimpact/GIMPACTUtils/btGImpactConvexDecompositionShape.cpp
+    #collision/gimpact/GIMPACTUtils/btGImpactConvexDecompositionShape.cpp
     collision/gimpact/ConvexDecomposition/bestfit.cpp
     collision/gimpact/ConvexDecomposition/bestfitobb.cpp
     collision/gimpact/ConvexDecomposition/cd_hull.cpp
@@ -1275,6 +1288,7 @@ set(ChronoEngine_FILES
 # Add the ChronoEngine library to the project
 add_library(ChronoEngine SHARED ${ChronoEngine_FILES})
 
+target_link_libraries(ChronoEngine ${OPENMP_LIBRARIES})
 if (UNIX)
   target_link_libraries(ChronoEngine pthread)
 endif()
@@ -1285,19 +1299,21 @@ set_target_properties(ChronoEngine PROPERTIES LINK_FLAGS "${CH_LINKERFLAG_SHARED
 target_compile_definitions(ChronoEngine PRIVATE "CH_API_COMPILE")
 target_compile_definitions(ChronoEngine PRIVATE "CH_IGNORE_DEPRECATED")
 
+target_compile_definitions(ChronoEngine PRIVATE "BT_THREADSAFE")
 if (USE_BULLET_DOUBLE)
     target_compile_definitions(ChronoEngine PRIVATE "BT_USE_DOUBLE_PRECISION")
 endif()
-
-target_link_libraries(ChronoEngine ${OPENMP_LIBRARIES})
+if (USE_BULLET_OPENMP)
+    target_compile_definitions(ChronoEngine PRIVATE "BT_USE_OPENMP")
+endif()
 
 if(XCODE_VERSION)
     set_target_properties(ChronoEngine PROPERTIES XCODE_ATTRIBUTE_ENABLE_OPENMP_SUPPORT ${ENABLE_OPENMP})
 endif()
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-	if(MSVC AND MSVC_VERSION GREATER_EQUAL 1900)
-	    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /bigobj")
-	endif()
+    if(MSVC AND MSVC_VERSION GREATER_EQUAL 1900)
+        set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /bigobj")
+    endif()
 endif()
 
 # Install the main ChronoEngine library
