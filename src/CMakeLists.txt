@@ -240,6 +240,13 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 	endif()
 endif()
 
+cmake_dependent_option(USE_EIGEN_OPENMP "Compile Chrono with OpenMP support in Eigen" ON "ENABLE_OPENMP" OFF)
+
+if (NOT USE_EIGEN_OPENMP)
+  set(CH_CXX_FLAGS "${CH_CXX_FLAGS} -DEIGEN_DONT_PARALLELIZE")
+  set(CH_C_FLAGS "${CH_C_FLAGS} -DEIGEN_DONT_PARALLELIZE")
+endif()
+
 #-----------------------------------------------------------------------------
 # MPI support
 #-----------------------------------------------------------------------------
