@@ -90,7 +90,7 @@ int main(int argc, char* argv[]) {
 
     // Load in a M113 vehicle and it's subsequent SynChrono relavent information from a JSON specification file
     std::shared_ptr<SynTrackedVehicle> vehicle;
-    ChCoordsys<> init_pos({0, 3.0 * rank, 0.5}, {1, 0, 0, 0});
+    ChCoordsys<> init_pos({0, 3.0 * rank, 0.75}, {1, 0, 0, 0});
     if (rank % 2 == 0) {
         // Even numbered ranks will be a custom vehicle that is not specified by a JSON file
         auto m113 = chrono_types::make_shared<M113>();
@@ -175,7 +175,7 @@ int main(int argc, char* argv[]) {
         auto irr_vis = chrono_types::make_shared<SynIrrVehicleVisualization>();
         irr_vis->SetRenderStepSize(render_step_size);
         irr_vis->SetStepSize(step_size);
-        irr_vis->InitializeAsDefaultChaseCamera(vehicle);
+        irr_vis->InitializeAsDefaultTrackedChaseCamera(vehicle, 10);
 
         // Set the driver in the vehicle brain and the irrlicht visualizer
         auto driver = chrono_types::make_shared<ChIrrGuiDriver>(*irr_vis->GetIrrApp());

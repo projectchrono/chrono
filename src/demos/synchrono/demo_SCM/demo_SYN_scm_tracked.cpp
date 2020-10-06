@@ -135,12 +135,12 @@ int main(int argc, char* argv[]) {
     std::vector<ChVector<>> curve_pts;
     if (rank % 2 == 0) {
         // Start even vehicles in a row on the south side, driving north
-        init_loc = offset + ChVector<>(0, 2.0 * (rank + 1), 0.5);
+        init_loc = offset + ChVector<>(0, 2.0 * (rank + 1), 0.75);
         init_rot = Q_from_AngZ(0);
         curve_pts = {init_loc, init_loc + ChVector<>(100, 0, 0)};
     } else {
         // Start odd vehicles staggered going up the west edge, driving east
-        init_loc = offset + ChVector<>(2.0 * (rank - 1), -5.0 - 2.0 * (rank - 1), 0.5);
+        init_loc = offset + ChVector<>(2.0 * (rank - 1), -5.0 - 2.0 * (rank - 1), 0.75);
         init_rot = Q_from_AngZ(CH_C_PI / 2);
         curve_pts = {init_loc, init_loc + ChVector<>(0, 100, 0)};
     }
@@ -275,7 +275,7 @@ int main(int argc, char* argv[]) {
 #ifdef CHRONO_IRRLICHT
     if (cli.HasValueInVector<int>("irr", rank)) {
         auto irr_vis = chrono_types::make_shared<SynIrrVehicleVisualization>(driver, step_size, render_step_size);
-        irr_vis->InitializeAsDefaultChaseCamera(agent->GetVehicle());
+        irr_vis->InitializeAsDefaultTrackedChaseCamera(agent->GetTrackedVehicle(), 10);
         vis_manager->AddVisualization(irr_vis);
     }
 #endif
