@@ -1,3 +1,23 @@
+// =============================================================================
+// PROJECT CHRONO - http://projectchrono.org
+//
+// Copyright (c) 2020 projectchrono.org
+// All rights reserved.
+//
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
+//
+// =============================================================================
+// Authors: Aaron Young
+// =============================================================================
+//
+// Class for an agent that wraps a Chrono::Vehicle wheeled vehicle. The
+// underlying dynamics are those of a wheeled vehicle, state data consists of
+// the position and orientation of the COM and the wheels of the vehicle
+//
+// =============================================================================
+
 #ifndef SYN_WHEELED_VEHICLE_AGENT_H
 #define SYN_WHEELED_VEHICLE_AGENT_H
 
@@ -10,6 +30,9 @@ using namespace chrono::vehicle;
 
 namespace chrono {
 namespace synchrono {
+
+/// @addtogroup synchrono_agents
+/// @{
 
 class SYN_API SynWheeledVehicleAgent : public SynVehicleAgent {
   public:
@@ -95,10 +118,11 @@ class SYN_API SynWheeledVehicleAgent : public SynVehicleAgent {
     ///@param contact_method the contact method that should be used in this simulation
     void VehicleAgentFromJSON(ChCoordsys<> coord_sys, const std::string& filename, ChContactMethod contact_method);
 
-  private:
     std::shared_ptr<SynWheeledVehicleMessage> m_msg;       ///< handle to the message that will be passed between ranks
     std::shared_ptr<SynWheeledVehicle> m_wheeled_vehicle;  ///< handle to this agent's vehicle
 };
+
+/// @} synchrono_agents
 
 }  // namespace synchrono
 }  // namespace chrono

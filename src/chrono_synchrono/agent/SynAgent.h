@@ -1,7 +1,7 @@
 // =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2014 projectchrono.org
+// Copyright (c) 2020 projectchrono.org
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
@@ -9,6 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
+// Authors: Aaron Young
 // =============================================================================
 //
 // Class that acts as the primary wrapper for an underlying Chrono object. This
@@ -34,6 +35,9 @@ using namespace chrono;
 
 namespace chrono {
 namespace synchrono {
+
+/// @addtogroup synchrono_agents
+/// @{
 
 /// Agent types
 enum class SynAgentType { VEHICLE, ENVIRONMENT };
@@ -135,6 +139,8 @@ class SYN_API SynAgent {
 
 /// Vector of handles to agents.
 typedef std::vector<std::shared_ptr<SynAgent>> SynAgentList;
+
+/// @} synchrono_agents
 
 }  // namespace synchrono
 }  // namespace chrono

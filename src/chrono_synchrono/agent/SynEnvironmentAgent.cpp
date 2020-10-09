@@ -20,6 +20,8 @@
 
 #include "chrono_synchrono/agent/SynEnvironmentAgent.h"
 
+#include "chrono_synchrono/flatbuffer/message/SynEnvironmentMessage.h"
+
 namespace chrono {
 namespace synchrono {
 

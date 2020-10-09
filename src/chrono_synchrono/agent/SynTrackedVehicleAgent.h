@@ -1,10 +1,28 @@
+// =============================================================================
+// PROJECT CHRONO - http://projectchrono.org
+//
+// Copyright (c) 2020 projectchrono.org
+// All rights reserved.
+//
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
+//
+// =============================================================================
+// Authors: Aaron Young
+// =============================================================================
+//
+// Class for an agent that wraps a Chrono::Vehicle tracked vehicle. The
+// underlying dynamics are those of a Tracked Vehicle, state data consists of
+// the position and orientation of the treads and feet of the tracks.
+//
+// =============================================================================
+
 #ifndef SYN_TRACKED_VEHICLE_AGENT_H
 #define SYN_TRACKED_VEHICLE_AGENT_H
 
 #include "chrono_synchrono/SynApi.h"
-
 #include "chrono_synchrono/agent/SynVehicleAgent.h"
-
 #include "chrono_synchrono/vehicle/SynTrackedVehicle.h"
 
 using namespace chrono;
@@ -12,6 +30,9 @@ using namespace chrono::vehicle;
 
 namespace chrono {
 namespace synchrono {
+
+/// @addtogroup synchrono_agents
+/// @{
 
 class SYN_API SynTrackedVehicleAgent : public SynVehicleAgent {
   public:
@@ -101,6 +122,8 @@ class SYN_API SynTrackedVehicleAgent : public SynVehicleAgent {
     std::shared_ptr<SynTrackedVehicleMessage> m_msg;       ///< handle to the message that will be passed between ranks
     std::shared_ptr<SynTrackedVehicle> m_tracked_vehicle;  ///< handle to this agent's vehicle
 };
+
+/// @} synchrono_agents
 
 }  // namespace synchrono
 }  // namespace chrono

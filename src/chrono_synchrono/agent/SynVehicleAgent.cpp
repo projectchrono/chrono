@@ -1,3 +1,23 @@
+// =============================================================================
+// PROJECT CHRONO - http://projectchrono.org
+//
+// Copyright (c) 2020 projectchrono.org
+// All rights reserved.
+//
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
+//
+// =============================================================================
+// Authors: Aaron Young
+// =============================================================================
+//
+// Base class with methods that are common to both Wheeled and Tracked
+// Syn_VehicleAgents, in particular the fact that they use a ChDriver to decide
+// how to navigate and that they know about terrain
+//
+// =============================================================================
+
 #include "chrono_synchrono/agent/SynVehicleAgent.h"
 
 #include "chrono_synchrono/utils/SynDataLoader.h"

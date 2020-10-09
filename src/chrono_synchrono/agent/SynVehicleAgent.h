@@ -1,3 +1,23 @@
+// =============================================================================
+// PROJECT CHRONO - http://projectchrono.org
+//
+// Copyright (c) 2020 projectchrono.org
+// All rights reserved.
+//
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
+//
+// =============================================================================
+// Authors: Aaron Young
+// =============================================================================
+//
+// Base class with methods that are common to both Wheeled and Tracked
+// Syn_VehicleAgents, in particular the fact that they use a ChDriver to decide
+// how to navigate and that they know about terrain
+//
+// =============================================================================
+
 #ifndef SYN_VEHICLE_AGENT_H
 #define SYN_VEHICLE_AGENT_H
 
@@ -7,13 +27,16 @@
 #include "chrono_synchrono/vehicle/SynVehicle.h"
 #include "chrono_synchrono/terrain/SynTerrain.h"
 #include "chrono_synchrono/brain/SynVehicleBrain.h"
-#include "chrono_synchrono/flatbuffer/message/SynWheeledVehicleMessage.h"
+#include "chrono_synchrono/flatbuffer/message/SynMessage.h"
 
 using namespace chrono;
 using namespace chrono::vehicle;
 
 namespace chrono {
 namespace synchrono {
+
+/// @addtogroup synchrono_agents
+/// @{
 
 class SYN_API SynVehicleAgent : public SynAgent {
   public:
@@ -94,10 +117,11 @@ class SYN_API SynVehicleAgent : public SynAgent {
     ///@param d a rapidjson document that contains the required elements
     void VehicleAgentFromJSON(rapidjson::Document& d);
 
-  protected:
     std::shared_ptr<SynTerrain> m_terrain;     ///< handle to this agent's terrain
     std::shared_ptr<SynVehicleBrain> m_brain;  ///< handle to this agent's brain
 };
+
+/// @} synchrono_agents
 
 }  // namespace synchrono
 }  // namespace chrono

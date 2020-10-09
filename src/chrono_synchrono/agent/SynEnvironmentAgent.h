@@ -21,27 +21,22 @@
 #ifndef SYN_ENVIRONMENT_AGENT_H
 #define SYN_ENVIRONMENT_AGENT_H
 
-#include "chrono/core/ChVector.h"
-
 #include "chrono_synchrono/SynApi.h"
 #include "chrono_synchrono/agent/SynAgent.h"
-#include "chrono_synchrono/flatbuffer/message/SynEnvironmentMessage.h"
+
 #include "chrono_synchrono/flatbuffer/message/SynMAPMessage.h"
 #include "chrono_synchrono/flatbuffer/message/SynSPATMessage.h"
 
 namespace chrono {
 namespace synchrono {
 
-/**
- * @brief This Agent will send out information of all the lanes in the simulation and control the traffic lights
- *
- */
+/// @addtogroup synchrono_agents
+/// @{
+
+/// @brief This Agent will send out information of all the lanes in the simulation and control the traffic lights
 class SYN_API SynEnvironmentAgent : public SynAgent {
   public:
-    /**
-     * @brief It defines the traffic light color and schedule for one lane
-     *
-     */
+    /// @brief It defines the traffic light color and schedule for one lane
     struct LaneData {
         int intersection;
         int approach;
@@ -54,12 +49,10 @@ class SYN_API SynEnvironmentAgent : public SynAgent {
         double time_to_change;  ///< When the color should change to the next one
     };
 
-    /**
-     * @brief Construct a new Syn Environment Agent object, only need one for the simulation
-     *
-     * @param rank Current rank the agent is at
-     * @param system The Chrono system the agent is in.
-     */
+    /// @brief Construct a new Syn Environment Agent object, only need one for the simulation
+    ///
+    /// @param rank Current rank the agent is at
+    /// @param system The Chrono system the agent is in.
     SynEnvironmentAgent(int rank, ChSystem* system = 0);
 
     /// Destructor
@@ -84,33 +77,35 @@ class SYN_API SynEnvironmentAgent : public SynAgent {
     virtual std::shared_ptr<SynAgentMessage> GetMessage() override;
 
     ///
-    ///@brief Add a lane to the environment, need to specify which intersection and which approach
+    /// @brief Add a lane to the environment, need to specify which intersection and which approach
     ///
-    ///@param lane lane information
-    ///@param color current color of the lane
-    ///@param behaviour Indicates when the traffic light's color will change. If currently is RED and behaviour is
-    ///{a,b,c}, it will stay RED for a seconds, switch to GREEN for b seconds, and Yellow for c seconds. Then it will
-    ///switch back to RED and do the cycle again.
-    ///@return The lane's position in that Approach
+    /// @param lane lane information
+    /// @param color current color of the lane
+    /// @param behaviour Indicates when the traffic light's color will change. If currently is RED and behaviour is
+    /// {a,b,c}, it will stay RED for a seconds, switch to GREEN for b seconds, and Yellow for c seconds. Then it will
+    /// switch back to RED and do the cycle again.
+    /// @return The lane's position in that Approach
     ///
     int AddLane(int intersection, int approach, ApproachLane lane, LaneColor color, std::vector<double> behaviour);
 
-    ///@brief
+    /// @brief
     ///
-    ///@param lane The lane's position in that approach, returned in AddLane
+    /// @param lane The lane's position in that approach, returned in AddLane
     void SetColor(int intersection, int approach, int lane, LaneColor color);
 
   private:
-    ///@brief Find the next color in this order ...->GREEN->YELLOW->RED->GREEN->... 
+    /// @brief Find the next color in this order ...->GREEN->YELLOW->RED->GREEN->...
     LaneColor FindNextColor(LaneColor color);
 
     // agent specific parameters
     double m_current_time;
-    std::vector<LaneData> m_lane_light_data; ///< Store all lane information
+    std::vector<LaneData> m_lane_light_data;  ///< Store all lane information
 
     std::shared_ptr<SynMAPMessage> m_map_msg;
     std::shared_ptr<SynSPATMessage> m_spat_msg;
 };
+
+/// @} synchrono_agents
 
 }  // namespace synchrono
 }  // namespace chrono

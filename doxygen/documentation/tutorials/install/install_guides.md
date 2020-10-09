@@ -35,6 +35,8 @@ Additional Chrono functionality is provided through optional modules. Building o
 
 -   [SENSOR module](@ref module_sensor_installation)	
 
+-   [SYNCHRONO module](@ref module_synchrono_installation)
+
 -   [VEHICLE module](@ref module_vehicle_installation)
 
 

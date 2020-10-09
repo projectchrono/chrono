@@ -1,3 +1,23 @@
+// =============================================================================
+// PROJECT CHRONO - http://projectchrono.org
+//
+// Copyright (c) 2020 projectchrono.org
+// All rights reserved.
+//
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
+//
+// =============================================================================
+// Authors: Aaron Young
+// =============================================================================
+//
+// Class for an agent that wraps a Chrono::Vehicle wheeled vehicle. The
+// underlying dynamics are those of a wheeled vehicle, state data consists of
+// the position and orientation of the COM and the wheels of the vehicle
+//
+// =============================================================================
+
 #include "chrono_synchrono/agent/SynWheeledVehicleAgent.h"
 
 #include "chrono_synchrono/utils/SynDataLoader.h"
