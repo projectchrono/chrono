@@ -27,7 +27,7 @@ int main(int argc, char* argv[]) {
         mat->SetRollingFriction(((float)bi / 10) * 0.05f);
 
         auto msphereBody = chrono_types::make_shared<ChBodyEasySphere>(mradius,  // radius size
-                                                                       density,     // density
+                                                                       density,  // density
                                                                        true,     // visualization?
                                                                        true,     // collision?
                                                                        mat);     // contact material
@@ -100,6 +100,10 @@ int main(int argc, char* argv[]) {
     mphysicalSystem.Add(bin);
 
     ChVSGApp app;
+
+    // Modify some setting of the physical system for the simulation
+    mphysicalSystem.SetSolverType(ChSolver::Type::APGD);
+    mphysicalSystem.SetSolverMaxIterations(100);
 
     app.setTimeStep(0.005);
     app.setOutputStep(0.015);
