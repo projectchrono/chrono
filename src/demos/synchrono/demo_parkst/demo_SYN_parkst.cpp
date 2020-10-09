@@ -180,10 +180,16 @@ int main(int argc, char* argv[]) {
         // -------
         // Terrain
         // -------
+        MaterialInfo minfo;
+        minfo.mu = 0.9f;
+        minfo.cr = 0.01f;
+        minfo.Y = 2e7f;
+        auto patch_mat = minfo.CreateMaterial(contact_method);
+
         auto terrain = chrono_types::make_shared<RigidTerrain>(agent->GetSystem());
 
         std::string col_mesh_filename = STRINGIFY(PARKST_COL_MESH_PATH);
-        auto patch = terrain->AddPatch(DefaultMaterialSurface(), CSYSNORM, col_mesh_filename, "", 0.01, false);
+        auto patch = terrain->AddPatch(patch_mat, CSYSNORM, col_mesh_filename, "", 0.01, false);
 
         std::string vis_mesh_filename = STRINGIFY(PARKST_VIS_MESH_PATH);
         auto vis_mesh = chrono_types::make_shared<ChTriangleMeshConnected>();
@@ -311,9 +317,11 @@ int main(int argc, char* argv[]) {
 
     mpi_manager.Initialize();
 
+    int step_number = 0;
+
     // Simulation Loop
     while (mpi_manager.IsOk()) {
-        mpi_manager.Advance();
+        mpi_manager.Advance(heartbeat * step_number++);
         mpi_manager.Synchronize();
         mpi_manager.Update();
     }
