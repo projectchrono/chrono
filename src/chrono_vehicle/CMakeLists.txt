@@ -300,6 +300,8 @@ set(CV_WV_BASE_FILES
     wheeled_vehicle/ChSteering.cpp
     wheeled_vehicle/ChSubchassis.h
     wheeled_vehicle/ChSubchassis.cpp
+    wheeled_vehicle/ChWheeledTrailer.h
+    wheeled_vehicle/ChWheeledTrailer.cpp
     wheeled_vehicle/ChWheeledVehicle.h
     wheeled_vehicle/ChWheeledVehicle.cpp
     wheeled_vehicle/ChWheel.h
