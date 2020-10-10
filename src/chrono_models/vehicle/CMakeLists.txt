@@ -453,6 +453,44 @@ set(CVM_RCCAR_FILES
  )
 source_group("rccar" FILES ${CVM_RCCAR_FILES})
 
+set(CVM_KRAZ_FILES
+    kraz/Kraz.cpp
+    kraz/Kraz.h
+    kraz/Kraz_tractor.cpp
+    kraz/Kraz_tractor.h
+    kraz/Kraz_tractor_Brake.cpp
+    kraz/Kraz_tractor_Brake.h
+    kraz/Kraz_tractor_Chassis.cpp
+    kraz/Kraz_tractor_Chassis.h
+    kraz/Kraz_tractor_Driveline.cpp
+    kraz/Kraz_tractor_Driveline.h
+    kraz/Kraz_tractor_FrontSuspension.cpp
+    kraz/Kraz_tractor_FrontSuspension.h
+    kraz/Kraz_tractor_Powertrain.cpp
+    kraz/Kraz_tractor_Powertrain.h
+    kraz/Kraz_tractor_RearSuspension.cpp
+    kraz/Kraz_tractor_RearSuspension.h
+    kraz/Kraz_tractor_Steering.cpp
+    kraz/Kraz_tractor_Steering.h
+    kraz/Kraz_tractor_Tire.cpp
+    kraz/Kraz_tractor_Tire.h
+    kraz/Kraz_tractor_Wheel.cpp
+    kraz/Kraz_tractor_Wheel.h
+    kraz/Kraz_trailer.cpp
+    kraz/Kraz_trailer.h
+    kraz/Kraz_trailer_Brake.cpp
+    kraz/Kraz_trailer_Brake.h
+    kraz/Kraz_trailer_Chassis.cpp
+    kraz/Kraz_trailer_Chassis.h
+    kraz/Kraz_trailer_Suspension.cpp
+    kraz/Kraz_trailer_Suspension.h
+    kraz/Kraz_trailer_Tire.cpp
+    kraz/Kraz_trailer_Tire.h
+    kraz/Kraz_trailer_Wheel.cpp
+    kraz/Kraz_trailer_Wheel.h
+)
+source_group("kraz" FILES ${CVM_KRAZ_FILES})
+
 # ----------------------------------------------------------------------------
 # Add the Chrono_vehicle_models library
 # ----------------------------------------------------------------------------
@@ -472,6 +510,7 @@ add_library(ChronoModels_vehicle SHARED
     ${CVM_M113_FILES}
     ${CVM_MAN_FILES}
     ${CVM_RCCAR_FILES}
+    ${CVM_KRAZ_FILES}
  )
 
 set_target_properties(ChronoModels_vehicle PROPERTIES
