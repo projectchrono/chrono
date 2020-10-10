@@ -482,7 +482,7 @@ windows:vs2017:build:
   before_script:
     - export CONDA_NPY=19
     - wget https://repo.anaconda.com/miniconda/Miniconda3-latest-MacOSX-x86_64.sh -O ~/miniconda.sh
-    - rm -r $HOME/miniconda 2>&1 >/dev/null
+    - rm -r $HOME/miniconda > /dev/null 2>&1 || FAILED=true
     - bash ~/miniconda.sh -b -p $HOME/miniconda
     - export PATH=$HOME/miniconda/bin:$PATH
     - conda install --yes -c intel jinja2
