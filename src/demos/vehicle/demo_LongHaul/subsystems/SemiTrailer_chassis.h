@@ -39,7 +39,7 @@ class SemiTrailer_chassis : public chrono::vehicle::ChRigidChassisRear {
     virtual const chrono::ChVector<>& GetLocalPosCOM() const override { return m_COM_loc; }
 
     /// Get the location (in the local frame of this chassis) of the connection to the front chassis.
-    virtual const chrono::ChVector<>& GetLocalPosConnector() const override { return m_connector_loc; }
+    virtual const chrono::ChVector<>& GetLocalPosFrontConnector() const override { return m_connector_loc; }
 
   private:
     chrono::ChMatrix33<> m_inertia;

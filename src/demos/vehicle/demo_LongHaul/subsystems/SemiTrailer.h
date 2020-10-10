@@ -40,7 +40,7 @@ class SemiTrailer {
     double GetShockLength(int axle, chrono::vehicle::VehicleSide side) const;
     double GetShockVelocity(int axle, chrono::vehicle::VehicleSide side) const;
 
-    void Initialize(std::shared_ptr<chrono::vehicle::ChChassis> frontChassis, const chrono::ChVector<>& location);
+    void Initialize(std::shared_ptr<chrono::vehicle::ChChassis> frontChassis);
 
     void InitializeTire(
         std::shared_ptr<chrono::vehicle::ChTire> tire,

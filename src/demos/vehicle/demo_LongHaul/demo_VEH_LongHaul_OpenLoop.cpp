@@ -77,7 +77,7 @@ int main(int argc, char* argv[]) {
     drvLine->LockCentralDifferential(0, false);
 
     SemiTrailer trailer(vehicle.GetSystem(), false);
-    trailer.Initialize(vehicle.GetChassis(), ChVector<>(-4.64, 0, 0.0));
+    trailer.Initialize(vehicle.GetChassis());
     trailer.SetChassisVisualizationType(VisualizationType::PRIMITIVES);
     trailer.SetSuspensionVisualizationType(VisualizationType::PRIMITIVES);
     trailer.SetWheelVisualizationType(VisualizationType::MESH);

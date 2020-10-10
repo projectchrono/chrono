@@ -28,9 +28,8 @@ const double SemiTractor_chassis::m_mass = 10000.0;
 const ChVector<> SemiTractor_chassis::m_inertiaXX(3441, 28485, 29395);
 const ChVector<> SemiTractor_chassis::m_inertiaXY(0, 0, 0);
 const ChVector<> SemiTractor_chassis::m_COM_loc(-2.0, 0, 0.6);
+const ChVector<> SemiTractor_chassis::m_connector_loc(-4.64, 0, 0.82);
 const ChCoordsys<> SemiTractor_chassis::m_driverCsys(ChVector<>(-1.5, 0.5, 1.2), ChQuaternion<>(1, 0, 0, 0));
-
-const ChVector<> SemiTractor_chassis::m_5th_wheel_loc(-4.64, 0, 0.82);
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------

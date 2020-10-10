@@ -26,7 +26,7 @@ const double SemiTrailer_chassis::m_mass = 20000.0;
 const ChVector<> SemiTrailer_chassis::m_inertiaXX(23904, 322240, 320011);
 const ChVector<> SemiTrailer_chassis::m_inertiaXY(0, 0, 0);
 const ChVector<> SemiTrailer_chassis::m_COM_loc(-6, 0, 0.8);
-const ChVector<> SemiTrailer_chassis::m_connector_loc(-0.04, 0, 0.8);
+const ChVector<> SemiTrailer_chassis::m_connector_loc(-0.04, 0, 0.82);
 
 SemiTrailer_chassis::SemiTrailer_chassis(const std::string& name) : ChRigidChassisRear(name) {
     m_inertia(0, 0) = m_inertiaXX.x();

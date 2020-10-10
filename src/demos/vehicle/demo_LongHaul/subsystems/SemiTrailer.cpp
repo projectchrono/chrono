@@ -60,9 +60,9 @@ SemiTrailer::SemiTrailer(ChSystem* mysystem, const bool fixed) {
 }
 
 // Initialize the trailer relative to the chassis of the pulling vehicle
-void SemiTrailer::Initialize(std::shared_ptr<ChChassis> frontChassis, const ChVector<>& location) {
+void SemiTrailer::Initialize(std::shared_ptr<ChChassis> frontChassis) {
     // Initialize the trailer chassis and its connector
-    m_chassis->Initialize(frontChassis, location, WheeledCollisionFamily::CHASSIS);
+    m_chassis->Initialize(frontChassis, WheeledCollisionFamily::CHASSIS);
     m_connector->Initialize(frontChassis, m_chassis);
 
     // Initialize the axle subsystems.
