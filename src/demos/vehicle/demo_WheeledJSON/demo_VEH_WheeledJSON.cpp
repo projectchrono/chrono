@@ -28,6 +28,7 @@
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
 
 #include "chrono_vehicle/wheeled_vehicle/vehicle/WheeledVehicle.h"
+#include "chrono_vehicle/wheeled_vehicle/vehicle/WheeledTrailer.h"
 #include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleIrrApp.h"
 
 #include "chrono_thirdparty/filesystem/path.h"
@@ -146,13 +147,39 @@ class MAN_Model : public Vehicle_Model {
 };
 
 // =============================================================================
+// Specification of a trailer model from JSON files
+// Available models:
+//    Ultra_Tow 40in x 48 in
+
+class Trailer_Model {
+  public:
+    virtual std::string ModelName() const = 0;
+    virtual std::string TrailerJSON() const = 0;
+    virtual std::string TireJSON() const = 0;
+};
+
+class UT_Model : public Trailer_Model {
+  public:
+    virtual std::string ModelName() const override { return "Ultra-Tow"; }
+    virtual std::string TrailerJSON() const override { return "ultra_tow/UT_Trailer.json"; }
+    virtual std::string TireJSON() const override { 
+        ////return "ultra_tow/UT_RigidTire.json";
+        return "ultra_tow/UT_TMeasyTire.json"; 
+    }
+};
+
+// =============================================================================
 
 // Current vehicle model selection
-auto model = HMMWV_Model();
-////auto model = Sedan_Model();
-////auto model = UAZ_Model();
-////auto model = CityBus_Model();
-////auto model = MAN_Model();
+////auto vehicle_model = HMMWV_Model();
+auto vehicle_model = Sedan_Model();
+////auto vehicle_model = UAZ_Model();
+////auto vehicle_model = CityBus_Model();
+////auto vehicle_model = MAN_Model();
+
+// Trailer model selection (use only with HMMWV, Sedan, or UAZ)
+bool add_trailer = true;
+auto trailer_model = UT_Model();
 
 // JSON files for terrain
 std::string rigidterrain_file("terrain/RigidPlane.json");
@@ -163,7 +190,7 @@ std::string rigidterrain_file("terrain/RigidPlane.json");
 
 // Initial vehicle position and orientation
 ChVector<> initLoc(0, 0, 0.5);
-double initYaw = 0;
+double initYaw = 20 * CH_C_DEG_TO_RAD;
 
 // Simulation step size
 double step_size = 2e-3;
@@ -177,24 +204,39 @@ int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
     // Create the vehicle system
-    WheeledVehicle vehicle(vehicle::GetDataFile(model.VehicleJSON()), ChContactMethod::NSC);
+    WheeledVehicle vehicle(vehicle::GetDataFile(vehicle_model.VehicleJSON()), ChContactMethod::NSC);
     vehicle.Initialize(ChCoordsys<>(initLoc, Q_from_AngZ(initYaw)));
-    ////vehicle.GetChassis()->SetFixed(true);
+    vehicle.GetChassis()->SetFixed(false);
     vehicle.SetChassisVisualizationType(VisualizationType::MESH);
     vehicle.SetSuspensionVisualizationType(VisualizationType::PRIMITIVES);
     vehicle.SetSteeringVisualizationType(VisualizationType::PRIMITIVES);
     vehicle.SetWheelVisualizationType(VisualizationType::MESH);
 
     // Create and initialize the powertrain system
-    auto powertrain = ReadPowertrainJSON(vehicle::GetDataFile(model.PowertrainJSON()));
-    //auto powertrain = chrono_types::make_shared<SimplePowertrain>(vehicle::GetDataFile(simplepowertrain_file));
+    auto powertrain = ReadPowertrainJSON(vehicle::GetDataFile(vehicle_model.PowertrainJSON()));
     vehicle.InitializePowertrain(powertrain);
 
     // Create and initialize the tires
     for (auto& axle : vehicle.GetAxles()) {
         for (auto& wheel : axle->GetWheels()) {
-            auto tire = ReadTireJSON(vehicle::GetDataFile(model.TireJSON()));
+            auto tire = ReadTireJSON(vehicle::GetDataFile(vehicle_model.TireJSON()));
             vehicle.InitializeTire(tire, wheel, VisualizationType::MESH);
+        }
+    }
+
+    // Create the trailer system (build into same ChSystem)
+    std::shared_ptr<WheeledTrailer> trailer;
+    if (add_trailer) {
+        trailer = chrono_types::make_shared<WheeledTrailer>(vehicle.GetSystem(), vehicle::GetDataFile(trailer_model.TrailerJSON()));
+        trailer->Initialize(vehicle.GetChassis());
+        trailer->SetChassisVisualizationType(VisualizationType::PRIMITIVES);
+        trailer->SetSuspensionVisualizationType(VisualizationType::PRIMITIVES);
+        trailer->SetWheelVisualizationType(VisualizationType::NONE);
+        for (auto& axle : trailer->GetAxles()) {
+            for (auto& wheel : axle->GetWheels()) {
+                auto tire = ReadTireJSON(vehicle::GetDataFile(trailer_model.TireJSON()));
+                trailer->InitializeTire(tire, wheel, VisualizationType::PRIMITIVES);
+            }
         }
     }
 
@@ -205,7 +247,7 @@ int main(int argc, char* argv[]) {
     ChWheeledVehicleIrrApp app(&vehicle, L"Vehicle demo - JSON specification");
     app.SetSkyBox();
     app.AddTypicalLights(irr::core::vector3df(30.f, -30.f, 100.f), irr::core::vector3df(30.f, 50.f, 100.f), 250, 130);
-    app.SetChaseCamera(ChVector<>(0.0, 0.0, 1.75), model.CameraDistance(), 0.5);
+    app.SetChaseCamera(ChVector<>(0.0, 0.0, 1.75), vehicle_model.CameraDistance(), 0.5);
     app.SetTimestep(step_size);
     app.AssetBindAll();
     app.AssetUpdateAll();
@@ -218,7 +260,7 @@ int main(int argc, char* argv[]) {
     driver.Initialize();
 
     // Initialize output directories
-    std::string veh_dir = out_dir + "/" + model.ModelName();
+    std::string veh_dir = out_dir + "/" + vehicle_model.ModelName();
     if (!filesystem::create_directory(filesystem::path(out_dir))) {
         std::cout << "Error creating directory " << out_dir << std::endl;
         return 1;
@@ -250,12 +292,16 @@ int main(int argc, char* argv[]) {
         double time = vehicle.GetSystem()->GetChTime();
         driver.Synchronize(time);
         vehicle.Synchronize(time, driver_inputs, terrain);
+        if (add_trailer)
+            trailer->Synchronize(time, driver_inputs.m_braking, terrain);
         terrain.Synchronize(time);
-        app.Synchronize(model.ModelName(), driver_inputs);
+        app.Synchronize(vehicle_model.ModelName(), driver_inputs);
 
         // Advance simulation for one timestep for all modules
         driver.Advance(step_size);
         vehicle.Advance(step_size);
+        if (add_trailer)
+            trailer->Advance(step_size);
         terrain.Advance(step_size);
         app.Advance(step_size);
 
