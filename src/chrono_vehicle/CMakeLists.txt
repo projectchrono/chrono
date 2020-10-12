@@ -178,6 +178,13 @@ set(CV_CHASSIS_FILES
 
     chassis/RigidChassis.h
     chassis/RigidChassis.cpp
+
+    chassis/ChassisConnectorHitch.h
+    chassis/ChassisConnectorHitch.cpp
+    chassis/ChassisConnectorArticulated.h
+    chassis/ChassisConnectorArticulated.cpp
+    chassis/ChassisConnectorTorsion.h
+    chassis/ChassisConnectorTorsion.cpp    
 )
 source_group("chassis" FILES ${CV_CHASSIS_FILES})
 
@@ -539,6 +546,8 @@ endif()
 source_group("wheeled_vehicle\\utils" FILES ${CV_WV_UTILS_FILES} ${CVIRR_WV_UTILS_FILES})
 
 set(CV_WV_VEHICLE_FILES
+    wheeled_vehicle/vehicle/WheeledTrailer.h
+    wheeled_vehicle/vehicle/WheeledTrailer.cpp
     wheeled_vehicle/vehicle/WheeledVehicle.h
     wheeled_vehicle/vehicle/WheeledVehicle.cpp
 )
