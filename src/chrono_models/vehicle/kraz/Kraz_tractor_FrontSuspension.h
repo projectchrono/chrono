@@ -30,6 +30,7 @@ namespace kraz {
 /// @addtogroup vehicle_models_kraz
 /// @{
 
+/// Leafspring front axle subsystem for the Kraz tractor.
 class CH_MODELS_API Kraz_tractor_FrontSuspension : public ChToeBarLeafspringAxle {
   public:
     Kraz_tractor_FrontSuspension(const std::string& name);

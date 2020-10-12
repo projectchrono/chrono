@@ -34,7 +34,7 @@ namespace kraz {
 /// @addtogroup vehicle_models_kraz
 /// @{
 
-/// Definition of the Kraz semi-trailer truck assembly.
+/// Definition of the Kraz 64431 semi-trailer truck assembly.
 /// This class encapsulates a concrete wheeled vehicle model for the tractor, the powertrain and tires for the tractor,
 /// as well as the trailer and its tires.
 class CH_MODELS_API Kraz {

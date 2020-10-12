@@ -30,6 +30,7 @@ namespace kraz {
 /// @addtogroup vehicle_models_kraz
 /// @{
 
+/// Shafts-based 4-WD driveline for the Kraz tractor.
 class CH_MODELS_API Kraz_tractor_Driveline : public ChShaftsDriveline4WD {
   public:
     Kraz_tractor_Driveline(const std::string& name);

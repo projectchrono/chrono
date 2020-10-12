@@ -33,6 +33,7 @@ namespace kraz {
 
 // -----------------------------------------------------------------------------
 
+/// Kraz trailer chassis subsystem.
 class CH_MODELS_API Kraz_trailer_Chassis : public ChRigidChassisRear {
   public:
     Kraz_trailer_Chassis(const std::string& name);
@@ -63,6 +64,7 @@ class CH_MODELS_API Kraz_trailer_Chassis : public ChRigidChassisRear {
 
 // -----------------------------------------------------------------------------
 
+/// Kraz tractor-trailer hitch connector subsystem.
 class CH_MODELS_API Kraz_trailer_Connector : public ChChassisConnectorHitch {
   public:
     Kraz_trailer_Connector(const std::string& name) : ChChassisConnectorHitch(name) {}

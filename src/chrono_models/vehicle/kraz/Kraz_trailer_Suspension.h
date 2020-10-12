@@ -31,6 +31,7 @@ namespace kraz {
 /// @addtogroup vehicle_models_kraz
 /// @{
 
+/// Leafspring axle subsystem for the Kraz trailer.
 class CH_MODELS_API Kraz_trailer_Suspension : public ChLeafspringAxle {
   public:
     Kraz_trailer_Suspension(const std::string& name);

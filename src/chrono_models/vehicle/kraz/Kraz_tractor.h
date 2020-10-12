@@ -31,6 +31,7 @@ namespace kraz {
 /// @addtogroup vehicle_models_kraz
 /// @{
 
+/// Kraz tractor system.
 class CH_MODELS_API Kraz_tractor : public ChWheeledVehicle {
   public:
     Kraz_tractor(bool fixed, ChContactMethod contactMethod = ChContactMethod::NSC);

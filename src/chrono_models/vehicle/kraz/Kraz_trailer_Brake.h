@@ -30,6 +30,7 @@ namespace kraz {
 /// @addtogroup vehicle_models_kraz
 /// @{
 
+/// Simple Kraz trailer brake subsystem (torque applied directly to the spindle joint).
 class CH_MODELS_API Kraz_trailer_Brake : public ChBrakeSimple {
   public:
     Kraz_trailer_Brake(const std::string& name);

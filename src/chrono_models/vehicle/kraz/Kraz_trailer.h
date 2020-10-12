@@ -30,6 +30,7 @@ namespace kraz {
 /// @addtogroup vehicle_models_kraz
 /// @{
 
+/// Kraz trailer system.
 class CH_MODELS_API Kraz_trailer : public ChWheeledTrailer {
   public:
     Kraz_trailer(ChSystem* system);

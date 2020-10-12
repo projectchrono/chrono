@@ -34,6 +34,7 @@ namespace kraz {
 /// @addtogroup vehicle_models_kraz
 /// @{
 
+/// Simple Kraz tractor powertrain subsystem (based on engine speed-torque maps).
 class CH_MODELS_API Kraz_tractor_Powertrain : public ChSimpleMapPowertrain {
   public:
     Kraz_tractor_Powertrain(const std::string& name);

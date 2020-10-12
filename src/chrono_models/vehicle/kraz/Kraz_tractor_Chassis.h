@@ -30,6 +30,7 @@ namespace kraz {
 /// @addtogroup vehicle_models_kraz
 /// @{
 
+/// Kraz tractor chassis subsystem.
 class CH_MODELS_API Kraz_tractor_Chassis : public ChRigidChassis {
   public:
     Kraz_tractor_Chassis(const std::string& name);

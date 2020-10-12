@@ -34,6 +34,7 @@ namespace kraz {
 /// @addtogroup vehicle_models_kraz
 /// @{
 
+/// Kraz tractor wheel (can be used on any axle, left or right).
 class CH_MODELS_API Kraz_tractor_Wheel : public ChWheel {
   public:
     Kraz_tractor_Wheel(const std::string& name);

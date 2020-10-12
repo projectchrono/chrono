@@ -30,6 +30,7 @@ namespace kraz {
 /// @addtogroup vehicle_models_kraz
 /// @{
 
+/// Simple Kraz tractor brake subsystem (torque applied directly to the spindle joint).
 class CH_MODELS_API Kraz_tractor_Brake : public ChBrakeSimple {
   public:
     Kraz_tractor_Brake(const std::string& name);

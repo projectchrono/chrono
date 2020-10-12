@@ -30,6 +30,7 @@ namespace kraz {
 /// @addtogroup vehicle_models_kraz
 /// @{
 
+/// RotaryArm steering subsystem for the Kraz tractor.
 class CH_MODELS_API Kraz_tractor_Steering : public ChRotaryArm {
   public:
     Kraz_tractor_Steering(const std::string& name);

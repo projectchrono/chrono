@@ -30,6 +30,7 @@ namespace kraz {
 /// @addtogroup vehicle_models_kraz
 /// @{
 
+/// Leafspring rear axle subsystem for the Kraz tractor.
 class CH_MODELS_API Kraz_tractor_RearSuspension : public ChLeafspringAxle {
   public:
     Kraz_tractor_RearSuspension(const std::string& name);

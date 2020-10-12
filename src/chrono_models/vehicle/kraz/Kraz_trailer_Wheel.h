@@ -34,6 +34,7 @@ namespace kraz {
 /// @addtogroup vehicle_models_kraz
 /// @{
 
+/// Kraz trailer wheel (can be used on any axle, left or right).
 class CH_MODELS_API Kraz_trailer_Wheel : public ChWheel {
   public:
     Kraz_trailer_Wheel(const std::string& name);

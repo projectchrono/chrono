@@ -30,6 +30,7 @@ namespace kraz {
 /// @addtogroup vehicle_models_kraz
 /// @{
 
+/// TMeasy tire model for the Kraz trailer.
 class CH_MODELS_API Kraz_trailer_Tire : public ChTMeasyTire {
   public:
     Kraz_trailer_Tire(const std::string& name);
