@@ -34,6 +34,7 @@ const double Sedan_Chassis::m_mass = 1250;
 const ChVector<> Sedan_Chassis::m_inertiaXX(222.8, 944.1, 1053.5);
 const ChVector<> Sedan_Chassis::m_inertiaXY(0, 0, 0);
 const ChVector<> Sedan_Chassis::m_COM_loc(0, 0, 0.2);
+const ChVector<> Sedan_Chassis::m_connector_rear_loc(-2.5, 0, -0.1);
 const ChCoordsys<> Sedan_Chassis::m_driverCsys(ChVector<>(0.0, 0.5, 1.2), ChQuaternion<>(1, 0, 0, 0));
 
 // -----------------------------------------------------------------------------
