@@ -8,6 +8,9 @@ rem actually 10 material parameters are needed as input.
 glslc shader_Phong.vert -o vert_Phong.spv
 glslc shader_Phong.frag -o frag_Phong.spv
 rem
+glslc shader_SimplePhong.vert -o vert_SimplePhong.spv
+glslc shader_SimplePhong.frag -o frag_SimplePhong.spv
+rem
 glslc shader_BlinnPhong.vert -o vert_BlinnPhong.spv
 glslc shader_BlinnPhong.frag -o frag_BlinnPhong.spv
 rem

@@ -24,8 +24,12 @@ SET(ChronoEngine_VSG_SOURCES
     ChVSGApp.cpp
     resources/ChVSGPbrMaterial.cpp
     resources/ChVSGPhongMaterial.cpp
+    shapes/ChVSGSimplePhongIdxMesh.cpp
     shapes/ChVSGIdxMesh.cpp
     shapes/ChVSGPbrIdxMesh.cpp
+    shapes/VSGSimpleBox.cpp
+    shapes/VSGSimpleSphere.cpp
+    shapes/VSGSimpleCylinder.cpp
     shapes/VSGBox.cpp
     shapes/VSGPbrBox.cpp
     shapes/VSGSphere.cpp
@@ -39,8 +43,12 @@ SET(ChronoEngine_VSG_HEADERS
     resources/ChVSGSettings.h
     resources/ChVSGPbrMaterial.h
     resources/ChVSGPhongMaterial.h
+    shapes/ChVSGSimplePhongIdxMesh.cpp
     shapes/ChVSGIdxMesh.h
     shapes/ChVSGPbrIdxMesh.h
+    shapes/VSGSimpleBox.h
+    shapes/VSGSimpleSphere.h
+    shapes/VSGSimpleCylinder.h
     shapes/VSGBox.h
     shapes/VSGPbrBox.h
     shapes/VSGSphere.h

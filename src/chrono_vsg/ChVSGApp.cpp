@@ -26,7 +26,10 @@
 #include "chrono/assets/ChCylinderShape.h"
 #include "chrono_vsg/resources/ChVSGSettings.h"
 #include "chrono_vsg/resources/ChVSGPhongMaterial.h"
-#include "chrono_vsg/shapes/VSGPbrBox.h"
+#include "chrono_vsg/shapes/VSGSimpleBox.h"
+#include "chrono_vsg/shapes/VSGSimpleSphere.h"
+#include "chrono_vsg/shapes/VSGSimpleCylinder.h"
+#include "chrono_vsg/shapes/VSGBox.h"
 #include "chrono_vsg/shapes/VSGSphere.h"
 #include "chrono_vsg/shapes/VSGCylinder.h"
 
@@ -197,10 +200,12 @@ void ChVSGApp::BuildSceneGraph() {
                                      vsg::rotate(angle, axis.x(), axis.y(), axis.z()) *
                                      vsg::scale(size.x(), size.y(), size.z()));
                 std::string texFilePath(GetChronoDataFile("vsg/textures/Metal007.jpg"));
-                ChVSGPhongMaterial jade(PhongPresets::Jade);
-                ChVSGPbrMaterial tmat(PbrPresets::TestMat);
-                VSGPbrBox box(body, asset, transform);
-                box.Initialize(m_light_positions, tmat, texFilePath);
+                // ChVSGPhongMaterial jade(PhongPresets::Jade);
+                // ChVSGPbrMaterial tmat(PbrPresets::TestMat);
+                // VSGPbrBox box(body, asset, transform);
+                VSGSimpleBox box(body, asset, transform);
+                vsg::vec3 boxColor(1.0, 0.0, 0.0);
+                box.Initialize(m_light_position, boxColor);
                 vsg::ref_ptr<vsg::Node> node = box.createVSGNode(m_drawMode);
                 m_scenegraph->addChild(node);
             }
@@ -217,8 +222,13 @@ void ChVSGApp::BuildSceneGraph() {
 
                 std::string texFilePath(GetChronoDataFile("concrete.jpg"));
                 ChVSGPhongMaterial gold(PhongPresets::Gold);
+                /*
                 VSGSphere sphere(body, asset, transform);
                 sphere.Initialize(m_light_position, gold, texFilePath);
+                 * */
+                vsg::vec3 sphereColor(0.0, 1.0, 0.0);
+                VSGSimpleSphere sphere(body, asset, transform);
+                sphere.Initialize(m_light_position, sphereColor);
                 vsg::ref_ptr<vsg::Node> node = sphere.createVSGNode(m_drawMode);
                 // vsg::ref_ptr<vsg::Node> node = ChVSGShapeFactory::createSpherePhongNode(color, transform);
                 m_scenegraph->addChild(node);
@@ -235,9 +245,14 @@ void ChVSGApp::BuildSceneGraph() {
                                      vsg::scale(size.x(), size.y(), size.z()));
 
                 std::string texFilePath(GetChronoDataFile("concrete.jpg"));
+                /*
                 ChVSGPhongMaterial polishedBronze(PhongPresets::PolishedBronze);
                 VSGSphere ellipsoid(body, asset, transform);
                 ellipsoid.Initialize(m_light_position, polishedBronze, texFilePath);
+                 * */
+                vsg::vec3 ellColor(0.0, 0.0, 1.0);
+                VSGSimpleSphere ellipsoid(body, asset, transform);
+                ellipsoid.Initialize(m_light_position, ellColor);
                 vsg::ref_ptr<vsg::Node> node = ellipsoid.createVSGNode(m_drawMode);
                 m_scenegraph->addChild(node);
             }
@@ -252,9 +267,14 @@ void ChVSGApp::BuildSceneGraph() {
                                      vsg::rotate(angle, axis.x(), axis.y(), axis.z()) *
                                      vsg::scale(radius, radius, height));
                 std::string texFilePath(GetChronoDataFile("concrete.jpg"));
+                /*
                 ChVSGPhongMaterial bluePlastic(PhongPresets::BluePlastic);
                 VSGCylinder cylinder(body, asset, transform);
                 cylinder.Initialize(m_light_position, bluePlastic, texFilePath);
+                 * */
+                vsg::vec3 cylColor(1.0, 1.0, 0.0);
+                VSGSimpleCylinder cylinder(body, asset, transform);
+                cylinder.Initialize(m_light_position, cylColor);
                 vsg::ref_ptr<vsg::Node> node = cylinder.createVSGNode(m_drawMode);
                 m_scenegraph->addChild(node);
             }
