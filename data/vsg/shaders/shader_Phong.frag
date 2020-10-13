@@ -3,35 +3,45 @@
 
 layout(set = 1, binding = 0) uniform LightSettings {
     vec3 light_pos;
-} lightSettings;
+} ls;
 
 layout(location = 0) out vec4 FragColor;
 
-layout(location = 0) in vec3 color_ambient;
-layout(location = 1) in vec3 color_diffuse;
-layout(location = 2) in vec3 color_specular;
-layout(location = 3) in float shininess;
-layout(location = 4) in float opacity;
-layout(location = 5) in vec3 normal;
-layout(location = 6) in vec3 eye_vec;
+layout(location = 0) in vec3 FragPos;
+layout(location = 1) in vec3 Normal;
+layout(location = 2) in vec3 AmbientColor;
+layout(location = 3) in vec3 DiffuseColor;
+layout(location = 4) in vec3 SpecularColor;
+layout(location = 5) in float Shininess;
 
-//vec3 light_pos = vec3(100, 100, 100);
+vec3 lightColor = vec3(1.0,1.0,1.0);
+vec3 viewPos = vec3(0.0,0.0,0.0);
+
+bool blinn = true;
 
 void main() {
-  vec3 final_color = color_ambient;
+  // ambient
+  vec3 ambient = lightColor * AmbientColor;
+  
+  // diffuse 
+  vec3 norm = normalize(Normal);
+  vec3 lightDir = normalize(ls.light_pos - FragPos);
+  float diff = max(dot(norm, lightDir), 0.0);
+  vec3 diffuse = lightColor * (diff * DiffuseColor);
 
-  vec3 N = normalize(normal);
-  vec3 L = normalize(lightSettings.light_pos - eye_vec);
-  vec3 E = normalize(-eye_vec);
-
-  float lambertTerm = dot(N, L);
-
-  if (lambertTerm > 0.0) {
-    final_color += color_diffuse * lambertTerm;
-    vec3 R = reflect(-L, N);
-    float specular = pow(max(dot(R, E), 0.0), shininess);
-    final_color += color_specular * specular;
+  // specular
+  vec3 viewDir = normalize(viewPos - FragPos);
+  float spec = 0.0;
+  if(blinn) {
+    vec3 halfwayDir = normalize(lightDir + viewDir);
+    spec = pow(max(dot(norm, halfwayDir), 0.0), Shininess);
   }
+  else {
+    vec3 reflectDir = reflect(-lightDir, norm);
+    spec = pow(max(dot(viewDir, reflectDir), 0.0), Shininess);
+  }
+  vec3 specular = lightColor * (spec * SpecularColor);  
 
-  FragColor = vec4(final_color, opacity);
+  vec3 final_color = ambient + diffuse + specular;
+  FragColor = vec4(final_color, 1);
 }

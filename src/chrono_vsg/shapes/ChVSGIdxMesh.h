@@ -19,12 +19,12 @@ namespace vsg3d {
 class CH_VSG_API ChVSGIdxMesh {
   public:
     ChVSGIdxMesh(std::shared_ptr<ChBody> body,
-                     std::shared_ptr<ChAsset> asset,
-                     vsg::ref_ptr<vsg::MatrixTransform> transform);
+                 std::shared_ptr<ChAsset> asset,
+                 vsg::ref_ptr<vsg::MatrixTransform> transform);
 
     virtual void Initialize(vsg::vec3& lightPosition, ChVSGPhongMaterial& mat, std::string& texFilePath) = 0;
     vsg::ref_ptr<vsg::Node> createVSGNode(DrawMode drawMode);
- 
+
   protected:
     vsg::ref_ptr<vsg::ShaderStage> readVertexShader(std::string filePath);
     vsg::ref_ptr<vsg::ShaderStage> readFragmentShader(std::string filePath);
@@ -42,7 +42,7 @@ class CH_VSG_API ChVSGIdxMesh {
     vsg::ref_ptr<vsg::vec3Array> m_diffuseColor;
     vsg::ref_ptr<vsg::vec3Array> m_specularColor;
     vsg::ref_ptr<vsg::floatArray> m_shininess;
-    vsg::ref_ptr<vsg::floatArray> m_opacity;
+    // vsg::ref_ptr<vsg::floatArray> m_opacity;
 
     std::shared_ptr<ChBody> m_bodyPtr;
     std::shared_ptr<ChAsset> m_assetPtr;

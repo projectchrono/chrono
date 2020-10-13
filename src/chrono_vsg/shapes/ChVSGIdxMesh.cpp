@@ -6,8 +6,8 @@
 using namespace chrono::vsg3d;
 
 ChVSGIdxMesh::ChVSGIdxMesh(std::shared_ptr<ChBody> body,
-                                   std::shared_ptr<ChAsset> asset,
-                                   vsg::ref_ptr<vsg::MatrixTransform> transform)
+                           std::shared_ptr<ChAsset> asset,
+                           vsg::ref_ptr<vsg::MatrixTransform> transform)
     : m_bodyPtr(body), m_assetPtr(asset), m_transform(transform) {}
 
 vsg::ref_ptr<vsg::ShaderStage> ChVSGIdxMesh::readVertexShader(std::string filePath) {
@@ -28,7 +28,7 @@ vsg::ref_ptr<vsg::vec4Array2D> ChVSGIdxMesh::createRGBATexture(
         GetLog() << "texture file '" << filePath << " exists.\n";
         int texWidth = -1, texHeight = -1, texChannels;
         float* pixels = stbi_loadf(filePath.c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
-        GetLog() << "Breite=" << texWidth << "Höhe=" << texHeight << "\n";
+        GetLog() << "Breite=" << texWidth << "HÃ¶he=" << texHeight << "\n";
         image = vsg::vec4Array2D::create(texWidth, texHeight, vsg::vec4(0, 0, 0, 0),
                                          vsg::Data::Layout{VK_FORMAT_R32G32B32A32_SFLOAT});
         if (pixels && texWidth > 0 && texHeight > 0) {
@@ -127,19 +127,20 @@ vsg::ref_ptr<vsg::Node> ChVSGIdxMesh::createVSGNode(DrawMode drawMode) {
 
             // create StateGroup as the root of the scene/command graph to hold the GraphicsProgram, and binding of
             // Descriptors to decorate the whole graph
-            //auto scenegraph = vsg::StateGroup::create();
+            // auto scenegraph = vsg::StateGroup::create();
             subgraph->add(bindGraphicsPipeline);
             subgraph->add(bindDescriptorSet);
 
             // set up model transformation node
-            //auto transform = vsg::MatrixTransform::create();  // VK_SHADER_STAGE_VERTEX_BIT
+            // auto transform = vsg::MatrixTransform::create();  // VK_SHADER_STAGE_VERTEX_BIT
 
             // add transform to root of the scene graph
             subgraph->addChild(m_transform);
 
             // setup geometry
             auto drawCommands = vsg::Commands::create();
-            drawCommands->addChild(vsg::BindVertexBuffers::create(0, vsg::DataList{m_vertices, m_diffuseColor, m_texcoords}));
+            drawCommands->addChild(
+                vsg::BindVertexBuffers::create(0, vsg::DataList{m_vertices, m_diffuseColor, m_texcoords}));
             drawCommands->addChild(vsg::BindIndexBuffer::create(m_indices));
             drawCommands->addChild(vsg::DrawIndexed::create(m_indices->size(), 1, 0, 0, 0));
 
@@ -149,9 +150,9 @@ vsg::ref_ptr<vsg::Node> ChVSGIdxMesh::createVSGNode(DrawMode drawMode) {
         case DrawMode::Phong: {
             // set up search paths to SPIRV shaders and textures
             vsg::ref_ptr<vsg::ShaderStage> vertexShader =
-                readVertexShader(GetChronoDataFile("vsg/shaders/vert_BlinnPhong.spv"));
+                readVertexShader(GetChronoDataFile("vsg/shaders/vert_Phong.spv"));
             vsg::ref_ptr<vsg::ShaderStage> fragmentShader =
-                readFragmentShader(GetChronoDataFile("vsg/shaders/frag_BlinnPhong.spv"));
+                readFragmentShader(GetChronoDataFile("vsg/shaders/frag_Phong.spv"));
             if (!vertexShader || !fragmentShader) {
                 std::cout << "Could not create shaders." << std::endl;
                 return {};
@@ -199,7 +200,6 @@ vsg::ref_ptr<vsg::Node> ChVSGIdxMesh::createVSGNode(DrawMode drawMode) {
                 VkVertexInputBindingDescription{4, sizeof(vsg::vec3),
                                                 VK_VERTEX_INPUT_RATE_VERTEX},                    // specular color data
                 VkVertexInputBindingDescription{5, sizeof(float), VK_VERTEX_INPUT_RATE_VERTEX},  // shininess data
-                VkVertexInputBindingDescription{6, sizeof(float), VK_VERTEX_INPUT_RATE_VERTEX},  // opacity data
             };
 
             vsg::VertexInputState::Attributes vertexAttributeDescriptions{
@@ -209,7 +209,6 @@ vsg::ref_ptr<vsg::Node> ChVSGIdxMesh::createVSGNode(DrawMode drawMode) {
                 VkVertexInputAttributeDescription{3, 3, VK_FORMAT_R32G32B32_SFLOAT, 0},  // diffuse color data
                 VkVertexInputAttributeDescription{4, 4, VK_FORMAT_R32G32B32_SFLOAT, 0},  // specular color data
                 VkVertexInputAttributeDescription{5, 5, VK_FORMAT_R32_SFLOAT, 0},        // shininess data
-                VkVertexInputAttributeDescription{6, 6, VK_FORMAT_R32_SFLOAT, 0},        // opacity data
             };
 
             vsg::GraphicsPipelineStates pipelineStates{
@@ -229,12 +228,11 @@ vsg::ref_ptr<vsg::Node> ChVSGIdxMesh::createVSGNode(DrawMode drawMode) {
             subgraph->add(bindGraphicsPipeline);
             // subgraph->add(bindDescriptorSets);
             subgraph->addChild(m_transform);
-           
+
             // setup geometry
             auto drawCommands = vsg::Commands::create();
-            drawCommands->addChild(
-                vsg::BindVertexBuffers::create(0, vsg::DataList{m_vertices, m_normals, m_ambientColor, m_diffuseColor,
-                                                                m_specularColor, m_shininess, m_opacity}));
+            drawCommands->addChild(vsg::BindVertexBuffers::create(
+                0, vsg::DataList{m_vertices, m_normals, m_ambientColor, m_diffuseColor, m_specularColor, m_shininess}));
             drawCommands->addChild(vsg::BindIndexBuffer::create(m_indices));
             drawCommands->addChild(vsg::DrawIndexed::create(m_indices->size(), 1, 0, 0, 0));
 

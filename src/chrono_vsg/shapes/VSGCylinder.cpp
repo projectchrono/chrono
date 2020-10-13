@@ -226,5 +226,5 @@ void VSGCylinder::Initialize(vsg::vec3& lightPosition, ChVSGPhongMaterial& mat, 
     m_diffuseColor = vsg::vec3Array::create(m_vertices->size(), mat.diffuseColor);
     m_specularColor = vsg::vec3Array::create(m_vertices->size(), mat.specularColor);
     m_shininess = vsg::floatArray::create(m_vertices->size(), mat.shininess);
-    m_opacity = vsg::floatArray::create(m_vertices->size(), mat.opacity);
+    // m_opacity = vsg::floatArray::create(m_vertices->size(), mat.opacity);
 }
