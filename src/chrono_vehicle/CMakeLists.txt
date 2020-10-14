@@ -721,6 +721,8 @@ set(CV_TV_TRACKSHOE_FILES
 source_group("tracked_vehicle\\track_shoe" FILES ${CV_TV_TRACKSHOE_FILES})
 
 set(CV_TV_TRACKASSEMBLY_FILES
+    tracked_vehicle/track_assembly/ChTrackAssemblySegmented.h
+    tracked_vehicle/track_assembly/ChTrackAssemblySegmented.cpp
     tracked_vehicle/track_assembly/ChTrackAssemblySinglePin.h
     tracked_vehicle/track_assembly/ChTrackAssemblySinglePin.cpp
     tracked_vehicle/track_assembly/ChTrackAssemblyDoublePin.h
