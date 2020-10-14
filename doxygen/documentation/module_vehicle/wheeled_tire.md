@@ -31,9 +31,9 @@ This model is an extension of Pacejka's earlier Magic Formula tire model with ad
 
 See [ChPac02Tire](@ref chrono::vehicle::ChPac02Tire) and [Pac02Tire](@ref chrono::vehicle::Pac02Tire).
 
-### TMeasy tire model  {#wheeled_tire_tmeasy}
+### TMeasy tire model in a basic version {#wheeled_tire_tmeasy}
 
-TMeasy (Tire Model Made Easy) has been developed to allow easy parametration. Its complexity is roughly comparable to the Magic Formula based models. Based on known parameter sets for trucks and passenger cars it is possible to estimate a complete parameter set from few input data, if needed. TMeasy considers nonlinear effects and includes contact patch slip state equations.
+TMeasy (Tire Model Made Easy) has been developed by Prof. Dr. Georg Rill and is avilable as a comercial code. See http://www.tmeasy.de/ for more information. The aim of this model is to allow easy parametration. Its complexity is roughly comparable to the Magic Formula based models. Based on known parameter sets for trucks and passenger cars it is possible to estimate a complete parameter set from few input data, if needed. TMeasy considers nonlinear effects and includes contact patch slip state equations. The implementation used in chrono lacks some functionality compared to the most actual comercial TMeasy version. For example there is no belt dynamics and no dynamic parking torque calculation possible.
 
 See [ChTMeasyTire](@ref chrono::vehicle::ChTMeasyTire) and [TMeasyTire](@ref chrono::vehicle::TMeasyTire).
 
