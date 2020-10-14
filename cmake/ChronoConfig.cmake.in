@@ -191,6 +191,8 @@ foreach(COMPONENT ${Chrono_FIND_COMPONENTS})
       list(APPEND CHRONO_LIB_NAMES "ChronoEngine_sensor")
       list(APPEND CHRONO_LIBRARIES "@SENSOR_LIBRARIES@")
       list(APPEND CHRONO_DLL_NAMES "ChronoEngine_sensor.dll")
+      list(APPEND CHRONO_DLLS "@optix_DLL@")
+      list(APPEND CHRONO_DLLS "@CH_GLEW_DLL@")
 
     elseif(${COMPONENT_UPPER} MATCHES "GRANULAR")
  
