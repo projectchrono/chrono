@@ -69,12 +69,6 @@ class CH_VEHICLE_API ChTrackShoeDoublePin : public ChTrackShoeSegmented {
                     const ChQuaternion<>& rot_connector     ///< [in] orientation of connector bodies
                     );
 
-    /// Connect this track shoe to the specified neighbor.
-    /// This function must be called only after both track shoes have been initialized.
-    virtual void Connect(std::shared_ptr<ChTrackShoe> next,  ///< [in] handle to the neighbor track shoe
-                         bool ccw                            ///< [in] track assembled in counter clockwise direction
-                         ) override;
-
     /// Add visualization assets for the track shoe subsystem.
     virtual void AddVisualizationAssets(VisualizationType vis) override;
 
@@ -112,13 +106,20 @@ class CH_VEHICLE_API ChTrackShoeDoublePin : public ChTrackShoeSegmented {
     std::shared_ptr<ChLinkLockRevolute> m_revolute_L;  ///< handle to shoe - left connector joint
     std::shared_ptr<ChLinkLockRevolute> m_revolute_R;  ///< handle to shoe - right connector joint
 
+  private:
+    /// Connect this track shoe to the specified neighbor.
+    /// This function must be called only after both track shoes have been initialized.
+    virtual void Connect(std::shared_ptr<ChTrackShoe> next,  ///< [in] handle to the neighbor track shoe
+                         ChTrackAssembly* assembly,          ///< [in] containing track assembly
+                         bool ccw                            ///< [in] track assembled in counter clockwise direction
+                         ) override final;
+
+    /// Add visualization of a connector body based on primitives corresponding to the contact shapes.
+    void AddConnectorVisualization(std::shared_ptr<ChBody> connector);
+
     friend class ChSprocketDoublePin;
     friend class SprocketDoublePinContactCB;
     friend class ChTrackAssemblyDoublePin;
-
-  private:
-    /// Add visualization of a connector body based on primitives corresponding to the contact shapes.
-    void AddConnectorVisualization(std::shared_ptr<ChBody> connector);
 };
 
 /// Vector of handles to double-pin track shoe subsystems.

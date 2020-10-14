@@ -56,12 +56,6 @@ class CH_VEHICLE_API ChTrackShoeSinglePin : public ChTrackShoeSegmented {
                             const ChQuaternion<>& rotation          ///< [in] orientation relative to the chassis frame
                             ) override;
 
-    /// Connect this track shoe to the specified neighbor.
-    /// This function must be called only after both track shoes have been initialized.
-    virtual void Connect(std::shared_ptr<ChTrackShoe> next,  ///< [in] handle to the neighbor track shoe
-                         bool ccw                            ///< [in] track assembled in counter clockwise direction
-                         ) override;
-
     /// Add visualization assets for the track-shoe subsystem.
     virtual void AddVisualizationAssets(VisualizationType vis) override;
 
@@ -89,6 +83,14 @@ class CH_VEHICLE_API ChTrackShoeSinglePin : public ChTrackShoeSegmented {
     virtual void ExportComponentList(rapidjson::Document& jsonDocument) const override;
 
     virtual void Output(ChVehicleOutput& database) const override;
+
+  private:
+    /// Connect this track shoe to the specified neighbor.
+    /// This function must be called only after both track shoes have been initialized.
+    virtual void Connect(std::shared_ptr<ChTrackShoe> next,  ///< [in] handle to the neighbor track shoe
+                         ChTrackAssembly* assembly,          ///< [in] containing track assembly
+                         bool ccw                            ///< [in] track assembled in counter clockwise direction
+                         ) override final;
 
     friend class ChSprocketSinglePin;
     friend class SprocketSinglePinContactCB;
