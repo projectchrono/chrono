@@ -1,0 +1,46 @@
+{
+  "Name":                           "Trailer Leafspring Axle",
+  "Type":                           "Suspension",
+  "Template":                       "LeafspringAxle",
+
+  "Spindle" :
+  {
+    "Mass":                         1,
+    "COM":                          [0.0, 0.67, 0.0],
+    "Inertia":                      [0.2, 0.4, 0.2],
+    "Radius":                       0.05,
+    "Width":                        0.06
+  },
+
+  "Axle Tube" :
+  {
+    "Mass":                         2,
+    "COM":                          [0, 0, 0],
+    "Inertia":                      [1.0, 0.2, 1.0],
+    "Radius":                       0.04
+  },
+
+  "Spring":
+  {
+    "Location Chassis":             [0.0, 0.5, 0.2],
+    "Location Axle":                [0.0, 0.5, 0.0],
+    "Spring Coefficient":           50000,
+    "Free Length":                  0.2,
+    "Minimum Length":               0.3,
+    "Maximum Length":               0.1
+  },
+
+  "Shock":
+  {
+    "Location Chassis":             [0.0, 0.5, 0.2],
+    "Location Axle":                [0.0, 0.5, 0.0],
+    "Damping Coefficient":          5000,
+    "Degressivity Compression":     3,
+    "Degressivity Expansion":       1
+  },
+
+  "Axle":
+  {
+    "Inertia":                      1
+  }
+}

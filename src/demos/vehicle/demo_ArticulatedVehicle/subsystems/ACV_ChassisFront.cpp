@@ -28,7 +28,7 @@ const double ACV_ChassisFront::m_mass = 2000;
 const ChVector<> ACV_ChassisFront::m_inertiaXX(100, 400, 500);
 const ChVector<> ACV_ChassisFront::m_inertiaXY(0, 0, 0);
 const ChVector<> ACV_ChassisFront::m_COM_loc(0, 0, 0.4);
-
+const ChVector<> ACV_ChassisFront::m_connector_loc(-1.0, 0, 0.1);
 const ChCoordsys<> ACV_ChassisFront::m_driverCsys(ChVector<>(0.0, 0.5, 1.2), ChQuaternion<>(1, 0, 0, 0));
 
 // -----------------------------------------------------------------------------
