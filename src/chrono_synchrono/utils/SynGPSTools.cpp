@@ -1,22 +1,22 @@
-#include "chrono_synchrono/framework/SynFramework.h"
+#include "chrono_synchrono/utils/SynGPSTools.h"
 
 using namespace chrono;
 
 namespace chrono {
 namespace synchrono {
 
-SynFramework::SynFramework(const GPScoord& origin, std::shared_ptr<SynTerrain> terrain)
+SynGPSTools::SynGPSTools(const GPScoord& origin, std::shared_ptr<SynTerrain> terrain)
     : m_origin(origin), m_terrain(terrain) {
     // Store origin info in radians, from degree-based GPScoord
     m_lat_origin = origin.lat_rad();
     m_lon_origin = origin.lon_rad();
     m_cos_origin = std::cos(m_lat_origin);
 }
-SynFramework::~SynFramework() {}
+SynGPSTools::~SynGPSTools() {}
 
-std::shared_ptr<ChBezierCurve> SynFramework::CurveFromGPS(std::vector<GPScoord>& gps_points,
-                                                          double vert_offset,
-                                                          bool closed) {
+std::shared_ptr<ChBezierCurve> SynGPSTools::CurveFromGPS(std::vector<GPScoord>& gps_points,
+                                                         double vert_offset,
+                                                         bool closed) {
     std::vector<ChVector<>> bezier_points;
     for (auto gps_point : gps_points)
         bezier_points.push_back(To3DCartesian(gps_point, vert_offset));
@@ -34,9 +34,7 @@ std::shared_ptr<ChBezierCurve> SynFramework::CurveFromGPS(std::vector<GPScoord>&
 //  3: lat_1            lon_1
 //  4: ...              ...
 // TODO: Support files with altitude
-std::shared_ptr<ChBezierCurve> SynFramework::CurveFromGPS(const std::string& filename,
-                                                          double vert_offset,
-                                                          bool closed) {
+std::shared_ptr<ChBezierCurve> SynGPSTools::CurveFromGPS(const std::string& filename, double vert_offset, bool closed) {
     // Open input file stream
     std::ifstream ifile;
     std::string line;
@@ -82,7 +80,7 @@ std::shared_ptr<ChBezierCurve> SynFramework::CurveFromGPS(const std::string& fil
 
     if (num_cols == 3 || num_cols == 9) {
         // TODO: This method should actually support numcols=3 b/c of altitude
-        std::cout << "SynFramework::CurveFromGPS: File specified actually describes a ChBezierCurve." << std::endl;
+        std::cout << "SynGPSTools::CurveFromGPS: File specified actually describes a ChBezierCurve." << std::endl;
 
         ifile.close();
         return ChBezierCurve::read(filename);
@@ -94,7 +92,7 @@ std::shared_ptr<ChBezierCurve> SynFramework::CurveFromGPS(const std::string& fil
 }
 
 // TODO Add support for altitude
-ChVector<> SynFramework::To3DCartesian(const GPScoord& gps, double height) const {
+ChVector<> SynGPSTools::To3DCartesian(const GPScoord& gps, double height) const {
     auto lat_rad = gps.lat_rad();
     auto lon_rad = gps.lon_rad();
 

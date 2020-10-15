@@ -1,7 +1,7 @@
 #include "chrono_synchrono/cli/SynCLI.h"
 #include "chrono_synchrono/communication/mpi/SynMPIManager.h"
 
-#include "chrono_synchrono/framework/SynFramework.h"
+#include "chrono_synchrono/utils/SynGPSTools.h"
 #include "chrono_synchrono/utils/SynDataLoader.h"
 
 #include "chrono_synchrono/visualization/SynVisualizationManager.h"
@@ -22,6 +22,8 @@
 #include "chrono_synchrono/visualization/SynSensorVisualization.h"
 #endif
 
+#include "chrono_vehicle/driver/ChPathFollowerACCDriver.h"
+#include "chrono_synchrono/brain/driver/SynMultipathDriver.h"
 #include "chrono_models/vehicle/sedan/Sedan.h"
 
 #include <chrono>
@@ -208,7 +210,7 @@ int main(int argc, char* argv[]) {
         // Controller
         // ----------
         GPScoord origin(43.073268, -89.400636);  // Centered at Park St. and University Ave. in downtown Madison, WI.
-        auto framework = chrono_types::make_shared<SynFramework>(origin, agent->GetTerrain());
+        auto framework = chrono_types::make_shared<SynGPSTools>(origin, agent->GetTerrain());
 
         std::shared_ptr<ChBezierCurve> path;
         switch ((rank + 3) % 4) {

@@ -30,7 +30,7 @@
 namespace chrono {
 namespace synchrono {
 
-/// @addtogroup synchrono_agents
+/// @addtogroup synchrono_agent
 /// @{
 
 /// @brief This Agent will send out information of all the lanes in the simulation and control the traffic lights
@@ -105,7 +105,7 @@ class SYN_API SynEnvironmentAgent : public SynAgent {
     std::shared_ptr<SynSPATMessage> m_spat_msg;
 };
 
-/// @} synchrono_agents
+/// @} synchrono_agent
 
 }  // namespace synchrono
 }  // namespace chrono

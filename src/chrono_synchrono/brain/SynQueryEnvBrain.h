@@ -26,19 +26,16 @@
 
 #include <tuple>
 
-#include "chrono_thirdparty/filesystem/path.h"
-#include "chrono_vehicle/driver/ChPathFollowerACCDriver.h"
-
-#include "chrono_synchrono/SynApi.h"
 #include "chrono_synchrono/brain/SynVehicleBrain.h"
-#include "chrono_synchrono/brain/driver/SynMultipathDriver.h"
 #include "chrono_synchrono/flatbuffer/message/SynEnvironmentMessage.h"
-#include "chrono_synchrono/flatbuffer/message/SynWheeledVehicleMessage.h"
 
 using namespace chrono;
 
 namespace chrono {
 namespace synchrono {
+
+/// @addtogroup synchrono_brain
+/// @{
 
 class SYN_API SynQueryEnvBrain : public SynVehicleBrain {
   public:
@@ -79,7 +76,7 @@ class SYN_API SynQueryEnvBrain : public SynVehicleBrain {
     int m_current_intersection = 0;
     int m_current_approach = 0;
     int m_current_lane = 0;
-    
+
     LaneColor m_light_color = LaneColor::RED;  ///< Starts red (0: green, 1: yellow, 2: yellow)
     bool m_inside_box = false;                 ///< Is vehicle inside stopping box area
     double m_dist = FAR_DISTANCE;  ///< Distance to nearest point (either traffic-light stopping area or a vehicle)
@@ -90,6 +87,8 @@ class SYN_API SynQueryEnvBrain : public SynVehicleBrain {
     std::map<int, std::tuple<bool, double>>
         m_other_vehicles;  ///< Structure indicating if nearby vehicles are directly ahead of us and if so how far away
 };
+
+/// @} synchrono_brain
 
 }  // namespace synchrono
 }  // namespace chrono

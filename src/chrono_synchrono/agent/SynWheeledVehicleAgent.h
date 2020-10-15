@@ -31,7 +31,7 @@ using namespace chrono::vehicle;
 namespace chrono {
 namespace synchrono {
 
-/// @addtogroup synchrono_agents
+/// @addtogroup synchrono_agent
 /// @{
 
 class SYN_API SynWheeledVehicleAgent : public SynVehicleAgent {
@@ -122,7 +122,7 @@ class SYN_API SynWheeledVehicleAgent : public SynVehicleAgent {
     std::shared_ptr<SynWheeledVehicle> m_wheeled_vehicle;  ///< handle to this agent's vehicle
 };
 
-/// @} synchrono_agents
+/// @} synchrono_agent
 
 }  // namespace synchrono
 }  // namespace chrono

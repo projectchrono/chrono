@@ -27,4 +27,38 @@
 #define SYN_API ChApiIMPORT
 #endif
 
+/**
+    @defgroup synchrono SYNCHRONO module
+    @brief MPI parallelization of agent-level simulation
+
+    This module provides support for modelling sensor for simulating autonomous behavior
+
+    For additional information, see:
+    - the [installation guide](@ref module_vehicle_installation)
+    - the [tutorials](@ref tutorial_table_of_content_chrono_vehicle)
+
+    @{
+        @defgroup synchrono_agent Agents
+        @defgroup synchrono_brain Brains and Drivers
+        @defgroup synchrono_cli Command-Line Interface
+        @defgroup synchrono_communication Communication
+        @defgroup synchrono_flatbuffer Flatbuffer Messages
+        @defgroup synchrono_terrain Terrain wrapping
+        @defgroup synchrono_vehicle Vehicle wrapping
+        @defgroup synchrono_visualization Visualization Wrapping
+        @defgroup synchrono_utils Utilities
+    @}
+*/
+
+namespace chrono {
+
+/// @addtogroup synchrono
+/// @{
+
+/// Namespace for SynChrono
+namespace synchrono {}
+
+/// @}
+}  // namespace chrono
+
 #endif

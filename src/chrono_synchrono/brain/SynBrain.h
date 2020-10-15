@@ -1,3 +1,24 @@
+// =============================================================================
+// PROJECT CHRONO - http://projectchrono.org
+//
+// Copyright (c) 2020 projectchrono.org
+// All rights reserved.
+//
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
+//
+// =============================================================================
+// Authors: Aaron Young
+// =============================================================================
+//
+// Base class for all Brains that SynChrono agents can have
+// - Advance (do physics)
+// - Synchronize (exchange state info)
+// - Process/GenerateMessages (for state info)
+//
+// =============================================================================
+
 #ifndef SYN_BRAIN_H
 #define SYN_BRAIN_H
 
@@ -7,7 +28,10 @@
 namespace chrono {
 namespace synchrono {
 
-class SYN_API SynBrain {
+/// @addtogroup synchrono_brain
+/// @{
+
+class SynBrain {
   public:
     /// Constructor
     SynBrain(int rank) : m_rank(rank) {}
@@ -33,6 +57,8 @@ class SYN_API SynBrain {
   protected:
     int m_rank;  ///< rank of this brain
 };
+
+/// @} synchrono_brain
 
 }  // namespace synchrono
 }  // namespace chrono

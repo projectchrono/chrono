@@ -36,7 +36,7 @@ using namespace chrono;
 namespace chrono {
 namespace synchrono {
 
-/// @addtogroup synchrono_agents
+/// @addtogroup synchrono_agent
 /// @{
 
 /// Agent types
@@ -140,7 +140,7 @@ class SYN_API SynAgent {
 /// Vector of handles to agents.
 typedef std::vector<std::shared_ptr<SynAgent>> SynAgentList;
 
-/// @} synchrono_agents
+/// @} synchrono_agent
 
 }  // namespace synchrono
 }  // namespace chrono

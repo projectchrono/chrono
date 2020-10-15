@@ -125,7 +125,6 @@ source_group("agent" FILES ${SYN_AGENT_FILES})
 
 set(SYN_BRAIN_FILES
 	brain/SynBrain.h
-	brain/SynBrain.cpp
 	brain/SynVehicleBrain.h
 	brain/SynVehicleBrain.cpp
 	
@@ -135,8 +134,8 @@ set(SYN_BRAIN_FILES
 	brain/SynQueryEnvBrain.cpp
 	brain/SynVehicleBrain.h
 	brain/SynVehicleBrain.cpp
-	brain/SynTrackingBrain.h
-    brain/SynTrackingBrain.cpp
+	brain/SynCollisionBrain.h
+    brain/SynCollisionBrain.cpp
     brain/SynEnvironmentBrain.h
 
     brain/driver/SynMultipathDriver.cpp
@@ -225,20 +224,6 @@ set(SYN_FLATBUFFER_FILES
 )
 source_group("flatbuffer" FILES ${SYN_FLATBUFFER_FILES})
 
-set(SYN_FRAMEWORK_FILES
-	framework/SynFramework.h
-	framework/SynFramework.cpp
-
-	# TODO: MORE TO BE DONE HERE
-)
-source_group("frameworks" FILES ${SYN_FRAMEWORK_FILES})
-
-set(SYN_SCENARIO_FILES
-	# scenario/SynScenarioManager.h
-	# scenario/SynScenarioManager.cpp
-)
-source_group("scenario" FILES ${SYN_SCENARIO_FILES})
-
 set(SYN_TERRAIN_FILES
 	terrain/SynTerrain.h
 	terrain/SynTerrain.cpp
@@ -256,9 +241,10 @@ source_group("terrain" FILES ${SYN_TERRAIN_FILES})
 set(SYN_UTILS_FILES
 	utils/SynUtilsJSON.h
 	utils/SynUtilsJSON.cpp
-
 	utils/SynDataLoader.h
-	utils/SynDataLoader.cpp
+    utils/SynDataLoader.cpp
+    utils/SynGPSTools.h
+    utils/SynGPSTools.cpp
 )
 source_group("utils" FILES ${SYN_UTILS_FILES})
 
@@ -347,8 +333,6 @@ add_library(ChronoEngine_synchrono SHARED
 	${SYN_CLI_FILES}
 	${SYN_COMMUNICATION_FILES}
 	${SYN_FLATBUFFER_FILES}
-	${SYN_FRAMEWORK_FILES}
-	${SYN_SCENARIO_FILES}
 	${SYN_TERRAIN_FILES}
 	${SYN_UTILS_FILES}
 	${SYN_VEHICLE_FILES}

@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Aaron Young, Yan Xiao
+// Authors: Aaron Young, 肖言 (Yan Xiao)
 // =============================================================================
 //
 // Agent component that stops based on information from intelligent traffic
@@ -23,6 +23,19 @@
 // =============================================================================
 
 #include "chrono_synchrono/brain/SynACCBrain.h"
+
+#include "chrono_synchrono/brain/driver/SynMultipathDriver.h"
+
+#include "chrono_vehicle/driver/ChPathFollowerACCDriver.h"
+#include "chrono_thirdparty/filesystem/path.h"
+
+#ifdef SENSOR
+#include "chrono_sensor/filters/ChFilterAccess.h"
+#include "chrono_sensor/filters/ChFilterVisualize.h"
+#include "chrono_sensor/filters/ChFilterVisualizePointCloud.h"
+#include "chrono_sensor/filters/ChFilterPCfromDepth.h"
+#include "chrono_sensor/filters/ChFilterSave.h"
+#endif
 
 namespace chrono {
 namespace synchrono {

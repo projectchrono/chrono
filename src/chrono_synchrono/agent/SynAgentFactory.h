@@ -30,7 +30,7 @@
 namespace chrono {
 namespace synchrono {
 
-/// @addtogroup synchrono_agents
+/// @addtogroup synchrono_agent
 /// @{
 
 /// Generates SynTerrain's from JSON files
@@ -53,7 +53,7 @@ class SYN_API SynAgentFactory {
                                                  ChContactMethod contact_method = ChContactMethod::NSC);
 };
 
-/// @} synchrono_agents
+/// @} synchrono_agent
 
 }  // namespace synchrono
 }  // namespace chrono

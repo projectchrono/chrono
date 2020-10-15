@@ -35,7 +35,7 @@ using namespace chrono::vehicle;
 namespace chrono {
 namespace synchrono {
 
-/// @addtogroup synchrono_agents
+/// @addtogroup synchrono_agent
 /// @{
 
 class SYN_API SynVehicleAgent : public SynAgent {
@@ -121,7 +121,7 @@ class SYN_API SynVehicleAgent : public SynAgent {
     std::shared_ptr<SynVehicleBrain> m_brain;  ///< handle to this agent's brain
 };
 
-/// @} synchrono_agents
+/// @} synchrono_agent
 
 }  // namespace synchrono
 }  // namespace chrono

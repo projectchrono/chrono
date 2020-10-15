@@ -44,13 +44,13 @@ class SYN_API GPScoord : public ChVector<> {
     const double lon_rad() const { return lon() * CH_C_DEG_TO_RAD; }
 };
 
-class SYN_API SynFramework {
+class SYN_API SynGPSTools {
   public:
-    /// Construct a SynFramework object with the specified origin and attached terrain
-    SynFramework(const GPScoord& origin, std::shared_ptr<SynTerrain> terrain);
+    /// Construct a SynGPSTools object with the specified origin and attached terrain
+    SynGPSTools(const GPScoord& origin, std::shared_ptr<SynTerrain> terrain);
 
     /// Destructor
-    ~SynFramework();
+    ~SynGPSTools();
 
     /// Generate a ChBezierCurve from gps waypoints
     /// Optionally pass in a vertical offset for the points and whether the path should be a closed curve
@@ -68,7 +68,7 @@ class SYN_API SynFramework {
   private:
     const std::shared_ptr<SynTerrain> m_terrain;  ///< handle to the SynTerrain attached to this framework
 
-    GPScoord m_origin;    ///< origin associated with this framework
+    GPScoord m_origin;    ///< origin associated with this GPS Tool
     double m_lat_origin;  ///< easy access for latitude of the origin
     double m_lon_origin;  ///< easy access for the longitude of the origin
     double m_cos_origin;  ///< cosine of the latitude of the origin that is used for conversions

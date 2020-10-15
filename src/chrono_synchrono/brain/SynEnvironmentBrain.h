@@ -1,3 +1,22 @@
+// =============================================================================
+// PROJECT CHRONO - http://projectchrono.org
+//
+// Copyright (c) 2020 projectchrono.org
+// All rights reserved.
+//
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
+//
+// =============================================================================
+// Authors: 肖言 (Yan Xiao)
+// =============================================================================
+//
+// Environment Agents have no special processing logic, but SynBrain is abstract
+// so we need this concrete (although empty) derived class
+//
+// =============================================================================
+
 #ifndef SYN_ENVIRONMENTBRAIN_H
 #define SYN_ENVIRONMENTBRAIN_H
 
@@ -5,6 +24,9 @@
 
 namespace chrono {
 namespace synchrono {
+
+/// @addtogroup synchrono_brain
+/// @{
 
 class SynEnvironmentBrain : public SynBrain {
   public:
@@ -15,6 +37,8 @@ class SynEnvironmentBrain : public SynBrain {
     virtual void ProcessMessage(SynMessage* msg) override{};
     virtual void GenerateMessagesToSend(std::vector<SynMessage*>& messages) override{};
 };
+
+/// @} synchrono_brain
 
 }  // namespace synchrono
 }  // namespace chrono

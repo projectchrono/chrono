@@ -21,7 +21,6 @@
 #include "chrono_synchrono/cli/SynCLI.h"
 #include "chrono_synchrono/communication/mpi/SynMPIManager.h"
 
-#include "chrono_synchrono/framework/SynFramework.h"
 #include "chrono_synchrono/utils/SynDataLoader.h"
 
 #include "chrono_synchrono/agent/SynEnvironmentAgent.h"

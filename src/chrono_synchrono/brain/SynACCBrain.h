@@ -1,26 +1,37 @@
+// =============================================================================
+// PROJECT CHRONO - http://projectchrono.org
+//
+// Copyright (c) 2020 projectchrono.org
+// All rights reserved.
+//
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
+//
+// =============================================================================
+// Authors: Aaron Young, 肖言 (Yan Xiao)
+// =============================================================================
+//
+// Agent component that stops based on information from intelligent traffic
+// lights and from lidar data.
+// - Steering is provided by an ACC path follower that follows a curve
+// - Throttle/braking control is provided by the ACC path follower based on
+//    the distance to the closest "object"
+//      - Being inside the stop box for a traffic light is an object
+//      - A lidar sensor detecting something is an object
+//
+// =============================================================================
+
 #ifndef SYN_ACC_BRAIN_H
 #define SYN_ACC_BRAIN_H
 
-#include "chrono_vehicle/driver/ChPathFollowerACCDriver.h"
-
-#include "chrono_synchrono/SynApi.h"
 #include "chrono_synchrono/brain/SynVehicleBrain.h"
-#include "chrono_synchrono/brain/driver/SynMultipathDriver.h"
-
 #include "chrono_synchrono/flatbuffer/message/SynEnvironmentMessage.h"
-
-#include "chrono/core/ChVector.h"
-#include "chrono_thirdparty/filesystem/path.h"
 
 #ifdef SENSOR
 #include "chrono_sensor/ChSensorManager.h"
 #include "chrono_sensor/ChLidarSensor.h"
 #include "chrono_sensor/ChCameraSensor.h"
-#include "chrono_sensor/filters/ChFilterAccess.h"
-#include "chrono_sensor/filters/ChFilterVisualize.h"
-#include "chrono_sensor/filters/ChFilterVisualizePointCloud.h"
-#include "chrono_sensor/filters/ChFilterPCfromDepth.h"
-#include "chrono_sensor/filters/ChFilterSave.h"
 using namespace chrono::sensor;
 #endif
 
@@ -28,6 +39,9 @@ using namespace chrono;
 
 namespace chrono {
 namespace synchrono {
+
+/// @addtogroup synchrono_brain
+/// @{
 
 class SYN_API SynACCBrain : public SynVehicleBrain {
   public:
@@ -85,6 +99,8 @@ class SYN_API SynACCBrain : public SynVehicleBrain {
     UserDIBufferPtr m_recent_lidar_data;
 #endif
 };
+
+/// @} synchrono_brain
 
 }  // namespace synchrono
 }  // namespace chrono

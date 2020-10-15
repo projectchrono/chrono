@@ -1,9 +1,26 @@
+// =============================================================================
+// PROJECT CHRONO - http://projectchrono.org
+//
+// Copyright (c) 2020 projectchrono.org
+// All rights reserved.
+//
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
+//
+// =============================================================================
+// Authors: Aaron Young
+// =============================================================================
+//
+// Base class for all Vehicle Brains - in particular forces the user to include
+// a ChDriver that will determine the throttle/braking/steering inputs
+//
+// =============================================================================
+
 #ifndef SYN_VEHICLE_BRAIN_H
 #define SYN_VEHICLE_BRAIN_H
 
-#include "chrono_synchrono/SynApi.h"
 #include "chrono_synchrono/brain/SynBrain.h"
-#include "chrono_synchrono/flatbuffer/message/SynMessage.h"
 #include "chrono_synchrono/vehicle/SynVehicle.h"
 #include "chrono_vehicle/ChDriver.h"
 
@@ -11,6 +28,9 @@ using namespace chrono::vehicle;
 
 namespace chrono {
 namespace synchrono {
+
+/// @addtogroup synchrono_brain
+/// @{
 
 class SYN_API SynVehicleBrain : public SynBrain {
   public:
@@ -47,6 +67,8 @@ class SYN_API SynVehicleBrain : public SynBrain {
     std::shared_ptr<ChDriver> m_driver;  ///< handle to the ChDriver
     ChVehicle& m_vehicle;
 };
+
+/// @} synchrono_brain
 
 }  // namespace synchrono
 }  // namespace chrono

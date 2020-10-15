@@ -1,7 +1,6 @@
 #include "chrono_synchrono/cli/SynCLI.h"
 #include "chrono_synchrono/communication/mpi/SynMPIManager.h"
 
-#include "chrono_synchrono/framework/SynFramework.h"
 #include "chrono_synchrono/utils/SynDataLoader.h"
 
 #include "chrono_synchrono/visualization/SynVisualizationManager.h"
@@ -21,6 +20,9 @@
 #ifdef CHRONO_SENSOR
 #include "chrono_synchrono/visualization/SynSensorVisualization.h"
 #endif
+
+#include "chrono_vehicle/driver/ChPathFollowerACCDriver.h"
+#include "chrono_synchrono/brain/driver/SynMultipathDriver.h"
 
 #include <chrono>
 

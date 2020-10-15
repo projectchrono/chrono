@@ -23,6 +23,12 @@
 
 #include "chrono_synchrono/brain/SynQueryEnvBrain.h"
 
+#include "chrono_synchrono/brain/driver/SynMultipathDriver.h"
+#include "chrono_synchrono/flatbuffer/message/SynWheeledVehicleMessage.h"
+
+#include "chrono_thirdparty/filesystem/path.h"
+#include "chrono_vehicle/driver/ChPathFollowerACCDriver.h"
+
 namespace chrono {
 namespace synchrono {
 
