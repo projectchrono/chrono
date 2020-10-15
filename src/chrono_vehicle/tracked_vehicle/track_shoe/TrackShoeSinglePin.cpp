@@ -141,7 +141,7 @@ void TrackShoeSinglePin::Create(const rapidjson::Document& d) {
 }
 
 void TrackShoeSinglePin::CreateContactMaterials(ChContactMethod contact_method) {
-    m_cyl_material = m_cyl_mat_info.CreateMaterial(contact_method);
+    m_shoe_sprk_material = m_cyl_mat_info.CreateMaterial(contact_method);
 
     for (auto minfo : m_shoe_mat_info) {
         m_shoe_materials.push_back(minfo.CreateMaterial(contact_method));
