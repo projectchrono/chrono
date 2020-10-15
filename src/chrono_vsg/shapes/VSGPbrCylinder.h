@@ -14,8 +14,8 @@
 // Header for an helper class defining common methods for shape node classes
 // =============================================================================
 
-#ifndef VSG_PBR_BOX_H
-#define VSG_PBR_BOX_H
+#ifndef VSG_PBR_CYLINDER_H
+#define VSG_PBR_CYLINDER_H
 
 #include <iostream>
 #include "chrono/core/ChVector.h"
@@ -28,11 +28,11 @@
 namespace chrono {
 namespace vsg3d {
 
-class CH_VSG_API VSGPbrBox : public ChVSGPbrIdxMesh {
+class CH_VSG_API VSGPbrCylinder : public ChVSGPbrIdxMesh {
   public:
-    VSGPbrBox(std::shared_ptr<ChBody> body,
-              std::shared_ptr<ChAsset> asset,
-              vsg::ref_ptr<vsg::MatrixTransform> transform);
+    VSGPbrCylinder(std::shared_ptr<ChBody> body,
+                   std::shared_ptr<ChAsset> asset,
+                   vsg::ref_ptr<vsg::MatrixTransform> transform);
     virtual void Initialize(vsg::vec3& lightPosition, ChVSGPbrMaterial& mat, std::string& texFilePath) override;
 };
 }  // namespace vsg3d

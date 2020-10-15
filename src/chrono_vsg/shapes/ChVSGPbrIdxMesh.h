@@ -19,30 +19,28 @@ namespace vsg3d {
 class CH_VSG_API ChVSGPbrIdxMesh {
   public:
     ChVSGPbrIdxMesh(std::shared_ptr<ChBody> body,
-                     std::shared_ptr<ChAsset> asset,
-                     vsg::ref_ptr<vsg::MatrixTransform> transform);
+                    std::shared_ptr<ChAsset> asset,
+                    vsg::ref_ptr<vsg::MatrixTransform> transform);
 
-    virtual void Initialize(std::vector<vsg::vec3>& lightPositions, ChVSGPbrMaterial& mat, std::string& texFilePath) = 0;
+    virtual void Initialize(vsg::vec3& lightPosition, ChVSGPbrMaterial& mat, std::string& texFilePath) = 0;
     vsg::ref_ptr<vsg::Node> createVSGNode(DrawMode drawMode);
- 
+
   protected:
     vsg::ref_ptr<vsg::ShaderStage> readVertexShader(std::string filePath);
     vsg::ref_ptr<vsg::ShaderStage> readFragmentShader(std::string filePath);
     vsg::ref_ptr<vsg::vec4Array2D> createRGBATexture(std::string filePath);
 
-    vsg::vec3 m_camPos;
-    std::vector<vsg::vec3> m_lightPositions;
+    vsg::vec3 m_lightPosition;
     std::string m_textureFilePath;
 
     vsg::ref_ptr<vsg::vec3Array> m_vertices;
     vsg::ref_ptr<vsg::vec3Array> m_normals;
-    vsg::ref_ptr<vsg::vec2Array> m_texcoords;
     vsg::ref_ptr<vsg::ushortArray> m_indices;
 
-    vsg::vec3 m_albedo;
-    float m_metallic;
-    float m_roughness;
-    float m_ao;
+    vsg::ref_ptr<vsg::vec3Array> m_albedo;
+    vsg::ref_ptr<vsg::floatArray> m_metallic;
+    vsg::ref_ptr<vsg::floatArray> m_roughness;
+    vsg::ref_ptr<vsg::floatArray> m_ao;
 
     std::shared_ptr<ChBody> m_bodyPtr;
     std::shared_ptr<ChAsset> m_assetPtr;

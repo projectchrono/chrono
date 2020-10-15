@@ -25,13 +25,15 @@ SET(ChronoEngine_VSG_SOURCES
     resources/ChVSGPbrMaterial.cpp
     resources/ChVSGPhongMaterial.cpp
     shapes/ChVSGSimplePhongIdxMesh.cpp
-    shapes/ChVSGIdxMesh.cpp
     shapes/ChVSGPbrIdxMesh.cpp
+    shapes/ChVSGIdxMesh.cpp
+    shapes/VSGPbrBox.cpp
+    shapes/VSGPbrSphere.cpp
+    shapes/VSGPbrCylinder.cpp
     shapes/VSGSimpleBox.cpp
     shapes/VSGSimpleSphere.cpp
     shapes/VSGSimpleCylinder.cpp
     shapes/VSGBox.cpp
-    shapes/VSGPbrBox.cpp
     shapes/VSGSphere.cpp
     shapes/VSGCylinder.cpp
     ../chrono_thirdparty/stb/stb_image.cpp
@@ -44,13 +46,15 @@ SET(ChronoEngine_VSG_HEADERS
     resources/ChVSGPbrMaterial.h
     resources/ChVSGPhongMaterial.h
     shapes/ChVSGSimplePhongIdxMesh.cpp
-    shapes/ChVSGIdxMesh.h
     shapes/ChVSGPbrIdxMesh.h
+    shapes/ChVSGIdxMesh.h
+    shapes/VSGPbrBox.h
+    shapes/VSGPbrSphere.h
+    shapes/VSGPbrCylinder.h
     shapes/VSGSimpleBox.h
     shapes/VSGSimpleSphere.h
     shapes/VSGSimpleCylinder.h
     shapes/VSGBox.h
-    shapes/VSGPbrBox.h
     shapes/VSGSphere.h
     shapes/VSGCylinder.h
 )

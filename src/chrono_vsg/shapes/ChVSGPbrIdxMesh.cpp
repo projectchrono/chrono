@@ -6,15 +6,9 @@
 using namespace chrono::vsg3d;
 
 ChVSGPbrIdxMesh::ChVSGPbrIdxMesh(std::shared_ptr<ChBody> body,
-                                   std::shared_ptr<ChAsset> asset,
-                                   vsg::ref_ptr<vsg::MatrixTransform> transform)
-    : m_bodyPtr(body), m_assetPtr(asset), m_transform(transform) {
-    m_camPos = {0,0,100};
-    m_lightPositions.push_back({-10.0f, 10.0f, 10.0f});
-    m_lightPositions.push_back({10.0f, 10.0f, 10.0f});
-    m_lightPositions.push_back({-10.0f, -10.0f, 10.0f});
-    m_lightPositions.push_back({10.0f, -10.0f, 10.0f});   
-}
+                                 std::shared_ptr<ChAsset> asset,
+                                 vsg::ref_ptr<vsg::MatrixTransform> transform)
+    : m_bodyPtr(body), m_assetPtr(asset), m_transform(transform) {}
 
 vsg::ref_ptr<vsg::ShaderStage> ChVSGPbrIdxMesh::readVertexShader(std::string filePath) {
     return vsg::ShaderStage::read(VK_SHADER_STAGE_VERTEX_BIT, "main", filePath);
@@ -34,7 +28,7 @@ vsg::ref_ptr<vsg::vec4Array2D> ChVSGPbrIdxMesh::createRGBATexture(
         GetLog() << "texture file '" << filePath << " exists.\n";
         int texWidth = -1, texHeight = -1, texChannels;
         float* pixels = stbi_loadf(filePath.c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
-        GetLog() << "Breite=" << texWidth << "Höhe=" << texHeight << "\n";
+        GetLog() << "Breite=" << texWidth << "HÃ¶he=" << texHeight << "\n";
         image = vsg::vec4Array2D::create(texWidth, texHeight, vsg::vec4(0, 0, 0, 0),
                                          vsg::Data::Layout{VK_FORMAT_R32G32B32A32_SFLOAT});
         if (pixels && texWidth > 0 && texHeight > 0) {
@@ -77,33 +71,21 @@ vsg::ref_ptr<vsg::Node> ChVSGPbrIdxMesh::createVSGNode(DrawMode drawMode) {
                 std::cout << "Could not create shaders." << std::endl;
                 return {};
             }
-    
-            auto uniCamValue = vsg::vec3Value::create(m_camPos);
-            auto uniCamValueBuffer = vsg::DescriptorBuffer::create(uniCamValue, 0);
-            vsg::DescriptorSetLayoutBindings camSettingsDescriptorBindings{
-                //{0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
-                {0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1, VK_SHADER_STAGE_FRAGMENT_BIT,
-                 nullptr},  // { binding, descriptorTpe, descriptorCount, stageFlags, pImmutableSamplers}
-            };
-            auto camSettingsDescriptorSetLayout = vsg::DescriptorSetLayout::create(camSettingsDescriptorBindings);
-            auto uniCamDescriptorSet = vsg::DescriptorSet::create(camSettingsDescriptorSetLayout,
-                                                                  vsg::Descriptors{uniCamValueBuffer});
 
-            auto uniMatValue1 = vsg::vec3Value::create(m_albedo);
-            auto uniMatBuffer1 = vsg::DescriptorBuffer::create(uniMatValue1, 0);
-            auto uniMatValue2 = vsg::vec3Value::create(vsg::vec3(m_metallic,m_roughness,m_ao));
-            auto uniMatBuffer2 = vsg::DescriptorBuffer::create(uniMatValue1, 0);
-            vsg::DescriptorSetLayoutBindings matSettingsDescriptorBindings{
+            auto uniformValue = vsg::vec3Value::create(m_lightPosition);
+            auto uniformBuffer = vsg::DescriptorBuffer::create(uniformValue, 0);
+            vsg::DescriptorSetLayoutBindings lightSettingsDescriptorBindings{
                 //{0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
-                {0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1, VK_SHADER_STAGE_FRAGMENT_BIT,
-                 nullptr},  // { binding, descriptorTpe, descriptorCount, stageFlags, pImmutableSamplers}
-                {1, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1, VK_SHADER_STAGE_FRAGMENT_BIT,
+                {0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1,
+                 VK_SHADER_STAGE_FRAGMENT_BIT,  // we only need it in the fragment shader program
                  nullptr}  // { binding, descriptorTpe, descriptorCount, stageFlags, pImmutableSamplers}
             };
-            auto matSettingsDescriptorSetLayout = vsg::DescriptorSetLayout::create(matSettingsDescriptorBindings);
-            auto uniMatDescriptorSet =
-                vsg::DescriptorSet::create(matSettingsDescriptorSetLayout, vsg::Descriptors{uniMatBuffer1,uniMatBuffer2});
-   
+
+            auto lightSettingsDescriptorSetLayout = vsg::DescriptorSetLayout::create(lightSettingsDescriptorBindings);
+
+            auto uniformDscriptorSet =
+                vsg::DescriptorSet::create(lightSettingsDescriptorSetLayout, vsg::Descriptors{uniformBuffer});
+
             vsg::DescriptorSetLayoutBindings descriptorBindings{
                 {0, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_FRAGMENT_BIT,
                  nullptr}  // { binding, descriptorTpe, descriptorCount, stageFlags, pImmutableSamplers}
@@ -116,24 +98,31 @@ vsg::ref_ptr<vsg::Node> ChVSGPbrIdxMesh::createVSGNode(DrawMode drawMode) {
                 {VK_SHADER_STAGE_VERTEX_BIT, 0, 128}  // projection view, and model matrices, actual push constant calls
                                                       // autoatically provided by the VSG's DispatchTraversal
             };
-            
+
             auto pipelineLayout = vsg::PipelineLayout::create(
-                vsg::DescriptorSetLayouts{descriptorSetLayout, camSettingsDescriptorSetLayout, matSettingsDescriptorSetLayout}, pushConstantRanges);
-            auto uniformBindDescriptorSet1 =
-                vsg::BindDescriptorSet::create(VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 1, uniCamDescriptorSet);
-            auto uniformBindDescriptorSet2 =
-                vsg::BindDescriptorSet::create(VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 2, uniMatDescriptorSet);
+                vsg::DescriptorSetLayouts{descriptorSetLayout, lightSettingsDescriptorSetLayout}, pushConstantRanges);
+            auto uniformBindDescriptorSet =
+                vsg::BindDescriptorSet::create(VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 1, uniformDscriptorSet);
 
             vsg::VertexInputState::Bindings vertexBindingsDescriptions{
                 VkVertexInputBindingDescription{0, sizeof(vsg::vec3), VK_VERTEX_INPUT_RATE_VERTEX},  // vertex data
                 VkVertexInputBindingDescription{1, sizeof(vsg::vec3), VK_VERTEX_INPUT_RATE_VERTEX},  // normal data
-                VkVertexInputBindingDescription{2, sizeof(vsg::vec2), VK_VERTEX_INPUT_RATE_VERTEX},  // texture data
+                VkVertexInputBindingDescription{2, sizeof(vsg::vec3),
+                                                VK_VERTEX_INPUT_RATE_VERTEX},  // ambient color data
+                VkVertexInputBindingDescription{3, sizeof(vsg::vec3),
+                                                VK_VERTEX_INPUT_RATE_VERTEX},  // diffuse color data
+                VkVertexInputBindingDescription{4, sizeof(vsg::vec3),
+                                                VK_VERTEX_INPUT_RATE_VERTEX},                    // specular color data
+                VkVertexInputBindingDescription{5, sizeof(float), VK_VERTEX_INPUT_RATE_VERTEX},  // shininess data
             };
 
             vsg::VertexInputState::Attributes vertexAttributeDescriptions{
                 VkVertexInputAttributeDescription{0, 0, VK_FORMAT_R32G32B32_SFLOAT, 0},  // vertex data
                 VkVertexInputAttributeDescription{1, 1, VK_FORMAT_R32G32B32_SFLOAT, 0},  // normal data
-                VkVertexInputAttributeDescription{2, 2, VK_FORMAT_R32G32_SFLOAT, 0},  // texture  data
+                VkVertexInputAttributeDescription{2, 2, VK_FORMAT_R32G32B32_SFLOAT, 0},  // albedo (color) data
+                VkVertexInputAttributeDescription{3, 3, VK_FORMAT_R32_SFLOAT, 0},        // metallic
+                VkVertexInputAttributeDescription{4, 4, VK_FORMAT_R32_SFLOAT, 0},        // roughness
+                VkVertexInputAttributeDescription{5, 5, VK_FORMAT_R32_SFLOAT, 0},        // ambient occlusion (ao)
             };
 
             vsg::GraphicsPipelineStates pipelineStates{
@@ -152,19 +141,98 @@ vsg::ref_ptr<vsg::Node> ChVSGPbrIdxMesh::createVSGNode(DrawMode drawMode) {
             // Descriptors to decorate the whole graph
             subgraph->add(bindGraphicsPipeline);
             // subgraph->add(bindDescriptorSets);
-            subgraph->addChild(uniformBindDescriptorSet1);
-            subgraph->addChild(uniformBindDescriptorSet2);
             subgraph->addChild(m_transform);
-           
+
             // setup geometry
             auto drawCommands = vsg::Commands::create();
-            drawCommands->addChild(
-                vsg::BindVertexBuffers::create(0, vsg::DataList{m_vertices, m_normals, m_texcoords}));
+            drawCommands->addChild(vsg::BindVertexBuffers::create(
+                0, vsg::DataList{m_vertices, m_normals, m_albedo, m_metallic, m_roughness, m_ao}));
             drawCommands->addChild(vsg::BindIndexBuffer::create(m_indices));
             drawCommands->addChild(vsg::DrawIndexed::create(m_indices->size(), 1, 0, 0, 0));
 
             // add drawCommands to m_transform
-            //m_transform->addChild(uniformBindDescriptorSet);
+            m_transform->addChild(uniformBindDescriptorSet);
+            m_transform->addChild(drawCommands);
+
+        } break;
+        case DrawMode::Wireframe: {
+            // set up search paths to SPIRV shaders and textures
+            vsg::ref_ptr<vsg::ShaderStage> vertexShader =
+                readVertexShader(GetChronoDataFile("vsg/shaders/vert_Wireframe.spv"));
+            vsg::ref_ptr<vsg::ShaderStage> fragmentShader =
+                readFragmentShader(GetChronoDataFile("vsg/shaders/frag_Wireframe.spv"));
+            if (!vertexShader || !fragmentShader) {
+                std::cout << "Could not create shaders." << std::endl;
+                return {};
+            }
+
+            auto uniformValue = vsg::vec3Value::create(m_lightPosition);
+            auto uniformBuffer = vsg::DescriptorBuffer::create(uniformValue, 0);
+            vsg::DescriptorSetLayoutBindings lightSettingsDescriptorBindings{
+                //{0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
+                {0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1,
+                 VK_SHADER_STAGE_FRAGMENT_BIT,  // we only need it in the fragment shader program
+                 nullptr}  // { binding, descriptorTpe, descriptorCount, stageFlags, pImmutableSamplers}
+            };
+
+            auto lightSettingsDescriptorSetLayout = vsg::DescriptorSetLayout::create(lightSettingsDescriptorBindings);
+
+            auto uniformDscriptorSet =
+                vsg::DescriptorSet::create(lightSettingsDescriptorSetLayout, vsg::Descriptors{uniformBuffer});
+
+            vsg::DescriptorSetLayoutBindings descriptorBindings{
+                {0, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_FRAGMENT_BIT,
+                 nullptr}  // { binding, descriptorTpe, descriptorCount, stageFlags, pImmutableSamplers}
+            };
+
+            auto descriptorSetLayout = vsg::DescriptorSetLayout::create(descriptorBindings);
+            vsg::DescriptorSetLayouts descriptorSetLayouts{descriptorSetLayout};
+
+            vsg::PushConstantRanges pushConstantRanges{
+                {VK_SHADER_STAGE_VERTEX_BIT, 0, 128}  // projection view, and model matrices, actual push constant calls
+                                                      // autoatically provided by the VSG's DispatchTraversal
+            };
+
+            auto pipelineLayout = vsg::PipelineLayout::create(
+                vsg::DescriptorSetLayouts{descriptorSetLayout, lightSettingsDescriptorSetLayout}, pushConstantRanges);
+
+            vsg::VertexInputState::Bindings vertexBindingsDescriptions{
+                VkVertexInputBindingDescription{0, sizeof(vsg::vec3), VK_VERTEX_INPUT_RATE_VERTEX},  // vertex data
+                VkVertexInputBindingDescription{1, sizeof(vsg::vec3), VK_VERTEX_INPUT_RATE_VERTEX},  // normal data
+            };
+
+            vsg::VertexInputState::Attributes vertexAttributeDescriptions{
+                VkVertexInputAttributeDescription{0, 0, VK_FORMAT_R32G32B32_SFLOAT, 0},  // vertex data
+                VkVertexInputAttributeDescription{1, 1, VK_FORMAT_R32G32B32_SFLOAT, 0},  // normal data
+            };
+
+            auto rasterizationState = vsg::RasterizationState::create();
+            rasterizationState->polygonMode = VK_POLYGON_MODE_LINE;
+            vsg::GraphicsPipelineStates pipelineStates{
+                vsg::VertexInputState::create(vertexBindingsDescriptions, vertexAttributeDescriptions),
+                vsg::InputAssemblyState::create(),
+                rasterizationState,
+                vsg::MultisampleState::create(),
+                vsg::ColorBlendState::create(),
+                vsg::DepthStencilState::create()};
+
+            auto graphicsPipeline = vsg::GraphicsPipeline::create(
+                pipelineLayout, vsg::ShaderStages{vertexShader, fragmentShader}, pipelineStates);
+            auto bindGraphicsPipeline = vsg::BindGraphicsPipeline::create(graphicsPipeline);
+
+            // create StateGroup as the root of the scene/command graph to hold the GraphicsProgram, and binding of
+            // Descriptors to decorate the whole graph
+            subgraph->add(bindGraphicsPipeline);
+            // subgraph->add(bindDescriptorSets);
+            subgraph->addChild(m_transform);
+
+            // setup geometry
+            auto drawCommands = vsg::Commands::create();
+            drawCommands->addChild(vsg::BindVertexBuffers::create(0, vsg::DataList{m_vertices, m_albedo}));
+            drawCommands->addChild(vsg::BindIndexBuffer::create(m_indices));
+            drawCommands->addChild(vsg::DrawIndexed::create(m_indices->size(), 1, 0, 0, 0));
+
+            // add drawCommands to transform
             m_transform->addChild(drawCommands);
 
         } break;
