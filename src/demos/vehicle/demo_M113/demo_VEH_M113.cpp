@@ -18,7 +18,6 @@
 
 #include "chrono/utils/ChUtilsInputOutput.h"
 #include "chrono/core/ChRealtimeStep.h"
-#include "chrono/solver/ChSolverPSOR.h"
 #include "chrono/solver/ChSolverBB.h"
 
 #include "chrono_vehicle/ChVehicleModelData.h"

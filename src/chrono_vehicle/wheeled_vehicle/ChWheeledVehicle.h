@@ -192,7 +192,7 @@ class CH_VEHICLE_API ChWheeledVehicle : public ChVehicle {
 
     /// Initialize this vehicle at the specified global location and orientation.
     /// This base class implementation only initializes the main chassis subsystem.
-    /// Derived classes must extend this function to initialize all other tracked
+    /// Derived classes must extend this function to initialize all other wheeled
     /// vehicle subsystems (axles, steerings, driveline).
     virtual void Initialize(const ChCoordsys<>& chassisPos,  ///< [in] initial global position and orientation
                             double chassisFwdVel = 0         ///< [in] initial chassis forward velocity
