@@ -48,7 +48,7 @@ class CH_MODELS_API MTV_ChassisRear : public ChRigidChassisRear {
     virtual const ChVector<>& GetLocalPosCOM() const override { return m_COM_loc; }
 
     /// Get the location (in the local frame of this chassis) of the connection to the front chassis.
-    virtual const ChVector<>& GetLocalPosConnector() const override { return m_connector_loc; }
+    virtual const ChVector<>& GetLocalPosFrontConnector() const override { return m_connector_loc; }
 
   protected:
     virtual void CreateContactMaterials(ChContactMethod contact_method) override;

@@ -65,6 +65,8 @@ namespace vehicle {
 /// @{
 
 /// TMeasy tire model.
+/// The Chrono implementation is a basic version of the commercial models available at
+/// <a href="http://www.tmeasy.de/">www.tmeasy.de</a>.
 class CH_VEHICLE_API ChTMeasyTire : public ChTire {
   public:
     ChTMeasyTire(const std::string& name);

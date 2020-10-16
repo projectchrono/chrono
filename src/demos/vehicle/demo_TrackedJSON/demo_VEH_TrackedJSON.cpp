@@ -25,8 +25,7 @@
 
 #include "chrono/core/ChStream.h"
 #include "chrono/core/ChRealtimeStep.h"
-#include "chrono/physics/ChLinkDistance.h"
-#include "chrono/solver/ChSolverPSOR.h"
+#include "chrono/solver/ChSolverBB.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 
 #include "chrono_vehicle/ChConfigVehicle.h"
@@ -70,7 +69,7 @@ std::string rigidterrain_file("terrain/RigidPlane.json");
 std::string driver_file("generic/driver/Sample_Maneuver.txt");
 
 // Simulation step size
-double step_size = 4e-3;
+double step_size = 2e-3;
 
 // Simulation length (Povray only)
 double tend = 10.0;
@@ -123,8 +122,8 @@ int main(int argc, char* argv[]) {
     ////vehicle.SetChassisVehicleCollide(false);
 
     // Solver settings.
-    auto solver = chrono_types::make_shared<ChSolverPSOR>();
-    solver->SetMaxIterations(50);
+    auto solver = chrono_types::make_shared<ChSolverBB>();
+    solver->SetMaxIterations(100);
     solver->SetOmega(0.8);
     solver->SetSharpnessLambda(1.0);
     vehicle.GetSystem()->SetSolver(solver);

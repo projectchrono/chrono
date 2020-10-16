@@ -2,6 +2,7 @@ Change Log
 ==========
 
 - [Unreleased (development version)](#unreleased-development-branch)
+  - [Support for modelling wheeled trailers](#added-support-for-modelling-wheeled-trailers)
   - [Enhancements to Chrono::FSI](#changed-enhancements-to-chronofsi)
   - [New Chrono::Sensor module](#added-new-chronosensor-module)
   - [Setting OpenMP number of threads](#changed-setting-openmp-number-of-threads)
@@ -20,6 +21,28 @@ Change Log
 - [Release 4.0.0](#release-400---2019-02-22)
 
 ## Unreleased (development branch)
+
+### [Added] Support for modelling wheeled trailers
+
+New templates were added to Chrono::Vehicle to allow creating wheeled trailers.  A trailer is an assembly consisting of a "rear chassis" (see `ChChassisRear`), an arbitrary number of `ChAxle` subsystems (each including a suspension subsystem, 2 or 4 wheels, and optionally brake subsystems), and a hitch connector (see `ChChassisConnectorHitch`) for attaching the trailer to a vehicle chassis.
+
+Similar to a wheeled vehicle, a concrete trailer system can be implemented in concrete C++ classes (see the Kraz semi-trailer truck model and `demo_VEH_Kraz_OpenLoop`), or else through JSON specification files (see the files in `data/vehicle/ultra_tow` and `demo_VEH_WheeledJSON`).
+
+A concrete wheeled trailer system class implements the abstract class `ChWheeledTrailer`. A trailer can be attached to any vehicle chassis and is initialized based on the vehicle pose, the hitch location on the vehicle chassis (see `ChChassis::GetLocalPosRearConnector`), and the hitch location on the trailer chassis (see `ChChassisRear::GetLocalPosFrontConnector`):
+
+```cpp
+    WheeledTrailer trailer(vehicle.GetSystem(), trailer_JSON_file);
+    trailer.Initialize(vehicle.GetChassis());
+    trailer.SetChassisVisualizationType(VisualizationType::PRIMITIVES);
+    trailer.SetSuspensionVisualizationType(VisualizationType::PRIMITIVES);
+    trailer.SetWheelVisualizationType(VisualizationType::NONE);
+    for (auto& axle : trailer.GetAxles()) {
+        for (auto& wheel : axle->GetWheels()) {
+            auto tire = ReadTireJSON(trailer_tire_JSON_file);
+            trailer.InitializeTire(tire, wheel, VisualizationType::PRIMITIVES);
+        }
+    }
+```
 
 ### [Changed] Enhancements to Chrono::FSI
 

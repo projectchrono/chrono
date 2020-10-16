@@ -23,6 +23,8 @@
     "Orientation":  [1, 0, 0, 0]
   },
 
+  "Rear Connector Location": [-2.5, 0, -0.1],
+
   "Visualization":
   {
     "Mesh":  "sedan/sedan_chassis_vis.obj"

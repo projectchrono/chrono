@@ -23,6 +23,8 @@
     "Orientation":  [1, 0, 0, 0]
   },
 
+  "Rear Connector Location": [-3.5, 0, -0.05],
+  
   "Visualization":
   {
     "Mesh":  "uaz/uaz469_chassis.obj"

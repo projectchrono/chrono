@@ -83,7 +83,7 @@ void M113_TrackShoeDoublePin::CreateContactMaterials(ChContactMethod contact_met
         minfo.mu = 0.8f;
         minfo.cr = 0.1f;
         minfo.Y = 1e7f;
-        m_conn_material = minfo.CreateMaterial(contact_method);
+        m_shoe_sprk_material = minfo.CreateMaterial(contact_method);
     }
 
     // Material 0: pad bottom (ground contact)
