@@ -203,7 +203,7 @@ void ChVSGApp::BuildSceneGraph() {
                                      vsg::rotate(angle, axis.x(), axis.y(), axis.z()) *
                                      vsg::scale(size.x(), size.y(), size.z()));
                 std::string texFilePath(GetChronoDataFile("vsg/textures/Metal007.jpg"));
-#define PBR
+#define PHONG
 #ifdef PHONG
                 ChVSGPhongMaterial jade(PhongPresets::Jade);
                 VSGBox box(body, asset, transform);
