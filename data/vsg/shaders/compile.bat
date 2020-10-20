@@ -11,5 +11,3 @@ rem
 glslc shader_Wireframe.vert -o vert_Wireframe.spv
 glslc shader_Wireframe.frag -o frag_Wireframe.spv
 rem
-glslc shader_PBR.vert -o vert_PBR.spv
-glslc shader_PBR.frag -o frag_PBR.spv
