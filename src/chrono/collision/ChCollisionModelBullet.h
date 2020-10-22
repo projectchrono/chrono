@@ -108,7 +108,6 @@ class ChApi ChCollisionModelBullet : public ChCollisionModel {
         std::shared_ptr<ChMaterialSurface> material,  ///< surface contact material
         double radius,                                ///< cylinder radius
         double hlen,                                  ///< cylinder half length
-        double sphere_r,                              ///< radius of sweeping sphere
         const ChVector<>& pos = ChVector<>(),         ///< center position in model coordinates
         const ChMatrix33<>& rot = ChMatrix33<>(1)     ///< rotation in model coordinates
         ) override;
@@ -331,7 +330,7 @@ class ChApi ChCollisionModelBullet : public ChCollisionModel {
     /// BOX          x-halfdim y-halfdim z-halfdim
     /// ELLIPSOID    x-radius y-radius z-radius
     /// CYLINDER     x-radius z-radius halflength
-    /// CYLSHELL     radius halflength sphere_radius
+    /// CYLSHELL     radius halflength
     /// </pre>
     virtual std::vector<double> GetShapeDimensions(int index) const override;
 

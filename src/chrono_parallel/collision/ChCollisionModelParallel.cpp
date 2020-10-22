@@ -194,7 +194,6 @@ bool ChCollisionModelParallel::AddCylinder(std::shared_ptr<ChMaterialSurface> ma
 bool ChCollisionModelParallel::AddCylindricalShell(std::shared_ptr<ChMaterialSurface> material,
                                                    double radius,
                                                    double hlen,
-                                                   double sphere_r,
                                                    const ChVector<>& pos,
                                                    const ChMatrix33<>& rot) {
     ChFrame<> frame;
@@ -205,7 +204,7 @@ bool ChCollisionModelParallel::AddCylindricalShell(std::shared_ptr<ChMaterialSur
     auto shape = new ChCollisionShapeParallel(ChCollisionShape::Type::CYLSHELL, material);
     shape->A = real3(position.x(), position.y(), position.z());
     shape->B = real3(radius, hlen, radius);
-    shape->C = real3(sphere_r, 0, 0);
+    shape->C = real3(0, 0, 0);
     shape->R = quaternion(rotation.e0(), rotation.e1(), rotation.e2(), rotation.e3());
     m_shapes.push_back(std::shared_ptr<ChCollisionShape>(shape));
 
@@ -400,6 +399,9 @@ std::vector<double> ChCollisionModelParallel::GetShapeDimensions(int index) cons
         case ChCollisionShape::Type::CYLINDER:
             dims = {shape->B.x, shape->B.z, shape->B.y};
             break;
+        case ChCollisionShape::Type::CYLSHELL:
+            dims = {shape->B.x, shape->B.y};
+            break;
         case ChCollisionShape::Type::CAPSULE:
             dims = {shape->B.x, shape->B.y};
             break;
@@ -411,9 +413,6 @@ std::vector<double> ChCollisionModelParallel::GetShapeDimensions(int index) cons
             break;
         case ChCollisionShape::Type::ROUNDEDCYL:
             dims = {shape->B.x, shape->B.z, shape->B.y, shape->C.x};
-            break;
-        case ChCollisionShape::Type::CYLSHELL:
-            dims = {shape->B.x, shape->B.y, shape->C.x};
             break;
         default:
             break;

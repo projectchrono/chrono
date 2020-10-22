@@ -19,9 +19,9 @@ software.
 
 #include "btCylindricalShellShape.h"
 
-btCylindricalShellShape::btCylindricalShellShape(btScalar radius, btScalar hlen, btScalar sphere_r)
-    : btConvexInternalShape(), m_sphere_r(sphere_r) {
-    btVector3 halfExtents(radius + sphere_r, hlen + sphere_r, radius + sphere_r);
+btCylindricalShellShape::btCylindricalShellShape(btScalar radius, btScalar hlen)
+    : btConvexInternalShape() {
+    btVector3 halfExtents(radius, hlen, radius);
     btVector3 margin(getMargin(), getMargin(), getMargin());
     m_implicitShapeDimensions = (halfExtents * m_localScaling) - margin;
 

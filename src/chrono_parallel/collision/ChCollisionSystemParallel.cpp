@@ -70,6 +70,10 @@ void ChCollisionSystemParallel::Add(ChCollisionModel* model) {
                     start = (int)data_manager->shape_data.box_like_rigid.size();
                     data_manager->shape_data.box_like_rigid.push_back(obB);
                     break;
+                case ChCollisionShape::Type::CYLSHELL:
+                    start = (int)data_manager->shape_data.box_like_rigid.size();
+                    data_manager->shape_data.box_like_rigid.push_back(obB);
+                    break;
                 case ChCollisionShape::Type::CONE:
                     start = (int)data_manager->shape_data.box_like_rigid.size();
                     data_manager->shape_data.box_like_rigid.push_back(obB);
@@ -83,10 +87,6 @@ void ChCollisionSystemParallel::Add(ChCollisionModel* model) {
                     data_manager->shape_data.rbox_like_rigid.push_back(real4(obB, obC.x));
                     break;
                 case ChCollisionShape::Type::ROUNDEDCYL:
-                    start = (int)data_manager->shape_data.rbox_like_rigid.size();
-                    data_manager->shape_data.rbox_like_rigid.push_back(real4(obB, obC.x));
-                    break;
-                case ChCollisionShape::Type::CYLSHELL:
                     start = (int)data_manager->shape_data.rbox_like_rigid.size();
                     data_manager->shape_data.rbox_like_rigid.push_back(real4(obB, obC.x));
                     break;
@@ -161,6 +161,9 @@ void ChCollisionSystemParallel::Remove(ChCollisionModel* model) {
                 case ChCollisionShape::Type::CYLINDER:
                     ERASE_MACRO_LEN(data_manager->shape_data.box_like_rigid, start, length);
                     break;
+                case ChCollisionShape::Type::CYLSHELL:
+                    ERASE_MACRO_LEN(data_manager->shape_data.box_like_rigid, start, length);
+                    break;
                 case ChCollisionShape::Type::CONE:
                     ERASE_MACRO_LEN(data_manager->shape_data.box_like_rigid, start, length);
                     break;
@@ -171,9 +174,6 @@ void ChCollisionSystemParallel::Remove(ChCollisionModel* model) {
                     ERASE_MACRO_LEN(data_manager->shape_data.rbox_like_rigid, start, length);
                     break;
                 case ChCollisionShape::Type::ROUNDEDCYL:
-                    ERASE_MACRO_LEN(data_manager->shape_data.rbox_like_rigid, start, length);
-                    break;
-                case ChCollisionShape::Type::CYLSHELL:
                     ERASE_MACRO_LEN(data_manager->shape_data.rbox_like_rigid, start, length);
                     break;
                 case ChCollisionShape::Type::ROUNDEDCONE:

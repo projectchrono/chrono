@@ -142,7 +142,7 @@ public:
 	virtual btCollisionShape* createCylinderShapeX(btScalar radius, btScalar height);
 	virtual btCollisionShape* createCylinderShapeY(btScalar radius, btScalar height);
 	virtual btCollisionShape* createCylinderShapeZ(btScalar radius, btScalar height);
-    virtual btCollisionShape* createCylindricalShellShape(btScalar radius, btScalar height, btScalar sphere_r);  /* ***CHRONO*** */
+    virtual btCollisionShape* createCylindricalShellShape(btScalar radius, btScalar height);  /* ***CHRONO*** */
     virtual btCollisionShape* createConeShapeX(btScalar radius, btScalar height);
 	virtual btCollisionShape* createConeShapeY(btScalar radius, btScalar height);
 	virtual btCollisionShape* createConeShapeZ(btScalar radius, btScalar height);

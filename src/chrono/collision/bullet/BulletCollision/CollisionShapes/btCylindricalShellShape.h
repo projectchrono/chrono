@@ -28,8 +28,6 @@ software.
 /// Its central axis aligned with the Y axis.
 ATTRIBUTE_ALIGNED16(class)
 btCylindricalShellShape : public btConvexInternalShape {
-    btScalar m_sphere_r;
-
   public:
     BT_DECLARE_ALIGNED_ALLOCATOR();
 
@@ -44,7 +42,7 @@ btCylindricalShellShape : public btConvexInternalShape {
         return m_implicitShapeDimensions;  // changed in Bullet 2.63: assume the scaling and margin are included
     }
 
-    btCylindricalShellShape(btScalar radius, btScalar hlen, btScalar sphere_r);
+    btCylindricalShellShape(btScalar radius, btScalar hlen);
 
     void getAabb(const btTransform& t, btVector3& aabbMin, btVector3& aabbMax) const;
 
@@ -86,9 +84,8 @@ btCylindricalShellShape : public btConvexInternalShape {
         return aniDir;
     }
 
-    btScalar getRadius() const { return getHalfExtentsWithMargin().getX() - m_sphere_r; }
-    btScalar getHalfLength() const { return getHalfExtentsWithMargin().getY() - m_sphere_r; }
-    btScalar getSphereRadius() const { return m_sphere_r; }
+    btScalar getRadius() const { return getHalfExtentsWithMargin().getX(); }
+    btScalar getHalfLength() const { return getHalfExtentsWithMargin().getY(); }
 
     virtual void setLocalScaling(const btVector3& scaling) {
         btVector3 oldMargin(getMargin(), getMargin(), getMargin());
@@ -112,9 +109,6 @@ btCylindricalShellShape : public btConvexInternalShape {
 /// do not change those serialization structures, it requires an updated sBulletDNAstr/sBulletDNAstr64
 struct btCylindricalShellShapeData {
     btConvexInternalShapeData m_convexInternalShapeData;
-
-    btScalar m_sphere_r;
-
     char m_padding[4];
 };
 
@@ -127,8 +121,6 @@ SIMD_FORCE_INLINE const char* btCylindricalShellShape::serialize(void* dataBuffe
     btCylindricalShellShapeData* shapeData = (btCylindricalShellShapeData*)dataBuffer;
 
     btConvexInternalShape::serialize(&shapeData->m_convexInternalShapeData, serializer);
-
-    shapeData->m_sphere_r = m_sphere_r;
 
     // Fill padding with zeros to appease msan.
     shapeData->m_padding[0] = 0;

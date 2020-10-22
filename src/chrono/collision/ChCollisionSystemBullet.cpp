@@ -41,6 +41,40 @@ CH_FACTORY_REGISTER(ChCollisionSystemBullet)
 
 // ================================================================================================
 
+// This utility function snaps the specified location to a point on a box with
+// given half-dimensions. The in/out location is assumed to be specified in
+// the frame of the box (which is therefore assumed to be an AABB centered at
+// the origin).  The return code indicates the box axes that caused snapping.
+//   - first bit (least significant) corresponds to x-axis
+//   - second bit corresponds to y-axis
+//   - third bit corresponds to z-axis
+//
+// Therefore:
+//   code = 0 indicates an interior point
+//   code = 1 or code = 2 or code = 4  indicates snapping to a face
+//   code = 3 or code = 5 or code = 6  indicates snapping to an edge
+//   code = 7 indicates snapping to a corner
+int snap_to_box(const btVector3& hdims, btVector3& loc) {
+    int code = 0;
+
+    if (std::abs(loc[0]) > hdims[0]) {
+        code |= 1;
+        loc[0] = (loc[0] > 0) ? hdims[0] : -hdims[0];
+    }
+    if (std::abs(loc[1]) > hdims[1]) {
+        code |= 2;
+        loc[1] = (loc[1] > 0) ? hdims[1] : -hdims[1];
+    }
+    if (std::abs(loc[2]) > hdims[2]) {
+        code |= 4;
+        loc[2] = (loc[2] > 0) ? hdims[2] : -hdims[2];
+    }
+
+    return code;
+}
+
+// ================================================================================================
+
 // Utility class to override the default cylshell-box collision case.
 class btCylshellBoxCollisionAlgorithm : public btActivatingCollisionAlgorithm {
     bool m_ownManifold;
@@ -93,7 +127,7 @@ class btCylshellBoxCollisionAlgorithm : public btActivatingCollisionAlgorithm {
         const btCylindricalShellShape* cyl = (btCylindricalShellShape*)cylObjWrap->getCollisionShape();
         const btBoxShape* box = (btBoxShape*)boxObjWrap->getCollisionShape();
 
-        // Express cylinder in the box frame.
+        // Express cylinder in the box frame
         const btTransform& abs_X_cyl = cylObjWrap->getWorldTransform();
         const btTransform& abs_X_box = boxObjWrap->getWorldTransform();
         btTransform box_X_cyl = abs_X_box.inverseTimes(abs_X_cyl);
@@ -104,126 +138,250 @@ class btCylshellBoxCollisionAlgorithm : public btActivatingCollisionAlgorithm {
         // Box dimensions
         btVector3 hdims = box->getHalfExtentsWithMargin();
 
-        // Cylindrical shell dimension
-        btScalar sphere_r = cyl->getSphereRadius();  // radius of sweep sphere
-        btScalar radius = cyl->getRadius();          // cylinder radius
-        btScalar hlen = cyl->getHalfLength();        // cylinder half-length
+        // Cylinder dimensions
+        btScalar radius = cyl->getRadius();    // cylinder radius
+        btScalar hlen = cyl->getHalfLength();  // cylinder half-length
 
-        // Contact distance
-        btScalar contactDist = sphere_r + m_manifoldPtr->getContactBreakingThreshold();
+        // Inflate the box by the radius of the capsule plus the separation value and check if the capsule centerline
+        // intersects the expanded box. We do this by clamping the capsule axis to the volume between two parallel faces
+        // of the box, considering in turn the x, y, and z faces.
+        btVector3 hdims_exp = hdims + btVector3(radius, radius, radius);
+        btScalar tMin = -BT_LARGE_FLOAT;
+        btScalar tMax = +BT_LARGE_FLOAT;
 
-        // Threshold for line parallel to face tests
-        const btScalar threshold = btScalar(1e-5);
+        const btScalar threshold = btScalar(1e-5);  // threshold for line parallel to face tests
 
-        // For each of the 3 directions of the box
-        for (int i = 0; i < 3; i++) {
-            int j = (i + 1) % 3;  // box face direction u
-            int k = (i + 2) % 3;  // box face direction v
+        if (std::abs(a.x()) < threshold) {
+            // Capsule axis parallel to the box x-faces
+            if (std::abs(c.x()) > hdims_exp.x())
+                return;
+        } else {
+            btScalar t1 = (-hdims_exp.x() - c.x()) / a.x();
+            btScalar t2 = (+hdims_exp.x() - c.x()) / a.x();
 
-            // Set face normal. Pick the positive or negative box face (based on relative cylinder location)
-            btVector3 n(0, 0, 0);
-            n[i] = +1;
-            btScalar sign = +1;
-            if (c.dot(n) < 0) {
-                sign = -1;
-                n[i] = -1;
-            }
+            tMin = btMax(tMin, btMin(t1, t2));
+            tMax = btMin(tMax, btMax(t1, t2));
 
-            // Skip this face if cylinder axis perpendicular to it (we cannot decide on replacement segment)
-            btVector3 aXn = a.cross(n);
-            btScalar len2 = aXn.length2();
-            if (len2 < 3e-3)  // about 3 degrees or less
+            if (tMin > tMax)
+                return;
+        }
+
+        if (std::abs(a.y()) < threshold) {
+            // Capsule axis parallel to the box y-faces
+            if (std::abs(c.y()) > hdims_exp.y())
+                return;
+        } else {
+            btScalar t1 = (-hdims_exp.y() - c.y()) / a.y();
+            btScalar t2 = (+hdims_exp.y() - c.y()) / a.y();
+
+            tMin = btMax(tMin, btMin(t1, t2));
+            tMax = btMin(tMax, btMax(t1, t2));
+
+            if (tMin > tMax)
+                return;
+        }
+
+        if (std::abs(a.z()) < threshold) {
+            // Capsule axis parallel to the box z-faces
+            if (std::abs(c.z()) > hdims_exp.z())
+                return;
+        } else {
+            btScalar t1 = (-hdims_exp.z() - c.z()) / a.z();
+            btScalar t2 = (+hdims_exp.z() - c.z()) / a.z();
+
+            tMin = btMax(tMin, btMin(t1, t2));
+            tMax = btMin(tMax, btMax(t1, t2));
+
+            if (tMin > tMax)
+                return;
+        }
+
+        // Generate the two points where the cylinder centerline intersects the exapanded box (still expressed in the
+        // box frame). Snap these locations to the original box, then snap back onto the cylinder axis. This reduces
+        // the collision problem to 1 or 2 collisions.
+        btVector3 locs[2] = {c + tMin * a, c + tMax * a};
+        btScalar t[2];
+
+        for (int i = 0; i < 2; i++) {
+            snap_to_box(hdims, locs[i]);
+            t[i] = btClamped(a.dot(locs[i] - c), -hlen, hlen);
+        }
+
+        // Check if the two points almost coincide (in which case consider only one of them)
+        int numPoints = std::abs(t[0] - t[1]) < 1e-4 ? 1 : 2;
+
+        // Perform collision tests.
+        for (int i = 0; i < numPoints; i++) {
+            // Point on the cylinder axis (expressed in the box frame).
+            btVector3 axisPoint = c + a * t[i];
+
+            // Snap to box. If axis point inside box, no contact.
+            btVector3 boxPoint = axisPoint;
+            int code = snap_to_box(hdims, boxPoint);
+            if (code == 0)
                 continue;
 
-            // Find center of replacement segment
-            btVector3 s = c + a.cross(aXn) * radius;
+            // Find closest point on cylinder to the box. If this point is on the cylinder centerline, no contact.
+            btVector3 u = axisPoint - boxPoint;
+            btScalar u_length = u.length();
+            if (u_length < threshold)
+                continue;
+            u /= u_length;
+            btVector3 w = u.cross(a);
+            if (w.length() < threshold)
+                continue;
+            btVector3 v = w.cross(a);
+            v.normalize();
+            btVector3 cylPoint = axisPoint + radius * v;
 
-            // Intersect the box (expanded by the radius of the replacement capsule) with the segment supporting line
-            // by clamping the line to the volume between parallel faces of the box. In each case, bail out if the line
-            // is parallel to the face and too far from it.
+            // If cylinder point outside box, no contact.
+            code = snap_to_box(hdims, cylPoint);
+            if (code != 0)
+                continue;
+            
+            // Moving in the u direction, project cylinder point onto box surface.
+            btScalar step = BT_LARGE_FLOAT;
+            if (std::abs(u.x()) > threshold)
+                step = btMin((btSign(u.x()) * hdims.x() - cylPoint.x()) / u.x(), step);
+            if (std::abs(u.y()) > threshold)
+                step = btMin((btSign(u.y()) * hdims.y() - cylPoint.y()) / u.y(), step);
+            if (std::abs(u.z()) > threshold)
+                step = btMin((btSign(u.z()) * hdims.z() - cylPoint.z()) / u.z(), step);
+            boxPoint = cylPoint + step * u;
 
-            btScalar tMin = -BT_LARGE_FLOAT;
-            btScalar tMax = +BT_LARGE_FLOAT;
+            // Debug check: boxPoint inside cylinder
+            assert(std::abs(a.dot(boxPoint - c)) <= btScalar(1.01) * hlen);
 
-            if (std::abs(a[i]) < threshold) {  // intersect line with slab in 'n' direction
-                if (std::abs(s[i]) > hdims[i] + sphere_r)
-                    continue;
-            } else {
-                btScalar t1 = (-hdims[i] - sphere_r - s[i]) / a[i];
-                btScalar t2 = (+hdims[i] + sphere_r - s[i]) / a[i];
-                tMin = btMax(tMin, btMin(t1, t2));
-                tMax = btMin(tMax, btMax(t1, t2));
-                if (tMin > tMax)
-                    continue;
-            }
+            // Calculate penetration
+            btVector3 delta = boxPoint - cylPoint;
+            btScalar dist = delta.length();
+            if (dist < 1e-10)
+                continue;
 
-            if (std::abs(a[j]) < threshold) {  // intersect line with slab in 'u' direction
-                if (std::abs(s[j]) > hdims[j] + sphere_r)
-                    continue;
-            } else {
-                btScalar t1 = (-hdims[j] - sphere_r - s[j]) / a[j];
-                btScalar t2 = (+hdims[j] + sphere_r - s[j]) / a[j];
-                tMin = btMax(tMin, btMin(t1, t2));
-                tMax = btMin(tMax, btMax(t1, t2));
-                if (tMin > tMax)
-                    continue;
-            }
+            // Generate contact information (transform to absolute frame).
+            btScalar penetration = -dist;                              // distance, negative for penetration
+            btVector3 normal = abs_X_box.getBasis() * (delta / dist);  // normal, pointing from B to A
+            btVector3 point = abs_X_box(boxPoint);                     // point, located on surface of B
 
-            if (std::abs(a[k]) < threshold) {  // intersect line with slab in 'v' direction
-                if (std::abs(s[k]) > hdims[k] + sphere_r)
-                    continue;
-            } else {
-                btScalar t1 = (-hdims[k] - sphere_r - s[k]) / a[k];
-                btScalar t2 = (+hdims[k] + sphere_r - s[k]) / a[k];
-                tMin = btMax(tMin, btMin(t1, t2));
-                tMax = btMin(tMax, btMax(t1, t2));
-                if (tMin > tMax)
-                    continue;
-            }
+            resultOut->addContactPoint(normal, point, penetration);
 
-            // Generate the two points on the box face where the cylinder centerline intersect the box
-            btVector3 locs[2] = {s + a * tMin, s + a * tMax};
-
-            // Snap points to segment and add to the set
-            //// TODO: should snap back to original (un-inflated) box first?
-            btScalar t[2];
-            t[0] = btClamped(a.dot(locs[0] - s), -hlen, +hlen);
-            t[1] = btClamped(a.dot(locs[1] - s), -hlen, +hlen);
-
-            // Check if the two points almost coincide (in which case consider only one of them)
-            int numPoints = std::abs(t[0] - t[1]) < 1e-4 ? 1 : 2;
-
-            // Perform 1 or 2 sphere-box face tests
-            for (int itest = 0; itest < numPoints; itest++) {
-                // Calculate center of replacement sphere (expressed in box frame)
-                btVector3 sphCenter = s + a * t[itest];
-
-                // Find closest point on box face to sphere center
-                btVector3 boxPoint = sphCenter;
-                boxPoint[i] = sign * hdims[i];
-                boxPoint[j] = btMax(btMin(boxPoint[j], hdims[j]), -hdims[j]);
-                boxPoint[k] = btMax(btMin(boxPoint[k], hdims[k]), -hdims[k]);
-
-                btScalar dist = sign * (sphCenter[i] - boxPoint[i]);
-                if (dist > contactDist)
-                    continue;
-
-                // Contact distance (negative for actual penetration)
-                btScalar penetration = dist - sphere_r;
-
-                // Transform to absolute frame
-                btVector3 normal = abs_X_box.getBasis() * n;
-                btVector3 point = abs_X_box(boxPoint);
-
-                // A new contact point must specify:
-                //   normal, pointing from B towards A
-                //   point, located on surface of B
-                //   distance, negative for penetration
-                resultOut->addContactPoint(normal, point, penetration);
-
-                ////std::cout << "add contact --  t= " << t[itest] << "  face " << i << "  dist= " << dist << "  depth= " << penetration << std::endl;
-             }
+            ////std::cout << "add contact --  t= " << t[itest] << "  face " << i << "  dist= " << dist << "  depth= " << penetration << std::endl;
         }
+
+        /*
+        //==  USE CAPSULE ==//
+
+        // Contact distance
+        btScalar contactDist = radius;
+        ////btScalar contactDist = radius + m_manifoldPtr->getContactBreakingThreshold();
+
+        // Inflate the box by the radius of the capsule plus the separation value
+        // and check if the capsule centerline intersects the expanded box. We do
+        // this by clamping the capsule axis to the volume between two parallel
+        // faces of the box, considering in turn the x, y, and z faces.
+        btVector3 hdims_exp = hdims + btVector3(radius, radius, radius);
+        btScalar tMin = -BT_LARGE_FLOAT;
+        btScalar tMax = +BT_LARGE_FLOAT;
+
+        const btScalar threshold = btScalar(1e-5); // threshold for line parallel to face tests
+
+        if (std::abs(a.x()) < threshold) {
+            // Capsule axis parallel to the box x-faces
+            if (std::abs(c.x()) > hdims_exp.x())
+                return;
+        } else {
+            btScalar t1 = (-hdims_exp.x() - c.x()) / a.x();
+            btScalar t2 = (+hdims_exp.x() - c.x()) / a.x();
+
+            tMin = btMax(tMin, btMin(t1, t2));
+            tMax = btMin(tMax, btMax(t1, t2));
+
+            if (tMin > tMax)
+                return;
+        }
+
+        if (std::abs(a.y()) < threshold) {
+            // Capsule axis parallel to the box y-faces
+            if (std::abs(c.y()) > hdims_exp.y())
+                return;
+        } else {
+            btScalar t1 = (-hdims_exp.y() - c.y()) / a.y();
+            btScalar t2 = (+hdims_exp.y() - c.y()) / a.y();
+
+            tMin = btMax(tMin, btMin(t1, t2));
+            tMax = btMin(tMax, btMax(t1, t2));
+
+            if (tMin > tMax)
+                return;
+        }
+
+        if (std::abs(a.z()) < threshold) {
+            // Capsule axis parallel to the box z-faces
+            if (std::abs(c.z()) > hdims_exp.z())
+                return;
+        } else {
+            btScalar t1 = (-hdims_exp.z() - c.z()) / a.z();
+            btScalar t2 = (+hdims_exp.z() - c.z()) / a.z();
+
+            tMin = btMax(tMin, btMin(t1, t2));
+            tMax = btMin(tMax, btMax(t1, t2));
+
+            if (tMin > tMax)
+                return;
+        }
+
+        // Generate the two points where the capsule centerline intersects
+        // the exapanded box (still expressed in the box frame). Snap these
+        // locations onto the original box, then snap back onto the capsule
+        // axis. This reduces the collision problem to 1 or 2 box-sphere
+        // collisions.
+        btVector3 locs[2] = {c + tMin * a, c + tMax * a};
+        btScalar t[2];
+
+        for (int i = 0; i < 2; i++) {
+            snap_to_box(hdims, locs[i]);
+            t[i] = btClamped(a.dot(locs[i] - c), -hlen, hlen);
+        }
+
+        // Check if the two points almost coincide (in which case consider only one of them)
+        int numSpheres = std::abs(t[0] - t[1]) < 1e-4 ? 1 : 2;
+
+        // Perform box-sphere tests, and keep track of actual number of contacts.
+        int j = 0;
+
+        for (int i = 0; i < numSpheres; i++) {
+            // Calculate the center of the corresponding sphere on the capsule centerline (expressed in the box frame).
+            btVector3 spherePos = c + a * t[i];
+
+            // Snap the sphere position to the surface of the box.
+            btVector3 boxPos = spherePos;
+            snap_to_box(hdims, boxPos);
+
+            // If the distance from the sphere center to the closest point is larger than the radius plus the separation
+            // value, then there is no contact. Also, ignore contact if the sphere center (almost) coincides with the
+            // closest point, in which case we couldn't decide on the proper contact direction.
+            btVector3 delta = spherePos - boxPos;
+            btScalar dist2 = delta.length2();
+
+            if (dist2 >= contactDist * contactDist || dist2 <= 1e-12)
+                continue;
+
+            // Generate contact information.
+            btScalar dist = btSqrt(dist2);
+            btScalar penetration = dist - radius;
+            // Transform to absolute frame
+            btVector3 normal = abs_X_box.getBasis() * (delta / dist);
+            btVector3 point = abs_X_box(boxPos);
+
+            // A new contact point must specify:
+            //   normal, pointing from B towards A
+            //   point, located on surface of B
+            //   distance, negative for penetration
+            resultOut->addContactPoint(normal, point, penetration);
+
+            ////std::cout << "add contact --  t= " << t[itest] << "  face " << i << "  dist= " << dist << "  depth= " << penetration << std::endl;
+        }
+        */
 
         if (m_ownManifold && m_manifoldPtr->getNumContacts()) {
             resultOut->refreshContactPoints();

@@ -1398,9 +1398,8 @@ void btCollisionWorld::debugDrawObject(const btTransform& worldTransform, const 
 			}
             case CYLSHELL_SHAPE_PROXYTYPE: { /* ***CHRONO*** */
                 const btCylindricalShellShape* cylinder = static_cast<const btCylindricalShellShape*>(shape);
-                btScalar sphere_r = cylinder->getSphereRadius();
-				btScalar radius = cylinder->getRadius() + sphere_r;
-                btScalar halfHeight = cylinder->getHalfExtentsWithMargin()[1] + sphere_r;
+				btScalar radius = cylinder->getRadius();
+                btScalar halfHeight = cylinder->getHalfExtentsWithMargin()[1];
                 getDebugDrawer()->drawCylinder(radius, halfHeight, 1, worldTransform, color);
                 break;
             }
