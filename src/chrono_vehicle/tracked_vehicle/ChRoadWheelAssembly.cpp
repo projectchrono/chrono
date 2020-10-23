@@ -22,6 +22,7 @@
 // =============================================================================
 
 #include "chrono_vehicle/tracked_vehicle/ChRoadWheelAssembly.h"
+#include "chrono_vehicle/tracked_vehicle/ChTrackAssembly.h"
 
 namespace chrono {
 namespace vehicle {
@@ -29,12 +30,16 @@ namespace vehicle {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 ChRoadWheelAssembly::ChRoadWheelAssembly(const std::string& name, bool has_shock)
-    : ChPart(name), m_has_shock(has_shock) {}
+    : ChPart(name), m_has_shock(has_shock), m_track(nullptr) {}
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChRoadWheelAssembly::Initialize(std::shared_ptr<ChBodyAuxRef> chassis, const ChVector<>& location) {
-    m_road_wheel->Initialize(chassis, GetCarrierBody(), location);
+void ChRoadWheelAssembly::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
+                                     const ChVector<>& location,
+                                     ChTrackAssembly* track) {
+    m_track = track;
+
+    m_road_wheel->Initialize(chassis, GetCarrierBody(), location, track);
 }
 
 // -----------------------------------------------------------------------------

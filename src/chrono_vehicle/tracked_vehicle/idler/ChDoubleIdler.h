@@ -47,7 +47,8 @@ class CH_VEHICLE_API ChDoubleIdler : public ChIdler {
 
     /// Initialize this idler subsystem.
     virtual void Initialize(std::shared_ptr<ChBodyAuxRef> chassis,  ///< [in] handle to the chassis body
-                            const ChVector<>& location              ///< [in] location relative to the chassis frame
+                            const ChVector<>& location,             ///< [in] location relative to the chassis frame
+                            ChTrackAssembly* track                  ///< [in] containing track assembly
                             ) override;
 
     /// Add visualization assets for the idler subsystem.

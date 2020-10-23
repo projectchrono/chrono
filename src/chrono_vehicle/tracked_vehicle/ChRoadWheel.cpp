@@ -20,19 +20,23 @@
 // =============================================================================
 
 #include "chrono_vehicle/tracked_vehicle/ChRoadWheel.h"
+#include "chrono_vehicle/tracked_vehicle/ChTrackAssembly.h"
 
 namespace chrono {
 namespace vehicle {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-ChRoadWheel::ChRoadWheel(const std::string& name) : ChPart(name) {}
+ChRoadWheel::ChRoadWheel(const std::string& name) : ChPart(name), m_track(nullptr) {}
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChRoadWheel::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
                              std::shared_ptr<ChBody> carrier,
-                             const ChVector<>& location) {
+                             const ChVector<>& location,
+                             ChTrackAssembly* track) {
+    m_track = track;
+
     // Express the road wheel reference frame in the absolute coordinate system.
     ChFrame<> wheel_to_abs(location);
     wheel_to_abs.ConcatenatePreTransformation(chassis->GetFrame_REF_to_abs());

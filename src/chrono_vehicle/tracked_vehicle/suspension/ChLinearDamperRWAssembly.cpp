@@ -22,6 +22,7 @@
 #include "chrono/assets/ChColorAsset.h"
 
 #include "chrono_vehicle/tracked_vehicle/suspension/ChLinearDamperRWAssembly.h"
+#include "chrono_vehicle/tracked_vehicle/ChTrackAssembly.h"
 
 namespace chrono {
 namespace vehicle {
@@ -34,7 +35,9 @@ ChLinearDamperRWAssembly::ChLinearDamperRWAssembly(const std::string& name, bool
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChLinearDamperRWAssembly::Initialize(std::shared_ptr<ChBodyAuxRef> chassis, const ChVector<>& location) {
+void ChLinearDamperRWAssembly::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
+                                          const ChVector<>& location,
+                                          ChTrackAssembly* track) {
     // Express the suspension reference frame in the absolute coordinate system.
     ChFrame<> susp_to_abs(location);
     susp_to_abs.ConcatenatePreTransformation(chassis->GetFrame_REF_to_abs());
@@ -101,7 +104,7 @@ void ChLinearDamperRWAssembly::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
 
     // Invoke the base class implementation. This initializes the associated road wheel.
     // Note: we must call this here, after the m_arm body is created.
-    ChRoadWheelAssembly::Initialize(chassis, location);
+    ChRoadWheelAssembly::Initialize(chassis, location, track);
 }
 
 // -----------------------------------------------------------------------------

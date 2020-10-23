@@ -54,7 +54,7 @@ class CH_MODELS_API M113_Vehicle : public ChTrackedVehicle {
   private:
     void Create(bool fixed, BrakeType brake_type, ChassisCollisionType chassis_collision_type);
 
-    TrackShoeType m_type;  ///< type of track assembly (SINGLE_PIN or DOUBLE_PIN)
+    TrackShoeType m_type;  ///< type of track assembly
 };
 
 /// @} vehicle_models_m113
