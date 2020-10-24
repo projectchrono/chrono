@@ -1,6 +1,7 @@
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChLinkMotorRotationSpeed.h"
 #include "chrono/utils/ChUtilsCreators.h"
+#include "chrono/assets/ChTexture.h"
 
 #include "chrono_vsg/ChVSGApp.h"
 
@@ -12,40 +13,33 @@ using namespace chrono::vsg3d;
 //                                  Helper Functions
 // ================================================================================ //
 
-Eigen::Matrix3d skew(const Eigen::Vector3d& v)
-{
+Eigen::Matrix3d skew(const Eigen::Vector3d& v) {
     const auto& x = v(0);
     const auto& y = v(1);
     const auto& z = v(2);
 
     Eigen::Matrix3d mat;
-    mat <<
-         0, -z,  y,
-         z,  0, -x,
-        -y,  x,  0;
-    
+    mat << 0, -z, y, z, 0, -x, -y, x, 0;
+
     return mat;
 };
 
 // -----------------------------------------------------------------------------------
 
-Eigen::Vector3d orthogonal_vector(Eigen::Vector3d &v1)
-{
+Eigen::Vector3d orthogonal_vector(Eigen::Vector3d& v1) {
     auto abs = v1.cwiseAbs();
-    Eigen::VectorXd dummy = Eigen::VectorXd::Ones(3,1);
+    Eigen::VectorXd dummy = Eigen::VectorXd::Ones(3, 1);
     Eigen::VectorXd::Index max_index;
     Eigen::VectorXd::Index i = abs.maxCoeff(&max_index);
     dummy(max_index) = 0;
 
     Eigen::Vector3d v = (skew(v1) * dummy).normalized();
     return v;
-
 };
 
 // -----------------------------------------------------------------------------------
 
-Eigen::Matrix3d triad(Eigen::Vector3d &v1)
-{
+Eigen::Matrix3d triad(Eigen::Vector3d& v1) {
     Eigen::Vector3d k = v1.normalized();
     Eigen::Vector3d i = orthogonal_vector(k).normalized();
     Eigen::Vector3d j = skew(k) * i;
@@ -56,29 +50,23 @@ Eigen::Matrix3d triad(Eigen::Vector3d &v1)
     mat.col(2) = k;
 
     return mat;
-
 };
 
 // -----------------------------------------------------------------------------------
 
-ChMatrix33<double> GetCylinderOrientation(const ChVector<> &p1, const ChVector<> &p2)
-{
-    auto v = Eigen::Vector3d{(p2 - p1).x(), 
-                             (p2 - p1).y(), 
-                             (p2 - p1).z()};
+ChMatrix33<double> GetCylinderOrientation(const ChVector<>& p1, const ChVector<>& p2) {
+    auto v = Eigen::Vector3d{(p2 - p1).x(), (p2 - p1).y(), (p2 - p1).z()};
     auto frame = triad(v);
     auto x_vector = ChVector<>(frame.col(0)(0), frame.col(0)(1), frame.col(0)(2));
     auto y_vector = ChVector<>(frame.col(1)(0), frame.col(1)(1), frame.col(1)(2));
     auto z_vector = ChVector<>(frame.col(2)(0), frame.col(2)(1), frame.col(2)(2));
-    
+
     auto matrix = ChMatrix33<double>(x_vector, y_vector, z_vector);
 
     return matrix;
 };
 
 // ================================================================================ //
-
-
 
 // ================================================================================ //
 //                                  Main Function
@@ -88,12 +76,12 @@ int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2020 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
     // Here we creat the four points representing our fourbar mechanism as ChVector
-    // objects, so we can use them later to specify the location and orientation of 
+    // objects, so we can use them later to specify the location and orientation of
     // our bodies, geometries and joints.
     auto point_A = ChVector<>(0, 0, 0);
     auto point_B = ChVector<>(0, 0, 2);
     auto point_C = ChVector<>(-7.5, -8.5, 6.5);
-    auto point_D = ChVector<>(-4.0, -8.5,   0);
+    auto point_D = ChVector<>(-4.0, -8.5, 0);
 
     // ===============================================================================
 
@@ -105,9 +93,7 @@ int main(int argc, char* argv[]) {
     ChSystemNSC system;
     system.Set_G_acc(ChVector<>(0, 0, -9.81));
 
-
     // ===============================================================================
-
 
     // 2- Create the rigid bodies of the fourbar mechanical system
     //    (a crank, a rod, a rocker and the ground), maybe setting position/mass/inertias of
@@ -120,12 +106,11 @@ int main(int argc, char* argv[]) {
     ground->SetName("ground");
     system.AddBody(ground);
 
-
     // Creating the crank part and its geometry shape asset.
     // -----------------------------------------------------
     auto crank = chrono_types::make_shared<ChBody>();
     crank->SetPos(ChVector<>(0, 0, 1));  // position of COG of crank
-    
+
     // Creating the crank shape as a cylinder connecting points A and B.
     auto crank_shape = chrono_types::make_shared<ChCylinderShape>();
     crank_shape->GetCylinderGeometry().p1 = point_A;
@@ -137,10 +122,10 @@ int main(int argc, char* argv[]) {
 
     // Assigning the shape to the body
     crank->AddAsset(crank_shape);
-    
+    crank->AddAsset(chrono_types::make_shared<ChTexture>(GetChronoDataFile("vsg/textures/Wood021.jpg")));
+
     // Adding the body to our system
     system.AddBody(crank);
-
 
     // Creating the rod part and its geometry shape asset.
     // ---------------------------------------------------
@@ -158,10 +143,10 @@ int main(int argc, char* argv[]) {
 
     // Assigning the shape to the body
     rod->AddAsset(rod_shape);
+    rod->AddAsset(chrono_types::make_shared<ChTexture>(GetChronoDataFile("vsg/textures/Wood034.jpg")));
 
     // Adding the body to our system
     system.AddBody(rod);
-
 
     // Creating the rocker part and its geometry shape asset.
     // ------------------------------------------------------
@@ -179,13 +164,12 @@ int main(int argc, char* argv[]) {
 
     // Assigning the shape to the body
     rocker->AddAsset(rocker_shape);
+    rocker->AddAsset(chrono_types::make_shared<ChTexture>(GetChronoDataFile("vsg/textures/Metal007.jpg")));
 
     // Adding the body to our system
     system.AddBody(rocker);
 
-    
     // ===============================================================================
-
 
     // 3- Create constraints: the mechanical joints between the rigid bodies.
 
@@ -195,13 +179,13 @@ int main(int argc, char* argv[]) {
     // motor rotation is about the x-axis of our coordinate system. Therefore, we have
     // to orient the default local z-axis of the motor along the gobal x-axis.
     auto motor_quat = ChQuaternion<>(1, 0, 0, 0);
-    motor_quat.Q_from_AngAxis(CH_C_PI/2, ChVector<>(0, 1, 0));
+    motor_quat.Q_from_AngAxis(CH_C_PI / 2, ChVector<>(0, 1, 0));
     std::cout << motor_quat.GetZaxis() << "\n";
 
     auto my_link_AB = chrono_types::make_shared<ChLinkMotorRotationSpeed>();
     my_link_AB->Initialize(ground, crank, ChFrame<>(point_A, motor_quat));
     system.AddLink(my_link_AB);
-    auto my_speed_function = chrono_types::make_shared<ChFunction_Const>(2*CH_C_PI);  // speed rad/sec
+    auto my_speed_function = chrono_types::make_shared<ChFunction_Const>(2 * CH_C_PI);  // speed rad/sec
     my_link_AB->SetSpeedFunction(my_speed_function);
 
     // Spherical Joint connecting Crank to the Rod at point B
@@ -218,20 +202,18 @@ int main(int argc, char* argv[]) {
 
     // Revolute Joint connecting Rocker to the Ground at point D
     // ---------------------------------------------------------
-    // For our configuration, this revolute joint is oriented along the y-axis of our 
-    // coordinate system. Therefore, we have to orient the default local z-axis of 
+    // For our configuration, this revolute joint is oriented along the y-axis of our
+    // coordinate system. Therefore, we have to orient the default local z-axis of
     // the joint along the gobal y-axis.
     auto joint_D_orientation = ChQuaternion<>(1, 0, 0, 0);
-    joint_D_orientation.Q_from_AngAxis(CH_C_PI/2, ChVector<>(1, 0, 0));
+    joint_D_orientation.Q_from_AngAxis(CH_C_PI / 2, ChVector<>(1, 0, 0));
     std::cout << joint_D_orientation.GetZaxis() << "\n";
 
     auto my_link_DA = chrono_types::make_shared<ChLinkLockRevolute>();
     my_link_DA->Initialize(rocker, ground, ChCoordsys<>(point_D, joint_D_orientation));
     system.AddLink(my_link_DA);
 
-
     // ===============================================================================
-
 
     // VISUALIZATION APP
     // =================
@@ -251,7 +233,7 @@ int main(int argc, char* argv[]) {
 
     while (app.GetViewer()->advanceToNextFrame()) {
         modelTime = system.GetChTime();
-        if (false) { //(modelTime >= maxModelTime) {
+        if (false) {  //(modelTime >= maxModelTime) {
             GetLog() << "Max. model time of " << maxModelTime << " s reached. Terminate.\n";
             timer.stop();
             GetLog() << "Max. wallclock time is " << timer.GetTimeSeconds() << " s.\n";

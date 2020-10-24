@@ -7,19 +7,19 @@ layout(push_constant) uniform PushConstants {
 } pc;
 
 layout (location = 0) in vec3 aPos;
-layout (location = 1) in vec3 aNormal;
-layout (location = 2) in vec3 aColor;
+layout (location = 1) in vec3 aColor;
+layout (location = 2) in vec3 aNormal;
 
 layout(location = 0) out vec3 FragPos;
-layout(location = 1) out vec3 Normal;
-layout(location = 2) out vec3 ObjectColor;
+layout(location = 1) out vec3 Color;
+layout(location = 2) out vec3 Normal;
 
 void main()
 {
     gl_Position = pc.projection * pc.modelview * vec4(aPos, 1.0);
     FragPos = vec3(pc.modelview * vec4(aPos, 1.0));
     Normal = mat3(transpose(inverse(pc.modelview))) * aNormal;
-    //LightPos = vec3(view * vec4(lightPos, 1.0)); // Transform world-space light position to 
-    ObjectColor = aColor;
+    //LightPos = vec3(view * vec4(lightPos, 1.0)); // Transform world-space light position to
+    Color = aColor;
 }
 

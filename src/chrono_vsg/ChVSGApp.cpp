@@ -19,6 +19,7 @@
 
 #include "ChVSGApp.h"
 #include "chrono/geometry/ChBox.h"
+#include "chrono/assets/ChTexture.h"
 #include "chrono/assets/ChColorAsset.h"
 #include "chrono/assets/ChBoxShape.h"
 #include "chrono/assets/ChSphereShape.h"
@@ -26,12 +27,9 @@
 #include "chrono/assets/ChCylinderShape.h"
 #include "chrono_vsg/resources/ChVSGSettings.h"
 #include "chrono_vsg/resources/ChVSGPhongMaterial.h"
-#include "chrono_vsg/shapes/VSGSimpleBox.h"
-#include "chrono_vsg/shapes/VSGSimpleSphere.h"
-#include "chrono_vsg/shapes/VSGSimpleCylinder.h"
-#include "chrono_vsg/shapes/VSGBox.h"
-#include "chrono_vsg/shapes/VSGSphere.h"
-#include "chrono_vsg/shapes/VSGCylinder.h"
+#include "chrono_vsg/shapes/VSGIndexBox.h"
+#include "chrono_vsg/shapes/VSGIndexSphere.h"
+#include "chrono_vsg/shapes/VSGIndexCylinder.h"
 
 using namespace chrono::vsg3d;
 
@@ -162,20 +160,29 @@ void ChVSGApp::BuildSceneGraph() {
         double angle;
         Vector axis;
         rot.Q_to_AngAxis(angle, axis);
+        bool textureFound = false;
+        bool colorFound = false;
+        ChTexture bodyTexture;
+        ChColor bodyColor(1.0, 0.0, 0.0, 1.0);
+        for (int i = 0; i < body->GetAssets().size(); i++) {
+            auto asset = body->GetAssets().at(i);
+            if (std::dynamic_pointer_cast<ChColorAsset>(asset)) {
+                ChColorAsset* color_asset = (ChColorAsset*)(asset.get());
+                bodyColor.R = color_asset->GetColor().R;
+                bodyColor.G = color_asset->GetColor().G;
+                bodyColor.B = color_asset->GetColor().B;
+                bodyColor.A = color_asset->GetColor().A;
+                colorFound = true;
+            }
+            if (std::dynamic_pointer_cast<ChTexture>(asset)) {
+                ChTexture* texture_asset = (ChTexture*)(asset.get());
+                bodyTexture.SetTextureFilename(texture_asset->GetTextureFilename());
+                textureFound = true;
+            }
+        }
         for (int i = 0; i < body->GetAssets().size(); i++) {
             auto asset = body->GetAssets().at(i);
 
-            vsg::vec4 color(0.4, 0.8, 0.8, 1);
-            if (std::dynamic_pointer_cast<ChColorAsset>(asset)) {
-                ChColorAsset* color_asset = (ChColorAsset*)(asset.get());
-                color[0] = color_asset->GetColor().R;
-                color[1] = color_asset->GetColor().G;
-                color[2] = color_asset->GetColor().B;
-                color[3] = color_asset->GetColor().A;
-            }
-            if (!std::dynamic_pointer_cast<ChVisualization>(asset)) {
-                continue;
-            }
             ChVisualization* visual_asset = ((ChVisualization*)(asset.get()));
             // position of the asset
             Vector center = visual_asset->Pos;
@@ -195,20 +202,18 @@ void ChVSGApp::BuildSceneGraph() {
                 transform->setMatrix(vsg::translate(pos_final.x(), pos_final.y(), pos_final.z()) *
                                      vsg::rotate(angle, axis.x(), axis.y(), axis.z()) *
                                      vsg::scale(size.x(), size.y(), size.z()));
-                std::string texFilePath(GetChronoDataFile("vsg/textures/Metal007.jpg"));
-#define PHONG
-#ifdef PHONG
-                ChVSGPhongMaterial jade(PhongPresets::Jade);
-                VSGBox box(body, asset, transform);
-                box.Initialize(m_light_position, jade, texFilePath);
-#endif
-#ifdef SIMPLE
-                VSGSimpleBox box(body, asset, transform);
-                vsg::vec3 boxColor(1.0, 0.0, 0.0);
-                box.Initialize(m_light_position, boxColor);
-#endif
-                vsg::ref_ptr<vsg::Node> node = box.createVSGNode(m_drawMode);
-                m_scenegraph->addChild(node);
+                if (textureFound) {
+                    VSGIndexBox box(body, asset, transform);
+                    box.Initialize(bodyTexture);
+                    vsg::ref_ptr<vsg::Node> node = box.createVSGNode();
+                    m_scenegraph->addChild(node);
+                } else if (colorFound) {
+                    GetLog() << "Color?\n";
+                    VSGIndexBox box(body, asset, transform);
+                    box.Initialize(bodyColor);
+                    vsg::ref_ptr<vsg::Node> node = box.createVSGNode();
+                    m_scenegraph->addChild(node);
+                }
             }
             if (ChSphereShape* sphere_shape = dynamic_cast<ChSphereShape*>(asset.get())) {
                 // GetLog() << "Found SphereShape!\n";
@@ -221,21 +226,17 @@ void ChVSGApp::BuildSceneGraph() {
                                      vsg::rotate(angle, axis.x(), axis.y(), axis.z()) *
                                      vsg::scale(size.x(), size.y(), size.z()));
 
-                std::string texFilePath(GetChronoDataFile("concrete.jpg"));
-#ifdef PHONG
-                ChVSGPhongMaterial gold(PhongPresets::Gold);
-                VSGSphere sphere(body, asset, transform);
-                sphere.Initialize(m_light_position, gold, texFilePath);
-#endif
-
-#ifdef SIMPLE
-                vsg::vec3 sphereColor(0.0, 1.0, 0.0);
-                VSGSimpleSphere sphere(body, asset, transform);
-                sphere.Initialize(m_light_position, sphereColor);
-#endif
-                vsg::ref_ptr<vsg::Node> node = sphere.createVSGNode(m_drawMode);
-                // vsg::ref_ptr<vsg::Node> node = ChVSGShapeFactory::createSpherePhongNode(color, transform);
-                m_scenegraph->addChild(node);
+                if (textureFound) {
+                    VSGIndexSphere sphere(body, asset, transform);
+                    sphere.Initialize(bodyTexture);
+                    vsg::ref_ptr<vsg::Node> node = sphere.createVSGNode();
+                    m_scenegraph->addChild(node);
+                } else if (colorFound) {
+                    VSGIndexSphere sphere(body, asset, transform);
+                    sphere.Initialize(bodyColor);
+                    vsg::ref_ptr<vsg::Node> node = sphere.createVSGNode();
+                    m_scenegraph->addChild(node);
+                }
             }
             if (ChEllipsoidShape* ellipsoid_shape = dynamic_cast<ChEllipsoidShape*>(asset.get())) {
                 // GetLog() << "Found ElipsoidShape!\n";
@@ -248,19 +249,17 @@ void ChVSGApp::BuildSceneGraph() {
                                      vsg::rotate(angle, axis.x(), axis.y(), axis.z()) *
                                      vsg::scale(size.x(), size.y(), size.z()));
 
-                std::string texFilePath(GetChronoDataFile("concrete.jpg"));
-#ifdef PHONG
-                ChVSGPhongMaterial polishedBronze(PhongPresets::PolishedBronze);
-                VSGSphere ellipsoid(body, asset, transform);
-                ellipsoid.Initialize(m_light_position, polishedBronze, texFilePath);
-#endif
-#ifdef SIMPLE
-                vsg::vec3 ellColor(0.0, 0.0, 1.0);
-                VSGSimpleSphere ellipsoid(body, asset, transform);
-                ellipsoid.Initialize(m_light_position, ellColor);
-#endif
-                vsg::ref_ptr<vsg::Node> node = ellipsoid.createVSGNode(m_drawMode);
-                m_scenegraph->addChild(node);
+                if (textureFound) {
+                    VSGIndexSphere ellipsoid(body, asset, transform);
+                    ellipsoid.Initialize(bodyTexture);
+                    vsg::ref_ptr<vsg::Node> node = ellipsoid.createVSGNode();
+                    m_scenegraph->addChild(node);
+                } else if (colorFound) {
+                    VSGIndexSphere ellipsoid(body, asset, transform);
+                    ellipsoid.Initialize(bodyColor);
+                    vsg::ref_ptr<vsg::Node> node = ellipsoid.createVSGNode();
+                    m_scenegraph->addChild(node);
+                }
             }
             if (ChCylinderShape* cylinder_shape = dynamic_cast<ChCylinderShape*>(asset.get())) {
                 // GetLog() << "Found CylinderShape!\n";
@@ -272,19 +271,17 @@ void ChVSGApp::BuildSceneGraph() {
                 transform->setMatrix(vsg::translate(pos_final.x(), pos_final.y(), pos_final.z()) *
                                      vsg::rotate(angle, axis.x(), axis.y(), axis.z()) *
                                      vsg::scale(radius, radius, height));
-                std::string texFilePath(GetChronoDataFile("concrete.jpg"));
-#ifdef PHONG
-                ChVSGPhongMaterial bluePlastic(PhongPresets::BluePlastic);
-                VSGCylinder cylinder(body, asset, transform);
-                cylinder.Initialize(m_light_position, bluePlastic, texFilePath);
-#endif
-#ifdef SIMPLE
-                vsg::vec3 cylColor(1.0, 1.0, 0.0);
-                VSGSimpleCylinder cylinder(body, asset, transform);
-                cylinder.Initialize(m_light_position, cylColor);
-#endif
-                vsg::ref_ptr<vsg::Node> node = cylinder.createVSGNode(m_drawMode);
-                m_scenegraph->addChild(node);
+                if (textureFound) {
+                    VSGIndexCylinder cylinder(body, asset, transform);
+                    cylinder.Initialize(bodyTexture);
+                    vsg::ref_ptr<vsg::Node> node = cylinder.createVSGNode();
+                    m_scenegraph->addChild(node);
+                } else if (colorFound) {
+                    VSGIndexCylinder cylinder(body, asset, transform);
+                    cylinder.Initialize(bodyColor);
+                    vsg::ref_ptr<vsg::Node> node = cylinder.createVSGNode();
+                    m_scenegraph->addChild(node);
+                }
             }
         }
     }
@@ -359,6 +356,7 @@ void ChVSGApp::UpdateSceneGraph() {
         }
     }
 }
+
 vsg::ref_ptr<vsg::MatrixTransform> ChVSGApp::GetTransform(std::shared_ptr<ChBody> body,
                                                           std::shared_ptr<ChAsset> asset) {
     vsg::ref_ptr<vsg::MatrixTransform> transform;

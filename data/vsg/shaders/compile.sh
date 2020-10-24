@@ -1,6 +1,6 @@
 # Taken from vulkan scene graph examples
-glslc shader_PushConstants.vert -o vert_PushConstants.spv
-glslc shader_PushConstants.frag -o frag_PushConstants.spv
+glslc shader_Textured.vert -o vert_Textured.spv
+glslc shader_Textured.frag -o frag_Textured.spv
 #
 glslc shader_Phong.vert -o vert_Phong.spv
 glslc shader_Phong.frag -o frag_Phong.spv

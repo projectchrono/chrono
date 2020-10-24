@@ -1,7 +1,7 @@
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/utils/ChUtilsCreators.h"
-
+#include "chrono/assets/ChTexture.h"
 #include "chrono_vsg/ChVSGApp.h"
 
 using namespace chrono;
@@ -20,6 +20,9 @@ int main(int argc, char* argv[]) {
     double mradius = 0.5;
     double density = 1000;
 
+    // Create a texture asset. It can be shared between bodies.
+    auto textureasset = chrono_types::make_shared<ChTexture>(GetChronoDataFile("vsg/textures/Marble010.jpg"));
+
     // Create some spheres that roll horizontally, with increasing rolling friction values
     for (int bi = 0; bi < 10; bi++) {
         auto mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
@@ -31,7 +34,7 @@ int main(int argc, char* argv[]) {
                                                                        true,     // visualization?
                                                                        true,     // collision?
                                                                        mat);     // contact material
-
+        msphereBody->AddAsset(textureasset);
         // Set some properties
         msphereBody->SetPos(ChVector<>(-7, mradius - 0.5, -5 + bi * mradius * 2.5));
         // msphereBody->AddAsset(textureasset);  // assets can be shared
@@ -57,6 +60,7 @@ int main(int argc, char* argv[]) {
                                                                        true,     // visualization?
                                                                        true,     // collision?
                                                                        mat);     // contact material
+        msphereBody->AddAsset(textureasset);
         // Set some properties
         msphereBody->SetPos(ChVector<>(-8, 1 + mradius - 0.5, -5 + bi * mradius * 2.5));
         // msphereBody->AddAsset(textureasset);  // assets can be shared
@@ -95,7 +99,7 @@ int main(int argc, char* argv[]) {
     utils::AddBoxGeometry(bin.get(), bin_mat, ChVector<>(20.99, 2, 1) / 2.0, ChVector<>(0, 1, 10));
     bin->GetCollisionModel()->BuildModel();
 
-    // bin->AddAsset(chrono_types::make_shared<ChTexture>(GetChronoDataFile("blu.png")));
+    bin->AddAsset(chrono_types::make_shared<ChTexture>(GetChronoDataFile("vsg/textures/Wood034.jpg")));
 
     mphysicalSystem.Add(bin);
 
