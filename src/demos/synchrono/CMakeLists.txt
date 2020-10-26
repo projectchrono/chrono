@@ -7,7 +7,7 @@ ENDIF()
 
 #--------------------------------------------------------------
 
-MESSAGE(STATUS "Demo programs for SYNCHRONO module...")
+MESSAGE(STATUS "Demo programs for SynChrono module...")
 
 add_subdirectory(demo_vehicles)
 add_subdirectory(demo_platoon)

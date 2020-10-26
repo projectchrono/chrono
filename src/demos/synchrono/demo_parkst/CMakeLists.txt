@@ -40,7 +40,7 @@ message(${DEMOS})
 include_directories(${SYN_INCLUDES})
 
 foreach(PROGRAM ${DEMOS})
-	message(STATUS "SynChrono demos -- ${PROGRAM}")
+	message(STATUS "...add ${PROGRAM}")
 
 	add_executable(${PROGRAM} ${PROGRAM}.cpp)
 
