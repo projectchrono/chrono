@@ -9,6 +9,17 @@ VSGIndexCylinder::VSGIndexCylinder(std::shared_ptr<ChBody> body,
                                    vsg::ref_ptr<vsg::MatrixTransform> transform)
     : ChVSGIndexMesh(body, asset, transform) {}
 
+void VSGIndexCylinder::Initialize(ChTexturedPBR& textures, size_t tessFactor) {
+    Tesselate(tessFactor);
+
+    m_matMode = MaterialMode::MappedPBR;
+    m_albedoMapPath = textures.GetAlbedoTextureFilename();
+    m_normalMapPath = textures.GetNormalTextureFilename();
+    m_metallicMapPath = textures.GetMetallicTextureFilename();
+    m_roughnessMapPath = textures.GetRoughnessTextureFilename();
+    m_aoMapPath = textures.GetAOTextureFilename();
+}
+
 void VSGIndexCylinder::Initialize(ChTexture& texture, size_t tessFactor) {
     Tesselate(tessFactor);
 

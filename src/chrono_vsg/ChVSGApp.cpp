@@ -27,6 +27,7 @@
 #include "chrono/assets/ChCylinderShape.h"
 #include "chrono_vsg/resources/ChVSGSettings.h"
 #include "chrono_vsg/resources/ChVSGPhongMaterial.h"
+#include "chrono_vsg/assets/ChTexturedPBR.h"
 #include "chrono_vsg/shapes/VSGIndexBox.h"
 #include "chrono_vsg/shapes/VSGIndexSphere.h"
 #include "chrono_vsg/shapes/VSGIndexCylinder.h"
@@ -162,7 +163,9 @@ void ChVSGApp::BuildSceneGraph() {
         rot.Q_to_AngAxis(angle, axis);
         bool textureFound = false;
         bool colorFound = false;
+        bool pbrMapsFound = false;
         ChTexture bodyTexture;
+        ChTexturedPBR bodyPBRMaps;
         ChColor bodyColor(1.0, 0.0, 0.0, 1.0);
         for (int i = 0; i < body->GetAssets().size(); i++) {
             auto asset = body->GetAssets().at(i);
@@ -178,6 +181,15 @@ void ChVSGApp::BuildSceneGraph() {
                 ChTexture* texture_asset = (ChTexture*)(asset.get());
                 bodyTexture.SetTextureFilename(texture_asset->GetTextureFilename());
                 textureFound = true;
+            }
+            if (std::dynamic_pointer_cast<ChTexturedPBR>(asset)) {
+                ChTexturedPBR* texture_asset = (ChTexturedPBR*)(asset.get());
+                bodyPBRMaps.SetAlbedoTextureFilename(texture_asset->GetAlbedoTextureFilename());
+                bodyPBRMaps.SetNormalTextureFilename(texture_asset->GetNormalTextureFilename());
+                bodyPBRMaps.SetMetallicTextureFilename(texture_asset->GetMetallicTextureFilename());
+                bodyPBRMaps.SetRoughnessTextureFilename(texture_asset->GetRoughnessTextureFilename());
+                bodyPBRMaps.SetAOTextureFilename(texture_asset->GetAOTextureFilename());
+                pbrMapsFound = true;
             }
         }
         for (int i = 0; i < body->GetAssets().size(); i++) {
@@ -202,18 +214,16 @@ void ChVSGApp::BuildSceneGraph() {
                 transform->setMatrix(vsg::translate(pos_final.x(), pos_final.y(), pos_final.z()) *
                                      vsg::rotate(angle, axis.x(), axis.y(), axis.z()) *
                                      vsg::scale(size.x(), size.y(), size.z()));
-                if (textureFound) {
-                    VSGIndexBox box(body, asset, transform);
+                VSGIndexBox box(body, asset, transform);
+                if (pbrMapsFound) {
+                    box.Initialize(bodyPBRMaps);
+                } else if (textureFound) {
                     box.Initialize(bodyTexture);
-                    vsg::ref_ptr<vsg::Node> node = box.createVSGNode();
-                    m_scenegraph->addChild(node);
                 } else if (colorFound) {
-                    GetLog() << "Color?\n";
-                    VSGIndexBox box(body, asset, transform);
                     box.Initialize(bodyColor);
-                    vsg::ref_ptr<vsg::Node> node = box.createVSGNode();
-                    m_scenegraph->addChild(node);
                 }
+                vsg::ref_ptr<vsg::Node> node = box.createVSGNode();
+                m_scenegraph->addChild(node);
             }
             if (ChSphereShape* sphere_shape = dynamic_cast<ChSphereShape*>(asset.get())) {
                 // GetLog() << "Found SphereShape!\n";
@@ -226,17 +236,16 @@ void ChVSGApp::BuildSceneGraph() {
                                      vsg::rotate(angle, axis.x(), axis.y(), axis.z()) *
                                      vsg::scale(size.x(), size.y(), size.z()));
 
-                if (textureFound) {
-                    VSGIndexSphere sphere(body, asset, transform);
+                VSGIndexSphere sphere(body, asset, transform);
+                if (pbrMapsFound) {
+                    sphere.Initialize(bodyPBRMaps);
+                } else if (textureFound) {
                     sphere.Initialize(bodyTexture);
-                    vsg::ref_ptr<vsg::Node> node = sphere.createVSGNode();
-                    m_scenegraph->addChild(node);
                 } else if (colorFound) {
-                    VSGIndexSphere sphere(body, asset, transform);
                     sphere.Initialize(bodyColor);
-                    vsg::ref_ptr<vsg::Node> node = sphere.createVSGNode();
-                    m_scenegraph->addChild(node);
                 }
+                vsg::ref_ptr<vsg::Node> node = sphere.createVSGNode();
+                m_scenegraph->addChild(node);
             }
             if (ChEllipsoidShape* ellipsoid_shape = dynamic_cast<ChEllipsoidShape*>(asset.get())) {
                 // GetLog() << "Found ElipsoidShape!\n";
@@ -249,17 +258,16 @@ void ChVSGApp::BuildSceneGraph() {
                                      vsg::rotate(angle, axis.x(), axis.y(), axis.z()) *
                                      vsg::scale(size.x(), size.y(), size.z()));
 
-                if (textureFound) {
-                    VSGIndexSphere ellipsoid(body, asset, transform);
+                VSGIndexSphere ellipsoid(body, asset, transform);
+                if (pbrMapsFound) {
+                    ellipsoid.Initialize(bodyPBRMaps);
+                } else if (textureFound) {
                     ellipsoid.Initialize(bodyTexture);
-                    vsg::ref_ptr<vsg::Node> node = ellipsoid.createVSGNode();
-                    m_scenegraph->addChild(node);
                 } else if (colorFound) {
-                    VSGIndexSphere ellipsoid(body, asset, transform);
                     ellipsoid.Initialize(bodyColor);
-                    vsg::ref_ptr<vsg::Node> node = ellipsoid.createVSGNode();
-                    m_scenegraph->addChild(node);
                 }
+                vsg::ref_ptr<vsg::Node> node = ellipsoid.createVSGNode();
+                m_scenegraph->addChild(node);
             }
             if (ChCylinderShape* cylinder_shape = dynamic_cast<ChCylinderShape*>(asset.get())) {
                 // GetLog() << "Found CylinderShape!\n";
@@ -271,17 +279,16 @@ void ChVSGApp::BuildSceneGraph() {
                 transform->setMatrix(vsg::translate(pos_final.x(), pos_final.y(), pos_final.z()) *
                                      vsg::rotate(angle, axis.x(), axis.y(), axis.z()) *
                                      vsg::scale(radius, radius, height));
-                if (textureFound) {
-                    VSGIndexCylinder cylinder(body, asset, transform);
+                VSGIndexCylinder cylinder(body, asset, transform);
+                if (pbrMapsFound) {
+                    cylinder.Initialize(bodyPBRMaps);
+                } else if (textureFound) {
                     cylinder.Initialize(bodyTexture);
-                    vsg::ref_ptr<vsg::Node> node = cylinder.createVSGNode();
-                    m_scenegraph->addChild(node);
                 } else if (colorFound) {
-                    VSGIndexCylinder cylinder(body, asset, transform);
                     cylinder.Initialize(bodyColor);
-                    vsg::ref_ptr<vsg::Node> node = cylinder.createVSGNode();
-                    m_scenegraph->addChild(node);
                 }
+                vsg::ref_ptr<vsg::Node> node = cylinder.createVSGNode();
+                m_scenegraph->addChild(node);
             }
         }
     }
