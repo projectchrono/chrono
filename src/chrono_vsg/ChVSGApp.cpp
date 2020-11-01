@@ -66,6 +66,31 @@ void ChVSGApp::IncreaseWaitCounter() {
     }
 }
 
+void ChVSGApp::setupTexPool(vsg::ref_ptr<vsg::Window> window, vsg::ViewportState* viewport, uint32_t maxNumTextures) {
+    auto device = window->getOrCreateDevice();
+
+    _compile = vsg::CompileTraversal::create(window, viewport);
+
+    // for now just allocated enough room for s
+    uint32_t maxSets = maxNumTextures;
+    vsg::DescriptorPoolSizes descriptorPoolSizes{
+        VkDescriptorPoolSize{VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, maxNumTextures}};
+
+    _compile->context.descriptorPool = vsg::DescriptorPool::create(device, maxSets, descriptorPoolSizes);
+
+    _allocatedTextureCount = 0;
+    _maxNumTextures = maxNumTextures;
+}
+
+void ChVSGApp::compile(vsg::ref_ptr<vsg::Node> subgraph) {
+    std::cout << "ChVSGApp::compile(" << subgraph << ") _compile = " << _compile << std::endl;
+    if (_compile) {
+        subgraph->accept(*_compile);
+        _compile->context.record();
+        _compile->context.waitForCompletion();
+    }
+}
+
 bool ChVSGApp::Initialize(int windowWidth, int windowHeight, const char* windowTitle, ChSystem* system) {
     if (!system) {
         return false;
@@ -126,6 +151,10 @@ bool ChVSGApp::Initialize(int windowWidth, int windowHeight, const char* windowT
         nearFarRatio * radius, radius * 4.5);
 
     auto camera = vsg::Camera::create(perspective, lookAt, vsg::ViewportState::create(m_window->extent2D()));
+
+    // setup texture pool
+    setupTexPool(m_window, camera->getViewportState());
+    compile(m_scenegraph);
 
     // add close handler to respond to pressing the window close window button and pressing escape
     m_viewer->addEventHandler(::vsg::CloseHandler::create(m_viewer));

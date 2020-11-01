@@ -53,6 +53,10 @@ class CH_VSG_API ChVSGApp {
     void setTimeStep(double tStep) { m_timeStep = tStep; }
     void setOutputStep(double outStep) { m_outputStep = outStep; }
     void setUpVector(ChVector<> up);
+
+    void setupTexPool(vsg::ref_ptr<vsg::Window> window, vsg::ViewportState* viewport, uint32_t maxNumTextures = 32);
+    void compile(vsg::ref_ptr<vsg::Node> subgraph);
+
     void doTimeStep();
 
   protected:
@@ -62,6 +66,10 @@ class CH_VSG_API ChVSGApp {
     void IncreaseWaitCounter();
 
   private:
+    uint32_t _allocatedTextureCount = 0;
+    uint32_t _maxNumTextures = 0;
+    vsg::ref_ptr<vsg::CompileTraversal> _compile;
+
     ChSystem* m_system;
 
     double m_timeStep;
