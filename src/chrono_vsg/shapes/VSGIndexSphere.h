@@ -36,6 +36,7 @@ class CH_VSG_API VSGIndexSphere : public ChVSGIndexMesh {
     virtual void Initialize(ChTexturedPBR& textures, size_t tessFactor = 3) override;
     virtual void Initialize(ChTexture& texture, size_t tessFactor = 3) override;
     virtual void Initialize(ChColor& color, size_t tessFactor = 3) override;
+    virtual void Initialize(ChPhong& phongSet, size_t tessFactor = 3) override;
 
   protected:
     virtual void Tesselate(size_t tessFactor) override;

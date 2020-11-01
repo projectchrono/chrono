@@ -22,6 +22,8 @@
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono_vsg/core/ChApiVSG.h"
 #include "chrono_vsg/shapes/ChVSGIndexMesh.h"
+#include "chrono_vsg/resources/ChVSGPhongMaterial.h"
+#include "chrono_vsg/assets/ChPhong.h"
 
 #include <vsg/all.h>
 
@@ -36,6 +38,7 @@ class CH_VSG_API VSGIndexBox : public ChVSGIndexMesh {
     virtual void Initialize(ChTexturedPBR& textures, size_t tessFactor = 3) override;
     virtual void Initialize(ChTexture& texture, size_t tessFactor = 3) override;
     virtual void Initialize(ChColor& color, size_t tessFactor = 3) override;
+    virtual void Initialize(ChPhong& phongSet, size_t tessFactor = 3) override;
 
   protected:
     virtual void Tesselate(size_t tessFactor) override;
