@@ -1,6 +1,10 @@
 #version 450
 #extension GL_ARB_separate_shader_objects : enable
 
+layout(set = 1, binding = 0) uniform LightSettings {
+    vec3 light_pos;
+} ls;
+
 layout(location = 0) out vec4 FragColor;
 
 layout(location = 0) in vec3 FragPos;
@@ -10,7 +14,6 @@ layout(location = 3) in vec3 DiffuseColor;
 layout(location = 4) in vec3 SpecularColor;
 layout(location = 5) in float Shininess;
 
-vec3 lightPos = vec3(100.0,100.0,100.0);
 vec3 lightColor = vec3(1.0,1.0,1.0);
 vec3 viewPos = vec3(0.0,0.0,0.0);
 
@@ -22,7 +25,7 @@ void main() {
   
   // diffuse 
   vec3 norm = normalize(Normal);
-  vec3 lightDir = normalize(lightPos - FragPos);
+  vec3 lightDir = normalize(ls.light_pos - FragPos);
   float diff = max(dot(norm, lightDir), 0.0);
   vec3 diffuse = lightColor * (diff * DiffuseColor);
 

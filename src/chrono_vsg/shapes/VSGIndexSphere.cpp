@@ -38,17 +38,6 @@ void VSGIndexSphere::Initialize(ChColor& color, size_t tessFactor) {
     m_colors = vsg::vec3Array::create(m_vertices->size(), m_objectColor);
 }
 
-void VSGIndexSphere::Initialize(ChPhong& phongSet, size_t tessFactor) {
-    Tesselate(tessFactor);
-
-    m_matMode = MaterialMode::Phong;
-
-    m_ambientColors = vsg::vec3Array::create(m_vertices->size(), phongSet.GetAmbientColor());
-    m_diffuseColors = vsg::vec3Array::create(m_vertices->size(), phongSet.GetDiffuseColor());
-    m_specularColors = vsg::vec3Array::create(m_vertices->size(), phongSet.GetSpecularColor());
-    m_shininess = vsg::floatArray::create(m_vertices->size(), phongSet.GetShininess());
-}
-
 void VSGIndexSphere::Tesselate(size_t tessFactor) {  // set up vertices, normals, texcoords, indices
     m_vertices = vsg::vec3Array::create({
         {0.156434, 0, 0.987688},

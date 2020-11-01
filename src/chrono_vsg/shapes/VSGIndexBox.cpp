@@ -38,17 +38,6 @@ void VSGIndexBox::Initialize(ChColor& color, size_t tessFactor) {
     m_colors = vsg::vec3Array::create(m_vertices->size(), m_objectColor);
 }
 
-void VSGIndexBox::Initialize(ChPhong& phongSet, size_t tessFactor) {
-    Tesselate(tessFactor);
-
-    m_matMode = MaterialMode::Phong;
-
-    m_ambientColors = vsg::vec3Array::create(m_vertices->size(), phongSet.GetAmbientColor());
-    m_diffuseColors = vsg::vec3Array::create(m_vertices->size(), phongSet.GetDiffuseColor());
-    m_specularColors = vsg::vec3Array::create(m_vertices->size(), phongSet.GetSpecularColor());
-    m_shininess = vsg::floatArray::create(m_vertices->size(), phongSet.GetShininess());
-}
-
 void VSGIndexBox::Tesselate(size_t tessFactor) {
     // define the basic structure for all shapes
     // set up vertices, normals, texcoords, indices

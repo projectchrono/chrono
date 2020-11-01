@@ -3,7 +3,6 @@
 #include "chrono/assets/ChTexture.h"
 #include "chrono/assets/ChColorAsset.h"
 #include "chrono_vsg/assets/ChTexturedPBR.h"
-#include "chrono_vsg/assets/ChPhong.h"
 
 #include "chrono_vsg/ChVSGApp.h"
 
@@ -44,12 +43,6 @@ int main(int argc, char* argv[]) {
     box3->AddAsset(chrono_types::make_shared<ChTexturedPBR>(GetChronoDataFile("vsg/textures/pbr/plastic1")));
     sys.AddBody(box3);
 
-    auto box4 = chrono_types::make_shared<ChBody>();
-    utils::AddBoxGeometry(box4.get(), mat, ChVector<>(1, 1, 1), ChVector<>(0.0, 10.0, 0));
-    ChVSGPhongMaterial jade(PhongPresets::Jade);
-    box4->AddAsset(chrono_types::make_shared<ChPhong>(jade));
-    sys.AddBody(box4);
-
     auto cyl1 = chrono_types::make_shared<ChBody>();
     utils::AddCylinderGeometry(cyl1.get(), mat, 1, 1, ChVector<>(3.0, 2.0, 0));
     cyl1->AddAsset(chrono_types::make_shared<ChColorAsset>(1.0, 0.5, 0.0, 1.0));
@@ -64,12 +57,6 @@ int main(int argc, char* argv[]) {
     utils::AddCylinderGeometry(cyl3.get(), mat, 1, 1, ChVector<>(3.0, 6.0, 0));
     cyl3->AddAsset(chrono_types::make_shared<ChTexturedPBR>(GetChronoDataFile("vsg/textures/pbr/plastic2")));
     sys.AddBody(cyl3);
-
-    auto cyl4 = chrono_types::make_shared<ChBody>();
-    utils::AddCylinderGeometry(cyl4.get(), mat, 1, 1, ChVector<>(3.0, 10.0, 0));
-    ChVSGPhongMaterial copper(PhongPresets::Copper);
-    cyl4->AddAsset(chrono_types::make_shared<ChPhong>(copper));
-    sys.AddBody(cyl4);
 
     auto ellipsoid1 = chrono_types::make_shared<ChBody>();
     utils::AddEllipsoidGeometry(ellipsoid1.get(), mat, ChVector<>(.5, 1, 1), ChVector<>(6, 2, 0));
@@ -86,12 +73,6 @@ int main(int argc, char* argv[]) {
     ellipsoid3->AddAsset(chrono_types::make_shared<ChTexturedPBR>(GetChronoDataFile("vsg/textures/pbr/plastic3")));
     sys.AddBody(ellipsoid3);
 
-    auto ellipsoid4 = chrono_types::make_shared<ChBody>();
-    utils::AddEllipsoidGeometry(ellipsoid4.get(), mat, ChVector<>(.5, 1, 1), ChVector<>(6, 10, 0));
-    ChVSGPhongMaterial Pewter(PhongPresets::Pewter);
-    ellipsoid4->AddAsset(chrono_types::make_shared<ChPhong>(Pewter));
-    sys.AddBody(ellipsoid4);
-
     auto sphere1 = chrono_types::make_shared<ChBody>();
     utils::AddSphereGeometry(sphere1.get(), mat, 1, ChVector<>(9, 2, 0));
     sphere1->AddAsset(chrono_types::make_shared<ChColorAsset>(0.5, 1.0, 0.5, 1.0));
@@ -106,12 +87,6 @@ int main(int argc, char* argv[]) {
     utils::AddSphereGeometry(sphere3.get(), mat, 1, ChVector<>(9, 6, 0));
     sphere3->AddAsset(chrono_types::make_shared<ChTexturedPBR>(GetChronoDataFile("vsg/textures/pbr/plastic4")));
     sys.AddBody(sphere3);
-
-    auto sphere4 = chrono_types::make_shared<ChBody>();
-    utils::AddSphereGeometry(sphere4.get(), mat, 1, ChVector<>(9, 10, 0));
-    ChVSGPhongMaterial GreenRubber(PhongPresets::GreenRubber);
-    sphere4->AddAsset(chrono_types::make_shared<ChPhong>(GreenRubber));
-    sys.AddBody(sphere4);
 
     ChVSGApp app;
 

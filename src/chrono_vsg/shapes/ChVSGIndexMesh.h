@@ -11,7 +11,6 @@
 #include "chrono/assets/ChTexture.h"
 #include "chrono_vsg/core/ChApiVSG.h"
 #include "chrono_vsg/assets/ChTexturedPBR.h"
-#include "chrono_vsg/assets/ChPhong.h"
 #include "chrono_vsg/resources/ChVSGSettings.h"
 #include "chrono_vsg/resources/ChVSGPhongMaterial.h"
 
@@ -22,7 +21,7 @@ namespace vsg3d {
 
 class CH_VSG_API ChVSGIndexMesh {
   public:
-    typedef enum { Unknown, Textured, SimplePhong, MappedPBR, Phong } MaterialMode;
+    typedef enum { Unknown, Textured, SimplePhong, MappedPBR } MaterialMode;
 
   public:
     ChVSGIndexMesh(std::shared_ptr<ChBody> body,
@@ -32,7 +31,6 @@ class CH_VSG_API ChVSGIndexMesh {
     virtual void Initialize(ChTexturedPBR& textures, size_t tessFactor = 3) = 0;
     virtual void Initialize(ChTexture& texture, size_t tessFactor = 3) = 0;
     virtual void Initialize(ChColor& color, size_t tessFactor = 3) = 0;
-    virtual void Initialize(ChPhong& phongSet, size_t tessFactor = 3) = 0;
     vsg::ref_ptr<vsg::Node> createVSGNode();
 
   protected:
@@ -56,12 +54,6 @@ class CH_VSG_API ChVSGIndexMesh {
     vsg::ref_ptr<vsg::vec3Array> m_normals;
     vsg::ref_ptr<vsg::vec3Array> m_colors;
     vsg::ref_ptr<vsg::vec2Array> m_texcoords;
-
-    vsg::ref_ptr<vsg::vec3Array> m_ambientColors;
-    vsg::ref_ptr<vsg::vec3Array> m_diffuseColors;
-    vsg::ref_ptr<vsg::vec3Array> m_specularColors;
-    vsg::ref_ptr<vsg::floatArray> m_shininess;
-
     vsg::ref_ptr<vsg::ushortArray> m_indices;
 
     std::shared_ptr<ChBody> m_bodyPtr;
@@ -71,7 +63,6 @@ class CH_VSG_API ChVSGIndexMesh {
     void genMappedPBRSubgraph(vsg::ref_ptr<vsg::StateGroup> subgraph);
     void genTexturedSubgraph(vsg::ref_ptr<vsg::StateGroup> subgraph);
     void genSimplePhongSubgraph(vsg::ref_ptr<vsg::StateGroup> subgraph);
-    void genPhongSubgraph(vsg::ref_ptr<vsg::StateGroup> subgraph);
 };
 }  // namespace vsg3d
 }  // namespace chrono
