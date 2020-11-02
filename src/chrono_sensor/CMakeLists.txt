@@ -451,6 +451,50 @@ SET(SENSOR_LIBRARIES         "${LIBRARIES}"                  PARENT_SCOPE)
 set(CH_SENSOR_CXX_FLAGS     "${CH_SENSOR_CXX_FLAGS}"        PARENT_SCOPE)
 set(CH_SENSOR_C_FLAGS       "${CH_SENSOR_C_FLAGS}"          PARENT_SCOPE)
 
+#-------------------------------------------------------------------------------
+# On Windows, copy the GLEW and Optix DLLs to the bin/ directory
+# We do this through a custom command so that the DLLs are copied to the
+# appropriate directory (depending on the build type); however, we use
+# copy_if_different. 
+
+IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+
+  # GLEW doesn't provide a 'root' variable so we make our own
+  get_filename_component(GLEW_ROOT ${GLEW_INCLUDE_DIR}/../ ABSOLUTE)
+
+  # Set variables that point to the DLLs. OptiX (and thus Chrono::Sensor) don't 
+  # support 32 bit, so we just take the x64 version of GLEW.
+  # CMake/the user already defines the variable optix_DLL but you could do...
+  # SET(CH_OPTIX_DLL "${OptiX_INSTALL_DIR)/bin64/optix.6.5.0.dll")
+  SET(CH_GLEW_DLL "${GLEW_ROOT}/bin/Release/x64/glew32.dll")
+
+  ADD_CUSTOM_COMMAND(
+    TARGET ChronoEngine_sensor POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E make_directory
+            "${CMAKE_BINARY_DIR}/bin/$<CONFIGURATION>"
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            "${optix_DLL}"
+            "${CMAKE_BINARY_DIR}/bin/$<CONFIGURATION>"
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            "${CH_GLEW_DLL}"
+            "${CMAKE_BINARY_DIR}/bin/$<CONFIGURATION>"
+    MAIN_DEPENDENCY ChronoEngine_sensor
+    COMMENT "Copying OptiX and GLEW DLLs..."
+  )
+
+  # copy the dlls into the installed package to be on the safe side 
+  install(FILES "${optix_DLL}" DESTINATION bin)
+  install(FILES "${CH_GLEW_DLL}" DESTINATION bin)
+
+  # Make variables visible from outside this directory
+  SET(CH_OPTIX_DLL "${optix_DLL}" PARENT_SCOPE)
+  SET(CH_GLEW_DLL "${CH_GLEW_DLL}" PARENT_SCOPE)
+
+ENDIF()
+
+#-------------------------------------------------------------------------------
+# Install the ChronoEngine_sensor library
+
 install(TARGETS ChronoEngine_sensor
         RUNTIME DESTINATION bin
         LIBRARY DESTINATION lib

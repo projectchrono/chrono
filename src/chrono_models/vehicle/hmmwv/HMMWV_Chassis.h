@@ -50,6 +50,9 @@ class CH_MODELS_API HMMWV_Chassis : public ChRigidChassis {
     /// Get the location of the center of mass in the chassis frame.
     virtual const ChVector<>& GetLocalPosCOM() const override { return m_COM_loc; }
 
+    /// Get the location (in the local frame of this chassis) of the connection to a rear chassis.
+    virtual const ChVector<> GetLocalPosRearConnector() const override { return m_connector_rear_loc; }
+
     /// Get the local driver position and orientation.
     /// This is a coordinate system relative to the chassis reference frame.
     virtual ChCoordsys<> GetLocalDriverCoordsys() const override { return m_driverCsys; }
@@ -63,6 +66,7 @@ class CH_MODELS_API HMMWV_Chassis : public ChRigidChassis {
     static const ChVector<> m_inertiaXX;
     static const ChVector<> m_inertiaXY;
     static const ChVector<> m_COM_loc;
+    static const ChVector<> m_connector_rear_loc;
     static const ChCoordsys<> m_driverCsys;
 };
 

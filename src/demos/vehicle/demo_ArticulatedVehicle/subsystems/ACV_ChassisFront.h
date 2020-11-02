@@ -34,6 +34,9 @@ class ACV_ChassisFront : public chrono::vehicle::ChRigidChassis {
 
     /// Get the location of the center of mass in the chassis frame.
     virtual const chrono::ChVector<>& GetLocalPosCOM() const override { return m_COM_loc; }
+    
+    /// Get the location (in the local frame of this chassis) of the connection to the rear chassis.
+    virtual const chrono::ChVector<> GetLocalPosRearConnector() const override { return m_connector_loc; }
 
     /// Get the local driver position and orientation.
     /// This is a coordinate system relative to the chassis reference frame.
@@ -47,6 +50,7 @@ class ACV_ChassisFront : public chrono::vehicle::ChRigidChassis {
     static const chrono::ChVector<> m_inertiaXY;
     static const chrono::ChVector<> m_COM_loc;
     static const chrono::ChCoordsys<> m_driverCsys;
+    static const chrono::ChVector<> m_connector_loc;
 };
 
 #endif
