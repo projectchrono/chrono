@@ -1,27 +1,41 @@
+// =============================================================================
+// PROJECT CHRONO - http://projectchrono.org
+//
+// Copyright (c) 2020 projectchrono.org
+// All rights reserved.
+//
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
+//
+// =============================================================================
+// Authors: Aaron Young
+// =============================================================================
+//
+// Called by CommunicationManager to transform an incoming
+// SynFlatBuffers::Message into a SynMessage with state information inside of it
+//
+// =============================================================================
+
 #ifndef SYN_MESSAGE_FACTORY_H
 #define SYN_MESSAGE_FACTORY_H
 
-#include "chrono_synchrono/SynApi.h"
-
 #include "chrono_synchrono/flatbuffer/message/SynMessage.h"
-#include "chrono_synchrono/flatbuffer/message/SynSensorMessage.h"
-#include "chrono_synchrono/flatbuffer/message/SynMAPMessage.h"
-#include "chrono_synchrono/flatbuffer/message/SynSCMMessage.h"
-#include "chrono_synchrono/flatbuffer/message/SynSPATMessage.h"
-#include "chrono_synchrono/flatbuffer/message/SynWheeledVehicleMessage.h"
-#include "chrono_synchrono/flatbuffer/message/SynTrackedVehicleMessage.h"
-#include "chrono_synchrono/flatbuffer/message/SynEnvironmentMessage.h"
 
 namespace chrono {
 namespace synchrono {
 
-/// Generates SynMessage in various ways
-/// Used to improve generality in Agent classes
+/// @addtogroup synchrono_flatbuffer
+/// @{
+
+/// Wrap branching code into this factory function
 class SYN_API SynMessageFactory {
   public:
-    /// Generate the corresponding SynMessage from a SynFlatBuffers::Message*
+    /// Branches on message->message_type() to return various derived classes of SynMessage
     static SynMessage* GenerateMessage(const SynFlatBuffers::Message* message);
 };
+
+/// @} synchrono_flatbuffer
 
 }  // namespace synchrono
 }  // namespace chrono

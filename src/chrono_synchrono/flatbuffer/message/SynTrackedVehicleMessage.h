@@ -1,3 +1,23 @@
+// =============================================================================
+// PROJECT CHRONO - http://projectchrono.org
+//
+// Copyright (c) 2020 projectchrono.org
+// All rights reserved.
+//
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
+//
+// =============================================================================
+// Authors: Aaron Young
+// =============================================================================
+//
+// Wraps data received from a tracked vehicle flatbuffer state message, into a
+// corresponding C++ object.
+// See also flatbuffer/fbs/Agent.fbs
+//
+// =============================================================================
+
 #ifndef SYN_TRACKED_VEHICLE_MESSAGE_H
 #define SYN_TRACKED_VEHICLE_MESSAGE_H
 
@@ -5,6 +25,9 @@
 
 namespace chrono {
 namespace synchrono {
+
+/// @addtogroup synchrono_flatbuffer
+/// @{
 
 /// State struct that holds state information for a SynTrackedVehicleAgent
 struct SynTrackedVehicleState : SynMessageState {
@@ -157,6 +180,8 @@ class SYN_API SynTrackedVehicleMessage : public SynAgentMessage {
     std::shared_ptr<SynTrackedVehicleState> m_state;                      ///< handle to the message state
     std::shared_ptr<SynTrackedVehicleDescription> m_vehicle_description;  ///< handle to the agent description
 };
+
+/// @} synchrono_flatbuffer
 
 }  // namespace synchrono
 }  // namespace chrono

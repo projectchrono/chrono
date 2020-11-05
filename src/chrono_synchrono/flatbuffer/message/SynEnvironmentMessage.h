@@ -29,6 +29,9 @@
 namespace chrono {
 namespace synchrono {
 
+/// @addtogroup synchrono_flatbuffer
+/// @{
+
 struct SynEnvironmentMessageState : public SynMessageState {
     int rank;
 
@@ -54,6 +57,8 @@ class SYN_API SynEnvironmentMessage : public SynAgentMessage {
   private:
     std::shared_ptr<SynEnvironmentMessageState> m_state;
 };
+
+/// @} synchrono_flatbuffer
 
 }  // namespace synchrono
 }  // namespace chrono

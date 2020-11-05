@@ -1,15 +1,37 @@
+// =============================================================================
+// PROJECT CHRONO - http://projectchrono.org
+//
+// Copyright (c) 2020 projectchrono.org
+// All rights reserved.
+//
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
+//
+// =============================================================================
+// Authors: Aaron Young
+// =============================================================================
+//
+// Wrapper for several constructs that are common to many flatbuffer messages
+// (Vectors, Quaternions, frames)
+// See also flatbuffer/fbs/Utils.fbs
+//
+// =============================================================================
+
 #ifndef SYN_MESSAGE_UTILS_H
 #define SYN_MESSAGE_UTILS_H
 
 #include "chrono_synchrono/flatbuffer/message/SynFlatBuffers_generated.h"
 
 #include "chrono_vehicle/wheeled_vehicle/ChTire.h"
-//#include "chrono/core/ChFrameMoving.h"
 
 #include "chrono_synchrono/SynApi.h"
 
 namespace chrono {
 namespace synchrono {
+
+/// @addtogroup synchrono_flatbuffer
+/// @{
 
 class SYN_API SynPose {
   public:
@@ -40,6 +62,8 @@ class SYN_API SynPose {
   private:
     ChFrameMoving<> m_frame;
 };
+
+/// @} synchrono_flatbuffer
 
 }  // namespace synchrono
 }  // namespace chrono

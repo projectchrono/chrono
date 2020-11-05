@@ -1,3 +1,23 @@
+// =============================================================================
+// PROJECT CHRONO - http://projectchrono.org
+//
+// Copyright (c) 2020 projectchrono.org
+// All rights reserved.
+//
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
+//
+// =============================================================================
+// Authors: Aaron Young
+// =============================================================================
+//
+// Helper class that wraps the flatbuffers::FlatBufferBuilder
+// Maintains a vector of flatbuffer offsets for outgoing messages and a vector
+// of bytes for the incoming message buffer
+//
+// =============================================================================
+
 #ifndef SYN_FLATBUFFERS_MANAGER_H
 #define SYN_FLATBUFFERS_MANAGER_H
 
@@ -11,9 +31,13 @@
 namespace chrono {
 namespace synchrono {
 
+/// @addtogroup synchrono_flatbuffer
+/// @{
+
 class SYN_API SynFlatBuffersManager {
   public:
-    /// Construct a flatbuffers manager with a builder starting length
+    /// @brief Construct a flatbuffers manager with a builder starting length
+    /// @param msg_length Initialize size hint for the underlying buffer
     SynFlatBuffersManager(int msg_length = 1024);
 
     /// Destructor
@@ -25,11 +49,11 @@ class SYN_API SynFlatBuffersManager {
     /// Adds a SynFlatBuffers Message to the flatbuffer message buffer
     void AddMessage(flatbuffers::Offset<SynFlatBuffers::Message> message);
 
-    /// Completes the flatbuffer message. Creates a buffer message, of which stores every message
+    /// Completes the flatbuffer message. Creates a buffer message, which stores every message
     void Finish();
 
-    /// Completes the flatbuffer message with a 4 bytes in the front of the buffer, which has the size of the byte array
-    /// Creates a buffer message, of which stores every message
+    /// Completes the flatbuffer message with 4 bytes in the front of the buffer, which has the size of the byte array
+    /// Creates a buffer message, which stores every message
     void FinishSizePrefixed();
 
     /// Reset the flatbuffer. Must be called, otherwise messages will just continue to be added to the vector (memory
@@ -44,6 +68,7 @@ class SYN_API SynFlatBuffersManager {
 
     /// When a message is received through MPI, the byte array (buffer) is stored in the class variable m_buffer. This
     /// buffer is then converted to a flatbuffer message. The ith message is then retrieved from this buffer message.
+    /// @param i which message to retrieve (zero indexed)
     const SynFlatBuffers::Message* Get(int i);
 
     /// When a message is received through TCP (interface), the byte array (buffer) is stored in the class variable
@@ -75,6 +100,8 @@ class SYN_API SynFlatBuffersManager {
 
     std::vector<uint8_t> m_buffer;  ///< When a message is received, the byte array is stored in this buffer
 };
+
+/// @} synchrono_flatbuffer
 
 }  // namespace synchrono
 }  // namespace chrono

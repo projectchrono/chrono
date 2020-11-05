@@ -194,7 +194,6 @@ set(SYN_FLATBUFFER_FILES
 	flatbuffer/message/SynFlatBuffers_generated.h
 
 	flatbuffer/message/SynMessage.h
-	flatbuffer/message/SynMessage.cpp
 
 	flatbuffer/message/SynAgentMessage.h
 	flatbuffer/message/SynAgentMessage.cpp

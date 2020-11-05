@@ -1,3 +1,23 @@
+// =============================================================================
+// PROJECT CHRONO - http://projectchrono.org
+//
+// Copyright (c) 2020 projectchrono.org
+// All rights reserved.
+//
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
+//
+// =============================================================================
+// Authors: Aaron Young
+// =============================================================================
+//
+// Wraps data received from a flatbuffer sensor message into a corresponding C++
+// class.
+// See also flatbuffer/fbs/Sensor.fbs
+//
+// =============================================================================
+
 #ifndef SYN_SENSOR_MESSAGE_H
 #define SYN_SENSOR_MESSAGE_H
 
@@ -5,6 +25,9 @@
 
 namespace chrono {
 namespace synchrono {
+
+/// @addtogroup synchrono_flatbuffer
+/// @{
 
 // a pixel in RGBA 8bpp format
 struct PixelRGBA8 {
@@ -117,6 +140,8 @@ class SYN_API SynSensorMessage : public SynMessage {
   private:
     std::shared_ptr<SynSensorMessageState> m_state;  ///< handle to the message state
 };
+
+/// @} synchrono_flatbuffer
 
 }  // namespace synchrono
 }  // namespace chrono

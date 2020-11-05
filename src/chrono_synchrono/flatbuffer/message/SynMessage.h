@@ -1,3 +1,21 @@
+// =============================================================================
+// PROJECT CHRONO - http://projectchrono.org
+//
+// Copyright (c) 2020 projectchrono.org
+// All rights reserved.
+//
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
+//
+// =============================================================================
+// Authors: Aaron Young
+// =============================================================================
+//
+// File description
+//
+// =============================================================================
+
 #ifndef SYN_MESSAGE_H
 #define SYN_MESSAGE_H
 
@@ -38,13 +56,13 @@ struct SynMessageState {
 /// Basically wraps the FlatBuffer methods to better handle the SynChrono message passing system
 /// Uses a state struct and info struct to store data associated with the message passing
 /// Will be inherited from to create new message types
-class SYN_API SynMessage {
+class SynMessage {
   public:
     ///@brief Construct a new SynMessage object
     ///
     ///@param type the kind of message this object represents
     ///@param rank the rank of which the message was sent from
-    SynMessage(int rank, SynMessageType type);
+    SynMessage(int rank, SynMessageType type) : m_rank(rank), m_type(type) {}
 
     ///@brief Destroy the SynMessage object
     virtual ~SynMessage() {}

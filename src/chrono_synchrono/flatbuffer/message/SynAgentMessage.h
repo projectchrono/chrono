@@ -1,3 +1,21 @@
+// =============================================================================
+// PROJECT CHRONO - http://projectchrono.org
+//
+// Copyright (c) 2020 projectchrono.org
+// All rights reserved.
+//
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
+//
+// =============================================================================
+// Authors: Aaron Young
+// =============================================================================
+//
+// Class handling the conversion from agent flatbuffer messages into C++ objects
+//
+// =============================================================================
+
 #ifndef SYN_AGENT_MESSAGE_H
 #define SYN_AGENT_MESSAGE_H
 
@@ -5,6 +23,9 @@
 
 namespace chrono {
 namespace synchrono {
+
+/// @addtogroup synchrono_flatbuffer
+/// @{
 
 ///@brief The agent description struct
 /// Should be inherited and stored with additional description information relavent to the new agent types
@@ -57,6 +78,8 @@ class SYN_API SynAgentMessage : public SynMessage {
   protected:
     std::shared_ptr<SynAgentDescription> m_description;  ///< handle to the agent description
 };
+
+/// @} synchrono_flatbuffer
 
 }  // namespace synchrono
 }  // namespace chrono

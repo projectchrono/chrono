@@ -1,3 +1,23 @@
+// =============================================================================
+// PROJECT CHRONO - http://projectchrono.org
+//
+// Copyright (c) 2020 projectchrono.org
+// All rights reserved.
+//
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
+//
+// =============================================================================
+// Authors: Jay Taves
+// =============================================================================
+//
+// Class that wraps data contained in a message about Soil Contact Model (SCM)
+// Deformable terrain. See chrono_vehicle/terrain/SCMDeformableTerrain.* for
+// more details.
+//
+// =============================================================================
+
 #ifndef SYN_SCM_MESSAGE_H
 #define SYN_SCM_MESSAGE_H
 
@@ -9,6 +29,9 @@ using namespace chrono::vehicle;
 
 namespace chrono {
 namespace synchrono {
+
+/// @addtogroup synchrono_flatbuffer
+/// @{
 
 struct SynSCMTerrainState : public SynMessageState {
     std::vector<SCMDeformableTerrain::NodeLevel> modified_nodes;
@@ -52,6 +75,8 @@ class SYN_API SynSCMMessage : public SynMessage {
   private:
     std::shared_ptr<SynSCMTerrainState> m_state;  ///< handle to the message state
 };
+
+/// @} synchrono_flatbuffer
 
 }  // namespace synchrono
 }  // namespace chrono

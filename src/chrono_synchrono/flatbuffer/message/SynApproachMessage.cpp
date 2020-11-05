@@ -12,10 +12,8 @@
 // Authors: 肖言 (Yan Xiao), Jay Taves
 // =============================================================================
 //
-// Message class for Environment Agents. This class is only used to send the
-// initial zombie description for an Environment agent. Environment agents do
-// not synchronize their state in any way so don't need messages for any other
-// purpose.
+// Class for Approach Messages, those contains data on approaches, which are a
+// set of lanes going towards/away from an intersection in the same direction
 //
 // =============================================================================
 

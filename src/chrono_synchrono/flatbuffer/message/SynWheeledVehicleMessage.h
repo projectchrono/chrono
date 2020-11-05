@@ -1,3 +1,23 @@
+// =============================================================================
+// PROJECT CHRONO - http://projectchrono.org
+//
+// Copyright (c) 2020 projectchrono.org
+// All rights reserved.
+//
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
+//
+// =============================================================================
+// Authors: Aaron Young
+// =============================================================================
+//
+// Wraps data from a wheeled vehicle state message into a corresponding C++
+// object.
+// See also flatbuffer/fbs/Agent.fbs
+//
+// =============================================================================
+
 #ifndef SYN_WHEELED_VEHICLE_MESSAGE_H
 #define SYN_WHEELED_VEHICLE_MESSAGE_H
 
@@ -5,6 +25,9 @@
 
 namespace chrono {
 namespace synchrono {
+
+/// @addtogroup synchrono_flatbuffer
+/// @{
 
 /// State struct that holds state information for a SynWheeledVehicleAgent
 struct SynWheeledVehicleState : SynMessageState {
@@ -115,6 +138,8 @@ class SYN_API SynWheeledVehicleMessage : public SynAgentMessage {
     std::shared_ptr<SynWheeledVehicleState> m_state;                      ///< handle to the message state
     std::shared_ptr<SynWheeledVehicleDescription> m_vehicle_description;  ///< handle to the agent description
 };
+
+/// @} synchrono_flatbuffer
 
 }  // namespace synchrono
 }  // namespace chrono

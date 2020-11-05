@@ -19,6 +19,14 @@
 
 #include "chrono_synchrono/flatbuffer/message/SynMessageFactory.h"
 
+#include "chrono_synchrono/flatbuffer/message/SynSensorMessage.h"
+#include "chrono_synchrono/flatbuffer/message/SynMAPMessage.h"
+#include "chrono_synchrono/flatbuffer/message/SynSCMMessage.h"
+#include "chrono_synchrono/flatbuffer/message/SynSPATMessage.h"
+#include "chrono_synchrono/flatbuffer/message/SynWheeledVehicleMessage.h"
+#include "chrono_synchrono/flatbuffer/message/SynTrackedVehicleMessage.h"
+#include "chrono_synchrono/flatbuffer/message/SynEnvironmentMessage.h"
+
 namespace chrono {
 namespace synchrono {
 

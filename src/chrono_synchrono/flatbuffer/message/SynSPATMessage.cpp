@@ -1,4 +1,3 @@
-
 // =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
@@ -13,6 +12,9 @@
 // Authors: 肖言 (Yan Xiao), Shuo He
 // =============================================================================
 //
+// Wraps data received from a flatbuffer SPAT message into a corresponding C++
+// class
+// See also flatbuffer/fbs/SPAT.fbs
 //
 // =============================================================================
 

@@ -26,6 +26,9 @@
 namespace chrono {
 namespace synchrono {
 
+/// @addtogroup synchrono_flatbuffer
+/// @{
+
 struct Intersection {
     std::vector<SynApproachMessageState> approaches;
 
@@ -83,6 +86,8 @@ class SYN_API SynMAPMessage : public SynMessage {
   private:
     std::shared_ptr<SynMAPMessageState> m_state;  ///< handle to the message state
 };
+
+/// @} synchrono_flatbuffer
 
 }  // namespace synchrono
 }  // namespace chrono

@@ -12,6 +12,9 @@
 // Authors: 肖言 (Yan Xiao), Shuo He
 // =============================================================================
 //
+// Wraps data received from a flatbuffer SPAT message into a corresponding C++
+// class
+// See also flatbuffer/fbs/SPAT.fbs
 //
 // =============================================================================
 
@@ -22,6 +25,9 @@
 
 namespace chrono {
 namespace synchrono {
+
+/// @addtogroup synchrono_flatbuffer
+/// @{
 
 enum class LaneColor { GREEN, YELLOW, RED };
 
@@ -76,6 +82,8 @@ class SYN_API SynSPATMessage : public SynMessage {
   private:
     std::shared_ptr<SynSPATMessageState> m_state;  ///< handle to the message state
 };
+
+/// @} synchrono_flatbuffer
 }  // namespace synchrono
 }  // namespace chrono
 
