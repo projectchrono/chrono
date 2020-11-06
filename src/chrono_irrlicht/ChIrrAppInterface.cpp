@@ -25,16 +25,6 @@
 namespace chrono {
 namespace irrlicht {
 
-/// Class to convert from Irrlicht vector3df vectors into Chrono ChVector<> vectors.
-
-class ChApiIrr ChVectorIrr : public ChVector<> {
-  public:
-    ChVectorIrr(const irr::core::vector3df& mch) {
-        this->x() = ((double)mch.X);
-        this->y() = ((double)mch.Y);
-        this->z() = ((double)mch.Z);
-    }
-};
 
 
 // -----------------------------------------------------------------------------
