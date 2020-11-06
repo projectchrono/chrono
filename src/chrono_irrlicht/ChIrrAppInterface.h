@@ -25,6 +25,11 @@
 #include "chrono_irrlicht/ChIrrTools.h"
 #include "chrono_irrlicht/ChIrrWizard.h"
 
+#ifdef CHRONO_POSTPROCESS
+ #include "chrono_postprocess/ChPovRay.h"
+#endif
+
+
 namespace chrono {
 namespace irrlicht {
 
@@ -38,16 +43,16 @@ class ChIrrAppEventReceiver;
 /// This basic GUI can be used to monitor solver timings, to easily change
 /// physical system settings, etc.
 class ChApiIrr ChIrrAppInterface {
-  public:
+public:
     /// Create the IRRLICHT context (device, etc.)
     ChIrrAppInterface(ChSystem* psystem,
-                      const std::wstring& title = L"Chrono",
-                      const irr::core::dimension2d<irr::u32>& dimens = irr::core::dimension2d<irr::u32>(640, 480),
-                      bool do_fullscreen = false,
-                      bool do_shadows = false,
-                      bool do_antialias = true,
-                      irr::video::E_DRIVER_TYPE mydriver = irr::video::EDT_DIRECT3D9,
-                      irr::ELOG_LEVEL log_level = irr::ELL_INFORMATION);
+        const std::wstring& title = L"Chrono",
+        const irr::core::dimension2d<irr::u32>& dimens = irr::core::dimension2d<irr::u32>(640, 480),
+        bool do_fullscreen = false,
+        bool do_shadows = false,
+        bool do_antialias = true,
+        irr::video::E_DRIVER_TYPE mydriver = irr::video::EDT_DIRECT3D9,
+        irr::ELOG_LEVEL log_level = irr::ELL_INFORMATION);
 
     /// Safely delete all Irrlicht items (including the Irrlicht scene nodes)
     virtual ~ChIrrAppInterface();
@@ -101,6 +106,23 @@ class ChApiIrr ChIrrAppInterface {
     /// saving each 2 steps, etc.
     void SetVideoframeSaveInterval(int val) { videoframe_each = val; }
     int GetVideoframeSaveInterval() { return videoframe_each; }
+
+#ifdef CHRONO_POSTPROCESS
+    /// If set to true, each frame of the animation will be saved on the disk
+    /// as a sequence of scripts to be rendered via POVray. Only if solution build with ENABLE_MODULE_POSTPROCESS.
+    void SetPOVraySave(bool val);
+    bool GetPOVraySave() { return povray_save; }
+
+    /// Set to 1 if you need to save on disk all simulation steps, set to 2 for
+    /// saving each 2 steps, etc.
+    void SetPOVraySaveInterval(int val) { povray_each = val; }
+    int GetPOVrayframeSaveInterval() { return povray_each; }
+
+    /// Access the internal ChPovRay exporter, for advanced tweaking. 
+    /// Returns 0 if not yet started (use SetPOVraySave(true) to start it) 
+    postprocess::ChPovRay* GetPOVrayexporter() {return this->pov_exporter;}
+
+    #endif
 
     /// Set the label mode for contacts
     void SetContactsLabelMode(ChIrrTools::eCh_ContactsLabelMode mm) { this->gad_labelcontacts->setSelected((int)mm); }
@@ -254,6 +276,14 @@ class ChApiIrr ChIrrAppInterface {
     bool videoframe_save;
     int videoframe_num;
     int videoframe_each;
+
+#ifdef CHRONO_POSTPROCESS   
+    bool povray_save;
+    postprocess::ChPovRay* pov_exporter;
+    int povray_num;
+    int povray_each;
+#endif
+ 
     double symbolscale;
 
     double camera_auto_rotate_speed;

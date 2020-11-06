@@ -53,6 +53,18 @@ namespace irrlicht {
 /// @addtogroup irrlicht_module
 /// @{
 
+/// Class to convert from Irrlicht vector3df vectors into Chrono ChVector<> vectors.
+
+class ChApiIrr ChVectorIrr : public ChVector<> {
+  public:
+    ChVectorIrr(const irr::core::vector3df& mch) {
+        this->x() = ((double)mch.X);
+        this->y() = ((double)mch.Y);
+        this->z() = ((double)mch.Z);
+    }
+};
+
+
 // -----------------------------------------------------------------------------
 /// Class with static functions which help with the integration of
 /// Chrono and Irrlicht 3D rendering library.
