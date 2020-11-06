@@ -676,19 +676,17 @@ void ChPovRay::_recurseExportAssets(std::vector<std::shared_ptr<ChAsset> >& asse
                 auto reltexturepath = filesystem::path(myobjtextureasset->GetTextureFilename());
                 auto abstexturepath = reltexturepath.make_absolute().str();
 
+                std::string texture_extension = "";
+                if (myobjtextureasset->GetTextureFilename().substr(myobjtextureasset->GetTextureFilename().length() - 5, 1) == ".")
+                    texture_extension = (abstexturepath.substr(abstexturepath.length() - 4, 4)).c_str();
+
+                if (myobjtextureasset->GetTextureFilename().substr(myobjtextureasset->GetTextureFilename().length() - 4, 1) == ".")
+                    texture_extension = (abstexturepath.substr(abstexturepath.length() - 3, 3)).c_str();
+                if (texture_extension == "jpg")
+                    texture_extension = "jpeg";
+
                 assets_file << "texture { uv_mapping pigment { image_map {";
-                if (myobjtextureasset->GetTextureFilename().substr(myobjtextureasset->GetTextureFilename().length() - 5,
-                                                                   1) == ".")
-                    assets_file << (abstexturepath.substr(
-                                        abstexturepath.length() - 4, 4))
-                                       .c_str()
-                                << " ";
-                if (myobjtextureasset->GetTextureFilename().substr(myobjtextureasset->GetTextureFilename().length() - 4,
-                                                                   1) == ".")
-                    assets_file << (abstexturepath.substr(
-                                        abstexturepath.length() - 3, 3))
-                                       .c_str()
-                                << " ";
+                assets_file << texture_extension.c_str() << " ";
                 assets_file << "\"" << abstexturepath.c_str() << "\"";
                 assets_file << " }}}\n";
 
