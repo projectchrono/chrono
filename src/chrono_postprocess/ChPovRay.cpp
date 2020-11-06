@@ -807,7 +807,7 @@ void ChPovRay::_recurseExportObjData(std::vector<std::shared_ptr<ChAsset> >& ass
 /// The user should call this function in the while() loop
 /// of the simulation, once per frame.
 
-inline void ChPovRay::ExportData() {
+void ChPovRay::ExportData() {
     char fullname[200];
     sprintf(fullname, "%s%05d", this->out_data_filename.c_str(), this->framenumber);
     this->ExportData( (this->out_path + "/" + std::string(fullname)) );
