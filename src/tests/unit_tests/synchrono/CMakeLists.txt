@@ -3,6 +3,7 @@ INCLUDE_DIRECTORIES( ${CH_INCLUDES} ${CH_SYNCHRONO_INCLUDES} )
 
 SET(TESTS
     utest_SYN_intersection
+    utest_SYN_agent_initialization
 )
 
 MESSAGE(STATUS "Unit test programs for SYNCHRONO module...")
