@@ -267,18 +267,18 @@ void ChPovRay::ExportScript(const std::string& filename) {
     if (this->antialias)
         ini_file << "Antialias=On \n";
     else
-        ini_file << "Antialias=Off \n";
-    ini_file << "Antialias_Threshold=" << this->antialias_treshold << " \n";
-    ini_file << "Antialias_Depth=" << this->antialias_depth << " \n";
-    ini_file << "Height=" << this->picture_height << " \n";
-    ini_file << "Width =" << this->picture_width << " \n";
-    ini_file << "Input_File_Name=" << out_script_filename << "\n";
-    ini_file << "Output_File_Name=" << pic_filename << "\n";
-    ini_file << "Initial_Frame=0000 \n";
-    ini_file << "Final_Frame=0999 \n";
-    ini_file << "Initial_Clock=0 \n";
-    ini_file << "Final_Clock=1 \n";
-    ini_file << "Pause_when_Done=off \n";
+        ini_file << "Antialias=Off\n";
+    ini_file << "Antialias_Threshold=" << this->antialias_treshold << "\n";
+    ini_file << "Antialias_Depth=" << this->antialias_depth << "\n";
+    ini_file << "Height=" << this->picture_height << "\n";
+    ini_file << "Width =" << this->picture_width << "\n";
+    ini_file << "Input_File_Name=\"" << out_script_filename << "\"\n";
+    ini_file << "Output_File_Name=\"" << (this->pic_path + "/" + pic_filename).c_str() << "\"\n";
+    ini_file << "Initial_Frame=0000\n";
+    ini_file << "Final_Frame=0999\n";
+    ini_file << "Initial_Clock=0\n";
+    ini_file << "Final_Clock=1\n";
+    ini_file << "Pause_when_Done=Off\n\n";
 
     // Generate the .POV script:
 
