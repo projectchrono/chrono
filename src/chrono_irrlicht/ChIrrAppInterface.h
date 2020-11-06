@@ -25,6 +25,11 @@
 #include "chrono_irrlicht/ChIrrTools.h"
 #include "chrono_irrlicht/ChIrrWizard.h"
 
+#ifdef CHRONO_POSTPROCESS
+ #include "chrono_postprocess/ChPovRay.h"
+#endif
+
+
 namespace chrono {
 namespace irrlicht {
 
@@ -101,6 +106,13 @@ class ChApiIrr ChIrrAppInterface {
     /// saving each 2 steps, etc.
     void SetVideoframeSaveInterval(int val) { videoframe_each = val; }
     int GetVideoframeSaveInterval() { return videoframe_each; }
+
+    #ifdef CHRONO_POSTPROCESS
+    /// If set to true, each frame of the animation will be saved on the disk
+    /// as a sequence of scripts to be rendered via POVray. Only if solution build with ENABLE_MODULE_POSTPROCESS.
+    void SetPOVraySave(bool val);
+    bool GetPOVraySave() { return povray_save; }
+    #endif
 
     /// Set the label mode for contacts
     void SetContactsLabelMode(ChIrrTools::eCh_ContactsLabelMode mm) { this->gad_labelcontacts->setSelected((int)mm); }
@@ -254,6 +266,12 @@ class ChApiIrr ChIrrAppInterface {
     bool videoframe_save;
     int videoframe_num;
     int videoframe_each;
+
+#ifdef CHRONO_POSTPROCESS   
+    bool povray_save;
+    postprocess::ChPovRay* pov_exporter;
+#endif
+ 
     double symbolscale;
 
     double camera_auto_rotate_speed;
