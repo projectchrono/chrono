@@ -124,7 +124,9 @@ endif()
 source_group("agent" FILES ${SYN_AGENT_FILES})
 
 set(SYN_BRAIN_FILES
-	brain/SynBrain.h
+    brain/SynBrain.h
+    brain/SynBrainFunctions.h
+    brain/SynBrainFunctions.cpp
 	brain/SynVehicleBrain.h
 	brain/SynVehicleBrain.cpp
 	

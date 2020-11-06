@@ -64,9 +64,8 @@ class SYN_API SynQueryEnvBrain : public SynVehicleBrain {
     /// structure, if a MAP or SPAT message, the traffic light varibles will be updated
     virtual void ProcessMessage(SynMessage* msg);
 
-    const double FAR_DISTANCE =
-        1000;                       ///< If no vehicles are detected ahead of us, default distance to pass to ACC Driver
-    const double BOX_WIDTH = 2.5;   ///< Width of the box used for detecting other vehicles
+    const double FAR_DISTANCE = 1000;  ///< Default distance to pass to ACC Driver
+    const double BOX_WIDTH = 2.5;      ///< Width of the box used for detecting other vehicles
     const double BOX_LENGTH = 25;   ///< Length (ahead of the ego vehicle) of the box used for detecting other vehicles
     const double BOX_OFFSET = 2.5;  ///< Distance ahead of this vehicle to start the box
 
@@ -80,9 +79,6 @@ class SYN_API SynQueryEnvBrain : public SynVehicleBrain {
     LaneColor m_light_color = LaneColor::RED;  ///< Starts red (0: green, 1: yellow, 2: yellow)
     bool m_inside_box = false;                 ///< Is vehicle inside stopping box area
     double m_dist = FAR_DISTANCE;  ///< Distance to nearest point (either traffic-light stopping area or a vehicle)
-
-    double DistanceToLine(ChVector<> p, ChVector<> l1, ChVector<> l2);
-    bool IsInsideBox(ChVector<> pos, ChVector<> sp, ChVector<> op, double w);
 
     std::map<int, std::tuple<bool, double>>
         m_other_vehicles;  ///< Structure indicating if nearby vehicles are directly ahead of us and if so how far away

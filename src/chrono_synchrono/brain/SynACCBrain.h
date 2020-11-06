@@ -64,12 +64,12 @@ class SYN_API SynACCBrain : public SynVehicleBrain {
 
     void SetNearestVehicleDistance(float dist) { m_nearest_vehicle = dist; }
 
-    // virtual void updateMyLoc(chrono::Vector){};
+    const double FAR_DISTANCE = 1000;
 
   private:
     LaneColor m_light_color = LaneColor::RED;
-    bool m_inside_box = false;  // Is vehicle inside stopping box area
-    double m_dist = 1000;       // Distance to point to stop at light
+    bool m_inside_box = false;     // Is vehicle inside stopping box area
+    double m_dist = FAR_DISTANCE;  // Distance to point to stop at light
 
     /// The intersection, approach and lane the vehicle is in, for traffic light checking. Only meaningful when
     /// m_inside_box is true
@@ -77,11 +77,6 @@ class SYN_API SynACCBrain : public SynVehicleBrain {
     int m_current_approach = 0;
     int m_current_lane = 0;
 
-    double DistanceToLine(ChVector<> p, ChVector<> l1, ChVector<> l2);
-    bool IsInsideBox(ChVector<> pos, ChVector<> sp, ChVector<> op, double w);
-    bool IsInsideQuad(ChVector<> pos, ChVector<> sp1, ChVector<> sp2, ChVector<> cp3, ChVector<> cp4);
-    void Barycentric(ChVector<> p, ChVector<> a, ChVector<> b, ChVector<> c, float& u, float& v, float& w);
-    std::string getColorFromEnum(LaneColor c);
     int m_nearest_vehicle;
 
     bool m_is_multi_path;  ///< the agent is using a multiPathacc driver or not.
