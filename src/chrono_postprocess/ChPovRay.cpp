@@ -658,21 +658,24 @@ void ChPovRay::_recurseExportAssets(std::vector<std::shared_ptr<ChAsset> >& asse
                 // POV macro to build the asset - begin
                 assets_file << "#macro cm_" << (size_t)k_asset.get() << "()\n";
 
-                // add POV  texture
+                // add POV  texture (changing the path to absolute to allow base_path different to the one of .exe)
+                auto reltexturepath = filesystem::path(myobjtextureasset->GetTextureFilename());
+                auto abstexturepath = reltexturepath.make_absolute().str();
+
                 assets_file << "texture { uv_mapping pigment { image_map {";
                 if (myobjtextureasset->GetTextureFilename().substr(myobjtextureasset->GetTextureFilename().length() - 5,
                                                                    1) == ".")
-                    assets_file << (myobjtextureasset->GetTextureFilename().substr(
-                                        myobjtextureasset->GetTextureFilename().length() - 4, 4))
+                    assets_file << (abstexturepath.substr(
+                                        abstexturepath.length() - 4, 4))
                                        .c_str()
                                 << " ";
                 if (myobjtextureasset->GetTextureFilename().substr(myobjtextureasset->GetTextureFilename().length() - 4,
                                                                    1) == ".")
-                    assets_file << (myobjtextureasset->GetTextureFilename().substr(
-                                        myobjtextureasset->GetTextureFilename().length() - 3, 3))
+                    assets_file << (abstexturepath.substr(
+                                        abstexturepath.length() - 3, 3))
                                        .c_str()
                                 << " ";
-                assets_file << "\"" << myobjtextureasset->GetTextureFilename().c_str() << "\"";
+                assets_file << "\"" << abstexturepath.c_str() << "\"";
                 assets_file << " }}}\n";
 
                 // POV macro - end
