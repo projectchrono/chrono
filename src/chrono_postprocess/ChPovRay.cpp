@@ -250,6 +250,17 @@ void ChPovRay::ExportScript(const std::string& filename) {
 
     this->SetupLists();
 
+    // Create directories
+    if (base_path != "") {
+        if (!filesystem::create_directory(filesystem::path(base_path))) {
+            std::cout << "Error creating base directory \"" << base_path << "\" for the POV files." << std::endl;
+            return;
+        }
+        base_path = base_path + "/";
+    }
+    filesystem::create_directory(filesystem::path(base_path + pic_path));
+    filesystem::create_directory(filesystem::path(base_path + out_path));
+
     // Generate the _assets.pov script (initial state, it will be populated later by
     // appending assets as they enter the exporter, only once if shared, using ExportAssets() )
 
