@@ -310,6 +310,8 @@ ChIrrAppInterface::ChIrrAppInterface(ChSystem* psystem,
     #ifdef CHRONO_POSTPROCESS
     pov_exporter = 0;
     povray_save = false;
+    povray_each = 1;
+    povray_num = 0;
     #endif
     
 
@@ -582,6 +584,8 @@ void ChIrrAppInterface::SetPOVraySave(bool val) {
                                 this->GetSceneManager()->getActiveCamera()->getFOV() * this->GetSceneManager()->getActiveCamera()->getAspectRatio() * chrono::CH_C_RAD_TO_DEG);
 
         pov_exporter->ExportScript();
+
+        povray_num = 0;
     }
 }
 #endif
@@ -659,8 +663,10 @@ void ChIrrAppInterface::DoStep() {
 
     #ifdef CHRONO_POSTPROCESS
         if (povray_save && pov_exporter) {
-            pov_exporter->ExportData();
-
+            if (povray_num % povray_each == 0) {
+                pov_exporter->ExportData();
+            }
+            povray_num++;
         }
     #endif
 
