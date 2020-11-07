@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Aaron Young
+// Authors: Aaron Young, Jay Taves
 // =============================================================================
 //
 // Wrapper for cxxopts that provides several common command-line options to the
@@ -71,22 +71,6 @@ class ChCLI {
         AddOption<double>("Simulation", "end_time", "End time", std::to_string(END_TIME));
         AddOption<double>("Simulation", "heartbeat", "Heartbeat", std::to_string(HEARTBEAT));
         AddOption<bool>("Simulation", "verbose", "Verbosity", std::to_string(VERBOSE));
-
-        // TODO: Can't find CHRONO_IRRLICHT for some reason
-        // #ifdef CHRONO_IRRLICHT
-        // Irrlicht options
-        AddOption<std::vector<int>>("Irrlicht", "irr", "Ranks for irrlicht usage", "-1");
-        AddOption<bool>("Irrlicht", "irr_save", "Toggle irrlicht saving ON", "false");
-        AddOption<bool>("Irrlicht", "irr_vis", "Toggle irrlicht visualization ON", "false");
-        // #endif
-
-        // TODO: Can't find CHRONO_SENSOR for some reason
-        // #ifdef CHRONO_SENSOR
-        // Sensor options
-        AddOption<std::vector<int>>("Sensor", "sens", "Ranks for sensor usage", "-1");
-        AddOption<bool>("Sensor", "sens_save", "Toggle sensor saving ON", "false");
-        AddOption<bool>("Sensor", "sens_vis", "Toggle sensor visualization ON", "false");
-        // #endif
     }
 
     /// Check for value in vector
@@ -127,9 +111,11 @@ class ChCLI {
         try {
             return (*m_result)[option].as<T>();
         } catch (std::domain_error e) {
-            std::cerr << "ChCLI::GetAsType: Could not cast \"" << option << "\" as " << typeid(T).name() << std::endl;
-            std::cerr << "This error can occur when you don't pass an option that has no default value" << std::endl;
-            std::cerr << "ChCLI::GetAsType: Exitting..." << std::endl;
+            if (m_result->count(option) != 0;) {
+                std::cerr << "ChCLI::GetAsType: Could not cast \"" << option << "\" as " << typeid(T).name() << std::endl;
+            } else {
+                std::cerr << "Option \"" << option << "\" requested by ChCLI::GetAsType, but has no default value and not present on command line" << std::endl;
+            }
             exit(-1);
         }
     }
