@@ -26,16 +26,16 @@
 #ifndef SYN_SCM_TERRAIN_H
 #define SYN_SCM_TERRAIN_H
 
-#include "chrono/assets/ChVisualization.h"
-
 #include "chrono_vehicle/terrain/SCMDeformableTerrain.h"
-#include "chrono_vehicle/ChVehicleModelData.h"
 
+#include "chrono_synchrono/flatbuffer/message/SynMessage.h"
 #include "chrono_synchrono/terrain/SynTerrain.h"
-#include "chrono_synchrono/flatbuffer/message/SynSCMMessage.h"
 
 namespace chrono {
 namespace synchrono {
+
+/// @addtogroup synchrono_terrain
+/// @{
 
 struct SCMParameters;
 
@@ -162,6 +162,8 @@ struct SCMParameters {
         m_damping_R = 3e4;
     }
 };
+
+/// @} synchrono_terrain
 
 }  // namespace synchrono
 }  // namespace chrono

@@ -1,3 +1,22 @@
+// =============================================================================
+// PROJECT CHRONO - http://projectchrono.org
+//
+// Copyright (c) 2020 projectchrono.org
+// All rights reserved.
+//
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
+//
+// =============================================================================
+// Authors: Aaron Young
+// =============================================================================
+//
+// Class that wraps and synchronizes rigid terrain between Chrono Systems
+// See chrono_vehicle/terrain/RigidTerrain for the physics
+//
+// =============================================================================
+
 #ifndef SYN_RIGID_TERRAIN_H
 #define SYN_RIGID_TERRAIN_H
 
@@ -7,6 +26,9 @@
 
 namespace chrono {
 namespace synchrono {
+
+/// @addtogroup synchrono_terrain
+/// @{
 
 class SYN_API SynRigidTerrain : public SynTerrain {
   public:
@@ -19,10 +41,10 @@ class SYN_API SynRigidTerrain : public SynTerrain {
     // Destructor
     ~SynRigidTerrain() {}
 
-    /// Processes the incoming message
+    /// @brief Processes incoming message - nothing to be synced for rigid terrain
     virtual void ProcessMessage(SynMessage* message) override {}
 
-    /// Generate SynMessage to send
+    /// @brief Generate outgoing message - nothing to be synced for rigid terrain
     virtual void GenerateMessagesToSend(std::vector<SynMessage*>& messages, int rank) override {}
 
     /// Set the terrain
@@ -35,8 +57,10 @@ class SYN_API SynRigidTerrain : public SynTerrain {
   private:
     void AddVisualizationAssetsJSON(const rapidjson::Value& a);
 
-    std::shared_ptr<RigidTerrain> m_rigid_terrain;
+    std::shared_ptr<RigidTerrain> m_rigid_terrain;  ///< Underlying RigidTerrain object that is synchronized
 };
+
+/// @} synchrono_terrain
 
 }  // namespace synchrono
 }  // namespace chrono

@@ -1,14 +1,28 @@
+// =============================================================================
+// PROJECT CHRONO - http://projectchrono.org
+//
+// Copyright (c) 2020 projectchrono.org
+// All rights reserved.
+//
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
+//
+// =============================================================================
+// Authors: Aaron Young
+// =============================================================================
+//
+// Base class for all SynChrono terrain wrappers. Wraps normal ChTerrain
+// functions but also includes functions for managing messages (at the moment
+// only implemented by SCMTerrain as rigid terrain has nothing to synchronize)
+//
+// =============================================================================
+
 #ifndef SYN_TERRAIN_H
 #define SYN_TERRAIN_H
 
-#include "chrono_synchrono/SynApi.h"
-
-#include "chrono_synchrono/flatbuffer/SynFlatBuffersManager.h"
 #include "chrono_synchrono/flatbuffer/message/SynMessage.h"
-
 #include "chrono_synchrono/utils/SynUtilsJSON.h"
-
-#include "chrono/physics/ChSystem.h"
 
 #include "chrono_vehicle/ChTerrain.h"
 
@@ -18,6 +32,9 @@ using namespace chrono::vehicle;
 namespace chrono {
 namespace synchrono {
 
+/// @addtogroup synchrono_terrain
+/// @{
+
 class SYN_API SynTerrain {
   public:
     // Constructor
@@ -26,10 +43,10 @@ class SYN_API SynTerrain {
     // Destructor
     ~SynTerrain() {}
 
-    /// Processes the incoming message
+    /// @brief Synchronize the state of this terrain based on info in a received SynMessage
     virtual void ProcessMessage(SynMessage* message) = 0;
 
-    /// Generate SynMessage to send
+    /// @brief Add any messages that this terrain would like to send out to the vector of SynMessages
     virtual void GenerateMessagesToSend(std::vector<SynMessage*>& messages, int rank) = 0;
 
     /// Get the terrain
@@ -50,6 +67,8 @@ class SYN_API SynTerrain {
 
     static rapidjson::Document ParseTerrainFileJSON(const std::string& filename);
 };
+
+/// @} synchrono_terrain
 
 }  // namespace synchrono
 }  // namespace chrono

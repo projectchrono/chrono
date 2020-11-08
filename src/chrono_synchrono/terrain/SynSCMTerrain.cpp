@@ -25,6 +25,10 @@
 
 #include "chrono_synchrono/terrain/SynSCMTerrain.h"
 
+#include "chrono/assets/ChVisualization.h"
+#include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_synchrono/flatbuffer/message/SynSCMMessage.h"
+
 using namespace chrono::vehicle;
 
 namespace chrono {
