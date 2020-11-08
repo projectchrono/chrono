@@ -74,6 +74,10 @@ vsg::ref_ptr<vsg::Node> ChVSGIndexMesh::createVSGNode() {
             GetLog() << "Mapped PBR does not work actually for unknown reasons. Don't rely on it!\n";
             genMappedPBRSubgraph(subgraph);
             break;
+        case MaterialMode::PBR:
+            GetLog() << "PBR does not work actually for unknown reasons. Don't rely on it!\n";
+            genPBRSubgraph(subgraph);
+            break;
     }
 
     return subgraph;
@@ -368,6 +372,92 @@ void ChVSGIndexMesh::genMappedPBRSubgraph(vsg::ref_ptr<vsg::StateGroup> subgraph
     // setup geometry
     auto drawCommands = vsg::Commands::create();
     drawCommands->addChild(vsg::BindVertexBuffers::create(0, vsg::DataList{m_vertices, m_texcoords}));
+    drawCommands->addChild(vsg::BindIndexBuffer::create(m_indices));
+    drawCommands->addChild(vsg::DrawIndexed::create(m_indices->size(), 1, 0, 0, 0));
+
+    // add drawCommands to transform
+    m_transform->addChild(drawCommands);
+}
+
+//=======================================================================================
+
+void ChVSGIndexMesh::genPBRSubgraph(vsg::ref_ptr<vsg::StateGroup> subgraph) {
+    vsg::ref_ptr<vsg::ShaderStage> vertexShader = readVertexShader(GetChronoDataFile("vsg/shaders/vert_PBR.spv"));
+    vsg::ref_ptr<vsg::ShaderStage> fragmentShader = readFragmentShader(GetChronoDataFile("vsg/shaders/frag_PBR.spv"));
+    if (!vertexShader || !fragmentShader) {
+        std::cout << "Could not create shaders." << std::endl;
+        return;
+    }
+
+    // set up graphics pipeline
+    vsg::DescriptorSetLayoutBindings descriptorBindings{
+        {0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1, VK_SHADER_STAGE_FRAGMENT_BIT, nullptr},
+        // { binding, descriptorTpe, descriptorCount, stageFlags, pImmutableSamplers}
+        {1, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1, VK_SHADER_STAGE_FRAGMENT_BIT,
+         nullptr}  // { binding, descriptorTpe, descriptorCount, stageFlags, pImmutableSamplers}
+    };
+
+    auto descriptorSetLayout = vsg::DescriptorSetLayout::create(descriptorBindings);
+
+    vsg::PushConstantRanges pushConstantRanges{
+        {VK_SHADER_STAGE_VERTEX_BIT, 0, 128}  // projection view, and model matrices, actual push constant calls
+                                              // autoaatically provided by the VSG's DispatchTraversal
+    };
+
+    vsg::VertexInputState::Bindings vertexBindingsDescriptions{
+        VkVertexInputBindingDescription{0, sizeof(vsg::vec3), VK_VERTEX_INPUT_RATE_VERTEX},  // vertex data
+        VkVertexInputBindingDescription{1, sizeof(vsg::vec3), VK_VERTEX_INPUT_RATE_VERTEX},  // normal data
+        VkVertexInputBindingDescription{2, sizeof(vsg::vec3), VK_VERTEX_INPUT_RATE_VERTEX},  // color data
+        VkVertexInputBindingDescription{3, sizeof(float), VK_VERTEX_INPUT_RATE_VERTEX},      // metallic data
+        VkVertexInputBindingDescription{4, sizeof(float), VK_VERTEX_INPUT_RATE_VERTEX},      // roughness data
+        VkVertexInputBindingDescription{5, sizeof(float), VK_VERTEX_INPUT_RATE_VERTEX},      // ao data
+    };
+
+    vsg::VertexInputState::Attributes vertexAttributeDescriptions{
+        VkVertexInputAttributeDescription{0, 0, VK_FORMAT_R32G32B32_SFLOAT, 0},  // vertex data
+        VkVertexInputAttributeDescription{1, 1, VK_FORMAT_R32G32B32_SFLOAT, 0},  // normal data
+        VkVertexInputAttributeDescription{2, 2, VK_FORMAT_R32G32B32_SFLOAT, 0},  // color data
+        VkVertexInputAttributeDescription{3, 3, VK_FORMAT_R32_SFLOAT, 0},        // metallic data
+        VkVertexInputAttributeDescription{4, 4, VK_FORMAT_R32_SFLOAT, 0},        // roughness data
+        VkVertexInputAttributeDescription{5, 5, VK_FORMAT_R32_SFLOAT, 0},        // ao data
+    };
+
+    vsg::GraphicsPipelineStates pipelineStates{
+        vsg::VertexInputState::create(vertexBindingsDescriptions, vertexAttributeDescriptions),
+        vsg::InputAssemblyState::create(),
+        vsg::RasterizationState::create(),
+        vsg::MultisampleState::create(),
+        vsg::ColorBlendState::create(),
+        vsg::DepthStencilState::create()};
+
+    auto pipelineLayout =
+        vsg::PipelineLayout::create(vsg::DescriptorSetLayouts{descriptorSetLayout}, pushConstantRanges);
+    auto graphicsPipeline =
+        vsg::GraphicsPipeline::create(pipelineLayout, vsg::ShaderStages{vertexShader, fragmentShader}, pipelineStates);
+    auto bindGraphicsPipeline = vsg::BindGraphicsPipeline::create(graphicsPipeline);
+
+    auto uniformValue1 = vsg::vec3Value::create(m_lightPosition);
+    auto uniform1 = vsg::DescriptorBuffer::create(uniformValue1, 1, 0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER);
+
+    auto descriptorSet = vsg::DescriptorSet::create(descriptorSetLayout, vsg::Descriptors{uniform1});
+    auto bindDescriptorSets = vsg::BindDescriptorSets::create(VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline->layout,
+                                                              0, vsg::DescriptorSets{descriptorSet});
+
+    // create StateGroup as the root of the scene/command graph to hold the GraphicsProgram, and binding of
+    // Descriptors to decorate the whole graph auto scenegraph = vsg::StateGroup::create();
+    subgraph->add(bindGraphicsPipeline);
+    subgraph->add(bindDescriptorSets);
+
+    // set up model transformation node
+    // auto transform = vsg::MatrixTransform::create();  // VK_SHADER_STAGE_VERTEX_BIT
+
+    // add transform to root of the scene graph
+    subgraph->addChild(m_transform);
+
+    // setup geometry
+    auto drawCommands = vsg::Commands::create();
+    drawCommands->addChild(vsg::BindVertexBuffers::create(
+        0, vsg::DataList{m_vertices, m_normals, m_colors, m_metallics, m_roughnesses, m_aos}));
     drawCommands->addChild(vsg::BindIndexBuffer::create(m_indices));
     drawCommands->addChild(vsg::DrawIndexed::create(m_indices->size(), 1, 0, 0, 0));
 

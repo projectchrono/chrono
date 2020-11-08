@@ -34,8 +34,22 @@ void VSGIndexCylinder::Initialize(ChColor& color, size_t tessFactor) {
     m_objectColor[0] = color.R;
     m_objectColor[1] = color.G;
     m_objectColor[2] = color.B;
-    
+
     m_colors = vsg::vec3Array::create(m_vertices->size(), m_objectColor);
+}
+
+void VSGIndexCylinder::Initialize(ChPBRSetting& pbrSet, size_t tessFactor) {
+    Tesselate(tessFactor);
+
+    m_matMode = MaterialMode::PBR;
+    m_objectColor[0] = pbrSet.GetAlbedo().R;
+    m_objectColor[1] = pbrSet.GetAlbedo().G;
+    m_objectColor[2] = pbrSet.GetAlbedo().B;
+
+    m_colors = vsg::vec3Array::create(m_vertices->size(), m_objectColor);
+    m_metallics = vsg::floatArray::create(m_vertices->size(), pbrSet.GetMetallic());
+    m_roughnesses = vsg::floatArray::create(m_vertices->size(), pbrSet.GetRoughness());
+    m_aos = vsg::floatArray::create(m_vertices->size(), pbrSet.GetAO());
 }
 
 void VSGIndexCylinder::Tesselate(size_t tessFactor) {  // set up vertices, normals, texcoords, indices

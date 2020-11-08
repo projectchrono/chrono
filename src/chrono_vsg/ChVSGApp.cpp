@@ -28,6 +28,7 @@
 #include "chrono_vsg/resources/ChVSGSettings.h"
 #include "chrono_vsg/resources/ChVSGPhongMaterial.h"
 #include "chrono_vsg/assets/ChTexturedPBR.h"
+#include "chrono_vsg/assets/ChPBRSetting.h"
 #include "chrono_vsg/shapes/VSGIndexBox.h"
 #include "chrono_vsg/shapes/VSGIndexSphere.h"
 #include "chrono_vsg/shapes/VSGIndexCylinder.h"
@@ -193,8 +194,10 @@ void ChVSGApp::BuildSceneGraph() {
         bool textureFound = false;
         bool colorFound = false;
         bool pbrMapsFound = false;
+        bool pbrSetFound = false;
         ChTexture bodyTexture;
         ChTexturedPBR bodyPBRMaps;
+        ChPBRSetting bodyPBRSet;
         ChColor bodyColor(1.0, 0.0, 0.0, 1.0);
         for (int i = 0; i < body->GetAssets().size(); i++) {
             auto asset = body->GetAssets().at(i);
@@ -219,6 +222,14 @@ void ChVSGApp::BuildSceneGraph() {
                 bodyPBRMaps.SetRoughnessTextureFilename(texture_asset->GetRoughnessTextureFilename());
                 bodyPBRMaps.SetAOTextureFilename(texture_asset->GetAOTextureFilename());
                 pbrMapsFound = true;
+            }
+            if (std::dynamic_pointer_cast<ChPBRSetting>(asset)) {
+                ChPBRSetting* texture_asset = (ChPBRSetting*)(asset.get());
+                bodyPBRSet.SetAlbedo(texture_asset->GetAlbedo());
+                bodyPBRSet.SetMetallic(texture_asset->GetMetallic());
+                bodyPBRSet.SetRoughness(texture_asset->GetRoughness());
+                bodyPBRSet.SetAO(texture_asset->GetAO());
+                pbrSetFound = true;
             }
         }
         for (int i = 0; i < body->GetAssets().size(); i++) {
@@ -250,6 +261,8 @@ void ChVSGApp::BuildSceneGraph() {
                     box.Initialize(bodyTexture);
                 } else if (colorFound) {
                     box.Initialize(bodyColor);
+                } else if (pbrSetFound) {
+                    box.Initialize(bodyPBRSet);
                 }
                 vsg::ref_ptr<vsg::Node> node = box.createVSGNode();
                 m_scenegraph->addChild(node);
@@ -272,6 +285,8 @@ void ChVSGApp::BuildSceneGraph() {
                     sphere.Initialize(bodyTexture);
                 } else if (colorFound) {
                     sphere.Initialize(bodyColor);
+                } else if (pbrSetFound) {
+                    sphere.Initialize(bodyPBRSet);
                 }
                 vsg::ref_ptr<vsg::Node> node = sphere.createVSGNode();
                 m_scenegraph->addChild(node);
@@ -294,6 +309,8 @@ void ChVSGApp::BuildSceneGraph() {
                     ellipsoid.Initialize(bodyTexture);
                 } else if (colorFound) {
                     ellipsoid.Initialize(bodyColor);
+                } else if (pbrSetFound) {
+                    ellipsoid.Initialize(bodyPBRSet);
                 }
                 vsg::ref_ptr<vsg::Node> node = ellipsoid.createVSGNode();
                 m_scenegraph->addChild(node);
@@ -315,6 +332,8 @@ void ChVSGApp::BuildSceneGraph() {
                     cylinder.Initialize(bodyTexture);
                 } else if (colorFound) {
                     cylinder.Initialize(bodyColor);
+                } else if (pbrSetFound) {
+                    cylinder.Initialize(bodyPBRSet);
                 }
                 vsg::ref_ptr<vsg::Node> node = cylinder.createVSGNode();
                 m_scenegraph->addChild(node);

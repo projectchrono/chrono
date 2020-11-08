@@ -11,6 +11,7 @@
 #include "chrono/assets/ChTexture.h"
 #include "chrono_vsg/core/ChApiVSG.h"
 #include "chrono_vsg/assets/ChTexturedPBR.h"
+#include "chrono_vsg/assets/ChPBRSetting.h"
 #include "chrono_vsg/resources/ChVSGSettings.h"
 #include "chrono_vsg/resources/ChVSGPhongMaterial.h"
 
@@ -21,7 +22,7 @@ namespace vsg3d {
 
 class CH_VSG_API ChVSGIndexMesh {
   public:
-    typedef enum { Unknown, Textured, SimplePhong, MappedPBR } MaterialMode;
+    typedef enum { Unknown, Textured, SimplePhong, MappedPBR, PBR } MaterialMode;
 
   public:
     ChVSGIndexMesh(std::shared_ptr<ChBody> body,
@@ -31,6 +32,7 @@ class CH_VSG_API ChVSGIndexMesh {
     virtual void Initialize(ChTexturedPBR& textures, size_t tessFactor = 3) = 0;
     virtual void Initialize(ChTexture& texture, size_t tessFactor = 3) = 0;
     virtual void Initialize(ChColor& color, size_t tessFactor = 3) = 0;
+    virtual void Initialize(ChPBRSetting& pbrSet, size_t tessFactor = 3) = 0;
     vsg::ref_ptr<vsg::Node> createVSGNode();
 
   protected:
@@ -56,6 +58,10 @@ class CH_VSG_API ChVSGIndexMesh {
     vsg::ref_ptr<vsg::vec2Array> m_texcoords;
     vsg::ref_ptr<vsg::ushortArray> m_indices;
 
+    vsg::ref_ptr<vsg::floatArray> m_metallics;
+    vsg::ref_ptr<vsg::floatArray> m_roughnesses;
+    vsg::ref_ptr<vsg::floatArray> m_aos;
+
     std::shared_ptr<ChBody> m_bodyPtr;
     std::shared_ptr<ChAsset> m_assetPtr;
     vsg::ref_ptr<vsg::MatrixTransform> m_transform;
@@ -63,6 +69,7 @@ class CH_VSG_API ChVSGIndexMesh {
     void genMappedPBRSubgraph(vsg::ref_ptr<vsg::StateGroup> subgraph);
     void genTexturedSubgraph(vsg::ref_ptr<vsg::StateGroup> subgraph);
     void genSimplePhongSubgraph(vsg::ref_ptr<vsg::StateGroup> subgraph);
+    void genPBRSubgraph(vsg::ref_ptr<vsg::StateGroup> subgraph);
 };
 }  // namespace vsg3d
 }  // namespace chrono
