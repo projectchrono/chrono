@@ -343,9 +343,6 @@ add_library(ChronoEngine_synchrono SHARED
 # windows builds should disable warning 4661 and 4005
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
   	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4661 /wd4005")
-
-    #FIGURE OUT WHERE ALL THE LIBRARY DLLS FROM WINDOWS ARE
-    #SET(CH_IRRLICHT_DLL "${IRRLICHT_ROOT}/bin/Win32-VisualStudio/Irrlicht.dll")
 endif()
 
 set_target_properties(ChronoEngine_synchrono PROPERTIES
@@ -357,6 +354,39 @@ target_compile_definitions(ChronoEngine_synchrono PRIVATE "SYN_API_COMPILE")
 target_include_directories(ChronoEngine_synchrono PUBLIC ${SYN_INCLUDES})
 
 target_link_libraries(ChronoEngine_synchrono ${SYN_LIB_NAMES} ${SYN_LIBRARIES} ${SYN_OTHER_LIBRARIES})
+
+#-------------------------------------------------------------------------------
+# On Windows, copy the MPI DLL to the bin/ directory
+# We do this through a custom command so that the DLLs are copied to the
+# appropriate directory (depending on the build type); however, we use
+# copy_if_different. 
+
+IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+
+  # MPI doesn't provide a 'root' variable so we make our own
+  get_filename_component(MPI_ROOT ${MPI_CXX_COMPILER_INCLUDE_DIRS}/../ ABSOLUTE)
+
+  # Set variables that point to the DLLs. May not work for Win32
+  SET(CH_MPI_DLL "${MPI_ROOT}/bin/release/impi.dll")
+
+  ADD_CUSTOM_COMMAND(
+    TARGET ChronoEngine_synchrono POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E make_directory
+            "${CMAKE_BINARY_DIR}/bin/$<CONFIGURATION>"
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            "${CH_MPI_DLL}"
+            "${CMAKE_BINARY_DIR}/bin/$<CONFIGURATION>"
+    MAIN_DEPENDENCY ChronoEngine_synchrono
+    COMMENT "Copying MPI DLL..."
+  )
+
+  # copy the dlls into the installed package to be on the safe side 
+  install(FILES "${CH_MPI_DLL}" DESTINATION bin)
+
+  # Make variables visible from outside this directory
+  SET(CH_MPI_DLL "${CH_MPI_DLL}" PARENT_SCOPE)
+
+ENDIF()
 
 install(TARGETS ChronoEngine_synchrono
         RUNTIME DESTINATION bin
