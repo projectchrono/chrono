@@ -111,7 +111,7 @@ class ChCLI {
         try {
             return (*m_result)[option].as<T>();
         } catch (std::domain_error e) {
-            if (m_result->count(option) != 0;) {
+            if (m_result->count(option) != 0) {
                 std::cerr << "ChCLI::GetAsType: Could not cast \"" << option << "\" as " << typeid(T).name() << std::endl;
             } else {
                 std::cerr << "Option \"" << option << "\" requested by ChCLI::GetAsType, but has no default value and not present on command line" << std::endl;
