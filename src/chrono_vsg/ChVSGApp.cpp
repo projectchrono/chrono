@@ -154,7 +154,7 @@ bool ChVSGApp::Initialize(int windowWidth, int windowHeight, const char* windowT
     auto camera = vsg::Camera::create(perspective, lookAt, vsg::ViewportState::create(m_window->extent2D()));
 
     // setup texture pool
-    setupTexPool(m_window, camera->getViewportState());
+    setupTexPool(m_window, camera->getViewportState(), 128);
     compile(m_scenegraph);
 
     // add close handler to respond to pressing the window close window button and pressing escape

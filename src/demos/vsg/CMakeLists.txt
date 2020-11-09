@@ -3,6 +3,7 @@
 
 SET(DEMOS
   demo_VSG_first
+  demo_VSG_pbr
   demo_VSG_friction
   demo_VSG_fourbar
 )

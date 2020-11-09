@@ -75,7 +75,6 @@ vsg::ref_ptr<vsg::Node> ChVSGIndexMesh::createVSGNode() {
             genMappedPBRSubgraph(subgraph);
             break;
         case MaterialMode::PBR:
-            GetLog() << "PBR does not work actually for unknown reasons. Don't rely on it!\n";
             genPBRSubgraph(subgraph);
             break;
     }
