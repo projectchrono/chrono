@@ -1,19 +1,36 @@
+// =============================================================================
+// PROJECT CHRONO - http://projectchrono.org
+//
+// Copyright (c) 2020 projectchrono.org
+// All rights reserved.
+//
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
+//
+// =============================================================================
+// Authors: Aaron Young, Jay Taves
+// =============================================================================
+//
+// Concrete SynVisualization class that handles Sensor visualization via a
+// ChSensorManager. Provides several wrapper functions that setup commonly used
+// cameras and views.
+//
+// =============================================================================
+
 #include "chrono_synchrono/visualization/SynSensorVisualization.h"
 
 #include "chrono_sensor/ChCameraSensor.h"
 #include "chrono_sensor/ChLidarSensor.h"
-#include "chrono_sensor/Sensor.h"
+#include "chrono_sensor/filters/ChFilterAccess.h"
+#include "chrono_sensor/filters/ChFilterVisualize.h"
+#include "chrono_sensor/filters/ChFilterSave.h"
 
 namespace chrono {
 namespace synchrono {
 
 SynSensorVisualization::SynSensorVisualization()
     : SynVisualization(SynVisualization::SENSOR), m_needs_reconstruction(true) {}
-
-// SynSensorVisualization::SynSensorVisualization(const std::string& filename)
-//     : SynVisualization(SynVisualization::SENSOR) {
-//     m_sensor = Sensor::CreateFromJSON(filename);
-// }
 
 void SynSensorVisualization::Update(double step) {
     if (m_needs_reconstruction) {
@@ -25,7 +42,7 @@ void SynSensorVisualization::Update(double step) {
 
 void SynSensorVisualization::Initialize() {
     if (m_sensor_manager == nullptr) {
-        std::cout
+        std::cerr
             << "SynSensorVisualization::Initialize: Sensor manager has not been initialized. Must initialize prior "
                "to adding sensor. Exitting..."
             << std::endl;
@@ -64,12 +81,12 @@ void SynSensorVisualization::InitializeAsDefaultChaseCamera(std::shared_ptr<ChBo
                                                             float fps,
                                                             std::string window_title) {
     m_sensor = chrono_types::make_shared<ChCameraSensor>(
-        body_ref,                                                                      // body camera is attached to
-        fps,                                                                           // update rate in Hz
+        body_ref,                                                                 // body camera is attached to
+        fps,                                                                      // update rate in Hz
         chrono::ChFrame<double>({20, 0, 3}, Q_from_AngAxis(CH_C_PI, {0, 0, 1})),  // offset pose
-        width,                                                                         // image width
-        height,                                                                        // image height
-        CH_C_PI / 3);                                                                  // horizontal field of view
+        width,                                                                    // image width
+        height,                                                                   // image height
+        CH_C_PI / 3);                                                             // horizontal field of view
     m_sensor->SetLag(1 / fps);
     m_sensor->SetName(window_title);
 }

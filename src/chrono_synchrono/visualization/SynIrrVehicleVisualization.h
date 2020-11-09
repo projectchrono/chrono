@@ -1,7 +1,25 @@
+// =============================================================================
+// PROJECT CHRONO - http://projectchrono.org
+//
+// Copyright (c) 2020 projectchrono.org
+// All rights reserved.
+//
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
+//
+// =============================================================================
+// Authors: Aaron Young, Jay Taves
+// =============================================================================
+//
+// Concrete SynVisualization class that handles Irrlicht visualization via an
+// Irrlicht app. Provides several wrapper functions that setup commonly used
+// cameras and views.
+//
+// =============================================================================
+
 #ifndef SYN_IRR_VEHICLE_VIS_H
 #define SYN_IRR_VEHICLE_VIS_H
-
-#include "chrono_synchrono/SynApi.h"
 
 #include "chrono_synchrono/visualization/SynVisualization.h"
 
@@ -20,58 +38,52 @@ using namespace chrono::irrlicht;
 namespace chrono {
 namespace synchrono {
 
+/// @addtogroup synchrono_visualization
+/// @{
+
 class SYN_API SynIrrVehicleVisualization : public SynVisualization {
   public:
-    /// Constructs a wheeled vehicle irrlicht visualization
     SynIrrVehicleVisualization(std::shared_ptr<ChDriver> driver = nullptr,
                                double step_size = 1e-3,
                                double render_step_size = 1. / 50);
-
-    /// Destructor
     ~SynIrrVehicleVisualization() {}
 
-    /// Initialze as default irrlicht wheeled vehicle app
+    /// @brief Third-person view that will follow behind the vehicle
     void InitializeAsDefaultChaseCamera(std::shared_ptr<SynVehicle> vehicle,
                                         double following_distance = 6.0,
                                         std::wstring window_title = L"");
 
-    /// Initialze as default irrlicht wheeled vehicle app
+    /// @brief Third-person view that will follow behind the vehicle
     void InitializeAsDefaultTrackedChaseCamera(std::shared_ptr<SynTrackedVehicle> vehicle,
                                                double following_distance = 6.0,
                                                std::wstring window_title = L"");
 
-    /// Allow external creation and attachment of a IrrApp
+    /// @brief Allow external creation and attachment of a IrrApp
     void AttachIrrApp(std::shared_ptr<ChVehicleIrrApp> app);
 
-    /// Get the handle to the irrlicht application
     std::shared_ptr<ChVehicleIrrApp> GetIrrApp() { return m_app; }
 
-    /// Advance the state of this visualizer.
+    /// @brief Advance the visualizer, taking note of any initialization and render step questions
     virtual void Update(double step) override;
 
-    /// Initialize the irrlicht visualizer
-    virtual void Initialize() override;
+    virtual void Initialize() override {}
 
     /// Set the handle to the ChDriver
     void SetDriver(std::shared_ptr<ChDriver> driver) { m_driver = driver; }
 
-    /// Set the save value
+    /// Whether images are saved
     void SetSave(bool save) { m_save = save; }
-
-    /// Get the save value
     bool GetSave() { return m_save; }
 
-    /// Set the visualize value
+    /// Whether we visualize the Irrlicht view with a window
     void SetVisualize(bool visualize) { m_visualize = visualize; }
-
-    /// Get the visualize value
     bool GetVisualize() { return m_visualize; }
 
-    /// Get/Set render step size
+    /// How often rendering is done
     double GetRenderStepSize() { return m_render_step_size; }
     void SetRenderStepSize(double render_step_size) { m_render_step_size = render_step_size; }
 
-    /// Get/Set step size
+    /// Simulation step size
     double GetStepSize() { return m_step_size; }
     void SetStepSize(double step_size) { m_step_size = step_size; }
 
@@ -93,6 +105,8 @@ class SYN_API SynIrrVehicleVisualization : public SynVisualization {
 
     std::shared_ptr<ChDriver> m_driver;  ///< handle to vehicle driver
 };
+
+/// @} synchrono_visualization
 
 }  // namespace synchrono
 }  // namespace chrono

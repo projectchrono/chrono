@@ -18,7 +18,12 @@
 #endif
 
 #ifdef CHRONO_SENSOR
+#include "chrono_sensor/ChCameraSensor.h"
+#include "chrono_sensor/filters/ChFilterAccess.h"
+#include "chrono_sensor/filters/ChFilterSave.h"
+#include "chrono_sensor/filters/ChFilterVisualize.h"
 #include "chrono_synchrono/visualization/SynSensorVisualization.h"
+using namespace chrono::sensor;
 #endif
 
 #include "chrono_vehicle/driver/ChPathFollowerACCDriver.h"

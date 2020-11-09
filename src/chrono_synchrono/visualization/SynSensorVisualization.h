@@ -1,16 +1,30 @@
+// =============================================================================
+// PROJECT CHRONO - http://projectchrono.org
+//
+// Copyright (c) 2020 projectchrono.org
+// All rights reserved.
+//
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
+//
+// =============================================================================
+// Authors: Aaron Young, Jay Taves
+// =============================================================================
+//
+// Concrete SynVisualization class that handles Sensor visualization via a
+// ChSensorManager. Provides several wrapper functions that setup commonly used
+// cameras and views.
+//
+// =============================================================================
+
 #ifndef SYN_SENSOR_VIS_H
 #define SYN_SENSOR_VIS_H
-
-#include "chrono_synchrono/SynApi.h"
 
 #include "chrono_synchrono/visualization/SynVisualization.h"
 
 #include "chrono_sensor/ChSensorManager.h"
 #include "chrono_sensor/ChSensor.h"
-#include "chrono_sensor/ChCameraSensor.h"
-#include "chrono_sensor/filters/ChFilterAccess.h"
-#include "chrono_sensor/filters/ChFilterVisualize.h"
-#include "chrono_sensor/filters/ChFilterSave.h"
 
 #include <string>
 #include <iostream>
@@ -21,24 +35,22 @@ using namespace chrono::sensor;
 namespace chrono {
 namespace synchrono {
 
+/// @addtogroup synchrono_visualization
+/// @{
+
 class SYN_API SynSensorVisualization : public SynVisualization {
   public:
     /// Constructs a sensor vis
     SynSensorVisualization();
-    // SynSensorVisualization(const std::string& filename);
-
-    /// Destructor
     ~SynSensorVisualization() {}
 
-    /// Advance the state of this visualizer.
-    /// ChSensorManager will only update a sensor if needed
+    /// @brief Call ChSensorManager.Update() and .ReconstructScenes() if necessary
     virtual void Update(double step) override;
 
     /// Initialize the sensor visualizer
     /// Basically just adds the sensor to the sensor manager, if possible
     virtual void Initialize() override;
 
-    /// Initializes a default sensor manager
     void InitializeDefaultSensorManager(ChSystem* system);
 
     /// Creates and attaches a default chase (third person) camera sensor
@@ -80,16 +92,15 @@ class SYN_API SynSensorVisualization : public SynVisualization {
     /// Get the ChSensorManager
     std::shared_ptr<ChSensorManager> GetSensorManager() { return m_sensor_manager; }
 
-    /// Check if sensor manager has been initialized
     bool HasSensorManager() { return m_sensor_manager != nullptr; }
 
   private:
     std::shared_ptr<ChSensor> m_sensor;  ///< handle to wrapped sensor
-
-    std::shared_ptr<ChSensorManager> m_sensor_manager;  ///< handle to the sensor manager
-
-    bool m_needs_reconstruction;  ///< need to reconstruct the scene?
+    std::shared_ptr<ChSensorManager> m_sensor_manager;
+    bool m_needs_reconstruction;
 };
+
+/// @} synchrono_visualization
 
 }  // namespace synchrono
 }  // namespace chrono

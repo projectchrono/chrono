@@ -1,3 +1,23 @@
+// =============================================================================
+// PROJECT CHRONO - http://projectchrono.org
+//
+// Copyright (c) 2020 projectchrono.org
+// All rights reserved.
+//
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
+//
+// =============================================================================
+// Authors: Aaron Young, Jay Taves
+// =============================================================================
+//
+// Concrete SynVisualization class that handles Irrlicht visualization via an
+// Irrlicht app. Provides several wrapper functions that setup commonly used
+// cameras and views.
+//
+// =============================================================================
+
 #include "chrono_synchrono/visualization/SynIrrVehicleVisualization.h"
 
 namespace chrono {
@@ -41,8 +61,6 @@ void SynIrrVehicleVisualization::AttachIrrApp(std::shared_ptr<ChVehicleIrrApp> a
                   << std::endl;
     m_app = app;
 }
-
-void SynIrrVehicleVisualization::Initialize() {}
 
 void SynIrrVehicleVisualization::Update(double step) {
     if (m_should_initialize) {

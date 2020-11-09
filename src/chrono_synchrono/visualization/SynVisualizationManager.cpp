@@ -1,30 +1,29 @@
+// =============================================================================
+// PROJECT CHRONO - http://projectchrono.org
+//
+// Copyright (c) 2020 projectchrono.org
+// All rights reserved.
+//
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
+//
+// =============================================================================
+// Authors: Aaron Young, Jay Taves
+// =============================================================================
+//
+// Class that manages a mix of Irrlicht and Sensor visualizations at the same
+// time. This class abstracts away the need to separately update and maintain
+// Irrlicht and Sensor visualizations.
+//
+// =============================================================================
+
 #include "chrono_synchrono/visualization/SynVisualizationManager.h"
 
 namespace chrono {
 namespace synchrono {
 
-// SynVisualizationManager::SynVisualizationManager(const std::string& filename) {
-//   Document d = ReadFileJSON(filename);
-//   if (d.IsNull())
-//     throw ChException("Visualization file not read properly in SynVisualizationManager.");
-//
-//   // Read top-level data
-//   assert(d.HasMember("Name"));
-//   assert(d.HasMember("Type"));
-//
-//   std::string name = d["Name"].GetString();
-//   std::string type = d["Type"].GetString();
-//   assert(type.compare("Visualization") == 0);
-//
-//   // ----------------------------
-//   // Validations of the JSON file
-//   // ----------------------------
-// }
-
 void SynVisualizationManager::Update(double step) {
-    if (!m_vis_list.size())
-        return;
-
     for (std::shared_ptr<SynVisualization> vis : m_vis_list)
         vis->Update(step);
 }

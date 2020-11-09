@@ -261,7 +261,6 @@ source_group("vehicle" FILES ${SYN_VEHICLE_FILES})
 
 set(SYN_VISUALIZATION_FILES
 	visualization/SynVisualization.h
-	visualization/SynVisualization.cpp
 	visualization/SynVisualizationManager.h
 	visualization/SynVisualizationManager.cpp
 
