@@ -1,3 +1,22 @@
+// =============================================================================
+// PROJECT CHRONO - http://projectchrono.org
+//
+// Copyright (c) 2020 projectchrono.org
+// All rights reserved.
+//
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
+//
+// =============================================================================
+// Authors: Aaron Young
+// =============================================================================
+//
+// A set of helper functions for pulling data from json structures into Chrono
+// or SynChrono objects
+//
+// =============================================================================
+
 #include <fstream>
 
 #include "chrono_synchrono/utils/SynUtilsJSON.h"
@@ -64,22 +83,6 @@ VisualizationType ReadVisualizationTypeJSON(const std::string& type) {
     }
     return visualization_type;
 }
-
-// -----------------------------------------------------------------------------
-
-// void ChangeValueJSON(const std::string& filename, std::vector<std::string> entries, const rapidjson::Value new_value) {
-//     Document d = ReadFileJSON(filename);
-
-//     for (auto& entry : entries) {
-//         if (d.HasMember(entry))
-//             d = d[entry];
-//         else
-//             throw ChException(entry " not found correctly.");
-//     }
-
-//     rapidjson::Document jsonDocument;
-//     jsonDocument.SetObject();
-// }
 
 }  // namespace synchrono
 }  // namespace chrono

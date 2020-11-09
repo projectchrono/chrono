@@ -1,3 +1,25 @@
+// =============================================================================
+// PROJECT CHRONO - http://projectchrono.org
+//
+// Copyright (c) 2020 projectchrono.org
+// All rights reserved.
+//
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
+//
+// =============================================================================
+// Authors: Aaron Young
+// =============================================================================
+//
+// Class wrapping a ChVector into a GPS coordinate, along with helper functions
+// to translate BezierCurves between ChVectors and GPS coordinates. There is
+// some overlap between the functions here and those in ChGPSSensor, in the
+// future they will share the same codebase, but for now take care when using
+// both of them.
+//
+// =============================================================================
+
 #include "chrono_synchrono/utils/SynGPSTools.h"
 
 using namespace chrono;
@@ -80,7 +102,7 @@ std::shared_ptr<ChBezierCurve> SynGPSTools::CurveFromGPS(const std::string& file
 
     if (num_cols == 3 || num_cols == 9) {
         // TODO: This method should actually support numcols=3 b/c of altitude
-        std::cout << "SynGPSTools::CurveFromGPS: File specified actually describes a ChBezierCurve." << std::endl;
+        std::cerr << "SynGPSTools::CurveFromGPS: File specified actually describes a ChBezierCurve." << std::endl;
 
         ifile.close();
         return ChBezierCurve::read(filename);

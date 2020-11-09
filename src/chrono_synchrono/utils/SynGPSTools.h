@@ -1,7 +1,28 @@
+// =============================================================================
+// PROJECT CHRONO - http://projectchrono.org
+//
+// Copyright (c) 2020 projectchrono.org
+// All rights reserved.
+//
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
+//
+// =============================================================================
+// Authors: Aaron Young
+// =============================================================================
+//
+// Class wrapping a ChVector into a GPS coordinate, along with helper functions
+// to translate BezierCurves between ChVectors and GPS coordinates. There is
+// some overlap between the functions here and those in ChGPSSensor, in the
+// future they will share the same codebase, but for now take care when using
+// both of them.
+//
+// =============================================================================
+
 #ifndef SYN_FRAMEWORK_H
 #define SYN_FRAMEWORK_H
 
-#include "chrono_synchrono/SynApi.h"
 #include "chrono_synchrono/agent/SynAgent.h"
 #include "chrono_synchrono/terrain/SynTerrain.h"
 
@@ -11,18 +32,18 @@
 #ifdef CHRONO_SENSOR
 #include "chrono_sensor/ChGPSSensor.h"
 #else
-// [meters]
-#define EARTH_RADIUS 6371000.0
-#endif  // SENSOR
+#define EARTH_RADIUS 6371000.0  // [meters]
+#endif                          // SENSOR
 
 using namespace chrono;
 
 namespace chrono {
 namespace synchrono {
 
-/// GPScoord is a wrapper class around ChVector
-/// Stores GPS points as (lat, long, alt)
-/// All coordinates are in degrees
+/// @addtogroup synchrono_utils
+/// @{
+
+/// @brief Wrapper class around ChVector stores GPS points as (lat, long, alt) in degrees
 class SYN_API GPScoord : public ChVector<> {
   public:
     /// Constructs a GPScoord with a default z value
@@ -44,6 +65,7 @@ class SYN_API GPScoord : public ChVector<> {
     const double lon_rad() const { return lon() * CH_C_DEG_TO_RAD; }
 };
 
+/// @brief Holds a SynTerrain along with the GPS coordinate mapped to the origin of the ChVector space
 class SYN_API SynGPSTools {
   public:
     /// Construct a SynGPSTools object with the specified origin and attached terrain
@@ -52,17 +74,18 @@ class SYN_API SynGPSTools {
     /// Destructor
     ~SynGPSTools();
 
-    /// Generate a ChBezierCurve from gps waypoints
-    /// Optionally pass in a vertical offset for the points and whether the path should be a closed curve
+    /// @brief Optionally pass in a vertical offset for the points and whether the path should be a closed curve
     std::shared_ptr<ChBezierCurve> CurveFromGPS(std::vector<GPScoord>& gps_points,
                                                 double vert_offset = 0,
                                                 bool closed = 0);
 
-    /// Generate a ChBezierCurve from gps waypoints specified through a file
+    /// @brief Generate a ChBezierCurve from gps waypoints specified through a file
     /// Optionally pass in a vertical offset for the points and whether the path should be a closed curve
     std::shared_ptr<ChBezierCurve> CurveFromGPS(const std::string& filename, double vert_offset = 0, bool closed = 0);
 
-    /// Convert GPS coordinate to 3D cartesian point with an optionally specified height
+    /// @brief Convert GPS coordinate to 3D cartesian point with an optionally specified height
+    /// @param gps the point to convert
+    /// @param height optional z/altitude-offset, defaults to 0.5
     ChVector<> To3DCartesian(const GPScoord& gps, double height = 0.5) const;
 
   private:
@@ -73,6 +96,8 @@ class SYN_API SynGPSTools {
     double m_lon_origin;  ///< easy access for the longitude of the origin
     double m_cos_origin;  ///< cosine of the latitude of the origin that is used for conversions
 };
+
+/// @} synchrono_utils
 
 }  // namespace synchrono
 }  // namespace chrono

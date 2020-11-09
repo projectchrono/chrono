@@ -85,7 +85,7 @@ Document SynVehicleAgent::ParseVehicleAgentFileJSON(const std::string& filename)
 void SynVehicleAgent::VehicleAgentFromJSON(Document& d) {
     // Create the terrain
     std::string terrain_filename = d["Terrain Input File"].GetString();
-    m_terrain = SynTerrainFactory::CreateTerrain(m_system, GetSynDataFile(terrain_filename));
+    m_terrain = SynTerrainFactory::CreateTerrain(m_system, synchrono::GetDataFile(terrain_filename));
 
     // Create the brain
     auto driver = chrono_types::make_shared<ChDriver>(GetChVehicle());

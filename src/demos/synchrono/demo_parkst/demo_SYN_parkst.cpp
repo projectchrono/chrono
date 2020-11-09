@@ -215,19 +215,19 @@ int main(int argc, char* argv[]) {
         std::shared_ptr<ChBezierCurve> path;
         switch ((rank + 3) % 4) {
             case 0:
-                path = framework->CurveFromGPS(GetSynDataFile("path/parkst_john_inner.txt"));
+                path = framework->CurveFromGPS(synchrono::GetDataFile("path/parkst_john_inner.txt"));
                 break;
             case 1:
-                path = framework->CurveFromGPS(GetSynDataFile("path/parkst_grainger_loop.txt"));
+                path = framework->CurveFromGPS(synchrono::GetDataFile("path/parkst_grainger_loop.txt"));
                 break;
             case 2:
-                path = framework->CurveFromGPS(GetSynDataFile("path/parkst_park_straight.txt"));
+                path = framework->CurveFromGPS(synchrono::GetDataFile("path/parkst_park_straight.txt"));
                 break;
             case 3:
-                path = framework->CurveFromGPS(GetSynDataFile("path/parkst_john_outer.txt"));
+                path = framework->CurveFromGPS(synchrono::GetDataFile("path/parkst_john_outer.txt"));
                 break;
             default:
-                path = framework->CurveFromGPS(GetSynDataFile("path/parkst_john_inner.txt"));
+                path = framework->CurveFromGPS(synchrono::GetDataFile("path/parkst_john_inner.txt"));
                 break;
         }
 

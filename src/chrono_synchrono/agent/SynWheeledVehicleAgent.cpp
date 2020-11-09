@@ -103,7 +103,7 @@ void SynWheeledVehicleAgent::VehicleAgentFromJSON(const std::string& filename) {
 
     // Create the vehicle
     std::string vehicle_filename = d["Vehicle Input File"].GetString();
-    m_wheeled_vehicle = chrono_types::make_shared<SynWheeledVehicle>(GetSynDataFile(vehicle_filename));
+    m_wheeled_vehicle = chrono_types::make_shared<SynWheeledVehicle>(synchrono::GetDataFile(vehicle_filename));
 }
 
 void SynWheeledVehicleAgent::VehicleAgentFromJSON(ChCoordsys<> coord_sys,
@@ -114,8 +114,8 @@ void SynWheeledVehicleAgent::VehicleAgentFromJSON(ChCoordsys<> coord_sys,
 
     // Create the vehicle
     std::string vehicle_filename = d["Vehicle Input File"].GetString();
-    m_wheeled_vehicle =
-        chrono_types::make_shared<SynWheeledVehicle>(coord_sys, GetSynDataFile(vehicle_filename), system);
+    m_wheeled_vehicle = chrono_types::make_shared<SynWheeledVehicle>(
+        coord_sys, synchrono::GetDataFile(vehicle_filename), system);
 
     // Create the rest of the agent
     SynVehicleAgent::VehicleAgentFromJSON(d);
@@ -129,8 +129,8 @@ void SynWheeledVehicleAgent::VehicleAgentFromJSON(ChCoordsys<> coord_sys,
 
     // Create the vehicle
     std::string vehicle_filename = d["Vehicle Input File"].GetString();
-    m_wheeled_vehicle =
-        chrono_types::make_shared<SynWheeledVehicle>(coord_sys, GetSynDataFile(vehicle_filename), contact_method);
+    m_wheeled_vehicle = chrono_types::make_shared<SynWheeledVehicle>(
+        coord_sys, synchrono::GetDataFile(vehicle_filename), contact_method);
 
     m_system = m_wheeled_vehicle->GetSystem();
 

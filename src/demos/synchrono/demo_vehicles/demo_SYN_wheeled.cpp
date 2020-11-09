@@ -117,7 +117,7 @@ int main(int argc, char* argv[]) {
         vehicle->SetNumWheels(4);
     } else {
         // Odd ranks will be a Sedan vehicle specified through a JSON file
-        auto vehicle_filename = GetSynDataFile("vehicle/Sedan.json");
+        auto vehicle_filename = synchrono::GetDataFile("vehicle/Sedan.json");
         vehicle = chrono_types::make_shared<SynWheeledVehicle>(init_pos, vehicle_filename, contact_method);
     }
     agent->SetVehicle(vehicle);

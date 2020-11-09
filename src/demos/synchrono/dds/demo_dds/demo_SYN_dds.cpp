@@ -25,7 +25,7 @@ int main(int argc, char** argv) {
 
     SynDDSManager dds_manager(rank, num_ranks);
 
-    std::string filename = GetSynDataFile("agent/SedanAgent.json");
+    std::string filename = synchrono::GetDataFile("agent/SedanAgent.json");
 
     auto agent = chrono_types::make_shared<SynWheeledVehicleAgent>(rank, filename, CONTACT_METHOD);
     agent->Initialize(ChCoordsys<>({(rank - 1) * -10., 3.0 * rank, 0.5}, {1, 0, 0, 0}));

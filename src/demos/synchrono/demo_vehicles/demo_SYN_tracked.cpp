@@ -125,7 +125,7 @@ int main(int argc, char* argv[]) {
         vehicle->SetNumAssemblyComponents(127, 2, 2, 10);
     } else {
         // Odd ranks will be a M113 vehicle specified through a JSON file
-        auto vehicle_filename = GetSynDataFile("vehicle/M113.json");
+        auto vehicle_filename = synchrono::GetDataFile("vehicle/M113.json");
         vehicle = chrono_types::make_shared<SynTrackedVehicle>(init_pos, vehicle_filename, contact_method);
     }
     agent->SetVehicle(vehicle);

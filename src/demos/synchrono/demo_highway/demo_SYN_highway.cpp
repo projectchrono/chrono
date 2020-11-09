@@ -91,7 +91,8 @@ std::shared_ptr<SynWheeledVehicle> InitializeVehicle(int rank) {
             init_rot = Q_from_AngZ(-90 * CH_C_DEG_TO_RAD);
     }
     ChCoordsys<> init_pos(init_loc, init_rot);
-    auto vehicle = chrono_types::make_shared<SynWheeledVehicle>(init_pos, GetSynDataFile(filename), contact_method);
+    auto vehicle =
+        chrono_types::make_shared<SynWheeledVehicle>(init_pos, synchrono::GetDataFile(filename), contact_method);
 
     return vehicle;
 }
@@ -125,10 +126,11 @@ int main(int argc, char* argv[]) {
     auto patch_mat = minfo.CreateMaterial(contact_method);
 
     auto terrain = chrono_types::make_shared<RigidTerrain>(agent->GetSystem());
-    auto patch = terrain->AddPatch(patch_mat, CSYSNORM, GetSynDataFile("meshes/Highway_col.obj"), "", 0.01, false);
+    auto patch =
+        terrain->AddPatch(patch_mat, CSYSNORM, synchrono::GetDataFile("meshes/Highway_col.obj"), "", 0.01, false);
 
     auto vis_mesh = chrono_types::make_shared<ChTriangleMeshConnected>();
-    vis_mesh->LoadWavefrontMesh(GetSynDataFile("meshes/Highway_vis.obj"), true, true);
+    vis_mesh->LoadWavefrontMesh(synchrono::GetDataFile("meshes/Highway_vis.obj"), true, true);
     auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
     trimesh_shape->SetMesh(vis_mesh);
     trimesh_shape->SetStatic(true);

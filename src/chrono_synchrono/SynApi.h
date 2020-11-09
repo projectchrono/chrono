@@ -20,6 +20,7 @@
 // (so that the symbols with 'SYN_API' in front of them will be marked as
 // exported). Otherwise, just do not define it if you link the library to your
 // code, and the symbols will be imported.
+// Note: For header-only classes, do NOT put SYN_API in front of the class definition
 
 #if defined(SYN_API_COMPILE)
 #define SYN_API ChApiEXPORT

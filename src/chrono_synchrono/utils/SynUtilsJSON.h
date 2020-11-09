@@ -1,10 +1,27 @@
+// =============================================================================
+// PROJECT CHRONO - http://projectchrono.org
+//
+// Copyright (c) 2020 projectchrono.org
+// All rights reserved.
+//
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
+//
+// =============================================================================
+// Authors: Aaron Young
+// =============================================================================
+//
+// A set of helper functions for pulling data from json structures into Chrono
+// or SynChrono objects
+//
+// =============================================================================
+
 #ifndef SYN_JSON_UTILS_H
 #define SYN_JSON_UTILS_H
 
 #include "chrono_synchrono/SynApi.h"
 
-#include "chrono/core/ChQuaternion.h"
-#include "chrono/core/ChVector.h"
 #include "chrono/core/ChCoordsys.h"
 
 #include "chrono_vehicle/ChSubsysDefs.h"
@@ -15,6 +32,9 @@ using namespace chrono::vehicle;
 
 namespace chrono {
 namespace synchrono {
+
+/// @addtogroup synchrono_utils
+/// @{
 
 // -----------------------------------------------------------------------------
 
@@ -40,12 +60,7 @@ SYN_API VisualizationType ReadVisualizationTypeJSON(const std::string& type);
 
 // -----------------------------------------------------------------------------
 
-// /// Change value in JSON file
-// SYN_API void ChangeValueJSON(const std::string& filename,
-//                              std::vector<std::string> entries,
-//                              const rapidjson::Value new_value);
-
-// -----------------------------------------------------------------------------
+/// @} synchrono_utils
 
 }  // namespace synchrono
 }  // namespace chrono

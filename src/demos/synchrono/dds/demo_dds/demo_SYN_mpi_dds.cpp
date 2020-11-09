@@ -37,7 +37,7 @@ int main(int argc, char** argv) {
     sys->SetSolverMaxIterations(150);
     sys->SetMaxPenetrationRecoverySpeed(4.0);
 
-    std::string filename = GetSynDataFile("agent/SedanAgent.json");
+    std::string filename = synchrono::GetDataFile("agent/SedanAgent.json");
 
     std::shared_ptr<SynWheeledVehicleAgent> agent;
     if (cli.GetAsType<bool>("zombie") && rank == 0) {

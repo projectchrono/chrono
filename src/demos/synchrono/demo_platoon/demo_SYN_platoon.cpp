@@ -82,7 +82,7 @@ int main(int argc, char* argv[]) {
 
     ChQuaternion<> initRot = ChQuaternion<>({1, 0, 0, 0});
 
-    std::string vehicle_filename = GetSynDataFile("vehicle/Sedan.json");
+    std::string vehicle_filename = synchrono::GetDataFile("vehicle/Sedan.json");
     ChCoordsys<> init_pos(base + offset, initRot);
     auto vehicle = chrono_types::make_shared<SynWheeledVehicle>(init_pos, vehicle_filename, contact_method);
     agent->SetVehicle(vehicle);
