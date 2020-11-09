@@ -1,7 +1,24 @@
+// =============================================================================
+// PROJECT CHRONO - http://projectchrono.org
+//
+// Copyright (c) 2020 projectchrono.org
+// All rights reserved.
+//
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
+//
+// =============================================================================
+// Authors: Aaron Young
+// =============================================================================
+//
+// Wrapper class for ChWheeledVehicles. Additional functions here are related to
+// initializing this as a zombie (setting visual representations, # of wheels)
+//
+// =============================================================================
+
 #ifndef SYN_WHEELED_VEHICLE_H
 #define SYN_WHEELED_VEHICLE_H
-
-#include "chrono_synchrono/SynApi.h"
 
 #include "chrono_synchrono/vehicle/SynVehicle.h"
 #include "chrono_synchrono/flatbuffer/message/SynWheeledVehicleMessage.h"
@@ -13,6 +30,9 @@ using namespace chrono::vehicle;
 
 namespace chrono {
 namespace synchrono {
+
+/// @addtogroup synchrono_vehicle
+/// @{
 
 class SYN_API SynWheeledVehicle : public SynVehicle {
   public:
@@ -77,8 +97,6 @@ class SYN_API SynWheeledVehicle : public SynVehicle {
                                      std::string wheel_vis_file,
                                      std::string tire_vis_file);
 
-    // Set the number of wheels this vehicle has
-
     ///@brief Set the number of wheels of the underlying vehicle
     ///
     ///@param num_wheels number of wheels of the underlying vehicle
@@ -139,6 +157,8 @@ class SYN_API SynCustomWheeledVehicle : public SynWheeledVehicle {
   private:
     std::shared_ptr<V> m_vehicle_model;
 };
+
+/// @} synchrono_vehicle
 
 }  // namespace synchrono
 }  // namespace chrono

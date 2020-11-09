@@ -1,3 +1,22 @@
+// =============================================================================
+// PROJECT CHRONO - http://projectchrono.org
+//
+// Copyright (c) 2020 projectchrono.org
+// All rights reserved.
+//
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
+//
+// =============================================================================
+// Authors: Aaron Young
+// =============================================================================
+//
+// Wrapper class for ChTrackedVehicles. Additional functions here are related to
+// initializing this as a zombie (setting visual representations, treads)
+//
+// =============================================================================
+
 #include "chrono_synchrono/vehicle/SynTrackedVehicle.h"
 
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
@@ -22,9 +41,8 @@ SynTrackedVehicle::SynTrackedVehicle() : SynVehicle() {
 
 SynTrackedVehicle::SynTrackedVehicle(ChTrackedVehicle* tracked_vehicle)
     : SynVehicle(false), m_tracked_vehicle(tracked_vehicle) {
-    if (!tracked_vehicle) {
-        std::cout << "SynTrackedVehicle: Vehicle is NULL!!!" << std::endl;
-    }
+    if (!tracked_vehicle)
+        std::cerr << "SynTrackedVehicle: Vehicle is NULL" << std::endl;
     m_system = m_tracked_vehicle->GetSystem();
 
     m_state = chrono_types::make_shared<SynTrackedVehicleState>();

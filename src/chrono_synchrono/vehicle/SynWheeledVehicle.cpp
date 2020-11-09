@@ -1,5 +1,25 @@
+// =============================================================================
+// PROJECT CHRONO - http://projectchrono.org
+//
+// Copyright (c) 2020 projectchrono.org
+// All rights reserved.
+//
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
+//
+// =============================================================================
+// Authors: Aaron Young
+// =============================================================================
+//
+// Wrapper class for ChWheeledVehicles. Additional functions here are related to
+// initializing this as a zombie (setting visual representations, # of wheels)
+//
+// =============================================================================
+
 #include "chrono_synchrono/vehicle/SynWheeledVehicle.h"
 
+// MSVC seems to need these otherwise it compiles out the templated customWheeledVehicle
 #include "chrono_vehicle/wheeled_vehicle/vehicle/WheeledVehicle.h"
 #include "chrono_models/vehicle/hmmwv/HMMWV.h"
 #include "chrono_models/vehicle/gator/Gator.h"
@@ -21,9 +41,8 @@ SynWheeledVehicle::SynWheeledVehicle() : SynVehicle() {
 
 SynWheeledVehicle::SynWheeledVehicle(ChWheeledVehicle* wheeled_vehicle)
     : SynVehicle(false), m_wheeled_vehicle(wheeled_vehicle) {
-    if (!wheeled_vehicle) {
-        std::cout << "SynVehicle: Vehicle is NULL!!!" << std::endl;
-    }
+    if (!wheeled_vehicle)
+        std::cerr << "SynVehicle: Vehicle is NULL" << std::endl;
     m_system = m_wheeled_vehicle->GetSystem();
 
     m_state = chrono_types::make_shared<SynWheeledVehicleState>();

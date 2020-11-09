@@ -9,6 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
+// Authors: Aaron Young, Jay Taves
 // =============================================================================
 //
 // Class that wraps a ChVehicle. The underlying vehicle dynamics remain
@@ -45,6 +46,9 @@ using namespace chrono::geometry;
 
 namespace chrono {
 namespace synchrono {
+
+/// @addtogroup synchrono_vehicle
+/// @{
 
 class SYN_API SynVehicle {
   public:
@@ -152,7 +156,6 @@ class SYN_API SynVehicle {
     ///@param system the system to add the body to
     void CreateChassisZombieBody(const std::string& filename, ChSystem* system);
 
-  protected:
     bool m_is_zombie;     ///< is this vehicle a zombie
     bool m_owns_vehicle;  ///< has the vehicle been created by this object or passed by user
 
@@ -160,6 +163,8 @@ class SYN_API SynVehicle {
 
     std::shared_ptr<ChBodyAuxRef> m_zombie_body;  ///< agent's zombie body reference
 };
+
+/// @} synchrono_vehicle
 
 }  // namespace synchrono
 }  // namespace chrono

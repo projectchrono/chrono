@@ -1,12 +1,31 @@
+// =============================================================================
+// PROJECT CHRONO - http://projectchrono.org
+//
+// Copyright (c) 2020 projectchrono.org
+// All rights reserved.
+//
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
+//
+// =============================================================================
+// Authors: Aaron Young
+// =============================================================================
+//
+// Wrapper class for ChTrackedVehicles. Additional functions here are related to
+// initializing this as a zombie (setting visual representations, treads)
+//
+// =============================================================================
+
 #ifndef SYN_TRACKED_VEHICLE_H
 #define SYN_TRACKED_VEHICLE_H
-
-#include "chrono_synchrono/SynApi.h"
 
 #include "chrono_synchrono/vehicle/SynVehicle.h"
 #include "chrono_synchrono/flatbuffer/message/SynTrackedVehicleMessage.h"
 
 #include "chrono_vehicle/tracked_vehicle/ChTrackedVehicle.h"
+
+// MSVC seems to need these otherwise it compiles out the templated customWheeledVehicle
 #include "chrono_models/vehicle/m113/M113.h"
 
 using namespace chrono;
@@ -14,6 +33,9 @@ using namespace chrono::vehicle;
 
 namespace chrono {
 namespace synchrono {
+
+/// @addtogroup synchrono_vehicle
+/// @{
 
 // ALWAYS owns system
 class SYN_API SynTrackedVehicle : public SynVehicle {
@@ -187,6 +209,8 @@ class SYN_API SynCustomTrackedVehicle : public SynTrackedVehicle {
   private:
     std::shared_ptr<V> m_vehicle_model;
 };
+
+/// @} synchrono_vehicle
 
 }  // namespace synchrono
 }  // namespace chrono

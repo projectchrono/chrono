@@ -9,6 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
+// Authors: Aaron Young, Jay Taves
 // =============================================================================
 //
 // Class that wraps a ChVehicle. The underlying vehicle dynamics remain
