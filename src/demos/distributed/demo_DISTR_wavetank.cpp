@@ -52,27 +52,15 @@ float Y = 2e7f;
 float mu = 0.18f;
 float cr = 0.87f;
 float nu = 0.22f;
-double gran_radius = -1;
 double rho = 4000;
-double spacing = -1;  // Distance between adjacent centers of particles
-double mass = -1;
-ChVector<> inertia;
 
-// Dimensions
-double hx = -1.0;
-double hy = -1.0;
-double height = -1.0;
 int split_axis = 1;  // Split in y axis
 
 // Oscillation
-double settling_time = -1;
-double period = -1;
-double amplitude = -1;
 size_t low_x_wall;
 size_t high_x_wall;
 
 // Simulation
-double time_step = -1;
 double out_fps = 60;
 double tolerance = 1e-4;
 
@@ -119,7 +107,12 @@ void Monitor(chrono::ChSystemParallel* system, int rank) {
            STEP, EXCH, BROD, NARR, SOLVER, UPDT, BODS, CNTC, ITER, RESID);
 }
 
-std::shared_ptr<ChBoundary> AddContainer(ChSystemDistributed* sys) {
+std::shared_ptr<ChBoundary> AddContainer(ChSystemDistributed* sys,
+                                         double hx,
+                                         double hy,
+                                         double height,
+                                         double amplitude,
+                                         double spacing) {
     int binId = -200;
 
     auto mat = chrono_types::make_shared<ChMaterialSurfaceSMC>();
@@ -184,7 +177,14 @@ inline std::shared_ptr<ChBody> CreateBall(const ChVector<>& pos,
 }
 
 // TODO: Not HCP?
-size_t AddFallingBalls(ChSystemDistributed* sys) {
+size_t AddFallingBalls(ChSystemDistributed* sys,
+                       double hx,
+                       double hy,
+                       double height,
+                       double gran_radius,
+                       double spacing,
+                       double mass,
+                       ChVector<> inertia) {
     double lowest = 1.0 * spacing;  // lowest layer is 3 particles above the floor
     ChVector<double> box_center(0, 0, lowest + (height - lowest) / 2.0);
     ChVector<double> half_dims(hx - spacing, hy - spacing, (height - lowest - spacing) / 2.0);
@@ -211,7 +211,7 @@ size_t AddFallingBalls(ChSystemDistributed* sys) {
     return points.size();
 }
 
-double GetWallPos(double cur_time) {
+double GetWallPos(double cur_time, double amplitude, double period, double settling_time) {
     if (cur_time < settling_time)
         return 0;
     return amplitude * std::sin((cur_time - settling_time) * 2 * CH_C_PI / period);
@@ -225,16 +225,16 @@ int main(int argc, char* argv[]) {
     ChCLI cli(argv[0]);
 
     // Command-line arguments for the demo
-    cli.AddOption<int>("Demo", "n,nthreads", "Number of OpenMP threads on each rank", "-1");
-    cli.AddOption<double>("Demo", "r,radius", "Particle radius", "-1");
-    cli.AddOption<int>("Demo", "x,xsize", "Patch dimension in X direction in particle diameters", "-1");
-    cli.AddOption<int>("Demo", "y,ysize", "Patch dimension in Y direction in particle diameters", "-1");
-    cli.AddOption<int>("Demo", "z,zsize", "Patch dimension in Z direction in particle diameters", "-1");
-    cli.AddOption<double>("Demo", "a,amplitude", "Amplitude of wavetank oscillation in particle diameters", "-1");
-    cli.AddOption<double>("Demo", "p,period", "Period of wavetank oscillation", "-1");
-    cli.AddOption<double>("Demo", "t,end_time", "Simulation length", "-1");
-    cli.AddOption<double>("Demo", "s,step_size", "Time step length", "-1");
-    cli.AddOption<double>("Demo", "d,settling_time", "Time spent settling before oscillation begins", "-1");
+    cli.AddOption<int>("Demo", "n,nthreads", "Number of OpenMP threads on each rank");
+    cli.AddOption<double>("Demo", "r,radius", "Particle radius");
+    cli.AddOption<int>("Demo", "x,xsize", "Patch dimension in X direction in particle diameters");
+    cli.AddOption<int>("Demo", "y,ysize", "Patch dimension in Y direction in particle diameters");
+    cli.AddOption<int>("Demo", "z,zsize", "Patch dimension in Z direction in particle diameters");
+    cli.AddOption<double>("Demo", "a,amplitude", "Amplitude of wavetank oscillation in particle diameters");
+    cli.AddOption<double>("Demo", "p,period", "Period of wavetank oscillation");
+    cli.AddOption<double>("Demo", "t,end_time", "Simulation length");
+    cli.AddOption<double>("Demo", "s,step_size", "Time step length");
+    cli.AddOption<double>("Demo", "d,settling_time", "Time spent settling before oscillation begins");
     cli.AddOption<std::string>("Demo", "o,outdir", "Output directory (must not exist)", "");
     cli.AddOption<bool>("Demo", "m,perf_mon", "Enable performance monitoring", "false");
     cli.AddOption<bool>("Demo", "v,verbose", "Enable verbose output", "false");
@@ -246,23 +246,25 @@ int main(int argc, char* argv[]) {
 
     // Parse program arguments
     const int num_threads = cli.GetAsType<int>("nthreads");
-    gran_radius = cli.GetAsType<double>("radius");
-    spacing = 2.001 * gran_radius;
-    mass = rho * 4.0 / 3.0 * CH_C_PI * gran_radius * gran_radius * gran_radius;
-    inertia = (2.0 / 5.0) * mass * gran_radius * gran_radius * ChVector<>(1, 1, 1);
-    hx = gran_radius * cli.GetAsType<int>("xsize");
-    hy = gran_radius * cli.GetAsType<int>("ysize");
-    height = 2 * gran_radius * cli.GetAsType<int>("zsize");
-    amplitude = 2 * gran_radius * cli.GetAsType<double>("amplitude");
-    period = cli.GetAsType<double>("period");
+    const double gran_radius = cli.GetAsType<double>("radius");
+    const double spacing = 2.001 * gran_radius;  // Distance between adjacent centers of particles
+    const double mass = rho * 4.0 / 3.0 * CH_C_PI * gran_radius * gran_radius * gran_radius;
+    const ChVector<> inertia = (2.0 / 5.0) * mass * gran_radius * gran_radius * ChVector<>(1, 1, 1);
+    const double hx = gran_radius * cli.GetAsType<int>("xsize");
+    const double hy = gran_radius * cli.GetAsType<int>("ysize");
+    const double height = 2 * gran_radius * cli.GetAsType<int>("zsize");
+    const double amplitude = 2 * gran_radius * cli.GetAsType<double>("amplitude");
+    const double period = cli.GetAsType<double>("period");
+    const double settling_time = cli.GetAsType<double>("settling_time");
     const double time_end = cli.GetAsType<double>("end_time");
+    const double time_step = cli.GetAsType<double>("step_size");
     std::string outdir = cli.GetAsType<std::string>("outdir");
     const bool output_data = outdir.compare("") != 0;
     const bool monitor = cli.GetAsType<bool>("m");
     const bool verbose = cli.GetAsType<bool>("v");
 
     // Check that required parameters were specified
-    if (num_threads == -1 || time_end <= 0 || hx < 0 || hy < 0 || height < 0) {
+    if (num_threads < 1 || time_end <= 0 || hx < 0 || hy < 0 || height < 0) {
         if (my_rank == MASTER)
             std::cout << "Invalid parameter or missing required parameter." << std::endl;
         return false;
@@ -357,8 +359,8 @@ int main(int argc, char* argv[]) {
     if (verbose)
         printf("Rank: %d   bins: %d %d %d\n", my_rank, binX, binY, binZ);
 
-    auto bc = AddContainer(&my_sys);
-    auto actual_num_bodies = AddFallingBalls(&my_sys);
+    auto bc = AddContainer(&my_sys, hx, hy, height, amplitude, spacing);
+    auto actual_num_bodies = AddFallingBalls(&my_sys, hx, hy, height, gran_radius, spacing, mass, inertia);
     MPI_Barrier(my_sys.GetCommunicator());
     if (my_rank == MASTER)
         std::cout << "Total number of particles: " << actual_num_bodies << std::endl;
@@ -388,7 +390,7 @@ int main(int argc, char* argv[]) {
                 out_frame++;
             }
         }
-        double pos = GetWallPos(time);
+        double pos = GetWallPos(time, amplitude, period, settling_time);
         bc->GetBody()->SetPos(ChVector<>(pos, 0, 0));
         bc->Update();
 

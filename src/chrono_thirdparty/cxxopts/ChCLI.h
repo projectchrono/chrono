@@ -24,11 +24,6 @@
 
 namespace chrono {
 
-const double STEP_SIZE = 3e-3;
-const double END_TIME = 20.0;
-const double HEARTBEAT = 1e-2;
-const bool VERBOSE = false;
-
 class ChCLI {
   public:
     /// Constructor
@@ -63,15 +58,6 @@ class ChCLI {
 
     /// Print our the help menu
     void Help() { std::cout << m_options.help() << std::endl; }
-
-    /// Add default options for synchrono demos
-    void AddDefaultDemoOptions() {
-        // General simulation options
-        AddOption<double>("Simulation", "step_size", "Step size", std::to_string(STEP_SIZE));
-        AddOption<double>("Simulation", "end_time", "End time", std::to_string(END_TIME));
-        AddOption<double>("Simulation", "heartbeat", "Heartbeat", std::to_string(HEARTBEAT));
-        AddOption<bool>("Simulation", "verbose", "Verbosity", std::to_string(VERBOSE));
-    }
 
     /// Check for value in vector
     template <typename T>

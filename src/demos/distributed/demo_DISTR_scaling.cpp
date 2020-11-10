@@ -43,10 +43,6 @@ using namespace chrono::collision;
 
 #define MASTER 0
 
-double hx = -1.0;
-double hy = -1.0;
-double height = -1.0;
-
 // Granular Properties
 float Y = 2e6f;
 float mu = 0.4f;
@@ -99,7 +95,7 @@ void Monitor(chrono::ChSystemParallel* system, int rank) {
            rank, TIME, STEP, EXCH, BROD, NARR, SOLVER, UPDT, BODS, CNTC, ITER, RESID);
 }
 
-void AddContainer(ChSystemDistributed* sys) {
+void AddContainer(ChSystemDistributed* sys, double hx, double hy, double height) {
     // TODO Any of this body stuff needed for custom collision?
     int binId = -200;
 
@@ -151,7 +147,7 @@ inline std::shared_ptr<ChBody> CreateBall(const ChVector<>& pos,
     return ball;
 }
 
-size_t AddFallingBalls(ChSystemDistributed* sys) {
+size_t AddFallingBalls(ChSystemDistributed* sys, double hx, double hy, double height) {
     double lowest = 3.0 * spacing;
     ChVector<double> box_center(0, 0, lowest + (height - lowest) / 2.0);
     ChVector<double> half_dims(hx - spacing, hy - spacing, (height - lowest) / 2.0);
@@ -188,11 +184,11 @@ int main(int argc, char* argv[]) {
     ChCLI cli(argv[0]);
 
     // Command-line arguments for the demo
-    cli.AddOption<int>("Demo", "n,nthreads", "Number of OpenMP threads on each rank", "-1");
-    cli.AddOption<double>("Demo", "x,xsize", "Patch half dimension in X direction", "-1");
-    cli.AddOption<double>("Demo", "y,ysize", "Patch half dimension in Y direction", "-1");
-    cli.AddOption<double>("Demo", "z,zsize", "Patch dimension in Z direction", "-1");
-    cli.AddOption<double>("Demo", "t,end_time", "Simulation length", "-1");
+    cli.AddOption<int>("Demo", "n,nthreads", "Number of OpenMP threads on each rank");
+    cli.AddOption<double>("Demo", "x,xsize", "Patch half dimension in X direction");
+    cli.AddOption<double>("Demo", "y,ysize", "Patch half dimension in Y direction");
+    cli.AddOption<double>("Demo", "z,zsize", "Patch dimension in Z direction");
+    cli.AddOption<double>("Demo", "t,end_time", "Simulation length");
     cli.AddOption<std::string>("Demo", "o,outdir", "Output directory (must not exist)", "");
     cli.AddOption<bool>("Demo", "m,perf_mon", "Enable performance monitoring", "false");
     cli.AddOption<bool>("Demo", "v,verbose", "Enable verbose output", "false");
@@ -204,9 +200,9 @@ int main(int argc, char* argv[]) {
 
     // Parse program arguments
     const int num_threads = cli.GetAsType<int>("nthreads");
-    hx = cli.GetAsType<double>("xsize") / 2.0;
-    hy = cli.GetAsType<double>("ysize") / 2.0;
-    height = cli.GetAsType<double>("zsize") / 2.0;
+    const double hx = cli.GetAsType<double>("xsize") / 2.0;
+    const double hy = cli.GetAsType<double>("ysize") / 2.0;
+    const double height = cli.GetAsType<double>("zsize") / 2.0;
     const double time_end = cli.GetAsType<double>("end_time");
     std::string outdir = cli.GetAsType<std::string>("outdir");
     const bool output_data = outdir.compare("") != 0;
@@ -214,7 +210,7 @@ int main(int argc, char* argv[]) {
     const bool verbose = cli.GetAsType<bool>("v");
 
     // Check that required parameters were specified
-    if (num_threads == -1 || time_end <= 0 || hx < 0 || hy < 0 || height < 0) {
+    if (num_threads < 1 || time_end <= 0 || hx < 0 || hy < 0 || height < 0) {
         if (my_rank == MASTER)
             std::cout << "Invalid parameter or missing required parameter." << std::endl;
         return false;
@@ -296,10 +292,10 @@ int main(int argc, char* argv[]) {
     if (verbose)
         printf("Rank: %d   bins: %d %d %d\n", my_rank, binX, binY, binZ);
 
-    AddContainer(&my_sys);
+    AddContainer(&my_sys, hx, hy, height);
 
     // Create objects
-    auto actual_num_bodies = AddFallingBalls(&my_sys);
+    auto actual_num_bodies = AddFallingBalls(&my_sys, hx, hy, height);
     MPI_Barrier(my_sys.GetCommunicator());
     if (my_rank == MASTER)
         std::cout << "Total number of particles: " << actual_num_bodies << std::endl;
