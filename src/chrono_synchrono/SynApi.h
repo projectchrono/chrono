@@ -45,7 +45,6 @@
         @defgroup synchrono_communication Communication
         @{
             @defgroup synchrono_communication_mpi Communication tools using the MPI framework
-            @defgroup synchrono_communication_dds Communication tools using the DDS framework
         @}
         @defgroup synchrono_flatbuffer Flatbuffer Messages
         @defgroup synchrono_terrain Terrain wrapping

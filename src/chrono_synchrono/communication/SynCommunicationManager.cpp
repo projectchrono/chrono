@@ -13,7 +13,7 @@
 // =============================================================================
 //
 // Base class for any class that could manage communication in a Chrono
-// simulation (e.g. DDS or MPI). Common tasks are adding agents, advancing the
+// simulation (e.g. MPI). Common tasks are adding agents, advancing the
 // physics and synchronizing state data among all participants (ranks in MPI)
 //
 // =============================================================================

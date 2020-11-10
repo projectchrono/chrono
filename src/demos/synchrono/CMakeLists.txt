@@ -14,6 +14,5 @@ add_subdirectory(demo_platoon)
 add_subdirectory(demo_SCM)
 add_subdirectory(demo_highway)
 add_subdirectory(demo_parkst)
-add_subdirectory(dds/demo_dds)
 
 #--------------------------------------------------------------
