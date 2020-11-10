@@ -30,7 +30,7 @@
 namespace chrono {
 namespace synchrono {
 
-/// @addtogroup synchrono_communication
+/// @addtogroup synchrono_communication_mpi
 /// @{
 
 ///@brief Memory mode for the MPIManager

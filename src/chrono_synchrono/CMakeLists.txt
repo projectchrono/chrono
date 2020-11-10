@@ -165,7 +165,6 @@ if(USE_FAST_DDS)
 		communication/dds/SynDDSManager.cpp
 
 		communication/dds/SynDDSEntity.h
-		communication/dds/SynDDSEntity.cpp
 		communication/dds/SynDDSListener.h
 		communication/dds/SynDDSListener.cpp
 		communication/dds/SynDDSPublisher.h

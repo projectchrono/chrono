@@ -43,6 +43,10 @@
         @defgroup synchrono_brain Brains and Drivers
         @defgroup synchrono_cli Command-Line Interface
         @defgroup synchrono_communication Communication
+        @{
+            @defgroup synchrono_communication_mpi Communication tools using the MPI framework
+            @defgroup synchrono_communication_dds Communication tools using the DDS framework
+        @}
         @defgroup synchrono_flatbuffer Flatbuffer Messages
         @defgroup synchrono_terrain Terrain wrapping
         @defgroup synchrono_vehicle Vehicle wrapping

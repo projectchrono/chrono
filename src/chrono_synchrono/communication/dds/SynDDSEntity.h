@@ -1,3 +1,21 @@
+// =============================================================================
+// PROJECT CHRONO - http://projectchrono.org
+//
+// Copyright (c) 2020 projectchrono.org
+// All rights reserved.
+//
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
+//
+// =============================================================================
+// Authors: Aaron Young
+// =============================================================================
+//
+// File description
+//
+// =============================================================================
+
 #ifndef SYN_DDS_ENTITY_H
 #define SYN_DDS_ENTITY_H
 
@@ -12,7 +30,8 @@
 namespace chrono {
 namespace synchrono {
 
-class SYN_API SynDDSEntity {
+/// TODO: Class description here
+class SynDDSEntity {
   public:
     ///@brief Construct a new SynDDSEntity object
     ///

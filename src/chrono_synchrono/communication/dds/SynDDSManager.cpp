@@ -1,3 +1,21 @@
+// =============================================================================
+// PROJECT CHRONO - http://projectchrono.org
+//
+// Copyright (c) 2020 projectchrono.org
+// All rights reserved.
+//
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
+//
+// =============================================================================
+// Authors: Aaron Young
+// =============================================================================
+//
+// File description
+//
+// =============================================================================
+
 #include "chrono_synchrono/communication/dds/SynDDSManager.h"
 
 #include "chrono_synchrono/communication/dds/SynDDSParticipant.h"
@@ -70,12 +88,12 @@ void SynDDSManager::Synchronize() {
     // auto time = std::chrono::high_resolution_clock::now();
     // auto span = std::chrono::duration_cast<std::chrono::milliseconds>(time - m_last).count();
     // if (span >= 25) {
-        // m_last = time;
+    // m_last = time;
 
-        bool message_received = Listen();
+    bool message_received = Listen();
 
-        if (message_received)
-            Publish();
+    if (message_received)
+        Publish();
     // }
 }
 
