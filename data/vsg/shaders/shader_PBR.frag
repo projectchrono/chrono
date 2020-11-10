@@ -1,6 +1,8 @@
 #version 450
 #extension GL_ARB_separate_shader_objects : enable
 
+layout(constant_id = 0) const float radiantIntensity = 300.0;
+
 layout(location=0) out vec4 FragColor;
 
 layout(location = 0) in vec3 ViewPos;
@@ -71,10 +73,10 @@ void main()
 	lightPositions[2] = vec3(-10.0f, -10.0f, 10.0f);
 	lightPositions[3] = vec3( 10.0f, -10.0f, 10.0f);
 	
-	lightColors[0] = vec3(300.0f, 300.0f, 300.0f);
-	lightColors[1] = vec3(300.0f, 300.0f, 300.0f);
-	lightColors[2] = vec3(300.0f, 300.0f, 300.0f);
-	lightColors[3] = vec3(300.0f, 300.0f, 300.0f);
+    lightColors[0] = vec3(radiantIntensity, radiantIntensity, radiantIntensity);
+    lightColors[1] = vec3(radiantIntensity, radiantIntensity, radiantIntensity);
+    lightColors[2] = vec3(radiantIntensity, radiantIntensity, radiantIntensity);
+    lightColors[3] = vec3(radiantIntensity, radiantIntensity, radiantIntensity);
 	
     vec3 N = normalize(Normal);
     vec3 V = normalize(camPos - ViewPos);

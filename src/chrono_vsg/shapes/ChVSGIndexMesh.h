@@ -10,8 +10,8 @@
 #include "chrono/assets/ChColor.h"
 #include "chrono/assets/ChTexture.h"
 #include "chrono_vsg/core/ChApiVSG.h"
-#include "chrono_vsg/assets/ChTexturedPBR.h"
 #include "chrono_vsg/assets/ChPBRSetting.h"
+#include "chrono_vsg/assets/ChPBRMaps.h"
 #include "chrono_vsg/resources/ChVSGSettings.h"
 #include "chrono_vsg/resources/ChVSGPhongMaterial.h"
 
@@ -22,17 +22,17 @@ namespace vsg3d {
 
 class CH_VSG_API ChVSGIndexMesh {
   public:
-    typedef enum { Unknown, Textured, SimplePhong, MappedPBR, PBR } MaterialMode;
+    typedef enum { Unknown, Textured, SimplePhong, PBR, PBRMaps } MaterialMode;
 
   public:
     ChVSGIndexMesh(std::shared_ptr<ChBody> body,
                    std::shared_ptr<ChAsset> asset,
                    vsg::ref_ptr<vsg::MatrixTransform> transform);
 
-    virtual void Initialize(ChTexturedPBR& textures, size_t tessFactor = 3) = 0;
     virtual void Initialize(ChTexture& texture, size_t tessFactor = 3) = 0;
     virtual void Initialize(ChColor& color, size_t tessFactor = 3) = 0;
     virtual void Initialize(ChPBRSetting& pbrSet, size_t tessFactor = 3) = 0;
+    virtual void Initialize(ChPBRMaps& pbrMaps, size_t tessFactor = 3) = 0;
     vsg::ref_ptr<vsg::Node> createVSGNode();
 
   protected:
@@ -45,6 +45,7 @@ class CH_VSG_API ChVSGIndexMesh {
     vsg::vec3 m_lightPosition;
     std::string m_textureFilePath;
     vsg::vec3 m_objectColor;
+    float m_radiantIntensity;
 
     std::string m_albedoMapPath;
     std::string m_normalMapPath;
@@ -66,10 +67,10 @@ class CH_VSG_API ChVSGIndexMesh {
     std::shared_ptr<ChAsset> m_assetPtr;
     vsg::ref_ptr<vsg::MatrixTransform> m_transform;
 
-    void genMappedPBRSubgraph(vsg::ref_ptr<vsg::StateGroup> subgraph);
     void genTexturedSubgraph(vsg::ref_ptr<vsg::StateGroup> subgraph);
     void genSimplePhongSubgraph(vsg::ref_ptr<vsg::StateGroup> subgraph);
     void genPBRSubgraph(vsg::ref_ptr<vsg::StateGroup> subgraph);
+    void genPBRMapSubgraph(vsg::ref_ptr<vsg::StateGroup> subgraph);
 };
 }  // namespace vsg3d
 }  // namespace chrono

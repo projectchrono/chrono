@@ -9,17 +9,6 @@ VSGIndexCylinder::VSGIndexCylinder(std::shared_ptr<ChBody> body,
                                    vsg::ref_ptr<vsg::MatrixTransform> transform)
     : ChVSGIndexMesh(body, asset, transform) {}
 
-void VSGIndexCylinder::Initialize(ChTexturedPBR& textures, size_t tessFactor) {
-    Tesselate(tessFactor);
-
-    m_matMode = MaterialMode::MappedPBR;
-    m_albedoMapPath = textures.GetAlbedoTextureFilename();
-    m_normalMapPath = textures.GetNormalTextureFilename();
-    m_metallicMapPath = textures.GetMetallicTextureFilename();
-    m_roughnessMapPath = textures.GetRoughnessTextureFilename();
-    m_aoMapPath = textures.GetAOTextureFilename();
-}
-
 void VSGIndexCylinder::Initialize(ChTexture& texture, size_t tessFactor) {
     Tesselate(tessFactor);
 
@@ -50,6 +39,17 @@ void VSGIndexCylinder::Initialize(ChPBRSetting& pbrSet, size_t tessFactor) {
     m_metallics = vsg::floatArray::create(m_vertices->size(), pbrSet.GetMetallic());
     m_roughnesses = vsg::floatArray::create(m_vertices->size(), pbrSet.GetRoughness());
     m_aos = vsg::floatArray::create(m_vertices->size(), pbrSet.GetAO());
+}
+
+void VSGIndexCylinder::Initialize(ChPBRMaps& pbrMaps, size_t tessFactor) {
+    Tesselate(tessFactor);
+
+    m_matMode = MaterialMode::PBRMaps;
+    m_albedoMapPath = pbrMaps.GetAlbedoMapPath();
+    m_normalMapPath = pbrMaps.GetNormalMapPath();
+    m_metallicMapPath = pbrMaps.GetMetallicMapPath();
+    m_roughnessMapPath = pbrMaps.GetRoughnessMapPath();
+    m_aoMapPath = pbrMaps.GetAoMapPath();
 }
 
 void VSGIndexCylinder::Tesselate(size_t tessFactor) {  // set up vertices, normals, texcoords, indices

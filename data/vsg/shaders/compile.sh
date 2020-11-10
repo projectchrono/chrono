@@ -14,3 +14,6 @@ glslc shader_Wireframe.frag -o frag_Wireframe.spv
 glslc shader_PBR.vert -o vert_PBR.spv
 glslc shader_PBR.frag -o frag_PBR.spv
 #
+glslc shader_MappedPBR.vert -o vert_MappedPBR.spv
+glslc shader_MappedPBR.frag -o frag_MappedPBR.spv
+#

@@ -2,8 +2,8 @@
 #include "chrono/utils/ChUtilsCreators.h"
 #include "chrono/assets/ChTexture.h"
 #include "chrono/assets/ChColorAsset.h"
-#include "chrono_vsg/assets/ChTexturedPBR.h"
 #include "chrono_vsg/assets/ChPBRSetting.h"
+#include "chrono_vsg/assets/ChPBRMaps.h"
 
 #include "chrono_vsg/ChVSGApp.h"
 
@@ -41,7 +41,7 @@ int main(int argc, char* argv[]) {
 
     auto box3 = chrono_types::make_shared<ChBody>();
     utils::AddBoxGeometry(box3.get(), mat, ChVector<>(1, 1, 1), ChVector<>(0.0, 6.0, 0));
-    box3->AddAsset(chrono_types::make_shared<ChTexturedPBR>(GetChronoDataFile("vsg/textures/pbr/plastic1")));
+    box3->AddAsset(chrono_types::make_shared<ChPBRMaps>(GetChronoDataFile("vsg/textures/pbr/rustediron1")));
     sys.AddBody(box3);
 
     auto box4 = chrono_types::make_shared<ChBody>();
@@ -61,7 +61,7 @@ int main(int argc, char* argv[]) {
 
     auto cyl3 = chrono_types::make_shared<ChBody>();
     utils::AddCylinderGeometry(cyl3.get(), mat, 1, 1, ChVector<>(3.0, 6.0, 0));
-    cyl3->AddAsset(chrono_types::make_shared<ChTexturedPBR>(GetChronoDataFile("vsg/textures/pbr/plastic2")));
+    cyl3->AddAsset(chrono_types::make_shared<ChPBRMaps>(GetChronoDataFile("vsg/textures/pbr/concrete1")));
     sys.AddBody(cyl3);
 
     auto cyl4 = chrono_types::make_shared<ChBody>();
@@ -81,7 +81,7 @@ int main(int argc, char* argv[]) {
 
     auto ellipsoid3 = chrono_types::make_shared<ChBody>();
     utils::AddEllipsoidGeometry(ellipsoid3.get(), mat, ChVector<>(.5, 1, 1), ChVector<>(6, 6, 0));
-    ellipsoid3->AddAsset(chrono_types::make_shared<ChTexturedPBR>(GetChronoDataFile("vsg/textures/pbr/plastic3")));
+    ellipsoid3->AddAsset(chrono_types::make_shared<ChPBRMaps>(GetChronoDataFile("vsg/textures/pbr/concrete2")));
     sys.AddBody(ellipsoid3);
 
     auto ellipsoid4 = chrono_types::make_shared<ChBody>();
@@ -101,7 +101,7 @@ int main(int argc, char* argv[]) {
 
     auto sphere3 = chrono_types::make_shared<ChBody>();
     utils::AddSphereGeometry(sphere3.get(), mat, 1, ChVector<>(9, 6, 0));
-    sphere3->AddAsset(chrono_types::make_shared<ChTexturedPBR>(GetChronoDataFile("vsg/textures/pbr/plastic4")));
+    sphere3->AddAsset(chrono_types::make_shared<ChPBRMaps>(GetChronoDataFile("vsg/textures/pbr/plastic3")));
     sys.AddBody(sphere3);
 
     auto sphere4 = chrono_types::make_shared<ChBody>();

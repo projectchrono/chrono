@@ -27,7 +27,6 @@
 #include "chrono/assets/ChCylinderShape.h"
 #include "chrono_vsg/resources/ChVSGSettings.h"
 #include "chrono_vsg/resources/ChVSGPhongMaterial.h"
-#include "chrono_vsg/assets/ChTexturedPBR.h"
 #include "chrono_vsg/assets/ChPBRSetting.h"
 #include "chrono_vsg/shapes/VSGIndexBox.h"
 #include "chrono_vsg/shapes/VSGIndexSphere.h"
@@ -196,8 +195,8 @@ void ChVSGApp::BuildSceneGraph() {
         bool pbrMapsFound = false;
         bool pbrSetFound = false;
         ChTexture bodyTexture;
-        ChTexturedPBR bodyPBRMaps;
         ChPBRSetting bodyPBRSet;
+        ChPBRMaps bodyPBRMaps;
         ChColor bodyColor(1.0, 0.0, 0.0, 1.0);
         for (int i = 0; i < body->GetAssets().size(); i++) {
             auto asset = body->GetAssets().at(i);
@@ -214,15 +213,6 @@ void ChVSGApp::BuildSceneGraph() {
                 bodyTexture.SetTextureFilename(texture_asset->GetTextureFilename());
                 textureFound = true;
             }
-            if (std::dynamic_pointer_cast<ChTexturedPBR>(asset)) {
-                ChTexturedPBR* texture_asset = (ChTexturedPBR*)(asset.get());
-                bodyPBRMaps.SetAlbedoTextureFilename(texture_asset->GetAlbedoTextureFilename());
-                bodyPBRMaps.SetNormalTextureFilename(texture_asset->GetNormalTextureFilename());
-                bodyPBRMaps.SetMetallicTextureFilename(texture_asset->GetMetallicTextureFilename());
-                bodyPBRMaps.SetRoughnessTextureFilename(texture_asset->GetRoughnessTextureFilename());
-                bodyPBRMaps.SetAOTextureFilename(texture_asset->GetAOTextureFilename());
-                pbrMapsFound = true;
-            }
             if (std::dynamic_pointer_cast<ChPBRSetting>(asset)) {
                 ChPBRSetting* texture_asset = (ChPBRSetting*)(asset.get());
                 bodyPBRSet.SetAlbedo(texture_asset->GetAlbedo());
@@ -230,6 +220,15 @@ void ChVSGApp::BuildSceneGraph() {
                 bodyPBRSet.SetRoughness(texture_asset->GetRoughness());
                 bodyPBRSet.SetAO(texture_asset->GetAO());
                 pbrSetFound = true;
+            }
+            if (std::dynamic_pointer_cast<ChPBRMaps>(asset)) {
+                ChPBRMaps* texture_asset = (ChPBRMaps*)(asset.get());
+                bodyPBRMaps.SetAlbedoMapPath(texture_asset->GetAlbedoMapPath());
+                bodyPBRMaps.SetNormalMapPath(texture_asset->GetNormalMapPath());
+                bodyPBRMaps.SetMetallicMapPath(texture_asset->GetMetallicMapPath());
+                bodyPBRMaps.SetRoughnessMapPath(texture_asset->GetRoughnessMapPath());
+                bodyPBRMaps.SetAoMapPath(texture_asset->GetAoMapPath());
+                pbrMapsFound = true;
             }
         }
         for (int i = 0; i < body->GetAssets().size(); i++) {
@@ -255,14 +254,14 @@ void ChVSGApp::BuildSceneGraph() {
                                      vsg::rotate(angle, axis.x(), axis.y(), axis.z()) *
                                      vsg::scale(size.x(), size.y(), size.z()));
                 VSGIndexBox box(body, asset, transform);
-                if (pbrMapsFound) {
-                    box.Initialize(bodyPBRMaps);
-                } else if (textureFound) {
+                if (textureFound) {
                     box.Initialize(bodyTexture);
                 } else if (colorFound) {
                     box.Initialize(bodyColor);
                 } else if (pbrSetFound) {
                     box.Initialize(bodyPBRSet);
+                } else if (pbrMapsFound) {
+                    box.Initialize(bodyPBRMaps);
                 }
                 vsg::ref_ptr<vsg::Node> node = box.createVSGNode();
                 m_scenegraph->addChild(node);
@@ -279,14 +278,14 @@ void ChVSGApp::BuildSceneGraph() {
                                      vsg::scale(size.x(), size.y(), size.z()));
 
                 VSGIndexSphere sphere(body, asset, transform);
-                if (pbrMapsFound) {
-                    sphere.Initialize(bodyPBRMaps);
-                } else if (textureFound) {
+                if (textureFound) {
                     sphere.Initialize(bodyTexture);
                 } else if (colorFound) {
                     sphere.Initialize(bodyColor);
                 } else if (pbrSetFound) {
                     sphere.Initialize(bodyPBRSet);
+                } else if (pbrMapsFound) {
+                    sphere.Initialize(bodyPBRMaps);
                 }
                 vsg::ref_ptr<vsg::Node> node = sphere.createVSGNode();
                 m_scenegraph->addChild(node);
@@ -303,14 +302,14 @@ void ChVSGApp::BuildSceneGraph() {
                                      vsg::scale(size.x(), size.y(), size.z()));
 
                 VSGIndexSphere ellipsoid(body, asset, transform);
-                if (pbrMapsFound) {
-                    ellipsoid.Initialize(bodyPBRMaps);
-                } else if (textureFound) {
+                if (textureFound) {
                     ellipsoid.Initialize(bodyTexture);
                 } else if (colorFound) {
                     ellipsoid.Initialize(bodyColor);
                 } else if (pbrSetFound) {
                     ellipsoid.Initialize(bodyPBRSet);
+                } else if (pbrMapsFound) {
+                    ellipsoid.Initialize(bodyPBRMaps);
                 }
                 vsg::ref_ptr<vsg::Node> node = ellipsoid.createVSGNode();
                 m_scenegraph->addChild(node);
@@ -326,14 +325,14 @@ void ChVSGApp::BuildSceneGraph() {
                                      vsg::rotate(angle, axis.x(), axis.y(), axis.z()) *
                                      vsg::scale(radius, radius, height));
                 VSGIndexCylinder cylinder(body, asset, transform);
-                if (pbrMapsFound) {
-                    cylinder.Initialize(bodyPBRMaps);
-                } else if (textureFound) {
+                if (textureFound) {
                     cylinder.Initialize(bodyTexture);
                 } else if (colorFound) {
                     cylinder.Initialize(bodyColor);
                 } else if (pbrSetFound) {
                     cylinder.Initialize(bodyPBRSet);
+                } else if (pbrMapsFound) {
+                    cylinder.Initialize(bodyPBRMaps);
                 }
                 vsg::ref_ptr<vsg::Node> node = cylinder.createVSGNode();
                 m_scenegraph->addChild(node);

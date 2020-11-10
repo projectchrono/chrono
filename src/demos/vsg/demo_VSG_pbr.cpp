@@ -5,7 +5,6 @@
 #include "chrono/utils/ChUtilsCreators.h"
 #include "chrono/assets/ChTexture.h"
 #include "chrono/assets/ChColorAsset.h"
-#include "chrono_vsg/assets/ChTexturedPBR.h"
 #include "chrono_vsg/assets/ChPBRSetting.h"
 
 #include "chrono_vsg/ChVSGApp.h"

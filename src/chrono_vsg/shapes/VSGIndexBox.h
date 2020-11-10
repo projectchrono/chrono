@@ -34,10 +34,10 @@ class CH_VSG_API VSGIndexBox : public ChVSGIndexMesh {
     VSGIndexBox(std::shared_ptr<ChBody> body,
                 std::shared_ptr<ChAsset> asset,
                 vsg::ref_ptr<vsg::MatrixTransform> transform);
-    virtual void Initialize(ChTexturedPBR& textures, size_t tessFactor = 3) override;
     virtual void Initialize(ChTexture& texture, size_t tessFactor = 3) override;
     virtual void Initialize(ChColor& color, size_t tessFactor = 3) override;
     virtual void Initialize(ChPBRSetting& pbrSet, size_t tessFactor = 3) override;
+    virtual void Initialize(ChPBRMaps& pbrMaps, size_t tessFactor = 3) override;
 
   protected:
     virtual void Tesselate(size_t tessFactor) override;
