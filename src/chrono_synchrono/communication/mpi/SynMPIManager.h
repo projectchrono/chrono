@@ -1,3 +1,23 @@
+// =============================================================================
+// PROJECT CHRONO - http://projectchrono.org
+//
+// Copyright (c) 2020 projectchrono.org
+// All rights reserved.
+//
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
+//
+// =============================================================================
+// Authors: Aaron Young, Jay Taves
+// =============================================================================
+//
+// Concrete communication class that manages the state synchronization between
+// various SynChrono entities. Uses MPI gatherAllv calls to send state messages
+// between all ranks, representing each agent my a single MPI rank.
+//
+// =============================================================================
+
 #ifndef SYN_MPI_MANAGER_H
 #define SYN_MPI_MANAGER_H
 
@@ -9,6 +29,9 @@
 
 namespace chrono {
 namespace synchrono {
+
+/// @addtogroup synchrono_communication
+/// @{
 
 ///@brief Memory mode for the MPIManager
 ///
@@ -32,13 +55,10 @@ struct SYN_API SynMPIConfig {
 
 SYN_API extern const SynMPIConfig MPI_CONFIG_DEFAULT;
 
-/// Manager of MPI operations in one sychrono simulation
+/// Concrete class using MPI AllGatherV calls to manage state synchronization
 class SYN_API SynMPIManager : public SynCommunicationManager {
   public:
-    /// Consruct a mpi manager object
     SynMPIManager(int argc, char* argv[], SynMPIConfig config = MPI_CONFIG_DEFAULT);
-
-    /// Destructor
     ~SynMPIManager();
 
     virtual void Exit() {
@@ -46,7 +66,7 @@ class SYN_API SynMPIManager : public SynCommunicationManager {
         exit(0);
     }
 
-    /// @brief Initialize all agents.
+    /// @brief Generate agent description messages and synchronize them to all agents
     ///
     /// @return boolean indicated whether initialization function was successful
     virtual bool Initialize() override;
@@ -83,6 +103,8 @@ class SYN_API SynMPIManager : public SynCommunicationManager {
     std::vector<uint8_t> m_rank_data;
     std::vector<uint8_t> m_all_data;  ///< Buffer for receiving messages from all ranks
 };
+
+/// @} synchrono_communication
 
 }  // namespace synchrono
 }  // namespace chrono

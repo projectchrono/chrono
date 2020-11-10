@@ -1,3 +1,23 @@
+// =============================================================================
+// PROJECT CHRONO - http://projectchrono.org
+//
+// Copyright (c) 2020 projectchrono.org
+// All rights reserved.
+//
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
+//
+// =============================================================================
+// Authors: Aaron Young
+// =============================================================================
+//
+// Base class for any class that could manage communication in a Chrono
+// simulation (e.g. DDS or MPI). Common tasks are adding agents, advancing the
+// physics and synchronizing state data among all participants (ranks in MPI)
+//
+// =============================================================================
+
 #ifndef SYN_COMMUNICATION_MANAGER_H
 #define SYN_COMMUNICATION_MANAGER_H
 
@@ -16,7 +36,10 @@ using namespace chrono;
 namespace chrono {
 namespace synchrono {
 
-/// A single SynChrono simulation
+/// @addtogroup synchrono_communication
+/// @{
+
+/// Base class for anyone that could manage state synchronization in a chrono simulation
 class SYN_API SynCommunicationManager {
   public:
     /// @brief Constructs a new SynCommunicationManager object
@@ -126,6 +149,8 @@ class SYN_API SynCommunicationManager {
 
     SynFlatBuffersManager m_flatbuffers_manager;  ///< flatbuffer manager for this rank
 };
+
+/// @} synchrono_communication
 
 }  // namespace synchrono
 }  // namespace chrono
