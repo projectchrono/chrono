@@ -146,7 +146,7 @@ int main(int argc, char* argv[]) {
     float frame_step = 1.0f / fps;
     float curr_time = 0;
     int curr_frame = 0;
-
+    unsigned int total_frames = (unsigned int)( ((float)params.time_end-0.5f) * fps) - 1;
     // initialize values that I want to keep track of
     float plane_reaction_force[3];
     ChVector<float> platePos;
@@ -170,7 +170,7 @@ int main(int argc, char* argv[]) {
 
     // continue simulation until the end
     while (curr_time < params.time_end){
-        printf("rendering frame: %u, curr_time: %.4f, ", curr_frame, curr_time);
+        printf("rendering frame: %u of %u, curr_time: %.4f, ", curr_frame+1, total_frames, curr_time);
         
         // write position 
         char filename[100];

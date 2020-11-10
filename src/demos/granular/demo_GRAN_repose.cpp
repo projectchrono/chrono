@@ -136,6 +136,7 @@ int main(int argc, char* argv[]) {
     float frame_step = 1.f / fps;
     float curr_time = 0.f;
     int currframe = 0;
+    unsigned int total_frames = (unsigned int)((float)params.time_end * fps);
 
     // write an initial frame
     char filename[100];
@@ -152,7 +153,7 @@ int main(int argc, char* argv[]) {
     while (curr_time < params.time_end) {
         gran_sys.advance_simulation(frame_step);
         curr_time += frame_step;
-        printf("rendering frame %u\n", currframe);
+        printf("rendering frame %u of %u\n", currframe, total_frames);
         sprintf(filename, "%s/step%06d", params.output_dir.c_str(), currframe);
         gran_sys.writeFile(std::string(filename));
 

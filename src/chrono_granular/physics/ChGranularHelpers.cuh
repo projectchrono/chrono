@@ -230,7 +230,7 @@ inline __device__ bool checkSpheresContacting_int(const int3& sphereA_pos,
 
     bool contact_in_SD = checkLocalPointInSD(contact_pos, gran_params);
 
-    const int64_t contact_threshold = (4l * gran_params->sphereRadius_SU) * gran_params->sphereRadius_SU;
+    const int64_t contact_threshold = (4 * (int64_t)gran_params->sphereRadius_SU) * (int64_t)gran_params->sphereRadius_SU;
 
     return contact_in_SD && penetration_int < contact_threshold;
 }
