@@ -59,25 +59,25 @@ using namespace chrono::vehicle::hmmwv;
 // =============================================================================
 
 // Better conserve mass by displacing soil to the sides of a rut
-bool bulldozing = true;
+const bool bulldozing = true;
 
 // Contact method
-ChContactMethod contact_method = ChContactMethod::NSC;
+const ChContactMethod contact_method = ChContactMethod::NSC;
 
 // Simulation end time
-double end_time = 1000;
+const double end_time = 1000;
 
 // Simulation step sizes
-double step_size = 3e-3;
+const double step_size = 3e-3;
 
 // Time interval between two render frames
-double render_step_size = 1.0 / 50;  // FPS = 50
+const double render_step_size = 1.0 / 50;  // FPS = 50
 
 // Render rank
-int render_rank = 0;
+const int render_rank = 0;
 
 // SynChrono synchronization heartbeat
-float heartbeat = 1e-2;  // 100[Hz]
+const float heartbeat = 1e-2;  // 100[Hz]
 
 // =============================================================================
 

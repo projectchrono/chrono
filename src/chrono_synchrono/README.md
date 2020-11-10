@@ -1,6 +1,14 @@
 SynChrono
 ==============
 
+## Table of Contents
+
+- [Project Overview](#Project-Overview)
+- [General SynChrono Process](#General-SynChrono-Process)
+- [Building and Running](#Building-and-Running)
+- [Implementation Specific Details](#Implementation-Specific-Details)
+- [Other](#Other)
+
 ## Project Overview
 
 SynChrono is an autonomous vehicle simulation project developed by the Simulation Based Engineering Lab ([SBEL](https://sbel.wisc.edu/)) at the University of Wisconsin-Madison. 
@@ -12,13 +20,6 @@ For a simulation of say two robots underwater, where the currents created by one
 SynChrono is suited for scenarios where the dynamics of each agent are important individually, but not in the way that they interact with each other. 
 This is the case for autonomous vehicles where, barring a collision, the dynamics of one vehicle will not impact any other.
 SynChrono synchronizes the motion of all agents, but allows their dynamics to be distributed across computing nodes rather than including all dynamics in one monolithic simulation.
-
-## Table of Contents
-
-- [General SynChrono Process](#General-SynChrono-Process)
-- [Building and Running](#Building-and-Running)
-- [Implementation Specific Details](#Implementation-Specific-Details)
-- [Other](#Other)
 
 ## General SynChrono Process
 

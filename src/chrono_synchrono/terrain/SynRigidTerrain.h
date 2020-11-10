@@ -30,6 +30,7 @@ namespace synchrono {
 /// @addtogroup synchrono_terrain
 /// @{
 
+/// Describing this class...
 class SYN_API SynRigidTerrain : public SynTerrain {
   public:
     // Default Constructor
