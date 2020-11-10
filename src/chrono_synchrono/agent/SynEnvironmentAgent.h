@@ -33,7 +33,8 @@ namespace synchrono {
 /// @addtogroup synchrono_agent
 /// @{
 
-/// @brief This Agent will send out information of all the lanes in the simulation and control the traffic lights
+/// Agent that manages lanes and light changes for a traffic intersection. Transmits messages to receiving vehicle
+/// agents about the current state of the intersection that is managed
 class SYN_API SynEnvironmentAgent : public SynAgent {
   public:
     /// @brief It defines the traffic light color and schedule for one lane

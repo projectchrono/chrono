@@ -32,6 +32,7 @@ namespace synchrono {
 /// @addtogroup synchrono_brain
 /// @{
 
+/// Enforces having a ChDriver, and getting inputs from said driver to pass to a ChVehicle
 class SYN_API SynVehicleBrain : public SynBrain {
   public:
     /// Constructor which takes and sets this brains ChDriver and ChVehicle

@@ -115,12 +115,6 @@ set(SYN_AGENT_FILES
     agent/SynEnvironmentAgent.h
     agent/SynEnvironmentAgent.cpp
 )
-if(USE_FAST_DDS)
-	list(APPEND SYN_AGENT_FILES
-		agent/SynDDSAgent.h
-		agent/SynDDSAgent.cpp
-	)
-endif()
 source_group("agent" FILES ${SYN_AGENT_FILES})
 
 set(SYN_BRAIN_FILES

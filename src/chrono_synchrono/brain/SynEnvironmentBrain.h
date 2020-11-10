@@ -28,6 +28,7 @@ namespace synchrono {
 /// @addtogroup synchrono_brain
 /// @{
 
+/// All logic happens in the EnvironmentAgent class, but we still need an empty concrete class here
 class SynEnvironmentBrain : public SynBrain {
   public:
     SynEnvironmentBrain(int rank) : SynBrain(rank){};

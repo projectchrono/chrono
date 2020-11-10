@@ -31,6 +31,7 @@ namespace synchrono {
 /// @addtogroup synchrono_brain
 /// @{
 
+/// Base class for any brain - must Advance the state of physics, Synchronize state with others and Process Messages.
 class SynBrain {
   public:
     /// Constructor

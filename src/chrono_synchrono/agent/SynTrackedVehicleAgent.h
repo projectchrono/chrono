@@ -34,6 +34,8 @@ namespace synchrono {
 /// @addtogroup synchrono_agent
 /// @{
 
+/// Agent wrapper of a tracked vehicle, in particular holds a reference to a SynTrackedVehicle and sends out
+/// SynTrackedVehicleMessage-s to synchronize its state
 class SYN_API SynTrackedVehicleAgent : public SynVehicleAgent {
   public:
     ///@brief Construct a vehicle agent with the specified rank and system

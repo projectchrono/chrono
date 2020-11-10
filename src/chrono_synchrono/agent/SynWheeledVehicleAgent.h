@@ -34,6 +34,8 @@ namespace synchrono {
 /// @addtogroup synchrono_agent
 /// @{
 
+/// Agent wrapper of a wheeled vehicle, in particular holds a reference to a SynWheeledVehicle and sends out
+/// SynWheeledVehicleMessage-s to synchronize its state
 class SYN_API SynWheeledVehicleAgent : public SynVehicleAgent {
   public:
     ///@brief Construct a vehicle agent with the specified rank and system

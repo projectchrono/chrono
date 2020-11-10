@@ -12,8 +12,8 @@
 // Authors: Jason Zhou
 // =============================================================================
 //
-// Brain that detects collisions with other vehicles, providing a call-back to
-// determine what to do in such a case
+// Brain that detects collisions with other vehicles (target_rank), providing a
+// call-back to determine what to do in such a case
 //
 // =============================================================================
 
@@ -30,16 +30,19 @@ namespace synchrono {
 /// @addtogroup synchrono_brain
 /// @{
 
+/// Detects when this vehicle is "nearby" other (target_rank) vehicles and calls a user-provided callback function in
+/// such a case
 class SYN_API SynCollisionBrain : public SynVehicleBrain {
   public:
+    /// Look through messages and call TrackLoc for ones that match our target rank
     virtual void ProcessMessage(SynMessage* msg) override;
 
+    /// Main function - process a message and determine if we had a collision
     void TrackLoc(SynMessage* msg, int sender_rank, ChVector<> location);
 
-    // Helper function for circular collision detection
-    void checkDistanceCircle(ChVector<> pos1, ChVector<> pos2, double radius, int sender_rank);
-
-    void checkDistanceRec(ChVector<> pos1,
+    /// Helper function for circular collision detection
+    void CheckDistanceCircle(ChVector<> pos1, ChVector<> pos2, double radius, int sender_rank);
+    void CheckDistanceRec(ChVector<> pos1,
                           ChVector<> pos2,
                           double short_rec_side,
                           double long_rec_side,
@@ -60,7 +63,7 @@ class SYN_API SynCollisionBrain : public SynVehicleBrain {
     void RemoveTargetRank(int rm_target);
 
   private:
-    bool m_display = false;
+    bool m_display = false;  ///< Print information when collisions happen
     ChVector<> m_my_loc;
 
     // usr defined collision action array

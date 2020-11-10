@@ -57,15 +57,15 @@ void SynCollisionBrain::TrackLoc(SynMessage* msg, int sender_rank, ChVector<> lo
         ChVector<> pos1 = state->chassis.GetFrame().GetPos();
 
         // calls collision detect helper function
-        checkDistanceCircle(pos1, m_my_loc, 5.0, sender_rank);
-        checkDistanceRec(pos1, m_my_loc, 3.0, 7.0, sender_rank);
+        CheckDistanceCircle(pos1, m_my_loc, 5.0, sender_rank);
+        CheckDistanceRec(pos1, m_my_loc, 3.0, 7.0, sender_rank);
         std::cout << std::endl;
     }
 }
 
 // This function check collision using a circular range
 // The extra arguments are the radius of the circle and the sender rank
-void SynCollisionBrain::checkDistanceCircle(ChVector<> pos1, ChVector<> pos2, double radius, int sender_rank) {
+void SynCollisionBrain::CheckDistanceCircle(ChVector<> pos1, ChVector<> pos2, double radius, int sender_rank) {
     double res = (pos1 - pos2).Length2();
 
     std::cout << "distance data is: " << res << std::endl;
@@ -82,7 +82,7 @@ void SynCollisionBrain::checkDistanceCircle(ChVector<> pos1, ChVector<> pos2, do
 // The function checks the collision by drawing a rectangular box
 // The extra arguments required are the length of the rectangle's shorter side
 // the length of the rectangle's longer side, and the rank of the sender
-void SynCollisionBrain::checkDistanceRec(ChVector<> pos1,
+void SynCollisionBrain::CheckDistanceRec(ChVector<> pos1,
                                          ChVector<> pos2,
                                          double short_rec_side,
                                          double long_rec_side,

@@ -38,6 +38,7 @@ namespace synchrono {
 /// @addtogroup synchrono_agent
 /// @{
 
+/// Base class for wheeled and tracked SynVehicleAgents. Both know about ChTerrains, ChDrivers and ChVehicleBrains
 class SYN_API SynVehicleAgent : public SynAgent {
   public:
     /// Construct a vehicle agent with the specified rank and system

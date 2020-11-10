@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Yanzheng Li
+// Authors: Yanzheng Li, Jay Taves
 // =============================================================================
 //
 // Brain that uses an ACCPathFollowerDriver in order to stay on a particular
@@ -37,6 +37,8 @@ namespace synchrono {
 /// @addtogroup synchrono_brain
 /// @{
 
+/// Vehicle Brain instance that instructs its vehicle to follow a given curve and stop based on zombie agent and traffic
+/// light message data
 class SYN_API SynQueryEnvBrain : public SynVehicleBrain {
   public:
     /// @brief Construct a new QueryEnvBrain object

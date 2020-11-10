@@ -43,6 +43,8 @@ namespace synchrono {
 /// @addtogroup synchrono_brain
 /// @{
 
+/// Vehicle Brain instance that instructs its vehicle to follow a given curve and stop based on lidar data and traffic
+/// light message data
 class SYN_API SynACCBrain : public SynVehicleBrain {
   public:
     SynACCBrain(int rank, std::shared_ptr<ChDriver> driver, ChVehicle& vehicle, bool is_multi_path = false);
