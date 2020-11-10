@@ -21,6 +21,7 @@
 // =============================================================================
 
 #include "chrono_synchrono/utils/SynGPSTools.h"
+#include "chrono/core/ChLog.h"
 
 using namespace chrono;
 
@@ -102,7 +103,9 @@ std::shared_ptr<ChBezierCurve> SynGPSTools::CurveFromGPS(const std::string& file
 
     if (num_cols == 3 || num_cols == 9) {
         // TODO: This method should actually support numcols=3 b/c of altitude
-        std::cerr << "SynGPSTools::CurveFromGPS: File specified actually describes a ChBezierCurve." << std::endl;
+        GetLog() << "SynGPSTools::CurveFromGPS: File specified actually describes a ChBezierCurve, not a GPS curve, "
+                    "reading anyways"
+                 << "\n";
 
         ifile.close();
         return ChBezierCurve::read(filename);

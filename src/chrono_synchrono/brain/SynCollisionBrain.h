@@ -48,7 +48,7 @@ class SYN_API SynCollisionBrain : public SynVehicleBrain {
                           double long_rec_side,
                           int sender_rank);
 
-    void SetDisplay(bool display) { m_display = display; }
+    void SetVerbosity(bool verbose) { m_verbose = verbose; }
     void SetMyLocation(ChVector<> location) { m_my_loc = location; }
 
     void TakeUserActionsRectangle();
@@ -63,7 +63,7 @@ class SYN_API SynCollisionBrain : public SynVehicleBrain {
     void RemoveTargetRank(int rm_target);
 
   private:
-    bool m_display = false;  ///< Print information when collisions happen
+    bool m_verbose = false;  ///< Print information when collisions happen
     ChVector<> m_my_loc;
 
     // usr defined collision action array

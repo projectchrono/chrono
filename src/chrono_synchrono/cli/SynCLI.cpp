@@ -12,8 +12,9 @@ bool SynCLI::Parse(int argc, char* argv[], bool show_help, bool update_config) {
         m_result = std::make_shared<cxxopts::ParseResult>(m_options.parse(argc, argv));
     } catch (cxxopts::OptionException& e) {
         if (show_help) {
-            std::cout << "Error when parsing command line inputs." << std::endl;
-            std::cout << "what(): " << e.what() << std::endl << std::endl;
+            GetLog() << "Error when parsing command line inputs."
+                     << "\n"
+                     << "what(): " << e.what() << "\n\n";
             Help();
         }
         return false;

@@ -21,6 +21,8 @@
 
 #include "chrono_synchrono/flatbuffer/message/SynEnvironmentMessage.h"
 
+#include "chrono/core/ChLog.h"
+
 namespace chrono {
 namespace synchrono {
 
@@ -33,12 +35,14 @@ SynEnvironmentMessage::SynEnvironmentMessage(int rank, std::shared_ptr<SynEnviro
 }
 
 void SynEnvironmentMessage::StateFromMessage(const SynFlatBuffers::Message* message) {
-    std::cout << "Warning: SynEnvironmentMessage::StateFromMessage called" << std::endl;
+    GetLog() << "Warning: SynEnvironmentMessage::StateFromMessage called"
+             << "\n";
     // Environment messages aren't sent, so we don't set any state based on them
 }
 
 FlatBufferMessage SynEnvironmentMessage::MessageFromState(flatbuffers::FlatBufferBuilder& builder) {
-    std::cout << "Warning: SynEnvironmentMessage::MessageFromState called" << std::endl;
+    GetLog() << "Warning: SynEnvironmentMessage::MessageFromState called"
+             << "\n";
     // Environment messages aren't sent, so we don't create any message based on them
     return SynFlatBuffers::CreateMessage(builder);
 }

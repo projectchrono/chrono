@@ -19,6 +19,8 @@
 
 #include "chrono_synchrono/vehicle/SynWheeledVehicle.h"
 
+#include "chrono/core/ChLog.h"
+
 // MSVC seems to need these otherwise it compiles out the templated customWheeledVehicle
 #include "chrono_vehicle/wheeled_vehicle/vehicle/WheeledVehicle.h"
 #include "chrono_models/vehicle/hmmwv/HMMWV.h"
@@ -42,7 +44,7 @@ SynWheeledVehicle::SynWheeledVehicle() : SynVehicle() {
 SynWheeledVehicle::SynWheeledVehicle(ChWheeledVehicle* wheeled_vehicle)
     : SynVehicle(false), m_wheeled_vehicle(wheeled_vehicle) {
     if (!wheeled_vehicle)
-        std::cerr << "SynVehicle: Vehicle is NULL" << std::endl;
+        throw ChException("SynWheeledVehicle constructor - wheeled_vehicle is NULL");
     m_system = m_wheeled_vehicle->GetSystem();
 
     m_state = chrono_types::make_shared<SynWheeledVehicleState>();

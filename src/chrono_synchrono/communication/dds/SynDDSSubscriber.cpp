@@ -22,6 +22,8 @@
 
 #include <fastdds/dds/subscriber/qos/DataReaderQos.hpp>
 
+#include "chrono/core/ChLog.h"
+
 namespace chrono {
 namespace synchrono {
 
@@ -81,11 +83,13 @@ void SynDDSSubscriber::SynDDSSubscriberListener::on_subscription_matched(DataRea
                                                                          const SubscriptionMatchedStatus& info) {
     if (info.current_count_change == 1) {
         m_matched = info.total_count;
-        std::cout << "Subscriber matched." << std::endl;
+        GetLog() << "Subscriber matched."
+                 << "\n";
     } else if (info.current_count_change == -1) {
         m_matched = info.total_count;
         m_subscriber->m_ok = false;
-        std::cout << "Subscriber unmatched." << std::endl;
+        GetLog() << "Subscriber unmatched."
+                 << "\n";
     } else {
         m_subscriber->m_ok = false;
         std::cout << info.current_count_change
@@ -98,7 +102,8 @@ void SynDDSSubscriber::SynDDSSubscriberListener::on_subscription_matched(DataRea
 void SynDDSSubscriber::SynDDSSubscriberListener::on_data_available(DataReader* reader) {
     SampleInfo info;
     if (reader->take_next_sample(&m_message, &info) != ReturnCode_t::RETCODE_OK) {
-        std::cout << "SynDDSSubscriberListener::on_data_available: DataReader failed to read message." << std::endl;
+        GetLog() << "SynDDSSubscriberListener::on_data_available: DataReader failed to read message."
+                 << "\n";
         exit(-1);
     }
 

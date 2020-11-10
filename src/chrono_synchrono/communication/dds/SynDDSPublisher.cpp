@@ -20,6 +20,8 @@
 
 #include <fastdds/dds/publisher/qos/DataWriterQos.hpp>
 
+#include "chrono/core/ChLog.h"
+
 namespace chrono {
 namespace synchrono {
 
@@ -46,7 +48,7 @@ SynDDSPublisher::~SynDDSPublisher() {
 
 bool SynDDSPublisher::Initialize() {
     // Create the publication topic
-    std::cout << "Publishing to " << m_topic_name << std::endl;
+    GetLog() << "Publishing to " << m_topic_name << "\n";
     m_topic = m_participant->create_topic(m_topic_name, m_topic_type, TOPIC_QOS_DEFAULT);
     if (!m_topic)
         return false;
@@ -74,13 +76,15 @@ bool SynDDSPublisher::Publish(SynDDSMessage& msg) {
         m_writer->write(&msg);
 
         if (m_writer->wait_for_acknowledgments({5, 0}) != ReturnCode_t::RETCODE_OK) {
-            std::cout << "SynDDSPublisher::Publisher: Writer failed to receive acknowledgments." << std::endl;
+            GetLog() << "SynDDSPublisher::Publisher: Writer failed to receive acknowledgments."
+                     << "\n";
             return false;
         }
 
         return true;
     }
-    std::cout << "Failed to publish." << std::endl;
+    GetLog() << "Failed to publish."
+             << "\n";
     return false;
 }
 
@@ -93,11 +97,13 @@ void SynDDSPublisher::SynDDSPublisherListener::on_publication_matched(DataWriter
                                                                       const PublicationMatchedStatus& info) {
     if (info.current_count_change == 1) {
         m_matched = info.total_count;
-        std::cout << "Publisher matched." << std::endl;
+        GetLog() << "Publisher matched."
+                 << "\n";
     } else if (info.current_count_change == -1) {
         m_matched = info.total_count;
         m_publisher->m_ok = false;
-        std::cout << "Publisher unmatched." << std::endl;
+        GetLog() << "Publisher unmatched."
+                 << "\n";
     } else {
         m_publisher->m_ok = false;
         std::cout << info.current_count_change

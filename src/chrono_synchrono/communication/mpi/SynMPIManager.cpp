@@ -20,6 +20,8 @@
 
 #include "chrono_synchrono/communication/mpi/SynMPIManager.h"
 
+#include "chrono/core/ChLog.h"
+
 namespace chrono {
 namespace synchrono {
 
@@ -102,8 +104,8 @@ void SynMPIManager::Synchronize() {
             // Do nothing since preallocation happens at the very beginning.
             int size = m_flatbuffers_manager.GetSize();
             if (size > m_msg_length)
-                std::cerr << "Rank " << m_rank << " message size: " << size
-                          << " > maximum message size: " << m_msg_length << std::endl;
+                GetLog() << "Rank " << m_rank << " message size: " << size
+                         << " > maximum message size: " << m_msg_length << "\n";
 
             break;
         }

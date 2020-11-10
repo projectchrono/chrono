@@ -19,6 +19,8 @@
 
 #include "chrono_synchrono/vehicle/SynTrackedVehicle.h"
 
+#include "chrono/core/ChLog.h"
+
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
 #include "chrono_vehicle/tracked_vehicle/vehicle/TrackedVehicle.h"
 
@@ -42,7 +44,7 @@ SynTrackedVehicle::SynTrackedVehicle() : SynVehicle() {
 SynTrackedVehicle::SynTrackedVehicle(ChTrackedVehicle* tracked_vehicle)
     : SynVehicle(false), m_tracked_vehicle(tracked_vehicle) {
     if (!tracked_vehicle)
-        std::cerr << "SynTrackedVehicle: Vehicle is NULL" << std::endl;
+        throw ChException("SynTrackedVehicle constructor - tracked_vehicle is NULL");
     m_system = m_tracked_vehicle->GetSystem();
 
     m_state = chrono_types::make_shared<SynTrackedVehicleState>();

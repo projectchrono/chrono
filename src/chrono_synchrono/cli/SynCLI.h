@@ -5,6 +5,8 @@
 
 #include "chrono_thirdparty/cxxopts/cxxopts.hpp"
 
+#include "chrono/core/ChLog.h"
+
 namespace chrono {
 namespace synchrono {
 
@@ -20,7 +22,7 @@ class SYN_API SynCLI {
     bool Parse(int argc, char* argv[], bool show_help = false, bool update_config = true);
 
     /// Print our the help menu
-    void Help() { std::cout << m_options.help() << std::endl; }
+    void Help() { GetLog() << m_options.help().c_str() << "\n"; }
 
     /// Add default options for synchrono demos
     void AddDefaultDemoOptions();
@@ -53,8 +55,10 @@ class SYN_API SynCLI {
         try {
             return (*m_result)[option].as<T>();
         } catch (std::domain_error e) {
-            std::cout << "SynCLI::GetAsType: Could not cast \"" << option << "\" as " << typeid(T).name() << std::endl;
-            std::cout << "SynCLI::GetAsType: Exitting..." << std::endl;
+            GetLog() << "SynCLI::GetAsType: Could not cast \"" << option.c_str() << "\" as " << typeid(T).name()
+                     << "\n";
+            GetLog() << "SynCLI::GetAsType: Exitting..."
+                     << "\n";
             exit(-1);
         }
     }

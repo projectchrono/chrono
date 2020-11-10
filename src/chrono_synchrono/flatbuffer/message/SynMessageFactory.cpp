@@ -27,6 +27,8 @@
 #include "chrono_synchrono/flatbuffer/message/SynTrackedVehicleMessage.h"
 #include "chrono_synchrono/flatbuffer/message/SynEnvironmentMessage.h"
 
+#include "chrono/core/ChLog.h"
+
 namespace chrono {
 namespace synchrono {
 
@@ -43,8 +45,7 @@ SynMessage* SynMessageFactory::GenerateMessage(const SynFlatBuffers::Message* in
         if (terrain_state->message_type() == SynFlatBuffers::Terrain::Type_SCM_State) {
             message = new SynSCMMessage(rank);
         } else {
-            std::cout << "SynMessageFactory::GenerateMessage: Unknown TERRAIN type. Exitting..." << std::endl;
-            exit(-1);
+            throw ChException("SynMessageFactory::GenerateMessage: Unknown TERRAIN type");
         }
     } else if (incoming_message->message_type() == SynFlatBuffers::Type_Agent_State) {
         const SynFlatBuffers::Agent::State* agent_state = incoming_message->message_as_Agent_State();
@@ -56,9 +57,7 @@ SynMessage* SynMessageFactory::GenerateMessage(const SynFlatBuffers::Message* in
         } else if (agent_state->message_type() == SynFlatBuffers::Agent::Type_Environment_State) {
             message = new SynEnvironmentMessage(rank);
         } else {
-            std::cout << agent_state->message_type() << std::endl;
-            std::cout << "SynMessageFactory::GenerateMessage: Unknown AGENT STATE type. Exitting..." << std::endl;
-            exit(-1);
+            throw ChException("SynMessageFactory::GenerateMessage: Unknown AGENT STATE type. Exitting...");
         }
     } else if (incoming_message->message_type() == SynFlatBuffers::Type_Agent_Description) {
         auto agent_description = incoming_message->message_as_Agent_Description();
@@ -70,9 +69,7 @@ SynMessage* SynMessageFactory::GenerateMessage(const SynFlatBuffers::Message* in
         } else if (agent_description->description_type() == SynFlatBuffers::Agent::Type_Environment_Description) {
             message = new SynEnvironmentMessage(rank);
         } else {
-            std::cout << agent_description->description_type() << std::endl;
-            std::cout << "SynMessageFactory::GenerateMessage: Unknown AGENT DESCRIPTION type. Exitting..." << std::endl;
-            exit(-1);
+            throw ChException("SynMessageFactory::GenerateMessage: Unknown AGENT DESCRIPTION type. Exitting...");
         }
         ((SynAgentMessage*)message)->DescriptionFromMessage(incoming_message);
         return message;
@@ -83,8 +80,7 @@ SynMessage* SynMessageFactory::GenerateMessage(const SynFlatBuffers::Message* in
     } else if (incoming_message->message_type() == SynFlatBuffers::Type_Sensor_State) {
         message = new SynSensorMessage(rank);
     } else {
-        std::cout << "SynMessageFactory::GenerateMessage: Unknown type. Exitting..." << std::endl;
-        exit(-1);
+        throw ChException("SynMessageFactory::GenerateMessage: Unknown type. Exitting...");
     }
 
     message->StateFromMessage(incoming_message);

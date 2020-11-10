@@ -19,8 +19,9 @@
 // =============================================================================
 
 #include "chrono_synchrono/communication/SynCommunicationManager.h"
-
 #include "chrono_synchrono/agent/SynAgentFactory.h"
+
+#include "chrono/core/ChLog.h"
 
 namespace chrono {
 namespace synchrono {
@@ -56,7 +57,8 @@ bool SynCommunicationManager::AddAgent(std::shared_ptr<SynAgent> agent, int rank
     if (rank == m_rank) {
         auto it = m_agent_list.find(m_rank);
         if (it != m_agent_list.end()) {
-            std::cout << "SynCommunicationManager::AddAgent: Each agent should have a unique rank." << std::endl;
+            GetLog() << "SynCommunicationManager::AddAgent: Each agent should have a unique rank."
+                     << "\n";
             return false;
         }
     }
@@ -74,7 +76,8 @@ bool SynCommunicationManager::AddAgent(std::shared_ptr<SynAgent> agent, int rank
 bool SynCommunicationManager::Initialize() {
     // Check if this rank has an agent
     if (m_agent_list.find(m_rank) == m_agent_list.end()) {
-        std::cout << "Agent list does not contain an agent for this rank." << std::endl;
+        GetLog() << "Agent list does not contain an agent for this rank."
+                 << "\n";
         return false;
     }
 
@@ -190,7 +193,6 @@ void SynCommunicationManager::ProcessMessageBuffer(const SynFlatBuffers::Buffer*
 
     // This keeps going until it hits the end of the data contained in agent i's portion of the buffer
     for (auto message : (*buffer->buffer())) {
-        // std::cout << "Rank " << m_rank << " about to make message" << std::endl;
         SynMessage* msg = SynMessageFactory::GenerateMessage(message);
         if (!msg)
             continue;

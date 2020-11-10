@@ -23,6 +23,8 @@
 #include "chrono_synchrono/flatbuffer/message/SynApproachMessage.h"
 #include "chrono_synchrono/flatbuffer/message/SynMAPMessage.h"
 
+#include "chrono/core/ChLog.h"
+
 namespace chrono {
 namespace synchrono {
 
@@ -145,7 +147,8 @@ LaneColor GetLaneColorFromMessage(SynMessage* synmsg,
             return lane.color;
     }
 
-    std::cerr << "Passed intersection/approach/lane was not found in SPAT message. Returning RED." << std::endl;
+    GetLog() << "Passed intersection/approach/lane was not found in SPAT message. Returning RED."
+             << "\n";
     return LaneColor::RED;
 }
 

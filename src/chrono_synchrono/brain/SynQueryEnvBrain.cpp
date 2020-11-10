@@ -27,6 +27,7 @@
 #include "chrono_synchrono/brain/driver/SynMultipathDriver.h"
 #include "chrono_synchrono/flatbuffer/message/SynWheeledVehicleMessage.h"
 
+#include "chrono/core/ChLog.h"
 #include "chrono_thirdparty/filesystem/path.h"
 #include "chrono_vehicle/driver/ChPathFollowerACCDriver.h"
 
@@ -70,12 +71,6 @@ void SynQueryEnvBrain::ProcessMessage(SynMessage* synmsg) {
             ChVector<> veh_pos = m_vehicle.GetChassisBody()->GetPos();
             UpdateLaneInfoFromMAP(synmsg, veh_pos, m_rank, m_inside_box, m_current_lane, m_current_approach,
                                   m_current_intersection, m_dist);
-            break;
-        }
-        case SynMessageType::APPROACH: {
-            std::cerr << "Made it to approach message on its own" << std::endl;
-            ChVector<> veh_pos = m_vehicle.GetChassisBody()->GetPos();
-            UpdateInsideBoxFromMessage(synmsg, veh_pos, m_current_lane, m_inside_box, m_dist);
             break;
         }
         case SynMessageType::SPAT: {

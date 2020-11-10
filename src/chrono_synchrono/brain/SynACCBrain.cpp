@@ -76,12 +76,6 @@ void SynACCBrain::ProcessMessage(SynMessage* synmsg) {
                                   m_current_intersection, m_dist);
             break;
         }
-        case SynMessageType::APPROACH: {
-            std::cout << "Made it to approach message on its own" << std::endl;
-            ChVector<> veh_pos = m_vehicle.GetChassisBody()->GetPos();
-            UpdateInsideBoxFromMessage(synmsg, veh_pos, m_current_lane, m_inside_box, m_dist);
-            break;
-        }
         case SynMessageType::SPAT: {
             if (m_inside_box)
                 m_light_color =
