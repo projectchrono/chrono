@@ -11,7 +11,7 @@
 // =============================================================================
 // Authors: Hammad Mazhar, Radu Serban
 // =============================================================================
-
+#include "chrono/utils/ChUtilsInputOutput.h"
 #include "chrono_parallel/ChConfigParallel.h"
 #include "chrono_parallel/physics/ChSystemParallel.h"
 #include "chrono_parallel/solver/ChSolverParallel.h"
@@ -252,3 +252,35 @@ void ChSystemParallelNSC::Initialize() {
 
     data_manager->node_container->Initialize();
 }
+
+bool ChSystemParallelNSC::Par_Gran_Outhelper(ChSystemParallelNSC* system, const std::string& filename) {
+    // Create the CSV stream.
+    chrono::utils::CSV_writer csv(" ");
+    std::string tab("    ");
+
+    csv << "id,pos_x,pos_y,pos_z,pos_dt_x,pos_dt_y,pos_dt_z,fx,fy,fz"<<std::endl;
+    for (auto body : system->Get_bodylist()) {
+        ChVector<double>& pos = body->GetPos();
+        ChVector<double>& pos_dt = body->GetPos_dt();
+        std::cout<<"test_point_1"<<std::endl;
+        real3 cont_f;
+        //std::cout<<"length: "<<data_manager->host_data.ct_body_map.size()<<std::endl;
+        //std::cout<<"BODY length: "<<system->Get_bodylist().size()<<std::endl;
+        int index = -1;
+        //if(data_manager->host_data.ct_body_map.size()==0){
+        //    index = data_manager->host_data.ct_body_map[body->GetId()];
+        //}
+        std::cout<<"test_point_2"<<std::endl;
+        if (index == -1)
+            cont_f = real3(0);
+        else
+            cont_f = data_manager->host_data.ct_body_force[index];
+        std::cout<<"test_point_3"<<std::endl;
+        csv<<body->GetId()<<","<<(float)pos.x()<<","<<(float)pos.y()<<","<< (float)pos.z()<<","<<(float)pos_dt.x()<<","<<(float)pos_dt.y()<<","<<(float)pos_dt.z()<<","<<(double)cont_f.x<<","<<(double)cont_f.y<<","<<(double)(cont_f.z)<<std::endl;
+        std::cout<<"test_point_4"<<std::endl;
+    }
+    csv.write_to_file(filename);
+
+    return true;
+}
+

@@ -78,47 +78,57 @@ int main(int argc, char* argv[]) {
 
     gran_sys.set_BD_Fixed(true);
 
-    // padding in sampler
-    float fill_epsilon = 2.02f;
-    // padding at top of fill
-    float drop_height = 0.f;
-    float spacing = fill_epsilon * params.sphere_radius;
-    chrono::utils::PDSampler<float> sampler(spacing);
+//// Goldenberg test
+    std::vector<ChVector<float>> GoldenBerg_Balls;
+    int count_X = 60;
+    int count_Y = 60;   
+    int count_Z = 15;
+    float radius = 0.1;
+    for (int iz = 0; iz < count_Z; iz++){
+        if(iz%2 == 0){
+            for (int ix = -count_X/2; ix <= count_X/2; ix++) {
+                ChVector<float> pos((2*radius) * ix, 0,  radius+2*radius*iz+0.0001);
 
-    // Fixed points on the bottom for roughness
-    float bottom_z = -params.box_Z / 2.f + params.sphere_radius;
-    ChVector<> bottom_center(0, 0, bottom_z);
-    std::vector<ChVector<float>> roughness_points = sampler.SampleBox(
-        bottom_center,
-        ChVector<float>(params.box_X / 2.f - params.sphere_radius, params.box_Y / 2.f - params.sphere_radius, 0.f));
+                GoldenBerg_Balls.push_back(pos);
+
+                //if(ix==0&&iz==14){
+                //    top_middle = ball;
+                //}
+                        
+            }
+    }else{
+            for (int ix = -count_X/2; ix <= count_X/2-1; ix++) {
+                ChVector<float> pos((2*radius) * ix+radius, 0, radius+2*radius*iz+0.0001);
+
+               GoldenBerg_Balls.push_back(pos);
+            }
+        }
+
+    }
+
+
+
+    //// Goldenberg test
+
+
+
+
 
     // Create column of material
-    std::vector<ChVector<float>> material_points;
-
-    float fill_bottom = bottom_z + spacing;
-    float fill_width = 5.f;
-    float fill_height = 2.f * fill_width;
-    float fill_top = fill_bottom + fill_height;
-
-    ChVector<float> center(0.f, 0.f, fill_bottom + fill_height / 2.f);
-    material_points = sampler.SampleCylinderZ(center, fill_width, fill_height / 2.f);
-
+    
     ChGranularSMC_API apiSMC;
     apiSMC.setGranSystem(&gran_sys);
 
     std::vector<ChVector<float>> body_points;
     std::vector<bool> body_points_fixed;
-    body_points.insert(body_points.end(), roughness_points.begin(), roughness_points.end());
-    body_points_fixed.insert(body_points_fixed.end(), roughness_points.size(), true);
-
-    body_points.insert(body_points.end(), material_points.begin(), material_points.end());
-    body_points_fixed.insert(body_points_fixed.end(), material_points.size(), false);
+    body_points.insert(body_points.end(), GoldenBerg_Balls.begin(), GoldenBerg_Balls.end());
+    body_points_fixed.insert(body_points_fixed.end(), GoldenBerg_Balls.size(), false);
 
     apiSMC.setElemsPositions(body_points);
     gran_sys.setParticleFixed(body_points_fixed);
 
-    std::cout << "Added " << roughness_points.size() << " fixed points" << std::endl;
-    std::cout << "Added " << material_points.size() << " material points" << std::endl;
+    //std::cout << "Added " << roughness_points.size() << " fixed points" << std::endl;
+    //std::cout << "Added " << material_points.size() << " material points" << std::endl;
 
     std::cout << "Actually added " << body_points.size() << std::endl;
 

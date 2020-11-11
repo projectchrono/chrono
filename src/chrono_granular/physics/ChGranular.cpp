@@ -276,6 +276,18 @@ void ChSystemGranularSMC::writeFile(std::string ofile) const {
         }
 
         outstrstream << "\n";
+
+        double tot_ke = 0;
+        for (unsigned int n = 0; n < nSpheres; n++) {
+                            float absv = (float)(std::sqrt(pos_X_dt.at(n) * pos_X_dt.at(n) + pos_Y_dt.at(n) * pos_Y_dt.at(n) +
+                                               pos_Z_dt.at(n) * pos_Z_dt.at(n)) *
+                                     VEL_SU2UU);
+
+            tot_ke = tot_ke + 0.5f * 0.02453333333f * absv * absv;
+        }
+        std::cout<<"tot_ke: "<<tot_ke<<std::endl;
+
+
         for (unsigned int n = 0; n < nSpheres; n++) {
             unsigned int ownerSD = sphere_owner_SDs.at(n);
             int3 ownerSD_trip = getSDTripletFromID(ownerSD);

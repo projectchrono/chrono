@@ -20,6 +20,7 @@
 
 #include "chrono/ChConfig.h"
 #include "chrono/utils/ChUtilsCreators.h"
+#include "chrono/utils/ChUtilsInputOutput.h"
 
 #include "chrono_parallel/physics/ChSystemParallel.h"
 #include "chrono_parallel/solver/ChIterativeSolverParallel.h"
@@ -156,9 +157,14 @@ int main(int argc, char** argv) {
     gl_window.SetRenderMode(opengl::WIREFRAME);
 
     // Simulate system
+    int currframe = 0;
     while (gl_window.Active()) {
+        char filename[100];
+        sprintf(filename, "%sstep%06d.csv","/home/jason/Gran/OCT11/build/bin/Test/",currframe);
+        system.Par_Gran_Outhelper(&system, filename);
         system.DoStepDynamics(time_step);
         gl_window.Render();
+        currframe++;
         ////std::cout << "num contacts: " << system.GetNcontacts() << "\n\n";
     }
 

@@ -42,6 +42,7 @@
 #include "chrono_parallel/math/real3.h"
 #include "chrono_parallel/ChSettings.h"
 #include "chrono_parallel/ChMeasures.h"
+#include "chrono_parallel/solver/ChIterativeSolverParallel.h"
 
 namespace chrono {
 
@@ -93,6 +94,11 @@ class CH_PARALLEL_API ChSystemParallel : public ChSystem {
     unsigned int GetNumShafts();
     unsigned int GetNumContacts();
     unsigned int GetNumBilaterals();
+
+
+  
+
+
 
     /// Return the time (in seconds) spent for computing the time step.
     virtual double GetTimerStep() const override;
@@ -186,6 +192,10 @@ class CH_PARALLEL_API ChSystemParallel : public ChSystem {
     /// Return the maximum constraint violation.
     double CalculateConstraintViolation(std::vector<double>& cvec);
 
+
+
+
+
     ChParallelDataManager* data_manager;
 
     int current_threads;
@@ -239,8 +249,11 @@ class CH_PARALLEL_API ChSystemParallelNSC : public ChSystemParallel {
     using ChSystemParallel::GetBodyContactForce;
     using ChSystemParallel::GetBodyContactTorque;
 
+    
     virtual void AssembleSystem();
     virtual void SolveSystem();
+
+    bool Par_Gran_Outhelper(ChSystemParallelNSC* system, const std::string& filename);
 };
 
 //====================================================================================================
@@ -267,11 +280,18 @@ class CH_PARALLEL_API ChSystemParallelSMC : public ChSystemParallel {
     using ChSystemParallel::GetBodyContactForce;
     using ChSystemParallel::GetBodyContactTorque;
 
+
+
     virtual void PrintStepStats() override;
 
     double GetTimerProcessContact() const {
         return data_manager->system_timer.GetTime("ChIterativeSolverParallelSMC_ProcessContact");
     }
+    float GetTotKineticEnergy(ChSystemParallelSMC* system);
+    bool Par_Gran_Outhelper(ChSystemParallelSMC* system, const std::string& filename);
+    bool Par_Gran_Cont_Outhelper(ChSystemParallelSMC* system, const std::string& filename);
+  //private:
+    //std::shared_ptr<ChIterativeSolverParallelSMC> solver;
 };
 
 /// @} parallel_physics

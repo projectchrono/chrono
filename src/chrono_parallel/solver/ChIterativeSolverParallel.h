@@ -113,6 +113,10 @@ class CH_PARALLEL_API ChIterativeSolverParallelSMC : public ChIterativeSolverPar
 
     void ProcessContacts();
 
+    custom_vector<int> get_ext_body_id(){return m_ext_body_id;}
+    custom_vector<real3> get_ext_body_force(){return m_ext_body_force;}
+
+
   private:
     void host_CalcContactForces(custom_vector<int>& ext_body_id,
                                 custom_vector<real3>& ext_body_force,
@@ -123,6 +127,11 @@ class CH_PARALLEL_API ChIterativeSolverParallelSMC : public ChIterativeSolverPar
     void host_AddContactForces(uint ct_body_count, const custom_vector<int>& ct_body_id);
 
     void host_SetContactForcesMap(uint ct_body_count, const custom_vector<int>& ct_body_id);
+
+
+
+    custom_vector<int> m_ext_body_id;//(2 * data_manager->num_rigid_contacts);
+    custom_vector<real3> m_ext_body_force;//(2 * data_manager->num_rigid_contacts);
 };
 
 /// @} parallel_solver

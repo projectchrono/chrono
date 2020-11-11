@@ -143,13 +143,12 @@ public:
 	ConvexH(int vertices_size, int edges_size, int facets_size);
 };
 
-// ***CHRONO*** rename class from 'int4' to 'btInt4' to prevent possible clash with CUDA 'int4' struct 
-class btInt4
+class int4
 {
 public:
 	int x, y, z, w;
-    btInt4(){};
-    btInt4(int _x, int _y, int _z, int _w)
+	int4(){};
+	int4(int _x, int _y, int _z, int _w)
 	{
 		x = _x;
 		y = _y;
@@ -208,7 +207,7 @@ private:
 
 	int calchullgen(btVector3* verts, int verts_count, int vlimit);
 
-	btInt4 FindSimplex(btVector3* verts, int verts_count, btAlignedObjectArray<int>& allow);
+	int4 FindSimplex(btVector3* verts, int verts_count, btAlignedObjectArray<int>& allow);
 
 	class ConvexH* ConvexHCrop(ConvexH& convex, const btPlane& slice);
 

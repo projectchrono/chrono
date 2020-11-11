@@ -2,7 +2,6 @@ Change Log
 ==========
 
 - [Unreleased (development version)](#unreleased-development-branch)
-  - [Saving POVray files from Irrlicht interactive view](#Saving POVray files from Irrlicht interactive view)
   - [Support for modelling wheeled trailers](#added-support-for-modelling-wheeled-trailers)
   - [Enhancements to Chrono::FSI](#changed-enhancements-to-chronofsi)
   - [New Chrono::Sensor module](#added-new-chronosensor-module)
@@ -22,14 +21,6 @@ Change Log
 - [Release 4.0.0](#release-400---2019-02-22)
 
 ## Unreleased (development branch)
-
-### [Added] Saving POVray files from Irrlicht interactive view
-
-New feature in the Irrlicht interactive 3D view. When pressing the F12 key, a directory `povray_project` is immediately created on disk, and .pov .ini .assets etc. files are created inside it, so that later you can use POVray to load the .ini and render the simulation with high quality ray tracing. Press F12 again to stop saving the POVray files. Note that you must later edit the `povray_project/render_frames.pov` to change/add the lights, global illumination, and other specific raytracing settings.
-This feature is available only if you build also the `POSTPROCESS` module, so check *both* `ENABLE_MODULE_IRRLICHT` and  `ENABLE_MODULE_POSTPROCESSING` in CMake.
-
-Also, the API of the `ChPovRay` class has been simplified. One just uses the new `SetBasePath()` function to set the directory that will contain all .ini, .pov, etc. files, and anim/, output/ subdirectories. The user does not need to create these folders anymore, these are automatically generated if necessary, when setting up ChPovRay with `ExportScript()`. Also, some features of ChPovRay have been fixed / improved.
-
 
 ### [Added] Support for modelling wheeled trailers
 

@@ -22,6 +22,7 @@
 #include "chrono/core/ChTimer.h"
 #include "chrono_granular/api/ChApiGranularChrono.h"
 #include "chrono_granular/physics/ChGranular.h"
+#include "chrono_thirdparty/SimpleOpt/SimpleOpt.h"
 #include "chrono/utils/ChUtilsSamplers.h"
 
 using namespace chrono;

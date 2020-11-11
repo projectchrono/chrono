@@ -262,7 +262,7 @@ inline __device__ float3 computeRollingAngAcc(GranSphereDataPtr sphere_data,
                 float velo_su2uu = (float)(gran_params->LENGTH_UNIT/gran_params->TIME_UNIT);
                 // convert v_rot to user unit for threshold comparison
                 float v_rot_uu = v_rot_su * velo_su2uu;
-                if (v_rot_uu < 5e-3f) {  
+                if (v_rot_uu < 1e-9f) {  
                     return make_float3(0.f, 0.f, 0.f);
                 }
 

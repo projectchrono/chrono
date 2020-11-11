@@ -21,6 +21,7 @@ SET(DEMOS
         demo_GRAN_mixer
 		demo_GRAN_compression
 		demo_GRAN_repose
+		demo_GRAN_GoldenBerg
 )
 
 # ------------------------------------------------------------------------------

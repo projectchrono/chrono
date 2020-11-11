@@ -648,6 +648,7 @@ struct sum_tuples {
 // all bodies involved in at least one contact.
 // -----------------------------------------------------------------------------
 void ChIterativeSolverParallelSMC::ProcessContacts() {
+    //std::cout<<"TEST3"<<std::endl;
     // 1. Calculate contact forces and torques - per contact basis
     //    For each pair of contact shapes that overlap, we calculate and store the
     //    IDs of the two corresponding bodies and the resulting contact forces and
@@ -657,7 +658,7 @@ void ChIterativeSolverParallelSMC::ProcessContacts() {
     custom_vector<real3> ext_body_torque(2 * data_manager->num_rigid_contacts);
     custom_vector<vec2> shape_pairs;
     custom_vector<char> shear_touch;
-
+    //std::cout<<"TEST4"<<std::endl;
     if (data_manager->settings.solver.tangential_displ_mode == ChSystemSMC::TangentialDisplacementModel::MultiStep) {
         shape_pairs.resize(data_manager->num_rigid_contacts);
         shear_touch.resize(max_shear * data_manager->num_rigid_bodies);
@@ -667,12 +668,30 @@ void ChIterativeSolverParallelSMC::ProcessContacts() {
             vec2 pair = I2(int(data_manager->host_data.contact_shapeIDs[i] >> 32),
                            int(data_manager->host_data.contact_shapeIDs[i] & 0xffffffff));
             shape_pairs[i] = pair;
+            
         }
+        
     }
+    
 
+    //std::cout<<"calculate"<<std::endl;
     host_CalcContactForces(ext_body_id, ext_body_force, ext_body_torque, shape_pairs, shear_touch);
 
+    m_ext_body_id = ext_body_id;
+    m_ext_body_force = ext_body_force;
+    /*
+    for(int i = 0; i<ext_body_force.size()/2;i++){
+        std::cout<<"ext_body_id size: "<<ext_body_id.size()<<std::endl;
+        std::cout<<"ext_body_force size: "<<ext_body_force.size()<<std::endl;
+        std::cout<<"shapepair size: "<<shape_pairs.size()<<std::endl;
+        std::cout<<"sheartouch size: "<<shear_touch.size()<<std::endl;
+        std::cout<<ext_body_id[i]<<std::endl;
+        std::cout<<ext_body_force[i].x<<","<<ext_body_force[i].y<<","<<ext_body_force[i].z<<std::endl;
+    }
+    */
+    
     if (data_manager->settings.solver.tangential_displ_mode == ChSystemSMC::TangentialDisplacementModel::MultiStep) {
+
 #pragma omp parallel for
         for (int index = 0; index < (signed)data_manager->num_rigid_bodies; index++) {
             for (int i = 0; i < max_shear; i++) {
@@ -681,7 +700,7 @@ void ChIterativeSolverParallelSMC::ProcessContacts() {
             }
         }
     }
-
+    
     // 2. Calculate contact forces and torques - per body basis
     //    Accumulate the contact forces and torques for all bodies that are
     //    involved in at least one contact, by reducing the contact forces and
@@ -789,6 +808,7 @@ void ChIterativeSolverParallelSMC::ComputeR() {
 // bilateral (joint) constraints present in the system.
 // -----------------------------------------------------------------------------
 void ChIterativeSolverParallelSMC::RunTimeStep() {
+    //std::cout<<"rest12"<<std::endl;
     // This is the total number of constraints, note that there are no contacts
     data_manager->num_constraints = data_manager->num_bilaterals;
     data_manager->num_unilaterals = 0;

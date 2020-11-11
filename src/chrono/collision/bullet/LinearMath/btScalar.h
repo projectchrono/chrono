@@ -240,7 +240,7 @@ inline int btGetVersion()
 				if(!(x))\
 				{\
 					printf("Assert %s in line %d, file %s\n",#x, __LINE__, __FILE__);\
-					asm volatile ("btInt3");\
+					asm volatile ("int3");\
 				}\
 				}
 				#else//defined (__i386__) || defined (__x86_64__)

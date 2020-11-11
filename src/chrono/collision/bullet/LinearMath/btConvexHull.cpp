@@ -22,13 +22,12 @@ subject to the following restrictions:
 
 //----------------------------------
 
-// ***CHRONO*** rename class from 'int3' to 'btInt3' for consistency with renaming of 'int4'
-class btInt3
+class int3
 {
 public:
 	int x, y, z;
-    btInt3(){};
-    btInt3(int _x, int _y, int _z)
+	int3(){};
+	int3(int _x, int _y, int _z)
 	{
 		x = _x;
 		y = _y;
@@ -276,8 +275,8 @@ int maxdirsterid(const T *p, int count, const T &dir, btAlignedObjectArray<int> 
 	return m;
 }
 
-int operator==(const btInt3& a, const btInt3& b);
-int operator==(const btInt3 &a, const btInt3 &b)
+int operator==(const int3 &a, const int3 &b);
+int operator==(const int3 &a, const int3 &b)
 {
 	for (int i = 0; i < 3; i++)
 	{
@@ -286,14 +285,14 @@ int operator==(const btInt3 &a, const btInt3 &b)
 	return 1;
 }
 
-int above(btVector3* vertices, const btInt3& t, const btVector3& p, btScalar epsilon);
-int above(btVector3 *vertices, const btInt3 &t, const btVector3 &p, btScalar epsilon)
+int above(btVector3 *vertices, const int3 &t, const btVector3 &p, btScalar epsilon);
+int above(btVector3 *vertices, const int3 &t, const btVector3 &p, btScalar epsilon)
 {
 	btVector3 n = TriNormal(vertices[t[0]], vertices[t[1]], vertices[t[2]]);
 	return (btDot(n, p - vertices[t[0]]) > epsilon);  // EPSILON???
 }
-int hasedge(const btInt3& t, int a, int b);
-int hasedge(const btInt3 &t, int a, int b)
+int hasedge(const int3 &t, int a, int b);
+int hasedge(const int3 &t, int a, int b)
 {
 	for (int i = 0; i < 3; i++)
 	{
@@ -302,13 +301,13 @@ int hasedge(const btInt3 &t, int a, int b)
 	}
 	return 0;
 }
-int hasvert(const btInt3& t, int v);
-int hasvert(const btInt3 &t, int v)
+int hasvert(const int3 &t, int v);
+int hasvert(const int3 &t, int v)
 {
 	return (t[0] == v || t[1] == v || t[2] == v);
 }
-int shareedge(const btInt3& a, const btInt3& b);
-int shareedge(const btInt3 &a, const btInt3 &b)
+int shareedge(const int3 &a, const int3 &b);
+int shareedge(const int3 &a, const int3 &b)
 {
 	int i;
 	for (i = 0; i < 3; i++)
@@ -321,14 +320,14 @@ int shareedge(const btInt3 &a, const btInt3 &b)
 
 class btHullTriangle;
 
-class btHullTriangle : public btInt3
+class btHullTriangle : public int3
 {
 public:
-    btInt3 n;
+	int3 n;
 	int id;
 	int vmax;
 	btScalar rise;
-    btHullTriangle(int a, int b, int c) : btInt3(a, b, c), n(-1, -1, -1)
+	btHullTriangle(int a, int b, int c) : int3(a, b, c), n(-1, -1, -1)
 	{
 		vmax = -1;
 		rise = btScalar(0.0);
@@ -421,16 +420,16 @@ void HullLibrary::deAllocateTriangle(btHullTriangle *tri)
 
 void HullLibrary::extrude(btHullTriangle *t0, int v)
 {
-    btInt3 t = *t0;
+	int3 t = *t0;
 	int n = m_tris.size();
 	btHullTriangle *ta = allocateTriangle(v, t[1], t[2]);
-    ta->n = btInt3(t0->n[0], n + 1, n + 2);
+	ta->n = int3(t0->n[0], n + 1, n + 2);
 	m_tris[t0->n[0]]->neib(t[1], t[2]) = n + 0;
 	btHullTriangle *tb = allocateTriangle(v, t[2], t[0]);
-    tb->n = btInt3(t0->n[1], n + 2, n + 0);
+	tb->n = int3(t0->n[1], n + 2, n + 0);
 	m_tris[t0->n[1]]->neib(t[2], t[0]) = n + 1;
 	btHullTriangle *tc = allocateTriangle(v, t[0], t[1]);
-    tc->n = btInt3(t0->n[2], n + 0, n + 1);
+	tc->n = int3(t0->n[2], n + 0, n + 1);
 	m_tris[t0->n[2]]->neib(t[0], t[1]) = n + 2;
 	checkit(ta);
 	checkit(tb);
@@ -455,15 +454,15 @@ btHullTriangle *HullLibrary::extrudable(btScalar epsilon)
 	return (t->rise > epsilon) ? t : NULL;
 }
 
-// ***CHRONO*** rename class from 'int4' to 'btInt4' to prevent possible clash with CUDA 'int4' struct
-btInt4 HullLibrary::FindSimplex(btVector3* verts, int verts_count, btAlignedObjectArray<int>& allow) {
+int4 HullLibrary::FindSimplex(btVector3 *verts, int verts_count, btAlignedObjectArray<int> &allow)
+{
 	btVector3 basis[3];
 	basis[0] = btVector3(btScalar(0.01), btScalar(0.02), btScalar(1.0));
 	int p0 = maxdirsterid(verts, verts_count, basis[0], allow);
 	int p1 = maxdirsterid(verts, verts_count, -basis[0], allow);
 	basis[0] = verts[p0] - verts[p1];
 	if (p0 == p1 || basis[0] == btVector3(0, 0, 0))
-        return btInt4(-1, -1, -1, -1);
+		return int4(-1, -1, -1, -1);
 	basis[1] = btCross(btVector3(btScalar(1), btScalar(0.02), btScalar(0)), basis[0]);
 	basis[2] = btCross(btVector3(btScalar(-0.02), btScalar(1), btScalar(0)), basis[0]);
 	if (basis[1].length() > basis[2].length())
@@ -481,19 +480,19 @@ btInt4 HullLibrary::FindSimplex(btVector3* verts, int verts_count, btAlignedObje
 		p2 = maxdirsterid(verts, verts_count, -basis[1], allow);
 	}
 	if (p2 == p0 || p2 == p1)
-        return btInt4(-1, -1, -1, -1);
+		return int4(-1, -1, -1, -1);
 	basis[1] = verts[p2] - verts[p0];
 	basis[2] = btCross(basis[1], basis[0]).normalized();
 	int p3 = maxdirsterid(verts, verts_count, basis[2], allow);
 	if (p3 == p0 || p3 == p1 || p3 == p2) p3 = maxdirsterid(verts, verts_count, -basis[2], allow);
 	if (p3 == p0 || p3 == p1 || p3 == p2)
-        return btInt4(-1, -1, -1, -1);
+		return int4(-1, -1, -1, -1);
 	btAssert(!(p0 == p1 || p0 == p2 || p0 == p3 || p1 == p2 || p1 == p3 || p2 == p3));
 	if (btDot(verts[p3] - verts[p0], btCross(verts[p1] - verts[p0], verts[p2] - verts[p0])) < 0)
 	{
 		btSwap(p2, p3);
 	}
-    return btInt4(p0, p1, p2, p3);
+	return int4(p0, p1, p2, p3);
 }
 
 int HullLibrary::calchullgen(btVector3 *verts, int verts_count, int vlimit)
@@ -517,18 +516,18 @@ int HullLibrary::calchullgen(btVector3 *verts, int verts_count, int vlimit)
 	btScalar epsilon = (bmax - bmin).length() * btScalar(0.001);
 	btAssert(epsilon != 0.0);
 
-	btInt4 p = FindSimplex(verts, verts_count, allow);
+	int4 p = FindSimplex(verts, verts_count, allow);
 	if (p.x == -1) return 0;  // simplex failed
 
 	btVector3 center = (verts[p[0]] + verts[p[1]] + verts[p[2]] + verts[p[3]]) / btScalar(4.0);  // a valid interior point
 	btHullTriangle *t0 = allocateTriangle(p[2], p[3], p[1]);
-    t0->n = btInt3(2, 3, 1);
+	t0->n = int3(2, 3, 1);
 	btHullTriangle *t1 = allocateTriangle(p[3], p[2], p[0]);
-    t1->n = btInt3(3, 2, 0);
+	t1->n = int3(3, 2, 0);
 	btHullTriangle *t2 = allocateTriangle(p[0], p[1], p[3]);
-    t2->n = btInt3(0, 1, 3);
+	t2->n = int3(0, 1, 3);
 	btHullTriangle *t3 = allocateTriangle(p[1], p[0], p[2]);
-    t3->n = btInt3(1, 0, 2);
+	t3->n = int3(1, 0, 2);
 	isextreme[p[0]] = isextreme[p[1]] = isextreme[p[2]] = isextreme[p[3]] = 1;
 	checkit(t0);
 	checkit(t1);
@@ -558,7 +557,7 @@ int HullLibrary::calchullgen(btVector3 *verts, int verts_count, int vlimit)
 		while (j--)
 		{
 			if (!m_tris[j]) continue;
-            btInt3 t = *m_tris[j];
+			int3 t = *m_tris[j];
 			if (above(verts, t, verts[v], btScalar(0.01) * epsilon))
 			{
 				extrude(m_tris[j], v);
@@ -570,7 +569,7 @@ int HullLibrary::calchullgen(btVector3 *verts, int verts_count, int vlimit)
 		{
 			if (!m_tris[j]) continue;
 			if (!hasvert(*m_tris[j], v)) break;
-            btInt3 nt = *m_tris[j];
+			int3 nt = *m_tris[j];
 			if (above(verts, nt, center, btScalar(0.01) * epsilon) || btCross(verts[nt[1]] - verts[nt[0]], verts[nt[2]] - verts[nt[1]]).length() < epsilon * epsilon * btScalar(0.1))
 			{
 				btHullTriangle *nb = m_tris[m_tris[j]->n[0]];

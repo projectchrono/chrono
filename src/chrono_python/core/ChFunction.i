@@ -20,7 +20,6 @@
 #include "chrono/motion_functions/ChFunction_Sequence.h"
 #include "chrono/motion_functions/ChFunction_Sigma.h"
 #include "chrono/motion_functions/ChFunction_Sine.h"
-#include "chrono/motion_functions/ChFunction_Setpoint.h"
 
 #include "chrono/motion_functions/ChFunctionRotation.h"
 #include "chrono/motion_functions/ChFunctionRotation_axis.h"
@@ -105,8 +104,6 @@ SWIGRUNTIME PyObject* DowncastChFunction(chrono::ChFunction* out)
 %shared_ptr(chrono::ChFunction_Sequence)
 %shared_ptr(chrono::ChFunction_Sigma)
 %shared_ptr(chrono::ChFunction_Sine)
-%shared_ptr(chrono::ChFunction_Setpoint)
-%shared_ptr(chrono::ChFunction_SetpointCallback)
 
 %shared_ptr(chrono::ChFunctionRotation)
 %shared_ptr(chrono::ChFunctionRotation_axis)
@@ -123,7 +120,6 @@ SWIGRUNTIME PyObject* DowncastChFunction(chrono::ChFunction* out)
 // Cross-inheritance between Python and c++ for callbacks that must be inherited.
 // Put this 'director' feature _before_ class wrapping declaration.
 %feature("director") chrono::ChFunction;
-%feature("director") chrono::ChFunction_SetpointCallback;
 %ignore chrono::ChFunction::Clone;
 
 /* Parse the header file to generate wrappers */
@@ -146,7 +142,6 @@ SWIGRUNTIME PyObject* DowncastChFunction(chrono::ChFunction* out)
 %include "../../chrono/motion_functions/ChFunction_Sequence.h"
 %include "../../chrono/motion_functions/ChFunction_Sigma.h"
 %include "../../chrono/motion_functions/ChFunction_Sine.h"
-%include "../../chrono/motion_functions/ChFunction_Setpoint.h"
 
 %include "../../chrono/motion_functions/ChFunctionRotation.h"
 %include "../../chrono/motion_functions/ChFunctionRotation_axis.h"
