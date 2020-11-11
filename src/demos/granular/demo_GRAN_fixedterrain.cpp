@@ -54,9 +54,8 @@ int main(int argc, char* argv[]) {
 
     // Add spherically-decomposed underlying terrain.
     std::string objfilename(GetChronoDataFile("granular/demo_GRAN_fixedterrain/fixedterrain.obj"));
-
+    
     ChVector<float> scaling(params.box_X / 2, params.box_Y / 2, params.box_Z);
-
     ChVector<float> offset(0, 0, -params.box_Z / 2);
 
     std::vector<ChVector<float>> terrain_points =
