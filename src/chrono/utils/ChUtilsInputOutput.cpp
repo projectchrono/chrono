@@ -73,29 +73,27 @@ bool WriteCheckpoint(ChSystem* system, const std::string& filename) {
     csv << ctype;
 
     for (auto body : system->Get_bodylist()) {
-        csv << "body ID: "<< body->GetId() << std::endl;
         // Write body identifier, the body fixed flag, and the collide flag
-        csv << "body id:"<<body->GetIdentifier() << " fixed flag:"<<body->GetBodyFixed() <<" collide flag:"<< body->GetCollide() << std::endl;
+        csv << body->GetIdentifier() << body->GetBodyFixed() << body->GetCollide() << tab;
 
         // Write collision family information.
-        csv << "collision family info: " << body->GetCollisionModel()->GetFamilyGroup() << body->GetCollisionModel()->GetFamilyMask() << std::endl;
+        csv << body->GetCollisionModel()->GetFamilyGroup() << body->GetCollisionModel()->GetFamilyMask() << tab;
 
         // Write body mass and inertia
-        csv << "mass: "<<body->GetMass() << "inertia: "<<body->GetInertiaXX() << std::endl;
+        csv << body->GetMass() << body->GetInertiaXX() << tab;
 
         // Write body position, orientation, and their time derivatives
-        csv << "pos: "<<body->GetPos() << " rot: "<<body->GetRot() << std::endl;
-        csv << "pos_dt: "<<body->GetPos_dt() << " rot_dt:" << body->GetRot_dt() << std::endl;
+        csv << body->GetPos() << body->GetRot() << tab;
+        csv << body->GetPos_dt() << body->GetRot_dt() << tab;
 
         csv << std::endl;
 
         // Write number of collision shapes
-        //int n_shapes = body->GetCollisionModel()->GetNumShapes();
-        //csv << "n_shapes: "<<n_shapes << std::endl;
+        int n_shapes = body->GetCollisionModel()->GetNumShapes();
+        csv << n_shapes << std::endl;
 
         // Loop over each shape and write its data on a separate line.
         // If we encounter an unsupported type, return false.
-        /*
         for (int index = 0; index < n_shapes; index++) {
             auto shape = body->GetCollisionModel()->GetShape(index);
 
@@ -103,7 +101,6 @@ bool WriteCheckpoint(ChSystem* system, const std::string& filename) {
             ChCoordsys<> csys = body->GetCollisionModel()->GetShapePos(index);
             csv << csys.pos << csys.rot << tab;
 
-            
             // Write shape material information
             if (ctype == 0) {
                 auto mat = std::static_pointer_cast<ChMaterialSurfaceNSC>(shape->GetMaterial());
@@ -119,7 +116,6 @@ bool WriteCheckpoint(ChSystem* system, const std::string& filename) {
                 csv << mat->kn << mat->gn << mat->kt << mat->gt;
                 csv << tab;
             }
-            
 
             // Write shape type and characteristic dimensions
             std::vector<double> dims = body->GetCollisionModel()->GetShapeDimensions(index);
@@ -132,20 +128,12 @@ bool WriteCheckpoint(ChSystem* system, const std::string& filename) {
 
             csv << std::endl;
         }
-        */
     }
 
     csv.write_to_file(filename);
 
     return true;
 }
-
-
-
-
-
-
-
 
 // -----------------------------------------------------------------------------
 // ReadCheckpoint

@@ -206,16 +206,11 @@ int main(int argc, char* argv[]) {
     gl_window.Initialize(1280, 720, "mixerNSC", &msystem);
     gl_window.SetCamera(ChVector<>(0, -3, 2), ChVector<>(0, 0, 0), ChVector<>(0, 0, 1));
     gl_window.SetRenderMode(opengl::WIREFRAME);
-    int currframe = 0;
+
     while (gl_window.Active()) {
         gl_window.DoStepDynamics(time_step);
         gl_window.Render();
 
-        char filename[100];
-        sprintf(filename, "%sstep%06d.csv","/home/jason/Gran/OCT11/build/bin/testN/",currframe);
-        std::cout<<"Outputting "<<currframe << " Frame"<<std::endl;
-        msystem.Par_Gran_Outhelper(&msystem, filename);
-        currframe++;
         ////auto frc = mixer->GetAppliedForce();
         ////auto trq = mixer->GetAppliedTorque();
         ////std::cout << msystem.GetChTime() << "  force: " << frc << "  torque: " << trq << std::endl;

@@ -128,7 +128,7 @@ int main(int argc, char* argv[]) {
     filesystem::create_directory(filesystem::path(params.output_dir));
     gran_sys.setVerbose(params.verbose);
     std::cout<<"verbose: "<<params.verbose<<std::endl;
-    //gran_sys.setRecordingContactInfo(true);
+    gran_sys.setRecordingContactInfo(true);
 
     gran_sys.initialize();
 
@@ -142,9 +142,9 @@ int main(int argc, char* argv[]) {
     sprintf(filename, "%s/step%06d", params.output_dir.c_str(), currframe);
     gran_sys.writeFile(std::string(filename));
 
-    //char contactFilename[100];
-    //sprintf(contactFilename, "%s/contact%06d", params.output_dir.c_str(), currframe);
-    //gran_sys.writeContactInfoFile(std::string(contactFilename));
+    char contactFilename[100];
+    sprintf(contactFilename, "%s/contact%06d", params.output_dir.c_str(), currframe);
+    gran_sys.writeContactInfoFile(std::string(contactFilename));
 
     currframe++;
 
@@ -156,9 +156,9 @@ int main(int argc, char* argv[]) {
         sprintf(filename, "%s/step%06d", params.output_dir.c_str(), currframe);
         gran_sys.writeFile(std::string(filename));
 
-        //char contactFilename[100];
-        //sprintf(contactFilename, "%s/contact%06d", params.output_dir.c_str(), currframe);
-        //gran_sys.writeContactInfoFile(std::string(contactFilename));
+        char contactFilename[100];
+        sprintf(contactFilename, "%s/contact%06d", params.output_dir.c_str(), currframe);
+        gran_sys.writeContactInfoFile(std::string(contactFilename));
 
         currframe++;
     }
