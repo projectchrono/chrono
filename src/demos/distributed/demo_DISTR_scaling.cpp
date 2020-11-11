@@ -1,3 +1,17 @@
+// =============================================================================
+// PROJECT CHRONO - http://projectchrono.org
+//
+// Copyright (c) 2020 projectchrono.org
+// All rights reserved.
+//
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
+//
+// =============================================================================
+// Authors: Nic Olsen
+// =============================================================================
+
 #include <mpi.h>
 #include <omp.h>
 
@@ -20,7 +34,7 @@
 #include "chrono_thirdparty/filesystem/path.h"
 #include "chrono_thirdparty/filesystem/resolver.h"
 
-#include "chrono_thirdparty/SimpleOpt/SimpleOpt.h"
+#include "chrono_thirdparty/cxxopts/ChCLI.h"
 
 #include "chrono_parallel/solver/ChIterativeSolverParallel.h"
 
@@ -28,37 +42,6 @@ using namespace chrono;
 using namespace chrono::collision;
 
 #define MASTER 0
-
-// ID values to identify command line arguments
-enum { OPT_HELP, OPT_THREADS, OPT_X, OPT_Y, OPT_Z, OPT_TIME, OPT_MONITOR, OPT_OUTPUT_DIR, OPT_VERBOSE };
-
-// Table of CSimpleOpt::Soption structures. Each entry specifies:
-// - the ID for the option (returned from OptionId() during processing)
-// - the option as it should appear on the command line
-// - type of the option
-// The last entry must be SO_END_OF_OPTIONS
-CSimpleOptA::SOption g_options[] = {{OPT_HELP, "--help", SO_NONE},
-                                    {OPT_HELP, "-h", SO_NONE},
-                                    {OPT_THREADS, "-n", SO_REQ_CMB},
-                                    {OPT_X, "-x", SO_REQ_CMB},
-                                    {OPT_Y, "-y", SO_REQ_CMB},
-                                    {OPT_Z, "-z", SO_REQ_CMB},
-                                    {OPT_TIME, "-t", SO_REQ_CMB},
-                                    {OPT_MONITOR, "-m", SO_NONE},
-                                    {OPT_OUTPUT_DIR, "-o", SO_REQ_CMB},
-                                    {OPT_VERBOSE, "-v", SO_NONE},
-                                    SO_END_OF_OPTIONS};
-
-bool GetProblemSpecs(int argc,
-                     char** argv,
-                     int rank,
-                     int& num_threads,
-                     double& time_end,
-                     bool& monitor,
-                     bool& verbose,
-                     bool& output_data,
-                     std::string& outdir);
-void ShowUsage();
 
 // Granular Properties
 float Y = 2e6f;
@@ -69,11 +52,6 @@ double rho = 4000;
 double spacing = 2.0 * gran_radius;  // Distance between adjacent centers of particles
 double mass = rho * 4 / 3 * CH_C_PI * gran_radius * gran_radius * gran_radius;
 ChVector<> inertia = (2.0 / 5.0) * mass * gran_radius * gran_radius * ChVector<>(1, 1, 1);
-
-// Dimensions
-double hx = -1.0;
-double hy = -1.0;
-double height = -1.0;
 
 // Simulation
 double time_step = 1e-4;
@@ -117,7 +95,7 @@ void Monitor(chrono::ChSystemParallel* system, int rank) {
            rank, TIME, STEP, EXCH, BROD, NARR, SOLVER, UPDT, BODS, CNTC, ITER, RESID);
 }
 
-void AddContainer(ChSystemDistributed* sys) {
+void AddContainer(ChSystemDistributed* sys, double hx, double hy, double height) {
     // TODO Any of this body stuff needed for custom collision?
     int binId = -200;
 
@@ -126,8 +104,7 @@ void AddContainer(ChSystemDistributed* sys) {
     mat->SetFriction(mu);
     mat->SetRestitution(cr);
 
-    auto bin =
-        chrono_types::make_shared<ChBody>(chrono_types::make_shared<ChCollisionModelParallel>());
+    auto bin = chrono_types::make_shared<ChBody>(chrono_types::make_shared<ChCollisionModelParallel>());
     bin->SetIdentifier(binId);
     bin->SetMass(1);
     bin->SetPos(ChVector<>(0, 0, 0));
@@ -170,7 +147,7 @@ inline std::shared_ptr<ChBody> CreateBall(const ChVector<>& pos,
     return ball;
 }
 
-size_t AddFallingBalls(ChSystemDistributed* sys) {
+size_t AddFallingBalls(ChSystemDistributed* sys, double hx, double hy, double height) {
     double lowest = 3.0 * spacing;
     ChVector<double> box_center(0, 0, lowest + (height - lowest) / 2.0);
     ChVector<double> half_dims(hx - spacing, hy - spacing, (height - lowest) / 2.0);
@@ -204,16 +181,39 @@ int main(int argc, char* argv[]) {
     MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
     MPI_Comm_size(MPI_COMM_WORLD, &num_ranks);
 
-    // Parse program arguments
-    int num_threads;
-    double time_end;
-    std::string outdir;
-    bool verbose;
-    bool monitor;
-    bool output_data;
-    if (!GetProblemSpecs(argc, argv, my_rank, num_threads, time_end, monitor, verbose, output_data, outdir)) {
+    ChCLI cli(argv[0]);
+
+    // Command-line arguments for the demo
+    cli.AddOption<int>("Demo", "n,nthreads", "Number of OpenMP threads on each rank");
+    cli.AddOption<double>("Demo", "x,xsize", "Patch half dimension in X direction");
+    cli.AddOption<double>("Demo", "y,ysize", "Patch half dimension in Y direction");
+    cli.AddOption<double>("Demo", "z,zsize", "Patch dimension in Z direction");
+    cli.AddOption<double>("Demo", "t,end_time", "Simulation length");
+    cli.AddOption<std::string>("Demo", "o,outdir", "Output directory (must not exist)", "");
+    cli.AddOption<bool>("Demo", "m,perf_mon", "Enable performance monitoring", "false");
+    cli.AddOption<bool>("Demo", "v,verbose", "Enable verbose output", "false");
+
+    if (!cli.Parse(argc, argv, my_rank == 0)) {
         MPI_Finalize();
         return 1;
+    }
+
+    // Parse program arguments
+    const int num_threads = cli.GetAsType<int>("nthreads");
+    const double hx = cli.GetAsType<double>("xsize") / 2.0;
+    const double hy = cli.GetAsType<double>("ysize") / 2.0;
+    const double height = cli.GetAsType<double>("zsize") / 2.0;
+    const double time_end = cli.GetAsType<double>("end_time");
+    std::string outdir = cli.GetAsType<std::string>("outdir");
+    const bool output_data = outdir.compare("") != 0;
+    const bool monitor = cli.GetAsType<bool>("m");
+    const bool verbose = cli.GetAsType<bool>("v");
+
+    // Check that required parameters were specified
+    if (num_threads < 1 || time_end <= 0 || hx < 0 || hy < 0 || height < 0) {
+        if (my_rank == MASTER)
+            std::cout << "Invalid parameter or missing required parameter." << std::endl;
+        return false;
     }
 
     // Output directory and files
@@ -292,10 +292,10 @@ int main(int argc, char* argv[]) {
     if (verbose)
         printf("Rank: %d   bins: %d %d %d\n", my_rank, binX, binY, binZ);
 
-    AddContainer(&my_sys);
+    AddContainer(&my_sys, hx, hy, height);
 
     // Create objects
-    auto actual_num_bodies = AddFallingBalls(&my_sys);
+    auto actual_num_bodies = AddFallingBalls(&my_sys, hx, hy, height);
     MPI_Barrier(my_sys.GetCommunicator());
     if (my_rank == MASTER)
         std::cout << "Total number of particles: " << actual_num_bodies << std::endl;
@@ -344,101 +344,4 @@ int main(int argc, char* argv[]) {
 
     MPI_Finalize();
     return 0;
-}
-
-bool GetProblemSpecs(int argc,
-                     char** argv,
-                     int rank,
-                     int& num_threads,
-                     double& time_end,
-                     bool& monitor,
-                     bool& verbose,
-                     bool& output_data,
-                     std::string& outdir) {
-    // Initialize parameters.
-    num_threads = -1;
-    time_end = -1;
-    verbose = false;
-    monitor = false;
-    output_data = false;
-
-    // Create the option parser and pass it the program arguments and the array of valid options.
-    CSimpleOptA args(argc, argv, g_options);
-
-    // Then loop for as long as there are arguments to be processed.
-    while (args.Next()) {
-        // Exit immediately if we encounter an invalid argument.
-        if (args.LastError() != SO_SUCCESS) {
-            if (rank == MASTER) {
-                std::cout << "Invalid argument: " << args.OptionText() << std::endl;
-                ShowUsage();
-            }
-            return false;
-        }
-
-        // Process the current argument.
-        switch (args.OptionId()) {
-            case OPT_HELP:
-                if (rank == MASTER)
-                    ShowUsage();
-                return false;
-
-            case OPT_THREADS:
-                num_threads = std::stoi(args.OptionArg());
-                break;
-
-            case OPT_OUTPUT_DIR:
-                output_data = true;
-                outdir = args.OptionArg();
-                break;
-
-            case OPT_X:
-                hx = std::stod(args.OptionArg()) / 2.0;
-                break;
-
-            case OPT_Y:
-                hy = std::stod(args.OptionArg()) / 2.0;
-                break;
-
-            case OPT_Z:
-                height = std::stod(args.OptionArg()) / 2.0;
-                break;
-
-            case OPT_TIME:
-                time_end = std::stod(args.OptionArg());
-                break;
-
-            case OPT_MONITOR:
-                monitor = true;
-                break;
-
-            case OPT_VERBOSE:
-                verbose = true;
-                break;
-        }
-    }
-
-    // Check that required parameters were specified
-    if (num_threads == -1 || time_end <= 0 || hx < 0 || hy < 0 || height < 0) {
-        if (rank == MASTER) {
-            std::cout << "Invalid parameter or missing required parameter." << std::endl;
-            ShowUsage();
-        }
-        return false;
-    }
-
-    return true;
-}
-
-void ShowUsage() {
-    std::cout << "Usage: mpirun -np <num_ranks> ./demo_DISTR_scaling [ARGS]" << std::endl;
-    std::cout << "-n=<nthreads>   Number of OpenMP threads on each rank [REQUIRED]" << std::endl;
-    std::cout << "-x=<xsize>      Patch half dimension in X direction [REQUIRED]" << std::endl;
-    std::cout << "-y=<ysize>      Patch half dimension in Y direction [REQUIRED]" << std::endl;
-    std::cout << "-z=<zsize>      Patch dimension in Z direction [REQUIRED]" << std::endl;
-    std::cout << "-t=<end_time>   Simulation length [REQUIRED]" << std::endl;
-    std::cout << "-o=<outdir>     Output directory (must not exist)" << std::endl;
-    std::cout << "-m              Enable performance monitoring (default: false)" << std::endl;
-    std::cout << "-v              Enable verbose output (default: false)" << std::endl;
-    std::cout << "-h              Print usage help" << std::endl;
 }

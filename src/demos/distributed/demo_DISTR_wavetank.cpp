@@ -1,3 +1,17 @@
+// =============================================================================
+// PROJECT CHRONO - http://projectchrono.org
+//
+// Copyright (c) 2020 projectchrono.org
+// All rights reserved.
+//
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
+//
+// =============================================================================
+// Authors: Nic Olsen
+// =============================================================================
+
 #include <mpi.h>
 #include <omp.h>
 
@@ -20,7 +34,7 @@
 #include "chrono_thirdparty/filesystem/path.h"
 #include "chrono_thirdparty/filesystem/resolver.h"
 
-#include "chrono_thirdparty/SimpleOpt/SimpleOpt.h"
+#include "chrono_thirdparty/cxxopts/ChCLI.h"
 
 #include "chrono_parallel/solver/ChIterativeSolverParallel.h"
 
@@ -28,50 +42,6 @@ using namespace chrono;
 using namespace chrono::collision;
 
 #define MASTER 0
-
-// ID values to identify command line arguments
-enum {
-    OPT_HELP,
-    OPT_THREADS,
-    OPT_RAD,
-    OPT_X,
-    OPT_Y,
-    OPT_Z,
-    OPT_TIME,
-    OPT_STEP,
-    OPT_SET,
-    OPT_AMP,
-    OPT_PER,
-    OPT_MONITOR,
-    OPT_OUTPUT_DIR,
-    OPT_VERBOSE
-};
-
-// Table of CSimpleOpt::Soption structures. Each entry specifies:
-// - the ID for the option (returned from OptionId() during processing)
-// - the option as it should appear on the command line
-// - type of the option
-// The last entry must be SO_END_OF_OPTIONS
-CSimpleOptA::SOption g_options[] = {{OPT_HELP, "--help", SO_NONE},   {OPT_HELP, "-h", SO_NONE},
-                                    {OPT_THREADS, "-n", SO_REQ_CMB}, {OPT_RAD, "-r", SO_REQ_CMB},
-                                    {OPT_X, "-x", SO_REQ_CMB},       {OPT_Y, "-y", SO_REQ_CMB},
-                                    {OPT_Z, "-z", SO_REQ_CMB},       {OPT_TIME, "-t", SO_REQ_CMB},
-                                    {OPT_STEP, "-s", SO_REQ_CMB},    {OPT_SET, "-st", SO_REQ_CMB},
-                                    {OPT_AMP, "-a", SO_REQ_CMB},     {OPT_PER, "-p", SO_REQ_CMB},
-                                    {OPT_MONITOR, "-m", SO_NONE},    {OPT_OUTPUT_DIR, "-o", SO_REQ_CMB},
-                                    {OPT_VERBOSE, "-v", SO_NONE},    SO_END_OF_OPTIONS};
-
-bool GetProblemSpecs(int argc,
-                     char** argv,
-                     int rank,
-                     int& num_threads,
-                     double& time_end,
-                     bool& monitor,
-                     bool& verbose,
-                     bool& output_data,
-                     std::string& outdir);
-
-void ShowUsage();
 
 int num_ranks;
 int my_rank;
@@ -82,27 +52,15 @@ float Y = 2e7f;
 float mu = 0.18f;
 float cr = 0.87f;
 float nu = 0.22f;
-double gran_radius = -1;
 double rho = 4000;
-double spacing = -1;  // Distance between adjacent centers of particles
-double mass = -1;
-ChVector<> inertia;
 
-// Dimensions
-double hx = -1.0;
-double hy = -1.0;
-double height = -1.0;
 int split_axis = 1;  // Split in y axis
 
 // Oscillation
-double settling_time = -1;
-double period = -1;
-double amplitude = -1;
 size_t low_x_wall;
 size_t high_x_wall;
 
 // Simulation
-double time_step = -1;
 double out_fps = 60;
 double tolerance = 1e-4;
 
@@ -149,7 +107,12 @@ void Monitor(chrono::ChSystemParallel* system, int rank) {
            STEP, EXCH, BROD, NARR, SOLVER, UPDT, BODS, CNTC, ITER, RESID);
 }
 
-std::shared_ptr<ChBoundary> AddContainer(ChSystemDistributed* sys) {
+std::shared_ptr<ChBoundary> AddContainer(ChSystemDistributed* sys,
+                                         double hx,
+                                         double hy,
+                                         double height,
+                                         double amplitude,
+                                         double spacing) {
     int binId = -200;
 
     auto mat = chrono_types::make_shared<ChMaterialSurfaceSMC>();
@@ -214,7 +177,14 @@ inline std::shared_ptr<ChBody> CreateBall(const ChVector<>& pos,
 }
 
 // TODO: Not HCP?
-size_t AddFallingBalls(ChSystemDistributed* sys) {
+size_t AddFallingBalls(ChSystemDistributed* sys,
+                       double hx,
+                       double hy,
+                       double height,
+                       double gran_radius,
+                       double spacing,
+                       double mass,
+                       ChVector<> inertia) {
     double lowest = 1.0 * spacing;  // lowest layer is 3 particles above the floor
     ChVector<double> box_center(0, 0, lowest + (height - lowest) / 2.0);
     ChVector<double> half_dims(hx - spacing, hy - spacing, (height - lowest - spacing) / 2.0);
@@ -241,7 +211,7 @@ size_t AddFallingBalls(ChSystemDistributed* sys) {
     return points.size();
 }
 
-double GetWallPos(double cur_time) {
+double GetWallPos(double cur_time, double amplitude, double period, double settling_time) {
     if (cur_time < settling_time)
         return 0;
     return amplitude * std::sin((cur_time - settling_time) * 2 * CH_C_PI / period);
@@ -252,23 +222,53 @@ int main(int argc, char* argv[]) {
     MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
     MPI_Comm_size(MPI_COMM_WORLD, &num_ranks);
 
-    // Parse program arguments
-    int num_threads;
-    double time_end;
-    bool verbose;
-    bool monitor;
-    bool output_data;
-    if (!GetProblemSpecs(argc, argv, my_rank, num_threads, time_end, monitor, verbose, output_data, outdir)) {
+    ChCLI cli(argv[0]);
+
+    // Command-line arguments for the demo
+    cli.AddOption<int>("Demo", "n,nthreads", "Number of OpenMP threads on each rank");
+    cli.AddOption<double>("Demo", "r,radius", "Particle radius");
+    cli.AddOption<int>("Demo", "x,xsize", "Patch dimension in X direction in particle diameters");
+    cli.AddOption<int>("Demo", "y,ysize", "Patch dimension in Y direction in particle diameters");
+    cli.AddOption<int>("Demo", "z,zsize", "Patch dimension in Z direction in particle diameters");
+    cli.AddOption<double>("Demo", "a,amplitude", "Amplitude of wavetank oscillation in particle diameters");
+    cli.AddOption<double>("Demo", "p,period", "Period of wavetank oscillation");
+    cli.AddOption<double>("Demo", "t,end_time", "Simulation length");
+    cli.AddOption<double>("Demo", "s,step_size", "Time step length");
+    cli.AddOption<double>("Demo", "d,settling_time", "Time spent settling before oscillation begins");
+    cli.AddOption<std::string>("Demo", "o,outdir", "Output directory (must not exist)", "");
+    cli.AddOption<bool>("Demo", "m,perf_mon", "Enable performance monitoring", "false");
+    cli.AddOption<bool>("Demo", "v,verbose", "Enable verbose output", "false");
+
+    if (!cli.Parse(argc, argv, my_rank == 0)) {
         MPI_Finalize();
         return 1;
     }
 
-    // if (my_rank == 0) {
-    // 	int foo;
-    // 	std::cout << "Enter something too continue..." << std::endl;
-    // 	std::cin >> foo;
-    // }
-    // MPI_Barrier(MPI_COMM_WORLD);
+    // Parse program arguments
+    const int num_threads = cli.GetAsType<int>("nthreads");
+    const double gran_radius = cli.GetAsType<double>("radius");
+    const double spacing = 2.001 * gran_radius;  // Distance between adjacent centers of particles
+    const double mass = rho * 4.0 / 3.0 * CH_C_PI * gran_radius * gran_radius * gran_radius;
+    const ChVector<> inertia = (2.0 / 5.0) * mass * gran_radius * gran_radius * ChVector<>(1, 1, 1);
+    const double hx = gran_radius * cli.GetAsType<int>("xsize");
+    const double hy = gran_radius * cli.GetAsType<int>("ysize");
+    const double height = 2 * gran_radius * cli.GetAsType<int>("zsize");
+    const double amplitude = 2 * gran_radius * cli.GetAsType<double>("amplitude");
+    const double period = cli.GetAsType<double>("period");
+    const double settling_time = cli.GetAsType<double>("settling_time");
+    const double time_end = cli.GetAsType<double>("end_time");
+    const double time_step = cli.GetAsType<double>("step_size");
+    std::string outdir = cli.GetAsType<std::string>("outdir");
+    const bool output_data = outdir.compare("") != 0;
+    const bool monitor = cli.GetAsType<bool>("m");
+    const bool verbose = cli.GetAsType<bool>("v");
+
+    // Check that required parameters were specified
+    if (num_threads < 1 || time_end <= 0 || hx < 0 || hy < 0 || height < 0) {
+        if (my_rank == MASTER)
+            std::cout << "Invalid parameter or missing required parameter." << std::endl;
+        return false;
+    }
 
     // Output directory and files
     std::ofstream outfile;
@@ -359,8 +359,8 @@ int main(int argc, char* argv[]) {
     if (verbose)
         printf("Rank: %d   bins: %d %d %d\n", my_rank, binX, binY, binZ);
 
-    auto bc = AddContainer(&my_sys);
-    auto actual_num_bodies = AddFallingBalls(&my_sys);
+    auto bc = AddContainer(&my_sys, hx, hy, height, amplitude, spacing);
+    auto actual_num_bodies = AddFallingBalls(&my_sys, hx, hy, height, gran_radius, spacing, mass, inertia);
     MPI_Barrier(my_sys.GetCommunicator());
     if (my_rank == MASTER)
         std::cout << "Total number of particles: " << actual_num_bodies << std::endl;
@@ -390,7 +390,7 @@ int main(int argc, char* argv[]) {
                 out_frame++;
             }
         }
-        double pos = GetWallPos(time);
+        double pos = GetWallPos(time, amplitude, period, settling_time);
         bc->GetBody()->SetPos(ChVector<>(pos, 0, 0));
         bc->Update();
 
@@ -405,152 +405,4 @@ int main(int argc, char* argv[]) {
 
     MPI_Finalize();
     return 0;
-}
-
-bool GetProblemSpecs(int argc,
-                     char** argv,
-                     int rank,
-                     int& num_threads,
-                     double& time_end,
-                     bool& monitor,
-                     bool& verbose,
-                     bool& output_data,
-                     std::string& outdir) {
-    // Initialize parameters.
-    num_threads = -1;
-    time_end = -1;
-    verbose = false;
-    monitor = false;
-    output_data = false;
-    bool rad_set = false;
-    // Create the option parser and pass it the program arguments and the array of valid options.
-    CSimpleOptA args(argc, argv, g_options);
-
-    // Then loop for as long as there are arguments to be processed.
-    while (args.Next()) {
-        // Exit immediately if we encounter an invalid argument.
-        if (args.LastError() != SO_SUCCESS) {
-            if (rank == MASTER) {
-                std::cout << "Invalid argument: " << args.OptionText() << std::endl;
-                ShowUsage();
-            }
-            return false;
-        }
-
-        // Process the current argument.
-        switch (args.OptionId()) {
-            case OPT_HELP:
-                if (rank == MASTER)
-                    ShowUsage();
-                return false;
-
-            case OPT_THREADS:
-                num_threads = std::stoi(args.OptionArg());
-                break;
-
-            case OPT_OUTPUT_DIR:
-                output_data = true;
-                outdir = args.OptionArg();
-                break;
-
-            case OPT_RAD:
-                gran_radius = std::stod(args.OptionArg());
-                spacing = 2.001 * gran_radius;
-                mass = rho * 4.0 / 3.0 * CH_C_PI * gran_radius * gran_radius * gran_radius;
-                inertia = (2.0 / 5.0) * mass * gran_radius * gran_radius * ChVector<>(1, 1, 1);
-                rad_set = true;
-                break;
-
-            case OPT_X:
-                if (!rad_set) {
-                    if (rank == MASTER)
-                        ShowUsage();
-                    return false;
-                }
-                hx = gran_radius * std::stoi(args.OptionArg());
-                break;
-
-            case OPT_Y:
-                if (!rad_set) {
-                    if (rank == MASTER)
-                        ShowUsage();
-                    return false;
-                }
-                hy = gran_radius * std::stod(args.OptionArg());
-                break;
-
-            case OPT_Z:
-                if (!rad_set) {
-                    if (rank == MASTER)
-                        ShowUsage();
-                    return false;
-                }
-                height = 2 * gran_radius * std::stoi(args.OptionArg());
-                break;
-
-            case OPT_TIME:
-                time_end = std::stod(args.OptionArg());
-                break;
-
-            case OPT_STEP:
-                time_step = std::stod(args.OptionArg());
-                break;
-
-            case OPT_SET:
-                settling_time = std::stod(args.OptionArg());
-                break;
-
-            case OPT_AMP:
-                if (!rad_set) {
-                    if (rank == MASTER)
-                        ShowUsage();
-                    return false;
-                }
-                amplitude = 2 * gran_radius * std::stod(args.OptionArg());
-                break;
-
-            case OPT_PER:
-                period = std::stod(args.OptionArg());
-                break;
-
-            case OPT_MONITOR:
-                monitor = true;
-                break;
-
-            case OPT_VERBOSE:
-                verbose = true;
-                break;
-        }
-    }
-
-    // Check that required parameters were specified
-    if (num_threads == -1 || time_end <= 0 || hx < 0 || hy < 0 || height < 0 || amplitude < 0 || period <= 0 ||
-        time_step < 0 || settling_time < 0 || gran_radius < 0) {
-        if (rank == MASTER) {
-            std::cout << "Invalid parameter or missing required parameter." << std::endl;
-            ShowUsage();
-        }
-        return false;
-    }
-
-    return true;
-}
-
-void ShowUsage() {
-    std::cout << "Usage: mpirun -np <num_ranks> ./demo_DISTR_scaling [ARGS]" << std::endl;
-    std::cout << "-n=<nthreads>   Number of OpenMP threads on each rank [REQUIRED]" << std::endl;
-    std::cout << "-r=<radius>     Particle radius [REQUIRED] [MUST BE SPECIFIED ALL OTHER LENGTH PARAMETERS]"
-              << std::endl;
-    std::cout << "-x=<xsize>      Patch dimension in X direction in particle diameters [REQUIRED]" << std::endl;
-    std::cout << "-y=<ysize>      Patch dimension in Y direction in particle diameters [REQUIRED]" << std::endl;
-    std::cout << "-z=<zsize>      Patch dimension in Z direction in particle diameters [REQUIRED]" << std::endl;
-    std::cout << "-a=<amplituded> Amplitude of wavetank oscillation in particle diameters [REQUIRED]" << std::endl;
-    std::cout << "-p=<period>     Period of wavetank oscillation [REQUIRED]" << std::endl;
-    std::cout << "-t=<end_time>   Simulation length [REQUIRED]" << std::endl;
-    std::cout << "-s=<step_size>  Time step length [REQUIRED]" << std::endl;
-    std::cout << "-st=<settling_time> Time spent settling before oscillation begins [REQUIRED]" << std::endl;
-    std::cout << "-o=<outdir>     Output directory (must not exist)" << std::endl;
-    std::cout << "-m              Enable performance monitoring (default: false)" << std::endl;
-    std::cout << "-v              Enable verbose output (default: false)" << std::endl;
-    std::cout << "-h              Print usage help" << std::endl;
 }
