@@ -66,7 +66,15 @@ class ChCLI {
         return std::find(vector.begin(), vector.end(), value) != vector.end();
     }
 
-    /// Add an option
+    template <typename T = bool>
+    void AddOption(const std::string& group,
+                   const std::string& opts,
+                   const std::string& desc,
+                   const std::string& def,
+                   const std::string& arg_help) {
+        m_options.add_option(group, cxxopts::Option(opts, desc, cxxopts::value<T>()->default_value(def), arg_help));
+    }
+
     template <typename T = bool>
     void AddOption(const std::string& group,
                    const std::string& opts,

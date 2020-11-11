@@ -28,7 +28,7 @@
 #include "chrono_vehicle/driver/ChPathFollowerDriver.h"
 
 #include "chrono_synchrono/communication/mpi/SynMPIManager.h"
-#include "chrono_synchrono/cli/SynCLI.h"
+#include "chrono_thirdparty/cxxopts/ChCLI.h"
 
 #include "chrono_synchrono/agent/SynWheeledVehicleAgent.h"
 #include "chrono_synchrono/vehicle/SynWheeledVehicle.h"
@@ -97,8 +97,7 @@ int main(int argc, char* argv[]) {
     // CLI SETUP - Get most parameters from the command line
     // -----------------------------------------------------
 
-    SynCLI cli(argv[0]);
-    cli.AddDefaultDemoOptions();
+    ChCLI cli(argv[0]);
 
     cli.AddOption<double>("Demo", "d,dpu", "Divisions per unit", "20");
 

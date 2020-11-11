@@ -125,12 +125,6 @@ if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 endif()
 source_group("brain" FILES ${SYN_BRAIN_FILES})
 
-set(SYN_CLI_FILES
-	cli/SynCLI.h
-	cli/SynCLI.cpp
-)
-source_group("cli" FILES ${SYN_CLI_FILES})
-
 set(SYN_COMMUNICATION_FILES
 	communication/SynCommunicationManager.h
 	communication/SynCommunicationManager.cpp

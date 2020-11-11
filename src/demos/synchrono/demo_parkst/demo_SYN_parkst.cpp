@@ -1,4 +1,4 @@
-#include "chrono_synchrono/cli/SynCLI.h"
+#include "chrono_thirdparty/cxxopts/ChCLI.h"
 #include "chrono_synchrono/communication/mpi/SynMPIManager.h"
 
 #include "chrono_synchrono/utils/SynGPSTools.h"

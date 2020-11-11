@@ -27,7 +27,7 @@
 #include "chrono_vehicle/driver/ChPathFollowerDriver.h"
 
 #include "chrono_synchrono/communication/mpi/SynMPIManager.h"
-#include "chrono_synchrono/cli/SynCLI.h"
+#include "chrono_thirdparty/cxxopts/ChCLI.h"
 
 #include "chrono_synchrono/agent/SynTrackedVehicleAgent.h"
 #include "chrono_synchrono/vehicle/SynTrackedVehicle.h"
@@ -62,23 +62,21 @@ using namespace chrono::vehicle::m113;
 // Better conserve mass by displacing soil to the sides of a rut
 bool bulldozing = true;
 
-// Contact method
 ChContactMethod contact_method = ChContactMethod::SMC;
-
-// Simulation end time
 double end_time = 1000;
-
-// Simulation step sizes
 double step_size = 1e-3;
 
 // Time interval between two render frames
 double render_step_size = 1.0 / 50;  // FPS = 50
 
-// Render rank
 int render_rank = 0;
 
 // SynChrono synchronization heartbeat
 float heartbeat = 1e-2;  // 100[Hz]
+
+ChContactMethod ContactMethodFromString(std::string str);
+std::string StringFromContactMethod(ChContactMethod contact);
+void AddCommandLineOptions(ChCLI& cli);
 
 // =============================================================================
 
@@ -98,23 +96,18 @@ int main(int argc, char* argv[]) {
     // CLI SETUP - Get most parameters from the command line
     // -----------------------------------------------------
 
-    SynCLI cli(argv[0]);
-    cli.AddDefaultDemoOptions();
+    ChCLI cli(argv[0]);
 
-    cli.AddOption<double>("Demo", "d,dpu", "Divisions per unit", "20");
-
-    // Visualization is the only reason you should be shy about terrain size. The implementation can easily a
-    // practically infinite terrain (provided you don't need to visualize it)
-    cli.AddOption<double>("Demo", "x,sizeX", "Size in the X", "100");
-    cli.AddOption<double>("Demo", "y,sizeY", "Size in the Y", "50");
-
-    cli.AddOption<std::vector<int>>("Demo", "r,res", "Camera resolution", "1280,720", "width,height");
-    cli.AddOption<std::vector<double>>("Demo", "c_pos", "Camera Position", "-15,-25", "X,Y");
-
-    cli.AddOption<std::string>("Demo", "t,terrain_type", "Terrain Type", "Rigid", "Rigid,SCM");
+    AddCommandLineOptions(cli);
 
     if (!cli.Parse(argc, argv, rank == 0))
         mpi_manager.Exit();
+
+    // Normal simulation options
+    step_size = cli.GetAsType<double>("step_size");
+    end_time = cli.GetAsType<double>("end_time");
+    heartbeat = cli.GetAsType<double>("heartbeat");
+    contact_method = ContactMethodFromString(cli.GetAsType<std::string>("contact_method"));
 
     const double size_x = cli.GetAsType<double>("sizeX");
     const double size_y = cli.GetAsType<double>("sizeY");
@@ -356,4 +349,54 @@ int main(int argc, char* argv[]) {
     std::cout << "Rank " << rank << " completed successfully." << std::endl;
 
     return 0;
+}
+
+ChContactMethod ContactMethodFromString(std::string str) {
+    if (str == "SMC")
+        return ChContactMethod::SMC;
+    if (str == "NSC")
+        return ChContactMethod::NSC;
+    throw ChException(str + " is not a valid ChContactMethod (SMC or NSC)");
+}
+
+std::string StringFromContactMethod(ChContactMethod contact) {
+    switch (contact) {
+        case ChContactMethod::NSC:
+            return "NSC";
+        case ChContactMethod::SMC:
+            return "SMC";
+        default:
+            throw ChException("ChContactMethod improperly enumerated in StringFromContactMethod");
+    }
+}
+
+void AddCommandLineOptions(ChCLI& cli) {
+    // Standard demo options
+    cli.AddOption<double>("Simulation", "step_size", "Step size", std::to_string(step_size));
+    cli.AddOption<double>("Simulation", "end_time", "End time", std::to_string(end_time));
+    cli.AddOption<double>("Simulation", "heartbeat", "Heartbeat", std::to_string(heartbeat));
+    cli.AddOption<std::string>("Simulation", "contact_method", "Contact Method",
+                               StringFromContactMethod(contact_method), "NSC/SMC");
+
+    // SCM specific options
+    cli.AddOption<double>("Demo", "d,dpu", "Divisions per unit", "20");
+    cli.AddOption<std::string>("Demo", "t,terrain_type", "Terrain Type", "Rigid", "Rigid,SCM");
+
+    // Visualization is the only reason you should be shy about terrain size. The implementation can easily handle a
+    // practically infinite terrain (provided you don't need to visualize it)
+    cli.AddOption<double>("Demo", "x,sizeX", "Size in the X", "100");
+    cli.AddOption<double>("Demo", "y,sizeY", "Size in the Y", "50");
+
+    // Irrlicht options
+    cli.AddOption<std::vector<int>>("Irrlicht", "irr", "Ranks for irrlicht usage", "-1");
+    cli.AddOption<bool>("Irrlicht", "irr_save", "Toggle irrlicht saving ON", "false");
+    cli.AddOption<bool>("Irrlicht", "irr_vis", "Toggle irrlicht visualization ON", "false");
+
+    // Sensor options
+    cli.AddOption<std::vector<int>>("Sensor", "sens", "Ranks for sensor usage", "-1");
+    cli.AddOption<bool>("Sensor", "sens_save", "Toggle sensor saving ON", "false");
+    cli.AddOption<bool>("Sensor", "sens_vis", "Toggle sensor visualization ON", "false");
+
+    cli.AddOption<std::vector<int>>("Demo", "r,res", "Camera resolution", "1280,720", "width,height");
+    cli.AddOption<std::vector<double>>("Demo", "c_pos", "Camera Position", "-15,-25", "X,Y");
 }
