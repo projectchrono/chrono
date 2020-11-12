@@ -33,6 +33,7 @@ namespace synchrono {
 /// @addtogroup synchrono_flatbuffer
 /// @{
 
+/// Wrapper for several constructs that are common to many flatbuffer messages (Vectors, Quaternions, frames)
 class SYN_API SynPose {
   public:
     ///@brief Construct a new Pose object

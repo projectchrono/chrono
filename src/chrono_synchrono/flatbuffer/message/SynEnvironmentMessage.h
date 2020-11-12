@@ -40,6 +40,7 @@ struct SynEnvironmentMessageState : public SynMessageState {
     SynEnvironmentMessageState(double time, int rank) : SynMessageState(time), rank(rank) {}
 };
 
+/// Used to send the initial description for an environment agent
 class SYN_API SynEnvironmentMessage : public SynAgentMessage {
   public:
     SynEnvironmentMessage(int rank, std::shared_ptr<SynEnvironmentMessageState> state = nullptr);

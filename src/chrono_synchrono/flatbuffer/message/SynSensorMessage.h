@@ -114,6 +114,7 @@ struct SynSensorMessageState : public SynMessageState {
     }
 };
 
+/// Wraps data received from a flatbuffer sensor message into a corresponding C++ class.
 class SYN_API SynSensorMessage : public SynMessage {
   public:
     ///@brief Construct a new SensorMessageState object

@@ -73,6 +73,7 @@ struct SynWheeledVehicleDescription : public SynAgentDescription {
     void SetNumWheels(int num_wheels) { m_num_wheels = num_wheels; }
 };
 
+/// Wraps data from a wheeled vehicle state message into a corresponding C++ object.
 class SYN_API SynWheeledVehicleMessage : public SynAgentMessage {
   public:
     ///@brief Construct a new SynWheeledVehicleMessage object

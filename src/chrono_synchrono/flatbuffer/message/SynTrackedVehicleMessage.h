@@ -117,6 +117,7 @@ struct SynTrackedVehicleDescription : public SynAgentDescription {
     }
 };
 
+/// Wraps data from a tracked vehicle state message into a corresponding C++ object.
 class SYN_API SynTrackedVehicleMessage : public SynAgentMessage {
   public:
     ///@brief Construct a new SynTrackedVehicleMessage object

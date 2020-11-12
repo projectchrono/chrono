@@ -28,7 +28,7 @@ namespace synchrono {
 /// @addtogroup synchrono_flatbuffer
 /// @{
 
-/// Wrap branching code into this factory function
+/// Called by CommunicationManager to transform an incoming SynFlatBuffers::Message into a SynMessage
 class SYN_API SynMessageFactory {
   public:
     /// Branches on message->message_type() to return various derived classes of SynMessage

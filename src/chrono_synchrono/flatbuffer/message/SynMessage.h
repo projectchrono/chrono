@@ -12,7 +12,9 @@
 // Authors: Aaron Young
 // =============================================================================
 //
-// File description
+// Common code for all SynChrono messages classes that handle Flatbuffer data.
+// Knows about a rank, a type and that each class should handle going to and
+// from flatbuffer messages
 //
 // =============================================================================
 

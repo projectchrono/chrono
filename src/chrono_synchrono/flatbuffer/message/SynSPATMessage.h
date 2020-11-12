@@ -31,6 +31,7 @@ namespace synchrono {
 
 enum class LaneColor { GREEN, YELLOW, RED };
 
+/// Lane for the purpose of SPAT messages (i.e. something that can have its light color change)
 struct IntersectionLane {
     int intersection;
     int approach;
@@ -49,6 +50,7 @@ struct SynSPATMessageState : public SynMessageState {
     SynSPATMessageState(const SynFlatBuffers::SPAT::State* state);
 };
 
+/// Wraps data from a SPAT message into a corresponding C++ object.
 class SYN_API SynSPATMessage : public SynMessage {
   public:
     ///@brief Construct a new SynSPATMessage object

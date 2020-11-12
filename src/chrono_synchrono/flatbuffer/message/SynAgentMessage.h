@@ -40,6 +40,7 @@ struct SynAgentDescription {
     SynAgentDescription(std::string json = "") : json(json) {}
 };
 
+/// Class handling the conversion from agent flatbuffer messages into C++ objects
 class SYN_API SynAgentMessage : public SynMessage {
   public:
     ///@brief Construct a new SynAgentMessage object

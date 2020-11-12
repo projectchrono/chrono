@@ -44,6 +44,7 @@ struct SynSCMTerrainState : public SynMessageState {
         : SynMessageState(time), modified_nodes(modified_nodes) {}
 };
 
+/// Class that wraps data contained in a message about Soil Contact Model (SCM) Deformable terrain.
 class SYN_API SynSCMMessage : public SynMessage {
   public:
     ///@brief Construct a new SynSCMMessage object

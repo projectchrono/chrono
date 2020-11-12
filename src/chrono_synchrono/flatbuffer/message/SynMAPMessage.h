@@ -13,8 +13,8 @@
 // =============================================================================
 //
 // Store the Map information in the simulation. Currently only used for traffic
-// light. A Map -> Intersections -> approaches -> lanes
-// 
+// light. A Map has Intersections which have approaches which have lanes
+//
 // =============================================================================
 
 #ifndef SYN_MAP_MESSAGE_H
@@ -29,6 +29,7 @@ namespace synchrono {
 /// @addtogroup synchrono_flatbuffer
 /// @{
 
+/// Contains some number of approaches - see ApproachMessage
 struct Intersection {
     std::vector<SynApproachMessageState> approaches;
 
@@ -37,6 +38,7 @@ struct Intersection {
     Intersection(const SynFlatBuffers::MAP::intersection* intersection);
 };
 
+/// Contains some number of intersections
 struct SynMAPMessageState : public SynMessageState {
     int rank;
     std::vector<Intersection> intersections;
@@ -47,6 +49,8 @@ struct SynMAPMessageState : public SynMessageState {
     SynMAPMessageState(const SynFlatBuffers::MAP::State* state);
 };
 
+/// Store the Map information in the simulation. Currently only used for traffic light. A Map has Intersections which
+/// have approaches which have lanes
 class SYN_API SynMAPMessage : public SynMessage {
   public:
   public:

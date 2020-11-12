@@ -34,6 +34,7 @@ namespace synchrono {
 /// @addtogroup synchrono_flatbuffer
 /// @{
 
+/// Helper class that wraps the flatbuffers::FlatBufferBuilder
 class SYN_API SynFlatBuffersManager {
   public:
     /// @brief Construct a flatbuffers manager with a builder starting length
