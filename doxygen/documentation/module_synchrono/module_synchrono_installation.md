@@ -33,4 +33,4 @@ The **SynChrono module** allows users to paralellize the dynamics computations f
 
 ## How to use it
 
-TODO: Fill out the links here (some doxygen structure is missing)
+- Read the [overview](@ref module_synchrono_overview).

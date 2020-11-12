@@ -1,4 +1,4 @@
-SynChrono
+SynChrono {#module_synchrono_overview}
 ==============
 
 \tableofcontents

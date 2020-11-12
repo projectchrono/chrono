@@ -35,7 +35,7 @@
     This module provides support for modelling sensor for simulating autonomous behavior
 
     For additional information, see:
-    - the [overview](@ref synchrono_overview)
+    - the [overview](@ref module_synchrono_overview)
     - the [installation guide](@ref module_synchrono_installation)
 
     @{
