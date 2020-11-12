@@ -81,12 +81,12 @@ void SynSensorVisualization::InitializeAsDefaultChaseCamera(std::shared_ptr<ChBo
                                                             float fps,
                                                             std::string window_title) {
     m_sensor = chrono_types::make_shared<ChCameraSensor>(
-        body_ref,                                                                 // body camera is attached to
-        fps,                                                                      // update rate in Hz
-        chrono::ChFrame<double>({20, 0, 3}, Q_from_AngAxis(CH_C_PI, {0, 0, 1})),  // offset pose
-        width,                                                                    // image width
-        height,                                                                   // image height
-        CH_C_PI / 3);                                                             // horizontal field of view
+        body_ref,                                                                      // body camera is attached to
+        fps,                                                                           // update rate in Hz
+        chrono::ChFrame<double>({-8, 0, 3}, Q_from_AngAxis(CH_C_PI / 20, {0, 1, 0})),  // offset pose
+        width,                                                                         // image width
+        height,                                                                        // image height
+        CH_C_PI / 3);                                                                  // horizontal field of view
     m_sensor->SetLag(1 / fps);
     m_sensor->SetName(window_title);
 }
