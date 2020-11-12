@@ -33,6 +33,7 @@ namespace synchrono {
 /// @addtogroup synchrono_visualization
 /// @{
 
+/// Base class for a visualization wrapper (either Irrlicht or Sensor currently)
 class SynVisualization {
   public:
     enum VisualizationType { SENSOR, IRRLICHT };

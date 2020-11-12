@@ -35,6 +35,7 @@ namespace synchrono {
 /// @addtogroup synchrono_terrain
 /// @{
 
+/// Base class for all terrain wrappers. Must handle messages and Advance and Synchronize the state of their terrain
 class SYN_API SynTerrain {
   public:
     // Constructor

@@ -34,6 +34,8 @@ namespace synchrono {
 /// @addtogroup synchrono_vehicle
 /// @{
 
+/// Wrapper class for ChWheeledVehicles. Functions here are related to initializing this as a zombie (setting visual
+/// representations, # of wheels)
 class SYN_API SynWheeledVehicle : public SynVehicle {
   public:
     ///@brief Default constructor for a SynWheeledVehicle

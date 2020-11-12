@@ -38,6 +38,7 @@ namespace synchrono {
 /// @addtogroup synchrono_visualization
 /// @{
 
+/// Concrete SynVisualization class that handles Sensor visualization via a ChSensorManager.
 class SYN_API SynSensorVisualization : public SynVisualization {
   public:
     /// Constructs a sensor vis

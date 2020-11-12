@@ -37,7 +37,8 @@ namespace synchrono {
 /// @addtogroup synchrono_vehicle
 /// @{
 
-// ALWAYS owns system
+// Wrapper class for ChTrackedVehicles. Additional functions here are related to initializing this as a zombie (setting
+// visual representations, treads)
 class SYN_API SynTrackedVehicle : public SynVehicle {
   public:
     ///@brief Default constructor for a SynWheeledVehicle

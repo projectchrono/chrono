@@ -30,7 +30,7 @@ namespace synchrono {
 /// @addtogroup synchrono_terrain
 /// @{
 
-/// Describing this class...
+/// Class that wraps and synchronizes rigid terrain between Chrono Systems
 class SYN_API SynRigidTerrain : public SynTerrain {
   public:
     // Default Constructor

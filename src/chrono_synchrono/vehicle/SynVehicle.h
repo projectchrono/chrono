@@ -50,6 +50,7 @@ namespace synchrono {
 /// @addtogroup synchrono_vehicle
 /// @{
 
+/// Base class for all vehicle wrappers. Forces them to provide for initialization and synchronization of their zombie
 class SYN_API SynVehicle {
   public:
     ///@brief Default constructor for a SynVehicle

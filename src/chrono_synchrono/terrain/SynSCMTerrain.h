@@ -39,6 +39,7 @@ namespace synchrono {
 
 struct SCMParameters;
 
+/// Class that wraps and synchronizes deformable terrain between Chrono Systems
 class SYN_API SynSCMTerrain : public SynTerrain {
   public:
     /// @brief Create SynSCMTerrain by optionally adding an underlying SCMDeformableTerrain

@@ -13,8 +13,6 @@ background on the modularity of the Chrono project.
 
 The **SynChrono module** allows users to paralellize the dynamics computations for Chrono::Vehicles across MPI ranks
 
-For more detail, read the [Chrono::SynChrono](@ref manual_synchrono) section of the reference manual.
-
 
 ## Required Dependencies
 

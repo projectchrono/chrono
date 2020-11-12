@@ -41,6 +41,7 @@ namespace synchrono {
 /// @addtogroup synchrono_visualization
 /// @{
 
+/// Concrete SynVisualization class that handles Irrlicht visualization via an Irrlicht app.
 class SYN_API SynIrrVehicleVisualization : public SynVisualization {
   public:
     SynIrrVehicleVisualization(std::shared_ptr<ChDriver> driver = nullptr,

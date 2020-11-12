@@ -29,7 +29,6 @@ namespace synchrono {
 /// @{
 
 /// Generates SynTerrain's from JSON files
-/// Used to improve generality in Agent classes
 class SYN_API SynTerrainFactory {
   public:
     /// Generate the corresponding SynTerrain from a JSON specification file

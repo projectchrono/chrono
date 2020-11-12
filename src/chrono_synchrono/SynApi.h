@@ -35,13 +35,12 @@
     This module provides support for modelling sensor for simulating autonomous behavior
 
     For additional information, see:
-    - the [installation guide](@ref module_vehicle_installation)
-    - the [tutorials](@ref tutorial_table_of_content_chrono_vehicle)
+    - the [overview](@ref synchrono_overview)
+    - the [installation guide](@ref module_synchrono_installation)
 
     @{
         @defgroup synchrono_agent Agents
         @defgroup synchrono_brain Brains and Drivers
-        @defgroup synchrono_cli Command-Line Interface
         @defgroup synchrono_communication Communication
         @{
             @defgroup synchrono_communication_mpi Communication tools using the MPI framework

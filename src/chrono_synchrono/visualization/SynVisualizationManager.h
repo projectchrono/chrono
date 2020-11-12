@@ -29,6 +29,7 @@ namespace synchrono {
 /// @addtogroup synchrono_visualization
 /// @{
 
+/// Abstracts away the need to separately update and maintain Irrlicht and Sensor visualizations
 class SYN_API SynVisualizationManager {
   public:
     /// Constructs a visualization manager
