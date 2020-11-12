@@ -18,6 +18,8 @@
 //
 // =============================================================================
 
+#include "chrono/core/ChLog.h"
+
 #include "chrono_synchrono/visualization/SynSensorVisualization.h"
 
 #include "chrono_sensor/ChCameraSensor.h"
@@ -42,18 +44,12 @@ void SynSensorVisualization::Update(double step) {
 
 void SynSensorVisualization::Initialize() {
     if (m_sensor_manager == nullptr) {
-        std::cerr
-            << "SynSensorVisualization::Initialize: Sensor manager has not been initialized. Must initialize prior "
-               "to adding sensor. Exitting..."
-            << std::endl;
-        exit(-1);
+        GetLog() << "SynSensorVisualization::Initialize: Sensor manager has not been initialized. Doing nothing..."
+                 << "\n";
+        return;
     } else if (m_sensor == nullptr) {
-        // std::cout
-        //     << "SynSensorVisualization::Initialize: Sensor has not been created or attached. Must attach a sensor
-        //     prior "
-        //        "to initializing the sensor vis. Exitting..."
-        //     << std::endl;
-        // exit(-1);
+        GetLog() << "SynSensorVisualization::Initialize: Sensor has not been created or attached. Doing nothing..."
+                 << "\n";
         return;
     }
     m_sensor_manager->AddSensor(m_sensor);
@@ -68,10 +64,9 @@ void SynSensorVisualization::InitializeDefaultSensorManager(ChSystem* system) {
         m_sensor_manager->scene->AddPointLight({100, 100, 100}, {1, 1, 1}, 5000);
         m_sensor_manager->scene->AddPointLight({-100, -100, 100}, {1, 1, 1}, 5000);
     } else {
-        std::cerr << "SensorVisualizationTypeManager::InitializeDefaultSensorManager: Sensor manager has already been "
-                     "initialized. "
-                     "Ignoring..."
-                  << std::endl;
+        GetLog() << "SensorVisualizationTypeManager::InitializeDefaultSensorManager: Sensor manager has already been "
+                    "initialized. Doing nothing..."
+                 << "\n";
     }
 }
 
@@ -113,8 +108,8 @@ void SynSensorVisualization::AddFilterRGBA8Access() {
     if (camera) {
         camera->PushFilter(chrono_types::make_shared<ChFilterRGBA8Access>());
     } else {
-        std::cout << "SynSensorVisualization::AddFilterRGBA8Access: Attached sensor is not a camera. Ignoring..."
-                  << std::endl;
+        GetLog() << "SynSensorVisualization::AddFilterRGBA8Access: Attached sensor is not a camera. Doing nothing..."
+                 << "\n";
     }
 }
 
@@ -129,8 +124,9 @@ void SynSensorVisualization::AddFilterVisualize(unsigned int w, unsigned int h) 
         lidar->PushFilter(chrono_types::make_shared<ChFilterVisualize>(w, h));
         return;
     }
-    std::cout << "SynSensorVisualization::AddFilterVisualize: Attached sensor is not a camera or a lidar. Ignoring..."
-              << std::endl;
+    GetLog()
+        << "SynSensorVisualization::AddFilterVisualize: Attached sensor is not a camera or a lidar. Doing nothing..."
+        << "\n";
 }
 
 void SynSensorVisualization::AddFilterSave(std::string file_path) {
@@ -144,8 +140,8 @@ void SynSensorVisualization::AddFilterSave(std::string file_path) {
         lidar->PushFilter(chrono_types::make_shared<ChFilterSave>(file_path));
         return;
     }
-    std::cout << "SynSensorVisualization::AddFilterSave: Attached sensor is not a camera or a lidar. Ignoring..."
-              << std::endl;
+    GetLog() << "SynSensorVisualization::AddFilterSave: Attached sensor is not a camera or a lidar. Doing nothing..."
+             << "\n";
 }
 }  // namespace synchrono
 }  // namespace chrono

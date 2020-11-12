@@ -20,6 +20,8 @@
 
 #include "chrono_synchrono/visualization/SynIrrVehicleVisualization.h"
 
+#include "chrono/core/ChLog.h"
+
 namespace chrono {
 namespace synchrono {
 
@@ -57,8 +59,8 @@ void SynIrrVehicleVisualization::InitializeAsDefaultTrackedChaseCamera(std::shar
 
 void SynIrrVehicleVisualization::AttachIrrApp(std::shared_ptr<ChVehicleIrrApp> app) {
     if (m_app != nullptr)
-        std::cout << "SynIrrVehicleVisualization::AttachIrrApp: m_app is already initialized. Updating anyways..."
-                  << std::endl;
+        GetLog() << "SynIrrVehicleVisualization::AttachIrrApp: m_app is already initialized. Updating anyways..."
+                 << "\n";
     m_app = app;
 }
 

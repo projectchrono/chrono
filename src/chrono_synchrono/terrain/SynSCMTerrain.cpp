@@ -25,6 +25,7 @@
 
 #include "chrono_synchrono/terrain/SynSCMTerrain.h"
 
+#include "chrono/core/ChLog.h"
 #include "chrono/assets/ChVisualization.h"
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_synchrono/flatbuffer/message/SynSCMMessage.h"
@@ -35,8 +36,8 @@ namespace chrono {
 namespace synchrono {
 
 SynSCMTerrain::SynSCMTerrain(ChSystem* system, const std::string& filename) {
-    std::cerr << "SCM Terrain initialization from json file not yet supported. Initialization call did nothing."
-              << std::endl;
+    GetLog() << "SCM Terrain initialization from json file not yet supported. Initialization call did nothing."
+             << "\n";
 }
 
 void SynSCMTerrain::Advance(double step) {
