@@ -25,7 +25,7 @@
 #include "chrono/utils/ChUtilsInputOutput.h"
 
 #include "chrono/solver/ChIterativeSolverLS.h"
-#include "chrono_mkl/ChSolverMKL.h"
+#include "chrono_pardisomkl/ChSolverPardisoMKL.h"
 
 #include "chrono/fea/ChContactSurfaceMesh.h"
 #include "chrono/fea/ChContactSurfaceNodeCloud.h"
@@ -205,7 +205,7 @@ int main(int argc, char* argv[]) {
     // Simulation loop
     // ---------------
 
-    ////auto mkl_solver = chrono_types::make_shared<ChSolverMKL>();
+    ////auto mkl_solver = chrono_types::make_shared<ChSolverPardisoMKL>();
     ////my_system.SetSolver(mkl_solver);
     ////mkl_solver->LockSparsityPattern(true);
     ////my_system.Update();

@@ -27,8 +27,8 @@
 #include "chrono/fea/ChElementShellANCF.h"
 #include "chrono/fea/ChMesh.h"
 
-#ifdef CHRONO_MKL
-#include "chrono_mkl/ChSolverMKL.h"
+#ifdef CHRONO_PARDISO_MKL
+#include "chrono_pardisomkl/ChSolverPardisoMKL.h"
 #endif
 
 #ifdef CHRONO_MUMPS
@@ -107,7 +107,7 @@ class SystemFixture : public ::benchmark::Fixture {
 
 #define BM_SOLVER_MKL(TEST_NAME, N, WITH_LEARNER)                                     \
     BENCHMARK_TEMPLATE_DEFINE_F(SystemFixture, TEST_NAME, N)(benchmark::State & st) { \
-        auto solver = chrono_types::make_shared<ChSolverMKL>();                       \
+        auto solver = chrono_types::make_shared<ChSolverPardisoMKL>();                \
         solver->UseSparsityPatternLearner(WITH_LEARNER);                              \
         solver->LockSparsityPattern(true);                                            \
         solver->SetVerbose(false);                                                    \
@@ -150,7 +150,7 @@ class SystemFixture : public ::benchmark::Fixture {
     }                                                                                 \
     BENCHMARK_REGISTER_F(SystemFixture, TEST_NAME)->Unit(benchmark::kMillisecond);
 
-#ifdef CHRONO_MKL
+#ifdef CHRONO_PARDISO_MKL
 BM_SOLVER_MKL(MKL_learner_500, 500, true)
 BM_SOLVER_MKL(MKL_no_learner_500, 500, false)
 BM_SOLVER_MKL(MKL_learner_1000, 1000, true)

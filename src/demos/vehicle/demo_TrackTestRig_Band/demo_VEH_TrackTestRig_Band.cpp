@@ -33,8 +33,8 @@
 #include "chrono_mumps/ChSolverMumps.h"
 #endif
 
-#ifdef CHRONO_MKL
-#include "chrono_mkl/ChSolverMKL.h"
+#ifdef CHRONO_PARDISO_MKL
+#include "chrono_pardisomkl/ChSolverPardisoMKL.h"
 #endif
 
 using namespace chrono;
@@ -60,9 +60,8 @@ std::string driver_file("M113/test_rig/TTR_inputs.dat");
 bool use_JSON = false;
 std::string filename("M113/track_assembly/M113_TrackAssemblyBandANCF_Left.json");
 
-// Linear solver
-enum SolverType { MUMPS, MKL };
-SolverType solver_type = MUMPS;
+// Linear solver (MUMPS or PARDISO_MKL)
+ChSolver::Type solver_type = ChSolver::Type::MUMPS;
 
 // Output directories
 const std::string out_dir = GetChronoOutputPath() + "TRACKBAND_TEST_RIG";
@@ -244,18 +243,18 @@ int main(int argc, char* argv[]) {
     // Solver and integrator settings
     // ------------------------------
 
-#ifndef CHRONO_MKL
-    if (solver_type == MKL)
-        solver_type = MUMPS;
+#ifndef CHRONO_PARDISO_MKL
+    if (solver_type == ChSolver::Type::MKL)
+        solver_type = ChSolver::Type::MUMPS;
 #endif
 #ifndef CHRONO_MUMPS
-    if (solver_type == MUMPS)
-        solver_type = MKL;
+    if (solver_type == ChSolver::Type::MUMPS)
+        solver_type = ChSolver::Type::PARDISO_MKL;
 #endif
 
     switch (solver_type) {
 #ifdef CHRONO_MUMPS
-        case MUMPS: {
+        case ChSolver::Type::MUMPS: {
             auto mumps_solver = chrono_types::make_shared<ChSolverMumps>();
             mumps_solver->LockSparsityPattern(true);
             mumps_solver->SetVerbose(verbose_solver);
@@ -263,9 +262,9 @@ int main(int argc, char* argv[]) {
             break;
         }
 #endif
-#ifdef CHRONO_MKL
-        case MKL: {
-            auto mkl_solver = chrono_types::make_shared<ChSolverMKL>();
+#ifdef CHRONO_PARDISO_MKL
+        case ChSolver::Type::PARDISO_MKL: {
+            auto mkl_solver = chrono_types::make_shared<ChSolverPardisoMKL>();
             mkl_solver->LockSparsityPattern(true);
             mkl_solver->SetVerbose(verbose_solver);
             rig->GetSystem()->SetSolver(mkl_solver);
