@@ -1,3 +1,22 @@
+// =============================================================================
+// PROJECT CHRONO - http://projectchrono.org
+//
+// Copyright (c) 2020 projectchrono.org
+// All rights reserved.
+//
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
+//
+// =============================================================================
+// Authors: Aaron Young, Jay Taves
+// =============================================================================
+//
+// NOTE: This demo will only work with an SBEL-only mesh. You should not find
+// this in any public facing repositories
+//
+// =============================================================================
+
 #include "chrono_thirdparty/cxxopts/ChCLI.h"
 #include "chrono_synchrono/communication/mpi/SynMPIManager.h"
 
@@ -41,74 +60,45 @@ using namespace chrono::vehicle::sedan;
 
 // =============================================================================
 
-// Contact method
-ChContactMethod contact_method = ChContactMethod::NSC;
-
-// Simulation end time
+const ChContactMethod contact_method = ChContactMethod::NSC;
 double end_time = 1000;
-
-// Simulation step sizes
 double step_size = 3e-3;
 
 // Time interval between two render frames
 double render_step_size = 1.0 / 50;  // FPS = 50
 
-// Render rank
-int render_rank = 0;
-
-// SynChrono synchronization heartbeat
+// How often SynChrono state messages are interchanged
 float heartbeat = 1e-2;  // 100[Hz]
 
-// Sensor saving and visualizing
-bool sens_save = false;
-bool sens_vis = true;
-
-// =============================================================================
-
-ChCoordsys<> GetInitialState(int rank) {
-    ChVector<> initLoc;
-    ChQuaternion<> initRot;
-    switch ((rank + 3) % 4) {
-        case 0:
-            // univ john inner
-            // University facing west, just before Park. Second lane from the left.
-            initLoc = ChVector<>({65.26 + (rank - 1) / 4 * 9, -2.82, 0.067});
-            initRot = ChQuaternion<>({-0.00942852, 0.00497593, -0.00215422, -0.999941});
-            break;
-        case 1:
-            // Grainger loop
-            // Park St facing north, just before University. Left turn lane.
-            initLoc = ChVector<>({2, -40.0 - (rank - 2) / 4 * 9, 0.5});
-            initRot = ChQuaternion<>({-0.7071068, 0, 0, -0.7071068});
-            break;
-        case 2:
-            // Park st. straight
-            // Park St facing south, just before University. Right turn lane.
-            initLoc = ChVector<>({-2.63, 69.0 + (rank - 3) / 3 * 9, 0.72});
-            initRot = ChQuaternion<>({-0.7071068, 0, 0, 0.7071068});
-            break;
-        case 3:
-            // univ john outer
-            // University facing west, just before Park. Third lane from the left
-            initLoc = ChVector<>({109.56 + (rank - 4) / 4 * 9, 2.41, 0.11});
-            initRot = ChQuaternion<>({-0.00942852, 0.00497593, -0.00215422, -0.999941});
-            break;
-        default:
-            std::cerr << "Unexpectedly reached default case statement" << std::endl;
-            // University facing west, just before Park. Second lane from the left.
-            initLoc = ChVector<>({75.0 - rank * 9, -7.5, 0.5});
-            initRot = ChQuaternion<>({-0.00942852, 0.00497593, -0.00215422, -0.999941});
-            break;
-    }
-
-    return ChCoordsys<>(initLoc, initRot);
-}
+// Forward declares for straightforward helper functions
+ChCoordsys<> GetInitialState(int rank);
+void AddCommandLineOptions(ChCLI& cli);
 
 int main(int argc, char* argv[]) {
     // Initialize the MPIManager
     SynMPIManager mpi_manager(argc, argv, MPI_CONFIG_DEFAULT);
     int rank = mpi_manager.GetRank();
     int num_ranks = mpi_manager.GetNumRanks();
+
+    // -----------------------------------------------------
+    // CLI SETUP - Get most parameters from the command line
+    // -----------------------------------------------------
+    ChCLI cli(argv[0]);
+
+    AddCommandLineOptions(cli);
+
+    if (!cli.Parse(argc, argv, rank == 0))
+        mpi_manager.Exit();
+
+    // Normal simulation options
+    step_size = cli.GetAsType<double>("step_size");
+    end_time = cli.GetAsType<double>("end_time");
+    heartbeat = cli.GetAsType<double>("heartbeat");
+
+    const double cam_x = cli.GetAsType<std::vector<double>>("c_pos")[0];
+    const double cam_y = cli.GetAsType<std::vector<double>>("c_pos")[1];
+    const int cam_res_width = cli.GetAsType<std::vector<int>>("res")[0];
+    const int cam_res_height = cli.GetAsType<std::vector<int>>("res")[1];
 
     // -------------
     // Traffic light
@@ -257,7 +247,7 @@ int main(int argc, char* argv[]) {
         agent->SetVisualizationManager(vis_manager);
 
 #ifdef CHRONO_IRRLICHT
-        if (rank == render_rank) {
+        if (cli.HasValueInVector<int>("irr", rank)) {
             auto irr_vis = chrono_types::make_shared<SynIrrVehicleVisualization>(driver);
             irr_vis->SetRenderStepSize(render_step_size);
             irr_vis->SetStepSize(step_size);
@@ -267,7 +257,7 @@ int main(int argc, char* argv[]) {
 #endif
 
 #ifdef CHRONO_SENSOR
-        if (rank == render_rank) {
+        if (cli.HasValueInVector<int>("sens", rank)) {
             auto sen_vis = chrono_types::make_shared<SynSensorVisualization>();
 
             auto manager = chrono_types::make_shared<ChSensorManager>(agent->GetSystem());
@@ -280,7 +270,7 @@ int main(int argc, char* argv[]) {
             agent->GetSystem()->AddBody(origin);
 
             // ISO Angle
-            ChVector<> camera_loc(40, -40, 55);
+            ChVector<> camera_loc(cam_x, cam_y, 55);
 
             ChQuaternion<> rotation = QUNIT;
             ChQuaternion<> qA = Q_from_AngAxis(45 * CH_C_DEG_TO_RAD, VECT_Y);
@@ -295,9 +285,6 @@ int main(int argc, char* argv[]) {
             // ChQuaternion<> qB = Q_from_AngAxis(180 * CH_C_DEG_TO_RAD, VECT_Z);
             // rotation = rotation >> qA >> qB;
 
-            double cam_res_width = 1280;
-            double cam_res_height = 720;
-
             auto intersection_camera = chrono_types::make_shared<chrono::sensor::ChCameraSensor>(
                 origin,                                         // body camera is attached to
                 30,                                             // update rate in Hz
@@ -308,12 +295,12 @@ int main(int argc, char* argv[]) {
 
             intersection_camera->SetName("Intersection Cam");
             intersection_camera->PushFilter(chrono_types::make_shared<ChFilterRGBA8Access>());
-            if (sens_vis)
+            if (cli.GetAsType<bool>("sens_vis"))
                 intersection_camera->PushFilter(
                     chrono_types::make_shared<ChFilterVisualize>(cam_res_width, cam_res_height));
 
-            std::string path = std::string("SENSOR_OUTPUT/Sedan") + std::to_string(rank) + std::string("/");
-            if (sens_save)
+            std::string path = std::string("SENSOR_OUTPUT/parkst") + std::to_string(rank) + std::string("/");
+            if (cli.GetAsType<bool>("sens_save"))
                 intersection_camera->PushFilter(chrono_types::make_shared<ChFilterSave>(path));
 
             sen_vis->SetSensor(intersection_camera);
@@ -334,4 +321,63 @@ int main(int argc, char* argv[]) {
     }
 
     return 0;
+}
+
+ChCoordsys<> GetInitialState(int rank) {
+    ChVector<> initLoc;
+    ChQuaternion<> initRot;
+    switch ((rank + 3) % 4) {
+        case 0:
+            // univ john inner
+            // University facing west, just before Park. Second lane from the left.
+            initLoc = ChVector<>({65.26 + (rank - 1) / 4 * 9, -2.82, 0.067});
+            initRot = ChQuaternion<>({-0.00942852, 0.00497593, -0.00215422, -0.999941});
+            break;
+        case 1:
+            // Grainger loop
+            // Park St facing north, just before University. Left turn lane.
+            initLoc = ChVector<>({2, -40.0 - (rank - 2) / 4 * 9, 0.5});
+            initRot = ChQuaternion<>({-0.7071068, 0, 0, -0.7071068});
+            break;
+        case 2:
+            // Park st. straight
+            // Park St facing south, just before University. Right turn lane.
+            initLoc = ChVector<>({-2.63, 69.0 + (rank - 3) / 3 * 9, 0.72});
+            initRot = ChQuaternion<>({-0.7071068, 0, 0, 0.7071068});
+            break;
+        case 3:
+            // univ john outer
+            // University facing west, just before Park. Third lane from the left
+            initLoc = ChVector<>({109.56 + (rank - 4) / 4 * 9, 2.41, 0.11});
+            initRot = ChQuaternion<>({-0.00942852, 0.00497593, -0.00215422, -0.999941});
+            break;
+        default:
+            std::cerr << "Unexpectedly reached default case statement" << std::endl;
+            // University facing west, just before Park. Second lane from the left.
+            initLoc = ChVector<>({75.0 - rank * 9, -7.5, 0.5});
+            initRot = ChQuaternion<>({-0.00942852, 0.00497593, -0.00215422, -0.999941});
+            break;
+    }
+
+    return ChCoordsys<>(initLoc, initRot);
+}
+
+void AddCommandLineOptions(ChCLI& cli) {
+    // Standard demo options
+    cli.AddOption<double>("Simulation", "step_size", "Step size", std::to_string(step_size));
+    cli.AddOption<double>("Simulation", "end_time", "End time", std::to_string(end_time));
+    cli.AddOption<double>("Simulation", "heartbeat", "Heartbeat", std::to_string(heartbeat));
+
+    // Irrlicht options
+    cli.AddOption<std::vector<int>>("Irrlicht", "irr", "Ranks for irrlicht usage", "-1");
+    cli.AddOption<bool>("Irrlicht", "irr_save", "Toggle irrlicht saving ON", "false");
+    cli.AddOption<bool>("Irrlicht", "irr_vis", "Toggle irrlicht visualization ON", "false");
+
+    // Sensor options
+    cli.AddOption<std::vector<int>>("Sensor", "sens", "Ranks for sensor usage", "-1");
+    cli.AddOption<bool>("Sensor", "sens_save", "Toggle sensor saving ON", "false");
+    cli.AddOption<bool>("Sensor", "sens_vis", "Toggle sensor visualization ON", "false");
+
+    cli.AddOption<std::vector<int>>("Demo", "r,res", "Camera resolution", "1280,720", "width,height");
+    cli.AddOption<std::vector<double>>("Demo", "c_pos", "Camera Position", "40,-40", "X,Y");
 }

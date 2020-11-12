@@ -1,3 +1,22 @@
+// =============================================================================
+// PROJECT CHRONO - http://projectchrono.org
+//
+// Copyright (c) 2020 projectchrono.org
+// All rights reserved.
+//
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
+//
+// =============================================================================
+// Authors: Jay Taves
+// =============================================================================
+//
+// A 3-lane grid of vehicles travels down a flat roadway. Only a block terrain
+// is used, not a mesh. Very lightweight demo, useful for scaling analyses.
+//
+// =============================================================================
+
 #include "chrono_synchrono/communication/mpi/SynMPIManager.h"
 #include "chrono_thirdparty/cxxopts/ChCLI.h"
 #include "chrono_synchrono/utils/SynDataLoader.h"
@@ -29,23 +48,18 @@ using namespace chrono::synchrono;
 
 // =============================================================================
 
-// Contact method
-ChContactMethod contact_method = ChContactMethod::NSC;
+const ChContactMethod contact_method = ChContactMethod::NSC;
 
-// Simulation end time
-double end_time = 1000;
-
-// Simulation step sizes
-double step_size = 3e-3;
+double end_time = 1000;   // [s]
+double step_size = 3e-3;  // [s]
 
 // Time interval between two render frames
 double render_step_size = 1.0 / 50;  // FPS = 50
 
-// Render rank
-int render_rank = 0;
+// How often SynChrono state messages are interchanged
+float heartbeat = 1e-2;  // 100 [Hz]
 
-// SynChrono synchronization heartbeat
-float heartbeat = 1e-2;  // 100[Hz]
+void AddCommandLineOptions(ChCLI& cli);
 
 // =============================================================================
 
@@ -56,6 +70,21 @@ int main(int argc, char* argv[]) {
     mpi_manager.SetEndTime(end_time);
     int rank = mpi_manager.GetRank();
     int num_ranks = mpi_manager.GetNumRanks();
+
+    // -----------------------------------------------------
+    // CLI SETUP - Get most parameters from the command line
+    // -----------------------------------------------------
+    ChCLI cli(argv[0]);
+
+    AddCommandLineOptions(cli);
+
+    if (!cli.Parse(argc, argv, rank == 0))
+        mpi_manager.Exit();
+
+    // Normal simulation options
+    step_size = cli.GetAsType<double>("step_size");
+    end_time = cli.GetAsType<double>("end_time");
+    heartbeat = cli.GetAsType<double>("heartbeat");
 
     // --------------------
     // Agent Initialization
@@ -121,7 +150,7 @@ int main(int argc, char* argv[]) {
     auto vis_manager = chrono_types::make_shared<SynVisualizationManager>();
     agent->SetVisualizationManager(vis_manager);
 #ifdef CHRONO_IRRLICHT
-    if (rank == render_rank) {
+    if (cli.HasValueInVector<int>("irr", rank)) {
         // Add an irrlicht visualization
         auto irr_vis = chrono_types::make_shared<SynIrrVehicleVisualization>();
         irr_vis->SetRenderStepSize(render_step_size);
@@ -132,14 +161,19 @@ int main(int argc, char* argv[]) {
 #endif
 
 #ifdef CHRONO_SENSOR
-    if (rank == render_rank) {
-        std::string path = std::string("SENSOR_OUTPUT/wheeled") + std::to_string(rank) + std::string("/");
-
+    if (cli.HasValueInVector<int>("sens", rank)) {
         auto sen_vis = chrono_types::make_shared<SynSensorVisualization>();
         sen_vis->InitializeDefaultSensorManager(agent->GetSystem());
         sen_vis->InitializeAsDefaultChaseCamera(agent->GetChVehicle().GetChassisBody());
-        sen_vis->AddFilterSave(path);
-        sen_vis->AddFilterVisualize();
+
+        if (cli.GetAsType<bool>("sens_save")) {
+            std::string path = std::string("SENSOR_OUTPUT/platoon") + std::to_string(rank) + std::string("/");
+            sen_vis->AddFilterSave(path);
+        }
+
+        if (cli.GetAsType<bool>("sens_vis"))
+            sen_vis->AddFilterVisualize();
+
         vis_manager->AddVisualization(sen_vis);
     }
 #endif
@@ -172,4 +206,19 @@ int main(int argc, char* argv[]) {
     }
 
     return 0;
+}
+
+void AddCommandLineOptions(ChCLI& cli) {
+    // Standard demo options
+    cli.AddOption<double>("Simulation", "step_size", "Step size", std::to_string(step_size));
+    cli.AddOption<double>("Simulation", "end_time", "End time", std::to_string(end_time));
+    cli.AddOption<double>("Simulation", "heartbeat", "Heartbeat", std::to_string(heartbeat));
+
+    // Irrlicht options
+    cli.AddOption<std::vector<int>>("Irrlicht", "irr", "Ranks for irrlicht usage", "-1");
+
+    // Sensor options
+    cli.AddOption<std::vector<int>>("Sensor", "sens", "Ranks for sensor usage", "-1");
+    cli.AddOption<bool>("Sensor", "sens_save", "Toggle sensor saving ON", "false");
+    cli.AddOption<bool>("Sensor", "sens_vis", "Toggle sensor visualization ON", "false");
 }

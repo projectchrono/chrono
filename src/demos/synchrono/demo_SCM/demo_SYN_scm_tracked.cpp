@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Jay Taves
+// Authors: Jay Taves, Aaron Young
 // =============================================================================
 //
 // Demo code illustrating synchronization of the SCM semi-empirical model for
@@ -114,9 +114,9 @@ int main(int argc, char* argv[]) {
     const double cam_x = cli.GetAsType<std::vector<double>>("c_pos")[0];
     const double cam_y = cli.GetAsType<std::vector<double>>("c_pos")[1];
     const double dpu = cli.GetAsType<double>("dpu");
-    const int CAM_RES_WIDTH = cli.GetAsType<std::vector<int>>("res")[0];
-    const int CAM_RES_HEIGHT = cli.GetAsType<std::vector<int>>("res")[1];
-    const bool using_scm_terrain = cli.GetAsType<std::string>("terrain_type").compare("SCM") == 0;
+    const int cam_res_width = cli.GetAsType<std::vector<int>>("res")[0];
+    const int cam_res_height = cli.GetAsType<std::vector<int>>("res")[1];
+    const bool using_scm_terrain = cli.GetAsType<std::string>("terrain_type") == "SCM";
 
     // --------------------
     // Agent Initialization
@@ -201,9 +201,9 @@ int main(int argc, char* argv[]) {
         // The physics do not change when you add a moving patch, you just make it much easier for the SCM
         // implementation to do its job by restricting where it has to look for contacts
         scm->AddMovingPatch(vehicle->GetVehicle().GetChassisBody(), ChVector<>(0, 0, 0), ChVector<>(5, 3, 1));
-
         scm->Initialize(size_x, size_y, 1. / dpu);
 
+        // Wrap the ChTerrain in a SynChrono object
         auto terrain = chrono_types::make_shared<SynSCMTerrain>(scm, agent->GetSystem());
         agent->SetTerrain(terrain);
 
@@ -218,6 +218,8 @@ int main(int argc, char* argv[]) {
         vis_mat->SetKdTexture(GetChronoDataFile("sensor/textures/grass_texture.jpg"));
         scm->GetMesh()->material_list.push_back(vis_mat);
     } else {
+        // Rigid Terrain setup here
+
         MaterialInfo minfo;
         minfo.mu = 0.9f;
         minfo.cr = 0.01f;
@@ -236,6 +238,7 @@ int main(int argc, char* argv[]) {
         if (auto visual_asset = std::dynamic_pointer_cast<ChVisualization>(patch_asset)) {
             auto box_texture = chrono_types::make_shared<ChVisualMaterial>();
             box_texture->SetKdTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"));
+
             // FresnelMax and SpecularColor should make it less shiny
             box_texture->SetFresnelMax(0.2);
             box_texture->SetSpecularColor({0.2, 0.2, 0.2});
@@ -309,8 +312,8 @@ int main(int argc, char* argv[]) {
             origin,                                         // body camera is attached to
             30,                                             // update rate in Hz
             chrono::ChFrame<double>(camera_loc, rotation),  // offset pose
-            CAM_RES_WIDTH,                                  // image width
-            CAM_RES_HEIGHT,                                 // image height
+            cam_res_width,                                  // image width
+            cam_res_height,                                 // image height
             CH_C_PI / 3);
 
         overhead_camera->SetName("Overhead Cam");
@@ -318,7 +321,7 @@ int main(int argc, char* argv[]) {
 
         // Do we draw a window on the screen?
         if (cli.GetAsType<bool>("sens_vis"))
-            overhead_camera->PushFilter(chrono_types::make_shared<ChFilterVisualize>(CAM_RES_WIDTH, CAM_RES_HEIGHT));
+            overhead_camera->PushFilter(chrono_types::make_shared<ChFilterVisualize>(cam_res_width, cam_res_height));
 
         // Do we save images to disc?
         std::string file_path = std::string("SENSOR_OUTPUT/Sedan") + std::to_string(rank) + std::string("/");

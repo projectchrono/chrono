@@ -55,7 +55,7 @@ using namespace chrono::geometry;
 using namespace chrono::synchrono;
 
 // =============================================================================
-ChContactMethod contact_method = ChContactMethod::NSC;
+const ChContactMethod contact_method = ChContactMethod::NSC;
 
 // [s]
 double end_time = 1000;
@@ -67,14 +67,10 @@ double lane_change_time = 6;
 // Time interval between two render frames
 double render_step_size = 1.0 / 50;  // FPS = 50
 
-int render_rank = 0;
-
 // How often SynChrono state messages are interchanged
 float heartbeat = 1e-2;  // 100[Hz]
 
-// Sensor saving and/or visualizing
-bool sens_save = false;
-bool sens_vis = true;
+void AddCommandLineOptions(ChCLI& cli);
 
 // =============================================================================
 
@@ -88,11 +84,31 @@ int main(int argc, char* argv[]) {
     int rank = mpi_manager.GetRank();
     int num_ranks = mpi_manager.GetNumRanks();
 
-    std::shared_ptr<ChDriver> driver;
+    // -----------------------------------------------------
+    // CLI SETUP - Get most parameters from the command line
+    // -----------------------------------------------------
+    ChCLI cli(argv[0]);
+
+    AddCommandLineOptions(cli);
+
+    if (!cli.Parse(argc, argv, rank == 0))
+        mpi_manager.Exit();
+
+    // Normal simulation options
+    step_size = cli.GetAsType<double>("step_size");
+    end_time = cli.GetAsType<double>("end_time");
+    heartbeat = cli.GetAsType<double>("heartbeat");
+
+    const double cam_x = cli.GetAsType<std::vector<double>>("c_pos")[0];
+    const double cam_y = cli.GetAsType<std::vector<double>>("c_pos")[1];
+    const int cam_res_width = cli.GetAsType<std::vector<int>>("res")[0];
+    const int cam_res_height = cli.GetAsType<std::vector<int>>("res")[1];
 
     // -------
     // Vehicle
     // -------
+    std::shared_ptr<ChDriver> driver;
+
     auto agent = chrono_types::make_shared<SynWheeledVehicleAgent>(rank);
     agent->SetVehicle(InitializeVehicle(rank));
     mpi_manager.AddAgent(agent, rank);
@@ -177,7 +193,7 @@ int main(int argc, char* argv[]) {
     agent->SetVisualizationManager(vis_manager);
 
 #ifdef CHRONO_IRRLICHT
-    if (rank == render_rank) {
+    if (cli.HasValueInVector<int>("irr", rank)) {
         auto irr_vis = chrono_types::make_shared<SynIrrVehicleVisualization>(driver);
         irr_vis->SetRenderStepSize(render_step_size);
         irr_vis->SetStepSize(step_size);
@@ -188,8 +204,8 @@ int main(int argc, char* argv[]) {
 
 #ifdef CHRONO_SENSOR
     std::shared_ptr<ChCameraSensor> intersection_camera;
-    ChVector<double> camera_loc(20, -85, 15);
-    if (rank == render_rank) {
+    ChVector<double> camera_loc(cam_x, cam_y, 15);
+    if (cli.HasValueInVector<int>("sens", rank)) {
         auto sen_vis = chrono_types::make_shared<SynSensorVisualization>();
 
         auto manager = chrono_types::make_shared<ChSensorManager>(agent->GetSystem());
@@ -207,8 +223,6 @@ int main(int argc, char* argv[]) {
         ChQuaternion<> qB = Q_from_AngAxis(135 * CH_C_DEG_TO_RAD, VECT_Z);
         rotation = rotation >> qA >> qB;
 
-        double cam_res_width = 1280;
-        double cam_res_height = 720;
         double cx = camera_loc.x();
         double cy = camera_loc.y();
         double cz = camera_loc.z();
@@ -226,12 +240,12 @@ int main(int argc, char* argv[]) {
         intersection_camera->SetName("Intersection Cam");
         intersection_camera->PushFilter(chrono_types::make_shared<ChFilterRGBA8Access>());
 
-        if (sens_vis)
+        if (cli.GetAsType<bool>("sens_vis"))
             intersection_camera->PushFilter(
                 chrono_types::make_shared<ChFilterVisualize>(cam_res_width, cam_res_height, "Main Camera"));
 
-        std::string path = std::string("SENSOR_OUTPUT/Highway") + std::to_string(rank) + std::string("/");
-        if (sens_save)
+        std::string path = std::string("SENSOR_OUTPUT/highway") + std::to_string(rank) + std::string("/");
+        if (cli.GetAsType<bool>("sens_save"))
             intersection_camera->PushFilter(chrono_types::make_shared<ChFilterSave>(path));
 
         sen_vis->SetSensor(intersection_camera);
@@ -311,4 +325,22 @@ std::shared_ptr<SynWheeledVehicle> InitializeVehicle(int rank) {
         chrono_types::make_shared<SynWheeledVehicle>(init_pos, synchrono::GetDataFile(filename), contact_method);
 
     return vehicle;
+}
+
+void AddCommandLineOptions(ChCLI& cli) {
+    // Standard demo options
+    cli.AddOption<double>("Simulation", "step_size", "Step size", std::to_string(step_size));
+    cli.AddOption<double>("Simulation", "end_time", "End time", std::to_string(end_time));
+    cli.AddOption<double>("Simulation", "heartbeat", "Heartbeat", std::to_string(heartbeat));
+
+    // Irrlicht options
+    cli.AddOption<std::vector<int>>("Irrlicht", "irr", "Ranks for irrlicht usage", "-1");
+
+    // Sensor options
+    cli.AddOption<std::vector<int>>("Sensor", "sens", "Ranks for sensor usage", "-1");
+    cli.AddOption<bool>("Sensor", "sens_save", "Toggle sensor saving ON", "false");
+    cli.AddOption<bool>("Sensor", "sens_vis", "Toggle sensor visualization ON", "false");
+
+    cli.AddOption<std::vector<int>>("Demo", "r,res", "Camera resolution", "1280,720", "width,height");
+    cli.AddOption<std::vector<double>>("Demo", "c_pos", "Camera Position", "20,-85", "X,Y");
 }
