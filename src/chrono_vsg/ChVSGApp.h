@@ -85,6 +85,9 @@ class CH_VSG_API ChVSGApp {
 
     vsg::Paths m_searchPaths;
 
+    std::string m_fontFilename;
+    vsg::ref_ptr<vsg::Font> m_font;
+
     vsg::ref_ptr<vsg::Group> m_scenegraph;
 
     vsg::ref_ptr<vsg::Viewer> m_viewer;

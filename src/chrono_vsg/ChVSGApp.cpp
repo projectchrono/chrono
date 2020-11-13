@@ -45,6 +45,22 @@ ChVSGApp::ChVSGApp()
     setClearColor(1.0f, 1.0f, 1.0f);
     m_up_vector = vsg::dvec3(0.0, 0.0, 1.0);
     m_light_position = vsg::vec3(100, 100, 100);
+
+    m_fontFilename = "fonts/times.vsgb";
+    m_searchPaths = ::vsg::getEnvPaths("VSG_FILE_PATH");
+
+    auto options = vsg::Options::create();
+    options->paths = m_searchPaths;
+#ifdef USE_VSGXCHANGE
+    options->readerWriter = vsgXchange::ReaderWriter_all::create();
+#endif
+
+    m_font = vsg::read_cast<vsg::Font>(m_fontFilename, options);
+
+    if (!m_font) {
+        std::cout << "Failling to read font : " << m_fontFilename << std::endl;
+        return;
+    }
 }
 
 void ChVSGApp::setUpVector(ChVector<> up) {
@@ -102,8 +118,6 @@ bool ChVSGApp::Initialize(int windowWidth, int windowHeight, const char* windowT
     m_windowTraits->height = windowHeight;
     m_windowTraits->x = 100;
     m_windowTraits->y = 100;
-
-    m_searchPaths = ::vsg::getEnvPaths("VSG_FILE_PATH");
 
     m_scenegraph = vsg::Group::create();
 
