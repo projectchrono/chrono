@@ -16,6 +16,8 @@
 //
 // =============================================================================
 
+#include <numeric>
+
 #include "gtest/gtest.h"
 
 #include "chrono_thirdparty/cxxopts/ChCLI.h"
@@ -59,6 +61,7 @@ TEST(SynVehicle, SynVehicleInit) {
     int* msg_lengths = new int[num_ranks];
     int* msg_displs = new int[num_ranks];
 
+    // Just a meaningless message length that we will fill with data
     int msg_length = 10 + num_ranks - rank;
 
     // Determine how much we stuff we get from other ranks
@@ -90,9 +93,7 @@ TEST(SynVehicle, SynVehicleInit) {
                    all_data.data(), msg_lengths, msg_displs, MPI_INT,  // Receiving args
                    MPI_COMM_WORLD);
 
-    int sum = 0;
-    for (int val : all_data)
-        sum += val;
+    int sum = std::accumulate(all_data.begin(), all_data.end(), 0);
 
     // Σ rank * (10 + num_ranks - rank)     from 0 -> num_ranks - 1
     int check = (num_ranks - 1) * num_ranks * (num_ranks + 31) / 6;

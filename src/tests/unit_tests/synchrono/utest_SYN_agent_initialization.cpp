@@ -62,13 +62,13 @@ int main(int argc, char* argv[]) {
     num_ranks = mpi_manager.GetNumRanks();
 
     // Add agents
-    if(rank%2==0){
+    if (rank % 2 == 0) {
         agent_1 = chrono_types::make_shared<SynWheeledVehicleAgent>(rank);
         mpi_manager.AddAgent(agent_1, rank);
-    }else if(rank%2==1){
+    } else if (rank % 2 == 1) {
         agent_2 = chrono_types::make_shared<SynTrackedVehicleAgent>(rank);
         mpi_manager.AddAgent(agent_2, rank);
-    }else if(rank%3==1){
+    } else if (rank % 3 == 1) {
         agent_3 = chrono_types::make_shared<SynEnvironmentAgent>(rank);
         mpi_manager.AddAgent(agent_3, rank);
     }
@@ -77,11 +77,11 @@ int main(int argc, char* argv[]) {
     mpi_manager.Initialize();
 
     // Store the current msg buffer
-    if(rank%2==0){
+    if (rank % 2 == 0) {
         msg_sent = agent_1->GetMessage();
-    }else if(rank%2==1){
+    } else if (rank % 2 == 1) {
         msg_sent = agent_2->GetMessage();
-    }else if(rank%3==1){
+    } else if (rank % 3 == 1) {
         msg_sent = agent_3->GetMessage();
     }
 
@@ -103,7 +103,7 @@ TEST(SynVehicle, SynVehicleInit) {
 
     // Var to store msg on the current rank after mpi sync
     std::shared_ptr<SynAgentMessage> msg_rcevd = check_agent_list[rank]->GetMessage();
-    
+
     // Check whether agent size is num_ranks
     EXPECT_EQ(check_agent_size, num_ranks);
 

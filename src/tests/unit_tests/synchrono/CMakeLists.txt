@@ -2,7 +2,7 @@ SET(LIBRARIES ChronoEngine ChronoEngine_synchrono ${SYNCHRONO_LIBRARIES})
 INCLUDE_DIRECTORIES( ${CH_INCLUDES} ${CH_SYNCHRONO_INCLUDES} )
 
 SET(TESTS
-    utest_SYN_intersection
+    utest_SYN_MPI
     utest_SYN_agent_initialization
 )
 
