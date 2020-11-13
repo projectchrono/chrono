@@ -27,7 +27,7 @@
 
 #include "chrono_irrlicht/ChIrrApp.h"
 
-#include "chrono_mkl/ChSolverMKL.h"
+#include "chrono_pardisomkl/ChSolverPardisoMKL.h"
 
 #include "chrono_thirdparty/filesystem/path.h"
 
@@ -177,7 +177,7 @@ int main(int argc, char* argv[]) {
     application.AssetUpdateAll();
 
     // Use a solver that can handle stiffness matrices:
-    auto mkl_solver = chrono_types::make_shared<ChSolverMKL>();
+    auto mkl_solver = chrono_types::make_shared<ChSolverPardisoMKL>();
     my_system.SetSolver(mkl_solver);
 
     application.SetTimestep(0.001);

@@ -20,11 +20,11 @@ if(ENABLE_MODULE_IRRLICHT)
   list(APPEND LIBS "ChronoEngine_irrlicht")
 endif()
 
-if(ENABLE_MODULE_MKL)
+if(ENABLE_MODULE_PARDISO_MKL)
   include_directories(${CH_MKL_INCLUDES})
   set(COMPILER_FLAGS "${COMPILER_FLAGS} ${CH_MKL_CXX_FLAGS}")
   set(LINKER_FLAGS "${LINKER_FLAGS} ${CH_MKL_LINK_FLAGS}")
-  list(APPEND LIBS "ChronoEngine_mkl")
+  list(APPEND LIBS "ChronoEngine_pardisomkl")
 endif()
 
 if(ENABLE_MODULE_MUMPS)
@@ -32,7 +32,7 @@ if(ENABLE_MODULE_MUMPS)
   list(APPEND LIBS "ChronoEngine_mumps")
 endif()
 
-if(ENABLE_MODULE_MKL OR ENABLE_MODULE_MUMPS)
+if(ENABLE_MODULE_PARDISO_MKL OR ENABLE_MODULE_MUMPS)
   set(TESTS ${TESTS} ${TESTS_MKL_MUMPS})
 endif()
 

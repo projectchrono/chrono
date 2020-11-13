@@ -12,29 +12,28 @@
 // Authors: Dario Mangoni, Radu Serban
 // =============================================================================
 
-#ifndef CHAPIMKL_H
-#define CHAPIMKL_H
+#ifndef CHAPI_PARDISOMKL_H
+#define CHAPI_PARDISOMKL_H
 
 #include "chrono/ChVersion.h"
 #include "chrono/core/ChPlatform.h"
 
-// When compiling this library, remember to define CH_API_COMPILE_MKL
-// (so that the symbols with 'ChApiMkl' in front of them will be
+// When compiling this library, remember to define CH_API_COMPILE_PARDISOMKL
+// (so that the symbols with 'ChApiPardisoMKL' in front of them will be
 // marked as exported). Otherwise, just do not define it if you
 // link the library to your code, and the symbols will be imported.
 
-#if defined(CH_API_COMPILE_MKL)
-#define ChApiMkl ChApiEXPORT
+#if defined(CH_API_COMPILE_PARDISOMKL)
+#define ChApiPardisoMKL ChApiEXPORT
 #else
-#define ChApiMkl ChApiIMPORT
+#define ChApiPardisoMKL ChApiIMPORT
 #endif
 
 /**
-    @defgroup mkl_module MKL module
-    @brief Module for the Intel MKL library direct solver
+    @defgroup pardisomkl_module Pardiso MKL module
+    @brief Module for the Intel MKL library Pardiso direct solver
 
-    Module provides access to the Intel MKL library. This library is
-    currently used in Chrono for its parallel direct solver (Pardiso).
+    This module provides an interface to the Pardiso parallel direct solver in the Intel MKL library.
 
     For additional information, see:
     - the [installation guide](@ref module_mkl_installation)

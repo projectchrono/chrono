@@ -12,27 +12,27 @@
 // Authors: Dario Mangoni, Radu Serban
 // =============================================================================
 
-#include "chrono_mkl/ChSolverMKL.h"
+#include "chrono_pardisomkl/ChSolverPardisoMKL.h"
 #include "chrono/parallel/ChOpenMP.h"
 
 namespace chrono {
 
-ChSolverMKL::ChSolverMKL(int num_threads) {
+ChSolverPardisoMKL::ChSolverPardisoMKL(int num_threads) {
     int nthreads = (num_threads <= 0) ? ChOMP::GetNumProcs() : num_threads;
     ChOMP::SetNumThreads(nthreads);
 }
 
-bool ChSolverMKL::FactorizeMatrix() {
+bool ChSolverPardisoMKL::FactorizeMatrix() {
     m_engine.compute(m_mat);
     return (m_engine.info() == Eigen::Success);
 }
 
-bool ChSolverMKL::SolveSystem() {
+bool ChSolverPardisoMKL::SolveSystem() {
     m_sol = m_engine.solve(m_rhs);
     return (m_engine.info() == Eigen::Success);
 }
 
-void ChSolverMKL::PrintErrorMessage() {
+void ChSolverPardisoMKL::PrintErrorMessage() {
     // There are only three possible return codes (see manageErrorCode in Eigen's PardisoSupport.h)
     switch (m_engine.info()) {
         case Eigen::Success:

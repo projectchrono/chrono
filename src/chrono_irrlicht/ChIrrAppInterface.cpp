@@ -21,11 +21,18 @@
 
 #include "chrono_thirdparty/filesystem/path.h"
 
-
 namespace chrono {
 namespace irrlicht {
 
-
+// Class to convert from Irrlicht vector3df vectors into Chrono ChVector<> vectors.
+class ChVectorIrr : public ChVector<double> {
+  public:
+    ChVectorIrr(const irr::core::vector3df& vi) {
+        x() = ((double)vi.X);
+        y() = ((double)vi.Y);
+        z() = ((double)vi.Z);
+    }
+};
 
 // -----------------------------------------------------------------------------
 // ChIrrAppEventReceiver

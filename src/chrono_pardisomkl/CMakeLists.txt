@@ -1,19 +1,19 @@
 #=============================================================================
-# CMake configuration file for the Chrono MKL module
+# CMake configuration file for the Chrono PardisoMKL module
 # 
 # Cannot be used stand-alone (it's loaded by CMake config. file in parent dir.)
 #=============================================================================
 
-option(ENABLE_MODULE_MKL "Enable the Chrono MKL module" OFF)
+option(ENABLE_MODULE_PARDISO_MKL "Enable the Chrono PardisoMKL module" OFF)
 
-if(NOT ENABLE_MODULE_MKL)
+if(NOT ENABLE_MODULE_PARDISO_MKL)
     mark_as_advanced(FORCE MKL_ROOT)
     mark_as_advanced(FORCE MATH_LIBRARY)
     mark_as_advanced(FORCE IOMP5_LIBRARY)
     return()
 endif()
 
-message(STATUS "==== Chrono MKL module ====")
+message(STATUS "==== Chrono PardisoMKL module ====")
 
 mark_as_advanced(CLEAR MKL_ROOT)
 mark_as_advanced(CLEAR MATH_LIBRARY)
@@ -68,44 +68,44 @@ set(CH_MKL_INCLUDES "${CH_MKL_INCLUDES}" PARENT_SCOPE)
 # List all files in the Chrono mkl module
 # ------------------------------------------------------------------------------
 
-set(ChronoEngine_MKL_HEADERS
-  ChApiMkl.h
-  ChSolverMKL.h
+set(ChronoEngine_PardisoMKL_HEADERS
+  ChApiPardisoMKL.h
+  ChSolverPardisoMKL.h
 )
 
-set(ChronoEngine_MKL_SOURCES
-  ChSolverMKL.cpp
+set(ChronoEngine_PardisoMKL_SOURCES
+  ChSolverPardisoMKL.cpp
 )
 
-source_group("" FILES ${ChronoEngine_MKL_HEADERS} ${ChronoEngine_MKL_SOURCES})
+source_group("" FILES ${ChronoEngine_PardisoMKL_HEADERS} ${ChronoEngine_PardisoMKL_SOURCES})
 
 # ------------------------------------------------------------------------------
-# Add the ChronoEngine_mkl library
+# Add the ChronoEngine_pardisomkl library
 # ------------------------------------------------------------------------------
 
-add_library(ChronoEngine_mkl SHARED
-            ${ChronoEngine_MKL_SOURCES}
-            ${ChronoEngine_MKL_HEADERS})
+add_library(ChronoEngine_pardisomkl SHARED
+            ${ChronoEngine_PardisoMKL_SOURCES}
+            ${ChronoEngine_PardisoMKL_HEADERS})
 
-set_target_properties(ChronoEngine_mkl PROPERTIES
+set_target_properties(ChronoEngine_pardisomkl PROPERTIES
                       COMPILE_FLAGS "${CH_CXX_FLAGS}"
                       LINK_FLAGS "${CH_LINKERFLAG_SHARED} ${CH_MKL_LINK_FLAGS}")
 
-target_compile_definitions(ChronoEngine_mkl PRIVATE "CH_API_COMPILE_MKL")
-target_compile_definitions(ChronoEngine_mkl PRIVATE "EIGEN_USE_MKL_ALL")
-target_compile_definitions(ChronoEngine_mkl PRIVATE "MKL_LP64")
-target_compile_definitions(ChronoEngine_mkl PRIVATE "CH_IGNORE_DEPRECATED")
+target_compile_definitions(ChronoEngine_pardisomkl PRIVATE "CH_API_COMPILE_PARDISOMKL")
+target_compile_definitions(ChronoEngine_pardisomkl PRIVATE "EIGEN_USE_MKL_ALL")
+target_compile_definitions(ChronoEngine_pardisomkl PRIVATE "MKL_LP64")
+target_compile_definitions(ChronoEngine_pardisomkl PRIVATE "CH_IGNORE_DEPRECATED")
 
-target_link_libraries(ChronoEngine_mkl
+target_link_libraries(ChronoEngine_pardisomkl
                       ChronoEngine
                       ${MKL_LIBRARIES}
                       ${IOMP5_LIBRARY}
                       )
 
-install(TARGETS ChronoEngine_mkl
+install(TARGETS ChronoEngine_pardisomkl
         RUNTIME DESTINATION bin
         LIBRARY DESTINATION lib
         ARCHIVE DESTINATION lib)
 
-install(FILES ${ChronoEngine_MKL_HEADERS}
-        DESTINATION include/chrono_mkl)
+install(FILES ${ChronoEngine_PardisoMKL_HEADERS}
+        DESTINATION include/chrono_pardisomkl)

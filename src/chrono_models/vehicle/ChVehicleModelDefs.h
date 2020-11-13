@@ -62,6 +62,9 @@ namespace gator {}
 /// Namespace for the FMTV vehicles
 namespace fmtv {}
 
+/// namespace for the RCCar vehicle
+namespace rccar {}
+
 /// @} vehicle_models
 
 }  // end namespace vehicle
