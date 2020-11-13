@@ -30,8 +30,8 @@
 #include "chrono_models/vehicle/m113/M113_SimplePowertrain.h"
 #include "chrono_models/vehicle/m113/M113_Vehicle.h"
 
-#ifdef CHRONO_MKL
-#include "chrono_mkl/ChSolverMKL.h"
+#ifdef CHRONO_PARDISO_MKL
+#include "chrono_pardisomkl/ChSolverPardisoMKL.h"
 #endif
 
 #include "chrono_thirdparty/filesystem/path.h"
@@ -315,14 +315,14 @@ int main(int argc, char* argv[]) {
         use_mkl = false;
     }
 
-#ifndef CHRONO_MKL
-    // Cannot use HHT + MKL if Chrono::MKL not available
+#ifndef CHRONO_PARDISO_MKL
+    // Cannot use HHT + PardisoMKL if Chrono::PardisoMKL not available
     use_mkl = false;
 #endif
 
     if (use_mkl) {
-#ifdef CHRONO_MKL
-        auto mkl_solver = chrono_types::make_shared<ChSolverMKL>();
+#ifdef CHRONO_PARDISO_MKL
+        auto mkl_solver = chrono_types::make_shared<ChSolverPardisoMKL>();
         mkl_solver->LockSparsityPattern(true);
         vehicle.GetSystem()->SetSolver(mkl_solver);
 
