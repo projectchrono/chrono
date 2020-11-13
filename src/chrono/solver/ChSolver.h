@@ -42,10 +42,10 @@ class ChApi ChSolver {
         BARZILAIBORWEIN,  ///< Barzilai-Borwein
         APGD,             ///< Accelerated Projected Gradient Descent
         // Direct linear solvers
-        SPARSE_LU,  ///< Sparse supernodal LU factorization
-        SPARSE_QR,  ///< Sparse left-looking rank-revealing QR factorization
-        PARDISO,    ///< Pardiso (super-nodal sparse direct solver)
-        MUMPS,      ///< Mumps (MUltifrontal Massively Parallel sparse direct Solver)
+        SPARSE_LU,    ///< Sparse supernodal LU factorization
+        SPARSE_QR,    ///< Sparse left-looking rank-revealing QR factorization
+        PARDISO_MKL,  ///< Pardiso MKL (super-nodal sparse direct solver)
+        MUMPS,        ///< Mumps (MUltifrontal Massively Parallel sparse direct Solver)
         // Iterative linear solvers
         GMRES,     ///< Generalized Minimal RESidual Algorithm
         MINRES,    ///< MINimum RESidual method

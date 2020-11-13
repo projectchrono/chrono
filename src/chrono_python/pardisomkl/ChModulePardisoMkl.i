@@ -11,10 +11,10 @@
 
 
 // Define the module to be used in Python when typing 
-//  'import pychrono.mkl'
+//  'import pychrono.pardisomkl'
 
 
-%module(directors="1") mkl
+%module(directors="1") pardisomkl
 
 
 // Turn on the documentation of members, for more intuitive IDE typing
@@ -59,8 +59,8 @@
 #include "chrono/solver/ChSolverPSOR.h"
 #include "chrono/solver/ChSolverPJacobi.h"
 
-#include "chrono_mkl/ChApiMkl.h"
-#include "chrono_mkl/ChSolverMKL.h"
+#include "chrono_pardisomkl/ChApiPardisoMKL.h"
+#include "chrono_pardisomkl/ChSolverPardisoMKL.h"
 
 using namespace chrono;
 
@@ -68,7 +68,7 @@ using namespace chrono;
 
 
 // Undefine ChApi otherwise SWIG gives a syntax error
-#define ChApiMkl 
+#define ChApiPardisoMKL
 #define ChApi 
 #define CH_DEPRECATED(msg)
 
@@ -101,7 +101,7 @@ using namespace chrono;
 // tree must be promoted to %shared_ptr too).
 
 
-%shared_ptr(chrono::ChSolverMKL)
+%shared_ptr(chrono::ChSolverPardisoMKL)
 
 
 //
@@ -124,7 +124,7 @@ using namespace chrono;
 
 %import(module = "pychrono.core") "chrono_python/core/ChSolver.i"
 
-%include "../../chrono_mkl/ChSolverMKL.h"
+%include "../../chrono_pardisomkl/ChSolverPardisoMKL.h"
 
 
 //
@@ -141,8 +141,7 @@ using namespace chrono;
 //  myvis = chrono.CastToChVisualizationShared(myasset)
 //  print ('Could be cast to visualization object?', !myvis.IsNull())
 
-//%DefSharedPtrDynamicDowncast(ChSolver,ChSolverMKL<ChCSMatrix>) // cannot use because of <> in generated function name, hence:
-%DefSharedPtrDynamicDowncast(chrono, ChSolver, ChSolverMKL)
+%DefSharedPtrDynamicDowncast(chrono, ChSolver, ChSolverPardisoMKL)
 
 //
 // ADDITIONAL C++ FUNCTIONS / CLASSES THAT ARE USED ONLY FOR PYTHON WRAPPER

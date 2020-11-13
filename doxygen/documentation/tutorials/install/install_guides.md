@@ -21,7 +21,7 @@ Additional Chrono functionality is provided through optional modules. Building o
 
 -   [MATLAB module](@ref module_matlab_installation)
 
--   [MKL module](@ref module_mkl_installation)
+-   [Pardiso MKL module](@ref module_mkl_installation)
 
 -   [MUMPS module](@ref module_mumps_installation)
 

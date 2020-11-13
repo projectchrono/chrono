@@ -39,8 +39,8 @@
     This module provides support for modelling sensor for simulating autonomous behavior
 
     For additional information, see:
-    - the [installation guide](@ref module_vehicle_installation)
-    - the [tutorials](@ref tutorial_table_of_content_chrono_vehicle)
+    - the [installation guide](@ref module_sensor_installation)
+    - the [tutorials](@ref tutorial_table_of_content_chrono_sensor)
 
     @{
         @defgroup sensor_sensors Sensors

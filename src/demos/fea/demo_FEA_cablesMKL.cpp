@@ -19,7 +19,7 @@
 
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/timestepper/ChTimestepper.h"
-#include "chrono_mkl/ChSolverMKL.h"
+#include "chrono_pardisomkl/ChSolverPardisoMKL.h"
 #include "chrono_irrlicht/ChIrrApp.h"
 
 #include "FEAcables.h"
@@ -83,10 +83,10 @@ int main(int argc, char* argv[]) {
     // that you added to the bodies into 3D shapes, they can be visualized by Irrlicht!
     application.AssetUpdateAll();
 
-    // Configure MKL solver.
+    // Configure PardisoMKL solver.
     // For this simple and relatively small problem, use of the sparsity pattern learner may introduce additional
     // overhead (if the sparsity pattern is not locked).
-    auto mkl_solver = chrono_types::make_shared<ChSolverMKL>();
+    auto mkl_solver = chrono_types::make_shared<ChSolverPardisoMKL>();
     mkl_solver->UseSparsityPatternLearner(false);
     mkl_solver->LockSparsityPattern(false);
     mkl_solver->SetVerbose(false);

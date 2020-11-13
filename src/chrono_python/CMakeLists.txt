@@ -452,19 +452,19 @@ endif()
 
 
 #-----------------------------------------------------------------------------
-# MODULE for the mkl python wrapper.
+# MODULE for the Pardiso mkl python wrapper.
 #-----------------------------------------------------------------------------
 
-if(ENABLE_MODULE_MKL)
+if(ENABLE_MODULE_PARDISO_MKL)
 
-  message(STATUS "...add python MKL module:  pychrono.mkl")
+  message(STATUS "...add python Pardiso MKL module:  pychrono.pardisomkl")
 
   # Python module name
-  set(CHPY_MKL mkl)
+  set(CHPY_MKL pardisomkl)
 
   # Interface files
   set(CHPY_MKL_MODULE_FILE
-      mkl/ChModuleMkl.i
+      pardisomkl/ChModulePardisoMkl.i
       )
 
   include_directories(${CH_MKL_INCLUDES})
@@ -480,7 +480,7 @@ if(ENABLE_MODULE_MKL)
   else()
     SWIG_ADD_LIBRARY(${CHPY_MKL} LANGUAGE python SOURCES ${CHPY_MKL_MODULE_FILE})
   endif()
-  SWIG_LINK_LIBRARIES(${CHPY_MKL} ${PYTHON_LIBRARY} ChronoEngine ChronoEngine_mkl)
+  SWIG_LINK_LIBRARIES(${CHPY_MKL} ${PYTHON_LIBRARY} ChronoEngine ChronoEngine_pardisomkl)
 
   # Ensure that the PYD library file is generated in the bin/ directory.
   set_target_properties(${SWIG_MODULE_${CHPY_MKL}_REAL_NAME} PROPERTIES
@@ -492,7 +492,7 @@ if(ENABLE_MODULE_MKL)
   target_compile_definitions(${SWIG_MODULE_${CHPY_MKL}_REAL_NAME} PRIVATE "CH_IGNORE_DEPRECATED")
 
   ADD_DEPENDENCIES(${SWIG_MODULE_${CHPY_MKL}_REAL_NAME} ChronoEngine)
-  ADD_DEPENDENCIES(${SWIG_MODULE_${CHPY_MKL}_REAL_NAME} ChronoEngine_mkl)
+  ADD_DEPENDENCIES(${SWIG_MODULE_${CHPY_MKL}_REAL_NAME} ChronoEngine_pardisomkl)
   ADD_DEPENDENCIES(${SWIG_MODULE_${CHPY_MKL}_REAL_NAME} ${SWIG_MODULE_${CHPY_CORE}_REAL_NAME})
 
   # Copy PY file in a package dir
@@ -652,7 +652,7 @@ if(ENABLE_MODULE_VEHICLE)
   ADD_DEPENDENCIES(${SWIG_MODULE_${CHPY_VEHICLE}_REAL_NAME} ChronoEngine)
   ADD_DEPENDENCIES(${SWIG_MODULE_${CHPY_VEHICLE}_REAL_NAME} ChronoEngine_vehicle)
   if(ENABLE_MODULE_IRRLICHT)
-    ADD_DEPENDENCIES(${SWIG_MODULE_${CHPY_VEHICLE}_REAL_NAME} ChronoEngine_vehicle)
+    ADD_DEPENDENCIES(${SWIG_MODULE_${CHPY_VEHICLE}_REAL_NAME} ChronoEngine_irrlicht)
   endif()
   ADD_DEPENDENCIES(${SWIG_MODULE_${CHPY_VEHICLE}_REAL_NAME} ChronoModels_vehicle)
   ADD_DEPENDENCIES(${SWIG_MODULE_${CHPY_VEHICLE}_REAL_NAME} ${SWIG_MODULE_${CHPY_CORE}_REAL_NAME})

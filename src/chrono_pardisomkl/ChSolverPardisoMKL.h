@@ -15,17 +15,17 @@
 #ifndef CHSOLVERMKL_H
 #define CHSOLVERMKL_H
 
-#include "chrono_mkl/ChApiMkl.h"
+#include "chrono_pardisomkl/ChApiPardisoMKL.h"
 #include "chrono/solver/ChDirectSolverLS.h"
 
 #include <Eigen/PardisoSupport>
 
 namespace chrono {
 
-/// @addtogroup mkl_module
+/// @addtogroup pardisomkl_module
 /// @{
 
-/** \class ChSolverMKL
+/** \class ChSolverPardisoMKL
 \brief Interface to the Intel MKL Pardiso parallel sparse direct solver.
 
 Sparse linear direct solver.
@@ -45,22 +45,22 @@ constraints).
 
 Minimal usage example, to be put anywhere in the code, before starting the main simulation loop:
 \code{.cpp}
-auto mkl_solver = chrono_types::make_shared<ChSolverMKL>();
+auto mkl_solver = chrono_types::make_shared<ChSolverPardisoMKL>();
 system.SetSolver(mkl_solver);
 \endcode
 
 See ChSystemDescriptor for more information about the problem formulation and the data structures passed to the solver.
 */
-class ChApiMkl ChSolverMKL : public ChDirectSolverLS {
+class ChApiPardisoMKL ChSolverPardisoMKL : public ChDirectSolverLS {
   public:
     /// Construct an MKL Pardiso sparse direct solver object and specify the number of OpenMP threads.
     /// Passing the default value num_threads=0 results in using a number of threads equal to the number
     /// of available processors (as returned by the function omp_get_num_procs)
-    ChSolverMKL(int num_threads = 0);
+    ChSolverPardisoMKL(int num_threads = 0);
 
-    ~ChSolverMKL() {}
+    ~ChSolverPardisoMKL() {}
 
-    virtual Type GetType() const override { return Type::PARDISO; }
+    virtual Type GetType() const override { return Type::PARDISO_MKL; }
 
     /// Get a handle to the underlying MKL engine.
     Eigen::PardisoLU<ChSparseMatrix>& GetMklEngine() { return m_engine; }
