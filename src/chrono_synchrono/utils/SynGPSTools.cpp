@@ -44,7 +44,7 @@ std::shared_ptr<ChBezierCurve> SynGPSTools::CurveFromGPS(std::vector<GPScoord>& 
     for (auto gps_point : gps_points)
         bezier_points.push_back(To3DCartesian(gps_point, vert_offset));
 
-    bool is_already_closed = (gps_points.back() - gps_points.front()).Length() < 1e-6;
+    bool is_already_closed = (gps_points.back().GetVector() - gps_points.front().GetVector()).Length() < 1e-6;
     if (closed && !is_already_closed)
         bezier_points.push_back(bezier_points.front());
 

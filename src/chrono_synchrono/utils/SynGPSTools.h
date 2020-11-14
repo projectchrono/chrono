@@ -44,25 +44,26 @@ namespace synchrono {
 /// @{
 
 /// @brief Wrapper class around ChVector stores GPS points as (lat, long, alt) in degrees
-class SYN_API GPScoord : public ChVector<> {
+class SYN_API GPScoord {
   public:
     /// Constructs a GPScoord with a default z value
-    GPScoord(double x, double y, double z = 0) : ChVector<>(x, y, z) {}
+    GPScoord(double x, double y, double z = 0) : m_vector(x, y, z) {}
 
     /// Access to components
     /// Primarily for cleaner and more understandable code
-    double lat() { return x(); }
-    double lon() { return y(); }
-    double alt() { return z(); }
-    const double lat() const { return x(); }
-    const double lon() const { return y(); }
-    const double alt() const { return z(); }
+    const double lat() const { return m_vector.x(); }
+    const double lon() const { return m_vector.y(); }
+    const double alt() const { return m_vector.z(); }
 
     /// Access to components with conversions
-    double lat_rad() { return lat() * CH_C_DEG_TO_RAD; }
-    double lon_rad() { return lon() * CH_C_DEG_TO_RAD; }
     const double lat_rad() const { return lat() * CH_C_DEG_TO_RAD; }
     const double lon_rad() const { return lon() * CH_C_DEG_TO_RAD; }
+
+    ChVector<double> GetVector() const { return m_vector; }
+    void SetVector(ChVector<double> vector) { m_vector = vector; }
+
+  private:
+    ChVector<double> m_vector;
 };
 
 /// @brief Holds a SynTerrain along with the GPS coordinate mapped to the origin of the ChVector space
