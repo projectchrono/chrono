@@ -507,7 +507,7 @@ include_directories(${CH_INCLUDES})
 
 # Add directories to build various optional modules.  Each module is supposed
 # to provide an option for enabling that particular module.
-add_subdirectory(chrono_mkl)
+add_subdirectory(chrono_pardisomkl)
 add_subdirectory(chrono_mumps)
 add_subdirectory(chrono_matlab)
 add_subdirectory(chrono_irrlicht)
@@ -554,7 +554,7 @@ install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/chrono_thirdparty
 #       that a particular module was successfully built, not just
 #       enabled)
 
-if(ENABLE_UNIT_CASCADE)
+if(ENABLE_MODULE_CASCADE)
   set(CHRONO_CASCADE "#define CHRONO_CASCADE")
 else()
   set(CHRONO_CASCADE "#undef CHRONO_CASCADE")
@@ -584,10 +584,10 @@ else()
   set(CHRONO_MATLAB "#undef CHRONO_MATLAB")
 endif()
 
-if(ENABLE_MODULE_MKL)
-  set(CHRONO_MKL "#define CHRONO_MKL")
+if(ENABLE_MODULE_PARDISO_MKL)
+  set(CHRONO_PARDISO_MKL "#define CHRONO_PARDISO_MKL")
 else()
-  set(CHRONO_MKL "#undef CHRONO_MKL")
+  set(CHRONO_PARDISO_MKL "#undef CHRONO_PARDISO_MKL")
 endif()
 
 if(ENABLE_MODULE_MUMPS)

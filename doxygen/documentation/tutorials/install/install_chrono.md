@@ -86,7 +86,7 @@ While Chrono::Irrlicht is an optional module and not required to begin modeling 
 - **unzip** it in a directory of your choice. For example, here we suppose that you unzipped it in <tt>C:/workspace/libraries/irrlicht-1.8.4</tt>.
 
 <div class="ce-info">
-Release v.1.8.4 should work perfectly. MacOS users should use this, since previous releases showed some issues. The best way to install irrlicht on the Mac is: <tt>brew install irrlicht</tt>. Cmake can find irrlicht automatically then without any extra settings.<br>
+Release v.1.8.4 should work perfectly. MacOS users should use this, since previous releases showed some issues. The best way to install irrlicht on the Mac is: <tt>brew install irrlicht</tt>. Cmake can find irrlicht automatically then without any extra settings. Actually MacOS 11 (Big Sur) has been released by Apple. Chrono_opengl demos run well, but chrono_irrlicht demos have a scaling problem, but they work yet. We hope, this can be resolved soon.<br>
 If you encounter any problem with version 1.8.4 please try to roll back to [release 1.8.2](http://downloads.sourceforge.net/irrlicht/irrlicht-1.8.2.zip).<br>
 Release v.1.8.3 does not contain the precompiled 64bit DLL.<br>
 Release v.1.8.0 has issues with soft shadows.<br>

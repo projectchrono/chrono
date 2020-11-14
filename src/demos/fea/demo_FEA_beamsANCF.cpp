@@ -33,7 +33,7 @@
 
 #include "chrono_irrlicht/ChIrrApp.h"
 
-#include "chrono_mkl/ChSolverMKL.h"
+#include "chrono_pardisomkl/ChSolverPardisoMKL.h"
 
 using namespace chrono;
 using namespace chrono::fea;
@@ -45,7 +45,7 @@ int main(int argc, char* argv[]) {
     sys.Set_G_acc(ChVector<>(0, 0, -9.8));
 
     // Set up solver
-    auto solver = chrono_types::make_shared<ChSolverMKL>();
+    auto solver = chrono_types::make_shared<ChSolverPardisoMKL>();
     solver->UseSparsityPatternLearner(true);
     solver->LockSparsityPattern(true);
     solver->SetVerbose(false);
