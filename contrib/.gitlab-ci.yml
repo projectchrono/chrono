@@ -383,19 +383,25 @@ linux:ubuntu1804:deploy-python3.8:
     "-DGLFW_LIBRARY=C:/Users/builder/Documents/glfw-3.3/lib-vc2015/glfw3dll.lib",
     "-DIRRLICHT_LIBRARY=C:/Users/builder/Documents/irrlicht-1.8.4/lib/Win64-visualStudio/Irrlicht.lib",
     "-DIRRLICHT_ROOT=C:/Users/builder/Documents/irrlicht-1.8.4",
-    "-DEIGEN3_INCLUDE_DIR=C:/Users/builder/Documents/eigen-3.3.7"
+    "-DEIGEN3_INCLUDE_DIR=C:/Users/builder/Documents/eigen-3.3.7",
+    "-DFlatbuffers_DIR=$CI_PROJECT_DIR/src/chrono_thirdparty/flatbuffers/CMake",
+    "-DFlatbuffers_INCLUDE_DIR=$CI_PROJECT_DIR/src/chrono_thirdparty/flatbuffers/include"
     )
   - echo $CI_PROJECT_DIR
   - git submodule init
   - git submodule update
   - mkdir -Force build
-# Make flatbuffers
 
 windows:vs2019:build:
   stage: build
   extends: .windows
   script:
-  - cd build
+  # Build flatbuffers
+  - cd $CI_PROJECT_DIR/src/chrono_thirdparty/flatbuffers
+  - cmake -G "Visual Studio 16 2019" -DCMAKE_BUILD_TYPE=Release
+  - make
+  # Main build
+  - cd $CI_PROJECT_DIR/build
   - cmake ../ -G "Visual Studio 16 2019" -A x64 -T v142 
     @CHRONO_W64_SHARED 
     @CHRONO_W64_LIBRARIES 
@@ -456,7 +462,11 @@ windows:vs2017:build:
   stage: build
   extends: .windows
   script:
-  - cd build
+    # Build flatbuffers
+  - cd $CI_PROJECT_DIR/src/chrono_thirdparty/flatbuffers
+  - cmake -G "Visual Studio 16 2019" -DCMAKE_BUILD_TYPE=Release
+  - make
+  - cd $CI_PROJECT_DIR/build
   - cmake ../ -G "Visual Studio 16 2019" -A x64 -T v141
     @CHRONO_W64_SHARED
     @CHRONO_W64_LIBRARIES
@@ -519,6 +529,11 @@ windows:vs2017:build:
     - clang --version
     - mv -f ./contrib/packaging-python/conda/buildMacOS.sh ./contrib/packaging-python/conda/build.sh
     - conda install -c conda-forge llvm-openmp --yes
+    # Build flatbuffers
+    - cd $CI_PROJECT_DIR/src/chrono_thirdparty/flatbuffers
+    - cmake -DCMAKE_BUILD_TYPE=Release
+    - make
+    - cd $CI_PROJECT_DIR
   environment:
     name: pychrono-macos
     url: https://anaconda.org/projectchrono/pychrono
@@ -534,6 +549,8 @@ macos:highsierra:build:
     -DUSE_PARALLEL_CUDA=FALSE -DCUDA_NVCC_FLAGS=-std=c++11
     -DEIGEN3_INCLUDE_DIR=/usr/local/include/eigen3
     -DBLAZE_DIR=/usr/local/include
+    -DFlatbuffers_DIR="$CI_PROJECT_DIR/src/chrono_thirdparty/flatbuffers/CMake"
+    -DFlatbuffers_INCLUDE_DIR="$CI_PROJECT_DIR/src/chrono_thirdparty/flatbuffers/include"
   - make -j 3
   artifacts:
     expire_in: 60m
