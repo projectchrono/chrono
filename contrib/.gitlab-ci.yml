@@ -399,7 +399,7 @@ windows:vs2019:build:
   # Build flatbuffers
   - cd $CI_PROJECT_DIR/src/chrono_thirdparty/flatbuffers
   - cmake -G "Visual Studio 16 2019" -DCMAKE_BUILD_TYPE=Release
-  - make
+  - '& "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\MSBuild\Current\Bin\MSBuild.exe" FlatBuffers.sln -maxcpucount:8 -property:Configuration=Release'
   # Main build
   - cd $CI_PROJECT_DIR/build
   - cmake ../ -G "Visual Studio 16 2019" -A x64 -T v142 
@@ -465,7 +465,7 @@ windows:vs2017:build:
     # Build flatbuffers
   - cd $CI_PROJECT_DIR/src/chrono_thirdparty/flatbuffers
   - cmake -G "Visual Studio 16 2019" -DCMAKE_BUILD_TYPE=Release
-  - make
+  - '& "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\MSBuild\Current\Bin\MSBuild.exe" FlatBuffers.sln -maxcpucount:8 -property:Configuration=Release'
   - cd $CI_PROJECT_DIR/build
   - cmake ../ -G "Visual Studio 16 2019" -A x64 -T v141
     @CHRONO_W64_SHARED
@@ -529,11 +529,6 @@ windows:vs2017:build:
     - clang --version
     - mv -f ./contrib/packaging-python/conda/buildMacOS.sh ./contrib/packaging-python/conda/build.sh
     - conda install -c conda-forge llvm-openmp --yes
-    # Build flatbuffers
-    - cd $CI_PROJECT_DIR/src/chrono_thirdparty/flatbuffers
-    - cmake -DCMAKE_BUILD_TYPE=Release
-    - make
-    - cd $CI_PROJECT_DIR
   environment:
     name: pychrono-macos
     url: https://anaconda.org/projectchrono/pychrono
@@ -542,15 +537,13 @@ macos:highsierra:build:
   extends: .macos
   script:
   - cd build
-  - cmake ../ $CHRONO_UNIX_SHARED -DENABLE_MODULE_DISTRIBUTED=FALSE 
+  - cmake ../ $CHRONO_UNIX_SHARED -DENABLE_MODULE_DISTRIBUTED=FALSE -DENABLE_MODULE_SYNCHRONO=FALSE 
     -DENABLE_MODULE_FSI=FALSE -DCMAKE_C_COMPILER=$(which clang)
     -DCMAKE_CXX_COMPILER=$(which clang++)
     -DCMAKE_CXX_FLAGS="-Wno-deprecated-declarations -Xpreprocessor -fopenmp -lomp -Wno-unused-command-line-argument"
     -DUSE_PARALLEL_CUDA=FALSE -DCUDA_NVCC_FLAGS=-std=c++11
     -DEIGEN3_INCLUDE_DIR=/usr/local/include/eigen3
     -DBLAZE_DIR=/usr/local/include
-    -DFlatbuffers_DIR="$CI_PROJECT_DIR/src/chrono_thirdparty/flatbuffers/CMake"
-    -DFlatbuffers_INCLUDE_DIR="$CI_PROJECT_DIR/src/chrono_thirdparty/flatbuffers/include"
   - make -j 3
   artifacts:
     expire_in: 60m
