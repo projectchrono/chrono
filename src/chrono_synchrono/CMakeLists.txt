@@ -53,8 +53,8 @@ set(SYN_INCLUDES
 )
 
 set(SYN_LIBRARIES
-	${SYN_LIBRARIES}
-	${MPI_LIBRARIES}
+    ${SYN_LIBRARIES}
+    ${MPI_LIBRARIES}
 )
 
 # ----------------------------------------------------------------------------
@@ -73,23 +73,23 @@ DESTINATION include/chrono_synchrono)
 # ------------
 
 set(SYN_BASE_FILES
-	SynApi.h
+    SynApi.h
 )
 source_group("base" FILES ${SYN_BASE_FILES})
 
 set(SYN_AGENT_FILES
-	agent/SynAgent.h
-	agent/SynAgent.cpp
+    agent/SynAgent.h
+    agent/SynAgent.cpp
 
-	agent/SynAgentFactory.h
-	agent/SynAgentFactory.cpp
+    agent/SynAgentFactory.h
+    agent/SynAgentFactory.cpp
 
-	agent/SynVehicleAgent.h
-	agent/SynVehicleAgent.cpp
-	agent/SynWheeledVehicleAgent.h
-	agent/SynWheeledVehicleAgent.cpp
-	agent/SynTrackedVehicleAgent.h
-	agent/SynTrackedVehicleAgent.cpp
+    agent/SynVehicleAgent.h
+    agent/SynVehicleAgent.cpp
+    agent/SynWheeledVehicleAgent.h
+    agent/SynWheeledVehicleAgent.cpp
+    agent/SynTrackedVehicleAgent.h
+    agent/SynTrackedVehicleAgent.cpp
     
     agent/SynEnvironmentAgent.h
     agent/SynEnvironmentAgent.cpp
@@ -100,16 +100,16 @@ set(SYN_BRAIN_FILES
     brain/SynBrain.h
     brain/SynBrainFunctions.h
     brain/SynBrainFunctions.cpp
-	brain/SynVehicleBrain.h
-	brain/SynVehicleBrain.cpp
-	
-	brain/SynACCBrain.h
-	brain/SynACCBrain.cpp
-	brain/SynQueryEnvBrain.h
-	brain/SynQueryEnvBrain.cpp
-	brain/SynVehicleBrain.h
-	brain/SynVehicleBrain.cpp
-	brain/SynCollisionBrain.h
+    brain/SynVehicleBrain.h
+    brain/SynVehicleBrain.cpp
+    
+    brain/SynACCBrain.h
+    brain/SynACCBrain.cpp
+    brain/SynQueryEnvBrain.h
+    brain/SynQueryEnvBrain.cpp
+    brain/SynVehicleBrain.h
+    brain/SynVehicleBrain.cpp
+    brain/SynCollisionBrain.h
     brain/SynCollisionBrain.cpp
     brain/SynEnvironmentBrain.h
 
@@ -117,77 +117,77 @@ set(SYN_BRAIN_FILES
     brain/driver/SynMultipathDriver.h
 )
 if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-	# _InteractiveDriver includes a joystick file that only works on Linux
-	list(APPEND SYN_BRAIN_FILES
-		brain/driver/SynInteractiveDriver.h
-		brain/driver/SynInteractiveDriver.cpp
-	)
+    # _InteractiveDriver includes a joystick file that only works on Linux
+    list(APPEND SYN_BRAIN_FILES
+        brain/driver/SynInteractiveDriver.h
+        brain/driver/SynInteractiveDriver.cpp
+    )
 endif()
 source_group("brain" FILES ${SYN_BRAIN_FILES})
 
 set(SYN_COMMUNICATION_FILES
-	communication/SynCommunicationManager.h
-	communication/SynCommunicationManager.cpp
+    communication/SynCommunicationManager.h
+    communication/SynCommunicationManager.cpp
 
-	communication/mpi/SynMPIManager.h
-	communication/mpi/SynMPIManager.cpp
+    communication/mpi/SynMPIManager.h
+    communication/mpi/SynMPIManager.cpp
 )
 source_group("communication" FILES ${SYN_COMMUNICATION_FILES})
 
 set(SYN_FLATBUFFER_FILES
-	flatbuffer/SynFlatBuffersManager.h
-	flatbuffer/SynFlatBuffersManager.cpp
-	
-	flatbuffer/message/SynFlatBuffers_generated.h
+    flatbuffer/SynFlatBuffersManager.h
+    flatbuffer/SynFlatBuffersManager.cpp
+    
+    flatbuffer/message/SynFlatBuffers_generated.h
 
-	flatbuffer/message/SynMessage.h
+    flatbuffer/message/SynMessage.h
 
-	flatbuffer/message/SynAgentMessage.h
-	flatbuffer/message/SynAgentMessage.cpp
-	flatbuffer/message/SynWheeledVehicleMessage.h
-	flatbuffer/message/SynWheeledVehicleMessage.cpp
-	flatbuffer/message/SynTrackedVehicleMessage.h
-	flatbuffer/message/SynTrackedVehicleMessage.cpp
-	
-	flatbuffer/message/SynSensorMessage.h
-	flatbuffer/message/SynSensorMessage.cpp
-	flatbuffer/message/SynSCMMessage.h
-	flatbuffer/message/SynSCMMessage.cpp
+    flatbuffer/message/SynAgentMessage.h
+    flatbuffer/message/SynAgentMessage.cpp
+    flatbuffer/message/SynWheeledVehicleMessage.h
+    flatbuffer/message/SynWheeledVehicleMessage.cpp
+    flatbuffer/message/SynTrackedVehicleMessage.h
+    flatbuffer/message/SynTrackedVehicleMessage.cpp
+    
+    flatbuffer/message/SynSensorMessage.h
+    flatbuffer/message/SynSensorMessage.cpp
+    flatbuffer/message/SynSCMMessage.h
+    flatbuffer/message/SynSCMMessage.cpp
     
     flatbuffer/message/SynApproachMessage.h
     flatbuffer/message/SynApproachMessage.cpp
     flatbuffer/message/SynEnvironmentMessage.h
     flatbuffer/message/SynEnvironmentMessage.cpp
-	flatbuffer/message/SynMAPMessage.h
-	flatbuffer/message/SynMAPMessage.cpp
+    flatbuffer/message/SynMAPMessage.h
+    flatbuffer/message/SynMAPMessage.cpp
     flatbuffer/message/SynSPATMessage.h
-	flatbuffer/message/SynSPATMessage.cpp
+    flatbuffer/message/SynSPATMessage.cpp
 
-	flatbuffer/message/SynMessageUtils.h
-	flatbuffer/message/SynMessageUtils.cpp
-	flatbuffer/message/SynMessageFactory.h
-	flatbuffer/message/SynMessageFactory.cpp
+    flatbuffer/message/SynMessageUtils.h
+    flatbuffer/message/SynMessageUtils.cpp
+    flatbuffer/message/SynMessageFactory.h
+    flatbuffer/message/SynMessageFactory.cpp
 )
 source_group("flatbuffer" FILES ${SYN_FLATBUFFER_FILES})
 
 set(SYN_TERRAIN_FILES
-	terrain/SynTerrain.h
-	terrain/SynTerrain.cpp
+    terrain/SynTerrain.h
+    terrain/SynTerrain.cpp
 
-	terrain/SynTerrainFactory.h
-	terrain/SynTerrainFactory.cpp
+    terrain/SynTerrainFactory.h
+    terrain/SynTerrainFactory.cpp
 
-	terrain/SynRigidTerrain.h
-	terrain/SynRigidTerrain.cpp
-	terrain/SynSCMTerrain.h
-	terrain/SynSCMTerrain.cpp
+    terrain/SynRigidTerrain.h
+    terrain/SynRigidTerrain.cpp
+    terrain/SynSCMTerrain.h
+    terrain/SynSCMTerrain.cpp
 )
 source_group("terrain" FILES ${SYN_TERRAIN_FILES})
 
 set(SYN_UTILS_FILES
-	utils/SynUtilsJSON.h
-	utils/SynUtilsJSON.cpp
-	utils/SynDataLoader.h
+    utils/SynUtilsJSON.h
+    utils/SynUtilsJSON.cpp
+    utils/SynDataLoader.h
     utils/SynDataLoader.cpp
     utils/SynGPSTools.h
     utils/SynGPSTools.cpp
@@ -195,32 +195,32 @@ set(SYN_UTILS_FILES
 source_group("utils" FILES ${SYN_UTILS_FILES})
 
 set(SYN_VEHICLE_FILES
-	vehicle/SynVehicle.h
-	vehicle/SynVehicle.cpp
-	vehicle/SynWheeledVehicle.h
-	vehicle/SynWheeledVehicle.cpp
-	vehicle/SynTrackedVehicle.h
-	vehicle/SynTrackedVehicle.cpp
+    vehicle/SynVehicle.h
+    vehicle/SynVehicle.cpp
+    vehicle/SynWheeledVehicle.h
+    vehicle/SynWheeledVehicle.cpp
+    vehicle/SynTrackedVehicle.h
+    vehicle/SynTrackedVehicle.cpp
 )
 source_group("vehicle" FILES ${SYN_VEHICLE_FILES})
 
 set(SYN_VISUALIZATION_FILES
-	visualization/SynVisualization.h
-	visualization/SynVisualizationManager.h
-	visualization/SynVisualizationManager.cpp
+    visualization/SynVisualization.h
+    visualization/SynVisualizationManager.h
+    visualization/SynVisualizationManager.cpp
 
 )
 if(ENABLE_MODULE_SENSOR)
-	list(APPEND SYN_VISUALIZATION_FILES
-		visualization/SynSensorVisualization.h
-		visualization/SynSensorVisualization.cpp
-	)
+    list(APPEND SYN_VISUALIZATION_FILES
+        visualization/SynSensorVisualization.h
+        visualization/SynSensorVisualization.cpp
+    )
 endif()
 if(ENABLE_MODULE_IRRLICHT)
-	list(APPEND SYN_VISUALIZATION_FILES
-		visualization/SynIrrVehicleVisualization.h
-		visualization/SynIrrVehicleVisualization.cpp
-	)
+    list(APPEND SYN_VISUALIZATION_FILES
+        visualization/SynIrrVehicleVisualization.h
+        visualization/SynIrrVehicleVisualization.cpp
+    )
 endif()
 source_group("visualization" FILES ${SYN_VISUALIZATION_FILES})
 
@@ -272,26 +272,26 @@ message(STATUS "SYN_INCLUDES: ${SYN_INCLUDES}")
 include_directories(${SYN_INCLUDES})
 
 add_library(ChronoEngine_synchrono SHARED
-	${SYN_BASE_FILES}
-	${SYN_AGENT_FILES}
-	${SYN_BRAIN_FILES}
-	${SYN_CLI_FILES}
-	${SYN_COMMUNICATION_FILES}
-	${SYN_FLATBUFFER_FILES}
-	${SYN_TERRAIN_FILES}
-	${SYN_UTILS_FILES}
-	${SYN_VEHICLE_FILES}
-	${SYN_VISUALIZATION_FILES}
+    ${SYN_BASE_FILES}
+    ${SYN_AGENT_FILES}
+    ${SYN_BRAIN_FILES}
+    ${SYN_CLI_FILES}
+    ${SYN_COMMUNICATION_FILES}
+    ${SYN_FLATBUFFER_FILES}
+    ${SYN_TERRAIN_FILES}
+    ${SYN_UTILS_FILES}
+    ${SYN_VEHICLE_FILES}
+    ${SYN_VISUALIZATION_FILES}
 )
 
 # windows builds should disable warning 4661 and 4005
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-  	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4661 /wd4005")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4661 /wd4005")
 endif()
 
 set_target_properties(ChronoEngine_synchrono PROPERTIES
                       COMPILE_FLAGS "${SYN_CXX_FLAGS}"
-					  LINK_FLAGS "${SYN_LINKER_FLAGS}")
+                      LINK_FLAGS "${SYN_LINKER_FLAGS}")
 
 target_compile_definitions(ChronoEngine_synchrono PRIVATE "SYN_API_COMPILE")
 
@@ -310,25 +310,28 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
   # MPI doesn't provide a 'root' variable so we make our own
   get_filename_component(MPI_ROOT ${MPI_CXX_COMPILER_INCLUDE_DIRS}/../ ABSOLUTE)
 
-  # Set variables that point to the DLLs. May not work for Win32
-  SET(CH_MPI_DLL "${MPI_ROOT}/bin/release/impi.dll")
+  # Set variables that points to Intel MPI DLL
+  SET(CH_INTELMPI_DLL "${MPI_ROOT}/bin/release/impi.dll")
+  IF(EXISTS ${CH_INTELMPI_DLL})
+    ADD_CUSTOM_COMMAND(
+      TARGET ChronoEngine_synchrono POST_BUILD
+      COMMAND ${CMAKE_COMMAND} -E make_directory
+              "${CMAKE_BINARY_DIR}/bin/$<CONFIGURATION>"
+      COMMAND ${CMAKE_COMMAND} -E copy_if_different
+              "${CH_INTELMPI_DLL}"
+              "${CMAKE_BINARY_DIR}/bin/$<CONFIGURATION>"
+      MAIN_DEPENDENCY ChronoEngine_synchrono
+      COMMENT "Copying Intel MPI DLL..."
+    )
 
-  ADD_CUSTOM_COMMAND(
-    TARGET ChronoEngine_synchrono POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E make_directory
-            "${CMAKE_BINARY_DIR}/bin/$<CONFIGURATION>"
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different
-            "${CH_MPI_DLL}"
-            "${CMAKE_BINARY_DIR}/bin/$<CONFIGURATION>"
-    MAIN_DEPENDENCY ChronoEngine_synchrono
-    COMMENT "Copying MPI DLL..."
-  )
+    # copy the dlls into the installed package to be on the safe side 
+    install(FILES "${CH_INTELMPI_DLL}" DESTINATION bin)
 
-  # copy the dlls into the installed package to be on the safe side 
-  install(FILES "${CH_MPI_DLL}" DESTINATION bin)
-
-  # Make variables visible from outside this directory
-  SET(CH_MPI_DLL "${CH_MPI_DLL}" PARENT_SCOPE)
+    # Make variables visible from outside this directory
+    SET(CH_INTELMPI_DLL "${CH_INTELMPI_DLL}" PARENT_SCOPE)
+  ELSE()
+    message(WARNING "Intel MPI DLL not found at ${CH_INTELMPI_DLL}. You will have to manually copy your MPI DLL if it is not on your path.")
+  ENDIF()
 
 ENDIF()
 
