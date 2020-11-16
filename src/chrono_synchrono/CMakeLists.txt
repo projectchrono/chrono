@@ -299,42 +299,6 @@ target_include_directories(ChronoEngine_synchrono PUBLIC ${SYN_INCLUDES})
 
 target_link_libraries(ChronoEngine_synchrono ${SYN_LIB_NAMES} ${SYN_LIBRARIES} ${SYN_OTHER_LIBRARIES})
 
-#-------------------------------------------------------------------------------
-# On Windows, copy the MPI DLL to the bin/ directory
-# We do this through a custom command so that the DLLs are copied to the
-# appropriate directory (depending on the build type); however, we use
-# copy_if_different. 
-
-IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-
-  # MPI doesn't provide a 'root' variable so we make our own
-  get_filename_component(MPI_ROOT ${MPI_CXX_COMPILER_INCLUDE_DIRS}/../ ABSOLUTE)
-
-  # Set variables that points to Intel MPI DLL
-  SET(CH_INTELMPI_DLL "${MPI_ROOT}/bin/release/impi.dll")
-  IF(EXISTS ${CH_INTELMPI_DLL})
-    ADD_CUSTOM_COMMAND(
-      TARGET ChronoEngine_synchrono POST_BUILD
-      COMMAND ${CMAKE_COMMAND} -E make_directory
-              "${CMAKE_BINARY_DIR}/bin/$<CONFIGURATION>"
-      COMMAND ${CMAKE_COMMAND} -E copy_if_different
-              "${CH_INTELMPI_DLL}"
-              "${CMAKE_BINARY_DIR}/bin/$<CONFIGURATION>"
-      MAIN_DEPENDENCY ChronoEngine_synchrono
-      COMMENT "Copying Intel MPI DLL..."
-    )
-
-    # copy the dlls into the installed package to be on the safe side 
-    install(FILES "${CH_INTELMPI_DLL}" DESTINATION bin)
-
-    # Make variables visible from outside this directory
-    SET(CH_INTELMPI_DLL "${CH_INTELMPI_DLL}" PARENT_SCOPE)
-  ELSE()
-    message(WARNING "Intel MPI DLL not found at ${CH_INTELMPI_DLL}. You will have to manually copy your MPI DLL if it is not on your path.")
-  ENDIF()
-
-ENDIF()
-
 install(TARGETS ChronoEngine_synchrono
         RUNTIME DESTINATION bin
         LIBRARY DESTINATION lib

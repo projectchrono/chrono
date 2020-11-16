@@ -202,7 +202,6 @@ foreach(COMPONENT ${Chrono_FIND_COMPONENTS})
       list(APPEND CHRONO_LIB_NAMES "ChronoEngine_synchrono")
       list(APPEND CHRONO_LIBRARIES "@SYN_LIBRARIES@")
       list(APPEND CHRONO_DLL_NAMES "ChronoEngine_synchrono.dll")
-      list(APPEND CHRONO_DLLS "@CH_INTELMPI_DLL@")
 
     elseif(${COMPONENT_UPPER} MATCHES "GRANULAR")
 
