@@ -17,7 +17,7 @@ The **SynChrono module** allows users to paralellize the dynamics computations f
 ## Required Dependencies
 
 - To build applications based on this module, the following are required:
-  * MPI - Tested with [OpenMPI](https://www.open-mpi.org/) and [MPICH](https://www.mpich.org/) on Linux and with [Intel MPI](https://software.intel.com/en-us/mpi-library/choose-download/windows) on Windows ([MS-MPI](https://docs.microsoft.com/en-us/message-passing-interface/microsoft-mpi) will likely work as well)
+  * MPI - Tested with [OpenMPI](https://www.open-mpi.org/) and [MPICH](https://www.mpich.org/) on Linux and with [Intel MPI](https://software.intel.com/en-us/mpi-library/choose-download/windows) and [MS-MPI](https://docs.microsoft.com/en-us/message-passing-interface/microsoft-mpi) on Windows. NOTE: On Windows please ensure that the MPI dll (either `impi.dll` or `msmpi.dll`) is on your system path, for example by running a post-installation script ([Intel MPI example](https://software.intel.com/content/www/us/en/develop/documentation/mpi-developer-guide-windows/top/installation-and-prerequisites/prerequisite-steps.html)).
   * [FlatBuffers](http://google.github.io/flatbuffers/) - A version is included in chrono_thirdparty as a submodule but a separately-installed version (for example through a package manager) will work as well.
 
 ## Building instructions
