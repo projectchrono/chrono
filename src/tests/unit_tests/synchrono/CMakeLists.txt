@@ -23,5 +23,5 @@ FOREACH(PROGRAM ${TESTS})
     TARGET_LINK_LIBRARIES(${PROGRAM} ${LIBRARIES} gtest_main)
 
     INSTALL(TARGETS ${PROGRAM} DESTINATION ${CH_INSTALL_DEMO})
-    ADD_TEST(${PROGRAM} ${PROJECT_BINARY_DIR}/bin/${PROGRAM})
+    # Note: we don't add these to the list of tests to get run
 ENDFOREACH(PROGRAM)

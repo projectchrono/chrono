@@ -23,16 +23,11 @@ set(SYN_LIB_NAMES "ChronoEngine")
 # Find FlatBuffers
 #-----------------------------------------------------------------------------
 
-message(STATUS "Searching for FlatBuffers...")
-
 set(Flatbuffers_DIR "../chrono_thirdparty/flatbuffers/CMake" CACHE STRING "")
 
 find_package(Flatbuffers REQUIRED)
 
 find_path(Flatbuffers_INCLUDE_DIR flatbuffers/flatbuffers.h)
-
-message(STATUS "FlatBuffer libraries: ${FLATBUFFER_LIBRARY}")
-message(STATUS "FlatBuffer includes: ${Flatbuffers_INCLUDE_DIR}")
 
 set(SYN_INCLUDES
     ${SYN_INCLUDES}
@@ -44,7 +39,6 @@ set(SYN_INCLUDES
 #-----------------------------------------------------------------------------
 
 find_package(MPI REQUIRED)
-message(STATUS "MPI libraries: ${MPI_LIBRARIES}")
 
 set(SYN_INCLUDES
     ${SYN_INCLUDES}
@@ -265,9 +259,6 @@ endif()
 SET(SYN_INCLUDES     "${SYN_INCLUDES}"  PARENT_SCOPE)
 SET(SYN_LIBRARIES    "${SYN_LIBRARIES}" PARENT_SCOPE)
 SET(SYN_CXX_FLAGS    "${SYN_CXX_FLAGS}" PARENT_SCOPE)
-
-message(STATUS "SYN_LIBRARIES: ${SYN_LIBRARIES}")
-message(STATUS "SYN_INCLUDES: ${SYN_INCLUDES}")
 
 include_directories(${SYN_INCLUDES})
 
