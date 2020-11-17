@@ -6,6 +6,7 @@ SET(DEMOS
   demo_VSG_pbr
   demo_VSG_friction
   demo_VSG_fourbar
+  demo_VSG_assets
 )
 
 set(CMAKE_CXX_STANDARD 17)
