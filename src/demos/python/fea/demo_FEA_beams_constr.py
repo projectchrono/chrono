@@ -19,7 +19,7 @@
 import math as m
 import pychrono as chrono
 import pychrono.fea as fea
-import pychrono.mkl as mkl
+import pychrono.pardisomkl as mkl
 import pychrono.irrlicht as chronoirr
 import os
 
@@ -246,7 +246,7 @@ application.AssetUpdateAll()
 # SIMULATION LOOP
 
 # Use a solver that can handle stiffnss matrices:
-mkl_solver = mkl.ChSolverMKL()
+mkl_solver = mkl.ChSolverPardisoMKL()
 my_system.SetSolver(mkl_solver)
 
 application.SetTimestep(0.001)

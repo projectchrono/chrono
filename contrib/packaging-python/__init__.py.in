@@ -24,7 +24,7 @@ try:
 except:
     pass
 try:
-	import _mkl
+	import _pardisomkl
 except:
     pass
 try:

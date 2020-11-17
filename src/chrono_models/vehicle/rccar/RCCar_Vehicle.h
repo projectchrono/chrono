@@ -44,7 +44,7 @@ namespace chrono {
 namespace vehicle {
 namespace rccar {
 
-/// @addtogroup vehicle_models_RCCar
+/// @addtogroup vehicle_models_rccar
 /// @{
 
 /// RCCar vehicle system.
@@ -87,7 +87,7 @@ class CH_MODELS_API RCCar_Vehicle : public ChWheeledVehicle {
     std::vector<double> m_omega;
 };
 
-/// @} vehicle_models_RCCar
+/// @} vehicle_models_rccar
 
 }  // namespace rccar
 }  // namespace vehicle

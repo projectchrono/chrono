@@ -27,7 +27,9 @@ class my_enum_mappers : public ChSolver {
     CH_ENUM_VAL(Type::PMINRES);
     CH_ENUM_VAL(Type::BARZILAIBORWEIN);
     CH_ENUM_VAL(Type::APGD);
-    CH_ENUM_VAL(Type::PARDISO);
+    CH_ENUM_VAL(Type::SPARSE_LU);
+    CH_ENUM_VAL(Type::SPARSE_QR);
+    CH_ENUM_VAL(Type::PARDISO_MKL);
     CH_ENUM_VAL(Type::MUMPS);
     CH_ENUM_VAL(Type::GMRES);
     CH_ENUM_VAL(Type::MINRES);

@@ -67,6 +67,10 @@ class CH_VEHICLE_API ChRigidTire : public ChTire {
     /// in global frame, as applied to the center of the associated wheel.
     virtual TerrainForce ReportTireForce(ChTerrain* terrain) const override;
 
+    /// Get the tire contact material.
+    /// Note that this is not set until after tire initialization.
+    std::shared_ptr<ChMaterialSurface> GetContactMaterial() const { return m_material; }
+
     /// Add visualization assets for the rigid tire subsystem.
     virtual void AddVisualizationAssets(VisualizationType vis) override;
 

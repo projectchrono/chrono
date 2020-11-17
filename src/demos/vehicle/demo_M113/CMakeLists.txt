@@ -24,11 +24,11 @@ set(COMPILER_FLAGS "${CH_CXX_FLAGS}  ${CH_IRRLICHT_CXX_FLAGS}")
 set(LINKER_FLAGS "${CH_LINKERFLAG_EXE}")
 list(APPEND LIBS "")
 
-if(ENABLE_MODULE_MKL)
+if(ENABLE_MODULE_PARDISO_MKL)
     include_directories(${CH_MKL_INCLUDES})
     set(COMPILER_FLAGS "${COMPILER_FLAGS} ${CH_MKL_CXX_FLAGS}")
     set(LINKER_FLAGS "${LINKER_FLAGS} ${CH_MKL_LINK_FLAGS}")
-    list(APPEND LIBS "ChronoEngine_mkl")
+    list(APPEND LIBS "ChronoEngine_pardisomkl")
 endif()
 
 #--------------------------------------------------------------
