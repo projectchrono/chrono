@@ -61,7 +61,7 @@ using namespace chrono::vehicle::hmmwv;
 // Better conserve mass by displacing soil to the sides of a rut
 const bool bulldozing = true;
 
-ChContactMethod contact_method = ChContactMethod::NSC;
+ChContactMethod contact_method = ChContactMethod::SMC;
 double end_time = 1000;
 double step_size = 3e-3;
 
@@ -125,8 +125,6 @@ int main(int argc, char* argv[]) {
 
     auto agent = chrono_types::make_shared<SynWheeledVehicleAgent>(rank);
 
-    // agent->GetSystem()->SetNumThreads(4, 1, 1);
-
     mpi_manager.AddAgent(agent, rank);
 
     // Use up more of the mesh by not placing vehicles in the middle
@@ -165,7 +163,7 @@ int main(int argc, char* argv[]) {
     hmmwv->Initialize();
 
     hmmwv->SetChassisVisualizationType(VisualizationType::MESH);
-    hmmwv->SetSuspensionVisualizationType(VisualizationType::NONE);
+    hmmwv->SetSuspensionVisualizationType(VisualizationType::MESH);
     hmmwv->SetSteeringVisualizationType(VisualizationType::NONE);
     hmmwv->SetWheelVisualizationType(VisualizationType::MESH);
     hmmwv->SetTireVisualizationType(VisualizationType::MESH);

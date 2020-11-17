@@ -203,7 +203,8 @@ int main(int argc, char* argv[]) {
 
         // The physics do not change when you add a moving patch, you just make it much easier for the SCM
         // implementation to do its job by restricting where it has to look for contacts
-        scm->AddMovingPatch(vehicle->GetVehicle().GetChassisBody(), ChVector<>(0, 0, 0), ChVector<>(5, 3, 1));
+        // We need a larger contact patch here than for the humvee
+        scm->AddMovingPatch(vehicle->GetVehicle().GetChassisBody(), ChVector<>(0, 0, 0), ChVector<>(10, 10, 1));
         scm->Initialize(size_x, size_y, 1. / dpu);
 
         // Wrap the ChTerrain in a SynChrono object
@@ -295,7 +296,7 @@ int main(int argc, char* argv[]) {
         agent->GetSystem()->AddBody(origin);
 
         // Happens to be a reasonable-looking height
-        ChVector<> camera_loc(cam_x, cam_y, 65);
+        ChVector<> camera_loc(cam_x, cam_y, 25);
 
         // Rotations to get a nice angle
         ChQuaternion<> rotation = QUNIT;
