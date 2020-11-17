@@ -67,8 +67,6 @@ void AddCommandLineOptions(ChCLI& cli);
 int main(int argc, char* argv[]) {
     // Initialize the MPIManager
     SynMPIManager mpi_manager(argc, argv, MPI_CONFIG_DEFAULT);
-    mpi_manager.SetHeartbeat(heartbeat);
-    mpi_manager.SetEndTime(end_time);
     int rank = mpi_manager.GetRank();
     int num_ranks = mpi_manager.GetNumRanks();
 
@@ -86,6 +84,12 @@ int main(int argc, char* argv[]) {
     step_size = cli.GetAsType<double>("step_size");
     end_time = cli.GetAsType<double>("end_time");
     heartbeat = cli.GetAsType<double>("heartbeat");
+
+    const bool use_sensor_vis = cli.HasValueInVector<int>("sens", rank);
+    const bool use_irrlicht_vis = !use_sensor_vis && cli.HasValueInVector<int>("irr", rank);
+
+    mpi_manager.SetHeartbeat(heartbeat);
+    mpi_manager.SetEndTime(end_time);
 
     // --------------------
     // Agent Initialization
@@ -182,7 +186,7 @@ int main(int argc, char* argv[]) {
     auto vis_manager = chrono_types::make_shared<SynVisualizationManager>();
     agent->SetVisualizationManager(vis_manager);
 #ifdef CHRONO_IRRLICHT
-    if (cli.HasValueInVector<int>("irr", rank)) {
+    if (use_irrlicht_vis) {
         // Set driver as ChIrrGuiDriver
         auto irr_vis = chrono_types::make_shared<SynIrrVehicleVisualization>();
         irr_vis->SetRenderStepSize(render_step_size);
@@ -200,7 +204,7 @@ int main(int argc, char* argv[]) {
 #endif
 
 #ifdef CHRONO_SENSOR
-    if (cli.HasValueInVector<int>("sens", rank)) {
+    if (use_sensor_vis) {
         auto sen_vis = chrono_types::make_shared<SynSensorVisualization>();
         sen_vis->InitializeDefaultSensorManager(agent->GetSystem());
         sen_vis->InitializeAsDefaultChaseCamera(agent->GetChVehicle().GetChassisBody());
@@ -219,7 +223,6 @@ int main(int argc, char* argv[]) {
 
     mpi_manager.Barrier();
     mpi_manager.Initialize();
-    mpi_manager.Barrier();
 
     int step_number = 0;
 

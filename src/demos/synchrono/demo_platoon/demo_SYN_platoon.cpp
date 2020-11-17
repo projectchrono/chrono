@@ -66,8 +66,7 @@ void AddCommandLineOptions(ChCLI& cli);
 int main(int argc, char* argv[]) {
     // Initialize the MPIManager
     SynMPIManager mpi_manager(argc, argv, MPI_CONFIG_DEFAULT);
-    mpi_manager.SetHeartbeat(heartbeat);
-    mpi_manager.SetEndTime(end_time);
+
     int rank = mpi_manager.GetRank();
     int num_ranks = mpi_manager.GetNumRanks();
 
@@ -86,6 +85,12 @@ int main(int argc, char* argv[]) {
     end_time = cli.GetAsType<double>("end_time");
     heartbeat = cli.GetAsType<double>("heartbeat");
 
+    const bool use_sensor_vis = cli.HasValueInVector<int>("sens", rank);
+    const bool use_irrlicht_vis = !use_sensor_vis && cli.HasValueInVector<int>("irr", rank);
+
+    mpi_manager.SetHeartbeat(heartbeat);
+    mpi_manager.SetEndTime(end_time);
+
     // --------------------
     // Agent Initialization
     // --------------------
@@ -98,7 +103,7 @@ int main(int argc, char* argv[]) {
     // Vehicle
     // -------
     // Grid of vehicles
-    int col = (rank - 1) % 3;
+    int col = rank % 3;
     int row = rank / 3;
 
     // Box dimensions
@@ -147,12 +152,30 @@ int main(int argc, char* argv[]) {
     // Set the agents terrain
     agent->SetTerrain(chrono_types::make_shared<SynRigidTerrain>(terrain));
 
+    // ---------------------------
+    // Controller for the vehicles
+    // ---------------------------
+
+    // Drive in a straight line
+    std::vector<ChVector<>> curve_pts = {init_loc, init_loc + ChVector<>(1000, 0, 0)};
+    auto path = chrono_types::make_shared<ChBezierCurve>(curve_pts);
+    auto driver = chrono_types::make_shared<ChPathFollowerDriver>(vehicle->GetVehicle(), path, "Box path", 10);
+
+    // Reasonable defaults for the underlying PID
+    driver->GetSpeedController().SetGains(0.4, 0, 0);
+    driver->GetSteeringController().SetGains(0.4, 0.1, 0.2);
+    driver->GetSteeringController().SetLookAheadDistance(5);
+
+    // Wrap the ChDriver in a SynVehicleBrain and add it to our agent
+    auto brain = chrono_types::make_shared<SynVehicleBrain>(rank, driver, agent->GetChVehicle());
+    agent->SetBrain(brain);
+
     auto vis_manager = chrono_types::make_shared<SynVisualizationManager>();
     agent->SetVisualizationManager(vis_manager);
 #ifdef CHRONO_IRRLICHT
-    if (cli.HasValueInVector<int>("irr", rank)) {
+    if (use_irrlicht_vis) {
         // Add an irrlicht visualization
-        auto irr_vis = chrono_types::make_shared<SynIrrVehicleVisualization>();
+        auto irr_vis = chrono_types::make_shared<SynIrrVehicleVisualization>(driver, step_size, render_step_size);
         irr_vis->SetRenderStepSize(render_step_size);
         irr_vis->SetStepSize(step_size);
         irr_vis->InitializeAsDefaultChaseCamera(vehicle);
@@ -161,18 +184,18 @@ int main(int argc, char* argv[]) {
 #endif
 
 #ifdef CHRONO_SENSOR
-    if (cli.HasValueInVector<int>("sens", rank)) {
+    if (use_sensor_vis) {
         auto sen_vis = chrono_types::make_shared<SynSensorVisualization>();
         sen_vis->InitializeDefaultSensorManager(agent->GetSystem());
         sen_vis->InitializeAsDefaultChaseCamera(agent->GetChVehicle().GetChassisBody());
+
+        if (cli.GetAsType<bool>("sens_vis"))
+            sen_vis->AddFilterVisualize();
 
         if (cli.GetAsType<bool>("sens_save")) {
             std::string path = std::string("SENSOR_OUTPUT/platoon") + std::to_string(rank) + std::string("/");
             sen_vis->AddFilterSave(path);
         }
-
-        if (cli.GetAsType<bool>("sens_vis"))
-            sen_vis->AddFilterVisualize();
 
         vis_manager->AddVisualization(sen_vis);
     }
@@ -180,7 +203,6 @@ int main(int argc, char* argv[]) {
 
     mpi_manager.Barrier();
     mpi_manager.Initialize();
-    mpi_manager.Barrier();
 
     double step = 0;
 

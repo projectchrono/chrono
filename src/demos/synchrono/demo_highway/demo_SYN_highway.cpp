@@ -79,8 +79,7 @@ std::shared_ptr<SynWheeledVehicle> InitializeVehicle(int rank);
 int main(int argc, char* argv[]) {
     // Initialize the MPIManager
     SynMPIManager mpi_manager(argc, argv, MPI_CONFIG_DEFAULT);
-    mpi_manager.SetHeartbeat(heartbeat);
-    mpi_manager.SetEndTime(end_time);
+
     int rank = mpi_manager.GetRank();
     int num_ranks = mpi_manager.GetNumRanks();
 
@@ -103,6 +102,12 @@ int main(int argc, char* argv[]) {
     const double cam_y = cli.GetAsType<std::vector<double>>("c_pos")[1];
     const int cam_res_width = cli.GetAsType<std::vector<int>>("res")[0];
     const int cam_res_height = cli.GetAsType<std::vector<int>>("res")[1];
+
+    const bool use_sensor_vis = cli.HasValueInVector<int>("sens", rank);
+    const bool use_irrlicht_vis = !use_sensor_vis && cli.HasValueInVector<int>("irr", rank);
+
+    mpi_manager.SetHeartbeat(heartbeat);
+    mpi_manager.SetEndTime(end_time);
 
     // -------
     // Vehicle
@@ -193,7 +198,7 @@ int main(int argc, char* argv[]) {
     agent->SetVisualizationManager(vis_manager);
 
 #ifdef CHRONO_IRRLICHT
-    if (cli.HasValueInVector<int>("irr", rank)) {
+    if (use_irrlicht_vis) {
         auto irr_vis = chrono_types::make_shared<SynIrrVehicleVisualization>(driver);
         irr_vis->SetRenderStepSize(render_step_size);
         irr_vis->SetStepSize(step_size);
@@ -205,7 +210,7 @@ int main(int argc, char* argv[]) {
 #ifdef CHRONO_SENSOR
     std::shared_ptr<ChCameraSensor> intersection_camera;
     ChVector<double> camera_loc(cam_x, cam_y, 15);
-    if (cli.HasValueInVector<int>("sens", rank)) {
+    if (use_sensor_vis) {
         auto sen_vis = chrono_types::make_shared<SynSensorVisualization>();
 
         auto manager = chrono_types::make_shared<ChSensorManager>(agent->GetSystem());
@@ -223,19 +228,15 @@ int main(int argc, char* argv[]) {
         ChQuaternion<> qB = Q_from_AngAxis(135 * CH_C_DEG_TO_RAD, VECT_Z);
         rotation = rotation >> qA >> qB;
 
-        double cx = camera_loc.x();
-        double cy = camera_loc.y();
-        double cz = camera_loc.z();
-        ChVector<double> camera_temp(cx, cy, cz);
         intersection_camera = chrono_types::make_shared<chrono::sensor::ChCameraSensor>(
-            origin,                                          // body camera is attached to
-            30,                                              // update rate in Hz
-            chrono::ChFrame<double>(camera_temp, rotation),  // offset pose
-            cam_res_width,                                   // image width
-            cam_res_height,                                  // image height
-            CH_C_PI / 3,                                     // FOV
-            1,                                               // samples per pixel for antialiasing
-            PINHOLE);                                        // camera type
+            origin,                                         // body camera is attached to
+            30,                                             // update rate in Hz
+            chrono::ChFrame<double>(camera_loc, rotation),  // offset pose
+            cam_res_width,                                  // image width
+            cam_res_height,                                 // image height
+            CH_C_PI / 3,                                    // FOV
+            1,                                              // samples per pixel for antialiasing
+            PINHOLE);                                       // camera type
 
         intersection_camera->SetName("Intersection Cam");
         intersection_camera->PushFilter(chrono_types::make_shared<ChFilterRGBA8Access>());
@@ -255,7 +256,6 @@ int main(int argc, char* argv[]) {
 
     mpi_manager.Barrier();
     mpi_manager.Initialize();
-    mpi_manager.Barrier();
 
     int step_number = 0;
 
@@ -264,19 +264,15 @@ int main(int argc, char* argv[]) {
         mpi_manager.Advance(heartbeat * step_number++);
         mpi_manager.Synchronize();
 
-#ifdef SENSOR
-        if (cli.HasValueInVector<int>("sens", rank)) {
-            // Move the camera along to parallel the vehicle as it goes down the road
-            camera_loc += ChVector<>(0, HEARTBEAT * 7, 0);
+#ifdef CHRONO_SENSOR
+        if (use_sensor_vis) {
+            // Move the camera parallel to the vehicle as it goes down the road
+            camera_loc += ChVector<>(0, heartbeat * 7, 0);
             ChQuaternion<> rotation = QUNIT;
             ChQuaternion<> qA = Q_from_AngAxis(30 * CH_C_DEG_TO_RAD, VECT_Y);
             ChQuaternion<> qB = Q_from_AngAxis(135 * CH_C_DEG_TO_RAD, VECT_Z);
             rotation = rotation >> qA >> qB;
-            double cx = camera_loc.x();
-            double cy = camera_loc.y();
-            double cz = camera_loc.z();
-            ChVector<double> camera_temp(cx, cy, cz);
-            intersection_camera->SetOffsetPose(chrono::ChFrame<double>(camera_temp, rotation));
+            intersection_camera->SetOffsetPose(chrono::ChFrame<double>(camera_loc, rotation));
         }
 #endif  // SENSOR
 

@@ -85,8 +85,6 @@ int main(int argc, char* argv[]) {
     config.memory_mode = SynMPIMemoryMode::DYNAMIC_RESERVE;
 
     SynMPIManager mpi_manager(argc, argv, config);
-    mpi_manager.SetHeartbeat(heartbeat);
-    mpi_manager.SetEndTime(end_time);
     int rank = mpi_manager.GetRank();
     int num_ranks = mpi_manager.GetNumRanks();
 
@@ -115,6 +113,11 @@ int main(int argc, char* argv[]) {
     const int cam_res_width = cli.GetAsType<std::vector<int>>("res")[0];
     const int cam_res_height = cli.GetAsType<std::vector<int>>("res")[1];
     const bool using_scm_terrain = cli.GetAsType<std::string>("terrain_type") == "SCM";
+    const bool use_sensor_vis = cli.HasValueInVector<int>("sens", rank);
+    const bool use_irrlicht_vis = !use_sensor_vis && cli.HasValueInVector<int>("irr", rank);
+
+    mpi_manager.SetHeartbeat(heartbeat);
+    mpi_manager.SetEndTime(end_time);
 
     // --------------------
     // Agent Initialization
@@ -268,7 +271,7 @@ int main(int argc, char* argv[]) {
     agent->SetVisualizationManager(vis_manager);
 
 #ifdef CHRONO_IRRLICHT
-    if (cli.HasValueInVector<int>("irr", rank)) {
+    if (use_irrlicht_vis) {
         auto irr_vis = chrono_types::make_shared<SynIrrVehicleVisualization>(driver, step_size, render_step_size);
         irr_vis->InitializeAsDefaultChaseCamera(agent->GetVehicle());
         vis_manager->AddVisualization(irr_vis);
@@ -276,7 +279,7 @@ int main(int argc, char* argv[]) {
 #endif
 
 #ifdef CHRONO_SENSOR
-    if (cli.HasValueInVector<int>("sens", rank)) {
+    if (use_sensor_vis) {
         auto sen_vis = chrono_types::make_shared<SynSensorVisualization>();
         sen_vis->InitializeDefaultSensorManager(agent->GetSystem());
 
@@ -286,7 +289,7 @@ int main(int argc, char* argv[]) {
         agent->GetSystem()->AddBody(origin);
 
         // Happens to be a reasonable-looking height
-        ChVector<> camera_loc(cam_x, cam_y, 65);
+        ChVector<> camera_loc(cam_x, cam_y, 25);
 
         // Rotations to get a nice angle
         ChQuaternion<> rotation = QUNIT;
@@ -318,7 +321,7 @@ int main(int argc, char* argv[]) {
             overhead_camera->PushFilter(chrono_types::make_shared<ChFilterVisualize>(cam_res_width, cam_res_height));
 
         // Do we save images to disc?
-        std::string file_path = std::string("SENSOR_OUTPUT/Sedan") + std::to_string(rank) + std::string("/");
+        std::string file_path = std::string("SENSOR_OUTPUT/scm") + std::to_string(rank) + std::string("/");
         if (cli.GetAsType<bool>("sens_save"))
             overhead_camera->PushFilter(chrono_types::make_shared<ChFilterSave>(file_path));
 
@@ -329,8 +332,6 @@ int main(int argc, char* argv[]) {
 
     mpi_manager.Barrier();
     mpi_manager.Initialize();
-    mpi_manager
-        .Barrier();  // Need this second barrier so that ranks initializing faster (traffic lights) don't start early
 
     std::cout << "Rank " << rank << " entering simulation loop." << std::endl;
 
