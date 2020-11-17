@@ -110,13 +110,6 @@ set(SYN_BRAIN_FILES
     brain/driver/SynMultipathDriver.cpp
     brain/driver/SynMultipathDriver.h
 )
-if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-    # _InteractiveDriver includes a joystick file that only works on Linux
-    list(APPEND SYN_BRAIN_FILES
-        brain/driver/SynInteractiveDriver.h
-        brain/driver/SynInteractiveDriver.cpp
-    )
-endif()
 source_group("brain" FILES ${SYN_BRAIN_FILES})
 
 set(SYN_COMMUNICATION_FILES
