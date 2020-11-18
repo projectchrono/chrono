@@ -864,6 +864,8 @@ add_library(ChronoEngine_vehicle SHARED
     ${CV_STB_FILES}
 )
 
+message(STATUS "Add ChronoEngine_vehicle library")
+
 set_target_properties(ChronoEngine_vehicle PROPERTIES
                       COMPILE_FLAGS "${CXX_FLAGS}"
                       LINK_FLAGS "${CH_LINKERFLAG_SHARED}")
@@ -898,6 +900,8 @@ if(ENABLE_IRRKLANG)
     list(APPEND LIBRARIES ${CH_IRRKLANGLIB})
 endif()
 
+message(STATUS "Add ChronoEngine_vehicle_irrlicht library")
+
 add_library(ChronoEngine_vehicle_irrlicht SHARED
     ${CVIRR_DRIVER_FILES}
     ${CVIRR_UTILS_FILES}
@@ -922,6 +926,11 @@ install(TARGETS ChronoEngine_vehicle_irrlicht
         ARCHIVE DESTINATION lib)
 
 endif()
+
+#-------------------------------------------------------------------------------
+# Trigger CMake for vehicle cosimulation
+#-------------------------------------------------------------------------------
+add_subdirectory(cosim)
 
 #-------------------------------------------------------------------------------
 # Install Chrono::Vehicle headers

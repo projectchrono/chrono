@@ -47,3 +47,5 @@ ADD_SUBDIRECTORY(demo_TrackTestRig_Band)
 ADD_SUBDIRECTORY(demo_Paths)
 ADD_SUBDIRECTORY(demo_RigidTerrain)
 ADD_SUBDIRECTORY(demo_CRGTerrain)
+
+ADD_SUBDIRECTORY(demo_Cosimulation)
