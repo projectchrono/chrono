@@ -20,8 +20,15 @@
 
 struct PerRayData_camera {
     float3 color;
+    float3 albedo;
+    float3 normal;
+
     float importance;
     int depth;
+
+    float3 origin;
+    float3 direction;
+    unsigned int seed;
 };
 
 struct PerRayData_lidar {

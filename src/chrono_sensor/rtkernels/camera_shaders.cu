@@ -22,7 +22,7 @@
 
 #include <optix.h>
 #include <optixu/optixu_math_namespace.h>
-
+#include <optixu/optixu_matrix_namespace.h>
 #include "chrono_sensor/rtkernels/ray_utils.h"
 #include "chrono_sensor/scene/lights.h"
 
@@ -74,6 +74,32 @@ static __device__ float GeomSmithSchlick(float NdV, float NdL, float roughness) 
     float s_ndl = NdL / (NdL * (1 - r_remap) + r_remap);
 
     return s_ndv * s_ndl;
+}
+
+static __device__ float checkerboard3(float3 loc) {
+    loc += make_float3(0.001f);  // small epsilon so planes don't coincide with scene geometry
+    float checkerboard_width = 40.f;
+    int3 c;
+
+    c.x = abs((int)floor((loc.x / checkerboard_width)));
+    c.y = abs((int)floor((loc.y / checkerboard_width)));
+    c.z = abs((int)floor((loc.z / checkerboard_width)));
+
+    if ((c.x % 2) ^ (c.y % 2) ^ (c.z % 2))
+        return 1.0f;
+    return 0.0f;
+}
+
+// temporary using Optix Example !!!!
+static __host__ __device__ __inline__ unsigned int lcg(unsigned int& prev) {
+    const unsigned int LCG_A = 1664525u;
+    const unsigned int LCG_C = 1013904223u;
+    prev = (LCG_A * prev + LCG_C);
+    return prev & 0x00FFFFFF;
+}
+// Generate random float in [0, 1)
+static __host__ __device__ __inline__ float rnd(unsigned int& prev) {
+    return ((float)lcg(prev) / (float)0x01000000);
 }
 
 // simplest camera shader that colors by object normal
@@ -223,4 +249,26 @@ RT_PROGRAM void pbr_shader() {
         }
     }
     prd_camera.color = fmaxf(prd_camera.color, tmp_kd * ambient_light_color);
+    float3 hitpoint = prd_camera.origin + t_hit * prd_camera.direction;
+    prd_camera.origin = hitpoint;
+
+
+    float3 world_shading_normal = normalize(rtTransformNormal(RT_OBJECT_TO_WORLD, shading_normal));
+    float3 world_geometric_normal = normalize(rtTransformNormal(RT_OBJECT_TO_WORLD, shading_normal));
+    float3 ffnormal = faceforward(world_shading_normal, -prd_camera.direction, world_geometric_normal);
+
+    float z1 = rnd(prd_camera.seed);
+    float z2 = rnd(prd_camera.seed);
+    float3 p;
+    cosine_sample_hemisphere(z1, z2, p);
+    optix::Onb onb(ffnormal);
+    onb.inverse_transform(p);
+    prd_camera.direction = p;
+    float3 modulated_diffuse_color = tmp_kd * (0.2f + 0.8f * checkerboard3(hitpoint));
+
+    if (prd_camera.depth == 2) {
+        prd_camera.normal = ffnormal;
+        prd_camera.albedo = modulated_diffuse_color;
+    }
+
 }

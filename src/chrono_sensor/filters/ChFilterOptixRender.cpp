@@ -45,7 +45,9 @@ CH_SENSOR_API void ChFilterOptixRender::Apply(std::shared_ptr<ChSensor> pSensor,
     m_buffer->TimeStamp = pOptixSensor->m_time_stamp;
 
     try {
-        pOptixSensor->m_context->launch(pOptixSensor->m_launch_index, pOptixSensor->m_width, pOptixSensor->m_height);
+        
+        // pOptixSensor->m_context->launch(pOptixSensor->m_launch_index, pOptixSensor->m_width, pOptixSensor->m_height);
+        commandListWithDenoiser->execute();
     } catch (const optix::Exception& ex) {
         throw std::runtime_error("Error launching optix render for sensor " + pSensor->GetName() + ": " +
                                  ex.getErrorString());
@@ -150,14 +152,57 @@ CH_SENSOR_API void ChFilterOptixRender::Initialize(std::shared_ptr<ChSensor> pSe
     pOptixSensor->m_launch_index = numEntryPoints;
 
     optix::Buffer buffer = AllocateBuffer(pSensor);
-
+    optix::Buffer normal_buffer = pOptixSensor->m_context->createBuffer(
+        RT_BUFFER_INPUT_OUTPUT | RT_BUFFER_COPY_ON_DIRTY, RT_FORMAT_FLOAT4, pOptixSensor->m_width,
+        pOptixSensor->m_height);
+    optix::Buffer albedo_buffer = pOptixSensor->m_context->createBuffer(
+        RT_BUFFER_INPUT_OUTPUT | RT_BUFFER_COPY_ON_DIRTY, RT_FORMAT_FLOAT4, pOptixSensor->m_width,
+        pOptixSensor->m_height);
     pOptixSensor->m_ray_gen["output_buffer"]->set(buffer);
+    pOptixSensor->m_ray_gen["normal_buffer"]->set(normal_buffer);
+    pOptixSensor->m_ray_gen["albedo_buffer"]->set(albedo_buffer);
 
     context->setRayGenerationProgram(pOptixSensor->m_launch_index, pOptixSensor->m_ray_gen);
     // context->setMissProgram(pOptixSensor->m_launch_index, pOptixSensor->MissProgram());
 
+
+    // Setup Optix denoiser
+    optix::Buffer tonemap_buffer = pOptixSensor->m_context->createBuffer(
+        RT_BUFFER_INPUT_OUTPUT | RT_BUFFER_COPY_ON_DIRTY, pOptixSensor->RenderBufferFormat(),
+                                                           pOptixSensor->m_width, pOptixSensor->m_height);
+
+    optix::Buffer denoised_buffer = AllocateBuffer(pSensor);
+
+    pOptixSensor->m_ray_gen["tonemap_buffer"]->set(tonemap_buffer);
+    pOptixSensor->m_ray_gen["denoised_buffer"]->set(denoised_buffer);
+
+    optix::PostprocessingStage tonemapStage =
+        pOptixSensor->m_context->createBuiltinPostProcessingStage("TonemapperSimple");
+    optix::PostprocessingStage denoiserStage = pOptixSensor->m_context->createBuiltinPostProcessingStage("DLDenoiser");
+
+    tonemapStage->declareVariable("input_buffer")->set(buffer);
+    tonemapStage->declareVariable("output_buffer")->set(tonemap_buffer);
+    tonemapStage->declareVariable("exposure")->setFloat(1.25f);
+    tonemapStage->declareVariable("gamma")->setFloat(2.2f);
+
+    denoiserStage->declareVariable("input_buffer")->set(tonemap_buffer);
+    denoiserStage->declareVariable("output_buffer")->set(denoised_buffer);
+    denoiserStage->declareVariable("blend")->setFloat(0);
+    // denoiserStage->declareVariable("input_albedo_buffer")->set(albedo_buffer);
+    // denoiserStage->declareVariable("input_normal_buffer")->set(normal_buffer);
+
+    // Create two command lists with two postprocessing topologies we want:
+    // One with the denoiser stage, one without. Note that both share the same
+    // tonemap stage.
+
+    commandListWithDenoiser = pOptixSensor->m_context->createCommandList();
+    commandListWithDenoiser->appendLaunch(pOptixSensor->m_launch_index, pOptixSensor->m_width, pOptixSensor->m_height);
+    commandListWithDenoiser->appendPostprocessingStage(tonemapStage, pOptixSensor->m_width, pOptixSensor->m_height);
+    commandListWithDenoiser->appendPostprocessingStage(denoiserStage, pOptixSensor->m_width, pOptixSensor->m_height);
+    commandListWithDenoiser->finalize();
+
     m_buffer = std::make_unique<SensorOptixBuffer>();
-    m_buffer->Buffer = buffer;
+    m_buffer->Buffer = denoised_buffer;
     m_buffer->Width = pOptixSensor->m_width;
     m_buffer->Height = pOptixSensor->m_height;
 

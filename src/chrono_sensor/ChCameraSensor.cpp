@@ -43,11 +43,13 @@ CH_SENSOR_API ChCameraSensor::ChCameraSensor(std::shared_ptr<chrono::ChBody> par
     switch (lens_model) {
         case SPHERICAL:
             m_program_string = {"camera", "fov_lens_camera"};
-            m_buffer_format = RT_FORMAT_UNSIGNED_BYTE4;
+            m_buffer_format = RT_FORMAT_FLOAT4;
+            // m_buffer_format = RT_FORMAT_UNSIGNED_BYTE4;
             break;
         default:  // same as PINHOLE
             m_program_string = {"camera", "pinhole_camera"};
-            m_buffer_format = RT_FORMAT_UNSIGNED_BYTE4;
+            m_buffer_format = RT_FORMAT_FLOAT4;
+            // m_buffer_format = RT_FORMAT_UNSIGNED_BYTE4;
             break;
     }
 

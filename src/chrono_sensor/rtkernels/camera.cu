@@ -48,8 +48,23 @@ rtDeclareVariable(float4, rot_1, , );      // rotation at time 0 (no rotation is
 rtTextureSampler<float4, 2> environment_map;
 rtDeclareVariable(int, has_environment_map, , );
 
-rtBuffer<uchar4, 2> output_buffer;  // byte version
+rtBuffer<float4, 2> output_buffer;  // byte version
+rtBuffer<float4, 2> normal_buffer;  // byte version
+rtBuffer<float4, 2> albedo_buffer;  // byte version
 rtBuffer<float> noise_buffer;
+
+// temporary using Optix Example !!!!
+static __host__ __device__ __inline__ unsigned int lcg(unsigned int& prev) {
+    const unsigned int LCG_A = 1664525u;
+    const unsigned int LCG_C = 1013904223u;
+    prev = (LCG_A * prev + LCG_C);
+    return prev & 0x00FFFFFF;
+}
+// Generate random float in [0, 1)
+static __host__ __device__ __inline__ float rnd(unsigned int& prev) {
+    return ((float)lcg(prev) / (float)0x01000000);
+}
+
 
 // This kernel is launched once for each pixel in the image
 RT_PROGRAM void pinhole_camera() {
@@ -81,14 +96,42 @@ RT_PROGRAM void pinhole_camera() {
 
     float3 ray_origin = lerp(origin_0, origin_1, rand);
     float3 ray_direction = normalize(forward - d.x * left * h_factor + d.y * up * h_factor);
+    
+    float3 accumColor = make_float3(0);
+    float attenuation = 1;
 
-    // create a ray based on the calculated parameters
-    optix::Ray ray(ray_origin, ray_direction, CAMERA_RAY_TYPE, scene_epsilon, max_scene_distance);
-    // set the ray pay load
+    // Initialze per-ray data
     PerRayData_camera prd_camera = make_camera_data(make_float3(0), 1.f, 2);
+    prd_camera.seed = seed;
+    prd_camera.depth = 2;
+    prd_camera.origin = ray_origin;
+    prd_camera.direction = ray_direction;
+    // Each iteration is a segment of the ray path.  The closest hit will
+    // return new segments to be traced here.
+    for (;;) {
+        prd_camera.color = make_float3(0);
+        optix::Ray ray(ray_origin, ray_direction, CAMERA_RAY_TYPE, scene_epsilon, max_scene_distance);
+        rtTrace(root_node, ray, current_time, prd_camera);
 
-    rtTrace(root_node, ray, current_time, prd_camera);
-    output_buffer[launch_index] = make_color(prd_camera.color);
+        // Russian roulette termination
+        if (prd_camera.depth >= 2) {
+            if (rnd(prd_camera.seed) >= attenuation)
+                break;
+            attenuation *= 0.5;
+        }
+
+        prd_camera.depth++;
+        accumColor += prd_camera.color * attenuation;
+
+        // Update ray data for the next path segment
+        ray_origin = prd_camera.origin;
+        ray_direction = prd_camera.direction;
+    }
+
+    output_buffer[launch_index] = make_float4(accumColor, 1);
+    normal_buffer[launch_index] = make_float4(prd_camera.normal, 1);
+    albedo_buffer[launch_index] = make_float4(prd_camera.albedo, 1);
+    // output_buffer[launch_index] = make_color(prd_camera.color);
 }
 
 // This kernel is launched once for each pixel in the image
@@ -150,5 +193,6 @@ RT_PROGRAM void fov_lens_camera() {
     rtTrace(root_node, ray, current_time, prd_camera, RT_RAY_FLAG_DISABLE_ANYHIT);
 
     // set the output buffer to be what is returned in the payload
-    output_buffer[launch_index] = make_color(prd_camera.color);
+    output_buffer[launch_index] = make_float4(prd_camera.color, 1);
+    // output_buffer[launch_index] = make_color(prd_camera.color);
 }

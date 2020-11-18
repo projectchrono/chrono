@@ -753,7 +753,8 @@ void ChOptixEngine::Initialize() {
     // initialize an optix context -> one for each render group
     m_context = Context::create();
 
-    rtContextSetExceptionEnabled(m_context->get(), RT_EXCEPTION_ALL, m_verbose);
+    rtContextSetExceptionEnabled(m_context->get(), RT_EXCEPTION_ALL, true);
+    m_context->setPrintEnabled(true);
 
     unsigned int n_devices;
     rtContextGetDeviceCount(m_context->get(), &n_devices);

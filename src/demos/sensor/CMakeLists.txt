@@ -12,6 +12,7 @@ set(CHRONO_LINK_FLAGS ${CH_LINKERFLAG_EXE})
 #List of demos that show the sensor framework
 SET(DEMOS
   demo_SEN_buildtest
+  demo_SEN_Bedroom
   demo_SEN_camera
   demo_SEN_JSON
   demo_SEN_lidar
@@ -27,7 +28,7 @@ IF(ENABLE_MODULE_IRRLICHT AND ENABLE_MODULE_VEHICLE)
       demo_SEN_HMMWV
       demo_SEN_Gator
       demo_SEN_rccar
-      demo_SEN_deformableSoil
+      # demo_SEN_deformableSoil
     )
     list(APPEND CHRONO_LIBRARIES "ChronoEngine_irrlicht")
     list(APPEND CHRONO_LIBRARIES "ChronoEngine_vehicle")
