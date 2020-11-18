@@ -26,6 +26,6 @@
 	"psi_T": 32,
 	"psi_L": 16,
 
-	"output_dir": "gran_shear",
+	"output_dir": "moving_boundary",
 	"write_mode": "csv"
 }

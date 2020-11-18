@@ -101,6 +101,11 @@ struct ChGranSphereData {
     /// Tracks the tangential history vector for a given contact pair. Only used in multistep friction
     float3* contact_history_map;
 
+    // track normal and tangential friction force, and rolling friction torque
+    float3* normal_contact_force;
+    float3* rolling_friction_torque;
+    float3* tangential_friction_force;
+
     /// Number of particles touching each subdomain
     unsigned int* SD_NumSpheresTouching;
     /// Offset of each subdomain in the big composite array
@@ -250,6 +255,9 @@ struct ChGranParams {
 
     /// Used as a safety check to determine whether a system has lost stability
     float max_safe_vel = (float)UINT_MAX;
+
+    // recording contact info
+    bool recording_contactInfo;
 };
 
 /// @} granular_physics
@@ -480,10 +488,29 @@ class CH_GRANULAR_API ChSystemGranularSMC {
 
     /// Set initial particle positions. MUST be called only once and MUST be called before initialize
     void setParticlePositions(const std::vector<float3>& points,
-                              const std::vector<float3>& vels = std::vector<float3>());
+                              const std::vector<float3>& vels = std::vector<float3>(),
+                              const std::vector<float3>& ang_vels = std::vector<float3>());
 
     /// Set particle fixity. MUST be called only once and MUST be called before initialize
     void setParticleFixed(const std::vector<bool>& fixed);
+
+    /// return particle position given sphere index
+    float3 getPosition(int nSphere);
+
+    // return absolute velocity
+    float getAbsVelocity(int nSphere);
+    
+    // return velocity
+    float3 getVelocity(int nSphere);
+
+    // get angular velocity of a particle
+    float3 getAngularVelocity(int nSphere);
+
+    // return number of sphere-to-sphere contacts
+    int getNumContacts();
+
+    // return position of BC plane
+    float3 Get_BC_Plane_Position(size_t plane_id);
 
     /// The offset function for the big domain walls
     GranPositionFunction BDOffsetFunction;
@@ -499,6 +526,9 @@ class CH_GRANULAR_API ChSystemGranularSMC {
         BC_offset_function_list.at(BD_WALL_ID_Z_TOP) = pos_fn;
     }
 
+    // set recording contact info to be true
+    void setRecordingContactInfo(bool record){gran_params->recording_contactInfo = record;};
+
     /// Set tuning psi factors for tuning the non-dimensionalization
     void setPsiFactors(unsigned int psi_T_new, unsigned int psi_L_new, float psi_R_new = 1.f) {
         psi_T = psi_T_new;
@@ -510,7 +540,8 @@ class CH_GRANULAR_API ChSystemGranularSMC {
     void checkSDCounts(std::string ofile, bool write_out, bool verbose) const;
     /// Writes out particle positions according to the system output mode
     void writeFile(std::string ofile) const;
-
+    /// Writes out contact info
+    void writeContactInfoFile(std::string ofile) const;
     /// Safety check velocity to ensure the simulation is still stable
     void setMaxSafeVelocity_SU(float max_vel) { gran_params->max_safe_vel = max_vel; }
 
@@ -635,6 +666,12 @@ class CH_GRANULAR_API ChSystemGranularSMC {
     std::vector<not_stupid_bool, cudallocator<not_stupid_bool>> contact_active_map;
     /// Tracks the tangential history vector for a given contact pair. Only used in multistep friction
     std::vector<float3, cudallocator<float3>> contact_history_map;
+    /// Tracks the normal contact force for a given contact pair
+    std::vector<float3, cudallocator<float3>> normal_contact_force;
+    /// Tracks the tangential contact force for a given contact pair
+    std::vector<float3, cudallocator<float3>> tangential_friction_force;
+    /// Tracks the rolling resistance for a given contact pair
+    std::vector<float3, cudallocator<float3>> rolling_friction_torque;
 
     /// X gravity in user units
     float X_accGrav;
@@ -790,6 +827,9 @@ class CH_GRANULAR_API ChSystemGranularSMC {
     /// User-provided sphere velocities in UU
     std::vector<float3> user_sphere_vel;
 
+    // User-provided sphere angular velocities in UU
+    std::vector<float3> user_sphere_ang_vel;
+    
     /// User-provided sphere fixity as bools
     std::vector<bool> user_sphere_fixed;
 

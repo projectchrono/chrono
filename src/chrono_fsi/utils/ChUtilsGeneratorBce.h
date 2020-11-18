@@ -60,7 +60,7 @@ void CreateBCE_On_Box(thrust::host_vector<Real4>& posRadBCE,
                       int face,
                       std::shared_ptr<SimParams> paramsH);
 
-void LoadBCE_fromFile(thrust::host_vector<Real4>& posRadBCE, std::string fileName, double scale = 1);
+void LoadBCE_fromFile(thrust::host_vector<Real4>& posRadBCE, std::string fileName, double scale = 1, double hsml = 1);
 
 void CreateBCE_On_shell(thrust::host_vector<Real4>& posRadBCE,
                         std::shared_ptr<SimParams> paramsH,

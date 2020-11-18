@@ -2,21 +2,61 @@ Change Log
 ==========
 
 - [Unreleased (development version)](#unreleased-development-branch)
-	- [Redesigned SCM deformable terrain](#changed-redesigned-scm-deformable-terrain)
-	- [Tracked vehicle support in PyChrono](#added-tracked-vehicle-support-in-pychrono)
-    - [Constitutive models for Euler beams](#changed-constitutive-models-for-euler-beams)
-    - [Constitutive models for IGA beams](#changed-constitutive-models-for-iga-beams)
-    - [Applied forces](#added-applied-forces)
-    - [Chrono::Vehicle simulation world frame](#added-chronovehicle-simulation-world-frame)
-    - [CASCADE module](#changed-cascade-module)
-	- [Collision shapes and contact materials](#changed-collision-shapes-and-contact-materials)
+  - [Enhancements to Chrono::FSI](#changed-enhancements-to-chronofsi)
+  - [New Chrono::Sensor module](#added-new-chronosensor-module)
+  - [Setting OpenMP number of threads](#changed-setting-openmp-number-of-threads)
+  - [Redesigned SCM deformable terrain](#changed-redesigned-scm-deformable-terrain)
+  - [Tracked vehicle support in PyChrono](#added-tracked-vehicle-support-in-pychrono)
+  - [Constitutive models for Euler beams](#changed-constitutive-models-for-euler-beams)
+  - [Constitutive models for IGA beams](#changed-constitutive-models-for-iga-beams)
+  - [Obtaining body applied forces](#added-obtaining-body-applied-forces)
+  - [Chrono::Vehicle simulation world frame](#added-chronovehicle-simulation-world-frame)
+  - [CASCADE module](#changed-cascade-module)
+  - [Collision shapes and contact materials](#changed-collision-shapes-and-contact-materials)
 - [Release 5.0.1](#release-501---2020-02-29)
 - [Release 5.0.0](#release-500---2020-02-24)
-	- [Eigen dense linear algebra](#changed-refactoring-of-dense-linear-algebra)
-	- [Eigen sparse matrices](#changed-eigen-sparse-matrices-and-updates-to-direct-sparse-linear-solvers)
+  - [Eigen dense linear algebra](#changed-refactoring-of-dense-linear-algebra)
+  - [Eigen sparse matrices](#changed-eigen-sparse-matrices-and-updates-to-direct-sparse-linear-solvers)
 - [Release 4.0.0](#release-400---2019-02-22)
 
 ## Unreleased (development branch)
+
+### [Changed] Enhancements to Chrono::FSI
+
+TODO
+
+### [Added] New Chrono::Sensor module
+
+TODO
+
+### [Changed] Setting OpenMP number of threads
+
+The mechanism for setting the number of OpenMP threads used in various parts of Chrono has been modified and unified. The API is common to Chrono and Chrono::Parallel; however, the number of OpenMP threads is set differently for the two classes of systems.
+
+- ChSystem: ChSystemNSC and ChSystemSMC
+
+  OpenMP (enabled by default) may be used in three different places. The number of threads used for each can be set separately and independently, using:
+  ```cpp
+      my_system.SetNumThreads(nthreads_chrono, nthreads_collision, nthreads_eigen);
+  ```
+  If passing a value of 0 for either `nthreads_collision` or `nthreads_eigen` these values are set to be equal to `nthreads_chrono`. 
+
+  - Currently, Chrono itself uses OpenMP for the parallel evaluation of internal forces and Jacobians for FEA and for parallel ray-casting in SCM deformable terrain. In both cases, the value `nthreads_chrono` is used in a **num_threads** clause for the OpenMP parallel for loops.
+  - The latest Bullet collision detection system embedded in Chrono is built by default with OpenMP support (this can be disabled during CMake configuration). The value `nthreads_collision` is used through **num_threads** clauses in all Bullet-internal OpenMP parallel for loops (note that this is a Chrono-specific modification to Bullet).
+  - Eigen uses OpenMP in a few algorithms. For Chrono use, the most relevant ones are the Eigen sparse direct solvers, SparseLU and SparseQR. These will employ the number of threads specified as `nthreads_eigen`.
+
+  By default, that is if `SetNumThreads` is not called, we use `nthreads_chrono=omp_get_num_procs()`, `nthreads_collision=1`, and `nthreads_eigen=1`.
+
+- ChSystemParallel: ChSystemParallelNSC and ChSystemParallelSMC
+
+  In Chrono::Parallel, the same number of OpenMP threads (default `omp_get_num_procs()`) is used for both the parallel collision detection algorithm and for the parallel iterative solvers.
+  In the call to `SetNumThreads`, the value `nthreads_collision` is ignored and automatically set to be equal to `nthreads_chrono`.  As such, typical user code will have
+  ```cpp
+      my_system.SetNumThreads(nthreads);
+  ```
+
+- The number of OpenMP threads used by the sparse direct solvers in Chrono::MKL (Pardiso) and Chrono::MUMPS are specified as an optional constructor argument.  By default, both solvers use a number of threads equal to the number of available processors (as returned by `omp_get_num_procs`).
+
 
 ### [Changed] Redesigned SCM deformable terrain
 
@@ -91,7 +131,7 @@ and `ChBeamSectionCosseratEasyCircular` that in a single shot create elastic and
 
 
 
-### [Added] Applied forces
+### [Added] Obtaining body applied forces
 
 The new functions `ChBody::GetAppliedForce` and `ChBody::GetAppliedTorque` return the body resultant applied force and torque, respectively.
 

@@ -80,7 +80,7 @@ class CH_MODELS_API Gator {
     void SetChassisVisualizationType(VisualizationType vis) { m_vehicle->SetChassisVisualizationType(vis); }
     void SetSuspensionVisualizationType(VisualizationType vis) { m_vehicle->SetSuspensionVisualizationType(vis); }
     void SetSteeringVisualizationType(VisualizationType vis) { m_vehicle->SetSteeringVisualizationType(vis); }
-    void SetWheelVisualizationType(VisualizationType vis) { m_vehicle->SetWheelVisualizationType(vis); }
+    void SetWheelVisualizationType(VisualizationType vis);
     void SetTireVisualizationType(VisualizationType vis);
 
     void Synchronize(double time, const ChDriver::Inputs& driver_inputs, const ChTerrain& terrain);

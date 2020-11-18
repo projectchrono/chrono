@@ -31,7 +31,7 @@
     "static_friction_coeffS2S": 0.5,
     "static_friction_coeffS2W": 0.5,
     
-    "rolling_mode" : "constant_torque",
+    "rolling_mode" : "schwartz",
     "rolling_friction_coeffS2S" : 0.5,
     "rolling_friction_coeffS2W" : 0.5,
 

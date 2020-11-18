@@ -146,19 +146,20 @@ inline __device__ unsigned int triangle_countTouchedSDs(unsigned int triangleID,
     }
 
     // Case 3: Triangle spans more than one dimension of spheresTouchingThisSD
-    // TODO check that this is safe to do
+    // TODO the halfSize is inflated a bit to allow detection of triangle facets lie right
+    // between SDs, is it a good practice? (we know that without it, the SD touching detection is bugged)
     float SDcenter[3];
     float SDhalfSizes[3];
     for (int i = L[0]; i <= U[0]; i++) {
         for (int j = L[1]; j <= U[1]; j++) {
             for (int k = L[2]; k <= U[2]; k++) {
-                SDhalfSizes[0] = gran_params->SD_size_X_SU / 2;
-                SDhalfSizes[1] = gran_params->SD_size_Y_SU / 2;
-                SDhalfSizes[2] = gran_params->SD_size_Z_SU / 2;
+                SDhalfSizes[0] = (gran_params->SD_size_X_SU + 1) / 2;
+                SDhalfSizes[1] = (gran_params->SD_size_Y_SU + 1) / 2;
+                SDhalfSizes[2] = (gran_params->SD_size_Z_SU + 1) / 2;
 
-                SDcenter[0] = gran_params->BD_frame_X + (i * 2 + 1) * SDhalfSizes[0];
-                SDcenter[1] = gran_params->BD_frame_Y + (j * 2 + 1) * SDhalfSizes[1];
-                SDcenter[2] = gran_params->BD_frame_Z + (k * 2 + 1) * SDhalfSizes[2];
+                SDcenter[0] = gran_params->BD_frame_X + (i * 2 + 1) * gran_params->SD_size_X_SU / 2;
+                SDcenter[1] = gran_params->BD_frame_Y + (j * 2 + 1) * gran_params->SD_size_Y_SU / 2;
+                SDcenter[2] = gran_params->BD_frame_Z + (k * 2 + 1) * gran_params->SD_size_Z_SU / 2;
 
                 if (check_TriangleBoxOverlap(SDcenter, SDhalfSizes, vA, vB, vC)) {
                     unsigned int currSD = SDTripletID(i, j, k, gran_params);
@@ -244,13 +245,13 @@ inline __device__ void triangle_figureOutTouchedSDs(unsigned int triangleID,
     for (int i = L[0]; i <= U[0]; i++) {
         for (int j = L[1]; j <= U[1]; j++) {
             for (int k = L[2]; k <= U[2]; k++) {
-                SDhalfSizes[0] = gran_params->SD_size_X_SU / 2;
-                SDhalfSizes[1] = gran_params->SD_size_Y_SU / 2;
-                SDhalfSizes[2] = gran_params->SD_size_Z_SU / 2;
+                SDhalfSizes[0] = (gran_params->SD_size_X_SU + 1) / 2;
+                SDhalfSizes[1] = (gran_params->SD_size_Y_SU + 1) / 2;
+                SDhalfSizes[2] = (gran_params->SD_size_Z_SU + 1) / 2;
 
-                SDcenter[0] = gran_params->BD_frame_X + (i * 2 + 1) * SDhalfSizes[0];
-                SDcenter[1] = gran_params->BD_frame_Y + (j * 2 + 1) * SDhalfSizes[1];
-                SDcenter[2] = gran_params->BD_frame_Z + (k * 2 + 1) * SDhalfSizes[2];
+                SDcenter[0] = gran_params->BD_frame_X + (i * 2 + 1) * gran_params->SD_size_X_SU / 2;
+                SDcenter[1] = gran_params->BD_frame_Y + (j * 2 + 1) * gran_params->SD_size_Y_SU / 2;
+                SDcenter[2] = gran_params->BD_frame_Z + (k * 2 + 1) * gran_params->SD_size_Z_SU / 2;
 
                 if (check_TriangleBoxOverlap(SDcenter, SDhalfSizes, vA, vB, vC)) {
                     unsigned int currSD = SDTripletID(i, j, k, gran_params);

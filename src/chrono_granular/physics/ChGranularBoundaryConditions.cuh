@@ -358,7 +358,9 @@ inline __device__ bool addBCForces_Plane(unsigned int sphID,
 
             ang_acc_from_BCs =
                 ang_acc_from_BCs + (Cross(-1 * contact_normal, tangent_force) / gran_params->sphereInertia_by_r);
+
             ang_acc_from_BCs = ang_acc_from_BCs + roll_acc;
+
             force_accum = force_accum + tangent_force;
         }
 
@@ -389,17 +391,19 @@ inline __device__ bool addBCForces_Zcyl_frictionless(const int64_t3& sphPos,
 
     // Radial vector from cylinder center to sphere center, along inward direction
     float3 delta_r = make_float3(cyl_params.center.x - sphPos.x, cyl_params.center.y - sphPos.y, 0.f);
-    dist = Length(delta_r);
+    float dist_delta_r = Length(delta_r);
 
     // directional normal
-    contact_normal = cyl_params.normal_sign * delta_r / dist;
+    contact_normal = cyl_params.normal_sign * delta_r / dist_delta_r;
 
     // get penetration into cylinder
-    float penetration = sphereRadius_SU - abs(cyl_params.radius - dist);
+    float penetration = sphereRadius_SU - abs(cyl_params.radius - dist_delta_r);
+    
     contact = (penetration > 0);
 
     // if penetrating and the material is inside (not above or below) the cone, add forces
     if (contact) {
+        dist = cyl_params.radius - dist_delta_r; 
         float force_model_multiplier = sqrt(penetration / sphereRadius_SU);
 
         // add spring term
@@ -468,6 +472,9 @@ inline __device__ bool addBCForces_Zcyl(unsigned int sphID,
         float penetration = sphereRadius_SU - dist;
         float projection = Dot(sphVel, contact_normal);
         float3 vrel_t = sphVel - contact_normal * projection + Cross(sphOmega, -1. * dist * contact_normal);
+
+
+
         float force_model_multiplier = sqrt(penetration / sphereRadius_SU);
 
         // add tangent forces

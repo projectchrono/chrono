@@ -170,7 +170,7 @@ class CH_PARALLEL_API ChSystemParallel : public ChSystem {
     ///                          See the Eigen documentation.
     ///                          If passing 0, then num_threads_eigen = num_threads_chrono.
     /// </pre>
-    /// By default, all values are set to 1 (single-threaded).
+    /// By default, num_threads_chrono is set to omp_get_num_procs() and num_threads_eigen is set to 1.
     virtual void SetNumThreads(int num_threads_chrono,
                                int num_threads_collision = 0,
                                int num_threads_eigen = 0) override;
