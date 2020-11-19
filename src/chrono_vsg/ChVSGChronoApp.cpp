@@ -34,6 +34,21 @@
 
 using namespace chrono::vsg3d;
 
+class AppKeyboardHandler : public vsg::Inherit<vsg::Visitor, AppKeyboardHandler> {
+  public:
+    AppKeyboardHandler(vsg::Viewer* viewer, ChVSGChronoApp* appPtr) : m_viewer(viewer), m_app_ptr(appPtr) {}
+    void apply(vsg::KeyPressEvent& keyPress) override {
+        if (keyPress.keyBase == 'i') {
+            chrono::GetLog() << "Key 'i' pressed " << ++_counter << " times.\n";
+        }
+    }
+
+  private:
+    size_t _counter;
+    vsg::ref_ptr<vsg::Viewer> m_viewer;
+    ChVSGChronoApp* m_app_ptr;
+};
+
 ChVSGChronoApp::ChVSGChronoApp(ChSystem* sys, std::string& windowTitle, size_t windowWidth, size_t windowHeight)
     : m_system(sys), m_build_graph(true) {
     // window parameters
@@ -45,6 +60,11 @@ ChVSGChronoApp::ChVSGChronoApp(ChSystem* sys, std::string& windowTitle, size_t w
     // set the scene graphs to defaults
     m_scenegraph = vsg::Group::create();
     m_scenegraphText = vsg::Group::create();
+
+    m_clearColor.R = 0.0;
+    m_clearColor.G = 0.0;
+    m_clearColor.B = 0.0;
+    m_clearColor.A = 1.0;
 
     // set the text font
     m_fontFilename = "fonts/times.vsgb";
@@ -88,6 +108,9 @@ bool ChVSGChronoApp::OpenWindow() {
 
     auto renderGraph = vsg::RenderGraph::create(m_window);
 
+    // set clear color
+    renderGraph->clearValues[0] = {m_clearColor.R, m_clearColor.G, m_clearColor.B, m_clearColor.A};
+
     // create view1
     m_mainCamera = createMainCamera(0, 0, width, height);
     auto view1 = vsg::View::create(m_mainCamera, m_scenegraph);
@@ -104,6 +127,9 @@ bool ChVSGChronoApp::OpenWindow() {
     m_textCamera = createTextCamera(0, 0, width, height);
     auto view2 = vsg::View::create(m_textCamera, m_scenegraphText);
     renderGraph->addChild(view2);
+
+    // special key for application control
+    m_viewer->addEventHandler(AppKeyboardHandler::create(m_viewer, this));
 
     // add close handler to respond the close window button and pressing escape
     m_viewer->addEventHandler(vsg::CloseHandler::create(m_viewer));
@@ -137,7 +163,7 @@ vsg::ref_ptr<vsg::Camera> ChVSGChronoApp::createMainCamera(int32_t x, int32_t y,
     double nearFarRatio = 0.001;
 
     // set up the camera
-    auto lookAt = vsg::LookAt::create(centre + vsg::dvec3(0.0, -radius * 3.5, 0.0), centre, vsg::dvec3(0.0, 0.0, 1.0));
+    auto lookAt = vsg::LookAt::create(centre + vsg::dvec3(0.0, -radius * 3.5, 20.0), centre, vsg::dvec3(0.0, 0.0, 1.0));
 
     auto perspective = vsg::Perspective::create(30.0, static_cast<double>(width) / static_cast<double>(height),
                                                 nearFarRatio * radius, radius * 4.5);

@@ -55,6 +55,8 @@ class CH_VSG_API ChVSGChronoApp {
 
     ChSystem* m_system;
 
+    ChColor m_clearColor;
+
     vsg::ref_ptr<vsg::WindowTraits> m_windowTraits;
 
     vsg::ref_ptr<vsg::Viewer> m_viewer;
