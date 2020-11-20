@@ -16,7 +16,7 @@
 #include "chrono/core/ChMathematics.h"
 
 #include "chrono/solver/ChIterativeSolverLS.h"
-
+#include "chrono/core/ChSparsityPatternLearner.h"
 
 namespace chrono {
 
@@ -36,9 +36,22 @@ ChSolverADMM::ChSolverADMM() :
     stepadjust_type(AdmmStepType::BALANCED_FAST),
     tol_prim(1e-6),
     tol_dual(1e-6)
-{}
+{
+    LS_solver = chrono_types::make_shared<ChSolverSparseQR>();
+}
+
+ChSolverADMM::ChSolverADMM(std::shared_ptr<ChDirectSolverLS> my_LS_engine) : 
+    ChSolverADMM()
+{ 
+    this->LS_solver = my_LS_engine;
+}
+
 
 double ChSolverADMM::Solve(ChSystemDescriptor& sysd) {
+
+    ChTimer<> m_timer_convert;
+    ChTimer<> m_timer_factorize;
+    ChTimer<> m_timer_solve;
 
     double rho_i = this->rho;
 
@@ -55,29 +68,29 @@ double ChSolverADMM::Solve(ChSystemDescriptor& sysd) {
 
         ChSparseMatrix H(nv, nv);
         ChVectorDynamic<> k(nv);
-        sysd.ConvertToMatrixForm(0, &H, 0, &k, 0, 0, 0);
-        H.makeCompressed();
+
+
+        m_timer_convert.start();
+
+        //sysd.ConvertToMatrixForm(0, &LS_solver->A(), 0, &LS_solver->b(), 0, 0, 0);
+        // much faster to fill brand new sparse matrices??!!
+
+        ChSparsityPatternLearner sparsity_pattern(nv, nv);
+        sysd.ConvertToMatrixForm(&sparsity_pattern, 0); 
+        sparsity_pattern.Apply(H);
+        sysd.ConvertToMatrixForm(&H,&k);  
+        LS_solver->A() = H; 
+        LS_solver->b() = k; 
+
+        m_timer_convert.stop();
+        if (this->verbose) GetLog() << " Time for ConvertToMatrixForm: << " << m_timer_convert.GetTimeSecondsIntermediate() << "s\n";
 
         // v = H\k
-        m_engine.analyzePattern(H); 
-        m_engine.compute(H);
-        v = m_engine.solve(k);  
-        /*
-        switch (m_engine.info()) {
-            case Eigen::Success:
-                GetLog() << "computation was successful\n";
-                break;
-            case Eigen::NumericalIssue:
-                GetLog() << "LU factorization reported a problem, zero diagonal for instance\n";
-                break;
-            case Eigen::InvalidInput:
-                GetLog() << "inputs are invalid, or the algorithm has been improperly called\n";
-                break;
-            default:
-                break;
-        }
-        */
-        sysd.FromVectorToVariables(v);
+        LS_solver->SetupCurrent();
+        LS_solver->SolveCurrent();
+
+        //v = LS_solver->x();
+        sysd.FromVectorToVariables(LS_solver->x());
 
         return 0;
     }
@@ -88,8 +101,8 @@ double ChSolverADMM::Solve(ChSystemDescriptor& sysd) {
     ChVectorDynamic<> b(nc);
 
     ChSparseMatrix    A(nv+nc,nv+nc);
-    ChVectorDynamic<> C(nv+nc);
-    ChVectorDynamic<> X(nv+nc);
+    ChVectorDynamic<> B(nv+nc);
+    //ChVectorDynamic<> X(nv+nc);
 
 
     ChVectorDynamic<> l(nc);
@@ -104,7 +117,6 @@ double ChSolverADMM::Solve(ChSystemDescriptor& sysd) {
     sysd.ConvertToMatrixForm(&Cq, 0, &E, &k, &b, 0);
     Cq.makeCompressed();
     E.makeCompressed();
-
 
     if (!this->m_warm_start) {
         l.setZero();
@@ -166,7 +178,7 @@ double ChSolverADMM::Solve(ChSystemDescriptor& sysd) {
         int d_i = 0;
         for (unsigned int ic = 0; ic < mconstraints.size(); ic++)
             if (mconstraints[ic]->IsActive()) {
-                S(d_i, 0) = sqrt(mconstraints[ic]->Get_g_i());
+                S(d_i, 0) = sqrt(mconstraints[ic]->Get_g_i());  // square root of diagonal of N, just mass matrices considered, no stiffness matrices anyway
                 ++d_i;
             }
         // TODO: scale Cq, E, b
@@ -177,9 +189,7 @@ double ChSolverADMM::Solve(ChSystemDescriptor& sysd) {
     }
     else {
         S.setConstant(1);
-    }
-
-    
+    }  
 
     // vsigma = ones(nconstr,1)*sigma;
     ChVectorDynamic<> vsigma(nc); // not needed
@@ -199,17 +209,38 @@ double ChSolverADMM::Solve(ChSystemDescriptor& sysd) {
             s_c++;
         }
     }
-
+ 
     // FACTORIZATION
     //
     // A = [M, Cq'; Cq, -diag(vsigma+vrho) + E ];
 
-    sysd.ConvertToMatrixForm(&A,&C);  // A = [M, Cq'; Cq, E ];
+    
+    m_timer_convert.start();
+
+    LS_solver->A().resize(nv + nc, nv + nc); // otherwise conservativeResize in ConvertToMatrixForm() causes error
+
+    //sysd.ConvertToMatrixForm(&LS_solver->A(),&LS_solver->b());  // A = [M, Cq'; Cq, E ];
+    // much faster to fill brand new sparse matrices??!!
+    ChSparsityPatternLearner sparsity_pattern(nv + nc, nv + nc);
+    sysd.ConvertToMatrixForm(&sparsity_pattern, nullptr);
+    sparsity_pattern.Apply(A);
+
+    sysd.ConvertToMatrixForm(&A,&B);  // A = [M, Cq'; Cq, E ]; 
+    LS_solver->A() = A; 
+    LS_solver->b() = B; 
+
     for (unsigned int i = 0; i < nc; ++i)
-        A.coeffRef(nv + i, nv + i) += -(sigma + vrho(i));  //  A = [M, Cq'; Cq, -diag(vsigma+vrho) + E ];
-    A.makeCompressed();
-    m_engine.analyzePattern(A); 
-    m_engine.compute(A); // LU decomposition  // LU decomposition ++++++++++++++++++++++++++++++++++++++
+        LS_solver->A().coeffRef(nv + i, nv + i) += -(sigma + vrho(i));  //  A = [M, Cq'; Cq, -diag(vsigma+vrho) + E ];
+
+    m_timer_convert.stop();
+    if (this->verbose) GetLog() << " Time for ConvertToMatrixForm: << " << m_timer_convert.GetTimeSecondsIntermediate() << "s\n";
+
+    m_timer_factorize.start();
+                
+    LS_solver->SetupCurrent();  // LU decomposition ++++++++++++++++++++++++++++++++++++++
+
+    m_timer_factorize.stop();
+    if (this->verbose) GetLog() << " Time for factorize : << " << m_timer_factorize.GetTimeSecondsIntermediate() << "s\n";
 
     /*
     res_story.r_prim=zeros(1,1);
@@ -230,31 +261,25 @@ double ChSolverADMM::Solve(ChSystemDescriptor& sysd) {
         y_old = y;
         //y_hat_old = y_hat;
 
-        // X
+        // X   (lambda)
 
         // SOLVE LINEAR SYSTEM HERE
         // ckkt = -bkkt + (vsigma+vrho).*z - y;
+        
         ChVectorDynamic<> ckkt = -b + (vsigma + vrho).cwiseProduct(z) - y;
-        C << k, ckkt;         // C = [k;ckkt];
-        X = m_engine.solve(C);    // X = dA\C;      // A* X = C  with X = [v, -l]     // LU forward/backsolve ++++++++++++++++++++++++++++++++++++++
-        l = -X.block(nv, 0, nc, 1);
-        v = X.block(0, 0, nv, 1);
+        LS_solver->b() << k, ckkt;         // B = [k;ckkt];
+        
+        m_timer_solve.start();
 
-        if (this->verbose)
-            switch (m_engine.info()) {
-                case Eigen::Success:
-                    //GetLog() << "iter= " << iter << ",  computation was successful\n";
-                    break;
-                case Eigen::NumericalIssue:
-                    GetLog() << " iter= " << iter << ", QR factorization reported a problem, zero diagonal for instance\n";
-                    break;
-                case Eigen::InvalidInput:
-                    GetLog() << " iter= " << iter << ", QR inputs are invalid, or the algorithm has been improperly called\n";
-                    break;
-                default:
-                    break;
-            }
+        LS_solver->SolveCurrent();                                                      // LU forward/backsolve ++++++++++++++++++++++++++++++++++++++
+        
+        m_timer_solve.stop();
+        if (this->verbose) GetLog() << " Time for solve : << " << m_timer_solve.GetTimeSecondsIntermediate() << "s\n";
 
+        // x = dA\B;      // A* x = B  with x = [v, -l]    
+        l = -LS_solver->x().block(nv, 0, nc, 1);
+        v =  LS_solver->x().block(0, 0, nv, 1);
+        
 
         // Z
 
@@ -393,6 +418,16 @@ double ChSolverADMM::Solve(ChSystemDescriptor& sysd) {
             }
 
             if ((rhofactor > this->stepadjust_threshold) || (rhofactor < 1.0 / this->stepadjust_threshold)) {
+
+                ChTimer<> m_timer_factorize;
+                m_timer_factorize.start();
+
+                // Avoid rebuilding all sparse matrix: 
+                // A) just remove old rho with -= :
+                for (unsigned int i = 0; i < nc; ++i)
+                    LS_solver->A().coeffRef(nv + i, nv + i) -= -(sigma + vrho(i));  
+
+                // Update rho
                 rho_i = rho_i * rhofactor;
 
                 // vrho(fric == -2) = rho_b; //  special step for bilateral joints
@@ -409,13 +444,26 @@ double ChSolverADMM::Solve(ChSystemDescriptor& sysd) {
                 // UPDATE FACTORIZATION
                 //
                 //  A = [M, Cq'; Cq, -diag(vsigma+vrho) + E ];
-
+                /*
                 sysd.ConvertToMatrixForm(&A,&C);  // A = [M, Cq'; Cq, E ];  .... 
                 for (unsigned int i = 0; i < nc; ++i)
                     A.coeffRef(nv + i, nv + i) += -(sigma + vrho(i)); // ... A = [M, Cq'; Cq, -diag(vsigma+vrho) + E ];
-                A.makeCompressed(); 
-                m_engine.analyzePattern(A); 
                 m_engine.compute(A); // LU decomposition ++++++++++++++++++++++++++++++++++++++
+                */
+                /*
+                LS_solver->A().resize(nv + nc, nv + nc); // otherwise conservativeResize in ConvertToMatrixForm() causes error
+                sysd.ConvertToMatrixForm(&LS_solver->A(),&LS_solver->b());  // A = [M, Cq'; Cq, E ];
+                for (unsigned int i = 0; i < nc; ++i)
+                    LS_solver->A().coeffRef(nv + i, nv + i) += -(sigma + vrho(i));  //  A = [M, Cq'; Cq, -diag(vsigma+vrho) + E ];
+                */
+                // B) add old rho with += :
+                for (unsigned int i = 0; i < nc; ++i)
+                    LS_solver->A().coeffRef(nv + i, nv + i) += -(sigma + vrho(i));  
+
+                LS_solver->SetupCurrent();  // LU decomposition ++++++++++++++++++++++++++++++++++++++
+
+                m_timer_factorize.stop();
+                if (this->verbose) GetLog() << " Time for re-factorize : << " << m_timer_factorize.GetTimeSecondsIntermediate() << "s\n";
             }
 
         } // end step adjust

@@ -16,6 +16,7 @@
 #define CHSOLVERADMM_H
 
 #include "chrono/solver/ChIterativeSolverVI.h"
+#include "chrono/solver/ChDirectSolverLS.h"
 
 namespace chrono {
 
@@ -28,7 +29,16 @@ namespace chrono {
 /// solver.
 class ChApi ChSolverADMM : public ChIterativeSolverVI {
   public:
+
+    /// Default constructor: uses the SparseQR direct solver from Eigine, slow and UNOPTIMAL.
+    /// Prefer the other constructor where you can pass the MKL direct solver.
     ChSolverADMM();
+
+    /// Constructor where you can pass a better direct solver than the 
+    /// default SparseQR solver. The custom direct solver will be
+    /// used in the factorization and solves in the inner loop.  
+    ChSolverADMM(std::shared_ptr<ChDirectSolverLS> my_LS_engine);
+
 
     ~ChSolverADMM() {}
 
@@ -130,7 +140,8 @@ class ChApi ChSolverADMM : public ChIterativeSolverVI {
     double tol_prim;
     double tol_dual;
 
-    Eigen::SparseQR<ChSparseMatrix, Eigen::COLAMDOrdering<int>> m_engine;  ///< Eigen SparseQR solver (do not use SparseLU: it is broken!)
+    std::shared_ptr<ChDirectSolverLS> LS_solver;
+    //Eigen::SparseQR<ChSparseMatrix, Eigen::COLAMDOrdering<int>> m_engine;  ///< Eigen SparseQR solver (do not use SparseLU: it is broken!)
 };
 
 /// @} chrono_solver
