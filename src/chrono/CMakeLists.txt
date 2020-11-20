@@ -136,6 +136,8 @@ set(ChronoEngine_physics_SOURCES
     physics/ChProximityContainerSPH.cpp
     physics/ChConveyor.cpp
     physics/ChAssembly.cpp
+	physics/PBD/ChSystemPBD.cpp
+	physics/PBD/ChPBDutils.cpp
     )
 
 set(ChronoEngine_physics_HEADERS
@@ -162,6 +164,9 @@ set(ChronoEngine_physics_HEADERS
     physics/ChSystemSMC.h
     physics/ChAssembly.h
     physics/ChInertiaUtils.h
+	physics/PBD/ChSystemPBD.h
+	physics/PBD/ChPBDutils.h
+	physics/PBD/ChContactContainerPBD.h
     )
 
 source_group(physics FILES
