@@ -32,7 +32,7 @@ namespace chrono {
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChSystemSMC)
 
-ChSystemSMC::ChSystemSMC(bool use_material_properties, unsigned int max_objects, double scene_size)
+ChSystemSMC::ChSystemSMC(bool use_material_properties)
     : ChSystem(),
       m_use_mat_props(use_material_properties),
       m_contact_model(Hertz),
@@ -43,7 +43,7 @@ ChSystemSMC::ChSystemSMC(bool use_material_properties, unsigned int max_objects,
 
     SetSolverType(ChSolver::Type::PSOR);
 
-    collision_system = chrono_types::make_shared<collision::ChCollisionSystemBullet>(max_objects, scene_size);
+    collision_system = chrono_types::make_shared<collision::ChCollisionSystemBullet>();
 
     // For default SMC there is no need to create contacts 'in advance'
     // when models are closer than the safety envelope, so set default envelope to 0

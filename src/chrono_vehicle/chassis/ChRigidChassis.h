@@ -177,10 +177,10 @@ class CH_VEHICLE_API ChRigidChassisRear : public ChChassisRear {
     /// the chassis with all other collision shapes in the simulation.
     virtual void SetCollide(bool state) override { m_body->SetCollide(state); }
 
-    /// Initialize the rear chassis at the specified position
-    /// (relative to and expressed in the reference frame of the front chassis).
+    /// Initialize the rear chassis relative to the specified front chassis.
+    /// The orientation is set to be the same as that of the front chassis while the location is based on the connector
+    /// position on the front and rear chassis.
     virtual void Initialize(std::shared_ptr<ChChassis> chassis,  ///< [in] front chassis
-                            const ChVector<>& location,          ///< [in] location relative to front chassis frame
                             int collision_family = 0             ///< [in] chassis collision family
                             ) override;
 

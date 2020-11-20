@@ -34,7 +34,7 @@
 #include "chrono/fea/ChContactSurfaceNodeCloud.h"
 #include "chrono_irrlicht/ChIrrApp.h"
 
-#include "chrono_mkl/ChSolverMKL.h"
+#include "chrono_pardisomkl/ChSolverPardisoMKL.h"
 
 using namespace chrono;
 using namespace chrono::fea;
@@ -237,7 +237,7 @@ int main(int argc, char* argv[]) {
     mgear_motorLOW->Initialize(gearLOW, mground, ChFrame<>(gear_centerLOW));
     my_system.Add(mgear_motorLOW);
 
-    auto mgear_speedLOW = chrono_types::make_shared<ChFunction_Const>(-0.2); // [rad/s]
+    auto mgear_speedLOW = chrono_types::make_shared<ChFunction_Const>(-0.18); // [rad/s]
     mgear_motorLOW->SetSpeedFunction(mgear_speedLOW);
 
     auto gearHI =  CreateLobedGear (gear_centerHI, lobe_copies, lobe_width, lobe_primitive_rad, 
@@ -248,7 +248,7 @@ int main(int argc, char* argv[]) {
     mgear_motorHI->Initialize(gearHI, mground, ChFrame<>(gear_centerHI));
     my_system.Add(mgear_motorHI);
 
-    auto mgear_speedHI = chrono_types::make_shared<ChFunction_Const>( 0.2); // [rad/s]
+    auto mgear_speedHI = chrono_types::make_shared<ChFunction_Const>( 0.18); // [rad/s]
     mgear_motorHI->SetSpeedFunction(mgear_speedHI);
 
 
@@ -279,7 +279,7 @@ int main(int argc, char* argv[]) {
 
     // SIMULATION LOOP
 
-    auto mkl_solver = chrono_types::make_shared<ChSolverMKL>();
+    auto mkl_solver = chrono_types::make_shared<ChSolverPardisoMKL>();
     mkl_solver->LockSparsityPattern(true);
     my_system.SetSolver(mkl_solver);
             

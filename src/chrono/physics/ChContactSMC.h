@@ -154,6 +154,8 @@ class ChContactSMC : public ChContactTuple<Ta, Tb> {
         double eps = std::numeric_limits<double>::epsilon();
 
         switch (contact_model) {
+            case ChSystemSMC::Flores:
+                // Currently not implemented.  Fall through to Hooke.
             case ChSystemSMC::Hooke:
                 if (use_mat_props) {
                     double tmp_k = (16.0 / 15) * std::sqrt(this->eff_radius) * mat.E_eff;
@@ -219,6 +221,8 @@ class ChContactSMC : public ChContactTuple<Ta, Tb> {
                         forceN = 0;
                     double forceT = mat.mu_eff * std::tanh(5.0 * relvel_t_mag) * forceN;
                     switch (adhesion_model) {
+                        case ChSystemSMC::Perko:
+                            // Currently not implemented.  Fall through to Constant.
                         case ChSystemSMC::Constant:
                             forceN -= mat.adhesion_eff;
                             break;

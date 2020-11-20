@@ -51,7 +51,9 @@ class CH_MODELS_API HMMWV_RigidTire : public ChRigidTire {
     static const double m_mass;
     static const ChVector<> m_inertia;
 
-    static const std::string m_meshFile;
+    static const std::string m_meshFile_left;
+    static const std::string m_meshFile_right;
+
     std::shared_ptr<ChTriangleMeshShape> m_trimesh_shape;
 };
 

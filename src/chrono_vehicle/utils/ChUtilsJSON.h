@@ -69,6 +69,12 @@ CH_VEHICLE_API MaterialInfo ReadMaterialInfoJSON(const rapidjson::Value& mat);
 /// Load and return a chassis subsystem from the specified JSON file.
 CH_VEHICLE_API std::shared_ptr<ChChassis> ReadChassisJSON(const std::string& filename);
 
+/// Load and return a rear chassis subsystem from the specified JSON file.
+CH_VEHICLE_API std::shared_ptr<ChChassisRear> ReadChassisRearJSON(const std::string& filename);
+
+/// Load and return a chassis connector subsystem from the specified JSON file.
+CH_VEHICLE_API std::shared_ptr<ChChassisConnector> ReadChassisConnectorJSON(const std::string& filename);
+
 /// Load and return a powertrain subsystem from the specified JSON file.
 CH_VEHICLE_API std::shared_ptr<ChPowertrain> ReadPowertrainJSON(const std::string& filename);
 

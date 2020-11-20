@@ -11,7 +11,7 @@ Tutorials {#tutorial_root}
 As such, user code should **always** use `chrono_types::make_shared` as in
 ~~~{.cpp}
 auto my_body = chrono_types::make_shared<ChBody>();
-~~~ 
+~~~
 </li>
 </ul>
 </div>
@@ -31,7 +31,7 @@ auto my_body = chrono_types::make_shared<ChBody>();
     Examples of FEA in Chrono.
 
 -   @subpage tutorial_table_of_content_chrono_vehicle
- 
+
     Examples of modeling and simulating ground vehicles in Chrono.
 
 -   @subpage tutorial_table_of_content_chrono_postprocess
@@ -74,12 +74,20 @@ auto my_body = chrono_types::make_shared<ChBody>();
 
     Examples of granular dynamics problems (GPU).
 
+-   @subpage tutorial_table_of_content_chrono_sensor
+
+    Examples of modeling and simulating sensor for robots and autonomous vehicles in Chrono.
+
+-   @subpage tutorial_table_of_content_chrono_synchrono
+
+    Examples of MPI-parallelized simulation of autonomous vehicles and robots.
+
 
 ## Other tools
 
 
 -   @subpage tutorial_table_of_content_pychrono
- 
+
     Learn how to use [PyChrono](@ref pychrono_introduction)
 
 -   @subpage tutorial_table_of_content_chrono_solidworks
@@ -99,4 +107,3 @@ auto my_body = chrono_types::make_shared<ChBody>();
 -    @subpage tutorial_table_of_content_documentation
 
      Guidelines on writing technical documentation for Chrono (for developers of new modules/features).
-

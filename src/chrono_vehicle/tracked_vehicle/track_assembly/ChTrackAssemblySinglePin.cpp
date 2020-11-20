@@ -29,6 +29,9 @@
 namespace chrono {
 namespace vehicle {
 
+ChTrackAssemblySinglePin::ChTrackAssemblySinglePin(const std::string& name, VehicleSide side)
+    : ChTrackAssemblySegmented(name, side) {}
+
 // -----------------------------------------------------------------------------
 // Assemble track shoes over wheels.
 //

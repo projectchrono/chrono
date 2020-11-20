@@ -1,0 +1,36 @@
+{
+    "Name": "M113",
+    "Type": "Vehicle",
+    "Template": "TrackedVehicle",
+  
+    "Vehicle": {
+      "Input File": "M113/vehicle/M113_Vehicle_SinglePin.json",
+      "Chassis Visualization Type": "Primitives",
+      "Track Shoe Visualization Type": "Mesh",
+      "Sprocket Visualization Type": "Mesh",
+      "Idler Visualization Type": "Mesh",
+      "Road Wheel Visualization Type": "Mesh",
+      "Road Wheel Assembly Visualization Type": "None"
+    },
+  
+    "Powertrain": {
+      "Input File": "M113/powertrain/M113_SimplePowertrain.json"
+    },
+  
+    "Zombie": {
+      "Chassis Visualization File":  "M113/Chassis.obj",
+      "Track Shoe Visualization File": "M113/TrackShoe.obj",
+      "Left Sprocket Visualization File": "M113/Sprocket_L.obj",
+      "Right Sprocket Visualization File": "M113/Sprocket_R.obj",
+      "Left Idler Visualization File": "M113/Idler_L.obj",
+      "Right Idler Visualization File": "M113/Idler_R.obj",
+      "Left Road Wheel Visualization File": "M113/Roller_L.obj",
+      "Right Road Wheel Visualization File": "M113/Roller_R.obj",
+
+      "Number Of Track Shoes": 127,
+      "Number Of Sprockets": 2,
+      "Number Of Idlers": 2,
+      "Number Of Road Wheels": 10
+    }
+  }
+  

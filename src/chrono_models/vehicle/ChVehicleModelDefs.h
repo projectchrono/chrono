@@ -53,11 +53,17 @@ namespace m113 {}
 /// Namespace for the MAN truck models
 namespace man {}
 
+/// Namespace for the rccar model
+namespace rccar {}
+
 /// Namespace for the Gator vehicle
 namespace gator {}
 
 /// Namespace for the FMTV vehicles
 namespace fmtv {}
+
+/// namespace for the RCCar vehicle
+namespace rccar {}
 
 /// @} vehicle_models
 

@@ -9,9 +9,8 @@ REM set env variables needed by MKL
 set MKL_INTERFACE_LAYER = LP64
 set MKL_THREADING_LAYER = INTEL
 set CONFIGURATION=Release
-REM Use Ninja (conda build could fail to interface directly with VS). 
 REM Configure step
-cmake -G "Ninja" ^
+cmake -G "Visual Studio 16 2019" ^
  -DCMAKE_INSTALL_PREFIX="%LIBRARY_PREFIX%" ^
  -DCMAKE_PREFIX_PATH="%LIBRARY_PREFIX%" ^
  -DCMAKE_SYSTEM_PREFIX_PATH="%LIBRARY_PREFIX%" ^
@@ -19,6 +18,8 @@ cmake -G "Ninja" ^
  -DPYTHON_EXECUTABLE:FILEPATH="%PYTHON%" ^
  -DPYTHON_INCLUDE_DIR:PATH="%PREFIX%"/include ^
  -DPYTHON_LIBRARY:FILEPATH="%PREFIX%"/libs/python%MY_PY_VER%.lib ^
+ -DSWIG_DIR="%CONDA_INSTALL_LOCN%"\pkgs\swig-4.0.2-0\Library\bin\Lib\ ^
+ -DSWIG_EXECUTABLE="%CONDA_INSTALL_LOCN%"\pkgs\swig-4.0.2-0\Library\bin\swig.exe ^
  -DCMAKE_BUILD_TYPE="%CONFIGURATION%" ^
  -DENABLE_MODULE_IRRLICHT=ON ^
  -DENABLE_MODULE_POSTPROCESS=ON ^

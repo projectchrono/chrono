@@ -224,7 +224,7 @@ class settings_container {
     settings_container() {
         min_threads = 1;
 #ifdef _OPENMP
-        max_threads = omp_get_max_threads();
+        max_threads = omp_get_num_procs();
 #else
         max_threads = 1;
 #endif

@@ -216,6 +216,82 @@ void ChElasticityCosseratAdvanced::ComputeStiffnessMatrix(ChMatrixNM<double, 6, 
     K(5, 5) = a33;
 }
 
+
+// -----------------------------------------------------------------------------
+
+void ChElasticityCosseratAdvancedGeneric::ComputeStress(ChVector<>& stress_n,
+                                                 ChVector<>& stress_m,
+                                                 const ChVector<>& strain_n,
+                                                 const ChVector<>& strain_m) {
+    double cos_alpha = cos(alpha);
+    double sin_alpha = sin(alpha);
+    double a11 = this->Ax;
+    double a22 = this->Byy * pow(cos_alpha, 2.) + this->Bzz * pow(sin_alpha, 2.) + Cz * Cz * this->Ax;
+    double a33 = this->Bzz * pow(cos_alpha, 2.) + this->Byy * pow(sin_alpha, 2.) + Cy * Cy * this->Ax;
+    double a12 = Cz * this->Ax;
+    double a13 = -Cy * this->Ax;
+    double a23 = (this->Byy - this->Bzz) * cos_alpha * sin_alpha -  Cy * Cz * this->Ax;
+    stress_n.x() = a11 * strain_n.x() + a12 * strain_m.y() + a13 * strain_m.z();
+    stress_m.y() = a12 * strain_n.x() + a22 * strain_m.y() + a23 * strain_m.z();
+    stress_m.z() = a13 * strain_n.x() + a23 * strain_m.y() + a33 * strain_m.z();
+    double cos_beta = cos(beta);
+    double sin_beta = sin(beta);
+    double KsyGA = this->Hyy; 
+    double KszGA = this->Hzz;
+    double s11 = KsyGA * pow(cos_beta, 2.) + KszGA * pow(sin_beta, 2.);
+    double s22 = KsyGA * pow(sin_beta, 2.) + KszGA * pow(cos_beta, 2.);  // ..+s_loc_12*sin(beta)*cos(beta);
+    double s33 = this->Txx + Sz * Sz * KsyGA + Sy * Sy * KszGA;
+    double s12 = (KszGA - KsyGA) * sin_beta * cos_beta;
+    double s13 = Sy * KszGA * sin_beta - Sz * KsyGA * cos_beta;
+    double s23 = Sy * KszGA * cos_beta + Sz * KsyGA * sin_beta;
+    stress_n.y() = s11 * strain_n.y() + s12 * strain_n.z() + s13 * strain_m.x();
+    stress_n.z() = s12 * strain_n.y() + s22 * strain_n.z() + s23 * strain_m.x();
+    stress_m.x() = s13 * strain_n.y() + s23 * strain_n.z() + s33 * strain_m.x();
+}
+
+void ChElasticityCosseratAdvancedGeneric::ComputeStiffnessMatrix(ChMatrixNM<double, 6, 6>& K,
+                                                          const ChVector<>& strain_n,
+                                                          const ChVector<>& strain_m) {
+    K.setZero(6, 6);
+    double cos_alpha = cos(alpha);
+    double sin_alpha = sin(alpha);
+    double a11 = this->Ax;
+    double a22 = this->Byy * pow(cos_alpha, 2.) + this->Bzz * pow(sin_alpha, 2.) + Cz * Cz * this->Ax;
+    double a33 = this->Bzz * pow(cos_alpha, 2.) + this->Byy * pow(sin_alpha, 2.) + Cy * Cy * this->Ax;
+    double a12 = Cz * this->Ax;
+    double a13 = -Cy * this->Ax;
+    double a23 = (this->Byy - this->Bzz) * cos_alpha * sin_alpha -   Cy * Cz * this->Ax;
+    double cos_beta = cos(beta);
+    double sin_beta = sin(beta);
+    double KsyGA = this->Hyy;
+    double KszGA = this->Hzz;
+    double s11 = KsyGA * pow(cos_beta, 2.) + KszGA * pow(sin_beta, 2.);
+    double s22 = KsyGA * pow(sin_beta, 2.) + KszGA * pow(cos_beta, 2.);  // ..+s_loc_12*sin(beta)*cos(beta);
+    double s33 = this->Txx + Sz * Sz * KsyGA + Sy * Sy * KszGA;
+    double s12 = (KszGA - KsyGA) * sin_beta * cos_beta;
+    double s13 = Sy * KszGA * sin_beta - Sz * KsyGA * cos_beta;
+    double s23 = Sy * KszGA * cos_beta + Sz * KsyGA * sin_beta;
+
+    K(0, 0) = a11;
+    K(0, 4) = a12;
+    K(0, 5) = a13;
+    K(1, 1) = s11;
+    K(1, 2) = s12;
+    K(1, 3) = s13;
+    K(2, 1) = s12;
+    K(2, 2) = s22;
+    K(2, 3) = s23;
+    K(3, 1) = s13;
+    K(3, 2) = s23;
+    K(3, 3) = s33;
+    K(4, 0) = a12;
+    K(4, 4) = a22;
+    K(4, 5) = a23;
+    K(5, 0) = a13;
+    K(5, 4) = a23;
+    K(5, 5) = a33;
+}
+
 // -----------------------------------------------------------------------------
 
 void ChElasticityCosseratMesh::SetAsRectangularSection(double width_y, double width_z) {

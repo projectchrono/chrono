@@ -208,6 +208,11 @@ void ChCollisionSystemParallel::Remove(ChCollisionModel* model) {
 #undef ERASE_MACRO
 #undef ERASE_MACRO_LEN
 
+void ChCollisionSystemParallel::SetNumThreads(int nthreads) {
+    // Nothing to do here.  
+    // The parallel collision system uses the number of threads set by ChSystemParallel.
+}
+
 void ChCollisionSystemParallel::Run() {
     LOG(INFO) << "ChCollisionSystemParallel::Run()";
     if (data_manager->settings.collision.use_aabb_active) {
@@ -283,7 +288,7 @@ void ChCollisionSystemParallel::ReportContacts(ChContactContainer* mcontactconta
 
     auto& bids = data_manager->host_data.bids_rigid_rigid;  // global IDs of bodies in contact
     auto& abody = data_manager->host_data.active_rigid;     // flags for active bodies
-    auto& sids = data_manager->host_data.contact_pairs;     // global IDs of shapes in contact
+    auto& sids = data_manager->host_data.contact_shapeIDs;  // global IDs of shapes in contact
     auto& sindex = data_manager->shape_data.local_rigid;    // collision model indexes of shapes in contact
 
     // Loop over all current contacts, create the composite material, and load material properties in the data manager
@@ -328,10 +333,10 @@ void ChCollisionSystemParallel::GetOverlappingAABB(custom_vector<char>& active_i
 
 std::vector<vec2> ChCollisionSystemParallel::GetOverlappingPairs() {
     std::vector<vec2> pairs;
-    pairs.resize(data_manager->host_data.contact_pairs.size());
-    for (int i = 0; i < data_manager->host_data.contact_pairs.size(); i++) {
-        vec2 pair = I2(int(data_manager->host_data.contact_pairs[i] >> 32),
-                       int(data_manager->host_data.contact_pairs[i] & 0xffffffff));
+    pairs.resize(data_manager->host_data.pair_shapeIDs.size());
+    for (int i = 0; i < data_manager->host_data.pair_shapeIDs.size(); i++) {
+        vec2 pair = I2(int(data_manager->host_data.pair_shapeIDs[i] >> 32),
+                       int(data_manager->host_data.pair_shapeIDs[i] & 0xffffffff));
         pairs[i] = pair;
     }
     return pairs;

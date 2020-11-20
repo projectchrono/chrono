@@ -221,6 +221,9 @@ int main(int argc, char* argv[]) {
         msmallbox->GetBoxGeometry().Size = ChVector<>(0.1, 0.1, 0.01);
         mlevelC->AddAsset(msmallbox);
 
+        auto boxcol = chrono_types::make_shared<ChColorAsset>(j * 0.05f, 1 - j * 0.05f, 0.0f);
+        mlevelC->AddAsset(boxcol);
+
         ChQuaternion<> mrot;
         mrot.Q_from_AngAxis(j * 21 * CH_C_DEG_TO_RAD, ChVector<>(0, 1, 0));
         mlevelC->GetFrame().SetRot(mrot);

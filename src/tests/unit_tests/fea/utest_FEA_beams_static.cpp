@@ -24,8 +24,8 @@
 #include "chrono/fea/ChBuilderBeam.h"
 #include "chrono/fea/ChMesh.h"
 
-#ifdef CHRONO_MKL
-#include "chrono_mkl/ChSolverMKL.h"
+#ifdef CHRONO_PARDISO_MKL
+#include "chrono_pardisomkl/ChSolverPardisoMKL.h"
 #endif
 
 using namespace chrono;
@@ -199,7 +199,7 @@ double EULER_test_offset(ChSystem& sys, double tip_load_y, int nelements) {
     double tip_axial = 2000; // add also axial tension on X: just to test if this is not canceled in Y deflection
     double tip_load_z = 4; // add also lateral bending on Z: just to test if this is not canceled in Y deflection
 
-    auto material = chrono_types::make_shared<ChBeamSectionEulerGeneric>(
+    auto material = chrono_types::make_shared<ChBeamSectionEulerAdvancedGeneric>(
 		    E_mod * beam_wy*beam_wz,      ///< axial rigidity
             E_mod * nu_rat * ( (1./12)* beam_wz * pow(beam_wy,3) + (1./12)* beam_wz * pow(beam_wy,3)), ///< torsion rigidity
             E_mod * (1./12)* beam_wy * pow(beam_wz,3),     ///< bending regidity about yy 
@@ -310,6 +310,75 @@ double IGA_test_offset(ChSystem& sys, double tip_load_y, int nsections, int orde
 }
 
 
+// Same IGA beam as in IGA_test_offset, but this time using axial/bending/shear/torsion 
+// rigidities instead of E,G, A, Iyy, Izz, J
+double IGA_test_offset_rigidity(ChSystem& sys, double tip_load_y, int nsections, int order) {
+    // Clear previous demo, if any:
+    sys.Clear();
+    sys.SetChTime(0);
+
+    // Create a mesh, that is a container for groups of elements and their referenced nodes.
+    // Remember to add it to the system.
+    auto mesh = chrono_types::make_shared<ChMesh>();
+    mesh->SetAutomaticGravity(false);
+    sys.Add(mesh);
+
+    double Cy = 0.15;
+    double Cz = 0.25;
+    double Sy = 0.1;
+    double Sz = 0.2;
+    double tip_axial = 2000; // add also axial tension on X: just to test if this is not canceled in Y deflection
+    double tip_load_z = 4; // add also lateral bending on Z: just to test if this is not canceled in Y deflection
+
+    auto section_inertia = chrono_types::make_shared<ChInertiaCosseratSimple>(rho, beam_wy*beam_wz, rho * (1./12)* beam_wz * pow(beam_wy,3), rho * (1./12)* beam_wz * pow(beam_wy,3)); // not important
+
+    auto section_elasticity = chrono_types::make_shared<ChElasticityCosseratAdvancedGeneric>(
+        E_mod * beam_wy*beam_wz,   // Axial rigidity
+        E_mod * nu_rat * ( (1./12)* beam_wz * pow(beam_wy,3) + (1./12)* beam_wz * pow(beam_wy,3)), // torsion rigidity, approx 
+        E_mod * (1./12)* beam_wy * pow(beam_wz,3),   // bending rigidity Byy
+        E_mod * (1./12)* beam_wz * pow(beam_wy,3),   // bending rigidity Bzz
+        E_mod * nu_rat * 0.8 * beam_wy*beam_wz,     // shear rigidity Hyy
+        E_mod * nu_rat * 0.8 * beam_wy*beam_wz,     // shear rigidity Hzz
+        0,          ///< section rotation for which Iyy Izz are computed
+        Cy,         ///< Cy offset of elastic center about which Iyy Izz are computed
+        Cz,         ///< Cz offset of elastic center about which Iyy Izz are computed
+        0,          ///< section rotation for which Ks_y Ks_z are computed
+        Sy,         ///< Sy offset of shear center
+        Sz          ///< Sz offset of shear center
+		);
+
+    auto section = chrono_types::make_shared<ChBeamSectionCosserat>(section_inertia, section_elasticity);
+
+    // Use the ChBuilderBeamIGA tool for creating a straight rod divided in Nel elements
+    ChBuilderBeamIGA builder;
+    builder.BuildBeam(mesh,                     // the mesh to put the elements in
+                      section,                  // section of the beam
+                      nsections,                // number of sections (spans)
+                      ChVector<>(0, 0, 0),      // start point
+                      ChVector<>(beamL, 0, 0),  // end point
+                      VECT_Y,                   // suggested Y direction of section
+                      order);                   // order (3 = cubic, etc)
+    builder.GetLastBeamNodes().front()->SetFixed(true);
+    builder.GetLastBeamNodes().back()->SetForce(ChVector<>(tip_axial, tip_load_y, tip_load_z));
+    builder.GetLastBeamNodes().back()->SetTorque(ChVector<>(-tip_load_y*Sz + tip_load_z*Sy, tip_axial*Cz, -tip_axial*Cy)); // to cancel the effect of offsets - now should deflect on Y as normal cantilever.
+
+    double y_init = builder.GetLastBeamNodes().back()->GetPos().y();
+
+    // Do a linear static analysis.
+    sys.DoStaticLinear();
+
+    double numerical_displ = builder.GetLastBeamNodes().back()->GetPos().y() - y_init;
+
+    /*
+    ChVector<> mforce, mtorque;
+    builder.GetLastBeamElements().front()->EvaluateSectionForceTorque(0, mforce, mtorque);
+    std::cout << "        IGA sect torque = " << mtorque << std::endl;
+    */
+
+    return numerical_displ;
+}
+
+
 int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
@@ -317,13 +386,13 @@ int main(int argc, char* argv[]) {
     ChSystemNSC sys;
 
     // Solver settings
-#ifndef CHRONO_MKL
+#ifndef CHRONO_PARDISO_MKL
     use_MKL = false;
 #endif
 
     if (use_MKL) {
-#ifdef CHRONO_MKL
-        auto solver = chrono_types::make_shared<ChSolverMKL>();
+#ifdef CHRONO_PARDISO_MKL
+        auto solver = chrono_types::make_shared<ChSolverPardisoMKL>();
         solver->SetVerbose(true);
         sys.SetSolver(solver);
 #endif
@@ -344,14 +413,17 @@ int main(int argc, char* argv[]) {
         double ancf_displ = ANCF_test(sys, load, i + 2);
         double iga_displ = IGA_test(sys, load, i + 2, 3);
         double igaoffset_displ = IGA_test_offset(sys, load, i + 2, 3);
+        double igaoffset_displ_rigidity = IGA_test_offset_rigidity(sys, load, i + 2, 3);
         double ancf_err = fabs((ancf_displ - analytical_displ) / analytical_displ);
         double iga_err = fabs((iga_displ - analytical_displ) / analytical_displ);
         double igaoffset_err = fabs((igaoffset_displ - analytical_displ) / analytical_displ);
+        double igaoffsetrigidity_err = fabs((igaoffset_displ_rigidity - analytical_displ) / analytical_displ);
         std::cout << "Kirchhoff beam models" << std::endl;
         std::cout << "analytical: " << analytical_displ << std::endl;
         std::cout << "      ANCF: " << ancf_displ << "  err: " << ancf_err << std::endl;
         std::cout << "       IGA: " << iga_displ << "  err: " << iga_err << std::endl;
         std::cout << "  IGAoffs.: " << igaoffset_displ << "  err: " << igaoffset_err << std::endl;
+        std::cout << " IGAoffsr.: " << igaoffset_displ_rigidity << "  err: " << igaoffsetrigidity_err << std::endl;
 
         double euler_displ = EULER_test(sys, load, i + 2);
         double euleroffset_displ = EULER_test_offset(sys, load, i + 2);
@@ -363,7 +435,7 @@ int main(int argc, char* argv[]) {
         std::cout << "     EULER: " << euler_displ << "  err: " << euler_err << std::endl;
         std::cout << "     E.offs:" << euleroffset_displ << "  err: " << euleroffset_err << std::endl;
 
-        if (ancf_err > threshold || iga_err > threshold || euler_err > threshold || euleroffset_err > threshold) {
+        if (ancf_err > threshold || iga_err > threshold || igaoffset_err > threshold || igaoffsetrigidity_err > threshold ||  euler_err > threshold || euleroffset_err > threshold) {
             std::cout << "\n\nTest failed" << std::endl;
             return 1;
         }

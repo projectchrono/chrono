@@ -39,7 +39,7 @@
 
 #include "chrono_models/vehicle/hmmwv/HMMWV.h"
 
-#include "chrono_thirdparty/SimpleOpt/SimpleOpt.h"
+#include "chrono_thirdparty/cxxopts/ChCLI.h"
 #include "chrono_thirdparty/filesystem/path.h"
 
 using namespace chrono;
@@ -78,16 +78,18 @@ bool output_images = false;
 double fps = 60;
 const std::string out_dir = GetChronoOutputPath() + "OPENCRG_DEMO";
 
-// =============================================================================
-
-enum { OPT_HELP, OPT_YUP, OPT_DRIVER_MODEL, OPT_ROAD_FILE };
-CSimpleOptA::SOption g_options[] = {{OPT_DRIVER_MODEL, "--driver-model", SO_REQ_CMB},
-                                    {OPT_ROAD_FILE, "--road-file", SO_REQ_CMB},
-                                    {OPT_YUP, "--yup", SO_NONE},
-                                    {OPT_HELP, "--help", SO_NONE},
-                                    SO_END_OF_OPTIONS};
-void ShowUsage();
-bool GetProblemSpecs(int argc, char** argv, DriverModelType& model, std::string& road_file, bool& yup);
+DriverModelType DriverModelFromString(const std::string& str) {
+    if (str == "HUMAN")
+        return DriverModelType::HUMAN;
+    if (str == "PID")
+        return DriverModelType::PID;
+    if (str == "SR")
+        return DriverModelType::SR;
+    if (str == "XT")
+        return DriverModelType::XT;
+    std::cerr << "String \"" + str + "\" does not represent a valid DriverModelType (HUMAN/PID/SR/XT) - returned DriverModelType::HUMAN" << std::endl;
+    return DriverModelType::HUMAN;
+}
 
 // =============================================================================
 
@@ -208,17 +210,24 @@ class MyDriver {
 int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
-    // Parse arguments
+    ChCLI cli(argv[0]);
+
+    // Set up parameter defaults and command-line arguments
+    DriverModelType driver_type = DriverModelType::HUMAN;
     std::string crg_road_file = "terrain/crg_roads/Barber.crg";
     bool yup = false;
-    DriverModelType driver_type = DriverModelType::HUMAN;
-    if (argc == 1) {
-        std::cout << "Type 'demo_VEH_CRGTerrain --help' for a complete list of available options.\n" << std::endl;
-    }
-    if (!GetProblemSpecs(argc, argv, driver_type, crg_road_file, yup)) {
+
+    cli.AddOption<std::string>("Demo", "m,model", "Controller model type - PID, XT, SR, HUMAN", "HUMAN");
+    cli.AddOption<std::string>("Demo", "f,roadfile", "CRG road filename", crg_road_file);
+    cli.AddOption<bool>("Demo", "y,yup", "Use YUP world frame", std::to_string(yup));
+
+
+    if (!cli.Parse(argc, argv, true))
         return 1;
-    }
-    crg_road_file = vehicle::GetDataFile(crg_road_file);
+
+    driver_type = DriverModelFromString(cli.GetAsType<std::string>("model"));
+    crg_road_file = vehicle::GetDataFile(cli.GetAsType<std::string>("roadfile"));
+    yup = cli.GetAsType<bool>("yup");
 
     // ---------------
     // Set World Frame
@@ -385,75 +394,4 @@ int main(int argc, char* argv[]) {
     driver.PrintStats();
 
     return 0;
-}
-
-// =============================================================================
-
-void ShowUsage() {
-    std::cout << "Usage:  demo_VEH_CRGTerrain [OPTIONS]" << std::endl;
-    std::cout << std::endl;
-    std::cout << " --driver-model=MODEL" << std::endl;
-    std::cout << "        Controller model type. 0: PID, 1: XT, 2: SR, 3: HUMAN " << std::endl;
-    std::cout << "        Default: 3" << std::endl;
-    std::cout << " --road-file=FILE" << std::endl;
-    std::cout << "        CRG road filename";
-    std::cout << "        Default: \"terrain/crg_roads/Barber.crg\"]" << std::endl;
-    std::cout << " --yup" << std::endl;
-    std::cout << "        Use YUP world frame" << std::endl;
-    std::cout << "        Default: ISO frame (Z up)";
-    std::cout << " --help" << std::endl;
-    std::cout << "        Print this message and exit." << std::endl;
-    std::cout << std::endl;
-}
-
-bool GetProblemSpecs(int argc, char** argv, DriverModelType& model, std::string& road_file, bool& yup) {
-    // Create the option parser and pass it the program arguments and the array of valid options.
-    CSimpleOptA args(argc, argv, g_options);
-
-        // Then loop for as long as there are arguments to be processed.
-    while (args.Next()) {
-        // Exit immediately if we encounter an invalid argument.
-        if (args.LastError() != SO_SUCCESS) {
-            std::cout << "Invalid argument: " << args.OptionText() << std::endl;
-            ShowUsage();
-            return false;
-        }
-    
-        // Process the current argument.
-        switch (args.OptionId()) {
-            case OPT_HELP:
-                ShowUsage();
-                return false;
-            case OPT_DRIVER_MODEL: {
-                auto model_in = std::stoi(args.OptionArg());
-                switch (model_in) {
-                    case 0:
-                        model = DriverModelType::PID;
-                        break;
-                    case 1:
-                        model = DriverModelType::XT;
-                        break;
-                    case 2:
-                        model = DriverModelType::SR;
-                        break;
-                    case 3:
-                        model = DriverModelType::HUMAN;
-                        break;
-                    default:
-                        std::cout << "Incorrect driver model type" << std::endl;
-                        ShowUsage();
-                        break;
-                }
-                break;
-            }
-            case OPT_ROAD_FILE:
-                road_file = args.OptionArg();
-                break;
-            case OPT_YUP:
-                yup = true;
-                break;
-        }
-    }
-
-    return true;
 }

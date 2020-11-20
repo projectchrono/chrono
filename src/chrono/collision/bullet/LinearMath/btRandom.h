@@ -12,10 +12,8 @@ subject to the following restrictions:
 3. This notice may not be removed or altered from any source distribution.
 */
 
-
-
-#ifndef GEN_RANDOM_H
-#define GEN_RANDOM_H
+#ifndef BT_GEN_RANDOM_H
+#define BT_GEN_RANDOM_H
 
 #ifdef MT19937
 
@@ -24,8 +22,8 @@ subject to the following restrictions:
 
 #define GEN_RAND_MAX UINT_MAX
 
-SIMD_FORCE_INLINE void         GEN_srand(unsigned int seed) { init_genrand(seed); }
-SIMD_FORCE_INLINE unsigned int GEN_rand()                   { return genrand_int32(); }
+SIMD_FORCE_INLINE void GEN_srand(unsigned int seed) { init_genrand(seed); }
+SIMD_FORCE_INLINE unsigned int GEN_rand() { return genrand_int32(); }
 
 #else
 
@@ -33,10 +31,9 @@ SIMD_FORCE_INLINE unsigned int GEN_rand()                   { return genrand_int
 
 #define GEN_RAND_MAX RAND_MAX
 
-SIMD_FORCE_INLINE void         GEN_srand(unsigned int seed) { srand(seed); } 
-SIMD_FORCE_INLINE unsigned int GEN_rand()                   { return rand(); }
+SIMD_FORCE_INLINE void GEN_srand(unsigned int seed) { srand(seed); }
+SIMD_FORCE_INLINE unsigned int GEN_rand() { return rand(); }
 
 #endif
 
-#endif
-
+#endif  //BT_GEN_RANDOM_H

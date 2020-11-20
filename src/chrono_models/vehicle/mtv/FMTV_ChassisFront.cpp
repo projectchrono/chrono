@@ -33,6 +33,7 @@ const double FMTV_ChassisFront::m_mass = 3946;
 const ChVector<> FMTV_ChassisFront::m_inertiaXX(3.2282e3, 5.2323e3, 4.4980e3);
 const ChVector<> FMTV_ChassisFront::m_inertiaXY(0, -0.4027e3, 0);
 const ChVector<> FMTV_ChassisFront::m_COM_loc(-0.6972, 0, 0.6672);
+const ChVector<> FMTV_ChassisFront::m_connector_loc(-1.85, 0, 0.45);
 const ChCoordsys<> FMTV_ChassisFront::m_driverCsys(ChVector<>(0.4, 0.7, 1.18), ChQuaternion<>(1, 0, 0, 0));
 
 // -----------------------------------------------------------------------------

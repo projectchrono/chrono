@@ -316,31 +316,16 @@ int main(int argc, char* argv[]) {
     // Use this function for 'converting' assets into Irrlicht meshes
     application.AssetUpdateAll();
 
-    // Create (if needed) the output directory
-    const std::string demo_dir = GetChronoOutputPath() + "EMIT_CREATION";
-    if (!filesystem::create_directory(filesystem::path(demo_dir))) {
-        std::cout << "Error creating directory " << demo_dir << std::endl;
-        return 1;
-    }
 
     // Create an exporter to POVray !!
     ChPovRay pov_exporter = ChPovRay(&mphysicalSystem);
 
-    // Sets some file names for in-out processes.
+    // Important: set the path to the template:
     pov_exporter.SetTemplateFile(GetChronoDataFile("_template_POV.pov"));
-    pov_exporter.SetOutputScriptFile(demo_dir + "/rendering_frames.pov");
-    pov_exporter.SetOutputDataFilebase("my_state");
-    pov_exporter.SetPictureFilebase("picture");
 
-    // Even better: save the .dat files and the .bmp files in two subdirectories,
-    // to avoid cluttering the current directory.
-    const std::string out_dir = demo_dir + "/output";
-    const std::string anim_dir = demo_dir + "/anim";
-    filesystem::create_directory(filesystem::path(out_dir));
-    filesystem::create_directory(filesystem::path(anim_dir));
+    // Set the path where it will save all .pov, .ini, .asset and .dat files, a directory will be created if not existing
+    pov_exporter.SetBasePath(GetChronoOutputPath() + "EMIT_CREATION");
 
-    pov_exporter.SetOutputDataFilebase(out_dir + "/my_state");
-    pov_exporter.SetPictureFilebase(anim_dir + "/picture");
 
     pov_exporter.SetLight(VNULL, ChColor(0, 0, 0), false);
     pov_exporter.SetCustomPOVcommandsScript(

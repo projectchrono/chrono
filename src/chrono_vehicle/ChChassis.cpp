@@ -129,11 +129,14 @@ void ChChassis::Synchronize(double time) {
 
 ChChassisRear::ChChassisRear(const std::string& name) : ChChassis(name, false) {}
 
-void ChChassisRear::Initialize(std::shared_ptr<ChChassis> chassis,
-                               const ChVector<>& location,
-                               int collision_family) {
+void ChChassisRear::Initialize(std::shared_ptr<ChChassis> chassis, int collision_family) {
     // Express the rear chassis reference frame in the absolute coordinate system.
-    ChFrame<> chassis_frame(location);
+    // Set rear chassis orientation to be the same as the front chassis and 
+    // translate based on local positions of the connector point.
+    const ChVector<>& front_loc = chassis->GetLocalPosRearConnector();
+    const ChVector<>& rear_loc = GetLocalPosFrontConnector();
+
+    ChFrame<> chassis_frame(front_loc - rear_loc);
     chassis_frame.ConcatenatePreTransformation(chassis->GetBody()->GetFrame_REF_to_abs());
 
     auto system = chassis->GetBody()->GetSystem();

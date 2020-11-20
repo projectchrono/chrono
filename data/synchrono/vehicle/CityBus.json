@@ -1,0 +1,24 @@
+{
+    "Name": "CityBus",
+    "Type": "Vehicle",
+    "Vehicle": {
+        "Input File": "citybus/vehicle/CityBus_Vehicle.json",
+        "Chassis Visualization Type": "Mesh",
+        "Suspension Visualization Type": "Primitives",
+        "Steering Visualization Type": "Primitives",
+        "Wheel Visualization Type": "Mesh"
+    },
+    "Powertrain": {
+        "Input File": "citybus/powertrain/CityBus_SimpleMapPowertrain.json"
+    },
+    "Tire": {
+        "Input File": "citybus/tire/CityBus_TMeasyTire.json",
+        "Visualization Type": "Mesh"
+    },
+    "Zombie": {
+        "Chassis Visualization File": "citybus/CityBus_Vis.obj",
+        "Wheel Visualization File": "citybus/CityBusRim.obj",
+        "Tire Visualization File": "citybus/CityBusTire.obj",
+        "Number Of Wheels": 6
+    }
+}

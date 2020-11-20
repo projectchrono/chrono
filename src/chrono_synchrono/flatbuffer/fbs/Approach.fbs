@@ -1,0 +1,37 @@
+// =============================================================================
+// PROJECT CHRONO - http://projectchrono.org
+//
+// Copyright (c) 2020 projectchrono.org
+// All rights reserved.
+//
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
+//
+// =============================================================================
+// Authors: 肖言 (Yan Xiao)
+// =============================================================================
+//
+// Schema file that defines Approach information in an intersection
+//  - lane is defined as multiple points starts at the center of the stop 
+//    line to the tail of the lane.
+//  - reduced version of standard Approach message
+// 
+// =============================================================================
+
+include "Utils.fbs";
+include "SPAT.fbs";
+namespace SynFlatBuffers.Approach;
+
+table State {
+  time:double;
+  rank:int;
+  lanes:[Lane];
+}
+
+table Lane {
+  width:double;
+  controlPoints:[Vector];
+}
+
+root_type State;

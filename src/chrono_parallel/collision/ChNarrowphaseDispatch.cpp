@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Hammad Mazhar
+// Authors: Hammad Mazhar, Radu Serban
 // =============================================================================
 
 #include <algorithm>
@@ -32,12 +32,6 @@
 #include <thrust/transform_reduce.h>
 #include <thrust/count.h>
 #include <thrust/iterator/constant_iterator.h>
-
-#if defined(CHRONO_OPENMP_ENABLED)
-#include <thrust/system/omp/execution_policy.h>
-#elif defined(CHRONO_TBB_ENABLED)
-#include <thrust/system/tbb/execution_policy.h>
-#endif
 
 namespace chrono {
 namespace collision {
@@ -76,42 +70,61 @@ void ChCNarrowphaseDispatch::ProcessRigids() {
     }
 }
 
-void ChCNarrowphaseDispatch::PreprocessCount() {
-    // MPR always reports at most one contact per pair.
+int ChCNarrowphaseDispatch::PreprocessCount() {
+    // Set the number of potential contact points for each collision pair
+    contact_index.resize(num_potential_rigid_contacts + 1);
+    contact_index[num_potential_rigid_contacts] = 0;
+
     if (narrowphase_algorithm == NarrowPhaseType::NARROWPHASE_MPR) {
-        thrust::fill(contact_index.begin(), contact_index.end(), 1);
-        return;
-    }
+        // MPR always reports at most one contact per pair.
+        Thrust_Fill(contact_index, 1);
+    } else {
+        // NarrowphaseR (and hence the hybrid algorithms) may produce different number
+        // of contacts per pair, depending on the interacting shapes:
+        //   - an interaction involving a sphere can produce at most one contact
+        //   - an interaction involving a capsule can produce up to two contacts
+        //   - a box-box interaction can produce up to 8 contacts
 
-    // NarrowphaseR (and hence the hybrid algorithms) may produce different number
-    // of contacts per pair, depending on the interacting shapes:
-    //   - an interaction involving a sphere can produce at most one contact
-    //   - an interaction involving a capsule can produce up to two contacts
-    //   - a box-box interaction can produce up to 8 contacts
-
-    // shape type (per shape)
-    const shape_type* obj_data_T = data_manager->shape_data.typ_rigid.data();
-    // encoded shape IDs (per collision pair)
-    const long long* collision_pair = data_manager->host_data.contact_pairs.data();
+        // shape type (per shape)
+        const shape_type* obj_data_T = data_manager->shape_data.typ_rigid.data();
+        // encoded shape IDs (per collision pair)
+        const long long* pair_shapeIDs = data_manager->host_data.pair_shapeIDs.data();
 
 #pragma omp parallel for
-    for (int index = 0; index < (signed)num_potential_rigid_contacts; index++) {
-        // Identify the two candidate shapes and get their types.
-        vec2 pair = I2(int(collision_pair[index] >> 32), int(collision_pair[index] & 0xffffffff));
-        shape_type type1 = obj_data_T[pair.x];
-        shape_type type2 = obj_data_T[pair.y];
+        for (int index = 0; index < (signed)num_potential_rigid_contacts; index++) {
+            // Identify the two candidate shapes and get their types.
+            vec2 pair = I2(int(pair_shapeIDs[index] >> 32), int(pair_shapeIDs[index] & 0xffffffff));
+            shape_type type1 = obj_data_T[pair.x];
+            shape_type type2 = obj_data_T[pair.y];
 
-        // Set the maximum number of possible contacts for this particular pair
-        if (type1 == ChCollisionShape::Type::SPHERE || type2 == ChCollisionShape::Type::SPHERE) {
-            contact_index[index] = 1;
-        } else if (type1 == ChCollisionShape::Type::CAPSULE || type2 == ChCollisionShape::Type::CAPSULE) {
-            contact_index[index] = 2;
-            ////} else if (type1 == BOX && type2 == BOX) {
-            ////  contact_index[index] = 8;
-        } else {
-            contact_index[index] = 1;
+            // Set the maximum number of possible contacts for this particular pair
+            if (type1 == ChCollisionShape::Type::SPHERE || type2 == ChCollisionShape::Type::SPHERE) {
+                contact_index[index] = 1;
+            } else if (type1 == ChCollisionShape::Type::CAPSULE || type2 == ChCollisionShape::Type::CAPSULE) {
+                contact_index[index] = 2;
+                ////} else if (type1 == BOX && type2 == BOX) {
+                ////  contact_index[index] = 8;
+            } else {
+                contact_index[index] = 1;
+            }
         }
     }
+
+    // Calculate total number of potential contacts
+    int num_potentialContacts = thrust::reduce(THRUST_PAR contact_index.begin(), contact_index.end());
+
+    // Expand vector of shape IDs into contact_shapeIDs:
+    // Replicate pair_shapeIDs[i] contact_index[i] times, for each potential contact for the collision pair 'i'
+    data_manager->host_data.contact_shapeIDs.resize(num_potentialContacts);
+    Thrust_Expand(contact_index.begin(), contact_index.end() - 1, data_manager->host_data.pair_shapeIDs.begin(),
+                  data_manager->host_data.contact_shapeIDs.begin());
+
+    // Set start index for the potential contacts for each collision pair
+    Thrust_Exclusive_Scan(contact_index);
+    assert(num_potentialContacts == contact_index.back());
+
+    // Return total number of potential contacts
+    return num_potentialContacts;
 }
 
 void ChCNarrowphaseDispatch::PreprocessLocalToParent() {
@@ -164,12 +177,12 @@ void ChCNarrowphaseDispatch::Dispatch_Init(uint index,
                                            ConvexShape* shapeA,
                                            ConvexShape* shapeB) {
     const custom_vector<uint>& obj_data_ID = data_manager->shape_data.id_rigid;
-    const custom_vector<long long>& contact_pair = data_manager->host_data.contact_pairs;
+    const custom_vector<long long>& pair_shapeIDs = data_manager->host_data.pair_shapeIDs;
     real3* convex_data = data_manager->shape_data.convex_rigid.data();
 
-    long long p = contact_pair[index];
-    vec2 pair =
-        I2(int(p >> 32), int(p & 0xffffffff));  // Get the identifiers for the two shapes involved in this collision
+    // Unpack the identifiers for the two shapes involved in this collision
+    long long p = pair_shapeIDs[index];
+    vec2 pair = I2(int(p >> 32), int(p & 0xffffffff)); 
 
     ID_A = obj_data_ID[pair.x];
     ID_B = obj_data_ID[pair.y];  // Get the identifiers of the two associated objects (bodies)
@@ -287,18 +300,13 @@ void ChCNarrowphaseDispatch::DispatchRigid() {
     custom_vector<real>& dpth_data = data_manager->host_data.dpth_rigid_rigid;
     custom_vector<real>& erad_data = data_manager->host_data.erad_rigid_rigid;
     custom_vector<vec2>& bids_data = data_manager->host_data.bids_rigid_rigid;
-    custom_vector<long long>& contact_pairs = data_manager->host_data.contact_pairs;
+    custom_vector<long long>& contact_shapeIDs = data_manager->host_data.contact_shapeIDs;
     uint& num_rigid_contacts = data_manager->num_rigid_contacts;
+
     // Set maximum possible number of contacts for each potential collision
     // (depending on the narrowphase algorithm and on the types of shapes in
-    // potential collision)
-    contact_index.resize(num_potential_rigid_contacts + 1);
-    contact_index[num_potential_rigid_contacts] = 0;
-    PreprocessCount();
-
-    // Scan to find total number of potential contacts
-    Thrust_Exclusive_Scan(contact_index);
-    int num_potentialContacts = contact_index.back();
+    // potential collision) and calculate the total number of potential contacts.
+    int num_potentialContacts = PreprocessCount();
 
     // Create storage to hold maximum number of contacts in worse case
     norm_data.resize(num_potentialContacts);
@@ -308,7 +316,7 @@ void ChCNarrowphaseDispatch::DispatchRigid() {
     erad_data.resize(num_potentialContacts);
     bids_data.resize(num_potentialContacts);
 
-    // These flags will keep track of which collision pairs are actually active
+    // These flags will keep track of which potential contacts are actually active
     // (as decided by the narrowphase algorithm).
     contact_rigid_active.resize(num_potentialContacts);
     thrust::fill(contact_rigid_active.begin(), contact_rigid_active.end(), false);
@@ -325,15 +333,17 @@ void ChCNarrowphaseDispatch::DispatchRigid() {
             break;
     }
 
+    // Calculate total number of actual (active) contacts 
     num_rigid_contacts = (uint)Thrust_Count(contact_rigid_active, 1);
+
     // Remove elements corresponding to inactive contacts. We do this in one step,
     // using zip iterators and removing all entries for which contact_active is 'false'.
-    thrust::remove_if(
+    thrust::remove_if(THRUST_PAR
         thrust::make_zip_iterator(thrust::make_tuple(norm_data.begin(), cpta_data.begin(), cptb_data.begin(),
                                                      dpth_data.begin(), erad_data.begin(), bids_data.begin(),
-                                                     contact_pairs.begin())),
+                                                     contact_shapeIDs.begin())),
         thrust::make_zip_iterator(thrust::make_tuple(norm_data.end(), cpta_data.end(), cptb_data.end(), dpth_data.end(),
-                                                     erad_data.end(), bids_data.end(), contact_pairs.end())),
+                                                     erad_data.end(), bids_data.end(), contact_shapeIDs.end())),
         contact_rigid_active.begin(), thrust::logical_not<bool>());
 
     // Resize all lists so that we don't access invalid contacts
@@ -343,7 +353,7 @@ void ChCNarrowphaseDispatch::DispatchRigid() {
     dpth_data.resize(num_rigid_contacts);
     erad_data.resize(num_rigid_contacts);
     bids_data.resize(num_rigid_contacts);
-    contact_pairs.resize(num_rigid_contacts);
+    contact_shapeIDs.resize(num_rigid_contacts);
     LOG(TRACE) << "ChCNarrowphaseDispatch::DispatchRigid() E " << num_rigid_contacts;
 }
 

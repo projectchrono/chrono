@@ -16,7 +16,7 @@
   "SPH Parameters":
   {
     "Method":                         "I2SPH",//WCSPH, IISPH, I2SPHH
-    "Kernel h":                       0.010,
+    "Kernel h":                       0.01,
     "Initial Spacing":                0.01,
     "Epsilon":                        0.0001,
     "Maximum Velocity":               1.0,
@@ -29,13 +29,13 @@
 
   "Time Stepping":
   {
-    "Adaptive Time stepping":        true,
-    "CFL number":                    0.02,
-    "Fluid time step":               0.005,
-    "Solid time step":               0.001,
-    "Maximum time step":             1.0,
-    "End time":                      500,
-    "Write frame per second":        1
+    "Adaptive Time stepping":        false,
+    "CFL number":                    0.1,
+    "Fluid time step":               0.002,
+    "Solid time step":               0.002,
+    "Maximum time step":             0.002,
+    "End time":                      100,
+    "Write frame per second":        10
   },
 
 
@@ -52,5 +52,15 @@
     "Verbose monitoring":       false,
     "Constraint Pressure":      true,
     "Average Pressure":         0.0
+  },
+
+  "Geometry Inf":
+  {
+    "BoxDimensionX":                0.2,
+    "BoxDimensionY":                0.1,
+    "BoxDimensionZ":                0.2,
+    "FluidDimensionX":              0.2,
+    "FluidDimensionY":              0.1,
+    "FluidDimensionZ":              0.2
   }
 }

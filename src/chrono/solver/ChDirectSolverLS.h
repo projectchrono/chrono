@@ -215,7 +215,7 @@ class ChApi ChSolverSparseLU : public ChDirectSolverLS {
     Eigen::SparseLU<ChSparseMatrix, Eigen::COLAMDOrdering<int>> m_engine;  ///< Eigen SparseLU solver
 };
 
-/// Sparse LU direct solver.\n
+/// Sparse QR direct solver.\n
 /// Interface to Eigen's SparseQR solver, a left-looking rank-revealing QR factorization.\n
 /// Cannot handle VI and complementarity problems, so it cannot be used with NSC formulations.\n
 /// See ChDirectSolverLS for more details.

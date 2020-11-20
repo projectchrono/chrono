@@ -37,8 +37,8 @@
 // If module MATLAB was enabled, define CHRONO_MATLAB
 @CHRONO_MATLAB@
 
-// If module MKL was enabled, define CHRONO_MKL
-@CHRONO_MKL@
+// If module PARDISO_MKL was enabled, define CHRONO_PARDISO_MKL
+@CHRONO_PARDISO_MKL@
 
 // If module MUMPS was enabled, define CHRONO_MUMPS
 @CHRONO_MUMPS@
@@ -60,6 +60,9 @@
 
 // If module FSI was enabled, define CHRONO_FSI
 @CHRONO_FSI@
+
+// If module SENSOR was enabled, define CHRONO_SENSOR
+@CHRONO_SENSOR@
 
 // -----------------------------------------------------------------------------
 // OpenMP settings
