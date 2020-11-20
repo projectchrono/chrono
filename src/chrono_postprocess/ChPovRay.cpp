@@ -977,6 +977,16 @@ void ChPovRay::ExportData(const std::string& filename) {
                 }
             }
 
+            // #) saving a FEA mesh?
+            if (auto mymesh = std::dynamic_pointer_cast<fea::ChMesh>(mdata[i])) {
+                // Get the current coordinate frame of the i-th object
+                ChFrame<> assetcsys;
+
+                // Dump the POV macro that generates the contained asset(s) tree!!!
+                _recurseExportObjData(mdata[i]->GetAssets(), assetcsys, mfilepov);
+            }
+
+
         }  // end loop on objects
 
         // #) saving contacts ?
