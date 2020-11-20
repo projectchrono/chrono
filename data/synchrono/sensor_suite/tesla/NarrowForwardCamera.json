@@ -1,0 +1,23 @@
+{
+  "Name": "Narrow Forward Facing Camera",
+  "Type": "Sensor",
+  "Template": "Camera",
+
+  "Properties": {
+    "Update Rate": 30,
+    "Width": 1000,
+    "Height": 720,
+    "Horizontal Field of View": 1.000,
+    "Lag": 0.02,
+    "Exposure Time": 0,
+    "Supersample Factor": 2,
+    "Lens Model": "SPHERICAL"
+  },
+
+  "Filters":
+  [
+    {
+      "Filter": "ChFilterRGBA8Access"
+    }
+  ]
+}

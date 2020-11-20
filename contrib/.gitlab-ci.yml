@@ -14,7 +14,8 @@ variables:
     -DBUILD_BENCHMARKING=TRUE -DENABLE_MODULE_POSTPROCESS=TRUE 
     -DENABLE_MODULE_PYTHON=TRUE -DENABLE_MODULE_COSIMULATION=FALSE 
     -DENABLE_MODULE_IRRLICHT=TRUE -DENABLE_MODULE_VEHICLE=TRUE 
-    -DENABLE_MODULE_PARALLEL=TRUE -DENABLE_MODULE_OPENGL=TRUE"
+    -DENABLE_MODULE_PARALLEL=TRUE -DENABLE_MODULE_OPENGL=TRUE
+    -DENABLE_MODULE_SYNCHRONO=TRUE"
 
 #---------------------#
 # Arch Linux Builders #
@@ -38,16 +39,24 @@ variables:
   - git submodule init
   - git submodule update
   - mkdir -p build
+# Make flatbuffers
+  - cd src/chrono_thirdparty/flatbuffers
+  - cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release
+  - make
+  - cd $CI_PROJECT_DIR
 
 linux:arch-gcc:build:
   stage: build
   extends: .archlinux
   script:
   - cd build
+  - echo $CI_PROJECT_DIR
   - cmake ../ $CHRONO_UNIX_SHARED -DENABLE_MODULE_DISTRIBUTED=TRUE 
     -DENABLE_MODULE_FSI=TRUE -DCMAKE_C_COMPILER=/usr/bin/gcc 
     -DCMAKE_CXX_COMPILER=/usr/bin/g++ 
     -DEIGEN3_INCLUDE_DIR=/usr/include/eigen3 -DENABLE_MODULE_GRANULAR=TRUE
+    -DFlatbuffers_DIR="$CI_PROJECT_DIR/src/chrono_thirdparty/flatbuffers/CMake"
+    -DFlatbuffers_INCLUDE_DIR="$CI_PROJECT_DIR/src/chrono_thirdparty/flatbuffers/include"
   - make -j 8
   artifacts:
     expire_in: 60m
@@ -115,6 +124,8 @@ linux:arch-llvm:build:
     -DENABLE_MODULE_FSI=TRUE -DCMAKE_C_COMPILER=/usr/bin/clang 
     -DCMAKE_CXX_COMPILER=/usr/bin/clang++ -DCUDA_HOST_COMPILER=/usr/bin/gcc 
     -DEIGEN3_INCLUDE_DIR=/usr/include/eigen3 -DENABLE_MODULE_GRANULAR=TRUE
+    -DFlatbuffers_DIR="$CI_PROJECT_DIR/src/chrono_thirdparty/flatbuffers/CMake"
+    -DFlatbuffers_INCLUDE_DIR="$CI_PROJECT_DIR/src/chrono_thirdparty/flatbuffers/include"
   - make -j 8
   artifacts:
     expire_in: 60m
@@ -229,6 +240,11 @@ linux:arch-llvm:test:
     - git submodule init
     - git submodule update
     - mkdir -p build
+    # Make flatbuffers
+    - cd src/chrono_thirdparty/flatbuffers
+    - cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release
+    - make
+    - cd $CI_PROJECT_DIR
 
 .ubuntu-deploy-base:
   extends: .ubuntu
@@ -280,6 +296,8 @@ linux:ubuntu1804:build:
         -DCMAKE_C_COMPILER=/usr/bin/gcc -DCMAKE_CXX_COMPILER=/usr/bin/g++
         -DPYTHON_EXECUTABLE=/usr/bin/python3 -DENABLE_MODULE_GRANULAR=TRUE
         -DCUDA_HOST_COMPILER=/usr/bin/gcc
+        -DFlatbuffers_DIR="$CI_PROJECT_DIR/src/chrono_thirdparty/flatbuffers/CMake"
+        -DFlatbuffers_INCLUDE_DIR="$CI_PROJECT_DIR/src/chrono_thirdparty/flatbuffers/include"
     - make -j 8
   artifacts:
     expire_in: 60m
@@ -346,7 +364,8 @@ linux:ubuntu1804:deploy-python3.8:
     "-DENABLE_MODULE_IRRLICHT=TRUE",
     "-DENABLE_MODULE_VEHICLE=TRUE",
     "-DENABLE_MODULE_PARALLEL=TRUE",
-    "-DENABLE_MODULE_OPENGL=TRUE"
+    "-DENABLE_MODULE_OPENGL=TRUE",
+    "-DENABLE_MODULE_SYNCHRONO=TRUE"
     )
     #  - wget -UseBasicParsing https://bitbucket.org/blaze-lib/blaze/downloads/blaze-3.5.tar.gz -OutFile blaze-3.5.tar.gz
     #  - tar -xf .\blaze-3.5.tar.gz blaze-3.5/blaze
@@ -364,18 +383,25 @@ linux:ubuntu1804:deploy-python3.8:
     "-DGLFW_LIBRARY=C:/Users/builder/Documents/glfw-3.3/lib-vc2015/glfw3dll.lib",
     "-DIRRLICHT_LIBRARY=C:/Users/builder/Documents/irrlicht-1.8.4/lib/Win64-visualStudio/Irrlicht.lib",
     "-DIRRLICHT_ROOT=C:/Users/builder/Documents/irrlicht-1.8.4",
-    "-DEIGEN3_INCLUDE_DIR=C:/Users/builder/Documents/eigen-3.3.7"
+    "-DEIGEN3_INCLUDE_DIR=C:/Users/builder/Documents/eigen-3.3.7",
+    "-DFlatbuffers_DIR=$CI_PROJECT_DIR/src/chrono_thirdparty/flatbuffers/CMake",
+    "-DFlatbuffers_INCLUDE_DIR=$CI_PROJECT_DIR/src/chrono_thirdparty/flatbuffers/include"
     )
+  - echo $CI_PROJECT_DIR
   - git submodule init
   - git submodule update
   - mkdir -Force build
-
 
 windows:vs2019:build:
   stage: build
   extends: .windows
   script:
-  - cd build
+  # Build flatbuffers
+  - cd $CI_PROJECT_DIR/src/chrono_thirdparty/flatbuffers
+  - cmake -G "Visual Studio 16 2019" -DCMAKE_BUILD_TYPE=Release
+  - '& "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\MSBuild\Current\Bin\MSBuild.exe" FlatBuffers.sln -maxcpucount:8 -property:Configuration=Release'
+  # Main build
+  - cd $CI_PROJECT_DIR/build
   - cmake ../ -G "Visual Studio 16 2019" -A x64 -T v142 
     @CHRONO_W64_SHARED 
     @CHRONO_W64_LIBRARIES 
@@ -436,7 +462,11 @@ windows:vs2017:build:
   stage: build
   extends: .windows
   script:
-  - cd build
+    # Build flatbuffers
+  - cd $CI_PROJECT_DIR/src/chrono_thirdparty/flatbuffers
+  - cmake -G "Visual Studio 16 2019" -DCMAKE_BUILD_TYPE=Release
+  - '& "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\MSBuild\Current\Bin\MSBuild.exe" FlatBuffers.sln -maxcpucount:8 -property:Configuration=Release'
+  - cd $CI_PROJECT_DIR/build
   - cmake ../ -G "Visual Studio 16 2019" -A x64 -T v141
     @CHRONO_W64_SHARED
     @CHRONO_W64_LIBRARIES
@@ -507,7 +537,7 @@ macos:highsierra:build:
   extends: .macos
   script:
   - cd build
-  - cmake ../ $CHRONO_UNIX_SHARED -DENABLE_MODULE_DISTRIBUTED=FALSE 
+  - cmake ../ $CHRONO_UNIX_SHARED -DENABLE_MODULE_DISTRIBUTED=FALSE -DENABLE_MODULE_SYNCHRONO=FALSE 
     -DENABLE_MODULE_FSI=FALSE -DCMAKE_C_COMPILER=$(which clang)
     -DCMAKE_CXX_COMPILER=$(which clang++)
     -DCMAKE_CXX_FLAGS="-Wno-deprecated-declarations -Xpreprocessor -fopenmp -lomp -Wno-unused-command-line-argument"

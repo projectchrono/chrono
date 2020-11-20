@@ -522,7 +522,7 @@ add_subdirectory(chrono_distributed)
 add_subdirectory(chrono_vehicle)
 add_subdirectory(chrono_fsi)
 add_subdirectory(chrono_sensor)
-add_subdirectory(chrono_vsg)
+add_subdirectory(chrono_synchrono)
 
 # Add directories for model libraries
 add_subdirectory(chrono_models)
@@ -645,10 +645,10 @@ else()
   set(CHRONO_SENSOR "#undef CHRONO_SENSOR")
 endif()
 
-if(ENABLE_MODULE_VSG)
-  set(CHRONO_VSG "#define CHRONO_VSG")
+if(ENABLE_MODULE_SYNCHRONO)
+  set(CHRONO_SYNCHRONO "#define CHRONO_SYNCHRONO")
 else()
-  set(CHRONO_VSG "#undef CHRONO_VSG")
+  set(CHRONO_SYNCHRONO "#undef CHRONO_SYNCHRONO")
 endif()
 
 if(ENABLE_OPENMP)

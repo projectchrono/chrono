@@ -1,0 +1,28 @@
+{
+  "Name": "Sedan",
+  "Type": "Vehicle",
+
+  "Vehicle": {
+    "Input File": "sedan/vehicle/Sedan_Vehicle.json",
+    "Chassis Visualization Type": "Mesh",
+    "Suspension Visualization Type": "None",
+    "Steering Visualization Type": "None",
+    "Wheel Visualization Type": "Mesh"
+  },
+
+  "Powertrain": {
+    "Input File": "sedan/powertrain/Sedan_SimpleMapPowertrain.json"
+  },
+
+  "Tire": {
+    "Input File": "sedan/tire/Sedan_TMeasyTire.json",
+    "Visualization Type": "Mesh"
+  },
+
+  "Zombie": {
+    "Chassis Visualization File": "sedan/sedan_chassis_vis.obj",
+    "Wheel Visualization File": "sedan/sedan_rim.obj",
+    "Tire Visualization File": "sedan/sedan_tire.obj",
+    "Number Of Wheels": 4
+  }
+}
