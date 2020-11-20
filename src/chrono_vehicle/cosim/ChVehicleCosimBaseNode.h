@@ -22,9 +22,10 @@
 #include <fstream>
 #include <string>
 #include <iostream>
+#include <vector>
 
 #include "chrono/core/ChTimer.h"
-
+#include "chrono/core/ChVector.h"
 #include "chrono_vehicle/ChApiVehicle.h"
 
 #define RIG_NODE_RANK 0
@@ -78,6 +79,29 @@ class CH_VEHICLE_API ChVehicleCosimBaseNode {
     virtual void OutputData(int frame) {}
 
   protected:
+    /// Mesh data
+    struct MeshData {
+        unsigned int nv;                 ///< number of vertices
+        unsigned int nt;                 ///< number of triangles
+        std::vector<ChVector<>> vpos;    ///< vertex positions (in local frame)
+        std::vector<ChVector<int>> tri;  ///< mesh connectivity
+    };
+
+    /// Mesh state
+    struct MeshState {
+        std::vector<ChVector<>> vpos;  ///< vertex positions (in absolute frame)
+        std::vector<ChVector<>> vvel;  ///< vertex velocities (in absolute frame)
+    };
+
+    /// Mesh contact information
+    struct MeshContact {
+        int nv;                          ///< number of vertices in contact
+        std::vector<int> vidx;           ///< indices of vertices experiencing contact forces
+        std::vector<ChVector<>> vpos;    ///< position of vertices experiencing contact forces
+        std::vector<ChVector<>> vforce;  ///< contact forces on mesh vertices
+    };
+
+  protected:
     ChVehicleCosimBaseNode(const std::string& name);
 
     double m_step_size;  ///< integration step size
@@ -88,7 +112,7 @@ class CH_VEHICLE_API ChVehicleCosimBaseNode {
     std::ofstream m_outf;        ///< output file stream
 
     ChTimer<double> m_timer;  ///< timer for integration cost
-    double m_cum_sim_time;            ///< cumulative integration cost
+    double m_cum_sim_time;    ///< cumulative integration cost
 
     static const double m_gacc;
 };

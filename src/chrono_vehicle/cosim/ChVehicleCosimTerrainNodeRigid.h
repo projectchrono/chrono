@@ -22,8 +22,6 @@
 #ifndef CH_VEHCOSIM__TERRAINNODE_RIGID_H
 #define CH_VEHCOSIM__TERRAINNODE_RIGID_H
 
-#include <vector>
-
 #include "chrono/utils/ChUtilsCreators.h"
 #include "chrono/utils/ChUtilsGenerators.h"
 #include "chrono/utils/ChUtilsInputOutput.h"

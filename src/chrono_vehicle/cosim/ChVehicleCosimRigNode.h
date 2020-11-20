@@ -28,8 +28,6 @@
 #ifndef CH_VEHCOSIM__RIGNODE_H
 #define CH_VEHCOSIM__RIGNODE_H
 
-#include <vector>
-
 #include "chrono/physics/ChLinkLock.h"
 #include "chrono/physics/ChLinkMotorRotationAngle.h"
 #include "chrono/physics/ChSystemSMC.h"
@@ -119,14 +117,16 @@ class CH_VEHICLE_API ChVehicleCosimRigNode : public ChVehicleCosimBaseNode {
     double m_init_vel;  ///< initial wheel forward linear velocity
     double m_slip;      ///< prescribed longitudinal slip for wheel
 
-    // Current contact forces on tire mesh vertices
-    std::vector<int> m_vert_indices;        ///< indices of vertices experiencing contact forces
-    std::vector<ChVector<>> m_vert_pos;     ///< position of vertices experiencing contact forces
-    std::vector<ChVector<>> m_vert_forces;  ///< contact forces on mesh vertices
+    // Communication data
+    MeshData m_mesh_data;                                 ///< tire mesh data
+    MeshState m_mesh_state;                               ///< tire mesh state
+    MeshContact m_mesh_contact;                           ///< tire mesh contact forces
+    std::shared_ptr<ChMaterialSurfaceSMC> m_contact_mat;  ///< tire contact material
 
   private:
     void Construct();
     virtual void ConstructTire() = 0;
+    virtual bool IsTireRigid() const = 0;
     virtual double GetTireRadius() const = 0;
     virtual double GetTireWidth() const = 0;
 
@@ -169,6 +169,7 @@ class CH_VEHICLE_API ChVehicleCosimRigNodeDeformableTire : public ChVehicleCosim
 
     /// Construct the deformable tire.
     virtual void ConstructTire() override;
+    virtual bool IsTireRigid() const override { return false; }
     virtual double GetTireRadius() const { return m_tire->GetRadius(); }
     virtual double GetTireWidth() const { return m_tire->GetWidth(); }
 
@@ -190,8 +191,8 @@ class CH_VEHICLE_API ChVehicleCosimRigNodeDeformableTire : public ChVehicleCosim
 
     std::shared_ptr<ChDeformableTire> m_tire;                       ///< deformable tire
     std::shared_ptr<fea::ChLoadContactSurfaceMesh> m_contact_load;  ///< tire contact surface
-    std::vector<std::vector<int>> m_adjElements;  ///< list of neighboring elements for each mesh vertex
-    std::vector<std::vector<int>> m_adjVertices;  ///< list of vertex indices for each mesh element
+    std::vector<std::vector<unsigned int>> m_adjElements;  ///< list of neighboring elements for each mesh vertex
+    std::vector<std::vector<unsigned int>> m_adjVertices;  ///< list of vertex indices for each mesh element
 };
 
 // =============================================================================
@@ -220,6 +221,7 @@ class CH_VEHICLE_API ChVehicleCosimRigNodeRigidTire : public ChVehicleCosimRigNo
   private:
     /// Construct the rigid tire.
     virtual void ConstructTire() override;
+    virtual bool IsTireRigid() const override { return true; }
     virtual double GetTireRadius() const { return m_tire->GetRadius(); }
     virtual double GetTireWidth() const { return m_tire->GetWidth(); }
 
@@ -239,9 +241,9 @@ class CH_VEHICLE_API ChVehicleCosimRigNodeRigidTire : public ChVehicleCosimRigNo
     /// Write contact forces on tire mesh vertices.
     void WriteTireContactInformation(utils::CSV_writer& csv);
 
-    std::shared_ptr<ChRigidTire> m_tire;          ///< rigid tire
-    std::vector<std::vector<int>> m_adjElements;  ///< list of neighboring elements for each mesh vertex
-    std::vector<double> m_vertexArea;             ///< representative areas for each mesh vertex
+    std::shared_ptr<ChRigidTire> m_tire;                   ///< rigid tire
+    std::vector<std::vector<unsigned int>> m_adjElements;  ///< list of neighboring elements for each mesh vertex
+    std::vector<double> m_vertexArea;                      ///< representative areas for each mesh vertex
 };
 
 }  // end namespace vehicle

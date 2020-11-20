@@ -214,7 +214,7 @@ void ChVehicleCosimTerrainNodeRigid::Construct() {
 // two members of this family.
 void ChVehicleCosimTerrainNodeRigid::CreateProxies() {
     ChVector<> inertia_p = 0.4 * m_mass_p * m_radius_p * m_radius_p * ChVector<>(1, 1, 1);
-    for (unsigned int iv = 0; iv < m_num_vert; iv++) {
+    for (unsigned int iv = 0; iv < m_mesh_data.nv; iv++) {
         auto body = std::shared_ptr<ChBody>(m_system->NewBody());
         m_system->AddBody(body);
         body->SetIdentifier(iv);
@@ -237,9 +237,9 @@ void ChVehicleCosimTerrainNodeRigid::CreateProxies() {
 // Set position and velocity of proxy bodies based on tire mesh vertices.
 // Set orientation to identity and angular velocity to zero.
 void ChVehicleCosimTerrainNodeRigid::UpdateProxies() {
-    for (unsigned int iv = 0; iv < m_num_vert; iv++) {
-        m_proxies[iv].m_body->SetPos(m_vertex_states[iv].pos);
-        m_proxies[iv].m_body->SetPos_dt(m_vertex_states[iv].vel);
+    for (unsigned int iv = 0; iv < m_mesh_data.nv; iv++) {
+        m_proxies[iv].m_body->SetPos(m_mesh_state.vpos[iv]);
+        m_proxies[iv].m_body->SetPos_dt(m_mesh_state.vvel[iv]);
         m_proxies[iv].m_body->SetRot(ChQuaternion<>(1, 0, 0, 0));
         m_proxies[iv].m_body->SetRot_dt(ChQuaternion<>(0, 0, 0, 0));
     }
@@ -248,7 +248,7 @@ void ChVehicleCosimTerrainNodeRigid::UpdateProxies() {
 // Collect contact forces on the (node) proxy bodies that are in contact.
 // Load mesh vertex forces and corresponding indices.
 void ChVehicleCosimTerrainNodeRigid::ForcesProxies(std::vector<double>& vert_forces, std::vector<int>& vert_indices) {
-    for (unsigned int iv = 0; iv < m_num_vert; iv++) {
+    for (unsigned int iv = 0; iv < m_mesh_data.nv; iv++) {
         ChVector<> force = m_proxies[iv].m_body->GetContactForce();
         if (force.Length() > 1e-15) {
             vert_forces.push_back(force.x());

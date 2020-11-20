@@ -25,8 +25,6 @@
 #ifndef CH_VEHCOSIM__TERRAINNODE_H
 #define CH_VEHCOSIM__TERRAINNODE_H
 
-#include <vector>
-
 #include "chrono/ChConfig.h"
 
 #include "chrono/utils/ChUtilsCreators.h"
@@ -102,18 +100,7 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNode : public ChVehicleCosimBaseNode {
     virtual void OutputData(int frame) override;
 
   protected:
-    /// Triangle vertex indices.
-    struct Triangle {
-        int v1;
-        int v2;
-        int v3;
-    };
 
-    /// Mesh vertex state.
-    struct VertexState {
-        ChVector<> pos;
-        ChVector<> vel;
-    };
 
     /// Association between a proxy body and a mesh index.
     /// The body can be associated with either a mesh vertex or a mesh triangle.
@@ -139,13 +126,11 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNode : public ChVehicleCosimBaseNode {
     double m_hdimZ;   ///< container half-height (Z direction)
     double m_hthick;  ///< container wall half-thickness
 
-    double m_init_height;  ///< initial terrain height (after optional settling)
-
-    unsigned int m_num_vert;  ///< number of tire mesh vertices
-    unsigned int m_num_tri;   ///< number of tire mesh triangles
-
-    std::vector<VertexState> m_vertex_states;  ///< mesh vertex states
-    std::vector<Triangle> m_triangles;         ///< tire mesh connectivity
+    // Communication data
+    MeshData m_mesh_data;    ///< tire mesh data
+    MeshState m_mesh_state;  ///< tire mesh state
+    bool m_rigid_tire;       ///< flag indicating whether the tire is rigid or deformable
+    double m_init_height;    ///< initial terrain height (after optional settling)
 
     bool m_render;  ///< if true, use OpenGL rendering
 

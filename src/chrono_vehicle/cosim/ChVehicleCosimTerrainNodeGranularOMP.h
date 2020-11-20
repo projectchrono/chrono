@@ -27,8 +27,6 @@
 #ifndef TESTRIG_TERRAINNODE_GRANULAR_OMP_H
 #define TESTRIG_TERRAINNODE_GRANULAR_OMP_H
 
-#include <vector>
-
 #include "chrono/utils/ChUtilsCreators.h"
 #include "chrono/utils/ChUtilsGenerators.h"
 #include "chrono/utils/ChUtilsInputOutput.h"

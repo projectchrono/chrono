@@ -428,7 +428,7 @@ void ChVehicleCosimTerrainNodeGranularOMP::CreateProxies() {
     //// RADU TODO:  better approximation of mass / inertia?
     ChVector<> inertia_p = 1e-3 * m_mass_p * ChVector<>(0.1, 0.1, 0.1);
 
-    for (unsigned int it = 0; it < m_num_tri; it++) {
+    for (unsigned int it = 0; it < m_mesh_data.nt; it++) {
         auto body = std::shared_ptr<ChBody>(m_system->NewBody());
         body->SetIdentifier(it);
         body->SetMass(m_mass_p);
@@ -466,11 +466,11 @@ void ChVehicleCosimTerrainNodeGranularOMP::UpdateProxies() {
     // of three real3, one group for each triangle.
     auto& shape_data = m_system->data_manager->shape_data.triangle_rigid;
 
-    for (unsigned int it = 0; it < m_num_tri; it++) {
+    for (unsigned int it = 0; it < m_mesh_data.nt; it++) {
         // Vertex locations (expressed in global frame)
-        const ChVector<>& pA = m_vertex_states[m_triangles[it].v1].pos;
-        const ChVector<>& pB = m_vertex_states[m_triangles[it].v2].pos;
-        const ChVector<>& pC = m_vertex_states[m_triangles[it].v3].pos;
+        const ChVector<>& pA = m_mesh_state.vpos[m_mesh_data.tri[it].x()];
+        const ChVector<>& pB = m_mesh_state.vpos[m_mesh_data.tri[it].y()];
+        const ChVector<>& pC = m_mesh_state.vpos[m_mesh_data.tri[it].z()];
 
         // Position and orientation of proxy body
         ChVector<> pos = (pA + pB + pC) / 3;
@@ -482,9 +482,9 @@ void ChVehicleCosimTerrainNodeGranularOMP::UpdateProxies() {
         // body reference frame, the linear velocity is the average of the 3 vertex velocities.
         // This leaves a 9x3 linear system for the angular velocity which should be solved in a
         // least-square sense:   Ax = b   =>  (A'A)x = A'b
-        const ChVector<>& vA = m_vertex_states[m_triangles[it].v1].vel;
-        const ChVector<>& vB = m_vertex_states[m_triangles[it].v2].vel;
-        const ChVector<>& vC = m_vertex_states[m_triangles[it].v3].vel;
+        const ChVector<>& vA = m_mesh_state.vvel[m_mesh_data.tri[it].x()];
+        const ChVector<>& vB = m_mesh_state.vvel[m_mesh_data.tri[it].y()];
+        const ChVector<>& vC = m_mesh_state.vvel[m_mesh_data.tri[it].z()];
 
         ChVector<> vel = (vA + vB + vC) / 3;
         m_proxies[it].m_body->SetPos_dt(vel);
@@ -534,7 +534,7 @@ void ChVehicleCosimTerrainNodeGranularOMP::ForcesProxies(std::vector<double>& ve
     // Maintain an unordered map of vertex indices and associated contact forces.
     std::unordered_map<int, ChVector<>> my_map;
 
-    for (unsigned int it = 0; it < m_num_tri; it++) {
+    for (unsigned int it = 0; it < m_mesh_data.nt; it++) {
         // Get cumulative contact force at triangle centroid.
         // Do nothing if zero force.
         real3 rforce = m_system->GetBodyContactForce(m_proxies[it].m_body);
@@ -547,25 +547,25 @@ void ChVehicleCosimTerrainNodeGranularOMP::ForcesProxies(std::vector<double>& ve
 
         // For each vertex of the triangle, if it appears in the map, increment
         // the total contact force. Otherwise, insert a new entry in the map.
-        auto v1 = my_map.find(m_triangles[it].v1);
+        auto v1 = my_map.find(m_mesh_data.tri[it].x());
         if (v1 != my_map.end()) {
             v1->second += force;
         } else {
-            my_map[m_triangles[it].v1] = force;
+            my_map[m_mesh_data.tri[it].x()] = force;
         }
 
-        auto v2 = my_map.find(m_triangles[it].v2);
+        auto v2 = my_map.find(m_mesh_data.tri[it].y());
         if (v2 != my_map.end()) {
             v2->second += force;
         } else {
-            my_map[m_triangles[it].v2] = force;
+            my_map[m_mesh_data.tri[it].y()] = force;
         }
 
-        auto v3 = my_map.find(m_triangles[it].v3);
+        auto v3 = my_map.find(m_mesh_data.tri[it].z());
         if (v3 != my_map.end()) {
             v3->second += force;
         } else {
-            my_map[m_triangles[it].v3] = force;
+            my_map[m_mesh_data.tri[it].z()] = force;
         }
     }
 
@@ -667,9 +667,9 @@ void ChVehicleCosimTerrainNodeGranularOMP::PrintProxiesUpdateData() {
 
     {
         auto lowest =
-            std::min_element(m_vertex_states.begin(), m_vertex_states.end(),
-                             [](const VertexState& a, const VertexState& b) { return a.pos.z() < b.pos.z(); });
-        cout << "[Terrain node] lowest vertex:  height = " << (*lowest).pos.z() << endl;
+            std::min_element(m_mesh_state.vpos.begin(), m_mesh_state.vpos.end(),
+                             [](const ChVector<>& a, const ChVector<>& b) { return a.z() < b.z(); });
+        cout << "[Terrain node] lowest vertex:  height = " << (*lowest).z() << endl;
     }
 }
 
