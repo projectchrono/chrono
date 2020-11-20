@@ -12,6 +12,22 @@ ENDIF()
 
 message(STATUS "==== SynChrono module ====")
 
+# Return now if MPI is not available
+if(NOT MPI_CXX_FOUND)
+	message("Chrono::SynChrono requires MPI")
+	set(ENABLE_MODULE_SYNCHRONO OFF CACHE BOOL "Enable the SynChrono module" FORCE)
+	message(STATUS "Chrono::SynChrono disabled")
+	return()
+endif()
+
+# Return now if Chrono::Vehicle is not enabled
+if(NOT ENABLE_MODULE_VEHICLE)
+    message("Chrono::SynChrono depends on Chrono::Vehicle")
+    set(ENABLE_MODULE_SYNCHRONO OFF CACHE BOOL "Enable the SynChrono module" FORCE)
+    message(STATUS "Chrono::SynChrono disabled")
+    return()
+endif()
+
 set(SYN_INCLUDES ${SYN_INCLUDES})
 
 set(SYN_CXX_FLAGS "${CH_CXX_FLAGS}")
@@ -37,8 +53,6 @@ set(SYN_INCLUDES
 #-----------------------------------------------------------------------------
 # Find MPI (Default transport method)
 #-----------------------------------------------------------------------------
-
-find_package(MPI REQUIRED)
 
 set(SYN_INCLUDES
     ${SYN_INCLUDES}
