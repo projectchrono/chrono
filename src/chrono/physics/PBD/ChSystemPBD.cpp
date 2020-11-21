@@ -19,8 +19,8 @@
 
 #include <algorithm>
 
-#include "chrono/physics/ChSystemNSC.h"
-#include "chrono/physics/ChContactContainerNSC.h"
+#include "chrono/physics/PBD/ChSystemPBD.h"
+#include "chrono/physics/PBD/ChContactContainerPBD.h"
 #include "chrono/physics/ChProximityContainer.h"
 #include "chrono/physics/ChSystem.h"
 #include "chrono/collision/ChCollisionSystemBullet.h"
@@ -28,13 +28,13 @@
 namespace chrono {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-CH_FACTORY_REGISTER(ChSystemNSC)
+CH_FACTORY_REGISTER(ChSystemPBD)
 
-ChSystemNSC::ChSystemNSC(bool init_sys)
+ChSystemPBD::ChSystemPBD(bool init_sys)
     : ChSystem() {
     if (init_sys) {
         // Set default contact container
-        contact_container = chrono_types::make_shared<ChContactContainerNSC>();
+        contact_container = chrono_types::make_shared<ChContactContainerPBD>();
         contact_container->SetSystem(this);
 
         // Set default collision engine
@@ -52,16 +52,94 @@ ChSystemNSC::ChSystemNSC(bool init_sys)
     collision::ChCollisionModel::SetDefaultSuggestedMargin(0.01);
 }
 
-ChSystemNSC::ChSystemNSC(const ChSystemNSC& other) : ChSystem(other) {}
+ChSystemPBD::ChSystemPBD(const ChSystemPBD& other) : ChSystem(other) {}
 
-void ChSystemNSC::SetContactContainer(std::shared_ptr<ChContactContainer> container) {
-    if (std::dynamic_pointer_cast<ChContactContainerNSC>(container))
+void ChSystemPBD::SetContactContainer(std::shared_ptr<ChContactContainer> container) {
+    if (std::dynamic_pointer_cast<ChContactContainerPBD>(container))
         ChSystem::SetContactContainer(container);
 }
 
-void ChSystemNSC::ArchiveOUT(ChArchiveOut& marchive) {
+// -----------------------------------------------------------------------------
+//  PERFORM INTEGRATION STEP  using pluggable timestepper
+// -----------------------------------------------------------------------------
+
+
+bool ChSystemPBD::Integrate_Y() {
+	CH_PROFILE("Integrate_Y");
+
+	ResetTimers();
+
+	timer_step.start();
+
+	stepcount++;
+	solvecount = 0;
+	setupcount = 0;
+
+	// Compute contacts and create contact constraints
+	int ncontacts_old = ncontacts;
+	ComputeCollisions();
+
+	// Declare an NSC system as "out of date" if there are contacts
+	if (GetContactMethod() == ChContactMethod::NSC && (ncontacts_old != 0 || ncontacts != 0))
+		is_updated = false;
+
+	// Counts dofs, number of constraints, statistics, etc.
+	// Note: this must be invoked at all times (regardless of the flag is_updated), as various physics items may use
+	// their own Setup to perform operations at the beginning of a step.
+	Setup();
+
+	// If needed, update everything. No need to update visualization assets here.
+	if (!is_updated) {
+		Update(false);
+	}
+
+	// Re-wake the bodies that cannot sleep because they are in contact with
+	// some body that is not in sleep state.
+	//TODO: I had to change ChSystem::ManageSleepingBodies from private to protected. 
+	// Not sure if this is useful, maybe skip smth is abody is sleeping?
+	ManageSleepingBodies();
+
+
+	// Prepare lists of variables and constraints.
+	DescriptorPrepareInject(*descriptor);
+
+	// No need to update counts and offsets, as already done by the above call (in ChSystemDescriptor::EndInsertion)
+	////descriptor->UpdateCountsAndOffsets();
+
+	// Set some settings in timestepper object
+	timestepper->SetQcDoClamp(true);
+	timestepper->SetQcClamping(max_penetration_recovery_speed);
+	if (std::dynamic_pointer_cast<ChTimestepperHHT>(timestepper) ||
+		std::dynamic_pointer_cast<ChTimestepperNewmark>(timestepper))
+		timestepper->SetQcDoClamp(false);
+
+	// PERFORM TIME STEP HERE!
+	{
+		CH_PROFILE("Advance");
+		timer_advance.start();
+		timestepper->Advance(step);
+		timer_advance.stop();
+	}
+
+	// Executes custom processing at the end of step
+	CustomEndOfStep();
+
+	// Call method to gather contact forces/torques in rigid bodies
+	contact_container->ComputeContactForces();
+
+	// Time elapsed for step
+	timer_step.stop();
+
+	// Tentatively mark system as unchanged (i.e., no updated necessary)
+	is_updated = true;
+
+	return true;
+}
+
+
+void ChSystemPBD::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
-    marchive.VersionWrite<ChSystemNSC>();
+    marchive.VersionWrite<ChSystemPBD>();
 
     // serialize parent class
     ChSystem::ArchiveOUT(marchive);
@@ -70,9 +148,9 @@ void ChSystemNSC::ArchiveOUT(ChArchiveOut& marchive) {
 }
 
 // Method to allow de serialization of transient data from archives.
-void ChSystemNSC::ArchiveIN(ChArchiveIn& marchive) {
+void ChSystemPBD::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChSystemNSC>();
+    int version = marchive.VersionRead<ChSystemPBD>();
 
     // deserialize parent class
     ChSystem::ArchiveIN(marchive);

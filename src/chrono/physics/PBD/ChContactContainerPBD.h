@@ -35,19 +35,52 @@ namespace chrono {
 class ChApi ChContactContainerPBD : public ChContactContainerNSC {
 
   public:
-    ChContactContainerPBD();
-    ChContactContainerPBD(const ChContactContainerPBD& other);
-    virtual ~ChContactContainerPBD();
+	ChContactContainerPBD() : ChContactContainerNSC() {};
+    ChContactContainerPBD(const ChContactContainerPBD& other) : ChContactContainerNSC() {};
+
+    virtual ~ChContactContainerPBD() {
+		RemoveAllContacts();
+	}
+
 
     /// "Virtual" copy constructor (covariant return type).
     virtual ChContactContainerPBD* Clone() const override { return new ChContactContainerPBD(*this); }
 
     /// Report the number of added contacts.
-    
-	virtual int GetNcontacts() const override {
-        return n_added_3_3 + n_added_6_3 + n_added_6_6 + n_added_333_3 + n_added_333_6 + n_added_333_333 +
-               n_added_666_3 + n_added_666_6 + n_added_666_333 + n_added_666_666 + n_added_6_6_rolling;
+  private:
+	// PBD solver must access contact tuples
+	std::list<ChContactNSC_6_6*>& Get_6_6_clist() {
+		return contactlist_6_6;
     }
+	std::list<ChContactNSC_6_3*>& Get_6_3_clist() {
+		return contactlist_6_3;
+	}
+	std::list<ChContactNSC_3_3*>& Get_3_3_clist() {
+		return contactlist_3_3;
+	}
+	std::list<ChContactNSC_333_3*>& Get_333_3_clist() {
+		return contactlist_333_3;
+	}
+	std::list<ChContactNSC_333_6*>& Get_333_6_clist() {
+		return contactlist_333_6;
+	}
+	std::list<ChContactNSC_333_333*>& Get_333_333_clist() {
+		return contactlist_333_333;
+	}
+	std::list<ChContactNSC_666_3*>& Get_666_3_clist() {
+		return contactlist_666_3;
+	}
+	std::list<ChContactNSC_666_6*>& Get_666_6_clist() {
+		return contactlist_666_6;
+	}
+	std::list<ChContactNSC_666_333*>& Get_666_333_clist() {
+		return contactlist_666_333;
+	}
+	std::list<ChContactNSC_666_666*>& Get_666_666_clist() {
+		return contactlist_666_666;
+	}
+	friend class ChSystemPBD;
+	friend class ChPBDutils;
 
 };
 

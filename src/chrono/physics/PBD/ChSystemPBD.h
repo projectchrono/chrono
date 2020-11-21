@@ -12,8 +12,8 @@
 // Authors: Simone Benatti
 // =============================================================================
 //
-// Physical system in which contact is modeled using a non-smooth
-// (complementarity-based) method.
+// Physical system in which the dyinamics step is performed using the Position Based method
+// Matthias Müller: Detailed Rigid Body Simulation using Extended Position Based Dynamics
 //
 // =============================================================================
 
@@ -26,27 +26,32 @@ namespace chrono {
 
 /// Class for a physical system in which contact is modeled using a non-smooth
 /// (complementarity-based) method.
-class ChApi ChSystemNSC : public ChSystem {
+class ChApi ChSystemPBD : public ChSystem {
 
   public:
     /// Create a physical system.
     /// If init_sys is false, the collision system oand solver are not initialized.
-    ChSystemNSC(bool init_sys = true);
+	ChSystemPBD(bool init_sys = true);
 
     /// Copy constructor
-    ChSystemNSC(const ChSystemNSC& other);
+	ChSystemPBD(const ChSystemPBD& other);
 
     /// Destructor
-    virtual ~ChSystemNSC() {}
+    virtual ~ChSystemPBD() {}
 
     /// "Virtual" copy constructor (covariant return type).
-    virtual ChSystemNSC* Clone() const override { return new ChSystemNSC(*this); }
+    virtual ChSystemPBD* Clone() const override { return new ChSystemPBD(*this); }
 
     /// Return the contact method supported by this system.
     virtual ChContactMethod GetContactMethod() const override final { return ChContactMethod::NSC; }
 
     /// Replace the contact container.
     virtual void SetContactContainer(std::shared_ptr<ChContactContainer> container) override;
+
+	/// Performs a single dynamical simulation step, according to
+	/// current values of:  Y, time, step  (and other minor settings)
+	/// Depending on the integration type, it switches to one of the following:
+	bool Integrate_Y() override;
 
     // SERIALIZATION
 
@@ -57,7 +62,7 @@ class ChApi ChSystemNSC : public ChSystem {
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
 
-CH_CLASS_VERSION(ChSystemNSC, 0)
+CH_CLASS_VERSION(ChSystemPBD, 0)
 
 }  // end namespace chrono
 
