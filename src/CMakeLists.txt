@@ -12,6 +12,13 @@ option(BUILD_DEMOS "Build demo programs" ON)
 option(BUILD_BENCHMARKING "Build benchmark tests" OFF)
 
 #-----------------------------------------------------------------------------
+# Search prefixes specified by <PackageName>_ROOT
+#-----------------------------------------------------------------------------
+if (POLICY CMP0074)
+  cmake_policy(SET CMP0074 NEW)
+endif()
+
+#-----------------------------------------------------------------------------
 # Collect compiler flags required to build the Chrono libraries
 #-----------------------------------------------------------------------------
 
