@@ -22,9 +22,6 @@
 //
 // =============================================================================
 
-//// TODO:
-////    mesh connectivity doesn't need to be communicated every time (modify Chrono?)
-
 #include <algorithm>
 #include <set>
 #include <vector>
@@ -511,11 +508,14 @@ void ChVehicleCosimRigNodeDeformableTire::InitializeTire() {
     m_contact_load = chrono_types::make_shared<fea::ChLoadContactSurfaceMesh>(contact_surface);
     m_tire->GetLoadContainer()->Add(m_contact_load);
 
-    // Set mesh data (initial configuration)
+    // Set mesh data (initial configuration, vertex positions in local frame)
     m_mesh_data.nv = contact_surface->GetNumVertices();
     m_mesh_data.nt = contact_surface->GetNumTriangles();
     std::vector<ChVector<>> vvel;
     m_contact_load->OutputSimpleMesh(m_mesh_data.vpos, vvel, m_mesh_data.tri);
+    for (unsigned int iv = 0; iv < m_mesh_data.nv; iv++) {
+        m_mesh_data.vpos[iv] = m_rim->TransformPointParentToLocal(m_mesh_data.vpos[iv]);
+    }
 
     // Tire contact material
     m_contact_mat = m_tire->GetContactMaterial();
@@ -544,7 +544,7 @@ void ChVehicleCosimRigNodeRigidTire::InitializeTire() {
     m_wheel->SetTire(m_tire);                                       // technically not really needed here
     std::static_pointer_cast<ChTire>(m_tire)->Initialize(m_wheel);  // hack to call protected virtual method
 
-    // Set mesh data
+    // Set mesh data (vertex positions in local frame)
     m_mesh_data.nv = m_tire->GetNumVertices();
     m_mesh_data.nt = m_tire->GetNumTriangles();
     m_mesh_data.vpos = m_tire->GetMeshVertices();
@@ -612,24 +612,21 @@ void ChVehicleCosimRigNodeDeformableTire::Synchronize(int step_number, double ti
     // Receive terrain forces.
     // Note that we use MPI_Probe to figure out the number of indices and forces received.
     MPI_Status status;
-    int count;
     MPI_Probe(TERRAIN_NODE_RANK, step_number, MPI_COMM_WORLD, &status);
-    MPI_Get_count(&status, MPI_INT, &count);
-    int* index_data = new int[count];
-    double* force_data = new double[3 * count];
-    MPI_Recv(index_data, count, MPI_INT, TERRAIN_NODE_RANK, step_number, MPI_COMM_WORLD, &status);
-    MPI_Recv(force_data, 3 * count, MPI_DOUBLE, TERRAIN_NODE_RANK, step_number, MPI_COMM_WORLD, &status);
+    MPI_Get_count(&status, MPI_INT, &m_mesh_contact.nv);
+    int* index_data = new int[m_mesh_contact.nv];
+    double* force_data = new double[3 * m_mesh_contact.nv];
+    MPI_Recv(index_data, m_mesh_contact.nv, MPI_INT, TERRAIN_NODE_RANK, step_number, MPI_COMM_WORLD, &status);
+    MPI_Recv(force_data, 3 * m_mesh_contact.nv, MPI_DOUBLE, TERRAIN_NODE_RANK, step_number, MPI_COMM_WORLD, &status);
 
-    cout << "[Rig node    ] step number: " << step_number << "  vertices in contact: " << count << endl;
+    cout << "[Rig node    ] step number: " << step_number << "  vertices in contact: " << m_mesh_contact.nv << endl;
 
     // Repack data and apply forces to the mesh vertices
-    m_mesh_contact.vidx.resize(count);
-    m_mesh_contact.vpos.resize(count);
-    m_mesh_contact.vforce.resize(count);
-    for (int iv = 0; iv < count; iv++) {
+    m_mesh_contact.vidx.resize(m_mesh_contact.nv);
+    m_mesh_contact.vforce.resize(m_mesh_contact.nv);
+    for (int iv = 0; iv < m_mesh_contact.nv; iv++) {
         int index = index_data[iv];
         m_mesh_contact.vidx[iv] = index;
-        m_mesh_contact.vpos[iv] = m_mesh_state.vpos[index];
         m_mesh_contact.vforce[iv] = ChVector<>(force_data[3 * iv + 0], force_data[3 * iv + 1], force_data[3 * iv + 2]);
     }
     m_contact_load->InputSimpleForces(m_mesh_contact.vforce, m_mesh_contact.vidx);
@@ -642,60 +639,29 @@ void ChVehicleCosimRigNodeDeformableTire::Synchronize(int step_number, double ti
 }
 
 void ChVehicleCosimRigNodeRigidTire::Synchronize(int step_number, double time) {
-    // Get current contact mesh vertex positions and velocities.
-    m_tire->GetMeshVertexStates(m_mesh_state.vpos, m_mesh_state.vvel);
+    // Send wheel state to the terrain node
+    m_wheel_state = m_wheel->GetState();
+    double state_data[] = {
+        m_wheel_state.pos.x(),     m_wheel_state.pos.y(),     m_wheel_state.pos.z(),                              //
+        m_wheel_state.rot.e0(),    m_wheel_state.rot.e1(),    m_wheel_state.rot.e2(),    m_wheel_state.rot.e3(),  //
+        m_wheel_state.lin_vel.x(), m_wheel_state.lin_vel.y(), m_wheel_state.lin_vel.z(),                          //
+        m_wheel_state.ang_vel.x(), m_wheel_state.ang_vel.y(), m_wheel_state.ang_vel.z(),                          //
+        m_wheel_state.omega                                                                                       //
+    };
+    MPI_Send(state_data, 14, MPI_DOUBLE, TERRAIN_NODE_RANK, step_number, MPI_COMM_WORLD);
 
-    // Display information on lowest contact vertex.
-    PrintLowestVertex(m_mesh_state.vpos, m_mesh_state.vvel);
-
-    // Send tire mesh vertex locations and velocities to the terrain node
-    double* vert_data = new double[2 * 3 * m_mesh_data.nv];
-    for (unsigned int iv = 0; iv < m_mesh_data.nv; iv++) {
-        vert_data[3 * iv + 0] = m_mesh_state.vpos[iv].x();
-        vert_data[3 * iv + 1] = m_mesh_state.vpos[iv].y();
-        vert_data[3 * iv + 2] = m_mesh_state.vpos[iv].z();
-    }
-    for (unsigned int iv = 0; iv < m_mesh_data.nv; iv++) {
-        vert_data[3 * m_mesh_data.nv + 3 * iv + 0] = m_mesh_state.vvel[iv].x();
-        vert_data[3 * m_mesh_data.nv + 3 * iv + 1] = m_mesh_state.vvel[iv].y();
-        vert_data[3 * m_mesh_data.nv + 3 * iv + 2] = m_mesh_state.vvel[iv].z();
-    }
-    MPI_Send(vert_data, 2 * 3 * m_mesh_data.nv, MPI_DOUBLE, TERRAIN_NODE_RANK, step_number, MPI_COMM_WORLD);
-
-    // Receive terrain forces.
-    // Note that we use MPI_Probe to figure out the number of indices and forces received.
+    // Receive terrain force.
+    // Note that we assume this is the resultant wrench at the wheel origin (expressed in absolute frame).
+    double force_data[6];
     MPI_Status status;
-    int count;
-    MPI_Probe(TERRAIN_NODE_RANK, step_number, MPI_COMM_WORLD, &status);
-    MPI_Get_count(&status, MPI_INT, &count);
-    int* index_data = new int[count];
-    double* force_data = new double[3 * count];
-    MPI_Recv(index_data, count, MPI_INT, TERRAIN_NODE_RANK, step_number, MPI_COMM_WORLD, &status);
-    MPI_Recv(force_data, 3 * count, MPI_DOUBLE, TERRAIN_NODE_RANK, step_number, MPI_COMM_WORLD, &status);
-
-    cout << "[Rig node    ] step number: " << step_number << "  vertices in contact: " << count << endl;
-
-    // Repack data and apply forces to the rim body
-    m_mesh_contact.vidx.resize(count);
-    m_mesh_contact.vpos.resize(count);
-    m_mesh_contact.vforce.resize(count);
-    for (int iv = 0; iv < count; iv++) {
-        int index = index_data[iv];
-        m_mesh_contact.vidx[iv] = index;
-        m_mesh_contact.vpos[iv] = m_mesh_state.vpos[index];
-        m_mesh_contact.vforce[iv] = ChVector<>(force_data[3 * iv + 0], force_data[3 * iv + 1], force_data[3 * iv + 2]);
-    }
+    MPI_Recv(force_data, 6, MPI_DOUBLE, TERRAIN_NODE_RANK, step_number, MPI_COMM_WORLD, &status);
+    m_wheel_contact.point = ChVector<>(0, 0, 0);
+    m_wheel_contact.force = ChVector<>(force_data[0], force_data[1], force_data[2]);
+    m_wheel_contact.moment = ChVector<>(force_data[3], force_data[4], force_data[5]);
 
     m_rim->Empty_forces_accumulators();
-    for (size_t i = 0; i < count; ++i) {
-        m_rim->Accumulate_force(m_mesh_contact.vforce[i], m_mesh_contact.vpos[i], false);
-    }
-
-    PrintContactData(m_mesh_contact.vforce, m_mesh_contact.vidx);
-
-    delete[] vert_data;
-    delete[] index_data;
-    delete[] force_data;
+    m_rim->Accumulate_force(m_wheel_contact.force, m_wheel_contact.force, false);
+    m_rim->Accumulate_torque(m_wheel_contact.moment, false);
 }
 
 // -----------------------------------------------------------------------------
@@ -908,8 +874,7 @@ void ChVehicleCosimRigNodeDeformableTire::WriteTireContactInformation(utils::CSV
         }
         area /= m_adjElements[in].size();
         // Output vertex index, position, contact force, normal, and area.
-        csv << in << m_mesh_contact.vpos[iv] << m_mesh_contact.vforce[iv] << node->GetD().GetNormalized() << area
-            << endl;
+        csv << in << m_mesh_state.vpos[in] << m_mesh_contact.vforce[iv] << node->GetD().GetNormalized() << area << endl;
     }
 }
 
@@ -947,14 +912,14 @@ void ChVehicleCosimRigNodeRigidTire::WriteTireContactInformation(utils::CSV_writ
     for (unsigned int iv = 0; iv < m_mesh_contact.vidx.size(); iv++) {
         int in = m_mesh_contact.vidx[iv];
         ChVector<> nrm = m_rim->TransformDirectionLocalToParent(normals[in]);
-        csv << in << m_mesh_contact.vpos[iv] << m_mesh_contact.vforce[iv] << nrm << m_vertexArea[in] << endl;
+        csv << in << m_mesh_state.vpos[in] << m_mesh_contact.vforce[iv] << nrm << m_vertexArea[in] << endl;
     }
 }
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-void ChVehicleCosimRigNode::PrintLowestVertex(const std::vector<ChVector<>>& vert_pos,
-                                              const std::vector<ChVector<>>& vert_vel) {
+
+void ChVehicleCosimRigNodeDeformableTire::PrintLowestVertex(const std::vector<ChVector<>>& vert_pos,
+                                                            const std::vector<ChVector<>>& vert_vel) {
     auto lowest = std::min_element(vert_pos.begin(), vert_pos.end(),
                                    [](const ChVector<>& a, const ChVector<>& b) { return a.z() < b.z(); });
     auto index = lowest - vert_pos.begin();
@@ -963,9 +928,8 @@ void ChVehicleCosimRigNode::PrintLowestVertex(const std::vector<ChVector<>>& ver
          << "  velocity = " << vel.x() << "  " << vel.y() << "  " << vel.z() << endl;
 }
 
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-void ChVehicleCosimRigNode::PrintContactData(const std::vector<ChVector<>>& forces, const std::vector<int>& indices) {
+void ChVehicleCosimRigNodeDeformableTire::PrintContactData(const std::vector<ChVector<>>& forces,
+                                                           const std::vector<int>& indices) {
     cout << "[Rig node    ] contact forces" << endl;
     for (int i = 0; i < indices.size(); i++) {
         cout << "  id = " << indices[i] << "  force = " << forces[i].x() << "  " << forces[i].y() << "  "
@@ -973,8 +937,6 @@ void ChVehicleCosimRigNode::PrintContactData(const std::vector<ChVector<>>& forc
     }
 }
 
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 void ChVehicleCosimRigNodeDeformableTire::PrintLowestNode() {
     // Unfortunately, we do not have access to the node container of a mesh,
     // so we cannot use some nice algorithm here...

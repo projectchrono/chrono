@@ -19,17 +19,8 @@
 //
 // =============================================================================
 
-//// TODO:
-////    better approximation of mass / inertia? (CreateProxies)
-////    angular velocity (UpdateProxies)
-////    implement (PrintProxiesContactData)
-
 #ifndef TESTRIG_TERRAINNODE_GRANULAR_OMP_H
 #define TESTRIG_TERRAINNODE_GRANULAR_OMP_H
-
-#include "chrono/utils/ChUtilsCreators.h"
-#include "chrono/utils/ChUtilsGenerators.h"
-#include "chrono/utils/ChUtilsInputOutput.h"
 
 #include "chrono_parallel/physics/ChSystemParallel.h"
 
@@ -49,6 +40,11 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularOMP : public ChVehicleCosi
     ~ChVehicleCosimTerrainNodeGranularOMP();
 
     virtual ChSystem* GetSystem() override { return m_system; }
+
+    /// Set container dimensions (wall height and thickness)
+    void SetContainerDimensions(double height,    ///< height in Z direction (default: 1)
+                                double thickness  ///< wall thickness (default: 0.2)
+    );
 
     /// Set properties of granular material.
     void SetGranularMaterial(double radius,   ///< particle radius (default: 0.01)
@@ -91,6 +87,9 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularOMP : public ChVehicleCosi
     ChSystemParallel* m_system;  ///< containing system
     bool m_constructed;          ///< system construction completed?
 
+    double m_hdimZ;   ///< container half-height (Z direction)
+    double m_hthick;  ///< container wall half-thickness
+
     bool m_use_checkpoint;         ///< initialize granular terrain from checkpoint file
     int m_Id_g;                    ///< first identifier for granular material bodies
     int m_num_layers;              ///< number of generated particle layers
@@ -108,11 +107,19 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularOMP : public ChVehicleCosi
     // Private methods
 
     virtual void Construct() override;
-    virtual void CreateProxies() override;
-    virtual void UpdateProxies() override;
-    virtual void ForcesProxies(std::vector<double>& vert_forces, std::vector<int>& vert_indices) override;
-    virtual void PrintProxiesUpdateData() override;
-    virtual void PrintProxiesContactData() override;
+
+    virtual void CreateMeshProxies() override;
+    virtual void UpdateMeshProxies() override;
+    virtual void GetForcesMeshProxies() override;
+    virtual void PrintMeshProxiesUpdateData() override;
+    virtual void PrintMeshProxiesContactData() override;
+
+    virtual void CreateWheelProxy() override;
+    virtual void UpdateWheelProxy() override;
+    virtual void GetForceWheelProxy() override;
+    virtual void PrintWheelProxyUpdateData() override;
+    virtual void PrintWheelProxyContactData() override;
+
     virtual void OutputTerrainData(int frame) override;
     virtual void OnSynchronize(int step_number, double time) override;
     virtual void OnAdvance(double step_size) override;

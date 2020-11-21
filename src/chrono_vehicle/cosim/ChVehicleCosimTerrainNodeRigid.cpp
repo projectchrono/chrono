@@ -25,6 +25,10 @@
 
 #include <mpi.h>
 
+#include "chrono/utils/ChUtilsCreators.h"
+#include "chrono/utils/ChUtilsGenerators.h"
+#include "chrono/utils/ChUtilsInputOutput.h"
+
 #include "chrono_vehicle/cosim/ChVehicleCosimTerrainNodeRigid.h"
 
 #ifdef CHRONO_OPENGL
@@ -46,16 +50,6 @@ ChVehicleCosimTerrainNodeRigid::ChVehicleCosimTerrainNodeRigid(ChContactMethod m
     : ChVehicleCosimTerrainNode(Type::RIGID, method, render) {
     cout << "[Terrain node] RIGID "
          << " method = " << static_cast<std::underlying_type<ChContactMethod>::type>(method) << endl;
-
-    // ------------------------
-    // Default model parameters
-    // ------------------------
-
-    // Default container dimensions
-    m_hdimX = 1.0;
-    m_hdimY = 0.25;
-    m_hdimZ = 0.5;
-    m_hthick = 0.1;
 
     // --------------------------
     // Create the parallel system
@@ -142,14 +136,12 @@ void ChVehicleCosimTerrainNodeRigid::Construct() {
 
     container->GetCollisionModel()->ClearModel();
     // Bottom box
-    utils::AddBoxGeometry(container.get(), m_material_terrain, ChVector<>(m_hdimX, m_hdimY, m_hthick),
-                          ChVector<>(0, 0, -m_hthick), ChQuaternion<>(1, 0, 0, 0), true);
+    utils::AddBoxGeometry(container.get(), m_material_terrain, ChVector<>(m_hdimX, m_hdimY, 0.1),
+                          ChVector<>(0, 0, -0.1), ChQuaternion<>(1, 0, 0, 0), true);
 
     // If using RIGID terrain, the contact will be between the container and proxy bodies.
     // Since collision between two bodies fixed to ground is ignored, if the proxy bodies
     // are fixed, we make the container a free body connected through a weld joint to ground.
-    // If using GRANULAR terrain, this is not an issue as the proxy bodies do not interact
-    // with the container, but rather with the granular material.
     if (m_fixed_proxies) {
         container->SetBodyFixed(false);
 
@@ -175,9 +167,8 @@ void ChVehicleCosimTerrainNodeRigid::Construct() {
     outf << "   Contact method = " << (m_method == ChContactMethod::SMC ? "SMC" : "NSC") << endl;
     m_system->GetCollisionSystem();
     outf << "   Collision envelope = " << collision::ChCollisionModel::GetDefaultSuggestedEnvelope() << endl;
-    outf << "Container dimensions" << endl;
-    outf << "   X = " << 2 * m_hdimX << "  Y = " << 2 * m_hdimY << "  Z = " << 2 * m_hdimZ << endl;
-    outf << "   wall thickness = " << 2 * m_hthick << endl;
+    outf << "Patch dimensions" << endl;
+    outf << "   X = " << 2 * m_hdimX << "  Y = " << 2 * m_hdimY << endl;
     outf << "Terrain material properties" << endl;
     switch (m_method) {
         case ChContactMethod::SMC: {
@@ -208,15 +199,15 @@ void ChVehicleCosimTerrainNodeRigid::Construct() {
 }
 
 // Create bodies with spherical contact geometry as proxies for the tire mesh vertices.
+// Used for deformable tires.
 // Assign to each body an identifier equal to the index of its corresponding mesh vertex.
 // Maintain a list of all bodies associated with the tire.
 // Add all proxy bodies to the same collision family and disable collision between any
 // two members of this family.
-void ChVehicleCosimTerrainNodeRigid::CreateProxies() {
+void ChVehicleCosimTerrainNodeRigid::CreateMeshProxies() {
     ChVector<> inertia_p = 0.4 * m_mass_p * m_radius_p * m_radius_p * ChVector<>(1, 1, 1);
     for (unsigned int iv = 0; iv < m_mesh_data.nv; iv++) {
         auto body = std::shared_ptr<ChBody>(m_system->NewBody());
-        m_system->AddBody(body);
         body->SetIdentifier(iv);
         body->SetMass(m_mass_p);
         body->SetInertiaXX(inertia_p);
@@ -230,13 +221,47 @@ void ChVehicleCosimTerrainNodeRigid::CreateProxies() {
         body->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(1);
         body->GetCollisionModel()->BuildModel();
 
+        m_system->AddBody(body);
         m_proxies.push_back(ProxyBody(body, iv));
     }
 }
 
+void ChVehicleCosimTerrainNodeRigid::CreateWheelProxy() {
+    // Create wheel proxy body
+    auto body = std::shared_ptr<ChBody>(m_system->NewBody());
+    body->SetIdentifier(0);
+    body->SetMass(m_mass_p);
+    ////body->SetInertiaXX();   //// TODO
+    body->SetBodyFixed(m_fixed_proxies);
+    body->SetCollide(true);
+
+    // Create collision mesh
+    auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
+    trimesh->getCoordsVertices() = m_mesh_data.vpos;
+    trimesh->getIndicesVertexes() = m_mesh_data.tri;
+
+    // Set collision shape
+    body->GetCollisionModel()->ClearModel();
+    body->GetCollisionModel()->AddTriangleMesh(m_material_tire, trimesh, false, false, ChVector<>(0), ChMatrix33<>(1),
+                                               m_radius_p);
+    body->GetCollisionModel()->SetFamily(1);
+    body->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(1);
+    body->GetCollisionModel()->BuildModel();
+
+    // Set visualization asset
+    auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
+    trimesh_shape->SetMesh(trimesh);
+    trimesh_shape->Pos = ChVector<>(0, 0, 0);
+    trimesh_shape->Rot = ChQuaternion<>(1, 0, 0, 0);
+    body->GetAssets().push_back(trimesh_shape);
+
+    m_system->AddBody(body);
+    m_proxies.push_back(ProxyBody(body, 0));
+}
+
 // Set position and velocity of proxy bodies based on tire mesh vertices.
 // Set orientation to identity and angular velocity to zero.
-void ChVehicleCosimTerrainNodeRigid::UpdateProxies() {
+void ChVehicleCosimTerrainNodeRigid::UpdateMeshProxies() {
     for (unsigned int iv = 0; iv < m_mesh_data.nv; iv++) {
         m_proxies[iv].m_body->SetPos(m_mesh_state.vpos[iv]);
         m_proxies[iv].m_body->SetPos_dt(m_mesh_state.vvel[iv]);
@@ -245,18 +270,33 @@ void ChVehicleCosimTerrainNodeRigid::UpdateProxies() {
     }
 }
 
+// Set state of wheel proxy body.
+void ChVehicleCosimTerrainNodeRigid::UpdateWheelProxy() {
+    m_proxies[0].m_body->SetPos(m_wheel_state.pos);
+    m_proxies[0].m_body->SetPos_dt(m_wheel_state.lin_vel);
+    m_proxies[0].m_body->SetRot(m_wheel_state.rot);
+    m_proxies[0].m_body->SetWvel_par(m_wheel_state.ang_vel);
+}
+
 // Collect contact forces on the (node) proxy bodies that are in contact.
 // Load mesh vertex forces and corresponding indices.
-void ChVehicleCosimTerrainNodeRigid::ForcesProxies(std::vector<double>& vert_forces, std::vector<int>& vert_indices) {
+void ChVehicleCosimTerrainNodeRigid::GetForcesMeshProxies() {
+    m_mesh_contact.nv = 0;
     for (unsigned int iv = 0; iv < m_mesh_data.nv; iv++) {
         ChVector<> force = m_proxies[iv].m_body->GetContactForce();
         if (force.Length() > 1e-15) {
-            vert_forces.push_back(force.x());
-            vert_forces.push_back(force.y());
-            vert_forces.push_back(force.z());
-            vert_indices.push_back(m_proxies[iv].m_index);
+            m_mesh_contact.vforce.push_back(force);
+            m_mesh_contact.vidx.push_back(m_proxies[iv].m_index);
+            m_mesh_contact.nv++;
         }
     }
+}
+
+// Collect resultant contact force and torque on wheel proxy body.
+void ChVehicleCosimTerrainNodeRigid::GetForceWheelProxy() {
+    m_wheel_contact.point = ChVector<>(0, 0, 0);
+    m_wheel_contact.force = m_proxies[0].m_body->GetContactForce();
+    m_wheel_contact.moment = m_proxies[0].m_body->GetContactTorque();
 }
 
 // -----------------------------------------------------------------------------
@@ -289,8 +329,22 @@ void ChVehicleCosimTerrainNodeRigid::OutputTerrainData(int frame) {
 }
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-void ChVehicleCosimTerrainNodeRigid::PrintProxiesContactData() {
+
+void ChVehicleCosimTerrainNodeRigid::PrintMeshProxiesUpdateData() {
+    auto lowest = std::min_element(m_proxies.begin(), m_proxies.end(), [](const ProxyBody& a, const ProxyBody& b) {
+        return a.m_body->GetPos().z() < b.m_body->GetPos().z();
+    });
+    const ChVector<>& vel = (*lowest).m_body->GetPos_dt();
+    double height = (*lowest).m_body->GetPos().z();
+    cout << "[Terrain node] lowest proxy:  index = " << (*lowest).m_index << "  height = " << height
+         << "  velocity = " << vel.x() << "  " << vel.y() << "  " << vel.z() << endl;
+}
+
+void ChVehicleCosimTerrainNodeRigid::PrintWheelProxyUpdateData() {
+    //// TODO
+}
+
+void ChVehicleCosimTerrainNodeRigid::PrintMeshProxiesContactData() {
     //// RADU TODO
 
     /*
@@ -342,16 +396,8 @@ void ChVehicleCosimTerrainNodeRigid::PrintProxiesContactData() {
     ////}
 }
 
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-void ChVehicleCosimTerrainNodeRigid::PrintProxiesUpdateData() {
-    auto lowest = std::min_element(m_proxies.begin(), m_proxies.end(), [](const ProxyBody& a, const ProxyBody& b) {
-        return a.m_body->GetPos().z() < b.m_body->GetPos().z();
-    });
-    const ChVector<>& vel = (*lowest).m_body->GetPos_dt();
-    double height = (*lowest).m_body->GetPos().z();
-    cout << "[Terrain node] lowest proxy:  index = " << (*lowest).m_index << "  height = " << height
-         << "  velocity = " << vel.x() << "  " << vel.y() << "  " << vel.z() << endl;
+void ChVehicleCosimTerrainNodeRigid::PrintWheelProxyContactData() {
+    //// RADU TODO: implement this
 }
 
 }  // end namespace vehicle

@@ -22,9 +22,6 @@
 //
 // =============================================================================
 
-//// RADU TODO:
-////    mesh connectivity doesn't need to be communicated every time (modify Chrono?)
-
 #include <algorithm>
 #include <cmath>
 
@@ -45,11 +42,9 @@ namespace vehicle {
 // -----------------------------------------------------------------------------
 ChVehicleCosimTerrainNode::ChVehicleCosimTerrainNode(Type type, ChContactMethod method, bool render)
     : ChVehicleCosimBaseNode("TERRAIN"), m_type(type), m_method(method), m_render(render), m_init_height(0) {
-    // Default container dimensions
+    // Default patch dimensions
     m_hdimX = 1.0;
     m_hdimY = 0.25;
-    m_hdimZ = 0.5;
-    m_hthick = 0.1;
 
     // Default proxy body properties
     m_fixed_proxies = false;
@@ -69,11 +64,9 @@ ChVehicleCosimTerrainNode::ChVehicleCosimTerrainNode(Type type, ChContactMethod 
 
 // -----------------------------------------------------------------------------
 
-void ChVehicleCosimTerrainNode::SetContainerDimensions(double length, double width, double height, double thickness) {
+void ChVehicleCosimTerrainNode::SetPatchDimensions(double length, double width) {
     m_hdimX = length / 2;
     m_hdimY = width / 2;
-    m_hdimZ = height / 2;
-    m_hthick = thickness / 2;
 }
 
 void ChVehicleCosimTerrainNode::SetProxyProperties(double mass, double radius, bool fixed) {
@@ -196,7 +189,10 @@ void ChVehicleCosimTerrainNode::Initialize() {
     // Create proxy bodies
     // -------------------
 
-    CreateProxies();
+    if (m_rigid_tire)
+        CreateWheelProxy();
+    else
+        CreateMeshProxies();
 }
 
 // -----------------------------------------------------------------------------
@@ -206,7 +202,49 @@ void ChVehicleCosimTerrainNode::Initialize() {
 // - extract and send forces at each vertex
 // -----------------------------------------------------------------------------
 void ChVehicleCosimTerrainNode::Synchronize(int step_number, double time) {
-    // Receive tire mesh vertex locations and velocities.
+    if (m_rigid_tire) {
+        SynchronizeRigidTire(step_number, time);
+    } else {
+        SynchronizeDeformableTire(step_number, time);
+    }
+
+    // Let derived classes perform optional operations
+    OnSynchronize(step_number, time);
+}
+
+void ChVehicleCosimTerrainNode::SynchronizeRigidTire(int step_number, double time) {
+    // Receive wheel state data
+    MPI_Status status;
+    double state_data[14];
+    MPI_Recv(state_data, 14, MPI_DOUBLE, RIG_NODE_RANK, step_number, MPI_COMM_WORLD, &status);
+
+    m_wheel_state.pos = ChVector<>(state_data[0], state_data[1], state_data[2]);
+    m_wheel_state.rot = ChQuaternion<>(state_data[3], state_data[4], state_data[5], state_data[6]);
+    m_wheel_state.lin_vel = ChVector<>(state_data[7], state_data[8], state_data[9]);
+    m_wheel_state.ang_vel = ChVector<>(state_data[10], state_data[11], state_data[12]);
+    m_wheel_state.omega = state_data[13];
+
+    // Set position, rotation, and velocities of wheel proxy body.
+    UpdateWheelProxy();
+    PrintWheelProxyUpdateData();
+
+    // Collect contact force on wheel proxy and load in m_wheel_contact. 
+    // It is assumed that this force is given at wheel center.
+    // Note that no force is collected at the first step.
+    if (step_number > 0) {
+        GetForceWheelProxy();
+    }
+
+    // Send wheel contact force.
+    double force_data[] = {m_wheel_contact.force.x(),  m_wheel_contact.force.y(),  m_wheel_contact.force.z(),
+                           m_wheel_contact.moment.x(), m_wheel_contact.moment.y(), m_wheel_contact.moment.z()};
+    MPI_Send(force_data, 6, MPI_DOUBLE, RIG_NODE_RANK, step_number, MPI_COMM_WORLD);
+
+    cout << "[Terrain node] step number: " << step_number << "  num contacts: " << GetSystem()->GetNcontacts() << endl;
+}
+
+void ChVehicleCosimTerrainNode::SynchronizeDeformableTire(int step_number, double time) {
+    // Receive mesh state data
     MPI_Status status;
     double* vert_data = new double[2 * 3 * m_mesh_data.nv];
     MPI_Recv(vert_data, 2 * 3 * m_mesh_data.nv, MPI_DOUBLE, RIG_NODE_RANK, step_number, MPI_COMM_WORLD, &status);
@@ -218,33 +256,33 @@ void ChVehicleCosimTerrainNode::Synchronize(int step_number, double time) {
         m_mesh_state.vvel[iv] = ChVector<>(vert_data[offset + 0], vert_data[offset + 1], vert_data[offset + 2]);
     }
 
-    delete[] vert_data;
-
     ////PrintMeshUpdateData();
 
+    delete[] vert_data;
+
     // Set position, rotation, and velocity of proxy bodies.
-    UpdateProxies();
-    PrintProxiesUpdateData();
+    UpdateMeshProxies();
+    PrintMeshProxiesUpdateData();
 
-    // Collect contact forces on subset of mesh vertices.
+    // Collect contact forces on subset of mesh vertices and load in m_mesh_contact.
     // Note that no forces are collected at the first step.
-    std::vector<double> vert_forces;
-    std::vector<int> vert_indices;
-
-    if (step_number > 0) {
-        ForcesProxies(vert_forces, vert_indices);
-    }
+    if (step_number > 0)
+        GetForcesMeshProxies();
 
     // Send vertex indices and forces.
-    int num_vert = (int)vert_indices.size();
-    MPI_Send(vert_indices.data(), num_vert, MPI_INT, RIG_NODE_RANK, step_number, MPI_COMM_WORLD);
-    MPI_Send(vert_forces.data(), 3 * num_vert, MPI_DOUBLE, RIG_NODE_RANK, step_number, MPI_COMM_WORLD);
+    double* force_data = new double[3 * m_mesh_contact.nv];
+    for (int i = 0; i < m_mesh_contact.nv; i++) {
+        force_data[3 * i + 0] = m_mesh_contact.vforce[i].x();
+        force_data[3 * i + 1] = m_mesh_contact.vforce[i].y();
+        force_data[3 * i + 2] = m_mesh_contact.vforce[i].z();
+    }
+    MPI_Send(m_mesh_contact.vidx.data(), m_mesh_contact.nv, MPI_INT, RIG_NODE_RANK, step_number, MPI_COMM_WORLD);
+    MPI_Send(force_data, 3 * m_mesh_contact.nv, MPI_DOUBLE, RIG_NODE_RANK, step_number, MPI_COMM_WORLD);
+
+    delete[] force_data;
 
     cout << "[Terrain node] step number: " << step_number << "  num contacts: " << GetSystem()->GetNcontacts()
-         << "  vertices in contact: " << num_vert << endl;
-
-    // Let derived classes perform optional operations
-    OnSynchronize(step_number, time);
+         << "  vertices in contact: " << m_mesh_contact.nv << endl;
 }
 
 // -----------------------------------------------------------------------------
@@ -265,7 +303,10 @@ void ChVehicleCosimTerrainNode::Advance(double step_size) {
     // Let derived classes perform optional operations (e.g. rendering)
     OnAdvance(step_size);
 
-    PrintProxiesContactData();
+    if (m_rigid_tire)
+        PrintWheelProxyContactData();
+    else
+        PrintMeshProxiesContactData();
 }
 
 // -----------------------------------------------------------------------------

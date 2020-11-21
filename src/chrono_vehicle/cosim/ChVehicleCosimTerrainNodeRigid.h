@@ -22,10 +22,6 @@
 #ifndef CH_VEHCOSIM__TERRAINNODE_RIGID_H
 #define CH_VEHCOSIM__TERRAINNODE_RIGID_H
 
-#include "chrono/utils/ChUtilsCreators.h"
-#include "chrono/utils/ChUtilsGenerators.h"
-#include "chrono/utils/ChUtilsInputOutput.h"
-
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/physics/ChSystemNSC.h"
 
@@ -66,11 +62,18 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeRigid : public ChVehicleCosimTerra
     ChSystem* m_system;  ///< containing system
 
     virtual void Construct() override;
-    virtual void CreateProxies() override;
-    virtual void UpdateProxies() override;
-    virtual void ForcesProxies(std::vector<double>& vert_forces, std::vector<int>& vert_indices) override;
-    virtual void PrintProxiesUpdateData() override;
-    virtual void PrintProxiesContactData() override;
+    virtual void CreateMeshProxies() override;
+    virtual void UpdateMeshProxies() override;
+    virtual void GetForcesMeshProxies() override;
+    virtual void PrintMeshProxiesUpdateData() override;
+    virtual void PrintMeshProxiesContactData() override;
+
+    virtual void CreateWheelProxy() override;
+    virtual void UpdateWheelProxy() override;
+    virtual void GetForceWheelProxy() override;
+    virtual void PrintWheelProxyUpdateData() override;
+    virtual void PrintWheelProxyContactData() override;
+
     virtual void OutputTerrainData(int frame) override;
     virtual void OnSynchronize(int step_number, double time) override;
     virtual void OnAdvance(double step_size) override;

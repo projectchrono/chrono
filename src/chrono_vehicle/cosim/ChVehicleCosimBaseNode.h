@@ -26,6 +26,7 @@
 
 #include "chrono/core/ChTimer.h"
 #include "chrono/core/ChVector.h"
+#include "chrono/core/ChQuaternion.h"
 #include "chrono_vehicle/ChApiVehicle.h"
 
 #define RIG_NODE_RANK 0
@@ -97,7 +98,6 @@ class CH_VEHICLE_API ChVehicleCosimBaseNode {
     struct MeshContact {
         int nv;                          ///< number of vertices in contact
         std::vector<int> vidx;           ///< indices of vertices experiencing contact forces
-        std::vector<ChVector<>> vpos;    ///< position of vertices experiencing contact forces
         std::vector<ChVector<>> vforce;  ///< contact forces on mesh vertices
     };
 

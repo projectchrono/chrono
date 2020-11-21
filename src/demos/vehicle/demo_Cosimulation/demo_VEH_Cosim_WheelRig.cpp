@@ -159,8 +159,9 @@ int main(int argc, char** argv) {
             my_terrain->SetOutDir(out_dir, suffix);
             cout << "[Terrain node] output directory: " << my_terrain->GetOutDirName() << endl;
 
-            ////my_terrain->SetContainerDimensions(10, 0.6, 1, 0.2);
-            my_terrain->SetContainerDimensions(4, 0.6, 1, 0.2);
+            ////my_terrain->SetPatchDimensions(10, 0.6);
+            my_terrain->SetPatchDimensions(4, 0.6);
+            my_terrain->SetContainerDimensions(1, 0.2);
 
             ////double radius = 0.006;
             double radius = 0.01;
@@ -208,7 +209,7 @@ int main(int argc, char** argv) {
     // Initialize systems.
     // Data exchange:
     //   terrain => rig (terrain height)
-    //   rig => terrain (tire mesh topology information)
+    //   rig => terrain (tire mesh topology and local vertex information)
     //   rig => terrain (tire contact material properties)
     switch (rank) {
         case RIG_NODE_RANK:
@@ -221,7 +222,7 @@ int main(int argc, char** argv) {
 
     // Perform co-simulation.
     // At synchronization, there is bi-directional data exchange:
-    //     rig => terrain (position information)
+    //     rig => terrain (state information)
     //     terrain => rig (force information)
     int output_frame = 0;
     int checkpoint_frame = 0;

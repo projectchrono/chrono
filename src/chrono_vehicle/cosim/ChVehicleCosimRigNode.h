@@ -22,9 +22,6 @@
 //
 // =============================================================================
 
-//// TODO:
-////    mesh connectivity doesn't need to be communicated every time (modify Chrono?)
-
 #ifndef CH_VEHCOSIM__RIGNODE_H
 #define CH_VEHCOSIM__RIGNODE_H
 
@@ -81,10 +78,6 @@ class CH_VEHICLE_API ChVehicleCosimRigNode : public ChVehicleCosimBaseNode {
                           int num_threads   ///< number of OpenMP threads
     );
 
-    /// Utility functions
-    void PrintLowestVertex(const std::vector<ChVector<>>& vert_pos, const std::vector<ChVector<>>& vert_vel);
-    void PrintContactData(const std::vector<ChVector<>>& forces, const std::vector<int>& indices);
-
     ChSystemSMC* m_system;  ///< containing system
     bool m_constructed;     ///< system construction completed?
 
@@ -118,10 +111,12 @@ class CH_VEHICLE_API ChVehicleCosimRigNode : public ChVehicleCosimBaseNode {
     double m_slip;      ///< prescribed longitudinal slip for wheel
 
     // Communication data
-    MeshData m_mesh_data;                                 ///< tire mesh data
-    MeshState m_mesh_state;                               ///< tire mesh state
-    MeshContact m_mesh_contact;                           ///< tire mesh contact forces
     std::shared_ptr<ChMaterialSurfaceSMC> m_contact_mat;  ///< tire contact material
+    MeshData m_mesh_data;                                 ///< tire mesh data
+    MeshState m_mesh_state;                               ///< tire mesh state (used for deformable tire)
+    MeshContact m_mesh_contact;                           ///< tire mesh contact forces (used for deformable tire)
+    WheelState m_wheel_state;                             ///< wheel state (used for rigid tire)
+    TerrainForce m_wheel_contact;                         ///< wheel contact force (used for rigid tire)
 
   private:
     void Construct();
@@ -188,6 +183,8 @@ class CH_VEHICLE_API ChVehicleCosimRigNodeDeformableTire : public ChVehicleCosim
 
     /// Print the current lowest node in the tire mesh.
     void PrintLowestNode();
+    void PrintLowestVertex(const std::vector<ChVector<>>& vert_pos, const std::vector<ChVector<>>& vert_vel);
+    void PrintContactData(const std::vector<ChVector<>>& forces, const std::vector<int>& indices);
 
     std::shared_ptr<ChDeformableTire> m_tire;                       ///< deformable tire
     std::shared_ptr<fea::ChLoadContactSurfaceMesh> m_contact_load;  ///< tire contact surface
