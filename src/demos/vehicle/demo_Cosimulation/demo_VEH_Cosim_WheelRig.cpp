@@ -135,7 +135,7 @@ int main(int argc, char** argv) {
         case RIG_NODE_RANK: {
             cout << "[Rig node    ] rank = " << rank << " running on: " << procname << endl;
 
-            ////my_rig = new ChVehicleCosimRigNodeDeformableTire(init_vel, slip, nthreads_rig);
+            ////my_rig = new ChVehicleCosimRigNodeFlexibleTire(init_vel, slip, nthreads_rig);
             ////my_rig->SetTireJSONFile(vehicle::GetDataFile("hmmwv/tire/HMMWV_ANCFTire.json"));
 
             my_rig = new ChVehicleCosimRigNodeRigidTire(init_vel, slip, nthreads_rig);

@@ -48,8 +48,8 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNode : public ChVehicleCosimBaseNode {
     );
 
     /// Set properties of proxy bodies.
-    /// This can be a single proxy body (for a rigid tire) or a collection of proxy bodies 
-    /// corresponding to an FEA mesh (for a deformable tire).  In the latter case, a concrete
+    /// This can be a single proxy body (for a rigid tire) or a collection of proxy bodies
+    /// corresponding to an FEA mesh (for a flexible tire).  In the latter case, a concrete
     /// terrain class may create spherical proxy bodies or triangle proxy bodies.
     void SetProxyProperties(double mass,    ///< mass of a proxy body (default: 1)
                             double radius,  ///< contact radius of a proxy body (default: 0.01)
@@ -116,17 +116,17 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNode : public ChVehicleCosimBaseNode {
     double m_mass_p;                   ///< mass of a proxy body
     double m_radius_p;                 ///< radius for a proxy body
 
-    double m_hdimX;   ///< patch half-length (X direction)
-    double m_hdimY;   ///< patch half-width (Y direction)
+    double m_hdimX;  ///< patch half-length (X direction)
+    double m_hdimY;  ///< patch half-width (Y direction)
 
     // Communication data
     MeshData m_mesh_data;          ///< tire mesh data
-    MeshState m_mesh_state;        ///< tire mesh state (used for deformable tire)
-    MeshContact m_mesh_contact;    ///< tire mesh contact forces (used for deformable tire)
+    MeshState m_mesh_state;        ///< tire mesh state (used for flexible tire)
+    MeshContact m_mesh_contact;    ///< tire mesh contact forces (used for flexible tire)
     WheelState m_wheel_state;      ///< wheel state (used for rigid tire)
     TerrainForce m_wheel_contact;  ///< wheel contact force (used for rigid tire)
 
-    bool m_rigid_tire;     ///< flag indicating whether the tire is rigid or deformable
+    bool m_flexible_tire;  ///< flag indicating whether the tire is flexible or rigid
     double m_init_height;  ///< initial terrain height (after optional settling)
 
     /// Construct a base class terrain node.
@@ -136,7 +136,7 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNode : public ChVehicleCosimBaseNode {
     );
 
     /// Print vertex and face connectivity data, as received from the rig node at synchronization.
-    /// Invoked only for a deformable tire.
+    /// Invoked only for a flexible tire.
     void PrintMeshUpdateData();
 
     /// Return a pointer to the terrain node underlying Chrono system.
@@ -145,15 +145,18 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNode : public ChVehicleCosimBaseNode {
     /// Construct the terrain (indpendent of the rig system).
     virtual void Construct() = 0;
 
-    // --- Virtual methods for a deformable tire
+    /// Specify whether or not flexible tire is supported.
+    virtual bool SupportsFlexibleTire() const = 0;
 
-    /// Create proxy bodies for a deformable tire mesh.
+    // --- Virtual methods for a flexible tire
+
+    /// Create proxy bodies for a flexible tire mesh.
     /// Use information in the m_mesh_data struct (vertex positions expressed in local frame).
     virtual void CreateMeshProxies() = 0;
-    /// Update the state of all proxy bodies for a deformable tire.
+    /// Update the state of all proxy bodies for a flexible tire.
     /// Use information in the m_mesh_state struct (vertex positions and velocities expressed in absolute frame).
     virtual void UpdateMeshProxies() = 0;
-    /// Collect cumulative contact forces on all proxy bodies for a deformable tire.
+    /// Collect cumulative contact forces on all proxy bodies for a flexible tire.
     /// Load indices of vertices in contact and the corresponding vertex forces (expressed in absolute frame)
     /// into the m_mesh_contact struct.
     virtual void GetForcesMeshProxies() = 0;
@@ -190,7 +193,7 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNode : public ChVehicleCosimBaseNode {
 
   private:
     void SynchronizeRigidTire(int step_number, double time);
-    void SynchronizeDeformableTire(int step_number, double time);
+    void SynchronizeFlexibleTire(int step_number, double time);
 };
 
 }  // end namespace vehicle

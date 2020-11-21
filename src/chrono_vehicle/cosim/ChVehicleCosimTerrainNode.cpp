@@ -109,9 +109,14 @@ void ChVehicleCosimTerrainNode::Initialize() {
     MPI_Status status_p;
     MPI_Recv(surf_props, 3, MPI_UNSIGNED, RIG_NODE_RANK, 0, MPI_COMM_WORLD, &status_p);
 
-    m_rigid_tire = (surf_props[0] == 1);
+    m_flexible_tire = (surf_props[0] == 1);
     m_mesh_data.nv = surf_props[1];
     m_mesh_data.nt = surf_props[2];
+
+    if (m_flexible_tire && !SupportsFlexibleTire()) {
+        cout << "ERROR: terrain system does not support flexible tires!" << endl;
+        MPI_Abort(MPI_COMM_WORLD, 1);
+    }
 
     m_mesh_data.vpos.resize(m_mesh_data.nv);
     m_mesh_data.tri.resize(m_mesh_data.nt);
@@ -189,10 +194,10 @@ void ChVehicleCosimTerrainNode::Initialize() {
     // Create proxy bodies
     // -------------------
 
-    if (m_rigid_tire)
-        CreateWheelProxy();
-    else
+    if (m_flexible_tire)
         CreateMeshProxies();
+    else
+        CreateWheelProxy();
 }
 
 // -----------------------------------------------------------------------------
@@ -202,11 +207,10 @@ void ChVehicleCosimTerrainNode::Initialize() {
 // - extract and send forces at each vertex
 // -----------------------------------------------------------------------------
 void ChVehicleCosimTerrainNode::Synchronize(int step_number, double time) {
-    if (m_rigid_tire) {
+    if (m_flexible_tire)
+        SynchronizeFlexibleTire(step_number, time);
+    else
         SynchronizeRigidTire(step_number, time);
-    } else {
-        SynchronizeDeformableTire(step_number, time);
-    }
 
     // Let derived classes perform optional operations
     OnSynchronize(step_number, time);
@@ -243,7 +247,7 @@ void ChVehicleCosimTerrainNode::SynchronizeRigidTire(int step_number, double tim
     cout << "[Terrain node] step number: " << step_number << "  num contacts: " << GetSystem()->GetNcontacts() << endl;
 }
 
-void ChVehicleCosimTerrainNode::SynchronizeDeformableTire(int step_number, double time) {
+void ChVehicleCosimTerrainNode::SynchronizeFlexibleTire(int step_number, double time) {
     // Receive mesh state data
     MPI_Status status;
     double* vert_data = new double[2 * 3 * m_mesh_data.nv];
@@ -303,10 +307,10 @@ void ChVehicleCosimTerrainNode::Advance(double step_size) {
     // Let derived classes perform optional operations (e.g. rendering)
     OnAdvance(step_size);
 
-    if (m_rigid_tire)
-        PrintWheelProxyContactData();
-    else
+    if (m_flexible_tire)
         PrintMeshProxiesContactData();
+    else
+        PrintWheelProxyContactData();
 }
 
 // -----------------------------------------------------------------------------

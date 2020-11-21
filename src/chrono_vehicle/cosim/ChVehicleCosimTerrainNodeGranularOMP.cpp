@@ -433,7 +433,7 @@ void ChVehicleCosimTerrainNodeGranularOMP::Settle() {
 }
 
 // Create bodies with triangular contact geometry as proxies for the tire mesh faces.
-// Used for deformable tires.
+// Used for flexible tires.
 // Assign to each body an identifier equal to the index of its corresponding mesh face.
 // Maintain a list of all bodies associated with the tire.
 // Add all proxy bodies to the same collision family and disable collision between any
@@ -720,9 +720,8 @@ void ChVehicleCosimTerrainNodeGranularOMP::PrintMeshProxiesUpdateData() {
     }
 
     {
-        auto lowest =
-            std::min_element(m_mesh_state.vpos.begin(), m_mesh_state.vpos.end(),
-                             [](const ChVector<>& a, const ChVector<>& b) { return a.z() < b.z(); });
+        auto lowest = std::min_element(m_mesh_state.vpos.begin(), m_mesh_state.vpos.end(),
+                                       [](const ChVector<>& a, const ChVector<>& b) { return a.z() < b.z(); });
         cout << "[Terrain node] lowest vertex:  height = " << (*lowest).z() << endl;
     }
 }

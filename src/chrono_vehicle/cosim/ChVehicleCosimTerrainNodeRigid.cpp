@@ -199,7 +199,7 @@ void ChVehicleCosimTerrainNodeRigid::Construct() {
 }
 
 // Create bodies with spherical contact geometry as proxies for the tire mesh vertices.
-// Used for deformable tires.
+// Used for flexible tires.
 // Assign to each body an identifier equal to the index of its corresponding mesh vertex.
 // Maintain a list of all bodies associated with the tire.
 // Add all proxy bodies to the same collision family and disable collision between any

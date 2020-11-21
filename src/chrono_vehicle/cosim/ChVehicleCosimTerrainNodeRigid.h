@@ -61,7 +61,10 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeRigid : public ChVehicleCosimTerra
   private:
     ChSystem* m_system;  ///< containing system
 
+    virtual bool SupportsFlexibleTire() const override { return true; }
+
     virtual void Construct() override;
+
     virtual void CreateMeshProxies() override;
     virtual void UpdateMeshProxies() override;
     virtual void GetForcesMeshProxies() override;

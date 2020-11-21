@@ -361,7 +361,7 @@ void ChVehicleCosimRigNode::Construct() {
 // -----------------------------------------------------------------------------
 // Construct an ANCF tire
 // -----------------------------------------------------------------------------
-void ChVehicleCosimRigNodeDeformableTire::ConstructTire() {
+void ChVehicleCosimRigNodeFlexibleTire::ConstructTire() {
     m_tire = chrono_types::make_shared<ANCFTire>(m_tire_json);
     m_tire->EnablePressure(m_tire_pressure);
     m_tire->EnableContact(true);
@@ -471,7 +471,7 @@ void ChVehicleCosimRigNode::Initialize() {
     // Send mesh info and contact material
     // -----------------------------------
 
-    unsigned int surf_props[3] = {IsTireRigid(), m_mesh_data.nv, m_mesh_data.nt};
+    unsigned int surf_props[3] = {IsTireFlexible(), m_mesh_data.nv, m_mesh_data.nt};
     MPI_Send(surf_props, 3, MPI_UNSIGNED, TERRAIN_NODE_RANK, 0, MPI_COMM_WORLD);
     cout << "[Rig node    ] vertices = " << surf_props[0] << "  triangles = " << surf_props[1] << endl;
 
@@ -498,7 +498,7 @@ void ChVehicleCosimRigNode::Initialize() {
     cout << "[Rig node    ] friction = " << mat_props[0] << endl;
 }
 
-void ChVehicleCosimRigNodeDeformableTire::InitializeTire() {
+void ChVehicleCosimRigNodeFlexibleTire::InitializeTire() {
     // Initialize the ANCF tire
     m_wheel->SetTire(m_tire);                                       // technically not really needed here
     std::static_pointer_cast<ChTire>(m_tire)->Initialize(m_wheel);  // hack to call protected virtual method
@@ -586,7 +586,7 @@ void ChVehicleCosimRigNodeRigidTire::InitializeTire() {
 // - extract and send tire mesh vertex states
 // - receive and apply vertex contact forces
 // -----------------------------------------------------------------------------
-void ChVehicleCosimRigNodeDeformableTire::Synchronize(int step_number, double time) {
+void ChVehicleCosimRigNodeFlexibleTire::Synchronize(int step_number, double time) {
     // Extract tire mesh vertex locations and velocites.
     std::vector<ChVector<int>> triangles;
     m_contact_load->OutputSimpleMesh(m_mesh_state.vpos, m_mesh_state.vvel, triangles);
@@ -667,7 +667,7 @@ void ChVehicleCosimRigNodeRigidTire::Synchronize(int step_number, double time) {
 // -----------------------------------------------------------------------------
 // Advance simulation of the rig node by the specified duration
 // -----------------------------------------------------------------------------
-void ChVehicleCosimRigNodeDeformableTire::Advance(double step_size) {
+void ChVehicleCosimRigNodeFlexibleTire::Advance(double step_size) {
     m_timer.reset();
     m_timer.start();
     double t = 0;
@@ -754,7 +754,7 @@ void ChVehicleCosimRigNode::OutputData(int frame) {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChVehicleCosimRigNodeDeformableTire::OutputTireData(const std::string& del) {
+void ChVehicleCosimRigNodeFlexibleTire::OutputTireData(const std::string& del) {
     auto mesh = m_tire->GetMesh();
 
     m_outf << mesh->GetTimeInternalForces() << del << mesh->GetTimeJacobianLoad();
@@ -782,7 +782,7 @@ void ChVehicleCosimRigNode::WriteBodyInformation(utils::CSV_writer& csv) {
         << m_upright->GetRot_dt() << endl;
 }
 
-void ChVehicleCosimRigNodeDeformableTire::WriteTireInformation(utils::CSV_writer& csv) {
+void ChVehicleCosimRigNodeFlexibleTire::WriteTireInformation(utils::CSV_writer& csv) {
     WriteTireStateInformation(csv);
     WriteTireMeshInformation(csv);
     WriteTireContactInformation(csv);
@@ -794,7 +794,7 @@ void ChVehicleCosimRigNodeRigidTire::WriteTireInformation(utils::CSV_writer& csv
     WriteTireContactInformation(csv);
 }
 
-void ChVehicleCosimRigNodeDeformableTire::WriteTireStateInformation(utils::CSV_writer& csv) {
+void ChVehicleCosimRigNodeFlexibleTire::WriteTireStateInformation(utils::CSV_writer& csv) {
     // Extract vertex states from mesh
     auto mesh = m_tire->GetMesh();
     ChState x(mesh->GetDOF(), NULL);
@@ -819,7 +819,7 @@ void ChVehicleCosimRigNodeDeformableTire::WriteTireStateInformation(utils::CSV_w
         csv << v(iv) << endl;
 }
 
-void ChVehicleCosimRigNodeDeformableTire::WriteTireMeshInformation(utils::CSV_writer& csv) {
+void ChVehicleCosimRigNodeFlexibleTire::WriteTireMeshInformation(utils::CSV_writer& csv) {
     // Extract mesh
     auto mesh = m_tire->GetMesh();
 
@@ -853,7 +853,7 @@ void ChVehicleCosimRigNodeDeformableTire::WriteTireMeshInformation(utils::CSV_wr
     }
 }
 
-void ChVehicleCosimRigNodeDeformableTire::WriteTireContactInformation(utils::CSV_writer& csv) {
+void ChVehicleCosimRigNodeFlexibleTire::WriteTireContactInformation(utils::CSV_writer& csv) {
     // Extract mesh
     auto mesh = m_tire->GetMesh();
 
@@ -918,8 +918,8 @@ void ChVehicleCosimRigNodeRigidTire::WriteTireContactInformation(utils::CSV_writ
 
 // -----------------------------------------------------------------------------
 
-void ChVehicleCosimRigNodeDeformableTire::PrintLowestVertex(const std::vector<ChVector<>>& vert_pos,
-                                                            const std::vector<ChVector<>>& vert_vel) {
+void ChVehicleCosimRigNodeFlexibleTire::PrintLowestVertex(const std::vector<ChVector<>>& vert_pos,
+                                                          const std::vector<ChVector<>>& vert_vel) {
     auto lowest = std::min_element(vert_pos.begin(), vert_pos.end(),
                                    [](const ChVector<>& a, const ChVector<>& b) { return a.z() < b.z(); });
     auto index = lowest - vert_pos.begin();
@@ -928,8 +928,8 @@ void ChVehicleCosimRigNodeDeformableTire::PrintLowestVertex(const std::vector<Ch
          << "  velocity = " << vel.x() << "  " << vel.y() << "  " << vel.z() << endl;
 }
 
-void ChVehicleCosimRigNodeDeformableTire::PrintContactData(const std::vector<ChVector<>>& forces,
-                                                           const std::vector<int>& indices) {
+void ChVehicleCosimRigNodeFlexibleTire::PrintContactData(const std::vector<ChVector<>>& forces,
+                                                         const std::vector<int>& indices) {
     cout << "[Rig node    ] contact forces" << endl;
     for (int i = 0; i < indices.size(); i++) {
         cout << "  id = " << indices[i] << "  force = " << forces[i].x() << "  " << forces[i].y() << "  "
@@ -937,7 +937,7 @@ void ChVehicleCosimRigNodeDeformableTire::PrintContactData(const std::vector<ChV
     }
 }
 
-void ChVehicleCosimRigNodeDeformableTire::PrintLowestNode() {
+void ChVehicleCosimRigNodeFlexibleTire::PrintLowestNode() {
     // Unfortunately, we do not have access to the node container of a mesh,
     // so we cannot use some nice algorithm here...
     unsigned int num_nodes = m_tire->GetMesh()->GetNnodes();

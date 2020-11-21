@@ -108,6 +108,8 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularOMP : public ChVehicleCosi
 
     virtual void Construct() override;
 
+    virtual bool SupportsFlexibleTire() const override { return true; }
+
     virtual void CreateMeshProxies() override;
     virtual void UpdateMeshProxies() override;
     virtual void GetForcesMeshProxies() override;

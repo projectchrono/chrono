@@ -113,15 +113,15 @@ class CH_VEHICLE_API ChVehicleCosimRigNode : public ChVehicleCosimBaseNode {
     // Communication data
     std::shared_ptr<ChMaterialSurfaceSMC> m_contact_mat;  ///< tire contact material
     MeshData m_mesh_data;                                 ///< tire mesh data
-    MeshState m_mesh_state;                               ///< tire mesh state (used for deformable tire)
-    MeshContact m_mesh_contact;                           ///< tire mesh contact forces (used for deformable tire)
+    MeshState m_mesh_state;                               ///< tire mesh state (used for flexible tire)
+    MeshContact m_mesh_contact;                           ///< tire mesh contact forces (used for flexible tire)
     WheelState m_wheel_state;                             ///< wheel state (used for rigid tire)
     TerrainForce m_wheel_contact;                         ///< wheel contact force (used for rigid tire)
 
   private:
     void Construct();
     virtual void ConstructTire() = 0;
-    virtual bool IsTireRigid() const = 0;
+    virtual bool IsTireFlexible() const = 0;
     virtual double GetTireRadius() const = 0;
     virtual double GetTireWidth() const = 0;
 
@@ -137,15 +137,15 @@ class CH_VEHICLE_API ChVehicleCosimRigNode : public ChVehicleCosimBaseNode {
 
 // =============================================================================
 
-class CH_VEHICLE_API ChVehicleCosimRigNodeDeformableTire : public ChVehicleCosimRigNode {
+class CH_VEHICLE_API ChVehicleCosimRigNodeFlexibleTire : public ChVehicleCosimRigNode {
   public:
-    ChVehicleCosimRigNodeDeformableTire(double init_vel,  ///< initial wheel linear velocity
-                                        double slip,      ///< longitudinal slip value
-                                        int num_threads   ///< number of OpenMP threads
-                                        )
+    ChVehicleCosimRigNodeFlexibleTire(double init_vel,  ///< initial wheel linear velocity
+                                      double slip,      ///< longitudinal slip value
+                                      int num_threads   ///< number of OpenMP threads
+                                      )
         : ChVehicleCosimRigNode(init_vel, slip, num_threads) {}
 
-    ~ChVehicleCosimRigNodeDeformableTire() {}
+    ~ChVehicleCosimRigNodeFlexibleTire() {}
 
     /// Synchronize this node.
     /// This function is called at every co-simulation synchronization time to
@@ -159,12 +159,12 @@ class CH_VEHICLE_API ChVehicleCosimRigNodeDeformableTire : public ChVehicleCosim
     virtual void Advance(double step_size) override;
 
   private:
-    /// Initialize the deformable tire and send contact information to terrain node.
+    /// Initialize the flexible tire and send contact information to terrain node.
     virtual void InitializeTire() override;
 
-    /// Construct the deformable tire.
+    /// Construct the flexible tire.
     virtual void ConstructTire() override;
-    virtual bool IsTireRigid() const override { return false; }
+    virtual bool IsTireFlexible() const override { return true; }
     virtual double GetTireRadius() const { return m_tire->GetRadius(); }
     virtual double GetTireWidth() const { return m_tire->GetWidth(); }
 
@@ -218,7 +218,7 @@ class CH_VEHICLE_API ChVehicleCosimRigNodeRigidTire : public ChVehicleCosimRigNo
   private:
     /// Construct the rigid tire.
     virtual void ConstructTire() override;
-    virtual bool IsTireRigid() const override { return true; }
+    virtual bool IsTireFlexible() const override { return false; }
     virtual double GetTireRadius() const { return m_tire->GetRadius(); }
     virtual double GetTireWidth() const { return m_tire->GetWidth(); }
 
