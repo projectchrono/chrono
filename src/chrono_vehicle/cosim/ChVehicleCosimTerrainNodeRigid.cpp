@@ -58,17 +58,23 @@ ChVehicleCosimTerrainNodeRigid::ChVehicleCosimTerrainNodeRigid(ChContactMethod m
     // Create system and set default method-specific solver settings
     switch (m_method) {
         case ChContactMethod::SMC: {
-            ChSystemSMC* sys = new ChSystemSMC;
-            sys->SetContactForceModel(ChSystemSMC::Hertz);
-            sys->SetTangentialDisplacementModel(ChSystemSMC::TangentialDisplacementModel::OneStep);
-            sys->UseMaterialProperties(true);
+            ChSystemParallelSMC* sys = new ChSystemParallelSMC;
+            sys->GetSettings()->solver.contact_force_model = ChSystemSMC::Hertz;
+            sys->GetSettings()->solver.tangential_displ_mode = ChSystemSMC::TangentialDisplacementModel::OneStep;
+            sys->GetSettings()->solver.use_material_properties = true;
             m_system = sys;
             break;
         }
         case ChContactMethod::NSC: {
-            ChSystemNSC* sys = new ChSystemNSC;
-            collision::ChCollisionModel::SetDefaultSuggestedEnvelope(0.001);
-            sys->SetSolverType(ChSolver::Type::APGD);
+            ChSystemParallelNSC* sys = new ChSystemParallelNSC;
+            sys->GetSettings()->solver.solver_mode = SolverMode::SLIDING;
+            sys->GetSettings()->solver.max_iteration_normal = 0;
+            sys->GetSettings()->solver.max_iteration_sliding = 200;
+            sys->GetSettings()->solver.max_iteration_spinning = 0;
+            sys->GetSettings()->solver.alpha = 0;
+            sys->GetSettings()->solver.contact_recovery_speed = -1;
+            sys->GetSettings()->collision.collision_envelope = 0.001;
+            sys->ChangeSolverType(SolverType::APGD);
             m_system = sys;
             break;
         }
@@ -102,12 +108,12 @@ ChVehicleCosimTerrainNodeRigid::~ChVehicleCosimTerrainNodeRigid() {
 
 void ChVehicleCosimTerrainNodeRigid::UseMaterialProperties(bool flag) {
     assert(m_system->GetContactMethod() == ChContactMethod::SMC);
-    static_cast<ChSystemSMC*>(m_system)->UseMaterialProperties(flag);
+    m_system->GetSettings()->solver.use_material_properties = flag;
 }
 
 void ChVehicleCosimTerrainNodeRigid::SetContactForceModel(ChSystemSMC::ContactForceModel model) {
     assert(m_system->GetContactMethod() == ChContactMethod::SMC);
-    static_cast<ChSystemSMC*>(m_system)->SetContactForceModel(model);
+    m_system->GetSettings()->solver.contact_force_model = model;
 }
 
 void ChVehicleCosimTerrainNodeRigid::SetMaterialSurface(const std::shared_ptr<ChMaterialSurface>& mat) {
@@ -165,8 +171,9 @@ void ChVehicleCosimTerrainNodeRigid::Construct() {
     outf << "System settings" << endl;
     outf << "   Integration step size = " << m_step_size << endl;
     outf << "   Contact method = " << (m_method == ChContactMethod::SMC ? "SMC" : "NSC") << endl;
-    m_system->GetCollisionSystem();
-    outf << "   Collision envelope = " << collision::ChCollisionModel::GetDefaultSuggestedEnvelope() << endl;
+    outf << "   Use material properties? " << (m_system->GetSettings()->solver.use_material_properties ? "YES" : "NO")
+         << endl;
+    outf << "   Collision envelope = " << m_system->GetSettings()->collision.collision_envelope << endl;
     outf << "Patch dimensions" << endl;
     outf << "   X = " << 2 * m_hdimX << "  Y = " << 2 * m_hdimY << endl;
     outf << "Terrain material properties" << endl;
@@ -304,10 +311,7 @@ void ChVehicleCosimTerrainNodeRigid::GetForceWheelProxy() {
 
 void ChVehicleCosimTerrainNodeRigid::OnSynchronize(int step_number, double time) {
     // Calculate cumulative contact forces for all bodies in system.
-
-    //// RADU TODO:  NSC systems?
-
-    ////m_system->CalculateContactForces();
+    m_system->CalculateContactForces();
 }
 
 void ChVehicleCosimTerrainNodeRigid::OnAdvance(double step_size) {
@@ -346,9 +350,6 @@ void ChVehicleCosimTerrainNodeRigid::PrintWheelProxyUpdateData() {
 }
 
 void ChVehicleCosimTerrainNodeRigid::PrintMeshProxiesContactData() {
-    //// RADU TODO
-
-    /*
     // Information on all contacts.
     // Note that proxy body identifiers match the index of the associated mesh vertex.
     auto bodies = m_system->Get_bodylist();
@@ -377,14 +378,13 @@ void ChVehicleCosimTerrainNodeRigid::PrintMeshProxiesContactData() {
     // Cumulative contact forces on proxy bodies.
     m_system->CalculateContactForces();
     cout << "[Terrain node] vertex forces (" << vertices_in_contact.size() << ")" << endl;
-    for (unsigned int iv = 0; iv < m_num_vert; iv++) {
+    for (unsigned int iv = 0; iv < m_mesh_data.nv; iv++) {
         if (vertices_in_contact.find(iv) != vertices_in_contact.end()) {
             real3 force = m_system->GetBodyContactForce(m_proxies[iv].m_body);
             cout << "  id = " << m_proxies[iv].m_index << "  force = " << force.x << "  " << force.y << "  " << force.z
                  << endl;
         }
     }
-    */
 
     ////auto container = std::static_pointer_cast<ChContactContainerParallel>(m_system->GetContactContainer());
     ////auto contacts = container->GetContactList();

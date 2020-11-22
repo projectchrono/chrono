@@ -12,7 +12,7 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// Definition of the rigid TERRAIN NODE (using Chrono).
+// Definition of the rigid TERRAIN NODE (using Chrono::Parallel).
 //
 // The global reference frame has Z up, X towards the front of the vehicle, and
 // Y pointing to the left.
@@ -22,8 +22,7 @@
 #ifndef CH_VEHCOSIM__TERRAINNODE_RIGID_H
 #define CH_VEHCOSIM__TERRAINNODE_RIGID_H
 
-#include "chrono/physics/ChSystemSMC.h"
-#include "chrono/physics/ChSystemNSC.h"
+#include "chrono_parallel/physics/ChSystemParallel.h"
 
 #include "chrono_vehicle/cosim/ChVehicleCosimTerrainNode.h"
 
@@ -63,7 +62,7 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeRigid : public ChVehicleCosimTerra
     virtual void WriteCheckpoint() override {}
 
   private:
-    ChSystem* m_system;  ///< containing system
+    ChSystemParallel* m_system;  ///< containing system
 
     virtual bool SupportsFlexibleTire() const override { return true; }
 
