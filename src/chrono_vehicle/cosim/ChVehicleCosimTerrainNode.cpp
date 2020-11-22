@@ -119,27 +119,31 @@ void ChVehicleCosimTerrainNode::Initialize() {
     }
 
     m_mesh_data.vpos.resize(m_mesh_data.nv);
+    m_mesh_data.vnrm.resize(m_mesh_data.nv);
     m_mesh_data.tri.resize(m_mesh_data.nt);
 
     m_mesh_state.vpos.resize(m_mesh_data.nv);
     m_mesh_state.vvel.resize(m_mesh_data.nv);
 
-    cout << "[Terrain node] Received vertices = " << surf_props[0] << " triangles = " << surf_props[1] << endl;
+    cout << "[Terrain node] Received vertices = " << surf_props[1] << " triangles = " << surf_props[2] << endl;
 
-    // -----------------------------------------------
-    // Receive tire mesh vertices and triangle indices
-    // -----------------------------------------------
+    // -----------------------------------------------------------
+    // Receive tire mesh vertices & normals and triangle indices
+    // -----------------------------------------------------------
 
     MPI_Status status_v;
-    double* vert_data = new double[3 * m_mesh_data.nv];
+    double* vert_data = new double[2 * 3 * m_mesh_data.nv];
     int* tri_data = new int[3 * m_mesh_data.nt];
-    MPI_Recv(vert_data, 3 * m_mesh_data.nv, MPI_DOUBLE, RIG_NODE_RANK, 0, MPI_COMM_WORLD, &status_v);
+    MPI_Recv(vert_data, 2 * 3 * m_mesh_data.nv, MPI_DOUBLE, RIG_NODE_RANK, 0, MPI_COMM_WORLD, &status_v);
     MPI_Recv(tri_data, 3 * m_mesh_data.nt, MPI_INT, RIG_NODE_RANK, 0, MPI_COMM_WORLD, &status_v);
 
     for (unsigned int iv = 0; iv < m_mesh_data.nv; iv++) {
-        m_mesh_data.vpos[iv].x() = vert_data[3 * iv + 0];
-        m_mesh_data.vpos[iv].y() = vert_data[3 * iv + 1];
-        m_mesh_data.vpos[iv].z() = vert_data[3 * iv + 2];
+        m_mesh_data.vpos[iv].x() = vert_data[6 * iv + 0];
+        m_mesh_data.vpos[iv].y() = vert_data[6 * iv + 1];
+        m_mesh_data.vpos[iv].z() = vert_data[6 * iv + 2];
+        m_mesh_data.vnrm[iv].x() = vert_data[6 * iv + 3];
+        m_mesh_data.vnrm[iv].y() = vert_data[6 * iv + 4];
+        m_mesh_data.vnrm[iv].z() = vert_data[6 * iv + 5];
     }
 
     for (unsigned int it = 0; it < m_mesh_data.nt; it++) {

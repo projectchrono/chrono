@@ -85,6 +85,7 @@ class CH_VEHICLE_API ChVehicleCosimBaseNode {
         unsigned int nv;                 ///< number of vertices
         unsigned int nt;                 ///< number of triangles
         std::vector<ChVector<>> vpos;    ///< vertex positions (in local frame)
+        std::vector<ChVector<>> vnrm;    ///< vertex normals (in local frame)
         std::vector<ChVector<int>> tri;  ///< mesh connectivity
     };
 

@@ -139,7 +139,7 @@ ChVehicleCosimTerrainNodeGranularOMP::ChVehicleCosimTerrainNodeGranularOMP(ChCon
     if (m_render) {
         opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
         gl_window.Initialize(1280, 720, "Terrain Node", m_system);
-        gl_window.SetCamera(ChVector<>(0, -1, 0), ChVector<>(0, 0, 0), ChVector<>(0, 0, 1), 0.05f);
+        gl_window.SetCamera(ChVector<>(0, -2, 0), ChVector<>(0, 0, 0), ChVector<>(0, 0, 1), 0.05f);
         gl_window.SetRenderMode(opengl::WIREFRAME);
     }
 #endif
@@ -478,6 +478,7 @@ void ChVehicleCosimTerrainNodeGranularOMP::CreateWheelProxy() {
     // Create collision mesh
     auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
     trimesh->getCoordsVertices() = m_mesh_data.vpos;
+    trimesh->getCoordsNormals() = m_mesh_data.vnrm;
     trimesh->getIndicesVertexes() = m_mesh_data.tri;
 
     // Set collision shape

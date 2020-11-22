@@ -250,7 +250,7 @@ void ChVehicleCosimRigNode::Construct() {
             m_integrator->SetAbsTolerances(5e-05, 1.8e00);
             m_integrator->SetMode(ChTimestepperHHT::POSITION);
             m_integrator->SetScaling(true);
-            m_integrator->SetVerbose(true);
+            m_integrator->SetVerbose(false);
             m_integrator->SetMaxItersSuccess(5);
 
             break;
@@ -473,21 +473,24 @@ void ChVehicleCosimRigNode::Initialize() {
 
     unsigned int surf_props[3] = {IsTireFlexible(), m_mesh_data.nv, m_mesh_data.nt};
     MPI_Send(surf_props, 3, MPI_UNSIGNED, TERRAIN_NODE_RANK, 0, MPI_COMM_WORLD);
-    cout << "[Rig node    ] vertices = " << surf_props[0] << "  triangles = " << surf_props[1] << endl;
+    cout << "[Rig node    ] vertices = " << surf_props[1] << "  triangles = " << surf_props[2] << endl;
 
-    double* vert_data = new double[3 * m_mesh_data.nv];
+    double* vert_data = new double[2 * 3 * m_mesh_data.nv];
     int* tri_data = new int[3 * m_mesh_data.nt];
     for (unsigned int iv = 0; iv < m_mesh_data.nv; iv++) {
-        vert_data[3 * iv + 0] = m_mesh_data.vpos[iv].x();
-        vert_data[3 * iv + 1] = m_mesh_data.vpos[iv].y();
-        vert_data[3 * iv + 2] = m_mesh_data.vpos[iv].z();
+        vert_data[6 * iv + 0] = m_mesh_data.vpos[iv].x();
+        vert_data[6 * iv + 1] = m_mesh_data.vpos[iv].y();
+        vert_data[6 * iv + 2] = m_mesh_data.vpos[iv].z();
+        vert_data[6 * iv + 3] = m_mesh_data.vnrm[iv].x();
+        vert_data[6 * iv + 4] = m_mesh_data.vnrm[iv].y();
+        vert_data[6 * iv + 5] = m_mesh_data.vnrm[iv].z();
     }
     for (unsigned int it = 0; it < m_mesh_data.nt; it++) {
         tri_data[3 * it + 0] = m_mesh_data.tri[it].x();
         tri_data[3 * it + 1] = m_mesh_data.tri[it].y();
         tri_data[3 * it + 2] = m_mesh_data.tri[it].z();
     }
-    MPI_Send(vert_data, 3 * m_mesh_data.nv, MPI_DOUBLE, TERRAIN_NODE_RANK, 0, MPI_COMM_WORLD);
+    MPI_Send(vert_data, 2 * 3 * m_mesh_data.nv, MPI_DOUBLE, TERRAIN_NODE_RANK, 0, MPI_COMM_WORLD);
     MPI_Send(tri_data, 3 * m_mesh_data.nt, MPI_INT, TERRAIN_NODE_RANK, 0, MPI_COMM_WORLD);
 
     float mat_props[8] = {m_contact_mat->GetKfriction(),    m_contact_mat->GetRestitution(),
@@ -509,12 +512,15 @@ void ChVehicleCosimRigNodeFlexibleTire::InitializeTire() {
     m_tire->GetLoadContainer()->Add(m_contact_load);
 
     // Set mesh data (initial configuration, vertex positions in local frame)
+    //// TODO: vertex normals?
     m_mesh_data.nv = contact_surface->GetNumVertices();
     m_mesh_data.nt = contact_surface->GetNumTriangles();
     std::vector<ChVector<>> vvel;
+    m_mesh_data.vnrm.resize(m_mesh_data.nv);
     m_contact_load->OutputSimpleMesh(m_mesh_data.vpos, vvel, m_mesh_data.tri);
     for (unsigned int iv = 0; iv < m_mesh_data.nv; iv++) {
         m_mesh_data.vpos[iv] = m_rim->TransformPointParentToLocal(m_mesh_data.vpos[iv]);
+        m_mesh_data.vnrm[iv] = ChVector<>(0, 0, 1);
     }
 
     // Tire contact material
@@ -548,6 +554,7 @@ void ChVehicleCosimRigNodeRigidTire::InitializeTire() {
     m_mesh_data.nv = m_tire->GetNumVertices();
     m_mesh_data.nt = m_tire->GetNumTriangles();
     m_mesh_data.vpos = m_tire->GetMeshVertices();
+    m_mesh_data.vnrm = m_tire->GetMeshNormals();
     m_mesh_data.tri = m_tire->GetMeshConnectivity();
 
     // Tire contact material
@@ -904,6 +911,8 @@ void ChVehicleCosimRigNodeRigidTire::WriteTireMeshInformation(utils::CSV_writer&
 }
 
 void ChVehicleCosimRigNodeRigidTire::WriteTireContactInformation(utils::CSV_writer& csv) {
+    //// TODO
+    /*
     // Write the number of vertices in contact
     csv << m_mesh_contact.vidx.size() << endl;
 
@@ -914,6 +923,7 @@ void ChVehicleCosimRigNodeRigidTire::WriteTireContactInformation(utils::CSV_writ
         ChVector<> nrm = m_rim->TransformDirectionLocalToParent(normals[in]);
         csv << in << m_mesh_state.vpos[in] << m_mesh_contact.vforce[iv] << nrm << m_vertexArea[in] << endl;
     }
+    */
 }
 
 // -----------------------------------------------------------------------------
