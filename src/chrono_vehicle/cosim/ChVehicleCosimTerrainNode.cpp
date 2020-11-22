@@ -274,7 +274,9 @@ void ChVehicleCosimTerrainNode::SynchronizeFlexibleTire(int step_number, double 
 
     // Collect contact forces on subset of mesh vertices and load in m_mesh_contact.
     // Note that no forces are collected at the first step.
-    if (step_number > 0)
+    if (step_number == 0)
+        m_mesh_contact.nv = 0;
+    else
         GetForcesMeshProxies();
 
     // Send vertex indices and forces.
