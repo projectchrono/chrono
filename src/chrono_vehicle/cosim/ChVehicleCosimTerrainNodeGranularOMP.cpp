@@ -642,8 +642,7 @@ void ChVehicleCosimTerrainNodeGranularOMP::GetForceWheelProxy() {
 // -----------------------------------------------------------------------------
 
 void ChVehicleCosimTerrainNodeGranularOMP::OnSynchronize(int step_number, double time) {
-    // Calculate cumulative contact forces for all bodies in system.
-    m_system->CalculateContactForces();
+    // Nothing needed here
 }
 
 void ChVehicleCosimTerrainNodeGranularOMP::OnAdvance(double step_size) {
@@ -657,6 +656,10 @@ void ChVehicleCosimTerrainNodeGranularOMP::OnAdvance(double step_size) {
         }
     }
 #endif
+
+    // Force a calculation of cumulative contact forces for all bodies in the system
+    // (needed at the next synchronization)
+    m_system->CalculateContactForces();
 }
 
 // -----------------------------------------------------------------------------
