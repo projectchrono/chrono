@@ -94,6 +94,9 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNode : public ChVehicleCosimBaseNode {
     /// Output logging and debugging data.
     virtual void OutputData(int frame) override final;
 
+    /// Write checkpointing file.
+    virtual void WriteCheckpoint() = 0;
+
   protected:
     /// Association between a proxy body and a mesh index.
     /// The body can be associated with either a mesh vertex or a mesh triangle.
@@ -130,7 +133,7 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNode : public ChVehicleCosimBaseNode {
     double m_init_height;  ///< initial terrain height (after optional settling)
 
     /// Construct a base class terrain node.
-    ChVehicleCosimTerrainNode(Type type,               ///< terrain type (RIGID or GRANULAR)
+    ChVehicleCosimTerrainNode(Type type,               ///< terrain type
                               ChContactMethod method,  ///< contact method (penalty or complementatiry)
                               bool render              ///< use OpenGL rendering
     );

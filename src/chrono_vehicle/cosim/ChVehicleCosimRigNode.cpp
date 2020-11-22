@@ -97,8 +97,8 @@ class RigNodeWheel : public ChWheel {
 // Construction of the rig node:
 // - create the (sequential) Chrono system and set solver parameters
 // -----------------------------------------------------------------------------
-ChVehicleCosimRigNode::ChVehicleCosimRigNode(double init_vel, double slip, int num_threads)
-    : ChVehicleCosimBaseNode("RIG"), m_init_vel(init_vel), m_slip(slip), m_constructed(false) {
+ChVehicleCosimRigNode::ChVehicleCosimRigNode(Type type, double init_vel, double slip, int num_threads)
+    : ChVehicleCosimBaseNode("RIG"), m_type(type), m_init_vel(init_vel), m_slip(slip), m_constructed(false) {
     cout << "[Rig node    ] init_vel = " << init_vel << " slip = " << slip << " num_threads = " << num_threads << endl;
 
     // ------------------------

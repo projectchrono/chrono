@@ -42,7 +42,11 @@ namespace vehicle {
 
 class CH_VEHICLE_API ChVehicleCosimRigNode : public ChVehicleCosimBaseNode {
   public:
+    enum class Type { RIGID, FLEXIBLE };
+
     virtual ~ChVehicleCosimRigNode();
+
+    Type GetType() const { return m_type; }
 
     /// Set integrator and solver types.
     /// For the MKL solver, use slv_type = ChSolver::Type::CUSTOM.
@@ -73,10 +77,13 @@ class CH_VEHICLE_API ChVehicleCosimRigNode : public ChVehicleCosimBaseNode {
 
   protected:
     /// Protected constructor. A RigNode cannot be directly created.
-    ChVehicleCosimRigNode(double init_vel,  ///< initial wheel linear velocity
+    ChVehicleCosimRigNode(Type type,        ///< tire type (RIGID or FLEXIBLE)
+                          double init_vel,  ///< initial wheel linear velocity
                           double slip,      ///< longitudinal slip value
                           int num_threads   ///< number of OpenMP threads
     );
+
+    Type m_type;  ///< tire type
 
     ChSystemSMC* m_system;  ///< containing system
     bool m_constructed;     ///< system construction completed?
@@ -143,7 +150,7 @@ class CH_VEHICLE_API ChVehicleCosimRigNodeFlexibleTire : public ChVehicleCosimRi
                                       double slip,      ///< longitudinal slip value
                                       int num_threads   ///< number of OpenMP threads
                                       )
-        : ChVehicleCosimRigNode(init_vel, slip, num_threads) {}
+        : ChVehicleCosimRigNode(Type::FLEXIBLE, init_vel, slip, num_threads) {}
 
     ~ChVehicleCosimRigNodeFlexibleTire() {}
 
@@ -200,7 +207,7 @@ class CH_VEHICLE_API ChVehicleCosimRigNodeRigidTire : public ChVehicleCosimRigNo
                                    double slip,      ///< longitudinal slip value
                                    int num_threads   ///< number of OpenMP threads
                                    )
-        : ChVehicleCosimRigNode(init_vel, slip, num_threads) {}
+        : ChVehicleCosimRigNode(Type::RIGID, init_vel, slip, num_threads) {}
 
     ~ChVehicleCosimRigNodeRigidTire() {}
 

@@ -58,6 +58,10 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeRigid : public ChVehicleCosimTerra
     /// No-op for a rigid terrain.
     virtual void Settle() override {}
 
+    /// Write checkpointing file.
+    /// No-op for a rigid terrain
+    virtual void WriteCheckpoint() override {}
+
   private:
     ChSystem* m_system;  ///< containing system
 

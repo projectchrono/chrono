@@ -81,7 +81,7 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularOMP : public ChVehicleCosi
     virtual void Settle() override;
 
     /// Write checkpointing file.
-    void WriteCheckpoint();
+    virtual void WriteCheckpoint() override;
 
   private:
     ChSystemParallel* m_system;  ///< containing system

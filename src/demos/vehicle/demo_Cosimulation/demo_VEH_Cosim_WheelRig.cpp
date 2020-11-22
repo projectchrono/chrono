@@ -32,6 +32,7 @@
 #include "chrono_thirdparty/filesystem/path.h"
 
 #include "chrono_vehicle/cosim/ChVehicleCosimRigNode.h"
+#include "chrono_vehicle/cosim/ChVehicleCosimTerrainNodeRigid.h"
 #include "chrono_vehicle/cosim/ChVehicleCosimTerrainNodeGranularOMP.h"
 
 using std::cout;
@@ -54,6 +55,12 @@ double checkpoint_fps = 100;
 
 // Output directory
 std::string out_dir = "../TIRE_RIG_COSIM";
+
+// Tire type
+ChVehicleCosimRigNode::Type tire_type = ChVehicleCosimRigNode::Type::RIGID;
+
+// Terrain type
+ChVehicleCosimTerrainNode::Type terrain_type = ChVehicleCosimTerrainNode::Type::RIGID;
 
 // =============================================================================
 
@@ -115,11 +122,10 @@ int main(int argc, char** argv) {
     }
 
     // Prepare output directory.
-    if (rank == 0) {
-        if (!filesystem::create_directory(filesystem::path(out_dir))) {
-            cout << "Error creating directory " << out_dir << endl;
-            return 1;
-        }
+    if (rank == 0 && !filesystem::create_directory(filesystem::path(out_dir))) {
+        cout << "Error creating directory " << out_dir << endl;
+        MPI_Finalize();
+        return 1;
     }
 
     // Number of simulation steps between miscellaneous events.
@@ -129,17 +135,26 @@ int main(int argc, char** argv) {
 
     // Create the two systems and run the settling phase for terrain.
     ChVehicleCosimRigNode* my_rig = nullptr;
-    ChVehicleCosimTerrainNodeGranularOMP* my_terrain = nullptr;
+    ChVehicleCosimTerrainNode* my_terrain = nullptr;
 
     switch (rank) {
         case RIG_NODE_RANK: {
             cout << "[Rig node    ] rank = " << rank << " running on: " << procname << endl;
 
-            ////my_rig = new ChVehicleCosimRigNodeFlexibleTire(init_vel, slip, nthreads_rig);
-            ////my_rig->SetTireJSONFile(vehicle::GetDataFile("hmmwv/tire/HMMWV_ANCFTire.json"));
-
-            my_rig = new ChVehicleCosimRigNodeRigidTire(init_vel, slip, nthreads_rig);
-            my_rig->SetTireJSONFile(vehicle::GetDataFile("hmmwv/tire/HMMWV_RigidMeshTire_Coarse.json"));
+            switch (tire_type) {
+                case ChVehicleCosimRigNode::Type::RIGID: {
+                    auto rig = new ChVehicleCosimRigNodeRigidTire(init_vel, slip, nthreads_rig);
+                    rig->SetTireJSONFile(vehicle::GetDataFile("hmmwv/tire/HMMWV_RigidMeshTire_Coarse.json"));
+                    my_rig = rig;
+                    break;
+                }
+                case ChVehicleCosimRigNode::Type::FLEXIBLE: {
+                    auto rig = new ChVehicleCosimRigNodeFlexibleTire(init_vel, slip, nthreads_rig);
+                    rig->SetTireJSONFile(vehicle::GetDataFile("hmmwv/tire/HMMWV_ANCFTire.json"));
+                    my_rig = rig;
+                    break;
+                }
+            }
 
             my_rig->SetStepSize(step_size);
             my_rig->SetOutDir(out_dir, suffix);
@@ -151,57 +166,104 @@ int main(int argc, char** argv) {
             break;
         }
         case TERRAIN_NODE_RANK: {
-            auto method = ChContactMethod::NSC;
-
             cout << "[Terrain node] rank = " << rank << " running on: " << procname << endl;
-            my_terrain = new ChVehicleCosimTerrainNodeGranularOMP(method, use_checkpoint, render, nthreads_terrain);
-            my_terrain->SetStepSize(step_size);
-            my_terrain->SetOutDir(out_dir, suffix);
-            cout << "[Terrain node] output directory: " << my_terrain->GetOutDirName() << endl;
 
-            ////my_terrain->SetPatchDimensions(10, 0.6);
-            my_terrain->SetPatchDimensions(4, 0.6);
-            my_terrain->SetContainerDimensions(1, 0.2);
+            switch (terrain_type) {
+                case ChVehicleCosimTerrainNode::Type::RIGID: {
+                    auto method = ChContactMethod::SMC;
+                    auto terrain = new ChVehicleCosimTerrainNodeRigid(method, render);
+                    terrain->SetStepSize(step_size);
+                    terrain->SetOutDir(out_dir, suffix);
+                    cout << "[Terrain node] output directory: " << terrain->GetOutDirName() << endl;
 
-            ////double radius = 0.006;
-            double radius = 0.01;
+                    terrain->SetPatchDimensions(4, 2);
+                    terrain->SetProxyProperties(50, 0.002, true);
 
-            double coh_force = CH_C_PI * radius * radius * coh_pressure;
+                    switch (method) {
+                        case ChContactMethod::SMC: {
+                            auto material = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+                            material->SetFriction(0.9f);
+                            material->SetRestitution(0.0f);
+                            material->SetYoungModulus(8e5f);
+                            material->SetPoissonRatio(0.3f);
+                            material->SetKn(1.0e6f);
+                            material->SetGn(6.0e1f);
+                            material->SetKt(4.0e5f);
+                            material->SetGt(4.0e1f);
+                            terrain->SetMaterialSurface(material);
+                            terrain->UseMaterialProperties(true);
+                            terrain->SetContactForceModel(ChSystemSMC::Hertz);
+                            break;
+                        }
+                        case ChContactMethod::NSC: {
+                            auto material = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+                            material->SetFriction(0.9f);
+                            material->SetRestitution(0.0f);
+                            terrain->SetMaterialSurface(material);
+                            break;
+                        }
+                    }
 
-            my_terrain->SetGranularMaterial(radius, 2500, 15);
-            my_terrain->SetSettlingTime(0.2);
-            ////my_terrain->EnableSettlingOutput(true);
-
-            switch (method) {
-                case ChContactMethod::SMC: {
-                    auto material = chrono_types::make_shared<ChMaterialSurfaceSMC>();
-                    material->SetFriction(0.9f);
-                    material->SetRestitution(0.0f);
-                    material->SetYoungModulus(8e5f);
-                    material->SetPoissonRatio(0.3f);
-                    material->SetAdhesion(static_cast<float>(coh_force));
-                    material->SetKn(1.0e6f);
-                    material->SetGn(6.0e1f);
-                    material->SetKt(4.0e5f);
-                    material->SetGt(4.0e1f);
-                    my_terrain->SetMaterialSurface(material);
-                    my_terrain->UseMaterialProperties(false);
-                    my_terrain->SetContactForceModel(ChSystemSMC::PlainCoulomb);
+                    my_terrain = terrain;
                     break;
                 }
-                case ChContactMethod::NSC: {
-                    auto material = chrono_types::make_shared<ChMaterialSurfaceNSC>();
-                    material->SetFriction(0.9f);
-                    material->SetRestitution(0.0f);
-                    material->SetCohesion(static_cast<float>(coh_force));
-                    my_terrain->SetMaterialSurface(material);
+                case ChVehicleCosimTerrainNode::Type::GRANULAR_OMP: {
+                    auto method = ChContactMethod::SMC;
+                    auto terrain =
+                        new ChVehicleCosimTerrainNodeGranularOMP(method, use_checkpoint, render, nthreads_terrain);
+                    terrain->SetStepSize(step_size);
+                    terrain->SetOutDir(out_dir, suffix);
+                    cout << "[Terrain node] output directory: " << terrain->GetOutDirName() << endl;
+
+                    ////my_terrain->SetPatchDimensions(10, 0.6);
+                    terrain->SetPatchDimensions(4, 0.6);
+                    terrain->SetContainerDimensions(1, 0.2);
+
+                    terrain->SetProxyProperties(1, 0.01, false);
+
+                    ////double radius = 0.006;
+                    double radius = 0.01;
+
+                    double coh_force = CH_C_PI * radius * radius * coh_pressure;
+
+                    terrain->SetGranularMaterial(radius, 2500, 15);
+                    terrain->SetSettlingTime(0.2);
+                    ////terrain->EnableSettlingOutput(true);
+
+                    switch (method) {
+                        case ChContactMethod::SMC: {
+                            auto material = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+                            material->SetFriction(0.9f);
+                            material->SetRestitution(0.0f);
+                            material->SetYoungModulus(8e5f);
+                            material->SetPoissonRatio(0.3f);
+                            material->SetAdhesion(static_cast<float>(coh_force));
+                            material->SetKn(1.0e6f);
+                            material->SetGn(6.0e1f);
+                            material->SetKt(4.0e5f);
+                            material->SetGt(4.0e1f);
+                            terrain->SetMaterialSurface(material);
+                            terrain->UseMaterialProperties(false);
+                            terrain->SetContactForceModel(ChSystemSMC::PlainCoulomb);
+                            break;
+                        }
+                        case ChContactMethod::NSC: {
+                            auto material = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+                            material->SetFriction(0.9f);
+                            material->SetRestitution(0.0f);
+                            material->SetCohesion(static_cast<float>(coh_force));
+                            terrain->SetMaterialSurface(material);
+                            break;
+                        }
+                    }
+
+                    terrain->Settle();
+
+                    my_terrain = terrain;
                     break;
                 }
             }
 
-            my_terrain->SetProxyProperties(1, 0.01, false);
-
-            my_terrain->Settle();
             break;
         }
     }
