@@ -201,8 +201,7 @@ void ChVehicleCosimTerrainNodeRigid::Construct() {
     }
     outf << "Proxy body properties" << endl;
     outf << "   proxies fixed? " << (m_fixed_proxies ? "YES" : "NO") << endl;
-    outf << "   proxy radius = " << m_radius_p << endl;
-    outf << "   proxy mass = " << m_mass_p << endl;
+    outf << "   proxy contact radius = " << m_radius_p << endl;
 }
 
 // Create bodies with spherical contact geometry as proxies for the tire mesh vertices.
@@ -212,11 +211,13 @@ void ChVehicleCosimTerrainNodeRigid::Construct() {
 // Add all proxy bodies to the same collision family and disable collision between any
 // two members of this family.
 void ChVehicleCosimTerrainNodeRigid::CreateMeshProxies() {
-    ChVector<> inertia_p = 0.4 * m_mass_p * m_radius_p * m_radius_p * ChVector<>(1, 1, 1);
+    double mass_p = m_rig_mass / m_mesh_data.nv;
+    ChVector<> inertia_p = 0.4 * mass_p * m_radius_p * m_radius_p * ChVector<>(1, 1, 1);
+
     for (unsigned int iv = 0; iv < m_mesh_data.nv; iv++) {
         auto body = std::shared_ptr<ChBody>(m_system->NewBody());
         body->SetIdentifier(iv);
-        body->SetMass(m_mass_p);
+        body->SetMass(mass_p);
         body->SetInertiaXX(inertia_p);
         body->SetBodyFixed(m_fixed_proxies);
         body->SetCollide(true);
@@ -237,7 +238,7 @@ void ChVehicleCosimTerrainNodeRigid::CreateWheelProxy() {
     // Create wheel proxy body
     auto body = std::shared_ptr<ChBody>(m_system->NewBody());
     body->SetIdentifier(0);
-    body->SetMass(m_mass_p);
+    body->SetMass(m_rig_mass);
     ////body->SetInertiaXX();   //// TODO
     body->SetBodyFixed(m_fixed_proxies);
     body->SetCollide(true);

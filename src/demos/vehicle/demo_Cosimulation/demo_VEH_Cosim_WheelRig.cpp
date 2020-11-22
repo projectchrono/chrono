@@ -177,7 +177,7 @@ int main(int argc, char** argv) {
                     cout << "[Terrain node] output directory: " << terrain->GetOutDirName() << endl;
 
                     terrain->SetPatchDimensions(4, 2);
-                    terrain->SetProxyProperties(50, 0.002, true);
+                    terrain->SetProxyProperties(0.002, true);
 
                     switch (method) {
                         case ChContactMethod::SMC: {
@@ -208,7 +208,7 @@ int main(int argc, char** argv) {
                     break;
                 }
                 case ChVehicleCosimTerrainNode::Type::GRANULAR_OMP: {
-                    auto method = ChContactMethod::SMC;
+                    auto method = ChContactMethod::NSC;
                     auto terrain =
                         new ChVehicleCosimTerrainNodeGranularOMP(method, use_checkpoint, render, nthreads_terrain);
                     terrain->SetStepSize(step_size);
@@ -216,17 +216,17 @@ int main(int argc, char** argv) {
                     cout << "[Terrain node] output directory: " << terrain->GetOutDirName() << endl;
 
                     ////my_terrain->SetPatchDimensions(10, 0.6);
-                    terrain->SetPatchDimensions(4, 0.6);
+                    terrain->SetPatchDimensions(2, 0.6);
                     terrain->SetContainerDimensions(1, 0.2);
 
-                    terrain->SetProxyProperties(1, 0.01, false);
+                    terrain->SetProxyProperties(0.002, true);
 
                     ////double radius = 0.006;
-                    double radius = 0.01;
+                    double radius = 0.02;
 
                     double coh_force = CH_C_PI * radius * radius * coh_pressure;
 
-                    terrain->SetGranularMaterial(radius, 2500, 15);
+                    terrain->SetGranularMaterial(radius, 2500, 8);
                     terrain->SetSettlingTime(0.2);
                     ////terrain->EnableSettlingOutput(true);
 

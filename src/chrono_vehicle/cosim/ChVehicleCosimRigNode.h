@@ -102,6 +102,7 @@ class CH_VEHICLE_API ChVehicleCosimRigNode : public ChVehicleCosimBaseNode {
     double m_set_toe_mass;
     double m_upright_mass;
     double m_rim_mass;
+    double m_tire_mass;
 
     std::shared_ptr<ChWheel> m_wheel;  ///< wheel subsystem (to which a tire is attached)
 
@@ -166,7 +167,7 @@ class CH_VEHICLE_API ChVehicleCosimRigNodeFlexibleTire : public ChVehicleCosimRi
     virtual void Advance(double step_size) override;
 
   private:
-    /// Initialize the flexible tire and send contact information to terrain node.
+    /// Initialize the flexible tire (set tire mesh information and tire mass).
     virtual void InitializeTire() override;
 
     /// Construct the flexible tire.
@@ -229,7 +230,7 @@ class CH_VEHICLE_API ChVehicleCosimRigNodeRigidTire : public ChVehicleCosimRigNo
     virtual double GetTireRadius() const { return m_tire->GetRadius(); }
     virtual double GetTireWidth() const { return m_tire->GetWidth(); }
 
-    /// Initialize the rigid tire and send contact information to terrain node.
+    /// Initialize the rigid tire (set tire mesh information and tire mass).
     virtual void InitializeTire() override;
 
     /// Output tire-related statistics.

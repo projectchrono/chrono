@@ -48,7 +48,6 @@ ChVehicleCosimTerrainNode::ChVehicleCosimTerrainNode(Type type, ChContactMethod 
 
     // Default proxy body properties
     m_fixed_proxies = false;
-    m_mass_p = 1;
     m_radius_p = 0.01;
 
     // Default terrain contact material
@@ -69,8 +68,7 @@ void ChVehicleCosimTerrainNode::SetPatchDimensions(double length, double width) 
     m_hdimY = width / 2;
 }
 
-void ChVehicleCosimTerrainNode::SetProxyProperties(double mass, double radius, bool fixed) {
-    m_mass_p = mass;
+void ChVehicleCosimTerrainNode::SetProxyProperties(double radius, bool fixed) {
     m_radius_p = radius;
     m_fixed_proxies = fixed;
 }
@@ -105,9 +103,10 @@ void ChVehicleCosimTerrainNode::Initialize() {
     // Receive tire contact surface specification
     // ------------------------------------------
 
+    MPI_Status status;
+
     unsigned int surf_props[3];
-    MPI_Status status_p;
-    MPI_Recv(surf_props, 3, MPI_UNSIGNED, RIG_NODE_RANK, 0, MPI_COMM_WORLD, &status_p);
+    MPI_Recv(surf_props, 3, MPI_UNSIGNED, RIG_NODE_RANK, 0, MPI_COMM_WORLD, &status);
 
     m_flexible_tire = (surf_props[0] == 1);
     m_mesh_data.nv = surf_props[1];
@@ -125,17 +124,14 @@ void ChVehicleCosimTerrainNode::Initialize() {
     m_mesh_state.vpos.resize(m_mesh_data.nv);
     m_mesh_state.vvel.resize(m_mesh_data.nv);
 
-    cout << "[Terrain node] Received vertices = " << surf_props[1] << " triangles = " << surf_props[2] << endl;
-
     // -----------------------------------------------------------
     // Receive tire mesh vertices & normals and triangle indices
     // -----------------------------------------------------------
 
-    MPI_Status status_v;
     double* vert_data = new double[2 * 3 * m_mesh_data.nv];
     int* tri_data = new int[3 * m_mesh_data.nt];
-    MPI_Recv(vert_data, 2 * 3 * m_mesh_data.nv, MPI_DOUBLE, RIG_NODE_RANK, 0, MPI_COMM_WORLD, &status_v);
-    MPI_Recv(tri_data, 3 * m_mesh_data.nt, MPI_INT, RIG_NODE_RANK, 0, MPI_COMM_WORLD, &status_v);
+    MPI_Recv(vert_data, 2 * 3 * m_mesh_data.nv, MPI_DOUBLE, RIG_NODE_RANK, 0, MPI_COMM_WORLD, &status);
+    MPI_Recv(tri_data, 3 * m_mesh_data.nt, MPI_INT, RIG_NODE_RANK, 0, MPI_COMM_WORLD, &status);
 
     for (unsigned int iv = 0; iv < m_mesh_data.nv; iv++) {
         m_mesh_data.vpos[iv].x() = vert_data[6 * iv + 0];
@@ -155,14 +151,23 @@ void ChVehicleCosimTerrainNode::Initialize() {
     delete[] vert_data;
     delete[] tri_data;
 
+    cout << "[Terrain node] Received " << surf_props[1] << " vertices and " << surf_props[2] << " triangles" << endl;
+
+    // ----------------
+    // Receive rig mass
+    // ----------------
+
+    MPI_Recv(&m_rig_mass, 1, MPI_DOUBLE, RIG_NODE_RANK, 0, MPI_COMM_WORLD, &status);
+
+    cout << "[Terrain node] received rig mass = " << m_rig_mass << endl;
+
     // ----------------------------------------
     // Receive tire contact material properties
     // ----------------------------------------
 
     // Create the "tire" contact material, but defer using it until the proxy bodies are created.
     float mat_props[8];
-    MPI_Status status_m;
-    MPI_Recv(mat_props, 8, MPI_FLOAT, RIG_NODE_RANK, 0, MPI_COMM_WORLD, &status_m);
+    MPI_Recv(mat_props, 8, MPI_FLOAT, RIG_NODE_RANK, 0, MPI_COMM_WORLD, &status);
 
     switch (m_method) {
         case ChContactMethod::SMC: {

@@ -313,7 +313,7 @@ void ChVehicleCosimTerrainNodeGranularOMP::Construct() {
     outf << "   number particles = " << m_num_particles << endl;
     outf << "Proxy body properties" << endl;
     outf << "   proxies fixed? " << (m_fixed_proxies ? "YES" : "NO") << endl;
-    outf << "   proxy mass = " << m_mass_p << endl;
+    outf << "   proxy contact radius = " << m_radius_p << endl;
 
     // Mark system as constructed.
     m_constructed = true;
@@ -440,12 +440,13 @@ void ChVehicleCosimTerrainNodeGranularOMP::Settle() {
 // two members of this family.
 void ChVehicleCosimTerrainNodeGranularOMP::CreateMeshProxies() {
     //// RADU TODO:  better approximation of mass / inertia?
-    ChVector<> inertia_p = 1e-3 * m_mass_p * ChVector<>(0.1, 0.1, 0.1);
+    double mass_p = m_rig_mass / m_mesh_data.nt;
+    ChVector<> inertia_p = 1e-3 * mass_p * ChVector<>(0.1, 0.1, 0.1);
 
     for (unsigned int it = 0; it < m_mesh_data.nt; it++) {
         auto body = std::shared_ptr<ChBody>(m_system->NewBody());
         body->SetIdentifier(it);
-        body->SetMass(m_mass_p);
+        body->SetMass(mass_p);
         body->SetInertiaXX(inertia_p);
         body->SetBodyFixed(m_fixed_proxies);
         body->SetCollide(true);
@@ -470,7 +471,7 @@ void ChVehicleCosimTerrainNodeGranularOMP::CreateMeshProxies() {
 void ChVehicleCosimTerrainNodeGranularOMP::CreateWheelProxy() {
     auto body = std::shared_ptr<ChBody>(m_system->NewBody());
     body->SetIdentifier(0);
-    body->SetMass(m_mass_p);
+    body->SetMass(m_rig_mass);
     ////body->SetInertiaXX();   //// TODO
     body->SetBodyFixed(m_fixed_proxies);
     body->SetCollide(true);

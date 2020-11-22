@@ -109,6 +109,7 @@ ChVehicleCosimRigNode::ChVehicleCosimRigNode(Type type, double init_vel, double 
     m_set_toe_mass = 1;
     m_upright_mass = 450;
     m_rim_mass = 15;
+    m_tire_mass = 0;
 
     m_tire_pressure = true;
 
@@ -386,7 +387,10 @@ void ChVehicleCosimRigNodeRigidTire::ConstructTire() {
 // - call the virtual method InitializeTire which does the following:
 //   - initialize the tire
 //   - set tire mesh data
-// - send information on tire mesh topology (number vertices and triangles)
+//   - set tire contact material
+//   - set tire mass
+// - send tire mesh data (vertices, normals, and triangles)
+// - send rig mass
 // - send information on tire contact material
 // -----------------------------------------------------------------------------
 void ChVehicleCosimRigNode::Initialize() {
@@ -493,6 +497,9 @@ void ChVehicleCosimRigNode::Initialize() {
     MPI_Send(vert_data, 2 * 3 * m_mesh_data.nv, MPI_DOUBLE, TERRAIN_NODE_RANK, 0, MPI_COMM_WORLD);
     MPI_Send(tri_data, 3 * m_mesh_data.nt, MPI_INT, TERRAIN_NODE_RANK, 0, MPI_COMM_WORLD);
 
+    double mass = m_upright_mass + m_rim_mass + m_tire_mass;
+    MPI_Send(&mass, 1, MPI_DOUBLE, TERRAIN_NODE_RANK, 0, MPI_COMM_WORLD);
+
     float mat_props[8] = {m_contact_mat->GetKfriction(),    m_contact_mat->GetRestitution(),
                           m_contact_mat->GetYoungModulus(), m_contact_mat->GetPoissonRatio(),
                           m_contact_mat->GetKn(),           m_contact_mat->GetGn(),
@@ -525,6 +532,9 @@ void ChVehicleCosimRigNodeFlexibleTire::InitializeTire() {
 
     // Tire contact material
     m_contact_mat = m_tire->GetContactMaterial();
+
+    // Tire mass
+    m_tire_mass = m_tire->ReportMass();
 
     // Preprocess the tire mesh and store neighbor element information for each vertex
     // and vertex indices for each element. This data is used in output.
@@ -559,6 +569,9 @@ void ChVehicleCosimRigNodeRigidTire::InitializeTire() {
 
     // Tire contact material
     m_contact_mat = std::static_pointer_cast<ChMaterialSurfaceSMC>(m_tire->GetContactMaterial());
+
+    // Tire mass
+    m_tire_mass = m_tire->ReportMass();
 
     // Preprocess the tire mesh and store neighbor element information for each vertex.
     // Calculate mesh triangle areas.
