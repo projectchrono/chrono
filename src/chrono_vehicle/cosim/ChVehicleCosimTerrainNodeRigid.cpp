@@ -135,9 +135,9 @@ void ChVehicleCosimTerrainNodeRigid::Construct() {
     container->SetCollide(true);
 
     container->GetCollisionModel()->ClearModel();
-    // Bottom box
     utils::AddBoxGeometry(container.get(), m_material_terrain, ChVector<>(m_hdimX, m_hdimY, 0.1),
                           ChVector<>(0, 0, -0.1), ChQuaternion<>(1, 0, 0, 0), true);
+    container->GetCollisionModel()->BuildModel();
 
     // If using RIGID terrain, the contact will be between the container and proxy bodies.
     // Since collision between two bodies fixed to ground is ignored, if the proxy bodies
@@ -211,7 +211,7 @@ void ChVehicleCosimTerrainNodeRigid::CreateMeshProxies() {
         body->SetIdentifier(iv);
         body->SetMass(m_mass_p);
         body->SetInertiaXX(inertia_p);
-        body->SetBodyFixed(false);
+        body->SetBodyFixed(m_fixed_proxies);
         body->SetCollide(true);
 
         body->GetCollisionModel()->ClearModel();
