@@ -160,6 +160,11 @@ class ChApiPostProcess ChPovRay : public ChPostProcessBase {
                                  bool do_colormap,
                                  double colormap_start,
                                  double colormap_end);
+    
+    /// Set thickness for wireframe mode of meshes. If a ChTriangleMeshShape asset was set as SetWireframe(true),
+    /// it will be rendered in POVray as a cage of thin cylinders. This setting sets how thick the tubes.
+    virtual void SetWireframeThickness(const double mt) {  this->wireframe_thickness = mt; }
+    double GetWireframeThickness() {  return this->wireframe_thickness; }
 
     /// Set a string (a text block) of custom POV commands that you can optionally
     /// append to the POV script file, for example adding other POV lights, materials, etc.
@@ -261,6 +266,7 @@ class ChApiPostProcess ChPovRay : public ChPostProcessBase {
     double contacts_colormap_startscale;
     double contacts_colormap_endscale;
     bool contacts_do_colormap;
+    double wireframe_thickness;
     ChColor background;
     ChColor ambient_light;
 

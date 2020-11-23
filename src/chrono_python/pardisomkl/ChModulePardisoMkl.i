@@ -58,6 +58,7 @@
 #include "chrono/solver/ChSolverAPGD.h"
 #include "chrono/solver/ChSolverPSOR.h"
 #include "chrono/solver/ChSolverPJacobi.h"
+#include "chrono/solver/ChSolverADMM.h"
 
 #include "chrono_pardisomkl/ChApiPardisoMKL.h"
 #include "chrono_pardisomkl/ChSolverPardisoMKL.h"
