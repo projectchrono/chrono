@@ -165,6 +165,7 @@ int main(int argc, char* argv[]) {
     double out_fps = 200;
     float frame_step = 1.f / out_fps;  // Duration of a frame
     unsigned int out_steps = frame_step / iteration_step;
+    unsigned int total_frames = (unsigned int)((float)params.time_end * out_fps);
     std::cout << "out_steps " << out_steps << std::endl;
 
     unsigned int step = 0;
@@ -182,7 +183,7 @@ int main(int argc, char* argv[]) {
 
         gran_sys.meshSoup_applyRigidBodyMotion(mesh_pos_rot, mesh_vel);
         if (step % out_steps == 0) {
-            std::cout << "Rendering frame " << currframe << std::endl;
+            std::cout << "Rendering frame " << (currframe+1) << " of " << total_frames << std::endl;
             char filename[100];
             sprintf(filename, "%s/step%06u", params.output_dir.c_str(), currframe++);
             gran_sys.writeFile(std::string(filename));

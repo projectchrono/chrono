@@ -91,7 +91,7 @@ template <int N>
 ANCFshell<N>::ANCFshell(SolverType solver_type) {
     m_system = new ChSystemSMC();
     m_system->Set_G_acc(ChVector<>(0, -9.8, 0));
-    m_system->SetNumThreads(std::min(8, ChOMP::GetNumProcs()));
+    m_system->SetNumThreads(4);
 
     // Set solver parameters
 #ifndef CHRONO_PARDISO_MKL
@@ -116,13 +116,12 @@ ANCFshell<N>::ANCFshell(SolverType solver_type) {
             solver->SetTolerance(1e-10);
             solver->EnableDiagonalPreconditioner(true);
             solver->SetVerbose(false);
-
             m_system->SetSolverForceTolerance(1e-10);
             break;
         }
         case SolverType::MKL: {
 #ifdef CHRONO_PARDISO_MKL
-            auto solver = chrono_types::make_shared<ChSolverPardisoMKL>();
+            auto solver = chrono_types::make_shared<ChSolverPardisoMKL>(4);
             solver->UseSparsityPatternLearner(false);
             solver->LockSparsityPattern(true);
             solver->SetVerbose(false);
@@ -132,7 +131,7 @@ ANCFshell<N>::ANCFshell(SolverType solver_type) {
         }
         case SolverType::MUMPS: {
 #ifdef CHRONO_MUMPS
-            auto solver = chrono_types::make_shared<ChSolverMumps>();
+            auto solver = chrono_types::make_shared<ChSolverMumps>(4);
             solver->UseSparsityPatternLearner(false);
             solver->LockSparsityPattern(true);
             solver->SetVerbose(false);
@@ -143,6 +142,7 @@ ANCFshell<N>::ANCFshell(SolverType solver_type) {
         case SolverType::SparseQR: {
             auto solver = chrono_types::make_shared<ChSolverSparseQR>();
             m_system->SetSolver(solver);
+            break;
         }
     }
 
