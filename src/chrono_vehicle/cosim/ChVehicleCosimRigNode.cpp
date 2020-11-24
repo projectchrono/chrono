@@ -680,7 +680,7 @@ void ChVehicleCosimRigNodeRigidTire::Synchronize(int step_number, double time) {
     m_wheel_contact.moment = ChVector<>(force_data[3], force_data[4], force_data[5]);
 
     m_rim->Empty_forces_accumulators();
-    m_rim->Accumulate_force(m_wheel_contact.force, m_wheel_contact.force, false);
+    m_rim->Accumulate_force(m_wheel_contact.force, m_wheel_contact.point, false);
     m_rim->Accumulate_torque(m_wheel_contact.moment, false);
 }
 
