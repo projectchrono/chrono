@@ -285,8 +285,14 @@ struct host_container {
     custom_vector<int> c_counts_marker_tet;
 
     // Contact forces (SMC)
-    // These vectors hold the total contact force and torque, respectively,
-    // for bodies that are involved in at least one contact.
+    // These vectors hold the contact forces and torques for each individual contact. For each contact, the force and
+    // torque are given at the body origin, expressed in the absolute frame. These vectors include the force and torque
+    // for each of the two bodies involved in a contact.
+    custom_vector<real3> ct_force;   ///< Contact forces per contact
+    custom_vector<real3> ct_torque;  ///< Contact torques per contact
+    // These vectors hold the resultant contact force and torque for each body in contact, accumulating over all
+    // contacts that the body is involved in. The force and torque are given at the body origin, expresed in the
+    // absolute frame. for bodies that are involved in at least one contact.
     custom_vector<real3> ct_body_force;   ///< Total contact force on bodies
     custom_vector<real3> ct_body_torque;  ///< Total contact torque on these bodies
 
