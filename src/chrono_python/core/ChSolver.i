@@ -17,6 +17,7 @@
 #include "chrono/solver/ChSolverAPGD.h"
 #include "chrono/solver/ChSolverPSOR.h"
 #include "chrono/solver/ChSolverPJacobi.h"
+#include "chrono/solver/ChSolverADMM.h"
 
 using namespace chrono;
 %}
@@ -43,6 +44,7 @@ using namespace chrono;
 %shared_ptr(chrono::ChSolverPJacobi)
 %shared_ptr(chrono::ChSolverSparseLU)
 %shared_ptr(chrono::ChSolverSparseQR)
+%shared_ptr(chrono::ChSolverADMM)
 
 %include "../../chrono/solver/ChSolver.h"
 %include "../../chrono/solver/ChSolverVI.h"
@@ -59,7 +61,7 @@ using namespace chrono;
 %include "../../chrono/solver/ChSolverAPGD.h"
 %include "../../chrono/solver/ChSolverPSOR.h"
 %include "../../chrono/solver/ChSolverPJacobi.h"
-
+%include "../../chrono/solver/ChSolverADMM.h"
 
 
 

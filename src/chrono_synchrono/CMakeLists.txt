@@ -12,6 +12,22 @@ ENDIF()
 
 message(STATUS "==== SynChrono module ====")
 
+# Return now if MPI is not available
+if(NOT MPI_CXX_FOUND)
+	message("Chrono::SynChrono requires MPI")
+	set(ENABLE_MODULE_SYNCHRONO OFF CACHE BOOL "Enable the SynChrono module" FORCE)
+	message(STATUS "Chrono::SynChrono disabled")
+	return()
+endif()
+
+# Return now if Chrono::Vehicle is not enabled
+if(NOT ENABLE_MODULE_VEHICLE)
+    message("Chrono::SynChrono depends on Chrono::Vehicle")
+    set(ENABLE_MODULE_SYNCHRONO OFF CACHE BOOL "Enable the SynChrono module" FORCE)
+    message(STATUS "Chrono::SynChrono disabled")
+    return()
+endif()
+
 set(SYN_INCLUDES ${SYN_INCLUDES})
 
 set(SYN_CXX_FLAGS "${CH_CXX_FLAGS}")
@@ -37,8 +53,6 @@ set(SYN_INCLUDES
 #-----------------------------------------------------------------------------
 # Find MPI (Default transport method)
 #-----------------------------------------------------------------------------
-
-find_package(MPI REQUIRED)
 
 set(SYN_INCLUDES
     ${SYN_INCLUDES}
@@ -216,37 +230,20 @@ source_group("visualization" FILES ${SYN_VISUALIZATION_FILES})
 #-----------------------------------------------------------------------------
 
 if (ENABLE_MODULE_SENSOR)
-  # list(APPEND SYN_LIBRARIES ChronoEngine_sensor)
   list(APPEND SYN_LIB_NAMES ChronoEngine_sensor)
 endif()
-
-if (ENABLE_MODULE_MKL)
-  #list(APPEND SYN_LIBRARIES ChronoEngine_mkl)
-  list(APPEND SYN_LIB_NAMES ChronoEngine_mkl)
-  list(APPEND SYN_INCLUDES  ${CH_MKL_INCLUDES})
-  list(APPEND SYN_CXX_FLAGS ${CH_MKL_CXX_FLAGS})
-  list(APPEND SYN_LINKER_FLAGS ${CH_MKL_LINK_FLAGS})
-endif()
-
-if (ENABLE_MODULE_IRRLICHT AND ENABLE_MODULE_VEHICLE)
-  # list(APPEND SYN_LIBRARIES ChronoEngine_vehicle_irrlicht)
-  list(APPEND SYN_LIB_NAMES ChronoEngine_vehicle_irrlicht)
-endif()
-
+  
 if (ENABLE_MODULE_IRRLICHT)
-  # list(APPEND SYN_LIBRARIES ChronoEngine_irrlicht)
   list(APPEND SYN_LIB_NAMES ChronoEngine_irrlicht)
+  list(APPEND SYN_LIB_NAMES ChronoEngine_vehicle_irrlicht)
 
   list(APPEND SYN_INCLUDES  ${CH_IRRLICHTINC})
   list(APPEND SYN_CXX_FLAGS ${CH_IRRLICHT_CXX_FLAGS})
 endif()
 
-if (ENABLE_MODULE_VEHICLE)
-  # list(APPEND SYN_LIBRARIES ChronoEngine_vehicle)
-  # list(APPEND SYN_LIBRARIES ChronoModels_vehicle)
-  list(APPEND SYN_LIB_NAMES ChronoEngine_vehicle)
-  list(APPEND SYN_LIB_NAMES ChronoModels_vehicle)
-endif()
+# Chrono::Vehicle is required
+list(APPEND SYN_LIB_NAMES ChronoEngine_vehicle)
+list(APPEND SYN_LIB_NAMES ChronoModels_vehicle)
 
 # Set some variables to be visible outside this directory
 SET(SYN_INCLUDES     "${SYN_INCLUDES}"  PARENT_SCOPE)
