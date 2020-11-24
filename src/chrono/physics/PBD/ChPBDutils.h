@@ -22,42 +22,58 @@
 #include "chrono/physics/ChSystem.h"
 
 namespace chrono {
-/*
-/// Class for a physical system in which contact is modeled using a non-smooth
-/// (complementarity-based) method.
-class ChApi ChSystemNSC : public ChSystem {
-
-  public:
-    /// Create a physical system.
-    /// If init_sys is false, the collision system oand solver are not initialized.
-    ChSystemNSC(bool init_sys = true);
+//enum PBD_DOF {ALL, PARTIAL, NONE };
+//enum RotDOF {ALL, PARTIAL, NONE };
+/// Struct collecting a Chrono ChLink together with additional info needed by 
+struct ChApi ChLinkPBD {
+	// Objects needed by PBD link
+	std::shared_ptr<ChLink> link;
+	// Relative Position of the link w.r.t. body 1 & 2 respectively
+	ChFrame<> f1;
+	ChFrame<> f2;
+	// constrained DOF
+	bool mask[6] = {};
+	//PBD_DOF p_dof;
+	//PBD_DOF r_dof;
+	// By element-wise multiplication these vectors constrain only along the locked directions
+	ChVector<> p_dir = ();
+	ChVector<> r_dir = ();
+	// Skip the whole correction if the pos/rot not constrained at all
+	bool p_free = false;
+	bool r_free = false;
+	// Lagrangian
+	double lambda = 0;
+	// Compliance (TODO)
+	double alpha;
+	//TODO: not implementing limits and actuators yet.
+	bool is_limited = false;
+	double lims[6] = {};
+	bool is_actuated = false;
+	
+	/// Create a LinkPBD
+	ChLinkPBD(std::shared_ptr<ChLink> link);
 
     /// Copy constructor
-    ChSystemNSC(const ChSystemNSC& other);
+	//ChLinkPBD(const ChLinkPBD& other);
 
     /// Destructor
-    virtual ~ChSystemNSC() {}
+    //virtual ~ChLinkPBD() {}
 
-    /// "Virtual" copy constructor (covariant return type).
-    virtual ChSystemNSC* Clone() const override { return new ChSystemNSC(*this); }
-
-    /// Return the contact method supported by this system.
-    virtual ChContactMethod GetContactMethod() const override final { return ChContactMethod::NSC; }
-
-    /// Replace the contact container.
-    virtual void SetContactContainer(std::shared_ptr<ChContactContainer> container) override;
+	/// Correct position to respect constraint
+	void SolvePositions();
 
     // SERIALIZATION
-
+	/* TODO
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOUT(ChArchiveOut& marchive) override;
 
     /// Method to allow deserialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
+	*/
 };
 
-CH_CLASS_VERSION(ChSystemNSC, 0)
-*/
+CH_CLASS_VERSION(ChLinkPBD, 0)
+
 }  // end namespace chrono
 
 #endif

@@ -18,46 +18,81 @@
 
 #include <algorithm>
 
-#include "chrono/physics/ChSystemNSC.h"
+#include "chrono/physics/PBD/ChPBDutils.h"
 #include "chrono/physics/ChContactContainerNSC.h"
 #include "chrono/physics/ChProximityContainer.h"
 #include "chrono/physics/ChSystem.h"
 #include "chrono/collision/ChCollisionSystemBullet.h"
+#include "chrono/physics/ChLinkMate.h"
+#include "chrono/physics/ChLinkLock.h"
 
 namespace chrono {
-/*
+
+// Not efficient, but also colled only once at the beginning
+template<typename Base, typename T>
+inline bool instanceof(const T *ptr) {
+	return dynamic_cast<const Base*>(ptr) != nullptr;
+}
 // Register into the object factory, to enable run-time dynamic creation and persistence
-CH_FACTORY_REGISTER(ChSystemNSC)
+CH_FACTORY_REGISTER(ChLinkPBD)
 
-ChSystemNSC::ChSystemNSC(bool init_sys)
-    : ChSystem() {
-    if (init_sys) {
-        // Set default contact container
-        contact_container = chrono_types::make_shared<ChContactContainerNSC>();
-        contact_container->SetSystem(this);
+ChLinkPBD::ChLinkPBD(std::shared_ptr<ChLink> alink) {
+	link = alink;
+	// Get info from instances of ChLinkMateGeneric
+	if (instanceof<ChLinkMateGeneric>(link.get())) {
+		ChLinkMateGeneric* mate = dynamic_cast<ChLinkMateGeneric*>(link.get());
+		f1 = mate->GetFrame1();
+		f2 = mate->GetFrame2();
+		mask[0] = mate->IsConstrainedX();
+		mask[1] = mate->IsConstrainedY();
+		mask[2] = mate->IsConstrainedZ();
+		mask[3] = mate->IsConstrainedRx();
+		mask[4] = mate->IsConstrainedRy();
+		mask[5] = mate->IsConstrainedRz();
+	}
+	else if (instanceof<ChLinkLock>(link.get())) {
+		ChLinkLock* lock = dynamic_cast<ChLinkLock*>(link.get());
+		f1 = lock->GetMarker1.GetCoord();
+		f2 = lock->GetMarker2.GetCoord();
+		ChLinkMask& p_mask = lock->GetMask();
+		ChLinkMaskLF* m_lf = dynamic_cast<ChLinkMaskLF*>(&p_mask);
+		mask[0] = m_lf->Constr_X().GetMode() == CONSTRAINT_LOCK;
+		mask[1] = m_lf->Constr_Y().GetMode() == CONSTRAINT_LOCK;
+		mask[2] = m_lf->Constr_Z().GetMode() == CONSTRAINT_LOCK;
+		//mask[3] = m_lf->Constr_E0().GetMode() == CONSTRAINT_LOCK;
+		mask[3] = m_lf->Constr_E1().GetMode() == CONSTRAINT_LOCK;
+		mask[4] = m_lf->Constr_E2().GetMode() == CONSTRAINT_LOCK;
+		mask[5] = m_lf->Constr_E3().GetMode() == CONSTRAINT_LOCK;
+	}
+	/*
+	if (int(mask[0]) + int(mask[1]) + int(mask[2]) == 0) {
+		p_dof = NONE;
+	}
+	else if (int(mask[0]) + int(mask[1]) + int(mask[2]) == 3) {
+		p_dof = ALL;
+	}
+	else p_dof = PARTIAL;
 
-        // Set default collision engine
-        collision_system = chrono_types::make_shared<collision::ChCollisionSystemBullet>();
-
-        // Set the system descriptor
-        descriptor = chrono_types::make_shared<ChSystemDescriptor>();
-
-        // Set default solver
-        SetSolverType(ChSolver::Type::PSOR);
-    }
-
-    // Set default collision envelope and margin.
-    collision::ChCollisionModel::SetDefaultSuggestedEnvelope(0.03);
-    collision::ChCollisionModel::SetDefaultSuggestedMargin(0.01);
+	if (int(mask[3]) + int(mask[4]) + int(mask[5]) == 0) {
+		r_dof = NONE;
+	}
+	else if (int(mask[3]) + int(mask[4]) + int(mask[5]) == 3) {
+		r_dof = ALL;
+	}
+	else r_dof = PARTIAL;
+	*/
+	p_dir.Set(int(mask[0]), int(mask[1]), int(mask[2]));
+	r_dir.Set(int(mask[3]), int(mask[4]), int(mask[5]));
+	p_free = (int(mask[0]) + int(mask[1]) + int(mask[2]) == 0) ? true : false;
+	r_free = (int(mask[3]) + int(mask[4]) + int(mask[5]) == 0) ? true : false;
 }
 
-ChSystemNSC::ChSystemNSC(const ChSystemNSC& other) : ChSystem(other) {}
+void ChLinkPBD::SolvePositions() {
+	if (!p_free) {
 
-void ChSystemNSC::SetContactContainer(std::shared_ptr<ChContactContainer> container) {
-    if (std::dynamic_pointer_cast<ChContactContainerNSC>(container))
-        ChSystem::SetContactContainer(container);
+	}
 }
-
+/*
 void ChSystemNSC::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChSystemNSC>();

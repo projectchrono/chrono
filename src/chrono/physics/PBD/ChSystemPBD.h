@@ -21,6 +21,7 @@
 #define CH_SYSTEM_PBD_H
 
 #include "chrono/physics/ChSystem.h"
+#include "chrono/physics/PBD/ChPBDutils.h"
 
 namespace chrono {
 
@@ -29,6 +30,8 @@ namespace chrono {
 class ChApi ChSystemPBD : public ChSystem {
 
   public:
+
+
     /// Create a physical system.
     /// If init_sys is false, the collision system oand solver are not initialized.
 	ChSystemPBD(bool init_sys = true);
@@ -60,6 +63,17 @@ class ChApi ChSystemPBD : public ChSystem {
 
     /// Method to allow deserialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
+
+  private:
+	/// convert the Chrono system to fit into PBD formulation
+	void PBDSetup();
+
+  protected:
+    /// Setup the PBD system
+	bool PBD_isSetup = false;
+	/// Lists of links and contacts usable by PBD formulation
+	std::vector<std::shared_ptr< ChLinkPBD> > linklistPBD;
+	//std::vector<ChContactPBD> contactlistPBD;
 };
 
 CH_CLASS_VERSION(ChSystemPBD, 0)

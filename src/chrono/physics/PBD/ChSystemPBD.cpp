@@ -44,6 +44,7 @@ ChSystemPBD::ChSystemPBD(bool init_sys)
         descriptor = chrono_types::make_shared<ChSystemDescriptor>();
 
         // Set default solver
+		// Not called by Integrate_Y. Users might call it through DoAssembly and such.
         SetSolverType(ChSolver::Type::PSOR);
     }
 
@@ -93,30 +94,40 @@ bool ChSystemPBD::Integrate_Y() {
 		Update(false);
 	}
 
+
 	// Re-wake the bodies that cannot sleep because they are in contact with
 	// some body that is not in sleep state.
 	//TODO: I had to change ChSystem::ManageSleepingBodies from private to protected. 
 	// Not sure if this is useful, maybe skip smth is abody is sleeping?
 	ManageSleepingBodies();
-
-
 	// Prepare lists of variables and constraints.
+	// TODO: check if this is needed by  PBD (constrint matrix is not, but maybe we process the state here)
 	DescriptorPrepareInject(*descriptor);
-
+	/// Qc matrix not used by PBD
+	/*
 	// No need to update counts and offsets, as already done by the above call (in ChSystemDescriptor::EndInsertion)
 	////descriptor->UpdateCountsAndOffsets();
-
 	// Set some settings in timestepper object
 	timestepper->SetQcDoClamp(true);
 	timestepper->SetQcClamping(max_penetration_recovery_speed);
 	if (std::dynamic_pointer_cast<ChTimestepperHHT>(timestepper) ||
 		std::dynamic_pointer_cast<ChTimestepperNewmark>(timestepper))
 		timestepper->SetQcDoClamp(false);
+		*/
+
+		// If needed, update everything. No need to update visualization assets here.
+	if (!PBD_isSetup) {
+		PBDSetup();
+		PBD_isSetup = true;
+	}
 
 	// PERFORM TIME STEP HERE!
 	{
 		CH_PROFILE("Advance");
 		timer_advance.start();
+		// TODO: change next line with PBD advance loop
+		// TODO: links must be processed to fit into PBD forumulation. This cannot be done at each timestep but neither upon initialization.
+		// We might add a "PBD_Setup" flag taht is called at most one.
 		timestepper->Advance(step);
 		timer_advance.stop();
 	}
@@ -125,7 +136,8 @@ bool ChSystemPBD::Integrate_Y() {
 	CustomEndOfStep();
 
 	// Call method to gather contact forces/torques in rigid bodies
-	contact_container->ComputeContactForces();
+	/// Not needed in PBD.
+	//contact_container->ComputeContactForces();
 
 	// Time elapsed for step
 	timer_step.stop();
@@ -156,6 +168,13 @@ void ChSystemPBD::ArchiveIN(ChArchiveIn& marchive) {
     ChSystem::ArchiveIN(marchive);
 
     // stream in all member data:
+}
+
+void ChSystemPBD::PBDSetup() {
+	for (auto& value : Get_linklist()) {
+		auto pbdlink = chrono_types::make_shared<ChLinkPBD>(value);
+		linklistPBD.push_back(pbdlink) ;
+	}
 }
 
 }  // end namespace chrono
