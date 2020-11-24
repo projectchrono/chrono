@@ -66,6 +66,14 @@ if(ENABLE_MODULE_DISTRIBUTED)
   set(LINKER_FLAGS "${LINKER_FLAGS} ${CH_DISTRIBUTED_LINK_FLAGS}")
 endif()
 
+if(ENABLE_MODULE_FSI)
+  set(CV_COSIM_FILES ${CV_COSIM_FILES}
+      ChVehicleCosimTerrainNodeGranularSPH.h
+      ChVehicleCosimTerrainNodeGranularSPH.cpp)
+  include_directories(${CH_FSI_INCLUDES})
+  list(APPEND LIBRARIES ChronoEngine_fsi)
+endif()
+
 # ------------------------------------------------------------------------------
 
 # Add the ChronoEngine_vehicle_cosim library
