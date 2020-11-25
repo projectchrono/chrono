@@ -51,22 +51,21 @@ class ContactReporter : public ChContactContainer::ReportContactCallback {
 
         // Check if contact involves box1
         if (modA == m_box1.get()) {
-            printf("  contact on Box 1 at pos: %7.3f  %7.3f  %7.3f", pA.x(), pA.y(), pA.z());
-            printf("  frc: %7.3f  %7.3f  %7.3f", frc.x(), frc.y(), frc.z());
+            printf("  A contact on Box 1 at pos: %7.3f  %7.3f  %7.3f", pA.x(), pA.y(), pA.z());
         } else if (modB == m_box1.get()) {
-            printf("  contact on Box 1 at pos: %7.3f  %7.3f  %7.3f", pB.x(), pB.y(), pB.z());
-            printf("  frc: %7.3f  %7.3f  %7.3f", frc.x(), frc.y(), frc.z());
+            printf("  B contact on Box 1 at pos: %7.3f  %7.3f  %7.3f", pB.x(), pB.y(), pB.z());
         }
 
         // Check if contact involves box2
         if (modA == m_box2.get()) {
-            printf("  contact on Box 2 at pos: %7.3f  %7.3f  %7.3f", pA.x(), pA.y(), pA.z());
-            printf("  frc: %7.3f  %7.3f  %7.3f", frc.x(), frc.y(), frc.z());
+            printf("  A contact on Box 2 at pos: %7.3f  %7.3f  %7.3f", pA.x(), pA.y(), pA.z());
         } else if (modB == m_box2.get()) {
-            printf("  contact on Box 2 at pos: %7.3f  %7.3f  %7.3f", pB.x(), pB.y(), pB.z());
-            printf("  frc: %7.3f  %7.3f  %7.3f", frc.x(), frc.y(), frc.z());
+            printf("  B contact on Box 2 at pos: %7.3f  %7.3f  %7.3f", pB.x(), pB.y(), pB.z());
         }
 
+        const ChVector<>& nrm = plane_coord.Get_A_Xaxis();
+        printf("  frc: %7.3f  %7.3f  %7.3f", frc.x(), frc.y(), frc.z());
+        printf("  nrm: %7.3f, %7.3f  %7.3f", nrm.x(), nrm.y(), nrm.z());
         printf("  penetration: %8.4f   eff. radius: %7.3f\n", distance, eff_radius);
 
         return true;

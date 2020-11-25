@@ -31,6 +31,7 @@ SET(DEMOS
     demo_PAR_fluidNSC
     demo_PAR_snowMPM
     demo_PAR_particlesNSC
+    demo_PAR_cratering
 )
 
 # Add programs that require OpenGL
