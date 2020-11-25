@@ -36,13 +36,14 @@ inline bool instanceof(const T *ptr) {
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChLinkPBD)
 
-ChLinkPBD::ChLinkPBD(std::shared_ptr<ChLink> alink) {
-	link = alink;
+ChLinkPBD::ChLinkPBD(ChLink& alink) : link(ChLink(alink)), p_dir(ChVector<double>(0, 0, 0)), r_dir(ChVector<double>(0, 0, 0)), f1(ChFrame<double>(VNULL)), f2(ChFrame<double>(VNULL)), p_free(false), r_free(false)
+	{
+	
 	// Get info from instances of ChLinkMateGeneric
-	if (instanceof<ChLinkMateGeneric>(link.get())) {
-		ChLinkMateGeneric* mate = dynamic_cast<ChLinkMateGeneric*>(link.get());
-		f1 = mate->GetFrame1();
-		f2 = mate->GetFrame2();
+	if (instanceof<ChLinkMateGeneric>(&link)) {
+		ChLinkMateGeneric* mate = dynamic_cast<ChLinkMateGeneric*>(&link);
+		f1 = ChFrame<>(mate->GetFrame1());
+		f2 = ChFrame<>(mate->GetFrame2());
 		mask[0] = mate->IsConstrainedX();
 		mask[1] = mate->IsConstrainedY();
 		mask[2] = mate->IsConstrainedZ();
@@ -50,10 +51,10 @@ ChLinkPBD::ChLinkPBD(std::shared_ptr<ChLink> alink) {
 		mask[4] = mate->IsConstrainedRy();
 		mask[5] = mate->IsConstrainedRz();
 	}
-	else if (instanceof<ChLinkLock>(link.get())) {
-		ChLinkLock* lock = dynamic_cast<ChLinkLock*>(link.get());
-		f1 = lock->GetMarker1.GetCoord();
-		f2 = lock->GetMarker2.GetCoord();
+	else if (instanceof<ChLinkLock>(&link)) {
+		ChLinkLock* lock = dynamic_cast<ChLinkLock*>(&link);
+		f1 = ChFrame<>( lock->GetMarker1()->GetCoord());
+		f2 = ChFrame<>(lock->GetMarker2()->GetCoord());
 		ChLinkMask& p_mask = lock->GetMask();
 		ChLinkMaskLF* m_lf = dynamic_cast<ChLinkMaskLF*>(&p_mask);
 		mask[0] = m_lf->Constr_X().GetMode() == CONSTRAINT_LOCK;
@@ -64,31 +65,21 @@ ChLinkPBD::ChLinkPBD(std::shared_ptr<ChLink> alink) {
 		mask[4] = m_lf->Constr_E2().GetMode() == CONSTRAINT_LOCK;
 		mask[5] = m_lf->Constr_E3().GetMode() == CONSTRAINT_LOCK;
 	}
-	/*
-	if (int(mask[0]) + int(mask[1]) + int(mask[2]) == 0) {
-		p_dof = NONE;
-	}
-	else if (int(mask[0]) + int(mask[1]) + int(mask[2]) == 3) {
-		p_dof = ALL;
-	}
-	else p_dof = PARTIAL;
-
-	if (int(mask[3]) + int(mask[4]) + int(mask[5]) == 0) {
-		r_dof = NONE;
-	}
-	else if (int(mask[3]) + int(mask[4]) + int(mask[5]) == 3) {
-		r_dof = ALL;
-	}
-	else r_dof = PARTIAL;
-	*/
 	p_dir.Set(int(mask[0]), int(mask[1]), int(mask[2]));
 	r_dir.Set(int(mask[3]), int(mask[4]), int(mask[5]));
 	p_free = (int(mask[0]) + int(mask[1]) + int(mask[2]) == 0) ? true : false;
 	r_free = (int(mask[3]) + int(mask[4]) + int(mask[5]) == 0) ? true : false;
 }
 
+ChLinkPBD::ChLinkPBD(const ChLinkPBD& other) : link(ChLink(other.link)), p_dir(ChVector<double>(0, 0, 0)), r_dir(ChVector<double>(0, 0, 0)), f1(ChFrame<double>(VNULL)), f2(ChFrame<double>(VNULL)), p_free(false), r_free(false) {
+	ChLinkPBD(other.link);
+}
+
+
 void ChLinkPBD::SolvePositions() {
+	// if there's no displacement constraint, skip
 	if (!p_free) {
+		// Evaluate the composite invert masses
 
 	}
 }

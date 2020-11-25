@@ -25,39 +25,40 @@ namespace chrono {
 //enum PBD_DOF {ALL, PARTIAL, NONE };
 //enum RotDOF {ALL, PARTIAL, NONE };
 /// Struct collecting a Chrono ChLink together with additional info needed by 
-struct ChApi ChLinkPBD {
+class ChApi ChLinkPBD {
+  public:
+
+	/// Create a LinkPBD
+	ChLinkPBD(ChLink& alink);
+
+	/// Copy constructor
+	ChLinkPBD(const ChLinkPBD& other);
+
+	/// Destructor
+	virtual ~ChLinkPBD() {}
 	// Objects needed by PBD link
-	std::shared_ptr<ChLink> link;
+	ChLink& link;
 	// Relative Position of the link w.r.t. body 1 & 2 respectively
-	ChFrame<> f1;
-	ChFrame<> f2;
+	ChFrame<double> f1;
+	ChFrame<double> f2;
 	// constrained DOF
 	bool mask[6] = {};
-	//PBD_DOF p_dof;
-	//PBD_DOF r_dof;
 	// By element-wise multiplication these vectors constrain only along the locked directions
-	ChVector<> p_dir = ();
-	ChVector<> r_dir = ();
+	ChVector<double> p_dir;
+	ChVector<double> r_dir;
 	// Skip the whole correction if the pos/rot not constrained at all
-	bool p_free = false;
-	bool r_free = false;
+	bool p_free;
+	bool r_free;
 	// Lagrangian
-	double lambda = 0;
+	//double lambda;
 	// Compliance (TODO)
-	double alpha;
+	//double alpha;
 	//TODO: not implementing limits and actuators yet.
-	bool is_limited = false;
+	/*bool is_limited = false;
 	double lims[6] = {};
 	bool is_actuated = false;
+	*/
 	
-	/// Create a LinkPBD
-	ChLinkPBD(std::shared_ptr<ChLink> link);
-
-    /// Copy constructor
-	//ChLinkPBD(const ChLinkPBD& other);
-
-    /// Destructor
-    //virtual ~ChLinkPBD() {}
 
 	/// Correct position to respect constraint
 	void SolvePositions();
@@ -73,7 +74,36 @@ struct ChApi ChLinkPBD {
 };
 
 CH_CLASS_VERSION(ChLinkPBD, 0)
+/*
+/// PBD method timesteppers.
+class ChApi ChTimestepperPBD : public ChTimestepperIorder {
+protected:
+	// In base class
+	//ChState Y;
+	//ChStateDelta dYdt;
 
+
+public:
+	/// Constructor
+	ChTimestepperPBD(ChIntegrable* intgr = nullptr) : ChTimestepper(intgr) { SetIntegrable(intgr); }
+
+	/// Destructor
+	virtual ~ChTimestepperIorder() {}
+
+	/// Access the state at current time
+	virtual ChState& get_Y() { return Y; }
+
+	/// Access the derivative of state at current time
+	virtual ChStateDelta& get_dYdt() { return dYdt; }
+
+	/// Set the integrable object
+	virtual void SetIntegrable(ChSystemPBD* intgr) {
+		ChTimestepper::SetIntegrable(intgr);
+		Y.setZero(1, intgr);
+		dYdt.setZero(1, intgr);
+	}
+};
+*/
 }  // end namespace chrono
 
 #endif

@@ -64,16 +64,36 @@ class ChApi ChSystemPBD : public ChSystem {
     /// Method to allow deserialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
 
+	// Get/Set the number of substeps
+	int GetSubsteps() { return substeps; }
+
+	void setSubsteps(int s) { substeps = s; }
+
   private:
 	/// convert the Chrono system to fit into PBD formulation
 	void PBDSetup();
 
+	/// Correct the state according to the contraints by performing SolvePositions on each link
+	void SolvePositions();
+
+	/// Advance the simulation
+	void Advance();
+
   protected:
+	// number of substeps per step 
+	int substeps = 20;
     /// Setup the PBD system
 	bool PBD_isSetup = false;
 	/// Lists of links and contacts usable by PBD formulation
 	std::vector<std::shared_ptr< ChLinkPBD> > linklistPBD;
 	//std::vector<ChContactPBD> contactlistPBD;
+
+	std::vector < ChVector<double>> x_prev;
+	std::vector < ChVector<double>> x;
+	std::vector < ChQuaternion<double>> q_prev;
+	std::vector < ChQuaternion<double>> q;
+	std::vector < ChVector<double>> omega;
+	std::vector < ChVector<double>> v;
 };
 
 CH_CLASS_VERSION(ChSystemPBD, 0)

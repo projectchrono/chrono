@@ -128,7 +128,7 @@ bool ChSystemPBD::Integrate_Y() {
 		// TODO: change next line with PBD advance loop
 		// TODO: links must be processed to fit into PBD forumulation. This cannot be done at each timestep but neither upon initialization.
 		// We might add a "PBD_Setup" flag taht is called at most one.
-		timestepper->Advance(step);
+		this->Advance();
 		timer_advance.stop();
 	}
 
@@ -171,10 +171,68 @@ void ChSystemPBD::ArchiveIN(ChArchiveIn& marchive) {
 }
 
 void ChSystemPBD::PBDSetup() {
+	// create the list of links using PBD formulation
 	for (auto& value : Get_linklist()) {
-		auto pbdlink = chrono_types::make_shared<ChLinkPBD>(value);
+		ChLink* link = dynamic_cast<ChLink*>(value.get());
+		auto pbdlink = chrono_types::make_shared<ChLinkPBD>(link);
 		linklistPBD.push_back(pbdlink) ;
+	}
+	// The gyroscopic term is evaluated within the PBD loop
+	for (auto& body : Get_bodylist()) {
+		body->SetNoGyroTorque(true);
+	}
+	// allocate the proper amount of vectors and quaternions
+	int n = Get_bodylist().size();
+	x_prev.reserve(n);
+	x.reserve(n);
+	q_prev.reserve(n);
+	q.reserve(n);
+	omega.reserve(n);
+	v.reserve(n);
+}
+
+void ChSystemPBD::SolvePositions() {
+	for (auto& link : linklistPBD) {
+		link->SolvePositions();
 	}
 }
 
+// Implementation af algorithm 2 from Detailed Rigid Body Simulation with Extended Position Based Dynamics, Mueller et al.
+void ChSystemPBD::Advance() {
+	int n = Get_bodylist().size();
+	double h = step / substeps;
+	for (int i = 0; i < substeps; i++) {
+		for (int j = 0; j < n; j++) {
+			std::shared_ptr<ChBody> body = Get_bodylist()[j];
+			x_prev[j] = body->GetPos();
+			q_prev[j] = body->GetRot();
+			v[j] = body->GetPos_dt() + h * (1 / body->GetMass()) * body->GetAppliedForce();
+			x[j] = x_prev[j] + h * v[j];
+			// gyroscopic effects also in body->ComputeGyro
+			omega[j] = body->GetWvel_loc() +
+				body->GetInvInertia() * (body->GetAppliedTorque() - body->GetWvel_loc().Cross(body->GetInertia() *  body->GetWvel_loc()))*h;
+			// !!! different multiplication order within Qdt_from_Wrel w.r.t. the paper
+			// due to local vs global omegas and different  quaternion definition !!!
+			ChQuaternion<double> dqdt;
+			// dq/dt =  1/2 {q}*{0,w_rel}
+			dqdt.Qdt_from_Wrel(omega[j], q_prev[j]);
+			// q1 = q0 + dq/dt * h
+			q[j] = q_prev[j] + dqdt *h;
+			q[j].Normalize();
+		}
+		// Correct positions to respect constraints. "numPosIters"set to 1 according to the paper
+		SolvePositions();
+		// Update velocities to take corrected positions into account
+		for (int j = 0; j < n; j++) {
+			v[j] = (x[j] - x_prev[j]) / h;
+			// q_old^-1 * q instead of q * q_old^-1 for the same reason
+			ChQuaternion<double> deltaq = q_prev[j].GetInverse() * q[j];
+			ChVector<double> omega_us = deltaq.GetVector()*(2 / h);
+			omega[j] = (deltaq.e0() >= 0) ? omega_us : -omega_us;
+		}
+		// Scatter updated state
+
+		// SolveVelocities();
+	}
+}
 }  // end namespace chrono
