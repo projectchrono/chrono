@@ -13,7 +13,7 @@
 // =============================================================================
 //
 // Chrono demonstration of using contact callbacks for smooth contacts
-// (penalty-based).
+// (penalty-based) in Chrono::Parallel.
 //
 // The global reference frame has Y up.
 //
@@ -23,9 +23,9 @@
 #include <cmath>
 
 #include "chrono/utils/ChUtilsCreators.h"
-#include "chrono/physics/ChSystemSMC.h"
+#include "chrono_parallel/physics/ChSystemParallel.h"
 
-#include "chrono_irrlicht/ChIrrApp.h"
+#include "chrono_opengl/ChOpenGLWindow.h"
 
 using namespace chrono;
 
@@ -90,7 +90,7 @@ class ContactMaterial : public ChContactContainer::AddContactCallback {
 };
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2020 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     // ----------------
     // Parameters
@@ -102,15 +102,8 @@ int main(int argc, char* argv[]) {
     // Create the system
     // -----------------
 
-    ChSystemSMC system;
+    ChSystemParallelSMC system;
     system.Set_G_acc(ChVector<>(0, -10, 0));
-
-    // Set solver settings
-    system.SetSolverMaxIterations(100);
-    system.SetSolverForceTolerance(0);
-
-    // Change default collision effective radius of curvature
-    ////collision::ChCollisionInfo::SetDefaultEffectiveCurvatureRadius(1);
     
     // --------------------------------------------------
     // Create a contact material, shared among all bodies
@@ -134,8 +127,6 @@ int main(int argc, char* argv[]) {
     utils::AddBoxGeometry(container.get(), material, ChVector<>(4, 0.5, 4), ChVector<>(0, -0.5, 0));
     container->GetCollisionModel()->BuildModel();
 
-    container->AddAsset(chrono_types::make_shared<ChColorAsset>(ChColor(0.4f, 0.4f, 0.4f)));
-
     auto box1 = std::shared_ptr<ChBody>(system.NewBody());
     box1->SetMass(10);
     box1->SetInertiaXX(ChVector<>(1, 1, 1));
@@ -146,8 +137,6 @@ int main(int argc, char* argv[]) {
     box1->GetCollisionModel()->ClearModel();
     utils::AddBoxGeometry(box1.get(), material, ChVector<>(0.4, 0.2, 0.1));
     box1->GetCollisionModel()->BuildModel();
-
-    box1->AddAsset(chrono_types::make_shared<ChColorAsset>(ChColor(0.1f, 0.1f, 0.4f)));
 
     system.AddBody(box1);
 
@@ -162,22 +151,16 @@ int main(int argc, char* argv[]) {
     utils::AddBoxGeometry(box2.get(), material, ChVector<>(0.4, 0.2, 0.1));
     box2->GetCollisionModel()->BuildModel();
 
-    box2->AddAsset(chrono_types::make_shared<ChColorAsset>(ChColor(0.4f, 0.1f, 0.1f)));
-
     system.AddBody(box2);
 
     // -------------------------------
     // Create the visualization window
     // -------------------------------
 
-    irrlicht::ChIrrApp application(&system, L"SMC callbacks", irr::core::dimension2d<irr::u32>(800, 600), false, true);
-    irrlicht::ChIrrWizard::add_typical_Logo(application.GetDevice());
-    irrlicht::ChIrrWizard::add_typical_Sky(application.GetDevice());
-    irrlicht::ChIrrWizard::add_typical_Lights(application.GetDevice());
-    irrlicht::ChIrrWizard::add_typical_Camera(application.GetDevice(), irr::core::vector3df(4, 4, -6));
-
-    application.AssetBindAll();
-    application.AssetUpdateAll();
+    opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
+    gl_window.Initialize(1280, 720, "SMC callbacks", &system);
+    gl_window.SetCamera(ChVector<>(4, 4, -5), ChVector<>(0, 0, 0), ChVector<>(0, 1, 0));
+    gl_window.SetRenderMode(opengl::WIREFRAME);
 
     // ---------------
     // Simulate system
@@ -188,17 +171,9 @@ int main(int argc, char* argv[]) {
     auto cmaterial = chrono_types::make_shared<ContactMaterial>();
     system.GetContactContainer()->RegisterAddContactCallback(cmaterial);
 
-    application.SetTimestep(1e-3);
-
-    while (application.GetDevice()->run()) {
-        application.BeginScene(true, true, irr::video::SColor(255, 140, 161, 192));
-        application.DrawAll();
-        irrlicht::ChIrrTools::drawGrid(application.GetVideoDriver(), 0.5, 0.5, 12, 12,
-                                       ChCoordsys<>(ChVector<>(0, 0, 0), Q_from_AngX(CH_C_PI_2)));
-        irrlicht::ChIrrTools::drawAllCOGs(system, application.GetVideoDriver(), 1.0);
-
-        application.DoStep();
-        application.EndScene();
+    while (gl_window.Active()) {
+        gl_window.DoStepDynamics(1e-3);
+        gl_window.Render();
 
         // Process contacts
         std::cout << system.GetChTime() << "  " << system.GetNcontacts() << std::endl;
