@@ -20,6 +20,8 @@
 #define CH_PBD_UTILS_H
 
 #include "chrono/physics/ChSystem.h"
+#include "chrono/physics/ChLinkMate.h"
+#include "chrono/physics/ChLinkLock.h"
 
 namespace chrono {
 //enum PBD_DOF {ALL, PARTIAL, NONE };
@@ -29,15 +31,15 @@ class ChApi ChLinkPBD {
   public:
 
 	/// Create a LinkPBD
-	ChLinkPBD(ChLink& alink);
+	ChLinkPBD();
 
 	/// Copy constructor
-	ChLinkPBD(const ChLinkPBD& other);
+	//ChLinkPBD(const ChLinkPBD& other);
 
 	/// Destructor
 	virtual ~ChLinkPBD() {}
 	// Objects needed by PBD link
-	ChLink& link;
+	//ChLink& link;
 	// Relative Position of the link w.r.t. body 1 & 2 respectively
 	ChFrame<double> f1;
 	ChFrame<double> f2;
@@ -50,18 +52,18 @@ class ChApi ChLinkPBD {
 	bool p_free;
 	bool r_free;
 	// Lagrangian
-	//double lambda;
+	double lambda;
 	// Compliance (TODO)
-	//double alpha;
+	double alpha;
 	//TODO: not implementing limits and actuators yet.
-	/*bool is_limited = false;
+	bool is_limited = false;
 	double lims[6] = {};
 	bool is_actuated = false;
-	*/
+	
 	
 
 	/// Correct position to respect constraint
-	void SolvePositions();
+	void SolvePositions() {};
 
     // SERIALIZATION
 	/* TODO
@@ -74,6 +76,39 @@ class ChApi ChLinkPBD {
 };
 
 CH_CLASS_VERSION(ChLinkPBD, 0)
+
+class ChApi ChLinkPBDLock : public ChLinkPBD {
+  public:
+	ChLinkLock* link;
+	/// Create a LinkPBD
+	ChLinkPBDLock(ChLinkLock* alink);
+
+	/// Copy constructor
+	//ChLinkPBD(const ChLinkPBD& other);
+
+	/// Destructor
+	virtual ~ChLinkPBDLock() {};
+};
+
+CH_CLASS_VERSION(ChLinkPBDLock, 0);
+
+
+class ChApi ChLinkPBDMate : public ChLinkPBD {
+  public:
+	ChLinkMateGeneric* MGlink;
+	/// Create a LinkPBD
+	ChLinkPBDMate(ChLinkMateGeneric* alink);
+
+	/// Copy constructor
+	//ChLinkPBD(const ChLinkPBD& other);
+
+	/// Destructor
+	virtual ~ChLinkPBDMate() {};
+	
+
+};
+
+CH_CLASS_VERSION(ChLinkPBDMate, 0)
 /*
 /// PBD method timesteppers.
 class ChApi ChTimestepperPBD : public ChTimestepperIorder {

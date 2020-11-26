@@ -173,9 +173,21 @@ void ChSystemPBD::ArchiveIN(ChArchiveIn& marchive) {
 void ChSystemPBD::PBDSetup() {
 	// create the list of links using PBD formulation
 	for (auto& value : Get_linklist()) {
-		ChLink* link = dynamic_cast<ChLink*>(value.get());
-		auto pbdlink = chrono_types::make_shared<ChLinkPBD>(*link);
-		linklistPBD.push_back(pbdlink) ;
+		if (dynamic_cast<const ChLinkLock*>(value.get()) != nullptr) {
+			ChLinkLock* linkll = dynamic_cast< ChLinkLock*>(value.get());
+			auto pbdlink = chrono_types::make_shared<ChLinkPBDLock>(linkll);
+			linklistPBD.push_back(pbdlink);
+		}
+		else if (dynamic_cast<const ChLinkMateGeneric*>(value.get()) != nullptr) {
+			ChLinkMateGeneric* linkll = dynamic_cast<ChLinkMateGeneric*>(value.get());
+			auto pbdlink = chrono_types::make_shared<ChLinkPBDMate>(linkll);
+			linklistPBD.push_back(pbdlink);
+		}
+		else
+		{
+			throw std::invalid_argument("One or more of the system links cannot be treated ad a PBD link");
+		}
+		
 	}
 	// The gyroscopic term is evaluated within the PBD loop
 	for (auto& body : Get_bodylist()) {
