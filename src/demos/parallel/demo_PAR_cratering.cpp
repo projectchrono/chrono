@@ -100,21 +100,49 @@ static inline void TimingOutput(chrono::ChSystem* mSys, chrono::ChStreamOutAscii
 }
 
 // =============================================================================
+// Callback class for contact reporting
+class ContactReporter : public ChContactContainer::ReportContactCallback {
+  public:
+    ContactReporter(ChSystemParallel* system) : sys(system) {
+        csv << sys->GetChTime() << sys->GetNcontacts() << endl;
+    }
 
-// -----------------------------------------------------------------------------
-// Problem definitions
-// -----------------------------------------------------------------------------
+    void write(const std::string& filename) { csv.write_to_file(filename); }
+
+  private:
+    virtual bool OnReportContact(const ChVector<>& pA,
+                                 const ChVector<>& pB,
+                                 const ChMatrix33<>& plane_coord,
+                                 const double& distance,
+                                 const double& eff_radius,
+                                 const ChVector<>& cforce,
+                                 const ChVector<>& ctorque,
+                                 ChContactable* modA,
+                                 ChContactable* modB) override {
+        auto bodyA = static_cast<ChBody*>(modA);
+        auto bodyB = static_cast<ChBody*>(modB);
+
+        csv << bodyA->GetIdentifier() << bodyB->GetIdentifier();
+        csv << pA << pB;
+        csv << plane_coord.Get_A_Xaxis() << plane_coord.Get_A_Yaxis() << plane_coord.Get_A_Zaxis();
+        csv << cforce << ctorque;
+        csv << endl;
+        return true;  // continue parsing
+    }
+
+    ChSystemParallel* sys;
+    utils::CSV_writer csv;
+};
+
+// =============================================================================
+// Problem definition
 
 // Comment the following line to use NSC contact
 #define USE_SMC
 
+// Simulation phase
 enum class ProblemPhase { SETTLING, DROPPING };
-
-ProblemPhase problem = ProblemPhase::SETTLING;
-
-// -----------------------------------------------------------------------------
-// Global problem definitions
-// -----------------------------------------------------------------------------
+ProblemPhase problem = ProblemPhase::DROPPING;
 
 // Desired number of OpenMP threads (will be clamped to maximum available)
 int threads = 20;
@@ -123,7 +151,7 @@ int threads = 20;
 double gravity = 9.81;
 
 double time_settling_min = 0.1;
-double time_settling_max = 0.8;
+double time_settling_max = 0.5;
 double time_dropping = 0.06;
 
 #ifdef USE_SMC
@@ -164,7 +192,7 @@ int out_fps_dropping = 1200;
 
 // Parameters for the granular material
 int Id_g = 1;
-double r_g = 1e-3 / 2;
+double r_g = 1e-3;
 double rho_g = 2500;
 double vol_g = (4.0 / 3) * CH_C_PI * r_g * r_g * r_g;
 double mass_g = rho_g * vol_g;
@@ -188,8 +216,8 @@ float cr_b = 0.1f;
 
 // Parameters for the containing bin
 int binId = -200;
-double hDimX = 4e-2;         // length in x direction
-double hDimY = 4e-2;         // depth in y direction
+double hDimX = 2e-2;         // length in x direction
+double hDimY = 2e-2;         // depth in y direction
 double hDimZ = 7.5e-2;       // height in z direction
 double hThickness = 0.5e-2;  // wall thickness
 
@@ -198,7 +226,7 @@ float mu_c = 0.3f;
 float cr_c = 0.1f;
 
 // Number of layers and height of one layer for generator domain
-int numLayers = 10;
+int numLayers = 5;
 double layerHeight = 1e-2;
 
 // Drop height (above surface of settled granular material)
@@ -340,6 +368,8 @@ bool CheckSettled(ChSystem* sys, double threshold) {
 
 // -----------------------------------------------------------------------------
 int main(int argc, char* argv[]) {
+    cout << "Copyright (c) 2020 projectchrono.org\nChrono version: " << CHRONO_VERSION << endl;
+
     // Create system
 #ifdef USE_SMC
     cout << "Create SMC system" << endl;
@@ -412,7 +442,7 @@ int main(int argc, char* argv[]) {
             return 1;       
         }
 
-        // Create the granular material and the container from the checkpoint file.
+        // Create the falling ball, the granular material, and the container from the checkpoint file.
         cout << "Read checkpoint data from " << checkpoint_file;
         utils::ReadCheckpoint(msystem, checkpoint_file);
         cout << "  done.  Read " << msystem->Get_bodylist().size() << " bodies." << endl;
@@ -423,8 +453,6 @@ int main(int argc, char* argv[]) {
         double vz = std::sqrt(2 * gravity * h);
         cout << "Move falling ball with center at " << z + R_b + r_g << " and velocity " << vz << endl;
         ball = msystem->Get_bodylist().at(0);
-        ball->SetMass(mass_b);
-        ball->SetInertiaXX(inertia_b);
         ball->SetPos(ChVector<>(0, 0, z + r_g + R_b));
         ball->SetRot(ChQuaternion<>(1, 0, 0, 0));
         ball->SetPos_dt(ChVector<>(0, 0, -vz));
@@ -524,6 +552,13 @@ int main(int argc, char* argv[]) {
         exec_time += msystem->GetTimerStep();
         num_contacts += msystem->GetNcontacts();
     }
+
+    // Report contact information
+    
+    const std::string contact_file = out_dir + "/contacts_" + (problem == ProblemPhase::SETTLING ? "S" : "D") + ".dat";
+    auto creporter = chrono_types::make_shared<ContactReporter>(msystem);
+    msystem->GetContactContainer()->ReportAllContacts(creporter);
+    creporter->write(contact_file);
 
     // Create a checkpoint from the last state
     if (problem == ProblemPhase::SETTLING) {
