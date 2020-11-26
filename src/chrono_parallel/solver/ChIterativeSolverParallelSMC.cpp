@@ -654,11 +654,8 @@ void ChIterativeSolverParallelSMC::ProcessContacts() {
     //    torques on the two bodies.
 
     custom_vector<int> ct_bid(2 * data_manager->num_rigid_contacts);
-    custom_vector<real3>& ct_force = data_manager->host_data.ct_force;
-    custom_vector<real3>& ct_torque = data_manager->host_data.ct_torque;
-
-    ct_force.resize(2 * data_manager->num_rigid_contacts);
-    ct_torque.resize(2 * data_manager->num_rigid_contacts);
+    custom_vector<real3> ct_force(2 * data_manager->num_rigid_contacts);
+    custom_vector<real3> ct_torque(2 * data_manager->num_rigid_contacts);
 
     // Set up additional vectors for multi-step tangential model
     custom_vector<vec2> shape_pairs;
@@ -676,6 +673,11 @@ void ChIterativeSolverParallelSMC::ProcessContacts() {
     }
 
     host_CalcContactForces(ct_bid, ct_force, ct_torque, shape_pairs, shear_touch);
+
+    data_manager->host_data.ct_force.resize(2 * data_manager->num_rigid_contacts);
+    data_manager->host_data.ct_torque.resize(2 * data_manager->num_rigid_contacts);
+    thrust::copy(THRUST_PAR ct_force.begin(), ct_force.end(), data_manager->host_data.ct_force.begin());
+    thrust::copy(THRUST_PAR ct_torque.begin(), ct_torque.end(), data_manager->host_data.ct_torque.begin());
 
     if (data_manager->settings.solver.tangential_displ_mode == ChSystemSMC::TangentialDisplacementModel::MultiStep) {
 #pragma omp parallel for
