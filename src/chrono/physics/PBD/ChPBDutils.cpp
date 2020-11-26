@@ -34,7 +34,7 @@ inline bool instanceof(const T *ptr) {
 	return dynamic_cast<const Base*>(ptr) != nullptr;
 }
 // Register into the object factory, to enable run-time dynamic creation and persistence
-CH_FACTORY_REGISTER(ChLinkPBD)
+//CH_FACTORY_REGISTER(ChLinkPBD)
 
 ChLinkPBD::ChLinkPBD(ChLink& alink) : link(ChLink(alink)), p_dir(ChVector<double>(0, 0, 0)), r_dir(ChVector<double>(0, 0, 0)), f1(ChFrame<double>(VNULL)), f2(ChFrame<double>(VNULL)), p_free(false), r_free(false)
 	{

@@ -174,7 +174,7 @@ void ChSystemPBD::PBDSetup() {
 	// create the list of links using PBD formulation
 	for (auto& value : Get_linklist()) {
 		ChLink* link = dynamic_cast<ChLink*>(value.get());
-		auto pbdlink = chrono_types::make_shared<ChLinkPBD>(link);
+		auto pbdlink = chrono_types::make_shared<ChLinkPBD>(*link);
 		linklistPBD.push_back(pbdlink) ;
 	}
 	// The gyroscopic term is evaluated within the PBD loop
