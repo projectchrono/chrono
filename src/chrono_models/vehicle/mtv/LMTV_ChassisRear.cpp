@@ -39,7 +39,7 @@ const double LMTV_ChassisConnector::m_torsion_stiffness = 7085;
 
 // -----------------------------------------------------------------------------
 
-LMTV_ChassisRear::LMTV_ChassisRear(const std::string& name, ChassisCollisionType chassis_collision_type)
+LMTV_ChassisRear::LMTV_ChassisRear(const std::string& name, CollisionType chassis_collision_type)
     : ChRigidChassisRear(name) {
     m_inertia(0, 0) = m_inertiaXX.x();
     m_inertia(1, 1) = m_inertiaXX.y();
@@ -79,11 +79,11 @@ LMTV_ChassisRear::LMTV_ChassisRear(const std::string& name, ChassisCollisionType
     m_geometry.m_has_mesh = true;
     m_geometry.m_vis_mesh_file = "mtv/meshes/m1078_rear.obj";
 
-    m_geometry.m_has_collision = (chassis_collision_type != ChassisCollisionType::NONE);
+    m_geometry.m_has_collision = (chassis_collision_type != CollisionType::NONE);
     switch (chassis_collision_type) {
-        case ChassisCollisionType::MESH:
+        case CollisionType::HULLS:
             // For now, fall back to using primitive collision shapes
-        case ChassisCollisionType::PRIMITIVES:
+        case CollisionType::PRIMITIVES:
             box.m_matID = 0;
             m_geometry.m_coll_boxes.push_back(box);
             break;

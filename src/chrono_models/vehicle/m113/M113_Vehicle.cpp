@@ -42,7 +42,7 @@ M113_Vehicle::M113_Vehicle(bool fixed,
                            TrackShoeType shoe_type,
                            BrakeType brake_type,
                            ChContactMethod contact_method,
-                           ChassisCollisionType chassis_collision_type)
+                           CollisionType chassis_collision_type)
     : ChTrackedVehicle("M113", contact_method), m_type(shoe_type) {
     Create(fixed, brake_type, chassis_collision_type);
 }
@@ -51,12 +51,12 @@ M113_Vehicle::M113_Vehicle(bool fixed,
                            TrackShoeType shoe_type,
                            BrakeType brake_type,
                            ChSystem* system,
-                           ChassisCollisionType chassis_collision_type)
+                           CollisionType chassis_collision_type)
     : ChTrackedVehicle("M113", system), m_type(shoe_type) {
     Create(fixed, brake_type, chassis_collision_type);
 }
 
-void M113_Vehicle::Create(bool fixed, BrakeType brake_type, ChassisCollisionType chassis_collision_type) {
+void M113_Vehicle::Create(bool fixed, BrakeType brake_type, CollisionType chassis_collision_type) {
     // Create the chassis subsystem
     m_chassis = chrono_types::make_shared<M113_Chassis>("Chassis", fixed, chassis_collision_type);
 

@@ -42,7 +42,7 @@ LMTV_Vehicle::LMTV_Vehicle(const bool fixed,
                            BrakeType brake_type,
                            SteeringType steering_model,
                            ChContactMethod contact_method,
-                           ChassisCollisionType chassis_collision_type)
+                           CollisionType chassis_collision_type)
     : ChWheeledVehicle("LMTV", contact_method), m_omega({0, 0, 0, 0}) {
     Create(fixed, brake_type, steering_model, chassis_collision_type);
 }
@@ -51,7 +51,7 @@ LMTV_Vehicle::LMTV_Vehicle(ChSystem* system,
                            const bool fixed,
                            BrakeType brake_type,
                            SteeringType steering_model,
-                           ChassisCollisionType chassis_collision_type)
+                           CollisionType chassis_collision_type)
     : ChWheeledVehicle("LMTV", system), m_omega({0, 0, 0, 0}) {
     Create(fixed, brake_type, steering_model, chassis_collision_type);
 }
@@ -59,7 +59,7 @@ LMTV_Vehicle::LMTV_Vehicle(ChSystem* system,
 void LMTV_Vehicle::Create(bool fixed,
                           BrakeType brake_type,
                           SteeringType steering_model,
-                          ChassisCollisionType chassis_collision_type) {
+                          CollisionType chassis_collision_type) {
     // Create the front and rear chassis subsystems
     m_chassis = chrono_types::make_shared<FMTV_ChassisFront>("ChassisFront", fixed, chassis_collision_type);
     m_chassis_rear.resize(1);

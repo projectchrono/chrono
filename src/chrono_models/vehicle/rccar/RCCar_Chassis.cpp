@@ -44,7 +44,7 @@ const ChCoordsys<> RCCar_Chassis::m_driverCsys(ChVector<>(0.0, 0.0, 0.0), ChQuat
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-RCCar_Chassis::RCCar_Chassis(const std::string& name, bool fixed, ChassisCollisionType chassis_collision_type)
+RCCar_Chassis::RCCar_Chassis(const std::string& name, bool fixed, CollisionType chassis_collision_type)
     : chrono::vehicle::ChRigidChassis(name, fixed) {
     m_inertia(0, 0) = m_inertiaXX.x();
     m_inertia(1, 1) = m_inertiaXX.y();
@@ -70,12 +70,12 @@ RCCar_Chassis::RCCar_Chassis(const std::string& name, bool fixed, ChassisCollisi
     // m_vis_mesh_file = "rccar/RCCar_chassis.obj";
     m_geometry.m_vis_mesh_file = "hmmwv/HMMWV_chassis.obj";
 
-    m_geometry.m_has_collision = (chassis_collision_type != ChassisCollisionType::NONE);
+    m_geometry.m_has_collision = (chassis_collision_type != CollisionType::NONE);
     switch (chassis_collision_type) {
-        case ChassisCollisionType::PRIMITIVES:
+        case CollisionType::PRIMITIVES:
             m_geometry.m_coll_boxes.push_back(box1);
             break;
-        // case ChassisCollisionType::MESH:
+        // case CollisionType::HULLS:
         //     m_coll_mesh_names.push_back("rccar/RCCar_chassis_simple.obj");
         //     break;
         default:

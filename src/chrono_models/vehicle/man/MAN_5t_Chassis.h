@@ -38,7 +38,7 @@ class CH_MODELS_API MAN_5t_Chassis : public ChRigidChassis {
   public:
     MAN_5t_Chassis(const std::string& name,
                    bool fixed = false,
-                   ChassisCollisionType chassis_collision_type = ChassisCollisionType::NONE);
+                   CollisionType chassis_collision_type = CollisionType::NONE);
     ~MAN_5t_Chassis() {}
 
     /// Return the mass of the chassis body.

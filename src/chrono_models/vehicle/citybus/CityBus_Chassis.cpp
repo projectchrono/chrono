@@ -39,7 +39,7 @@ const ChCoordsys<> CityBus_Chassis::m_driverCsys(ChVector<>(0.0, 0.5, 1.2), ChQu
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-CityBus_Chassis::CityBus_Chassis(const std::string& name, bool fixed, ChassisCollisionType chassis_collision_type)
+CityBus_Chassis::CityBus_Chassis(const std::string& name, bool fixed, CollisionType chassis_collision_type)
     : ChRigidChassis(name, fixed) {
     m_inertia(0, 0) = m_inertiaXX.x();
     m_inertia(1, 1) = m_inertiaXX.y();
@@ -62,13 +62,13 @@ CityBus_Chassis::CityBus_Chassis(const std::string& name, bool fixed, ChassisCol
     m_geometry.m_has_mesh = true;
     m_geometry.m_vis_mesh_file = "citybus/CityBus_Vis.obj";
 
-    m_geometry.m_has_collision = (chassis_collision_type != ChassisCollisionType::NONE);
+    m_geometry.m_has_collision = (chassis_collision_type != CollisionType::NONE);
     switch (chassis_collision_type) {
-        case ChassisCollisionType::PRIMITIVES:
+        case CollisionType::PRIMITIVES:
             box1.m_matID = 0;
             m_geometry.m_coll_boxes.push_back(box1);
             break;
-        case ChassisCollisionType::MESH: {
+        case CollisionType::HULLS: {
             ChVehicleGeometry::ConvexHullsShape hull("citybus/CityBus_Col.obj", 0);
             m_geometry.m_coll_hulls.push_back(hull);
             break;
