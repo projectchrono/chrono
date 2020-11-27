@@ -54,8 +54,7 @@ CityBus_Chassis::CityBus_Chassis(const std::string& name, bool fixed, ChassisCol
 
     //// TODO:
     //// A more appropriate contact shape from primitives
-    ChRigidChassisGeometry::BoxShape box1(ChVector<>(0.0, 0.0, 0.1), ChQuaternion<>(1, 0, 0, 0),
-                                          ChVector<>(1.0, 0.5, 0.2));
+    ChVehicleGeometry::BoxShape box1(ChVector<>(0.0, 0.0, 0.1), ChQuaternion<>(1, 0, 0, 0), ChVector<>(1.0, 0.5, 0.2));
 
     m_geometry.m_has_primitives = true;
     m_geometry.m_vis_boxes.push_back(box1);
@@ -70,7 +69,7 @@ CityBus_Chassis::CityBus_Chassis(const std::string& name, bool fixed, ChassisCol
             m_geometry.m_coll_boxes.push_back(box1);
             break;
         case ChassisCollisionType::MESH: {
-            ChRigidChassisGeometry::ConvexHullsShape hull("citybus/CityBus_Col.obj", 0);
+            ChVehicleGeometry::ConvexHullsShape hull("citybus/CityBus_Col.obj", 0);
             m_geometry.m_coll_hulls.push_back(hull);
             break;
         }

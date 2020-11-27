@@ -56,12 +56,6 @@ class CH_VEHICLE_API ChTrackShoeSinglePin : public ChTrackShoeSegmented {
                             const ChQuaternion<>& rotation          ///< [in] orientation relative to the chassis frame
                             ) override;
 
-    /// Add visualization assets for the track-shoe subsystem.
-    virtual void AddVisualizationAssets(VisualizationType vis) override;
-
-    /// Remove visualization assets for the track-shoe subsystem.
-    virtual void RemoveVisualizationAssets() override final;
-
   protected:
     /// Return the mass of the shoe body.
     virtual double GetShoeMass() const = 0;

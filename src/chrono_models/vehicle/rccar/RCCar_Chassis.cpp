@@ -59,8 +59,8 @@ RCCar_Chassis::RCCar_Chassis(const std::string& name, bool fixed, ChassisCollisi
 
     //// TODO:
     //// A more appropriate contact shape from primitives
-    ChRigidChassisGeometry::BoxShape box1(in2m * ChVector<>(-8.936, 0, 1.0), ChQuaternion<>(1, 0, 0, 0),
-                                          in2m * ChVector<>(18.5, 5.0, 1.2));
+    ChVehicleGeometry::BoxShape box1(in2m * ChVector<>(-8.936, 0, 1.0), ChQuaternion<>(1, 0, 0, 0),
+                                     in2m * ChVector<>(18.5, 5.0, 1.2));
 
     m_geometry.m_has_primitives = true;
     m_geometry.m_vis_boxes.push_back(box1);
@@ -74,7 +74,6 @@ RCCar_Chassis::RCCar_Chassis(const std::string& name, bool fixed, ChassisCollisi
     switch (chassis_collision_type) {
         case ChassisCollisionType::PRIMITIVES:
             m_geometry.m_coll_boxes.push_back(box1);
-
             break;
         // case ChassisCollisionType::MESH:
         //     m_coll_mesh_names.push_back("rccar/RCCar_chassis_simple.obj");

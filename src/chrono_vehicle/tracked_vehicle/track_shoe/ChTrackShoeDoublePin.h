@@ -115,7 +115,7 @@ class CH_VEHICLE_API ChTrackShoeDoublePin : public ChTrackShoeSegmented {
                          ) override final;
 
     /// Add visualization of a connector body based on primitives corresponding to the contact shapes.
-    void AddConnectorVisualization(std::shared_ptr<ChBody> connector);
+    void AddConnectorVisualization(std::shared_ptr<ChBody> connector, VisualizationType vis);
 
     friend class ChSprocketDoublePin;
     friend class SprocketDoublePinContactCB;

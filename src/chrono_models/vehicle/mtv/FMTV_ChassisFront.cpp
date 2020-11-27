@@ -60,8 +60,8 @@ FMTV_ChassisFront::FMTV_ChassisFront(const std::string& name, bool fixed, Chassi
     double widthFrame = 0.905;
     double heightFrame = 0.2;
     ChVector<> frontBoxPos((1.0 + joint_pos_x) / 2, 0, joint_pos_z);
-    ChRigidChassisGeometry::BoxShape box(frontBoxPos, ChQuaternion<>(1, 0, 0, 0),
-                                         ChVector<>(1.0 - joint_pos_x, widthFrame, heightFrame));
+    ChVehicleGeometry::BoxShape box(frontBoxPos, ChQuaternion<>(1, 0, 0, 0),
+                                    ChVector<>(1.0 - joint_pos_x, widthFrame, heightFrame));
 
     m_geometry.m_has_primitives = true;
     m_geometry.m_vis_boxes.push_back(box);
