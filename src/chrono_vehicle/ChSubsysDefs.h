@@ -632,37 +632,47 @@ class CH_VEHICLE_API ChVehicleGeometry {
     struct BoxShape {
         BoxShape(const ChVector<>& pos, const ChQuaternion<>& rot, const ChVector<>& dims, int matID = -1)
             : m_pos(pos), m_rot(rot), m_dims(dims), m_matID(matID) {}
-        ChVector<> m_pos;
-        ChQuaternion<> m_rot;
-        ChVector<> m_dims;
-        int m_matID;
+        ChVector<> m_pos;      ///< position relative to body
+        ChQuaternion<> m_rot;  ///< orientation relative to body
+        ChVector<> m_dims;     ///< box dimensions
+        int m_matID;           ///< index in contact material list
     };
 
     /// Sphere shape for visualization and/or collision.
     struct SphereShape {
         SphereShape(const ChVector<>& pos, double radius, int matID = -1)
             : m_pos(pos), m_radius(radius), m_matID(matID) {}
-        ChVector<> m_pos;
-        double m_radius;
-        int m_matID;
+        ChVector<> m_pos;  ///< position relative to body
+        double m_radius;   ///< sphere radius
+        int m_matID;       ///< index in contact material list
     };
 
     /// Cylinder shape for visualization and/or collision.
     struct CylinderShape {
         CylinderShape(const ChVector<>& pos, const ChQuaternion<>& rot, double radius, double length, int matID = -1)
             : m_pos(pos), m_rot(rot), m_radius(radius), m_length(length), m_matID(matID) {}
-        ChVector<> m_pos;
-        ChQuaternion<> m_rot;
-        double m_radius;
-        double m_length;
-        int m_matID;
+        ChVector<> m_pos;      ///< position relative to body
+        ChQuaternion<> m_rot;  ///< orientation relative to body
+        double m_radius;       ///< cylinder radius
+        double m_length;       ///< cylinder length
+        int m_matID;           ///< index in contact material list
     };
 
-    /// Convex hull shape for visualization and/or collision.
+    /// Convex hulls shape for collision.
     struct ConvexHullsShape {
         ConvexHullsShape(const std::string& filename, int matID = -1) : m_filename(filename), m_matID(matID) {}
-        std::string m_filename;
-        int m_matID;
+        std::string m_filename;  ///< name of Wavefront OBJ file
+        int m_matID;             ///< index in contact material list
+    };
+
+    /// Tri-mesh shape for collision.
+    struct TrimeshShape {
+        TrimeshShape(const ChVector<>& pos, const std::string& filename, double radius, int matID = -1)
+            : m_pos(pos), m_filename(filename), m_radius(radius), m_matID(matID) {}
+        std::string m_filename;  ///< name of Wavefront OBJ file
+        double m_radius;         ///< radius of sweeping sphere
+        ChVector<> m_pos;        ///< position relative to body
+        int m_matID;             ///< index in contact material list
     };
 
     bool m_has_collision;                                         ///< true if body has a collision model
@@ -671,6 +681,7 @@ class CH_VEHICLE_API ChVehicleGeometry {
     std::vector<SphereShape> m_coll_spheres;                      ///< list of collision spheres
     std::vector<CylinderShape> m_coll_cylinders;                  ///< list of collision cylinders
     std::vector<ConvexHullsShape> m_coll_hulls;                   ///< list of collision convex hulls
+    std::vector<TrimeshShape> m_coll_meshes;                      ///< list of collision trimeshes
 
     bool m_has_primitives;                       ///< true if the body uses visualization primitives
     std::vector<BoxShape> m_vis_boxes;           ///< list of visualization boxes

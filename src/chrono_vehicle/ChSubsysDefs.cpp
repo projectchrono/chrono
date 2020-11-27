@@ -127,6 +127,15 @@ void ChVehicleGeometry::AddCollisionShapes(std::shared_ptr<ChBody> body, int col
             body->GetCollisionModel()->AddConvexHull(m_materials[hulls_group.m_matID], hulls[c]);
         }
     }
+    for (auto& mesh : m_coll_meshes) {
+        auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
+        trimesh->LoadWavefrontMesh(mesh.m_filename, true, false);
+        // Hack: explicitly offset vertices
+        for (auto& v : trimesh->m_vertices)
+            v += mesh.m_pos;
+        body->GetCollisionModel()->AddTriangleMesh(m_materials[mesh.m_matID], trimesh, false, false, ChVector<>(0),
+                                                   ChMatrix33<>(1), mesh.m_radius);
+    }
 
     body->GetCollisionModel()->BuildModel();
 }
