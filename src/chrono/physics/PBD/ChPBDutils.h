@@ -39,7 +39,8 @@ class ChApi ChLinkPBD {
 	/// Destructor
 	virtual ~ChLinkPBD() {}
 	// Objects needed by PBD link
-	//ChLink& link;
+	ChBody* Body1;
+	ChBody* Body2;
 	// Relative Position of the link w.r.t. body 1 & 2 respectively
 	ChFrame<double> f1;
 	ChFrame<double> f2;
@@ -51,19 +52,17 @@ class ChApi ChLinkPBD {
 	// Skip the whole correction if the pos/rot not constrained at all
 	bool p_free;
 	bool r_free;
-	// Lagrangian
-	double lambda;
+	// Lagrangian of force and torque
+	double lambda_f = 0;
+	double lambda_t = 0;
 	// Compliance (TODO)
-	double alpha;
+	double alpha = 0;
 	//TODO: not implementing limits and actuators yet.
 	bool is_limited = false;
 	double lims[6] = {};
 	bool is_actuated = false;
-	
-	
-
 	/// Correct position to respect constraint
-	void SolvePositions() {};
+	void SolvePositions();
 
     // SERIALIZATION
 	/* TODO

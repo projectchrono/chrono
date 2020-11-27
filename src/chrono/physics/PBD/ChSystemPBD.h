@@ -78,6 +78,7 @@ class ChApi ChSystemPBD : public ChSystem {
 	void Advance();
 
   protected:
+	double T = 0;
 	// number of substeps per step 
 	int substeps = 20;
     /// Setup the PBD system
@@ -87,11 +88,15 @@ class ChApi ChSystemPBD : public ChSystem {
 	//std::vector<ChContactPBD> contactlistPBD;
 
 	std::vector < ChVector<double>> x_prev;
-	std::vector < ChVector<double>> x;
+	//std::vector < ChVector<double>> x;
 	std::vector < ChQuaternion<double>> q_prev;
-	std::vector < ChQuaternion<double>> q;
-	std::vector < ChVector<double>> omega;
-	std::vector < ChVector<double>> v;
+	//std::vector < ChQuaternion<double>> q;
+	//std::vector < ChVector<double>> omega;
+	//std::vector < ChVector<double>> v;
+
+	ChState sys_state;
+	ChStateDelta sys_state_delta;
+	ChStateDelta sys_acc;
 };
 
 CH_CLASS_VERSION(ChSystemPBD, 0)

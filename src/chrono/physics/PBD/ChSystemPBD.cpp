@@ -179,13 +179,13 @@ void ChSystemPBD::PBDSetup() {
 			linklistPBD.push_back(pbdlink);
 		}
 		else if (dynamic_cast<const ChLinkMateGeneric*>(value.get()) != nullptr) {
-			ChLinkMateGeneric* linkll = dynamic_cast<ChLinkMateGeneric*>(value.get());
-			auto pbdlink = chrono_types::make_shared<ChLinkPBDMate>(linkll);
+			ChLinkMateGeneric* linkmg = dynamic_cast<ChLinkMateGeneric*>(value.get());
+			auto pbdlink = chrono_types::make_shared<ChLinkPBDMate>(linkmg);
 			linklistPBD.push_back(pbdlink);
 		}
 		else
 		{
-			throw std::invalid_argument("One or more of the system links cannot be treated ad a PBD link");
+			throw std::invalid_argument("One or more of the system links cannot be treated as PBD link");
 		}
 		
 	}
@@ -196,11 +196,11 @@ void ChSystemPBD::PBDSetup() {
 	// allocate the proper amount of vectors and quaternions
 	int n = Get_bodylist().size();
 	x_prev.reserve(n);
-	x.reserve(n);
+	//x.reserve(n);
 	q_prev.reserve(n);
-	q.reserve(n);
-	omega.reserve(n);
-	v.reserve(n);
+	//q.reserve(n);
+	//omega.reserve(n);
+	//v.reserve(n);
 }
 
 void ChSystemPBD::SolvePositions() {
@@ -218,33 +218,41 @@ void ChSystemPBD::Advance() {
 			std::shared_ptr<ChBody> body = Get_bodylist()[j];
 			x_prev[j] = body->GetPos();
 			q_prev[j] = body->GetRot();
-			v[j] = body->GetPos_dt() + h * (1 / body->GetMass()) * body->GetAppliedForce();
-			x[j] = x_prev[j] + h * v[j];
+			auto v = body->GetPos_dt() + h * (1 / body->GetMass()) * body->GetAppliedForce();
+			body->SetPos_dt(v);
+			body->SetPos(x_prev[j] + h * v);
 			// gyroscopic effects also in body->ComputeGyro
-			omega[j] = body->GetWvel_loc() +
-				body->GetInvInertia() * (body->GetAppliedTorque() - body->GetWvel_loc().Cross(body->GetInertia() *  body->GetWvel_loc()))*h;
+			auto omega = body->GetWvel_loc() + body->GetInvInertia() * (body->GetAppliedTorque() - body->GetWvel_loc().Cross(body->GetInertia() *  body->GetWvel_loc()))*h;
+			body->SetWvel_loc(omega);
 			// !!! different multiplication order within Qdt_from_Wrel w.r.t. the paper
 			// due to local vs global omegas and different  quaternion definition !!!
 			ChQuaternion<double> dqdt;
 			// dq/dt =  1/2 {q}*{0,w_rel}
 			dqdt.Qdt_from_Wrel(omega[j], q_prev[j]);
 			// q1 = q0 + dq/dt * h
-			q[j] = q_prev[j] + dqdt *h;
-			q[j].Normalize();
+			body->SetRot((q_prev[j] + dqdt *h).Normalize());
 		}
 		// Correct positions to respect constraints. "numPosIters"set to 1 according to the paper
 		SolvePositions();
 		// Update velocities to take corrected positions into account
 		for (int j = 0; j < n; j++) {
-			v[j] = (x[j] - x_prev[j]) / h;
+			std::shared_ptr<ChBody> body = Get_bodylist()[j];
+			body->SetPos_dt((body->GetPos() - x_prev[j]) / h);
 			// q_old^-1 * q instead of q * q_old^-1 for the same reason
-			ChQuaternion<double> deltaq = q_prev[j].GetInverse() * q[j];
+			ChQuaternion<double> deltaq = q_prev[j].GetInverse() *body->GetRot();
 			ChVector<double> omega_us = deltaq.GetVector()*(2 / h);
-			omega[j] = (deltaq.e0() >= 0) ? omega_us : -omega_us;
+			body->SetWvel_loc((deltaq.e0() >= 0) ? omega_us : -omega_us);
 		}
 		// Scatter updated state
 
 		// SolveVelocities();
+
+		T += h;
+		
 	}
+	// Scatter Gather influences only collision detaction -> do after substepping
+	StateSetup(sys_state, sys_state_delta, sys_acc);
+	StateGather(sys_state, sys_state_delta, T);
+	StateScatter(sys_state, sys_state_delta, T, true);
 }
 }  // end namespace chrono
