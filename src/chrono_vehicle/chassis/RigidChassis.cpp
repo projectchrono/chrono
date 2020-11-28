@@ -123,9 +123,14 @@ void RigidChassis::Create(const rapidjson::Document& d) {
                 double length = shape["Length"].GetDouble();
                 m_geometry.m_coll_cylinders.push_back(
                     ChVehicleGeometry::CylinderShape(pos, rot, radius, length, matID));
-            } else if (type.compare("MESH") == 0) {
+            } else if (type.compare("HULL") == 0) {
                 std::string filename = shape["Filename"].GetString();
                 m_geometry.m_coll_hulls.push_back(ChVehicleGeometry::ConvexHullsShape(filename, matID));
+            } else if (type.compare("MESH") == 0) {
+                std::string filename = shape["Filename"].GetString();
+                ChVector<> pos = ReadVectorJSON(shape["Location"]);
+                double radius = shape["Contact Radius"].GetDouble();
+                m_geometry.m_coll_meshes.push_back(ChVehicleGeometry::TrimeshShape(pos, filename, radius, matID));
             }
         }
 
@@ -269,9 +274,14 @@ void RigidChassisRear::Create(const rapidjson::Document& d) {
                 double length = shape["Length"].GetDouble();
                 m_geometry.m_coll_cylinders.push_back(
                     ChVehicleGeometry::CylinderShape(pos, rot, radius, length, matID));
-            } else if (type.compare("MESH") == 0) {
+            } else if (type.compare("HULL") == 0) {
                 std::string filename = shape["Filename"].GetString();
                 m_geometry.m_coll_hulls.push_back(ChVehicleGeometry::ConvexHullsShape(filename, matID));
+            } else if (type.compare("MESH") == 0) {
+                std::string filename = shape["Filename"].GetString();
+                ChVector<> pos = ReadVectorJSON(shape["Location"]);
+                double radius = shape["Contact Radius"].GetDouble();
+                m_geometry.m_coll_meshes.push_back(ChVehicleGeometry::TrimeshShape(pos, filename, radius, matID));
             }
         }
 
