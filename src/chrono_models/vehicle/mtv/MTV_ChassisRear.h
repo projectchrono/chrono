@@ -35,7 +35,7 @@ namespace fmtv {
 /// MTV cargo truck (5 tons) rear chassis subsystems.
 class CH_MODELS_API MTV_ChassisRear : public ChRigidChassisRear {
   public:
-    MTV_ChassisRear(const std::string& name, ChassisCollisionType chassis_collision_type = ChassisCollisionType::NONE);
+    MTV_ChassisRear(const std::string& name, CollisionType chassis_collision_type = CollisionType::NONE);
     ~MTV_ChassisRear() {}
 
     /// Return the mass of the rear chassis body.
