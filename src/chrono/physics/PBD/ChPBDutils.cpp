@@ -50,8 +50,7 @@ void ChLinkPBD::SolvePositions() {
 	}
 	
 	// if position free skip completely
-	if (!r_free) {
-		// TODO: force fixed pos/rot of fixed bodies!!
+	if (!r_free & false) {
 		ChVector<> nr = getQdelta();
 		double theta = nr.Length();
 		nr *= 1 / theta;
@@ -81,10 +80,13 @@ void ChLinkPBD::SolvePositions() {
 
 	// if position free skip completely
 	if (!p_free) {
-		// TODO: force fixed pos/rot of fixed bodies!!
 		// Position violation in abs coord. This is the distance FROM the desired point TO the constraint frame.
 		// It's easy to check using alpha=0 and r1,r2 parallel to n in eq 2,3,4,6: p (correction) is oppsoed to n (due to - in 4)
-		ChVector<> n0 = Body2->TransformPointLocalToParent(f2.coord.pos) - Body1->TransformPointLocalToParent(f1.coord.pos);
+		// Constraint dist in absolute reference 
+		ChVector<> r1 = Body1->GetRot().Rotate(f1.coord.pos);
+		ChVector<> r2 = Body2->GetRot().Rotate(f2.coord.pos);
+		//ChVector<> n0 = Body2->TransformPointLocalToParent(f2.coord.pos) - Body1->TransformPointLocalToParent(f1.coord.pos);
+		ChVector<> n0 = Body1->GetPos() + r1 - (Body2->GetPos() + r2);
 		// Rotation of the link frame w.r.t. global frame
 		ChQuaternion<> q = Body1->GetRot() * f1.coord.rot;
 		// get rid of unconstrained directions by element wise multiplication in the link frame reference
@@ -93,9 +95,7 @@ void ChLinkPBD::SolvePositions() {
 		ChVector<> n = q.Rotate(n_loc);
 		double C = n.Length();
 		n *= 1 / C;
-		// Bring 
-		ChVector<> r1 = Body1->GetRot().Rotate(f1.coord.pos);
-		ChVector<> r2 = Body2->GetRot().Rotate(f2.coord.pos);
+		
 
 		auto Ii1 = ((r1.Cross(n).eigen()).transpose()) * Inv_I1 * (r1.Cross(n).eigen());
 		auto Ii2 = ((r2.Cross(n).eigen()).transpose()) * Inv_I2 * (r2.Cross(n).eigen());
@@ -122,23 +122,28 @@ void ChLinkPBD::SolvePositions() {
 		// {q_dt} = 1/2 {0,w}*{q}
 		dq2.Qdt_from_Wabs(Rot2, Body2->GetRot());
 		// q1 = q0 + dq/dt * h
-		Body2->SetRot((Body2->GetRot() - dq2).Normalize());
+		ChQuaternion<> q0 = Body2->GetRot();
+		ChQuaternion<> qnew = (q0 - dq2);
+		qnew.Normalize();
+		Body2->SetRot(qnew);
+		ChQuaternion<> q1 = Body2->GetRot();
+		int a = 0;
 	}
 }
 
 void ChLinkPBD::findRDOF() {
-	if (mask[3] || mask[4] || mask[5]) {
+	if (mask[3] & mask[4] & mask[5]) {
 		r_dir = NONE;
 	}
-	else if (mask[3] || mask[4] || !mask[5]) {
+	else if (mask[3] & mask[4] & !mask[5]) {
 		r_dir = Z;
 		a = VECT_Z;
 	}
-	else if (mask[3] || !mask[4] || mask[5]) {
+	else if (mask[3] & !mask[4] & mask[5]) {
 		r_dir = Y;
 		a = VECT_Y;
 	}
-	else if (!mask[3] || mask[4] || mask[5]) {
+	else if (!mask[3] & mask[4] & mask[5]) {
 		r_dir = X;
 		a = VECT_X;
 	}

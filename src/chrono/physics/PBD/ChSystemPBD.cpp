@@ -225,15 +225,19 @@ void ChSystemPBD::Advance() {
 			body->SetPos_dt(v);
 			body->SetPos(x_prev[j] + h * v);
 			// gyroscopic effects also in body->ComputeGyro
-			auto omega = body->GetWvel_loc() + body->GetInvInertia() * (body->GetAppliedTorque() - body->GetWvel_loc().Cross(body->GetInertia() *  body->GetWvel_loc()))*h;
+			ChVector<> T = body->GetAppliedTorque();
+			ChVector<> G = body->GetWvel_loc().Cross(body->GetInertia() *  body->GetWvel_loc());
+			auto omega = body->GetWvel_loc() + body->GetInvInertia() * (T - G)*h;
 			body->SetWvel_loc(omega);
 			// !!! different multiplication order within Qdt_from_Wrel w.r.t. the paper
-			// due to local vs global omegas and different  quaternion definition !!!
+			// due to local vs global omegas !!!
 			ChQuaternion<double> dqdt;
 			// dq/dt =  1/2 {q}*{0,w_rel}
-			dqdt.Qdt_from_Wrel(omega[j], q_prev[j]);
+			dqdt.Qdt_from_Wrel(omega, q_prev[j]);
 			// q1 = q0 + dq/dt * h
-			body->SetRot((q_prev[j] + dqdt *h).Normalize());
+			ChQuaternion<> qnew = (q_prev[j] + dqdt )*h;
+			qnew.Normalize();
+			body->SetRot(qnew);
 		}
 		// Correct positions to respect constraints. "numPosIters"set to 1 according to the paper
 		SolvePositions();
@@ -245,9 +249,13 @@ void ChSystemPBD::Advance() {
 			}
 			body->SetPos_dt((body->GetPos() - x_prev[j]) / h);
 			// q_old^-1 * q instead of q * q_old^-1 for the same reason
-			ChQuaternion<double> deltaq = q_prev[j].GetInverse() *body->GetRot();
-			ChVector<double> omega_us = deltaq.GetVector()*(2 / h);
-			body->SetWvel_loc((deltaq.e0() >= 0) ? omega_us : -omega_us);
+			ChQuaternion<> q0i = q_prev[j].GetInverse();
+			ChQuaternion<> provv2 = body->GetRot();
+			ChQuaternion<double> deltaq = body->GetRot() * q0i;
+			//ChVector<double> omega_us = deltaq.GetVector()*(2 / h);
+			//ChVector<double> omega = ((deltaq.e0() >= 0) ? omega_us : -omega_us);
+			//body->SetWvel_par(omega) ;
+			//body->coord_dt.rot = deltaq / h;
 		}
 		// Scatter updated state
 
