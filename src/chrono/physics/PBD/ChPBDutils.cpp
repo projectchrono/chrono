@@ -34,7 +34,7 @@ CH_FACTORY_REGISTER(ChLinkPBD)
 ChLinkPBD::ChLinkPBD() : p_dir(ChVector<double>(0, 0, 0)), r_dir(ChVector<double>(0, 0, 0)), p_free(false), r_free(false) {}
 
 void ChLinkPBD::SolvePositions() {
-	assert(!Body1->GetBodyFixed() ^ !Body2->GetBodyFixed());
+	assert(!Body1->GetBodyFixed() || !Body2->GetBodyFixed());
 
 	double invm1 = (1 / Body1->GetMass());
 	double invm2 = (1 / Body2->GetMass());
