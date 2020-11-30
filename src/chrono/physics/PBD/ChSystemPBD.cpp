@@ -235,7 +235,7 @@ void ChSystemPBD::Advance() {
 			// dq/dt =  1/2 {q}*{0,w_rel}
 			dqdt.Qdt_from_Wrel(omega, q_prev[j]);
 			// q1 = q0 + dq/dt * h
-			ChQuaternion<> qnew = (q_prev[j] + dqdt )*h;
+			ChQuaternion<> qnew = q_prev[j] + dqdt *h;
 			qnew.Normalize();
 			body->SetRot(qnew);
 		}
@@ -249,13 +249,16 @@ void ChSystemPBD::Advance() {
 			}
 			body->SetPos_dt((body->GetPos() - x_prev[j]) / h);
 			// q_old^-1 * q instead of q * q_old^-1 for the same reason
-			ChQuaternion<> q0i = q_prev[j].GetInverse();
+			ChQuaternion<> q0i = q_prev[j];
+			//q0i.GetInverse();
 			ChQuaternion<> provv2 = body->GetRot();
-			ChQuaternion<double> deltaq = body->GetRot() * q0i;
-			//ChVector<double> omega_us = deltaq.GetVector()*(2 / h);
+			ChQuaternion<double> deltaq = body->GetRot() - q0i;
+			deltaq *= 1/h;
+			//ChVector<double> omega_us = deltaq.GetVector()*(2/h);
 			//ChVector<double> omega = ((deltaq.e0() >= 0) ? omega_us : -omega_us);
 			//body->SetWvel_par(omega) ;
-			//body->coord_dt.rot = deltaq / h;
+			//deltaq *= ((deltaq.e0() >= 0) ? 1 : -1);
+			body->coord_dt.rot = deltaq;
 		}
 		// Scatter updated state
 
