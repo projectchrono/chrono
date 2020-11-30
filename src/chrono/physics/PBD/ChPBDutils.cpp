@@ -64,19 +64,23 @@ void ChLinkPBD::SolvePositions() {
 
 			ChVector<> pr = delta_lambda_t * nr;
 
-			ChQuaternion<double> dq1, dq2;
+			ChQuaternion<double> dq1, dq2, qnew1, qnew2;
 
 			ChVector<> Rot1 = Inv_I1 * pr.eigen();
 			// {q_dt} = 1/2 {0,w}*{q}
 			dq1.Qdt_from_Wabs(Rot1, Body1->GetRot());
 			// q1 = q0 + dq/dt * h
-			Body1->SetRot((Body1->GetRot() + dq1).Normalize());
+			qnew1 = Body1->GetRot() + dq1;
+			qnew1.Normalize();
+			Body1->SetRot(qnew1);
 
 			ChVector<> Rot2 = Inv_I2 * pr.eigen();
 			// {q_dt} = 1/2 {0,w}*{q}
 			dq2.Qdt_from_Wabs(Rot2, Body2->GetRot());
 			// q1 = q0 + dq/dt * h
-			Body2->SetRot((Body2->GetRot() - dq2).Normalize());
+			qnew2 = Body2->GetRot() - dq2;
+			qnew2.Normalize();
+			Body2->SetRot(qnew2);
 		}
 	}
 
