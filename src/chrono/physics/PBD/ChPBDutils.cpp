@@ -118,8 +118,8 @@ void ChLinkPBD::SolvePositions() {
 			// {q_dt} = 1/2 {0,w}*{q}
 			dq1.Qdt_from_Wabs(Rot1, Body1->GetRot());
 			// q1 = q0 + dq/dt * h
-			ChQuaternion<> q01 = Body2->GetRot();
-			ChQuaternion<> qnew1 = (q01 + dq2);
+			ChQuaternion<> q01 = Body1->GetRot();
+			ChQuaternion<> qnew1 = (q01 + dq1);
 			qnew1.Normalize();
 			Body1->SetRot(qnew1);
 
