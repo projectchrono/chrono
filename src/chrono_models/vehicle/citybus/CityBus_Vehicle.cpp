@@ -43,7 +43,7 @@ namespace citybus {
 CityBus_Vehicle::CityBus_Vehicle(const bool fixed,
                                  BrakeType brake_type,
                                  ChContactMethod contact_method,
-                                 ChassisCollisionType chassis_collision_type)
+                                 CollisionType chassis_collision_type)
     : ChWheeledVehicle("CityBus", contact_method), m_omega({0, 0, 0, 0}) {
     Create(fixed, brake_type, chassis_collision_type);
 }
@@ -51,12 +51,12 @@ CityBus_Vehicle::CityBus_Vehicle(const bool fixed,
 CityBus_Vehicle::CityBus_Vehicle(ChSystem* system,
                                  const bool fixed,
                                  BrakeType brake_type,
-                                 ChassisCollisionType chassis_collision_type)
+                                 CollisionType chassis_collision_type)
     : ChWheeledVehicle("CityBus", system), m_omega({0, 0, 0, 0}) {
     Create(fixed, brake_type, chassis_collision_type);
 }
 
-void CityBus_Vehicle::Create(bool fixed, BrakeType brake_type, ChassisCollisionType chassis_collision_type) {
+void CityBus_Vehicle::Create(bool fixed, BrakeType brake_type, CollisionType chassis_collision_type) {
     // Create the chassis subsystem
     m_chassis = chrono_types::make_shared<CityBus_Chassis>("Chassis", fixed, chassis_collision_type);
 

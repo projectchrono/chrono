@@ -38,13 +38,13 @@ class CH_MODELS_API Gator_Vehicle : public ChWheeledVehicle {
                   DrivelineType driveline_type,
                   BrakeType brake_type,
                   ChContactMethod contact_method,
-                  ChassisCollisionType chassis_collision_type);
+                  CollisionType chassis_collision_type);
 
     Gator_Vehicle(ChSystem* system,
                   const bool fixed,
                   DrivelineType driveline_type,
                   BrakeType brake_type,
-                  ChassisCollisionType chassis_collision_type);
+                  CollisionType chassis_collision_type);
 
     ~Gator_Vehicle();
 
@@ -73,7 +73,7 @@ class CH_MODELS_API Gator_Vehicle : public ChWheeledVehicle {
     void Create(bool fixed,
                 DrivelineType driveline_type,
                 BrakeType brake_type,
-                ChassisCollisionType chassis_collision_type);
+                CollisionType chassis_collision_type);
 
     std::vector<double> m_omega;
 };

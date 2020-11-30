@@ -111,7 +111,7 @@ int main(int argc, char* argv[]) {
         // Even numbered ranks will be a custom vehicle that is not specified by a JSON file
         auto m113 = chrono_types::make_shared<M113>();
         m113->SetContactMethod(contact_method);
-        m113->SetChassisCollisionType(ChassisCollisionType::NONE);
+        m113->SetChassisCollisionType(CollisionType::NONE);
         m113->SetChassisFixed(false);
         m113->SetInitPosition(init_pos);
         m113->SetTrackShoeType(TrackShoeType::SINGLE_PIN);

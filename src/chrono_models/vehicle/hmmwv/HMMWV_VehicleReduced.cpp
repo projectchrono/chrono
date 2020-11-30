@@ -51,7 +51,7 @@ HMMWV_VehicleReduced::HMMWV_VehicleReduced(const bool fixed,
                                            DrivelineType drive_type,
                                            BrakeType brake_type,
                                            ChContactMethod contact_method,
-                                           ChassisCollisionType chassis_collision_type)
+                                           CollisionType chassis_collision_type)
     : HMMWV_Vehicle("HMMWVreduced", contact_method, drive_type) {
     Create(fixed, brake_type, chassis_collision_type);
 }
@@ -60,12 +60,12 @@ HMMWV_VehicleReduced::HMMWV_VehicleReduced(ChSystem* system,
                                            const bool fixed,
                                            DrivelineType drive_type,
                                            BrakeType brake_type,
-                                           ChassisCollisionType chassis_collision_type)
+                                           CollisionType chassis_collision_type)
     : HMMWV_Vehicle("HMMWVreduced", system, drive_type) {
     Create(fixed, brake_type, chassis_collision_type);
 }
 
-void HMMWV_VehicleReduced::Create(bool fixed, BrakeType brake_type, ChassisCollisionType chassis_collision_type) {
+void HMMWV_VehicleReduced::Create(bool fixed, BrakeType brake_type, CollisionType chassis_collision_type) {
     // Create the chassis subsystem
     m_chassis = chrono_types::make_shared<HMMWV_Chassis>("Chassis", fixed, chassis_collision_type);
 

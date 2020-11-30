@@ -54,9 +54,8 @@ int main(int argc, char* argv[]) {
 
     // Add spherically-decomposed underlying terrain.
     std::string objfilename(GetChronoDataFile("granular/demo_GRAN_fixedterrain/fixedterrain.obj"));
-
+    
     ChVector<float> scaling(params.box_X / 2, params.box_Y / 2, params.box_Z);
-
     ChVector<float> offset(0, 0, -params.box_Z / 2);
 
     std::vector<ChVector<float>> terrain_points =
@@ -157,10 +156,11 @@ int main(int argc, char* argv[]) {
     gran_sys.initialize();
 
     unsigned int out_fps = 50;
+    unsigned int total_frames = (unsigned int)((float)params.time_end * out_fps);
     double frame_step = 1.0 / out_fps;
     int currframe = 0;
     for (double t = 0; t < (double)params.time_end; t += frame_step, currframe++) {
-        std::cout << "Rendering frame " << currframe << std::endl;
+        std::cout << "Rendering frame " << (currframe+1) << " of " << total_frames << std::endl;
         char filename[100];
         sprintf(filename, "%s/step%06d", params.output_dir.c_str(), currframe);
         gran_sys.writeFile(std::string(filename));

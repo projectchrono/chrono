@@ -47,11 +47,10 @@ __host__ void ChSystemGranularSMC_trimesh::runTriangleBroadphase() {
     triangleSoup_CountSDsTouched<<<nblocks, nthreads>>>(meshSoup, Triangle_NumSDsTouching.data(), gran_params,
                                                         tri_params);
 
-    unsigned int numTriangles = meshSoup->nTrianglesInSoup;
-
     gpuErrchk(cudaDeviceSynchronize());
     gpuErrchk(cudaPeekAtLastError());
 
+    unsigned int numTriangles = meshSoup->nTrianglesInSoup;
     unsigned int num_entries = 0;
 
     // do prefix scan
