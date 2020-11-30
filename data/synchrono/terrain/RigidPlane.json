@@ -1,0 +1,21 @@
+{
+  "Name": "Rigid Plane",
+  "Type": "Terrain",
+  "Template": "RigidTerrain",
+
+  "Input File": "terrain/RigidPlane.json",
+
+  "Visualization": {
+    "Texture": {
+      "Input File": "sensor/textures/grass_texture.jpg",
+      "Scale": [200, 200]
+    },
+
+    "Fresnel": {
+      "Maximum": 0.2,
+      "Minimum": 0.2
+    },
+
+    "Specular Color": [0.2, 0.2, 0.2]
+  }
+}

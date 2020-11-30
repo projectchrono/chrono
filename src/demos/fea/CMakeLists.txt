@@ -33,6 +33,7 @@ endif()
 # Add demos that require Irrlicht and MKL
 if(ENABLE_MODULE_IRRLICHT AND ENABLE_MODULE_PARDISO_MKL)
 set(FEA_DEMOS ${FEA_DEMOS}
+    demo_FEA_contacts_NSC
     demo_FEA_beams
     demo_FEA_beams_static
     demo_FEA_beams_constr

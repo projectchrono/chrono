@@ -27,6 +27,10 @@
 typedef const chrono::granular::ChGranParams_trimesh* MeshParamsPtr;
 typedef chrono::granular::ChTriangleSoup<float3>* TriangleSoupPtr;
 
+// Triangle bounding box will be enlarged by 1/SAFETY_PARAM, ensuring triangles lie between 2 SDs
+// are getting some love
+const int SAFETY_PARAM = 1000;
+
 /// Point is in the LRF, rot_mat rotates LRF to GRF, pos translates LRF to GRF
 /// LRF: local reference frame
 /// GRF: global reference frame
@@ -66,10 +70,19 @@ __inline__ __device__ void triangle_figureOutSDBox(const float3& vA,
     min_pt.y = MIN(vA.y, MIN(vB.y, vC.y));
     min_pt.z = MIN(vA.z, MIN(vB.z, vC.z));
 
+    // Enlarge bounding box
+    min_pt.x -= gran_params->SD_size_X_SU/SAFETY_PARAM;
+    min_pt.y -= gran_params->SD_size_Y_SU/SAFETY_PARAM;
+    min_pt.z -= gran_params->SD_size_Z_SU/SAFETY_PARAM;
+
     int3 max_pt;
     max_pt.x = MAX(vA.x, MAX(vB.x, vC.x));
     max_pt.y = MAX(vA.y, MAX(vB.y, vC.y));
     max_pt.z = MAX(vA.z, MAX(vB.z, vC.z));
+
+    max_pt.x += gran_params->SD_size_X_SU/SAFETY_PARAM;
+    max_pt.y += gran_params->SD_size_Y_SU/SAFETY_PARAM;
+    max_pt.z += gran_params->SD_size_Z_SU/SAFETY_PARAM;
 
     int3 tmp = pointSDTriplet(min_pt.x, min_pt.y, min_pt.z, gran_params);
     L[0] = tmp.x;
@@ -153,9 +166,9 @@ inline __device__ unsigned int triangle_countTouchedSDs(unsigned int triangleID,
     for (int i = L[0]; i <= U[0]; i++) {
         for (int j = L[1]; j <= U[1]; j++) {
             for (int k = L[2]; k <= U[2]; k++) {
-                SDhalfSizes[0] = (gran_params->SD_size_X_SU + 1) / 2;
-                SDhalfSizes[1] = (gran_params->SD_size_Y_SU + 1) / 2;
-                SDhalfSizes[2] = (gran_params->SD_size_Z_SU + 1) / 2;
+                SDhalfSizes[0] = (gran_params->SD_size_X_SU + gran_params->SD_size_X_SU/SAFETY_PARAM) / 2;
+                SDhalfSizes[1] = (gran_params->SD_size_Y_SU + gran_params->SD_size_Y_SU/SAFETY_PARAM) / 2;
+                SDhalfSizes[2] = (gran_params->SD_size_Z_SU + gran_params->SD_size_Z_SU/SAFETY_PARAM) / 2;
 
                 SDcenter[0] = gran_params->BD_frame_X + (i * 2 + 1) * gran_params->SD_size_X_SU / 2;
                 SDcenter[1] = gran_params->BD_frame_Y + (j * 2 + 1) * gran_params->SD_size_Y_SU / 2;
@@ -214,6 +227,8 @@ inline __device__ void triangle_figureOutTouchedSDs(unsigned int triangleID,
     }
 
     unsigned int SD_count = 0;
+
+
     unsigned int n_axes_diff = 0;  // Count axes that have different SD bounds
     unsigned int axes_diff;        // axis of variation (if only one)
 
@@ -235,9 +250,9 @@ inline __device__ void triangle_figureOutTouchedSDs(unsigned int triangleID,
                 touchedSDs[SD_count++] = currSD;
             }
         }
-
         return;
     }
+
 
     // Case 3: Triangle spans more than one dimension of spheresTouchingThisSD
     float SDcenter[3];
@@ -245,9 +260,9 @@ inline __device__ void triangle_figureOutTouchedSDs(unsigned int triangleID,
     for (int i = L[0]; i <= U[0]; i++) {
         for (int j = L[1]; j <= U[1]; j++) {
             for (int k = L[2]; k <= U[2]; k++) {
-                SDhalfSizes[0] = (gran_params->SD_size_X_SU + 1) / 2;
-                SDhalfSizes[1] = (gran_params->SD_size_Y_SU + 1) / 2;
-                SDhalfSizes[2] = (gran_params->SD_size_Z_SU + 1) / 2;
+                SDhalfSizes[0] = (gran_params->SD_size_X_SU + gran_params->SD_size_X_SU/SAFETY_PARAM) / 2;
+                SDhalfSizes[1] = (gran_params->SD_size_Y_SU + gran_params->SD_size_Y_SU/SAFETY_PARAM) / 2;
+                SDhalfSizes[2] = (gran_params->SD_size_Z_SU + gran_params->SD_size_Z_SU/SAFETY_PARAM) / 2;
 
                 SDcenter[0] = gran_params->BD_frame_X + (i * 2 + 1) * gran_params->SD_size_X_SU / 2;
                 SDcenter[1] = gran_params->BD_frame_Y + (j * 2 + 1) * gran_params->SD_size_Y_SU / 2;

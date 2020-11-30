@@ -1,0 +1,38 @@
+// =============================================================================
+// PROJECT CHRONO - http://projectchrono.org
+//
+// Copyright (c) 2020 projectchrono.org
+// All rights reserved.
+//
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
+//
+// =============================================================================
+// Authors: 肖言 (Yan Xiao)
+// =============================================================================
+//
+// Schema file that defines MAP message
+//    - Approach means from one direction to another. For example one approach
+//      could be "all the lines from North turn to East"
+//    - reduced version of standard MAP message
+//
+// =============================================================================
+
+include "Utils.fbs";
+include "Approach.fbs";
+include "SPAT.fbs";
+
+namespace SynFlatBuffers.MAP;
+
+table State {
+  time:double;
+  rank:int;
+  intersections:[intersection];
+}
+
+table intersection {
+  approaches:[SynFlatBuffers.Approach.State];
+}
+
+root_type State;

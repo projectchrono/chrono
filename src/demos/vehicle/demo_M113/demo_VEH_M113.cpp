@@ -98,12 +98,12 @@ int main(int argc, char* argv[]) {
     // --------------------------
 
     ChContactMethod contact_method = ChContactMethod::SMC;
-    ChassisCollisionType chassis_collision_type = ChassisCollisionType::NONE;
+    CollisionType chassis_collision_type = CollisionType::NONE;
     TrackShoeType shoe_type = TrackShoeType::SINGLE_PIN;
     BrakeType brake_type = BrakeType::SIMPLE;
 
     //// TODO
-    //// When using SMC, a double-pin shoe type requires MKL or MUMPS.  
+    //// When using SMC, a double-pin shoe type requires MKL or MUMPS.
     //// However, there appear to still be redundant constraints in the double-pin assembly
     //// resulting in solver failures with MKL and MUMPS (rank-deficient matrix).
     if (shoe_type == TrackShoeType::DOUBLE_PIN)
@@ -133,7 +133,6 @@ int main(int argc, char* argv[]) {
     vehicle.SetRoadWheelVisualizationType(track_vis);
     vehicle.SetTrackShoeVisualizationType(track_vis);
 
-    
     // ----------------------------
     // Create the powertrain system
     // ----------------------------
@@ -190,7 +189,7 @@ int main(int argc, char* argv[]) {
             ChMaterialCompositeSMC mat;
             mat.E_eff = 2e6f;
             mat.cr_eff = 0.1f;
-            
+
             auto delta = -cinfo.distance;
             auto normal_dir = cinfo.vN;
             auto p1 = cinfo.vpA;

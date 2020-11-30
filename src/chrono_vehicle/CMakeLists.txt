@@ -153,6 +153,7 @@ set(CV_BASE_FILES
     ChPowertrain.h
     ChPowertrain.cpp
     ChSubsysDefs.h
+    ChSubsysDefs.cpp
     ChTerrain.h
     ChTerrain.cpp
     ChVehicle.h

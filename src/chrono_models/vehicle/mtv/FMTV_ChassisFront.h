@@ -37,7 +37,7 @@ class CH_MODELS_API FMTV_ChassisFront : public ChRigidChassis {
   public:
     FMTV_ChassisFront(const std::string& name,
                       bool fixed = false,
-                      ChassisCollisionType chassis_collision_type = ChassisCollisionType::NONE);
+                      CollisionType chassis_collision_type = CollisionType::NONE);
     ~FMTV_ChassisFront() {}
 
     /// Return the mass of the front chassis body.
