@@ -23,6 +23,7 @@
 #include "chrono/physics/ChProximityContainer.h"
 #include "chrono/physics/ChSystem.h"
 #include "chrono/collision/ChCollisionSystemBullet.h"
+#include <Eigen/Core>
 
 
 namespace chrono {
@@ -33,6 +34,51 @@ CH_FACTORY_REGISTER(ChLinkPBD)
 ChLinkPBD::ChLinkPBD() : p_dir(ChVector<double>(0, 0, 0)), r_dir(ChVector<double>(0, 0, 0)), p_free(false), r_free(false) {}
 
 void ChLinkPBD::SolvePositions() {
+	assert(!Body1->GetBodyFixed() ^ !Body2->GetBodyFixed());
+
+	double invm1 = (1 / Body1->GetMass());
+	double invm2 = (1 / Body2->GetMass());
+	ChMatrix33<> Inv_I1 = Body1->GetInvInertia();
+	ChMatrix33<> Inv_I2 = Body2->GetInvInertia();
+	if (Body1->GetBodyFixed()) {
+		Inv_I1.setZero();
+		invm1 = 0;
+	}
+	if (Body2->GetBodyFixed()) {
+		Inv_I2.setZero();
+		invm2 = 0;
+	}
+	
+	// if position free skip completely
+	if (!r_free) {
+		// TODO: force fixed pos/rot of fixed bodies!!
+		ChVector<> nr = getQdelta();
+		double theta = nr.Length();
+		nr *= 1 / theta;
+
+		double w1_rot = nr.eigen().transpose() * Inv_I1 * nr.eigen();
+		double w2_rot = nr.eigen().transpose() * Inv_I2 * nr.eigen();
+
+		double delta_lambda_t = -(theta + alpha * lambda_t) / (w1_rot + w2_rot + alpha);
+		lambda_t += delta_lambda_t;
+
+		ChVector<> pr = delta_lambda_t * nr;
+
+		ChQuaternion<double> dq1, dq2;
+
+		ChVector<> Rot1 = Inv_I1 * pr.eigen();
+		// {q_dt} = 1/2 {0,w}*{q}
+		dq1.Qdt_from_Wabs(Rot1, Body1->GetRot());
+		// q1 = q0 + dq/dt * h
+		Body1->SetRot((Body1->GetRot() + dq1).Normalize());
+
+		ChVector<> Rot2 = Inv_I2 * pr.eigen();
+		// {q_dt} = 1/2 {0,w}*{q}
+		dq2.Qdt_from_Wabs(Rot2, Body2->GetRot());
+		// q1 = q0 + dq/dt * h
+		Body2->SetRot((Body2->GetRot() - dq2).Normalize());
+	}
+
 	// if position free skip completely
 	if (!p_free) {
 		// TODO: force fixed pos/rot of fixed bodies!!
@@ -51,32 +97,68 @@ void ChLinkPBD::SolvePositions() {
 		ChVector<> r1 = Body1->GetRot().Rotate(f1.coord.pos);
 		ChVector<> r2 = Body2->GetRot().Rotate(f2.coord.pos);
 
-		auto Ii1 = ((r1.Cross(n).eigen()).transpose()) * Body1->GetInvInertia() * (r1.Cross(n).eigen()) ;
-		auto Ii2 = ((r2.Cross(n).eigen()).transpose()) * Body2->GetInvInertia() * (r2.Cross(n).eigen()) ;
-		assert(Ii1.cols() * Ii1.rows() * Ii2.cols() * Ii2.rows()  == 1);
-		double w1 = (1 / Body1->GetMass()) + Ii1(0, 0);
-		double w2 = (1 / Body2->GetMass()) + Ii2(0, 0);
+		auto Ii1 = ((r1.Cross(n).eigen()).transpose()) * Inv_I1 * (r1.Cross(n).eigen());
+		auto Ii2 = ((r2.Cross(n).eigen()).transpose()) * Inv_I2 * (r2.Cross(n).eigen());
+		assert(Ii1.cols() * Ii1.rows() * Ii2.cols() * Ii2.rows() == 1);
+		double w1 = invm1 + Ii1(0, 0);
+		double w2 = invm2 + Ii2(0, 0);
 
 		double delta_lambda_f = -(C + alpha * lambda_f) / (w1 + w2 + alpha);
 		lambda_f += delta_lambda_f;
 		ChVector<> p = delta_lambda_f * n;
 
-		Body1->SetPos(Body1->GetPos() + p *  (1 / Body1->GetMass()));
-		Body2->SetPos(Body2->GetPos() - p *  (1 / Body2->GetMass()));
+		Body1->SetPos(Body1->GetPos() + p *  invm1);
+		Body2->SetPos(Body2->GetPos() - p *  invm2);
 
-		ChQuaternion<double> dq;
-		
-		ChVector<> Rot1 = Body1->GetInvInertia() * r1.Cross(p).eigen();
-		// {q_dt} = 1/2 {0,w}*{q}
-		dq.Qdt_from_Wabs(Rot1, Body1->GetRot());
-		// q1 = q0 + dq/dt * h
-		Body1->SetRot((Body1->GetRot() + dq).Normalize());
+		ChQuaternion<double> dq1, dq2;
 
-		ChVector<> Rot2 = Body2->GetInvInertia() * r2.Cross(p).eigen();
+		ChVector<> Rot1 = Inv_I1 * r1.Cross(p).eigen();
 		// {q_dt} = 1/2 {0,w}*{q}
-		dq.Qdt_from_Wabs(Rot2, Body2->GetRot());
+		dq1.Qdt_from_Wabs(Rot1, Body1->GetRot());
 		// q1 = q0 + dq/dt * h
-		Body2->SetRot((Body2->GetRot() - dq).Normalize());
+		Body1->SetRot((Body1->GetRot() + dq1).Normalize());
+
+		ChVector<> Rot2 = Inv_I2 * r2.Cross(p).eigen();
+		// {q_dt} = 1/2 {0,w}*{q}
+		dq2.Qdt_from_Wabs(Rot2, Body2->GetRot());
+		// q1 = q0 + dq/dt * h
+		Body2->SetRot((Body2->GetRot() - dq2).Normalize());
+	}
+}
+
+void ChLinkPBD::findRDOF() {
+	if (mask[3] || mask[4] || mask[5]) {
+		r_dir = NONE;
+	}
+	else if (mask[3] || mask[4] || !mask[5]) {
+		r_dir = Z;
+		a = VECT_Z;
+	}
+	else if (mask[3] || !mask[4] || mask[5]) {
+		r_dir = Y;
+		a = VECT_Y;
+	}
+	else if (!mask[3] || mask[4] || mask[5]) {
+		r_dir = X;
+		a = VECT_X;
+	}
+}
+
+ChVector<> ChLinkPBD::getQdelta() {
+	// Orientation of the 2 link frames
+	ChQuaternion<> ql1 = Body1->GetRot() * f1.GetCoord().rot;
+	ChQuaternion<> ql2 = Body2->GetRot() * f2.GetCoord().rot;
+	if (r_dof == NONE) {
+		// TODO: check this, eq 18 says q1 q2^(-1), my calculation say q1^(-1)*q2
+		ChQuaternion<> qdelta =  ql1.GetConjugate() * ql2 ;
+		return qdelta.GetVector() * 2;
+	}
+	else  {
+		// eq 20: get the rotational DOF directions in the abs frame
+		ChVector<> a1 = ql1.Rotate(a) ;
+		ChVector<> a2 = ql2.Rotate(a);
+		ChVector<> deltarot = a1 % a2;
+		return deltarot;
 	}
 }
 
@@ -99,6 +181,7 @@ ChLinkPBDLock::ChLinkPBDLock(ChLinkLock* alink) : ChLinkPBD() {
 	r_dir.Set(int(mask[3]), int(mask[4]), int(mask[5]));
 	p_free = (int(mask[0]) + int(mask[1]) + int(mask[2]) == 0) ? true : false;
 	r_free = (int(mask[3]) + int(mask[4]) + int(mask[5]) == 0) ? true : false;
+	findRDOF();
 }
 
 
@@ -119,6 +202,7 @@ ChLinkPBDMate::ChLinkPBDMate(ChLinkMateGeneric* alink) : ChLinkPBD() {
 	r_dir.Set(int(mask[3]), int(mask[4]), int(mask[5]));
 	p_free = (int(mask[0]) + int(mask[1]) + int(mask[2]) == 0) ? true : false;
 	r_free = (int(mask[3]) + int(mask[4]) + int(mask[5]) == 0) ? true : false;
+	findRDOF();
 }
 
 /*ChLinkPBD::ChLinkPBD(const ChLinkPBD& other) :  p_dir(ChVector<double>(0, 0, 0)), r_dir(ChVector<double>(0, 0, 0)), f1(ChFrame<double>(VNULL)), f2(ChFrame<double>(VNULL)), p_free(false), r_free(false) {

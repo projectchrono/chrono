@@ -25,7 +25,7 @@
 
 namespace chrono {
 //enum PBD_DOF {ALL, PARTIAL, NONE };
-//enum RotDOF {ALL, PARTIAL, NONE };
+enum RotDOF {X, Y, Z, NONE};
 /// Struct collecting a Chrono ChLink together with additional info needed by 
 class ChApi ChLinkPBD {
   public:
@@ -52,10 +52,13 @@ class ChApi ChLinkPBD {
 	// Skip the whole correction if the pos/rot not constrained at all
 	bool p_free;
 	bool r_free;
+	// Rotational DOF
+	RotDOF r_dof = NONE;
+	ChVector<> a = VNULL;
 	// Lagrangian of force and torque
 	double lambda_f = 0;
 	double lambda_t = 0;
-	// Compliance (TODO)
+	// Compliance (TODO: make it settable, and separate for torque and force)
 	double alpha = 0;
 	//TODO: not implementing limits and actuators yet.
 	bool is_limited = false;
@@ -63,6 +66,12 @@ class ChApi ChLinkPBD {
 	bool is_actuated = false;
 	/// Correct position to respect constraint
 	void SolvePositions();
+
+	/// evaluate the quaternion correction depending on rot DOF
+	ChVector<> getQdelta();
+
+	/// evaluate the quaternion correction depending on rot DOF
+	void findRDOF();
 
     // SERIALIZATION
 	/* TODO

@@ -195,9 +195,9 @@ void ChSystemPBD::PBDSetup() {
 	}
 	// allocate the proper amount of vectors and quaternions
 	int n = Get_bodylist().size();
-	x_prev.reserve(n);
+	x_prev.resize(n);
 	//x.reserve(n);
-	q_prev.reserve(n);
+	q_prev.resize(n);
 	//q.reserve(n);
 	//omega.reserve(n);
 	//v.reserve(n);
@@ -216,6 +216,9 @@ void ChSystemPBD::Advance() {
 	for (int i = 0; i < substeps; i++) {
 		for (int j = 0; j < n; j++) {
 			std::shared_ptr<ChBody> body = Get_bodylist()[j];
+			if (body->GetBodyFixed() == true) {
+				continue;
+			}
 			x_prev[j] = body->GetPos();
 			q_prev[j] = body->GetRot();
 			auto v = body->GetPos_dt() + h * (1 / body->GetMass()) * body->GetAppliedForce();
@@ -237,6 +240,9 @@ void ChSystemPBD::Advance() {
 		// Update velocities to take corrected positions into account
 		for (int j = 0; j < n; j++) {
 			std::shared_ptr<ChBody> body = Get_bodylist()[j];
+			if (body->GetBodyFixed()) {
+				continue;
+			}
 			body->SetPos_dt((body->GetPos() - x_prev[j]) / h);
 			// q_old^-1 * q instead of q * q_old^-1 for the same reason
 			ChQuaternion<double> deltaq = q_prev[j].GetInverse() *body->GetRot();
