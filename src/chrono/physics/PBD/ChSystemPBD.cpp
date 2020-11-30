@@ -183,6 +183,9 @@ void ChSystemPBD::PBDSetup() {
 			auto pbdlink = chrono_types::make_shared<ChLinkPBDMate>(linkmg);
 			linklistPBD.push_back(pbdlink);
 		}
+		else if (dynamic_cast<const ChLinkTSDA*>(value.get()) != nullptr || dynamic_cast<const ChLinkRotSpringCB*>(value.get()) != nullptr) {
+			continue;
+		}
 		else
 		{
 			throw std::invalid_argument("One or more of the system links cannot be treated as PBD link");
