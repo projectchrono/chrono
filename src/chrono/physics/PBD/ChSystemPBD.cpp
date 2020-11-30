@@ -248,16 +248,11 @@ void ChSystemPBD::Advance() {
 				continue;
 			}
 			body->SetPos_dt((body->GetPos() - x_prev[j]) / h);
-			// q_old^-1 * q instead of q * q_old^-1 for the same reason
 			ChQuaternion<> q0i = q_prev[j];
-			//q0i.GetInverse();
+			//TODO: using difference instead of increment as in paper. Doing that does not work though
 			ChQuaternion<> provv2 = body->GetRot();
 			ChQuaternion<double> deltaq = body->GetRot() - q0i;
 			deltaq *= 1/h;
-			//ChVector<double> omega_us = deltaq.GetVector()*(2/h);
-			//ChVector<double> omega = ((deltaq.e0() >= 0) ? omega_us : -omega_us);
-			//body->SetWvel_par(omega) ;
-			//deltaq *= ((deltaq.e0() >= 0) ? 1 : -1);
 			body->coord_dt.rot = deltaq;
 		}
 		// Scatter updated state
