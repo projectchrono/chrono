@@ -46,7 +46,7 @@ class CH_MODELS_API M113 {
     void SetContactMethod(ChContactMethod val) { m_contactMethod = val; }
 
     void SetChassisFixed(bool val) { m_fixed = val; }
-    void SetChassisCollisionType(ChassisCollisionType val) { m_chassisCollisionType = val; }
+    void SetChassisCollisionType(CollisionType val) { m_chassisCollisionType = val; }
 
     void SetBrakeType(BrakeType brake_type) { m_brake_type = brake_type; }
     void SetTrackShoeType(TrackShoeType shoe_type) { m_shoe_type = shoe_type; }
@@ -84,7 +84,7 @@ class CH_MODELS_API M113 {
 
   protected:
     ChContactMethod m_contactMethod;
-    ChassisCollisionType m_chassisCollisionType;
+    CollisionType m_chassisCollisionType;
     bool m_fixed;
 
     BrakeType m_brake_type;

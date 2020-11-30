@@ -42,8 +42,11 @@ void ChGranularChronoTriMeshAPI::load_meshes(std::vector<std::string> objfilenam
         all_meshes.push_back(chrono::geometry::ChTriangleMeshConnected());
         chrono::geometry::ChTriangleMeshConnected& mesh = all_meshes[all_meshes.size() - 1];
 
-        mesh.LoadWavefrontMesh(objfilenames[i], true, false);
-
+        bool readin_flag = mesh.LoadWavefrontMesh(objfilenames[i], true, false);
+        if (!readin_flag) {
+            GRANULAR_ERROR("ERROR! Mesh %s failed to load in! Exiting!\n", objfilenames[i].c_str());
+        }
+        
         // Apply displacement
         chrono::ChVector<> displ(translations[i].x, translations[i].y, translations[i].z);
 
@@ -53,7 +56,7 @@ void ChGranularChronoTriMeshAPI::load_meshes(std::vector<std::string> objfilenam
         unsigned int num_triangles_curr = mesh.getNumTriangles();
 
         if (num_triangles_curr == 0) {
-            GRANULAR_ERROR("ERROR! Mesh %s has no triangles in it! Exiting!\n", objfilenames[i].c_str());
+            printf("WARNING: Mesh %s has no triangles in it!\n", objfilenames[i].c_str());
         }
 
         nTriangles += num_triangles_curr;

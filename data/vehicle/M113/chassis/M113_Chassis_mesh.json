@@ -43,7 +43,7 @@
 
         "Shapes": [
             {
-                "Type": "MESH",
+                "Type": "HULL",
                 "Filename": "M113/Chassis_Hulls.obj",
                 "Material Index": 0
             }

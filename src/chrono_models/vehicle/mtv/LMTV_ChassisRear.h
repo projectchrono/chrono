@@ -35,7 +35,7 @@ namespace fmtv {
 /// LMTV rear chassis subsystem.
 class CH_MODELS_API LMTV_ChassisRear : public ChRigidChassisRear {
   public:
-    LMTV_ChassisRear(const std::string& name, ChassisCollisionType chassis_collision_type = ChassisCollisionType::NONE);
+    LMTV_ChassisRear(const std::string& name, CollisionType chassis_collision_type = CollisionType::NONE);
     ~LMTV_ChassisRear() {}
 
     /// Return the mass of the rear chassis body.

@@ -123,8 +123,15 @@ SWIGRUNTIME PyObject* DowncastChFunction(chrono::ChFunction* out)
 // Cross-inheritance between Python and c++ for callbacks that must be inherited.
 // Put this 'director' feature _before_ class wrapping declaration.
 %feature("director") chrono::ChFunction;
+%feature("director") chrono::ChFunction_Setpoint;
 %feature("director") chrono::ChFunction_SetpointCallback;
+%feature("director") chrono::ChFunctionPosition;
+%feature("director") chrono::ChFunctionPosition_setpoint;
+%feature("director") chrono::ChFunctionRotation;
+%feature("director") chrono::ChFunctionRotation_setpoint;
 %ignore chrono::ChFunction::Clone;
+%ignore chrono::ChFunctionPosition::Clone;
+%ignore chrono::ChFunctionRotation::Clone;
 
 /* Parse the header file to generate wrappers */
 %include "../../chrono/motion_functions/ChFunction_Base.h"  

@@ -59,26 +59,14 @@ void ChTrackShoeSinglePin::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     CreateContactMaterials(sys->GetContactMethod());
 
     // Add contact geometry on shoe body
-    AddShoeContact();
+    m_geometry.AddCollisionShapes(m_shoe, TrackedCollisionFamily::SHOES);
+    m_shoe->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(TrackedCollisionFamily::SHOES);
 }
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 double ChTrackShoeSinglePin::GetMass() const {
     return GetShoeMass();
-}
-
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-void ChTrackShoeSinglePin::AddVisualizationAssets(VisualizationType vis) {
-    if (vis == VisualizationType::NONE)
-        return;
-
-    AddShoeVisualization();
-}
-
-void ChTrackShoeSinglePin::RemoveVisualizationAssets() {
-    m_shoe->GetAssets().clear();
 }
 
 // -----------------------------------------------------------------------------
