@@ -66,8 +66,11 @@ ChVSGChronoApp::ChVSGChronoApp(ChSystem* sys, std::string& windowTitle, size_t w
     m_clearColor.B = 0.0;
     m_clearColor.A = 1.0;
 
-    // set the text font
-    m_fontFilename = "fonts/times.vsgb";
+    // set the title text font
+    m_titleFontFilename = GetChronoDataFile("vsg/fonts/EBGaramond-Regular.vsgb");
+    // set the info text font
+    m_infoFontFilename = GetChronoDataFile("vsg/fonts/UbuntuMono-Regular.vsgb");
+
     m_searchPaths = ::vsg::getEnvPaths("VSG_FILE_PATH");
 
     auto options = vsg::Options::create();
@@ -76,10 +79,18 @@ ChVSGChronoApp::ChVSGChronoApp(ChSystem* sys, std::string& windowTitle, size_t w
     options->readerWriter = vsgXchange::ReaderWriter_all::create();
 #endif
 
-    m_font = vsg::read_cast<vsg::Font>(m_fontFilename, options);
+    // m_font = vsg::read_cast<vsg::Font>(GetChronoDataFile(m_fontFilename), options);
+    m_titleFont = vsg::read_cast<vsg::Font>(m_titleFontFilename);
 
-    if (!m_font) {
-        std::cout << "Failling to read font : " << m_fontFilename << std::endl;
+    if (!m_titleFont) {
+        std::cout << "Failling to read font : " << m_titleFontFilename << std::endl;
+        return;
+    }
+
+    m_infoFont = vsg::read_cast<vsg::Font>(m_infoFontFilename);
+
+    if (!m_infoFont) {
+        std::cout << "Failling to read font : " << m_infoFontFilename << std::endl;
         return;
     }
 }
@@ -148,10 +159,26 @@ bool ChVSGChronoApp::OpenWindow() {
 }
 
 void ChVSGChronoApp::Render() {
+    auto frameStamp = m_viewer->getFrameStamp();
+    if (m_frameCount == 0) {
+        m_start_point = frameStamp->time;
+    }
+    double time = std::chrono::duration<double, std::chrono::seconds::period>(frameStamp->time - m_start_point).count();
+    if (time > 1.0) {
+        double average_framerate = double(m_frameCount) / time;
+        std::cout << "Period complete numFrames=" << m_frameCount << ", average frame rate = " << average_framerate
+                  << std::endl;
+
+        // reset time back to start
+        m_start_point = frameStamp->time;
+        time = 0.0;
+        m_frameCount = 0;
+    }
     m_viewer->handleEvents();
     m_viewer->update();
     m_viewer->recordAndSubmit();
     m_viewer->present();
+    m_frameCount++;
 }
 
 vsg::ref_ptr<vsg::Camera> ChVSGChronoApp::createMainCamera(int32_t x, int32_t y, uint32_t width, uint32_t height) {
@@ -366,15 +393,15 @@ void ChVSGChronoApp::BuildSceneGraph() {
 void ChVSGChronoApp::GenerateText() {
     {
         auto layout = vsg::LeftAlignment::create();
-        layout->position = vsg::vec3(0.0, 0.0, 0.0);
+        layout->position = vsg::vec3(-5.0, 0.0, 0.0);
         layout->horizontal = vsg::vec3(1.0, 0.0, 0.0);
         layout->vertical = vsg::vec3(0.0, 0.0, 1.0);
         layout->color = vsg::vec4(1.0, 0.5, 0.3, 1.0);
         layout->outlineWidth = 0.2;
 
         auto text = vsg::Text::create();
-        text->text = vsg::stringValue::create("This is overlayed text.");
-        text->font = m_font;
+        text->text = vsg::stringValue::create("This is overlayed text in EBGaramond-Regular");
+        text->font = m_titleFont;
         text->layout = layout;
         text->setup();
         m_scenegraphText->addChild(text);
@@ -385,11 +412,11 @@ void ChVSGChronoApp::GenerateText() {
         layout->horizontal = vsg::vec3(0.5, 0.0, 0.0);
         layout->vertical = vsg::vec3(0.0, 0.0, 0.5);
         layout->color = vsg::vec4(0.0, 0.7, 0.7, 1.0);
-        layout->outlineWidth = 0.2;
+        layout->outlineWidth = 0.1;
 
         auto text = vsg::Text::create();
-        text->text = vsg::stringValue::create("This is different overlayed text. It is on a different place.");
-        text->font = m_font;
+        text->text = vsg::stringValue::create("This is monospace text in UbuntuMono-Regular");
+        text->font = m_infoFont;
         text->layout = layout;
         text->setup();
         m_scenegraphText->addChild(text);

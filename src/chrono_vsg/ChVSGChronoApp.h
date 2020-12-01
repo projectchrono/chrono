@@ -65,14 +65,20 @@ class CH_VSG_API ChVSGChronoApp {
 
     vsg::Paths m_searchPaths;
 
-    std::string m_fontFilename;
-    vsg::ref_ptr<vsg::Font> m_font;
+    std::string m_titleFontFilename;
+    vsg::ref_ptr<vsg::Font> m_titleFont;
+
+    std::string m_infoFontFilename;
+    vsg::ref_ptr<vsg::Font> m_infoFont;
 
     vsg::ref_ptr<vsg::Group> m_scenegraph;
     vsg::ref_ptr<vsg::Camera> m_mainCamera;
 
     vsg::ref_ptr<vsg::Group> m_scenegraphText;
     vsg::ref_ptr<vsg::Camera> m_textCamera;
+
+    vsg::time_point m_start_point;
+    size_t m_frameCount = 0;
 };
 
 }  // namespace vsg3d
