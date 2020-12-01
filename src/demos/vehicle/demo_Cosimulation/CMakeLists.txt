@@ -38,6 +38,12 @@ endif()
 #  set(LIBRARIES ${LIBRARIES} ChronoEngine_mumps)
 #endif()
 
+if(ENABLE_MODULE_IRRLICHT)
+  include_directories(${CH_IRRLICHTINC})
+  set(COMPILER_FLAGS "${COMPILER_FLAGS} ${CH_IRRLICHT_CXX_FLAGS}")
+  list(APPEND LIBRARIES ChronoEngine_irrlicht)
+endif()
+
 if(ENABLE_MODULE_OPENGL)
   include_directories(${CH_OPENGL_INCLUDES})
   set(LIBRARIES ${LIBRARIES} ChronoEngine_opengl)

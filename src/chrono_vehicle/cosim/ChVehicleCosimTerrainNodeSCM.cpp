@@ -1,0 +1,280 @@
+// =============================================================================
+// PROJECT CHRONO - http://projectchrono.org
+//
+// Copyright (c) 2020 projectchrono.org
+// All right reserved.
+//
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
+//
+// =============================================================================
+// Authors: Radu Serban
+// =============================================================================
+//
+// Definition of the SCM deformable TERRAIN NODE.
+//
+// The global reference frame has Z up, X towards the front of the vehicle, and
+// Y pointing to the left.
+//
+// =============================================================================
+
+#include <algorithm>
+#include <cmath>
+#include <set>
+
+#include <mpi.h>
+
+#include "chrono/utils/ChUtilsCreators.h"
+#include "chrono/utils/ChUtilsGenerators.h"
+#include "chrono/utils/ChUtilsInputOutput.h"
+
+#include "chrono/physics/ChSystemSMC.h"
+#include "chrono/physics/ChSystemNSC.h"
+
+#include "chrono_vehicle/cosim/ChVehicleCosimTerrainNodeSCM.h"
+
+#ifdef CHRONO_IRRLICHT
+#include "chrono_irrlicht/ChIrrApp.h"
+#endif
+
+using std::cout;
+using std::endl;
+
+namespace chrono {
+namespace vehicle {
+
+// -----------------------------------------------------------------------------
+// Construction of the terrain node:
+// - create the Chrono system and set solver parameters
+// - create the Irrlicht visualization window
+// -----------------------------------------------------------------------------
+ChVehicleCosimTerrainNodeSCM::ChVehicleCosimTerrainNodeSCM(bool render, int num_threads)
+    : ChVehicleCosimTerrainNode(Type::SCM, ChContactMethod::SMC, render), m_irrapp(nullptr) {
+    cout << "[Terrain node] SCM " << endl;
+
+    // Create system and set default method-specific solver settings
+    m_system = new ChSystemSMC;
+
+    // Solver settings independent of method type
+    m_system->Set_G_acc(ChVector<>(0, 0, m_gacc));
+
+    // Set number of threads
+    m_system->SetNumThreads(num_threads, 1, 1);
+
+#ifdef CHRONO_IRRLICHT
+    // Create the visualization window
+    if (m_render) {
+        m_irrapp =
+            new irrlicht::ChIrrApp(m_system, L"SCM terrain", irr::core::dimension2d<irr::u32>(1280, 720), false, true);
+        m_irrapp->AddTypicalLogo();
+        m_irrapp->AddTypicalSky();
+        m_irrapp->AddTypicalLights();
+        m_irrapp->AddTypicalCamera(irr::core::vector3df(2.0f, 1.4f, 0.0f), irr::core::vector3df(0, 0, 0));
+        m_irrapp->AddLightWithShadow(irr::core::vector3df(1.5f, 5.5f, -2.5f), irr::core::vector3df(0, 0, 0), 3, 2.2,
+                                     7.2, 40, 512, irr::video::SColorf(0.8f, 0.8f, 1.0f));
+    }
+#endif
+}
+
+ChVehicleCosimTerrainNodeSCM::~ChVehicleCosimTerrainNodeSCM() {
+    delete m_irrapp;
+    delete m_terrain;
+    delete m_system;
+}
+
+// -----------------------------------------------------------------------------
+
+void ChVehicleCosimTerrainNodeSCM::SetPropertiesSCM(double spacing,
+                                                    double Bekker_Kphi,
+                                                    double Bekker_Kc,
+                                                    double Bekker_n,
+                                                    double Mohr_cohesion,
+                                                    double Mohr_friction,
+                                                    double Janosi_shear,
+                                                    double elastic_K,
+                                                    double damping_R) {
+    m_spacing = spacing;
+
+    m_Bekker_Kphi = Bekker_Kphi;
+    m_Bekker_Kc = Bekker_Kc;
+    m_Bekker_n = Bekker_n;
+    m_Mohr_cohesion = Mohr_cohesion;
+    m_Mohr_friction = Mohr_friction;
+    m_Janosi_shear = Janosi_shear;
+
+    m_elastic_K = elastic_K;
+    m_damping_R = damping_R;
+}
+
+// -----------------------------------------------------------------------------
+// Complete construction of the mechanical system.
+// This function is invoked automatically from Initialize.
+// - adjust system settings
+// - create the container body
+// - if specified, create the granular material
+// -----------------------------------------------------------------------------
+void ChVehicleCosimTerrainNodeSCM::Construct() {
+    // Create the SCM patch (default center at origin)
+    m_terrain = new SCMDeformableTerrain(m_system);
+    m_terrain->SetSoilParameters(m_Bekker_Kphi, m_Bekker_Kc, m_Bekker_n,            //
+                                 m_Mohr_cohesion, m_Mohr_friction, m_Janosi_shear,  //
+                                 m_elastic_K, m_damping_R);
+    m_terrain->SetPlotType(vehicle::SCMDeformableTerrain::PLOT_SINKAGE, 0, 0.05);
+    m_terrain->Initialize(2 * m_hdimX, 2 * m_hdimY, m_spacing);
+
+    // --------------------------------------
+    // Write file with terrain node settings
+    // --------------------------------------
+
+    std::ofstream outf;
+    outf.open(m_node_out_dir + "/settings.dat", std::ios::out);
+    outf << "System settings" << endl;
+    outf << "  Integration step size = " << m_step_size << endl;
+    outf << "Patch dimensions" << endl;
+    outf << "  X = " << 2 * m_hdimX << "  Y = " << 2 * m_hdimY << endl;
+    outf << "  spacing = " << m_spacing << endl;
+    outf << "Terrain material properties" << endl;
+    outf << "  Kphi = " << m_Bekker_Kphi << endl;
+    outf << "  Kc   = " << m_Bekker_Kc << endl;
+    outf << "  n    = " << m_Bekker_n << endl;
+    outf << "  c    = " << m_Mohr_cohesion << endl;
+    outf << "  mu   = " << m_Mohr_friction << endl;
+    outf << "  J    = " << m_Janosi_shear << endl;
+    outf << "  Ke   = " << m_elastic_K << endl;
+    outf << "  Rd   = " << m_damping_R << endl;
+}
+
+// Create bodies with triangular contact geometry as proxies for the tire mesh faces.
+// Used for flexible tires.
+// Assign to each body an identifier equal to the index of its corresponding mesh face.
+// Maintain a list of all bodies associated with the tire.
+// Add all proxy bodies to the same collision family and disable collision between any
+// two members of this family.
+void ChVehicleCosimTerrainNodeSCM::CreateMeshProxies() {
+    //// TODO
+
+    // Bind Irrlicht assets
+    if (m_render) {
+        m_irrapp->AssetBindAll();
+        m_irrapp->AssetUpdateAll();
+    }
+}
+
+void ChVehicleCosimTerrainNodeSCM::CreateWheelProxy() {
+    // Create wheel proxy body
+    auto body = std::shared_ptr<ChBody>(m_system->NewBody());
+    body->SetIdentifier(0);
+    body->SetMass(m_rig_mass);
+    ////body->SetInertiaXX();   //// TODO
+    body->SetBodyFixed(false);  // Cannot fix the proxies with SCM
+    body->SetCollide(true);
+
+    // Create collision mesh
+    auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
+    trimesh->getCoordsVertices() = m_mesh_data.vpos;
+    trimesh->getCoordsNormals() = m_mesh_data.vnrm;
+    trimesh->getIndicesVertexes() = m_mesh_data.tri;
+
+    // Set collision shape
+    body->GetCollisionModel()->ClearModel();
+    body->GetCollisionModel()->AddTriangleMesh(m_material_tire, trimesh, false, false, ChVector<>(0), ChMatrix33<>(1),
+                                               m_radius_p);
+    body->GetCollisionModel()->SetFamily(1);
+    body->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(1);
+    body->GetCollisionModel()->BuildModel();
+
+    // Set visualization asset
+    auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
+    trimesh_shape->SetMesh(trimesh);
+    trimesh_shape->Pos = ChVector<>(0, 0, 0);
+    trimesh_shape->Rot = ChQuaternion<>(1, 0, 0, 0);
+    body->GetAssets().push_back(trimesh_shape);
+
+    m_system->AddBody(body);
+    m_proxies.push_back(ProxyBody(body, 0));
+
+    // Bind Irrlicht assets
+    if (m_render) {
+        m_irrapp->AssetBindAll();
+        m_irrapp->AssetUpdateAll();
+    }
+}
+
+// Set position, orientation, and velocity of proxy bodies based on tire mesh faces.
+void ChVehicleCosimTerrainNodeSCM::UpdateMeshProxies() {
+    //// TODO
+}
+
+// Set state of wheel proxy body.
+void ChVehicleCosimTerrainNodeSCM::UpdateWheelProxy() {
+    m_proxies[0].m_body->SetPos(m_wheel_state.pos);
+    m_proxies[0].m_body->SetPos_dt(m_wheel_state.lin_vel);
+    m_proxies[0].m_body->SetRot(m_wheel_state.rot);
+    m_proxies[0].m_body->SetWvel_par(m_wheel_state.ang_vel);
+}
+
+// Collect contact forces on the (face) proxy bodies that are in contact.
+// Load mesh vertex forces and corresponding indices.
+void ChVehicleCosimTerrainNodeSCM::GetForcesMeshProxies() {
+    //// TODO
+}
+
+// Collect resultant contact force and torque on wheel proxy body.
+void ChVehicleCosimTerrainNodeSCM::GetForceWheelProxy() {
+    m_wheel_contact = m_terrain->GetContactForce(m_proxies[0].m_body);
+}
+
+// -----------------------------------------------------------------------------
+
+void ChVehicleCosimTerrainNodeSCM::OnSynchronize(int step_number, double time) {
+    // Nothing needed here
+}
+
+void ChVehicleCosimTerrainNodeSCM::OnAdvance(double step_size) {
+#ifdef CHRONO_OPENGL
+    if (m_render) {
+        if (!m_irrapp->GetDevice()->run()) {
+            MPI_Abort(MPI_COMM_WORLD, 1);
+        }
+        m_irrapp->BeginScene();
+        ////m_irrapp->GetSceneManager()->getActiveCamera()->setTarget(irr::core::vector3dfCH(mrigidbody->GetPos()));
+        m_irrapp->DrawAll();
+        irrlicht::ChIrrTools::drawColorbar(0, 30000, "Pressure yield [Pa]", m_irrapp->GetDevice(), 1180);
+        m_irrapp->EndScene();
+    }
+#endif
+}
+
+// -----------------------------------------------------------------------------
+
+void ChVehicleCosimTerrainNodeSCM::OutputTerrainData(int frame) {
+    // Nothing to do here
+}
+
+// -----------------------------------------------------------------------------
+
+void ChVehicleCosimTerrainNodeSCM::WriteCheckpoint() {
+    //// TODO: useful for multi-pass scenarios
+}
+
+// -----------------------------------------------------------------------------
+
+void ChVehicleCosimTerrainNodeSCM::PrintMeshProxiesUpdateData() {
+    //// TODO
+}
+
+void ChVehicleCosimTerrainNodeSCM::PrintWheelProxyUpdateData() {
+    //// TODO
+}
+
+void ChVehicleCosimTerrainNodeSCM::PrintMeshProxiesContactData() {
+    //// TODO
+}
+
+void ChVehicleCosimTerrainNodeSCM::PrintWheelProxyContactData() {
+    //// TODO
+}
+
+}  // end namespace vehicle
+}  // end namespace chrono

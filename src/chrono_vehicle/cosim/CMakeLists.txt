@@ -21,7 +21,10 @@ set(CV_COSIM_FILES
     ChVehicleCosimTerrainNode.h
     ChVehicleCosimTerrainNode.cpp
     ChVehicleCosimTerrainNodeRigid.h
-    ChVehicleCosimTerrainNodeRigid.cpp)
+    ChVehicleCosimTerrainNodeRigid.cpp
+    ChVehicleCosimTerrainNodeSCM.h
+    ChVehicleCosimTerrainNodeSCM.cpp
+    )
 
 # ------------------------------------------------------------------------------
 
@@ -50,6 +53,12 @@ endif()
 #  include_directories(${CH_MUMPS_INCLUDES})
 #  list(APPEND LIBRARIES ChronoEngine_mumps)
 #endif()
+
+if(ENABLE_MODULE_IRRLICHT)
+  include_directories(${CH_IRRLICHTINC})
+  set(CXX_FLAGS "${CXX_FLAGS} ${CH_IRRLICHT_CXX_FLAGS}")
+  list(APPEND LIBRARIES ChronoEngine_irrlicht)
+endif()
 
 if(ENABLE_MODULE_OPENGL)
   include_directories(${CH_OPENGL_INCLUDES})

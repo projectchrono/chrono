@@ -33,6 +33,7 @@
 
 #include "chrono_vehicle/cosim/ChVehicleCosimRigNode.h"
 #include "chrono_vehicle/cosim/ChVehicleCosimTerrainNodeRigid.h"
+#include "chrono_vehicle/cosim/ChVehicleCosimTerrainNodeSCM.h"
 #include "chrono_vehicle/cosim/ChVehicleCosimTerrainNodeGranularOMP.h"
 
 using std::cout;
@@ -54,13 +55,13 @@ double output_fps = 200;
 double checkpoint_fps = 100;
 
 // Output directory
-std::string out_dir = "../TIRE_RIG_COSIM";
+std::string out_dir = GetChronoOutputPath() + "TIRE_RIG_COSIM";
 
 // Tire type
 ChVehicleCosimRigNode::Type tire_type = ChVehicleCosimRigNode::Type::RIGID;
 
 // Terrain type
-ChVehicleCosimTerrainNode::Type terrain_type = ChVehicleCosimTerrainNode::Type::RIGID;
+ChVehicleCosimTerrainNode::Type terrain_type = ChVehicleCosimTerrainNode::Type::SCM;
 
 // =============================================================================
 
@@ -203,6 +204,30 @@ int main(int argc, char** argv) {
                             break;
                         }
                     }
+
+                    my_terrain = terrain;
+                    break;
+                }
+                case ChVehicleCosimTerrainNode::Type::SCM: {
+                    auto terrain = new ChVehicleCosimTerrainNodeSCM(render, nthreads_terrain);
+                    terrain->SetStepSize(step_size);
+                    terrain->SetOutDir(out_dir, suffix);
+                    cout << "[Terrain node] output directory: " << terrain->GetOutDirName() << endl;
+
+                    terrain->SetPatchDimensions(2, 0.6);
+                    terrain->SetPropertiesSCM(
+                        5e-2,   // grid spacing
+                        0.2e6,  // Bekker Kphi
+                        0,      // Bekker Kc
+                        1.1,    // Bekker n exponent
+                        0,      // Mohr cohesive limit (Pa)
+                        30,     // Mohr friction limit (degrees)
+                        0.01,   // Janosi shear coefficient (m)
+                        4e7,    // Elastic stiffness (Pa/m), before plastic yield, must be > Kphi
+                        3e4     // Damping (Pa s/m), proportional to negative vertical speed (optional)
+                    );
+
+                    terrain->SetProxyProperties(0.002, false);
 
                     my_terrain = terrain;
                     break;
