@@ -56,15 +56,15 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularOMP : public ChVehicleCosi
     /// The type of material must be consistent with the contact method (penalty or complementarity)
     /// specified at construction. These parameters characterize the material for the container and
     /// (if applicable) the granular material.  Tire contact material is received from the rig node.
-    virtual void SetMaterialSurface(const std::shared_ptr<ChMaterialSurface>& mat) override;
+    void SetMaterialSurface(const std::shared_ptr<ChMaterialSurface>& mat);
 
     /// Specify whether contact coefficients are based on material properties (default: true).
     /// Note that this setting is only relevant when using the penalty method.
-    virtual void UseMaterialProperties(bool flag) override;
+    void UseMaterialProperties(bool flag);
 
     /// Set the normal contact force model (default: Hertz)
     /// Note that this setting is only relevant when using the penalty method.
-    virtual void SetContactForceModel(ChSystemSMC::ContactForceModel model) override;
+    void SetContactForceModel(ChSystemSMC::ContactForceModel model);
 
     /// Set simulation length for settling of granular material (default: 0.4).
     void SetSettlingTime(double time) { m_time_settling = time; }
@@ -74,11 +74,11 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularOMP : public ChVehicleCosi
     void EnableSettlingOutput(bool val) { m_settling_output = val; }
 
     /// Obtain settled terrain configuration.
-    /// This is an optional operation that a terrain subsystem may perform before initiating
+    /// This is an optional operation that can be performed for granular terrain before initiating
     /// communictation with the rig node. For granular terrain, a settled configuration can
     /// be obtained either through simulation or by initializing particles from a previously
     /// generated checkpointing file.
-    virtual void Settle() override;
+    void Settle();
 
     /// Write checkpointing file.
     virtual void WriteCheckpoint() override;

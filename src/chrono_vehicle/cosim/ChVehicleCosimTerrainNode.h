@@ -55,25 +55,6 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNode : public ChVehicleCosimBaseNode {
                             bool fixed      ///< proxies fixed to ground? (default: false)
     );
 
-    /// Set the material properties for terrain.
-    /// The type of material must be consistent with the contact method (penalty or complementarity)
-    /// specified at construction. These parameters characterize the material for the container and
-    /// (if applicable) the granular material.  Tire contact material is received from the rig node.
-    virtual void SetMaterialSurface(const std::shared_ptr<ChMaterialSurface>& mat) = 0;
-
-    /// Specify whether contact coefficients are based on material properties (default: true).
-    /// Note that this setting is only relevant when using the SMC formulation.
-    virtual void UseMaterialProperties(bool flag) = 0;
-
-    /// Set the normal contact force model (default: Hertz)
-    /// Note that this setting is only relevant when using the SMC formulation.
-    virtual void SetContactForceModel(ChSystemSMC::ContactForceModel model) = 0;
-
-    /// Obtain settled terrain configuration.
-    /// This is an optional operation that a terrain subsystem may perform before
-    /// communication with the rig node is initiated.
-    virtual void Settle() = 0;
-
     /// Initialize this node.
     /// This function allows the node to initialize itself and, optionally, perform an
     /// initial data exchange with any other node.
@@ -94,7 +75,7 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNode : public ChVehicleCosimBaseNode {
     virtual void OutputData(int frame) override final;
 
     /// Write checkpointing file.
-    virtual void WriteCheckpoint() = 0;
+    virtual void WriteCheckpoint() {}
 
   protected:
     /// Association between a proxy body and a mesh index.
@@ -152,23 +133,44 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNode : public ChVehicleCosimBaseNode {
     virtual bool SupportsFlexibleTire() const = 0;
 
     // --- Virtual methods for a flexible tire
+    //     A derived class must implement these methods if SupportsFlexibleTire returns true.
 
     /// Create proxy bodies for a flexible tire mesh.
     /// Use information in the m_mesh_data struct (vertex positions expressed in local frame).
-    virtual void CreateMeshProxies() = 0;
+    virtual void CreateMeshProxies() {
+        if (SupportsFlexibleTire()) {
+            throw ChException("Current terrain type does not support flexible tires!");
+        }
+    }
     /// Update the state of all proxy bodies for a flexible tire.
     /// Use information in the m_mesh_state struct (vertex positions and velocities expressed in absolute frame).
-    virtual void UpdateMeshProxies() = 0;
+    virtual void UpdateMeshProxies() {
+        if (SupportsFlexibleTire()) {
+            throw ChException("Current terrain type does not support flexible tires!");
+        }
+    }
     /// Collect cumulative contact forces on all proxy bodies for a flexible tire.
     /// Load indices of vertices in contact and the corresponding vertex forces (expressed in absolute frame)
     /// into the m_mesh_contact struct.
-    virtual void GetForcesMeshProxies() = 0;
+    virtual void GetForcesMeshProxies() {
+        if (SupportsFlexibleTire()) {
+            throw ChException("Current terrain type does not support flexible tires!");
+        }
+    }
     /// Print information on proxy bodies after update.
-    virtual void PrintMeshProxiesUpdateData() = 0;
+    virtual void PrintMeshProxiesUpdateData() {
+        if (SupportsFlexibleTire()) {
+            throw ChException("Current terrain type does not support flexible tires!");
+        }
+    }
     /// Print information on contact forces acting on proxy bodies.
-    virtual void PrintMeshProxiesContactData() = 0;
+    virtual void PrintMeshProxiesContactData() {
+        if (SupportsFlexibleTire()) {
+            throw ChException("Current terrain type does not support flexible tires!");
+        }
+    }
 
-    // --- Virtual methods for a rigid tire
+    // --- Virtual methods for a rigid tire.
 
     /// Create proxy body for a rigid tire mesh.
     /// Use information in the m_mesh_data struct (vertex positions expressed in local frame).

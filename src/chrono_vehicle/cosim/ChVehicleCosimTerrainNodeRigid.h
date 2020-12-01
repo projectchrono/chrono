@@ -43,23 +43,15 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeRigid : public ChVehicleCosimTerra
     /// The type of material must be consistent with the contact method (penalty or complementarity)
     /// specified at construction. These parameters characterize the material for the container and
     /// (if applicable) the granular material.  Tire contact material is received from the rig node.
-    virtual void SetMaterialSurface(const std::shared_ptr<ChMaterialSurface>& mat) override;
+    void SetMaterialSurface(const std::shared_ptr<ChMaterialSurface>& mat);
 
     /// Specify whether contact coefficients are based on material properties (default: true).
     /// Note that this setting is only relevant when using the penalty method.
-    virtual void UseMaterialProperties(bool flag) override;
+    void UseMaterialProperties(bool flag);
 
     /// Set the normal contact force model (default: Hertz)
     /// Note that this setting is only relevant when using the penalty method.
-    virtual void SetContactForceModel(ChSystemSMC::ContactForceModel model) override;
-
-    /// Obtain settled terrain configuration.
-    /// No-op for a rigid terrain.
-    virtual void Settle() override {}
-
-    /// Write checkpointing file.
-    /// No-op for a rigid terrain
-    virtual void WriteCheckpoint() override {}
+    void SetContactForceModel(ChSystemSMC::ContactForceModel model);
 
   private:
     ChSystemParallel* m_system;  ///< containing system
