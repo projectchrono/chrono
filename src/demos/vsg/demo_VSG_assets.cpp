@@ -60,6 +60,39 @@ int main(int argc, char* argv[]) {
     mfloorcolor->SetColor(ChColor(0.3f, 0.3f, 0.6f));
     mfloor->AddAsset(mfloorcolor);
 
+    //
+    // EXAMPLE 2:
+    //
+
+    // Textures, colors, asset levels with transformations.
+    // This section shows how to add more advanced types of assets
+    // and how to group assets in ChAssetLevel containers.
+
+    // Create the rigid body as usual (this won't move,
+    // it is only for visualization tests)
+    auto mbody = chrono_types::make_shared<ChBody>();
+    mbody->SetBodyFixed(true);
+    application.GetSystem()->Add(mbody);
+
+    // ==Asset== Attach a 'sphere' shape
+    auto msphere = chrono_types::make_shared<ChSphereShape>();
+    msphere->GetSphereGeometry().rad = 0.5;
+    msphere->GetSphereGeometry().center = ChVector<>(-1, 0, 0);
+    mbody->AddAsset(msphere);
+
+    // ==Asset== Attach also a 'box' shape
+    auto mbox = chrono_types::make_shared<ChBoxShape>();
+    mbox->GetBoxGeometry().Pos = ChVector<>(1, 0, 1);
+    mbox->GetBoxGeometry().Size = ChVector<>(0.3, 0.1, 0.5);
+    mbody->AddAsset(mbox);
+
+    // ==Asset== Attach also a 'cylinder' shape
+    auto mcyl = chrono_types::make_shared<ChCylinderShape>();
+    mcyl->GetCylinderGeometry().p1 = ChVector<>(2, -0.2, 0);
+    mcyl->GetCylinderGeometry().p2 = ChVector<>(2.2, 0.5, 0);
+    mcyl->GetCylinderGeometry().rad = 0.3;
+    mbody->AddAsset(mcyl);
+
     bool window_ok = application.OpenWindow();
     while (application.GetViewer()->advanceToNextFrame() && window_ok) {
         application.Render();

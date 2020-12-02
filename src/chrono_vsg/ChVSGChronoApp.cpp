@@ -38,16 +38,45 @@ class AppKeyboardHandler : public vsg::Inherit<vsg::Visitor, AppKeyboardHandler>
   public:
     AppKeyboardHandler(vsg::Viewer* viewer, ChVSGChronoApp* appPtr) : m_viewer(viewer), m_app_ptr(appPtr) {}
     void apply(vsg::KeyPressEvent& keyPress) override {
-        if (keyPress.keyBase == 'i') {
-            chrono::GetLog() << "Key 'i' pressed " << ++_counter << " times.\n";
+        if (keyPress.keyBase == 'g' && keyPress.keyModified == 'g') {
+            // chrono::GetLog() << "Key 'g' pressed.\n";
+            m_app_ptr->DecreaseBackground();
+        }
+        if (keyPress.keyBase == 'g' && keyPress.keyModified == 'G') {
+            // chrono::GetLog() << "Key 'G' pressed.\n";
+            m_app_ptr->IncreaseBackground();
         }
     }
 
   private:
     size_t _counter;
-    vsg::ref_ptr<vsg::Viewer> m_viewer;
+    vsg::observer_ptr<vsg::Viewer> m_viewer;
     ChVSGChronoApp* m_app_ptr;
 };
+
+void ChVSGChronoApp::IncreaseBackground() {
+    // GetLog() << "increasing...\n";
+    if (m_clearColor.R <= 1.0 - m_greyStep) {
+        m_clearColor.R += m_greyStep;
+        m_clearColor.G += m_greyStep;
+        m_clearColor.B += m_greyStep;
+    }
+
+    // set clear color
+    m_renderGraph->clearValues[0] = {m_clearColor.R, m_clearColor.G, m_clearColor.B, m_clearColor.A};
+}
+
+void ChVSGChronoApp::DecreaseBackground() {
+    // GetLog() << "decreasing...\n";
+    if (m_clearColor.R >= m_greyStep) {
+        m_clearColor.R -= m_greyStep;
+        m_clearColor.G -= m_greyStep;
+        m_clearColor.B -= m_greyStep;
+    }
+
+    // set clear color
+    m_renderGraph->clearValues[0] = {m_clearColor.R, m_clearColor.G, m_clearColor.B, m_clearColor.A};
+}
 
 ChVSGChronoApp::ChVSGChronoApp(ChSystem* sys, std::string& windowTitle, size_t windowWidth, size_t windowHeight)
     : m_system(sys), m_build_graph(true) {
@@ -117,27 +146,27 @@ bool ChVSGChronoApp::OpenWindow() {
     uint32_t width = m_window->extent2D().width;
     uint32_t height = m_window->extent2D().height;
 
-    auto renderGraph = vsg::RenderGraph::create(m_window);
+    m_renderGraph = vsg::RenderGraph::create(m_window);
 
     // set clear color
-    renderGraph->clearValues[0] = {m_clearColor.R, m_clearColor.G, m_clearColor.B, m_clearColor.A};
+    m_renderGraph->clearValues[0] = {m_clearColor.R, m_clearColor.G, m_clearColor.B, m_clearColor.A};
 
     // create view1
     m_mainCamera = createMainCamera(0, 0, width, height);
     auto view1 = vsg::View::create(m_mainCamera, m_scenegraph);
-    renderGraph->addChild(view1);
+    m_renderGraph->addChild(view1);
 
     // clear the depth buffer before view2 gets rendered
     VkClearAttachment attachment{VK_IMAGE_ASPECT_DEPTH_BIT, 1, VkClearValue{1.0f, 0.0f}};
     VkClearRect rect{VkRect2D{VkOffset2D{0, 0}, VkExtent2D{width, height}}, 0, 1};
     auto clearAttachments = vsg::ClearAttachments::create(vsg::ClearAttachments::Attachments{attachment},
                                                           vsg::ClearAttachments::Rects{rect});
-    renderGraph->addChild(clearAttachments);
+    m_renderGraph->addChild(clearAttachments);
 
     // create view2
     m_textCamera = createTextCamera(0, 0, width, height);
     auto view2 = vsg::View::create(m_textCamera, m_scenegraphText);
-    renderGraph->addChild(view2);
+    m_renderGraph->addChild(view2);
 
     // special key for application control
     m_viewer->addEventHandler(AppKeyboardHandler::create(m_viewer, this));
@@ -149,7 +178,7 @@ bool ChVSGChronoApp::OpenWindow() {
 
     auto commandGraph = vsg::CommandGraph::create(m_window);
 
-    commandGraph->addChild(renderGraph);
+    commandGraph->addChild(m_renderGraph);
 
     m_viewer->assignRecordAndSubmitTaskAndPresentation({commandGraph});
 
@@ -166,8 +195,8 @@ void ChVSGChronoApp::Render() {
     double time = std::chrono::duration<double, std::chrono::seconds::period>(frameStamp->time - m_start_point).count();
     if (time > 1.0) {
         double average_framerate = double(m_frameCount) / time;
-        std::cout << "Period complete numFrames=" << m_frameCount << ", average frame rate = " << average_framerate
-                  << std::endl;
+        // std::cout << "Period complete numFrames=" << m_frameCount << ", average frame rate = " << average_framerate
+        //<< std::endl;
 
         // reset time back to start
         m_start_point = frameStamp->time;
@@ -393,7 +422,7 @@ void ChVSGChronoApp::BuildSceneGraph() {
 void ChVSGChronoApp::GenerateText() {
     {
         auto layout = vsg::LeftAlignment::create();
-        layout->position = vsg::vec3(-5.0, 0.0, 0.0);
+        layout->position = vsg::vec3(-10.0, 0.0, 10.0);
         layout->horizontal = vsg::vec3(1.0, 0.0, 0.0);
         layout->vertical = vsg::vec3(0.0, 0.0, 1.0);
         layout->color = vsg::vec4(1.0, 0.5, 0.3, 1.0);

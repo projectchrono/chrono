@@ -45,6 +45,8 @@ class CH_VSG_API ChVSGChronoApp {
     vsg::ref_ptr<vsg::Viewer> GetViewer() { return m_viewer; }
     void Render();
     void GenerateText();
+    void IncreaseBackground();
+    void DecreaseBackground();
 
   private:
     void BuildSceneGraph();
@@ -60,6 +62,10 @@ class CH_VSG_API ChVSGChronoApp {
     vsg::ref_ptr<vsg::WindowTraits> m_windowTraits;
 
     vsg::ref_ptr<vsg::Viewer> m_viewer;
+
+    vsg::ref_ptr<vsg::RenderGraph> m_renderGraph;
+
+    float m_greyStep = 0.05;
 
     vsg::ref_ptr<vsg::Window> m_window;
 
