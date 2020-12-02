@@ -105,10 +105,10 @@ int main(int argc, char** argv) {
 #endif
 
     // Parse command line arguments
-    int nthreads_rig = 2;
-    int nthreads_terrain = 2;
+    int nthreads_rig = 1;
+    int nthreads_terrain = 1;
     double sim_time = 10;
-    double init_vel = 0;
+    double init_vel = 2;
     double slip = 0;
     double coh_pressure = 8e4;
     bool use_checkpoint = false;
@@ -177,7 +177,7 @@ int main(int argc, char** argv) {
                     terrain->SetOutDir(out_dir, suffix);
                     cout << "[Terrain node] output directory: " << terrain->GetOutDirName() << endl;
 
-                    terrain->SetPatchDimensions(4, 2);
+                    terrain->SetPatchDimensions(10, 1);
                     terrain->SetProxyProperties(0.002, true);
 
                     switch (method) {
@@ -214,7 +214,7 @@ int main(int argc, char** argv) {
                     terrain->SetOutDir(out_dir, suffix);
                     cout << "[Terrain node] output directory: " << terrain->GetOutDirName() << endl;
 
-                    terrain->SetPatchDimensions(2, 0.6);
+                    terrain->SetPatchDimensions(10, 1);
                     terrain->SetPropertiesSCM(
                         5e-2,   // grid spacing
                         0.2e6,  // Bekker Kphi
@@ -240,7 +240,7 @@ int main(int argc, char** argv) {
                     terrain->SetOutDir(out_dir, suffix);
                     cout << "[Terrain node] output directory: " << terrain->GetOutDirName() << endl;
 
-                    ////my_terrain->SetPatchDimensions(10, 0.6);
+                    ////terrain->SetPatchDimensions(10, 1);
                     terrain->SetPatchDimensions(2, 0.6);
                     terrain->SetContainerDimensions(1, 0.2);
 
@@ -382,36 +382,23 @@ bool GetProblemSpecs(int argc,
                      bool& output,
                      bool& render,
                      std::string& suffix) {
-    // Default values
-    nthreads_rig = 2;
-    nthreads_terrain = 2;
-    sim_time = 10;
-    init_vel = 0;
-    slip = 0;
-    coh_pressure = 8e4;
-    use_checkpoint = false;
-    output = true;
-    render = true;
-    sys_mass = 450;
-    suffix = "";
-
     ChCLI cli(argv[0]);
 
-    cli.AddOption<double>("Demo", "sim_time", "Simulation length after robot release [s]", "10.0");
+    cli.AddOption<double>("Demo", "sim_time", "Simulation length after robot release [s]", std::to_string(sim_time));
 
-    cli.AddOption<double>("Demo", "init_vel", "Initial tire linear velocity [m/s]", "0.0");
-    cli.AddOption<double>("Demo", "slip", "Longitudinal slip", "0.0");
-    cli.AddOption<double>("Demo", "coh_pressure", "Terrain cohesion [Pa]", "8e4");
-    cli.AddOption<double>("Demo", "sys_mass", "Mass of wheel carrier [kg]", "450.0");
+    cli.AddOption<double>("Demo", "init_vel", "Initial tire linear velocity [m/s]", std::to_string(init_vel));
+    cli.AddOption<double>("Demo", "slip", "Longitudinal slip", std::to_string(slip));
+    cli.AddOption<double>("Demo", "coh_pressure", "Terrain cohesion [Pa]", std::to_string(coh_pressure));
+    cli.AddOption<double>("Demo", "sys_mass", "Mass of wheel carrier [kg]", std::to_string(sys_mass));
 
     cli.AddOption<bool>("Demo", "no_render", "Disable OpenGL rendering");
     cli.AddOption<bool>("Demo", "no_output", "Disable generation of result output files");
     cli.AddOption<bool>("Demo", "use_checkpoint", "Initialize granular terrain from checkppoint file");
 
-    cli.AddOption<int>("Demo", "threads_rig", "Number of OpenMP threads for the rig node", "1");
-    cli.AddOption<int>("Demo", "threads_terrain", "Number of OpenMP threads for the terrain node", "2");
+    cli.AddOption<int>("Demo", "threads_rig", "Number of OpenMP threads for the rig node", std::to_string(nthreads_rig));
+    cli.AddOption<int>("Demo", "threads_terrain", "Number of OpenMP threads for the terrain node", std::to_string(nthreads_terrain));
 
-    cli.AddOption<std::string>("Demo", "suffix", "Suffix for output directory names", "");
+    cli.AddOption<std::string>("Demo", "suffix", "Suffix for output directory names", suffix);
 
     if (!cli.Parse(argc, argv)) {
         if (rank == 0)
