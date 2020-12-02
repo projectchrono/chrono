@@ -119,7 +119,7 @@ void ChContactContainerParallel::ReportAllContacts(std::shared_ptr<ReportContact
                 force = contact_plane.transpose() * force_abs;                          // in contact frame
                 auto torque_loc1 = torque_loc - ptB_loc.Cross(force_loc);               // in body frame, at contact
                 auto torque_abs = bodyB->TransformDirectionLocalToParent(torque_loc1);  // in abs frame, at contact
-                torque = contact_plane.transpose() * force_abs;                         // in contact frame, at contact
+                torque = contact_plane.transpose() * torque_abs;                        // in contact frame, at contact
                 break;
             }
         }
