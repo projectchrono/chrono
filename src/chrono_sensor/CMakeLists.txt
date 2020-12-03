@@ -14,10 +14,9 @@ message(STATUS "==== Chrono Sensor module ====")
 
 # Return now if CUDA is not available
 if(NOT CUDA_FOUND)
-  message("Chrono::Sensor requires CUDA")
-  message(STATUS "Chrono::Sensor disabled")
-  set(ENABLE_MODULE_SENSOR OFF CACHE BOOL "Enable the Chrono Sensor module" FORCE)
-  return()
+    message(WARNING "Chrono::Sensor requires CUDA, but CUDA was not found; disabling Chrono::Sensor")
+    set(ENABLE_MODULE_SENSOR OFF CACHE BOOL "Enable the Chrono Sensor module" FORCE)
+    return()
 endif()
 
 #Check for GLFW to use as window to display data for debug purposes
