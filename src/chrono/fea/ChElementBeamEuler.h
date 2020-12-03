@@ -88,14 +88,9 @@ class ChApi ChElementBeamEuler : public ChElementBeam,
     ChQuaternion<> GetRefRotation() { return q_element_ref_rot; }
 
     /// Set this as true to have the beam behave like a non-corotated beam
-    /// (i.e. only for small deformations).
+    /// hence do not update the corotated reference. Just for benchmarks!
     void SetDisableCorotate(bool md) { disable_corotate = md; }
 
-    /// Set this as true to disable the projectors for computing the
-    /// tangent matrix in the corotational formulation
-    /// (see C.A.Felippa, B.Haugen, N.Omid, C.Rankin et al. for details).
-    /// Disabling the projectors leads to a faster code, but convergence might be more difficult.
-    void SetDisableProjector(bool md) { disable_projector = md; }
 
     /// Set this as true to force the tangent stiffness matrix to be
     /// inexact, but symmetric. This allows the use of faster solvers. For systems close to
@@ -272,7 +267,6 @@ class ChApi ChElementBeamEuler : public ChElementBeam,
     ChQuaternion<> q_element_ref_rot;
 
     bool disable_corotate;
-    bool disable_projector;
     bool force_symmetric_stiffness;
 
 	friend class ChExtruderBeamEuler;
