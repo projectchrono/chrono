@@ -12,8 +12,8 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// Chrono demonstration of using contact callbacks for smooth contacts
-// (penalty-based) in Chrono::Parallel.
+// Chrono demonstration of using contact callbacks for non-smooth contacts
+// (complementarity-based) in Chrono::Parallel.
 //
 // The global reference frame has Y up.
 //
@@ -81,11 +81,12 @@ class ContactMaterial : public ChContactContainer::AddContactCallback {
     virtual void OnAddContact(const collision::ChCollisionInfo& contactinfo,
                               ChMaterialComposite* const material) override {
         // Downcast to appropriate composite material type
-        auto mat = static_cast<ChMaterialCompositeSMC* const>(material);
+        auto mat = static_cast<ChMaterialCompositeNSC* const>(material);
 
         // Set different friction for left/right halfs
-        float friction = (contactinfo.vpA.z() > 0) ? 0.3f : 0.8f;
-        mat->mu_eff = friction;
+        float friction = (contactinfo.vpA.z() > 0) ? 0.8f : 0.3f;
+        mat->static_friction = friction;
+        mat->sliding_friction = friction;
     }
 };
 
@@ -96,11 +97,17 @@ int main(int argc, char* argv[]) {
     float friction = 0.6f;
 
     // Create the system
-    ChSystemParallelSMC system;
+    ChSystemParallelNSC system;
     system.Set_G_acc(ChVector<>(0, -10, 0));
+
+    system.GetSettings()->solver.solver_mode = SolverMode::SLIDING;
+    system.GetSettings()->solver.max_iteration_sliding = 500;
+    system.GetSettings()->solver.contact_recovery_speed = 0;
+    system.GetSettings()->collision.collision_envelope = 0.005;
+    system.ChangeSolverType(SolverType::BB);
     
     // Create a contact material, shared among all bodies
-    auto material = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+    auto material = chrono_types::make_shared<ChMaterialSurfaceNSC>();
     material->SetFriction(friction);
 
     // Add bodies
@@ -143,7 +150,7 @@ int main(int argc, char* argv[]) {
 
     // Create the visualization window
     opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
-    gl_window.Initialize(1280, 720, "SMC callbacks", &system);
+    gl_window.Initialize(1280, 720, "NSC callbacks (Chrono::Parallel)", &system);
     gl_window.SetCamera(ChVector<>(4, 4, -5), ChVector<>(0, 0, 0), ChVector<>(0, 1, 0));
     gl_window.SetRenderMode(opengl::WIREFRAME);
 
@@ -161,17 +168,24 @@ int main(int argc, char* argv[]) {
 
         // Process contacts
         std::cout << system.GetChTime() << "  " << system.GetNcontacts() << std::endl;
-        system.GetContactContainer()->ReportAllContacts(creporter);
 
-        // Cumulative contact force and torque on objects (as applied to COM)
-        ChVector<> frc1 = obj1->GetContactForce();
-        ChVector<> trq1 = obj1->GetContactTorque();
-        printf("  Obj 1 contact force at COM: %7.3f  %7.3f  %7.3f", frc1.x(), frc1.y(), frc1.z());
-        printf("  contact torque at COM: %7.3f  %7.3f  %7.3f\n", trq1.x(), trq1.y(), trq1.z());
-        ChVector<> frc2 = obj2->GetContactForce();
-        ChVector<> trq2 = obj2->GetContactTorque();
-        printf("  Obj 2 contact force at COM: %7.3f  %7.3f  %7.3f", frc2.x(), frc2.y(), frc2.z());
-        printf("  contact torque at COM: %7.3f  %7.3f  %7.3f\n", trq2.x(), trq2.y(), trq2.z());
+        if (system.GetNcontacts() > 0) {
+            // Force calculation of cumulative contact forces for all bodies in system
+            // (required for an NSC system before invoking GetContactForce/GetContactTorque)
+            system.CalculateContactForces();
+
+            system.GetContactContainer()->ReportAllContacts(creporter);
+
+            // Cumulative contact force and torque on objects (as applied to COM)
+            ChVector<> frc1 = obj1->GetContactForce();
+            ChVector<> trq1 = obj1->GetContactTorque();
+            printf("  Obj 1 contact force at COM: %7.3f  %7.3f  %7.3f", frc1.x(), frc1.y(), frc1.z());
+            printf("  contact torque at COM: %7.3f  %7.3f  %7.3f\n", trq1.x(), trq1.y(), trq1.z());
+            ChVector<> frc2 = obj2->GetContactForce();
+            ChVector<> trq2 = obj2->GetContactTorque();
+            printf("  Obj 2 contact force at COM: %7.3f  %7.3f  %7.3f", frc2.x(), frc2.y(), frc2.z());
+            printf("  contact torque at COM: %7.3f  %7.3f  %7.3f\n", trq2.x(), trq2.y(), trq2.z());
+        }
     }
 
     return 0;

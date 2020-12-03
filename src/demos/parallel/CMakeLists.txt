@@ -42,6 +42,7 @@ if(ENABLE_MODULE_OPENGL)
         demo_PAR_friction
         demo_PAR_mesh_contact
         demo_PAR_callbackSMC
+        demo_PAR_callbackNSC
     )
 endif()
 
