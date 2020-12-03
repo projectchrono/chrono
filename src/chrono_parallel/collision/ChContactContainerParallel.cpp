@@ -69,14 +69,18 @@ static inline chrono::ChVector<> ToChVector(const real3& a) {
 
 void ChContactContainerParallel::ReportAllContacts(std::shared_ptr<ReportContactCallback> callback) {
     // Readibility
-    auto& ptA = data_manager->host_data.cpta_rigid_rigid;
-    auto& ptB = data_manager->host_data.cptb_rigid_rigid;
-    auto& nrm = data_manager->host_data.norm_rigid_rigid;
-    auto& depth = data_manager->host_data.dpth_rigid_rigid;
-    auto& erad = data_manager->host_data.erad_rigid_rigid;
-    auto& bids = data_manager->host_data.bids_rigid_rigid;
-    auto& ct_force = data_manager->host_data.ct_force;
-    auto& ct_torque = data_manager->host_data.ct_torque;
+    const auto& ptA = data_manager->host_data.cpta_rigid_rigid;
+    const auto& ptB = data_manager->host_data.cptb_rigid_rigid;
+    const auto& nrm = data_manager->host_data.norm_rigid_rigid;
+    const auto& depth = data_manager->host_data.dpth_rigid_rigid;
+    const auto& erad = data_manager->host_data.erad_rigid_rigid;
+    const auto& bids = data_manager->host_data.bids_rigid_rigid;
+
+    auto mode = data_manager->settings.solver.local_solver_mode;
+    const DynamicVector<real>& gamma_u = blaze::subvector(data_manager->host_data.gamma, 0, data_manager->num_unilaterals);
+
+    const auto& ct_force = data_manager->host_data.ct_force;
+    const auto& ct_torque = data_manager->host_data.ct_torque;
 
     // Grab the list of bodies.
     // NOTE: we assume that bodies were added in the order of their IDs!
@@ -104,8 +108,17 @@ void ChContactContainerParallel::ReportAllContacts(std::shared_ptr<ReportContact
         // Contact force and torque expressed in the contact plane
         switch (GetSystem()->GetContactMethod()) {
             case ChContactMethod::NSC: {
+                double f_n = (double)(gamma_u[i] / data_manager->settings.step_size);
+                double f_t1 = 0;
+                double f_t2 = 0;
+                if (mode == SolverMode::SLIDING || mode == SolverMode::SPINNING) {
+                    f_t1 = (double)(gamma_u[data_manager->num_rigid_contacts + 2 * i + 0] /
+                                    data_manager->settings.step_size);
+                    f_t2 = (double)(gamma_u[data_manager->num_rigid_contacts + 2 * i + 1] /
+                                    data_manager->settings.step_size);
+                }
+                force = ChVector<>(f_n, f_t1, f_t2);
                 //// TODO
-                force = ChVector<>(0, 0, 0);
                 torque = ChVector<>(0, 0, 0);
                 break;
             }
