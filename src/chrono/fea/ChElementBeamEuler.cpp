@@ -30,7 +30,7 @@ ChElementBeamEuler::ChElementBeamEuler()
 {
     nodes.resize(2);
 
-    StiffnessMatrix.setZero(this->GetNdofs(), this->GetNdofs());
+    Km.setZero(this->GetNdofs(), this->GetNdofs());
     Kg.setZero(this->GetNdofs(), this->GetNdofs());
 }
 
@@ -217,40 +217,40 @@ void ChElementBeamEuler::ComputeStiffnessMatrix() {
     double k_tt = 2 * EIyy * e_xz / (u_xz * h);
     double k_pp = 2 * EIzz * e_xy / (u_xy * h);
 
-    StiffnessMatrix(0, 0) = k_u;
-    StiffnessMatrix(1, 1) = k_v;
-    StiffnessMatrix(2, 2) = k_w;
-    StiffnessMatrix(3, 3) = k_f;
-    StiffnessMatrix(4, 4) = k_t;
-    StiffnessMatrix(5, 5) = k_p;
-    StiffnessMatrix(6, 6) = k_u;
-    StiffnessMatrix(7, 7) = k_v;
-    StiffnessMatrix(8, 8) = k_w;
-    StiffnessMatrix(9, 9) = k_f;
-    StiffnessMatrix(10, 10) = k_t;
-    StiffnessMatrix(11, 11) = k_p;
+    Km(0, 0) = k_u;
+    Km(1, 1) = k_v;
+    Km(2, 2) = k_w;
+    Km(3, 3) = k_f;
+    Km(4, 4) = k_t;
+    Km(5, 5) = k_p;
+    Km(6, 6) = k_u;
+    Km(7, 7) = k_v;
+    Km(8, 8) = k_w;
+    Km(9, 9) = k_f;
+    Km(10, 10) = k_t;
+    Km(11, 11) = k_p;
 
-    StiffnessMatrix(0, 6) = -k_u;
-    StiffnessMatrix(1, 7) = -k_v;
-    StiffnessMatrix(2, 8) = -k_w;
-    StiffnessMatrix(3, 9) = -k_f;
-    StiffnessMatrix(4, 10) = k_tt;
-    StiffnessMatrix(5, 11) = k_pp;
+    Km(0, 6) = -k_u;
+    Km(1, 7) = -k_v;
+    Km(2, 8) = -k_w;
+    Km(3, 9) = -k_f;
+    Km(4, 10) = k_tt;
+    Km(5, 11) = k_pp;
 
-    StiffnessMatrix(4, 8) = k_wt;
-    StiffnessMatrix(5, 7) = -k_vp;
-    StiffnessMatrix(1, 11) = k_vp;
-    StiffnessMatrix(2, 10) = -k_wt;
+    Km(4, 8) = k_wt;
+    Km(5, 7) = -k_vp;
+    Km(1, 11) = k_vp;
+    Km(2, 10) = -k_wt;
 
-    StiffnessMatrix(1, 5) = k_vp;
-    StiffnessMatrix(2, 4) = -k_wt;
-    StiffnessMatrix(7, 11) = -k_vp;
-    StiffnessMatrix(8, 10) = k_wt;
+    Km(1, 5) = k_vp;
+    Km(2, 4) = -k_wt;
+    Km(7, 11) = -k_vp;
+    Km(8, 10) = k_wt;
 
     // symmetric part;
     for (int r = 0; r < 12; r++)
         for (int c = r + 1; c < 12; c++)
-            StiffnessMatrix(c, r) = StiffnessMatrix(r, c);
+            Km(c, r) = Km(r, c);
 
     // In case the section is rotated:
     if (this->section->GetSectionRotation()) {
@@ -259,8 +259,8 @@ void ChElementBeamEuler::ComputeStiffnessMatrix() {
         Rotsect.Set_A_Rxyz(ChVector<>(-section->GetSectionRotation(), 0, 0));
         ChMatrixDynamic<> CKtemp(12, 12);
         CKtemp.setZero();
-        ChMatrixCorotation::ComputeCK(this->StiffnessMatrix, Rotsect, 4, CKtemp);
-        ChMatrixCorotation::ComputeKCt(CKtemp, Rotsect, 4, this->StiffnessMatrix);
+        ChMatrixCorotation::ComputeCK(this->Km, Rotsect, 4, CKtemp);
+        ChMatrixCorotation::ComputeKCt(CKtemp, Rotsect, 4, this->Km);
     }
     // In case the section has a centroid displacement:
 
@@ -268,24 +268,24 @@ void ChElementBeamEuler::ComputeStiffnessMatrix() {
         // Do [K]" = [T_c][K]^[T_c]'
 
         for (int i = 0; i < 12; ++i)
-            this->StiffnessMatrix(4, i) += Cz * this->StiffnessMatrix(0, i);
+            this->Km(4, i) += Cz * this->Km(0, i);
         for (int i = 0; i < 12; ++i)
-            this->StiffnessMatrix(5, i) += -Cy * this->StiffnessMatrix(0, i);
+            this->Km(5, i) += -Cy * this->Km(0, i);
 
         for (int i = 0; i < 12; ++i)
-            this->StiffnessMatrix(10, i) += Cz * this->StiffnessMatrix(6, i);
+            this->Km(10, i) += Cz * this->Km(6, i);
         for (int i = 0; i < 12; ++i)
-            this->StiffnessMatrix(11, i) += -Cy * this->StiffnessMatrix(6, i);
+            this->Km(11, i) += -Cy * this->Km(6, i);
 
         for (int i = 0; i < 12; ++i)
-            this->StiffnessMatrix(i, 4) += Cz * this->StiffnessMatrix(i, 0);
+            this->Km(i, 4) += Cz * this->Km(i, 0);
         for (int i = 0; i < 12; ++i)
-            this->StiffnessMatrix(i, 5) += -Cy * this->StiffnessMatrix(i, 0);
+            this->Km(i, 5) += -Cy * this->Km(i, 0);
 
         for (int i = 0; i < 12; ++i)
-            this->StiffnessMatrix(i, 10) += Cz * this->StiffnessMatrix(i, 6);
+            this->Km(i, 10) += Cz * this->Km(i, 6);
         for (int i = 0; i < 12; ++i)
-            this->StiffnessMatrix(i, 11) += -Cy * this->StiffnessMatrix(i, 6);
+            this->Km(i, 11) += -Cy * this->Km(i, 6);
     }
 
     // In case the section has a shear center displacement:
@@ -293,18 +293,18 @@ void ChElementBeamEuler::ComputeStiffnessMatrix() {
         // Do [K]° = [T_s][K]"[T_s]'
 
         for (int i = 0; i < 12; ++i)
-            this->StiffnessMatrix(3, i) +=
-                - Sz * this->StiffnessMatrix(1, i) + Sy * this->StiffnessMatrix(2, i);
+            this->Km(3, i) +=
+                - Sz * this->Km(1, i) + Sy * this->Km(2, i);
         for (int i = 0; i < 12; ++i)
-            this->StiffnessMatrix(9, i) +=
-                - Sz * this->StiffnessMatrix(7, i) + Sy * this->StiffnessMatrix(8, i);
+            this->Km(9, i) +=
+                - Sz * this->Km(7, i) + Sy * this->Km(8, i);
 
         for (int i = 0; i < 12; ++i)
-            this->StiffnessMatrix(i, 3) +=
-                - Sz * this->StiffnessMatrix(i, 1) + Sy * this->StiffnessMatrix(i, 2);
+            this->Km(i, 3) +=
+                - Sz * this->Km(i, 1) + Sy * this->Km(i, 2);
         for (int i = 0; i < 12; ++i)
-            this->StiffnessMatrix(i, 9) +=
-                - Sz * this->StiffnessMatrix(i, 7) + Sy * this->StiffnessMatrix(i, 8);
+            this->Km(i, 9) +=
+                - Sz * this->Km(i, 7) + Sy * this->Km(i, 8);
     }
 }
 
@@ -371,7 +371,7 @@ void ChElementBeamEuler::ComputeGeometricStiffnessMatrix() {
     // symmetric part;
     for (int r = 0; r < 12; r++)
         for (int c = r + 1; c < 12; c++)
-            StiffnessMatrix(c, r) = StiffnessMatrix(r, c);
+            Km(c, r) = Km(r, c);
 
 
 
@@ -387,8 +387,8 @@ void ChElementBeamEuler::ComputeGeometricStiffnessMatrix() {
         Rotsect.Set_A_Rxyz(ChVector<>(-section->GetSectionRotation(), 0, 0));
         ChMatrixDynamic<> CKtemp(12, 12);
         CKtemp.setZero();
-        ChMatrixCorotation::ComputeCK(this->StiffnessMatrix, Rotsect, 4, CKtemp);
-        ChMatrixCorotation::ComputeKCt(CKtemp, Rotsect, 4, this->StiffnessMatrix);
+        ChMatrixCorotation::ComputeCK(this->Km, Rotsect, 4, CKtemp);
+        ChMatrixCorotation::ComputeKCt(CKtemp, Rotsect, 4, this->Km);
     }
     // In case the section has a centroid displacement:
 
@@ -396,24 +396,24 @@ void ChElementBeamEuler::ComputeGeometricStiffnessMatrix() {
         // Do [K]" = [T_c][K]^[T_c]'
 
         for (int i = 0; i < 12; ++i)
-            this->StiffnessMatrix(4, i) += Cz * this->StiffnessMatrix(0, i);
+            this->Km(4, i) += Cz * this->Km(0, i);
         for (int i = 0; i < 12; ++i)
-            this->StiffnessMatrix(5, i) += -Cy * this->StiffnessMatrix(0, i);
+            this->Km(5, i) += -Cy * this->Km(0, i);
 
         for (int i = 0; i < 12; ++i)
-            this->StiffnessMatrix(10, i) += Cz * this->StiffnessMatrix(6, i);
+            this->Km(10, i) += Cz * this->Km(6, i);
         for (int i = 0; i < 12; ++i)
-            this->StiffnessMatrix(11, i) += -Cy * this->StiffnessMatrix(6, i);
+            this->Km(11, i) += -Cy * this->Km(6, i);
 
         for (int i = 0; i < 12; ++i)
-            this->StiffnessMatrix(i, 4) += Cz * this->StiffnessMatrix(i, 0);
+            this->Km(i, 4) += Cz * this->Km(i, 0);
         for (int i = 0; i < 12; ++i)
-            this->StiffnessMatrix(i, 5) += -Cy * this->StiffnessMatrix(i, 0);
+            this->Km(i, 5) += -Cy * this->Km(i, 0);
 
         for (int i = 0; i < 12; ++i)
-            this->StiffnessMatrix(i, 10) += Cz * this->StiffnessMatrix(i, 6);
+            this->Km(i, 10) += Cz * this->Km(i, 6);
         for (int i = 0; i < 12; ++i)
-            this->StiffnessMatrix(i, 11) += -Cy * this->StiffnessMatrix(i, 6);
+            this->Km(i, 11) += -Cy * this->Km(i, 6);
     }
 
     // In case the section has a shear center displacement:
@@ -421,18 +421,18 @@ void ChElementBeamEuler::ComputeGeometricStiffnessMatrix() {
         // Do [K]° = [T_s][K]"[T_s]'
 
         for (int i = 0; i < 12; ++i)
-            this->StiffnessMatrix(3, i) +=
-                - Sz * this->StiffnessMatrix(1, i) + Sy * this->StiffnessMatrix(2, i);
+            this->Km(3, i) +=
+                - Sz * this->Km(1, i) + Sy * this->Km(2, i);
         for (int i = 0; i < 12; ++i)
-            this->StiffnessMatrix(9, i) +=
-                - Sz * this->StiffnessMatrix(7, i) + Sy * this->StiffnessMatrix(8, i);
+            this->Km(9, i) +=
+                - Sz * this->Km(7, i) + Sy * this->Km(8, i);
 
         for (int i = 0; i < 12; ++i)
-            this->StiffnessMatrix(i, 3) +=
-                - Sz * this->StiffnessMatrix(i, 1) + Sy * this->StiffnessMatrix(i, 2);
+            this->Km(i, 3) +=
+                - Sz * this->Km(i, 1) + Sy * this->Km(i, 2);
         for (int i = 0; i < 12; ++i)
-            this->StiffnessMatrix(i, 9) +=
-                - Sz * this->StiffnessMatrix(i, 7) + Sy * this->StiffnessMatrix(i, 8);
+            this->Km(i, 9) +=
+                - Sz * this->Km(i, 7) + Sy * this->Km(i, 8);
     }
 }
 
@@ -492,16 +492,16 @@ void ChElementBeamEuler::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfactor,
             // compute Px tension of the beam along centerline, using temporary but fast data structures:
             ChVectorDynamic<> displ(this->GetNdofs());
             this->GetStateBlock(displ);
-            double Px = -this->StiffnessMatrix.row(0) * displ;
+            double Px = -this->Km.row(0) * displ;
             // ChVector<> mFo, mTo;
             //this->EvaluateSectionForceTorque(0, mFo, mTo);  // for double checking the Px value
             //GetLog() << "   Px = " << Px << "  Px_eval = " << mFo.x() << " \n";
 
             // corotate Km + Kg  (where Kg = this->Kg * Px)
-            ChMatrixCorotation::ComputeCK(this->StiffnessMatrix + Px*this->Kg, R, 4, CK);
+            ChMatrixCorotation::ComputeCK(this->Km + Px*this->Kg, R, 4, CK);
         }
         else {
-            ChMatrixCorotation::ComputeCK(this->StiffnessMatrix           , R, 4, CK);
+            ChMatrixCorotation::ComputeCK(this->Km           , R, 4, CK);
         }
         ChMatrixCorotation::ComputeKCt(CK, R, 4, CKCt);
         
@@ -591,13 +591,13 @@ void ChElementBeamEuler::ComputeInternalForces(ChVectorDynamic<>& Fi) {
     this->GetStateBlock(displ);
 
     // [local Internal Forces] = [Klocal] * displ + [Rlocal] * displ_dt
-    ChVectorDynamic<> FiK_local = StiffnessMatrix * displ;
+    ChVectorDynamic<> FiK_local = Km * displ;
 
     // set up vector of nodal velocities (in local element system)
     ChVectorDynamic<> displ_dt(12);
     this->GetField_dt(displ_dt);
 
-    ChMatrixDynamic<> FiR_local = section->GetBeamRaleyghDamping() * StiffnessMatrix * displ_dt;
+    ChMatrixDynamic<> FiR_local = section->GetBeamRaleyghDamping() * Km * displ_dt;
 
     FiK_local += FiR_local;
     FiK_local *= -1.0;

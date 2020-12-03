@@ -272,8 +272,8 @@ class ChApi ChElementBeamEuler : public ChElementBeam,
 
     std::shared_ptr<ChBeamSectionEuler> section;
 
-    ChMatrixDynamic<> StiffnessMatrix;  ///< local material  stiffness matrix
-    ChMatrixDynamic<> Kg;               ///< local geometric stiffness matrix NORMALIZED by P
+    ChMatrixDynamic<> Km;  ///< local material  stiffness matrix
+    ChMatrixDynamic<> Kg;  ///< local geometric stiffness matrix NORMALIZED by P
 
     ChQuaternion<> q_refrotA;
     ChQuaternion<> q_refrotB;
