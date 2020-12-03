@@ -14,17 +14,15 @@ message(STATUS "==== SynChrono module ====")
 
 # Return now if MPI is not available
 if(NOT MPI_CXX_FOUND)
-	message("Chrono::SynChrono requires MPI")
+	message(WARNING "Chrono::SynChrono requires MPI, but MPI not found; disabling Chrono::SynChrono")
 	set(ENABLE_MODULE_SYNCHRONO OFF CACHE BOOL "Enable the SynChrono module" FORCE)
-	message(STATUS "Chrono::SynChrono disabled")
 	return()
 endif()
 
 # Return now if Chrono::Vehicle is not enabled
 if(NOT ENABLE_MODULE_VEHICLE)
-    message("Chrono::SynChrono depends on Chrono::Vehicle")
+    message(WARNING "Chrono::SynChrono depends on Chrono::Vehicle which is disabled; disabling Chrono::SynChrono")
     set(ENABLE_MODULE_SYNCHRONO OFF CACHE BOOL "Enable the SynChrono module" FORCE)
-    message(STATUS "Chrono::SynChrono disabled")
     return()
 endif()
 
