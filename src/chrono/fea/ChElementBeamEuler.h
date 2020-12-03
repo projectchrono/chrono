@@ -97,6 +97,11 @@ class ChApi ChElementBeamEuler : public ChElementBeam,
     /// the equilibrium, the tangent stiffness would be symmetric anyway.
     void SetForceSymmetricStiffness(bool md) { force_symmetric_stiffness = md; }
 
+    /// Set this as false to disable the contribution of geometric stiffness 
+    /// to the total tangent stiffness. By default it is on.
+    void SetUseGeometricStiffness(bool md) { this->use_geometric_stiffness = md; }
+
+
     /// Fills the N matrix (compressed! single row, 12 columns) with the
     /// values of shape functions at abscissa 'eta'.
     /// Note, eta=-1 at node1, eta=+1 at node2.
@@ -131,11 +136,20 @@ class ChApi ChElementBeamEuler : public ChElementBeam,
     ///  {v_a v_a v_a wx_a wy_a wz_a v_b v_b v_b wx_b wy_b wz_b}
     void GetField_dt(ChVectorDynamic<>& mD_dt);
 
-    /// Computes the local STIFFNESS MATRIX of the element:
+    /// Computes the local (material) stiffness matrix of the element:
     /// K = integral( [B]' * [D] * [B] ),
     /// Note: in this 'basic' implementation, constant section and
     /// constant material are assumed, so the explicit result of quadrature is used.
+    /// Also, this local material stiffness matrix is constant, computed only at the beginning 
+    /// for performance reasons; if you later change some material property, call this or InitialSetup().
     void ComputeStiffnessMatrix();
+
+    /// Computes the local geometric stiffness Kg of the element.
+    /// Note: this->Kg will be set as the geometric stiffness EXCLUDING the multiplication by the P pull force,
+    /// in fact P multiplication happens in all terms, thus this allows making the Kg as a constant matrix that
+    /// is computed only at the beginning, and later it is multiplied by P all times the real Kg is needed.
+    /// If you later change some material property, call this or InitialSetup().
+    void ComputeGeometricStiffnessMatrix();
 
     /// Sets H as the global stiffness matrix K, scaled  by Kfactor. Optionally, also
     /// superimposes global damping matrix R, scaled by Rfactor, and global mass matrix M multiplied by Mfactor.
@@ -258,7 +272,8 @@ class ChApi ChElementBeamEuler : public ChElementBeam,
 
     std::shared_ptr<ChBeamSectionEuler> section;
 
-    ChMatrixDynamic<> StiffnessMatrix;  ///< undeformed local stiffness matrix
+    ChMatrixDynamic<> StiffnessMatrix;  ///< local material  stiffness matrix
+    ChMatrixDynamic<> Kg;               ///< local geometric stiffness matrix NORMALIZED by P
 
     ChQuaternion<> q_refrotA;
     ChQuaternion<> q_refrotB;
@@ -268,6 +283,8 @@ class ChApi ChElementBeamEuler : public ChElementBeam,
 
     bool disable_corotate;
     bool force_symmetric_stiffness;
+
+    bool use_geometric_stiffness;
 
 	friend class ChExtruderBeamEuler;
 };

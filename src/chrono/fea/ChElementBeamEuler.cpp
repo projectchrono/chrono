@@ -25,11 +25,13 @@ ChElementBeamEuler::ChElementBeamEuler()
       q_element_abs_rot(QUNIT),
       q_element_ref_rot(QUNIT),
       force_symmetric_stiffness(false),
-      disable_corotate(false)
+      disable_corotate(false),
+      use_geometric_stiffness(true)
 {
     nodes.resize(2);
 
     StiffnessMatrix.setZero(this->GetNdofs(), this->GetNdofs());
+    Kg.setZero(this->GetNdofs(), this->GetNdofs());
 }
 
 void ChElementBeamEuler::SetNodes(std::shared_ptr<ChNodeFEAxyzrot> nodeA, std::shared_ptr<ChNodeFEAxyzrot> nodeB) {
@@ -306,6 +308,135 @@ void ChElementBeamEuler::ComputeStiffnessMatrix() {
     }
 }
 
+
+void ChElementBeamEuler::ComputeGeometricStiffnessMatrix() {
+    assert(section);
+    
+    /// Compute the local geometric stiffness matrix Kg without the P multiplication term, that is Kg*(1/P), 
+    /// so that it is a constant matrix for performance reasons.
+    /// We used the analytical values from 
+    ///   [1] "Nonlinear finite element analysis of elastic frames", Kuo Mo, Hsiao Fang, Yu Hou
+    ///        Computers & Structures Volume 26, Issue 4, 1987, Pages 693-701
+    /// For the Reddy or timoshenko more detailed case with higher order terms, look also to:
+    ///   [2] "A Unified Approach to the Timoshenko Geometric Stiffness Matrix Considering Higher-Order Terms in the Strain Tensor"
+    ///        https://www.scielo.br/pdf/lajss/v16n4/1679-7825-lajss-16-04-e185.pdf
+      
+    double EA = this->section->GetAxialRigidity();
+    double EIyy = this->section->GetYbendingRigidity();
+    double EIzz = this->section->GetZbendingRigidity();
+
+    double L = this->length;
+    double IzA = EIzz / EA;
+    double IyA = EIyy / EA;
+
+    double P_L      = 1. / L;
+    double P6_5L_y  = 6. / (5.*L); // optional [2]: ...+ 12*IzA /(L*L*L);
+    double P6_5L_z  = 6. / (5.*L); // optional [2]: ...+ 12*IyA /(L*L*L);
+    double P_10_y   = 1. / (10.);  // optional [2]: ...+ 6*IzA /(L*L);
+    double P_10_z   = 1. / (10.);  // optional [2]: ...+ 6*IyA /(L*L);
+    double PL2_15_y = 2.*L / (15.);// optional [2]: ...+ 4*IzA /(L);
+    double PL2_15_z = 2.*L / (15.);// optional [2]: ...+ 4*IyA /(L);
+    double PL_30_y  = L / (30.);   // optional [2]: ...+ 2*IyA /(L);
+    double PL_30_z  = L / (30.);   // optional [2]: ...+ 2*IyA /(L);
+
+    this->Kg(1, 1) =  P6_5L_y;
+    this->Kg(1, 5) =  P_10_y;
+    this->Kg(1, 7) = -P6_5L_y;
+    this->Kg(1,11) =  P_10_y;
+
+    this->Kg(2, 2) =  P6_5L_z;
+    this->Kg(2, 4) =  P_10_z;
+    this->Kg(2, 8) = -P6_5L_z;
+    this->Kg(2,10) =  P_10_z;
+
+    this->Kg(4, 4) =  PL2_15_y;
+    this->Kg(4, 8) = -P_10_y;
+    this->Kg(4,10) = -PL_30_y;
+
+    this->Kg(5, 5) =  PL2_15_z;
+    this->Kg(5, 7) = -P_10_z;
+    this->Kg(5,11) = -PL_30_z;
+
+    this->Kg(7, 7) =  P6_5L_y;
+    this->Kg(7,11) = -P_10_y;
+
+    this->Kg(8, 8) =  P6_5L_z;
+    this->Kg(8,10) = -P_10_y;
+
+    this->Kg(10, 10) = PL2_15_y;
+
+    this->Kg(11, 11) = PL2_15_z;
+
+
+    // symmetric part;
+    for (int r = 0; r < 12; r++)
+        for (int c = r + 1; c < 12; c++)
+            StiffnessMatrix(c, r) = StiffnessMatrix(r, c);
+
+
+
+    double Cy = this->section->GetCentroidY();
+    double Cz = this->section->GetCentroidZ();
+    double Sy = this->section->GetShearCenterY();
+    double Sz = this->section->GetShearCenterZ();
+
+    // In case the section is rotated:
+    if (this->section->GetSectionRotation()) {
+        // Do [K]^ = [R][K][R]'
+        ChMatrix33<> Rotsect;
+        Rotsect.Set_A_Rxyz(ChVector<>(-section->GetSectionRotation(), 0, 0));
+        ChMatrixDynamic<> CKtemp(12, 12);
+        CKtemp.setZero();
+        ChMatrixCorotation::ComputeCK(this->StiffnessMatrix, Rotsect, 4, CKtemp);
+        ChMatrixCorotation::ComputeKCt(CKtemp, Rotsect, 4, this->StiffnessMatrix);
+    }
+    // In case the section has a centroid displacement:
+
+    if (Cy || Cz) {
+        // Do [K]" = [T_c][K]^[T_c]'
+
+        for (int i = 0; i < 12; ++i)
+            this->StiffnessMatrix(4, i) += Cz * this->StiffnessMatrix(0, i);
+        for (int i = 0; i < 12; ++i)
+            this->StiffnessMatrix(5, i) += -Cy * this->StiffnessMatrix(0, i);
+
+        for (int i = 0; i < 12; ++i)
+            this->StiffnessMatrix(10, i) += Cz * this->StiffnessMatrix(6, i);
+        for (int i = 0; i < 12; ++i)
+            this->StiffnessMatrix(11, i) += -Cy * this->StiffnessMatrix(6, i);
+
+        for (int i = 0; i < 12; ++i)
+            this->StiffnessMatrix(i, 4) += Cz * this->StiffnessMatrix(i, 0);
+        for (int i = 0; i < 12; ++i)
+            this->StiffnessMatrix(i, 5) += -Cy * this->StiffnessMatrix(i, 0);
+
+        for (int i = 0; i < 12; ++i)
+            this->StiffnessMatrix(i, 10) += Cz * this->StiffnessMatrix(i, 6);
+        for (int i = 0; i < 12; ++i)
+            this->StiffnessMatrix(i, 11) += -Cy * this->StiffnessMatrix(i, 6);
+    }
+
+    // In case the section has a shear center displacement:
+    if (Sy || Sz) {
+        // Do [K]° = [T_s][K]"[T_s]'
+
+        for (int i = 0; i < 12; ++i)
+            this->StiffnessMatrix(3, i) +=
+                - Sz * this->StiffnessMatrix(1, i) + Sy * this->StiffnessMatrix(2, i);
+        for (int i = 0; i < 12; ++i)
+            this->StiffnessMatrix(9, i) +=
+                - Sz * this->StiffnessMatrix(7, i) + Sy * this->StiffnessMatrix(8, i);
+
+        for (int i = 0; i < 12; ++i)
+            this->StiffnessMatrix(i, 3) +=
+                - Sz * this->StiffnessMatrix(i, 1) + Sy * this->StiffnessMatrix(i, 2);
+        for (int i = 0; i < 12; ++i)
+            this->StiffnessMatrix(i, 9) +=
+                - Sz * this->StiffnessMatrix(i, 7) + Sy * this->StiffnessMatrix(i, 8);
+    }
+}
+
+
 void ChElementBeamEuler::SetupInitial(ChSystem* system) {
     assert(section);
 
@@ -322,6 +453,9 @@ void ChElementBeamEuler::SetupInitial(ChSystem* system) {
 
     // Compute local stiffness matrix:
     ComputeStiffnessMatrix();
+
+    // Compute local geometric stiffness matrix normalized by pull force P: Kg/P
+    ComputeGeometricStiffnessMatrix();
 }
 
 void ChElementBeamEuler::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfactor, double Rfactor, double Mfactor) {
@@ -353,7 +487,22 @@ void ChElementBeamEuler::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfactor,
         R.push_back(&Atoabs);
         R.push_back(&AtolocwelB);
 
-        ChMatrixCorotation::ComputeCK(this->StiffnessMatrix, R, 4, CK);
+        if (this->use_geometric_stiffness) {
+
+            // compute Px tension of the beam along centerline, using temporary but fast data structures:
+            ChVectorDynamic<> displ(this->GetNdofs());
+            this->GetStateBlock(displ);
+            double Px = -this->StiffnessMatrix.row(0) * displ;
+            // ChVector<> mFo, mTo;
+            //this->EvaluateSectionForceTorque(0, mFo, mTo);  // for double checking the Px value
+            //GetLog() << "   Px = " << Px << "  Px_eval = " << mFo.x() << " \n";
+
+            // corotate Km + Kg  (where Kg = this->Kg * Px)
+            ChMatrixCorotation::ComputeCK(this->StiffnessMatrix + Px*this->Kg, R, 4, CK);
+        }
+        else {
+            ChMatrixCorotation::ComputeCK(this->StiffnessMatrix           , R, 4, CK);
+        }
         ChMatrixCorotation::ComputeKCt(CK, R, 4, CKCt);
         
 
