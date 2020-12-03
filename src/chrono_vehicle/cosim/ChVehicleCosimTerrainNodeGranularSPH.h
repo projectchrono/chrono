@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: 
+// Authors: Wei Hu, Radu Serban
 // =============================================================================
 //
 // Definition of the SPH granular TERRAIN NODE (using Chrono::FSI).
@@ -24,18 +24,32 @@
 
 #include "chrono_vehicle/cosim/ChVehicleCosimTerrainNode.h"
 
+#include "chrono_fsi/ChSystemFsi.h"
+
+#include "chrono/physics/ChSystemSMC.h"
+
 namespace chrono {
 namespace vehicle {
 
 class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularSPH : public ChVehicleCosimTerrainNode {
-  /*
   
   public:
     /// Create a Chrono::FSI granular SPH terrain subsystem.
-    ChVehicleCosimTerrainNodeGranularAPH();
-    ~ChVehicleCosimTerrainNodeGranularAPH();
+    ChVehicleCosimTerrainNodeGranularSPH(ChContactMethod method,  ///< contact method (penalty or complementatiry)
+                                         bool render              ///< use OpenGL rendering
+    );
+    ~ChVehicleCosimTerrainNodeGranularSPH();
+
+    virtual ChSystem* GetSystem() override { return m_system; }
+
+    /// Specify the tire JSON specification file name.
+    void SetTerrainJSONFile(const std::string& filename);
 
   private:
+
+    ChSystemSMC* m_system;  ///< containing system 
+    chrono::fsi::ChSystemFsi myFsiSystem(ChSystemSMC mphysicalSystem); ///< containing fsi system
+
     virtual bool SupportsFlexibleTire() const override { return false; }
 
     virtual void Construct() override;
@@ -49,8 +63,18 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularSPH : public ChVehicleCosi
     virtual void OutputTerrainData(int frame) override;
     virtual void OnSynchronize(int step_number, double time) override;
     virtual void OnAdvance(double step_size) override;
+
+    // A fewer function in Chrono::FSI
+    // void SetFluidDynamicsInFSI(paramsH->fluid_dynamic_type);
+    // void SetFluidSystemLinearSolverInFSI(paramsH->LinearSolver);
+    // void FinalizeDomainInFSI(paramsH);
+    // void PrepareOutputDirInFSI(paramsH, demo_dir, out_dir, inputJson);
+    // void CreateSPHparticlesInFSI(mphysicalSystem, myFsiSystem, paramsH);
+    // void CreateSolidPhaseInFSI(mphysicalSystem, myFsiSystem, paramsH);
+    // void FinalizeInFSI();
+    void CreateSolidPhase(mphysicalSystem, myFsiSystem, paramsH);
   
-  */
+  
 };
 
 }  // end namespace vehicle
