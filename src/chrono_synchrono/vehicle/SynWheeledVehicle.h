@@ -25,9 +25,6 @@
 
 #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicle.h"
 
-using namespace chrono;
-using namespace chrono::vehicle;
-
 namespace chrono {
 namespace synchrono {
 
@@ -46,7 +43,7 @@ class SYN_API SynWheeledVehicle : public SynVehicle {
     /// so the system will subsequently not be advanced or destroyed.
     ///
     ///@param wheeled_vehicle the vehicle to wrap
-    SynWheeledVehicle(ChWheeledVehicle* wheeled_vehicle);
+    SynWheeledVehicle(vehicle::ChWheeledVehicle* wheeled_vehicle);
 
     ///@brief Constructor for a wheeled vehicle specified through json and a contact method
     /// This constructor will create it's own system
@@ -115,12 +112,12 @@ class SYN_API SynWheeledVehicle : public SynVehicle {
     ///@param time the time to synchronize to
     ///@param driver_inputs the driver inputs (i.e. throttle, braking, steering)
     ///@param terrain reference to the terrain the vehicle should contact
-    void Synchronize(double time, const ChDriver::Inputs& driver_inputs, const ChTerrain& terrain);
+    void Synchronize(double time, const vehicle::ChDriver::Inputs& driver_inputs, const vehicle::ChTerrain& terrain);
 
     ///@brief Get the underlying vehicle
     ///
     ///@return ChVehicle&
-    virtual ChVehicle& GetVehicle() override { return *m_wheeled_vehicle; }
+    virtual vehicle::ChVehicle& GetVehicle() override { return *m_wheeled_vehicle; }
 
   protected:
     ///@brief Parse a JSON specification file that describes a vehicle
@@ -136,7 +133,7 @@ class SYN_API SynWheeledVehicle : public SynVehicle {
     virtual void CreateVehicle(const ChCoordsys<>& coord_sys, const std::string& filename, ChSystem* system) override;
 
   private:
-    ChWheeledVehicle* m_wheeled_vehicle;  ///< Pointer to the ChWheeledVehicle this class wraps
+    vehicle::ChWheeledVehicle* m_wheeled_vehicle;  ///< Pointer to the ChWheeledVehicle this class wraps
 
     std::shared_ptr<SynWheeledVehicleState> m_state;  ///< State of the vehicle (See SynWheeledVehicleMessage)
     std::shared_ptr<SynWheeledVehicleDescription> m_description;  ///< Description for zombie creation on discovery

@@ -28,6 +28,8 @@
 
 #include "chrono_vehicle/driver/ChPathFollowerACCDriver.h"
 
+using namespace chrono::vehicle;
+
 namespace chrono {
 namespace synchrono {
 

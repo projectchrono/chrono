@@ -31,8 +31,6 @@
 #include "chrono_synchrono/flatbuffer/message/SynMessage.h"
 #include "chrono_synchrono/flatbuffer/message/SynMessageFactory.h"
 
-using namespace chrono;
-
 namespace chrono {
 namespace synchrono {
 

@@ -31,6 +31,8 @@
 #include "chrono_thirdparty/filesystem/path.h"
 #include "chrono_vehicle/driver/ChPathFollowerACCDriver.h"
 
+using namespace chrono::vehicle;
+
 namespace chrono {
 namespace synchrono {
 

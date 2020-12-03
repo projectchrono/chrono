@@ -28,10 +28,7 @@
 
 #ifdef SENSOR
 #include "chrono_sensor/ChLidarSensor.h"
-using namespace chrono::sensor;
 #endif
-
-using namespace chrono;
 
 namespace chrono {
 namespace synchrono {
@@ -85,9 +82,9 @@ LaneColor GetLaneColorFromMessage(SynMessage* synmsg, const int intersection, co
 
 #ifdef SENSOR
 /// @brief Refresh passed lidar data, and search the resulting point cloud for points closer than min_val
-double GetProximityToPointCloud(std::shared_ptr<ChLidarSensor> lidar,
+double GetProximityToPointCloud(std::shared_ptr<sensor::ChLidarSensor> lidar,
                                 double min_val,
-                                &UserDIBUfferPtr recent_lidar_data);
+                                &sensor::UserDIBUfferPtr recent_lidar_data);
 #endif
 
 /// @} synchrono_brain

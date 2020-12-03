@@ -51,6 +51,7 @@ using namespace chrono::sensor;
 #include <chrono>
 
 using namespace chrono;
+using namespace chrono::vehicle;
 using namespace chrono::geometry;
 using namespace chrono::synchrono;
 

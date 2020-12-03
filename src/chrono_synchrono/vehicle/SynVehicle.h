@@ -40,10 +40,6 @@
 
 #include "chrono/assets/ChTriangleMeshShape.h"
 
-using namespace chrono;
-using namespace chrono::vehicle;
-using namespace chrono::geometry;
-
 namespace chrono {
 namespace synchrono {
 
@@ -120,7 +116,7 @@ class SYN_API SynVehicle {
     ///@brief Get the ChVehicle being wrapped by this class
     ///
     ///@return ChVehicle& the reference to the underlying ChVehicle
-    virtual ChVehicle& GetVehicle() = 0;
+    virtual vehicle::ChVehicle& GetVehicle() = 0;
 
     ///@brief Get the ChSystem
     ///
