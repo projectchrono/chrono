@@ -22,6 +22,8 @@
 
 #include "chrono/core/ChLog.h"
 
+using namespace chrono::vehicle;
+
 namespace chrono {
 namespace synchrono {
 

@@ -23,6 +23,7 @@
 #include "chrono_synchrono/utils/SynDataLoader.h"
 #include "chrono_synchrono/terrain/SynTerrainFactory.h"
 
+using namespace chrono::vehicle;
 using namespace rapidjson;
 
 namespace chrono {

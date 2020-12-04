@@ -26,7 +26,7 @@
 #include "chrono_thirdparty/rapidjson/filereadstream.h"
 #include "chrono_thirdparty/rapidjson/istreamwrapper.h"
 
-using namespace chrono;
+using namespace chrono::vehicle;
 using namespace rapidjson;
 
 namespace chrono {

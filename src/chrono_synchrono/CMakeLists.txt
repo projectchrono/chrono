@@ -14,41 +14,25 @@ message(STATUS "==== SynChrono module ====")
 
 # Return now if MPI is not available
 if(NOT MPI_CXX_FOUND)
-	message("Chrono::SynChrono requires MPI")
+	message(WARNING "Chrono::SynChrono requires MPI, but MPI not found; disabling Chrono::SynChrono")
 	set(ENABLE_MODULE_SYNCHRONO OFF CACHE BOOL "Enable the SynChrono module" FORCE)
-	message(STATUS "Chrono::SynChrono disabled")
 	return()
 endif()
 
 # Return now if Chrono::Vehicle is not enabled
 if(NOT ENABLE_MODULE_VEHICLE)
-    message("Chrono::SynChrono depends on Chrono::Vehicle")
+    message(WARNING "Chrono::SynChrono depends on Chrono::Vehicle which is disabled; disabling Chrono::SynChrono")
     set(ENABLE_MODULE_SYNCHRONO OFF CACHE BOOL "Enable the SynChrono module" FORCE)
-    message(STATUS "Chrono::SynChrono disabled")
     return()
 endif()
 
 set(SYN_INCLUDES ${SYN_INCLUDES})
+set(SYN_INCLUDES ${SYN_INCLUDES} "${CMAKE_CURRENT_SOURCE_DIR}/../chrono_thirdparty/flatbuffers/include")
 
 set(SYN_CXX_FLAGS "${CH_CXX_FLAGS}")
 set(SYN_LINKER_FLAGS "${CH_LINKERFLAG_SHARED}")
 set(SYN_LIBRARIES "")
 set(SYN_LIB_NAMES "ChronoEngine")
-
-#-----------------------------------------------------------------------------
-# Find FlatBuffers
-#-----------------------------------------------------------------------------
-
-set(Flatbuffers_DIR "../chrono_thirdparty/flatbuffers/CMake" CACHE STRING "")
-
-find_package(Flatbuffers REQUIRED)
-
-find_path(Flatbuffers_INCLUDE_DIR flatbuffers/flatbuffers.h)
-
-set(SYN_INCLUDES
-    ${SYN_INCLUDES}
-    ${Flatbuffers_INCLUDE_DIR}
-)
 
 #-----------------------------------------------------------------------------
 # Find MPI (Default transport method)

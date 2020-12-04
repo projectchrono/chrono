@@ -7,6 +7,8 @@
 
 #include "chrono_synchrono/brain/driver/SynMultipathDriver.h"
 
+using namespace chrono::vehicle;
+
 namespace chrono {
 namespace synchrono {
 

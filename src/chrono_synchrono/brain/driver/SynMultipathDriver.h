@@ -11,13 +11,11 @@
 #include "chrono_vehicle/utils/ChSteeringController.h"
 #include "chrono_vehicle/utils/ChAdaptiveSpeedController.h"
 
-using namespace chrono::vehicle;
-
 namespace chrono {
 namespace synchrono {
 
 /// Concrete path-following steering PID controller with multiple path support
-class SYN_API ChMultiplePathSteeringController : public ChSteeringController {
+class SYN_API ChMultiplePathSteeringController : public vehicle::ChSteeringController {
   public:
     /// Construct a steering controller to track the specified path.
     /// This version uses default controller parameters (zero gains).
@@ -41,7 +39,7 @@ class SYN_API ChMultiplePathSteeringController : public ChSteeringController {
     /// Reset the PID controller.
     /// This function resets the underlying path tracker using the current location
     /// of the sentinel point.
-    virtual void Reset(const ChVehicle& vehicle) override;
+    virtual void Reset(const vehicle::ChVehicle& vehicle) override;
 
     /// Calculate the current target point location.
     /// The target point is the point on the associated path that is closest to
@@ -60,10 +58,10 @@ class SYN_API ChMultiplePathSteeringController : public ChSteeringController {
 ///
 /// @sa ChMultiplePathSteeringController
 /// @sa ChAdaptiveSpeedController
-class SYN_API ChMulPathFollowerACCDriver : public ChDriver {
+class SYN_API ChMulPathFollowerACCDriver : public vehicle::ChDriver {
   public:
     /// Construct using the specified Bezier curve.
-    ChMulPathFollowerACCDriver(ChVehicle& vehicle,  ///< associated vehicle
+    ChMulPathFollowerACCDriver(vehicle::ChVehicle& vehicle,  ///< associated vehicle
                                std::vector<std::pair<std::shared_ptr<ChBezierCurve>, bool>>
                                    path_pairs,                ///< an array of Bezier curve with target path
                                const std::string& path_name,  ///< name of the path curve
@@ -99,7 +97,7 @@ class SYN_API ChMulPathFollowerACCDriver : public ChDriver {
     ChMultiplePathSteeringController& GetSteeringController() { return m_steeringPID; }
 
     /// Get the underlying speed controller object.
-    ChAdaptiveSpeedController& GetSpeedController() { return m_speedPID; }
+    vehicle::ChAdaptiveSpeedController& GetSpeedController() { return m_speedPID; }
 
     /// Reset the underlying controllers.
     void Reset();
@@ -122,7 +120,7 @@ class SYN_API ChMulPathFollowerACCDriver : public ChDriver {
     void Create();
 
     ChMultiplePathSteeringController m_steeringPID;  ///< steering controller
-    ChAdaptiveSpeedController m_speedPID;            ///< speed controller
+    vehicle::ChAdaptiveSpeedController m_speedPID;   ///< speed controller
     double m_target_speed;                           ///< desired vehicle speed
     double m_target_following_time;                  ///< desired min following time gap
     double m_target_min_distance;                    ///< desired min distance to the vehicle in front
