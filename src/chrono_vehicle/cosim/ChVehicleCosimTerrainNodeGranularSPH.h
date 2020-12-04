@@ -24,31 +24,29 @@
 
 #include "chrono_vehicle/cosim/ChVehicleCosimTerrainNode.h"
 
-#include "chrono_fsi/ChSystemFsi.h"
-
 #include "chrono/physics/ChSystemSMC.h"
+#include "chrono_fsi/ChSystemFsi.h"
 
 namespace chrono {
 namespace vehicle {
 
 class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularSPH : public ChVehicleCosimTerrainNode {
-  
   public:
     /// Create a Chrono::FSI granular SPH terrain subsystem.
-    ChVehicleCosimTerrainNodeGranularSPH(ChContactMethod method,  ///< contact method (penalty or complementatiry)
-                                         bool render              ///< use OpenGL rendering
-    );
+    ChVehicleCosimTerrainNodeGranularSPH(bool render);
     ~ChVehicleCosimTerrainNodeGranularSPH();
 
     virtual ChSystem* GetSystem() override { return m_system; }
 
-    /// Specify the tire JSON specification file name.
-    void SetTerrainJSONFile(const std::string& filename);
+    /// Specify the SPH terrain properties.
+    void SetPropertiesSPH(const std::string& filename, double depth);
 
   private:
+    ChSystemSMC* m_system;          ///< containing system
+    fsi::ChSystemFsi* m_systemFSI;  ///< containing FSI system
 
-    ChSystemSMC* m_system;  ///< containing system 
-    chrono::fsi::ChSystemFsi myFsiSystem(ChSystemSMC mphysicalSystem); ///< containing fsi system
+    std::shared_ptr<fsi::SimParams> m_params;  ///< FSI parameters
+    double m_depth;                            ///< SPH soil depth
 
     virtual bool SupportsFlexibleTire() const override { return false; }
 
@@ -61,20 +59,12 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularSPH : public ChVehicleCosi
     virtual void PrintWheelProxyContactData() override;
 
     virtual void OutputTerrainData(int frame) override;
-    virtual void OnSynchronize(int step_number, double time) override;
-    virtual void OnAdvance(double step_size) override;
 
-    // A fewer function in Chrono::FSI
-    // void SetFluidDynamicsInFSI(paramsH->fluid_dynamic_type);
-    // void SetFluidSystemLinearSolverInFSI(paramsH->LinearSolver);
-    // void FinalizeDomainInFSI(paramsH);
-    // void PrepareOutputDirInFSI(paramsH, demo_dir, out_dir, inputJson);
-    // void CreateSPHparticlesInFSI(mphysicalSystem, myFsiSystem, paramsH);
-    // void CreateSolidPhaseInFSI(mphysicalSystem, myFsiSystem, paramsH);
-    // void FinalizeInFSI();
-    void CreateSolidPhase(mphysicalSystem, myFsiSystem, paramsH);
-  
-  
+    /// Advance simulation.
+    /// This function is called after a synchronization to allow the node to advance
+    /// its state by the specified time step.  A node is allowed to take as many internal
+    /// integration steps as required, but no inter-node communication should occur.
+    virtual void Advance(double step_size) override;
 };
 
 }  // end namespace vehicle
