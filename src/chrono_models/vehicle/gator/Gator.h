@@ -46,7 +46,7 @@ class CH_MODELS_API Gator {
     void SetContactMethod(ChContactMethod contact_method) { m_contact_method = contact_method; }
 
     void SetChassisFixed(bool val) { m_fixed = val; }
-    void SetChassisCollisionType(ChassisCollisionType chassis_collision_type) {
+    void SetChassisCollisionType(CollisionType chassis_collision_type) {
         m_chassis_collision_type = chassis_collision_type;
     }
 
@@ -91,7 +91,7 @@ class CH_MODELS_API Gator {
 
   protected:
     ChContactMethod m_contact_method;
-    ChassisCollisionType m_chassis_collision_type;
+    CollisionType m_chassis_collision_type;
     bool m_fixed;
     bool m_brake_locking;
 

@@ -32,10 +32,7 @@
 #include "chrono_sensor/ChSensorManager.h"
 #include "chrono_sensor/ChLidarSensor.h"
 #include "chrono_sensor/ChCameraSensor.h"
-using namespace chrono::sensor;
 #endif
-
-using namespace chrono;
 
 namespace chrono {
 namespace synchrono {
@@ -47,9 +44,15 @@ namespace synchrono {
 /// light message data
 class SYN_API SynACCBrain : public SynVehicleBrain {
   public:
-    SynACCBrain(int rank, std::shared_ptr<ChDriver> driver, ChVehicle& vehicle, bool is_multi_path = false);
+    SynACCBrain(int rank,
+                std::shared_ptr<vehicle::ChDriver> driver,
+                vehicle::ChVehicle& vehicle,
+                bool is_multi_path = false);
 #ifdef SENSOR
-    SynACCBrain(int rank, std::shared_ptr<ChDriver> driver, ChVehicle& vehicle, std::shared_ptr<ChLidarSensor> lidar);
+    SynACCBrain(int rank,
+                std::shared_ptr<vehicle::ChDriver> driver,
+                vehicle::ChVehicle& vehicle,
+                std::shared_ptr<sensor::ChLidarSensor> lidar);
 #endif
     ~SynACCBrain();
 
@@ -61,7 +64,7 @@ class SYN_API SynACCBrain : public SynVehicleBrain {
     bool m_sen_init_called;
 
 #ifdef SENSOR
-    void SetLidar(std::shared_ptr<ChLidarSensor> lidar) { m_lidar = lidar; }
+    void SetLidar(std::shared_ptr<sensor::ChLidarSensor> lidar) { m_lidar = lidar; }
 #endif
 
     void SetNearestVehicleDistance(float dist) { m_nearest_vehicle = dist; }
@@ -84,16 +87,16 @@ class SYN_API SynACCBrain : public SynVehicleBrain {
     bool m_is_multi_path;  ///< the agent is using a multiPathacc driver or not.
 
 #ifdef SENSOR
-    std::shared_ptr<ChSensorManager> m_manager;
-    std::shared_ptr<ChLidarSensor> m_lidar;
-    std::shared_ptr<ChCameraSensor> m_camera;
+    std::shared_ptr<sensor::ChSensorManager> m_manager;
+    std::shared_ptr<sensor::ChLidarSensor> m_lidar;
+    std::shared_ptr<sensor::ChCameraSensor> m_camera;
 
     bool m_save_data;
     std::string m_cam_data_path;
     std::string m_intersection_cam_data_path;
 
     double m_lidar_intensity_epsilon;
-    UserDIBufferPtr m_recent_lidar_data;
+    sensor::UserDIBufferPtr m_recent_lidar_data;
 #endif
 };
 

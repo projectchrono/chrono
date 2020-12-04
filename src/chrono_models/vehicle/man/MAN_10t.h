@@ -58,7 +58,7 @@ class CH_MODELS_API MAN_10t {
     void SetContactMethod(ChContactMethod val) { m_contactMethod = val; }
 
     void SetChassisFixed(bool val) { m_fixed = val; }
-    void SetChassisCollisionType(ChassisCollisionType val) { m_chassisCollisionType = val; }
+    void SetChassisCollisionType(CollisionType val) { m_chassisCollisionType = val; }
 
     void SetBrakeType(BrakeType brake_type) { m_brake_type = brake_type; }
     void SetTireType(TireModelType val) { m_tireType = val; }
@@ -97,7 +97,7 @@ class CH_MODELS_API MAN_10t {
 
   protected:
     ChContactMethod m_contactMethod;
-    ChassisCollisionType m_chassisCollisionType;
+    CollisionType m_chassisCollisionType;
     bool m_fixed;
     bool m_brake_locking;
 

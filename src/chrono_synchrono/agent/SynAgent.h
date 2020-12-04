@@ -31,8 +31,6 @@
 
 #include "chrono/physics/ChSystem.h"
 
-using namespace chrono;
-
 namespace chrono {
 namespace synchrono {
 

@@ -47,44 +47,14 @@ class CH_VEHICLE_API ChTrackShoeSegmented : public ChTrackShoe {
     /// contact materials for the collision shapes of the shoe itself (for contact with the wheels, idler, and ground).
     virtual void CreateContactMaterials(ChContactMethod contact_method) = 0;
 
-    /// Add contact geometry for the track shoe.
-    /// Note that this is for contact with wheels, idler, and ground only.
-    /// This contact geometry does not affect contact with the sprocket.
-    /// The default implementation uses the given collision boxes and cylinders for the main track shoe body. 
-    virtual void AddShoeContact();
+    /// Add visualization assets for the track shoe subsystem.
+    virtual void AddVisualizationAssets(VisualizationType vis) override;
 
-    /// Add visualization assets for the track-shoe subsystem.
-    /// This function uses the given visualization boxes and cylinders for the main track shoe body.
-    void AddShoeVisualization();
+    /// Remove visualization assets for the track shoe subsystem.
+    virtual void RemoveVisualizationAssets() override;
 
-    /// Definition of a box shape for collision or visualization.
-    struct BoxShape {
-        BoxShape(const ChVector<>& pos, const ChQuaternion<>& rot, const ChVector<>& dims, int matID = -1)
-            : m_pos(pos), m_rot(rot), m_dims(dims), m_matID(matID) {}
-        ChVector<> m_pos;
-        ChQuaternion<> m_rot;
-        ChVector<> m_dims;
-        int m_matID;
-    };
-
-    /// Definition of a cylinder shape for collision or visualization.
-    struct CylinderShape {
-        CylinderShape(const ChVector<>& pos, const ChQuaternion<>& rot, double radius, double length, int matID = -1)
-            : m_pos(pos), m_rot(rot), m_radius(radius), m_length(length), m_matID(matID) {}
-        ChVector<> m_pos;
-        ChQuaternion<> m_rot;
-        double m_radius;
-        double m_length;
-        int m_matID;
-    };
-
-    std::vector<BoxShape> m_coll_boxes;                                ///< collision boxes on shoe body
-    std::vector<CylinderShape> m_coll_cylinders;                       ///< collision cylinders on shoe body
-    std::vector<std::shared_ptr<ChMaterialSurface>> m_shoe_materials;  ///< contact materials for shoe collision shapes
+    ChVehicleGeometry m_geometry;                             ///< collection of visualization and collision shapes
     std::shared_ptr<ChMaterialSurface> m_shoe_sprk_material;  ///< contact material for shoe shape contacting sprocket
-
-    std::vector<BoxShape> m_vis_boxes;           ///< visualization boxes for shoe body
-    std::vector<CylinderShape> m_vis_cylinders;  ///< visualization cylinders for shoe body
 };
 
 /// @} vehicle_tracked_shoe

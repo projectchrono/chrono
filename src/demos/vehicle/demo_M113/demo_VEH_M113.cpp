@@ -98,7 +98,7 @@ int main(int argc, char* argv[]) {
     // --------------------------
 
     ChContactMethod contact_method = ChContactMethod::SMC;
-    ChassisCollisionType chassis_collision_type = ChassisCollisionType::NONE;
+    CollisionType chassis_collision_type = CollisionType::NONE;
     TrackShoeType shoe_type = TrackShoeType::SINGLE_PIN;
     BrakeType brake_type = BrakeType::SIMPLE;
 

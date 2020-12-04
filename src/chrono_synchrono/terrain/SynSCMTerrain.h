@@ -45,7 +45,7 @@ class SYN_API SynSCMTerrain : public SynTerrain {
     /// @brief Create SynSCMTerrain by optionally adding an underlying SCMDeformableTerrain
     ///
     /// @param terrain Shared pointer to the terrain object this class will use and sync
-    SynSCMTerrain(std::shared_ptr<SCMDeformableTerrain> terrain, ChSystem* system) {
+    SynSCMTerrain(std::shared_ptr<vehicle::SCMDeformableTerrain> terrain, ChSystem* system) {
         SetTerrain(terrain);
         m_system = system;
     }
@@ -79,10 +79,10 @@ class SYN_API SynSCMTerrain : public SynTerrain {
     /// @param rank Which rank we are attached to (only our agent knows)
     virtual void GenerateMessagesToSend(std::vector<SynMessage*>& messages, int rank) override;
 
-    void SetTerrain(std::shared_ptr<SCMDeformableTerrain> terrain) { m_scm_terrain = terrain; }
+    void SetTerrain(std::shared_ptr<vehicle::SCMDeformableTerrain> terrain) { m_scm_terrain = terrain; }
 
-    virtual std::shared_ptr<ChTerrain> GetTerrain() override { return m_scm_terrain; }
-    std::shared_ptr<SCMDeformableTerrain> GetSCMTerrain() { return m_scm_terrain; }
+    virtual std::shared_ptr<vehicle::ChTerrain> GetTerrain() override { return m_scm_terrain; }
+    std::shared_ptr<vehicle::SCMDeformableTerrain> GetSCMTerrain() { return m_scm_terrain; }
 
   private:
     /// There is no STL default for hashing a pair of ints, but the SCM grid is indexed with integers, so we store diffs
@@ -94,7 +94,7 @@ class SYN_API SynSCMTerrain : public SynTerrain {
         std::size_t operator()(const ChVector2<int>& p) const { return p.x() * 31 + p.y(); }
     };
 
-    std::shared_ptr<SCMDeformableTerrain> m_scm_terrain;  ///< Underlying terrain we manage
+    std::shared_ptr<vehicle::SCMDeformableTerrain> m_scm_terrain;  ///< Underlying terrain we manage
     std::unordered_map<ChVector2<int>, double, CoordHash>
         m_modified_nodes;  ///< Where we store changes to our terrain between synchronization heartbeats
     ChSystem* m_system;    ///< Cache the ChSystem we're attached to so that we can know what time it is

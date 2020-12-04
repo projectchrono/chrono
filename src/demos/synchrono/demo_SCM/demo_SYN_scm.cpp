@@ -151,7 +151,7 @@ int main(int argc, char* argv[]) {
     auto hmmwv = chrono_types::make_shared<HMMWV_Full>();
 
     hmmwv->SetContactMethod(contact_method);
-    hmmwv->SetChassisCollisionType(ChassisCollisionType::NONE);
+    hmmwv->SetChassisCollisionType(CollisionType::NONE);
     hmmwv->SetChassisFixed(false);
     hmmwv->SetInitPosition(ChCoordsys<>(init_loc, init_rot));
     hmmwv->SetTireType(TireModelType::TMEASY);

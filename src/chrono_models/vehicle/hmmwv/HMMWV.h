@@ -51,7 +51,7 @@ class CH_MODELS_API HMMWV {
     void SetContactMethod(ChContactMethod val) { m_contactMethod = val; }
 
     void SetChassisFixed(bool val) { m_fixed = val; }
-    void SetChassisCollisionType(ChassisCollisionType val) { m_chassisCollisionType = val; }
+    void SetChassisCollisionType(CollisionType val) { m_chassisCollisionType = val; }
 
     void SetDriveType(DrivelineType val) { m_driveType = val; }
     void SetBrakeType(BrakeType brake_type) { m_brake_type = brake_type; }
@@ -99,7 +99,7 @@ class CH_MODELS_API HMMWV {
     virtual HMMWV_Vehicle* CreateVehicle() = 0;
 
     ChContactMethod m_contactMethod;
-    ChassisCollisionType m_chassisCollisionType;
+    CollisionType m_chassisCollisionType;
     bool m_fixed;
     bool m_brake_locking;
 
