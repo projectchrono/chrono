@@ -33,7 +33,6 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularOMP : public ChVehicleCosi
   public:
     /// Create a Chrono::Parallel granular terrain subsystem.
     ChVehicleCosimTerrainNodeGranularOMP(ChContactMethod method,  ///< contact method (penalty or complementatiry)
-                                         bool use_checkpoint,     ///< initialize granular terrain from checkpoint
                                          bool render,             ///< use OpenGL rendering
                                          int num_threads          ///< number of OpenMP threads
     );
@@ -66,6 +65,11 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularOMP : public ChVehicleCosi
     /// Note that this setting is only relevant when using the penalty method.
     void SetContactForceModel(ChSystemSMC::ContactForceModel model);
 
+    /// Initialize granular terrain from the specified checkpoint file (which must exist in the output directory).
+    /// By default, particles are created uniformly distributed in the specified domain such that they are initially not
+    /// in contact.
+    void SetInputFromCheckpoint(const std::string& filename);
+
     /// Set simulation length for settling of granular material (default: 0.4).
     void SetSettlingTime(double time) { m_time_settling = time; }
 
@@ -80,8 +84,8 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularOMP : public ChVehicleCosi
     /// generated checkpointing file.
     void Settle();
 
-    /// Write checkpointing file.
-    virtual void WriteCheckpoint() override;
+    /// Write checkpoint to the specified file (which will be created in the output directory).
+    virtual void WriteCheckpoint(const std::string& filename) override;
 
   private:
     ChSystemParallel* m_system;  ///< containing system
@@ -90,7 +94,9 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularOMP : public ChVehicleCosi
     double m_hdimZ;   ///< container half-height (Z direction)
     double m_hthick;  ///< container wall half-thickness
 
-    bool m_use_checkpoint;         ///< initialize granular terrain from checkpoint file
+    bool m_use_checkpoint;              ///< initialize granular terrain from checkpoint file
+    std::string m_checkpoint_filename;  ///< name of input checkpoint file
+
     int m_Id_g;                    ///< first identifier for granular material bodies
     int m_num_layers;              ///< number of generated particle layers
     unsigned int m_num_particles;  ///< number of granular material bodies
@@ -101,8 +107,6 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularOMP : public ChVehicleCosi
     bool m_settling_output;  ///< output files during settling?
 
     int m_particles_start_index;  ///< start index for granular material bodies in system body list
-
-    static const std::string m_checkpoint_filename;  ///< name of checkpointing file
 
     // Private methods
 

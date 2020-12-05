@@ -44,16 +44,14 @@ using std::endl;
 namespace chrono {
 namespace vehicle {
 
-const std::string ChVehicleCosimTerrainNodeSCM::m_checkpoint_filename = "checkpoint.dat";
-
 // -----------------------------------------------------------------------------
 // Construction of the terrain node:
 // - create the Chrono system and set solver parameters
 // - create the Irrlicht visualization window
 // -----------------------------------------------------------------------------
-ChVehicleCosimTerrainNodeSCM::ChVehicleCosimTerrainNodeSCM(bool use_checkpoint, bool render, int num_threads)
+ChVehicleCosimTerrainNodeSCM::ChVehicleCosimTerrainNodeSCM(bool render, int num_threads)
     : ChVehicleCosimTerrainNode(Type::SCM, ChContactMethod::SMC, render),
-      m_use_checkpoint(use_checkpoint),
+      m_use_checkpoint(false),
       m_irrapp(nullptr) {
     cout << "[Terrain node] SCM " << endl;
 
@@ -109,6 +107,11 @@ void ChVehicleCosimTerrainNodeSCM::SetPropertiesSCM(double spacing,
 
     m_elastic_K = elastic_K;
     m_damping_R = damping_R;
+}
+
+void ChVehicleCosimTerrainNodeSCM::SetInputFromCheckpoint(const std::string& filename) {
+    m_use_checkpoint = true;
+    m_checkpoint_filename = filename;
 }
 
 // -----------------------------------------------------------------------------
@@ -290,7 +293,7 @@ void ChVehicleCosimTerrainNodeSCM::OutputTerrainData(int frame) {
 
 // -----------------------------------------------------------------------------
 
-void ChVehicleCosimTerrainNodeSCM::WriteCheckpoint() {
+void ChVehicleCosimTerrainNodeSCM::WriteCheckpoint(const std::string& filename) {
     utils::CSV_writer csv(" ");
 
     // Get all SCM grid nodes modified from start of simulation
@@ -305,7 +308,7 @@ void ChVehicleCosimTerrainNodeSCM::WriteCheckpoint() {
         csv << node.first.x() << node.first.y() << node.second << endl;
     }
 
-    std::string checkpoint_filename = m_out_dir + "/" + m_checkpoint_filename;
+    std::string checkpoint_filename = m_out_dir + "/" + filename;
     csv.write_to_file(checkpoint_filename);
     cout << "[Terrain node] write checkpoint ===> " << checkpoint_filename << endl;
 }
