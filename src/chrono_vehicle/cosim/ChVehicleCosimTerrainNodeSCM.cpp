@@ -44,13 +44,17 @@ using std::endl;
 namespace chrono {
 namespace vehicle {
 
+const std::string ChVehicleCosimTerrainNodeSCM::m_checkpoint_filename = "checkpoint.dat";
+
 // -----------------------------------------------------------------------------
 // Construction of the terrain node:
 // - create the Chrono system and set solver parameters
 // - create the Irrlicht visualization window
 // -----------------------------------------------------------------------------
-ChVehicleCosimTerrainNodeSCM::ChVehicleCosimTerrainNodeSCM(bool render, int num_threads)
-    : ChVehicleCosimTerrainNode(Type::SCM, ChContactMethod::SMC, render), m_irrapp(nullptr) {
+ChVehicleCosimTerrainNodeSCM::ChVehicleCosimTerrainNodeSCM(bool use_checkpoint, bool render, int num_threads)
+    : ChVehicleCosimTerrainNode(Type::SCM, ChContactMethod::SMC, render),
+      m_use_checkpoint(use_checkpoint),
+      m_irrapp(nullptr) {
     cout << "[Terrain node] SCM " << endl;
 
     // Create system and set default method-specific solver settings
@@ -122,6 +126,38 @@ void ChVehicleCosimTerrainNodeSCM::Construct() {
                                  m_elastic_K, m_damping_R);
     m_terrain->SetPlotType(vehicle::SCMDeformableTerrain::PLOT_SINKAGE, 0, 0.05);
     m_terrain->Initialize(2 * m_hdimX, 2 * m_hdimY, m_spacing);
+
+    // If indicated, set node heights from checkpoint file
+    if (m_use_checkpoint) {
+        // Open input file stream
+        std::string checkpoint_filename = m_out_dir + "/" + m_checkpoint_filename;
+        std::ifstream ifile(checkpoint_filename);
+        std::string line;
+
+        // Read and discard line with current time
+        std::getline(ifile, line);
+
+        // Read number of modified nodes
+        int num_nodes;
+        std::getline(ifile, line);
+        std::istringstream iss(line);
+        iss >> num_nodes;
+
+        std::vector<SCMDeformableTerrain::NodeLevel> nodes(num_nodes);
+        for (int i = 0; i < num_nodes; i++) {
+            std::getline(ifile, line);
+            std::istringstream iss(line);
+            int x, y;
+            double h;
+            iss >> x >> y >> h;
+            nodes[i] = std::make_pair(ChVector2<>(x, y), h);
+        }
+
+        m_terrain->SetModifiedNodes(nodes);
+
+        cout << "[Terrain node] read checkpoint <=== " << checkpoint_filename << "   num. nodes = " << num_nodes
+             << endl;
+    }
 
     // --------------------------------------
     // Write file with terrain node settings
@@ -255,7 +291,23 @@ void ChVehicleCosimTerrainNodeSCM::OutputTerrainData(int frame) {
 // -----------------------------------------------------------------------------
 
 void ChVehicleCosimTerrainNodeSCM::WriteCheckpoint() {
-    //// TODO: useful for multi-pass scenarios
+    utils::CSV_writer csv(" ");
+
+    // Get all SCM grid nodes modified from start of simulation
+    auto& nodes = m_terrain->GetModifiedNodes(true);
+
+    // Write current time and total number of modified grid nodes.
+    csv << m_system->GetChTime() << endl;
+    csv << nodes.size() << endl;
+
+    // Write node locations and heights
+    for (auto& node : nodes) {
+        csv << node.first.x() << node.first.y() << node.second << endl;
+    }
+
+    std::string checkpoint_filename = m_out_dir + "/" + m_checkpoint_filename;
+    csv.write_to_file(checkpoint_filename);
+    cout << "[Terrain node] write checkpoint ===> " << checkpoint_filename << endl;
 }
 
 // -----------------------------------------------------------------------------

@@ -37,8 +37,9 @@ namespace vehicle {
 class CH_VEHICLE_API ChVehicleCosimTerrainNodeSCM : public ChVehicleCosimTerrainNode {
   public:
     /// Create a rigid terrain subsystem.
-    ChVehicleCosimTerrainNodeSCM(bool render,     ///< use OpenGL rendering
-                                 int num_threads  ///< number of OpenMP threads for SCM ray-casting
+    ChVehicleCosimTerrainNodeSCM(bool use_checkpoint,  ///< initialize height profile from checkpoint file
+                                 bool render,          ///< use OpenGL rendering
+                                 int num_threads       ///< number of OpenMP threads for SCM ray-casting
     );
     ~ChVehicleCosimTerrainNodeSCM();
 
@@ -74,6 +75,9 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeSCM : public ChVehicleCosimTerrain
     double m_Janosi_shear;   ///< J , shear parameter, in meters, in Janosi-Hanamoto formula (usually few mm or cm)
     double m_elastic_K;      ///< elastic stiffness K per unit area [Pa/m]
     double m_damping_R;      ///< vetical damping R per unit area [Pa.s/m]
+
+    bool m_use_checkpoint;                           ///< if true, initialize height from checkpoint file
+    static const std::string m_checkpoint_filename;  ///< name of checkpointing file
 
     virtual bool SupportsFlexibleTire() const override { return false; }  //// TODO
 
