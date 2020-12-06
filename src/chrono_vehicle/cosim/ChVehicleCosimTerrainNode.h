@@ -74,8 +74,8 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNode : public ChVehicleCosimBaseNode {
     /// Output logging and debugging data.
     virtual void OutputData(int frame) override final;
 
-    /// Write checkpointing file.
-    virtual void WriteCheckpoint() {}
+    /// Write checkpoint to the specified file (which will be created in the output directory).
+    virtual void WriteCheckpoint(const std::string& filename) {}
 
   protected:
     /// Association between a proxy body and a mesh index.

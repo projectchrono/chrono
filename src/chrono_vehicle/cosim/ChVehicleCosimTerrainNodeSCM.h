@@ -57,8 +57,12 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeSCM : public ChVehicleCosimTerrain
         double damping_R       ///< vertical damping R per unit area [Pa.s/m] (proportional to vertical speed)
     );
 
-    /// Write checkpointing file.
-    virtual void WriteCheckpoint() override;
+    /// Initialize SCM terrain from the specified checkpoint file (which must exist in the output directory).
+    /// By default, a flat rectangular SCM terrain patch is used. 
+    void SetInputFromCheckpoint(const std::string& filename);
+
+    /// Write checkpoint to the specified file (which will be created in the output directory).
+    virtual void WriteCheckpoint(const std::string& filename) override;
 
   private:
     ChSystem* m_system;               ///< containing system
@@ -74,6 +78,9 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeSCM : public ChVehicleCosimTerrain
     double m_Janosi_shear;   ///< J , shear parameter, in meters, in Janosi-Hanamoto formula (usually few mm or cm)
     double m_elastic_K;      ///< elastic stiffness K per unit area [Pa/m]
     double m_damping_R;      ///< vetical damping R per unit area [Pa.s/m]
+
+    bool m_use_checkpoint;              ///< if true, initialize height from checkpoint file
+    std::string m_checkpoint_filename;  ///< name of input checkpoint file
 
     virtual bool SupportsFlexibleTire() const override { return false; }  //// TODO
 

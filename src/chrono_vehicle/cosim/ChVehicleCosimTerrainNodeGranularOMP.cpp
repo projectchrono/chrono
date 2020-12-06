@@ -48,26 +48,23 @@ using std::endl;
 namespace chrono {
 namespace vehicle {
 
-const std::string ChVehicleCosimTerrainNodeGranularOMP::m_checkpoint_filename = "checkpoint.dat";
-
 // -----------------------------------------------------------------------------
 // Construction of the terrain node:
 // - create the (parallel) Chrono system and set solver parameters
 // - create the OpenGL visualization window
 // -----------------------------------------------------------------------------
 ChVehicleCosimTerrainNodeGranularOMP::ChVehicleCosimTerrainNodeGranularOMP(ChContactMethod method,
-                                                                           bool use_checkpoint,
                                                                            bool render,
                                                                            int num_threads)
     : ChVehicleCosimTerrainNode(Type::GRANULAR_OMP, method, render),
       m_constructed(false),
-      m_use_checkpoint(use_checkpoint),
+      m_use_checkpoint(false),
       m_settling_output(false),
       m_num_particles(0),
       m_particles_start_index(0) {
     cout << "[Terrain node] GRANULAR_OMP "
          << " method = " << static_cast<std::underlying_type<ChContactMethod>::type>(method)
-         << " use_checkpoint = " << use_checkpoint << " num_threads = " << num_threads << endl;
+         << " num_threads = " << num_threads << endl;
 
     // ------------------------
     // Default model parameters
@@ -178,6 +175,12 @@ void ChVehicleCosimTerrainNodeGranularOMP::SetMaterialSurface(const std::shared_
     m_material_terrain = mat;
 }
 
+
+void ChVehicleCosimTerrainNodeGranularOMP::SetInputFromCheckpoint(const std::string& filename) {
+    m_use_checkpoint = true;
+    m_checkpoint_filename = filename;
+}
+
 // -----------------------------------------------------------------------------
 // Complete construction of the mechanical system.
 // This function is invoked automatically from Settle and Initialize.
@@ -268,6 +271,62 @@ void ChVehicleCosimTerrainNodeGranularOMP::Construct() {
     m_num_particles = gen.getTotalNumBodies();
     cout << "[Terrain node] Generated particles:  " << m_num_particles << endl;
 
+    // -------------------------------------------------
+    // If requested, set particle states from checkpoint
+    // -------------------------------------------------
+    if (m_use_checkpoint) {
+        // Open input file stream
+        std::string checkpoint_filename = m_out_dir + "/" + m_checkpoint_filename;
+        std::ifstream ifile(checkpoint_filename);
+        std::string line;
+
+        // Read and discard line with current time
+        std::getline(ifile, line);
+
+        // Read number of particles in checkpoint
+        unsigned int num_particles;
+        {
+            std::getline(ifile, line);
+            std::istringstream iss(line);
+            iss >> num_particles;
+
+            if (num_particles != m_num_particles) {
+                cout << "ERROR: inconsistent number of particles in checkpoint file!" << endl;
+                MPI_Abort(MPI_COMM_WORLD, 1);
+            }
+        }
+
+        // Read granular material state from checkpoint
+        for (int ib = m_particles_start_index; ib < m_system->Get_bodylist().size(); ++ib) {
+            std::getline(ifile, line);
+            std::istringstream iss(line);
+            int identifier;
+            ChVector<> pos;
+            ChQuaternion<> rot;
+            ChVector<> pos_dt;
+            ChQuaternion<> rot_dt;
+            iss >> identifier >> pos.x() >> pos.y() >> pos.z() >> rot.e0() >> rot.e1() >> rot.e2() >> rot.e3() >>
+                pos_dt.x() >> pos_dt.y() >> pos_dt.z() >> rot_dt.e0() >> rot_dt.e1() >> rot_dt.e2() >> rot_dt.e3();
+
+            auto body = m_system->Get_bodylist()[ib];
+            assert(body->GetIdentifier() == identifier);
+            body->SetPos(ChVector<>(pos.x(), pos.y(), pos.z()));
+            body->SetRot(ChQuaternion<>(rot.e0(), rot.e1(), rot.e2(), rot.e3()));
+            body->SetPos_dt(ChVector<>(pos_dt.x(), pos_dt.y(), pos_dt.z()));
+            body->SetRot_dt(ChQuaternion<>(rot_dt.e0(), rot_dt.e1(), rot_dt.e2(), rot_dt.e3()));
+        }
+
+        cout << "[Terrain node] read checkpoint <=== " << checkpoint_filename << "   num. particles = " << num_particles
+             << endl;
+    }
+
+    // Find "height" of granular material
+    for (auto body : m_system->Get_bodylist()) {
+        if (body->GetIdentifier() > 0 && body->GetPos().z() > m_init_height)
+            m_init_height = body->GetPos().z();
+    }
+    m_init_height += m_radius_g;
+
     // --------------------------------------
     // Write file with terrain node settings
     // --------------------------------------
@@ -321,110 +380,56 @@ void ChVehicleCosimTerrainNodeGranularOMP::Construct() {
 
 // -----------------------------------------------------------------------------
 // Settling phase for the terrain node
-// - settle terrain through simulation or read from checkpoint
+// - settle terrain through simulation
 // - update initial height of terrain
 // -----------------------------------------------------------------------------
 void ChVehicleCosimTerrainNodeGranularOMP::Settle() {
-    m_init_height = 0;
-
     Construct();
 
-    if (m_use_checkpoint) {
-        // ------------------------------------------------
-        // Initialize granular terrain from checkpoint file
-        // ------------------------------------------------
+    // Simulate settling of granular terrain
+    double output_fps = 100;
+    int sim_steps = (int)std::ceil(m_time_settling / m_step_size);
+    int output_steps = (int)std::ceil(1 / (output_fps * m_step_size));
+    int output_frame = 0;
 
-        // Open input file stream
-        std::string checkpoint_filename = m_out_dir + "/" + m_checkpoint_filename;
-        std::ifstream ifile(checkpoint_filename);
-        std::string line;
+    for (int is = 0; is < sim_steps; is++) {
+        // Advance step
+        m_timer.reset();
+        m_timer.start();
+        m_system->DoStepDynamics(m_step_size);
+        m_timer.stop();
+        m_cum_sim_time += m_timer();
+        cout << '\r' << std::fixed << std::setprecision(6) << m_system->GetChTime() << "  [" << m_timer.GetTimeSeconds()
+             << "]" << std::flush;
 
-        // Read and discard line with current time
-        std::getline(ifile, line);
+        // Output (if enabled)
+        if (m_settling_output && is % output_steps == 0) {
+            char filename[100];
+            sprintf(filename, "%s/settling_%04d.dat", m_node_out_dir.c_str(), output_frame + 1);
+            utils::CSV_writer csv(" ");
+            WriteParticleInformation(csv);
+            csv.write_to_file(filename);
+            output_frame++;
+        }
 
-        // Read number of particles in checkpoint
-        unsigned int num_particles;
-        {
-            std::getline(ifile, line);
-            std::istringstream iss(line);
-            iss >> num_particles;
-
-            if (num_particles != m_num_particles) {
-                cout << "ERROR: inconsistent number of particles in checkpoint file!" << endl;
+#ifdef CHRONO_OPENGL
+        // OpenGL rendering
+        if (m_render) {
+            opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
+            if (gl_window.Active()) {
+                gl_window.Render();
+            } else {
                 MPI_Abort(MPI_COMM_WORLD, 1);
             }
         }
-
-        // Read granular material state from checkpoint
-        for (int ib = m_particles_start_index; ib < m_system->Get_bodylist().size(); ++ib) {
-            std::getline(ifile, line);
-            std::istringstream iss(line);
-            int identifier;
-            ChVector<> pos;
-            ChQuaternion<> rot;
-            ChVector<> pos_dt;
-            ChQuaternion<> rot_dt;
-            iss >> identifier >> pos.x() >> pos.y() >> pos.z() >> rot.e0() >> rot.e1() >> rot.e2() >> rot.e3() >>
-                pos_dt.x() >> pos_dt.y() >> pos_dt.z() >> rot_dt.e0() >> rot_dt.e1() >> rot_dt.e2() >> rot_dt.e3();
-
-            auto body = m_system->Get_bodylist()[ib];
-            assert(body->GetIdentifier() == identifier);
-            body->SetPos(ChVector<>(pos.x(), pos.y(), pos.z()));
-            body->SetRot(ChQuaternion<>(rot.e0(), rot.e1(), rot.e2(), rot.e3()));
-            body->SetPos_dt(ChVector<>(pos_dt.x(), pos_dt.y(), pos_dt.z()));
-            body->SetRot_dt(ChQuaternion<>(rot_dt.e0(), rot_dt.e1(), rot_dt.e2(), rot_dt.e3()));
-        }
-
-        cout << "[Terrain node] read checkpoint <=== " << checkpoint_filename << "   num. particles = " << num_particles
-             << endl;
-
-    } else {
-        // -------------------------------------
-        // Simulate settling of granular terrain
-        // -------------------------------------
-        double output_fps = 100;
-        int sim_steps = (int)std::ceil(m_time_settling / m_step_size);
-        int output_steps = (int)std::ceil(1 / (output_fps * m_step_size));
-        int output_frame = 0;
-
-        for (int is = 0; is < sim_steps; is++) {
-            // Advance step
-            m_timer.reset();
-            m_timer.start();
-            m_system->DoStepDynamics(m_step_size);
-            m_timer.stop();
-            m_cum_sim_time += m_timer();
-            cout << '\r' << std::fixed << std::setprecision(6) << m_system->GetChTime() << "  ["
-                 << m_timer.GetTimeSeconds() << "]" << std::flush;
-
-            // Output (if enabled)
-            if (m_settling_output && is % output_steps == 0) {
-                char filename[100];
-                sprintf(filename, "%s/settling_%04d.dat", m_node_out_dir.c_str(), output_frame + 1);
-                utils::CSV_writer csv(" ");
-                WriteParticleInformation(csv);
-                csv.write_to_file(filename);
-                output_frame++;
-            }
-
-#ifdef CHRONO_OPENGL
-            // OpenGL rendering
-            if (m_render) {
-                opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
-                if (gl_window.Active()) {
-                    gl_window.Render();
-                } else {
-                    MPI_Abort(MPI_COMM_WORLD, 1);
-                }
-            }
 #endif
-        }
-
-        cout << "[Terrain node] settling time = " << m_cum_sim_time << endl;
-        m_cum_sim_time = 0;
     }
 
-    // Find "height" of granular material
+    cout << "[Terrain node] settling time = " << m_cum_sim_time << endl;
+    m_cum_sim_time = 0;
+
+    // Find "height" of granular material after settling
+    m_init_height = 0;
     for (auto body : m_system->Get_bodylist()) {
         if (body->GetIdentifier() > 0 && body->GetPos().z() > m_init_height)
             m_init_height = body->GetPos().z();
@@ -690,7 +695,7 @@ void ChVehicleCosimTerrainNodeGranularOMP::WriteParticleInformation(utils::CSV_w
     }
 }
 
-void ChVehicleCosimTerrainNodeGranularOMP::WriteCheckpoint() {
+void ChVehicleCosimTerrainNodeGranularOMP::WriteCheckpoint(const std::string& filename) {
     utils::CSV_writer csv(" ");
 
     // Write current time and number of granular material bodies.
@@ -699,14 +704,14 @@ void ChVehicleCosimTerrainNodeGranularOMP::WriteCheckpoint() {
 
     // Loop over all bodies in the system and write state for granular material bodies.
     // Filter granular material using the body identifier.
-    for (auto body : m_system->Get_bodylist()) {
+    for (auto& body : m_system->Get_bodylist()) {
         if (body->GetIdentifier() < m_Id_g)
             continue;
         csv << body->GetIdentifier() << body->GetPos() << body->GetRot() << body->GetPos_dt() << body->GetRot_dt()
             << endl;
     }
 
-    std::string checkpoint_filename = m_out_dir + "/" + m_checkpoint_filename;
+    std::string checkpoint_filename = m_out_dir + "/" + filename;
     csv.write_to_file(checkpoint_filename);
     cout << "[Terrain node] write checkpoint ===> " << checkpoint_filename << endl;
 }

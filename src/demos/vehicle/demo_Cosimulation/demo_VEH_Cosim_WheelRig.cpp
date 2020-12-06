@@ -130,12 +130,15 @@ int main(int argc, char** argv) {
         return 1;
     }
 
+    // Name of terrain checkpoint file (if supported)
+    std::string checkpoint_filename("");
+
     // Number of simulation steps between miscellaneous events.
     int sim_steps = (int)std::ceil(sim_time / step_size);
     int output_steps = (int)std::ceil(1 / (output_fps * step_size));
     int checkpoint_steps = (int)std::ceil(1 / (checkpoint_fps * step_size));
 
-    // Create the two systems and run the settling phase for terrain.
+    // Create the two systems.
     ChVehicleCosimRigNode* my_rig = nullptr;
     ChVehicleCosimTerrainNode* my_terrain = nullptr;
 
@@ -230,13 +233,18 @@ int main(int argc, char** argv) {
 
                     terrain->SetProxyProperties(0.002, false);
 
+                    checkpoint_filename = "checkpoint_SCM.dat";
+                    if (use_checkpoint) {
+                        terrain->SetInputFromCheckpoint(checkpoint_filename);
+                    }
+
                     my_terrain = terrain;
                     break;
                 }
                 case ChVehicleCosimTerrainNode::Type::GRANULAR_OMP: {
                     auto method = ChContactMethod::NSC;
                     auto terrain =
-                        new ChVehicleCosimTerrainNodeGranularOMP(method, use_checkpoint, render, nthreads_terrain);
+                        new ChVehicleCosimTerrainNodeGranularOMP(method, render, nthreads_terrain);
                     terrain->SetStepSize(step_size);
                     terrain->SetOutDir(out_dir, suffix);
                     cout << "[Terrain node] output directory: " << terrain->GetOutDirName() << endl;
@@ -249,7 +257,6 @@ int main(int argc, char** argv) {
 
                     ////double radius = 0.006;
                     double radius = 0.02;
-
                     double coh_force = CH_C_PI * radius * radius * coh_pressure;
 
                     terrain->SetGranularMaterial(radius, 2500, 8);
@@ -283,7 +290,12 @@ int main(int argc, char** argv) {
                         }
                     }
 
-                    terrain->Settle();
+                    checkpoint_filename = "checkpoint_OMP.dat";
+                    if (use_checkpoint) {
+                        terrain->SetInputFromCheckpoint(checkpoint_filename);
+                    } else {
+                        terrain->Settle();
+                    }
 
                     my_terrain = terrain;
                     break;
@@ -364,8 +376,6 @@ int main(int argc, char** argv) {
             case RIG_NODE_RANK: {
                 cout << is << " ---------------------------- " << endl;
                 my_rig->Synchronize(is, time);
-                cout << " --- " << endl;
-
                 my_rig->Advance(step_size);
                 cout << "Tire sim time =    " << my_rig->GetSimTime() << "  [" << my_rig->GetTotalSimTime() << "]"
                      << endl;
@@ -389,7 +399,7 @@ int main(int argc, char** argv) {
                 }
 
                 if (is % checkpoint_steps == 0) {
-                    my_terrain->WriteCheckpoint();
+                    my_terrain->WriteCheckpoint(checkpoint_filename);
                     checkpoint_frame++;
                 }
 
