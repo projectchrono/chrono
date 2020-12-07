@@ -120,12 +120,8 @@ void ChVehicleCosimTerrainNodeGranularSPH::Construct() {
     // Call FinalizeDomain to setup the binning for neighbor search
     fsi::utils::FinalizeDomain(m_params);
 
-    const std::string out_dir = GetOutDirName();  // GetChronoOutputPath() + "FSI_output_data/";
-    std::string demo_dir;
-    fsi::utils::PrepareOutputDir(m_params, demo_dir, out_dir, "FSI_JSON");
-
-    //// RADU TODO:  Create the fluid particles...
-    //// Fluid domain:  bxDim x byDim x m_depth
+    // Create the fluid particles...
+    // Fluid domain:  bxDim x byDim x m_depth
     // Dimension of the fluid domain
     fsi::Real fxDim = m_params->fluidDimX;
     fsi::Real fyDim = m_params->fluidDimY;
@@ -139,7 +135,7 @@ void ChVehicleCosimTerrainNodeGranularSPH::Construct() {
     utils::Generator::PointVector points = sampler.SampleBox(boxCenter, boxHalfDim);
 
     // Add fluid particles from the sampler points to the FSI system
-    size_t numPart = points.size();
+    int numPart = (int)points.size();
     for (int i = 0; i < numPart; i++) {
         // Calculate the pressure of a steady state (p = rho*g*h)
         Real pre_ini = m_params->rho0 * abs(m_params->gravity.z) * (-points[i].z() + fzDim);
@@ -148,14 +144,15 @@ void ChVehicleCosimTerrainNodeGranularSPH::Construct() {
             fsi::mR4(points[i].x(), points[i].y(), points[i].z(), m_params->HSML), fsi::mR3(1e-10),
             fsi::mR4(rho_ini, pre_ini, m_params->mu0, -1));
     }
+
     size_t numPhases = m_systemFSI->GetDataManager()->fsiGeneralData->referenceArray.size();
     if (numPhases != 0) {
-        std::cout << "Error! numPhases is wrong, thrown from main\n" << std::endl;
-    } else {
-        m_systemFSI->GetDataManager()->fsiGeneralData->referenceArray.push_back(fsi::mI4(0, (int)numPart, -1, -1));
-        m_systemFSI->GetDataManager()->fsiGeneralData->referenceArray.push_back(
-            fsi::mI4((int)numPart, (int)numPart, 0, 0));
+        std::cout << "ERROR: incorrect number of phases in SPH granular terrain!" << std::endl;
+        MPI_Abort(MPI_COMM_WORLD, 1);
     }
+
+    m_systemFSI->GetDataManager()->fsiGeneralData->referenceArray.push_back(fsi::mI4(0, numPart, -1, -1));
+    m_systemFSI->GetDataManager()->fsiGeneralData->referenceArray.push_back(fsi::mI4(numPart, numPart, 0, 0));
 
     //// RADU TODO - this function must set m_init_height!
     m_init_height = fzDim;
@@ -193,10 +190,17 @@ void ChVehicleCosimTerrainNodeGranularSPH::Construct() {
     fsi::utils::AddBoxBce(m_systemFSI->GetDataManager(), m_params, container, pos_yp, chrono::QUNIT, size_XZ, 13);
     fsi::utils::AddBoxBce(m_systemFSI->GetDataManager(), m_params, container, pos_yn, chrono::QUNIT, size_XZ, 13);
 
+    // Add visualization assets for the container
     {
         auto box = chrono_types::make_shared<ChBoxShape>();
         box->GetBoxGeometry().Size = size_XY;
         box->Pos = pos_zp;
+        container->GetAssets().push_back(box);
+    }
+    {
+        auto box = chrono_types::make_shared<ChBoxShape>();
+        box->GetBoxGeometry().Size = size_XY;
+        box->Pos = pos_zn;
         container->GetAssets().push_back(box);
     }
 
@@ -210,14 +214,14 @@ void ChVehicleCosimTerrainNodeGranularSPH::Construct() {
     outf << "   depth = " << m_depth << endl;
 }
 
-void AddMeshMarkers(geometry::ChTriangleMeshConnected& mesh, double delta, std::vector<ChVector<>>& point_cloud) {
-    mesh.RepairDuplicateVertexes(1e-9);  // if meshes are not watertight
+void CreateMeshMarkers(std::shared_ptr<geometry::ChTriangleMeshConnected> mesh, double delta, std::vector<ChVector<>>& point_cloud) {
+    mesh->RepairDuplicateVertexes(1e-9);  // if meshes are not watertight
 
-    ChVector<> minV = mesh.m_vertices[0];
-    ChVector<> maxV = mesh.m_vertices[0];
-    ChVector<> currV = mesh.m_vertices[0];
-    for (unsigned int i = 1; i < mesh.m_vertices.size(); ++i) {
-        currV = mesh.m_vertices[i];
+    ChVector<> minV = mesh->m_vertices[0];
+    ChVector<> maxV = mesh->m_vertices[0];
+    ChVector<> currV = mesh->m_vertices[0];
+    for (unsigned int i = 1; i < mesh->m_vertices.size(); ++i) {
+        currV = mesh->m_vertices[i];
         if (minV.x() > currV.x())
             minV.x() = currV.x();
         if (minV.y() > currV.y())
@@ -247,11 +251,11 @@ void AddMeshMarkers(geometry::ChTriangleMeshConnected& mesh, double delta, std::
                 ChVector<> ray_dir[2] = {ChVector<>(5, 0.5, 0.25), ChVector<>(-3, 0.7, 10)};
                 int intersectCounter[2] = {0, 0};
 
-                for (unsigned int i = 0; i < mesh.m_face_v_indices.size(); ++i) {
-                    auto& t_face = mesh.m_face_v_indices[i];
-                    auto& v1 = mesh.m_vertices[t_face.x()];
-                    auto& v2 = mesh.m_vertices[t_face.y()];
-                    auto& v3 = mesh.m_vertices[t_face.z()];
+                for (unsigned int i = 0; i < mesh->m_face_v_indices.size(); ++i) {
+                    auto& t_face = mesh->m_face_v_indices[i];
+                    auto& v1 = mesh->m_vertices[t_face.x()];
+                    auto& v2 = mesh->m_vertices[t_face.y()];
+                    auto& v3 = mesh->m_vertices[t_face.z()];
 
                     // Find vectors for two edges sharing V1
                     auto edge1 = v2 - v1;
@@ -341,41 +345,11 @@ void ChVehicleCosimTerrainNodeGranularSPH::CreateWheelProxy() {
     // Add this body to the FSI system
     m_systemFSI->AddFsiBody(body);
 
-    //// RADU TODO - Create BCE markers associated with trimesh!
-    // test with a cylinder wheel now
-    // Size of the cylinder wheel
-    double wheel_length = 0.2;
-    double wheel_radius = 0.1;
-    fsi::Real initSpace0 = m_params->MULT_INITSPACE * m_params->HSML;
-    fsi::utils::AddCylinderBce(m_systemFSI->GetDataManager(), m_params, body, ChVector<>(0, 0, 0),
-                               ChQuaternion<>(1, 0, 0, 0), wheel_radius, wheel_length + initSpace0, m_params->HSML,
-                               false);
-
-    //// WEI TODO - will implemente the creation of BCE markers from mesh later
-    // now, we can only create BCE from obj file and save the BCE to another file
-    // and use AddBCE_FromFile function to load the BCE particles into FSI system
-    /*
+    // Create BCE markers associated with trimesh
+    auto initSpace0 = m_params->MULT_INITSPACE * m_params->HSML;
     std::vector<ChVector<>> point_cloud;
-    AddMeshMarkers(trimesh, initSpace0, point_cloud);
-
-    // write the BCE particles' position into file
-    std::ofstream myFileSPH;
-    myFileSPH.open("./BCEparticles.txt", std::ios::trunc);
-    myFileSPH.close();
-    myFileSPH.open("./BCEparticles.txt", std::ios::app);
-    myFileSPH << "x" << "," << "y" << "," << "z" << "\n";
-    for (int i = 0; i < point_cloud.size(); ++i)
-    {
-        myFileSPH << point_cloud[i].x() << "," << "\t"
-                  << point_cloud[i].y() << "," << "\t"
-                  << point_cloud[i].z() << "," << "\n";
-    }
-    myFileSPH.close();
-    // load  the BCE particles' position from file
-    std::string BCE_path = "./BCEparticles.txt";
-    fsi::utils::AddBCE_FromFile(m_systemFSI->GetDataManager(), m_params, body, BCE_path,
-                                ChVector<double>(0), QUNIT, 1.0);
-    */
+    CreateMeshMarkers(trimesh, (double)initSpace0, point_cloud);
+    fsi::utils::AddBCE_FromPoints(m_systemFSI->GetDataManager(), m_params, body, point_cloud, VNULL, QUNIT);    
 
     // Construction of the FSI system must be finalized before running
     m_systemFSI->Finalize();
@@ -387,7 +361,7 @@ void ChVehicleCosimTerrainNodeGranularSPH::UpdateWheelProxy() {
     m_proxies[0].m_body->SetPos_dt(m_wheel_state.lin_vel);
     m_proxies[0].m_body->SetRot(m_wheel_state.rot);
     m_proxies[0].m_body->SetWvel_par(m_wheel_state.ang_vel);
-    // m_proxies[0].m_body->SetWacc_par(ChVector<>(0.0, 0.0, 0.0));
+    m_proxies[0].m_body->SetWacc_par(ChVector<>(0.0, 0.0, 0.0));
 }
 
 // Collect resultant contact force and torque on wheel proxy body.
@@ -417,6 +391,9 @@ void ChVehicleCosimTerrainNodeGranularSPH::Advance(double step_size) {
     if (m_render) {
         opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
         if (gl_window.Active()) {
+            ChVector<> cam_point = m_proxies[0].m_body->GetPos();
+            ChVector<> cam_loc = cam_point + ChVector<>(0, -3, 0.6);
+            gl_window.SetCamera(cam_loc, cam_point, ChVector<>(0, 0, 1), 0.05f);
             gl_window.Render();
         } else {
             MPI_Abort(MPI_COMM_WORLD, 1);

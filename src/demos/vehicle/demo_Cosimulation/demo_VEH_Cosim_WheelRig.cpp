@@ -62,7 +62,7 @@ std::string out_dir = GetChronoOutputPath() + "TIRE_RIG_COSIM";
 ChVehicleCosimRigNode::Type tire_type = ChVehicleCosimRigNode::Type::RIGID;
 
 // Terrain type
-ChVehicleCosimTerrainNode::Type terrain_type = ChVehicleCosimTerrainNode::Type::GRANULAR_SPH;
+ChVehicleCosimTerrainNode::Type terrain_type = ChVehicleCosimTerrainNode::Type::GRANULAR_OMP;
 
 // =============================================================================
 
@@ -302,7 +302,7 @@ int main(int argc, char** argv) {
                 }
                 case ChVehicleCosimTerrainNode::Type::GRANULAR_SPH: {
                     auto terrain = new ChVehicleCosimTerrainNodeGranularSPH(render);
-                    std::string TerrainJsonFile = GetChronoDataFile("fsi/input_json/demo_FSI_CylinderDrop_Explicit.json");
+                    std::string TerrainJsonFile = GetChronoDataFile("fsi/input_json/demo_tire_rig.json");
                     terrain->SetPropertiesSPH(TerrainJsonFile, 0.1); 
                     terrain->SetStepSize(step_size);
                     terrain->SetOutDir(out_dir, suffix);
