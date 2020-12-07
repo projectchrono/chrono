@@ -320,6 +320,8 @@ void ChElementBeamEuler::ComputeGeometricStiffnessMatrix() {
     /// For the Reddy or timoshenko more detailed case with higher order terms, look also to:
     ///   [2] "A Unified Approach to the Timoshenko Geometric Stiffness Matrix Considering Higher-Order Terms in the Strain Tensor"
     ///        https://www.scielo.br/pdf/lajss/v16n4/1679-7825-lajss-16-04-e185.pdf
+    /// Look also at: https://enercalc.com/3d_help/toc161394033.html or in Plesha, Malkus, Cook “Concepts and Applications of Finite Element Analysis”, 
+    /// or in W. McGuire & R.H. Gallagher & R.D. Ziemian, “Matrix Structural Analysis”
       
     double EA = this->section->GetAxialRigidity();
     double EIyy = this->section->GetYbendingRigidity();
@@ -343,35 +345,7 @@ void ChElementBeamEuler::ComputeGeometricStiffnessMatrix() {
     this->Kg(6, 6) =  P_L;
     this->Kg(0, 6) = -P_L;
     */
-    /*
-    this->Kg(1, 1) =  P6_5L_y;
-    this->Kg(1, 5) =  P_10_y;
-    this->Kg(1, 7) = -P6_5L_y;
-    this->Kg(1,11) =  P_10_y;
-
-    this->Kg(2, 2) =  P6_5L_z;
-    this->Kg(2, 4) =  P_10_z;
-    this->Kg(2, 8) = -P6_5L_z;
-    this->Kg(2,10) =  P_10_z;
-
-    this->Kg(4, 4) =  PL2_15_y;
-    this->Kg(4, 8) = -P_10_y;
-    this->Kg(4,10) = -PL_30_y;
-
-    this->Kg(5, 5) =  PL2_15_z;
-    this->Kg(5, 7) = -P_10_z;
-    this->Kg(5,11) = -PL_30_z;
-
-    this->Kg(7, 7) =  P6_5L_y;
-    this->Kg(7,11) = -P_10_y;
-
-    this->Kg(8, 8) =  P6_5L_z;
-    this->Kg(8,10) = -P_10_y;
-
-    this->Kg(10, 10) = PL2_15_y;
-
-    this->Kg(11, 11) = PL2_15_z;
-    */
+    
     this->Kg(1, 1) =  P6_5L_y;
     this->Kg(1, 5) =  P_10_y;
     this->Kg(1, 7) = -P6_5L_y;
