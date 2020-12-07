@@ -675,7 +675,7 @@ void ChVehicleCosimRigNodeRigidTire::Synchronize(int step_number, double time) {
     double force_data[6];
     MPI_Status status;
     MPI_Recv(force_data, 6, MPI_DOUBLE, TERRAIN_NODE_RANK, step_number, MPI_COMM_WORLD, &status);
-    m_wheel_contact.point = ChVector<>(0, 0, 0);
+    m_wheel_contact.point = m_wheel->GetPos();
     m_wheel_contact.force = ChVector<>(force_data[0], force_data[1], force_data[2]);
     m_wheel_contact.moment = ChVector<>(force_data[3], force_data[4], force_data[5]);
 
