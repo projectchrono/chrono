@@ -29,6 +29,8 @@
 #include "chrono/utils/ChUtilsGenerators.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 
+#include "chrono/assets/ChTriangleMeshShape.h"
+
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/physics/ChSystemNSC.h"
 
@@ -193,11 +195,13 @@ void ChVehicleCosimTerrainNodeSCM::Construct() {
 void ChVehicleCosimTerrainNodeSCM::CreateMeshProxies() {
     //// TODO
 
+#ifdef CHRONO_IRRLICHT
     // Bind Irrlicht assets
     if (m_render) {
         m_irrapp->AssetBindAll();
         m_irrapp->AssetUpdateAll();
     }
+#endif
 }
 
 void ChVehicleCosimTerrainNodeSCM::CreateWheelProxy() {
@@ -233,11 +237,13 @@ void ChVehicleCosimTerrainNodeSCM::CreateWheelProxy() {
     m_system->AddBody(body);
     m_proxies.push_back(ProxyBody(body, 0));
 
+#ifdef CHRONO_IRRLICHT
     // Bind Irrlicht assets
     if (m_render) {
         m_irrapp->AssetBindAll();
         m_irrapp->AssetUpdateAll();
     }
+#endif
 }
 
 // Set position, orientation, and velocity of proxy bodies based on tire mesh faces.
@@ -271,7 +277,7 @@ void ChVehicleCosimTerrainNodeSCM::OnSynchronize(int step_number, double time) {
 }
 
 void ChVehicleCosimTerrainNodeSCM::OnAdvance(double step_size) {
-#ifdef CHRONO_OPENGL
+#ifdef CHRONO_IRRLICHT
     if (m_render) {
         if (!m_irrapp->GetDevice()->run()) {
             MPI_Abort(MPI_COMM_WORLD, 1);

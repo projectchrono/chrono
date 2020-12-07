@@ -29,10 +29,17 @@
 #include "chrono/utils/ChUtilsGenerators.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 
+#include "chrono/assets/ChBoxShape.h"
+#include "chrono/assets/ChTriangleMeshShape.h"
+
 #include "chrono_fsi/utils/ChUtilsJSON.h"
 #include "chrono_fsi/utils/ChUtilsGeneratorFsi.h"
 
 #include "chrono_vehicle/cosim/ChVehicleCosimTerrainNodeGranularSPH.h"
+
+#ifdef CHRONO_OPENGL
+#include "chrono_opengl/ChOpenGLWindow.h"
+#endif
 
 using namespace chrono::fsi;
 
@@ -60,6 +67,16 @@ ChVehicleCosimTerrainNodeGranularSPH::ChVehicleCosimTerrainNodeGranularSPH(bool 
 
     // Set number of threads
     m_system->SetNumThreads(1);
+
+#ifdef CHRONO_OPENGL
+    // Create the visualization window
+    if (m_render) {
+        opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
+        gl_window.Initialize(1280, 720, "Terrain Node", m_system);
+        gl_window.SetCamera(ChVector<>(0, -6, 0), ChVector<>(0, 0, 0), ChVector<>(0, 0, 1), 0.05f);
+        gl_window.SetRenderMode(opengl::WIREFRAME);
+    }
+#endif
 }
 
 ChVehicleCosimTerrainNodeGranularSPH::~ChVehicleCosimTerrainNodeGranularSPH() {
@@ -175,6 +192,13 @@ void ChVehicleCosimTerrainNodeGranularSPH::Construct() {
     fsi::utils::AddBoxBce(m_systemFSI->GetDataManager(), m_params, container, pos_xn, chrono::QUNIT, size_YZ, 23);
     fsi::utils::AddBoxBce(m_systemFSI->GetDataManager(), m_params, container, pos_yp, chrono::QUNIT, size_XZ, 13);
     fsi::utils::AddBoxBce(m_systemFSI->GetDataManager(), m_params, container, pos_yn, chrono::QUNIT, size_XZ, 13);
+
+    {
+        auto box = chrono_types::make_shared<ChBoxShape>();
+        box->GetBoxGeometry().Size = size_XY;
+        box->Pos = pos_zp;
+        container->GetAssets().push_back(box);
+    }
 
     // Write file with terrain node settings
     std::ofstream outf;
@@ -304,6 +328,13 @@ void ChVehicleCosimTerrainNodeGranularSPH::CreateWheelProxy() {
     trimesh->getCoordsNormals() = m_mesh_data.vnrm;
     trimesh->getIndicesVertexes() = m_mesh_data.tri;
 
+    // Set visualization asset
+    auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
+    trimesh_shape->SetMesh(trimesh);
+    trimesh_shape->Pos = ChVector<>(0, 0, 0);
+    trimesh_shape->Rot = ChQuaternion<>(1, 0, 0, 0);
+    body->GetAssets().push_back(trimesh_shape);
+
     m_system->AddBody(body);
     m_proxies.push_back(ProxyBody(body, 0));
 
@@ -381,6 +412,17 @@ void ChVehicleCosimTerrainNodeGranularSPH::Advance(double step_size) {
     }
     m_timer.stop();
     m_cum_sim_time += m_timer();
+
+#ifdef CHRONO_OPENGL
+    if (m_render) {
+        opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
+        if (gl_window.Active()) {
+            gl_window.Render();
+        } else {
+            MPI_Abort(MPI_COMM_WORLD, 1);
+        }
+    }
+#endif
 
     PrintWheelProxyContactData();
 }

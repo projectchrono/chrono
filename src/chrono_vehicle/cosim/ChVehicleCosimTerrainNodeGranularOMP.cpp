@@ -36,6 +36,8 @@
 #include "chrono/utils/ChUtilsGenerators.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 
+#include "chrono/assets/ChTriangleMeshShape.h"
+
 #include "chrono_vehicle/cosim/ChVehicleCosimTerrainNodeGranularOMP.h"
 
 #ifdef CHRONO_OPENGL
