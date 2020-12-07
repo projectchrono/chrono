@@ -40,10 +40,6 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularSPH : public ChVehicleCosi
 
     /// Specify the SPH terrain properties.
     void SetPropertiesSPH(const std::string& filename, double depth);
-    /// Create SPH particles from an OBJ file
-    void AddMeshMarkers(const std::string& mesh_filename,
-                        double spearation,
-                        std::vector<ChVector<>>& marker_positions);
 
   private:
     ChSystemSMC* m_system;          ///< containing system

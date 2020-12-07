@@ -73,7 +73,6 @@ void ChVehicleCosimTerrainNodeGranularSPH::SetPropertiesSPH(const std::string& f
     // Get the pointer to the system parameter and use a JSON file to fill it out with the user parameters
     m_params = m_systemFSI->GetSimParams();
     fsi::utils::ParseJSON(filename, m_params, fsi::mR3(0, 0, 0));
-
 }
 
 // -----------------------------------------------------------------------------
@@ -104,7 +103,7 @@ void ChVehicleCosimTerrainNodeGranularSPH::Construct() {
     // Call FinalizeDomain to setup the binning for neighbor search
     fsi::utils::FinalizeDomain(m_params);
 
-    const std::string out_dir = GetOutDirName();//GetChronoOutputPath() + "FSI_output_data/";
+    const std::string out_dir = GetOutDirName();  // GetChronoOutputPath() + "FSI_output_data/";
     std::string demo_dir;
     fsi::utils::PrepareOutputDir(m_params, demo_dir, out_dir, "FSI_JSON");
 
@@ -129,8 +128,7 @@ void ChVehicleCosimTerrainNodeGranularSPH::Construct() {
         Real pre_ini = m_params->rho0 * abs(m_params->gravity.z) * (-points[i].z() + fzDim);
         Real rho_ini = m_params->rho0 + pre_ini / (m_params->Cs * m_params->Cs);
         m_systemFSI->GetDataManager()->AddSphMarker(
-            fsi::mR4(points[i].x(), points[i].y(), points[i].z(), m_params->HSML),
-            fsi::mR3(1e-10),
+            fsi::mR4(points[i].x(), points[i].y(), points[i].z(), m_params->HSML), fsi::mR3(1e-10),
             fsi::mR4(rho_ini, pre_ini, m_params->mu0, -1));
     }
     size_t numPhases = m_systemFSI->GetDataManager()->fsiGeneralData->referenceArray.size();
@@ -138,12 +136,12 @@ void ChVehicleCosimTerrainNodeGranularSPH::Construct() {
         std::cout << "Error! numPhases is wrong, thrown from main\n" << std::endl;
     } else {
         m_systemFSI->GetDataManager()->fsiGeneralData->referenceArray.push_back(fsi::mI4(0, (int)numPart, -1, -1));
-        m_systemFSI->GetDataManager()->fsiGeneralData->referenceArray.push_back(fsi::mI4((int)numPart, (int)numPart, 0, 0));
+        m_systemFSI->GetDataManager()->fsiGeneralData->referenceArray.push_back(
+            fsi::mI4((int)numPart, (int)numPart, 0, 0));
     }
 
     //// RADU TODO - this function must set m_init_height!
     m_init_height = fzDim;
-
 
     // Create container body
     auto container = std::shared_ptr<ChBody>(m_system->NewBody());
@@ -178,7 +176,6 @@ void ChVehicleCosimTerrainNodeGranularSPH::Construct() {
     fsi::utils::AddBoxBce(m_systemFSI->GetDataManager(), m_params, container, pos_yp, chrono::QUNIT, size_XZ, 13);
     fsi::utils::AddBoxBce(m_systemFSI->GetDataManager(), m_params, container, pos_yn, chrono::QUNIT, size_XZ, 13);
 
-
     // Write file with terrain node settings
     std::ofstream outf;
     outf.open(m_node_out_dir + "/settings.dat", std::ios::out);
@@ -189,143 +186,108 @@ void ChVehicleCosimTerrainNodeGranularSPH::Construct() {
     outf << "   depth = " << m_depth << endl;
 }
 
-void AddMeshMarkers(const std::string& mesh_filename, 
-                    double spearation, std::vector<ChVector<>>& marker_positions) {
-    //load mesh from obj file and create BCE particles
-    chrono::geometry::ChTriangleMeshConnected mmesh;
-    std::string obj_path = mesh_filename;
-    double scale_ratio = 1.0;
-    mmesh.LoadWavefrontMesh(obj_path, false, true);
-    mmesh.Transform(ChVector<>(0, 0, 0), ChMatrix33<>(scale_ratio));     // scale to a different size
-    mmesh.RepairDuplicateVertexes(1e-9);                                 // if meshes are not watertight 
+void AddMeshMarkers(geometry::ChTriangleMeshConnected& mesh, double delta, std::vector<ChVector<>>& point_cloud) {
+    mesh.RepairDuplicateVertexes(1e-9);  // if meshes are not watertight
 
-	ChVector<> minV = mmesh.m_vertices[0];
-    ChVector<> maxV = mmesh.m_vertices[0];
-	ChVector<> currV = mmesh.m_vertices[0];
-	for (unsigned int i = 0; i < mmesh.m_vertices.size(); ++i){
-		currV = mmesh.m_vertices[i];
-		if(minV.x() > currV.x()) minV.x() = currV.x();
-		if(minV.y() > currV.y()) minV.y() = currV.y();
-		if(minV.z() > currV.z()) minV.z() = currV.z();
-		if(maxV.x() < currV.x()) maxV.x() = currV.x();
-		if(maxV.y() < currV.y()) maxV.y() = currV.y();
-		if(maxV.z() < currV.z()) maxV.z() = currV.z();
-	}
-	printf("start coords: %f, %f, %f\n", minV.x(), minV.y(), minV.z());
-	printf("end coords: %f, %f, %f\n", maxV.x(), maxV.y(), maxV.z());
+    ChVector<> minV = mesh.m_vertices[0];
+    ChVector<> maxV = mesh.m_vertices[0];
+    ChVector<> currV = mesh.m_vertices[0];
+    for (unsigned int i = 1; i < mesh.m_vertices.size(); ++i) {
+        currV = mesh.m_vertices[i];
+        if (minV.x() > currV.x())
+            minV.x() = currV.x();
+        if (minV.y() > currV.y())
+            minV.y() = currV.y();
+        if (minV.z() > currV.z())
+            minV.z() = currV.z();
+        if (maxV.x() < currV.x())
+            maxV.x() = currV.x();
+        if (maxV.y() < currV.y())
+            maxV.y() = currV.y();
+        if (maxV.z() < currV.z())
+            maxV.z() = currV.z();
+    }
+    ////printf("start coords: %f, %f, %f\n", minV.x(), minV.y(), minV.z());
+    ////printf("end coords: %f, %f, %f\n", maxV.x(), maxV.y(), maxV.z());
 
-	std::vector<ChVector<>> point_cloud;
-    ChVector<> ray_origin = ChVector<>(0.0,0.0,0.0);
-    double delta = spearation;
-    double EPSI = 0.000001;
-    int total_num = 0;
-	for(double x = minV.x(); x < maxV.x(); x += delta){
-		ray_origin.x() = x + 1e-9;
-		for(double y = minV.y(); y < maxV.y(); y += delta){
-			ray_origin.y() = y + 1e-9;
-			for(double z = minV.z(); z < maxV.z(); z += delta){
-				ray_origin.z() = z + 1e-9;
-                int isInsideMesh = 0;
-                {
-                    ChVector<> ray_dir1 = ChVector<>(5,0.5,0.25);
-                    ChVector<> ray_dir2 = ChVector<>(-3,0.7,10);
-                    ChVector<int> t_face;
-                    ChVector<> v1, v2, v3;
-                    int t_inter1, t_inter2;
-                    double out;
-                    int intersectCounter1 = 0;
-                    int intersectCounter2 = 0;
-                    for (unsigned int i = 0; i < mmesh.m_face_v_indices.size(); ++i)
-                    {
-                        t_face  = mmesh.m_face_v_indices[i];
-                        v1 = mmesh.m_vertices[t_face.x()];
-                        v2 = mmesh.m_vertices[t_face.y()];
-                        v3 = mmesh.m_vertices[t_face.z()];
+    const double EPSI = 1e-6;
 
-                        t_inter1 = 0;
-                        t_inter2 = 0;
-                        for (unsigned int j = 0; j < 2; j++){
-                            ChVector<> orig = ray_origin;
-                            ChVector<> dir;
-                            if(j==0){dir = ray_dir1;}
-                            if(j==1){dir = ray_dir2;}
-                
-                            ChVector<> edge1, edge2;  //Edgedge1, Edgedge2
-                            ChVector<> pvec, qvec, tvec;
-                            double det, inv_det, uu, vv, tt;
+    ChVector<> ray_origin;
+    for (double x = minV.x(); x < maxV.x(); x += delta) {
+        ray_origin.x() = x + 1e-9;
+        for (double y = minV.y(); y < maxV.y(); y += delta) {
+            ray_origin.y() = y + 1e-9;
+            for (double z = minV.z(); z < maxV.z(); z += delta) {
+                ray_origin.z() = z + 1e-9;
 
-                            //Find vectors for two edges sharing V1
-                            edge1 = v2 - v1;
-                            edge2 = v3 - v1;
+                ChVector<> ray_dir[2] = {ChVector<>(5, 0.5, 0.25), ChVector<>(-3, 0.7, 10)};
+                int intersectCounter[2] = {0, 0};
 
-                            //Begin calculating determinant - also used to calculate uu parameter
-                            pvec = Vcross(dir, edge2);
-                            //if determinant is near zero, ray lies in plane of triangle or ray is parallel to plane of triangle
-                            det = Vdot(edge1, pvec);
-                            //NOT CULLING
-                            if(det > -EPSI && det < EPSI){
-                                if(j==0){t_inter1 = 0;}
-                                if(j==1){t_inter2 = 0;}
-                                continue;
-                            } 
-                            inv_det = 1.0 / det;
+                for (unsigned int i = 0; i < mesh.m_face_v_indices.size(); ++i) {
+                    auto& t_face = mesh.m_face_v_indices[i];
+                    auto& v1 = mesh.m_vertices[t_face.x()];
+                    auto& v2 = mesh.m_vertices[t_face.y()];
+                    auto& v3 = mesh.m_vertices[t_face.z()];
 
-                            //calculate distance from V1 to ray origin
-                            tvec =  orig - v1;
+                    // Find vectors for two edges sharing V1
+                    auto edge1 = v2 - v1;
+                    auto edge2 = v3 - v1;
 
-                            //Calculate uu parameter and test bound
-                            uu = Vdot(tvec, pvec) * inv_det;
-                            //The intersection lies outside of the triangle
-                            if(uu < 0.0 || uu > 1.0) {
-                                if(j==0){t_inter1 = 0;}
-                                if(j==1){t_inter2 = 0;}
-                                continue;
-                            }
+                    bool t_inter[2] = {false, false};
 
-                            //Prepare to test vv parameter
-                            qvec = Vcross(tvec, edge1);
+                    for (unsigned int j = 0; j < 2; j++) {
+                        // Begin calculating determinant - also used to calculate uu parameter
+                        auto pvec = Vcross(ray_dir[j], edge2);
+                        // if determinant is near zero, ray is parallel to plane of triangle
+                        double det = Vdot(edge1, pvec);
+                        // NOT CULLING
+                        if (det > -EPSI && det < EPSI) {
+                            t_inter[j] = false;
+                            continue;
+                        }
+                        double inv_det = 1.0 / det;
 
-                            //Calculate vv parameter and test bound
-                            vv = Vdot(dir, qvec) * inv_det;
-                            //The intersection lies outside of the triangle
-                            if(vv < 0.0 || ((uu + vv)  > 1.0)) {
-                                if(j==0){t_inter1 = 0;}
-                                if(j==1){t_inter2 = 0;}
-                                continue;	
-                            } 
+                        // calculate distance from V1 to ray origin
+                        auto tvec = ray_origin - v1;
 
-                            tt = Vdot(edge2, qvec) * inv_det;
-                            if(tt > EPSI) { //ray intersection
-                                if(j==0){t_inter1 = 1;}
-                                if(j==1){t_inter2 = 1;}
-                                continue;
-                            }
-
-                            // No hit, no win
-                            if(j==0){t_inter1 = 0;}
-                            if(j==1){t_inter2 = 0;}
+                        // Calculate uu parameter and test bound
+                        double uu = Vdot(tvec, pvec) * inv_det;
+                        // The intersection lies outside of the triangle
+                        if (uu < 0.0 || uu > 1.0) {
+                            t_inter[j] = false;
+                            continue;
                         }
 
-                        if(t_inter1 == 1) {intersectCounter1 += 1;}
-                        if(t_inter2 == 1) {intersectCounter2 += 1;}
+                        // Prepare to test vv parameter
+                        auto qvec = Vcross(tvec, edge1);
+
+                        // Calculate vv parameter and test bound
+                        double vv = Vdot(ray_dir[j], qvec) * inv_det;
+                        // The intersection lies outside of the triangle
+                        if (vv < 0.0 || ((uu + vv) > 1.0)) {
+                            t_inter[j] = false;
+                            continue;
+                        }
+
+                        double tt = Vdot(edge2, qvec) * inv_det;
+                        if (tt > EPSI) {  // ray intersection
+                            t_inter[j] = true;
+                            continue;
+                        }
+
+                        // No hit, no win
+                        t_inter[j] = false;
                     }
-                    if( ((intersectCounter1 % 2) == 1) && ((intersectCounter2 % 2) == 1) ) {
-                        isInsideMesh = 1;
-                    }
-                    else {
-                        isInsideMesh =  0;
-                    }
+
+                    intersectCounter[0] += t_inter[0] ? 1 : 0;
+                    intersectCounter[1] += t_inter[1] ? 1 : 0;
                 }
-                if(isInsideMesh == 1) {
-                    point_cloud.push_back(ChVector<>(x,y,z));
-                    total_num++;
-                    // printf("current number of particles is: %d \n", total_num);
-                }
-			}
-		}
-	}
-    marker_positions = point_cloud;
-    printf("total number of particles on the mesh is: %d \n", total_num);
+
+                if (((intersectCounter[0] % 2) == 1) && ((intersectCounter[1] % 2) == 1)) // inside mesh
+                    point_cloud.push_back(ChVector<>(x, y, z));
+            }
+        }
+    }
 }
 
 void ChVehicleCosimTerrainNodeGranularSPH::CreateWheelProxy() {
@@ -355,36 +317,33 @@ void ChVehicleCosimTerrainNodeGranularSPH::CreateWheelProxy() {
     double wheel_radius = 0.1;
     fsi::Real initSpace0 = m_params->MULT_INITSPACE * m_params->HSML;
     fsi::utils::AddCylinderBce(m_systemFSI->GetDataManager(), m_params, body, ChVector<>(0, 0, 0),
-                               ChQuaternion<>(1, 0, 0, 0), wheel_radius, wheel_length + initSpace0, 
-                               m_params->HSML, false);
+                               ChQuaternion<>(1, 0, 0, 0), wheel_radius, wheel_length + initSpace0, m_params->HSML,
+                               false);
 
     //// WEI TODO - will implemente the creation of BCE markers from mesh later
     // now, we can only create BCE from obj file and save the BCE to another file
     // and use AddBCE_FromFile function to load the BCE particles into FSI system
     /*
-    std::string obj_path = "./wheel_XXX.obj";
     std::vector<ChVector<>> point_cloud;
-    double particle_spacing = initSpace0;
-    AddMeshMarkers(obj_path, particle_spacing, point_cloud);
+    AddMeshMarkers(trimesh, initSpace0, point_cloud);
 
     // write the BCE particles' position into file
     std::ofstream myFileSPH;
     myFileSPH.open("./BCEparticles.txt", std::ios::trunc);
     myFileSPH.close();
     myFileSPH.open("./BCEparticles.txt", std::ios::app);
-	myFileSPH << "x" << "," << "y" << "," << "z" << "\n";
-	for (int i = 0; i < point_cloud.size(); ++i)
-	{
-		myFileSPH << point_cloud[i].x() << "," << "\t" 
-			      << point_cloud[i].y() << "," << "\t" 
-			      << point_cloud[i].z() << "," << "\n";
-	}
-	myFileSPH.close();
+    myFileSPH << "x" << "," << "y" << "," << "z" << "\n";
+    for (int i = 0; i < point_cloud.size(); ++i)
+    {
+        myFileSPH << point_cloud[i].x() << "," << "\t"
+                  << point_cloud[i].y() << "," << "\t"
+                  << point_cloud[i].z() << "," << "\n";
+    }
+    myFileSPH.close();
     // load  the BCE particles' position from file
     std::string BCE_path = "./BCEparticles.txt";
-    double scale_ratio = 1.0;
-    fsi::utils::AddBCE_FromFile(m_systemFSI->GetDataManager(), m_params, body, BCE_path, 
-                                ChVector<double>(0), QUNIT, scale_ratio);
+    fsi::utils::AddBCE_FromFile(m_systemFSI->GetDataManager(), m_params, body, BCE_path,
+                                ChVector<double>(0), QUNIT, 1.0);
     */
 
     // Construction of the FSI system must be finalized before running

@@ -301,7 +301,6 @@ int main(int argc, char** argv) {
                     break;
                 }
                 case ChVehicleCosimTerrainNode::Type::GRANULAR_SPH: {
-                    // auto method = ChContactMethod::SMC;
                     auto terrain = new ChVehicleCosimTerrainNodeGranularSPH(render);
                     std::string TerrainJsonFile = GetChronoDataFile("fsi/input_json/demo_FSI_CylinderDrop_Explicit.json");
                     terrain->SetPropertiesSPH(TerrainJsonFile, 0.1); 
@@ -311,31 +310,6 @@ int main(int argc, char** argv) {
 
                     terrain->SetPatchDimensions(10, 1);
                     terrain->SetProxyProperties(0.002, true);
-
-                    // switch (method) {
-                    //     case ChContactMethod::SMC: {
-                    //         auto material = chrono_types::make_shared<ChMaterialSurfaceSMC>();
-                    //         material->SetFriction(0.9f);
-                    //         material->SetRestitution(0.0f);
-                    //         material->SetYoungModulus(8e5f);
-                    //         material->SetPoissonRatio(0.3f);
-                    //         material->SetKn(1.0e6f);
-                    //         material->SetGn(6.0e1f);
-                    //         material->SetKt(4.0e5f);
-                    //         material->SetGt(4.0e1f);
-                    //         terrain->SetMaterialSurface(material);
-                    //         terrain->UseMaterialProperties(true);
-                    //         terrain->SetContactForceModel(ChSystemSMC::Hertz);
-                    //         break;
-                    //     }
-                    //     case ChContactMethod::NSC: {
-                    //         auto material = chrono_types::make_shared<ChMaterialSurfaceNSC>();
-                    //         material->SetFriction(0.9f);
-                    //         material->SetRestitution(0.0f);
-                    //         terrain->SetMaterialSurface(material);
-                    //         break;
-                    //     }
-                    // }
 
                     my_terrain = terrain;
                     break;
