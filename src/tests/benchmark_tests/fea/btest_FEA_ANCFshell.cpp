@@ -34,8 +34,8 @@
 #include "chrono_irrlicht/ChIrrApp.h"
 #endif
 
-#ifdef CHRONO_MKL
-#include "chrono_mkl/ChSolverMKL.h"
+#ifdef CHRONO_PARDISO_MKL
+#include "chrono_pardisomkl/ChSolverPardisoMKL.h"
 #endif
 
 #ifdef CHRONO_MUMPS
@@ -91,10 +91,10 @@ template <int N>
 ANCFshell<N>::ANCFshell(SolverType solver_type) {
     m_system = new ChSystemSMC();
     m_system->Set_G_acc(ChVector<>(0, -9.8, 0));
-    m_system->SetNumThreads(std::min(8, ChOMP::GetNumProcs()));
+    m_system->SetNumThreads(4);
 
     // Set solver parameters
-#ifndef CHRONO_MKL
+#ifndef CHRONO_PARDISO_MKL
     if (solver_type == SolverType::MKL) {
         solver_type = SolverType::MINRES;
         std::cout << "WARNING! Chrono::MKL not enabled. Forcing use of MINRES solver" << std::endl;
@@ -116,13 +116,12 @@ ANCFshell<N>::ANCFshell(SolverType solver_type) {
             solver->SetTolerance(1e-10);
             solver->EnableDiagonalPreconditioner(true);
             solver->SetVerbose(false);
-
             m_system->SetSolverForceTolerance(1e-10);
             break;
         }
         case SolverType::MKL: {
-#ifdef CHRONO_MKL
-            auto solver = chrono_types::make_shared<ChSolverMKL>();
+#ifdef CHRONO_PARDISO_MKL
+            auto solver = chrono_types::make_shared<ChSolverPardisoMKL>(4);
             solver->UseSparsityPatternLearner(false);
             solver->LockSparsityPattern(true);
             solver->SetVerbose(false);
@@ -132,7 +131,7 @@ ANCFshell<N>::ANCFshell(SolverType solver_type) {
         }
         case SolverType::MUMPS: {
 #ifdef CHRONO_MUMPS
-            auto solver = chrono_types::make_shared<ChSolverMumps>();
+            auto solver = chrono_types::make_shared<ChSolverMumps>(4);
             solver->UseSparsityPatternLearner(false);
             solver->LockSparsityPattern(true);
             solver->SetVerbose(false);
@@ -143,6 +142,7 @@ ANCFshell<N>::ANCFshell(SolverType solver_type) {
         case SolverType::SparseQR: {
             auto solver = chrono_types::make_shared<ChSolverSparseQR>();
             m_system->SetSolver(solver);
+            break;
         }
     }
 
@@ -255,7 +255,7 @@ CH_BM_SIMULATION_LOOP(ANCFshell16_SparseQR, ANCFshell_SparseQR<16>, NUM_SKIP_STE
 CH_BM_SIMULATION_LOOP(ANCFshell32_SparseQR, ANCFshell_SparseQR<32>, NUM_SKIP_STEPS, NUM_SIM_STEPS, 10);
 CH_BM_SIMULATION_LOOP(ANCFshell64_SparseQR, ANCFshell_SparseQR<64>, NUM_SKIP_STEPS, NUM_SIM_STEPS, 10);
 
-#ifdef CHRONO_MKL
+#ifdef CHRONO_PARDISO_MKL
 CH_BM_SIMULATION_LOOP(ANCFshell08_MKL, ANCFshell_MKL<8>, NUM_SKIP_STEPS, NUM_SIM_STEPS, 10);
 CH_BM_SIMULATION_LOOP(ANCFshell16_MKL, ANCFshell_MKL<16>, NUM_SKIP_STEPS, NUM_SIM_STEPS, 10);
 CH_BM_SIMULATION_LOOP(ANCFshell32_MKL, ANCFshell_MKL<32>, NUM_SKIP_STEPS, NUM_SIM_STEPS, 10);

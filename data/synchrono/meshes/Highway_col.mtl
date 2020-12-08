@@ -1,0 +1,52 @@
+# Blender MTL File: 'Highway.blend'
+# Material Count: 5
+
+newmtl Divider
+Ns 0.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.800000 0.800000
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 1
+map_Kd /home/yxiao65/Documents/SBEL_Working_Document/Blender File/photos_2015_09_18_fst_762r43zhrq5.jpg
+
+newmtl Ground
+Ns 13.555786
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.800000 0.800000
+Ks 0.200000 0.200000 0.200000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Kd /home/yxiao65/Documents/SBEL_Working_Document/Blender File/photos_2015_09_18_fst_225enwwmcif.jpg
+
+newmtl None
+Ns 500
+Ka 0.8 0.8 0.8
+Kd 0.8 0.8 0.8
+Ks 0.8 0.8 0.8
+d 1
+illum 2
+
+newmtl White_color
+Ns 323.999994
+Ka 1.000000 1.000000 1.000000
+Kd 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.000000
+d 1.000000
+illum 2
+
+newmtl Yellow_Color
+Ns 39.669109
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.646328 0.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.000000
+d 1.000000
+illum 2

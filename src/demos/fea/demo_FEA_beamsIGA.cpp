@@ -39,7 +39,7 @@
 #define USE_MKL
 
 #ifdef USE_MKL
-#include "chrono_mkl/ChSolverMKL.h"
+#include "chrono_pardisomkl/ChSolverPardisoMKL.h"
 #endif
 
 using namespace chrono;
@@ -728,7 +728,7 @@ int main(int argc, char* argv[]) {
     my_system.SetSolverForceTolerance(1e-14);
 
 #ifdef USE_MKL
-    auto mkl_solver = chrono_types::make_shared<ChSolverMKL>();
+    auto mkl_solver = chrono_types::make_shared<ChSolverPardisoMKL>();
     my_system.SetSolver(mkl_solver);
 #endif
 

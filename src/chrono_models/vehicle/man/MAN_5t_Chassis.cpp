@@ -39,7 +39,7 @@ const ChCoordsys<> MAN_5t_Chassis::m_driverCsys(ChVector<>(0.0, 0.5, 1.2), ChQua
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-MAN_5t_Chassis::MAN_5t_Chassis(const std::string& name, bool fixed, ChassisCollisionType chassis_collision_type)
+MAN_5t_Chassis::MAN_5t_Chassis(const std::string& name, bool fixed, CollisionType chassis_collision_type)
     : ChRigidChassis(name, fixed) {
     m_inertia(0, 0) = m_inertiaXX.x();
     m_inertia(1, 1) = m_inertiaXX.y();
@@ -54,8 +54,7 @@ MAN_5t_Chassis::MAN_5t_Chassis(const std::string& name, bool fixed, ChassisColli
 
     //// TODO:
     //// A more appropriate contact shape from primitives
-    ChRigidChassisGeometry::BoxShape box1(ChVector<>(0.0, 0.0, 0.1), ChQuaternion<>(1, 0, 0, 0),
-                                          ChVector<>(1.0, 0.5, 0.2));
+    ChVehicleGeometry::BoxShape box1(ChVector<>(0.0, 0.0, 0.1), ChQuaternion<>(1, 0, 0, 0), ChVector<>(1.0, 0.5, 0.2));
 
     m_geometry.m_has_primitives = true;
     m_geometry.m_vis_boxes.push_back(box1);
@@ -63,14 +62,14 @@ MAN_5t_Chassis::MAN_5t_Chassis(const std::string& name, bool fixed, ChassisColli
     m_geometry.m_has_mesh = true;
     m_geometry.m_vis_mesh_file = "MAN_Kat1/meshes/MAN_5t_chassis.obj";
 
-    m_geometry.m_has_collision = (chassis_collision_type != ChassisCollisionType::NONE);
+    m_geometry.m_has_collision = (chassis_collision_type != CollisionType::NONE);
     switch (chassis_collision_type) {
-        case ChassisCollisionType::PRIMITIVES:
+        case CollisionType::PRIMITIVES:
             box1.m_matID = 0;
             m_geometry.m_coll_boxes.push_back(box1);
             break;
-        case ChassisCollisionType::MESH: {
-            ChRigidChassisGeometry::ConvexHullsShape hull("MAN_Kat1/meshes/MAN_5t_chassis_col.obj", 0);
+        case CollisionType::HULLS: {
+            ChVehicleGeometry::ConvexHullsShape hull("MAN_Kat1/meshes/MAN_5t_chassis_col.obj", 0);
             m_geometry.m_coll_hulls.push_back(hull);
             break;
         }

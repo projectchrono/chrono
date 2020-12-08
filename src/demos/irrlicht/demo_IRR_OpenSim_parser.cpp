@@ -24,7 +24,7 @@
 
 #include "chrono_irrlicht/ChIrrApp.h"
 
-#include "chrono_thirdparty/SimpleOpt/SimpleOpt.h"
+#include "chrono_thirdparty/cxxopts/ChCLI.h"
 #include "chrono_thirdparty/rapidxml/rapidxml.hpp"
 
 #include <cassert>
@@ -40,32 +40,20 @@ using namespace rapidxml;
 
 // =============================================================================
 
-enum {
-    OPT_HELP,
-    OPT_MODEL,
-    OPT_MESH,
-    OPT_COLLIDE
-};
-
-CSimpleOptA::SOption g_options[] = {{OPT_MODEL, "--model", SO_REQ_CMB},
-                                    {OPT_MESH, "--render-meshes", SO_NONE},
-                                    {OPT_COLLIDE, "--collide", SO_NONE},
-                                    {OPT_HELP, "--help", SO_NONE},
-                                    SO_END_OF_OPTIONS};
-
-void ShowUsage();
-bool GetProblemSpecs(int argc, char** argv, std::string& model, bool& mesh, bool& collide);
-
-// =============================================================================
-
 int main(int argc, char* argv[]) {
-    // Parse arguments
-    std::string filename("opensim/double_pendulum.osim");
-    bool mesh = false;
-    bool collide = false;
-    if (!GetProblemSpecs(argc, argv, filename, mesh, collide)) {
+    ChCLI cli(argv[0]);
+
+    cli.AddOption<std::string>("Demo", "f,model_filename", "OpenSim model filename", "opensim/double_pendulum.osim");
+    cli.AddOption<bool>("Demo", "r,render_meshes", "Render visualization meshes", "false");
+    cli.AddOption<bool>("Demo", "c,collide", "Enable collision", "false");
+
+    if (!cli.Parse(argc, argv, true))
         return 1;
-    }
+
+    std::string filename = cli.GetAsType<std::string>("model_filename");
+    const bool mesh = cli.GetAsType<bool>("render_meshes");
+    const bool collide = cli.GetAsType<bool>("collide");
+
     filename = GetChronoDataFile(filename);
     ChParserOpenSim::VisType vis_type = mesh ? ChParserOpenSim::VisType::MESH : ChParserOpenSim::VisType::PRIMITIVES;
 
@@ -91,7 +79,7 @@ int main(int argc, char* argv[]) {
     rep.Print();
     std::cout << "---------" << std::endl;
 
-     ////my_system.GetSolver()->SetTolerance(1e-4);
+    ////my_system.GetSolver()->SetTolerance(1e-4);
 
     // Find the actuator named "grav" and directly set its excitation function
     ////if (auto force = rep.GetForce("grav")) {
@@ -138,53 +126,4 @@ int main(int argc, char* argv[]) {
         application.EndScene();
     }
     return 0;
-}
-
-// =============================================================================
-
-void ShowUsage() {
-    std::cout << "Usage:  demo_IRR_OpenSim_parser [OPTIONS]" << std::endl;
-    std::cout << std::endl;
-    std::cout << " --model=FILENAME" << std::endl;
-    std::cout << "        OpenSim model filename [default: \"opensim/double_pendulum.osim\"]" << std::endl;
-    std::cout << " --render-meshes" << std::endl;
-    std::cout << "        Use visualization meshes [default: PRIMITIVES]" << std::endl;
-    std::cout << " --collide" << std::endl;
-    std::cout << "        Enable collision [default: disabled]" << std::endl;
-    std::cout << " --help" << std::endl;
-    std::cout << "        Print this message and exit." << std::endl;
-    std::cout << std::endl;
-}
-
-bool GetProblemSpecs(int argc, char** argv, std::string& model, bool& mesh, bool& collide) {
-    // Create the option parser and pass it the program arguments and the array of valid options.
-    CSimpleOptA args(argc, argv, g_options);
-
-    // Then loop for as long as there are arguments to be processed.
-    while (args.Next()) {
-        // Exit immediately if we encounter an invalid argument.
-        if (args.LastError() != SO_SUCCESS) {
-            std::cout << "Invalid argument: " << args.OptionText() << std::endl;
-            ShowUsage();
-            return false;
-        }
-
-        // Process the current argument.
-        switch (args.OptionId()) {
-            case OPT_HELP:
-                ShowUsage();
-                return false;
-            case OPT_MODEL:
-                model = args.OptionArg();
-                break;
-            case OPT_MESH:
-                mesh = true;
-                break;
-            case OPT_COLLIDE:
-                collide = true;
-                break;
-        }
-    }
-
-    return true;
 }

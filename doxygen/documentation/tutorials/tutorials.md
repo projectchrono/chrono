@@ -78,6 +78,10 @@ auto my_body = chrono_types::make_shared<ChBody>();
 
     Examples of modeling and simulating sensor for robots and autonomous vehicles in Chrono.
 
+-   @subpage tutorial_table_of_content_chrono_synchrono
+
+    Examples of MPI-parallelized simulation of autonomous vehicles and robots.
+
 
 ## Other tools
 

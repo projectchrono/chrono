@@ -1,0 +1,28 @@
+{
+  "Name": "MAN 8WD",
+  "Type": "Vehicle",
+
+  "Vehicle": {
+    "Input File": "MAN_Kat1/vehicle/MAN_10t_Vehicle_8WD.json",
+    "Chassis Visualization Type": "Mesh",
+    "Suspension Visualization Type": "Primitives",
+    "Steering Visualization Type": "Primitives",
+    "Wheel Visualization Type": "Mesh"
+  },
+
+  "Powertrain": {
+    "Input File": "MAN_Kat1/powertrain/MAN_7t_SimpleCVTPowertrain.json"
+  },
+
+  "Tire": {
+    "Input File": "MAN_Kat1/tire/MAN_5t_TMeasyTire.json",
+    "Visualization Type": "Mesh"
+  },
+
+  "Zombie": {
+    "Chassis Visualization File": "MAN_Kat1/meshes/MAN_10t_chassis.obj",
+    "Wheel Visualization File": "MAN_Kat1/meshes/MAN_rim.obj",
+    "Tire Visualization File": "MAN_Kat1/meshes/MAN_tire.obj",
+    "Number Of Wheels": 8
+  }
+}

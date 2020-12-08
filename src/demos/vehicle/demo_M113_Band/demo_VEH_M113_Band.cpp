@@ -36,8 +36,8 @@
 #include "chrono_mumps/ChSolverMumps.h"
 #endif
 
-#ifdef CHRONO_MKL
-#include "chrono_mkl/ChSolverMKL.h"
+#ifdef CHRONO_PARDISO_MKL
+#include "chrono_pardisomkl/ChSolverPardisoMKL.h"
 #endif
 
 #include "chrono_thirdparty/filesystem/path.h"
@@ -68,9 +68,8 @@ double t_end = 1.0;
 // Simulation step size
 double step_size = 1e-4;
 
-// Linear solver
-enum SolverType { MUMPS, MKL };
-SolverType solver_type = MUMPS;
+// Linear solver (MUMPS or PARDISO_MKL)
+ChSolver::Type solver_type = ChSolver::Type::MUMPS;
 
 // Time interval between two render frames
 double render_step_size = 1.0 / 50;  // FPS = 50
@@ -116,7 +115,7 @@ int main(int argc, char* argv[]) {
     // Construct the M113 vehicle
     // --------------------------
 
-    ChassisCollisionType chassis_collision_type = ChassisCollisionType::PRIMITIVES;
+    CollisionType chassis_collision_type = CollisionType::PRIMITIVES;
     M113_Vehicle vehicle(false, TrackShoeType::BAND_BUSHING, BrakeType::SIMPLE, ChContactMethod::SMC, chassis_collision_type);
 
     // Disable gravity in this simulation
@@ -280,18 +279,18 @@ int main(int argc, char* argv[]) {
     // Solver and integrator settings
     // ------------------------------
 
-#ifndef CHRONO_MKL
-    if (solver_type == MKL)
-        solver_type = MUMPS;
+#ifndef CHRONO_PARDISO_MKL
+    if (solver_type == ChSolver::Type::MKL)
+        solver_type = ChSolver::Type::MUMPS;
 #endif
 #ifndef CHRONO_MUMPS
-    if (solver_type == MUMPS)
-        solver_type = MKL;
+    if (solver_type == ChSolver::Type::MUMPS)
+        solver_type = ChSolver::Type::PARDISO_MKL;
 #endif
 
     switch (solver_type) {
 #ifdef CHRONO_MUMPS
-        case MUMPS: {
+        case ChSolver::Type::MUMPS : {
             auto mumps_solver = chrono_types::make_shared<ChSolverMumps>();
             mumps_solver->LockSparsityPattern(true);
             mumps_solver->SetVerbose(verbose_solver);
@@ -299,9 +298,9 @@ int main(int argc, char* argv[]) {
             break;
         }
 #endif
-#ifdef CHRONO_MKL
-        case MKL: {
-            auto mkl_solver = chrono_types::make_shared<ChSolverMKL>();
+#ifdef CHRONO_PARDISO_MKL
+        case ChSolver::Type::PARDISO_MKL : {
+            auto mkl_solver = chrono_types::make_shared<ChSolverPardisoMKL>();
             mkl_solver->LockSparsityPattern(true);
             mkl_solver->SetVerbose(verbose_solver);
             vehicle.GetSystem()->SetSolver(mkl_solver);
