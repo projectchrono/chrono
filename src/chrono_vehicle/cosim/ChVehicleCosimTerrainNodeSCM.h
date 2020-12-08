@@ -28,9 +28,11 @@
 
 namespace chrono {
 
+#ifdef CHRONO_IRRLICHT
 namespace irrlicht {
 class ChIrrApp;
 }
+#endif
 
 namespace vehicle {
 
@@ -67,7 +69,9 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeSCM : public ChVehicleCosimTerrain
   private:
     ChSystem* m_system;               ///< containing system
     SCMDeformableTerrain* m_terrain;  ///< SCM terrain
+#ifdef CHRONO_IRRLICHT
     irrlicht::ChIrrApp* m_irrapp;     ///< Irrlicht run-time visualizatino
+#endif
 
     double m_spacing;        ///< SCM grid spacing
     double m_Bekker_Kphi;    ///< Kphi, frictional modulus in Bekker model

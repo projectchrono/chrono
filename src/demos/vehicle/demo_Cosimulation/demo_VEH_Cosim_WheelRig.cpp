@@ -33,7 +33,7 @@
 
 #include "chrono_vehicle/cosim/ChVehicleCosimRigNode.h"
 #include "chrono_vehicle/cosim/ChVehicleCosimTerrainNodeRigid.h"
-// #include "chrono_vehicle/cosim/ChVehicleCosimTerrainNodeSCM.h"
+#include "chrono_vehicle/cosim/ChVehicleCosimTerrainNodeSCM.h"
 #include "chrono_vehicle/cosim/ChVehicleCosimTerrainNodeGranularOMP.h"
 #include "chrono_vehicle/cosim/ChVehicleCosimTerrainNodeGranularSPH.h"
 
