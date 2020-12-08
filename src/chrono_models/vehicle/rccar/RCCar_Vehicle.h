@@ -50,9 +50,9 @@ namespace rccar {
 /// RCCar vehicle system.
 class CH_MODELS_API RCCar_Vehicle : public ChWheeledVehicle {
   public:
-    RCCar_Vehicle(const bool fixed, ChContactMethod contact_method, ChassisCollisionType chassis_collision_type);
+    RCCar_Vehicle(const bool fixed, ChContactMethod contact_method, CollisionType chassis_collision_type);
 
-    RCCar_Vehicle(ChSystem* system, const bool fixed, ChassisCollisionType chassis_collision_type);
+    RCCar_Vehicle(ChSystem* system, const bool fixed, CollisionType chassis_collision_type);
 
     ~RCCar_Vehicle();
 
@@ -82,7 +82,7 @@ class CH_MODELS_API RCCar_Vehicle : public ChWheeledVehicle {
     void DebugLog(int what);       /// shock forces and lengths, constraints, etc.
 
   private:
-    void Create(bool fixed, ChassisCollisionType chassis_collision_type);
+    void Create(bool fixed, CollisionType chassis_collision_type);
 
     std::vector<double> m_omega;
 };

@@ -41,7 +41,7 @@ namespace sedan {
 Sedan_Vehicle::Sedan_Vehicle(const bool fixed,
                              BrakeType brake_type,
                              ChContactMethod contact_method,
-                             ChassisCollisionType chassis_collision_type)
+                             CollisionType chassis_collision_type)
     : ChWheeledVehicle("Sedan", contact_method), m_omega({0, 0, 0, 0}) {
     Create(fixed, brake_type, chassis_collision_type);
 }
@@ -49,12 +49,12 @@ Sedan_Vehicle::Sedan_Vehicle(const bool fixed,
 Sedan_Vehicle::Sedan_Vehicle(ChSystem* system,
                              const bool fixed,
                              BrakeType brake_type,
-                             ChassisCollisionType chassis_collision_type)
+                             CollisionType chassis_collision_type)
     : ChWheeledVehicle("Sedan", system), m_omega({0, 0, 0, 0}) {
     Create(fixed, brake_type, chassis_collision_type);
 }
 
-void Sedan_Vehicle::Create(bool fixed, BrakeType brake_type, ChassisCollisionType chassis_collision_type) {
+void Sedan_Vehicle::Create(bool fixed, BrakeType brake_type, CollisionType chassis_collision_type) {
     // Create the chassis subsystem
     m_chassis = chrono_types::make_shared<Sedan_Chassis>("Chassis", fixed, chassis_collision_type);
 

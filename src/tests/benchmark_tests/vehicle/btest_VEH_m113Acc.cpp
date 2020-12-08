@@ -64,7 +64,7 @@ template <typename EnumClass, EnumClass SHOE_TYPE>
 M113AccTest<EnumClass, SHOE_TYPE>::M113AccTest() : m_step(1e-3) {
     BrakeType brake_type = BrakeType::SIMPLE;
     ChContactMethod contact_method = ChContactMethod::NSC;
-    ChassisCollisionType chassis_collision_type = ChassisCollisionType::NONE;
+    CollisionType chassis_collision_type = CollisionType::NONE;
 
     // Create the M113 vehicle, set parameters, and initialize.
     m_m113 = new M113_Vehicle(false, SHOE_TYPE, brake_type, contact_method, chassis_collision_type);

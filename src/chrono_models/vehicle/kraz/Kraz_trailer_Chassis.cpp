@@ -41,14 +41,17 @@ Kraz_trailer_Chassis::Kraz_trailer_Chassis(const std::string& name) : ChRigidCha
     m_inertia(2, 0) = m_inertiaXY.y();
     m_inertia(2, 1) = m_inertiaXY.z();
 
-    ChRigidChassisGeometry::BoxShape box(ChVector<>(-5, 0, 1.4 + 0.7), ChQuaternion<>(1, 0, 0, 0),
-                                         ChVector<>(13.62, 2.55, 2.8));
-    ChRigidChassisGeometry::SphereShape sphere(m_COM_loc, 0.1);
+    ChVehicleGeometry::BoxShape box(ChVector<>(-5, 0, 1.4 + 0.7), ChQuaternion<>(1, 0, 0, 0),
+                                    ChVector<>(13.62, 2.55, 2.8));
+    ChVehicleGeometry::SphereShape sphere(m_COM_loc, 0.1);
 
     m_geometry.m_has_primitives = true;
     m_geometry.m_vis_boxes.push_back(box);
     m_geometry.m_vis_spheres.push_back(sphere);
-    m_geometry.m_color = ChColor(0.3f, 0.2f, 0.2f);
+
+    m_geometry.m_has_colors = true;
+    m_geometry.m_color_boxes = ChColor(0.3f, 0.2f, 0.2f);
+    m_geometry.m_color_cylinders = ChColor(0.3f, 0.2f, 0.2f);
 }
 
 }  // end namespace kraz

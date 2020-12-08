@@ -38,7 +38,7 @@ const ChCoordsys<> FMTV_ChassisFront::m_driverCsys(ChVector<>(0.4, 0.7, 1.18), C
 
 // -----------------------------------------------------------------------------
 
-FMTV_ChassisFront::FMTV_ChassisFront(const std::string& name, bool fixed, ChassisCollisionType chassis_collision_type)
+FMTV_ChassisFront::FMTV_ChassisFront(const std::string& name, bool fixed, CollisionType chassis_collision_type)
     : ChRigidChassis(name, fixed) {
     m_inertia(0, 0) = m_inertiaXX.x();
     m_inertia(1, 1) = m_inertiaXX.y();
@@ -60,8 +60,8 @@ FMTV_ChassisFront::FMTV_ChassisFront(const std::string& name, bool fixed, Chassi
     double widthFrame = 0.905;
     double heightFrame = 0.2;
     ChVector<> frontBoxPos((1.0 + joint_pos_x) / 2, 0, joint_pos_z);
-    ChRigidChassisGeometry::BoxShape box(frontBoxPos, ChQuaternion<>(1, 0, 0, 0),
-                                         ChVector<>(1.0 - joint_pos_x, widthFrame, heightFrame));
+    ChVehicleGeometry::BoxShape box(frontBoxPos, ChQuaternion<>(1, 0, 0, 0),
+                                    ChVector<>(1.0 - joint_pos_x, widthFrame, heightFrame));
 
     m_geometry.m_has_primitives = true;
     m_geometry.m_vis_boxes.push_back(box);
@@ -69,11 +69,11 @@ FMTV_ChassisFront::FMTV_ChassisFront(const std::string& name, bool fixed, Chassi
     m_geometry.m_has_mesh = true;
     m_geometry.m_vis_mesh_file = "mtv/meshes/m1078_front.obj";
 
-    m_geometry.m_has_collision = (chassis_collision_type != ChassisCollisionType::NONE);
+    m_geometry.m_has_collision = (chassis_collision_type != CollisionType::NONE);
     switch (chassis_collision_type) {
-        case ChassisCollisionType::MESH:
+        case CollisionType::HULLS:
             // For now, fall back to using primitive collision shapes
-        case ChassisCollisionType::PRIMITIVES:
+        case CollisionType::PRIMITIVES:
             box.m_matID = 0;
             m_geometry.m_coll_boxes.push_back(box);
             break;

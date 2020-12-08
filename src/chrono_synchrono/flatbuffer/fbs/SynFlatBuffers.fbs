@@ -1,0 +1,49 @@
+// =============================================================================
+// PROJECT CHRONO - http://projectchrono.org
+//
+// Copyright (c) 2020 projectchrono.org
+// All rights reserved.
+//
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
+//
+// =============================================================================
+// Authors: Aaron Young
+// =============================================================================
+//
+// "Root" scheme file for all flatbuffer messages. The overall type here is just
+// a vector of messages that are of a particular type, type being the state for
+// any of the other schemas. We also communicate the sending rank.
+//
+// =============================================================================
+
+include "Agent.fbs";
+include "SPAT.fbs";
+include "MAP.fbs";
+include "Terrain.fbs";
+include "Sensor.fbs";
+include "Approach.fbs";
+
+namespace SynFlatBuffers;
+
+union Type { 
+  Agent.State,
+  Agent.Description, 
+  SPAT.State, 
+  MAP.State, 
+  Terrain.State, 
+  Sensor.State,
+  Approach.State
+}
+
+table Buffer {
+  buffer:[Message];
+}
+
+table Message {
+  message:Type;
+  rank:uint;
+}
+
+root_type Buffer;

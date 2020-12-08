@@ -24,6 +24,8 @@
 #include "chrono_cascade/ChCascadeDoc.h"
 #include "chrono_cascade/ChCascadeShapeAsset.h"
 #include "chrono_irrlicht/ChIrrApp.h"
+#include "chrono/solver/ChSolverADMM.h"
+#include "chrono/assets/ChColorAsset.h"
 
 // Use the namespace of Chrono
 using namespace chrono;
@@ -49,6 +51,11 @@ int main(int argc, char* argv[]) {
     //    will be handled by this ChSystemNSC object.
     ChSystemNSC my_system;
 
+    // Create a surface material to be used for collisions, if any
+    auto mysurfmaterial = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    mysurfmaterial->SetFriction(0.3f);
+    mysurfmaterial->SetRestitution(0);
+
     // Create the Irrlicht visualization (open the Irrlicht device,
     // bind a simple user interface, etc. etc.)
     ChIrrApp application(&my_system, L"Load a robot model from STEP file", core::dimension2d<u32>(800, 600), false,
@@ -59,7 +66,7 @@ int main(int argc, char* argv[]) {
     ChIrrWizard::add_typical_Sky(application.GetDevice());
     ChIrrWizard::add_typical_Lights(application.GetDevice(), core::vector3df(30, 100, 30),
                                     core::vector3df(30, -80, -30), 200, 130);
-    ChIrrWizard::add_typical_Camera(application.GetDevice(), core::vector3df(0.2f, 1.6f, -3.5f),
+    ChIrrWizard::add_typical_Camera(application.GetDevice(), core::vector3df(0.2f, 1.6f, 3.5f),
                                     core::vector3df(0.0f, 1.0f, 0.0f));
 
     //
@@ -177,6 +184,15 @@ int main(int argc, char* argv[]) {
             my_system.Add(mrigidBody_hand);
             // Move the body as for global displacement/rotation
             mrigidBody_hand->ConcatenatePreTransformation(root_frame);
+
+            // also create a collision shape attached to the hand:
+            auto mcube = chrono_types::make_shared<ChBodyEasyBox>(0.2, 0.08, 0.08, 1000, true, true, mysurfmaterial);
+            mcube->SetCoord(ChCoordsys<>(ChVector<>(0.1,0,0)) >> mrigidBody_hand->GetCoord());
+            my_system.Add(mcube);
+            auto mcubelink = chrono_types::make_shared<ChLinkLockLock>();
+            mcubelink->Initialize(mcube, mrigidBody_hand, mcube->GetCoord());
+            my_system.Add(mcubelink);
+           
         } else
             GetLog() << "Warning. Desired object not found in document \n";
 
@@ -206,6 +222,12 @@ int main(int argc, char* argv[]) {
     if (!mrigidBody_base || !mrigidBody_turret || !mrigidBody_bicep || !mrigidBody_elbow || !mrigidBody_forearm ||
         !mrigidBody_wrist || !mrigidBody_hand) {
         return 1;
+    }
+
+    // add color to created bodies
+    for (auto mbody : my_system.Get_bodylist()) {
+        auto mcol = chrono_types::make_shared<ChColorAsset>(1.0f,0.5f,0.0f);
+        mbody->AddAsset(mcol);
     }
 
     // Create joints between two parts.
@@ -381,10 +403,24 @@ int main(int argc, char* argv[]) {
 
     // Create a large cube as a floor.
 
-    std::shared_ptr<ChBodyEasyBox> mfloor(new ChBodyEasyBox(6, 1, 6, 1000, true, true));
+    std::shared_ptr<ChBodyEasyBox> mfloor(new ChBodyEasyBox(8, 1, 8, 1000, true, true, mysurfmaterial));
     mfloor->SetPos(ChVector<>(0, -0.5, 0));
     my_system.Add(mfloor);
     mfloor->SetBodyFixed(true);
+
+    // Create a stack of boxes to be impacted  
+    if (true) {
+        double brick_h = 0.3;
+        for (int ix = 0; ix < 3; ++ix)  
+        for (int ib = 0; ib < 6; ++ib) {
+            std::shared_ptr<ChBodyEasyBox> mcube(new ChBodyEasyBox(0.4, brick_h, 0.4, 1000, true, true, mysurfmaterial));
+            mcube->SetPos(ChVector<>(-1.4, (0.5*brick_h)+ib*brick_h, -0.4 -0.5*ix));
+            mcube->SetRot(Q_from_AngAxis(ib*0.1,VECT_Y));
+            my_system.Add(mcube);
+            auto mcol = chrono_types::make_shared<ChColorAsset>(0.5f+float(0.5*ChRandom()), 0.5f+float(0.5*ChRandom()), 0.5f+float(0.5*ChRandom()));
+            mcube->AddAsset(mcol);
+        }
+    }
 
     std::shared_ptr<ChTexture> mtexture(new ChTexture(GetChronoDataFile("blu.png").c_str()));
     mfloor->AddAsset(mtexture);
@@ -409,8 +445,20 @@ int main(int argc, char* argv[]) {
     // 'teaching mode' IK.
     // So switch to a more precise solver, ex. BARZILAIBORWEIN
 
+    
     my_system.SetSolverType(ChSolver::Type::BARZILAIBORWEIN);
-    my_system.SetSolverMaxIterations(120);
+    my_system.SetSolverMaxIterations(200);
+    
+    /*
+    // Alternative: the ADMM solver offers higher precision and it can also support FEA + nonsmooth contacts 
+    auto solver = chrono_types::make_shared<ChSolverADMM>(); //faster, if MKL enabled: chrono_types::make_shared<ChSolverPardisoMKL>());
+    solver->EnableWarmStart(true);
+    solver->SetMaxIterations(60);
+    solver->SetRho(1);
+    solver->SetSigma(1e-8);
+    solver->SetStepAdjustPolicy(ChSolverADMM::AdmmStepType::BALANCED_UNSCALED);
+    my_system.SetSolver(solver);
+    */
 
     //
     // THE SOFT-REAL-TIME CYCLE, SHOWING THE SIMULATION

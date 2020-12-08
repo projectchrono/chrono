@@ -79,7 +79,8 @@ void ChTrackShoeDoublePin::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     CreateContactMaterials(sys->GetContactMethod());
 
     // Add contact geometry on shoe body
-    AddShoeContact();
+    m_geometry.AddCollisionShapes(m_shoe, TrackedCollisionFamily::SHOES);
+    m_shoe->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(TrackedCollisionFamily::SHOES);
 }
 
 void ChTrackShoeDoublePin::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
@@ -115,21 +116,21 @@ double ChTrackShoeDoublePin::GetPitch() const {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChTrackShoeDoublePin::AddVisualizationAssets(VisualizationType vis) {
-    if (vis == VisualizationType::NONE)
-        return;
-
-    AddShoeVisualization();
-    AddConnectorVisualization(m_connector_L);
-    AddConnectorVisualization(m_connector_R);
+    ChTrackShoeSegmented::AddVisualizationAssets(vis);
+    AddConnectorVisualization(m_connector_L, vis);
+    AddConnectorVisualization(m_connector_R, vis);
 }
 
 void ChTrackShoeDoublePin::RemoveVisualizationAssets() {
-    m_shoe->GetAssets().clear();
+    ChTrackShoeSegmented::RemoveVisualizationAssets();
     m_connector_L->GetAssets().clear();
     m_connector_R->GetAssets().clear();
 }
 
-void ChTrackShoeDoublePin::AddConnectorVisualization(std::shared_ptr<ChBody> connector) {
+void ChTrackShoeDoublePin::AddConnectorVisualization(std::shared_ptr<ChBody> connector, VisualizationType vis) {
+    if (vis == VisualizationType::NONE)
+        return;
+
     double c_length = GetConnectorLength();
     double c_width = GetConnectorWidth();
     double c_radius = GetConnectorRadius();

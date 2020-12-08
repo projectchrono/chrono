@@ -55,7 +55,7 @@ class CH_MODELS_API RCCar {
     void SetContactMethod(ChContactMethod val) { m_contactMethod = val; }
 
     void SetChassisFixed(bool val) { m_fixed = val; }
-    void SetChassisCollisionType(ChassisCollisionType val) { m_chassisCollisionType = val; }
+    void SetChassisCollisionType(CollisionType val) { m_chassisCollisionType = val; }
 
     void SetTireType(TireModelType val) { m_tireType = val; }
 
@@ -92,7 +92,7 @@ class CH_MODELS_API RCCar {
 
   protected:
     ChContactMethod m_contactMethod;
-    ChassisCollisionType m_chassisCollisionType;
+    CollisionType m_chassisCollisionType;
     bool m_fixed;
 
     TireModelType m_tireType;
