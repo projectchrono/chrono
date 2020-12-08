@@ -280,7 +280,7 @@ int main(int argc, char* argv[]) {
     // ------------------------------
 
 #ifndef CHRONO_PARDISO_MKL
-    if (solver_type == ChSolver::Type::MKL)
+    if (solver_type == ChSolver::Type::PARDISO_MKL)
         solver_type = ChSolver::Type::MUMPS;
 #endif
 #ifndef CHRONO_MUMPS
