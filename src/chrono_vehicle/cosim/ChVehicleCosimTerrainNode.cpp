@@ -93,7 +93,7 @@ void ChVehicleCosimTerrainNode::Initialize() {
 
     // This includes the terrain height and the container half-length.
     // Note: take into account dimension of proxy bodies
-    double init_dim[2] = {m_init_height + m_radius_p, m_hdimX};
+    double init_dim[2] = {m_init_height + 0.05, m_hdimX};
     MPI_Send(init_dim, 2, MPI_DOUBLE, RIG_NODE_RANK, 0, MPI_COMM_WORLD);
 
     cout << "[Terrain node] Sent initial terrain height = " << init_dim[0] << endl;

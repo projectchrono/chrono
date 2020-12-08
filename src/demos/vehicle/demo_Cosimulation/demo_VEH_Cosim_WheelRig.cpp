@@ -62,7 +62,7 @@ std::string out_dir = GetChronoOutputPath() + "TIRE_RIG_COSIM";
 ChVehicleCosimRigNode::Type tire_type = ChVehicleCosimRigNode::Type::RIGID;
 
 // Terrain type
-ChVehicleCosimTerrainNode::Type terrain_type = ChVehicleCosimTerrainNode::Type::GRANULAR_SPH;
+ChVehicleCosimTerrainNode::Type terrain_type = ChVehicleCosimTerrainNode::Type::SCM;
 
 // =============================================================================
 
@@ -115,7 +115,7 @@ int main(int argc, char** argv) {
     bool use_checkpoint = false;
     bool output = true;
     bool render = true;
-    double sys_mass = 4.5;
+    double sys_mass = 200;
     std::string suffix = "";
     if (!GetProblemSpecs(argc, argv, rank, nthreads_rig, nthreads_terrain, sim_time, init_vel, slip, coh_pressure,
                          sys_mass, use_checkpoint, output, render, suffix)) {
@@ -308,7 +308,6 @@ int main(int argc, char** argv) {
                     cout << "[Terrain node] output directory: " << terrain->GetOutDirName() << endl;
 
                     terrain->SetPatchDimensions(10, 1);
-                    terrain->SetProxyProperties(0.001, true);
 
                     double radius = 0.02; // radius of granular particles
                     double density = 2500; // density of the granular material

@@ -52,10 +52,12 @@ namespace vehicle {
 // - create the Irrlicht visualization window
 // -----------------------------------------------------------------------------
 ChVehicleCosimTerrainNodeSCM::ChVehicleCosimTerrainNodeSCM(bool render, int num_threads)
-    : ChVehicleCosimTerrainNode(Type::SCM, ChContactMethod::SMC, render),
-      m_use_checkpoint(false),
-      m_irrapp(nullptr) {
+    : ChVehicleCosimTerrainNode(Type::SCM, ChContactMethod::SMC, render), m_use_checkpoint(false) {
     cout << "[Terrain node] SCM " << endl;
+
+#ifdef CHRONO_IRRLICHT
+    m_irrapp = nullptr;
+#endif
 
     // Create system and set default method-specific solver settings
     m_system = new ChSystemSMC;
@@ -82,7 +84,9 @@ ChVehicleCosimTerrainNodeSCM::ChVehicleCosimTerrainNodeSCM(bool render, int num_
 }
 
 ChVehicleCosimTerrainNodeSCM::~ChVehicleCosimTerrainNodeSCM() {
+#ifdef CHRONO_IRRLICHT
     delete m_irrapp;
+#endif
     delete m_terrain;
     delete m_system;
 }

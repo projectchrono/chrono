@@ -33,7 +33,7 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeRigid : public ChVehicleCosimTerra
   public:
     /// Create a rigid terrain subsystem.
     ChVehicleCosimTerrainNodeRigid(ChContactMethod method,  ///< contact method (penalty or complementatiry)
-                                   bool render              ///< use OpenGL rendering
+                                   bool render              ///< use run-time visualization
     );
     ~ChVehicleCosimTerrainNodeRigid();
 
