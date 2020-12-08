@@ -36,6 +36,7 @@
 #include "chrono_fsi/utils/ChUtilsGeneratorFsi.h"
 
 #include "chrono_vehicle/cosim/ChVehicleCosimTerrainNodeGranularSPH.h"
+#include "chrono_fsi/utils/ChUtilsPrintSph.cuh"
 
 #ifdef CHRONO_OPENGL
 #include "chrono_opengl/ChOpenGLWindow.h"
@@ -57,6 +58,10 @@ namespace vehicle {
 ChVehicleCosimTerrainNodeGranularSPH::ChVehicleCosimTerrainNodeGranularSPH(bool render)
     : ChVehicleCosimTerrainNode(Type::GRANULAR_SPH, ChContactMethod::SMC, render), m_depth(0) {
     cout << "[Terrain node] GRANULAR_SPH " << endl;
+
+    // Default granular material properties
+    m_radius_g = 0.01;
+    m_rho_g = 2000;
 
     // Create systems
     m_system = new ChSystemSMC;
@@ -84,6 +89,11 @@ ChVehicleCosimTerrainNodeGranularSPH::~ChVehicleCosimTerrainNodeGranularSPH() {
     delete m_system;
 }
 
+void ChVehicleCosimTerrainNodeGranularSPH::SetGranularMaterial(double radius, double density) {
+    m_radius_g = radius;
+    m_rho_g = density;
+}
+
 void ChVehicleCosimTerrainNodeGranularSPH::SetPropertiesSPH(const std::string& filename, double depth) {
     m_depth = depth;
 
@@ -100,18 +110,42 @@ void ChVehicleCosimTerrainNodeGranularSPH::SetPropertiesSPH(const std::string& f
 // - set m_init_height
 // -----------------------------------------------------------------------------
 void ChVehicleCosimTerrainNodeGranularSPH::Construct() {
-    // Domain size
-    fsi::Real bxDim = (fsi::Real)(2 * m_hdimX);
-    fsi::Real byDim = (fsi::Real)(2 * m_hdimY);
-    fsi::Real bzDim = (fsi::Real)(1.25 * m_depth);
+    // Reload simulation parameters to FSI system
+    m_params->dT = GetStepSize();
+    m_params->dT_Flex = m_params->dT;
+    m_params->dT_Max = m_params->dT;
+    m_params->tFinal = GetTotalSimTime();
+
+    // Reload physical parameters to FSI system
+    m_params->gravity.z = m_gacc;
+    m_params->rho0 = m_rho_g;
+    m_params->Cs = sqrt(m_params->K_bulk / m_params->rho0);
+    m_params->HSML = 2 * m_radius_g;
+    m_params->MULT_INITSPACE = 2 * m_radius_g / m_params->HSML;
+    // m_params->mu_fric_s = 
+    
+    // Reload the size of the fluid container to FSI system
+    m_params->boxDimX = (fsi::Real)(2 * m_hdimX);
+    m_params->boxDimY = (fsi::Real)(2 * m_hdimY);
+    m_params->boxDimZ = (fsi::Real)(1.25 * m_depth);
+
+    // Reload size of the fluid domain to FSI system
+    m_params->fluidDimX = (fsi::Real)(2 * m_hdimX);
+    m_params->fluidDimY = (fsi::Real)(2 * m_hdimY);
+    m_params->fluidDimZ = (fsi::Real)(1 * m_depth);
+
+    // Set initial height for the granular material terrain
+    m_init_height = m_params->fluidDimZ;
+
+    // Dimension of the fluid container (bxDim x byDim x bzDim)
+    fsi::Real bxDim = m_params->boxDimX;
+    fsi::Real byDim = m_params->boxDimY;
+    fsi::Real bzDim = m_params->boxDimZ;
 
     // Set up the periodic boundary condition (if not, set relative larger values)
     fsi::Real initSpace0 = m_params->MULT_INITSPACE * m_params->HSML;
-    m_params->boxDimX = bxDim;
-    m_params->boxDimY = byDim;
-    m_params->boxDimZ = bzDim;
     m_params->cMin = chrono::fsi::mR3(-bxDim / 2, -byDim / 2, -bzDim - 10 * initSpace0) * 10;
-    m_params->cMax = chrono::fsi::mR3(bxDim / 2, byDim / 2, bzDim + 10 * initSpace0) * 10;
+    m_params->cMax = chrono::fsi::mR3( bxDim / 2,  byDim / 2,  bzDim + 10 * initSpace0) * 10;
 
     // Set the time integration type and the linear solver type (only for ISPH)
     m_systemFSI->SetFluidDynamics(m_params->fluid_dynamic_type);
@@ -120,13 +154,12 @@ void ChVehicleCosimTerrainNodeGranularSPH::Construct() {
     // Call FinalizeDomain to setup the binning for neighbor search
     fsi::utils::FinalizeDomain(m_params);
 
-    // Create the fluid particles...
-    // Fluid domain:  bxDim x byDim x m_depth
-    // Dimension of the fluid domain
+    // Dimension of the fluid region (fxDim x fyDim x fzDim)
     fsi::Real fxDim = m_params->fluidDimX;
     fsi::Real fyDim = m_params->fluidDimY;
     fsi::Real fzDim = m_params->fluidDimZ;
-    // Create Fluid region and discretize with SPH particles
+
+    // Create fluid region and discretize with SPH particles
     ChVector<> boxCenter(0.0, 0.0, fzDim / 2);
     ChVector<> boxHalfDim(fxDim / 2, fyDim / 2, fzDim / 2);
 
@@ -138,8 +171,8 @@ void ChVehicleCosimTerrainNodeGranularSPH::Construct() {
     int numPart = (int)points.size();
     for (int i = 0; i < numPart; i++) {
         // Calculate the pressure of a steady state (p = rho*g*h)
-        Real pre_ini = m_params->rho0 * abs(m_params->gravity.z) * (-points[i].z() + fzDim);
-        Real rho_ini = m_params->rho0 + pre_ini / (m_params->Cs * m_params->Cs);
+        fsi::Real pre_ini = m_params->rho0 * abs(m_params->gravity.z) * (-points[i].z() + fzDim);
+        fsi::Real rho_ini = m_params->rho0 + pre_ini / (m_params->Cs * m_params->Cs);
         m_systemFSI->GetDataManager()->AddSphMarker(
             fsi::mR4(points[i].x(), points[i].y(), points[i].z(), m_params->HSML), fsi::mR3(1e-10),
             fsi::mR4(rho_ini, pre_ini, m_params->mu0, -1));
@@ -154,10 +187,7 @@ void ChVehicleCosimTerrainNodeGranularSPH::Construct() {
     m_systemFSI->GetDataManager()->fsiGeneralData->referenceArray.push_back(fsi::mI4(0, numPart, -1, -1));
     m_systemFSI->GetDataManager()->fsiGeneralData->referenceArray.push_back(fsi::mI4(numPart, numPart, 0, 0));
 
-    //// RADU TODO - this function must set m_init_height!
-    m_init_height = fzDim;
-
-    // Create container body
+    // Create a body for the fluid container body
     auto container = std::shared_ptr<ChBody>(m_system->NewBody());
     m_system->AddBody(container);
     container->SetIdentifier(-1);
@@ -166,7 +196,6 @@ void ChVehicleCosimTerrainNodeGranularSPH::Construct() {
     container->SetCollide(false);
 
     // Create the geometry of the boundaries
-
     // Bottom and Top wall - size and position
     ChVector<> size_XY(bxDim / 2 + 3 * initSpace0, byDim / 2 + 3 * initSpace0, 2 * initSpace0);
     ChVector<> pos_zp(0, 0, bzDim + 1 * initSpace0);
@@ -183,7 +212,6 @@ void ChVehicleCosimTerrainNodeGranularSPH::Construct() {
     ChVector<> pos_yn(0, -byDim / 2 - 3 * initSpace0, bzDim / 2 + 0 * initSpace0);
 
     // Add BCE particles attached on the walls into FSI system
-    fsi::utils::AddBoxBce(m_systemFSI->GetDataManager(), m_params, container, pos_zp, chrono::QUNIT, size_XY, 12);
     fsi::utils::AddBoxBce(m_systemFSI->GetDataManager(), m_params, container, pos_zn, chrono::QUNIT, size_XY, 12);
     fsi::utils::AddBoxBce(m_systemFSI->GetDataManager(), m_params, container, pos_xp, chrono::QUNIT, size_YZ, 23);
     fsi::utils::AddBoxBce(m_systemFSI->GetDataManager(), m_params, container, pos_xn, chrono::QUNIT, size_YZ, 23);
@@ -374,13 +402,11 @@ void ChVehicleCosimTerrainNodeGranularSPH::GetForceWheelProxy() {
 // -----------------------------------------------------------------------------
 
 void ChVehicleCosimTerrainNodeGranularSPH::Advance(double step_size) {
-    //// RADU TODO:  correlate m_step_size with m_params->dT
-
     m_timer.reset();
     m_timer.start();
     double t = 0;
     while (t < step_size) {
-        double h = std::min<>(m_params->dT, step_size - t);
+        double h = std::min<>(m_step_size, step_size - t);
         m_systemFSI->DoStepDynamics_FSI();
         t += h;
     }
@@ -407,7 +433,14 @@ void ChVehicleCosimTerrainNodeGranularSPH::Advance(double step_size) {
 // -----------------------------------------------------------------------------
 
 void ChVehicleCosimTerrainNodeGranularSPH::OutputTerrainData(int frame) {
-    //// TODO
+    // Save SPH and BCE particles' information into CSV files
+    fsi::utils::PrintToFile(m_systemFSI->GetDataManager()->sphMarkersD2->posRadD,
+                            m_systemFSI->GetDataManager()->sphMarkersD2->velMasD,
+                            m_systemFSI->GetDataManager()->sphMarkersD2->rhoPresMuD,
+                            m_systemFSI->GetDataManager()->fsiGeneralData->sr_tau_I_mu_i,
+                            m_systemFSI->GetDataManager()->fsiGeneralData->referenceArray,
+                            m_systemFSI->GetDataManager()->fsiGeneralData->referenceArray_FEA, 
+                            m_node_out_dir, true);
 }
 
 // -----------------------------------------------------------------------------

@@ -33,7 +33,7 @@
 
 #include "chrono_vehicle/cosim/ChVehicleCosimRigNode.h"
 #include "chrono_vehicle/cosim/ChVehicleCosimTerrainNodeRigid.h"
-#include "chrono_vehicle/cosim/ChVehicleCosimTerrainNodeSCM.h"
+// #include "chrono_vehicle/cosim/ChVehicleCosimTerrainNodeSCM.h"
 #include "chrono_vehicle/cosim/ChVehicleCosimTerrainNodeGranularOMP.h"
 #include "chrono_vehicle/cosim/ChVehicleCosimTerrainNodeGranularSPH.h"
 
@@ -62,7 +62,7 @@ std::string out_dir = GetChronoOutputPath() + "TIRE_RIG_COSIM";
 ChVehicleCosimRigNode::Type tire_type = ChVehicleCosimRigNode::Type::RIGID;
 
 // Terrain type
-ChVehicleCosimTerrainNode::Type terrain_type = ChVehicleCosimTerrainNode::Type::GRANULAR_OMP;
+ChVehicleCosimTerrainNode::Type terrain_type = ChVehicleCosimTerrainNode::Type::GRANULAR_SPH;
 
 // =============================================================================
 
@@ -109,13 +109,13 @@ int main(int argc, char** argv) {
     int nthreads_rig = 1;
     int nthreads_terrain = 1;
     double sim_time = 10;
-    double init_vel = 2;
+    double init_vel = 0.5;
     double slip = 0;
     double coh_pressure = 8e4;
     bool use_checkpoint = false;
     bool output = true;
     bool render = true;
-    double sys_mass = 450;
+    double sys_mass = 4.5;
     std::string suffix = "";
     if (!GetProblemSpecs(argc, argv, rank, nthreads_rig, nthreads_terrain, sim_time, init_vel, slip, coh_pressure,
                          sys_mass, use_checkpoint, output, render, suffix)) {
@@ -303,13 +303,19 @@ int main(int argc, char** argv) {
                 case ChVehicleCosimTerrainNode::Type::GRANULAR_SPH: {
                     auto terrain = new ChVehicleCosimTerrainNodeGranularSPH(render);
                     std::string TerrainJsonFile = GetChronoDataFile("fsi/input_json/demo_tire_rig.json");
-                    terrain->SetPropertiesSPH(TerrainJsonFile, 0.1); 
                     terrain->SetStepSize(step_size);
                     terrain->SetOutDir(out_dir, suffix);
                     cout << "[Terrain node] output directory: " << terrain->GetOutDirName() << endl;
 
                     terrain->SetPatchDimensions(10, 1);
-                    terrain->SetProxyProperties(0.002, true);
+                    terrain->SetProxyProperties(0.001, true);
+
+                    double radius = 0.02; // radius of granular particles
+                    double density = 2500; // density of the granular material
+                    terrain->SetGranularMaterial(radius, density);
+
+                    double depth_granular = 0.5; // depth of the granular material terrain
+                    terrain->SetPropertiesSPH(TerrainJsonFile, depth_granular); 
 
                     my_terrain = terrain;
                     break;
