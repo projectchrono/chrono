@@ -149,7 +149,7 @@ int main(int argc, char** argv) {
             switch (tire_type) {
                 case ChVehicleCosimRigNode::Type::RIGID: {
                     auto rig = new ChVehicleCosimRigNodeRigidTire(init_vel, slip, nthreads_rig);
-                    rig->SetTireJSONFile(vehicle::GetDataFile("hmmwv/tire/HMMWV_RigidMeshTire_Coarse.json"));
+                    rig->SetTireJSONFile(vehicle::GetDataFile("hmmwv/tire/HMMWV_RigidMeshTire_CoarseClosed.json"));
                     my_rig = rig;
                     break;
                 }
