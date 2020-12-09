@@ -26,9 +26,6 @@
 
 #include "chrono_vehicle/ChTerrain.h"
 
-using namespace chrono;
-using namespace chrono::vehicle;
-
 namespace chrono {
 namespace synchrono {
 
@@ -51,7 +48,7 @@ class SYN_API SynTerrain {
     virtual void GenerateMessagesToSend(std::vector<SynMessage*>& messages, int rank) = 0;
 
     /// Get the terrain
-    virtual std::shared_ptr<ChTerrain> GetTerrain() = 0;
+    virtual std::shared_ptr<vehicle::ChTerrain> GetTerrain() = 0;
 
     // ------------------------------
     // Helper methods for convenience

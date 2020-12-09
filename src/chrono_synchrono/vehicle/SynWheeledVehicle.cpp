@@ -28,6 +28,7 @@
 
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
 
+using namespace chrono::vehicle;
 using namespace rapidjson;
 
 namespace chrono {

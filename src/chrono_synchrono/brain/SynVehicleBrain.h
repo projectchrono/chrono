@@ -24,8 +24,6 @@
 #include "chrono_synchrono/vehicle/SynVehicle.h"
 #include "chrono_vehicle/ChDriver.h"
 
-using namespace chrono::vehicle;
-
 namespace chrono {
 namespace synchrono {
 
@@ -36,7 +34,7 @@ namespace synchrono {
 class SYN_API SynVehicleBrain : public SynBrain {
   public:
     /// Constructor which takes and sets this brains ChDriver and ChVehicle
-    SynVehicleBrain(int rank, std::shared_ptr<ChDriver> driver, ChVehicle& vehicle)
+    SynVehicleBrain(int rank, std::shared_ptr<vehicle::ChDriver> driver, vehicle::ChVehicle& vehicle)
         : SynBrain(rank), m_driver(driver), m_vehicle(vehicle) {}
 
     /// Destructor
@@ -54,19 +52,19 @@ class SYN_API SynVehicleBrain : public SynBrain {
     // --------------------------------------------------------------------------------------------------------------
 
     /// Get the driver inputs from the attached driver
-    ChDriver::Inputs GetDriverInputs() { return m_driver->GetInputs(); }
+    vehicle::ChDriver::Inputs GetDriverInputs() { return m_driver->GetInputs(); }
 
     /// Get the attached driver
-    std::shared_ptr<ChDriver> GetDriver() { return m_driver; }
+    std::shared_ptr<vehicle::ChDriver> GetDriver() { return m_driver; }
 
     /// Set the attached driver
-    void SetDriver(std::shared_ptr<ChDriver> driver) { m_driver = driver; }
+    void SetDriver(std::shared_ptr<vehicle::ChDriver> driver) { m_driver = driver; }
 
-    ChVehicle& GetVehicle() { return m_vehicle; }
+    vehicle::ChVehicle& GetVehicle() { return m_vehicle; }
 
   protected:
-    std::shared_ptr<ChDriver> m_driver;  ///< handle to the ChDriver
-    ChVehicle& m_vehicle;
+    std::shared_ptr<vehicle::ChDriver> m_driver;  ///< handle to the ChDriver
+    vehicle::ChVehicle& m_vehicle;
 };
 
 /// @} synchrono_brain
