@@ -29,8 +29,6 @@
 #include "chrono_synchrono/brain/SynVehicleBrain.h"
 #include "chrono_synchrono/flatbuffer/message/SynEnvironmentMessage.h"
 
-using namespace chrono;
-
 namespace chrono {
 namespace synchrono {
 
@@ -47,7 +45,10 @@ class SYN_API SynQueryEnvBrain : public SynVehicleBrain {
     /// @param driver ACCPathFollowerDriver that will be used to steer this vehicle
     /// @param vehicle The Chrono Vehicle that is driven by this Brain
     /// @param veh_ranks A vector of the other ranks in simulation who should be checked for proximity
-    SynQueryEnvBrain(int rank, std::shared_ptr<ChDriver> driver, ChVehicle& vehicle, std::vector<int> veh_ranks);
+    SynQueryEnvBrain(int rank,
+                     std::shared_ptr<vehicle::ChDriver> driver,
+                     vehicle::ChVehicle& vehicle,
+                     std::vector<int> veh_ranks);
 
     /// @brief Destroy the QueryEnvBrain object
     ~SynQueryEnvBrain();

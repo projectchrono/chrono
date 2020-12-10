@@ -212,8 +212,10 @@ class CH_VEHICLE_API SCMDeformableTerrain : public ChTerrain {
     /// Node height level at a given grid location.
     typedef std::pair<ChVector2<int>, double> NodeLevel;
 
-    /// Get the heights of all grid nodes that were modified over last step.
-    std::vector<NodeLevel> GetModifiedNodes() const;
+    /// Get the heights of all modified grid nodes.
+    /// If 'all_nodes = true', return modified nodes from the start of simulation.  Otherwise, return only the nodes
+    /// modified over the last step.
+    std::vector<NodeLevel> GetModifiedNodes(bool all_nodes = false) const;
 
     /// Modify the level of grid nodes from the given list.
     void SetModifiedNodes(const std::vector<NodeLevel>& nodes);
@@ -407,8 +409,10 @@ class CH_VEHICLE_API SCMDeformableSoil : public ChLoadContainer {
     // Update vertex normal in visualization mesh
     void UpdateMeshVertexNormal(const ChVector2<int> ij, int iv);
 
-    // Get the heights of all grid nodes that were modified over last step.
-    std::vector<SCMDeformableTerrain::NodeLevel> GetModifiedNodes() const;
+    /// Get the heights of all modified grid nodes.
+    /// If 'all_nodes = true', return modified nodes from the start of simulation.  Otherwise, return only the nodes
+    /// modified over the last step.
+    std::vector<SCMDeformableTerrain::NodeLevel> GetModifiedNodes(bool all_nodes = false) const;
 
     // Modify the level of grid nodes from the given list.
     void SetModifiedNodes(const std::vector<SCMDeformableTerrain::NodeLevel>& nodes);

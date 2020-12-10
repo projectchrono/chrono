@@ -25,9 +25,6 @@
 #include "chrono_synchrono/agent/SynVehicleAgent.h"
 #include "chrono_synchrono/vehicle/SynWheeledVehicle.h"
 
-using namespace chrono;
-using namespace chrono::vehicle;
-
 namespace chrono {
 namespace synchrono {
 
@@ -77,7 +74,7 @@ class SYN_API SynWheeledVehicleAgent : public SynVehicleAgent {
     ///
     ///@param time the time to synchronize to
     ///@param driver_inputs the driver inputs (i.e. throttle, braking, steering)
-    virtual void Synchronize(double step, ChDriver::Inputs driver_inputs) override;
+    virtual void Synchronize(double step, vehicle::ChDriver::Inputs driver_inputs) override;
 
     ///@brief Get the state of this agent
     ///

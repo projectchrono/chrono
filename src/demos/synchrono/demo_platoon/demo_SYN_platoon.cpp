@@ -44,6 +44,7 @@
 #include <chrono>
 
 using namespace chrono;
+using namespace chrono::vehicle;
 using namespace chrono::synchrono;
 
 // =============================================================================

@@ -4,6 +4,7 @@
 
 #include "chrono_vehicle/ChVehicleModelData.h"
 
+using namespace chrono::vehicle;
 using namespace rapidjson;
 
 namespace chrono {

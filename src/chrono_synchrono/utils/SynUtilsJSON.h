@@ -28,8 +28,6 @@
 
 #include "chrono_thirdparty/rapidjson/document.h"
 
-using namespace chrono::vehicle;
-
 namespace chrono {
 namespace synchrono {
 
@@ -56,7 +54,7 @@ SYN_API ChCoordsys<> ReadCoordsysJSON(const rapidjson::Value& a, const rapidjson
 // -----------------------------------------------------------------------------
 
 ///  Load and return the visualization type from the specified JSON file.
-SYN_API VisualizationType ReadVisualizationTypeJSON(const std::string& type);
+SYN_API vehicle::VisualizationType ReadVisualizationTypeJSON(const std::string& type);
 
 // -----------------------------------------------------------------------------
 

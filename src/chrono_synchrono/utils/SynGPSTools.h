@@ -35,8 +35,6 @@
 #define EARTH_RADIUS 6371000.0  // [meters]
 #endif                          // SENSOR
 
-using namespace chrono;
-
 namespace chrono {
 namespace synchrono {
 

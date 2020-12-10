@@ -4,7 +4,7 @@
 #ifndef FLATBUFFERS_GENERATED_SYNFLATBUFFERS_SYNFLATBUFFERS_H_
 #define FLATBUFFERS_GENERATED_SYNFLATBUFFERS_SYNFLATBUFFERS_H_
 
-#include "flatbuffers/flatbuffers.h"
+#include "chrono_thirdparty/flatbuffers/include/flatbuffers/flatbuffers.h"
 
 namespace SynFlatBuffers {
 namespace SPAT {

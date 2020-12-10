@@ -20,6 +20,8 @@
 
 #include "chrono_synchrono/flatbuffer/message/SynSCMMessage.h"
 
+using namespace chrono::vehicle;
+
 namespace chrono {
 namespace synchrono {
 
