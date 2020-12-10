@@ -21,6 +21,7 @@
 
 #include "chrono/physics/PBD/ChSystemPBD.h"
 #include "chrono/physics/PBD/ChContactContainerPBD.h"
+#include "chrono/physics/ChContactContainerNSC.h"
 #include "chrono/physics/ChProximityContainer.h"
 #include "chrono/physics/ChSystem.h"
 #include "chrono/collision/ChCollisionSystemBullet.h"
@@ -212,8 +213,44 @@ void ChSystemPBD::SolvePositions() {
 	}
 }
 
+void ChSystemPBD::SolveContacts() {
+	for (auto& contact : contactlistPBD) {
+		contact->SolvePositions();
+	}
+}
+
+void ChSystemPBD::SolveVelocities() {
+	for (auto& contact : contactlistPBD) {
+		contact->SolveVelocity();
+	}
+}
+
+void ChSystemPBD::GetContacts() {
+	ChContactContainerPBD* cc;
+	// The cc of a PBD system is always a PBDcc
+	cc = static_cast<ChContactContainerPBD*>(this->contact_container.get());
+	auto cl = cc->Get_6_6_clist();
+	for (auto& contact : cl) {
+		// !!! BEWARE !!! Assuming contactable to be bodies. 
+		ChBody* body1 = static_cast<ChBody*>(contact->GetObjA());
+		ChBody* body2 = static_cast<ChBody*>(contact->GetObjB());
+		// TODO: while PBD can accomodate static friction, chrono does not
+		double frict = contact->GetFriction();
+		// contact points in abs coors
+		ChVector<double> p1 = contact->GetContactP1();
+		ChVector<double> p2 = contact->GetContactP2();
+		ChVector<double> norm = contact->GetContactNormal();
+		ChQuaternion<> p;
+
+
+
+	}
+}
+
 // Implementation af algorithm 2 from Detailed Rigid Body Simulation with Extended Position Based Dynamics, Mueller et al.
 void ChSystemPBD::Advance() {
+	// Update the contact pairs
+	GetContacts();
 	int n = Get_bodylist().size();
 	double h = step / substeps;
 	for (int i = 0; i < substeps; i++) {
@@ -244,6 +281,8 @@ void ChSystemPBD::Advance() {
 		}
 		// Correct positions to respect constraints. "numPosIters"set to 1 according to the paper
 		SolvePositions();
+		// Similarly we contraint normal (and, if static, tangential) displacement in contacts
+		SolveContacts();
 		// Update velocities to take corrected positions into account
 		for (int j = 0; j < n; j++) {
 			std::shared_ptr<ChBody> body = Get_bodylist()[j];
@@ -260,7 +299,7 @@ void ChSystemPBD::Advance() {
 		}
 		// Scatter updated state
 
-		// SolveVelocities();
+		SolveVelocities();
 
 		T += h;
 		

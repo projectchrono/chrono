@@ -117,6 +117,24 @@ class ChApi ChLinkPBDMate : public ChLinkPBD {
 };
 
 CH_CLASS_VERSION(ChLinkPBDMate, 0)
+
+class ChApi ChContactPBD : public ChLinkPBD {
+public:
+	//ChContactPBD* link;
+	/// Create a LinkPBD
+	ChContactPBD();
+
+	/// Copy constructor
+	//ChLinkPBD(const ChLinkPBD& other);
+
+	/// Destructor
+	virtual ~ChContactPBD() {};
+
+	/// Velocity correction due to dynamic friction
+	void SolveVelocity();
+};
+
+CH_CLASS_VERSION(ChContactPBD, 0);
 /*
 /// PBD method timesteppers.
 class ChApi ChTimestepperPBD : public ChTimestepperIorder {

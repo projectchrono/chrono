@@ -74,8 +74,17 @@ class ChApi ChSystemPBD : public ChSystem {
 	/// Correct the state according to the contraints by performing SolvePositions on each link
 	void SolvePositions();
 
+	/// Correct the state according to the contacts by performing SolveContacts on each contact
+	void SolveContacts();
+
+	/// Correct the state derivative according to the contacts by performing SolveVelocity on each contact
+	void SolveVelocities();
+
 	/// Advance the simulation
 	void Advance();
+
+	/// Advance the simulation
+	void GetContacts();
 
   protected:
 	double T = 0;
@@ -85,7 +94,7 @@ class ChApi ChSystemPBD : public ChSystem {
 	bool PBD_isSetup = false;
 	/// Lists of links and contacts usable by PBD formulation
 	std::vector<std::shared_ptr< ChLinkPBD> > linklistPBD;
-	//std::vector<ChContactPBD> contactlistPBD;
+	std::vector<std::shared_ptr<ChContactPBD>> contactlistPBD;
 
 	std::vector < ChVector<double>> x_prev;
 	//std::vector < ChVector<double>> x;

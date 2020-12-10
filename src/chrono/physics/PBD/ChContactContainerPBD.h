@@ -80,7 +80,6 @@ class ChApi ChContactContainerPBD : public ChContactContainerNSC {
 		return contactlist_666_666;
 	}
 	friend class ChSystemPBD;
-	friend class ChPBDutils;
 
 };
 
