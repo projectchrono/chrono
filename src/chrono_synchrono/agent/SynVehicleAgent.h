@@ -29,9 +29,6 @@
 #include "chrono_synchrono/brain/SynVehicleBrain.h"
 #include "chrono_synchrono/flatbuffer/message/SynMessage.h"
 
-using namespace chrono;
-using namespace chrono::vehicle;
-
 namespace chrono {
 namespace synchrono {
 
@@ -58,7 +55,7 @@ class SYN_API SynVehicleAgent : public SynAgent {
     ///
     ///@param time the time to synchronize to
     ///@param driver_inputs the driver inputs (i.e. throttle, braking, steering)
-    virtual void Synchronize(double time, ChDriver::Inputs driver_inputs) = 0;
+    virtual void Synchronize(double time, vehicle::ChDriver::Inputs driver_inputs) = 0;
 
     ///@brief Initialize the zombie representation of the underlying vehicle.
     /// Simply calls the same method on the underlying vehicle.
@@ -101,10 +98,10 @@ class SYN_API SynVehicleAgent : public SynAgent {
     void SetBrain(std::shared_ptr<SynVehicleBrain> brain) { m_brain = brain; }
 
     /// Helper method to get the Chrono driver from the brain
-    std::shared_ptr<ChDriver> GetDriver() { return m_brain->GetDriver(); }
+    std::shared_ptr<vehicle::ChDriver> GetDriver() { return m_brain->GetDriver(); }
 
     /// Helper method to get the ChVehicle from the SynVehicle
-    ChVehicle& GetChVehicle() { return GetVehicle()->GetVehicle(); }
+    vehicle::ChVehicle& GetChVehicle() { return GetVehicle()->GetVehicle(); }
 
   protected:
     ///@brief Parse a vehicle agent json specification file

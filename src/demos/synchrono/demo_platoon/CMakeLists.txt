@@ -14,6 +14,7 @@ foreach(PROGRAM ${DEMOS})
 	message(STATUS "...add ${PROGRAM}")
 
 	add_executable(${PROGRAM} ${PROGRAM}.cpp)
+	source_group("" FILES ${PROGRAM}.cpp)
 
 	set_target_properties(${PROGRAM} PROPERTIES
 		    COMPILE_FLAGS "${SYN_CXX_FLAGS}"

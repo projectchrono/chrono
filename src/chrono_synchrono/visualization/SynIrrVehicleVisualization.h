@@ -31,10 +31,6 @@
 #include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleIrrApp.h"
 #include "chrono_vehicle/tracked_vehicle/utils/ChTrackedVehicleIrrApp.h"
 
-using namespace chrono;
-using namespace chrono::vehicle;
-using namespace chrono::irrlicht;
-
 namespace chrono {
 namespace synchrono {
 
@@ -44,7 +40,7 @@ namespace synchrono {
 /// Concrete SynVisualization class that handles Irrlicht visualization via an Irrlicht app.
 class SYN_API SynIrrVehicleVisualization : public SynVisualization {
   public:
-    SynIrrVehicleVisualization(std::shared_ptr<ChDriver> driver = nullptr,
+    SynIrrVehicleVisualization(std::shared_ptr<vehicle::ChDriver> driver = nullptr,
                                double step_size = 1e-3,
                                double render_step_size = 1. / 50);
     ~SynIrrVehicleVisualization() {}
@@ -60,9 +56,9 @@ class SYN_API SynIrrVehicleVisualization : public SynVisualization {
                                                std::wstring window_title = L"");
 
     /// @brief Allow external creation and attachment of a IrrApp
-    void AttachIrrApp(std::shared_ptr<ChVehicleIrrApp> app);
+    void AttachIrrApp(std::shared_ptr<vehicle::ChVehicleIrrApp> app);
 
-    std::shared_ptr<ChVehicleIrrApp> GetIrrApp() { return m_app; }
+    std::shared_ptr<vehicle::ChVehicleIrrApp> GetIrrApp() { return m_app; }
 
     /// @brief Advance the visualizer, taking note of any initialization and render step questions
     virtual void Update(double step) override;
@@ -70,7 +66,7 @@ class SYN_API SynIrrVehicleVisualization : public SynVisualization {
     virtual void Initialize() override {}
 
     /// Set the handle to the ChDriver
-    void SetDriver(std::shared_ptr<ChDriver> driver) { m_driver = driver; }
+    void SetDriver(std::shared_ptr<vehicle::ChDriver> driver) { m_driver = driver; }
 
     /// Whether images are saved
     void SetSave(bool save) { m_save = save; }
@@ -102,9 +98,9 @@ class SYN_API SynIrrVehicleVisualization : public SynVisualization {
     std::string m_save_path = "img_";  ///< path to where these files should be saved
     int m_render_frame = 0;            ///< render frame number, used for file name when saving
 
-    std::shared_ptr<ChVehicleIrrApp> m_app;  ///< handle to irrlicht app
+    std::shared_ptr<vehicle::ChVehicleIrrApp> m_app;  ///< handle to irrlicht app
 
-    std::shared_ptr<ChDriver> m_driver;  ///< handle to vehicle driver
+    std::shared_ptr<vehicle::ChDriver> m_driver;  ///< handle to vehicle driver
 };
 
 /// @} synchrono_visualization

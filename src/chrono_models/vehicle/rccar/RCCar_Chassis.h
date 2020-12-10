@@ -41,7 +41,7 @@ class CH_MODELS_API RCCar_Chassis : public chrono::vehicle::ChRigidChassis {
   public:
     RCCar_Chassis(const std::string& name,
                   bool fixed = false,
-                  ChassisCollisionType chassis_collision_type = ChassisCollisionType::NONE);
+                  CollisionType chassis_collision_type = CollisionType::NONE);
     ~RCCar_Chassis() {}
 
     /// Return the mass of the chassis body.

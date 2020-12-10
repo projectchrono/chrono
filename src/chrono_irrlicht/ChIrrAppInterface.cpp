@@ -576,7 +576,7 @@ void ChIrrAppInterface::SetPOVraySave(bool val) {
     }
     if (povray_save && !pov_exporter) {
         pov_exporter = new postprocess::ChPovRay(this->system);
-
+        pov_exporter->SetUseSingleAssetFile(false);
         // Important: set the path to the template:
         pov_exporter->SetTemplateFile(GetChronoDataFile("_template_POV.pov"));
 

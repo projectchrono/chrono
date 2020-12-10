@@ -115,7 +115,7 @@ int main(int argc, char* argv[]) {
     // Construct the M113 vehicle
     // --------------------------
 
-    ChassisCollisionType chassis_collision_type = ChassisCollisionType::PRIMITIVES;
+    CollisionType chassis_collision_type = CollisionType::PRIMITIVES;
     M113_Vehicle vehicle(false, TrackShoeType::BAND_BUSHING, BrakeType::SIMPLE, ChContactMethod::SMC, chassis_collision_type);
 
     // Disable gravity in this simulation
@@ -280,7 +280,7 @@ int main(int argc, char* argv[]) {
     // ------------------------------
 
 #ifndef CHRONO_PARDISO_MKL
-    if (solver_type == ChSolver::Type::MKL)
+    if (solver_type == ChSolver::Type::PARDISO_MKL)
         solver_type = ChSolver::Type::MUMPS;
 #endif
 #ifndef CHRONO_MUMPS

@@ -194,6 +194,7 @@ int main(int argc, char* argv[]) {
     std::cout << "Rendering at " << out_fps << "FPS" << std::endl;
 
     unsigned int out_steps = (unsigned int)(1.0 / (out_fps * iteration_step));
+    unsigned int total_frames = (unsigned int)((float)params.time_end * out_fps);
 
     int currframe = 0;
     unsigned int curr_step = 0;
@@ -235,7 +236,7 @@ int main(int argc, char* argv[]) {
         ball_body->Accumulate_torque(ChVector<>(ball_force[3], ball_force[4], ball_force[5]), false);
 
         if (curr_step % out_steps == 0) {
-            std::cout << "Rendering frame " << currframe << std::endl;
+            std::cout << "Rendering frame " << currframe << " of " << total_frames << std::endl;
             char filename[100];
             sprintf(filename, "%s/step%06d", params.output_dir.c_str(), currframe++);
             gran_sys.writeFile(std::string(filename));

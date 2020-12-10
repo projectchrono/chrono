@@ -75,6 +75,7 @@ ChPovRay::ChPovRay(ChSystem* system) : ChPostProcessBase(system) {
     this->contacts_colormap_startscale = 0;
     this->contacts_colormap_endscale = 10;
     this->contacts_do_colormap = true;
+    this->wireframe_thickness = 0.001;
     this->single_asset_file = true;
 }
 
@@ -492,60 +493,90 @@ void ChPovRay::_recurseExportAssets(std::vector<std::shared_ptr<ChAsset> >& asse
                 assets_file << "#macro sh_" << (size_t)k_asset.get()
                             << "()\n";  //"(apx, apy, apz, aq0, aq1, aq2, aq3)\n";
 
-                // Create mesh
-                assets_file << "mesh2  {\n";
+                if (!mytrimeshshapeasset->IsWireframe()) {
+                    // Create mesh
+                    assets_file << "mesh2  {\n";
 
-                assets_file << " vertex_vectors {\n";
-                assets_file << (int)mytrimesh->m_vertices.size() << ",\n";
-                for (unsigned int iv = 0; iv < mytrimesh->m_vertices.size(); iv++)
-                    assets_file << "  <" << mytrimesh->m_vertices[iv].x() << "," << mytrimesh->m_vertices[iv].y() << ","
-                                << mytrimesh->m_vertices[iv].z() << ">,\n";
-                assets_file << " }\n";
-
-                assets_file << " normal_vectors {\n";
-                assets_file << (int)mytrimesh->m_normals.size() << ",\n";
-                for (unsigned int iv = 0; iv < mytrimesh->m_normals.size(); iv++)
-                    assets_file << "  <" << mytrimesh->m_normals[iv].x() << "," << mytrimesh->m_normals[iv].y() << ","
-                                << mytrimesh->m_normals[iv].z() << ">,\n";
-                assets_file << " }\n";
-
-                assets_file << " uv_vectors {\n";
-                assets_file << (int)mytrimesh->m_UV.size() << ",\n";
-                for (unsigned int iv = 0; iv < mytrimesh->m_UV.size(); iv++)
-                    assets_file << "  <" << mytrimesh->m_UV[iv].x() << "," << mytrimesh->m_UV[iv].y() << ">,\n";
-                assets_file << " }\n";
-
-                assets_file << " face_indices {\n";
-                assets_file << (int)mytrimesh->m_face_v_indices.size() << ",\n";
-                for (unsigned int it = 0; it < mytrimesh->m_face_v_indices.size(); it++)
-                    assets_file << "  <" << mytrimesh->m_face_v_indices[it].x() << ","
-                                << mytrimesh->m_face_v_indices[it].y() << "," << mytrimesh->m_face_v_indices[it].z()
-                                << ">,\n";
-                assets_file << " }\n";
-
-                // if ((mytrimesh->m_face_n_indices.size() != mytrimesh->m_face_v_indices.size()) &&
-                if (mytrimesh->m_face_n_indices.size() > 0)  //)
-                {
-                    assets_file << " normal_indices {\n";
-                    assets_file << (int)mytrimesh->m_face_n_indices.size() << ",\n";
-                    for (unsigned int it = 0; it < mytrimesh->m_face_n_indices.size(); it++)
-                        assets_file << "  <" << mytrimesh->m_face_n_indices[it].x() << ","
-                                    << mytrimesh->m_face_n_indices[it].y() << "," << mytrimesh->m_face_n_indices[it].z()
-                                    << ">,\n";
+                    assets_file << " vertex_vectors {\n";
+                    assets_file << (int)mytrimesh->m_vertices.size() << ",\n";
+                    for (unsigned int iv = 0; iv < mytrimesh->m_vertices.size(); iv++)
+                        assets_file << "  <" << mytrimesh->m_vertices[iv].x() << "," << mytrimesh->m_vertices[iv].y() << ","
+                        << mytrimesh->m_vertices[iv].z() << ">,\n";
                     assets_file << " }\n";
-                }
-                if ((mytrimesh->m_face_uv_indices.size() != mytrimesh->m_face_v_indices.size()) &&
-                    (mytrimesh->m_face_uv_indices.size() > 0)) {
-                    assets_file << " uv_indices {\n";
-                    assets_file << (int)mytrimesh->m_face_uv_indices.size() << ",\n";
-                    for (unsigned int it = 0; it < mytrimesh->m_face_uv_indices.size(); it++)
-                        assets_file << "  <" << mytrimesh->m_face_uv_indices[it].x() << ","
-                                    << mytrimesh->m_face_uv_indices[it].y() << "," << mytrimesh->m_face_uv_indices[it].z()
-                                    << ">,\n";
-                    assets_file << " }\n";
-                }
 
-                assets_file << "}\n";
+                    assets_file << " normal_vectors {\n";
+                    assets_file << (int)mytrimesh->m_normals.size() << ",\n";
+                    for (unsigned int iv = 0; iv < mytrimesh->m_normals.size(); iv++)
+                        assets_file << "  <" << mytrimesh->m_normals[iv].x() << "," << mytrimesh->m_normals[iv].y() << ","
+                        << mytrimesh->m_normals[iv].z() << ">,\n";
+                    assets_file << " }\n";
+
+                    assets_file << " uv_vectors {\n";
+                    assets_file << (int)mytrimesh->m_UV.size() << ",\n";
+                    for (unsigned int iv = 0; iv < mytrimesh->m_UV.size(); iv++)
+                        assets_file << "  <" << mytrimesh->m_UV[iv].x() << "," << mytrimesh->m_UV[iv].y() << ">,\n";
+                    assets_file << " }\n";
+
+                    if (mytrimesh->m_colors.size() == mytrimesh->m_vertices.size()) {
+                        assets_file << " texture_list {\n";
+                        assets_file << (int)(mytrimesh->m_colors.size()) << ",\n";
+                        for (unsigned int iv = 0; iv < mytrimesh->m_vertices.size(); iv++) {
+                            assets_file << " texture{pigment{rgb <" << mytrimesh->m_colors[iv].x() << ","
+                                << mytrimesh->m_colors[iv].y() << ","
+                                << mytrimesh->m_colors[iv].z() << ">}},\n";
+                        }
+                        assets_file << " }\n";
+                    }
+
+                    assets_file << " face_indices {\n";
+                    assets_file << (int)mytrimesh->m_face_v_indices.size() << ",\n";
+                    for (unsigned int it = 0; it < mytrimesh->m_face_v_indices.size(); it++) {
+                        assets_file << "  <" << mytrimesh->m_face_v_indices[it].x() << ","
+                            << mytrimesh->m_face_v_indices[it].y() << "," << mytrimesh->m_face_v_indices[it].z()
+                            << ">";
+                        if (mytrimesh->m_colors.size() == mytrimesh->m_vertices.size())
+                            assets_file << mytrimesh->m_face_v_indices[it].x() << "," << mytrimesh->m_face_v_indices[it].y() << "," << mytrimesh->m_face_v_indices[it].z();
+                        assets_file << ",\n";
+                    }
+                    assets_file << " }\n";
+
+                    // if ((mytrimesh->m_face_n_indices.size() != mytrimesh->m_face_v_indices.size()) &&
+                    if (mytrimesh->m_face_n_indices.size() > 0)  //)
+                    {
+                        assets_file << " normal_indices {\n";
+                        assets_file << (int)mytrimesh->m_face_n_indices.size() << ",\n";
+                        for (unsigned int it = 0; it < mytrimesh->m_face_n_indices.size(); it++)
+                            assets_file << "  <" << mytrimesh->m_face_n_indices[it].x() << ","
+                            << mytrimesh->m_face_n_indices[it].y() << "," << mytrimesh->m_face_n_indices[it].z()
+                            << ">,\n";
+                        assets_file << " }\n";
+                    }
+                    if ((mytrimesh->m_face_uv_indices.size() != mytrimesh->m_face_v_indices.size()) &&
+                        (mytrimesh->m_face_uv_indices.size() > 0)) {
+                        assets_file << " uv_indices {\n";
+                        assets_file << (int)mytrimesh->m_face_uv_indices.size() << ",\n";
+                        for (unsigned int it = 0; it < mytrimesh->m_face_uv_indices.size(); it++)
+                            assets_file << "  <" << mytrimesh->m_face_uv_indices[it].x() << ","
+                            << mytrimesh->m_face_uv_indices[it].y() << "," << mytrimesh->m_face_uv_indices[it].z()
+                            << ">,\n";
+                        assets_file << " }\n";
+                    }
+
+                    assets_file << "}\n";
+                }
+                else {
+                    // wireframed mesh
+                    std::map < std::pair<int, int>,std::pair<int, int> > medges;
+                    mytrimesh->ComputeWingedEdges(medges, true);
+                    for (auto& medge : medges) {
+                        assets_file << " cylinder {<" << mytrimesh->m_vertices[medge.first.first].x() << "," << mytrimesh->m_vertices[medge.first.first].y() << "," << mytrimesh->m_vertices[medge.first.first].z() << ">,";
+                        assets_file << "<" << mytrimesh->m_vertices[medge.first.second].x() << "," << mytrimesh->m_vertices[medge.first.second].y() << "," << mytrimesh->m_vertices[medge.first.second].z() << ">,";
+                        assets_file << (this->wireframe_thickness * 0.5) << "\n no_shadow ";
+                        if (mytrimesh->m_colors.size() == mytrimesh->m_vertices.size())
+                            assets_file << "finish{ ambient rgb<" << mytrimesh->m_colors[medge.first.first].x() << "," << mytrimesh->m_colors[medge.first.first].y() << "," << mytrimesh->m_colors[medge.first.first].z() << "> diffuse 0}";
+                        assets_file << "}\n";
+                    }
+                }
 
                 // POV macro - end
                 assets_file << "#end \n";
@@ -945,6 +976,16 @@ void ChPovRay::ExportData(const std::string& filename) {
                     mfilepov << this->links_size << ")\n";
                 }
             }
+
+            // #) saving a FEA mesh?
+            if (auto mymesh = std::dynamic_pointer_cast<fea::ChMesh>(mdata[i])) {
+                // Get the current coordinate frame of the i-th object
+                ChFrame<> assetcsys;
+
+                // Dump the POV macro that generates the contained asset(s) tree!!!
+                _recurseExportObjData(mdata[i]->GetAssets(), assetcsys, mfilepov);
+            }
+
 
         }  // end loop on objects
 

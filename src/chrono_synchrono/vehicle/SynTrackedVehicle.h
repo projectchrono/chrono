@@ -28,9 +28,6 @@
 // MSVC seems to need these otherwise it compiles out the templated customWheeledVehicle
 #include "chrono_models/vehicle/m113/M113.h"
 
-using namespace chrono;
-using namespace chrono::vehicle;
-
 namespace chrono {
 namespace synchrono {
 
@@ -49,7 +46,7 @@ class SYN_API SynTrackedVehicle : public SynVehicle {
     /// so the system will subsequently not be advanced or destroyed.
     ///
     ///@param tracked_vehicle the vehicle to wrap
-    SynTrackedVehicle(ChTrackedVehicle* tracked_vehicle);
+    SynTrackedVehicle(vehicle::ChTrackedVehicle* tracked_vehicle);
 
     ///@brief Constructor for a tracked vehicle specified through json and a contact method
     /// This constructor will create it's own system
@@ -138,12 +135,12 @@ class SYN_API SynTrackedVehicle : public SynVehicle {
     ///
     ///@param time the time to synchronize to
     ///@param driver_inputs the driver inputs (i.e. throttle, braking, steering)
-    void Synchronize(double time, const ChDriver::Inputs& driver_inputs);
+    void Synchronize(double time, const vehicle::ChDriver::Inputs& driver_inputs);
 
     ///@brief Get the underlying vehicle
     ///
     ///@return ChVehicle&
-    virtual ChVehicle& GetVehicle() override { return *m_tracked_vehicle; }
+    virtual vehicle::ChVehicle& GetVehicle() override { return *m_tracked_vehicle; }
 
   private:
     ///@brief Parse a JSON specification file that describes a vehicle
@@ -181,13 +178,13 @@ class SYN_API SynTrackedVehicle : public SynVehicle {
                          ChSystem* system);
 
   protected:
-    ChTrackedVehicle* m_tracked_vehicle;  ///< Pointer to the ChTrackedVehicle that this class wraps
+    vehicle::ChTrackedVehicle* m_tracked_vehicle;  ///< Pointer to the ChTrackedVehicle that this class wraps
 
     std::shared_ptr<SynTrackedVehicleState> m_state;  ///< State of the vehicle (See SynTrackedVehicleMessage)
     std::shared_ptr<SynTrackedVehicleDescription> m_description;  ///< Description for zombie creation on discovery
 
-    TerrainForces m_shoe_forces_left;   ///< Terrain forces at the track shoes on the left side
-    TerrainForces m_shoe_forces_right;  ///< Terrain forces at the track shoes on the right side
+    vehicle::TerrainForces m_shoe_forces_left;   ///< Terrain forces at the track shoes on the left side
+    vehicle::TerrainForces m_shoe_forces_right;  ///< Terrain forces at the track shoes on the right side
 
     std::vector<std::shared_ptr<ChBodyAuxRef>> m_track_shoe_list;  ///< vector of this agent's zombie track shoes
     std::vector<std::shared_ptr<ChBodyAuxRef>> m_sprocket_list;    ///< vector of this agent's zombie sprockets

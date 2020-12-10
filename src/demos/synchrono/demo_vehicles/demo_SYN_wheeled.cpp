@@ -111,7 +111,7 @@ int main(int argc, char* argv[]) {
         // Even numbered ranks will be a custom vehicle that is not specified by a JSON file
         auto gator = chrono_types::make_shared<Gator>();
         gator->SetContactMethod(contact_method);
-        gator->SetChassisCollisionType(ChassisCollisionType::NONE);
+        gator->SetChassisCollisionType(CollisionType::NONE);
         gator->SetChassisFixed(false);
         gator->SetInitPosition(init_pos);
         gator->SetTireType(TireModelType::TMEASY);

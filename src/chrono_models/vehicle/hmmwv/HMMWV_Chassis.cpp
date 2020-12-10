@@ -39,7 +39,7 @@ const ChCoordsys<> HMMWV_Chassis::m_driverCsys(ChVector<>(0.87, 0.27, 1.05), ChQ
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-HMMWV_Chassis::HMMWV_Chassis(const std::string& name, bool fixed, ChassisCollisionType chassis_collision_type)
+HMMWV_Chassis::HMMWV_Chassis(const std::string& name, bool fixed, CollisionType chassis_collision_type)
     : ChRigidChassis(name, fixed) {
     m_inertia(0, 0) = m_inertiaXX.x();
     m_inertia(1, 1) = m_inertiaXX.y();
@@ -54,10 +54,8 @@ HMMWV_Chassis::HMMWV_Chassis(const std::string& name, bool fixed, ChassisCollisi
 
     //// TODO:
     //// A more appropriate contact shape from primitives
-    ChRigidChassisGeometry::BoxShape box1(ChVector<>(0.0, 0.0, 0.1), ChQuaternion<>(1, 0, 0, 0),
-                                          ChVector<>(2.0, 1.0, 0.2));
-    ChRigidChassisGeometry::BoxShape box2(ChVector<>(0.0, 0.0, 0.3), ChQuaternion<>(1, 0, 0, 0),
-                                          ChVector<>(1.0, 0.5, 0.2));
+    ChVehicleGeometry::BoxShape box1(ChVector<>(0.0, 0.0, 0.1), ChQuaternion<>(1, 0, 0, 0), ChVector<>(2.0, 1.0, 0.2));
+    ChVehicleGeometry::BoxShape box2(ChVector<>(0.0, 0.0, 0.3), ChQuaternion<>(1, 0, 0, 0), ChVector<>(1.0, 0.5, 0.2));
 
     m_geometry.m_has_primitives = true;
     m_geometry.m_vis_boxes.push_back(box1);
@@ -66,14 +64,14 @@ HMMWV_Chassis::HMMWV_Chassis(const std::string& name, bool fixed, ChassisCollisi
     m_geometry.m_has_mesh = true;
     m_geometry.m_vis_mesh_file = "hmmwv/hmmwv_chassis.obj";
 
-    m_geometry.m_has_collision = (chassis_collision_type != ChassisCollisionType::NONE);
+    m_geometry.m_has_collision = (chassis_collision_type != CollisionType::NONE);
     switch (chassis_collision_type) {
-        case ChassisCollisionType::PRIMITIVES:
+        case CollisionType::PRIMITIVES:
             box1.m_matID = 0;
             m_geometry.m_coll_boxes.push_back(box1);
             break;
-        case ChassisCollisionType::MESH: {
-            ChRigidChassisGeometry::ConvexHullsShape hull("hmmwv/hmmwv_chassis_simple.obj", 0);
+        case CollisionType::HULLS: {
+            ChVehicleGeometry::ConvexHullsShape hull("hmmwv/hmmwv_chassis_simple.obj", 0);
             m_geometry.m_coll_hulls.push_back(hull);
             break;
         }

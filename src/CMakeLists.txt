@@ -12,6 +12,13 @@ option(BUILD_DEMOS "Build demo programs" ON)
 option(BUILD_BENCHMARKING "Build benchmark tests" OFF)
 
 #-----------------------------------------------------------------------------
+# Search prefixes specified by <PackageName>_ROOT
+#-----------------------------------------------------------------------------
+if (POLICY CMP0074)
+  cmake_policy(SET CMP0074 NEW)
+endif()
+
+#-----------------------------------------------------------------------------
 # Collect compiler flags required to build the Chrono libraries
 #-----------------------------------------------------------------------------
 
@@ -143,94 +150,105 @@ else()
 endif()
 
 #-----------------------------------------------------------------------------
-# SSE and AVX support
+# SSE / AVX / FMA / NEON support
 #-----------------------------------------------------------------------------
 
-# Figure out SIMD level support
-message(STATUS "Seaching for SSE...")
-find_package(SSE)
+option(USE_SIMD "Enable use of SIMD if supported (SSE, AVX, NEON)" ON)
 
-# Set substitution variables for configuration file
-if(SSE_FOUND)
-  set(CHRONO_HAS_SSE "#define CHRONO_HAS_SSE")
-  set(CHRONO_SSE_LEVEL "#define CHRONO_SSE_LEVEL \"${SSE_VERSION}\"")
-  if(DETECTED_SSE_10)
-    set(CHRONO_SSE_1_0 "#define CHRONO_SSE_1_0")
-  endif()
-  if(DETECTED_SSE_20)
-    set(CHRONO_SSE_2_0 "#define CHRONO_SSE_2_0")
-  endif()
-  if(DETECTED_SSE_30)
-    set(CHRONO_SSE_3_0 "#define CHRONO_SSE_3_0")
-  endif()
-  if(DETECTED_SSE_41)
-    set(CHRONO_SSE_4_1 "#define CHRONO_SSE_4_1")
-  endif()
-  if(DETECTED_SSE_42)
-    set(CHRONO_SSE_4_2 "#define CHRONO_SSE_4_2")
-  endif()
-endif()
+if(USE_SIMD)
 
-# Figure out AVX level support
-message(STATUS "Searching for AVX...")
-find_package(AVX)
+   # Figure out SIMD level support
+   message(STATUS "Seaching for SSE...")
+   find_package(SSE)
+   
+   # Set substitution variables for configuration file
+   if(SSE_FOUND)
+     set(CHRONO_HAS_SSE "#define CHRONO_HAS_SSE")
+     set(CHRONO_SSE_LEVEL "#define CHRONO_SSE_LEVEL \"${SSE_VERSION}\"")
+     if(DETECTED_SSE_10)
+       set(CHRONO_SSE_1_0 "#define CHRONO_SSE_1_0")
+     endif()
+     if(DETECTED_SSE_20)
+       set(CHRONO_SSE_2_0 "#define CHRONO_SSE_2_0")
+     endif()
+     if(DETECTED_SSE_30)
+       set(CHRONO_SSE_3_0 "#define CHRONO_SSE_3_0")
+     endif()
+     if(DETECTED_SSE_41)
+       set(CHRONO_SSE_4_1 "#define CHRONO_SSE_4_1")
+     endif()
+     if(DETECTED_SSE_42)
+       set(CHRONO_SSE_4_2 "#define CHRONO_SSE_4_2")
+     endif()
+   endif()
+   
+   # Figure out AVX level support
+   message(STATUS "Searching for AVX...")
+   find_package(AVX)
+   
+   # Set substitution variables for configuration file
+   if(AVX_FOUND)
+     set(CHRONO_HAS_AVX "#define CHRONO_HAS_AVX")
+     set(CHRONO_AVX_LEVEL "#define CHRONO_AVX_LEVEL \"${AVX_VERSION}\"")
+     if(DETECTED_AVX_10)
+       set(CHRONO_AVX_1_0 "#define CHRONO_AVX_1_0")
+     endif()
+     if(DETECTED_AVX_20)
+       set(CHRONO_AVX_2_0 "#define CHRONO_AVX_2_0")
+     endif()
+   endif()
 
-# Set substitution variables for configuration file
-if(AVX_FOUND)
-  set(CHRONO_HAS_AVX "#define CHRONO_HAS_AVX")
-  set(CHRONO_AVX_LEVEL "#define CHRONO_AVX_LEVEL \"${AVX_VERSION}\"")
-  if(DETECTED_AVX_10)
-    set(CHRONO_AVX_1_0 "#define CHRONO_AVX_1_0")
-  endif()
-  if(DETECTED_AVX_20)
-    set(CHRONO_AVX_2_0 "#define CHRONO_AVX_2_0")
-  endif()
-endif()
+   # Figure out FMA level support
+   message(STATUS "Searching for FMA...")
+   find_package(FMA)
+   
+   # Set substitution variables for configuration file
+   if(FMA_FOUND)
+     set(CHRONO_HAS_FMA "#define CHRONO_HAS_FMA")
+   endif()
+   
+   # Add SSE, AVX, and FMA flags to Chrono compiler flags
+   # Note that these flags are already added to CMake compiler flags
+   set(CH_CXX_FLAGS "${CH_CXX_FLAGS} ${SSE_FLAGS} ${AVX_FLAGS} ${FMA_FLAGS}")
+   set(CH_C_FLAGS "${CH_C_FLAGS} ${SSE_FLAGS} ${AVX_FLAGS} ${FMA_FLAGS}")
+   
+   # Check if the system has NEON support
+   message(STATUS "Searching for NEON...")
+   find_package(NEON)
+   
+   # Set substitution variables for configuration file.
+   if (NEON_FOUND)
+     set (CHRONO_HAS_NEON "#define CHRONO_HAS_NEON")
+   endif()
 
-# Figure out FMA level support
-message(STATUS "Searching for FMA...")
-find_package(FMA)
+   # Add NEON flags to Chrono compiler flags
+   # Note that these flags are already added to CMake compiler flags
+   set(CH_CXX_FLAGS "${CH_CXX_FLAGS} ${NEON_FLAGS}")
+   set(CH_C_FLAGS "${CH_C_FLAGS} ${NEON_FLAGS}")
 
-# Set substitution variables for configuration file
-if(FMA_FOUND)
-  set(CHRONO_HAS_FMA "#define CHRONO_HAS_FMA")
-endif()
+else()
 
-# Add SSE, AVX, and FMA flags to Chrono compiler flags
-# Note that these flags are already added to CMake compiler flags
-set(CH_CXX_FLAGS "${CH_CXX_FLAGS} ${SSE_FLAGS} ${AVX_FLAGS} ${FMA_FLAGS}")
-set(CH_C_FLAGS "${CH_C_FLAGS} ${SSE_FLAGS} ${AVX_FLAGS} ${FMA_FLAGS}")
+   message(STATUS "SIMD support disabled")
 
-#-----------------------------------------------------------------------------
-# NEON support
-#-----------------------------------------------------------------------------
+endif() 
 
-# Check if the system has NEON support
-message(STATUS "Searching for NEON...")
-find_package(NEON)
+message(STATUS "C++ compiler flags: ${CH_CXX_FLAGS}")
+message(STATUS "C compile flags:    ${CH_C_FLAGS}")
 
-# Set substitution variables for configuration file.
-if (NEON_FOUND)
-  set (CHRONO_HAS_NEON "#define CHRONO_HAS_NEON")
-endif()
-
-# Add NEON flags to Chrono compiler flags
-# Note that these flags are already added to CMake compiler flags
-set(CH_CXX_FLAGS "${CH_CXX_FLAGS} ${NEON_FLAGS}")
-set(CH_C_FLAGS "${CH_C_FLAGS} ${NEON_FLAGS}")
 
 #-----------------------------------------------------------------------------
 # Eigen library
 #-----------------------------------------------------------------------------
 
+message(STATUS "Searching for Eigen3...")
 find_package(Eigen3 3.3.0)
 if(EIGEN3_FOUND)
-  message(STATUS "Eigen3 version: ${EIGEN3_VERSION}")
-  message(STATUS "Eigen3 include directory: ${EIGEN3_INCLUDE_DIR}")
+  message(STATUS "  Eigen3 version: ${EIGEN3_VERSION}")
+  message(STATUS "  Eigen3 include directory: ${EIGEN3_INCLUDE_DIR}")
 else()
   mark_as_advanced(CLEAR EIGEN3_INCLUDE_DIR)
   mark_as_advanced(FORCE Eigen3_DIR)
-  message(FATAL_ERROR "Eigen3 not found. Specify EIGEN3_INCLUDE_DIR")
+  message(FATAL_ERROR "  Eigen3 not found. Specify EIGEN3_INCLUDE_DIR")
 endif()
 
 # Fix for VS 2017 15.8 and newer to handle alignment specification with Eigen.

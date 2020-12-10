@@ -25,8 +25,6 @@
 
 #include "chrono_vehicle/terrain/SCMDeformableTerrain.h"
 
-using namespace chrono::vehicle;
-
 namespace chrono {
 namespace synchrono {
 
@@ -34,13 +32,13 @@ namespace synchrono {
 /// @{
 
 struct SynSCMTerrainState : public SynMessageState {
-    std::vector<SCMDeformableTerrain::NodeLevel> modified_nodes;
+    std::vector<vehicle::SCMDeformableTerrain::NodeLevel> modified_nodes;
 
     /// Default constructor
     SynSCMTerrainState() : SynMessageState(0.0) {}
 
     /// Creates state with specified diffs
-    SynSCMTerrainState(double time, std::vector<SCMDeformableTerrain::NodeLevel> modified_nodes)
+    SynSCMTerrainState(double time, std::vector<vehicle::SCMDeformableTerrain::NodeLevel> modified_nodes)
         : SynMessageState(time), modified_nodes(modified_nodes) {}
 };
 

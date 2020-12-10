@@ -42,7 +42,7 @@ wheel_vis_type = veh.VisualizationType_MESH
 tire_vis_type = veh.VisualizationType_MESH
 
 # Collision type for chassis (PRIMITIVES, MESH, or NONE)
-chassis_collision_type = veh.ChassisCollisionType_NONE
+chassis_collision_type = veh.CollisionType_NONE
 
 # Type of tire model (RIGID, TMEASY)
 tire_model = veh.TireModelType_TMEASY

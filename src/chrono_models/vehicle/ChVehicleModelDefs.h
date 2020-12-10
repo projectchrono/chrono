@@ -22,11 +22,12 @@
 namespace chrono {
 namespace vehicle {
 
-/// Enumeration of collision shape types.
-enum class ChassisCollisionType {
+/// Enumeration of collision model types.
+enum class CollisionType {
     NONE,        ///< no contact shapes
     PRIMITIVES,  ///< contact model composed of primitives
-    MESH         ///< contact model composed of convex hulls
+    HULLS,       ///< contact model composed of convex hulls
+    MESH         ///< contact model composed of trimeshes
 };
 
 /// @addtogroup vehicle_models

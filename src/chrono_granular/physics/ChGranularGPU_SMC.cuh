@@ -1075,9 +1075,9 @@ static __global__ void integrateSpheres(const float stepsize_SU,
             }
         }
         int3 sphere_pos_local =
-            make_int3(sphere_data->sphere_local_pos_X[mySphereID] + position_update_x,
-                      sphere_data->sphere_local_pos_Y[mySphereID] + position_update_y,
-                      sphere_data->sphere_local_pos_Z[mySphereID] + position_update_z);  // TODO Rounding occurs here
+            make_int3(sphere_data->sphere_local_pos_X[mySphereID] + (lround)(position_update_x),
+                      sphere_data->sphere_local_pos_Y[mySphereID] + (lround)(position_update_y),
+                      sphere_data->sphere_local_pos_Z[mySphereID] + (lround)(position_update_z));  
 
         int64_t3 sphPos_global =
             convertPosLocalToGlobal(sphere_data->sphere_owner_SDs[mySphereID], sphere_pos_local, gran_params);
