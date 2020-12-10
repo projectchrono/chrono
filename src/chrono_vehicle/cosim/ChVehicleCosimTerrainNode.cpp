@@ -48,7 +48,6 @@ ChVehicleCosimTerrainNode::ChVehicleCosimTerrainNode(Type type, ChContactMethod 
 
     // Default proxy body properties
     m_fixed_proxies = false;
-    m_radius_p = 0.01;
 
     // Default terrain contact material
     switch (m_method) {
@@ -68,8 +67,7 @@ void ChVehicleCosimTerrainNode::SetPatchDimensions(double length, double width) 
     m_hdimY = width / 2;
 }
 
-void ChVehicleCosimTerrainNode::SetProxyProperties(double radius, bool fixed) {
-    m_radius_p = radius;
+void ChVehicleCosimTerrainNode::SetProxyFixed(bool fixed) {
     m_fixed_proxies = fixed;
 }
 

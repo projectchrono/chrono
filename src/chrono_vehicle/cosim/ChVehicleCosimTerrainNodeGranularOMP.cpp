@@ -59,6 +59,7 @@ ChVehicleCosimTerrainNodeGranularOMP::ChVehicleCosimTerrainNodeGranularOMP(ChCon
                                                                            bool render,
                                                                            int num_threads)
     : ChVehicleCosimTerrainNode(Type::GRANULAR_OMP, method, render),
+      m_radius_p(5e-3),
       m_constructed(false),
       m_use_checkpoint(false),
       m_settling_output(false),
@@ -172,11 +173,16 @@ void ChVehicleCosimTerrainNodeGranularOMP::SetContactForceModel(ChSystemSMC::Con
     m_system->GetSettings()->solver.contact_force_model = model;
 }
 
+void ChVehicleCosimTerrainNodeGranularOMP::SetTangentialDisplacementModel(
+    ChSystemSMC::TangentialDisplacementModel model) {
+    assert(m_system->GetContactMethod() == ChContactMethod::SMC);
+    m_system->GetSettings()->solver.tangential_displ_mode = model;
+}
+
 void ChVehicleCosimTerrainNodeGranularOMP::SetMaterialSurface(const std::shared_ptr<ChMaterialSurface>& mat) {
     assert(mat->GetContactMethod() == m_system->GetContactMethod());
     m_material_terrain = mat;
 }
-
 
 void ChVehicleCosimTerrainNodeGranularOMP::SetInputFromCheckpoint(const std::string& filename) {
     m_use_checkpoint = true;
@@ -188,7 +194,7 @@ void ChVehicleCosimTerrainNodeGranularOMP::SetInputFromCheckpoint(const std::str
 // This function is invoked automatically from Settle and Initialize.
 // - adjust system settings
 // - create the container body
-// - if specified, create the granular material
+// - create the granular material
 // -----------------------------------------------------------------------------
 void ChVehicleCosimTerrainNodeGranularOMP::Construct() {
     if (m_constructed)
@@ -438,6 +444,8 @@ void ChVehicleCosimTerrainNodeGranularOMP::Settle() {
     }
     m_init_height += m_radius_g;
 }
+
+// -----------------------------------------------------------------------------
 
 // Create bodies with triangular contact geometry as proxies for the tire mesh faces.
 // Used for flexible tires.

@@ -182,7 +182,8 @@ int main(int argc, char** argv) {
                     cout << "[Terrain node] output directory: " << terrain->GetOutDirName() << endl;
 
                     terrain->SetPatchDimensions(10, 1);
-                    terrain->SetProxyProperties(0.002, true);
+                    terrain->SetProxyFixed(true);
+                    terrain->SetProxyContactRadius(0.002);
 
                     switch (method) {
                         case ChContactMethod::SMC: {
@@ -231,7 +232,8 @@ int main(int argc, char** argv) {
                         3e4     // Damping (Pa s/m), proportional to negative vertical speed (optional)
                     );
 
-                    terrain->SetProxyProperties(0.002, false);
+                    terrain->SetProxyFixed(false);
+                    terrain->SetProxyContactRadius(0.002);
 
                     checkpoint_filename = "checkpoint_SCM.dat";
                     if (use_checkpoint) {
@@ -253,7 +255,8 @@ int main(int argc, char** argv) {
                     terrain->SetPatchDimensions(2, 0.6);
                     terrain->SetContainerDimensions(1, 0.2);
 
-                    terrain->SetProxyProperties(0.002, true);
+                    terrain->SetProxyFixed(true);
+                    terrain->SetProxyContactRadius(0.002);
 
                     ////double radius = 0.006;
                     double radius = 0.02;

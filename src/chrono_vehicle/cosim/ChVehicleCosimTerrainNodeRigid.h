@@ -53,8 +53,15 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeRigid : public ChVehicleCosimTerra
     /// Note that this setting is only relevant when using the penalty method.
     void SetContactForceModel(ChSystemSMC::ContactForceModel model);
 
+    /// Set proxy contact radius (default: 0.01).
+    /// When using a rigid tire mesh, this is a "thickness" for the collision mesh (a non-zero value can improve
+    /// robustness of the collision detection algorithm).  When using a flexible tire, this is the radius of the proxy
+    /// spheres attached to each FEA mesh node.
+    void SetProxyContactRadius(double radius) { m_radius_p = radius; }
+
   private:
     ChSystemParallel* m_system;  ///< containing system
+    double m_radius_p;           ///< radius for a proxy body
 
     virtual bool SupportsFlexibleTire() const override { return true; }
 

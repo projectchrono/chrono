@@ -49,7 +49,7 @@ namespace vehicle {
 // - create the OpenGL visualization window
 // -----------------------------------------------------------------------------
 ChVehicleCosimTerrainNodeRigid::ChVehicleCosimTerrainNodeRigid(ChContactMethod method, bool render)
-    : ChVehicleCosimTerrainNode(Type::RIGID, method, render) {
+    : ChVehicleCosimTerrainNode(Type::RIGID, method, render), m_radius_p(0.01) {
     cout << "[Terrain node] RIGID "
          << " method = " << static_cast<std::underlying_type<ChContactMethod>::type>(method) << endl;
 

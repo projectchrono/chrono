@@ -47,13 +47,8 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNode : public ChVehicleCosimBaseNode {
                             double width    ///< width in Y direction (default: 0.5)
     );
 
-    /// Set properties of proxy bodies.
-    /// This can be a single proxy body (for a rigid tire) or a collection of proxy bodies
-    /// corresponding to an FEA mesh (for a flexible tire).  In the latter case, a concrete
-    /// terrain class may create spherical proxy bodies or triangle proxy bodies.
-    void SetProxyProperties(double radius,  ///< contact radius of a proxy body (default: 0.01)
-                            bool fixed      ///< proxies fixed to ground? (default: false)
-    );
+    /// Set the proxy bodies as fixed to ground.
+    void SetProxyFixed(bool fixed);
 
     /// Initialize this node.
     /// This function allows the node to initialize itself and, optionally, perform an
@@ -96,7 +91,6 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNode : public ChVehicleCosimBaseNode {
 
     std::vector<ProxyBody> m_proxies;  ///< list of proxy bodies with associated mesh index
     bool m_fixed_proxies;              ///< flag indicating whether or not proxy bodies are fixed to ground
-    double m_radius_p;                 ///< radius for a proxy body
 
     double m_hdimX;  ///< patch half-length (X direction)
     double m_hdimY;  ///< patch half-width (Y direction)

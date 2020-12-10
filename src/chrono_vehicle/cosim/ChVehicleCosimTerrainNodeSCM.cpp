@@ -52,7 +52,7 @@ namespace vehicle {
 // - create the Irrlicht visualization window
 // -----------------------------------------------------------------------------
 ChVehicleCosimTerrainNodeSCM::ChVehicleCosimTerrainNodeSCM(bool render, int num_threads)
-    : ChVehicleCosimTerrainNode(Type::SCM, ChContactMethod::SMC, render), m_use_checkpoint(false) {
+    : ChVehicleCosimTerrainNode(Type::SCM, ChContactMethod::SMC, render), m_radius_p(5e-3), m_use_checkpoint(false) {
     cout << "[Terrain node] SCM " << endl;
 
 #ifdef CHRONO_IRRLICHT

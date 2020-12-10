@@ -32,7 +32,7 @@ namespace vehicle {
 class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularOMP : public ChVehicleCosimTerrainNode {
   public:
     /// Create a Chrono::Parallel granular terrain subsystem.
-    ChVehicleCosimTerrainNodeGranularOMP(ChContactMethod method,  ///< contact method (penalty or complementatiry)
+    ChVehicleCosimTerrainNodeGranularOMP(ChContactMethod method,  ///< contact method (SMC or NSC)
                                          bool render,             ///< use OpenGL rendering
                                          int num_threads          ///< number of OpenMP threads
     );
@@ -52,18 +52,27 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularOMP : public ChVehicleCosi
     );
 
     /// Set the material properties for terrain.
-    /// The type of material must be consistent with the contact method (penalty or complementarity)
+    /// The type of material must be consistent with the contact method (SMC or NSC)
     /// specified at construction. These parameters characterize the material for the container and
     /// (if applicable) the granular material.  Tire contact material is received from the rig node.
     void SetMaterialSurface(const std::shared_ptr<ChMaterialSurface>& mat);
 
     /// Specify whether contact coefficients are based on material properties (default: true).
-    /// Note that this setting is only relevant when using the penalty method.
+    /// Note that this setting is only relevant when using the SMC method.
     void UseMaterialProperties(bool flag);
 
     /// Set the normal contact force model (default: Hertz)
-    /// Note that this setting is only relevant when using the penalty method.
+    /// Note that this setting is only relevant when using the SMC method.
     void SetContactForceModel(ChSystemSMC::ContactForceModel model);
+    
+    /// Set the tangential contact displacement model (default: OneStep)
+    /// Note that this setting is only relevant when using the SMC method.
+    void SetTangentialDisplacementModel(ChSystemSMC::TangentialDisplacementModel model);
+
+    /// Set sweeping sphere radius for proxy bodies (default 5e-3).
+    /// This value is used as a "thickness" for collision meshes (a non-zero value can improve robustness of the
+    /// collision detection algorithm).
+    void SetProxyContactRadius(double radius) { m_radius_p = radius; }
 
     /// Initialize granular terrain from the specified checkpoint file (which must exist in the output directory).
     /// By default, particles are created uniformly distributed in the specified domain such that they are initially not
@@ -93,6 +102,8 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularOMP : public ChVehicleCosi
 
     double m_hdimZ;   ///< container half-height (Z direction)
     double m_hthick;  ///< container wall half-thickness
+
+    double m_radius_p;  ///< radius for a proxy body
 
     bool m_use_checkpoint;              ///< initialize granular terrain from checkpoint file
     std::string m_checkpoint_filename;  ///< name of input checkpoint file

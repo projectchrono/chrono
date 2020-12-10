@@ -59,6 +59,11 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeSCM : public ChVehicleCosimTerrain
         double damping_R       ///< vertical damping R per unit area [Pa.s/m] (proportional to vertical speed)
     );
 
+    /// Set sweeping sphere radius for proxy bodies (default 5e-3).
+    /// This value is used as a "thickness" for collision meshes (a non-zero value can improve robustness of the
+    /// collision detection algorithm).
+    void SetProxyContactRadius(double radius) { m_radius_p = radius; }
+
     /// Initialize SCM terrain from the specified checkpoint file (which must exist in the output directory).
     /// By default, a flat rectangular SCM terrain patch is used. 
     void SetInputFromCheckpoint(const std::string& filename);
@@ -82,6 +87,8 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeSCM : public ChVehicleCosimTerrain
     double m_Janosi_shear;   ///< J , shear parameter, in meters, in Janosi-Hanamoto formula (usually few mm or cm)
     double m_elastic_K;      ///< elastic stiffness K per unit area [Pa/m]
     double m_damping_R;      ///< vetical damping R per unit area [Pa.s/m]
+
+    double m_radius_p;  ///< radius for a proxy body
 
     bool m_use_checkpoint;              ///< if true, initialize height from checkpoint file
     std::string m_checkpoint_filename;  ///< name of input checkpoint file
