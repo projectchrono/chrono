@@ -75,7 +75,7 @@ class ChApi ChSystemPBD : public ChSystem {
 	void SolvePositions();
 
 	/// Correct the state according to the contacts by performing SolveContacts on each contact
-	void SolveContacts();
+	void SolveContacts(double h);
 
 	/// Correct the state derivative according to the contacts by performing SolveVelocity on each contact
 	void SolveVelocities();
@@ -84,7 +84,7 @@ class ChApi ChSystemPBD : public ChSystem {
 	void Advance();
 
 	/// Advance the simulation
-	void GetContacts();
+	void CollectContacts();
 
   protected:
 	double T = 0;

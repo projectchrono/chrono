@@ -58,6 +58,8 @@ class ChApi ChLinkPBD {
 	// Lagrangian of force and torque
 	double lambda_f = 0;
 	double lambda_t = 0;
+	ChVector<> lambda_f_dir;
+	ChVector<> lambda_t_dir;
 	// Compliance (TODO: make it settable, and separate for torque and force)
 	double alpha = 0.0;
 	//TODO: not implementing limits and actuators yet.
@@ -119,16 +121,31 @@ class ChApi ChLinkPBDMate : public ChLinkPBD {
 CH_CLASS_VERSION(ChLinkPBDMate, 0)
 
 class ChApi ChContactPBD : public ChLinkPBD {
+private:
+	// initially the contact is dynamic since lambda_n is 0 at the first substep.
+	bool is_dynamic = true;
+	// distance between points along the contact normal
+	double d;
+	// TODO: static friction
+	// dynamic friction coefficient
+	double mu_d;
+	// relative velocities of the contact points
+	ChVector<double> v_rel;
+	// tangential part
+	ChVector<double> v_rel_t;
 public:
 	//ChContactPBD* link;
 	/// Create a LinkPBD
-	ChContactPBD();
+	ChContactPBD(ChBody* body1, ChBody* body2, ChFrame<>& frame1, ChFrame<>& frame2, double frict);
 
 	/// Copy constructor
 	//ChLinkPBD(const ChLinkPBD& other);
 
 	/// Destructor
 	virtual ~ChContactPBD() {};
+
+	/// Velocity correction due to dynamic friction
+	void SolveContactPositions(double h);
 
 	/// Velocity correction due to dynamic friction
 	void SolveVelocity();

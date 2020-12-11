@@ -213,9 +213,9 @@ void ChSystemPBD::SolvePositions() {
 	}
 }
 
-void ChSystemPBD::SolveContacts() {
+void ChSystemPBD::SolveContacts(double h) {
 	for (auto& contact : contactlistPBD) {
-		contact->SolvePositions();
+		contact->SolveContactPositions(h);
 	}
 }
 
@@ -225,7 +225,9 @@ void ChSystemPBD::SolveVelocities() {
 	}
 }
 
-void ChSystemPBD::GetContacts() {
+void ChSystemPBD::CollectContacts() {
+	// TODO: can we do something less brutal and use the previous knowledge?
+	contactlistPBD.clear();
 	ChContactContainerPBD* cc;
 	// The cc of a PBD system is always a PBDcc
 	cc = static_cast<ChContactContainerPBD*>(this->contact_container.get());
@@ -237,20 +239,23 @@ void ChSystemPBD::GetContacts() {
 		// TODO: while PBD can accomodate static friction, chrono does not
 		double frict = contact->GetFriction();
 		// contact points in abs coors
-		ChVector<double> p1 = contact->GetContactP1();
-		ChVector<double> p2 = contact->GetContactP2();
+		ChVector<double> p1 = contact->GetContactP1() - body1->GetPos();
+		ChVector<double> p2 = contact->GetContactP2() - body2->GetPos();
 		ChVector<double> norm = contact->GetContactNormal();
-		ChQuaternion<> p;
-
-
-
+		// orientation of the contact frame wrt the body1 frame. the contact frame has the x axis aligned with the normal, so:
+		ChQuaternion<double> q_cb1 = Q_from_Vect_to_Vect(body1->GetRot().Rotate(VECT_X), norm);
+		ChQuaternion<double> q_cb2 = Q_from_Vect_to_Vect(body2->GetRot().Rotate(VECT_X), norm);
+		ChFrame<double> frame1(p1, q_cb1);
+		ChFrame<double> frame2(p2, q_cb2);
+		auto contact = std::make_shared<ChContactPBD>(body1, body2, frame1, frame2, frict);
+		contactlistPBD.push_back(contact);
 	}
 }
 
 // Implementation af algorithm 2 from Detailed Rigid Body Simulation with Extended Position Based Dynamics, Mueller et al.
 void ChSystemPBD::Advance() {
 	// Update the contact pairs
-	GetContacts();
+	CollectContacts();
 	int n = Get_bodylist().size();
 	double h = step / substeps;
 	for (int i = 0; i < substeps; i++) {
@@ -281,8 +286,7 @@ void ChSystemPBD::Advance() {
 		}
 		// Correct positions to respect constraints. "numPosIters"set to 1 according to the paper
 		SolvePositions();
-		// Similarly we contraint normal (and, if static, tangential) displacement in contacts
-		SolveContacts();
+		
 		// Update velocities to take corrected positions into account
 		for (int j = 0; j < n; j++) {
 			std::shared_ptr<ChBody> body = Get_bodylist()[j];
@@ -298,7 +302,8 @@ void ChSystemPBD::Advance() {
 			body->coord_dt.rot = deltaq;
 		}
 		// Scatter updated state
-
+		// Similarly we contraint normal (and, if static, tangential) displacement in contacts
+		SolveContacts(h);
 		SolveVelocities();
 
 		T += h;

@@ -54,6 +54,7 @@ void ChLinkPBD::SolvePositions() {
 		ChVector<> nr = getQdelta();
 		double theta = nr.Length();
 		if (nr.Normalize()) {
+			lambda_t_dir = nr;
 			auto w1r = nr.eigen().transpose() * Inv_I1 * nr.eigen();
 			auto w2r = nr.eigen().transpose() * Inv_I2 * nr.eigen();
 			double w1_rot = w1r(0, 0);
@@ -100,9 +101,9 @@ void ChLinkPBD::SolvePositions() {
 		// Now we bring the violation back in global coord and normaize it after saving its length
 		ChVector<> n = q.Rotate(n_loc);
 		double C = n.Length();
-		n *= 1 / C;
+		
 		if (n.Normalize()) {
-
+			lambda_f_dir = n;
 			auto Ii1 = ((r1.Cross(n).eigen()).transpose()) * Inv_I1 * (r1.Cross(n).eigen());
 			auto Ii2 = ((r2.Cross(n).eigen()).transpose()) * Inv_I2 * (r2.Cross(n).eigen());
 			assert(Ii1.cols() * Ii1.rows() * Ii2.cols() * Ii2.rows() == 1);
@@ -219,26 +220,70 @@ ChLinkPBDMate::ChLinkPBDMate(ChLinkMateGeneric* alink) : ChLinkPBD() {
 	findRDOF();
 }
 
-ChContactPBD::ChContactPBD() : ChLinkPBD() {
-	/*link = alink;
-	Body1 = dynamic_cast<ChBody*>(link->GetBody1());
-	Body2 = dynamic_cast<ChBody*>(link->GetBody2());
-	f1 = ChFrame<>(link->GetMarker1()->GetCoord());
-	f2 = ChFrame<>(link->GetMarker2()->GetCoord());
-	ChLinkMask& p_mask = link->GetMask();
-	ChLinkMaskLF* m_lf = dynamic_cast<ChLinkMaskLF*>(&p_mask);
-	mask[0] = m_lf->Constr_X().GetMode() == CONSTRAINT_LOCK;
-	mask[1] = m_lf->Constr_Y().GetMode() == CONSTRAINT_LOCK;
-	mask[2] = m_lf->Constr_Z().GetMode() == CONSTRAINT_LOCK;
-	//mask[3] = m_lf->Constr_E0().GetMode() == CONSTRAINT_LOCK;
-	mask[3] = m_lf->Constr_E1().GetMode() == CONSTRAINT_LOCK;
-	mask[4] = m_lf->Constr_E2().GetMode() == CONSTRAINT_LOCK;
-	mask[5] = m_lf->Constr_E3().GetMode() == CONSTRAINT_LOCK;
-	p_dir.Set(int(mask[0]), int(mask[1]), int(mask[2]));
-	r_dir.Set(int(mask[3]), int(mask[4]), int(mask[5]));
-	p_free = (int(mask[0]) + int(mask[1]) + int(mask[2]) == 0) ? true : false;
-	r_free = (int(mask[3]) + int(mask[4]) + int(mask[5]) == 0) ? true : false;
-	findRDOF();*/
+ChContactPBD::ChContactPBD(ChBody* body1, ChBody* body2, ChFrame<>& frame1, ChFrame<>& frame2, double frict_d) : ChLinkPBD() {
+
+	Body1 = body1;
+	Body2 = body2;
+	f1 = frame1;
+	f2 = frame2;
+	mu_d = frict_d;
+	mask[0] = false;
+	mask[1] = false;
+	mask[2] = false;
+	mask[3] = false;
+	mask[4] = false;
+	mask[5] = false;
+	//p_dir.Set(int(mask[0]), int(mask[1]), int(mask[2]));
+	// If the contact is violated it is NOT free, is dist > 0 we skip the correction completely
+	p_free = false;
+
+	// Rotations are not constrained by contacts. Plus, we don't provide a rolling friction model yet.
+	r_free = true;
+	//findRDOF();
+	//r_dir.Set(int(mask[3]), int(mask[4]), int(mask[5]));
+}
+
+// Adjust tangential velocity of bodies 
+void ChContactPBD::SolveContactPositions(double h) {
+	ChVector<double> p1 = Body1->GetPos() + Body1->GetRot().Rotate(f1.coord.pos);
+	ChVector<double> p2 = Body2->GetPos() + Body2->GetRot().Rotate(f2.coord.pos);
+	ChVector<double> dist = p2 - p1;
+	ChQuaternion<double> q = f1.coord.rot * Body1->GetRot();
+	// n is the X axis of the contact "link"
+	ChVector<double> n = q.Rotate(VECT_X);
+	d = (dist) ^ n;
+	
+	v_rel = Body2->GetPos_dt() + Body2->GetWvel_par().Cross(f2.coord.pos) - Body1->GetPos_dt() + Body1->GetWvel_par().Cross(f1.coord.pos);
+	v_rel_t = v_rel - n * (v_rel^n);
+	// If the distance is positive, just skip
+	if (d > 0) {
+		return;
+	}
+	else {
+		double lam_n = lambda_f_dir ^ n;
+		ChVector<double> lambda_contact_t = lambda_f_dir - lam_n^n;
+		// 
+		mask[0] = true;
+		// Check if static -> dynamic
+		// TODO: use static friction here!!
+		if (!is_dynamic && lambda_contact_t.Length() > mu_d*lam_n ) {
+			is_dynamic = true;
+			mask[1] = false;
+			mask[2] = false;
+		}
+		// Check if dynamic -> static
+		// kinetic energy < friction work in the substep, aka the body would stop within the substep
+		// 0.5*m*v^2 < mu_d * f * v * h
+		else if (is_dynamic && (Body1->GetMass() + Body2->GetMass())*v_rel_t.Length() < 4*mu_d*lambda_contact_t.Length()*h) {
+			is_dynamic = false;
+			mask[1] = true;
+			mask[2] = true;
+		}
+
+		// Treat the contact as a link
+		p_dir.Set(int(mask[0]), int(mask[1]), int(mask[2]));
+		SolvePositions();
+	}
 }
 
 // Adjust tangential velocity of bodies 
