@@ -27,6 +27,7 @@ namespace sensor {
 /// @param height The height of the image in pixels.
 /// @param mean The mean of the Gaussian distribution to be sampled.
 /// @param stdev  The standard deviation of the distribution to be sampled.
+/// @param rng The states to be randomly generated
 void cuda_camera_noise_const_normal(unsigned char* bufPtr,
                                     int width,
                                     int height,
@@ -42,6 +43,7 @@ void cuda_camera_noise_const_normal(unsigned char* bufPtr,
 /// @param gain The linear coefficient of correlation between pixel intensity and noise variance
 /// @param sigma_read The standard deviation of multiplicative noise to be sampled.
 /// @param sigma_adc The standard deviation of additive noise to be sampled.
+/// @param rng The states to be randomly generated
 void cuda_camera_noise_pixel_dependent(unsigned char* bufPtr,
                                        int width,
                                        int height,

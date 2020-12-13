@@ -72,7 +72,7 @@ ByteImageData LoadImage(std::string filename);
 
 /// creates an empty optix transform::node
 /// @param context the optix context
-optix::Transform CreateEmptyTransform(optix::Context contex);
+optix::Transform CreateEmptyTransform(optix::Context context);
 
 /// creates an opti::transform node
 /// @param context optix context
