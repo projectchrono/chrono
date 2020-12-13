@@ -138,7 +138,7 @@ ChVehicleCosimTerrainNodeGranularOMP::ChVehicleCosimTerrainNodeGranularOMP(ChCon
 
     if (m_render) {
         opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
-        gl_window.Initialize(1280, 720, "Terrain Node", m_system);
+        gl_window.Initialize(1280, 720, "Terrain Node (GranularOMP)", m_system);
         gl_window.SetCamera(ChVector<>(0, -2, 0), ChVector<>(0, 0, 0), ChVector<>(0, 0, 1), 0.05f);
         gl_window.SetRenderMode(opengl::WIREFRAME);
     }
@@ -277,7 +277,7 @@ void ChVehicleCosimTerrainNodeGranularOMP::Construct() {
     }
 
     m_num_particles = gen.getTotalNumBodies();
-    cout << "[Terrain node] Generated particles:  " << m_num_particles << endl;
+    cout << "[Terrain node] Generated num particles = " << m_num_particles << endl;
 
     // -------------------------------------------------
     // If requested, set particle states from checkpoint
@@ -286,6 +286,10 @@ void ChVehicleCosimTerrainNodeGranularOMP::Construct() {
         // Open input file stream
         std::string checkpoint_filename = m_out_dir + "/" + m_checkpoint_filename;
         std::ifstream ifile(checkpoint_filename);
+        if (!ifile.is_open()) {
+            cout << "ERROR: could not open checkpoint file " << checkpoint_filename << endl;
+            MPI_Abort(MPI_COMM_WORLD, 1);
+        }
         std::string line;
 
         // Read and discard line with current time
@@ -324,8 +328,7 @@ void ChVehicleCosimTerrainNodeGranularOMP::Construct() {
             body->SetRot_dt(ChQuaternion<>(rot_dt.e0(), rot_dt.e1(), rot_dt.e2(), rot_dt.e3()));
         }
 
-        cout << "[Terrain node] read checkpoint <=== " << checkpoint_filename << "   num. particles = " << num_particles
-             << endl;
+        cout << "[Terrain node] read " << checkpoint_filename << "   num. particles = " << num_particles << endl;
     }
 
     // Find "height" of granular material
@@ -493,9 +496,10 @@ void ChVehicleCosimTerrainNodeGranularOMP::CreateWheelProxy() {
 
     // Create collision mesh
     auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
-    trimesh->getCoordsVertices() = m_mesh_data.vpos;
-    trimesh->getCoordsNormals() = m_mesh_data.vnrm;
-    trimesh->getIndicesVertexes() = m_mesh_data.tri;
+    trimesh->getCoordsVertices() = m_mesh_data.verts;
+    trimesh->getCoordsNormals() = m_mesh_data.norms;
+    trimesh->getIndicesVertexes() = m_mesh_data.idx_verts;
+    trimesh->getIndicesNormals() = m_mesh_data.idx_norms;
 
     // Set collision shape
     body->GetCollisionModel()->ClearModel();
@@ -529,9 +533,9 @@ void ChVehicleCosimTerrainNodeGranularOMP::UpdateMeshProxies() {
 
     for (unsigned int it = 0; it < m_mesh_data.nt; it++) {
         // Vertex locations (expressed in global frame)
-        const ChVector<>& pA = m_mesh_state.vpos[m_mesh_data.tri[it].x()];
-        const ChVector<>& pB = m_mesh_state.vpos[m_mesh_data.tri[it].y()];
-        const ChVector<>& pC = m_mesh_state.vpos[m_mesh_data.tri[it].z()];
+        const ChVector<>& pA = m_mesh_state.vpos[m_mesh_data.idx_verts[it].x()];
+        const ChVector<>& pB = m_mesh_state.vpos[m_mesh_data.idx_verts[it].y()];
+        const ChVector<>& pC = m_mesh_state.vpos[m_mesh_data.idx_verts[it].z()];
 
         // Position and orientation of proxy body
         ChVector<> pos = (pA + pB + pC) / 3;
@@ -543,9 +547,9 @@ void ChVehicleCosimTerrainNodeGranularOMP::UpdateMeshProxies() {
         // body reference frame, the linear velocity is the average of the 3 vertex velocities.
         // This leaves a 9x3 linear system for the angular velocity which should be solved in a
         // least-square sense:   Ax = b   =>  (A'A)x = A'b
-        const ChVector<>& vA = m_mesh_state.vvel[m_mesh_data.tri[it].x()];
-        const ChVector<>& vB = m_mesh_state.vvel[m_mesh_data.tri[it].y()];
-        const ChVector<>& vC = m_mesh_state.vvel[m_mesh_data.tri[it].z()];
+        const ChVector<>& vA = m_mesh_state.vvel[m_mesh_data.idx_verts[it].x()];
+        const ChVector<>& vB = m_mesh_state.vvel[m_mesh_data.idx_verts[it].y()];
+        const ChVector<>& vC = m_mesh_state.vvel[m_mesh_data.idx_verts[it].z()];
 
         ChVector<> vel = (vA + vB + vC) / 3;
         m_proxies[it].m_body->SetPos_dt(vel);
@@ -615,25 +619,25 @@ void ChVehicleCosimTerrainNodeGranularOMP::GetForcesMeshProxies() {
 
         // For each vertex of the triangle, if it appears in the map, increment
         // the total contact force. Otherwise, insert a new entry in the map.
-        auto v1 = my_map.find(m_mesh_data.tri[it].x());
+        auto v1 = my_map.find(m_mesh_data.idx_verts[it].x());
         if (v1 != my_map.end()) {
             v1->second += force;
         } else {
-            my_map[m_mesh_data.tri[it].x()] = force;
+            my_map[m_mesh_data.idx_verts[it].x()] = force;
         }
 
-        auto v2 = my_map.find(m_mesh_data.tri[it].y());
+        auto v2 = my_map.find(m_mesh_data.idx_verts[it].y());
         if (v2 != my_map.end()) {
             v2->second += force;
         } else {
-            my_map[m_mesh_data.tri[it].y()] = force;
+            my_map[m_mesh_data.idx_verts[it].y()] = force;
         }
 
-        auto v3 = my_map.find(m_mesh_data.tri[it].z());
+        auto v3 = my_map.find(m_mesh_data.idx_verts[it].z());
         if (v3 != my_map.end()) {
             v3->second += force;
         } else {
-            my_map[m_mesh_data.tri[it].z()] = force;
+            my_map[m_mesh_data.idx_verts[it].z()] = force;
         }
     }
 

@@ -103,21 +103,23 @@ void ChVehicleCosimTerrainNode::Initialize() {
 
     MPI_Status status;
 
-    unsigned int surf_props[3];
-    MPI_Recv(surf_props, 3, MPI_UNSIGNED, RIG_NODE_RANK, 0, MPI_COMM_WORLD, &status);
+    unsigned int surf_props[4];
+    MPI_Recv(surf_props, 4, MPI_UNSIGNED, RIG_NODE_RANK, 0, MPI_COMM_WORLD, &status);
 
     m_flexible_tire = (surf_props[0] == 1);
     m_mesh_data.nv = surf_props[1];
-    m_mesh_data.nt = surf_props[2];
+    m_mesh_data.nn = surf_props[2];
+    m_mesh_data.nt = surf_props[3];
 
     if (m_flexible_tire && !SupportsFlexibleTire()) {
         cout << "ERROR: terrain system does not support flexible tires!" << endl;
         MPI_Abort(MPI_COMM_WORLD, 1);
     }
 
-    m_mesh_data.vpos.resize(m_mesh_data.nv);
-    m_mesh_data.vnrm.resize(m_mesh_data.nv);
-    m_mesh_data.tri.resize(m_mesh_data.nt);
+    m_mesh_data.verts.resize(m_mesh_data.nv);
+    m_mesh_data.norms.resize(m_mesh_data.nn);
+    m_mesh_data.idx_verts.resize(m_mesh_data.nt);
+    m_mesh_data.idx_norms.resize(m_mesh_data.nt);
 
     m_mesh_state.vpos.resize(m_mesh_data.nv);
     m_mesh_state.vvel.resize(m_mesh_data.nv);
@@ -126,30 +128,34 @@ void ChVehicleCosimTerrainNode::Initialize() {
     // Receive tire mesh vertices & normals and triangle indices
     // -----------------------------------------------------------
 
-    double* vert_data = new double[2 * 3 * m_mesh_data.nv];
-    int* tri_data = new int[3 * m_mesh_data.nt];
-    MPI_Recv(vert_data, 2 * 3 * m_mesh_data.nv, MPI_DOUBLE, RIG_NODE_RANK, 0, MPI_COMM_WORLD, &status);
-    MPI_Recv(tri_data, 3 * m_mesh_data.nt, MPI_INT, RIG_NODE_RANK, 0, MPI_COMM_WORLD, &status);
+    double* vert_data = new double[3 * m_mesh_data.nv + 3 * m_mesh_data.nn];
+    int* tri_data = new int[3 * m_mesh_data.nt + 3 * m_mesh_data.nt];
+    MPI_Recv(vert_data, 3 * m_mesh_data.nv + 3 * m_mesh_data.nn, MPI_DOUBLE, RIG_NODE_RANK, 0, MPI_COMM_WORLD, &status);
+    MPI_Recv(tri_data, 3 * m_mesh_data.nt + 3 * m_mesh_data.nt, MPI_INT, RIG_NODE_RANK, 0, MPI_COMM_WORLD, &status);
 
     for (unsigned int iv = 0; iv < m_mesh_data.nv; iv++) {
-        m_mesh_data.vpos[iv].x() = vert_data[6 * iv + 0];
-        m_mesh_data.vpos[iv].y() = vert_data[6 * iv + 1];
-        m_mesh_data.vpos[iv].z() = vert_data[6 * iv + 2];
-        m_mesh_data.vnrm[iv].x() = vert_data[6 * iv + 3];
-        m_mesh_data.vnrm[iv].y() = vert_data[6 * iv + 4];
-        m_mesh_data.vnrm[iv].z() = vert_data[6 * iv + 5];
+        m_mesh_data.verts[iv].x() = vert_data[3 * iv + 0];
+        m_mesh_data.verts[iv].y() = vert_data[3 * iv + 1];
+        m_mesh_data.verts[iv].z() = vert_data[3 * iv + 2];
     }
-
+    for (unsigned int in = 0; in < m_mesh_data.nn; in++) {
+        m_mesh_data.norms[in].x() = vert_data[3 * m_mesh_data.nv + 3 * in + 0];
+        m_mesh_data.norms[in].y() = vert_data[3 * m_mesh_data.nv + 3 * in + 1];
+        m_mesh_data.norms[in].z() = vert_data[3 * m_mesh_data.nv + 3 * in + 2];
+    }
     for (unsigned int it = 0; it < m_mesh_data.nt; it++) {
-        m_mesh_data.tri[it].x() = tri_data[3 * it + 0];
-        m_mesh_data.tri[it].y() = tri_data[3 * it + 1];
-        m_mesh_data.tri[it].z() = tri_data[3 * it + 2];
+        m_mesh_data.idx_verts[it].x() = tri_data[6 * it + 0];
+        m_mesh_data.idx_verts[it].y() = tri_data[6 * it + 1];
+        m_mesh_data.idx_verts[it].z() = tri_data[6 * it + 2];
+        m_mesh_data.idx_norms[it].x() = tri_data[6 * it + 3];
+        m_mesh_data.idx_norms[it].y() = tri_data[6 * it + 4];
+        m_mesh_data.idx_norms[it].z() = tri_data[6 * it + 5];
     }
 
     delete[] vert_data;
     delete[] tri_data;
 
-    cout << "[Terrain node] Received " << surf_props[1] << " vertices and " << surf_props[2] << " triangles" << endl;
+    cout << "[Terrain node] Received " << surf_props[1] << " vertices and " << surf_props[3] << " triangles" << endl;
 
     // ----------------
     // Receive rig mass
@@ -333,13 +339,11 @@ void ChVehicleCosimTerrainNode::OutputData(int frame) {
     OutputTerrainData(frame);
 }
 
-// Print vertex and face connectivity data, as received from the rig node at synchronization.
+// Print mesh vertex data, as received from the rig node at synchronization.
 void ChVehicleCosimTerrainNode::PrintMeshUpdateData() {
     cout << "[Terrain node] mesh vertices and faces" << endl;
     std::for_each(m_mesh_state.vpos.begin(), m_mesh_state.vpos.end(),
                   [](const ChVector<>& a) { cout << a.x() << "  " << a.y() << "  " << a.z() << endl; });
-    std::for_each(m_mesh_data.tri.begin(), m_mesh_data.tri.end(),
-                  [](const ChVector<int>& a) { cout << a.x() << "  " << a.y() << "  " << a.z() << endl; });
 }
 
 }  // end namespace vehicle

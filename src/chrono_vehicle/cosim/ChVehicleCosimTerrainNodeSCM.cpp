@@ -71,8 +71,8 @@ ChVehicleCosimTerrainNodeSCM::ChVehicleCosimTerrainNodeSCM(bool render, int num_
 #ifdef CHRONO_IRRLICHT
     // Create the visualization window
     if (m_render) {
-        m_irrapp =
-            new irrlicht::ChIrrApp(m_system, L"SCM terrain", irr::core::dimension2d<irr::u32>(1280, 720), false, true);
+        m_irrapp = new irrlicht::ChIrrApp(m_system, L"Terrain Node (SCM)", irr::core::dimension2d<irr::u32>(1280, 720),
+                                          false, true);
         m_irrapp->AddTypicalLogo();
         m_irrapp->AddTypicalSky();
         m_irrapp->AddTypicalLights();
@@ -141,6 +141,10 @@ void ChVehicleCosimTerrainNodeSCM::Construct() {
         // Open input file stream
         std::string checkpoint_filename = m_out_dir + "/" + m_checkpoint_filename;
         std::ifstream ifile(checkpoint_filename);
+        if (!ifile.is_open()) {
+            cout << "ERROR: could not open checkpoint file " << checkpoint_filename << endl;
+            MPI_Abort(MPI_COMM_WORLD, 1);
+        }
         std::string line;
 
         // Read and discard line with current time
@@ -164,8 +168,7 @@ void ChVehicleCosimTerrainNodeSCM::Construct() {
 
         m_terrain->SetModifiedNodes(nodes);
 
-        cout << "[Terrain node] read checkpoint <=== " << checkpoint_filename << "   num. nodes = " << num_nodes
-             << endl;
+        cout << "[Terrain node] read " << checkpoint_filename << "   num. nodes = " << num_nodes << endl;
     }
 
     // --------------------------------------
@@ -219,9 +222,10 @@ void ChVehicleCosimTerrainNodeSCM::CreateWheelProxy() {
 
     // Create collision mesh
     auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
-    trimesh->getCoordsVertices() = m_mesh_data.vpos;
-    trimesh->getCoordsNormals() = m_mesh_data.vnrm;
-    trimesh->getIndicesVertexes() = m_mesh_data.tri;
+    trimesh->getCoordsVertices() = m_mesh_data.verts;
+    trimesh->getCoordsNormals() = m_mesh_data.norms;
+    trimesh->getIndicesVertexes() = m_mesh_data.idx_verts;
+    trimesh->getIndicesNormals() = m_mesh_data.idx_norms;
 
     // Set collision shape
     body->GetCollisionModel()->ClearModel();

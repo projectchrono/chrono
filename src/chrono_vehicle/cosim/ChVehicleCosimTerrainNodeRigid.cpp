@@ -95,7 +95,7 @@ ChVehicleCosimTerrainNodeRigid::ChVehicleCosimTerrainNodeRigid(ChContactMethod m
 
     if (m_render) {
         opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
-        gl_window.Initialize(1280, 720, "Terrain Node", m_system);
+        gl_window.Initialize(1280, 720, "Terrain Node (Rigid)", m_system);
         gl_window.SetCamera(ChVector<>(0, -2, 1), ChVector<>(0, 0, 0), ChVector<>(0, 0, 1), 0.05f);
         gl_window.SetRenderMode(opengl::SOLID);
     }
@@ -247,9 +247,10 @@ void ChVehicleCosimTerrainNodeRigid::CreateWheelProxy() {
 
     // Create collision mesh
     auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
-    trimesh->getCoordsVertices() = m_mesh_data.vpos;
-    trimesh->getCoordsNormals() = m_mesh_data.vnrm;
-    trimesh->getIndicesVertexes() = m_mesh_data.tri;
+    trimesh->getCoordsVertices() = m_mesh_data.verts;
+    trimesh->getCoordsNormals() = m_mesh_data.norms;
+    trimesh->getIndicesVertexes() = m_mesh_data.idx_verts;
+    trimesh->getIndicesNormals() = m_mesh_data.idx_norms;
 
     // Set collision shape
     body->GetCollisionModel()->ClearModel();

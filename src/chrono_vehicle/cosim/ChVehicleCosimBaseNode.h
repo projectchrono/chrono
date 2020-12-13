@@ -82,11 +82,13 @@ class CH_VEHICLE_API ChVehicleCosimBaseNode {
   protected:
     /// Mesh data
     struct MeshData {
-        unsigned int nv;                 ///< number of vertices
-        unsigned int nt;                 ///< number of triangles
-        std::vector<ChVector<>> vpos;    ///< vertex positions (in local frame)
-        std::vector<ChVector<>> vnrm;    ///< vertex normals (in local frame)
-        std::vector<ChVector<int>> tri;  ///< mesh connectivity
+        unsigned int nv;                       ///< number of vertices
+        unsigned int nn;                       ///< number of normals
+        unsigned int nt;                       ///< number of triangles
+        std::vector<ChVector<>> verts;         ///< vertex positions (in local frame)
+        std::vector<ChVector<>> norms;         ///< vertex normals (in local frame)
+        std::vector<ChVector<int>> idx_verts;  ///< mesh vertex indices (connectivity)
+        std::vector<ChVector<int>> idx_norms;  ///< mesh normal indices
     };
 
     /// Mesh state

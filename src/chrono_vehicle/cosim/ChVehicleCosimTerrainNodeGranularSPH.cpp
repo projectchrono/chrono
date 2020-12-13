@@ -77,7 +77,7 @@ ChVehicleCosimTerrainNodeGranularSPH::ChVehicleCosimTerrainNodeGranularSPH(bool 
     // Create the visualization window
     if (m_render) {
         opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
-        gl_window.Initialize(1280, 720, "Terrain Node", m_system);
+        gl_window.Initialize(1280, 720, "Terrain Node (GranularSPH)", m_system);
         gl_window.SetCamera(ChVector<>(0, -6, 0), ChVector<>(0, 0, 0), ChVector<>(0, 0, 1), 0.05f);
         gl_window.SetRenderMode(opengl::WIREFRAME);
     }
@@ -356,9 +356,10 @@ void ChVehicleCosimTerrainNodeGranularSPH::CreateWheelProxy() {
 
     // Create collision mesh
     auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
-    trimesh->getCoordsVertices() = m_mesh_data.vpos;
-    trimesh->getCoordsNormals() = m_mesh_data.vnrm;
-    trimesh->getIndicesVertexes() = m_mesh_data.tri;
+    trimesh->getCoordsVertices() = m_mesh_data.verts;
+    trimesh->getCoordsNormals() = m_mesh_data.norms;
+    trimesh->getIndicesVertexes() = m_mesh_data.idx_verts;
+    trimesh->getIndicesNormals() = m_mesh_data.idx_norms;
 
     // Set visualization asset
     auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
