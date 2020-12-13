@@ -54,37 +54,36 @@ struct SynMAPMessageState : public SynMessageState {
 class SYN_API SynMAPMessage : public SynMessage {
   public:
   public:
-    ///@brief Construct a new SynMAPMessage object
+    /// @brief Construct a new SynMAPMessage object
     ///
-    ///@param rank the rank of this message
+    /// @param rank the rank of this message
+    /// @param state fill this to just wrap current state into a message
     SynMAPMessage(int rank, std::shared_ptr<SynMAPMessageState> state = nullptr);
 
-    ///@brief Generates and sets the state of this message from flatbuffer message
+    /// @brief Generates and sets the state of this message from flatbuffer message
     ///
-    ///@param message the flatbuffer message to convert to a MessageState object
+    /// @param message the flatbuffer message to convert to a MessageState object
     virtual void StateFromMessage(const SynFlatBuffers::Message* message) override;
 
-    ///@brief Generates a SynFlatBuffers::Message from the message state
+    /// @brief Generates a SynFlatBuffers::Message from the message state
     ///
-    ///@param builder the flatbuffer builder used to construct messages
-    ///@return flatbuffers::Offset<SynFlatBuffers::Message> the generated message
+    /// @param builder the flatbuffer builder used to construct messages
+    /// @return flatbuffers::Offset<SynFlatBuffers::Message> the generated message
     virtual FlatBufferMessage MessageFromState(flatbuffers::FlatBufferBuilder& builder) override;
 
-    /**
-     * @brief Add the lane to environment.
-     *
-     * @return The lane's position in that approach
-     */
+    /// @brief Add the lane to environment.
+    ///
+    /// @return The lane's position in that approach
     virtual int AddLane(int intersection, int approach, ApproachLane lane);
 
-    ///@brief Get the SynMessageState object
+    /// @brief Get the SynMessageState object
     ///
-    ///@return std::shared_ptr<SynMessageState> the state associated with this message
+    /// @return std::shared_ptr<SynMessageState> the state associated with this message
     virtual std::shared_ptr<SynMessageState> GetState() override { return m_state; }
 
-    ///@brief Get the SynMAPMessageState object
+    /// @brief Get the SynMAPMessageState object
     ///
-    ///@return std::shared_ptr<SynMAPMessageState> the state associated with this message
+    /// @return std::shared_ptr<SynMAPMessageState> the state associated with this message
     std::shared_ptr<SynMAPMessageState> GetMAPState() { return m_state; }
 
   private:

@@ -211,6 +211,11 @@ unsigned int ChRigidTire::GetNumVertices() const {
     return static_cast<unsigned int>(m_trimesh->getCoordsVertices().size());
 }
 
+unsigned int ChRigidTire::GetNumNormals() const {
+    assert(m_use_contact_mesh);
+    return static_cast<unsigned int>(m_trimesh->getCoordsNormals().size());
+}
+
 unsigned int ChRigidTire::GetNumTriangles() const {
     assert(m_use_contact_mesh);
     return static_cast<unsigned int>(m_trimesh->getIndicesVertexes().size());
@@ -219,6 +224,11 @@ unsigned int ChRigidTire::GetNumTriangles() const {
 const std::vector<ChVector<int>>& ChRigidTire::GetMeshConnectivity() const {
     assert(m_use_contact_mesh);
     return m_trimesh->getIndicesVertexes();
+}
+
+const std::vector<ChVector<int>>& ChRigidTire::GetMeshNormalIndices() const {
+    assert(m_use_contact_mesh);
+    return m_trimesh->getIndicesNormals();
 }
 
 const std::vector<ChVector<>>& ChRigidTire::GetMeshVertices() const {

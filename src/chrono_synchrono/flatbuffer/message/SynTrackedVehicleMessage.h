@@ -69,7 +69,7 @@ struct SynTrackedVehicleState : SynMessageState {
     }
 };
 
-///@brief The agent description struct
+/// @brief The agent description struct
 /// Describes how to visualize a zombie agent
 struct SynTrackedVehicleDescription : public SynAgentDescription {
     std::string m_chassis_vis_file = "";           ///< file name for chassis zombie visualization
@@ -86,9 +86,9 @@ struct SynTrackedVehicleDescription : public SynAgentDescription {
     int m_num_idlers;       ///< number of idlers the zombie vehicle has
     int m_num_road_wheels;  ///< number of road wheels the zombie vehicle has
 
-    ///@brief Construct a new SynTrackedVehicleDescription object
+    /// @brief Construct a new SynTrackedVehicleDescription object
     ///
-    ///@param json the json specification file used to create an agent
+    /// @param json the json specification file used to create an agent
     SynTrackedVehicleDescription(std::string json = "") : SynAgentDescription(json) {}
 
     void SetVisualizationFiles(std::string chassis_vis_file,
@@ -120,59 +120,64 @@ struct SynTrackedVehicleDescription : public SynAgentDescription {
 /// Wraps data from a tracked vehicle state message into a corresponding C++ object.
 class SYN_API SynTrackedVehicleMessage : public SynAgentMessage {
   public:
-    ///@brief Construct a new SynTrackedVehicleMessage object
+    /// @brief Construct a new SynTrackedVehicleMessage object
     ///
-    ///@param rank the rank of this message
+    /// @param rank the rank of this message
+    /// @param json used when generating the agent description
+    /// @param state used when wrapping existing state
+    /// @param description used when wrapping an existing description
     SynTrackedVehicleMessage(int rank,
                              std::string json = "",
                              std::shared_ptr<SynTrackedVehicleState> state = nullptr,
                              std::shared_ptr<SynTrackedVehicleDescription> description = nullptr);
 
-    ///@brief Construct a new SynTrackedVehicleMessage object
+    /// @brief Construct a new SynTrackedVehicleMessage object
     /// Initialize with the passed state and description
     ///
-    ///@param rank the rank of this message
+    /// @param rank the rank of this message
+    /// @param state used when wrapping existing state
+    /// @param description used when wrapping an existing description
     SynTrackedVehicleMessage(int rank,
                              std::shared_ptr<SynTrackedVehicleState> state,
                              std::shared_ptr<SynTrackedVehicleDescription> description = nullptr);
 
-    ///@brief Generates and sets the state of this message from flatbuffer message
+    /// @brief Generates and sets the state of this message from flatbuffer message
     ///
-    ///@param message the flatbuffer message to convert to a MessageState object
+    /// @param message the flatbuffer message to convert to a MessageState object
     virtual void StateFromMessage(const SynFlatBuffers::Message* message) override;
 
-    ///@brief Generates a SynFlatBuffers::Message from the message state
+    /// @brief Generates a SynFlatBuffers::Message from the message state
     ///
-    ///@param builder the flatbuffer builder used to construct messages
-    ///@return flatbuffers::Offset<SynFlatBuffers::Message> the generated message
+    /// @param builder the flatbuffer builder used to construct messages
+    /// @return flatbuffers::Offset<SynFlatBuffers::Message> the generated message
     virtual FlatBufferMessage MessageFromState(flatbuffers::FlatBufferBuilder& builder) override;
 
-    ///@brief Get the SynMessageState object
+    /// @brief Get the SynMessageState object
     ///
-    ///@return std::shared_ptr<SynMessageState> the state associated with this message
+    /// @return std::shared_ptr<SynMessageState> the state associated with this message
     virtual std::shared_ptr<SynMessageState> GetState() override { return m_state; }
 
-    ///@brief Get the SynTrackedVehicleState object
+    /// @brief Get the SynTrackedVehicleState object
     ///
-    ///@return std::shared_ptr<SynTrackedVehicleState> the state associated with this message
+    /// @return std::shared_ptr<SynTrackedVehicleState> the state associated with this message
     std::shared_ptr<SynTrackedVehicleState> GetTrackedState() { return m_state; }
 
     // ---------------------------------------------------------------------------------------------------------------
 
-    ///@brief Generates and sets the agent description from a flatbuffer message
+    /// @brief Generates and sets the agent description from a flatbuffer message
     ///
-    ///@param message the flatbuffer message to convert to a SynAgentDescription object
+    /// @param message the flatbuffer message to convert to a SynAgentDescription object
     virtual void DescriptionFromMessage(const SynFlatBuffers::Message* message) override;
 
-    ///@brief Generates a SynFlatBuffers::Message from the agent description
+    /// @brief Generates a SynFlatBuffers::Message from the agent description
     ///
-    ///@param builder the flatbuffer builder used to construct messages
-    ///@return flatbuffers::Offset<SynFlatBuffers::Message> the generated message
+    /// @param builder the flatbuffer builder used to construct messages
+    /// @return flatbuffers::Offset<SynFlatBuffers::Message> the generated message
     virtual FlatBufferMessage MessageFromDescription(flatbuffers::FlatBufferBuilder& builder) override;
 
-    ///@brief Get the SynTrackedVehicleDescription object
+    /// @brief Get the SynTrackedVehicleDescription object
     ///
-    ///@return std::shared_ptr<SynTrackedVehicleDescription> the description associated with this message
+    /// @return std::shared_ptr<SynTrackedVehicleDescription> the description associated with this message
     std::shared_ptr<SynTrackedVehicleDescription> GetTrackedDescription() { return m_vehicle_description; }
 
     // ---------------------------------------------------------------------------------------------------------------

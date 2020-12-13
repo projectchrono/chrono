@@ -53,32 +53,33 @@ struct SynSPATMessageState : public SynMessageState {
 /// Wraps data from a SPAT message into a corresponding C++ object.
 class SYN_API SynSPATMessage : public SynMessage {
   public:
-    ///@brief Construct a new SynSPATMessage object
+    /// @brief Construct a new SynSPATMessage object
     ///
-    ///@param rank the rank of this message
+    /// @param rank the rank of this message
+    /// @param state wrap existing state into a message
     SynSPATMessage(int rank, std::shared_ptr<SynSPATMessageState> state = nullptr);
 
-    ///@brief Generates and sets the state of this message from flatbuffer message
+    /// @brief Generates and sets the state of this message from flatbuffer message
     ///
-    ///@param message the flatbuffer message to convert to a MessageState object
+    /// @param message the flatbuffer message to convert to a MessageState object
     virtual void StateFromMessage(const SynFlatBuffers::Message* message) override;
 
-    ///@brief Generates a SynFlatBuffers::Message from the message state
+    /// @brief Generates a SynFlatBuffers::Message from the message state
     ///
-    ///@param builder the flatbuffer builder used to construct messages
-    ///@return flatbuffers::Offset<SynFlatBuffers::Message> the generated message
+    /// @param builder the flatbuffer builder used to construct messages
+    /// @return flatbuffers::Offset<SynFlatBuffers::Message> the generated message
     virtual FlatBufferMessage MessageFromState(flatbuffers::FlatBufferBuilder& builder) override;
 
     virtual void setColor(int intersection, int approach, int lane, LaneColor color);
 
-    ///@brief Get the SynMessageState object
+    /// @brief Get the SynMessageState object
     ///
-    ///@return std::shared_ptr<SynMessageState> the state associated with this message
+    /// @return std::shared_ptr<SynMessageState> the state associated with this message
     virtual std::shared_ptr<SynMessageState> GetState() override { return m_state; }
 
-    ///@brief Get the SynSPATMessageState object
+    /// @brief Get the SynSPATMessageState object
     ///
-    ///@return std::shared_ptr<SynSPATMessageState> the state associated with this message
+    /// @return std::shared_ptr<SynSPATMessageState> the state associated with this message
     std::shared_ptr<SynSPATMessageState> GetSPATState() { return m_state; }
 
   private:
