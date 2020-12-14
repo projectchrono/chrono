@@ -40,9 +40,9 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularOMP : public ChVehicleCosi
 
     virtual ChSystem* GetSystem() override { return m_system; }
 
-    /// Set container dimensions (wall height and thickness)
-    void SetContainerDimensions(double height,    ///< height in Z direction (default: 1)
-                                double thickness  ///< wall thickness (default: 0.2)
+    /// Set container height (and optionally wall thickness)
+    void SetContainerHeight(double height,          ///< height in Z direction (default: 1)
+                            double thickness = 0.2  ///< wall thickness
     );
 
     /// Set properties of granular material.
@@ -140,6 +140,9 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularOMP : public ChVehicleCosi
     virtual void OutputTerrainData(int frame) override;
     virtual void OnSynchronize(int step_number, double time) override;
     virtual void OnAdvance(double step_size) override;
+
+    /// Calculate current initial height (
+    void CalcInitHeight();
 
     void WriteParticleInformation(utils::CSV_writer& csv);
 

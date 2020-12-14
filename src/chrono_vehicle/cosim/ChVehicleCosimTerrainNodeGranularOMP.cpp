@@ -151,7 +151,7 @@ ChVehicleCosimTerrainNodeGranularOMP::~ChVehicleCosimTerrainNodeGranularOMP() {
 
 // -----------------------------------------------------------------------------
 
-void ChVehicleCosimTerrainNodeGranularOMP::SetContainerDimensions(double height, double thickness) {
+void ChVehicleCosimTerrainNodeGranularOMP::SetContainerHeight(double height, double thickness) {
     m_hdimZ = height / 2;
     m_hthick = thickness / 2;
 }
@@ -332,11 +332,10 @@ void ChVehicleCosimTerrainNodeGranularOMP::Construct() {
     }
 
     // Find "height" of granular material
-    for (auto body : m_system->Get_bodylist()) {
-        if (body->GetIdentifier() > 0 && body->GetPos().z() > m_init_height)
-            m_init_height = body->GetPos().z();
-    }
-    m_init_height += m_radius_g;
+    CalcInitHeight();
+
+    // Mark system as constructed.
+    m_constructed = true;
 
     // --------------------------------------
     // Write file with terrain node settings
@@ -384,9 +383,6 @@ void ChVehicleCosimTerrainNodeGranularOMP::Construct() {
     outf << "Proxy body properties" << endl;
     outf << "   proxies fixed? " << (m_fixed_proxies ? "YES" : "NO") << endl;
     outf << "   proxy contact radius = " << m_radius_p << endl;
-
-    // Mark system as constructed.
-    m_constructed = true;
 }
 
 // -----------------------------------------------------------------------------
@@ -436,16 +432,23 @@ void ChVehicleCosimTerrainNodeGranularOMP::Settle() {
 #endif
     }
 
+    // Find "height" of granular material after settling
+    CalcInitHeight();
+
     cout << "[Terrain node] settling time = " << m_cum_sim_time << endl;
     m_cum_sim_time = 0;
+}
 
-    // Find "height" of granular material after settling
-    m_init_height = 0;
-    for (auto body : m_system->Get_bodylist()) {
+// -----------------------------------------------------------------------------
+
+void ChVehicleCosimTerrainNodeGranularOMP::CalcInitHeight() {
+    m_init_height = -std::numeric_limits<double>::max();
+    for (const auto& body : m_system->Get_bodylist()) {
         if (body->GetIdentifier() > 0 && body->GetPos().z() > m_init_height)
             m_init_height = body->GetPos().z();
     }
     m_init_height += m_radius_g;
+    cout << "[Terrain node] initial height = " << m_init_height << endl;
 }
 
 // -----------------------------------------------------------------------------

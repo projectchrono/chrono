@@ -62,7 +62,7 @@ std::string out_dir = GetChronoOutputPath() + "TIRE_RIG_COSIM";
 ChVehicleCosimRigNode::Type tire_type = ChVehicleCosimRigNode::Type::RIGID;
 
 // Terrain type
-ChVehicleCosimTerrainNode::Type terrain_type = ChVehicleCosimTerrainNode::Type::SCM;
+ChVehicleCosimTerrainNode::Type terrain_type = ChVehicleCosimTerrainNode::Type::GRANULAR_OMP;
 
 // =============================================================================
 
@@ -126,7 +126,7 @@ int main(int argc, char** argv) {
     // Prepare output directory.
     if (rank == 0 && !filesystem::create_directory(filesystem::path(out_dir))) {
         cout << "Error creating directory " << out_dir << endl;
-        MPI_Finalize();
+        MPI_Abort(MPI_COMM_WORLD, 1);
         return 1;
     }
 
@@ -253,7 +253,7 @@ int main(int argc, char** argv) {
 
                     ////terrain->SetPatchDimensions(10, 1);
                     terrain->SetPatchDimensions(2, 0.6);
-                    terrain->SetContainerDimensions(1, 0.2);
+                    terrain->SetContainerHeight(1);
 
                     terrain->SetProxyFixed(true);
                     terrain->SetProxyContactRadius(0.002);
@@ -263,8 +263,6 @@ int main(int argc, char** argv) {
                     double coh_force = CH_C_PI * radius * radius * coh_pressure;
 
                     terrain->SetGranularMaterial(radius, 2500, 8);
-                    terrain->SetSettlingTime(0.2);
-                    ////terrain->EnableSettlingOutput(true);
 
                     switch (method) {
                         case ChContactMethod::SMC: {
@@ -297,6 +295,8 @@ int main(int argc, char** argv) {
                     if (use_checkpoint) {
                         terrain->SetInputFromCheckpoint(checkpoint_filename);
                     } else {
+                        terrain->SetSettlingTime(0.2);
+                        ////terrain->EnableSettlingOutput(true);
                         terrain->Settle();
                     }
 
