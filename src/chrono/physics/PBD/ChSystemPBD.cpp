@@ -219,9 +219,9 @@ void ChSystemPBD::SolveContacts(double h) {
 	}
 }
 
-void ChSystemPBD::SolveVelocities() {
+void ChSystemPBD::SolveVelocities(double h) {
 	for (auto& contact : contactlistPBD) {
-		contact->SolveVelocity();
+		contact->SolveVelocity(h);
 	}
 }
 
@@ -286,7 +286,7 @@ void ChSystemPBD::Advance() {
 		}
 		// Correct positions to respect constraints. "numPosIters"set to 1 according to the paper
 		SolvePositions();
-		
+		SolveContacts(h);
 		// Update velocities to take corrected positions into account
 		for (int j = 0; j < n; j++) {
 			std::shared_ptr<ChBody> body = Get_bodylist()[j];
@@ -303,8 +303,8 @@ void ChSystemPBD::Advance() {
 		}
 		// Scatter updated state
 		// Similarly we contraint normal (and, if static, tangential) displacement in contacts
-		SolveContacts(h);
-		SolveVelocities();
+		
+		SolveVelocities(h);
 
 		T += h;
 		

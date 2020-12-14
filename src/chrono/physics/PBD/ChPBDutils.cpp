@@ -36,10 +36,10 @@ ChLinkPBD::ChLinkPBD() : p_dir(ChVector<double>(0, 0, 0)), r_dir(ChVector<double
 void ChLinkPBD::SolvePositions() {
 	assert(!Body1->GetBodyFixed() || !Body2->GetBodyFixed());
 
-	double invm1 = (1 / Body1->GetMass());
-	double invm2 = (1 / Body2->GetMass());
-	ChMatrix33<> Inv_I1 = Body1->GetInvInertia();
-	ChMatrix33<> Inv_I2 = Body2->GetInvInertia();
+	invm1 = (1 / Body1->GetMass());
+	invm2 = (1 / Body2->GetMass());
+	Inv_I1 = Body1->GetInvInertia();
+	Inv_I2 = Body2->GetInvInertia();
 	if (Body1->GetBodyFixed()) {
 		Inv_I1.setZero();
 		invm1 = 0;
@@ -57,8 +57,8 @@ void ChLinkPBD::SolvePositions() {
 			lambda_t_dir = nr;
 			auto w1r = nr.eigen().transpose() * Inv_I1 * nr.eigen();
 			auto w2r = nr.eigen().transpose() * Inv_I2 * nr.eigen();
-			double w1_rot = w1r(0, 0);
-			double w2_rot = w2r(0, 0);
+			w1_rot = w1r(0, 0);
+			w2_rot = w2r(0, 0);
 
 			double delta_lambda_t = -(theta + alpha * lambda_t) / (w1_rot + w2_rot + alpha);
 			lambda_t += delta_lambda_t;
@@ -107,8 +107,8 @@ void ChLinkPBD::SolvePositions() {
 			auto Ii1 = ((r1.Cross(n).eigen()).transpose()) * Inv_I1 * (r1.Cross(n).eigen());
 			auto Ii2 = ((r2.Cross(n).eigen()).transpose()) * Inv_I2 * (r2.Cross(n).eigen());
 			assert(Ii1.cols() * Ii1.rows() * Ii2.cols() * Ii2.rows() == 1);
-			double w1 = invm1 + Ii1(0, 0);
-			double w2 = invm2 + Ii2(0, 0);
+			w1 = invm1 + Ii1(0, 0);
+			w2 = invm2 + Ii2(0, 0);
 
 			double delta_lambda_f = -(C + alpha * lambda_f) / (w1 + w2 + alpha);
 			lambda_f += delta_lambda_f;
@@ -118,19 +118,20 @@ void ChLinkPBD::SolvePositions() {
 			Body2->SetPos(Body2->GetPos() - p *  invm2);
 
 			ChQuaternion<double> dq1, dq2;
-
-			ChVector<> Rot1 = Inv_I1 * r1.Cross(p).eigen();
+			// TODO: check the relative /absolute rotation 
+			// TODO check delta definition
+			ChVector<> Rot1 = Inv_I1 * Body1->GetRot().RotateBack( r1.Cross(p)).eigen();
 			// {q_dt} = 1/2 {0,w}*{q}
-			dq1.Qdt_from_Wabs(Rot1, Body1->GetRot());
+			dq1.Qdt_from_Wrel(Rot1, Body1->GetRot());
 			// q1 = q0 + dq/dt * h
 			ChQuaternion<> q01 = Body1->GetRot();
 			ChQuaternion<> qnew1 = (q01 + dq1);
 			qnew1.Normalize();
 			Body1->SetRot(qnew1);
 
-			ChVector<> Rot2 = Inv_I2 * r2.Cross(p).eigen();
+			ChVector<> Rot2 = Inv_I2 * Body2->GetRot().RotateBack( r2.Cross(p)).eigen();
 			// {q_dt} = 1/2 {0,w}*{q}
-			dq2.Qdt_from_Wabs(Rot2, Body2->GetRot());
+			dq2.Qdt_from_Wrel(Rot2, Body2->GetRot());
 			// q1 = q0 + dq/dt * h
 			ChQuaternion<> q02 = Body2->GetRot();
 			ChQuaternion<> qnew2 = (q02 - dq2);
@@ -250,11 +251,9 @@ void ChContactPBD::SolveContactPositions(double h) {
 	ChVector<double> dist = p2 - p1;
 	ChQuaternion<double> q = f1.coord.rot * Body1->GetRot();
 	// n is the X axis of the contact "link"
-	ChVector<double> n = q.Rotate(VECT_X);
-	d = (dist) ^ n;
+	n = q.Rotate(VECT_X);
+	d = dist ^ n;
 	
-	v_rel = Body2->GetPos_dt() + Body2->GetWvel_par().Cross(f2.coord.pos) - Body1->GetPos_dt() + Body1->GetWvel_par().Cross(f1.coord.pos);
-	v_rel_t = v_rel - n * (v_rel^n);
 	// If the distance is positive, just skip
 	if (d > 0) {
 		return;
@@ -262,6 +261,10 @@ void ChContactPBD::SolveContactPositions(double h) {
 	else {
 		double lam_n = lambda_f_dir ^ n;
 		ChVector<double> lambda_contact_t = lambda_f_dir - lam_n^n;
+		ChVector<double> v_rel = -( Body1->GetPos_dt() + Body1->GetRot().Rotate(Body1->GetWvel_loc().Cross(f1.coord.pos)) - Body2->GetPos_dt() - Body2->GetRot().Rotate(Body2->GetWvel_loc().Cross(f2.coord.pos)));
+		// normal velocity before velocity update. Will be used in 
+		v_n_old = v_rel^n;
+		ChVector<double> v_rel_t = v_rel - n * v_n_old;
 		// 
 		mask[0] = true;
 		// Check if static -> dynamic
@@ -274,12 +277,13 @@ void ChContactPBD::SolveContactPositions(double h) {
 		// Check if dynamic -> static
 		// kinetic energy < friction work in the substep, aka the body would stop within the substep
 		// 0.5*m*v^2 < mu_d * f * v * h
+		// TODO: compare with eq.30
+		// TODO: using the direction only (lambda_contact_t) without module
 		else if (is_dynamic && (Body1->GetMass() + Body2->GetMass())*v_rel_t.Length() < 4*mu_d*lambda_contact_t.Length()*h) {
 			is_dynamic = false;
 			mask[1] = true;
 			mask[2] = true;
 		}
-
 		// Treat the contact as a link
 		p_dir.Set(int(mask[0]), int(mask[1]), int(mask[2]));
 		SolvePositions();
@@ -287,7 +291,50 @@ void ChContactPBD::SolveContactPositions(double h) {
 }
 
 // Adjust tangential velocity of bodies 
-void ChContactPBD::SolveVelocity() {
+void ChContactPBD::SolveVelocity(double h) {
+	// We do NOT re-evaluate the distance, since after the pos update it will not be negative anymore.
+	// We want to correct the valocities of the contct we solved previously, so we keep the old d as discriminator
+	if (d > 0) {
+		return;
+	}
+	else
+	{
+		ChVector<double> v_rel = -( Body1->GetPos_dt() + Body1->GetRot().Rotate(Body1->GetWvel_loc().Cross(f1.coord.pos)) - Body2->GetPos_dt() - Body2->GetRot().Rotate(Body2->GetWvel_loc().Cross(f2.coord.pos)));
+		double v_rel_n = v_rel^n;
+		ChVector<double> v_rel_t = v_rel - n * v_rel;
+		ChVector<double> delta_v;
+		// do not compute tangential velocity correction if there is none
+		//if (is_dynamic) {
+		// TODO: enable this 
+		if (false) {
+			double vt = v_rel_t.Length();
+			if (v_rel_t.Normalize()) {
+				// mutliply the normal part of the reaction times its module
+				double lam_n = lambda_f_dir ^ n;
+				lam_n *= lambda_f;
+				double fn = lam_n / (h*h);
+				// TODO: this is taken from the paper but does not make sense dimensionally
+				delta_v += v_rel_t * ChMin(h*mu_d*fn, vt);
+			}
+		}
+		// normal speed restitution
+		// TODO: use a restitution coefficient
+		double e  = (abs(v_rel_n) < 1E-4) ? 0 : 0.9;
+		// TODO: check sign here
+		delta_v += n * (v_rel_n);// +ChMax(-e*v_n_old, 0.0);
+
+		// apply speed impulses to bodies
+		ChVector<double> p = delta_v / (w1 + w2);
+		ChVector<double> v1 = Body1->GetPos_dt();
+		ChVector<double> v2 = Body2->GetPos_dt();
+		Body1->SetPos_dt(v1 + p*invm1);
+		Body2->SetPos_dt(v2 - p*invm2);
+
+		ChVector<> w1 = Body1->GetWvel_loc();
+		ChVector<> w2 = Body2->GetWvel_loc();
+		Body1->SetWvel_loc(w1 + Inv_I1 * f1.coord.pos.Cross(Body1->GetRot().RotateBack(p)).eigen());
+		Body2->SetWvel_loc(w2 - Inv_I2 * f2.coord.pos.Cross(Body1->GetRot().RotateBack(p)).eigen());
+	}
 }
 
 /*ChLinkPBD::ChLinkPBD(const ChLinkPBD& other) :  p_dir(ChVector<double>(0, 0, 0)), r_dir(ChVector<double>(0, 0, 0)), f1(ChFrame<double>(VNULL)), f2(ChFrame<double>(VNULL)), p_free(false), r_free(false) {

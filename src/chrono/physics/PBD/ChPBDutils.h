@@ -44,6 +44,15 @@ class ChApi ChLinkPBD {
 	// Relative Position of the link w.r.t. body 1 & 2 respectively
 	ChFrame<double> f1;
 	ChFrame<double> f2;
+	// mass properties
+	double invm1;
+	double invm2;
+	ChMatrix33<> Inv_I1;
+	ChMatrix33<> Inv_I2;
+	double w1_rot;
+	double w2_rot;
+	double w1;
+	double w2;
 	// constrained DOF
 	bool mask[6] = {};
 	// By element-wise multiplication these vectors constrain only along the locked directions
@@ -129,10 +138,9 @@ private:
 	// TODO: static friction
 	// dynamic friction coefficient
 	double mu_d;
-	// relative velocities of the contact points
-	ChVector<double> v_rel;
-	// tangential part
-	ChVector<double> v_rel_t;
+	// contact normal
+	ChVector<double> n;
+	double v_n_old;
 public:
 	//ChContactPBD* link;
 	/// Create a LinkPBD
@@ -148,7 +156,7 @@ public:
 	void SolveContactPositions(double h);
 
 	/// Velocity correction due to dynamic friction
-	void SolveVelocity();
+	void SolveVelocity(double h);
 };
 
 CH_CLASS_VERSION(ChContactPBD, 0);
