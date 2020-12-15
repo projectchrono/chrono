@@ -64,6 +64,7 @@ ChVehicleCosimTerrainNodeGranularOMP::ChVehicleCosimTerrainNodeGranularOMP(ChCon
       m_constructed(false),
       m_use_checkpoint(false),
       m_settling_output(false),
+      m_settling_fps(100),
       m_num_particles(0) {
     cout << "[Terrain node] GRANULAR_OMP "
          << " method = " << static_cast<std::underlying_type<ChContactMethod>::type>(method)
@@ -185,6 +186,11 @@ void ChVehicleCosimTerrainNodeGranularOMP::SetMaterialSurface(const std::shared_
 void ChVehicleCosimTerrainNodeGranularOMP::SetInputFromCheckpoint(const std::string& filename) {
     m_use_checkpoint = true;
     m_checkpoint_filename = filename;
+}
+
+void ChVehicleCosimTerrainNodeGranularOMP::EnableSettlingOutput(bool val, double output_fps) {
+    m_settling_output = val;
+    m_settling_fps = output_fps;
 }
 
 // -----------------------------------------------------------------------------
@@ -393,9 +399,8 @@ void ChVehicleCosimTerrainNodeGranularOMP::Settle() {
     Construct();
 
     // Simulate settling of granular terrain
-    double output_fps = 100;
     int sim_steps = (int)std::ceil(m_time_settling / m_step_size);
-    int output_steps = (int)std::ceil(1 / (output_fps * m_step_size));
+    int output_steps = (int)std::ceil(1 / (m_settling_fps * m_step_size));
     int output_frame = 0;
 
     for (int is = 0; is < sim_steps; is++) {

@@ -66,8 +66,8 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularGPU : public ChVehicleCosi
     void SetSettlingTime(double time) { m_time_settling = time; }
 
     /// Enable/disable output during settling (default: false).
-    /// If enabled, output files are generated with a frequency of 100 FPS.
-    void EnableSettlingOutput(bool val) { m_settling_output = val; }
+    /// If enabled, output files are generated with the specified frequency.
+    void EnableSettlingOutput(bool val, double output_fps = 100);
 
     /// Obtain settled terrain configuration.
     /// This is an optional operation that can be performed for granular terrain before initiating
@@ -97,6 +97,7 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularGPU : public ChVehicleCosi
 
     double m_time_settling;  ///< simulation length for settling of granular material
     bool m_settling_output;  ///< output files during settling?
+    double m_settling_fps;   ///< frequency of output during settling phase
 
     virtual bool SupportsFlexibleTire() const override { return false; }
 
