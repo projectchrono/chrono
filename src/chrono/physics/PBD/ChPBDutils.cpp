@@ -100,7 +100,7 @@ void ChLinkPBD::SolvePositions() {
 		ChVector<> n_loc = (q.RotateBack(n0))*p_dir;
 		// Now we bring the violation back in global coord and normaize it after saving its length
 		ChVector<> n = q.Rotate(n_loc);
-		double C = n.Length();
+		double C = n.Length()/20;
 		
 		if (n.Normalize()) {
 			lambda_f_dir = n;
@@ -120,18 +120,18 @@ void ChLinkPBD::SolvePositions() {
 			ChQuaternion<double> dq1, dq2;
 			// TODO: check the relative /absolute rotation 
 			// TODO check delta definition
-			ChVector<> Rot1 = Inv_I1 * Body1->GetRot().RotateBack( r1.Cross(p)).eigen();
+			ChVector<> Rot1 = Inv_I1 * r1.Cross(p).eigen();
 			// {q_dt} = 1/2 {0,w}*{q}
-			dq1.Qdt_from_Wrel(Rot1, Body1->GetRot());
+			dq1.Qdt_from_Wabs(Rot1, Body1->GetRot());
 			// q1 = q0 + dq/dt * h
 			ChQuaternion<> q01 = Body1->GetRot();
 			ChQuaternion<> qnew1 = (q01 + dq1);
 			qnew1.Normalize();
 			Body1->SetRot(qnew1);
-
-			ChVector<> Rot2 = Inv_I2 * Body2->GetRot().RotateBack( r2.Cross(p)).eigen();
+			
+			ChVector<> Rot2 = Inv_I2 * r2.Cross(p).eigen();
 			// {q_dt} = 1/2 {0,w}*{q}
-			dq2.Qdt_from_Wrel(Rot2, Body2->GetRot());
+			dq2.Qdt_from_Wabs(Rot2, Body2->GetRot());
 			// q1 = q0 + dq/dt * h
 			ChQuaternion<> q02 = Body2->GetRot();
 			ChQuaternion<> qnew2 = (q02 - dq2);
@@ -261,7 +261,7 @@ void ChContactPBD::SolveContactPositions(double h) {
 	else {
 		double lam_n = lambda_f_dir ^ n;
 		ChVector<double> lambda_contact_t = lambda_f_dir - lam_n^n;
-		ChVector<double> v_rel = -( Body1->GetPos_dt() + Body1->GetRot().Rotate(Body1->GetWvel_loc().Cross(f1.coord.pos)) - Body2->GetPos_dt() - Body2->GetRot().Rotate(Body2->GetWvel_loc().Cross(f2.coord.pos)));
+		ChVector<double> v_rel = ( Body1->GetPos_dt() + Body1->GetRot().Rotate(Body1->GetWvel_loc().Cross(f1.coord.pos)) - Body2->GetPos_dt() - Body2->GetRot().Rotate(Body2->GetWvel_loc().Cross(f2.coord.pos)));
 		// normal velocity before velocity update. Will be used in 
 		v_n_old = v_rel^n;
 		ChVector<double> v_rel_t = v_rel - n * v_n_old;
@@ -285,6 +285,9 @@ void ChContactPBD::SolveContactPositions(double h) {
 			mask[2] = true;
 		}
 		// Treat the contact as a link
+		is_dynamic = false;
+		mask[1] = true;
+		mask[2] = true;
 		p_dir.Set(int(mask[0]), int(mask[1]), int(mask[2]));
 		SolvePositions();
 	}
@@ -299,13 +302,11 @@ void ChContactPBD::SolveVelocity(double h) {
 	}
 	else
 	{
-		ChVector<double> v_rel = -( Body1->GetPos_dt() + Body1->GetRot().Rotate(Body1->GetWvel_loc().Cross(f1.coord.pos)) - Body2->GetPos_dt() - Body2->GetRot().Rotate(Body2->GetWvel_loc().Cross(f2.coord.pos)));
+		ChVector<double> v_rel = ( Body1->GetPos_dt() + Body1->GetRot().Rotate(Body1->GetWvel_loc().Cross(f1.coord.pos)) - Body2->GetPos_dt() - Body2->GetRot().Rotate(Body2->GetWvel_loc().Cross(f2.coord.pos)));
 		double v_rel_n = v_rel^n;
 		ChVector<double> v_rel_t = v_rel - n * v_rel;
 		ChVector<double> delta_v;
 		// do not compute tangential velocity correction if there is none
-		//if (is_dynamic) {
-		// TODO: enable this 
 		if (false) {
 			double vt = v_rel_t.Length();
 			if (v_rel_t.Normalize()) {
@@ -319,9 +320,9 @@ void ChContactPBD::SolveVelocity(double h) {
 		}
 		// normal speed restitution
 		// TODO: use a restitution coefficient
-		double e  = (abs(v_rel_n) < 1E-4) ? 0 : 0.9;
+		double e  = (abs(v_rel_n) < 2*2.9*h) ? 0 : 0.9;
 		// TODO: check sign here
-		delta_v += n * (v_rel_n);// +ChMax(-e*v_n_old, 0.0);
+		delta_v += -n * (v_rel_n);// + ChMax(e*v_n_old, 0.0);
 
 		// apply speed impulses to bodies
 		ChVector<double> p = delta_v / (w1 + w2);
@@ -332,8 +333,8 @@ void ChContactPBD::SolveVelocity(double h) {
 
 		ChVector<> w1 = Body1->GetWvel_loc();
 		ChVector<> w2 = Body2->GetWvel_loc();
-		Body1->SetWvel_loc(w1 + Inv_I1 * f1.coord.pos.Cross(Body1->GetRot().RotateBack(p)).eigen());
-		Body2->SetWvel_loc(w2 - Inv_I2 * f2.coord.pos.Cross(Body1->GetRot().RotateBack(p)).eigen());
+		Body1->SetWvel_loc(w1 + Inv_I1 * f1.coord.pos.Cross(p).eigen());
+		Body2->SetWvel_loc(w2 - Inv_I2 * f2.coord.pos.Cross(p).eigen());
 	}
 }
 
