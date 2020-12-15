@@ -313,10 +313,6 @@ void ChVehicleCosimTerrainNodeRigid::GetForceWheelProxy() {
 
 // -----------------------------------------------------------------------------
 
-void ChVehicleCosimTerrainNodeRigid::OnSynchronize(int step_number, double time) {
-    // Nothing needed here
-}
-
 void ChVehicleCosimTerrainNodeRigid::OnAdvance(double step_size) {
 #ifdef CHRONO_OPENGL
     if (m_render) {
@@ -332,12 +328,6 @@ void ChVehicleCosimTerrainNodeRigid::OnAdvance(double step_size) {
     // Force a calculation of cumulative contact forces for all bodies in the system
     // (needed at the next synchronization)
     m_system->CalculateContactForces();
-}
-
-// -----------------------------------------------------------------------------
-
-void ChVehicleCosimTerrainNodeRigid::OutputTerrainData(int frame) {
-    // Nothing to do here
 }
 
 // -----------------------------------------------------------------------------

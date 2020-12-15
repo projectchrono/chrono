@@ -27,6 +27,7 @@
 #include <algorithm>
 #include <cmath>
 #include <set>
+#include <limits>
 #include <unordered_map>
 
 #include <omp.h>
@@ -63,8 +64,7 @@ ChVehicleCosimTerrainNodeGranularOMP::ChVehicleCosimTerrainNodeGranularOMP(ChCon
       m_constructed(false),
       m_use_checkpoint(false),
       m_settling_output(false),
-      m_num_particles(0),
-      m_particles_start_index(0) {
+      m_num_particles(0) {
     cout << "[Terrain node] GRANULAR_OMP "
          << " method = " << static_cast<std::underlying_type<ChContactMethod>::type>(method)
          << " num_threads = " << num_threads << endl;
@@ -73,8 +73,7 @@ ChVehicleCosimTerrainNodeGranularOMP::ChVehicleCosimTerrainNodeGranularOMP(ChCon
     // Default model parameters
     // ------------------------
 
-    // Default container dimensions
-    m_hdimZ = 0.5;
+    // Default container wall thickness
     m_hthick = 0.1;
 
     // Default granular material properties
@@ -151,8 +150,7 @@ ChVehicleCosimTerrainNodeGranularOMP::~ChVehicleCosimTerrainNodeGranularOMP() {
 
 // -----------------------------------------------------------------------------
 
-void ChVehicleCosimTerrainNodeGranularOMP::SetContainerHeight(double height, double thickness) {
-    m_hdimZ = height / 2;
+void ChVehicleCosimTerrainNodeGranularOMP::SetWallThickness(double thickness) {
     m_hthick = thickness / 2;
 }
 
@@ -200,6 +198,12 @@ void ChVehicleCosimTerrainNodeGranularOMP::Construct() {
     if (m_constructed)
         return;
 
+    // Calculate container (half) height
+    double separation_factor = 1.01;
+    double r = separation_factor * m_radius_g;
+    double delta = 2.0f * r;
+    double hdimZ = 0.5 * (m_num_layers + 1) * delta;
+
     // Estimates for number of bins for broad-phase.
     int factor = 2;
     int binsX = (int)std::ceil(m_hdimX / m_radius_g) / factor;
@@ -224,37 +228,33 @@ void ChVehicleCosimTerrainNodeGranularOMP::Construct() {
     utils::AddBoxGeometry(container.get(), m_material_terrain, ChVector<>(m_hdimX, m_hdimY, m_hthick),
                           ChVector<>(0, 0, -m_hthick), ChQuaternion<>(1, 0, 0, 0), true);
     // Front box
-    utils::AddBoxGeometry(container.get(), m_material_terrain, ChVector<>(m_hthick, m_hdimY, m_hdimZ + m_hthick),
-                          ChVector<>(m_hdimX + m_hthick, 0, m_hdimZ - m_hthick), ChQuaternion<>(1, 0, 0, 0), false);
+    utils::AddBoxGeometry(container.get(), m_material_terrain, ChVector<>(m_hthick, m_hdimY, hdimZ + m_hthick),
+                          ChVector<>(m_hdimX + m_hthick, 0, hdimZ - m_hthick), ChQuaternion<>(1, 0, 0, 0), false);
     // Rear box
-    utils::AddBoxGeometry(container.get(), m_material_terrain, ChVector<>(m_hthick, m_hdimY, m_hdimZ + m_hthick),
-                          ChVector<>(-m_hdimX - m_hthick, 0, m_hdimZ - m_hthick), ChQuaternion<>(1, 0, 0, 0), false);
+    utils::AddBoxGeometry(container.get(), m_material_terrain, ChVector<>(m_hthick, m_hdimY, hdimZ + m_hthick),
+                          ChVector<>(-m_hdimX - m_hthick, 0, hdimZ - m_hthick), ChQuaternion<>(1, 0, 0, 0), false);
     // Left box
-    utils::AddBoxGeometry(container.get(), m_material_terrain, ChVector<>(m_hdimX, m_hthick, m_hdimZ + m_hthick),
-                          ChVector<>(0, m_hdimY + m_hthick, m_hdimZ - m_hthick), ChQuaternion<>(1, 0, 0, 0), false);
+    utils::AddBoxGeometry(container.get(), m_material_terrain, ChVector<>(m_hdimX, m_hthick, hdimZ + m_hthick),
+                          ChVector<>(0, m_hdimY + m_hthick, hdimZ - m_hthick), ChQuaternion<>(1, 0, 0, 0), false);
     // Right box
-    utils::AddBoxGeometry(container.get(), m_material_terrain, ChVector<>(m_hdimX, m_hthick, m_hdimZ + m_hthick),
-                          ChVector<>(0, -m_hdimY - m_hthick, m_hdimZ - m_hthick), ChQuaternion<>(1, 0, 0, 0), false);
+    utils::AddBoxGeometry(container.get(), m_material_terrain, ChVector<>(m_hdimX, m_hthick, hdimZ + m_hthick),
+                          ChVector<>(0, -m_hdimY - m_hthick, hdimZ - m_hthick), ChQuaternion<>(1, 0, 0, 0), false);
     container->GetCollisionModel()->BuildModel();
 
     // Enable deactivation of bodies that exit a specified bounding box.
     // We set this bounding box to encapsulate the container with a conservative height.
     m_system->GetSettings()->collision.use_aabb_active = true;
     m_system->GetSettings()->collision.aabb_min = real3(-m_hdimX - m_hthick, -m_hdimY - m_hthick, -m_hthick);
-    m_system->GetSettings()->collision.aabb_max = real3(m_hdimX + m_hthick, m_hdimY + m_hthick, 2 * m_hdimZ + 2);
+    m_system->GetSettings()->collision.aabb_max = real3(+m_hdimX + m_hthick, +m_hdimY + m_hthick, 2 * hdimZ + 2);
 
     // --------------------------
     // Generate granular material
     // --------------------------
 
-    // Granular material properties.
-    m_Id_g = 10000;
-
     // Cache the number of bodies that have been added so far to the parallel system.
     // ATTENTION: This will be used to set the state of granular material particles if
     // initializing them from a checkpoint file.
-
-    m_particles_start_index = m_system->data_manager->num_rigid_bodies;
+    uint particles_start_index = m_system->data_manager->num_rigid_bodies;
 
     // Create a particle generator and a mixture entirely made out of spheres
     utils::Generator gen(m_system);
@@ -264,24 +264,23 @@ void ChVehicleCosimTerrainNodeGranularOMP::Construct() {
     m1->setDefaultSize(m_radius_g);
 
     // Set starting value for body identifiers
+    m_Id_g = 10000;
     gen.setBodyIdentifier(m_Id_g);
 
-    // Create particles in layers until reaching the desired number of particles
-    double r = 1.01 * m_radius_g;
+    // Create particles in layers using a Poisson disk sampler
     ChVector<> hdims(m_hdimX - r, m_hdimY - r, 0);
-    ChVector<> center(0, 0, 2 * r);
-
+    ChVector<> center(0, 0, delta);
     for (int il = 0; il < m_num_layers; il++) {
-        gen.createObjectsBox(utils::SamplingType::POISSON_DISK, 2 * r, center, hdims);
-        center.z() += 2 * r;
+        gen.createObjectsBox(utils::SamplingType::POISSON_DISK, delta, center, hdims);
+        center.z() += delta;
     }
 
     m_num_particles = gen.getTotalNumBodies();
     cout << "[Terrain node] Generated num particles = " << m_num_particles << endl;
 
-    // -------------------------------------------------
-    // If requested, set particle states from checkpoint
-    // -------------------------------------------------
+    // -------------------------------------------------------
+    // If requested, overwrite particle states from checkpoint
+    // -------------------------------------------------------
     if (m_use_checkpoint) {
         // Open input file stream
         std::string checkpoint_filename = m_out_dir + "/" + m_checkpoint_filename;
@@ -309,7 +308,7 @@ void ChVehicleCosimTerrainNodeGranularOMP::Construct() {
         }
 
         // Read granular material state from checkpoint
-        for (int ib = m_particles_start_index; ib < m_system->Get_bodylist().size(); ++ib) {
+        for (uint ib = particles_start_index; ib < m_system->Get_bodylist().size(); ++ib) {
             std::getline(ifile, line);
             std::istringstream iss(line);
             int identifier;
@@ -332,7 +331,8 @@ void ChVehicleCosimTerrainNodeGranularOMP::Construct() {
     }
 
     // Find "height" of granular material
-    CalcInitHeight();
+    m_init_height = CalcCurrentHeight() + m_radius_g;
+    cout << "[Terrain node] initial height = " << m_init_height << endl;
 
     // Mark system as constructed.
     m_constructed = true;
@@ -349,9 +349,8 @@ void ChVehicleCosimTerrainNodeGranularOMP::Construct() {
     outf << "   Use material properties? " << (m_system->GetSettings()->solver.use_material_properties ? "YES" : "NO")
          << endl;
     outf << "   Collision envelope = " << m_system->GetSettings()->collision.collision_envelope << endl;
-    outf << "Container dimensions" << endl;
-    outf << "   X = " << 2 * m_hdimX << "  Y = " << 2 * m_hdimY << "  Z = " << 2 * m_hdimZ << endl;
-    outf << "   wall thickness = " << 2 * m_hthick << endl;
+    outf << "Terrain patch dimensions" << endl;
+    outf << "   X = " << 2 * m_hdimX << "  Y = " << 2 * m_hdimY << endl;
     outf << "Terrain material properties" << endl;
     switch (m_method) {
         case ChContactMethod::SMC: {
@@ -432,23 +431,24 @@ void ChVehicleCosimTerrainNodeGranularOMP::Settle() {
 #endif
     }
 
-    // Find "height" of granular material after settling
-    CalcInitHeight();
-
+    cout << endl;
     cout << "[Terrain node] settling time = " << m_cum_sim_time << endl;
     m_cum_sim_time = 0;
+
+    // Find "height" of granular material after settling
+    m_init_height = CalcCurrentHeight() + m_radius_g;
+    cout << "[Terrain node] initial height = " << m_init_height << endl;
 }
 
 // -----------------------------------------------------------------------------
 
-void ChVehicleCosimTerrainNodeGranularOMP::CalcInitHeight() {
-    m_init_height = -std::numeric_limits<double>::max();
+double ChVehicleCosimTerrainNodeGranularOMP::CalcCurrentHeight() {
+    double height = -std::numeric_limits<double>::max();
     for (const auto& body : m_system->Get_bodylist()) {
-        if (body->GetIdentifier() > 0 && body->GetPos().z() > m_init_height)
-            m_init_height = body->GetPos().z();
+        if (body->GetIdentifier() > 0 && body->GetPos().z() > height)
+            height = body->GetPos().z();
     }
-    m_init_height += m_radius_g;
-    cout << "[Terrain node] initial height = " << m_init_height << endl;
+    return height;
 }
 
 // -----------------------------------------------------------------------------
@@ -687,7 +687,7 @@ void ChVehicleCosimTerrainNodeGranularOMP::OnAdvance(double step_size) {
 
 // -----------------------------------------------------------------------------
 
-void ChVehicleCosimTerrainNodeGranularOMP::OutputTerrainData(int frame) {
+void ChVehicleCosimTerrainNodeGranularOMP::OnOutputData(int frame) {
     // Create and write frame output file.
     char filename[100];
     sprintf(filename, "%s/data_%04d.dat", m_node_out_dir.c_str(), frame + 1);

@@ -433,7 +433,7 @@ void ChVehicleCosimTerrainNodeGranularSPH::Advance(double step_size) {
 
 // -----------------------------------------------------------------------------
 
-void ChVehicleCosimTerrainNodeGranularSPH::OutputTerrainData(int frame) {
+void ChVehicleCosimTerrainNodeGranularSPH::OnOutputData(int frame) {
     // Save SPH and BCE particles' information into CSV files
     fsi::utils::PrintToFile(m_systemFSI->GetDataManager()->sphMarkersD2->posRadD,
                             m_systemFSI->GetDataManager()->sphMarkersD2->velMasD,

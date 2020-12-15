@@ -65,7 +65,7 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularSPH : public ChVehicleCosi
     virtual void PrintWheelProxyUpdateData() override;
     virtual void PrintWheelProxyContactData() override;
 
-    virtual void OutputTerrainData(int frame) override;
+    virtual void OnOutputData(int frame) override;
 
     /// Advance simulation.
     /// This function is called after a synchronization to allow the node to advance

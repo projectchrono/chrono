@@ -40,10 +40,8 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularOMP : public ChVehicleCosi
 
     virtual ChSystem* GetSystem() override { return m_system; }
 
-    /// Set container height (and optionally wall thickness)
-    void SetContainerHeight(double height,          ///< height in Z direction (default: 1)
-                            double thickness = 0.2  ///< wall thickness
-    );
+    /// Set container wall thickness (default: 0.2)
+    void SetWallThickness(double thickness);
 
     /// Set properties of granular material.
     void SetGranularMaterial(double radius,   ///< particle radius (default: 0.01)
@@ -100,7 +98,6 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularOMP : public ChVehicleCosi
     ChSystemParallel* m_system;  ///< containing system
     bool m_constructed;          ///< system construction completed?
 
-    double m_hdimZ;   ///< container half-height (Z direction)
     double m_hthick;  ///< container wall half-thickness
 
     double m_radius_p;  ///< radius for a proxy body
@@ -117,13 +114,12 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularOMP : public ChVehicleCosi
     double m_time_settling;  ///< simulation length for settling of granular material
     bool m_settling_output;  ///< output files during settling?
 
-    int m_particles_start_index;  ///< start index for granular material bodies in system body list
-
-    // Private methods
+    virtual bool SupportsFlexibleTire() const override { return true; }
 
     virtual void Construct() override;
 
-    virtual bool SupportsFlexibleTire() const override { return true; }
+    /// Return current total number of contacts.
+    int GetNumContacts() const { return m_system->GetNcontacts(); }
 
     virtual void CreateMeshProxies() override;
     virtual void UpdateMeshProxies() override;
@@ -137,12 +133,12 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularOMP : public ChVehicleCosi
     virtual void PrintWheelProxyUpdateData() override;
     virtual void PrintWheelProxyContactData() override;
 
-    virtual void OutputTerrainData(int frame) override;
     virtual void OnSynchronize(int step_number, double time) override;
     virtual void OnAdvance(double step_size) override;
+    virtual void OnOutputData(int frame) override;
 
-    /// Calculate current initial height (
-    void CalcInitHeight();
+    /// Calculate current height of granular terrain. 
+    double CalcCurrentHeight();
 
     void WriteParticleInformation(utils::CSV_writer& csv);
 

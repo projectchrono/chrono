@@ -280,10 +280,6 @@ void ChVehicleCosimTerrainNodeSCM::GetForceWheelProxy() {
 
 // -----------------------------------------------------------------------------
 
-void ChVehicleCosimTerrainNodeSCM::OnSynchronize(int step_number, double time) {
-    // Nothing needed here
-}
-
 void ChVehicleCosimTerrainNodeSCM::OnAdvance(double step_size) {
 #ifdef CHRONO_IRRLICHT
     if (m_render) {
@@ -301,8 +297,8 @@ void ChVehicleCosimTerrainNodeSCM::OnAdvance(double step_size) {
 
 // -----------------------------------------------------------------------------
 
-void ChVehicleCosimTerrainNodeSCM::OutputTerrainData(int frame) {
-    // Nothing to do here
+void ChVehicleCosimTerrainNodeSCM::OnOutputData(int frame) {
+    //// TODO
 }
 
 // -----------------------------------------------------------------------------

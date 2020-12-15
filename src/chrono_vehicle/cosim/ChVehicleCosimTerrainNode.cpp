@@ -257,7 +257,7 @@ void ChVehicleCosimTerrainNode::SynchronizeRigidTire(int step_number, double tim
                            m_wheel_contact.moment.x(), m_wheel_contact.moment.y(), m_wheel_contact.moment.z()};
     MPI_Send(force_data, 6, MPI_DOUBLE, RIG_NODE_RANK, step_number, MPI_COMM_WORLD);
 
-    cout << "[Terrain node] step number: " << step_number << "  num contacts: " << GetSystem()->GetNcontacts() << endl;
+    cout << "[Terrain node] step number: " << step_number << "  num contacts: " << GetNumContacts() << endl;
 }
 
 void ChVehicleCosimTerrainNode::SynchronizeFlexibleTire(int step_number, double time) {
@@ -300,7 +300,7 @@ void ChVehicleCosimTerrainNode::SynchronizeFlexibleTire(int step_number, double 
 
     delete[] force_data;
 
-    cout << "[Terrain node] step number: " << step_number << "  num contacts: " << GetSystem()->GetNcontacts()
+    cout << "[Terrain node] step number: " << step_number << "  num contacts: " << GetNumContacts()
          << "  vertices in contact: " << m_mesh_contact.nv << endl;
 }
 
@@ -336,7 +336,7 @@ void ChVehicleCosimTerrainNode::OutputData(int frame) {
         //// TODO
     }
 
-    OutputTerrainData(frame);
+    OnOutputData(frame);
 }
 
 // Print mesh vertex data, as received from the rig node at synchronization.

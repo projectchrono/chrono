@@ -111,7 +111,7 @@ int main(int argc, char** argv) {
     double sim_time = 10;
     double init_vel = 0.5;
     double slip = 0;
-    double coh_pressure = 8e4;
+    double coh_pressure = 0;  // 8e4;
     bool use_checkpoint = false;
     bool output = true;
     bool render = true;
@@ -253,7 +253,7 @@ int main(int argc, char** argv) {
 
                     ////terrain->SetPatchDimensions(10, 1);
                     terrain->SetPatchDimensions(2, 0.6);
-                    terrain->SetContainerHeight(1);
+                    terrain->SetWallThickness(0.1);
 
                     terrain->SetProxyFixed(true);
                     terrain->SetProxyContactRadius(0.002);

@@ -126,6 +126,10 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNode : public ChVehicleCosimBaseNode {
     /// Specify whether or not flexible tire is supported.
     virtual bool SupportsFlexibleTire() const = 0;
 
+    /// Return current number of contacts.
+    /// (concrete terrain specific)
+    int GetNumContacts() const { return 0; }
+
     // --- Virtual methods for a flexible tire
     //     A derived class must implement these methods if SupportsFlexibleTire returns true.
 
@@ -169,19 +173,26 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNode : public ChVehicleCosimBaseNode {
     /// Create proxy body for a rigid tire mesh.
     /// Use information in the m_mesh_data struct (vertex positions expressed in local frame).
     virtual void CreateWheelProxy() = 0;
+
     /// Update the state of the wheel proxy body for a rigid tire.
     /// Use information in the m_wheel_state struct (popse and velocities expressed in absolute frame).
     virtual void UpdateWheelProxy() = 0;
+    
     /// Collect cumulative contact force and torque on the wheel proxy body.
     /// Load contact forces (expressed in absolute frame) into the m_wheel_contact struct.
     virtual void GetForceWheelProxy() = 0;
+    
     /// Print information on wheel proxy body after update.
     virtual void PrintWheelProxyUpdateData() = 0;
+    
     /// Print information on contact forces acting on the wheel proxy body.
     virtual void PrintWheelProxyContactData() = 0;
 
-    /// Output terrain data at the specified frame (called once per integration step).
-    virtual void OutputTerrainData(int frame) = 0;
+    // --- Other virtual methods
+
+    /// Perform additional output at the specified frame (called once per integration step).
+    /// For example, output terrain-specific data for post-procesing.
+    virtual void OnOutputData(int frame) {}
 
     /// Perform any additional operations after the data exchange and synchronization with the rig node.
     virtual void OnSynchronize(int step_number, double time) {}

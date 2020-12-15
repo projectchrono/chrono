@@ -109,9 +109,8 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeSCM : public ChVehicleCosimTerrain
     virtual void PrintWheelProxyUpdateData() override;
     virtual void PrintWheelProxyContactData() override;
 
-    virtual void OutputTerrainData(int frame) override;
-    virtual void OnSynchronize(int step_number, double time) override;
     virtual void OnAdvance(double step_size) override;
+    virtual void OnOutputData(int frame) override;
 };
 
 }  // end namespace vehicle
