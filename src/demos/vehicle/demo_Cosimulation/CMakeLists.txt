@@ -20,10 +20,34 @@ set(LIBRARIES
     ChronoModels_vehicle
 )
 
+if(ENABLE_MODULE_FSI)
+  set(CV_COSIM_FILES ${CV_COSIM_FILES}
+      ChVehicleCosimTerrainNodeGranularSPH.h
+      ChVehicleCosimTerrainNodeGranularSPH.cpp)
+  include_directories(${CH_FSI_INCLUDES})
+  list(APPEND LIBRARIES ChronoEngine_fsi)
+endif()
+
+if(ENABLE_MODULE_GRANULAR)
+  set(CV_COSIM_FILES ${CV_COSIM_FILES}
+      ChVehicleCosimTerrainNodeGranularGPU.h
+      ChVehicleCosimTerrainNodeGranularGPU.cpp)
+  include_directories(${CH_GRANULAR_INCLUDES})
+  set(CXX_FLAGS "${CXX_FLAGS} ${CH_GRANULAR_CXX_FLAGS}")
+  list(APPEND LIBRARIES ChronoEngine_granular)
+endif()
+
 if(ENABLE_MODULE_PARALLEL)
   include_directories(${CH_PARALLEL_INCLUDES})
   set(COMPILER_FLAGS "${COMPILER_FLAGS} ${CH_PARALLEL_CXX_FLAGS}")
   set(LIBRARIES ${LIBRARIES} ChronoEngine_parallel)
+endif()
+
+if(ENABLE_MODULE_DISTRIBUTED)
+  include_directories(${CH_DISTRIBUTED_INCLUDES})
+  set(LIBRARIES ${LIBRARIES} ChronoEngine_distributed)
+  set(COMPILER_FLAGS "${COMPILER_FLAGS} ${CH_DISTRIBUTED_CXX_FLAGS}")
+  set(LINKER_FLAGS "${LINKER_FLAGS} ${CH_DISTRIBUTED_LINK_FLAGS}")
 endif()
 
 if(ENABLE_MODULE_PARDISO_MKL)
@@ -50,13 +74,6 @@ if(ENABLE_MODULE_OPENGL)
   if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
      set(LINKER_FLAGS  "${LINKER_FLAGS} -framework IOKit -framework Cocoa -framework OpenGL")
   endif()
-endif()
-
-if(ENABLE_MODULE_DISTRIBUTED)
-  include_directories(${CH_DISTRIBUTED_INCLUDES})
-  set(LIBRARIES ${LIBRARIES} ChronoEngine_distributed)
-  set(COMPILER_FLAGS "${COMPILER_FLAGS} ${CH_DISTRIBUTED_CXX_FLAGS}")
-  set(LINKER_FLAGS "${LINKER_FLAGS} ${CH_DISTRIBUTED_LINK_FLAGS}")
 endif()
 
 # ------------------------------------------------------------------------------

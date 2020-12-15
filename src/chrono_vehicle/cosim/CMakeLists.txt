@@ -42,6 +42,23 @@ if(ENABLE_MODULE_PARALLEL)
   list(APPEND LIBRARIES ChronoEngine_parallel)
 endif()
 
+if(ENABLE_MODULE_FSI)
+  set(CV_COSIM_FILES ${CV_COSIM_FILES}
+      ChVehicleCosimTerrainNodeGranularSPH.h
+      ChVehicleCosimTerrainNodeGranularSPH.cpp)
+  include_directories(${CH_FSI_INCLUDES})
+  list(APPEND LIBRARIES ChronoEngine_fsi)
+endif()
+
+if(ENABLE_MODULE_GRANULAR)
+  set(CV_COSIM_FILES ${CV_COSIM_FILES}
+      ChVehicleCosimTerrainNodeGranularGPU.h
+      ChVehicleCosimTerrainNodeGranularGPU.cpp)
+  include_directories(${CH_GRANULAR_INCLUDES})
+  set(CXX_FLAGS "${CXX_FLAGS} ${CH_GRANULAR_CXX_FLAGS}")
+  list(APPEND LIBRARIES ChronoEngine_granular)
+endif()
+
 if(ENABLE_MODULE_PARDISO_MKL)
   include_directories(${CH_MKL_INCLUDES})
   set(CXX_FLAGS "${CXX_FLAGS} ${CH_MKL_CXX_FLAGS}")
@@ -73,14 +90,6 @@ if(ENABLE_MODULE_DISTRIBUTED)
   list(APPEND LIBRARIES ChronoEngine_distributed)
   set(CXX_FLAGS "${CXX_FLAGS} ${CH_DISTRIBUTED_CXX_FLAGS}")
   set(LINKER_FLAGS "${LINKER_FLAGS} ${CH_DISTRIBUTED_LINK_FLAGS}")
-endif()
-
-if(ENABLE_MODULE_FSI)
-  set(CV_COSIM_FILES ${CV_COSIM_FILES}
-      ChVehicleCosimTerrainNodeGranularSPH.h
-      ChVehicleCosimTerrainNodeGranularSPH.cpp)
-  include_directories(${CH_FSI_INCLUDES})
-  list(APPEND LIBRARIES ChronoEngine_fsi)
 endif()
 
 # ------------------------------------------------------------------------------

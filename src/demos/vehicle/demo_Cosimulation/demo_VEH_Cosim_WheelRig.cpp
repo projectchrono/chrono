@@ -36,6 +36,7 @@
 #include "chrono_vehicle/cosim/ChVehicleCosimTerrainNodeSCM.h"
 #include "chrono_vehicle/cosim/ChVehicleCosimTerrainNodeGranularOMP.h"
 #include "chrono_vehicle/cosim/ChVehicleCosimTerrainNodeGranularSPH.h"
+#include "chrono_vehicle/cosim/ChVehicleCosimTerrainNodeGranularGPU.h"
 
 using std::cout;
 using std::cin;
@@ -47,7 +48,8 @@ using namespace chrono::vehicle;
 // =============================================================================
 
 // Cosimulation step size
-double step_size = 1e-3;  // 4e-5;
+double step_size = 1e-4;
+//1e-3;  // 4e-5;
 
 // Output frequency (frames per second)
 double output_fps = 200;
@@ -62,7 +64,7 @@ std::string out_dir = GetChronoOutputPath() + "TIRE_RIG_COSIM";
 ChVehicleCosimRigNode::Type tire_type = ChVehicleCosimRigNode::Type::RIGID;
 
 // Terrain type
-ChVehicleCosimTerrainNode::Type terrain_type = ChVehicleCosimTerrainNode::Type::GRANULAR_OMP;
+ChVehicleCosimTerrainNode::Type terrain_type = ChVehicleCosimTerrainNode::Type::GRANULAR_GPU;
 
 // =============================================================================
 
@@ -297,6 +299,51 @@ int main(int argc, char** argv) {
                     } else {
                         terrain->SetSettlingTime(0.2);
                         ////terrain->EnableSettlingOutput(true);
+                        terrain->Settle();
+                    }
+
+                    my_terrain = terrain;
+                    break;
+                }
+                case ChVehicleCosimTerrainNode::Type::GRANULAR_GPU: {
+                    auto terrain = new ChVehicleCosimTerrainNodeGranularGPU(render);
+                    terrain->SetStepSize(step_size);
+                    terrain->SetOutDir(out_dir, suffix);
+                    cout << "[Terrain node] output directory: " << terrain->GetOutDirName() << endl;
+
+                    ////terrain->SetPatchDimensions(10, 1);
+                    terrain->SetPatchDimensions(2, 0.6);
+
+                    terrain->SetProxyFixed(true);
+
+                    ////double radius = 0.006;
+                    double radius = 0.02;
+                    double coh_force = CH_C_PI * radius * radius * coh_pressure;
+
+                    terrain->SetGranularMaterial(radius, 2500, 8);
+                    terrain->SetTangentialDisplacementModel(granular::GRAN_FRICTION_MODE::MULTI_STEP);
+
+                    auto material = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+                    material->SetFriction(0.9f);
+                    material->SetRestitution(0.0f);
+                    material->SetYoungModulus(8e5f);
+                    material->SetPoissonRatio(0.3f);
+                    material->SetAdhesion(static_cast<float>(coh_force));
+                    material->SetKn(1.0e7f);
+                    material->SetGn(1.0e4f);
+                    material->SetKt(1.0e7f);
+                    material->SetGt(1.0e4f);
+                    terrain->SetMaterialSurface(material);
+
+                    checkpoint_filename = "checkpoint_GPU.dat";
+                    if (use_checkpoint) {
+                        cout << "Reading from checkpoint not yet implemented!" << endl;
+                        MPI_Abort(MPI_COMM_WORLD, 1);
+                        return 1;
+                        //terrain->SetInputFromCheckpoint(checkpoint_filename);
+                    } else {
+                        terrain->SetSettlingTime(0.1);//(0.2);
+                        terrain->EnableSettlingOutput(true);
                         terrain->Settle();
                     }
 
