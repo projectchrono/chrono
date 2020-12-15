@@ -106,7 +106,7 @@ int main(int argc, char** argv) {
     bool use_checkpoint = false;
     bool output = true;
     bool render = true;
-    double sys_mass = 40;
+    double sys_mass = 200;
     std::string suffix = "";
     if (!GetProblemSpecs(argc, argv, rank, nthreads_rig, nthreads_terrain, sim_time, init_vel, slip, coh_pressure,
                          sys_mass, use_checkpoint, output, render, suffix)) {
@@ -316,7 +316,7 @@ int main(int argc, char** argv) {
                     double radius = 0.02;
                     double coh_force = CH_C_PI * radius * radius * coh_pressure;
 
-                    terrain->SetGranularMaterial(radius, 2500, 8);
+                    terrain->SetGranularMaterial(radius, 2500, 12);
                     terrain->SetTangentialDisplacementModel(granular::GRAN_FRICTION_MODE::MULTI_STEP);
 
                     auto material = chrono_types::make_shared<ChMaterialSurfaceSMC>();
@@ -334,7 +334,7 @@ int main(int argc, char** argv) {
                     if (use_checkpoint) {
                         terrain->SetInputFromCheckpoint("checkpoint_settled.dat");
                     } else {
-                        terrain->SetSettlingTime(0.2);
+                        terrain->SetSettlingTime(0.4);
                         terrain->EnableSettlingOutput(true);
                         terrain->Settle();
                         terrain->WriteCheckpoint("checkpoint_settled.dat");

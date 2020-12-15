@@ -419,8 +419,7 @@ void ChVehicleCosimRigNode::Initialize() {
     cout << "[Rig node    ] Received initial terrain height = " << init_dim[0] << endl;
     cout << "[Rig node    ] Received container half-length = " << init_dim[1] << endl;
 
-    // Slighlty perturb terrain height to ensure there is no initial contact
-    double init_height = init_dim[0] + 1e-5;
+    double init_height = init_dim[0];
     double half_length = init_dim[1];
 
     double tire_radius = GetTireRadius();

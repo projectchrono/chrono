@@ -219,6 +219,10 @@ void ChVehicleCosimTerrainNodeGranularGPU::Construct() {
     m_init_height = (double)init_height + m_radius_g;
     cout << "[Terrain node] initial height = " << m_init_height << endl;
 
+    // Complete construction of the granular system
+    // Note that no meshes are defined yet, so this only initializes the granular material.
+    m_wrapper_gran->getGranSystemSMC_TriMesh().initialize();
+
     // Mark system as constructed.
     m_constructed = true;
 
@@ -270,9 +274,6 @@ void ChVehicleCosimTerrainNodeGranularGPU::Construct() {
 // -----------------------------------------------------------------------------
 void ChVehicleCosimTerrainNodeGranularGPU::Settle() {
     Construct();
-
-    // Complete construction of the granular system
-    m_wrapper_gran->getGranSystemSMC_TriMesh().initialize();
 
     // Simulate settling of granular terrain
     double output_fps = 100;
@@ -409,7 +410,7 @@ void ChVehicleCosimTerrainNodeGranularGPU::CreateWheelProxy() {
 
     // Set composite material properties for external contacts and complete construction of the granular system
     SetMatPropertiesExternal();
-    m_wrapper_gran->getGranSystemSMC_TriMesh().initialize();
+    m_wrapper_gran->getGranSystemSMC_TriMesh().initializeTriangles();
 }
 
 // Set state of wheel proxy body.
