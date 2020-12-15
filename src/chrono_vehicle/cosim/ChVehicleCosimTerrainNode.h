@@ -41,6 +41,7 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNode : public ChVehicleCosimBaseNode {
     virtual ~ChVehicleCosimTerrainNode() {}
 
     Type GetType() const { return m_type; }
+    static std::string GetTypeAsString(Type type);
 
     /// Set terrain patch dimensions (length and width).
     void SetPatchDimensions(double length,  ///< length in direction X (default: 2)
@@ -68,9 +69,6 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNode : public ChVehicleCosimBaseNode {
 
     /// Output logging and debugging data.
     virtual void OutputData(int frame) override final;
-
-    /// Write checkpoint to the specified file (which will be created in the output directory).
-    virtual void WriteCheckpoint(const std::string& filename) {}
 
   protected:
     /// Association between a proxy body and a mesh index.

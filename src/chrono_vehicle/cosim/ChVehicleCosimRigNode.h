@@ -47,6 +47,7 @@ class CH_VEHICLE_API ChVehicleCosimRigNode : public ChVehicleCosimBaseNode {
     virtual ~ChVehicleCosimRigNode();
 
     Type GetType() const { return m_type; }
+    static std::string GetTypeAsString(Type type);
 
     /// Set integrator and solver types.
     /// For the MKL solver, use slv_type = ChSolver::Type::CUSTOM.

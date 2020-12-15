@@ -283,7 +283,7 @@ void ChVehicleCosimTerrainNodeGranularOMP::Construct() {
     // -------------------------------------------------------
     if (m_use_checkpoint) {
         // Open input file stream
-        std::string checkpoint_filename = m_out_dir + "/" + m_checkpoint_filename;
+        std::string checkpoint_filename = m_node_out_dir + "/" + m_checkpoint_filename;
         std::ifstream ifile(checkpoint_filename);
         if (!ifile.is_open()) {
             cout << "ERROR: could not open checkpoint file " << checkpoint_filename << endl;
@@ -728,7 +728,7 @@ void ChVehicleCosimTerrainNodeGranularOMP::WriteCheckpoint(const std::string& fi
             << endl;
     }
 
-    std::string checkpoint_filename = m_out_dir + "/" + filename;
+    std::string checkpoint_filename = m_node_out_dir + "/" + filename;
     csv.write_to_file(checkpoint_filename);
     cout << "[Terrain node] write checkpoint ===> " << checkpoint_filename << endl;
 }

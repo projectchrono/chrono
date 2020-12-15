@@ -93,6 +93,17 @@ class RigNodeWheel : public ChWheel {
 
 // =============================================================================
 
+std::string ChVehicleCosimRigNode::GetTypeAsString(Type type) {
+    switch (type) {
+        case Type::RIGID:
+            return "Rigid";
+        case Type::FLEXIBLE:
+            return "Flexible";
+        default:
+            return "Unknown";
+    }
+}
+
 // -----------------------------------------------------------------------------
 // Construction of the rig node:
 // - create the (sequential) Chrono system and set solver parameters

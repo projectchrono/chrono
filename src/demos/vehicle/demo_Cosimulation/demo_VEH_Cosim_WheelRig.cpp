@@ -12,13 +12,9 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// Mechanism for testing tires over granular terrain.  The mechanism + tire
-// system is co-simulated with a Chrono::Parallel system for the granular terrain.
+// Demo for single-wheel rig cosimulation framework
 //
-// MAIN DRIVER
-//
-// The global reference frame has Z up, X towards the front of the vehicle, and
-// Y pointing to the left.
+// Global reference frame: Z up, X towards the front, and Y pointing to the left
 //
 // =============================================================================
 
@@ -48,17 +44,10 @@ using namespace chrono::vehicle;
 // =============================================================================
 
 // Cosimulation step size
-double step_size = 1e-4;
-//1e-3;  // 4e-5;
+double step_size = 1e-4;  // 1e-3;
 
 // Output frequency (frames per second)
-double output_fps = 200;
-
-// Checkpointing frequency (frames per second)
-double checkpoint_fps = 100;
-
-// Output directory
-std::string out_dir = GetChronoOutputPath() + "TIRE_RIG_COSIM";
+double output_fps = 100;
 
 // Tire type
 ChVehicleCosimRigNode::Type tire_type = ChVehicleCosimRigNode::Type::RIGID;
@@ -117,7 +106,7 @@ int main(int argc, char** argv) {
     bool use_checkpoint = false;
     bool output = true;
     bool render = true;
-    double sys_mass = 200;
+    double sys_mass = 40;
     std::string suffix = "";
     if (!GetProblemSpecs(argc, argv, rank, nthreads_rig, nthreads_terrain, sim_time, init_vel, slip, coh_pressure,
                          sys_mass, use_checkpoint, output, render, suffix)) {
@@ -126,23 +115,30 @@ int main(int argc, char** argv) {
     }
 
     // Prepare output directory.
-    if (rank == 0 && !filesystem::create_directory(filesystem::path(out_dir))) {
-        cout << "Error creating directory " << out_dir << endl;
-        MPI_Abort(MPI_COMM_WORLD, 1);
-        return 1;
+    std::string out_dir_top = GetChronoOutputPath() + "RIG_COSIM";
+    std::string out_dir = out_dir_top + "/" +                                        //
+                          ChVehicleCosimRigNode::GetTypeAsString(tire_type) + "_" +  //
+                          ChVehicleCosimTerrainNode::GetTypeAsString(terrain_type);
+    if (rank == 0) {
+        if (!filesystem::create_directory(filesystem::path(out_dir_top))) {
+            cout << "Error creating directory " << out_dir_top << endl;
+            MPI_Abort(MPI_COMM_WORLD, 1);
+            return 1;
+        }
+        if (!filesystem::create_directory(filesystem::path(out_dir))) {
+            cout << "Error creating directory " << out_dir << endl;
+            MPI_Abort(MPI_COMM_WORLD, 1);
+            return 1;
+        }
     }
-
-    // Name of terrain checkpoint file (if supported)
-    std::string checkpoint_filename("");
+    MPI_Barrier(MPI_COMM_WORLD);
 
     // Number of simulation steps between miscellaneous events.
     int sim_steps = (int)std::ceil(sim_time / step_size);
     int output_steps = (int)std::ceil(1 / (output_fps * step_size));
-    int checkpoint_steps = (int)std::ceil(1 / (checkpoint_fps * step_size));
 
-    // Create the two systems.
-    ChVehicleCosimRigNode* my_rig = nullptr;
-    ChVehicleCosimTerrainNode* my_terrain = nullptr;
+    // Create the node (a rig node or a terrain node, depending on rank).
+    ChVehicleCosimBaseNode* node = nullptr;
 
     switch (rank) {
         case RIG_NODE_RANK: {
@@ -152,23 +148,24 @@ int main(int argc, char** argv) {
                 case ChVehicleCosimRigNode::Type::RIGID: {
                     auto rig = new ChVehicleCosimRigNodeRigidTire(init_vel, slip, nthreads_rig);
                     rig->SetTireJSONFile(vehicle::GetDataFile("hmmwv/tire/HMMWV_RigidMeshTire_CoarseClosed.json"));
-                    my_rig = rig;
+                    rig->SetBodyMasses(1, 1, sys_mass, 15);
+                    node = rig;
                     break;
                 }
                 case ChVehicleCosimRigNode::Type::FLEXIBLE: {
                     auto rig = new ChVehicleCosimRigNodeFlexibleTire(init_vel, slip, nthreads_rig);
                     rig->SetTireJSONFile(vehicle::GetDataFile("hmmwv/tire/HMMWV_ANCFTire.json"));
-                    my_rig = rig;
+                    rig->SetBodyMasses(1, 1, sys_mass, 15);
+                    rig->EnableTirePressure(true);
+                    node = rig;
                     break;
                 }
             }
 
-            my_rig->SetStepSize(step_size);
-            my_rig->SetOutDir(out_dir, suffix);
-            my_rig->SetBodyMasses(1, 1, sys_mass, 15);
-            my_rig->EnableTirePressure(true);
+            node->SetStepSize(step_size);
+            node->SetOutDir(out_dir, suffix);
 
-            cout << "[Rig node    ] output directory: " << my_rig->GetOutDirName() << endl;
+            cout << "[Rig node    ] output directory: " << node->GetOutDirName() << endl;
 
             break;
         }
@@ -212,7 +209,7 @@ int main(int argc, char** argv) {
                         }
                     }
 
-                    my_terrain = terrain;
+                    node = terrain;
                     break;
                 }
                 case ChVehicleCosimTerrainNode::Type::SCM: {
@@ -237,12 +234,11 @@ int main(int argc, char** argv) {
                     terrain->SetProxyFixed(false);
                     terrain->SetProxyContactRadius(0.002);
 
-                    checkpoint_filename = "checkpoint_SCM.dat";
                     if (use_checkpoint) {
-                        terrain->SetInputFromCheckpoint(checkpoint_filename);
+                        terrain->SetInputFromCheckpoint("checkpoint_end.dat");
                     }
 
-                    my_terrain = terrain;
+                    node = terrain;
                     break;
                 }
                 case ChVehicleCosimTerrainNode::Type::GRANULAR_OMP: {
@@ -293,16 +289,16 @@ int main(int argc, char** argv) {
                         }
                     }
 
-                    checkpoint_filename = "checkpoint_OMP.dat";
                     if (use_checkpoint) {
-                        terrain->SetInputFromCheckpoint(checkpoint_filename);
+                        terrain->SetInputFromCheckpoint("checkpoint_settled.dat");
                     } else {
                         terrain->SetSettlingTime(0.2);
                         ////terrain->EnableSettlingOutput(true);
                         terrain->Settle();
+                        terrain->WriteCheckpoint("checkpoint_settled.dat");
                     }
 
-                    my_terrain = terrain;
+                    node = terrain;
                     break;
                 }
                 case ChVehicleCosimTerrainNode::Type::GRANULAR_GPU: {
@@ -335,19 +331,16 @@ int main(int argc, char** argv) {
                     material->SetGt(1.0e4f);
                     terrain->SetMaterialSurface(material);
 
-                    checkpoint_filename = "checkpoint_GPU.dat";
                     if (use_checkpoint) {
-                        cout << "Reading from checkpoint not yet implemented!" << endl;
-                        MPI_Abort(MPI_COMM_WORLD, 1);
-                        return 1;
-                        //terrain->SetInputFromCheckpoint(checkpoint_filename);
+                        terrain->SetInputFromCheckpoint("checkpoint_settled.dat");
                     } else {
-                        terrain->SetSettlingTime(0.1);//(0.2);
+                        terrain->SetSettlingTime(0.2);
                         terrain->EnableSettlingOutput(true);
                         terrain->Settle();
+                        terrain->WriteCheckpoint("checkpoint_settled.dat");
                     }
 
-                    my_terrain = terrain;
+                    node = terrain;
                     break;
                 }
                 case ChVehicleCosimTerrainNode::Type::GRANULAR_SPH: {
@@ -359,14 +352,14 @@ int main(int argc, char** argv) {
 
                     terrain->SetPatchDimensions(10, 1);
 
-                    double radius = 0.02; // radius of granular particles
-                    double density = 2500; // density of the granular material
+                    double radius = 0.02;
+                    double density = 2500;
                     terrain->SetGranularMaterial(radius, density);
 
-                    double depth_granular = 0.5; // depth of the granular material terrain
+                    double depth_granular = 0.5;
                     terrain->SetPropertiesSPH(TerrainJsonFile, depth_granular); 
 
-                    my_terrain = terrain;
+                    node = terrain;
                     break;
                 }
             }
@@ -380,69 +373,37 @@ int main(int argc, char** argv) {
     //   terrain => rig (terrain height)
     //   rig => terrain (tire mesh topology and local vertex information)
     //   rig => terrain (tire contact material properties)
-    switch (rank) {
-        case RIG_NODE_RANK:
-            my_rig->Initialize();
-            break;
-        case TERRAIN_NODE_RANK:
-            my_terrain->Initialize();
-            break;
-    }
+    node->Initialize();
 
     // Perform co-simulation.
     // At synchronization, there is bi-directional data exchange:
     //     rig => terrain (state information)
     //     terrain => rig (force information)
     int output_frame = 0;
-    int checkpoint_frame = 0;
 
     for (int is = 0; is < sim_steps; is++) {
         double time = is * step_size;
 
+        if (rank == 0)
+            cout << is << " ---------------------------- " << endl;
         MPI_Barrier(MPI_COMM_WORLD);
 
-        switch (rank) {
-            case RIG_NODE_RANK: {
-                cout << is << " ---------------------------- " << endl;
-                my_rig->Synchronize(is, time);
-                my_rig->Advance(step_size);
-                cout << "Tire sim time =    " << my_rig->GetSimTime() << "  [" << my_rig->GetTotalSimTime() << "]"
-                     << endl;
+        node->Synchronize(is, time);
+        node->Advance(step_size);
+        cout << "Node" << rank << " sim time = " << node->GetSimTime() << "  [" << node->GetTotalSimTime() << "]"
+             << endl;
 
-                if (output && is % output_steps == 0) {
-                    my_rig->OutputData(output_frame);
-                    output_frame++;
-                }
-
-                break;
-            }
-            case TERRAIN_NODE_RANK: {
-                my_terrain->Synchronize(is, time);
-                my_terrain->Advance(step_size);
-                cout << "Terrain sim time = " << my_terrain->GetSimTime() << "  [" << my_terrain->GetTotalSimTime()
-                     << "]" << endl;
-
-                if (output && is % output_steps == 0) {
-                    my_terrain->OutputData(output_frame);
-                    output_frame++;
-                }
-
-                if (is % checkpoint_steps == 0) {
-                    my_terrain->WriteCheckpoint(checkpoint_filename);
-                    checkpoint_frame++;
-                }
-
-                break;
-            }
+        if (output && is % output_steps == 0) {
+            node->OutputData(output_frame);
+            output_frame++;
         }
     }
 
+    node->WriteCheckpoint("checkpoint_end.dat");
+
     // Cleanup.
-    delete my_rig;
-    delete my_terrain;
-
+    delete node;
     MPI_Finalize();
-
     return 0;
 }
 

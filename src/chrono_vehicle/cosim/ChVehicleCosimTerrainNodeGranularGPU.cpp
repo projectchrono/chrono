@@ -28,6 +28,7 @@
 #include "chrono/utils/ChUtilsInputOutput.h"
 
 #include "chrono/assets/ChTriangleMeshShape.h"
+#include "chrono/assets/ChSphereShape.h"
 
 #include "chrono_granular/api/ChApiGranularChrono.h"
 
@@ -74,7 +75,7 @@ ChVehicleCosimTerrainNodeGranularGPU::ChVehicleCosimTerrainNodeGranularGPU(bool 
     if (m_render) {
         opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
         gl_window.Initialize(1280, 720, "Terrain Node (GranularGPU)", m_system);
-        gl_window.SetCamera(ChVector<>(0, -6, 0), ChVector<>(0, 0, 0), ChVector<>(0, 0, 1), 0.05f);
+        gl_window.SetCamera(ChVector<>(0, -3, 0), ChVector<>(0, 0, 0), ChVector<>(0, 0, 1), 0.05f);
         gl_window.SetRenderMode(opengl::WIREFRAME);
     }
 #endif
@@ -160,7 +161,7 @@ void ChVehicleCosimTerrainNodeGranularGPU::Construct() {
 
     if (m_use_checkpoint) {
         // Read particle state from checkpoint file
-        std::string checkpoint_filename = m_out_dir + "/" + m_checkpoint_filename;
+        std::string checkpoint_filename = m_node_out_dir + "/" + m_checkpoint_filename;
         std::ifstream ifile(checkpoint_filename);
         if (!ifile.is_open()) {
             cout << "ERROR: could not open checkpoint file " << checkpoint_filename << endl;
@@ -220,6 +221,19 @@ void ChVehicleCosimTerrainNodeGranularGPU::Construct() {
 
     // Mark system as constructed.
     m_constructed = true;
+
+    // Create bodies in Chrono system (visualization only)
+    if (m_render) {
+        for (const auto& p : pos) {
+            auto body = std::shared_ptr<ChBody>(m_system->NewBody());
+            body->SetPos(p);
+            body->SetBodyFixed(true);
+            auto sph = chrono_types::make_shared<ChSphereShape>();
+            sph->GetSphereGeometry().rad = m_radius_g;
+            body->AddAsset(sph);
+            m_system->AddBody(body);
+        }
+    }
 
     // --------------------------------------
     // Write file with terrain node settings
@@ -288,17 +302,18 @@ void ChVehicleCosimTerrainNodeGranularGPU::Settle() {
             output_frame++;
         }
 
-        ////#ifdef CHRONO_OPENGL
-        ////        // OpenGL rendering
-        ////        if (m_render) {
-        ////            opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
-        ////            if (gl_window.Active()) {
-        ////                gl_window.Render();
-        ////            } else {
-        ////                MPI_Abort(MPI_COMM_WORLD, 1);
-        ////            }
-        ////        }
-        ////#endif
+#ifdef CHRONO_OPENGL
+        // OpenGL rendering
+        if (m_render) {
+            UpdateVisualizationParticles();
+            opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
+            if (gl_window.Active()) {
+                gl_window.Render();
+            } else {
+                MPI_Abort(MPI_COMM_WORLD, 1);
+            }
+        }
+#endif
     }
 
     cout << endl;
@@ -451,11 +466,12 @@ void ChVehicleCosimTerrainNodeGranularGPU::Advance(double step_size) {
     }
     m_timer.stop();
     m_cum_sim_time += m_timer();
-
+     
 #ifdef CHRONO_OPENGL
     if (m_render) {
         opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
         if (gl_window.Active()) {
+            UpdateVisualizationParticles();
             ChVector<> cam_point = m_proxies[0].m_body->GetPos();
             ChVector<> cam_loc = cam_point + ChVector<>(0, -3, 0.6);
             gl_window.SetCamera(cam_loc, cam_point, ChVector<>(0, 0, 1), 0.05f);
@@ -467,6 +483,17 @@ void ChVehicleCosimTerrainNodeGranularGPU::Advance(double step_size) {
 #endif
 
     PrintWheelProxyContactData();
+}
+
+// -----------------------------------------------------------------------------
+
+void ChVehicleCosimTerrainNodeGranularGPU::UpdateVisualizationParticles() {
+    // Note: it is assumed that the visualization bodies were created before the proxy body(ies).
+    const auto& blist = m_system->Get_bodylist();
+    for (unsigned int i = 0; i < m_num_particles; i++) {
+        auto pos = m_wrapper_gran->getPosition(i);
+        blist[i]->SetPos(pos);
+    }
 }
 
 // -----------------------------------------------------------------------------
@@ -486,7 +513,7 @@ void ChVehicleCosimTerrainNodeGranularGPU::WriteCheckpoint(const std::string& fi
         csv << i << pos << vel << omg << endl;
     }
 
-    std::string checkpoint_filename = m_out_dir + "/" + filename;
+    std::string checkpoint_filename = m_node_out_dir + "/" + filename;
     csv.write_to_file(checkpoint_filename);
     cout << "[Terrain node] write checkpoint ===> " << checkpoint_filename << endl;
 }

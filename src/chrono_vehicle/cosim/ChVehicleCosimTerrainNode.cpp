@@ -35,6 +35,25 @@ using std::endl;
 namespace chrono {
 namespace vehicle {
 
+std::string ChVehicleCosimTerrainNode::GetTypeAsString(Type type) {
+    switch (type) {
+        case Type::RIGID:
+            return "Rigid";
+        case Type::SCM:
+            return "SCM";
+        case Type::GRANULAR_OMP:
+            return "GranularOMP";
+        case Type::GRANULAR_GPU:
+            return "GranularGPU";
+        case Type::GRANULAR_MPI:
+            return "GranularMPI";
+        case Type::GRANULAR_SPH:
+            return "GranularSPH";
+        default:
+            return "Unknown";
+    }
+}
+
 // -----------------------------------------------------------------------------
 // Construction of the terrain node:
 // - create the (parallel) Chrono system and set solver parameters
@@ -47,6 +66,8 @@ ChVehicleCosimTerrainNode::ChVehicleCosimTerrainNode(Type type, ChContactMethod 
     m_hdimY = 0.25;
 
     // Default proxy body properties
+    m_rig_mass = 50;
+    m_flexible_tire = false;
     m_fixed_proxies = false;
 
     // Default terrain contact material

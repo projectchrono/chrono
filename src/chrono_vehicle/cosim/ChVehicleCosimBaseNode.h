@@ -77,7 +77,10 @@ class CH_VEHICLE_API ChVehicleCosimBaseNode {
     virtual void Advance(double step_size) = 0;
 
     /// Output logging and debugging data.
-    virtual void OutputData(int frame) {}
+    virtual void OutputData(int frame) = 0;
+
+    /// Write checkpoint to the specified file (which will be created in the output directory).
+    virtual void WriteCheckpoint(const std::string& filename) {}
 
   protected:
     /// Mesh data

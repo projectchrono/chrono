@@ -14,8 +14,6 @@
 //
 // Base class for a co-simulation node.
 //
-// Global settings.
-//
 // The global reference frame has Z up, X towards the front of the vehicle, and
 // Y pointing to the left.
 //
