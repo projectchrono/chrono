@@ -104,7 +104,7 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularGPU : public ChVehicleCosi
     virtual void Construct() override;
 
     /// Return current total number of contacts.
-    int GetNumContacts() const { return m_wrapper_gran->getGranSystemSMC_TriMesh().getNumContacts(); }
+    virtual int GetNumContacts() const override { return m_wrapper_gran->getGranSystemSMC_TriMesh().getNumContacts(); }
 
     virtual void CreateWheelProxy() override;
     virtual void UpdateWheelProxy() override;

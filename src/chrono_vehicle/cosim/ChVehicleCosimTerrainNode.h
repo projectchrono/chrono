@@ -126,7 +126,7 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNode : public ChVehicleCosimBaseNode {
 
     /// Return current number of contacts.
     /// (concrete terrain specific)
-    int GetNumContacts() const { return 0; }
+    virtual int GetNumContacts() const { return 0; }
 
     // --- Virtual methods for a flexible tire
     //     A derived class must implement these methods if SupportsFlexibleTire returns true.

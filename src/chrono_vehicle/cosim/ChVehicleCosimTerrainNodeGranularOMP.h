@@ -119,7 +119,7 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularOMP : public ChVehicleCosi
     virtual void Construct() override;
 
     /// Return current total number of contacts.
-    int GetNumContacts() const { return m_system->GetNcontacts(); }
+    virtual int GetNumContacts() const override { return m_system->GetNcontacts(); }
 
     virtual void CreateMeshProxies() override;
     virtual void UpdateMeshProxies() override;

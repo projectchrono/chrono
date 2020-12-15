@@ -289,7 +289,7 @@ void ChVehicleCosimTerrainNodeGranularGPU::Settle() {
         m_timer.stop();
         m_cum_sim_time += m_timer();
         cout << '\r' << std::fixed << std::setprecision(6) << m_system->GetChTime() << "  [" << m_timer.GetTimeSeconds()
-             << "]" << std::flush;
+             << "]   " << GetNumContacts() << std::flush;
 
         // Output (if enabled)
         if (m_settling_output && is % output_steps == 0) {
