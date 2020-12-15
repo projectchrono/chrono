@@ -225,7 +225,7 @@ linux:arch-llvm:test:
   tags:
     - linux
   image:
-    name: nvidia/cuda:10.1-base-ubuntu18.04
+    name: nvidia/cuda:11.0-devel-ubuntu18.04
   before_script:
     - uname -a
     - export DEBIAN_FRONTEND=noninteractive
