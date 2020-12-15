@@ -286,6 +286,7 @@ void ChSystemPBD::Advance() {
 		}
 		// Correct positions to respect constraints. "numPosIters"set to 1 according to the paper
 		SolvePositions();
+		SolveContacts(h);
 		
 		// Update velocities to take corrected positions into account
 		for (int j = 0; j < n; j++) {
@@ -297,14 +298,17 @@ void ChSystemPBD::Advance() {
 			ChQuaternion<> q0i = q_prev[j];
 			//TODO: using difference instead of increment as in paper. Doing that does not work though
 			ChQuaternion<> provv2 = body->GetRot();
-			ChQuaternion<double> deltaq = body->GetRot() - q0i;
-			deltaq *= 1/h;
-			body->coord_dt.rot = deltaq;
+			ChQuaternion<double> deltaq = body->GetRot() * q0i.GetInverse() ;
+			deltaq *= 2/h;
+			ChVector<double> new_om = (deltaq.e0() > 0) ? deltaq.GetVector() : -deltaq.GetVector();
+			body->SetWvel_par(new_om);
+
+			//body->coord_dt.rot = deltaq;
 		}
 		// Scatter updated state
 		// Similarly we contraint normal (and, if static, tangential) displacement in contacts
-		SolveContacts(h);
-		SolveVelocities(h);
+		//SolveContacts(h);
+		//SolveVelocities(h);
 
 		T += h;
 		

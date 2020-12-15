@@ -141,6 +141,14 @@ private:
 	// contact normal
 	ChVector<double> n;
 	double v_n_old;
+
+	/// Store contact bodies old position
+	/// This is a waste of memory and time, to be replaced with a more efficient ChState usage
+	ChVector<double> old_x1;
+	ChQuaternion<double> old_q1;
+	ChVector<double> old_x2;
+	ChQuaternion<double> old_q2;
+
 public:
 	//ChContactPBD* link;
 	/// Create a LinkPBD
@@ -157,6 +165,10 @@ public:
 
 	/// Velocity correction due to dynamic friction
 	void SolveVelocity(double h);
+
+	/// Store contact bodies old position
+	/// This is a waste of memory and time, to be replaced with a more efficient ChState usage
+	void SaveOldPos();
 };
 
 CH_CLASS_VERSION(ChContactPBD, 0);

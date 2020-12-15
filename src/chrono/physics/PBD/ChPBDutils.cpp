@@ -100,12 +100,14 @@ void ChLinkPBD::SolvePositions() {
 		ChVector<> n_loc = (q.RotateBack(n0))*p_dir;
 		// Now we bring the violation back in global coord and normaize it after saving its length
 		ChVector<> n = q.Rotate(n_loc);
-		double C = n.Length()/20;
+		double C = n.Length();
 		
 		if (n.Normalize()) {
 			lambda_f_dir = n;
-			auto Ii1 = ((r1.Cross(n).eigen()).transpose()) * Inv_I1 * (r1.Cross(n).eigen());
-			auto Ii2 = ((r2.Cross(n).eigen()).transpose()) * Inv_I2 * (r2.Cross(n).eigen());
+			ChVector<double> n1 = Body1->GetRot().RotateBack(n);
+			ChVector<double> n2 = Body2->GetRot().RotateBack(n);
+			auto Ii1 = ((f1.coord.pos.Cross(n1).eigen()).transpose()) * Inv_I1 * (f1.coord.pos.Cross(n1).eigen());
+			auto Ii2 = ((f2.coord.pos.Cross(n2).eigen()).transpose()) * Inv_I2 * (f2.coord.pos.Cross(n2).eigen());
 			assert(Ii1.cols() * Ii1.rows() * Ii2.cols() * Ii2.rows() == 1);
 			w1 = invm1 + Ii1(0, 0);
 			w2 = invm2 + Ii2(0, 0);
@@ -117,25 +119,26 @@ void ChLinkPBD::SolvePositions() {
 			Body1->SetPos(Body1->GetPos() + p *  invm1);
 			Body2->SetPos(Body2->GetPos() - p *  invm2);
 
-			ChQuaternion<double> dq1, dq2;
-			// TODO: check the relative /absolute rotation 
-			// TODO check delta definition
-			ChVector<> Rot1 = Inv_I1 * r1.Cross(p).eigen();
-			// {q_dt} = 1/2 {0,w}*{q}
-			dq1.Qdt_from_Wabs(Rot1, Body1->GetRot());
-			// q1 = q0 + dq/dt * h
+			ChVector<> Rot1 = Inv_I1 * Body1->GetRot().RotateBack(r1.Cross(p)).eigen();
 			ChQuaternion<> q01 = Body1->GetRot();
-			ChQuaternion<> qnew1 = (q01 + dq1);
-			qnew1.Normalize();
-			Body1->SetRot(qnew1);
-			
-			ChVector<> Rot2 = Inv_I2 * r2.Cross(p).eigen();
 			// {q_dt} = 1/2 {0,w}*{q}
-			dq2.Qdt_from_Wabs(Rot2, Body2->GetRot());
+			//dq1.Qdt_from_Wabs(Rot1, Body1->GetRot());
+			ChQuaternion<double> dq1(0, Rot1);
+			//dq1 *= q01;
 			// q1 = q0 + dq/dt * h
+			ChQuaternion<> qnew1 = (q01 + q01*dq1*0.5);
+			//qnew1.Normalize();
+			Body1->SetRot(qnew1);
+
+			ChVector<> Rot2 = Inv_I2 * Body2->GetRot().RotateBack(r2.Cross(p)).eigen();
 			ChQuaternion<> q02 = Body2->GetRot();
-			ChQuaternion<> qnew2 = (q02 - dq2);
-			qnew2.Normalize();
+			// {q_dt} = 1/2 {0,w}*{q}
+			//dq1.Qdt_from_Wabs(Rot1, Body1->GetRot());
+			ChQuaternion<double> dq2(0, Rot2);
+			//dq2 *= q02;
+			// q1 = q0 + dq/dt * h
+			ChQuaternion<> qnew2 = (q02 - q02*dq2*0.5);
+			//qnew2.Normalize();
 			Body2->SetRot(qnew2);
 		}
 	}
@@ -234,6 +237,7 @@ ChContactPBD::ChContactPBD(ChBody* body1, ChBody* body2, ChFrame<>& frame1, ChFr
 	mask[3] = false;
 	mask[4] = false;
 	mask[5] = false;
+	SaveOldPos();
 	//p_dir.Set(int(mask[0]), int(mask[1]), int(mask[2]));
 	// If the contact is violated it is NOT free, is dist > 0 we skip the correction completely
 	p_free = false;
@@ -242,6 +246,7 @@ ChContactPBD::ChContactPBD(ChBody* body1, ChBody* body2, ChFrame<>& frame1, ChFr
 	r_free = true;
 	//findRDOF();
 	//r_dir.Set(int(mask[3]), int(mask[4]), int(mask[5]));
+	alpha = 0.1;
 }
 
 // Adjust tangential velocity of bodies 
@@ -267,9 +272,14 @@ void ChContactPBD::SolveContactPositions(double h) {
 		ChVector<double> v_rel_t = v_rel - n * v_n_old;
 		// 
 		mask[0] = true;
+		mask[1] = false;
+		mask[2] = false;
+		p_dir.Set(int(mask[0]), int(mask[1]), int(mask[2]));
+		is_dynamic = true;
+		SolvePositions();
 		// Check if static -> dynamic
 		// TODO: use static friction here!!
-		if (!is_dynamic && lambda_contact_t.Length() > mu_d*lam_n ) {
+		/*if (!is_dynamic && lambda_contact_t.Length() > mu_d*lam_n ) {
 			is_dynamic = true;
 			mask[1] = false;
 			mask[2] = false;
@@ -284,13 +294,72 @@ void ChContactPBD::SolveContactPositions(double h) {
 			mask[1] = true;
 			mask[2] = true;
 		}
-		// Treat the contact as a link
+		// TODO: delete this
 		is_dynamic = false;
 		mask[1] = true;
 		mask[2] = true;
+		// Treat the contact as a link
 		p_dir.Set(int(mask[0]), int(mask[1]), int(mask[2]));
-		SolvePositions();
+		
+		ChVector<> r1 = Body1->GetRot().Rotate(f1.coord.pos);
+		ChVector<> r2 = Body2->GetRot().Rotate(f2.coord.pos);
+		//ChVector<> n0 = Body2->TransformPointLocalToParent(f2.coord.pos) - Body1->TransformPointLocalToParent(f1.coord.pos);
+		ChVector<> n0 = Body1->GetPos() + r1 - (Body2->GetPos() + r2);
+		// Rotation of the link frame w.r.t. global frame
+		ChQuaternion<> q = Body1->GetRot() * f1.coord.rot;
+		// get rid of unconstrained directions by element wise multiplication in the link frame reference
+		ChVector<> n_loc = (q.RotateBack(n0))*p_dir;
+		// Now we bring the violation back in global coord and normaize it after saving its length
+		ChVector<> n = q.Rotate(n_loc);
+		double C = n.Length();
+
+		if (n.Normalize()) {
+			lambda_f_dir = n;
+			auto Ii1 = ((r1.Cross(n).eigen()).transpose()) * Inv_I1 * (r1.Cross(n).eigen());
+			auto Ii2 = ((r2.Cross(n).eigen()).transpose()) * Inv_I2 * (r2.Cross(n).eigen());
+			assert(Ii1.cols() * Ii1.rows() * Ii2.cols() * Ii2.rows() == 1);
+			w1 = invm1 + Ii1(0, 0);
+			w2 = invm2 + Ii2(0, 0);
+
+			double delta_lambda_f = -(C + alpha * lambda_f) / (w1 + w2 + alpha);
+			lambda_f += delta_lambda_f;
+			ChVector<> p = delta_lambda_f * n;
+
+			Body1->SetPos(Body1->GetPos() + p *  invm1);
+			Body2->SetPos(Body2->GetPos() - p *  invm2);
+
+			ChQuaternion<double> dq1, dq2;
+			// TODO: check the relative /absolute rotation 
+			// TODO check delta definition
+			ChVector<> Rot1 = Inv_I1 * r1.Cross(p).eigen();
+			// {q_dt} = 1/2 {0,w}*{q}
+			dq1.Qdt_from_Wabs(Rot1, Body1->GetRot());
+			// q1 = q0 + dq/dt * h
+			ChQuaternion<> q01 = Body1->GetRot();
+			ChQuaternion<> qnew1 = (q01 + dq1);
+			qnew1.Normalize();
+			Body1->SetRot(qnew1);
+
+			ChVector<> Rot2 = Inv_I2 * r2.Cross(p).eigen();
+			// {q_dt} = 1/2 {0,w}*{q}
+			dq2.Qdt_from_Wabs(Rot2, Body2->GetRot());
+			// q1 = q0 + dq/dt * h
+			ChQuaternion<> q02 = Body2->GetRot();
+			ChQuaternion<> qnew2 = (q02 - dq2);
+			qnew2.Normalize();
+			Body2->SetRot(qnew2);
+		}*/
+
 	}
+}
+
+/// Store contact bodies old position
+/// This is a waste of memory and time, to be replaced with a more efficient ChState usage
+void ChContactPBD::SaveOldPos() {
+	old_x1 = Body1->GetPos();
+	old_q1 = Body1->GetRot();
+	old_x2 = Body2->GetPos();
+	old_q2 = Body2->GetRot();
 }
 
 // Adjust tangential velocity of bodies 
