@@ -69,6 +69,7 @@ class ChApi ChLinkPBD {
 	double lambda_t = 0;
 	ChVector<> lambda_f_dir;
 	ChVector<> lambda_t_dir;
+	ChVector<double> lambda_contact_sf;
 	// Compliance (TODO: make it settable, and separate for torque and force)
 	double alpha = 0.0;
 	//TODO: not implementing limits and actuators yet.

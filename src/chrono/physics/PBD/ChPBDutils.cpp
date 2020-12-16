@@ -99,13 +99,13 @@ void ChLinkPBD::SolvePositions() {
 		// get rid of unconstrained directions by element wise multiplication in the link frame reference
 		ChVector<> n_loc = (q.RotateBack(n0))*p_dir;
 		// Now we bring the violation back in global coord and normaize it after saving its length
-		ChVector<> n = q.Rotate(n_loc);
-		double C = n.Length();
+		ChVector<> nt = q.Rotate(n_loc);
+		double C = nt.Length();
 		
-		if (n.Normalize()) {
-			lambda_f_dir = n;
-			ChVector<double> n1 = Body1->GetRot().RotateBack(n);
-			ChVector<double> n2 = Body2->GetRot().RotateBack(n);
+		if (nt.Normalize()) {
+			lambda_f_dir = nt;
+			ChVector<double> n1 = Body1->GetRot().RotateBack(nt);
+			ChVector<double> n2 = Body2->GetRot().RotateBack(nt);
 			auto Ii1 = ((f1.coord.pos.Cross(n1).eigen()).transpose()) * Inv_I1 * (f1.coord.pos.Cross(n1).eigen());
 			auto Ii2 = ((f2.coord.pos.Cross(n2).eigen()).transpose()) * Inv_I2 * (f2.coord.pos.Cross(n2).eigen());
 			assert(Ii1.cols() * Ii1.rows() * Ii2.cols() * Ii2.rows() == 1);
@@ -114,7 +114,7 @@ void ChLinkPBD::SolvePositions() {
 
 			double delta_lambda_f = -(C + alpha * lambda_f) / (w1 + w2 + alpha);
 			lambda_f += delta_lambda_f;
-			ChVector<> p = delta_lambda_f * n;
+			ChVector<> p = delta_lambda_f * nt;
 
 			Body1->SetPos(Body1->GetPos() + p *  invm1);
 			Body2->SetPos(Body2->GetPos() - p *  invm2);
@@ -124,8 +124,6 @@ void ChLinkPBD::SolvePositions() {
 			// {q_dt} = 1/2 {0,w}*{q}
 			//dq1.Qdt_from_Wabs(Rot1, Body1->GetRot());
 			ChQuaternion<double> dq1(0, Rot1);
-			//dq1 *= q01;
-			// q1 = q0 + dq/dt * h
 			ChQuaternion<> qnew1 = (q01 + q01*dq1*0.5);
 			//qnew1.Normalize();
 			Body1->SetRot(qnew1);
@@ -135,8 +133,6 @@ void ChLinkPBD::SolvePositions() {
 			// {q_dt} = 1/2 {0,w}*{q}
 			//dq1.Qdt_from_Wabs(Rot1, Body1->GetRot());
 			ChQuaternion<double> dq2(0, Rot2);
-			//dq2 *= q02;
-			// q1 = q0 + dq/dt * h
 			ChQuaternion<> qnew2 = (q02 - q02*dq2*0.5);
 			//qnew2.Normalize();
 			Body2->SetRot(qnew2);
@@ -264,92 +260,88 @@ void ChContactPBD::SolveContactPositions(double h) {
 		return;
 	}
 	else {
-		double lam_n = lambda_f_dir ^ n;
-		ChVector<double> lambda_contact_t = lambda_f_dir - lam_n^n;
-		ChVector<double> v_rel = ( Body1->GetPos_dt() + Body1->GetRot().Rotate(Body1->GetWvel_loc().Cross(f1.coord.pos)) - Body2->GetPos_dt() - Body2->GetRot().Rotate(Body2->GetWvel_loc().Cross(f2.coord.pos)));
-		// normal velocity before velocity update. Will be used in 
-		v_n_old = v_rel^n;
-		ChVector<double> v_rel_t = v_rel - n * v_n_old;
 		// 
 		mask[0] = true;
 		mask[1] = false;
 		mask[2] = false;
 		p_dir.Set(int(mask[0]), int(mask[1]), int(mask[2]));
-		is_dynamic = true;
 		SolvePositions();
+
 		// Check if static -> dynamic
+
+		//
+		
+		ChVector<double> v_rel = (Body1->GetPos_dt() + Body1->GetRot().Rotate(Body1->GetWvel_loc().Cross(f1.coord.pos)) - Body2->GetPos_dt() - Body2->GetRot().Rotate(Body2->GetWvel_loc().Cross(f2.coord.pos)));
+		// normal velocity before velocity update. Will be used in 
+		v_n_old = v_rel^n;
+		ChVector<double> v_rel_t = v_rel - n * v_n_old;
+
 		// TODO: use static friction here!!
-		/*if (!is_dynamic && lambda_contact_t.Length() > mu_d*lam_n ) {
+		if (!is_dynamic && lambda_contact_sf.Length() > mu_d*abs(lambda_f) ) {
 			is_dynamic = true;
-			mask[1] = false;
-			mask[2] = false;
 		}
 		// Check if dynamic -> static
 		// kinetic energy < friction work in the substep, aka the body would stop within the substep
 		// 0.5*m*v^2 < mu_d * f * v * h
 		// TODO: compare with eq.30
-		// TODO: using the direction only (lambda_contact_t) without module
-		else if (is_dynamic && (Body1->GetMass() + Body2->GetMass())*v_rel_t.Length() < 4*mu_d*lambda_contact_t.Length()*h) {
+		//else if (is_dynamic && (Body1->GetMass() + Body2->GetMass())*v_rel_t.Length() < 4*mu_d*lambda_contact_sf.Length()*h) {
+		else if (true) {
 			is_dynamic = false;
+		}
+		// Treat the contact as a link
+			
+		if (!is_dynamic) {
+			mask[0] = false;
 			mask[1] = true;
 			mask[2] = true;
+			p_dir.Set(int(mask[0]), int(mask[1]), int(mask[2]));
+
+			// project static friction
+			ChVector<> r1 = Body1->GetRot().Rotate(f1.coord.pos);
+			ChVector<> r2 = Body2->GetRot().Rotate(f2.coord.pos);
+			ChVector<> r1_old = old_q1.Rotate(f1.coord.pos);
+			ChVector<> r2_old = old_q2.Rotate(f2.coord.pos);
+			//ChVector<> n0 = Body2->TransformPointLocalToParent(f2.coord.pos) - Body1->TransformPointLocalToParent(f1.coord.pos);
+			ChVector<> n0 = -( (Body1->GetPos() + r1 - (old_x1 + r1_old)) - ((Body2->GetPos() + r2) - (old_x2 + r2_old) ));
+			double n0_n = n0^n;
+			ChVector<> n0_t = n0 - n * n0_n;
+			// Rotation of the link frame w.r.t. global frame
+			ChQuaternion<> q = Body1->GetRot() * f1.coord.rot;
+			// get rid of unconstrained directions by element wise multiplication in the link frame reference
+			ChVector<> n_loc = (q.RotateBack(n0_t))*p_dir;
+			// Now we bring the violation back in global coord and normaize it after saving its length
+			ChVector<> n_sf = q.Rotate(n_loc);
+			double C = n_sf.Length();
+
+			if (n_sf.Normalize()) {
+
+				double delta_lambda_sf = -(C + alpha * lambda_f) / (w1 + w2 + alpha);
+				lambda_f += delta_lambda_sf;
+				ChVector<> p = delta_lambda_sf * n_sf;
+				lambda_contact_sf = n_sf * (lambda_contact_sf.Length() + delta_lambda_sf);
+
+				Body1->SetPos(Body1->GetPos() + p *  invm1);
+				Body2->SetPos(Body2->GetPos() - p *  invm2);
+
+				ChVector<> Rot1 = Inv_I1 * Body1->GetRot().RotateBack(r1.Cross(p)).eigen();
+				ChQuaternion<> q01 = Body1->GetRot();
+				// {q_dt} = 1/2 {0,w}*{q}
+				//dq1.Qdt_from_Wabs(Rot1, Body1->GetRot());
+				ChQuaternion<double> dq1(0, Rot1);
+				ChQuaternion<> qnew1 = (q01 + q01*dq1*0.5);
+				//qnew1.Normalize();
+				Body1->SetRot(qnew1);
+
+				ChVector<> Rot2 = Inv_I2 * Body2->GetRot().RotateBack(r2.Cross(p)).eigen();
+				ChQuaternion<> q02 = Body2->GetRot();
+				// {q_dt} = 1/2 {0,w}*{q}
+				//dq1.Qdt_from_Wabs(Rot1, Body1->GetRot());
+				ChQuaternion<double> dq2(0, Rot2);
+				ChQuaternion<> qnew2 = (q02 - q02*dq2*0.5);
+				//qnew2.Normalize();
+				Body2->SetRot(qnew2);
+			}
 		}
-		// TODO: delete this
-		is_dynamic = false;
-		mask[1] = true;
-		mask[2] = true;
-		// Treat the contact as a link
-		p_dir.Set(int(mask[0]), int(mask[1]), int(mask[2]));
-		
-		ChVector<> r1 = Body1->GetRot().Rotate(f1.coord.pos);
-		ChVector<> r2 = Body2->GetRot().Rotate(f2.coord.pos);
-		//ChVector<> n0 = Body2->TransformPointLocalToParent(f2.coord.pos) - Body1->TransformPointLocalToParent(f1.coord.pos);
-		ChVector<> n0 = Body1->GetPos() + r1 - (Body2->GetPos() + r2);
-		// Rotation of the link frame w.r.t. global frame
-		ChQuaternion<> q = Body1->GetRot() * f1.coord.rot;
-		// get rid of unconstrained directions by element wise multiplication in the link frame reference
-		ChVector<> n_loc = (q.RotateBack(n0))*p_dir;
-		// Now we bring the violation back in global coord and normaize it after saving its length
-		ChVector<> n = q.Rotate(n_loc);
-		double C = n.Length();
-
-		if (n.Normalize()) {
-			lambda_f_dir = n;
-			auto Ii1 = ((r1.Cross(n).eigen()).transpose()) * Inv_I1 * (r1.Cross(n).eigen());
-			auto Ii2 = ((r2.Cross(n).eigen()).transpose()) * Inv_I2 * (r2.Cross(n).eigen());
-			assert(Ii1.cols() * Ii1.rows() * Ii2.cols() * Ii2.rows() == 1);
-			w1 = invm1 + Ii1(0, 0);
-			w2 = invm2 + Ii2(0, 0);
-
-			double delta_lambda_f = -(C + alpha * lambda_f) / (w1 + w2 + alpha);
-			lambda_f += delta_lambda_f;
-			ChVector<> p = delta_lambda_f * n;
-
-			Body1->SetPos(Body1->GetPos() + p *  invm1);
-			Body2->SetPos(Body2->GetPos() - p *  invm2);
-
-			ChQuaternion<double> dq1, dq2;
-			// TODO: check the relative /absolute rotation 
-			// TODO check delta definition
-			ChVector<> Rot1 = Inv_I1 * r1.Cross(p).eigen();
-			// {q_dt} = 1/2 {0,w}*{q}
-			dq1.Qdt_from_Wabs(Rot1, Body1->GetRot());
-			// q1 = q0 + dq/dt * h
-			ChQuaternion<> q01 = Body1->GetRot();
-			ChQuaternion<> qnew1 = (q01 + dq1);
-			qnew1.Normalize();
-			Body1->SetRot(qnew1);
-
-			ChVector<> Rot2 = Inv_I2 * r2.Cross(p).eigen();
-			// {q_dt} = 1/2 {0,w}*{q}
-			dq2.Qdt_from_Wabs(Rot2, Body2->GetRot());
-			// q1 = q0 + dq/dt * h
-			ChQuaternion<> q02 = Body2->GetRot();
-			ChQuaternion<> qnew2 = (q02 - dq2);
-			qnew2.Normalize();
-			Body2->SetRot(qnew2);
-		}*/
-
 	}
 }
 

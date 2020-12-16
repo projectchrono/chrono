@@ -225,6 +225,12 @@ void ChSystemPBD::SolveVelocities(double h) {
 	}
 }
 
+void ChSystemPBD::SaveOldPos() {
+	for (auto& contact : contactlistPBD) {
+		contact->SaveOldPos();
+	}
+}
+
 void ChSystemPBD::CollectContacts() {
 	// TODO: can we do something less brutal and use the previous knowledge?
 	contactlistPBD.clear();
@@ -259,6 +265,8 @@ void ChSystemPBD::Advance() {
 	int n = Get_bodylist().size();
 	double h = step / substeps;
 	for (int i = 0; i < substeps; i++) {
+		// delete this when possible
+		SaveOldPos();
 		for (int j = 0; j < n; j++) {
 			std::shared_ptr<ChBody> body = Get_bodylist()[j];
 			if (body->GetBodyFixed() == true) {

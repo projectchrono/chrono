@@ -86,6 +86,7 @@ class ChApi ChSystemPBD : public ChSystem {
 	/// Advance the simulation
 	void CollectContacts();
 
+	void SaveOldPos();
 
   protected:
 	double T = 0;
