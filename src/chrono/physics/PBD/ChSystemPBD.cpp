@@ -308,7 +308,7 @@ void ChSystemPBD::Advance() {
 		// Scatter updated state
 		// Similarly we contraint normal (and, if static, tangential) displacement in contacts
 		//SolveContacts(h);
-		//SolveVelocities(h);
+		SolveVelocities(h);
 
 		T += h;
 		

@@ -400,10 +400,13 @@ void ChContactPBD::SolveVelocity(double h) {
 		Body1->SetPos_dt(v1 + p*invm1);
 		Body2->SetPos_dt(v2 - p*invm2);
 
-		ChVector<> w1 = Body1->GetWvel_loc();
-		ChVector<> w2 = Body2->GetWvel_loc();
-		Body1->SetWvel_loc(w1 + Inv_I1 * f1.coord.pos.Cross(p).eigen());
-		Body2->SetWvel_loc(w2 - Inv_I2 * f2.coord.pos.Cross(p).eigen());
+		ChVector<> omega1 = Body1->GetWvel_loc();
+		ChVector<> omega2 = Body2->GetWvel_loc();
+		ChVector<> delta_omega1 = Inv_I1 * f1.coord.pos.Cross(Body1->GetRot().RotateBack(p)).eigen();
+		ChVector<> delta_omega2 = Inv_I2 * f2.coord.pos.Cross(Body2->GetRot().RotateBack(p)).eigen();
+		Body1->SetWvel_loc(omega1 + delta_omega1);
+		Body2->SetWvel_loc(omega2 - delta_omega2);
+		int provv = 0;
 	}
 }
 
