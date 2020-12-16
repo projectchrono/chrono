@@ -38,10 +38,9 @@ namespace vehicle {
 
 class CH_VEHICLE_API ChVehicleCosimTerrainNodeSCM : public ChVehicleCosimTerrainNode {
   public:
-    /// Create a rigid terrain subsystem.
-    ChVehicleCosimTerrainNodeSCM(bool render,     ///< use OpenGL rendering
-                                 int num_threads  ///< number of OpenMP threads for SCM ray-casting
-    );
+    /// Create a rigid terrain subsystem using the specified number of OpenMP threads for SCM ray-casting.
+    ChVehicleCosimTerrainNodeSCM(int num_threads);
+
     ~ChVehicleCosimTerrainNodeSCM();
 
     virtual ChSystem* GetSystem() override { return m_system; }
@@ -109,8 +108,8 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeSCM : public ChVehicleCosimTerrain
     virtual void PrintWheelProxyUpdateData() override;
     virtual void PrintWheelProxyContactData() override;
 
-    virtual void OnAdvance(double step_size) override;
     virtual void OnOutputData(int frame) override;
+    virtual void OnRender(double time) override;
 };
 
 }  // end namespace vehicle

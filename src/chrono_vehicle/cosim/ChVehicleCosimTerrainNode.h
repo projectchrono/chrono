@@ -51,6 +51,11 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNode : public ChVehicleCosimBaseNode {
     /// Set the proxy bodies as fixed to ground.
     void SetProxyFixed(bool fixed);
 
+    /// Enable/disable run-time visualization (default: false).
+    /// If enabled, rendering is done with the specified frequency.
+    /// Note that a particular concrete terrain node may not support run-time visualization or may not render all physics elements.
+    void EnableRuntimeVisualization(bool render, double render_fps = 100);
+
     /// Initialize this node.
     /// This function allows the node to initialize itself and, optionally, perform an
     /// initial data exchange with any other node.
@@ -81,7 +86,8 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNode : public ChVehicleCosimBaseNode {
 
     Type m_type;  ///< terrain type
 
-    bool m_render;  ///< if true, use OpenGL rendering
+    bool m_render;         ///< if true, use OpenGL rendering
+    double m_render_step;  ///< time step between rendered frames
 
     ChContactMethod m_method;                               ///< contact method (SMC or NSC)
     std::shared_ptr<ChMaterialSurface> m_material_terrain;  ///< material properties for terrain bodies
@@ -106,9 +112,8 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNode : public ChVehicleCosimBaseNode {
     double m_init_height;  ///< initial terrain height (after optional settling)
 
     /// Construct a base class terrain node.
-    ChVehicleCosimTerrainNode(Type type,               ///< terrain type
-                              ChContactMethod method,  ///< contact method (penalty or complementatiry)
-                              bool render              ///< use OpenGL rendering
+    ChVehicleCosimTerrainNode(Type type,              ///< terrain type
+                              ChContactMethod method  ///< contact method (SMC or NSC)
     );
 
     /// Print vertex and face connectivity data, as received from the rig node at synchronization.
@@ -196,8 +201,10 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNode : public ChVehicleCosimBaseNode {
     virtual void OnSynchronize(int step_number, double time) {}
 
     /// Perform any additional operations after advancing the state of the terrain node.
-    /// For example, render the terrain simulation.
     virtual void OnAdvance(double step_size) {}
+
+    /// Render simulation.
+    virtual void OnRender(double time) {}
 
   private:
     void SynchronizeRigidTire(int step_number, double time);

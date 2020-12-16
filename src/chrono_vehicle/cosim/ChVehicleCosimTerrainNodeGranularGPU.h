@@ -32,7 +32,8 @@ namespace vehicle {
 class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularGPU : public ChVehicleCosimTerrainNode {
   public:
     /// Create a Chrono::Granular terrain subsystem.
-    ChVehicleCosimTerrainNodeGranularGPU(bool render);
+    ChVehicleCosimTerrainNodeGranularGPU();
+
     ~ChVehicleCosimTerrainNodeGranularGPU();
 
     virtual ChSystem* GetSystem() override { return m_system; }
@@ -67,7 +68,7 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularGPU : public ChVehicleCosi
 
     /// Enable/disable output during settling (default: false).
     /// If enabled, output files are generated with the specified frequency.
-    void EnableSettlingOutput(bool val, double output_fps = 100);
+    void EnableSettlingOutput(bool output, double output_fps = 100);
 
     /// Obtain settled terrain configuration.
     /// This is an optional operation that can be performed for granular terrain before initiating
@@ -115,6 +116,8 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularGPU : public ChVehicleCosi
     virtual void PrintWheelProxyContactData() override;
 
     virtual void OnOutputData(int frame) override;
+
+    virtual void OnRender(double time) override;
 
     /// Advance simulation.
     /// This function is called after a synchronization to allow the node to advance

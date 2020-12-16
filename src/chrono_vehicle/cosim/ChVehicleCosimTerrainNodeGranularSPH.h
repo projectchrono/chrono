@@ -33,7 +33,8 @@ namespace vehicle {
 class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularSPH : public ChVehicleCosimTerrainNode {
   public:
     /// Create a Chrono::FSI granular SPH terrain subsystem.
-    ChVehicleCosimTerrainNodeGranularSPH(bool render);
+    ChVehicleCosimTerrainNodeGranularSPH();
+
     ~ChVehicleCosimTerrainNodeGranularSPH();
 
     virtual ChSystem* GetSystem() override { return m_system; }
@@ -66,6 +67,7 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularSPH : public ChVehicleCosi
     virtual void PrintWheelProxyContactData() override;
 
     virtual void OnOutputData(int frame) override;
+    virtual void OnRender(double time) override;
 
     /// Advance simulation.
     /// This function is called after a synchronization to allow the node to advance

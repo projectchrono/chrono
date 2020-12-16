@@ -49,6 +49,9 @@ double step_size = 1e-4;  // 1e-3;
 // Output frequency (frames per second)
 double output_fps = 100;
 
+// Rendering frequency (frames per second)
+double render_fps = 100;
+
 // Tire type
 ChVehicleCosimRigNode::Type tire_type = ChVehicleCosimRigNode::Type::RIGID;
 
@@ -175,9 +178,10 @@ int main(int argc, char** argv) {
             switch (terrain_type) {
                 case ChVehicleCosimTerrainNode::Type::RIGID: {
                     auto method = ChContactMethod::SMC;
-                    auto terrain = new ChVehicleCosimTerrainNodeRigid(method, render);
+                    auto terrain = new ChVehicleCosimTerrainNodeRigid(method);
                     terrain->SetStepSize(step_size);
                     terrain->SetOutDir(out_dir, suffix);
+                    terrain->EnableRuntimeVisualization(render, render_fps);
                     cout << "[Terrain node] output directory: " << terrain->GetOutDirName() << endl;
 
                     terrain->SetPatchDimensions(10, 1);
@@ -213,9 +217,10 @@ int main(int argc, char** argv) {
                     break;
                 }
                 case ChVehicleCosimTerrainNode::Type::SCM: {
-                    auto terrain = new ChVehicleCosimTerrainNodeSCM(render, nthreads_terrain);
+                    auto terrain = new ChVehicleCosimTerrainNodeSCM(nthreads_terrain);
                     terrain->SetStepSize(step_size);
                     terrain->SetOutDir(out_dir, suffix);
+                    terrain->EnableRuntimeVisualization(render, render_fps);
                     cout << "[Terrain node] output directory: " << terrain->GetOutDirName() << endl;
 
                     terrain->SetPatchDimensions(10, 1);
@@ -243,10 +248,10 @@ int main(int argc, char** argv) {
                 }
                 case ChVehicleCosimTerrainNode::Type::GRANULAR_OMP: {
                     auto method = ChContactMethod::NSC;
-                    auto terrain =
-                        new ChVehicleCosimTerrainNodeGranularOMP(method, render, nthreads_terrain);
+                    auto terrain = new ChVehicleCosimTerrainNodeGranularOMP(method, nthreads_terrain);
                     terrain->SetStepSize(step_size);
                     terrain->SetOutDir(out_dir, suffix);
+                    terrain->EnableRuntimeVisualization(render, render_fps);
                     cout << "[Terrain node] output directory: " << terrain->GetOutDirName() << endl;
 
                     ////terrain->SetPatchDimensions(10, 1);
@@ -302,9 +307,10 @@ int main(int argc, char** argv) {
                     break;
                 }
                 case ChVehicleCosimTerrainNode::Type::GRANULAR_GPU: {
-                    auto terrain = new ChVehicleCosimTerrainNodeGranularGPU(render);
+                    auto terrain = new ChVehicleCosimTerrainNodeGranularGPU();
                     terrain->SetStepSize(step_size);
                     terrain->SetOutDir(out_dir, suffix);
+                    terrain->EnableRuntimeVisualization(render, render_fps);
                     cout << "[Terrain node] output directory: " << terrain->GetOutDirName() << endl;
 
                     ////terrain->SetPatchDimensions(10, 1);
@@ -344,10 +350,11 @@ int main(int argc, char** argv) {
                     break;
                 }
                 case ChVehicleCosimTerrainNode::Type::GRANULAR_SPH: {
-                    auto terrain = new ChVehicleCosimTerrainNodeGranularSPH(render);
-                    std::string TerrainJsonFile = GetChronoDataFile("fsi/input_json/demo_tire_rig.json");
+                    auto terrain = new ChVehicleCosimTerrainNodeGranularSPH();
+                    std::string param_filename = GetChronoDataFile("fsi/input_json/demo_tire_rig.json");
                     terrain->SetStepSize(step_size);
                     terrain->SetOutDir(out_dir, suffix);
+                    terrain->EnableRuntimeVisualization(render, render_fps);
                     cout << "[Terrain node] output directory: " << terrain->GetOutDirName() << endl;
 
                     terrain->SetPatchDimensions(10, 1);
@@ -357,7 +364,7 @@ int main(int argc, char** argv) {
                     terrain->SetGranularMaterial(radius, density);
 
                     double depth_granular = 0.5;
-                    terrain->SetPropertiesSPH(TerrainJsonFile, depth_granular); 
+                    terrain->SetPropertiesSPH(param_filename, depth_granular); 
 
                     node = terrain;
                     break;

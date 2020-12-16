@@ -57,9 +57,8 @@ namespace vehicle {
 // - create the OpenGL visualization window
 // -----------------------------------------------------------------------------
 ChVehicleCosimTerrainNodeGranularOMP::ChVehicleCosimTerrainNodeGranularOMP(ChContactMethod method,
-                                                                           bool render,
                                                                            int num_threads)
-    : ChVehicleCosimTerrainNode(Type::GRANULAR_OMP, method, render),
+    : ChVehicleCosimTerrainNode(Type::GRANULAR_OMP, method),
       m_radius_p(5e-3),
       m_constructed(false),
       m_use_checkpoint(false),
@@ -130,19 +129,6 @@ ChVehicleCosimTerrainNodeGranularOMP::ChVehicleCosimTerrainNodeGranularOMP(ChCon
         // Sanity check: print number of threads in a parallel region
         cout << "[Terrain node] actual number of OpenMP threads: " << omp_get_num_threads() << endl;
     }
-
-#ifdef CHRONO_OPENGL
-    // -------------------------------
-    // Create the visualization window
-    // -------------------------------
-
-    if (m_render) {
-        opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
-        gl_window.Initialize(1280, 720, "Terrain Node (GranularOMP)", m_system);
-        gl_window.SetCamera(ChVector<>(0, -2, 0), ChVector<>(0, 0, 0), ChVector<>(0, 0, 1), 0.05f);
-        gl_window.SetRenderMode(opengl::WIREFRAME);
-    }
-#endif
 }
 
 ChVehicleCosimTerrainNodeGranularOMP::~ChVehicleCosimTerrainNodeGranularOMP() {
@@ -188,8 +174,8 @@ void ChVehicleCosimTerrainNodeGranularOMP::SetInputFromCheckpoint(const std::str
     m_checkpoint_filename = filename;
 }
 
-void ChVehicleCosimTerrainNodeGranularOMP::EnableSettlingOutput(bool val, double output_fps) {
-    m_settling_output = val;
+void ChVehicleCosimTerrainNodeGranularOMP::EnableSettlingOutput(bool output, double output_fps) {
+    m_settling_output = output;
     m_settling_fps = output_fps;
 }
 
@@ -343,10 +329,17 @@ void ChVehicleCosimTerrainNodeGranularOMP::Construct() {
     // Mark system as constructed.
     m_constructed = true;
 
-    // --------------------------------------
-    // Write file with terrain node settings
-    // --------------------------------------
+#ifdef CHRONO_OPENGL
+    // Create the visualization window
+    if (m_render) {
+        opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
+        gl_window.Initialize(1280, 720, "Terrain Node (GranularOMP)", m_system);
+        gl_window.SetCamera(ChVector<>(0, -2, 0), ChVector<>(0, 0, 0), ChVector<>(0, 0, 1), 0.05f);
+        gl_window.SetRenderMode(opengl::WIREFRAME);
+    }
+#endif
 
+    // Write file with terrain node settings
     std::ofstream outf;
     outf.open(m_node_out_dir + "/settings.dat", std::ios::out);
     outf << "System settings" << endl;
@@ -403,6 +396,8 @@ void ChVehicleCosimTerrainNodeGranularOMP::Settle() {
     int output_steps = (int)std::ceil(1 / (m_settling_fps * m_step_size));
     int output_frame = 0;
 
+    double render_time = 0;
+
     for (int is = 0; is < sim_steps; is++) {
         // Advance step
         m_timer.reset();
@@ -423,17 +418,11 @@ void ChVehicleCosimTerrainNodeGranularOMP::Settle() {
             output_frame++;
         }
 
-#ifdef CHRONO_OPENGL
-        // OpenGL rendering
-        if (m_render) {
-            opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
-            if (gl_window.Active()) {
-                gl_window.Render();
-            } else {
-                MPI_Abort(MPI_COMM_WORLD, 1);
-            }
+        // Render (if enabled)
+        if (m_render && m_system->GetChTime() > render_time) {
+            OnRender(m_system->GetChTime());
+            render_time += std::max(m_render_step, m_step_size);
         }
-#endif
     }
 
     cout << endl;
@@ -674,20 +663,20 @@ void ChVehicleCosimTerrainNodeGranularOMP::OnSynchronize(int step_number, double
 }
 
 void ChVehicleCosimTerrainNodeGranularOMP::OnAdvance(double step_size) {
-#ifdef CHRONO_OPENGL
-    if (m_render) {
-        opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
-        if (gl_window.Active()) {
-            gl_window.Render();
-        } else {
-            MPI_Abort(MPI_COMM_WORLD, 1);
-        }
-    }
-#endif
-
     // Force a calculation of cumulative contact forces for all bodies in the system
     // (needed at the next synchronization)
     m_system->CalculateContactForces();
+}
+
+void ChVehicleCosimTerrainNodeGranularOMP::OnRender(double time) {
+#ifdef CHRONO_OPENGL
+    opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
+    if (gl_window.Active()) {
+        gl_window.Render();
+    } else {
+        MPI_Abort(MPI_COMM_WORLD, 1);
+    }
+#endif
 }
 
 // -----------------------------------------------------------------------------

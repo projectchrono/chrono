@@ -59,8 +59,13 @@ std::string ChVehicleCosimTerrainNode::GetTypeAsString(Type type) {
 // - create the (parallel) Chrono system and set solver parameters
 // - create the OpenGL visualization window
 // -----------------------------------------------------------------------------
-ChVehicleCosimTerrainNode::ChVehicleCosimTerrainNode(Type type, ChContactMethod method, bool render)
-    : ChVehicleCosimBaseNode("TERRAIN"), m_type(type), m_method(method), m_render(render), m_init_height(0) {
+ChVehicleCosimTerrainNode::ChVehicleCosimTerrainNode(Type type, ChContactMethod method)
+    : ChVehicleCosimBaseNode("TERRAIN"),
+      m_type(type),
+      m_method(method),
+      m_render(false),
+      m_render_step(0.01),
+      m_init_height(0) {
     // Default patch dimensions
     m_hdimX = 1.0;
     m_hdimY = 0.25;
@@ -90,6 +95,11 @@ void ChVehicleCosimTerrainNode::SetPatchDimensions(double length, double width) 
 
 void ChVehicleCosimTerrainNode::SetProxyFixed(bool fixed) {
     m_fixed_proxies = fixed;
+}
+
+void ChVehicleCosimTerrainNode::EnableRuntimeVisualization(bool render, double render_fps) {
+    m_render = render;
+    m_render_step = 1.0 / render_fps;
 }
 
 // -----------------------------------------------------------------------------
@@ -329,6 +339,8 @@ void ChVehicleCosimTerrainNode::SynchronizeFlexibleTire(int step_number, double 
 // Advance simulation of the terrain node by the specified duration
 // -----------------------------------------------------------------------------
 void ChVehicleCosimTerrainNode::Advance(double step_size) {
+    static double render_time = 0;
+
     m_timer.reset();
     m_timer.start();
     double t = 0;
@@ -342,6 +354,12 @@ void ChVehicleCosimTerrainNode::Advance(double step_size) {
 
     // Let derived classes perform optional operations (e.g. rendering)
     OnAdvance(step_size);
+
+    // Request the derived class to render simulation
+    if (m_render && GetSystem()->GetChTime() > render_time) {
+        OnRender(GetSystem()->GetChTime());
+        render_time += std::max(m_render_step, step_size);
+    }
 
     if (m_flexible_tire)
         PrintMeshProxiesContactData();

@@ -48,14 +48,10 @@ namespace vehicle {
 // - create the Chrono system and set solver parameters
 // - create the OpenGL visualization window
 // -----------------------------------------------------------------------------
-ChVehicleCosimTerrainNodeRigid::ChVehicleCosimTerrainNodeRigid(ChContactMethod method, bool render)
-    : ChVehicleCosimTerrainNode(Type::RIGID, method, render), m_radius_p(0.01) {
+ChVehicleCosimTerrainNodeRigid::ChVehicleCosimTerrainNodeRigid(ChContactMethod method)
+    : ChVehicleCosimTerrainNode(Type::RIGID, method), m_radius_p(0.01) {
     cout << "[Terrain node] RIGID "
          << " method = " << static_cast<std::underlying_type<ChContactMethod>::type>(method) << endl;
-
-    // --------------------------
-    // Create the parallel system
-    // --------------------------
 
     // Create system and set default method-specific solver settings
     switch (m_method) {
@@ -87,19 +83,6 @@ ChVehicleCosimTerrainNodeRigid::ChVehicleCosimTerrainNodeRigid(ChContactMethod m
 
     // Set number of threads
     m_system->SetNumThreads(1);
-
-#ifdef CHRONO_OPENGL
-    // -------------------------------
-    // Create the visualization window
-    // -------------------------------
-
-    if (m_render) {
-        opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
-        gl_window.Initialize(1280, 720, "Terrain Node (Rigid)", m_system);
-        gl_window.SetCamera(ChVector<>(0, -2, 1), ChVector<>(0, 0, 0), ChVector<>(0, 0, 1), 0.05f);
-        gl_window.SetRenderMode(opengl::SOLID);
-    }
-#endif
 }
 
 ChVehicleCosimTerrainNodeRigid::~ChVehicleCosimTerrainNodeRigid() {
@@ -131,10 +114,7 @@ void ChVehicleCosimTerrainNodeRigid::SetMaterialSurface(const std::shared_ptr<Ch
 // - if specified, create the granular material
 // -----------------------------------------------------------------------------
 void ChVehicleCosimTerrainNodeRigid::Construct() {
-    // ---------------------
     // Create container body
-    // ---------------------
-
     auto container = std::shared_ptr<ChBody>(m_system->NewBody());
     m_system->AddBody(container);
     container->SetIdentifier(-1);
@@ -164,10 +144,17 @@ void ChVehicleCosimTerrainNodeRigid::Construct() {
         m_system->AddLink(weld);
     }
 
-    // --------------------------------------
-    // Write file with terrain node settings
-    // --------------------------------------
+#ifdef CHRONO_OPENGL
+    // Create the visualization window
+    if (m_render) {
+        opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
+        gl_window.Initialize(1280, 720, "Terrain Node (Rigid)", m_system);
+        gl_window.SetCamera(ChVector<>(0, -2, 1), ChVector<>(0, 0, 0), ChVector<>(0, 0, 1), 0.05f);
+        gl_window.SetRenderMode(opengl::SOLID);
+    }
+#endif
 
+    // Write file with terrain node settings
     std::ofstream outf;
     outf.open(m_node_out_dir + "/settings.dat", std::ios::out);
     outf << "System settings" << endl;
@@ -314,20 +301,20 @@ void ChVehicleCosimTerrainNodeRigid::GetForceWheelProxy() {
 // -----------------------------------------------------------------------------
 
 void ChVehicleCosimTerrainNodeRigid::OnAdvance(double step_size) {
-#ifdef CHRONO_OPENGL
-    if (m_render) {
-        opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
-        if (gl_window.Active()) {
-            gl_window.Render();
-        } else {
-            MPI_Abort(MPI_COMM_WORLD, 1);
-        }
-    }
-#endif
-
     // Force a calculation of cumulative contact forces for all bodies in the system
     // (needed at the next synchronization)
     m_system->CalculateContactForces();
+}
+
+void ChVehicleCosimTerrainNodeRigid::OnRender(double time) {
+#ifdef CHRONO_OPENGL
+    opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
+    if (gl_window.Active()) {
+        gl_window.Render();
+    } else {
+        MPI_Abort(MPI_COMM_WORLD, 1);
+    }
+#endif
 }
 
 // -----------------------------------------------------------------------------

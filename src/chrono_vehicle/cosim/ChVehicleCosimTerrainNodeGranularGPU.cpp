@@ -44,8 +44,8 @@ using std::endl;
 namespace chrono {
 namespace vehicle {
 
-ChVehicleCosimTerrainNodeGranularGPU::ChVehicleCosimTerrainNodeGranularGPU(bool render)
-    : ChVehicleCosimTerrainNode(Type::GRANULAR_GPU, ChContactMethod::SMC, render),
+ChVehicleCosimTerrainNodeGranularGPU::ChVehicleCosimTerrainNodeGranularGPU()
+    : ChVehicleCosimTerrainNode(Type::GRANULAR_GPU, ChContactMethod::SMC),
       m_constructed(false),
       m_use_checkpoint(false),
       m_settling_output(false),
@@ -70,16 +70,6 @@ ChVehicleCosimTerrainNodeGranularGPU::ChVehicleCosimTerrainNodeGranularGPU(bool 
     // Defer construction of the granular system to Construct
     //// TODO: why can I not modify parameters AFTER construction?!?
     m_wrapper_gran = nullptr;
-
-#ifdef CHRONO_OPENGL
-    // Create the visualization window
-    if (m_render) {
-        opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
-        gl_window.Initialize(1280, 720, "Terrain Node (GranularGPU)", m_system);
-        gl_window.SetCamera(ChVector<>(0, -3, 0), ChVector<>(0, 0, 0), ChVector<>(0, 0, 1), 0.05f);
-        gl_window.SetRenderMode(opengl::WIREFRAME);
-    }
-#endif
 }
 
 ChVehicleCosimTerrainNodeGranularGPU ::~ChVehicleCosimTerrainNodeGranularGPU() {
@@ -115,8 +105,8 @@ void ChVehicleCosimTerrainNodeGranularGPU::SetInputFromCheckpoint(const std::str
     m_checkpoint_filename = filename;
 }
 
-void ChVehicleCosimTerrainNodeGranularGPU::EnableSettlingOutput(bool val, double output_fps) {
-    m_settling_output = val;
+void ChVehicleCosimTerrainNodeGranularGPU::EnableSettlingOutput(bool output, double output_fps) {
+    m_settling_output = output;
     m_settling_fps = output_fps;
 }
 
@@ -245,10 +235,17 @@ void ChVehicleCosimTerrainNodeGranularGPU::Construct() {
         }
     }
 
-    // --------------------------------------
-    // Write file with terrain node settings
-    // --------------------------------------
+#ifdef CHRONO_OPENGL
+    // Create the visualization window
+    if (m_render) {
+        opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
+        gl_window.Initialize(1280, 720, "Terrain Node (GranularGPU)", m_system);
+        gl_window.SetCamera(ChVector<>(0, -3, 0), ChVector<>(0, 0, 0), ChVector<>(0, 0, 1), 0.05f);
+        gl_window.SetRenderMode(opengl::WIREFRAME);
+    }
+#endif
 
+    // Write file with terrain node settings
     std::ofstream outf;
     outf.open(m_node_out_dir + "/settings.dat", std::ios::out);
     outf << "System settings" << endl;
@@ -286,6 +283,8 @@ void ChVehicleCosimTerrainNodeGranularGPU::Settle() {
     int output_steps = (int)std::ceil(1 / (m_settling_fps * m_step_size));
     int output_frame = 0;
 
+    double render_time = 0;
+
     for (int is = 0; is < sim_steps; is++) {
         // Advance step
         m_timer.reset();
@@ -308,18 +307,11 @@ void ChVehicleCosimTerrainNodeGranularGPU::Settle() {
             output_frame++;
         }
 
-#ifdef CHRONO_OPENGL
-        // OpenGL rendering
-        if (m_render) {
-            UpdateVisualizationParticles();
-            opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
-            if (gl_window.Active()) {
-                gl_window.Render();
-            } else {
-                MPI_Abort(MPI_COMM_WORLD, 1);
-            }
+        // Render (if enabled)
+        if (m_render && m_system->GetChTime() > render_time) {
+            OnRender(m_system->GetChTime());
+            render_time += std::max(m_render_step, m_step_size);
         }
-#endif
     }
 
     cout << endl;
@@ -461,6 +453,8 @@ void ChVehicleCosimTerrainNodeGranularGPU::GetForceWheelProxy() {
 // -----------------------------------------------------------------------------
 
 void ChVehicleCosimTerrainNodeGranularGPU::Advance(double step_size) {
+    static double render_time = 0;
+
     m_timer.reset();
     m_timer.start();
     double t = 0;
@@ -472,23 +466,30 @@ void ChVehicleCosimTerrainNodeGranularGPU::Advance(double step_size) {
     }
     m_timer.stop();
     m_cum_sim_time += m_timer();
-     
+
+    if (m_render && m_system->GetChTime() > render_time) {
+        OnRender(m_system->GetChTime());
+        render_time += std::max(m_render_step, step_size);
+    }
+
+    PrintWheelProxyContactData();
+}
+
+void ChVehicleCosimTerrainNodeGranularGPU::OnRender(double time) {
 #ifdef CHRONO_OPENGL
-    if (m_render) {
-        opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
-        if (gl_window.Active()) {
-            UpdateVisualizationParticles();
+    opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
+    if (gl_window.Active()) {
+        UpdateVisualizationParticles();
+        if (!m_proxies.empty()) {
             ChVector<> cam_point = m_proxies[0].m_body->GetPos();
             ChVector<> cam_loc = cam_point + ChVector<>(0, -3, 0.6);
             gl_window.SetCamera(cam_loc, cam_point, ChVector<>(0, 0, 1), 0.05f);
-            gl_window.Render();
-        } else {
-            MPI_Abort(MPI_COMM_WORLD, 1);
         }
+        gl_window.Render();
+    } else {
+        MPI_Abort(MPI_COMM_WORLD, 1);
     }
 #endif
-
-    PrintWheelProxyContactData();
 }
 
 // -----------------------------------------------------------------------------

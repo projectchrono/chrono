@@ -31,26 +31,25 @@ namespace vehicle {
 
 class CH_VEHICLE_API ChVehicleCosimTerrainNodeRigid : public ChVehicleCosimTerrainNode {
   public:
-    /// Create a rigid terrain subsystem.
-    ChVehicleCosimTerrainNodeRigid(ChContactMethod method,  ///< contact method (penalty or complementatiry)
-                                   bool render              ///< use run-time visualization
-    );
+    /// Create a rigid terrain subsystem usingn the specified contact method (SMC or NSC).
+    ChVehicleCosimTerrainNodeRigid(ChContactMethod method);
+
     ~ChVehicleCosimTerrainNodeRigid();
 
     virtual ChSystem* GetSystem() override { return m_system; }
 
     /// Set the material properties for terrain.
-    /// The type of material must be consistent with the contact method (penalty or complementarity)
+    /// The type of material must be consistent with the contact method (SMC or NSC)
     /// specified at construction. These parameters characterize the material for the container and
     /// (if applicable) the granular material.  Tire contact material is received from the rig node.
     void SetMaterialSurface(const std::shared_ptr<ChMaterialSurface>& mat);
 
     /// Specify whether contact coefficients are based on material properties (default: true).
-    /// Note that this setting is only relevant when using the penalty method.
+    /// Note that this setting is only relevant when using the SMC method.
     void UseMaterialProperties(bool flag);
 
     /// Set the normal contact force model (default: Hertz)
-    /// Note that this setting is only relevant when using the penalty method.
+    /// Note that this setting is only relevant when using the SMC method.
     void SetContactForceModel(ChSystemSMC::ContactForceModel model);
 
     /// Set proxy contact radius (default: 0.01).
@@ -83,6 +82,7 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeRigid : public ChVehicleCosimTerra
     virtual void PrintWheelProxyContactData() override;
 
     virtual void OnAdvance(double step_size) override;
+    virtual void OnRender(double time) override;
 };
 
 }  // end namespace vehicle

@@ -33,9 +33,9 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularOMP : public ChVehicleCosi
   public:
     /// Create a Chrono::Parallel granular terrain subsystem.
     ChVehicleCosimTerrainNodeGranularOMP(ChContactMethod method,  ///< contact method (SMC or NSC)
-                                         bool render,             ///< use OpenGL rendering
                                          int num_threads          ///< number of OpenMP threads
     );
+
     ~ChVehicleCosimTerrainNodeGranularOMP();
 
     virtual ChSystem* GetSystem() override { return m_system; }
@@ -82,7 +82,7 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularOMP : public ChVehicleCosi
 
     /// Enable/disable output during settling (default: false).
     /// If enabled, output files are generated with the specified frequency.
-    void EnableSettlingOutput(bool val, double output_fps = 100);
+    void EnableSettlingOutput(bool output, double output_fps = 100);
 
     /// Obtain settled terrain configuration.
     /// This is an optional operation that can be performed for granular terrain before initiating
@@ -137,6 +137,7 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularOMP : public ChVehicleCosi
     virtual void OnSynchronize(int step_number, double time) override;
     virtual void OnAdvance(double step_size) override;
     virtual void OnOutputData(int frame) override;
+    virtual void OnRender(double time) override;
 
     /// Calculate current height of granular terrain. 
     double CalcCurrentHeight();

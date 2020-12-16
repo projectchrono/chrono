@@ -51,8 +51,8 @@ namespace vehicle {
 // - create the Chrono system and set solver parameters
 // - create the Irrlicht visualization window
 // -----------------------------------------------------------------------------
-ChVehicleCosimTerrainNodeSCM::ChVehicleCosimTerrainNodeSCM(bool render, int num_threads)
-    : ChVehicleCosimTerrainNode(Type::SCM, ChContactMethod::SMC, render), m_radius_p(5e-3), m_use_checkpoint(false) {
+ChVehicleCosimTerrainNodeSCM::ChVehicleCosimTerrainNodeSCM(int num_threads)
+    : ChVehicleCosimTerrainNode(Type::SCM, ChContactMethod::SMC), m_radius_p(5e-3), m_use_checkpoint(false) {
     cout << "[Terrain node] SCM " << endl;
 
 #ifdef CHRONO_IRRLICHT
@@ -67,20 +67,6 @@ ChVehicleCosimTerrainNodeSCM::ChVehicleCosimTerrainNodeSCM(bool render, int num_
 
     // Set number of threads
     m_system->SetNumThreads(num_threads, 1, 1);
-
-#ifdef CHRONO_IRRLICHT
-    // Create the visualization window
-    if (m_render) {
-        m_irrapp = new irrlicht::ChIrrApp(m_system, L"Terrain Node (SCM)", irr::core::dimension2d<irr::u32>(1280, 720),
-                                          false, true);
-        m_irrapp->AddTypicalLogo();
-        m_irrapp->AddTypicalSky();
-        m_irrapp->AddTypicalLights();
-        m_irrapp->AddTypicalCamera(irr::core::vector3df(2.0f, 1.4f, 0.0f), irr::core::vector3df(0, 0, 0));
-        m_irrapp->AddLightWithShadow(irr::core::vector3df(1.5f, 5.5f, -2.5f), irr::core::vector3df(0, 0, 0), 3, 2.2,
-                                     7.2, 40, 512, irr::video::SColorf(0.8f, 0.8f, 1.0f));
-    }
-#endif
 }
 
 ChVehicleCosimTerrainNodeSCM::~ChVehicleCosimTerrainNodeSCM() {
@@ -171,10 +157,21 @@ void ChVehicleCosimTerrainNodeSCM::Construct() {
         cout << "[Terrain node] read " << checkpoint_filename << "   num. nodes = " << num_nodes << endl;
     }
 
-    // --------------------------------------
-    // Write file with terrain node settings
-    // --------------------------------------
+#ifdef CHRONO_IRRLICHT
+    // Create the visualization window
+    if (m_render) {
+        m_irrapp = new irrlicht::ChIrrApp(m_system, L"Terrain Node (SCM)", irr::core::dimension2d<irr::u32>(1280, 720),
+                                          false, true);
+        m_irrapp->AddTypicalLogo();
+        m_irrapp->AddTypicalSky();
+        m_irrapp->AddTypicalLights();
+        m_irrapp->AddTypicalCamera(irr::core::vector3df(2.0f, 1.4f, 0.0f), irr::core::vector3df(0, 0, 0));
+        m_irrapp->AddLightWithShadow(irr::core::vector3df(1.5f, 5.5f, -2.5f), irr::core::vector3df(0, 0, 0), 3, 2.2,
+                                     7.2, 40, 512, irr::video::SColorf(0.8f, 0.8f, 1.0f));
+    }
+#endif
 
+    // Write file with terrain node settings
     std::ofstream outf;
     outf.open(m_node_out_dir + "/settings.dat", std::ios::out);
     outf << "System settings" << endl;
@@ -280,18 +277,16 @@ void ChVehicleCosimTerrainNodeSCM::GetForceWheelProxy() {
 
 // -----------------------------------------------------------------------------
 
-void ChVehicleCosimTerrainNodeSCM::OnAdvance(double step_size) {
+void ChVehicleCosimTerrainNodeSCM::OnRender(double time) {
 #ifdef CHRONO_IRRLICHT
-    if (m_render) {
-        if (!m_irrapp->GetDevice()->run()) {
-            MPI_Abort(MPI_COMM_WORLD, 1);
-        }
-        m_irrapp->BeginScene();
-        ////m_irrapp->GetSceneManager()->getActiveCamera()->setTarget(irr::core::vector3dfCH(mrigidbody->GetPos()));
-        m_irrapp->DrawAll();
-        irrlicht::ChIrrTools::drawColorbar(0, 30000, "Pressure yield [Pa]", m_irrapp->GetDevice(), 1180);
-        m_irrapp->EndScene();
+    if (!m_irrapp->GetDevice()->run()) {
+        MPI_Abort(MPI_COMM_WORLD, 1);
     }
+    m_irrapp->BeginScene();
+    ////m_irrapp->GetSceneManager()->getActiveCamera()->setTarget(irr::core::vector3dfCH(mrigidbody->GetPos()));
+    m_irrapp->DrawAll();
+    irrlicht::ChIrrTools::drawColorbar(0, 30000, "Pressure yield [Pa]", m_irrapp->GetDevice(), 1180);
+    m_irrapp->EndScene();
 #endif
 }
 
