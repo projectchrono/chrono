@@ -274,20 +274,12 @@ void ChContactPBD::SolveContactPositions(double h) {
 		ChVector<double> v_rel = (Body1->GetPos_dt() + Body1->GetRot().Rotate(Body1->GetWvel_loc().Cross(f1.coord.pos)) - Body2->GetPos_dt() - Body2->GetRot().Rotate(Body2->GetWvel_loc().Cross(f2.coord.pos)));
 		// normal velocity before velocity update. Will be used in 
 		v_n_old = v_rel^n;
-		ChVector<double> v_rel_t = v_rel - n * v_n_old;
 
 		// TODO: use static friction here!!
-		if (!is_dynamic && lambda_contact_sf.Length() > mu_d*abs(lambda_f) ) {
+		if (!is_dynamic && lambda_contact_sf.Length() > mu_d*abs(lambda_f)) {
 			is_dynamic = true;
 		}
-		// Check if dynamic -> static
-		// kinetic energy < friction work in the substep, aka the body would stop within the substep
-		// 0.5*m*v^2 < mu_d * f * v * h
-		// TODO: compare with eq.30
-		//else if (is_dynamic && (Body1->GetMass() + Body2->GetMass())*v_rel_t.Length() < 4*mu_d*lambda_contact_sf.Length()*h) {
-		else if (true) {
-			is_dynamic = false;
-		}
+
 		// Treat the contact as a link
 			
 		if (!is_dynamic) {
@@ -365,18 +357,23 @@ void ChContactPBD::SolveVelocity(double h) {
 	{
 		ChVector<double> v_rel = ( Body1->GetPos_dt() + Body1->GetRot().Rotate(Body1->GetWvel_loc().Cross(f1.coord.pos)) - Body2->GetPos_dt() - Body2->GetRot().Rotate(Body2->GetWvel_loc().Cross(f2.coord.pos)));
 		double v_rel_n = v_rel^n;
-		ChVector<double> v_rel_t = v_rel - n * v_rel;
+		ChVector<double> v_rel_t = v_rel - n * v_rel_n;
+		double vt = v_rel_t.Length();
 		ChVector<double> delta_v;
+
 		// do not compute tangential velocity correction if there is none
-		if (false) {
-			double vt = v_rel_t.Length();
-			if (v_rel_t.Normalize()) {
-				// mutliply the normal part of the reaction times its module
-				double lam_n = lambda_f_dir ^ n;
-				lam_n *= lambda_f;
-				double fn = lam_n / (h*h);
-				// TODO: this is taken from the paper but does not make sense dimensionally
-				delta_v += v_rel_t * ChMin(h*mu_d*fn, vt);
+		if (is_dynamic) {
+			double fn = abs(lambda_f )/ (h*h);
+			// eq. 30
+			// TODO: this is taken from the paper but does not make sense dimensionally
+			double threshold = h* mu_d * fn*(w1+w2);
+			if ( vt < threshold) {
+				is_dynamic = false;
+				delta_v += -v_rel_t;
+			}
+			else {
+			// mutliply the normal part of the reaction times its module
+				delta_v += -v_rel_t.GetNormalized() * threshold;
 			}
 		}
 		// normal speed restitution
