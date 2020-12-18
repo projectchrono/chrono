@@ -265,7 +265,8 @@ void ChSystemPBD::Advance() {
 	int n = Get_bodylist().size();
 	double h = step / substeps;
 	for (int i = 0; i < substeps; i++) {
-		// delete this when possible
+		// Used to contraint static friction
+		// delete this when possible and use a more efficient way to save/update state
 		SaveOldPos();
 		for (int j = 0; j < n; j++) {
 			std::shared_ptr<ChBody> body = Get_bodylist()[j];
@@ -302,11 +303,9 @@ void ChSystemPBD::Advance() {
 			if (body->GetBodyFixed()) {
 				continue;
 			}
-			body->SetPos_dt((body->GetPos() - x_prev[j]) / h);
-			ChQuaternion<> q0i = q_prev[j];
-			//TODO: using difference instead of increment as in paper. Doing that does not work though
-			ChQuaternion<> provv2 = body->GetRot();
-			ChQuaternion<double> deltaq = body->GetRot() * q0i.GetInverse() ;
+			ChVector<double> new_vel = (body->GetPos() - x_prev[j]) / h;
+			body->SetPos_dt(new_vel);
+			ChQuaternion<double> deltaq = body->GetRot() * q_prev[j].GetInverse() ;
 			deltaq *= 2/h;
 			ChVector<double> new_om = (deltaq.e0() > 0) ? deltaq.GetVector() : -deltaq.GetVector();
 			body->SetWvel_par(new_om);
