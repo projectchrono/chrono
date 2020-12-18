@@ -912,7 +912,7 @@ void ChSystemParallel::SetNumThreads(int num_threads_chrono, int num_threads_col
     ChSystem::SetNumThreads(num_threads_chrono, num_threads_chrono, num_threads_eigen);
 
 #ifdef _OPENMP
-    int max_avail_threads = omp_get_max_threads();
+    int max_avail_threads = omp_get_num_procs();
 
     if (num_threads_chrono > max_avail_threads) {
         std::cout << "WARNING! Requested number of threads (" << num_threads_chrono << ") ";
