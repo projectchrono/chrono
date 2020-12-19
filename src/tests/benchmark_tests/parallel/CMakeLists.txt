@@ -1,3 +1,7 @@
+if(NOT ENABLE_MODULE_PARALLEL)
+    return()
+endif()
+
 set(TESTS
     btest_PAR_settling
     )
