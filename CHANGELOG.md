@@ -101,7 +101,26 @@ for (auto& axle : trailer.GetAxles()) {
 
 ### [Changed] Enhancements to Chrono::FSI
 
-TODO
+- The WCSPH based explicit solver now supports both fluid dynamics and granular material dynamics.
+
+	- The fluid dynamics is executed by default.
+	- The granular material dynamics is executed by setting an "Elastic SPH" option in the input JSON file.
+
+- Add a consistent SPH discretization into the explicit SPH solver.
+
+	- Both the gradient and Laplacian operators in the NS equations are discretized by a consistent format.
+	- The correction matrices are calculated for both operators to enhance the consistency.
+	- A second-order accuracy will be recovered by this consistent discretization.
+
+- Add a new particle shifting technique into Chrono::FSI.
+
+	- The particle shifting strategy is a penetration-based particle shifting technique.
+	- It supports three-dimensional fluid/granular material dynamics problems with a free surface.
+
+- Make the granular material solver more stable and accurate in the framework of WCSPH.
+
+	- The Drucker-Prager yield criterion is implemented in conjunction with a four-step update strategy for the stress tensor of the granular material.
+	- The interaction between a rigid multibody system and granular material is supported.
 
 ### [Added] New Chrono::Sensor module
 

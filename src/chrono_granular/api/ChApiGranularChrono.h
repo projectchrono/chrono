@@ -48,6 +48,10 @@ class CH_GRANULAR_API ChGranularChronoTriMeshAPI {
                      std::vector<float3> translations,
                      std::vector<float> masses);
 
+    /// Setup data structures associated with triangle mesh
+    void set_meshes(const std::vector<chrono::geometry::ChTriangleMeshConnected>& all_meshes,
+                    std::vector<float> masses);
+
     chrono::granular::ChSystemGranularSMC_trimesh& getGranSystemSMC_TriMesh() { return *pGranSystemSMC_TriMesh; }
 
     // Set particle positions in UU
@@ -61,19 +65,14 @@ class CH_GRANULAR_API ChGranularChronoTriMeshAPI {
     chrono::ChVector<float> getAngularVelo(int nSphere);
     chrono::ChVector<float> getVelo(int nSphere);
 
-
     /// Set simualtion verbosity -- used to check on very large, slow simulations or debug
     void setVerbosity(MESH_VERBOSITY level) { mesh_verbosity = level; }
 
   private:
     MESH_VERBOSITY mesh_verbosity;
+
     /// Clean copy of mesh soup interacting with granular material in unified memory. Stored in UU
     chrono::granular::ChSystemGranularSMC_trimesh* pGranSystemSMC_TriMesh;
-
-    /// Setup data structures associated with triangle mesh
-    void setupTriMesh(const std::vector<chrono::geometry::ChTriangleMeshConnected>& all_meshes,
-                      unsigned int nTriangles,
-                      std::vector<float> masses);
 };
 
 class CH_GRANULAR_API ChGranularSMC_API {

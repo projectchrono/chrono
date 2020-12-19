@@ -45,30 +45,31 @@ struct SynSCMTerrainState : public SynMessageState {
 /// Class that wraps data contained in a message about Soil Contact Model (SCM) Deformable terrain.
 class SYN_API SynSCMMessage : public SynMessage {
   public:
-    ///@brief Construct a new SynSCMMessage object
+    /// @brief Construct a new SynSCMMessage object
     ///
-    ///@param rank the rank of this message
+    /// @param rank the rank of this message
+    /// @param state use this to wrap current state into a message
     SynSCMMessage(int rank, std::shared_ptr<SynSCMTerrainState> state = nullptr);
 
-    ///@brief Generates and sets the state of this message from flatbuffer message
+    /// @brief Generates and sets the state of this message from flatbuffer message
     ///
-    ///@param message the flatbuffer message to convert to a MessageState object
+    /// @param message the flatbuffer message to convert to a MessageState object
     virtual void StateFromMessage(const SynFlatBuffers::Message* message) override;
 
-    ///@brief Generates a SynFlatBuffers::Message from the message state
+    /// @brief Generates a SynFlatBuffers::Message from the message state
     ///
-    ///@param builder the flatbuffer builder used to construct messages
-    ///@return flatbuffers::Offset<SynFlatBuffers::Message> the generated message
+    /// @param builder the flatbuffer builder used to construct messages
+    /// @return flatbuffers::Offset<SynFlatBuffers::Message> the generated message
     virtual FlatBufferMessage MessageFromState(flatbuffers::FlatBufferBuilder& builder) override;
 
-    ///@brief Get the SynMessageState object
+    /// @brief Get the SynMessageState object
     ///
-    ///@return std::shared_ptr<SynMessageState> the state associated with this message
+    /// @return std::shared_ptr<SynMessageState> the state associated with this message
     virtual std::shared_ptr<SynMessageState> GetState() override { return m_state; }
 
-    ///@brief Get the SynSCMTerrainState object
+    /// @brief Get the SynSCMTerrainState object
     ///
-    ///@return std::shared_ptr<SynSCMTerrainState> the state associated with this message
+    /// @return std::shared_ptr<SynSCMTerrainState> the state associated with this message
     std::shared_ptr<SynSCMTerrainState> GetSCMState() { return m_state; }
 
   private:

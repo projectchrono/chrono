@@ -24,32 +24,26 @@ SynChrono synchronizes the motion of all agents, but allows their dynamics to be
 
 ## General SynChrono Process
 
-0. Environment setup
-   - Find an environment mesh: e.g. surface data for the specific roads or terrain your agent will move on)
-   - Obtain agents: Chrono::Vehicle provides many vehicle models but you can of course create your own in Chrono
-   - Define environment parameters: How many agents? What types are they? Where will they be? How long will the simulation run for? Will they have sensors? etc...
-1. Consult the agent's brain
-   - Each agent has a brain that tells it what to do, provided some inputs from the world around it.
-     For a vehicle the outputs will be the thrust, braking and steering driving parameters, and the input can be anything accessible to simulation.
-     There may be messages received from e.g. a stoplight.
-     There may be data received from sensors e.g. GPS coordinates, lidar point clouds
-   - Brains can be whatever the user would like and the goal of the SynChrono project is not to develop any particular brain, but rather to develop an environment where others can test their algorithms.
-   - SynChrono does currently provide some simple brains such as a brain that will follow a path defined by GPS coordinates and maintain an appropriate following distance to any vehicles ahead of it based on lidar data.
-2. Run Chrono simulation
-   - Each computing node starts up starts running a Chrono simulation for the agent(s) it is responsible for.
-     It will run this simulation until it gets to the next "heartbeat" or synchronization timestep.
-     This step 1 is the same as a normal Chrono simulation, iterating a particular system's dynamics for a particular number of timesteps
-   - For a vehicle this would be taking the thrust, braking, steering and computing how much the wheels will turn, how far the center of mass will travel, etc...
-   - Further Chrono specific details can be found on the Project Chrono [website](http://www.projectchrono.org/).
-3. Send state data to controller
-   - Having computed its state at the particular heartbeat, each agent now communicates its state to the central controller so that the control can synchronize all agents
-   - For a vehicle the state is just the locations and rotation angle of each of the wheels, for a stoplight it may just be the current color of the light, for a complex robot the state may be a large collection of the positions and rotations of each component of the robot.
-4. Synchronize all agents
-   - The central controller collects state data from every agent and sends it to every other agent in the simulation
-   - Each agent will create a "zombie" version of all other agents.
-     The dynamics for this zombie agent will not be simulated, it will just be placed in the world as a visual mesh so that the real agent can compute accurate sensor data.
-5. Rinse, wash, repeat
-   - Each Chrono simulation has a timestep and each heartbeat has a timestep, so repeatedly doing steps 1-4 advances the simulation through time
+1. Environment setup
+    - Find an environment mesh: e.g. surface data for the specific roads or terrain your agent will move on)
+    - Obtain agents: Chrono::Vehicle provides many vehicle models but you can of course create your own in Chrono
+    - Define environment parameters: How many agents? What types are they? Where will they be? How long will the simulation run for? Will they have sensors? etc...
+2. Consult the agent's brain
+    - Each agent has a brain that tells it what to do, provided some inputs from the world around it. For a vehicle the outputs will be the thrust, braking and steering driving parameters, and the input can be anything accessible to simulation. There may be messages received from e.g. a stoplight. There may be data received from sensors e.g. GPS coordinates, lidar point clouds
+    - Brains can be whatever the user would like and the goal of the SynChrono project is not to develop any particular brain, but rather to develop an environment where others can test their algorithms.
+    - SynChrono does currently provide some simple brains such as a brain that will follow a path defined by GPS coordinates and maintain an appropriate following distance to any vehicles ahead of it based on lidar data.
+3. Run Chrono simulation
+    - Each computing node starts up starts running a Chrono simulation for the agent(s) it is responsible for. It will run this simulation until it gets to the next "heartbeat" or synchronization timestep. This step 1 is the same as a normal Chrono simulation, iterating a particular system's dynamics for a particular number of timesteps
+    - For a vehicle this would be taking the thrust, braking, steering and computing how much the wheels will turn, how far the center of mass will travel, etc...
+    - Further Chrono specific details can be found on the Project Chrono [website](http://www.projectchrono.org/).
+4. Send state data to controller
+    - Having computed its state at the particular heartbeat, each agent now communicates its state to the central controller so that the control can synchronize all agents
+    - For a vehicle the state is just the locations and rotation angle of each of the wheels, for a stoplight it may just be the current color of the light, for a complex robot the state may be a large collection of the positions and rotations of each component of the robot.
+5. Synchronize all agents
+    - The central controller collects state data from every agent and sends it to every other agent in the simulation
+    - Each agent will create a "zombie" version of all other agents. The dynamics for this zombie agent will not be simulated, it will just be placed in the world as a visual mesh so that the real agent can compute accurate sensor data.
+6. Rinse, wash, repeat
+    - Each Chrono simulation has a timestep and each heartbeat has a timestep, so repeatedly doing steps 1-4 advances the simulation through time
 
 ## Implementation Specific Details
 
@@ -63,7 +57,7 @@ The physics for SynChrono is based on the physics of Chrono, for Vehicles this m
 
 ### Sensing
 
-Sensing support in SynChrono comes through the [Chrono::Sensor module](../chrono_sensor/README.md). Chrono::Sensor is based around OptiX ray-tracing and includes support for camera, lidar, GPS and IMU.
+Sensing support in SynChrono comes through the [Chrono::Sensor module](sensor_overview). Chrono::Sensor is based around OptiX ray-tracing and includes support for camera, lidar, GPS and IMU.
 
 ### V2X Communication
 

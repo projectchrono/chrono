@@ -3,7 +3,7 @@ Overview of Chrono::Sensor {#sensor_overview}
 
 \tableofcontents
 
-The Chrono::Sensor module provides support for simulating RGB cameras, lidar, GPS, and IMU within a Chrono simulation. Sensors are objects that are attached to Chrono Bodies(ChBody). Chrono:::Sensor is currently compatible with the core rigid body simulation in Chrono including Chrono::Vehicle.
+The Chrono::Sensor module provides support for simulating RGB cameras, lidar, GPS, and IMU within a Chrono simulation. Sensors are objects that are attached to Chrono Bodies(ChBody). Chrono::Sensor is currently compatible with the core rigid body simulation in Chrono including Chrono::Vehicle.
 
 ## Detailed overview of Chrono::Sensor.
 

@@ -243,6 +243,8 @@ class PDSampler : public Sampler<T> {
     PDSampler(T minDist, int pointsPerIteration = m_ppi_default)
         : m_minDist(minDist), m_ppi(pointsPerIteration), m_realDist(0.0, 1.0) {
         m_gridLoc.resize(3);
+        m_realDist.reset();
+        rengine().seed(0);
     }
 
   private:

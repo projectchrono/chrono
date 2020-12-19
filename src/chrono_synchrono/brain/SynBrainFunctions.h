@@ -42,7 +42,10 @@ namespace synchrono {
 double DistanceToLine(ChVector<> p, ChVector<> l1, ChVector<> l2);
 
 /// @brief front, back and width define a box, check if pos is inside that box
+/// @param pos vector position to be checked against the box
 /// @param front vector position, line between this and back divides the box into two rectangles
+/// @param back vector defining the back center of the box rectangle
+/// @param width i.e. box_area = width * (front - back).length
 bool IsInsideBox(ChVector<> pos, ChVector<> front, ChVector<> back, double width);
 
 /// @brief Checks if pos is inside the (assumed convex) quadrilateral defined by vectors for each vertex
@@ -53,7 +56,13 @@ void Barycentric(ChVector<> p, ChVector<> a, ChVector<> b, ChVector<> c, float& 
 
 /// @brief update inside_box, dist and current_* variables based on info from a MAP message
 /// @param synmsg must be castable to type SynMAPMessage
-/// @param dist if vehicle is in box, how far is the vehicle from the box's stopping point (front of the box)
+/// @param veh_pos current GREF vector location of the vehicle
+/// @param rank of the vehicle we are checking
+/// @param[in,out] inside_box whether the vehicle was in the stopping box for this particular lane
+/// @param[in,out] current_lane if we're in a box, which lane that belonged to
+/// @param[in,out] current_approach if we're in a box, which approach that belonged to
+/// @param[in,out] current_intersection if we're in a box, which intersection that belonged to
+/// @param[in,out] dist if vehicle is in box, how far is the vehicle from the box's stopping point (front of the box)
 void UpdateLaneInfoFromMAP(SynMessage* synmsg,
                            ChVector<> veh_pos,
                            const int& rank,
