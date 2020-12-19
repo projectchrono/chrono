@@ -242,6 +242,7 @@ CH_BM_SIMULATION_ONCE(HmmwvSCM_CYL_1, cyl_1_test_type, NUM_SKIP_STEPS, NUM_SIM_S
 // =============================================================================
 
 int main(int argc, char* argv[]) {
+    utils::ForceBenchmarkTabularOutput(&argc, &argv);
     ::benchmark::Initialize(&argc, argv);
 
 #ifdef CHRONO_IRRLICHT

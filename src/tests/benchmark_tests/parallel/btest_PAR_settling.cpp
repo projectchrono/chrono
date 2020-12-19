@@ -184,6 +184,7 @@ BENCHMARK_REGISTER_F(TEST_NAME, Settle)
 // =============================================================================
 
 int main(int argc, char* argv[]) {
+    utils::ForceBenchmarkTabularOutput(&argc, &argv);
     ::benchmark::Initialize(&argc, argv);
 
 #ifdef CHRONO_IRRLICHT
