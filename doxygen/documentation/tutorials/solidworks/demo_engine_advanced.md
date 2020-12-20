@@ -51,7 +51,6 @@ This tutorial is meant for PyChrono, using the Python language, but all the tric
 ChPythonEngine my_python;
 my_python.ImportSolidWorksSystem("engine4c", mphysicalSystem);
 ~~~
-More details on importing SolidWorks models with the C++ API at [this demo](@ref tutorial_demo_import_solidworks). 
 </div>
 
 
