@@ -76,9 +76,11 @@ void ChContactContainerParallel::ReportAllContacts(std::shared_ptr<ReportContact
     const auto& erad = data_manager->host_data.erad_rigid_rigid;
     const auto& bids = data_manager->host_data.bids_rigid_rigid;
 
+    // NSC-specific
     auto mode = data_manager->settings.solver.local_solver_mode;
     const DynamicVector<real>& gamma_u = blaze::subvector(data_manager->host_data.gamma, 0, data_manager->num_unilaterals);
 
+    // SMC-specific
     const auto& ct_force = data_manager->host_data.ct_force;
     const auto& ct_torque = data_manager->host_data.ct_torque;
 
@@ -109,17 +111,27 @@ void ChContactContainerParallel::ReportAllContacts(std::shared_ptr<ReportContact
         switch (GetSystem()->GetContactMethod()) {
             case ChContactMethod::NSC: {
                 double f_n = (double)(gamma_u[i] / data_manager->settings.step_size);
-                double f_t1 = 0;
-                double f_t2 = 0;
+                double f_u = 0;
+                double f_v = 0;
                 if (mode == SolverMode::SLIDING || mode == SolverMode::SPINNING) {
-                    f_t1 = (double)(gamma_u[data_manager->num_rigid_contacts + 2 * i + 0] /
+                    f_u = (double)(gamma_u[data_manager->num_rigid_contacts + 2 * i + 0] /
                                     data_manager->settings.step_size);
-                    f_t2 = (double)(gamma_u[data_manager->num_rigid_contacts + 2 * i + 1] /
+                    f_v = (double)(gamma_u[data_manager->num_rigid_contacts + 2 * i + 1] /
                                     data_manager->settings.step_size);
                 }
-                force = ChVector<>(f_n, f_t1, f_t2);
-                //// TODO
-                torque = ChVector<>(0, 0, 0);
+                force = ChVector<>(f_n, f_u, f_v);
+                double t_n = 0;
+                double t_u = 0;
+                double t_v = 0;
+                if (mode == SolverMode::SPINNING) {
+                    t_n = (double)(gamma_u[3 * data_manager->num_rigid_contacts + 3 * i + 0] /
+                                   data_manager->settings.step_size);
+                    t_u = (double)(gamma_u[3 * data_manager->num_rigid_contacts + 3 * i + 1] /
+                                   data_manager->settings.step_size);
+                    t_v = (double)(gamma_u[3 * data_manager->num_rigid_contacts + 3 * i + 2] /
+                                   data_manager->settings.step_size);
+                }
+                torque = ChVector<>(t_n, t_u, t_v);
                 break;
             }
             case ChContactMethod::SMC: {
