@@ -43,6 +43,8 @@ void ChConstraintRigidRigid::func_Project_normal(int index, const vec2* ids, con
             gamma[data_manager->num_rigid_contacts + index * 2 + 1] = 0;
             break;
         case SolverMode::SPINNING:
+            gamma[data_manager->num_rigid_contacts + index * 2 + 0] = 0;
+            gamma[data_manager->num_rigid_contacts + index * 2 + 1] = 0;
             gamma[3 * data_manager->num_rigid_contacts + index * 3 + 0] = 0;
             gamma[3 * data_manager->num_rigid_contacts + index * 3 + 1] = 0;
             gamma[3 * data_manager->num_rigid_contacts + index * 3 + 2] = 0;
