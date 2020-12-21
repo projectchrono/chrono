@@ -37,7 +37,7 @@ void ChGranularChronoTriMeshAPI::load_meshes(std::vector<std::string> objfilenam
     unsigned int nTriangles = 0;
     unsigned int numTriangleFamilies = 0;
     std::vector<chrono::geometry::ChTriangleMeshConnected> all_meshes;
-    for (unsigned int i = 0; i < objfilenames.size(); i++) {
+    for (unsigned int i = 0; i < size; i++) {
         // INFO_PRINTF("Importing %s...\n", objfilenames[i].c_str()); <--- work on this later
         all_meshes.push_back(chrono::geometry::ChTriangleMeshConnected());
         chrono::geometry::ChTriangleMeshConnected& mesh = all_meshes[all_meshes.size() - 1];
@@ -68,13 +68,16 @@ void ChGranularChronoTriMeshAPI::load_meshes(std::vector<std::string> objfilenam
 
     // Allocate memory to store mesh soup in unified memory
     // work on this later: INFO_PRINTF("Allocating mesh unified memory\n");
-    setupTriMesh(all_meshes, nTriangles, masses);
+    set_meshes(all_meshes, masses);
     // work on this later: INFO_PRINTF("Done allocating mesh unified memory\n");
 }
 
-void ChGranularChronoTriMeshAPI::setupTriMesh(const std::vector<chrono::geometry::ChTriangleMeshConnected>& all_meshes,
-                                              unsigned int nTriangles,
-                                              std::vector<float> masses) {
+void ChGranularChronoTriMeshAPI::set_meshes(const std::vector<chrono::geometry::ChTriangleMeshConnected>& all_meshes,
+                                            std::vector<float> masses) {
+    int nTriangles = 0;
+    for (const auto& mesh : all_meshes)
+        nTriangles += mesh.getNumTriangles();
+
     chrono::granular::ChTriangleSoup<float3>* pMeshSoup = pGranSystemSMC_TriMesh->getMeshSoup();
     pMeshSoup->nTrianglesInSoup = nTriangles;
 
@@ -94,9 +97,8 @@ void ChGranularChronoTriMeshAPI::setupTriMesh(const std::vector<chrono::geometry
     unsigned int family = 0;
     unsigned int tri_i = 0;
     // for each obj file data set
-    for (auto mesh : all_meshes) {
-        int n_triangles_mesh = mesh.getNumTriangles();
-        for (int i = 0; i < n_triangles_mesh; i++) {
+    for (const auto& mesh : all_meshes) {
+        for (int i = 0; i < mesh.getNumTriangles(); i++) {
             chrono::geometry::ChTriangle tri = mesh.getTriangle(i);
 
             pMeshSoup->node1[tri_i] = make_float3((float)tri.p1.x(), (float)tri.p1.y(), (float)tri.p1.z());

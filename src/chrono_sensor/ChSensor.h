@@ -51,8 +51,8 @@ class CH_SENSOR_API ChSensor {
     ///@param parent Body to which the sensor is attached.
     ///@param updateRate Rate at which the sensor should update.
     ///@param offsetPose Relative position and orientation of the sensor with respect to its parent object.
-    ///@param lag Lag time between end of data collection and when data becomes available to the user.
-    ///@param collection_window Collection time over which the sensor should collect data from the simulation.
+    //@param lag Lag time between end of data collection and when data becomes available to the user.
+    //@param collection_window Collection time over which the sensor should collect data from the simulation.
     ChSensor(std::shared_ptr<chrono::ChBody> parent, float updateRate, chrono::ChFrame<double> offsetPose);
 
     /// Class destructor
@@ -99,7 +99,7 @@ class CH_SENSOR_API ChSensor {
     float GetCollectionWindow() const { return m_collection_window; }
 
     ///@brief Set the sensor update rate (Hz)
-    ///@param UpdateRate Desired update rate in Hz
+    ///@param updateRate Desired update rate in Hz
     void SetUpdateRate(float updateRate) { m_updateRate = updateRate; }
 
     /// Get the number of times the sensor has been updated
@@ -120,7 +120,7 @@ class CH_SENSOR_API ChSensor {
     std::list<std::shared_ptr<ChFilter>> GetFilterList() const { return m_filters; }
 
     /// Add a filter to the sensor
-    /// @param Filter A filter that should be added to the filter list if the filter list is not yet locked. If the
+    /// @param filter A filter that should be added to the filter list if the filter list is not yet locked. If the
     /// filter list has been locked (i.e. the sensor has started generating data) the new filter will be ignored.
     void PushFilter(std::shared_ptr<ChFilter> filter);
 

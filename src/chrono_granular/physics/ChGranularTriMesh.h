@@ -129,8 +129,13 @@ class CH_GRANULAR_API ChSystemGranularSMC_trimesh : public ChSystemGranularSMC {
     /// vel should have 6 entries for each family: 3 linear velocity, 3 angular velocity
     void meshSoup_applyRigidBodyMotion(double* position_orientation_data, float* vel);
 
+    /// Advance simulation by duration in user units, return actual duration elapsed.
+    /// Requires initialize() to have been called.
     virtual double advance_simulation(float duration) override;
-    // override of parent initialize function
+
+    /// Initialize simulation so that it can be advanced.
+    /// Must be called before advance_simulation and after simulation parameters are set.
+    /// This function initializes both the granular material and any existing trimeshes.
     virtual void initialize() override;
 
     /// Write visualization files for triangle meshes with current positions
@@ -153,9 +158,10 @@ class CH_GRANULAR_API ChSystemGranularSMC_trimesh : public ChSystemGranularSMC {
     ChTriangleSoup<float3>* getMeshSoup() { return meshSoup; }
     ChGranParams_trimesh* getTriParams() { return tri_params; }
 
-  protected:
-    /// Create a helper to do triangle initialization
+    /// Initialize trimeshes before starting simulation (typically called by initialize).
     virtual void initializeTriangles();
+
+  protected:
     /// Set of simulation parameters related to triangle data
     ChGranParams_trimesh* tri_params;
 

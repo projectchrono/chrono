@@ -35,61 +35,61 @@ namespace synchrono {
 /// SynTrackedVehicleMessage-s to synchronize its state
 class SYN_API SynTrackedVehicleAgent : public SynVehicleAgent {
   public:
-    ///@brief Construct a vehicle agent with the specified rank and system
+    /// @brief Construct a vehicle agent with the specified rank and system
     /// Underlying agent is set to a vehicle type automatically
     ///
-    ///@param rank the rank of this agent
-    ///@param system an optional argument of the ChSystem to build the vehicle with
+    /// @param rank the rank of this agent
+    /// @param system an optional argument of the ChSystem to build the vehicle with
     SynTrackedVehicleAgent(unsigned int rank, ChSystem* system = 0);
 
-    ///@brief Construct a tracked vehicle agent with a json specification file
+    /// @brief Construct a tracked vehicle agent with a json specification file
     ///
-    ///@param rank the rank of this agent
-    ///@param coord_sys the initial position and orientation of the vehicle
-    ///@param filename the json specification file
-    ///@param system the system to build the vehicle with
+    /// @param rank the rank of this agent
+    /// @param coord_sys the initial position and orientation of the vehicle
+    /// @param filename the json specification file
+    /// @param system the system to build the vehicle with
     SynTrackedVehicleAgent(unsigned int rank, ChCoordsys<> coord_sys, const std::string& filename, ChSystem* system);
 
-    ///@brief Construct a tracked vehicle agent with a json specification file
+    /// @brief Construct a tracked vehicle agent with a json specification file
     ///
-    ///@param rank the rank of this agent
-    ///@param coord_sys the initial position and orientation of the vehicle
-    ///@param filename the json specification file
-    ///@param system the contact method used to build the vehicle
+    /// @param rank the rank of this agent
+    /// @param coord_sys the initial position and orientation of the vehicle
+    /// @param filename the json specification file
+    /// @param contact_method the contact method used to build the vehicle
     SynTrackedVehicleAgent(unsigned int rank,
                            ChCoordsys<> coord_sys,
                            const std::string& filename,
                            ChContactMethod contact_method);
 
-    ///@brief Construct a zombie vehicle agent from the specified json configuration and the ChSystem
+    /// @brief Construct a zombie vehicle agent from the specified json configuration and the ChSystem
     ///
-    ///@param rank the rank of the zombie agent
-    ///@param filename the json specification file
+    /// @param rank the rank of the zombie agent
+    /// @param filename the json specification file
     SynTrackedVehicleAgent(unsigned int rank, const std::string& filename);
 
-    ///@brief Destroy the SynTrackedVehicleAgent
+    /// @brief Destroy the SynTrackedVehicleAgent
     virtual ~SynTrackedVehicleAgent() {}
 
-    ///@brief Synchronize the underlying vehicle
+    /// @brief Synchronize the underlying vehicle
     ///
-    ///@param time the time to synchronize to
-    ///@param driver_inputs the driver inputs (i.e. throttle, braking, steering)
+    /// @param step the time to synchronize to
+    /// @param driver_inputs the driver inputs (i.e. throttle, braking, steering)
     virtual void Synchronize(double step, vehicle::ChDriver::Inputs driver_inputs) override;
 
-    ///@brief Get the state of this agent
+    /// @brief Get the state of this agent
     ///
-    ///@return std::shared_ptr<SynMessageState>
+    /// @return std::shared_ptr<SynMessageState>
     virtual std::shared_ptr<SynMessageState> GetState() override;
 
-    ///@brief Get the this agent's message to be pass to other ranks
+    /// @brief Get the this agent's message to be pass to other ranks
     ///
-    ///@return std::shared_ptr<SynMessageState>
+    /// @return std::shared_ptr<SynMessageState>
     virtual std::shared_ptr<SynAgentMessage> GetMessage() override { return m_msg; };
 
-    ///@brief Generates messages to be sent to other ranks
+    /// @brief Generates messages to be sent to other ranks
     /// Will create or get messages and pass them into the referenced message vector
     ///
-    ///@param messages a referenced vector containing messages to be distributed from this rank
+    /// @param messages a referenced vector containing messages to be distributed from this rank
     virtual void GenerateMessagesToSend(std::vector<SynMessage*>& messages) override;
 
     /// Get/Set this agent's vehicle
@@ -98,23 +98,23 @@ class SYN_API SynTrackedVehicleAgent : public SynVehicleAgent {
     void SetVehicle(std::shared_ptr<SynTrackedVehicle> tracked_vehicle);
 
   private:
-    ///@brief Construct a zombie WheeledVehicleAgent from a json speficiation file
+    /// @brief Construct a zombie WheeledVehicleAgent from a json speficiation file
     ///
-    ///@param filename the json specification file
+    /// @param filename the json specification file
     void VehicleAgentFromJSON(const std::string& filename);
 
-    ///@brief Construct a VehicleAgent with a json specification file and a ChSystem
+    /// @brief Construct a VehicleAgent with a json specification file and a ChSystem
     ///
-    ///@param coord_sys the initial position and orientation of the vehicle
-    ///@param filename the json specification file
-    ///@param system the ChSystem to build the vehicle and the agent with
+    /// @param coord_sys the initial position and orientation of the vehicle
+    /// @param filename the json specification file
+    /// @param system the ChSystem to build the vehicle and the agent with
     void VehicleAgentFromJSON(ChCoordsys<> coord_sys, const std::string& filename, ChSystem* system);
 
-    ///@brief Construct a VehicleAgent with a json specification file and a ChSystem
+    /// @brief Construct a VehicleAgent with a json specification file and a ChSystem
     ///
-    ///@param coord_sys the initial position and orientation of the vehicle
-    ///@param filename the json specification file
-    ///@param contact_method the contact method that should be used in this simulation
+    /// @param coord_sys the initial position and orientation of the vehicle
+    /// @param filename the json specification file
+    /// @param contact_method the contact method that should be used in this simulation
     void VehicleAgentFromJSON(ChCoordsys<> coord_sys, const std::string& filename, ChContactMethod contact_method);
 
   private:

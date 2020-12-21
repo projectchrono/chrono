@@ -77,21 +77,24 @@ class SYN_API SynEnvironmentAgent : public SynAgent {
     virtual std::shared_ptr<SynMessageState> GetState() override;
     virtual std::shared_ptr<SynAgentMessage> GetMessage() override;
 
-    ///
     /// @brief Add a lane to the environment, need to specify which intersection and which approach
     ///
-    /// @param lane lane information
+    /// @param intersection particular intersection to add to
+    /// @param approach particular approach to add to
+    /// @param lane particular lane to add to
     /// @param color current color of the lane
     /// @param behaviour Indicates when the traffic light's color will change. If currently is RED and behaviour is
     /// {a,b,c}, it will stay RED for a seconds, switch to GREEN for b seconds, and Yellow for c seconds. Then it will
     /// switch back to RED and do the cycle again.
     /// @return The lane's position in that Approach
-    ///
     int AddLane(int intersection, int approach, ApproachLane lane, LaneColor color, std::vector<double> behaviour);
 
-    /// @brief
+    /// @brief Change the current color of a light at an intersection. Does not alter cycles
     ///
-    /// @param lane The lane's position in that approach, returned in AddLane
+    /// @param intersection which intersection has the light we want to chane the color of
+    /// @param approach which approach has the light we want to change the color of
+    /// @param lane the lane's position in that approach, returned in AddLane
+    /// @param color which color to change to
     void SetColor(int intersection, int approach, int lane, LaneColor color);
 
   private:
