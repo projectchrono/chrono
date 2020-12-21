@@ -95,9 +95,10 @@ void ChLinkPBD::SolvePositions() {
 		//ChVector<> n0 = Body2->TransformPointLocalToParent(f2.coord.pos) - Body1->TransformPointLocalToParent(f1.coord.pos);
 		ChVector<double> n0 = Body1->GetPos() + r1 - (Body2->GetPos() + r2);
 		// Rotation of the link frame w.r.t. global frame
-		ChQuaternion<double> q = Body1->GetRot() * f1.coord.rot;
+		// TODO: double check this
+		ChQuaternion<double> q = f1.coord.rot * Body1->GetRot();
 		// get rid of unconstrained directions by element wise multiplication in the link frame reference
-		ChVector<double> n_loc = (q.RotateBack(n0))*p_dir;
+		ChVector<double> n_loc = q.RotateBack(n0)*p_dir;
 		// Now we bring the violation back in global coord and normaize it after saving its length
 		ChVector<double> nt = q.Rotate(n_loc);
 		double C = nt.Length();
@@ -244,7 +245,7 @@ ChContactPBD::ChContactPBD(ChBody* body1, ChBody* body2, ChFrame<>& frame1, ChFr
 	//r_dir.Set(int(mask[3]), int(mask[4]), int(mask[5]));
 	// TODO: set properly alpha according to http://blog.mmacklin.com/
 	// rmember to eval alpha_hat = alpha/(h^2)
-	alpha = .1;
+	alpha = .01;
 }
 
 // Adjust tangential velocity of bodies 
@@ -373,7 +374,7 @@ void ChContactPBD::SolveVelocity(double h) {
 		}
 		// normal speed restitution
 		// TODO: use a restitution coefficient
-		double e  = (abs(v_rel_n) < 2*9.8*h) ? 0 : 0.1;
+		double e  = (abs(v_rel_n) < 2*9.8*h) ? 0 : 0.01;
 		delta_v += -n * (v_rel_n) + ChMax(-e*v_n_old, 0.0);
 
 		// apply speed impulses to bodies

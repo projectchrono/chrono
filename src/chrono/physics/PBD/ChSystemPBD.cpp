@@ -244,9 +244,9 @@ void ChSystemPBD::CollectContacts() {
 		ChBody* body2 = static_cast<ChBody*>(contact->GetObjB());
 		// TODO: while PBD can accomodate static friction, chrono does not
 		double frict = contact->GetFriction();
-		// contact points in abs coors
-		ChVector<double> p1 = contact->GetContactP1() - body1->GetPos();
-		ChVector<double> p2 = contact->GetContactP2() - body2->GetPos();
+		// contact points in rel coors
+		ChVector<double> p1 = body1->GetRot().RotateBack( contact->GetContactP1() - body1->GetPos());
+		ChVector<double> p2 = body2->GetRot().RotateBack(contact->GetContactP2() - body2->GetPos());
 		ChVector<double> norm = contact->GetContactNormal();
 		// orientation of the contact frame wrt the body1 frame. the contact frame has the x axis aligned with the normal, so:
 		ChQuaternion<double> q_cb1 = Q_from_Vect_to_Vect(body1->GetRot().Rotate(VECT_X), norm);
@@ -315,7 +315,7 @@ void ChSystemPBD::Advance() {
 		// Scatter updated state
 		// Similarly we contraint normal (and, if static, tangential) displacement in contacts
 		//SolveContacts(h);
-		SolveVelocities(h);
+		//SolveVelocities(h);
 
 		T += h;
 		
