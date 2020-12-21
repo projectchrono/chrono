@@ -351,7 +351,6 @@ void ChParticleContainer::Build_D() {
         } else {
             Loop_Over_Fluid_Neighbors(
                 real3 U = -Normalize(xij); real3 V; real3 W;
-
                 Orthogonalize(U, V, W);
 
                 // printf("set normal: [%d] [%d]\n", start_contact + index, body_offset + body_a * 3);

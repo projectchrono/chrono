@@ -13,7 +13,7 @@
 // =============================================================================
 //
 // Description: This class contains manages all data associated with a parallel
-// System. Rather than passing in individual data parameters to different parts
+// system. Rather than passing in individual data parameters to different parts
 // of the code like the collision detection and the solver, passing a pointer to
 // a data manager is more convenient from a development perspective.
 //
@@ -25,7 +25,6 @@
 
 #include "chrono/physics/ChContactContainer.h"
 
-// Chrono::Parallel headers
 #include "chrono_parallel/ChTimerParallel.h"
 #include "chrono_parallel/ChParallelDefines.h"
 #include "chrono_parallel/ChSettings.h"
@@ -52,6 +51,8 @@ using custom_vector;
 
 namespace chrono {
 
+// Forward declarations
+
 class ChBody;
 class ChLink;
 class ChPhysicsItem;
@@ -69,9 +70,9 @@ class ChConstraintBilateral;
 class ChMaterialCompositionStrategy;
 
 namespace collision {
-class ChCBroadphase;           // forward declaration
-class ChCNarrowphaseDispatch;  // forward declaration
-class ChCAABBGenerator;        // forward declaration
+class ChCBroadphase;
+class ChCNarrowphaseDispatch;
+class ChCAABBGenerator;
 }  // namespace collision
 
 #if BLAZE_MAJOR_VERSION == 2
@@ -285,8 +286,14 @@ struct host_container {
     custom_vector<int> c_counts_marker_tet;
 
     // Contact forces (SMC)
-    // These vectors hold the total contact force and torque, respectively,
-    // for bodies that are involved in at least one contact.
+    // These vectors hold the contact forces and torques for each individual contact. For each contact, the force and
+    // torque are given at the body origin, expressed in the absolute frame. These vectors include the force and torque
+    // for each of the two bodies involved in a contact.
+    custom_vector<real3> ct_force;   ///< Contact forces per contact
+    custom_vector<real3> ct_torque;  ///< Contact torques per contact
+    // These vectors hold the resultant contact force and torque for each body in contact, accumulating over all
+    // contacts that the body is involved in. The force and torque are given at the body origin, expresed in the
+    // absolute frame. for bodies that are involved in at least one contact.
     custom_vector<real3> ct_body_force;   ///< Total contact force on bodies
     custom_vector<real3> ct_body_torque;  ///< Total contact torque on these bodies
 
@@ -319,7 +326,7 @@ struct host_container {
     /// Used for NSC only.
     custom_vector<real4> compliance_rigid_rigid;
 
-    /// Precomputed composite material quantities for SMC only
+    // Precomputed composite material quantities (SMC)
     custom_vector<real2> modulus_rigid_rigid;   ///< E_eff and G_eff
     custom_vector<real3> adhesion_rigid_rigid;  ///< adhesion_eff, adhesionMultDMT_eff, and adhesionSPerko_eff
     custom_vector<real> cr_rigid_rigid;         ///< cr_eff (effective coefficient of restitution)
@@ -372,10 +379,11 @@ struct host_container {
     /// first and D is taken as the transpose. This is due to the way that blaze
     /// handles sparse matrix allocation, it is easier to do it on a per row basis.
     CompressedMatrix<real> D_T;
-    /// M_inv is the inverse mass matrix, This matrix, if holding the full inertia
-    /// tensor is block diagonal.
-    CompressedMatrix<real> M_inv, M;
-    /// Minv_D holds M_inv multiplied by D, this is done as a preprocessing step
+    /// Mass matrix; if holding the full inertia tensor, M is block diagonal.
+    CompressedMatrix<real> M;
+    /// M_inv is the inverse mass matrix; if holding the full inertia tensor, M_inv is block diagonal.
+    CompressedMatrix<real> M_inv;
+    /// M_invD holds M_inv multiplied by D. This is done as a preprocessing step
     /// so that later, when the full matrix vector product is needed it can be
     /// performed in two steps, first R = Minv_D*x, and then D_T*R where R is just
     /// a temporary variable used here for illustrative purposes. In reality the
@@ -387,15 +395,26 @@ struct host_container {
     DynamicVector<real> b;       ///< Correction terms
     DynamicVector<real> s;
     DynamicVector<real> M_invk;  ///< Result of M_inv multiplied by vector of forces
-    DynamicVector<real> gamma;   ///< The unknowns we are solving for
     DynamicVector<real> v;       ///< This vector holds the velocities for all objects
     DynamicVector<real> hf;      ///< This vector holds h*forces, h is time step
-    /// While E is the compliance matrix, in reality it is completely diagonal
-    /// therefore it is stored in a vector for performance reasons.
+
+    /// Contact impulses. These are the unknowns solved for in the NSC formulation.
+    /// Depending on the selected SolverMode, gamma is organized as follows (N is the number of rigid contacts):
+    /// \li NORMAL [size(gamma) = N]\n
+    ///     n1 n2 ... nN
+    /// \li SLIDING [size(gamma) = 3N]\n
+    ///     n1 n2 ... nN | u1 v1 u2 v2 ... uN vN
+    /// \li SPINNING [size(gamma) = 6N]\n
+    ///     n1 n2 ... nN | u1 v1 u2 v2 ... uN vN | tn1 tu1 tv1 tn2 tu2 tv2 ... tnN tuN tvN
+    /// 
+    /// If there are any bilateral constraints, the corresponding impulses are stored at the end of `gamma`.
+    DynamicVector<real> gamma;
+
+    /// Compliance matrix elements.
+    /// Note that E is a diagonal matrix and hence stored in a vector.
     DynamicVector<real> E;
 
-    // Contact forces (NSC)
-    DynamicVector<real> Fc;
+    DynamicVector<real> Fc; ///< Contact forces (NSC)
 
     //========Broadphase Data========
 
@@ -413,25 +432,23 @@ class CH_PARALLEL_API ChParallelDataManager {
     ChParallelDataManager();
     ~ChParallelDataManager();
 
-    /// Structure that contains the data on the host, the naming convention is
-    /// from when the code supported the GPU (host vs device).
-    host_container host_data;
-    shape_container shape_data;
-    /// This pointer is used by the bilarerals for computing the jacobian and other terms.
+    host_container host_data;    ///< Structure of data arrays (state, contact, etc)
+    shape_container shape_data;  ///< Structure of arrays containing contact shape information
+
+    /// Used by the bilarerals for computing the Jacobian and other terms.
     std::shared_ptr<ChSystemDescriptor> system_descriptor;
 
-    std::shared_ptr<Ch3DOFContainer> node_container;
-    std::shared_ptr<Ch3DOFContainer> fea_container;
+    std::shared_ptr<Ch3DOFContainer> node_container;  ///< container of 3-DOF particles
+    std::shared_ptr<Ch3DOFContainer> fea_container;   ///< container of FEA nodes
 
-    ChConstraintRigidRigid* rigid_rigid;
-    ChConstraintBilateral* bilateral;
+    ChConstraintRigidRigid* rigid_rigid;  ///< methods for unilateral constraints
+    ChConstraintBilateral* bilateral;     ///< methods for bilateral constraints
 
-    collision::ChCBroadphase* broadphase;
-    collision::ChCNarrowphaseDispatch* narrowphase;
-    collision::ChCAABBGenerator* aabb_generator;
+    collision::ChCBroadphase* broadphase;            ///< methods for broad-phase collision detection
+    collision::ChCNarrowphaseDispatch* narrowphase;  ///< methods for narrow-phase collision detection
+    collision::ChCAABBGenerator* aabb_generator;     ///< methods for cpmputing object AABBs
 
-    // These pointers are used to compute the mass matrix instead of filling a
-    // a temporary data structure
+    // These pointers are used to compute the mass matrix instead of filling a temporary data structure
     std::vector<std::shared_ptr<ChBody>>* body_list;                  ///< List of bodies
     std::vector<std::shared_ptr<ChLinkBase>>* link_list;              ///< List of bilaterals
     std::vector<std::shared_ptr<ChPhysicsItem>>* other_physics_list;  ///< List to other items
@@ -460,26 +477,27 @@ class CH_PARALLEL_API ChParallelDataManager {
 
     /// Flag indicating whether or not the contact forces are current (NSC only).
     bool Fc_current;
-    /// This object hold all of the timers for the system.
+    /// Container for all timers for the system.
     ChTimerParallel system_timer;
-    /// Structure that contains all settings for the system, collision detection and the solver.
+    /// Container for all settings for the system, collision detection, and solver.
     settings_container settings;
+    /// Container for various statistics for collision detection and solver.
     measures_container measures;
 
     /// Material composition strategy.
     std::unique_ptr<ChMaterialCompositionStrategy> composition_strategy;
 
-    /// User-provided callback for overriding coposite material properties.
+    /// User-provided callback for overriding composite material properties.
     std::shared_ptr<ChContactContainer::AddContactCallback> add_contact_callback;
 
     /// Output a vector (one dimensional matrix) from blaze to a file.
     int OutputBlazeVector(DynamicVector<real> src, std::string filename);
     /// Output a sparse blaze matrix to a file.
     int OutputBlazeMatrix(CompressedMatrix<real> src, std::string filename);
-    /// Convenience function that outputs all of the data associated for a system.
-    /// This is useful when debugging.
+    /// Utility debugging function that outputs all of the data associated for a system.
     int ExportCurrentSystem(std::string output_dir);
 
+    /// Print a sparse blaze matrix.
     void PrintMatrix(CompressedMatrix<real> src);
 };
 

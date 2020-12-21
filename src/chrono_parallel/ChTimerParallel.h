@@ -12,7 +12,7 @@
 // Authors: Hammad Mazhar
 // =============================================================================
 //
-// Description: Parallel timer class that uses a map to query and add timers
+// Description: Timer class that uses a map to query and add timers
 //
 // =============================================================================
 
@@ -32,6 +32,7 @@ namespace chrono {
 /// @addtogroup parallel_module
 /// @{
 
+/// Wrapper class for a timer object.
 struct TimerData {
     TimerData() : runs(0) {}
 
@@ -53,6 +54,7 @@ struct TimerData {
     int runs;
 };
 
+/// Utility class for managing a collection of timer objects.
 class CH_PARALLEL_API ChTimerParallel {
   public:
     ChTimerParallel() : total_timers(0) {}

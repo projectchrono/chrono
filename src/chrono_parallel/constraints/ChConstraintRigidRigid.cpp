@@ -43,6 +43,8 @@ void ChConstraintRigidRigid::func_Project_normal(int index, const vec2* ids, con
             gamma[data_manager->num_rigid_contacts + index * 2 + 1] = 0;
             break;
         case SolverMode::SPINNING:
+            gamma[data_manager->num_rigid_contacts + index * 2 + 0] = 0;
+            gamma[data_manager->num_rigid_contacts + index * 2 + 1] = 0;
             gamma[3 * data_manager->num_rigid_contacts + index * 3 + 0] = 0;
             gamma[3 * data_manager->num_rigid_contacts + index * 3 + 1] = 0;
             gamma[3 * data_manager->num_rigid_contacts + index * 3 + 2] = 0;
@@ -411,25 +413,30 @@ void ChConstraintRigidRigid::Build_D() {
 
 #pragma omp parallel for
     for (int index = 0; index < (signed)data_manager->num_rigid_contacts; index++) {
-        real3 U = norm[index], V, W;
-        real3 T3, T4, T5, T6, T7, T8;
-        real3 TA, TB, TC;
-        real3 TD, TE, TF;
+        const real3& U = norm[index];
+        real3 V, W;
         Orthogonalize(U, V, W);
         vec2 body_id = ids[index];
         int off = 0;
         int row = index;
         // The position is subtracted here now instead of performing it in the narrowphase
 
+        real3 T3, T4, T5, T6, T7, T8;
+        real3 TA, TB, TC;
+        real3 TD, TE, TF;
+
         // Normal jacobian entries
-        real3_int sbar_a = rotated_point_a[index];
-        real3_int sbar_b = rotated_point_b[index];
+        const real3_int& sbar_a = rotated_point_a[index];
+        const real3_int& sbar_b = rotated_point_b[index];
         body_id.x = sbar_a.i;
         body_id.y = sbar_b.i;
-        quaternion q_a = quat_a[index];
-        quaternion q_b = quat_b[index];
+        const quaternion& q_a = quat_a[index];
+        const quaternion& q_b = quat_b[index];
 
-        NORMAL_J
+        real3 U_A = Rotate(U, q_a);
+        T3 = Cross(U_A, sbar_a.v);
+        real3 U_B = Rotate(U, q_b);
+        T6 = Cross(U_B, sbar_b.v);
 
         SetRow6Check(D_T, off + row * 1 + 0, body_id.x * 6, -U, T3);
         SetRow6Check(D_T, off + row * 1 + 0, body_id.y * 6, U, -T6);
@@ -437,7 +444,15 @@ void ChConstraintRigidRigid::Build_D() {
         if (solver_mode == SolverMode::SLIDING || solver_mode == SolverMode::SPINNING) {
             off = data_manager->num_rigid_contacts;
 
-            SLIDING_J
+            real3 V_A = Rotate(V, q_a);
+            real3 W_A = Rotate(W, q_a);
+            T4 = Cross(V_A, sbar_a.v);
+            T5 = Cross(W_A, sbar_a.v);
+
+            real3 V_B = Rotate(V, q_b);
+            real3 W_B = Rotate(W, q_b);
+            T7 = Cross(V_B, sbar_b.v);
+            T8 = Cross(W_B, sbar_b.v);
 
             SetRow6Check(D_T, off + row * 2 + 0, body_id.x * 6, -V, T4);
             SetRow6Check(D_T, off + row * 2 + 1, body_id.x * 6, -W, T5);
@@ -469,7 +484,7 @@ void ChConstraintRigidRigid::GenerateSparsity() {
     const vec2* ids = data_manager->host_data.bids_rigid_rigid.data();
 
     for (int index = 0; index < (signed)data_manager->num_rigid_contacts; index++) {
-        vec2 body_id = ids[index];
+        const vec2& body_id = ids[index];
         int row = index;
         int off = 0;
 
@@ -481,7 +496,7 @@ void ChConstraintRigidRigid::GenerateSparsity() {
 
     if (solver_mode == SolverMode::SLIDING || solver_mode == SolverMode::SPINNING) {
         for (int index = 0; index < (signed)data_manager->num_rigid_contacts; index++) {
-            vec2 body_id = ids[index];
+            const vec2& body_id = ids[index];
             int row = index;
             int off = data_manager->num_rigid_contacts;
 
@@ -499,7 +514,7 @@ void ChConstraintRigidRigid::GenerateSparsity() {
 
     if (solver_mode == SolverMode::SPINNING) {
         for (int index = 0; index < (signed)data_manager->num_rigid_contacts; index++) {
-            vec2 body_id = ids[index];
+            const vec2& body_id = ids[index];
             int row = index;
             int off = 3 * data_manager->num_rigid_contacts;
             D_T.append(off + row * 3 + 0, body_id.x * 6 + 3, 0);
@@ -547,7 +562,8 @@ void ChConstraintRigidRigid::Dx(const DynamicVector<real>& gam, DynamicVector<re
 
 #pragma omp parallel for
     for (int i = 0; i < num_rigid_contacts; i++) {
-        real3 U = real3(norm[i]), V, W;
+        const real3& U = real3(norm[i]);
+        real3 V, W;
         Orthogonalize(U, V, W);
         // int id_a = bids_rigid_rigid[i].x;
         // int id_b = bids_rigid_rigid[i].y;
@@ -555,8 +571,8 @@ void ChConstraintRigidRigid::Dx(const DynamicVector<real>& gam, DynamicVector<re
         real3 T3, T4, T5, T6, T7, T8;
         real3 g = real3(gam[i], gam[num_rigid_contacts + i * 2 + 0], gam[num_rigid_contacts + i * 2 + 1]);
         {
-            real3_int sbar = rotated_point_a[i];
-            quaternion q_a = quat_a[i];
+            const real3_int& sbar = rotated_point_a[i];
+            const quaternion& q_a = quat_a[i];
             T3 = Cross(Rotate(U, q_a), sbar.v);
             T4 = Cross(Rotate(V, q_a), sbar.v);
             T5 = Cross(Rotate(W, q_a), sbar.v);
@@ -583,8 +599,8 @@ void ChConstraintRigidRigid::Dx(const DynamicVector<real>& gam, DynamicVector<re
         }
 
         {
-            real3_int sbar = rotated_point_b[i];
-            quaternion q_b = quat_b[i];
+            const real3_int& sbar = rotated_point_b[i];
+            const quaternion& q_b = quat_b[i];
             T6 = Cross(Rotate(U, q_b), sbar.v);
             T7 = Cross(Rotate(V, q_b), sbar.v);
             T8 = Cross(Rotate(W, q_b), sbar.v);
@@ -624,7 +640,8 @@ void ChConstraintRigidRigid::D_Tx(const DynamicVector<real>& XYZUVW, DynamicVect
 
 #pragma omp parallel for
     for (int i = 0; i < num_rigid_contacts; i++) {
-        real3 U = real3(norm[i]), V, W;
+        const real3& U = real3(norm[i]);
+        real3 V, W;
         Orthogonalize(U, V, W);
         real temp[3] = {0, 0, 0};
 
@@ -632,8 +649,8 @@ void ChConstraintRigidRigid::D_Tx(const DynamicVector<real>& XYZUVW, DynamicVect
         // int id_a = bids_rigid_rigid[i].x;
         // if (active_rigid[id_a] != 0)
         {
-            real3_int sbar = rotated_point_a[i];
-            quaternion quaternion_conjugate = quat_a[i];
+            const real3_int& sbar = rotated_point_a[i];
+            const quaternion& quaternion_conjugate = quat_a[i];
 
             real3 XYZ(XYZUVW[sbar.i * 6 + 0], XYZUVW[sbar.i * 6 + 1], XYZUVW[sbar.i * 6 + 2]);
             real3 UVW(XYZUVW[sbar.i * 6 + 3], XYZUVW[sbar.i * 6 + 4], XYZUVW[sbar.i * 6 + 5]);
@@ -653,8 +670,8 @@ void ChConstraintRigidRigid::D_Tx(const DynamicVector<real>& XYZUVW, DynamicVect
         // int id_b = bids_rigid_rigid[i].y;
         // if (active_rigid[id_b] != 0)
         {
-            real3_int sbar = rotated_point_b[i];
-            quaternion quaternion_conjugate = quat_b[i];
+            const real3_int& sbar = rotated_point_b[i];
+            const quaternion& quaternion_conjugate = quat_b[i];
 
             real3 XYZ(XYZUVW[sbar.i * 6 + 0], XYZUVW[sbar.i * 6 + 1], XYZUVW[sbar.i * 6 + 2]);
             real3 UVW(XYZUVW[sbar.i * 6 + 3], XYZUVW[sbar.i * 6 + 4], XYZUVW[sbar.i * 6 + 5]);
