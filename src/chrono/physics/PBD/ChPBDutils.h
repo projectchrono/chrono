@@ -69,7 +69,6 @@ class ChApi ChLinkPBD {
 	double lambda_t = 0;
 	ChVector<> lambda_f_dir;
 	ChVector<> lambda_t_dir;
-	ChVector<double> lambda_contact_sf;
 	// Compliance (TODO: make it settable, and separate for torque and force)
 	double alpha = 0.0;
 	//TODO: not implementing limits and actuators yet.
@@ -133,7 +132,7 @@ CH_CLASS_VERSION(ChLinkPBDMate, 0)
 class ChApi ChContactPBD : public ChLinkPBD {
 private:
 	// initially the contact is dynamic since lambda_n is 0 at the first substep.
-	bool is_dynamic = true;
+	bool is_dynamic = false;
 	// distance between points along the contact normal
 	double d;
 	// TODO: static friction
@@ -143,6 +142,9 @@ private:
 	ChVector<double> n;
 	double v_n_old;
 
+	// Tangential friction module and direction
+	double lambda_contact_tf = 0;
+	ChVector<> lambda_tf_dir;
 	/// Store contact bodies old position
 	/// This is a waste of memory and time, to be replaced with a more efficient ChState usage
 	ChVector<double> old_x1;

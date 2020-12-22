@@ -245,7 +245,7 @@ ChContactPBD::ChContactPBD(ChBody* body1, ChBody* body2, ChFrame<>& frame1, ChFr
 	//r_dir.Set(int(mask[3]), int(mask[4]), int(mask[5]));
 	// TODO: set properly alpha according to http://blog.mmacklin.com/
 	// rmember to eval alpha_hat = alpha/(h^2)
-	alpha = .01;
+	alpha = .1;
 }
 
 // Adjust tangential velocity of bodies 
@@ -260,6 +260,8 @@ void ChContactPBD::SolveContactPositions(double h) {
 	
 	// If the distance is positive, just skip
 	if (d > 0) {
+		lambda_contact_tf = 0;
+		lambda_f = 0;
 		return;
 	}
 	else {
@@ -290,41 +292,49 @@ void ChContactPBD::SolveContactPositions(double h) {
 			ChVector<double> r2 = Body2->GetRot().Rotate(f2.coord.pos);
 			ChVector<double> r1_old = old_q1.Rotate(f1.coord.pos);
 			ChVector<double> r2_old = old_q2.Rotate(f2.coord.pos);
-			//ChVector<> n0 = Body2->TransformPointLocalToParent(f2.coord.pos) - Body1->TransformPointLocalToParent(f1.coord.pos);
-			ChVector<double> n0 = -( (Body1->GetPos() + r1 - (old_x1 + r1_old)) - ((Body2->GetPos() + r2) - (old_x2 + r2_old) ));
+			//ChVector<double> n0 = -( (Body1->GetPos() + r1 - (old_x1 + r1_old)) - ((Body2->GetPos() + r2) - (old_x2 + r2_old) ));
+			ChVector<double> n0 = Body1->GetPos() + r1 - (Body2->GetPos() + r2);
 			double n0_n = n0^n;
-			ChVector<double> n0_t = n0 - n * n0_n;
+			//ChVector<double> n0_t = n0 - n * n0_n;
 			// Rotation of the link frame w.r.t. global frame
-			ChQuaternion<double> q = Body1->GetRot() * f1.coord.rot;
+			ChQuaternion<double> q = f1.coord.rot * Body1->GetRot();
 			// get rid of unconstrained directions by element wise multiplication in the link frame reference
-			ChVector<double> n_loc = (q.RotateBack(n0_t))*p_dir;
+			ChVector<double> n_loc = (q.RotateBack(n0))*p_dir;
 			// Now we bring the violation back in global coord and normaize it after saving its length
-			ChVector<double> n_sf = q.Rotate(n_loc);
-			double C = n_sf.Length();
+			ChVector<double> n_tf = q.Rotate(n_loc);
+			//ChVector<double> n_tf = n0_t;
+			double C = n_tf.Length();
 
-			if (n_sf.Normalize()) {
+			if (n_tf.Normalize()) {
 
-				double delta_lambda_sf = -(C + alpha * lambda_f) / (w1 + w2 + alpha);
-				lambda_f += delta_lambda_sf;
-				ChVector<double> p = delta_lambda_sf * n_sf;
-				lambda_contact_sf = n_sf * (lambda_contact_sf.Length() + delta_lambda_sf);
+				double delta_lambda_tf = -(C + alpha * lambda_contact_tf) / (w1 + w2 + alpha);
+				ChVector<double> p = delta_lambda_tf * n_tf;
+				lambda_contact_tf += delta_lambda_tf;
+				lambda_tf_dir = n_tf;
 
-				Body1->SetPos(Body1->GetPos() + p *  invm1);
-				Body2->SetPos(Body2->GetPos() - p *  invm2);
+				// TODO: use static friction here!!
+				if (abs(lambda_contact_tf) > mu_d*abs(lambda_f)) {
+					lambda_contact_tf = mu_d*lambda_f;
+					is_dynamic = true;
+				}
+				else {
+					Body1->SetPos(Body1->GetPos() + p *  invm1);
+					Body2->SetPos(Body2->GetPos() - p *  invm2);
 
-				ChVector<double> Rot1 = Inv_I1 * Body1->GetRot().RotateBack(r1.Cross(p)).eigen();
-				ChQuaternion<double> q01 = Body1->GetRot();
-				ChQuaternion<double> dq1(0, Rot1);
-				ChQuaternion<double> qnew1 = (q01 + q01*dq1*0.5);
-				qnew1.Normalize();
-				Body1->SetRot(qnew1);
+					ChVector<double> Rot1 = Inv_I1 * Body1->GetRot().RotateBack(r1.Cross(p)).eigen();
+					ChQuaternion<double> q01 = Body1->GetRot();
+					ChQuaternion<double> dq1(0, Rot1);
+					ChQuaternion<double> qnew1 = (q01 + q01*dq1*0.5);
+					qnew1.Normalize();
+					Body1->SetRot(qnew1);
 
-				ChVector<double> Rot2 = Inv_I2 * Body2->GetRot().RotateBack(r2.Cross(p)).eigen();
-				ChQuaternion<double> q02 = Body2->GetRot();
-				ChQuaternion<double> dq2(0, Rot2);
-				ChQuaternion<double> qnew2 = (q02 - q02*dq2*0.5);
-				qnew2.Normalize();
-				Body2->SetRot(qnew2);
+					ChVector<double> Rot2 = Inv_I2 * Body2->GetRot().RotateBack(r2.Cross(p)).eigen();
+					ChQuaternion<double> q02 = Body2->GetRot();
+					ChQuaternion<double> dq2(0, Rot2);
+					ChQuaternion<double> qnew2 = (q02 - q02*dq2*0.5);
+					qnew2.Normalize();
+					Body2->SetRot(qnew2);
+				}
 			}
 		}
 	}
@@ -365,13 +375,12 @@ void ChContactPBD::SolveVelocity(double h) {
 				delta_v += -v_rel_t;
 			}
 			else {
-				delta_v += -v_rel_t.GetNormalized() * threshold;
+				if (v_rel_t.Normalize()) {
+					delta_v += -v_rel_t * threshold;
+				}
 			}
 		}
-		// TODO: use static friction here!!
-		if (!is_dynamic && lambda_contact_sf.Length() > mu_d*abs(lambda_f)) {
-			is_dynamic = true;
-		}
+		
 		// normal speed restitution
 		// TODO: use a restitution coefficient
 		double e  = (abs(v_rel_n) < 2*9.8*h) ? 0 : 0.01;
