@@ -33,6 +33,7 @@ class CH_SENSOR_API Sensor : ChSensor {
     /// Create sensor from specified JSON file
     /// @param filename Path and filename for the JSON file.
     /// @param parent The parent on which the sensor should be attached.
+    /// @param offsetPose The position and rotation of the Sensor
     static std::shared_ptr<ChSensor> CreateFromJSON(const std::string& filename,
                                                     std::shared_ptr<chrono::ChBody> parent,
                                                     chrono::ChFrame<double> offsetPose);

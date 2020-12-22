@@ -45,6 +45,7 @@ class SYN_API SynSCMTerrain : public SynTerrain {
     /// @brief Create SynSCMTerrain by optionally adding an underlying SCMDeformableTerrain
     ///
     /// @param terrain Shared pointer to the terrain object this class will use and sync
+    /// @param system Should match what the SCMDeformableTerrain was created with
     SynSCMTerrain(std::shared_ptr<vehicle::SCMDeformableTerrain> terrain, ChSystem* system) {
         SetTerrain(terrain);
         m_system = system;

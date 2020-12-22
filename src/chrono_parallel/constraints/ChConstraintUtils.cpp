@@ -19,7 +19,7 @@
 namespace chrono {
 
 CH_PARALLEL_API
-void Orthogonalize(real3& Vx, real3& Vy, real3& Vz) {
+void Orthogonalize(const real3& Vx, real3& Vy, real3& Vz) {
     real3 mVsingular = real3(0, 1, 0);
     Vz = Cross(Vx, mVsingular);
     real mzlen = Length(Vz);
@@ -304,8 +304,8 @@ void BuildRigidFluidBoundary(const real contact_mu,
 #pragma omp parallel for
             Loop_Over_Rigid_Neighbors(
                 int rigid = neighbor_rigid_fluid[p * max_rigid_neighbors + i];
-                real3 U = norm[p * max_rigid_neighbors + i]; real3 V; real3 W; Orthogonalize(U, V, W);  //
-                real3 T1; real3 T2; real3 T3;                                                           //
+                const real3& U = norm[p * max_rigid_neighbors + i]; real3 V; real3 W; Orthogonalize(U, V, W);  //
+                real3 T1; real3 T2; real3 T3;                                                                  //
                 Compute_Jacobian(rot_rigid[rigid], U, V, W, cpta[p * max_rigid_neighbors + i] - pos_rigid[rigid], T1,
                                  T2, T3);
 
@@ -315,9 +315,8 @@ void BuildRigidFluidBoundary(const real contact_mu,
 #pragma omp parallel for
             Loop_Over_Rigid_Neighbors(
                 int rigid = neighbor_rigid_fluid[p * max_rigid_neighbors + i];
-                real3 U = norm[p * max_rigid_neighbors + i]; real3 V; real3 W;  //
-                Orthogonalize(U, V, W);                                         //
-                real3 T1; real3 T2; real3 T3;                                   //
+                const real3& U = norm[p * max_rigid_neighbors + i]; real3 V; real3 W; Orthogonalize(U, V, W);  //
+                real3 T1; real3 T2; real3 T3;                                                                  //
                 Compute_Jacobian(rot_rigid[rigid], U, V, W, cpta[p * max_rigid_neighbors + i] - pos_rigid[rigid], T1,
                                  T2, T3);
 

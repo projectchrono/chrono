@@ -775,7 +775,7 @@ __device__ void Calc_fluid_aij_Bi(const uint i_idx,
                                             Real h_k = sortedPosRad[j].w;
                                             Real h_jk = 0.5 * (h_j + h_k);
                                             Real3 grad_j_wjk = GradWh(dist3jk, h_jk);
-                                            Real m_k = pow(sortedPosRad[k].w, 3) * paramsD.rho0;
+                                            Real m_k = cube(sortedPosRad[k].w) * paramsD.rho0;
                                             Real Rho_k = sortedRhoPreMu[k].x;
                                             Real3 d_jk = m_k * (-(dT * dT) / (Rho_k * Rho_k)) * grad_j_wjk;
                                             Real My_a_ij_3 = m_j * dot(d_jk, grad_i_wij);

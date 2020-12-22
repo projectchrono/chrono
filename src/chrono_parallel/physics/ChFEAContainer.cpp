@@ -705,7 +705,8 @@ void ChFEAContainer::Build_D() {
                 int i = index - start;  // index that goes from 0
                 int rigid = neighbor_rigid_tet[p * max_rigid_neighbors + i];
                 int node = p;  // node body is in second index
-                real3 U = norm[p * max_rigid_neighbors + i], V, W;
+                const real3& U = norm[p * max_rigid_neighbors + i];
+                real3 V, W;
                 Orthogonalize(U, V, W);
                 real3 T1, T2, T3;
                 Compute_Jacobian(rot_rigid[rigid], U, V, W, cpta[p * max_rigid_neighbors + i] - pos_rigid[rigid], T1,
@@ -760,7 +761,8 @@ void ChFEAContainer::Build_D() {
                 int i = index - start;  // index that goes from 0
                 int rigid = neighbor_rigid_tet[p * max_rigid_neighbors + i];
                 int node = p;  // node body is in second index
-                real3 U = norm[p * max_rigid_neighbors + i], V, W;
+                const real3& U = norm[p * max_rigid_neighbors + i];
+                real3 V, W;
                 Orthogonalize(U, V, W);
                 real3 T1, T2, T3;
                 Compute_Jacobian(rot_rigid[rigid], U, V, W, cpta[p * max_rigid_neighbors + i] - pos_rigid[rigid], T1,
@@ -793,7 +795,8 @@ void ChFEAContainer::Build_D() {
                 int i = index - start;  // index that goes from 0
                 int fluid = neighbor_marker_tet[p * max_rigid_neighbors + i];
                 int node = p;  // node body is in second index
-                real3 U = norm[p * max_rigid_neighbors + i], V, W;
+                const real3& U = norm[p * max_rigid_neighbors + i];
+                real3 V, W;
                 Orthogonalize(U, V, W);
 
                 SetRow3Check(D_T, start_boundary_marker + index + 0, f_off + fluid * 3, -U);

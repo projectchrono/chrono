@@ -114,9 +114,9 @@ class CH_PARALLEL_API ChIterativeSolverParallelSMC : public ChIterativeSolverPar
     void ProcessContacts();
 
   private:
-    void host_CalcContactForces(custom_vector<int>& ext_body_id,
-                                custom_vector<real3>& ext_body_force,
-                                custom_vector<real3>& ext_body_torque,
+    void host_CalcContactForces(custom_vector<int>& ct_bid,
+                                custom_vector<real3>& ct_force,
+                                custom_vector<real3>& ct_torque,
                                 custom_vector<vec2>& shape_pairs,
                                 custom_vector<char>& shear_touch);
 

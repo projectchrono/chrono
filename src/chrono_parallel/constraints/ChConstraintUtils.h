@@ -190,24 +190,7 @@ static void inline SetCol6(T& D, const int row, const int col, const real3& A, c
 }
 
 CH_PARALLEL_API
-void Orthogonalize(real3& Vx, real3& Vy, real3& Vz);
-
-#define NORMAL_J                \
-    real3 U_A = Rotate(U, q_a); \
-    T3 = Cross(U_A, sbar_a.v);  \
-    real3 U_B = Rotate(U, q_b); \
-    T6 = Cross(U_B, sbar_b.v);
-
-#define SLIDING_J               \
-    real3 V_A = Rotate(V, q_a); \
-    real3 W_A = Rotate(W, q_a); \
-    T4 = Cross(V_A, sbar_a.v);  \
-    T5 = Cross(W_A, sbar_a.v);  \
-                                \
-    real3 V_B = Rotate(V, q_b); \
-    real3 W_B = Rotate(W, q_b); \
-    T7 = Cross(V_B, sbar_b.v);  \
-    T8 = Cross(W_B, sbar_b.v);
+void Orthogonalize(const real3& Vx, real3& Vy, real3& Vz);
 
 CH_PARALLEL_API
 void Compute_Jacobian(const quaternion& quat,

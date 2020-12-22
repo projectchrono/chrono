@@ -31,6 +31,7 @@ SET(DEMOS
     demo_PAR_fluidNSC
     demo_PAR_snowMPM
     demo_PAR_particlesNSC
+    demo_PAR_cratering
 )
 
 # Add programs that require OpenGL
@@ -40,6 +41,8 @@ if(ENABLE_MODULE_OPENGL)
         demo_PAR_motors
         demo_PAR_friction
         demo_PAR_mesh_contact
+        demo_PAR_callbackSMC
+        demo_PAR_callbackNSC
     )
 endif()
 
