@@ -307,7 +307,15 @@ void ChContactPBD::SolveContactPositions(double h) {
 
 			if (n_tf.Normalize()) {
 
-				double delta_lambda_tf = -(C + alpha * lambda_contact_tf) / (w1 + w2 + alpha);
+				ChVector<double> n1 = Body1->GetRot().RotateBack(n_tf);
+				ChVector<double> n2 = Body2->GetRot().RotateBack(n_tf);
+				auto Ii1 = ((f1.coord.pos.Cross(n1).eigen()).transpose()) * Inv_I1 * (f1.coord.pos.Cross(n1).eigen());
+				auto Ii2 = ((f2.coord.pos.Cross(n2).eigen()).transpose()) * Inv_I2 * (f2.coord.pos.Cross(n2).eigen());
+				assert(Ii1.cols() * Ii1.rows() * Ii2.cols() * Ii2.rows() == 1);
+				w1_tf = invm1 + Ii1(0, 0);
+				w2_tf = invm2 + Ii2(0, 0);
+
+				double delta_lambda_tf = -(C + alpha * lambda_contact_tf) / (w1_tf + w2_tf + alpha);
 				ChVector<double> p = delta_lambda_tf * n_tf;
 				lambda_contact_tf += delta_lambda_tf;
 				lambda_tf_dir = n_tf;
@@ -369,13 +377,13 @@ void ChContactPBD::SolveVelocity(double h) {
 			double fn = abs(lambda_f )/ (h*h);
 			// eq. 30
 			// TODO: this is taken from the paper but does not make sense dimensionally
-			double threshold = h* mu_d * fn*(invm1 + invm2);
+			double threshold = h* mu_d * fn*((invm1 + invm2)/2);
 			if ( vt < threshold) {
 				is_dynamic = false;
 				delta_v += -v_rel_t;
 			}
 			else {
-				delta_v += -v_rel_t.GetNormalized() * threshold*0.9;
+				delta_v += -v_rel_t.GetNormalized() * threshold;
 			}
 		}
 		
