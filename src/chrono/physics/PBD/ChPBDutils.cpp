@@ -33,9 +33,8 @@ CH_FACTORY_REGISTER(ChLinkPBD)
 // TODO: these initialization are probably useless
 ChLinkPBD::ChLinkPBD() : p_dir(ChVector<double>(0, 0, 0)), r_dir(ChVector<double>(0, 0, 0)), p_free(false), r_free(false) {}
 
-void ChLinkPBD::SolvePositions() {
-	assert(!Body1->GetBodyFixed() || !Body2->GetBodyFixed());
 
+void ChLinkPBD::EvalMasses(){
 	invm1 = (1 / Body1->GetMass());
 	invm2 = (1 / Body2->GetMass());
 	Inv_I1 = Body1->GetInvInertia();
@@ -48,6 +47,9 @@ void ChLinkPBD::SolvePositions() {
 		Inv_I2.setZero();
 		invm2 = 0;
 	}
+}
+void ChLinkPBD::SolvePositions() {
+	assert(!Body1->GetBodyFixed() || !Body2->GetBodyFixed());
 	
 	// if position free skip completely
 	if (!r_free) {
@@ -109,7 +111,6 @@ void ChLinkPBD::SolvePositions() {
 			ChVector<double> n2 = Body2->GetRot().RotateBack(nt);
 			auto Ii1 = ((f1.coord.pos.Cross(n1).eigen()).transpose()) * Inv_I1 * (f1.coord.pos.Cross(n1).eigen());
 			auto Ii2 = ((f2.coord.pos.Cross(n2).eigen()).transpose()) * Inv_I2 * (f2.coord.pos.Cross(n2).eigen());
-			assert(Ii1.cols() * Ii1.rows() * Ii2.cols() * Ii2.rows() == 1);
 			w1 = invm1 + Ii1(0, 0);
 			w2 = invm2 + Ii2(0, 0);
 
@@ -198,6 +199,7 @@ ChLinkPBDLock::ChLinkPBDLock(ChLinkLock* alink) : ChLinkPBD() {
 	p_free = (int(mask[0]) + int(mask[1]) + int(mask[2]) == 0) ? true : false;
 	r_free = (int(mask[3]) + int(mask[4]) + int(mask[5]) == 0) ? true : false;
 	findRDOF();
+	EvalMasses();
 }
 
 
@@ -219,6 +221,7 @@ ChLinkPBDMate::ChLinkPBDMate(ChLinkMateGeneric* alink) : ChLinkPBD() {
 	p_free = (int(mask[0]) + int(mask[1]) + int(mask[2]) == 0) ? true : false;
 	r_free = (int(mask[3]) + int(mask[4]) + int(mask[5]) == 0) ? true : false;
 	findRDOF();
+	EvalMasses();
 }
 
 ChContactPBD::ChContactPBD(ChBody* body1, ChBody* body2, ChFrame<>& frame1, ChFrame<>& frame2, double frict_d) : ChLinkPBD() {
@@ -234,7 +237,7 @@ ChContactPBD::ChContactPBD(ChBody* body1, ChBody* body2, ChFrame<>& frame1, ChFr
 	mask[3] = false;
 	mask[4] = false;
 	mask[5] = false;
-	SaveOldPos();
+	EvalMasses();
 	//p_dir.Set(int(mask[0]), int(mask[1]), int(mask[2]));
 	// If the contact is violated it is NOT free, is dist > 0 we skip the correction completely
 	p_free = false;
@@ -290,8 +293,8 @@ void ChContactPBD::SolveContactPositions(double h) {
 			// project static friction
 			ChVector<double> r1 = Body1->GetRot().Rotate(f1.coord.pos);
 			ChVector<double> r2 = Body2->GetRot().Rotate(f2.coord.pos);
-			ChVector<double> r1_old = old_q1.Rotate(f1.coord.pos);
-			ChVector<double> r2_old = old_q2.Rotate(f2.coord.pos);
+			//ChVector<double> r1_old = old_q1.Rotate(f1.coord.pos);
+			//ChVector<double> r2_old = old_q2.Rotate(f2.coord.pos);
 			//ChVector<double> n0 = -( (Body1->GetPos() + r1 - (old_x1 + r1_old)) - ((Body2->GetPos() + r2) - (old_x2 + r2_old) ));
 			ChVector<double> n0 = Body1->GetPos() + r1 - (Body2->GetPos() + r2);
 			//double n0_n = n0^n;
@@ -311,7 +314,6 @@ void ChContactPBD::SolveContactPositions(double h) {
 				ChVector<double> n2 = Body2->GetRot().RotateBack(n_tf);
 				auto Ii1 = ((f1.coord.pos.Cross(n1).eigen()).transpose()) * Inv_I1 * (f1.coord.pos.Cross(n1).eigen());
 				auto Ii2 = ((f2.coord.pos.Cross(n2).eigen()).transpose()) * Inv_I2 * (f2.coord.pos.Cross(n2).eigen());
-				assert(Ii1.cols() * Ii1.rows() * Ii2.cols() * Ii2.rows() == 1);
 				w1_tf = invm1 + Ii1(0, 0);
 				w2_tf = invm2 + Ii2(0, 0);
 
@@ -346,15 +348,6 @@ void ChContactPBD::SolveContactPositions(double h) {
 			}
 		}
 	}
-}
-
-/// Store contact bodies old position
-/// This is a waste of memory and time, to be replaced with a more efficient ChState usage
-void ChContactPBD::SaveOldPos() {
-	old_x1 = Body1->GetPos();
-	old_q1 = Body1->GetRot();
-	old_x2 = Body2->GetPos();
-	old_q2 = Body2->GetRot();
 }
 
 // Adjust tangential velocity of bodies 

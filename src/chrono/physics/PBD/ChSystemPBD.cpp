@@ -225,12 +225,6 @@ void ChSystemPBD::SolveVelocities(double h) {
 	}
 }
 
-void ChSystemPBD::SaveOldPos() {
-	for (auto& contact : contactlistPBD) {
-		contact->SaveOldPos();
-	}
-}
-
 void ChSystemPBD::CollectContacts() {
 	// TODO: can we do something less brutal and use the previous knowledge?
 	contactlistPBD.clear();
@@ -267,7 +261,7 @@ void ChSystemPBD::Advance() {
 	for (int i = 0; i < substeps; i++) {
 		// Used to contraint static friction
 		// delete this when possible and use a more efficient way to save/update state
-		SaveOldPos();
+		//SaveOldPos();
 		for (int j = 0; j < n; j++) {
 			std::shared_ptr<ChBody> body = Get_bodylist()[j];
 			if (body->GetBodyFixed() == true) {

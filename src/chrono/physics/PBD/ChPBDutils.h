@@ -87,6 +87,9 @@ class ChApi ChLinkPBD {
 	/// evaluate the quaternion correction depending on rot DOF
 	void findRDOF();
 
+
+	void EvalMasses();
+
     // SERIALIZATION
 	/* TODO
     /// Method to allow serialization of transient data to archives.
@@ -174,7 +177,6 @@ public:
 
 	/// Store contact bodies old position
 	/// This is a waste of memory and time, to be replaced with a more efficient ChState usage
-	void SaveOldPos();
 };
 
 CH_CLASS_VERSION(ChContactPBD, 0);
