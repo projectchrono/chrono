@@ -65,7 +65,7 @@ class ChApi ChSystemPBD : public ChSystem {
 	// Get/Set the number of substeps
 	int GetSubsteps() { return substeps; }
 
-	void setSubsteps(int s) { substeps = s; }
+	void SetSubsteps(int s) { substeps = s; }
 
   private:
 	/// convert the Chrono system to fit into PBD formulation

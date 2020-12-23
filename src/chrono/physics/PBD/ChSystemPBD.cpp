@@ -104,17 +104,7 @@ bool ChSystemPBD::Integrate_Y() {
 	// Prepare lists of variables and constraints.
 	// TODO: check if this is needed by  PBD (constrint matrix is not, but maybe we process the state here)
 	DescriptorPrepareInject(*descriptor);
-	/// Qc matrix not used by PBD
-	/*
-	// No need to update counts and offsets, as already done by the above call (in ChSystemDescriptor::EndInsertion)
-	////descriptor->UpdateCountsAndOffsets();
-	// Set some settings in timestepper object
-	timestepper->SetQcDoClamp(true);
-	timestepper->SetQcClamping(max_penetration_recovery_speed);
-	if (std::dynamic_pointer_cast<ChTimestepperHHT>(timestepper) ||
-		std::dynamic_pointer_cast<ChTimestepperNewmark>(timestepper))
-		timestepper->SetQcDoClamp(false);
-		*/
+
 
 		// If needed, update everything. No need to update visualization assets here.
 	if (!PBD_isSetup) {
@@ -126,19 +116,12 @@ bool ChSystemPBD::Integrate_Y() {
 	{
 		CH_PROFILE("Advance");
 		timer_advance.start();
-		// TODO: change next line with PBD advance loop
-		// TODO: links must be processed to fit into PBD forumulation. This cannot be done at each timestep but neither upon initialization.
-		// We might add a "PBD_Setup" flag taht is called at most one.
 		this->Advance();
 		timer_advance.stop();
 	}
 
 	// Executes custom processing at the end of step
 	CustomEndOfStep();
-
-	// Call method to gather contact forces/torques in rigid bodies
-	/// Not needed in PBD.
-	//contact_container->ComputeContactForces();
 
 	// Time elapsed for step
 	timer_step.stop();
@@ -200,11 +183,8 @@ void ChSystemPBD::PBDSetup() {
 	// allocate the proper amount of vectors and quaternions
 	int n = Get_bodylist().size();
 	x_prev.resize(n);
-	//x.reserve(n);
 	q_prev.resize(n);
-	//q.reserve(n);
-	//omega.reserve(n);
-	//v.reserve(n);
+
 }
 
 void ChSystemPBD::SolvePositions() {
@@ -240,7 +220,6 @@ void ChSystemPBD::CollectContacts() {
 		// !!! BEWARE !!! Assuming contactable to be bodies. 
 		ChBody* body1 = static_cast<ChBody*>(contact->GetObjA());
 		ChBody* body2 = static_cast<ChBody*>(contact->GetObjB());
-		// TODO: while PBD can accomodate static friction, chrono does not
 		double frict = contact->GetFriction();
 		// contact points in rel coors
 		ChVector<double> p1 = body1->GetRot().RotateBack( contact->GetContactP1() - body1->GetPos());
@@ -319,6 +298,7 @@ void ChSystemPBD::Advance() {
 		T += h;
 		
 	}
+	SetChTime(T);
 	// Scatter Gather influences only collision detaction -> do after substepping
 	StateSetup(sys_state, sys_state_delta, sys_acc);
 	StateGather(sys_state, sys_state_delta, T);

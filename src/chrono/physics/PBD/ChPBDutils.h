@@ -25,13 +25,13 @@
 
 namespace chrono {
 //enum PBD_DOF {ALL, PARTIAL, NONE };
-enum RotDOF {X, Y, Z, NONE};
+
 /// Struct collecting a Chrono ChLink together with additional info needed by 
 class ChApi ChLinkPBD {
   public:
 
 	/// Create a LinkPBD
-	ChLinkPBD();
+	//ChLinkPBD();
 
 	/// Copy constructor
 	//ChLinkPBD(const ChLinkPBD& other);
@@ -62,7 +62,7 @@ class ChApi ChLinkPBD {
 	bool p_free;
 	bool r_free;
 	// Rotational DOF
-	RotDOF r_dof = NONE;
+	bool r_locked = false;
 	ChVector<> a = VNULL;
 	// Lagrangian of force and torque
 	double lambda_f = 0;

@@ -30,9 +30,6 @@ namespace chrono {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChLinkPBD)
-// TODO: these initialization are probably useless
-ChLinkPBD::ChLinkPBD() : p_dir(ChVector<double>(0, 0, 0)), r_dir(ChVector<double>(0, 0, 0)), p_free(false), r_free(false) {}
-
 
 void ChLinkPBD::EvalMasses(){
 	invm1 = (1 / Body1->GetMass());
@@ -56,9 +53,11 @@ void ChLinkPBD::SolvePositions() {
 		ChVector<double> nr = getQdelta();
 		double theta = nr.Length();
 		if (nr.Normalize()) {
+			ChVector<> nr1 = Body1->GetRot().RotateBack(nr);
+			ChVector<> nr2 = Body2->GetRot().RotateBack(nr);
 			lambda_t_dir = nr;
-			auto w1r = nr.eigen().transpose() * Inv_I1 * nr.eigen();
-			auto w2r = nr.eigen().transpose() * Inv_I2 * nr.eigen();
+			auto w1r = nr1.eigen().transpose() * Inv_I1 * nr1.eigen();
+			auto w2r = nr2.eigen().transpose() * Inv_I2 * nr2.eigen();
 			w1_rot = w1r(0, 0);
 			w2_rot = w2r(0, 0);
 
@@ -69,17 +68,17 @@ void ChLinkPBD::SolvePositions() {
 
 			ChQuaternion<double> dq1, dq2, qnew1, qnew2;
 
-			ChVector<double> Rot1 = Inv_I1 * pr.eigen();
+			ChVector<double> Rot1 = Inv_I1 * Body1->GetRot().RotateBack(pr).eigen();
 			// {q_dt} = 1/2 {0,w}*{q}
-			dq1.Qdt_from_Wabs(Rot1, Body1->GetRot());
+			dq1.Qdt_from_Wrel(Rot1, Body1->GetRot());
 			// q1 = q0 + dq/dt * h
 			qnew1 = Body1->GetRot() + dq1;
 			qnew1.Normalize();
 			Body1->SetRot(qnew1);
 
-			ChVector<double> Rot2 = Inv_I2 * pr.eigen();
+			ChVector<double> Rot2 = Inv_I2 * Body2->GetRot().RotateBack(pr).eigen();
 			// {q_dt} = 1/2 {0,w}*{q}
-			dq2.Qdt_from_Wabs(Rot2, Body2->GetRot());
+			dq2.Qdt_from_Wrel(Rot2, Body2->GetRot());
 			// q1 = q0 + dq/dt * h
 			qnew2 = Body2->GetRot() - dq2;
 			qnew2.Normalize();
@@ -123,8 +122,6 @@ void ChLinkPBD::SolvePositions() {
 
 			ChVector<double> Rot1 = Inv_I1 * Body1->GetRot().RotateBack(r1.Cross(p)).eigen();
 			ChQuaternion<double> q01 = Body1->GetRot();
-			// {q_dt} = 1/2 {0,w}*{q}
-			//dq1.Qdt_from_Wabs(Rot1, Body1->GetRot());
 			ChQuaternion<double> dq1(0, Rot1);
 			ChQuaternion<double> qnew1 = (q01 + q01*dq1*0.5);
 			qnew1.Normalize();
@@ -132,8 +129,6 @@ void ChLinkPBD::SolvePositions() {
 
 			ChVector<> Rot2 = Inv_I2 * Body2->GetRot().RotateBack(r2.Cross(p)).eigen();
 			ChQuaternion<double> q02 = Body2->GetRot();
-			// {q_dt} = 1/2 {0,w}*{q}
-			//dq1.Qdt_from_Wabs(Rot1, Body1->GetRot());
 			ChQuaternion<double> dq2(0, Rot2);
 			ChQuaternion<double> qnew2 = (q02 - q02*dq2*0.5);
 			qnew2.Normalize();
@@ -144,18 +139,15 @@ void ChLinkPBD::SolvePositions() {
 
 void ChLinkPBD::findRDOF() {
 	if (mask[3] & mask[4] & mask[5]) {
-		r_dof = NONE;
+		r_locked = true;
 	}
 	else if (mask[3] & mask[4] & !mask[5]) {
-		r_dof = Z;
 		a = VECT_Z;
 	}
 	else if (mask[3] & !mask[4] & mask[5]) {
-		r_dof = Y;
 		a = VECT_Y;
 	}
 	else if (!mask[3] & mask[4] & mask[5]) {
-		r_dof = X;
 		a = VECT_X;
 	}
 }
@@ -164,10 +156,9 @@ ChVector<> ChLinkPBD::getQdelta() {
 	// Orientation of the 2 link frames
 	ChQuaternion<double> ql1 = Body1->GetRot() * f1.GetCoord().rot;
 	ChQuaternion<double> ql2 = Body2->GetRot() * f2.GetCoord().rot;
-	if (r_dof == NONE) {
-		// TODO: check this, eq 18 says q1 q2^(-1), my calculation say q1^(-1)*q2
-		ql1.GetConjugate();
-		ChQuaternion<double> qdelta =  ql1 * ql2 ;
+	if (r_locked) {
+		// eq. 18 PBD paper
+		ChQuaternion<double> qdelta =  ql1*ql2.GetConjugate();
 		return qdelta.GetVector() * 2;
 	}
 	else  {
@@ -382,7 +373,7 @@ void ChContactPBD::SolveVelocity(double h) {
 		
 		// normal speed restitution
 		// TODO: use a restitution coefficient
-		double e  = (abs(v_rel_n) < 2*9.8*h) ? 0 : 0.1;
+		double e  = (abs(v_rel_n) < 2*9.8*h) ? 0 : 0.5;
 		delta_v += -n * (v_rel_n) + ChMax(-e*v_n_old, 0.0);
 
 		// apply speed impulses to bodies
