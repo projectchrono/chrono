@@ -266,7 +266,7 @@ void ChSystemPBD::Advance() {
 		// Used to contraint static friction
 		// delete this when possible and use a more efficient way to save/update state
 		//SaveOldPos();
-#pragma omp parallel for 
+//#pragma omp parallel for 
 		for (int j = 0; j < n; j++) {
 			std::shared_ptr<ChBody> body = Get_bodylist()[j];
 			if (body->GetBodyFixed() == true) {
@@ -297,7 +297,7 @@ void ChSystemPBD::Advance() {
 		SolveContacts(h);
 		
 		// Update velocities to take corrected positions into account
-#pragma omp parallel for 
+//#pragma omp parallel for 
 		for (int j = 0; j < n; j++) {
 			std::shared_ptr<ChBody> body = Get_bodylist()[j];
 			if (body->GetBodyFixed()) {
