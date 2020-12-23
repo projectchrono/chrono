@@ -100,6 +100,3 @@ MS-MPI specific, most of these can be set automatically by running `set MSMPI` i
 - MSMPI_INC
 - MSMPI_LIB32
 - MSMPI_LIB64
-
-## Other
-Contact Jay Taves ([jtaves@wisc.edu](mailto:jtaves@wisc.edu)) and Aaron Young ([aryoung5@wisc.edu](mailto:aryoung5@wisc.edu)) for any complaints or concerns about SynChrono in general.

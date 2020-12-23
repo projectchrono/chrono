@@ -81,9 +81,9 @@ void function_CalcContactForces(
     real3* shear_disp,                                    // accumulated shear displacement for each neighbor (per body)
     real* contact_relvel_init,                            // initial relative normal velocity per contact pair
     real* contact_duration,                               // duration of persistent contact between contact pairs
-    int* ext_body_id,                                     // [output] body IDs (two per contact)
-    real3* ext_body_force,                                // [output] body force (two per contact)
-    real3* ext_body_torque                                // [output] body torque (two per contact)
+    int* ct_bid,                                          // [output] body IDs (two per contact)
+    real3* ct_force,                                      // [output] body force (two per contact)
+    real3* ct_torque                                      // [output] body torque (two per contact)
 ) {
     // Identify the two bodies in contact (global body IDs).
     int b1 = body_pairs[index].x;
@@ -91,12 +91,12 @@ void function_CalcContactForces(
 
     // If the two contact shapes are actually separated, set zero forces and torques.
     if (depth[index] >= 0) {
-        ext_body_id[2 * index] = b1;
-        ext_body_id[2 * index + 1] = b2;
-        ext_body_force[2 * index] = real3(0);
-        ext_body_force[2 * index + 1] = real3(0);
-        ext_body_torque[2 * index] = real3(0);
-        ext_body_torque[2 * index + 1] = real3(0);
+        ct_bid[2 * index] = b1;
+        ct_bid[2 * index + 1] = b2;
+        ct_force[2 * index] = real3(0);
+        ct_force[2 * index + 1] = real3(0);
+        ct_torque[2 * index] = real3(0);
+        ct_torque[2 * index + 1] = real3(0);
         return;
     }
 
@@ -418,12 +418,12 @@ void function_CalcContactForces(
                         break;
                 }
 
-                ext_body_id[2 * index] = b1;
-                ext_body_id[2 * index + 1] = b2;
-                ext_body_force[2 * index] = -force;
-                ext_body_force[2 * index + 1] = force;
-                ext_body_torque[2 * index] = -torque1_loc + m_roll1 + m_spin1;
-                ext_body_torque[2 * index + 1] = torque2_loc - m_roll2 - m_spin2;
+                ct_bid[2 * index] = b1;
+                ct_bid[2 * index + 1] = b2;
+                ct_force[2 * index] = -force;
+                ct_force[2 * index + 1] = force;
+                ct_torque[2 * index] = -torque1_loc + m_roll1 + m_spin1;
+                ct_torque[2 * index + 1] = torque2_loc - m_roll2 - m_spin2;
             }
 
             return;
@@ -540,21 +540,21 @@ void function_CalcContactForces(
     }
 
     // Store body forces and torques, duplicated for the two bodies.
-    ext_body_id[2 * index] = b1;
-    ext_body_id[2 * index + 1] = b2;
-    ext_body_force[2 * index] = -force;
-    ext_body_force[2 * index + 1] = force;
-    ext_body_torque[2 * index] = -torque1_loc + m_roll1 + m_spin1;
-    ext_body_torque[2 * index + 1] = torque2_loc - m_roll2 - m_spin2;
+    ct_bid[2 * index] = b1;
+    ct_bid[2 * index + 1] = b2;
+    ct_force[2 * index] = -force;
+    ct_force[2 * index + 1] = force;
+    ct_torque[2 * index] = -torque1_loc + m_roll1 + m_spin1;
+    ct_torque[2 * index + 1] = torque2_loc - m_roll2 - m_spin2;
 }
 
 // -----------------------------------------------------------------------------
 // Calculate contact forces and torques for all contact pairs.
 // -----------------------------------------------------------------------------
 
-void ChIterativeSolverParallelSMC::host_CalcContactForces(custom_vector<int>& ext_body_id,
-                                                          custom_vector<real3>& ext_body_force,
-                                                          custom_vector<real3>& ext_body_torque,
+void ChIterativeSolverParallelSMC::host_CalcContactForces(custom_vector<int>& ct_bid,
+                                                          custom_vector<real3>& ct_force,
+                                                          custom_vector<real3>& ct_torque,
                                                           custom_vector<vec2>& shape_pairs,
                                                           custom_vector<char>& shear_touch) {
 #pragma omp parallel for
@@ -591,9 +591,9 @@ void ChIterativeSolverParallelSMC::host_CalcContactForces(custom_vector<int>& ex
             data_manager->host_data.shear_disp.data(),   // accumulated shear displacement for each neighbor (per body)
             data_manager->host_data.contact_relvel_init.data(),  // initial relative normal velocity per contact pair
             data_manager->host_data.contact_duration.data(),     // duration of persistent contact between contact pairs
-            ext_body_id.data(),                                  // [output] body IDs (two per contact)
-            ext_body_force.data(),                               // [output] body force (two per contact)
-            ext_body_torque.data()                               // [output] body torque (two per contact)
+            ct_bid.data(),                                       // [output] body IDs (two per contact)
+            ct_force.data(),                                     // [output] body force (two per contact)
+            ct_torque.data()                                     // [output] body torque (two per contact)
         );
     }
 }
@@ -652,12 +652,14 @@ void ChIterativeSolverParallelSMC::ProcessContacts() {
     //    For each pair of contact shapes that overlap, we calculate and store the
     //    IDs of the two corresponding bodies and the resulting contact forces and
     //    torques on the two bodies.
-    custom_vector<int> ext_body_id(2 * data_manager->num_rigid_contacts);
-    custom_vector<real3> ext_body_force(2 * data_manager->num_rigid_contacts);
-    custom_vector<real3> ext_body_torque(2 * data_manager->num_rigid_contacts);
+
+    custom_vector<int> ct_bid(2 * data_manager->num_rigid_contacts);
+    custom_vector<real3> ct_force(2 * data_manager->num_rigid_contacts);
+    custom_vector<real3> ct_torque(2 * data_manager->num_rigid_contacts);
+
+    // Set up additional vectors for multi-step tangential model
     custom_vector<vec2> shape_pairs;
     custom_vector<char> shear_touch;
-
     if (data_manager->settings.solver.tangential_displ_mode == ChSystemSMC::TangentialDisplacementModel::MultiStep) {
         shape_pairs.resize(data_manager->num_rigid_contacts);
         shear_touch.resize(max_shear * data_manager->num_rigid_bodies);
@@ -670,7 +672,12 @@ void ChIterativeSolverParallelSMC::ProcessContacts() {
         }
     }
 
-    host_CalcContactForces(ext_body_id, ext_body_force, ext_body_torque, shape_pairs, shear_touch);
+    host_CalcContactForces(ct_bid, ct_force, ct_torque, shape_pairs, shear_touch);
+
+    data_manager->host_data.ct_force.resize(2 * data_manager->num_rigid_contacts);
+    data_manager->host_data.ct_torque.resize(2 * data_manager->num_rigid_contacts);
+    thrust::copy(THRUST_PAR ct_force.begin(), ct_force.end(), data_manager->host_data.ct_force.begin());
+    thrust::copy(THRUST_PAR ct_torque.begin(), ct_torque.end(), data_manager->host_data.ct_torque.begin());
 
     if (data_manager->settings.solver.tangential_displ_mode == ChSystemSMC::TangentialDisplacementModel::MultiStep) {
 #pragma omp parallel for
@@ -687,8 +694,8 @@ void ChIterativeSolverParallelSMC::ProcessContacts() {
     //    involved in at least one contact, by reducing the contact forces and
     //    torques from all contacts these bodies are involved in. The number of
     //    bodies that experience at least one contact is 'ct_body_count'.
-    thrust::sort_by_key(THRUST_PAR ext_body_id.begin(), ext_body_id.end(),
-                        thrust::make_zip_iterator(thrust::make_tuple(ext_body_force.begin(), ext_body_torque.begin())));
+    thrust::sort_by_key(THRUST_PAR ct_bid.begin(), ct_bid.end(),
+                        thrust::make_zip_iterator(thrust::make_tuple(ct_force.begin(), ct_torque.begin())));
 
     custom_vector<int> ct_body_id(data_manager->num_rigid_bodies);
     custom_vector<real3>& ct_body_force = data_manager->host_data.ct_body_force;
@@ -700,21 +707,19 @@ void ChIterativeSolverParallelSMC::ProcessContacts() {
     // Reduce contact forces from all contacts and count bodies currently involved
     // in contact. We do this simultaneously for contact forces and torques, using
     // zip iterators.
-    uint ct_body_count =
-        (uint)(thrust::reduce_by_key(
-                   THRUST_PAR ext_body_id.begin(), ext_body_id.end(),
-                   thrust::make_zip_iterator(thrust::make_tuple(ext_body_force.begin(), ext_body_torque.begin())),
-                   ct_body_id.begin(),
-                   thrust::make_zip_iterator(thrust::make_tuple(ct_body_force.begin(), ct_body_torque.begin())),
+    auto end_range = thrust::reduce_by_key(
+        THRUST_PAR ct_bid.begin(), ct_bid.end(),
+        thrust::make_zip_iterator(thrust::make_tuple(ct_force.begin(), ct_torque.begin())),
+        ct_body_id.begin(),
+        thrust::make_zip_iterator(thrust::make_tuple(ct_body_force.begin(), ct_body_torque.begin())),
 #if defined _WIN32
-                   // Windows compilers require an explicit-width type
-                   thrust::equal_to<int64_t>(), sum_tuples()
+        thrust::equal_to<int64_t>(), sum_tuples()  // Windows compilers require an explicit-width type
 #else
-                   thrust::equal_to<int>(), sum_tuples()
+        thrust::equal_to<int>(), sum_tuples()
 #endif
-                       )
-                   .first -
-               ct_body_id.begin());
+    );        
+
+    uint ct_body_count = (uint)(end_range.first - ct_body_id.begin());
 
     ct_body_force.resize(ct_body_count);
     ct_body_torque.resize(ct_body_count);
@@ -734,12 +739,7 @@ void ChIterativeSolverParallelSMC::ComputeD() {
         return;
     }
 
-    uint num_bodies = data_manager->num_rigid_bodies;
-    uint num_shafts = data_manager->num_shafts;
-    uint num_motors = data_manager->num_motors;
     uint num_dof = data_manager->num_dof;
-    uint num_contacts = data_manager->num_rigid_contacts;
-    uint num_bilaterals = data_manager->num_bilaterals;
     uint nnz_bilaterals = data_manager->nnz_bilaterals;
 
     CompressedMatrix<real>& D_T = data_manager->host_data.D_T;

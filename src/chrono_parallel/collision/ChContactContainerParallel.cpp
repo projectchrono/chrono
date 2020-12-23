@@ -69,33 +69,88 @@ static inline chrono::ChVector<> ToChVector(const real3& a) {
 
 void ChContactContainerParallel::ReportAllContacts(std::shared_ptr<ReportContactCallback> callback) {
     // Readibility
-    auto& ptA = data_manager->host_data.cpta_rigid_rigid;
-    auto& ptB = data_manager->host_data.cptb_rigid_rigid;
-    auto& nrm = data_manager->host_data.norm_rigid_rigid;
-    auto& depth = data_manager->host_data.dpth_rigid_rigid;
-    auto& erad = data_manager->host_data.erad_rigid_rigid;
-    auto& bids = data_manager->host_data.bids_rigid_rigid;
+    const auto& ptA = data_manager->host_data.cpta_rigid_rigid;
+    const auto& ptB = data_manager->host_data.cptb_rigid_rigid;
+    const auto& nrm = data_manager->host_data.norm_rigid_rigid;
+    const auto& depth = data_manager->host_data.dpth_rigid_rigid;
+    const auto& erad = data_manager->host_data.erad_rigid_rigid;
+    const auto& bids = data_manager->host_data.bids_rigid_rigid;
+
+    // NSC-specific
+    auto mode = data_manager->settings.solver.local_solver_mode;
+    const DynamicVector<real>& gamma_u = blaze::subvector(data_manager->host_data.gamma, 0, data_manager->num_unilaterals);
+
+    // SMC-specific
+    const auto& ct_force = data_manager->host_data.ct_force;
+    const auto& ct_torque = data_manager->host_data.ct_torque;
 
     // Grab the list of bodies.
     // NOTE: we assume that bodies were added in the order of their IDs!
     auto bodylist = GetSystem()->Get_bodylist();
 
-    // No reaction forces or torques reported!
-    ChVector<> zero(0, 0, 0);
+    // Contact forces
+    ChVector<> force;
+    ChVector<> torque;
 
     // Contact plane
     ChVector<> plane_x, plane_y, plane_z;
     ChMatrix33<> contact_plane;
 
     for (uint i = 0; i < data_manager->num_rigid_contacts; i++) {
-        // Contact plane coordinate system (normal in x direction)
+        auto bodyA = bodylist[bids[i].x].get();
+        auto bodyB = bodylist[bids[i].y].get();
+
+        auto pA = ToChVector(ptA[i]);  // in absolute frame
+        auto pB = ToChVector(ptB[i]);  // in absolute frame
+
+        // Contact plane coordinate system (normal in x direction from pB to pA)
         XdirToDxDyDz(ToChVector(nrm[i]), VECT_Y, plane_x, plane_y, plane_z);
         contact_plane.Set_A_axis(plane_x, plane_y, plane_z);
 
+        // Contact force and torque expressed in the contact plane
+        switch (GetSystem()->GetContactMethod()) {
+            case ChContactMethod::NSC: {
+                double f_n = (double)(gamma_u[i] / data_manager->settings.step_size);
+                double f_u = 0;
+                double f_v = 0;
+                if (mode == SolverMode::SLIDING || mode == SolverMode::SPINNING) {
+                    f_u = (double)(gamma_u[data_manager->num_rigid_contacts + 2 * i + 0] /
+                                    data_manager->settings.step_size);
+                    f_v = (double)(gamma_u[data_manager->num_rigid_contacts + 2 * i + 1] /
+                                    data_manager->settings.step_size);
+                }
+                force = ChVector<>(f_n, f_u, f_v);
+                double t_n = 0;
+                double t_u = 0;
+                double t_v = 0;
+                if (mode == SolverMode::SPINNING) {
+                    t_n = (double)(gamma_u[3 * data_manager->num_rigid_contacts + 3 * i + 0] /
+                                   data_manager->settings.step_size);
+                    t_u = (double)(gamma_u[3 * data_manager->num_rigid_contacts + 3 * i + 1] /
+                                   data_manager->settings.step_size);
+                    t_v = (double)(gamma_u[3 * data_manager->num_rigid_contacts + 3 * i + 2] /
+                                   data_manager->settings.step_size);
+                }
+                torque = ChVector<>(t_n, t_u, t_v);
+                break;
+            }
+            case ChContactMethod::SMC: {
+                // Convert force and torque to the contact frame.
+                // Consistent with the normal direction, use force and torque on body B.
+                auto force_abs = ToChVector(ct_force[2 * i + 1]);                       // in abs frame
+                auto torque_loc = ToChVector(ct_torque[2 * i + 1]);                     // in body frame, at body origin
+                auto force_loc = bodyB->TransformDirectionParentToLocal(force_abs);     // in body frame
+                auto ptB_loc = bodyB->TransformPointParentToLocal(pB);                  // in body frame
+                force = contact_plane.transpose() * force_abs;                          // in contact frame
+                auto torque_loc1 = torque_loc - ptB_loc.Cross(force_loc);               // in body frame, at contact
+                auto torque_abs = bodyB->TransformDirectionLocalToParent(torque_loc1);  // in abs frame, at contact
+                torque = contact_plane.transpose() * torque_abs;                        // in contact frame, at contact
+                break;
+            }
+        }
+
         // Invoke callback function
-        bool proceed =
-            callback->OnReportContact(ToChVector(ptA[i]), ToChVector(ptB[i]), contact_plane, depth[i], erad[i], zero,
-                                      zero, bodylist[bids[i].x].get(), bodylist[bids[i].y].get());
+        bool proceed = callback->OnReportContact(pA, pB, contact_plane, depth[i], erad[i], force, torque, bodyA, bodyB);
         if (!proceed)
             break;
     }

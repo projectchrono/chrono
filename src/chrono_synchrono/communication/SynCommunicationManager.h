@@ -77,8 +77,6 @@ class SYN_API SynCommunicationManager {
     virtual void Barrier() = 0;
 
     /// @brief Adds all messages to the flatbuffer manager and finishes it size-prefixed (if desired)
-    ///
-    /// @param size_prefixed finish the buffer with the size infront of it
     virtual void GenerateMessages() final;
 
     /// @brief Adds all info messages to the flatbuffer manager and finishes it size-prefixed
