@@ -96,12 +96,9 @@ class ChApi ChSystemPBD : public ChSystem {
 	std::vector<std::shared_ptr< ChLinkPBD> > linklistPBD;
 	std::vector<std::shared_ptr<ChContactPBD>> contactlistPBD;
 
-	std::vector < ChVector<double>> x_prev;
-	//std::vector < ChVector<double>> x;
-	std::vector < ChQuaternion<double>> q_prev;
-	//std::vector < ChQuaternion<double>> q;
-	//std::vector < ChVector<double>> omega;
-	//std::vector < ChVector<double>> v;
+	std::vector < ChVector<>> x_prev;
+	std::vector < ChQuaternion<>> q_prev;
+
 
 	ChState sys_state;
 	ChStateDelta sys_state_delta;
