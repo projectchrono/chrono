@@ -155,8 +155,8 @@ namespace chrono {
 	ChVector<> ChLinkPBD::getQdelta() {
 		// Orientation of the 2 link frames
 		// TODO: this should be the opposite
-		ChQuaternion<> ql1 = f1.GetCoord().rot * Body1->GetRot();
-		ChQuaternion<> ql2 = f2.GetCoord().rot * Body2->GetRot();
+		ChQuaternion<> ql1 = Body1->GetRot() * f1.GetCoord().rot;
+		ChQuaternion<> ql2 = Body2->GetRot() * f2.GetCoord().rot;
 		if (r_locked) {
 			// eq. 18 PBD paper
 			ChQuaternion<> qdelta = ql1*ql2.GetConjugate();
@@ -230,8 +230,6 @@ namespace chrono {
 		mask[4] = false;
 		mask[5] = false;
 		EvalMasses();
-		p1_old = Body1->GetPos() + Body1->GetRot().Rotate(f1.coord.pos);
-		p2_old = Body2->GetPos() + Body2->GetRot().Rotate(f2.coord.pos);
 		//p_dir.Set(int(mask[0]), int(mask[1]), int(mask[2]));
 		// If the contact is violated it is NOT free, is dist > 0 we skip the correction completely
 		p_free = false;
@@ -276,10 +274,9 @@ namespace chrono {
 			ChVector<> v_rel = (Body1->GetPos_dt() + Body1->GetRot().Rotate(Body1->GetWvel_loc().Cross(f1.coord.pos)) - Body2->GetPos_dt() - Body2->GetRot().Rotate(Body2->GetWvel_loc().Cross(f2.coord.pos)));
 			// normal velocity before velocity update. Will be used in 
 			v_n_old = v_rel^n;
-			ChVector<> v_r_t = v_rel - n*v_n_old;
 
 			// Treat the contact as a link	
-			if (v_r_t.Length()>1E-3) {
+			if (!is_dynamic) {
 				mask[0] = false;
 				mask[1] = true;
 				mask[2] = true;
@@ -288,17 +285,19 @@ namespace chrono {
 				// project static friction
 				ChVector<> r1 = Body1->GetRot().Rotate(f1.coord.pos);
 				ChVector<> r2 = Body2->GetRot().Rotate(f2.coord.pos);
-				ChVector<> n0 = ((Body1->GetPos() + r1 - p1_old) - (Body2->GetPos() + r2 - p2_old));
-				//ChVector<> n0 = Body1->GetPos() + r1 - (Body2->GetPos() + r2);
-				double n0_n = n0^n;
-				ChVector<> n0_t = n0 - n * n0_n;
+				//ChVector<> r1_old = old_q1.Rotate(f1.coord.pos);
+				//ChVector<> r2_old = old_q2.Rotate(f2.coord.pos);
+				//ChVector<> n0 = -( (Body1->GetPos() + r1 - (old_x1 + r1_old)) - ((Body2->GetPos() + r2) - (old_x2 + r2_old) ));
+				ChVector<> n0 = Body1->GetPos() + r1 - (Body2->GetPos() + r2);
+				//double n0_n = n0^n;
+				//ChVector<> n0_t = n0 - n * n0_n;
 				// Rotation of the link frame w.r.t. global frame
-				//ChQuaternion<> q = f1.coord.rot * Body1->GetRot();
+				ChQuaternion<> q = f1.coord.rot * Body1->GetRot();
 				// get rid of unconstrained directions by element wise multiplication in the link frame reference
-				//ChVector<> n_loc = (q.RotateBack(n0))*p_dir;
+				ChVector<> n_loc = (q.RotateBack(n0))*p_dir;
 				// Now we bring the violation back in global coord and normaize it after saving its length
-				//ChVector<> n_tf = q.Rotate(n_loc);
-				ChVector<> n_tf = n0_t;
+				ChVector<> n_tf = q.Rotate(n_loc);
+				//ChVector<> n_tf = n0_t;
 				double C = n_tf.Length();
 
 				if (n_tf.Normalize()) {
@@ -317,8 +316,8 @@ namespace chrono {
 
 					// TODO: use static friction here!!
 					if (abs(lambda_contact_tf) > mu_d*abs(lambda_f)) {
-						//is_dynamic = true;
-						return;
+						//lambda_contact_tf = (lambda_contact_tf / abs(lambda_contact_tf))  * mu_d*abs(lambda_f);
+						is_dynamic = true;
 					}
 					else {
 						Body1->SetPos(Body1->GetPos() + p *  invm1);
@@ -340,7 +339,6 @@ namespace chrono {
 					}
 				}
 			}
-			
 		}
 	}
 
@@ -357,32 +355,30 @@ namespace chrono {
 			double v_rel_n = v_rel^n;
 			ChVector<> v_rel_t = v_rel - n * v_rel_n;
 			double vt = v_rel_t.Length();
-			ChVector<> delta_vn, delta_vt;
-			ChVector<> p;
-			// do not compute tangential velocity correction if there is none
-			if (vt>1E-3) {
+			ChVector<> delta_v;
 
+			// do not compute tangential velocity correction if there is none
+			if (is_dynamic) {
 				double fn = abs(lambda_f) / (h*h);
 				// eq. 30
 				// TODO: this is taken from the paper but does not make sense dimensionally
-				double threshold = h* mu_d * fn*(invm1 + invm2);
+				double threshold = h* mu_d * fn*((invm1 + invm2) / 2);
 				if (vt < threshold) {
-					//is_dynamic = false;
-					delta_vt = -v_rel_t ;
+					is_dynamic = false;
+					delta_v += -v_rel_t;
 				}
 				else {
-					delta_vt = -v_rel_t.GetNormalized() *threshold;
+					delta_v += -v_rel_t.GetNormalized() * threshold;
 				}
-				p += delta_vt/(w2_tf + w1_tf);
 			}
 
 			// normal speed restitution
 			// TODO: use a restitution coefficient
 			double e = (abs(v_rel_n) < 2 * 9.8*h) ? 0 : 0.0;
-			delta_vn += -n * (v_rel_n)+ChMax(-e*v_n_old, 0.0);
+			delta_v += -n * (v_rel_n)+ChMax(-e*v_n_old, 0.0);
 
 			// apply speed impulses to bodies
-			p += delta_vn / (w1 + w2);
+			ChVector<> p = delta_v / (w1 + w2);
 			ChVector<> v1 = Body1->GetPos_dt();
 			ChVector<> v2 = Body2->GetPos_dt();
 			Body1->SetPos_dt(v1 + p*invm1);
@@ -394,9 +390,6 @@ namespace chrono {
 			ChVector<> delta_omega2 = Inv_I2 * f2.coord.pos.Cross(Body2->GetRot().RotateBack(p)).eigen();
 			Body1->SetWvel_loc(omega1 + delta_omega1);
 			Body2->SetWvel_loc(omega2 - delta_omega2);
-
-			p1_old = Body1->GetPos() + Body1->GetRot().Rotate(f1.coord.pos);
-			p2_old = Body2->GetPos() + Body2->GetRot().Rotate(f2.coord.pos);
 		}
 	}
 

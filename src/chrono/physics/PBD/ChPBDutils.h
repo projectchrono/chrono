@@ -72,9 +72,6 @@ namespace chrono {
 		// Tangential friction inv masses
 		double w1_tf;
 		double w2_tf;
-		// Old contact point positions
-		ChVector<> p1_old;
-		ChVector<> p2_old;
 		// Compliance (TODO: make it settable, and separate for torque and force)
 		double alpha = 0.0;
 		//TODO: not implementing limits and actuators yet.
