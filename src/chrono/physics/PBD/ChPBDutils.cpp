@@ -316,7 +316,7 @@ namespace chrono {
 
 					// TODO: use static friction here!!
 					if (abs(lambda_contact_tf) > mu_d*abs(lambda_f)) {
-						//lambda_contact_tf = (lambda_contact_tf / abs(lambda_contact_tf))  * mu_d*abs(lambda_f);
+						lambda_contact_tf = (lambda_contact_tf / abs(lambda_contact_tf))  * mu_d*abs(lambda_f);
 						is_dynamic = true;
 					}
 					else {
@@ -355,30 +355,31 @@ namespace chrono {
 			double v_rel_n = v_rel^n;
 			ChVector<> v_rel_t = v_rel - n * v_rel_n;
 			double vt = v_rel_t.Length();
-			ChVector<> delta_v;
+			ChVector<> delta_vn, delta_vt, p;
 
 			// do not compute tangential velocity correction if there is none
 			if (is_dynamic) {
-				double fn = abs(lambda_f) / (h*h);
+				double ft = abs(lambda_contact_tf) / (h*h);
 				// eq. 30
 				// TODO: this is taken from the paper but does not make sense dimensionally
-				double threshold = h* mu_d * fn*((invm1 + invm2) / 2);
+				double threshold = h * ft * (w1_tf+ w2_tf);
 				if (vt < threshold) {
 					is_dynamic = false;
-					delta_v += -v_rel_t;
+					delta_vt = -v_rel_t;
 				}
 				else {
-					delta_v += -v_rel_t.GetNormalized() * threshold;
+					delta_vt = -v_rel_t.GetNormalized() * threshold;
 				}
+				p += (delta_vt)/ (w1_tf + w2_tf);
 			}
 
 			// normal speed restitution
 			// TODO: use a restitution coefficient
 			double e = (abs(v_rel_n) < 2 * 9.8*h) ? 0 : 0.0;
-			delta_v += -n * (v_rel_n)+ChMax(-e*v_n_old, 0.0);
+			delta_vn = -n * (v_rel_n)+ChMax(-e*v_n_old, 0.0);
 
 			// apply speed impulses to bodies
-			ChVector<> p = delta_v / (w1 + w2);
+			p += delta_vn / (w1 + w2);
 			ChVector<> v1 = Body1->GetPos_dt();
 			ChVector<> v2 = Body2->GetPos_dt();
 			Body1->SetPos_dt(v1 + p*invm1);
