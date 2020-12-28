@@ -255,7 +255,7 @@ namespace chrono {
 
 		// If the distance is positive, just skip
 		if (d > 0) {
-			//lambda_contact_tf = 0;
+			lambda_contact_tf = 0;
 			//lambda_f = 0;
 			return;
 		}
