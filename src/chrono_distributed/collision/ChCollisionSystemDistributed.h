@@ -14,8 +14,8 @@
 
 #pragma once
 
-#include "chrono_parallel/ChDataManager.h"
-#include "chrono_parallel/collision/ChCollisionSystemParallel.h"
+#include "chrono_multicore/ChDataManager.h"
+#include "chrono_multicore/collision/ChCollisionSystemMulticore.h"
 
 #include "chrono_distributed/ChDistributedDataManager.h"
 

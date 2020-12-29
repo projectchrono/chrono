@@ -18,11 +18,11 @@
 #include "chrono_distributed/collision/ChCollisionModelDistributed.h"
 #include "chrono_distributed/collision/ChCollisionSystemDistributed.h"
 
-#include "chrono_parallel/ChDataManager.h"
-#include "chrono_parallel/collision/ChBroadphaseUtils.h"
-#include "chrono_parallel/collision/ChCollisionModelParallel.h"
-#include "chrono_parallel/collision/ChCollisionSystemParallel.h"
-#include "chrono_parallel/collision/ChCollision.h"
+#include "chrono_multicore/ChDataManager.h"
+#include "chrono_multicore/collision/ChBroadphaseUtils.h"
+#include "chrono_multicore/collision/ChCollisionModelMulticore.h"
+#include "chrono_multicore/collision/ChCollisionSystemMulticore.h"
+#include "chrono_multicore/collision/ChCollision.h"
 
 namespace chrono {
 namespace collision {

@@ -18,7 +18,7 @@
 
 #include "chrono/physics/ChBody.h"
 
-#include "chrono_parallel/ChDataManager.h"
+#include "chrono_multicore/ChDataManager.h"
 
 #include "chrono_distributed/ChApiDistributed.h"
 #include "chrono_distributed/ChDistributedDataManager.h"

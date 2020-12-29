@@ -20,8 +20,8 @@
 #include "chrono_opengl/ChOpenGLMaterials.h"
 
 #ifdef CHRONO_PARALLEL
-#include "chrono_parallel/physics/ChSystemParallel.h"
-#include "chrono_parallel/ChDataManager.h"
+#include "chrono_multicore/physics/ChSystemMulticore.h"
+#include "chrono_multicore/ChDataManager.h"
 #endif
 
 namespace chrono {

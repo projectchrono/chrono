@@ -28,8 +28,8 @@
 #include "chrono_distributed/ChTypesDistributed.h"
 #include "chrono_distributed/physics/ChDomainDistributed.h"
 
-#include "chrono_parallel/ChDataManager.h"
-#include "chrono_parallel/physics/ChSystemParallel.h"
+#include "chrono_multicore/ChDataManager.h"
+#include "chrono_multicore/physics/ChSystemMulticore.h"
 
 namespace chrono {
 

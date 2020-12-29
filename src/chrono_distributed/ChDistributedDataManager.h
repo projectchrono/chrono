@@ -18,7 +18,7 @@
 #include "chrono_distributed/ChTypesDistributed.h"
 #include "chrono_distributed/physics/ChSystemDistributed.h"
 
-#include "chrono_parallel/ChDataManager.h"
+#include "chrono_multicore/ChDataManager.h"
 
 #include <vector>
 

@@ -17,9 +17,9 @@
 #include "chrono/ChConfig.h"
 
 #ifdef CHRONO_PARALLEL
-#include "chrono_parallel/physics/ChSystemParallel.h"
-#include "chrono_parallel/ChDataManager.h"
-#include "chrono_parallel/physics/Ch3DOFContainer.h"
+#include "chrono_multicore/physics/ChSystemMulticore.h"
+#include "chrono_multicore/ChDataManager.h"
+#include "chrono_multicore/physics/Ch3DOFContainer.h"
 #endif
 
 #include "chrono/assets/ChBoxShape.h"
