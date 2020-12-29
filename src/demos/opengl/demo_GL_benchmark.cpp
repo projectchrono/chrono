@@ -12,7 +12,7 @@
 // Authors: Hammad Mazhar
 // =============================================================================
 //
-// Chrono::Parallel test program for OpenGL code.
+// Chrono::Multicore test program for OpenGL code.
 //
 // A Random Set of Geometries in Space
 // The global reference frame has Z up.

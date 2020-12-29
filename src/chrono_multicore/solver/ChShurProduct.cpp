@@ -104,7 +104,7 @@ void ChShurProduct::operator()(const DynamicVector<real>& x, DynamicVector<real>
     data_manager->system_timer.stop("ShurProduct");
 }
 
-void ChShurProductBilateral::Setup(ChParallelDataManager* data_container_) {
+void ChShurProductBilateral::Setup(ChMulticoreDataManager* data_container_) {
     ChShurProduct::Setup(data_container_);
     if (data_manager->num_bilaterals == 0) {
         return;
@@ -116,7 +116,7 @@ void ChShurProductBilateral::operator()(const DynamicVector<real>& x, DynamicVec
     output = NshurB * x;
 }
 
-void ChShurProductFEM::Setup(ChParallelDataManager* data_container_) {
+void ChShurProductFEM::Setup(ChMulticoreDataManager* data_container_) {
     ChShurProduct::Setup(data_container_);
     //    if (data_manager->num_fea_tets == 0) {
     //        return;

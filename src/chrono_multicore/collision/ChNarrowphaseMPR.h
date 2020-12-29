@@ -55,7 +55,7 @@ void MPRGetPoints(const ConvexBase* ShapeA,
 CH_MULTICORE_API
 bool MPRSphereSphere(const ConvexBase* ShapeA, const ConvexBase* ShapeB, real3& N, real& dist, real3& p1, real3& p2);
 
-/// @} parallel_colision
+/// @} multicore_colision
 
 } // end namespace collision
 } // end namespace chrono

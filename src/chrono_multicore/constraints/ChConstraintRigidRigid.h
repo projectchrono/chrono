@@ -32,7 +32,7 @@ class CH_MULTICORE_API ChConstraintRigidRigid {
     ChConstraintRigidRigid();
     ~ChConstraintRigidRigid() {}
 
-    void Setup(ChParallelDataManager* dm);
+    void Setup(ChMulticoreDataManager* dm);
     void Project(real* gamma);
     void Project_Single(int index, real* gamma);
     void host_Project_single(int index, vec2* ids, real3* friction, real* cohesion, real* gamma);
@@ -67,7 +67,7 @@ class CH_MULTICORE_API ChConstraintRigidRigid {
     custom_vector<real3_int> rotated_point_a, rotated_point_b;
     custom_vector<quaternion> quat_a, quat_b;
 
-    ChParallelDataManager* data_manager;  ///< Pointer to the system's data manager
+    ChMulticoreDataManager* data_manager;  ///< Pointer to the system's data manager
 };
 
 /// @} multicore_constraint

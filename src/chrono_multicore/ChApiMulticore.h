@@ -58,7 +58,7 @@
     This is achieved using OpenMP, CUDA, Thrust, etc.
 
     For additional information, see:
-    - the [installation guide](@ref module_parallel_installation)
+    - the [installation guide](@ref module_multicore_installation)
     - the [tutorials](@ref tutorial_root)
 
     @{

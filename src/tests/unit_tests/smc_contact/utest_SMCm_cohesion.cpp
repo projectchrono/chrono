@@ -56,8 +56,8 @@ class CohesionTest : public ::testing::TestWithParam<ChSystemSMC::ContactForceMo
         mat->SetAdhesionMultDMT(adDMT);
         mat->SetAdhesionSPerko(adSPerko);
 
-        // Create a parallel SMC system and set the system parameters
-        sys = new ChSystemParallelSMC();
+        // Create a multicore SMC system and set the system parameters
+        sys = new ChSystemMulticoreSMC();
         time_step = 3.0E-5;
         SetSimParameters(sys, ChVector<>(0, 0, 0), fmodel);
 
@@ -86,7 +86,7 @@ class CohesionTest : public ::testing::TestWithParam<ChSystemSMC::ContactForceMo
 
     ~CohesionTest() { delete sys; }
 
-    ChSystemParallelSMC* sys;
+    ChSystemMulticoreSMC* sys;
     std::shared_ptr<ChBody> body1;
     std::shared_ptr<ChBody> body2;
     double srad;

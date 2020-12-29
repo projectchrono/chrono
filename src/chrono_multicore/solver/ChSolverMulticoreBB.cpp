@@ -16,9 +16,9 @@
 
 using namespace chrono;
 
-ChSolverParallelBB::ChSolverParallelBB() : ChSolverParallel() {}
+ChSolverMulticoreBB::ChSolverMulticoreBB() : ChSolverMulticore() {}
 
-void ChSolverParallelBB::UpdateR() {
+void ChSolverMulticoreBB::UpdateR() {
     const SubMatrixType& D_n_T = _DNT_;
     const DynamicVector<real>& M_invk = data_manager->host_data.M_invk;
     const DynamicVector<real>& b = data_manager->host_data.b;
@@ -39,7 +39,7 @@ void ChSolverParallelBB::UpdateR() {
     R_n = -b_n - D_n_T * M_invk + s_n;
 }
 
-uint ChSolverParallelBB::Solve(ChShurProduct& ShurProduct,
+uint ChSolverMulticoreBB::Solve(ChShurProduct& ShurProduct,
                                ChProjectConstraints& Project,
                                const uint max_iter,
                                const uint size,
@@ -222,6 +222,6 @@ uint ChSolverParallelBB::Solve(ChShurProduct& ShurProduct,
         data_manager->measures.solver.bilateral_apgd_step_length = alpha;
     }
     gamma = ml_candidate;
-    data_manager->system_timer.stop("ChSolverParallel_Solve");
+    data_manager->system_timer.stop("ChSolverMulticore_Solve");
     return current_iteration;
 }

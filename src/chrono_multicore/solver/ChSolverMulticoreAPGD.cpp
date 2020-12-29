@@ -16,8 +16,8 @@
 
 using namespace chrono;
 
-ChSolverParallelAPGD::ChSolverParallelAPGD()
-    : ChSolverParallel(),
+ChSolverMulticoreAPGD::ChSolverMulticoreAPGD()
+    : ChSolverMulticore(),
       mg_tmp_norm(0),
       mb_tmp_norm(0),
       obj1(0),
@@ -31,7 +31,7 @@ ChSolverParallelAPGD::ChSolverParallelAPGD()
       L(0),
       g_diff(0) {}
 
-void ChSolverParallelAPGD::UpdateR() {
+void ChSolverMulticoreAPGD::UpdateR() {
     const SubMatrixType& D_n_T = _DNT_;
     const DynamicVector<real>& M_invk = data_manager->host_data.M_invk;
     const DynamicVector<real>& b = data_manager->host_data.b;
@@ -52,7 +52,7 @@ void ChSolverParallelAPGD::UpdateR() {
     R_n = -b_n - D_n_T * M_invk + s_n;
 }
 
-uint ChSolverParallelAPGD::Solve(ChShurProduct& ShurProduct,
+uint ChSolverMulticoreAPGD::Solve(ChShurProduct& ShurProduct,
                                  ChProjectConstraints& Project,
                                  const uint max_iter,
                                  const uint size,
@@ -66,7 +66,7 @@ uint ChSolverParallelAPGD::Solve(ChShurProduct& ShurProduct,
     real& objective_value = data_manager->measures.solver.objective_value;
 
     DynamicVector<real> one(size, 1.0);
-    data_manager->system_timer.start("ChSolverParallel_Solve");
+    data_manager->system_timer.start("ChSolverMulticore_Solve");
     gamma_hat.resize(size);
     N_gamma_new.resize(size);
     temp.resize(size);
@@ -227,6 +227,6 @@ uint ChSolverParallelAPGD::Solve(ChShurProduct& ShurProduct,
     }
     gamma = gamma_hat;
 
-    data_manager->system_timer.stop("ChSolverParallel_Solve");
+    data_manager->system_timer.stop("ChSolverMulticore_Solve");
     return current_iteration;
 }

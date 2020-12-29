@@ -12,7 +12,7 @@
 // Authors: Hammad Mazhar
 // =============================================================================
 //
-// This file contains the base class used for all parallel iterative solvers.
+// This file contains the base class used for all multicore iterative solvers.
 // All of the functions are defined here, with the implementation of each solver
 // in it's specific cpp file.
 //
@@ -23,14 +23,14 @@
 using namespace chrono;
 
 void ChProjectConstraints::operator()(real* data) {
-    data_manager->system_timer.start("ChSolverParallel_Project");
+    data_manager->system_timer.start("ChSolverMulticore_Project");
     data_manager->rigid_rigid->Project(data);
     data_manager->node_container->Project(data);
     data_manager->fea_container->Project(data);
-    data_manager->system_timer.stop("ChSolverParallel_Project");
+    data_manager->system_timer.stop("ChSolverMulticore_Project");
 }
 
-ChSolverParallel::ChSolverParallel() {
+ChSolverMulticore::ChSolverMulticore() {
     current_iteration = 0;
     rigid_rigid = NULL;
     three_dof = NULL;
@@ -40,7 +40,7 @@ ChSolverParallel::ChSolverParallel() {
 
 //=================================================================================================================================
 
-void ChSolverParallel::ComputeSRhs(custom_vector<real>& gamma,
+void ChSolverMulticore::ComputeSRhs(custom_vector<real>& gamma,
                                    const custom_vector<real>& rhs,
                                    custom_vector<real3>& vel_data,
                                    custom_vector<real3>& omg_data,
@@ -52,7 +52,7 @@ void ChSolverParallel::ComputeSRhs(custom_vector<real>& gamma,
 
 bool init_eigen_vec = 0;
 
-real ChSolverParallel::LargestEigenValue(ChShurProduct& ShurProduct, DynamicVector<real>& temp, real lambda) {
+real ChSolverMulticore::LargestEigenValue(ChShurProduct& ShurProduct, DynamicVector<real>& temp, real lambda) {
     eigen_vec.resize(temp.size());
     if (init_eigen_vec == 0) {
         eigen_vec = 1;

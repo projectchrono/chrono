@@ -29,7 +29,7 @@ namespace chrono {
 /// @addtogroup multicore_math
 /// @{
 
-/// Chrono::Parallel qudruple (4-dimensional array).
+/// Chrono::Multicore qudruple (4-dimensional array).
 class CH_MULTICORE_API real4 {
   public:
     CUDA_HOST_DEVICE inline real4() {}
@@ -129,7 +129,7 @@ CUDA_HOST_DEVICE CH_MULTICORE_API real4 operator-(const real4& a);
 CUDA_HOST_DEVICE CH_MULTICORE_API real4
 Dot4(const real3& v, const real3& v1, const real3& v2, const real3& v3, const real3& v4);
 
-/// Chrono::parallel quaternion class.
+/// Chrono::Multicore quaternion class.
 class CH_MULTICORE_API quaternion {
   public:
     CUDA_HOST_DEVICE quaternion() {}

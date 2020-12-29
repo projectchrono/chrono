@@ -12,7 +12,7 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// Chrono::Parallel test program using SMC method for frictional contact.
+// Chrono::Multicore test program using SMC method for frictional contact.
 //
 // The model simulated here consists of a number of spherical objects falling
 // in a fixed container.
@@ -56,7 +56,7 @@ float cr = 0.4f;
 // -----------------------------------------------------------------------------
 // Create a bin consisting of five boxes attached to the ground.
 // -----------------------------------------------------------------------------
-void AddContainer(ChSystemParallelSMC* sys) {
+void AddContainer(ChSystemMulticoreSMC* sys) {
     // IDs for the two bodies
     int binId = -200;
 
@@ -67,7 +67,7 @@ void AddContainer(ChSystemParallelSMC* sys) {
     mat->SetRestitution(cr);
 
     // Create the containing bin (4 x 4 x 1)
-    auto bin = chrono_types::make_shared<ChBody>(chrono_types::make_shared<ChCollisionModelParallel>());
+    auto bin = chrono_types::make_shared<ChBody>(chrono_types::make_shared<ChCollisionModelMulticore>());
     bin->SetIdentifier(binId);
     bin->SetMass(1);
     bin->SetPos(ChVector<>(0, 0, 0));
@@ -96,7 +96,7 @@ void AddContainer(ChSystemParallelSMC* sys) {
 // -----------------------------------------------------------------------------
 // Create the falling spherical objects in a uniform rectangular grid.
 // -----------------------------------------------------------------------------
-void AddFallingBalls(ChSystemParallel* sys) {
+void AddFallingBalls(ChSystemMulticore* sys) {
     // Common material
     auto ballMat = chrono_types::make_shared<ChMaterialSurfaceSMC>();
     ballMat->SetYoungModulus(Y);
@@ -114,7 +114,7 @@ void AddFallingBalls(ChSystemParallel* sys) {
         for (int iy = -count_Y; iy <= count_Y; iy++) {
             ChVector<> pos(0.4 * ix, 0.4 * iy, 1);
 
-            auto ball = chrono_types::make_shared<ChBody>(chrono_types::make_shared<ChCollisionModelParallel>());
+            auto ball = chrono_types::make_shared<ChBody>(chrono_types::make_shared<ChCollisionModelMulticore>());
             ball->SetIdentifier(ballId++);
             ball->SetMass(mass);
             ball->SetInertiaXX(inertia);
@@ -153,7 +153,7 @@ int main(int argc, char* argv[]) {
     // Create system
     // -------------
 
-    ChSystemParallelSMC msystem;
+    ChSystemMulticoreSMC msystem;
 
     // Set number of threads
     msystem.SetNumThreads(8);

@@ -12,8 +12,8 @@
 // Authors: Hammad Mazhar, Radu Serban
 // =============================================================================
 //
-// Description: This class contains manages all data associated with a parallel
-// System. Rather than passing in individual data parameters to different parts
+// Description: This class contains manages all data associated with a multicore
+// system. Rather than passing in individual data parameters to different parts
 // of the code like the collision detection and the solver, passing a pointer to
 // a data manager is more convenient from a development perspective.
 //
@@ -28,7 +28,7 @@
 using namespace chrono;
 using namespace chrono::collision;
 
-ChParallelDataManager::ChParallelDataManager()
+ChMulticoreDataManager::ChMulticoreDataManager()
     : num_rigid_contacts(0),
       num_rigid_fluid_contacts(0),
       num_fluid_contacts(0),
@@ -64,13 +64,13 @@ ChParallelDataManager::ChParallelDataManager()
     aabb_generator->data_manager = this;
 }
 
-ChParallelDataManager::~ChParallelDataManager() {
+ChMulticoreDataManager::~ChMulticoreDataManager() {
     delete narrowphase;
     delete broadphase;
     delete aabb_generator;
 }
 
-int ChParallelDataManager::OutputBlazeVector(DynamicVector<real> src, std::string filename) {
+int ChMulticoreDataManager::OutputBlazeVector(DynamicVector<real> src, std::string filename) {
     const char* numformat = "%.16g";
     ChStreamOutAsciiFile stream(filename.c_str());
     stream.SetNumFormat(numformat);
@@ -81,7 +81,7 @@ int ChParallelDataManager::OutputBlazeVector(DynamicVector<real> src, std::strin
     return 0;
 }
 
-int ChParallelDataManager::OutputBlazeMatrix(CompressedMatrix<real> src, std::string filename) {
+int ChMulticoreDataManager::OutputBlazeMatrix(CompressedMatrix<real> src, std::string filename) {
     const char* numformat = "%.16g";
     ChStreamOutAsciiFile stream(filename.c_str());
     stream.SetNumFormat(numformat);
@@ -96,7 +96,7 @@ int ChParallelDataManager::OutputBlazeMatrix(CompressedMatrix<real> src, std::st
     return 0;
 }
 
-int ChParallelDataManager::ExportCurrentSystem(std::string output_dir) {
+int ChMulticoreDataManager::ExportCurrentSystem(std::string output_dir) {
     int offset = 0;
     if (settings.solver.solver_mode == SolverMode::NORMAL) {
         offset = num_rigid_contacts;
@@ -150,7 +150,7 @@ int ChParallelDataManager::ExportCurrentSystem(std::string output_dir) {
     return 0;
 }
 
-void ChParallelDataManager::PrintMatrix(CompressedMatrix<real> src) {
+void ChMulticoreDataManager::PrintMatrix(CompressedMatrix<real> src) {
     const char* numformat = "%.16g";
     std::cout << src.rows() << " " << src.columns() << "\n";
     for (int i = 0; i < src.rows(); ++i) {

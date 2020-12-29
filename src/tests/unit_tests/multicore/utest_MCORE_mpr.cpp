@@ -12,7 +12,7 @@
 // Authors: Hammad Mazhar, Radu Serban
 // =============================================================================
 //
-// Chrono::Parallel unit tests for MPR collision detection
+// Chrono::Multicore unit tests for MPR collision detection
 //
 // =============================================================================
 
@@ -37,7 +37,7 @@ using namespace chrono::collision;
 
 real envelope = 0;
 
-#ifdef CHRONO_PARALLEL_USE_DOUBLE
+#ifdef CHRONO_MULTICORE_USE_DOUBLE
 const double precision = 5e-7;
 #else
 const float precision = 1e-6f;

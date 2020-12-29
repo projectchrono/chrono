@@ -50,8 +50,8 @@ class StackingTest : public ::testing::TestWithParam<ChSystemSMC::ContactForceMo
         mat->SetAdhesionMultDMT(adDMT);
         mat->SetAdhesionSPerko(adSPerko);
 
-        // Create a parallel SMC system and set the system parameters
-        sys = new ChSystemParallelSMC();
+        // Create a multicore SMC system and set the system parameters
+        sys = new ChSystemMulticoreSMC();
         time_step = 3.0E-5;
         SetSimParameters(sys, ChVector<>(0, -9.81, 0), fmodel);
 
@@ -77,7 +77,7 @@ class StackingTest : public ::testing::TestWithParam<ChSystemSMC::ContactForceMo
 
     ~StackingTest() { delete sys; }
 
-    ChSystemParallelSMC* sys;
+    ChSystemMulticoreSMC* sys;
     std::vector<std::shared_ptr<ChBody>> bodies;
     double time_step;
 };

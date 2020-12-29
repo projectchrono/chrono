@@ -47,7 +47,7 @@ class ChLinActuatorTest
 
     void VerifySolution(double time);
 
-    ChSystemParallel* msystem;
+    ChSystemMulticore* msystem;
     ChContactMethod cm;
     ChQuaternion<> rot;
     double speed;
@@ -79,10 +79,10 @@ ChLinActuatorTest::ChLinActuatorTest() : animate(false) {
     // Create the mechanical system
     switch (cm) {
         case ChContactMethod::SMC:
-            msystem = new ChSystemParallelSMC();
+            msystem = new ChSystemMulticoreSMC();
             break;
         case ChContactMethod::NSC:
-            msystem = new ChSystemParallelNSC();
+            msystem = new ChSystemMulticoreNSC();
             break;
     }
     msystem->Set_G_acc(gravity);
@@ -97,7 +97,7 @@ ChLinActuatorTest::ChLinActuatorTest() : animate(false) {
     msystem->GetSettings()->solver.bilateral_clamp_speed = bilateral_clamp_speed;
 
     if (cm == ChContactMethod::NSC) {
-        ChSystemParallelNSC* msystemNSC = static_cast<ChSystemParallelNSC*>(msystem);
+        ChSystemMulticoreNSC* msystemNSC = static_cast<ChSystemMulticoreNSC*>(msystem);
         msystemNSC->GetSettings()->solver.solver_mode = SolverMode::SLIDING;
         msystemNSC->GetSettings()->solver.max_iteration_normal = max_iteration_normal;
         msystemNSC->GetSettings()->solver.max_iteration_sliding = max_iteration_sliding;

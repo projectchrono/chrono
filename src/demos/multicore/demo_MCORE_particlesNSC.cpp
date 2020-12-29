@@ -12,7 +12,7 @@
 // Authors: Radu Serban, Hammad Mazhar
 // =============================================================================
 //
-// Chrono::Parallel test program using a container of uniform particles (3DOF).
+// Chrono::Multicore test program using a container of uniform particles (3DOF).
 // Uses NSC (complementarity-based) method for frictional contact.
 //
 // The global reference frame has Z up.
@@ -51,7 +51,7 @@ real diameter = 0.016;
 // blade attached through a revolute joint to ground. The mixer is constrained
 // to rotate at constant angular velocity.
 // -----------------------------------------------------------------------------
-void AddContainer(ChSystemParallelNSC* sys) {
+void AddContainer(ChSystemMulticoreNSC* sys) {
     // IDs for the two bodies
     int binId = -200;
     int mixerId = -201;
@@ -69,7 +69,7 @@ void AddContainer(ChSystemParallelNSC* sys) {
 // -----------------------------------------------------------------------------
 // Create the 3DOF particles with spherical contact
 // -----------------------------------------------------------------------------
-void AddParticles(ChSystemParallelNSC* sys) {
+void AddParticles(ChSystemMulticoreNSC* sys) {
     auto particle_container = chrono_types::make_shared<ChParticleContainer>();
     sys->Add3DOFContainer(particle_container);
 
@@ -125,7 +125,7 @@ int main(int argc, char* argv[]) {
     // Create system
     // -------------
 
-    ChSystemParallelNSC msystem;
+    ChSystemMulticoreNSC msystem;
 
     // Set number of threads
     msystem.SetNumThreads(8);

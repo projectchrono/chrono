@@ -12,7 +12,7 @@
 // Authors: Radu Serban, Hammad Mazhar
 // =============================================================================
 //
-// Chrono::Parallel test program using an MPM container (3DOF), either a particle
+// Chrono::Multicore test program using an MPM container (3DOF), either a particle
 // or a fluid container 
 //
 // The global reference frame has Z up.
@@ -54,7 +54,7 @@ double kernel_radius = .016 * 2;
 // blade attached through a revolute joint to ground. The mixer is constrained
 // to rotate at constant angular velocity.
 // -----------------------------------------------------------------------------
-void AddBody(ChSystemParallelNSC* sys) {
+void AddBody(ChSystemMulticoreNSC* sys) {
     // IDs for the two bodies
     int binId = -200;
     int mixerId = -201;
@@ -64,7 +64,7 @@ void AddBody(ChSystemParallelNSC* sys) {
     mat->SetFriction(0.4f);
 
     // Create the containing bin (2 x 2 x 1)
-    auto bin = chrono_types::make_shared<ChBody>(chrono_types::make_shared<ChCollisionModelParallel>());
+    auto bin = chrono_types::make_shared<ChBody>(chrono_types::make_shared<ChCollisionModelMulticore>());
     bin->SetIdentifier(binId);
     bin->SetMass(100);
     bin->SetPos(ChVector<>(0, 0, 1));
@@ -85,7 +85,7 @@ void AddBody(ChSystemParallelNSC* sys) {
     sys->AddBody(bin);
 }
 
-void AddContainer(ChSystemParallelNSC* sys) {
+void AddContainer(ChSystemMulticoreNSC* sys) {
     // IDs for the two bodies
     int binId = -200;
     int mixerId = -201;
@@ -95,7 +95,7 @@ void AddContainer(ChSystemParallelNSC* sys) {
     mat->SetFriction(0.4f);
 
     // Create the containing bin (2 x 2 x 1)
-    auto bin = chrono_types::make_shared<ChBody>(chrono_types::make_shared<ChCollisionModelParallel>());
+    auto bin = chrono_types::make_shared<ChBody>(chrono_types::make_shared<ChCollisionModelMulticore>());
     bin->SetIdentifier(binId);
     bin->SetMass(1);
     bin->SetPos(ChVector<>(0, 0, 0));
@@ -118,7 +118,7 @@ void AddContainer(ChSystemParallelNSC* sys) {
 // -----------------------------------------------------------------------------
 // Create the MPM container with spherical contact
 // -----------------------------------------------------------------------------
-void AddMPMContainer(ChSystemParallelNSC* sys) {
+void AddMPMContainer(ChSystemMulticoreNSC* sys) {
 
 #if USE_RIGID
     auto mpm_container = chrono_types::make_shared<ChParticleContainer>();
@@ -238,7 +238,7 @@ int main(int argc, char* argv[]) {
     // Create system
     // -------------
 
-    ChSystemParallelNSC msystem;
+    ChSystemMulticoreNSC msystem;
 
     // Set number of threads
     msystem.SetNumThreads(8);

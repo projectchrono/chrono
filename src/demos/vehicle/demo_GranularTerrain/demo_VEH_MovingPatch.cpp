@@ -74,15 +74,15 @@ int main(int argc, char* argv[]) {
     enum CameraType { FIXED, FRONT, TRACK };
     CameraType cam_type = FRONT;
 
-    // ---------------------------------
-    // Create the parallel Chrono system
-    // ---------------------------------
+    // ----------------------------------
+    // Create the multicore Chrono system
+    // ----------------------------------
 
     // Prepare rotated acceleration vector
     ChVector<> gravity(0, 0, -9.81);
     ChVector<> gravityR = ChMatrix33<>(slope_g, ChVector<>(0, 1, 0)) * gravity;
 
-    ChSystemParallelNSC* system = new ChSystemParallelNSC();
+    ChSystemMulticoreNSC* system = new ChSystemMulticoreNSC();
     system->Set_G_acc(gravity);
 
     // Set number of threads

@@ -48,10 +48,10 @@ class ChShaftTest : public ::testing::TestWithParam<ChContactMethod> {
         // Create the mechanical system
         switch (GetParam()) {
             case ChContactMethod::SMC:
-                system = new ChSystemParallelSMC();
+                system = new ChSystemMulticoreSMC();
                 break;
             case ChContactMethod::NSC:
-                system = new ChSystemParallelNSC();
+                system = new ChSystemMulticoreNSC();
                 break;
         }
 
@@ -65,7 +65,7 @@ class ChShaftTest : public ::testing::TestWithParam<ChContactMethod> {
         system->GetSettings()->solver.bilateral_clamp_speed = bilateral_clamp_speed;
 
         if (GetParam() == ChContactMethod::NSC) {
-            ChSystemParallelNSC* systemNSC = static_cast<ChSystemParallelNSC*>(system);
+            ChSystemMulticoreNSC* systemNSC = static_cast<ChSystemMulticoreNSC*>(system);
             systemNSC->GetSettings()->solver.solver_mode = SolverMode::SLIDING;
             systemNSC->GetSettings()->solver.max_iteration_normal = max_iteration_normal;
             systemNSC->GetSettings()->solver.max_iteration_sliding = max_iteration_sliding;
@@ -76,7 +76,7 @@ class ChShaftTest : public ::testing::TestWithParam<ChContactMethod> {
 
     ~ChShaftTest() { delete system; }
 
-    ChSystemParallel* system;
+    ChSystemMulticore* system;
 };
 
 // -----------------------------------------------------------------------------

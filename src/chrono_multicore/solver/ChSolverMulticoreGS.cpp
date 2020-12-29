@@ -22,7 +22,7 @@
 
 using namespace chrono;
 
-uint ChSolverParallelGS::Solve(ChShurProduct& ShurProduct,
+uint ChSolverMulticoreGS::Solve(ChShurProduct& ShurProduct,
                                ChProjectConstraints& Project,
                                const uint max_iter,
                                const uint size,

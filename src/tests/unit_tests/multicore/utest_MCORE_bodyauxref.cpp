@@ -69,7 +69,7 @@ TEST(ChronoMulticore, bodyauxref) {
     double contact_recovery_speed = 1;
 
     // Create the mechanical system
-    ChSystemParallelNSC* system = new ChSystemParallelNSC();
+    ChSystemMulticoreNSC* system = new ChSystemMulticoreNSC();
     system->Set_G_acc(ChVector<>(0, 0, -9.81));
 
     // Set number of threads
@@ -94,7 +94,7 @@ TEST(ChronoMulticore, bodyauxref) {
     z2y.Q_from_AngX(-CH_C_PI / 2);
 
     // Create the ground body
-    auto ground = chrono_types::make_shared<ChBody>(chrono_types::make_shared<ChCollisionModelParallel>());
+    auto ground = chrono_types::make_shared<ChBody>(chrono_types::make_shared<ChCollisionModelMulticore>());
     ground->SetBodyFixed(true);
     system->AddBody(ground);
 
@@ -104,7 +104,7 @@ TEST(ChronoMulticore, bodyauxref) {
     ground->AddAsset(box);
 
     // Create a pendulum modeled using ChBody
-    auto pend_1 = chrono_types::make_shared<ChBody>(chrono_types::make_shared<ChCollisionModelParallel>());
+    auto pend_1 = chrono_types::make_shared<ChBody>(chrono_types::make_shared<ChCollisionModelMulticore>());
     system->AddBody(pend_1);
     pend_1->SetIdentifier(1);
     pend_1->SetBodyFixed(false);
@@ -138,7 +138,7 @@ TEST(ChronoMulticore, bodyauxref) {
     system->AddLink(rev_1);
 
     // Create a pendulum modeled using ChBodyAuxRef
-    auto pend_2 = chrono_types::make_shared<ChBodyAuxRef>(chrono_types::make_shared<ChCollisionModelParallel>());
+    auto pend_2 = chrono_types::make_shared<ChBodyAuxRef>(chrono_types::make_shared<ChCollisionModelMulticore>());
     system->Add(pend_2);
     pend_2->SetIdentifier(2);
     pend_2->SetBodyFixed(false);

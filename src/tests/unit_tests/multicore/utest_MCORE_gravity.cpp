@@ -12,7 +12,7 @@
 // Authors: Hammad Mazhar, Radu Serban
 // =============================================================================
 //
-// Chrono::Parallel unit test for body falling under gravity
+// Chrono::Multicore unit test for body falling under gravity
 // =============================================================================
 
 #include "chrono_multicore/physics/ChSystemMulticore.h"
@@ -23,11 +23,11 @@ using namespace chrono;
 
 TEST(ChronoMulticore, gravity) {
   ChVector<> gravity = ChVector<>(0, -9.80665, 0);
-  ChSystemParallelNSC msystem;
+  ChSystemMulticoreNSC msystem;
   msystem.Set_G_acc(gravity);
   msystem.SetNumThreads(1);
 
-  auto ball = chrono_types::make_shared<ChBody>(chrono_types::make_shared<collision::ChCollisionModelParallel>());
+  auto ball = chrono_types::make_shared<ChBody>(chrono_types::make_shared<collision::ChCollisionModelMulticore>());
   ChVector<> pos = ChVector<>(0, 0, 0);
   ChVector<> vel = ChVector<>(2, 2, 0);
   ball->SetMass(1);

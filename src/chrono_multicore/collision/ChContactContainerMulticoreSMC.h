@@ -23,14 +23,14 @@ namespace chrono {
 /// @addtogroup multicore_collision
 /// @{
 
-/// Specialization of the parallel contact container for SMC contacts.
-class CH_MULTICORE_API ChContactContainerParallelSMC : public ChContactContainerParallel {
+/// Specialization of the multicore contact container for SMC contacts.
+class CH_MULTICORE_API ChContactContainerMulticoreSMC : public ChContactContainerMulticore {
   public:
-    ChContactContainerParallelSMC(ChParallelDataManager* dc);
-    ChContactContainerParallelSMC(const ChContactContainerParallelSMC& other);
+    ChContactContainerMulticoreSMC(ChMulticoreDataManager* dc);
+    ChContactContainerMulticoreSMC(const ChContactContainerMulticoreSMC& other);
 
     /// "Virtual" copy constructor (covariant return type).
-    virtual ChContactContainerParallelSMC* Clone() const override { return new ChContactContainerParallelSMC(*this); }
+    virtual ChContactContainerMulticoreSMC* Clone() const override { return new ChContactContainerMulticoreSMC(*this); }
 
     virtual void BeginAddContact() override;
     virtual void EndAddContact() override;
@@ -52,6 +52,6 @@ class CH_MULTICORE_API ChContactContainerParallelSMC : public ChContactContainer
     virtual void AddContact(int index, int b1, int s1, int b2, int s2) override;
 };
 
-/// @} parallel_colision
+/// @} multicore_colision
 
 }  // end namespace chrono

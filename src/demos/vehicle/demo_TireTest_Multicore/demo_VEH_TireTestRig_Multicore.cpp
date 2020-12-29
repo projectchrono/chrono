@@ -34,12 +34,12 @@ int main() {
     // Create system
     // -------------
 
-    ChSystemParallelNSC system;
+    ChSystemMulticoreNSC system;
     double step_size = 5e-3;
     double tire_step_size = 1e-4;
     system.ChangeSolverType(SolverType::APGD);
 
-    ////ChSystemParallelSMC system;
+    ////ChSystemMulticoreSMC system;
     ////double step_size = 1e-4;
     ////double tire_step_size = 1e-4;
 

@@ -13,7 +13,7 @@
 // =============================================================================
 //
 // Description: This file contains all of the setting structures that are used
-// within chrono parallel. The constructor for each struct should specify
+// within Chrono::Multicore. The constructor for each struct should specify
 // default values for every setting parameter that is used by default
 //
 // =============================================================================
@@ -31,7 +31,7 @@ namespace chrono {
 /// @addtogroup multicore_module
 /// @{
 
-/// Chrono::Parallel collision_settings.
+/// Chrono::Multicore collision_settings.
 /// This structure that contains all settings associated with the collision detection phase.
 class collision_settings {
   public:
@@ -64,7 +64,7 @@ class collision_settings {
     /// contact constraints before objects acutally come into contact. In general
     /// this helps with stability.
     real collision_envelope;
-    /// Chrono parallel has an optional feature that allows the user to set a
+    /// Chrono::Multicore has an optional feature that allows the user to set a
     /// bounding box that automatically freezes (makes inactive) any object that
     /// exits the bounding box.
     bool use_aabb_active;
@@ -87,8 +87,8 @@ class collision_settings {
     bool fixed_bins;
 };
 
-/// Chrono::Parallel solver_settings.
-/// This structure contains all settings associated with the parallel solver.
+/// Chrono::Multicore solver_settings.
+/// This structure contains all settings associated with the Chrono::Multicore solver.
 class solver_settings {
   public:
     solver_settings() {
@@ -138,7 +138,7 @@ class solver_settings {
     /// SLIDING will only solve for the normal, sliding and bilateral constraints.
     /// SPINNING will solve for all of the constraints.
     /// The purpose of this settings is to allow the user to completely ignore
-    /// different types of friction. In chrono parallel all constraints support
+    /// different types of friction. In Chrono::Multicore all constraints support
     /// friction and sliding friction so this is how you can improve performance
     /// when you know that you don't need spinning/rolling friction or want to solve
     /// a problem frictionless.
@@ -218,7 +218,7 @@ class solver_settings {
     int skip_residual;
 };
 
-/// Aggregate of all settings for Chrono::Parallel.
+/// Aggregate of all settings for Chrono::Multicore.
 class settings_container {
   public:
     settings_container() {
@@ -245,9 +245,9 @@ class settings_container {
     int max_threads;             ///< maximum bound for number of threads (if dynamic tuning)
     SystemType system_type;      ///< system type (NSC or SMC)
 
-    friend class ChSystemParallel;
-    friend class ChSystemParallelNSC;
-    friend class ChSystemParallelSMC;
+    friend class ChSystemMulticore;
+    friend class ChSystemMulticoreNSC;
+    friend class ChSystemMulticoreSMC;
 };
 
 /// @} multicore_module

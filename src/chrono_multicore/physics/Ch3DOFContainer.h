@@ -12,7 +12,7 @@
 // Authors: Hammad Mazhar
 // =============================================================================
 //
-// Definitions for all 3DOF type containers for chrono parallel.
+// Definitions for all 3DOF type containers for Chrono::Multicore.
 //
 // =============================================================================
 
@@ -20,7 +20,7 @@
 
 #include <thread>
 
-// Chrono::Parallel headers
+// Chrono::Multicore headers
 #include "chrono_multicore/ChMulticoreDefines.h"
 #include "chrono_multicore/math/real.h"
 #include "chrono_multicore/math/real3.h"
@@ -41,10 +41,9 @@ using blaze::DynamicVector;
 namespace chrono {
 
 // Forward references (for parent hierarchy pointer)
-class ChSystemParallelNSC;
-class ChSystemParallelMPM;
-class ChParallelDataManager;
-class ChSolverParallel;
+class ChSystemMulticoreNSC;
+class ChMulticoreDataManager;
+class ChSolverMulticore;
 
 /// @addtogroup multicore_physics
 /// @{
@@ -117,7 +116,7 @@ class CH_MULTICORE_API Ch3DOFContainer : public ChPhysicsItem {
     short2 family;
 
   protected:
-    ChParallelDataManager* data_manager;
+    ChMulticoreDataManager* data_manager;
 
     uint num_fluid_contacts;
     uint num_fluid_bodies;
@@ -131,8 +130,8 @@ class CH_MULTICORE_API Ch3DOFContainer : public ChPhysicsItem {
     uint num_fea_tets;
     uint num_fea_nodes;
 
-    friend class ChParallelDataManager;
-    friend class ChSystemParallelNSC;
+    friend class ChMulticoreDataManager;
+    friend class ChSystemMulticoreNSC;
 };
 
 /// Container of fluid particles.

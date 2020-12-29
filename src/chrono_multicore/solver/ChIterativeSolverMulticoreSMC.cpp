@@ -12,7 +12,7 @@
 // Authors: Radu Serban, Arman Pazouki
 // =============================================================================
 //
-// Implementation of methods specific to the parallel smooth-contact solver.
+// Implementation of methods specific to the multicore smooth-contact solver.
 //
 // These functions implement the basic time update for a multibody system using
 // a penalty-based approach for including frictional contact. It is assumed that
@@ -552,7 +552,7 @@ void function_CalcContactForces(
 // Calculate contact forces and torques for all contact pairs.
 // -----------------------------------------------------------------------------
 
-void ChIterativeSolverParallelSMC::host_CalcContactForces(custom_vector<int>& ct_bid,
+void ChIterativeSolverMulticoreSMC::host_CalcContactForces(custom_vector<int>& ct_bid,
                                                           custom_vector<real3>& ct_force,
                                                           custom_vector<real3>& ct_torque,
                                                           custom_vector<vec2>& shape_pairs,
@@ -605,7 +605,7 @@ void ChIterativeSolverParallelSMC::host_CalcContactForces(custom_vector<int>& ct
 // cummulative force and torque, respectively, over all contacts involving that
 // body.
 // -----------------------------------------------------------------------------
-void ChIterativeSolverParallelSMC::host_AddContactForces(uint ct_body_count, const custom_vector<int>& ct_body_id) {
+void ChIterativeSolverMulticoreSMC::host_AddContactForces(uint ct_body_count, const custom_vector<int>& ct_body_id) {
     const custom_vector<real3>& ct_body_force = data_manager->host_data.ct_body_force;
     const custom_vector<real3>& ct_body_torque = data_manager->host_data.ct_body_torque;
 
@@ -624,7 +624,7 @@ void ChIterativeSolverParallelSMC::host_AddContactForces(uint ct_body_count, con
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChIterativeSolverParallelSMC::host_SetContactForcesMap(uint ct_body_count, const custom_vector<int>& ct_body_id) {
+void ChIterativeSolverMulticoreSMC::host_SetContactForcesMap(uint ct_body_count, const custom_vector<int>& ct_body_id) {
     custom_vector<int>& ct_body_map = data_manager->host_data.ct_body_map;
 
 #pragma omp parallel for
@@ -647,7 +647,7 @@ struct sum_tuples {
 // generate contact forces, and update the (linear and rotational) impulses for
 // all bodies involved in at least one contact.
 // -----------------------------------------------------------------------------
-void ChIterativeSolverParallelSMC::ProcessContacts() {
+void ChIterativeSolverMulticoreSMC::ProcessContacts() {
     // 1. Calculate contact forces and torques - per contact basis
     //    For each pair of contact shapes that overlap, we calculate and store the
     //    IDs of the two corresponding bodies and the resulting contact forces and
@@ -733,7 +733,7 @@ void ChIterativeSolverParallelSMC::ProcessContacts() {
     host_SetContactForcesMap(ct_body_count, ct_body_id);
 }
 
-void ChIterativeSolverParallelSMC::ComputeD() {
+void ChIterativeSolverMulticoreSMC::ComputeD() {
     uint num_constraints = data_manager->num_constraints;
     if (num_constraints <= 0) {
         return;
@@ -757,7 +757,7 @@ void ChIterativeSolverParallelSMC::ComputeD() {
     data_manager->host_data.M_invD = data_manager->host_data.M_inv * data_manager->host_data.D;
 }
 
-void ChIterativeSolverParallelSMC::ComputeE() {
+void ChIterativeSolverMulticoreSMC::ComputeE() {
     if (data_manager->num_constraints <= 0) {
         return;
     }
@@ -768,7 +768,7 @@ void ChIterativeSolverParallelSMC::ComputeE() {
     data_manager->bilateral->Build_E();
 }
 
-void ChIterativeSolverParallelSMC::ComputeR() {
+void ChIterativeSolverMulticoreSMC::ComputeR() {
     if (data_manager->num_constraints <= 0) {
         return;
     }
@@ -788,7 +788,7 @@ void ChIterativeSolverParallelSMC::ComputeR() {
 // generalized velocities, then enforces the velocity-level constraints for any
 // bilateral (joint) constraints present in the system.
 // -----------------------------------------------------------------------------
-void ChIterativeSolverParallelSMC::RunTimeStep() {
+void ChIterativeSolverMulticoreSMC::RunTimeStep() {
     // This is the total number of constraints, note that there are no contacts
     data_manager->num_constraints = data_manager->num_bilaterals;
     data_manager->num_unilaterals = 0;
@@ -798,9 +798,9 @@ void ChIterativeSolverParallelSMC::RunTimeStep() {
     Thrust_Fill(data_manager->host_data.ct_body_map, -1);
 
     if (data_manager->num_rigid_contacts > 0) {
-        data_manager->system_timer.start("ChIterativeSolverParallelSMC_ProcessContact");
+        data_manager->system_timer.start("ChIterativeSolverMulticoreSMC_ProcessContact");
         ProcessContacts();
-        data_manager->system_timer.stop("ChIterativeSolverParallelSMC_ProcessContact");
+        data_manager->system_timer.stop("ChIterativeSolverMulticoreSMC_ProcessContact");
     }
 
     // Generate the mass matrix and compute M_inv_k
@@ -808,7 +808,7 @@ void ChIterativeSolverParallelSMC::RunTimeStep() {
 
     // If there are (bilateral) constraints, calculate Lagrange multipliers.
     if (data_manager->num_constraints != 0) {
-        data_manager->system_timer.start("ChIterativeSolverParallel_Setup");
+        data_manager->system_timer.start("ChIterativeSolverMulticore_Setup");
 
         data_manager->bilateral->Setup(data_manager);
 
@@ -819,18 +819,18 @@ void ChIterativeSolverParallelSMC::RunTimeStep() {
 
         solver->Setup(data_manager);
 
-        data_manager->system_timer.stop("ChIterativeSolverParallel_Setup");
+        data_manager->system_timer.stop("ChIterativeSolverMulticore_Setup");
 
         // Set the initial guess for the iterative solver to zero.
         data_manager->host_data.gamma.resize(data_manager->num_constraints);
         data_manager->host_data.gamma.reset();
 
         // Compute the jacobian matrix, the compliance matrix and the right hand side
-        data_manager->system_timer.start("ChIterativeSolverParallel_Matrices");
+        data_manager->system_timer.start("ChIterativeSolverMulticore_Matrices");
         ComputeD();
         ComputeE();
         ComputeR();
-        data_manager->system_timer.stop("ChIterativeSolverParallel_Matrices");
+        data_manager->system_timer.stop("ChIterativeSolverMulticore_Matrices");
 
         ShurProductBilateral.Setup(data_manager);
 
@@ -850,7 +850,7 @@ void ChIterativeSolverParallelSMC::RunTimeStep() {
     m_iterations = (int)data_manager->measures.solver.maxd_hist.size();
 }
 
-void ChIterativeSolverParallelSMC::ComputeImpulses() {
+void ChIterativeSolverMulticoreSMC::ComputeImpulses() {
     DynamicVector<real>& v = data_manager->host_data.v;
     const DynamicVector<real>& M_invk = data_manager->host_data.M_invk;
     const DynamicVector<real>& gamma = data_manager->host_data.gamma;

@@ -62,7 +62,7 @@ class JointsDVI : public ::testing::TestWithParam<Options> {
         double init_vel = 2;
 
         // Create the mechanical system
-        system = new ChSystemParallelNSC();
+        system = new ChSystemMulticoreNSC();
         system->Set_G_acc(ChVector<>(0, 0, -9.81));
 
         // Set number of threads
@@ -83,14 +83,14 @@ class JointsDVI : public ::testing::TestWithParam<Options> {
         system->ChangeSolverType(opts.type);
 
         // Create the ground body
-        auto ground = chrono_types::make_shared<ChBody>(chrono_types::make_shared<collision::ChCollisionModelParallel>());
+        auto ground = chrono_types::make_shared<ChBody>(chrono_types::make_shared<collision::ChCollisionModelMulticore>());
         ground->SetIdentifier(-1);
         ground->SetBodyFixed(true);
         ground->SetCollide(false);
         system->AddBody(ground);
 
         // Create the sled body
-        auto sled = chrono_types::make_shared<ChBody>(chrono_types::make_shared<collision::ChCollisionModelParallel>());
+        auto sled = chrono_types::make_shared<ChBody>(chrono_types::make_shared<collision::ChCollisionModelMulticore>());
         sled->SetIdentifier(1);
         sled->SetMass(550);
         sled->SetInertiaXX(ChVector<>(100, 100, 100));
@@ -108,7 +108,7 @@ class JointsDVI : public ::testing::TestWithParam<Options> {
         system->AddBody(sled);
 
         // Create the wheel body
-        auto wheel = chrono_types::make_shared<ChBody>(chrono_types::make_shared<collision::ChCollisionModelParallel>());
+        auto wheel = chrono_types::make_shared<ChBody>(chrono_types::make_shared<collision::ChCollisionModelMulticore>());
         wheel->SetIdentifier(2);
         wheel->SetMass(350);
         wheel->SetInertiaXX(ChVector<>(50, 138, 138));
@@ -139,7 +139,7 @@ class JointsDVI : public ::testing::TestWithParam<Options> {
 
     Options opts;
     bool animate;
-    ChSystemParallelNSC* system;
+    ChSystemMulticoreNSC* system;
     std::shared_ptr<ChLinkLockPrismatic> prismatic;
     std::shared_ptr<ChLinkLockRevolute> revolute;
 };

@@ -21,14 +21,14 @@ namespace chrono {
 /// @addtogroup multicore_collision
 /// @{
 
-/// Specialization of the parallel contact container for NSC contacts.
-class CH_MULTICORE_API ChContactContainerParallelNSC : public ChContactContainerParallel {
+/// Specialization of the multicore contact container for NSC contacts.
+class CH_MULTICORE_API ChContactContainerMulticoreNSC : public ChContactContainerMulticore {
   public:
-    ChContactContainerParallelNSC(ChParallelDataManager* dc);
-    ChContactContainerParallelNSC(const ChContactContainerParallelNSC& other);
+    ChContactContainerMulticoreNSC(ChMulticoreDataManager* dc);
+    ChContactContainerMulticoreNSC(const ChContactContainerMulticoreNSC& other);
 
     /// "Virtual" copy constructor (covariant return type).
-    virtual ChContactContainerParallelNSC* Clone() const override { return new ChContactContainerParallelNSC(*this); }
+    virtual ChContactContainerMulticoreNSC* Clone() const override { return new ChContactContainerMulticoreNSC(*this); }
 
     virtual void BeginAddContact() override;
     virtual void EndAddContact() override;
@@ -50,6 +50,6 @@ class CH_MULTICORE_API ChContactContainerParallelNSC : public ChContactContainer
     virtual void AddContact(int index, int b1, int s1, int b2, int s2) override;
 };
 
-/// @} parallel_colision
+/// @} multicore_colision
 
 }  // end namespace chrono

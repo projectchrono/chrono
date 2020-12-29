@@ -13,7 +13,7 @@
 // =============================================================================
 //
 // Based on the regular bullet collision system, some modifications made to
-// store contacts in the parallel data structures
+// store contacts in the Chrono::Multicore data structures
 //
 // =============================================================================
 
@@ -35,8 +35,8 @@
 
 namespace chrono {
 
-class ChSystemParallel;  // forward declaration
-class ChParallelDataManager;
+class ChSystemMulticore;  // forward declaration
+class ChMulticoreDataManager;
 
 namespace collision {
 
@@ -45,10 +45,10 @@ namespace collision {
 
 /// Collision engine based on the 'Bullet' library.
 /// Contains both the broadphase and the narrow phase Bullet methods.
-class CH_MULTICORE_API ChCollisionSystemBulletParallel : public ChCollisionSystem {
+class CH_MULTICORE_API ChCollisionSystemBulletMulticore : public ChCollisionSystem {
   public:
-    ChCollisionSystemBulletParallel(ChParallelDataManager* dc);
-    virtual ~ChCollisionSystemBulletParallel();
+    ChCollisionSystemBulletMulticore(ChMulticoreDataManager* dc);
+    virtual ~ChCollisionSystemBulletMulticore();
 
     /// Clear all data instanced by this algorithm if any (like persistent contact manifolds)
     virtual void Clear(void) override;
@@ -82,7 +82,7 @@ class CH_MULTICORE_API ChCollisionSystemBulletParallel : public ChCollisionSyste
     virtual void ReportContacts(ChContactContainer* mcontactcontainer) override;
 
     /// Fill in the provided proximity container with near point information after Run().
-    /// Not used in Chrono::Parallel.
+    /// Not used in Chrono::Multicore.
     virtual void ReportProximities(ChProximityContainer* mproximitycontainer) override {}
 
     /// Perform a ray-hit test with all collision models.
@@ -109,12 +109,12 @@ class CH_MULTICORE_API ChCollisionSystemBulletParallel : public ChCollisionSyste
     btBroadphaseInterface* bt_broadphase;
     btCollisionWorld* bt_collision_world;
 
-    ChParallelDataManager* data_manager;
+    ChMulticoreDataManager* data_manager;
 
     unsigned int counter;
 };
 
-/// @} parallel_colision
+/// @} multicore_colision
 
 }  // end namespace collision
 }  // end namespace chrono

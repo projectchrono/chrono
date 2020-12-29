@@ -12,7 +12,7 @@
 // Authors: Radu Serban, Hammad Mazhar
 // =============================================================================
 //
-// Chrono::Parallel test program using penalty method for frictional contact.
+// Chrono::Multicore test program using penalty method for frictional contact.
 //
 // The model simulated here consists of a number of spherical objects falling
 // onto a mixer blade attached through a revolute joint to the ground.
@@ -47,7 +47,7 @@ using namespace chrono::collision;
 // blade attached through a revolute joint to ground. The mixer is constrained
 // to rotate at constant angular velocity.
 // -----------------------------------------------------------------------------
-std::shared_ptr<ChBody> AddContainer(ChSystemParallelNSC* sys) {
+std::shared_ptr<ChBody> AddContainer(ChSystemMulticoreNSC* sys) {
     // IDs for the two bodies
     int binId = -200;
     int mixerId = -201;
@@ -57,7 +57,7 @@ std::shared_ptr<ChBody> AddContainer(ChSystemParallelNSC* sys) {
     mat->SetFriction(0.4f);
 
     // Create the containing bin (2 x 2 x 1)
-    auto bin = chrono_types::make_shared<ChBody>(chrono_types::make_shared<ChCollisionModelParallel>());
+    auto bin = chrono_types::make_shared<ChBody>(chrono_types::make_shared<ChCollisionModelMulticore>());
     bin->SetIdentifier(binId);
     bin->SetMass(1);
     bin->SetPos(ChVector<>(0, 0, 0));
@@ -85,7 +85,7 @@ std::shared_ptr<ChBody> AddContainer(ChSystemParallelNSC* sys) {
     sys->AddBody(bin);
 
     // The rotating mixer body (1.6 x 0.2 x 0.4)
-    auto mixer = chrono_types::make_shared<ChBody>(chrono_types::make_shared<ChCollisionModelParallel>());
+    auto mixer = chrono_types::make_shared<ChBody>(chrono_types::make_shared<ChCollisionModelMulticore>());
     mixer->SetIdentifier(mixerId);
     mixer->SetMass(10.0);
     mixer->SetInertiaXX(ChVector<>(50, 50, 50));
@@ -114,7 +114,7 @@ std::shared_ptr<ChBody> AddContainer(ChSystemParallelNSC* sys) {
 // -----------------------------------------------------------------------------
 // Create the falling spherical objects in a uniform rectangular grid.
 // -----------------------------------------------------------------------------
-void AddFallingBalls(ChSystemParallel* sys) {
+void AddFallingBalls(ChSystemMulticore* sys) {
     // Common material
     auto ballMat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
     ballMat->SetFriction(0.4f);
@@ -129,7 +129,7 @@ void AddFallingBalls(ChSystemParallel* sys) {
         for (int iy = -2; iy < 3; iy++) {
             ChVector<> pos(0.4 * ix, 0.4 * iy, 1);
 
-            auto ball = chrono_types::make_shared<ChBody>(chrono_types::make_shared<ChCollisionModelParallel>());
+            auto ball = chrono_types::make_shared<ChBody>(chrono_types::make_shared<ChCollisionModelMulticore>());
 
             ball->SetIdentifier(ballId++);
             ball->SetMass(mass);
@@ -169,7 +169,7 @@ int main(int argc, char* argv[]) {
     // Create system
     // -------------
 
-    ChSystemParallelNSC msystem;
+    ChSystemMulticoreNSC msystem;
 
     // Set number of threads
     msystem.SetNumThreads(8);

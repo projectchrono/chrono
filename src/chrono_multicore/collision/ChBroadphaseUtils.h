@@ -413,7 +413,7 @@ static inline void f_Store_AABB_AABB_Intersection(const uint index,
     }
 }
 
-/// @} parallel_colision
+/// @} multicore_colision
 
 } // end namespace collision
 } // end namespace chrono

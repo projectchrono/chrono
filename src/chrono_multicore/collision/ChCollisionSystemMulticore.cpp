@@ -12,8 +12,8 @@
 // Authors: Hammad Mazhar
 // =============================================================================
 //
-// Description: Parallel collsion system that calls a custom AABB generator,
-// broadphase and narrowphase
+// Description: Multicore collsion system that calls a custom AABB generator,
+// broadphase, and narrowphase
 //
 // =============================================================================
 
@@ -23,13 +23,13 @@
 namespace chrono {
 namespace collision {
 
-ChCollisionSystemParallel::ChCollisionSystemParallel(ChParallelDataManager* dm) : data_manager(dm) {}
+ChCollisionSystemMulticore::ChCollisionSystemMulticore(ChMulticoreDataManager* dm) : data_manager(dm) {}
 
-ChCollisionSystemParallel::~ChCollisionSystemParallel() {}
+ChCollisionSystemMulticore::~ChCollisionSystemMulticore() {}
 
-void ChCollisionSystemParallel::Add(ChCollisionModel* model) {
+void ChCollisionSystemMulticore::Add(ChCollisionModel* model) {
     if (model->GetPhysicsItem()->GetCollide() == true) {
-        ChCollisionModelParallel* pmodel = static_cast<ChCollisionModelParallel*>(model);
+        ChCollisionModelMulticore* pmodel = static_cast<ChCollisionModelMulticore*>(model);
         int body_id = pmodel->GetBody()->GetId();
         short2 fam = S2(pmodel->GetFamilyGroup(), pmodel->GetFamilyMask());
         // The offset for this shape will the current total number of points in
@@ -44,7 +44,7 @@ void ChCollisionSystemParallel::Add(ChCollisionModel* model) {
         int local_shape_index = 0;
 
         for (auto s : pmodel->GetShapes()) {
-            auto shape = std::static_pointer_cast<ChCollisionShapeParallel>(s);
+            auto shape = std::static_pointer_cast<ChCollisionShapeMulticore>(s);
             real3 obA = shape->A;
             real3 obB = shape->B;
             real3 obC = shape->C;
@@ -123,9 +123,9 @@ void ChCollisionSystemParallel::Add(ChCollisionModel* model) {
 #define ERASE_MACRO(x, y) x.erase(x.begin() + y);
 #define ERASE_MACRO_LEN(x, y, z) x.erase(x.begin() + y, x.begin() + y + z);
 
-void ChCollisionSystemParallel::Remove(ChCollisionModel* model) {
+void ChCollisionSystemMulticore::Remove(ChCollisionModel* model) {
     /*
-    ChCollisionModelParallel* pmodel = static_cast<ChCollisionModelParallel*>(model);
+    ChCollisionModelMulticore* pmodel = static_cast<ChCollisionModelMulticore*>(model);
     int body_id = pmodel->GetBody()->GetId();
     //loop over the models we nned to remove
     //std::cout << "removing: " << pmodel->GetNumShapes() << " objects" << std::endl;
@@ -208,13 +208,13 @@ void ChCollisionSystemParallel::Remove(ChCollisionModel* model) {
 #undef ERASE_MACRO
 #undef ERASE_MACRO_LEN
 
-void ChCollisionSystemParallel::SetNumThreads(int nthreads) {
+void ChCollisionSystemMulticore::SetNumThreads(int nthreads) {
     // Nothing to do here.  
-    // The parallel collision system uses the number of threads set by ChSystemParallel.
+    // The Chrono::Multicore collision system uses the number of threads set by ChSystemMulticore.
 }
 
-void ChCollisionSystemParallel::Run() {
-    LOG(INFO) << "ChCollisionSystemParallel::Run()";
+void ChCollisionSystemMulticore::Run() {
+    LOG(INFO) << "ChCollisionSystemMulticore::Run()";
     if (data_manager->settings.collision.use_aabb_active) {
         body_active.resize(data_manager->num_rigid_bodies);
         std::fill(body_active.begin(), body_active.end(), false);
@@ -261,7 +261,7 @@ void ChCollisionSystemParallel::Run() {
     data_manager->system_timer.stop("collision_narrow");
 }
 
-void ChCollisionSystemParallel::GetBoundingBox(ChVector<>& aabb_min, ChVector<>& aabb_max) const {
+void ChCollisionSystemMulticore::GetBoundingBox(ChVector<>& aabb_min, ChVector<>& aabb_max) const {
     aabb_min.x() = data_manager->measures.collision.min_bounding_point.x;
     aabb_min.y() = data_manager->measures.collision.min_bounding_point.y;
     aabb_min.z() = data_manager->measures.collision.min_bounding_point.z;
@@ -271,8 +271,8 @@ void ChCollisionSystemParallel::GetBoundingBox(ChVector<>& aabb_min, ChVector<>&
     aabb_max.z() = data_manager->measures.collision.max_bounding_point.z;
 }
 
-void ChCollisionSystemParallel::ReportContacts(ChContactContainer* mcontactcontainer) {
-    assert(dynamic_cast<ChContactContainerParallel*>(mcontactcontainer));
+void ChCollisionSystemMulticore::ReportContacts(ChContactContainer* mcontactcontainer) {
+    assert(dynamic_cast<ChContactContainerMulticore*>(mcontactcontainer));
 
     // Resize global arrays with composite material properties.
     // NOTE: important to do this here, to set size to zero if no contacts (in case some other added by a custom user
@@ -284,7 +284,7 @@ void ChCollisionSystemParallel::ReportContacts(ChContactContainer* mcontactconta
         return;
     }
 
-    auto container = static_cast<ChContactContainerParallel*>(mcontactcontainer);
+    auto container = static_cast<ChContactContainerMulticore*>(mcontactcontainer);
 
     auto& bids = data_manager->host_data.bids_rigid_rigid;  // global IDs of bodies in contact
     auto& abody = data_manager->host_data.active_rigid;     // flags for active bodies
@@ -308,15 +308,15 @@ void ChCollisionSystemParallel::ReportContacts(ChContactContainer* mcontactconta
     mcontactcontainer->EndAddContact();
 }
 
-double ChCollisionSystemParallel::GetTimerCollisionBroad() const {
+double ChCollisionSystemMulticore::GetTimerCollisionBroad() const {
     return data_manager->system_timer.GetTime("collision_broad");
 }
 
-double ChCollisionSystemParallel::GetTimerCollisionNarrow() const {
+double ChCollisionSystemMulticore::GetTimerCollisionNarrow() const {
     return data_manager->system_timer.GetTime("collision_narrow");
 }
 
-void ChCollisionSystemParallel::GetOverlappingAABB(custom_vector<char>& active_id, real3 Amin, real3 Amax) {
+void ChCollisionSystemMulticore::GetOverlappingAABB(custom_vector<char>& active_id, real3 Amin, real3 Amax) {
     data_manager->aabb_generator->GenerateAABB();
 #pragma omp parallel for
     for (int i = 0; i < data_manager->shape_data.typ_rigid.size(); i++) {
@@ -331,7 +331,7 @@ void ChCollisionSystemParallel::GetOverlappingAABB(custom_vector<char>& active_i
     }
 }
 
-std::vector<vec2> ChCollisionSystemParallel::GetOverlappingPairs() {
+std::vector<vec2> ChCollisionSystemMulticore::GetOverlappingPairs() {
     std::vector<vec2> pairs;
     pairs.resize(data_manager->host_data.pair_shapeIDs.size());
     for (int i = 0; i < data_manager->host_data.pair_shapeIDs.size(); i++) {
@@ -342,13 +342,13 @@ std::vector<vec2> ChCollisionSystemParallel::GetOverlappingPairs() {
     return pairs;
 }
 
-void ChCollisionSystemParallel::SetAABB(real3 aabbmin, real3 aabbmax) {
+void ChCollisionSystemMulticore::SetAABB(real3 aabbmin, real3 aabbmax) {
     data_manager->settings.collision.aabb_min = aabbmin;
     data_manager->settings.collision.aabb_max = aabbmax;
     data_manager->settings.collision.use_aabb_active = true;
 }
 
-bool ChCollisionSystemParallel::GetAABB(real3& aabbmin, real3& aabbmax) {
+bool ChCollisionSystemMulticore::GetAABB(real3& aabbmin, real3& aabbmax) {
     aabbmin = data_manager->settings.collision.aabb_min;
     aabbmax = data_manager->settings.collision.aabb_max;
 

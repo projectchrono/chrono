@@ -13,7 +13,7 @@
 // =============================================================================
 //
 // Chrono demonstration of using contact callbacks for smooth contacts
-// (penalty-based) in Chrono::Parallel.
+// (penalty-based) in Chrono::Multicore.
 //
 // The global reference frame has Y up.
 //
@@ -96,7 +96,7 @@ int main(int argc, char* argv[]) {
     float friction = 0.6f;
 
     // Create the system
-    ChSystemParallelSMC system;
+    ChSystemMulticoreSMC system;
     system.Set_G_acc(ChVector<>(0, -10, 0));
     
     // Create a contact material, shared among all bodies

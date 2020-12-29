@@ -38,7 +38,7 @@ class CH_MULTICORE_API ChCAABBGenerator {
   public:
     ChCAABBGenerator();
     void GenerateAABB();
-    ChParallelDataManager* data_manager;
+    ChMulticoreDataManager* data_manager;
 };
 
 /// Class for performing broad-phase collision detection.
@@ -53,7 +53,7 @@ class CH_MULTICORE_API ChCBroadphase {
     void RigidBoundingBox();
     void FluidBoundingBox();
     void TetBoundingBox();
-    ChParallelDataManager* data_manager;
+    ChMulticoreDataManager* data_manager;
 
   private:
 };
@@ -139,7 +139,7 @@ class CH_MULTICORE_API ChCNarrowphaseDispatch {
     void DispatchHybridMPR();
     void Dispatch_Init(uint index, uint& icoll, uint& ID_A, uint& ID_B, ConvexShape* shapeA, ConvexShape* shapeB);
     void Dispatch_Finalize(uint icoll, uint ID_A, uint ID_B, int nC);
-    ChParallelDataManager* data_manager;
+    ChMulticoreDataManager* data_manager;
 
   private:
     custom_vector<char> contact_rigid_active;
@@ -172,7 +172,7 @@ class CH_MULTICORE_API ChCNarrowphaseDispatch {
     custom_vector<uint> t_bin_start_index;
 };
 
-/// @} parallel_colision
+/// @} multicore_colision
 
 } // end namespace collision
 } // end namespace chrono

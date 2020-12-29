@@ -12,7 +12,7 @@
 // Authors: Hammad Mazhar
 // =============================================================================
 //
-// Definitions for all 3DOF type containers for chrono parallel.
+// Definitions for all 3DOF type containers for Chrono::Multicore.
 //
 // =============================================================================
 

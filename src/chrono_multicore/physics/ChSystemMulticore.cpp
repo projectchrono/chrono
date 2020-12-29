@@ -47,11 +47,11 @@ INITIALIZE_EASYLOGGINGPP
 
 namespace chrono {
 
-ChSystemParallel::ChSystemParallel() : ChSystem() {
-    data_manager = new ChParallelDataManager();
+ChSystemMulticore::ChSystemMulticore() : ChSystem() {
+    data_manager = new ChMulticoreDataManager();
 
-    descriptor = chrono_types::make_shared<ChSystemDescriptorParallel>(data_manager);
-    collision_system = chrono_types::make_shared<ChCollisionSystemParallel>(data_manager);
+    descriptor = chrono_types::make_shared<ChSystemDescriptorMulticore>(data_manager);
+    collision_system = chrono_types::make_shared<ChCollisionSystemMulticore>(data_manager);
 
     collision_system_type = CollisionSystemType::COLLSYS_MULTICORE;
     counter = 0;
@@ -73,10 +73,10 @@ ChSystemParallel::ChSystemParallel() : ChSystem() {
     data_manager->system_timer.AddTimer("collision_broad");
     data_manager->system_timer.AddTimer("collision_narrow");
 
-    data_manager->system_timer.AddTimer("ChIterativeSolverParallel_Solve");
-    data_manager->system_timer.AddTimer("ChIterativeSolverParallel_Setup");
-    data_manager->system_timer.AddTimer("ChIterativeSolverParallel_Matrices");
-    data_manager->system_timer.AddTimer("ChIterativeSolverParallel_Stab");
+    data_manager->system_timer.AddTimer("ChIterativeSolverMulticore_Solve");
+    data_manager->system_timer.AddTimer("ChIterativeSolverMulticore_Setup");
+    data_manager->system_timer.AddTimer("ChIterativeSolverMulticore_Matrices");
+    data_manager->system_timer.AddTimer("ChIterativeSolverMulticore_Stab");
 
 #ifdef LOGGINGENABLED
     el::Loggers::reconfigureAllLoggers(el::ConfigurationType::ToStandardOutput, "false");
@@ -85,30 +85,30 @@ ChSystemParallel::ChSystemParallel() : ChSystem() {
 #endif
 }
 
-ChSystemParallel::ChSystemParallel(const ChSystemParallel& other) : ChSystem(other) {
+ChSystemMulticore::ChSystemMulticore(const ChSystemMulticore& other) : ChSystem(other) {
     //// TODO
 }
 
-ChSystemParallel::~ChSystemParallel() {
+ChSystemMulticore::~ChSystemMulticore() {
     delete data_manager;
 }
 
-ChBody* ChSystemParallel::NewBody() {
+ChBody* ChSystemMulticore::NewBody() {
     if (collision_system_type == CollisionSystemType::COLLSYS_MULTICORE)
-        return new ChBody(chrono_types::make_shared<collision::ChCollisionModelParallel>());
+        return new ChBody(chrono_types::make_shared<collision::ChCollisionModelMulticore>());
 
     return new ChBody();
 }
 
-ChBodyAuxRef* ChSystemParallel::NewBodyAuxRef() {
+ChBodyAuxRef* ChSystemMulticore::NewBodyAuxRef() {
     if (collision_system_type == CollisionSystemType::COLLSYS_MULTICORE)
-        return new ChBodyAuxRef(chrono_types::make_shared<collision::ChCollisionModelParallel>());
+        return new ChBodyAuxRef(chrono_types::make_shared<collision::ChCollisionModelMulticore>());
 
     return new ChBodyAuxRef();
 }
 
-bool ChSystemParallel::Integrate_Y() {
-    LOG(INFO) << "ChSystemParallel::Integrate_Y() Time: " << ch_time;
+bool ChSystemMulticore::Integrate_Y() {
+    LOG(INFO) << "ChSystemMulticore::Integrate_Y() Time: " << ch_time;
     // Get the pointer for the system descriptor and store it into the data manager
     data_manager->system_descriptor = this->descriptor;
     data_manager->body_list = &assembly.bodylist;
@@ -133,7 +133,7 @@ bool ChSystemParallel::Integrate_Y() {
     data_manager->system_timer.stop("collision");
 
     data_manager->system_timer.start("advance");
-    std::static_pointer_cast<ChIterativeSolverParallel>(solver)->RunTimeStep();
+    std::static_pointer_cast<ChIterativeSolverMulticore>(solver)->RunTimeStep();
     data_manager->system_timer.stop("advance");
 
     data_manager->system_timer.start("update");
@@ -238,7 +238,7 @@ bool ChSystemParallel::Integrate_Y() {
 // body.
 //
 
-void ChSystemParallel::AddBody(std::shared_ptr<ChBody> newbody) {
+void ChSystemMulticore::AddBody(std::shared_ptr<ChBody> newbody) {
     // This is only need because bilaterals need to know what bodies to
     // refer to. Not used by contacts
     newbody->SetId(data_manager->num_rigid_bodies);
@@ -261,7 +261,7 @@ void ChSystemParallel::AddBody(std::shared_ptr<ChBody> newbody) {
     AddMaterialSurfaceData(newbody);
 }
 
-void ChSystemParallel::AddLink(std::shared_ptr<ChLinkBase> link) {
+void ChSystemMulticore::AddLink(std::shared_ptr<ChLinkBase> link) {
     if (link->GetDOF() == 1) {
         if (auto mot = std::dynamic_pointer_cast<ChLinkMotorLinearSpeed>(link)) {
             linmotorlist.push_back(mot.get());
@@ -291,7 +291,7 @@ void ChSystemParallel::AddLink(std::shared_ptr<ChLinkBase> link) {
 // properly account for the variables of a shaft elelement in ChSystem::Setup().
 //
 
-void ChSystemParallel::AddOtherPhysicsItem(std::shared_ptr<ChPhysicsItem> newitem) {
+void ChSystemMulticore::AddOtherPhysicsItem(std::shared_ptr<ChPhysicsItem> newitem) {
     if (auto shaft = std::dynamic_pointer_cast<ChShaft>(newitem)) {
         AddShaft(shaft);
     } else {
@@ -314,7 +314,7 @@ void ChSystemParallel::AddOtherPhysicsItem(std::shared_ptr<ChPhysicsItem> newite
 // Eventually, this should be an override of a virtual function declared by ChSystem.
 //
 
-void ChSystemParallel::AddShaft(std::shared_ptr<ChShaft> shaft) {
+void ChSystemMulticore::AddShaft(std::shared_ptr<ChShaft> shaft) {
     shaft->SetId(data_manager->num_shafts);
     shaft->SetSystem(this);
 
@@ -333,7 +333,7 @@ void ChSystemParallel::AddShaft(std::shared_ptr<ChShaft> shaft) {
 // The mesh is passed to the FEM container where it gets added to the system
 // Mesh gets blown up into different data structures, connectivity and nodes are preserved
 // Adding multiple meshes isn't a problem
-void ChSystemParallel::AddMesh(std::shared_ptr<fea::ChMesh> mesh) {
+void ChSystemMulticore::AddMesh(std::shared_ptr<fea::ChMesh> mesh) {
     uint num_nodes = mesh->GetNnodes();
     uint num_elements = mesh->GetNelements();
 
@@ -395,7 +395,7 @@ void ChSystemParallel::AddMesh(std::shared_ptr<fea::ChMesh> mesh) {
 //
 // Reset forces for all variables
 //
-void ChSystemParallel::ClearForceVariables() {
+void ChSystemMulticore::ClearForceVariables() {
 #pragma omp parallel for
     for (int i = 0; i < (signed)data_manager->num_rigid_bodies; i++) {
         assembly.bodylist[i]->VariablesFbReset();
@@ -426,8 +426,8 @@ void ChSystemParallel::ClearForceVariables() {
 // 7. Update 3DOF onjects (these introduce state variables)
 // 8. Process bilateral constraints
 //
-void ChSystemParallel::Update() {
-    LOG(INFO) << "ChSystemParallel::Update()";
+void ChSystemMulticore::Update() {
+    LOG(INFO) << "ChSystemMulticore::Update()";
     // Clear the forces for all variables
     ClearForceVariables();
 
@@ -455,7 +455,7 @@ void ChSystemParallel::Update() {
 // Update all bodies in the system and populate system-wide state and force
 // vectors. Note that visualization assets are not updated.
 //
-void ChSystemParallel::UpdateRigidBodies() {
+void ChSystemMulticore::UpdateRigidBodies() {
     custom_vector<real3>& position = data_manager->host_data.pos_rigid;
     custom_vector<quaternion>& rotation = data_manager->host_data.rot_rigid;
     custom_vector<char>& active = data_manager->host_data.active_rigid;
@@ -505,7 +505,7 @@ void ChSystemParallel::UpdateRigidBodies() {
 // Update all shaft elements in the system and populate system-wide state and
 // force vectors. Note that visualization assets are not updated.
 //
-void ChSystemParallel::UpdateShafts() {
+void ChSystemMulticore::UpdateShafts() {
     real* shaft_rot = data_manager->host_data.shaft_rot.data();
     real* shaft_inr = data_manager->host_data.shaft_inr.data();
     char* shaft_active = data_manager->host_data.shaft_active.data();
@@ -531,7 +531,7 @@ void ChSystemParallel::UpdateShafts() {
 // Update all motor links that introduce *exactly* one variable.
 // TODO: extend this to links with more than one variable.
 //
-void ChSystemParallel::UpdateMotorLinks() {
+void ChSystemMulticore::UpdateMotorLinks() {
     int offset = data_manager->num_rigid_bodies * 6 + data_manager->num_shafts;
     for (int i = 0; i < data_manager->num_linmotors; i++) {
         linmotorlist[i]->Update(ch_time, false);
@@ -553,7 +553,7 @@ void ChSystemParallel::UpdateMotorLinks() {
 //
 // Update all fluid nodes
 // currently a stub
-void ChSystemParallel::Update3DOFBodies() {
+void ChSystemMulticore::Update3DOFBodies() {
     data_manager->node_container->Update(ch_time);
     data_manager->fea_container->Update(ch_time);
 }
@@ -562,7 +562,7 @@ void ChSystemParallel::Update3DOFBodies() {
 // Update all links in the system and set the type of the associated constraints
 // to BODY_BODY. Note that visualization assets are not updated.
 //
-void ChSystemParallel::UpdateLinks() {
+void ChSystemMulticore::UpdateLinks() {
     double oostep = 1 / GetStep();
     real clamp_speed = data_manager->settings.solver.bilateral_clamp_speed;
     bool clamp = data_manager->settings.solver.clamp_bilaterals;
@@ -621,7 +621,7 @@ BilateralType GetBilateralType(ChPhysicsItem* item) {
 // - only include constraints from items of supported type (see GetBilateralType above)
 // - visualization assets are not updated
 //
-void ChSystemParallel::UpdateOtherPhysics() {
+void ChSystemMulticore::UpdateOtherPhysics() {
     double oostep = 1 / GetStep();
     real clamp_speed = data_manager->settings.solver.bilateral_clamp_speed;
     bool clamp = data_manager->settings.solver.clamp_bilaterals;
@@ -654,7 +654,7 @@ void ChSystemParallel::UpdateOtherPhysics() {
 // Collect indexes of all active bilateral constraints and calculate number of
 // non-zero entries in the constraint Jacobian.
 //
-void ChSystemParallel::UpdateBilaterals() {
+void ChSystemMulticore::UpdateBilaterals() {
     data_manager->nnz_bilaterals = 0;
     std::vector<ChConstraint*>& mconstraints = descriptor->GetConstraintsList();
 
@@ -689,8 +689,8 @@ void ChSystemParallel::UpdateBilaterals() {
 // the system update and before collision detection. A derived class can
 // override this function, but it should invoke this default implementation.
 //
-void ChSystemParallel::Setup() {
-    LOG(INFO) << "ChSystemParallel::Setup()";
+void ChSystemMulticore::Setup() {
+    LOG(INFO) << "ChSystemMulticore::Setup()";
     // Cache the integration step size and calculate the tolerance at impulse level.
     data_manager->settings.step_size = step;
     data_manager->settings.solver.tol_speed = step * data_manager->settings.solver.tolerance;
@@ -719,7 +719,7 @@ void ChSystemParallel::Setup() {
     assembly.nbodies_fixed = 0;
 }
 
-void ChSystemParallel::RecomputeThreads() {
+void ChSystemMulticore::RecomputeThreads() {
 #ifdef _OPENMP
     timer_accumulator.insert(timer_accumulator.begin(), data_manager->system_timer.GetTime("step"));
     timer_accumulator.pop_back();
@@ -761,22 +761,22 @@ void ChSystemParallel::RecomputeThreads() {
 #endif
 }
 
-void ChSystemParallel::ChangeCollisionSystem(CollisionSystemType type) {
+void ChSystemMulticore::ChangeCollisionSystem(CollisionSystemType type) {
     assert(assembly.GetNbodies() == 0);
 
     collision_system_type = type;
 
     switch (type) {
         case CollisionSystemType::COLLSYS_MULTICORE:
-            collision_system = chrono_types::make_shared<ChCollisionSystemParallel>(data_manager);
+            collision_system = chrono_types::make_shared<ChCollisionSystemMulticore>(data_manager);
             break;
         case CollisionSystemType::COLLSYS_BULLET_MULTICORE:
-            collision_system = chrono_types::make_shared<ChCollisionSystemBulletParallel>(data_manager);
+            collision_system = chrono_types::make_shared<ChCollisionSystemBulletMulticore>(data_manager);
             break;
     }
 }
 
-void ChSystemParallel::SetLoggingLevel(LoggingLevel level, bool state) {
+void ChSystemMulticore::SetLoggingLevel(LoggingLevel level, bool state) {
 #ifdef LOGGINGENABLED
 
     std::string value = state ? "true" : "false";
@@ -802,7 +802,7 @@ void ChSystemParallel::SetLoggingLevel(LoggingLevel level, bool state) {
 }
 
 // Calculate the current body AABB (union of the AABB of their collision shapes).
-void ChSystemParallel::CalculateBodyAABB() {
+void ChSystemMulticore::CalculateBodyAABB() {
     if (collision_system_type != CollisionSystemType::COLLSYS_MULTICORE)
         return;
 
@@ -829,14 +829,14 @@ void ChSystemParallel::CalculateBodyAABB() {
     // Loop over all bodies and set the AABB of its collision model
     for (auto b : Get_bodylist()) {
         uint ib = b->GetId();
-        std::static_pointer_cast<ChCollisionModelParallel>(b->GetCollisionModel())->aabb_min = b_min[ib];
-        std::static_pointer_cast<ChCollisionModelParallel>(b->GetCollisionModel())->aabb_max = b_max[ib];
+        std::static_pointer_cast<ChCollisionModelMulticore>(b->GetCollisionModel())->aabb_min = b_min[ib];
+        std::static_pointer_cast<ChCollisionModelMulticore>(b->GetCollisionModel())->aabb_max = b_max[ib];
     }
 }
 
 // Calculate the (linearized) bilateral constraint violations and store them in
 // the provided vector. Return the maximum constraint violation.
-double ChSystemParallel::CalculateConstraintViolation(std::vector<double>& cvec) {
+double ChSystemMulticore::CalculateConstraintViolation(std::vector<double>& cvec) {
     std::vector<ChConstraint*>& mconstraints = descriptor->GetConstraintsList();
     cvec.resize(data_manager->num_bilaterals);
     double max_c = 0;
@@ -852,63 +852,63 @@ double ChSystemParallel::CalculateConstraintViolation(std::vector<double>& cvec)
     return max_c;
 }
 
-void ChSystemParallel::PrintStepStats() {
+void ChSystemMulticore::PrintStepStats() {
     data_manager->system_timer.PrintReport();
 }
 
-unsigned int ChSystemParallel::GetNumBodies() {
+unsigned int ChSystemMulticore::GetNumBodies() {
     return data_manager->num_rigid_bodies + data_manager->num_fluid_bodies;
 }
 
-unsigned int ChSystemParallel::GetNumShafts() {
+unsigned int ChSystemMulticore::GetNumShafts() {
     return data_manager->num_shafts;
 }
 
-unsigned int ChSystemParallel::GetNumContacts() {
+unsigned int ChSystemMulticore::GetNumContacts() {
     return data_manager->num_rigid_contacts + data_manager->num_rigid_fluid_contacts + data_manager->num_fluid_contacts;
 }
 
-unsigned int ChSystemParallel::GetNumBilaterals() {
+unsigned int ChSystemMulticore::GetNumBilaterals() {
     return data_manager->num_bilaterals;
 }
 
 // -------------------------------------------------------------
 
-double ChSystemParallel::GetTimerStep() const {
+double ChSystemMulticore::GetTimerStep() const {
     return data_manager->system_timer.GetTime("step");
 }
 
-double ChSystemParallel::GetTimerAdvance() const {
+double ChSystemMulticore::GetTimerAdvance() const {
     return data_manager->system_timer.GetTime("advance");
 }
 
-double ChSystemParallel::GetTimerUpdate() const {
+double ChSystemMulticore::GetTimerUpdate() const {
     return data_manager->system_timer.GetTime("update");
 }
 
-double ChSystemParallel::GetTimerLSsolve() const {
-    return data_manager->system_timer.GetTime("ChIterativeSolverParallel_Solve");
+double ChSystemMulticore::GetTimerLSsolve() const {
+    return data_manager->system_timer.GetTime("ChIterativeSolverMulticore_Solve");
 }
 
-double ChSystemParallel::GetTimerLSsetup() const {
-    return data_manager->system_timer.GetTime("ChIterativeSolverParallel_Setup");
+double ChSystemMulticore::GetTimerLSsetup() const {
+    return data_manager->system_timer.GetTime("ChIterativeSolverMulticore_Setup");
 }
 
-double ChSystemParallel::GetTimerJacobian() const {
-    return data_manager->system_timer.GetTime("ChIterativeSolverParallel_Matrices");
+double ChSystemMulticore::GetTimerJacobian() const {
+    return data_manager->system_timer.GetTime("ChIterativeSolverMulticore_Matrices");
 }
 
-double ChSystemParallel::GetTimerCollision() const {
+double ChSystemMulticore::GetTimerCollision() const {
     return data_manager->system_timer.GetTime("collision");
 }
 
-settings_container* ChSystemParallel::GetSettings() {
+settings_container* ChSystemMulticore::GetSettings() {
     return &(data_manager->settings);
 }
 
 // -------------------------------------------------------------
 
-void ChSystemParallel::SetNumThreads(int num_threads_chrono, int num_threads_collision, int num_threads_eigen) {
+void ChSystemMulticore::SetNumThreads(int num_threads_chrono, int num_threads_collision, int num_threads_eigen) {
     ChSystem::SetNumThreads(num_threads_chrono, num_threads_chrono, num_threads_eigen);
 
 #ifdef _OPENMP
@@ -924,7 +924,7 @@ void ChSystemParallel::SetNumThreads(int num_threads_chrono, int num_threads_col
 #endif
 }
 
-void ChSystemParallel::EnableThreadTuning(int min_threads, int max_threads) {
+void ChSystemMulticore::EnableThreadTuning(int min_threads, int max_threads) {
 #ifdef _OPENMP
     data_manager->settings.perform_thread_tuning = true;
     data_manager->settings.min_threads = min_threads;
@@ -937,13 +937,13 @@ void ChSystemParallel::EnableThreadTuning(int min_threads, int max_threads) {
 
 // -------------------------------------------------------------
 
-void ChSystemParallel::SetMaterialCompositionStrategy(std::unique_ptr<ChMaterialCompositionStrategy>&& strategy) {
+void ChSystemMulticore::SetMaterialCompositionStrategy(std::unique_ptr<ChMaterialCompositionStrategy>&& strategy) {
     data_manager->composition_strategy = std::move(strategy);
 }
 
 // -------------------------------------------------------------
 
-ChVector<> ChSystemParallel::GetBodyAppliedForce(ChBody* body) {
+ChVector<> ChSystemMulticore::GetBodyAppliedForce(ChBody* body) {
     auto h = data_manager->settings.step_size;
     auto fx = data_manager->host_data.hf[body->GetId() * 6 + 0] / h;
     auto fy = data_manager->host_data.hf[body->GetId() * 6 + 1] / h;
@@ -951,7 +951,7 @@ ChVector<> ChSystemParallel::GetBodyAppliedForce(ChBody* body) {
     return ChVector<>((double)fx, (double)fy, (double)fz);
 }
 
-ChVector<> ChSystemParallel::GetBodyAppliedTorque(ChBody* body) {
+ChVector<> ChSystemMulticore::GetBodyAppliedTorque(ChBody* body) {
     auto h = data_manager->settings.step_size;
     auto tx = data_manager->host_data.hf[body->GetId() * 6 + 3] / h;
     auto ty = data_manager->host_data.hf[body->GetId() * 6 + 4] / h;

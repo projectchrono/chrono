@@ -29,7 +29,7 @@ namespace chrono {
 /// @addtogroup multicore_math
 /// @{
 
-/// Chrono::Parallel triplet (3-dimensional vector).
+/// Chrono::Multicore triplet (3-dimensional vector).
 class CH_MULTICORE_API real3 {
   public:
     CUDA_HOST_DEVICE inline real3() { array[3] = 0; }

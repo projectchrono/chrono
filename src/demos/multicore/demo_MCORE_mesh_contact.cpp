@@ -91,10 +91,10 @@ int main(int argc, char* argv[]) {
     double thickness = 0.1;
 
     // Create the system
-    ChSystemParallel* sys;
+    ChSystemMulticore* sys;
     switch (contact_method) {
         case ChContactMethod::NSC: {
-            auto sysNSC = new ChSystemParallelNSC();
+            auto sysNSC = new ChSystemMulticoreNSC();
             sysNSC->ChangeSolverType(SolverType::APGD);
             sysNSC->GetSettings()->solver.solver_mode = SolverMode::SPINNING;
             sysNSC->GetSettings()->solver.max_iteration_normal = max_iteration_normal;
@@ -107,7 +107,7 @@ int main(int argc, char* argv[]) {
             break;
         }
         case ChContactMethod::SMC: {
-            auto sysSMC = new ChSystemParallelSMC();
+            auto sysSMC = new ChSystemMulticoreSMC();
             sysSMC->GetSettings()->solver.contact_force_model = ChSystemSMC::Hertz;
             sysSMC->GetSettings()->solver.tangential_displ_mode = ChSystemSMC::OneStep;
             sys = sysSMC;
@@ -220,7 +220,7 @@ int main(int argc, char* argv[]) {
 
     auto box = chrono_types::make_shared<ChBoxShape>();
     box->GetBoxGeometry().Size = ChVector<>(width, length, thickness);
-    ////box->GetBoxGeometry().Pos = ChVector<>(0, 0, -thickness); // not interpreted in parallel collision sys
+    ////box->GetBoxGeometry().Pos = ChVector<>(0, 0, -thickness); // not interpreted in multicore collision sys
     box->Pos = ChVector<>(0, 0, -thickness);
     ground->AddAsset(box);
 

@@ -27,14 +27,14 @@ namespace chrono {
 /// @addtogroup multicore_solver
 /// @{
 
-/// System descriptor for Chrono::Parallel.
-class CH_MULTICORE_API ChSystemDescriptorParallel : public ChSystemDescriptor {
+/// System descriptor for Chrono::Multicore.
+class CH_MULTICORE_API ChSystemDescriptorMulticore : public ChSystemDescriptor {
   public:
-    ChSystemDescriptorParallel(ChParallelDataManager* dc) : data_manager(dc) {}
-    ~ChSystemDescriptorParallel() {}
+    ChSystemDescriptorMulticore(ChMulticoreDataManager* dc) : data_manager(dc) {}
+    ~ChSystemDescriptorMulticore() {}
 
   private:
-    ChParallelDataManager* data_manager;  ///< Pointer to the system's data manager
+    ChMulticoreDataManager* data_manager;  ///< Pointer to the system's data manager
 };
 
 /// @} multicore_solver

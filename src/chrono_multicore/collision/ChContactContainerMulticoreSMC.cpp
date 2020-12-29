@@ -19,16 +19,16 @@ namespace chrono {
 using namespace collision;
 using namespace geometry;
 
-ChContactContainerParallelSMC::ChContactContainerParallelSMC(ChParallelDataManager* dc)
-    : ChContactContainerParallel(dc) {}
+ChContactContainerMulticoreSMC::ChContactContainerMulticoreSMC(ChMulticoreDataManager* dc)
+    : ChContactContainerMulticore(dc) {}
 
-ChContactContainerParallelSMC::ChContactContainerParallelSMC(const ChContactContainerParallelSMC& other)
-    : ChContactContainerParallel(other) {
+ChContactContainerMulticoreSMC::ChContactContainerMulticoreSMC(const ChContactContainerMulticoreSMC& other)
+    : ChContactContainerMulticore(other) {
     //// TODO
 }
 
-void ChContactContainerParallelSMC::BeginAddContact() {
-    ChContactContainerParallel::BeginAddContact();
+void ChContactContainerMulticoreSMC::BeginAddContact() {
+    ChContactContainerMulticore::BeginAddContact();
 
     // Resize global arrays for composite material properties
     uint num_contacts = data_manager->num_rigid_contacts;
@@ -40,12 +40,12 @@ void ChContactContainerParallelSMC::BeginAddContact() {
     data_manager->host_data.smc_rigid_rigid.resize(num_contacts);
 }
 
-void ChContactContainerParallelSMC::EndAddContact() {
-    ChContactContainerParallel::EndAddContact();
+void ChContactContainerMulticoreSMC::EndAddContact() {
+    ChContactContainerMulticore::EndAddContact();
     //// Anything else here?!?
 }
 
-void ChContactContainerParallelSMC::AddContact(const collision::ChCollisionInfo& cinfo,
+void ChContactContainerMulticoreSMC::AddContact(const collision::ChCollisionInfo& cinfo,
                                                std::shared_ptr<ChMaterialSurface> mat1,
                                                std::shared_ptr<ChMaterialSurface> mat2) {
     assert(cinfo.modelA->GetContactable());
@@ -91,7 +91,7 @@ void ChContactContainerParallelSMC::AddContact(const collision::ChCollisionInfo&
     }
 }
 
-void ChContactContainerParallelSMC::AddContact(const collision::ChCollisionInfo& cinfo) {
+void ChContactContainerMulticoreSMC::AddContact(const collision::ChCollisionInfo& cinfo) {
     assert(cinfo.modelA->GetContactable());
     assert(cinfo.modelB->GetContactable());
 
@@ -118,7 +118,7 @@ void ChContactContainerParallelSMC::AddContact(const collision::ChCollisionInfo&
     }
 }
 
-void ChContactContainerParallelSMC::AddContact(int index, int b1, int s1, int b2, int s2) {
+void ChContactContainerMulticoreSMC::AddContact(int index, int b1, int s1, int b2, int s2) {
     auto& blist = *data_manager->body_list;  // list of bodies in system
 
     // Identify shapes in their respective collision models

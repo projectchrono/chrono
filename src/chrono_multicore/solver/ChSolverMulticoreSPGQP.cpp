@@ -16,9 +16,9 @@
 
 using namespace chrono;
 
-ChSolverParallelSPGQP::ChSolverParallelSPGQP() : ChSolverParallel() {}
+ChSolverMulticoreSPGQP::ChSolverMulticoreSPGQP() : ChSolverMulticore() {}
 
-void ChSolverParallelSPGQP::UpdateR() {
+void ChSolverMulticoreSPGQP::UpdateR() {
     const SubMatrixType& D_n_T = _DNT_;
     const DynamicVector<real>& M_invk = data_manager->host_data.M_invk;
     const DynamicVector<real>& b = data_manager->host_data.b;
@@ -39,7 +39,7 @@ void ChSolverParallelSPGQP::UpdateR() {
     R_n = -b_n - D_n_T * M_invk + s_n;
 }
 
-uint ChSolverParallelSPGQP::Solve(ChShurProduct& ShurProduct,
+uint ChSolverMulticoreSPGQP::Solve(ChShurProduct& ShurProduct,
                                   ChProjectConstraints& Project,
                                   const uint max_iter,
                                   const uint size,
@@ -147,6 +147,6 @@ uint ChSolverParallelSPGQP::Solve(ChShurProduct& ShurProduct,
     }
     gamma = x_candidate;
 
-    data_manager->system_timer.stop("ChSolverParallel_Solve");
+    data_manager->system_timer.stop("ChSolverMulticore_Solve");
     return current_iteration;
 }

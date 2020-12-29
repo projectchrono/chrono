@@ -12,7 +12,7 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// Chrono::Parallel unit test for narrow phase type R collision detection
+// Chrono::Multicore unit test for narrow phase type R collision detection
 // =============================================================================
 
 #include "chrono_multicore/collision/ChNarrowphaseR.h"
@@ -26,7 +26,7 @@ using namespace chrono::collision;
 using std::cout;
 using std::endl;
 
-#ifdef CHRONO_PARALLEL_USE_DOUBLE
+#ifdef CHRONO_MULTICORE_USE_DOUBLE
 const double precision = 1e-10;
 #else
 const float precision = 1e-6f;

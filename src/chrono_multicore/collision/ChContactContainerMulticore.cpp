@@ -24,21 +24,21 @@ namespace chrono {
 using namespace collision;
 using namespace geometry;
 
-ChContactContainerParallel::ChContactContainerParallel(ChParallelDataManager* dc) : data_manager(dc) {
+ChContactContainerMulticore::ChContactContainerMulticore(ChMulticoreDataManager* dc) : data_manager(dc) {
     contactlist_6_6.clear();
     n_added_6_6 = 0;
 }
 
-ChContactContainerParallel::ChContactContainerParallel(const ChContactContainerParallel& other)
+ChContactContainerMulticore::ChContactContainerMulticore(const ChContactContainerMulticore& other)
     : ChContactContainer(other) {
     //// TODO
 }
 
-ChContactContainerParallel::~ChContactContainerParallel() {
+ChContactContainerMulticore::~ChContactContainerMulticore() {
     RemoveAllContacts();
 }
 
-void ChContactContainerParallel::RemoveAllContacts() {
+void ChContactContainerMulticore::RemoveAllContacts() {
     std::list<ChContact_6_6*>::iterator itercontact = contactlist_6_6.begin();
     while (itercontact != contactlist_6_6.end()) {
         delete (*itercontact);
@@ -50,12 +50,12 @@ void ChContactContainerParallel::RemoveAllContacts() {
     n_added_6_6 = 0;
 }
 
-void ChContactContainerParallel::BeginAddContact() {
+void ChContactContainerMulticore::BeginAddContact() {
     lastcontact_6_6 = contactlist_6_6.begin();
     n_added_6_6 = 0;
 }
 
-void ChContactContainerParallel::EndAddContact() {
+void ChContactContainerMulticore::EndAddContact() {
     // remove contacts that are beyond last contact
     while (lastcontact_6_6 != contactlist_6_6.end()) {
         delete (*lastcontact_6_6);
@@ -67,7 +67,7 @@ static inline chrono::ChVector<> ToChVector(const real3& a) {
     return chrono::ChVector<>(a.x, a.y, a.z);
 }
 
-void ChContactContainerParallel::ReportAllContacts(std::shared_ptr<ReportContactCallback> callback) {
+void ChContactContainerMulticore::ReportAllContacts(std::shared_ptr<ReportContactCallback> callback) {
     // Readibility
     const auto& ptA = data_manager->host_data.cpta_rigid_rigid;
     const auto& ptB = data_manager->host_data.cptb_rigid_rigid;
@@ -156,25 +156,25 @@ void ChContactContainerParallel::ReportAllContacts(std::shared_ptr<ReportContact
     }
 }
 
-void ChContactContainerParallel::ComputeContactForces() {
+void ChContactContainerMulticore::ComputeContactForces() {
     // Defer to associated system
-    static_cast<ChSystemParallel*>(GetSystem())->CalculateContactForces();
+    static_cast<ChSystemMulticore*>(GetSystem())->CalculateContactForces();
 }
 
-ChVector<> ChContactContainerParallel::GetContactableForce(ChContactable* contactable) {
+ChVector<> ChContactContainerMulticore::GetContactableForce(ChContactable* contactable) {
     // If contactable is a body, defer to associated system
     if (auto body = dynamic_cast<ChBody*>(contactable)) {
-        real3 frc = static_cast<ChSystemParallel*>(GetSystem())->GetBodyContactForce(body->GetId());
+        real3 frc = static_cast<ChSystemMulticore*>(GetSystem())->GetBodyContactForce(body->GetId());
         return ToChVector(frc);
     }
 
     return ChVector<>(0, 0, 0);
 }
 
-ChVector<> ChContactContainerParallel::GetContactableTorque(ChContactable* contactable) {
+ChVector<> ChContactContainerMulticore::GetContactableTorque(ChContactable* contactable) {
     // If contactable is a body, defer to associated system
     if (auto body = dynamic_cast<ChBody*>(contactable)) {
-        real3 trq = static_cast<ChSystemParallel*>(GetSystem())->GetBodyContactTorque(body->GetId());
+        real3 trq = static_cast<ChSystemMulticore*>(GetSystem())->GetBodyContactTorque(body->GetId());
         return ToChVector(trq);
     }
 

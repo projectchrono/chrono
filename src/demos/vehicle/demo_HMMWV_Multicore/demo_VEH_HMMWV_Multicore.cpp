@@ -12,7 +12,7 @@
 // Author: Radu Serban
 // =============================================================================
 //
-// Chrono::Vehicle + Chrono::Parallel program for simulating a HMMWV vehicle
+// Chrono::Vehicle + Chrono::Multicore program for simulating a HMMWV vehicle
 // on granular terrain.
 //
 // Contact uses non-smooth (DVI) formulation.
@@ -300,7 +300,7 @@ int main(int argc, char* argv[]) {
     ChVector<> gravity(0, 0, -9.81);
     ChVector<> gravityR = ChMatrix33<>(slope_g, ChVector<>(0, 1, 0)) * gravity;
 
-    ChSystemParallelNSC* system = new ChSystemParallelNSC();
+    ChSystemMulticoreNSC* system = new ChSystemMulticoreNSC();
     system->Set_G_acc(gravity);
 
     // Use a custom material property composition strategy.
@@ -622,11 +622,11 @@ void TimingOutput(chrono::ChSystem* mSys, chrono::ChStreamOutAsciiFile* ofile) {
     int REQ_ITS = 0;
     int BODS = mSys->GetNbodies();
     int CNTC = mSys->GetNcontacts();
-    if (chrono::ChSystemParallel* parallel_sys = dynamic_cast<chrono::ChSystemParallel*>(mSys)) {
-        RESID = std::static_pointer_cast<chrono::ChIterativeSolverParallel>(mSys->GetSolver())->GetResidual();
-        REQ_ITS = std::static_pointer_cast<chrono::ChIterativeSolverParallel>(mSys->GetSolver())->GetIterations();
-        BODS = parallel_sys->GetNbodies();
-        CNTC = parallel_sys->GetNcontacts();
+    if (chrono::ChSystemMulticore* multicore_sys = dynamic_cast<chrono::ChSystemMulticore*>(mSys)) {
+        RESID = std::static_pointer_cast<chrono::ChIterativeSolverMulticore>(mSys->GetSolver())->GetResidual();
+        REQ_ITS = std::static_pointer_cast<chrono::ChIterativeSolverMulticore>(mSys->GetSolver())->GetIterations();
+        BODS = multicore_sys->GetNbodies();
+        CNTC = multicore_sys->GetNcontacts();
     }
 
     if (ofile) {

@@ -249,7 +249,7 @@ void AppendRigidFluidBoundary(const real contact_mu,
                               const uint num_fluid_bodies,
                               const uint body_offset,
                               const uint start_boundary,
-                              ChParallelDataManager* data_manager);
+                              ChMulticoreDataManager* data_manager);
 
 CH_MULTICORE_API
 void ProjectRigidFluidBoundary(const real contact_mu,
@@ -257,14 +257,14 @@ void ProjectRigidFluidBoundary(const real contact_mu,
                                const uint num_fluid_bodies,
                                const uint start_boundary,
                                real* gamma,
-                               ChParallelDataManager* data_manager);
+                               ChMulticoreDataManager* data_manager);
 
 CH_MULTICORE_API
 void ComplianceRigidFluidBoundary(const real contact_mu,
                                   const real contact_compliance,
                                   const real alpha,
                                   const uint start_boundary,
-                                  ChParallelDataManager* data_manager);
+                                  ChMulticoreDataManager* data_manager);
 
 CH_MULTICORE_API
 void CorrectionRigidFluidBoundary(const real contact_mu,
@@ -273,14 +273,14 @@ void CorrectionRigidFluidBoundary(const real contact_mu,
                                   const real contact_recovery_speed,
                                   const uint num_fluid_bodies,
                                   const uint start_boundary,
-                                  ChParallelDataManager* data_manager);
+                                  ChMulticoreDataManager* data_manager);
 
 CH_MULTICORE_API
 void BuildRigidFluidBoundary(const real contact_mu,
                              const uint num_fluid_bodies,
                              const uint body_offset,
                              const uint start_boundary,
-                             ChParallelDataManager* data_manager);
+                             ChMulticoreDataManager* data_manager);
 
 /// @} multicore_constraint
 

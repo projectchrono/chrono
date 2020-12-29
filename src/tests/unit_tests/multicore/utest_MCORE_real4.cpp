@@ -12,7 +12,7 @@
 // Authors: Hammad Mazhar, Radu Serban
 // =============================================================================
 //
-// Chrono::Parallel unit test for real class
+// Chrono::Multicore unit test for real class
 // =============================================================================
 
 #include "chrono_multicore/math/real4.h"
@@ -20,7 +20,7 @@
 
 #include "unit_testing.h"
 
-#ifdef CHRONO_PARALLEL_USE_DOUBLE
+#ifdef CHRONO_MULTICORE_USE_DOUBLE
 const double precision = 1e-10;
 #else
 const float precision = 1e-6f;

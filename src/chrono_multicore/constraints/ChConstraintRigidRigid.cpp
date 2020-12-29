@@ -169,7 +169,7 @@ void ChConstraintRigidRigid::host_Project_single(int index, vec2* ids, real3* fr
     }
 }
 
-void ChConstraintRigidRigid::Setup(ChParallelDataManager* dm) {
+void ChConstraintRigidRigid::Setup(ChMulticoreDataManager* dm) {
     data_manager = dm;
     uint num_contacts = data_manager->num_rigid_contacts;
     inv_h = 1 / data_manager->settings.step_size;

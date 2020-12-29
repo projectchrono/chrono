@@ -19,25 +19,25 @@
 using namespace chrono;
 using namespace chrono::collision;
 
-ChSystemParallelSMC::ChSystemParallelSMC() : ChSystemParallel() {
-    contact_container = chrono_types::make_shared<ChContactContainerParallelSMC>(data_manager);
+ChSystemMulticoreSMC::ChSystemMulticoreSMC() : ChSystemMulticore() {
+    contact_container = chrono_types::make_shared<ChContactContainerMulticoreSMC>(data_manager);
     contact_container->SetSystem(this);
 
-    solver = chrono_types::make_shared<ChIterativeSolverParallelSMC>(data_manager);
+    solver = chrono_types::make_shared<ChIterativeSolverMulticoreSMC>(data_manager);
 
     data_manager->settings.collision.collision_envelope = 0;
 
     // Set this so that the CD can check what type of system it is (needed for narrowphase)
     data_manager->settings.system_type = SystemType::SYSTEM_SMC;
 
-    data_manager->system_timer.AddTimer("ChIterativeSolverParallelSMC_ProcessContact");
+    data_manager->system_timer.AddTimer("ChIterativeSolverMulticoreSMC_ProcessContact");
 }
 
-ChSystemParallelSMC::ChSystemParallelSMC(const ChSystemParallelSMC& other) : ChSystemParallel(other) {
+ChSystemMulticoreSMC::ChSystemMulticoreSMC(const ChSystemMulticoreSMC& other) : ChSystemMulticore(other) {
     //// TODO
 }
 
-void ChSystemParallelSMC::AddMaterialSurfaceData(std::shared_ptr<ChBody> newbody) {
+void ChSystemMulticoreSMC::AddMaterialSurfaceData(std::shared_ptr<ChBody> newbody) {
     data_manager->host_data.mass_rigid.push_back(0);
 
     if (data_manager->settings.solver.tangential_displ_mode == ChSystemSMC::TangentialDisplacementModel::MultiStep) {
@@ -50,24 +50,24 @@ void ChSystemParallelSMC::AddMaterialSurfaceData(std::shared_ptr<ChBody> newbody
     }
 }
 
-void ChSystemParallelSMC::UpdateMaterialSurfaceData(int index, ChBody* body) {
+void ChSystemMulticoreSMC::UpdateMaterialSurfaceData(int index, ChBody* body) {
     data_manager->host_data.mass_rigid[index] = body->GetMass();
 }
 
-void ChSystemParallelSMC::Setup() {
+void ChSystemMulticoreSMC::Setup() {
     // First, invoke the base class method
-    ChSystemParallel::Setup();
+    ChSystemMulticore::Setup();
 
     // Ensure that the collision envelope is zero.
     data_manager->settings.collision.collision_envelope = 0;
 }
 
-void ChSystemParallelSMC::ChangeCollisionSystem(CollisionSystemType type) {
-    ChSystemParallel::ChangeCollisionSystem(type);
+void ChSystemMulticoreSMC::ChangeCollisionSystem(CollisionSystemType type) {
+    ChSystemMulticore::ChangeCollisionSystem(type);
     data_manager->settings.collision.collision_envelope = 0;
 }
 
-real3 ChSystemParallelSMC::GetBodyContactForce(uint body_id) const {
+real3 ChSystemMulticoreSMC::GetBodyContactForce(uint body_id) const {
     int index = data_manager->host_data.ct_body_map[body_id];
 
     if (index == -1)
@@ -76,7 +76,7 @@ real3 ChSystemParallelSMC::GetBodyContactForce(uint body_id) const {
     return data_manager->host_data.ct_body_force[index];
 }
 
-real3 ChSystemParallelSMC::GetBodyContactTorque(uint body_id) const {
+real3 ChSystemMulticoreSMC::GetBodyContactTorque(uint body_id) const {
     int index = data_manager->host_data.ct_body_map[body_id];
 
     if (index == -1)
@@ -85,8 +85,8 @@ real3 ChSystemParallelSMC::GetBodyContactTorque(uint body_id) const {
     return data_manager->host_data.ct_body_torque[index];
 }
 
-void ChSystemParallelSMC::PrintStepStats() {
-    double timer_solver_stab = data_manager->system_timer.GetTime("ChIterativeSolverParallel_Stab");
+void ChSystemMulticoreSMC::PrintStepStats() {
+    double timer_solver_stab = data_manager->system_timer.GetTime("ChIterativeSolverMulticore_Stab");
 
     std::cout << std::endl;
     std::cout << "System Information" << std::endl;

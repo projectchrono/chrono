@@ -16,7 +16,7 @@
 
 using namespace chrono;
 
-uint ChSolverParallelMinRes::Solve(ChShurProduct& ShurProduct,
+uint ChSolverMulticoreMinRes::Solve(ChShurProduct& ShurProduct,
                                    ChProjectConstraints& Project,
                                    const uint max_iter,
                                    const uint size,

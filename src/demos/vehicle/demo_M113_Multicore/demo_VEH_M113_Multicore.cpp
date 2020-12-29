@@ -22,12 +22,12 @@
 #include "chrono/core/ChStream.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 
-// Chrono::Parallel header files
+// Chrono::Multicore header files
 #include "chrono_multicore/physics/ChSystemMulticore.h"
 #include "chrono_multicore/solver/ChSystemDescriptorMulticore.h"
 #include "chrono_multicore/collision/ChNarrowphaseRUtils.h"
 
-// Chrono::Parallel OpenGL header files
+// Chrono::Multicore OpenGL header files
 //#undef CHRONO_OPENGL
 
 #ifdef CHRONO_OPENGL
@@ -62,7 +62,7 @@ using std::endl;
 // USER SETTINGS
 // =============================================================================
 
-// Comment the following line to use Chrono::Parallel
+// Comment the following line to use Chrono::Multicore
 //#define USE_SEQ
 
 // Comment the following line to use NSC contact
@@ -142,7 +142,7 @@ int bilateral_frame_interval = 100;
 // Output directories
 bool povray_output = false;
 
-const std::string out_dir = GetChronoOutputPath() + "M113_PARALLEL";
+const std::string out_dir = GetChronoOutputPath() + "M113_MULTICORE";
 const std::string pov_dir = out_dir + "/POVRAY";
 
 int out_fps = 60;
@@ -241,13 +241,13 @@ int main(int argc, char* argv[]) {
 #endif
 
 #else
-    // ----  Parallel
+    // ----  Multicore
 #ifdef USE_SMC
-    std::cout << "Create Parallel SMC system" << std::endl;
-    ChSystemParallelSMC* system = new ChSystemParallelSMC();
+    std::cout << "Create Multicore SMC system" << std::endl;
+    ChSystemMulticoreSMC* system = new ChSystemMulticoreSMC();
 #else
-    std::cout << "Create Parallel NSC system" << std::endl;
-    ChSystemParallelNSC* system = new ChSystemParallelNSC();
+    std::cout << "Create Multicore NSC system" << std::endl;
+    ChSystemMulticoreNSC* system = new ChSystemMulticoreNSC();
 #endif
 
 #endif

@@ -300,7 +300,7 @@ bool box_intersects_box(const real3& hdims1, const real3& hdims2, const real3& p
     return false;
 }
 
-/// @} parallel_colision
+/// @} multicore_colision
 
 }  // end namespace collision
 }  // end namespace chrono

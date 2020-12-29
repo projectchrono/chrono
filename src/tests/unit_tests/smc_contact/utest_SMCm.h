@@ -39,7 +39,7 @@ std::string ForceModel_name(ChSystemSMC::ContactForceModel f) {
 }
 
 std::shared_ptr<ChBody> AddSphere(int id,
-                                  ChSystemParallelSMC* sys,
+                                  ChSystemMulticoreSMC* sys,
                                   std::shared_ptr<ChMaterialSurfaceSMC> mat,
                                   double radius,
                                   double mass,
@@ -51,7 +51,7 @@ std::shared_ptr<ChBody> AddSphere(int id,
     ChVector<> init_w(0, 0, 0);
 
     // Create a spherical body. Set body parameters and sphere collision model
-    auto body = chrono_types::make_shared<ChBody>(chrono_types::make_shared<ChCollisionModelParallel>());
+    auto body = chrono_types::make_shared<ChBody>(chrono_types::make_shared<ChCollisionModelMulticore>());
     body->SetIdentifier(id);
     body->SetMass(mass);
     body->SetPos(pos);
@@ -72,7 +72,7 @@ std::shared_ptr<ChBody> AddSphere(int id,
 }
 
 std::shared_ptr<ChBody> AddWall(int id,
-                                ChSystemParallelSMC* sys,
+                                ChSystemMulticoreSMC* sys,
                                 std::shared_ptr<ChMaterialSurfaceSMC> mat,
                                 ChVector<> size,
                                 double mass,
@@ -86,7 +86,7 @@ std::shared_ptr<ChBody> AddWall(int id,
     ChQuaternion<> rot(1, 0, 0, 0);
 
     // Create container. Set body parameters and container collision model
-    auto body = chrono_types::make_shared<ChBody>(chrono_types::make_shared<ChCollisionModelParallel>());
+    auto body = chrono_types::make_shared<ChBody>(chrono_types::make_shared<ChCollisionModelMulticore>());
     body->SetIdentifier(id);
     body->SetMass(mass);
     body->SetPos(pos);
@@ -105,7 +105,7 @@ std::shared_ptr<ChBody> AddWall(int id,
     return body;
 }
 
-void SetSimParameters(ChSystemParallelSMC* sys, const ChVector<>& gravity, ChSystemSMC::ContactForceModel fmodel) {
+void SetSimParameters(ChSystemMulticoreSMC* sys, const ChVector<>& gravity, ChSystemSMC::ContactForceModel fmodel) {
     // Set solver settings and collision detection parameters
     sys->Set_G_acc(gravity);
 
@@ -122,7 +122,7 @@ void SetSimParameters(ChSystemParallelSMC* sys, const ChVector<>& gravity, ChSys
     sys->ChangeCollisionSystem(CollisionSystemType::COLLSYS_MULTICORE);
 }
 
-bool CalcKE(ChSystemParallelSMC* sys, const double& threshold) {
+bool CalcKE(ChSystemMulticoreSMC* sys, const double& threshold) {
     const std::shared_ptr<ChBody> body = sys->Get_bodylist().at(1);
 
     ChVector<> eng_trn = 0.5 * body->GetMass() * body->GetPos_dt() * body->GetPos_dt();
@@ -137,7 +137,7 @@ bool CalcKE(ChSystemParallelSMC* sys, const double& threshold) {
     return false;
 }
 
-bool CalcAverageKE(ChSystemParallelSMC* sys, const double& threshold) {
+bool CalcAverageKE(ChSystemMulticoreSMC* sys, const double& threshold) {
     // Calculate average KE
     double KE_trn = 0;
     double KE_rot = 0;

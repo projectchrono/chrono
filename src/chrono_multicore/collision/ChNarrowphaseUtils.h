@@ -450,7 +450,7 @@ static void FindTriIndex(const real3& P, const uvec4& T, const real3* pos_node, 
     }
 }
 
-/// @} parallel_colision
+/// @} multicore_colision
 
 } // end namespace collision
 } // end namespace chrono

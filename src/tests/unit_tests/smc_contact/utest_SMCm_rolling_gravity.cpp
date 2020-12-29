@@ -14,7 +14,7 @@
 //
 //  This project simulates a ball rolling across a plate. See Ai et al. (2011)
 //  Validation Test 1. The purpose of this test is to validate the
-//  implementation of rolling friction in ChIterativeSolverParallelSMC.
+//  implementation of rolling friction in ChIterativeSolverMulticoreSMC.
 //
 // =============================================================================
 
@@ -55,8 +55,8 @@ class RollingGravityTest : public ::testing::TestWithParam<ChSystemSMC::ContactF
         mat->SetAdhesionMultDMT(adDMT);
         mat->SetAdhesionSPerko(adSPerko);
 
-        // Create a parallel SMC system and set the system parameters
-        sys = new ChSystemParallelSMC();
+        // Create a multicore SMC system and set the system parameters
+        sys = new ChSystemMulticoreSMC();
         time_step = 3.0E-5;
         SetSimParameters(sys, ChVector<>(0, -9.81, 0), fmodel);
 
@@ -95,7 +95,7 @@ class RollingGravityTest : public ::testing::TestWithParam<ChSystemSMC::ContactF
 
     ~RollingGravityTest() { delete sys; }
 
-    ChSystemParallelSMC* sys;
+    ChSystemMulticoreSMC* sys;
     std::shared_ptr<ChBody> body;
     double time_step;
 };

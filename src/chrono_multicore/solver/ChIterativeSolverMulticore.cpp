@@ -12,8 +12,8 @@
 // Authors: Hammad Mazhar
 // =============================================================================
 //
-// Description: This class calls the parallel solver, used as an intermediate
-// between chrono's solver interface and the parallel solver interface.
+// Description: This class calls the multicore solver, used as an intermediate
+// between chrono's solver interface and the multicore solver interface.
 //
 // =============================================================================
 
@@ -23,23 +23,23 @@
 
 using namespace chrono;
 
-ChIterativeSolverParallel::ChIterativeSolverParallel(ChParallelDataManager* dc) : data_manager(dc) {
+ChIterativeSolverMulticore::ChIterativeSolverMulticore(ChMulticoreDataManager* dc) : data_manager(dc) {
     m_tolerance = 1e-7;
     record_violation_history = true;
     m_warm_start = false;
-    solver = new ChSolverParallelAPGD();
-    bilateral_solver = new ChSolverParallelMinRes();
+    solver = new ChSolverMulticoreAPGD();
+    bilateral_solver = new ChSolverMulticoreMinRes();
     data_manager->rigid_rigid = new ChConstraintRigidRigid();
     data_manager->bilateral = new ChConstraintBilateral();
 }
 
-ChIterativeSolverParallel::~ChIterativeSolverParallel() {
+ChIterativeSolverMulticore::~ChIterativeSolverMulticore() {
     delete solver;
     delete bilateral_solver;
 }
 
-void ChIterativeSolverParallel::ComputeInvMassMatrix() {
-    LOG(INFO) << "ChIterativeSolverParallel::ComputeInvMassMatrix()";
+void ChIterativeSolverMulticore::ComputeInvMassMatrix() {
+    LOG(INFO) << "ChIterativeSolverMulticore::ComputeInvMassMatrix()";
     uint num_bodies = data_manager->num_rigid_bodies;
     uint num_shafts = data_manager->num_shafts;
     uint num_motors = data_manager->num_motors;
@@ -130,8 +130,8 @@ void ChIterativeSolverParallel::ComputeInvMassMatrix() {
     M_invk = v + M_inv * hf;
 }
 
-void ChIterativeSolverParallel::ComputeMassMatrix() {
-    LOG(INFO) << "ChIterativeSolverParallel::ComputeMassMatrix()";
+void ChIterativeSolverMulticore::ComputeMassMatrix() {
+    LOG(INFO) << "ChIterativeSolverMulticore::ComputeMassMatrix()";
     uint num_bodies = data_manager->num_rigid_bodies;
     uint num_shafts = data_manager->num_shafts;
     uint num_motors = data_manager->num_motors;
@@ -216,14 +216,14 @@ void ChIterativeSolverParallel::ComputeMassMatrix() {
     data_manager->fea_container->ComputeMass(offset + num_fluid_bodies * 3);
 }
 
-void ChIterativeSolverParallel::PerformStabilization() {
-    LOG(INFO) << "ChIterativeSolverParallel::PerformStabilization";
+void ChIterativeSolverMulticore::PerformStabilization() {
+    LOG(INFO) << "ChIterativeSolverMulticore::PerformStabilization";
     const DynamicVector<real>& R_full = data_manager->host_data.R_full;
     DynamicVector<real>& gamma = data_manager->host_data.gamma;
     uint num_unilaterals = data_manager->num_unilaterals;
     uint num_bilaterals = data_manager->num_bilaterals;
 
-    data_manager->system_timer.start("ChIterativeSolverParallel_Stab");
+    data_manager->system_timer.start("ChIterativeSolverMulticore_Stab");
 
     if (data_manager->settings.solver.max_iteration_bilateral > 0 && num_bilaterals > 0) {
         const DynamicVector<real> R_b = blaze::subvector(R_full, num_unilaterals, num_bilaterals);
@@ -259,9 +259,9 @@ void ChIterativeSolverParallel::PerformStabilization() {
         blaze::subvector(gamma, start_tet, num_constraints) = gamma_fem;
     }
 
-    data_manager->system_timer.stop("ChIterativeSolverParallel_Stab");
+    data_manager->system_timer.stop("ChIterativeSolverMulticore_Stab");
 }
 
-real ChIterativeSolverParallel::GetResidual() const {
+real ChIterativeSolverMulticore::GetResidual() const {
     return data_manager->measures.solver.maxd_hist.size() > 0 ? data_manager->measures.solver.maxd_hist.back() : 0.0;
 }

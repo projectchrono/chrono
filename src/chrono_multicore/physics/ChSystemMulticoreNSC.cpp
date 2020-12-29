@@ -22,40 +22,40 @@
 
 using namespace chrono;
 
-ChSystemParallelNSC::ChSystemParallelNSC() : ChSystemParallel() {
-    contact_container = chrono_types::make_shared<ChContactContainerParallelNSC>(data_manager);
+ChSystemMulticoreNSC::ChSystemMulticoreNSC() : ChSystemMulticore() {
+    contact_container = chrono_types::make_shared<ChContactContainerMulticoreNSC>(data_manager);
     contact_container->SetSystem(this);
 
-    solver = chrono_types::make_shared<ChIterativeSolverParallelNSC>(data_manager);
+    solver = chrono_types::make_shared<ChIterativeSolverMulticoreNSC>(data_manager);
 
     // Set this so that the CD can check what type of system it is (needed for narrowphase)
     data_manager->settings.system_type = SystemType::SYSTEM_NSC;
 
-    data_manager->system_timer.AddTimer("ChSolverParallel_solverA");
-    data_manager->system_timer.AddTimer("ChSolverParallel_solverB");
-    data_manager->system_timer.AddTimer("ChSolverParallel_solverC");
-    data_manager->system_timer.AddTimer("ChSolverParallel_solverD");
-    data_manager->system_timer.AddTimer("ChSolverParallel_solverE");
-    data_manager->system_timer.AddTimer("ChSolverParallel_solverF");
-    data_manager->system_timer.AddTimer("ChSolverParallel_solverG");
-    data_manager->system_timer.AddTimer("ChSolverParallel_Project");
-    data_manager->system_timer.AddTimer("ChSolverParallel_Solve");
+    data_manager->system_timer.AddTimer("ChSolverMulticore_solverA");
+    data_manager->system_timer.AddTimer("ChSolverMulticore_solverB");
+    data_manager->system_timer.AddTimer("ChSolverMulticore_solverC");
+    data_manager->system_timer.AddTimer("ChSolverMulticore_solverD");
+    data_manager->system_timer.AddTimer("ChSolverMulticore_solverE");
+    data_manager->system_timer.AddTimer("ChSolverMulticore_solverF");
+    data_manager->system_timer.AddTimer("ChSolverMulticore_solverG");
+    data_manager->system_timer.AddTimer("ChSolverMulticore_Project");
+    data_manager->system_timer.AddTimer("ChSolverMulticore_Solve");
     data_manager->system_timer.AddTimer("ShurProduct");
-    data_manager->system_timer.AddTimer("ChIterativeSolverParallel_D");
-    data_manager->system_timer.AddTimer("ChIterativeSolverParallel_E");
-    data_manager->system_timer.AddTimer("ChIterativeSolverParallel_R");
-    data_manager->system_timer.AddTimer("ChIterativeSolverParallel_N");
+    data_manager->system_timer.AddTimer("ChIterativeSolverMulticore_D");
+    data_manager->system_timer.AddTimer("ChIterativeSolverMulticore_E");
+    data_manager->system_timer.AddTimer("ChIterativeSolverMulticore_R");
+    data_manager->system_timer.AddTimer("ChIterativeSolverMulticore_N");
 }
 
-ChSystemParallelNSC::ChSystemParallelNSC(const ChSystemParallelNSC& other) : ChSystemParallel(other) {
+ChSystemMulticoreNSC::ChSystemMulticoreNSC(const ChSystemMulticoreNSC& other) : ChSystemMulticore(other) {
     //// TODO
 }
 
-void ChSystemParallelNSC::ChangeSolverType(SolverType type) {
-    std::static_pointer_cast<ChIterativeSolverParallelNSC>(solver)->ChangeSolverType(type);
+void ChSystemMulticoreNSC::ChangeSolverType(SolverType type) {
+    std::static_pointer_cast<ChIterativeSolverMulticoreNSC>(solver)->ChangeSolverType(type);
 }
 
-void ChSystemParallelNSC::Add3DOFContainer(std::shared_ptr<Ch3DOFContainer> container) {
+void ChSystemMulticoreNSC::Add3DOFContainer(std::shared_ptr<Ch3DOFContainer> container) {
     if (auto fea_container = std::dynamic_pointer_cast<ChFEAContainer>(container)) {
         data_manager->fea_container = fea_container;
     } else {
@@ -66,7 +66,7 @@ void ChSystemParallelNSC::Add3DOFContainer(std::shared_ptr<Ch3DOFContainer> cont
     container->data_manager = data_manager;
 }
 
-void ChSystemParallelNSC::AddMaterialSurfaceData(std::shared_ptr<ChBody> newbody) {
+void ChSystemMulticoreNSC::AddMaterialSurfaceData(std::shared_ptr<ChBody> newbody) {
     // Reserve space for material properties for the specified body.
     // Notes:
     //  - the actual data is set in UpdateMaterialProperties()
@@ -77,7 +77,7 @@ void ChSystemParallelNSC::AddMaterialSurfaceData(std::shared_ptr<ChBody> newbody
     data_manager->host_data.cohesion.push_back(0);
 }
 
-void ChSystemParallelNSC::UpdateMaterialSurfaceData(int index, ChBody* body) {
+void ChSystemMulticoreNSC::UpdateMaterialSurfaceData(int index, ChBody* body) {
     custom_vector<float>& friction = data_manager->host_data.sliding_friction;
     custom_vector<float>& cohesion = data_manager->host_data.cohesion;
 
@@ -89,7 +89,7 @@ void ChSystemParallelNSC::UpdateMaterialSurfaceData(int index, ChBody* body) {
     }
 }
 
-void ChSystemParallelNSC::CalculateContactForces() {
+void ChSystemMulticoreNSC::CalculateContactForces() {
     uint num_unilaterals = data_manager->num_unilaterals;
     uint num_rigid_dof = data_manager->num_rigid_bodies * 6;
     uint num_contacts = data_manager->num_rigid_contacts;
@@ -103,20 +103,20 @@ void ChSystemParallelNSC::CalculateContactForces() {
         return;
     }
 
-    LOG(INFO) << "ChSystemParallelNSC::CalculateContactForces() ";
+    LOG(INFO) << "ChSystemMulticoreNSC::CalculateContactForces() ";
 
     const SubMatrixType& D_u = blaze::submatrix(data_manager->host_data.D, 0, 0, num_rigid_dof, num_unilaterals);
     DynamicVector<real> gamma_u = blaze::subvector(data_manager->host_data.gamma, 0, num_unilaterals);
     Fc = D_u * gamma_u / data_manager->settings.step_size;
 }
 
-real3 ChSystemParallelNSC::GetBodyContactForce(uint body_id) const {
+real3 ChSystemMulticoreNSC::GetBodyContactForce(uint body_id) const {
     assert(data_manager->Fc_current);
     return real3(data_manager->host_data.Fc[body_id * 6 + 0], data_manager->host_data.Fc[body_id * 6 + 1],
                  data_manager->host_data.Fc[body_id * 6 + 2]);
 }
 
-real3 ChSystemParallelNSC::GetBodyContactTorque(uint body_id) const {
+real3 ChSystemMulticoreNSC::GetBodyContactTorque(uint body_id) const {
     assert(data_manager->Fc_current);
     return real3(data_manager->host_data.Fc[body_id * 6 + 3], data_manager->host_data.Fc[body_id * 6 + 4],
                  data_manager->host_data.Fc[body_id * 6 + 5]);
@@ -126,7 +126,7 @@ static inline chrono::ChVector<real> ToChVector(const real3& a) {
     return chrono::ChVector<real>(a.x, a.y, a.z);
 }
 
-void ChSystemParallelNSC::SolveSystem() {
+void ChSystemMulticoreNSC::SolveSystem() {
     data_manager->system_timer.Reset();
     data_manager->system_timer.start("step");
 
@@ -141,12 +141,12 @@ void ChSystemParallelNSC::SolveSystem() {
     collision_system->ReportContacts(this->contact_container.get());
     data_manager->system_timer.stop("collision");
     data_manager->system_timer.start("advance");
-    std::static_pointer_cast<ChIterativeSolverParallelNSC>(solver)->RunTimeStep();
+    std::static_pointer_cast<ChIterativeSolverMulticoreNSC>(solver)->RunTimeStep();
     data_manager->system_timer.stop("advance");
     data_manager->system_timer.stop("step");
 }
 
-void ChSystemParallelNSC::AssembleSystem() {
+void ChSystemMulticoreNSC::AssembleSystem() {
     //// TODO: load colliding shape information in icontact? Not really needed here.
 
     Setup();
@@ -233,7 +233,7 @@ void ChSystemParallelNSC::AssembleSystem() {
     descriptor->EndInsertion();
 }
 
-void ChSystemParallelNSC::Initialize() {
+void ChSystemMulticoreNSC::Initialize() {
     // Mpm update is special because it computes the number of nodes that we have
     // data_manager->node_container->ComputeDOF();
 

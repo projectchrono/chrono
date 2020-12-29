@@ -12,7 +12,7 @@
 // Authors: Hammad Mazhar
 // =============================================================================
 //
-// This file contains the base class used for all parallel iterative solvers.
+// This file contains the base class used for all multicore iterative solvers.
 // All of the functions are defined here, with the implementation of each solver
 // in it's specific cpp file.
 //
@@ -37,12 +37,12 @@ class CH_MULTICORE_API ChProjectConstraints {
     ChProjectConstraints() {}
     virtual ~ChProjectConstraints() {}
 
-    virtual void Setup(ChParallelDataManager* data_container_) { data_manager = data_container_; }
+    virtual void Setup(ChMulticoreDataManager* data_container_) { data_manager = data_container_; }
 
     /// Project the Lagrange multipliers.
     virtual void operator()(real* data);
 
-    ChParallelDataManager* data_manager;  ///< Pointer to the system's data manager
+    ChMulticoreDataManager* data_manager;  ///< Pointer to the system's data manager
 };
 
 /// Functor class for performing a single cone projection.
@@ -61,12 +61,12 @@ class CH_MULTICORE_API ChShurProduct {
     ChShurProduct();
     virtual ~ChShurProduct() {}
 
-    virtual void Setup(ChParallelDataManager* data_container_) { data_manager = data_container_; }
+    virtual void Setup(ChMulticoreDataManager* data_container_) { data_manager = data_container_; }
 
     //. Perform the Shur Product.
     virtual void operator()(const DynamicVector<real>& x, DynamicVector<real>& AX);
 
-    ChParallelDataManager* data_manager;  ///< Pointer to the system's data manager
+    ChMulticoreDataManager* data_manager;  ///< Pointer to the system's data manager
 };
 
 /// Functor class for performing the Shur product of the matrix of bilateral constraints.
@@ -74,7 +74,7 @@ class CH_MULTICORE_API ChShurProductBilateral : public ChShurProduct {
   public:
     ChShurProductBilateral() {}
     virtual ~ChShurProductBilateral() {}
-    virtual void Setup(ChParallelDataManager* data_container_);
+    virtual void Setup(ChMulticoreDataManager* data_container_);
 
     /// Perform the Shur Product.
     virtual void operator()(const DynamicVector<real>& x, DynamicVector<real>& AX);
@@ -87,7 +87,7 @@ class CH_MULTICORE_API ChShurProductFEM : public ChShurProduct {
   public:
     ChShurProductFEM() {}
     virtual ~ChShurProductFEM() {}
-    virtual void Setup(ChParallelDataManager* data_container_);
+    virtual void Setup(ChMulticoreDataManager* data_container_);
 
     /// Perform the Shur Product.
     virtual void operator()(const DynamicVector<real>& x, DynamicVector<real>& AX);
@@ -97,13 +97,13 @@ class CH_MULTICORE_API ChShurProductFEM : public ChShurProduct {
 
 //========================================================================================================
 
-/// Base class for all Chrono::Parallel solvers.
-class CH_MULTICORE_API ChSolverParallel {
+/// Base class for all Chrono::Multicore solvers.
+class CH_MULTICORE_API ChSolverMulticore {
   public:
-    ChSolverParallel();
-    virtual ~ChSolverParallel() {}
+    ChSolverMulticore();
+    virtual ~ChSolverMulticore() {}
 
-    void Setup(ChParallelDataManager* data_container_) { data_manager = data_container_; }
+    void Setup(ChMulticoreDataManager* data_container_) { data_manager = data_container_; }
 
     /// Compute rhs value with relaxation term.
     void ComputeSRhs(custom_vector<real>& gamma,
@@ -136,7 +136,7 @@ class CH_MULTICORE_API ChSolverParallel {
     Ch3DOFContainer* fem;
     Ch3DOFContainer* mpm;
 
-    ChParallelDataManager* data_manager;  ///< Pointer to the system's data manager
+    ChMulticoreDataManager* data_manager;  ///< Pointer to the system's data manager
 
     DynamicVector<real> eigen_vec;
 };
@@ -144,10 +144,10 @@ class CH_MULTICORE_API ChSolverParallel {
 //========================================================================================================
 
 /// Accelerated Projected Gradient Descent (APGD) solver. Reference implementation.
-class CH_MULTICORE_API ChSolverParallelAPGDREF : public ChSolverParallel {
+class CH_MULTICORE_API ChSolverMulticoreAPGDREF : public ChSolverMulticore {
   public:
-    ChSolverParallelAPGDREF() : ChSolverParallel() {}
-    ~ChSolverParallelAPGDREF() {}
+    ChSolverMulticoreAPGDREF() : ChSolverMulticore() {}
+    ~ChSolverMulticoreAPGDREF() {}
 
     /// Solve using the APGD method.
     uint Solve(ChShurProduct& ShurProduct,    ///< Schur product
@@ -172,10 +172,10 @@ class CH_MULTICORE_API ChSolverParallelAPGDREF : public ChSolverParallel {
 };
 
 /// Accelerated Projected Gradient Descent (APGD) solver.
-class CH_MULTICORE_API ChSolverParallelAPGD : public ChSolverParallel {
+class CH_MULTICORE_API ChSolverMulticoreAPGD : public ChSolverMulticore {
   public:
-    ChSolverParallelAPGD();
-    ~ChSolverParallelAPGD() {}
+    ChSolverMulticoreAPGD();
+    ~ChSolverMulticoreAPGD() {}
 
     /// Solve using a more streamlined but harder to read version of the APGD method.
     uint Solve(ChShurProduct& ShurProduct,    ///< Schur product
@@ -199,10 +199,10 @@ class CH_MULTICORE_API ChSolverParallelAPGD : public ChSolverParallel {
 };
 
 /// Barzilai-Borwein solver.
-class CH_MULTICORE_API ChSolverParallelBB : public ChSolverParallel {
+class CH_MULTICORE_API ChSolverMulticoreBB : public ChSolverMulticore {
   public:
-    ChSolverParallelBB();
-    ~ChSolverParallelBB() {}
+    ChSolverMulticoreBB();
+    ~ChSolverMulticoreBB() {}
 
     /// Solve using a more streamlined but harder to read version of the BB method.
     uint Solve(ChShurProduct& ShurProduct,    ///< Schur product
@@ -221,10 +221,10 @@ class CH_MULTICORE_API ChSolverParallelBB : public ChSolverParallel {
 };
 
 /// MINRES solver.
-class CH_MULTICORE_API ChSolverParallelMinRes : public ChSolverParallel {
+class CH_MULTICORE_API ChSolverMulticoreMinRes : public ChSolverMulticore {
   public:
-    ChSolverParallelMinRes() : ChSolverParallel() {}
-    ~ChSolverParallelMinRes() {}
+    ChSolverMulticoreMinRes() : ChSolverMulticore() {}
+    ~ChSolverMulticoreMinRes() {}
 
     /// Solve using the minimal residual method.
     uint Solve(ChShurProduct& ShurProduct,    ///< Schur product
@@ -239,10 +239,10 @@ class CH_MULTICORE_API ChSolverParallelMinRes : public ChSolverParallel {
 };
 
 /// Spectral Projected Gradient solver.
-class CH_MULTICORE_API ChSolverParallelSPGQP : public ChSolverParallel {
+class CH_MULTICORE_API ChSolverMulticoreSPGQP : public ChSolverMulticore {
   public:
-    ChSolverParallelSPGQP();
-    ~ChSolverParallelSPGQP() {}
+    ChSolverMulticoreSPGQP();
+    ~ChSolverMulticoreSPGQP() {}
 
     /// Solve using a more streamlined but harder to read version of the BB method.
     uint Solve(ChShurProduct& ShurProduct,    ///< Schur product
@@ -262,10 +262,10 @@ class CH_MULTICORE_API ChSolverParallelSPGQP : public ChSolverParallel {
 };
 
 /// Conjugate gradient solver.
-class CH_MULTICORE_API ChSolverParallelCG : public ChSolverParallel {
+class CH_MULTICORE_API ChSolverMulticoreCG : public ChSolverMulticore {
   public:
-    ChSolverParallelCG() : ChSolverParallel() {}
-    ~ChSolverParallelCG() {}
+    ChSolverMulticoreCG() : ChSolverMulticore() {}
+    ~ChSolverMulticoreCG() {}
 
     /// Solve using the conjugate gradient method.
     uint Solve(ChShurProduct& ShurProduct,    ///< Schur product
@@ -280,10 +280,10 @@ class CH_MULTICORE_API ChSolverParallelCG : public ChSolverParallel {
 };
 
 /// Jacobi solver.
-class CH_MULTICORE_API ChSolverParallelJacobi : public ChSolverParallel {
+class CH_MULTICORE_API ChSolverMulticoreJacobi : public ChSolverMulticore {
   public:
-    ChSolverParallelJacobi() {}
-    ~ChSolverParallelJacobi() {}
+    ChSolverMulticoreJacobi() {}
+    ~ChSolverMulticoreJacobi() {}
 
     /// Solve using a more streamlined but harder to read version of the BB method.
     uint Solve(ChShurProduct& ShurProduct,    ///< Schur product
@@ -297,10 +297,10 @@ class CH_MULTICORE_API ChSolverParallelJacobi : public ChSolverParallel {
 };
 
 /// Gauss Seidel solver.
-class CH_MULTICORE_API ChSolverParallelGS : public ChSolverParallel {
+class CH_MULTICORE_API ChSolverMulticoreGS : public ChSolverMulticore {
   public:
-    ChSolverParallelGS() {}
-    ~ChSolverParallelGS() {}
+    ChSolverMulticoreGS() {}
+    ~ChSolverMulticoreGS() {}
 
     /// Solve using a more streamlined but harder to read version of the BB method.
     uint Solve(ChShurProduct& ShurProduct,    ///< Schur product

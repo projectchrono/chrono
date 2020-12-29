@@ -12,7 +12,7 @@
 // Authors: Radu Serban, Victor Bertolazzo
 // =============================================================================
 //
-// Chrono::Parallel test program using NSC method for rolling frictional contact.
+// Chrono::Multicore test program using NSC method for rolling frictional contact.
 //
 // The global reference frame has Z up.
 //
@@ -44,8 +44,8 @@ int main(int argc, char** argv) {
     uint max_iteration_spinning = 100;
     uint max_iteration_bilateral = 0;
 
-    // Create the parallel system
-    ChSystemParallelNSC system;
+    // Create the multicore system
+    ChSystemMulticoreNSC system;
     system.Set_G_acc(ChVector<>(0, -9.81, 0));
 
     // Set number of threads

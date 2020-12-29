@@ -12,8 +12,8 @@
 // Authors: Hammad Mazhar
 // =============================================================================
 //
-// Description: This class calls the parallel solver, used as an intermediate
-// between chrono's solver interface and the parallel solver interface.
+// Description: This class calls the multicore solver, used as an intermediate
+// between chrono's solver interface and the multicore solver interface.
 //
 // =============================================================================
 
@@ -35,9 +35,9 @@ namespace chrono {
 /// @{
 
 /// Base class for all iterative solvers.
-class CH_MULTICORE_API ChIterativeSolverParallel : public ChIterativeSolverVI {
+class CH_MULTICORE_API ChIterativeSolverMulticore : public ChIterativeSolverVI {
   public:
-    virtual ~ChIterativeSolverParallel();
+    virtual ~ChIterativeSolverMulticore();
 
     /// Each child class must define its own solve method.
     virtual double Solve(ChSystemDescriptor& sysd) override { return 0; }
@@ -56,12 +56,12 @@ class CH_MULTICORE_API ChIterativeSolverParallel : public ChIterativeSolverVI {
     real GetResidual() const;
     virtual double GetError() const override { return (double)GetResidual(); }
 
-    ChParallelDataManager* data_manager;
-    ChSolverParallel* solver;
-    ChSolverParallel* bilateral_solver;
+    ChMulticoreDataManager* data_manager;
+    ChSolverMulticore* solver;
+    ChSolverMulticore* bilateral_solver;
 
   protected:
-    ChIterativeSolverParallel(ChParallelDataManager* dc);
+    ChIterativeSolverMulticore(ChMulticoreDataManager* dc);
 
     ChShurProductBilateral ShurProductBilateral;
     ChShurProductFEM ShurProductFEM;
@@ -69,9 +69,9 @@ class CH_MULTICORE_API ChIterativeSolverParallel : public ChIterativeSolverVI {
 };
 
 /// Wrapper class for all complementarity solvers.
-class CH_MULTICORE_API ChIterativeSolverParallelNSC : public ChIterativeSolverParallel {
+class CH_MULTICORE_API ChIterativeSolverMulticoreNSC : public ChIterativeSolverMulticore {
   public:
-    ChIterativeSolverParallelNSC(ChParallelDataManager* dc) : ChIterativeSolverParallel(dc) {}
+    ChIterativeSolverMulticoreNSC(ChMulticoreDataManager* dc) : ChIterativeSolverMulticore(dc) {}
 
     virtual void RunTimeStep();
     virtual void ComputeImpulses();
@@ -97,9 +97,9 @@ class CH_MULTICORE_API ChIterativeSolverParallelNSC : public ChIterativeSolverPa
 };
 
 /// Iterative solver for SMC (penalty-based) problems.
-class CH_MULTICORE_API ChIterativeSolverParallelSMC : public ChIterativeSolverParallel {
+class CH_MULTICORE_API ChIterativeSolverMulticoreSMC : public ChIterativeSolverMulticore {
   public:
-    ChIterativeSolverParallelSMC(ChParallelDataManager* dc) : ChIterativeSolverParallel(dc) {}
+    ChIterativeSolverMulticoreSMC(ChMulticoreDataManager* dc) : ChIterativeSolverMulticore(dc) {}
 
     virtual void RunTimeStep();
     virtual void ComputeImpulses();

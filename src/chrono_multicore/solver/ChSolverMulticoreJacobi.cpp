@@ -21,7 +21,7 @@
 
 using namespace chrono;
 
-uint ChSolverParallelJacobi::Solve(ChShurProduct& ShurProduct,
+uint ChSolverMulticoreJacobi::Solve(ChShurProduct& ShurProduct,
                                    ChProjectConstraints& Project,
                                    const uint max_iter,
                                    const uint size,

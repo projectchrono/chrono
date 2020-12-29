@@ -12,10 +12,10 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// Test for motors with Chrono::Parallel.
+// Test for motors with Chrono::Multicore.
 //
 // NOTE: ChLinkMotorRotationDriveline and ChLinkMotorLinearDriveline
-//       are currently *not* supported in Chrono::Parallel.
+//       are currently *not* supported in Chrono::Multicore.
 //
 // =============================================================================
 
@@ -42,14 +42,14 @@ void CreateSliderGuide(std::shared_ptr<ChBody>& mguide,
                        ChSystem& msystem,
                        const ChVector<> mpos) {
     mguide = chrono_types::make_shared<ChBodyEasyBox>(4, 0.3, 0.6, 1000, true, true, material,
-                                                      chrono_types::make_shared<collision::ChCollisionModelParallel>());
+                                                      chrono_types::make_shared<collision::ChCollisionModelMulticore>());
     mguide->SetPos(mpos);
     mguide->SetBodyFixed(true);
     msystem.Add(mguide);
 
     mslider =
         chrono_types::make_shared<ChBodyEasyBox>(0.4, 0.2, 0.5, 1000, true, true, material,
-                                                 chrono_types::make_shared<collision::ChCollisionModelParallel>());
+                                                 chrono_types::make_shared<collision::ChCollisionModelMulticore>());
     mslider->SetPos(mpos + ChVector<>(0, 0.3, 0));
     msystem.Add(mslider);
 
@@ -58,7 +58,7 @@ void CreateSliderGuide(std::shared_ptr<ChBody>& mguide,
 
     auto obstacle =
         chrono_types::make_shared<ChBodyEasyBox>(0.4, 0.4, 0.4, 8000, true, true, material,
-                                                 chrono_types::make_shared<collision::ChCollisionModelParallel>());
+                                                 chrono_types::make_shared<collision::ChCollisionModelMulticore>());
     obstacle->SetPos(mpos + ChVector<>(1.5, 0.4, 0));
     msystem.Add(obstacle);
     auto mcolorobstacle = chrono_types::make_shared<ChColorAsset>(0.2f, 0.2f, 0.2f);
@@ -72,14 +72,14 @@ void CreateStatorRotor(std::shared_ptr<ChBody>& mstator,
                        const ChVector<> mpos) {
     mstator =
         chrono_types::make_shared<ChBodyEasyCylinder>(0.5, 0.1, 1000, true, true, material,
-                                                      chrono_types::make_shared<collision::ChCollisionModelParallel>());
+                                                      chrono_types::make_shared<collision::ChCollisionModelMulticore>());
     mstator->SetPos(mpos);
     mstator->SetRot(Q_from_AngAxis(CH_C_PI_2, VECT_X));
     mstator->SetBodyFixed(true);
     msystem.Add(mstator);
 
     mrotor = chrono_types::make_shared<ChBodyEasyBox>(1, 0.1, 0.1, 1000, true, true, material,
-                                                      chrono_types::make_shared<collision::ChCollisionModelParallel>());
+                                                      chrono_types::make_shared<collision::ChCollisionModelMulticore>());
     mrotor->SetPos(mpos + ChVector<>(0.5, 0, -0.15));
     msystem.Add(mrotor);
 
@@ -512,7 +512,7 @@ void ExampleB4(ChSystem& mphysicalSystem, std::shared_ptr<ChMaterialSurface> mat
 int main(int argc, char* argv[]) {
     double step_size = 1e-3;
 
-    ChSystemParallelNSC mphysicalSystem;
+    ChSystemMulticoreNSC mphysicalSystem;
     mphysicalSystem.Set_G_acc(ChVector<double>(0, -9.8, 0));
     mphysicalSystem.GetSettings()->solver.tolerance = 1e-5;
     mphysicalSystem.ChangeSolverType(SolverType::BB);
@@ -523,7 +523,7 @@ int main(int argc, char* argv[]) {
     // Create ground body
     auto floorBody =
         chrono_types::make_shared<ChBodyEasyBox>(20, 2, 20, 3000, true, true, material,
-                                                 chrono_types::make_shared<collision::ChCollisionModelParallel>());
+                                                 chrono_types::make_shared<collision::ChCollisionModelMulticore>());
     floorBody->SetPos(ChVector<>(0, -2, 0));
     floorBody->SetBodyFixed(true);
     mphysicalSystem.Add(floorBody);

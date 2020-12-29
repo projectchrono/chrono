@@ -27,13 +27,13 @@ namespace chrono {
 /// @{
 
 /// Class representing a container of many contacts, implemented as a linked list of contact tuples.
-class CH_MULTICORE_API ChContactContainerParallel : public ChContactContainer {
+class CH_MULTICORE_API ChContactContainerMulticore : public ChContactContainer {
   public:
     typedef ChContactTuple<ChContactable_1vars<6>, ChContactable_1vars<6> > ChContact_6_6;
 
-    ChContactContainerParallel(ChParallelDataManager* dc);
-    ChContactContainerParallel(const ChContactContainerParallel& other);
-    virtual ~ChContactContainerParallel();
+    ChContactContainerMulticore(ChMulticoreDataManager* dc);
+    ChContactContainerMulticore(const ChContactContainerMulticore& other);
+    virtual ~ChContactContainerMulticore();
 
     virtual int GetNcontacts() const override { return data_manager->num_rigid_contacts; }
 
@@ -76,7 +76,7 @@ class CH_MULTICORE_API ChContactContainerParallel : public ChContactContainer {
     /// (compute composite material properties and load in global data structure).
     virtual void AddContact(int index, int b1, int s1, int b2, int s2) = 0;
 
-    ChParallelDataManager* data_manager;
+    ChMulticoreDataManager* data_manager;
 
   private:
     int n_added_6_6;
@@ -84,6 +84,6 @@ class CH_MULTICORE_API ChContactContainerParallel : public ChContactContainer {
     std::list<ChContact_6_6*>::iterator lastcontact_6_6;
 };
 
-/// @} parallel_colision
+/// @} multicore_colision
 
 }  // end namespace chrono

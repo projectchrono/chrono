@@ -12,7 +12,7 @@
 // Authors: Hammad Mazhar, Radu Serban
 // =============================================================================
 //
-// Chrono::Parallel unit test for MPR collision detection
+// Chrono::Multicore unit test for MPR collision detection
 // =============================================================================
 
 #include "chrono_multicore/math/other_types.h"

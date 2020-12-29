@@ -24,7 +24,7 @@ namespace chrono {
 /// @addtogroup multicore_math
 /// @{
 
-/// Chrono::Parallel pair (2-dimensional vector).
+/// Chrono::Multicore pair (2-dimensional vector).
 class real2 {
   public:
     CUDA_HOST_DEVICE real2() : x(0.0f), y(0.0f) {}

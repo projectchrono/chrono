@@ -12,7 +12,7 @@
 // Author: Hammad Mazhar, Radu Serban
 // =============================================================================
 //
-// Chrono::Parallel unit test to compare solutions from different narrowphase
+// Chrono::Multicore unit test to compare solutions from different narrowphase
 // algorithms.
 //
 // =============================================================================
@@ -38,7 +38,7 @@ using namespace chrono::collision;
 // Global problem definitions
 // -----------------------------------------------------------------------------
 
-void CreateContainer(ChSystemParallel* system) {
+void CreateContainer(ChSystemMulticore* system) {
     auto mat_walls = chrono_types::make_shared<ChMaterialSurfaceNSC>();
     mat_walls->SetFriction(0.3f);
 
@@ -60,7 +60,7 @@ void CreateContainer(ChSystemParallel* system) {
     system->AddBody(container);
 }
 
-void CreateGranularMaterial(ChSystemParallel* sys) {
+void CreateGranularMaterial(ChSystemMulticore* sys) {
     // Common material
     auto ballMat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
     ballMat->SetFriction(1.0);
@@ -96,7 +96,7 @@ void CreateGranularMaterial(ChSystemParallel* sys) {
     }
 }
 
-void SetupSystem(ChSystemParallelNSC* msystem) {
+void SetupSystem(ChSystemMulticoreNSC* msystem) {
     // Solver settings
     int max_iteration_normal = 0;
     int max_iteration_sliding = 25;
@@ -125,7 +125,7 @@ void SetupSystem(ChSystemParallelNSC* msystem) {
 }
 
 // Sync the positions and velocities of the rigid bodies
-void Sync(ChSystemParallel* msystem_A, ChSystemParallel* msystem_B) {
+void Sync(ChSystemMulticore* msystem_A, ChSystemMulticore* msystem_B) {
     for (int i = 0; i < msystem_A->Get_bodylist().size(); i++) {
         ChVector<> pos = msystem_B->Get_bodylist().at(i)->GetPos();
         ChVector<> pos_dt = msystem_B->Get_bodylist().at(i)->GetPos_dt();
@@ -134,7 +134,7 @@ void Sync(ChSystemParallel* msystem_A, ChSystemParallel* msystem_B) {
     }
 }
 
-bool CompareContacts(ChSystemParallel* msystem_A, ChSystemParallel* msystem_B) {
+bool CompareContacts(ChSystemMulticore* msystem_A, ChSystemMulticore* msystem_B) {
     // Tolerance for test
     double test_tolerance = 1e-5;
 
@@ -208,12 +208,12 @@ int main(int argc, char* argv[]) {
     // No animation by default (i.e. when no program arguments)
     bool animate = (argc > 1);
 
-    ChSystemParallelNSC* msystem_mpr = new ChSystemParallelNSC();
-    ChSystemParallelNSC* msystem_r = new ChSystemParallelNSC();
+    ChSystemMulticoreNSC* msystem_mpr = new ChSystemMulticoreNSC();
+    ChSystemMulticoreNSC* msystem_r = new ChSystemMulticoreNSC();
 
 #ifdef BULLET
-    msystem_mpr->ChangeCollisionSystem(CollisionSystemType::COLLSYS_BULLET_PARALLEL);
-    msystem_r->ChangeCollisionSystem(CollisionSystemType::COLLSYS_BULLET_PARALLEL);
+    msystem_mpr->ChangeCollisionSystem(CollisionSystemType::COLLSYS_BULLET_MULTICORE);
+    msystem_r->ChangeCollisionSystem(CollisionSystemType::COLLSYS_BULLET_MuLTICORE);
 #endif
 
     SetupSystem(msystem_mpr);
@@ -276,7 +276,7 @@ int main(int argc, char* argv[]) {
 
 
 /*
-void CompareContacts(ChSystemParallel* msystem_A, ChSystemParallel* msystem_B) {
+void CompareContacts(ChSystemMulticore* msystem_A, ChSystemMulticore* msystem_B) {
     // Tolerance for test
     double test_tolerance = 1e-5;
 
@@ -313,8 +313,8 @@ void CompareContacts(ChSystemParallel* msystem_A, ChSystemParallel* msystem_B) {
 TEST(ChronoMulticore, narrowphase) {
     bool animate = false;
 
-    ChSystemParallelNSC* msystem_mpr = new ChSystemParallelNSC();
-    ChSystemParallelNSC* msystem_r = new ChSystemParallelNSC();
+    ChSystemMulticoreNSC* msystem_mpr = new ChSystemMulticoreNSC();
+    ChSystemMulticoreNSC* msystem_r = new ChSystemMulticoreNSC();
 
     SetupSystem(msystem_mpr);
     SetupSystem(msystem_r);

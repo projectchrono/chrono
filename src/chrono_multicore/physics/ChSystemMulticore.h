@@ -12,9 +12,9 @@
 // Authors: Hammad Mazhar, Radu Serban
 // =============================================================================
 //
-// Description: The definition of a parallel ChSystem, pretty much everything is
-// done manually instead of using the functions used in ChSystem. This is to
-// handle the different data structures present in the parallel implementation
+// Description: The definition of a multicore ChSystem, pretty much everything
+// is done manually instead of using the functions used in ChSystem. This is to
+// handle the different data structures present in the multicore implementation
 //
 // =============================================================================
 
@@ -45,19 +45,19 @@
 
 namespace chrono {
 
-class ChParallelDataManager;
+class ChMulticoreDataManager;
 class settings_container;
 
 /// @addtogroup multicore_physics
 /// @{
 
-/// Base class for parallel systems.
-class CH_MULTICORE_API ChSystemParallel : public ChSystem {
+/// Base class for Chrono::Multicore systems.
+class CH_MULTICORE_API ChSystemMulticore : public ChSystem {
 
   public:
-    ChSystemParallel();
-    ChSystemParallel(const ChSystemParallel& other);
-    virtual ~ChSystemParallel();
+    ChSystemMulticore();
+    ChSystemMulticore(const ChSystemMulticore& other);
+    virtual ~ChSystemMulticore();
 
     virtual bool Integrate_Y() override;
     virtual void AddBody(std::shared_ptr<ChBody> newbody) override;
@@ -163,8 +163,8 @@ class CH_MULTICORE_API ChSystemParallel : public ChSystem {
 
     /// Set the number of OpenMP threads used by Chrono itself, Eigen, and the collision detection system.
     /// <pre>
-    ///  num_threads_chrono    - used for all OpenMP constructs and thrust algorithms in Chrono::Parallel.
-    ///  num_threads_collision - Ignored.  Chrono::Parallel sets num_threads_collision = num_threads_chrono.
+    ///  num_threads_chrono    - used for all OpenMP constructs and thrust algorithms in Chrono::Multicore.
+    ///  num_threads_collision - Ignored.  Chrono::Multicore sets num_threads_collision = num_threads_chrono.
     ///  num_threads_eigen     - used in the Eigen sparse direct solvers and a few linear algebra operations.
     ///                          Note that Eigen enables multi-threaded execution only under certain size conditions.
     ///                          See the Eigen documentation.
@@ -186,7 +186,7 @@ class CH_MULTICORE_API ChSystemParallel : public ChSystem {
     /// Return the maximum constraint violation.
     double CalculateConstraintViolation(std::vector<double>& cvec);
 
-    ChParallelDataManager* data_manager;
+    ChMulticoreDataManager* data_manager;
 
     int current_threads;
 
@@ -211,15 +211,15 @@ class CH_MULTICORE_API ChSystemParallel : public ChSystem {
 
 //====================================================================================================
 
-/// Parallel systems using non-smooth contact (complementarity-based) method.
-class CH_MULTICORE_API ChSystemParallelNSC : public ChSystemParallel {
+/// Multicore system using non-smooth contact (complementarity-based) method.
+class CH_MULTICORE_API ChSystemMulticoreNSC : public ChSystemMulticore {
 
   public:
-    ChSystemParallelNSC();
-    ChSystemParallelNSC(const ChSystemParallelNSC& other);
+    ChSystemMulticoreNSC();
+    ChSystemMulticoreNSC(const ChSystemMulticoreNSC& other);
 
     /// "Virtual" copy constructor (covariant return type).
-    virtual ChSystemParallelNSC* Clone() const override { return new ChSystemParallelNSC(*this); }
+    virtual ChSystemMulticoreNSC* Clone() const override { return new ChSystemMulticoreNSC(*this); }
 
     void ChangeSolverType(SolverType type);
     void Initialize();
@@ -236,8 +236,8 @@ class CH_MULTICORE_API ChSystemParallelNSC : public ChSystemParallel {
 
     virtual real3 GetBodyContactForce(uint body_id) const override;
     virtual real3 GetBodyContactTorque(uint body_id) const override;
-    using ChSystemParallel::GetBodyContactForce;
-    using ChSystemParallel::GetBodyContactTorque;
+    using ChSystemMulticore::GetBodyContactForce;
+    using ChSystemMulticore::GetBodyContactTorque;
 
     virtual void AssembleSystem();
     virtual void SolveSystem();
@@ -245,15 +245,15 @@ class CH_MULTICORE_API ChSystemParallelNSC : public ChSystemParallel {
 
 //====================================================================================================
 
-/// Parallel systems using smooth contact (penalty-based) method.
-class CH_MULTICORE_API ChSystemParallelSMC : public ChSystemParallel {
+/// Multicore system using smooth contact (penalty-based) method.
+class CH_MULTICORE_API ChSystemMulticoreSMC : public ChSystemMulticore {
 
   public:
-    ChSystemParallelSMC();
-    ChSystemParallelSMC(const ChSystemParallelSMC& other);
+    ChSystemMulticoreSMC();
+    ChSystemMulticoreSMC(const ChSystemMulticoreSMC& other);
 
     /// "Virtual" copy constructor (covariant return type).
-    virtual ChSystemParallelSMC* Clone() const override { return new ChSystemParallelSMC(*this); }
+    virtual ChSystemMulticoreSMC* Clone() const override { return new ChSystemMulticoreSMC(*this); }
 
     virtual ChContactMethod GetContactMethod() const override { return ChContactMethod::SMC; }
     virtual void AddMaterialSurfaceData(std::shared_ptr<ChBody> newbody) override;
@@ -264,13 +264,13 @@ class CH_MULTICORE_API ChSystemParallelSMC : public ChSystemParallel {
 
     virtual real3 GetBodyContactForce(uint body_id) const override;
     virtual real3 GetBodyContactTorque(uint body_id) const override;
-    using ChSystemParallel::GetBodyContactForce;
-    using ChSystemParallel::GetBodyContactTorque;
+    using ChSystemMulticore::GetBodyContactForce;
+    using ChSystemMulticore::GetBodyContactTorque;
 
     virtual void PrintStepStats() override;
 
     double GetTimerProcessContact() const {
-        return data_manager->system_timer.GetTime("ChIterativeSolverParallelSMC_ProcessContact");
+        return data_manager->system_timer.GetTime("ChIterativeSolverMulticoreSMC_ProcessContact");
     }
 };
 

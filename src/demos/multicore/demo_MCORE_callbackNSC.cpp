@@ -13,7 +13,7 @@
 // =============================================================================
 //
 // Chrono demonstration of using contact callbacks for non-smooth contacts
-// (complementarity-based) in Chrono::Parallel.
+// (complementarity-based) in Chrono::Multicore.
 //
 // The global reference frame has Y up.
 //
@@ -97,7 +97,7 @@ int main(int argc, char* argv[]) {
     float friction = 0.6f;
 
     // Create the system
-    ChSystemParallelNSC system;
+    ChSystemMulticoreNSC system;
     system.Set_G_acc(ChVector<>(0, -10, 0));
 
     system.GetSettings()->solver.solver_mode = SolverMode::SLIDING;
@@ -150,7 +150,7 @@ int main(int argc, char* argv[]) {
 
     // Create the visualization window
     opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
-    gl_window.Initialize(1280, 720, "NSC callbacks (Chrono::Parallel)", &system);
+    gl_window.Initialize(1280, 720, "NSC callbacks (Chrono::Multicore)", &system);
     gl_window.SetCamera(ChVector<>(4, 4, -5), ChVector<>(0, 0, 0), ChVector<>(0, 1, 0));
     gl_window.SetRenderMode(opengl::WIREFRAME);
 

@@ -31,7 +31,7 @@ class CH_MULTICORE_API ChConstraintBilateral {
     ChConstraintBilateral() {}
     ~ChConstraintBilateral() {}
 
-    void Setup(ChParallelDataManager* data_container_) { data_manager = data_container_; }
+    void Setup(ChMulticoreDataManager* data_container_) { data_manager = data_container_; }
 
     /// Compute the vector of corrections.
     void Build_b();
@@ -45,7 +45,7 @@ class CH_MULTICORE_API ChConstraintBilateral {
     // This operation is sequential.
     void GenerateSparsity();
 
-    ChParallelDataManager* data_manager;  ///< Pointer to the system's data manager.
+    ChMulticoreDataManager* data_manager;  ///< Pointer to the system's data manager.
 };
 
 /// @} multicore_constraint

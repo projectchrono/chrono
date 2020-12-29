@@ -116,7 +116,7 @@ int main(int argc, char* argv[]) {
     ChVector<> obst_center(2.9, 0, 2.9);
 
     // Create the system and the various contact materials
-    ChSystemParallel* sys;
+    ChSystemMulticore* sys;
     std::shared_ptr<ChMaterialSurface> ground_mat;
     std::shared_ptr<ChMaterialSurface> ball_mat;
     std::shared_ptr<ChMaterialSurface> obst_mat;
@@ -125,7 +125,7 @@ int main(int argc, char* argv[]) {
 
     switch (contact_method) {
         case ChContactMethod::NSC: {
-            sys = new ChSystemParallelNSC;
+            sys = new ChSystemMulticoreNSC;
 
             auto g_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
             g_mat->SetRestitution(0.9f);
@@ -147,7 +147,7 @@ int main(int argc, char* argv[]) {
             break;
         }
         case ChContactMethod::SMC: {
-            sys = new ChSystemParallelSMC;
+            sys = new ChSystemMulticoreSMC;
 
             auto g_mat = chrono_types::make_shared<ChMaterialSurfaceSMC>();
             g_mat->SetRestitution(0.9f);
@@ -174,7 +174,7 @@ int main(int argc, char* argv[]) {
 
     // Create the ground body with a plate and side walls (both collision and visualization).
     // Add obstacle visualization (in a separate level with a different color).
-    auto ground = chrono_types::make_shared<ChBody>(chrono_types::make_shared<collision::ChCollisionModelParallel>());
+    auto ground = chrono_types::make_shared<ChBody>(chrono_types::make_shared<collision::ChCollisionModelMulticore>());
     sys->AddBody(ground);
     ground->SetCollide(true);
     ground->SetBodyFixed(true);
@@ -191,7 +191,7 @@ int main(int argc, char* argv[]) {
     ground->AddAsset(obstacle.GetVisualization());
 
     // Create the falling ball
-    auto ball = chrono_types::make_shared<ChBody>(chrono_types::make_shared<collision::ChCollisionModelParallel>());
+    auto ball = chrono_types::make_shared<ChBody>(chrono_types::make_shared<collision::ChCollisionModelMulticore>());
     sys->AddBody(ball);
     ball->SetMass(10);
     ball->SetInertiaXX(4 * ball_radius * ball_radius * ChVector<>(1, 1, 1));
@@ -211,7 +211,7 @@ int main(int argc, char* argv[]) {
     sys->RegisterCustomCollisionCallback(my_collision);
 
     // Create the Irrlicht visualization
-    ChIrrApp application(sys, L"Custom contact demo (Chrono::Parallel)", irr::core::dimension2d<irr::u32>(800, 600),
+    ChIrrApp application(sys, L"Custom contact demo (Chrono::Multicore)", irr::core::dimension2d<irr::u32>(800, 600),
                          false, true);
     application.AddTypicalLogo();
     application.AddTypicalSky();

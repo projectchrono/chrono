@@ -13,7 +13,7 @@
 // =============================================================================
 //
 // Based on the regular bullet collision system, some modifications made to
-// store contacts in the parallel data structures
+// store contacts in the Chrono::Multicore data structures
 //
 // =============================================================================
 
@@ -42,7 +42,7 @@ namespace collision {
  }
 */
 
-ChCollisionSystemBulletParallel::ChCollisionSystemBulletParallel(ChParallelDataManager* dc)
+ChCollisionSystemBulletMulticore::ChCollisionSystemBulletMulticore(ChMulticoreDataManager* dc)
     : data_manager(dc) {
     // btDefaultCollisionConstructionInfo conf_info(...); ***TODO***
     bt_collision_configuration = new btDefaultCollisionConfiguration();
@@ -63,7 +63,7 @@ ChCollisionSystemBulletParallel::ChCollisionSystemBulletParallel(ChParallelDataM
     counter = 0;
 }
 
-ChCollisionSystemBulletParallel::~ChCollisionSystemBulletParallel() {
+ChCollisionSystemBulletMulticore::~ChCollisionSystemBulletMulticore() {
     if (bt_collision_world)
         delete bt_collision_world;
     if (bt_broadphase)
@@ -74,13 +74,13 @@ ChCollisionSystemBulletParallel::~ChCollisionSystemBulletParallel() {
         delete bt_collision_configuration;
 }
 
-void ChCollisionSystemBulletParallel::SetNumThreads(int nthreads) {
+void ChCollisionSystemBulletMulticore::SetNumThreads(int nthreads) {
 #ifdef BT_USE_OPENMP
     btGetOpenMPTaskScheduler()->setNumThreads(nthreads);
 #endif
 }
 
-void ChCollisionSystemBulletParallel::Clear(void) {
+void ChCollisionSystemBulletMulticore::Clear(void) {
     int numManifolds = bt_collision_world->getDispatcher()->getNumManifolds();
     for (int i = 0; i < numManifolds; i++) {
         btPersistentManifold* contactManifold = bt_collision_world->getDispatcher()->getManifoldByIndexInternal(i);
@@ -88,7 +88,7 @@ void ChCollisionSystemBulletParallel::Clear(void) {
     }
 }
 
-void ChCollisionSystemBulletParallel::Add(ChCollisionModel* model) {
+void ChCollisionSystemBulletMulticore::Add(ChCollisionModel* model) {
     ChCollisionModelBullet* bmodel = static_cast<ChCollisionModelBullet*>(model);
     if (bmodel->GetBulletModel()->getCollisionShape()) {
         bmodel->SyncPosition();
@@ -100,20 +100,20 @@ void ChCollisionSystemBulletParallel::Add(ChCollisionModel* model) {
     }
 }
 
-void ChCollisionSystemBulletParallel::Remove(ChCollisionModel* model) {
+void ChCollisionSystemBulletMulticore::Remove(ChCollisionModel* model) {
     ChCollisionModelBullet* bmodel = static_cast<ChCollisionModelBullet*>(model);
     if (bmodel->GetBulletModel()->getCollisionShape()) {
         bt_collision_world->removeCollisionObject(bmodel->GetBulletModel());
     }
 }
 
-void ChCollisionSystemBulletParallel::Run() {
+void ChCollisionSystemBulletMulticore::Run() {
     if (bt_collision_world) {
         bt_collision_world->performDiscreteCollisionDetection();
     }
 }
 
-void ChCollisionSystemBulletParallel::GetBoundingBox(ChVector<>& aabb_min, ChVector<>& aabb_max) const {
+void ChCollisionSystemBulletMulticore::GetBoundingBox(ChVector<>& aabb_min, ChVector<>& aabb_max) const {
     btVector3 aabbMin;
     btVector3 aabbMax;
     bt_broadphase->getBroadphaseAabb(aabbMin, aabbMax);
@@ -121,20 +121,20 @@ void ChCollisionSystemBulletParallel::GetBoundingBox(ChVector<>& aabb_min, ChVec
     aabb_max = ChVector<>((double)aabbMax.x(), (double)aabbMax.y(), (double)aabbMax.z());
 }
 
-void ChCollisionSystemBulletParallel::ResetTimers() {
+void ChCollisionSystemBulletMulticore::ResetTimers() {
     bt_collision_world->timer_collision_broad.reset();
     bt_collision_world->timer_collision_narrow.reset();
 }
 
-double ChCollisionSystemBulletParallel::GetTimerCollisionBroad() const {
+double ChCollisionSystemBulletMulticore::GetTimerCollisionBroad() const {
     return bt_collision_world->timer_collision_broad();
 }
 
-double ChCollisionSystemBulletParallel::GetTimerCollisionNarrow() const {
+double ChCollisionSystemBulletMulticore::GetTimerCollisionNarrow() const {
     return bt_collision_world->timer_collision_narrow();
 }
 
-void ChCollisionSystemBulletParallel::ReportContacts(ChContactContainer* mcontactcontainer) {
+void ChCollisionSystemBulletMulticore::ReportContacts(ChContactContainer* mcontactcontainer) {
     data_manager->system_timer.start("collision_narrow");
     data_manager->host_data.norm_rigid_rigid.clear();
     data_manager->host_data.cpta_rigid_rigid.clear();

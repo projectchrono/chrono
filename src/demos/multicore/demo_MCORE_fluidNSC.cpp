@@ -12,7 +12,7 @@
 // Authors: Hammad Mazhar
 // =============================================================================
 //
-// Chrono::Parallel test program using a fluid container.
+// Chrono::Multicore test program using a fluid container.
 //
 // The global reference frame has Z up.
 //
@@ -50,7 +50,7 @@ double kernel_radius = .016 * 2;
 // blade attached through a revolute joint to ground. The mixer is constrained
 // to rotate at constant angular velocity.
 // -----------------------------------------------------------------------------
-void AddContainer(ChSystemParallelNSC* sys) {
+void AddContainer(ChSystemMulticoreNSC* sys) {
     // IDs for the two bodies
     int binId = -200;
     int mixerId = -201;
@@ -68,7 +68,7 @@ void AddContainer(ChSystemParallelNSC* sys) {
 // -----------------------------------------------------------------------------
 // Create the fluid in the shape of a sphere.
 // -----------------------------------------------------------------------------
-void AddFluid(ChSystemParallelNSC* sys) {
+void AddFluid(ChSystemMulticoreNSC* sys) {
     auto fluid_container = chrono_types::make_shared<ChFluidContainer>();
     sys->Add3DOFContainer(fluid_container);
 
@@ -137,7 +137,7 @@ int main(int argc, char* argv[]) {
     // Create system
     // -------------
 
-    ChSystemParallelNSC msystem;
+    ChSystemMulticoreNSC msystem;
 
     // Set number of threads
     msystem.SetNumThreads(8);

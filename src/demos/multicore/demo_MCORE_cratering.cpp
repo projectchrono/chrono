@@ -12,7 +12,7 @@
 // Author: Radu Serban
 // =============================================================================
 //
-// Chrono::Parallel demo program for low velocity cratering studies.
+// Chrono::Multicore demo program for low velocity cratering studies.
 //
 // The model simulated here consists of a spherical projectile dropped in a
 // bed of granular material, using either penalty or complementarity method for
@@ -81,11 +81,11 @@ static inline void TimingOutput(chrono::ChSystem* mSys, chrono::ChStreamOutAscii
     int REQ_ITS = 0;
     int BODS = mSys->GetNbodies();
     int CNTC = mSys->GetNcontacts();
-    if (chrono::ChSystemParallel* parallel_sys = dynamic_cast<chrono::ChSystemParallel*>(mSys)) {
-        RESID = std::static_pointer_cast<chrono::ChIterativeSolverParallel>(mSys->GetSolver())->GetResidual();
-        REQ_ITS = std::static_pointer_cast<chrono::ChIterativeSolverParallel>(mSys->GetSolver())->GetIterations();
-        BODS = parallel_sys->GetNbodies();
-        CNTC = parallel_sys->GetNcontacts();
+    if (chrono::ChSystemMulticore* multicore_sys = dynamic_cast<chrono::ChSystemMulticore*>(mSys)) {
+        RESID = std::static_pointer_cast<chrono::ChIterativeSolverMulticore>(mSys->GetSolver())->GetResidual();
+        REQ_ITS = std::static_pointer_cast<chrono::ChIterativeSolverMulticore>(mSys->GetSolver())->GetIterations();
+        BODS = multicore_sys->GetNbodies();
+        CNTC = multicore_sys->GetNcontacts();
     }
 
     if (ofile) {
@@ -103,7 +103,7 @@ static inline void TimingOutput(chrono::ChSystem* mSys, chrono::ChStreamOutAscii
 // Callback class for contact reporting
 class ContactReporter : public ChContactContainer::ReportContactCallback {
   public:
-    ContactReporter(ChSystemParallel* system) : sys(system) {
+    ContactReporter(ChSystemMulticore* system) : sys(system) {
         csv << sys->GetChTime() << sys->GetNcontacts() << endl;
     }
 
@@ -130,7 +130,7 @@ class ContactReporter : public ChContactContainer::ReportContactCallback {
         return true;  // continue parsing
     }
 
-    ChSystemParallel* sys;
+    ChSystemMulticore* sys;
     utils::CSV_writer csv;
 };
 
@@ -241,7 +241,7 @@ double h = 10e-2;
 //   radius)
 // - a containing bin consisting of five boxes (no top)
 // -----------------------------------------------------------------------------
-int CreateObjects(ChSystemParallel* system) {
+int CreateObjects(ChSystemMulticore* system) {
     // Create the containing bin
 #ifdef USE_SMC
     auto mat_c = chrono_types::make_shared<ChMaterialSurfaceSMC>();
@@ -294,7 +294,7 @@ int CreateObjects(ChSystemParallel* system) {
 // Create the falling ball such that its bottom point is at the specified height
 // and its downward initial velocity has the specified magnitude.
 // -----------------------------------------------------------------------------
-void CreateFallingBall(ChSystemParallel* system, double z, double vz) {
+void CreateFallingBall(ChSystemMulticore* system, double z, double vz) {
     // Create a material for the falling ball
 #ifdef USE_SMC
     auto mat_b = chrono_types::make_shared<ChMaterialSurfaceSMC>();
@@ -307,7 +307,7 @@ void CreateFallingBall(ChSystemParallel* system, double z, double vz) {
 #endif
 
     // Create the falling ball
-    auto ball = chrono_types::make_shared<ChBody>(chrono_types::make_shared<ChCollisionModelParallel>());
+    auto ball = chrono_types::make_shared<ChBody>(chrono_types::make_shared<ChCollisionModelMulticore>());
 
     ball->SetIdentifier(Id_b);
     ball->SetMass(mass_b);
@@ -373,10 +373,10 @@ int main(int argc, char* argv[]) {
     // Create system
 #ifdef USE_SMC
     cout << "Create SMC system" << endl;
-    ChSystemParallelSMC* msystem = new ChSystemParallelSMC();
+    ChSystemMulticoreSMC* msystem = new ChSystemMulticoreSMC();
 #else
     cout << "Create NSC system" << endl;
-    ChSystemParallelNSC* msystem = new ChSystemParallelNSC();
+    ChSystemMulticoreNSC* msystem = new ChSystemMulticoreNSC();
 #endif
 
     // Debug log messages.

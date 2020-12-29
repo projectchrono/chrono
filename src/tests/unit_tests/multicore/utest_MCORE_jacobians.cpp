@@ -12,7 +12,7 @@
 // Author: Hammad Mazhar, Radu Serban
 // =============================================================================
 //
-// Chrono::Parallel unit test for DVI contact Jacobians
+// Chrono::Multicore unit test for DVI contact Jacobians
 //
 // =============================================================================
 
@@ -30,13 +30,13 @@
 #include "chrono_opengl/ChOpenGLWindow.h"
 #endif
 
-// Comment the following line to use parallel collision detection
+// Comment the following line to use multicore collision detection
 //#define BULLET
 
 using namespace chrono;
 using namespace chrono::collision;
 
-void CreateContainer(ChSystemParallel* system) {
+void CreateContainer(ChSystemMulticore* system) {
     auto mat_walls = chrono_types::make_shared<ChMaterialSurfaceNSC>();
     mat_walls->SetFriction(0.3f);
 
@@ -57,7 +57,7 @@ void CreateContainer(ChSystemParallel* system) {
     system->AddBody(container);
 }
 
-void CreateGranularMaterial(ChSystemParallel* sys) {
+void CreateGranularMaterial(ChSystemMulticore* sys) {
     // Common material
     auto ballMat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
     ballMat->SetFriction(.5);
@@ -93,7 +93,7 @@ void CreateGranularMaterial(ChSystemParallel* sys) {
     }
 }
 
-void SetupSystem(ChSystemParallelNSC* msystem) {
+void SetupSystem(ChSystemMulticoreNSC* msystem) {
     msystem->Set_G_acc(ChVector<>(0, 0, -9.81));
 
     // Solver settings
@@ -121,7 +121,7 @@ void SetupSystem(ChSystemParallelNSC* msystem) {
 }
 
 // Sync the positions and velocities of the rigid bodies
-void Sync(ChSystemParallel* msystem_A, ChSystemParallel* msystem_B) {
+void Sync(ChSystemMulticore* msystem_A, ChSystemMulticore* msystem_B) {
     for (int i = 0; i < msystem_A->Get_bodylist().size(); i++) {
         ChVector<> pos = msystem_B->Get_bodylist().at(i)->GetPos();
         ChVector<> pos_dt = msystem_B->Get_bodylist().at(i)->GetPos_dt();
@@ -130,7 +130,7 @@ void Sync(ChSystemParallel* msystem_A, ChSystemParallel* msystem_B) {
     }
 }
 
-void CompareContacts(ChParallelDataManager* data_manager,
+void CompareContacts(ChMulticoreDataManager* data_manager,
                      const std::vector<real3>& pos_rigid,      // positions at begining of step
                      const std::vector<quaternion>& rot_rigid  // orientations at begining of step
 ) {
@@ -220,11 +220,11 @@ void CompareContacts(ChParallelDataManager* data_manager,
 TEST(ChronoMulticore, jacobians) {
     bool animate = false;
 
-    ChSystemParallelNSC* msystem = new ChSystemParallelNSC();
+    ChSystemMulticoreNSC* msystem = new ChSystemMulticoreNSC();
     msystem->SetNumThreads(1);
 
 #ifdef BULLET
-    msystem->ChangeCollisionSystem(CollisionSystemType::COLLSYS_BULLET_PARALLEL);
+    msystem->ChangeCollisionSystem(CollisionSystemType::COLLSYS_BULLET_MULTICORE);
 #else
     msystem->GetSettings()->collision.narrowphase_algorithm = NarrowPhaseType::NARROWPHASE_MPR;
 #endif

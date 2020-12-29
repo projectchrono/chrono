@@ -128,7 +128,7 @@ class ConvexShapeTriangle : public ConvexBase {
     real3 tri[3];
 };
 
-/// @} parallel_colision
+/// @} multicore_colision
 
 } // end namespace collision
 } // end namespace chrono

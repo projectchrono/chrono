@@ -33,9 +33,9 @@ namespace collision {
 /// @{
 
 /// Class to encapsulate description of a convex collision shape.
-class ChCollisionShapeParallel : public ChCollisionShape {
+class ChCollisionShapeMulticore : public ChCollisionShape {
   public:
-    ChCollisionShapeParallel(Type t, std::shared_ptr<ChMaterialSurface> material)
+    ChCollisionShapeMulticore(Type t, std::shared_ptr<ChMaterialSurface> material)
         : ChCollisionShape(t, material), convex(nullptr) {}
 
     real3 A;          ///< location
@@ -47,10 +47,10 @@ class ChCollisionShapeParallel : public ChCollisionShape {
 
 /// Class for geometric model for collision detection.
 /// A rigid body that interacts through contact must have a collision model.
-class CH_MULTICORE_API ChCollisionModelParallel : public ChCollisionModel {
+class CH_MULTICORE_API ChCollisionModelMulticore : public ChCollisionModel {
   public:
-    ChCollisionModelParallel();
-    virtual ~ChCollisionModelParallel();
+    ChCollisionModelMulticore();
+    virtual ~ChCollisionModelMulticore();
 
     /// Deletes all inserted geometries.
     /// Also, if you begin the definition of a model, AFTER adding

@@ -201,7 +201,7 @@ void SetDefaultEdgeRadius(real radius);
 CH_MULTICORE_API
 real GetDefaultEdgeRadius();
 
-/// @} parallel_colision
+/// @} multicore_colision
 
 } // end namespace collision
 } // end namespace chrono

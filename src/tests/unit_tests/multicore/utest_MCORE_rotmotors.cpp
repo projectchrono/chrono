@@ -12,7 +12,7 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// Test for motors with Chrono::Parallel
+// Test for motors with Chrono::Multicore
 //
 // The mechanism consists of three bodies (ground, sled, and pendulum) with a
 // prismatic joint between ground and sled and a revolute joint between sled and
@@ -45,7 +45,7 @@ class RotMotors : public ::testing::TestWithParam<Options> {
     RotMotors() {
         opts = GetParam();
 
-        system = new ChSystemParallelNSC();
+        system = new ChSystemMulticoreNSC();
         system->Set_G_acc(ChVector<>(0, 0, -9.81));
         system->GetSettings()->solver.tolerance = 1e-5;
         system->ChangeSolverType(SolverType::BB);
@@ -78,7 +78,7 @@ class RotMotors : public ::testing::TestWithParam<Options> {
     }
 
     Options opts;
-    ChSystemParallelNSC* system;
+    ChSystemMulticoreNSC* system;
     std::shared_ptr<ChLinkMotorRotation> motor;
 };
 

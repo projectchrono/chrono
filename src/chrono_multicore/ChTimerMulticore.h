@@ -55,10 +55,10 @@ struct TimerData {
 };
 
 /// Utility class for managing a collection of timer objects.
-class CH_MULTICORE_API ChTimerParallel {
+class CH_MULTICORE_API ChTimerMulticore {
   public:
-    ChTimerParallel() : total_timers(0) {}
-    ~ChTimerParallel() {}
+    ChTimerMulticore() : total_timers(0) {}
+    ~ChTimerMulticore() {}
 
     void AddTimer(const std::string& name) {
         TimerData temp;

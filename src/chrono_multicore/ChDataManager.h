@@ -12,7 +12,7 @@
 // Authors: Hammad Mazhar, Radu Serban
 // =============================================================================
 //
-// Description: This class contains manages all data associated with a parallel
+// Description: This class contains manages all data associated with a multicore
 // system. Rather than passing in individual data parameters to different parts
 // of the code like the collision detection and the solver, passing a pointer to
 // a data manager is more convenient from a development perspective.
@@ -426,11 +426,11 @@ struct host_container {
     custom_vector<uint> bin_num_contact;
 };
 
-/// Global data manager for Chrono::Parallel.
-class CH_MULTICORE_API ChParallelDataManager {
+/// Global data manager for Chrono::Multicore.
+class CH_MULTICORE_API ChMulticoreDataManager {
   public:
-    ChParallelDataManager();
-    ~ChParallelDataManager();
+    ChMulticoreDataManager();
+    ~ChMulticoreDataManager();
 
     host_container host_data;    ///< Structure of data arrays (state, contact, etc)
     shape_container shape_data;  ///< Structure of arrays containing contact shape information
@@ -478,7 +478,7 @@ class CH_MULTICORE_API ChParallelDataManager {
     /// Flag indicating whether or not the contact forces are current (NSC only).
     bool Fc_current;
     /// Container for all timers for the system.
-    ChTimerParallel system_timer;
+    ChTimerMulticore system_timer;
     /// Container for all settings for the system, collision detection, and solver.
     settings_container settings;
     /// Container for various statistics for collision detection and solver.

@@ -25,20 +25,19 @@ namespace collision {
 /// @addtogroup distributed_collision
 /// @{
 
-/// This class scaffolds on ChCollisionSystemParallel in order to manage
+/// This class scaffolds on ChCollisionSystemMulticore in order to manage
 /// collision data for the system during MPI exchanges.
 /// Maintains a mapping from a body to its shapes.
-class ChCollisionSystemDistributed : public ChCollisionSystemParallel {
+class ChCollisionSystemDistributed : public ChCollisionSystemMulticore {
   public:
-    ChCollisionSystemDistributed(ChParallelDataManager* dm, ChDistributedDataManager* ddm);
+    ChCollisionSystemDistributed(ChMulticoreDataManager* dm, ChDistributedDataManager* ddm);
     virtual ~ChCollisionSystemDistributed();
 
     /// Adds the collision model to the collision system and creates
     /// a mapping entry from the associated body to its collision shapes
     virtual void Add(ChCollisionModel* model) override;
 
-    /// Deactivates the body in the data manager of
-    /// chrono::parallel and marks the space as free
+    /// Deactivates the body in the data manager of Chrono::Multicore and marks the space as free
     virtual void Remove(ChCollisionModel* model) override;
 
     /// Set each entry of active_id to true if the AABB of the

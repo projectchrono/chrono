@@ -15,7 +15,7 @@
 //  This project simulates a box with a non-zero initial horizontal velocity
 //  sliding across a horizontal plate. See Xiang et al. (2009) Test 0.
 //  The purpose of this test is to validate the implementation of sliding
-//  friction in ChIterativeSolverParallelSMC.
+//  friction in ChIterativeSolverMulticoreSMC.
 //
 // =============================================================================
 
@@ -56,8 +56,8 @@ class SlidingGravityTest : public ::testing::TestWithParam<ChSystemSMC::ContactF
         mat->SetAdhesionMultDMT(adDMT);
         mat->SetAdhesionSPerko(adSPerko);
 
-        // Create a parallel SMC system and set the system parameters
-        sys = new ChSystemParallelSMC();
+        // Create a multicore SMC system and set the system parameters
+        sys = new ChSystemMulticoreSMC();
         time_step = 2.0E-5;
         gravity = -9.81;
         SetSimParameters(sys, ChVector<>(0, gravity, 0), fmodel);
@@ -94,7 +94,7 @@ class SlidingGravityTest : public ::testing::TestWithParam<ChSystemSMC::ContactF
 
     ~SlidingGravityTest() { delete sys; }
 
-    ChSystemParallelSMC* sys;
+    ChSystemMulticoreSMC* sys;
     std::shared_ptr<ChBody> body;
     double time_step;
     double gravity;

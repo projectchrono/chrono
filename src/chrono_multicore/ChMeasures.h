@@ -13,7 +13,7 @@
 // =============================================================================
 //
 // Description: This file contains everything that is at some point measured in
-// Chrono parallel, things like the broadphase bounding box or the number of
+// Chrono::Multicore, things like the broadphase bounding box or the number of
 // solver iterations will be stored here.
 //
 // =============================================================================
@@ -33,7 +33,7 @@ namespace chrono {
 /// @{
 
 /// Collision_measures.
-/// This structure contains all measures associated with the collision detection step of chrono parallel.
+/// This structure contains all measures associated with the collision detection step of Chrono::Multicore.
 class collision_measures {
   public:
     collision_measures() {
@@ -89,7 +89,7 @@ class collision_measures {
 };
 
 /// Solver measures.
-/// This structure contains all measures associated with the parallel solver.
+/// This structure contains all measures associated with the Chrono::Multicore solver.
 class solver_measures {
   public:
     solver_measures() {

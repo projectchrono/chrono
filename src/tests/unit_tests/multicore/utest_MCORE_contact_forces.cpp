@@ -39,7 +39,7 @@ class ContactForceTest : public ::testing::TestWithParam<ChContactMethod> {
     ContactForceTest();
     ~ContactForceTest() { delete system; }
 
-    ChSystemParallel* system;
+    ChSystemMulticore* system;
     std::shared_ptr<ChBody> ground;
     double total_weight;
 };
@@ -62,7 +62,7 @@ ContactForceTest::ContactForceTest() {
     std::shared_ptr<ChMaterialSurface> material;
     switch (GetParam()) {
         case ChContactMethod::SMC: {
-            ChSystemParallelSMC* sys = new ChSystemParallelSMC;
+            ChSystemMulticoreSMC* sys = new ChSystemMulticoreSMC;
             sys->GetSettings()->solver.contact_force_model = force_model;
             sys->GetSettings()->solver.tangential_displ_mode = tdispl_model;
             sys->GetSettings()->solver.use_material_properties = use_mat_properties;
@@ -82,7 +82,7 @@ ContactForceTest::ContactForceTest() {
             break;
         }
         case ChContactMethod::NSC: {
-            ChSystemParallelNSC* sys = new ChSystemParallelNSC;
+            ChSystemMulticoreNSC* sys = new ChSystemMulticoreNSC;
             sys->GetSettings()->solver.solver_mode = SolverMode::SLIDING;
             sys->GetSettings()->solver.max_iteration_normal = 0;
             sys->GetSettings()->solver.max_iteration_sliding = 100;

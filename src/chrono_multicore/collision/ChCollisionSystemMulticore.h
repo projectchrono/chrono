@@ -12,8 +12,8 @@
 // Authors: Hammad Mazhar
 // =============================================================================
 //
-// Description: Parallel collsion system that calls a custom AABB generator,
-// broadphase and narrowphase
+// Description: Multicore collsion system that calls a custom AABB generator,
+// broadphase, and narrowphase
 //
 // =============================================================================
 
@@ -31,7 +31,7 @@
 
 namespace chrono {
 
-class ChSystemParallel;  // forward declaration
+class ChSystemMulticore;  // forward declaration
 
 namespace collision {
 
@@ -40,10 +40,10 @@ namespace collision {
 
 /// Class for collision engine based on the spatial subdivision method.
 /// Contains both the broadphase and the narrow phase methods.
-class CH_MULTICORE_API ChCollisionSystemParallel : public ChCollisionSystem {
+class CH_MULTICORE_API ChCollisionSystemMulticore : public ChCollisionSystem {
   public:
-    ChCollisionSystemParallel(ChParallelDataManager* dc);
-    virtual ~ChCollisionSystemParallel();
+    ChCollisionSystemMulticore(ChMulticoreDataManager* dc);
+    virtual ~ChCollisionSystemMulticore();
 
     /// Clear all data instanced by this algorithm
     /// if any (like persistent contact manifolds).
@@ -76,7 +76,7 @@ class CH_MULTICORE_API ChCollisionSystemParallel : public ChCollisionSystem {
     virtual void ReportContacts(ChContactContainer* mcontactcontainer) override;
 
     /// Fill in the provided proximity container with near point information after Run().
-    /// Not used in Chrono::Parallel.
+    /// Not used in Chrono::Multicore.
     virtual void ReportProximities(ChProximityContainer* mproximitycontainer) override {}
 
     /// Perform a ray-hit test with all collision models.
@@ -110,13 +110,13 @@ class CH_MULTICORE_API ChCollisionSystemParallel : public ChCollisionSystem {
     virtual std::vector<vec2> GetOverlappingPairs();
 
   private:
-    ChParallelDataManager* data_manager;
+    ChMulticoreDataManager* data_manager;
     custom_vector<char> body_active;
 
-    friend class ChSystemParallel;
+    friend class ChSystemMulticore;
 };
 
-/// @} parallel_colision
+/// @} multicore_colision
 
 }  // end namespace collision
 }  // end namespace chrono

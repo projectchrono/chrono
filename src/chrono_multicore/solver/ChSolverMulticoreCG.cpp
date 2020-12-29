@@ -25,7 +25,7 @@ real Convergence_Norm(const DynamicVector<real>& r) {
     }
     return result;
 }
-uint ChSolverParallelCG::Solve(ChShurProduct& ShurProduct,
+uint ChSolverMulticoreCG::Solve(ChShurProduct& ShurProduct,
                                ChProjectConstraints& Project,
                                const uint max_iter,
                                const uint size,

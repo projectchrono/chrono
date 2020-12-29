@@ -12,7 +12,7 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// Chrono::Parallel benchmark program using SMC method for frictional contact.
+// Chrono::Multicore benchmark program using SMC method for frictional contact.
 //
 // The global reference frame has Z up.
 // =============================================================================
@@ -51,12 +51,12 @@ class SettlingSMC : public utils::ChBenchmarkTest {
     virtual void ExecuteStep() override { m_system->DoStepDynamics(m_step); }
 
   private:
-    ChSystemParallelSMC* m_system;
+    ChSystemMulticoreSMC* m_system;
     double m_step;
     unsigned int m_num_particles;
 };
 
-SettlingSMC::SettlingSMC() : m_system(new ChSystemParallelSMC), m_step(1e-3) {
+SettlingSMC::SettlingSMC() : m_system(new ChSystemMulticoreSMC), m_step(1e-3) {
     // Simulation parameters
     double gravity = 9.81;
 
@@ -93,7 +93,7 @@ SettlingSMC::SettlingSMC() : m_system(new ChSystemParallelSMC), m_step(1e-3) {
     double hthick = 0.1;
 
     // Create a bin consisting of five boxes attached to the ground.
-    auto bin = chrono_types::make_shared<ChBody>(chrono_types::make_shared<collision::ChCollisionModelParallel>());
+    auto bin = chrono_types::make_shared<ChBody>(chrono_types::make_shared<collision::ChCollisionModelMulticore>());
     bin->SetMass(1);
     bin->SetPos(ChVector<>(0, 0, 0));
     bin->SetCollide(true);
