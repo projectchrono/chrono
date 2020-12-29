@@ -14,7 +14,7 @@ background on the modularity of the Chrono project.
 ## Requirements
 
 - To **build** applications based on this module an MPI distribution is required
-- This module requires that the Chrono::Parallel module be also enabled. See the instructions for buiding the [PARALLEL module](@ref module_parallel_installation)
+- This module requires that the Chrono::Multicore module be also enabled. See the instructions for buiding the [MULTICORE module](@ref module_multicore_installation)
 
 
 ## Building instructions

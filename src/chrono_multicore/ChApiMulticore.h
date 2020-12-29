@@ -59,7 +59,7 @@
 
     For additional information, see:
     - the [installation guide](@ref module_multicore_installation)
-    - the [tutorials](@ref tutorial_root)
+    - the [tutorials](@ref tutorial_table_of_content_chrono_multicore)
 
     @{
         @defgroup multicore_physics Physics objects
