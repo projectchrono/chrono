@@ -26,7 +26,7 @@
 #include "chrono/ChConfig.h"
 #include "chrono/utils/ChUtilsCreators.h"
 
-#include "chrono_parallel/physics/ChSystemParallel.h"
+#include "chrono_multicore/physics/ChSystemMulticore.h"
 
 using namespace chrono;
 using namespace chrono::collision;
@@ -47,8 +47,8 @@ int main(int argc, char* argv[]) {
 }
 
 // ====================================================================================
-bool check_collisionsystemcount(ChSystemParallelNSC* system, const int count) {
-	ChParallelDataManager* data_manager = system->data_manager;
+bool check_collisionsystemcount(ChSystemMulticoreNSC* system, const int count) {
+	ChMulticoreDataManager* data_manager = system->data_manager;
 
 	if (count != data_manager->shape_data.ObA_rigid.size()) { std::cout << "ObA_rigid " << data_manager->shape_data.ObA_rigid.size() << std::endl; return false; }
 	if (count != data_manager->shape_data.ObR_rigid.size()) { std::cout << "ObR_rigid " << data_manager->shape_data.ObR_rigid.size() << std::endl; return false; }
@@ -68,16 +68,16 @@ bool check_collisionsystemcount(ChSystemParallelNSC* system, const int count) {
 
 }
 bool test_collisionsystem() {
-	//create parallel system
-	ChSystemParallelNSC* system = new ChSystemParallelNSC();
+	//create multicore system
+	ChSystemMulticoreNSC* system = new ChSystemMulticoreNSC();
 	bool passed = true;
 	auto material = chrono_types::make_shared<ChMaterialSurfaceNSC>();
 
 	//add a chbody with a sphere model
-	std::shared_ptr<ChBody> sphere_model = chrono_types::make_shared<ChBody>(new ChCollisionModelParallel);
+	std::shared_ptr<ChBody> sphere_model = chrono_types::make_shared<ChBody>(new ChCollisionModelMulticore);
 	InitializeObject(sphere_model, 1, material, Vector(0, 0, 0), Quaternion(1, 0, 0, 0), true, true, 0, 0);
 	AddSphereGeometry(sphere_model.get(), 1, Vector(0, 0, 0), Quaternion(1, 0, 0, 0));
-	FinalizeObject(sphere_model, (ChSystemParallel*)system);
+	FinalizeObject(sphere_model, (ChSystemMulticore*)system);
 	//remove sphere collision model
 	sphere_model->RemoveCollisionModelsFromSystem();
 	sphere_model->GetCollisionModel()->ClearModel();
@@ -87,11 +87,11 @@ bool test_collisionsystem() {
 
 
 	//add chbody with two collision models
-	std::shared_ptr<ChBody> double_model = chrono_types::make_shared<ChBody>(new ChCollisionModelParallel);
+	std::shared_ptr<ChBody> double_model = chrono_types::make_shared<ChBody>(new ChCollisionModelMulticore);
 	InitializeObject(double_model, 1, material, Vector(0, 0, 0), Quaternion(1, 0, 0, 0), true, true, 0, 0);
 	AddSphereGeometry(double_model.get(), 1, Vector(0, 0, 0), Quaternion(1, 0, 0, 0));
 	AddSphereGeometry(double_model.get(), 1, Vector(0, 0, 0), Quaternion(1, 0, 0, 0));
-	FinalizeObject(double_model, (ChSystemParallel*)system);
+	FinalizeObject(double_model, (ChSystemMulticore*)system);
 	//remove 
 	double_model->RemoveCollisionModelsFromSystem();
 	double_model->GetCollisionModel()->ClearModel();

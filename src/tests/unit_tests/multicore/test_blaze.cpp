@@ -12,7 +12,7 @@
 // Authors: Hammad Mazhar
 // =============================================================================
 //
-// ChronoParallel unit test for Blaze
+// Chrono::Multicore unit test for Blaze
 // =============================================================================
 
 #include <cstdio>
@@ -22,7 +22,7 @@
 #include <algorithm>
 #include <tuple>
 
-#include "chrono_parallel/ChDataManager.h"
+#include "chrono_multicore/ChDataManager.h"
 #include "unit_testing.h"
 
 using namespace chrono;

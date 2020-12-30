@@ -204,12 +204,12 @@ void ChOpenGLHUD::GenerateSystem(ChSystem* physics_system) {
     bars.AddBar(lcp_v, right_b, BOTTOM + thick, BOTTOM, ColorConverter(0xFFCE54));
 
     if (ChSystemMulticore* parallel_system = dynamic_cast<ChSystemMulticore*>(physics_system)) {
-        real build_m = parallel_system->data_manager->system_timer.GetTime("ChIterativeSolverParallel_M");
-        real build_d = parallel_system->data_manager->system_timer.GetTime("ChIterativeSolverParallel_D");
-        real build_e = parallel_system->data_manager->system_timer.GetTime("ChIterativeSolverParallel_E");
-        real build_r = parallel_system->data_manager->system_timer.GetTime("ChIterativeSolverParallel_R");
-        real build_n = parallel_system->data_manager->system_timer.GetTime("ChIterativeSolverParallel_N");
-        real stab = parallel_system->data_manager->system_timer.GetTime("ChIterativeSolverParallel_Stab");
+        real build_m = parallel_system->data_manager->system_timer.GetTime("ChIterativeSolverMulticore_M");
+        real build_d = parallel_system->data_manager->system_timer.GetTime("ChIterativeSolverMulticore_D");
+        real build_e = parallel_system->data_manager->system_timer.GetTime("ChIterativeSolverMulticore_E");
+        real build_r = parallel_system->data_manager->system_timer.GetTime("ChIterativeSolverMulticore_R");
+        real build_n = parallel_system->data_manager->system_timer.GetTime("ChIterativeSolverMulticore_N");
+        real stab = parallel_system->data_manager->system_timer.GetTime("ChIterativeSolverMulticore_Stab");
         real shur = parallel_system->data_manager->system_timer.GetTime("ShurProduct");
 
         real number = build_m;
@@ -355,16 +355,16 @@ void ChOpenGLHUD::GenerateExtraStats(ChSystem* physics_system) {
     // if (ChSystemMulticoreNSC* parallel_sys = dynamic_cast<ChSystemMulticoreNSC*>(physics_system)) {
     //  ChTimerMulticore& system_timer = parallel_sys->data_manager->system_timer;
 
-    //  sprintf(buffer, "Compute N:  %04f", system_timer.GetTime("ChIterativeSolverParallel_N"));
+    //  sprintf(buffer, "Compute N:  %04f", system_timer.GetTime("ChIterativeSolverMulticore_N"));
     //  text.Render(buffer, LEFT, BOTTOM + SPACING * 6, sx, sy);
 
-    //  sprintf(buffer, "Compute R:  %04f", system_timer.GetTime("ChIterativeSolverParallel_R"));
+    //  sprintf(buffer, "Compute R:  %04f", system_timer.GetTime("ChIterativeSolverMulticore_R"));
     //  text.Render(buffer, LEFT, BOTTOM + SPACING * 5, sx, sy);
 
-    //  sprintf(buffer, "Compute E:  %04f", system_timer.GetTime("ChIterativeSolverParallel_E"));
+    //  sprintf(buffer, "Compute E:  %04f", system_timer.GetTime("ChIterativeSolverMulticore_E"));
     //  text.Render(buffer, LEFT, BOTTOM + SPACING * 4, sx, sy);
 
-    //  sprintf(buffer, "Compute D:  %04f", system_timer.GetTime("ChIterativeSolverParallel_D"));
+    //  sprintf(buffer, "Compute D:  %04f", system_timer.GetTime("ChIterativeSolverMulticore_D"));
     //  text.Render(buffer, LEFT, BOTTOM + SPACING * 3, sx, sy);
 
     //  sprintf(buffer, "Solve:  %04f", system_timer.GetTime("ChSolverMulticore_Solve"));

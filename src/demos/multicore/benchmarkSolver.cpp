@@ -12,7 +12,7 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// ChronoParallel test program using DVI method for frictional contact.
+// Chrono::Multicore test program using DVI method for frictional contact.
 //
 // The model simulated here consists of a number of spherical objects falling
 // in a fixed container.
@@ -28,7 +28,7 @@
 #include <vector>
 #include <cmath>
 #include <string>
-#include "chrono_parallel/physics/ChSystemParallel.h"
+#include "chrono_multicore/physics/ChSystemMulticore.h"
 
 #include "chrono/ChConfig.h"
 #include "chrono/utils/ChUtilsCreators.h"
@@ -55,7 +55,7 @@ int count_Y = 2;
 // -----------------------------------------------------------------------------
 // Generate postprocessing output with current system state.
 // -----------------------------------------------------------------------------
-void OutputData(ChSystemParallel* sys, int out_frame, double time) {
+void OutputData(ChSystemMulticore* sys, int out_frame, double time) {
     char filename[100];
     sprintf(filename, "%s/data_%03d.dat", out_folder, out_frame);
     utils::WriteShapesPovray(sys, filename);
@@ -65,7 +65,7 @@ void OutputData(ChSystemParallel* sys, int out_frame, double time) {
 // -----------------------------------------------------------------------------
 // Create a bin consisting of five boxes attached to the ground.
 // -----------------------------------------------------------------------------
-void AddContainer(ChSystemParallelNSC* sys) {
+void AddContainer(ChSystemMulticoreNSC* sys) {
     // IDs for the two bodies
     int binId = -200;
 
@@ -74,7 +74,7 @@ void AddContainer(ChSystemParallelNSC* sys) {
     mat->SetFriction(0.4f);
 
     // Create the containing bin (4 x 4 x 1)
-    auto bin = std::make_shared<ChBody>(new ChCollisionModelParallel);
+    auto bin = std::make_shared<ChBody>(new ChCollisionModelMulticore);
 
     bin->SetMaterialSurface(mat);
     bin->SetIdentifier(binId);
@@ -94,7 +94,7 @@ void AddContainer(ChSystemParallelNSC* sys) {
 // -----------------------------------------------------------------------------
 // Create the falling spherical objects in a uniform rectangular grid.
 // -----------------------------------------------------------------------------
-void AddFallingBalls(ChSystemParallel* sys) {
+void AddFallingBalls(ChSystemMulticore* sys) {
     // Common material
     auto ballMat = std::make_shared<ChMaterialSurfaceNSC>();
     ballMat->SetFriction(0.4f);
@@ -110,7 +110,7 @@ void AddFallingBalls(ChSystemParallel* sys) {
 
     for (int i = 0; i < points.size(); i++) {
         ChVector<> pos = points[i] + ChVector<>(0, 0, 15);
-        auto ball = std::make_shared<ChBody>(new ChCollisionModelParallel);
+        auto ball = std::make_shared<ChBody>(new ChCollisionModelMulticore);
         ball->SetMaterialSurface(ballMat);
 
         ball->SetIdentifier(ballId++);
@@ -166,7 +166,7 @@ int main(int argc, char* argv[]) {
     // Create system
     // -------------
 
-    ChSystemParallelNSC msystem;
+    ChSystemMulticoreNSC msystem;
 
     // Set number of threads.
     int max_threads = ChOMP::GetNumProcs();
@@ -246,10 +246,10 @@ int main(int argc, char* argv[]) {
         msystem.DoStepDynamics(time_step);
         ofile << time << " " << msystem.data_manager->measures.solver.residual << " "
               << msystem.data_manager->measures.solver.total_iteration << " "
-              << msystem.data_manager->system_timer.GetTime("ChLcpSolverParallel_Solve") << std::endl;
+              << msystem.data_manager->system_timer.GetTime("ChLcpSolverMulticore_Solve") << std::endl;
         std::cout << time << " " << msystem.data_manager->measures.solver.residual << " "
                   << msystem.data_manager->measures.solver.total_iteration << " "
-                  << msystem.data_manager->system_timer.GetTime("ChLcpSolverParallel_Solve") << std::endl;
+                  << msystem.data_manager->system_timer.GetTime("ChLcpSolverMulticore_Solve") << std::endl;
         time += time_step;
     }
     ofile.close();

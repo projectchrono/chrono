@@ -17,7 +17,6 @@
 
 #include "chrono_multicore/physics/ChSystemMulticore.h"
 #include "chrono_multicore/physics/Ch3DOFContainer.h"
-////#include "chrono_multicore/physics/ChMPM.cuh"
 #include "chrono_multicore/ChDataManager.h"
 #include "chrono_multicore/constraints/ChConstraintUtils.h"
 #include "chrono_multicore/collision/ChCollision.h"
@@ -71,7 +70,7 @@ void ChParticleContainer::Update(double ChTime) {
     uint num_shafts = data_manager->num_shafts;
     uint num_motors = data_manager->num_motors;
     real3 h_gravity = data_manager->settings.step_size * mass * data_manager->settings.gravity;
-#ifdef CHRONO_PARALLEL_USE_CUDA
+#ifdef CHRONO_MULTICORE_USE_CUDA
     if (mpm_init) {
         temp_settings.dt = (float)data_manager->settings.step_size;
         temp_settings.kernel_radius = (float)kernel_radius;
@@ -295,7 +294,7 @@ void ChParticleContainer::Setup(int start_constraint) {
 }
 
 void ChParticleContainer::Initialize() {
-#ifdef CHRONO_PARALLEL_USE_CUDA
+#ifdef CHRONO_MULTICORE_USE_CUDA
     temp_settings.dt = (float)data_manager->settings.step_size;
     temp_settings.kernel_radius = (float)kernel_radius;
     temp_settings.inv_radius = float(1.0 / kernel_radius);
@@ -545,7 +544,7 @@ real3 ChParticleContainer::GetBodyContactTorque(uint body_id) {
 }
 
 void ChParticleContainer::PreSolve() {
-#ifdef CHRONO_PARALLEL_USE_CUDA
+#ifdef CHRONO_MULTICORE_USE_CUDA
     if (mpm_thread.joinable()) {
         mpm_thread.join();
 #pragma omp parallel for

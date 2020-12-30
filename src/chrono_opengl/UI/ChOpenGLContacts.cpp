@@ -57,7 +57,8 @@ void ChOpenGLContacts::UpdateChrono(ChSystem* system) {
     //    counter++;
     //  }
 }
-void ChOpenGLContacts::UpdateChronoParallel(ChSystemMulticore* system) {
+
+void ChOpenGLContacts::UpdateChronoMulticore(ChSystemMulticore* system) {
 #ifdef CHRONO_MULTICORE
     ChMulticoreDataManager* data_manager = system->data_manager;
     int num_contacts = data_manager->num_rigid_contacts + data_manager->num_rigid_fluid_contacts +
@@ -134,8 +135,8 @@ void ChOpenGLContacts::UpdateChronoParallel(ChSystemMulticore* system) {
 void ChOpenGLContacts::Update(ChSystem* physics_system) {
     contact_data.clear();
 #ifdef CHRONO_MULTICORE
-    if (ChSystemMulticore* system_parallel = dynamic_cast<ChSystemMulticore*>(physics_system)) {
-        UpdateChronoParallel(system_parallel);
+    if (ChSystemMulticore* system_mc = dynamic_cast<ChSystemMulticore*>(physics_system)) {
+        UpdateChronoMulticore(system_mc);
     } else
 #endif
     {

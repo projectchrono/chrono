@@ -9,8 +9,8 @@
 #include "chrono/utils/ChUtilsGeometry.h"
 #include "chrono/utils/ChUtilsGenerators.h"
 
-#include "chrono_parallel/physics/ChSystemParallel.h"
-#include "chrono_parallel/physics/Ch3DOFContainer.h"
+#include "chrono_multicore/physics/ChSystemMulticore.h"
+#include "chrono_multicore/physics/Ch3DOFContainer.h"
 
 #include "chrono_opengl/ChOpenGLWindow.h"
 
@@ -20,7 +20,7 @@ using namespace chrono::collision;
 
 real time_step = 0.0005;
 
-void AddContainer(ChSystemParallelNSC* sys) {
+void AddContainer(ChSystemMulticoreNSC* sys) {
     auto mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
     mat->SetFriction(0.4f);
 
@@ -38,8 +38,8 @@ int main(int argc, char* argv[]) {
 
     double tire_w0 = tire_vel_z0 / tire_rad;
 
-    // Create a Chrono::Engine physical system
-    ChSystemParallelNSC my_system;
+    // Create a Chrono::Multicore physical system
+    ChSystemMulticoreNSC my_system;
 
     auto fea_container = chrono_types::make_shared<ChFEAContainer>();
     my_system.Add3DOFContainer(fea_container);
@@ -82,10 +82,10 @@ int main(int argc, char* argv[]) {
     auto box = utils::CreateBoxContainer(&my_system, 0, cmaterial, ChVector<>(2, 2, 2), 0.1, ChVector<>(0, 0, -1),
                                          QUNIT, true, false, true, true);
 
-    auto PLATE = chrono_types::make_shared<ChBody>(chrono_types::make_shared<ChCollisionModelParallel>());
+    auto PLATE = chrono_types::make_shared<ChBody>(chrono_types::make_shared<ChCollisionModelMulticore>());
     utils::InitializeObject(PLATE, 100000, cmaterial, ChVector<>(0, 0, 0), QUNIT, false, true, 2, 6);
     utils::AddBoxGeometry(PLATE.get(), ChVector<>(.1, .1, .1));
-    utils::FinalizeObject(PLATE, (ChSystemParallel*)&my_system);
+    utils::FinalizeObject(PLATE, (ChSystemMulticore*)&my_system);
 
     auto my_mesh = chrono_types::make_shared<ChMesh>();
 

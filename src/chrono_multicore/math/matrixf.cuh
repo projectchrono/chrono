@@ -17,10 +17,10 @@
 
 #pragma once
 
-#include "chrono_parallel/ChCudaDefines.h"
+#include "chrono_multicore/ChCudaDefines.h"
 #include <iostream>
 
-//#include "chrono_parallel/math/float.h"
+//#include "chrono_multicore/math/float.h"
 namespace chrono {
 
 #if !defined(_WIN32)

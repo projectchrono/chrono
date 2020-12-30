@@ -1,5 +1,5 @@
 
-#include "chrono_parallel/math/matrixf.cuh"
+#include "chrono_multicore/math/matrixf.cuh"
 
 
 

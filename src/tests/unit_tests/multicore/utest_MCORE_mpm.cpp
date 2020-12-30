@@ -12,7 +12,7 @@
 // Authors: Hammad Mazhar
 // =============================================================================
 //
-// ChronoParallel unit test for MPR collision detection
+// Chrono::Multicore unit test for MPR collision detection
 // =============================================================================
 
 #include <cstdio>
@@ -21,7 +21,7 @@
 
 #include "unit_testing.h"
 
-#include "chrono_parallel/physics/MPMUtils.h"
+#include "chrono_multicore/physics/MPMUtils.h"
 
 using namespace chrono;
 

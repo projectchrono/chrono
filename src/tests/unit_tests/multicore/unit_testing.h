@@ -12,7 +12,7 @@
 // Authors: Hammad Mazhar, Radu Serban
 // =============================================================================
 //
-// ChronoParallel unit testing common functions
+// Chrono::Multicore unit testing common functions
 // =============================================================================
 
 #include <cfloat>

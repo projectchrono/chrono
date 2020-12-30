@@ -12,17 +12,17 @@
 // Authors: Hammad Mazhar
 // =============================================================================
 //
-// ChronoParallel unit test for MPR collision detection
+// Chrono::Multicore unit test for MPR collision detection
 // =============================================================================
 
 #include <cstdio>
 #include <vector>
 #include <cmath>
 
-#include "chrono_parallel/physics/ChSystemParallel.h"
-#include "chrono_parallel/collision/ChCNarrowphaseMPR.h"
-#include "chrono_parallel/constraints/ChConstraintRigidRigid.h"
-#include "chrono_parallel/collision/ChNarrowphaseUtils.h"
+#include "chrono_multicore/physics/ChSystemMulticore.h"
+#include "chrono_multicore/collision/ChCNarrowphaseMPR.h"
+#include "chrono_multicore/constraints/ChConstraintRigidRigid.h"
+#include "chrono_multicore/collision/ChNarrowphaseUtils.h"
 
 #include "chrono/collision/ChCCollisionModel.h"
 #include "chrono/core/ChMathematics.h"
@@ -38,13 +38,13 @@ real timestep = .001;
 real factor = 1.0 / timestep;
 
 int main(int argc, char* argv[]) {
-  ChSystemParallelNSC* system = new ChSystemParallelNSC;
+  ChSystemMulticoreNSC* system = new ChSystemMulticoreNSC;
   system->SetIntegrationType(ChSystem::INT_ANITESCU);
 
   std::stringstream ss;
   ss << "container_checkpoint_2_settled.txt";
 
-  system->ChangeCollisionSystem(COLLSYS_BULLET_PARALLEL);
+  system->ChangeCollisionSystem(COLLSYS_BULLET_MULTICORE);
   system->SetStep(timestep);
   system->SetMaxPenetrationRecoverySpeed(10000);
   utils::ReadCheckpoint(system, ss.str());
@@ -89,15 +89,15 @@ int main(int argc, char* argv[]) {
     system->GetSystemDescriptor()->BuildBiVector(mb_tmp);  // b_i   =   -c   = phi/h
     mb.MatrDec(mb_tmp);
   }
-  auto container = std::dynamic_pointer_cast<ChContactContainerParallel>(system->GetContactContainer());
+  auto container = std::dynamic_pointer_cast<ChContactContainerMulticore>(system->GetContactContainer());
 
-  std::list<ChContactContainerParallel::ChContact_6_6*> m_list = container->GetContactList();
+  std::list<ChContactContainerMulticore::ChContact_6_6*> m_list = container->GetContactList();
   ChTimer<real> timer;
 
   std::vector<real> b_b(container->GetNcontacts() * 3);
   int ic = 0;
   timer.start();
-  for (std::list<ChContactContainerParallel::ChContact_6_6*>::iterator it = m_list.begin(); it != m_list.end(); ++it) {
+  for (std::list<ChContactContainerMulticore::ChContact_6_6*>::iterator it = m_list.begin(); it != m_list.end(); ++it) {
 
     ChBody* body_A = (ChBody*)(*it)->GetObjA();
     ChBody* body_B = (ChBody*)(*it)->GetObjB();

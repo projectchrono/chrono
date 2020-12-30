@@ -60,7 +60,7 @@ struct float3Max {
 // code adopted from http://stackoverflow.com/questions/17371275/implementing-max-reduce-in-cuda
 // ========================================================================================
 
-#ifdef CHRONO_PARALLEL_USE_DOUBLE
+#ifdef CHRONO_MULTICORE_USE_DOUBLE
 #define ATOMIC_ADD(x, y) atomicAdd_d(x, y)
 #else
 #define ATOMIC_ADD(x, y) atomicAdd(x, y)

@@ -1,6 +1,6 @@
 #if defined(__CUDA_ARCH__)
-#include "chrono_parallel/math/other_types.h"
-#include "chrono_parallel/math/simd_non.h"
+#include "chrono_multicore/math/other_types.h"
+#include "chrono_multicore/math/simd_non.h"
 
 namespace chrono {
 

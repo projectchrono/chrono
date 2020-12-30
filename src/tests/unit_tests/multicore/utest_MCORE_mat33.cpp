@@ -12,15 +12,15 @@
 // Authors: Hammad Mazhar
 // =============================================================================
 //
-// ChronoParallel unit test for MPR collision detection
+// Chrono::Multicore unit test for MPR collision detection
 // =============================================================================
 
 #include <cstdio>
 #include <vector>
 #include <cmath>
 
-#include "chrono_parallel/constraints/ChConstraintRigidRigid.h"
-#include "chrono_parallel/math/matrix.h"
+#include "chrono_multicore/constraints/ChConstraintRigidRigid.h"
+#include "chrono_multicore/math/matrix.h"
 
 #include "chrono/collision/ChCCollisionModel.h"
 #include "chrono/core/ChMathematics.h"
