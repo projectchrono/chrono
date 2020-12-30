@@ -13,7 +13,7 @@
 // =============================================================================
 //
 // Mechanism for testing tires over granular terrain.  The mechanism + tire
-// system is co-simulated with a Chrono::Parallel system for the granular terrain.
+// system is co-simulated with a terrain subsystem.
 //
 // Implementation of the base class TERRAIN NODE.
 //
@@ -55,9 +55,7 @@ std::string ChVehicleCosimTerrainNode::GetTypeAsString(Type type) {
 }
 
 // -----------------------------------------------------------------------------
-// Construction of the terrain node:
-// - create the (parallel) Chrono system and set solver parameters
-// - create the OpenGL visualization window
+// Construction of the base terrain node.
 // -----------------------------------------------------------------------------
 ChVehicleCosimTerrainNode::ChVehicleCosimTerrainNode(Type type, ChContactMethod method)
     : ChVehicleCosimBaseNode("TERRAIN"),

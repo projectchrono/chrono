@@ -12,7 +12,7 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// Implementation of the OpenMP granular TERRAIN NODE (using Chrono::Parallel).
+// Implementation of the OpenMP granular TERRAIN NODE (using Chrono::Multicore).
 //
 // The global reference frame has Z up, X towards the front of the vehicle, and
 // Y pointing to the left.
@@ -53,7 +53,7 @@ namespace vehicle {
 
 // -----------------------------------------------------------------------------
 // Construction of the terrain node:
-// - create the (parallel) Chrono system and set solver parameters
+// - create the (multicore) Chrono system and set solver parameters
 // - create the OpenGL visualization window
 // -----------------------------------------------------------------------------
 ChVehicleCosimTerrainNodeGranularOMP::ChVehicleCosimTerrainNodeGranularOMP(ChContactMethod method,
@@ -82,14 +82,14 @@ ChVehicleCosimTerrainNodeGranularOMP::ChVehicleCosimTerrainNodeGranularOMP(ChCon
     m_num_layers = 5;
     m_time_settling = 0.4;
 
-    // --------------------------
-    // Create the parallel system
-    // --------------------------
+    // ---------------------------
+    // Create the multicore system
+    // ---------------------------
 
     // Create system and set default method-specific solver settings
     switch (m_method) {
         case ChContactMethod::SMC: {
-            ChSystemParallelSMC* sys = new ChSystemParallelSMC;
+            ChSystemMulticoreSMC* sys = new ChSystemMulticoreSMC;
             sys->GetSettings()->solver.contact_force_model = ChSystemSMC::Hertz;
             sys->GetSettings()->solver.tangential_displ_mode = ChSystemSMC::TangentialDisplacementModel::OneStep;
             sys->GetSettings()->solver.use_material_properties = true;
@@ -98,7 +98,7 @@ ChVehicleCosimTerrainNodeGranularOMP::ChVehicleCosimTerrainNodeGranularOMP(ChCon
             break;
         }
         case ChContactMethod::NSC: {
-            ChSystemParallelNSC* sys = new ChSystemParallelNSC;
+            ChSystemMulticoreNSC* sys = new ChSystemMulticoreNSC;
             sys->GetSettings()->solver.solver_mode = SolverMode::SLIDING;
             sys->GetSettings()->solver.max_iteration_normal = 0;
             sys->GetSettings()->solver.max_iteration_sliding = 200;
@@ -243,7 +243,7 @@ void ChVehicleCosimTerrainNodeGranularOMP::Construct() {
     // Generate granular material
     // --------------------------
 
-    // Cache the number of bodies that have been added so far to the parallel system.
+    // Cache the number of bodies that have been added so far to the multicore system.
     // ATTENTION: This will be used to set the state of granular material particles if
     // initializing them from a checkpoint file.
     uint particles_start_index = m_system->data_manager->num_rigid_bodies;
@@ -555,7 +555,7 @@ void ChVehicleCosimTerrainNodeGranularOMP::UpdateMeshProxies() {
         m_proxies[it].m_body->SetWvel_loc(ChVector<>(0, 0, 0));
 
         // Update triangle contact shape (expressed in local frame) by writting directly
-        // into the Chrono::Parallel data structures.
+        // into the Chrono::Multicore data structures.
         // ATTENTION: It is assumed that no other triangle contact shapes have been added
         // to the system BEFORE those corresponding to the tire mesh faces!
         shape_data[3 * it + 0] = real3(pA.x() - pos.x(), pA.y() - pos.y(), pA.z() - pos.z());

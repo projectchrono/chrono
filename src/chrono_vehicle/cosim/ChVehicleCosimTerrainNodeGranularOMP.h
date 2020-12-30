@@ -12,7 +12,7 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// Definition of the OpenMP granular TERRAIN NODE (using Chrono::Parallel).
+// Definition of the OpenMP granular TERRAIN NODE (using Chrono::Multicore).
 //
 // The global reference frame has Z up, X towards the front of the vehicle, and
 // Y pointing to the left.
@@ -22,7 +22,7 @@
 #ifndef TESTRIG_TERRAINNODE_GRANULAR_OMP_H
 #define TESTRIG_TERRAINNODE_GRANULAR_OMP_H
 
-#include "chrono_parallel/physics/ChSystemParallel.h"
+#include "chrono_multicore/physics/ChSystemMulticore.h"
 
 #include "chrono_vehicle/cosim/ChVehicleCosimTerrainNode.h"
 
@@ -31,7 +31,7 @@ namespace vehicle {
 
 class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularOMP : public ChVehicleCosimTerrainNode {
   public:
-    /// Create a Chrono::Parallel granular terrain subsystem.
+    /// Create a Chrono::Multicore granular terrain subsystem.
     ChVehicleCosimTerrainNodeGranularOMP(ChContactMethod method,  ///< contact method (SMC or NSC)
                                          int num_threads          ///< number of OpenMP threads
     );
@@ -95,8 +95,8 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularOMP : public ChVehicleCosi
     virtual void WriteCheckpoint(const std::string& filename) override;
 
   private:
-    ChSystemParallel* m_system;  ///< containing system
-    bool m_constructed;          ///< system construction completed?
+    ChSystemMulticore* m_system;  ///< containing system
+    bool m_constructed;           ///< system construction completed?
 
     double m_hthick;  ///< container wall half-thickness
 

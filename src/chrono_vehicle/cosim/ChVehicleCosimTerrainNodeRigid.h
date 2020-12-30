@@ -12,7 +12,7 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// Definition of the rigid TERRAIN NODE (using Chrono::Parallel).
+// Definition of the rigid TERRAIN NODE (using Chrono::Multicore).
 //
 // The global reference frame has Z up, X towards the front of the vehicle, and
 // Y pointing to the left.
@@ -22,7 +22,7 @@
 #ifndef CH_VEHCOSIM__TERRAINNODE_RIGID_H
 #define CH_VEHCOSIM__TERRAINNODE_RIGID_H
 
-#include "chrono_parallel/physics/ChSystemParallel.h"
+#include "chrono_multicore/physics/ChSystemMulticore.h"
 
 #include "chrono_vehicle/cosim/ChVehicleCosimTerrainNode.h"
 
@@ -59,8 +59,8 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeRigid : public ChVehicleCosimTerra
     void SetProxyContactRadius(double radius) { m_radius_p = radius; }
 
   private:
-    ChSystemParallel* m_system;  ///< containing system
-    double m_radius_p;           ///< radius for a proxy body
+    ChSystemMulticore* m_system;  ///< containing system
+    double m_radius_p;            ///< radius for a proxy body
 
     virtual bool SupportsFlexibleTire() const override { return true; }
 

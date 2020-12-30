@@ -33,13 +33,13 @@ set(CV_COSIM_FILES
 
 set(LINKER_FLAGS "${CH_LINKERFLAG_SHARED}")
 
-if(ENABLE_MODULE_PARALLEL)
+if(ENABLE_MODULE_MULTICORE)
   set(CV_COSIM_FILES ${CV_COSIM_FILES}
       ChVehicleCosimTerrainNodeGranularOMP.h
       ChVehicleCosimTerrainNodeGranularOMP.cpp)
-  include_directories(${CH_PARALLEL_INCLUDES})
-  set(CXX_FLAGS "${CXX_FLAGS} ${CH_PARALLEL_CXX_FLAGS}")
-  list(APPEND LIBRARIES ChronoEngine_parallel)
+  include_directories(${CH_MULTICORE_INCLUDES})
+  set(CXX_FLAGS "${CXX_FLAGS} ${CH_MULTICORE_CXX_FLAGS}")
+  list(APPEND LIBRARIES ChronoEngine_multicore)
 endif()
 
 if(ENABLE_MODULE_FSI)

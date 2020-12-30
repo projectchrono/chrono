@@ -12,7 +12,7 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// Definition of the rigid TERRAIN NODE (using Chrono).
+// Definition of the rigid TERRAIN NODE (using Chrono::Multicore).
 //
 // The global reference frame has Z up, X towards the front of the vehicle, and
 // Y pointing to the left.
@@ -56,7 +56,7 @@ ChVehicleCosimTerrainNodeRigid::ChVehicleCosimTerrainNodeRigid(ChContactMethod m
     // Create system and set default method-specific solver settings
     switch (m_method) {
         case ChContactMethod::SMC: {
-            ChSystemParallelSMC* sys = new ChSystemParallelSMC;
+            ChSystemMulticoreSMC* sys = new ChSystemMulticoreSMC;
             sys->GetSettings()->solver.contact_force_model = ChSystemSMC::Hertz;
             sys->GetSettings()->solver.tangential_displ_mode = ChSystemSMC::TangentialDisplacementModel::OneStep;
             sys->GetSettings()->solver.use_material_properties = true;
@@ -64,7 +64,7 @@ ChVehicleCosimTerrainNodeRigid::ChVehicleCosimTerrainNodeRigid(ChContactMethod m
             break;
         }
         case ChContactMethod::NSC: {
-            ChSystemParallelNSC* sys = new ChSystemParallelNSC;
+            ChSystemMulticoreNSC* sys = new ChSystemMulticoreNSC;
             sys->GetSettings()->solver.solver_mode = SolverMode::SLIDING;
             sys->GetSettings()->solver.max_iteration_normal = 0;
             sys->GetSettings()->solver.max_iteration_sliding = 200;
@@ -370,7 +370,7 @@ void ChVehicleCosimTerrainNodeRigid::PrintMeshProxiesContactData() {
         }
     }
 
-    ////auto container = std::static_pointer_cast<ChContactContainerParallel>(m_system->GetContactContainer());
+    ////auto container = std::static_pointer_cast<ChContactContainerMulticore>(m_system->GetContactContainer());
     ////auto contacts = container->GetContactList();
 
     ////for (auto it = contacts.begin(); it != contacts.end(); ++it) {

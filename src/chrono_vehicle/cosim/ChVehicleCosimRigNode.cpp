@@ -13,7 +13,7 @@
 // =============================================================================
 //
 // Mechanism for testing tires over granular terrain.  The mechanism + tire
-// system is co-simulated with a Chrono::Parallel system for the granular terrain.
+// system is co-simulated with a terrain subsystem.
 //
 // Definition of the RIG NODE.
 //
