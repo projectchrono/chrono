@@ -174,7 +174,7 @@ For MacOS/clang:
 
 <div class="ce-warning"> 
 **MacOS issues:** clang++ does not come with OpenMP support out of the box.
-You will not be able to build <tt>libChrono_parallel</tt> successfully.<br> 
+You will not be able to build <tt>libChronoEngine_multicore</tt> successfully.<br> 
 However, OpenMP support can be added using homebrew: <tt>brew install libomp</tt>. 
 Having done so, you can then configure Chrono with OpenMP support. For this, you must define the right compiler flags:<br>
 <tt>-Xpreprocessor -fopenmp</tt> for the compiler and <tt>-lomp</tt> for the linker. Please give the OpenMP options for both, the C compiler
