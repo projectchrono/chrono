@@ -14,7 +14,7 @@ variables:
     -DBUILD_BENCHMARKING=TRUE -DENABLE_MODULE_POSTPROCESS=TRUE 
     -DENABLE_MODULE_PYTHON=TRUE -DENABLE_MODULE_COSIMULATION=FALSE 
     -DENABLE_MODULE_IRRLICHT=TRUE -DENABLE_MODULE_VEHICLE=TRUE 
-    -DENABLE_MODULE_PARALLEL=TRUE -DENABLE_MODULE_OPENGL=TRUE
+    -DENABLE_MODULE_MULTICORE=TRUE -DENABLE_MODULE_OPENGL=TRUE
     -DENABLE_MODULE_SYNCHRONO=TRUE"
 
 #---------------------#
@@ -55,8 +55,6 @@ linux:arch-gcc:build:
     -DENABLE_MODULE_FSI=TRUE -DCMAKE_C_COMPILER=/usr/bin/gcc 
     -DCMAKE_CXX_COMPILER=/usr/bin/g++ 
     -DEIGEN3_INCLUDE_DIR=/usr/include/eigen3 -DENABLE_MODULE_GRANULAR=TRUE
-    -DFlatbuffers_DIR="$CI_PROJECT_DIR/src/chrono_thirdparty/flatbuffers/CMake"
-    -DFlatbuffers_INCLUDE_DIR="$CI_PROJECT_DIR/src/chrono_thirdparty/flatbuffers/include"
   - make -j 8
   artifacts:
     expire_in: 60m
@@ -124,8 +122,6 @@ linux:arch-llvm:build:
     -DENABLE_MODULE_FSI=TRUE -DCMAKE_C_COMPILER=/usr/bin/clang 
     -DCMAKE_CXX_COMPILER=/usr/bin/clang++ -DCUDA_HOST_COMPILER=/usr/bin/gcc 
     -DEIGEN3_INCLUDE_DIR=/usr/include/eigen3 -DENABLE_MODULE_GRANULAR=TRUE
-    -DFlatbuffers_DIR="$CI_PROJECT_DIR/src/chrono_thirdparty/flatbuffers/CMake"
-    -DFlatbuffers_INCLUDE_DIR="$CI_PROJECT_DIR/src/chrono_thirdparty/flatbuffers/include"
   - make -j 8
   artifacts:
     expire_in: 60m
@@ -296,8 +292,6 @@ linux:ubuntu1804:build:
         -DCMAKE_C_COMPILER=/usr/bin/gcc -DCMAKE_CXX_COMPILER=/usr/bin/g++
         -DPYTHON_EXECUTABLE=/usr/bin/python3 -DENABLE_MODULE_GRANULAR=TRUE
         -DCUDA_HOST_COMPILER=/usr/bin/gcc
-        -DFlatbuffers_DIR="$CI_PROJECT_DIR/src/chrono_thirdparty/flatbuffers/CMake"
-        -DFlatbuffers_INCLUDE_DIR="$CI_PROJECT_DIR/src/chrono_thirdparty/flatbuffers/include"
     - make -j 8
   artifacts:
     expire_in: 60m
@@ -363,7 +357,7 @@ linux:ubuntu1804:deploy-python3.8:
     "-DENABLE_MODULE_COSIMULATION=FALSE",
     "-DENABLE_MODULE_IRRLICHT=TRUE",
     "-DENABLE_MODULE_VEHICLE=TRUE",
-    "-DENABLE_MODULE_PARALLEL=TRUE",
+    "-DENABLE_MODULE_MULTICORE=TRUE",
     "-DENABLE_MODULE_OPENGL=TRUE",
     "-DENABLE_MODULE_SYNCHRONO=TRUE"
     )
@@ -383,9 +377,7 @@ linux:ubuntu1804:deploy-python3.8:
     "-DGLFW_LIBRARY=C:/Users/builder/Documents/glfw-3.3/lib-vc2015/glfw3dll.lib",
     "-DIRRLICHT_LIBRARY=C:/Users/builder/Documents/irrlicht-1.8.4/lib/Win64-visualStudio/Irrlicht.lib",
     "-DIRRLICHT_ROOT=C:/Users/builder/Documents/irrlicht-1.8.4",
-    "-DEIGEN3_INCLUDE_DIR=C:/Users/builder/Documents/eigen-3.3.7",
-    "-DFlatbuffers_DIR=$CI_PROJECT_DIR/src/chrono_thirdparty/flatbuffers/CMake",
-    "-DFlatbuffers_INCLUDE_DIR=$CI_PROJECT_DIR/src/chrono_thirdparty/flatbuffers/include"
+    "-DEIGEN3_INCLUDE_DIR=C:/Users/builder/Documents/eigen-3.3.7"
     )
   - echo $CI_PROJECT_DIR
   - git submodule init
@@ -405,7 +397,7 @@ windows:vs2019:build:
   - cmake ../ -G "Visual Studio 16 2019" -A x64 -T v142 
     @CHRONO_W64_SHARED 
     @CHRONO_W64_LIBRARIES 
-    -DUSE_PARALLEL_CUDA=OFF
+    -DUSE_MULTICORE_CUDA=OFF
     -DENABLE_MODULE_GRANULAR=TRUE
     -DENABLE_MODULE_FSI=TRUE
   #- Invoke-Expression "& `'C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\devenv.com`' Chrono.sln -Build `"Release|x64`" -log buildlog.txt"
@@ -470,7 +462,7 @@ windows:vs2017:build:
   - cmake ../ -G "Visual Studio 16 2019" -A x64 -T v141
     @CHRONO_W64_SHARED
     @CHRONO_W64_LIBRARIES
-    -DUSE_PARALLEL_CUDA=OFF
+    -DUSE_MULTICORE_CUDA=OFF
   #- Invoke-Expression "& `'C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\devenv.com`' Chrono.sln -Build `"Release|x64`" -log buildlog.txt"
   - '& "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\MSBuild\Current\Bin\MSBuild.exe" Chrono.sln -maxcpucount:8 -property:Configuration=Release'
   artifacts:
@@ -486,7 +478,7 @@ windows:vs2017:build:
   - cmake ../ -G "Visual Studio 16 2019" -A x64 -T v140
     @CHRONO_W64_SHARED
     @CHRONO_W64_LIBRARIES
-    -DUSE_PARALLEL_CUDA=OFF 
+    -DUSE_MULTICORE_CUDA=OFF 
   #- Invoke-Expression "& `'C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\devenv.com`' Chrono.sln -Build `"Release|x64`" -log buildlog.txt"
   - '& "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\MSBuild\Current\Bin\MSBuild.exe" Chrono.sln -maxcpucount:8 -property:Configuration=Release'
   artifacts:
@@ -541,7 +533,7 @@ macos:highsierra:build:
     -DENABLE_MODULE_FSI=FALSE -DCMAKE_C_COMPILER=$(which clang)
     -DCMAKE_CXX_COMPILER=$(which clang++)
     -DCMAKE_CXX_FLAGS="-Wno-deprecated-declarations -Xpreprocessor -fopenmp -lomp -Wno-unused-command-line-argument"
-    -DUSE_PARALLEL_CUDA=FALSE -DCUDA_NVCC_FLAGS=-std=c++11
+    -DUSE_MULTICORE_CUDA=FALSE -DCUDA_NVCC_FLAGS=-std=c++11
     -DEIGEN3_INCLUDE_DIR=/usr/local/include/eigen3
     -DBLAZE_DIR=/usr/local/include
   - make -j 3
@@ -617,7 +609,7 @@ macos:macos-deploy-python3.8:
     -DBUILD_BENCHMARKING=TRUE -DENABLE_MODULE_POSTPROCESS=TRUE 
     -DENABLE_MODULE_PYTHON=TRUE -DENABLE_MODULE_COSIMULATION=FALSE 
     -DENABLE_MODULE_IRRLICHT=TRUE -DENABLE_MODULE_VEHICLE=TRUE 
-    -DENABLE_MODULE_PARALLEL=TRUE -DENABLE_MODULE_OPENGL=TRUE 
+    -DENABLE_MODULE_MULTICORE=TRUE -DENABLE_MODULE_OPENGL=TRUE 
     -DENABLE_MODULE_DISTRIBUTED=TRUE -DEIGEN3_INCLUDE_DIR=/usr/include/eigen3
   - make -j 8
   artifacts:

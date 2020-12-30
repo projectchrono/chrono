@@ -31,7 +31,7 @@
 #include "chrono/physics/ChSystem.h"
 #include "chrono/core/ChTimer.h"
 
-//#include "chrono_parallel/physics/ChSystemParallel.h"
+//#include "chrono_multicore/physics/ChSystemMulticore.h"
 #include <glfw3.h>
 
 namespace chrono {

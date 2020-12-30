@@ -190,7 +190,7 @@ TerrainForce ChRigidTire::ReportTireForce(ChTerrain* terrain) const {
     tire_force.force = m_wheel->GetSpindle()->GetContactForce();
     tire_force.moment = m_wheel->GetSpindle()->GetContactTorque();
 
-    // Approach using the RigidTireContactReporter does not work in Chrono::Parallel
+    // Approach using the RigidTireContactReporter does not work in Chrono::Multicore
     // since contact forces and torques passed to OnReportContact are always zero.
     /*
     auto reporter = chrono_types::make_shared<RigidTireContactReporter>(m_wheel);

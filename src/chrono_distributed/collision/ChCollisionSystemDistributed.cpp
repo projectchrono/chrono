@@ -18,17 +18,17 @@
 #include "chrono_distributed/collision/ChCollisionModelDistributed.h"
 #include "chrono_distributed/collision/ChCollisionSystemDistributed.h"
 
-#include "chrono_parallel/ChDataManager.h"
-#include "chrono_parallel/collision/ChBroadphaseUtils.h"
-#include "chrono_parallel/collision/ChCollisionModelParallel.h"
-#include "chrono_parallel/collision/ChCollisionSystemParallel.h"
-#include "chrono_parallel/collision/ChCollision.h"
+#include "chrono_multicore/ChDataManager.h"
+#include "chrono_multicore/collision/ChBroadphaseUtils.h"
+#include "chrono_multicore/collision/ChCollisionModelMulticore.h"
+#include "chrono_multicore/collision/ChCollisionSystemMulticore.h"
+#include "chrono_multicore/collision/ChCollision.h"
 
 namespace chrono {
 namespace collision {
 
-ChCollisionSystemDistributed::ChCollisionSystemDistributed(ChParallelDataManager* dm, ChDistributedDataManager* ddm)
-    : ChCollisionSystemParallel(dm) {
+ChCollisionSystemDistributed::ChCollisionSystemDistributed(ChMulticoreDataManager* dm, ChDistributedDataManager* ddm)
+    : ChCollisionSystemMulticore(dm) {
     this->ddm = ddm;
     // TODO replace
     this->ddm->local_free_shapes = NULL;
@@ -40,7 +40,7 @@ ChCollisionSystemDistributed::~ChCollisionSystemDistributed() {}
 // (called by addbody AND addbodyexchange)
 // TODO VERY EXPENSIVE
 void ChCollisionSystemDistributed::Add(ChCollisionModel* model) {
-    ChParallelDataManager* dm = ddm->data_manager;
+    ChMulticoreDataManager* dm = ddm->data_manager;
     ChCollisionModelDistributed* pmodel = static_cast<ChCollisionModelDistributed*>(model);
     // Find space in ddm vectors - need one index for both start and count
     // need a chunk of body_shapes large enough for all shapes on this body
@@ -175,7 +175,7 @@ void ChCollisionSystemDistributed::Add(ChCollisionModel* model) {
     if (free_dm_shapes.size() == needed_count) {
         for (int i = 0; i < needed_count; i++) {
             // i identifies a shape in the MODEL
-            auto shape = std::static_pointer_cast<ChCollisionShapeParallel>(pmodel->GetShape(i));
+            auto shape = std::static_pointer_cast<ChCollisionShapeMulticore>(pmodel->GetShape(i));
 
             int j = free_dm_shapes[i];  // Index into dm->shape_data
 
@@ -237,7 +237,7 @@ void ChCollisionSystemDistributed::Add(ChCollisionModel* model) {
     // If there was not enough space in the data_manager for all shapes in the model,
     // call the regular add // TODO faster jump to here
     else {
-        this->ChCollisionSystemParallel::Add(model);
+        this->ChCollisionSystemMulticore::Add(model);
         for (int i = 0; i < needed_count; i++) {
             ddm->dm_free_shapes.push_back(false);
             ddm->body_shapes[begin_shapes] =
@@ -251,7 +251,7 @@ void ChCollisionSystemDistributed::Add(ChCollisionModel* model) {
 //
 // // TODO finish this
 // void ChCollisionSystemDistributed::NewAdd(ChCollisionModel* model) {
-//     ChParallelDataManager* dm = ddm->data_manager;
+//     ChMulticoreDataManager* dm = ddm->data_manager;
 //     ChCollisionModelDistributed* pmodel = static_cast<ChCollisionModelDistributed*>(model);
 //     // Find space in ddm vectors - need one index for both start and count
 //     // need a chunk of body_shapes large enough for all shapes on this body
@@ -425,7 +425,7 @@ void ChCollisionSystemDistributed::Add(ChCollisionModel* model) {
 //     // If there was not enough space in the data_manager for all shapes in the model,
 //     // call the regular add // TODO faster jump to here
 //     else {
-//         this->ChCollisionSystemParallel::Add(model);
+//         this->ChCollisionSystemMulticore::Add(model);
 //         for (int i = 0; i < needed_count; i++) {
 //             ddm->dm_free_shapes.push_back(false);
 //             ddm->body_shapes[begin_shapes] = dm->shape_data.id_rigid.size() - needed_count + i;  // TODO ?
@@ -439,7 +439,7 @@ void ChCollisionSystemDistributed::Add(ChCollisionModel* model) {
 // Id must be set before calling
 // Deactivates all shapes associated with the collision model
 void ChCollisionSystemDistributed::Remove(ChCollisionModel* model) {
-    ChCollisionModelParallel* pmodel = static_cast<ChCollisionModelParallel*>(model);
+    ChCollisionModelMulticore* pmodel = static_cast<ChCollisionModelMulticore*>(model);
     uint id = pmodel->GetBody()->GetId();
     int count = pmodel->GetNumShapes();
     int start = ddm->body_shape_start[id];

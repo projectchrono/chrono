@@ -218,7 +218,7 @@ class ChApiIrr ChIrrTools {
                              int sy = 300);
 
 	/// Draw the collision shapes as wireframe, overlayed to shapes.
-	/// Note: this works only for the Bullet collision system (i.e. not working for Chrono Parallel) 
+	/// Note: this works only for the Bullet collision system (i.e. not working for Chrono::Multicore) 
 	static void drawCollisionShapes(ChSystem& asystem,
 		irr::IrrlichtDevice* mdevice,
 		irr::video::SColor mcol = irr::video::SColor(50, 0, 0, 110) );

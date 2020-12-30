@@ -34,7 +34,7 @@
 
     This module implements MPI parallel computing algorithms that can be
     used as a faster alternative to the default simulation algorithms
-    in Chrono::Engine. This module depends on the Chrono::Parallel module.
+    in Chrono::Engine. This module depends on the Chrono::Multicore module.
 
     For additional information, see:
     - the [installation guide](@ref module_distributed_installation)

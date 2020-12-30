@@ -132,7 +132,7 @@ Python for 64bit, you must compile Chrono in 64 bit mode.
 <div class="ce-warning">
 In some distributions of Python, the debug library 'python33_d.lib' (the debug version of the python33.lib library) is not included by default. 
 If you need it because you recompile the python module in debug mode, either you recompile the entire Python source, or you modify pyconfig.h to force the use of python33.lib by following these steps:
-<br>
+
 1. Comment out the line:
 
         //#define Py_DEBUG
