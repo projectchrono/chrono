@@ -340,7 +340,7 @@ class ChApi ChCollisionModelBullet : public ChCollisionModel {
     std::vector<std::shared_ptr<geometry::ChTriangleMesh>> m_trimeshes;
 
     friend class ChCollisionSystemBullet;
-    friend class ChCollisionSystemBulletParallel;
+    friend class ChCollisionSystemBulletMulticore;
 };
 
 }  // end namespace collision

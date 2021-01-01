@@ -5,7 +5,9 @@ Change Log
 ==========
 
 - [Unreleased (development version)](#unreleased-development-branch)
-  - [Geometric stiffness for Euler beams](#geometric-stiffness-for-euler-beams)
+  - [Contact force reporting through user-provided callback](#added-contact-force-reporting-through-user-provided-callback)
+  - [Chrono::Multicore module rename](#changed-chronomulticore-module-rename)
+  - [Geometric stiffness for Euler beams](#added-geometric-stiffness-for-euler-beams)
   - [New Chrono::Synchrono module](#added-new-chronosynchrono-module)
   - [Rename Intel MKL Pardiso interface module](#changed-rename-intel-mkl-pardiso-interface-module)
   - [Saving POV-Ray files from Irrlicht interactive view](#added-saving-pov-ray-files-from-irrlicht-interactive-view)
@@ -28,6 +30,26 @@ Change Log
 - [Release 4.0.0](#release-400---2019-02-22)
 
 ## Unreleased (development branch)
+
+### [Added] Contact force reporting through user-provided callback
+
+The `OnReportContact` method of a user-supplied reporter callback (derived from `ChContactContainer::ReportContactCallback`) is now called with the proper force and torque for the current contact when using a Chrono::Multicore parallel system (of either NSC or SMC type).  The reported contact force and torque are provided at the contact point and expressed in the *contact frame* (defined by the given rotation matrix).
+
+For examples of using the contact reporting feature with a Chrono::Multicore system, see `demo_MCORE_callbackNSC` and `demo_MCORE_callbackSMC`.
+
+### [Changed] Chrono::Multicore module rename
+
+For consistency and to better reflect the purpose of this module, Chrono::Parallel was renamed to **Chrono::Multicore**.
+
+The related API changes are simply replacements of *parallel* with *multicore*, keeping the same capitalization:
+- `chrono_multicore/` replaces `chrono_parallel/`
+- class names use `Multicore` instead of `Parallel` (e.g.; `ChSystemMulticore`)
+- macro names use `MULTICORE` instead of `PARALLEL` (e.g.; `CHRONO_MULTICORE`)
+- the CMake project configuration script ChronoConfig.cmake expects the component name `Multicore` instead of `Parallel` 
+
+In addition, names of related demos, unit tests, and benchmark tests include the string `MCORE` instead of `PAR` (e.g.; `demo_MCORE_mixerNSC`).
+
+Users of the Chrono::Multicore module should rerun CMake since the variables related to this module have also changed name (e.g.; `ENABLE_MODULE_MULTICORE`).
 
 ### [Added] Geometric stiffness for Euler beams
 

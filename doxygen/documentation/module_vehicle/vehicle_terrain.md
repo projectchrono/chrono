@@ -111,7 +111,7 @@ Since the interaction with this terrain type is done through the underlying Chro
 
 Because simulation of large-scale granular dynamics can be computationally very intensive, the GranularTerrain object in Chrono::Vehicle provides support for a "moving patch" approach, wherein the simulation can be confined to a bin of granular material that is continuously relocated based on the position of a specified body (typically the vehicle's chassis). Curently, the moving patch can only be relocated in the \f$x\f$ (forward) direction.
 
-An illustration of a vehicle acceleration test on GranularTerrain using the moving patch feature is shown below.  This simulation uses more than 700,000 particles and the [Chrono::Parallel](@ref parallel_module) module for multi-core parallel simulation.
+An illustration of a vehicle acceleration test on GranularTerrain using the moving patch feature is shown below.  This simulation uses more than 700,000 particles and the [Chrono::Multicore](@ref multicore_module) module for multi-core parallel simulation.
 
 <img src="http://www.projectchrono.org/assets/manual/vehicle/terrain/Granular_moving_patch.png" width="600" />
 

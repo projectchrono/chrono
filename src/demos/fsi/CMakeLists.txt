@@ -16,14 +16,11 @@ SET(FSI_MKL_DEMOS
 demo_FSI_Flexible_Elements
 )
 
-
 #--------------------------------------------------------------
 SET(LIBRARIES
     ChronoEngine
     ChronoEngine_fsi
 )
-message( STATUS "FSI_DEMO_LIBRARY: ${ChronoEngine_fsi}")
-
 
 INCLUDE_DIRECTORIES(${CH_FSI_INCLUDES})
 INCLUDE_DIRECTORIES(${CH_FEA_INCLUDES})
