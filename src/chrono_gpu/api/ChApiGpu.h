@@ -50,17 +50,16 @@
 #endif
 
 /**
-    @defgroup gpu Chrono::Gpu module
-    @brief GPU solver for granular dynamics
+    @defgroup gpu_module GPU module
+    @brief Module for GPU parallel simulation
 
-    This module provides support for modeling systems of granular material on the GPU through CUDA.
+    This module provides support for granular dynamics on the GPU through CUDA.
     Currently, systems of monodisperse spheres can interact via full-history frictional contact with both
     analytical boundary conditions and triangle meshes.
 
     For additional information, see:
-    - the [installation guide](@ref module_granular_installation)
-    - the [tutorials](@ref tutorial_root)
-
+    - the [installation guide](@ref module_gpu_installation)
+    - the [tutorials](@ref tutorial_table_of_content_chrono_gpu)
 
     @{
         @defgroup gpu_physics Chrono::Gpu physics objects
@@ -70,12 +69,12 @@
 
 namespace chrono {
 
-/// @addtogroup gpu
+/// @addtogroup gpu_module
 /// @{
 
 /// Namespace with classes for the Gpu module.
 namespace gpu {}
 
-/// @} gpu
+/// @} gpu_module
 
 }  // namespace chrono

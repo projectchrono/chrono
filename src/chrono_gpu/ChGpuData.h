@@ -23,7 +23,7 @@
 namespace chrono {
 namespace gpu {
 
-/// @addtogroup gpu
+/// @addtogroup gpu_module
 /// @{
 
 /// Set the path to the Chrono::Gpu data directory (ATTENTION: not thread safe).
@@ -37,7 +37,7 @@ CH_GPU_API const std::string& GetDataPath();
 /// data directory.
 CH_GPU_API std::string GetDataFile(const std::string& filename);
 
-/// @} gpu
+/// @} gpu_module
 
 }  // end namespace gpu
 }  // end namespace chrono
