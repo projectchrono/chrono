@@ -78,10 +78,10 @@ int main(int argc, char* argv[]) {
 
     float iteration_step = params.step_size;
 
-    ChGranularChronoTriMeshAPI apiSMC_TriMesh(params.sphere_radius, params.sphere_density,
+    ChGpuSMCtrimesh_API apiSMC_TriMesh(params.sphere_radius, params.sphere_density,
                                               make_float3(params.box_X, params.box_Y, params.box_Z));
 
-    ChSystemGranularSMC_trimesh& gran_sys = apiSMC_TriMesh.getGranSystemSMC_TriMesh();
+    ChSystemGpuSMC_trimesh& gpu_sys = apiSMC_TriMesh.getSystem();
     double fill_bottom = -params.box_Z / 2.0;
     double fill_top = params.box_Z / 4.0;
 
@@ -104,7 +104,7 @@ int main(int argc, char* argv[]) {
 
     apiSMC_TriMesh.setElemsPositions(body_points);
 
-    gran_sys.set_BD_Fixed(true);
+    gpu_sys.set_BD_Fixed(true);
     std::function<double3(float)> pos_func_wave = [&params](float t) {
         double3 pos = {0, 0, 0};
 
@@ -117,39 +117,39 @@ int main(int argc, char* argv[]) {
         return pos;
     };
 
-    // gran_sys.setBDWallsMotionFunction(pos_func_wave);
+    // gpu_sys.setBDWallsMotionFunction(pos_func_wave);
 
-    gran_sys.set_K_n_SPH2SPH(params.normalStiffS2S);
-    gran_sys.set_K_n_SPH2WALL(params.normalStiffS2W);
-    gran_sys.set_K_n_SPH2MESH(params.normalStiffS2M);
+    gpu_sys.set_K_n_SPH2SPH(params.normalStiffS2S);
+    gpu_sys.set_K_n_SPH2WALL(params.normalStiffS2W);
+    gpu_sys.set_K_n_SPH2MESH(params.normalStiffS2M);
 
-    gran_sys.set_Gamma_n_SPH2SPH(params.normalDampS2S);
-    gran_sys.set_Gamma_n_SPH2WALL(params.normalDampS2W);
-    gran_sys.set_Gamma_n_SPH2MESH(params.normalDampS2M);
+    gpu_sys.set_Gamma_n_SPH2SPH(params.normalDampS2S);
+    gpu_sys.set_Gamma_n_SPH2WALL(params.normalDampS2W);
+    gpu_sys.set_Gamma_n_SPH2MESH(params.normalDampS2M);
 
-    gran_sys.set_K_t_SPH2SPH(params.tangentStiffS2S);
-    gran_sys.set_K_t_SPH2WALL(params.tangentStiffS2W);
-    gran_sys.set_K_t_SPH2MESH(params.tangentStiffS2M);
+    gpu_sys.set_K_t_SPH2SPH(params.tangentStiffS2S);
+    gpu_sys.set_K_t_SPH2WALL(params.tangentStiffS2W);
+    gpu_sys.set_K_t_SPH2MESH(params.tangentStiffS2M);
 
-    gran_sys.set_Gamma_t_SPH2SPH(params.tangentDampS2S);
-    gran_sys.set_Gamma_t_SPH2WALL(params.tangentDampS2W);
-    gran_sys.set_Gamma_t_SPH2MESH(params.tangentDampS2M);
+    gpu_sys.set_Gamma_t_SPH2SPH(params.tangentDampS2S);
+    gpu_sys.set_Gamma_t_SPH2WALL(params.tangentDampS2W);
+    gpu_sys.set_Gamma_t_SPH2MESH(params.tangentDampS2M);
 
-    gran_sys.set_Cohesion_ratio(params.cohesion_ratio);
-    gran_sys.set_Adhesion_ratio_S2M(params.adhesion_ratio_s2m);
-    gran_sys.set_Adhesion_ratio_S2W(params.adhesion_ratio_s2w);
-    gran_sys.set_gravitational_acceleration(params.grav_X, params.grav_Y, params.grav_Z);
+    gpu_sys.set_Cohesion_ratio(params.cohesion_ratio);
+    gpu_sys.set_Adhesion_ratio_S2M(params.adhesion_ratio_s2m);
+    gpu_sys.set_Adhesion_ratio_S2W(params.adhesion_ratio_s2w);
+    gpu_sys.set_gravitational_acceleration(params.grav_X, params.grav_Y, params.grav_Z);
 
-    gran_sys.set_fixed_stepSize(params.step_size);
-    gran_sys.set_friction_mode(CHGPU_FRICTION_MODE::MULTI_STEP);
-    gran_sys.set_timeIntegrator(CHGPU_TIME_INTEGRATOR::CENTERED_DIFFERENCE);
-    gran_sys.set_static_friction_coeff_SPH2SPH(params.static_friction_coeffS2S);
-    gran_sys.set_static_friction_coeff_SPH2WALL(params.static_friction_coeffS2W);
-    gran_sys.set_static_friction_coeff_SPH2MESH(params.static_friction_coeffS2M);
+    gpu_sys.set_fixed_stepSize(params.step_size);
+    gpu_sys.set_friction_mode(CHGPU_FRICTION_MODE::MULTI_STEP);
+    gpu_sys.set_timeIntegrator(CHGPU_TIME_INTEGRATOR::CENTERED_DIFFERENCE);
+    gpu_sys.set_static_friction_coeff_SPH2SPH(params.static_friction_coeffS2S);
+    gpu_sys.set_static_friction_coeff_SPH2WALL(params.static_friction_coeffS2W);
+    gpu_sys.set_static_friction_coeff_SPH2MESH(params.static_friction_coeffS2M);
 
-    //gran_sys.set_rolling_coeff_SPH2SPH(params.rolling_friction_coeffS2S);
-    //gran_sys.set_rolling_coeff_SPH2WALL(params.rolling_friction_coeffS2W);
-    //gran_sys.set_rolling_coeff_SPH2MESH(params.rolling_friction_coeffS2M);
+    //gpu_sys.set_rolling_coeff_SPH2SPH(params.rolling_friction_coeffS2S);
+    //gpu_sys.set_rolling_coeff_SPH2WALL(params.rolling_friction_coeffS2W);
+    //gpu_sys.set_rolling_coeff_SPH2MESH(params.rolling_friction_coeffS2M);
 
     std::string mesh_filename(GetChronoDataFile("gpu/demo_GPU_ballcosim/sphere.obj"));
     std::vector<string> mesh_filenames(1, mesh_filename);
@@ -165,16 +165,16 @@ int main(int argc, char* argv[]) {
 
     apiSMC_TriMesh.load_meshes(mesh_filenames, mesh_rotscales, mesh_translations, mesh_masses);
 
-    gran_sys.setOutputMode(params.write_mode);
-    gran_sys.setVerbose(params.verbose);
+    gpu_sys.setOutputMode(params.write_mode);
+    gpu_sys.setVerbose(params.verbose);
     filesystem::create_directory(filesystem::path(params.output_dir));
 
-    unsigned int nSoupFamilies = gran_sys.getNumTriangleFamilies();
+    unsigned int nSoupFamilies = gpu_sys.getNumTriangleFamilies();
     std::cout << nSoupFamilies << " soup families" << std::endl;
     double* meshPosRot = new double[7 * nSoupFamilies];
     float* meshVel = new float[6 * nSoupFamilies]();
 
-    gran_sys.initialize();
+    gpu_sys.initialize();
 
     // Create rigid ball_body simulation
     ChSystemSMC sys_ball;
@@ -223,13 +223,13 @@ int main(int argc, char* argv[]) {
         meshVel[4] = (float)ball_ang_vel.y();
         meshVel[5] = (float)ball_ang_vel.z();
 
-        gran_sys.meshSoup_applyRigidBodyMotion(meshPosRot, meshVel);
+        gpu_sys.meshSoup_applyRigidBodyMotion(meshPosRot, meshVel);
 
-        gran_sys.advance_simulation(iteration_step);
+        gpu_sys.advance_simulation(iteration_step);
         sys_ball.DoStepDynamics(iteration_step);
 
         float ball_force[6];
-        gran_sys.collectGeneralizedForcesOnMeshSoup(ball_force);
+        gpu_sys.collectGeneralizedForcesOnMeshSoup(ball_force);
 
         ball_body->Empty_forces_accumulators();
         ball_body->Accumulate_force(ChVector<>(ball_force[0], ball_force[1], ball_force[2]), ball_pos, false);
@@ -239,8 +239,8 @@ int main(int argc, char* argv[]) {
             std::cout << "Rendering frame " << currframe << " of " << total_frames << std::endl;
             char filename[100];
             sprintf(filename, "%s/step%06d", params.output_dir.c_str(), currframe++);
-            gran_sys.writeFile(std::string(filename));
-            gran_sys.write_meshes(std::string(filename));
+            gpu_sys.writeFile(std::string(filename));
+            gpu_sys.write_meshes(std::string(filename));
 
             /*  // disable meshframes output, for it may be confusing for users dealing with Chrono::Gpu only
             std::string mesh_output = std::string(filename) + "_meshframes.csv";

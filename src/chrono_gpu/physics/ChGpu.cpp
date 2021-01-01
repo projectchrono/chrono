@@ -37,7 +37,7 @@ size_t gran_approx_bytes_used = 0;
 namespace chrono {
 namespace gpu {
 
-ChSystemGranularSMC::ChSystemGranularSMC(float sphere_rad, float density, float3 boxDims)
+ChSystemGpuSMC::ChSystemGpuSMC(float sphere_rad, float density, float3 boxDims)
     : sphere_radius_UU(sphere_rad),
       sphere_density_UU(density),
       box_size_X(boxDims.x),
@@ -86,7 +86,7 @@ ChSystemGranularSMC::ChSystemGranularSMC(float sphere_rad, float density, float3
     setBDWallsMotionFunction(GranPosFunction_default);
 }
 
-void ChSystemGranularSMC::createWallBCs() {
+void ChSystemGpuSMC::createWallBCs() {
     float plane_center_bot_X[3] = {-box_size_X / 2, 0, 0};
     float plane_center_top_X[3] = {box_size_X / 2, 0, 0};
     float plane_center_bot_Y[3] = {0, -box_size_Y / 2, 0};
@@ -118,15 +118,15 @@ void ChSystemGranularSMC::createWallBCs() {
     assert(plane_BC_Z_top == BD_WALL_ID_Z_TOP);
 }
 
-ChSystemGranularSMC::~ChSystemGranularSMC() {
+ChSystemGpuSMC::~ChSystemGpuSMC() {
     gpuErrchk(cudaFree(gran_params));
 }
 
-size_t ChSystemGranularSMC::estimateMemUsage() const {
+size_t ChSystemGpuSMC::estimateMemUsage() const {
     return gran_approx_bytes_used;
 }
 
-void ChSystemGranularSMC::packSphereDataPointers() {
+void ChSystemGpuSMC::packSphereDataPointers() {
     // Set data from system
     sphere_data->sphere_local_pos_X = sphere_local_pos_X.data();
     sphere_data->sphere_local_pos_Y = sphere_local_pos_Y.data();
@@ -196,7 +196,7 @@ void ChSystemGranularSMC::packSphereDataPointers() {
     // gpuErrchk(cudaMemPrefetchAsync(sphere_data, sizeof(*sphere_data), dev_ID));
 }
 
-void ChSystemGranularSMC::writeFile(std::string ofile) const {
+void ChSystemGpuSMC::writeFile(std::string ofile) const {
     // The file writes are a pretty big slowdown in CSV mode
     if (file_write_mode == CHGPU_OUTPUT_MODE::BINARY) {
         // Write the data as binary to a file, requires later postprocessing that can be done in parallel, this is a
@@ -447,7 +447,7 @@ void ChSystemGranularSMC::writeFile(std::string ofile) const {
     }
 }
 
-void ChSystemGranularSMC::writeContactInfoFile(std::string ofile) const {
+void ChSystemGpuSMC::writeContactInfoFile(std::string ofile) const {
     if (gran_params->recording_contactInfo == false){
         printf("ERROR: recording_contactInfo set to false!\n");
         exit(1);
@@ -504,7 +504,7 @@ void ChSystemGranularSMC::writeContactInfoFile(std::string ofile) const {
 }
 
 // Reset broadphase data structures
-void ChSystemGranularSMC::resetBCForces() {
+void ChSystemGpuSMC::resetBCForces() {
     // zero out reaction forces on each BC
     for (unsigned int i = 0; i < BC_params_list_SU.size(); i++) {
         if (BC_params_list_SU.at(i).track_forces) {
@@ -514,7 +514,7 @@ void ChSystemGranularSMC::resetBCForces() {
 }
 
 // Copy constant sphere data to device, this should run at start
-void ChSystemGranularSMC::copyConstSphereDataToDevice() {
+void ChSystemGpuSMC::copyConstSphereDataToDevice() {
     gran_params->max_x_pos_unsigned = ((int64_t)gran_params->SD_size_X_SU * gran_params->nSDs_X);
     gran_params->max_y_pos_unsigned = ((int64_t)gran_params->SD_size_Y_SU * gran_params->nSDs_Y);
     gran_params->max_z_pos_unsigned = ((int64_t)gran_params->SD_size_Z_SU * gran_params->nSDs_Z);
@@ -544,7 +544,7 @@ void ChSystemGranularSMC::copyConstSphereDataToDevice() {
     gran_params->sphereInertia_by_r = (float)((2.0 / 5.0) * gran_params->sphere_mass_SU * gran_params->sphereRadius_SU);
 }
 
-size_t ChSystemGranularSMC::Create_BC_Sphere(float center[3], float radius, bool outward_normal, bool track_forces) {
+size_t ChSystemGpuSMC::Create_BC_Sphere(float center[3], float radius, bool outward_normal, bool track_forces) {
     BC_params_t<float, float3> p;
     // set center, radius, norm
     p.sphere_params.sphere_center.x = center[0];
@@ -569,7 +569,7 @@ size_t ChSystemGranularSMC::Create_BC_Sphere(float center[3], float radius, bool
     return BC_type_list.size() - 1;
 }
 
-size_t ChSystemGranularSMC::Create_BC_Cone_Z(float cone_tip[3],
+size_t ChSystemGpuSMC::Create_BC_Cone_Z(float cone_tip[3],
                                              float slope,
                                              float hmax,
                                              float hmin,
@@ -602,7 +602,7 @@ size_t ChSystemGranularSMC::Create_BC_Cone_Z(float cone_tip[3],
     return BC_type_list.size() - 1;
 }
 
-size_t ChSystemGranularSMC::Create_BC_Plane(float plane_pos[3], float plane_normal[3], bool track_forces) {
+size_t ChSystemGpuSMC::Create_BC_Plane(float plane_pos[3], float plane_normal[3], bool track_forces) {
     BC_params_t<float, float3> p;
     p.plane_params.position.x = plane_pos[0];
     p.plane_params.position.y = plane_pos[1];
@@ -627,7 +627,7 @@ size_t ChSystemGranularSMC::Create_BC_Plane(float plane_pos[3], float plane_norm
     return BC_type_list.size() - 1;
 }
 
-size_t ChSystemGranularSMC::Create_BC_Cyl_Z(float center[3], float radius, bool outward_normal, bool track_forces) {
+size_t ChSystemGpuSMC::Create_BC_Cyl_Z(float center[3], float radius, bool outward_normal, bool track_forces) {
     BC_params_t<float, float3> p;
     p.cyl_params.center.x = center[0];
     p.cyl_params.center.y = center[1];
@@ -654,12 +654,12 @@ size_t ChSystemGranularSMC::Create_BC_Cyl_Z(float center[3], float radius, bool 
     return BC_type_list.size() - 1;
 }
 
-double ChSystemGranularSMC::get_max_K() const {
+double ChSystemGpuSMC::get_max_K() const {
     return std::max(K_n_s2s_UU, K_n_s2w_UU);
 }
 
 // set the position of a BC and account for the offset
-void ChSystemGranularSMC::setBCOffset(const BC_type& bc_type,
+void ChSystemGpuSMC::setBCOffset(const BC_type& bc_type,
                                       const BC_params_t<float, float3>& params_UU,
                                       BC_params_t<int64_t, int64_t3>& params_SU,
                                       double3 offset_UU) {
@@ -734,7 +734,7 @@ void ChSystemGranularSMC::setBCOffset(const BC_type& bc_type,
 }
 
 
-float3 ChSystemGranularSMC::Get_BC_Plane_Position(size_t plane_id){
+float3 ChSystemGpuSMC::Get_BC_Plane_Position(size_t plane_id){
     BC_params_t<float, float3> p = BC_params_list_UU[plane_id];
     auto offset_function = BC_offset_function_list[plane_id];
     double3 offset_UU = offset_function(elapsedSimTime);
@@ -745,7 +745,7 @@ float3 ChSystemGranularSMC::Get_BC_Plane_Position(size_t plane_id){
     return currPos;
 }
 
-void ChSystemGranularSMC::convertBCUnits() {
+void ChSystemGpuSMC::convertBCUnits() {
     for (int i = 0; i < BC_type_list.size(); i++) {
         auto bc_type = BC_type_list.at(i);
         BC_params_t<float, float3> params_UU = BC_params_list_UU.at(i);
@@ -816,7 +816,7 @@ void ChSystemGranularSMC::convertBCUnits() {
     }
 }
 
-void ChSystemGranularSMC::initializeSpheres() {
+void ChSystemGpuSMC::initializeSpheres() {
     switchToSimUnits();
 
     // Set aside memory for holding data structures worked with. Get some initializations going
@@ -848,25 +848,25 @@ void ChSystemGranularSMC::initializeSpheres() {
 }
 
 // mean to be overriden by children
-void ChSystemGranularSMC::initialize() {
+void ChSystemGpuSMC::initialize() {
     initializeSpheres();
     size_t approx_mem_usage = estimateMemUsage();
     INFO_PRINTF("Approx mem usage is %s\n", pretty_format_bytes(approx_mem_usage).c_str());
 }
 
 // Set particle positions in UU
-void ChSystemGranularSMC::setParticlePositions(const std::vector<float3>& points, const std::vector<float3>& vels, const std::vector<float3>& ang_vels) {
+void ChSystemGpuSMC::setParticlePositions(const std::vector<float3>& points, const std::vector<float3>& vels, const std::vector<float3>& ang_vels) {
     user_sphere_positions = points;  // Copy points to class vector
     user_sphere_vel = vels;
     user_sphere_ang_vel = ang_vels;
 }
 
-void ChSystemGranularSMC::setParticleFixed(const std::vector<bool>& fixed) {
+void ChSystemGpuSMC::setParticleFixed(const std::vector<bool>& fixed) {
     user_sphere_fixed = fixed;
 }
 
 // return position in user units given sphere index
-float3 ChSystemGranularSMC::getPosition(int nSphere){
+float3 ChSystemGpuSMC::getPosition(int nSphere){
     // owner SD
 	unsigned int ownerSD = sphere_owner_SDs.at(nSphere);
     int3 ownerSD_trip = getSDTripletFromID(ownerSD);
@@ -886,7 +886,7 @@ float3 ChSystemGranularSMC::getPosition(int nSphere){
 }
 
 // return absolute velocity
-float ChSystemGranularSMC::getAbsVelocity(int nSphere){
+float ChSystemGpuSMC::getAbsVelocity(int nSphere){
     float absv_SU = std::sqrt(pos_X_dt[nSphere]*pos_X_dt[nSphere]
                              +pos_Y_dt[nSphere]*pos_Y_dt[nSphere]
                              +pos_Z_dt[nSphere]*pos_Z_dt[nSphere]); 
@@ -895,7 +895,7 @@ float ChSystemGranularSMC::getAbsVelocity(int nSphere){
 }
 
 // return velocity
-float3 ChSystemGranularSMC::getVelocity(int nSphere){
+float3 ChSystemGpuSMC::getVelocity(int nSphere){
 	float vx_UU = (float)(pos_X_dt[nSphere] * LENGTH_SU2UU / TIME_SU2UU);
     float vy_UU = (float)(pos_Y_dt[nSphere] * LENGTH_SU2UU / TIME_SU2UU);
     float vz_UU = (float)(pos_Z_dt[nSphere] * LENGTH_SU2UU / TIME_SU2UU);
@@ -903,7 +903,7 @@ float3 ChSystemGranularSMC::getVelocity(int nSphere){
 }
 
 // get angular velocity of a particle
-float3 ChSystemGranularSMC::getAngularVelocity(int nSphere){
+float3 ChSystemGpuSMC::getAngularVelocity(int nSphere){
 		float wx_UU = sphere_Omega_X.at(nSphere) / TIME_SU2UU;
 		float wy_UU = sphere_Omega_Y.at(nSphere) / TIME_SU2UU;
 		float wz_UU = sphere_Omega_Z.at(nSphere) / TIME_SU2UU;
@@ -911,7 +911,7 @@ float3 ChSystemGranularSMC::getAngularVelocity(int nSphere){
 }
 
 // return number of sphere-to-sphere contacts
-int ChSystemGranularSMC::getNumContacts(){
+int ChSystemGpuSMC::getNumContacts(){
     auto contact_itr = contact_partners_map.begin();
     int total_nc = 0;
 
@@ -930,7 +930,7 @@ int ChSystemGranularSMC::getNumContacts(){
 
 
 // Partitions the big domain (BD) and sets the number of SDs that BD is split in.
-void ChSystemGranularSMC::partitionBD() {
+void ChSystemGpuSMC::partitionBD() {
     double sd_length_scale = 2.0 * sphere_radius_UU * AVERAGE_SPHERES_PER_SD_X_DIR;
 
     unsigned int nSDs_X = (unsigned int)(std::ceil(box_size_X / sd_length_scale));
@@ -981,7 +981,7 @@ void ChSystemGranularSMC::partitionBD() {
 }
 
 // Convert unit parameters from UU to SU
-void ChSystemGranularSMC::switchToSimUnits() {
+void ChSystemGpuSMC::switchToSimUnits() {
     // Compute sphere mass, highest system stiffness, and gravity magnitude
     double massSphere =
         (4. / 3.) * CH_C_PI * sphere_radius_UU * sphere_radius_UU * sphere_radius_UU * sphere_density_UU;

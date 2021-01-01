@@ -54,49 +54,49 @@ int main(int argc, char* argv[]) {
 
     float iteration_step = params.step_size;
 
-    ChGranularChronoTriMeshAPI apiSMC_TriMesh(params.sphere_radius, params.sphere_density, make_float3(Bx, By, Bz));
+    ChGpuSMCtrimesh_API apiSMC_TriMesh(params.sphere_radius, params.sphere_density, make_float3(Bx, By, Bz));
 
-    ChSystemGranularSMC_trimesh& gran_sys = apiSMC_TriMesh.getGranSystemSMC_TriMesh();
+    ChSystemGpuSMC_trimesh& gpu_sys = apiSMC_TriMesh.getSystem();
 
-    gran_sys.set_K_n_SPH2SPH(params.normalStiffS2S);
-    gran_sys.set_K_n_SPH2WALL(params.normalStiffS2W);
-    gran_sys.set_K_n_SPH2MESH(params.normalStiffS2M);
+    gpu_sys.set_K_n_SPH2SPH(params.normalStiffS2S);
+    gpu_sys.set_K_n_SPH2WALL(params.normalStiffS2W);
+    gpu_sys.set_K_n_SPH2MESH(params.normalStiffS2M);
 
-    gran_sys.set_K_t_SPH2SPH(params.tangentStiffS2S);
-    gran_sys.set_K_t_SPH2WALL(params.tangentStiffS2W);
-    gran_sys.set_K_t_SPH2MESH(params.tangentStiffS2M);
+    gpu_sys.set_K_t_SPH2SPH(params.tangentStiffS2S);
+    gpu_sys.set_K_t_SPH2WALL(params.tangentStiffS2W);
+    gpu_sys.set_K_t_SPH2MESH(params.tangentStiffS2M);
 
-    gran_sys.set_Gamma_n_SPH2SPH(params.normalDampS2S);
-    gran_sys.set_Gamma_n_SPH2WALL(params.normalDampS2W);
-    gran_sys.set_Gamma_n_SPH2MESH(params.normalDampS2M);
+    gpu_sys.set_Gamma_n_SPH2SPH(params.normalDampS2S);
+    gpu_sys.set_Gamma_n_SPH2WALL(params.normalDampS2W);
+    gpu_sys.set_Gamma_n_SPH2MESH(params.normalDampS2M);
 
-    gran_sys.set_Gamma_t_SPH2SPH(params.tangentDampS2S);
-    gran_sys.set_Gamma_t_SPH2WALL(params.tangentDampS2W);
-    gran_sys.set_Gamma_t_SPH2MESH(params.tangentDampS2M);
+    gpu_sys.set_Gamma_t_SPH2SPH(params.tangentDampS2S);
+    gpu_sys.set_Gamma_t_SPH2WALL(params.tangentDampS2W);
+    gpu_sys.set_Gamma_t_SPH2MESH(params.tangentDampS2M);
 
-    gran_sys.set_Cohesion_ratio(params.cohesion_ratio);
-    gran_sys.set_Adhesion_ratio_S2M(params.adhesion_ratio_s2m);
-    gran_sys.set_Adhesion_ratio_S2W(params.adhesion_ratio_s2w);
-    gran_sys.set_friction_mode(chrono::gpu::CHGPU_FRICTION_MODE::MULTI_STEP);
+    gpu_sys.set_Cohesion_ratio(params.cohesion_ratio);
+    gpu_sys.set_Adhesion_ratio_S2M(params.adhesion_ratio_s2m);
+    gpu_sys.set_Adhesion_ratio_S2W(params.adhesion_ratio_s2w);
+    gpu_sys.set_friction_mode(chrono::gpu::CHGPU_FRICTION_MODE::MULTI_STEP);
 
-    gran_sys.set_static_friction_coeff_SPH2SPH(params.static_friction_coeffS2S);
-    gran_sys.set_static_friction_coeff_SPH2WALL(params.static_friction_coeffS2W);
-    gran_sys.set_static_friction_coeff_SPH2MESH(params.static_friction_coeffS2M);
+    gpu_sys.set_static_friction_coeff_SPH2SPH(params.static_friction_coeffS2S);
+    gpu_sys.set_static_friction_coeff_SPH2WALL(params.static_friction_coeffS2W);
+    gpu_sys.set_static_friction_coeff_SPH2MESH(params.static_friction_coeffS2M);
 
-    gran_sys.setOutputMode(params.write_mode);
+    gpu_sys.setOutputMode(params.write_mode);
 
     filesystem::create_directory(filesystem::path(params.output_dir));
 
-    gran_sys.set_timeIntegrator(CHGPU_TIME_INTEGRATOR::CENTERED_DIFFERENCE);
-    gran_sys.set_fixed_stepSize(params.step_size);
-    gran_sys.set_BD_Fixed(true);
+    gpu_sys.set_timeIntegrator(CHGPU_TIME_INTEGRATOR::CENTERED_DIFFERENCE);
+    gpu_sys.set_fixed_stepSize(params.step_size);
+    gpu_sys.set_BD_Fixed(true);
 
     const float chamber_bottom = -Bz / 2.f;
     const float fill_bottom = chamber_bottom + chamber_height;
 
     float cyl_center[3] = {0, 0, 0};
     const float cyl_rad = Bx / 2.f;
-    gran_sys.Create_BC_Cyl_Z(cyl_center, cyl_rad, false, false);
+    gpu_sys.Create_BC_Cyl_Z(cyl_center, cyl_rad, false, false);
 
     utils::HCPSampler<float> sampler(2.1 * params.sphere_radius);
     std::vector<ChVector<float>> body_points;
@@ -118,8 +118,8 @@ int main(int argc, char* argv[]) {
         center.z() += 2.1 * params.sphere_radius;
     }
 
-    ChGranularSMC_API apiSMC;
-    apiSMC.setGranSystem(&gran_sys);
+    ChGpuSMC_API apiSMC;
+    apiSMC.setSystem(&gpu_sys);
     apiSMC.setElemsPositions(body_points);
 
     float g[3];
@@ -130,7 +130,7 @@ int main(int argc, char* argv[]) {
     g[1] = 0;
     g[2] = -980;
 
-    gran_sys.set_gravitational_acceleration(g[0], g[1], g[2]);
+    gpu_sys.set_gravitational_acceleration(g[0], g[1], g[2]);
 
     mesh_filenames.push_back(mesh_filename);
 
@@ -149,7 +149,7 @@ int main(int argc, char* argv[]) {
 
     apiSMC_TriMesh.load_meshes(mesh_filenames, mesh_rotscales, mesh_translations, mesh_masses);
 
-    unsigned int nSoupFamilies = gran_sys.getNumTriangleFamilies();
+    unsigned int nSoupFamilies = gpu_sys.getNumTriangleFamilies();
     std::cout << nSoupFamilies << " soup families" << std::endl;
     double* mesh_pos_rot = new double[7 * nSoupFamilies];
     float* mesh_vel = new float[6 * nSoupFamilies]();
@@ -158,8 +158,8 @@ int main(int argc, char* argv[]) {
     float ang_vel_Z = rev_per_sec * 2 * CH_C_PI;
     mesh_vel[5] = ang_vel_Z;
 
-    gran_sys.enableMeshCollision();
-    gran_sys.initialize();
+    gpu_sys.enableMeshCollision();
+    gpu_sys.initialize();
 
     unsigned int currframe = 0;
     double out_fps = 200;
@@ -181,20 +181,20 @@ int main(int argc, char* argv[]) {
         mesh_pos_rot[5] = q[2];
         mesh_pos_rot[6] = q[3];
 
-        gran_sys.meshSoup_applyRigidBodyMotion(mesh_pos_rot, mesh_vel);
+        gpu_sys.meshSoup_applyRigidBodyMotion(mesh_pos_rot, mesh_vel);
         if (step % out_steps == 0) {
             std::cout << "Rendering frame " << (currframe+1) << " of " << total_frames << std::endl;
             char filename[100];
             sprintf(filename, "%s/step%06u", params.output_dir.c_str(), currframe++);
-            gran_sys.writeFile(std::string(filename));
-            gran_sys.write_meshes(std::string(filename));
+            gpu_sys.writeFile(std::string(filename));
+            gpu_sys.write_meshes(std::string(filename));
 
             float forces[6];
-            gran_sys.collectGeneralizedForcesOnMeshSoup(forces);
+            gpu_sys.collectGeneralizedForcesOnMeshSoup(forces);
             std::cout << "torque: " << forces[3] << ", " << forces[4] << ", " << forces[5] << std::endl;
         }
 
-        gran_sys.advance_simulation(iteration_step);
+        gpu_sys.advance_simulation(iteration_step);
     }
 
     delete[] mesh_pos_rot;

@@ -46,11 +46,11 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    ChSystemGranularSMC gran_sys(params.sphere_radius, params.sphere_density,
-                                 make_float3(params.box_X, params.box_Y, params.box_Z));
+    ChSystemGpuSMC gpu_sys(params.sphere_radius, params.sphere_density,
+                           make_float3(params.box_X, params.box_Y, params.box_Z));
 
-    ChGranularSMC_API apiSMC;
-    apiSMC.setGranSystem(&gran_sys);
+    ChGpuSMC_API apiSMC;
+    apiSMC.setSystem(&gpu_sys);
 
     // Add spherically-decomposed underlying terrain.
     std::string objfilename(GetChronoDataFile("gpu/demo_GPU_fixedterrain/fixedterrain.obj"));
@@ -92,68 +92,68 @@ int main(int argc, char* argv[]) {
 
     std::cout << "Adding " << body_points.size() << " spheres." << std::endl;
     apiSMC.setElemsPositions(body_points);
-    gran_sys.setParticleFixed(fixed);
+    gpu_sys.setParticleFixed(fixed);
 
     // Add internal planes to prevent leaking
     {
         float plane_pos[] = {-(float)(params.box_X / 2 - boundary_padding), 0, 0};
         float plane_normal[] = {1, 0, 0};
-        gran_sys.Create_BC_Plane(plane_pos, plane_normal, false);
+        gpu_sys.Create_BC_Plane(plane_pos, plane_normal, false);
     }
     {
         float plane_pos[] = {(float)(params.box_X / 2 - boundary_padding), 0, 0};
         float plane_normal[] = {-1, 0, 0};
-        gran_sys.Create_BC_Plane(plane_pos, plane_normal, false);
+        gpu_sys.Create_BC_Plane(plane_pos, plane_normal, false);
     }
     {
         float plane_pos[] = {0, -(float)(params.box_Y / 2 - boundary_padding), 0};
         float plane_normal[] = {0, 1, 0};
-        gran_sys.Create_BC_Plane(plane_pos, plane_normal, false);
+        gpu_sys.Create_BC_Plane(plane_pos, plane_normal, false);
     }
     {
         float plane_pos[] = {0, (float)(params.box_Y / 2 - boundary_padding), 0};
         float plane_normal[] = {0, -1, 0};
-        gran_sys.Create_BC_Plane(plane_pos, plane_normal, false);
+        gpu_sys.Create_BC_Plane(plane_pos, plane_normal, false);
     }
 
-    gran_sys.set_BD_Fixed(true);
+    gpu_sys.set_BD_Fixed(true);
 
-    gran_sys.set_K_n_SPH2SPH(params.normalStiffS2S);
-    gran_sys.set_K_n_SPH2WALL(params.normalStiffS2W);
+    gpu_sys.set_K_n_SPH2SPH(params.normalStiffS2S);
+    gpu_sys.set_K_n_SPH2WALL(params.normalStiffS2W);
 
-    gran_sys.set_Gamma_n_SPH2SPH(params.normalDampS2S);
-    gran_sys.set_Gamma_n_SPH2WALL(params.normalDampS2W);
+    gpu_sys.set_Gamma_n_SPH2SPH(params.normalDampS2S);
+    gpu_sys.set_Gamma_n_SPH2WALL(params.normalDampS2W);
 
-    gran_sys.set_K_t_SPH2SPH(params.tangentStiffS2S);
-    gran_sys.set_K_t_SPH2WALL(params.tangentStiffS2W);
+    gpu_sys.set_K_t_SPH2SPH(params.tangentStiffS2S);
+    gpu_sys.set_K_t_SPH2WALL(params.tangentStiffS2W);
 
-    gran_sys.set_Gamma_t_SPH2SPH(params.tangentDampS2S);
-    gran_sys.set_Gamma_t_SPH2WALL(params.tangentDampS2W);
+    gpu_sys.set_Gamma_t_SPH2SPH(params.tangentDampS2S);
+    gpu_sys.set_Gamma_t_SPH2WALL(params.tangentDampS2W);
 
-    gran_sys.set_Cohesion_ratio(params.cohesion_ratio);
-    gran_sys.set_Adhesion_ratio_S2W(params.adhesion_ratio_s2w);
-    gran_sys.set_gravitational_acceleration(params.grav_X, params.grav_Y, params.grav_Z);
+    gpu_sys.set_Cohesion_ratio(params.cohesion_ratio);
+    gpu_sys.set_Adhesion_ratio_S2W(params.adhesion_ratio_s2w);
+    gpu_sys.set_gravitational_acceleration(params.grav_X, params.grav_Y, params.grav_Z);
 
-    gran_sys.set_fixed_stepSize(params.step_size);
-    gran_sys.set_friction_mode(params.friction_mode);
-    gran_sys.set_timeIntegrator(params.time_integrator);
-    gran_sys.set_static_friction_coeff_SPH2SPH(params.static_friction_coeffS2S);
-    gran_sys.set_static_friction_coeff_SPH2WALL(params.static_friction_coeffS2W);
+    gpu_sys.set_fixed_stepSize(params.step_size);
+    gpu_sys.set_friction_mode(params.friction_mode);
+    gpu_sys.set_timeIntegrator(params.time_integrator);
+    gpu_sys.set_static_friction_coeff_SPH2SPH(params.static_friction_coeffS2S);
+    gpu_sys.set_static_friction_coeff_SPH2WALL(params.static_friction_coeffS2W);
 
-    gran_sys.set_rolling_mode(params.rolling_mode);
-    gran_sys.set_rolling_coeff_SPH2SPH(params.rolling_friction_coeffS2S);
-    gran_sys.set_rolling_coeff_SPH2WALL(params.rolling_friction_coeffS2W);
+    gpu_sys.set_rolling_mode(params.rolling_mode);
+    gpu_sys.set_rolling_coeff_SPH2SPH(params.rolling_friction_coeffS2S);
+    gpu_sys.set_rolling_coeff_SPH2WALL(params.rolling_friction_coeffS2W);
 
-    gran_sys.setOutputMode(params.write_mode);
-    gran_sys.setVerbose(params.verbose);
-    gran_sys.setOutputFlags(CHGPU_OUTPUT_FLAGS::ABSV | CHGPU_OUTPUT_FLAGS::ANG_VEL_COMPONENTS |
+    gpu_sys.setOutputMode(params.write_mode);
+    gpu_sys.setVerbose(params.verbose);
+    gpu_sys.setOutputFlags(CHGPU_OUTPUT_FLAGS::ABSV | CHGPU_OUTPUT_FLAGS::ANG_VEL_COMPONENTS |
                             CHGPU_OUTPUT_FLAGS::FIXITY);
 
     // Create data directory
     filesystem::create_directory(filesystem::path(params.output_dir));
 
     // Finalize initialization of the Chrono::Gpu system
-    gran_sys.initialize();
+    gpu_sys.initialize();
 
     unsigned int out_fps = 50;
     unsigned int total_frames = (unsigned int)((float)params.time_end * out_fps);
@@ -163,9 +163,9 @@ int main(int argc, char* argv[]) {
         std::cout << "Rendering frame " << (currframe+1) << " of " << total_frames << std::endl;
         char filename[100];
         sprintf(filename, "%s/step%06d", params.output_dir.c_str(), currframe);
-        gran_sys.writeFile(std::string(filename));
+        gpu_sys.writeFile(std::string(filename));
 
-        gran_sys.advance_simulation((float)frame_step);
+        gpu_sys.advance_simulation((float)frame_step);
     }
 
     return 0;

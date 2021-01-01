@@ -19,11 +19,11 @@
 namespace chrono {
 namespace gpu {
 
-void ChSystemGranularSMC_trimesh::resetTriangleForces() {
+void ChSystemGpuSMC_trimesh::resetTriangleForces() {
     gpuErrchk(cudaMemset(meshSoup->generalizedForcesPerFamily, 0, 6 * meshSoup->numTriangleFamilies * sizeof(float)));
 }
 // Reset triangle broadphase data structures
-void ChSystemGranularSMC_trimesh::resetTriangleBroadphaseInformation() {
+void ChSystemGpuSMC_trimesh::resetTriangleBroadphaseInformation() {
     gpuErrchk(cudaMemset(SD_numTrianglesTouching.data(), 0, SD_numTrianglesTouching.size() * sizeof(unsigned int)));
     gpuErrchk(cudaMemset(SD_TriangleCompositeOffsets.data(), NULL_CHGPU_ID,
                          SD_TriangleCompositeOffsets.size() * sizeof(unsigned int)));
@@ -31,7 +31,7 @@ void ChSystemGranularSMC_trimesh::resetTriangleBroadphaseInformation() {
                          triangles_in_SD_composite.size() * sizeof(unsigned int)));
 }
 
-__host__ void ChSystemGranularSMC_trimesh::runTriangleBroadphase() {
+__host__ void ChSystemGpuSMC_trimesh::runTriangleBroadphase() {
     METRICS_PRINTF("Resetting broadphase info!\n");
 
     packSphereDataPointers();
@@ -464,7 +464,7 @@ __global__ void interactionTerrain_TriangleSoup(
     }  // end sphere id check
 }  // end kernel
 
-__host__ double ChSystemGranularSMC_trimesh::advance_simulation(float duration) {
+__host__ double ChSystemGpuSMC_trimesh::advance_simulation(float duration) {
     // Figure our the number of blocks that need to be launched to cover the box
     unsigned int nBlocks = (nSpheres + CUDA_THREADS_PER_BLOCK - 1) / CUDA_THREADS_PER_BLOCK;
 

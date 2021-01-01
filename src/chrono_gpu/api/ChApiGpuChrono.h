@@ -13,17 +13,15 @@
 // =============================================================================
 
 #pragma once
+
 #include <vector>
+
 #include "chrono/core/ChVector.h"
 #include "chrono/core/ChMatrix33.h"
-#include "chrono_gpu/physics/ChGpu.h"
-#include "chrono_gpu/physics/ChGpuTriMesh.h"
 #include "chrono/geometry/ChTriangleMeshConnected.h"
 
-#define MESH_INFO_PRINTF(...)     \
-    if (mesh_verbosity == INFO) { \
-        printf(__VA_ARGS__);      \
-    }
+#include "chrono_gpu/physics/ChGpu.h"
+#include "chrono_gpu/physics/ChGpuTriMesh.h"
 
 inline void convertChVector2Float3Vec(const std::vector<chrono::ChVector<float>>& points,
                                       std::vector<float3>& pointsFloat3) {
@@ -36,11 +34,12 @@ inline void convertChVector2Float3Vec(const std::vector<chrono::ChVector<float>>
     }
 }
 
-class CH_GPU_API ChGranularChronoTriMeshAPI {
+class CH_GPU_API ChGpuSMCtrimesh_API {
   public:
-    ChGranularChronoTriMeshAPI(float sphere_rad, float density, float3 boxDims);
-    enum MESH_VERBOSITY { QUIET = 0, INFO = 1 };
-    ~ChGranularChronoTriMeshAPI() { delete pGranSystemSMC_TriMesh; }
+    enum class MeshVerbosity { QUIET = 0, INFO = 1 };
+
+    ChGpuSMCtrimesh_API(float sphere_rad, float density, float3 boxDims);
+    ~ChGpuSMCtrimesh_API() { delete m_sys_trimesh; }
 
     /// Load triangle meshes into granular system. MUST happen before initialize is called
     void load_meshes(std::vector<std::string> objfilenames,
@@ -52,7 +51,7 @@ class CH_GPU_API ChGranularChronoTriMeshAPI {
     void set_meshes(const std::vector<chrono::geometry::ChTriangleMeshConnected>& all_meshes,
                     std::vector<float> masses);
 
-    chrono::gpu::ChSystemGranularSMC_trimesh& getGranSystemSMC_TriMesh() { return *pGranSystemSMC_TriMesh; }
+    chrono::gpu::ChSystemGpuSMC_trimesh& getSystem() { return *m_sys_trimesh; }
 
     // Set particle positions in UU
     void setElemsPositions(const std::vector<chrono::ChVector<float>>& points,
@@ -65,29 +64,28 @@ class CH_GPU_API ChGranularChronoTriMeshAPI {
     chrono::ChVector<float> getAngularVelo(int nSphere);
     chrono::ChVector<float> getVelo(int nSphere);
 
-    /// Set simualtion verbosity -- used to check on very large, slow simulations or debug
-    void setVerbosity(MESH_VERBOSITY level) { mesh_verbosity = level; }
+    /// Set simulation verbosity -- used to check on very large, slow simulations or debug
+    void setVerbosity(MeshVerbosity level) { mesh_verbosity = level; }
 
   private:
-    MESH_VERBOSITY mesh_verbosity;
+    MeshVerbosity mesh_verbosity;
 
     /// Clean copy of mesh soup interacting with granular material in unified memory. Stored in UU
-    chrono::gpu::ChSystemGranularSMC_trimesh* pGranSystemSMC_TriMesh;
+    chrono::gpu::ChSystemGpuSMC_trimesh* m_sys_trimesh;
 };
 
-class CH_GPU_API ChGranularSMC_API {
+class CH_GPU_API ChGpuSMC_API {
   public:
-    ChGranularSMC_API() : gran_sys(NULL) {}
+    ChGpuSMC_API() : m_sys(NULL) {}
     // Set particle positions in UU
-    void setElemsPositions(const std::vector<chrono::ChVector<float>>& points,
-                           const std::vector<chrono::ChVector<float>>& vels = std::vector<chrono::ChVector<float>>(),
-                           const std::vector<chrono::ChVector<float>>& ang_vels = 
-                           std::vector<chrono::ChVector<float>>());
+    void setElemsPositions(
+        const std::vector<chrono::ChVector<float>>& points,
+        const std::vector<chrono::ChVector<float>>& vels = std::vector<chrono::ChVector<float>>(),
+        const std::vector<chrono::ChVector<float>>& ang_vels = std::vector<chrono::ChVector<float>>());
 
-    // set the gran systems that the user talks to; beef up the API so that the gran system is built through the API,
-    // instead of passing a gran system pointer to the API (the API builds the gran system; not the API coming in after
-    // gran system is up
-    void setGranSystem(chrono::gpu::ChSystemGranularSMC* granSystem) { gran_sys = granSystem; }
+    // set the GPU systems that the user talks to; beef up the API so that the system is built through the API, instead
+    // of passing a system pointer to the API (the API builds the  system; not the API coming in after system is up)
+    void setSystem(chrono::gpu::ChSystemGpuSMC* sys) { m_sys = sys; }
 
     chrono::ChVector<float> getPosition(int nSphere);
     chrono::ChVector<float> getAngularVelo(int nSphere);
@@ -95,10 +93,6 @@ class CH_GPU_API ChGranularSMC_API {
     chrono::ChVector<float> getBCPlanePos(size_t plane_id);
     int getNumContacts();
 
-
-
-
-
   private:
-    chrono::gpu::ChSystemGranularSMC* gran_sys;
+    chrono::gpu::ChSystemGpuSMC* m_sys;
 };

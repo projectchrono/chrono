@@ -104,12 +104,12 @@ struct ChGranParams_trimesh {
 /// Mesh soup: a collection of meshes that each has a certain number of triangle elements. For instance, the meshes
 /// associated with the four wheels of a rover operating on granular material would be smashed into one soup having four
 /// mesh families.
-class CH_GPU_API ChSystemGranularSMC_trimesh : public ChSystemGranularSMC {
+class CH_GPU_API ChSystemGpuSMC_trimesh : public ChSystemGpuSMC {
   public:
     // we do not want the system to be default-constructible
-    ChSystemGranularSMC_trimesh() = delete;
-    ChSystemGranularSMC_trimesh(float sphere_rad, float density, float3 boxDims);
-    virtual ~ChSystemGranularSMC_trimesh();
+    ChSystemGpuSMC_trimesh() = delete;
+    ChSystemGpuSMC_trimesh(float sphere_rad, float density, float3 boxDims);
+    virtual ~ChSystemGpuSMC_trimesh();
 
     void set_K_n_SPH2MESH(double someValue) { K_n_s2m_UU = someValue; }
     void set_Gamma_n_SPH2MESH(double someValue) { Gamma_n_s2m_UU = someValue; }

@@ -13,15 +13,21 @@
 // =============================================================================
 
 #include <string>
+
 #include "chrono_gpu/api/ChApiGpuChrono.h"
 #include "chrono_gpu/utils/ChGpuUtilities.h"
 #include "chrono_gpu/physics/ChGpuTriMesh.h"
 
-ChGranularChronoTriMeshAPI::ChGranularChronoTriMeshAPI(float sphere_rad, float density, float3 boxDims) {
-    pGranSystemSMC_TriMesh = new chrono::gpu::ChSystemGranularSMC_trimesh(sphere_rad, density, boxDims);
+#define MESH_INFO_PRINTF(...)                                         \
+    if (mesh_verbosity == ChGpuSMCtrimesh_API::MeshVerbosity::INFO) { \
+        printf(__VA_ARGS__);                                          \
+    }
+
+ChGpuSMCtrimesh_API::ChGpuSMCtrimesh_API(float sphere_rad, float density, float3 boxDims) {
+    m_sys_trimesh = new chrono::gpu::ChSystemGpuSMC_trimesh(sphere_rad, density, boxDims);
 }
 
-void ChGranularChronoTriMeshAPI::load_meshes(std::vector<std::string> objfilenames,
+void ChGpuSMCtrimesh_API::load_meshes(std::vector<std::string> objfilenames,
                                              std::vector<chrono::ChMatrix33<float>> rotscale,
                                              std::vector<float3> translations,
                                              std::vector<float> masses) {
@@ -72,13 +78,13 @@ void ChGranularChronoTriMeshAPI::load_meshes(std::vector<std::string> objfilenam
     // work on this later: INFO_PRINTF("Done allocating mesh unified memory\n");
 }
 
-void ChGranularChronoTriMeshAPI::set_meshes(const std::vector<chrono::geometry::ChTriangleMeshConnected>& all_meshes,
+void ChGpuSMCtrimesh_API::set_meshes(const std::vector<chrono::geometry::ChTriangleMeshConnected>& all_meshes,
                                             std::vector<float> masses) {
     int nTriangles = 0;
     for (const auto& mesh : all_meshes)
         nTriangles += mesh.getNumTriangles();
 
-    chrono::gpu::ChTriangleSoup<float3>* pMeshSoup = pGranSystemSMC_TriMesh->getMeshSoup();
+    chrono::gpu::ChTriangleSoup<float3>* pMeshSoup = m_sys_trimesh->getMeshSoup();
     pMeshSoup->nTrianglesInSoup = nTriangles;
 
     if (nTriangles != 0) {
@@ -140,14 +146,12 @@ void ChGranularChronoTriMeshAPI::set_meshes(const std::vector<chrono::geometry::
         gpuErrchk(cudaMallocManaged(&pMeshSoup->generalizedForcesPerFamily,
                                     6 * pMeshSoup->numTriangleFamilies * sizeof(float), cudaMemAttachGlobal));
         // Allocate memory for the float and double frames
-        gpuErrchk(
-            cudaMallocManaged(&pGranSystemSMC_TriMesh->getTriParams()->fam_frame_broad,
-                              pMeshSoup->numTriangleFamilies * sizeof(chrono::gpu::ChGranMeshFamilyFrame<float>),
-                              cudaMemAttachGlobal));
-        gpuErrchk(
-            cudaMallocManaged(&pGranSystemSMC_TriMesh->getTriParams()->fam_frame_narrow,
-                              pMeshSoup->numTriangleFamilies * sizeof(chrono::gpu::ChGranMeshFamilyFrame<double>),
-                              cudaMemAttachGlobal));
+        gpuErrchk(cudaMallocManaged(&m_sys_trimesh->getTriParams()->fam_frame_broad,
+                                    pMeshSoup->numTriangleFamilies * sizeof(chrono::gpu::ChGranMeshFamilyFrame<float>),
+                                    cudaMemAttachGlobal));
+        gpuErrchk(cudaMallocManaged(&m_sys_trimesh->getTriParams()->fam_frame_narrow,
+                                    pMeshSoup->numTriangleFamilies * sizeof(chrono::gpu::ChGranMeshFamilyFrame<double>),
+                                    cudaMemAttachGlobal));
 
         // Allocate memory for linear and angular velocity
         gpuErrchk(
@@ -163,7 +167,7 @@ void ChGranularChronoTriMeshAPI::set_meshes(const std::vector<chrono::geometry::
 }
 
 // initialize particle positions, velocity and angular velocity in user units
-void ChGranularSMC_API::setElemsPositions(const std::vector<chrono::ChVector<float>>& points,
+void ChGpuSMC_API::setElemsPositions(const std::vector<chrono::ChVector<float>>& points,
                                           const std::vector<chrono::ChVector<float>>& vels,
                                           const std::vector<chrono::ChVector<float>>& ang_vel) {
     std::vector<float3> pointsFloat3;
@@ -172,10 +176,10 @@ void ChGranularSMC_API::setElemsPositions(const std::vector<chrono::ChVector<flo
     convertChVector2Float3Vec(points, pointsFloat3);
     convertChVector2Float3Vec(vels, velsFloat3);
     convertChVector2Float3Vec(ang_vel, angVelsFloat3);
-    gran_sys->setParticlePositions(pointsFloat3, velsFloat3, angVelsFloat3);
+    m_sys->setParticlePositions(pointsFloat3, velsFloat3, angVelsFloat3);
 }
 
-void ChGranularChronoTriMeshAPI::setElemsPositions(const std::vector<chrono::ChVector<float>>& points,
+void ChGpuSMCtrimesh_API::setElemsPositions(const std::vector<chrono::ChVector<float>>& points,
                                                    const std::vector<chrono::ChVector<float>>& vels,
                                                    const std::vector<chrono::ChVector<float>>& ang_vel) {
     std::vector<float3> pointsFloat3;
@@ -184,56 +188,56 @@ void ChGranularChronoTriMeshAPI::setElemsPositions(const std::vector<chrono::ChV
     convertChVector2Float3Vec(points, pointsFloat3);
     convertChVector2Float3Vec(vels, velsFloat3);
     convertChVector2Float3Vec(ang_vel, angVelsFloat3);
-    pGranSystemSMC_TriMesh->setParticlePositions(pointsFloat3, velsFloat3, angVelsFloat3);
+    m_sys_trimesh->setParticlePositions(pointsFloat3, velsFloat3, angVelsFloat3);
 }
 
 // return particle position
-chrono::ChVector<float> ChGranularSMC_API::getPosition(int nSphere){
-    float3 pos = gran_sys->getPosition(nSphere);
+chrono::ChVector<float> ChGpuSMC_API::getPosition(int nSphere){
+    float3 pos = m_sys->getPosition(nSphere);
     chrono::ChVector<float> pos_vec(pos.x, pos.y, pos.z); 
     return pos_vec;
 }
 
-chrono::ChVector<float> ChGranularChronoTriMeshAPI::getPosition(int nSphere){
-    float3 pos = pGranSystemSMC_TriMesh->getPosition(nSphere);
+chrono::ChVector<float> ChGpuSMCtrimesh_API::getPosition(int nSphere){
+    float3 pos = m_sys_trimesh->getPosition(nSphere);
     chrono::ChVector<float> pos_vec(pos.x, pos.y, pos.z); 
     return pos_vec;
 }
 
 // return particle velocity
-chrono::ChVector<float> ChGranularSMC_API::getVelo(int nSphere){
-    float3 velo = gran_sys->getVelocity(nSphere);
+chrono::ChVector<float> ChGpuSMC_API::getVelo(int nSphere){
+    float3 velo = m_sys->getVelocity(nSphere);
     chrono::ChVector<float> velo_vec(velo.x, velo.y, velo.z); 
     return velo_vec;
 }
 
-chrono::ChVector<float> ChGranularChronoTriMeshAPI::getVelo(int nSphere){
-    float3 velo = pGranSystemSMC_TriMesh->getVelocity(nSphere);
+chrono::ChVector<float> ChGpuSMCtrimesh_API::getVelo(int nSphere){
+    float3 velo = m_sys_trimesh->getVelocity(nSphere);
     chrono::ChVector<float> velo_vec(velo.x, velo.y, velo.z); 
     return velo_vec;
 }
 
 // return particle angular velocity
-chrono::ChVector<float> ChGranularSMC_API::getAngularVelo(int nSphere){
-    float3 omega = gran_sys->getAngularVelocity(nSphere);
+chrono::ChVector<float> ChGpuSMC_API::getAngularVelo(int nSphere){
+    float3 omega = m_sys->getAngularVelocity(nSphere);
     chrono::ChVector<float> omega_vec(omega.x, omega.y, omega.z); 
     return omega_vec;
 }
 
-chrono::ChVector<float> ChGranularChronoTriMeshAPI::getAngularVelo(int nSphere){
-    float3 omega = pGranSystemSMC_TriMesh->getAngularVelocity(nSphere);
+chrono::ChVector<float> ChGpuSMCtrimesh_API::getAngularVelo(int nSphere){
+    float3 omega = m_sys_trimesh->getAngularVelocity(nSphere);
     chrono::ChVector<float> omega_vec(omega.x, omega.y, omega.z); 
     return omega_vec;
 }
 
 // return BC plane position
-chrono::ChVector<float> ChGranularSMC_API::getBCPlanePos(size_t plane_id){
+chrono::ChVector<float> ChGpuSMC_API::getBCPlanePos(size_t plane_id){
     //todo: throw an error if BC not a plane type
-    float3 pos = gran_sys->Get_BC_Plane_Position(plane_id);
+    float3 pos = m_sys->Get_BC_Plane_Position(plane_id);
     return chrono::ChVector<float> (pos.x, pos.y, pos.z);
 }
 
 // return number of sphere-to-sphere contact
-int ChGranularSMC_API::getNumContacts(){
-    return gran_sys->getNumContacts();
+int ChGpuSMC_API::getNumContacts(){
+    return m_sys->getNumContacts();
 }

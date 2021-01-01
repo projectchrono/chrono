@@ -281,13 +281,13 @@ namespace gpu {
  * \brief Main Chrono::Gpu system class used to control and dispatch the GPU
  * sphere-only solver.
  */
-class CH_GPU_API ChSystemGranularSMC {
+class CH_GPU_API ChSystemGpuSMC {
   public:
     // The system is not default-constructible
-    ChSystemGranularSMC() = delete;
+    ChSystemGpuSMC() = delete;
     /// Construct Chrono::Gpu system with given sphere radius, density, and big domain dimensions
-    ChSystemGranularSMC(float sphere_rad, float density, float3 boxDims);
-    virtual ~ChSystemGranularSMC();
+    ChSystemGpuSMC(float sphere_rad, float density, float3 boxDims);
+    virtual ~ChSystemGpuSMC();
 
     /// Return number of subdomains in the big domain
     unsigned int get_SD_count() const { return nSDs; }

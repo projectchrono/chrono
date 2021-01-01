@@ -48,16 +48,16 @@ float cohesion_ratio = 0;
 
 double run_test(float box_size_X, float box_size_Y, float box_size_Z) {
     // Setup simulation
-    ChSystemGranularSMC gran_system(sphereRadius, sphereDensity, make_float3(box_size_X, box_size_Y, box_size_Z));
-    gran_system.set_K_n_SPH2SPH(normStiffness_S2S);
-    gran_system.set_K_n_SPH2WALL(normStiffness_S2W);
-    gran_system.set_Gamma_n_SPH2SPH(normalDampS2S);
-    gran_system.set_Gamma_n_SPH2WALL(normalDampS2W);
+    ChSystemGpuSMC gpu_sys(sphereRadius, sphereDensity, make_float3(box_size_X, box_size_Y, box_size_Z));
+    gpu_sys.set_K_n_SPH2SPH(normStiffness_S2S);
+    gpu_sys.set_K_n_SPH2WALL(normStiffness_S2W);
+    gpu_sys.set_Gamma_n_SPH2SPH(normalDampS2S);
+    gpu_sys.set_Gamma_n_SPH2WALL(normalDampS2W);
 
-    gran_system.set_Cohesion_ratio(cohesion_ratio);
-    gran_system.set_Adhesion_ratio_S2W(adhesion_ratio_s2w);
-    gran_system.set_gravitational_acceleration(0.f, 0.f, grav_acceleration);
-    gran_system.setOutputMode(write_mode);
+    gpu_sys.set_Cohesion_ratio(cohesion_ratio);
+    gpu_sys.set_Adhesion_ratio_S2W(adhesion_ratio_s2w);
+    gpu_sys.set_gravitational_acceleration(0.f, 0.f, grav_acceleration);
+    gpu_sys.setOutputMode(write_mode);
 
     // Fill the bottom half with material
     chrono::utils::HCPSampler<float> sampler(2.1f * sphereRadius);  // Add epsilon
@@ -66,26 +66,26 @@ double run_test(float box_size_X, float box_size_Y, float box_size_Z) {
                           box_size_Z / 4.f - sphereRadius);
     std::vector<ChVector<float>> body_points = sampler.SampleBox(center, hdims);
 
-    ChGranularSMC_API apiSMC;
-    apiSMC.setGranSystem(&gran_system);
+    ChGpuSMC_API apiSMC;
+    apiSMC.setSystem(&gpu_sys);
     apiSMC.setElemsPositions(body_points);
 
-    gran_system.set_BD_Fixed(true);
-    gran_system.set_friction_mode(CHGPU_FRICTION_MODE::FRICTIONLESS);
-    gran_system.set_timeIntegrator(CHGPU_TIME_INTEGRATOR::CENTERED_DIFFERENCE);
-    gran_system.setVerbose(verbose);
+    gpu_sys.set_BD_Fixed(true);
+    gpu_sys.set_friction_mode(CHGPU_FRICTION_MODE::FRICTIONLESS);
+    gpu_sys.set_timeIntegrator(CHGPU_TIME_INTEGRATOR::CENTERED_DIFFERENCE);
+    gpu_sys.setVerbose(verbose);
 
     // upward facing plane just above the bottom to capture forces
     float plane_normal[3] = {0, 0, 1};
     float plane_center[3] = {0, 0, -box_size_Z / 2 + 2 * sphereRadius};
 
-    size_t plane_bc_id = gran_system.Create_BC_Plane(plane_center, plane_normal, true);
+    size_t plane_bc_id = gpu_sys.Create_BC_Plane(plane_center, plane_normal, true);
 
-    gran_system.set_fixed_stepSize(timestep);
+    gpu_sys.set_fixed_stepSize(timestep);
     ChTimer<double> timer;
 
     timer.start();
-    gran_system.initialize();
+    gpu_sys.initialize();
     int fps = 25;
 
     float frame_step = 1.0f / fps;
@@ -96,14 +96,14 @@ double run_test(float box_size_X, float box_size_Y, float box_size_Z) {
 
     // Run settling experiments
     while (curr_time < timeEnd) {
-        gran_system.advance_simulation(frame_step);
+        gpu_sys.advance_simulation(frame_step);
         curr_time += frame_step;
         printf("Time: %f\n", curr_time);
     }
 
     constexpr float F_CGS_TO_SI = 1e-5f;
 
-    bool success = gran_system.getBCReactionForces(plane_bc_id, reaction_forces);
+    bool success = gpu_sys.getBCReactionForces(plane_bc_id, reaction_forces);
     if (!success) {
         printf("ERROR! Get contact forces for plane failed\n");
     } else {
