@@ -12,25 +12,25 @@
 // Authors: Conlain Kelly, Nic Olsen, Dan Negrut
 // =============================================================================
 //
-// Chrono-Granular configuration header file
+// Chrono::Gpu configuration header file
 //
 // Automatically created during CMake configuration.
 //
 // =============================================================================
 
-#ifndef CH_CONFIG_GRANULAR_H
-#define CH_CONFIG_GRANULAR_H
+#ifndef CH_CONFIG_GPU_H
+#define CH_CONFIG_GPU_H
 
 // Include main Chrono configuration header
 #include "chrono/ChConfig.h"
 
 // If using SIMD
-//   #define CHRONO_GRANULAR_USE_SIMD
-@CHRONO_GRANULAR_USE_SIMD@
+//   #define CHRONO_GPU_USE_SIMD
+@CHRONO_GPU_USE_SIMD@
 
-// If using CUDA in granular module
-//   #define CHRONO_GRANULAR_USE_CUDA
-@CHRONO_GRANULAR_USE_CUDA@
+// If using CUDA in Chrono::Gpu module
+//   #define CHRONO_GPU_USE_CUDA
+@CHRONO_GPU_USE_CUDA@
 
 
 #endif

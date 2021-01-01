@@ -11,17 +11,18 @@
 // =============================================================================
 // Authors: Conlain Kelly, Nic Olsen, Dan Negrut
 // =============================================================================
-#include <stdio.h>
-#include <stdlib.h>
 
 #pragma once
 
-#define CHGPU_ERROR(...)                    \
-    {                                          \
-        printf(__VA_ARGS__);                   \
-        printf(__func__);                      \
+#include <stdio.h>
+#include <stdlib.h>
+
+#define CHGPU_ERROR(...)                  \
+    {                                     \
+        printf(__VA_ARGS__);              \
+        printf(__func__);                 \
         printf("\n: EXITING GPU SIM.\n"); \
-        exit(1);                               \
+        exit(1);                          \
     }
 
 // defined in ChGpu.cpp

@@ -12,6 +12,8 @@
 // Authors: Nic Olsen
 // =============================================================================
 
+#pragma once
+
 #include "chrono_gpu/physics/ChGpu.h"
 #include "chrono_gpu/ChGpuDefines.h"
 #include "chrono_thirdparty/rapidjson/filereadstream.h"
