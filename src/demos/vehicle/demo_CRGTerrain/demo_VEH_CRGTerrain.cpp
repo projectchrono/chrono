@@ -163,10 +163,10 @@ class MyDriver {
             case DriverModelType::HUMAN: {
                 m_driver_type = "HUMAN";
 
-                // Driver model read from JSONJ file
+                // Driver model read from JSON file
                 ////auto driverHUMAN = chrono_types::make_shared<ChHumanDriver>(
                 ////    vehicle::GetDataFile("hmmwv/driver/HumanController.json"), vehicle, path, "my_path",
-                /// path_is_closed, /    road_width, vehicle.GetMaxSteeringAngle(), 3.2);
+                ////    path_is_closed, road_width, vehicle.GetMaxSteeringAngle(), 3.2);
 
                 auto driverHUMAN = chrono_types::make_shared<ChHumanDriver>(
                     vehicle, path, "my_path", path_is_closed, road_width, vehicle.GetMaxSteeringAngle(), 3.2);

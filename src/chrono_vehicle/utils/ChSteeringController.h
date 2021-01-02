@@ -153,7 +153,7 @@ class CH_VEHICLE_API ChSteeringController {
     bool m_collect;            ///< flag indicating whether or not data is being collected
 };
 
-/// Concrete path-following steering PID controller.
+/// Path-following steering PID controller.
 /// The path to be followed is specified as a ChBezierCurve object and the
 /// target point is defined to be the point on that path that is closest to the
 /// current location of the sentinel point.
@@ -171,7 +171,6 @@ class CH_VEHICLE_API ChPathSteeringController : public ChSteeringController {
                              std::shared_ptr<ChBezierCurve> path,
                              bool isClosedPath = false);
 
-    /// Destructor for ChPathSteeringController.
     ~ChPathSteeringController() {}
 
     /// Return a pointer to the Bezier curve
@@ -192,12 +191,12 @@ class CH_VEHICLE_API ChPathSteeringController : public ChSteeringController {
     std::unique_ptr<ChBezierCurveTracker> m_tracker;  ///< path tracker
 };
 
-/// Concrete path-following steering 3(2) channel PDT1/PT1 controller.
+/// Path-following steering 3(2) channel PDT1/PT1 controller.
 /// The path to be followed is specified as a ChBezierCurve object and the
 /// target point is defined to be the point on that path that is closest to the
 /// current location of the sentinel point. The sentinel point should never
 /// leave the end or beginning of the path.
-
+///
 /// The controller is sensitive to tire relaxiation, when steering oscillations
 /// occure and do not calm down after a short driving distance, Kp should be
 /// reduced carefully.
@@ -219,7 +218,6 @@ class CH_VEHICLE_API ChPathSteeringControllerXT : public ChSteeringController {
                                bool isClosedPath = false,
                                double max_wheel_turn_angle = 0.0);
 
-    /// Destructor for ChPathSteeringController.
     ~ChPathSteeringControllerXT() {}
 
     /// Return a pointer to the Bezier curve
@@ -278,7 +276,7 @@ class CH_VEHICLE_API ChPathSteeringControllerXT : public ChSteeringController {
     ChVector<> m_vel;  ///< vehicle velocity vector
 };
 
-/// Concrete path-following steering P-like controller with variable path prediction.
+/// Path-following steering P-like controller with variable path prediction.
 /// The algorithm is from :
 /// BEST, M.C., 2012. A simple realistic driver model. Presented at:
 /// AVEC `12: The 11th International Symposium on Advanced Vehicle Control, 9th-12th September 2012, Seoul, Korea.
@@ -305,7 +303,6 @@ class CH_VEHICLE_API ChPathSteeringControllerSR : public ChSteeringController {
                                double max_wheel_turn_angle = 0.0,
                                double axle_space = 2.5);
 
-    /// Destructor for ChPathSteeringController.
     ~ChPathSteeringControllerSR() {}
 
     /// Return a pointer to the Bezier curve
@@ -384,7 +381,6 @@ class CH_VEHICLE_API ChPathSteeringControllerStanley : public ChSteeringControll
                                     bool isClosedPath = false,
                                     double max_wheel_turn_angle = 0.0);
 
-    /// Destructor for ChPathSteeringController.
     ~ChPathSteeringControllerStanley() {}
 
     /// Return a pointer to the Bezier curve

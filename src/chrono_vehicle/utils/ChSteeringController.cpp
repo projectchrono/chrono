@@ -611,23 +611,23 @@ double ChPathSteeringControllerSR::Advance(const ChVehicle& vehicle, double step
 // -----------------------------------------------------------------------------
 // Implementation of the derived class ChPathSteeringControllerStanley.
 // -----------------------------------------------------------------------------
-/// This is called the "Stanley" Controller named after an autonomous vehicle called Stanley.
-/// It minimizes lateral error and heading error. Time delay of the driver's reaction is considered.
-/// This driver can be parametrized by a PID json file. It can consider a dead zone left and right to the
-/// path, where no path information is recognized. This can be useful when the path information contains
-/// lateral disturbances, that could cause bad disturbances of the controller.
-/// dead_zone = 0.05 means:
-///     0 <= lat_err <= 0.05        no driver reaction
-///     0.05 < lat_err <= 2*0.05    smooth transition interval to complete controller engagement
-/// The Stanley driver should find 'always' back to the path, despite of great heading or lateral error.
-/// If an integral term is used, its state is getting reset every 30 secs to avoid controller wind-up.
-///
-/// The algorithm comes from from :
-///
-/// Gabriel M. Hoffmann, Claire J. Tomlin, Michael Montemerlo, Sebastian Thrun:
-/// "Autonomous Automobile Trajectory Tracking for Off-Road Driving", 2005
-/// Stanford University
-/// Stanford, CA 94305, USA
+// This is called the "Stanley" Controller named after an autonomous vehicle called Stanley.
+// It minimizes lateral error and heading error. Time delay of the driver's reaction is considered.
+// This driver can be parametrized by a PID json file. It can consider a dead zone left and right to the
+// path, where no path information is recognized. This can be useful when the path information contains
+// lateral disturbances, that could cause bad disturbances of the controller.
+// dead_zone = 0.05 means:
+//     0 <= lat_err <= 0.05        no driver reaction
+//     0.05 < lat_err <= 2*0.05    smooth transition interval to complete controller engagement
+// The Stanley driver should find 'always' back to the path, despite of great heading or lateral error.
+// If an integral term is used, its state is getting reset every 30 secs to avoid controller wind-up.
+//
+// The algorithm comes from from :
+//
+// Gabriel M. Hoffmann, Claire J. Tomlin, Michael Montemerlo, Sebastian Thrun:
+// "Autonomous Automobile Trajectory Tracking for Off-Road Driving", 2005
+// Stanford University
+// Stanford, CA 94305, USA
 
 ChPathSteeringControllerStanley::ChPathSteeringControllerStanley(std::shared_ptr<ChBezierCurve> path,
                                                                  bool isClosedPath,

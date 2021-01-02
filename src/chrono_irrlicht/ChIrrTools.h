@@ -27,9 +27,7 @@
 namespace irr {
 namespace core {
 
-/// Utility class to easily convert a Chrono vector into an Irrlicht
-/// vector3df. Simply create an Irrlicht compatible vector as:
-///          myvector=vector3dfCH(mychronovector);
+/// Utility class to easily convert a Chrono vector into an Irrlicht vector3df.
 class ChApiIrr vector3dfCH : public vector3df {
   public:
     vector3dfCH(const chrono::ChVector<>& mch) {
@@ -37,15 +35,12 @@ class ChApiIrr vector3dfCH : public vector3df {
         Y = ((f32)mch.y());
         Z = ((f32)mch.z());
     }
-    vector3dfCH(chrono::ChVector<>* mch) {
-        X = ((f32)mch->x());
-        Y = ((f32)mch->y());
-        Z = ((f32)mch->z());
-    }
 };
 
 }  // end namespace core
 }  // end namespace irr
+
+// -----------------------------------------------------------------------------
 
 namespace chrono {
 namespace irrlicht {
@@ -53,7 +48,6 @@ namespace irrlicht {
 /// @addtogroup irrlicht_module
 /// @{
 
-// -----------------------------------------------------------------------------
 /// Class with static functions which help with the integration of
 /// Chrono and Irrlicht 3D rendering library.
 class ChApiIrr ChIrrTools {
