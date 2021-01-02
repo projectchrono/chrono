@@ -62,8 +62,8 @@
     - the [tutorials](@ref tutorial_table_of_content_chrono_gpu)
 
     @{
-        @defgroup gpu_physics Chrono::Gpu physics objects
-        @defgroup gpu_solver Chrono::Gpu solver infrastructure
+        @defgroup gpu_physics Physics objects
+        @defgroup gpu_utils Utilities
     @}
 */
 

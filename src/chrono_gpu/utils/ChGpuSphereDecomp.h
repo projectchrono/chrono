@@ -26,6 +26,9 @@
 namespace chrono {
 namespace gpu {
 
+/// @addtogroup gpu_utils
+/// @{
+
 /// Decompose a given triangle mesh surface into a minimally-overlapping collection of spheres.
 /// The mesh must be stored in OBJ format and must consist of only triangles.
 /// Returns the number of spheres added as a result of the decomposition.
@@ -121,5 +124,8 @@ std::vector<ChVector<Real>> MeshSphericalDecomposition(
 
     return sphere_points;
 }
+
+/// @} gpu_utils
+
 }  // namespace gpu
 }  // namespace chrono

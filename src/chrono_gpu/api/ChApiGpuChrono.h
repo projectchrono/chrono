@@ -26,8 +26,12 @@
 namespace chrono {
 namespace gpu {
 
+/// @addtogroup gpu_physics
+/// @{
+
 // -----------------------------------------------------------------------------
 
+/// Wrapper class for a ChSystemGpuSMC_trimesh.
 class CH_GPU_API ChGpuSMCtrimesh_API {
   public:
     enum class MeshVerbosity { QUIET = 0, INFO = 1 };
@@ -75,6 +79,7 @@ class CH_GPU_API ChGpuSMCtrimesh_API {
 
 // -----------------------------------------------------------------------------
 
+/// Wrapper class for a ChSystemGpuSMC.
 class CH_GPU_API ChGpuSMC_API {
   public:
     ChGpuSMC_API() : m_sys(nullptr) {}
@@ -98,6 +103,8 @@ class CH_GPU_API ChGpuSMC_API {
   private:
     ChSystemGpuSMC* m_sys;
 };
+
+/// @} gpu_physics
 
 }  // namespace gpu
 }  // namespace chrono

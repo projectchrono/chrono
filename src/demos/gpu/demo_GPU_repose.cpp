@@ -41,7 +41,7 @@ void ShowUsage(std::string name) {
 int main(int argc, char* argv[]) {
     
     //gpu::SetDataPath(std::string(PROJECTS_DATA_DIR) + "gpu/");
-    sim_param_holder params;
+    ChGpuSimulationParameters params;
 
     // Some of the default values might be overwritten by user via command line
     std::cout<<"num_arg: "<<argc<<std::endl;

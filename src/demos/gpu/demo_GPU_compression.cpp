@@ -47,7 +47,7 @@ void ShowUsage(std::string name) {
 
 int main(int argc, char* argv[]) {
 
-    sim_param_holder params;
+    ChGpuSimulationParameters params;
     if (argc != 2 || ParseJSON(argv[1], params) == false) {
         ShowUsage(argv[0]);
         return 1;

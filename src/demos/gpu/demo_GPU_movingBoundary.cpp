@@ -39,7 +39,7 @@ void ShowUsage(std::string name) {
 }
 
 int main(int argc, char* argv[]) {
-    sim_param_holder params;
+    ChGpuSimulationParameters params;
 
     // Some of the default values might be overwritten by user via command line
     if (argc != 2 || ParseJSON(argv[1], params) == false) {

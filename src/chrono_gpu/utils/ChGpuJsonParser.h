@@ -30,7 +30,12 @@ using namespace rapidjson;
 
 namespace chrono {
 namespace gpu {
-typedef struct sim_param_holder {
+
+/// @addtogroup gpu_utils
+/// @{
+
+/// Structure with Chrono::Gpu simulation parameters.
+struct ChGpuSimulationParameters {
     float sphere_radius;
     float sphere_density;
     float box_X;
@@ -73,8 +78,9 @@ typedef struct sim_param_holder {
     string output_dir;
     string checkpoint_file;
     CHGPU_OUTPUT_MODE write_mode;
-} sim_param_holder;
+};
 
+/// Print scheme for JSON file with simulation settings.
 void ShowJSONUsage() {
     cout << "JSON fields:" << endl;
     cout << "sphere_radius" << endl;
@@ -119,14 +125,15 @@ void ShowJSONUsage() {
     cout << "write_mode (csv|binary|hdf5|none)" << endl;
 }
 
+/// Flag an invalid simulation parameter.
 void InvalidArg(string arg) {
     cout << "Invalid arg: " << arg << endl;
     ShowJSONUsage();
 }
 
-// Returns true on successful parameter load.
-// Returns false and prints error on invalid argument.
-bool ParseJSON(const char* json_file, sim_param_holder& params, bool verbose = true) {
+/// Parse the specified JSON file with simulation settings.
+/// Returns true on successful parameter load. Returns false and prints error on invalid argument.
+bool ParseJSON(const char* json_file, ChGpuSimulationParameters& params, bool verbose = true) {
     CONDITIONAL_PRINTF(verbose, "Reading parameters: %s\n", json_file);
     FILE* fp = fopen(json_file, "r");
     if (!fp) {
@@ -370,5 +377,8 @@ bool ParseJSON(const char* json_file, sim_param_holder& params, bool verbose = t
     // step_mode
     return true;
 }
+
+/// @} gpu_utils
+
 }  // namespace gpu
 }  // namespace chrono
