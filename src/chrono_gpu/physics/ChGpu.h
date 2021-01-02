@@ -39,84 +39,6 @@ typedef std::function<double3(float)> GranPositionFunction;
 /// Position function representing no motion or offset as a funtion of time
 const GranPositionFunction GranPosFunction_default = [](float t) { return make_double3(0, 0, 0); };
 
-/// Holds pointers to kinematic quantities of the Chrono::Gpu system. These pointers must be in device-accessible memory
-struct ChGranSphereData {
-  public:
-    /// X position relative to owner subdomain in unified memory
-    int* sphere_local_pos_X;
-    /// Y position relative to owner subdomain in unified memory
-    int* sphere_local_pos_Y;
-    /// Z position relative to owner subdomain in unified memory
-    int* sphere_local_pos_Z;
-
-    /// X velocity in unified memory
-    float* pos_X_dt;
-    /// Y velocity in unified memory
-    float* pos_Y_dt;
-    /// Z velocity in unified memory
-    float* pos_Z_dt;
-
-    /// X angular velocity in unified memory. Only used if friction is present
-    float* sphere_Omega_X;
-    /// Y angular velocity in unified memory. Only used if friction is present
-    float* sphere_Omega_Y;
-    /// Z angular velocity in unified memory. Only used if friction is present
-    float* sphere_Omega_Z;
-
-    /// X angular acceleration in unified memory
-    float* sphere_acc_X;
-    /// Y angular acceleration in unified memory
-    float* sphere_acc_Y;
-    /// Z angular acceleration in unified memory
-    float* sphere_acc_Z;
-
-    /// X angular acceleration in unified memory
-    float* sphere_ang_acc_X;
-    /// Y angular acceleration in unified memory
-    float* sphere_ang_acc_Y;
-    /// Z angular acceleration in unified memory
-    float* sphere_ang_acc_Z;
-
-    /// Previous step X acceleration for multistep integrators
-    float* sphere_acc_X_old;
-    /// Previous step Y acceleration for multistep integrators
-    float* sphere_acc_Y_old;
-    /// Previous step Z acceleration for multistep integrators
-    float* sphere_acc_Z_old;
-
-    /// Previous step X angular acceleration for multistep integrators
-    float* sphere_ang_acc_X_old;
-    /// Previous step Y angular acceleration for multistep integrators
-    float* sphere_ang_acc_Y_old;
-    /// Previous step Z angular acceleration for multistep integrators
-    float* sphere_ang_acc_Z_old;
-
-    /// Fixity of each sphere
-    not_stupid_bool* sphere_fixed;
-
-    /// Set of contact partners for each sphere. Only used in frictional simulations
-    unsigned int* contact_partners_map;
-    /// Whether the frictional contact at an index is active
-    not_stupid_bool* contact_active_map;
-    /// Tracks the tangential history vector for a given contact pair. Only used in multistep friction
-    float3* contact_history_map;
-
-    // track normal and tangential friction force, and rolling friction torque
-    float3* normal_contact_force;
-    float3* rolling_friction_torque;
-    float3* tangential_friction_force;
-
-    /// Number of particles touching each subdomain
-    unsigned int* SD_NumSpheresTouching;
-    /// Offset of each subdomain in the big composite array
-    unsigned int* SD_SphereCompositeOffsets;
-    /// Big composite array of sphere-subdomain membership
-    unsigned int* spheres_in_SD_composite;
-
-    /// List of owner subdomains for each sphere
-    unsigned int* sphere_owner_SDs;
-};
-
 /// Verbosity level of the system
 enum CHGPU_VERBOSITY { QUIET = 0, INFO = 1, METRICS = 2 };
 
@@ -134,157 +56,14 @@ enum CHGPU_ROLLING_MODE { NO_RESISTANCE, SCHWARTZ, ELASTIC_PLASTIC };
 enum CHGPU_OUTPUT_FLAGS { ABSV = 1, VEL_COMPONENTS = 2, FIXITY = 4, ANG_VEL_COMPONENTS = 8, FORCE_COMPONENTS = 16 };
 #define GET_OUTPUT_SETTING(setting) (this->output_flags & setting)
 
-/// Parameters needed for sphere-based granular dynamics. This structure is stored in CUDA unified memory so that it can
-/// be accessed from both host and device
-struct ChGranParams {
-    /// Timestep in SU
-    float stepSize_SU;
+// -----------------------------------------------------------------------------
 
-    /// Which friction mode is active for the simulation
-    CHGPU_FRICTION_MODE friction_mode;
-
-    /// Which rolling resistance model is active
-    CHGPU_ROLLING_MODE rolling_mode;
-
-    /// Which time integrator is active
-    CHGPU_TIME_INTEGRATOR time_integrator;
-
-    /// Ratio of normal force to peak tangent force, also arctan(theta) where theta is the friction angle
-    /// sphere-to-sphere
-    float static_friction_coeff_s2s;
-    /// Ratio of normal force to peak tangent force, also arctan(theta) where theta is the friction angle
-    /// sphere-to-wall
-    float static_friction_coeff_s2w;
-
-    /// Coefficient of rolling resistance sphere-to-sphere
-    float rolling_coeff_s2s_SU;
-    /// Coefficient of rolling resistance sphere-to-wall
-    float rolling_coeff_s2w_SU;
-
-    /// Coefficient of spinning resistance sphere-to-sphere
-    float spinning_coeff_s2s_SU;
-    /// Coefficient of spinning resistance sphere-to-wall
-    float spinning_coeff_s2w_SU;
-
-    /// sphere-to-sphere normal contact damping coefficient, expressed in SU
-    float Gamma_n_s2s_SU;
-    /// sphere-to-wall normal contact damping coefficient, expressed in SU
-    float Gamma_n_s2w_SU;
-    /// sphere-to-sphere tangent contact damping coefficient, expressed in SU
-    float Gamma_t_s2s_SU;
-    /// sphere-to-wall tangent contact damping coefficient, expressed in SU
-    float Gamma_t_s2w_SU;
-
-    /// sphere-to-sphere normal contact stiffness, expressed in SU
-    float K_n_s2s_SU;
-    /// sphere-to-wall normal contact stiffness, expressed in SU
-    float K_n_s2w_SU;
-    /// sphere-to-sphere tangent contact stiffness, expressed in SU
-    float K_t_s2s_SU;
-    /// sphere-to-wall tangent contact stiffness, expressed in SU
-    float K_t_s2w_SU;
-
-    /// Radius of the sphere, expressed in SU
-    unsigned int sphereRadius_SU;
-    /// Moment of inertia of a sphere, normalized by the radius, expressed in SU
-    float sphereInertia_by_r;
-
-    /// X-dimension of each subdomain box, expressed in SU
-    unsigned int SD_size_X_SU;
-    /// Y-dimension of each subdomain box, expressed in SU
-    unsigned int SD_size_Y_SU;
-    /// Z-dimension of each subdomain box, expressed in SU
-    unsigned int SD_size_Z_SU;
-
-    /// Total number of spheres in system, used for boundary condition multistep friction
-    unsigned int nSpheres;
-
-    /// Total number of subdomains
-    unsigned int nSDs;
-
-    /// X-dimension of the big domain box in multiples of subdomains
-    unsigned int nSDs_X;
-    /// Y-dimension of the big domain box in multiples of subdomains
-    unsigned int nSDs_Y;
-    /// Z-dimension of the big domain box in multiples of subdomains
-    unsigned int nSDs_Z;
-
-    /// Maximum X dimension in the big domain frame
-    int64_t max_x_pos_unsigned;  // ((int64_t)SD_size_X_SU * nSDs_X)
-    /// Maximum Y dimension in the big domain frame
-    int64_t max_y_pos_unsigned;  // ((int64_t)SD_size_Y_SU * nSDs_Y)
-    /// Maximum Z dimension in the big domain frame
-    int64_t max_z_pos_unsigned;  // ((int64_t)SD_size_Z_SU * nSDs_Z)
-
-    /// X gravity in SU
-    float gravAcc_X_SU;
-    /// Y gravity in SU
-    float gravAcc_Y_SU;
-    /// Z gravity in SU
-    float gravAcc_Z_SU;
-
-    /// The bottom-left corner xPos of the big domain
-    int64_t BD_frame_X;
-    /// The bottom-left corner yPos of the big domain
-    int64_t BD_frame_Y;
-    /// The bottom-left corner zPos of the big domain
-    int64_t BD_frame_Z;
-
-    /// The offset of the big domain from its original frame, used to allow the subdomain definitions to move
-    int64_t BD_offset_X;
-    /// The offset of the big domain from its original frame, used to allow the subdomain definitions to move
-    int64_t BD_offset_Y;
-    /// The offset of the big domain from its original frame, used to allow the subdomain definitions to move
-    int64_t BD_offset_Z;
-
-    /// Constant acceleration of sphere-to-sphere cohesion
-    float cohesionAcc_s2s;
-
-    /// Accleration of adhesion
-    float adhesionAcc_s2w;
-
-    /// 1 / C_L. Any length expressed in SU is a multiple of LENGTH_UNIT
-    double LENGTH_UNIT;
-    /// 1 / C_T. Any time quantity in SU is measured as a positive multiple of TIME_UNIT
-    double TIME_UNIT;
-    /// 1 / C_M. Any mass quantity is measured as a positive multiple of MASS_UNIT.
-    double MASS_UNIT;
-
-    /// this is to make clear that the underlying assumption is unit SU mass
-    constexpr static float sphere_mass_SU = 1.f;
-
-    /// Used as a safety check to determine whether a system has lost stability
-    float max_safe_vel = (float)UINT_MAX;
-
-    // recording contact info
-    bool recording_contactInfo;
-};
-
-/// @} gpu_physics
-
-}  // namespace gpu
-}  // namespace chrono
-
-// Do two things: make the naming nicer and require a const pointer everywhere
-/// Get handle for the gran params that skips namespacing and enforces const-ness
-typedef const chrono::gpu::ChGranParams* GranParamsPtr;
-/// Get handle for the sphere data that skips namespacing and enforces const-ness
-typedef const chrono::gpu::ChGranSphereData* GranSphereDataPtr;
-
-namespace chrono {
-namespace gpu {
-
-/// @addtogroup gpu_physics
-/// @{
-
-/**
- * \brief Main Chrono::Gpu system class used to control and dispatch the GPU
- * sphere-only solver.
- */
+/// Main Chrono::Gpu system class used to control and dispatch the GPU sphere-only solver.
 class CH_GPU_API ChSystemGpuSMC {
   public:
     // The system is not default-constructible
     ChSystemGpuSMC() = delete;
+
     /// Construct Chrono::Gpu system with given sphere radius, density, and big domain dimensions
     ChSystemGpuSMC(float sphere_rad, float density, float3 boxDims);
     virtual ~ChSystemGpuSMC();
@@ -499,7 +278,7 @@ class CH_GPU_API ChSystemGpuSMC {
 
     // return absolute velocity
     float getAbsVelocity(int nSphere);
-    
+
     // return velocity
     float3 getVelocity(int nSphere);
 
@@ -527,7 +306,7 @@ class CH_GPU_API ChSystemGpuSMC {
     }
 
     // set recording contact info to be true
-    void setRecordingContactInfo(bool record){gran_params->recording_contactInfo = record;};
+    void setRecordingContactInfo(bool record) { gran_params->recording_contactInfo = record; };
 
     /// Set tuning psi factors for tuning the non-dimensionalization
     void setPsiFactors(unsigned int psi_T_new, unsigned int psi_L_new, float psi_R_new = 1.f) {
@@ -544,6 +323,134 @@ class CH_GPU_API ChSystemGpuSMC {
     void writeContactInfoFile(std::string ofile) const;
     /// Safety check velocity to ensure the simulation is still stable
     void setMaxSafeVelocity_SU(float max_vel) { gran_params->max_safe_vel = max_vel; }
+
+  public:
+    /// Structure with simulation parameters for sphere-based granular dynamics.
+    /// This structure is stored in CUDA unified memory so that it can be accessed from both host and device.
+    struct GranParams {
+        float stepSize_SU;  ///< Timestep in SU
+
+        CHGPU_FRICTION_MODE friction_mode;      ///< Which friction mode is active for the simulation
+        CHGPU_ROLLING_MODE rolling_mode;        ///< Which rolling resistance model is active
+        CHGPU_TIME_INTEGRATOR time_integrator;  ///< Which time integrator is active
+
+        /// Ratio of normal force to peak tangent force, also arctan(theta) where theta is the friction angle
+        /// sphere-to-sphere
+        float static_friction_coeff_s2s;
+        /// Ratio of normal force to peak tangent force, also arctan(theta) where theta is the friction angle
+        /// sphere-to-wall
+        float static_friction_coeff_s2w;
+
+        float rolling_coeff_s2s_SU;  ///< Coefficient of rolling resistance sphere-to-sphere
+        float rolling_coeff_s2w_SU;  ///< Coefficient of rolling resistance sphere-to-wall
+
+        float spinning_coeff_s2s_SU;  ///< Coefficient of spinning resistance sphere-to-sphere
+        float spinning_coeff_s2w_SU;  ///< Coefficient of spinning resistance sphere-to-wall
+
+        float Gamma_n_s2s_SU;  ///< sphere-to-sphere normal contact damping coefficient, expressed in SU
+        float Gamma_n_s2w_SU;  ///< sphere-to-wall normal contact damping coefficient, expressed in SU
+        float Gamma_t_s2s_SU;  ///< sphere-to-sphere tangent contact damping coefficient, expressed in SU
+        float Gamma_t_s2w_SU;  ///< sphere-to-wall tangent contact damping coefficient, expressed in SU
+
+        float K_n_s2s_SU;  ///< sphere-to-sphere normal contact stiffness, expressed in SU
+        float K_n_s2w_SU;  ///< sphere-to-wall normal contact stiffness, expressed in SU
+        float K_t_s2s_SU;  ///< sphere-to-sphere tangent contact stiffness, expressed in SU
+        float K_t_s2w_SU;  ///< sphere-to-wall tangent contact stiffness, expressed in SU
+
+        unsigned int sphereRadius_SU;  ///< Radius of the sphere, expressed in SU
+        float sphereInertia_by_r;      ///< Moment of inertia of a sphere, normalized by the radius, expressed in SU
+
+        unsigned int SD_size_X_SU;  ///< X-dimension of each subdomain box, expressed in SU
+        unsigned int SD_size_Y_SU;  ///< Y-dimension of each subdomain box, expressed in SU
+        unsigned int SD_size_Z_SU;  ///< Z-dimension of each subdomain box, expressed in SU
+
+        unsigned int nSpheres;  ///< Total number of spheres in system, used for boundary condition multistep friction
+        unsigned int nSDs;      ///< Total number of subdomains
+
+        unsigned int nSDs_X;  ///< X-dimension of the big domain box in multiples of subdomains
+        unsigned int nSDs_Y;  ///< Y-dimension of the big domain box in multiples of subdomains
+        unsigned int nSDs_Z;  ///< Z-dimension of the big domain box in multiples of subdomains
+
+        int64_t max_x_pos_unsigned;  ///< Maximum X dimension in the big domain frame ((int64_t)SD_size_X_SU * nSDs_X)
+        int64_t max_y_pos_unsigned;  ///< Maximum Y dimension in the big domain frame ((int64_t)SD_size_Y_SU * nSDs_Y)
+        int64_t max_z_pos_unsigned;  ///< Maximum Z dimension in the big domain frame ((int64_t)SD_size_Z_SU * nSDs_Z)
+
+        float gravAcc_X_SU;  ///< X gravity in SU
+        float gravAcc_Y_SU;  ///< Y gravity in SU
+        float gravAcc_Z_SU;  ///< Z gravity in SU
+
+        int64_t BD_frame_X;  ///< The bottom-left corner xPos of the big domain
+        int64_t BD_frame_Y;  ///< The bottom-left corner yPos of the big domain
+        int64_t BD_frame_Z;  ///< The bottom-left corner zPos of the big domain
+
+        int64_t BD_offset_X;  /// X offset of big domain from its original frame; allows the subdomain to move
+        int64_t BD_offset_Y;  /// Y offset of big domain from its original frame; allows the subdomain to move
+        int64_t BD_offset_Z;  /// Z offset of big domain from its original frame; allows the subdomain to move
+
+        float cohesionAcc_s2s;  ///< Constant acceleration of sphere-to-sphere cohesion
+        float adhesionAcc_s2w;  ///< Accleration of adhesion
+
+        double LENGTH_UNIT;  ///< 1 / C_L. Any length expressed in SU is a multiple of LENGTH_UNIT
+        double TIME_UNIT;    ///< 1 / C_T. Any time quantity in SU is measured as a positive multiple of TIME_UNIT
+        double MASS_UNIT;    ///< 1 / C_M. Any mass quantity is measured as a positive multiple of MASS_UNIT
+
+        /// Make clear that the underlying assumption is unit SU mass
+        constexpr static float sphere_mass_SU = 1.f;
+
+        /// Used as a safety check to determine whether a system has lost stability
+        float max_safe_vel = (float)UINT_MAX;
+
+        bool recording_contactInfo;  ///< recording contact info
+    };
+
+    /// Structure of pointers to kinematic quantities of the ChSystemGpuSMC.
+    /// These pointers must be in device-accessible memory.
+    struct SphereData {
+      public:
+        int* sphere_local_pos_X;  ///< X position relative to owner subdomain in unified memory
+        int* sphere_local_pos_Y;  ///< Y position relative to owner subdomain in unified memory
+        int* sphere_local_pos_Z;  ///< Z position relative to owner subdomain in unified memory
+
+        float* pos_X_dt;  ///< X velocity in unified memory
+        float* pos_Y_dt;  ///< Y velocity in unified memory
+        float* pos_Z_dt;  ///< Z velocity in unified memory
+
+        float* sphere_Omega_X;  ///< X angular velocity in unified memory. Only used if friction is present
+        float* sphere_Omega_Y;  ///< Y angular velocity in unified memory. Only used if friction is present
+        float* sphere_Omega_Z;  ///< Z angular velocity in unified memory. Only used if friction is present
+
+        float* sphere_acc_X;  ///< X angular acceleration in unified memory
+        float* sphere_acc_Y;  ///< Y angular acceleration in unified memory
+        float* sphere_acc_Z;  ///< Z angular acceleration in unified memory
+
+        float* sphere_ang_acc_X;  ///< X angular acceleration in unified memory
+        float* sphere_ang_acc_Y;  ///< Y angular acceleration in unified memory
+        float* sphere_ang_acc_Z;  ///< Z angular acceleration in unified memory
+
+        float* sphere_acc_X_old;  ///< Previous step X acceleration for multistep integrators
+        float* sphere_acc_Y_old;  ///< Previous step Y acceleration for multistep integrators
+        float* sphere_acc_Z_old;  ///< Previous step Z acceleration for multistep integrators
+
+        float* sphere_ang_acc_X_old;  ///< Previous step X angular acceleration for multistep integrators
+        float* sphere_ang_acc_Y_old;  ///< Previous step Y angular acceleration for multistep integrators
+        float* sphere_ang_acc_Z_old;  ///< Previous step Z angular acceleration for multistep integrators
+
+        not_stupid_bool* sphere_fixed;  ///< Flags indicating whether or not a sphere is fixed
+
+        unsigned int* contact_partners_map;   ///< Contact partners for each sphere. Only in frictional simulations
+        not_stupid_bool* contact_active_map;  ///< Whether the frictional contact at an index is active
+        float3* contact_history_map;  ///< Tangential history for a given contact pair. Only for multistep friction
+
+        float3* normal_contact_force;       ///< Track normal contact force
+        float3* tangential_friction_force;  ///< Track sliding friction force
+        float3* rolling_friction_torque;    ///< Track rolling friction force
+
+        unsigned int* SD_NumSpheresTouching;      ///< Number of particles touching each subdomain
+        unsigned int* SD_SphereCompositeOffsets;  ///< Offset of each subdomain in the big composite array
+        unsigned int* spheres_in_SD_composite;    ///< Big composite array of sphere-subdomain membership
+
+        unsigned int* sphere_owner_SDs;  ///< List of owner subdomains for each sphere
+    };
 
   protected:
     // Conversion factors from SU to UU
@@ -583,9 +490,10 @@ class CH_GPU_API ChSystemGpuSMC {
     void setupSphereDataStructures();
 
     /// Holds the sphere and big-domain-related params in unified memory
-    ChGranParams* gran_params;
+    GranParams* gran_params;
+
     /// Holds system degrees of freedom
-    ChGranSphereData* sphere_data;
+    SphereData* sphere_data;
 
     /// Allows the code to be very verbose for debugging
     CHGPU_VERBOSITY verbosity;
@@ -829,7 +737,7 @@ class CH_GPU_API ChSystemGpuSMC {
 
     // User-provided sphere angular velocities in UU
     std::vector<float3> user_sphere_ang_vel;
-    
+
     /// User-provided sphere fixity as bools
     std::vector<bool> user_sphere_fixed;
 
@@ -841,3 +749,11 @@ class CH_GPU_API ChSystemGpuSMC {
 
 }  // namespace gpu
 }  // namespace chrono
+
+// Do two things: make the naming nicer and require a const pointer everywhere
+
+/// Get handle for the gran params that skips namespacing and enforces const-ness
+typedef const chrono::gpu::ChSystemGpuSMC::GranParams* GranParamsPtr;
+
+/// Get handle for the sphere data that skips namespacing and enforces const-ness
+typedef const chrono::gpu::ChSystemGpuSMC::SphereData* GranSphereDataPtr;

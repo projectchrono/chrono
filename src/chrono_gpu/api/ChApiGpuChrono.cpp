@@ -18,19 +18,33 @@
 #include "chrono_gpu/utils/ChGpuUtilities.h"
 #include "chrono_gpu/physics/ChGpuTriMesh.h"
 
+namespace chrono {
+namespace gpu {
+
 #define MESH_INFO_PRINTF(...)                                         \
     if (mesh_verbosity == ChGpuSMCtrimesh_API::MeshVerbosity::INFO) { \
         printf(__VA_ARGS__);                                          \
     }
 
+static void convertChVector2Float3Vec(const std::vector<ChVector<float>>& points,
+                                      std::vector<float3>& pointsFloat3) {
+    size_t nPoints = points.size();
+    pointsFloat3.resize(nPoints);
+    for (size_t index = 0; index < nPoints; index++) {
+        pointsFloat3.at(index).x = points.at(index)[0];
+        pointsFloat3.at(index).y = points.at(index)[1];
+        pointsFloat3.at(index).z = points.at(index)[2];
+    }
+}
+
 ChGpuSMCtrimesh_API::ChGpuSMCtrimesh_API(float sphere_rad, float density, float3 boxDims) {
-    m_sys_trimesh = new chrono::gpu::ChSystemGpuSMC_trimesh(sphere_rad, density, boxDims);
+    m_sys_trimesh = new ChSystemGpuSMC_trimesh(sphere_rad, density, boxDims);
 }
 
 void ChGpuSMCtrimesh_API::load_meshes(std::vector<std::string> objfilenames,
-                                             std::vector<chrono::ChMatrix33<float>> rotscale,
-                                             std::vector<float3> translations,
-                                             std::vector<float> masses) {
+                                      std::vector<ChMatrix33<float>> rotscale,
+                                      std::vector<float3> translations,
+                                      std::vector<float> masses) {
     unsigned int size = (unsigned int)objfilenames.size();
     if (size != rotscale.size() || size != translations.size() || size != masses.size()) {
         CHGPU_ERROR("Mesh loading vectors must all have same size\n");
@@ -42,19 +56,19 @@ void ChGpuSMCtrimesh_API::load_meshes(std::vector<std::string> objfilenames,
 
     unsigned int nTriangles = 0;
     unsigned int numTriangleFamilies = 0;
-    std::vector<chrono::geometry::ChTriangleMeshConnected> all_meshes;
+    std::vector<geometry::ChTriangleMeshConnected> all_meshes;
     for (unsigned int i = 0; i < size; i++) {
         // INFO_PRINTF("Importing %s...\n", objfilenames[i].c_str()); <--- work on this later
-        all_meshes.push_back(chrono::geometry::ChTriangleMeshConnected());
-        chrono::geometry::ChTriangleMeshConnected& mesh = all_meshes[all_meshes.size() - 1];
+        all_meshes.push_back(geometry::ChTriangleMeshConnected());
+        geometry::ChTriangleMeshConnected& mesh = all_meshes[all_meshes.size() - 1];
 
         bool readin_flag = mesh.LoadWavefrontMesh(objfilenames[i], true, false);
         if (!readin_flag) {
             CHGPU_ERROR("ERROR! Mesh %s failed to load in! Exiting!\n", objfilenames[i].c_str());
         }
-        
+
         // Apply displacement
-        chrono::ChVector<> displ(translations[i].x, translations[i].y, translations[i].z);
+        ChVector<> displ(translations[i].x, translations[i].y, translations[i].z);
 
         // Apply scaling and then rotation
         mesh.Transform(displ, rotscale[i].cast<double>());
@@ -78,13 +92,13 @@ void ChGpuSMCtrimesh_API::load_meshes(std::vector<std::string> objfilenames,
     // work on this later: INFO_PRINTF("Done allocating mesh unified memory\n");
 }
 
-void ChGpuSMCtrimesh_API::set_meshes(const std::vector<chrono::geometry::ChTriangleMeshConnected>& all_meshes,
-                                            std::vector<float> masses) {
+void ChGpuSMCtrimesh_API::set_meshes(const std::vector<geometry::ChTriangleMeshConnected>& all_meshes,
+                                     std::vector<float> masses) {
     int nTriangles = 0;
     for (const auto& mesh : all_meshes)
         nTriangles += mesh.getNumTriangles();
 
-    chrono::gpu::ChTriangleSoup<float3>* pMeshSoup = m_sys_trimesh->getMeshSoup();
+    ChSystemGpuSMC_trimesh::TriangleSoup* pMeshSoup = m_sys_trimesh->getMeshSoup();
     pMeshSoup->nTrianglesInSoup = nTriangles;
 
     if (nTriangles != 0) {
@@ -105,7 +119,7 @@ void ChGpuSMCtrimesh_API::set_meshes(const std::vector<chrono::geometry::ChTrian
     // for each obj file data set
     for (const auto& mesh : all_meshes) {
         for (int i = 0; i < mesh.getNumTriangles(); i++) {
-            chrono::geometry::ChTriangle tri = mesh.getTriangle(i);
+            geometry::ChTriangle tri = mesh.getTriangle(i);
 
             pMeshSoup->node1[tri_i] = make_float3((float)tri.p1.x(), (float)tri.p1.y(), (float)tri.p1.z());
             pMeshSoup->node2[tri_i] = make_float3((float)tri.p2.x(), (float)tri.p2.y(), (float)tri.p2.z());
@@ -115,12 +129,12 @@ void ChGpuSMCtrimesh_API::set_meshes(const std::vector<chrono::geometry::ChTrian
 
             // Normal of a single vertex... Should still work
             int normal_i = mesh.m_face_n_indices.at(i).x();  // normals at each vertex of this triangle
-            chrono::ChVector<double> normal = mesh.m_normals[normal_i];
+            ChVector<double> normal = mesh.m_normals[normal_i];
 
             // Generate normal using RHR from nodes 1, 2, and 3
-            chrono::ChVector<double> AB = tri.p2 - tri.p1;
-            chrono::ChVector<double> AC = tri.p3 - tri.p1;
-            chrono::ChVector<double> cross;
+            ChVector<double> AB = tri.p2 - tri.p1;
+            ChVector<double> AC = tri.p3 - tri.p1;
+            ChVector<double> cross;
             cross.Cross(AB, AC);
 
             // If the normal created by a RHR traversal is not correct, switch two vertices
@@ -147,10 +161,10 @@ void ChGpuSMCtrimesh_API::set_meshes(const std::vector<chrono::geometry::ChTrian
                                     6 * pMeshSoup->numTriangleFamilies * sizeof(float), cudaMemAttachGlobal));
         // Allocate memory for the float and double frames
         gpuErrchk(cudaMallocManaged(&m_sys_trimesh->getTriParams()->fam_frame_broad,
-                                    pMeshSoup->numTriangleFamilies * sizeof(chrono::gpu::ChGranMeshFamilyFrame<float>),
+                                    pMeshSoup->numTriangleFamilies * sizeof(ChSystemGpuSMC_trimesh::MeshFrame<float>),
                                     cudaMemAttachGlobal));
         gpuErrchk(cudaMallocManaged(&m_sys_trimesh->getTriParams()->fam_frame_narrow,
-                                    pMeshSoup->numTriangleFamilies * sizeof(chrono::gpu::ChGranMeshFamilyFrame<double>),
+                                    pMeshSoup->numTriangleFamilies * sizeof(ChSystemGpuSMC_trimesh::MeshFrame<double>),
                                     cudaMemAttachGlobal));
 
         // Allocate memory for linear and angular velocity
@@ -167,9 +181,9 @@ void ChGpuSMCtrimesh_API::set_meshes(const std::vector<chrono::geometry::ChTrian
 }
 
 // initialize particle positions, velocity and angular velocity in user units
-void ChGpuSMC_API::setElemsPositions(const std::vector<chrono::ChVector<float>>& points,
-                                          const std::vector<chrono::ChVector<float>>& vels,
-                                          const std::vector<chrono::ChVector<float>>& ang_vel) {
+void ChGpuSMC_API::setElemsPositions(const std::vector<ChVector<float>>& points,
+                                     const std::vector<ChVector<float>>& vels,
+                                     const std::vector<ChVector<float>>& ang_vel) {
     std::vector<float3> pointsFloat3;
     std::vector<float3> velsFloat3;
     std::vector<float3> angVelsFloat3;
@@ -179,9 +193,9 @@ void ChGpuSMC_API::setElemsPositions(const std::vector<chrono::ChVector<float>>&
     m_sys->setParticlePositions(pointsFloat3, velsFloat3, angVelsFloat3);
 }
 
-void ChGpuSMCtrimesh_API::setElemsPositions(const std::vector<chrono::ChVector<float>>& points,
-                                                   const std::vector<chrono::ChVector<float>>& vels,
-                                                   const std::vector<chrono::ChVector<float>>& ang_vel) {
+void ChGpuSMCtrimesh_API::setElemsPositions(const std::vector<ChVector<float>>& points,
+                                            const std::vector<ChVector<float>>& vels,
+                                            const std::vector<ChVector<float>>& ang_vel) {
     std::vector<float3> pointsFloat3;
     std::vector<float3> velsFloat3;
     std::vector<float3> angVelsFloat3;
@@ -192,52 +206,55 @@ void ChGpuSMCtrimesh_API::setElemsPositions(const std::vector<chrono::ChVector<f
 }
 
 // return particle position
-chrono::ChVector<float> ChGpuSMC_API::getPosition(int nSphere){
+ChVector<float> ChGpuSMC_API::getPosition(int nSphere) {
     float3 pos = m_sys->getPosition(nSphere);
-    chrono::ChVector<float> pos_vec(pos.x, pos.y, pos.z); 
+    ChVector<float> pos_vec(pos.x, pos.y, pos.z);
     return pos_vec;
 }
 
-chrono::ChVector<float> ChGpuSMCtrimesh_API::getPosition(int nSphere){
+ChVector<float> ChGpuSMCtrimesh_API::getPosition(int nSphere) {
     float3 pos = m_sys_trimesh->getPosition(nSphere);
-    chrono::ChVector<float> pos_vec(pos.x, pos.y, pos.z); 
+    ChVector<float> pos_vec(pos.x, pos.y, pos.z);
     return pos_vec;
 }
 
 // return particle velocity
-chrono::ChVector<float> ChGpuSMC_API::getVelo(int nSphere){
+ChVector<float> ChGpuSMC_API::getVelo(int nSphere) {
     float3 velo = m_sys->getVelocity(nSphere);
-    chrono::ChVector<float> velo_vec(velo.x, velo.y, velo.z); 
+    ChVector<float> velo_vec(velo.x, velo.y, velo.z);
     return velo_vec;
 }
 
-chrono::ChVector<float> ChGpuSMCtrimesh_API::getVelo(int nSphere){
+ChVector<float> ChGpuSMCtrimesh_API::getVelo(int nSphere) {
     float3 velo = m_sys_trimesh->getVelocity(nSphere);
-    chrono::ChVector<float> velo_vec(velo.x, velo.y, velo.z); 
+    ChVector<float> velo_vec(velo.x, velo.y, velo.z);
     return velo_vec;
 }
 
 // return particle angular velocity
-chrono::ChVector<float> ChGpuSMC_API::getAngularVelo(int nSphere){
+ChVector<float> ChGpuSMC_API::getAngularVelo(int nSphere) {
     float3 omega = m_sys->getAngularVelocity(nSphere);
-    chrono::ChVector<float> omega_vec(omega.x, omega.y, omega.z); 
+    ChVector<float> omega_vec(omega.x, omega.y, omega.z);
     return omega_vec;
 }
 
-chrono::ChVector<float> ChGpuSMCtrimesh_API::getAngularVelo(int nSphere){
+ChVector<float> ChGpuSMCtrimesh_API::getAngularVelo(int nSphere) {
     float3 omega = m_sys_trimesh->getAngularVelocity(nSphere);
-    chrono::ChVector<float> omega_vec(omega.x, omega.y, omega.z); 
+    ChVector<float> omega_vec(omega.x, omega.y, omega.z);
     return omega_vec;
 }
 
 // return BC plane position
-chrono::ChVector<float> ChGpuSMC_API::getBCPlanePos(size_t plane_id){
-    //todo: throw an error if BC not a plane type
+ChVector<float> ChGpuSMC_API::getBCPlanePos(size_t plane_id) {
+    // todo: throw an error if BC not a plane type
     float3 pos = m_sys->Get_BC_Plane_Position(plane_id);
-    return chrono::ChVector<float> (pos.x, pos.y, pos.z);
+    return ChVector<float>(pos.x, pos.y, pos.z);
 }
 
 // return number of sphere-to-sphere contact
-int ChGpuSMC_API::getNumContacts(){
+int ChGpuSMC_API::getNumContacts() {
     return m_sys->getNumContacts();
 }
+
+}  // namespace gpu
+}  // namespace chrono

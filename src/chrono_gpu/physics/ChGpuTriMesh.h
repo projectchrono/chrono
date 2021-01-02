@@ -22,83 +22,6 @@ namespace gpu {
 /// @addtogroup gpu_physics
 /// @{
 
-///
-/// Class used to hold pointers for mesh arrays.
-///
-///\attention The order of the nodes in a triangle defines the positive face of the triangle; right-hand rule used.
-
-// TODO is a template necessary
-template <class T3>
-struct ChTriangleSoup {
-    /// Total number of triangles in the soup
-    unsigned int nTrianglesInSoup;
-    /// Indicates how many meshes are squashed together in this soup
-    unsigned int numTriangleFamilies;
-    /// Each entry says what family that triagnle belongs to; size: nTrianglesInSoup
-    unsigned int* triangleFamily_ID;
-
-    /// Entry i is the SU mass of family i
-    float* familyMass_SU;
-
-    /// Position in local reference frame of triangle vertex 1
-    T3* node1;
-    /// Position in local reference frame of triangle vertex 2
-    T3* node2;
-    /// Position in local reference frame of triangle vertex 3
-    T3* node3;
-
-    /// Entry i is the linear velocity of family i (rigid body motion)
-    T3* vel;
-    /// Entry i is the angular velocity of family i (rigid body motion)
-    T3* omega;
-
-    /// Generalized forces acting on each family. Expressed
-    /// in the global reference frame. Size: 6 * getNumTriangleFamilies.
-    float* generalizedForcesPerFamily;
-};
-
-// TODO optimize rotations
-/// Position and rotation matrix defining the frame of a triangle mesh
-template <class T>
-struct ChGranMeshFamilyFrame {
-    T pos[3];
-    T rot_mat[9];
-};
-
-/// Extra parameters needed for triangle-sphere contact
-struct ChGranParams_trimesh {
-    /// Sphere-to-mesh normal stiffness, expressed in SU (Hertzian spring)
-    float K_n_s2m_SU;
-    /// Sphere-to-mesh tangent stiffness, expressed in SU (Hertzian spring)
-    float K_t_s2m_SU;
-
-    /// Sphere-to-mesh normal contact damping coefficient, expressed in SU
-    float Gamma_n_s2m_SU;
-    /// Sphere-to-mesh tangent contact damping coefficient, expressed in SU
-    float Gamma_t_s2m_SU;
-
-    /// Acceleration caused by adhesion force (constant adhesion model)
-    float adhesionAcc_s2m;
-
-    /// Ratio of normal force to peak tangent force, also arctan(theta) where theta is the friction angle
-    float static_friction_coeff_s2m;
-
-    /// Coefficient of rolling resistance. Units and effect depend on the system rolling resistance model
-    float rolling_coeff_s2m_SU;
-
-    /// Coefficient of spinning resistance. Units and effect depend on the system spinning resistance model
-    float spinning_coeff_s2m_SU;
-
-    /// Number of triangle families
-    unsigned int num_triangle_families;
-
-    /// Reference frames of the triangle families in single precision
-    ChGranMeshFamilyFrame<float>* fam_frame_broad;
-
-    /// Reference frames of the triangle families in double precision
-    ChGranMeshFamilyFrame<double>* fam_frame_narrow;
-};
-
 /// Class implements functionality required to handle the interaction between a mesh soup and granular material.
 ///
 /// Mesh soup: a collection of meshes that each has a certain number of triangle elements. For instance, the meshes
@@ -155,18 +78,91 @@ class CH_GPU_API ChSystemGpuSMC_trimesh : public ChSystemGpuSMC {
     /// Disable mesh contact
     void disableMeshCollision() { mesh_collision_enabled = false; }
 
-    ChTriangleSoup<float3>* getMeshSoup() { return meshSoup; }
-    ChGranParams_trimesh* getTriParams() { return tri_params; }
-
     /// Initialize trimeshes before starting simulation (typically called by initialize).
     virtual void initializeTriangles();
 
+  public:
+    /// Position and rotation matrix defining the frame of a triangle mesh.
+    template <class T>
+    struct MeshFrame {
+        // TODO optimize rotations
+        T pos[3];
+        T rot_mat[9];
+    };
+
+    /// Extra parameters needed for triangle-sphere contact.
+    struct MeshParams {
+        /// Sphere-to-mesh normal stiffness, expressed in SU (Hertzian spring)
+        float K_n_s2m_SU;
+        /// Sphere-to-mesh tangent stiffness, expressed in SU (Hertzian spring)
+        float K_t_s2m_SU;
+
+        /// Sphere-to-mesh normal contact damping coefficient, expressed in SU
+        float Gamma_n_s2m_SU;
+        /// Sphere-to-mesh tangent contact damping coefficient, expressed in SU
+        float Gamma_t_s2m_SU;
+
+        /// Acceleration caused by adhesion force (constant adhesion model)
+        float adhesionAcc_s2m;
+
+        /// Ratio of normal force to peak tangent force, also arctan(theta) where theta is the friction angle
+        float static_friction_coeff_s2m;
+
+        /// Coefficient of rolling resistance. Units and effect depend on the system rolling resistance model
+        float rolling_coeff_s2m_SU;
+
+        /// Coefficient of spinning resistance. Units and effect depend on the system spinning resistance model
+        float spinning_coeff_s2m_SU;
+
+        /// Number of triangle families
+        unsigned int num_triangle_families;
+
+        /// Reference frames of the triangle families in single precision
+        MeshFrame<float>* fam_frame_broad;
+
+        /// Reference frames of the triangle families in double precision
+        MeshFrame<double>* fam_frame_narrow;
+    };
+
+    /// Structure used to hold pointers for mesh arrays.
+    /// Note: The order of the nodes in a triangle defines the positive face of the triangle; right-hand rule used.
+    struct TriangleSoup {
+        /// Total number of triangles in the soup
+        unsigned int nTrianglesInSoup;
+        /// Indicates how many meshes are squashed together in this soup
+        unsigned int numTriangleFamilies;
+        /// Each entry says what family that triagnle belongs to; size: nTrianglesInSoup
+        unsigned int* triangleFamily_ID;
+
+        /// Entry i is the SU mass of family i
+        float* familyMass_SU;
+
+        /// Position in local reference frame of triangle vertex 1
+        float3* node1;
+        /// Position in local reference frame of triangle vertex 2
+        float3* node2;
+        /// Position in local reference frame of triangle vertex 3
+        float3* node3;
+
+        /// Entry i is the linear velocity of family i (rigid body motion)
+        float3* vel;
+        /// Entry i is the angular velocity of family i (rigid body motion)
+        float3* omega;
+
+        /// Generalized forces acting on each family. Expressed
+        /// in the global reference frame. Size: 6 * getNumTriangleFamilies.
+        float* generalizedForcesPerFamily;
+    };
+
+    TriangleSoup* getMeshSoup() { return meshSoup; }
+    MeshParams* getTriParams() { return tri_params; }
+
   protected:
     /// Set of simulation parameters related to triangle data
-    ChGranParams_trimesh* tri_params;
+    MeshParams* tri_params;
 
     /// Clean copy of mesh soup interacting with granular material in unified memory. Stored in UU
-    ChTriangleSoup<float3>* meshSoup;
+    TriangleSoup* meshSoup;
 
     /// Sphere-to-mesh normal contact stiffness, in user units (Hertzian spring)
     double K_n_s2m_UU;
@@ -217,7 +213,14 @@ class CH_GPU_API ChSystemGpuSMC_trimesh : public ChSystemGpuSMC {
 
     void ApplyFrameTransform(float3& p, float* pos, float* rot_mat);
 };
+
 /// @} gpu_physics
 
 }  // namespace gpu
 }  // namespace chrono
+
+/// Get nicer handles to pointer names, enforce const-ness on the mesh params
+typedef const chrono::gpu::ChSystemGpuSMC_trimesh::MeshParams* MeshParamsPtr;
+
+/// Get nicer handles to pointer names, enforce const-ness on the mesh params
+typedef chrono::gpu::ChSystemGpuSMC_trimesh::TriangleSoup* TriangleSoupPtr;

@@ -17,16 +17,14 @@
 #include <fstream>
 #include <string>
 #include <cmath>
+
 #include "chrono/core/ChGlobal.h"
 #include "chrono/core/ChVector.h"
 #include "chrono/core/ChQuaternion.h"
 #include "chrono/core/ChMatrix33.h"
-#include "chrono/geometry/ChTriangle.h"
-#include "chrono/geometry/ChTriangleMeshConnected.h"
-#include "chrono_gpu/utils/ChGpuUtilities.h"
-#include "ChGpuTriMesh.h"
 
-using chrono::geometry::ChTriangleMeshConnected;
+#include "chrono_gpu/utils/ChGpuUtilities.h"
+#include "chrono_gpu/physics/ChGpuTriMesh.h"
 
 namespace chrono {
 namespace gpu {
@@ -41,10 +39,10 @@ ChSystemGpuSMC_trimesh::ChSystemGpuSMC_trimesh(float sphere_rad, float density, 
       spinning_coeff_s2m_UU(0),
       adhesion_s2m_over_gravity(0) {
     // Allocate triangle collision parameters
-    gpuErrchk(cudaMallocManaged(&tri_params, sizeof(ChGranParams_trimesh), cudaMemAttachGlobal));
+    gpuErrchk(cudaMallocManaged(&tri_params, sizeof(MeshParams), cudaMemAttachGlobal));
 
     // Allocate the device soup storage
-    gpuErrchk(cudaMallocManaged(&meshSoup, sizeof(ChTriangleSoup<float3>), cudaMemAttachGlobal));
+    gpuErrchk(cudaMallocManaged(&meshSoup, sizeof(TriangleSoup), cudaMemAttachGlobal));
     // start with no triangles
     meshSoup->nTrianglesInSoup = 0;
     meshSoup->numTriangleFamilies = 0;

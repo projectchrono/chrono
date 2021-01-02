@@ -23,9 +23,6 @@
 #include "chrono_gpu/physics/ChGpuCollision.cuh"
 #include "chrono_gpu/physics/ChGpuBoxTriangle.cuh"
 #include "chrono_gpu/utils/ChCudaMathUtils.cuh"
-// get nicer handles to pointer names, enforce const-ness on the mesh params
-typedef const chrono::gpu::ChGranParams_trimesh* MeshParamsPtr;
-typedef chrono::gpu::ChTriangleSoup<float3>* TriangleSoupPtr;
 
 // Triangle bounding box will be enlarged by 1/SAFETY_PARAM, ensuring triangles lie between 2 SDs
 // are getting some love

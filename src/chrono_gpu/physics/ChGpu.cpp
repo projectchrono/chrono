@@ -17,19 +17,19 @@
 #include <cmath>
 #include <vector>
 #include <algorithm>
-#include "ChGpu.h"
+#include <climits>
+
 #include "chrono/utils/ChUtilsGenerators.h"
 #include "chrono/core/ChVector.h"
+
+#include "chrono_gpu/physics/ChGpu.h"
 #include "chrono_gpu/utils/ChGpuUtilities.h"
 #include "chrono_gpu/physics/ChGpuBoundaryConditions.h"
 #include "chrono_gpu/utils/ChCudaMathUtils.cuh"
 
-
 #ifdef USE_HDF5
 #include "H5Cpp.h"
 #endif
-
-#include <climits>
 
 // define it here, once and for all
 size_t gran_approx_bytes_used = 0;
@@ -66,8 +66,8 @@ ChSystemGpuSMC::ChSystemGpuSMC(float sphere_rad, float density, float3 boxDims)
       rolling_coeff_s2w_UU(0.0),
       spinning_coeff_s2s_UU(0.0),
       spinning_coeff_s2w_UU(0.0) {
-    gpuErrchk(cudaMallocManaged(&gran_params, sizeof(ChGranParams), cudaMemAttachGlobal));
-    gpuErrchk(cudaMallocManaged(&sphere_data, sizeof(ChGranSphereData), cudaMemAttachGlobal));
+    gpuErrchk(cudaMallocManaged(&gran_params, sizeof(GranParams), cudaMemAttachGlobal));
+    gpuErrchk(cudaMallocManaged(&sphere_data, sizeof(SphereData), cudaMemAttachGlobal));
     psi_T = PSI_T_DEFAULT;
     psi_L = PSI_L_DEFAULT;
     psi_R = PSI_R_DEFAULT;
