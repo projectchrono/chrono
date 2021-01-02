@@ -30,8 +30,6 @@
 using namespace chrono;
 using namespace chrono::gpu;
 
-const char* DELIM = "------------------------------------";
-
 // Default values
 float sphereRadius = 1.f;
 float sphereDensity = 2.50f;
@@ -49,7 +47,7 @@ CHGPU_OUTPUT_MODE write_mode = CHGPU_OUTPUT_MODE::NONE;
 CHGPU_VERBOSITY verbose = CHGPU_VERBOSITY::INFO;
 float cohesion_ratio = 0;
 
-double run_test(float box_size_X, float box_size_Y, float box_size_Z) {
+bool run_test(float box_size_X, float box_size_Y, float box_size_Z) {
     // Setup simulation
     ChSystemGpuSMC gpu_sys(sphereRadius, sphereDensity, make_float3(box_size_X, box_size_Y, box_size_Z));
     gpu_sys.set_K_n_SPH2SPH(normStiffness_S2S);
@@ -85,60 +83,58 @@ double run_test(float box_size_X, float box_size_Y, float box_size_Z) {
     size_t plane_bc_id = gpu_sys.Create_BC_Plane(plane_center, plane_normal, true);
 
     gpu_sys.set_fixed_stepSize(timestep);
-    ChTimer<double> timer;
 
-    timer.start();
     gpu_sys.initialize();
-    int fps = 25;
 
+    int fps = 25;
     float frame_step = 1.0f / fps;
     float curr_time = 0;
-    int currframe = 0;
-
-    float reaction_forces[3] = {0, 0, 0};
 
     // Run settling experiments
+    ChTimer<double> timer;
+    timer.start();
     while (curr_time < timeEnd) {
         gpu_sys.advance_simulation(frame_step);
         curr_time += frame_step;
         printf("Time: %f\n", curr_time);
     }
+    timer.stop();
+    std::cout << "Simulated " << gpu_sys.getNumSpheres() << " particles in " << timer.GetTimeSeconds() << " seconds"
+              << std::endl;
 
     constexpr float F_CGS_TO_SI = 1e-5f;
 
-    bool success = gpu_sys.getBCReactionForces(plane_bc_id, reaction_forces);
-    if (!success) {
+    float reaction_forces[3] = {0, 0, 0};
+    if (!gpu_sys.getBCReactionForces(plane_bc_id, reaction_forces)) {
         printf("ERROR! Get contact forces for plane failed\n");
-    } else {
-        printf("plane force is (%f, %f, %f) Newtons\n", F_CGS_TO_SI * reaction_forces[0],
-               F_CGS_TO_SI * reaction_forces[1], F_CGS_TO_SI * reaction_forces[2]);
-
-        float computed_bottom_force = reaction_forces[2];
-        float expected_bottom_force = (float)body_points.size() * (4.f / 3.f) * (float)CH_C_PI * sphereRadius *
-                                      sphereRadius * sphereRadius * sphereDensity * grav_acceleration;
-
-        // 1% error allowed, max
-        float percent_error = 0.01f;
-        printf("Expected bottom force is %f, computed %f\n", expected_bottom_force, computed_bottom_force);
-        if (std::abs((expected_bottom_force - computed_bottom_force) / expected_bottom_force) > percent_error) {
-            printf("DIFFERENCE IS TOO LARGE!\n");
-            exit(1);
-        }
+        return false;
     }
-    timer.stop();
-    return timer.GetTimeSeconds();
+
+    printf("plane force is (%f, %f, %f) Newtons\n",  //
+           F_CGS_TO_SI * reaction_forces[0], F_CGS_TO_SI * reaction_forces[1], F_CGS_TO_SI * reaction_forces[2]);
+
+    float computed_bottom_force = reaction_forces[2];
+    float expected_bottom_force = (float)body_points.size() * (4.f / 3.f) * (float)CH_C_PI * sphereRadius *
+                                  sphereRadius * sphereRadius * sphereDensity * grav_acceleration;
+
+    // 1% error allowed, max
+    float percent_error = 0.01f;
+    printf("Expected bottom force is %f, computed %f\n", expected_bottom_force, computed_bottom_force);
+    if (std::abs((expected_bottom_force - computed_bottom_force) / expected_bottom_force) > percent_error) {
+        printf("DIFFERENCE IS TOO LARGE!\n");
+        return false;
+    }
+
+    return true;
 }
 
 int main(int argc, char* argv[]) {
     const int gpu_dev_id_active = 0;
-    const int gpu_dev_id_other = 1;
     cudaDeviceProp dev_props;
-
     gpuErrchk(cudaSetDevice(gpu_dev_id_active));
-
     gpuErrchk(cudaGetDeviceProperties(&dev_props, gpu_dev_id_active));
 
-    printf("%s\nDEVICE PROPERTIES:\n", DELIM);
+    printf("\nDEVICE PROPERTIES:\n");
     printf("\tDevice name: %s\n", dev_props.name);
     printf("\tCompute Capability: %d.%d\n", dev_props.major, dev_props.minor);
     printf("\tcanMapHostMemory: %d\n", dev_props.canMapHostMemory);
@@ -149,23 +145,8 @@ int main(int argc, char* argv[]) {
     printf("\tcanUseHostPointerForRegisteredMem: %d\n", dev_props.canUseHostPointerForRegisteredMem);
     printf("\tdirectManagedMemAccessFromHost: %d\n", dev_props.directManagedMemAccessFromHost);
 
-    // int canAccessPeer;
+    if (!run_test(70, 70, 70))
+        return 1;
 
-    // gpuErrchk(cudaDeviceCanAccessPeer(&canAccessPeer, gpu_dev_id_active, gpu_dev_id_other));
-    // printf("\tCan access peer (GPU 0 -> GPU 1): %d\n", canAccessPeer);
-
-    // gpuErrchk(cudaDeviceCanAccessPeer(&canAccessPeer, gpu_dev_id_active, cudaCpuDeviceId));
-    // printf("\tCan access peer (GPU 0 -> CPU): %d\n", canAccessPeer);
-    // up to one million bodies
-    // double time50k = run_test(100, 100, 100);
-    // double time500k = run_test(220, 220, 220);
-    double run_time = run_test(70, 70, 70);
-
-    std::cout << "Running mini granular test!" << std::endl;
-    // std::cout << "50 thousand bodies took " << time50k << " seconds!" << std::endl;
-    // std::cout << "500 thousand bodies took " << time500k << " seconds!" << std::endl;
-    std::cout << "1 million bodies took " << run_time << " seconds!" << std::endl;
-
-    std::ofstream ofile(argv[1], std::ofstream::app);
     return 0;
 }
