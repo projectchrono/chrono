@@ -22,7 +22,7 @@
 #include "chrono/utils/ChUtilsGenerators.h"
 #include "chrono/core/ChVector.h"
 
-#include "chrono_gpu/physics/ChGpu.h"
+#include "chrono_gpu/physics/ChSystemGpu.h"
 #include "chrono_gpu/utils/ChGpuUtilities.h"
 #include "chrono_gpu/physics/ChGpuBoundaryConditions.h"
 #include "chrono_gpu/utils/ChCudaMathUtils.cuh"

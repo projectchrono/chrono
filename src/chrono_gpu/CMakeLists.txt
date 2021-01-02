@@ -81,10 +81,10 @@ set(ChronoEngine_GPU_BASE
 source_group("" FILES ${ChronoEngine_GPU_BASE})
 
 set(ChronoEngine_GPU_PHYSICS
-		physics/ChGpu.h
-		physics/ChGpu.cpp
-		physics/ChGpuTriMesh.h
-		physics/ChGpuTriMesh.cpp
+		physics/ChSystemGpu.h
+		physics/ChSystemGpu.cpp
+		physics/ChSystemGpuMesh.h
+		physics/ChSystemGpuMesh.cpp
 		physics/ChGpuBoundaryConditions.h
 		)
 

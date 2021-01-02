@@ -21,10 +21,12 @@
 
 #include "chrono/core/ChGlobal.h"
 #include "chrono/utils/ChUtilsSamplers.h"
+
 #include "chrono_gpu/ChGpuData.h"
 #include "chrono_gpu/api/ChApiGpuChrono.h"
-#include "chrono_gpu/physics/ChGpu.h"
+#include "chrono_gpu/physics/ChSystemGpu.h"
 #include "chrono_gpu/utils/ChGpuJsonParser.h"
+
 #include "chrono_thirdparty/filesystem/path.h"
 
 using namespace chrono;

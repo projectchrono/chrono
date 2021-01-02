@@ -24,7 +24,7 @@
 #include "chrono/core/ChMatrix33.h"
 
 #include "chrono_gpu/utils/ChGpuUtilities.h"
-#include "chrono_gpu/physics/ChGpuTriMesh.h"
+#include "chrono_gpu/physics/ChSystemGpuMesh.h"
 
 namespace chrono {
 namespace gpu {

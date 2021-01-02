@@ -16,7 +16,6 @@
 
 #include "chrono_gpu/api/ChApiGpuChrono.h"
 #include "chrono_gpu/utils/ChGpuUtilities.h"
-#include "chrono_gpu/physics/ChGpuTriMesh.h"
 
 namespace chrono {
 namespace gpu {

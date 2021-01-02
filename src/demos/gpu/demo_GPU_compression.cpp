@@ -21,14 +21,16 @@
 
 #include "GpuDemoUtils.hpp"
 
-#include "chrono_thirdparty/filesystem/path.h"
-#include "chrono_gpu/api/ChApiGpuChrono.h"
-#include "chrono_gpu/physics/ChGpu.h"
-#include "chrono_gpu/utils/ChGpuJsonParser.h"
-#include "chrono/utils/ChUtilsSamplers.h"
-#include "chrono_gpu/utils/ChCudaMathUtils.cuh"
 #include "chrono/core/ChStream.h"
 #include "chrono/core/ChVector.h"
+#include "chrono/utils/ChUtilsSamplers.h"
+
+#include "chrono_thirdparty/filesystem/path.h"
+
+#include "chrono_gpu/api/ChApiGpuChrono.h"
+#include "chrono_gpu/physics/ChSystemGpu.h"
+#include "chrono_gpu/utils/ChGpuJsonParser.h"
+#include "chrono_gpu/utils/ChCudaMathUtils.cuh"
 
 using namespace chrono;
 using namespace chrono::gpu;

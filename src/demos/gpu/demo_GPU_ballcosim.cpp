@@ -19,17 +19,19 @@
 #include <iostream>
 #include <vector>
 #include <string>
+
 #include "chrono/core/ChGlobal.h"
 #include "chrono_thirdparty/filesystem/path.h"
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/physics/ChBody.h"
 #include "chrono/physics/ChForce.h"
-#include "chrono/utils/ChUtilsSamplers.h"
 #include "chrono/timestepper/ChTimestepper.h"
-#include "chrono_gpu/api/ChApiGpuChrono.h"
-#include "chrono_gpu/physics/ChGpu.h"
-#include "chrono_gpu/physics/ChGpuTriMesh.h"
+#include "chrono/utils/ChUtilsSamplers.h"
 #include "chrono/utils/ChUtilsCreators.h"
+
+#include "chrono_gpu/api/ChApiGpuChrono.h"
+#include "chrono_gpu/physics/ChSystemGpu.h"
+#include "chrono_gpu/physics/ChSystemGpuMesh.h"
 #include "chrono_gpu/utils/ChGpuJsonParser.h"
 
 using namespace chrono;

@@ -14,8 +14,8 @@
 
 #pragma once
 
-#include "chrono_gpu/physics/ChGpuTriMesh.h"
 #include "chrono_gpu/ChGpuDefines.h"
+#include "chrono_gpu/physics/ChSystemGpuMesh.h"
 #include "chrono_gpu/physics/ChGpuHelpers.cuh"
 #include "chrono_gpu/physics/ChGpuCUDAalloc.hpp"
 

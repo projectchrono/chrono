@@ -13,7 +13,7 @@
 // =============================================================================
 
 #include "chrono_gpu/physics/ChGpu_SMC_trimesh.cuh"
-#include "chrono_gpu/physics/ChGpuTriMesh.h"
+#include "chrono_gpu/physics/ChSystemGpuMesh.h"
 #include "chrono_gpu/physics/ChGpu_SMC.cuh"
 
 namespace chrono {
@@ -22,6 +22,7 @@ namespace gpu {
 void ChSystemGpuSMC_trimesh::resetTriangleForces() {
     gpuErrchk(cudaMemset(meshSoup->generalizedForcesPerFamily, 0, 6 * meshSoup->numTriangleFamilies * sizeof(float)));
 }
+
 // Reset triangle broadphase data structures
 void ChSystemGpuSMC_trimesh::resetTriangleBroadphaseInformation() {
     gpuErrchk(cudaMemset(SD_numTrianglesTouching.data(), 0, SD_numTrianglesTouching.size() * sizeof(unsigned int)));

@@ -14,7 +14,7 @@
 
 #pragma once
 
-#include "chrono_gpu/physics/ChGpu.h"
+#include "chrono_gpu/physics/ChSystemGpu.h"
 
 namespace chrono {
 namespace gpu {

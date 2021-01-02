@@ -20,6 +20,7 @@
 #include <vector>
 #include <algorithm>
 #include <cmath>
+
 #include "chrono_gpu/api/ChApiGpu.h"
 #include "chrono_gpu/ChGpuDefines.h"
 #include "chrono_gpu/physics/ChGpuBoundaryConditions.h"

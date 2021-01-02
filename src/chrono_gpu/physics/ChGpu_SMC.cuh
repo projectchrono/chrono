@@ -28,7 +28,7 @@
 #include <string>
 #include <cstdint>
 #include "chrono_gpu/ChGpuDefines.h"
-#include "chrono_gpu/physics/ChGpu.h"
+#include "chrono_gpu/physics/ChSystemGpu.h"
 #include "chrono_gpu/utils/ChCudaMathUtils.cuh"
 
 #include "chrono_gpu/physics/ChGpuHelpers.cuh"
