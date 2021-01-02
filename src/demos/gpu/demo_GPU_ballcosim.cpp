@@ -173,8 +173,6 @@ int main(int argc, char* argv[]) {
 
     unsigned int nSoupFamilies = gpu_sys.getNumTriangleFamilies();
     std::cout << nSoupFamilies << " soup families" << std::endl;
-    double* meshPosRot = new double[7 * nSoupFamilies];
-    float* meshVel = new float[6 * nSoupFamilies]();
 
     gpu_sys.initialize();
 
@@ -203,29 +201,9 @@ int main(int argc, char* argv[]) {
 
     clock_t start = std::clock();
     for (double t = 0; t < (double)params.time_end; t += iteration_step, curr_step++) {
-        auto ball_pos = ball_body->GetPos();
-        auto ball_rot = ball_body->GetRot();
+        gpu_sys.applyMeshMotion(0, ball_body->GetPos().data(), ball_body->GetRot().data(),
+                                ball_body->GetPos_dt().data(), ball_body->GetWvel_par().data());
 
-        auto ball_vel = ball_body->GetPos_dt();
-        auto ball_ang_vel = ball_body->GetWvel_loc();
-        ball_ang_vel = ball_body->GetRot().GetInverse().Rotate(ball_ang_vel);
-
-        meshPosRot[0] = ball_pos.x();
-        meshPosRot[1] = ball_pos.y();
-        meshPosRot[2] = ball_pos.z();
-        meshPosRot[3] = ball_rot[0];
-        meshPosRot[4] = ball_rot[1];
-        meshPosRot[5] = ball_rot[2];
-        meshPosRot[6] = ball_rot[3];
-
-        meshVel[0] = (float)ball_vel.x();
-        meshVel[1] = (float)ball_vel.y();
-        meshVel[2] = (float)ball_vel.z();
-        meshVel[3] = (float)ball_ang_vel.x();
-        meshVel[4] = (float)ball_ang_vel.y();
-        meshVel[5] = (float)ball_ang_vel.z();
-
-        gpu_sys.meshSoup_applyRigidBodyMotion(meshPosRot, meshVel);
 
         gpu_sys.advance_simulation(iteration_step);
         sys_ball.DoStepDynamics(iteration_step);
@@ -234,7 +212,8 @@ int main(int argc, char* argv[]) {
         gpu_sys.collectGeneralizedForcesOnMeshSoup(ball_force);
 
         ball_body->Empty_forces_accumulators();
-        ball_body->Accumulate_force(ChVector<>(ball_force[0], ball_force[1], ball_force[2]), ball_pos, false);
+        ball_body->Accumulate_force(ChVector<>(ball_force[0], ball_force[1], ball_force[2]), ball_body->GetPos(),
+                                    false);
         ball_body->Accumulate_torque(ChVector<>(ball_force[3], ball_force[4], ball_force[5]), false);
 
         if (curr_step % out_steps == 0) {
@@ -259,9 +238,6 @@ int main(int argc, char* argv[]) {
     double total_time = ((double)(end - start)) / CLOCKS_PER_SEC;
 
     std::cout << "Time: " << total_time << " seconds" << std::endl;
-
-    delete[] meshPosRot;
-    delete[] meshVel;
 
     return 0;
 }

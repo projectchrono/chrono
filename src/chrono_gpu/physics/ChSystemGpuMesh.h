@@ -48,6 +48,13 @@ class CH_GPU_API ChSystemGpuSMC_trimesh : public ChSystemGpuSMC {
     /// genForcesOnSoup should have 6 entries for each family
     void collectGeneralizedForcesOnMeshSoup(float* genForcesOnSoup);
 
+    /// Apply rigid body motion to specified mesh.
+    void applyMeshMotion(unsigned int mesh,
+                         const double* pos,
+                         const double* rot,
+                         const double* lin_vel,
+                         const double* ang_vel);
+
     /// position_orientation_data should have 7 entries for each family: 3 pos, 4 orientation
     /// vel should have 6 entries for each family: 3 linear velocity, 3 angular velocity
     void meshSoup_applyRigidBodyMotion(double* position_orientation_data, float* vel);
@@ -209,7 +216,7 @@ class CH_GPU_API ChSystemGpuSMC_trimesh : public ChSystemGpuSMC {
     virtual double get_max_K() const override;
 
     template <typename T>
-    void generate_rot_matrix(double* ep, T* rot_mat);
+    void generate_rot_matrix(const double* ep, T* rot_mat);
 
     void ApplyFrameTransform(float3& p, float* pos, float* rot_mat);
 };

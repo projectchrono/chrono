@@ -153,12 +153,11 @@ int main(int argc, char* argv[]) {
 
     unsigned int nSoupFamilies = gpu_sys.getNumTriangleFamilies();
     std::cout << nSoupFamilies << " soup families" << std::endl;
-    double* mesh_pos_rot = new double[7 * nSoupFamilies];
-    float* mesh_vel = new float[6 * nSoupFamilies]();
 
     float rev_per_sec = 1.f;
     float ang_vel_Z = rev_per_sec * 2 * CH_C_PI;
-    mesh_vel[5] = ang_vel_Z;
+    ChVector<> mesh_lin_vel(0);
+    ChVector<> mesh_ang_vel(0, 0, ang_vel_Z);
 
     gpu_sys.enableMeshCollision();
     gpu_sys.initialize();
@@ -173,17 +172,10 @@ int main(int argc, char* argv[]) {
     unsigned int step = 0;
 
     for (float t = 0; t < params.time_end; t += iteration_step, step++) {
-        mesh_pos_rot[0] = 0;
-        mesh_pos_rot[1] = 0;
-        mesh_pos_rot[2] = chamber_bottom + chamber_height / 2.0;
+        ChVector<> mesh_pos(0, 0, chamber_bottom + chamber_height / 2.0);
+        ChQuaternion<> mesh_rot = Q_from_AngZ(t * ang_vel_Z);
+        gpu_sys.applyMeshMotion(0, mesh_pos.data(), mesh_rot.data(), mesh_lin_vel.data(), mesh_ang_vel.data());
 
-        auto q = Q_from_AngZ(t * ang_vel_Z);
-        mesh_pos_rot[3] = q[0];
-        mesh_pos_rot[4] = q[1];
-        mesh_pos_rot[5] = q[2];
-        mesh_pos_rot[6] = q[3];
-
-        gpu_sys.meshSoup_applyRigidBodyMotion(mesh_pos_rot, mesh_vel);
         if (step % out_steps == 0) {
             std::cout << "Rendering frame " << (currframe+1) << " of " << total_frames << std::endl;
             char filename[100];
@@ -198,9 +190,6 @@ int main(int argc, char* argv[]) {
 
         gpu_sys.advance_simulation(iteration_step);
     }
-
-    delete[] mesh_pos_rot;
-    delete[] mesh_vel;
 
     return 0;
 }
