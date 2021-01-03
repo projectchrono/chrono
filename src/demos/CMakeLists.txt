@@ -49,6 +49,11 @@ if(BUILD_DEMOS_FEA)
 	add_subdirectory(fea)
 endif()
 
+option(BUILD_DEMOS_ROBOSIMIAN "Build RoboSimian demo programs" ON)
+mark_as_advanced(FORCE BUILD_DEMOS_ROBOSIMIAN)
+if(BUILD_DEMOS_ROBOSIMIAN)
+  add_subdirectory(robosimian)
+endif()
 
 if(ENABLE_MODULE_COSIMULATION)
 	option(BUILD_DEMOS_COSIMULATION "Build demo programs for Cosimulation module" TRUE)
