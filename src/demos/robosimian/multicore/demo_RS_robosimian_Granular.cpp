@@ -117,7 +117,7 @@ int main(int argc, char* argv[]) {
     // Initialize output directories
     // -----------------------------
 
-    const std::string dir = "../ROBOSIMIAN_GRANULAR";
+    const std::string dir = GetChronoOutputPath() + "ROBOSIMIAN_GRANULAR";
     std::string pov_dir = dir + "/POVRAY" + suffix;
     std::string out_dir = dir + "/RESULTS" + suffix;
 

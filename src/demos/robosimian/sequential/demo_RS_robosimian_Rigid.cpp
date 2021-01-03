@@ -54,7 +54,7 @@ double output_fps = 100;
 double render_fps = 60;
 
 // Output directories
-const std::string out_dir = "../ROBOSIMIAN_RIGID";
+const std::string out_dir = GetChronoOutputPath() + "ROBOSIMIAN_RIGID";
 const std::string pov_dir = out_dir + "/POVRAY";
 const std::string img_dir = out_dir + "/IMG";
 
