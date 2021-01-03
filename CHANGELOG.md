@@ -5,6 +5,7 @@ Change Log
 ==========
 
 - [Unreleased (development version)](#unreleased-development-branch)
+  - [RoboSimian model](#added-robosimian-model)
   - [Contact force reporting through user-provided callback](#added-contact-force-reporting-through-user-provided-callback)
   - [Chrono::Multicore module rename](#changed-chronomulticore-module-rename)
   - [Geometric stiffness for Euler beams](#added-geometric-stiffness-for-euler-beams)
@@ -30,6 +31,10 @@ Change Log
 - [Release 4.0.0](#release-400---2019-02-22)
 
 ## Unreleased (development branch)
+
+### [Added] RoboSimian model
+
+A model of the legged RoboSimian robot is now included in the collection of Chrono models.  The model has no dependencies beyond the core Chrono module, except for an (optional) utility class for visualization with Irrlicht.  A Python wrapper is also provided. Related demo programs illustrate the robot moving over rigid or SCM deformable terrain (using a core Chrono system) and over granular terrain (using the Chrono::Multicore module).
 
 ### [Added] Contact force reporting through user-provided callback
 
