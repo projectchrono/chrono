@@ -151,7 +151,16 @@ for (auto& axle : trailer.GetAxles()) {
 
 ### [Added] New Chrono::Sensor module
 
-TODO
+A new module (`Chrono::Sensor`) has been introduced to allow for sensor simulation within Chrono. `Chrono::Sensor` provides an interface for modeling and simulating sensors in the Chrono system to provide input for perception and control algorithms. For example, `Chrono::Sensor` may be used in combination with `Chrono::Vehicle` to simulate an autonomous vehicle equipped with multiple cameras and lidars. The module containes a API for modeling sensors with noise and distortion using a filter-graph paradigm for customization. Rendered sensors (camera and lidar) utilize ray tracing via OptiX to generate synthetic data.
+
+Parameterized models for camera, lidar, GPS and IMU have been added with the ability to extend or implement custom sensors.
+
+`Chrono::Sensor` is designed around a `ChSensorManager` which maintains all time synchronization and resources management between the sensing module and the core chrono system. Sensors such as a `ChCameraSensor` and `ChLidarSensor` can be added to the manager and mounted to a Chrono body which will determine the sensor's dynamics. The sensor are maintained by the `ChSensorManager` and all data is received via an added `ChFilterAccess` in the filter graph, determined by the sensor's parameters.
+
+Locations:
+- `Chrono::Sensor` source code is maintained under `src/chrono_sensor/`
+- Demos are located in `src/demos/sensor/`
+- Sensor specific data is located in `data/sensor/`
 
 ### [Changed] Setting OpenMP number of threads
 
