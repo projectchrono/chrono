@@ -14,7 +14,7 @@
 
 #pragma once
 
-#include "chrono_gpu/physics/ChSystemGpu.h"
+#include "chrono_gpu/physics/ChSystemGpu_impl.h"
 
 namespace chrono {
 namespace gpu {
@@ -27,12 +27,12 @@ namespace gpu {
 /// Mesh soup: a collection of meshes that each has a certain number of triangle elements. For instance, the meshes
 /// associated with the four wheels of a rover operating on granular material would be smashed into one soup having four
 /// mesh families.
-class CH_GPU_API ChSystemGpuSMC_trimesh : public ChSystemGpuSMC {
+class CH_GPU_API ChSystemGpuMesh_impl : public ChSystemGpu_impl {
   public:
     // we do not want the system to be default-constructible
-    ChSystemGpuSMC_trimesh() = delete;
-    ChSystemGpuSMC_trimesh(float sphere_rad, float density, float3 boxDims);
-    virtual ~ChSystemGpuSMC_trimesh();
+    ChSystemGpuMesh_impl() = delete;
+    ChSystemGpuMesh_impl(float sphere_rad, float density, float3 boxDims);
+    virtual ~ChSystemGpuMesh_impl();
 
     void set_K_n_SPH2MESH(double someValue) { K_n_s2m_UU = someValue; }
     void set_Gamma_n_SPH2MESH(double someValue) { Gamma_n_s2m_UU = someValue; }
@@ -227,7 +227,7 @@ class CH_GPU_API ChSystemGpuSMC_trimesh : public ChSystemGpuSMC {
 }  // namespace chrono
 
 /// Get nicer handles to pointer names, enforce const-ness on the mesh params
-typedef const chrono::gpu::ChSystemGpuSMC_trimesh::MeshParams* MeshParamsPtr;
+typedef const chrono::gpu::ChSystemGpuMesh_impl::MeshParams* MeshParamsPtr;
 
 /// Get nicer handles to pointer names, enforce const-ness on the mesh params
-typedef chrono::gpu::ChSystemGpuSMC_trimesh::TriangleSoup* TriangleSoupPtr;
+typedef chrono::gpu::ChSystemGpuMesh_impl::TriangleSoup* TriangleSoupPtr;

@@ -15,8 +15,9 @@
 // =============================================================================
 
 #pragma once
+
 #include "chrono_gpu/ChGpuDefines.h"
-#include "chrono_gpu/utils/ChCudaMathUtils.cuh"
+#include "chrono_gpu/cuda/ChCudaMathUtils.cuh"
 
 /// This utility function takes the location 'P' and snaps it to the closest
 /// point on the triangular face with given vertices (A, B, and C). The result

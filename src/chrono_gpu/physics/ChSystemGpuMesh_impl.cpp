@@ -23,14 +23,14 @@
 #include "chrono/core/ChQuaternion.h"
 #include "chrono/core/ChMatrix33.h"
 
+#include "chrono_gpu/physics/ChSystemGpuMesh_impl.h"
 #include "chrono_gpu/utils/ChGpuUtilities.h"
-#include "chrono_gpu/physics/ChSystemGpuMesh.h"
 
 namespace chrono {
 namespace gpu {
 
-ChSystemGpuSMC_trimesh::ChSystemGpuSMC_trimesh(float sphere_rad, float density, float3 boxDims)
-    : ChSystemGpuSMC(sphere_rad, density, boxDims),
+ChSystemGpuMesh_impl::ChSystemGpuMesh_impl(float sphere_rad, float density, float3 boxDims)
+    : ChSystemGpu_impl(sphere_rad, density, boxDims),
       K_n_s2m_UU(0),
       K_t_s2m_UU(0),
       Gamma_n_s2m_UU(0),
@@ -50,15 +50,15 @@ ChSystemGpuSMC_trimesh::ChSystemGpuSMC_trimesh(float sphere_rad, float density, 
     set_static_friction_coeff_SPH2MESH(0);
 }
 
-ChSystemGpuSMC_trimesh::~ChSystemGpuSMC_trimesh() {
+ChSystemGpuMesh_impl::~ChSystemGpuMesh_impl() {
     // work to do here
     cleanupTriMesh();
 }
-double ChSystemGpuSMC_trimesh::get_max_K() const {
+double ChSystemGpuMesh_impl::get_max_K() const {
     return std::max(std::max(K_n_s2s_UU, K_n_s2w_UU), K_n_s2m_UU);
 }
 
-void ChSystemGpuSMC_trimesh::initializeTriangles() {
+void ChSystemGpuMesh_impl::initializeTriangles() {
     double K_SU2UU = MASS_SU2UU / (TIME_SU2UU * TIME_SU2UU);
     double GAMMA_SU2UU = 1. / TIME_SU2UU;
 
@@ -99,13 +99,13 @@ void ChSystemGpuSMC_trimesh::initializeTriangles() {
     // this gets resized on-the-fly every timestep
     TRACK_VECTOR_RESIZE(triangles_in_SD_composite, 0, "triangles_in_SD_composite", 0);
 }
-void ChSystemGpuSMC_trimesh::initialize() {
+void ChSystemGpuMesh_impl::initialize() {
     initializeSpheres();
     initializeTriangles();
 }
 
 // p = pos + rot_mat * p
-void ChSystemGpuSMC_trimesh::ApplyFrameTransform(float3& p, float* pos, float* rot_mat) {
+void ChSystemGpuMesh_impl::ApplyFrameTransform(float3& p, float* pos, float* rot_mat) {
     float3 result;
 
     // Apply rotation matrix to point
@@ -117,7 +117,7 @@ void ChSystemGpuSMC_trimesh::ApplyFrameTransform(float3& p, float* pos, float* r
     p = result;
 }
 
-void ChSystemGpuSMC_trimesh::write_meshes(std::string filename) {
+void ChSystemGpuMesh_impl::write_meshes(std::string filename) {
     if (file_write_mode == CHGPU_OUTPUT_MODE::NONE) {
         return;
     }
@@ -164,7 +164,7 @@ void ChSystemGpuSMC_trimesh::write_meshes(std::string filename) {
     outfile << ostream.str();
 }
 
-void ChSystemGpuSMC_trimesh::cleanupTriMesh() {
+void ChSystemGpuMesh_impl::cleanupTriMesh() {
     cudaFree(meshSoup->triangleFamily_ID);
     cudaFree(meshSoup->familyMass_SU);
 
@@ -182,7 +182,7 @@ void ChSystemGpuSMC_trimesh::cleanupTriMesh() {
     cudaFree(tri_params);
 }
 
-void ChSystemGpuSMC_trimesh::collectGeneralizedForcesOnMeshSoup(float* genForcesOnSoup) {
+void ChSystemGpuMesh_impl::collectGeneralizedForcesOnMeshSoup(float* genForcesOnSoup) {
     // pull directly from unified memory
     for (unsigned int i = 0; i < 6 * meshSoup->numTriangleFamilies; i += 6) {
         // Divide by C_F to go from SU to UU
@@ -197,7 +197,7 @@ void ChSystemGpuSMC_trimesh::collectGeneralizedForcesOnMeshSoup(float* genForces
     }
 }
 
-void ChSystemGpuSMC_trimesh::applyMeshMotion(unsigned int mesh,
+void ChSystemGpuMesh_impl::applyMeshMotion(unsigned int mesh,
                                              const double* pos,
                                              const double* rot,
                                              const double* lin_vel,
@@ -221,7 +221,7 @@ void ChSystemGpuSMC_trimesh::applyMeshMotion(unsigned int mesh,
     meshSoup->omega[mesh] = make_float3(C_O * (float)ang_vel[0], C_O * (float)ang_vel[1], C_O * (float)ang_vel[2]);
 }
 
-void ChSystemGpuSMC_trimesh::meshSoup_applyRigidBodyMotion(double* position_orientation_data, float* vel) {
+void ChSystemGpuMesh_impl::meshSoup_applyRigidBodyMotion(double* position_orientation_data, float* vel) {
     // Set both broadphase and narrowphase frames for each family
     for (unsigned int fam = 0; fam < meshSoup->numTriangleFamilies; fam++) {
         generate_rot_matrix<float>(position_orientation_data + 7 * fam + 3, tri_params->fam_frame_broad[fam].rot_mat);
@@ -243,7 +243,7 @@ void ChSystemGpuSMC_trimesh::meshSoup_applyRigidBodyMotion(double* position_orie
 }
 
 template <typename T>
-void ChSystemGpuSMC_trimesh::generate_rot_matrix(const double* ep, T* rot_mat) {
+void ChSystemGpuMesh_impl::generate_rot_matrix(const double* ep, T* rot_mat) {
     rot_mat[0] = (T)(2 * (ep[0] * ep[0] + ep[1] * ep[1] - 0.5));
     rot_mat[1] = (T)(2 * (ep[1] * ep[2] - ep[0] * ep[3]));
     rot_mat[2] = (T)(2 * (ep[1] * ep[3] + ep[0] * ep[2]));

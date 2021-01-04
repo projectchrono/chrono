@@ -16,8 +16,8 @@
 
 #pragma once
 
-#include "chrono_gpu/physics/ChSystemGpu.h"
-#include "chrono_gpu/utils/ChCudaMathUtils.cuh"
+#include "chrono_gpu/physics/ChSystemGpu_impl.h"
+#include "chrono_gpu/cuda/ChCudaMathUtils.cuh"
 
 #include "chrono_thirdparty/cub/cub.cuh"
 

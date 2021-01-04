@@ -15,13 +15,13 @@
 #include <cmath>
 #include <numeric>
 
-#include "chrono_gpu/physics/ChGpu_SMC.cuh"
+#include "chrono_gpu/cuda/ChGpu_SMC.cuh"
 #include "chrono_gpu/utils/ChGpuUtilities.h"
 
 namespace chrono {
 namespace gpu {
 
-__host__ double ChSystemGpuSMC::get_max_z() const {
+__host__ double ChSystemGpu_impl::get_max_z() const {
     size_t nSpheres = sphere_local_pos_Z.size();
     std::vector<int64_t> sphere_pos_global_Z;
     sphere_pos_global_Z.resize(nSpheres);
@@ -40,7 +40,7 @@ __host__ double ChSystemGpuSMC::get_max_z() const {
 }
 
 // Reset broadphase data structures
-void ChSystemGpuSMC::resetBroadphaseInformation() {
+void ChSystemGpu_impl::resetBroadphaseInformation() {
     // Set all the offsets to zero
     gpuErrchk(cudaMemset(SD_NumSpheresTouching.data(), 0, SD_NumSpheresTouching.size() * sizeof(unsigned int)));
     gpuErrchk(cudaMemset(SD_SphereCompositeOffsets.data(), 0, SD_SphereCompositeOffsets.size() * sizeof(unsigned int)));
@@ -51,7 +51,7 @@ void ChSystemGpuSMC::resetBroadphaseInformation() {
 }
 
 // Reset sphere acceleration data structures
-void ChSystemGpuSMC::resetSphereAccelerations() {
+void ChSystemGpu_impl::resetSphereAccelerations() {
     // cache past acceleration data
     if (time_integrator == CHGPU_TIME_INTEGRATOR::CHUNG) {
         gpuErrchk(cudaMemcpy(sphere_acc_X_old.data(), sphere_acc_X.data(), nSpheres * sizeof(float),
@@ -97,7 +97,7 @@ __global__ void compute_absv(const unsigned int nSpheres,
     }
 }
 
-__host__ float ChSystemGpuSMC::get_max_vel() const {
+__host__ float ChSystemGpu_impl::get_max_vel() const {
     float* d_absv;
     float* d_max_vel;
     float h_max_vel;
@@ -119,13 +119,13 @@ __host__ float ChSystemGpuSMC::get_max_vel() const {
     return h_max_vel;
 }
 
-__host__ int3 ChSystemGpuSMC::getSDTripletFromID(unsigned int SD_ID) const {
+__host__ int3 ChSystemGpu_impl::getSDTripletFromID(unsigned int SD_ID) const {
     return SDIDTriplet(SD_ID, gran_params);
 }
 /// Sort sphere positions by subdomain id
 /// Occurs entirely on host, not intended to be efficient
 /// ONLY DO AT BEGINNING OF SIMULATION
-__host__ void ChSystemGpuSMC::defragment_initial_positions() {
+__host__ void ChSystemGpu_impl::defragment_initial_positions() {
     // key and value pointers
     std::vector<unsigned int, cudallocator<unsigned int>> sphere_ids;
 
@@ -185,7 +185,7 @@ __host__ void ChSystemGpuSMC::defragment_initial_positions() {
     sphere_fixed.swap(sphere_fixed_tmp);
     sphere_owner_SDs.swap(sphere_owner_SDs_tmp);
 }
-__host__ void ChSystemGpuSMC::setupSphereDataStructures() {
+__host__ void ChSystemGpu_impl::setupSphereDataStructures() {
     // Each fills user_sphere_positions with positions to be copied
     if (user_sphere_positions.size() == 0) {
         printf("ERROR: no sphere positions given!\n");
@@ -337,7 +337,7 @@ __host__ void ChSystemGpuSMC::setupSphereDataStructures() {
     packSphereDataPointers();
 }
 
-__host__ void ChSystemGpuSMC::runSphereBroadphase() {
+__host__ void ChSystemGpu_impl::runSphereBroadphase() {
     METRICS_PRINTF("Resetting broadphase info!\n");
 
     resetBroadphaseInformation();
@@ -419,7 +419,7 @@ __host__ void ChSystemGpuSMC::runSphereBroadphase() {
     gpuErrchk(cudaFree(d_temp_storage));
 }
 
-__host__ void ChSystemGpuSMC::updateBCPositions() {
+__host__ void ChSystemGpu_impl::updateBCPositions() {
     for (unsigned int i = 0; i < BC_params_list_UU.size(); i++) {
         auto bc_type = BC_type_list.at(i);
         const BC_params_t<float, float3>& params_UU = BC_params_list_UU.at(i);
@@ -464,7 +464,7 @@ __host__ void ChSystemGpuSMC::updateBCPositions() {
     }
 }
 
-__host__ double ChSystemGpuSMC::advance_simulation(float duration) {
+__host__ double ChSystemGpu_impl::advance_simulation(float duration) {
     // Figure our the number of blocks that need to be launched to cover the box
     unsigned int nBlocks = (nSpheres + CUDA_THREADS_PER_BLOCK - 1) / CUDA_THREADS_PER_BLOCK;
 

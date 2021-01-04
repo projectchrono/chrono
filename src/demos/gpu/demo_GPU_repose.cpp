@@ -23,8 +23,8 @@
 #include "chrono/utils/ChUtilsSamplers.h"
 
 #include "chrono_gpu/ChGpuData.h"
-#include "chrono_gpu/api/ChApiGpuChrono.h"
 #include "chrono_gpu/physics/ChSystemGpu.h"
+#include "chrono_gpu/physics/ChSystemGpu_impl.h"
 #include "chrono_gpu/utils/ChGpuJsonParser.h"
 
 #include "chrono_thirdparty/filesystem/path.h"
@@ -53,7 +53,7 @@ int main(int argc, char* argv[]) {
     filesystem::create_directory(filesystem::path(params.output_dir));
 
     // Setup simulation
-    ChSystemGpuSMC gpu_sys(params.sphere_radius, params.sphere_density,
+    ChSystemGpu_impl gpu_sys(params.sphere_radius, params.sphere_density,
                            make_float3(params.box_X, params.box_Y, params.box_Z));
     gpu_sys.set_K_n_SPH2SPH(params.normalStiffS2S);
     gpu_sys.set_K_n_SPH2WALL(params.normalStiffS2W);
@@ -106,7 +106,7 @@ int main(int argc, char* argv[]) {
     ChVector<float> center(0.f, 0.f, fill_bottom + fill_height / 2.f);
     material_points = sampler.SampleCylinderZ(center, fill_width, fill_height / 2.f);
 
-    ChGpuSMC_API apiSMC;
+    ChSystemGpu apiSMC;
     apiSMC.setSystem(&gpu_sys);
 
     std::vector<ChVector<float>> body_points;

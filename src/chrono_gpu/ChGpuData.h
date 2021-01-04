@@ -18,7 +18,7 @@
 
 #include <string>
 
-#include "chrono_gpu/api/ChApiGpu.h"
+#include "chrono_gpu/ChApiGpu.h"
 
 namespace chrono {
 namespace gpu {

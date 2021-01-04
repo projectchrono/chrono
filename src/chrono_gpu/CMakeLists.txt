@@ -73,70 +73,64 @@ set(CH_GPU_INCLUDES "${CH_GPU_INCLUDES}" PARENT_SCOPE)
 # ------------------------------------------------------------------------------
 
 set(ChronoEngine_GPU_BASE
-		ChGpuDefines.h
-		ChGpuData.h
-		ChGpuData.cpp
-		)
+    ChApiGpu.h
+    ChGpuDefines.h
+    ChGpuData.h
+    ChGpuData.cpp
+    )
 
 source_group("" FILES ${ChronoEngine_GPU_BASE})
 
 set(ChronoEngine_GPU_PHYSICS
-		physics/ChSystemGpu.h
-		physics/ChSystemGpu.cpp
-		physics/ChSystemGpuMesh.h
-		physics/ChSystemGpuMesh.cpp
-		physics/ChGpuBoundaryConditions.h
-		)
+    physics/ChSystemGpu.h
+    physics/ChSystemGpu.cpp
+    physics/ChSystemGpu_impl.h
+    physics/ChSystemGpu_impl.cpp
+    physics/ChSystemGpuMesh_impl.h
+    physics/ChSystemGpuMesh_impl.cpp
+    physics/ChGpuBoundaryConditions.h
+    )
 
 source_group(physics FILES ${ChronoEngine_GPU_PHYSICS})
 
 set(ChronoEngine_GPU_CUDA
-		physics/ChGpu_SMC.cu
-		physics/ChGpu_SMC.cuh
-		physics/ChGpu_SMC_trimesh.cu
-		physics/ChGpu_SMC_trimesh.cuh
-		physics/ChGpuCollision.cuh
-		physics/ChGpuBoundaryConditions.cuh
-		physics/ChGpuHelpers.cuh
-		physics/ChGpuBoxTriangle.cuh
-		physics/ChGpuCUDAalloc.hpp
-		utils/ChCudaMathUtils.cuh
-		)
+    cuda/ChGpu_SMC.cu
+    cuda/ChGpu_SMC.cuh
+    cuda/ChGpu_SMC_trimesh.cu
+    cuda/ChGpu_SMC_trimesh.cuh
+    cuda/ChGpuCollision.cuh
+    cuda/ChGpuBoundaryConditions.cuh
+    cuda/ChGpuHelpers.cuh
+    cuda/ChGpuBoxTriangle.cuh
+    cuda/ChGpuCUDAalloc.hpp
+    cuda/ChCudaMathUtils.cuh
+    )
 
 source_group(cuda FILES ${ChronoEngine_GPU_CUDA})
 
 set(ChronoEngine_GPU_UTILITIES
-		utils/ChGpuUtilities.h
-		utils/ChGpuJsonParser.h
-		utils/ChGpuSphereDecomp.h
-		)
+    utils/ChGpuUtilities.h
+    utils/ChGpuJsonParser.h
+    utils/ChGpuSphereDecomp.h
+    )
 
 source_group(utilities FILES ${ChronoEngine_GPU_UTILITIES})
-
-set(ChronoEngine_GPU_API
-		api/ChApiGpu.h
-		api/ChApiGpuChrono.h
-		api/ChApiGpuChrono.cpp
-		)
-
-source_group(api FILES ${ChronoEngine_GPU_API})
 
 # ------------------------------------------------------------------------------
 # Add the ChronoEngine_gpu library
 # ------------------------------------------------------------------------------
 
 CUDA_ADD_LIBRARY(ChronoEngine_gpu SHARED
-						${ChronoEngine_GPU_BASE}
-						${ChronoEngine_GPU_PHYSICS}
-						${ChronoEngine_GPU_CUDA}
-						${ChronoEngine_GPU_UTILITIES}
-						${ChronoEngine_GPU_API}
-						)
+                 ${ChronoEngine_GPU_BASE}
+                 ${ChronoEngine_GPU_PHYSICS}
+                 ${ChronoEngine_GPU_CUDA}
+                 ${ChronoEngine_GPU_UTILITIES}
+                 )
 set(CHRONO_GPU_LINKED_LIBRARIES ChronoEngine ${CUDA_FRAMEWORK})
 
 set_target_properties(ChronoEngine_gpu PROPERTIES
-					  LINK_FLAGS "${CH_LINKERFLAG_SHARED}"
-					  COMPILE_DEFINITIONS "CH_API_COMPILE_GPU")
+                      LINK_FLAGS "${CH_LINKERFLAG_SHARED}"
+                      COMPILE_DEFINITIONS "CH_API_COMPILE_GPU")
 
 target_link_libraries(ChronoEngine_gpu ${CHRONO_GPU_LINKED_LIBRARIES})
 
@@ -148,21 +142,21 @@ if(HDF5_FOUND)
 endif()
 
 install(TARGETS ChronoEngine_gpu
-				RUNTIME DESTINATION bin
-				LIBRARY DESTINATION lib
-				ARCHIVE DESTINATION lib)
+        RUNTIME DESTINATION bin
+        LIBRARY DESTINATION lib
+        ARCHIVE DESTINATION lib)
 
 install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/
-				DESTINATION include/chrono_gpu
-			FILES_MATCHING PATTERN "*.h" PATTERN "*.cuh" PATTERN "*.hpp")
+        DESTINATION include/chrono_gpu
+        FILES_MATCHING PATTERN "*.h" PATTERN "*.cuh" PATTERN "*.hpp")
 
 mark_as_advanced(FORCE
-		CUDA_BUILD_CUBIN
-		CUDA_BUILD_EMULATION
-		CUDA_SEPARABLE_COMPILATION
-		CUDA_SDK_ROOT_DIR
-		CUDA_VERBOSE_BUILD
-		CUDA_HOST_COMPILER)
+                 CUDA_BUILD_CUBIN
+                 CUDA_BUILD_EMULATION
+                 CUDA_SEPARABLE_COMPILATION
+                 CUDA_SDK_ROOT_DIR
+                 CUDA_VERBOSE_BUILD
+                 CUDA_HOST_COMPILER)
 
 # ------------------------------------------------------------------------------
 # Additional dependencies, specific to this module
@@ -174,40 +168,37 @@ option(GPU_VERBOSE_PTXAS "Enable verbose output from ptxas during compilation" O
 mark_as_advanced(GPU_VERBOSE_PTXAS)
 
 if(GPU_VERBOSE_PTXAS)
-	set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} --ptxas-options=-v")
+    set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} --ptxas-options=-v")
 endif()
 
 message(STATUS "NVCC Flags are " ${CUDA_NVCC_FLAGS})
 set(CUDA_SEPARABLE_COMPILATION OFF)
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-		set(CUDA_SEPARABLE_COMPILATION ON)
-		#set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS}; -G -lineinfo)
-        target_compile_options(ChronoEngine_gpu PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:
-                       --generate-line-info
-                       --device-debug
-                       >)
+    set(CUDA_SEPARABLE_COMPILATION ON)
+    #set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS}; -G -lineinfo)
+    target_compile_options(ChronoEngine_gpu PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:
+                           --generate-line-info
+                           --device-debug
+                           >)
 elseif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-		set(CUDA_NVCC_FLAGS_DEBUG ${CUDA_NVCC_FLAGS_DEBUG} -G -Xcompiler -g)
-		set(CUDA_NVCC_FLAGS_RELEASE ${CUDA_NVCC_FLAGS_RELEASE} -Xcompiler -O3 -Xptxas -O3 -Xcompiler -DNDEBUG)
-		set(CUDA_NVCC_FLAGS_RELWITHDEBINFO ${CUDA_NVCC_FLAGS_RELWITHDEBINFO} -Xcompiler -O2 -Xcompiler -g -Xcompiler -DNDEBUG)
-		set(CUDA_NVCC_FLAGS_MINSIZEREL ${CUDA_NVCC_FLAGS_MINSIZEREL} -Xcompiler -Os -Xcompiler -DNDEBUG)
-		message(STATUS "NVCC Flags are " ${CUDA_NVCC_FLAGS})
-		message(STATUS "NVCC Release flags are" ${CUDA_NVCC_FLAGS_RELEASE})
-		
-		
-		if(${CMAKE_CXX_COMPILER_ID} MATCHES "GNU")
-			if(${CMAKE_CXX_COMPILER_VERSION} VERSION_GREATER 4.9)
-				set(CUDA_PROPAGATE_HOST_FLAGS OFF)
-			ELSE()
-				message(FATAL_ERROR "Using GCC version:  ${CMAKE_CXX_COMPILER_VERSION}. GCC <= 4.9 is not supported! Please use a newer compiler")
-			endif()
-		endif()
-		set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS}; --compiler-options -fPIC --compiler-options -Wall -lineinfo)
-		elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-		message(FATAL_ERROR "macOS is not supported!")
+    set(CUDA_NVCC_FLAGS_DEBUG ${CUDA_NVCC_FLAGS_DEBUG} -G -Xcompiler -g)
+    set(CUDA_NVCC_FLAGS_RELEASE ${CUDA_NVCC_FLAGS_RELEASE} -Xcompiler -O3 -Xptxas -O3 -Xcompiler -DNDEBUG)
+    set(CUDA_NVCC_FLAGS_RELWITHDEBINFO ${CUDA_NVCC_FLAGS_RELWITHDEBINFO} -Xcompiler -O2 -Xcompiler -g -Xcompiler -DNDEBUG)
+    set(CUDA_NVCC_FLAGS_MINSIZEREL ${CUDA_NVCC_FLAGS_MINSIZEREL} -Xcompiler -Os -Xcompiler -DNDEBUG)
+    message(STATUS "NVCC Flags are " ${CUDA_NVCC_FLAGS})
+    message(STATUS "NVCC Release flags are" ${CUDA_NVCC_FLAGS_RELEASE})
+    
+    
+    if(${CMAKE_CXX_COMPILER_ID} MATCHES "GNU")
+        if(${CMAKE_CXX_COMPILER_VERSION} VERSION_GREATER 4.9)
+            set(CUDA_PROPAGATE_HOST_FLAGS OFF)
+        ELSE()
+            message(FATAL_ERROR "Using GCC version:  ${CMAKE_CXX_COMPILER_VERSION}. GCC <= 4.9 is not supported! Please use a newer compiler")
+        endif()
+    endif()
+    set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS}; --compiler-options -fPIC --compiler-options -Wall -lineinfo)
+    elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+    message(FATAL_ERROR "macOS is not supported!")
 endif()
 
 message(STATUS "NVCC Flags are " ${CUDA_NVCC_FLAGS})
-
-
-		

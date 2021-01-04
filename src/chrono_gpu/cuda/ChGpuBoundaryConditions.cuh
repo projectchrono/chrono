@@ -15,9 +15,9 @@
 #pragma once
 
 #include "chrono_gpu/ChGpuDefines.h"
-#include "chrono_gpu/utils/ChCudaMathUtils.cuh"
 #include "chrono_gpu/physics/ChGpuBoundaryConditions.h"
-#include "chrono_gpu/physics/ChGpuHelpers.cuh"
+#include "chrono_gpu/cuda/ChCudaMathUtils.cuh"
+#include "chrono_gpu/cuda/ChGpuHelpers.cuh"
 
 using chrono::gpu::CHGPU_TIME_INTEGRATOR;
 using chrono::gpu::CHGPU_FRICTION_MODE;

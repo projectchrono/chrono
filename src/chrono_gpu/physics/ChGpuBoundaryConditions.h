@@ -14,7 +14,7 @@
 
 #pragma once
 
-#include "chrono_gpu/api/ChApiGpu.h"
+#include "chrono_gpu/ChApiGpu.h"
 #include "chrono_gpu/ChGpuDefines.h"
 
 namespace chrono {

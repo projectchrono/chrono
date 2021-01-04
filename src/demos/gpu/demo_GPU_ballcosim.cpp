@@ -29,9 +29,9 @@
 #include "chrono/utils/ChUtilsSamplers.h"
 #include "chrono/utils/ChUtilsCreators.h"
 
-#include "chrono_gpu/api/ChApiGpuChrono.h"
 #include "chrono_gpu/physics/ChSystemGpu.h"
-#include "chrono_gpu/physics/ChSystemGpuMesh.h"
+#include "chrono_gpu/physics/ChSystemGpu_impl.h"
+#include "chrono_gpu/physics/ChSystemGpuMesh_impl.h"
 #include "chrono_gpu/utils/ChGpuJsonParser.h"
 
 using namespace chrono;
@@ -80,10 +80,10 @@ int main(int argc, char* argv[]) {
 
     float iteration_step = params.step_size;
 
-    ChGpuSMCtrimesh_API apiSMC_TriMesh(params.sphere_radius, params.sphere_density,
+    ChSystemGpuMesh apiSMC_TriMesh(params.sphere_radius, params.sphere_density,
                                               make_float3(params.box_X, params.box_Y, params.box_Z));
 
-    ChSystemGpuSMC_trimesh& gpu_sys = apiSMC_TriMesh.getSystem();
+    ChSystemGpuMesh_impl& gpu_sys = apiSMC_TriMesh.getSystem();
     double fill_bottom = -params.box_Z / 2.0;
     double fill_top = params.box_Z / 4.0;
 

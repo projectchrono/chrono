@@ -25,9 +25,9 @@
 #include "chrono/utils/ChUtilsSamplers.h"
 
 #include "chrono_gpu/ChGpuData.h"
-#include "chrono_gpu/api/ChApiGpuChrono.h"
 #include "chrono_gpu/physics/ChSystemGpu.h"
-#include "chrono_gpu/physics/ChSystemGpuMesh.h"
+#include "chrono_gpu/physics/ChSystemGpu_impl.h"
+#include "chrono_gpu/physics/ChSystemGpuMesh_impl.h"
 #include "chrono_gpu/utils/ChGpuJsonParser.h"
 
 #include "chrono_thirdparty/filesystem/path.h"
@@ -56,9 +56,9 @@ int main(int argc, char* argv[]) {
 
     float iteration_step = params.step_size;
 
-    ChGpuSMCtrimesh_API apiSMC_TriMesh(params.sphere_radius, params.sphere_density, make_float3(Bx, By, Bz));
+    ChSystemGpuMesh apiSMC_TriMesh(params.sphere_radius, params.sphere_density, make_float3(Bx, By, Bz));
 
-    ChSystemGpuSMC_trimesh& gpu_sys = apiSMC_TriMesh.getSystem();
+    ChSystemGpuMesh_impl& gpu_sys = apiSMC_TriMesh.getSystem();
 
     gpu_sys.set_K_n_SPH2SPH(params.normalStiffS2S);
     gpu_sys.set_K_n_SPH2WALL(params.normalStiffS2W);
@@ -120,7 +120,7 @@ int main(int argc, char* argv[]) {
         center.z() += 2.1 * params.sphere_radius;
     }
 
-    ChGpuSMC_API apiSMC;
+    ChSystemGpu apiSMC;
     apiSMC.setSystem(&gpu_sys);
     apiSMC.setElemsPositions(body_points);
 

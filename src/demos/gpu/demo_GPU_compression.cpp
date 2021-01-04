@@ -27,10 +27,9 @@
 
 #include "chrono_thirdparty/filesystem/path.h"
 
-#include "chrono_gpu/api/ChApiGpuChrono.h"
 #include "chrono_gpu/physics/ChSystemGpu.h"
+#include "chrono_gpu/physics/ChSystemGpu_impl.h"
 #include "chrono_gpu/utils/ChGpuJsonParser.h"
-#include "chrono_gpu/utils/ChCudaMathUtils.cuh"
 
 using namespace chrono;
 using namespace chrono::gpu;
@@ -54,10 +53,10 @@ int main(int argc, char* argv[]) {
     }
 
     // Setup simulation, big domain: 10 by 10 by 20
-    ChSystemGpuSMC gpu_sys(params.sphere_radius, params.sphere_density,
+    ChSystemGpu_impl gpu_sys(params.sphere_radius, params.sphere_density,
                                  make_float3(params.box_X, params.box_Y, params.box_Z));
 
-    ChGpuSMC_API apiSMC;
+    ChSystemGpu apiSMC;
 
     apiSMC.setSystem(&gpu_sys);
 

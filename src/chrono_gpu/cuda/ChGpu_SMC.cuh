@@ -27,12 +27,12 @@
 #include <sstream>
 #include <string>
 #include <cstdint>
-#include "chrono_gpu/ChGpuDefines.h"
-#include "chrono_gpu/physics/ChSystemGpu.h"
-#include "chrono_gpu/utils/ChCudaMathUtils.cuh"
 
-#include "chrono_gpu/physics/ChGpuHelpers.cuh"
-#include "chrono_gpu/physics/ChGpuBoundaryConditions.cuh"
+#include "chrono_gpu/ChGpuDefines.h"
+#include "chrono_gpu/physics/ChSystemGpu_impl.h"
+#include "chrono_gpu/cuda/ChCudaMathUtils.cuh"
+#include "chrono_gpu/cuda/ChGpuHelpers.cuh"
+#include "chrono_gpu/cuda/ChGpuBoundaryConditions.cuh"
 
 using chrono::gpu::CHGPU_TIME_INTEGRATOR;
 using chrono::gpu::CHGPU_FRICTION_MODE;

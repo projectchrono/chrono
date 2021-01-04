@@ -22,8 +22,8 @@
 
 #include "chrono/utils/ChUtilsSamplers.h"
 
-#include "chrono_gpu/api/ChApiGpuChrono.h"
 #include "chrono_gpu/physics/ChSystemGpu.h"
+#include "chrono_gpu/physics/ChSystemGpu_impl.h"
 #include "chrono_gpu/utils/ChGpuJsonParser.h"
 
 #include "chrono_thirdparty/filesystem/path.h"
@@ -48,10 +48,10 @@ int main(int argc, char* argv[]) {
     }
 
     // Setup simulation
-    ChSystemGpuSMC gpu_sys(params.sphere_radius, params.sphere_density,
+    ChSystemGpu_impl gpu_sys(params.sphere_radius, params.sphere_density,
                            make_float3(params.box_X, params.box_Y, params.box_Z));
 
-    ChGpuSMC_API apiSMC;
+    ChSystemGpu apiSMC;
     apiSMC.setSystem(&gpu_sys);
 
     gpu_sys.setPsiFactors(params.psi_T, params.psi_L);

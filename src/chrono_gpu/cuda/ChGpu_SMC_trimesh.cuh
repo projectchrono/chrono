@@ -15,14 +15,15 @@
 #pragma once
 
 #include "chrono_gpu/ChGpuDefines.h"
-#include "chrono_gpu/physics/ChSystemGpuMesh.h"
-#include "chrono_gpu/physics/ChGpuHelpers.cuh"
-#include "chrono_gpu/physics/ChGpuCUDAalloc.hpp"
+#include "chrono_gpu/physics/ChSystemGpuMesh_impl.h"
+
+#include "chrono_gpu/cuda/ChGpuHelpers.cuh"
+#include "chrono_gpu/cuda/ChGpuCUDAalloc.hpp"
 
 // these define things that mess with cub
-#include "chrono_gpu/physics/ChGpuCollision.cuh"
-#include "chrono_gpu/physics/ChGpuBoxTriangle.cuh"
-#include "chrono_gpu/utils/ChCudaMathUtils.cuh"
+#include "chrono_gpu/cuda/ChGpuCollision.cuh"
+#include "chrono_gpu/cuda/ChGpuBoxTriangle.cuh"
+#include "chrono_gpu/cuda/ChCudaMathUtils.cuh"
 
 // Triangle bounding box will be enlarged by 1/SAFETY_PARAM, ensuring triangles lie between 2 SDs
 // are getting some love
