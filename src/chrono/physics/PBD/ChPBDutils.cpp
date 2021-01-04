@@ -100,6 +100,8 @@ namespace chrono {
 			ChQuaternion<> q = f1.coord.rot * Body1->GetRot();
 			// get rid of unconstrained directions by element wise multiplication in the link frame reference
 			ChVector<> n_loc = q.RotateBack(n0)*p_dir;
+			// Add the correction due to limit violation
+			if (is_displ_limited) n_loc -= ApplyDisplLim(n0);
 			// Now we bring the violation back in global coord and normaize it after saving its length
 			ChVector<> nt = q.Rotate(n_loc);
 			double C = nt.Length();
@@ -155,8 +157,8 @@ namespace chrono {
 	ChVector<> ChLinkPBD::getQdelta() {
 		// Orientation of the 2 link frames
 		// TODO: this should be the opposite
-		ChQuaternion<> ql1 = Body1->GetRot() * f1.GetCoord().rot;
-		ChQuaternion<> ql2 = Body2->GetRot() * f2.GetCoord().rot;
+		ChQuaternion<> ql1 = f1.GetCoord().rot * Body1->GetRot();
+		ChQuaternion<> ql2 = f2.GetCoord().rot * Body2->GetRot();
 		if (r_locked) {
 			// eq. 18 PBD paper
 			ChQuaternion<> qdelta = ql1*ql2.GetConjugate();
@@ -169,6 +171,19 @@ namespace chrono {
 			ChVector<> deltarot = a1 % a2;
 			return deltarot;
 		}
+	}
+
+	ChVector<> ChLinkPBD::ApplyDisplLim(ChVector<> local_disp) {
+		ChVector<> correction;
+		for (unsigned i = 0; i < 3; i++) {
+			if (displ_lims[i]) {
+				double a = displ_lims_high[i] - local_disp[i];
+				double b = displ_lims_low[i] - local_disp[i];
+				correction[i] += ChMin(displ_lims_high[i] - local_disp[i], 0.0);
+				correction[i] += ChMax(displ_lims_low[i] - local_disp[i], 0.0);
+			}
+		}
+	return correction;
 	}
 
 	ChLinkPBDLock::ChLinkPBDLock(ChLinkLock* alink) : ChLinkPBD() {
@@ -192,8 +207,50 @@ namespace chrono {
 		r_free = (int(mask[3]) + int(mask[4]) + int(mask[5]) == 0) ? true : false;
 		findRDOF();
 		EvalMasses();
+		SetLimits();
 	}
 
+	void ChLinkPBDLock::SetLimits() {
+		ChLinkLimit& limx = link->GetLimit_X();
+		ChLinkLimit& limy = link->GetLimit_Y();
+		ChLinkLimit& limz = link->GetLimit_Z();
+		ChLinkLimit& limRx = link->GetLimit_Rx();
+		ChLinkLimit& limRy = link->GetLimit_Ry();
+		ChLinkLimit& limRz = link->GetLimit_Rz();
+		if (limx.IsActive()) {
+			is_displ_limited = true;
+			displ_lims[0] = true;
+			displ_lims_low[0]  = limx.GetMin();
+			displ_lims_high[0] = limx.GetMax();
+		}
+		if (limy.IsActive()) {
+			is_displ_limited = true;
+			displ_lims[1] = true;
+			displ_lims_low[1] = limy.GetMin();
+			displ_lims_high[1] = limy.GetMax();
+		}
+		if (limz.IsActive()) {
+			is_displ_limited = true;
+			displ_lims[2] = true;
+			displ_lims_low[2] = limz.GetMin();
+			displ_lims_high[2] = limz.GetMax();
+		}
+		if (limRx.IsActive()) {
+			is_displ_limited = true;
+			rot_lims_low[0] = limRx.GetMin();
+			rot_lims_high[0] = limRx.GetMax();
+		}
+		if (limRy.IsActive()) {
+			is_displ_limited = true;
+			rot_lims_low[1] = limRy.GetMin();
+			rot_lims_high[1] = limRy.GetMax();
+		}
+		if (limRz.IsActive()) {
+			is_displ_limited = true;
+			rot_lims_low[2] = limRz.GetMin();
+			rot_lims_high[2] = limRz.GetMax();
+		}
+	}
 
 
 	ChLinkPBDMate::ChLinkPBDMate(ChLinkMateGeneric* alink) : ChLinkPBD() {

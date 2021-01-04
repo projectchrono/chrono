@@ -38,6 +38,10 @@ namespace chrono {
 
 		/// Destructor
 		virtual ~ChLinkPBD() {}
+
+		/// Correct position to respect constraint
+		void SolvePositions();
+	protected:
 		// Objects needed by PBD link
 		ChBody* Body1;
 		ChBody* Body2;
@@ -72,14 +76,23 @@ namespace chrono {
 		// Tangential friction inv masses
 		double w1_tf;
 		double w2_tf;
-		// Compliance (TODO: make it settable, and separate for torque and force)
+		// Compliance (TODO: make it settable)
 		double alpha = 0.0;
-		//TODO: not implementing limits and actuators yet.
-		bool is_limited = false;
-		double lims[6] = {};
+
+		bool is_rot_limited = false;
+		bool is_displ_limited = false;
+		bool displ_lims[3] = {false, false, false};
+		double displ_lims_low[3] = {};
+		double displ_lims_high[3] = {};
+		double rot_lims_low[3] = {};
+		double rot_lims_high[3] = {};
+
+
 		bool is_actuated = false;
-		/// Correct position to respect constraint
-		void SolvePositions();
+		/// pointer to the function determining the motor 
+		std::shared_ptr<ChFunction> motor_func;
+		/// old position value for speed actuated motor
+		double old_val = 0;
 
 		/// evaluate the quaternion correction depending on rot DOF
 		ChVector<> getQdelta();
@@ -87,8 +100,11 @@ namespace chrono {
 		/// evaluate the quaternion correction depending on rot DOF
 		void findRDOF();
 
-
+		/// evaluate inv masses and set to 0 if the body is fixed
 		void EvalMasses();
+
+		/// If the displacement is limited, apply this
+		ChVector<> ApplyDisplLim(ChVector<> local_disp);
 
 		// SERIALIZATION
 		/* TODO
@@ -113,6 +129,9 @@ namespace chrono {
 
 			/// Destructor
 			virtual ~ChLinkPBDLock() {};
+
+			/// Translates the ChLinkLock limits into PBD formulation
+			void SetLimits();
 	};
 
 	CH_CLASS_VERSION(ChLinkPBDLock, 0);
