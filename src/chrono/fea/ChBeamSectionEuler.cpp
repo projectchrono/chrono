@@ -25,11 +25,12 @@ namespace fea {
 		M(0, 0) = this->Area * this->density;
 		M(1, 1) = this->Area * this->density;
 		M(2, 2) = this->Area * this->density;
+
 		M(3, 3) = (this->Iyy + this->Izz) * this->density;
-		// M(4, 4) M(5, 5)the following are zero in Euler theory  
-		//..or just make a tiny nonzero value to avoid singularity
-		//M(4, 4) = 1./500. * M(0, 0);
-		//M(5, 5) = 1./500. * M(0, 0);
+		// M(4, 4) M(5, 5) are zero in Euler theory, as Jzz = 0 Jyy = 0 
+		// .. but just make them a tiny nonzero value to avoid singularity, if small JzzJyy_factor
+		M(4, 4) = JzzJyy_factor * M(0, 0);
+		M(5, 5) = JzzJyy_factor * M(0, 0);
 		// .. but Rayleigh beam theory may add it, etc
 		//M(4, 4) = this->Jyy;
 		//M(5, 5) = this->Jzz;
