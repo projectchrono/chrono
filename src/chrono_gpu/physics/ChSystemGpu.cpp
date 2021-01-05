@@ -15,6 +15,9 @@
 #include <string>
 
 #include "chrono_gpu/physics/ChSystemGpu.h"
+#include "chrono_gpu/physics/ChSystemGpu_impl.h"
+#include "chrono_gpu/physics/ChSystemGpuMesh_impl.h"
+
 #include "chrono_gpu/utils/ChGpuUtilities.h"
 
 namespace chrono {
@@ -564,7 +567,7 @@ void ChSystemGpuMesh::CollectMeshContactForces(std::vector<ChVector<>>& forces, 
         double tx = sys_trimesh->meshSoup->generalizedForcesPerFamily[6 * i + 3];
         double ty = sys_trimesh->meshSoup->generalizedForcesPerFamily[6 * i + 4];
         double tz = sys_trimesh->meshSoup->generalizedForcesPerFamily[6 * i + 5];
-        torques[i] = ChVector<>() * torque_factor;  // Divide by C_TAU to go from SU to UU
+        torques[i] = ChVector<>(tx, ty, tz) * torque_factor;  // Divide by C_TAU to go from SU to UU
     }
 }
 
@@ -581,7 +584,7 @@ void ChSystemGpuMesh::CollectMeshContactForces(int mesh, ChVector<>& force, ChVe
     double tx = sys_trimesh->meshSoup->generalizedForcesPerFamily[6 * mesh + 3];
     double ty = sys_trimesh->meshSoup->generalizedForcesPerFamily[6 * mesh + 4];
     double tz = sys_trimesh->meshSoup->generalizedForcesPerFamily[6 * mesh + 5];
-    torque = ChVector<>() * torque_factor;  // Divide by C_TAU to go from SU to UU
+    torque = ChVector<>(tx, ty, tz) * torque_factor;  // Divide by C_TAU to go from SU to UU
 }
 
 // -----------------------------------------------------------------------------

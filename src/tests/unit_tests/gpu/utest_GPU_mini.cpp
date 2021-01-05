@@ -23,7 +23,6 @@
 #include "chrono/utils/ChUtilsSamplers.h"
 
 #include "chrono_gpu/physics/ChSystemGpu.h"
-#include "chrono_gpu/physics/ChSystemGpu_impl.h"
 
 #include "chrono_thirdparty/filesystem/path.h"
 
@@ -49,19 +48,18 @@ float cohesion_ratio = 0;
 
 bool run_test(float box_size_X, float box_size_Y, float box_size_Z) {
     // Setup simulation
-    ChSystemGpu apiSMC(sphereRadius, sphereDensity, make_float3(box_size_X, box_size_Y, box_size_Z));
-    ChSystemGpu_impl& gpu_sys = apiSMC.getSystem();
+    ChSystemGpu gpu_sys(sphereRadius, sphereDensity, make_float3(box_size_X, box_size_Y, box_size_Z));
 
-    apiSMC.SetKn_SPH2SPH(normStiffness_S2S);
-    apiSMC.SetKn_SPH2WALL(normStiffness_S2W);
-    apiSMC.SetGn_SPH2SPH(normalDampS2S);
-    apiSMC.SetGn_SPH2WALL(normalDampS2W);
+    gpu_sys.SetKn_SPH2SPH(normStiffness_S2S);
+    gpu_sys.SetKn_SPH2WALL(normStiffness_S2W);
+    gpu_sys.SetGn_SPH2SPH(normalDampS2S);
+    gpu_sys.SetGn_SPH2WALL(normalDampS2W);
 
-    apiSMC.SetCohesionRatio(cohesion_ratio);
-    apiSMC.SetAdhesionRatio_SPH2WALL(adhesion_ratio_s2w);
+    gpu_sys.SetCohesionRatio(cohesion_ratio);
+    gpu_sys.SetAdhesionRatio_SPH2WALL(adhesion_ratio_s2w);
 
-    apiSMC.SetGravitationalAcceleration(ChVector<float>(0.f, 0.f, grav_acceleration));
-    apiSMC.SetOutputMode(write_mode);
+    gpu_sys.SetGravitationalAcceleration(ChVector<float>(0.f, 0.f, grav_acceleration));
+    gpu_sys.SetOutputMode(write_mode);
 
     // Fill the bottom half with material
     chrono::utils::HCPSampler<float> sampler(2.1f * sphereRadius);  // Add epsilon
@@ -70,22 +68,22 @@ bool run_test(float box_size_X, float box_size_Y, float box_size_Z) {
                           box_size_Z / 4.f - sphereRadius);
     std::vector<ChVector<float>> body_points = sampler.SampleBox(center, hdims);
 
-    apiSMC.SetParticlePositions(body_points);
+    gpu_sys.SetParticlePositions(body_points);
 
-    apiSMC.SetBDFixed(true);
-    apiSMC.SetFrictionMode(CHGPU_FRICTION_MODE::FRICTIONLESS);
-    apiSMC.SetTimeIntegrator(CHGPU_TIME_INTEGRATOR::CENTERED_DIFFERENCE);
-    apiSMC.SetVerbosity(verbose);
+    gpu_sys.SetBDFixed(true);
+    gpu_sys.SetFrictionMode(CHGPU_FRICTION_MODE::FRICTIONLESS);
+    gpu_sys.SetTimeIntegrator(CHGPU_TIME_INTEGRATOR::CENTERED_DIFFERENCE);
+    gpu_sys.SetVerbosity(verbose);
 
     // upward facing plane just above the bottom to capture forces
     ChVector<float> plane_normal(0, 0, 1);
     ChVector<float> plane_center(0, 0, -box_size_Z / 2 + 2 * sphereRadius);
 
-    size_t plane_bc_id = apiSMC.CreateBCPlane(plane_center, plane_normal, true);
+    size_t plane_bc_id = gpu_sys.CreateBCPlane(plane_center, plane_normal, true);
 
-    apiSMC.SetFixedStepSize(timestep);
+    gpu_sys.SetFixedStepSize(timestep);
 
-    apiSMC.Initialize();
+    gpu_sys.Initialize();
 
     int fps = 25;
     float frame_step = 1.0f / fps;
@@ -95,18 +93,18 @@ bool run_test(float box_size_X, float box_size_Y, float box_size_Z) {
     ChTimer<double> timer;
     timer.start();
     while (curr_time < timeEnd) {
-        apiSMC.AdvanceSimulation(frame_step);
+        gpu_sys.AdvanceSimulation(frame_step);
         curr_time += frame_step;
         printf("Time: %f\n", curr_time);
     }
     timer.stop();
-    std::cout << "Simulated " << apiSMC.GetNumParticles() << " particles in " << timer.GetTimeSeconds() << " seconds"
+    std::cout << "Simulated " << gpu_sys.GetNumParticles() << " particles in " << timer.GetTimeSeconds() << " seconds"
               << std::endl;
 
     constexpr float F_CGS_TO_SI = 1e-5f;
 
     ChVector<float> reaction_force;
-    if (!apiSMC.GetBCReactionForces(plane_bc_id, reaction_force)) {
+    if (!gpu_sys.GetBCReactionForces(plane_bc_id, reaction_force)) {
         printf("ERROR! Get contact forces for plane failed\n");
         return false;
     }

@@ -25,7 +25,6 @@
 #include "chrono/utils/ChUtilsSamplers.h"
 
 #include "chrono_gpu/physics/ChSystemGpu.h"
-#include "chrono_gpu/physics/ChSystemGpu_impl.h"
 #include "chrono_gpu/utils/ChGpuJsonParser.h"
 
 #include "chrono_thirdparty/filesystem/path.h"
@@ -66,32 +65,31 @@ int main(int argc, char* argv[]) {
     }
 
     // Setup simulation
-    ChSystemGpu apiSMC(params.sphere_radius, params.sphere_density,
-                       make_float3(params.box_X, params.box_Y, params.box_Z));
-    ChSystemGpu_impl& gpu_sys = apiSMC.getSystem();
+    ChSystemGpu gpu_sys(params.sphere_radius, params.sphere_density,
+                        make_float3(params.box_X, params.box_Y, params.box_Z));
 
-    apiSMC.SetPsiFactors(params.psi_T, params.psi_L);
+    gpu_sys.SetPsiFactors(params.psi_T, params.psi_L);
 
-    apiSMC.SetKn_SPH2SPH(params.normalStiffS2S);
-    apiSMC.SetKn_SPH2WALL(params.normalStiffS2W);
-    apiSMC.SetGn_SPH2SPH(params.normalDampS2S);
-    apiSMC.SetGn_SPH2WALL(params.normalDampS2W);
+    gpu_sys.SetKn_SPH2SPH(params.normalStiffS2S);
+    gpu_sys.SetKn_SPH2WALL(params.normalStiffS2W);
+    gpu_sys.SetGn_SPH2SPH(params.normalDampS2S);
+    gpu_sys.SetGn_SPH2WALL(params.normalDampS2W);
 
-    apiSMC.SetKt_SPH2SPH(params.tangentStiffS2S);
-    apiSMC.SetKt_SPH2WALL(params.tangentStiffS2W);
-    apiSMC.SetGt_SPH2SPH(params.tangentDampS2S);
-    apiSMC.SetGt_SPH2WALL(params.tangentDampS2W);
+    gpu_sys.SetKt_SPH2SPH(params.tangentStiffS2S);
+    gpu_sys.SetKt_SPH2WALL(params.tangentStiffS2W);
+    gpu_sys.SetGt_SPH2SPH(params.tangentDampS2S);
+    gpu_sys.SetGt_SPH2WALL(params.tangentDampS2W);
 
-    apiSMC.SetStaticFrictionCoeff_SPH2SPH(params.static_friction_coeffS2S);
-    apiSMC.SetSaticFictionCeff_SPH2WALL(params.static_friction_coeffS2W);
+    gpu_sys.SetStaticFrictionCoeff_SPH2SPH(params.static_friction_coeffS2S);
+    gpu_sys.SetSaticFictionCeff_SPH2WALL(params.static_friction_coeffS2W);
 
-    apiSMC.SetCohesionRatio(params.cohesion_ratio);
-    apiSMC.SetAdhesionRatio_SPH2WALL(params.adhesion_ratio_s2w);
+    gpu_sys.SetCohesionRatio(params.cohesion_ratio);
+    gpu_sys.SetAdhesionRatio_SPH2WALL(params.adhesion_ratio_s2w);
 
-    apiSMC.SetGravitationalAcceleration(ChVector<float>(params.grav_X, params.grav_Y, params.grav_Z));
-    apiSMC.SetOutputMode(params.write_mode);
+    gpu_sys.SetGravitationalAcceleration(ChVector<float>(params.grav_X, params.grav_Y, params.grav_Z));
+    gpu_sys.SetOutputMode(params.write_mode);
 
-    apiSMC.SetRollingMode(CHGPU_ROLLING_MODE::NO_RESISTANCE);
+    gpu_sys.SetRollingMode(CHGPU_ROLLING_MODE::NO_RESISTANCE);
 
     std::vector<ChVector<float>> body_points;
 
@@ -106,41 +104,41 @@ int main(int argc, char* argv[]) {
         body_points = sampler.SampleBox(center, hdims);
     }
 
-    apiSMC.SetParticlePositions(body_points);
+    gpu_sys.SetParticlePositions(body_points);
     std::cout << "Added " << body_points.size() << std::endl;
 
     switch (params.run_mode) {
         case run_mode::MULTI_STEP:
-            apiSMC.SetFrictionMode(CHGPU_FRICTION_MODE::MULTI_STEP);
-            apiSMC.SetKt_SPH2SPH(params.tangentStiffS2S);
-            apiSMC.SetKt_SPH2WALL(params.tangentStiffS2W);
-            apiSMC.SetGt_SPH2SPH(params.tangentDampS2S);
-            apiSMC.SetGt_SPH2WALL(params.tangentDampS2W);
+            gpu_sys.SetFrictionMode(CHGPU_FRICTION_MODE::MULTI_STEP);
+            gpu_sys.SetKt_SPH2SPH(params.tangentStiffS2S);
+            gpu_sys.SetKt_SPH2WALL(params.tangentStiffS2W);
+            gpu_sys.SetGt_SPH2SPH(params.tangentDampS2S);
+            gpu_sys.SetGt_SPH2WALL(params.tangentDampS2W);
             break;
         case run_mode::ONE_STEP:
-            apiSMC.SetFrictionMode(CHGPU_FRICTION_MODE::SINGLE_STEP);
-            apiSMC.SetKt_SPH2SPH(params.tangentStiffS2S);
-            apiSMC.SetKt_SPH2WALL(params.tangentStiffS2W);
-            apiSMC.SetGt_SPH2SPH(params.tangentDampS2S);
-            apiSMC.SetGt_SPH2WALL(params.tangentDampS2W);
+            gpu_sys.SetFrictionMode(CHGPU_FRICTION_MODE::SINGLE_STEP);
+            gpu_sys.SetKt_SPH2SPH(params.tangentStiffS2S);
+            gpu_sys.SetKt_SPH2WALL(params.tangentStiffS2W);
+            gpu_sys.SetGt_SPH2SPH(params.tangentDampS2S);
+            gpu_sys.SetGt_SPH2WALL(params.tangentDampS2W);
             break;
         case run_mode::FRICTIONLESS:
-            apiSMC.SetFrictionMode(CHGPU_FRICTION_MODE::FRICTIONLESS);
+            gpu_sys.SetFrictionMode(CHGPU_FRICTION_MODE::FRICTIONLESS);
             break;
         default:
             std::cout << "Invalid run mode" << std::endl;
             return 1;
     }
 
-    apiSMC.SetTimeIntegrator(CHGPU_TIME_INTEGRATOR::EXTENDED_TAYLOR);
-    apiSMC.SetFixedStepSize(params.step_size);
+    gpu_sys.SetTimeIntegrator(CHGPU_TIME_INTEGRATOR::EXTENDED_TAYLOR);
+    gpu_sys.SetFixedStepSize(params.step_size);
     if (params.write_mode != CHGPU_OUTPUT_MODE::NONE) {
         filesystem::create_directory(filesystem::path(params.output_dir));
     }
-    apiSMC.SetBDFixed(true);
+    gpu_sys.SetBDFixed(true);
 
-    apiSMC.SetVerbosity(params.verbose);
-    apiSMC.Initialize();
+    gpu_sys.SetVerbosity(params.verbose);
+    gpu_sys.Initialize();
 
     int fps = 50;
     float frame_step = 1.f / fps;
@@ -151,17 +149,17 @@ int main(int argc, char* argv[]) {
     // write an initial frame
     char filename[100];
     sprintf(filename, "%s/step%06d", params.output_dir.c_str(), currframe++);
-    apiSMC.WriteFile(std::string(filename));
+    gpu_sys.WriteFile(std::string(filename));
 
     std::cout << "frame step is " << frame_step << std::endl;
 
     std::chrono::high_resolution_clock::time_point start = std::chrono::high_resolution_clock::now();
     while (curr_time < params.time_end) {
-        apiSMC.AdvanceSimulation(frame_step);
+        gpu_sys.AdvanceSimulation(frame_step);
         curr_time += frame_step;
-        printf("rendering frame %u of %u\n", currframe, total_frames+1);
+        printf("rendering frame %u of %u\n", currframe, total_frames + 1);
         sprintf(filename, "%s/step%06d", params.output_dir.c_str(), currframe++);
-        apiSMC.WriteFile(std::string(filename));
+        gpu_sys.WriteFile(std::string(filename));
     }
     std::chrono::high_resolution_clock::time_point end = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> time_sec = std::chrono::duration_cast<std::chrono::duration<double>>(end - start);

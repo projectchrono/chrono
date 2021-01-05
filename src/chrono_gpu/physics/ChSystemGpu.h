@@ -16,18 +16,22 @@
 
 #include <vector>
 
+#include "chrono_gpu/ChApiGpu.h"
 #include "chrono/core/ChVector.h"
 #include "chrono/core/ChMatrix33.h"
 #include "chrono/geometry/ChTriangleMeshConnected.h"
 
-#include "chrono_gpu/physics/ChSystemGpu_impl.h"
-#include "chrono_gpu/physics/ChSystemGpuMesh_impl.h"
+#include "chrono_gpu/ChGpuDefines.h"
 
 namespace chrono {
 namespace gpu {
 
 /// @addtogroup gpu_physics
 /// @{
+
+// Forward declarations
+class ChSystemGpu_impl;
+class ChSystemGpuMesh_impl;
 
 // -----------------------------------------------------------------------------
 
@@ -38,8 +42,6 @@ class CH_GPU_API ChSystemGpu {
     ChSystemGpu(float sphere_rad, float density, float3 boxDims);
 
     virtual ~ChSystemGpu();
-
-    ChSystemGpu_impl& getSystem() { return *m_sys; }
 
     /// Setr gravitational acceleration vector.
     void SetGravitationalAcceleration(const ChVector<float> g);
@@ -240,8 +242,6 @@ class CH_GPU_API ChSystemGpuMesh : public ChSystemGpu {
 
     /// Return the number of meshes in the system.
     unsigned int GetNumMeshes() const;
-
-    ChSystemGpuMesh_impl& getSystemMesh() { return *(static_cast<ChSystemGpuMesh_impl*>(m_sys)); }
 
     /// Set sphere-to-mesh static friction coefficient.
     void SetStaticFrictionCoeff_SPH2MESH(float mu);

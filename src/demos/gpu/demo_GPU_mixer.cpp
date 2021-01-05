@@ -26,8 +26,6 @@
 
 #include "chrono_gpu/ChGpuData.h"
 #include "chrono_gpu/physics/ChSystemGpu.h"
-#include "chrono_gpu/physics/ChSystemGpu_impl.h"
-#include "chrono_gpu/physics/ChSystemGpuMesh_impl.h"
 #include "chrono_gpu/utils/ChGpuJsonParser.h"
 
 #include "chrono_thirdparty/filesystem/path.h"
@@ -56,48 +54,47 @@ int main(int argc, char* argv[]) {
 
     float iteration_step = params.step_size;
 
-    ChSystemGpuMesh apiSMC(params.sphere_radius, params.sphere_density, make_float3(Bx, By, Bz));
-    ChSystemGpuMesh_impl& gpu_sys = apiSMC.getSystemMesh();
+    ChSystemGpuMesh gpu_sys(params.sphere_radius, params.sphere_density, make_float3(Bx, By, Bz));
 
-    apiSMC.SetKn_SPH2SPH(params.normalStiffS2S);
-    apiSMC.SetKn_SPH2WALL(params.normalStiffS2W);
-    apiSMC.SetKn_SPH2MESH(params.normalStiffS2M);
+    gpu_sys.SetKn_SPH2SPH(params.normalStiffS2S);
+    gpu_sys.SetKn_SPH2WALL(params.normalStiffS2W);
+    gpu_sys.SetKn_SPH2MESH(params.normalStiffS2M);
 
-    apiSMC.SetKt_SPH2SPH(params.tangentStiffS2S);
-    apiSMC.SetKt_SPH2WALL(params.tangentStiffS2W);
-    apiSMC.SetKt_SPH2MESH(params.tangentStiffS2M);
+    gpu_sys.SetKt_SPH2SPH(params.tangentStiffS2S);
+    gpu_sys.SetKt_SPH2WALL(params.tangentStiffS2W);
+    gpu_sys.SetKt_SPH2MESH(params.tangentStiffS2M);
 
-    apiSMC.SetGn_SPH2SPH(params.normalDampS2S);
-    apiSMC.SetGn_SPH2WALL(params.normalDampS2W);
-    apiSMC.SetGn_SPH2MESH(params.normalDampS2M);
+    gpu_sys.SetGn_SPH2SPH(params.normalDampS2S);
+    gpu_sys.SetGn_SPH2WALL(params.normalDampS2W);
+    gpu_sys.SetGn_SPH2MESH(params.normalDampS2M);
 
-    apiSMC.SetGt_SPH2SPH(params.tangentDampS2S);
-    apiSMC.SetGt_SPH2WALL(params.tangentDampS2W);
-    apiSMC.SetGt_SPH2MESH(params.tangentDampS2M);
+    gpu_sys.SetGt_SPH2SPH(params.tangentDampS2S);
+    gpu_sys.SetGt_SPH2WALL(params.tangentDampS2W);
+    gpu_sys.SetGt_SPH2MESH(params.tangentDampS2M);
 
-    apiSMC.SetCohesionRatio(params.cohesion_ratio);
-    apiSMC.SetAdhesionRatio_SPH2MESH(params.adhesion_ratio_s2m);
-    apiSMC.SetAdhesionRatio_SPH2WALL(params.adhesion_ratio_s2w);
-    apiSMC.SetFrictionMode(chrono::gpu::CHGPU_FRICTION_MODE::MULTI_STEP);
+    gpu_sys.SetCohesionRatio(params.cohesion_ratio);
+    gpu_sys.SetAdhesionRatio_SPH2MESH(params.adhesion_ratio_s2m);
+    gpu_sys.SetAdhesionRatio_SPH2WALL(params.adhesion_ratio_s2w);
+    gpu_sys.SetFrictionMode(chrono::gpu::CHGPU_FRICTION_MODE::MULTI_STEP);
 
-    apiSMC.SetStaticFrictionCoeff_SPH2SPH(params.static_friction_coeffS2S);
-    apiSMC.SetSaticFictionCeff_SPH2WALL(params.static_friction_coeffS2W);
-    apiSMC.SetStaticFrictionCoeff_SPH2MESH(params.static_friction_coeffS2M);
+    gpu_sys.SetStaticFrictionCoeff_SPH2SPH(params.static_friction_coeffS2S);
+    gpu_sys.SetSaticFictionCeff_SPH2WALL(params.static_friction_coeffS2W);
+    gpu_sys.SetStaticFrictionCoeff_SPH2MESH(params.static_friction_coeffS2M);
 
-    apiSMC.SetOutputMode(params.write_mode);
+    gpu_sys.SetOutputMode(params.write_mode);
 
     filesystem::create_directory(filesystem::path(params.output_dir));
 
-    apiSMC.SetTimeIntegrator(CHGPU_TIME_INTEGRATOR::CENTERED_DIFFERENCE);
-    apiSMC.SetFixedStepSize(params.step_size);
-    apiSMC.SetBDFixed(true);
+    gpu_sys.SetTimeIntegrator(CHGPU_TIME_INTEGRATOR::CENTERED_DIFFERENCE);
+    gpu_sys.SetFixedStepSize(params.step_size);
+    gpu_sys.SetBDFixed(true);
 
     const float chamber_bottom = -Bz / 2.f;
     const float fill_bottom = chamber_bottom + chamber_height;
 
     ChVector<float> cyl_center(0, 0, 0);
     const float cyl_rad = Bx / 2.f;
-    apiSMC.CreateBCCylinderZ(cyl_center, cyl_rad, false, false);
+    gpu_sys.CreateBCCylinderZ(cyl_center, cyl_rad, false, false);
 
     utils::HCPSampler<float> sampler(2.1 * params.sphere_radius);
     std::vector<ChVector<float>> body_points;
@@ -119,8 +116,8 @@ int main(int argc, char* argv[]) {
         center.z() += 2.1 * params.sphere_radius;
     }
 
-    apiSMC.SetParticlePositions(body_points);
-    apiSMC.SetGravitationalAcceleration(ChVector<float>(0, 0, -980));
+    gpu_sys.SetParticlePositions(body_points);
+    gpu_sys.SetGravitationalAcceleration(ChVector<float>(0, 0, -980));
 
     std::vector<string> mesh_filenames;
     mesh_filenames.push_back(gpu::GetDataFile("demo_GPU_mixer/internal_mixer.obj"));
@@ -138,17 +135,17 @@ int main(int argc, char* argv[]) {
     float mixer_mass = 10;
     mesh_masses.push_back(mixer_mass);
 
-    apiSMC.LoadMeshes(mesh_filenames, mesh_rotscales, mesh_translations, mesh_masses);
+    gpu_sys.LoadMeshes(mesh_filenames, mesh_rotscales, mesh_translations, mesh_masses);
 
-    std::cout << apiSMC.GetNumMeshes() << " meshes" << std::endl;
+    std::cout << gpu_sys.GetNumMeshes() << " meshes" << std::endl;
 
     float rev_per_sec = 1.f;
     float ang_vel_Z = rev_per_sec * 2 * CH_C_PI;
     ChVector<> mesh_lin_vel(0);
     ChVector<> mesh_ang_vel(0, 0, ang_vel_Z);
 
-    apiSMC.EnableMeshCollision(true);
-    apiSMC.Initialize();
+    gpu_sys.EnableMeshCollision(true);
+    gpu_sys.Initialize();
 
     unsigned int currframe = 0;
     double out_fps = 200;
@@ -162,22 +159,22 @@ int main(int argc, char* argv[]) {
     for (float t = 0; t < params.time_end; t += iteration_step, step++) {
         ChVector<> mesh_pos(0, 0, chamber_bottom + chamber_height / 2.0);
         ChQuaternion<> mesh_rot = Q_from_AngZ(t * ang_vel_Z);
-        apiSMC.ApplyMeshMotion(0, mesh_pos, mesh_rot, mesh_lin_vel, mesh_ang_vel);
+        gpu_sys.ApplyMeshMotion(0, mesh_pos, mesh_rot, mesh_lin_vel, mesh_ang_vel);
 
         if (step % out_steps == 0) {
-            std::cout << "Rendering frame " << (currframe+1) << " of " << total_frames << std::endl;
+            std::cout << "Rendering frame " << (currframe + 1) << " of " << total_frames << std::endl;
             char filename[100];
             sprintf(filename, "%s/step%06u", params.output_dir.c_str(), currframe++);
-            apiSMC.WriteFile(std::string(filename));
-            apiSMC.WriteMeshes(std::string(filename));
+            gpu_sys.WriteFile(std::string(filename));
+            gpu_sys.WriteMeshes(std::string(filename));
 
             ChVector<> force;
             ChVector<> torque;
-            apiSMC.CollectMeshContactForces(0, force, torque);
+            gpu_sys.CollectMeshContactForces(0, force, torque);
             std::cout << "torque: " << torque.x() << ", " << torque.y() << ", " << torque.z() << std::endl;
         }
 
-        apiSMC.AdvanceSimulation(iteration_step);
+        gpu_sys.AdvanceSimulation(iteration_step);
     }
 
     return 0;

@@ -19,16 +19,13 @@
 namespace chrono {
 namespace gpu {
 
-/// @addtogroup gpu_physics
-/// @{
-
-/// Underlying implementation of the Chrono::Gpu mesh system.
-/// Implements functionality required to handle the interaction between a mesh soup and granular material.
-///
-/// Mesh soup: a collection of meshes that each has a certain number of triangle elements. For instance, the meshes
-/// associated with the four wheels of a rover operating on granular material would be smashed into one soup having four
-/// mesh families.
-class CH_GPU_API ChSystemGpuMesh_impl : public ChSystemGpu_impl {
+// Underlying implementation of the Chrono::Gpu mesh system.
+// Implements functionality required to handle the interaction between a mesh soup and granular material.
+//
+// Mesh soup: a collection of meshes that each has a certain number of triangle elements. For instance, the meshes
+// associated with the four wheels of a rover operating on granular material would be smashed into one soup having four
+// mesh families.
+class ChSystemGpuMesh_impl : public ChSystemGpu_impl {
   public:
     virtual ~ChSystemGpuMesh_impl();
 
@@ -196,8 +193,6 @@ class CH_GPU_API ChSystemGpuMesh_impl : public ChSystemGpu_impl {
 
     friend class ChSystemGpuMesh;
 };
-
-/// @} gpu_physics
 
 }  // namespace gpu
 }  // namespace chrono

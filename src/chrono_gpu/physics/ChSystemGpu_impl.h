@@ -31,12 +31,9 @@ typedef unsigned char not_stupid_bool;
 namespace chrono {
 namespace gpu {
 
-/// @addtogroup gpu_physics
-/// @{
-
-/// Underlying implementation of the Chrono::Gpu system.
-/// used to control and dispatch the GPU sphere-only solver.
-class CH_GPU_API ChSystemGpu_impl {
+// Underlying implementation of the Chrono::Gpu system.
+// used to control and dispatch the GPU sphere-only solver.
+class ChSystemGpu_impl {
   public:
     virtual ~ChSystemGpu_impl();
 
@@ -605,8 +602,6 @@ class CH_GPU_API ChSystemGpu_impl {
     friend class ChSystemGpu;
     friend class ChSystemGpuMesh;
 };
-
-/// @} gpu_physics
 
 }  // namespace gpu
 }  // namespace chrono

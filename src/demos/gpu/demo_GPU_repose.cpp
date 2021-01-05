@@ -24,7 +24,6 @@
 
 #include "chrono_gpu/ChGpuData.h"
 #include "chrono_gpu/physics/ChSystemGpu.h"
-#include "chrono_gpu/physics/ChSystemGpu_impl.h"
 #include "chrono_gpu/utils/ChGpuJsonParser.h"
 
 #include "chrono_thirdparty/filesystem/path.h"
@@ -39,12 +38,11 @@ void ShowUsage(std::string name) {
 }
 
 int main(int argc, char* argv[]) {
-    
-    //gpu::SetDataPath(std::string(PROJECTS_DATA_DIR) + "gpu/");
+    // gpu::SetDataPath(std::string(PROJECTS_DATA_DIR) + "gpu/");
     ChGpuSimulationParameters params;
 
     // Some of the default values might be overwritten by user via command line
-    std::cout<<"num_arg: "<<argc<<std::endl;
+    std::cout << "num_arg: " << argc << std::endl;
     if (argc != num_args || ParseJSON(argv[1], params) == false) {
         ShowUsage(argv[0]);
         return 1;
@@ -53,35 +51,34 @@ int main(int argc, char* argv[]) {
     filesystem::create_directory(filesystem::path(params.output_dir));
 
     // Setup simulation
-    ChSystemGpu apiSMC(params.sphere_radius, params.sphere_density,
-                           make_float3(params.box_X, params.box_Y, params.box_Z));
-    ChSystemGpu_impl& gpu_sys = apiSMC.getSystem();
+    ChSystemGpu gpu_sys(params.sphere_radius, params.sphere_density,
+                        make_float3(params.box_X, params.box_Y, params.box_Z));
 
-    apiSMC.SetKn_SPH2SPH(params.normalStiffS2S);
-    apiSMC.SetKn_SPH2WALL(params.normalStiffS2W);
-    apiSMC.SetGn_SPH2SPH(params.normalDampS2S);
-    apiSMC.SetGn_SPH2WALL(params.normalDampS2W);
+    gpu_sys.SetKn_SPH2SPH(params.normalStiffS2S);
+    gpu_sys.SetKn_SPH2WALL(params.normalStiffS2W);
+    gpu_sys.SetGn_SPH2SPH(params.normalDampS2S);
+    gpu_sys.SetGn_SPH2WALL(params.normalDampS2W);
 
-    // apiSMC.SetFrictionMode(CHGPU_FRICTION_MODE::FRICTIONLESS);
-    apiSMC.SetFrictionMode(CHGPU_FRICTION_MODE::MULTI_STEP);
-    apiSMC.SetKt_SPH2SPH(params.tangentStiffS2S);
-    apiSMC.SetKt_SPH2WALL(params.tangentStiffS2W);
-    apiSMC.SetGt_SPH2SPH(params.tangentDampS2S);
-    apiSMC.SetGt_SPH2WALL(params.tangentDampS2W);
-    apiSMC.SetStaticFrictionCoeff_SPH2SPH(params.static_friction_coeffS2S);
-    apiSMC.SetSaticFictionCeff_SPH2WALL(params.static_friction_coeffS2W);
+    // gpu_sys.SetFrictionMode(CHGPU_FRICTION_MODE::FRICTIONLESS);
+    gpu_sys.SetFrictionMode(CHGPU_FRICTION_MODE::MULTI_STEP);
+    gpu_sys.SetKt_SPH2SPH(params.tangentStiffS2S);
+    gpu_sys.SetKt_SPH2WALL(params.tangentStiffS2W);
+    gpu_sys.SetGt_SPH2SPH(params.tangentDampS2S);
+    gpu_sys.SetGt_SPH2WALL(params.tangentDampS2W);
+    gpu_sys.SetStaticFrictionCoeff_SPH2SPH(params.static_friction_coeffS2S);
+    gpu_sys.SetSaticFictionCeff_SPH2WALL(params.static_friction_coeffS2W);
 
-    // apiSMC.SetRollingMode(CHGPU_ROLLING_MODE::NO_RESISTANCE);
-    apiSMC.SetRollingMode(CHGPU_ROLLING_MODE::SCHWARTZ);
-    apiSMC.SetRollingCoeff_SPH2SPH(params.rolling_friction_coeffS2S);
-    apiSMC.SetRollingCoeff_SPH2WALL(params.rolling_friction_coeffS2W);
+    // gpu_sys.SetRollingMode(CHGPU_ROLLING_MODE::NO_RESISTANCE);
+    gpu_sys.SetRollingMode(CHGPU_ROLLING_MODE::SCHWARTZ);
+    gpu_sys.SetRollingCoeff_SPH2SPH(params.rolling_friction_coeffS2S);
+    gpu_sys.SetRollingCoeff_SPH2WALL(params.rolling_friction_coeffS2W);
 
-    apiSMC.SetCohesionRatio(params.cohesion_ratio);
-    apiSMC.SetAdhesionRatio_SPH2WALL(params.adhesion_ratio_s2w);
-    apiSMC.SetGravitationalAcceleration(ChVector<float>(params.grav_X, params.grav_Y, params.grav_Z));
-    apiSMC.SetOutputMode(params.write_mode);
+    gpu_sys.SetCohesionRatio(params.cohesion_ratio);
+    gpu_sys.SetAdhesionRatio_SPH2WALL(params.adhesion_ratio_s2w);
+    gpu_sys.SetGravitationalAcceleration(ChVector<float>(params.grav_X, params.grav_Y, params.grav_Z));
+    gpu_sys.SetOutputMode(params.write_mode);
 
-    apiSMC.SetBDFixed(true);
+    gpu_sys.SetBDFixed(true);
 
     // padding in sampler
     float fill_epsilon = 2.02f;
@@ -116,23 +113,23 @@ int main(int argc, char* argv[]) {
     body_points.insert(body_points.end(), material_points.begin(), material_points.end());
     body_points_fixed.insert(body_points_fixed.end(), material_points.size(), false);
 
-    apiSMC.SetParticlePositions(body_points);
-    apiSMC.SetParticleFixed(body_points_fixed);
+    gpu_sys.SetParticlePositions(body_points);
+    gpu_sys.SetParticleFixed(body_points_fixed);
 
     std::cout << "Added " << roughness_points.size() << " fixed points" << std::endl;
     std::cout << "Added " << material_points.size() << " material points" << std::endl;
 
     std::cout << "Actually added " << body_points.size() << std::endl;
 
-    apiSMC.SetTimeIntegrator(CHGPU_TIME_INTEGRATOR::EXTENDED_TAYLOR);
-    apiSMC.SetFixedStepSize(params.step_size);
+    gpu_sys.SetTimeIntegrator(CHGPU_TIME_INTEGRATOR::EXTENDED_TAYLOR);
+    gpu_sys.SetFixedStepSize(params.step_size);
 
     filesystem::create_directory(filesystem::path(params.output_dir));
-    apiSMC.SetVerbosity(params.verbose);
-    std::cout<<"verbose: " << static_cast<int>(params.verbose) <<std::endl;
-    apiSMC.SetRecordingContactInfo(true);
+    gpu_sys.SetVerbosity(params.verbose);
+    std::cout << "verbose: " << static_cast<int>(params.verbose) << std::endl;
+    gpu_sys.SetRecordingContactInfo(true);
 
-    apiSMC.Initialize();
+    gpu_sys.Initialize();
 
     int fps = 60;
     float frame_step = 1.f / fps;
@@ -143,25 +140,25 @@ int main(int argc, char* argv[]) {
     // write an initial frame
     char filename[100];
     sprintf(filename, "%s/step%06d", params.output_dir.c_str(), currframe);
-    apiSMC.WriteFile(std::string(filename));
+    gpu_sys.WriteFile(std::string(filename));
 
     char contactFilename[100];
     sprintf(contactFilename, "%s/contact%06d", params.output_dir.c_str(), currframe);
-    apiSMC.WriteContactInfoFile(std::string(contactFilename));
+    gpu_sys.WriteContactInfoFile(std::string(contactFilename));
 
     currframe++;
 
     std::cout << "frame step is " << frame_step << std::endl;
     while (curr_time < params.time_end) {
-        apiSMC.AdvanceSimulation(frame_step);
+        gpu_sys.AdvanceSimulation(frame_step);
         curr_time += frame_step;
         printf("rendering frame %u of %u\n", currframe, total_frames);
         sprintf(filename, "%s/step%06d", params.output_dir.c_str(), currframe);
-        apiSMC.WriteFile(std::string(filename));
+        gpu_sys.WriteFile(std::string(filename));
 
         char contactFilename[100];
         sprintf(contactFilename, "%s/contact%06d", params.output_dir.c_str(), currframe);
-        apiSMC.WriteContactInfoFile(std::string(contactFilename));
+        gpu_sys.WriteContactInfoFile(std::string(contactFilename));
 
         currframe++;
     }
