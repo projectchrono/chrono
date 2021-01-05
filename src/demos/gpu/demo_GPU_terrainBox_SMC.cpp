@@ -72,21 +72,22 @@ int main(int argc, char* argv[]) {
 
     apiSMC.SetPsiFactors(params.psi_T, params.psi_L);
 
-    gpu_sys.set_K_n_SPH2SPH(params.normalStiffS2S);
-    gpu_sys.set_K_n_SPH2WALL(params.normalStiffS2W);
-    gpu_sys.set_Gamma_n_SPH2SPH(params.normalDampS2S);
-    gpu_sys.set_Gamma_n_SPH2WALL(params.normalDampS2W);
+    apiSMC.SetKn_SPH2SPH(params.normalStiffS2S);
+    apiSMC.SetKn_SPH2WALL(params.normalStiffS2W);
+    apiSMC.SetGn_SPH2SPH(params.normalDampS2S);
+    apiSMC.SetGn_SPH2WALL(params.normalDampS2W);
 
-    gpu_sys.set_K_t_SPH2SPH(params.tangentStiffS2S);
-    gpu_sys.set_K_t_SPH2WALL(params.tangentStiffS2W);
-    gpu_sys.set_Gamma_t_SPH2SPH(params.tangentDampS2S);
-    gpu_sys.set_Gamma_t_SPH2WALL(params.tangentDampS2W);
+    apiSMC.SetKt_SPH2SPH(params.tangentStiffS2S);
+    apiSMC.SetKt_SPH2WALL(params.tangentStiffS2W);
+    apiSMC.SetGt_SPH2SPH(params.tangentDampS2S);
+    apiSMC.SetGt_SPH2WALL(params.tangentDampS2W);
 
-    gpu_sys.set_static_friction_coeff_SPH2SPH(params.static_friction_coeffS2S);
-    gpu_sys.set_static_friction_coeff_SPH2WALL(params.static_friction_coeffS2W);
+    apiSMC.SetStaticFrictionCoeff_SPH2SPH(params.static_friction_coeffS2S);
+    apiSMC.SetSaticFictionCeff_SPH2WALL(params.static_friction_coeffS2W);
 
-    gpu_sys.set_Cohesion_ratio(params.cohesion_ratio);
-    gpu_sys.set_Adhesion_ratio_S2W(params.adhesion_ratio_s2w);
+    apiSMC.SetCohesionRatio(params.cohesion_ratio);
+    apiSMC.SetAdhesionRatio_SPH2WALL(params.adhesion_ratio_s2w);
+
     apiSMC.SetGravitationalAcceleration(ChVector<float>(params.grav_X, params.grav_Y, params.grav_Z));
     apiSMC.SetOutputMode(params.write_mode);
 
@@ -111,17 +112,17 @@ int main(int argc, char* argv[]) {
     switch (params.run_mode) {
         case run_mode::MULTI_STEP:
             apiSMC.SetFrictionMode(CHGPU_FRICTION_MODE::MULTI_STEP);
-            gpu_sys.set_K_t_SPH2SPH(params.tangentStiffS2S);
-            gpu_sys.set_K_t_SPH2WALL(params.tangentStiffS2W);
-            gpu_sys.set_Gamma_t_SPH2SPH(params.tangentDampS2S);
-            gpu_sys.set_Gamma_t_SPH2WALL(params.tangentDampS2W);
+            apiSMC.SetKt_SPH2SPH(params.tangentStiffS2S);
+            apiSMC.SetKt_SPH2WALL(params.tangentStiffS2W);
+            apiSMC.SetGt_SPH2SPH(params.tangentDampS2S);
+            apiSMC.SetGt_SPH2WALL(params.tangentDampS2W);
             break;
         case run_mode::ONE_STEP:
             apiSMC.SetFrictionMode(CHGPU_FRICTION_MODE::SINGLE_STEP);
-            gpu_sys.set_K_t_SPH2SPH(params.tangentStiffS2S);
-            gpu_sys.set_K_t_SPH2WALL(params.tangentStiffS2W);
-            gpu_sys.set_Gamma_t_SPH2SPH(params.tangentDampS2S);
-            gpu_sys.set_Gamma_t_SPH2WALL(params.tangentDampS2W);
+            apiSMC.SetKt_SPH2SPH(params.tangentStiffS2S);
+            apiSMC.SetKt_SPH2WALL(params.tangentStiffS2W);
+            apiSMC.SetGt_SPH2SPH(params.tangentDampS2S);
+            apiSMC.SetGt_SPH2WALL(params.tangentDampS2W);
             break;
         case run_mode::FRICTIONLESS:
             apiSMC.SetFrictionMode(CHGPU_FRICTION_MODE::FRICTIONLESS);

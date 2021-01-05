@@ -32,22 +32,7 @@ class CH_GPU_API ChSystemGpuMesh_impl : public ChSystemGpu_impl {
   public:
     virtual ~ChSystemGpuMesh_impl();
 
-    void set_K_n_SPH2MESH(double someValue) { K_n_s2m_UU = someValue; }
-    void set_Gamma_n_SPH2MESH(double someValue) { Gamma_n_s2m_UU = someValue; }
-
-    void set_K_t_SPH2MESH(double someValue) { K_t_s2m_UU = someValue; }
-    void set_Gamma_t_SPH2MESH(double someValue) { Gamma_t_s2m_UU = someValue; }
-
-    /// Set the ratio of adhesion force to sphere weight for sphere to mesh
-    void set_Adhesion_ratio_S2M(float someValue) { adhesion_s2m_over_gravity = someValue; }
-
-    // these quantities are unitless anyways
-    void set_static_friction_coeff_SPH2MESH(float mu) { tri_params->static_friction_coeff_s2m = mu; }
-    // set internally and convert later
-    void set_rolling_coeff_SPH2MESH(float mu) { rolling_coeff_s2m_UU = mu; }
-    void set_spinning_coeff_SPH2MESH(float mu) { spinning_coeff_s2m_UU = mu; }
-
-  public:
+  protected:
     /// Position and rotation matrix defining the frame of a triangle mesh.
     template <class T>
     struct MeshFrame {
@@ -123,7 +108,6 @@ class CH_GPU_API ChSystemGpuMesh_impl : public ChSystemGpu_impl {
     TriangleSoup* getMeshSoup() { return meshSoup; }
     MeshParams* getTriParams() { return tri_params; }
 
-  protected:
     // The system is not default-constructible
     ChSystemGpuMesh_impl() = delete;
 
@@ -166,7 +150,6 @@ class CH_GPU_API ChSystemGpuMesh_impl : public ChSystemGpu_impl {
     /// Requires initialize() to have been called.
     virtual double AdvanceSimulation(float duration) override;
 
-  protected:
     /// Set of simulation parameters related to triangle data
     MeshParams* tri_params;
 
@@ -204,6 +187,13 @@ class CH_GPU_API ChSystemGpuMesh_impl : public ChSystemGpu_impl {
     /// Big array of triangle offsets for each subdomain
     std::vector<unsigned int, cudallocator<unsigned int>> SD_TriangleCompositeOffsets;
 
+  public:
+    /// Get nicer handles to pointer names, enforce const-ness on the mesh params
+    typedef const chrono::gpu::ChSystemGpuMesh_impl::MeshParams* MeshParamsPtr;
+
+    /// Get nicer handles to pointer names, enforce const-ness on the mesh params
+    typedef chrono::gpu::ChSystemGpuMesh_impl::TriangleSoup* TriangleSoupPtr;
+
     friend class ChSystemGpuMesh;
 };
 
@@ -211,9 +201,3 @@ class CH_GPU_API ChSystemGpuMesh_impl : public ChSystemGpu_impl {
 
 }  // namespace gpu
 }  // namespace chrono
-
-/// Get nicer handles to pointer names, enforce const-ness on the mesh params
-typedef const chrono::gpu::ChSystemGpuMesh_impl::MeshParams* MeshParamsPtr;
-
-/// Get nicer handles to pointer names, enforce const-ness on the mesh params
-typedef chrono::gpu::ChSystemGpuMesh_impl::TriangleSoup* TriangleSoupPtr;

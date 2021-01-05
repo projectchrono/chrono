@@ -15,6 +15,7 @@
 #pragma once
 
 #include "chrono_gpu/ChGpuDefines.h"
+#include "chrono_gpu/physics/ChSystemGpu_impl.h"
 #include "chrono_gpu/physics/ChGpuBoundaryConditions.h"
 #include "chrono_gpu/cuda/ChCudaMathUtils.cuh"
 #include "chrono_gpu/cuda/ChGpuHelpers.cuh"
@@ -30,10 +31,12 @@ using chrono::gpu::Z_Cone_BC_params_t;
 using chrono::gpu::Z_Cylinder_BC_params_t;
 using chrono::gpu::Plane_BC_params_t;
 
+using chrono::gpu::ChSystemGpu_impl;
+
 inline __device__ bool addBCForces_Sphere_frictionless(const int64_t3& sphPos,
                                                        const float3& sphVel,
                                                        float3& force_from_BCs,
-                                                       GranParamsPtr gran_params,
+                                                       ChSystemGpu_impl::GranParamsPtr gran_params,
                                                        BC_params_t<int64_t, int64_t3>& bc_params,
                                                        bool track_forces) {
     Sphere_BC_params_t<int64_t, int64_t3> sphere_params = bc_params.sphere_params;
@@ -97,7 +100,7 @@ inline __device__ bool addBCForces_Sphere_frictionless(const int64_t3& sphPos,
 inline __device__ bool addBCForces_ZCone_frictionless(const int64_t3& sphPos,
                                                       const float3& sphVel,
                                                       float3& force_from_BCs,
-                                                      GranParamsPtr gran_params,
+                                                      ChSystemGpu_impl::GranParamsPtr gran_params,
                                                       BC_params_t<int64_t, int64_t3>& bc_params,
                                                       bool track_forces,
                                                       float3& contact_normal,
@@ -175,7 +178,7 @@ inline __device__ bool addBCForces_ZCone_frictionless(const int64_t3& sphPos,
 inline __device__ bool addBCForces_ZCone_frictionless(const int64_t3& sphPos,
                                                       const float3& sphVel,
                                                       float3& force_from_BCs,
-                                                      GranParamsPtr gran_params,
+                                                      ChSystemGpu_impl::GranParamsPtr gran_params,
                                                       BC_params_t<int64_t, int64_t3>& bc_params,
                                                       bool track_forces) {
     float3 contact_normal = {0, 0, 0};
@@ -192,8 +195,8 @@ inline __device__ bool addBCForces_ZCone(unsigned int sphID,
                                          const float3& sphOmega,
                                          float3& force_from_BCs,
                                          float3& ang_acc_from_BCs,
-                                         GranParamsPtr gran_params,
-                                         GranSphereDataPtr sphere_data,
+                                         ChSystemGpu_impl::GranParamsPtr gran_params,
+                                         ChSystemGpu_impl::GranSphereDataPtr sphere_data,
                                          BC_params_t<int64_t, int64_t3>& bc_params,
                                          bool track_forces) {
     // determine these from frictionless helper
@@ -252,7 +255,7 @@ inline __device__ bool addBCForces_ZCone(unsigned int sphID,
 inline __device__ bool addBCForces_Plane_frictionless(const int64_t3& sphPos,
                                                       const float3& sphVel,
                                                       float3& force_from_BCs,
-                                                      GranParamsPtr gran_params,
+                                                      ChSystemGpu_impl::GranParamsPtr gran_params,
                                                       BC_params_t<int64_t, int64_t3>& bc_params,
                                                       bool track_forces,
                                                       float& dist) {
@@ -304,7 +307,7 @@ inline __device__ bool addBCForces_Plane_frictionless(const int64_t3& sphPos,
 inline __device__ bool addBCForces_Plane_frictionless(const int64_t3& sphPos,
                                                       const float3& sphVel,
                                                       float3& force_from_BCs,
-                                                      GranParamsPtr gran_params,
+                                                      ChSystemGpu_impl::GranParamsPtr gran_params,
                                                       BC_params_t<int64_t, int64_t3>& bc_params,
                                                       bool track_forces) {
     float dist;
@@ -319,8 +322,8 @@ inline __device__ bool addBCForces_Plane(unsigned int sphID,
                                          const float3& sphOmega,
                                          float3& force_from_BCs,
                                          float3& ang_acc_from_BCs,
-                                         GranParamsPtr gran_params,
-                                         GranSphereDataPtr sphere_data,
+                                         ChSystemGpu_impl::GranParamsPtr gran_params,
+                                         ChSystemGpu_impl::GranSphereDataPtr sphere_data,
                                          BC_params_t<int64_t, int64_t3>& bc_params,
                                          bool track_forces) {
     float3 force_accum = {0, 0, 0};
@@ -379,7 +382,7 @@ inline __device__ bool addBCForces_Plane(unsigned int sphID,
 inline __device__ bool addBCForces_Zcyl_frictionless(const int64_t3& sphPos,
                                                      const float3& sphVel,
                                                      float3& force_from_BCs,
-                                                     GranParamsPtr gran_params,
+                                                     ChSystemGpu_impl::GranParamsPtr gran_params,
                                                      BC_params_t<int64_t, int64_t3>& bc_params,
                                                      bool track_forces,
                                                      float3& contact_normal,
@@ -436,7 +439,7 @@ inline __device__ bool addBCForces_Zcyl_frictionless(const int64_t3& sphPos,
 inline __device__ bool addBCForces_Zcyl_frictionless(const int64_t3& sphPos,
                                                      const float3& sphVel,
                                                      float3& force_from_BCs,
-                                                     GranParamsPtr gran_params,
+                                                     ChSystemGpu_impl::GranParamsPtr gran_params,
                                                      BC_params_t<int64_t, int64_t3>& bc_params,
                                                      bool track_forces) {
     float3 contact_normal = {0, 0, 0};
@@ -453,8 +456,8 @@ inline __device__ bool addBCForces_Zcyl(unsigned int sphID,
                                         const float3& sphOmega,
                                         float3& force_from_BCs,
                                         float3& ang_acc_from_BCs,
-                                        GranParamsPtr gran_params,
-                                        GranSphereDataPtr sphere_data,
+                                        ChSystemGpu_impl::GranParamsPtr gran_params,
+                                        ChSystemGpu_impl::GranSphereDataPtr sphere_data,
                                         BC_params_t<int64_t, int64_t3>& bc_params,
                                         bool track_forces) {
     float3 force_accum = {0, 0, 0};

@@ -34,115 +34,13 @@ namespace gpu {
 /// @addtogroup gpu_physics
 /// @{
 
-/// Used to compute position as a function of time.
-typedef std::function<double3(float)> GranPositionFunction;
-
-/// Position function representing no motion or offset as a funtion of time.
-const GranPositionFunction GranPosFunction_default = [](float t) { return make_double3(0, 0, 0); };
-
-/// Verbosity level of the system.
-enum class CHGPU_VERBOSITY { QUIET = 0, INFO = 1, METRICS = 2 };
-
-/// Verbosity level.
-enum class CHGPU_MESH_VERBOSITY { QUIET = 0, INFO = 1 };
-
-/// Output mode of system.
-enum class CHGPU_OUTPUT_MODE { CSV, BINARY, HDF5, NONE };
-
-/// How are we integrating through time.
-enum class CHGPU_TIME_INTEGRATOR { FORWARD_EULER, CHUNG, CENTERED_DIFFERENCE, EXTENDED_TAYLOR };
-
-/// Supported friction model.
-enum class CHGPU_FRICTION_MODE { FRICTIONLESS, SINGLE_STEP, MULTI_STEP };
-
-/// Rolling resistance models -- ELASTIC_PLASTIC not implemented yet.
-enum class CHGPU_ROLLING_MODE { NO_RESISTANCE, SCHWARTZ, ELASTIC_PLASTIC };
-
-enum CHGPU_OUTPUT_FLAGS { ABSV = 1, VEL_COMPONENTS = 2, FIXITY = 4, ANG_VEL_COMPONENTS = 8, FORCE_COMPONENTS = 16 };
-
-#define GET_OUTPUT_SETTING(setting) (this->output_flags & setting)
-
-// -----------------------------------------------------------------------------
-
 /// Underlying implementation of the Chrono::Gpu system.
 /// used to control and dispatch the GPU sphere-only solver.
 class CH_GPU_API ChSystemGpu_impl {
   public:
     virtual ~ChSystemGpu_impl();
 
-    /// Enable a boundary condition by its ID, returns false if the BC does not exist
-    bool set_BC_offset_function(size_t BC_id, const GranPositionFunction& offset_function) {
-        size_t max_id = BC_params_list_SU.size();
-        if (BC_id >= max_id) {
-            printf("ERROR: Trying to set offset function for invalid BC ID %zu\n", BC_id);
-            return false;
-        }
-        if (BC_id <= NUM_RESERVED_BC_IDS - 1) {
-            printf("ERROR: Trying to modify reserved BC ID %zu\n", BC_id);
-            return false;
-        }
-        BC_offset_function_list.at(BC_id) = offset_function;
-        BC_params_list_UU.at(BC_id).fixed = false;
-        BC_params_list_SU.at(BC_id).fixed = false;
-        return true;
-    }
-
-    /// Set sphere-to-sphere static friction coefficient
-    void set_static_friction_coeff_SPH2SPH(float mu) { gran_params->static_friction_coeff_s2s = mu; }
-    /// Set sphere-to-wall static friction coefficient
-    void set_static_friction_coeff_SPH2WALL(float mu) { gran_params->static_friction_coeff_s2w = mu; }
-    /// Set sphere-to-sphere rolling friction coefficient -- units and use vary by rolling friction mode
-    void set_rolling_coeff_SPH2SPH(float mu) { rolling_coeff_s2s_UU = mu; }
-    /// Set sphere-to-wall rolling friction coefficient -- units and use vary by rolling friction mode
-    void set_rolling_coeff_SPH2WALL(float mu) { rolling_coeff_s2w_UU = mu; }
-
-    /// Set sphere-to-sphere spinning friction coefficient -- units and use vary by spinning friction mode
-    void set_spinning_coeff_SPH2SPH(float mu) { spinning_coeff_s2s_UU = mu; }
-    /// Set sphere-to-wall spinning friction coefficient -- units and use vary by spinning friction mode
-    void set_spinning_coeff_SPH2WALL(float mu) { spinning_coeff_s2w_UU = mu; }
-
-    /// Set sphere-to-sphere normal contact stiffness
-    void set_K_n_SPH2SPH(double someValue) { K_n_s2s_UU = someValue; }
-    /// Set sphere-to-wall normal contact stiffness
-    void set_K_n_SPH2WALL(double someValue) { K_n_s2w_UU = someValue; }
-
-    /// Set sphere-to-sphere normal damping coefficient
-    void set_Gamma_n_SPH2SPH(double someValue) { Gamma_n_s2s_UU = someValue; }
-    /// Set sphere-to-wall normal damping coefficient
-    void set_Gamma_n_SPH2WALL(double someValue) { Gamma_n_s2w_UU = someValue; }
-
-    /// Set sphere-to-sphere tangent contact stiffness
-    void set_K_t_SPH2SPH(double someValue) { K_t_s2s_UU = someValue; }
-    /// Set sphere-to-sphere tangent damping coefficient
-    void set_Gamma_t_SPH2SPH(double someValue) { Gamma_t_s2s_UU = someValue; }
-
-    /// Set sphere-to-wall tangent contact stiffness
-    void set_K_t_SPH2WALL(double someValue) { K_t_s2w_UU = someValue; }
-    /// Set sphere-to-wall tangent damping coefficient
-    void set_Gamma_t_SPH2WALL(double someValue) { Gamma_t_s2w_UU = someValue; }
-
-    /// Set the ratio of cohesion to gravity for monodisperse spheres. Assumes a constant cohesion model
-    void set_Cohesion_ratio(float someValue) { cohesion_over_gravity = someValue; }
-
-    /// Set the ratio of adhesion to gravity for sphere to wall. Assumes a constant cohesion model
-    void set_Adhesion_ratio_S2W(float someValue) { adhesion_s2w_over_gravity = someValue; }
-
-    /// Prescribe the motion of the big domain, allows wavetank-style simulations
-    void setBDWallsMotionFunction(const GranPositionFunction& pos_fn) {
-        BDOffsetFunction = pos_fn;
-        BC_offset_function_list.at(BD_WALL_ID_X_BOT) = pos_fn;
-        BC_offset_function_list.at(BD_WALL_ID_X_TOP) = pos_fn;
-        BC_offset_function_list.at(BD_WALL_ID_Y_BOT) = pos_fn;
-        BC_offset_function_list.at(BD_WALL_ID_Y_TOP) = pos_fn;
-        BC_offset_function_list.at(BD_WALL_ID_Z_BOT) = pos_fn;
-        BC_offset_function_list.at(BD_WALL_ID_Z_TOP) = pos_fn;
-    }
-
-    // Copy back the subdomain device data and save it to a file for error checking on the priming kernel
-    //// RADU: is this function going to be implemented?!?
-    ////void checkSDCounts(std::string ofile, bool write_out, bool verbose) const;
-
-  public:
+  protected:
     /// Structure with simulation parameters for sphere-based granular dynamics.
     /// This structure is stored in CUDA unified memory so that it can be accessed from both host and device.
     struct GranParams {
@@ -224,7 +122,6 @@ class CH_GPU_API ChSystemGpu_impl {
     /// Structure of pointers to kinematic quantities of the ChSystemGpu_impl.
     /// These pointers must be in device-accessible memory.
     struct SphereData {
-      public:
         int* sphere_local_pos_X;  ///< X position relative to owner subdomain in unified memory
         int* sphere_local_pos_Y;  ///< Y position relative to owner subdomain in unified memory
         int* sphere_local_pos_Z;  ///< Z position relative to owner subdomain in unified memory
@@ -270,7 +167,6 @@ class CH_GPU_API ChSystemGpu_impl {
         unsigned int* sphere_owner_SDs;  ///< List of owner subdomains for each sphere
     };
 
-  protected:
     // The system is not default-constructible
     ChSystemGpu_impl() = delete;
 
@@ -329,6 +225,38 @@ class CH_GPU_API ChSystemGpu_impl {
         BC_params_list_SU.at(BC_id).active = true;
         return true;
     }
+
+    /// Enable a boundary condition by its ID, returns false if the BC does not exist
+    bool SetBCOffsetFunction(size_t BC_id, const GranPositionFunction& offset_function) {
+        size_t max_id = BC_params_list_SU.size();
+        if (BC_id >= max_id) {
+            printf("ERROR: Trying to set offset function for invalid BC ID %zu\n", BC_id);
+            return false;
+        }
+        if (BC_id <= NUM_RESERVED_BC_IDS - 1) {
+            printf("ERROR: Trying to modify reserved BC ID %zu\n", BC_id);
+            return false;
+        }
+        BC_offset_function_list.at(BC_id) = offset_function;
+        BC_params_list_UU.at(BC_id).fixed = false;
+        BC_params_list_SU.at(BC_id).fixed = false;
+        return true;
+    }
+
+    /// Prescribe the motion of the big domain, allows wavetank-style simulations
+    void setBDWallsMotionFunction(const GranPositionFunction& pos_fn) {
+        BDOffsetFunction = pos_fn;
+        BC_offset_function_list.at(BD_WALL_ID_X_BOT) = pos_fn;
+        BC_offset_function_list.at(BD_WALL_ID_X_TOP) = pos_fn;
+        BC_offset_function_list.at(BD_WALL_ID_Y_BOT) = pos_fn;
+        BC_offset_function_list.at(BD_WALL_ID_Y_TOP) = pos_fn;
+        BC_offset_function_list.at(BD_WALL_ID_Z_BOT) = pos_fn;
+        BC_offset_function_list.at(BD_WALL_ID_Z_TOP) = pos_fn;
+    }
+
+    // Copy back the subdomain device data and save it to a file for error checking on the priming kernel
+    //// RADU: is this function going to be implemented?!?
+    ////void checkSDCounts(std::string ofile, bool write_out, bool verbose) const;
 
     /// Get the max z position of the spheres, allows easier co-simulation
     double GetMaxParticleZ() const;
@@ -434,7 +362,6 @@ class CH_GPU_API ChSystemGpu_impl {
     /// Rough estimate of the total amount of memory used by the system.
     size_t EstimateMemUsage() const;
 
-  protected:
     // Conversion factors from SU to UU
     /// 1 / C_L. Any length expressed in SU is a multiple of SU2UU
     double LENGTH_SU2UU;
@@ -666,6 +593,15 @@ class CH_GPU_API ChSystemGpu_impl {
     /// Allow the user to set the big domain to be fixed, ignoring any given position functions
     bool BD_is_fixed = true;
 
+  public:
+    // Do two things: make the naming nicer and require a const pointer everywhere
+
+    /// Get handle for the gran params that skips namespacing and enforces const-ness
+    typedef const ChSystemGpu_impl::GranParams* GranParamsPtr;
+
+    /// Get handle for the sphere data that skips namespacing and enforces const-ness
+    typedef const ChSystemGpu_impl::SphereData* GranSphereDataPtr;
+
     friend class ChSystemGpu;
     friend class ChSystemGpuMesh;
 };
@@ -674,11 +610,3 @@ class CH_GPU_API ChSystemGpu_impl {
 
 }  // namespace gpu
 }  // namespace chrono
-
-// Do two things: make the naming nicer and require a const pointer everywhere
-
-/// Get handle for the gran params that skips namespacing and enforces const-ness
-typedef const chrono::gpu::ChSystemGpu_impl::GranParams* GranParamsPtr;
-
-/// Get handle for the sphere data that skips namespacing and enforces const-ness
-typedef const chrono::gpu::ChSystemGpu_impl::SphereData* GranSphereDataPtr;

@@ -119,39 +119,41 @@ int main(int argc, char* argv[]) {
         return pos;
     };
 
-    // gpu_sys.setBDWallsMotionFunction(pos_func_wave);
+    // apiSMC.setBDWallsMotionFunction(pos_func_wave);
 
-    gpu_sys.set_K_n_SPH2SPH(params.normalStiffS2S);
-    gpu_sys.set_K_n_SPH2WALL(params.normalStiffS2W);
-    gpu_sys.set_K_n_SPH2MESH(params.normalStiffS2M);
+    apiSMC.SetKn_SPH2SPH(params.normalStiffS2S);
+    apiSMC.SetKn_SPH2WALL(params.normalStiffS2W);
+    apiSMC.SetKn_SPH2MESH(params.normalStiffS2M);
 
-    gpu_sys.set_Gamma_n_SPH2SPH(params.normalDampS2S);
-    gpu_sys.set_Gamma_n_SPH2WALL(params.normalDampS2W);
-    gpu_sys.set_Gamma_n_SPH2MESH(params.normalDampS2M);
+    apiSMC.SetGn_SPH2SPH(params.normalDampS2S);
+    apiSMC.SetGn_SPH2WALL(params.normalDampS2W);
+    apiSMC.SetGn_SPH2MESH(params.normalDampS2M);
 
-    gpu_sys.set_K_t_SPH2SPH(params.tangentStiffS2S);
-    gpu_sys.set_K_t_SPH2WALL(params.tangentStiffS2W);
-    gpu_sys.set_K_t_SPH2MESH(params.tangentStiffS2M);
+    apiSMC.SetKt_SPH2SPH(params.tangentStiffS2S);
+    apiSMC.SetKt_SPH2WALL(params.tangentStiffS2W);
+    apiSMC.SetKt_SPH2MESH(params.tangentStiffS2M);
 
-    gpu_sys.set_Gamma_t_SPH2SPH(params.tangentDampS2S);
-    gpu_sys.set_Gamma_t_SPH2WALL(params.tangentDampS2W);
-    gpu_sys.set_Gamma_t_SPH2MESH(params.tangentDampS2M);
+    apiSMC.SetGt_SPH2SPH(params.tangentDampS2S);
+    apiSMC.SetGt_SPH2WALL(params.tangentDampS2W);
+    apiSMC.SetGt_SPH2MESH(params.tangentDampS2M);
 
-    gpu_sys.set_Cohesion_ratio(params.cohesion_ratio);
-    gpu_sys.set_Adhesion_ratio_S2M(params.adhesion_ratio_s2m);
-    gpu_sys.set_Adhesion_ratio_S2W(params.adhesion_ratio_s2w);
+    apiSMC.SetCohesionRatio(params.cohesion_ratio);
+    apiSMC.SetAdhesionRatio_SPH2MESH(params.adhesion_ratio_s2m);
+    apiSMC.SetAdhesionRatio_SPH2WALL(params.adhesion_ratio_s2w);
+
     apiSMC.SetGravitationalAcceleration(ChVector<float>(params.grav_X, params.grav_Y, params.grav_Z));
 
     apiSMC.SetFixedStepSize(params.step_size);
     apiSMC.SetFrictionMode(CHGPU_FRICTION_MODE::MULTI_STEP);
     apiSMC.SetTimeIntegrator(CHGPU_TIME_INTEGRATOR::CENTERED_DIFFERENCE);
-    gpu_sys.set_static_friction_coeff_SPH2SPH(params.static_friction_coeffS2S);
-    gpu_sys.set_static_friction_coeff_SPH2WALL(params.static_friction_coeffS2W);
-    gpu_sys.set_static_friction_coeff_SPH2MESH(params.static_friction_coeffS2M);
 
-    //gpu_sys.set_rolling_coeff_SPH2SPH(params.rolling_friction_coeffS2S);
-    //gpu_sys.set_rolling_coeff_SPH2WALL(params.rolling_friction_coeffS2W);
-    //gpu_sys.set_rolling_coeff_SPH2MESH(params.rolling_friction_coeffS2M);
+    apiSMC.SetStaticFrictionCoeff_SPH2SPH(params.static_friction_coeffS2S);
+    apiSMC.SetSaticFictionCeff_SPH2WALL(params.static_friction_coeffS2W);
+    apiSMC.SetStaticFrictionCoeff_SPH2MESH(params.static_friction_coeffS2M);
+
+    //apiSMC.SetRollingCoeff_SPH2SPH(params.rolling_friction_coeffS2S);
+    //apiSMC.SetRollingCoeff_SPH2WALL(params.rolling_friction_coeffS2W);
+    //apiSMC.SetRollingCoeff_SPH2MESH(params.rolling_friction_coeffS2M);
 
     std::string mesh_filename(GetChronoDataFile("gpu/demo_GPU_ballcosim/sphere.obj"));
     std::vector<string> mesh_filenames(1, mesh_filename);

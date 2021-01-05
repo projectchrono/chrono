@@ -79,8 +79,8 @@ ChSystemGpu_impl::ChSystemGpu_impl(float sphere_rad, float density, float3 boxDi
 
     gran_params->max_safe_vel = (float)UINT_MAX;
 
-    set_static_friction_coeff_SPH2SPH(0);
-    set_static_friction_coeff_SPH2WALL(0);
+    gran_params->static_friction_coeff_s2s = 0;
+    gran_params->static_friction_coeff_s2w = 0;
 
     CreateWallBCs();
     setBDWallsMotionFunction(GranPosFunction_default);

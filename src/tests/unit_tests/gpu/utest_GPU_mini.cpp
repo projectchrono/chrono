@@ -52,13 +52,14 @@ bool run_test(float box_size_X, float box_size_Y, float box_size_Z) {
     ChSystemGpu apiSMC(sphereRadius, sphereDensity, make_float3(box_size_X, box_size_Y, box_size_Z));
     ChSystemGpu_impl& gpu_sys = apiSMC.getSystem();
 
-    gpu_sys.set_K_n_SPH2SPH(normStiffness_S2S);
-    gpu_sys.set_K_n_SPH2WALL(normStiffness_S2W);
-    gpu_sys.set_Gamma_n_SPH2SPH(normalDampS2S);
-    gpu_sys.set_Gamma_n_SPH2WALL(normalDampS2W);
+    apiSMC.SetKn_SPH2SPH(normStiffness_S2S);
+    apiSMC.SetKn_SPH2WALL(normStiffness_S2W);
+    apiSMC.SetGn_SPH2SPH(normalDampS2S);
+    apiSMC.SetGn_SPH2WALL(normalDampS2W);
 
-    gpu_sys.set_Cohesion_ratio(cohesion_ratio);
-    gpu_sys.set_Adhesion_ratio_S2W(adhesion_ratio_s2w);
+    apiSMC.SetCohesionRatio(cohesion_ratio);
+    apiSMC.SetAdhesionRatio_SPH2WALL(adhesion_ratio_s2w);
+
     apiSMC.SetGravitationalAcceleration(ChVector<float>(0.f, 0.f, grav_acceleration));
     apiSMC.SetOutputMode(write_mode);
 

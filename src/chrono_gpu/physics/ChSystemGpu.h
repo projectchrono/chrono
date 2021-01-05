@@ -74,12 +74,52 @@ class CH_GPU_API ChSystemGpu {
 
     /// Set friction formulation.
     /// The frictionless setting uses a streamlined solver and avoids storing any physics information associated with
-    /// friction
+    /// friction.
     void SetFrictionMode(CHGPU_FRICTION_MODE new_mode);
 
     /// Set rolling resistence formulation.
     /// NOTE: This requires friction to be active, otherwise this setting will be ignored.
     void SetRollingMode(CHGPU_ROLLING_MODE new_mode);
+
+    /// Set sphere-to-sphere static friction coefficient.
+    void SetStaticFrictionCoeff_SPH2SPH(float mu);
+    /// Set sphere-to-wall static friction coefficient.
+    void SetSaticFictionCeff_SPH2WALL(float mu);
+    /// Set sphere-to-sphere rolling friction coefficient -- units and use vary by rolling friction mode.
+    void SetRollingCoeff_SPH2SPH(float mu);
+    /// Set sphere-to-wall rolling friction coefficient -- units and use vary by rolling friction mode.
+    void SetRollingCoeff_SPH2WALL(float mu);
+
+    /// Set sphere-to-sphere spinning friction coefficient -- units and use vary by spinning friction mode.
+    void SetSpinningCoeff_SPH2SPH(float mu);
+    /// Set sphere-to-wall spinning friction coefficient -- units and use vary by spinning friction mode.
+    void SetSpinningCoeff_SPH2WALL(float mu);
+
+    /// Set sphere-to-sphere normal contact stiffness
+    void SetKn_SPH2SPH(double someValue);
+    /// Set sphere-to-wall normal contact stiffness
+    void SetKn_SPH2WALL(double someValue);
+
+    /// Set sphere-to-sphere normal damping coefficient
+    void SetGn_SPH2SPH(double someValue);
+    /// Set sphere-to-wall normal damping coefficient
+    void SetGn_SPH2WALL(double someValue);
+
+    /// Set sphere-to-sphere tangential contact stiffness
+    void SetKt_SPH2SPH(double someValue);
+    /// Set sphere-to-sphere tangential damping coefficient
+    void SetGt_SPH2SPH(double someValue);
+
+    /// Set sphere-to-wall tangential contact stiffness
+    void SetKt_SPH2WALL(double someValue);
+    /// Set sphere-to-wall tangential damping coefficient
+    void SetGt_SPH2WALL(double someValue);
+
+    /// Set the ratio of cohesion to gravity for monodisperse spheres. Assumes a constant cohesion model
+    void SetCohesionRatio(float someValue);
+
+    /// Set the ratio of adhesion to gravity for sphere to wall. Assumes a constant cohesion model
+    void SetAdhesionRatio_SPH2WALL(float someValue);
 
     /// Safety check velocity to ensure the simulation is still stable.
     void SetMaxSafeVelocity_SU(float max_vel);
@@ -115,6 +155,12 @@ class CH_GPU_API ChSystemGpu {
 
     /// Enable a boundary condition by its ID, returns false if the BC does not exist.
     bool EnableBCbyID(size_t BC_id);
+
+    /// Enable a boundary condition by its ID, returns false if the BC does not exist.
+    bool SetBCOffsetFunction(size_t BC_id, const GranPositionFunction& offset_function);
+
+    /// Prescribe the motion of the big domain, allows wavetank-style simulations.
+    void setBDWallsMotionFunction(const GranPositionFunction& pos_fn);
 
     /// Return the total number of particles in the system
     size_t GetNumParticles() const;
@@ -196,6 +242,26 @@ class CH_GPU_API ChSystemGpuMesh : public ChSystemGpu {
     unsigned int GetNumMeshes() const;
 
     ChSystemGpuMesh_impl& getSystemMesh() { return *(static_cast<ChSystemGpuMesh_impl*>(m_sys)); }
+
+    /// Set sphere-to-mesh static friction coefficient.
+    void SetStaticFrictionCoeff_SPH2MESH(float mu);
+    /// Set sphere-to-mesh rolling friction coefficient.
+    void SetRollingCoeff_SPH2MESH(float mu);
+    /// Set sphere-to-mesh spinning friction coefficient.
+    void SetSpinningCoeff_SPH2MESH(float mu);
+
+    /// Set sphere-to-mesh normal contact stiffness
+    void SetKn_SPH2MESH(double someValue);
+    /// Set sphere-to-mesh normal damping coefficient
+    void SetGn_SPH2MESH(double someValue);
+
+    /// Set sphere-to-mesh tangential contact stiffness
+    void SetKt_SPH2MESH(double someValue);
+    /// Set sphere-to-mesh tangential damping coefficient
+    void SetGt_SPH2MESH(double someValue);
+
+    /// Set the ratio of adhesion force to sphere weight for sphere to mesh.
+    void SetAdhesionRatio_SPH2MESH(float someValue);
 
     /// Set verbosity level of mesh operations.
     void SetMeshVerbosity(CHGPU_MESH_VERBOSITY level);

@@ -47,7 +47,7 @@ ChSystemGpuMesh_impl::ChSystemGpuMesh_impl(float sphere_rad, float density, floa
     meshSoup->nTrianglesInSoup = 0;
     meshSoup->numTriangleFamilies = 0;
 
-    set_static_friction_coeff_SPH2MESH(0);
+    tri_params->static_friction_coeff_s2m = 0;
 }
 
 ChSystemGpuMesh_impl::~ChSystemGpuMesh_impl() {

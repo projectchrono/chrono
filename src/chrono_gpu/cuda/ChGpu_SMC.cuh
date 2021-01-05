@@ -34,6 +34,8 @@
 #include "chrono_gpu/cuda/ChGpuHelpers.cuh"
 #include "chrono_gpu/cuda/ChGpuBoundaryConditions.cuh"
 
+using chrono::gpu::ChSystemGpu_impl;
+
 using chrono::gpu::CHGPU_TIME_INTEGRATOR;
 using chrono::gpu::CHGPU_FRICTION_MODE;
 using chrono::gpu::CHGPU_ROLLING_MODE;
@@ -44,7 +46,7 @@ using chrono::gpu::CHGPU_ROLLING_MODE;
 /// Convert position from its owner subdomain local frame to the global big domain frame
 inline __device__ __host__ int64_t3 convertPosLocalToGlobal(unsigned int ownerSD,
                                                             const int3& local_pos,
-                                                            GranParamsPtr gran_params) {
+                                                            ChSystemGpu_impl::GranParamsPtr gran_params) {
     int3 ownerSD_triplet = SDIDTriplet(ownerSD, gran_params);
     int64_t3 sphPos_global = {0, 0, 0};
 
@@ -69,7 +71,7 @@ inline __device__ void figureOutTouchedSD(int64_t sphCenter_X_relative,
                                           int64_t sphCenter_Y_relative,
                                           int64_t sphCenter_Z_relative,
                                           unsigned int SDs[MAX_SDs_TOUCHED_BY_SPHERE],
-                                          GranParamsPtr gran_params) {
+                                          ChSystemGpu_impl::GranParamsPtr gran_params) {
     // grab radius as signed so we can use it intelligently
     const signed int sphereRadius_SU = gran_params->sphereRadius_SU;
     // I added these to fix a bug, we can inline them if/when needed but they ARE necessary
@@ -148,9 +150,9 @@ inline __device__ void figureOutTouchedSD(int64_t sphCenter_X_relative,
  */
 template <unsigned int CUB_THREADS>  // Number of CUB threads engaged in block-collective CUB operations. Should be a
                                      // multiple of 32
-__global__ void sphereBroadphase_dryrun(GranSphereDataPtr sphere_data,
+__global__ void sphereBroadphase_dryrun(ChSystemGpu_impl::GranSphereDataPtr sphere_data,
                                         unsigned int nSpheres,  // Number of spheres in the box
-                                        GranParamsPtr gran_params) {
+                                        ChSystemGpu_impl::GranParamsPtr gran_params) {
     /// Set aside shared memory
     volatile __shared__ bool shMem_head_flags[CUB_THREADS * MAX_SDs_TOUCHED_BY_SPHERE];
 
@@ -227,9 +229,9 @@ __global__ void sphereBroadphase_dryrun(GranSphereDataPtr sphere_data,
 
 template <unsigned int CUB_THREADS>  // Number of CUB threads engaged in block-collective CUB operations. Should be a
                                      // multiple of 32
-__global__ void sphereBroadphase(GranSphereDataPtr sphere_data,
+__global__ void sphereBroadphase(ChSystemGpu_impl::GranSphereDataPtr sphere_data,
                                  unsigned int nSpheres,  // Number of spheres in the box
-                                 GranParamsPtr gran_params) {
+                                 ChSystemGpu_impl::GranParamsPtr gran_params) {
     /// Set aside shared memory
     // SD component of offset into composite array
     volatile __shared__ unsigned int sphere_composite_offsets[CUB_THREADS * MAX_SDs_TOUCHED_BY_SPHERE];
@@ -342,7 +344,9 @@ __global__ void sphereBroadphase(GranSphereDataPtr sphere_data,
 
 /// Get position offset between two SDs
 // NOTE this assumes they are close together
-inline __device__ int3 getOffsetFromSDs(unsigned int thisSD, unsigned int otherSD, GranParamsPtr gran_params) {
+inline __device__ int3 getOffsetFromSDs(unsigned int thisSD,
+                                        unsigned int otherSD,
+                                        ChSystemGpu_impl::GranParamsPtr gran_params) {
     int3 thisSDTrip = SDIDTriplet(thisSD, gran_params);
     int3 otherSDTrip = SDIDTriplet(otherSD, gran_params);
     int3 dist = {0, 0, 0};
@@ -356,12 +360,12 @@ inline __device__ int3 getOffsetFromSDs(unsigned int thisSD, unsigned int otherS
 }
 
 /// update local positions and SD based on global position
-inline __device__ void findNewLocalCoords(GranSphereDataPtr sphere_data,
+inline __device__ void findNewLocalCoords(ChSystemGpu_impl::GranSphereDataPtr sphere_data,
                                           unsigned int mySphereID,
                                           int64_t global_pos_X,
                                           int64_t global_pos_Y,
                                           int64_t global_pos_Z,
-                                          GranParamsPtr gran_params) {
+                                          ChSystemGpu_impl::GranParamsPtr gran_params) {
     int3 ownerSD = pointSDTriplet(global_pos_X, global_pos_Y, global_pos_Z, gran_params);
 
     // printf("sphere %u, ownerSD is %d, %d, %d\n", mySphereID, ownerSD.x, ownerSD.y, ownerSD.z);
@@ -425,9 +429,9 @@ inline __device__ void findNewLocalCoords(GranSphereDataPtr sphere_data,
 
 /// when our BD frame moves, we need to change all local positions to account
 static __global__ void applyBDFrameChange(int64_t3 delta,
-                                          GranSphereDataPtr sphere_data,
+                                          ChSystemGpu_impl::GranSphereDataPtr sphere_data,
                                           unsigned int nSpheres,
-                                          GranParamsPtr gran_params) {
+                                          ChSystemGpu_impl::GranParamsPtr gran_params) {
     unsigned int mySphereID = threadIdx.x + blockIdx.x * blockDim.x;
 
     if (mySphereID < nSpheres) {
@@ -446,12 +450,12 @@ static __global__ void applyBDFrameChange(int64_t3 delta,
 
 /// Convert sphere positions from 64-bit global to 32-bit local
 // only need to run once at beginning
-static __global__ void initializeLocalPositions(GranSphereDataPtr sphere_data,
+static __global__ void initializeLocalPositions(ChSystemGpu_impl::GranSphereDataPtr sphere_data,
                                                 int64_t* sphere_pos_global_X,
                                                 int64_t* sphere_pos_global_Y,
                                                 int64_t* sphere_pos_global_Z,
                                                 unsigned int nSpheres,
-                                                GranParamsPtr gran_params) {
+                                                ChSystemGpu_impl::GranParamsPtr gran_params) {
     unsigned int mySphereID = threadIdx.x + blockIdx.x * blockDim.x;
 
     if (mySphereID < nSpheres) {
@@ -463,7 +467,7 @@ static __global__ void initializeLocalPositions(GranSphereDataPtr sphere_data,
 }
 
 // apply gravity to a sphere
-inline __device__ void applyGravity(float3& sphere_force, GranParamsPtr gran_params) {
+inline __device__ void applyGravity(float3& sphere_force, ChSystemGpu_impl::GranParamsPtr gran_params) {
     sphere_force.x += gran_params->gravAcc_X_SU * gran_params->sphere_mass_SU;
     sphere_force.y += gran_params->gravAcc_Y_SU * gran_params->sphere_mass_SU;
     sphere_force.z += gran_params->gravAcc_Z_SU * gran_params->sphere_mass_SU;
@@ -474,8 +478,8 @@ inline __device__ void applyExternalForces_frictionless(unsigned int ownerSD,
                                                         const int3& sphPos_local,  // local X position of DE
                                                         const float3& sphVel,      // Global X velocity of DE
                                                         float3& sphere_force,
-                                                        GranParamsPtr gran_params,
-                                                        GranSphereDataPtr sphere_data,
+                                                        ChSystemGpu_impl::GranParamsPtr gran_params,
+                                                        ChSystemGpu_impl::GranSphereDataPtr sphere_data,
                                                         BC_type* bc_type_list,
                                                         BC_params_t<int64_t, int64_t3>* bc_params_list,
                                                         unsigned int nBCs) {
@@ -523,8 +527,8 @@ inline __device__ void applyExternalForces(unsigned int currSphereID,
                                            const float3& sphOmega,
                                            float3& sphere_force,
                                            float3& sphere_ang_acc,
-                                           GranParamsPtr gran_params,
-                                           GranSphereDataPtr sphere_data,
+                                           ChSystemGpu_impl::GranParamsPtr gran_params,
+                                           ChSystemGpu_impl::GranSphereDataPtr sphere_data,
                                            BC_type* bc_type_list,
                                            BC_params_t<int64_t, int64_t3>* bc_params_list,
                                            unsigned int nBCs) {
@@ -568,7 +572,8 @@ inline __device__ void applyExternalForces(unsigned int currSphereID,
     applyGravity(sphere_force, gran_params);
 }
 
-static __global__ void determineContactPairs(GranSphereDataPtr sphere_data, GranParamsPtr gran_params) {
+static __global__ void determineContactPairs(ChSystemGpu_impl::GranSphereDataPtr sphere_data,
+                                             ChSystemGpu_impl::GranParamsPtr gran_params) {
     // Cache positions of spheres local to this SD
     __shared__ int3 sphere_pos_local[MAX_COUNT_OF_SPHERES_PER_SD];
     __shared__ unsigned int sphIDs[MAX_COUNT_OF_SPHERES_PER_SD];
@@ -655,7 +660,7 @@ inline __device__ float3 computeSphereNormalForces(float& reciplength,
                                                    const int3& sphereB_pos,
                                                    const float3& sphereA_vel,
                                                    const float3& sphereB_vel,
-                                                   GranParamsPtr gran_params) {
+                                                   ChSystemGpu_impl::GranParamsPtr gran_params) {
     // grab radius from global
     unsigned int sphereRadius_SU = gran_params->sphereRadius_SU;
 
@@ -700,8 +705,8 @@ inline __device__ float3 computeSphereNormalForces(float& reciplength,
 }
 
 /// each thread is a sphere, computing the forces its contact partners exert on it
-static __global__ void computeSphereContactForces(GranSphereDataPtr sphere_data,
-                                                  GranParamsPtr gran_params,
+static __global__ void computeSphereContactForces(ChSystemGpu_impl::GranSphereDataPtr sphere_data,
+                                                  ChSystemGpu_impl::GranParamsPtr gran_params,
                                                   BC_type* bc_type_list,
                                                   BC_params_t<int64_t, int64_t3>* bc_params_list,
                                                   unsigned int nBCs,
@@ -848,8 +853,8 @@ static __global__ void computeSphereContactForces(GranSphereDataPtr sphere_data,
     }
 }
 
-static __global__ void computeSphereForces_frictionless(GranSphereDataPtr sphere_data,
-                                                        GranParamsPtr gran_params,
+static __global__ void computeSphereForces_frictionless(ChSystemGpu_impl::GranSphereDataPtr sphere_data,
+                                                        ChSystemGpu_impl::GranParamsPtr gran_params,
                                                         BC_type* bc_type_list,
                                                         BC_params_t<int64_t, int64_t3>* bc_params_list,
                                                         unsigned int nBCs) {
@@ -982,9 +987,9 @@ inline __device__ float integrateChung_pos(float stepsize_SU, float vel_old, flo
 
 /// Numerically integrates force to velocity and velocity to position
 static __global__ void integrateSpheres(const float stepsize_SU,
-                                        GranSphereDataPtr sphere_data,
+                                        ChSystemGpu_impl::GranSphereDataPtr sphere_data,
                                         unsigned int nSpheres,
-                                        GranParamsPtr gran_params) {
+                                        ChSystemGpu_impl::GranParamsPtr gran_params) {
     // Figure out what sphereID this thread will handle. We work with a 1D block structure and a 1D grid
     // structure
     unsigned int mySphereID = threadIdx.x + blockIdx.x * blockDim.x;
@@ -1091,9 +1096,9 @@ static __global__ void integrateSpheres(const float stepsize_SU,
  * Integrate angular accelerations and reset friction data. ONLY use this with friction on
  */
 static __global__ void updateFrictionData(const float stepsize_SU,
-                                          GranSphereDataPtr sphere_data,
+                                          ChSystemGpu_impl::GranSphereDataPtr sphere_data,
                                           unsigned int nSpheres,
-                                          GranParamsPtr gran_params) {
+                                          ChSystemGpu_impl::GranParamsPtr gran_params) {
     // Figure out what sphereID this thread will handle. We work with a 1D block structure and a 1D grid
     // structure
     unsigned int mySphereID = threadIdx.x + blockIdx.x * blockDim.x;

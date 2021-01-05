@@ -25,6 +25,9 @@
 #include "chrono_gpu/cuda/ChGpuBoxTriangle.cuh"
 #include "chrono_gpu/cuda/ChCudaMathUtils.cuh"
 
+using chrono::gpu::ChSystemGpu_impl;
+using chrono::gpu::ChSystemGpuMesh_impl;
+
 // Triangle bounding box will be enlarged by 1/SAFETY_PARAM, ensuring triangles lie between 2 SDs
 // are getting some love
 const int SAFETY_PARAM = 1000;
@@ -50,7 +53,7 @@ __device__ OUT_T3 apply_frame_transform(const IN_T3& point, const IN_T* pos, con
 }
 
 template <class T3>
-__device__ void convert_pos_UU2SU(T3& pos, GranParamsPtr gran_params) {
+__device__ void convert_pos_UU2SU(T3& pos, ChSystemGpu_impl::GranParamsPtr gran_params) {
     pos.x /= gran_params->LENGTH_UNIT;
     pos.y /= gran_params->LENGTH_UNIT;
     pos.z /= gran_params->LENGTH_UNIT;
@@ -62,7 +65,7 @@ __inline__ __device__ void triangle_figureOutSDBox(const float3& vA,
                                                    const float3& vC,
                                                    int* L,
                                                    int* U,
-                                                   GranParamsPtr gran_params) {
+                                                   ChSystemGpu_impl::GranParamsPtr gran_params) {
     int3 min_pt;
     min_pt.x = MIN(vA.x, MIN(vB.x, vC.x));
     min_pt.y = MIN(vA.y, MIN(vB.y, vC.y));
@@ -97,9 +100,9 @@ __inline__ __device__ void triangle_figureOutSDBox(const float3& vA,
 /// Triangle broadphase is done in float by applying the frame transform
 /// and then converting the GRF position to SU
 inline __device__ unsigned int triangle_countTouchedSDs(unsigned int triangleID,
-                                                        const TriangleSoupPtr triangleSoup,
-                                                        GranParamsPtr gran_params,
-                                                        MeshParamsPtr tri_params) {
+                                                        const ChSystemGpuMesh_impl::TriangleSoupPtr triangleSoup,
+                                                        ChSystemGpu_impl::GranParamsPtr gran_params,
+                                                        ChSystemGpuMesh_impl::MeshParamsPtr tri_params) {
     float3 vA, vB, vC;
 
     // Transform LRF to GRF
@@ -188,10 +191,10 @@ inline __device__ unsigned int triangle_countTouchedSDs(unsigned int triangleID,
 /// Triangle broadphase is done in float by applying the frame transform
 /// and then converting the GRF position to SU
 inline __device__ void triangle_figureOutTouchedSDs(unsigned int triangleID,
-                                                    const TriangleSoupPtr triangleSoup,
+                                                    const ChSystemGpuMesh_impl::TriangleSoupPtr triangleSoup,
                                                     unsigned int* touchedSDs,
-                                                    GranParamsPtr gran_params,
-                                                    MeshParamsPtr tri_params) {
+                                                    ChSystemGpu_impl::GranParamsPtr gran_params,
+                                                    ChSystemGpuMesh_impl::MeshParamsPtr tri_params) {
     float3 vA, vB, vC;
 
     // Transform LRF to GRF
@@ -278,10 +281,10 @@ inline __device__ void triangle_figureOutTouchedSDs(unsigned int triangleID,
 }
 
 __global__ void triangleSoup_CountSDsTouched(
-    const TriangleSoupPtr d_triangleSoup,
+    const ChSystemGpuMesh_impl::TriangleSoupPtr d_triangleSoup,
     unsigned int* Triangle_NumSDsTouching,  //!< number of SDs touching this Triangle
-    GranParamsPtr gran_params,
-    MeshParamsPtr mesh_params) {
+    ChSystemGpu_impl::GranParamsPtr gran_params,
+    ChSystemGpuMesh_impl::MeshParamsPtr mesh_params) {
     // Figure out what triangleID this thread will handle. We work with a 1D block structure and a 1D grid structure
     unsigned int myTriangleID = threadIdx.x + blockIdx.x * blockDim.x;
 
@@ -292,13 +295,13 @@ __global__ void triangleSoup_CountSDsTouched(
 }
 
 __global__ void triangleSoup_StoreSDsTouched(
-    const TriangleSoupPtr d_triangleSoup,
+    const ChSystemGpuMesh_impl::TriangleSoupPtr d_triangleSoup,
     unsigned int* Triangle_NumSDsTouching,     //!< number of SDs touching this Triangle
     unsigned int* TriangleSDCompositeOffsets,  //!< number of SDs touching this Triangle
     unsigned int* Triangle_SDsComposite,       //!< number of SDs touching this Triangle
     unsigned int* Triangle_TriIDsComposite,    //!< number of SDs touching this Triangle
-    GranParamsPtr gran_params,
-    MeshParamsPtr mesh_params) {
+    ChSystemGpu_impl::GranParamsPtr gran_params,
+    ChSystemGpuMesh_impl::MeshParamsPtr mesh_params) {
     // Figure out what triangleID this thread will handle. We work with a 1D block structure and a 1D grid structure
     unsigned int myTriangleID = threadIdx.x + blockIdx.x * blockDim.x;
 

@@ -98,6 +98,114 @@ void ChSystemGpu::SetPsiFactors(unsigned int psi_T, unsigned int psi_L, float ps
 
 // -----------------------------------------------------------------------------
 
+void ChSystemGpu::SetStaticFrictionCoeff_SPH2SPH(float mu) {
+    m_sys->gran_params->static_friction_coeff_s2s = mu;
+}
+
+void ChSystemGpu::SetSaticFictionCeff_SPH2WALL(float mu) {
+    m_sys->gran_params->static_friction_coeff_s2w = mu;
+}
+
+void ChSystemGpu::SetRollingCoeff_SPH2SPH(float mu) {
+    m_sys->rolling_coeff_s2s_UU = mu;
+}
+
+void ChSystemGpu::SetRollingCoeff_SPH2WALL(float mu) {
+    m_sys->rolling_coeff_s2w_UU = mu;
+}
+
+void ChSystemGpu::SetSpinningCoeff_SPH2SPH(float mu) {
+    m_sys->spinning_coeff_s2s_UU = mu;
+}
+
+void ChSystemGpu::SetSpinningCoeff_SPH2WALL(float mu) {
+    m_sys->spinning_coeff_s2w_UU = mu;
+}
+
+void ChSystemGpu::SetKn_SPH2SPH(double someValue) {
+    m_sys->K_n_s2s_UU = someValue;
+}
+
+void ChSystemGpu::SetKn_SPH2WALL(double someValue) {
+    m_sys->K_n_s2w_UU = someValue;
+}
+
+void ChSystemGpu::SetGn_SPH2SPH(double someValue) {
+    m_sys->Gamma_n_s2s_UU = someValue;
+}
+
+void ChSystemGpu::SetGn_SPH2WALL(double someValue) {
+    m_sys->Gamma_n_s2w_UU = someValue;
+}
+
+void ChSystemGpu::SetKt_SPH2SPH(double someValue) {
+    m_sys->K_t_s2s_UU = someValue;
+}
+
+void ChSystemGpu::SetGt_SPH2SPH(double someValue) {
+    m_sys->Gamma_t_s2s_UU = someValue;
+}
+
+void ChSystemGpu::SetKt_SPH2WALL(double someValue) {
+    m_sys->K_t_s2w_UU = someValue;
+}
+
+void ChSystemGpu::SetGt_SPH2WALL(double someValue) {
+    m_sys->Gamma_t_s2w_UU = someValue;
+}
+
+void ChSystemGpu::SetCohesionRatio(float someValue) {
+    m_sys->cohesion_over_gravity = someValue;
+}
+
+void ChSystemGpu::SetAdhesionRatio_SPH2WALL(float someValue) {
+    m_sys->adhesion_s2w_over_gravity = someValue;
+}
+
+// -----------------------------------------------------------------------------
+
+void ChSystemGpuMesh::SetStaticFrictionCoeff_SPH2MESH(float mu) {
+    ChSystemGpuMesh_impl* sys_trimesh = static_cast<ChSystemGpuMesh_impl*>(m_sys);
+    sys_trimesh->tri_params->static_friction_coeff_s2m = mu;
+}
+
+void ChSystemGpuMesh::SetRollingCoeff_SPH2MESH(float mu) {
+    ChSystemGpuMesh_impl* sys_trimesh = static_cast<ChSystemGpuMesh_impl*>(m_sys);
+    sys_trimesh->rolling_coeff_s2m_UU = mu;
+}
+
+void ChSystemGpuMesh::SetSpinningCoeff_SPH2MESH(float mu) {
+    ChSystemGpuMesh_impl* sys_trimesh = static_cast<ChSystemGpuMesh_impl*>(m_sys);
+    sys_trimesh->spinning_coeff_s2m_UU = mu;
+}
+
+void ChSystemGpuMesh::SetKn_SPH2MESH(double someValue) {
+    ChSystemGpuMesh_impl* sys_trimesh = static_cast<ChSystemGpuMesh_impl*>(m_sys);
+    sys_trimesh->K_n_s2m_UU = someValue;
+}
+
+void ChSystemGpuMesh::SetGn_SPH2MESH(double someValue) {
+    ChSystemGpuMesh_impl* sys_trimesh = static_cast<ChSystemGpuMesh_impl*>(m_sys);
+    sys_trimesh->Gamma_n_s2m_UU = someValue;
+}
+
+void ChSystemGpuMesh::SetKt_SPH2MESH(double someValue) {
+    ChSystemGpuMesh_impl* sys_trimesh = static_cast<ChSystemGpuMesh_impl*>(m_sys);
+    sys_trimesh->K_t_s2m_UU = someValue;
+}
+
+void ChSystemGpuMesh::SetGt_SPH2MESH(double someValue) {
+    ChSystemGpuMesh_impl* sys_trimesh = static_cast<ChSystemGpuMesh_impl*>(m_sys);
+    sys_trimesh->Gamma_t_s2m_UU = someValue;
+}
+
+void ChSystemGpuMesh::SetAdhesionRatio_SPH2MESH(float someValue) {
+    ChSystemGpuMesh_impl* sys_trimesh = static_cast<ChSystemGpuMesh_impl*>(m_sys);
+    sys_trimesh->adhesion_s2m_over_gravity = someValue;
+}
+
+// -----------------------------------------------------------------------------
+
 void ChSystemGpu::SetVerbosity(CHGPU_VERBOSITY level) {
     m_sys->verbosity = level;
 }
@@ -140,14 +248,20 @@ size_t ChSystemGpu::CreateBCCylinderZ(const ChVector<float>& center,
     return m_sys->CreateBCCylinderZ(cyl_center, radius, outward_normal, track_forces);
 }
 
-/// Disable a boundary condition by its ID, returns false if the BC does not exist.
 bool ChSystemGpu::DisableBCbyID(size_t BC_id) {
     return m_sys->DisableBCbyID(BC_id);
 }
 
-/// Enable a boundary condition by its ID, returns false if the BC does not exist.
 bool ChSystemGpu::EnableBCbyID(size_t BC_id) {
     return m_sys->EnableBCbyID(BC_id);
+}
+
+bool ChSystemGpu::SetBCOffsetFunction(size_t BC_id, const GranPositionFunction& offset_function) {
+    return m_sys->SetBCOffsetFunction(BC_id, offset_function);
+}
+
+void ChSystemGpu::setBDWallsMotionFunction(const GranPositionFunction& pos_fn) {
+    m_sys->setBDWallsMotionFunction(pos_fn);
 }
 
 // -----------------------------------------------------------------------------

@@ -21,6 +21,8 @@
 
 #include "chrono_thirdparty/cub/cub.cuh"
 
+using chrono::gpu::ChSystemGpu_impl;
+
 using chrono::gpu::CHGPU_TIME_INTEGRATOR;
 using chrono::gpu::CHGPU_FRICTION_MODE;
 using chrono::gpu::CHGPU_ROLLING_MODE;
@@ -40,7 +42,7 @@ using chrono::gpu::CHGPU_ROLLING_MODE;
 inline __device__ int3 pointSDTriplet(int64_t sphCenter_X,
                                       int64_t sphCenter_Y,
                                       int64_t sphCenter_Z,
-                                      GranParamsPtr gran_params) {
+                                      ChSystemGpu_impl::GranParamsPtr gran_params) {
     // Note that this offset allows us to have moving walls and the like very easily
 
     int64_t sphCenter_X_modified = -gran_params->BD_frame_X + sphCenter_X;
@@ -59,7 +61,10 @@ inline __device__ int3 pointSDTriplet(int64_t sphCenter_X,
 
 // Decide which SD owns this point in space
 // Short form overload for regular ints
-inline __device__ int3 pointSDTriplet(int sphCenter_X, int sphCenter_Y, int sphCenter_Z, GranParamsPtr gran_params) {
+inline __device__ int3 pointSDTriplet(int sphCenter_X,
+                                      int sphCenter_Y,
+                                      int sphCenter_Z,
+                                      ChSystemGpu_impl::GranParamsPtr gran_params) {
     // call the 64-bit overload
     return pointSDTriplet((int64_t)sphCenter_X, (int64_t)sphCenter_Y, (int64_t)sphCenter_Z, gran_params);
 }
@@ -69,13 +74,13 @@ inline __device__ int3 pointSDTriplet(int sphCenter_X, int sphCenter_Y, int sphC
 inline __device__ int3 pointSDTriplet(double sphCenter_X,
                                       double sphCenter_Y,
                                       double sphCenter_Z,
-                                      GranParamsPtr gran_params) {
+                                      ChSystemGpu_impl::GranParamsPtr gran_params) {
     // call the 64-bit overload
     return pointSDTriplet((int64_t)sphCenter_X, (int64_t)sphCenter_Y, (int64_t)sphCenter_Z, gran_params);
 }
 
 // Conver SD ID to SD triplet
-inline __host__ __device__ int3 SDIDTriplet(unsigned int SD_ID, GranParamsPtr gran_params) {
+inline __host__ __device__ int3 SDIDTriplet(unsigned int SD_ID, ChSystemGpu_impl::GranParamsPtr gran_params) {
     int3 SD_trip = {0, 0, 0};
 
     // printf("ID is %u\n", SD_ID);
@@ -98,7 +103,10 @@ inline __host__ __device__ int3 SDIDTriplet(unsigned int SD_ID, GranParamsPtr gr
 }
 
 // Convert triplet to single int SD ID
-inline __device__ unsigned int SDTripletID(const int i, const int j, const int k, GranParamsPtr gran_params) {
+inline __device__ unsigned int SDTripletID(const int i,
+                                           const int j,
+                                           const int k,
+                                           ChSystemGpu_impl::GranParamsPtr gran_params) {
     // if we're outside the BD in any direction, this is an invalid SD
     if (i < 0 || i >= gran_params->nSDs_X) {
         return NULL_CHGPU_ID;
@@ -113,18 +121,18 @@ inline __device__ unsigned int SDTripletID(const int i, const int j, const int k
 }
 
 // Convert triplet to single int SD ID
-inline __device__ unsigned int SDTripletID(const int3& trip, GranParamsPtr gran_params) {
+inline __device__ unsigned int SDTripletID(const int3& trip, ChSystemGpu_impl::GranParamsPtr gran_params) {
     return SDTripletID(trip.x, trip.y, trip.z, gran_params);
 }
 
 // Convert triplet to single int SD ID
-inline __device__ unsigned int SDTripletID(const int trip[3], GranParamsPtr gran_params) {
+inline __device__ unsigned int SDTripletID(const int trip[3], ChSystemGpu_impl::GranParamsPtr gran_params) {
     return SDTripletID(trip[0], trip[1], trip[2], gran_params);
 }
 
 /// get an index for the current contact pair
-inline __device__ size_t findContactPairInfo(GranSphereDataPtr sphere_data,
-                                             GranParamsPtr gran_params,
+inline __device__ size_t findContactPairInfo(ChSystemGpu_impl::GranSphereDataPtr sphere_data,
+                                             ChSystemGpu_impl::GranParamsPtr gran_params,
                                              unsigned int body_A,
                                              unsigned int body_B) {
     // TODO this should be size_t everywhere
@@ -164,9 +172,9 @@ inline __device__ size_t findContactPairInfo(GranSphereDataPtr sphere_data,
 }
 
 /// cleanup the contact data for a given body
-inline __device__ void cleanupContactMap(GranSphereDataPtr sphere_data,
+inline __device__ void cleanupContactMap(ChSystemGpu_impl::GranSphereDataPtr sphere_data,
                                          unsigned int body_A,
-                                         GranParamsPtr gran_params) {
+                                         ChSystemGpu_impl::GranParamsPtr gran_params) {
     // index of the sphere into the big array
     size_t body_A_offset = (size_t)MAX_SPHERES_TOUCHED_BY_SPHERE * body_A;
 
@@ -194,7 +202,7 @@ inline __device__ void cleanupContactMap(GranSphereDataPtr sphere_data,
     }
 }
 
-inline __device__ bool checkLocalPointInSD(const int3& point, GranParamsPtr gran_params) {
+inline __device__ bool checkLocalPointInSD(const int3& point, ChSystemGpu_impl::GranParamsPtr gran_params) {
     // TODO verify that this is correct
     // TODO optimize me
     bool ret = (point.x >= 0) && (point.y >= 0) && (point.z >= 0);
@@ -206,7 +214,7 @@ inline __device__ bool checkLocalPointInSD(const int3& point, GranParamsPtr gran
 inline __device__ bool checkSpheresContacting_int(const int3& sphereA_pos,
                                                   const int3& sphereB_pos,
                                                   unsigned int thisSD,
-                                                  GranParamsPtr gran_params) {
+                                                  ChSystemGpu_impl::GranParamsPtr gran_params) {
     // Compute penetration to check for collision, we can use ints provided the diameter is small enough
     int64_t penetration_int = 0;
 
@@ -236,8 +244,8 @@ inline __device__ bool checkSpheresContacting_int(const int3& sphereA_pos,
 }
 
 // NOTE: expects force_accum to be normal force only
-inline __device__ float3 computeRollingAngAcc(GranSphereDataPtr sphere_data,
-                                              GranParamsPtr gran_params,
+inline __device__ float3 computeRollingAngAcc(ChSystemGpu_impl::GranSphereDataPtr sphere_data,
+                                              ChSystemGpu_impl::GranParamsPtr gran_params,
                                               float rolling_coeff,
                                               float spinning_coeff,
                                               const float3& normal_force,
@@ -285,7 +293,7 @@ inline __device__ float3 computeRollingAngAcc(GranSphereDataPtr sphere_data,
 
 /// Compute single-step friction displacement
 /// set delta_t for the displacement
-inline __device__ void computeSingleStepDisplacement(GranParamsPtr gran_params,
+inline __device__ void computeSingleStepDisplacement(ChSystemGpu_impl::GranParamsPtr gran_params,
                                                      const float3& rel_vel,
                                                      float3& delta_t) {
     delta_t = rel_vel * gran_params->stepSize_SU;
@@ -294,8 +302,8 @@ inline __device__ void computeSingleStepDisplacement(GranParamsPtr gran_params,
 
 /// Compute multi-step friction displacement
 /// set delta_t for the displacement
-inline __device__ void computeMultiStepDisplacement(GranParamsPtr gran_params,
-                                                    GranSphereDataPtr sphere_data,
+inline __device__ void computeMultiStepDisplacement(ChSystemGpu_impl::GranParamsPtr gran_params,
+                                                    ChSystemGpu_impl::GranSphereDataPtr sphere_data,
                                                     const size_t& contact_id,
                                                     const float3& vrel_t,
                                                     const float3& contact_normal,
@@ -314,7 +322,7 @@ inline __device__ void computeMultiStepDisplacement(GranParamsPtr gran_params,
     sphere_data->contact_history_map[contact_id] = delta_t;
 }
 
-inline __device__ void updateMultiStepDisplacement(GranSphereDataPtr sphere_data,
+inline __device__ void updateMultiStepDisplacement(ChSystemGpu_impl::GranSphereDataPtr sphere_data,
                                                    const size_t& contact_index,
                                                    const float3& vrel_t,
                                                    const float3& contact_normal,
@@ -330,8 +338,8 @@ inline __device__ void updateMultiStepDisplacement(GranSphereDataPtr sphere_data
 
 /// compute friction forces for a contact
 /// returns tangent force including hertz factor, clamped and all
-inline __device__ float3 computeFrictionForces(GranParamsPtr gran_params,
-                                               GranSphereDataPtr sphere_data,
+inline __device__ float3 computeFrictionForces(ChSystemGpu_impl::GranParamsPtr gran_params,
+                                               ChSystemGpu_impl::GranSphereDataPtr sphere_data,
                                                size_t contact_index,
                                                float static_friction_coeff,
                                                float k_t,
@@ -375,8 +383,8 @@ inline __device__ float3 computeFrictionForces(GranParamsPtr gran_params,
 }
 
 // overload for if the body ids are given rather than contact id
-inline __device__ float3 computeFrictionForces(GranParamsPtr gran_params,
-                                               GranSphereDataPtr sphere_data,
+inline __device__ float3 computeFrictionForces(ChSystemGpu_impl::GranParamsPtr gran_params,
+                                               ChSystemGpu_impl::GranSphereDataPtr sphere_data,
                                                unsigned int body_A_index,
                                                unsigned int body_B_index,
                                                float static_friction_coeff,

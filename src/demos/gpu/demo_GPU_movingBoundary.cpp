@@ -54,22 +54,24 @@ int main(int argc, char* argv[]) {
 
     apiSMC.SetPsiFactors(params.psi_T, params.psi_L);
 
-    gpu_sys.set_K_n_SPH2SPH(params.normalStiffS2S);
-    gpu_sys.set_K_n_SPH2WALL(params.normalStiffS2W);
-    gpu_sys.set_Gamma_n_SPH2SPH(params.normalDampS2S);
-    gpu_sys.set_Gamma_n_SPH2WALL(params.normalDampS2W);
+    apiSMC.SetKn_SPH2SPH(params.normalStiffS2S);
+    apiSMC.SetKn_SPH2WALL(params.normalStiffS2W);
+    apiSMC.SetGn_SPH2SPH(params.normalDampS2S);
+    apiSMC.SetGn_SPH2WALL(params.normalDampS2W);
 
-    gpu_sys.set_K_t_SPH2SPH(params.tangentStiffS2S);
-    gpu_sys.set_K_t_SPH2WALL(params.tangentStiffS2W);
-    gpu_sys.set_Gamma_t_SPH2SPH(params.tangentDampS2S);
-    gpu_sys.set_Gamma_t_SPH2WALL(params.tangentDampS2W);
-    gpu_sys.set_static_friction_coeff_SPH2SPH(params.static_friction_coeffS2S);
-    gpu_sys.set_static_friction_coeff_SPH2WALL(params.static_friction_coeffS2W);
+    apiSMC.SetKt_SPH2SPH(params.tangentStiffS2S);
+    apiSMC.SetKt_SPH2WALL(params.tangentStiffS2W);
+    apiSMC.SetGt_SPH2SPH(params.tangentDampS2S);
+    apiSMC.SetGt_SPH2WALL(params.tangentDampS2W);
+    apiSMC.SetStaticFrictionCoeff_SPH2SPH(params.static_friction_coeffS2S);
+    apiSMC.SetSaticFictionCeff_SPH2WALL(params.static_friction_coeffS2W);
 
-    gpu_sys.set_Cohesion_ratio(params.cohesion_ratio);
-    gpu_sys.set_Adhesion_ratio_S2W(params.adhesion_ratio_s2w);
+    apiSMC.SetCohesionRatio(params.cohesion_ratio);
+    apiSMC.SetAdhesionRatio_SPH2WALL(params.adhesion_ratio_s2w);
+
     apiSMC.SetGravitationalAcceleration(ChVector<float>(params.grav_X, params.grav_Y, params.grav_Z));
     apiSMC.SetOutputMode(params.write_mode);
+
     filesystem::create_directory(filesystem::path(params.output_dir));
 
     // fill box, layer by layer
@@ -114,7 +116,7 @@ int main(int argc, char* argv[]) {
 
     apiSMC.Initialize();
 
-    gpu_sys.set_BC_offset_function(plane_bc_id, plane_pos_func);
+    apiSMC.SetBCOffsetFunction(plane_bc_id, plane_pos_func);
 
     int fps = 50;
     // assume we run for at least one frame

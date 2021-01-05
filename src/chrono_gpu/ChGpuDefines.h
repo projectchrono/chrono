@@ -18,6 +18,41 @@
 #include <cuda_runtime.h>
 #include <cstdio>
 #include <cstdlib>
+#include <functional>
+
+namespace chrono {
+namespace gpu {
+
+/// Used to compute position as a function of time.
+typedef std::function<double3(float)> GranPositionFunction;
+
+/// Position function representing no motion or offset as a funtion of time.
+const GranPositionFunction GranPosFunction_default = [](float t) { return make_double3(0, 0, 0); };
+
+/// Verbosity level of the system.
+enum class CHGPU_VERBOSITY { QUIET = 0, INFO = 1, METRICS = 2 };
+
+/// Verbosity level.
+enum class CHGPU_MESH_VERBOSITY { QUIET = 0, INFO = 1 };
+
+/// Output mode of system.
+enum class CHGPU_OUTPUT_MODE { CSV, BINARY, HDF5, NONE };
+
+/// How are we integrating through time.
+enum class CHGPU_TIME_INTEGRATOR { FORWARD_EULER, CHUNG, CENTERED_DIFFERENCE, EXTENDED_TAYLOR };
+
+/// Supported friction model.
+enum class CHGPU_FRICTION_MODE { FRICTIONLESS, SINGLE_STEP, MULTI_STEP };
+
+/// Rolling resistance models -- ELASTIC_PLASTIC not implemented yet.
+enum class CHGPU_ROLLING_MODE { NO_RESISTANCE, SCHWARTZ, ELASTIC_PLASTIC };
+
+enum CHGPU_OUTPUT_FLAGS { ABSV = 1, VEL_COMPONENTS = 2, FIXITY = 4, ANG_VEL_COMPONENTS = 8, FORCE_COMPONENTS = 16 };
+
+#define GET_OUTPUT_SETTING(setting) (this->output_flags & setting)
+
+}  // namespace gpu
+}  // namespace chrono
 
 typedef longlong3 int64_t3;
 

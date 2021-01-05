@@ -215,13 +215,13 @@ __host__ void ChSystemGpuMesh_impl::runTriangleBroadphase() {
 
 template <unsigned int N_CUDATHREADS>
 __global__ void interactionTerrain_TriangleSoup(
-    TriangleSoupPtr d_triangleSoup,  //!< Contains information pertaining to triangle soup (in device mem.)
-    GranSphereDataPtr sphere_data,
+    ChSystemGpuMesh_impl::TriangleSoupPtr d_triangleSoup,  //!< Contains information about triangle soup (in device mem.)
+    ChSystemGpu_impl::GranSphereDataPtr sphere_data,
     unsigned int* triangles_in_SD_composite,    //!< Big array that works in conjunction with SD_numTrianglesTouching.
     unsigned int* SD_numTrianglesTouching,      //!< number of triangles touching this SD
     unsigned int* SD_TriangleCompositeOffsets,  //!< offset of triangles in the composite array for each SD
-    GranParamsPtr gran_params,
-    MeshParamsPtr mesh_params,
+    ChSystemGpu_impl::GranParamsPtr gran_params,
+    ChSystemGpuMesh_impl::MeshParamsPtr mesh_params,
     unsigned int triangleFamilyHistmapOffset) {
     __shared__ unsigned int triangleIDs[MAX_TRIANGLE_COUNT_PER_SD];  //!< global ID of the triangles touching this SD
 

@@ -57,27 +57,27 @@ int main(int argc, char* argv[]) {
                            make_float3(params.box_X, params.box_Y, params.box_Z));
     ChSystemGpu_impl& gpu_sys = apiSMC.getSystem();
 
-    gpu_sys.set_K_n_SPH2SPH(params.normalStiffS2S);
-    gpu_sys.set_K_n_SPH2WALL(params.normalStiffS2W);
-    gpu_sys.set_Gamma_n_SPH2SPH(params.normalDampS2S);
-    gpu_sys.set_Gamma_n_SPH2WALL(params.normalDampS2W);
+    apiSMC.SetKn_SPH2SPH(params.normalStiffS2S);
+    apiSMC.SetKn_SPH2WALL(params.normalStiffS2W);
+    apiSMC.SetGn_SPH2SPH(params.normalDampS2S);
+    apiSMC.SetGn_SPH2WALL(params.normalDampS2W);
 
     // apiSMC.SetFrictionMode(CHGPU_FRICTION_MODE::FRICTIONLESS);
     apiSMC.SetFrictionMode(CHGPU_FRICTION_MODE::MULTI_STEP);
-    gpu_sys.set_K_t_SPH2SPH(params.tangentStiffS2S);
-    gpu_sys.set_K_t_SPH2WALL(params.tangentStiffS2W);
-    gpu_sys.set_Gamma_t_SPH2SPH(params.tangentDampS2S);
-    gpu_sys.set_Gamma_t_SPH2WALL(params.tangentDampS2W);
-    gpu_sys.set_static_friction_coeff_SPH2SPH(params.static_friction_coeffS2S);
-    gpu_sys.set_static_friction_coeff_SPH2WALL(params.static_friction_coeffS2W);
+    apiSMC.SetKt_SPH2SPH(params.tangentStiffS2S);
+    apiSMC.SetKt_SPH2WALL(params.tangentStiffS2W);
+    apiSMC.SetGt_SPH2SPH(params.tangentDampS2S);
+    apiSMC.SetGt_SPH2WALL(params.tangentDampS2W);
+    apiSMC.SetStaticFrictionCoeff_SPH2SPH(params.static_friction_coeffS2S);
+    apiSMC.SetSaticFictionCeff_SPH2WALL(params.static_friction_coeffS2W);
 
     // apiSMC.SetRollingMode(CHGPU_ROLLING_MODE::NO_RESISTANCE);
     apiSMC.SetRollingMode(CHGPU_ROLLING_MODE::SCHWARTZ);
-    gpu_sys.set_rolling_coeff_SPH2SPH(params.rolling_friction_coeffS2S);
-    gpu_sys.set_rolling_coeff_SPH2WALL(params.rolling_friction_coeffS2W);
+    apiSMC.SetRollingCoeff_SPH2SPH(params.rolling_friction_coeffS2S);
+    apiSMC.SetRollingCoeff_SPH2WALL(params.rolling_friction_coeffS2W);
 
-    gpu_sys.set_Cohesion_ratio(params.cohesion_ratio);
-    gpu_sys.set_Adhesion_ratio_S2W(params.adhesion_ratio_s2w);
+    apiSMC.SetCohesionRatio(params.cohesion_ratio);
+    apiSMC.SetAdhesionRatio_SPH2WALL(params.adhesion_ratio_s2w);
     apiSMC.SetGravitationalAcceleration(ChVector<float>(params.grav_X, params.grav_Y, params.grav_Z));
     apiSMC.SetOutputMode(params.write_mode);
 
