@@ -66,11 +66,9 @@ int main(int argc, char* argv[]) {
     }
 
     // Setup simulation
-    ChSystemGpu_impl gpu_sys(params.sphere_radius, params.sphere_density,
-                           make_float3(params.box_X, params.box_Y, params.box_Z));
-
-    ChSystemGpu apiSMC;
-    apiSMC.setSystem(&gpu_sys);
+    ChSystemGpu apiSMC(params.sphere_radius, params.sphere_density,
+                       make_float3(params.box_X, params.box_Y, params.box_Z));
+    ChSystemGpu_impl& gpu_sys = apiSMC.getSystem();
 
     gpu_sys.setPsiFactors(params.psi_T, params.psi_L);
 
@@ -107,7 +105,7 @@ int main(int argc, char* argv[]) {
         body_points = sampler.SampleBox(center, hdims);
     }
 
-    apiSMC.setElemsPositions(body_points);
+    apiSMC.SetParticlePositions(body_points);
     std::cout << "Added " << body_points.size() << std::endl;
 
     switch (params.run_mode) {

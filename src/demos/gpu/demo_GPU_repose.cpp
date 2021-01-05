@@ -53,8 +53,10 @@ int main(int argc, char* argv[]) {
     filesystem::create_directory(filesystem::path(params.output_dir));
 
     // Setup simulation
-    ChSystemGpu_impl gpu_sys(params.sphere_radius, params.sphere_density,
+    ChSystemGpu apiSMC(params.sphere_radius, params.sphere_density,
                            make_float3(params.box_X, params.box_Y, params.box_Z));
+    ChSystemGpu_impl& gpu_sys = apiSMC.getSystem();
+
     gpu_sys.set_K_n_SPH2SPH(params.normalStiffS2S);
     gpu_sys.set_K_n_SPH2WALL(params.normalStiffS2W);
     gpu_sys.set_Gamma_n_SPH2SPH(params.normalDampS2S);
@@ -106,9 +108,6 @@ int main(int argc, char* argv[]) {
     ChVector<float> center(0.f, 0.f, fill_bottom + fill_height / 2.f);
     material_points = sampler.SampleCylinderZ(center, fill_width, fill_height / 2.f);
 
-    ChSystemGpu apiSMC;
-    apiSMC.setSystem(&gpu_sys);
-
     std::vector<ChVector<float>> body_points;
     std::vector<bool> body_points_fixed;
     body_points.insert(body_points.end(), roughness_points.begin(), roughness_points.end());
@@ -117,7 +116,7 @@ int main(int argc, char* argv[]) {
     body_points.insert(body_points.end(), material_points.begin(), material_points.end());
     body_points_fixed.insert(body_points_fixed.end(), material_points.size(), false);
 
-    apiSMC.setElemsPositions(body_points);
+    apiSMC.SetParticlePositions(body_points);
     gpu_sys.setParticleFixed(body_points_fixed);
 
     std::cout << "Added " << roughness_points.size() << " fixed points" << std::endl;

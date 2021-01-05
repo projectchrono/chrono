@@ -53,12 +53,9 @@ int main(int argc, char* argv[]) {
     }
 
     // Setup simulation, big domain: 10 by 10 by 20
-    ChSystemGpu_impl gpu_sys(params.sphere_radius, params.sphere_density,
-                                 make_float3(params.box_X, params.box_Y, params.box_Z));
-
-    ChSystemGpu apiSMC;
-
-    apiSMC.setSystem(&gpu_sys);
+    ChSystemGpu apiSMC(params.sphere_radius, params.sphere_density,
+                       make_float3(params.box_X, params.box_Y, params.box_Z));
+    ChSystemGpu_impl& gpu_sys = apiSMC.getSystem();
 
     // creat cylinder boundary of Radius 5
     float cyl_center[3] = {0.0f, 0.0f, 0.0f};
@@ -88,7 +85,7 @@ int main(int argc, char* argv[]) {
     }
 
     // assign initial position and velocity to the granular system
-    apiSMC.setElemsPositions(initialPos, initialVelo);
+    apiSMC.SetParticlePositions(initialPos, initialVelo);
 
     gpu_sys.setPsiFactors(params.psi_T, params.psi_L);
 
@@ -181,10 +178,10 @@ int main(int argc, char* argv[]) {
         gpu_sys.writeFile(std::string(filename));
         gpu_sys.advance_simulation(frame_step);
 
-        platePos = apiSMC.getBCPlanePos(topWall);
+        platePos = apiSMC.GetBCplanePosition(topWall);
         std::cout << "top plate pos_z: " << platePos.z() << " cm";
 
-        nc = apiSMC.getNumContacts();
+        nc = apiSMC.GetNumContacts();
         std::cout << ", numContacts: " << nc;
 
         gpu_sys.getBCReactionForces(topWall, plane_reaction_force);

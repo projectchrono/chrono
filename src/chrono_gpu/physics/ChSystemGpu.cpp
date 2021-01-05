@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Nic Olsen, Dan Negrut
+// Authors: Nic Olsen, Dan Negrut, Radu Serban
 // =============================================================================
 
 #include <string>
@@ -36,11 +36,28 @@ static void convertChVector2Float3Vec(const std::vector<ChVector<float>>& points
     }
 }
 
-ChSystemGpuMesh::ChSystemGpuMesh(float sphere_rad, float density, float3 boxDims) {
+// -----------------------------------------------------------------------------
+
+ChSystemGpuMesh::ChSystemGpuMesh(float sphere_rad, float density, float3 boxDims)
+    : mesh_verbosity(MeshVerbosity::QUIET) {
     m_sys_trimesh = new ChSystemGpuMesh_impl(sphere_rad, density, boxDims);
 }
 
-void ChSystemGpuMesh::load_meshes(std::vector<std::string> objfilenames,
+ChSystemGpuMesh::~ChSystemGpuMesh() {
+    delete m_sys_trimesh;
+}
+
+ChSystemGpu::ChSystemGpu(float sphere_rad, float density, float3 boxDims) {
+    m_sys = new ChSystemGpu_impl(sphere_rad, density, boxDims);
+}
+
+ChSystemGpu::~ChSystemGpu() {
+    delete m_sys;
+}
+
+// -----------------------------------------------------------------------------
+
+void ChSystemGpuMesh::LoadMeshes(std::vector<std::string> objfilenames,
                                       std::vector<ChMatrix33<float>> rotscale,
                                       std::vector<float3> translations,
                                       std::vector<float> masses) {
@@ -87,11 +104,11 @@ void ChSystemGpuMesh::load_meshes(std::vector<std::string> objfilenames,
 
     // Allocate memory to store mesh soup in unified memory
     // work on this later: INFO_PRINTF("Allocating mesh unified memory\n");
-    set_meshes(all_meshes, masses);
+    SetMeshes(all_meshes, masses);
     // work on this later: INFO_PRINTF("Done allocating mesh unified memory\n");
 }
 
-void ChSystemGpuMesh::set_meshes(const std::vector<geometry::ChTriangleMeshConnected>& all_meshes,
+void ChSystemGpuMesh::SetMeshes(const std::vector<geometry::ChTriangleMeshConnected>& all_meshes,
                                      std::vector<float> masses) {
     int nTriangles = 0;
     for (const auto& mesh : all_meshes)
@@ -179,8 +196,10 @@ void ChSystemGpuMesh::set_meshes(const std::vector<geometry::ChTriangleMeshConne
     }
 }
 
+// -----------------------------------------------------------------------------
+
 // initialize particle positions, velocity and angular velocity in user units
-void ChSystemGpu::setElemsPositions(const std::vector<ChVector<float>>& points,
+void ChSystemGpu::SetParticlePositions(const std::vector<ChVector<float>>& points,
                                      const std::vector<ChVector<float>>& vels,
                                      const std::vector<ChVector<float>>& ang_vel) {
     std::vector<float3> pointsFloat3;
@@ -189,10 +208,10 @@ void ChSystemGpu::setElemsPositions(const std::vector<ChVector<float>>& points,
     convertChVector2Float3Vec(points, pointsFloat3);
     convertChVector2Float3Vec(vels, velsFloat3);
     convertChVector2Float3Vec(ang_vel, angVelsFloat3);
-    m_sys->setParticlePositions(pointsFloat3, velsFloat3, angVelsFloat3);
+    m_sys->SetParticlePositions(pointsFloat3, velsFloat3, angVelsFloat3);
 }
 
-void ChSystemGpuMesh::setElemsPositions(const std::vector<ChVector<float>>& points,
+void ChSystemGpuMesh::SetParticlePositions(const std::vector<ChVector<float>>& points,
                                             const std::vector<ChVector<float>>& vels,
                                             const std::vector<ChVector<float>>& ang_vel) {
     std::vector<float3> pointsFloat3;
@@ -201,58 +220,55 @@ void ChSystemGpuMesh::setElemsPositions(const std::vector<ChVector<float>>& poin
     convertChVector2Float3Vec(points, pointsFloat3);
     convertChVector2Float3Vec(vels, velsFloat3);
     convertChVector2Float3Vec(ang_vel, angVelsFloat3);
-    m_sys_trimesh->setParticlePositions(pointsFloat3, velsFloat3, angVelsFloat3);
+    m_sys_trimesh->SetParticlePositions(pointsFloat3, velsFloat3, angVelsFloat3);
 }
 
-// return particle position
-ChVector<float> ChSystemGpu::getPosition(int nSphere) {
-    float3 pos = m_sys->getPosition(nSphere);
-    ChVector<float> pos_vec(pos.x, pos.y, pos.z);
-    return pos_vec;
-}
+// -----------------------------------------------------------------------------
 
-ChVector<float> ChSystemGpuMesh::getPosition(int nSphere) {
-    float3 pos = m_sys_trimesh->getPosition(nSphere);
-    ChVector<float> pos_vec(pos.x, pos.y, pos.z);
-    return pos_vec;
-}
-
-// return particle velocity
-ChVector<float> ChSystemGpu::getVelo(int nSphere) {
-    float3 velo = m_sys->getVelocity(nSphere);
-    ChVector<float> velo_vec(velo.x, velo.y, velo.z);
-    return velo_vec;
-}
-
-ChVector<float> ChSystemGpuMesh::getVelo(int nSphere) {
-    float3 velo = m_sys_trimesh->getVelocity(nSphere);
-    ChVector<float> velo_vec(velo.x, velo.y, velo.z);
-    return velo_vec;
-}
-
-// return particle angular velocity
-ChVector<float> ChSystemGpu::getAngularVelo(int nSphere) {
-    float3 omega = m_sys->getAngularVelocity(nSphere);
-    ChVector<float> omega_vec(omega.x, omega.y, omega.z);
-    return omega_vec;
-}
-
-ChVector<float> ChSystemGpuMesh::getAngularVelo(int nSphere) {
-    float3 omega = m_sys_trimesh->getAngularVelocity(nSphere);
-    ChVector<float> omega_vec(omega.x, omega.y, omega.z);
-    return omega_vec;
-}
-
-// return BC plane position
-ChVector<float> ChSystemGpu::getBCPlanePos(size_t plane_id) {
-    // todo: throw an error if BC not a plane type
-    float3 pos = m_sys->Get_BC_Plane_Position(plane_id);
+ChVector<float> ChSystemGpu::GetParticlePosition(int nSphere) const {
+    float3 pos = m_sys->GetParticlePosition(nSphere);
     return ChVector<float>(pos.x, pos.y, pos.z);
 }
 
-// return number of sphere-to-sphere contact
-int ChSystemGpu::getNumContacts() {
-    return m_sys->getNumContacts();
+ChVector<float> ChSystemGpuMesh::GetParticlePosition(int nSphere) const {
+    float3 pos = m_sys_trimesh->GetParticlePosition(nSphere);
+    return ChVector<float>(pos.x, pos.y, pos.z);
+}
+
+// -----------------------------------------------------------------------------
+
+ChVector<float> ChSystemGpu::GetParticleVelocity(int nSphere) const {
+    float3 vel = m_sys->GetParticleLinVelocity(nSphere);
+    return ChVector<float>(vel.x, vel.y, vel.z);
+}
+
+ChVector<float> ChSystemGpuMesh::GetParticleVelocity(int nSphere) const {
+    float3 vel = m_sys_trimesh->GetParticleLinVelocity(nSphere);
+    return ChVector<float>(vel.x, vel.y, vel.z);
+}
+
+// -----------------------------------------------------------------------------
+
+ChVector<float> ChSystemGpu::GetParticleAngVelocity(int nSphere) const {
+    float3 omega = m_sys->GetParticleAngVelocity(nSphere);
+    return ChVector<float>(omega.x, omega.y, omega.z);
+}
+
+ChVector<float> ChSystemGpuMesh::GetParticleAngVelocity(int nSphere) const {
+    float3 omega = m_sys_trimesh->GetParticleAngVelocity(nSphere);
+    return ChVector<float>(omega.x, omega.y, omega.z);
+}
+
+// -----------------------------------------------------------------------------
+
+ChVector<float> ChSystemGpu::GetBCplanePosition(size_t plane_id) const {
+    // todo: throw an error if BC not a plane type
+    float3 pos = m_sys->GetBCplanePosition(plane_id);
+    return ChVector<float>(pos.x, pos.y, pos.z);
+}
+
+int ChSystemGpu::GetNumContacts() const {
+    return m_sys->GetNumContacts();
 }
 
 }  // namespace gpu

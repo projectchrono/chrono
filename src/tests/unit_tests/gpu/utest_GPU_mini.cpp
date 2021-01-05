@@ -49,7 +49,9 @@ float cohesion_ratio = 0;
 
 bool run_test(float box_size_X, float box_size_Y, float box_size_Z) {
     // Setup simulation
-    ChSystemGpu_impl gpu_sys(sphereRadius, sphereDensity, make_float3(box_size_X, box_size_Y, box_size_Z));
+    ChSystemGpu apiSMC(sphereRadius, sphereDensity, make_float3(box_size_X, box_size_Y, box_size_Z));
+    ChSystemGpu_impl& gpu_sys = apiSMC.getSystem();
+
     gpu_sys.set_K_n_SPH2SPH(normStiffness_S2S);
     gpu_sys.set_K_n_SPH2WALL(normStiffness_S2W);
     gpu_sys.set_Gamma_n_SPH2SPH(normalDampS2S);
@@ -67,9 +69,7 @@ bool run_test(float box_size_X, float box_size_Y, float box_size_Z) {
                           box_size_Z / 4.f - sphereRadius);
     std::vector<ChVector<float>> body_points = sampler.SampleBox(center, hdims);
 
-    ChSystemGpu apiSMC;
-    apiSMC.setSystem(&gpu_sys);
-    apiSMC.setElemsPositions(body_points);
+    apiSMC.SetParticlePositions(body_points);
 
     gpu_sys.set_BD_Fixed(true);
     gpu_sys.set_friction_mode(CHGPU_FRICTION_MODE::FRICTIONLESS);

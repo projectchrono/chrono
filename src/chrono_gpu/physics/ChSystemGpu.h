@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Contributors: Dan Negrut, Nic Olsen
+// Contributors: Dan Negrut, Nic Olsen, Radu Serban
 // =============================================================================
 
 #pragma once
@@ -31,47 +31,46 @@ namespace gpu {
 
 // -----------------------------------------------------------------------------
 
-/// Wrapper class for a ChSystemGpuMesh_impl.
+/// Interface to a Chrono::Gpu mesh system.
 class CH_GPU_API ChSystemGpuMesh {
   public:
     enum class MeshVerbosity { QUIET = 0, INFO = 1 };
 
+    /// Construct system with given sphere radius, density, and big domain dimensions.
     ChSystemGpuMesh(float sphere_rad, float density, float3 boxDims);
-    ~ChSystemGpuMesh() { delete m_sys_trimesh; }
+    ~ChSystemGpuMesh();
 
     /// Load triangle meshes into granular system. MUST happen before initialize is called.
-    void load_meshes(std::vector<std::string> objfilenames,
+    void LoadMeshes(std::vector<std::string> objfilenames,
                      std::vector<ChMatrix33<float>> rotscale,
                      std::vector<float3> translations,
                      std::vector<float> masses);
 
-    /// Setup data structures associated with triangle mesh.
-    void set_meshes(const std::vector<geometry::ChTriangleMeshConnected>& all_meshes,
-                    std::vector<float> masses);
-
     ChSystemGpuMesh_impl& getSystem() { return *m_sys_trimesh; }
 
-    /// Set particle positions in UU.
-    void setElemsPositions(
+    /// Set particle positions.
+    void SetParticlePositions(
         const std::vector<ChVector<float>>& points,
         const std::vector<ChVector<float>>& vels = std::vector<ChVector<float>>(),
         const std::vector<ChVector<float>>& ang_vels = std::vector<ChVector<float>>());
 
-    /// Return particle position in UU.
-    ChVector<float> getPosition(int nSphere);
+    /// Return particle position.
+    ChVector<float> GetParticlePosition(int nSphere) const;
 
-    /// Return particle angular velocity in UU.
-    ChVector<float> getAngularVelo(int nSphere);
+    /// Return particle angular velocity.
+    ChVector<float> GetParticleAngVelocity(int nSphere) const;
 
-    /// Return particle velocity in UU.
-    ChVector<float> getVelo(int nSphere);
+    /// Return particle velocity.
+    ChVector<float> GetParticleVelocity(int nSphere) const;
 
     /// Set simulation verbose level.
-    /// Used to check on very large, slow simulations or for debugging.
-    void setVerbosity(MeshVerbosity level) { mesh_verbosity = level; }
+    void SetVerbosity(MeshVerbosity level) { mesh_verbosity = level; }
 
   private:
-    MeshVerbosity mesh_verbosity;
+    MeshVerbosity mesh_verbosity; ///< verbose level
+
+    /// Setup data structures associated with triangle mesh.
+    void SetMeshes(const std::vector<geometry::ChTriangleMeshConnected>& all_meshes, std::vector<float> masses);
 
     /// Clean copy of mesh soup interacting with granular material in unified memory. Stored in UU
     ChSystemGpuMesh_impl* m_sys_trimesh;
@@ -79,26 +78,35 @@ class CH_GPU_API ChSystemGpuMesh {
 
 // -----------------------------------------------------------------------------
 
-/// Wrapper class for a ChSystemGpu_impl.
+/// Interface to a Chrono::Gpu system.
 class CH_GPU_API ChSystemGpu {
   public:
-    ChSystemGpu() : m_sys(nullptr) {}
+    /// Construct system with given sphere radius, density, and big domain dimensions.
+    ChSystemGpu(float sphere_rad, float density, float3 boxDims);
+    ~ChSystemGpu();
 
-    /// Set particle positions in UU.
-    void setElemsPositions(
+    ChSystemGpu_impl& getSystem() { return *m_sys; }
+
+    /// Set particle positions.
+    void SetParticlePositions(
         const std::vector<ChVector<float>>& points,
         const std::vector<ChVector<float>>& vels = std::vector<ChVector<float>>(),
         const std::vector<ChVector<float>>& ang_vels = std::vector<ChVector<float>>());
 
-    /// Set the GPU systems that the user talks to.
-    /// Note that the system is built through the API, instead of passing a system pointer to the API.
-    void setSystem(ChSystemGpu_impl* sys) { m_sys = sys; }
+    /// Return particle position.
+    ChVector<float> GetParticlePosition(int nSphere) const;
 
-    ChVector<float> getPosition(int nSphere);
-    ChVector<float> getAngularVelo(int nSphere);
-    ChVector<float> getVelo(int nSphere);
-    ChVector<float> getBCPlanePos(size_t plane_id);
-    int getNumContacts();
+    /// Return particle angular velocity.
+    ChVector<float> GetParticleAngVelocity(int nSphere) const;
+
+    /// Return particle linear velocity.
+    ChVector<float> GetParticleVelocity(int nSphere) const;
+
+    /// Return position of BC plane.
+    ChVector<float> GetBCplanePosition(size_t plane_id) const;
+
+    /// Return number of particle-particle contacts.
+    int GetNumContacts() const;
 
   private:
     ChSystemGpu_impl* m_sys;

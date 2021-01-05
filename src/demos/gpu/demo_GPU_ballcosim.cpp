@@ -81,9 +81,9 @@ int main(int argc, char* argv[]) {
     float iteration_step = params.step_size;
 
     ChSystemGpuMesh apiSMC_TriMesh(params.sphere_radius, params.sphere_density,
-                                              make_float3(params.box_X, params.box_Y, params.box_Z));
-
+                                   make_float3(params.box_X, params.box_Y, params.box_Z));
     ChSystemGpuMesh_impl& gpu_sys = apiSMC_TriMesh.getSystem();
+
     double fill_bottom = -params.box_Z / 2.0;
     double fill_top = params.box_Z / 4.0;
 
@@ -104,7 +104,7 @@ int main(int argc, char* argv[]) {
         center.z() += 2.05 * params.sphere_radius;
     }
 
-    apiSMC_TriMesh.setElemsPositions(body_points);
+    apiSMC_TriMesh.SetParticlePositions(body_points);
 
     gpu_sys.set_BD_Fixed(true);
     std::function<double3(float)> pos_func_wave = [&params](float t) {
@@ -165,7 +165,7 @@ int main(int argc, char* argv[]) {
     float ball_mass = (float)(4.f * CH_C_PI * ball_radius * ball_radius * ball_radius * ball_density / 3.f);
     std::vector<float> mesh_masses(1, ball_mass);
 
-    apiSMC_TriMesh.load_meshes(mesh_filenames, mesh_rotscales, mesh_translations, mesh_masses);
+    apiSMC_TriMesh.LoadMeshes(mesh_filenames, mesh_rotscales, mesh_translations, mesh_masses);
 
     gpu_sys.setOutputMode(params.write_mode);
     gpu_sys.setVerbose(params.verbose);

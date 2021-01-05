@@ -46,11 +46,9 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    ChSystemGpu_impl gpu_sys(params.sphere_radius, params.sphere_density,
-                           make_float3(params.box_X, params.box_Y, params.box_Z));
-
-    ChSystemGpu apiSMC;
-    apiSMC.setSystem(&gpu_sys);
+    ChSystemGpu apiSMC(params.sphere_radius, params.sphere_density,
+                       make_float3(params.box_X, params.box_Y, params.box_Z));
+    ChSystemGpu_impl& gpu_sys = apiSMC.getSystem();
 
     // Add spherically-decomposed underlying terrain.
     std::string objfilename(GetChronoDataFile("gpu/demo_GPU_fixedterrain/fixedterrain.obj"));
@@ -91,7 +89,7 @@ int main(int argc, char* argv[]) {
     fixed.insert(fixed.end(), material_points.size(), false);
 
     std::cout << "Adding " << body_points.size() << " spheres." << std::endl;
-    apiSMC.setElemsPositions(body_points);
+    apiSMC.SetParticlePositions(body_points);
     gpu_sys.setParticleFixed(fixed);
 
     // Add internal planes to prevent leaking

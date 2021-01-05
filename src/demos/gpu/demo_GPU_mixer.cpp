@@ -57,7 +57,6 @@ int main(int argc, char* argv[]) {
     float iteration_step = params.step_size;
 
     ChSystemGpuMesh apiSMC_TriMesh(params.sphere_radius, params.sphere_density, make_float3(Bx, By, Bz));
-
     ChSystemGpuMesh_impl& gpu_sys = apiSMC_TriMesh.getSystem();
 
     gpu_sys.set_K_n_SPH2SPH(params.normalStiffS2S);
@@ -120,9 +119,7 @@ int main(int argc, char* argv[]) {
         center.z() += 2.1 * params.sphere_radius;
     }
 
-    ChSystemGpu apiSMC;
-    apiSMC.setSystem(&gpu_sys);
-    apiSMC.setElemsPositions(body_points);
+    apiSMC_TriMesh.SetParticlePositions(body_points);
 
     float g[3];
     std::vector<string> mesh_filenames;
@@ -149,7 +146,7 @@ int main(int argc, char* argv[]) {
     float mixer_mass = 10;
     mesh_masses.push_back(mixer_mass);
 
-    apiSMC_TriMesh.load_meshes(mesh_filenames, mesh_rotscales, mesh_translations, mesh_masses);
+    apiSMC_TriMesh.LoadMeshes(mesh_filenames, mesh_rotscales, mesh_translations, mesh_masses);
 
     unsigned int nSoupFamilies = gpu_sys.getNumTriangleFamilies();
     std::cout << nSoupFamilies << " soup families" << std::endl;

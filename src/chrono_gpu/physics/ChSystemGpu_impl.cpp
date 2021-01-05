@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Conlain Kelly, Nic Olsen, Dan Negrut, Luning Fang
+// Authors: Conlain Kelly, Nic Olsen, Dan Negrut, Luning Fang, Radu Serban
 // =============================================================================
 
 #include <cuda.h>
@@ -734,7 +734,7 @@ void ChSystemGpu_impl::setBCOffset(const BC_type& bc_type,
 }
 
 
-float3 ChSystemGpu_impl::Get_BC_Plane_Position(size_t plane_id){
+float3 ChSystemGpu_impl::GetBCplanePosition(size_t plane_id) const {
     BC_params_t<float, float3> p = BC_params_list_UU[plane_id];
     auto offset_function = BC_offset_function_list[plane_id];
     double3 offset_UU = offset_function(elapsedSimTime);
@@ -855,7 +855,9 @@ void ChSystemGpu_impl::initialize() {
 }
 
 // Set particle positions in UU
-void ChSystemGpu_impl::setParticlePositions(const std::vector<float3>& points, const std::vector<float3>& vels, const std::vector<float3>& ang_vels) {
+void ChSystemGpu_impl::SetParticlePositions(const std::vector<float3>& points,
+                                         const std::vector<float3>& vels,
+                                         const std::vector<float3>& ang_vels) {
     user_sphere_positions = points;  // Copy points to class vector
     user_sphere_vel = vels;
     user_sphere_ang_vel = ang_vels;
@@ -866,7 +868,7 @@ void ChSystemGpu_impl::setParticleFixed(const std::vector<bool>& fixed) {
 }
 
 // return position in user units given sphere index
-float3 ChSystemGpu_impl::getPosition(int nSphere){
+float3 ChSystemGpu_impl::GetParticlePosition(int nSphere) const {
     // owner SD
 	unsigned int ownerSD = sphere_owner_SDs.at(nSphere);
     int3 ownerSD_trip = getSDTripletFromID(ownerSD);
@@ -895,7 +897,7 @@ float ChSystemGpu_impl::getAbsVelocity(int nSphere){
 }
 
 // return velocity
-float3 ChSystemGpu_impl::getVelocity(int nSphere){
+float3 ChSystemGpu_impl::GetParticleLinVelocity(int nSphere) const {
 	float vx_UU = (float)(pos_X_dt[nSphere] * LENGTH_SU2UU / TIME_SU2UU);
     float vy_UU = (float)(pos_Y_dt[nSphere] * LENGTH_SU2UU / TIME_SU2UU);
     float vz_UU = (float)(pos_Z_dt[nSphere] * LENGTH_SU2UU / TIME_SU2UU);
@@ -903,15 +905,15 @@ float3 ChSystemGpu_impl::getVelocity(int nSphere){
 }
 
 // get angular velocity of a particle
-float3 ChSystemGpu_impl::getAngularVelocity(int nSphere){
+float3 ChSystemGpu_impl::GetParticleAngVelocity(int nSphere) const {
 		float wx_UU = sphere_Omega_X.at(nSphere) / TIME_SU2UU;
 		float wy_UU = sphere_Omega_Y.at(nSphere) / TIME_SU2UU;
 		float wz_UU = sphere_Omega_Z.at(nSphere) / TIME_SU2UU;
 		return make_float3(wx_UU, wy_UU, wz_UU);
 }
 
-// return number of sphere-to-sphere contacts
-int ChSystemGpu_impl::getNumContacts(){
+// Return number of particle-particle contacts
+int ChSystemGpu_impl::GetNumContacts() const {
     auto contact_itr = contact_partners_map.begin();
     int total_nc = 0;
 

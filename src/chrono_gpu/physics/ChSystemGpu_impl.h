@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Conlain Kelly, Nic Olsen, Dan Negrut
+// Authors: Conlain Kelly, Nic Olsen, Dan Negrut, Radu Serban
 // =============================================================================
 
 #pragma once
@@ -59,14 +59,10 @@ enum CHGPU_OUTPUT_FLAGS { ABSV = 1, VEL_COMPONENTS = 2, FIXITY = 4, ANG_VEL_COMP
 
 // -----------------------------------------------------------------------------
 
-/// Main Chrono::Gpu system class used to control and dispatch the GPU sphere-only solver.
+/// Underlying implementation of the Chrono::Gpu system.
+/// used to control and dispatch the GPU sphere-only solver.
 class CH_GPU_API ChSystemGpu_impl {
   public:
-    // The system is not default-constructible
-    ChSystemGpu_impl() = delete;
-
-    /// Construct Chrono::Gpu system with given sphere radius, density, and big domain dimensions
-    ChSystemGpu_impl(float sphere_rad, float density, float3 boxDims);
     virtual ~ChSystemGpu_impl();
 
     /// Return number of subdomains in the big domain
@@ -267,30 +263,30 @@ class CH_GPU_API ChSystemGpu_impl {
     void set_BD_Fixed(bool fixed) { BD_is_fixed = fixed; }
 
     /// Set initial particle positions. MUST be called only once and MUST be called before initialize
-    void setParticlePositions(const std::vector<float3>& points,
+    void SetParticlePositions(const std::vector<float3>& points,
                               const std::vector<float3>& vels = std::vector<float3>(),
                               const std::vector<float3>& ang_vels = std::vector<float3>());
 
     /// Set particle fixity. MUST be called only once and MUST be called before initialize
     void setParticleFixed(const std::vector<bool>& fixed);
 
-    /// return particle position given sphere index
-    float3 getPosition(int nSphere);
+    /// Return particle position.
+    float3 GetParticlePosition(int nSphere) const;
 
-    // return absolute velocity
+    /// return absolute velocity
     float getAbsVelocity(int nSphere);
 
-    // return velocity
-    float3 getVelocity(int nSphere);
+    /// Return particle linear velocity.
+    float3 GetParticleLinVelocity(int nSphere) const;
 
-    // get angular velocity of a particle
-    float3 getAngularVelocity(int nSphere);
+    /// Return particle angular velocity.
+    float3 GetParticleAngVelocity(int nSphere) const;
 
-    // return number of sphere-to-sphere contacts
-    int getNumContacts();
+    /// Return number of particle-particle contacts.
+    int GetNumContacts() const;
 
-    // return position of BC plane
-    float3 Get_BC_Plane_Position(size_t plane_id);
+    /// Return position of BC plane.
+    float3 GetBCplanePosition(size_t plane_id) const;
 
     /// The offset function for the big domain walls
     GranPositionFunction BDOffsetFunction;
@@ -454,6 +450,12 @@ class CH_GPU_API ChSystemGpu_impl {
     };
 
   protected:
+    // The system is not default-constructible
+    ChSystemGpu_impl() = delete;
+
+    /// Construct Chrono::Gpu system with given sphere radius, density, and big domain dimensions.
+    ChSystemGpu_impl(float sphere_rad, float density, float3 boxDims);
+
     // Conversion factors from SU to UU
     /// 1 / C_L. Any length expressed in SU is a multiple of SU2UU
     double LENGTH_SU2UU;
@@ -744,6 +746,9 @@ class CH_GPU_API ChSystemGpu_impl {
 
     /// Allow the user to set the big domain to be fixed, ignoring any given position functions
     bool BD_is_fixed = true;
+
+    friend class ChSystemGpu;
+    friend class ChSystemGpuMesh;
 };
 
 /// @} gpu_physics

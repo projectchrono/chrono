@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Conlain Kelly, Nic Olsen, Dan Negrut
+// Authors: Conlain Kelly, Nic Olsen, Dan Negrut, Radu Serban
 // =============================================================================
 
 #pragma once
@@ -22,16 +22,14 @@ namespace gpu {
 /// @addtogroup gpu_physics
 /// @{
 
-/// Class implements functionality required to handle the interaction between a mesh soup and granular material.
+/// Underlying implementation of the Chrono::Gpu mesh system.
+/// Implements functionality required to handle the interaction between a mesh soup and granular material.
 ///
 /// Mesh soup: a collection of meshes that each has a certain number of triangle elements. For instance, the meshes
 /// associated with the four wheels of a rover operating on granular material would be smashed into one soup having four
 /// mesh families.
 class CH_GPU_API ChSystemGpuMesh_impl : public ChSystemGpu_impl {
-  public:
-    // we do not want the system to be default-constructible
-    ChSystemGpuMesh_impl() = delete;
-    ChSystemGpuMesh_impl(float sphere_rad, float density, float3 boxDims);
+  public:    
     virtual ~ChSystemGpuMesh_impl();
 
     void set_K_n_SPH2MESH(double someValue) { K_n_s2m_UU = someValue; }
@@ -165,6 +163,12 @@ class CH_GPU_API ChSystemGpuMesh_impl : public ChSystemGpu_impl {
     MeshParams* getTriParams() { return tri_params; }
 
   protected:
+    // The system is not default-constructible
+    ChSystemGpuMesh_impl() = delete;
+
+    /// Construct Chrono::Gpu system with given sphere radius, density, and big domain dimensions
+    ChSystemGpuMesh_impl(float sphere_rad, float density, float3 boxDims);
+
     /// Set of simulation parameters related to triangle data
     MeshParams* tri_params;
 
@@ -219,6 +223,8 @@ class CH_GPU_API ChSystemGpuMesh_impl : public ChSystemGpu_impl {
     void generate_rot_matrix(const double* ep, T* rot_mat);
 
     void ApplyFrameTransform(float3& p, float* pos, float* rot_mat);
+
+    friend class ChSystemGpuMesh;
 };
 
 /// @} gpu_physics
