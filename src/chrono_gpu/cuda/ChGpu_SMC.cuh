@@ -40,7 +40,7 @@ using chrono::gpu::CHGPU_TIME_INTEGRATOR;
 using chrono::gpu::CHGPU_FRICTION_MODE;
 using chrono::gpu::CHGPU_ROLLING_MODE;
 
-/// @addtogroup gpu_physics
+/// @addtogroup gpu_cuda
 /// @{
 
 /// Convert position from its owner subdomain local frame to the global big domain frame
@@ -227,12 +227,13 @@ __global__ void sphereBroadphase_dryrun(ChSystemGpu_impl::GranSphereDataPtr sphe
     }
 }
 
+/// Broadphase collision detection.
 template <unsigned int CUB_THREADS>  // Number of CUB threads engaged in block-collective CUB operations. Should be a
                                      // multiple of 32
 __global__ void sphereBroadphase(ChSystemGpu_impl::GranSphereDataPtr sphere_data,
                                  unsigned int nSpheres,  // Number of spheres in the box
                                  ChSystemGpu_impl::GranParamsPtr gran_params) {
-    /// Set aside shared memory
+    // Set aside shared memory
     // SD component of offset into composite array
     volatile __shared__ unsigned int sphere_composite_offsets[CUB_THREADS * MAX_SDs_TOUCHED_BY_SPHERE];
     volatile __shared__ bool shMem_head_flags[CUB_THREADS * MAX_SDs_TOUCHED_BY_SPHERE];
@@ -466,7 +467,7 @@ static __global__ void initializeLocalPositions(ChSystemGpu_impl::GranSphereData
     }
 }
 
-// apply gravity to a sphere
+/// Apply gravity to a sphere
 inline __device__ void applyGravity(float3& sphere_force, ChSystemGpu_impl::GranParamsPtr gran_params) {
     sphere_force.x += gran_params->gravAcc_X_SU * gran_params->sphere_mass_SU;
     sphere_force.y += gran_params->gravAcc_Y_SU * gran_params->sphere_mass_SU;
@@ -1143,4 +1144,4 @@ static __global__ void updateFrictionData(const float stepsize_SU,
     }
 }
 
-/// @} gpu_physics
+/// @} gpu_cuda

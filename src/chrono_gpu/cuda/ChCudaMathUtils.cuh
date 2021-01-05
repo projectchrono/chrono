@@ -130,9 +130,9 @@ inline __device__ float3 int64_t3_to_float3(const int64_t3& v) {
     return make_float3(v.x, v.y, v.z);
 }
 
-/// This utility function returns the normal to the triangular face defined by
-/// the vertices A, B, and C. The face is assumed to be non-degenerate.
-/// Note that order of vertices is important!
+// This utility function returns the normal to the triangular face defined by
+// the vertices A, B, and C. The face is assumed to be non-degenerate.
+// Note that order of vertices is important!
 inline __device__ double3 face_normal(const double3& A, const double3& B, const double3& C) {
     double3 nVec = Cross(B - A, C - A);
     return nVec / Length(nVec);

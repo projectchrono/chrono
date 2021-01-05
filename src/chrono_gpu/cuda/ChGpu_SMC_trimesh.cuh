@@ -28,6 +28,9 @@
 using chrono::gpu::ChSystemGpu_impl;
 using chrono::gpu::ChSystemGpuMesh_impl;
 
+/// @addtogroup gpu_cuda
+/// @{
+
 // Triangle bounding box will be enlarged by 1/SAFETY_PARAM, ensuring triangles lie between 2 SDs
 // are getting some love
 const int SAFETY_PARAM = 1000;
@@ -52,6 +55,7 @@ __device__ OUT_T3 apply_frame_transform(const IN_T3& point, const IN_T* pos, con
     return result;
 }
 
+/// Convert position vector from user units to scaled units.
 template <class T3>
 __device__ void convert_pos_UU2SU(T3& pos, ChSystemGpu_impl::GranParamsPtr gran_params) {
     pos.x /= gran_params->LENGTH_UNIT;
@@ -316,3 +320,5 @@ __global__ void triangleSoup_StoreSDsTouched(
         }
     }
 }
+
+/// @} gpu_cuda

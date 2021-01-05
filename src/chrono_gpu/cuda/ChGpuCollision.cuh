@@ -19,6 +19,9 @@
 #include "chrono_gpu/ChGpuDefines.h"
 #include "chrono_gpu/cuda/ChCudaMathUtils.cuh"
 
+/// @addtogroup gpu_cuda
+/// @{
+
 /// This utility function takes the location 'P' and snaps it to the closest
 /// point on the triangular face with given vertices (A, B, and C). The result
 /// is returned in 'res'. Both 'P' and 'res' are assumed to be specified in
@@ -156,3 +159,5 @@ __device__ bool face_sphere_cd(const double3& A,           //!< First vertex of 
         return true;
     }
 }
+
+/// @} gpu_cuda

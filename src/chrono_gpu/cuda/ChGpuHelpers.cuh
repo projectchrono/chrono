@@ -130,7 +130,7 @@ inline __device__ unsigned int SDTripletID(const int trip[3], ChSystemGpu_impl::
     return SDTripletID(trip[0], trip[1], trip[2], gran_params);
 }
 
-/// get an index for the current contact pair
+// get an index for the current contact pair
 inline __device__ size_t findContactPairInfo(ChSystemGpu_impl::GranSphereDataPtr sphere_data,
                                              ChSystemGpu_impl::GranParamsPtr gran_params,
                                              unsigned int body_A,
@@ -171,7 +171,7 @@ inline __device__ size_t findContactPairInfo(ChSystemGpu_impl::GranSphereDataPtr
     return NULL_CHGPU_ID;  // shouldn't get here anyways
 }
 
-/// cleanup the contact data for a given body
+// cleanup the contact data for a given body
 inline __device__ void cleanupContactMap(ChSystemGpu_impl::GranSphereDataPtr sphere_data,
                                          unsigned int body_A,
                                          ChSystemGpu_impl::GranParamsPtr gran_params) {
@@ -210,7 +210,8 @@ inline __device__ bool checkLocalPointInSD(const int3& point, ChSystemGpu_impl::
           (point.z <= gran_params->SD_size_Z_SU);
     return ret;
 }
-/// in integer, check whether a pair of spheres is in contact
+
+// in integer, check whether a pair of spheres is in contact
 inline __device__ bool checkSpheresContacting_int(const int3& sphereA_pos,
                                                   const int3& sphereB_pos,
                                                   unsigned int thisSD,
@@ -291,8 +292,8 @@ inline __device__ float3 computeRollingAngAcc(ChSystemGpu_impl::GranSphereDataPt
     return delta_Ang_Acc;
 }
 
-/// Compute single-step friction displacement
-/// set delta_t for the displacement
+// Compute single-step friction displacement
+// set delta_t for the displacement
 inline __device__ void computeSingleStepDisplacement(ChSystemGpu_impl::GranParamsPtr gran_params,
                                                      const float3& rel_vel,
                                                      float3& delta_t) {
@@ -300,8 +301,8 @@ inline __device__ void computeSingleStepDisplacement(ChSystemGpu_impl::GranParam
     float ut = Length(delta_t);
 }
 
-/// Compute multi-step friction displacement
-/// set delta_t for the displacement
+// Compute multi-step friction displacement
+// set delta_t for the displacement
 inline __device__ void computeMultiStepDisplacement(ChSystemGpu_impl::GranParamsPtr gran_params,
                                                     ChSystemGpu_impl::GranSphereDataPtr sphere_data,
                                                     const size_t& contact_id,
@@ -336,8 +337,8 @@ inline __device__ void updateMultiStepDisplacement(ChSystemGpu_impl::GranSphereD
         ((tangent_force / force_model_multiplier) + gamma_t * m_eff * vrel_t) / -k_t;
 }
 
-/// compute friction forces for a contact
-/// returns tangent force including hertz factor, clamped and all
+// compute friction forces for a contact
+// returns tangent force including hertz factor, clamped and all
 inline __device__ float3 computeFrictionForces(ChSystemGpu_impl::GranParamsPtr gran_params,
                                                ChSystemGpu_impl::GranSphereDataPtr sphere_data,
                                                size_t contact_index,

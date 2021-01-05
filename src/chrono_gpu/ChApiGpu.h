@@ -63,6 +63,7 @@
 
     @{
         @defgroup gpu_physics Physics objects
+        @defgroup gpu_cuda CUDA functions
         @defgroup gpu_utils Utilities
     @}
 */
