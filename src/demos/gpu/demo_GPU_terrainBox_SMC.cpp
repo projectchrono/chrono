@@ -70,7 +70,7 @@ int main(int argc, char* argv[]) {
                        make_float3(params.box_X, params.box_Y, params.box_Z));
     ChSystemGpu_impl& gpu_sys = apiSMC.getSystem();
 
-    gpu_sys.setPsiFactors(params.psi_T, params.psi_L);
+    apiSMC.SetPsiFactors(params.psi_T, params.psi_L);
 
     gpu_sys.set_K_n_SPH2SPH(params.normalStiffS2S);
     gpu_sys.set_K_n_SPH2WALL(params.normalStiffS2W);
@@ -87,10 +87,10 @@ int main(int argc, char* argv[]) {
 
     gpu_sys.set_Cohesion_ratio(params.cohesion_ratio);
     gpu_sys.set_Adhesion_ratio_S2W(params.adhesion_ratio_s2w);
-    gpu_sys.set_gravitational_acceleration(params.grav_X, params.grav_Y, params.grav_Z);
-    gpu_sys.setOutputMode(params.write_mode);
+    apiSMC.SetGravitationalAcceleration(ChVector<float>(params.grav_X, params.grav_Y, params.grav_Z));
+    apiSMC.SetOutputMode(params.write_mode);
 
-    gpu_sys.set_rolling_mode(CHGPU_ROLLING_MODE::NO_RESISTANCE);
+    apiSMC.SetRollingMode(CHGPU_ROLLING_MODE::NO_RESISTANCE);
 
     std::vector<ChVector<float>> body_points;
 
@@ -110,33 +110,33 @@ int main(int argc, char* argv[]) {
 
     switch (params.run_mode) {
         case run_mode::MULTI_STEP:
-            gpu_sys.set_friction_mode(CHGPU_FRICTION_MODE::MULTI_STEP);
+            apiSMC.SetFrictionMode(CHGPU_FRICTION_MODE::MULTI_STEP);
             gpu_sys.set_K_t_SPH2SPH(params.tangentStiffS2S);
             gpu_sys.set_K_t_SPH2WALL(params.tangentStiffS2W);
             gpu_sys.set_Gamma_t_SPH2SPH(params.tangentDampS2S);
             gpu_sys.set_Gamma_t_SPH2WALL(params.tangentDampS2W);
             break;
         case run_mode::ONE_STEP:
-            gpu_sys.set_friction_mode(CHGPU_FRICTION_MODE::SINGLE_STEP);
+            apiSMC.SetFrictionMode(CHGPU_FRICTION_MODE::SINGLE_STEP);
             gpu_sys.set_K_t_SPH2SPH(params.tangentStiffS2S);
             gpu_sys.set_K_t_SPH2WALL(params.tangentStiffS2W);
             gpu_sys.set_Gamma_t_SPH2SPH(params.tangentDampS2S);
             gpu_sys.set_Gamma_t_SPH2WALL(params.tangentDampS2W);
             break;
         case run_mode::FRICTIONLESS:
-            gpu_sys.set_friction_mode(CHGPU_FRICTION_MODE::FRICTIONLESS);
+            apiSMC.SetFrictionMode(CHGPU_FRICTION_MODE::FRICTIONLESS);
             break;
         default:
             std::cout << "Invalid run mode" << std::endl;
             return 1;
     }
 
-    gpu_sys.set_timeIntegrator(CHGPU_TIME_INTEGRATOR::EXTENDED_TAYLOR);
-    gpu_sys.set_fixed_stepSize(params.step_size);
+    apiSMC.SetTimeIntegrator(CHGPU_TIME_INTEGRATOR::EXTENDED_TAYLOR);
+    apiSMC.SetFixedStepSize(params.step_size);
     if (params.write_mode != CHGPU_OUTPUT_MODE::NONE) {
         filesystem::create_directory(filesystem::path(params.output_dir));
     }
-    gpu_sys.set_BD_Fixed(true);
+    apiSMC.SetBDFixed(true);
 
     apiSMC.SetVerbosity(params.verbose);
     apiSMC.Initialize();

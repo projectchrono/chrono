@@ -80,9 +80,9 @@ int main(int argc, char* argv[]) {
 
     float iteration_step = params.step_size;
 
-    ChSystemGpuMesh apiSMC_TriMesh(params.sphere_radius, params.sphere_density,
+    ChSystemGpuMesh apiSMC(params.sphere_radius, params.sphere_density,
                                    make_float3(params.box_X, params.box_Y, params.box_Z));
-    ChSystemGpuMesh_impl& gpu_sys = apiSMC_TriMesh.getSystemMesh();
+    ChSystemGpuMesh_impl& gpu_sys = apiSMC.getSystemMesh();
 
     double fill_bottom = -params.box_Z / 2.0;
     double fill_top = params.box_Z / 4.0;
@@ -104,9 +104,9 @@ int main(int argc, char* argv[]) {
         center.z() += 2.05 * params.sphere_radius;
     }
 
-    apiSMC_TriMesh.SetParticlePositions(body_points);
+    apiSMC.SetParticlePositions(body_points);
 
-    gpu_sys.set_BD_Fixed(true);
+    apiSMC.SetBDFixed(true);
     std::function<double3(float)> pos_func_wave = [&params](float t) {
         double3 pos = {0, 0, 0};
 
@@ -140,11 +140,11 @@ int main(int argc, char* argv[]) {
     gpu_sys.set_Cohesion_ratio(params.cohesion_ratio);
     gpu_sys.set_Adhesion_ratio_S2M(params.adhesion_ratio_s2m);
     gpu_sys.set_Adhesion_ratio_S2W(params.adhesion_ratio_s2w);
-    gpu_sys.set_gravitational_acceleration(params.grav_X, params.grav_Y, params.grav_Z);
+    apiSMC.SetGravitationalAcceleration(ChVector<float>(params.grav_X, params.grav_Y, params.grav_Z));
 
-    gpu_sys.set_fixed_stepSize(params.step_size);
-    gpu_sys.set_friction_mode(CHGPU_FRICTION_MODE::MULTI_STEP);
-    gpu_sys.set_timeIntegrator(CHGPU_TIME_INTEGRATOR::CENTERED_DIFFERENCE);
+    apiSMC.SetFixedStepSize(params.step_size);
+    apiSMC.SetFrictionMode(CHGPU_FRICTION_MODE::MULTI_STEP);
+    apiSMC.SetTimeIntegrator(CHGPU_TIME_INTEGRATOR::CENTERED_DIFFERENCE);
     gpu_sys.set_static_friction_coeff_SPH2SPH(params.static_friction_coeffS2S);
     gpu_sys.set_static_friction_coeff_SPH2WALL(params.static_friction_coeffS2W);
     gpu_sys.set_static_friction_coeff_SPH2MESH(params.static_friction_coeffS2M);
@@ -165,15 +165,15 @@ int main(int argc, char* argv[]) {
     float ball_mass = (float)(4.f * CH_C_PI * ball_radius * ball_radius * ball_radius * ball_density / 3.f);
     std::vector<float> mesh_masses(1, ball_mass);
 
-    apiSMC_TriMesh.LoadMeshes(mesh_filenames, mesh_rotscales, mesh_translations, mesh_masses);
+    apiSMC.LoadMeshes(mesh_filenames, mesh_rotscales, mesh_translations, mesh_masses);
 
-    gpu_sys.setOutputMode(params.write_mode);
-    apiSMC_TriMesh.SetVerbosity(params.verbose);
+    apiSMC.SetOutputMode(params.write_mode);
+    apiSMC.SetVerbosity(params.verbose);
     filesystem::create_directory(filesystem::path(params.output_dir));
 
-    std::cout << apiSMC_TriMesh.GetNumMeshes() << " meshes" << std::endl;
+    std::cout << apiSMC.GetNumMeshes() << " meshes" << std::endl;
 
-    apiSMC_TriMesh.Initialize();
+    apiSMC.Initialize();
 
     // Create rigid ball_body simulation
     ChSystemSMC sys_ball;
@@ -200,15 +200,15 @@ int main(int argc, char* argv[]) {
 
     clock_t start = std::clock();
     for (double t = 0; t < (double)params.time_end; t += iteration_step, curr_step++) {
-        apiSMC_TriMesh.ApplyMeshMotion(0, ball_body->GetPos(), ball_body->GetRot(),
+        apiSMC.ApplyMeshMotion(0, ball_body->GetPos(), ball_body->GetRot(),
                                 ball_body->GetPos_dt(), ball_body->GetWvel_par());
 
-        apiSMC_TriMesh.AdvanceSimulation(iteration_step);
+        apiSMC.AdvanceSimulation(iteration_step);
         sys_ball.DoStepDynamics(iteration_step);
 
         ChVector<> ball_force;
         ChVector<> ball_torque;
-        apiSMC_TriMesh.CollectMeshContactForces(0, ball_force, ball_torque);
+        apiSMC.CollectMeshContactForces(0, ball_force, ball_torque);
 
         ball_body->Empty_forces_accumulators();
         ball_body->Accumulate_force(ball_force, ball_body->GetPos(), false);
@@ -218,8 +218,8 @@ int main(int argc, char* argv[]) {
             std::cout << "Rendering frame " << currframe << " of " << total_frames << std::endl;
             char filename[100];
             sprintf(filename, "%s/step%06d", params.output_dir.c_str(), currframe++);
-            apiSMC_TriMesh.WriteFile(std::string(filename));
-            apiSMC_TriMesh.WriteMeshes(std::string(filename));
+            apiSMC.WriteFile(std::string(filename));
+            apiSMC.WriteMeshes(std::string(filename));
 
             /*  // disable meshframes output, for it may be confusing for users dealing with Chrono::Gpu only
             std::string mesh_output = std::string(filename) + "_meshframes.csv";

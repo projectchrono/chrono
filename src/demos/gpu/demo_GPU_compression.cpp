@@ -58,9 +58,9 @@ int main(int argc, char* argv[]) {
     ChSystemGpu_impl& gpu_sys = apiSMC.getSystem();
 
     // creat cylinder boundary of Radius 5
-    float cyl_center[3] = {0.0f, 0.0f, 0.0f};
+    ChVector<float> cyl_center(0.0f, 0.0f, 0.0f);
     float cyl_rad = std::min(params.box_X, params.box_Y)/2.0f;
-    size_t cyl_id = gpu_sys.Create_BC_Cyl_Z(cyl_center, cyl_rad, false, true);
+    size_t cyl_id = apiSMC.CreateBCCylinderZ(cyl_center, cyl_rad, false, true);
 
     // initialize sampler, set distance between center of spheres as 2.1r 
     utils::HCPSampler<float> sampler(2.1 * params.sphere_radius); 
@@ -87,7 +87,7 @@ int main(int argc, char* argv[]) {
     // assign initial position and velocity to the granular system
     apiSMC.SetParticlePositions(initialPos, initialVelo);
 
-    gpu_sys.setPsiFactors(params.psi_T, params.psi_L);
+    apiSMC.SetPsiFactors(params.psi_T, params.psi_L);
 
 
     // normal force model
@@ -98,7 +98,7 @@ int main(int argc, char* argv[]) {
 
 
     // assign tangential force model and its parameters
-    gpu_sys.set_friction_mode(CHGPU_FRICTION_MODE::MULTI_STEP);
+    apiSMC.SetFrictionMode(CHGPU_FRICTION_MODE::MULTI_STEP);
     gpu_sys.set_K_t_SPH2SPH(params.tangentStiffS2S);
     gpu_sys.set_K_t_SPH2WALL(params.tangentStiffS2W);
     gpu_sys.set_Gamma_t_SPH2SPH(params.tangentDampS2S);
@@ -109,21 +109,21 @@ int main(int argc, char* argv[]) {
 
     gpu_sys.set_Cohesion_ratio(params.cohesion_ratio);
     gpu_sys.set_Adhesion_ratio_S2W(params.adhesion_ratio_s2w);
-    gpu_sys.set_gravitational_acceleration(params.grav_X, params.grav_Y, params.grav_Z);
-    gpu_sys.setOutputMode(params.write_mode);
+    apiSMC.SetGravitationalAcceleration(ChVector<float>(params.grav_X, params.grav_Y, params.grav_Z));
+    apiSMC.SetOutputMode(params.write_mode);
     filesystem::create_directory(filesystem::path(params.output_dir));
 
     // Set the position of the BD fixed
-    gpu_sys.set_BD_Fixed(true);
-    gpu_sys.set_timeIntegrator(CHGPU_TIME_INTEGRATOR::FORWARD_EULER);
-    gpu_sys.set_fixed_stepSize(params.step_size);
+    apiSMC.SetBDFixed(true);
+    apiSMC.SetTimeIntegrator(CHGPU_TIME_INTEGRATOR::FORWARD_EULER);
+    apiSMC.SetFixedStepSize(params.step_size);
 
     apiSMC.SetVerbosity(params.verbose);
 
     // create top plane boundary condition with its position and normal
-    float topWallPos[3] = {0, 0,  (float)(params.box_Z/2.0)};
-    float topWallN[3]   = {0,0,-1.0};
-    size_t topWall      = gpu_sys.Create_BC_Plane(topWallPos, topWallN, true);
+    ChVector<float> topWallPos(0.0f, 0.0f, params.box_Z / 2.0f);
+    ChVector<float> topWallNrm(0.0f, 0.0f, -1.0f);
+    size_t topWall = apiSMC.CreateBCPlane(topWallPos, topWallNrm, true);
 
     
     float topWall_vel;      // top plane moving velocity
@@ -137,7 +137,7 @@ int main(int argc, char* argv[]) {
         return pos;
     };
 
-    gpu_sys.setOutputFlags(ABSV);
+    apiSMC.SetOutputFlags(ABSV);
     apiSMC.Initialize();
     
     // output frames per second
@@ -148,7 +148,7 @@ int main(int argc, char* argv[]) {
     int curr_frame = 0;
     unsigned int total_frames = (unsigned int)( ((float)params.time_end-0.5f) * fps) - 1;
     // initialize values that I want to keep track of
-    float plane_reaction_force[3];
+    ChVector<float> plane_reaction_force;
     ChVector<float> platePos;
     int nc;
 
@@ -162,7 +162,7 @@ int main(int argc, char* argv[]) {
     // top plate move downward with velocity 1cm/s
     topWall_vel = -1.0f;
     // i would like it to start from the top most sphere
-    topWall_offset = gpu_sys.get_max_z() + params.sphere_radius - topWallPos[2];
+    topWall_offset = apiSMC.GetMaxParticleZ() + params.sphere_radius - topWallPos[2];
     topWall_moveTime = curr_time;
 
     // sphere settled now push the plate downward
@@ -178,14 +178,14 @@ int main(int argc, char* argv[]) {
         apiSMC.WriteFile(std::string(filename));
         apiSMC.AdvanceSimulation(frame_step);
 
-        platePos = apiSMC.GetBCplanePosition(topWall);
+        platePos = apiSMC.GetBCPlanePosition(topWall);
         std::cout << "top plate pos_z: " << platePos.z() << " cm";
 
         nc = apiSMC.GetNumContacts();
         std::cout << ", numContacts: " << nc;
 
-        gpu_sys.getBCReactionForces(topWall, plane_reaction_force);
-        std::cout << ", top plate force: " << plane_reaction_force[2] * F_CGS_TO_SI << " Newton";
+        apiSMC.GetBCReactionForces(topWall, plane_reaction_force);
+        std::cout << ", top plate force: " << plane_reaction_force.z() * F_CGS_TO_SI << " Newton";
         std::cout << "\n";
 
         curr_frame++;

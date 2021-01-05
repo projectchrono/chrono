@@ -62,8 +62,8 @@ int main(int argc, char* argv[]) {
     gpu_sys.set_Gamma_n_SPH2SPH(params.normalDampS2S);
     gpu_sys.set_Gamma_n_SPH2WALL(params.normalDampS2W);
 
-    // gpu_sys.set_friction_mode(CHGPU_FRICTION_MODE::FRICTIONLESS);
-    gpu_sys.set_friction_mode(CHGPU_FRICTION_MODE::MULTI_STEP);
+    // apiSMC.SetFrictionMode(CHGPU_FRICTION_MODE::FRICTIONLESS);
+    apiSMC.SetFrictionMode(CHGPU_FRICTION_MODE::MULTI_STEP);
     gpu_sys.set_K_t_SPH2SPH(params.tangentStiffS2S);
     gpu_sys.set_K_t_SPH2WALL(params.tangentStiffS2W);
     gpu_sys.set_Gamma_t_SPH2SPH(params.tangentDampS2S);
@@ -71,17 +71,17 @@ int main(int argc, char* argv[]) {
     gpu_sys.set_static_friction_coeff_SPH2SPH(params.static_friction_coeffS2S);
     gpu_sys.set_static_friction_coeff_SPH2WALL(params.static_friction_coeffS2W);
 
-    // gpu_sys.set_rolling_mode(CHGPU_ROLLING_MODE::NO_RESISTANCE);
-    gpu_sys.set_rolling_mode(CHGPU_ROLLING_MODE::SCHWARTZ);
+    // apiSMC.SetRollingMode(CHGPU_ROLLING_MODE::NO_RESISTANCE);
+    apiSMC.SetRollingMode(CHGPU_ROLLING_MODE::SCHWARTZ);
     gpu_sys.set_rolling_coeff_SPH2SPH(params.rolling_friction_coeffS2S);
     gpu_sys.set_rolling_coeff_SPH2WALL(params.rolling_friction_coeffS2W);
 
     gpu_sys.set_Cohesion_ratio(params.cohesion_ratio);
     gpu_sys.set_Adhesion_ratio_S2W(params.adhesion_ratio_s2w);
-    gpu_sys.set_gravitational_acceleration(params.grav_X, params.grav_Y, params.grav_Z);
-    gpu_sys.setOutputMode(params.write_mode);
+    apiSMC.SetGravitationalAcceleration(ChVector<float>(params.grav_X, params.grav_Y, params.grav_Z));
+    apiSMC.SetOutputMode(params.write_mode);
 
-    gpu_sys.set_BD_Fixed(true);
+    apiSMC.SetBDFixed(true);
 
     // padding in sampler
     float fill_epsilon = 2.02f;
@@ -124,13 +124,13 @@ int main(int argc, char* argv[]) {
 
     std::cout << "Actually added " << body_points.size() << std::endl;
 
-    gpu_sys.set_timeIntegrator(CHGPU_TIME_INTEGRATOR::EXTENDED_TAYLOR);
-    gpu_sys.set_fixed_stepSize(params.step_size);
+    apiSMC.SetTimeIntegrator(CHGPU_TIME_INTEGRATOR::EXTENDED_TAYLOR);
+    apiSMC.SetFixedStepSize(params.step_size);
 
     filesystem::create_directory(filesystem::path(params.output_dir));
     apiSMC.SetVerbosity(params.verbose);
     std::cout<<"verbose: " << static_cast<int>(params.verbose) <<std::endl;
-    gpu_sys.setRecordingContactInfo(true);
+    apiSMC.SetRecordingContactInfo(true);
 
     apiSMC.Initialize();
 
@@ -147,7 +147,7 @@ int main(int argc, char* argv[]) {
 
     char contactFilename[100];
     sprintf(contactFilename, "%s/contact%06d", params.output_dir.c_str(), currframe);
-    gpu_sys.writeContactInfoFile(std::string(contactFilename));
+    apiSMC.WriteContactInfoFile(std::string(contactFilename));
 
     currframe++;
 
@@ -161,7 +161,7 @@ int main(int argc, char* argv[]) {
 
         char contactFilename[100];
         sprintf(contactFilename, "%s/contact%06d", params.output_dir.c_str(), currframe);
-        gpu_sys.writeContactInfoFile(std::string(contactFilename));
+        apiSMC.WriteContactInfoFile(std::string(contactFilename));
 
         currframe++;
     }

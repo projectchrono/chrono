@@ -21,7 +21,7 @@
 namespace chrono {
 namespace gpu {
 
-__host__ double ChSystemGpu_impl::get_max_z() const {
+__host__ double ChSystemGpu_impl::GetMaxParticleZ() const {
     size_t nSpheres = sphere_local_pos_Z.size();
     std::vector<int64_t> sphere_pos_global_Z;
     sphere_pos_global_Z.resize(nSpheres);
@@ -61,7 +61,7 @@ void ChSystemGpu_impl::resetSphereAccelerations() {
         gpuErrchk(cudaMemcpy(sphere_acc_Z_old.data(), sphere_acc_Z.data(), nSpheres * sizeof(float),
                              cudaMemcpyDeviceToDevice));
         // if we have multistep AND friction, cache old alphas
-        if (gran_params->friction_mode != FRICTIONLESS) {
+        if (gran_params->friction_mode != CHGPU_FRICTION_MODE::FRICTIONLESS) {
             gpuErrchk(cudaMemcpy(sphere_ang_acc_X_old.data(), sphere_ang_acc_X.data(), nSpheres * sizeof(float),
                                  cudaMemcpyDeviceToDevice));
             gpuErrchk(cudaMemcpy(sphere_ang_acc_Y_old.data(), sphere_ang_acc_Y.data(), nSpheres * sizeof(float),
@@ -78,7 +78,7 @@ void ChSystemGpu_impl::resetSphereAccelerations() {
     gpuErrchk(cudaMemset(sphere_acc_Z.data(), 0, nSpheres * sizeof(float)));
 
     // reset torques to zero, if applicable
-    if (gran_params->friction_mode != FRICTIONLESS) {
+    if (gran_params->friction_mode != CHGPU_FRICTION_MODE::FRICTIONLESS) {
         gpuErrchk(cudaMemset(sphere_ang_acc_X.data(), 0, nSpheres * sizeof(float)));
         gpuErrchk(cudaMemset(sphere_ang_acc_Y.data(), 0, nSpheres * sizeof(float)));
         gpuErrchk(cudaMemset(sphere_ang_acc_Z.data(), 0, nSpheres * sizeof(float)));
@@ -303,23 +303,22 @@ __host__ void ChSystemGpu_impl::setupSphereDataStructures() {
     }
 
     // record normal contact force
-    if (gran_params->recording_contactInfo == true){
+    if (gran_params->recording_contactInfo == true) {
         float3 null_force = {0.0f, 0.0f, 0.0f};
         TRACK_VECTOR_RESIZE(normal_contact_force, 12 * nSpheres, "normal contact force", null_force);
     }
 
     // record friction force
-    if (gran_params->recording_contactInfo == true && gran_params->friction_mode != CHGPU_FRICTION_MODE::FRICTIONLESS){
+    if (gran_params->recording_contactInfo == true && gran_params->friction_mode != CHGPU_FRICTION_MODE::FRICTIONLESS) {
         float3 null_force = {0.0f, 0.0f, 0.0f};
         TRACK_VECTOR_RESIZE(tangential_friction_force, 12 * nSpheres, "tangential contact force", null_force);
     }
 
     // record rolling friction torque
-    if (gran_params->recording_contactInfo == true && gran_params->rolling_mode != CHGPU_ROLLING_MODE::NO_RESISTANCE){
+    if (gran_params->recording_contactInfo == true && gran_params->rolling_mode != CHGPU_ROLLING_MODE::NO_RESISTANCE) {
         float3 null_force = {0.0f, 0.0f, 0.0f};
         TRACK_VECTOR_RESIZE(rolling_friction_torque, 12 * nSpheres, "rolling friction torque", null_force);
     }
-
 
     if (time_integrator == CHGPU_TIME_INTEGRATOR::CHUNG) {
         TRACK_VECTOR_RESIZE(sphere_acc_X_old, nSpheres, "sphere_acc_X_old", 0);
@@ -477,8 +476,8 @@ __host__ double ChSystemGpu_impl::AdvanceSimulation(float duration) {
     float time_elapsed_SU = 0;  // time elapsed in this advance call
 
     // Run the simulation, there are aggressive synchronizations because we want to have no race conditions
-    for (unsigned int n = 0; n < nsteps; n++){
-				updateBCPositions();
+    for (unsigned int n = 0; n < nsteps; n++) {
+        updateBCPositions();
 
         runSphereBroadphase();
         packSphereDataPointers();
@@ -491,14 +490,15 @@ __host__ double ChSystemGpu_impl::AdvanceSimulation(float duration) {
 
         METRICS_PRINTF("Starting computeSphereForces!\n");
 
-        if (gran_params->friction_mode == FRICTIONLESS) {
+        if (gran_params->friction_mode == CHGPU_FRICTION_MODE::FRICTIONLESS) {
             // Compute sphere-sphere forces
             computeSphereForces_frictionless<<<nSDs, MAX_COUNT_OF_SPHERES_PER_SD>>>(
                 sphere_data, gran_params, BC_type_list.data(), BC_params_list_SU.data(),
                 (unsigned int)BC_params_list_SU.size());
             gpuErrchk(cudaPeekAtLastError());
             gpuErrchk(cudaDeviceSynchronize());
-        } else if (gran_params->friction_mode == SINGLE_STEP || gran_params->friction_mode == MULTI_STEP) {
+        } else if (gran_params->friction_mode == CHGPU_FRICTION_MODE::SINGLE_STEP ||
+                   gran_params->friction_mode == CHGPU_FRICTION_MODE::MULTI_STEP) {
             // figure out who is contacting
             determineContactPairs<<<nSDs, MAX_COUNT_OF_SPHERES_PER_SD>>>(sphere_data, gran_params);
             gpuErrchk(cudaPeekAtLastError());
@@ -523,7 +523,7 @@ __host__ double ChSystemGpu_impl::AdvanceSimulation(float duration) {
         }
 
         elapsedSimTime += (float)(stepSize_SU * TIME_SU2UU);  // Advance current time
-				time_elapsed_SU += stepSize_SU;
+        time_elapsed_SU += stepSize_SU;
     }
 
     return time_elapsed_SU * TIME_SU2UU;  // return elapsed UU time

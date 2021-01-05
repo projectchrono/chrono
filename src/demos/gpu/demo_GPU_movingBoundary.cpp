@@ -52,7 +52,7 @@ int main(int argc, char* argv[]) {
                        make_float3(params.box_X, params.box_Y, params.box_Z));
     ChSystemGpu_impl& gpu_sys = apiSMC.getSystem();
 
-    gpu_sys.setPsiFactors(params.psi_T, params.psi_L);
+    apiSMC.SetPsiFactors(params.psi_T, params.psi_L);
 
     gpu_sys.set_K_n_SPH2SPH(params.normalStiffS2S);
     gpu_sys.set_K_n_SPH2WALL(params.normalStiffS2W);
@@ -68,8 +68,8 @@ int main(int argc, char* argv[]) {
 
     gpu_sys.set_Cohesion_ratio(params.cohesion_ratio);
     gpu_sys.set_Adhesion_ratio_S2W(params.adhesion_ratio_s2w);
-    gpu_sys.set_gravitational_acceleration(params.grav_X, params.grav_Y, params.grav_Z);
-    gpu_sys.setOutputMode(params.write_mode);
+    apiSMC.SetGravitationalAcceleration(ChVector<float>(params.grav_X, params.grav_Y, params.grav_Z));
+    apiSMC.SetOutputMode(params.write_mode);
     filesystem::create_directory(filesystem::path(params.output_dir));
 
     // fill box, layer by layer
@@ -84,19 +84,19 @@ int main(int argc, char* argv[]) {
     apiSMC.SetParticlePositions(body_points);
 
     // Set the position of the BD
-    gpu_sys.set_BD_Fixed(true);
+    apiSMC.SetBDFixed(true);
 
-    gpu_sys.set_timeIntegrator(CHGPU_TIME_INTEGRATOR::FORWARD_EULER);
-    gpu_sys.set_friction_mode(CHGPU_FRICTION_MODE::MULTI_STEP);
-    gpu_sys.set_fixed_stepSize(params.step_size);
+    apiSMC.SetTimeIntegrator(CHGPU_TIME_INTEGRATOR::FORWARD_EULER);
+    apiSMC.SetFrictionMode(CHGPU_FRICTION_MODE::MULTI_STEP);
+    apiSMC.SetFixedStepSize(params.step_size);
 
     apiSMC.SetVerbosity(params.verbose);
 
     // start outside BD by 10 cm
-    float plane_pos[3] = {-params.box_X / 2 - 10, 0, 0};
-    float plane_normal[3] = {1, 0, 0};
+    ChVector<float> plane_pos(-params.box_X / 2 - 10, 0, 0);
+    ChVector<float> plane_normal(1, 0, 0);
 
-    size_t plane_bc_id = gpu_sys.Create_BC_Plane(plane_pos, plane_normal, false);
+    size_t plane_bc_id = apiSMC.CreateBCPlane(plane_pos, plane_normal, false);
 
     // Function prescibing the motion of the advancing plane.
     // Begins outside of the domain.

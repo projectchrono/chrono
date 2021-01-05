@@ -498,14 +498,15 @@ __host__ double ChSystemGpuMesh_impl::AdvanceSimulation(float duration) {
 
         METRICS_PRINTF("Starting computeSphereForces!\n");
 
-        if (gran_params->friction_mode == FRICTIONLESS) {
+        if (gran_params->friction_mode == CHGPU_FRICTION_MODE::FRICTIONLESS) {
             // Compute sphere-sphere forces
             computeSphereForces_frictionless<<<nSDs, MAX_COUNT_OF_SPHERES_PER_SD>>>(
                 sphere_data, gran_params, BC_type_list.data(), BC_params_list_SU.data(),
                 (unsigned int)BC_params_list_SU.size());
             gpuErrchk(cudaPeekAtLastError());
             gpuErrchk(cudaDeviceSynchronize());
-        } else if (gran_params->friction_mode == SINGLE_STEP || gran_params->friction_mode == MULTI_STEP) {
+        } else if (gran_params->friction_mode == CHGPU_FRICTION_MODE::SINGLE_STEP ||
+                   gran_params->friction_mode == CHGPU_FRICTION_MODE::MULTI_STEP) {
             // figure out who is contacting
             determineContactPairs<<<nSDs, MAX_COUNT_OF_SPHERES_PER_SD>>>(sphere_data, gran_params);
             gpuErrchk(cudaPeekAtLastError());

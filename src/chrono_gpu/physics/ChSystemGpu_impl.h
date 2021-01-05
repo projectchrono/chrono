@@ -34,30 +34,32 @@ namespace gpu {
 /// @addtogroup gpu_physics
 /// @{
 
-/// Used to compute position as a function of time
+/// Used to compute position as a function of time.
 typedef std::function<double3(float)> GranPositionFunction;
 
-/// Position function representing no motion or offset as a funtion of time
+/// Position function representing no motion or offset as a funtion of time.
 const GranPositionFunction GranPosFunction_default = [](float t) { return make_double3(0, 0, 0); };
 
-/// Verbosity level of the system
+/// Verbosity level of the system.
 enum class CHGPU_VERBOSITY { QUIET = 0, INFO = 1, METRICS = 2 };
 
-/// Verbosity level
+/// Verbosity level.
 enum class CHGPU_MESH_VERBOSITY { QUIET = 0, INFO = 1 };
 
-/// Output mode of system
-enum CHGPU_OUTPUT_MODE { CSV, BINARY, HDF5, NONE };
-/// How are we integrating through time
-enum CHGPU_TIME_INTEGRATOR { FORWARD_EULER, CHUNG, CENTERED_DIFFERENCE, EXTENDED_TAYLOR };
+/// Output mode of system.
+enum class CHGPU_OUTPUT_MODE { CSV, BINARY, HDF5, NONE };
 
-/// Supported friction model
-enum CHGPU_FRICTION_MODE { FRICTIONLESS, SINGLE_STEP, MULTI_STEP };
+/// How are we integrating through time.
+enum class CHGPU_TIME_INTEGRATOR { FORWARD_EULER, CHUNG, CENTERED_DIFFERENCE, EXTENDED_TAYLOR };
 
-/// Rolling resistance models -- ELASTIC_PLASTIC not implemented yet
-enum CHGPU_ROLLING_MODE { NO_RESISTANCE, SCHWARTZ, ELASTIC_PLASTIC };
+/// Supported friction model.
+enum class CHGPU_FRICTION_MODE { FRICTIONLESS, SINGLE_STEP, MULTI_STEP };
+
+/// Rolling resistance models -- ELASTIC_PLASTIC not implemented yet.
+enum class CHGPU_ROLLING_MODE { NO_RESISTANCE, SCHWARTZ, ELASTIC_PLASTIC };
 
 enum CHGPU_OUTPUT_FLAGS { ABSV = 1, VEL_COMPONENTS = 2, FIXITY = 4, ANG_VEL_COMPONENTS = 8, FORCE_COMPONENTS = 16 };
+
 #define GET_OUTPUT_SETTING(setting) (this->output_flags & setting)
 
 // -----------------------------------------------------------------------------
@@ -67,75 +69,6 @@ enum CHGPU_OUTPUT_FLAGS { ABSV = 1, VEL_COMPONENTS = 2, FIXITY = 4, ANG_VEL_COMP
 class CH_GPU_API ChSystemGpu_impl {
   public:
     virtual ~ChSystemGpu_impl();
-
-    /// Return number of subdomains in the big domain
-    unsigned int get_SD_count() const { return nSDs; }
-
-    /// Set acceleration of gravity
-    void set_gravitational_acceleration(float xVal, float yVal, float zVal) {
-        X_accGrav = xVal;
-        Y_accGrav = yVal;
-        Z_accGrav = zVal;
-    }
-
-    /// Return total number of spheres in the system
-    size_t getNumSpheres() const { return nSpheres; }
-
-    /// Roughly estimates the total amount of memory used by the system
-    size_t estimateMemUsage() const;
-
-    /// Create an axis-aligned sphere boundary condition
-    size_t Create_BC_Sphere(float center[3], float radius, bool outward_normal, bool track_forces);
-
-    /// Create an z-axis aligned cone boundary condition
-    size_t Create_BC_Cone_Z(float cone_tip[3],
-                            float slope,
-                            float hmax,
-                            float hmin,
-                            bool outward_normal,
-                            bool track_forces);
-
-    /// Create plane boundary condition
-    size_t Create_BC_Plane(float plane_pos[3], float plane_normal[3], bool track_forces);
-
-    /// Create an z-axis aligned cylinder boundary condition
-    size_t Create_BC_Cyl_Z(float center[3], float radius, bool outward_normal, bool track_forces);
-
-    /// Create big domain walls out of plane boundary conditions
-    void createWallBCs();
-
-    /// Disable a boundary condition by its ID, returns false if the BC does not exist
-    bool disable_BC_by_ID(size_t BC_id) {
-        size_t max_id = BC_params_list_SU.size();
-        if (BC_id >= max_id) {
-            printf("ERROR: Trying to disable invalid BC ID %zu\n", BC_id);
-            return false;
-        }
-
-        if (BC_id <= NUM_RESERVED_BC_IDS - 1) {
-            printf("ERROR: Trying to modify reserved BC ID %zu\n", BC_id);
-            return false;
-        }
-        BC_params_list_UU.at(BC_id).active = false;
-        BC_params_list_SU.at(BC_id).active = false;
-        return true;
-    }
-
-    /// Enable a boundary condition by its ID, returns false if the BC does not exist
-    bool enable_BC_by_ID(size_t BC_id) {
-        size_t max_id = BC_params_list_SU.size();
-        if (BC_id >= max_id) {
-            printf("ERROR: Trying to enable invalid BC ID %zu\n", BC_id);
-            return false;
-        }
-        if (BC_id <= NUM_RESERVED_BC_IDS - 1) {
-            printf("ERROR: Trying to modify reserved BC ID %zu\n", BC_id);
-            return false;
-        }
-        BC_params_list_UU.at(BC_id).active = true;
-        BC_params_list_SU.at(BC_id).active = true;
-        return true;
-    }
 
     /// Enable a boundary condition by its ID, returns false if the BC does not exist
     bool set_BC_offset_function(size_t BC_id, const GranPositionFunction& offset_function) {
@@ -153,63 +86,6 @@ class CH_GPU_API ChSystemGpu_impl {
         BC_params_list_SU.at(BC_id).fixed = false;
         return true;
     }
-
-    /// Get the reaction forces on a boundary by ID, returns false if the forces are invalid (bad BC ID)
-    bool getBCReactionForces(size_t BC_id, float forces[3]) const {
-        size_t max_id = BC_params_list_SU.size();
-        if (BC_id >= max_id) {
-            printf("ERROR: Trying to get forces for invalid BC ID %zu\n", BC_id);
-            return false;
-        }
-        if (BC_id <= NUM_RESERVED_BC_IDS - 1) {
-            printf("ERROR: Trying to modify reserved BC ID %zu\n", BC_id);
-            return false;
-        }
-        if (BC_params_list_SU.at(BC_id).track_forces == false) {
-            printf("ERROR: Trying to get forces for non-force-tracking BC ID %zu\n", BC_id);
-            return false;
-        }
-        if (BC_params_list_SU.at(BC_id).active == false) {
-            printf("ERROR: Trying to get forces for inactive BC ID %zu\n", BC_id);
-            return false;
-        }
-        float3 reaction_forces = BC_params_list_SU.at(BC_id).reaction_forces;
-
-        // conversion from SU to UU force
-        forces[0] = (float)(reaction_forces.x * FORCE_SU2UU);
-        forces[1] = (float)(reaction_forces.y * FORCE_SU2UU);
-        forces[2] = (float)(reaction_forces.z * FORCE_SU2UU);
-        return true;
-    }
-
-    /// Set the output mode of the simulation
-    void setOutputMode(CHGPU_OUTPUT_MODE mode) { file_write_mode = mode; }
-
-    /// Set output settings bit flags by bitwise ORing settings in CHGPU_OUTPUT_FLAGS
-    void setOutputFlags(unsigned char flags) { output_flags = flags; }
-
-    /// Set timestep size
-    void set_fixed_stepSize(float size_UU) { stepSize_UU = size_UU; }
-
-    /// Ensure that the deformation-based length unit is used
-    void disableMinLength() { use_min_length_unit = false; }
-
-    /// Set the time integration scheme for the system
-    void set_timeIntegrator(CHGPU_TIME_INTEGRATOR new_integrator) {
-        gran_params->time_integrator = new_integrator;
-        time_integrator = new_integrator;
-    }
-
-    /// Set friction formulation. The frictionless setting uses a streamlined solver and avoids storing any physics
-    /// information associated with friction
-    void set_friction_mode(CHGPU_FRICTION_MODE new_mode) { gran_params->friction_mode = new_mode; }
-
-    /// Set rolling resistence formulation. NOTE: This requires friction to be active, otherwise this setting will be
-    /// ignored
-    void set_rolling_mode(CHGPU_ROLLING_MODE new_mode) { gran_params->rolling_mode = new_mode; }
-
-    /// Get the max z position of the spheres, allows easier co-simulation
-    double get_max_z() const;
 
     /// Set sphere-to-sphere static friction coefficient
     void set_static_friction_coeff_SPH2SPH(float mu) { gran_params->static_friction_coeff_s2s = mu; }
@@ -251,35 +127,6 @@ class CH_GPU_API ChSystemGpu_impl {
     /// Set the ratio of adhesion to gravity for sphere to wall. Assumes a constant cohesion model
     void set_Adhesion_ratio_S2W(float someValue) { adhesion_s2w_over_gravity = someValue; }
 
-    /// Set the big domain to be fixed or not; if fixed it will ignore any given position functions
-    void set_BD_Fixed(bool fixed) { BD_is_fixed = fixed; }
-
-    /// Set initial particle positions. MUST be called only once and MUST be called before initialize
-    void SetParticlePositions(const std::vector<float3>& points,
-                              const std::vector<float3>& vels = std::vector<float3>(),
-                              const std::vector<float3>& ang_vels = std::vector<float3>());
-
-    /// Return particle position.
-    float3 GetParticlePosition(int nSphere) const;
-
-    /// return absolute velocity
-    float getAbsVelocity(int nSphere);
-
-    /// Return particle linear velocity.
-    float3 GetParticleLinVelocity(int nSphere) const;
-
-    /// Return particle angular velocity.
-    float3 GetParticleAngVelocity(int nSphere) const;
-
-    /// Return number of particle-particle contacts.
-    int GetNumContacts() const;
-
-    /// Return position of BC plane.
-    float3 GetBCplanePosition(size_t plane_id) const;
-
-    /// The offset function for the big domain walls
-    GranPositionFunction BDOffsetFunction;
-
     /// Prescribe the motion of the big domain, allows wavetank-style simulations
     void setBDWallsMotionFunction(const GranPositionFunction& pos_fn) {
         BDOffsetFunction = pos_fn;
@@ -291,22 +138,9 @@ class CH_GPU_API ChSystemGpu_impl {
         BC_offset_function_list.at(BD_WALL_ID_Z_TOP) = pos_fn;
     }
 
-    // set recording contact info to be true
-    void setRecordingContactInfo(bool record) { gran_params->recording_contactInfo = record; };
-
-    /// Set tuning psi factors for tuning the non-dimensionalization
-    void setPsiFactors(unsigned int psi_T_new, unsigned int psi_L_new, float psi_R_new = 1.f) {
-        psi_T = psi_T_new;
-        psi_L = psi_L_new;
-        psi_R = psi_R_new;
-    }
-
-    /// Copy back the subdomain device data and save it to a file for error checking on the priming kernel
-    void checkSDCounts(std::string ofile, bool write_out, bool verbose) const;
-    /// Writes out contact info
-    void writeContactInfoFile(std::string ofile) const;
-    /// Safety check velocity to ensure the simulation is still stable
-    void setMaxSafeVelocity_SU(float max_vel) { gran_params->max_safe_vel = max_vel; }
+    // Copy back the subdomain device data and save it to a file for error checking on the priming kernel
+    //// RADU: is this function going to be implemented?!?
+    ////void checkSDCounts(std::string ofile, bool write_out, bool verbose) const;
 
   public:
     /// Structure with simulation parameters for sphere-based granular dynamics.
@@ -443,6 +277,88 @@ class CH_GPU_API ChSystemGpu_impl {
     /// Construct Chrono::Gpu system with given sphere radius, density, and big domain dimensions.
     ChSystemGpu_impl(float sphere_rad, float density, float3 boxDims);
 
+    /// Create big domain walls out of plane boundary conditions
+    void CreateWallBCs();
+
+    /// Create an axis-aligned sphere boundary condition
+    size_t CreateBCSphere(float center[3], float radius, bool outward_normal, bool track_forces);
+
+    /// Create an z-axis aligned cone boundary condition
+    size_t CreateBCConeZ(float cone_tip[3],
+                         float slope,
+                         float hmax,
+                         float hmin,
+                         bool outward_normal,
+                         bool track_forces);
+
+    /// Create plane boundary condition
+    size_t CreateBCPlane(float plane_pos[3], float plane_normal[3], bool track_forces);
+
+    /// Create an z-axis aligned cylinder boundary condition
+    size_t CreateBCCylinderZ(float center[3], float radius, bool outward_normal, bool track_forces);
+
+    /// Disable a boundary condition by its ID, returns false if the BC does not exist
+    bool DisableBCbyID(size_t BC_id) {
+        size_t max_id = BC_params_list_SU.size();
+        if (BC_id >= max_id) {
+            printf("ERROR: Trying to disable invalid BC ID %zu\n", BC_id);
+            return false;
+        }
+
+        if (BC_id <= NUM_RESERVED_BC_IDS - 1) {
+            printf("ERROR: Trying to modify reserved BC ID %zu\n", BC_id);
+            return false;
+        }
+        BC_params_list_UU.at(BC_id).active = false;
+        BC_params_list_SU.at(BC_id).active = false;
+        return true;
+    }
+
+    /// Enable a boundary condition by its ID, returns false if the BC does not exist
+    bool EnableBCbyID(size_t BC_id) {
+        size_t max_id = BC_params_list_SU.size();
+        if (BC_id >= max_id) {
+            printf("ERROR: Trying to enable invalid BC ID %zu\n", BC_id);
+            return false;
+        }
+        if (BC_id <= NUM_RESERVED_BC_IDS - 1) {
+            printf("ERROR: Trying to modify reserved BC ID %zu\n", BC_id);
+            return false;
+        }
+        BC_params_list_UU.at(BC_id).active = true;
+        BC_params_list_SU.at(BC_id).active = true;
+        return true;
+    }
+
+    /// Get the max z position of the spheres, allows easier co-simulation
+    double GetMaxParticleZ() const;
+
+    /// Return particle position.
+    float3 GetParticlePosition(int nSphere) const;
+
+    /// return absolute velocity
+    float getAbsVelocity(int nSphere);
+
+    /// Return particle linear velocity.
+    float3 GetParticleLinVelocity(int nSphere) const;
+
+    /// Return particle angular velocity.
+    float3 GetParticleAngVelocity(int nSphere) const;
+
+    /// Return number of particle-particle contacts.
+    int GetNumContacts() const;
+
+    /// Return position of BC plane.
+    float3 GetBCPlanePosition(size_t plane_id) const;
+
+    /// Get the reaction forces on a boundary by ID, returns false if the forces are invalid (bad BC ID)
+    bool GetBCReactionForces(size_t BC_id, float3& force) const;
+
+    /// Set initial particle positions. MUST be called only once and MUST be called before initialize
+    void SetParticlePositions(const std::vector<float3>& points,
+                              const std::vector<float3>& vels = std::vector<float3>(),
+                              const std::vector<float3>& ang_vels = std::vector<float3>());
+
     /// Advance simulation by duration in user units, return actual duration elapsed
     /// Requires initialize() to have been called
     virtual double AdvanceSimulation(float duration);
@@ -468,6 +384,18 @@ class CH_GPU_API ChSystemGpu_impl {
 
     /// Run the first sphere broadphase pass to get things started
     void runSphereBroadphase();
+
+    /// Wrap the device helper function
+    int3 getSDTripletFromID(unsigned int SD_ID) const;
+
+    /// Create a helper to do sphere initialization
+    void initializeSpheres();
+
+    /// Sorts particle positions spatially in order to improve memory efficiency
+    void defragment_initial_positions();
+
+    /// Setup sphere data, initialize local coords
+    void setupSphereDataStructures();
 
     /// Helper function to convert a position in UU to its SU representation while also changing data type
     template <typename T1, typename T2>
@@ -497,8 +425,14 @@ class CH_GPU_API ChSystemGpu_impl {
     /// Update positions of each boundary condition using prescribed functions
     void updateBCPositions();
 
-    /// Writes out particle positions according to the system output mode
+    /// Writes out particle positions according to the system output mode.
     void WriteFile(std::string ofile) const;
+
+    /// Write contact info file
+    void WriteContactInfoFile(std::string ofile) const;
+
+    /// Rough estimate of the total amount of memory used by the system.
+    size_t EstimateMemUsage() const;
 
   protected:
     // Conversion factors from SU to UU
@@ -524,18 +458,6 @@ class CH_GPU_API ChSystemGpu_impl {
 
     /// Fraction of sphere radius which gives an upper bound on the length unit
     float psi_R;
-
-    /// Wrap the device helper function
-    int3 getSDTripletFromID(unsigned int SD_ID) const;
-
-    /// Create a helper to do sphere initialization
-    void initializeSpheres();
-
-    /// Sorts particle positions spatially in order to improve memory efficiency
-    void defragment_initial_positions();
-
-    /// Setup sphere data, initialize local coords
-    void setupSphereDataStructures();
 
     /// Holds the sphere and big-domain-related params in unified memory
     GranParams* gran_params;
@@ -737,6 +659,9 @@ class CH_GPU_API ChSystemGpu_impl {
 
     /// User-provided sphere fixity as bools
     std::vector<bool> user_sphere_fixed;
+
+    /// The offset function for the big domain walls
+    GranPositionFunction BDOffsetFunction;
 
     /// Allow the user to set the big domain to be fixed, ignoring any given position functions
     bool BD_is_fixed = true;

@@ -94,27 +94,27 @@ int main(int argc, char* argv[]) {
 
     // Add internal planes to prevent leaking
     {
-        float plane_pos[] = {-(float)(params.box_X / 2 - boundary_padding), 0, 0};
-        float plane_normal[] = {1, 0, 0};
-        gpu_sys.Create_BC_Plane(plane_pos, plane_normal, false);
+        ChVector<float> plane_pos(-(float)(params.box_X / 2 - boundary_padding), 0, 0);
+        ChVector<float> plane_normal(1, 0, 0);
+        apiSMC.CreateBCPlane(plane_pos, plane_normal, false);
     }
     {
-        float plane_pos[] = {(float)(params.box_X / 2 - boundary_padding), 0, 0};
-        float plane_normal[] = {-1, 0, 0};
-        gpu_sys.Create_BC_Plane(plane_pos, plane_normal, false);
+        ChVector<float> plane_pos((float)(params.box_X / 2 - boundary_padding), 0, 0);
+        ChVector<float> plane_normal(-1, 0, 0);
+        apiSMC.CreateBCPlane(plane_pos, plane_normal, false);
     }
     {
-        float plane_pos[] = {0, -(float)(params.box_Y / 2 - boundary_padding), 0};
-        float plane_normal[] = {0, 1, 0};
-        gpu_sys.Create_BC_Plane(plane_pos, plane_normal, false);
+        ChVector<float> plane_pos(0, -(float)(params.box_Y / 2 - boundary_padding), 0);
+        ChVector<float> plane_normal(0, 1, 0);
+        apiSMC.CreateBCPlane(plane_pos, plane_normal, false);
     }
     {
-        float plane_pos[] = {0, (float)(params.box_Y / 2 - boundary_padding), 0};
-        float plane_normal[] = {0, -1, 0};
-        gpu_sys.Create_BC_Plane(plane_pos, plane_normal, false);
+        ChVector<float> plane_pos(0, (float)(params.box_Y / 2 - boundary_padding), 0);
+        ChVector<float> plane_normal(0, -1, 0);
+        apiSMC.CreateBCPlane(plane_pos, plane_normal, false);
     }
 
-    gpu_sys.set_BD_Fixed(true);
+    apiSMC.SetBDFixed(true);
 
     gpu_sys.set_K_n_SPH2SPH(params.normalStiffS2S);
     gpu_sys.set_K_n_SPH2WALL(params.normalStiffS2W);
@@ -130,21 +130,21 @@ int main(int argc, char* argv[]) {
 
     gpu_sys.set_Cohesion_ratio(params.cohesion_ratio);
     gpu_sys.set_Adhesion_ratio_S2W(params.adhesion_ratio_s2w);
-    gpu_sys.set_gravitational_acceleration(params.grav_X, params.grav_Y, params.grav_Z);
+    apiSMC.SetGravitationalAcceleration(ChVector<float>(params.grav_X, params.grav_Y, params.grav_Z));
 
-    gpu_sys.set_fixed_stepSize(params.step_size);
-    gpu_sys.set_friction_mode(params.friction_mode);
-    gpu_sys.set_timeIntegrator(params.time_integrator);
+    apiSMC.SetFixedStepSize(params.step_size);
+    apiSMC.SetFrictionMode(params.friction_mode);
+    apiSMC.SetTimeIntegrator(params.time_integrator);
     gpu_sys.set_static_friction_coeff_SPH2SPH(params.static_friction_coeffS2S);
     gpu_sys.set_static_friction_coeff_SPH2WALL(params.static_friction_coeffS2W);
 
-    gpu_sys.set_rolling_mode(params.rolling_mode);
+    apiSMC.SetRollingMode(params.rolling_mode);
     gpu_sys.set_rolling_coeff_SPH2SPH(params.rolling_friction_coeffS2S);
     gpu_sys.set_rolling_coeff_SPH2WALL(params.rolling_friction_coeffS2W);
 
-    gpu_sys.setOutputMode(params.write_mode);
+    apiSMC.SetOutputMode(params.write_mode);
     apiSMC.SetVerbosity(params.verbose);
-    gpu_sys.setOutputFlags(CHGPU_OUTPUT_FLAGS::ABSV | CHGPU_OUTPUT_FLAGS::ANG_VEL_COMPONENTS |
+    apiSMC.SetOutputFlags(CHGPU_OUTPUT_FLAGS::ABSV | CHGPU_OUTPUT_FLAGS::ANG_VEL_COMPONENTS |
                             CHGPU_OUTPUT_FLAGS::FIXITY);
 
     // Create data directory

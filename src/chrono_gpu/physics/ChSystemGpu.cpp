@@ -39,6 +39,169 @@ ChSystemGpuMesh::~ChSystemGpuMesh() {}
 
 // -----------------------------------------------------------------------------
 
+void ChSystemGpu::SetGravitationalAcceleration(const ChVector<float> g) {
+    m_sys->X_accGrav = (float)g.x();
+    m_sys->Y_accGrav = (float)g.y();
+    m_sys->Z_accGrav = (float)g.z();
+}
+
+void ChSystemGpu::SetBDFixed(bool fixed) {
+    m_sys->BD_is_fixed = fixed;
+}
+
+void ChSystemGpu::SetParticleFixed(const std::vector<bool>& fixed) {
+    m_sys->user_sphere_fixed = fixed;
+}
+
+void ChSystemGpu::SetOutputMode(CHGPU_OUTPUT_MODE mode) {
+    m_sys->file_write_mode = mode;
+}
+
+void ChSystemGpu::SetOutputFlags(unsigned char flags) {
+    m_sys->output_flags = flags;
+}
+
+void ChSystemGpu::SetFixedStepSize(float size_UU) {
+    m_sys->stepSize_UU = size_UU;
+}
+
+void ChSystemGpu::DisableMinLength() {
+    m_sys->use_min_length_unit = false;
+}
+
+void ChSystemGpu::SetTimeIntegrator(CHGPU_TIME_INTEGRATOR new_integrator) {
+    m_sys->gran_params->time_integrator = new_integrator;
+    m_sys->time_integrator = new_integrator;
+}
+
+void ChSystemGpu::SetFrictionMode(CHGPU_FRICTION_MODE new_mode) {
+    m_sys->gran_params->friction_mode = new_mode;
+}
+
+void ChSystemGpu::SetRollingMode(CHGPU_ROLLING_MODE new_mode) {
+    m_sys->gran_params->rolling_mode = new_mode;
+}
+
+void ChSystemGpu::SetRecordingContactInfo(bool record) {
+    m_sys->gran_params->recording_contactInfo = record;
+};
+
+void ChSystemGpu::SetMaxSafeVelocity_SU(float max_vel) {
+    m_sys->gran_params->max_safe_vel = max_vel;
+}
+
+void ChSystemGpu::SetPsiFactors(unsigned int psi_T, unsigned int psi_L, float psi_R) {
+    m_sys->psi_T = psi_T;
+    m_sys->psi_L = psi_L;
+    m_sys->psi_R = psi_R;
+}
+
+// -----------------------------------------------------------------------------
+
+void ChSystemGpu::SetVerbosity(CHGPU_VERBOSITY level) {
+    m_sys->verbosity = level;
+}
+
+void ChSystemGpuMesh::SetMeshVerbosity(CHGPU_MESH_VERBOSITY level) {
+    mesh_verbosity = level;
+}
+
+// -----------------------------------------------------------------------------
+
+size_t ChSystemGpu::CreateBCSphere(const ChVector<float>& center,
+                                   float radius,
+                                   bool outward_normal,
+                                   bool track_forces) {
+    float sph_center[3] = {center.x(), center.y(), center.z()};
+    return m_sys->CreateBCSphere(sph_center, radius, outward_normal, track_forces);
+}
+
+size_t ChSystemGpu::CreateBCConeZ(const ChVector<float>& tip,
+                                  float slope,
+                                  float hmax,
+                                  float hmin,
+                                  bool outward_normal,
+                                  bool track_forces) {
+    float cone_tip[3] = {tip.x(), tip.y(), tip.z()};
+    return m_sys->CreateBCConeZ(cone_tip, slope, hmax, hmin, outward_normal, track_forces);
+}
+
+size_t ChSystemGpu::CreateBCPlane(const ChVector<float>& pos, const ChVector<float>& normal, bool track_forces) {
+    float plane_pos[3] = {pos.x(), pos.y(), pos.z()};
+    float plane_nrm[3] = {normal.x(), normal.y(), normal.z()};
+    return m_sys->CreateBCPlane(plane_pos, plane_nrm, track_forces);
+}
+
+size_t ChSystemGpu::CreateBCCylinderZ(const ChVector<float>& center,
+                                      float radius,
+                                      bool outward_normal,
+                                      bool track_forces) {
+    float cyl_center[3] = {center.x(), center.y(), center.z()};
+    return m_sys->CreateBCCylinderZ(cyl_center, radius, outward_normal, track_forces);
+}
+
+/// Disable a boundary condition by its ID, returns false if the BC does not exist.
+bool ChSystemGpu::DisableBCbyID(size_t BC_id) {
+    return m_sys->DisableBCbyID(BC_id);
+}
+
+/// Enable a boundary condition by its ID, returns false if the BC does not exist.
+bool ChSystemGpu::EnableBCbyID(size_t BC_id) {
+    return m_sys->EnableBCbyID(BC_id);
+}
+
+// -----------------------------------------------------------------------------
+
+unsigned int ChSystemGpu::GetNumSDs() const {
+    return m_sys->nSDs;
+}
+
+ChVector<float> ChSystemGpu::GetBCPlanePosition(size_t plane_id) const {
+    // todo: throw an error if BC not a plane type
+    float3 pos = m_sys->GetBCPlanePosition(plane_id);
+    return ChVector<float>(pos.x, pos.y, pos.z);
+}
+
+bool ChSystemGpu::GetBCReactionForces(size_t BC_id, ChVector<float>& force) const {
+    float3 frc;
+    bool ret = m_sys->GetBCReactionForces(BC_id, frc);
+    force = ChVector<float>(frc.x, frc.y, frc.z);
+    return ret;
+}
+
+int ChSystemGpu::GetNumContacts() const {
+    return m_sys->GetNumContacts();
+}
+
+size_t ChSystemGpu::GetNumParticles() const {
+    return m_sys->nSpheres;
+}
+
+ChVector<float> ChSystemGpu::GetParticlePosition(int nSphere) const {
+    float3 pos = m_sys->GetParticlePosition(nSphere);
+    return ChVector<float>(pos.x, pos.y, pos.z);
+}
+
+ChVector<float> ChSystemGpu::GetParticleVelocity(int nSphere) const {
+    float3 vel = m_sys->GetParticleLinVelocity(nSphere);
+    return ChVector<float>(vel.x, vel.y, vel.z);
+}
+
+ChVector<float> ChSystemGpu::GetParticleAngVelocity(int nSphere) const {
+    float3 omega = m_sys->GetParticleAngVelocity(nSphere);
+    return ChVector<float>(omega.x, omega.y, omega.z);
+}
+
+double ChSystemGpu::GetMaxParticleZ() const {
+    return m_sys->GetMaxParticleZ();
+}
+
+size_t ChSystemGpu::EstimateMemUsage() const {
+    return m_sys->EstimateMemUsage();
+}
+
+// -----------------------------------------------------------------------------
+
 void ChSystemGpuMesh::LoadMeshes(std::vector<std::string> objfilenames,
                                  std::vector<ChMatrix33<float>> rotscale,
                                  std::vector<float3> translations,
@@ -225,43 +388,6 @@ void ChSystemGpu::SetParticlePositions(const std::vector<ChVector<float>>& point
     m_sys->SetParticlePositions(pointsFloat3, velsFloat3, angVelsFloat3);
 }
 
-void ChSystemGpu::SetParticleFixed(const std::vector<bool>& fixed) {
-    m_sys->user_sphere_fixed = fixed;
-}
-
-// -----------------------------------------------------------------------------
-
-ChVector<float> ChSystemGpu::GetParticlePosition(int nSphere) const {
-    float3 pos = m_sys->GetParticlePosition(nSphere);
-    return ChVector<float>(pos.x, pos.y, pos.z);
-}
-
-// -----------------------------------------------------------------------------
-
-ChVector<float> ChSystemGpu::GetParticleVelocity(int nSphere) const {
-    float3 vel = m_sys->GetParticleLinVelocity(nSphere);
-    return ChVector<float>(vel.x, vel.y, vel.z);
-}
-
-// -----------------------------------------------------------------------------
-
-ChVector<float> ChSystemGpu::GetParticleAngVelocity(int nSphere) const {
-    float3 omega = m_sys->GetParticleAngVelocity(nSphere);
-    return ChVector<float>(omega.x, omega.y, omega.z);
-}
-
-// -----------------------------------------------------------------------------
-
-ChVector<float> ChSystemGpu::GetBCplanePosition(size_t plane_id) const {
-    // todo: throw an error if BC not a plane type
-    float3 pos = m_sys->GetBCplanePosition(plane_id);
-    return ChVector<float>(pos.x, pos.y, pos.z);
-}
-
-int ChSystemGpu::GetNumContacts() const {
-    return m_sys->GetNumContacts();
-}
-
 // -----------------------------------------------------------------------------
 
 void ChSystemGpuMesh::Initialize() {
@@ -272,20 +398,9 @@ void ChSystemGpuMesh::Initialize() {
 
 void ChSystemGpu::Initialize() {
     m_sys->initializeSpheres();
-    size_t approx_mem_usage = m_sys->estimateMemUsage();
     if (m_sys->verbosity == CHGPU_VERBOSITY::INFO || m_sys->verbosity == CHGPU_VERBOSITY::METRICS) {
-        printf("Approx mem usage is %s\n", pretty_format_bytes(approx_mem_usage).c_str());
+        printf("Approx mem usage is %s\n", pretty_format_bytes(EstimateMemUsage()).c_str());
     }
-}
-
-// -----------------------------------------------------------------------------
-
-void ChSystemGpu::SetVerbosity(CHGPU_VERBOSITY level) {
-    m_sys->verbosity = level;
-}
-
-void ChSystemGpuMesh::SetMeshVerbosity(CHGPU_MESH_VERBOSITY level) {
-    mesh_verbosity = level;
 }
 
 // -----------------------------------------------------------------------------
@@ -303,6 +418,10 @@ double ChSystemGpu::AdvanceSimulation(float duration) {
 
 void ChSystemGpu::WriteFile(std::string ofile) const {
     m_sys->WriteFile(ofile);
+}
+
+void ChSystemGpu::WriteContactInfoFile(std::string ofile) const {
+    m_sys->WriteContactInfoFile(ofile);
 }
 
 void ChSystemGpuMesh::WriteMeshes(std::string outfilename) const {

@@ -59,8 +59,8 @@ bool run_test(float box_size_X, float box_size_Y, float box_size_Z) {
 
     gpu_sys.set_Cohesion_ratio(cohesion_ratio);
     gpu_sys.set_Adhesion_ratio_S2W(adhesion_ratio_s2w);
-    gpu_sys.set_gravitational_acceleration(0.f, 0.f, grav_acceleration);
-    gpu_sys.setOutputMode(write_mode);
+    apiSMC.SetGravitationalAcceleration(ChVector<float>(0.f, 0.f, grav_acceleration));
+    apiSMC.SetOutputMode(write_mode);
 
     // Fill the bottom half with material
     chrono::utils::HCPSampler<float> sampler(2.1f * sphereRadius);  // Add epsilon
@@ -71,18 +71,18 @@ bool run_test(float box_size_X, float box_size_Y, float box_size_Z) {
 
     apiSMC.SetParticlePositions(body_points);
 
-    gpu_sys.set_BD_Fixed(true);
-    gpu_sys.set_friction_mode(CHGPU_FRICTION_MODE::FRICTIONLESS);
-    gpu_sys.set_timeIntegrator(CHGPU_TIME_INTEGRATOR::CENTERED_DIFFERENCE);
+    apiSMC.SetBDFixed(true);
+    apiSMC.SetFrictionMode(CHGPU_FRICTION_MODE::FRICTIONLESS);
+    apiSMC.SetTimeIntegrator(CHGPU_TIME_INTEGRATOR::CENTERED_DIFFERENCE);
     apiSMC.SetVerbosity(verbose);
 
     // upward facing plane just above the bottom to capture forces
-    float plane_normal[3] = {0, 0, 1};
-    float plane_center[3] = {0, 0, -box_size_Z / 2 + 2 * sphereRadius};
+    ChVector<float> plane_normal(0, 0, 1);
+    ChVector<float> plane_center(0, 0, -box_size_Z / 2 + 2 * sphereRadius);
 
-    size_t plane_bc_id = gpu_sys.Create_BC_Plane(plane_center, plane_normal, true);
+    size_t plane_bc_id = apiSMC.CreateBCPlane(plane_center, plane_normal, true);
 
-    gpu_sys.set_fixed_stepSize(timestep);
+    apiSMC.SetFixedStepSize(timestep);
 
     apiSMC.Initialize();
 
@@ -99,21 +99,21 @@ bool run_test(float box_size_X, float box_size_Y, float box_size_Z) {
         printf("Time: %f\n", curr_time);
     }
     timer.stop();
-    std::cout << "Simulated " << gpu_sys.getNumSpheres() << " particles in " << timer.GetTimeSeconds() << " seconds"
+    std::cout << "Simulated " << apiSMC.GetNumParticles() << " particles in " << timer.GetTimeSeconds() << " seconds"
               << std::endl;
 
     constexpr float F_CGS_TO_SI = 1e-5f;
 
-    float reaction_forces[3] = {0, 0, 0};
-    if (!gpu_sys.getBCReactionForces(plane_bc_id, reaction_forces)) {
+    ChVector<float> reaction_force;
+    if (!apiSMC.GetBCReactionForces(plane_bc_id, reaction_force)) {
         printf("ERROR! Get contact forces for plane failed\n");
         return false;
     }
 
     printf("plane force is (%f, %f, %f) Newtons\n",  //
-           F_CGS_TO_SI * reaction_forces[0], F_CGS_TO_SI * reaction_forces[1], F_CGS_TO_SI * reaction_forces[2]);
+           F_CGS_TO_SI * reaction_force.x(), F_CGS_TO_SI * reaction_force.y(), F_CGS_TO_SI * reaction_force.z());
 
-    float computed_bottom_force = reaction_forces[2];
+    float computed_bottom_force = reaction_force.z();
     float expected_bottom_force = (float)body_points.size() * (4.f / 3.f) * (float)CH_C_PI * sphereRadius *
                                   sphereRadius * sphereRadius * sphereDensity * grav_acceleration;
 

@@ -48,7 +48,7 @@ ChSystemGpu_impl::ChSystemGpu_impl(float sphere_rad, float density, float3 boxDi
       elapsedSimTime(0.f),
       verbosity(CHGPU_VERBOSITY::INFO),
       use_min_length_unit(true),
-      file_write_mode(CSV),
+      file_write_mode(CHGPU_OUTPUT_MODE::CSV),
       X_accGrav(0.f),
       Y_accGrav(0.f),
       Z_accGrav(0.f),
@@ -71,22 +71,22 @@ ChSystemGpu_impl::ChSystemGpu_impl(float sphere_rad, float density, float3 boxDi
     psi_T = PSI_T_DEFAULT;
     psi_L = PSI_L_DEFAULT;
     psi_R = PSI_R_DEFAULT;
-    gran_params->friction_mode = FRICTIONLESS;
-    gran_params->rolling_mode = NO_RESISTANCE;
-    gran_params->time_integrator = EXTENDED_TAYLOR;
-    this->time_integrator = EXTENDED_TAYLOR;
+    gran_params->friction_mode = CHGPU_FRICTION_MODE::FRICTIONLESS;
+    gran_params->rolling_mode = CHGPU_ROLLING_MODE::NO_RESISTANCE;
+    gran_params->time_integrator = CHGPU_TIME_INTEGRATOR::EXTENDED_TAYLOR;
+    this->time_integrator = CHGPU_TIME_INTEGRATOR::EXTENDED_TAYLOR;
     this->output_flags = ABSV | ANG_VEL_COMPONENTS;
 
-    setMaxSafeVelocity_SU((float)UINT_MAX);
+    gran_params->max_safe_vel = (float)UINT_MAX;
 
     set_static_friction_coeff_SPH2SPH(0);
     set_static_friction_coeff_SPH2WALL(0);
 
-    createWallBCs();
+    CreateWallBCs();
     setBDWallsMotionFunction(GranPosFunction_default);
 }
 
-void ChSystemGpu_impl::createWallBCs() {
+void ChSystemGpu_impl::CreateWallBCs() {
     float plane_center_bot_X[3] = {-box_size_X / 2, 0, 0};
     float plane_center_top_X[3] = {box_size_X / 2, 0, 0};
     float plane_center_bot_Y[3] = {0, -box_size_Y / 2, 0};
@@ -102,12 +102,12 @@ void ChSystemGpu_impl::createWallBCs() {
     float plane_normal_top_Z[3] = {0, 0, -1};
 
     // create wall BCs
-    size_t plane_BC_X_bot = Create_BC_Plane(plane_center_bot_X, plane_normal_bot_X, false);
-    size_t plane_BC_X_top = Create_BC_Plane(plane_center_top_X, plane_normal_top_X, false);
-    size_t plane_BC_Y_bot = Create_BC_Plane(plane_center_bot_Y, plane_normal_bot_Y, false);
-    size_t plane_BC_Y_top = Create_BC_Plane(plane_center_top_Y, plane_normal_top_Y, false);
-    size_t plane_BC_Z_bot = Create_BC_Plane(plane_center_bot_Z, plane_normal_bot_Z, false);
-    size_t plane_BC_Z_top = Create_BC_Plane(plane_center_top_Z, plane_normal_top_Z, false);
+    size_t plane_BC_X_bot = CreateBCPlane(plane_center_bot_X, plane_normal_bot_X, false);
+    size_t plane_BC_X_top = CreateBCPlane(plane_center_top_X, plane_normal_top_X, false);
+    size_t plane_BC_Y_bot = CreateBCPlane(plane_center_bot_Y, plane_normal_bot_Y, false);
+    size_t plane_BC_Y_top = CreateBCPlane(plane_center_top_Y, plane_normal_top_Y, false);
+    size_t plane_BC_Z_bot = CreateBCPlane(plane_center_bot_Z, plane_normal_bot_Z, false);
+    size_t plane_BC_Z_top = CreateBCPlane(plane_center_top_Z, plane_normal_top_Z, false);
 
     // verify that we have the right IDs for these walls
     assert(plane_BC_X_bot == BD_WALL_ID_X_BOT);
@@ -122,7 +122,7 @@ ChSystemGpu_impl::~ChSystemGpu_impl() {
     gpuErrchk(cudaFree(gran_params));
 }
 
-size_t ChSystemGpu_impl::estimateMemUsage() const {
+size_t ChSystemGpu_impl::EstimateMemUsage() const {
     return gran_approx_bytes_used;
 }
 
@@ -449,7 +449,7 @@ void ChSystemGpu_impl::WriteFile(std::string ofile) const {
     }
 }
 
-void ChSystemGpu_impl::writeContactInfoFile(std::string ofile) const {
+void ChSystemGpu_impl::WriteContactInfoFile(std::string ofile) const {
     if (gran_params->recording_contactInfo == false) {
         printf("ERROR: recording_contactInfo set to false!\n");
         exit(1);
@@ -545,7 +545,7 @@ void ChSystemGpu_impl::copyConstSphereDataToDevice() {
     gran_params->sphereInertia_by_r = (float)((2.0 / 5.0) * gran_params->sphere_mass_SU * gran_params->sphereRadius_SU);
 }
 
-size_t ChSystemGpu_impl::Create_BC_Sphere(float center[3], float radius, bool outward_normal, bool track_forces) {
+size_t ChSystemGpu_impl::CreateBCSphere(float center[3], float radius, bool outward_normal, bool track_forces) {
     BC_params_t<float, float3> p;
     // set center, radius, norm
     p.sphere_params.sphere_center.x = center[0];
@@ -570,12 +570,12 @@ size_t ChSystemGpu_impl::Create_BC_Sphere(float center[3], float radius, bool ou
     return BC_type_list.size() - 1;
 }
 
-size_t ChSystemGpu_impl::Create_BC_Cone_Z(float cone_tip[3],
-                                          float slope,
-                                          float hmax,
-                                          float hmin,
-                                          bool outward_normal,
-                                          bool track_forces) {
+size_t ChSystemGpu_impl::CreateBCConeZ(float cone_tip[3],
+                                       float slope,
+                                       float hmax,
+                                       float hmin,
+                                       bool outward_normal,
+                                       bool track_forces) {
     BC_params_t<float, float3> p;
     // set center, radius, norm
     p.cone_params.cone_tip.x = cone_tip[0];
@@ -603,7 +603,7 @@ size_t ChSystemGpu_impl::Create_BC_Cone_Z(float cone_tip[3],
     return BC_type_list.size() - 1;
 }
 
-size_t ChSystemGpu_impl::Create_BC_Plane(float plane_pos[3], float plane_normal[3], bool track_forces) {
+size_t ChSystemGpu_impl::CreateBCPlane(float plane_pos[3], float plane_normal[3], bool track_forces) {
     BC_params_t<float, float3> p;
     p.plane_params.position.x = plane_pos[0];
     p.plane_params.position.y = plane_pos[1];
@@ -628,7 +628,7 @@ size_t ChSystemGpu_impl::Create_BC_Plane(float plane_pos[3], float plane_normal[
     return BC_type_list.size() - 1;
 }
 
-size_t ChSystemGpu_impl::Create_BC_Cyl_Z(float center[3], float radius, bool outward_normal, bool track_forces) {
+size_t ChSystemGpu_impl::CreateBCCylinderZ(float center[3], float radius, bool outward_normal, bool track_forces) {
     BC_params_t<float, float3> p;
     p.cyl_params.center.x = center[0];
     p.cyl_params.center.y = center[1];
@@ -734,7 +734,7 @@ void ChSystemGpu_impl::setBCOffset(const BC_type& bc_type,
     }
 }
 
-float3 ChSystemGpu_impl::GetBCplanePosition(size_t plane_id) const {
+float3 ChSystemGpu_impl::GetBCPlanePosition(size_t plane_id) const {
     BC_params_t<float, float3> p = BC_params_list_UU[plane_id];
     auto offset_function = BC_offset_function_list[plane_id];
     double3 offset_UU = offset_function(elapsedSimTime);
@@ -743,6 +743,33 @@ float3 ChSystemGpu_impl::GetBCplanePosition(size_t plane_id) const {
     currPos.y = p.plane_params.position.y + offset_UU.y;
     currPos.z = p.plane_params.position.z + offset_UU.z;
     return currPos;
+}
+
+bool ChSystemGpu_impl::GetBCReactionForces(size_t BC_id, float3& force) const {
+    size_t max_id = BC_params_list_SU.size();
+    if (BC_id >= max_id) {
+        printf("ERROR: Trying to get forces for invalid BC ID %zu\n", BC_id);
+        return false;
+    }
+    if (BC_id <= NUM_RESERVED_BC_IDS - 1) {
+        printf("ERROR: Trying to modify reserved BC ID %zu\n", BC_id);
+        return false;
+    }
+    if (BC_params_list_SU.at(BC_id).track_forces == false) {
+        printf("ERROR: Trying to get forces for non-force-tracking BC ID %zu\n", BC_id);
+        return false;
+    }
+    if (BC_params_list_SU.at(BC_id).active == false) {
+        printf("ERROR: Trying to get forces for inactive BC ID %zu\n", BC_id);
+        return false;
+    }
+    float3 reaction_forces = BC_params_list_SU.at(BC_id).reaction_forces;
+
+    // conversion from SU to UU force
+    force.x = (float)(reaction_forces.x * FORCE_SU2UU);
+    force.y = (float)(reaction_forces.y * FORCE_SU2UU);
+    force.z = (float)(reaction_forces.z * FORCE_SU2UU);
+    return true;
 }
 
 void ChSystemGpu_impl::convertBCUnits() {
