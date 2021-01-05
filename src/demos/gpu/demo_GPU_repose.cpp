@@ -117,7 +117,7 @@ int main(int argc, char* argv[]) {
     body_points_fixed.insert(body_points_fixed.end(), material_points.size(), false);
 
     apiSMC.SetParticlePositions(body_points);
-    gpu_sys.setParticleFixed(body_points_fixed);
+    apiSMC.SetParticleFixed(body_points_fixed);
 
     std::cout << "Added " << roughness_points.size() << " fixed points" << std::endl;
     std::cout << "Added " << material_points.size() << " material points" << std::endl;
@@ -128,11 +128,11 @@ int main(int argc, char* argv[]) {
     gpu_sys.set_fixed_stepSize(params.step_size);
 
     filesystem::create_directory(filesystem::path(params.output_dir));
-    gpu_sys.setVerbose(params.verbose);
-    std::cout<<"verbose: "<<params.verbose<<std::endl;
+    apiSMC.SetVerbosity(params.verbose);
+    std::cout<<"verbose: " << static_cast<int>(params.verbose) <<std::endl;
     gpu_sys.setRecordingContactInfo(true);
 
-    gpu_sys.initialize();
+    apiSMC.Initialize();
 
     int fps = 60;
     float frame_step = 1.f / fps;
@@ -143,7 +143,7 @@ int main(int argc, char* argv[]) {
     // write an initial frame
     char filename[100];
     sprintf(filename, "%s/step%06d", params.output_dir.c_str(), currframe);
-    gpu_sys.writeFile(std::string(filename));
+    apiSMC.WriteFile(std::string(filename));
 
     char contactFilename[100];
     sprintf(contactFilename, "%s/contact%06d", params.output_dir.c_str(), currframe);
@@ -153,11 +153,11 @@ int main(int argc, char* argv[]) {
 
     std::cout << "frame step is " << frame_step << std::endl;
     while (curr_time < params.time_end) {
-        gpu_sys.advance_simulation(frame_step);
+        apiSMC.AdvanceSimulation(frame_step);
         curr_time += frame_step;
         printf("rendering frame %u of %u\n", currframe, total_frames);
         sprintf(filename, "%s/step%06d", params.output_dir.c_str(), currframe);
-        gpu_sys.writeFile(std::string(filename));
+        apiSMC.WriteFile(std::string(filename));
 
         char contactFilename[100];
         sprintf(contactFilename, "%s/contact%06d", params.output_dir.c_str(), currframe);

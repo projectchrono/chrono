@@ -148,16 +148,15 @@ int main(int argc, char* argv[]) {
 
     apiSMC_TriMesh.LoadMeshes(mesh_filenames, mesh_rotscales, mesh_translations, mesh_masses);
 
-    unsigned int nSoupFamilies = gpu_sys.getNumTriangleFamilies();
-    std::cout << nSoupFamilies << " soup families" << std::endl;
+    std::cout << apiSMC_TriMesh.GetNumMeshes() << " meshes" << std::endl;
 
     float rev_per_sec = 1.f;
     float ang_vel_Z = rev_per_sec * 2 * CH_C_PI;
     ChVector<> mesh_lin_vel(0);
     ChVector<> mesh_ang_vel(0, 0, ang_vel_Z);
 
-    gpu_sys.enableMeshCollision();
-    gpu_sys.initialize();
+    apiSMC_TriMesh.EnableMeshCollision(true);
+    apiSMC_TriMesh.Initialize();
 
     unsigned int currframe = 0;
     double out_fps = 200;
@@ -171,21 +170,22 @@ int main(int argc, char* argv[]) {
     for (float t = 0; t < params.time_end; t += iteration_step, step++) {
         ChVector<> mesh_pos(0, 0, chamber_bottom + chamber_height / 2.0);
         ChQuaternion<> mesh_rot = Q_from_AngZ(t * ang_vel_Z);
-        gpu_sys.applyMeshMotion(0, mesh_pos.data(), mesh_rot.data(), mesh_lin_vel.data(), mesh_ang_vel.data());
+        apiSMC_TriMesh.ApplyMeshMotion(0, mesh_pos, mesh_rot, mesh_lin_vel, mesh_ang_vel);
 
         if (step % out_steps == 0) {
             std::cout << "Rendering frame " << (currframe+1) << " of " << total_frames << std::endl;
             char filename[100];
             sprintf(filename, "%s/step%06u", params.output_dir.c_str(), currframe++);
-            gpu_sys.writeFile(std::string(filename));
-            gpu_sys.write_meshes(std::string(filename));
+            apiSMC_TriMesh.WriteFile(std::string(filename));
+            apiSMC_TriMesh.WriteMeshes(std::string(filename));
 
-            float forces[6];
-            gpu_sys.collectGeneralizedForcesOnMeshSoup(forces);
-            std::cout << "torque: " << forces[3] << ", " << forces[4] << ", " << forces[5] << std::endl;
+            ChVector<> force;
+            ChVector<> torque;
+            apiSMC_TriMesh.CollectMeshContactForces(0, force, torque);
+            std::cout << "torque: " << torque.x() << ", " << torque.y() << ", " << torque.z() << std::endl;
         }
 
-        gpu_sys.advance_simulation(iteration_step);
+        apiSMC_TriMesh.AdvanceSimulation(iteration_step);
     }
 
     return 0;

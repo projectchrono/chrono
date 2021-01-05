@@ -29,7 +29,7 @@ namespace gpu {
 /// associated with the four wheels of a rover operating on granular material would be smashed into one soup having four
 /// mesh families.
 class CH_GPU_API ChSystemGpuMesh_impl : public ChSystemGpu_impl {
-  public:    
+  public:
     virtual ~ChSystemGpuMesh_impl();
 
     void set_K_n_SPH2MESH(double someValue) { K_n_s2m_UU = someValue; }
@@ -37,37 +37,6 @@ class CH_GPU_API ChSystemGpuMesh_impl : public ChSystemGpu_impl {
 
     void set_K_t_SPH2MESH(double someValue) { K_t_s2m_UU = someValue; }
     void set_Gamma_t_SPH2MESH(double someValue) { Gamma_t_s2m_UU = someValue; }
-
-    unsigned int getNumTriangleFamilies() const { return meshSoup->numTriangleFamilies; }
-
-    /// Collect forces exerted on meshes by granular system
-    /// Each generalized force is 3 forces (x,y,z) and 3 torques (x,y,z)
-    /// Forces are genForcesOnSoup in order of triangle family
-    /// genForcesOnSoup should have 6 entries for each family
-    void collectGeneralizedForcesOnMeshSoup(float* genForcesOnSoup);
-
-    /// Apply rigid body motion to specified mesh.
-    void applyMeshMotion(unsigned int mesh,
-                         const double* pos,
-                         const double* rot,
-                         const double* lin_vel,
-                         const double* ang_vel);
-
-    /// position_orientation_data should have 7 entries for each family: 3 pos, 4 orientation
-    /// vel should have 6 entries for each family: 3 linear velocity, 3 angular velocity
-    void meshSoup_applyRigidBodyMotion(double* position_orientation_data, float* vel);
-
-    /// Advance simulation by duration in user units, return actual duration elapsed.
-    /// Requires initialize() to have been called.
-    virtual double advance_simulation(float duration) override;
-
-    /// Initialize simulation so that it can be advanced.
-    /// Must be called before advance_simulation and after simulation parameters are set.
-    /// This function initializes both the granular material and any existing trimeshes.
-    virtual void initialize() override;
-
-    /// Write visualization files for triangle meshes with current positions
-    void write_meshes(std::string outfilename);
 
     /// Set the ratio of adhesion force to sphere weight for sphere to mesh
     void set_Adhesion_ratio_S2M(float someValue) { adhesion_s2m_over_gravity = someValue; }
@@ -77,14 +46,6 @@ class CH_GPU_API ChSystemGpuMesh_impl : public ChSystemGpu_impl {
     // set internally and convert later
     void set_rolling_coeff_SPH2MESH(float mu) { rolling_coeff_s2m_UU = mu; }
     void set_spinning_coeff_SPH2MESH(float mu) { spinning_coeff_s2m_UU = mu; }
-
-    /// Enable mesh contact
-    void enableMeshCollision() { mesh_collision_enabled = true; }
-    /// Disable mesh contact
-    void disableMeshCollision() { mesh_collision_enabled = false; }
-
-    /// Initialize trimeshes before starting simulation (typically called by initialize).
-    virtual void initializeTriangles();
 
   public:
     /// Position and rotation matrix defining the frame of a triangle mesh.
@@ -155,7 +116,7 @@ class CH_GPU_API ChSystemGpuMesh_impl : public ChSystemGpu_impl {
         float3* omega;
 
         /// Generalized forces acting on each family. Expressed
-        /// in the global reference frame. Size: 6 * getNumTriangleFamilies.
+        /// in the global reference frame. Size: 6 * numTriangleFamilies.
         float* generalizedForcesPerFamily;
     };
 
@@ -169,6 +130,43 @@ class CH_GPU_API ChSystemGpuMesh_impl : public ChSystemGpu_impl {
     /// Construct Chrono::Gpu system with given sphere radius, density, and big domain dimensions
     ChSystemGpuMesh_impl(float sphere_rad, float density, float3 boxDims);
 
+    /// Apply rigid body motion to specified mesh.
+    void ApplyMeshMotion(unsigned int mesh,
+                         const double* pos,
+                         const double* rot,
+                         const double* lin_vel,
+                         const double* ang_vel);
+
+    /// Write visualization files for triangle meshes with current positions
+    void WriteMeshes(std::string outfilename) const;
+
+    /// Initialize trimeshes before starting simulation (typically called by initialize).
+    void initializeTriangles();
+
+    /// Reset information used for triangle broadphase collision detection
+    void resetTriangleBroadphaseInformation();
+
+    /// Reset computed forces and torques on each triangle family
+    void resetTriangleForces();
+
+    /// Clean up data structures associated with triangle mesh
+    void cleanupTriMesh();
+
+    /// Broadphase CD for triangles
+    void runTriangleBroadphase();
+
+    virtual double get_max_K() const override;
+
+    template <typename T>
+    void generate_rot_matrix(const double* ep, T* rot_mat);
+
+    static void ApplyFrameTransform(float3& p, float* pos, float* rot_mat);
+
+    /// Advance simulation by duration in user units, return actual duration elapsed.
+    /// Requires initialize() to have been called.
+    virtual double AdvanceSimulation(float duration) override;
+
+  protected:
     /// Set of simulation parameters related to triangle data
     MeshParams* tri_params;
 
@@ -205,24 +203,6 @@ class CH_GPU_API ChSystemGpuMesh_impl : public ChSystemGpu_impl {
 
     /// Big array of triangle offsets for each subdomain
     std::vector<unsigned int, cudallocator<unsigned int>> SD_TriangleCompositeOffsets;
-
-    /// Reset information used for triangle broadphase collision detection
-    void resetTriangleBroadphaseInformation();
-    /// Reset computed forces and torques on each triangle family
-    void resetTriangleForces();
-
-    /// Clean up data structures associated with triangle mesh
-    void cleanupTriMesh();
-
-    /// Broadphase CD for triangles
-    void runTriangleBroadphase();
-
-    virtual double get_max_K() const override;
-
-    template <typename T>
-    void generate_rot_matrix(const double* ep, T* rot_mat);
-
-    void ApplyFrameTransform(float3& p, float* pos, float* rot_mat);
 
     friend class ChSystemGpuMesh;
 };

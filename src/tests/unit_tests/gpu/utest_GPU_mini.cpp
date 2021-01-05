@@ -74,7 +74,7 @@ bool run_test(float box_size_X, float box_size_Y, float box_size_Z) {
     gpu_sys.set_BD_Fixed(true);
     gpu_sys.set_friction_mode(CHGPU_FRICTION_MODE::FRICTIONLESS);
     gpu_sys.set_timeIntegrator(CHGPU_TIME_INTEGRATOR::CENTERED_DIFFERENCE);
-    gpu_sys.setVerbose(verbose);
+    apiSMC.SetVerbosity(verbose);
 
     // upward facing plane just above the bottom to capture forces
     float plane_normal[3] = {0, 0, 1};
@@ -84,7 +84,7 @@ bool run_test(float box_size_X, float box_size_Y, float box_size_Z) {
 
     gpu_sys.set_fixed_stepSize(timestep);
 
-    gpu_sys.initialize();
+    apiSMC.Initialize();
 
     int fps = 25;
     float frame_step = 1.0f / fps;
@@ -94,7 +94,7 @@ bool run_test(float box_size_X, float box_size_Y, float box_size_Z) {
     ChTimer<double> timer;
     timer.start();
     while (curr_time < timeEnd) {
-        gpu_sys.advance_simulation(frame_step);
+        apiSMC.AdvanceSimulation(frame_step);
         curr_time += frame_step;
         printf("Time: %f\n", curr_time);
     }

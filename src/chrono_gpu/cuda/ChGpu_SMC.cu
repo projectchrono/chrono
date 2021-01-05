@@ -464,7 +464,7 @@ __host__ void ChSystemGpu_impl::updateBCPositions() {
     }
 }
 
-__host__ double ChSystemGpu_impl::advance_simulation(float duration) {
+__host__ double ChSystemGpu_impl::AdvanceSimulation(float duration) {
     // Figure our the number of blocks that need to be launched to cover the box
     unsigned int nBlocks = (nSpheres + CUDA_THREADS_PER_BLOCK - 1) / CUDA_THREADS_PER_BLOCK;
 

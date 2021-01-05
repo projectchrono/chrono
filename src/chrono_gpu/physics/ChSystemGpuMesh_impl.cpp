@@ -99,10 +99,6 @@ void ChSystemGpuMesh_impl::initializeTriangles() {
     // this gets resized on-the-fly every timestep
     TRACK_VECTOR_RESIZE(triangles_in_SD_composite, 0, "triangles_in_SD_composite", 0);
 }
-void ChSystemGpuMesh_impl::initialize() {
-    initializeSpheres();
-    initializeTriangles();
-}
 
 // p = pos + rot_mat * p
 void ChSystemGpuMesh_impl::ApplyFrameTransform(float3& p, float* pos, float* rot_mat) {
@@ -117,7 +113,7 @@ void ChSystemGpuMesh_impl::ApplyFrameTransform(float3& p, float* pos, float* rot
     p = result;
 }
 
-void ChSystemGpuMesh_impl::write_meshes(std::string filename) {
+void ChSystemGpuMesh_impl::WriteMeshes(std::string filename) const {
     if (file_write_mode == CHGPU_OUTPUT_MODE::NONE) {
         return;
     }
@@ -182,26 +178,11 @@ void ChSystemGpuMesh_impl::cleanupTriMesh() {
     cudaFree(tri_params);
 }
 
-void ChSystemGpuMesh_impl::collectGeneralizedForcesOnMeshSoup(float* genForcesOnSoup) {
-    // pull directly from unified memory
-    for (unsigned int i = 0; i < 6 * meshSoup->numTriangleFamilies; i += 6) {
-        // Divide by C_F to go from SU to UU
-        genForcesOnSoup[i + 0] = (float)(meshSoup->generalizedForcesPerFamily[i + 0] * FORCE_SU2UU);
-        genForcesOnSoup[i + 1] = (float)(meshSoup->generalizedForcesPerFamily[i + 1] * FORCE_SU2UU);
-        genForcesOnSoup[i + 2] = (float)(meshSoup->generalizedForcesPerFamily[i + 2] * FORCE_SU2UU);
-
-        // Divide by C_TAU to go from SU to UU
-        genForcesOnSoup[i + 3] = (float)(meshSoup->generalizedForcesPerFamily[i + 3] * TORQUE_SU2UU);
-        genForcesOnSoup[i + 4] = (float)(meshSoup->generalizedForcesPerFamily[i + 4] * TORQUE_SU2UU);
-        genForcesOnSoup[i + 5] = (float)(meshSoup->generalizedForcesPerFamily[i + 5] * TORQUE_SU2UU);
-    }
-}
-
-void ChSystemGpuMesh_impl::applyMeshMotion(unsigned int mesh,
-                                             const double* pos,
-                                             const double* rot,
-                                             const double* lin_vel,
-                                             const double* ang_vel) {
+void ChSystemGpuMesh_impl::ApplyMeshMotion(unsigned int mesh,
+                                           const double* pos,
+                                           const double* rot,
+                                           const double* lin_vel,
+                                           const double* ang_vel) {
     // Set position and orientation
     tri_params->fam_frame_broad[mesh].pos[0] = (float)pos[0];
     tri_params->fam_frame_broad[mesh].pos[1] = (float)pos[1];
@@ -219,27 +200,6 @@ void ChSystemGpuMesh_impl::applyMeshMotion(unsigned int mesh,
 
     const float C_O = (float)TIME_SU2UU;
     meshSoup->omega[mesh] = make_float3(C_O * (float)ang_vel[0], C_O * (float)ang_vel[1], C_O * (float)ang_vel[2]);
-}
-
-void ChSystemGpuMesh_impl::meshSoup_applyRigidBodyMotion(double* position_orientation_data, float* vel) {
-    // Set both broadphase and narrowphase frames for each family
-    for (unsigned int fam = 0; fam < meshSoup->numTriangleFamilies; fam++) {
-        generate_rot_matrix<float>(position_orientation_data + 7 * fam + 3, tri_params->fam_frame_broad[fam].rot_mat);
-        tri_params->fam_frame_broad[fam].pos[0] = (float)position_orientation_data[7 * fam + 0];
-        tri_params->fam_frame_broad[fam].pos[1] = (float)position_orientation_data[7 * fam + 1];
-        tri_params->fam_frame_broad[fam].pos[2] = (float)position_orientation_data[7 * fam + 2];
-
-        generate_rot_matrix<double>(position_orientation_data + 7 * fam + 3, tri_params->fam_frame_narrow[fam].rot_mat);
-        tri_params->fam_frame_narrow[fam].pos[0] = position_orientation_data[7 * fam + 0];
-        tri_params->fam_frame_narrow[fam].pos[1] = position_orientation_data[7 * fam + 1];
-        tri_params->fam_frame_narrow[fam].pos[2] = position_orientation_data[7 * fam + 2];
-
-        // Set linear and angular velocity
-        const float C_V = (float)(TIME_SU2UU / LENGTH_SU2UU);
-        meshSoup->vel[fam] = make_float3(C_V * vel[6 * fam + 0], C_V * vel[6 * fam + 1], C_V * vel[6 * fam + 2]);
-        const float C_O = (float)TIME_SU2UU;
-        meshSoup->omega[fam] = make_float3(C_O * vel[6 * fam + 3], C_O * vel[6 * fam + 4], C_O * vel[6 * fam + 5]);
-    }
 }
 
 template <typename T>

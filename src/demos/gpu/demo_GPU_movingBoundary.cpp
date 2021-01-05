@@ -90,7 +90,7 @@ int main(int argc, char* argv[]) {
     gpu_sys.set_friction_mode(CHGPU_FRICTION_MODE::MULTI_STEP);
     gpu_sys.set_fixed_stepSize(params.step_size);
 
-    gpu_sys.setVerbose(params.verbose);
+    apiSMC.SetVerbosity(params.verbose);
 
     // start outside BD by 10 cm
     float plane_pos[3] = {-params.box_X / 2 - 10, 0, 0};
@@ -112,7 +112,7 @@ int main(int argc, char* argv[]) {
         return pos;
     };
 
-    gpu_sys.initialize();
+    apiSMC.Initialize();
 
     gpu_sys.set_BC_offset_function(plane_bc_id, plane_pos_func);
 
@@ -125,18 +125,18 @@ int main(int argc, char* argv[]) {
 
     char filename[100];
     sprintf(filename, "%s/step%06d", params.output_dir.c_str(), currframe++);
-    gpu_sys.writeFile(std::string(filename));
+    apiSMC.WriteFile(std::string(filename));
 
     std::cout << "frame step is " << frame_step << std::endl;
 
     // Run settling experiments
     while (curr_time < params.time_end) {
-        gpu_sys.advance_simulation(frame_step);
+        apiSMC.AdvanceSimulation(frame_step);
         curr_time += frame_step;
         printf("rendering frame %u of %u\n", currframe, total_frames);
         char filename[100];
         sprintf(filename, "%s/step%06d", params.output_dir.c_str(), currframe++);
-        gpu_sys.writeFile(std::string(filename));
+        apiSMC.WriteFile(std::string(filename));
     }
 
     return 0;

@@ -90,7 +90,7 @@ int main(int argc, char* argv[]) {
 
     std::cout << "Adding " << body_points.size() << " spheres." << std::endl;
     apiSMC.SetParticlePositions(body_points);
-    gpu_sys.setParticleFixed(fixed);
+    apiSMC.SetParticleFixed(fixed);
 
     // Add internal planes to prevent leaking
     {
@@ -143,7 +143,7 @@ int main(int argc, char* argv[]) {
     gpu_sys.set_rolling_coeff_SPH2WALL(params.rolling_friction_coeffS2W);
 
     gpu_sys.setOutputMode(params.write_mode);
-    gpu_sys.setVerbose(params.verbose);
+    apiSMC.SetVerbosity(params.verbose);
     gpu_sys.setOutputFlags(CHGPU_OUTPUT_FLAGS::ABSV | CHGPU_OUTPUT_FLAGS::ANG_VEL_COMPONENTS |
                             CHGPU_OUTPUT_FLAGS::FIXITY);
 
@@ -151,7 +151,7 @@ int main(int argc, char* argv[]) {
     filesystem::create_directory(filesystem::path(params.output_dir));
 
     // Finalize initialization of the Chrono::Gpu system
-    gpu_sys.initialize();
+    apiSMC.Initialize();
 
     unsigned int out_fps = 50;
     unsigned int total_frames = (unsigned int)((float)params.time_end * out_fps);
@@ -161,9 +161,9 @@ int main(int argc, char* argv[]) {
         std::cout << "Rendering frame " << (currframe+1) << " of " << total_frames << std::endl;
         char filename[100];
         sprintf(filename, "%s/step%06d", params.output_dir.c_str(), currframe);
-        gpu_sys.writeFile(std::string(filename));
+        apiSMC.WriteFile(std::string(filename));
 
-        gpu_sys.advance_simulation((float)frame_step);
+        apiSMC.AdvanceSimulation((float)frame_step);
     }
 
     return 0;

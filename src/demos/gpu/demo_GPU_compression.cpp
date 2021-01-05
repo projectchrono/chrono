@@ -118,7 +118,7 @@ int main(int argc, char* argv[]) {
     gpu_sys.set_timeIntegrator(CHGPU_TIME_INTEGRATOR::FORWARD_EULER);
     gpu_sys.set_fixed_stepSize(params.step_size);
 
-    gpu_sys.setVerbose(params.verbose);
+    apiSMC.SetVerbosity(params.verbose);
 
     // create top plane boundary condition with its position and normal
     float topWallPos[3] = {0, 0,  (float)(params.box_Z/2.0)};
@@ -138,7 +138,7 @@ int main(int argc, char* argv[]) {
     };
 
     gpu_sys.setOutputFlags(ABSV);
-    gpu_sys.initialize();
+    apiSMC.Initialize();
     
     // output frames per second
     int fps = 100;
@@ -154,7 +154,7 @@ int main(int argc, char* argv[]) {
 
     // let system run for 0.5 second so the particles can settle
     while (curr_time < 0.5) {
-        gpu_sys.advance_simulation(frame_step);
+        apiSMC.AdvanceSimulation(frame_step);
         curr_time += frame_step;
         printf("time = %.4f\n", curr_time);
     }
@@ -175,8 +175,8 @@ int main(int argc, char* argv[]) {
         // write position 
         char filename[100];
         sprintf(filename, "%s/step%06d", params.output_dir.c_str(), curr_frame);
-        gpu_sys.writeFile(std::string(filename));
-        gpu_sys.advance_simulation(frame_step);
+        apiSMC.WriteFile(std::string(filename));
+        apiSMC.AdvanceSimulation(frame_step);
 
         platePos = apiSMC.GetBCplanePosition(topWall);
         std::cout << "top plate pos_z: " << platePos.z() << " cm";

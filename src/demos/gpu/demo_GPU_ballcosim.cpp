@@ -168,13 +168,12 @@ int main(int argc, char* argv[]) {
     apiSMC_TriMesh.LoadMeshes(mesh_filenames, mesh_rotscales, mesh_translations, mesh_masses);
 
     gpu_sys.setOutputMode(params.write_mode);
-    gpu_sys.setVerbose(params.verbose);
+    apiSMC_TriMesh.SetVerbosity(params.verbose);
     filesystem::create_directory(filesystem::path(params.output_dir));
 
-    unsigned int nSoupFamilies = gpu_sys.getNumTriangleFamilies();
-    std::cout << nSoupFamilies << " soup families" << std::endl;
+    std::cout << apiSMC_TriMesh.GetNumMeshes() << " meshes" << std::endl;
 
-    gpu_sys.initialize();
+    apiSMC_TriMesh.Initialize();
 
     // Create rigid ball_body simulation
     ChSystemSMC sys_ball;
@@ -201,27 +200,26 @@ int main(int argc, char* argv[]) {
 
     clock_t start = std::clock();
     for (double t = 0; t < (double)params.time_end; t += iteration_step, curr_step++) {
-        gpu_sys.applyMeshMotion(0, ball_body->GetPos().data(), ball_body->GetRot().data(),
-                                ball_body->GetPos_dt().data(), ball_body->GetWvel_par().data());
+        apiSMC_TriMesh.ApplyMeshMotion(0, ball_body->GetPos(), ball_body->GetRot(),
+                                ball_body->GetPos_dt(), ball_body->GetWvel_par());
 
-
-        gpu_sys.advance_simulation(iteration_step);
+        apiSMC_TriMesh.AdvanceSimulation(iteration_step);
         sys_ball.DoStepDynamics(iteration_step);
 
-        float ball_force[6];
-        gpu_sys.collectGeneralizedForcesOnMeshSoup(ball_force);
+        ChVector<> ball_force;
+        ChVector<> ball_torque;
+        apiSMC_TriMesh.CollectMeshContactForces(0, ball_force, ball_torque);
 
         ball_body->Empty_forces_accumulators();
-        ball_body->Accumulate_force(ChVector<>(ball_force[0], ball_force[1], ball_force[2]), ball_body->GetPos(),
-                                    false);
-        ball_body->Accumulate_torque(ChVector<>(ball_force[3], ball_force[4], ball_force[5]), false);
+        ball_body->Accumulate_force(ball_force, ball_body->GetPos(), false);
+        ball_body->Accumulate_torque(ball_torque, false);
 
         if (curr_step % out_steps == 0) {
             std::cout << "Rendering frame " << currframe << " of " << total_frames << std::endl;
             char filename[100];
             sprintf(filename, "%s/step%06d", params.output_dir.c_str(), currframe++);
-            gpu_sys.writeFile(std::string(filename));
-            gpu_sys.write_meshes(std::string(filename));
+            apiSMC_TriMesh.WriteFile(std::string(filename));
+            apiSMC_TriMesh.WriteMeshes(std::string(filename));
 
             /*  // disable meshframes output, for it may be confusing for users dealing with Chrono::Gpu only
             std::string mesh_output = std::string(filename) + "_meshframes.csv";

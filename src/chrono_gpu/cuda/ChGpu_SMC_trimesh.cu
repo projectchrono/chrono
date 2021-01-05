@@ -465,7 +465,7 @@ __global__ void interactionTerrain_TriangleSoup(
     }  // end sphere id check
 }  // end kernel
 
-__host__ double ChSystemGpuMesh_impl::advance_simulation(float duration) {
+__host__ double ChSystemGpuMesh_impl::AdvanceSimulation(float duration) {
     // Figure our the number of blocks that need to be launched to cover the box
     unsigned int nBlocks = (nSpheres + CUDA_THREADS_PER_BLOCK - 1) / CUDA_THREADS_PER_BLOCK;
 

@@ -41,7 +41,10 @@ typedef std::function<double3(float)> GranPositionFunction;
 const GranPositionFunction GranPosFunction_default = [](float t) { return make_double3(0, 0, 0); };
 
 /// Verbosity level of the system
-enum CHGPU_VERBOSITY { QUIET = 0, INFO = 1, METRICS = 2 };
+enum class CHGPU_VERBOSITY { QUIET = 0, INFO = 1, METRICS = 2 };
+
+/// Verbosity level
+enum class CHGPU_MESH_VERBOSITY { QUIET = 0, INFO = 1 };
 
 /// Output mode of system
 enum CHGPU_OUTPUT_MODE { CSV, BINARY, HDF5, NONE };
@@ -182,9 +185,6 @@ class CH_GPU_API ChSystemGpu_impl {
     /// Set the output mode of the simulation
     void setOutputMode(CHGPU_OUTPUT_MODE mode) { file_write_mode = mode; }
 
-    /// Set simualtion verbosity -- used to check on very large, slow simulations or debug
-    void setVerbose(CHGPU_VERBOSITY level) { verbosity = level; }
-
     /// Set output settings bit flags by bitwise ORing settings in CHGPU_OUTPUT_FLAGS
     void setOutputFlags(unsigned char flags) { output_flags = flags; }
 
@@ -210,14 +210,6 @@ class CH_GPU_API ChSystemGpu_impl {
 
     /// Get the max z position of the spheres, allows easier co-simulation
     double get_max_z() const;
-
-    /// Advance simulation by duration in user units, return actual duration elapsed
-    /// Requires initialize() to have been called
-    virtual double advance_simulation(float duration);
-
-    /// Initialize simulation so that it can be advanced
-    /// Must be called before advance_simulation and after simulation parameters are set
-    virtual void initialize();
 
     /// Set sphere-to-sphere static friction coefficient
     void set_static_friction_coeff_SPH2SPH(float mu) { gran_params->static_friction_coeff_s2s = mu; }
@@ -267,9 +259,6 @@ class CH_GPU_API ChSystemGpu_impl {
                               const std::vector<float3>& vels = std::vector<float3>(),
                               const std::vector<float3>& ang_vels = std::vector<float3>());
 
-    /// Set particle fixity. MUST be called only once and MUST be called before initialize
-    void setParticleFixed(const std::vector<bool>& fixed);
-
     /// Return particle position.
     float3 GetParticlePosition(int nSphere) const;
 
@@ -314,8 +303,6 @@ class CH_GPU_API ChSystemGpu_impl {
 
     /// Copy back the subdomain device data and save it to a file for error checking on the priming kernel
     void checkSDCounts(std::string ofile, bool write_out, bool verbose) const;
-    /// Writes out particle positions according to the system output mode
-    void writeFile(std::string ofile) const;
     /// Writes out contact info
     void writeContactInfoFile(std::string ofile) const;
     /// Safety check velocity to ensure the simulation is still stable
@@ -456,6 +443,64 @@ class CH_GPU_API ChSystemGpu_impl {
     /// Construct Chrono::Gpu system with given sphere radius, density, and big domain dimensions.
     ChSystemGpu_impl(float sphere_rad, float density, float3 boxDims);
 
+    /// Advance simulation by duration in user units, return actual duration elapsed
+    /// Requires initialize() to have been called
+    virtual double AdvanceSimulation(float duration);
+
+    /// This method figures out how big a SD is, and how many SDs are going to be necessary
+    /// in order to cover the entire BD.
+    /// Nomenclature: BD: Big domain, SD: Sub-domain.
+    void partitionBD();
+
+    /// Copy constant sphere data to device
+    void copyConstSphereDataToDevice();
+
+    /// Reset binning and broadphase info
+    void resetBroadphaseInformation();
+    /// Reset sphere accelerations
+    void resetSphereAccelerations();
+
+    /// Reset sphere-wall forces
+    void resetBCForces();
+
+    /// Collect all the sphere data into the member struct
+    void packSphereDataPointers();
+
+    /// Run the first sphere broadphase pass to get things started
+    void runSphereBroadphase();
+
+    /// Helper function to convert a position in UU to its SU representation while also changing data type
+    template <typename T1, typename T2>
+    T1 convertToPosSU(T2 val) {
+        return (T1)(val / gran_params->LENGTH_UNIT);
+    }
+
+    /// convert all BCs from UU to SU
+    void convertBCUnits();
+
+    /// Max velocity of all particles in system
+    float get_max_vel() const;
+
+    /// Get the maximum stiffness term in the system
+    virtual double get_max_K() const;
+
+    /// This method defines the mass, time, length Simulation Units. It also sets several other constants that enter the
+    /// scaling of various physical quantities set by the user.
+    virtual void switchToSimUnits();
+
+    /// Set the position function of a boundary condition and account for the offset
+    void setBCOffset(const BC_type&,
+                     const BC_params_t<float, float3>& params_UU,
+                     BC_params_t<int64_t, int64_t3>& params_SU,
+                     double3 offset_UU);
+
+    /// Update positions of each boundary condition using prescribed functions
+    void updateBCPositions();
+
+    /// Writes out particle positions according to the system output mode
+    void WriteFile(std::string ofile) const;
+
+  protected:
     // Conversion factors from SU to UU
     /// 1 / C_L. Any length expressed in SU is a multiple of SU2UU
     double LENGTH_SU2UU;
@@ -505,7 +550,7 @@ class CH_GPU_API ChSystemGpu_impl {
     /// scaling, do that.
     bool use_min_length_unit;
 
-    /// Bit flags indicating what fields to write out during writeFile
+    /// Bit flags indicating what fields to write out during WriteFile
     /// Set with the CHGPU_OUTPUT_FLAGS enum
     unsigned char output_flags;
 
@@ -609,57 +654,6 @@ class CH_GPU_API ChSystemGpu_impl {
 
     /// how is the system integrated through time?
     CHGPU_TIME_INTEGRATOR time_integrator;
-
-    /// This method figures out how big a SD is, and how many SDs are going to be necessary
-    /// in order to cover the entire BD.
-    /// Nomenclature: BD: Big domain, SD: Sub-domain.
-
-    void partitionBD();
-
-    /// Copy constant sphere data to device
-    void copyConstSphereDataToDevice();
-
-    /// Reset binning and broadphase info
-    void resetBroadphaseInformation();
-    /// Reset sphere accelerations
-    void resetSphereAccelerations();
-
-    /// Reset sphere-wall forces
-    void resetBCForces();
-
-    /// Collect all the sphere data into the member struct
-    void packSphereDataPointers();
-
-    /// Run the first sphere broadphase pass to get things started
-    void runSphereBroadphase();
-
-    /// Helper function to convert a position in UU to its SU representation while also changing data type
-    template <typename T1, typename T2>
-    T1 convertToPosSU(T2 val) {
-        return (T1)(val / gran_params->LENGTH_UNIT);
-    }
-
-    /// convert all BCs from UU to SU
-    void convertBCUnits();
-
-    /// Max velocity of all particles in system
-    float get_max_vel() const;
-
-    /// Get the maximum stiffness term in the system
-    virtual double get_max_K() const;
-
-    /// This method defines the mass, time, length Simulation Units. It also sets several other constants that enter the
-    /// scaling of various physical quantities set by the user.
-    virtual void switchToSimUnits();
-
-    /// Set the position function of a boundary condition and account for the offset
-    void setBCOffset(const BC_type&,
-                     const BC_params_t<float, float3>& params_UU,
-                     BC_params_t<int64_t, int64_t3>& params_SU,
-                     double3 offset_UU);
-
-    /// Update positions of each boundary condition using prescribed functions
-    void updateBCPositions();
 
     /// Total time elapsed since beginning of simulation
     float elapsedSimTime;

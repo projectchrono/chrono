@@ -138,8 +138,8 @@ int main(int argc, char* argv[]) {
     }
     gpu_sys.set_BD_Fixed(true);
 
-    gpu_sys.setVerbose(params.verbose);
-    gpu_sys.initialize();
+    apiSMC.SetVerbosity(params.verbose);
+    apiSMC.Initialize();
 
     int fps = 50;
     float frame_step = 1.f / fps;
@@ -150,17 +150,17 @@ int main(int argc, char* argv[]) {
     // write an initial frame
     char filename[100];
     sprintf(filename, "%s/step%06d", params.output_dir.c_str(), currframe++);
-    gpu_sys.writeFile(std::string(filename));
+    apiSMC.WriteFile(std::string(filename));
 
     std::cout << "frame step is " << frame_step << std::endl;
 
     std::chrono::high_resolution_clock::time_point start = std::chrono::high_resolution_clock::now();
     while (curr_time < params.time_end) {
-        gpu_sys.advance_simulation(frame_step);
+        apiSMC.AdvanceSimulation(frame_step);
         curr_time += frame_step;
         printf("rendering frame %u of %u\n", currframe, total_frames+1);
         sprintf(filename, "%s/step%06d", params.output_dir.c_str(), currframe++);
-        gpu_sys.writeFile(std::string(filename));
+        apiSMC.WriteFile(std::string(filename));
     }
     std::chrono::high_resolution_clock::time_point end = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> time_sec = std::chrono::duration_cast<std::chrono::duration<double>>(end - start);

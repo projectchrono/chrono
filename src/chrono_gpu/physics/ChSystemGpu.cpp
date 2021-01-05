@@ -20,13 +20,7 @@
 namespace chrono {
 namespace gpu {
 
-#define MESH_INFO_PRINTF(...)                                         \
-    if (mesh_verbosity == ChSystemGpuMesh::MeshVerbosity::INFO) { \
-        printf(__VA_ARGS__);                                          \
-    }
-
-static void convertChVector2Float3Vec(const std::vector<ChVector<float>>& points,
-                                      std::vector<float3>& pointsFloat3) {
+static void convertChVector2Float3Vec(const std::vector<ChVector<float>>& points, std::vector<float3>& pointsFloat3) {
     size_t nPoints = points.size();
     pointsFloat3.resize(nPoints);
     for (size_t index = 0; index < nPoints; index++) {
@@ -39,7 +33,7 @@ static void convertChVector2Float3Vec(const std::vector<ChVector<float>>& points
 // -----------------------------------------------------------------------------
 
 ChSystemGpuMesh::ChSystemGpuMesh(float sphere_rad, float density, float3 boxDims)
-    : mesh_verbosity(MeshVerbosity::QUIET) {
+    : mesh_verbosity(CHGPU_MESH_VERBOSITY::QUIET) {
     m_sys_trimesh = new ChSystemGpuMesh_impl(sphere_rad, density, boxDims);
 }
 
@@ -58,9 +52,9 @@ ChSystemGpu::~ChSystemGpu() {
 // -----------------------------------------------------------------------------
 
 void ChSystemGpuMesh::LoadMeshes(std::vector<std::string> objfilenames,
-                                      std::vector<ChMatrix33<float>> rotscale,
-                                      std::vector<float3> translations,
-                                      std::vector<float> masses) {
+                                 std::vector<ChMatrix33<float>> rotscale,
+                                 std::vector<float3> translations,
+                                 std::vector<float> masses) {
     unsigned int size = (unsigned int)objfilenames.size();
     if (size != rotscale.size() || size != translations.size() || size != masses.size()) {
         CHGPU_ERROR("Mesh loading vectors must all have same size\n");
@@ -109,7 +103,7 @@ void ChSystemGpuMesh::LoadMeshes(std::vector<std::string> objfilenames,
 }
 
 void ChSystemGpuMesh::SetMeshes(const std::vector<geometry::ChTriangleMeshConnected>& all_meshes,
-                                     std::vector<float> masses) {
+                                std::vector<float> masses) {
     int nTriangles = 0;
     for (const auto& mesh : all_meshes)
         nTriangles += mesh.getNumTriangles();
@@ -196,12 +190,34 @@ void ChSystemGpuMesh::SetMeshes(const std::vector<geometry::ChTriangleMeshConnec
     }
 }
 
+void ChSystemGpuMesh::ApplyMeshMotion(unsigned int mesh,
+                                      const ChVector<>& pos,
+                                      const ChQuaternion<>& rot,
+                                      const ChVector<>& lin_vel,
+                                      const ChVector<>& ang_vel) {
+    m_sys_trimesh->ApplyMeshMotion(mesh, pos.data(), rot.data(), lin_vel.data(), ang_vel.data());
+}
+
+void ChSystemGpuMesh::WriteMeshes(std::string outfilename) const {
+    m_sys_trimesh->WriteMeshes(outfilename);
+}
+
+// -----------------------------------------------------------------------------
+
+unsigned int ChSystemGpuMesh::GetNumMeshes() const {
+    return m_sys_trimesh->meshSoup->numTriangleFamilies;
+}
+
+void ChSystemGpuMesh::EnableMeshCollision(bool val) {
+    m_sys_trimesh->mesh_collision_enabled = val;
+}
+
 // -----------------------------------------------------------------------------
 
 // initialize particle positions, velocity and angular velocity in user units
 void ChSystemGpu::SetParticlePositions(const std::vector<ChVector<float>>& points,
-                                     const std::vector<ChVector<float>>& vels,
-                                     const std::vector<ChVector<float>>& ang_vel) {
+                                       const std::vector<ChVector<float>>& vels,
+                                       const std::vector<ChVector<float>>& ang_vel) {
     std::vector<float3> pointsFloat3;
     std::vector<float3> velsFloat3;
     std::vector<float3> angVelsFloat3;
@@ -212,8 +228,8 @@ void ChSystemGpu::SetParticlePositions(const std::vector<ChVector<float>>& point
 }
 
 void ChSystemGpuMesh::SetParticlePositions(const std::vector<ChVector<float>>& points,
-                                            const std::vector<ChVector<float>>& vels,
-                                            const std::vector<ChVector<float>>& ang_vel) {
+                                           const std::vector<ChVector<float>>& vels,
+                                           const std::vector<ChVector<float>>& ang_vel) {
     std::vector<float3> pointsFloat3;
     std::vector<float3> velsFloat3;
     std::vector<float3> angVelsFloat3;
@@ -221,6 +237,14 @@ void ChSystemGpuMesh::SetParticlePositions(const std::vector<ChVector<float>>& p
     convertChVector2Float3Vec(vels, velsFloat3);
     convertChVector2Float3Vec(ang_vel, angVelsFloat3);
     m_sys_trimesh->SetParticlePositions(pointsFloat3, velsFloat3, angVelsFloat3);
+}
+
+void ChSystemGpu::SetParticleFixed(const std::vector<bool>& fixed) {
+    m_sys->user_sphere_fixed = fixed;
+}
+
+void ChSystemGpuMesh::SetParticleFixed(const std::vector<bool>& fixed) {
+    m_sys_trimesh->user_sphere_fixed = fixed;
 }
 
 // -----------------------------------------------------------------------------
@@ -269,6 +293,93 @@ ChVector<float> ChSystemGpu::GetBCplanePosition(size_t plane_id) const {
 
 int ChSystemGpu::GetNumContacts() const {
     return m_sys->GetNumContacts();
+}
+
+// -----------------------------------------------------------------------------
+
+void ChSystemGpuMesh::Initialize() {
+    m_sys_trimesh->initializeSpheres();
+    m_sys_trimesh->initializeTriangles();
+}
+
+void ChSystemGpu::Initialize() {
+    m_sys->initializeSpheres();
+    size_t approx_mem_usage = m_sys->estimateMemUsage();
+    if (m_sys->verbosity == CHGPU_VERBOSITY::INFO || m_sys->verbosity == CHGPU_VERBOSITY::METRICS) {
+        printf("Approx mem usage is %s\n", pretty_format_bytes(approx_mem_usage).c_str());
+    }
+}
+
+// -----------------------------------------------------------------------------
+
+void ChSystemGpuMesh::SetMeshVerbosity(CHGPU_MESH_VERBOSITY level) {
+    mesh_verbosity = level;
+}
+
+void ChSystemGpuMesh::SetVerbosity(CHGPU_VERBOSITY level) {
+    m_sys_trimesh->verbosity = level;
+}
+
+void ChSystemGpu::SetVerbosity(CHGPU_VERBOSITY level) {
+    m_sys->verbosity = level;
+}
+
+// -----------------------------------------------------------------------------
+
+double ChSystemGpuMesh::AdvanceSimulation(float duration) {
+    return m_sys_trimesh->AdvanceSimulation(duration);
+}
+
+double ChSystemGpu::AdvanceSimulation(float duration) {
+    return m_sys->AdvanceSimulation(duration);
+}
+// -----------------------------------------------------------------------------
+
+void ChSystemGpuMesh::CollectMeshContactForces(std::vector<ChVector<>>& forces, std::vector<ChVector<>>& torques) {
+    unsigned int nmeshes = m_sys_trimesh->meshSoup->numTriangleFamilies;
+    double force_factor = m_sys_trimesh->FORCE_SU2UU;
+    double torque_factor = m_sys_trimesh->TORQUE_SU2UU;
+
+    forces.resize(nmeshes);
+    torques.resize(nmeshes);
+
+    // Pull directly from unified memory
+    for (unsigned int i = 0; i < nmeshes; i++) {
+        double fx = m_sys_trimesh->meshSoup->generalizedForcesPerFamily[6 * i + 0];
+        double fy = m_sys_trimesh->meshSoup->generalizedForcesPerFamily[6 * i + 1];
+        double fz = m_sys_trimesh->meshSoup->generalizedForcesPerFamily[6 * i + 2];
+        forces[i] = ChVector<>(fx, fy, fz) * force_factor;  // Divide by C_F to go from SU to UU
+
+        double tx = m_sys_trimesh->meshSoup->generalizedForcesPerFamily[6 * i + 3];
+        double ty = m_sys_trimesh->meshSoup->generalizedForcesPerFamily[6 * i + 4];
+        double tz = m_sys_trimesh->meshSoup->generalizedForcesPerFamily[6 * i + 5];
+        torques[i] = ChVector<>() * torque_factor;  // Divide by C_TAU to go from SU to UU
+    }
+}
+
+void ChSystemGpuMesh::CollectMeshContactForces(int mesh, ChVector<>& force, ChVector<>& torque) {
+    double force_factor = m_sys_trimesh->FORCE_SU2UU;
+    double torque_factor = m_sys_trimesh->TORQUE_SU2UU;
+
+    double fx = m_sys_trimesh->meshSoup->generalizedForcesPerFamily[6 * mesh + 0];
+    double fy = m_sys_trimesh->meshSoup->generalizedForcesPerFamily[6 * mesh + 1];
+    double fz = m_sys_trimesh->meshSoup->generalizedForcesPerFamily[6 * mesh + 2];
+    force = ChVector<>(fx, fy, fz) * force_factor;  // Divide by C_F to go from SU to UU
+
+    double tx = m_sys_trimesh->meshSoup->generalizedForcesPerFamily[6 * mesh + 3];
+    double ty = m_sys_trimesh->meshSoup->generalizedForcesPerFamily[6 * mesh + 4];
+    double tz = m_sys_trimesh->meshSoup->generalizedForcesPerFamily[6 * mesh + 5];
+    torque = ChVector<>() * torque_factor;  // Divide by C_TAU to go from SU to UU
+}
+
+// -----------------------------------------------------------------------------
+
+void ChSystemGpuMesh::WriteFile(std::string ofile) const {
+    m_sys_trimesh->WriteFile(ofile);
+}
+
+void ChSystemGpu::WriteFile(std::string ofile) const {
+    m_sys->WriteFile(ofile);
 }
 
 }  // namespace gpu

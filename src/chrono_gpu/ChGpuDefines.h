@@ -74,14 +74,19 @@ inline void gpuAssert(cudaError_t code, const char* file, int line, bool abort =
 }
 
 // Add verbose checks easily
-#define INFO_PRINTF(...)                             \
-    if (verbosity == INFO || verbosity == METRICS) { \
-        printf(__VA_ARGS__);                         \
+#define INFO_PRINTF(...)                                                               \
+    if (verbosity == CHGPU_VERBOSITY::INFO || verbosity == CHGPU_VERBOSITY::METRICS) { \
+        printf(__VA_ARGS__);                                                           \
     }
 
-#define METRICS_PRINTF(...)     \
-    if (verbosity == METRICS) { \
-        printf(__VA_ARGS__);    \
+#define MESH_INFO_PRINTF(...)                           \
+    if (mesh_verbosity == CHGPU_MESH_VERBOSITY::INFO) { \
+        printf(__VA_ARGS__);                            \
+    }
+
+#define METRICS_PRINTF(...)                      \
+    if (verbosity == CHGPU_VERBOSITY::METRICS) { \
+        printf(__VA_ARGS__);                     \
     }
 
 #define CONDITIONAL_PRINTF(do_print, ...) \
