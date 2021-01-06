@@ -181,11 +181,20 @@ double ChSolverADMM::Solve(ChSystemDescriptor& sysd) {
                 S(d_i, 0) = sqrt(mconstraints[ic]->Get_g_i());  // square root of diagonal of N, just mass matrices considered, no stiffness matrices anyway
                 ++d_i;
             }
-        // TODO: scale Cq, E, b
+        // Now we should scale Cq, E, b as
         // Cq = Cq*diag(S);
         // E = diag(S)*E*diag(S);
+        
+        // but to avoid storing Cq and E and assembly in A, we postpone this by scaling the entire A matrix later via a IS*A*IS operation
+        
         // b = diag(S)*b;
-        S.setConstant(1);
+        b = b.cwiseProduct(S);
+
+        // warm started values must be scaled too
+        l = l.cwiseQuotient(S); // from l to \breve{l}
+        z = z.cwiseQuotient(S); 
+        y = y.cwiseProduct(S);
+
     }
     else {
         S.setConstant(1);
@@ -226,6 +235,17 @@ double ChSolverADMM::Solve(ChSystemDescriptor& sysd) {
     sparsity_pattern.Apply(A);
 
     sysd.ConvertToMatrixForm(&A,&B);  // A = [M, Cq'; Cq, E ]; 
+
+    if (this->precond) {
+        // the following is equivalent to having scaled 
+        // Cq = Cq*diag(S);
+        // E = diag(S)*E*diag(S);
+        ChVectorDynamic<> IS(nv + nc);
+        IS << Eigen::VectorXd::Ones(nv) , S;
+        A = IS.asDiagonal() * A * IS.asDiagonal();
+        B = IS.asDiagonal() * B; // not needed? B here only factorization...
+    }
+
     LS_solver->A() = A; 
     LS_solver->b() = B; 
 
@@ -300,10 +320,10 @@ double ChSolverADMM::Solve(ChSystemDescriptor& sysd) {
 
         r_prim = ((z - l).cwiseProduct(S)).lpNorm<Eigen::Infinity>();     //r_prim     = norm((z - l).*S, inf);   
         double r_prim_pre = (z - l).lpNorm<Eigen::Infinity>();              //r_prim_pre = norm((z - l)   , inf); 
-        //r_dual_Nlry = norm((D'*v-E*l+bkkt+y)./S,inf); % dual residual exploiting the kkt form instead of (N*l+r+y)./S, faster!
-        //r_dual_Nlry_pre = norm((D'*v-E*l+bkkt+y)   ,inf); 
+
         r_dual = (((z - z_old).cwiseProduct(vrho)).cwiseQuotient(S)).lpNorm<Eigen::Infinity>(); // r_dual = norm((vrho.*(z - z_old)). / S, inf); % even faster!See book of Boyd.But coincides only for alpha = 1 !!!
         double r_dual_pre = ((z - z_old).cwiseProduct(vrho)).lpNorm<Eigen::Infinity>();  // r_dual_pre     = norm((vrho.*(z - z_old))   ,inf); 
+
         //r_combined = norm((z - l).*S, 2) + norm((z - z_old). / S, 2);% combined res.in original metric
         //r_combined_pre = norm((z - l), 2) + norm((z - z_old), 2);% combined res.in precond.metric
 
@@ -315,13 +335,6 @@ double ChSolverADMM::Solve(ChSystemDescriptor& sysd) {
         res_story.r_combined(j) = r_combined;
         res_story.r_rho(j) = rho_i;
         res_story.r_deltal(j) = norm((l - l_old).*S, inf);% diagnostic
-        */
-
-        // only to compare vs.BB method :
-        /*
-        testres = (N * l + r). / S;
-        resid = norm((testres - project_residual(testres, fric)), inf);
-        res_story.r_violation(j) = resid;
         */
 
         if (this->verbose)
@@ -362,52 +375,6 @@ double ChSolverADMM::Solve(ChSystemDescriptor& sysd) {
                 rhofactor = sqrt(r_prim_scaled / (r_dual_scaled + 1e-10));
             }
 
-            /*
-            if (msetup.stepadjust_type == "spectral")
-                % from "Adaptive ADMM with spectral penalty parameter
-                % selection", Zheng et al.
-                Dy_hat = y_hat - y_hat_old;
-                Dy = y - y_old;
-                DH = l - l_old;
-                DG = z - z_old;
-                alpha_hat_SD = (Dy_hat' * Dy_hat)/(DH' * Dy_hat);
-                alpha_hat_MG = (DH' * Dy_hat)/(DH' * DH);
-                beta_hat_SD = (Dy' * Dy)/(DG' * Dy);
-                beta_hat_MG = (DG' * Dy)/(DG' * DG);
-                alpha_cor = (DH' * Dy_hat)/((norm(DH,2)*norm(Dy_hat,2)));
-                    beta_cor = (DG' * Dy    )/((norm(DG,2)*norm(Dy    ,2)));
-                        alpha_hat = 0; beta_hat = 0;
-                if (2 * alpha_hat_MG > alpha_hat_SD)
-                    alpha_hat = alpha_hat_MG;
-                else
-                    alpha_hat = alpha_hat_SD - alpha_hat_MG / 2;
-                end
-                    if (2 * beta_hat_MG > beta_hat_SD)
-                        beta_hat = beta_hat_MG;
-                    else
-                        beta_hat = beta_hat_SD - beta_hat_MG / 2;
-                end
-                    % alpha_hat = alpha_hat_MG;
-                % beta_hat = beta_hat_MG;
-                % compute optimal step
-                    e_cor = 0.02;
-                newrho = rho_i;
-                if ((alpha_cor > e_cor) && (beta_cor > e_cor))
-                    newrho = sqrt(alpha_hat * beta_hat);
-                disp(['  ab spectral new rho=', num2str(newrho)]);
-                end
-                    if ((alpha_cor > e_cor) && (beta_cor <= e_cor))
-                        newrho = alpha_hat;
-                disp(['  a  spectral new rho=', num2str(newrho)]);
-                end
-                    if ((alpha_cor <= e_cor) && (beta_cor > e_cor))
-                        newrho = beta_hat;
-                disp(['  b  spectral new rho=', num2str(newrho)]);
-                end
-                % newrho = abs(alpha_hat);
-                rhofactor = newrho / rho_i;
-            end
-            */
 
             // safeguards against extreme shrinking
             if (rhofactor < 1.0 / this->stepadjust_maxfactor) {
@@ -444,18 +411,8 @@ double ChSolverADMM::Solve(ChSystemDescriptor& sysd) {
                 // UPDATE FACTORIZATION
                 //
                 //  A = [M, Cq'; Cq, -diag(vsigma+vrho) + E ];
-                /*
-                sysd.ConvertToMatrixForm(&A,&C);  // A = [M, Cq'; Cq, E ];  .... 
-                for (unsigned int i = 0; i < nc; ++i)
-                    A.coeffRef(nv + i, nv + i) += -(sigma + vrho(i)); // ... A = [M, Cq'; Cq, -diag(vsigma+vrho) + E ];
-                m_engine.compute(A); // LU decomposition ++++++++++++++++++++++++++++++++++++++
-                */
-                /*
-                LS_solver->A().resize(nv + nc, nv + nc); // otherwise conservativeResize in ConvertToMatrixForm() causes error
-                sysd.ConvertToMatrixForm(&LS_solver->A(),&LS_solver->b());  // A = [M, Cq'; Cq, E ];
-                for (unsigned int i = 0; i < nc; ++i)
-                    LS_solver->A().coeffRef(nv + i, nv + i) += -(sigma + vrho(i));  //  A = [M, Cq'; Cq, -diag(vsigma+vrho) + E ];
-                */
+                //
+                // To avoid rebuilding A, we just removed the rho step from the diagonal in A), and now: 
                 // B) add old rho with += :
                 for (unsigned int i = 0; i < nc; ++i)
                     LS_solver->A().coeffRef(nv + i, nv + i) += -(sigma + vrho(i));  

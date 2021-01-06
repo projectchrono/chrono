@@ -80,12 +80,16 @@ void SolidThreeLinkAxle::Create(const rapidjson::Document& d) {
     // Read triangular link data
     assert(d.HasMember("Triangular Link"));
     assert(d["Triangular Link"].IsObject());
+    m_triangleMass = d["Triangular Link"]["Mass"].GetDouble();
+    m_triangleInertia = ReadVectorJSON(d["Triangular Link"]["Inertia"]);
     m_points[TRIANGLE_C] = ReadVectorJSON(d["Triangular Link"]["Location Chassis"]);
     m_points[TRIANGLE_A] = ReadVectorJSON(d["Triangular Link"]["Location Axle"]);
 
     // Read longitudinal link data
     assert(d.HasMember("Longitudinal Link"));
     assert(d["Longitudinal Link"].IsObject());
+    m_linkMass = d["Longitudinal Link"]["Mass"].GetDouble();
+    m_linkInertia = ReadVectorJSON(d["Longitudinal Link"]["Inertia"]);
     m_points[LINK_C] = ReadVectorJSON(d["Longitudinal Link"]["Location Chassis"]);
     m_points[LINK_A] = ReadVectorJSON(d["Longitudinal Link"]["Location Axle"]);
 

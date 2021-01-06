@@ -159,7 +159,7 @@ bool output = true;
 bool povray = false;
 double povray_frequency = 50.0;
 double output_frequency = 100.0;
-std::string out_dir = GetChronoOutputPath() + "HMMWV_PAR_ACCEL";
+std::string out_dir = GetChronoOutputPath() + "HMMWV_MCORE_ACCEL";
 const std::string pov_dir = out_dir + "/POVRAY";
 
 // =============================================================================

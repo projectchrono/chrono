@@ -33,6 +33,8 @@ static const double lbfpin2Npm = 175.12677;
 
 const double MAN_7t_Solid3LinkAxle::m_axleTubeMass = 709;
 const double MAN_7t_Solid3LinkAxle::m_spindleMass = 14.705 * 4.1;
+const double MAN_7t_Solid3LinkAxle::m_triangleMass = 50.0;
+const double MAN_7t_Solid3LinkAxle::m_linkMass = 25.0;
 
 const double MAN_7t_Solid3LinkAxle::m_axleTubeRadius = 0.0476;
 const double MAN_7t_Solid3LinkAxle::m_spindleRadius = 0.10;
@@ -40,6 +42,8 @@ const double MAN_7t_Solid3LinkAxle::m_spindleWidth = 0.06;
 
 const ChVector<> MAN_7t_Solid3LinkAxle::m_axleTubeInertia(329.00, 16.46, 330.00);
 const ChVector<> MAN_7t_Solid3LinkAxle::m_spindleInertia(0.04117 * 6.56, 0.07352 * 6.56, 0.04117 * 6.56);
+const ChVector<> MAN_7t_Solid3LinkAxle::m_triangleInertia(0.2, 0.2, 0.2);
+const ChVector<> MAN_7t_Solid3LinkAxle::m_linkInertia(0.05, 0.1, 0.1);
 
 const double MAN_7t_Solid3LinkAxle::m_springDesignLength = 0.499924994;
 const double MAN_7t_Solid3LinkAxle::m_springCoefficient1 = 178892.0;  // linear

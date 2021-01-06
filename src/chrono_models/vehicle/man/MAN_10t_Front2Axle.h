@@ -43,6 +43,9 @@ class CH_MODELS_API MAN_10t_Front2Axle : public ChSolidBellcrankThreeLinkAxle {
     virtual double getKnuckleMass() const override { return m_knuckleMass; }
     virtual double getBellcrankMass() const override { return m_knuckleMass; }
     virtual double getDraglinkMass() const override { return m_draglinkMass; }
+    virtual double getTriangleMass() const override { return m_triangleMass; }
+    virtual double getLinkMass() const override { return m_linkMass; }
+    virtual double getTierodMass() const override { return m_tierodMass; }
 
     virtual double getAxleTubeRadius() const override { return m_axleTubeRadius; }
     virtual double getSpindleRadius() const override { return m_spindleRadius; }
@@ -55,6 +58,9 @@ class CH_MODELS_API MAN_10t_Front2Axle : public ChSolidBellcrankThreeLinkAxle {
     virtual const ChVector<>& getKnuckleInertia() const override { return m_knuckleInertia; }
     virtual const ChVector<>& getBellcrankInertia() const override { return m_bellcrankInertia; }
     virtual const ChVector<>& getDraglinkInertia() const override { return m_draglinkInertia; }
+    virtual const ChVector<>& getTriangleInertia() const override { return m_triangleInertia; }
+    virtual const ChVector<>& getLinkInertia() const override { return m_linkInertia; }
+    virtual const ChVector<>& getTierodInertia() const override { return m_tierodInertia; }
 
     virtual double getAxleInertia() const override { return m_axleShaftInertia; }
 
@@ -75,6 +81,9 @@ class CH_MODELS_API MAN_10t_Front2Axle : public ChSolidBellcrankThreeLinkAxle {
     static const double m_knuckleMass;
     static const double m_bellcrankMass;
     static const double m_draglinkMass;
+    static const double m_triangleMass;
+    static const double m_linkMass;
+    static const double m_tierodMass;
 
     static const double m_axleTubeRadius;
     static const double m_spindleRadius;
@@ -85,6 +94,9 @@ class CH_MODELS_API MAN_10t_Front2Axle : public ChSolidBellcrankThreeLinkAxle {
     static const ChVector<> m_knuckleInertia;
     static const ChVector<> m_bellcrankInertia;
     static const ChVector<> m_draglinkInertia;
+    static const ChVector<> m_triangleInertia;
+    static const ChVector<> m_linkInertia;
+    static const ChVector<> m_tierodInertia;
 
     static const double m_springCoefficient1;
     static const double m_springCoefficient2;
