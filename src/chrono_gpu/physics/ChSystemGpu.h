@@ -86,7 +86,7 @@ class CH_GPU_API ChSystemGpu {
     /// Set sphere-to-sphere static friction coefficient.
     void SetStaticFrictionCoeff_SPH2SPH(float mu);
     /// Set sphere-to-wall static friction coefficient.
-    void SetSaticFictionCeff_SPH2WALL(float mu);
+    void SetSaticFictionCoeff_SPH2WALL(float mu);
     /// Set sphere-to-sphere rolling friction coefficient -- units and use vary by rolling friction mode.
     void SetRollingCoeff_SPH2SPH(float mu);
     /// Set sphere-to-wall rolling friction coefficient -- units and use vary by rolling friction mode.
@@ -224,11 +224,16 @@ class CH_GPU_API ChSystemGpuMesh : public ChSystemGpu {
     ChSystemGpuMesh(float sphere_rad, float density, float3 boxDims);
     ~ChSystemGpuMesh();
 
-    /// Load triangle meshes into granular system. MUST happen before initialize is called.
+    /// Load (from Wavefront OBJ files) triangle meshes into granular system.
+    /// MUST happen before initialize is called.
     void LoadMeshes(std::vector<std::string> objfilenames,
                     std::vector<ChMatrix33<float>> rotscale,
                     std::vector<float3> translations,
                     std::vector<float> masses);
+
+    /// Set triangle meshes into granular system.
+    /// MUST happen before initialize is called.
+    void SetMeshes(const std::vector<geometry::ChTriangleMeshConnected>& all_meshes, std::vector<float> masses);
 
     /// Enable/disable mesh collision (for all defined meshes).
     void EnableMeshCollision(bool val);
@@ -271,6 +276,10 @@ class CH_GPU_API ChSystemGpuMesh : public ChSystemGpu {
     /// This function initializes both the granular material and any existing trimeshes.
     virtual void Initialize() override;
 
+    /// Initialize only the trimeshes (assumes the granular material was already initialized).
+    /// Must be called before AdvanceSimulation and after simulation parameters are set.
+    void InitializeMeshes();
+
     /// Advance simulation by duration in user units, return actual duration elapsed.
     /// Requires Initialize() to have been called.
     virtual double AdvanceSimulation(float duration) override;
@@ -285,9 +294,6 @@ class CH_GPU_API ChSystemGpuMesh : public ChSystemGpu {
     void WriteMeshes(std::string outfilename) const;
 
   private:
-    /// Setup data structures associated with triangle mesh.
-    void SetMeshes(const std::vector<geometry::ChTriangleMeshConnected>& all_meshes, std::vector<float> masses);
-
     CHGPU_MESH_VERBOSITY mesh_verbosity;  ///< mesh operations verbosity level
 };
 

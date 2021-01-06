@@ -145,7 +145,7 @@ int main(int argc, char* argv[]) {
     gpu_sys.SetTimeIntegrator(CHGPU_TIME_INTEGRATOR::CENTERED_DIFFERENCE);
 
     gpu_sys.SetStaticFrictionCoeff_SPH2SPH(params.static_friction_coeffS2S);
-    gpu_sys.SetSaticFictionCeff_SPH2WALL(params.static_friction_coeffS2W);
+    gpu_sys.SetSaticFictionCoeff_SPH2WALL(params.static_friction_coeffS2W);
     gpu_sys.SetStaticFrictionCoeff_SPH2MESH(params.static_friction_coeffS2M);
 
     // gpu_sys.SetRollingCoeff_SPH2SPH(params.rolling_friction_coeffS2S);

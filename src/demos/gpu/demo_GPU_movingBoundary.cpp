@@ -62,7 +62,7 @@ int main(int argc, char* argv[]) {
     gpu_sys.SetGt_SPH2SPH(params.tangentDampS2S);
     gpu_sys.SetGt_SPH2WALL(params.tangentDampS2W);
     gpu_sys.SetStaticFrictionCoeff_SPH2SPH(params.static_friction_coeffS2S);
-    gpu_sys.SetSaticFictionCeff_SPH2WALL(params.static_friction_coeffS2W);
+    gpu_sys.SetSaticFictionCoeff_SPH2WALL(params.static_friction_coeffS2W);
 
     gpu_sys.SetCohesionRatio(params.cohesion_ratio);
     gpu_sys.SetAdhesionRatio_SPH2WALL(params.adhesion_ratio_s2w);
