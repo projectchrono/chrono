@@ -86,7 +86,7 @@ class CH_GPU_API ChSystemGpu {
     /// Set sphere-to-sphere static friction coefficient.
     void SetStaticFrictionCoeff_SPH2SPH(float mu);
     /// Set sphere-to-wall static friction coefficient.
-    void SetSaticFictionCoeff_SPH2WALL(float mu);
+    void SetStaticFrictionCoeff_SPH2WALL(float mu);
     /// Set sphere-to-sphere rolling friction coefficient -- units and use vary by rolling friction mode.
     void SetRollingCoeff_SPH2SPH(float mu);
     /// Set sphere-to-wall rolling friction coefficient -- units and use vary by rolling friction mode.

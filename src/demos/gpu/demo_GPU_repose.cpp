@@ -66,7 +66,7 @@ int main(int argc, char* argv[]) {
     gpu_sys.SetGt_SPH2SPH(params.tangentDampS2S);
     gpu_sys.SetGt_SPH2WALL(params.tangentDampS2W);
     gpu_sys.SetStaticFrictionCoeff_SPH2SPH(params.static_friction_coeffS2S);
-    gpu_sys.SetSaticFictionCoeff_SPH2WALL(params.static_friction_coeffS2W);
+    gpu_sys.SetStaticFrictionCoeff_SPH2WALL(params.static_friction_coeffS2W);
 
     // gpu_sys.SetRollingMode(CHGPU_ROLLING_MODE::NO_RESISTANCE);
     gpu_sys.SetRollingMode(CHGPU_ROLLING_MODE::SCHWARTZ);

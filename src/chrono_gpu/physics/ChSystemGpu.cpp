@@ -105,7 +105,7 @@ void ChSystemGpu::SetStaticFrictionCoeff_SPH2SPH(float mu) {
     m_sys->gran_params->static_friction_coeff_s2s = mu;
 }
 
-void ChSystemGpu::SetSaticFictionCoeff_SPH2WALL(float mu) {
+void ChSystemGpu::SetStaticFrictionCoeff_SPH2WALL(float mu) {
     m_sys->gran_params->static_friction_coeff_s2w = mu;
 }
 
