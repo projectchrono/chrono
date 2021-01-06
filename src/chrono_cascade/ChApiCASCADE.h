@@ -47,7 +47,7 @@ namespace chrono {
 /// @addtogroup cascade_module
 /// @{
 
-/// \brief Namespace with classes for the OpenCASCADE unit.
+/// \brief Namespace with classes for the CASCADE module.
 /// The "cascade" namespace contains tools for interoperation with CAD
 /// files. The OpenCASCADE open-source library is used to this end:
 /// it can load STEP files saved from most 3D CADs.
