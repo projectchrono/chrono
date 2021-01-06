@@ -22,16 +22,21 @@
 #include "chrono/physics/ChSystem.h"
 #include "chrono/physics/ChLinkMate.h"
 #include "chrono/physics/ChLinkLock.h"
+#include "chrono/physics/ChLinkMotorRotationSpeed.h"
+#include "chrono/physics/ChLinkMotorRotationAngle.h"
+#include "chrono/physics/ChLinkMotorLinearSpeed.h"
 
 namespace chrono {
-	//enum PBD_DOF {ALL, PARTIAL, NONE };
+	
+	// Forward references
+	class ChSystemPBD;
 
 	/// Struct collecting a Chrono ChLink together with additional info needed by 
 	class ChApi ChLinkPBD {
 	public:
 
 		/// Create a LinkPBD
-		//ChLinkPBD();
+		ChLinkPBD(ChSystemPBD* sys) { PBDsys = sys; };
 
 		/// Copy constructor
 		//ChLinkPBD(const ChLinkPBD& other);
@@ -42,7 +47,10 @@ namespace chrono {
 		/// Correct position to respect constraint
 		void SolvePositions();
 	protected:
-		// Objects needed by PBD link
+		/// Objects needed by PBD link
+		// System
+		ChSystemPBD* PBDsys;
+		// Linked bodies 
 		ChBody* Body1;
 		ChBody* Body2;
 		// Relative Position of the link w.r.t. body 1 & 2 respectively
@@ -79,6 +87,7 @@ namespace chrono {
 		// Compliance (TODO: make it settable)
 		double alpha = 0.0;
 
+		// Limits
 		bool is_rot_limited = false;
 		bool is_displ_limited = false;
 		bool displ_lims[3] = {false, false, false};
@@ -87,9 +96,13 @@ namespace chrono {
 		double rot_lims_low[3] = {};
 		double rot_lims_high[3] = {};
 
-
-		bool is_actuated = false;
-		/// pointer to the function determining the motor 
+		// Actuation
+		bool rot_actuated = false;
+		bool displ_actuated = false;
+		bool speed_actuated = false;
+		/// Rotation motor and linear motor are both actuated along z axis
+		int actuation_dir = 2;
+		/// pointer to the function determining the motor value
 		std::shared_ptr<ChFunction> motor_func;
 		/// old position value for speed actuated motor
 		double old_val = 0;
@@ -103,8 +116,8 @@ namespace chrono {
 		/// evaluate inv masses and set to 0 if the body is fixed
 		void EvalMasses();
 
-		/// If the displacement is limited, apply this
-		ChVector<> ApplyDisplLim(ChVector<> local_disp);
+		/// If the displacement is limited or actuated, apply this
+		ChVector<> ApplyDisplLimAct(ChVector<> local_disp);
 
 		// SERIALIZATION
 		/* TODO
@@ -122,7 +135,7 @@ namespace chrono {
 		public:
 			ChLinkLock* link;
 			/// Create a LinkPBD
-			ChLinkPBDLock(ChLinkLock* alink);
+			ChLinkPBDLock(ChLinkLock* alink, ChSystemPBD* sys);
 
 			/// Copy constructor
 			//ChLinkPBD(const ChLinkPBD& other);
@@ -138,10 +151,10 @@ namespace chrono {
 
 
 	class ChApi ChLinkPBDMate : public ChLinkPBD {
-	public:
+	  public:
 		ChLinkMateGeneric* MGlink;
 		/// Create a LinkPBD
-		ChLinkPBDMate(ChLinkMateGeneric* alink);
+		ChLinkPBDMate(ChLinkMateGeneric* alink, ChSystemPBD* sys);
 
 		/// Copy constructor
 		//ChLinkPBD(const ChLinkPBD& other);
@@ -154,7 +167,25 @@ namespace chrono {
 
 	CH_CLASS_VERSION(ChLinkPBDMate, 0)
 
-		class ChApi ChContactPBD : public ChLinkPBD {
+		class ChApi ChLinkPBDMotor : public ChLinkPBDMate {
+		public:
+			ChLinkMotor* MGlink;
+			/// Create a LinkPBD
+			ChLinkPBDMotor(ChLinkMotor* alink, ChSystemPBD* sys);
+
+			/// Copy constructor
+			//ChLinkPBD(const ChLinkPBD& other);
+
+			/// Destructor
+			virtual ~ChLinkPBDMotor() {};
+
+
+	};
+
+	CH_CLASS_VERSION(ChLinkPBDMotor, 0)
+
+
+	class ChApi ChContactPBD : public ChLinkPBD {
 		private:
 			// initially the contact is dynamic since lambda_n is 0 at the first substep.
 			bool is_dynamic = false;
@@ -175,7 +206,7 @@ namespace chrono {
 		public:
 			//ChContactPBD* link;
 			/// Create a LinkPBD
-			ChContactPBD(ChBody* body1, ChBody* body2, ChFrame<>& frame1, ChFrame<>& frame2, double frict);
+			ChContactPBD(ChBody* body1, ChBody* body2, ChSystemPBD* sys, ChFrame<>& frame1, ChFrame<>& frame2, double frict);
 
 			/// Copy constructor
 			//ChLinkPBD(const ChLinkPBD& other);
@@ -184,10 +215,10 @@ namespace chrono {
 			virtual ~ChContactPBD() {};
 
 			/// Velocity correction due to dynamic friction
-			void SolveContactPositions(double h);
+			void SolveContactPositions();
 
 			/// Velocity correction due to dynamic friction
-			void SolveVelocity(double h);
+			void SolveVelocity();
 
 			/// Store contact bodies old position
 			/// This is a waste of memory and time, to be replaced with a more efficient ChState usage

@@ -23,13 +23,11 @@
 #include "chrono/physics/ChProximityContainer.h"
 #include "chrono/physics/ChSystem.h"
 #include "chrono/collision/ChCollisionSystemBullet.h"
+#include "chrono/physics/PBD/ChSystemPBD.h"
 #include <Eigen/Core>
 
 
 namespace chrono {
-
-	// Register into the object factory, to enable run-time dynamic creation and persistence
-	CH_FACTORY_REGISTER(ChLinkPBD)
 
 		void ChLinkPBD::EvalMasses() {
 		invm1 = (1 / Body1->GetMass());
@@ -63,7 +61,7 @@ namespace chrono {
 
 				double delta_lambda_t = -(theta + alpha * lambda_t) / (w1_rot + w2_rot + alpha);
 				lambda_t += delta_lambda_t;
-				// TODO: FIX HERE using absolute omega??
+
 				ChVector<> pr = delta_lambda_t * nr;
 
 				ChQuaternion<> dq1, dq2, qnew1, qnew2;
@@ -87,7 +85,7 @@ namespace chrono {
 		}
 
 		// if position free skip completely
-		if (!p_free) {
+		if (!p_free || is_displ_limited || displ_actuated) {
 			// Position violation in abs coord. This is the distance FROM the desired point TO the constraint frame.
 			// It's easy to check using alpha=0 and r1,r2 parallel to n in eq 2,3,4,6: p (correction) is oppsoed to n (due to - in 4)
 			// Constraint dist in absolute reference 
@@ -101,7 +99,7 @@ namespace chrono {
 			// get rid of unconstrained directions by element wise multiplication in the link frame reference
 			ChVector<> n_loc = q.RotateBack(n0)*p_dir;
 			// Add the correction due to limit violation
-			if (is_displ_limited) n_loc -= ApplyDisplLim(n0);
+			if (is_displ_limited || displ_actuated) n_loc -= ApplyDisplLimAct(n0);
 			// Now we bring the violation back in global coord and normaize it after saving its length
 			ChVector<> nt = q.Rotate(n_loc);
 			double C = nt.Length();
@@ -173,20 +171,27 @@ namespace chrono {
 		}
 	}
 
-	ChVector<> ChLinkPBD::ApplyDisplLim(ChVector<> local_disp) {
+	ChVector<> ChLinkPBD::ApplyDisplLimAct(ChVector<> local_disp) {
 		ChVector<> correction;
-		for (unsigned i = 0; i < 3; i++) {
-			if (displ_lims[i]) {
-				double a = displ_lims_high[i] - local_disp[i];
-				double b = displ_lims_low[i] - local_disp[i];
-				correction[i] += ChMin(displ_lims_high[i] - local_disp[i], 0.0);
-				correction[i] += ChMax(displ_lims_low[i] - local_disp[i], 0.0);
+		if (displ_actuated){
+			double targ = motor_func->Get_y(PBDsys->T);
+			if (speed_actuated) {
+
+			}
+			correction[actuation_dir] += targ - local_disp[actuation_dir];
+		}
+		if (is_displ_limited) {
+			for (unsigned i = 0; i < 3; i++) {
+				if (displ_lims[i]) {
+					correction[i] += ChMin(displ_lims_high[i] - local_disp[i], 0.0);
+					correction[i] += ChMax(displ_lims_low[i] - local_disp[i], 0.0);
+				}
 			}
 		}
 	return correction;
 	}
 
-	ChLinkPBDLock::ChLinkPBDLock(ChLinkLock* alink) : ChLinkPBD() {
+	ChLinkPBDLock::ChLinkPBDLock(ChLinkLock* alink, ChSystemPBD* sys) : ChLinkPBD(sys) {
 		link = alink;
 		Body1 = dynamic_cast<ChBody*>(link->GetBody1());
 		Body2 = dynamic_cast<ChBody*>(link->GetBody2());
@@ -253,7 +258,7 @@ namespace chrono {
 	}
 
 
-	ChLinkPBDMate::ChLinkPBDMate(ChLinkMateGeneric* alink) : ChLinkPBD() {
+	ChLinkPBDMate::ChLinkPBDMate(ChLinkMateGeneric* alink, ChSystemPBD* sys) : ChLinkPBD(sys) {
 		MGlink = alink;
 		Body1 = dynamic_cast<ChBody*>(MGlink->GetBody1());
 		Body2 = dynamic_cast<ChBody*>(MGlink->GetBody2());
@@ -273,7 +278,33 @@ namespace chrono {
 		EvalMasses();
 	}
 
-	ChContactPBD::ChContactPBD(ChBody* body1, ChBody* body2, ChFrame<>& frame1, ChFrame<>& frame2, double frict_d) : ChLinkPBD() {
+	ChLinkPBDMotor::ChLinkPBDMotor(ChLinkMotor* alink, ChSystemPBD* sys) : ChLinkPBDMate(alink, sys) {
+		
+		/// The constraint part is managed by ChLinkMate. Here we only add the actuation here.
+		/// We only manage speed and position actuators 
+		/// force/torque actuators come "for free".
+		if (dynamic_cast<const ChLinkMotorRotation*>(alink) != nullptr) {
+			ChLinkMotorRotation* motor = dynamic_cast<ChLinkMotorRotation*>(alink);
+			rot_actuated = true;
+			mask[5] = false;
+			r_locked = false;
+			r_dir.Set(int(mask[3]), int(mask[4]), int(mask[5]));
+			findRDOF();
+			motor_func = motor->GetMotorFunction();
+			if (dynamic_cast<const ChLinkMotorRotationSpeed*>(alink) != nullptr) { speed_actuated = true; }
+		}
+		else if (dynamic_cast<const ChLinkMotorLinear*>(alink) != nullptr) {
+			ChLinkMotorLinear* motor = dynamic_cast<ChLinkMotorLinear*>(alink);
+			displ_actuated = true;
+			mask[2] = false;
+			p_dir.Set(int(mask[0]), int(mask[1]), int(mask[2]));
+			motor_func = motor->GetMotorFunction();
+			if (dynamic_cast<const ChLinkMotorLinearSpeed*>(alink) != nullptr) { speed_actuated = true; }
+		}
+	}
+
+
+	ChContactPBD::ChContactPBD(ChBody* body1, ChBody* body2, ChSystemPBD* sys, ChFrame<>& frame1, ChFrame<>& frame2, double frict_d) : ChLinkPBD(sys) {
 
 		Body1 = body1;
 		Body2 = body2;
@@ -301,7 +332,7 @@ namespace chrono {
 	}
 
 	// Adjust tangential velocity of bodies 
-	void ChContactPBD::SolveContactPositions(double h) {
+	void ChContactPBD::SolveContactPositions() {
 		ChVector<> p1 = Body1->GetPos() + Body1->GetRot().Rotate(f1.coord.pos);
 		ChVector<> p2 = Body2->GetPos() + Body2->GetRot().Rotate(f2.coord.pos);
 		ChVector<> dist = p2 - p1;
@@ -400,7 +431,7 @@ namespace chrono {
 	}
 
 	// Adjust tangential velocity of bodies 
-	void ChContactPBD::SolveVelocity(double h) {
+	void ChContactPBD::SolveVelocity() {
 		// We do NOT re-evaluate the distance, since after the pos update it will not be negative anymore.
 		// We want to correct the valocities of the contct we solved previously, so we keep the old d as discriminator
 		if (d > 0) {
@@ -408,6 +439,7 @@ namespace chrono {
 		}
 		else
 		{
+			double h = PBDsys->h;
 			ChVector<> v_rel = Body1->GetPos_dt() + Body1->GetRot().Rotate(Body1->GetWvel_loc().Cross(f1.coord.pos)) - Body2->GetPos_dt() - Body2->GetRot().Rotate(Body2->GetWvel_loc().Cross(f2.coord.pos));
 			double v_rel_n = v_rel^n;
 			ChVector<> v_rel_t = v_rel - n * v_rel_n;

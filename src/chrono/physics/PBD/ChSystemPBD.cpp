@@ -159,12 +159,17 @@ namespace chrono {
 		for (auto& value : Get_linklist()) {
 			if (dynamic_cast<const ChLinkLock*>(value.get()) != nullptr) {
 				ChLinkLock* linkll = dynamic_cast< ChLinkLock*>(value.get());
-				auto pbdlink = chrono_types::make_shared<ChLinkPBDLock>(linkll);
+				auto pbdlink = chrono_types::make_shared<ChLinkPBDLock>(linkll, this);
+				linklistPBD.push_back(pbdlink);
+			}
+			else if (dynamic_cast<const ChLinkMotor*>(value.get()) != nullptr) {
+				ChLinkMotor* linkmg = dynamic_cast<ChLinkMotor*>(value.get());
+				auto pbdlink = chrono_types::make_shared<ChLinkPBDMotor>(linkmg, this);
 				linklistPBD.push_back(pbdlink);
 			}
 			else if (dynamic_cast<const ChLinkMateGeneric*>(value.get()) != nullptr) {
 				ChLinkMateGeneric* linkmg = dynamic_cast<ChLinkMateGeneric*>(value.get());
-				auto pbdlink = chrono_types::make_shared<ChLinkPBDMate>(linkmg);
+				auto pbdlink = chrono_types::make_shared<ChLinkPBDMate>(linkmg, this);
 				linklistPBD.push_back(pbdlink);
 			}
 			else if (dynamic_cast<const ChLinkTSDA*>(value.get()) != nullptr || dynamic_cast<const ChLinkRotSpringCB*>(value.get()) != nullptr) {
@@ -197,7 +202,7 @@ namespace chrono {
 		int n = contactlistPBD.size();
 #pragma omp parallel for 
 		for (int i = 0; i < n; i++) {
-			contactlistPBD[i]->SolveContactPositions(h);
+			contactlistPBD[i]->SolveContactPositions();
 		}
 	}
 
@@ -205,7 +210,7 @@ namespace chrono {
 		int n = contactlistPBD.size();
 #pragma omp parallel for 
 		for (int i = 0; i < n; i++) {
-			contactlistPBD[i]->SolveVelocity(h);
+			contactlistPBD[i]->SolveVelocity();
 		}
 	}
 
@@ -230,7 +235,7 @@ namespace chrono {
 			ChQuaternion<> q_cb2 = Q_from_Vect_to_Vect(body2->GetRot().Rotate(VECT_X), norm);
 			ChFrame<double> frame1(p1, q_cb1);
 			ChFrame<double> frame2(p2, q_cb2);
-			auto contact = std::make_shared<ChContactPBD>(body1, body2, frame1, frame2, frict);
+			auto contact = std::make_shared<ChContactPBD>(body1, body2, this, frame1, frame2, frict);
 			contactlistPBD.push_back(contact);
 		}
 	}
@@ -240,7 +245,7 @@ namespace chrono {
 		// Update the contact pairs
 		CollectContacts();
 		int n = Get_bodylist().size();
-		double h = step / substeps;
+		h = step / substeps;
 		for (int i = 0; i < substeps; i++) {
 			// Used to contraint static friction
 			// delete this when possible and use a more efficient way to save/update state

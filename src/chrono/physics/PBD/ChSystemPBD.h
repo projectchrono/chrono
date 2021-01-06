@@ -90,6 +90,7 @@ class ChApi ChSystemPBD : public ChSystem {
 	double T = 0;
 	// number of substeps per step 
 	int substeps = 20;
+	double h;
     /// Setup the PBD system
 	bool PBD_isSetup = false;
 	/// Lists of links and contacts usable by PBD formulation
@@ -103,6 +104,9 @@ class ChApi ChSystemPBD : public ChSystem {
 	ChState sys_state;
 	ChStateDelta sys_state_delta;
 	ChStateDelta sys_acc;
+
+	friend ChLinkPBD;
+	friend ChContactPBD;
 };
 
 CH_CLASS_VERSION(ChSystemPBD, 0)
