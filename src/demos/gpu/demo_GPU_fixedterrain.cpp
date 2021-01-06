@@ -136,7 +136,7 @@ int main(int argc, char* argv[]) {
     gpu_sys.SetTimeIntegrator(params.time_integrator);
 
     gpu_sys.SetStaticFrictionCoeff_SPH2SPH(params.static_friction_coeffS2S);
-    gpu_sys.SetSaticFictionCeff_SPH2WALL(params.static_friction_coeffS2W);
+    gpu_sys.SetSaticFictionCoeff_SPH2WALL(params.static_friction_coeffS2W);
 
     gpu_sys.SetRollingMode(params.rolling_mode);
     gpu_sys.SetRollingCoeff_SPH2SPH(params.rolling_friction_coeffS2S);

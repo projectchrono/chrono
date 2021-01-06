@@ -78,7 +78,7 @@ int main(int argc, char* argv[]) {
     gpu_sys.SetFrictionMode(chrono::gpu::CHGPU_FRICTION_MODE::MULTI_STEP);
 
     gpu_sys.SetStaticFrictionCoeff_SPH2SPH(params.static_friction_coeffS2S);
-    gpu_sys.SetSaticFictionCeff_SPH2WALL(params.static_friction_coeffS2W);
+    gpu_sys.SetSaticFictionCoeff_SPH2WALL(params.static_friction_coeffS2W);
     gpu_sys.SetStaticFrictionCoeff_SPH2MESH(params.static_friction_coeffS2M);
 
     gpu_sys.SetOutputMode(params.write_mode);

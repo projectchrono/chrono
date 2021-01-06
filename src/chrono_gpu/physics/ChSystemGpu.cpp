@@ -105,7 +105,7 @@ void ChSystemGpu::SetStaticFrictionCoeff_SPH2SPH(float mu) {
     m_sys->gran_params->static_friction_coeff_s2s = mu;
 }
 
-void ChSystemGpu::SetSaticFictionCeff_SPH2WALL(float mu) {
+void ChSystemGpu::SetSaticFictionCoeff_SPH2WALL(float mu) {
     m_sys->gran_params->static_friction_coeff_s2w = mu;
 }
 
@@ -510,6 +510,11 @@ void ChSystemGpu::SetParticlePositions(const std::vector<ChVector<float>>& point
 void ChSystemGpuMesh::Initialize() {
     ChSystemGpuMesh_impl* sys_trimesh = static_cast<ChSystemGpuMesh_impl*>(m_sys);
     sys_trimesh->initializeSpheres();
+    sys_trimesh->initializeTriangles();
+}
+
+void ChSystemGpuMesh::InitializeMeshes() {
+    ChSystemGpuMesh_impl* sys_trimesh = static_cast<ChSystemGpuMesh_impl*>(m_sys);
     sys_trimesh->initializeTriangles();
 }
 
