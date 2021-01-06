@@ -28,13 +28,13 @@ if(ENABLE_MODULE_FSI)
   list(APPEND LIBRARIES ChronoEngine_fsi)
 endif()
 
-if(ENABLE_MODULE_GRANULAR)
+if(ENABLE_MODULE_GPU)
   set(CV_COSIM_FILES ${CV_COSIM_FILES}
       ChVehicleCosimTerrainNodeGranularGPU.h
       ChVehicleCosimTerrainNodeGranularGPU.cpp)
-  include_directories(${CH_GRANULAR_INCLUDES})
-  set(CXX_FLAGS "${CXX_FLAGS} ${CH_GRANULAR_CXX_FLAGS}")
-  list(APPEND LIBRARIES ChronoEngine_granular)
+  include_directories(${CH_GPU_INCLUDES})
+  set(CXX_FLAGS "${CXX_FLAGS} ${CH_GPU_CXX_FLAGS}")
+  list(APPEND LIBRARIES ChronoEngine_gpu)
 endif()
 
 if(ENABLE_MODULE_MULTICORE)

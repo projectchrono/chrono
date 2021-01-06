@@ -323,7 +323,7 @@ int main(int argc, char** argv) {
                     double coh_force = CH_C_PI * radius * radius * coh_pressure;
 
                     terrain->SetGranularMaterial(radius, 2500, 12);
-                    terrain->SetTangentialDisplacementModel(granular::GRAN_FRICTION_MODE::MULTI_STEP);
+                    terrain->SetTangentialDisplacementModel(gpu::CHGPU_FRICTION_MODE::MULTI_STEP);
 
                     auto material = chrono_types::make_shared<ChMaterialSurfaceSMC>();
                     material->SetFriction(0.9f);

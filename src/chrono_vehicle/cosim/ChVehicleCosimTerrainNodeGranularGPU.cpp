@@ -30,8 +30,6 @@
 #include "chrono/assets/ChTriangleMeshShape.h"
 #include "chrono/assets/ChSphereShape.h"
 
-#include "chrono_granular/api/ChApiGranularChrono.h"
-
 #include "chrono_vehicle/cosim/ChVehicleCosimTerrainNodeGranularGPU.h"
 
 #ifdef CHRONO_OPENGL
@@ -60,8 +58,8 @@ ChVehicleCosimTerrainNodeGranularGPU::ChVehicleCosimTerrainNodeGranularGPU()
     m_time_settling = 0.4;
 
     // Default granular system settings
-    m_integrator_type = granular::GRAN_TIME_INTEGRATOR::CENTERED_DIFFERENCE;
-    m_tangential_model = granular::GRAN_FRICTION_MODE::MULTI_STEP;
+    m_integrator_type = gpu::CHGPU_TIME_INTEGRATOR::CENTERED_DIFFERENCE;
+    m_tangential_model = gpu::CHGPU_FRICTION_MODE::MULTI_STEP;
 
     // Create systems
     m_system = new ChSystemSMC();
@@ -69,12 +67,12 @@ ChVehicleCosimTerrainNodeGranularGPU::ChVehicleCosimTerrainNodeGranularGPU()
 
     // Defer construction of the granular system to Construct
     //// TODO: why can I not modify parameters AFTER construction?!?
-    m_wrapper_gran = nullptr;
+    m_systemGPU = nullptr;
 }
 
 ChVehicleCosimTerrainNodeGranularGPU ::~ChVehicleCosimTerrainNodeGranularGPU() {
     delete m_system;
-    delete m_wrapper_gran;
+    delete m_systemGPU;
 }
 
 // -----------------------------------------------------------------------------
@@ -88,11 +86,11 @@ void ChVehicleCosimTerrainNodeGranularGPU::SetGranularMaterial(double radius, do
 ////void ChVehicleCosimTerrainNodeGranularGPU::SetContactForceModel(ChSystemSMC::ContactForceModel model) {
 ////}
 
-void ChVehicleCosimTerrainNodeGranularGPU::SetIntegratorType(granular::GRAN_TIME_INTEGRATOR type) {
+void ChVehicleCosimTerrainNodeGranularGPU::SetIntegratorType(gpu::CHGPU_TIME_INTEGRATOR type) {
     m_integrator_type = type;
 }
 
-void ChVehicleCosimTerrainNodeGranularGPU::SetTangentialDisplacementModel(granular::GRAN_FRICTION_MODE model) {
+void ChVehicleCosimTerrainNodeGranularGPU::SetTangentialDisplacementModel(gpu::CHGPU_FRICTION_MODE model) {
     m_tangential_model = model;
 }
 
@@ -130,19 +128,20 @@ void ChVehicleCosimTerrainNodeGranularGPU::Construct() {
 
     // Calculate domain size
     float separation_factor = 1.2f;
-    float r = separation_factor * (float)m_radius_g; 
+    float r = separation_factor * (float)m_radius_g;
     float delta = 2.0f * r;
     float dimX = 2.0f * (float)m_hdimX;
     float dimY = 2.0f * (float)m_hdimY;
     float dimZ = (m_num_layers + 1) * delta;
 
     auto box = make_float3(dimX, dimY, dimZ);
-    m_wrapper_gran = new ChGranularChronoTriMeshAPI((float)m_radius_g, (float)m_rho_g, box);
-    m_wrapper_gran->getGranSystemSMC_TriMesh().set_gravitational_acceleration(0, 0, (float)m_gacc);
-    m_wrapper_gran->getGranSystemSMC_TriMesh().set_timeIntegrator(m_integrator_type);
-    m_wrapper_gran->getGranSystemSMC_TriMesh().set_friction_mode(m_tangential_model);
-    m_wrapper_gran->getGranSystemSMC_TriMesh().setOutputMode(granular::GRAN_OUTPUT_MODE::CSV);
-    m_wrapper_gran->getGranSystemSMC_TriMesh().setVerbose(granular::GRAN_VERBOSITY::QUIET);
+    m_systemGPU = new gpu::ChSystemGpuMesh((float)m_radius_g, (float)m_rho_g, box);
+    m_systemGPU->SetGravitationalAcceleration(ChVector<float>(0, 0, (float)m_gacc));
+    m_systemGPU->SetTimeIntegrator(m_integrator_type);
+    m_systemGPU->SetFrictionMode(m_tangential_model);
+    m_systemGPU->SetOutputMode(gpu::CHGPU_OUTPUT_MODE::CSV);
+    m_systemGPU->SetVerbosity(gpu::CHGPU_VERBOSITY::QUIET);
+    m_systemGPU->SetMeshVerbosity(gpu::CHGPU_MESH_VERBOSITY::QUIET);
 
     // Set composite material properties for internal contacts.
     // Defer setting composite material properties for external contacts until creation of proxies (when we have
@@ -150,7 +149,7 @@ void ChVehicleCosimTerrainNodeGranularGPU::Construct() {
     SetMatPropertiesInternal();
 
     // Set integration step-size
-    m_wrapper_gran->getGranSystemSMC_TriMesh().set_fixed_stepSize((float)m_step_size);
+    m_systemGPU->SetFixedStepSize((float)m_step_size);
 
     // Create granular material
     std::vector<ChVector<float>> pos(m_num_particles);
@@ -184,7 +183,7 @@ void ChVehicleCosimTerrainNodeGranularGPU::Construct() {
                 omg[i].x() >> omg[i].y() >> omg[i].z();
             assert(identifier == i);
         }
-        m_wrapper_gran->setElemsPositions(pos, vel, omg);
+        m_systemGPU->SetParticlePositions(pos, vel, omg);
 
         cout << "[Terrain node] read " << checkpoint_filename << "   num. particles = " << m_num_particles << endl;
     } else {
@@ -197,12 +196,12 @@ void ChVehicleCosimTerrainNodeGranularGPU::Construct() {
             pos.insert(pos.end(), p.begin(), p.end());
             center.z() += delta;
         }
-        m_wrapper_gran->setElemsPositions(pos);
+        m_systemGPU->SetParticlePositions(pos);
         m_num_particles = (unsigned int)pos.size();
         cout << "[Terrain node] Generated num particles = " << m_num_particles << endl;
     }
 
-    m_wrapper_gran->getGranSystemSMC_TriMesh().set_BD_Fixed(true);
+    m_systemGPU->SetBDFixed(true);
 
     // Find "height" of granular material
     //// TODO: cannot call get_max_z() here!!!
@@ -217,7 +216,7 @@ void ChVehicleCosimTerrainNodeGranularGPU::Construct() {
 
     // Complete construction of the granular system
     // Note that no meshes are defined yet, so this only initializes the granular material.
-    m_wrapper_gran->getGranSystemSMC_TriMesh().initialize();
+    m_systemGPU->Initialize();
 
     // Mark system as constructed.
     m_constructed = true;
@@ -290,7 +289,7 @@ void ChVehicleCosimTerrainNodeGranularGPU::Settle() {
         m_timer.reset();
         m_timer.start();
         m_system->DoStepDynamics(m_step_size);
-        m_wrapper_gran->getGranSystemSMC_TriMesh().advance_simulation((float)m_step_size);
+        m_systemGPU->AdvanceSimulation((float)m_step_size);
         m_timer.stop();
         m_cum_sim_time += m_timer();
         cout << '\r' << std::fixed << std::setprecision(6) << m_system->GetChTime() << "  [" << m_timer.GetTimeSeconds()
@@ -300,10 +299,10 @@ void ChVehicleCosimTerrainNodeGranularGPU::Settle() {
         if (m_settling_output && is % output_steps == 0) {
             char filename[100];
             sprintf(filename, "%s/settling_%04d", m_node_out_dir.c_str(), output_frame + 1);
-            m_wrapper_gran->getGranSystemSMC_TriMesh().setOutputFlags(granular::GRAN_OUTPUT_FLAGS::VEL_COMPONENTS |
-                                                                      granular::GRAN_OUTPUT_FLAGS::ANG_VEL_COMPONENTS |
-                                                                      granular::GRAN_OUTPUT_FLAGS::FORCE_COMPONENTS);
-            m_wrapper_gran->getGranSystemSMC_TriMesh().writeFile(filename);
+            m_systemGPU->SetOutputFlags(gpu::CHGPU_OUTPUT_FLAGS::VEL_COMPONENTS |
+                                        gpu::CHGPU_OUTPUT_FLAGS::ANG_VEL_COMPONENTS |
+                                        gpu::CHGPU_OUTPUT_FLAGS::FORCE_COMPONENTS);
+            m_systemGPU->WriteFile(filename);
             output_frame++;
         }
 
@@ -319,7 +318,7 @@ void ChVehicleCosimTerrainNodeGranularGPU::Settle() {
     m_cum_sim_time = 0;
 
     // Find "height" of granular material after settling
-    m_init_height = m_wrapper_gran->getGranSystemSMC_TriMesh().get_max_z() + m_radius_g;
+    m_init_height = m_systemGPU->GetMaxParticleZ() + m_radius_g;
     cout << "[Terrain node] initial height = " << m_init_height << endl;
 }
 
@@ -329,25 +328,25 @@ void ChVehicleCosimTerrainNodeGranularGPU::Settle() {
 void ChVehicleCosimTerrainNodeGranularGPU::SetMatPropertiesInternal() {
     auto material_terrain = std::static_pointer_cast<ChMaterialSurfaceSMC>(m_material_terrain);
 
-    m_wrapper_gran->getGranSystemSMC_TriMesh().set_K_n_SPH2SPH(material_terrain->GetKn());
-    m_wrapper_gran->getGranSystemSMC_TriMesh().set_K_n_SPH2WALL(material_terrain->GetKn());
+    m_systemGPU->SetKn_SPH2SPH(material_terrain->GetKn());
+    m_systemGPU->SetKn_SPH2WALL(material_terrain->GetKn());
 
-    m_wrapper_gran->getGranSystemSMC_TriMesh().set_Gamma_n_SPH2SPH(material_terrain->GetGn());
-    m_wrapper_gran->getGranSystemSMC_TriMesh().set_Gamma_n_SPH2WALL(material_terrain->GetGn());
+    m_systemGPU->SetGn_SPH2SPH(material_terrain->GetGn());
+    m_systemGPU->SetGn_SPH2WALL(material_terrain->GetGn());
 
-    m_wrapper_gran->getGranSystemSMC_TriMesh().set_K_t_SPH2SPH(material_terrain->GetKt());
-    m_wrapper_gran->getGranSystemSMC_TriMesh().set_K_t_SPH2WALL(material_terrain->GetKt());
+    m_systemGPU->SetKt_SPH2SPH(material_terrain->GetKt());
+    m_systemGPU->SetKt_SPH2WALL(material_terrain->GetKt());
 
-    m_wrapper_gran->getGranSystemSMC_TriMesh().set_Gamma_t_SPH2SPH(material_terrain->GetGt());
-    m_wrapper_gran->getGranSystemSMC_TriMesh().set_Gamma_t_SPH2WALL(material_terrain->GetGt());
+    m_systemGPU->SetGt_SPH2SPH(material_terrain->GetGt());
+    m_systemGPU->SetGt_SPH2WALL(material_terrain->GetGt());
 
-    m_wrapper_gran->getGranSystemSMC_TriMesh().set_static_friction_coeff_SPH2SPH(material_terrain->GetSfriction());
-    m_wrapper_gran->getGranSystemSMC_TriMesh().set_static_friction_coeff_SPH2WALL(material_terrain->GetSfriction());
+    m_systemGPU->SetStaticFrictionCoeff_SPH2SPH(material_terrain->GetSfriction());
+    m_systemGPU->SetStaticFrictionCoeff_SPH2WALL(material_terrain->GetSfriction());
 
     //// TODO: adhesion/cohesion
     //// TODO: why are cohesion and adhesion defined as ratios to sphere weight?!?
-    m_wrapper_gran->getGranSystemSMC_TriMesh().set_Cohesion_ratio(0);
-    m_wrapper_gran->getGranSystemSMC_TriMesh().set_Adhesion_ratio_S2W(0);
+    m_systemGPU->SetCohesionRatio(0);
+    m_systemGPU->SetAdhesionRatio_SPH2WALL(0);
 }
 
 // Set composite material properties for external contacts (granular-tire)
@@ -362,15 +361,15 @@ void ChVehicleCosimTerrainNodeGranularGPU::SetMatPropertiesExternal() {
     auto Gt = strategy.CombineDampingCoefficient(material_terrain->GetGt(), material_tire->GetGt());
     auto mu = strategy.CombineFriction(m_material_terrain->GetSfriction(), m_material_tire->GetSfriction());
 
-    m_wrapper_gran->getGranSystemSMC_TriMesh().set_K_n_SPH2MESH(Kn);
-    m_wrapper_gran->getGranSystemSMC_TriMesh().set_Gamma_n_SPH2MESH(Gn);
-    m_wrapper_gran->getGranSystemSMC_TriMesh().set_K_t_SPH2MESH(Kt);
-    m_wrapper_gran->getGranSystemSMC_TriMesh().set_Gamma_t_SPH2MESH(Gt);
-    m_wrapper_gran->getGranSystemSMC_TriMesh().set_static_friction_coeff_SPH2MESH(mu);
+    m_systemGPU->SetKn_SPH2MESH(Kn);
+    m_systemGPU->SetGn_SPH2MESH(Gn);
+    m_systemGPU->SetKt_SPH2MESH(Kt);
+    m_systemGPU->SetGt_SPH2MESH(Gt);
+    m_systemGPU->SetStaticFrictionCoeff_SPH2MESH(mu);
 
     //// TODO: adhesion/cohesion
     //// TODO: why are cohesion and adhesion defined as ratios to sphere weight?!?
-    m_wrapper_gran->getGranSystemSMC_TriMesh().set_Adhesion_ratio_S2M(0);
+    m_systemGPU->SetAdhesionRatio_SPH2MESH(0);
 }
 
 // -----------------------------------------------------------------------------
@@ -403,11 +402,11 @@ void ChVehicleCosimTerrainNodeGranularGPU::CreateWheelProxy() {
     // Set mesh for granular system
     std::vector<geometry::ChTriangleMeshConnected> all_meshes = {*trimesh};
     std::vector<float> masses = {(float)m_rig_mass};
-    m_wrapper_gran->set_meshes(all_meshes, masses);
+    m_systemGPU->SetMeshes(all_meshes, masses);
 
     // Set composite material properties for external contacts and complete construction of the granular system
     SetMatPropertiesExternal();
-    m_wrapper_gran->getGranSystemSMC_TriMesh().initializeTriangles();
+    m_systemGPU->InitializeMeshes();
 }
 
 // Set state of wheel proxy body.
@@ -417,37 +416,20 @@ void ChVehicleCosimTerrainNodeGranularGPU::UpdateWheelProxy() {
     m_proxies[0].m_body->SetRot(m_wheel_state.rot);
     m_proxies[0].m_body->SetWvel_par(m_wheel_state.ang_vel);
 
-    unsigned int nSoupFamilies = m_wrapper_gran->getGranSystemSMC_TriMesh().getNumTriangleFamilies();
-    assert(nSoupFamilies == 1);
-    double* meshPosRot = new double[7];
-    float* meshVel = new float[6]();
+    assert(m_systemGPU->GetNumMeshes() == 1);
 
-    meshPosRot[0] = m_wheel_state.pos.x();
-    meshPosRot[1] = m_wheel_state.pos.y();
-    meshPosRot[2] = m_wheel_state.pos.z();
-    meshPosRot[3] = m_wheel_state.rot[0];
-    meshPosRot[4] = m_wheel_state.rot[1];
-    meshPosRot[5] = m_wheel_state.rot[2];
-    meshPosRot[6] = m_wheel_state.rot[3];
-
-    meshVel[0] = (float)m_wheel_state.lin_vel.x();
-    meshVel[1] = (float)m_wheel_state.lin_vel.y();
-    meshVel[2] = (float)m_wheel_state.lin_vel.z();
-    meshVel[3] = (float)m_wheel_state.ang_vel.x();
-    meshVel[4] = (float)m_wheel_state.ang_vel.y();
-    meshVel[5] = (float)m_wheel_state.ang_vel.z();
-
-    m_wrapper_gran->getGranSystemSMC_TriMesh().meshSoup_applyRigidBodyMotion(meshPosRot, meshVel);
+    m_systemGPU->ApplyMeshMotion(0, m_wheel_state.pos, m_wheel_state.rot, m_wheel_state.lin_vel, m_wheel_state.ang_vel);
 }
 
 // Collect resultant contact force and torque on wheel proxy body.
 void ChVehicleCosimTerrainNodeGranularGPU::GetForceWheelProxy() {
-    float force[6];
-    m_wrapper_gran->getGranSystemSMC_TriMesh().collectGeneralizedForcesOnMeshSoup(force);
+    ChVector<> force;
+    ChVector<> torque;
+    m_systemGPU->CollectMeshContactForces(0, force, torque);
 
     m_wheel_contact.point = ChVector<>(0, 0, 0);
-    m_wheel_contact.force = ChVector<>(force[0], force[1], force[2]);
-    m_wheel_contact.moment = ChVector<>(force[3], force[4], force[5]);
+    m_wheel_contact.force = force;
+    m_wheel_contact.moment = torque;
 }
 
 // -----------------------------------------------------------------------------
@@ -461,7 +443,7 @@ void ChVehicleCosimTerrainNodeGranularGPU::Advance(double step_size) {
     while (t < step_size) {
         double h = std::min<>(m_step_size, step_size - t);
         m_system->DoStepDynamics(h);
-        m_wrapper_gran->getGranSystemSMC_TriMesh().advance_simulation((float)h);
+        m_systemGPU->AdvanceSimulation((float)h);
         t += h;
     }
     m_timer.stop();
@@ -498,7 +480,7 @@ void ChVehicleCosimTerrainNodeGranularGPU::UpdateVisualizationParticles() {
     // Note: it is assumed that the visualization bodies were created before the proxy body(ies).
     const auto& blist = m_system->Get_bodylist();
     for (unsigned int i = 0; i < m_num_particles; i++) {
-        auto pos = m_wrapper_gran->getPosition(i);
+        auto pos = m_systemGPU->GetParticlePosition(i);
         blist[i]->SetPos(pos);
     }
 }
@@ -506,7 +488,7 @@ void ChVehicleCosimTerrainNodeGranularGPU::UpdateVisualizationParticles() {
 // -----------------------------------------------------------------------------
 
 void ChVehicleCosimTerrainNodeGranularGPU::WriteCheckpoint(const std::string& filename) {
-    assert(m_num_particles == m_wrapper_gran->getGranSystemSMC_TriMesh().getNumSpheres());
+    assert(m_num_particles == m_systemGPU->getGranSystemSMC_TriMesh().getNumSpheres());
     utils::CSV_writer csv(" ");
 
     // Write current time and number of granular material bodies.
@@ -514,9 +496,9 @@ void ChVehicleCosimTerrainNodeGranularGPU::WriteCheckpoint(const std::string& fi
     csv << m_num_particles << endl;
 
     for (unsigned int i = 0; i < m_num_particles; i++) {
-        auto pos = m_wrapper_gran->getPosition(i);
-        auto vel = m_wrapper_gran->getVelo(i);
-        auto omg = m_wrapper_gran->getAngularVelo(i);
+        auto pos = m_systemGPU->GetParticlePosition(i);
+        auto vel = m_systemGPU->GetParticleVelocity(i);
+        auto omg = m_systemGPU->GetParticleAngVelocity(i);
         csv << i << pos << vel << omg << endl;
     }
 
@@ -532,10 +514,9 @@ void ChVehicleCosimTerrainNodeGranularGPU::OnOutputData(int frame) {
     //// TODO: why do I not specify the file extension as well?!?
     char filename[100];
     sprintf(filename, "%s/data_%04d", m_node_out_dir.c_str(), frame + 1);
-    m_wrapper_gran->getGranSystemSMC_TriMesh().setOutputFlags(granular::GRAN_OUTPUT_FLAGS::VEL_COMPONENTS |
-                                                              granular::GRAN_OUTPUT_FLAGS::ANG_VEL_COMPONENTS |
-                                                              granular::GRAN_OUTPUT_FLAGS::FORCE_COMPONENTS);
-    m_wrapper_gran->getGranSystemSMC_TriMesh().writeFile(filename);
+    m_systemGPU->SetOutputFlags(gpu::CHGPU_OUTPUT_FLAGS::VEL_COMPONENTS | gpu::CHGPU_OUTPUT_FLAGS::ANG_VEL_COMPONENTS |
+                                gpu::CHGPU_OUTPUT_FLAGS::FORCE_COMPONENTS);
+    m_systemGPU->WriteFile(filename);
 }
 
 // -----------------------------------------------------------------------------
@@ -547,8 +528,6 @@ void ChVehicleCosimTerrainNodeGranularGPU::PrintWheelProxyUpdateData() {
 void ChVehicleCosimTerrainNodeGranularGPU::PrintWheelProxyContactData() {
     //// RADU TODO: implement this
 }
-
-
 
 }  // end namespace vehicle
 }  // end namespace chrono

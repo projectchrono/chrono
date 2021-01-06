@@ -23,7 +23,7 @@
 #define TESTRIG_TERRAINNODE_GRANULAR_GPU_H
 
 #include "chrono/physics/ChSystemSMC.h"
-#include "chrono_granular/api/ChApiGranularChrono.h"
+#include "chrono_gpu/physics/ChSystemGpu.h"
 #include "chrono_vehicle/cosim/ChVehicleCosimTerrainNode.h"
 
 namespace chrono {
@@ -53,10 +53,10 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularGPU : public ChVehicleCosi
     ////void SetContactForceModel(ChSystemSMC::ContactForceModel model);
 
     /// Set the tangential contact displacement model (default: SINGLE_STEP)
-    void SetTangentialDisplacementModel(granular::GRAN_FRICTION_MODE model);
+    void SetTangentialDisplacementModel(gpu::CHGPU_FRICTION_MODE model);
 
     /// Set the integrator type (default: CENTERED_DIFFERENCE)
-    void SetIntegratorType(granular::GRAN_TIME_INTEGRATOR type);
+    void SetIntegratorType(gpu::CHGPU_TIME_INTEGRATOR type);
 
     /// Initialize granular terrain from the specified checkpoint file (which must exist in the output directory).
     /// By default, particles are created uniformly distributed in the specified domain such that they are initially not
@@ -81,12 +81,12 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularGPU : public ChVehicleCosi
     virtual void WriteCheckpoint(const std::string& filename) override;
 
   private:
-    ChSystemSMC* m_system;                       ///< system for proxy bodies
-    ChGranularChronoTriMeshAPI* m_wrapper_gran;  ///< wrapper around granular system
-    bool m_constructed;                          ///< system construction completed?
+    ChSystemSMC* m_system;              ///< system for proxy bodies
+    gpu::ChSystemGpuMesh* m_systemGPU;  ///< Chrono::Gpu system
+    bool m_constructed;                 ///< system construction completed?
 
-    granular::GRAN_TIME_INTEGRATOR m_integrator_type;
-    granular::GRAN_FRICTION_MODE m_tangential_model;
+    gpu::CHGPU_TIME_INTEGRATOR m_integrator_type;
+    gpu::CHGPU_FRICTION_MODE m_tangential_model;
 
     bool m_use_checkpoint;              ///< initialize granular terrain from checkpoint file
     std::string m_checkpoint_filename;  ///< name of input checkpoint file
@@ -102,11 +102,11 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularGPU : public ChVehicleCosi
 
     virtual bool SupportsFlexibleTire() const override { return false; }
 
-    /// Construct granular terrain 
+    /// Construct granular terrain
     virtual void Construct() override;
 
     /// Return current total number of contacts.
-    virtual int GetNumContacts() const override { return m_wrapper_gran->getGranSystemSMC_TriMesh().getNumContacts(); }
+    virtual int GetNumContacts() const override { return m_systemGPU->GetNumContacts(); }
 
     virtual void CreateWheelProxy() override;
     virtual void UpdateWheelProxy() override;
@@ -139,6 +139,5 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularGPU : public ChVehicleCosi
 
 }  // end namespace vehicle
 }  // end namespace chrono
-
 
 #endif
