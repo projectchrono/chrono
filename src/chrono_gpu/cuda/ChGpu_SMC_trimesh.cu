@@ -287,7 +287,7 @@ __global__ void interactionTerrain_TriangleSoup(
         if (local_ID < numSDTriangles) {
             size_t SD_composite_offset = SD_TriangleCompositeOffsets[thisSD];
             if (SD_composite_offset == NULL_CHGPU_ID) {
-                ABORTABORTABORT("Invalid composite offset %llu for SD %u, touching %u triangles\n", NULL_CHGPU_ID,
+                ABORTABORTABORT("Invalid composite offset %lu for SD %u, touching %u triangles\n", NULL_CHGPU_ID,
                                 thisSD, numSDTriangles);
             }
             size_t offset_in_composite_Array = SD_composite_offset + local_ID;
