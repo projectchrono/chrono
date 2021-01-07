@@ -21,19 +21,29 @@
 #include <string>
 
 #include "chrono/core/ChGlobal.h"
-#include "chrono_thirdparty/filesystem/path.h"
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/physics/ChBody.h"
 #include "chrono/physics/ChForce.h"
 #include "chrono/timestepper/ChTimestepper.h"
 #include "chrono/utils/ChUtilsSamplers.h"
 #include "chrono/utils/ChUtilsCreators.h"
+#include "chrono/assets/ChSphereShape.h"
 
 #include "chrono_gpu/physics/ChSystemGpu.h"
 #include "chrono_gpu/utils/ChGpuJsonParser.h"
+#include "chrono_gpu/utils/ChGpuVisualization.h"
+
+#include "chrono_thirdparty/filesystem/path.h"
 
 using namespace chrono;
 using namespace chrono::gpu;
+
+// Output frequency
+float out_fps = 50;
+
+// Enable/disable run-time visualization (if Chrono::OpenGL is available)
+bool render = true;
+float render_fps = 2000;
 
 void ShowUsage(std::string name) {
     std::cout << "usage: " + name + " <json_file>" << std::endl;
@@ -187,12 +197,24 @@ int main(int argc, char* argv[]) {
     ball_body->SetMass(ball_mass);
     ball_body->SetInertiaXX(ChVector<>(inertia, inertia, inertia));
     ball_body->SetPos(ball_initial_pos);
+    auto sph = chrono_types::make_shared<ChSphereShape>();
+    sph->GetSphereGeometry().rad = ball_radius;
+    ball_body->AddAsset(sph);
     sys_ball.AddBody(ball_body);
-    unsigned int out_fps = 50;
-    std::cout << "Rendering at " << out_fps << "FPS" << std::endl;
 
+    ChGpuVisualization gpu_vis(&gpu_sys, &sys_ball);
+    if (render) {
+        gpu_vis.SetTitle("Chrono::Gpu ball cosim demo");
+        gpu_vis.SetCameraPosition(ChVector<>(0, -200, 100), ChVector<>(0, 0, 0));
+        gpu_vis.SetCameraMoveScale(1.0f);
+        gpu_vis.Initialize();
+    }
+
+    std::cout << "Output at    " << out_fps << " FPS" << std::endl;
+    std::cout << "Rendering at " << render_fps << " FPS" << std::endl;
     unsigned int out_steps = (unsigned int)(1.0 / (out_fps * iteration_step));
-    unsigned int total_frames = (unsigned int)((float)params.time_end * out_fps);
+    unsigned int render_steps = (unsigned int)(1.0 / (render_fps * iteration_step));
+    unsigned int total_frames = (unsigned int)(params.time_end * out_fps);
 
     int currframe = 0;
     unsigned int curr_step = 0;
@@ -201,9 +223,6 @@ int main(int argc, char* argv[]) {
     for (double t = 0; t < (double)params.time_end; t += iteration_step, curr_step++) {
         gpu_sys.ApplyMeshMotion(0, ball_body->GetPos(), ball_body->GetRot(), ball_body->GetPos_dt(),
                                 ball_body->GetWvel_par());
-
-        gpu_sys.AdvanceSimulation(iteration_step);
-        sys_ball.DoStepDynamics(iteration_step);
 
         ChVector<> ball_force;
         ChVector<> ball_torque;
@@ -214,7 +233,7 @@ int main(int argc, char* argv[]) {
         ball_body->Accumulate_torque(ball_torque, false);
 
         if (curr_step % out_steps == 0) {
-            std::cout << "Rendering frame " << currframe << " of " << total_frames << std::endl;
+            std::cout << "Output frame " << currframe << " of " << total_frames << std::endl;
             char filename[100];
             sprintf(filename, "%s/step%06d", params.output_dir.c_str(), currframe++);
             gpu_sys.WriteFile(std::string(filename));
@@ -229,6 +248,14 @@ int main(int argc, char* argv[]) {
             meshfile << outstream.str();
             */
         }
+
+        if (render && curr_step % render_steps == 0) {
+            if (gpu_vis.Render())
+                break;
+        }
+
+        gpu_sys.AdvanceSimulation(iteration_step);
+        sys_ball.DoStepDynamics(iteration_step);
     }
 
     clock_t end = std::clock();
