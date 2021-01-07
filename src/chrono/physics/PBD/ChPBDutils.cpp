@@ -176,7 +176,8 @@ namespace chrono {
 		if (displ_actuated){
 			double targ = motor_func->Get_y(PBDsys->T);
 			if (speed_actuated) {
-
+				targ *= PBDsys->h;
+				targ += local_disp[actuation_dir];
 			}
 			correction[actuation_dir] += targ - local_disp[actuation_dir];
 		}
