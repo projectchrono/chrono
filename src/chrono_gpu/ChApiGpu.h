@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Hammad Mazhar
+// Authors: Conlain Kelly, Nic Olsen, Dan Negrut
 // =============================================================================
 
 #pragma once
@@ -17,15 +17,15 @@
 #include "chrono/ChVersion.h"
 #include "chrono/core/ChPlatform.h"
 
-// When compiling this library, remember to define CH_API_COMPILE_MULTICORE
-// (so that the symbols with 'CH_MULTICORE_API' in front of them will be
+// When compiling this library, remember to define CH_API_COMPILE_GPU
+// (so that the symbols with 'CH_GPU_API' in front of them will be
 // marked as exported). Otherwise, just do not define it if you
 // link the library to your code, and the symbols will be imported.
 
-#if defined(CH_API_COMPILE_MULTICORE)
-#define CH_MULTICORE_API ChApiEXPORT
+#if defined(CH_API_COMPILE_GPU)
+#define CH_GPU_API ChApiEXPORT
 #else
-#define CH_MULTICORE_API ChApiIMPORT
+#define CH_GPU_API ChApiIMPORT
 #endif
 
 // Macros for specifying type alignment
@@ -50,22 +50,32 @@
 #endif
 
 /**
-    @defgroup multicore_module MULTICORE module
-    @brief Module for multicore parallel simulation
+    @defgroup gpu_module GPU module
+    @brief Module for GPU parallel simulation
 
-    This module implements multicore parallel computing algorithms that can be
-    used as a faster alternative to the default simulation algorithms in Chrono::Engine.
-    This is achieved using OpenMP, CUDA, Thrust, etc.
+    This module provides support for granular dynamics on the GPU through CUDA.
+    Currently, systems of monodisperse spheres can interact via full-history frictional contact with both
+    analytical boundary conditions and triangle meshes.
 
     For additional information, see:
-    - the [installation guide](@ref module_multicore_installation)
-    - the [tutorials](@ref tutorial_table_of_content_chrono_multicore)
+    - the [installation guide](@ref module_gpu_installation)
+    - the [tutorials](@ref tutorial_table_of_content_chrono_gpu)
 
     @{
-        @defgroup multicore_physics Physics objects
-        @defgroup multicore_constraint Unilateral constraints
-        @defgroup multicore_collision Collision objects
-        @defgroup multicore_solver Solvers
-        @defgroup multicore_math Math utilities
+        @defgroup gpu_physics Physics objects
+        @defgroup gpu_cuda CUDA functions
+        @defgroup gpu_utils Utilities
     @}
 */
+
+namespace chrono {
+
+/// @addtogroup gpu_module
+/// @{
+
+/// Namespace with classes for the Gpu module.
+namespace gpu {}
+
+/// @} gpu_module
+
+}  // namespace chrono
