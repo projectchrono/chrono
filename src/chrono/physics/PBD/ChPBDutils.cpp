@@ -160,6 +160,18 @@ namespace chrono {
 		if (r_locked) {
 			// eq. 18 PBD paper
 			ChQuaternion<> qdelta = ql1*ql2.GetConjugate();
+			// For angle and speed rotational actuators: the target q is rotated of the target angle "alpha" about the rot axis "a"
+			if (rot_actuated) {
+				double alpha = motor_func->Get_y(PBDsys->T);
+				if (speed_actuated) {
+					alpha *= PBDsys->h;
+					alpha += old_val;
+					old_val = alpha;
+				}
+				ChQuaternion<> q_act;
+				q_act.Q_from_AngAxis(alpha, a);
+				qdelta = q_act*ql1*ql2.GetConjugate();
+			}
 			return qdelta.GetVector() * 2;
 		}
 		else {
@@ -287,11 +299,15 @@ namespace chrono {
 		if (dynamic_cast<const ChLinkMotorRotation*>(alink) != nullptr) {
 			ChLinkMotorRotation* motor = dynamic_cast<ChLinkMotorRotation*>(alink);
 			rot_actuated = true;
-			mask[5] = false;
-			r_locked = false;
-			r_dir.Set(int(mask[3]), int(mask[4]), int(mask[5]));
-			findRDOF();
+			// Torque motors are revolute mates + torque
+			if (dynamic_cast<const ChLinkMotorRotationTorque*>(alink) != nullptr) {
+				mask[5] = false;
+				r_locked = false;
+				r_dir.Set(int(mask[3]), int(mask[4]), int(mask[5]));
+				findRDOF();
+			}
 			motor_func = motor->GetMotorFunction();
+			a = VECT_Z;
 			if (dynamic_cast<const ChLinkMotorRotationSpeed*>(alink) != nullptr) { speed_actuated = true; }
 		}
 		else if (dynamic_cast<const ChLinkMotorLinear*>(alink) != nullptr) {
