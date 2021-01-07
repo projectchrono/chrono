@@ -81,6 +81,8 @@ namespace chrono {
 		double lambda_t = 0;
 		ChVector<> lambda_f_dir;
 		ChVector<> lambda_t_dir;
+		ChVector<> p1_old;
+		ChVector<> p2_old;
 		// Tangential friction inv masses
 		double w1_tf;
 		double w2_tf;

@@ -343,7 +343,7 @@ namespace chrono {
 
 		// If the distance is positive, just skip
 		if (d > 0) {
-			lambda_contact_tf = 0;
+			//lambda_contact_tf = 0;
 			//lambda_f = 0;
 			return;
 		}
@@ -373,21 +373,21 @@ namespace chrono {
 				// project static friction
 				ChVector<> r1 = Body1->GetRot().Rotate(f1.coord.pos);
 				ChVector<> r2 = Body2->GetRot().Rotate(f2.coord.pos);
-				//ChVector<> r1_old = old_q1.Rotate(f1.coord.pos);
-				//ChVector<> r2_old = old_q2.Rotate(f2.coord.pos);
-				//ChVector<> n0 = -( (Body1->GetPos() + r1 - (old_x1 + r1_old)) - ((Body2->GetPos() + r2) - (old_x2 + r2_old) ));
-				ChVector<> n0 = Body1->GetPos() + r1 - (Body2->GetPos() + r2);
-				//double n0_n = n0^n;
-				//ChVector<> n0_t = n0 - n * n0_n;
+				// As in paper: use tangential disp wrt previous s.step:
+				ChVector<> n0 = ( (Body1->GetPos() + r1 - p1_old) - ((Body2->GetPos() + r2) - p2_old ));
+				double n0_n = n0^n;
+				ChVector<> n0_t = n0 - n * n0_n;
+				ChVector<> n_tf = n0_t;
+				// Alternative: tg displ wrt contact points. Exact only for the 1sr sstep, does not require storing old pos
+				//ChVector<> n0 = Body1->GetPos() + r1 - (Body2->GetPos() + r2);
 				// Rotation of the link frame w.r.t. global frame
-				ChQuaternion<> q = f1.coord.rot * Body1->GetRot();
+				//ChQuaternion<> q = f1.coord.rot * Body1->GetRot();
 				// get rid of unconstrained directions by element wise multiplication in the link frame reference
-				ChVector<> n_loc = (q.RotateBack(n0))*p_dir;
+				//ChVector<> n_loc = (q.RotateBack(n0))*p_dir;
 				// Now we bring the violation back in global coord and normaize it after saving its length
-				ChVector<> n_tf = q.Rotate(n_loc);
-				//ChVector<> n_tf = n0_t;
+				//ChVector<> n_tf = q.Rotate(n_loc);
+				
 				double C = n_tf.Length();
-
 				if (n_tf.Normalize()) {
 
 					ChVector<> n1 = Body1->GetRot().RotateBack(n_tf);
@@ -480,6 +480,9 @@ namespace chrono {
 			ChVector<> delta_omega2 = Inv_I2 * f2.coord.pos.Cross(Body2->GetRot().RotateBack(p)).eigen();
 			Body1->SetWvel_loc(omega1 + delta_omega1);
 			Body2->SetWvel_loc(omega2 - delta_omega2);
+
+			p1_old = Body1->GetPos() + Body1->GetRot().Rotate(f1.coord.pos);
+			p2_old = Body2->GetPos() + Body2->GetRot().Rotate(f2.coord.pos);
 		}
 	}
 
