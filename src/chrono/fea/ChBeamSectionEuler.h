@@ -557,6 +557,30 @@ public:
     virtual void ComputeInertiaMatrix(ChMatrixNM<double, 6, 6>& M) override;
 };
 
+
+/// This works exactly as ChBeamSectionEulerEasyRectangular, 
+/// but adds the effect of Jyy Jzz rotational sectional inertias.
+class ChApi ChBeamSectionRayleighEasyRectangular : public ChBeamSectionRayleighSimple {
+  public:
+      ChBeamSectionRayleighEasyRectangular(double width_y,  ///< width of section in y direction
+          double width_z,  ///< width of section in z direction
+          double E,        ///< Young modulus
+          double G,        ///< Shear modulus (only needed for the torsion)
+          double density   ///< volumetric density (ex. in SI units: [kg/m^3])
+      );
+};
+
+/// This works exactly as ChBeamSectionEulerEasyCircular, 
+/// but adds the effect of Jyy Jzz rotational sectional inertias.
+class ChApi ChBeamSectionRayleighEasyCircular : public ChBeamSectionRayleighSimple {
+  public:
+      ChBeamSectionRayleighEasyCircular(double diameter,  ///< diameter of circular section
+          double E,         ///< Young modulus
+          double G,         ///< Shear modulus (only needed for the torsion)
+          double density    ///< volumetric density (ex. in SI units: [kg/m^3])
+      );
+};
+
 /// @} fea_utils
 
 }  // end namespace fea

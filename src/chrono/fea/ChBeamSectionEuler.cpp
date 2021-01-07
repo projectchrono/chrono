@@ -117,6 +117,28 @@ namespace fea {
 		M(5, 5) += this->Izz * this->density;
 	}
 
+
+
+	ChBeamSectionRayleighEasyRectangular::ChBeamSectionRayleighEasyRectangular(double mwidth_y, double mwidth_z, double mE, double mG, double mdensity)
+	{
+		this->SetYoungModulus(mE);
+		this->SetGshearModulus(mG);
+		this->SetDensity(mdensity);
+		this->SetAsRectangularSection(mwidth_y,mwidth_z);
+	}
+
+	ChBeamSectionRayleighEasyCircular::ChBeamSectionRayleighEasyCircular(double diameter, double mE, double mG, double mdensity)
+	{
+		this->SetYoungModulus(mE);
+		this->SetGshearModulus(mG);
+		this->SetDensity(mdensity);
+		this->SetAsCircularSection(diameter);
+	}
+
+	
+	
+
+
 }  // end namespace fea
 }  // end namespace chrono
 
