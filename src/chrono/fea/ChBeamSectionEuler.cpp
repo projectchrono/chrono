@@ -61,10 +61,12 @@ namespace fea {
 		M(0, 5) = - this->mu * this->My;
 
 		M(3, 3) = this->Jxx;
-		// M(4, 4) M(5, 5) are zero in Euler theory, as Jzz = 0 Jyy = 0 
+		// M(4, 4) M(5, 5) are zero in Euler theory, as Jzz = 0 Jyy = 0  (for no My Mz offsets)
 		// .. but just make them a tiny nonzero value to avoid singularity, if small JzzJyy_factor
-		M(4, 4) = JzzJyy_factor * M(0, 0);
-		M(5, 5) = JzzJyy_factor * M(0, 0);
+		M(4, 4) = JzzJyy_factor * M(0, 0) + this->mu * this->Mz * this->Mz;
+		M(5, 5) = JzzJyy_factor * M(0, 0) + this->mu * this->My * this->My;
+		M(4, 5) = - this->mu * this->My * this->Mz;
+		M(5, 4) = - this->mu * this->My * this->Mz;
 		// .. but Rayleigh beam theory may add it as:
 		//M(4, 4) = this->Jyy;
 		//M(5, 5) = this->Jzz;
