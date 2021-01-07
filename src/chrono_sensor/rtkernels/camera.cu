@@ -112,10 +112,10 @@ RT_PROGRAM void fov_lens_camera() {
         float r1 = sqrtf(d.x * d.x + d.y * d.y);
 
         // float r2 = tan(A * r1 * c_hFOV / 2.0) / (tan(c_hFOV / 2.0));
-        float r2 = tan(r1 * tan(hFOV / 2.0)) / tan(hFOV / 2.0);
+        float r2 = tanf(r1 * tanf(hFOV / 2.0)) / tanf(hFOV / 2.0);
         // float r2 = r1 / cos(c_hFOV / 2);
 
-        float scaled_extent = tan(tan(hFOV / 2.0)) / tan(hFOV / 2.0);
+        float scaled_extent = tanf(tanf(hFOV / 2.0)) / tanf(hFOV / 2.0);
 
         // float y_max = 1.4142;
 
