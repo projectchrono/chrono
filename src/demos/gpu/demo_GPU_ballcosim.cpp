@@ -233,7 +233,7 @@ int main(int argc, char* argv[]) {
         ball_body->Accumulate_torque(ball_torque, false);
 
         if (curr_step % out_steps == 0) {
-            std::cout << "Output frame " << currframe << " of " << total_frames << std::endl;
+            std::cout << "Output frame " << currframe + 1 << " of " << total_frames << std::endl;
             char filename[100];
             sprintf(filename, "%s/step%06d", params.output_dir.c_str(), currframe++);
             gpu_sys.WriteFile(std::string(filename));

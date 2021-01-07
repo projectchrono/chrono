@@ -27,6 +27,8 @@ namespace gpu {
 
 ChGpuVisualization::ChGpuVisualization(ChSystemGpu* sysGPU, ChSystem* sys)
     : m_systemGPU(sysGPU),
+      m_system(nullptr),
+      m_owns_sys(false),
       m_title(""),
       m_cam_pos(0, -3, 0),
       m_cam_target(0, 0, 0),
@@ -42,15 +44,13 @@ ChGpuVisualization::ChGpuVisualization(ChSystemGpu* sysGPU, ChSystem* sys)
         m_owns_sys = false;
     }
 #else
-    std::cout << "\nWARNING! Chrono::OpenGL not available.  Visualization disabled!\n" << std::cout;
+    std::cout << "\nWARNING! Chrono::OpenGL not available.  Visualization disabled!\n" << std::endl;
 #endif
 }
 
 ChGpuVisualization::~ChGpuVisualization() {
-#ifdef CHRONO_OPENGL
     if (m_owns_sys)
         delete m_system;
-#endif
 }
 
 void ChGpuVisualization::SetCameraPosition(const ChVector<>& pos, const ChVector<>& target) {
@@ -68,7 +68,9 @@ void ChGpuVisualization::SetCameraMoveScale(float scale) {
 
 void ChGpuVisualization::AddProxyBody(std::shared_ptr<ChBody> body) {
     body->SetBodyFixed(true);
+#ifdef CHRONO_OPENGL
     m_system->AddBody(body);
+#endif
 }
 
 void ChGpuVisualization::Initialize() {

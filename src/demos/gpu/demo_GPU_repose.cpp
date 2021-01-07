@@ -165,7 +165,7 @@ int main(int argc, char* argv[]) {
         if (render && gpu_vis.Render())
             break;
 
-        printf("rendering frame %u of %u\n", currframe, total_frames);
+        printf("Output frame %u of %u\n", currframe, total_frames);
         sprintf(filename, "%s/step%06d", params.output_dir.c_str(), currframe);
         gpu_sys.WriteFile(std::string(filename));
 
