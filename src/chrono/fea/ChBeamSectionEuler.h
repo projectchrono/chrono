@@ -333,13 +333,14 @@ using ChBeamSectionAdvanced = ChBeamSectionEulerAdvanced;
 /// have collective values of bending rigidities, and collective mass per unit length. This class
 /// allows using these values directly, bypassing any knowledge of area, density, Izz Iyy, E young modulus, etc.
 /// To be used with ChElementBeamEuler.
+/// The center of mass of the section can have an offset respect to the centerline.
 /// This material can be shared between multiple beams.
 ///
 /// \image html "http://www.projectchrono.org/assets/manual/fea_ChElementBeamEuler_section.png"
 ///
 
 class ChApi ChBeamSectionEulerAdvancedGeneric : public ChBeamSectionEuler {
-  private:
+  protected:
     double Ax;     // axial rigidity
     double Txx;    // torsion rigidity
     double Byy;    // bending about yy rigidity
@@ -522,6 +523,38 @@ class ChApi ChBeamSectionEulerEasyCircular : public ChBeamSectionEulerSimple {
                                    double G,         ///< Shear modulus (only needed for the torsion)
                                    double density    ///< volumetric density (ex. in SI units: [kg/m^3])
     );
+};
+
+
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////
+// Rayleigh beam sections, like Euler sections but adding the effect of Jyy Jzz rotational inertias
+
+
+
+/// This works exactly as ChBeamSectionEulerSimple, but adds the effect of Jyy Jzz rotational sectional inertias,
+/// whereas the conventional Euler theory would assume the mass to be concentrated in the center of mass, hence Jyy Jzz =0.
+/// For wide sections, Jyy Jzz can become not negligible. 
+/// In this simple symmetric case with homogeneous density, the values of Jyy Jzz are computed automatically as
+///  \f$ J_{yy} = \rho I_{yy} \f$,  \f$ J_{zz} = \rho I_{zz} \f$
+/// This is a simple section model that assumes the elastic center, the shear center and the mass
+/// center to be all in the centerline of the beam (section origin); this is the case of symmetric sections for example.
+/// 
+/// To be used with ChElementBeamEuler.
+/// This material can be shared between multiple beams.
+///
+/// \image html "http://www.projectchrono.org/assets/manual/fea_ChElasticityCosseratSimple.png"
+///
+class ChApi ChBeamSectionRayleighSimple : public ChBeamSectionEulerSimple {
+public:
+
+    ChBeamSectionRayleighSimple() {}
+
+    virtual ~ChBeamSectionRayleighSimple() {}
+
+    /// Compute the 6x6 sectional inertia matrix, as in  {x_momentum,w_momentum}=[Mm]{xvel,wvel}
+    virtual void ComputeInertiaMatrix(ChMatrixNM<double, 6, 6>& M) override;
 };
 
 /// @} fea_utils

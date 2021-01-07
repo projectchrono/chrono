@@ -106,6 +106,17 @@ namespace fea {
 
 
 
+
+	void ChBeamSectionRayleighSimple::ComputeInertiaMatrix(ChMatrixNM<double, 6, 6>& M)
+	{
+		// inherit 
+		ChBeamSectionEulerSimple::ComputeInertiaMatrix(M);
+
+		// add Rayleigh terms
+		M(4, 4) += this->Iyy * this->density;
+		M(5, 5) += this->Izz * this->density;
+	}
+
 }  // end namespace fea
 }  // end namespace chrono
 
