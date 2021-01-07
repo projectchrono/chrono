@@ -581,6 +581,78 @@ class ChApi ChBeamSectionRayleighEasyCircular : public ChBeamSectionRayleighSimp
       );
 };
 
+
+/// This works exactly as ChBeamSectionEulerAdvancedGeneric, 
+/// but adds the effect of Jyy Jzz rotational sectional inertias.
+/// The Jxx inertia of the Euler base class is automatically computed from Jyy Jzz by the polar theorem.
+class ChApi ChBeamSectionRayleighAdvancedGeneric : public ChBeamSectionEulerAdvancedGeneric {
+  private:
+      double Jzz; // sectional inertia per unit length, in center of mass reference, measured along centerline main axes
+      double Jyy; // sectional inertia per unit length, in center of mass reference, measured along centerline main axes
+      double Jyz; // sectional inertia per unit length, in center of mass reference, measured along centerline main axes
+  public:
+    ChBeamSectionRayleighAdvancedGeneric()
+        : Jzz(0.5), Jyy(0.5), Jyz(0) {}
+
+    ChBeamSectionRayleighAdvancedGeneric(
+        const double mAx,      ///< axial rigidity
+        const double mTxx,     ///< torsion rigidity
+        const double mByy,     ///< bending regidity about yy
+        const double mBzz,     ///< bending rigidity about zz
+        const double malpha,   ///< section rotation about elastic center [rad]
+        const double mCy,      ///< elastic center y displacement respect to centerline
+        const double mCz,      ///< elastic center z displacement respect to centerline
+        const double mSy,      ///< shear center y displacement respect to centerline
+        const double mSz,      ///< shear center z displacement respect to centerline
+        const double mmu,      ///< mass per unit length
+        const double mJyy,     ///< inertia Jyy per unit lenght, in centerline reference, measured along centerline main axes
+        const double mJzz,     ///< inertia Jzz per unit lenght, in centerline reference, measured along centerline main axes
+        const double mJyz,     ///< inertia Jyz per unit lenght, in centerline reference, measured along centerline main axes
+        const double mMy = 0,  ///< mass center y displacement respect to centerline
+        const double mMz = 0   ///< mass center z displacement respect to centerline
+    )
+        : ChBeamSectionEulerAdvancedGeneric(mAx, mTxx, mByy, mBzz, malpha, mCy, mCz, mSy, mSz, mmu, (Jyy + Jzz), mMy, mMz), 
+        Jyy(mJyy), Jzz(mJzz), Jyz(mJyz) {}
+
+    virtual ~ChBeamSectionRayleighAdvancedGeneric() {}
+
+
+    /// Set the Jyy Jzz Jyz components of the sectional inertia per unit length, 
+    /// in centerline reference, measured along centerline main axes.
+    /// These are defined as: 
+    /// \f$ J_{yy} =  \int_\Omega \rho z^2 d\Omega \f$, also Jyy = Mm(4,4) 
+    /// \f$ J_{zz} =  \int_\Omega \rho y^2 d\Omega \f$, also Jzz = Mm(5,5) 
+    /// \f$ J_{yz} =  \int_\Omega \rho y z  d\Omega \f$, also Jyz = -Mm(4,5) = -Mm(5,4)
+    /// It is not needed to enter also Jxx because Jxx=(Jzz+Jyy) by the polar theorem.
+    virtual void SetInertiasPerUnitLength(const double mJyy, const double mJzz, const double mJyz);
+
+
+    /// Set inertia moments, per unit length, as assumed computed in the Ym Zm "mass reference"
+    /// frame, ie. centered at the center of mass and rotated by phi angle to match the main axes of inertia:
+    /// \f$ Jm_{yy} =  \int_\Omega \rho z_{m}^2 d\Omega \f$, 
+    /// \f$ Jm_{zz} =  \int_\Omega \rho y_{m}^2 d\Omega \f$.
+    /// Assuming the center of mass is already set.
+    virtual void SetMainInertiasInMassReference(double Jmyy, double Jmzz, double phi);
+
+    /// Get inertia moments, per unit length, as assumed computed in the Ym Zm "mass reference" frame, and the rotation phi of that frame,
+    /// ie. inertias centered at the center of mass and rotated by phi angle to match the main axes of inertia:
+    /// \f$ Jm_{yy} =  \int_\Omega \rho z_{m}^2 d\Omega \f$, 
+    /// \f$ Jm_{zz} =  \int_\Omega \rho y_{m}^2 d\Omega \f$.
+    /// Assuming the center of mass is already set.
+    virtual void GetMainInertiasInMassReference(double& Jmyy, double& Jmzz, double& phi);
+
+
+
+    // INTERFACES
+
+    /// Compute the 6x6 sectional inertia matrix, as in  {x_momentum,w_momentum}=[Mm]{xvel,wvel}
+    virtual void ComputeInertiaMatrix(ChMatrixNM<double, 6, 6>& M) override;
+
+};
+
+
+
+
 /// @} fea_utils
 
 }  // end namespace fea
