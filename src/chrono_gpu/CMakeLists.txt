@@ -28,14 +28,6 @@ if(NOT CUDA_FOUND)
     return()
 endif()
 
-# ------------------------------------------------------------------------------
-# Additional compiler flags
-# ------------------------------------------------------------------------------
-
-set(CH_GPU_CXX_FLAGS "")
-set(CH_GPU_C_FLAGS "")
-
-
 # ----------------------------------------------------------------------------
 # Generate and install configuration header file.
 # ----------------------------------------------------------------------------
@@ -56,9 +48,39 @@ install(FILES "${PROJECT_BINARY_DIR}/chrono_gpu/ChConfigGpu.h"
 # Collect all additional include directories necessary for the GPU module
 # ------------------------------------------------------------------------------
 
-set(CH_GPU_INCLUDES ${CUDA_INCLUDE_DIRS})
+include_directories(${CUDA_INCLUDE_DIRS})
 
-include_directories(${CH_GPU_INCLUDES})
+set(CH_GPU_INCLUDES ${CUDA_INCLUDE_DIRS})
+set(CH_GPU_CXX_FLAGS "")
+set(CH_GPU_C_FLAGS "")
+set(CH_CPU_COMPILE_DEFS "")
+set(CH_GPU_LINKER_FLAGS "${CH_LINKERFLAG_SHARED}")
+set(CH_GPU_LINKED_LIBRARIES ChronoEngine ${CUDA_FRAMEWORK})
+
+# ------------------------------------------------------------------------------
+# Add optional run-time visualization support
+# ------------------------------------------------------------------------------
+
+if(ENABLE_MODULE_OPENGL)
+  include_directories(${CH_OPENGL_INCLUDES})
+  set(CH_GPU_INCLUDES ${CH_GPU_INCLUDES} ${CH_OPENGL_INCLUDES})
+  if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+     set(CH_GPU_LINKER_FLAGS  "${CH_GPU_LINKER_FLAGS} -framework IOKit -framework Cocoa -framework OpenGL")
+  endif()
+  list(APPEND CH_GPU_LINKED_LIBRARIES ChronoEngine_opengl)
+endif()
+
+# ------------------------------------------------------------------------------
+# Add optional HDF5 support
+# ------------------------------------------------------------------------------
+
+if(HDF5_FOUND)
+    include_directories(${HDF5_INCLUDE_DIRS})
+    set(CH_GPU_INCLUDES ${CH_GPU_INCLUDES} ${HDF5_INCLUDE_DIRS})
+    set(CH_CPU_COMPILE_DEFS "${CH_CPU_COMPILE_DEFS} ${H5_BUILT_AS_DYNAMIC_LIB}")
+    list(APPEND CH_GPU_LINKED_LIBRARIES ${HDF5_CXX_LIBRARIES})
+    add_definitions(-DUSE_HDF5)
+endif()
 
 # ------------------------------------------------------------------------------
 # Make some variables visible from parent directory
@@ -116,6 +138,12 @@ set(ChronoEngine_GPU_UTILITIES
 
 source_group(utilities FILES ${ChronoEngine_GPU_UTILITIES})
 
+set(ChronoEngine_GPU_VISUALIZATION
+    utils/ChGpuVisualization.h
+    utils/ChGpuVisualization.cpp
+   )
+source_group(utilities FILES ${ChronoEngine_GPU_VISUALIZATION})
+
 # ------------------------------------------------------------------------------
 # Add the ChronoEngine_gpu library
 # ------------------------------------------------------------------------------
@@ -125,21 +153,14 @@ CUDA_ADD_LIBRARY(ChronoEngine_gpu SHARED
                  ${ChronoEngine_GPU_PHYSICS}
                  ${ChronoEngine_GPU_CUDA}
                  ${ChronoEngine_GPU_UTILITIES}
+                 ${ChronoEngine_GPU_VISUALIZATION}
                  )
-set(CHRONO_GPU_LINKED_LIBRARIES ChronoEngine ${CUDA_FRAMEWORK})
 
 set_target_properties(ChronoEngine_gpu PROPERTIES
-                      LINK_FLAGS "${CH_LINKERFLAG_SHARED}"
-                      COMPILE_DEFINITIONS "CH_API_COMPILE_GPU")
+                      LINK_FLAGS "${CH_GPU_LINKER_FLAGS}"
+                      COMPILE_DEFINITIONS "CH_API_COMPILE_GPU ${CH_CPU_COMPILE_DEFS}")
 
-target_link_libraries(ChronoEngine_gpu ${CHRONO_GPU_LINKED_LIBRARIES})
-
-if(HDF5_FOUND)
-    set(COMPILE_DEFS "${COMPILE_DEFS} ${H5_BUILT_AS_DYNAMIC_LIB}")
-    include_directories(${HDF5_INCLUDE_DIRS})
-    target_link_libraries(ChronoEngine_gpu ${HDF5_CXX_LIBRARIES})
-    add_definitions(-DUSE_HDF5)
-endif()
+target_link_libraries(ChronoEngine_gpu ${CH_GPU_LINKED_LIBRARIES})
 
 install(TARGETS ChronoEngine_gpu
         RUNTIME DESTINATION bin

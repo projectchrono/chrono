@@ -290,8 +290,16 @@ int ChSystemGpu::GetNumContacts() const {
     return m_sys->GetNumContacts();
 }
 
+float ChSystemGpu::GetSimTime() const {
+    return m_sys->elapsedSimTime;
+}
+
 size_t ChSystemGpu::GetNumParticles() const {
     return m_sys->nSpheres;
+}
+
+float ChSystemGpu::GetParticleRadius() const {
+    return m_sys->sphere_radius_UU;
 }
 
 ChVector<float> ChSystemGpu::GetParticlePosition(int nSphere) const {

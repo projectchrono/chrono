@@ -25,25 +25,27 @@
 #include "chrono_gpu/ChGpuData.h"
 #include "chrono_gpu/physics/ChSystemGpu.h"
 #include "chrono_gpu/utils/ChGpuJsonParser.h"
+#include "chrono_gpu/utils/ChGpuVisualization.h"
 
 #include "chrono_thirdparty/filesystem/path.h"
 
 using namespace chrono;
 using namespace chrono::gpu;
 
-int num_args = 2;
+// Enable/disable run-time visualization (if Chrono::OpenGL is available)
+bool render = true;
+
 void ShowUsage(std::string name) {
     std::cout << "usage: " + name + " <json_file> <static_friction> <rolling_friction> <cohesion> <output_dir>"
               << std::endl;
 }
 
 int main(int argc, char* argv[]) {
-    // gpu::SetDataPath(std::string(PROJECTS_DATA_DIR) + "gpu/");
     ChGpuSimulationParameters params;
 
     // Some of the default values might be overwritten by user via command line
     std::cout << "num_arg: " << argc << std::endl;
-    if (argc != num_args || ParseJSON(argv[1], params) == false) {
+    if (argc != 2 || ParseJSON(argv[1], params) == false) {
         ShowUsage(argv[0]);
         return 1;
     }
@@ -131,6 +133,14 @@ int main(int argc, char* argv[]) {
 
     gpu_sys.Initialize();
 
+    ChGpuVisualization gpu_vis(&gpu_sys);
+    if (render) {
+        gpu_vis.SetTitle("Chrono::Gpu repose demo");
+        gpu_vis.SetCameraPosition(ChVector<>(0, -30, -10), ChVector<>(0, 0, -20));
+        gpu_vis.SetCameraMoveScale(1.0f);
+        gpu_vis.Initialize();
+    }
+
     int fps = 60;
     float frame_step = 1.f / fps;
     float curr_time = 0.f;
@@ -151,8 +161,11 @@ int main(int argc, char* argv[]) {
     std::cout << "frame step is " << frame_step << std::endl;
     while (curr_time < params.time_end) {
         gpu_sys.AdvanceSimulation(frame_step);
-        curr_time += frame_step;
-        printf("rendering frame %u of %u\n", currframe, total_frames);
+
+        if (render && gpu_vis.Render())
+            break;
+
+        printf("Output frame %u of %u\n", currframe, total_frames);
         sprintf(filename, "%s/step%06d", params.output_dir.c_str(), currframe);
         gpu_sys.WriteFile(std::string(filename));
 
@@ -160,6 +173,7 @@ int main(int argc, char* argv[]) {
         sprintf(contactFilename, "%s/contact%06d", params.output_dir.c_str(), currframe);
         gpu_sys.WriteContactInfoFile(std::string(contactFilename));
 
+        curr_time += frame_step;
         currframe++;
     }
 
