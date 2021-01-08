@@ -649,6 +649,7 @@ set(ChronoEngine_collision_SOURCES
     collision/ChCollisionShape.cpp
     collision/ChCollisionModel.cpp
     collision/ChCollisionModelBullet.cpp
+    collision/ChCollisionAlgorithmsBullet.cpp
     collision/ChCollisionSystemBullet.cpp
     collision/ChConvexDecomposition.cpp
     collision/ChCollisionUtils.cpp
@@ -662,6 +663,7 @@ set(ChronoEngine_collision_HEADERS
     collision/ChCollisionSystem.h
     collision/ChCollisionShapeBullet.h
     collision/ChCollisionModelBullet.h
+    collision/ChCollisionAlgorithmsBullet.h
     collision/ChCollisionSystemBullet.h
     collision/ChConvexDecomposition.h
     collision/ChCollisionUtils.h

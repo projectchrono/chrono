@@ -244,8 +244,8 @@ bool ChCollisionModelBullet::AddCylinder(std::shared_ptr<ChMaterialSurface> mate
 bool ChCollisionModelBullet::AddCapsule(std::shared_ptr<ChMaterialSurface> material,
                                         double radius,
                                         double hlen,
-                                        const ChVector<>& pos = ChVector<>(),
-                                        const ChMatrix33<>& rot = ChMatrix33<>(1)) {
+                                        const ChVector<>& pos,
+                                        const ChMatrix33<>& rot) {
     // adjust default inward margin (if object too thin)
     SetSafeMargin(ChMin(GetSafeMargin(), 0.2 * ChMin(radius, hlen)));
 
