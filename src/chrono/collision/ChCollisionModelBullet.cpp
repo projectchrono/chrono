@@ -241,6 +241,25 @@ bool ChCollisionModelBullet::AddCylinder(std::shared_ptr<ChMaterialSurface> mate
     return true;
 }
 
+bool ChCollisionModelBullet::AddCapsule(std::shared_ptr<ChMaterialSurface> material,
+                                        double radius,
+                                        double hlen,
+                                        const ChVector<>& pos = ChVector<>(),
+                                        const ChMatrix33<>& rot = ChMatrix33<>(1)) {
+    // adjust default inward margin (if object too thin)
+    SetSafeMargin(ChMin(GetSafeMargin(), 0.2 * ChMin(radius, hlen)));
+
+    auto shape = new ChCollisionShapeBullet(ChCollisionShape::Type::CAPSULE, material);
+
+    btScalar ar = (btScalar)(radius + GetEnvelope());
+    btScalar ah = (btScalar)(hlen + GetEnvelope());
+    shape->m_bt_shape = new btCapsuleShape(ar, ah);
+    shape->m_bt_shape->setMargin((btScalar)GetSuggestedFullMargin());
+
+    injectShape(pos, rot, shape);
+    return true;
+}
+
 bool ChCollisionModelBullet::AddCylindricalShell(std::shared_ptr<ChMaterialSurface> material,
                                          double radius,
                                          double hlen,

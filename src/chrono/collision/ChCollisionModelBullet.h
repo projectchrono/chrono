@@ -131,9 +131,7 @@ class ChApi ChCollisionModelBullet : public ChCollisionModel {
         double hlen,                                  ///< half-length of capsule axis
         const ChVector<>& pos = ChVector<>(),         ///< center position in model coordinates
         const ChMatrix33<>& rot = ChMatrix33<>(1)     ///< rotation in model coordinates
-        ) override {
-        return false;
-    }
+        ) override;
 
     /// Add a rounded box shape to this collision model.
     virtual bool AddRoundedBox(                       //
