@@ -40,6 +40,8 @@ class CH_MODELS_API MAN_7t_Solid3LinkAxle : public ChSolidThreeLinkAxle {
 
     virtual double getAxleTubeMass() const override { return m_axleTubeMass; }
     virtual double getSpindleMass() const override { return m_spindleMass; }
+    virtual double getTriangleMass() const override { return m_triangleMass; }
+    virtual double getLinkMass() const override { return m_linkMass; }
 
     virtual double getAxleTubeRadius() const override { return m_axleTubeRadius; }
     virtual double getSpindleRadius() const override { return m_spindleRadius; }
@@ -49,6 +51,8 @@ class CH_MODELS_API MAN_7t_Solid3LinkAxle : public ChSolidThreeLinkAxle {
 
     virtual const ChVector<>& getAxleTubeInertia() const override { return m_axleTubeInertia; }
     virtual const ChVector<>& getSpindleInertia() const override { return m_spindleInertia; }
+    virtual const ChVector<>& getTriangleInertia() const override { return m_triangleInertia; }
+    virtual const ChVector<>& getLinkInertia() const override { return m_linkInertia; }
 
     virtual double getAxleInertia() const override { return m_axleShaftInertia; }
 
@@ -66,6 +70,8 @@ class CH_MODELS_API MAN_7t_Solid3LinkAxle : public ChSolidThreeLinkAxle {
 
     static const double m_axleTubeMass;
     static const double m_spindleMass;
+    static const double m_triangleMass;
+    static const double m_linkMass;
 
     static const double m_axleTubeRadius;
     static const double m_spindleRadius;
@@ -73,6 +79,8 @@ class CH_MODELS_API MAN_7t_Solid3LinkAxle : public ChSolidThreeLinkAxle {
 
     static const ChVector<> m_axleTubeInertia;
     static const ChVector<> m_spindleInertia;
+    static const ChVector<> m_triangleInertia;
+    static const ChVector<> m_linkInertia;
 
     static const double m_springCoefficient1;
     static const double m_springCoefficient2;

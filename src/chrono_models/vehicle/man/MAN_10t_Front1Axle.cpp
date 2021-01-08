@@ -36,6 +36,9 @@ const double MAN_10t_Front1Axle::m_spindleMass = 14.705 * 4.1;
 const double MAN_10t_Front1Axle::m_bellcrankMass = 24.4;
 const double MAN_10t_Front1Axle::m_knuckleMass = 145.6;
 const double MAN_10t_Front1Axle::m_draglinkMass = 10.3;
+const double MAN_10t_Front1Axle::m_triangleMass = 50.0;
+const double MAN_10t_Front1Axle::m_linkMass = 25.0;
+const double MAN_10t_Front1Axle::m_tierodMass = 10.0;
 
 const double MAN_10t_Front1Axle::m_axleTubeRadius = 0.0476;
 const double MAN_10t_Front1Axle::m_spindleRadius = 0.10;
@@ -46,6 +49,9 @@ const ChVector<> MAN_10t_Front1Axle::m_spindleInertia(0.04117 * 6.56, 0.07352 * 
 const ChVector<> MAN_10t_Front1Axle::m_bellcrankInertia(0.05, 0.29, 0.30);
 const ChVector<> MAN_10t_Front1Axle::m_knuckleInertia(2.40, 3.97, 2.45);
 const ChVector<> MAN_10t_Front1Axle::m_draglinkInertia(0.29, 0.67, 0.95);
+const ChVector<> MAN_10t_Front1Axle::m_triangleInertia(0.2, 0.2, 0.2);
+const ChVector<> MAN_10t_Front1Axle::m_linkInertia(0.05, 0.1, 0.1);
+const ChVector<> MAN_10t_Front1Axle::m_tierodInertia(0.05, 0.05, 0.5);
 
 const double MAN_10t_Front1Axle::m_springDesignLength = 0.480919952;
 const double MAN_10t_Front1Axle::m_springCoefficient1 = 85490.0;   // linear

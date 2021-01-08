@@ -495,7 +495,7 @@ bool ParseJSON(std::string json_file, std::shared_ptr<SimParams> paramsH, Real3 
     } else {
         paramsH->non_newtonian = false;
     }
-    //    paramsH->markerMass = pow(paramsH->MULT_INITSPACE * paramsH->HSML, 3) * paramsH->rho0;
+    //    paramsH->markerMass = cube(paramsH->MULT_INITSPACE * paramsH->HSML) * paramsH->rho0;
     int NN = 0;
     paramsH->markerMass = massCalculator(NN, paramsH->HSML, paramsH->MULT_INITSPACE * paramsH->HSML, paramsH->rho0);
     paramsH->num_neighbors = NN;

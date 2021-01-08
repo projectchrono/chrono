@@ -36,7 +36,7 @@
 
 #include "chrono_thirdparty/cxxopts/ChCLI.h"
 
-#include "chrono_parallel/solver/ChIterativeSolverParallel.h"
+#include "chrono_multicore/solver/ChIterativeSolverMulticore.h"
 
 using namespace chrono;
 using namespace chrono::collision;
@@ -90,7 +90,7 @@ void WriteCSV(ChSystemDistributed& m_sys, size_t frame) {
     file.close();
 }
 
-void Monitor(chrono::ChSystemParallel* system, int rank) {
+void Monitor(chrono::ChSystemMulticore* system, int rank) {
     double TIME = system->GetChTime();
     double STEP = system->GetTimerStep();
     double BROD = system->GetTimerCollisionBroad();
@@ -100,8 +100,8 @@ void Monitor(chrono::ChSystemParallel* system, int rank) {
     double EXCH = system->data_manager->system_timer.GetTime("Exchange");
     int BODS = system->GetNbodies();
     int CNTC = system->GetNcontacts();
-    double RESID = std::static_pointer_cast<chrono::ChIterativeSolverParallel>(system->GetSolver())->GetResidual();
-    int ITER = std::static_pointer_cast<chrono::ChIterativeSolverParallel>(system->GetSolver())->GetIterations();
+    double RESID = std::static_pointer_cast<chrono::ChIterativeSolverMulticore>(system->GetSolver())->GetResidual();
+    int ITER = std::static_pointer_cast<chrono::ChIterativeSolverMulticore>(system->GetSolver())->GetIterations();
 
     printf("%d|   %8.5f | %7.4f | E%7.4f | B%7.4f | N%7.4f | %7.4f | %7.4f | %7d | %7d | %7d | %7.4f\n", rank, TIME,
            STEP, EXCH, BROD, NARR, SOLVER, UPDT, BODS, CNTC, ITER, RESID);
@@ -121,7 +121,7 @@ std::shared_ptr<ChBoundary> AddContainer(ChSystemDistributed* sys,
     mat->SetRestitution(cr);
     mat->SetPoissonRatio(nu);
 
-    auto bin = chrono_types::make_shared<ChBody>(chrono_types::make_shared<ChCollisionModelParallel>());
+    auto bin = chrono_types::make_shared<ChBody>(chrono_types::make_shared<ChCollisionModelMulticore>());
     bin->SetIdentifier(binId);
     bin->SetMass(1);
     bin->SetPos(ChVector<>(0, 0, 0));

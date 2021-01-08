@@ -36,8 +36,8 @@ class CH_SENSOR_API ChIMUSensor : public ChSensor {
     /// @param parent Body to which the sensor is attached.
     /// @param updateRate Rate at which the sensor should update.
     /// @param offsetPose Relative position and orientation of the sensor with respect to its parent object.
-    /// @param lag Lag time between end of data collection and when data becomes available to the user.
-    /// @param collection_window Collection time over which the sensor should collect data from the simulation.
+    // @param lag Lag time between end of data collection and when data becomes available to the user.
+    // @param collection_window Collection time over which the sensor should collect data from the simulation.
     /// @param noise_model Noise model for the sensor to use when augmentating data
     ChIMUSensor(std::shared_ptr<chrono::ChBody> parent,
                 float updateRate,
