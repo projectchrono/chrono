@@ -206,10 +206,10 @@ namespace chrono {
 
 	ChLinkPBDLock::ChLinkPBDLock(ChLinkLock* alink, ChSystemPBD* sys) : ChLinkPBD(sys) {
 		link = alink;
-		Body1 = dynamic_cast<ChBody*>(link->GetBody1());
-		Body2 = dynamic_cast<ChBody*>(link->GetBody2());
-		f1 = ChFrame<>(link->GetMarker1()->GetCoord());
-		f2 = ChFrame<>(link->GetMarker2()->GetCoord());
+		Body1 = dynamic_cast<ChBody*>(link->GetBody2());
+		Body2 = dynamic_cast<ChBody*>(link->GetBody1());
+		f1 = ChFrame<>(link->GetMarker2()->GetCoord());
+		f2 = ChFrame<>(link->GetMarker1()->GetCoord());
 		ChLinkMask& p_mask = link->GetMask();
 		ChLinkMaskLF* m_lf = dynamic_cast<ChLinkMaskLF*>(&p_mask);
 		mask[0] = m_lf->Constr_X().GetMode() == CONSTRAINT_LOCK;
@@ -220,7 +220,6 @@ namespace chrono {
 		mask[4] = m_lf->Constr_E2().GetMode() == CONSTRAINT_LOCK;
 		mask[5] = m_lf->Constr_E3().GetMode() == CONSTRAINT_LOCK;
 		p_dir.Set(int(mask[0]), int(mask[1]), int(mask[2]));
-		r_dir.Set(int(mask[3]), int(mask[4]), int(mask[5]));
 		p_free = (int(mask[0]) + int(mask[1]) + int(mask[2]) == 0) ? true : false;
 		r_free = (int(mask[3]) + int(mask[4]) + int(mask[5]) == 0) ? true : false;
 		findRDOF();
@@ -273,10 +272,10 @@ namespace chrono {
 
 	ChLinkPBDMate::ChLinkPBDMate(ChLinkMateGeneric* alink, ChSystemPBD* sys) : ChLinkPBD(sys) {
 		MGlink = alink;
-		Body1 = dynamic_cast<ChBody*>(MGlink->GetBody1());
-		Body2 = dynamic_cast<ChBody*>(MGlink->GetBody2());
-		f1 = ChFrame<>(MGlink->GetFrame1());
-		f2 = ChFrame<>(MGlink->GetFrame2());
+		Body1 = dynamic_cast<ChBody*>(MGlink->GetBody2());
+		Body2 = dynamic_cast<ChBody*>(MGlink->GetBody1());
+		f1 = ChFrame<>(MGlink->GetFrame2());
+		f2 = ChFrame<>(MGlink->GetFrame1());
 		mask[0] = MGlink->IsConstrainedX();
 		mask[1] = MGlink->IsConstrainedY();
 		mask[2] = MGlink->IsConstrainedZ();
@@ -284,7 +283,6 @@ namespace chrono {
 		mask[4] = MGlink->IsConstrainedRy();
 		mask[5] = MGlink->IsConstrainedRz();
 		p_dir.Set(int(mask[0]), int(mask[1]), int(mask[2]));
-		r_dir.Set(int(mask[3]), int(mask[4]), int(mask[5]));
 		p_free = (int(mask[0]) + int(mask[1]) + int(mask[2]) == 0) ? true : false;
 		r_free = (int(mask[3]) + int(mask[4]) + int(mask[5]) == 0) ? true : false;
 		findRDOF();
@@ -303,7 +301,6 @@ namespace chrono {
 			if (dynamic_cast<const ChLinkMotorRotationTorque*>(alink) != nullptr) {
 				mask[5] = false;
 				r_locked = false;
-				r_dir.Set(int(mask[3]), int(mask[4]), int(mask[5]));
 				findRDOF();
 			}
 			motor_func = motor->GetMotorFunction();
@@ -342,7 +339,6 @@ namespace chrono {
 		// Rotations are not constrained by contacts. Plus, we don't provide a rolling friction model yet.
 		r_free = true;
 		//findRDOF();
-		//r_dir.Set(int(mask[3]), int(mask[4]), int(mask[5]));
 		// TODO: set properly alpha according to http://blog.mmacklin.com/
 		// rmember to eval alpha_hat = alpha/(h^2)
 		alpha = 0.0;

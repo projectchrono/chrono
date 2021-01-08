@@ -70,7 +70,6 @@ namespace chrono {
 		bool mask[6] = {};
 		// By element-wise multiplication these vectors constrain only along the locked directions
 		ChVector<> p_dir;
-		ChVector<> r_dir;
 		// Skip the whole correction if the pos/rot not constrained at all
 		bool p_free;
 		bool r_free;
