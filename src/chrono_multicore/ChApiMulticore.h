@@ -51,7 +51,7 @@
 
 /**
     @defgroup multicore_module MULTICORE module
-    @brief Module that enables multicore parallel computation in Chrono
+    @brief Module for multicore parallel simulation
 
     This module implements multicore parallel computing algorithms that can be
     used as a faster alternative to the default simulation algorithms in Chrono::Engine.
