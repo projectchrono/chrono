@@ -167,6 +167,10 @@ btCylshellBoxCollisionAlgorithm ::~btCylshellBoxCollisionAlgorithm() {
     }
 }
 
+
+//// Three different option (1, 2, 3)
+#define CYLSHELL_BOX_ALG 3
+
 // Cylshell-box intersection test:
 //   - cylinder caps are ignored
 //   - the cylshell is replaced with a capsule on the surface of the cylshell
@@ -204,6 +208,100 @@ void btCylshellBoxCollisionAlgorithm::processCollision(const btCollisionObjectWr
     btScalar radius = cyl->getRadius();    // cylinder radius
     btScalar hlen = cyl->getHalfLength();  // cylinder half-length
 
+#if CYLSHELL_BOX_ALG == 3
+    btVector3 dummy = c;
+    int code = snap_to_box(hdims, dummy);
+    int i;
+    switch (code) {
+        case 1:
+            i = 0;
+            break;
+        case 2:
+            i = 1;
+            break;
+        case 4:
+            i = 2;
+            break;
+        default:
+            return;
+    }
+
+    int j = (i + 1) % 3;
+    int k = (i + 2) % 3;
+    int sign = btSign(c[i]);
+
+    btScalar tMin = -BT_LARGE_FLOAT;
+    btScalar tMax = +BT_LARGE_FLOAT;
+
+    const btScalar threshold = btScalar(1e-5);  // threshold for line parallel to face tests
+
+    if (std::abs(a[j]) > threshold) {
+        btScalar t1 = (-hdims[j] - c[j]) / a[j];
+        btScalar t2 = (+hdims[j] - c[j]) / a[j];
+
+        tMin = btMax(tMin, btMin(t1, t2));
+        tMax = btMin(tMax, btMax(t1, t2));
+
+        if (tMin > tMax)
+            return;
+    }
+
+    if (std::abs(a[k]) > threshold) {
+        btScalar t1 = (-hdims[k] - c[k]) / a[k];
+        btScalar t2 = (+hdims[k] - c[k]) / a[k];
+
+        tMin = btMax(tMin, btMin(t1, t2));
+        tMax = btMin(tMax, btMax(t1, t2));
+
+        if (tMin > tMax)
+            return;
+    }
+
+    btVector3 locs[2] = {c + tMin * a, c + tMax * a};
+    btScalar t[2];
+    for (int i = 0; i < 2; i++) {
+        t[i] = btClamped(a.dot(locs[i] - c), -hlen, hlen);
+    }
+
+    // Check if the two points almost coincide (in which case consider only one of them)
+    int numPoints = std::abs(t[0] - t[1]) < 1e-4 ? 1 : 2;
+
+    for (int ip = 0; ip < numPoints; ip++) {
+        // Calculate the center of the corresponding sphere on the capsule centerline (expressed in the box
+        // frame).
+        btVector3 spherePos = c + a * t[ip];
+
+        // Snap the sphere position to the surface of the box.
+        btVector3 boxPos = spherePos;
+        snap_to_box(hdims, boxPos);
+
+        // If the distance from the sphere center to the closest point is larger than the radius plus the
+        // separation value, then there is no contact. Also, ignore contact if the sphere center (almost)
+        // coincides with the closest point, in which case we couldn't decide on the proper contact direction.
+        btVector3 delta = spherePos - boxPos;
+        btScalar dist2 = delta.length2();
+
+        if (dist2 >= radius * radius || dist2 <= 1e-12)
+            continue;
+
+        // Generate contact information.
+        btScalar dist = btSqrt(dist2);
+        btScalar penetration = dist - radius;
+        // Transform to absolute frame
+        btVector3 normal = abs_X_box.getBasis() * (delta / dist);
+        btVector3 point = abs_X_box(boxPos);
+
+        // A new contact point must specify:
+        //   normal, pointing from B towards A
+        //   point, located on surface of B
+        //   distance, negative for penetration
+        resultOut->addContactPoint(normal, point, penetration);
+
+        ////std::cout << "add --  t= " << t[ip] << "  dist= " << dist << "  depth= " << penetration << std::endl;
+    }
+#endif
+
+#if CYLSHELL_BOX_ALG == 2
     // Inflate the box by the radius of the capsule plus the separation value and check if the capsule centerline
     // intersects the expanded box. We do this by clamping the capsule axis to the volume between two parallel faces
     // of the box, considering in turn the x, y, and z faces.
@@ -327,11 +425,12 @@ void btCylshellBoxCollisionAlgorithm::processCollision(const btCollisionObjectWr
 
         resultOut->addContactPoint(normal, point, penetration);
 
-        ////std::cout << "add contact --  t= " << t[itest] << "  face " << i << "  dist= " << dist << "  depth= " <<
-        /// penetration << std::endl;
+        ////std::cout << "add contact --  t= " << t[i] << "  face " << i << "  dist= " << dist << "  depth= " << penetration
+        ////          << std::endl;
     }
+#endif
 
-    /*
+#if CYLSHELL_BOX_ALG == 1
     //==  USE CAPSULE ==//
 
     // Contact distance
@@ -442,10 +541,10 @@ void btCylshellBoxCollisionAlgorithm::processCollision(const btCollisionObjectWr
         //   distance, negative for penetration
         resultOut->addContactPoint(normal, point, penetration);
 
-        ////std::cout << "add contact --  t= " << t[itest] << "  face " << i << "  dist= " << dist << "  depth= " <<
-    penetration << std::endl;
+        ////std::cout << "add contact --  t= " << t[i] << "  face " << i << "  dist= " << dist << "  depth= " << penetration
+        ////          << std::endl;
     }
-    */
+#endif
 
     if (m_ownManifold && m_manifoldPtr->getNumContacts()) {
         resultOut->refreshContactPoints();

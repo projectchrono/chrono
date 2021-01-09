@@ -111,6 +111,10 @@ int main(int argc, char* argv[]) {
 
     M113_Vehicle vehicle(false, shoe_type, brake_type, contact_method, chassis_collision_type);
 
+    // Replace collision shapes from cylindricalto cylshell.
+    ////vehicle.GetTrackAssembly(LEFT)->SetWheelCollisionType(false, false, false);
+    ////vehicle.GetTrackAssembly(RIGHT)->SetWheelCollisionType(false, false, false);
+
     // Disable gravity in this simulation
     ////vehicle.GetSystem()->Set_G_acc(ChVector<>(0, 0, 0));
 
@@ -163,6 +167,9 @@ int main(int argc, char* argv[]) {
     // Monitor only contacts involving the chassis.
     vehicle.MonitorContacts(TrackedCollisionFlag::CHASSIS);
 
+    // Monitor only contacts involving the left idler.
+    ////vehicle.MonitorContacts(TrackedCollisionFlag::IDLER_LEFT);
+    
     // Collect contact information.
     // If enabled, number of contacts and local contact point locations are collected for all
     // monitored parts.  Data can be written to a file by invoking ChTrackedVehicle::WriteContacts().
