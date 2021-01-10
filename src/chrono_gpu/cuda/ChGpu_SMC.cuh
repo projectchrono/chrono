@@ -27,6 +27,7 @@
 #include <sstream>
 #include <string>
 #include <cstdint>
+#include <algorithm>
 
 #include "chrono_gpu/ChGpuDefines.h"
 #include "chrono_gpu/physics/ChSystemGpu_impl.h"
@@ -739,101 +740,123 @@ static __global__ void computeSphereContactForces(ChSystemGpu_impl::GranSphereDa
 
         float3 my_sphere_vel = make_float3(sphere_data->pos_X_dt[mySphereID], sphere_data->pos_Y_dt[mySphereID],
                                            sphere_data->pos_Z_dt[mySphereID]);
+        size_t body_A_offset = MAX_SPHERES_TOUCHED_BY_SPHERE * mySphereID;
+        
+		// Put spheres contacting this sphere into a vector, then sort based on their sphere IDs
+        // This is because if we don't sort, we have no control over the order the contact forces are added together
+        // And if that's the case, due to the non-associative property of float addition, our result is not deterministic
+        unsigned int theirIDList[MAX_SPHERES_TOUCHED_BY_SPHERE]; 
+		unsigned char contactIDList[MAX_SPHERES_TOUCHED_BY_SPHERE];  
+		unsigned char numActiveContacts = 0;
+        for (unsigned char body_B_offset = 0; body_B_offset < MAX_SPHERES_TOUCHED_BY_SPHERE; body_B_offset++) {
+            bool active_contact = sphere_data->contact_active_map[body_A_offset + body_B_offset];
+            if (active_contact) {
+                theirIDList[numActiveContacts] = sphere_data->contact_partners_map[body_A_offset + body_B_offset];
+                contactIDList[numActiveContacts] = body_B_offset;
+                numActiveContacts++;
+            }
+        }
+		
+		// Sort. Simple but should be effective since we have 12 contacts max
+        for (unsigned char ii = 0; ii < numActiveContacts; ii++) {
+            for (unsigned char jj = ii+1; jj < numActiveContacts; jj++) {
+				if (theirIDList[ii]>theirIDList[jj]) { 
+				    unsigned int tmp_int=theirIDList[ii]; theirIDList[ii]=theirIDList[jj]; theirIDList[jj]=tmp_int;
+                    unsigned char tmp_char=contactIDList[ii]; contactIDList[ii]=contactIDList[jj]; contactIDList[jj]=tmp_char;
+                }
+			}
+		}
 
         // Now compute the force each contact partner exerts
         // Force applied to this sphere
         float3 bodyA_force = {0.f, 0.f, 0.f};
         float3 bodyA_AngAcc = {0.f, 0.f, 0.f};
 
-        size_t body_A_offset = MAX_SPHERES_TOUCHED_BY_SPHERE * mySphereID;
         // for each sphere contacting me, compute the forces
-        for (unsigned char contact_id = 0; contact_id < MAX_SPHERES_TOUCHED_BY_SPHERE; contact_id++) {
-            // who am I colliding with?
-            bool active_contact = sphere_data->contact_active_map[body_A_offset + contact_id];
- 
-            if (active_contact) {
-                unsigned int theirSphereID = sphere_data->contact_partners_map[body_A_offset + contact_id];
+        for (unsigned char ii = 0; ii < numActiveContacts; ii++) {
+            // All contacts here are active
+			const unsigned int theirSphereID = theirIDList[ii];
+			const unsigned char contact_id = contactIDList[ii];
 
-                if (theirSphereID >= nSpheres) {
-                    ABORTABORTABORT("Invalid other sphere id found for sphere %u at slot %u, other is %u\n", mySphereID,
-                                    contact_id, theirSphereID);
-                }
+			if (theirSphereID >= nSpheres) {
+				ABORTABORTABORT("Invalid other sphere id found for sphere %u at slot %u, other is %u\n", mySphereID,
+								contact_id, theirSphereID);
+			}
 
-                unsigned int theirOwnerSD = sphere_data->sphere_owner_SDs[theirSphereID];
-                int3 their_pos = make_int3(sphere_data->sphere_local_pos_X[theirSphereID],
-                                           sphere_data->sphere_local_pos_Y[theirSphereID],
-                                           sphere_data->sphere_local_pos_Z[theirSphereID]);
+			unsigned int theirOwnerSD = sphere_data->sphere_owner_SDs[theirSphereID];
+			int3 their_pos = make_int3(sphere_data->sphere_local_pos_X[theirSphereID],
+									   sphere_data->sphere_local_pos_Y[theirSphereID],
+									   sphere_data->sphere_local_pos_Z[theirSphereID]);
 
-                if (theirOwnerSD != myOwnerSD) {
-                    // if the spheres are in different subdomains, offset their positions accordingly
-                    their_pos = their_pos + getOffsetFromSDs(myOwnerSD, theirOwnerSD, gran_params);
-                }
+			if (theirOwnerSD != myOwnerSD) {
+				// if the spheres are in different subdomains, offset their positions accordingly
+				their_pos = their_pos + getOffsetFromSDs(myOwnerSD, theirOwnerSD, gran_params);
+			}
 
-                float3 vrel_t;      // tangent relative velocity
-                float reciplength;  // used to compute contact normal
-                float3 delta_r;     // used for contact normal
-                float3 force_accum = computeSphereNormalForces(
-                    reciplength, vrel_t, delta_r, my_sphere_pos, their_pos, my_sphere_vel,
-                    make_float3(sphere_data->pos_X_dt[theirSphereID], sphere_data->pos_Y_dt[theirSphereID],
-                                sphere_data->pos_Z_dt[theirSphereID]),
-                    gran_params);
+			float3 vrel_t;      // tangent relative velocity
+			float reciplength;  // used to compute contact normal
+			float3 delta_r;     // used for contact normal
+			float3 force_accum = computeSphereNormalForces(
+				reciplength, vrel_t, delta_r, my_sphere_pos, their_pos, my_sphere_vel,
+				make_float3(sphere_data->pos_X_dt[theirSphereID], sphere_data->pos_Y_dt[theirSphereID],
+							sphere_data->pos_Z_dt[theirSphereID]),
+				gran_params);
 
-                if (gran_params->recording_contactInfo == true){
-                    sphere_data->normal_contact_force[body_A_offset + contact_id] = force_accum;}
+			if (gran_params->recording_contactInfo == true){
+				sphere_data->normal_contact_force[body_A_offset + contact_id] = force_accum;}
 
-                float hertz_force_factor = std::sqrt(2. * (1 - (1. / reciplength)));  // sqrt(delta_n / (2 R_eff)
+			float hertz_force_factor = std::sqrt(2. * (1 - (1. / reciplength)));  // sqrt(delta_n / (2 R_eff)
 
-                // add frictional terms, if needed
-                if (gran_params->friction_mode != CHGPU_FRICTION_MODE::FRICTIONLESS) {
-                    float3 their_omega = make_float3(sphere_data->sphere_Omega_X[theirSphereID],
-                                                     sphere_data->sphere_Omega_Y[theirSphereID],
-                                                     sphere_data->sphere_Omega_Z[theirSphereID]);
-                    // delta_r * radius is dimensional vector to center of contact point
-                    // (omega_b cross r_b - omega_a cross r_a), where r_b  = -r_a = delta_r * radius
-                    // add tangential components if they exist, these are automatically tangential from the cross
-                    // product
-                    vrel_t = vrel_t + Cross((my_omega + their_omega), -1.f * delta_r * sphereRadius_SU);
+			// add frictional terms, if needed
+			if (gran_params->friction_mode != CHGPU_FRICTION_MODE::FRICTIONLESS) {
+				float3 their_omega = make_float3(sphere_data->sphere_Omega_X[theirSphereID],
+												 sphere_data->sphere_Omega_Y[theirSphereID],
+												 sphere_data->sphere_Omega_Z[theirSphereID]);
+				// delta_r * radius is dimensional vector to center of contact point
+				// (omega_b cross r_b - omega_a cross r_a), where r_b  = -r_a = delta_r * radius
+				// add tangential components if they exist, these are automatically tangential from the cross
+				// product
+				vrel_t = vrel_t + Cross((my_omega + their_omega), -1.f * delta_r * sphereRadius_SU);
 
-                    // compute alpha due to rolling resistance (zero if rolling mode is no resistance)
-                    float3 rolling_resist_ang_acc = computeRollingAngAcc(
-                        sphere_data, gran_params, gran_params->rolling_coeff_s2s_SU, gran_params->spinning_coeff_s2s_SU,
-                        force_accum, my_omega, their_omega, delta_r * sphereRadius_SU);
-                    bodyA_AngAcc = bodyA_AngAcc + rolling_resist_ang_acc;
+				// compute alpha due to rolling resistance (zero if rolling mode is no resistance)
+				float3 rolling_resist_ang_acc = computeRollingAngAcc(
+					sphere_data, gran_params, gran_params->rolling_coeff_s2s_SU, gran_params->spinning_coeff_s2s_SU,
+					force_accum, my_omega, their_omega, delta_r * sphereRadius_SU);
+				bodyA_AngAcc = bodyA_AngAcc + rolling_resist_ang_acc;
 
-                    const float m_eff = gran_params->sphere_mass_SU / 2.f;
+				const float m_eff = gran_params->sphere_mass_SU / 2.f;
 
-                    float3 tangent_force = computeFrictionForces(
-                        gran_params, sphere_data, body_A_offset + contact_id, gran_params->static_friction_coeff_s2s,
-                        gran_params->K_t_s2s_SU, gran_params->Gamma_t_s2s_SU, hertz_force_factor, m_eff, force_accum,
-                        vrel_t, delta_r * reciplength);
+				float3 tangent_force = computeFrictionForces(
+					gran_params, sphere_data, body_A_offset + contact_id, gran_params->static_friction_coeff_s2s,
+					gran_params->K_t_s2s_SU, gran_params->Gamma_t_s2s_SU, hertz_force_factor, m_eff, force_accum,
+					vrel_t, delta_r * reciplength);
 
-                    if (gran_params->recording_contactInfo == true){
-                        // record friction force
-                        sphere_data->tangential_friction_force[body_A_offset + contact_id] = tangent_force;
-                        // record rolling resistance torque
-                        float3 rolling_resistance_torque = rolling_resist_ang_acc * gran_params->sphereInertia_by_r * gran_params->sphereRadius_SU;
-                        if (gran_params->rolling_mode != CHGPU_ROLLING_MODE::NO_RESISTANCE){
-                            sphere_data->rolling_friction_torque[body_A_offset + contact_id] = rolling_resistance_torque;
-                        }
-                    }
+				if (gran_params->recording_contactInfo == true){
+					// record friction force
+					sphere_data->tangential_friction_force[body_A_offset + contact_id] = tangent_force;
+					// record rolling resistance torque
+					float3 rolling_resistance_torque = rolling_resist_ang_acc * gran_params->sphereInertia_by_r * gran_params->sphereRadius_SU;
+					if (gran_params->rolling_mode != CHGPU_ROLLING_MODE::NO_RESISTANCE){
+						sphere_data->rolling_friction_torque[body_A_offset + contact_id] = rolling_resistance_torque;
+					}
+				}
 
-                    // tau = r cross f = radius * n cross F
-                    // 2 * radius * n = -1 * delta_r * sphdiameter
-                    // assume abs(r) ~ radius, so n = delta_r
-                    // compute accelerations caused by torques on body
-                    bodyA_AngAcc = bodyA_AngAcc + Cross(-1 * delta_r, tangent_force) / gran_params->sphereInertia_by_r;
-                    // add to total forces
-                    force_accum = force_accum + tangent_force;
-                }
+				// tau = r cross f = radius * n cross F
+				// 2 * radius * n = -1 * delta_r * sphdiameter
+				// assume abs(r) ~ radius, so n = delta_r
+				// compute accelerations caused by torques on body
+				bodyA_AngAcc = bodyA_AngAcc + Cross(-1 * delta_r, tangent_force) / gran_params->sphereInertia_by_r;
+				// add to total forces
+				force_accum = force_accum + tangent_force;
+			}
 
-                // Add cohesion term against contact normal
-                // delta_r * reciplength is contact normal
-                force_accum =
-                    force_accum - gran_params->sphere_mass_SU * gran_params->cohesionAcc_s2s * delta_r * reciplength;
+			// Add cohesion term against contact normal
+			// delta_r * reciplength is contact normal
+			force_accum =
+				force_accum - gran_params->sphere_mass_SU * gran_params->cohesionAcc_s2s * delta_r * reciplength;
 
-                // finally, we add this per-contact accumulator to the total force
-                bodyA_force = bodyA_force + force_accum;
-            }
+			// finally, we add this per-contact accumulator to the total force
+			bodyA_force = bodyA_force + force_accum;
         }
         
         // add in gravity and wall forces
