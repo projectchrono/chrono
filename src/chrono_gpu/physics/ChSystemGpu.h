@@ -164,8 +164,14 @@ class CH_GPU_API ChSystemGpu {
     /// Prescribe the motion of the big domain, allows wavetank-style simulations.
     void setBDWallsMotionFunction(const GranPositionFunction& pos_fn);
 
+    /// Return current simulation time.
+    float GetSimTime() const;
+
     /// Return the total number of particles in the system
     size_t GetNumParticles() const;
+
+    /// Return the radius of a spherical particle.
+    float GetParticleRadius() const;
 
     /// Return the maximum Z position over all particles.
     double GetMaxParticleZ() const;
