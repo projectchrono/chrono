@@ -48,7 +48,7 @@ namespace chrono {
 
 		// if position free skip completely
 		if (!r_free) {
-			ChVector<> nr = getQdelta();
+			ChVector<> nr = -getQdelta();
 			double theta = nr.Length();
 			if (nr.Normalize()) {
 				ChVector<> nr1 = Body1->GetRot().RotateBack(nr);
@@ -70,7 +70,7 @@ namespace chrono {
 				// {q_dt} = 1/2 {0,w}*{q}
 				//dq1.Qdt_from_Wrel(Rot1, Body1->GetRot());
 				// q1 = q0 + dq/dt * h
-				ChQuaternion<> qnew1 = Body1->GetRot() - Body1->GetRot()*Rot1*0.5;
+				ChQuaternion<> qnew1 = Body1->GetRot() + Body1->GetRot()*Rot1*0.5;
 				qnew1.Normalize();
 				Body1->SetRot(qnew1);
 
@@ -78,7 +78,7 @@ namespace chrono {
 				// {q_dt} = 1/2 {0,w}*{q}
 				//dq2.Qdt_from_Wrel(Rot2, Body2->GetRot());
 				// q1 = q0 + dq/dt * h
-				ChQuaternion<> qnew2 = Body2->GetRot() + Body2->GetRot()*Rot2*0.5;
+				ChQuaternion<> qnew2 = Body2->GetRot() - Body2->GetRot()*Rot2*0.5;
 				qnew2.Normalize();
 				Body2->SetRot(qnew2);
 			}
@@ -171,7 +171,7 @@ namespace chrono {
 				q_act.Q_from_AngAxis(alpha, a);
 				qdelta = q_act*ql1*ql2.GetConjugate();
 			}
-			return qdelta.GetVector() * 2;
+			return qdelta.GetVector() * (-2);
 		}
 		else {
 			// eq 20: get the rotational DOF directions in the abs frame
