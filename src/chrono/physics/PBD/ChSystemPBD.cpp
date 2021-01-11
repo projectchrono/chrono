@@ -172,11 +172,17 @@ namespace chrono {
 				auto pbdlink = chrono_types::make_shared<ChLinkPBDMate>(linkmg, this);
 				linklistPBD.push_back(pbdlink);
 			}
+			else if (dynamic_cast<const ChLinkUniversal*>(value.get()) != nullptr) {
+				ChLinkUniversal* linkmg = dynamic_cast<ChLinkUniversal*>(value.get());
+				auto pbdlink = chrono_types::make_shared<ChLinkPBDUniversal>(linkmg, this);
+				linklistPBD.push_back(pbdlink);
+			}
 			else if (dynamic_cast<const ChLinkTSDA*>(value.get()) != nullptr || dynamic_cast<const ChLinkRotSpringCB*>(value.get()) != nullptr) {
 				continue;
 			}
 			else
 			{
+				std::cout << "Link not managed by PBD implementation\n";
 				throw std::invalid_argument("One or more of the system links cannot be treated as PBD link");
 			}
 

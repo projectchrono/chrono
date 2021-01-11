@@ -26,6 +26,7 @@
 #include "chrono/physics/ChLinkMotorRotationAngle.h"
 #include "chrono/physics/ChLinkMotorLinearSpeed.h"
 #include "chrono/physics/ChLinkMotorRotationTorque.h"
+#include "chrono/physics/ChLinkUniversal.h"
 
 namespace chrono {
 	
@@ -110,7 +111,7 @@ namespace chrono {
 		double old_val = 0;
 
 		/// evaluate the quaternion correction depending on rot DOF
-		ChVector<> getQdelta();
+		virtual ChVector<> getQdelta();
 
 		/// evaluate the quaternion correction depending on rot DOF
 		void findRDOF();
@@ -133,7 +134,7 @@ namespace chrono {
 
 	CH_CLASS_VERSION(ChLinkPBD, 0)
 
-		class ChApi ChLinkPBDLock : public ChLinkPBD {
+	class ChApi ChLinkPBDLock : public ChLinkPBD {
 		public:
 			ChLinkLock* link;
 			/// Create a LinkPBD
@@ -169,22 +170,22 @@ namespace chrono {
 
 	CH_CLASS_VERSION(ChLinkPBDMate, 0)
 
-		class ChApi ChLinkPBDMotor : public ChLinkPBDMate {
-		public:
-			ChLinkMotor* MGlink;
-			/// Create a LinkPBD
-			ChLinkPBDMotor(ChLinkMotor* alink, ChSystemPBD* sys);
+	class ChApi ChLinkPBDMotor : public ChLinkPBDMate {
+	public:
+		ChLinkMotor* MGlink;
+		/// Create a LinkPBD
+		ChLinkPBDMotor(ChLinkMotor* alink, ChSystemPBD* sys);
 
-			/// Copy constructor
-			//ChLinkPBD(const ChLinkPBD& other);
+		/// Copy constructor
+		//ChLinkPBD(const ChLinkPBD& other);
 
-			/// Destructor
-			virtual ~ChLinkPBDMotor() {};
+		/// Destructor
+		virtual ~ChLinkPBDMotor() {};
 
 
-	};
+};
 
-	CH_CLASS_VERSION(ChLinkPBDMotor, 0)
+CH_CLASS_VERSION(ChLinkPBDMotor, 0)
 
 
 	class ChApi ChContactPBD : public ChLinkPBD {
@@ -227,6 +228,24 @@ namespace chrono {
 	};
 
 	CH_CLASS_VERSION(ChContactPBD, 0);
+
+	class ChApi ChLinkPBDUniversal : public ChLinkPBD{
+	public:
+		ChLinkUniversal* Ulink;
+		/// Create a LinkPBD
+		ChLinkPBDUniversal(ChLinkUniversal* alink, ChSystemPBD* sys);
+
+		/// Copy constructor
+		//ChLinkPBD(const ChLinkPBD& other);
+
+		/// Destructor
+		virtual ~ChLinkPBDUniversal() {};
+
+		ChVector<> getQdelta()override;
+	};
+
+	CH_CLASS_VERSION(ChLinkPBDUniversal, 0)
+
 	/*
 	/// PBD method timesteppers.
 	class ChApi ChTimestepperPBD : public ChTimestepperIorder {

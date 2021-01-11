@@ -29,7 +29,7 @@
 
 namespace chrono {
 
-		void ChLinkPBD::EvalMasses() {
+	void ChLinkPBD::EvalMasses() {
 		invm1 = (1 / Body1->GetMass());
 		invm2 = (1 / Body2->GetMass());
 		Inv_I1 = Body1->GetInvInertia();
@@ -64,21 +64,21 @@ namespace chrono {
 
 				ChVector<> pr = delta_lambda_t * nr;
 
-				ChQuaternion<> dq1, dq2, qnew1, qnew2;
+				//ChQuaternion<> dq1, dq2, qnew1, qnew2;
 
-				ChVector<> Rot1 = Inv_I1 * Body1->GetRot().RotateBack(pr).eigen();
+				ChQuaternion<> Rot1(0, Inv_I1 * Body1->GetRot().RotateBack(pr).eigen());
 				// {q_dt} = 1/2 {0,w}*{q}
-				dq1.Qdt_from_Wrel(Rot1, Body1->GetRot());
+				//dq1.Qdt_from_Wrel(Rot1, Body1->GetRot());
 				// q1 = q0 + dq/dt * h
-				qnew1 = Body1->GetRot() + dq1;
+				ChQuaternion<> qnew1 = Body1->GetRot() - Body1->GetRot()*Rot1*0.5;
 				qnew1.Normalize();
 				Body1->SetRot(qnew1);
 
-				ChVector<> Rot2 = Inv_I2 * Body2->GetRot().RotateBack(pr).eigen();
+				ChQuaternion<> Rot2(0, Inv_I2 * Body2->GetRot().RotateBack(pr).eigen());
 				// {q_dt} = 1/2 {0,w}*{q}
-				dq2.Qdt_from_Wrel(Rot2, Body2->GetRot());
+				//dq2.Qdt_from_Wrel(Rot2, Body2->GetRot());
 				// q1 = q0 + dq/dt * h
-				qnew2 = Body2->GetRot() - dq2;
+				ChQuaternion<> qnew2 = Body2->GetRot() + Body2->GetRot()*Rot2*0.5;
 				qnew2.Normalize();
 				Body2->SetRot(qnew2);
 			}
@@ -154,7 +154,6 @@ namespace chrono {
 
 	ChVector<> ChLinkPBD::getQdelta() {
 		// Orientation of the 2 link frames
-		// TODO: this should be the opposite
 		ChQuaternion<> ql1 = f1.GetCoord().rot * Body1->GetRot();
 		ChQuaternion<> ql2 = f2.GetCoord().rot * Body2->GetRot();
 		if (r_locked) {
@@ -185,7 +184,7 @@ namespace chrono {
 
 	ChVector<> ChLinkPBD::ApplyDisplLimAct(ChVector<> local_disp) {
 		ChVector<> correction;
-		if (displ_actuated){
+		if (displ_actuated) {
 			double targ = motor_func->Get_y(PBDsys->T);
 			if (speed_actuated) {
 				targ *= PBDsys->h;
@@ -201,7 +200,7 @@ namespace chrono {
 				}
 			}
 		}
-	return correction;
+		return correction;
 	}
 
 	ChLinkPBDLock::ChLinkPBDLock(ChLinkLock* alink, ChSystemPBD* sys) : ChLinkPBD(sys) {
@@ -237,7 +236,7 @@ namespace chrono {
 		if (limx.IsActive()) {
 			is_displ_limited = true;
 			displ_lims[0] = true;
-			displ_lims_low[0]  = limx.GetMin();
+			displ_lims_low[0] = limx.GetMin();
 			displ_lims_high[0] = limx.GetMax();
 		}
 		if (limy.IsActive()) {
@@ -290,7 +289,7 @@ namespace chrono {
 	}
 
 	ChLinkPBDMotor::ChLinkPBDMotor(ChLinkMotor* alink, ChSystemPBD* sys) : ChLinkPBDMate(alink, sys) {
-		
+
 		/// The constraint part is managed by ChLinkMate. Here we only add the actuation here.
 		/// We only manage speed and position actuators 
 		/// force/torque actuators come "for free".
@@ -399,7 +398,7 @@ namespace chrono {
 				ChVector<> n_loc = (q.RotateBack(n0))*p_dir;
 				// Now we bring the violation back in global coord and normaize it after saving its length
 				ChVector<> n_tf = q.Rotate(n_loc);
-				
+
 				double C = n_tf.Length();
 				if (n_tf.Normalize()) {
 
@@ -464,7 +463,7 @@ namespace chrono {
 				double ft = abs(lambda_contact_tf) / (h*h);
 				// eq. 30
 				// TODO: this is taken from the paper but does not make sense dimensionally
-				double threshold = h * ft * (w1_tf+ w2_tf);
+				double threshold = h * ft * (w1_tf + w2_tf);
 				if (vt < threshold) {
 					is_dynamic = false;
 					delta_vt = -v_rel_t;
@@ -472,7 +471,7 @@ namespace chrono {
 				else {
 					delta_vt = -v_rel_t.GetNormalized() * threshold;
 				}
-				p += (delta_vt)/ (w1_tf + w2_tf);
+				p += (delta_vt) / (w1_tf + w2_tf);
 			}
 
 			// normal speed restitution
@@ -497,6 +496,48 @@ namespace chrono {
 			//p1_old = Body1->GetPos() + Body1->GetRot().Rotate(f1.coord.pos);
 			//p2_old = Body2->GetPos() + Body2->GetRot().Rotate(f2.coord.pos);
 		}
+	}
+
+	ChLinkPBDUniversal::ChLinkPBDUniversal(ChLinkUniversal* alink, ChSystemPBD* sys) : ChLinkPBD(sys) {
+		Ulink = alink;
+		Body1 = dynamic_cast<ChBody*>(alink->GetBody1());
+		Body2 = dynamic_cast<ChBody*>(alink->GetBody2());
+		f1 = ChFrame<>(alink->GetFrame1Rel());
+		f2 = ChFrame<>(alink->GetFrame2Rel());
+		// The universal link constraints all 3 displ DOF
+		mask[0] = true;
+		mask[1] = true;
+		mask[2] = true;
+		// The rotation is custom, these are only placeholders.
+		mask[3] = false;
+		mask[4] = false;
+		mask[5] = false;
+		p_dir.Set(int(mask[0]), int(mask[1]), int(mask[2]));
+		p_free = false;
+		r_free = false;
+		a = VECT_X;
+		EvalMasses();
+	}
+
+	ChVector<> ChLinkPBDUniversal::getQdelta() {
+		// Orientation of the 2 link frames
+		ChQuaternion<> ql1 = f1.GetCoord().rot * Body1->GetRot();
+		ChQuaternion<> ql2 = f2.GetCoord().rot * Body2->GetRot();
+		// eq 20: get the rotational DOF directions in the abs frame
+		// ChLinkUniversal constraints 2 y to be othogonal to 1 x. 
+		// In this case 2 y (a) is the normalized projection of y on the 1 z-y plane
+		//ChVector<> a1 = (ql2.Rotate(a).Dot(ql1.Rotate(VECT_Y)))*ql1.Rotate(VECT_Y) + (ql2.Rotate(a).Dot(ql1.Rotate(VECT_Z)))*ql1.Rotate(VECT_Z);
+		ChVector<> a1 = ql2.Rotate(a) - (ql2.Rotate(a).Dot(ql1.Rotate(VECT_Y))*ql1.Rotate(VECT_Y));
+		a1.Normalize();
+		ChVector<> a2 = ql2.Rotate(a);
+		//ChVector<> a1 = ql1.Rotate(VECT_X);
+		ChVector<> deltarot = -a2 % a1;
+		//deltarot.Normalize();
+		//deltarot *= -ql2.Rotate(a).Dot(ql1.Rotate(VECT_X));
+		ChVector<> u1 = Ulink->GetFrame1Abs().GetA().Get_A_Xaxis();
+		ChVector<> v2 = Ulink->GetFrame2Abs().GetA().Get_A_Yaxis();
+		double err = Vdot(u1, v2);
+		return deltarot;
 	}
 
 	/*ChLinkPBD::ChLinkPBD(const ChLinkPBD& other) :  p_dir(ChVector<>(0, 0, 0)), r_dir(ChVector<>(0, 0, 0)), f1(ChFrame<double>(VNULL)), f2(ChFrame<double>(VNULL)), p_free(false), r_free(false) {
