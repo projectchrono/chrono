@@ -7,38 +7,23 @@
 option(ENABLE_MODULE_PARDISO_PROJECT "Enable the Chrono PardisoProject module" OFF)
 
 if(NOT ENABLE_MODULE_PARDISO_PROJECT)
-    mark_as_advanced(FORCE PARDISOPROJECT_ROOT)
     return()
 endif()
 
 message(STATUS "==== Chrono PardisoProject module ====")
 
-mark_as_advanced(CLEAR PARDISOPROJECT_ROOT)
-
-
 # ------------------------------------------------------------------------------
 # Dependencies for Chrono PardisoProject module
 # ------------------------------------------------------------------------------
 # ------------------ PardisoProject
-message(STATUS "Find PardisoProject library")
 
-UNSET(PARDISOPROJECT_LIBRARIES CACHE)
+SET(PARDISOPROJECT_LIBRARIES "C:/workspace/libraries/pardisoproject/libpardiso600-WIN-X86-64.lib" CACHE FILEPATH "Location of Pardiso Project import (.lib) library")
 
-find_library(PARDISOPROJECT_LIBRARIES
-          "libpardiso600-WIN-X86-64.lib"
-          HINTS ${PARDISOPROJECT_ROOT}
-          )
-
-message(STATUS "   PARDISOPROJECT_LIBRARIES is: ${PARDISOPROJECT_LIBRARIES}")
-
-
-
-if(NOT PARDISOPROJECT_LIBRARIES)
-	set(PARDISOPROJECT_ROOT "C:/workspace/libraries/pardisoproject" CACHE PATH "Location of PardisoProject library")
-	RETURN()
+if(NOT EXISTS "${PARDISOPROJECT_LIBRARIES}")
+  MESSAGE(SEND_ERROR "The Pardiso Project library set as \"${PARDISOPROJECT_LIBRARIES}\" does not exist.")
+  RETURN()
 else()
-  MARK_AS_ADVANCED(FORCE PARDISOPROJECT_ROOT)
-	MARK_AS_ADVANCED(FORCE PARDISOPROJECT_LIBRARIES)
+  MESSAGE(STATUS "  PardisoProject library found: ${PARDISOPROJECT_LIBRARIES}")
 endif()
 
 set(PARDISOPROJECT_LIBRARIES "${PARDISOPROJECT_LIBRARIES}" PARENT_SCOPE)
@@ -65,7 +50,7 @@ include_directories(${CH_PARDISOPROJECT_INCLUDES})
 set(CH_PARDISOPROJECT_INCLUDES "${CH_PARDISOPROJECT_INCLUDES}" PARENT_SCOPE)
 
 # ------------------------------------------------------------------------------
-# List all files in the Chrono mkl module
+# List all files in the Chrono PardisoProject module
 # ------------------------------------------------------------------------------
 
 set(ChronoEngine_PARDISOPROJECT_HEADERS
