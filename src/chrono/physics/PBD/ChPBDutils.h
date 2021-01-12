@@ -56,8 +56,8 @@ namespace chrono {
 		ChBody* Body1;
 		ChBody* Body2;
 		// Relative Position of the link w.r.t. body 1 & 2 respectively
-		ChFrame<double> f1;
-		ChFrame<double> f2;
+		ChFrame<> f1;
+		ChFrame<> f2;
 		// mass properties
 		double invm1;
 		double invm2;
@@ -77,6 +77,8 @@ namespace chrono {
 		// Rotational DOF
 		bool r_locked = false;
 		ChVector<> a = VNULL;
+		// variable true for distance constraints
+		bool dist_constr = false;
 		// Lagrangian of force and torque
 		double lambda_f = 0;
 		double lambda_t = 0;
@@ -246,6 +248,23 @@ CH_CLASS_VERSION(ChLinkPBDMotor, 0)
 
 	CH_CLASS_VERSION(ChLinkPBDUniversal, 0)
 
+	class ChApi ChLinkPBDDistance : public ChLinkPBD {
+	public:
+		ChLinkDistance* link;
+		/// Create a LinkPBD
+		ChLinkPBDDistance(ChLinkDistance* alink, ChSystemPBD* sys);
+
+		/// Copy constructor
+		//ChLinkPBD(const ChLinkPBD& other);
+
+		/// Destructor
+		virtual ~ChLinkPBDDistance() {};
+
+		/// Translates the ChLinkLock limits into PBD formulation
+		void SetLimits();
+	};
+
+	CH_CLASS_VERSION(ChLinkPBDDistance, 0);
 	/*
 	/// PBD method timesteppers.
 	class ChApi ChTimestepperPBD : public ChTimestepperIorder {

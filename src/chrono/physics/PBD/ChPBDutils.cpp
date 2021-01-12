@@ -91,10 +91,8 @@ namespace chrono {
 			// Constraint dist in absolute reference 
 			ChVector<> r1 = Body1->GetRot().Rotate(f1.coord.pos);
 			ChVector<> r2 = Body2->GetRot().Rotate(f2.coord.pos);
-			//ChVector<> n0 = Body2->TransformPointLocalToParent(f2.coord.pos) - Body1->TransformPointLocalToParent(f1.coord.pos);
 			ChVector<> n0 = Body1->GetPos() + r1 - (Body2->GetPos() + r2);
 			// Rotation of the link frame w.r.t. global frame
-			// TODO: double check this
 			ChQuaternion<> q = f1.coord.rot * Body1->GetRot();
 			// get rid of unconstrained directions by element wise multiplication in the link frame reference
 			ChVector<> n_loc = q.RotateBack(n0)*p_dir;
@@ -103,6 +101,12 @@ namespace chrono {
 			// Now we bring the violation back in global coord and normaize it after saving its length
 			ChVector<> nt = q.Rotate(n_loc);
 			double C = nt.Length();
+			if (dist_constr) {
+				if (displ_lims_low[0] < C < displ_lims_high[0]) { return; }
+				double max_violation = ChMax(C - displ_lims_high[0], 0.0);
+				double min_violation = ChMin(C - displ_lims_low[0], 0.0);
+				C = max_violation + min_violation;
+			}
 
 			if (nt.Normalize()) {
 				lambda_f_dir = nt;
@@ -532,14 +536,31 @@ namespace chrono {
 		ChVector<> a2 = ql2.Rotate(a);
 		//ChVector<> a1 = ql1.Rotate(VECT_X);
 		ChVector<> deltarot = -a2 % a1;
-		//deltarot.Normalize();
-		//deltarot *= -ql2.Rotate(a).Dot(ql1.Rotate(VECT_X));
-		ChVector<> u1 = Ulink->GetFrame1Abs().GetA().Get_A_Xaxis();
-		ChVector<> v2 = Ulink->GetFrame2Abs().GetA().Get_A_Yaxis();
-		double err = Vdot(u1, v2);
 		return deltarot;
 	}
 
+
+	ChLinkPBDDistance::ChLinkPBDDistance(ChLinkDistance* alink, ChSystemPBD* sys) : ChLinkPBD(sys) {
+		link = alink;
+		Body1 = dynamic_cast<ChBody*>(link->GetBody2());
+		Body2 = dynamic_cast<ChBody*>(link->GetBody1());
+		f1 = ChFrame<>(link->GetEndPoint2Rel());
+		f2 = ChFrame<>(link->GetEndPoint1Rel());
+		mask[0] = true;
+		mask[1] = true;
+		mask[2] = true;
+		mask[3] = false;
+		mask[4] = false;
+		mask[5] = false;
+		p_dir.Set(1,1,1);
+		p_free = false;
+		r_free = true;
+		EvalMasses();
+		dist_constr = true;
+		double d = link->GetImposedDistance();
+		displ_lims_low[3] = d - 1E-4;
+		displ_lims_high[3] = d + 1E-4;
+	}
 	/*ChLinkPBD::ChLinkPBD(const ChLinkPBD& other) :  p_dir(ChVector<>(0, 0, 0)), r_dir(ChVector<>(0, 0, 0)), f1(ChFrame<double>(VNULL)), f2(ChFrame<double>(VNULL)), p_free(false), r_free(false) {
 	ChLinkPBD(other.link);
 	}*/

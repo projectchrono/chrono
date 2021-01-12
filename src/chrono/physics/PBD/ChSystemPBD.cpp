@@ -177,6 +177,11 @@ namespace chrono {
 				auto pbdlink = chrono_types::make_shared<ChLinkPBDUniversal>(linkmg, this);
 				linklistPBD.push_back(pbdlink);
 			}
+			else if (dynamic_cast<const ChLinkDistance*>(value.get()) != nullptr) {
+				ChLinkDistance* linkmg = dynamic_cast<ChLinkDistance*>(value.get());
+				auto pbdlink = chrono_types::make_shared<ChLinkPBDDistance>(linkmg, this);
+				linklistPBD.push_back(pbdlink);
+			}
 			else if (dynamic_cast<const ChLinkTSDA*>(value.get()) != nullptr || dynamic_cast<const ChLinkRotSpringCB*>(value.get()) != nullptr) {
 				continue;
 			}
