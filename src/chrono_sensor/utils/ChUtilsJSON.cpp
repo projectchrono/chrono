@@ -290,7 +290,7 @@ std::shared_ptr<ChLidarSensor> ReadLidarSensorJSON(const std::string& filename,
     // float exposure_time = properties["Collection Window"].GetFloat();
 
     unsigned int sample_radius = 1;
-    float divergence_angle = .003;
+    float divergence_angle = .003f;
     LidarReturnMode return_mode = STRONGEST_RETURN;
     LidarModelType lidar_model = RAYCAST;
 
