@@ -61,6 +61,7 @@ if (VULKAN_SDK)
 endif()
 
 find_package(vsg REQUIRED)
+find_package(vsgImGui REQUIRED)
 find_package(vsgXchange QUIET)
 
 # set the use of C++17 here as VSG requires it
@@ -82,9 +83,10 @@ target_compile_definitions(ChronoEngine_vsg PRIVATE "CH_API_COMPILE_VSG")
 TARGET_LINK_LIBRARIES(ChronoEngine_vsg
   ChronoEngine
   vsg::vsg
+  vsgImGui::vsgImGui
 )
 
-ADD_DEPENDENCIES (ChronoEngine_vsg ChronoEngine vsg::vsg)
+ADD_DEPENDENCIES (ChronoEngine_vsg ChronoEngine vsgImGui::vsgImGui vsg::vsg)
 
 
 #-------------------------------------------------------------------------------

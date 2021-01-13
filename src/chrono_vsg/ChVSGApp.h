@@ -28,6 +28,10 @@
 #include "chrono/assets/ChSphereShape.h"
 #include "chrono/assets/ChCylinderShape.h"
 
+#include <vsgImGui/RenderImGui.h>
+#include <vsgImGui/SendEventsToImGui.h>
+#include <vsgImGui/imgui.h>
+
 #include <vsg/all.h>
 
 namespace chrono {

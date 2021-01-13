@@ -34,6 +34,73 @@
 
 using namespace chrono::vsg3d;
 
+struct Params : public vsg::Inherit<vsg::Object, Params> {
+    bool showGui = true;  // you can toggle this with your own EventHandler and key
+    bool showDemoWindow = false;
+    bool showSecondWindow = false;
+    float clearColor[3]{0.2f, 0.2f, 0.4f};  // Unfortunately, this doesn't change dynamically in vsg
+    uint32_t counter = 0;
+    float dist = 0.f;
+};
+
+class MyGuiComponent {
+  public:
+    MyGuiComponent(vsg::ref_ptr<Params> params) : _params(params) {}
+
+    // Example here taken from the Dear imgui comments (mostly)
+    bool operator()() {
+        bool visibleComponents = false;
+
+        // 2. Show a simple window that we create ourselves. We use a Begin/End pair to created a named window.
+        if (_params->showGui) {
+            ImGui::Begin("Hello, world!");  // Create a window called "Hello, world!" and append into it.
+
+            ImGui::Text("Some useful message here.");  // Display some text (you can use a format strings too)
+            ImGui::Checkbox("Demo Window", &_params->showDemoWindow);  // Edit bools storing our window open/close state
+            ImGui::Checkbox("Another Window", &_params->showSecondWindow);
+            ImGui::SliderFloat("float", &_params->dist, 0.0f, 1.0f);  // Edit 1 float using a slider from 0.0f to 1.0f
+            ImGui::ColorEdit3("clear color", (float*)&_params->clearColor);  // Edit 3 floats representing a color
+
+            if (ImGui::Button(
+                    "Button"))  // Buttons return true when clicked (most widgets return true when edited/activated)
+                _params->counter++;
+
+            ImGui::SameLine();
+            ImGui::Text("counter = %d", _params->counter);
+
+            ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate,
+                        ImGui::GetIO().Framerate);
+            ImGui::End();
+
+            visibleComponents = true;
+        }
+
+        // 3. Show another simple window.
+        if (_params->showSecondWindow) {
+            ImGui::Begin("Another Window",
+                         &_params->showSecondWindow);  // Pass a pointer to our bool variable (the window will have a
+                                                       // closing button that will clear the bool when clicked)
+            ImGui::Text("Hello from another window!");
+            if (ImGui::Button("Close Me"))
+                _params->showSecondWindow = false;
+            ImGui::End();
+
+            visibleComponents = true;
+        }
+
+        if (_params->showDemoWindow) {
+            ImGui::ShowDemoWindow(&_params->showDemoWindow);
+
+            visibleComponents = true;
+        }
+
+        return visibleComponents;
+    }
+
+  private:
+    vsg::ref_ptr<Params> _params;
+};
+
 ChVSGApp::ChVSGApp()
     : m_horizonMountainHeight(0.0),
       m_timeStep(0.001),
@@ -167,8 +234,22 @@ bool ChVSGApp::Initialize(int windowWidth, int windowHeight, const char* windowT
     auto camera = vsg::Camera::create(perspective, lookAt, vsg::ViewportState::create(m_window->extent2D()));
 
     // setup texture pool
-    setupTexPool(m_window, camera->getViewportState(), 128);
-    compile(m_scenegraph);
+    // setupTexPool(m_window, camera->getViewportState(), 128);
+    // compile(m_scenegraph);
+
+    auto commandGraph = vsg::createCommandGraphForView(m_window, camera, m_scenegraph);
+    auto renderGraph = vsg::RenderGraph::create(m_window);
+    commandGraph->addChild(renderGraph);
+
+    // create the normal 3D view of the scene
+    renderGraph->addChild(vsg::View::create(camera, m_scenegraph));
+
+    // Create the ImGui node and add it to the renderGraph
+    auto params = Params::create();
+    renderGraph->addChild(vsgImGui::RenderImGui::create(m_window, MyGuiComponent(params)));
+
+    // Add the ImGui event handler first to handle events early
+    m_viewer->addEventHandler(vsgImGui::SendEventsToImGui::create());
 
     // add close handler to respond to pressing the window close window button and pressing escape
     m_viewer->addEventHandler(::vsg::CloseHandler::create(m_viewer));
@@ -176,7 +257,6 @@ bool ChVSGApp::Initialize(int windowWidth, int windowHeight, const char* windowT
     // add a trackball event handler to control the camera view use the mouse
     m_viewer->addEventHandler(::vsg::Trackball::create(camera));
 
-    auto commandGraph = vsg::createCommandGraphForView(m_window, camera, m_scenegraph);
     m_viewer->assignRecordAndSubmitTaskAndPresentation({commandGraph});
 
     m_viewer->compile();
