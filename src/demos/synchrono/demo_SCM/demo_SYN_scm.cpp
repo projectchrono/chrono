@@ -22,6 +22,8 @@
 //
 // =============================================================================
 
+#include <chrono>
+
 #include "chrono/core/ChRealtimeStep.h"
 
 #include "chrono_vehicle/ChConfigVehicle.h"
