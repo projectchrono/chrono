@@ -39,14 +39,8 @@ typedef flatbuffers::Offset<SynFlatBuffers::Message> FlatBufferMessage;
 /// Will be inherited from to create new message types
 class SynMessage {
   public:
-    ///@brief Constructor
-    ///
-    ///@param source_id the id of the source to which the message is sent from
-    ///@param destination_id the id of the destination to which the message is sent to
-    SynMessage(unsigned int source_id, unsigned int destination_id);
-
     ///@brief Destroy the SynMessage object
-    virtual ~SynMessage();
+    virtual ~SynMessage() {}
 
     ///@brief Converts a received flatbuffer message to a SynMessage
     ///
@@ -77,6 +71,13 @@ class SynMessage {
     double time;  ///< simulation time
 
   protected:
+    ///@brief Constructor
+    ///
+    ///@param source_id the id of the source to which the message is sent from
+    ///@param destination_id the id of the destination to which the message is sent to
+    SynMessage(unsigned int source_id, unsigned int destination_id)
+        : m_source_id(source_id), m_destination_id(destination_id), time(0.0) {}
+
     unsigned int m_source_id;       ///< id for the source which sent this message
     unsigned int m_destination_id;  ///< id for the destination of this message
 };
