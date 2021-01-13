@@ -327,8 +327,8 @@ int main(int argc, char* argv[]) {
         100.0,                                                                    //
         1,                                                                        //
         0,                                                                        //
-        STRONGEST_RETURN,                                                         //
-        RAYCAST,                                                                  //
+        LidarReturnMode::STRONGEST_RETURN,                                                         //
+        LidarModelType::RAYCAST,                                                                  //
         .1                                                                        //
     );
     lidar->SetName("Lidar Sensor");
