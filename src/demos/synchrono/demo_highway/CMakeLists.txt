@@ -2,6 +2,11 @@
 # List of demos according their dependencies
 # ------------------------------------------------------------------------------
 
+# Requires Irrlicht run-time visualization.
+if(NOT ENABLE_MODULE_IRRLICHT)
+  return()
+endif()
+
 set(DEMOS
 	demo_SYN_highway
 )

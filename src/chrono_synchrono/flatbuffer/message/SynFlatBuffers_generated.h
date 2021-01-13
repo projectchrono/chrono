@@ -118,6 +118,12 @@ struct State;
 
 }  // namespace Sensor
 
+namespace Simulation {
+
+struct State;
+
+}  // namespace Simulation
+
 struct Buffer;
 
 struct Message;
@@ -339,11 +345,12 @@ enum Type {
   Type_Terrain_State = 5,
   Type_Sensor_State = 6,
   Type_Approach_State = 7,
+  Type_Simulation_State = 8,
   Type_MIN = Type_NONE,
-  Type_MAX = Type_Approach_State
+  Type_MAX = Type_Simulation_State
 };
 
-inline const Type (&EnumValuesType())[8] {
+inline const Type (&EnumValuesType())[9] {
   static const Type values[] = {
     Type_NONE,
     Type_Agent_State,
@@ -352,13 +359,14 @@ inline const Type (&EnumValuesType())[8] {
     Type_MAP_State,
     Type_Terrain_State,
     Type_Sensor_State,
-    Type_Approach_State
+    Type_Approach_State,
+    Type_Simulation_State
   };
   return values;
 }
 
 inline const char * const *EnumNamesType() {
-  static const char * const names[9] = {
+  static const char * const names[10] = {
     "NONE",
     "Agent_State",
     "Agent_Description",
@@ -367,13 +375,14 @@ inline const char * const *EnumNamesType() {
     "Terrain_State",
     "Sensor_State",
     "Approach_State",
+    "Simulation_State",
     nullptr
   };
   return names;
 }
 
 inline const char *EnumNameType(Type e) {
-  if (e < Type_NONE || e > Type_Approach_State) return "";
+  if (e < Type_NONE || e > Type_Simulation_State) return "";
   const size_t index = static_cast<size_t>(e);
   return EnumNamesType()[index];
 }
@@ -408,6 +417,10 @@ template<> struct TypeTraits<SynFlatBuffers::Sensor::State> {
 
 template<> struct TypeTraits<SynFlatBuffers::Approach::State> {
   static const Type enum_value = Type_Approach_State;
+};
+
+template<> struct TypeTraits<SynFlatBuffers::Simulation::State> {
+  static const Type enum_value = Type_Simulation_State;
 };
 
 bool VerifyType(flatbuffers::Verifier &verifier, const void *obj, Type type);
@@ -1026,14 +1039,10 @@ namespace Approach {
 struct State FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_TIME = 4,
-    VT_RANK = 6,
-    VT_LANES = 8
+    VT_LANES = 6
   };
   double time() const {
     return GetField<double>(VT_TIME, 0.0);
-  }
-  int32_t rank() const {
-    return GetField<int32_t>(VT_RANK, 0);
   }
   const flatbuffers::Vector<flatbuffers::Offset<SynFlatBuffers::Approach::Lane>> *lanes() const {
     return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<SynFlatBuffers::Approach::Lane>> *>(VT_LANES);
@@ -1041,7 +1050,6 @@ struct State FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<double>(verifier, VT_TIME) &&
-           VerifyField<int32_t>(verifier, VT_RANK) &&
            VerifyOffset(verifier, VT_LANES) &&
            verifier.VerifyVector(lanes()) &&
            verifier.VerifyVectorOfTables(lanes()) &&
@@ -1054,9 +1062,6 @@ struct StateBuilder {
   flatbuffers::uoffset_t start_;
   void add_time(double time) {
     fbb_.AddElement<double>(State::VT_TIME, time, 0.0);
-  }
-  void add_rank(int32_t rank) {
-    fbb_.AddElement<int32_t>(State::VT_RANK, rank, 0);
   }
   void add_lanes(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<SynFlatBuffers::Approach::Lane>>> lanes) {
     fbb_.AddOffset(State::VT_LANES, lanes);
@@ -1076,25 +1081,21 @@ struct StateBuilder {
 inline flatbuffers::Offset<State> CreateState(
     flatbuffers::FlatBufferBuilder &_fbb,
     double time = 0.0,
-    int32_t rank = 0,
     flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<SynFlatBuffers::Approach::Lane>>> lanes = 0) {
   StateBuilder builder_(_fbb);
   builder_.add_time(time);
   builder_.add_lanes(lanes);
-  builder_.add_rank(rank);
   return builder_.Finish();
 }
 
 inline flatbuffers::Offset<State> CreateStateDirect(
     flatbuffers::FlatBufferBuilder &_fbb,
     double time = 0.0,
-    int32_t rank = 0,
     const std::vector<flatbuffers::Offset<SynFlatBuffers::Approach::Lane>> *lanes = nullptr) {
   auto lanes__ = lanes ? _fbb.CreateVector<flatbuffers::Offset<SynFlatBuffers::Approach::Lane>>(*lanes) : 0;
   return SynFlatBuffers::Approach::CreateState(
       _fbb,
       time,
-      rank,
       lanes__);
 }
 
@@ -1168,14 +1169,10 @@ namespace MAP {
 struct State FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_TIME = 4,
-    VT_RANK = 6,
-    VT_INTERSECTIONS = 8
+    VT_INTERSECTIONS = 6
   };
   double time() const {
     return GetField<double>(VT_TIME, 0.0);
-  }
-  int32_t rank() const {
-    return GetField<int32_t>(VT_RANK, 0);
   }
   const flatbuffers::Vector<flatbuffers::Offset<SynFlatBuffers::MAP::intersection>> *intersections() const {
     return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<SynFlatBuffers::MAP::intersection>> *>(VT_INTERSECTIONS);
@@ -1183,7 +1180,6 @@ struct State FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<double>(verifier, VT_TIME) &&
-           VerifyField<int32_t>(verifier, VT_RANK) &&
            VerifyOffset(verifier, VT_INTERSECTIONS) &&
            verifier.VerifyVector(intersections()) &&
            verifier.VerifyVectorOfTables(intersections()) &&
@@ -1196,9 +1192,6 @@ struct StateBuilder {
   flatbuffers::uoffset_t start_;
   void add_time(double time) {
     fbb_.AddElement<double>(State::VT_TIME, time, 0.0);
-  }
-  void add_rank(int32_t rank) {
-    fbb_.AddElement<int32_t>(State::VT_RANK, rank, 0);
   }
   void add_intersections(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<SynFlatBuffers::MAP::intersection>>> intersections) {
     fbb_.AddOffset(State::VT_INTERSECTIONS, intersections);
@@ -1218,25 +1211,21 @@ struct StateBuilder {
 inline flatbuffers::Offset<State> CreateState(
     flatbuffers::FlatBufferBuilder &_fbb,
     double time = 0.0,
-    int32_t rank = 0,
     flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<SynFlatBuffers::MAP::intersection>>> intersections = 0) {
   StateBuilder builder_(_fbb);
   builder_.add_time(time);
   builder_.add_intersections(intersections);
-  builder_.add_rank(rank);
   return builder_.Finish();
 }
 
 inline flatbuffers::Offset<State> CreateStateDirect(
     flatbuffers::FlatBufferBuilder &_fbb,
     double time = 0.0,
-    int32_t rank = 0,
     const std::vector<flatbuffers::Offset<SynFlatBuffers::MAP::intersection>> *intersections = nullptr) {
   auto intersections__ = intersections ? _fbb.CreateVector<flatbuffers::Offset<SynFlatBuffers::MAP::intersection>>(*intersections) : 0;
   return SynFlatBuffers::MAP::CreateState(
       _fbb,
       time,
-      rank,
       intersections__);
 }
 
@@ -1788,8 +1777,22 @@ inline flatbuffers::Offset<Description> CreateDescriptionDirect(
 namespace Environment {
 
 struct State FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
+    VT_MAP = 4,
+    VT_SPAT = 6
+  };
+  const SynFlatBuffers::Message *map() const {
+    return GetPointer<const SynFlatBuffers::Message *>(VT_MAP);
+  }
+  const SynFlatBuffers::Message *spat() const {
+    return GetPointer<const SynFlatBuffers::Message *>(VT_SPAT);
+  }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
+           VerifyOffset(verifier, VT_MAP) &&
+           verifier.VerifyTable(map()) &&
+           VerifyOffset(verifier, VT_SPAT) &&
+           verifier.VerifyTable(spat()) &&
            verifier.EndTable();
   }
 };
@@ -1797,6 +1800,12 @@ struct State FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
 struct StateBuilder {
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
+  void add_map(flatbuffers::Offset<SynFlatBuffers::Message> map) {
+    fbb_.AddOffset(State::VT_MAP, map);
+  }
+  void add_spat(flatbuffers::Offset<SynFlatBuffers::Message> spat) {
+    fbb_.AddOffset(State::VT_SPAT, spat);
+  }
   explicit StateBuilder(flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
@@ -1810,8 +1819,12 @@ struct StateBuilder {
 };
 
 inline flatbuffers::Offset<State> CreateState(
-    flatbuffers::FlatBufferBuilder &_fbb) {
+    flatbuffers::FlatBufferBuilder &_fbb,
+    flatbuffers::Offset<SynFlatBuffers::Message> map = 0,
+    flatbuffers::Offset<SynFlatBuffers::Message> spat = 0) {
   StateBuilder builder_(_fbb);
+  builder_.add_spat(spat);
+  builder_.add_map(map);
   return builder_.Finish();
 }
 
@@ -2316,6 +2329,38 @@ inline flatbuffers::Offset<State> CreateState(
 
 }  // namespace Sensor
 
+namespace Simulation {
+
+struct State FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  bool Verify(flatbuffers::Verifier &verifier) const {
+    return VerifyTableStart(verifier) &&
+           verifier.EndTable();
+  }
+};
+
+struct StateBuilder {
+  flatbuffers::FlatBufferBuilder &fbb_;
+  flatbuffers::uoffset_t start_;
+  explicit StateBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+        : fbb_(_fbb) {
+    start_ = fbb_.StartTable();
+  }
+  StateBuilder &operator=(const StateBuilder &);
+  flatbuffers::Offset<State> Finish() {
+    const auto end = fbb_.EndTable(start_);
+    auto o = flatbuffers::Offset<State>(end);
+    return o;
+  }
+};
+
+inline flatbuffers::Offset<State> CreateState(
+    flatbuffers::FlatBufferBuilder &_fbb) {
+  StateBuilder builder_(_fbb);
+  return builder_.Finish();
+}
+
+}  // namespace Simulation
+
 struct Buffer FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_BUFFER = 4
@@ -2371,7 +2416,8 @@ struct Message FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_MESSAGE_TYPE = 4,
     VT_MESSAGE = 6,
-    VT_RANK = 8
+    VT_SOURCE_ID = 8,
+    VT_DESTINATION_ID = 10
   };
   SynFlatBuffers::Type message_type() const {
     return static_cast<SynFlatBuffers::Type>(GetField<uint8_t>(VT_MESSAGE_TYPE, 0));
@@ -2401,15 +2447,22 @@ struct Message FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   const SynFlatBuffers::Approach::State *message_as_Approach_State() const {
     return message_type() == SynFlatBuffers::Type_Approach_State ? static_cast<const SynFlatBuffers::Approach::State *>(message()) : nullptr;
   }
-  uint32_t rank() const {
-    return GetField<uint32_t>(VT_RANK, 0);
+  const SynFlatBuffers::Simulation::State *message_as_Simulation_State() const {
+    return message_type() == SynFlatBuffers::Type_Simulation_State ? static_cast<const SynFlatBuffers::Simulation::State *>(message()) : nullptr;
+  }
+  uint32_t source_id() const {
+    return GetField<uint32_t>(VT_SOURCE_ID, 0);
+  }
+  uint32_t destination_id() const {
+    return GetField<uint32_t>(VT_DESTINATION_ID, 0);
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<uint8_t>(verifier, VT_MESSAGE_TYPE) &&
            VerifyOffset(verifier, VT_MESSAGE) &&
            VerifyType(verifier, message(), message_type()) &&
-           VerifyField<uint32_t>(verifier, VT_RANK) &&
+           VerifyField<uint32_t>(verifier, VT_SOURCE_ID) &&
+           VerifyField<uint32_t>(verifier, VT_DESTINATION_ID) &&
            verifier.EndTable();
   }
 };
@@ -2442,6 +2495,10 @@ template<> inline const SynFlatBuffers::Approach::State *Message::message_as<Syn
   return message_as_Approach_State();
 }
 
+template<> inline const SynFlatBuffers::Simulation::State *Message::message_as<SynFlatBuffers::Simulation::State>() const {
+  return message_as_Simulation_State();
+}
+
 struct MessageBuilder {
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
@@ -2451,8 +2508,11 @@ struct MessageBuilder {
   void add_message(flatbuffers::Offset<void> message) {
     fbb_.AddOffset(Message::VT_MESSAGE, message);
   }
-  void add_rank(uint32_t rank) {
-    fbb_.AddElement<uint32_t>(Message::VT_RANK, rank, 0);
+  void add_source_id(uint32_t source_id) {
+    fbb_.AddElement<uint32_t>(Message::VT_SOURCE_ID, source_id, 0);
+  }
+  void add_destination_id(uint32_t destination_id) {
+    fbb_.AddElement<uint32_t>(Message::VT_DESTINATION_ID, destination_id, 0);
   }
   explicit MessageBuilder(flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
@@ -2470,9 +2530,11 @@ inline flatbuffers::Offset<Message> CreateMessage(
     flatbuffers::FlatBufferBuilder &_fbb,
     SynFlatBuffers::Type message_type = SynFlatBuffers::Type_NONE,
     flatbuffers::Offset<void> message = 0,
-    uint32_t rank = 0) {
+    uint32_t source_id = 0,
+    uint32_t destination_id = 0) {
   MessageBuilder builder_(_fbb);
-  builder_.add_rank(rank);
+  builder_.add_destination_id(destination_id);
+  builder_.add_source_id(source_id);
   builder_.add_message(message);
   builder_.add_message_type(message_type);
   return builder_.Finish();
@@ -2515,6 +2577,10 @@ namespace SCM {
 namespace Sensor {
 
 }  // namespace Sensor
+
+namespace Simulation {
+
+}  // namespace Simulation
 
 namespace Agent {
 
@@ -2625,6 +2691,10 @@ inline bool VerifyType(flatbuffers::Verifier &verifier, const void *obj, Type ty
     }
     case Type_Approach_State: {
       auto ptr = reinterpret_cast<const SynFlatBuffers::Approach::State *>(obj);
+      return verifier.VerifyTable(ptr);
+    }
+    case Type_Simulation_State: {
+      auto ptr = reinterpret_cast<const SynFlatBuffers::Simulation::State *>(obj);
       return verifier.VerifyTable(ptr);
     }
     default: return true;
