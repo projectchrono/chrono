@@ -48,7 +48,7 @@ namespace chrono {
 
 		// if position free skip completely
 		if (!r_free) {
-			ChVector<> nr = -getQdelta();
+			ChVector<> nr = getQdelta();
 			double theta = nr.Length();
 			if (nr.Normalize()) {
 				ChVector<> nr1 = Body1->GetRot().RotateBack(nr);
@@ -158,11 +158,11 @@ namespace chrono {
 
 	ChVector<> ChLinkPBD::getQdelta() {
 		// Orientation of the 2 link frames
-		ChQuaternion<> ql1 = f1.GetCoord().rot * Body1->GetRot();
-		ChQuaternion<> ql2 = f2.GetCoord().rot * Body2->GetRot();
+		ChQuaternion<> ql1 = f1.GetCoord().rot*Body1->GetRot();
+		ChQuaternion<> ql2 = f2.GetCoord().rot*Body2->GetRot();
 		if (r_locked) {
 			// eq. 18 PBD paper
-			ChQuaternion<> qdelta = ql1*ql2.GetConjugate();
+			ChQuaternion<> qdelta = ql1*ql2.GetInverse();
 			// For angle and speed rotational actuators: the target q is rotated of the target angle "alpha" about the rot axis "a"
 			if (rot_actuated) {
 				double alpha = motor_func->Get_y(PBDsys->T);
@@ -173,15 +173,15 @@ namespace chrono {
 				}
 				ChQuaternion<> q_act;
 				q_act.Q_from_AngAxis(alpha, a);
-				qdelta = q_act*ql1*ql2.GetConjugate();
+				qdelta = q_act*ql1*ql2.GetInverse();
 			}
-			return qdelta.GetVector() * (-2);
+			return qdelta.GetVector() * 2;
 		}
 		else {
 			// eq 20: get the rotational DOF directions in the abs frame
 			ChVector<> a1 = ql1.Rotate(a);
 			ChVector<> a2 = ql2.Rotate(a);
-			ChVector<> deltarot = a1 % a2;
+			ChVector<> deltarot = a2 % a1;
 			return deltarot;
 		}
 	}
@@ -535,7 +535,7 @@ namespace chrono {
 		a1.Normalize();
 		ChVector<> a2 = ql2.Rotate(a);
 		//ChVector<> a1 = ql1.Rotate(VECT_X);
-		ChVector<> deltarot = -a2 % a1;
+		ChVector<> deltarot = -a1 % a2;
 		return deltarot;
 	}
 
