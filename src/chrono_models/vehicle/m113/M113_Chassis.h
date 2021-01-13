@@ -38,7 +38,7 @@ class CH_MODELS_API M113_Chassis : public ChRigidChassis {
   public:
     M113_Chassis(const std::string& name,
                  bool fixed = false,
-                 ChassisCollisionType chassis_collision_type = ChassisCollisionType::NONE);
+                 CollisionType chassis_collision_type = CollisionType::NONE);
     ~M113_Chassis() {}
 
     /// Return the mass of the chassis body.

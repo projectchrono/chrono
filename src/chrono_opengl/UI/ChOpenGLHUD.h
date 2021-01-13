@@ -24,7 +24,7 @@
 #include "chrono_opengl/shapes/ChOpenGLBars.h"
 
 #include "chrono/physics/ChSystem.h"
-//#include "chrono_parallel/physics/ChSystemParallel.h"
+//#include "chrono_multicore/physics/ChSystemMulticore.h"
 
 namespace chrono {
 namespace opengl {

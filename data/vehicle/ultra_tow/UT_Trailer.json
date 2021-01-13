@@ -1,0 +1,24 @@
+{
+    "Name": "Ultra Tow 40x48",
+    "Type": "Trailer",
+    "Template": "WheeledTrailer",
+
+    "Chassis": {
+        "Input File": "ultra_tow/UT_Chassis.json"
+    },
+
+    "Connector": {
+        "Input File": "ultra_tow/UT_Hitch.json"
+    },
+
+    // Note: this trailer has no brakes
+
+    "Axles": [
+        {
+            "Suspension Input File": "ultra_tow/UT_LeafspringAxle.json",
+            "Suspension Location": [ 0, 0, -0.25 ],
+            "Left Wheel Input File": "ultra_tow/UT_Wheel.json",
+            "Right Wheel Input File": "ultra_tow/UT_Wheel.json"
+        }
+    ]
+}

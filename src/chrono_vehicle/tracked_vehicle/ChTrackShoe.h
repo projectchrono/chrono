@@ -32,6 +32,8 @@
 namespace chrono {
 namespace vehicle {
 
+class ChTrackAssembly;
+
 /// @addtogroup vehicle_tracked_shoe
 /// @{
 
@@ -84,15 +86,16 @@ class CH_VEHICLE_API ChTrackShoe : public ChPart {
                             const ChQuaternion<>& rotation          ///< [in] orientation relative to the chassis frame
                             ) = 0;
 
-    /// Connect this track shoe to the specified neighbor.
-    /// This function must be called only after all track shoes have been initialized.
-    virtual void Connect(std::shared_ptr<ChTrackShoe> next,  ///< [in] handle to the neighbor track shoe
-                         bool ccw                            ///< [in] track assembled in counter clockwise direction
-                         ) = 0;
-
   protected:
     /// Set the index of this track shoe within its containing track assembly.
     void SetIndex(size_t index) { m_index = index; }
+
+    /// Connect this track shoe to the specified neighbor.
+    /// This function must be called only after all track shoes have been initialized.
+    virtual void Connect(std::shared_ptr<ChTrackShoe> next,  ///< [in] handle to the neighbor track shoe
+                         ChTrackAssembly* assembly,          ///< [in] containing track assembly
+                         bool ccw                            ///< [in] track assembled in counter clockwise direction
+                         ) = 0;
 
     size_t m_index;                  ///< index of this track shoe within its containing track assembly
     std::shared_ptr<ChBody> m_shoe;  ///< handle to the shoe body

@@ -57,7 +57,7 @@ void ChSystemFsi::SetFluidIntegratorType(fluid_dynamics params_type) {
         std::cout << "fluid dynamics is reset to IISPH" << std::endl;
     } else if (params_type == fluid_dynamics::WCSPH) {
         fluidIntegrator = ChFluidDynamics::Integrator::ExplicitSPH;
-        std::cout << "fluid dynamics is reset to ExplicitSPH" << std::endl;
+        std::cout << "fluid dynamics is reset to Explicit WCSPH" << std::endl;
     } else {
         fluidIntegrator = ChFluidDynamics::Integrator::I2SPH;
         std::cout << "fluid dynamics is reset to I2SPH" << std::endl;
@@ -101,7 +101,7 @@ void ChSystemFsi::CopyDeviceDataToHalfStep() {
 //--------------------------------------------------------------------------------------------------------------------------------
 
 void ChSystemFsi::DoStepDynamics_FSI() {
-    /// The following is used to execute the previous Explicit SPH
+    /// The following is used to execute the Explicit WCSPH
     if (fluidDynamics->GetIntegratorType() == ChFluidDynamics::Integrator::ExplicitSPH) {
         fsiInterface->Copy_ChSystem_to_External();
         CopyDeviceDataToHalfStep();
@@ -121,8 +121,20 @@ void ChSystemFsi::DoStepDynamics_FSI() {
         fsiInterface->Add_Flex_Forces_To_ChSystem();
 
         fsiInterface->Copy_External_To_ChSystem();
-        mTime += paramsH->dT;
-        mphysicalSystem.DoStepDynamics(1.0 * paramsH->dT);
+
+        // paramsH->dT_Flex = paramsH->dT; 
+        // dT_Flex is the time step of solid body system
+        mTime += 1 * paramsH->dT;
+        if (paramsH->dT_Flex == 0)
+            paramsH->dT_Flex = paramsH->dT;
+        int sync = int(paramsH->dT / paramsH->dT_Flex);
+        if (sync < 1)
+            sync = 1;
+        // printf("%d * DoStepChronoSystem with dt= %f\n", sync, paramsH->dT / sync);
+        for (int t = 0; t < sync; t++) {
+            mphysicalSystem.DoStepDynamics(paramsH->dT / sync);
+        }
+
         fsiInterface->Copy_fsiBodies_ChSystem_to_FluidSystem(fsiData->fsiBodiesD2);
         bceWorker->UpdateRigidMarkersPositionVelocity(fsiData->sphMarkersD2, fsiData->fsiBodiesD2);
         // fsiData->sphMarkersD1 = fsiData->sphMarkersD2;

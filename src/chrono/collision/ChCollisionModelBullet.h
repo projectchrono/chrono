@@ -223,11 +223,11 @@ class ChApi ChCollisionModelBullet : public ChCollisionModel {
     /// the bottom, at levels Y_low and Y_high.
     virtual bool AddBarrel(                           //
         std::shared_ptr<ChMaterialSurface> material,  ///< surface contact material
-        double Y_low,                                 ///<
-        double Y_high,                                ///<
-        double R_vert,                                ///<
-        double R_hor,                                 ///<
-        double R_offset,                              ///<
+        double Y_low,                                 ///< bottom level
+        double Y_high,                                ///< top level
+        double R_vert,                                ///< ellipse semi-axis in vertical direction
+        double R_hor,                                 ///< ellipse semi-axis in horizontal direction
+        double R_offset,                              ///< lateral offset (radius at top and bottom)
         const ChVector<>& pos = ChVector<>(),         ///< center position in model coordinates
         const ChMatrix33<>& rot = ChMatrix33<>(1)     ///< rotation in model coordinates
         ) override;
@@ -340,7 +340,7 @@ class ChApi ChCollisionModelBullet : public ChCollisionModel {
     std::vector<std::shared_ptr<geometry::ChTriangleMesh>> m_trimeshes;
 
     friend class ChCollisionSystemBullet;
-    friend class ChCollisionSystemBulletParallel;
+    friend class ChCollisionSystemBulletMulticore;
 };
 
 }  // end namespace collision

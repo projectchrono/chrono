@@ -28,8 +28,8 @@
 #include "chrono_distributed/ChTypesDistributed.h"
 #include "chrono_distributed/physics/ChDomainDistributed.h"
 
-#include "chrono_parallel/ChDataManager.h"
-#include "chrono_parallel/physics/ChSystemParallel.h"
+#include "chrono_multicore/ChDataManager.h"
+#include "chrono_multicore/physics/ChSystemMulticore.h"
 
 namespace chrono {
 
@@ -43,7 +43,7 @@ class ChDataManagerDistr;
 /// This is the main user interface for Chrono::Distributed
 /// Add bodies and set all settings through the system.
 /// The simulation runs on all ranks given in the world parameter.
-class CH_DISTR_API ChSystemDistributed : public ChSystemParallelSMC {
+class CH_DISTR_API ChSystemDistributed : public ChSystemMulticoreSMC {
   public:
     /// Construct a distributed Chrono system using the specified MPI communicator.
     ChSystemDistributed(MPI_Comm communicator, double ghostlayer, unsigned int maxobjects);
@@ -136,7 +136,7 @@ class CH_DISTR_API ChSystemDistributed : public ChSystemParallelSMC {
     void PrintEfficiency();
 
     /// Central data storages for chrono_distributed. Adds scaffolding data
-    /// around ChDataManager used by chrono_parallel in order to maintain
+    /// around ChDataManager used by Chrono::Multicore in order to maintain
     /// a consistent and correct view of all valid data.
     ChDistributedDataManager* ddm;
 

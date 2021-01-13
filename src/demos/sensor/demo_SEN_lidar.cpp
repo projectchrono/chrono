@@ -59,11 +59,11 @@ NoiseModel noise_model = CONST_NORMAL_XYZI;
 // Lidar method for generating data
 // Just RAYCAST for now
 // TODO: implement PATH_TRACE
-LidarModelType lidar_model = RAYCAST;
+LidarModelType lidar_model = LidarModelType::RAYCAST;
 
 // Lidar return mode
 // Either STRONGEST_RETURN, MEAN_RETURN, FIRST_RETURN, LAST_RETURN
-LidarReturnMode return_mode = STRONGEST_RETURN;
+LidarReturnMode return_mode = LidarReturnMode::STRONGEST_RETURN;
 
 // Update rate in Hz
 float update_rate = 5.f;
@@ -216,7 +216,7 @@ int main(int argc, char* argv[]) {
     // -----------------------------------------------------------------------
     unsigned int sample_radius = 2;                                         // radius of samples to use, 1->1
                                                                             // sample,2->9 samples, 3->25 samples...
-    float divergence_angle = 0.003;                                         // 3mm radius (as cited by velodyne)
+    float divergence_angle = 0.003f;                                         // 3mm radius (as cited by velodyne)
     auto lidar2 = chrono_types::make_shared<ChLidarSensor>(box_body,        // body lidar is attached to
                                                            update_rate,     // scanning rate in Hz
                                                            offset_pose,     // offset pose

@@ -70,7 +70,6 @@ CH_SENSOR_API void ChFilterVisualizePointCloud::Apply(std::shared_ptr<ChSensor> 
         glMatrixMode(GL_MODELVIEW);
         glLoadIdentity();
 
-        GLfloat x, y, z, angle;  // Storage for coordinates and angles
         // Clear the window with current clearing color
         glClear(GL_COLOR_BUFFER_BIT);
 

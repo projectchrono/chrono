@@ -25,8 +25,10 @@ namespace sensor {
 /// @param width Width of lidar data buffer.
 /// @param height Height of lidar data buffer.
 /// @param stdev_range Standard deviation for lidar range.
+/// @param stdev_v_angle Standard deviation of noise for vertical angle measurement
 /// @param stdev_h_angle Standard deviation of noise for horizontal angle measurement.
 /// @param stdev_intensity Standard deviation of noise for vertical angle measurement.
+/// @param rng The state to be randomly generated
 void cuda_lidar_noise_normal(float* bufPtr,
                              int width,
                              int height,

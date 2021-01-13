@@ -44,14 +44,16 @@ ACV_ChassisRear::ACV_ChassisRear(const std::string& name) : ChRigidChassisRear(n
     m_inertia(2, 0) = m_inertiaXY.y();
     m_inertia(2, 1) = m_inertiaXY.z();
 
-    ChRigidChassisGeometry::BoxShape box(ChVector<>(0.1, 0, 0.1), ChQuaternion<>(1, 0, 0, 0),
-                                         ChVector<>(1.2, 1.0, 0.2));
-    ChRigidChassisGeometry::CylinderShape cyl_axle(ChVector<>(-0.5, 0, 0), QUNIT, 0.05, 2);
-    ChRigidChassisGeometry::CylinderShape cyl_articulation(m_connector_loc, Q_from_AngX(CH_C_PI_2), 0.1, 0.22);
+    ChVehicleGeometry::BoxShape box(ChVector<>(0.1, 0, 0.1), ChQuaternion<>(1, 0, 0, 0), ChVector<>(1.2, 1.0, 0.2));
+    ChVehicleGeometry::CylinderShape cyl_axle(ChVector<>(-0.5, 0, 0), QUNIT, 0.05, 2);
+    ChVehicleGeometry::CylinderShape cyl_articulation(m_connector_loc, Q_from_AngX(CH_C_PI_2), 0.1, 0.22);
 
     m_geometry.m_has_primitives = true;
     m_geometry.m_vis_boxes.push_back(box);
     m_geometry.m_vis_cylinders.push_back(cyl_axle);
     m_geometry.m_vis_cylinders.push_back(cyl_articulation);
-    m_geometry.m_color = ChColor(0.4f, 0.2f, 0.2f);
+
+    m_geometry.m_has_colors = true;
+    m_geometry.m_color_boxes = ChColor(0.4f, 0.2f, 0.2f);
+    m_geometry.m_color_cylinders = ChColor(0.4f, 0.2f, 0.2f);
 }

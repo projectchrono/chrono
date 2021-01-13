@@ -1,0 +1,95 @@
+// =============================================================================
+// PROJECT CHRONO - http://projectchrono.org
+//
+// Copyright (c) 2020 projectchrono.org
+// All rights reserved.
+//
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
+//
+// =============================================================================
+// Authors: Aaron Young
+// =============================================================================
+//
+// Schema file that defines data for all four types of Chrono::Sensor
+//  -- Each sensor message consists of a buffer of bytes from one of the below 
+//      data types
+//
+// =============================================================================
+
+include "Utils.fbs";
+
+// Types of "pixels" for a camera sensor
+namespace SynFlatBuffers.Sensor.Camera;
+
+struct RGBA8 {
+  R:byte;
+  G:byte;
+  B:byte;
+  A:byte;
+}
+
+struct R8 {
+  R:byte;
+}
+
+// Types of "pixels" for a lidar sensor
+namespace SynFlatBuffers.Sensor.Lidar;
+
+struct XYZI {
+  x:float;
+  y:float;
+  z:float;
+  intensity:float;
+}
+
+struct DI {
+  range:float;
+  intensity:float;
+}
+
+// Types of "pixels" for a imu sensor
+namespace SynFlatBuffers.Sensor.IMU;
+
+struct Vec {
+  x:double;
+  y:double;
+  z:double;
+}
+
+struct IMUData {
+  Accel:Vec;
+  Roll:double;
+  Pitch:double;
+  Yaw:double;
+}
+
+// Types of "pixels" for a gps sensor
+namespace SynFlatBuffers.Sensor.GPS;
+
+struct GPSData {
+  Latitude:double;
+  Longitude:double;
+  Altitude:double;
+  Time:double;
+}
+
+// Derived "class" of Component
+// Creates a sensor component message
+namespace SynFlatBuffers.Sensor;
+
+enum Type : byte { Camera_RGBA8, Camera_R8, Lidar_DI, Lidar_XYZI, IMU_IMUData, GPS_GPSData, }
+
+table SensorBuffer {
+  Width:int;
+  Height:int;
+  Buffer:[ubyte];
+}
+
+table State {
+  buffer:SensorBuffer;
+  type:Type;
+}
+
+root_type State;

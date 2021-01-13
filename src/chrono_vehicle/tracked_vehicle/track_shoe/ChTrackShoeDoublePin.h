@@ -22,7 +22,7 @@
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChSubsysDefs.h"
 
-#include "chrono_vehicle/tracked_vehicle/ChTrackShoe.h"
+#include "chrono_vehicle/tracked_vehicle/track_shoe/ChTrackShoeSegmented.h"
 
 namespace chrono {
 namespace vehicle {
@@ -31,7 +31,7 @@ namespace vehicle {
 /// @{
 
 /// Base class for a double-pin track shoe (template definition).
-class CH_VEHICLE_API ChTrackShoeDoublePin : public ChTrackShoe {
+class CH_VEHICLE_API ChTrackShoeDoublePin : public ChTrackShoeSegmented {
   public:
     ChTrackShoeDoublePin(const std::string& name  ///< [in] name of the subsystem
                          );
@@ -69,12 +69,6 @@ class CH_VEHICLE_API ChTrackShoeDoublePin : public ChTrackShoe {
                     const ChQuaternion<>& rot_connector     ///< [in] orientation of connector bodies
                     );
 
-    /// Connect this track shoe to the specified neighbor.
-    /// This function must be called only after both track shoes have been initialized.
-    virtual void Connect(std::shared_ptr<ChTrackShoe> next,  ///< [in] handle to the neighbor track shoe
-                         bool ccw                            ///< [in] track assembled in counter clockwise direction
-                         ) override;
-
     /// Add visualization assets for the track shoe subsystem.
     virtual void AddVisualizationAssets(VisualizationType vis) override;
 
@@ -102,18 +96,6 @@ class CH_VEHICLE_API ChTrackShoeDoublePin : public ChTrackShoe {
     /// Return the radius of a connector body.
     virtual double GetConnectorRadius() const = 0;
 
-    /// Create the contact materials for the shoe and connector bodies, consistent with the specified contact method.
-    /// A derived class must set m_conn_material (used for contact with the sprocket) and m_shoe_materials which must
-    /// include one or more contact materials for the collision shapes of the shoe itself (for contact with the wheels,
-    /// idler, and ground).
-    virtual void CreateContactMaterials(ChContactMethod contact_method) = 0;
-
-    /// Add contact geometry for the track shoe.
-    /// Note that this is for contact with wheels, idler, and ground only.
-    /// This contact geometry does not affect contact with the sprocket.
-    /// The default implementation uses contact boxes for the pad and central guiding pin.
-    virtual void AddShoeContact();
-
     virtual void ExportComponentList(rapidjson::Document& jsonDocument) const override;
 
     virtual void Output(ChVehicleOutput& database) const override;
@@ -124,43 +106,20 @@ class CH_VEHICLE_API ChTrackShoeDoublePin : public ChTrackShoe {
     std::shared_ptr<ChLinkLockRevolute> m_revolute_L;  ///< handle to shoe - left connector joint
     std::shared_ptr<ChLinkLockRevolute> m_revolute_R;  ///< handle to shoe - right connector joint
 
-    struct BoxShape {
-        BoxShape(const ChVector<>& pos, const ChQuaternion<>& rot, const ChVector<>& dims, int matID = -1)
-            : m_pos(pos), m_rot(rot), m_dims(dims), m_matID(matID) {}
-        ChVector<> m_pos;
-        ChQuaternion<> m_rot;
-        ChVector<> m_dims;
-        int m_matID;
-    };
+  private:
+    /// Connect this track shoe to the specified neighbor.
+    /// This function must be called only after both track shoes have been initialized.
+    virtual void Connect(std::shared_ptr<ChTrackShoe> next,  ///< [in] handle to the neighbor track shoe
+                         ChTrackAssembly* assembly,          ///< [in] containing track assembly
+                         bool ccw                            ///< [in] track assembled in counter clockwise direction
+                         ) override final;
 
-    struct CylinderShape {
-        CylinderShape(const ChVector<>& pos, const ChQuaternion<>& rot, double radius, double length, int matID = -1)
-            : m_pos(pos), m_rot(rot), m_radius(radius), m_length(length), m_matID(matID) {}
-        ChVector<> m_pos;
-        ChQuaternion<> m_rot;
-        double m_radius;
-        double m_length;
-        int m_matID;
-    };
-
-    std::vector<BoxShape> m_coll_boxes;                                ///< collision boxes on shoe body
-    std::vector<CylinderShape> m_coll_cylinders;                       ///< collision cylinders on shoe body
-    std::vector<std::shared_ptr<ChMaterialSurface>> m_shoe_materials;  ///< contact materials for shoe collision shapes
-    std::shared_ptr<ChMaterialSurface> m_conn_material;                 ///< contact material for connector
-
-    std::vector<BoxShape> m_vis_boxes;
-    std::vector<CylinderShape> m_vis_cylinders;
+    /// Add visualization of a connector body based on primitives corresponding to the contact shapes.
+    void AddConnectorVisualization(std::shared_ptr<ChBody> connector, VisualizationType vis);
 
     friend class ChSprocketDoublePin;
     friend class SprocketDoublePinContactCB;
     friend class ChTrackAssemblyDoublePin;
-
-  private:
-    /// Add visualization of the shoe body, based on primitives corresponding to the contact shapes.
-    void AddShoeVisualization();
-
-    /// Add visualization of a connector body based on primitives corresponding to the contact shapes.
-    void AddConnectorVisualization(std::shared_ptr<ChBody> connector);
 };
 
 /// Vector of handles to double-pin track shoe subsystems.

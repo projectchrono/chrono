@@ -25,7 +25,7 @@
 #include "chrono_distributed/comm/ChCommDistributed.h"
 #include "chrono_distributed/physics/ChSystemDistributed.h"
 
-#include "chrono_parallel/ChDataManager.h"
+#include "chrono_multicore/ChDataManager.h"
 
 #include "chrono/core/ChMatrix33.h"
 #include "chrono/core/ChQuaternion.h"

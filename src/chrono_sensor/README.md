@@ -51,7 +51,7 @@ Current Tested Systems:
  - Camera sensor
 	 - ground-truth ray-traced camera rendering
 	 - filter-based sensor model for user defined sensor model
-   - Filters
+ - Filters
   	 - Greyscale kernel
   	 - visualization using GLFW
   	 - copy-back filter for data access from CPU
@@ -59,16 +59,13 @@ Current Tested Systems:
   	 - convert lidar measurements to point cloud
   	 - image augmentation with pretrained neural nets
  - Lidar Sensor
-  - single ray and multiray data generation
+    - single ray and multiray data generation
  - GPS Sensor
-  -
  - IMU Sensor
   - Accelerometer and Gyroscope
-  -
 
 ## Capabilities in Progress
  - expanded TensorRT model parsing
  - development of image augmentation networks
  - extending render support (lights, materials, objects, etc)
  - expanding mesh file support
- -

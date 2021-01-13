@@ -12,10 +12,8 @@
 // Author: Radu Serban
 // =============================================================================
 //
-// Chrono::Vehicle + ChronoParallel demo program for simulating a HMMWV vehicle
-// over rigid or granular material.
-//
-// Contact uses the SMC (penalty) formulation.
+// Chrono::Vehicle demo program for simulating a HMMWV vehicle on SCM deformable
+// terrain.
 //
 // The global reference frame has Z up.
 // All units SI.

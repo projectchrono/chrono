@@ -68,8 +68,8 @@ VisualizationType steering_vis_type = VisualizationType::PRIMITIVES;
 VisualizationType wheel_vis_type = VisualizationType::NONE;
 VisualizationType tire_vis_type = VisualizationType::MESH;
 
-// Collision type for chassis (PRIMITIVES, MESH, or NONE)
-ChassisCollisionType chassis_collision_type = ChassisCollisionType::NONE;
+// Collision type for chassis (PRIMITIVES, HULLS, or NONE)
+CollisionType chassis_collision_type = CollisionType::NONE;
 
 // Type of tire model (RIGID, TMEASY)
 TireModelType tire_model = TireModelType::TMEASY;
@@ -327,8 +327,8 @@ int main(int argc, char* argv[]) {
         100.0,                                                                    //
         1,                                                                        //
         0,                                                                        //
-        STRONGEST_RETURN,                                                         //
-        RAYCAST,                                                                  //
+        LidarReturnMode::STRONGEST_RETURN,                                                         //
+        LidarModelType::RAYCAST,                                                                  //
         .1                                                                        //
     );
     lidar->SetName("Lidar Sensor");
