@@ -79,7 +79,7 @@ double lane_change_time = 6;
 double render_step_size = 1.0 / 50;  // FPS = 50
 
 // How often SynChrono state messages are interchanged
-float heartbeat = 1e-2;  // 100[Hz]
+double heartbeat = 1e-2;  // 100[Hz]
 
 // Forward declares for straight forward helper functions
 void LogCopyright(bool show);

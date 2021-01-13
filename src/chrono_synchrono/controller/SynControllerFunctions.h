@@ -52,7 +52,7 @@ bool IsInsideBox(ChVector<> pos, ChVector<> front, ChVector<> back, double width
 bool IsInsideQuad(ChVector<> pos, ChVector<> sp1, ChVector<> sp2, ChVector<> cp3, ChVector<> cp4);
 
 /// @brief Compute barycentric coordinates (u, v, w) for point p with respect to triangle (a, b, c)
-void Barycentric(ChVector<> p, ChVector<> a, ChVector<> b, ChVector<> c, float& u, float& v, float& w);
+void Barycentric(ChVector<> p, ChVector<> a, ChVector<> b, ChVector<> c, double& u, double& v, double& w);
 
 /// @brief update inside_box, dist and current_* variables based on info from a MAP message
 /// @param synmsg must be castable to type SynMAPMessage
