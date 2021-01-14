@@ -1131,40 +1131,48 @@ static __global__ void updateFrictionData(const float stepsize_SU,
                 contact_active[contact_id] = false;
             }
         }
-
-
-       // Write back velocity updates
-        float omega_update_X = 0;
-        float omega_update_Y = 0;
-        float omega_update_Z = 0;
-
-        // no divergence, same for every thread in block
-        switch (gran_params->time_integrator) {
-            case CHGPU_TIME_INTEGRATOR::EXTENDED_TAYLOR:      // fall through to Euler for this one
-            case CHGPU_TIME_INTEGRATOR::CENTERED_DIFFERENCE:  // both of these have the smae signature as forward Euler
-                                                             // vels
-            case CHGPU_TIME_INTEGRATOR::FORWARD_EULER: {
-                // tau = I alpha => alpha = tau / I, we already computed these alphas
-                omega_update_X = integrateForwardEuler(stepsize_SU, sphere_data->sphere_ang_acc_X[mySphereID]);
-                omega_update_Y = integrateForwardEuler(stepsize_SU, sphere_data->sphere_ang_acc_Y[mySphereID]);
-                omega_update_Z = integrateForwardEuler(stepsize_SU, sphere_data->sphere_ang_acc_Z[mySphereID]);
-                break;
-            }
-            case CHGPU_TIME_INTEGRATOR::CHUNG: {
-                omega_update_X = integrateChung_vel(stepsize_SU, sphere_data->sphere_ang_acc_X[mySphereID],
-                                                    sphere_data->sphere_ang_acc_X_old[mySphereID]);
-                omega_update_Y = integrateChung_vel(stepsize_SU, sphere_data->sphere_ang_acc_Y[mySphereID],
-                                                    sphere_data->sphere_ang_acc_Y_old[mySphereID]);
-                omega_update_Z = integrateChung_vel(stepsize_SU, sphere_data->sphere_ang_acc_Z[mySphereID],
-                                                    sphere_data->sphere_ang_acc_Z_old[mySphereID]);
-                break;
-            }
-        }
-
-        sphere_data->sphere_Omega_X[mySphereID] += omega_update_X;
-        sphere_data->sphere_Omega_Y[mySphereID] += omega_update_Y;
-        sphere_data->sphere_Omega_Z[mySphereID] += omega_update_Z;
     }
+}
+
+/**
+ * Integrate angular accelerations. Called only when friction is on
+ */
+static __global__ void updateAngVels(const float stepsize_SU,
+                                     ChSystemGpu_impl::GranSphereDataPtr sphere_data,
+                                     unsigned int nSpheres,
+                                     ChSystemGpu_impl::GranParamsPtr gran_params) {
+    // Figure which sphereID this thread handles. We work with a 1D block structure and a 1D grid structure
+    unsigned int mySphereID = threadIdx.x + blockIdx.x * blockDim.x;
+
+    if (mySphereID >= nSpheres)
+        return;
+
+    // Write back velocity updates
+    float omega_update_X = 0.f;
+    float omega_update_Y = 0.f;
+    float omega_update_Z = 0.f;
+
+    // no divergence, same for every thread in block
+    if (gran_params->time_integrator != CHGPU_TIME_INTEGRATOR::CHUNG) {
+        // EXTENDED_TAYLOR:      has the same signature as forward Euler vels
+        // CENTERED_DIFFERENCE:  has the same signature as forward Euler vels
+        // FORWARD_EULER:
+        // tau = I alpha => alpha = tau / I; we already computed these alphas
+        omega_update_X = integrateForwardEuler(stepsize_SU, sphere_data->sphere_ang_acc_X[mySphereID]);
+        omega_update_Y = integrateForwardEuler(stepsize_SU, sphere_data->sphere_ang_acc_Y[mySphereID]);
+        omega_update_Z = integrateForwardEuler(stepsize_SU, sphere_data->sphere_ang_acc_Z[mySphereID]);
+    } else {
+        omega_update_X = integrateChung_vel(stepsize_SU, sphere_data->sphere_ang_acc_X[mySphereID],
+                                            sphere_data->sphere_ang_acc_X_old[mySphereID]);
+        omega_update_Y = integrateChung_vel(stepsize_SU, sphere_data->sphere_ang_acc_Y[mySphereID],
+                                            sphere_data->sphere_ang_acc_Y_old[mySphereID]);
+        omega_update_Z = integrateChung_vel(stepsize_SU, sphere_data->sphere_ang_acc_Z[mySphereID],
+                                            sphere_data->sphere_ang_acc_Z_old[mySphereID]);
+    }
+
+    sphere_data->sphere_Omega_X[mySphereID] += omega_update_X;
+    sphere_data->sphere_Omega_Y[mySphereID] += omega_update_Y;
+    sphere_data->sphere_Omega_Z[mySphereID] += omega_update_Z;
 }
 
 /// @} gpu_cuda
