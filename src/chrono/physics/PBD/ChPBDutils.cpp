@@ -102,7 +102,7 @@ namespace chrono {
 			ChVector<> nt = q.Rotate(n_loc);
 			double C = nt.Length();
 			if (dist_constr) {
-				if (displ_lims_low[0] < C < displ_lims_high[0]) { return; }
+				if (displ_lims_low[0] < C && C < displ_lims_high[0]) { return; }
 				double max_violation = ChMax(C - displ_lims_high[0], 0.0);
 				double min_violation = ChMin(C - displ_lims_low[0], 0.0);
 				C = max_violation + min_violation;
@@ -158,8 +158,8 @@ namespace chrono {
 
 	ChVector<> ChLinkPBD::getQdelta() {
 		// Orientation of the 2 link frames
-		ChQuaternion<> ql1 = f1.GetCoord().rot*Body1->GetRot();
-		ChQuaternion<> ql2 = f2.GetCoord().rot*Body2->GetRot();
+		ChQuaternion<> ql1 = Body1->GetRot()*f1.GetCoord().rot;
+		ChQuaternion<> ql2 = Body2->GetRot()*f2.GetCoord().rot;
 		if (r_locked) {
 			// eq. 18 PBD paper
 			ChQuaternion<> qdelta = ql1*ql2.GetInverse();
@@ -173,7 +173,7 @@ namespace chrono {
 				}
 				ChQuaternion<> q_act;
 				q_act.Q_from_AngAxis(alpha, a);
-				qdelta = q_act*ql1*ql2.GetInverse();
+				qdelta = ql1*q_act*ql2.GetInverse();
 			}
 			return qdelta.GetVector() * 2;
 		}
@@ -313,7 +313,8 @@ namespace chrono {
 		else if (dynamic_cast<const ChLinkMotorLinear*>(alink) != nullptr) {
 			ChLinkMotorLinear* motor = dynamic_cast<ChLinkMotorLinear*>(alink);
 			displ_actuated = true;
-			mask[2] = false;
+			mask[0] = false;
+			actuation_dir = 0;
 			p_dir.Set(int(mask[0]), int(mask[1]), int(mask[2]));
 			motor_func = motor->GetMotorFunction();
 			if (dynamic_cast<const ChLinkMotorLinearSpeed*>(alink) != nullptr) { speed_actuated = true; }
@@ -558,8 +559,8 @@ namespace chrono {
 		EvalMasses();
 		dist_constr = true;
 		double d = link->GetImposedDistance();
-		displ_lims_low[3] = d - 1E-4;
-		displ_lims_high[3] = d + 1E-4;
+		displ_lims_low[0] = d - 1E-4;
+		displ_lims_high[0] = d + 1E-4;
 	}
 	/*ChLinkPBD::ChLinkPBD(const ChLinkPBD& other) :  p_dir(ChVector<>(0, 0, 0)), r_dir(ChVector<>(0, 0, 0)), f1(ChFrame<double>(VNULL)), f2(ChFrame<double>(VNULL)), p_free(false), r_free(false) {
 	ChLinkPBD(other.link);
