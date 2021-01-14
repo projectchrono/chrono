@@ -49,104 +49,140 @@ set(SYN_LIBRARIES
     ${MPI_LIBRARIES}
 )
 
+#-----------------------------------------------------------------------------
+# Find DDS (Optional)
+#-----------------------------------------------------------------------------
+option(USE_FAST_DDS "Enable the FastDDS interface for the SynChrono Module" OFF)
+
+if (USE_FAST_DDS)
+	set(FAST_DDS_INSTALL_DIR "" CACHE PATH "Path to FastDDS install dir")
+	set(fastcdr_DIR "${FAST_DDS_INSTALL_DIR}/lib/cmake/fastcdr" CACHE FILEPATH "Path to the FastCDR cmake config file" FORCE)
+	set(fastrtps_DIR "${FAST_DDS_INSTALL_DIR}/share/fastrtps/cmake" CACHE FILEPATH "Path to the FastDDS cmake config file" FORCE)
+	set(foonathan_memory_DIR "${FAST_DDS_INSTALL_DIR}/lib/foonathan_memory/cmake" CACHE FILEPATH "Path to the foonathan memory cmake config file" FORCE)
+
+	find_package(fastcdr REQUIRED)
+	find_package(fastrtps REQUIRED)
+
+	set(SYN_OTHER_LIBRARIES
+		fastrtps
+		fastcdr
+	)
+endif()
+
 # ----------------------------------------------------------------------------
 # Generate and install configuration file
 # ----------------------------------------------------------------------------
 
+# Prepare replacement variables
+if(USE_FAST_DDS)
+	set(CHRONO_FASTDDS "#define CHRONO_FASTDDS")
+else()
+	set(CHRONO_FASTDDS "#undef CHRONO_FASTDDS")
+endif()
+
 # Generate the configuration header file using substitution variables.
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/SynConfig.h.in
-${PROJECT_BINARY_DIR}/chrono_synchrono/SynConfig.h)
+			   ${PROJECT_BINARY_DIR}/chrono_synchrono/SynConfig.h)
 
 install(FILES "${PROJECT_BINARY_DIR}/chrono_synchrono/SynConfig.h"
-DESTINATION include/chrono_synchrono)
+		DESTINATION include/chrono_synchrono)
 
 # ------------
 # Common Files
 # ------------
 
 set(SYN_BASE_FILES
-    SynApi.h
+	SynApi.h
+
+	SynChronoManager.h
+	SynChronoManager.cpp
 )
 source_group("base" FILES ${SYN_BASE_FILES})
 
 set(SYN_AGENT_FILES
-    agent/SynAgent.h
-    agent/SynAgent.cpp
+	agent/SynAgent.h
+	agent/SynAgent.cpp
 
-    agent/SynAgentFactory.h
-    agent/SynAgentFactory.cpp
+	agent/SynAgentFactory.h
+	agent/SynAgentFactory.cpp
 
-    agent/SynVehicleAgent.h
-    agent/SynVehicleAgent.cpp
-    agent/SynWheeledVehicleAgent.h
-    agent/SynWheeledVehicleAgent.cpp
-    agent/SynTrackedVehicleAgent.h
-    agent/SynTrackedVehicleAgent.cpp
+	agent/SynWheeledVehicleAgent.h
+	agent/SynWheeledVehicleAgent.cpp
+	agent/SynTrackedVehicleAgent.h
+	agent/SynTrackedVehicleAgent.cpp
+
+	agent/SynSCMTerrainAgent.h
+	agent/SynSCMTerrainAgent.cpp
     
     agent/SynEnvironmentAgent.h
     agent/SynEnvironmentAgent.cpp
 )
 source_group("agent" FILES ${SYN_AGENT_FILES})
 
-set(SYN_BRAIN_FILES
-    brain/SynBrain.h
-    brain/SynBrainFunctions.h
-    brain/SynBrainFunctions.cpp
-    brain/SynVehicleBrain.h
-    brain/SynVehicleBrain.cpp
-    
-    brain/SynACCBrain.h
-    brain/SynACCBrain.cpp
-    brain/SynQueryEnvBrain.h
-    brain/SynQueryEnvBrain.cpp
-    brain/SynVehicleBrain.h
-    brain/SynVehicleBrain.cpp
-    brain/SynCollisionBrain.h
-    brain/SynCollisionBrain.cpp
-    brain/SynEnvironmentBrain.h
-
-    brain/driver/SynMultipathDriver.cpp
-    brain/driver/SynMultipathDriver.h
+set(SYN_CONTROLLER_FILES
+	controller/SynControllerFunctions.h
+	controller/SynControllerFunctions.cpp
+	
+    controller/driver/SynMultiPathDriver.h
+    controller/driver/SynMultiPathDriver.cpp
 )
-source_group("brain" FILES ${SYN_BRAIN_FILES})
+source_group("controller" FILES ${SYN_CONTROLLER_FILES})
 
 set(SYN_COMMUNICATION_FILES
-    communication/SynCommunicationManager.h
-    communication/SynCommunicationManager.cpp
-
-    communication/mpi/SynMPIManager.h
-    communication/mpi/SynMPIManager.cpp
+	communication/SynCommunicator.h
+	communication/SynCommunicator.cpp
+    
+    communication/mpi/SynMPICommunicator.h
+    communication/mpi/SynMPICommunicator.cpp
 )
+if(USE_FAST_DDS)
+	list(APPEND SYN_COMMUNICATION_FILES
+		communication/dds/SynDDSCommunicator.h
+		communication/dds/SynDDSCommunicator.cpp
+		
+		communication/dds/SynDDSPublisher.h
+		communication/dds/SynDDSPublisher.cpp
+		communication/dds/SynDDSSubscriber.h
+		communication/dds/SynDDSSubscriber.cpp
+		communication/dds/SynDDSTopic.h
+		communication/dds/SynDDSTopic.cpp
+		communication/dds/SynDDSListener.h
+		communication/dds/SynDDSListener.cpp
+
+		communication/dds/idl/SynDDSMessage.h
+		communication/dds/idl/SynDDSMessage.cxx
+		communication/dds/idl/SynDDSMessagePubSubTypes.h
+		communication/dds/idl/SynDDSMessagePubSubTypes.cxx
+	)
+endif()
 source_group("communication" FILES ${SYN_COMMUNICATION_FILES})
 
 set(SYN_FLATBUFFER_FILES
-    flatbuffer/SynFlatBuffersManager.h
-    flatbuffer/SynFlatBuffersManager.cpp
-    
-    flatbuffer/message/SynFlatBuffers_generated.h
+	flatbuffer/SynFlatBuffersManager.h
+	flatbuffer/SynFlatBuffersManager.cpp
+	
+	flatbuffer/message/SynFlatBuffers_generated.h
 
-    flatbuffer/message/SynMessage.h
+	flatbuffer/message/SynMessage.h
 
-    flatbuffer/message/SynAgentMessage.h
-    flatbuffer/message/SynAgentMessage.cpp
-    flatbuffer/message/SynWheeledVehicleMessage.h
-    flatbuffer/message/SynWheeledVehicleMessage.cpp
-    flatbuffer/message/SynTrackedVehicleMessage.h
-    flatbuffer/message/SynTrackedVehicleMessage.cpp
-    
-    flatbuffer/message/SynSensorMessage.h
-    flatbuffer/message/SynSensorMessage.cpp
-    flatbuffer/message/SynSCMMessage.h
-    flatbuffer/message/SynSCMMessage.cpp
+	flatbuffer/message/SynWheeledVehicleMessage.h
+	flatbuffer/message/SynWheeledVehicleMessage.cpp
+	flatbuffer/message/SynTrackedVehicleMessage.h
+	flatbuffer/message/SynTrackedVehicleMessage.cpp
+	
+	# # flatbuffer/message/SynSensorMessage.h
+	# # flatbuffer/message/SynSensorMessage.cpp
+	flatbuffer/message/SynSCMMessage.h
+	flatbuffer/message/SynSCMMessage.cpp
     
     flatbuffer/message/SynApproachMessage.h
     flatbuffer/message/SynApproachMessage.cpp
     flatbuffer/message/SynEnvironmentMessage.h
     flatbuffer/message/SynEnvironmentMessage.cpp
-    flatbuffer/message/SynMAPMessage.h
-    flatbuffer/message/SynMAPMessage.cpp
+	flatbuffer/message/SynMAPMessage.h
+	flatbuffer/message/SynMAPMessage.cpp
     flatbuffer/message/SynSPATMessage.h
-    flatbuffer/message/SynSPATMessage.cpp
+	flatbuffer/message/SynSPATMessage.cpp
 
     flatbuffer/message/SynMessageUtils.h
     flatbuffer/message/SynMessageUtils.cpp
@@ -155,59 +191,15 @@ set(SYN_FLATBUFFER_FILES
 )
 source_group("flatbuffer" FILES ${SYN_FLATBUFFER_FILES})
 
-set(SYN_TERRAIN_FILES
-    terrain/SynTerrain.h
-    terrain/SynTerrain.cpp
-
-    terrain/SynTerrainFactory.h
-    terrain/SynTerrainFactory.cpp
-
-    terrain/SynRigidTerrain.h
-    terrain/SynRigidTerrain.cpp
-    terrain/SynSCMTerrain.h
-    terrain/SynSCMTerrain.cpp
-)
-source_group("terrain" FILES ${SYN_TERRAIN_FILES})
-
 set(SYN_UTILS_FILES
-    utils/SynUtilsJSON.h
-    utils/SynUtilsJSON.cpp
-    utils/SynDataLoader.h
-    utils/SynDataLoader.cpp
+	utils/SynDataLoader.h
+	utils/SynDataLoader.cpp
     utils/SynGPSTools.h
     utils/SynGPSTools.cpp
+    utils/SynLog.h
+    utils/SynLog.cpp
 )
 source_group("utils" FILES ${SYN_UTILS_FILES})
-
-set(SYN_VEHICLE_FILES
-    vehicle/SynVehicle.h
-    vehicle/SynVehicle.cpp
-    vehicle/SynWheeledVehicle.h
-    vehicle/SynWheeledVehicle.cpp
-    vehicle/SynTrackedVehicle.h
-    vehicle/SynTrackedVehicle.cpp
-)
-source_group("vehicle" FILES ${SYN_VEHICLE_FILES})
-
-set(SYN_VISUALIZATION_FILES
-    visualization/SynVisualization.h
-    visualization/SynVisualizationManager.h
-    visualization/SynVisualizationManager.cpp
-
-)
-if(ENABLE_MODULE_SENSOR)
-    list(APPEND SYN_VISUALIZATION_FILES
-        visualization/SynSensorVisualization.h
-        visualization/SynSensorVisualization.cpp
-    )
-endif()
-if(ENABLE_MODULE_IRRLICHT)
-    list(APPEND SYN_VISUALIZATION_FILES
-        visualization/SynIrrVehicleVisualization.h
-        visualization/SynIrrVehicleVisualization.cpp
-    )
-endif()
-source_group("visualization" FILES ${SYN_VISUALIZATION_FILES})
 
 #-----------------------------------------------------------------------------
 # Create the ChronoEngine_synchrono library
@@ -237,16 +229,12 @@ SET(SYN_CXX_FLAGS    "${SYN_CXX_FLAGS}" PARENT_SCOPE)
 include_directories(${SYN_INCLUDES})
 
 add_library(ChronoEngine_synchrono SHARED
-    ${SYN_BASE_FILES}
+	${SYN_BASE_FILES}
+	${SYN_CONTROLLER_FILES}
     ${SYN_AGENT_FILES}
-    ${SYN_BRAIN_FILES}
-    ${SYN_CLI_FILES}
     ${SYN_COMMUNICATION_FILES}
     ${SYN_FLATBUFFER_FILES}
-    ${SYN_TERRAIN_FILES}
     ${SYN_UTILS_FILES}
-    ${SYN_VEHICLE_FILES}
-    ${SYN_VISUALIZATION_FILES}
 )
 
 # windows builds should disable warning 4661 and 4005

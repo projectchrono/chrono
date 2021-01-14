@@ -686,7 +686,15 @@ if(ENABLE_MODULE_SENSOR)
   message(STATUS "...add Chrono::Python SENSOR module")
 
   set(NUMPY_INCLUDE_DIR "${NUMPY_INCLUDE_DIR}" CACHE PATH "")
-  message("NUMPY_INCLUDE_DIR:   ${NUMPY_INCLUDE_DIR}")
+
+  if(NUMPY_INCLUDE_DIR)
+      message(STATUS "NUMPY_INCLUDE_DIR:   ${NUMPY_INCLUDE_DIR}")
+  else()
+      message("Warning: Numpy include add_subdirectory not set.  The PyChrono sensor module will not be built!")
+  endif()
+endif()
+
+if(ENABLE_MODULE_SENSOR AND NUMPY_INCLUDE_DIR)
 
   # Python module name
   set(CHPY_SENSOR sensor)

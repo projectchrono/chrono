@@ -40,7 +40,7 @@ class CH_SENSOR_API ChOptixSensor : public ChSensor {
     // @param lag Lag time between end of data collection and when data becomes available to the user.
     // @param collection_window Collection time over which the sensor should collect data from the simulation.
     ChOptixSensor(std::shared_ptr<chrono::ChBody> parent,
-                  double updateRate,
+                  float updateRate,
                   chrono::ChFrame<double> offsetPose,
                   unsigned int w,
                   unsigned int h);

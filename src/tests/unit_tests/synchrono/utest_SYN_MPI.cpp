@@ -21,16 +21,13 @@
 #include "gtest/gtest.h"
 
 #include "chrono_thirdparty/cxxopts/ChCLI.h"
-#include "chrono_synchrono/communication/mpi/SynMPIManager.h"
+#include "chrono_synchrono/SynChronoManager.h"
+#include "chrono_synchrono/communication/mpi/SynMPICommunicator.h"
 
 #include "chrono_synchrono/utils/SynDataLoader.h"
 
 #include "chrono_synchrono/agent/SynEnvironmentAgent.h"
 #include "chrono_synchrono/agent/SynWheeledVehicleAgent.h"
-#include "chrono_synchrono/brain/SynACCBrain.h"
-#include "chrono_synchrono/brain/SynEnvironmentBrain.h"
-#include "chrono_synchrono/terrain/SynRigidTerrain.h"
-#include "chrono_synchrono/visualization/SynVisualizationManager.h"
 
 using namespace chrono;
 using namespace synchrono;
@@ -43,10 +40,11 @@ int main(int argc, char* argv[]) {
     // Let google strip their cli arguments
     ::testing::InitGoogleTest(&argc, argv);
 
-    // Let MPI handle their cli arguments
-    SynMPIManager mpi_manager(argc, argv, MPI_CONFIG_DEFAULT);
-    rank = mpi_manager.GetRank();
-    num_ranks = mpi_manager.GetNumRanks();
+    // Create the MPI communicator and the manager
+    auto communicator = chrono_types::make_shared<SynMPICommunicator>(argc, argv);
+    rank = communicator->GetRank();
+    num_ranks = communicator->GetNumRanks();
+    SynChronoManager syn_manager(rank, num_ranks, communicator);
 
     ::testing::TestEventListeners& listeners = ::testing::UnitTest::GetInstance()->listeners();
     if (rank != 0) {
@@ -57,7 +55,7 @@ int main(int argc, char* argv[]) {
     return RUN_ALL_TESTS();
 }
 
-TEST(SynVehicle, SynVehicleInit) {
+TEST(SynChrono, SynChronoInit) {
     int* msg_lengths = new int[num_ranks];
     int* msg_displs = new int[num_ranks];
 

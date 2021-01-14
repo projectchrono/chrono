@@ -27,13 +27,13 @@ SynChrono synchronizes the motion of all agents, but allows their dynamics to be
     - Find an environment mesh: e.g. surface data for the specific roads or terrain your agent will move on)
     - Obtain agents: Chrono::Vehicle provides many vehicle models but you can of course create your own in Chrono
     - Define environment parameters: How many agents? What types are they? Where will they be? How long will the simulation run for? Will they have sensors? etc...
-2. Consult the agent's brain
-    - Each agent has a brain that tells it what to do, provided some inputs from the world around it.
+2. Consult the agent's controller
+    - Each agent has a controller that tells it what to do, provided some inputs from the world around it.
         - For a vehicle the outputs will be the thrust, braking and steering driving parameters, and the input can be anything accessible to simulation.
         - There may be messages received from e.g. a stoplight.
         - There may be data received from sensors e.g. GPS coordinates, lidar point clouds
-    - Brains can be whatever the user would like and the goal of the SynChrono project is not to develop any particular brain, but rather to develop an environment where others can test their algorithms.
-    - SynChrono does currently provide some simple brains such as a brain that will follow a path defined by GPS coordinates and maintain an appropriate following distance to any vehicles ahead of it based on lidar data.
+    - Controllers can be whatever the user would like and the goal of the SynChrono project is not to develop any particular controller, but rather to develop an environment where others can test their algorithms.
+    - SynChrono does currently provide some simple controllers such as a controller that will follow a path defined by GPS coordinates and maintain an appropriate following distance to any vehicles ahead of it based on lidar data.
 3. Run Chrono simulation
     - Each computing node starts up starts running a Chrono simulation for the agent(s) it is responsible for.
         - It will run this simulation until it gets to the next "heartbeat" or synchronization timestep.
@@ -54,15 +54,15 @@ SynChrono synchronizes the motion of all agents, but allows their dynamics to be
 
 ### Multi-Agent
 
-SynChrono's main aim is to provide robust scalability for large numbers of vehicles. SynChrono has been benchmarked at faster than realtime performance for over 100 vehicles on rigid terrain. Currently SynChrono supports one agent per Chrono system, with each Chrono system tied to an MPI rank. Future development will include support for multiple vehicles per rank, which can aid in resource-sharing for scenarios with large memory requirements.
+SynChrono's main aim is to provide robust scalability for large numbers of vehicles. SynChrono has been benchmarked at faster than realtime performance for over 100 vehicles on rigid terrain. Currently, SynChrono supports multiple agents per Chrono system, with each Chrono system tied to a specific node. Multiple agents aids in resource-sharing for scenarios with large memory requirements.
 
 ### Physics
 
-The physics for SynChrono is based on the physics of Chrono, for Vehicles this means Chrono::Vehicle's physics.
+The physics for SynChrono is based on the physics of Chrono; for vehicles, this means Chrono::Vehicle's physics.
 
 ### Sensing
 
-Sensing support in SynChrono comes through the [Chrono::Sensor module](../chrono_sensor/README.md). Chrono::Sensor is based around OptiX ray-tracing and includes support for camera, lidar, GPS and IMU.
+Sensing support in SynChrono comes through the [Chrono::Sensor module](../chrono_sensor/README.md). Chrono::Sensor is based around OptiX ray-tracing and currently includes support for camera, lidar, GPS and IMU.
 
 ### V2X Communication
 
@@ -70,14 +70,14 @@ SynChrono includes support for arbitrary communication between agents in the sys
 
 ## Build Instructions
 
-Follow the standard [Chrono build process](http://api.projectchrono.org/tutorial_install_chrono.html) to build SynChrono. The Chrono::Vehicle module is required, and one of Chrono::Irrlicht or Chrono::Sensor is recommended for visualization. The only additional dependencies that SynChrono requires are Flatbuffers and MPI.
+Follow the standard [Chrono build process](http://api.projectchrono.org/tutorial_install_chrono.html) to build SynChrono. The Chrono::Vehicle module is required, and one of Chrono::Irrlicht or Chrono::Sensor is recommended for visualization. The only additional dependencies that SynChrono requires are Flatbuffers and MPI. FastDDS is an optional dependency.
 
 #### Flatbuffers
 
-Flatbuffers is included in chrono_thirdparty as a submodule but you can also use a local copy if it is already installed on your system. Follow the [build instructions](https://google.github.io/flatbuffers/flatbuffers_guide_building.html) and when you run the Chrono CMake, point `Flatbuffers_DIR` to `flatbuffers/CMake` and `Flatbuffers_INCLUDE_DIR` to `flatbuffers/include`.
+Flatbuffers is included in chrono_thirdparty as a submodule but you can also use a local copy if it is already installed on your system. Follow the [build instructions](https://google.github.io/flatbuffers/flatbuffers_guide_building.html). The flatbuffer include directory within CMake is pointed directly to the submodule in chrono_thirdparty, so ensure the submodule is used and built.
 
 #### MPI
-For most systems (Linux, Mac OS X), you can use [OpenMPI](https://www.open-mpi.org/) or [MPICH](https://www.mpich.org/). For Windows there are two main options:
+For most systems (Linux, MacOS), you can use [OpenMPI](https://www.open-mpi.org/) or [MPICH](https://www.mpich.org/). For Windows there are two main options:
 - Intel MPI: [Intel MPI](https://software.intel.com/en-us/mpi-library/choose-download/windows)
 - MS-MPI: [MS-MPI](https://docs.microsoft.com/en-us/message-passing-interface/microsoft-mpi)
 
@@ -100,3 +100,6 @@ MS-MPI specific, most of these can be set automatically by running `set MSMPI` i
 - MSMPI_INC
 - MSMPI_LIB32
 - MSMPI_LIB64
+
+#### FastDDS
+FastDDS is supported on most modern systems (Linux, MacOS, Windows). To install, please visit the [FastDDS website](https://fast-dds.docs.eprosima.com/en/latest/). To link to Chrono, either install globally or install in a single directory and point `FAST_DDS_INSTALL_DIR` to that location.
