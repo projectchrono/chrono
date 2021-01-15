@@ -90,7 +90,7 @@ namespace chrono {
 		double w1_tf;
 		double w2_tf;
 		// Compliance (TODO: make it settable)
-		double alpha = 0.0;
+		double alpha = 0.00001;
 
 		// Limits
 		bool is_rot_limited = false;
