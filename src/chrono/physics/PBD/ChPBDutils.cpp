@@ -51,8 +51,8 @@ namespace chrono {
 			ChVector<> nr = getQdelta();
 			double theta = nr.Length();
 			if (nr.Normalize()) {
-				ChVector<> nr1 = Body1->GetRot().RotateBack(nr);
-				ChVector<> nr2 = Body2->GetRot().RotateBack(nr);
+				ChVector<> nr1 = Body1->TransformDirectionParentToLocal(nr);
+				ChVector<> nr2 = Body2->TransformDirectionParentToLocal(nr);
 				lambda_t_dir = nr;
 				Eigen::Matrix<double, 1, 1> w1r = nr1.eigen().transpose() * Inv_I1 * nr1.eigen();
 				Eigen::Matrix<double, 1, 1> w2r = nr2.eigen().transpose() * Inv_I2 * nr2.eigen();
@@ -66,7 +66,7 @@ namespace chrono {
 
 				//ChQuaternion<> dq1, dq2, qnew1, qnew2;
 
-				ChQuaternion<> Rot1(0, Inv_I1 * Body1->GetRot().RotateBack(pr).eigen());
+				ChQuaternion<> Rot1(0, Inv_I1 * Body1->TransformDirectionParentToLocal(pr).eigen());
 				// {q_dt} = 1/2 {0,w}*{q}
 				//dq1.Qdt_from_Wrel(Rot1, Body1->GetRot());
 				// q1 = q0 + dq/dt * h
@@ -74,7 +74,7 @@ namespace chrono {
 				qnew1.Normalize();
 				Body1->SetRot(qnew1);
 
-				ChQuaternion<> Rot2(0, Inv_I2 * Body2->GetRot().RotateBack(pr).eigen());
+				ChQuaternion<> Rot2(0, Inv_I2 * Body2->TransformDirectionParentToLocal(pr).eigen());
 				// {q_dt} = 1/2 {0,w}*{q}
 				//dq2.Qdt_from_Wrel(Rot2, Body2->GetRot());
 				// q1 = q0 + dq/dt * h
@@ -89,17 +89,18 @@ namespace chrono {
 			// Position violation in abs coord. This is the distance FROM the desired point TO the constraint frame.
 			// It's easy to check using alpha=0 and r1,r2 parallel to n in eq 2,3,4,6: p (correction) is oppsoed to n (due to - in 4)
 			// Constraint dist in absolute reference 
-			ChVector<> r1 = Body1->GetRot().Rotate(f1.coord.pos);
-			ChVector<> r2 = Body2->GetRot().Rotate(f2.coord.pos);
+			ChVector<> r1 = Body1->TransformDirectionLocalToParent(f1.coord.pos);
+			ChVector<> r2 = Body2->TransformDirectionLocalToParent(f2.coord.pos);
 			ChVector<> n0 = Body1->GetPos() + r1 - (Body2->GetPos() + r2);
 			// Rotation of the link frame w.r.t. global frame
-			ChQuaternion<> q = f1.coord.rot * Body1->GetRot();
+			//ChQuaternion<> q = f1.coord.rot * Body1->GetRot();
+			ChMatrix33<> M = f1.GetA() * Body1->GetA();
 			// get rid of unconstrained directions by element wise multiplication in the link frame reference
-			ChVector<> n_loc = q.RotateBack(n0)*p_dir;
+			ChVector<> n_loc = (M.transpose()*n0)*p_dir;
 			// Add the correction due to limit violation
 			if (is_displ_limited || displ_actuated) n_loc -= ApplyDisplLimAct(n0);
 			// Now we bring the violation back in global coord and normaize it after saving its length
-			ChVector<> nt = q.Rotate(n_loc);
+			ChVector<> nt = M*n_loc;
 			double C = nt.Length();
 			if (dist_constr) {
 				if (displ_lims_low[0] < C && C < displ_lims_high[0]) { return; }
@@ -110,8 +111,8 @@ namespace chrono {
 
 			if (nt.Normalize()) {
 				lambda_f_dir = nt;
-				ChVector<> n1 = Body1->GetRot().RotateBack(nt);
-				ChVector<> n2 = Body2->GetRot().RotateBack(nt);
+				ChVector<> n1 = Body1->TransformDirectionParentToLocal(nt);
+				ChVector<> n2 = Body2->TransformDirectionParentToLocal(nt);
 				Eigen::Matrix<double, 1, 1> Ii1 = ((f1.coord.pos.Cross(n1).eigen()).transpose()) * Inv_I1 * (f1.coord.pos.Cross(n1).eigen());
 				Eigen::Matrix<double, 1, 1> Ii2 = ((f2.coord.pos.Cross(n2).eigen()).transpose()) * Inv_I2 * (f2.coord.pos.Cross(n2).eigen());
 				w1 = invm1 + Ii1(0, 0);
@@ -124,14 +125,14 @@ namespace chrono {
 				Body1->SetPos(Body1->GetPos() + p *  invm1);
 				Body2->SetPos(Body2->GetPos() - p *  invm2);
 
-				ChVector<> Rot1 = Inv_I1 * Body1->GetRot().RotateBack(r1.Cross(p)).eigen();
+				ChVector<> Rot1 = Inv_I1 * Body1->TransformDirectionParentToLocal(r1.Cross(p)).eigen();
 				ChQuaternion<> q01 = Body1->GetRot();
 				ChQuaternion<> dq1(0, Rot1);
 				ChQuaternion<> qnew1 = (q01 + q01*dq1*0.5);
 				qnew1.Normalize();
 				Body1->SetRot(qnew1);
 
-				ChVector<> Rot2 = Inv_I2 * Body2->GetRot().RotateBack(r2.Cross(p)).eigen();
+				ChVector<> Rot2 = Inv_I2 * Body2->TransformDirectionParentToLocal(r2.Cross(p)).eigen();
 				ChQuaternion<> q02 = Body2->GetRot();
 				ChQuaternion<> dq2(0, Rot2);
 				ChQuaternion<> qnew2 = (q02 - q02*dq2*0.5);
@@ -158,9 +159,10 @@ namespace chrono {
 
 	ChVector<> ChLinkPBD::getQdelta() {
 		// Orientation of the 2 link frames
-		ChQuaternion<> ql1 = Body1->GetRot()*f1.GetCoord().rot;
-		ChQuaternion<> ql2 = Body2->GetRot()*f2.GetCoord().rot;
+		
 		if (r_locked) {
+			ChQuaternion<> ql1 = Body1->GetRot()*f1.GetCoord().rot;
+			ChQuaternion<> ql2 = Body2->GetRot()*f2.GetCoord().rot;
 			// eq. 18 PBD paper
 			ChQuaternion<> qdelta = ql1*ql2.GetInverse();
 			// For angle and speed rotational actuators: the target q is rotated of the target angle "alpha" about the rot axis "a"
@@ -178,9 +180,11 @@ namespace chrono {
 			return qdelta.GetVector() * 2;
 		}
 		else {
+			ChMatrix33<> M1 = Body1->GetA()*f1.GetA();
+			ChMatrix33<> M2 = Body2->GetA()*f2.GetA();
 			// eq 20: get the rotational DOF directions in the abs frame
-			ChVector<> a1 = ql1.Rotate(a);
-			ChVector<> a2 = ql2.Rotate(a);
+			ChVector<> a1 = M1*a;
+			ChVector<> a2 = M2*a;
 			ChVector<> deltarot = a2 % a1;
 			return deltarot;
 		}
@@ -350,12 +354,12 @@ namespace chrono {
 
 	// Adjust tangential velocity of bodies 
 	void ChContactPBD::SolveContactPositions() {
-		ChVector<> p1 = Body1->GetPos() + Body1->GetRot().Rotate(f1.coord.pos);
-		ChVector<> p2 = Body2->GetPos() + Body2->GetRot().Rotate(f2.coord.pos);
+		ChVector<> p1 = Body1->GetPos() + Body1->TransformDirectionLocalToParent(f1.coord.pos);
+		ChVector<> p2 = Body2->GetPos() + Body2->TransformDirectionLocalToParent(f2.coord.pos);
 		ChVector<> dist = p2 - p1;
-		ChQuaternion<> q = f1.coord.rot * Body1->GetRot();
+		ChMatrix33<> M = f1.GetA() * Body1->GetA();
 		// n is the X axis of the contact "link"
-		n = q.Rotate(VECT_X);
+		n = M*VECT_X;
 		d = dist ^ n;
 
 		// If the distance is positive, just skip
@@ -376,7 +380,7 @@ namespace chrono {
 
 			//
 
-			ChVector<> v_rel = (Body1->GetPos_dt() + Body1->GetRot().Rotate(Body1->GetWvel_loc().Cross(f1.coord.pos)) - Body2->GetPos_dt() - Body2->GetRot().Rotate(Body2->GetWvel_loc().Cross(f2.coord.pos)));
+			ChVector<> v_rel = (Body1->GetPos_dt() + Body1->TransformDirectionLocalToParent(Body1->GetWvel_loc().Cross(f1.coord.pos)) - Body2->GetPos_dt() - Body2->TransformDirectionLocalToParent(Body2->GetWvel_loc().Cross(f2.coord.pos)));
 			// normal velocity before velocity update. Will be used in 
 			v_n_old = v_rel^n;
 
@@ -388,8 +392,8 @@ namespace chrono {
 				p_dir.Set(int(mask[0]), int(mask[1]), int(mask[2]));
 
 				// project static friction
-				ChVector<> r1 = Body1->GetRot().Rotate(f1.coord.pos);
-				ChVector<> r2 = Body2->GetRot().Rotate(f2.coord.pos);
+				ChVector<> r1 = Body1->TransformDirectionLocalToParent(f1.coord.pos);
+				ChVector<> r2 = Body2->TransformDirectionLocalToParent(f2.coord.pos);
 				// As in paper: use tangential disp wrt previous s.step:
 				//ChVector<> n0 = ( (Body1->GetPos() + r1 - p1_old) - ((Body2->GetPos() + r2) - p2_old ));
 				//double n0_n = n0^n;
@@ -398,17 +402,17 @@ namespace chrono {
 				// Alternative: tg displ wrt contact points. Exact only for the 1sr sstep, does not require storing old pos
 				ChVector<> n0 = Body1->GetPos() + r1 - (Body2->GetPos() + r2);
 				// Rotation of the link frame w.r.t. global frame
-				ChQuaternion<> q = f1.coord.rot * Body1->GetRot();
+				ChMatrix33<> M = f1.GetA() * Body1->GetA();
 				// get rid of unconstrained directions by element wise multiplication in the link frame reference
-				ChVector<> n_loc = (q.RotateBack(n0))*p_dir;
+				ChVector<> n_loc = (M.transpose()*n0)*p_dir;
 				// Now we bring the violation back in global coord and normaize it after saving its length
-				ChVector<> n_tf = q.Rotate(n_loc);
+				ChVector<> n_tf = M*n_loc;
 
 				double C = n_tf.Length();
 				if (n_tf.Normalize()) {
 
-					ChVector<> n1 = Body1->GetRot().RotateBack(n_tf);
-					ChVector<> n2 = Body2->GetRot().RotateBack(n_tf);
+					ChVector<> n1 = Body1->TransformDirectionParentToLocal(n_tf);
+					ChVector<> n2 = Body2->TransformDirectionParentToLocal(n_tf);
 					Eigen::Matrix<double, 1, 1> Ii1 = ((f1.coord.pos.Cross(n1).eigen()).transpose()) * Inv_I1 * (f1.coord.pos.Cross(n1).eigen());
 					Eigen::Matrix<double, 1, 1> Ii2 = ((f2.coord.pos.Cross(n2).eigen()).transpose()) * Inv_I2 * (f2.coord.pos.Cross(n2).eigen());
 					w1_tf = invm1 + Ii1(0, 0);
@@ -428,14 +432,14 @@ namespace chrono {
 						Body1->SetPos(Body1->GetPos() + p *  invm1);
 						Body2->SetPos(Body2->GetPos() - p *  invm2);
 
-						ChVector<> Rot1 = Inv_I1 * Body1->GetRot().RotateBack(r1.Cross(p)).eigen();
+						ChVector<> Rot1 = Inv_I1 * Body1->TransformDirectionParentToLocal(r1.Cross(p)).eigen();
 						ChQuaternion<> q01 = Body1->GetRot();
 						ChQuaternion<> dq1(0, Rot1);
 						ChQuaternion<> qnew1 = (q01 + q01*dq1*0.5);
 						qnew1.Normalize();
 						Body1->SetRot(qnew1);
 
-						ChVector<> Rot2 = Inv_I2 * Body2->GetRot().RotateBack(r2.Cross(p)).eigen();
+						ChVector<> Rot2 = Inv_I2 * Body2->TransformDirectionParentToLocal(r2.Cross(p)).eigen();
 						ChQuaternion<> q02 = Body2->GetRot();
 						ChQuaternion<> dq2(0, Rot2);
 						ChQuaternion<> qnew2 = (q02 - q02*dq2*0.5);
@@ -457,7 +461,7 @@ namespace chrono {
 		else
 		{
 			double h = PBDsys->h;
-			ChVector<> v_rel = Body1->GetPos_dt() + Body1->GetRot().Rotate(Body1->GetWvel_loc().Cross(f1.coord.pos)) - Body2->GetPos_dt() - Body2->GetRot().Rotate(Body2->GetWvel_loc().Cross(f2.coord.pos));
+			ChVector<> v_rel = Body1->GetPos_dt() + Body1->TransformDirectionLocalToParent(Body1->GetWvel_loc().Cross(f1.coord.pos)) - Body2->GetPos_dt() - Body2->TransformDirectionLocalToParent(Body2->GetWvel_loc().Cross(f2.coord.pos));
 			double v_rel_n = v_rel^n;
 			ChVector<> v_rel_t = v_rel - n * v_rel_n;
 			double vt = v_rel_t.Length();
@@ -493,13 +497,13 @@ namespace chrono {
 
 			ChVector<> omega1 = Body1->GetWvel_loc();
 			ChVector<> omega2 = Body2->GetWvel_loc();
-			ChVector<> delta_omega1 = Inv_I1 * f1.coord.pos.Cross(Body1->GetRot().RotateBack(p)).eigen();
-			ChVector<> delta_omega2 = Inv_I2 * f2.coord.pos.Cross(Body2->GetRot().RotateBack(p)).eigen();
+			ChVector<> delta_omega1 = Inv_I1 * f1.coord.pos.Cross(Body1->TransformDirectionParentToLocal(p)).eigen();
+			ChVector<> delta_omega2 = Inv_I2 * f2.coord.pos.Cross(Body2->TransformDirectionParentToLocal(p)).eigen();
 			Body1->SetWvel_loc(omega1 + delta_omega1);
 			Body2->SetWvel_loc(omega2 - delta_omega2);
 
-			//p1_old = Body1->GetPos() + Body1->GetRot().Rotate(f1.coord.pos);
-			//p2_old = Body2->GetPos() + Body2->GetRot().Rotate(f2.coord.pos);
+			//p1_old = Body1->GetPos() + Body1->TransformDirectionLocalToParent(f1.coord.pos);
+			//p2_old = Body2->GetPos() + Body2->TransformDirectionLocalToParent(f2.coord.pos);
 		}
 	}
 
@@ -553,7 +557,7 @@ namespace chrono {
 		mask[3] = false;
 		mask[4] = false;
 		mask[5] = false;
-		p_dir.Set(1,1,1);
+		p_dir.Set(1, 1, 1);
 		p_free = false;
 		r_free = true;
 		EvalMasses();
