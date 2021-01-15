@@ -468,7 +468,7 @@ namespace chrono {
 				double ft = abs(lambda_contact_tf) / (h*h);
 				// eq. 30
 				// TODO: this is taken from the paper but does not make sense dimensionally
-				double threshold = mu_d * h * ft * (w1_tf + w2_tf);
+				double threshold = h * ft * (w1_tf + w2_tf);
 				if (vt < threshold) {
 					is_dynamic = false;
 					delta_vt = -v_rel_t;
