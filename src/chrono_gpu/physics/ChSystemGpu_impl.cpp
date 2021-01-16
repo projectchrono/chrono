@@ -165,6 +165,7 @@ void ChSystemGpu_impl::packSphereDataPointers() {
 
     sphere_data->SD_NumSpheresTouching = SD_NumSpheresTouching.data();
     sphere_data->SD_SphereCompositeOffsets = SD_SphereCompositeOffsets.data();
+    sphere_data->SD_SphereCompositeOffsets_SP = SD_SphereCompositeOffsets_ScratchPad.data();
     sphere_data->spheres_in_SD_composite = spheres_in_SD_composite.data();
 
     if (gran_params->friction_mode == CHGPU_FRICTION_MODE::MULTI_STEP ||
@@ -993,6 +994,7 @@ void ChSystemGpu_impl::partitionBD() {
     // allocate mem for array saying for each SD how many spheres touch it
     TRACK_VECTOR_RESIZE(SD_NumSpheresTouching, nSDs, "SD_numSpheresTouching", 0);
     TRACK_VECTOR_RESIZE(SD_SphereCompositeOffsets, nSDs, "SD_SphereCompositeOffsets", 0);
+    TRACK_VECTOR_RESIZE(SD_SphereCompositeOffsets_ScratchPad, nSDs, "SD_SphereCompositeOffsets_ScratchPad", 0);
 }
 
 // Convert unit parameters from UU to SU
