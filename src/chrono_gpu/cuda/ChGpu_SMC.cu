@@ -392,8 +392,10 @@ __host__ void ChSystemGpu_impl::runSphereBroadphase() {
     gpuErrchk(cudaMemcpy(SD_SphereCompositeOffsets_ScratchPad.data(), SD_SphereCompositeOffsets.data(),
                          nSDs * sizeof(unsigned int), cudaMemcpyDeviceToDevice));
     // Populate the composite array; in the process, the content of the scratch pad will be modified
-    nBlocks = (MAX_SDs_TOUCHED_BY_SPHERE * nSpheres + 2*CUDA_THREADS_PER_BLOCK - 1) / (2*CUDA_THREADS_PER_BLOCK);
-    populateSpheresInEachSD<<<nBlocks, 2*CUDA_THREADS_PER_BLOCK>>>(sphere_data, nSpheres, gran_params);
+    // nBlocks = (MAX_SDs_TOUCHED_BY_SPHERE * nSpheres + 2*CUDA_THREADS_PER_BLOCK - 1) / (2*CUDA_THREADS_PER_BLOCK);
+    // populateSpheresInEachSD<<<nBlocks, 2*CUDA_THREADS_PER_BLOCK>>>(sphere_data, nSpheres, gran_params);
+    nBlocks = (nSpheres + CUDA_THREADS_PER_BLOCK - 1) / (CUDA_THREADS_PER_BLOCK);
+    populateSpheresInEachSD<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(sphere_data, nSpheres, gran_params);
     gpuErrchk(cudaDeviceSynchronize());
     gpuErrchk(cudaPeekAtLastError());
 }
