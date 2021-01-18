@@ -153,43 +153,10 @@ __global__ void getNumberOfSpheresTouchingEachSD(ChSystemGpu_impl::GranSphereDat
         // Coalesced mem access
         int3 ownerSD_triplet = SDIDTriplet(sphere_data->sphere_owner_SDs[mySphereID], gran_params);
 
-        // figureOutTouchedSD(sphere_data->sphere_local_pos_X[mySphereID], 
-        //                   sphere_data->sphere_local_pos_Y[mySphereID], 
-        //                   sphere_data->sphere_local_pos_Z[mySphereID], 
-        //                   ownerSD_triplet, SDsTouched, gran_params);
-        // This function is un-inlined for better Nsight interaction
-        {    
-            // grab radius as signed so we can use it intelligently
-            const signed int sphereRadius_SU = gran_params->sphereRadius_SU;
-
-            int nx[2], ny[2], nz[2];
-
-            // if the sphere touches the SD to the negative directions of its owner
-            nx[0] = (sphere_data->sphere_local_pos_X[mySphereID] - sphereRadius_SU) > 0 ? 0 : -1;
-            ny[0] = (sphere_data->sphere_local_pos_Y[mySphereID] - sphereRadius_SU) > 0 ? 0 : -1;
-            nz[0] = (sphere_data->sphere_local_pos_Z[mySphereID] - sphereRadius_SU) > 0 ? 0 : -1;
-
-            // if the sphere touches the SD to the positive directions of its owner
-            nx[1] = (sphere_data->sphere_local_pos_X[mySphereID] + sphereRadius_SU) < gran_params->SD_size_X_SU ? 0 : 1;
-            ny[1] = (sphere_data->sphere_local_pos_Y[mySphereID] + sphereRadius_SU) < gran_params->SD_size_Y_SU ? 0 : 1;
-            nz[1] = (sphere_data->sphere_local_pos_Z[mySphereID] + sphereRadius_SU) < gran_params->SD_size_Z_SU ? 0 : 1;
-            // figure out what
-            // number of iterations in each direction
-            int num_x = (nx[0] == nx[1]) ? 1 : 2;
-            int num_y = (ny[0] == ny[1]) ? 1 : 2;
-            int num_z = (nz[0] == nz[1]) ? 1 : 2;
-
-            // TODO unroll me
-            for (int i = 0; i < num_x; i++) {
-                for (int j = 0; j < num_y; j++) {
-                    for (int k = 0; k < num_z; k++) {
-                        // will return NULL_CHGPU_ID if this is an out-of-domain SD
-                        SDsTouched[i * 4 + j * 2 + k] =
-                            SDTripletID(ownerSD_triplet.x + nx[i], ownerSD_triplet.y + ny[j], ownerSD_triplet.z + nz[k], gran_params);
-                    }
-                }
-            }
-        }
+        figureOutTouchedSD(sphere_data->sphere_local_pos_X[mySphereID], 
+                          sphere_data->sphere_local_pos_Y[mySphereID], 
+                          sphere_data->sphere_local_pos_Z[mySphereID], 
+                          ownerSD_triplet, SDsTouched, gran_params);
     }
 
     __syncthreads();
@@ -261,44 +228,11 @@ static __global__ void populateSpheresInEachSD(ChSystemGpu_impl::GranSphereDataP
         // Coalesced mem access
         int3 ownerSD_triplet = SDIDTriplet(sphere_data->sphere_owner_SDs[mySphereID], gran_params);
 
-        // figureOutTouchedSD(sphere_data->sphere_local_pos_X[mySphereID], 
-        //                   sphere_data->sphere_local_pos_Y[mySphereID], 
-        //                   sphere_data->sphere_local_pos_Z[mySphereID], 
-        //                   ownerSD_triplet, SDsTouched, gran_params);
-        // This function is un-inlined for better Nsight interaction
-        {    
-            // grab radius as signed so we can use it intelligently
-            const signed int sphereRadius_SU = gran_params->sphereRadius_SU;
-
-            int nx[2], ny[2], nz[2];
-
-            // if the sphere touches the SD to the negative directions of its owner
-            nx[0] = (sphere_data->sphere_local_pos_X[mySphereID] - sphereRadius_SU) > 0 ? 0 : -1;
-            ny[0] = (sphere_data->sphere_local_pos_Y[mySphereID] - sphereRadius_SU) > 0 ? 0 : -1;
-            nz[0] = (sphere_data->sphere_local_pos_Z[mySphereID] - sphereRadius_SU) > 0 ? 0 : -1;
-
-            // if the sphere touches the SD to the positive directions of its owner
-            nx[1] = (sphere_data->sphere_local_pos_X[mySphereID] + sphereRadius_SU) < gran_params->SD_size_X_SU ? 0 : 1;
-            ny[1] = (sphere_data->sphere_local_pos_Y[mySphereID] + sphereRadius_SU) < gran_params->SD_size_Y_SU ? 0 : 1;
-            nz[1] = (sphere_data->sphere_local_pos_Z[mySphereID] + sphereRadius_SU) < gran_params->SD_size_Z_SU ? 0 : 1;
-            // figure out what
-            // number of iterations in each direction
-            int num_x = (nx[0] == nx[1]) ? 1 : 2;
-            int num_y = (ny[0] == ny[1]) ? 1 : 2;
-            int num_z = (nz[0] == nz[1]) ? 1 : 2;
-
-            // TODO unroll me
-            for (int i = 0; i < num_x; i++) {
-                for (int j = 0; j < num_y; j++) {
-                    for (int k = 0; k < num_z; k++) {
-                        // will return NULL_CHGPU_ID if this is an out-of-domain SD
-                        SDsTouched[i * 4 + j * 2 + k] =
-                            SDTripletID(ownerSD_triplet.x + nx[i], ownerSD_triplet.y + ny[j], ownerSD_triplet.z + nz[k], gran_params);
-                    }
-                }
-            }
-        }
-    
+        figureOutTouchedSD(sphere_data->sphere_local_pos_X[mySphereID], 
+                          sphere_data->sphere_local_pos_Y[mySphereID], 
+                          sphere_data->sphere_local_pos_Z[mySphereID], 
+                          ownerSD_triplet, SDsTouched, gran_params);
+        
         for (unsigned int i = 0; i < MAX_SDs_TOUCHED_BY_SPHERE; i++) {
             if (SDsTouched[i] != NULL_CHGPU_ID) {
                 unsigned int offsetInCompositeArray = 
@@ -307,152 +241,6 @@ static __global__ void populateSpheresInEachSD(ChSystemGpu_impl::GranSphereDataP
             }
         }
     }
-    /*
-    // Figure out what sphereID this thread will handle. We work with a 1D block structure and a 1D grid structure
-    unsigned int overallThread = threadIdx.x + blockIdx.x * blockDim.x;
-    unsigned int mySphereID = overallThread / MAX_SDs_TOUCHED_BY_SPHERE;
-
-    if (mySphereID < nSpheres) {
-        const signed int sphereRadius_SU = gran_params->sphereRadius_SU;
-        unsigned int whichSD = overallThread % MAX_SDs_TOUCHED_BY_SPHERE;
-
-        // Coalesced mem access
-        int3 ownerSD = SDIDTriplet(sphere_data->sphere_owner_SDs[mySphereID], gran_params);
-        
-        int X_local = sphere_data->sphere_local_pos_X[mySphereID];
-        int Y_local = sphere_data->sphere_local_pos_Y[mySphereID];
-        int Z_local = sphere_data->sphere_local_pos_Z[mySphereID];
-
-        // check 8 octants (SDs), if the sphere touches
-        int nx, ny, nz;
-        switch (whichSD) {
-            case 0: {
-                nx = (X_local + sphereRadius_SU < gran_params->SD_size_X_SU) ? 0 : 1; 
-                ny = (Y_local + sphereRadius_SU < gran_params->SD_size_Y_SU) ? 0 : 1;
-                nz = (Z_local + sphereRadius_SU < gran_params->SD_size_Z_SU) ? 0 : 1;
-                if (nx || ny || nz) {    
-                    unsigned int SD_in_Question = SDTripletID(ownerSD.x + nx, ownerSD.y + ny, ownerSD.z + nz, gran_params);
-                    if (SD_in_Question != NULL_CHGPU_ID) {
-                        unsigned int offsetInCompositeArray = 
-                            atomicAdd(sphere_data->SD_SphereCompositeOffsets_SP + SD_in_Question, 1);
-                        sphere_data->spheres_in_SD_composite[offsetInCompositeArray] = mySphereID;
-                    }
-                }
-                // octant 0 is also responsible for registering the owner SD
-                unsigned int offsetInCompositeArray =
-                    atomicAdd(sphere_data->SD_SphereCompositeOffsets_SP + sphere_data->sphere_owner_SDs[mySphereID], 1);
-                sphere_data->spheres_in_SD_composite[offsetInCompositeArray] = mySphereID;
-                break;
-            }
-
-            case 1: {
-                nx = (X_local - sphereRadius_SU > 0) ? 0 : -1; 
-                ny = (Y_local + sphereRadius_SU < gran_params->SD_size_Y_SU) ? 0 : 1;
-                nz = (Z_local + sphereRadius_SU < gran_params->SD_size_Z_SU) ? 0 : 1;
-
-                if (nx || ny || nz) {    
-                    unsigned int SD_in_Question = SDTripletID(ownerSD.x + nx, ownerSD.y + ny, ownerSD.z + nz, gran_params);
-                    if (SD_in_Question != NULL_CHGPU_ID) {
-                        unsigned int offsetInCompositeArray = 
-                            atomicAdd(sphere_data->SD_SphereCompositeOffsets_SP + SD_in_Question, 1);
-                        sphere_data->spheres_in_SD_composite[offsetInCompositeArray] = mySphereID;
-                    }
-                }
-                break;
-            }
-
-            case 2: {
-                nx = (X_local - sphereRadius_SU > 0) ? 0 : -1; 
-                ny = (Y_local - sphereRadius_SU > 0) ? 0 : -1;
-                nz = (Z_local + sphereRadius_SU < gran_params->SD_size_Z_SU) ? 0 : 1;
-                if (nx || ny || nz) {    
-                    unsigned int SD_in_Question = SDTripletID(ownerSD.x + nx, ownerSD.y + ny, ownerSD.z + nz, gran_params);
-                    if (SD_in_Question != NULL_CHGPU_ID) {
-                        unsigned int offsetInCompositeArray = 
-                            atomicAdd(sphere_data->SD_SphereCompositeOffsets_SP + SD_in_Question, 1);
-                        sphere_data->spheres_in_SD_composite[offsetInCompositeArray] = mySphereID;
-                    }
-                }
-                break;
-            }
-
-            case 3: {
-                nx = (X_local + sphereRadius_SU < gran_params->SD_size_X_SU) ? 0 : 1; 
-                ny = (Y_local - sphereRadius_SU > 0) ? 0 : -1;
-                nz = (Z_local + sphereRadius_SU < gran_params->SD_size_Z_SU) ? 0 : 1;
-                if (nx || ny || nz) {    
-                    unsigned int SD_in_Question = SDTripletID(ownerSD.x + nx, ownerSD.y + ny, ownerSD.z + nz, gran_params);
-                    if (SD_in_Question != NULL_CHGPU_ID) {
-                        unsigned int offsetInCompositeArray = 
-                            atomicAdd(sphere_data->SD_SphereCompositeOffsets_SP + SD_in_Question, 1);
-                        sphere_data->spheres_in_SD_composite[offsetInCompositeArray] = mySphereID;
-                    }
-                }
-                break;
-            }
-
-            case 4: {
-                nx = (X_local + sphereRadius_SU < gran_params->SD_size_X_SU) ? 0 : 1; 
-                ny = (Y_local + sphereRadius_SU < gran_params->SD_size_Y_SU) ? 0 : 1;
-                nz = (Z_local - sphereRadius_SU > 0) ? 0 : -1;
-                if (nx || ny || nz) {    
-                    unsigned int SD_in_Question = SDTripletID(ownerSD.x + nx, ownerSD.y + ny, ownerSD.z + nz, gran_params);
-                    if (SD_in_Question != NULL_CHGPU_ID) {
-                        unsigned int offsetInCompositeArray = 
-                            atomicAdd(sphere_data->SD_SphereCompositeOffsets_SP + SD_in_Question, 1);
-                        sphere_data->spheres_in_SD_composite[offsetInCompositeArray] = mySphereID;
-                    }
-                }
-                break;
-            }
-
-            case 5: {
-                nx = (X_local - sphereRadius_SU > 0) ? 0 : -1; 
-                ny = (Y_local + sphereRadius_SU < gran_params->SD_size_Y_SU) ? 0 : 1;
-                nz = (Z_local - sphereRadius_SU > 0) ? 0 : -1;
-                if (nx || ny || nz) {    
-                    unsigned int SD_in_Question = SDTripletID(ownerSD.x + nx, ownerSD.y + ny, ownerSD.z + nz, gran_params);
-                    if (SD_in_Question != NULL_CHGPU_ID) {
-                        unsigned int offsetInCompositeArray = 
-                            atomicAdd(sphere_data->SD_SphereCompositeOffsets_SP + SD_in_Question, 1);
-                        sphere_data->spheres_in_SD_composite[offsetInCompositeArray] = mySphereID;
-                    }
-                }
-                break;
-            }
-
-            case 6: {
-                nx = (X_local - sphereRadius_SU > 0) ? 0 : -1; 
-                ny = (Y_local - sphereRadius_SU > 0) ? 0 : -1;
-                nz = (Z_local - sphereRadius_SU > 0) ? 0 : -1;
-                if (nx || ny || nz) {    
-                    unsigned int SD_in_Question = SDTripletID(ownerSD.x + nx, ownerSD.y + ny, ownerSD.z + nz, gran_params);
-                    if (SD_in_Question != NULL_CHGPU_ID) {
-                        unsigned int offsetInCompositeArray = 
-                            atomicAdd(sphere_data->SD_SphereCompositeOffsets_SP + SD_in_Question, 1);
-                        sphere_data->spheres_in_SD_composite[offsetInCompositeArray] = mySphereID;
-                    }
-                }
-                break;
-            }
-
-            case 7: {
-                nx = (X_local + sphereRadius_SU < gran_params->SD_size_X_SU) ? 0 : 1; 
-                ny = (Y_local - sphereRadius_SU > 0) ? 0 : -1;
-                nz = (Z_local - sphereRadius_SU > 0) ? 0 : -1;
-                if (nx || ny || nz) {    
-                    unsigned int SD_in_Question = SDTripletID(ownerSD.x + nx, ownerSD.y + ny, ownerSD.z + nz, gran_params);
-                    if (SD_in_Question != NULL_CHGPU_ID) {
-                        unsigned int offsetInCompositeArray = 
-                            atomicAdd(sphere_data->SD_SphereCompositeOffsets_SP + SD_in_Question, 1);
-                        sphere_data->spheres_in_SD_composite[offsetInCompositeArray] = mySphereID;
-                    }
-                }
-                break;
-            }
-        } // end of octant switch
-    }
-    */
 }
 
 /// Get position offset between two SDs
