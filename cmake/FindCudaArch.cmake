@@ -5,7 +5,7 @@
 
 # Known NVIDIA GPU achitectures Chrono can be compiled for.
 # This list will be used for CUDA_ARCH_NAME = All option
-SET(KNOWN_GPU_ARCHITECTURES "3.5 3.7 5.0 5.2 5.3 6.0 6.1 6.2 7.0 7.2 7.5 8.0")
+SET(KNOWN_GPU_ARCHITECTURES "3.5 3.7 5.0 5.2 5.3 6.0 6.1 6.2 7.0 7.2 7.5 8.0 8.6")
 
 ################################################################################################
 # Removes duplicates from LIST(s)
@@ -116,8 +116,16 @@ FUNCTION(SELECT_NVCC_ARCH_FLAGS out_variable)
   elseif(${CUDA_ARCH_NAME} STREQUAL "Turing")
     SET(__cuda_arch_bin "7.5")
   elseif(${CUDA_ARCH_NAME} STREQUAL "Ampere")
-	SET(__cuda_arch_bin "8.0")
+	  SET(__cuda_arch_bin "8.0 8.6")
   elseif(${CUDA_ARCH_NAME} STREQUAL "All")
+    # Check CUDA version and remove unsupported architectures
+    if (${CUDA_VERSION} VERSION_LESS 10.0)
+      STRING(REPLACE "7.5" "" KNOWN_GPU_ARCHITECTURES "${KNOWN_GPU_ARCHITECTURES}")
+    endif()
+    if(${CUDA_VERSION} VERSION_LESS 11.0)
+      STRING(REPLACE "8.0 8.6" "" KNOWN_GPU_ARCHITECTURES "${KNOWN_GPU_ARCHITECTURES}")
+    endif()
+    # Enable build of all supported architectures
     SET(__cuda_arch_bin ${KNOWN_GPU_ARCHITECTURES})
   elseif(${CUDA_ARCH_NAME} STREQUAL "Auto")
     DETECT_INSTALLED_GPUS(__cuda_arch_bin)
