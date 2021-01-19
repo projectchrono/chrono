@@ -253,7 +253,7 @@ bool ChCollisionModelBullet::AddCapsule(std::shared_ptr<ChMaterialSurface> mater
 
     btScalar ar = (btScalar)(radius + GetEnvelope());
     btScalar ah = (btScalar)(hlen + GetEnvelope());
-    shape->m_bt_shape = new btCapsuleShape(ar, ah);
+    shape->m_bt_shape = new btCapsuleShape(ar, 2 * ah);
     shape->m_bt_shape->setMargin((btScalar)GetSuggestedFullMargin());
 
     injectShape(pos, rot, shape);
