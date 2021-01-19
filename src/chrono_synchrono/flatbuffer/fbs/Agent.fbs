@@ -80,8 +80,10 @@ root_type State;
 
 namespace SynFlatBuffers.Agent.Environment;
 
-// Environment agents have no state to synchronize for now, unlike other agents
-table State {}
+table State {
+  map:SynFlatBuffers.Message; // MAP.State
+  spat:SynFlatBuffers.Message; // SPAT.State
+}
 
 // Do need a description message (even if blank) to initialize everything
 table Description {}

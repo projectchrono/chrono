@@ -21,14 +21,16 @@
 // =============================================================================
 
 #include "chrono_synchrono/utils/SynGPSTools.h"
-#include "chrono/core/ChLog.h"
+
+#include "chrono_synchrono/utils/SynLog.h"
 
 using namespace chrono;
+using namespace chrono::vehicle;
 
 namespace chrono {
 namespace synchrono {
 
-SynGPSTools::SynGPSTools(const GPScoord& origin, std::shared_ptr<SynTerrain> terrain)
+SynGPSTools::SynGPSTools(const GPScoord& origin, std::shared_ptr<ChTerrain> terrain)
     : m_origin(origin), m_terrain(terrain) {
     // Store origin info in radians, from degree-based GPScoord
     m_lat_origin = origin.lat_rad();
@@ -103,7 +105,7 @@ std::shared_ptr<ChBezierCurve> SynGPSTools::CurveFromGPS(const std::string& file
 
     if (num_cols == 3 || num_cols == 9) {
         // TODO: This method should actually support numcols=3 b/c of altitude
-        GetLog() << "SynGPSTools::CurveFromGPS: File specified actually describes a ChBezierCurve, not a GPS curve, "
+        SynLog() << "SynGPSTools::CurveFromGPS: File specified actually describes a ChBezierCurve, not a GPS curve, "
                     "reading anyways"
                  << "\n";
 

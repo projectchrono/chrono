@@ -287,7 +287,7 @@ __global__ void interactionTerrain_TriangleSoup(
         if (local_ID < numSDTriangles) {
             size_t SD_composite_offset = SD_TriangleCompositeOffsets[thisSD];
             if (SD_composite_offset == NULL_CHGPU_ID) {
-                ABORTABORTABORT("Invalid composite offset %llu for SD %u, touching %u triangles\n", NULL_CHGPU_ID,
+                ABORTABORTABORT("Invalid composite offset %lu for SD %u, touching %u triangles\n", NULL_CHGPU_ID,
                                 thisSD, numSDTriangles);
             }
             size_t offset_in_composite_Array = SD_composite_offset + local_ID;
@@ -554,7 +554,14 @@ __host__ double ChSystemGpuMesh_impl::AdvanceSimulation(float duration) {
         gpuErrchk(cudaDeviceSynchronize());
 
         if (gran_params->friction_mode != CHGPU_FRICTION_MODE::FRICTIONLESS) {
-            updateFrictionData<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(stepSize_SU, sphere_data, nSpheres, gran_params);
+            const unsigned int nThreadsUpdateHist = 2 * CUDA_THREADS_PER_BLOCK;
+            unsigned int fricMapSize = nSpheres * MAX_SPHERES_TOUCHED_BY_SPHERE;
+            unsigned int nBlocksFricHistoryPostProcess = (fricMapSize + nThreadsUpdateHist - 1) / nThreadsUpdateHist;
+            updateFrictionData<<<nBlocksFricHistoryPostProcess, nThreadsUpdateHist>>>(fricMapSize, sphere_data,
+                                                                                      gran_params);
+            gpuErrchk(cudaPeekAtLastError());
+            gpuErrchk(cudaDeviceSynchronize());
+            updateAngVels<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(stepSize_SU, sphere_data, nSpheres, gran_params);
             gpuErrchk(cudaPeekAtLastError());
             gpuErrchk(cudaDeviceSynchronize());
         }

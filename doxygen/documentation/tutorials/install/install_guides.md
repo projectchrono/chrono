@@ -23,6 +23,8 @@ Additional Chrono functionality is provided through optional modules. Building o
 
 -   [Pardiso MKL module](@ref module_mkl_installation)
 
+-   [Pardiso Project module](@ref module_pardisoproject_installation)
+
 -   [MULTICORE module](@ref module_multicore_installation)
 
 -   [MUMPS module](@ref module_mumps_installation)
