@@ -87,6 +87,8 @@ class btCylshellBoxCollisionAlgorithm : public btActivatingCollisionAlgorithm {
     };
 
   private:
+    int addContactPoint(const btVector3& pc, int iface, const btTransform& X_box, const btVector3& hdims, btManifoldResult* resultOut);
+
     bool m_ownManifold;
     btPersistentManifold* m_manifoldPtr;
     bool m_isSwapped;
