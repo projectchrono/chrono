@@ -11,9 +11,9 @@
 // =============================================================================
 // Authors: Nic Olsen
 // =============================================================================
-// Chrono::Gpu demo using SMC method. A body whose geometry is described
-// by an OBJ file is time-integrated in Chrono and interacts with a granular
-// wave tank in Chrono::Gpu via the co-simulation framework.
+// Chrono::Gpu demo using SMC method. A body whose geometry is described by an
+// OBJ file is time-integrated in Chrono and interacts with a granular wave tank
+// in Chrono::Gpu via the co-simulation framework.
 // =============================================================================
 
 #include <iostream>
@@ -44,10 +44,6 @@ float out_fps = 50;
 // Enable/disable run-time visualization (if Chrono::OpenGL is available)
 bool render = true;
 float render_fps = 2000;
-
-void ShowUsage(std::string name) {
-    std::cout << "usage: " + name + " <json_file>" << std::endl;
-}
 
 void writeMeshFrames(std::ostringstream& outstream, ChBody& body, std::string obj_name, float mesh_scaling) {
     outstream << obj_name << ",";
@@ -82,7 +78,7 @@ void writeMeshFrames(std::ostringstream& outstream, ChBody& body, std::string ob
 int main(int argc, char* argv[]) {
     ChGpuSimulationParameters params;
     if (argc != 2 || ParseJSON(argv[1], params) == false) {
-        ShowUsage(argv[0]);
+        std::cout << "Usage:\n./demo_GPU_ballcosim <json_file>" << std::endl;
         return 1;
     }
 
