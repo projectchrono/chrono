@@ -11,8 +11,8 @@
 // =============================================================================
 // Authors: Luning Fang
 // =============================================================================
-// Chrono::Gpu simulation of granular material settled in cylinder first
-// , then compressed from a plate on top modelled as a boundary condition
+// Chrono::Gpu simulation of granular material settled in cylinder first, then
+// compressed from a plate on top modelled as a boundary condition
 // =============================================================================
 
 #include <iostream>
@@ -38,15 +38,10 @@ float F_CGS_TO_SI = 1e-5;
 float KE_CGS_TO_SI = 1e-7;
 float L_CGS_TO_SI = 1e-2;
 
-// Show command line usage
-void ShowUsage(std::string name) {
-    std::cout << "usage: " + name + " <json_file> " << std::endl;
-}
-
 int main(int argc, char* argv[]) {
     ChGpuSimulationParameters params;
     if (argc != 2 || ParseJSON(argv[1], params) == false) {
-        ShowUsage(argv[0]);
+        std::cout << "Usage:\n./demo_GPU_compression <json_file>" << std::endl;
         return 1;
     }
 

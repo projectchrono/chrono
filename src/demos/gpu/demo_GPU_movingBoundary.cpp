@@ -11,8 +11,8 @@
 // =============================================================================
 // Authors: Conlain Kelly
 // =============================================================================
-// Chrono::Gpu simulation of a rectangular bed of granular material which
-// is first let to settle and then compressed by advancing one of the box walls
+// Chrono::Gpu simulation of a rectangular bed of granular material which is
+// first let to settle and then compressed by advancing one of the box walls
 // into the material.
 // =============================================================================
 
@@ -30,19 +30,12 @@
 using namespace chrono;
 using namespace chrono::gpu;
 
-// -----------------------------------------------------------------------------
-// Show command line usage
-// -----------------------------------------------------------------------------
-void ShowUsage(std::string name) {
-    std::cout << "usage: " + name + " <json_file>" << std::endl;
-}
-
 int main(int argc, char* argv[]) {
     ChGpuSimulationParameters params;
 
     // Some of the default values might be overwritten by user via command line
     if (argc != 2 || ParseJSON(argv[1], params) == false) {
-        ShowUsage(argv[0]);
+        std::cout << "Usage:\n./demo_GPU_movingBoundary <json_file>" << std::endl;
         return 1;
     }
 
