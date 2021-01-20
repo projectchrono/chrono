@@ -34,9 +34,25 @@ auto my_body = chrono_types::make_shared<ChBody>();
 
     Examples of modeling and simulating ground vehicles in Chrono.
 
+-   @subpage tutorial_table_of_content_chrono_fsi
+
+    Examples of fluid-solid interaction problems using the FSI module.
+
 -   @subpage tutorial_table_of_content_chrono_postprocess
 
     Examples of producing postprocessing data (e.g. POVray or GNUplot output).
+
+-   @subpage tutorial_table_of_content_chrono_multicore
+
+    Examples of using the Multicore module.
+
+-   @subpage tutorial_table_of_content_chrono_distributed
+
+    Examples of using the Distributed module.
+
+-   @subpage tutorial_table_of_content_chrono_gpu
+
+    Examples of granular dynamics problems using the Gpu module.
 
 -   @subpage tutorial_table_of_content_chrono_python
 
@@ -54,25 +70,9 @@ auto my_body = chrono_types::make_shared<ChBody>();
 
     Examples of loading CAD models.
 
--   @subpage tutorial_table_of_content_chrono_parallel
-
-    Examples of using the Parallel module.
-
--   @subpage tutorial_table_of_content_chrono_distributed
-
-    Examples of using the Distributed module.
-
 -   @subpage tutorial_table_of_content_chrono_opengl
 
     Examples of run-time visualization with the OpenGL module.
-
--   @subpage tutorial_table_of_content_chrono_fsi
-
-    Examples of fluid-solid interaction problems using the FSI module.
-
--   @subpage tutorial_table_of_content_chrono_granular
-
-    Examples of granular dynamics problems (GPU).
 
 -   @subpage tutorial_table_of_content_chrono_sensor
 
@@ -80,7 +80,7 @@ auto my_body = chrono_types::make_shared<ChBody>();
 
 -   @subpage tutorial_table_of_content_chrono_synchrono
 
-    Examples of MPI-parallelized simulation of autonomous vehicles and robots.
+    Examples of distributed simulation of autonomous vehicles and robots.
 
 
 ## Other tools

@@ -39,16 +39,15 @@
     - the [installation guide](@ref module_synchrono_installation)
 
     @{
+        @defgroup synchrono_core Core SynChrono
         @defgroup synchrono_agent Agents
-        @defgroup synchrono_brain Brains and Drivers
+        @defgroup synchrono_controller Controllers and Drivers
         @defgroup synchrono_communication Communication
         @{
-            @defgroup synchrono_communication_mpi Communication tools using the MPI framework
+            @defgroup synchrono_communication_mpi MPI
+            @defgroup synchrono_communication_dds DDS
         @}
         @defgroup synchrono_flatbuffer Flatbuffer Messages
-        @defgroup synchrono_terrain Terrain wrapping
-        @defgroup synchrono_vehicle Vehicle wrapping
-        @defgroup synchrono_visualization Visualization Wrapping
         @defgroup synchrono_utils Utilities
     @}
 */

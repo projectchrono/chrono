@@ -20,9 +20,9 @@ if(NOT MPI_CXX_FOUND)
 	return()
 endif()
 
-# Return now if Chrono::Parallel is not enabled
-if(NOT ENABLE_MODULE_PARALLEL)
-    message(WARNING "Chrono::Distributed depends on Chrono::Parallel which is disabled; disabling Chrono::Distributed")
+# Return now if Chrono::Multicore is not enabled
+if(NOT ENABLE_MODULE_MULTICORE)
+    message(WARNING "Chrono::Distributed depends on Chrono::Multicore which is disabled; disabling Chrono::Distributed")
     set(ENABLE_MODULE_DISTRIBUTED OFF CACHE BOOL "Enable the Chrono Distributed module" FORCE)
     return()
 endif()
@@ -119,7 +119,7 @@ SOURCE_GROUP(solver FILES ${ChronoEngine_distributed_SOLVER})
 # Add the ChronoEngine_distributed library
 # ------------------------------------------------------------------------------
 
-include_directories(${CH_PARALLEL_INCLUDES})
+include_directories(${CH_MULTICORE_INCLUDES})
 include_directories(${CH_DISTRIBUTED_INCLUDES})
 
 ADD_LIBRARY(ChronoEngine_distributed SHARED
@@ -132,7 +132,7 @@ ADD_LIBRARY(ChronoEngine_distributed SHARED
 			)
 
 SET_TARGET_PROPERTIES(ChronoEngine_distributed PROPERTIES
-	                  COMPILE_FLAGS "${CH_CXX_FLAGS} ${CH_PARALLEL_CXX_FLAGS} ${CH_DISTRIBUTED_CXX_FLAGS}"
+	                  COMPILE_FLAGS "${CH_CXX_FLAGS} ${CH_MULTICORE_CXX_FLAGS} ${CH_DISTRIBUTED_CXX_FLAGS}"
                       LINK_FLAGS "${CH_LINKERFLAG_SHARED} ${CH_DISTRIBUTED_LINK_FLAGS}")
 
 target_compile_definitions(ChronoEngine_distributed PRIVATE "CH_API_COMPILE_DISTRIBUTED")
@@ -140,7 +140,7 @@ target_compile_definitions(ChronoEngine_distributed PRIVATE "CH_IGNORE_DEPRECATE
 
 TARGET_LINK_LIBRARIES(ChronoEngine_distributed
                       ChronoEngine
-                      ChronoEngine_parallel
+                      ChronoEngine_multicore
                       ${MPI_CXX_LIBRARIES})
 
 INSTALL(TARGETS ChronoEngine_distributed

@@ -27,6 +27,8 @@
 
 #include "chrono_synchrono/agent/SynAgent.h"
 
+/// TODO: Look into ChArchive related files
+
 namespace chrono {
 namespace synchrono {
 
@@ -38,19 +40,7 @@ namespace synchrono {
 class SYN_API SynAgentFactory {
   public:
     /// Generate the corresponding SynAgent from a description message
-    static std::shared_ptr<SynAgent> CreateAgent(SynAgentMessage* message);
-
-    /// Generate the corresponding SynAgent from a JSON specification file
-    static std::shared_ptr<SynAgent> CreateAgent(unsigned int rank,
-                                                 ChCoordsys<> coord_sys,
-                                                 const std::string& filename,
-                                                 ChSystem* system);
-
-    /// Generate the corresponding SynAgent from a JSON specification file
-    static std::shared_ptr<SynAgent> CreateAgent(unsigned int rank,
-                                                 ChCoordsys<> coord_sys,
-                                                 const std::string& filename,
-                                                 ChContactMethod contact_method = ChContactMethod::NSC);
+    static std::shared_ptr<SynAgent> CreateAgent(std::shared_ptr<SynMessage> description);
 };
 
 /// @} synchrono_agent

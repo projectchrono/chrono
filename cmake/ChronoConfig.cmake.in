@@ -8,8 +8,9 @@
 #
 # In the call to find_package(), the following Chrono components can be
 # requested (case insensitive): Cascade, Cosimulation, Irrlicht, Matlab,
-# Parallel, PardisoMKL, Postprocess, Python, Vehicle.  These can be requested
-# either as required or optional (see the CMake documentation for find_package).
+# Multicore, Gpu, PardisoMKL, PardisoProject, Postprocess, Python, Vehicle.  
+# A component can be requested either as required or optional
+# (see the CMake documentation for find_package).
 # 
 # Variables set by this script:
 # CHRONO_FOUND
@@ -89,14 +90,15 @@ set(Chrono_HAS_irrlicht @ENABLE_MODULE_IRRLICHT@)
 set(Chrono_HAS_matlab @ENABLE_MODULE_MATLAB@)
 set(Chrono_HAS_pardisomkl @ENABLE_MODULE_PARDISO_MKL@)
 set(Chrono_HAS_mumps @ENABLE_MODULE_MUMPS@)
-set(Chrono_HAS_parallel @ENABLE_MODULE_PARALLEL@)
+set(Chrono_HAS_multicore @ENABLE_MODULE_MULTICORE@)
 set(Chrono_HAS_opengl @ENABLE_MODULE_OPENGL@)
 set(Chrono_HAS_postprocess @ENABLE_MODULE_POSTPROCESS@)
 set(Chrono_HAS_python @ENABLE_MODULE_PYTHON@)
 set(Chrono_HAS_vehicle @ENABLE_MODULE_VEHICLE@)
 set(Chrono_HAS_fsi @ENABLE_MODULE_FSI@)
-set(Chrono_HAS_granular @ENABLE_MODULE_GRANULAR@)
+set(Chrono_HAS_gpu @ENABLE_MODULE_GPU@)
 set(Chrono_HAS_sensor @ENABLE_MODULE_SENSOR@)
+set(Chrono_HAS_pardisoproject @ENABLE_MODULE_PARDISO_PROJECT@)
 set(Chrono_HAS_synchrono @ENABLE_MODULE_SYNCHRONO@)
 
 #-------------------------------------------------------------------------------
@@ -136,14 +138,14 @@ foreach(COMPONENT ${Chrono_FIND_COMPONENTS})
     # The component is available. Append to output variables.
     set(CHRONO_${COMPONENT_UPPER}_FOUND ON)
 
-    if(${COMPONENT_UPPER} MATCHES "PARALLEL")
+    if(${COMPONENT_UPPER} MATCHES "MULTICORE")
 
-      set(CHRONO_CXX_FLAGS "${CHRONO_CXX_FLAGS} @CH_PARALLEL_CXX_FLAGS@")
-      set(CHRONO_C_FLAGS "${CHRONO_C_FLAGS} @CH_PARALLEL_C_FLAGS@")
+      set(CHRONO_CXX_FLAGS "${CHRONO_CXX_FLAGS} @CH_MULTICORE_CXX_FLAGS@")
+      set(CHRONO_C_FLAGS "${CHRONO_C_FLAGS} @CH_MULTICORE_C_FLAGS@")
 
-      list(APPEND CHRONO_INCLUDE_DIRS "@CH_PARALLEL_INCLUDES@")
-      list(APPEND CHRONO_LIB_NAMES "ChronoEngine_parallel")
-      list(APPEND CHRONO_DLL_NAMES "ChronoEngine_parallel.dll")
+      list(APPEND CHRONO_INCLUDE_DIRS "@CH_MULTICORE_INCLUDES@")
+      list(APPEND CHRONO_LIB_NAMES "ChronoEngine_multicore")
+      list(APPEND CHRONO_DLL_NAMES "ChronoEngine_multicore.dll")
 
     elseif(${COMPONENT_UPPER} MATCHES "OPENGL")
 
@@ -203,13 +205,13 @@ foreach(COMPONENT ${Chrono_FIND_COMPONENTS})
       list(APPEND CHRONO_LIBRARIES "@SYN_LIBRARIES@")
       list(APPEND CHRONO_DLL_NAMES "ChronoEngine_synchrono.dll")
 
-    elseif(${COMPONENT_UPPER} MATCHES "GRANULAR")
+    elseif(${COMPONENT_UPPER} MATCHES "GPU")
 
-      set(CHRONO_CXX_FLAGS "${CHRONO_CXX_FLAGS} @CH_GRANULAR_CXX_FLAGS@")
+      set(CHRONO_CXX_FLAGS "${CHRONO_CXX_FLAGS} @CH_GPU_CXX_FLAGS@")
 
-      list(APPEND CHRONO_INCLUDE_DIRS "@CH_GRANULAR_INCLUDES@")
-      list(APPEND CHRONO_LIB_NAMES "ChronoEngine_granular")
-      list(APPEND CHRONO_DLL_NAMES "ChronoEngine_granular.dll")
+      list(APPEND CHRONO_INCLUDE_DIRS "@CH_GPU_INCLUDES@")
+      list(APPEND CHRONO_LIB_NAMES "ChronoEngine_gpu")
+      list(APPEND CHRONO_DLL_NAMES "ChronoEngine_gpu.dll")
 
     elseif(${COMPONENT_UPPER} MATCHES "PARDISOMKL")
 
@@ -263,6 +265,12 @@ foreach(COMPONENT ${Chrono_FIND_COMPONENTS})
       list(APPEND CHRONO_LIB_NAMES "ChronoEngine_matlab")
       list(APPEND CHRONO_LIBRARIES "@CH_MATLABLIB@")
       list(APPEND CHRONO_DLL_NAMES "ChronoEngine_matlab.dll")
+
+    elseif(${COMPONENT_UPPER} MATCHES "PARDISOPROJECT")
+
+      list(APPEND CHRONO_LIB_NAMES "ChronoEngine_pardisoproject")
+      list(APPEND CHRONO_LIBRARIES "@PARDISOPROJECT_LIBRARIES@")
+      list(APPEND CHRONO_DLL_NAMES "ChronoEngine_pardisoproject.dll")
 
     endif()
 

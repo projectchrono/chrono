@@ -45,6 +45,8 @@
          @defgroup vehicle_models_generic Generic wheeled vehicle
          @defgroup vehicle_models_m113 M113 tracked vehicle model
        @}
+       @defgroup robosimian_model Robosimian model
+       @brief A model of the Robosimian legged robot
     @}
 */
 

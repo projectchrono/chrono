@@ -1,7 +1,7 @@
 {
   "Name": "Sedan Agent",
   "Type": "Agent",
-  "Template": "VehicleAgent",
+  "Template": "WheeledVehicleAgent",
 
   "Vehicle Input File": "vehicle/Sedan.json",
 

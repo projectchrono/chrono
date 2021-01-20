@@ -27,7 +27,7 @@
 //
 // TODO:
 //   - re-enable collision envelope for lateral boundaries.
-//   - currently disabled due to a bug in Chrono::Parallel where cohesion forces
+//   - currently disabled due to a bug in Chrono::Multicore where cohesion forces
 //     are applied even when the penetration depth is positive!
 //   - as a result, if envelope is considered, particles stick to the lateral
 //     boundaries...

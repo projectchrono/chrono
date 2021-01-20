@@ -9,10 +9,10 @@ set(COMPILER_FLAGS "${CH_CXX_FLAGS} ${CH_DISTRIBUTED_CXX_FLAGS}")
 set(LINKER_FLAGS "${CH_LINKERFLAG_EXE}")
 set(LIBRARIES
     ChronoEngine
-    ChronoEngine_parallel
+    ChronoEngine_multicore
     ChronoEngine_distributed)
 
-include_directories(${CH_DISTRIBUTED_INCLUDES} ${CH_PARALLEL_INCLUDES})
+include_directories(${CH_DISTRIBUTED_INCLUDES} ${CH_MULTICORE_INCLUDES})
 
 message(STATUS "Demo programs for DISTRIBUTED module...")
 
