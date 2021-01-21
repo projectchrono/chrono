@@ -63,7 +63,7 @@ class CH_SENSOR_API ChFilterAccess : public ChFilter {
         m_user_buffer = chrono_types::make_shared<BufferType>();
     }
 
-    /// User calls this to get access and owndership of the buffer memory on the host.
+    /// User calls this to get access and ownership of the buffer memory on the host.
     /// user can store the returned pointer or modify as desired,
     /// user has the ownership of the memory. Underlying framework has released all ownership.
     /// Filter graph will create new memory during the next run.

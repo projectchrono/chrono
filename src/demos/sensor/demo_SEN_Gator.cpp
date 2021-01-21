@@ -324,8 +324,10 @@ int main(int argc, char* argv[]) {
         lidar_hfov,                                                               // horizontal field of view
         lidar_vmax,                                                               // vertical field of view
         lidar_vmin,                                                               // vertical field of view
-        100.0,                                                                    //
+        100.0,                                                                    // max distance
+        "rectangle",                                                                 // beam shape
         1,                                                                        //
+        1,                                                                        // 
         0,                                                                        //
         STRONGEST_RETURN,                                                         //
         RAYCAST,                                                                  //
