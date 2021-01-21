@@ -44,8 +44,6 @@ void ChSystemGpu_impl::resetBroadphaseInformation() {
     // Set all the offsets to zero
     gpuErrchk(cudaMemset(SD_NumSpheresTouching.data(), 0, SD_NumSpheresTouching.size() * sizeof(unsigned int)));
     gpuErrchk(cudaMemset(SD_SphereCompositeOffsets.data(), 0, SD_SphereCompositeOffsets.size() * sizeof(unsigned int)));
-    gpuErrchk(cudaMemset(SD_SphereCompositeOffsets_ScratchPad.data(), 0,
-                         SD_SphereCompositeOffsets_ScratchPad.size() * sizeof(unsigned int)));
     // For each SD, all the spheres touching that SD should have their ID be NULL_CHGPU_ID
     gpuErrchk(cudaMemset(spheres_in_SD_composite.data(), NULL_CHGPU_ID,
                          spheres_in_SD_composite.size() * sizeof(unsigned int)));
