@@ -55,6 +55,12 @@ if(BUILD_DEMOS_ROBOSIMIAN)
   add_subdirectory(robosimian)
 endif()
 
+option(BUILD_DEMOS_VIPER "Build Viper demo programs" ON)
+mark_as_advanced(FORCE BUILD_DEMOS_VIPER)
+if(BUILD_DEMOS_VIPER)
+  add_subdirectory(viper_rover)
+endif()
+
 if(ENABLE_MODULE_COSIMULATION)
 	option(BUILD_DEMOS_COSIMULATION "Build demo programs for Cosimulation module" TRUE)
 	mark_as_advanced(FORCE BUILD_DEMOS_COSIMULATION)
