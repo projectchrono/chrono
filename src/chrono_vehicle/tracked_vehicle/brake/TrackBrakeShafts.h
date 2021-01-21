@@ -17,8 +17,8 @@
 //
 // =============================================================================
 
-#ifndef TRACK_BRAKE_SIMPLE_H
-#define TRACK_BRAKE_SIMPLE_H
+#ifndef TRACK_BRAKE_SHAFTS_H
+#define TRACK_BRAKE_SHAFTS_H
 
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/tracked_vehicle/brake/ChTrackBrakeShafts.h"
