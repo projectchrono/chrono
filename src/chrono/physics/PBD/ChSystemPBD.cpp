@@ -211,7 +211,7 @@ namespace chrono {
 
 	void ChSystemPBD::SolveContacts(double h) {
 		int n = contactlistPBD.size();
-#pragma omp parallel for 
+//#pragma omp parallel for 
 		for (int i = 0; i < n; i++) {
 			contactlistPBD[i]->SolveContactPositions();
 		}
@@ -219,7 +219,7 @@ namespace chrono {
 
 	void ChSystemPBD::SolveVelocities(double h) {
 		int n = contactlistPBD.size();
-#pragma omp parallel for 
+//#pragma omp parallel for 
 		for (int i = 0; i < n; i++) {
 			contactlistPBD[i]->SolveVelocity();
 		}

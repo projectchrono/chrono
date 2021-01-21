@@ -343,7 +343,7 @@ namespace chrono {
 		//p_dir.Set(int(mask[0]), int(mask[1]), int(mask[2]));
 		// If the contact is violated it is NOT free, is dist > 0 we skip the correction completely
 		p_free = false;
-
+		p_dir.Set(1, 0, 0);
 		// Rotations are not constrained by contacts. Plus, we don't provide a rolling friction model yet.
 		r_free = true;
 		//findRDOF();
@@ -361,7 +361,6 @@ namespace chrono {
 		// n is the X axis of the contact "link"
 		n = M*VECT_X;
 		d = dist ^ n;
-
 		// If the distance is positive, just skip
 		if (d > 0) {
 			//lambda_contact_tf = 0;
@@ -369,44 +368,27 @@ namespace chrono {
 			return;
 		}
 		else {
-			// 
-			mask[0] = true;
-			mask[1] = false;
-			mask[2] = false;
-			p_dir.Set(int(mask[0]), int(mask[1]), int(mask[2]));
 			SolvePositions();
-
-			// Check if static -> dynamic
-
-			//
-
 			ChVector<> v_rel = (Body1->GetPos_dt() + Body1->TransformDirectionLocalToParent(Body1->GetWvel_loc().Cross(f1.coord.pos)) - Body2->GetPos_dt() - Body2->TransformDirectionLocalToParent(Body2->GetWvel_loc().Cross(f2.coord.pos)));
 			// normal velocity before velocity update. Will be used in 
 			v_n_old = v_rel^n;
 
 			// Treat the contact as a link	
 			if (!is_dynamic) {
-				mask[0] = false;
-				mask[1] = true;
-				mask[2] = true;
-				p_dir.Set(int(mask[0]), int(mask[1]), int(mask[2]));
 
 				// project static friction
 				ChVector<> r1 = Body1->TransformDirectionLocalToParent(f1.coord.pos);
 				ChVector<> r2 = Body2->TransformDirectionLocalToParent(f2.coord.pos);
+				
 				// As in paper: use tangential disp wrt previous s.step:
 				//ChVector<> n0 = ( (Body1->GetPos() + r1 - p1_old) - ((Body2->GetPos() + r2) - p2_old ));
 				//double n0_n = n0^n;
 				//ChVector<> n0_t = n0 - n * n0_n;
 				//ChVector<> n_tf = n0_t;
+
 				// Alternative: tg displ wrt contact points. Exact only for the 1sr sstep, does not require storing old pos
-				ChVector<> n0 = Body1->GetPos() + r1 - (Body2->GetPos() + r2);
-				// Rotation of the link frame w.r.t. global frame
-				ChMatrix33<> M = f1.GetA() * Body1->GetA();
-				// get rid of unconstrained directions by element wise multiplication in the link frame reference
-				ChVector<> n_loc = (M.transpose()*n0)*p_dir;
-				// Now we bring the violation back in global coord and normaize it after saving its length
-				ChVector<> n_tf = M*n_loc;
+				ChVector<> n_tf = Body1->GetPos() + r1 - (Body2->GetPos() + r2);
+				// we do not need to project the constraint in the z-y plane since the x violation is already 0 from the previous SolvePositions
 
 				double C = n_tf.Length();
 				if (n_tf.Normalize()) {
