@@ -7,7 +7,7 @@ IF(NOT ENABLE_MODULE_IRRLICHT)
     RETURN()
 ENDIF()
 
-IF(NOT ENABLE_MODULE_MKL)
+IF(NOT ENABLE_MODULE_PARDISO_MKL)
     RETURN()
 ENDIF()
 
@@ -34,7 +34,7 @@ SET(LIBRARIES
     ChronoEngine
     ChronoEngine_irrlicht
     ChronoEngine_vehicle
-    ChronoEngine_mkl
+    ChronoEngine_pardisomkl
 )
 
 

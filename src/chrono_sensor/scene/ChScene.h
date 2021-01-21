@@ -22,7 +22,9 @@
 #include <vector>
 
 #ifdef _WIN32
- #define NOMINMAX
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
 #endif
 
 #include <optix.h>
@@ -58,7 +60,7 @@ class CH_SENSOR_API ChScene {
     /// Add a point light that emits light in all directions.
     /// @param pos The global position of the light source
     /// @param color The golor of the light source
-    /// @param the range at which the light intensity is equal to 1% of its maximum intensity
+    /// @param max_range the range at which the light intensity is equal to 1% of its maximum intensity
     void AddPointLight(ChVector<float> pos, ChVector<float> color, float max_range);
 
     /// Function for gaining access to the vector of point lights and can be used to modify lighting dynamically.

@@ -46,7 +46,7 @@ void CreateModernMeshAssets(std::shared_ptr<ChTriangleMeshShape> mesh_shape);
 void ConvertToModernAssets(std::shared_ptr<ChBody> body);
 
 /// Parse all assets of a chrono system to do a full conversion to assets needed by OptiX
-/// @param ChSystem A pointer to the Chrono system that should be parsed for old assets.
+/// @param sys A pointer to the Chrono system that should be parsed for old assets.
 void ConvertToModernAssets(ChSystem* sys);
 
 /// @}

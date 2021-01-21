@@ -37,10 +37,10 @@ class CH_SENSOR_API ChOptixSensor : public ChSensor {
     /// @param offsetPose Relative position and orientation of the sensor with respect to its parent object.
     /// @param w Width of the data the sensor should generate
     /// @param h Height of the data the sensor should generate
-    /// @param lag Lag time between end of data collection and when data becomes available to the user.
-    /// @param collection_window Collection time over which the sensor should collect data from the simulation.
+    // @param lag Lag time between end of data collection and when data becomes available to the user.
+    // @param collection_window Collection time over which the sensor should collect data from the simulation.
     ChOptixSensor(std::shared_ptr<chrono::ChBody> parent,
-                  double updateRate,
+                  float updateRate,
                   chrono::ChFrame<double> offsetPose,
                   unsigned int w,
                   unsigned int h);

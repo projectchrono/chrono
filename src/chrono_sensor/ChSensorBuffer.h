@@ -19,7 +19,9 @@
 
 
 #ifdef _WIN32
- #define NOMINMAX
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
 #endif
 
 #include <optix.h>

@@ -41,8 +41,8 @@
 #include "chrono/fea/ChLinkPointFrame.h"
 #include "chrono/fea/ChMesh.h"
 
-#ifdef CHRONO_MKL
-#include "chrono_mkl/ChSolverMKL.h"
+#ifdef CHRONO_PARDISO_MKL
+#include "chrono_pardisomkl/ChSolverPardisoMKL.h"
 #endif
 
 using namespace chrono;
@@ -170,14 +170,14 @@ int main(int argc, char* argv[]) {
     // Add the mesh to the system
     my_system.Add(my_mesh);
 
-#ifndef CHRONO_MKL
+#ifndef CHRONO_PARDISO_MKL
     use_mkl = false;
 #endif
 
     // Setup solver
     if (use_mkl) {
-#ifdef CHRONO_MKL
-        auto mkl_solver = chrono_types::make_shared<ChSolverMKL>();
+#ifdef CHRONO_PARDISO_MKL
+        auto mkl_solver = chrono_types::make_shared<ChSolverPardisoMKL>();
         mkl_solver->LockSparsityPattern(true);
         mkl_solver->SetVerbose(true);
         my_system.SetSolver(mkl_solver);

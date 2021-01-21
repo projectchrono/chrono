@@ -59,11 +59,11 @@ NoiseModel noise_model = CONST_NORMAL_XYZI;
 // Lidar method for generating data
 // Just RAYCAST for now
 // TODO: implement PATH_TRACE
-LidarModelType lidar_model = RAYCAST;
+LidarModelType lidar_model = LidarModelType::RAYCAST;
 
 // Lidar return mode
 // Either STRONGEST_RETURN, MEAN_RETURN, FIRST_RETURN, LAST_RETURN
-LidarReturnMode return_mode = STRONGEST_RETURN;
+LidarReturnMode return_mode = LidarReturnMode::STRONGEST_RETURN;
 
 // Update rate in Hz
 float update_rate = 5.f;

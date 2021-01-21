@@ -1,0 +1,13 @@
+{
+  "Name":                       "Trailer wheel",
+  "Type":                       "Wheel",
+  "Template":                   "Wheel",
+
+  "Mass":                       3.0,
+  "Inertia":                    [0.6, 0.6, 0.6],
+
+    "Visualization": {
+        "Radius": 0.12,
+        "Width": 0.1
+    }
+}

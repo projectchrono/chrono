@@ -77,7 +77,7 @@ CH_SENSOR_API void ChFilterIMUUpdate::Apply(std::shared_ptr<ChSensor> pSensor,
     m_buffer->Buffer[0].Yaw = ang_vel.z();
 
     m_buffer->LaunchedCount = pSensor->GetNumLaunches();
-    m_buffer->TimeStamp = pSensor->GetParent()->GetSystem()->GetChTime();
+    m_buffer->TimeStamp = (float)pSensor->GetParent()->GetSystem()->GetChTime();
 
     bufferInOut = m_buffer;
 }

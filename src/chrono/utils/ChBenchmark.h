@@ -180,6 +180,14 @@ class ChBenchmarkFixture : public ::benchmark::Fixture {
     TEST* m_test;
 };
 
+static void ForceBenchmarkTabularOutput(int* argc, char** argv[]) {
+    std::vector<char*> new_argv(*argv, *argv + *argc);
+    new_argv.push_back("--benchmark_counters_tabular");
+    new_argv.push_back(nullptr);
+    *argv = new_argv.data();
+    *argc += 1;
+}
+
 }  // end namespace utils
 }  // end namespace chrono
 

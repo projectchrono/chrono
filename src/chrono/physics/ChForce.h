@@ -82,9 +82,9 @@ class ChApi ChForce : public ChObj {
     /// Gets the application point, in rigid body coordinates.
     ChVector<> GetVrelpoint() const { return vrelpoint; }
 
-    /// Gets the application point, in absolute coordinates.
+    /// Sets the application point, in absolute coordinates.
     void SetVpoint(ChVector<> mypoint);
-    /// Gets the application point, in rigid body coordinates.
+    /// Sets the application point, in rigid body coordinates.
     void SetVrelpoint(ChVector<> myrelpoint);
 
     /// Gets the force (or torque) direction, in absolute coordinates.
@@ -101,27 +101,27 @@ class ChApi ChForce : public ChObj {
     /// Gets force (or torque) modulus.
     double GetMforce() const { return mforce; }
 
-    /// Sets a f(t) function for time-modulation of the force.
+    /// Sets a function for time-modulation of the force.
     void SetModulation(std::shared_ptr<ChFunction> m_funct) { modula = m_funct; }
     std::shared_ptr<ChFunction> GetModulation() const { return modula; }
 
-    /// Sets a f(t) function for time dependency of position (on x axis)
+    /// Sets a function for time dependency of position (on x axis)
     void SetMove_x(std::shared_ptr<ChFunction> m_funct) { move_x = m_funct; }
     std::shared_ptr<ChFunction> GetMove_x() const { return move_x; }
-    /// Sets a f(t) function for time dependency of position (on y axis)
+    /// Sets a function for time dependency of position (on y axis)
     void SetMove_y(std::shared_ptr<ChFunction> m_funct) { move_y = m_funct; }
     std::shared_ptr<ChFunction> GetMove_y() const { return move_y; }
-    /// Sets a f(t) function for time dependency of position (on z axis)
+    /// Sets a function for time dependency of position (on z axis)
     void SetMove_z(std::shared_ptr<ChFunction> m_funct) { move_z = m_funct; }
     std::shared_ptr<ChFunction> GetMove_z() const { return move_z; }
 
-    /// Sets a f(t) function for time dependency of force X component.
+    /// Sets a function for time dependency of force X component.
     void SetF_x(std::shared_ptr<ChFunction> m_funct) { f_x = m_funct; }
     std::shared_ptr<ChFunction> GetF_x() const { return f_x; }
-    /// Sets a f(t) function for time dependency of force Y component.
+    /// Sets a function for time dependency of force Y component.
     void SetF_y(std::shared_ptr<ChFunction> m_funct) { f_y = m_funct; }
     std::shared_ptr<ChFunction> GetF_y() const { return f_y; }
-    /// Sets a f(t) function for time dependency of force Z component.
+    /// Sets a function for time dependency of force Z component.
     void SetF_z(std::shared_ptr<ChFunction> m_funct) { f_z = m_funct; }
     std::shared_ptr<ChFunction> GetF_z() const { return f_z; }
 

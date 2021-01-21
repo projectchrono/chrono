@@ -1,0 +1,49 @@
+{
+  "Name": "Trailer TMeasy Tire",
+  "Type": "Tire",
+  "Template": "TMeasyTire",
+
+  // ------------------------------------------------
+  // Tire design (REQUIRED)
+
+  "Design": {
+    "Unloaded Radius [m]": 0.16,
+    "Mass [kg]": 2.0,
+    "Inertia [kg.m2]": [ 0.1, 0.2, 0.1 ],
+    "Width [m]": 0.122,
+    "Rim Radius [m]": 0.12,
+    "Roundness of Cross Section": 0.1
+  },
+
+  "Coefficient of Friction": 0.8,
+
+  "Rolling Resistance Coefficients": [ 0.015, 0.015 ],
+
+  // ------------------------------------------------
+  // Vehicle type.
+  // Required only if tire specified with "load index" or "bearing capacity".
+  // Must be one of "Truck" or "Passenger"
+
+  "Vehicle Type": "Passenger",
+
+  // ------------------------------------------------
+  // Load index specification.
+  // Takes priority over "bearing capacity" (used only if a full parameterization not provided)
+
+  "Load Index": 10,
+
+  // ------------------------------------------------
+  // Bearing capacity specification.
+  // Lowest priority (used only if no other specification provided)
+
+  "Maximum Bearing Capacity [N]": 3000
+
+  // ------------------------------------------------
+  // Visualization mesh (OPTIONAL)
+
+    //"Visualization": {
+    //    "Mesh Filename Left": "ultra_tow/UT_tire.obj",
+    //    "Mesh Filename Right": "ultra_tow/UT_tire.obj"
+    //}
+
+}

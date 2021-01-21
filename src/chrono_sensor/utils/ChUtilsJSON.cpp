@@ -308,7 +308,7 @@ std::shared_ptr<ChLidarSensor> ReadLidarSensorJSON(const std::string& filename,
     if (properties.HasMember("Return Mode")) {
         std::string s = properties["Return Mode"].GetString();
         if (s == "MEAN_RETURN") {
-            return_mode = MEAN_RETURN;
+            return_mode = LidarReturnMode::MEAN_RETURN;
         }
     }
     if (properties.HasMember("Lidar Model")) {

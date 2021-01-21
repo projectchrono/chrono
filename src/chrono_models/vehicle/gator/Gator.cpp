@@ -36,7 +36,7 @@ Gator::Gator()
     : m_system(nullptr),
       m_vehicle(nullptr),
       m_contact_method(ChContactMethod::NSC),
-      m_chassis_collision_type(ChassisCollisionType::NONE),
+      m_chassis_collision_type(CollisionType::NONE),
       m_fixed(false),
       m_driveline_type(DrivelineType::SIMPLE),
       m_brake_locking(false),
@@ -57,7 +57,7 @@ Gator::Gator(ChSystem* system)
     : m_system(system),
       m_vehicle(nullptr),
       m_contact_method(ChContactMethod::NSC),
-      m_chassis_collision_type(ChassisCollisionType::NONE),
+      m_chassis_collision_type(CollisionType::NONE),
       m_fixed(false),
       m_driveline_type(DrivelineType::SIMPLE),
       m_brake_locking(false),
@@ -163,6 +163,14 @@ void Gator::Initialize() {
 }
 
 // -----------------------------------------------------------------------------
+void Gator::SetWheelVisualizationType(VisualizationType vis) {
+    if (vis == VisualizationType::MESH) {
+        m_vehicle->SetWheelVisualizationType(VisualizationType::NONE);
+        return;
+    }
+    m_vehicle->SetWheelVisualizationType(vis);
+}
+
 void Gator::SetTireVisualizationType(VisualizationType vis) {
     for (auto& axle : m_vehicle->GetAxles()) {
         for (auto& wheel : axle->GetWheels()) {

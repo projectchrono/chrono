@@ -320,7 +320,7 @@ class ChApi ChAssembly : public ChPhysicsItem {
     int nbodies_fixed;  ///< number of bodies that are fixed
 
     friend class ChSystem;
-    friend class ChSystemParallel;
+    friend class ChSystemMulticore;
     friend class ChSystemDistributed;
 };
 

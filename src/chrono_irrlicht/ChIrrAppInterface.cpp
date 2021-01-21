@@ -24,6 +24,16 @@
 namespace chrono {
 namespace irrlicht {
 
+// Class to convert from Irrlicht vector3df vectors into Chrono ChVector<> vectors.
+class ChVectorIrr : public ChVector<double> {
+  public:
+    ChVectorIrr(const irr::core::vector3df& vi) {
+        x() = ((double)vi.X);
+        y() = ((double)vi.Y);
+        z() = ((double)vi.Z);
+    }
+};
+
 // -----------------------------------------------------------------------------
 // ChIrrAppEventReceiver
 //
@@ -111,6 +121,19 @@ bool ChIrrAppEventReceiver::OnEvent(const irr::SEvent& event) {
                     app->videoframe_save = false;
                     GetLog() << "Stop saving frames in /video_capture directory.\n";
                 }
+                return true;
+            case irr::KEY_F12:
+                #ifdef CHRONO_POSTPROCESS
+                 if (app->povray_save == false) {
+                    GetLog() << "Start saving POVray postprocessing scripts...\n";
+                    app->SetPOVraySave(true);
+                 } else {
+                    app->SetPOVraySave(false);
+                    GetLog() << "Stop saving POVray postprocessing scripts.\n";
+                 }
+                #else
+                 GetLog() << "Saving POVray files not supported. Rebuild the solution with ENABLE_MODULE_POSTPROCESSING in CMake. \n";
+                #endif
                 return true;
             case irr::KEY_F4:
                 if (app->camera_auto_rotate_speed <= 0)
@@ -291,6 +314,14 @@ ChIrrAppInterface::ChIrrAppInterface(ChSystem* psystem,
       videoframe_each(1),
       symbolscale(1.0),
       camera_auto_rotate_speed(0.0) {
+    #ifdef CHRONO_POSTPROCESS
+    pov_exporter = 0;
+    povray_save = false;
+    povray_each = 1;
+    povray_num = 0;
+    #endif
+    
+
     irr::SIrrlichtCreationParameters params = irr::SIrrlichtCreationParameters();
     params.AntiAlias = do_antialias;
     params.Bits = 32;
@@ -514,6 +545,12 @@ ChIrrAppInterface::ChIrrAppInterface(ChSystem* psystem,
 // (including the Irrlicht scene nodes)
 ChIrrAppInterface::~ChIrrAppInterface() {
     device->drop();
+
+    #ifdef CHRONO_POSTPROCESS
+    if (pov_exporter)
+        delete pov_exporter;
+    #endif
+
     // delete (receiver);
 }
 
@@ -524,6 +561,41 @@ void ChIrrAppInterface::SetTimestep(double val) {
     sprintf(message, "%g", timestep);
     gad_timestep->setText(irr::core::stringw(message).c_str());
 }
+
+
+/// If set to true, each frame of the animation will be saved on the disk
+/// as a sequence of scripts to be rendered via POVray. Only if solution build with ENABLE_MODULE_POSTPROCESS.
+
+#ifdef CHRONO_POSTPROCESS
+void ChIrrAppInterface::SetPOVraySave(bool val) { 
+    povray_save = val;
+
+    if (!povray_save && pov_exporter) {
+        delete pov_exporter;
+        return;
+    }
+    if (povray_save && !pov_exporter) {
+        pov_exporter = new postprocess::ChPovRay(this->system);
+        pov_exporter->SetUseSingleAssetFile(false);
+        // Important: set the path to the template:
+        pov_exporter->SetTemplateFile(GetChronoDataFile("_template_POV.pov"));
+
+        // Set the path where it will save all .pov, .ini, .asset and .dat files, 
+        // a directory will be created if not existing
+        pov_exporter->SetBasePath("povray_project");
+
+        pov_exporter->AddAll();
+
+        pov_exporter->SetCamera(ChVectorIrr(this->GetSceneManager()->getActiveCamera()->getAbsolutePosition()),
+                                ChVectorIrr(this->GetSceneManager()->getActiveCamera()->getTarget()),
+                                this->GetSceneManager()->getActiveCamera()->getFOV() * this->GetSceneManager()->getActiveCamera()->getAspectRatio() * chrono::CH_C_RAD_TO_DEG);
+
+        pov_exporter->ExportScript();
+
+        povray_num = 0;
+    }
+}
+#endif
 
 // Set the scale for drawing symbols.
 void ChIrrAppInterface::SetSymbolscale(double val) {
@@ -595,6 +667,15 @@ void ChIrrAppInterface::DoStep() {
         }
         videoframe_num++;
     }
+
+    #ifdef CHRONO_POSTPROCESS
+        if (povray_save && pov_exporter) {
+            if (povray_num % povray_each == 0) {
+                pov_exporter->ExportData();
+            }
+            povray_num++;
+        }
+    #endif
 
     try {
         system->DoStepDynamics(timestep);

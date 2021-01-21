@@ -124,7 +124,7 @@ HmmwvScmTest<TIRE_TYPE, OBJECTS>::HmmwvScmTest() : m_step(2e-3) {
     m_hmmwv->SetWheelVisualizationType(VisualizationType::NONE);
     m_hmmwv->SetTireVisualizationType(tire_vis);
 
-    m_hmmwv->GetSystem()->SetNumThreads(std::min(8, ChOMP::GetNumProcs()));
+    m_hmmwv->GetSystem()->SetNumThreads(4);
 
     // Create the terrain using 4 moving patches
     m_terrain = new SCMDeformableTerrain(m_hmmwv->GetSystem());
@@ -242,6 +242,7 @@ CH_BM_SIMULATION_ONCE(HmmwvSCM_CYL_1, cyl_1_test_type, NUM_SKIP_STEPS, NUM_SIM_S
 // =============================================================================
 
 int main(int argc, char* argv[]) {
+    utils::ForceBenchmarkTabularOutput(&argc, &argv);
     ::benchmark::Initialize(&argc, argv);
 
 #ifdef CHRONO_IRRLICHT

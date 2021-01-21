@@ -1,4 +1,4 @@
-Reissner shells  (demo_FEA_ancfShell.cpp)     {#tutorial_demo_FEA_ancfShell}
+ANCF shells  (demo_FEA_ancfShell.cpp)     {#tutorial_demo_FEA_ancfShell}
 ======================================
 
 

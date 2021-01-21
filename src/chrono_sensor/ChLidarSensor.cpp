@@ -83,13 +83,11 @@ CH_SENSOR_API ChLidarSensor::ChLidarSensor(
                 m_filters.push_back(
                     chrono_types::make_shared<ChFilterLidarReduce>(return_mode, sample_radius, "lidar reduction"));
 
-            } else {
-                m_program_string = {"lidar", "spherical"};
-            }
-
-            m_buffer_format = RT_FORMAT_FLOAT2;
-            break;
+    } else {
+        m_program_string = {"lidar", "spherical"};
     }
+
+    m_buffer_format = RT_FORMAT_FLOAT2;
 
     // list of parameters to pass to the ray generation program
     m_ray_launch_params.push_back(

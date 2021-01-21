@@ -870,6 +870,7 @@ set(ChronoEngine_solver_SOURCES
     solver/ChSolverPMINRES.cpp
     solver/ChSolverBB.cpp
     solver/ChSolverAPGD.cpp
+    solver/ChSolverADMM.cpp
     solver/ChKblockGeneric.cpp
     solver/ChSolvmin.cpp
     solver/ChNlsolver.cpp
@@ -888,6 +889,7 @@ set(ChronoEngine_solver_HEADERS
     solver/ChSolverPMINRES.h
     solver/ChSolverBB.h
     solver/ChSolverAPGD.h
+    solver/ChSolverADMM.h
     solver/ChSolverPSOR.h
     solver/ChSolverPSSOR.h
     solver/ChKblock.h
@@ -1288,6 +1290,7 @@ set(ChronoEngine_FILES
 # Add the ChronoEngine library to the project
 add_library(ChronoEngine SHARED ${ChronoEngine_FILES})
 
+target_link_libraries(ChronoEngine ${OPENMP_LIBRARIES})
 if (UNIX)
   target_link_libraries(ChronoEngine pthread)
 endif()

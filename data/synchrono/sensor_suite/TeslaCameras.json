@@ -1,0 +1,54 @@
+{
+  "Name": "Tesla Camera Suite",
+  "Type": "SensorSuite",
+
+  "Sensors": [{
+      "Type": "Camera",
+      "Input File": "sensor_suite/tesla/MainForwardCamera.json",
+      "Location": [1.5, 0, 0.875],
+      "Orientation": [1, 0, 0, 0]
+    },
+    {
+      "Type": "Camera",
+      "Input File": "sensor_suite/tesla/WideForwardCamera.json",
+      "Location": [1.5, 0, 0.875],
+      "Orientation": [1, 0, 0, 0]
+    },
+    {
+      "Type": "Camera",
+      "Input File": "sensor_suite/tesla/NarrowForwardCamera.json",
+      "Location": [1.5, 0, 0.875],
+      "Orientation": [1, 0, 0, 0]
+    },
+    {
+      "Type": "Camera",
+      "Input File": "sensor_suite/tesla/ForwardLookingSideCamera.json",
+      "Location": [.2, .5, 0.875],
+      "Orientation": [1, 0, 0, 0] // TODO
+    },
+    {
+      "Type": "Camera",
+      "Input File": "sensor_suite/tesla/ForwardLookingSideCamera.json",
+      "Location": [.2, -.5, 0.875],
+      "Orientation": [1, 0, 0, 0] // TODO
+    },
+    {
+      "Type": "Camera",
+      "Input File": "sensor_suite/tesla/RearwardLookingSideCamera.json",
+      "Location": [.2, -.5, 0.875],
+      "Orientation": [1, 0, 0, 0] // TODO
+    },
+    {
+      "Type": "Camera",
+      "Input File": "sensor_suite/tesla/RearwardLookingSideCamera.json",
+      "Location": [.2, -.5, 0.875],
+      "Orientation": [1, 0, 0, 0] // TODO
+    },
+    {
+      "Type": "Camera",
+      "Input File": "sensor_suite/tesla/RearViewCamera.json",
+      "Location": [-1.5, 0, 0.875], // TODO
+      "Orientation": [1, 0, 0, 0] // TODO
+    }
+  ]
+}

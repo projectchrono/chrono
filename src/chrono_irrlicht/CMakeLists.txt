@@ -114,22 +114,36 @@ set(CH_IRRLICHT_C_FLAGS   "${CH_IRRLICHT_C_FLAGS}"   PARENT_SCOPE)
 #-------------------------------------------------------------------------------
 # Create the ChronoEngine_irrlicht library
 
+set(COMPILER_FLAGS "${CH_CXX_FLAGS} ${CH_IRRLICHT_CXX_FLAGS}")
+set(LINKER_FLAGS "${CH_LINKERFLAG_SHARED}")
+set(LIBRARIES 
+    ChronoEngine
+    ${IRRLICHT_LIBRARY}
+    )
+
+if (ENABLE_MODULE_POSTPROCESS)
+    #include_directories(${CH_POSTPROCESS_INCLUDES})  # nothing to append
+    #set(COMPILER_FLAGS "${COMPILER_FLAGS} ${CH_POSTPROCESS_CXX_FLAGS}") # nothing to append
+    #set(LINKER_FLAGS "${LINKER_FLAGS} ${CH_POSTPROCESS_LINK_FLAGS}") # nothing to append
+    set(LIBRARIES ${LIBRARIES} ChronoEngine_postprocess)
+endif()
+
+
 ADD_LIBRARY(ChronoEngine_irrlicht SHARED
   ${ChronoEngine_IRRLICHT_SOURCES}
   ${ChronoEngine_IRRLICHT_HEADERS}
 )
 
 SET_TARGET_PROPERTIES(ChronoEngine_irrlicht PROPERTIES
-  COMPILE_FLAGS "${CH_CXX_FLAGS} ${CH_IRRLICHT_CXX_FLAGS}"
-  LINK_FLAGS "${CH_LINKERFLAG_SHARED}")
+  COMPILE_FLAGS "${COMPILER_FLAGS}"
+  LINK_FLAGS "${LINKER_FLAGS}")
 
 target_compile_definitions(ChronoEngine_irrlicht PRIVATE "CH_API_COMPILE_IRRLICHT")
 target_compile_definitions(ChronoEngine_irrlicht PRIVATE "CH_IGNORE_DEPRECATED")
 target_compile_definitions(ChronoEngine_irrlicht PRIVATE "IGNORE_DEPRECATED_WARNING")
 
 TARGET_LINK_LIBRARIES(ChronoEngine_irrlicht
-  ChronoEngine
-  ${IRRLICHT_LIBRARY}
+  ${LIBRARIES}
 )
 IF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 TARGET_LINK_LIBRARIES(ChronoEngine_irrlicht
@@ -138,6 +152,10 @@ TARGET_LINK_LIBRARIES(ChronoEngine_irrlicht
 ENDIF()
 
 ADD_DEPENDENCIES (ChronoEngine_irrlicht ChronoEngine)
+
+if (ENABLE_MODULE_POSTPROCESS)
+    ADD_DEPENDENCIES (ChronoEngine_irrlicht ChronoEngine_postprocess)
+endif()
 
 #-------------------------------------------------------------------------------
 # On Windows, copy the IRRLICHT DLL to the bin/ directory
