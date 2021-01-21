@@ -62,6 +62,7 @@ class CH_VSG_API ChVSGApp {
     void compile(vsg::ref_ptr<vsg::Node> subgraph);
 
     void doTimeStep();
+    void Quit() { m_viewer->close(); }
 
   protected:
     void BuildSceneGraph();
