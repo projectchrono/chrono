@@ -542,6 +542,12 @@ enum class DrivelineTypeWV {
     SIMPLE  ///< simple kinematic driveline
 };
 
+/// Enum for tracked-vehicle driveline types.
+enum class DrivelineTypeTV {
+    BDS,    ///< braked differential steering
+    SIMPLE  ///< simple kinematic driveline
+};
+
 /// Enumerations for wheeled vehicle collision families.
 namespace WheeledCollisionFamily {
 // Note: we cannot use strongly typed enums, since these are passed as integers

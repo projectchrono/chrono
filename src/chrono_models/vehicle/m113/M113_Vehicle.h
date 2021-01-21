@@ -37,12 +37,14 @@ class CH_MODELS_API M113_Vehicle : public ChTrackedVehicle {
   public:
     M113_Vehicle(bool fixed,
                  TrackShoeType shoe_type,
+                 DrivelineTypeTV driveline_type,
                  BrakeType brake_type,
                  ChContactMethod contact_method = ChContactMethod::NSC,
                  CollisionType chassis_collision_type = CollisionType::NONE);
 
     M113_Vehicle(bool fixed,
                  TrackShoeType shoe_type,
+                 DrivelineTypeTV driveline_type,
                  BrakeType brake_type,
                  ChSystem* system,
                  CollisionType chassis_collision_type = CollisionType::NONE);
@@ -52,9 +54,11 @@ class CH_MODELS_API M113_Vehicle : public ChTrackedVehicle {
     virtual void Initialize(const ChCoordsys<>& chassisPos, double chassisFwdVel = 0) override;
 
   private:
-    void Create(bool fixed, BrakeType brake_type, CollisionType chassis_collision_type);
-
-    TrackShoeType m_type;  ///< type of track assembly (SINGLE_PIN or DOUBLE_PIN)
+    void Create(bool fixed,
+                TrackShoeType shoe_type,
+                DrivelineTypeTV driveline_type,
+                BrakeType brake_type,
+                CollisionType chassis_collision_type);
 };
 
 /// @} vehicle_models_m113

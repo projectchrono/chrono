@@ -100,6 +100,7 @@ int main(int argc, char* argv[]) {
     ChContactMethod contact_method = ChContactMethod::SMC;
     CollisionType chassis_collision_type = CollisionType::NONE;
     TrackShoeType shoe_type = TrackShoeType::SINGLE_PIN;
+    DrivelineTypeTV driveline_type = DrivelineTypeTV::SIMPLE;
     BrakeType brake_type = BrakeType::SIMPLE;
 
     //// TODO
@@ -109,7 +110,7 @@ int main(int argc, char* argv[]) {
     if (shoe_type == TrackShoeType::DOUBLE_PIN)
         contact_method = ChContactMethod::NSC;
 
-    M113_Vehicle vehicle(false, shoe_type, brake_type, contact_method, chassis_collision_type);
+    M113_Vehicle vehicle(false, shoe_type, driveline_type, brake_type, contact_method, chassis_collision_type);
 
     // Disable gravity in this simulation
     ////vehicle.GetSystem()->Set_G_acc(ChVector<>(0, 0, 0));

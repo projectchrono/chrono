@@ -62,12 +62,13 @@ private:
 
 template <typename EnumClass, EnumClass SHOE_TYPE>
 M113AccTest<EnumClass, SHOE_TYPE>::M113AccTest() : m_step(1e-3) {
+    DrivelineTypeTV driveline_type = DrivelineTypeTV::SIMPLE;
     BrakeType brake_type = BrakeType::SIMPLE;
     ChContactMethod contact_method = ChContactMethod::NSC;
     CollisionType chassis_collision_type = CollisionType::NONE;
 
     // Create the M113 vehicle, set parameters, and initialize.
-    m_m113 = new M113_Vehicle(false, SHOE_TYPE, brake_type, contact_method, chassis_collision_type);
+    m_m113 = new M113_Vehicle(false, SHOE_TYPE, driveline_type, brake_type, contact_method, chassis_collision_type);
     m_m113->Initialize(ChCoordsys<>(ChVector<>(-250 + 5, 0, 1.1), ChQuaternion<>(1, 0, 0, 0)));
 
     m_m113->SetChassisVisualizationType(VisualizationType::NONE);

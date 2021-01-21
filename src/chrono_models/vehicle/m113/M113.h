@@ -50,6 +50,7 @@ class CH_MODELS_API M113 {
 
     void SetBrakeType(BrakeType brake_type) { m_brake_type = brake_type; }
     void SetTrackShoeType(TrackShoeType shoe_type) { m_shoe_type = shoe_type; }
+    void SetDrivelineType(DrivelineTypeTV driveline_type) { m_driveline_type = driveline_type; }
 
     void SetInitPosition(const ChCoordsys<>& pos) { m_initPos = pos; }
     void SetInitFwdVel(double fwdVel) { m_initFwdVel = fwdVel; }
@@ -89,6 +90,7 @@ class CH_MODELS_API M113 {
 
     BrakeType m_brake_type;
     TrackShoeType m_shoe_type;
+    DrivelineTypeTV m_driveline_type;
 
     ChCoordsys<> m_initPos;
     double m_initFwdVel;
