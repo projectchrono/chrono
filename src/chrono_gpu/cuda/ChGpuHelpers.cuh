@@ -171,36 +171,6 @@ inline __device__ size_t findContactPairInfo(ChSystemGpu_impl::GranSphereDataPtr
     return NULL_CHGPU_ID;  // shouldn't get here anyways
 }
 
-// cleanup the contact data for a given body
-inline __device__ void cleanupContactMap(ChSystemGpu_impl::GranSphereDataPtr sphere_data,
-                                         unsigned int body_A,
-                                         ChSystemGpu_impl::GranParamsPtr gran_params) {
-    // index of the sphere into the big array
-    size_t body_A_offset = (size_t)MAX_SPHERES_TOUCHED_BY_SPHERE * body_A;
-
-    // get offsets into the global pointers
-    float3* contact_history = sphere_data->contact_history_map + body_A_offset;
-    unsigned int* contact_partners = sphere_data->contact_partners_map + body_A_offset;
-    not_stupid_bool* contact_active = sphere_data->contact_active_map + body_A_offset;
-
-    // sweep through each available contact slot and reset it if that slot wasn't active last timestep
-    for (unsigned int contact_id = 0; contact_id < MAX_SPHERES_TOUCHED_BY_SPHERE; contact_id++) {
-        // printf("contact map for sphere %u entry %u is other %u, active %u \t history is %f, %f, %f\n", body_A,
-        //        contact_id, contact_partners[contact_id], contact_active[contact_id], contact_history[contact_id].x,
-        //        contact_history[contact_id].y, contact_history[contact_id].z);
-        // if the contact is not active, reset it
-        if (contact_active[contact_id] == false) {
-            contact_partners[contact_id] = NULL_CHGPU_ID;
-            if (gran_params->friction_mode == chrono::gpu::CHGPU_FRICTION_MODE::MULTI_STEP) {
-                constexpr float3 null_history = {0, 0, 0};
-                contact_history[contact_id] = null_history;
-            }
-        } else {
-            // otherwise reset the active bit for the next step
-            contact_active[contact_id] = false;
-        }
-    }
-}
 
 inline __device__ bool checkLocalPointInSD(const int3& point, ChSystemGpu_impl::GranParamsPtr gran_params) {
     // TODO verify that this is correct

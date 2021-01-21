@@ -67,10 +67,10 @@ CH_SENSOR_API void ChFilterLidarReduce::Apply(std::shared_ptr<ChSensor> pSensor,
     void* ptr = pSen->Buffer->getDevicePointer(device_id);  // hard coded to grab from device 0
 
     switch (m_ret) {
-        case MEAN_RETURN:
+        case LidarReturnMode::MEAN_RETURN:
             cuda_lidar_mean_reduce(ptr, m_buffer->Buffer.get(), (int)width, (int)height, m_reduce_radius);
             break;
-        case STRONGEST_RETURN:
+        case LidarReturnMode::STRONGEST_RETURN:
             cuda_lidar_strong_reduce(ptr, m_buffer->Buffer.get(), (int)width, (int)height, m_reduce_radius);
             break;
         default:

@@ -34,14 +34,10 @@
 using namespace chrono;
 using namespace chrono::gpu;
 
-void ShowUsage(std::string name) {
-    std::cout << "usage: " + name + " <json_file>" << std::endl;
-}
-
 int main(int argc, char* argv[]) {
     ChGpuSimulationParameters params;
     if (argc != 2 || ParseJSON(argv[1], params, true) == false) {
-        ShowUsage(argv[0]);
+        std::cout << "Usage:\n./demo_GPU_fixedterrain <json_file>" << std::endl;
         return 1;
     }
 

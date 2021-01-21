@@ -16,4 +16,9 @@
 // Include main Chrono configuration  header
 #include "chrono/ChConfig.h"
 
+// -----------------------------------------------------------------------------
+
+// If FastDDS support was enabled, define CHRONO_FASTDDS
+@CHRONO_FASTDDS@
+
 #endif

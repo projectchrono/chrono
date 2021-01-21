@@ -31,8 +31,8 @@ namespace synchrono {
 /// Called by CommunicationManager to transform an incoming SynFlatBuffers::Message into a SynMessage
 class SYN_API SynMessageFactory {
   public:
-    /// Branches on message->message_type() to return various derived classes of SynMessage
-    static SynMessage* GenerateMessage(const SynFlatBuffers::Message* message);
+    /// Generate the corresponding SynMessage from a SynFlatBuffers::Message*
+    static std::shared_ptr<SynMessage> GenerateMessage(const SynFlatBuffers::Message* message);
 };
 
 /// @} synchrono_flatbuffer

@@ -17,31 +17,36 @@
 //
 // =============================================================================
 
-#include "chrono_synchrono/communication/mpi/SynMPIManager.h"
-#include "chrono_thirdparty/cxxopts/ChCLI.h"
-#include "chrono_synchrono/utils/SynDataLoader.h"
+#include <chrono>
 
-#include "chrono_synchrono/visualization/SynVisualizationManager.h"
+#include "chrono_vehicle/ChConfigVehicle.h"
+#include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/terrain/RigidTerrain.h"
+#include "chrono_vehicle/driver/ChPathFollowerDriver.h"
+#include "chrono_vehicle/wheeled_vehicle/vehicle/WheeledVehicle.h"
+#include "chrono_vehicle/utils/ChUtilsJSON.h"
 
-#include "chrono_synchrono/brain/SynVehicleBrain.h"
+#include "chrono_synchrono/SynConfig.h"
+#include "chrono_synchrono/SynChronoManager.h"
 #include "chrono_synchrono/agent/SynWheeledVehicleAgent.h"
-#include "chrono_synchrono/vehicle/SynWheeledVehicle.h"
-
-#include "chrono_synchrono/terrain/SynRigidTerrain.h"
+#include "chrono_synchrono/communication/mpi/SynMPICommunicator.h"
+#include "chrono_synchrono/utils/SynDataLoader.h"
+#include "chrono_synchrono/utils/SynLog.h"
 
 #ifdef CHRONO_IRRLICHT
-#include "chrono_synchrono/visualization/SynIrrVehicleVisualization.h"
+#include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleIrrApp.h"
 #endif
 
 #ifdef CHRONO_SENSOR
-#include "chrono_synchrono/visualization/SynSensorVisualization.h"
+#include "chrono_sensor/ChSensorManager.h"
+#include "chrono_sensor/ChCameraSensor.h"
+#include "chrono_sensor/filters/ChFilterSave.h"
+#include "chrono_sensor/filters/ChFilterVisualize.h"
+
+using namespace chrono::sensor;
 #endif
 
-#include "chrono_models/vehicle/hmmwv/HMMWV.h"
-
-#include "chrono_vehicle/driver/ChPathFollowerDriver.h"
-
-#include <chrono>
+#include "chrono_thirdparty/cxxopts/ChCLI.h"
 
 using namespace chrono;
 using namespace chrono::vehicle;
@@ -49,63 +54,73 @@ using namespace chrono::synchrono;
 
 // =============================================================================
 
-const ChContactMethod contact_method = ChContactMethod::NSC;
+// Visualization type for vehicle parts (PRIMITIVES, MESH, or NONE)
+VisualizationType chassis_vis_type = VisualizationType::MESH;
+VisualizationType suspension_vis_type = VisualizationType::PRIMITIVES;
+VisualizationType steering_vis_type = VisualizationType::PRIMITIVES;
+VisualizationType wheel_vis_type = VisualizationType::MESH;
+VisualizationType tire_vis_type = VisualizationType::MESH;
 
-double end_time = 1000;   // [s]
-double step_size = 3e-3;  // [s]
+// Contact method
+ChContactMethod contact_method = ChContactMethod::NSC;
+
+// Point on chassis tracked by the camera
+ChVector<> trackPoint(0.0, 0.0, 1.75);
+
+// Simulation step size
+double step_size = 3e-3;
+
+// Simulation end time
+double end_time = 1000;
 
 // Time interval between two render frames
 double render_step_size = 1.0 / 50;  // FPS = 50
 
 // How often SynChrono state messages are interchanged
-float heartbeat = 1e-2;  // 100 [Hz]
+double heartbeat = 1e-2;  // 100 [Hz]
 
+// Forward declares for straight forward helper functions
+void LogCopyright(bool show);
 void AddCommandLineOptions(ChCLI& cli);
 
 // =============================================================================
 
 int main(int argc, char* argv[]) {
-    // Initialize the MPIManager
-    SynMPIManager mpi_manager(argc, argv, MPI_CONFIG_DEFAULT);
+    // -----------------------
+    // Create SynChronoManager
+    // -----------------------
+    auto communicator = chrono_types::make_shared<SynMPICommunicator>(argc, argv);
+    int node_id = communicator->GetRank();
+    int num_nodes = communicator->GetNumRanks();
+    SynChronoManager syn_manager(node_id, num_nodes, communicator);
 
-    int rank = mpi_manager.GetRank();
-    int num_ranks = mpi_manager.GetNumRanks();
+    // Copyright
+    LogCopyright(node_id == 0);
 
     // -----------------------------------------------------
     // CLI SETUP - Get most parameters from the command line
     // -----------------------------------------------------
+
     ChCLI cli(argv[0]);
 
     AddCommandLineOptions(cli);
-
-    if (!cli.Parse(argc, argv, rank == 0))
-        mpi_manager.Exit();
+    if (!cli.Parse(argc, argv, node_id == 0))
+        return 0;
 
     // Normal simulation options
     step_size = cli.GetAsType<double>("step_size");
     end_time = cli.GetAsType<double>("end_time");
     heartbeat = cli.GetAsType<double>("heartbeat");
 
-    const bool use_sensor_vis = cli.HasValueInVector<int>("sens", rank);
-    const bool use_irrlicht_vis = !use_sensor_vis && cli.HasValueInVector<int>("irr", rank);
-
-    mpi_manager.SetHeartbeat(heartbeat);
-    mpi_manager.SetEndTime(end_time);
-
-    // --------------------
-    // Agent Initialization
-    // --------------------
-
-    auto agent = chrono_types::make_shared<SynWheeledVehicleAgent>(rank);
-    agent->SetStepSize(step_size);
-    mpi_manager.AddAgent(agent, rank);
+    // Change SynChronoManager settings
+    syn_manager.SetHeartbeat(heartbeat);
 
     // -------
     // Vehicle
     // -------
     // Grid of vehicles
-    int col = rank % 3;
-    int row = rank / 3;
+    int col = node_id % 3;
+    int row = node_id / 3;
 
     // Box dimensions
     double length = 400;
@@ -117,10 +132,32 @@ int main(int argc, char* argv[]) {
 
     ChQuaternion<> initRot = ChQuaternion<>({1, 0, 0, 0});
 
-    std::string vehicle_filename = synchrono::GetDataFile("vehicle/Sedan.json");
-    ChCoordsys<> init_pos(base + offset, initRot);
-    auto vehicle = chrono_types::make_shared<SynWheeledVehicle>(init_pos, vehicle_filename, contact_method);
-    agent->SetVehicle(vehicle);
+    // Create the vehicle, set parameters, and initialize
+    WheeledVehicle vehicle(vehicle::GetDataFile("sedan/vehicle/Sedan_Vehicle.json"), contact_method);
+    vehicle.Initialize(ChCoordsys<>(base + offset, initRot));
+    vehicle.GetChassis()->SetFixed(false);
+    vehicle.SetChassisVisualizationType(chassis_vis_type);
+    vehicle.SetSuspensionVisualizationType(suspension_vis_type);
+    vehicle.SetSteeringVisualizationType(steering_vis_type);
+    vehicle.SetWheelVisualizationType(wheel_vis_type);
+
+    // Create and initialize the powertrain system
+    auto powertrain = ReadPowertrainJSON(vehicle::GetDataFile("sedan/powertrain/Sedan_SimpleMapPowertrain.json"));
+    vehicle.InitializePowertrain(powertrain);
+
+    // Create and initialize the tires
+    for (auto& axle : vehicle.GetAxles()) {
+        for (auto& wheel : axle->GetWheels()) {
+            auto tire = ReadTireJSON(vehicle::GetDataFile("sedan/tire/Sedan_TMeasyTire.json"));
+            vehicle.InitializeTire(tire, wheel, tire_vis_type);
+        }
+    }
+
+    // Add vehicle as an agent and initialize SynChronoManager
+    auto agent =
+        chrono_types::make_shared<SynWheeledVehicleAgent>(&vehicle, synchrono::GetDataFile("vehicle/Sedan.json"));
+    syn_manager.AddAgent(agent);
+    syn_manager.Initialize(vehicle.GetSystem());
 
     // -------
     // Terrain
@@ -131,9 +168,9 @@ int main(int argc, char* argv[]) {
     minfo.Y = 2e7f;
     auto patch_mat = minfo.CreateMaterial(contact_method);
 
-    auto terrain = chrono_types::make_shared<RigidTerrain>(agent->GetSystem());
-    auto patch = terrain->AddPatch(patch_mat, ChVector<>(0, 0, 0), ChVector<>(0, 0, 1), length, width);
-    terrain->Initialize();
+    RigidTerrain terrain(vehicle.GetSystem());
+    auto patch = terrain.AddPatch(patch_mat, ChVector<>(0, 0, 0), ChVector<>(0, 0, 1), length, width);
+    terrain.Initialize();
 
     // Terrain visualization
     // For irrlicht
@@ -144,14 +181,11 @@ int main(int argc, char* argv[]) {
         auto box_texture = chrono_types::make_shared<ChVisualMaterial>();
         box_texture->SetKdTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"));
         // FresnelMax and SpecularColor should make it less shiny
-        box_texture->SetFresnelMax(0.2);
-        box_texture->SetSpecularColor({0.2, 0.2, 0.2});
+        box_texture->SetFresnelMax(0.2f);
+        box_texture->SetSpecularColor({0.2f, 0.2f, 0.2f});
 
         visual_asset->material_list.push_back(box_texture);
     }
-
-    // Set the agents terrain
-    agent->SetTerrain(chrono_types::make_shared<SynRigidTerrain>(terrain));
 
     // ---------------------------
     // Controller for the vehicles
@@ -160,85 +194,146 @@ int main(int argc, char* argv[]) {
     // Drive in a straight line
     std::vector<ChVector<>> curve_pts = {init_loc, init_loc + ChVector<>(1000, 0, 0)};
     auto path = chrono_types::make_shared<ChBezierCurve>(curve_pts);
-    auto driver = chrono_types::make_shared<ChPathFollowerDriver>(vehicle->GetVehicle(), path, "Box path", 10);
+
+    ChPathFollowerDriver driver(vehicle, path, "Box path", 10);
 
     // Reasonable defaults for the underlying PID
-    driver->GetSpeedController().SetGains(0.4, 0, 0);
-    driver->GetSteeringController().SetGains(0.4, 0.1, 0.2);
-    driver->GetSteeringController().SetLookAheadDistance(5);
+    driver.GetSpeedController().SetGains(0.4, 0, 0);
+    driver.GetSteeringController().SetGains(0.4, 0.1, 0.2);
+    driver.GetSteeringController().SetLookAheadDistance(5);
 
-    // Wrap the ChDriver in a SynVehicleBrain and add it to our agent
-    auto brain = chrono_types::make_shared<SynVehicleBrain>(rank, driver, agent->GetChVehicle());
-    agent->SetBrain(brain);
-
-    auto vis_manager = chrono_types::make_shared<SynVisualizationManager>();
-    agent->SetVisualizationManager(vis_manager);
 #ifdef CHRONO_IRRLICHT
-    if (use_irrlicht_vis) {
-        // Add an irrlicht visualization
-        auto irr_vis = chrono_types::make_shared<SynIrrVehicleVisualization>(driver, step_size, render_step_size);
-        irr_vis->SetRenderStepSize(render_step_size);
-        irr_vis->SetStepSize(step_size);
-        irr_vis->InitializeAsDefaultChaseCamera(vehicle);
-        vis_manager->AddVisualization(irr_vis);
+    // Create the vehicle Irrlicht interface
+    std::shared_ptr<ChWheeledVehicleIrrApp> app;
+    if (cli.HasValueInVector<int>("irr", node_id)) {
+        app = chrono_types::make_shared<ChWheeledVehicleIrrApp>(&vehicle, L"SynChrono Vehicle Demo");
+        app->SetSkyBox();
+        app->AddTypicalLights(irr::core::vector3df(30.f, -30.f, 100.f), irr::core::vector3df(30.f, 50.f, 100.f), 250,
+                              130);
+        app->SetChaseCamera(trackPoint, 6.0, 0.5);
+        app->SetTimestep(step_size);
+        app->AssetBindAll();
+        app->AssetUpdateAll();
     }
 #endif
 
 #ifdef CHRONO_SENSOR
-    if (use_sensor_vis) {
-        auto sen_vis = chrono_types::make_shared<SynSensorVisualization>();
-        sen_vis->InitializeDefaultSensorManager(agent->GetSystem());
-        sen_vis->InitializeAsDefaultChaseCamera(agent->GetChVehicle().GetChassisBody());
+    ChSensorManager sensor_manager(vehicle.GetSystem());
+    if (cli.HasValueInVector<int>("sens", node_id)) {
+        sensor_manager.scene->AddPointLight({100, 100, 100}, {1, 1, 1}, 5000);
+        sensor_manager.scene->AddPointLight({-100, -100, 100}, {1, 1, 1}, 5000);
+
+        auto cam = chrono_types::make_shared<ChCameraSensor>(
+            vehicle.GetChassisBody(),                                                      // body camera is attached to
+            30,                                                                            // update rate in Hz
+            chrono::ChFrame<double>({-8, 0, 3}, Q_from_AngAxis(CH_C_PI / 20, {0, 1, 0})),  // offset pose
+            1280,                                                                          // image width
+            720,                                                                           // image height
+            CH_C_PI / 3);
 
         if (cli.GetAsType<bool>("sens_vis"))
-            sen_vis->AddFilterVisualize();
+            cam->PushFilter(chrono_types::make_shared<ChFilterVisualize>(1280, 720));
 
         if (cli.GetAsType<bool>("sens_save")) {
-            std::string path = std::string("SENSOR_OUTPUT/platoon") + std::to_string(rank) + std::string("/");
-            sen_vis->AddFilterSave(path);
+            const std::string path = std::string("SENSOR_OUTPUT/platoon") + std::to_string(node_id) + std::string("/");
+            cam->PushFilter(chrono_types::make_shared<ChFilterSave>(path));
         }
 
-        vis_manager->AddVisualization(sen_vis);
+        sensor_manager.AddSensor(cam);
     }
 #endif
 
-    mpi_manager.Barrier();
-    mpi_manager.Initialize();
+    // ---------------
+    // Simulation loop
+    // ---------------
+    // Number of simulation steps between miscellaneous events
+    int render_steps = (int)std::ceil(render_step_size / step_size);
 
-    double step = 0;
+    // Initialize simulation frame counters
+    int step_number = 0;
 
     std::chrono::high_resolution_clock::time_point start = std::chrono::high_resolution_clock::now();
 
     // Simulation Loop
-    while (mpi_manager.IsOk()) {
-        mpi_manager.Advance(heartbeat * step);
-        mpi_manager.Synchronize();
-        mpi_manager.Update();
+    while (true) {
+        double time = vehicle.GetSystem()->GetChTime();
 
-        // increment the step
-        step++;
+        // End simulation
+        if (time >= end_time         // ran out of time
+            || !syn_manager.IsOk())  // SynChronoManager has shutdown
+            break;
+
+#ifdef CHRONO_IRRLICHT
+        if (app && !app->GetDevice()->run())  //  Irrlicht visualization has stopped
+            break;
+
+        // Render scene and output POV-Ray data
+        if (step_number % render_steps == 0 && app) {
+            app->BeginScene(true, true, irr::video::SColor(255, 140, 161, 192));
+            app->DrawAll();
+            app->EndScene();
+        }
+#endif
+
+        // Get driver inputs
+        ChDriver::Inputs driver_inputs = driver.GetInputs();
+
+        // Update modules (process inputs from other modules)
+        syn_manager.Synchronize(time);  // Synchronize between nodes
+        driver.Synchronize(time);
+        terrain.Synchronize(time);
+        vehicle.Synchronize(time, driver_inputs, terrain);
+#ifdef CHRONO_IRRLICHT
+        if (app)
+            app->Synchronize("", driver_inputs);
+#endif
+
+        // Advance simulation for one timestep for all modules
+        driver.Advance(step_size);
+        terrain.Advance(step_size);
+        vehicle.Advance(step_size);
+
+#ifdef CHRONO_IRRLICHT
+        if (app)
+            app->Advance(step_size);
+#endif
+
+#ifdef CHRONO_SENSOR
+        sensor_manager.Update();
+#endif
+
+        // Increment frame number
+        step_number++;
     }
 
-    if (rank == 0) {
+    if (node_id == 0) {
         std::chrono::high_resolution_clock::time_point end = std::chrono::high_resolution_clock::now();
         auto time_span = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
-        std::cout << "Total Wall Time: " << time_span.count() / 1e6 << "." << std::endl;
-        std::cout << "Fraction of real time: " << (time_span.count() / 1e6) / end_time << std::endl;
-        std::cout << "Frequency of steps [Hz]: " << step / (time_span.count() / 1e6) << std::endl;
-        std::cout << "Real time: " << (time_span.count() / 1e6) / end_time << std::endl;
+        SynLog() << "Total Wall Time: " << time_span.count() / 1e6 << "\n";
+        SynLog() << "Fraction of real time: " << (time_span.count() / 1e6) / end_time << "\n";
+        SynLog() << "Frequency of steps [Hz]: " << step_number / (time_span.count() / 1e6) << "\n";
+        SynLog() << "Real time: " << (time_span.count() / 1e6) / end_time << "\n";
     }
 
     return 0;
 }
 
+void LogCopyright(bool show) {
+    if (!show)
+        return;
+
+    SynLog() << "Copyright (c) 2020 projectchrono.org\n";
+    SynLog() << "Chrono version: " << CHRONO_VERSION << "\n\n";
+}
+
 void AddCommandLineOptions(ChCLI& cli) {
     // Standard demo options
-    cli.AddOption<double>("Simulation", "step_size", "Step size", std::to_string(step_size));
-    cli.AddOption<double>("Simulation", "end_time", "End time", std::to_string(end_time));
-    cli.AddOption<double>("Simulation", "heartbeat", "Heartbeat", std::to_string(heartbeat));
+    cli.AddOption<double>("Simulation", "s,step_size", "Step size", std::to_string(step_size));
+    cli.AddOption<double>("Simulation", "e,end_time", "End time", std::to_string(end_time));
+    cli.AddOption<double>("Simulation", "b,heartbeat", "Heartbeat", std::to_string(heartbeat));
 
     // Irrlicht options
-    cli.AddOption<std::vector<int>>("Irrlicht", "irr", "Ranks for irrlicht usage", "-1");
+    cli.AddOption<std::vector<int>>("Irrlicht", "i,irr", "Ranks for irrlicht usage", "-1");
 
     // Sensor options
     cli.AddOption<std::vector<int>>("Sensor", "sens", "Ranks for sensor usage", "-1");

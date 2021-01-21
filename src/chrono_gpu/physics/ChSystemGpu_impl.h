@@ -157,9 +157,11 @@ class ChSystemGpu_impl {
         float3* tangential_friction_force;  ///< Track sliding friction force
         float3* rolling_friction_torque;    ///< Track rolling friction force
 
-        unsigned int* SD_NumSpheresTouching;      ///< Number of particles touching each subdomain
-        unsigned int* SD_SphereCompositeOffsets;  ///< Offset of each subdomain in the big composite array
-        unsigned int* spheres_in_SD_composite;    ///< Big composite array of sphere-subdomain membership
+        unsigned int* SD_NumSpheresTouching;         ///< Number of particles touching each subdomain
+        unsigned int* SD_SphereCompositeOffsets;     ///< Offset of each subdomain in the big composite array
+        unsigned int* SD_SphereCompositeOffsets_SP;  ///< like SD_SphereCompositeOffsets, scratch pad (SP) used
+        unsigned int* spheres_in_SD_composite;       ///< Big composite array of sphere-subdomain membership
+        void* d_temp_storageCUB = NULL;              ///< Device pointer for mem needed by CUB for prefix scan
 
         unsigned int* sphere_owner_SDs;  ///< List of owner subdomains for each sphere
     };
@@ -484,10 +486,14 @@ class ChSystemGpu_impl {
 
     /// Entry "i" says how many spheres touch subdomain i
     std::vector<unsigned int, cudallocator<unsigned int>> SD_NumSpheresTouching;
+    ///  Entry "i" says where spheres touching ith SD are stored in the big composite array (the offset)
     std::vector<unsigned int, cudallocator<unsigned int>> SD_SphereCompositeOffsets;
-
-    /// Array containing the IDs of the spheres stored in the SDs associated with the box
+    /// Scratch area, needed to populate data in the big composite array
+    std::vector<unsigned int, cudallocator<unsigned int>> SD_SphereCompositeOffsets_ScratchPad;
+    /// Array with the IDs of the spheres touching each SD associated with the box; organized SD after SD
     std::vector<unsigned int, cudallocator<unsigned int>> spheres_in_SD_composite;
+    /// Storage for CUB-needed prefix-scan. Used by prefix-scan in the broad phase collision detection
+    std::vector<unsigned char, cudallocator<unsigned char>> d_temp_storageCUB;
 
     /// List of owner subdomains for each sphere
     std::vector<unsigned int, cudallocator<unsigned int>> sphere_owner_SDs;

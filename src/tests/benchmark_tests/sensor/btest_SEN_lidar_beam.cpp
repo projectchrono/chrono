@@ -100,8 +100,8 @@ int main(int argc, char* argv[]) {
         0, 0, 100,                                                         // vertical field of view
         10,                // radius of samples to use, 1->1 sample,2->9 samples, 3->25 samples...
         .003,              // 3 mradius cited by velodyne
-        STRONGEST_RETURN,  // return mode for the lidar
-        RAYCAST            // method/model to use for generating data
+        LidarReturnMode::STRONGEST_RETURN,  // return mode for the lidar
+        LidarModelType::RAYCAST            // method/model to use for generating data
     );
     lidar2->SetName("Lidar Sensor");
     // lidar2->PushFilter(std::make_shared<ChFilterLidarNoiseXYZI>(.01f, .001f, .001f, .01f));
@@ -119,8 +119,8 @@ int main(int argc, char* argv[]) {
         0, 0, 100,                                                         // vertical field of view
         5,                 // radius of samples to use, 1->1 sample,2->9 samples, 3->25 samples...
         .003,              // 3 mradius cited by velodyne
-        STRONGEST_RETURN,  // return mode for the lidar
-        RAYCAST            // method/model to use for generating data
+        LidarReturnMode::STRONGEST_RETURN,  // return mode for the lidar
+        LidarModelType::RAYCAST            // method/model to use for generating data
     );
     lidar3->SetName("Lidar Sensor");
     // lidar2->PushFilter(std::make_shared<ChFilterLidarNoiseXYZI>(.01f, .001f, .001f, .01f));

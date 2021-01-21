@@ -23,7 +23,7 @@ For more detail, read the [Chrono::Sensor](@ref manual_sensor) section of the re
 
 - To **build** applications based on this module, the following are required:
   * [CUDA](https://developer.nvidia.com/cuda-downloads) - tested with version 10.0
-  * [OptiX](https://developer.nvidia.com/designworks/optix/download) - version 6.5
+  * [OptiX](https://developer.nvidia.com/designworks/optix/download) - version 6.5 only (will not work with 7.0 or later)
   * [GLFW](https://www.glfw.org/) - version 3.0 or later
   * [GLEW](http://glew.sourceforge.net/) - version 1.0 or later
   * OpenGL
@@ -37,13 +37,15 @@ For more detail, read the [Chrono::Sensor](@ref manual_sensor) section of the re
 
 3. Set the `OPTIX_INSTALL_DIR` variable to the root of the OptiX directory installed on the system (directory that includes `lib/` `bin/` `include/`) and press 'Configure' to refresh the variable list. If a refresh does not correctly set the following variables: `OptiX_Include`,`optix_LIBRARY`,`optix_prime_LIBRARY`, and `optixu_LIBRARY`, manually set them accordingly.
 
-4. Optionally set `USE_CUDA_NVRTC` to 'on' to enable runtime compilation of the Optix RT Kernels. Press 'Configure' to refresh the variable list. If set to 'off', the RT Kernels will be compiled at runtime. Depending on the system, you may need to set `CUDA_ARCH_NAME` to the specific target architecture since this will result in RT Kernels being compiled to PTX.
+5. Set all the values for `GLEW_...`, `GLFW_...` to proper directory / file values.
 
-5. Optionally set `USE_TENSOR_RT` to 'on' to enable use of TensorRT for augmenting sensor data. Press 'Configure' to refresh the variable list.
+6. Optionally set `USE_CUDA_NVRTC` to 'on' to enable runtime compilation of the Optix RT Kernels. Press 'Configure' to refresh the variable list. If set to 'off', the RT Kernels will be compiled at runtime. Depending on the system, you may need to set `CUDA_ARCH_NAME` to the specific target architecture since this will result in RT Kernels being compiled to PTX.
+
+7. Optionally set `USE_TENSOR_RT` to 'on' to enable use of TensorRT for augmenting sensor data. Press 'Configure' to refresh the variable list.
     * Set the `TENSOR_RT_INSTALL_DIR` variable to the root of the TensorRT directory installed on the system (directory that includes `lib/`, `bin/`, `include/`) and press 'Configure to refresh the avriable list'
     * If a refresh does not correctly set the following variables: `TENSOR_RT_INCLUDE_PATH`,`TENSOR_RT_NVINFER`,`TENSOR_RT_ONNXPARSER`, and `TENSOR_RT_PARSER`, manually set them accordingly with the last three variable pointing directly to their corresponding library files.
 
-6. Press 'Configure' again, then 'Generate', and proceed as usual in the installation instructions.
+8. Press 'Configure' again, then 'Generate', and proceed as usual in the installation instructions.
 
 
 ## How to use it
