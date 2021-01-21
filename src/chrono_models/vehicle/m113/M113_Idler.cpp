@@ -54,18 +54,17 @@ const std::string M113_IdlerRight::m_meshFile = "M113/Idler_R.obj";
 // -----------------------------------------------------------------------------
 class M113_TensionerForce : public ChLinkTSDA::ForceFunctor {
   public:
-    M113_TensionerForce(double k, double c, double f, double l0) : m_k(k), m_c(c), m_f(f), m_l0(l0) {}
+    M113_TensionerForce(double k, double c, double f) : m_k(k), m_c(c), m_f(f) {}
 
     virtual double operator()(double time,
                               double rest_length,
                               double length,
                               double vel,
                               ChLinkTSDA* link) override {
-        return m_f - m_k * (length - m_l0) - m_c * vel;
+        return m_f - m_k * (length - rest_length) - m_c * vel;
     }
 
   private:
-    double m_l0;
     double m_k;
     double m_c;
     double m_f;
@@ -74,8 +73,7 @@ class M113_TensionerForce : public ChLinkTSDA::ForceFunctor {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 M113_Idler::M113_Idler(const std::string& name) : ChDoubleIdler(name) {
-    m_tensionerForceCB =
-        chrono_types::make_shared<M113_TensionerForce>(m_tensioner_k, m_tensioner_c, m_tensioner_f, m_tensioner_l0);
+    m_tensionerForceCB = chrono_types::make_shared<M113_TensionerForce>(m_tensioner_k, m_tensioner_c, m_tensioner_f);
 }
 
 void M113_Idler::CreateContactMaterial(ChContactMethod contact_method) {

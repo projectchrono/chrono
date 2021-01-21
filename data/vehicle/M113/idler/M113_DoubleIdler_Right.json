@@ -39,7 +39,7 @@
       "Coefficient of Restitution": 0.1,
 
       "Properties": {
-          "Young Modulus":          1e8,
+          "Young Modulus":          1e7,
           "Poisson Ratio":          0.3
       },
 
