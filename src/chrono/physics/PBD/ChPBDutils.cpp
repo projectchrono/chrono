@@ -467,8 +467,8 @@ namespace chrono {
 
 			// normal speed restitution
 			// TODO: use a restitution coefficient
-			double e = (abs(v_rel_n) < 2 * 9.8*h) ? 0 : 0.0;
-			delta_vn = -n * (v_rel_n)+ChMax(-e*v_n_old, 0.0);
+			double e = (abs(v_rel_n) < 2 * 9.8 * h) ? 0 : 0.05;
+			delta_vn = -n * (v_rel_n + ChMax(e*v_n_old, 0.0));
 
 			// apply speed impulses to bodies
 			p += delta_vn / (w1 + w2);
