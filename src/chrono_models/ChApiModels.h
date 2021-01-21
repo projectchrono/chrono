@@ -47,6 +47,8 @@
        @}
        @defgroup robosimian_model Robosimian model
        @brief A model of the Robosimian legged robot
+       @defgroup viper_model Viper model
+       @brief A model of the Viper moon rover
     @}
 */
 

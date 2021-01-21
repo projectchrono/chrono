@@ -69,7 +69,7 @@ enum class SideNo{
 
 // ==================================================================================
 /// Viper Rover Part
-class Viper_Part {
+class CH_MODELS_API Viper_Part {
   public:
     Viper_Part(const std::string& name, 
               bool fixed,
@@ -120,7 +120,7 @@ class Viper_Part {
 
 // ==========================================================================
 /// Viper Rover Part: Chassis
-class Viper_Chassis : public Viper_Part {
+class CH_MODELS_API Viper_Chassis : public Viper_Part {
   public:
     Viper_Chassis(const std::string& name, 
                   bool fixed, 
@@ -143,7 +143,7 @@ class Viper_Chassis : public Viper_Part {
 
 // ===========================================================
 /// Viper Rover Part: Wheel
-class Viper_Wheel : public Viper_Part {
+class CH_MODELS_API Viper_Wheel : public Viper_Part {
   public:
     Viper_Wheel(const std::string& name, 
                   bool fixed, 
@@ -167,7 +167,7 @@ class Viper_Wheel : public Viper_Part {
 
 // ===========================================================
 /// Viper Rover Part: Upper Suspension
-class Viper_Up_Sus : public Viper_Part {
+class CH_MODELS_API Viper_Up_Sus : public Viper_Part {
   public:
     Viper_Up_Sus(const std::string& name, 
                   bool fixed, 
@@ -193,7 +193,7 @@ class Viper_Up_Sus : public Viper_Part {
 
 // ===========================================================
 /// Viper Rover Part: Bottom Suspension
-class Viper_Bt_Sus : public Viper_Part {
+class CH_MODELS_API Viper_Bt_Sus : public Viper_Part {
   public:
     Viper_Bt_Sus(const std::string& name, 
                   bool fixed, 
@@ -218,7 +218,7 @@ class Viper_Bt_Sus : public Viper_Part {
 
 // ===========================================================
 /// Viper Rover Part: Steering Rod
-class Viper_Steer : public Viper_Part {
+class CH_MODELS_API Viper_Steer : public Viper_Part {
   public:
     Viper_Steer(const std::string& name,
                   bool fixed, 
@@ -244,7 +244,7 @@ class Viper_Steer : public Viper_Part {
 
 // ===========================================================
 /// Viper Rover model.
-class Viper_Rover {
+class CH_MODELS_API Viper_Rover {
   public:
     Viper_Rover(chrono::ChSystem* system, 
                 ChVector<> rover_pos,

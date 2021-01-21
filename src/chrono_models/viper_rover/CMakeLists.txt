@@ -16,6 +16,7 @@ SET(ChronoModels_viper_SOURCES
 )
 
 SET(ChronoModels_viper_HEADERS
+    ../ChApiModels.h
     Viper.h
 )
 
