@@ -189,12 +189,6 @@ void ChSystemGpu_impl::packSphereDataPointers() {
             sphere_data->rolling_friction_torque = rolling_friction_torque.data();
         }
     }
-
-    // DN: had to comment this prefetch for now; crashing on Windows
-    //// force prefetch the sphere data pointer after update:
-    // int dev_ID;
-    // gpuErrchk(cudaGetDevice(&dev_ID));
-    // gpuErrchk(cudaMemPrefetchAsync(sphere_data, sizeof(*sphere_data), dev_ID));
 }
 
 void ChSystemGpu_impl::WriteFile(std::string ofile) const {
