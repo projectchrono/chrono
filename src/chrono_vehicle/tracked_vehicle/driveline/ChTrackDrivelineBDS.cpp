@@ -81,6 +81,24 @@ void ChTrackDrivelineBDS::Initialize(std::shared_ptr<ChChassis> chassis,
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
+void ChTrackDrivelineBDS::CombineDriverInputs(const ChDriver::Inputs& driver_inputs,
+                                              double& braking_left,
+                                              double& braking_right) {
+    braking_left = driver_inputs.m_braking;
+    braking_right = driver_inputs.m_braking;
+    if (driver_inputs.m_steering > 0) {
+        braking_left += driver_inputs.m_steering;
+    } else if (driver_inputs.m_steering < 0) {
+        braking_right -= driver_inputs.m_steering;
+    }
+}
+
+void ChTrackDrivelineBDS::Synchronize(double steering, double torque) {
+    ChDriveline::Synchronize(torque);
+}
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 double ChTrackDrivelineBDS::GetSprocketTorque(VehicleSide side) const {
     switch (side) {
         case LEFT:

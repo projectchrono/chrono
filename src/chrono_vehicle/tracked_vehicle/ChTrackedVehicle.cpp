@@ -75,6 +75,10 @@ void ChTrackedVehicle::Synchronize(double time,
                                    const ChDriver::Inputs& driver_inputs,
                                    const TerrainForces& shoe_forces_left,
                                    const TerrainForces& shoe_forces_right) {
+    // Let the driveline combine driver inputs if needed
+    double braking_left, braking_right;
+    m_driveline->CombineDriverInputs(driver_inputs, braking_left, braking_right);
+
     double powertrain_torque = 0;
     if (m_powertrain) {
         // Extract the torque from the powertrain.
@@ -91,9 +95,9 @@ void ChTrackedVehicle::Synchronize(double time,
         connector->Synchronize(time, driver_inputs.m_steering);
     }
 
-    // Apply contact track shoe forces.
-    m_tracks[LEFT]->Synchronize(time, driver_inputs.m_braking, shoe_forces_left);
-    m_tracks[RIGHT]->Synchronize(time, driver_inputs.m_braking, shoe_forces_right);
+    // Apply contact track shoe forces and braking.
+    m_tracks[LEFT]->Synchronize(time, braking_left, shoe_forces_left);
+    m_tracks[RIGHT]->Synchronize(time, braking_right, shoe_forces_right);
 
     m_chassis->Synchronize(time);
     for (auto& c : m_chassis_rear)

@@ -68,7 +68,7 @@ double step_size = 5e-4;
 bool use_mkl = false;
 
 // Time interval between two render frames
-double render_step_size = 1.0 / 60;  // FPS = 60
+double render_step_size = 1.0 / 120;  // FPS = 120
 
 // Point on chassis tracked by the camera
 ChVector<> trackPoint(0.0, 0.0, 0.0);
@@ -240,7 +240,7 @@ int main(int argc, char* argv[]) {
     // Add fixed and/or falling objects
     // --------------------------------
 
-    AddFixedObstacles(vehicle.GetSystem());
+    ////AddFixedObstacles(vehicle.GetSystem());
     ////AddFallingObjects(vehicle.GetSystem());
 
     // ---------------------------------------
@@ -370,6 +370,7 @@ int main(int argc, char* argv[]) {
         // Debugging output
         if (dbg_output) {
             cout << "Time: " << vehicle.GetSystem()->GetChTime() << endl;
+            cout << "      Num. contacts: " << vehicle.GetSystem()->GetNcontacts() << endl;
             const ChFrameMoving<>& c_ref = vehicle.GetChassisBody()->GetFrame_REF_to_abs();
             const ChVector<>& c_pos = vehicle.GetVehiclePos();
             cout << "      chassis:    " << c_pos.x() << "  " << c_pos.y() << "  " << c_pos.z() << endl;
@@ -389,12 +390,12 @@ int main(int argc, char* argv[]) {
                 cout << "      R idler:    " << i_pos_rel.x() << "  " << i_pos_rel.y() << "  " << i_pos_rel.z() << endl;
                 cout << "      R sprocket: " << s_pos_rel.x() << "  " << s_pos_rel.y() << "  " << s_pos_rel.z() << endl;
             }
-            cout << "      L suspensions (arm angles):" << endl;
+            cout << "      L suspensions (arm angles):";
             for (size_t i = 0; i < vehicle.GetTrackAssembly(LEFT)->GetNumRoadWheelAssemblies(); i++) {
                 cout << " " << vehicle.GetTrackAssembly(VehicleSide::LEFT)->GetRoadWheelAssembly(i)->GetCarrierAngle();
             }
             cout << endl;
-            cout << "      R suspensions (arm angles):" << endl;
+            cout << "      R suspensions (arm angles):";
             for (size_t i = 0; i < vehicle.GetTrackAssembly(RIGHT)->GetNumRoadWheelAssemblies(); i++) {
                 cout << " " << vehicle.GetTrackAssembly(VehicleSide::RIGHT)->GetRoadWheelAssembly(i)->GetCarrierAngle();
             }
