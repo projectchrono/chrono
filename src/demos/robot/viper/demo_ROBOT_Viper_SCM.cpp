@@ -12,7 +12,7 @@
 // Authors: Jason Zhou
 // =============================================================================
 //
-// Drmo to show Viper Rover operated on SCM Terrain
+// Demo to show Viper Rover operated on SCM Terrain
 //
 // =============================================================================
 
@@ -129,8 +129,7 @@ int main(int argc, char* argv[]) {
     utils::CSV_writer csv(" ");
 
     /// Create the Viper Rover
-    ChQuaternion<> body_rot = ChQuaternion<>(1,0,0,0);
-    body_rot = Q_from_Euler123(ChVector<double>(-CH_C_PI/2, 0, 0));
+    ChQuaternion<> body_rot = Q_from_Euler123(ChVector<double>(-CH_C_PI/2, 0, 0));
 
     // - Create a Viper Rover with default parameters
     // The default rotational speed of the Motor is speed w=3.145 rad/sec

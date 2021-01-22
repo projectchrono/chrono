@@ -1,10 +1,16 @@
 # Demo programs for sequential RoboSimian simulations
 # ------------------------------------------------------------------------------
 
-if(NOT ENABLE_MODULE_IRRLICHT)
-  message("  Warning: the sequential Robosimian projects require Chrono::Irrlicht!")
+if(NOT ENABLE_MODULE_VEHICLE)
+  message(STATUS "  Warning: the ViperRover projects require Chrono::Vehicle!")
   return()
 endif()
+
+if(NOT ENABLE_MODULE_IRRLICHT)
+  message(STATUS "  Warning: the ViperRover projects require Chrono::Irrlicht!")
+  return()
+endif()
+
 
 # ------------------------------------------------------------------------------
 # Additional include paths and libraries
@@ -12,15 +18,11 @@ endif()
 
 include_directories(${CH_IRRLICHTINC})
 
-if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-    set(CH_LINKERFLAG_EXE  "${CH_LINKERFLAG_EXE} -framework IOKit -framework Cocoa -framework OpenGL")
-endif()
-
 # ------------------------------------------------------------------------------
 
 set(DEMOS
-    demo_RS_robosimian_Rigid
-    demo_RS_robosimian_SCM
+    demo_ROBOT_Viper_Rigid
+    demo_ROBOT_Viper_SCM
 )
 
 # ------------------------------------------------------------------------------
@@ -41,8 +43,9 @@ foreach(PROGRAM ${DEMOS})
     target_link_libraries(${PROGRAM}
                           ChronoEngine
                           ChronoEngine_vehicle
+                          ChronoModels_robot
                           ChronoEngine_irrlicht
-                          ChronoModels_robot)
+                        )
 
     install(TARGETS ${PROGRAM} DESTINATION ${CH_INSTALL_DEMO})
 endforeach()

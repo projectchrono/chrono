@@ -12,7 +12,7 @@
 // Authors: Jason Zhou
 // =============================================================================
 //
-// Drmo to show Viper Rover operated on Rigid Terrain
+// Demo to show Viper Rover operated on Rigid Terrain
 //
 // =============================================================================
 
@@ -88,8 +88,7 @@ int main(int argc, char* argv[]) {
 
     // - Viper Rover body rotation
     // - Note: the Viper Rover uses a Z-up frame, which will need to be translated to Y-up
-    ChQuaternion<> body_rot = ChQuaternion<>(1,0,0,0);
-    body_rot = Q_from_Euler123(ChVector<double>(-CH_C_PI/2, 0, 0));
+    ChQuaternion<> body_rot = Q_from_Euler123(ChVector<double>(-CH_C_PI/2, 0, 0));
 
     // - Create a Viper Rover with default parameters
     // The default rotational speed of the Motor is speed w=3.145 rad/sec

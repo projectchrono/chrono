@@ -1,10 +1,8 @@
 # Test programs for RoboSimian simulation
 # ------------------------------------------------------------------------------
 
-message(STATUS "Demo programs for ROBOSIMIAN model...")
-
 if(NOT ENABLE_MODULE_VEHICLE)
-  message("  Warning: the Robosimian projects require Chrono::Vehicle!")
+  message(STATUS "  Warning: the Robosimian projects require Chrono::Vehicle!")
   return()
 endif()
 
