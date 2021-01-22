@@ -485,7 +485,6 @@ __host__ double ChSystemGpuMesh_impl::AdvanceSimulation(float duration) {
     // Run the simulation, there are aggressive synchronizations because we want to have no race conditions
     for (; time_elapsed_SU < stepSize_SU * nsteps; time_elapsed_SU += stepSize_SU) {
         updateBCPositions();
-
         resetSphereAccelerations();
         resetBCForces();
         if (meshSoup->nTrianglesInSoup != 0 && mesh_collision_enabled) {
@@ -503,8 +502,6 @@ __host__ double ChSystemGpuMesh_impl::AdvanceSimulation(float duration) {
             computeSphereForces_frictionless<<<nSDs, MAX_COUNT_OF_SPHERES_PER_SD>>>(
                 sphere_data, gran_params, BC_type_list.data(), BC_params_list_SU.data(),
                 (unsigned int)BC_params_list_SU.size());
-            gpuErrchk(cudaPeekAtLastError());
-            gpuErrchk(cudaDeviceSynchronize());
         } else if (gran_params->friction_mode == CHGPU_FRICTION_MODE::SINGLE_STEP ||
                    gran_params->friction_mode == CHGPU_FRICTION_MODE::MULTI_STEP) {
             // figure out who is contacting
@@ -515,13 +512,11 @@ __host__ double ChSystemGpuMesh_impl::AdvanceSimulation(float duration) {
             computeSphereContactForces<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(
                 sphere_data, gran_params, BC_type_list.data(), BC_params_list_SU.data(),
                 (unsigned int)BC_params_list_SU.size(), nSpheres);
-            gpuErrchk(cudaPeekAtLastError());
-            gpuErrchk(cudaDeviceSynchronize());
         }
+        gpuErrchk(cudaPeekAtLastError());
+        gpuErrchk(cudaDeviceSynchronize());
 
         if (meshSoup->nTrianglesInSoup != 0 && mesh_collision_enabled) {
-            gpuErrchk(cudaPeekAtLastError());
-            gpuErrchk(cudaDeviceSynchronize());
             runTriangleBroadphase();
         }
         gpuErrchk(cudaPeekAtLastError());
@@ -540,16 +535,8 @@ __host__ double ChSystemGpuMesh_impl::AdvanceSimulation(float duration) {
         gpuErrchk(cudaPeekAtLastError());
         gpuErrchk(cudaDeviceSynchronize());
 
-        METRICS_PRINTF("Resetting broadphase info!\n");
-
-        resetBroadphaseInformation();
-
-        gpuErrchk(cudaPeekAtLastError());
-        gpuErrchk(cudaDeviceSynchronize());
-
         METRICS_PRINTF("Starting integrateSpheres!\n");
         integrateSpheres<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(stepSize_SU, sphere_data, nSpheres, gran_params);
-
         gpuErrchk(cudaPeekAtLastError());
         gpuErrchk(cudaDeviceSynchronize());
 
@@ -567,11 +554,8 @@ __host__ double ChSystemGpuMesh_impl::AdvanceSimulation(float duration) {
         }
 
         runSphereBroadphase();
-
         packSphereDataPointers();
 
-        gpuErrchk(cudaPeekAtLastError());
-        gpuErrchk(cudaDeviceSynchronize());
         elapsedSimTime += (float)(stepSize_SU * TIME_SU2UU);  // Advance current time
     }
 
