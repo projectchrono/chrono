@@ -66,22 +66,19 @@ CH_SENSOR_API ChLidarSensor::ChLidarSensor(
         throw std::invalid_argument("beam shape not supported");
     }
     // set the program to match the model requested
-    switch (lidar_model) {
-        default:  // same as RAYCAST
-            // select if we should use multisample ray casting method
-            if (sample_radius > 1) {
-                m_program_string = {"lidar", "multi_sample"};
-//                m_program_string = {"lidar", "spherical"};
-                m_ray_launch_params.push_back(std::make_tuple<std::string, RTobjecttype, void*>(
-                    "beam_shape", RT_OBJECTTYPE_INT, &m_beam_shape));
-                m_ray_launch_params.push_back(std::make_tuple<std::string, RTobjecttype, void*>(
-                    "vert_divergence_angle", RT_OBJECTTYPE_FLOAT, &m_vert_divergence_angle));
-                m_ray_launch_params.push_back(std::make_tuple<std::string, RTobjecttype, void*>(
-                    "hori_divergence_angle", RT_OBJECTTYPE_FLOAT, &m_hori_divergence_angle));
-                m_ray_launch_params.push_back(std::make_tuple<std::string, RTobjecttype, void*>(
-                    "ray_samples", RT_OBJECTTYPE_INT, &m_sample_radius));
-                m_filters.push_back(
-                    chrono_types::make_shared<ChFilterLidarReduce>(return_mode, sample_radius, "lidar reduction"));
+    if (sample_radius > 1) {
+        m_program_string = {"lidar", "multi_sample"};
+          m_program_string = {"lidar", "spherical"};
+        m_ray_launch_params.push_back(std::make_tuple<std::string, RTobjecttype, void*>(
+            "beam_shape", RT_OBJECTTYPE_INT, &m_beam_shape));
+        m_ray_launch_params.push_back(std::make_tuple<std::string, RTobjecttype, void*>(
+            "vert_divergence_angle", RT_OBJECTTYPE_FLOAT, &m_vert_divergence_angle));
+        m_ray_launch_params.push_back(std::make_tuple<std::string, RTobjecttype, void*>(
+            "hori_divergence_angle", RT_OBJECTTYPE_FLOAT, &m_hori_divergence_angle));
+        m_ray_launch_params.push_back(std::make_tuple<std::string, RTobjecttype, void*>(
+            "ray_samples", RT_OBJECTTYPE_INT, &m_sample_radius));
+        m_filters.push_back(
+            chrono_types::make_shared<ChFilterLidarReduce>(return_mode, sample_radius, "lidar reduction"));
 
     } else {
         m_program_string = {"lidar", "spherical"};

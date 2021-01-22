@@ -293,8 +293,8 @@ std::shared_ptr<ChLidarSensor> ReadLidarSensorJSON(const std::string& filename,
     std::string beam_shape = "rectangle";
     float vert_divergence_angle = .003;
     float hori_divergence_angle = .003;
-    LidarReturnMode return_mode = STRONGEST_RETURN;
-    LidarModelType lidar_model = RAYCAST;
+    LidarReturnMode return_mode = LidarReturnMode::STRONGEST_RETURN;
+    LidarModelType lidar_model = LidarModelType::RAYCAST;
 
     if (properties.HasMember("Sample Radius")) {
         sample_radius = properties["Sample Radius"].GetInt();
