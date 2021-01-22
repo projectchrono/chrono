@@ -42,7 +42,7 @@ foreach(PROGRAM ${DEMOS})
                           ChronoEngine
                           ChronoEngine_vehicle
                           ChronoEngine_irrlicht
-                          ChronoModels_robosimian)
+                          ChronoModels_robot)
 
     install(TARGETS ${PROGRAM} DESTINATION ${CH_INSTALL_DEMO})
 endforeach()

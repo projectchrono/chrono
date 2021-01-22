@@ -16,7 +16,7 @@
 //
 // =============================================================================
 
-#include "chrono_models/viper_rover/Viper.h"
+#include "chrono_models/robot/viper/Viper.h"
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/physics/ChInertiaUtils.h"
@@ -38,7 +38,7 @@
 
 using namespace chrono;
 using namespace chrono::irrlicht;
-using namespace chrono::viper_rover;
+using namespace chrono::viper;
 
 // Use the main namespaces of Irrlicht
 using namespace irr;
@@ -94,7 +94,7 @@ int main(int argc, char* argv[]) {
     // - Create a Viper Rover with default parameters
     // The default rotational speed of the Motor is speed w=3.145 rad/sec
     ChVector<double> body_pos(0,-0.2,0);
-    viper_rover::Viper_Rover viper(&mphysicalSystem, body_pos, body_rot);
+    ViperRover viper(&mphysicalSystem, body_pos, body_rot);
     viper.Initialize();
 
     // Use this function for adding a ChIrrNodeAsset to all items

@@ -1,7 +1,6 @@
 message(STATUS "==== Chrono models ====")
 
-add_subdirectory(robosimian)
-add_subdirectory(viper_rover)
+add_subdirectory(robot)
 
 if(ENABLE_MODULE_VEHICLE)
   	add_subdirectory(vehicle)

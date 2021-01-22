@@ -32,7 +32,7 @@ try:
 except:
     pass
 try:
-    import _robosimian
+    import _robot
 except:
     pass
 

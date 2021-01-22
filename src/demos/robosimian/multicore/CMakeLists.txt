@@ -48,7 +48,7 @@ foreach(PROGRAM ${DEMOS})
                           ChronoEngine_multicore
                           ChronoEngine_vehicle
                           ChronoEngine_opengl
-                          ChronoModels_robosimian)
+                          ChronoModels_robot)
 
     install(TARGETS ${PROGRAM} DESTINATION ${CH_INSTALL_DEMO})
 endforeach()

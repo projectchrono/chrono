@@ -11,10 +11,10 @@
 
 
 // Define the module to be used in Python when typing 
-//  'import pychrono.robosimian'
+//  'import pychrono.robot'
 
 
-%module(directors="1") robosimian
+%module(directors="1") robot
 
 
 // Turn on the documentation of members, for more intuitive IDE typing
@@ -64,7 +64,7 @@
 #include "Eigen/src/Core/util/Memory.h"
 
 #include "chrono_models/ChApiModels.h"
-#include "chrono_models/robosimian/RoboSimian.h"
+#include "chrono_models/robot/robosimian/RoboSimian.h"
 
 using namespace chrono;
 using namespace chrono::robosimian;
@@ -196,7 +196,7 @@ Before adding a shared_ptr, mark as shared ptr all its inheritance tree in the m
 %rename(CollisionFlags_COLLISION) chrono::robosimian::CollisionFlags::CHASSIS;
 %ignore chrono::robosimian::RS_Driver::GetCurrentPhase;
 %feature("director")  chrono::robosimian::RS_Driver::PhaseChangeCallback;
-%include "../chrono_models/robosimian/RoboSimian.h"
+%include "../chrono_models/robot/robosimian/RoboSimian.h"
 
 // Tracked vehicles are not going to be wrapped in the short term
 

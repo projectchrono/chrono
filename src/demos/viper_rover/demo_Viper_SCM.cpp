@@ -17,7 +17,7 @@
 // =============================================================================
 
 
-#include "chrono_models/viper_rover/Viper.h"
+#include "chrono_models/robot/viper/Viper.h"
 
 #include "chrono/geometry/ChTriangleMeshConnected.h"
 #include "chrono/physics/ChLinkMotorRotationAngle.h"
@@ -52,7 +52,7 @@
 using namespace chrono;
 using namespace chrono::irrlicht;
 using namespace chrono::geometry;
-using namespace chrono::viper_rover;
+using namespace chrono::viper;
 
 using namespace irr;
 
@@ -135,7 +135,7 @@ int main(int argc, char* argv[]) {
     // - Create a Viper Rover with default parameters
     // The default rotational speed of the Motor is speed w=3.145 rad/sec
     ChVector<double> body_pos(-5,-0.2,0);
-    viper_rover::Viper_Rover viper(&my_system, body_pos, body_rot);
+    ViperRover viper(&my_system, body_pos, body_rot);
     viper.Initialize();
 
     viper.SetMotorSpeed(CH_C_PI * 2,SideNo::LF);

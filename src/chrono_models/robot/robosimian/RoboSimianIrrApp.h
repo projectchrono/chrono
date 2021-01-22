@@ -22,7 +22,7 @@
 #include "chrono_irrlicht/ChIrrApp.h"
 #include "chrono_irrlicht/ChIrrTools.h"
 
-#include "chrono_models/robosimian/RoboSimian.h"
+#include "chrono_models/robot/robosimian/RoboSimian.h"
 
 namespace chrono {
 namespace robosimian {
