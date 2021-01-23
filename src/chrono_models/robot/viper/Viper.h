@@ -44,6 +44,8 @@ namespace viper {
 /// @addtogroup robot_models_viper
 /// @{
 
+/// SideNum is an enum to help identify which side of wheel/suspension
+/// LF = Left Front, RF = Right Front, LB = Left Back, RB = Right Back
 enum class SideNum { LF, RF, LB, RB };
 
 /// Base class definition of the Viper Rover Part.

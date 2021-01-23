@@ -74,13 +74,12 @@ std::shared_ptr<ChMaterialSurface> DefaultContactMaterial(ChContactMethod contac
 
 // Add a revolute joint between body_1 and body_2
 // rel_joint_pos and rel_joint_rot are the position and the rotation of the revolute point
-
 void AddRevoluteJoint(std::shared_ptr<ChBodyAuxRef> body_1,
                       std::shared_ptr<ChBodyAuxRef> body_2,
                       std::shared_ptr<ChBodyAuxRef> chassis,
                       ChSystem* system,
-                      ChVector<> rel_joint_pos,
-                      ChQuaternion<> rel_joint_rot) {
+                      const ChVector<>& rel_joint_pos,
+                      const ChQuaternion<>& rel_joint_rot) {
     const ChFrame<>& X_GP = chassis->GetFrame_REF_to_abs();  // global -> parent
     ChFrame<> X_PC(rel_joint_pos, rel_joint_rot);            // parent -> child
     ChFrame<> X_GC = X_GP * X_PC;                            // global -> child
@@ -96,8 +95,8 @@ std::shared_ptr<ChLinkMotorRotationSpeed> AddMotor(std::shared_ptr<ChBodyAuxRef>
                                                    std::shared_ptr<ChBodyAuxRef> wheel,
                                                    std::shared_ptr<ChBodyAuxRef> chassis,
                                                    ChSystem* system,
-                                                   ChVector<> rel_joint_pos,
-                                                   ChQuaternion<> rel_joint_rot,
+                                                   const ChVector<>& rel_joint_pos,
+                                                   const ChQuaternion<>& rel_joint_rot,
                                                    std::shared_ptr<ChFunction_Const> speed_func) {
     const ChFrame<>& X_GP = chassis->GetFrame_REF_to_abs();  // global -> parent
     ChFrame<> X_PC(rel_joint_pos, rel_joint_rot);            // parent -> child
@@ -115,8 +114,8 @@ std::shared_ptr<ChLinkMotorRotationSpeed> AddMotor(std::shared_ptr<ChBodyAuxRef>
 std::shared_ptr<ChLinkTSDA> AddSuspensionSpring(std::shared_ptr<ChBodyAuxRef> chassis,
                                                 std::shared_ptr<ChBodyAuxRef> steer,
                                                 ChSystem* system,
-                                                ChVector<> pos_1,
-                                                ChVector<> pos_2) {
+                                                const ChVector<>& pos_1,
+                                                const ChVector<>& pos_2) {
     ChQuaternion<> ori = ChQuaternion<>(1, 0, 0, 0);
     const ChFrame<>& X_GP = chassis->GetFrame_REF_to_abs();  // global -> parent
 
