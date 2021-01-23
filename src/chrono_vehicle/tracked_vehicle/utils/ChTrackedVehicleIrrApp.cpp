@@ -20,7 +20,6 @@
 #include "chrono/core/ChMathematics.h"
 
 #include "chrono_vehicle/tracked_vehicle/utils/ChTrackedVehicleIrrApp.h"
-#include "chrono_vehicle/tracked_vehicle/driveline/ChSimpleTrackDriveline.h"
 
 using namespace irr;
 
@@ -44,29 +43,28 @@ ChTrackedVehicleIrrApp::ChTrackedVehicleIrrApp(ChVehicle* vehicle,
 void ChTrackedVehicleIrrApp::renderOtherStats(int left, int top) {
     char msg[100];
 
-    if (auto driveline = std::dynamic_pointer_cast<ChSimpleTrackDriveline>(m_tvehicle->GetDriveline())) {
-        double toRPM = 30 / CH_C_PI;
+    auto driveline = m_tvehicle->GetDriveline();
+    double toRPM = 30 / CH_C_PI;
 
-        double shaft_speed = driveline->GetDriveshaftSpeed() * toRPM;
-        sprintf(msg, "Driveshaft (RPM): %+.2f", shaft_speed);
-        renderLinGauge(std::string(msg), shaft_speed / 2000, true, left, top, 120, 15);
+    double shaft_speed = driveline->GetDriveshaftSpeed() * toRPM;
+    sprintf(msg, "Driveshaft (RPM): %+.2f", shaft_speed);
+    renderLinGauge(std::string(msg), shaft_speed / 2000, true, left, top, 120, 15);
 
-        double speedL = driveline->GetSprocketSpeed(LEFT) * toRPM;
-        sprintf(msg, "Sprocket L (RPM): %+.2f", speedL);
-        renderLinGauge(std::string(msg), speedL / 2000, true, left, top + 30, 120, 15);
+    double speedL = driveline->GetSprocketSpeed(LEFT) * toRPM;
+    sprintf(msg, "Sprocket L (RPM): %+.2f", speedL);
+    renderLinGauge(std::string(msg), speedL / 2000, true, left, top + 30, 120, 15);
 
-        double torqueL = driveline->GetSprocketTorque(LEFT);
-        sprintf(msg, "Torque sprocket L: %+.2f", torqueL);
-        renderLinGauge(std::string(msg), torqueL / 5000, true, left, top + 50, 120, 15);
+    double torqueL = driveline->GetSprocketTorque(LEFT);
+    sprintf(msg, "Torque sprocket L: %+.2f", torqueL);
+    renderLinGauge(std::string(msg), torqueL / 5000, true, left, top + 50, 120, 15);
 
-        double speedR = driveline->GetSprocketSpeed(RIGHT) * toRPM;
-        sprintf(msg, "Sprocket R (RPM): %+.2f", speedR);
-        renderLinGauge(std::string(msg), speedR / 2000, true, left, top + 80, 120, 15);
+    double speedR = driveline->GetSprocketSpeed(RIGHT) * toRPM;
+    sprintf(msg, "Sprocket R (RPM): %+.2f", speedR);
+    renderLinGauge(std::string(msg), speedR / 2000, true, left, top + 80, 120, 15);
 
-        double torqueR = driveline->GetSprocketTorque(RIGHT);
-        sprintf(msg, "Torque sprocket R: %+.2f", torqueR);
-        renderLinGauge(std::string(msg), torqueR / 5000, true, left, top + 100, 120, 15);
-    }
+    double torqueR = driveline->GetSprocketTorque(RIGHT);
+    sprintf(msg, "Torque sprocket R: %+.2f", torqueR);
+    renderLinGauge(std::string(msg), torqueR / 5000, true, left, top + 100, 120, 15);
 }
 
 // -----------------------------------------------------------------------------
