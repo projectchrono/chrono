@@ -35,6 +35,9 @@ namespace chrono {
 /// Namespace with classes for the Viper model.
 namespace viper {
 
+/// @addtogroup robot_models_viper
+/// @{
+
 /*
 /// Visualization type for a Viper part.
 enum class VisualizationType {
@@ -302,6 +305,9 @@ class CH_MODELS_API ViperRover {
     std::shared_ptr<ChMaterialSurface> m_suspension_material;  ///< link contact material (shared across limbs)
 };
 
+/// @} robot_models_viper
+
 }  // namespace viper
 }  // namespace chrono
+
 #endif

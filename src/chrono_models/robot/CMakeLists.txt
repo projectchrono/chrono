@@ -52,6 +52,7 @@ endif()
 #-----------------------------------------------------------------------------
 
 add_library(ChronoModels_robot SHARED 
+            ${CRM_COMMON_FILES}
             ${CRM_ROBOSIMIAN_FILES}
             ${CRM_VIPER_FILES}
             )
