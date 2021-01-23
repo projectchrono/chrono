@@ -96,6 +96,44 @@ class MySoilParams : public vehicle::SCMDeformableTerrain::SoilParametersCallbac
     }
 };
 
+// Use custom material for the Viper Wheel
+bool use_custom_mat = false;
+
+// Return customized wheel material parameters
+std::shared_ptr<ChMaterialSurface> CustomWheelMaterial(ChContactMethod contact_method) {
+    float mu = 0.4f;   // coefficient of friction
+    float cr = 0.1f;   // coefficient of restitution
+    float Y = 2e7f;    // Young's modulus
+    float nu = 0.3f;   // Poisson ratio
+    float kn = 2e5f;   // normal stiffness
+    float gn = 40.0f;  // normal viscous damping
+    float kt = 2e5f;   // tangential stiffness
+    float gt = 20.0f;  // tangential viscous damping
+
+    switch (contact_method) {
+        case ChContactMethod::NSC: {
+            auto matNSC = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+            matNSC->SetFriction(mu);
+            matNSC->SetRestitution(cr);
+            return matNSC;
+        }
+        case ChContactMethod::SMC: {
+            auto matSMC = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+            matSMC->SetFriction(mu);
+            matSMC->SetRestitution(cr);
+            matSMC->SetYoungModulus(Y);
+            matSMC->SetPoissonRatio(nu);
+            matSMC->SetKn(kn);
+            matSMC->SetGn(gn);
+            matSMC->SetKt(kt);
+            matSMC->SetGt(gt);
+            return matSMC;
+        }
+        default:
+            return std::shared_ptr<ChMaterialSurface>();
+    }
+}
+
 int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
@@ -128,27 +166,48 @@ int main(int argc, char* argv[]) {
     }
     utils::CSV_writer csv(" ");
 
-    /// Create the Viper Rover
+    // Viper rover rotation
     ChQuaternion<> body_rot = Q_from_Euler123(ChVector<double>(-CH_C_PI/2, 0, 0));
 
-    // - Create a Viper Rover with default parameters
-    // The default rotational speed of the Motor is speed w=3.145 rad/sec
+    // Viper rover initial position
     ChVector<double> body_pos(-5,-0.2,0);
-    ViperRover viper(&my_system, body_pos, body_rot);
-    viper.Initialize();
 
-    viper.SetMotorSpeed(CH_C_PI * 2,SideNo::LF);
-    viper.SetMotorSpeed(CH_C_PI * 2,SideNo::RF);
-    viper.SetMotorSpeed(CH_C_PI * 2,SideNo::LB);
-    viper.SetMotorSpeed(CH_C_PI * 2,SideNo::RB);
+    // Create a Viper Rover instance
+    if(use_custom_mat==true){
+        // if customize wheel material
+        ViperRover viper(&my_system, body_pos, body_rot, CustomWheelMaterial(ChContactMethod::SMC));
+        viper.Initialize();
+
+        // Default value is w = 3.1415 rad/s
+        // User can define using SetMotorSpeed
+        //viper.SetMotorSpeed(CH_C_PI,SideNum::LF);
+        //viper.SetMotorSpeed(CH_C_PI,SideNum::RF);
+        //viper.SetMotorSpeed(CH_C_PI,SideNum::LB);
+        //viper.SetMotorSpeed(CH_C_PI,SideNum::RB);
     
-    // Get wheel bodies
-    Wheel_1 = viper.GetWheelBody(SideNo::LF);
-    Wheel_2 = viper.GetWheelBody(SideNo::RF);
-    Wheel_3 = viper.GetWheelBody(SideNo::LB);
-    Wheel_4 = viper.GetWheelBody(SideNo::RB);
-    Body_1 = viper.GetChassisBody();
+        // Get wheels and bodies to set up SCM patches
+        Wheel_1 = viper.GetWheelBody(SideNum::LF);
+        Wheel_2 = viper.GetWheelBody(SideNum::RF);
+        Wheel_3 = viper.GetWheelBody(SideNum::LB);
+        Wheel_4 = viper.GetWheelBody(SideNum::RB);
+        Body_1 = viper.GetChassisBody();
+    }else{
+        // if use default material
+        ViperRover viper(&my_system, body_pos, body_rot);
+        viper.Initialize();
+
+        //viper.SetMotorSpeed(CH_C_PI * 2,SideNum::LF);
+        //viper.SetMotorSpeed(CH_C_PI * 2,SideNum::RF);
+        //viper.SetMotorSpeed(CH_C_PI * 2,SideNum::LB);
+        //viper.SetMotorSpeed(CH_C_PI * 2,SideNum::RB);
     
+        // Get wheels and bodies to set up SCM patches
+        Wheel_1 = viper.GetWheelBody(SideNum::LF);
+        Wheel_2 = viper.GetWheelBody(SideNum::RF);
+        Wheel_3 = viper.GetWheelBody(SideNum::LB);
+        Wheel_4 = viper.GetWheelBody(SideNum::RB);
+        Body_1 = viper.GetChassisBody();
+    }
 
     //
     // THE DEFORMABLE TERRAIN

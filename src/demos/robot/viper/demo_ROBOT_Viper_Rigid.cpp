@@ -46,6 +46,43 @@ using namespace irr::core;
 using namespace irr::scene;
 using namespace irr::video;
 
+// Use custom material for the Viper Wheel
+bool use_custom_mat = false;
+
+std::shared_ptr<ChMaterialSurface> CustomWheelMaterial(ChContactMethod contact_method) {
+    float mu = 0.4f;   // coefficient of friction
+    float cr = 0.2f;   // coefficient of restitution
+    float Y = 2e7f;    // Young's modulus
+    float nu = 0.3f;   // Poisson ratio
+    float kn = 2e5f;   // normal stiffness
+    float gn = 40.0f;  // normal viscous damping
+    float kt = 2e5f;   // tangential stiffness
+    float gt = 20.0f;  // tangential viscous damping
+
+    switch (contact_method) {
+        case ChContactMethod::NSC: {
+            auto matNSC = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+            matNSC->SetFriction(mu);
+            matNSC->SetRestitution(cr);
+            return matNSC;
+        }
+        case ChContactMethod::SMC: {
+            auto matSMC = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+            matSMC->SetFriction(mu);
+            matSMC->SetRestitution(cr);
+            matSMC->SetYoungModulus(Y);
+            matSMC->SetPoissonRatio(nu);
+            matSMC->SetKn(kn);
+            matSMC->SetGn(gn);
+            matSMC->SetKt(kt);
+            matSMC->SetGt(gt);
+            return matSMC;
+        }
+        default:
+            return std::shared_ptr<ChMaterialSurface>();
+    }
+}
+
 int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
     // Create a ChronoENGINE physical system
@@ -72,12 +109,10 @@ int main(int argc, char* argv[]) {
 	collision::ChCollisionModel::SetDefaultSuggestedEnvelope(0.0025);
 	collision::ChCollisionModel::SetDefaultSuggestedMargin(0.0025);
 
-    // - Create a floor
-
+    // Create a floor
     auto floor_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
     auto mfloor = chrono_types::make_shared<ChBodyEasyBox>(20, 1, 20, 1000, true, true, floor_mat);
     
-	//auto mfloor = chrono_types::make_shared<ChBody>();
     mfloor->SetPos(ChVector<>(0, -1, 0));
     mfloor->SetBodyFixed(true);
     mphysicalSystem.Add(mfloor);
@@ -86,15 +121,24 @@ int main(int argc, char* argv[]) {
     masset_texture->SetTextureFilename(GetChronoDataFile("concrete.jpg"));
     mfloor->AddAsset(masset_texture);
 
-    // - Viper Rover body rotation
-    // - Note: the Viper Rover uses a Z-up frame, which will need to be translated to Y-up
+    // Viper Rover body rotation
+    // Note: the Viper Rover uses a Z-up frame, which will need to be translated to Y-up
     ChQuaternion<> body_rot = Q_from_Euler123(ChVector<double>(-CH_C_PI/2, 0, 0));
 
-    // - Create a Viper Rover with default parameters
+    // Create a Viper Rover with default parameters
     // The default rotational speed of the Motor is speed w=3.145 rad/sec
     ChVector<double> body_pos(0,-0.2,0);
-    ViperRover viper(&mphysicalSystem, body_pos, body_rot);
-    viper.Initialize();
+
+    if(use_custom_mat == true){
+        // If use the customized wheel material
+        ViperRover viper(&mphysicalSystem, body_pos, body_rot, CustomWheelMaterial(ChContactMethod::NSC));
+        viper.Initialize();
+    }else{
+        // If use default wheel material
+        ViperRover viper(&mphysicalSystem, body_pos, body_rot);
+        viper.Initialize();
+    }
+
 
     // Use this function for adding a ChIrrNodeAsset to all items
     // Otherwise use application.AssetBind(myitem); on a per-item basis.
