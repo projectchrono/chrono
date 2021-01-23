@@ -84,7 +84,7 @@ ChVector<> trackPoint(0.0, 0.0, 1.75);
 double render_step_size = 1.0 / 100;  // FPS = 50
 
 // How often SynChrono state messages are interchanged
-float heartbeat = 1e-2;  // 100[Hz]
+double heartbeat = 1e-2;  // 100[Hz]
 
 // Forward declares for straight forward helper functions
 void LogCopyright(bool show);
@@ -245,8 +245,8 @@ int main(int argc, char* argv[]) {
             auto box_texture = chrono_types::make_shared<ChVisualMaterial>();
             box_texture->SetKdTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"));
             // FresnelMax and SpecularColor should make it less shiny
-            box_texture->SetFresnelMax(0.2);
-            box_texture->SetSpecularColor({0.2, 0.2, 0.2});
+            box_texture->SetFresnelMax(0.2f);
+            box_texture->SetSpecularColor({0.2f, 0.2f, 0.2f});
 
             visual_asset->material_list.push_back(box_texture);
         }

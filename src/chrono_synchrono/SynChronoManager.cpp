@@ -132,12 +132,12 @@ bool SynChronoManager::Initialize(ChSystem* system) {
     // coming from the other nodes. This is done by setting the name of each governing participant to
     // common names to be parsed. RegisterParticipant will parse these names and create Subscribers
     // listening to incoming state data.
-    // if (auto dds_communicator = std::dynamic_pointer_cast<SynDDSCommunicator>(m_communicator)) {
-    //     dds_communicator->Barrier(m_num_nodes - 1);
+    if (auto dds_communicator = std::dynamic_pointer_cast<SynDDSCommunicator>(m_communicator)) {
+        dds_communicator->Barrier(m_num_nodes - 1);
 
-    //     for (const std::string& participant_name : dds_communicator->GetMatchedParticipantNames())
-    //         RegisterParticipant(m_communicator, participant_name);
-    // }
+        for (const std::string& participant_name : dds_communicator->GetMatchedParticipantNames())
+            RegisterParticipant(m_communicator, participant_name);
+    }
 #endif
 
     // Gather all of the underlying messages and add those to the communicator

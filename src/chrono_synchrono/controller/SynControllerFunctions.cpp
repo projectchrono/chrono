@@ -48,7 +48,7 @@ bool IsInsideQuad(ChVector<> pos, ChVector<> sp1, ChVector<> sp2, ChVector<> cp3
     bool insideTri1;
     bool insideTri2;
 
-    float u, v, w;
+    double u, v, w;
     ChVector<> posN = ChVector<>({pos.x(), pos.y(), 0});
     ChVector<> sp1N = ChVector<>({sp1.x(), sp1.y(), 0});
     ChVector<> sp2N = ChVector<>({sp2.x(), sp2.y(), 0});
@@ -64,16 +64,16 @@ bool IsInsideQuad(ChVector<> pos, ChVector<> sp1, ChVector<> sp2, ChVector<> cp3
 }
 
 // https://gamedev.stackexchange.com/questions/23743/whats-the-most-efficient-way-to-find-barycentric-coordinates
-void Barycentric(ChVector<> p, ChVector<> a, ChVector<> b, ChVector<> c, float& u, float& v, float& w) {
+void Barycentric(ChVector<> p, ChVector<> a, ChVector<> b, ChVector<> c, double& u, double& v, double& w) {
     ChVector<> v0 = b - a;
     ChVector<> v1 = c - a;
     ChVector<> v2 = p - a;
-    float d00 = v0 ^ v0;
-    float d01 = v0 ^ v1;
-    float d11 = v1 ^ v1;
-    float d20 = v2 ^ v0;
-    float d21 = v2 ^ v1;
-    float denom = d00 * d11 - d01 * d01;
+    double d00 = v0 ^ v0;
+    double d01 = v0 ^ v1;
+    double d11 = v1 ^ v1;
+    double d20 = v2 ^ v0;
+    double d21 = v2 ^ v1;
+    double denom = d00 * d11 - d01 * d01;
     v = (d11 * d20 - d01 * d21) / denom;
     w = (d00 * d21 - d01 * d20) / denom;
     u = 1.0f - v - w;

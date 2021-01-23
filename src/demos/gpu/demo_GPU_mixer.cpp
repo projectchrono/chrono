@@ -11,10 +11,9 @@
 // =============================================================================
 // Authors: Nic Olsen
 // =============================================================================
-// Chrono::Gpu evaluation of several simple mixer designs. Material
-// consisting of spherical particles is let to aggitate in a rotating mixer.
-// Metrics on the performance of each mixer can be determined in post-
-// processing.
+// Chrono::Gpu evaluation of several simple mixer designs. Material consisting
+// of spherical particles is let to aggitate in a rotating mixer. Metrics on the
+// performance of each mixer can be determined in post-processing.
 // =============================================================================
 
 #include <cmath>
@@ -42,15 +41,11 @@ float out_fps = 200;
 bool render = true;
 float render_fps = 2000;
 
-void ShowUsage(std::string name) {
-    std::cout << "usage: " + name + " <json_file>" << std::endl;
-}
-
 int main(int argc, char* argv[]) {
     ChGpuSimulationParameters params;
 
     if (argc != 2 || ParseJSON(argv[1], params) == false) {
-        ShowUsage(argv[0]);
+        std::cout << "Usage:\n./demo_GPU_mixer <json_file>" << std::endl;
         return 1;
     }
 
