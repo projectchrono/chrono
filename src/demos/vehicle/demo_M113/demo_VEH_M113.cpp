@@ -46,7 +46,7 @@ using std::endl;
 // USER SETTINGS
 // =============================================================================
 // Initial vehicle position
-ChVector<> initLoc(0, 0, 1.1);
+ChVector<> initLoc(-40, 0, 0.8);
 
 // Initial vehicle orientation
 ChQuaternion<> initRot(1, 0, 0, 0);
