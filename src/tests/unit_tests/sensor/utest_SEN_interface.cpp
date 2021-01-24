@@ -47,7 +47,7 @@ TEST(SensorInterface, cameras) {
     auto manager = chrono_types::make_shared<ChSensorManager>(&mphysicalSystem);
 
     auto cam1 = chrono_types::make_shared<ChCameraSensor>(
-        boxA, 50, chrono::ChFrame<double>({-8, 0, 3}, Q_from_AngAxis(0, {1, 0, 0})), 1, 1, 1);
+        boxA, 50.0f, chrono::ChFrame<double>({-8, 0, 3}, Q_from_AngAxis(0, {1, 0, 0})), 1, 1, 1.0f);
     cam1->SetName("Camera Sensor");
     manager->AddSensor(cam1);
 

@@ -469,8 +469,8 @@ void ChSystemGpu_impl::WriteContactInfoFile(std::string ofile) const {
             unsigned int bodyAoffset = n * MAX_SPHERES_TOUCHED_BY_SPHERE;
             // go through all possible neighbors
             for (unsigned int neighborID = 0; neighborID < MAX_SPHERES_TOUCHED_BY_SPHERE; neighborID++) {
-                int theirSphereMappingID = bodyAoffset + neighborID;
-                int theirSphereID = contact_partners_map[theirSphereMappingID];
+                unsigned int theirSphereMappingID = bodyAoffset + neighborID;
+                unsigned int theirSphereID = contact_partners_map[theirSphereMappingID];
                 // only write when bi < bj
                 if (theirSphereID >= n && theirSphereID < nSpheres) {
                     outstrstream << n << ", " << theirSphereID;

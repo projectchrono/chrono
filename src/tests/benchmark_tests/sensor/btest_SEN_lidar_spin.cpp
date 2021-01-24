@@ -85,7 +85,7 @@ int main(int argc, char* argv[]) {
     // -----------------------
     // Create a sensor manager
     // -----------------------
-    float step_size = .01;
+    float step_size = 0.01f;
     auto manager = std::make_shared<ChSensorManager>(&mphysicalSystem);
     manager->scene->AddPointLight({-100, 100, 100}, {1, 1, 1}, 1000);
     manager->SetKeyframeSizeFromTimeStep(step_size, 1);

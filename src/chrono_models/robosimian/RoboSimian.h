@@ -592,7 +592,7 @@ class CH_MODELS_API RS_Driver {
     std::string GetCurrentPhase() const { return m_phase_names[m_phase]; }
 
     /// Class to be used as callback interface for user-defined actions at phase changes.
-    class PhaseChangeCallback {
+    class CH_MODELS_API PhaseChangeCallback {
       public:
         virtual ~PhaseChangeCallback() {}
         virtual void OnPhaseChange(RS_Driver::Phase old_phase, RS_Driver::Phase new_phase) = 0;

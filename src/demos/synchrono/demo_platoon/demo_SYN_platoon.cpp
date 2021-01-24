@@ -225,11 +225,12 @@ int main(int argc, char* argv[]) {
 
         auto cam = chrono_types::make_shared<ChCameraSensor>(
             vehicle.GetChassisBody(),                                                      // body camera is attached to
-            30,                                                                            // update rate in Hz
+            30.0f,                                                                         // update rate in Hz
             chrono::ChFrame<double>({-8, 0, 3}, Q_from_AngAxis(CH_C_PI / 20, {0, 1, 0})),  // offset pose
             1280,                                                                          // image width
             720,                                                                           // image height
-            CH_C_PI / 3);
+            (float)CH_C_PI / 3                                                             // FOV
+        );
 
         if (cli.GetAsType<bool>("sens_vis"))
             cam->PushFilter(chrono_types::make_shared<ChFilterVisualize>(1280, 720));

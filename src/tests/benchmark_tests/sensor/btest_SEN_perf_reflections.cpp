@@ -49,15 +49,15 @@ int main(int argc, char* argv[]) {
 
     auto reflective_color = std::make_shared<ChVisualMaterial>();
     reflective_color->SetDiffuseColor({.5f, .5f, .5f});
-    reflective_color->SetSpecularColor({.99, .99, .99});
+    reflective_color->SetSpecularColor({.99f, .99f, .99f});
     reflective_color->SetFresnelMin(1);
     reflective_color->SetRoughness(0);
 
     auto red_color = std::make_shared<ChVisualMaterial>();
     red_color->SetDiffuseColor({1.f, 0.f, 0.f});
-    red_color->SetSpecularColor({0, 0, 0});
-    red_color->SetFresnelMin(0);
-    red_color->SetRoughness(1);
+    red_color->SetSpecularColor({0.f, 0.f, 0.f});
+    red_color->SetFresnelMin(0.0f);
+    red_color->SetRoughness(1.0f);
 
     auto mirror_left = chrono_types::make_shared<ChBodyEasyBox>(50, .1, 5, 1000, true, false);
     mirror_left->SetPos({0, -1, 0});

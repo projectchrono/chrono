@@ -82,7 +82,7 @@ int main(int argc, char* argv[]) {
 
                     ChFrame<> f = ChFrame<>(p, q);
 
-                    float scale = 1 * (float)rand() / (float)RAND_MAX + .01;
+                    float scale = 1 * (float)rand() / (float)RAND_MAX + .01f;
                     for (int a = 0; a < 9; a++) {
                         f.Amatrix(a) *= scale;
                         // f.Amatrix(4) *= scale;
@@ -129,9 +129,9 @@ int main(int argc, char* argv[]) {
         // ---------------
         // Simulate system
         // ---------------
-        float orbit_radius = (x_instances / 2.) * x_spread + 5.f;
-        float orbit_rate = 0.5;
-        float ch_time = 0.0;
+        float orbit_radius = (x_instances / 2.0f) * x_spread + 5.0f;
+        float orbit_rate = 0.5f;
+        float ch_time = 0.0f;
 
         double render_time = 0;
 

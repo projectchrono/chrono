@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: 肖言 (Yan Xiao), Shuo He
+// Authors: Yan Xiao, Shuo He
 // =============================================================================
 //
 // Store the Map information in the simulation. Currently only used for traffic
