@@ -126,11 +126,12 @@ int main(int argc, char* argv[]) {
     // ------------------------------------------------
     auto cam = std::make_shared<ChCameraSensor>(
         sphere2,                                                            // body camera is attached to
-        20,                                                                 // update rate in Hz
+        20.0f,                                                              // update rate in Hz
         chrono::ChFrame<double>({-4, 0, 0}, Q_from_AngAxis(0, {0, 1, 0})),  // offset pose
         800,                                                                // image width
         800,                                                                // image height
-        CH_C_PI / 4);                                                       // FOV
+        (float)CH_C_PI / 4                                                  // FOV
+    );
     cam->SetName("Camera Sensor");
     cam->PushFilter(std::make_shared<ChFilterVisualize>(800, 800));
     // cam->PushFilter(std::make_shared<ChFilterRGBA8Access>());

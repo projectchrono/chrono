@@ -97,11 +97,12 @@ int main(int argc, char* argv[]) {
         // ------------------------------------------------
         auto cam = std::make_shared<ChCameraSensor>(
             cam_body,                                                           // body camera is attached to
-            50,                                                                 // update rate in Hz
+            50.0f,                                                              // update rate in Hz
             chrono::ChFrame<double>({-8, 0, 1}, Q_from_AngAxis(0, {0, 1, 0})),  // offset pose
             1920,                                                               // image width
             1080,                                                               // image height
-            CH_C_PI / 3);                                                       // FOV
+            (float)CH_C_PI / 3                                                  // FOV
+        );
         cam->SetName("Camera Sensor");
         if (vis)
             cam->PushFilter(std::make_shared<ChFilterVisualize>(1280, 720));
