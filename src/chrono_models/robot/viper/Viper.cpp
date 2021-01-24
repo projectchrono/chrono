@@ -1,7 +1,7 @@
 // =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2014 projectchrono.org
+// Copyright (c) 2021 projectchrono.org
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
@@ -11,6 +11,10 @@
 // =============================================================================
 // Authors: Jason Zhou
 // =============================================================================
+//
+// NASA VIPER Lunar Rover Model Class.
+// This class contains model for NASA's VIPER lunar rover for NASA's 2024 Moon
+// exploration mission.
 //
 // =============================================================================
 
@@ -807,36 +811,36 @@ void ViperRover::Initialize() {
     }
 }
 
-void ViperRover::SetMotorSpeed(double rad_speed, SideNum side) {
-    m_motors_func[(int)side]->Set_yconst(rad_speed);
+void ViperRover::SetMotorSpeed(double rad_speed, WheelID id) {
+    m_motors_func[id]->Set_yconst(rad_speed);
 }
 
-ChVector<> ViperRover::GetWheelSpeed(SideNum side) {
-    return m_wheels[(int)side]->GetBody()->GetPos_dt();
+ChVector<> ViperRover::GetWheelSpeed(WheelID id) {
+    return m_wheels[id]->GetBody()->GetPos_dt();
 }
 
-ChQuaternion<> ViperRover::GetWheelAngVel(SideNum side) {
-    return m_wheels[(int)side]->GetBody()->GetRot_dt();
+ChQuaternion<> ViperRover::GetWheelAngVel(WheelID id) {
+    return m_wheels[id]->GetBody()->GetRot_dt();
 }
 
-ChVector<> ViperRover::GetWheelContactForce(SideNum side) {
-    return m_wheels[(int)side]->GetBody()->GetContactForce();
+ChVector<> ViperRover::GetWheelContactForce(WheelID id) {
+    return m_wheels[id]->GetBody()->GetContactForce();
 }
 
-ChVector<> ViperRover::GetWheelContactTorque(SideNum side) {
-    return m_wheels[(int)side]->GetBody()->GetContactTorque();
+ChVector<> ViperRover::GetWheelContactTorque(WheelID id) {
+    return m_wheels[id]->GetBody()->GetContactTorque();
 }
 
-ChVector<> ViperRover::GetWheelAppliedForce(SideNum side) {
-    return m_wheels[(int)side]->GetBody()->GetAppliedForce();
+ChVector<> ViperRover::GetWheelAppliedForce(WheelID id) {
+    return m_wheels[id]->GetBody()->GetAppliedForce();
 }
 
-ChVector<> ViperRover::GetWheelAppliedTorque(SideNum side) {
-    return m_wheels[(int)side]->GetBody()->GetAppliedTorque();
+ChVector<> ViperRover::GetWheelAppliedTorque(WheelID id) {
+    return m_wheels[id]->GetBody()->GetAppliedTorque();
 }
 
-std::shared_ptr<ChBodyAuxRef> ViperRover::GetWheelBody(SideNum side) {
-    return m_wheels[(int)side]->GetBody();
+std::shared_ptr<ChBodyAuxRef> ViperRover::GetWheelBody(WheelID id) {
+    return m_wheels[id]->GetBody();
 }
 
 std::shared_ptr<ChBodyAuxRef> ViperRover::GetChassisBody() {

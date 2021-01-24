@@ -1,7 +1,7 @@
 // =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2014 projectchrono.org
+// Copyright (c) 2021 projectchrono.org
 // All right reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
@@ -106,13 +106,13 @@ int main(int argc, char* argv[]) {
 
     application.SetContactsDrawMode(ChIrrTools::eCh_ContactsDrawMode::CONTACT_DISTANCES);
 
-	collision::ChCollisionModel::SetDefaultSuggestedEnvelope(0.0025);
-	collision::ChCollisionModel::SetDefaultSuggestedMargin(0.0025);
+    collision::ChCollisionModel::SetDefaultSuggestedEnvelope(0.0025);
+    collision::ChCollisionModel::SetDefaultSuggestedMargin(0.0025);
 
     // Create a floor
     auto floor_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
     auto mfloor = chrono_types::make_shared<ChBodyEasyBox>(20, 1, 20, 1000, true, true, floor_mat);
-    
+
     mfloor->SetPos(ChVector<>(0, -1, 0));
     mfloor->SetBodyFixed(true);
     mphysicalSystem.Add(mfloor);
@@ -121,24 +121,21 @@ int main(int argc, char* argv[]) {
     masset_texture->SetTextureFilename(GetChronoDataFile("concrete.jpg"));
     mfloor->AddAsset(masset_texture);
 
-    // Viper Rover body rotation
-    // Note: the Viper Rover uses a Z-up frame, which will need to be translated to Y-up
-    ChQuaternion<> body_rot = Q_from_Euler123(ChVector<double>(-CH_C_PI/2, 0, 0));
+    // Create a Viper Rover with default parameters.
+    // The default rotational speed of the Motor is speed w=3.145 rad/sec.
+    // Note: the Viper Rover uses a Z-up frame, which will need to be translated to Y-up.
+    ChVector<double> body_pos(0, -0.2, 0);
+    ChQuaternion<> body_rot = Q_from_AngX(-CH_C_PI / 2);
 
-    // Create a Viper Rover with default parameters
-    // The default rotational speed of the Motor is speed w=3.145 rad/sec
-    ChVector<double> body_pos(0,-0.2,0);
-
-    if(use_custom_mat == true){
+    if (use_custom_mat == true) {
         // If use the customized wheel material
         ViperRover viper(&mphysicalSystem, body_pos, body_rot, CustomWheelMaterial(ChContactMethod::NSC));
         viper.Initialize();
-    }else{
+    } else {
         // If use default wheel material
         ViperRover viper(&mphysicalSystem, body_pos, body_rot);
         viper.Initialize();
     }
-
 
     // Use this function for adding a ChIrrNodeAsset to all items
     // Otherwise use application.AssetBind(myitem); on a per-item basis.

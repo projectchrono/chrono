@@ -1,7 +1,7 @@
 // =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2014 projectchrono.org
+// Copyright (c) 2021 projectchrono.org
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
@@ -12,7 +12,7 @@
 // Authors: Jason Zhou
 // =============================================================================
 //
-// NASA VIPER Lunar Rover Model Class
+// NASA VIPER Lunar Rover Model Class.
 // This class contains model for NASA's VIPER lunar rover for NASA's 2024 Moon
 // exploration mission. 
 //
@@ -44,9 +44,13 @@ namespace viper {
 /// @addtogroup robot_models_viper
 /// @{
 
-/// SideNum is an enum to help identify which side of wheel/suspension
-/// LF = Left Front, RF = Right Front, LB = Left Back, RB = Right Back
-enum class SideNum { LF, RF, LB, RB };
+/// Viper wheel/suspension identifiers.
+enum WheelID {
+    LF,  ///< left front
+    RF,  ///< right front
+    LB,  ///< left back
+    RB   ///< right back
+};
 
 /// Base class definition of the Viper Rover Part.
 /// Viper Rover Parts include Chassis, Steering, Upper Suspension Arm, Bottom Suspension Arm and Wheel
@@ -63,33 +67,33 @@ class CH_MODELS_API Viper_Part {
                bool collide);
     virtual ~Viper_Part() {}
 
-    /// Return the name of the part
+    /// Return the name of the part.
     const std::string& GetName() const { return m_name; }
 
-    /// Set the name of the part
+    /// Set the name of the part.
     void SetName(const std::string& name) { m_name = name; }
 
-    /// Return the ChBody of the corresponding Viper Part
+    /// Return the ChBody of the corresponding Viper part.
     std::shared_ptr<ChBodyAuxRef> GetBody() const { return m_body; }
 
-    /// Return the ChBody of the chassis wrt the Viper Part
+    /// Return the ChBody of the chassis wrt the Viper part.
     std::shared_ptr<ChBodyAuxRef> GetChassis() const { return m_chassis; }
 
-    /// Return the Position of the Viper Part
+    /// Return the Position of the Viper part.
     const ChVector<>& GetPos() const { return m_body->GetFrame_REF_to_abs().GetPos(); }
 
-    /// Return the Rotation of the Viper Part
+    /// Return the Rotation of the Viper part.
     const ChQuaternion<>& GetRot() const { return m_body->GetFrame_REF_to_abs().GetRot(); }
 
   protected:
 
-    /// Initialize the visulization mesh of the Viper Part
+    /// Initialize the visulization mesh of the Viper part.
     void AddVisualizationAssets();
 
-    /// Initialize the collision mesh of the Viper Part
+    /// Initialize the collision mesh of the Viper part.
     void AddCollisionShapes();
 
-    /// Set Collision
+    /// Enable/disable collision.
     void SetCollide(bool state);
 
     std::string m_name;                        ///< subsystem name
@@ -110,8 +114,7 @@ class CH_MODELS_API Viper_Part {
     bool m_fixed; ///< Viper part's fixed indication
 };
 
-/// Rover Chassis
-/// The main rover body
+/// Viper rover Chassis.
 class CH_MODELS_API Viper_Chassis : public Viper_Part {
   public:
     Viper_Chassis(const std::string& name,
@@ -136,8 +139,7 @@ class CH_MODELS_API Viper_Chassis : public Viper_Part {
     friend class Viper_Rover;
 };
 
-/// Rover Wheel
-/// The wheel of the rover, use SideNum to identify LF,RF,LB,RB
+/// Viper rover Wheel.
 class CH_MODELS_API Viper_Wheel : public Viper_Part {
   public:
     Viper_Wheel(const std::string& name,
@@ -163,7 +165,7 @@ class CH_MODELS_API Viper_Wheel : public Viper_Part {
     friend class Viper_Rover;
 };
 
-/// The upper arm of the Viper Rover suspension
+/// The upper arm of the Viper rover suspension.
 class CH_MODELS_API Viper_Up_Arm : public Viper_Part {
   public:
     Viper_Up_Arm(const std::string& name,
@@ -190,7 +192,7 @@ class CH_MODELS_API Viper_Up_Arm : public Viper_Part {
     friend class Viper_Rover;
 };
 
-/// The bottom arm of the Viper Rover suspension
+/// The bottom arm of the Viper rover suspension.
 class CH_MODELS_API Viper_Bottom_Arm : public Viper_Part {
   public:
     Viper_Bottom_Arm(const std::string& name,
@@ -217,9 +219,9 @@ class CH_MODELS_API Viper_Bottom_Arm : public Viper_Part {
     friend class Viper_Rover;
 };
 
-/// Steering Rod of the Viper Rover
-/// The Steering Rod is directly connected to the Wheel by a rotational controlled motor
-/// There are two connecting rods on the steering rod, linking to upper and bottom arms of the suspension
+/// Steering rod of the Viper rover.
+/// The steering rod is directly connected to the wheel by a rotational controlled motor.
+/// There are two connecting rods on the steering rod, linking to upper and bottom arms of the suspension.
 class CH_MODELS_API Viper_Steer : public Viper_Part {
   public:
     Viper_Steer(const std::string& name,
@@ -233,7 +235,7 @@ class CH_MODELS_API Viper_Steer : public Viper_Part {
                 const int& side);  ///< indicate which side of the rover 0->L, 1->R
     ~Viper_Steer() {}
 
-    /// Initialize the Steering Rod at the specified (absolute) position.
+    /// Initialize the steering rod at the specified (absolute) position.
     void Initialize();
 
     /// Enable/disable collision for the steering rod.
@@ -246,9 +248,9 @@ class CH_MODELS_API Viper_Steer : public Viper_Part {
     friend class Viper_Rover;
 };
 
-/// Viper Rover class
-/// This class encapsulates the location and rotation information of all Viper Parts wrt the chassis
-/// This class should be the entry point to create a complete rover 
+/// Viper rover class.
+/// This class encapsulates the location and rotation information of all Viper parts wrt the chassis.
+/// This class should be the entry point to create a complete rover.
 class CH_MODELS_API ViperRover {
   public:
     ViperRover(ChSystem* system, 
@@ -260,38 +262,38 @@ class CH_MODELS_API ViperRover {
               const ChQuaternion<>& rover_rot);
     ~ViperRover();
 
-    /// Initialize the ViperRover with parameters passed into the constructor
+    /// Initialize the Viper rover using current parameters.
     void Initialize();
 
     /// Get the ChSystem
     ChSystem* GetSystem() { return m_system; }
 
     /// Set Motor Speed
-    void SetMotorSpeed(double rad_speed, SideNum motor_num);
+    void SetMotorSpeed(double rad_speed, WheelID id);
 
     /// Get wheel speed
-    ChVector<> GetWheelSpeed(SideNum motor_num);
+    ChVector<> GetWheelSpeed(WheelID id);
 
     /// Get wheel angular velocity
-    ChQuaternion<> GetWheelAngVel(SideNum motor_num);
+    ChQuaternion<> GetWheelAngVel(WheelID id);
 
     /// Get wheel contact force
-    ChVector<> GetWheelContactForce(SideNum motor_num);
+    ChVector<> GetWheelContactForce(WheelID id);
 
     /// Get wheel contact torque
-    ChVector<> GetWheelContactTorque(SideNum motor_num);
+    ChVector<> GetWheelContactTorque(WheelID id);
 
     /// Get wheel total applied force
-    ChVector<> GetWheelAppliedForce(SideNum motor_num);
+    ChVector<> GetWheelAppliedForce(WheelID id);
 
     /// Get wheel total applied torque
-    ChVector<> GetWheelAppliedTorque(SideNum motor_num);
+    ChVector<> GetWheelAppliedTorque(WheelID id);
 
     /// Get the chassis body
     std::shared_ptr<ChBodyAuxRef> GetChassisBody();
 
     /// Get the wheel body
-    std::shared_ptr<ChBodyAuxRef> GetWheelBody(SideNum motor_num);
+    std::shared_ptr<ChBodyAuxRef> GetWheelBody(WheelID id);
 
     /// Get total rover mass
     double GetRoverMass();
