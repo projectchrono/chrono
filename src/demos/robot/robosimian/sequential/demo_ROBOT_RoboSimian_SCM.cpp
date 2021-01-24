@@ -23,8 +23,8 @@
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 
-#include "chrono_models/robosimian/RoboSimian.h"
-#include "chrono_models/robosimian/RoboSimianIrrApp.h"
+#include "chrono_models/robot/robosimian/RoboSimian.h"
+#include "chrono_models/robot/robosimian/RoboSimianIrrApp.h"
 
 #include "chrono_vehicle/terrain/SCMDeformableTerrain.h"
 

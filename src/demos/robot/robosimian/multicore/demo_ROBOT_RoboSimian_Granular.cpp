@@ -27,7 +27,7 @@
 
 #include "chrono_multicore/physics/ChSystemMulticore.h"
 
-#include "chrono_models/robosimian/RoboSimian.h"
+#include "chrono_models/robot/robosimian/RoboSimian.h"
 
 #include "chrono_vehicle/terrain/GranularTerrain.h"
 

@@ -15,7 +15,7 @@
 // RoboSimian model classes.
 //
 // For a description of this robot, see:
-//  Satzinger B.W., Lau C., Byl M., Byl K. (2016) 
+//  Satzinger B.W., Lau C., Byl M., Byl K. (2016)
 //  Experimental Results for Dexterous Quadruped Locomotion Planning with RoboSimian.
 //  In: Hsieh M., Khatib O., Kumar V. (eds) Experimental Robotics.
 //  Springer Tracts in Advanced Robotics, vol 109. Springer, Cham.
@@ -43,7 +43,7 @@ namespace chrono {
 /// Namespace with classes for the RoboSimian model.
 namespace robosimian {
 
-/// @addtogroup robosimian_model
+/// @addtogroup robot_models_robosimian
 /// @{
 
 // -----------------------------------------------------------------------------
@@ -195,7 +195,7 @@ class CH_MODELS_API RS_Chassis : public RS_Part {
     /// Translate the chassis by the specified value.
     void Translate(const chrono::ChVector<>& shift);
 
-    bool m_collide;
+    bool m_collide;  ///< true if collision enabled
 
     friend class RoboSimian;
 };
@@ -223,7 +223,7 @@ class CH_MODELS_API RS_Sled : public RS_Part {
     /// Translate the sled by the specified value.
     void Translate(const chrono::ChVector<>& shift);
 
-    bool m_collide;
+    bool m_collide;  ///< true if collision enabled
 
     friend class RoboSimian;
 };
@@ -254,14 +254,15 @@ class CH_MODELS_API RS_WheelDD : public RS_Part {
 /// A robot link encapsulates information for a body in a robot limb.
 class CH_MODELS_API Link {
   public:
-    Link(const std::string& mesh_name,
-         const chrono::ChVector<>& offset,
-         const chrono::ChColor& color,
-         double mass,
-         const chrono::ChVector<>& com,
-         const chrono::ChVector<>& inertia_xx,
-         const chrono::ChVector<>& inertia_xy,
-         const std::vector<CylinderShape>& shapes)
+    Link(const std::string& mesh_name,             ///< name of associated mesh
+         const chrono::ChVector<>& offset,         ///< mesh offset
+         const chrono::ChColor& color,             ///< mesh color
+         double mass,                              ///< link mass
+         const chrono::ChVector<>& com,            ///< location of COM
+         const chrono::ChVector<>& inertia_xx,     ///< moments of inertia
+         const chrono::ChVector<>& inertia_xy,     ///< products of inertia
+         const std::vector<CylinderShape>& shapes  ///< list of collision shapes
+         )
         : m_mesh_name(mesh_name),
           m_offset(offset),
           m_color(color),
@@ -307,12 +308,13 @@ struct CH_MODELS_API JointData {
 /// A robot limb represents a multibody chain composed of robot links and joints.
 class CH_MODELS_API RS_Limb {
   public:
-    RS_Limb(const std::string& name,
-            LimbID id,
-            const LinkData data[],
-            std::shared_ptr<ChMaterialSurface> wheel_mat,
-            std::shared_ptr<ChMaterialSurface> link_mat,
-            chrono::ChSystem* system);
+    RS_Limb(const std::string& name,                       ///< limb name
+            LimbID id,                                     ///< limb ID
+            const LinkData data[],                         ///< data for limb links
+            std::shared_ptr<ChMaterialSurface> wheel_mat,  ///< contact material for the limb wheel
+            std::shared_ptr<ChMaterialSurface> link_mat,   ///< contact material for the limb links
+            chrono::ChSystem* system                       ///< containing system
+    );
     ~RS_Limb() {}
 
     /// Initialize the limb at the specified position (relative to the chassis).
@@ -410,13 +412,24 @@ class RS_Driver;
 /// The robot model consists of a chassis (torso) with an attached sled and four limbs (legs).
 class CH_MODELS_API RoboSimian {
   public:
-    RoboSimian(chrono::ChContactMethod contact_method, bool has_sled = false, bool fixed = false);
-    RoboSimian(chrono::ChSystem* system, bool has_sled = false, bool fixed = false);
+    /// Construct a RoboSimian with an implicit Chrono system.
+    RoboSimian(chrono::ChContactMethod contact_method,  ///< contact formulation (SMC or NSC)
+               bool has_sled = false,                   ///< true if robot has sled body attached to chassis
+               bool fixed = false                       ///< true if robot chassis fixed to ground
+    );
+
+    /// Construct a RoboSimian within the specified Chrono system.
+    RoboSimian(chrono::ChSystem* system,  ///< containing system
+               bool has_sled = false,     ///< true if robot has sled body attached to chassis
+               bool fixed = false         ///< true if robot chassis fixed to ground
+    );
+
     ~RoboSimian();
 
+    /// Get the containing system.
     chrono::ChSystem* GetSystem() { return m_system; }
 
-    /// Set actuation type for wheel motors (default: SPEED)
+    /// Set actuation type for wheel motors (default: SPEED).
     void SetMotorActuationMode(ActuationMode mode) { m_wheel_mode = mode; }
 
     /// Set collision flags for the various subsystems.
@@ -431,11 +444,15 @@ class CH_MODELS_API RoboSimian {
     /// Attach a driver system.
     void SetDriver(std::shared_ptr<RS_Driver> driver);
 
-    /// Set visualization type for individual robot subsystems.
+    /// Set visualization type for chassis subsystem.
     void SetVisualizationTypeChassis(VisualizationType vis);
+    /// Set visualization type for sled subsystem.
     void SetVisualizationTypeSled(VisualizationType vis);
+    /// Set visualization type for all limb subsystems.
     void SetVisualizationTypeLimbs(VisualizationType vis);
+    /// Set visualization type for thr specified limb subsystem.
     void SetVisualizationTypeLimb(LimbID id, VisualizationType vis);
+    /// Set visualization type for all wheel subsystem.
     void SetVisualizationTypeWheels(VisualizationType vis);
 
     /// Set output directory.
@@ -520,6 +537,7 @@ class CH_MODELS_API RoboSimian {
     /// Output current data.
     void Output();
 
+    /// Report current contacts for all robot parts.
     void ReportContacts();
 
   private:
@@ -543,15 +561,15 @@ class CH_MODELS_API RoboSimian {
     std::shared_ptr<ChMaterialSurface> m_wheelDD_material;  ///< wheelDD contact material (shared across limbs)
 
     float m_wheel_friction;  ///< coefficient of friction wheel-terrain (used in material_override)
-    float m_sled_friction;   ///< coefficient of frictoin sled-terrain (used in material_override)
+    float m_sled_friction;   ///< coefficient of friction sled-terrain (used in material_override)
 
-    std::shared_ptr<RS_Driver> m_driver;
-    ContactManager* m_contact_reporter;
-    ContactMaterial* m_material_override;
+    std::shared_ptr<RS_Driver> m_driver;   ///< robot driver system
+    ContactManager* m_contact_reporter;    ///< contact reporting callback class
+    ContactMaterial* m_material_override;  ///< contact material override callback class
 
-    std::string m_outdir;
-    std::string m_root;
-    std::ofstream m_outf[4];
+    std::string m_outdir;     ///< path of output directory
+    std::string m_root;       ///< prefix of output filenames
+    std::ofstream m_outf[4];  ///< output file streams (one per limb)
 
     friend class ContactMaterial;
 };
@@ -565,12 +583,15 @@ typedef std::array<std::array<double, 8>, 4> Actuation;
 /// Driver for the RoboSimian robot.
 class CH_MODELS_API RS_Driver {
   public:
+    /// Driving phases.
     enum Phase { POSE, HOLD, START, CYCLE, STOP };
 
-    RS_Driver(const std::string& filename_start,
-              const std::string& filename_cycle,
-              const std::string& filename_stop,
-              bool repeat = false);
+    RS_Driver(const std::string& filename_start,  ///< name of file with joint actuations for start phase
+              const std::string& filename_cycle,  ///< name of file with joint actuations for cycle phase
+              const std::string& filename_stop,   ///< name of file with joint actuations for stop phase
+              bool repeat = false                 ///< true if cycle phase is looped
+    );
+
     ~RS_Driver();
 
     /// Specify time intervals to assume and then hold the initial pose.
@@ -595,6 +616,7 @@ class CH_MODELS_API RS_Driver {
     class CH_MODELS_API PhaseChangeCallback {
       public:
         virtual ~PhaseChangeCallback() {}
+        /// Function called on each phase change.
         virtual void OnPhaseChange(RS_Driver::Phase old_phase, RS_Driver::Phase new_phase) = 0;
     };
 
@@ -620,10 +642,10 @@ class CH_MODELS_API RS_Driver {
     Actuation m_actuations_2;         ///< cached actuations (after)
     Actuation m_actuations;           ///< current actuations
     PhaseChangeCallback* m_callback;  ///< user callback for phase change
-    bool driven = false;           ///< True if the driver is expecting external inputs instead of reading from a file
-    bool torque_actuated = false;  ///< Switch to true to use torque actuator instead of setpoints
+    bool driven = false;           ///< true if the driver is expecting external inputs instead of reading from a file
+    bool torque_actuated = false;  ///< true if using torque actuation instead of setpoints
 
-    static const std::string m_phase_names[5];
+    static const std::string m_phase_names[5];  ///< names of various driver phases
 
     friend class RoboSimian;
 };
@@ -634,18 +656,21 @@ class CH_MODELS_API RS_DriverCallback : public RS_Driver::PhaseChangeCallback {
     RS_DriverCallback(RoboSimian* robot) : m_robot(robot), m_start_x(0), m_start_time(0) {}
     virtual void OnPhaseChange(RS_Driver::Phase old_phase, RS_Driver::Phase new_phase) override;
 
+    /// Get distance traveled from last phase change.
     double GetDistance() const { return m_robot->GetChassisPos().x() - m_start_x; }
+    /// Get time elapsed since last phase change.
     double GetDuration() const { return m_robot->GetSystem()->GetChTime() - m_start_time; }
+    /// Get average robot speed since last phase change.
     double GetAvgSpeed() const { return GetDistance() / GetDuration(); }
 
-    double m_start_x;
-    double m_start_time;
+    double m_start_x;     ///< location at start of current phase
+    double m_start_time;  ///< time at start of current phase
 
   private:
     RoboSimian* m_robot;
 };
 
-/// @} robosimian_model
+/// @} robot_models_robosimian
 
 }  // namespace robosimian
 }  // namespace chrono
