@@ -57,27 +57,27 @@ int main(int argc, char* argv[]) {
 
     auto color1 = std::make_shared<ChVisualMaterial>();
     color1->SetDiffuseColor(dif);
-    color1->SetSpecularColor({.1, .1, .1});
-    color1->SetRoughness(.5);
-    color1->SetFresnelMin(0.2);
-    color1->SetFresnelMax(1.);
-    color1->SetTransparency(1.0);
+    color1->SetSpecularColor({0.1f, 0.1f, 0.1f});
+    color1->SetRoughness(0.5f);
+    color1->SetFresnelMin(0.2f);
+    color1->SetFresnelMax(1.0f);
+    color1->SetTransparency(1.0f);
 
     auto color2 = std::make_shared<ChVisualMaterial>();
     color2->SetDiffuseColor(dif);
-    color2->SetSpecularColor({.5, .5, .5});
-    color2->SetRoughness(.5);
-    color2->SetFresnelMin(0.2);
-    color2->SetFresnelMax(1.);
-    color2->SetTransparency(.2);
+    color2->SetSpecularColor({0.5f, -.5f, 0.5f});
+    color2->SetRoughness(0.5f);
+    color2->SetFresnelMin(0.2f);
+    color2->SetFresnelMax(1.0f);
+    color2->SetTransparency(0.2f);
 
     auto color3 = std::make_shared<ChVisualMaterial>();
     color3->SetDiffuseColor(dif);
-    color3->SetSpecularColor({1, 1, 1});
-    color3->SetRoughness(.1);
-    color3->SetFresnelMin(0.5);
-    color3->SetFresnelMax(1.);
-    color3->SetTransparency(1.0);
+    color3->SetSpecularColor({1.0f, 1.0f, 1.0f});
+    color3->SetRoughness(0.1f);
+    color3->SetFresnelMin(0.5f);
+    color3->SetFresnelMax(1.0f);
+    color3->SetTransparency(1.0f);
 
     auto sphere1 = std::make_shared<ChBodyEasySphere>(.5, 1000, true, true, phys_mat);
     sphere1->SetPos({0, -1.2, 0});
@@ -126,11 +126,12 @@ int main(int argc, char* argv[]) {
     // ------------------------------------------------
     auto cam = std::make_shared<ChCameraSensor>(
         sphere2,                                                            // body camera is attached to
-        20,                                                                 // update rate in Hz
+        20.0f,                                                              // update rate in Hz
         chrono::ChFrame<double>({-4, 0, 0}, Q_from_AngAxis(0, {0, 1, 0})),  // offset pose
         800,                                                                // image width
         800,                                                                // image height
-        CH_C_PI / 4);                                                       // FOV
+        (float)CH_C_PI / 4                                                  // FOV
+    );
     cam->SetName("Camera Sensor");
     cam->PushFilter(std::make_shared<ChFilterVisualize>(800, 800));
     // cam->PushFilter(std::make_shared<ChFilterRGBA8Access>());

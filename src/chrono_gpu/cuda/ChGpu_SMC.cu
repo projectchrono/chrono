@@ -44,8 +44,6 @@ void ChSystemGpu_impl::resetBroadphaseInformation() {
     // Set all the offsets to zero
     gpuErrchk(cudaMemset(SD_NumSpheresTouching.data(), 0, SD_NumSpheresTouching.size() * sizeof(unsigned int)));
     gpuErrchk(cudaMemset(SD_SphereCompositeOffsets.data(), 0, SD_SphereCompositeOffsets.size() * sizeof(unsigned int)));
-    gpuErrchk(cudaMemset(SD_SphereCompositeOffsets_ScratchPad.data(), 0,
-                         SD_SphereCompositeOffsets_ScratchPad.size() * sizeof(unsigned int)));
     // For each SD, all the spheres touching that SD should have their ID be NULL_CHGPU_ID
     gpuErrchk(cudaMemset(spheres_in_SD_composite.data(), NULL_CHGPU_ID,
                          spheres_in_SD_composite.size() * sizeof(unsigned int)));
@@ -350,8 +348,7 @@ __host__ void ChSystemGpu_impl::setupSphereDataStructures() {
 __host__ void ChSystemGpu_impl::runSphereBroadphase() {
     METRICS_PRINTF("Resetting broadphase info!\n");
 
-    // reset the number of spheres per SD, the offsets in the big composite array, the big fat composite array, and the
-    // scrath pad
+    // reset the number of spheres per SD, the offsets in the big composite array, and the big fat composite array
     resetBroadphaseInformation();
 
     // Frist stage of the computation in this function: Figure out the how many spheres touch each SD. 
@@ -366,19 +363,16 @@ __host__ void ChSystemGpu_impl::runSphereBroadphase() {
     unsigned int* in_ptr = SD_NumSpheresTouching.data();
     gpuErrchk(cudaMemcpy(out_ptr, in_ptr, nSDs * sizeof(unsigned int), cudaMemcpyDeviceToDevice));
 
-    // cold run; CUB determines the amount of storage it needs (since d_temp_storage is NULL)
-    void* d_temp_storage = NULL;
+    // cold run; CUB determines the amount of storage it needs (since first argument is NULL pointer)
     size_t temp_storage_bytes = 0;
-    cub::DeviceScan::ExclusiveSum(d_temp_storage, temp_storage_bytes, in_ptr, out_ptr, nSDs);
+    cub::DeviceScan::ExclusiveSum(NULL, temp_storage_bytes, in_ptr, out_ptr, nSDs);
     gpuErrchk(cudaDeviceSynchronize());
     gpuErrchk(cudaPeekAtLastError());
    
-    // provide CUB with needed temporary storage
-    if (d_temp_storageCUB.size() < temp_storage_bytes) 
-        d_temp_storageCUB.resize(temp_storage_bytes);
-    sphere_data->d_temp_storageCUB = d_temp_storageCUB.data();
+    // give CUB needed temporary storage on the device
+    void* d_scratch_space = (void*)stateOfSolver_resources.pDeviceMemoryScratchSpace(temp_storage_bytes);
     // Run the actual exclusive prefix sum
-    cub::DeviceScan::ExclusiveSum(sphere_data->d_temp_storageCUB, temp_storage_bytes, in_ptr, out_ptr, nSDs);
+    cub::DeviceScan::ExclusiveSum(d_scratch_space, temp_storage_bytes, in_ptr, out_ptr, nSDs);
     gpuErrchk(cudaDeviceSynchronize());
     gpuErrchk(cudaPeekAtLastError());
 
@@ -461,13 +455,8 @@ __host__ double ChSystemGpu_impl::AdvanceSimulation(float duration) {
     // Run the simulation, there are aggressive synchronizations because we want to have no race conditions
     for (unsigned int n = 0; n < nsteps; n++) {
         updateBCPositions();
-
         runSphereBroadphase();
         packSphereDataPointers();
-
-        gpuErrchk(cudaPeekAtLastError());
-        gpuErrchk(cudaDeviceSynchronize());
-
         resetSphereAccelerations();
         resetBCForces();
 

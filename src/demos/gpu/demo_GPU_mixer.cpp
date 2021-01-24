@@ -100,14 +100,13 @@ int main(int argc, char* argv[]) {
     const float cyl_rad = Bx / 2.f;
     gpu_sys.CreateBCCylinderZ(cyl_center, cyl_rad, false, false);
 
-    utils::HCPSampler<float> sampler(2.1 * params.sphere_radius);
+    utils::HCPSampler<float> sampler(2.1f * params.sphere_radius);
     std::vector<ChVector<float>> body_points;
 
     const float fill_radius = Bx / 2.f - 2.f * params.sphere_radius;
     const float fill_top = fill_bottom + fill_height;
 
-    unsigned int n_spheres = body_points.size();
-    std::cout << "Created " << n_spheres << " spheres" << std::endl;
+    std::cout << "Created " << body_points.size() << " spheres" << std::endl;
     std::cout << "Fill radius " << fill_radius << std::endl;
     std::cout << "Fill bottom " << fill_bottom << std::endl;
     std::cout << "Fill top " << fill_top << std::endl;
@@ -117,7 +116,7 @@ int main(int argc, char* argv[]) {
     while (center.z() < fill_top - 2 * params.sphere_radius) {
         auto points = sampler.SampleCylinderZ(center, fill_radius, 0);
         body_points.insert(body_points.end(), points.begin(), points.end());
-        center.z() += 2.1 * params.sphere_radius;
+        center.z() += 2.1f * params.sphere_radius;
     }
 
     gpu_sys.SetParticlePositions(body_points);
@@ -144,7 +143,7 @@ int main(int argc, char* argv[]) {
     std::cout << gpu_sys.GetNumMeshes() << " meshes" << std::endl;
 
     float rev_per_sec = 1.f;
-    float ang_vel_Z = rev_per_sec * 2 * CH_C_PI;
+    float ang_vel_Z = rev_per_sec * 2 * (float)CH_C_PI;
     ChVector<> mesh_lin_vel(0);
     ChVector<> mesh_ang_vel(0, 0, ang_vel_Z);
 

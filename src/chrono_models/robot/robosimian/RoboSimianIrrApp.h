@@ -22,12 +22,12 @@
 #include "chrono_irrlicht/ChIrrApp.h"
 #include "chrono_irrlicht/ChIrrTools.h"
 
-#include "chrono_models/robosimian/RoboSimian.h"
+#include "chrono_models/robot/robosimian/RoboSimian.h"
 
 namespace chrono {
 namespace robosimian {
 
-/// @addtogroup robosimian_model
+/// @addtogroup robot_models_robosimian
 /// @{
 
 /// Customized Chrono Irrlicht application for RoboSimian visualization.
@@ -36,10 +36,12 @@ namespace robosimian {
 class CH_MODELS_API RoboSimianIrrApp : public irrlicht::ChIrrApp {
   public:
     /// Construct a RoboSimian Irrlicht application.
-    RoboSimianIrrApp(RoboSimian* robot,
-                     RS_Driver* driver,
-                     const wchar_t* title = L"RoboSimian",
-                     irr::core::dimension2d<irr::u32> dims = irr::core::dimension2d<irr::u32>(1000, 800));
+    RoboSimianIrrApp(RoboSimian* robot,                     ///< associated RoboSimian robot
+                     RS_Driver* driver,                     ///< associated robot driver
+                     const wchar_t* title = L"RoboSimian",  ///< visualization window title
+                     irr::core::dimension2d<irr::u32> dims = irr::core::dimension2d<irr::u32>(1000,
+                                                                                              800)  ///< window size
+    );
 
     ~RoboSimianIrrApp();
 
@@ -54,10 +56,10 @@ class CH_MODELS_API RoboSimianIrrApp : public irrlicht::ChIrrApp {
                        int height = 15,
                        irr::video::SColor color = irr::video::SColor(255, 20, 20, 20));
 
-    RoboSimian* m_robot;
-    RS_Driver* m_driver;
+    RoboSimian* m_robot;  ///< associated RoboSimian robot
+    RS_Driver* m_driver;  ///< associated robot driver
 
-    irr::IEventReceiver* m_erecv;
+    irr::IEventReceiver* m_erecv;  ///< Irrlichr event receiver
 
     int m_HUD_x;  ///< x-coordinate of upper-left corner of HUD elements
     int m_HUD_y;  ///< y-coordinate of upper-left corner of HUD elements
@@ -65,7 +67,7 @@ class CH_MODELS_API RoboSimianIrrApp : public irrlicht::ChIrrApp {
     friend class RS_IEventReceiver;
 };
 
-/// @} robosimian_model
+/// @} robot_models_robosimian
 
 }  // namespace robosimian
 }  // namespace chrono

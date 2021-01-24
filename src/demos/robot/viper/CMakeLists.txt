@@ -1,31 +1,28 @@
-# Demo programs for multicore RoboSimian simulations
+# Demo programs for sequential RoboSimian simulations
 # ------------------------------------------------------------------------------
 
-if(NOT ENABLE_MODULE_MULTICORE OR NOT ENABLE_MODULE_OPENGL)
-  message("  Warning: the multicore Robosimian projects require Chrono::Multicore and Chrono::OpenGL!")
+if(NOT ENABLE_MODULE_VEHICLE)
+  message(STATUS "  Warning: the ViperRover projects require Chrono::Vehicle!")
   return()
 endif()
+
+if(NOT ENABLE_MODULE_IRRLICHT)
+  message(STATUS "  Warning: the ViperRover projects require Chrono::Irrlicht!")
+  return()
+endif()
+
 
 # ------------------------------------------------------------------------------
 # Additional include paths and libraries
 # ------------------------------------------------------------------------------
 
-include_directories(${CH_MULTICORE_INCLUDES})
-include_directories(${CH_OPENGL_INCLUDES})
-
-if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-    set(CH_LINKERFLAG_EXE  "${CH_LINKERFLAG_EXE} -framework IOKit -framework Cocoa -framework OpenGL")
-endif()
+include_directories(${CH_IRRLICHTINC})
 
 # ------------------------------------------------------------------------------
 
 set(DEMOS
-    demo_RS_robosimian_Granular
-)
-
-set(UTILITIES
-    granular.h
-    granular.cpp
+    demo_ROBOT_Viper_Rigid
+    demo_ROBOT_Viper_SCM
 )
 
 # ------------------------------------------------------------------------------
@@ -34,21 +31,21 @@ set(UTILITIES
 
 foreach(PROGRAM ${DEMOS})
     message(STATUS "...add ${PROGRAM}")
-    add_executable(${PROGRAM} "${PROGRAM}.cpp" ${UTILITIES})
-    source_group(""  FILES "${PROGRAM}.cpp" ${UTILITIES})
+    add_executable(${PROGRAM} "${PROGRAM}.cpp")
+    source_group(""  FILES "${PROGRAM}.cpp")
 
     set_target_properties(${PROGRAM} PROPERTIES
         FOLDER tests
-        COMPILE_FLAGS "${CH_CXX_FLAGS} ${CH_MULTICORE_CXX_FLAGS}"
+        COMPILE_FLAGS "${CH_CXX_FLAGS} ${CH_IRRLICHT_CXX_FLAGS}"
         LINK_FLAGS "${CH_LINKERFLAG_EXE}")
     set_property(TARGET ${PROGRAM} PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:${PROGRAM}>")
 
     target_link_libraries(${PROGRAM}
                           ChronoEngine
-                          ChronoEngine_multicore
                           ChronoEngine_vehicle
-                          ChronoEngine_opengl
-                          ChronoModels_robosimian)
+                          ChronoModels_robot
+                          ChronoEngine_irrlicht
+                        )
 
     install(TARGETS ${PROGRAM} DESTINATION ${CH_INSTALL_DEMO})
 endforeach()
