@@ -60,14 +60,26 @@ if (USE_FAST_DDS)
 	set(fastrtps_DIR "${FAST_DDS_INSTALL_DIR}/share/fastrtps/cmake" CACHE FILEPATH "Path to the FastDDS cmake config file" FORCE)
 	set(foonathan_memory_DIR "${FAST_DDS_INSTALL_DIR}/lib/foonathan_memory/cmake" CACHE FILEPATH "Path to the foonathan memory cmake config file" FORCE)
 
-	find_package(fastcdr REQUIRED)
-	find_package(fastrtps REQUIRED)
+	find_package(fastcdr CONFIG REQUIRED)
+	find_package(fastrtps CONFIG REQUIRED)
 
-	set(SYN_OTHER_LIBRARIES
+	set(SYN_LIBRARIES
+		${SYN_LIBRARIES}
 		fastrtps
 		fastcdr
 	)
+
+	set(SYN_INCLUDES
+		${SYN_INCLUDES}
+		${fastrtps_INCLUDE_DIR}
+		${fastcdr_INCLUDE_DIR}
+	)
 endif()
+get_cmake_property(_variableNames VARIABLES)
+list (SORT _variableNames)
+foreach (_variableName ${_variableNames})
+    message(STATUS "${_variableName}=${${_variableName}}")
+endforeach()
 
 # ----------------------------------------------------------------------------
 # Generate and install configuration file
@@ -250,7 +262,7 @@ target_compile_definitions(ChronoEngine_synchrono PRIVATE "SYN_API_COMPILE")
 
 target_include_directories(ChronoEngine_synchrono PUBLIC ${SYN_INCLUDES})
 
-target_link_libraries(ChronoEngine_synchrono ${SYN_LIB_NAMES} ${SYN_LIBRARIES} ${SYN_OTHER_LIBRARIES})
+target_link_libraries(ChronoEngine_synchrono ${SYN_LIB_NAMES} ${SYN_LIBRARIES})
 
 install(TARGETS ChronoEngine_synchrono
         RUNTIME DESTINATION bin
