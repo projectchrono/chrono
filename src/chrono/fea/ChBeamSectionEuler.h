@@ -611,7 +611,7 @@ class ChApi ChBeamSectionRayleighAdvancedGeneric : public ChBeamSectionEulerAdva
         const double mMy = 0,  ///< mass center y displacement respect to centerline
         const double mMz = 0   ///< mass center z displacement respect to centerline
     )
-        : ChBeamSectionEulerAdvancedGeneric(mAx, mTxx, mByy, mBzz, malpha, mCy, mCz, mSy, mSz, mmu, (Jyy + Jzz), mMy, mMz), 
+        : ChBeamSectionEulerAdvancedGeneric(mAx, mTxx, mByy, mBzz, malpha, mCy, mCz, mSy, mSz, mmu, (mJyy + mJzz), mMy, mMz), 
         Jyy(mJyy), Jzz(mJzz), Jyz(mJyz) {}
 
     virtual ~ChBeamSectionRayleighAdvancedGeneric() {}

@@ -77,7 +77,7 @@ double end_time = 1000;
 double render_step_size = 1.0 / 50;  // FPS = 50
 
 // How often SynChrono state messages are interchanged
-float heartbeat = 1e-2;  // 100 [Hz]
+double heartbeat = 1e-2;  // 100 [Hz]
 
 // Forward declares for straight forward helper functions
 void LogCopyright(bool show);
@@ -181,8 +181,8 @@ int main(int argc, char* argv[]) {
         auto box_texture = chrono_types::make_shared<ChVisualMaterial>();
         box_texture->SetKdTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"));
         // FresnelMax and SpecularColor should make it less shiny
-        box_texture->SetFresnelMax(0.2);
-        box_texture->SetSpecularColor({0.2, 0.2, 0.2});
+        box_texture->SetFresnelMax(0.2f);
+        box_texture->SetSpecularColor({0.2f, 0.2f, 0.2f});
 
         visual_asset->material_list.push_back(box_texture);
     }
@@ -225,11 +225,12 @@ int main(int argc, char* argv[]) {
 
         auto cam = chrono_types::make_shared<ChCameraSensor>(
             vehicle.GetChassisBody(),                                                      // body camera is attached to
-            30,                                                                            // update rate in Hz
+            30.0f,                                                                         // update rate in Hz
             chrono::ChFrame<double>({-8, 0, 3}, Q_from_AngAxis(CH_C_PI / 20, {0, 1, 0})),  // offset pose
             1280,                                                                          // image width
             720,                                                                           // image height
-            CH_C_PI / 3);
+            (float)CH_C_PI / 3                                                             // FOV
+        );
 
         if (cli.GetAsType<bool>("sens_vis"))
             cam->PushFilter(chrono_types::make_shared<ChFilterVisualize>(1280, 720));

@@ -14,7 +14,7 @@
 //
 // =============================================================================
 
-#include "chrono_models/robosimian/RoboSimianIrrApp.h"
+#include "chrono_models/robot/robosimian/RoboSimianIrrApp.h"
 
 namespace chrono {
 namespace robosimian {
