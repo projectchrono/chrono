@@ -84,8 +84,6 @@ class CH_VEHICLE_API ChTrackDrivelineBDS : public ChDrivelineTV {
 
     /// Return the gear ratio for the conical gear.
     virtual double GetConicalGearRatio() const = 0;
-    /// Return the gear ratio for the differential.
-    virtual double GetDifferentialRatio() const = 0;
 
   private:
     virtual void CombineDriverInputs(const ChDriver::Inputs& driver_inputs,

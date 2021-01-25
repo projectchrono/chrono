@@ -67,15 +67,13 @@ void ChTrackDrivelineBDS::Initialize(std::shared_ptr<ChChassis> chassis,
     m_conicalgear->SetTransmissionRatio(GetConicalGearRatio());
     sys->Add(m_conicalgear);
 
-    // Create a differential, i.e. an epicycloidal mechanism that connects three
-    // rotating members. This class of mechanisms can be simulated using
-    // ChShaftsPlanetary; a proper 'ordinary' transmission ratio t0 must be
-    // assigned according to Willis formula. The case of the differential is
-    // simple: t0=-1.
+    // Create a differential, i.e. an epicycloidal mechanism that connects three rotating members.
+    // This class of mechanisms can be simulated using ChShaftsPlanetary; a proper 'ordinary'
+    // transmission ratio t0 must be assigned according to Willis formula. For a differential, t0=-1.
     m_differential = chrono_types::make_shared<ChShaftsPlanetary>();
     m_differential->Initialize(m_differentialbox, track_left->GetSprocket()->GetAxle(),
                                track_right->GetSprocket()->GetAxle());
-    m_differential->SetTransmissionRatioOrdinary(GetDifferentialRatio());
+    m_differential->SetTransmissionRatioOrdinary(-1.0);
     sys->Add(m_differential);
 }
 
