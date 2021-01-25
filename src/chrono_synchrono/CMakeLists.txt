@@ -60,8 +60,8 @@ if (USE_FAST_DDS)
 	set(fastrtps_DIR "${FAST_DDS_INSTALL_DIR}/share/fastrtps/cmake" CACHE FILEPATH "Path to the FastDDS cmake config file" FORCE)
 	set(foonathan_memory_DIR "${FAST_DDS_INSTALL_DIR}/lib/foonathan_memory/cmake" CACHE FILEPATH "Path to the foonathan memory cmake config file" FORCE)
 
-	find_package(fastcdr CONFIG REQUIRED)
-	find_package(fastrtps CONFIG REQUIRED)
+	find_package(fastcdr REQUIRED)
+	find_package(fastrtps REQUIRED)
 
 	set(SYN_LIBRARIES
 		${SYN_LIBRARIES}
@@ -75,11 +75,6 @@ if (USE_FAST_DDS)
 		${fastcdr_INCLUDE_DIR}
 	)
 endif()
-get_cmake_property(_variableNames VARIABLES)
-list (SORT _variableNames)
-foreach (_variableName ${_variableNames})
-    message(STATUS "${_variableName}=${${_variableName}}")
-endforeach()
 
 # ----------------------------------------------------------------------------
 # Generate and install configuration file
