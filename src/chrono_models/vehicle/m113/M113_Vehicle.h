@@ -35,6 +35,7 @@ namespace m113 {
 /// Both single-pin and double-pin track assemblies can be used with this vehicle model.
 class CH_MODELS_API M113_Vehicle : public ChTrackedVehicle {
   public:
+    /// Construct the M113 vehicle within an automatically created Chrono system.
     M113_Vehicle(bool fixed,
                  TrackShoeType shoe_type,
                  DrivelineTypeTV driveline_type,
@@ -42,6 +43,7 @@ class CH_MODELS_API M113_Vehicle : public ChTrackedVehicle {
                  ChContactMethod contact_method = ChContactMethod::NSC,
                  CollisionType chassis_collision_type = CollisionType::NONE);
 
+    /// Construct the M113 vehicle within the specified Chrono system.
     M113_Vehicle(bool fixed,
                  TrackShoeType shoe_type,
                  DrivelineTypeTV driveline_type,
@@ -51,6 +53,10 @@ class CH_MODELS_API M113_Vehicle : public ChTrackedVehicle {
 
     ~M113_Vehicle() {}
 
+    /// Create the track shoes (default: true).
+    void CreateTrack(bool val) { m_create_track = val; }
+
+    /// Initialize the M113 vehicle at the specified location and orientation.
     virtual void Initialize(const ChCoordsys<>& chassisPos, double chassisFwdVel = 0) override;
 
   private:
@@ -59,6 +65,8 @@ class CH_MODELS_API M113_Vehicle : public ChTrackedVehicle {
                 DrivelineTypeTV driveline_type,
                 BrakeType brake_type,
                 CollisionType chassis_collision_type);
+
+    bool m_create_track;
 };
 
 /// @} vehicle_models_m113

@@ -169,7 +169,8 @@ void ChTrackAssembly::SetOutput(bool state) {
         suspension->SetOutput(state);
     for (auto roller : m_rollers)
         roller->SetOutput(state);
-    GetTrackShoe(0)->SetOutput(state);
+    if (GetNumTrackShoes() > 0)
+        GetTrackShoe(0)->SetOutput(state);
 }
 
 // -----------------------------------------------------------------------------
@@ -218,7 +219,7 @@ void ChTrackAssembly::ExportComponentList(rapidjson::Document& jsonDocument) con
     }
     jsonDocument.AddMember("rollers", rollerArray, jsonDocument.GetAllocator());
 
-    {
+    if (GetNumTrackShoes() > 0) {
         rapidjson::Document jsonSubDocument(&jsonDocument.GetAllocator());
         jsonSubDocument.SetObject();
         GetTrackShoe(0)->ExportComponentList(jsonSubDocument);
@@ -253,8 +254,10 @@ void ChTrackAssembly::Output(ChVehicleOutput& database) const {
         roller->Output(database);
     }
 
-    database.WriteSection(GetTrackShoe(0)->GetName());
-    GetTrackShoe(0)->Output(database);
+    if (GetNumTrackShoes() > 0) {
+        database.WriteSection(GetTrackShoe(0)->GetName());
+        GetTrackShoe(0)->Output(database);
+    }
 }
 
 // -----------------------------------------------------------------------------

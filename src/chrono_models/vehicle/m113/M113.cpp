@@ -37,6 +37,7 @@ M113::M113()
       m_contactMethod(ChContactMethod::NSC),
       m_chassisCollisionType(CollisionType::NONE),
       m_fixed(false),
+      m_create_track(true),
       m_brake_type(BrakeType::SIMPLE),
       m_shoe_type(TrackShoeType::SINGLE_PIN),
       m_driveline_type(DrivelineTypeTV::SIMPLE),
@@ -51,6 +52,7 @@ M113::M113(ChSystem* system)
       m_contactMethod(ChContactMethod::NSC),
       m_chassisCollisionType(CollisionType::NONE),
       m_fixed(false),
+      m_create_track(true),
       m_brake_type(BrakeType::SIMPLE),
       m_shoe_type(TrackShoeType::SINGLE_PIN),
       m_driveline_type(DrivelineTypeTV::SIMPLE),
@@ -79,7 +81,7 @@ void M113::Initialize() {
                                             m_chassisCollisionType)
                          : new M113_Vehicle(m_fixed, m_shoe_type, m_driveline_type, m_brake_type, m_contactMethod,
                                             m_chassisCollisionType);
-
+    m_vehicle->CreateTrack(m_create_track);
     m_vehicle->Initialize(m_initPos, m_initFwdVel);
 
     // If specified, enable aerodynamic drag

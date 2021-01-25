@@ -51,10 +51,12 @@ class CH_MODELS_API M113 {
     void SetBrakeType(BrakeType brake_type) { m_brake_type = brake_type; }
     void SetTrackShoeType(TrackShoeType shoe_type) { m_shoe_type = shoe_type; }
     void SetDrivelineType(DrivelineTypeTV driveline_type) { m_driveline_type = driveline_type; }
-    void SetPowertrainType(PowertrainModelType val) { m_powertrain_type = val; }
+    void SetPowertrainType(PowertrainModelType powertrain_type) { m_powertrain_type = powertrain_type; }
 
     void SetInitPosition(const ChCoordsys<>& pos) { m_initPos = pos; }
     void SetInitFwdVel(double fwdVel) { m_initFwdVel = fwdVel; }
+
+    void CreateTrack(bool val) { m_create_track = val; }
 
     ChSystem* GetSystem() const { return m_vehicle->GetSystem(); }
     ChTrackedVehicle& GetVehicle() const { return *m_vehicle; }
@@ -89,6 +91,7 @@ class CH_MODELS_API M113 {
     ChContactMethod m_contactMethod;
     CollisionType m_chassisCollisionType;
     bool m_fixed;
+    bool m_create_track;
 
     BrakeType m_brake_type;
     TrackShoeType m_shoe_type;

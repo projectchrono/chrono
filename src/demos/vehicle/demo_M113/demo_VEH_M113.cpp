@@ -118,6 +118,9 @@ int main(int argc, char* argv[]) {
     m113.SetPowertrainType(powertrain_type);
     m113.SetChassisCollisionType(chassis_collision_type);
 
+    ////m113.SetChassisFixed(true);
+    ////m113.CreateTrack(false);
+
     // Disable gravity in this simulation
     ////m113.GetSystem()->Set_G_acc(ChVector<>(0, 0, 0));
 

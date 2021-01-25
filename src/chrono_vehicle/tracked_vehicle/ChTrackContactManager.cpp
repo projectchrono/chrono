@@ -41,8 +41,11 @@ void ChTrackContactManager::Process(ChTrackedVehicle* vehicle) {
         m_sprocket_L = vehicle->GetTrackAssembly(LEFT)->GetSprocket();
         m_sprocket_R = vehicle->GetTrackAssembly(RIGHT)->GetSprocket();
 
-        m_shoe_L = vehicle->GetTrackAssembly(LEFT)->GetTrackShoe(m_shoe_index_L);
-        m_shoe_R = vehicle->GetTrackAssembly(RIGHT)->GetTrackShoe(m_shoe_index_R);
+        if (vehicle->GetTrackAssembly(LEFT)->GetNumTrackShoes() > m_shoe_index_L &&
+            vehicle->GetTrackAssembly(RIGHT)->GetNumTrackShoes() > m_shoe_index_R) {
+            m_shoe_L = vehicle->GetTrackAssembly(LEFT)->GetTrackShoe(m_shoe_index_L);
+            m_shoe_R = vehicle->GetTrackAssembly(RIGHT)->GetTrackShoe(m_shoe_index_R);
+        }
 
         m_idler_L = vehicle->GetTrackAssembly(LEFT)->GetIdler();
         m_idler_R = vehicle->GetTrackAssembly(RIGHT)->GetIdler();
@@ -119,13 +122,17 @@ void ChTrackContactManager::Process(ChTrackedVehicle* vehicle) {
             }
 
             // Left track shoe contact points
-            for (auto it = m_shoe_L_contacts.begin(); it != m_shoe_L_contacts.end(); ++it) {
-                m_csv << m_shoe_L->GetShoeBody()->TransformPointParentToLocal(it->m_point);
+            if (m_shoe_L) {
+                for (auto it = m_shoe_L_contacts.begin(); it != m_shoe_L_contacts.end(); ++it) {
+                    m_csv << m_shoe_L->GetShoeBody()->TransformPointParentToLocal(it->m_point);
+                }
             }
 
             // Right track shoe contact points
-            for (auto it = m_shoe_R_contacts.begin(); it != m_shoe_R_contacts.end(); ++it) {
-                m_csv << m_shoe_R->GetShoeBody()->TransformPointParentToLocal(it->m_point);
+            if (m_shoe_R) {
+                for (auto it = m_shoe_R_contacts.begin(); it != m_shoe_R_contacts.end(); ++it) {
+                    m_csv << m_shoe_R->GetShoeBody()->TransformPointParentToLocal(it->m_point);
+                }
             }
 
             m_csv << std::endl;
