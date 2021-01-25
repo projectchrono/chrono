@@ -461,9 +461,6 @@ __host__ double ChSystemGpuMesh_impl::AdvanceSimulation(float duration) {
     for (; time_elapsed_SU < stepSize_SU * nsteps; time_elapsed_SU += stepSize_SU) {
         updateBCPositions();
         runSphereBroadphase();
-        if (meshSoup->nTrianglesInSoup != 0 && mesh_collision_enabled) {
-            runTriangleBroadphase();
-        }
         
         resetSphereAccelerations();
         resetBCForces();
@@ -474,6 +471,10 @@ __host__ double ChSystemGpuMesh_impl::AdvanceSimulation(float duration) {
 
         gpuErrchk(cudaPeekAtLastError());
         gpuErrchk(cudaDeviceSynchronize());
+
+        if (meshSoup->nTrianglesInSoup != 0 && mesh_collision_enabled) {
+            runTriangleBroadphase();
+        }
 
         METRICS_PRINTF("Starting computeSphereForces!\n");
 
