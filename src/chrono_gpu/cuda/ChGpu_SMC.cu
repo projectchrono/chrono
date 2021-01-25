@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Conlain Kelly, Nic Olsen, Dan Negrut
+// Authors: Conlain Kelly, Nic Olsen, Dan Negrut, Ruochun Zhang
 // =============================================================================
 
 #include <cmath>
@@ -452,11 +452,11 @@ __host__ double ChSystemGpu_impl::AdvanceSimulation(float duration) {
                    stepSize_SU, nsteps, duration / nsteps);
     float time_elapsed_SU = 0;  // time elapsed in this advance call
 
+    packSphereDataPointers();
     // Run the simulation, there are aggressive synchronizations because we want to have no race conditions
     for (unsigned int n = 0; n < nsteps; n++) {
         updateBCPositions();
         runSphereBroadphase();
-        packSphereDataPointers();
         resetSphereAccelerations();
         resetBCForces();
 

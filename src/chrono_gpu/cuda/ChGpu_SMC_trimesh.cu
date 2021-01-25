@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Conlain Kelly, Nic Olsen, Dan Negrut
+// Authors: Conlain Kelly, Nic Olsen, Dan Negrut, Ruochun Zhang
 // =============================================================================
 
 #include "chrono_gpu/cuda/ChGpu_SMC_trimesh.cuh"
@@ -460,6 +460,11 @@ __host__ double ChSystemGpuMesh_impl::AdvanceSimulation(float duration) {
     // Run the simulation, there are aggressive synchronizations because we want to have no race conditions
     for (; time_elapsed_SU < stepSize_SU * nsteps; time_elapsed_SU += stepSize_SU) {
         updateBCPositions();
+        runSphereBroadphase();
+        if (meshSoup->nTrianglesInSoup != 0 && mesh_collision_enabled) {
+            runTriangleBroadphase();
+        }
+        
         resetSphereAccelerations();
         resetBCForces();
         if (meshSoup->nTrianglesInSoup != 0 && mesh_collision_enabled) {
@@ -490,10 +495,6 @@ __host__ double ChSystemGpuMesh_impl::AdvanceSimulation(float duration) {
         }
         gpuErrchk(cudaPeekAtLastError());
         gpuErrchk(cudaDeviceSynchronize());
-
-        if (meshSoup->nTrianglesInSoup != 0 && mesh_collision_enabled) {
-            runTriangleBroadphase();
-        }
 
         if (meshSoup->numTriangleFamilies != 0 && mesh_collision_enabled) {
             // TODO please do not use a template here
@@ -526,7 +527,6 @@ __host__ double ChSystemGpuMesh_impl::AdvanceSimulation(float duration) {
             gpuErrchk(cudaDeviceSynchronize());
         }
 
-        runSphereBroadphase();
         elapsedSimTime += (float)(stepSize_SU * TIME_SU2UU);  // Advance current time
     }
 
