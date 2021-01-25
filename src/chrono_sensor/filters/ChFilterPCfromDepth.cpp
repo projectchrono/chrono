@@ -65,10 +65,29 @@ CH_SENSOR_API void ChFilterPCfromDepth::Apply(std::shared_ptr<ChSensor> pSensor,
     cuda_pointcloud_from_depth(ptr, m_buffer->Buffer.get(), (int)bufferInOut->Width, (int)bufferInOut->Height,
                                pLidar->GetHFOV(), pLidar->GetMaxVertAngle(), pLidar->GetMinVertAngle());
 
+    // counter for beam returns
+     m_buffer->Beam_return_count = 0;
+
+    // host buffer to store data
+    float* buf = new float[m_buffer->Width * m_buffer->Height * 4];
+    float* new_buf = new float[m_buffer->Width * m_buffer->Height * 4];
+    cudaMemcpy(buf, m_buffer->Buffer.get(), m_buffer->Width * m_buffer->Height * sizeof(PixelXYZI), cudaMemcpyDeviceToHost);
+
+    for (unsigned int i = 0; i < m_buffer->Width * m_buffer->Height; i++){
+        if (buf[i * 4 + 3] > 0) {
+            new_buf[m_buffer->Beam_return_count * 4] = buf[i * 4];
+            new_buf[m_buffer->Beam_return_count * 4 + 1] = buf[i * 4 + 1];
+            new_buf[m_buffer->Beam_return_count * 4 + 2] = buf[i * 4 + 2];
+            new_buf[m_buffer->Beam_return_count * 4 + 3] = buf[i * 4 + 3];
+            m_buffer->Beam_return_count++;
+        }
+    }
+
+    cudaMemcpy(m_buffer->Buffer.get(), new_buf, m_buffer->Beam_return_count * sizeof(PixelXYZI), cudaMemcpyHostToDevice);
+
     m_buffer->LaunchedCount = bufferInOut->LaunchedCount;
     m_buffer->TimeStamp = bufferInOut->TimeStamp;
     bufferInOut = m_buffer;
 }
-
 }  // namespace sensor
 }  // namespace chrono

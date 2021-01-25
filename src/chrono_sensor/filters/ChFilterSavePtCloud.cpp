@@ -46,10 +46,11 @@ CH_SENSOR_API void ChFilterSavePtCloud::Apply(std::shared_ptr<ChSensor> pSensor,
     if (pXYZI) {
         utils::CSV_writer csv_writer(",");
 
-        float* buf = new float[pXYZI->Width * pXYZI->Height * 4];
-        cudaMemcpy(buf, pXYZI->Buffer.get(), pXYZI->Width * pXYZI->Height * sizeof(PixelXYZI), cudaMemcpyDeviceToHost);
+        float* buf = new float[pXYZI->Beam_return_count * 4];
 
-        for (unsigned int i = 0; i < pXYZI->Width * pXYZI->Height; i++) {
+        cudaMemcpy(buf, pXYZI->Buffer.get(), pXYZI->Beam_return_count * sizeof(PixelXYZI), cudaMemcpyDeviceToHost);
+
+        for (unsigned int i = 0; i < pXYZI->Beam_return_count; i++) {
             for (int j = 0; j < 4; j++) {
                 csv_writer << buf[i * 4 + j];
             }
