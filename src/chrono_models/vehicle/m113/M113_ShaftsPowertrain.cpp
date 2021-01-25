@@ -45,10 +45,11 @@ M113_ShaftsPowertrain::M113_ShaftsPowertrain(const std::string& name) : ChShafts
 // Initialize vector of gear ratios
 // -----------------------------------------------------------------------------
 void M113_ShaftsPowertrain::SetGearRatios(std::vector<double>& gear_ratios) {
-    gear_ratios.push_back(-0.1);  // 0: reverse gear;
-    gear_ratios.push_back(0.2);   // 1: 1st gear;
-    gear_ratios.push_back(0.4);   // 2: 2nd gear;
-    gear_ratios.push_back(0.8);   // 3: 3rd gear;
+    gear_ratios.push_back(-0.151);  // 0: reverse gear;
+    gear_ratios.push_back(0.240);   // 1st gear;
+    gear_ratios.push_back(0.427);   // 2nd gear;
+    gear_ratios.push_back(0.685);   // 3rd gear;
+    gear_ratios.push_back(0.962);   // 4th gear;
 }
 
 // -----------------------------------------------------------------------------
@@ -84,7 +85,7 @@ void M113_ShaftsPowertrain::SetEngineTorqueMap(std::shared_ptr<ChFunction_Record
     map->AddPoint(2300 * rpm_to_radsec, 628);
     map->AddPoint(2400 * rpm_to_radsec, 593);
     map->AddPoint(2500 * rpm_to_radsec, 558);
-    map->AddPoint(2700 * rpm_to_radsec, -400);  // fading out of engine torque
+    map->AddPoint(3000 * rpm_to_radsec, -400);  // fading out of engine torque
 }
 
 void M113_ShaftsPowertrain::SetEngineLossesMap(std::shared_ptr<ChFunction_Recorder>& map) {
@@ -105,20 +106,6 @@ void M113_ShaftsPowertrain::SetTorqueConverterCapacityFactorMap(std::shared_ptr<
     map->AddPoint(0.75, 16);
     map->AddPoint(0.90, 18);
     map->AddPoint(1.00, 35);
-    /*
-        map->AddPoint(0     ,   81.0000);
-        map->AddPoint(0.1000,   81.1589);
-        map->AddPoint(0.2000,   81.3667);
-        map->AddPoint(0.3000,   81.6476);
-        map->AddPoint(0.4000,   82.0445);
-        map->AddPoint(0.5000,   82.6390);
-        map->AddPoint(0.6000,   83.6067);
-        map->AddPoint(0.7000,   85.3955);
-        map->AddPoint(0.8000,   89.5183);
-        map->AddPoint(0.9000,  105.1189);
-        map->AddPoint(0.9700,  215.5284);
-        map->AddPoint(1.0000,  235.5284);
-    */
 }
 
 void M113_ShaftsPowertrain::SetTorqeConverterTorqueRatioMap(std::shared_ptr<ChFunction_Recorder>& map) {
@@ -127,20 +114,6 @@ void M113_ShaftsPowertrain::SetTorqeConverterTorqueRatioMap(std::shared_ptr<ChFu
     map->AddPoint(0.50, 1.50);
     map->AddPoint(0.75, 1.15);
     map->AddPoint(1.00, 1.00);
-    /*
-        map->AddPoint(0,        1.7500);
-        map->AddPoint(0.1000,    1.6667);
-        map->AddPoint(0.2000,    1.5833);
-        map->AddPoint(0.3000,    1.5000);
-        map->AddPoint(0.4000,    1.4167);
-        map->AddPoint(0.5000,    1.3334);
-        map->AddPoint(0.6000,    1.2500);
-        map->AddPoint(0.7000,    1.1667);
-        map->AddPoint(0.8000,    1.0834);
-        map->AddPoint(0.9000,    1.0000);
-        map->AddPoint(0.9700,    1.0000);
-        map->AddPoint(1.0000,    1.0000);
-    */
 }
 
 }  // end namespace m113
