@@ -351,7 +351,7 @@ int main(int argc, char* argv[]) {
         binY = 1;
 
     // Acounts for the amount of filling for the desired setup
-    binZ = (int)std::ceil(subsize.z()) * 0.75 / factor;
+    binZ = (int)(std::ceil(subsize.z()) * 0.75 / factor);
     if (binZ == 0)
         binZ = 1;
 

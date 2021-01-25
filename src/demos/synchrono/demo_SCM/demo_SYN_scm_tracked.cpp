@@ -313,11 +313,12 @@ int main(int argc, char* argv[]) {
 
         auto overhead_camera = chrono_types::make_shared<chrono::sensor::ChCameraSensor>(
             origin,                                         // body camera is attached to
-            30,                                             // update rate in Hz
+            30.0f,                                          // update rate in Hz
             chrono::ChFrame<double>(camera_loc, rotation),  // offset pose
             cam_res_width,                                  // image width
             cam_res_height,                                 // image height
-            CH_C_PI / 3);
+            (float)CH_C_PI / 3                              // FOV
+        );
 
         overhead_camera->SetName("Overhead Cam");
         overhead_camera->PushFilter(chrono_types::make_shared<ChFilterRGBA8Access>());

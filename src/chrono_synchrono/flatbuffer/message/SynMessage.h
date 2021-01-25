@@ -37,7 +37,7 @@ typedef flatbuffers::Offset<SynFlatBuffers::Message> FlatBufferMessage;
 ///@brief SynMessage is the base class for all messages
 /// Basically wraps the FlatBuffer methods to better handle the SynChrono message passing system
 /// Will be inherited from to create new message types
-class SynMessage {
+class SYN_API SynMessage {
   public:
     ///@brief Destroy the SynMessage object
     virtual ~SynMessage() {}
