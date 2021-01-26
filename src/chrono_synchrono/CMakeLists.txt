@@ -49,7 +49,7 @@ set(SYN_LIBRARIES
 #-----------------------------------------------------------------------------
 # Find FlatBuffers
 #-----------------------------------------------------------------------------
-set(FLATBUFFERS_INCLUDE_DIR "../chrono_thirdparty/flatbuffers/include" CACHE FILEPATH "")
+set(FLATBUFFERS_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../chrono_thirdparty/flatbuffers/include" CACHE FILEPATH "")
 set(SYN_INCLUDES ${FLATBUFFERS_INCLUDE_DIR})
 
 #-----------------------------------------------------------------------------
@@ -59,9 +59,12 @@ option(USE_FAST_DDS "Enable the FastDDS interface for the SynChrono Module" OFF)
 
 if (USE_FAST_DDS)
 	set(FAST_DDS_INSTALL_DIR "" CACHE PATH "Path to FastDDS install dir")
-	set(fastcdr_DIR "${FAST_DDS_INSTALL_DIR}/lib/cmake/fastcdr" CACHE STRING "Path to the FastCDR cmake config file" FORCE)
-	set(fastrtps_DIR "${FAST_DDS_INSTALL_DIR}/share/fastrtps/cmake" CACHE STRING "Path to the FastDDS cmake config file" FORCE)
-	set(foonathan_memory_DIR "${FAST_DDS_INSTALL_DIR}/lib/foonathan_memory/cmake" CACHE STRING "Path to the foonathan memory cmake config file" FORCE)
+	set(fastcdr_DIR "${FAST_DDS_INSTALL_DIR}/lib/cmake/fastcdr" CACHE PATH "Path to the FastCDR cmake config file" FORCE)
+	set(fastrtps_DIR "${FAST_DDS_INSTALL_DIR}/share/fastrtps/cmake" CACHE PATH "Path to the FastDDS cmake config file" FORCE)
+	set(foonathan_memory_DIR "${FAST_DDS_INSTALL_DIR}/lib/foonathan_memory/cmake" CACHE PATH "Path to the foonathan memory cmake config file" FORCE)
+	if (NOT EXISTS ${foonathan_memory_DIR})
+		set(foonathan_memory_DIR "${FAST_DDS_INSTALL_DIR}/lib64/foonathan_memory/cmake" CACHE PATH "Path to the foonathan memory cmake config file" FORCE)
+	endif()
 
 	find_package(fastcdr REQUIRED)
 	find_package(fastrtps REQUIRED)
