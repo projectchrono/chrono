@@ -26,8 +26,6 @@ if(NOT ENABLE_MODULE_VEHICLE)
     return()
 endif()
 
-set(SYN_INCLUDES ${SYN_INCLUDES})
-
 set(SYN_CXX_FLAGS "${CH_CXX_FLAGS}")
 set(SYN_LINKER_FLAGS "${CH_LINKERFLAG_SHARED}")
 set(SYN_LIBRARIES "")
@@ -51,12 +49,8 @@ set(SYN_LIBRARIES
 #-----------------------------------------------------------------------------
 # Find FlatBuffers
 #-----------------------------------------------------------------------------
-set(FLATBUFFERS_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../chrono_thirdparty/flatbuffers/include" CACHE STRING "")
-
-set(SYN_INCLUDES
-	${SYN_INCLUDES}
-	${FLATBUFFERS_INCLUDE_DIR}
-)
+set(FLATBUFFERS_INCLUDE_DIR "../chrono_thirdparty/flatbuffers/include" CACHE FILEPATH "")
+set(SYN_INCLUDES ${FLATBUFFERS_INCLUDE_DIR})
 
 #-----------------------------------------------------------------------------
 # Find DDS (Optional)
@@ -229,8 +223,8 @@ if (ENABLE_MODULE_IRRLICHT)
   list(APPEND SYN_LIB_NAMES ChronoEngine_irrlicht)
   list(APPEND SYN_LIB_NAMES ChronoEngine_vehicle_irrlicht)
 
-  list(APPEND SYN_INCLUDES  ${CH_IRRLICHTINC})
-  list(APPEND SYN_CXX_FLAGS ${CH_IRRLICHT_CXX_FLAGS})
+  set(SYN_INCLUDES  ${SYN_INCLUDES} ${CH_IRRLICHTINC})
+  set(SYN_CXX_FLAGS "${SYN_CXX_FLAGS} ${CH_IRRLICHT_CXX_FLAGS}")
 endif()
 
 # Chrono::Vehicle is required
