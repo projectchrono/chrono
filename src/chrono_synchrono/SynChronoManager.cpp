@@ -35,7 +35,7 @@ void RegisterParticipant(std::shared_ptr<SynCommunicator> communicator, const st
 
         auto callback = std::bind(&ProcessMessage, communicator, std::placeholders::_1);
         dds_communicator->CreateSubscriber(SynDDSTopic::RemovePrefix(participant_name), new SynDDSMessagePubSubType(),
-                                           callback, new SynDDSMessage(), true);
+                                           callback, new SynDDSMessage(), true, true);
     }
 }
 
@@ -80,7 +80,7 @@ bool SynChronoManager::AddAgent(std::shared_ptr<SynAgent> agent) {
         // Create the topic that state information will be passed on
         // and add the topic to the communicator
         auto topic_name = "node/" + std::to_string(aid);
-        dds_communicator->CreatePublisher(topic_name, new SynDDSMessagePubSubType());
+        dds_communicator->CreatePublisher(topic_name, new SynDDSMessagePubSubType(), true);
     }
 #endif
 

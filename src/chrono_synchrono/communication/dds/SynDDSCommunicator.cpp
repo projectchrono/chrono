@@ -137,7 +137,8 @@ std::shared_ptr<SynDDSTopic> SynDDSCommunicator::CreateTopic(const std::string& 
 std::shared_ptr<SynDDSSubscriber> SynDDSCommunicator::CreateSubscriber(std::shared_ptr<SynDDSTopic> topic,
                                                                        std::function<void(void*)> callback,
                                                                        void* message,
-                                                                       bool is_synchronous) {
+                                                                       bool is_synchronous,
+                                                                       bool is_managed) {
     SynLog() << "Creating Subscriber " << topic->GetFullTopicName() << "\n";
 
     if (!m_participant) {
@@ -175,7 +176,8 @@ std::shared_ptr<SynDDSSubscriber> SynDDSCommunicator::CreateSubscriber(std::shar
 
     auto syn_subscriber =
         std::make_shared<SynDDSSubscriber>(subscriber, reader, listener, topic, callback, message, is_synchronous);
-    m_subscribers.push_back(syn_subscriber);
+    if (is_managed)
+        m_subscribers.push_back(syn_subscriber);
 
     return syn_subscriber;
 }
@@ -184,7 +186,8 @@ std::shared_ptr<SynDDSSubscriber> SynDDSCommunicator::CreateSubscriber(const std
                                                                        TopicDataType* data_type,
                                                                        std::function<void(void*)> callback,
                                                                        void* message,
-                                                                       bool is_synchronous) {
+                                                                       bool is_synchronous,
+                                                                       bool is_managed) {
     if (!m_participant) {
         SynLog() << "CreateSubscriber: Participant is NULL\n";
         return nullptr;
@@ -200,7 +203,8 @@ std::shared_ptr<SynDDSSubscriber> SynDDSCommunicator::CreateSubscriber(const std
     return CreateSubscriber(topic, callback, message, is_synchronous);
 }
 
-std::shared_ptr<SynDDSPublisher> SynDDSCommunicator::CreatePublisher(std::shared_ptr<SynDDSTopic> topic) {
+std::shared_ptr<SynDDSPublisher> SynDDSCommunicator::CreatePublisher(std::shared_ptr<SynDDSTopic> topic,
+                                                                     bool is_managed) {
     SynLog() << "Creating Publisher " << topic->GetFullTopicName() << "\n";
 
     if (!m_participant) {
@@ -217,7 +221,7 @@ std::shared_ptr<SynDDSPublisher> SynDDSCommunicator::CreatePublisher(std::shared
 
     // Create the data reader qos and allow for automattic reallocation on data reception
     DataWriterQos qos;
-    // qos.reliability().kind = RELIABLE_RELIABILITY_QOS;
+    qos.reliability().kind = RELIABLE_RELIABILITY_QOS;
     // qos.durability().kind = VOLATILE_DURABILITY_QOS;
     qos.endpoint().history_memory_policy = PREALLOCATED_WITH_REALLOC_MEMORY_MODE;
     qos.history().kind = KEEP_LAST_HISTORY_QOS;
@@ -233,13 +237,15 @@ std::shared_ptr<SynDDSPublisher> SynDDSCommunicator::CreatePublisher(std::shared
     }
 
     auto syn_publisher = std::make_shared<SynDDSPublisher>(publisher, writer, listener, topic);
-    m_publishers.push_back(syn_publisher);
+    if (is_managed)
+        m_publishers.push_back(syn_publisher);
 
     return syn_publisher;
 }
 
 std::shared_ptr<SynDDSPublisher> SynDDSCommunicator::CreatePublisher(const std::string& topic_name,
-                                                                     TopicDataType* data_type) {
+                                                                     TopicDataType* data_type,
+                                                                     bool is_managed) {
     if (!m_participant) {
         SynLog() << "CreatePublisher: Participant is NULL\n";
         return nullptr;
@@ -252,7 +258,7 @@ std::shared_ptr<SynDDSPublisher> SynDDSCommunicator::CreatePublisher(const std::
         return nullptr;
     }
 
-    return CreatePublisher(topic);
+    return CreatePublisher(topic, is_managed);
 }
 
 // -----------------------------------------------------------------------------------------------

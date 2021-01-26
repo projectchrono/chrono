@@ -57,7 +57,7 @@ class SYN_API SynSCMTerrainAgent : public SynAgent {
     ///@param system the ChSystem used to initialize the zombie
     virtual void InitializeZombie(ChSystem* system) override;
 
-    ///@brief Synchronoize this agents zombie with the rest of the simulation.
+    ///@brief Synchronize this agents zombie with the rest of the simulation.
     /// Updates agent based on the passed message.
     /// Any message can be passed, so a check should be done to ensure this message was intended for this agent.
     ///

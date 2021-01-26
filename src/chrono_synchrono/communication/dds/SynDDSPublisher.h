@@ -82,7 +82,7 @@ class SYN_API SynDDSPublisher {
 
     ///@brief Wait for the specified number of matches
     /// Each subscriber listener has a callback that will be called when a subscriber is matched with
-    /// a DataWriter. This function blocks until that the matches are acheived. By default,
+    /// a DataWriter. This function blocks until that the matches are achieved. By default,
     /// a subscriber will just wait for a single listener.
     ///
     void WaitForMatches(unsigned int matches);

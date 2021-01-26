@@ -97,7 +97,7 @@ class SYN_API SynDDSSubscriber {
 
     ///@brief Wait for the specified number of matches
     /// Each subscriber listener has a callback that will be called when a subscriber is matched with
-    /// a DataWriter. This function blocks until that the matches are acheived. By default,
+    /// a DataWriter. This function blocks until that the matches are achieved. By default,
     /// a subscriber will just wait for a single listener.
     ///
     void WaitForMatches(unsigned int matches);
@@ -114,6 +114,12 @@ class SYN_API SynDDSSubscriber {
     /// the data in an easy to access way
     ///
     void SetMessage(void* message) { m_message = message; }
+
+    // -------------------------------------------------------------------------------------
+
+    ///@brief Get the DDS data reader
+    ///
+    eprosima::fastdds::dds::DataReader* GetDataReader() { return m_reader; }
 
     // -------------------------------------------------------------------------------------
 

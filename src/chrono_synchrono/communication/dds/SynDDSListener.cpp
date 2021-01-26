@@ -9,24 +9,31 @@ using namespace eprosima::fastrtps::rtps;
 namespace chrono {
 namespace synchrono {
 
-void SynDDSMatchCounter::BlockUntil(int iters) {
+void SynDDSThreadSafeCounter::BlockUntil(int iters) {
     std::unique_lock<std::mutex> lock(m_mutex);
     while (iters > m_iters)
         m_condition_variable.wait(lock);
 }
 
-void SynDDSMatchCounter::Increment() {
+void SynDDSThreadSafeCounter::Increment() {
     std::unique_lock<std::mutex> lock(m_mutex);
     m_iters++;
 
     m_condition_variable.notify_all();
 }
 
-void SynDDSMatchCounter::SetSafe(int iters) {
+void SynDDSThreadSafeCounter::SetSafe(int iters) {
     std::unique_lock<std::mutex> lock(m_mutex);
     m_iters = iters;
 
     m_condition_variable.notify_all();
+}
+
+int SynDDSThreadSafeCounter::GetSafe() {
+    std::unique_lock<std::mutex> lock(m_mutex);
+    int ret_iters = m_iters;
+
+    return ret_iters;
 }
 
 // -----------------------------------------------------------------------------------
@@ -35,7 +42,7 @@ void SynDDSParticipantListener::on_participant_discovery(DomainParticipant* part
                                                          ParticipantDiscoveryInfo&& info) {
     if (info.status == ParticipantDiscoveryInfo::DISCOVERED_PARTICIPANT) {
         m_participant_names.push_back(std::string(info.info.m_participantName));
-        m_match_counter.Increment();
+        m_counter.Increment();
     } else if (info.status == ParticipantDiscoveryInfo::REMOVED_PARTICIPANT ||
                info.status == ParticipantDiscoveryInfo::DROPPED_PARTICIPANT) {
     }
@@ -45,7 +52,7 @@ void SynDDSParticipantListener::on_participant_discovery(DomainParticipant* part
 
 void SynDDSDataWriterListener::on_publication_matched(DataWriter* writer, const PublicationMatchedStatus& info) {
     if (info.current_count_change == 1 || info.current_count_change == -1) {
-        m_match_counter.SetSafe(info.total_count);
+        m_counter.SetSafe(info.total_count);
     } else {
         std::cout << info.current_count_change
                   << " is not a valid value for PublicationMatchedStatus "
@@ -73,7 +80,7 @@ void SynDDSDataReaderListener::on_data_available(DataReader* reader) {
 
 void SynDDSDataReaderListener::on_subscription_matched(DataReader* reader, const SubscriptionMatchedStatus& info) {
     if (info.current_count_change == 1 || info.current_count_change == -1) {
-        m_match_counter.SetSafe(info.total_count);
+        m_counter.SetSafe(info.total_count);
     } else {
         std::cout << info.current_count_change
                   << " is not a valid value for SubscriptionMatchedStatus "

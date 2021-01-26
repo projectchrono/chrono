@@ -22,15 +22,17 @@ namespace synchrono {
 
 /// Thread safe counter used to count various elements
 /// Use case would be to block until a certain number of elements. Doesn't busy wait but uses mutex instead.
-class SynDDSMatchCounter {
+class SynDDSThreadSafeCounter {
   public:
-    SynDDSMatchCounter() : m_iters(0) {}
+    SynDDSThreadSafeCounter() : m_iters(0) {}
 
     void BlockUntil(int iters);
 
     void Increment();
 
     void SetSafe(int iters);
+
+    int GetSafe();
 
   private:
     int m_iters;
@@ -50,10 +52,10 @@ class SynDDSParticipantListener : public eprosima::fastdds::dds::DomainParticipa
 
     ///@brief Wait for the specified number of matches
     /// Each subscriber listener has a callback that will be called when a subscriber is matched with
-    /// a DataWriter. This function blocks until that the matches are acheived. By default,
+    /// a DataWriter. This function blocks until that the matches are achieved. By default,
     /// a subscriber will just wait for a single listener.
     ///
-    void BlockUntilMatches(unsigned int matches) { m_match_counter.BlockUntil(matches); }
+    void BlockUntilMatches(unsigned int matches) { m_counter.BlockUntil(matches); }
 
     ///@brief Get the names of matched participants
     /// When a participant is matched, in the SynChrono world, the participant name
@@ -64,7 +66,7 @@ class SynDDSParticipantListener : public eprosima::fastdds::dds::DomainParticipa
     std::vector<std::string> GetParticipantNames() const { return m_participant_names; }
 
   private:
-    SynDDSMatchCounter m_match_counter;
+    SynDDSThreadSafeCounter m_counter;
 
     std::vector<std::string> m_participant_names;
 };
@@ -81,13 +83,13 @@ class SynDDSDataWriterListener : public eprosima::fastdds::dds::DataWriterListen
 
     ///@brief Wait for the specified number of matches
     /// Each subscriber listener has a callback that will be called when a subscriber is matched with
-    /// a DataWriter. This function blocks until that the matches are acheived. By default,
+    /// a DataWriter. This function blocks until that the matches are achieved. By default,
     /// a subscriber will just wait for a single listener.
     ///
-    void BlockUntilMatches(unsigned int matches) { m_match_counter.BlockUntil(matches); }
+    void BlockUntilMatches(unsigned int matches) { m_counter.BlockUntil(matches); }
 
   private:
-    SynDDSMatchCounter m_match_counter;
+    SynDDSThreadSafeCounter m_counter;
 };
 
 // -----------------------------------------------------------------------------------
@@ -106,13 +108,13 @@ class SynDDSDataReaderListener : public eprosima::fastdds::dds::DataReaderListen
 
     ///@brief Wait for the specified number of matches
     /// Each subscriber listener has a callback that will be called when a subscriber is matched with
-    /// a DataWriter. This function blocks until that the matches are acheived. By default,
+    /// a DataWriter. This function blocks until that the matches are achieved. By default,
     /// a subscriber will just wait for a single listener.
     ///
-    void BlockUntilMatches(unsigned int matches) { m_match_counter.BlockUntil(matches); }
+    void BlockUntilMatches(unsigned int matches) { m_counter.BlockUntil(matches); }
 
   private:
-    SynDDSMatchCounter m_match_counter;
+    SynDDSThreadSafeCounter m_counter;
 
     void* m_message;
     std::function<void(void*)> m_on_data_available_callback;

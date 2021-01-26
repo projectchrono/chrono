@@ -133,7 +133,8 @@ class SYN_API SynDDSCommunicator : public SynCommunicator {
     std::shared_ptr<SynDDSSubscriber> CreateSubscriber(std::shared_ptr<SynDDSTopic> topic,
                                                        std::function<void(void*)> callback,
                                                        void* message,
-                                                       bool is_synchronous = true);
+                                                       bool is_synchronous = true,
+                                                       bool is_managed = false);
 
     ///@brief Create a subscription to the specified topic
     /// Will call the callback when a subscription is received
@@ -148,14 +149,15 @@ class SYN_API SynDDSCommunicator : public SynCommunicator {
                                                        eprosima::fastdds::dds::TopicDataType* data_type,
                                                        std::function<void(void*)> callback,
                                                        void* message,
-                                                       bool is_synchronous = true);
+                                                       bool is_synchronous = true,
+                                                       bool is_managed = false);
 
     ///@brief Create a Publisher
     /// Returns a publisher handle to be used to publish information
     /// Takes a SynDDSTopic object (see CreateTopic)
     ///
     ///@param topic Topic object describing the DDS topic
-    std::shared_ptr<SynDDSPublisher> CreatePublisher(std::shared_ptr<SynDDSTopic> topic);
+    std::shared_ptr<SynDDSPublisher> CreatePublisher(std::shared_ptr<SynDDSTopic> topic, bool is_managed = false);
 
     ///@brief Create a Publisher
     /// Returns a publisher handle to be used to publish information
@@ -164,7 +166,8 @@ class SYN_API SynDDSCommunicator : public SynCommunicator {
     ///@param topic_name The name associated with the topic
     ///@param data_type The topic data type
     std::shared_ptr<SynDDSPublisher> CreatePublisher(const std::string& topic_name,
-                                                     eprosima::fastdds::dds::TopicDataType* data_type);
+                                                     eprosima::fastdds::dds::TopicDataType* data_type,
+                                                     bool is_managed = false);
 
     // -----------------------------------------------------------------------------------------------
 
