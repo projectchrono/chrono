@@ -36,8 +36,8 @@ namespace feda {
 const double FEDA_Pac02Tire::m_mass = 55.4;
 const ChVector<> FEDA_Pac02Tire::m_inertia(6.39, 11.31, 6.39);
 
-const std::string FEDA_Pac02Tire::m_meshFile_left = "feda/feda_tire_left.obj";
-const std::string FEDA_Pac02Tire::m_meshFile_right = "feda/feda_tire_right.obj";
+const std::string FEDA_Pac02Tire::m_meshFile_left = "feda/meshes/feda_tire_fine.obj";
+const std::string FEDA_Pac02Tire::m_meshFile_right = "feda/meshes/feda_tire_fine.obj";
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------

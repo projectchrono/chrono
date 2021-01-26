@@ -52,7 +52,7 @@ using namespace chrono::vehicle::feda;
 VisualizationType chassis_vis_type = VisualizationType::MESH;
 VisualizationType suspension_vis_type = VisualizationType::PRIMITIVES;
 VisualizationType steering_vis_type = VisualizationType::PRIMITIVES;
-VisualizationType wheel_vis_type = VisualizationType::NONE;
+VisualizationType wheel_vis_type = VisualizationType::MESH;
 
 // Type of powertrain model (SHAFTS, SIMPLE, SIMPLE_CVT)
 PowertrainModelType powertrain_model = PowertrainModelType::SHAFTS;
@@ -98,7 +98,7 @@ int main(int argc, char* argv[]) {
 
     // Set subsystem visualization mode
     VisualizationType tire_vis_type =
-        (tire_model == TireModelType::RIGID_MESH) ? VisualizationType::MESH : VisualizationType::PRIMITIVES;
+        (tire_model == TireModelType::RIGID_MESH) ? VisualizationType::MESH : VisualizationType::MESH;
     my_feda.SetChassisVisualizationType(chassis_vis_type);
     my_feda.SetSuspensionVisualizationType(suspension_vis_type);
     my_feda.SetSteeringVisualizationType(steering_vis_type);
@@ -122,6 +122,7 @@ int main(int argc, char* argv[]) {
     app.SetSkyBox();
     app.AddTypicalLights(irr::core::vector3df(30.f, -30.f, 100.f), irr::core::vector3df(30.f, 50.f, 100.f), 250, 130);
     app.SetChaseCamera(ChVector<>(0.0, 0.0, 1.75), 6.0, 0.5);
+
     app.SetTimestep(step_size);
 
     // ----------------------------------------------
