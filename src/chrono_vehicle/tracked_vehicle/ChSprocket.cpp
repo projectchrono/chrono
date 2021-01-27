@@ -124,9 +124,9 @@ void ChSprocket::RemoveVisualizationAssets() {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChSprocket::ApplyAxleTorque(double torque) {
-    //// TODO: is this really needed?
-    //// (the axle is connected to the driveline, so torque is automatically transmitted)
-    m_axle->SetAppliedTorque(torque);
+    // Make sure this is added to any already applied torque. Change sign of provided torque (given the configuration of
+    // the ChShaft) so that a positive torque corresponds to "forward" motion.
+    m_axle->SetAppliedTorque(m_axle->GetAppliedTorque() - torque);
 }
 
 // -----------------------------------------------------------------------------

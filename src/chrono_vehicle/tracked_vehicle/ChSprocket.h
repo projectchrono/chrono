@@ -105,11 +105,10 @@ class CH_VEHICLE_API ChSprocket : public ChPart {
                             ChTrackAssembly* track                  ///< [in] pointer to containing track assembly
     );
 
-    /// Apply the provided motor torque.
-    /// The given torque is applied to the axle. This function provides the interface
-    /// to the drivetrain subsystem (intermediated by the vehicle system).
-    void ApplyAxleTorque(double torque  ///< [in] value of applied torque
-                         );
+    /// Apply the provided torque to the sprocket's axle (for debugging and testing).
+    /// Note that this torque is added to any torque applied by the driveline. As such, this function should be called
+    /// only after a call to the vehicle Synchronize function. A positive value corresponds to forward motion.
+    void ApplyAxleTorque(double torque);
 
     /// Add visualization assets for the sprocket subsystem.
     virtual void AddVisualizationAssets(VisualizationType vis) override;

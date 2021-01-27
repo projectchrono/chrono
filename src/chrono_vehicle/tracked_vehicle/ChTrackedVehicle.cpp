@@ -75,9 +75,15 @@ void ChTrackedVehicle::Synchronize(double time,
                                    const ChDriver::Inputs& driver_inputs,
                                    const TerrainForces& shoe_forces_left,
                                    const TerrainForces& shoe_forces_right) {
-    // Let the driveline combine driver inputs if needed
+    // Let the driveline combine driver inputs if needed.
     double braking_left, braking_right;
     m_driveline->CombineDriverInputs(driver_inputs, braking_left, braking_right);
+
+    // Apply contact track shoe forces and braking.
+    // Attention: this function also zeroes out the applied torque to the sprocket axle
+    // and so must be called before the driveline synchronization.
+    m_tracks[LEFT]->Synchronize(time, braking_left, shoe_forces_left);
+    m_tracks[RIGHT]->Synchronize(time, braking_right, shoe_forces_right);
 
     double powertrain_torque = 0;
     if (m_powertrain) {
@@ -90,20 +96,16 @@ void ChTrackedVehicle::Synchronize(double time,
     // Apply powertrain torque to the driveline's input shaft.
     m_driveline->Synchronize(driver_inputs.m_steering, powertrain_torque);
 
-    // Pass the steering input to any chassis connectors (in case one of them is actuated)
+    // Pass the steering input to any chassis connectors (in case one of them is actuated).
     for (auto& connector : m_chassis_connectors) {
         connector->Synchronize(time, driver_inputs.m_steering);
     }
-
-    // Apply contact track shoe forces and braking.
-    m_tracks[LEFT]->Synchronize(time, braking_left, shoe_forces_left);
-    m_tracks[RIGHT]->Synchronize(time, braking_right, shoe_forces_right);
 
     m_chassis->Synchronize(time);
     for (auto& c : m_chassis_rear)
         c->Synchronize(time);
 
-    // If in use, reset the collision manager
+    // If in use, reset the collision manager.
     if (m_collision_manager)
         m_collision_manager->Reset();
 }
