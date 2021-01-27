@@ -36,6 +36,10 @@ Instructions on how to set up a project that uses Chrono.
   Overview of PyChrono, the Python API to Chrono libraries
 
 
+- [SynChrono](@ref manual_synchrono)
+
+  Distributed agent simulation with the SynChrono module
+
 - [Chrono::SolidWorks](@ref introduction_chrono_solidworks)
 
   SolidWorks plugin for exporting CAD data to Chrono

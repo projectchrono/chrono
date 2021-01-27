@@ -73,9 +73,13 @@ After the nodes reach a heartbeat and use FlatBuffers to pack their data, a `Syn
 
 ### Message Passing Interface (MPI)
 
-Synchronization with MPI is accomplished using two MPI calls. While many types of agents will send messages of a fixed size (vehicles, for example), others (Deformable terrain) will not. For this reason nodes don't immediately know how much space they'll need for incoming state data. MPI synchronization uses a first call to determine how much space each node will need for their state data, and a second call actually collects that data after the nodes have allocated space to receive it.
+Synchronization with MPI is accomplished using two MPI calls. While many types of agents will send messages of a fixed size (vehicles, for example), others (Deformable terrain) will not. For this reason nodes don't immediately know how much space they'll need for incoming state data. MPI synchronization uses a first call to determine how much space each node will need for their state data, and a second call actually collects that data after the nodes have allocated space to receive it. More details are in the _MPI-detail synchronization section_ (need to add proper link...) of the manual.
 
 ### Data Distribution Service (DDS)
+
+_Short summary of DDS communication here, something on the scale of the MPI paragraph above._
+
+More details are in the _DDS-detail synchronization section_ (need to add proper link...) of the manual.
 
 ## Support for Other Chrono Modules
 
