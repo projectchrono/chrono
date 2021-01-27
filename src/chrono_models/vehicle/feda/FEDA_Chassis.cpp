@@ -77,10 +77,15 @@ FEDA_Chassis::FEDA_Chassis(const std::string& name, bool fixed, CollisionType ch
             m_geometry.m_coll_boxes.push_back(box1);
             break;
         case CollisionType::MESH: {
-            ////ChRigidChassisGeometry::ConvexHullsShape hull("feda/meshes/feda_chassis_simple.obj", 0);
-            ////m_geometry.m_coll_hulls.push_back(hull);
+            ChVehicleGeometry::TrimeshShape mesh(ChVector<>(0,0,0), "feda/meshes/feda_chassis_coll_mesh.obj", 0.1, 0);
+            m_geometry.m_coll_meshes.push_back(mesh);
             break;
         }
+        ////case CollisionType::HULLS: {
+        ////    ChVehicleGeometry::ConvexHullsShape hull("feda/meshes/feda_chassis_coll_hulls.obj", 0);
+        ////    m_geometry.m_coll_hulls.push_back(hull);
+        ////    break;
+        ////}
         default:
             break;
     }
