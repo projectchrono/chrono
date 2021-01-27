@@ -286,7 +286,7 @@ inline __device__ void triangle_figureOutTouchedSDs(unsigned int triangleID,
 
 __global__ void triangleSoup_CountSDsTouched(
     const ChSystemGpuMesh_impl::TriangleSoupPtr d_triangleSoup,
-    unsigned int* Triangle_NumSDsTouching,  //!< number of SDs touching this Triangle
+    unsigned int* Triangle_NumSDsTouching,
     ChSystemGpu_impl::GranParamsPtr gran_params,
     ChSystemGpuMesh_impl::MeshParamsPtr mesh_params) {
     // Figure out what triangleID this thread will handle. We work with a 1D block structure and a 1D grid structure
@@ -299,13 +299,14 @@ __global__ void triangleSoup_CountSDsTouched(
 }
 
 __global__ void triangleSoup_StoreSDsTouched(
-    const ChSystemGpuMesh_impl::TriangleSoupPtr d_triangleSoup,
-    unsigned int* Triangle_NumSDsTouching,     //!< number of SDs touching this Triangle
-    unsigned int* TriangleSDCompositeOffsets,  //!< number of SDs touching this Triangle
-    unsigned int* Triangle_SDsComposite,       //!< number of SDs touching this Triangle
-    unsigned int* Triangle_TriIDsComposite,    //!< number of SDs touching this Triangle
-    ChSystemGpu_impl::GranParamsPtr gran_params,
-    ChSystemGpuMesh_impl::MeshParamsPtr mesh_params) {
+    const ChSystemGpuMesh_impl::TriangleSoupPtr d_triangleSoup,  ///< collection of triangles
+    unsigned int* Triangle_NumSDsTouching,                       ///< number of SDs touching this Triangle
+    unsigned int* TriangleSDCompositeOffsets,                    ///< number of SDs touching this Triangle
+    unsigned int* Triangle_SDsComposite,                         ///< number of SDs touching this Triangle
+    unsigned int* Triangle_TriIDsComposite,                      ///< number of SDs touching this Triangle
+    ChSystemGpu_impl::GranParamsPtr gran_params,                 ///< granular material parameters
+    ChSystemGpuMesh_impl::MeshParamsPtr mesh_params              ///< mesh parameters
+) {
     // Figure out what triangleID this thread will handle. We work with a 1D block structure and a 1D grid structure
     unsigned int myTriangleID = threadIdx.x + blockIdx.x * blockDim.x;
 
