@@ -58,6 +58,7 @@ class CH_MODELS_API FEDA {
     void SetChassisCollisionType(CollisionType val) { m_chassisCollisionType = val; }
 
     void SetBrakeType(BrakeType brake_type) { m_brake_type = brake_type; }
+    void SetPowertrainType(PowertrainModelType val) { m_powertrain_type = val; }
 
     void SetTireType(TireModelType val) { m_tireType = val; }
     void SetTireCollisionType(ChTire::CollisionType collType) { m_tire_collision_type = collType; }
@@ -107,6 +108,7 @@ class CH_MODELS_API FEDA {
 
     TireModelType m_tireType;
     BrakeType m_brake_type;
+    PowertrainModelType m_powertrain_type;
 
     double m_tire_step_size;
 

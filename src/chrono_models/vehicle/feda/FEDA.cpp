@@ -34,6 +34,7 @@ FEDA::FEDA()
       m_contactMethod(ChContactMethod::NSC),
       m_chassisCollisionType(CollisionType::NONE),
       m_fixed(false),
+      m_powertrain_type(PowertrainModelType::SIMPLE_MAP),
       m_brake_type(BrakeType::SIMPLE),
       m_tireType(TireModelType::RIGID),
       m_tire_step_size(-1),
@@ -52,6 +53,7 @@ FEDA::FEDA(ChSystem* system)
       m_contactMethod(ChContactMethod::NSC),
       m_chassisCollisionType(CollisionType::NONE),
       m_fixed(false),
+      m_powertrain_type(PowertrainModelType::SIMPLE_MAP),
       m_brake_type(BrakeType::SIMPLE),
       m_tireType(TireModelType::RIGID),
       m_tire_step_size(-1),
@@ -109,9 +111,20 @@ void FEDA::Initialize() {
     }
 
     // Create and initialize the powertrain system
-    // auto powertrain = chrono_types::make_shared<FEDA_Powertrain>("Powertrain"); working, but suboptimal
-    auto powertrain = chrono_types::make_shared<FEDA_SimpleMapPowertrain>("Powertrain");
-    m_vehicle->InitializePowertrain(powertrain);
+    switch (m_powertrain_type) {
+        case PowertrainModelType::SHAFTS: {
+            auto powertrain = chrono_types::make_shared<FEDA_Powertrain>("Powertrain");
+            m_vehicle->InitializePowertrain(powertrain);
+            break;
+        }
+        default: 
+            std::cout << "Warning! Powertrain type not supported. Useing SIMPLE_MAP" << std::endl;
+        case PowertrainModelType::SIMPLE_MAP: {
+            auto powertrain = chrono_types::make_shared<FEDA_SimpleMapPowertrain>("Powertrain");
+            m_vehicle->InitializePowertrain(powertrain);
+            break;
+        }
+    }
 
     // Create the tires and set parameters depending on type.
     switch (m_tireType) {
