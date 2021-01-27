@@ -111,10 +111,10 @@ double ChTrackDrivelineBDS::GetSprocketTorque(VehicleSide side) const {
 double ChTrackDrivelineBDS::GetSprocketSpeed(VehicleSide side) const {
     switch (side) {
         case LEFT: {
-            return m_differential->GetSpeedShaft2();
+            return -m_differential->GetSpeedShaft2();
         }
         case RIGHT: {
-            return m_differential->GetSpeedShaft3();
+            return -m_differential->GetSpeedShaft3();
         }
     }
 
