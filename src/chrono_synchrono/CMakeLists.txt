@@ -50,7 +50,7 @@ set(SYN_LIBRARIES
 # Find FlatBuffers
 #-----------------------------------------------------------------------------
 set(FLATBUFFERS_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../chrono_thirdparty/flatbuffers/include" CACHE FILEPATH "")
-set(SYN_INCLUDES ${FLATBUFFERS_INCLUDE_DIR})
+set(SYN_INCLUDES ${SYN_INCLUDES} ${FLATBUFFERS_INCLUDE_DIR})
 
 #-----------------------------------------------------------------------------
 # Find DDS (Optional)
