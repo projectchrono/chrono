@@ -47,7 +47,7 @@ class ChCopter {
     ChCopter(ChSystem& sys,                  /// the Chrono physical system
              ChVector<>& cpos,               /// Chassis position
              std::vector<ChVector<>>& ppos,  /// Propeller relative position
-             const bool clockwise[],               /// i-th propeller rotates clockwise -> true
+             const bool clockwise[],         /// i-th propeller rotates clockwise -> true
              bool are_prop_pos_rel = true,   /// if false, propeller axes position has to be given in the abs frame
              bool z_up = false) {
         // TODO: ChBodyAuxRef here might be more convenient
@@ -140,36 +140,35 @@ class ChCopter {
     void SetLinearDragCoeff(double ldc) { Cd = ldc; }
 
     void AddVisualizationAssets(std::string& chassismesh,
-                   std::string& propellermesh,
-                   ChFrame<> cor_m1,
-                   ChFrame<> cor_m2) {
-
+                                std::string& propellermesh,
+                                ChFrame<> cor_m1,
+                                ChFrame<> cor_m2) {
         auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
-		trimesh->LoadWavefrontMesh(chassismesh, true, false);
+        trimesh->LoadWavefrontMesh(chassismesh, true, false);
         trimesh->Transform(cor_m1.GetPos(), cor_m1.GetA());
         auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
         trimesh_shape->SetMesh(trimesh);
-        //trimesh_shape->SetName(m_mesh_name);
+        // trimesh_shape->SetName(m_mesh_name);
         trimesh_shape->SetStatic(true);
         chassis->AddAsset(trimesh_shape);
 
         for (auto propeller : props) {
             auto prop_trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
-			prop_trimesh->LoadWavefrontMesh(propellermesh, true, false);
+            prop_trimesh->LoadWavefrontMesh(propellermesh, true, false);
             prop_trimesh->Transform(cor_m2.GetPos(), cor_m2.GetA());
             auto trimesh_prop_shape = chrono_types::make_shared<ChTriangleMeshShape>();
             trimesh_prop_shape->SetMesh(prop_trimesh);
-            //trimesh_prop_shape->SetName(m_mesh_name);
+            // trimesh_prop_shape->SetName(m_mesh_name);
             trimesh_prop_shape->SetStatic(true);
             propeller->AddAsset(trimesh_prop_shape);
-
         }
     }
 
     // Increment Propellers omegas
     void ControlIncremental(double inputs[nop]) {
         for (int i = 0; i < nop; i++) {
-            u_p[i] = ChClamp(u_p[i] + inputs[i], -1, 1) speeds[i]->Set_yconst(u_p[i] * rps_max * CH_C_2PI);
+            u_p[i] = ChClamp(u_p[i] + inputs[i], -1.0, 1.0);
+            speeds[i]->Set_yconst(u_p[i] * rps_max * CH_C_2PI);
         }
     }
 
@@ -292,11 +291,109 @@ class ChCopter {
     // magnetometer
 };
 
+
+class Little_Hexy : public ChCopter<6> {
+  public:
+    Little_Hexy(ChSystem& sys, ChVector<> cpos) : ChCopter<6>(sys, cpos, getPosVect(), spins, true, true) {
+        this->SetPropellersData(0.126,                                     /// Propeller mass
+                                ChVector<>(0.004739, 0.004739, 0.004739),  /// Propeller Inertia
+                                0.6718,                                    /// Propeller Diameter [m]
+                                0.0587,                                    /// Propeller Thrust Coefficient
+                                0.018734,                                  /// Propeller Power Coefficient
+                                4468);                                     /// Propeller max RPM
+    }
+
+    // Add visualization shapes
+    void AddVisualizationAssets() {
+        ChFrame<> nulldisp(VNULL, QUNIT);
+        ChCopter::AddVisualizationAssets(chassis_mesh_path, propeller_mesh_path, nulldisp, nulldisp);
+    }
+
+    // Add collision shapes
+    // The collision shape is a boundary box, anything more sophisticated is probably an overkill
+    void AddCollisionShapes(std::shared_ptr<ChMaterialSurface> material) {
+        chassis->GetCollisionModel()->ClearModel();
+        // Legs and body boundary box
+        chassis->GetCollisionModel()->AddBox(material, 0.279, 0.279, 0.46);
+        // Arms and propellers boundary cylinder
+        // propeller arm + propeller radius
+        double radius = 0.762 + 0.6718 / 2;
+        ChMatrix33<> matr(Q_ROTATE_Y_TO_Z);
+        chassis->GetCollisionModel()->AddCylinder(material, radius, radius, 0.1, ChVector<>(0, 0, 0.2783), matr);
+        chassis->GetCollisionModel()->BuildModel();
+        chassis->SetCollide(true);
+    }
+
+    void Pitch_Down(double delta) {
+        // Back Motors UP
+        double commands[6] = {0, 0, delta, delta, 0, 0};
+        this->ControlIncremental(commands);
+    }
+
+	void Pitch_Up(double delta) {
+        // Front Motors UP
+        double commands[6] = {delta, 0, 0, 0, 0, delta};
+        this->ControlIncremental(commands);
+    }
+
+	void Roll_Right(double delta) {
+        // Left Motors UP
+        double commands[6] = {0, 0, 0, delta, delta, delta};
+        this->ControlIncremental(commands);
+    }
+
+	void Roll_Left(double delta) {
+		// Right Motors UP
+        double commands[6] = {delta, delta, delta, 0, 0, 0};
+        this->ControlIncremental(commands);
+    }
+
+	void Yaw_Right(double delta) {
+		// CCW motors UP
+        double commands[6] = {delta, 0, delta, 0, delta, 0};  // {false, true, false, true, false, true}
+        this->ControlIncremental(commands);
+    }
+
+	void Yaw_Left(double delta) {
+        // CW motors UP
+        double commands[6] = {0, delta, 0, delta, 0, delta};  // {false, true, false, true, false, true}
+        this->ControlIncremental(commands);
+    }
+
+	void Throttle(double delta) {
+        // CW motors UP
+        double commands[6] = {delta, delta, delta, delta, delta, delta};  // {false, true, false, true, false, true}
+        this->ControlIncremental(commands);
+    }
+
+   // Pitch_Up  // Roll Right Roll Left Yaw Right* Yaw Left* Throttle
+        protected :
+
+        static std::vector<ChVector<>>
+        getPosVect() {
+        std::vector<ChVector<>> ppos;
+        for (int i = 0; i < 6; i++) {
+            double ang = CH_C_PI * (double(i) / 3) + CH_C_PI / 6;
+            double R = 0.762;
+            ChVector<> pos(std::cos(ang) * R, std::sin(ang) * R, 0.279);
+            ppos.push_back(pos);
+        };
+        return ppos;
+    }
+
+  private:
+    static const constexpr bool spins[6] = {false, true, false, true, false, true};
+    std::string chassis_mesh_path = "./hexi_body.obj";
+    std::string propeller_mesh_path = "./prop.obj";
+    // sensors
+};
+
+
 /// Following class will be used to manage events from the user interface
 
 class MyEventReceiver : public IEventReceiver {
   public:
-    MyEventReceiver(ChIrrAppInterface* myapp, ChCopter<6>* mycopter) {
+    MyEventReceiver(ChIrrAppInterface* myapp, Little_Hexy* mycopter) {
         // store pointer to physical system & other stuff so we can tweak them by user keyboard
         app = myapp;
         copter = mycopter;
@@ -307,14 +404,45 @@ class MyEventReceiver : public IEventReceiver {
         if (event.EventType == irr::EET_KEY_INPUT_EVENT && !event.KeyInput.PressedDown) {
             switch (event.KeyInput.Key) {
                 case irr::KEY_KEY_W:
-                    // STATIC_x_speed -= 1.5;
+                    copter->Pitch_Down(0.01);
                     std::cout << "Pressing W\n";
 
                     return true;
+                case irr::KEY_KEY_S:
+                    copter->Pitch_Up(0.01);
+                    std::cout << "Pressing S\n";
+                    return true;
+
                 case irr::KEY_KEY_A:
-                    // STATIC_z_speed += 1.5;
+                    copter->Roll_Left(0.01);
                     std::cout << "Pressing A\n";
                     return true;
+
+                case irr::KEY_KEY_D:
+                    copter->Roll_Right(0.01);
+                    std::cout << "Pressing D\n";
+                    return true;
+
+                case irr::KEY_LEFT:
+                    copter->Yaw_Left(0.01);
+                    std::cout << "Pressing Left\n";
+                    return true;
+
+                case irr::KEY_RIGHT:
+                    copter->Yaw_Right(0.01);
+                    std::cout << "Pressing Right\n";
+                    return true;
+
+                case irr::KEY_UP:
+                    copter->Throttle(0.01);
+                    std::cout << "Pressing Up\n";
+                    return true;
+
+                case irr::KEY_DOWN:
+                    copter->Throttle(-0.01);
+                    std::cout << "Pressing Down\n";
+                    return true;
+
                 default:
                     break;
             }
@@ -325,61 +453,7 @@ class MyEventReceiver : public IEventReceiver {
 
   private:
     ChIrrAppInterface* app;
-    ChCopter<6>* copter;
-};
-
-class Little_Hexy : public ChCopter<6> {
-  public:
-    Little_Hexy(ChSystem& sys, ChVector<> cpos) :
-    ChCopter<6>(sys, cpos, getPosVect(), spins, true, true) {  
-		
-		this->SetPropellersData(0.126,										/// Propeller mass
-								ChVector<>(0.004739, 0.004739, 0.004739), 	/// Propeller Inertia
-								0.6718, 									/// Propeller Diameter [m]
-								0.0587, 									/// Propeller Thrust Coefficient
-								0.018734, 									/// Propeller Power Coefficient
-								4468);										/// Propeller max RPM
-	}
-
-	// Add visualization shapes
-	void AddVisualizationAssets() { 
-		ChFrame<> nulldisp(VNULL, QUNIT);
-        ChCopter::AddVisualizationAssets(chassis_mesh_path, propeller_mesh_path, nulldisp, nulldisp);
-	}
-
-    // Add collision shapes
-	// The collision shape is a boundary box, anything more sophisticated is probably an overkill
-    void AddCollisionShapes(std::shared_ptr<ChMaterialSurface> material) {
-        chassis->GetCollisionModel()->ClearModel();
-		// Legs and body boundary box
-        chassis->GetCollisionModel()->AddBox(material, 0.279, 0.279, 0.46);
-		// Arms and propellers boundary cylinder
-		// propeller arm + propeller radius
-        double radius = 0.762 + 0.6718 / 2;
-        ChMatrix33<> matr(Q_ROTATE_Y_TO_Z);
-        chassis->GetCollisionModel()->AddCylinder(material, radius, radius, 0.1, ChVector<>(0,0,0.2783), matr);
-        chassis->GetCollisionModel()->BuildModel();
-        chassis->SetCollide(true);
-	}
-
-  protected:
-
-    static std::vector<ChVector<>> getPosVect() { 
-		std::vector<ChVector<>> ppos;
-        for (int i = 0; i < 6; i++) {
-            double ang = CH_C_PI * (double(i) / 3) + CH_C_PI / 6;
-            double R = 0.762;
-            ChVector<> pos(std::cos(ang) * R, std::sin(ang) * R, 0.279);
-            ppos.push_back(pos);
-        };
-        return ppos;
-	}
-
-  private:
-    static const constexpr bool spins[6] = {false, true, false, true, false, true};
-    std::string chassis_mesh_path = "./hexi_body.obj";
-    std::string propeller_mesh_path = "./prop.obj";
-    // sensors
+    Little_Hexy* copter;
 };
 
 int main(int argc, char* argv[]) {
@@ -396,7 +470,7 @@ int main(int argc, char* argv[]) {
     // bind a simple user interface, etc. etc.)
     ChIrrApp application(&mphysicalSystem, L"HexaCopter Test", core::dimension2d<u32>(800, 600), false);
 
-	mphysicalSystem.Set_G_acc(ChVector<>(0, 0, -9.81));
+    mphysicalSystem.Set_G_acc(ChVector<>(0, 0, -9.81));
 
     // create text with info
     IGUIStaticText* textFPS = application.GetIGUIEnvironment()->addStaticText(
