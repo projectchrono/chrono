@@ -23,6 +23,14 @@
 #include "chrono_vehicle/ChVehicleModelData.h"
 
 #include "chrono_models/vehicle/feda/FEDA_Vehicle.h"
+#include "chrono_models/vehicle/feda/FEDA_BrakeSimple.h"
+#include "chrono_models/vehicle/feda/FEDA_BrakeShafts.h"
+#include "chrono_models/vehicle/feda/FEDA_Chassis.h"
+#include "chrono_models/vehicle/feda/FEDA_DoubleWishbone.h"
+#include "chrono_models/vehicle/feda/FEDA_AntirollBarRSD.h"
+#include "chrono_models/vehicle/feda/FEDA_Driveline4WD.h"
+#include "chrono_models/vehicle/feda/FEDA_PitmanArm.h"
+#include "chrono_models/vehicle/feda/FEDA_Wheel.h"
 
 namespace chrono {
 namespace vehicle {
@@ -31,6 +39,7 @@ namespace feda {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 FEDA_Vehicle::FEDA_Vehicle(const bool fixed,
+                           BrakeType brake_type,
                            ChContactMethod contact_method,
                            CollisionType chassis_collision_type,
                            int ride_height,
@@ -39,19 +48,20 @@ FEDA_Vehicle::FEDA_Vehicle(const bool fixed,
       m_omega({0, 0, 0, 0}),
       m_ride_height(ride_height),
       m_damper_mode(damperMode) {
-    Create(fixed, chassis_collision_type);
+    Create(fixed, brake_type, chassis_collision_type);
 }
 
 FEDA_Vehicle::FEDA_Vehicle(ChSystem* system,
                            const bool fixed,
+                           BrakeType brake_type,
                            CollisionType chassis_collision_type,
                            int ride_height,
                            int damperMode)
     : ChWheeledVehicle("FEDA", system), m_omega({0, 0, 0, 0}), m_ride_height(ride_height), m_damper_mode(damperMode) {
-    Create(fixed, chassis_collision_type);
+    Create(fixed, brake_type, chassis_collision_type);
 }
 
-void FEDA_Vehicle::Create(bool fixed, CollisionType chassis_collision_type) {
+void FEDA_Vehicle::Create(bool fixed, BrakeType brake_type, CollisionType chassis_collision_type) {
     // Create the chassis subsystem
     m_chassis = chrono_types::make_shared<FEDA_Chassis>("Chassis", fixed, chassis_collision_type);
 
@@ -72,10 +82,20 @@ void FEDA_Vehicle::Create(bool fixed, CollisionType chassis_collision_type) {
     m_axles[1]->m_wheels[0] = chrono_types::make_shared<FEDA_Wheel>("Wheel_RL");
     m_axles[1]->m_wheels[1] = chrono_types::make_shared<FEDA_Wheel>("Wheel_RR");
 
-    m_axles[0]->m_brake_left = chrono_types::make_shared<FEDA_BrakeSimple>("Brake_FL");
-    m_axles[0]->m_brake_right = chrono_types::make_shared<FEDA_BrakeSimple>("Brake_FR");
-    m_axles[1]->m_brake_left = chrono_types::make_shared<FEDA_BrakeSimple>("Brake_RL");
-    m_axles[1]->m_brake_right = chrono_types::make_shared<FEDA_BrakeSimple>("Brake_RR");
+    switch (brake_type) {
+        case BrakeType::SIMPLE:
+            m_axles[0]->m_brake_left = chrono_types::make_shared<FEDA_BrakeSimple>("Brake_FL");
+            m_axles[0]->m_brake_right = chrono_types::make_shared<FEDA_BrakeSimple>("Brake_FR");
+            m_axles[1]->m_brake_left = chrono_types::make_shared<FEDA_BrakeSimple>("Brake_RL");
+            m_axles[1]->m_brake_right = chrono_types::make_shared<FEDA_BrakeSimple>("Brake_RR");
+            break;
+        case BrakeType::SHAFTS:
+            m_axles[0]->m_brake_left = chrono_types::make_shared<FEDA_BrakeShafts>("Brake_FL");
+            m_axles[0]->m_brake_right = chrono_types::make_shared<FEDA_BrakeShafts>("Brake_FR");
+            m_axles[1]->m_brake_left = chrono_types::make_shared<FEDA_BrakeShafts>("Brake_RL");
+            m_axles[1]->m_brake_right = chrono_types::make_shared<FEDA_BrakeShafts>("Brake_RR");
+            break;
+    }
 
     // Create the antirollbar system
     m_axles[0]->m_antirollbar = chrono_types::make_shared<FEDA_AntirollBarRSD>("AntirollBar");

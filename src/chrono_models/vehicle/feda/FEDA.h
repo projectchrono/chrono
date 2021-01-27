@@ -57,6 +57,8 @@ class CH_MODELS_API FEDA {
     void SetChassisFixed(bool val) { m_fixed = val; }
     void SetChassisCollisionType(CollisionType val) { m_chassisCollisionType = val; }
 
+    void SetBrakeType(BrakeType brake_type) { m_brake_type = brake_type; }
+
     void SetTireType(TireModelType val) { m_tireType = val; }
     void SetTireCollisionType(ChTire::CollisionType collType) { m_tire_collision_type = collType; }
     void SetTirePressureLevel(unsigned int pressure_level = 2) { m_tire_pressure_level = pressure_level; }
@@ -104,6 +106,7 @@ class CH_MODELS_API FEDA {
     bool m_fixed;
 
     TireModelType m_tireType;
+    BrakeType m_brake_type;
 
     double m_tire_step_size;
 

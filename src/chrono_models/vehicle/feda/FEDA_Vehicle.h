@@ -30,14 +30,6 @@
 #include "chrono_models/ChApiModels.h"
 #include "chrono_models/vehicle/ChVehicleModelDefs.h"
 
-#include "chrono_models/vehicle/feda/FEDA_BrakeSimple.h"
-#include "chrono_models/vehicle/feda/FEDA_Chassis.h"
-#include "chrono_models/vehicle/feda/FEDA_DoubleWishbone.h"
-#include "chrono_models/vehicle/feda/FEDA_AntirollBarRSD.h"
-#include "chrono_models/vehicle/feda/FEDA_Driveline4WD.h"
-#include "chrono_models/vehicle/feda/FEDA_PitmanArm.h"
-#include "chrono_models/vehicle/feda/FEDA_Wheel.h"
-
 namespace chrono {
 namespace vehicle {
 namespace feda {
@@ -49,6 +41,7 @@ namespace feda {
 class CH_MODELS_API FEDA_Vehicle : public ChWheeledVehicle {
   public:
     FEDA_Vehicle(const bool fixed = false,
+                 BrakeType brake_type = BrakeType::SIMPLE,
                  ChContactMethod contact_method = ChContactMethod::NSC,
                  CollisionType chassis_collision_type = CollisionType::NONE,
                  int ride_height = 1,
@@ -56,6 +49,7 @@ class CH_MODELS_API FEDA_Vehicle : public ChWheeledVehicle {
 
     FEDA_Vehicle(ChSystem* system,
                  const bool fixed = false,
+                 BrakeType brake_type = BrakeType::SIMPLE,
                  CollisionType chassis_collision_type = CollisionType::NONE,
                  int ride_height = 1,
                  int damperMode = 2);
@@ -90,7 +84,7 @@ class CH_MODELS_API FEDA_Vehicle : public ChWheeledVehicle {
     void DebugLog(int what);       /// shock forces and lengths, constraints, etc.
 
   private:
-    void Create(bool fixed, CollisionType chassis_collision_type);
+    void Create(bool fixed, BrakeType brake_type, CollisionType chassis_collision_type);
 
     std::vector<double> m_omega;
 

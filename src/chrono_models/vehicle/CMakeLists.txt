@@ -82,6 +82,8 @@ set(CVM_FEDA_FILES
     feda/FEDA_AntirollBarRSD.cpp
     feda/FEDA_BrakeSimple.cpp
     feda/FEDA_BrakeSimple.h
+    feda/FEDA_BrakeShafts.cpp
+    feda/FEDA_BrakeShafts.h
     feda/FEDA_Chassis.cpp
     feda/FEDA_Chassis.h
     feda/FEDA_DoubleWishbone.cpp

@@ -34,6 +34,7 @@ FEDA::FEDA()
       m_contactMethod(ChContactMethod::NSC),
       m_chassisCollisionType(CollisionType::NONE),
       m_fixed(false),
+      m_brake_type(BrakeType::SIMPLE),
       m_tireType(TireModelType::RIGID),
       m_tire_step_size(-1),
       m_initFwdVel(0),
@@ -51,6 +52,7 @@ FEDA::FEDA(ChSystem* system)
       m_contactMethod(ChContactMethod::NSC),
       m_chassisCollisionType(CollisionType::NONE),
       m_fixed(false),
+      m_brake_type(BrakeType::SIMPLE),
       m_tireType(TireModelType::RIGID),
       m_tire_step_size(-1),
       m_initFwdVel(0),
@@ -88,14 +90,15 @@ void FEDA::SetDamperMode(DamperMode theDamperMode) {
             break;
     }
 }
+
 // -----------------------------------------------------------------------------
 void FEDA::Initialize() {
     // Create and initialize the Sedan vehicle
     GetLog() << "FEDA::Initialize(): Damper Mode = " << m_damper_mode << "\n";
-    m_vehicle =
-        m_system
-            ? new FEDA_Vehicle(m_system, m_fixed, m_chassisCollisionType, m_ride_height_config, m_damper_mode)
-            : new FEDA_Vehicle(m_fixed, m_contactMethod, m_chassisCollisionType, m_ride_height_config, m_damper_mode);
+    m_vehicle = m_system ? new FEDA_Vehicle(m_system, m_fixed, m_brake_type, m_chassisCollisionType,
+                                            m_ride_height_config, m_damper_mode)
+                         : new FEDA_Vehicle(m_fixed, m_brake_type, m_contactMethod, m_chassisCollisionType,
+                                            m_ride_height_config, m_damper_mode);
 
     m_vehicle->SetInitWheelAngVel(m_initOmega);
     m_vehicle->Initialize(m_initPos, m_initFwdVel);
