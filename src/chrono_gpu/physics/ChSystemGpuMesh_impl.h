@@ -124,12 +124,6 @@ class ChSystemGpuMesh_impl : public ChSystemGpu_impl {
     /// Initialize trimeshes before starting simulation (typically called by initialize).
     void initializeTriangles();
 
-    /// Reset information used for triangle broadphase collision detection
-    void resetTriangleBroadphaseInformationDAN();
-
-    /// Reset computed forces and torques on each triangle family
-    void resetTriangleForces();
-
     /// Clean up data structures associated with triangle mesh
     void cleanupTriMesh();
 
