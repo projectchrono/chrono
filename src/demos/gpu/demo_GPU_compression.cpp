@@ -34,9 +34,9 @@ using namespace chrono;
 using namespace chrono::gpu;
 
 // unit conversion from cgs to si
-float F_CGS_TO_SI = 1e-5;
-float KE_CGS_TO_SI = 1e-7;
-float L_CGS_TO_SI = 1e-2;
+float F_CGS_TO_SI = 1e-5f;
+float KE_CGS_TO_SI = 1e-7f;
+float L_CGS_TO_SI = 1e-2f;
 
 int main(int argc, char* argv[]) {
     ChGpuSimulationParameters params;
@@ -55,7 +55,7 @@ int main(int argc, char* argv[]) {
     size_t cyl_id = gpu_sys.CreateBCCylinderZ(cyl_center, cyl_rad, false, true);
 
     // initialize sampler, set distance between center of spheres as 2.1r
-    utils::HCPSampler<float> sampler(2.1 * params.sphere_radius);
+    utils::HCPSampler<float> sampler(2.1f * params.sphere_radius);
     std::vector<ChVector<float>> initialPos;
 
     // randomize by layer
@@ -64,14 +64,14 @@ int main(int argc, char* argv[]) {
     while (center.z() + params.sphere_radius < params.box_Z / 2) {
         auto points = sampler.SampleCylinderZ(center, cyl_rad - params.sphere_radius, 0);
         initialPos.insert(initialPos.end(), points.begin(), points.end());
-        center.z() += 2.1 * params.sphere_radius;
+        center.z() += 2.1f * params.sphere_radius;
     }
 
-    int numSpheres = initialPos.size();
+    size_t numSpheres = initialPos.size();
 
     // create initial velocity vector
     std::vector<ChVector<float>> initialVelo;
-    for (int i = 0; i < numSpheres; i++) {
+    for (size_t i = 0; i < numSpheres; i++) {
         ChVector<float> velo(-initialPos.at(i).x() / cyl_rad, -initialPos.at(i).x() / cyl_rad, 0.0f);
         initialVelo.push_back(velo);
     }
@@ -152,7 +152,7 @@ int main(int argc, char* argv[]) {
     // top plate move downward with velocity 1cm/s
     topWall_vel = -1.0f;
     // i would like it to start from the top most sphere
-    topWall_offset = gpu_sys.GetMaxParticleZ() + params.sphere_radius - topWallPos[2];
+    topWall_offset = (float)gpu_sys.GetMaxParticleZ() + params.sphere_radius - topWallPos[2];
     topWall_moveTime = curr_time;
 
     // sphere settled now push the plate downward

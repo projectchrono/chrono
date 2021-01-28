@@ -30,7 +30,7 @@
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChSystemSMC.h"
 
-#include "chrono_models/robosimian/RoboSimian.h"
+#include "chrono_models/robot/robosimian/RoboSimian.h"
 
 namespace chrono {
 namespace robosimian {
@@ -1046,7 +1046,7 @@ void RS_Chassis::Translate(const ChVector<>& shift) {
 
 // =============================================================================
 
-RS_Sled::RS_Sled(const std::string& name, std::shared_ptr<ChMaterialSurface> mat, chrono::ChSystem* system)
+RS_Sled::RS_Sled(const std::string& name, std::shared_ptr<ChMaterialSurface> mat, ChSystem* system)
     : RS_Part(name, mat, system), m_collide(true) {
     double mass = 2.768775;
     ChVector<> com(0.000000, 0.000000, 0.146762);
@@ -1104,7 +1104,7 @@ void RS_Sled::Translate(const ChVector<>& shift) {
 RS_WheelDD::RS_WheelDD(const std::string& name,
                        int id,
                        std::shared_ptr<ChMaterialSurface> mat,
-                       chrono::ChSystem* system)
+                       ChSystem* system)
     : RS_Part(name, mat, system) {
     double mass = 3.492500;
     ChVector<> com(0, 0, 0);

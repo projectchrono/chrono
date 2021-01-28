@@ -25,8 +25,8 @@
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChSystemSMC.h"
 
-#include "chrono_models/robosimian/RoboSimian.h"
-#include "chrono_models/robosimian/RoboSimianIrrApp.h"
+#include "chrono_models/robot/robosimian/RoboSimian.h"
+#include "chrono_models/robot/robosimian/RoboSimianIrrApp.h"
 
 #include "chrono_thirdparty/filesystem/path.h"
 
