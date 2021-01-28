@@ -40,6 +40,15 @@ source_group("viper" FILES ${CRM_VIPER_FILES})
 
 #-----------------------------------------------------------------------------
 
+set(CRM_COPTERS_FILES
+    copters/copters.cpp
+    copters/copters.h
+)
+
+source_group("copters" FILES ${CRM_COPTERS_FILES})
+
+#-----------------------------------------------------------------------------
+
 set(CXX_FLAGS ${CH_CXX_FLAGS})
 set(LIBRARIES "ChronoEngine")
 
@@ -55,6 +64,7 @@ add_library(ChronoModels_robot SHARED
             ${CRM_COMMON_FILES}
             ${CRM_ROBOSIMIAN_FILES}
             ${CRM_VIPER_FILES}
+            ${CRM_COPTERS_FILES}
             )
 
 set_target_properties(ChronoModels_robot PROPERTIES
