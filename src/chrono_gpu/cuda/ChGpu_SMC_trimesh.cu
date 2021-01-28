@@ -43,8 +43,8 @@ __host__ void ChSystemGpuMesh_impl::runTriangleBroadphase() {
     Triangle_SDsCompositeOffsets.resize(numTriangles, 0);
 
     int nblocks = (numTriangles + CUDA_THREADS_PER_BLOCK - 1) / CUDA_THREADS_PER_BLOCK;
-    triangleSoup_CountSDsTouched<<<nblocks, CUDA_THREADS_PER_BLOCK>>>(meshSoup, Triangle_NumSDsTouching.data(),
-                                                                      gran_params, tri_params);
+    determineCountOfSDsTouchedByEachTriangle<<<nblocks, CUDA_THREADS_PER_BLOCK>>>(
+        meshSoup, Triangle_NumSDsTouching.data(), gran_params, tri_params);
 
     gpuErrchk(cudaDeviceSynchronize());
     gpuErrchk(cudaPeekAtLastError());
@@ -64,54 +64,53 @@ __host__ void ChSystemGpuMesh_impl::runTriangleBroadphase() {
     // Run exclusive prefix sum
     cub::DeviceScan::ExclusiveSum(d_scratch_space, temp_storage_bytes, in_ptr, out_ptr, numTriangles);
     gpuErrchk(cudaDeviceSynchronize());
-    unsigned num_entries = out_ptr[numTriangles - 1] + in_ptr[numTriangles - 1];
+    unsigned int numOfTriangleTouchingSD_instances; // total number of cases in which a triagnle touches an SD
+    numOfTriangleTouchingSD_instances = out_ptr[numTriangles - 1] + in_ptr[numTriangles - 1];
 
-    // for (unsigned int i = 0; i < Triangle_NumSDsTouching.size(); i++) {
-    //     printf("Triangle %u touches %u SDs, offset is %u\n", i, Triangle_NumSDsTouching[i],
-    //            Triangle_SDsCompositeOffsets[i]);
-    // }
-    // total number of sphere entries to record
-    // to be sorted
-    // produced by sort
-    std::vector<unsigned int, cudallocator<unsigned int>> Triangle_SDsComposite_SDs_out;
-    std::vector<unsigned int, cudallocator<unsigned int>> Triangle_SDsComposite_TriIDs_out;
+    // for each triangle, lists the collection of SDs that triangle touches; e.g., triangle 0 touches SDs 23, 32, 9,
+    // 199; triangle 0 touchs SDs 23, 33, 109; triangle 2 touches SDs 991; triangle 3 touches 43, 23, etc.
+    std::vector<unsigned int, cudallocator<unsigned int>> SDsTouchedByEachTriangle_composite_out;
+    // TriangleIDS_ByMultiplicity_out is mirroring the SDsTouchedByEachTriangle_composite_out vector. Its entries is the
+    // list of triangle IDs, with the right multiplicity. It's used for a sort by key operation needed to figure out
+    // what triangles are stored in each SD. Thus, for the example above, the entries would be 0,0,0,0,1,1,1,2,3,3,etc.
+    std::vector<unsigned int, cudallocator<unsigned int>> TriangleIDS_ByMultiplicity_out;
 
-    Triangle_SDsComposite_SDs_out.resize(num_entries, NULL_CHGPU_ID);
-    Triangle_SDsComposite_TriIDs_out.resize(num_entries, NULL_CHGPU_ID);
+    SDsTouchedByEachTriangle_composite_out.resize(numOfTriangleTouchingSD_instances, NULL_CHGPU_ID);
+    TriangleIDS_ByMultiplicity_out.resize(numOfTriangleTouchingSD_instances, NULL_CHGPU_ID);
 
     gpuErrchk(cudaDeviceSynchronize());
     gpuErrchk(cudaPeekAtLastError());
     // sort key-value where the key is SD id, value is triangle ID in composite array
     {
         // tmp values used for sort
-        std::vector<unsigned int, cudallocator<unsigned int>> Triangle_SDsComposite_SDs;
-        std::vector<unsigned int, cudallocator<unsigned int>> Triangle_SDsComposite_TriIDs;
-        Triangle_SDsComposite_SDs.resize(num_entries, NULL_CHGPU_ID);
-        Triangle_SDsComposite_TriIDs.resize(num_entries, NULL_CHGPU_ID);
+        std::vector<unsigned int, cudallocator<unsigned int>> SDsTouchedByEachTriangle_composite;
+        std::vector<unsigned int, cudallocator<unsigned int>> TriangleIDS_ByMultiplicity;
+        SDsTouchedByEachTriangle_composite.resize(numOfTriangleTouchingSD_instances, NULL_CHGPU_ID);
+        TriangleIDS_ByMultiplicity.resize(numOfTriangleTouchingSD_instances, NULL_CHGPU_ID);
 
         // printf("first run: num entries is %u, theoretical max is %u\n", num_entries, nSDs *
         // MAX_TRIANGLE_COUNT_PER_SD);
-        triangleSoup_StoreSDsTouched<<<nblocks, CUDA_THREADS_PER_BLOCK>>>(
+        storeSDsTouchedByEachTriangle<<<nblocks, CUDA_THREADS_PER_BLOCK>>>(
             meshSoup, Triangle_NumSDsTouching.data(), Triangle_SDsCompositeOffsets.data(),
-            Triangle_SDsComposite_SDs.data(), Triangle_SDsComposite_TriIDs.data(), gran_params, tri_params);
+            SDsTouchedByEachTriangle_composite.data(), TriangleIDS_ByMultiplicity.data(), gran_params, tri_params);
         gpuErrchk(cudaDeviceSynchronize());
 
-        unsigned int num_items = num_entries;
-        unsigned int* d_keys_in = Triangle_SDsComposite_SDs.data();
-        unsigned int* d_keys_out = Triangle_SDsComposite_SDs_out.data();
-        unsigned int* d_values_in = Triangle_SDsComposite_TriIDs.data();
-        unsigned int* d_values_out = Triangle_SDsComposite_TriIDs_out.data();
+        //unsigned int num_items = num_entries;
+        unsigned int* d_keys_in = SDsTouchedByEachTriangle_composite.data();
+        unsigned int* d_keys_out = SDsTouchedByEachTriangle_composite_out.data();
+        unsigned int* d_values_in = TriangleIDS_ByMultiplicity.data();
+        unsigned int* d_values_out = TriangleIDS_ByMultiplicity_out.data();
 
         // Run sorting operation
         // First, determine temporary device storage requirements; pass null, CUB tells us what it needs
-        cub::DeviceRadixSort::SortPairs(NULL, temp_storage_bytes, d_keys_in, d_keys_out, d_values_in,
-                                        d_values_out, num_items);
+        cub::DeviceRadixSort::SortPairs(NULL, temp_storage_bytes, d_keys_in, d_keys_out, d_values_in, d_values_out,
+                                        numOfTriangleTouchingSD_instances);
         gpuErrchk(cudaDeviceSynchronize());
 
         // get pointer to device memory; this memory block will be used internally by CUB
         void* d_scratch_space = (void*)stateOfSolver_resources.pDeviceMemoryScratchSpace(temp_storage_bytes);
         cub::DeviceRadixSort::SortPairs(d_scratch_space, temp_storage_bytes, d_keys_in, d_keys_out, d_values_in,
-                                        d_values_out, num_items);
+                                        d_values_out, numOfTriangleTouchingSD_instances);
         gpuErrchk(cudaDeviceSynchronize());
 
     }
@@ -130,9 +129,9 @@ __host__ void ChSystemGpuMesh_impl::runTriangleBroadphase() {
     SD_numTrianglesTouching_tmp.resize(nSDs, 0);
 
     // if there are triangle-sd contacts, sweep through them, otherwise just move on
-    if (Triangle_SDsComposite_SDs_out.size() > 0) {
+    if (SDsTouchedByEachTriangle_composite_out.size() > 0) {
         // get first active SD
-        unsigned int prev_SD = Triangle_SDsComposite_SDs_out.at(0);
+        unsigned int prev_SD = SDsTouchedByEachTriangle_composite_out.at(0);
         // first SD has offset 0
         SD_TriangleCompositeOffsets.at(prev_SD) = 0;
         // number of triangles in current SD
@@ -143,8 +142,8 @@ __host__ void ChSystemGpuMesh_impl::runTriangleBroadphase() {
         // simultaneously do a prefix scan and a store, but on host
         // TODO optimize and test
         // TODO can we do this with a weird prefix scan operation?
-        for (unsigned int i = 0; i < Triangle_SDsComposite_SDs_out.size(); i++) {
-            unsigned int curr_SD = Triangle_SDsComposite_SDs_out.at(i);
+        for (unsigned int i = 0; i < SDsTouchedByEachTriangle_composite_out.size(); i++) {
+            unsigned int curr_SD = SDsTouchedByEachTriangle_composite_out.at(i);
             // this is the start of a new SD
             if (prev_SD != curr_SD) {
                 // printf("change! SD %u has curr count %u, offset %u, prev is %u\n",curr_count, curr_offset,  );
@@ -181,23 +180,33 @@ __host__ void ChSystemGpuMesh_impl::runTriangleBroadphase() {
     //            Triangle_SDsComposite_TriIDs_out[i]);
     // }
 
-    triangles_in_SD_composite.resize(Triangle_SDsComposite_TriIDs_out.size());
+    triangles_in_SD_composite.resize(TriangleIDS_ByMultiplicity_out.size());
 
     // copy the composite data to the primary location
-    gpuErrchk(cudaMemcpy(triangles_in_SD_composite.data(), Triangle_SDsComposite_TriIDs_out.data(),
-                         Triangle_SDsComposite_TriIDs_out.size() * sizeof(unsigned int), cudaMemcpyDeviceToDevice));
+    gpuErrchk(cudaMemcpy(triangles_in_SD_composite.data(), TriangleIDS_ByMultiplicity_out.data(),
+                         TriangleIDS_ByMultiplicity_out.size() * sizeof(unsigned int), cudaMemcpyDeviceToDevice));
 }
 
-template <unsigned int N_CUDATHREADS>
-__global__ void interactionTerrain_TriangleSoup(
-    ChSystemGpuMesh_impl::TriangleSoupPtr d_triangleSoup,  //!< Contains information about triangle soup (in device mem.)
-    ChSystemGpu_impl::GranSphereDataPtr sphere_data,
-    unsigned int* triangles_in_SD_composite,    //!< Big array that works in conjunction with SD_numTrianglesTouching.
-    unsigned int* SD_numTrianglesTouching,      //!< number of triangles touching this SD
-    unsigned int* SD_TriangleCompositeOffsets,  //!< offset of triangles in the composite array for each SD
-    ChSystemGpu_impl::GranParamsPtr gran_params,
-    ChSystemGpuMesh_impl::MeshParamsPtr mesh_params,
-    unsigned int triangleFamilyHistmapOffset) {
+/// <summary>
+/// Kernel accounts for the interaction between the granular material and the triangles making up the triangle soup
+/// </summary>
+/// <param name="d_triangleSoup">- information about triangle soup (in device mem.)</param>
+/// <param name="sphere_data">- data structure containing pointers to granular-material related info</param>
+/// <param name="triangles_in_SD_composite">- array saying which triangles touch an SD; has information for each SD</param>
+/// <param name="SD_numTrianglesTouching">- number of triangles touching each SD</param>
+/// <param name="SD_TriangleCompositeOffsets">- offsets in the composite array for each SD; where each SD starts storing its triangles</param>
+/// <param name="gran_params">- parameters associated with the granular material</param>
+/// <param name="mesh_params">- parameters associated with the triangle soup</param>
+/// <param name="triangleFamilyHistmapOffset">- offset in the array of friction history (?)</param>
+/// <returns></returns>
+__global__ void interactionGranMat_TriangleSoup(ChSystemGpuMesh_impl::TriangleSoupPtr d_triangleSoup,
+                                                ChSystemGpu_impl::GranSphereDataPtr sphere_data,
+                                                unsigned int* triangles_in_SD_composite,
+                                                unsigned int* SD_numTrianglesTouching,
+                                                unsigned int* SD_TriangleCompositeOffsets,
+                                                ChSystemGpu_impl::GranParamsPtr gran_params,
+                                                ChSystemGpuMesh_impl::MeshParamsPtr mesh_params,
+                                                unsigned int triangleFamilyHistmapOffset) {
     __shared__ unsigned int triangleIDs[MAX_TRIANGLE_COUNT_PER_SD];  //!< global ID of the triangles touching this SD
 
     __shared__ int3 sphere_pos_local[MAX_COUNT_OF_SPHERES_PER_SD];  //!< local coordinate of the sphere
@@ -501,7 +510,7 @@ __host__ double ChSystemGpuMesh_impl::AdvanceSimulation(float duration) {
             unsigned int triangleFamilyHistmapOffset =
                 gran_params->nSpheres + 1 + (unsigned int)BC_params_list_SU.size() + 1;
             // compute sphere-triangle forces
-            interactionTerrain_TriangleSoup<CUDA_THREADS_PER_BLOCK><<<nSDs, MAX_COUNT_OF_SPHERES_PER_SD>>>(
+            interactionGranMat_TriangleSoup<<<nSDs, MAX_COUNT_OF_SPHERES_PER_SD>>>(
                 meshSoup, sphere_data, triangles_in_SD_composite.data(), SD_numTrianglesTouching.data(),
                 SD_TriangleCompositeOffsets.data(), gran_params, tri_params, triangleFamilyHistmapOffset);
         }

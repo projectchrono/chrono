@@ -179,7 +179,7 @@ class ChSystemGpuMesh_impl : public ChSystemGpu_impl {
     std::vector<unsigned int, cudallocator<unsigned int>> triangles_in_SD_composite;
 
     /// Number of triangles touching each subdomain
-    std::vector<unsigned int, cudallocator<unsigned int>> SD_numTrianglesTouching;
+    std::vector<unsigned int, cudallocator<unsigned int>> SD_numTrianglesTouching; // DAN
 
     /// Big array of triangle offsets for each subdomain
     std::vector<unsigned int, cudallocator<unsigned int>> SD_TriangleCompositeOffsets;
