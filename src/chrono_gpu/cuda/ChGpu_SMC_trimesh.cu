@@ -19,19 +19,6 @@
 namespace chrono {
 namespace gpu {
 
-void ChSystemGpuMesh_impl::resetTriangleForces() {
-    gpuErrchk(cudaMemset(meshSoup->generalizedForcesPerFamily, 0, 6 * meshSoup->numTriangleFamilies * sizeof(float)));
-}
-
-// Reset triangle broadphase data structures
-void ChSystemGpuMesh_impl::resetTriangleBroadphaseInformation() {
-    gpuErrchk(cudaMemset(SD_numTrianglesTouching.data(), 0, SD_numTrianglesTouching.size() * sizeof(unsigned int)));
-    gpuErrchk(cudaMemset(SD_TriangleCompositeOffsets.data(), NULL_CHGPU_ID,
-                         SD_TriangleCompositeOffsets.size() * sizeof(unsigned int)));
-    gpuErrchk(cudaMemset(triangles_in_SD_composite.data(), NULL_CHGPU_ID,
-                         triangles_in_SD_composite.size() * sizeof(unsigned int)));
-}
-
 __host__ void ChSystemGpuMesh_impl::runTriangleBroadphase() {
     METRICS_PRINTF("Resetting broadphase info!\n");
 
@@ -165,21 +152,6 @@ __host__ void ChSystemGpuMesh_impl::runTriangleBroadphase() {
         SD_numTrianglesTouching.at(prev_SD) = curr_count;
     }
 
-    // for (unsigned int i = 0; i < SD_numTrianglesTouching.size(); i++) {
-    //     printf("tri count index %u is usual %u, other %u\n", i, SD_numTrianglesTouching[i],
-    //            SD_numTrianglesTouching_tmp[i]);
-    // }
-    //
-    // for (unsigned int i = 0; i < SD_TriangleCompositeOffsets.size(); i++) {
-    //     printf("offset index %u is usual %u, other %u\n", i, SD_TriangleCompositeOffsets[i],
-    //            SD_TriangleCompositeOffsets_tmp[i]);
-    // }
-    //
-    // for (unsigned int i = 0; i < triangles_in_SD_composite.size(); i++) {
-    //     printf("composite index %u is usual %u, other %u\n", i, triangles_in_SD_composite[i],
-    //            Triangle_SDsComposite_TriIDs_out[i]);
-    // }
-
     triangles_in_SD_composite.resize(TriangleIDS_ByMultiplicity_out.size());
 
     // copy the composite data to the primary location
@@ -201,9 +173,9 @@ __host__ void ChSystemGpuMesh_impl::runTriangleBroadphase() {
 /// <returns></returns>
 __global__ void interactionGranMat_TriangleSoup(ChSystemGpuMesh_impl::TriangleSoupPtr d_triangleSoup,
                                                 ChSystemGpu_impl::GranSphereDataPtr sphere_data,
-                                                unsigned int* triangles_in_SD_composite,
-                                                unsigned int* SD_numTrianglesTouching,
-                                                unsigned int* SD_TriangleCompositeOffsets,
+                                                const unsigned int* triangles_in_SD_composite,
+                                                const unsigned int* SD_numTrianglesTouching,
+                                                const unsigned int* SD_TriangleCompositeOffsets,
                                                 ChSystemGpu_impl::GranParamsPtr gran_params,
                                                 ChSystemGpuMesh_impl::MeshParamsPtr mesh_params,
                                                 unsigned int triangleFamilyHistmapOffset) {
@@ -465,19 +437,17 @@ __host__ double ChSystemGpuMesh_impl::AdvanceSimulation(float duration) {
 
     METRICS_PRINTF("Starting Main Simulation loop!\n");
 
-    float time_elapsed_SU = 0;  // time elapsed in this call (SU)
-    // Run the simulation, there are aggressive synchronizations because we want to have no race conditions
+    float time_elapsed_SU = 0.f;  // time elapsed in this call (SU)
+    // Run simulation loop; there are multiple synchronization points owing to the use of managed memory
     for (; time_elapsed_SU < stepSize_SU * nsteps; time_elapsed_SU += stepSize_SU) {
         updateBCPositions();
         resetSphereAccelerations();
         resetBCForces();
         if (meshSoup->nTrianglesInSoup != 0 && mesh_collision_enabled) {
-            resetTriangleForces();
-            resetTriangleBroadphaseInformation();
+            // reset forces on triangles
+            gpuErrchk(
+                cudaMemset(meshSoup->generalizedForcesPerFamily, 0, 6 * meshSoup->numTriangleFamilies * sizeof(float)));
         }
-
-        gpuErrchk(cudaPeekAtLastError());
-        gpuErrchk(cudaDeviceSynchronize());
 
         METRICS_PRINTF("Starting computeSphereForces!\n");
 

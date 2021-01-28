@@ -125,7 +125,7 @@ class ChSystemGpuMesh_impl : public ChSystemGpu_impl {
     void initializeTriangles();
 
     /// Reset information used for triangle broadphase collision detection
-    void resetTriangleBroadphaseInformation();
+    void resetTriangleBroadphaseInformationDAN();
 
     /// Reset computed forces and torques on each triangle family
     void resetTriangleForces();
@@ -175,13 +175,14 @@ class ChSystemGpuMesh_impl : public ChSystemGpu_impl {
     /// Enable or disable collision between spheres and meshes
     bool mesh_collision_enabled = true;
 
-    /// Number of triangles touching each subdomain
+    /// stores list of triangles touching each SD; goes SD by SD; size can change during simulation
     std::vector<unsigned int, cudallocator<unsigned int>> triangles_in_SD_composite;
 
-    /// Number of triangles touching each subdomain
-    std::vector<unsigned int, cudallocator<unsigned int>> SD_numTrianglesTouching; // DAN
+    /// the count of triangles touching each SD; size of vector should be # of SDs
+    std::vector<unsigned int, cudallocator<unsigned int>> SD_numTrianglesTouching; 
 
-    /// Big array of triangle offsets for each subdomain
+    /// offsets in the composite array for each SD; i.e., offset where each SD starts storing its triangles.
+    /// Size of vector should be # of SDs.
     std::vector<unsigned int, cudallocator<unsigned int>> SD_TriangleCompositeOffsets;
 
   public:
