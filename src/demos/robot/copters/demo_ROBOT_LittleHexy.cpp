@@ -27,7 +27,7 @@
 #include "chrono/assets/ChBarrelShape.h"
 #include "chrono_irrlicht/ChIrrApp.h"
 #include "chrono/physics/ChForce.h"
-#include "chrono_models/robot/copters/copters.h"
+#include "chrono_models/robot/copters/Little_Hexy.h"
 
 // Use the namespaces of Chrono
 using namespace chrono;
@@ -127,7 +127,7 @@ int main(int argc, char* argv[]) {
 
     // create text with info
     IGUIStaticText* textFPS = application.GetIGUIEnvironment()->addStaticText(
-        L"Use keys Q,W, A,Z, E,R to move the robot", rect<s32>(150, 10, 430, 40), true);
+        L"Keys: NUMPAD 8 up; NUMPAD 2 down; A Roll Left; D Roll Right; A Roll Left; W Pitch Down; S Pitch Up; NUMPAD 4 Yaw_Left; NUMPAD 6 Yaw_Right", rect<s32>(150, 10, 430, 40), true);
 
     // Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
     ChIrrWizard::add_typical_Logo(application.GetDevice());
@@ -188,10 +188,10 @@ int main(int argc, char* argv[]) {
 
     application.SetTimestep(0.005);
     application.SetTryRealtime(true);
-    double control[] = {.4, .4, .4, .4, .4, .4};
+    double control[] = {.6, .6, .6, .6, .6, .6};
     myhexy.ControlAbsolute(control);
     while (application.GetDevice()->run()) {
-        auto pos = myhexy.GetChassis()->GetPos();
+        ChVector<float> pos = myhexy.GetChassis()->GetPos();
         core::vector3df ipos(pos.x(), pos.y(), pos.z());
         core::vector3df offset(1,-1,1);
         camera->setPosition(ipos + offset);

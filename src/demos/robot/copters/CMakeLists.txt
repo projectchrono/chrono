@@ -41,7 +41,6 @@ foreach(PROGRAM ${DEMOS})
 
     target_link_libraries(${PROGRAM}
                           ChronoEngine
-                          ChronoEngine_vehicle
                           ChronoModels_robot
                           ChronoEngine_irrlicht
                         )
