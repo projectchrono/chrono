@@ -17,6 +17,7 @@
 #include "chrono_models/vehicle/hmmwv/HMMWV_RigidTire.h"
 //#include "chrono_models/vehicle/hmmwv/HMMWV_ReissnerTire.h"
 #include "chrono_models/vehicle/hmmwv/HMMWV_Pac89Tire.h"
+#include "chrono_models/vehicle/hmmwv/HMMWV_Pac02Tire.h"
 #include "chrono_models/vehicle/hmmwv/HMMWV_PacejkaTire.h"
 #include "chrono_models/vehicle/hmmwv/HMMWV_LugreTire.h"
 #include "chrono_models/vehicle/hmmwv/HMMWV_FialaTire.h"
@@ -38,9 +39,10 @@
 #include "chrono_models/vehicle/gator/Gator_TMeasyTire.h"
 
 #include "chrono_models/vehicle/rccar/RCCar_RigidTire.h"
+
+#include "chrono_models/vehicle/feda/FEDA_Pac02Tire.h"
+#include "chrono_models/vehicle/feda/FEDA_RigidTire.h"
 %}
-
-
 
 %import "chrono_python/vehicle/ChTire.i"
 
@@ -50,6 +52,7 @@
 %shared_ptr(chrono::vehicle::hmmwv::HMMWV_RigidTire)
 //%shared_ptr(chrono::vehicle::hmmwv::HMMWV_ReissnerTire)
 %shared_ptr(chrono::vehicle::hmmwv::HMMWV_Pac89Tire)
+%shared_ptr(chrono::vehicle::hmmwv::HMMWV_Pac02Tire)
 %shared_ptr(chrono::vehicle::hmmwv::HMMWV_PacejkaTire)
 %shared_ptr(chrono::vehicle::hmmwv::HMMWV_LugreTire)
 %shared_ptr(chrono::vehicle::hmmwv::HMMWV_FialaTire)
@@ -68,6 +71,8 @@
 %shared_ptr(chrono::vehicle::gator::Gator_TMeasyTire_Front)
 %shared_ptr(chrono::vehicle::gator::Gator_TMeasyTire_Rear)
 %shared_ptr(chrono::vehicle::rccar::RCCar_RigidTire)
+%shared_ptr(chrono::vehicle::feda::FEDA_Pac02Tire)
+%shared_ptr(chrono::vehicle::feda::FEDA_RigidTire)
 
 // Model:
 
@@ -78,6 +83,7 @@
 %include "../../chrono_models/vehicle/hmmwv/HMMWV_RigidTire.h"
 //%include "../../chrono_models/vehicle/hmmwv/HMMWV_ReissnerTire.h"
 %include "../../chrono_models/vehicle/hmmwv/HMMWV_Pac89Tire.h"
+%include "../../chrono_models/vehicle/hmmwv/HMMWV_Pac02Tire.h"
 %include "../../chrono_models/vehicle/hmmwv/HMMWV_PacejkaTire.h"
 %include "../../chrono_models/vehicle/hmmwv/HMMWV_LugreTire.h"
 %include "../../chrono_models/vehicle/hmmwv/HMMWV_FialaTire.h"
@@ -99,3 +105,6 @@
 %include "../../chrono_models/vehicle/gator/Gator_TMeasyTire.h"
 
 %include "../../chrono_models/vehicle/rccar/RCCar_RigidTire.h"
+
+%include "../../chrono_models/vehicle/feda/FEDA_Pac02Tire.h"
+%include "../../chrono_models/vehicle/feda/FEDA_RigidTire.h"
