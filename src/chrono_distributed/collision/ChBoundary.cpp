@@ -122,6 +122,9 @@ void ChBoundary::OnCustomCollision(ChSystem* system) {
                     CheckBox(model.get(), shape->GetMaterial(), frame_abs, ChVector<>(shape->B.x, shape->B.y, shape->B.z));
                     break;
                 }
+                default:
+                    // not supported
+                    break;
             }
         }
     }

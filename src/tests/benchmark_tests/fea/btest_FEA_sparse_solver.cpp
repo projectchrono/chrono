@@ -228,7 +228,7 @@ BM_SOLVER_QR(QR_learner_8000, 8000, true)
 BM_SOLVER_QR(QR_no_learner_8000, 8000, false)
 
 int main(int argc, char* argv[]) {
-    utils::ForceBenchmarkTabularOutput(&argc, &argv);
+    utils::AddComandLineArgument(&argc, &argv, "--benchmark_counters_tabular");
     ::benchmark::Initialize(&argc, argv);
     ::benchmark::RunSpecifiedBenchmarks();
 }

@@ -43,8 +43,12 @@ class RS_IEventReceiver : public irr::IEventReceiver {
                     m_app->AssetUpdateAll();
 
                     return true;
+
+                default:
+                    return false;
             }
         }
+
         return false;
     }
 
