@@ -130,6 +130,7 @@ class SYN_API SynDDSCommunicator : public SynCommunicator {
     ///@param callback The callback called when data is received
     ///@param message The message that is used to parse the returned message
     ///@param is_synchronous Whether the subscriber synchronously receives data (default: true)
+    ///@param is_managed Whether the SynDDSCommunicator is responsible for using the sending/receiving function calls
     std::shared_ptr<SynDDSSubscriber> CreateSubscriber(std::shared_ptr<SynDDSTopic> topic,
                                                        std::function<void(void*)> callback,
                                                        void* message,
@@ -145,6 +146,7 @@ class SYN_API SynDDSCommunicator : public SynCommunicator {
     ///@param callback The callback called when data is received
     ///@param message The message that is used to parse the returned message
     ///@param is_synchronous Whether the subscriber synchronously receives data (default: true)
+    ///@param is_managed Whether the SynDDSCommunicator is responsible for using the sending/receiving function calls
     std::shared_ptr<SynDDSSubscriber> CreateSubscriber(const std::string& topic_name,
                                                        eprosima::fastdds::dds::TopicDataType* data_type,
                                                        std::function<void(void*)> callback,
@@ -157,6 +159,7 @@ class SYN_API SynDDSCommunicator : public SynCommunicator {
     /// Takes a SynDDSTopic object (see CreateTopic)
     ///
     ///@param topic Topic object describing the DDS topic
+    ///@param is_managed Whether the SynDDSCommunicator is responsible for using the sending/receiving function calls
     std::shared_ptr<SynDDSPublisher> CreatePublisher(std::shared_ptr<SynDDSTopic> topic, bool is_managed = false);
 
     ///@brief Create a Publisher
@@ -165,6 +168,7 @@ class SYN_API SynDDSCommunicator : public SynCommunicator {
     ///
     ///@param topic_name The name associated with the topic
     ///@param data_type The topic data type
+    ///@param is_managed Whether the SynDDSCommunicator is responsible for using the sending/receiving function calls
     std::shared_ptr<SynDDSPublisher> CreatePublisher(const std::string& topic_name,
                                                      eprosima::fastdds::dds::TopicDataType* data_type,
                                                      bool is_managed = false);

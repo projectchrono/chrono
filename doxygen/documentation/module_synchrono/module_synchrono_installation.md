@@ -3,7 +3,7 @@ Install the SYNCHRONO module   {#module_synchrono_installation}
 
 [TOC]
 
-This is an optional module that enables the paralellization of Chrono::Vehicle simulation across MPI computing ranks.
+This is an optional module that enables the parallelization of Chrono::Vehicle simulation across different computing entities.
 
 Read [the introduction to modules](modularity.html) for a technical
 background on the modularity of the Chrono project.
@@ -11,7 +11,7 @@ background on the modularity of the Chrono project.
 
 ## Features
 
-The **SynChrono module** allows users to paralellize the dynamics computations for Chrono::Vehicles across MPI ranks
+The **SynChrono module** allows users to parallelize the dynamics computations for Chrono::Vehicles across MPI or DDS entities.
 
 
 ## Required Dependencies

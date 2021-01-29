@@ -65,7 +65,7 @@ SynDDSCommunicator::SynDDSCommunicator(const std::string& name) {
     CreateParticipant(qos);
 }
 
-SynDDSCommunicator::SynDDSCommunicator(DomainParticipantQos& qos) {
+SynDDSCommunicator::SynDDSCommunicator(eprosima::fastdds::dds::DomainParticipantQos& qos) {
     CreateParticipant(qos);
 }
 
