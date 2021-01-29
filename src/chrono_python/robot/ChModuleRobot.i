@@ -66,7 +66,7 @@
 #include "chrono_models/ChApiModels.h"
 #include "chrono_models/robot/robosimian/RoboSimian.h"
 #include "chrono_models/robot/viper/Viper.h"
-#include "chrono_models/robot/copters/ChCopter.h"
+#include "chrono_models/robot/copters/Copter.h"
 #include "chrono_models/robot/copters/Little_Hexy.h"
 
 using namespace chrono;
@@ -210,9 +210,9 @@ using namespace chrono::copter;
 %include "../chrono_models/robot/robosimian/RoboSimian.h"
 %include "../chrono_models/robot/viper/Viper.h"
 
-%include "../chrono_models/robot/copters/ChCopter.h"
-%template(ChCopter6) chrono::copter::ChCopter<6>;
-%template(ChCopter4) chrono::copter::ChCopter<4>;
+%include "../chrono_models/robot/copters/Copter.h"
+%template(ChCopter6) chrono::copter::Copter<6>;
+%template(ChCopter4) chrono::copter::Copter<4>;
 %include "../chrono_models/robot/copters/Little_Hexy.h"
 
 

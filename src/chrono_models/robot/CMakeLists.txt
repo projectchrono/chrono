@@ -41,7 +41,7 @@ source_group("viper" FILES ${CRM_VIPER_FILES})
 #-----------------------------------------------------------------------------
 
 set(CRM_COPTERS_FILES
-    copters/ChCopter.h
+    copters/Copter.h
     copters/Little_Hexy.h
     copters/Little_Hexy.cpp
 )

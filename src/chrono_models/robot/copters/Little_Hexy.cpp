@@ -16,29 +16,31 @@
 //
 // =============================================================================
 
-#include "chrono_models/robot/copters/Little_Hexy.h"
-#include "chrono/assets/ChTriangleMeshShape.h"
+#include <cmath>
 
-// Use the namespaces of Chrono
+#include "chrono_models/robot/copters/Little_Hexy.h"
+
 namespace chrono {
 namespace copter {
 
-Little_Hexy::Little_Hexy(ChSystem& sys, ChVector<> cpos) : ChCopter<6>(sys, cpos, getPosVect(), spins, true, true) {
+static const bool spins[6] = {false, true, false, true, false, true};
+
+Little_Hexy::Little_Hexy(ChSystem& sys, ChVector<> cpos) : Copter<6>(sys, cpos, getPosVect(), spins, true, true) {
     chassis->SetMass(13.83457);
     chassis->SetInertiaXX(ChVector<>(1.264, 1.277, 1.541));
-	this->SetPropellersData(0.126,                                     /// Propeller mass
-                            ChVector<>(0.004739, 0.004739, 0.004739),  /// Propeller Inertia
-                            0.6718,                                    /// Propeller Diameter [m]
-                            0.0587,                                    /// Propeller Thrust Coefficient
-                            0.018734,                                  /// Propeller Power Coefficient
-                            4468);                                     /// Propeller max RPM
+    this->SetPropellerData(0.126,                                     // Propeller mass
+                           ChVector<>(0.004739, 0.004739, 0.004739),  // Propeller Inertia
+                           0.6718,                                    // Propeller Diameter [m]
+                           0.0587,                                    // Propeller Thrust Coefficient
+                           0.018734,                                  // Propeller Power Coefficient
+                           4468);                                     // Propeller max RPM
 }
 
 // Add visualization shapes
 void Little_Hexy::AddVisualizationAssets() {
     ChFrame<> nulldisp(VNULL, QUNIT);
-    ChCopter::AddVisualizationAssets(GetChronoDataFile(chassis_mesh_path), GetChronoDataFile(propeller_mesh_path),
-                                     nulldisp, nulldisp);
+    Copter::AddVisualizationAssets(GetChronoDataFile(chassis_mesh_path), GetChronoDataFile(propeller_mesh_path),
+                                   nulldisp, nulldisp);
 }
 
 // Add collision shapes
@@ -75,13 +77,13 @@ void Little_Hexy::Roll_Right(double delta) {
 }
 
 void Little_Hexy::Roll_Left(double delta) {
-	// Right Motors UP
+    // Right Motors UP
     double commands[6] = {delta, delta, delta, 0, 0, 0};
     this->ControlIncremental(commands);
 }
 
 void Little_Hexy::Yaw_Right(double delta) {
-	// CCW motors UP
+    // CCW motors UP
     double commands[6] = {delta, 0, delta, 0, delta, 0};  // {false, true, false, true, false, true}
     this->ControlIncremental(commands);
 }
@@ -101,12 +103,13 @@ void Little_Hexy::Throttle(double delta) {
 std::vector<ChVector<>> Little_Hexy::getPosVect() {
     std::vector<ChVector<>> ppos;
     for (int i = 0; i < 6; i++) {
-        double ang = CH_C_PI * (double(i) / 3) + CH_C_PI / 6;
+        double ang = CH_C_PI * (i / 3.0) + CH_C_PI / 6;
         double R = 0.762;
         ChVector<> pos(std::cos(ang) * R, std::sin(ang) * R, 0.279);
         ppos.push_back(pos);
-    };
+    }
     return ppos;
 }
-} // namespace copters
-} // namespace chrono
+
+}  // namespace copter
+}  // namespace chrono

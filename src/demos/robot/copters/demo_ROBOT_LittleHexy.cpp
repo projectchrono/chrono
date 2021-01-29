@@ -9,24 +9,17 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Alessandro Tasora
+// Authors: Simone Benatti
 // =============================================================================
 //
-// Demo code about
-// - collisions and contacts
-// - using the 'barrel' shape to create rollers for building omnidirectional
-//   wheels in a mobile robot.
+// Demo of the hexicopter UAV
 //
 // =============================================================================
 
-#include "chrono/core/ChRealtimeStep.h"
-#include "chrono/physics/ChLinkMotorRotationSpeed.h"
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/utils/ChUtilsGeometry.h"
-#include "chrono/assets/ChBarrelShape.h"
 #include "chrono_irrlicht/ChIrrApp.h"
-#include "chrono/physics/ChForce.h"
 #include "chrono_models/robot/copters/Little_Hexy.h"
 
 // Use the namespaces of Chrono
@@ -127,23 +120,23 @@ int main(int argc, char* argv[]) {
 
     // create text with info
     IGUIStaticText* textFPS = application.GetIGUIEnvironment()->addStaticText(
-        L"Keys: NUMPAD 8 up; NUMPAD 2 down; A Roll Left; D Roll Right; A Roll Left; W Pitch Down; S Pitch Up; NUMPAD 4 Yaw_Left; NUMPAD 6 Yaw_Right", rect<s32>(150, 10, 430, 40), true);
+        L"Keys: NUMPAD 8 up; NUMPAD 2 down; A Roll Left; D Roll Right; A Roll Left; W Pitch Down; S Pitch Up; NUMPAD 4 "
+        L"Yaw_Left; NUMPAD 6 Yaw_Right",
+        rect<s32>(150, 10, 430, 40), true);
 
     // Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
     ChIrrWizard::add_typical_Logo(application.GetDevice());
     ChIrrWizard::add_typical_Sky(application.GetDevice());
     ChIrrWizard::add_typical_Lights(application.GetDevice());
-    
-	RTSCamera* camera =
-     new RTSCamera(application.GetDevice(), application.GetDevice()->getSceneManager()->getRootSceneNode(),
-                                      application.GetDevice()->getSceneManager(),
-                                      -1, -160.0f, 1.0f, 0.003f);
+
+    RTSCamera* camera =
+        new RTSCamera(application.GetDevice(), application.GetDevice()->getSceneManager()->getRootSceneNode(),
+                      application.GetDevice()->getSceneManager(), -1, -160.0f, 1.0f, 0.003f);
 
     // camera->bindTargetAndRotation(true);
-    
+
     camera->setPosition(core::vector3df(5, 5, 2));
     camera->setTarget(core::vector3df(0, 0, 0));
-    
 
     // This is for GUI tweaking of system parameters..
     MyEventReceiver receiver(&application, &myhexy);
@@ -169,7 +162,6 @@ int main(int argc, char* argv[]) {
 
     ground->AddAsset(mtexture);
 
-
     // Use this function for adding a ChIrrNodeAsset to all already created items.
     // Otherwise use application.AssetBind(myitem); on a per-item basis.
     application.AssetBindAll();
@@ -182,9 +174,7 @@ int main(int argc, char* argv[]) {
     mphysicalSystem.SetSolverType(ChSolver::Type::PSOR);
     mphysicalSystem.SetSolverMaxIterations(30);
 
-    //
-    // THE SOFT-REAL-TIME CYCLE
-    //
+    // Simulation loop
 
     application.SetTimestep(0.005);
     application.SetTryRealtime(true);
@@ -193,7 +183,7 @@ int main(int argc, char* argv[]) {
     while (application.GetDevice()->run()) {
         ChVector<float> pos = myhexy.GetChassis()->GetPos();
         core::vector3df ipos(pos.x(), pos.y(), pos.z());
-        core::vector3df offset(1,-1,1);
+        core::vector3df offset(1, -1, 1);
         camera->setPosition(ipos + offset);
         camera->setTarget(ipos);
         camera->setUpVector(core::vector3df(0, 0, 1));
