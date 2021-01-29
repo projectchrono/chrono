@@ -822,6 +822,9 @@ void RS_Driver::Update(double time) {
         case STOP:
             //// TODO
             break;
+
+        default:
+            break;
     }
 
     // Interpolate  v = alpha_1 * v_1 + alpha_2 * v_2
