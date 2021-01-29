@@ -32,7 +32,7 @@
 // Use the namespaces of Chrono
 using namespace chrono;
 using namespace chrono::irrlicht;
-using namespace chrono::copters;
+using namespace chrono::copter;
 
 // Use the main namespaces of Irrlicht
 using namespace irr;

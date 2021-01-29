@@ -28,7 +28,7 @@
 
 namespace chrono {
 /// Namespace with classes for the Copters model.
-namespace copters {
+namespace copter {
 
 // ChCopter is a base class for any copter, template parameter nop is the number of propellers.
 // Propellers position, data, rotation verse, vertical axis and all mass porperties are settable

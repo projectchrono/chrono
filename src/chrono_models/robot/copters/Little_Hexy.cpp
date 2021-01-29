@@ -21,7 +21,7 @@
 
 // Use the namespaces of Chrono
 namespace chrono {
-namespace copters {
+namespace copter {
 
 Little_Hexy::Little_Hexy(ChSystem& sys, ChVector<> cpos) : ChCopter<6>(sys, cpos, getPosVect(), spins, true, true) {
     chassis->SetMass(13.83457);

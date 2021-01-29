@@ -72,7 +72,7 @@
 using namespace chrono;
 using namespace chrono::robosimian;
 using namespace chrono::viper;
-using namespace chrono::copters;
+using namespace chrono::copter;
 
 %}
 
@@ -211,8 +211,8 @@ using namespace chrono::copters;
 %include "../chrono_models/robot/viper/Viper.h"
 
 %include "../chrono_models/robot/copters/ChCopter.h"
-%template(ChCopter6) chrono::copters::ChCopter<6>;
-%template(ChCopter4) chrono::copters::ChCopter<4>;
+%template(ChCopter6) chrono::copter::ChCopter<6>;
+%template(ChCopter4) chrono::copter::ChCopter<4>;
 %include "../chrono_models/robot/copters/Little_Hexy.h"
 
 

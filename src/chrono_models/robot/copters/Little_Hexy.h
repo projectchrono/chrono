@@ -28,7 +28,10 @@
 
 namespace chrono {
 /// Namespace with classes for the Copters model.
-namespace copters {
+namespace copter {
+
+/// @addtogroup robot_models_copter
+/// @{
 
 static const bool spins[6] = {false, true, false, true, false, true};
 // Little hexy (hexacopter) model
@@ -70,6 +73,8 @@ class CH_MODELS_API Little_Hexy : public ChCopter<6> {
     std::string propeller_mesh_path = "copters/prop.obj";
     
 };
+
+/// @} robot_models_copter
 }
 }  // namespace chrono
 
