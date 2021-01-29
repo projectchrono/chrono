@@ -44,7 +44,7 @@ Marder_Vehicle::Marder_Vehicle(bool fixed,
                                BrakeType brake_type,
                                ChContactMethod contact_method,
                                CollisionType chassis_collision_type)
-    : ChTrackedVehicle("M113", contact_method), m_create_track(true) {
+    : ChTrackedVehicle("Marder", contact_method), m_create_track(true) {
     Create(fixed, shoe_type, driveline_type, brake_type, chassis_collision_type);
 }
 
@@ -54,7 +54,7 @@ Marder_Vehicle::Marder_Vehicle(bool fixed,
                                BrakeType brake_type,
                                ChSystem* system,
                                CollisionType chassis_collision_type)
-    : ChTrackedVehicle("M113", system), m_create_track(true) {
+    : ChTrackedVehicle("Marder", system), m_create_track(true) {
     Create(fixed, shoe_type, driveline_type, brake_type, chassis_collision_type);
 }
 
@@ -110,7 +110,7 @@ void Marder_Vehicle::Initialize(const ChCoordsys<>& chassisPos, double chassisFw
     ChTrackedVehicle::Initialize(chassisPos, chassisFwdVel);
 
     // Initialize the left and right track assemblies.
-    double track_offset = 1.0795;
+    double track_offset = 1.36;
     m_tracks[0]->Initialize(m_chassis, ChVector<>(0, track_offset, 0), m_create_track);
     m_tracks[1]->Initialize(m_chassis, ChVector<>(0, -track_offset, 0), m_create_track);
 

@@ -73,7 +73,7 @@ double render_step_size = 1.0 / 120;  // FPS = 120
 ChVector<> trackPoint(0.0, 0.0, 0.0);
 
 // Output directories
-const std::string out_dir = GetChronoOutputPath() + "M113";
+const std::string out_dir = GetChronoOutputPath() + "Marder";
 const std::string pov_dir = out_dir + "/POVRAY";
 const std::string img_dir = out_dir + "/IMG";
 
@@ -139,6 +139,7 @@ int main(int argc, char* argv[]) {
     marder.SetChassisVisualizationType(VisualizationType::PRIMITIVES);
     marder.SetSprocketVisualizationType(VisualizationType::PRIMITIVES);
     marder.SetIdlerVisualizationType(track_vis);
+    marder.SetRollerVisualizationType(VisualizationType::MESH);
     marder.SetRoadWheelAssemblyVisualizationType(track_vis);
     marder.SetRoadWheelVisualizationType(track_vis);
     marder.SetTrackShoeVisualizationType(track_vis);

@@ -62,6 +62,7 @@ Marder_TrackAssemblySinglePin::Marder_TrackAssemblySinglePin(VehicleSide side, B
     size_t num_shoes;
     std::string suspName("Marder_Suspension");
     std::string shoeName("Marder_TrackShoe");
+    m_rollers.resize(3);
     switch (side) {
         case LEFT:
             SetName("Marder_TrackAssemblyLeft");
@@ -71,6 +72,9 @@ Marder_TrackAssemblySinglePin::Marder_TrackAssemblySinglePin(VehicleSide side, B
             num_shoes = 83 + 3;
             suspName += "Left_";
             shoeName += "Left_";
+            m_rollers[0] = chrono_types::make_shared<Marder_SupportRollerLeft>(0);
+            m_rollers[1] = chrono_types::make_shared<Marder_SupportRollerLeft>(1);
+            m_rollers[2] = chrono_types::make_shared<Marder_SupportRollerLeft>(2);
             break;
         case RIGHT:
             SetName("Marder_TrackAssemblyRight");
@@ -80,6 +84,9 @@ Marder_TrackAssemblySinglePin::Marder_TrackAssemblySinglePin(VehicleSide side, B
             num_shoes = 84 + 3;
             suspName += "Right_";
             shoeName += "Right_";
+            m_rollers[0] = chrono_types::make_shared<Marder_SupportRollerRight>(0);
+            m_rollers[1] = chrono_types::make_shared<Marder_SupportRollerRight>(1);
+            m_rollers[2] = chrono_types::make_shared<Marder_SupportRollerRight>(2);
             break;
     }
 
@@ -108,6 +115,10 @@ const ChVector<> Marder_TrackAssemblySinglePin::GetIdlerLocation() const {
 
 const ChVector<> Marder_TrackAssemblySinglePin::GetRoadWhelAssemblyLocation(int which) const {
     return (m_side == LEFT) ? m_susp_locs_L[which] : m_susp_locs_R[which];
+}
+
+const ChVector<> Marder_TrackAssemblySinglePin::GetRollerLocation(int which) const {
+    return (m_side == LEFT) ? m_supp_locs_L[which] : m_supp_locs_R[which];
 }
 
 }  // namespace marder
