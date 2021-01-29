@@ -59,7 +59,7 @@ M113_SprocketBand::M113_SprocketBand(const std::string& name) : ChSprocketBand(n
 void M113_SprocketBand::CreateContactMaterial(ChContactMethod contact_method) {
     MaterialInfo minfo;
     minfo.mu = 0.4f;
-    minfo.cr = 0.1f;
+    minfo.cr = 0.75f;
     minfo.Y = 1e7f;
     m_material = minfo.CreateMaterial(contact_method);
 }

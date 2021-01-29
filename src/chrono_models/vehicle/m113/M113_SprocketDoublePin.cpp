@@ -59,7 +59,7 @@ M113_SprocketDoublePin::M113_SprocketDoublePin(const std::string& name) : ChSpro
 void M113_SprocketDoublePin::CreateContactMaterial(ChContactMethod contact_method) {
     MaterialInfo minfo;
     minfo.mu = 0.4f;
-    minfo.cr = 0.1f;
+    minfo.cr = 0.75f;
     minfo.Y = 1e7f;
     m_material = minfo.CreateMaterial(contact_method);
 }

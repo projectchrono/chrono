@@ -57,7 +57,7 @@ M113_SprocketSinglePin::M113_SprocketSinglePin(const std::string& name) : ChSpro
 void M113_SprocketSinglePin::CreateContactMaterial(ChContactMethod contact_method) {
     MaterialInfo minfo;
     minfo.mu = 0.4f;
-    minfo.cr = 0.1f;
+    minfo.cr = 0.75f;
     minfo.Y = 1e7f;
     m_material = minfo.CreateMaterial(contact_method);
 }
