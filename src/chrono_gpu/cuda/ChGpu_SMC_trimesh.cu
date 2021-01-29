@@ -19,17 +19,24 @@
 namespace chrono {
 namespace gpu {
 
+inline void ChSystemGpuMesh_impl::resetTriangleForces() {
+    gpuErrchk(cudaMemset(meshSoup->generalizedForcesPerFamily, 0, 6 * meshSoup->numTriangleFamilies * sizeof(float)));
+}
+
+// Reset triangle broadphase data structures
+inline void ChSystemGpuMesh_impl::resetTriangleBroadphaseInformation() {
+    gpuErrchk(cudaMemset(SD_numTrianglesTouching.data(), 0, SD_numTrianglesTouching.size() * sizeof(unsigned int)));
+    gpuErrchk(cudaMemset(SD_TriangleCompositeOffsets.data(), NULL_CHGPU_ID,
+                         SD_TriangleCompositeOffsets.size() * sizeof(unsigned int)));
+    gpuErrchk(cudaMemset(triangles_in_SD_composite.data(), NULL_CHGPU_ID,
+                         triangles_in_SD_composite.size() * sizeof(unsigned int)));
+}
+
 __host__ void ChSystemGpuMesh_impl::runTriangleBroadphase() {
     METRICS_PRINTF("Resetting broadphase info!\n");
 
-    std::vector<unsigned int, cudallocator<unsigned int>> Triangle_NumSDsTouching;
-    std::vector<unsigned int, cudallocator<unsigned int>> Triangle_SDsCompositeOffsets;
-
     unsigned int numTriangles = meshSoup->nTrianglesInSoup;
-    Triangle_NumSDsTouching.resize(numTriangles, 0);
-    Triangle_SDsCompositeOffsets.resize(numTriangles, 0);
-
-    int nblocks = (numTriangles + CUDA_THREADS_PER_BLOCK - 1) / CUDA_THREADS_PER_BLOCK;
+    unsigned int nblocks = (numTriangles + CUDA_THREADS_PER_BLOCK - 1) / CUDA_THREADS_PER_BLOCK;
     determineCountOfSDsTouchedByEachTriangle<<<nblocks, CUDA_THREADS_PER_BLOCK>>>(
         meshSoup, Triangle_NumSDsTouching.data(), gran_params, tri_params);
 
@@ -108,12 +115,8 @@ __host__ void ChSystemGpuMesh_impl::runTriangleBroadphase() {
     //            Triangle_SDsComposite_TriIDs_out[i]);
     // }
 
+    // We started with SDs touching a triangle; we are flipping, and determining triangles touching each SD.
     // offsets of each SD in composite array
-    std::vector<unsigned int, cudallocator<unsigned int>> SD_TriangleCompositeOffsets_tmp;
-    std::vector<unsigned int, cudallocator<unsigned int>> SD_numTrianglesTouching_tmp;
-
-    SD_TriangleCompositeOffsets_tmp.resize(nSDs, NULL_CHGPU_ID);
-    SD_numTrianglesTouching_tmp.resize(nSDs, 0);
 
     // if there are triangle-sd contacts, sweep through them, otherwise just move on
     if (SDsTouchedByEachTriangle_composite_out.size() > 0) {
@@ -438,15 +441,14 @@ __host__ double ChSystemGpuMesh_impl::AdvanceSimulation(float duration) {
     METRICS_PRINTF("Starting Main Simulation loop!\n");
 
     float time_elapsed_SU = 0.f;  // time elapsed in this call (SU)
-    // Run simulation loop; there are multiple synchronization points owing to the use of managed memory
+    // Run the simulation, there are aggressive synchronizations because we want to have no race conditions
     for (; time_elapsed_SU < stepSize_SU * nsteps; time_elapsed_SU += stepSize_SU) {
         updateBCPositions();
         resetSphereAccelerations();
         resetBCForces();
         if (meshSoup->nTrianglesInSoup != 0 && mesh_collision_enabled) {
-            // reset forces on triangles
-            gpuErrchk(
-                cudaMemset(meshSoup->generalizedForcesPerFamily, 0, 6 * meshSoup->numTriangleFamilies * sizeof(float)));
+            resetTriangleForces();
+            resetTriangleBroadphaseInformation();
         }
 
         METRICS_PRINTF("Starting computeSphereForces!\n");

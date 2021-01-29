@@ -124,6 +124,12 @@ class ChSystemGpuMesh_impl : public ChSystemGpu_impl {
     /// Initialize trimeshes before starting simulation (typically called by initialize).
     void initializeTriangles();
 
+    /// Reset information used for triangle broadphase collision detection
+    void resetTriangleBroadphaseInformation();
+
+    /// Reset computed forces and torques on each triangle family
+    void resetTriangleForces();
+
     /// Clean up data structures associated with triangle mesh
     void cleanupTriMesh();
 
@@ -178,6 +184,12 @@ class ChSystemGpuMesh_impl : public ChSystemGpu_impl {
     /// offsets in the composite array for each SD; i.e., offset where each SD starts storing its triangles.
     /// Size of vector should be # of SDs.
     std::vector<unsigned int, cudallocator<unsigned int>> SD_TriangleCompositeOffsets;
+
+    /// Number of SDs that each triangle touches; stored triangle by triangle
+    std::vector<unsigned int, cudallocator<unsigned int>> Triangle_NumSDsTouching;
+
+    /// Helper array that stores the prefix scan output done on Triangle_NumSDsTouching
+    std::vector<unsigned int, cudallocator<unsigned int>> Triangle_SDsCompositeOffsets;
 
   public:
     /// Get nicer handles to pointer names, enforce const-ness on the mesh params
