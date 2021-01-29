@@ -58,66 +58,40 @@ __host__ void ChSystemGpuMesh_impl::runTriangleBroadphase() {
     // Run exclusive prefix sum
     cub::DeviceScan::ExclusiveSum(d_scratch_space, temp_storage_bytes, in_ptr, out_ptr, numTriangles);
     gpuErrchk(cudaDeviceSynchronize());
-    unsigned int numOfTriangleTouchingSD_instances; // total number of cases in which a triagnle touches an SD
+    unsigned int numOfTriangleTouchingSD_instances;  // total number of instances in which a triangle touches an SD
     numOfTriangleTouchingSD_instances = out_ptr[numTriangles - 1] + in_ptr[numTriangles - 1];
 
-    // for each triangle, lists the collection of SDs that triangle touches; e.g., triangle 0 touches SDs 23, 32, 9,
-    // 199; triangle 0 touchs SDs 23, 33, 109; triangle 2 touches SDs 991; triangle 3 touches 43, 23, etc.
-    std::vector<unsigned int, cudallocator<unsigned int>> SDsTouchedByEachTriangle_composite_out;
-    // TriangleIDS_ByMultiplicity_out is mirroring the SDsTouchedByEachTriangle_composite_out vector. Its entries is the
-    // list of triangle IDs, with the right multiplicity. It's used for a sort by key operation needed to figure out
-    // what triangles are stored in each SD. Thus, for the example above, the entries would be 0,0,0,0,1,1,1,2,3,3,etc.
-    std::vector<unsigned int, cudallocator<unsigned int>> TriangleIDS_ByMultiplicity_out;
-
+    // resize, if need be, several dummy vectors that handle in managed memory
     SDsTouchedByEachTriangle_composite_out.resize(numOfTriangleTouchingSD_instances, NULL_CHGPU_ID);
+    SDsTouchedByEachTriangle_composite.resize(numOfTriangleTouchingSD_instances, NULL_CHGPU_ID);
     TriangleIDS_ByMultiplicity_out.resize(numOfTriangleTouchingSD_instances, NULL_CHGPU_ID);
+    TriangleIDS_ByMultiplicity.resize(numOfTriangleTouchingSD_instances, NULL_CHGPU_ID);
 
-    gpuErrchk(cudaDeviceSynchronize());
-    gpuErrchk(cudaPeekAtLastError());
     // sort key-value where the key is SD id, value is triangle ID in composite array
-    {
-        // tmp values used for sort
-        std::vector<unsigned int, cudallocator<unsigned int>> SDsTouchedByEachTriangle_composite;
-        std::vector<unsigned int, cudallocator<unsigned int>> TriangleIDS_ByMultiplicity;
-        SDsTouchedByEachTriangle_composite.resize(numOfTriangleTouchingSD_instances, NULL_CHGPU_ID);
-        TriangleIDS_ByMultiplicity.resize(numOfTriangleTouchingSD_instances, NULL_CHGPU_ID);
+    storeSDsTouchedByEachTriangle<<<nblocks, CUDA_THREADS_PER_BLOCK>>>(
+        meshSoup, Triangle_NumSDsTouching.data(), Triangle_SDsCompositeOffsets.data(),
+        SDsTouchedByEachTriangle_composite.data(), TriangleIDS_ByMultiplicity.data(), gran_params, tri_params);
+    gpuErrchk(cudaDeviceSynchronize());
 
-        // printf("first run: num entries is %u, theoretical max is %u\n", num_entries, nSDs *
-        // MAX_TRIANGLE_COUNT_PER_SD);
-        storeSDsTouchedByEachTriangle<<<nblocks, CUDA_THREADS_PER_BLOCK>>>(
-            meshSoup, Triangle_NumSDsTouching.data(), Triangle_SDsCompositeOffsets.data(),
-            SDsTouchedByEachTriangle_composite.data(), TriangleIDS_ByMultiplicity.data(), gran_params, tri_params);
-        gpuErrchk(cudaDeviceSynchronize());
+    unsigned int* d_keys_in = SDsTouchedByEachTriangle_composite.data();
+    unsigned int* d_keys_out = SDsTouchedByEachTriangle_composite_out.data();
+    unsigned int* d_values_in = TriangleIDS_ByMultiplicity.data();
+    unsigned int* d_values_out = TriangleIDS_ByMultiplicity_out.data();
 
-        //unsigned int num_items = num_entries;
-        unsigned int* d_keys_in = SDsTouchedByEachTriangle_composite.data();
-        unsigned int* d_keys_out = SDsTouchedByEachTriangle_composite_out.data();
-        unsigned int* d_values_in = TriangleIDS_ByMultiplicity.data();
-        unsigned int* d_values_out = TriangleIDS_ByMultiplicity_out.data();
+    // Run CUB sorting operation. First, determine temporary device storage requirements; pass null, CUB tells us what
+    // it needs
+    cub::DeviceRadixSort::SortPairs(NULL, temp_storage_bytes, d_keys_in, d_keys_out, d_values_in, d_values_out,
+                                    numOfTriangleTouchingSD_instances);
+    gpuErrchk(cudaDeviceSynchronize());
 
-        // Run sorting operation
-        // First, determine temporary device storage requirements; pass null, CUB tells us what it needs
-        cub::DeviceRadixSort::SortPairs(NULL, temp_storage_bytes, d_keys_in, d_keys_out, d_values_in, d_values_out,
-                                        numOfTriangleTouchingSD_instances);
-        gpuErrchk(cudaDeviceSynchronize());
-
-        // get pointer to device memory; this memory block will be used internally by CUB
-        void* d_scratch_space = (void*)stateOfSolver_resources.pDeviceMemoryScratchSpace(temp_storage_bytes);
-        cub::DeviceRadixSort::SortPairs(d_scratch_space, temp_storage_bytes, d_keys_in, d_keys_out, d_values_in,
-                                        d_values_out, numOfTriangleTouchingSD_instances);
-        gpuErrchk(cudaDeviceSynchronize());
-
-    }
-    // now Triangle_SDsComposite_SDs_out has an ordered list of active SDs, with one entry for each triangle
-    //
-    // for (unsigned int i = 0; i < Triangle_SDsComposite_TriIDs_out.size(); i++) {
-    //     printf("composite entry %u is SD %u, triangle %u\n", i, Triangle_SDsComposite_SDs_out[i],
-    //            Triangle_SDsComposite_TriIDs_out[i]);
-    // }
+    // get pointer to device memory; this memory block will be used internally by CUB
+    d_scratch_space = (void*)stateOfSolver_resources.pDeviceMemoryScratchSpace(temp_storage_bytes);
+    cub::DeviceRadixSort::SortPairs(d_scratch_space, temp_storage_bytes, d_keys_in, d_keys_out, d_values_in,
+                                    d_values_out, numOfTriangleTouchingSD_instances);
+    gpuErrchk(cudaDeviceSynchronize());
 
     // We started with SDs touching a triangle; we are flipping, and determining triangles touching each SD.
     // offsets of each SD in composite array
-
     // if there are triangle-sd contacts, sweep through them, otherwise just move on
     if (SDsTouchedByEachTriangle_composite_out.size() > 0) {
         // get first active SD
