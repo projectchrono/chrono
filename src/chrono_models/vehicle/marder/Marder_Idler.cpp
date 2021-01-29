@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Radu Serban
+// Authors: Rainer Gericke
 // =============================================================================
 //
 // M113 idler subsystem.
@@ -21,40 +21,40 @@
 
 #include "chrono_vehicle/ChVehicleModelData.h"
 
-#include "chrono_models/vehicle/m113/M113_Idler.h"
+#include "chrono_models/vehicle/marder/Marder_Idler.h"
 
 #include "chrono_thirdparty/filesystem/path.h"
 
 namespace chrono {
 namespace vehicle {
-namespace m113 {
+namespace marder {
 
 // -----------------------------------------------------------------------------
 // Static variables
 // -----------------------------------------------------------------------------
-const double M113_Idler::m_wheel_mass = 25.76;
-const ChVector<> M113_Idler::m_wheel_inertia(0.618, 1.12, 0.618);
-const double M113_Idler::m_wheel_radius = 0.255;
-const double M113_Idler::m_wheel_width = 0.181;
-const double M113_Idler::m_wheel_gap = 0.051;
+const double Marder_Idler::m_wheel_mass = 25.76;
+const ChVector<> Marder_Idler::m_wheel_inertia(0.618, 1.12, 0.618);
+const double Marder_Idler::m_wheel_radius = 0.334;
+const double Marder_Idler::m_wheel_width = 0.181;
+const double Marder_Idler::m_wheel_gap = 0.051;
 
-const double M113_Idler::m_carrier_mass = 10;
-const ChVector<> M113_Idler::m_carrier_inertia(0.04, 0.04, 0.04);
-const double M113_Idler::m_carrier_radius = 0.02;
+const double Marder_Idler::m_carrier_mass = 10;
+const ChVector<> Marder_Idler::m_carrier_inertia(0.04, 0.04, 0.04);
+const double Marder_Idler::m_carrier_radius = 0.02;
 
-const double M113_Idler::m_tensioner_l0 = 0.75;
-const double M113_Idler::m_tensioner_f = 2e4;
-const double M113_Idler::m_tensioner_k = 1e6;
-const double M113_Idler::m_tensioner_c = 1.4e4;
+const double Marder_Idler::m_tensioner_l0 = 0.75;
+const double Marder_Idler::m_tensioner_f = 2e4;
+const double Marder_Idler::m_tensioner_k = 1e6;
+const double Marder_Idler::m_tensioner_c = 1.4e4;
 
-const std::string M113_IdlerLeft::m_meshFile = "M113/Idler_L.obj";
-const std::string M113_IdlerRight::m_meshFile = "M113/Idler_R.obj";
+const std::string Marder_IdlerLeft::m_meshFile = "Marder/Idler_L.obj";
+const std::string Marder_IdlerRight::m_meshFile = "Marder/Idler_R.obj";
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-class M113_TensionerForce : public ChLinkTSDA::ForceFunctor {
+class Marder_TensionerForce : public ChLinkTSDA::ForceFunctor {
   public:
-    M113_TensionerForce(double k, double c, double f) : m_k(k), m_c(c), m_f(f) {}
+    Marder_TensionerForce(double k, double c, double f) : m_k(k), m_c(c), m_f(f) {}
 
     virtual double operator()(double time, double rest_length, double length, double vel, ChLinkTSDA* link) override {
         return m_f - m_k * (length - rest_length) - m_c * vel;
@@ -68,11 +68,11 @@ class M113_TensionerForce : public ChLinkTSDA::ForceFunctor {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-M113_Idler::M113_Idler(const std::string& name) : ChDoubleIdler(name) {
-    m_tensionerForceCB = chrono_types::make_shared<M113_TensionerForce>(m_tensioner_k, m_tensioner_c, m_tensioner_f);
+Marder_Idler::Marder_Idler(const std::string& name) : ChDoubleIdler(name) {
+    m_tensionerForceCB = chrono_types::make_shared<Marder_TensionerForce>(m_tensioner_k, m_tensioner_c, m_tensioner_f);
 }
 
-void M113_Idler::CreateContactMaterial(ChContactMethod contact_method) {
+void Marder_Idler::CreateContactMaterial(ChContactMethod contact_method) {
     MaterialInfo minfo;
     minfo.mu = 0.7f;
     minfo.cr = 0.1f;
@@ -82,7 +82,7 @@ void M113_Idler::CreateContactMaterial(ChContactMethod contact_method) {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void M113_Idler::AddVisualizationAssets(VisualizationType vis) {
+void Marder_Idler::AddVisualizationAssets(VisualizationType vis) {
     ChDoubleIdler::AddVisualizationAssets(vis);
 
     if (vis == VisualizationType::MESH) {
@@ -98,7 +98,7 @@ void M113_Idler::AddVisualizationAssets(VisualizationType vis) {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-const ChVector<> M113_Idler::GetLocation(PointId which) {
+const ChVector<> Marder_Idler::GetLocation(PointId which) {
     ChVector<> point;
 
     switch (which) {
@@ -128,6 +128,6 @@ const ChVector<> M113_Idler::GetLocation(PointId which) {
     return point;
 }
 
-}  // end namespace m113
+}  // namespace marder
 }  // end namespace vehicle
 }  // end namespace chrono
