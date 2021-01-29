@@ -38,12 +38,12 @@ namespace copter {
 template <int nop>
 class Copter {
   public:
-    Copter(ChSystem& sys,                  ///< containing physical system
-           ChVector<>& cpos,               ///< chassis position
-           std::vector<ChVector<>>& ppos,  ///< propeller relative position
-           const bool clockwise[],         ///< rotation direction ofr each propeller
-           bool are_prop_pos_rel = true,   ///< if false, propeller axes position has to be given in the abs frame
-           bool z_up = false               ///< orientation of vertical axis
+    Copter(ChSystem& sys,                 ///< containing physical system
+           const ChVector<>& cpos,        ///< chassis position
+           std::vector<ChVector<>> ppos,  ///< propeller relative position
+           const bool clockwise[],        ///< rotation direction ofr each propeller
+           bool are_prop_pos_rel = true,  ///< if false, propeller axes position has to be given in the abs frame
+           bool z_up = false              ///< orientation of vertical axis
     );
 
     /*virtual*/ ~Copter() {}
@@ -53,12 +53,12 @@ class Copter {
 
     /// Set the propeller properties.
     /// Coefficient as eq 6.29 of "Aerodynamics, Aeronautics, and Flight Mechanics" by McCormick.
-    void SetPropellerData(double mass,          ///< propeller mass
-                          ChVector<>& inerXX,   ///< propeller diagonal inertia (axis assumed principal)
-                          double diam,          ///< propeller diameter
-                          double thrust_coeff,  ///< propeller thrust coefficient
-                          double power_coeff,   ///< propeller power coefficient
-                          double max_rpm        ///< propeller maximum revolutions per minute
+    void SetPropellerData(double mass,               ///< propeller mass
+                          const ChVector<>& inerXX,  ///< propeller diagonal inertia (axis assumed principal)
+                          double diam,               ///< propeller diameter
+                          double thrust_coeff,       ///< propeller thrust coefficient
+                          double power_coeff,        ///< propeller power coefficient
+                          double max_rpm             ///< propeller maximum revolutions per minute
     );
 
     /// Set the drag coefficient.
@@ -74,10 +74,10 @@ class Copter {
     double GetLinearDragSurf() const { return Surf; }
 
     /// Add generic triangular meshes to the chassis and the propellers.
-    void AddVisualizationAssets(std::string& chassismesh,
-                                std::string& propellermesh,
-                                ChFrame<> cor_m1,
-                                ChFrame<> cor_m2);
+    void AddVisualizationAssets(const std::string& chassismesh,
+                                const std::string& propellermesh,
+                                const ChFrame<>& cor_m1,
+                                const ChFrame<>& cor_m2);
 
     /// Increment propeller angular velocity.
     void ControlIncremental(double inputs[nop]);
@@ -163,8 +163,8 @@ class Copter {
 
 template <int nop>
 Copter<nop>::Copter(ChSystem& sys,
-                    ChVector<>& cpos,
-                    std::vector<ChVector<>>& ppos,
+                    const ChVector<>& cpos,
+                    std::vector<ChVector<>> ppos,
                     const bool clockwise[],
                     bool are_prop_pos_rel,
                     bool z_up) {
@@ -236,7 +236,7 @@ Copter<nop>::Copter(ChSystem& sys,
 
 template <int nop>
 void Copter<nop>::SetPropellerData(double mass,
-                                   ChVector<>& inerXX,
+                                   const ChVector<>& inerXX,
                                    double diam,
                                    double thrust_coeff,
                                    double power_coeff,
@@ -252,10 +252,10 @@ void Copter<nop>::SetPropellerData(double mass,
 }
 
 template <int nop>
-void Copter<nop>::AddVisualizationAssets(std::string& chassismesh,
-                                         std::string& propellermesh,
-                                         ChFrame<> cor_m1,
-                                         ChFrame<> cor_m2) {
+void Copter<nop>::AddVisualizationAssets(const std::string& chassismesh,
+                                         const std::string& propellermesh,
+                                         const ChFrame<>& cor_m1,
+                                         const ChFrame<>& cor_m2) {
     auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
     trimesh->LoadWavefrontMesh(chassismesh, true, false);
     trimesh->Transform(cor_m1.GetPos(), cor_m1.GetA());

@@ -30,7 +30,7 @@ namespace copter {
 /// Little hexy (hexacopter) model.
 class CH_MODELS_API Little_Hexy : public Copter<6> {
   public:
-    Little_Hexy(ChSystem& sys, ChVector<> cpos);
+    Little_Hexy(ChSystem& sys, const ChVector<>& cpos);
 
     /// Add specific visualization shapes to shapes and propellers.
     void AddVisualizationAssets();

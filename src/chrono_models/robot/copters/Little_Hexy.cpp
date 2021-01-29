@@ -25,7 +25,7 @@ namespace copter {
 
 static const bool spins[6] = {false, true, false, true, false, true};
 
-Little_Hexy::Little_Hexy(ChSystem& sys, ChVector<> cpos) : Copter<6>(sys, cpos, getPosVect(), spins, true, true) {
+Little_Hexy::Little_Hexy(ChSystem& sys, const ChVector<>& cpos) : Copter<6>(sys, cpos, getPosVect(), spins, true, true) {
     chassis->SetMass(13.83457);
     chassis->SetInertiaXX(ChVector<>(1.264, 1.277, 1.541));
     this->SetPropellerData(0.126,                                     // Propeller mass
