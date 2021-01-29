@@ -383,6 +383,37 @@ set(CVM_GATOR_FILES
 )
 source_group("gator" FILES ${CVM_GATOR_FILES})
 
+set(CVM_MARDER_FILES
+    marder/Marder.h
+    marder/Marder.cpp
+    marder/Marder_Chassis.h
+    marder/Marder_Chassis.cpp
+    marder/Marder_BrakeSimple.h
+    marder/Marder_BrakeShafts.h
+    marder/Marder_Idler.h
+    marder/Marder_Idler.cpp
+    marder/Marder_RoadWheel.h
+    marder/Marder_RoadWheel.cpp
+    marder/Marder_SprocketSinglePin.h
+    marder/Marder_SprocketSinglePin.cpp
+    marder/Marder_SupportRoller.h
+    marder/Marder_SupportRoller.cpp
+    marder/Marder_TrackShoeSinglePin.h
+    marder/Marder_TrackShoeSinglePin.cpp
+    marder/Marder_Suspension.h
+    marder/Marder_Suspension.cpp
+    marder/Marder_SimpleDriveline.h 
+    marder/Marder_SimpleDriveline.cpp
+    marder/Marder_SimplePowertrain.h 
+    marder/Marder_SimplePowertrain.cpp
+    marder/Marder_TrackAssemblySinglePin.h
+    marder/Marder_TrackAssemblySinglePin.cpp
+    marder/Marder_Vehicle.h
+    marder/Marder_Vehicle.cpp
+)
+
+source_group("marder" FILES ${CVM_MARDER_FILES})
+
 set(CVM_M113_FILES
     m113/M113.h
     m113/M113.cpp
@@ -510,6 +541,7 @@ add_library(ChronoModels_vehicle SHARED
     ${CVM_CITYBUS_FILES}
     ${CVM_GATOR_FILES}
     ${CVM_M113_FILES}
+    ${CVM_MARDER_FILES}
     ${CVM_MAN_FILES}
     ${CVM_RCCAR_FILES}
     ${CVM_KRAZ_FILES}

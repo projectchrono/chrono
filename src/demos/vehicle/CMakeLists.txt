@@ -35,6 +35,7 @@ ADD_SUBDIRECTORY(demo_DeformableSoil)
 ADD_SUBDIRECTORY(demo_DeformableSoilAndTire)
 ADD_SUBDIRECTORY(demo_GranularTerrain)
 
+ADD_SUBDIRECTORY(demo_Marder)
 ADD_SUBDIRECTORY(demo_M113)
 ADD_SUBDIRECTORY(demo_M113_Band)
 ADD_SUBDIRECTORY(demo_M113_Multicore)
