@@ -221,12 +221,12 @@ class ChContactSMC : public ChContactTuple<Ta, Tb> {
                         forceN = 0;
                     double forceT = mat.mu_eff * std::tanh(5.0 * relvel_t_mag) * forceN;
                     switch (adhesion_model) {
-                        case ChSystemSMC::Perko:
+                        case ChSystemSMC::AdhesionForceModel::Perko:
                             // Currently not implemented.  Fall through to Constant.
-                        case ChSystemSMC::Constant:
+                        case ChSystemSMC::AdhesionForceModel::Constant:
                             forceN -= mat.adhesion_eff;
                             break;
-                        case ChSystemSMC::DMT:
+                        case ChSystemSMC::AdhesionForceModel::DMT:
                             forceN -= mat.adhesionMultDMT_eff * sqrt(this->eff_radius);
                             break;
                     }
@@ -265,10 +265,12 @@ class ChContactSMC : public ChContactTuple<Ta, Tb> {
 
         // Include adhesion force
         switch (adhesion_model) {
-            case ChSystemSMC::Constant:
+            case ChSystemSMC::AdhesionForceModel::Perko:
+                // Currently not implemented.  Fall through to Constant.
+            case ChSystemSMC::AdhesionForceModel::Constant:
                 forceN -= mat.adhesion_eff;
                 break;
-            case ChSystemSMC::DMT:
+            case ChSystemSMC::AdhesionForceModel::DMT:
                 forceN -= mat.adhesionMultDMT_eff * sqrt(this->eff_radius);
                 break;
         }

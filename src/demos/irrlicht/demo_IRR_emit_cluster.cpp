@@ -50,7 +50,7 @@ class MyCreatorForAll : public ChRandomShapeCreator::AddBodyCallback {
                            ChRandomShapeCreator& mcreator) override {
         // optional: add further assets, ex for improving visualization:
         auto mtexture = chrono_types::make_shared<ChTexture>();
-        mtexture->SetTextureFilename(GetChronoDataFile("bluwhite.png"));
+        mtexture->SetTextureFilename(GetChronoDataFile("textures/bluewhite.png"));
         mbody->AddAsset(mtexture);
 
         // Enable Irrlicht visualization for all particles
@@ -96,7 +96,7 @@ int main(int argc, char* argv[]) {
 
     // optional: add further assets, ex for improving visualization:
     auto mtexture = chrono_types::make_shared<ChTexture>();
-    mtexture->SetTextureFilename(GetChronoDataFile("concrete.jpg"));
+    mtexture->SetTextureFilename(GetChronoDataFile("textures/concrete.jpg"));
     msphereBody->AddAsset(mtexture);
 
     mphysicalSystem.Add(msphereBody);

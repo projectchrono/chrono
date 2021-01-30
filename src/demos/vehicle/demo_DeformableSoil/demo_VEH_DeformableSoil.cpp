@@ -130,7 +130,7 @@ int main(int argc, char* argv[]) {
     switch (tire_type) {
         case TireType::LUGGED: {
             auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
-            trimesh->LoadWavefrontMesh(GetChronoDataFile("tractor_wheel.obj"));
+            trimesh->LoadWavefrontMesh(GetChronoDataFile("models/tractor_wheel/tractor_wheel.obj"));
 
             std::shared_ptr<ChTriangleMeshShape> mrigidmesh(new ChTriangleMeshShape);
             mrigidmesh->SetMesh(trimesh);

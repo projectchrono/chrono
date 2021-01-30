@@ -222,7 +222,7 @@ int main(int argc, char* argv[]) {
     auto ground_body = patch->GetGroundBody();
     auto visual_asset = std::dynamic_pointer_cast<ChVisualization>(ground_body->GetAssets()[0]);
     auto vis_mat = chrono_types::make_shared<ChVisualMaterial>();
-    vis_mat->SetKdTexture(GetChronoDataFile("concrete.jpg"));
+    vis_mat->SetKdTexture(GetChronoDataFile("textures/concrete.jpg"));
     visual_asset->material_list.push_back(vis_mat);
 
     // Create the vehicle Irrlicht interface

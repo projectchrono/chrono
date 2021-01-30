@@ -105,14 +105,14 @@ class MySimpleTank {
 
         // --- The tank body ---
 
-        truss = chrono_types::make_shared<ChBodyEasyMesh>(  //
-            GetChronoDataFile("bulldozerB10.obj").c_str(),  // file name
-            1000,                                           // density
-            false,                                          // do not evaluate mass automatically
-            true,                                           // create visualization asset
-            false,                                          // do not collide
-            nullptr,                                        // no need for contact material
-            0                                               // swept sphere radius
+        truss = chrono_types::make_shared<ChBodyEasyMesh>(                   //
+            GetChronoDataFile("models/bulldozer/bulldozerB10.obj").c_str(),  // file name
+            1000,                                                            // density
+            false,                                                           // do not evaluate mass automatically
+            true,                                                            // create visualization asset
+            false,                                                           // do not collide
+            nullptr,                                                         // no need for contact material
+            0                                                                // swept sphere radius
         );
         my_system.Add(truss);
         truss->SetPos(ChVector<>(mx + passo / 2, my + radiustrack, rlwidth / 2));
@@ -127,17 +127,17 @@ class MySimpleTank {
         // --- Right Front suspension ---
 
         // Load a triangle mesh for wheel visualization
-        IAnimatedMesh* irmesh_wheel_view = msceneManager->getMesh(GetChronoDataFile("wheel_view.obj").c_str());
+        IAnimatedMesh* irmesh_wheel_view = msceneManager->getMesh(GetChronoDataFile("models/bulldozer/wheel_view.obj").c_str());
 
         // ..the tank right-front wheel
-        wheelRF = chrono_types::make_shared<ChBodyEasyMesh>(  //
-            GetChronoDataFile("wheel_view.obj").c_str(),      // data file
-            1000,                                             // density
-            false,                                            // do not compute mass and inertia
-            true,                                             // visualization?
-            false,                                            // collision?
-            nullptr,                                          // no need for contact material
-            0);                                               // mesh sweep sphere radius
+        wheelRF = chrono_types::make_shared<ChBodyEasyMesh>(               //
+            GetChronoDataFile("models/bulldozer/wheel_view.obj").c_str(),  // data file
+            1000,                                                          // density
+            false,                                                         // do not compute mass and inertia
+            true,                                                          // visualization?
+            false,                                                         // collision?
+            nullptr,                                                       // no need for contact material
+            0);                                                            // mesh sweep sphere radius
 
         my_system.Add(wheelRF);
         wheelRF->SetPos(ChVector<>(mx + passo, my + radiustrack, 0));
@@ -166,14 +166,14 @@ class MySimpleTank {
 
         // ..the tank left-front wheel
 
-        wheelLF = chrono_types::make_shared<ChBodyEasyMesh>(  //
-            GetChronoDataFile("wheel_view.obj").c_str(),      // data file
-            1000,                                             // density
-            false,                                            // do not compute mass and inertia
-            true,                                             // visualization?
-            false,                                            // collision?
-            nullptr,                                          // no need for contact material
-            0);                                               // mesh sweep sphere radius
+        wheelLF = chrono_types::make_shared<ChBodyEasyMesh>(               //
+            GetChronoDataFile("models/bulldozer/wheel_view.obj").c_str(),  // data file
+            1000,                                                          // density
+            false,                                                         // do not compute mass and inertia
+            true,                                                          // visualization?
+            false,                                                         // collision?
+            nullptr,                                                       // no need for contact material
+            0);                                                            // mesh sweep sphere radius
 
         my_system.Add(wheelLF);
         wheelLF->SetPos(ChVector<>(mx + passo, my + radiustrack, rlwidth));
@@ -270,7 +270,7 @@ class MySimpleTank {
 
         // Load a triangle mesh for collision
 
-        IAnimatedMesh* irmesh_shoe_collision = msceneManager->getMesh(GetChronoDataFile("shoe_collision.obj").c_str());
+        IAnimatedMesh* irmesh_shoe_collision = msceneManager->getMesh(GetChronoDataFile("models/bulldozer/shoe_collision.obj").c_str());
 
         auto trimesh = chrono_types::make_shared<ChTriangleMeshSoup>();
         fillChTrimeshFromIrlichtMesh(trimesh.get(), irmesh_shoe_collision->getMesh(0));
@@ -308,14 +308,14 @@ class MySimpleTank {
             // Visualization:
             auto shoe_mesh = chrono_types::make_shared<ChTriangleMeshShape>();
             firstBodyShoe->AddAsset(shoe_mesh);
-            shoe_mesh->GetMesh()->LoadWavefrontMesh(GetChronoDataFile("shoe_view.obj").c_str());
+            shoe_mesh->GetMesh()->LoadWavefrontMesh(GetChronoDataFile("models/bulldozer/shoe_view.obj").c_str());
             shoe_mesh->GetMesh()->Transform(-mesh_displacement, ChMatrix33<>(1));
             shoe_mesh->SetVisible(true);
 
             // Visualize collision mesh
             auto shoe_coll_mesh = chrono_types::make_shared<ChTriangleMeshShape>();
             firstBodyShoe->AddAsset(shoe_coll_mesh);
-            shoe_coll_mesh->GetMesh()->LoadWavefrontMesh(GetChronoDataFile("shoe_collision.obj").c_str());
+            shoe_coll_mesh->GetMesh()->LoadWavefrontMesh(GetChronoDataFile("models/bulldozer/shoe_collision.obj").c_str());
             shoe_coll_mesh->GetMesh()->Transform(-mesh_displacement, ChMatrix33<>(1));
             shoe_coll_mesh->SetVisible(false);
 
@@ -545,7 +545,7 @@ int main(int argc, char* argv[]) {
     auto my_ground = chrono_types::make_shared<ChBodyEasyBox>(60, 2, 60, 1000, true, true, ground_mat);
     my_ground->SetPos(ChVector<>(0, -1, 0));
     my_ground->SetBodyFixed(true);
-    my_ground->AddAsset(chrono_types::make_shared<ChTexture>(GetChronoDataFile("blu.png")));
+    my_ground->AddAsset(chrono_types::make_shared<ChTexture>(GetChronoDataFile("textures/blue.png")));
     my_system.AddBody(my_ground);
 
     // ..some obstacles on the ground:
