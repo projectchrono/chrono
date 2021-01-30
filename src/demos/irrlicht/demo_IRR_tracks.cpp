@@ -545,7 +545,7 @@ int main(int argc, char* argv[]) {
     auto my_ground = chrono_types::make_shared<ChBodyEasyBox>(60, 2, 60, 1000, true, true, ground_mat);
     my_ground->SetPos(ChVector<>(0, -1, 0));
     my_ground->SetBodyFixed(true);
-    my_ground->AddAsset(chrono_types::make_shared<ChTexture>(GetChronoDataFile("blu.png")));
+    my_ground->AddAsset(chrono_types::make_shared<ChTexture>(GetChronoDataFile("textures/blue.png")));
     my_system.AddBody(my_ground);
 
     // ..some obstacles on the ground:

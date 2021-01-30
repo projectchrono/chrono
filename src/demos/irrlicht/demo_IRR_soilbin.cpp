@@ -121,7 +121,7 @@ class ParticleGenerator {
 
             // generate some dirt in the bin
             auto cubeMap = chrono_types::make_shared<ChTexture>();
-            cubeMap->SetTextureFilename(GetChronoDataFile("concrete.jpg"));
+            cubeMap->SetTextureFilename(GetChronoDataFile("textures/concrete.jpg"));
             auto rockMap = chrono_types::make_shared<ChTexture>();
             rockMap->SetTextureFilename(GetChronoDataFile("rock.jpg"));
 
@@ -349,7 +349,7 @@ class TestMech {
 
         // create the floor
         auto cubeMap = chrono_types::make_shared<ChTexture>();
-        cubeMap->SetTextureFilename(GetChronoDataFile("concrete.jpg"));
+        cubeMap->SetTextureFilename(GetChronoDataFile("textures/concrete.jpg"));
 
         auto floor_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
         floor_mat->SetFriction(0.5f);
@@ -390,7 +390,7 @@ class TestMech {
         // single rotational DOF will be driven with a user-input for torque
         // *****
         auto bluMap = chrono_types::make_shared<ChTexture>();
-        bluMap->SetTextureFilename(GetChronoDataFile("blu.png"));
+        bluMap->SetTextureFilename(GetChronoDataFile("textures/blue.png"));
         ChVector<> trussCM = wheelBody->GetPos();
 
         truss = chrono_types::make_shared<ChBodyEasyBox>(0.2, 0.2, 0.4, 300.0, true, false);

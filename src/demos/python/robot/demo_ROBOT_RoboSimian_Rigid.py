@@ -129,7 +129,7 @@ def CreateTerrain(sys, length, width, height, offset) :
     ground.AddAsset(box)
 
     texture = chrono.ChTexture()
-    texture.SetTextureFilename(chrono.GetChronoDataFile("pinkwhite.png"))
+    texture.SetTextureFilename(chrono.GetChronoDataFile("textures/pinkwhite.png"))
     texture.SetTextureScale(10 * length, 10 * width)
     ground.AddAsset(texture)
 

@@ -155,7 +155,7 @@ std::shared_ptr<ChBody> CreateTerrain(ChSystem* sys,
     ground->AddAsset(box);
 
     auto texture = chrono_types::make_shared<ChTexture>();
-    texture->SetTextureFilename(GetChronoDataFile("pinkwhite.png"));
+    texture->SetTextureFilename(GetChronoDataFile("textures/pinkwhite.png"));
     texture->SetTextureScale(10 * (float)length, 10 * (float)width);
     ground->AddAsset(texture);
 

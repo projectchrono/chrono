@@ -98,7 +98,7 @@ class MySimpleForklift {
         double RAD_back_wheel = 0.28;
         double RAD_front_wheel = 0.28;
 
-        forkliftTiremap = app->GetVideoDriver()->getTexture(GetChronoDataFile("tire_truck.png").c_str());
+        forkliftTiremap = app->GetVideoDriver()->getTexture(GetChronoDataFile("textures/tire_truck.png").c_str());
 
         // --- The car body ---
 
@@ -125,7 +125,7 @@ class MySimpleForklift {
         auto truss_mesh = chrono_types::make_shared<ChObjShapeFile>();
         truss_mesh->SetFilename(GetChronoDataFile("models/forklift/body.obj"));
         truss_asset_assembly->AddAsset(truss_mesh);
-        auto truss_texture = chrono_types::make_shared<ChTexture>(GetChronoDataFile("tire_truck.png"));
+        auto truss_texture = chrono_types::make_shared<ChTexture>(GetChronoDataFile("textures/tire_truck.png"));
         truss_asset_assembly->AddAsset(truss_texture);
 
         // contact material shared among all wheels
@@ -151,7 +151,7 @@ class MySimpleForklift {
         auto wheelRF_mesh = chrono_types::make_shared<ChObjShapeFile>();
         wheelRF_mesh->SetFilename(GetChronoDataFile("models/forklift/wheel.obj"));
         wheelRF_asset_assembly->AddAsset(wheelRF_mesh);
-        auto wheelRF_texture = chrono_types::make_shared<ChTexture>(GetChronoDataFile("tire_truck.png"));
+        auto wheelRF_texture = chrono_types::make_shared<ChTexture>(GetChronoDataFile("textures/tire_truck.png"));
         wheelRF_asset_assembly->AddAsset(wheelRF_texture);
 
         // .. create the revolute joint between the wheel and the truss
@@ -181,7 +181,7 @@ class MySimpleForklift {
         auto wheelLF_mesh = chrono_types::make_shared<ChObjShapeFile>();
         wheelLF_mesh->SetFilename(GetChronoDataFile("models/forklift/wheel.obj"));
         wheelLF_asset_assembly->AddAsset(wheelLF_mesh);
-        auto wheelLF_texture = chrono_types::make_shared<ChTexture>(GetChronoDataFile("tire_truck.png"));
+        auto wheelLF_texture = chrono_types::make_shared<ChTexture>(GetChronoDataFile("textures/tire_truck.png"));
         wheelLF_asset_assembly->AddAsset(wheelLF_texture);
 
         // .. create the revolute joint between the wheel and the truss
@@ -225,7 +225,7 @@ class MySimpleForklift {
         auto wheelB_mesh = chrono_types::make_shared<ChObjShapeFile>();
         wheelB_mesh->SetFilename(GetChronoDataFile("models/forklift/wheel.obj"));
         wheelB_asset_assembly->AddAsset(wheelB_mesh);
-        auto wheelB_texture = chrono_types::make_shared<ChTexture>(GetChronoDataFile("tire_truck.png"));
+        auto wheelB_texture = chrono_types::make_shared<ChTexture>(GetChronoDataFile("textures/tire_truck.png"));
         wheelB_asset_assembly->AddAsset(wheelB_texture);
 
         // .. create the motor between the back wheel and the steering spindle structure
@@ -311,7 +311,7 @@ class MySimpleForklift {
 
         // apply also a texture to the pallet:
         auto pallet_texture = chrono_types::make_shared<ChTexture>();
-        pallet_texture->SetTextureFilename(GetChronoDataFile("cubetexture.png"));
+        pallet_texture->SetTextureFilename(GetChronoDataFile("textures/cubetexture.png"));
         pallet->AddAsset(pallet_texture);
 
         //
@@ -451,7 +451,7 @@ int main(int argc, char* argv[]) {
     my_system.Add(my_ground);
     my_ground->SetBodyFixed(true);
     my_ground->SetPos(ChVector<>(0, -1, 0));
-    auto mtexture = chrono_types::make_shared<ChTexture>(GetChronoDataFile("concrete.jpg"));
+    auto mtexture = chrono_types::make_shared<ChTexture>(GetChronoDataFile("textures/concrete.jpg"));
     my_ground->AddAsset(mtexture);
 
     // ..some obstacles on the ground:
@@ -459,7 +459,7 @@ int main(int argc, char* argv[]) {
         auto my_obstacle = chrono_types::make_shared<ChBodyEasyBox>(1, 0.5, 1, 200, true, true, ground_mat);
         my_system.Add(my_obstacle);
         my_obstacle->SetPos(ChVector<>(20 * ChRandom(), 2, 20 * ChRandom()));
-        auto mtexture = chrono_types::make_shared<ChTexture>(GetChronoDataFile("cubetexture_wood.png"));
+        auto mtexture = chrono_types::make_shared<ChTexture>(GetChronoDataFile("textures/cubetexture_wood.png"));
         my_obstacle->AddAsset(mtexture);
     }
 

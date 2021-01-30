@@ -200,7 +200,7 @@ int main(int argc, char* argv[]) {
     // ==Asset== Attach also a texture, that will affect only the
     // assets in mlevelA:
     auto mtexture = chrono_types::make_shared<ChTexture>();
-    mtexture->SetTextureFilename(GetChronoDataFile("bluwhite.png"));
+    mtexture->SetTextureFilename(GetChronoDataFile("textures/bluewhite.png"));
     mlevelA->AddAsset(mtexture);
 
     // Change the position of mlevelA, thus moving also its sub-assets:

@@ -70,7 +70,7 @@ int main(int argc, char* argv[]) {
     floorBody->SetBodyFixed(true);
 
     auto mtexture = chrono_types::make_shared<ChTexture>();
-    mtexture->SetTextureFilename(GetChronoDataFile("concrete.jpg"));
+    mtexture->SetTextureFilename(GetChronoDataFile("textures/concrete.jpg"));
     floorBody->AddAsset(mtexture);
 
     mphysicalSystem.Add(floorBody);

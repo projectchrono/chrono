@@ -93,7 +93,7 @@ if (do_mesh_collision_floor) :
     mfloor.AddAsset(masset_meshbox)
     
     masset_texture = chrono.ChTexture()
-    masset_texture.SetTextureFilename(chrono.GetChronoDataFile("concrete.jpg"))
+    masset_texture.SetTextureFilename(chrono.GetChronoDataFile("textures/concrete.jpg"))
     mfloor.AddAsset(masset_texture)
 
 else :
@@ -104,7 +104,7 @@ else :
     my_system.Add(mfloor)
     
     masset_texture = chrono.ChTexture()
-    masset_texture.SetTextureFilename(chrono.GetChronoDataFile("concrete.jpg"))
+    masset_texture.SetTextureFilename(chrono.GetChronoDataFile("textures/concrete.jpg"))
     mfloor.AddAsset(masset_texture)
 
 

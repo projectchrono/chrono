@@ -136,7 +136,7 @@ int main(int argc, char* argv[]) {
     // NOTE: the path to texture is the path relative to this .exe,
     // as when you are using the Irrlicht visualization.
     auto mtexture = chrono_types::make_shared<ChTexture>();
-    mtexture->SetTextureFilename(GetChronoDataFile("bluwhite.png"));
+    mtexture->SetTextureFilename(GetChronoDataFile("textures/bluewhite.png"));
     mlevelA->AddAsset(mtexture);
 
     // Change the position of mlevelA, thus moving also its sub-assets:

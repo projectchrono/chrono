@@ -75,7 +75,7 @@ int main(int argc, char* argv[]) {
     mphysicalSystem.Add(mfloor2);
 
     auto masset_texture = chrono_types::make_shared<ChTexture>();
-    masset_texture->SetTextureFilename(GetChronoDataFile("concrete.jpg"));
+    masset_texture->SetTextureFilename(GetChronoDataFile("textures/concrete.jpg"));
     mfloor2->AddAsset(masset_texture);
 
     // - Create a falling item with triangle mesh shape

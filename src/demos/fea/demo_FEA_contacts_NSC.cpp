@@ -115,7 +115,7 @@ int main(int argc, char* argv[]) {
         mfloor->AddAsset(masset_meshbox);
 
         auto masset_texture = chrono_types::make_shared<ChTexture>();
-        masset_texture->SetTextureFilename(GetChronoDataFile("concrete.jpg"));
+        masset_texture->SetTextureFilename(GetChronoDataFile("textures/concrete.jpg"));
         mfloor->AddAsset(masset_texture);
 
     }
@@ -127,7 +127,7 @@ int main(int argc, char* argv[]) {
         my_system.Add(mfloor);
 
         auto masset_texture = chrono_types::make_shared<ChTexture>();
-        masset_texture->SetTextureFilename(GetChronoDataFile("concrete.jpg"));
+        masset_texture->SetTextureFilename(GetChronoDataFile("textures/concrete.jpg"));
         mfloor->AddAsset(masset_texture);
     }
 

@@ -84,7 +84,7 @@ std::shared_ptr<ChBody> create_wheel(ChVector<> mposition, ChIrrAppInterface& ma
 
 void create_some_falling_items(ChSystemNSC& mphysicalSystem, ISceneManager* msceneManager, IVideoDriver* driver) {
     // Make some pebbles, just for fun, under the wheel
-    video::ITexture* cubeMap = driver->getTexture(GetChronoDataFile("concrete.jpg").c_str());
+    video::ITexture* cubeMap = driver->getTexture(GetChronoDataFile("textures/concrete.jpg").c_str());
     video::ITexture* rockMap = driver->getTexture(GetChronoDataFile("rock.jpg").c_str());
 
     ChCollisionModel::SetDefaultSuggestedEnvelope(0.003);

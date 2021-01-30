@@ -1300,7 +1300,7 @@ void RS_Limb::SetVisualizationType(VisualizationType vis) {
         link.second->SetVisualizationType(vis);
 
     auto texture = chrono_types::make_shared<ChTexture>();
-    texture->SetTextureFilename(GetChronoDataFile("greenwhite.png"));
+    texture->SetTextureFilename(GetChronoDataFile("textures/greenwhite.png"));
     m_wheel->m_body->AddAsset(texture);
 }
 
