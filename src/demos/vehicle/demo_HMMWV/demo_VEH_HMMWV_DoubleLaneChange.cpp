@@ -451,14 +451,14 @@ int main(int argc, char* argv[]) {
     for (size_t i = 0; i < helper.GetConePositions(); i++) {
         ChVector<> pL = helper.GetConePosition(i, true) + ChVector<>(0, coneBaseWidth / 2, 0);
         irr::scene::IAnimatedMesh* mesh_coneL =
-            app.GetSceneManager()->getMesh(GetChronoDataFile("trafficCone750mm.obj").c_str());
+            app.GetSceneManager()->getMesh(GetChronoDataFile("models/traffic_cone/trafficCone750mm.obj").c_str());
         irr::scene::IAnimatedMeshSceneNode* node_coneL = app.GetSceneManager()->addAnimatedMeshSceneNode(mesh_coneL);
         node_coneL->getMaterial(0).EmissiveColor = irr::video::SColor(0, 100, 0, 0);
         node_coneL->setPosition(irr::core::vector3dfCH(pL));
 
         ChVector<> pR = helper.GetConePosition(i, false) + ChVector<>(0, -coneBaseWidth / 2, 0);
         irr::scene::IAnimatedMesh* mesh_coneR =
-            app.GetSceneManager()->getMesh(GetChronoDataFile("trafficCone750mm.obj").c_str());
+            app.GetSceneManager()->getMesh(GetChronoDataFile("models/traffic_cone/trafficCone750mm.obj").c_str());
         irr::scene::IAnimatedMeshSceneNode* node_coneR = app.GetSceneManager()->addAnimatedMeshSceneNode(mesh_coneR);
         node_coneR->getMaterial(0).EmissiveColor = irr::video::SColor(0, 0, 100, 0);
         node_coneR->setPosition(irr::core::vector3dfCH(pR));

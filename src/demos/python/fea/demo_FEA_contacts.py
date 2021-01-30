@@ -73,7 +73,7 @@ mysurfmaterial.SetAdhesion(0)
 do_mesh_collision_floor = False
 
 mmeshbox = chrono.ChTriangleMeshConnected()
-mmeshbox.LoadWavefrontMesh(chrono.GetChronoDataFile("cube.obj"), True, True)
+mmeshbox.LoadWavefrontMesh(chrono.GetChronoDataFile("models/cube.obj"), True, True)
 
 if (do_mesh_collision_floor) :
     # floor as a triangle mesh surface:

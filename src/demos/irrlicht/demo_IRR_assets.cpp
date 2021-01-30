@@ -194,7 +194,7 @@ int main(int argc, char* argv[]) {
     // ==Asset== Attach, in this level, a 'Wavefront mesh' asset,
     // referencing a .obj file:
     auto mobjmesh = chrono_types::make_shared<ChObjShapeFile>();
-    mobjmesh->SetFilename(GetChronoDataFile("forklift_body.obj"));
+    mobjmesh->SetFilename(GetChronoDataFile("models/forklift/body.obj"));
     mlevelA->AddAsset(mobjmesh);
 
     // ==Asset== Attach also a texture, that will affect only the

@@ -123,7 +123,7 @@ class MySimpleForklift {
         truss_asset_assembly->GetFrame().SetPos(-COG_truss);
         truss->AddAsset(truss_asset_assembly);
         auto truss_mesh = chrono_types::make_shared<ChObjShapeFile>();
-        truss_mesh->SetFilename(GetChronoDataFile("forklift_body.obj"));
+        truss_mesh->SetFilename(GetChronoDataFile("models/forklift/body.obj"));
         truss_asset_assembly->AddAsset(truss_mesh);
         auto truss_texture = chrono_types::make_shared<ChTexture>(GetChronoDataFile("tire_truck.png"));
         truss_asset_assembly->AddAsset(truss_texture);
@@ -149,7 +149,7 @@ class MySimpleForklift {
         wheelRF_asset_assembly->GetFrame().SetPos(-COG_wheelRF);
         wheelRF->AddAsset(wheelRF_asset_assembly);
         auto wheelRF_mesh = chrono_types::make_shared<ChObjShapeFile>();
-        wheelRF_mesh->SetFilename(GetChronoDataFile("wheel.obj"));
+        wheelRF_mesh->SetFilename(GetChronoDataFile("models/forklift/wheel.obj"));
         wheelRF_asset_assembly->AddAsset(wheelRF_mesh);
         auto wheelRF_texture = chrono_types::make_shared<ChTexture>(GetChronoDataFile("tire_truck.png"));
         wheelRF_asset_assembly->AddAsset(wheelRF_texture);
@@ -179,7 +179,7 @@ class MySimpleForklift {
         wheelLF_asset_assembly->GetFrame().SetPos(-COG_wheelRF);
         wheelLF->AddAsset(wheelLF_asset_assembly);
         auto wheelLF_mesh = chrono_types::make_shared<ChObjShapeFile>();
-        wheelLF_mesh->SetFilename(GetChronoDataFile("wheel.obj"));
+        wheelLF_mesh->SetFilename(GetChronoDataFile("models/forklift/wheel.obj"));
         wheelLF_asset_assembly->AddAsset(wheelLF_mesh);
         auto wheelLF_texture = chrono_types::make_shared<ChTexture>(GetChronoDataFile("tire_truck.png"));
         wheelLF_asset_assembly->AddAsset(wheelLF_texture);
@@ -223,7 +223,7 @@ class MySimpleForklift {
         wheelB_asset_assembly->GetFrame().SetPos(-COG_wheelRF);
         wheelB->AddAsset(wheelB_asset_assembly);
         auto wheelB_mesh = chrono_types::make_shared<ChObjShapeFile>();
-        wheelB_mesh->SetFilename(GetChronoDataFile("wheel.obj"));
+        wheelB_mesh->SetFilename(GetChronoDataFile("models/forklift/wheel.obj"));
         wheelB_asset_assembly->AddAsset(wheelB_mesh);
         auto wheelB_texture = chrono_types::make_shared<ChTexture>(GetChronoDataFile("tire_truck.png"));
         wheelB_asset_assembly->AddAsset(wheelB_texture);
@@ -245,7 +245,7 @@ class MySimpleForklift {
         arm_asset_assembly->GetFrame().SetPos(-COG_arm);
         arm->AddAsset(arm_asset_assembly);
         auto arm_mesh = chrono_types::make_shared<ChObjShapeFile>();
-        arm_mesh->SetFilename(GetChronoDataFile("forklift_arm.obj"));
+        arm_mesh->SetFilename(GetChronoDataFile("models/forklift/arm.obj"));
         arm_asset_assembly->AddAsset(arm_mesh);
 
         // .. create the revolute joint between the arm and the truss
@@ -275,7 +275,7 @@ class MySimpleForklift {
         fork_asset_assembly->GetFrame().SetPos(-COG_fork);
         fork->AddAsset(fork_asset_assembly);
         auto fork_mesh = chrono_types::make_shared<ChObjShapeFile>();
-        fork_mesh->SetFilename(GetChronoDataFile("forklift_forks.obj"));
+        fork_mesh->SetFilename(GetChronoDataFile("models/forklift/forks.obj"));
         fork_asset_assembly->AddAsset(fork_mesh);
 
         // .. create the prismatic joint between the fork and arm
@@ -299,7 +299,7 @@ class MySimpleForklift {
         // In order to automatically infer mass and inertia properties, the mesh must be closed and watertight!
         // Specify an inflation radius which can improve robustness of the collision detection.
         auto pallet = chrono_types::make_shared<ChBodyEasyMesh>(  //
-            GetChronoDataFile("pallet.obj"),                      // mesh .OBJ file
+            GetChronoDataFile("models/pallet.obj"),               // mesh .OBJ file
             300,                                                  // density
             true,                                                 // automatic evaluation of inertia propserties
             true,                                                 // enable visualization

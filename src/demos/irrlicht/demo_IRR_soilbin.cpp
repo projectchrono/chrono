@@ -272,7 +272,7 @@ class SoilbinWheel {
 
         // Visualization mesh
         auto tireMesh = chrono_types::make_shared<ChTriangleMeshConnected>();
-        tireMesh->LoadWavefrontMesh(GetChronoDataFile("tractor_wheel.obj"), true, true);
+        tireMesh->LoadWavefrontMesh(GetChronoDataFile("models/tractor_wheel/tractor_wheel.obj"), true, true);
         auto tireMesh_asset = chrono_types::make_shared<ChTriangleMeshShape>();
         tireMesh_asset->SetMesh(tireMesh);
         wheel->AddAsset(tireMesh_asset);
@@ -287,8 +287,8 @@ class SoilbinWheel {
         // 'knobs'. Since these decompositions are only for 1/15th of the wheel, use for() to pattern them.
         for (double mangle = 0; mangle < 360.; mangle += (360. / 15.)) {
             ChQuaternion<> myrot;
-            ChStreamInAsciiFile myknobs(GetChronoDataFile("tractor_wheel_knobs.chulls").c_str());
-            ChStreamInAsciiFile myslice(GetChronoDataFile("tractor_wheel_slice.chulls").c_str());
+            ChStreamInAsciiFile myknobs(GetChronoDataFile("models/tractor_wheel/tractor_wheel_knobs.chulls").c_str());
+            ChStreamInAsciiFile myslice(GetChronoDataFile("models/tractor_wheel/tractor_wheel_slice.chulls").c_str());
             myrot.Q_from_AngAxis(mangle * (CH_C_PI / 180.), VECT_X);
             ChMatrix33<> mm(myrot);
             wheel->GetCollisionModel()->AddConvexHullsFromFile(wheel_mat, myknobs, ChVector<>(0, 0, 0), mm);
