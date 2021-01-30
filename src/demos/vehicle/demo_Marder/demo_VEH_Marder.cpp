@@ -192,7 +192,7 @@ int main(int argc, char* argv[]) {
             // (do not use the shape materials, so that this can work with both an SMC and NSC system)
             ChMaterialCompositeSMC mat;
             mat.E_eff = 2e6f;
-            mat.cr_eff = 0.1f;
+            mat.cr_eff = 0.75f;
 
             auto delta = -cinfo.distance;
             auto normal_dir = cinfo.vN;
@@ -231,7 +231,7 @@ int main(int argc, char* argv[]) {
     RigidTerrain terrain(marder.GetSystem());
     MaterialInfo minfo;
     minfo.mu = 0.9f;
-    minfo.cr = 0.01f;
+    minfo.cr = 0.75f;
     minfo.Y = 2e7f;
     auto patch_mat = minfo.CreateMaterial(contact_method);
     auto patch = terrain.AddPatch(patch_mat, ChVector<>(0, 0, 0), ChVector<>(0, 0, 1), terrainLength, terrainWidth);
@@ -250,7 +250,7 @@ int main(int argc, char* argv[]) {
     // Create the vehicle Irrlicht application
     // ---------------------------------------
 
-    ChTrackedVehicleIrrApp app(&marder.GetVehicle(), L"M113 Vehicle Demo");
+    ChTrackedVehicleIrrApp app(&marder.GetVehicle(), L"Marder Vehicle Demo");
     app.SetSkyBox();
     app.AddTypicalLights(irr::core::vector3df(30.f, -30.f, 100.f), irr::core::vector3df(30.f, 50.f, 100.f), 250, 130);
     app.SetChaseCamera(trackPoint, 6.0, 0.5);

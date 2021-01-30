@@ -48,7 +48,7 @@ Marder_SupportRoller::Marder_SupportRoller(const std::string& name) : ChDoubleRo
 void Marder_SupportRoller::CreateContactMaterial(ChContactMethod contact_method) {
     MaterialInfo minfo;
     minfo.mu = 0.7f;
-    minfo.cr = 0.1f;
+    minfo.cr = 0.75f;
     minfo.Y = 1e7f;
     m_material = minfo.CreateMaterial(contact_method);
 }

@@ -31,11 +31,11 @@ const ChVector<> Marder_Suspension::m_arm_inertia(0.37, 0.77, 0.77);
 const double Marder_Suspension::m_arm_radius = 0.03;
 
 const double Marder_Suspension::m_torsion_a0 = 0;
-const double Marder_Suspension::m_torsion_k = 2.5e4;
+const double Marder_Suspension::m_torsion_k = 84220.62422;
 const double Marder_Suspension::m_torsion_c = 5e2;
-const double Marder_Suspension::m_torsion_t = -1e4;
+const double Marder_Suspension::m_torsion_t = -2.7e4;
 
-const double Marder_Suspension::m_shock_c = 1e2;
+const double Marder_Suspension::m_shock_c = 17771.53175;
 
 // -----------------------------------------------------------------------------
 // Marder spring functor class - implements a (non)linear rotational spring
@@ -95,19 +95,19 @@ const ChVector<> Marder_Suspension::GetLocation(PointId which) {
 
     switch (which) {
         case ARM:
-            point = ChVector<>(0.144, -0.12, 0.067);
+            point = ChVector<>(0.2, -0.168, 0.0325);
             break;
         case ARM_WHEEL:
-            point = ChVector<>(0, -0.12, 0);
+            point = ChVector<>(0, -0.168, 0);
             break;
         case ARM_CHASSIS:
-            point = ChVector<>(0.288, -0.12, 0.134);
+            point = ChVector<>(0.4, -0.168, 0.065);
             break;
         case SHOCK_A:
-            point = ChVector<>(0.184, -0.12, -0.106);
+            point = ChVector<>(-0.034, -0.168, 0.152);
             break;
         case SHOCK_C:
-            point = ChVector<>(-0.3, -0.12, 0.3);
+            point = ChVector<>(-0.128, -0.168, 0.542);
             break;
         default:
             point = ChVector<>(0, 0, 0);

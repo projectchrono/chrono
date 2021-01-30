@@ -32,11 +32,11 @@ namespace marder {
 // -----------------------------------------------------------------------------
 // Static variables
 // -----------------------------------------------------------------------------
-const double Marder_Chassis::m_mass = 7819.24;
-const ChVector<> Marder_Chassis::m_inertiaXX(13983.08, 27287.61, 28805.57);
+const double Marder_Chassis::m_mass = 25000.00;
+const ChVector<> Marder_Chassis::m_inertiaXX(13653.38542, 98182.70833, 101954.4271);
 const ChVector<> Marder_Chassis::m_inertiaXY(0, 0, 0);
-const ChVector<> Marder_Chassis::m_COM_loc(-2.7958, 0, 0.406);
-const ChCoordsys<> Marder_Chassis::m_driverCsys(ChVector<>(0.0, 0.5, 1.2), ChQuaternion<>(1, 0, 0, 0));
+const ChVector<> Marder_Chassis::m_COM_loc(-2.7958, 0, 0.0);
+const ChCoordsys<> Marder_Chassis::m_driverCsys(ChVector<>(0.0, 0.5, 0.0), ChQuaternion<>(1, 0, 0, 0));
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------

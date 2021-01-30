@@ -33,6 +33,8 @@ namespace marder {
 // -----------------------------------------------------------------------------
 // Static variables
 // -----------------------------------------------------------------------------
+static const double supp_z_offset = 0.02;
+
 const double Marder_TrackAssemblySinglePin::m_right_x_offset = 0.1;
 const ChVector<> Marder_TrackAssemblySinglePin::m_sprocket_loc(0, 0, 0);
 const ChVector<> Marder_TrackAssemblySinglePin::m_idler_loc(-5.4724, 0, -0.0447);
@@ -46,12 +48,13 @@ const ChVector<> Marder_TrackAssemblySinglePin::m_susp_locs_R[6] = {
     ChVector<>(Marder_TrackAssemblySinglePin::m_right_x_offset - 3.1858, 0, -0.3759),
     ChVector<>(Marder_TrackAssemblySinglePin::m_right_x_offset - 3.9658, 0, -0.3759),
     ChVector<>(Marder_TrackAssemblySinglePin::m_right_x_offset - 4.7458, 0, -0.3759)};
-const ChVector<> Marder_TrackAssemblySinglePin::m_supp_locs_L[3] = {
-    ChVector<>(-1.2358, 0, 0.1561), ChVector<>(-2.7958, 0, 0.1561), ChVector<>(-4.3106, 0, 0.1561)};
+const ChVector<> Marder_TrackAssemblySinglePin::m_supp_locs_L[3] = {ChVector<>(-1.2358, 0, 0.1561 + supp_z_offset),
+                                                                    ChVector<>(-2.7958, 0, 0.1561 + supp_z_offset),
+                                                                    ChVector<>(-4.3106, 0, 0.1561 + supp_z_offset)};
 const ChVector<> Marder_TrackAssemblySinglePin::m_supp_locs_R[3] = {
-    ChVector<>(Marder_TrackAssemblySinglePin::m_right_x_offset - 1.2358, 0, 0.1561),
-    ChVector<>(Marder_TrackAssemblySinglePin::m_right_x_offset - 2.7958, 0, 0.1561),
-    ChVector<>(Marder_TrackAssemblySinglePin::m_right_x_offset - 4.3106, 0, 0.1561)};
+    ChVector<>(Marder_TrackAssemblySinglePin::m_right_x_offset - 1.2358, 0, 0.1561 + supp_z_offset),
+    ChVector<>(Marder_TrackAssemblySinglePin::m_right_x_offset - 2.7958, 0, 0.1561 + supp_z_offset),
+    ChVector<>(Marder_TrackAssemblySinglePin::m_right_x_offset - 4.3106, 0, 0.1561 + supp_z_offset)};
 
 // -----------------------------------------------------------------------------
 // Constructor for the M113 track assembly using single-pin track shoes.
