@@ -32,7 +32,7 @@
 #include "chrono/core/ChTimer.h"
 
 //#include "chrono_multicore/physics/ChSystemMulticore.h"
-#include <glfw3.h>
+#include <GLFW/glfw3.h>
 
 namespace chrono {
 namespace opengl {

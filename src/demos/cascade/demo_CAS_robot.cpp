@@ -422,7 +422,7 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    std::shared_ptr<ChTexture> mtexture(new ChTexture(GetChronoDataFile("blu.png").c_str()));
+    std::shared_ptr<ChTexture> mtexture(new ChTexture(GetChronoDataFile("textures/blue.png").c_str()));
     mfloor->AddAsset(mtexture);
 
     // Use this function for adding a ChIrrNodeAsset to all items

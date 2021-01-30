@@ -110,7 +110,7 @@ int main(int argc, char* argv[]) {
     mphysicalSystem.Add(floorBody);
 
     auto mtexture = chrono_types::make_shared<ChTexture>();
-    mtexture->SetTextureFilename(GetChronoDataFile("blu.png"));
+    mtexture->SetTextureFilename(GetChronoDataFile("textures/blue.png"));
     floorBody->AddAsset(mtexture);
 
     // In the following we will create different types of motors

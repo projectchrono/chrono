@@ -61,7 +61,7 @@ void AddFallingItems(ChSystemSMC& sys) {
                 body->AddAsset(sphere);
 
                 auto texture = chrono_types::make_shared<ChTexture>();
-                texture->SetTextureFilename(GetChronoDataFile("bluwhite.png"));
+                texture->SetTextureFilename(GetChronoDataFile("textures/bluewhite.png"));
                 body->AddAsset(texture);
 
                 sys.AddBody(body);
@@ -86,7 +86,7 @@ void AddFallingItems(ChSystemSMC& sys) {
                 body->AddAsset(box);
 
                 auto texture = chrono_types::make_shared<ChTexture>();
-                texture->SetTextureFilename(GetChronoDataFile("pinkwhite.png"));
+                texture->SetTextureFilename(GetChronoDataFile("textures/pinkwhite.png"));
                 body->AddAsset(texture);
 
                 sys.AddBody(body);
@@ -133,7 +133,7 @@ std::shared_ptr<ChBody> AddContainer(ChSystemSMC& sys) {
     fixedBody->GetCollisionModel()->BuildModel();
 
     auto texture = chrono_types::make_shared<ChTexture>();
-    texture->SetTextureFilename(GetChronoDataFile("concrete.jpg"));
+    texture->SetTextureFilename(GetChronoDataFile("textures/concrete.jpg"));
     fixedBody->AddAsset(texture);
 
     sys.AddBody(fixedBody);

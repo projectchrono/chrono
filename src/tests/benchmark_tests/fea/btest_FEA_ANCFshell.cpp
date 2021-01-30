@@ -42,10 +42,16 @@
 #include "chrono_mumps/ChSolverMumps.h"
 #endif
 
+#ifdef CHRONO_PARDISOPROJECT
+#include "chrono_pardisoproject/ChSolverPardisoProject.h"
+#endif
+
+
+
 using namespace chrono;
 using namespace chrono::fea;
 
-enum class SolverType {MINRES, MKL, MUMPS, SparseQR};
+enum class SolverType {MINRES, MKL, MUMPS, PARDISO_PROJECT, SparseQR};
 
 template <int N>
 class ANCFshell : public utils::ChBenchmarkTest {
@@ -88,6 +94,12 @@ class ANCFshell_MUMPS : public ANCFshell<N> {
 };
 
 template <int N>
+class ANCFshell_PARDISOPROJECT : public ANCFshell<N> {
+  public:
+    ANCFshell_PARDISOPROJECT() : ANCFshell<N>(SolverType::PARDISO_PROJECT) {}
+};
+
+template <int N>
 ANCFshell<N>::ANCFshell(SolverType solver_type) {
     m_system = new ChSystemSMC();
     m_system->Set_G_acc(ChVector<>(0, -9.8, 0));
@@ -105,6 +117,13 @@ ANCFshell<N>::ANCFshell(SolverType solver_type) {
     if (solver_type == SolverType::MUMPS) {
         solver_type = SolverType::MINRES;
         std::cout << "WARNING! Chrono::MUMPS not enabled. Forcing use of MINRES solver" << std::endl;
+    }
+#endif
+
+#ifndef CHRONO_PARDISOPROJECT
+    if (solver_type == SolverType::PARDISO_PROJECT) {
+        solver_type = SolverType::MINRES;
+        std::cout << "WARNING! Chrono::PARDISO_PROJECT not enabled. Forcing use of MINRES solver" << std::endl;
     }
 #endif
 
@@ -132,6 +151,16 @@ ANCFshell<N>::ANCFshell(SolverType solver_type) {
         case SolverType::MUMPS: {
 #ifdef CHRONO_MUMPS
             auto solver = chrono_types::make_shared<ChSolverMumps>(4);
+            solver->UseSparsityPatternLearner(false);
+            solver->LockSparsityPattern(true);
+            solver->SetVerbose(false);
+            m_system->SetSolver(solver);
+#endif
+            break;
+        }
+        case SolverType::PARDISO_PROJECT: {
+#ifdef CHRONO_PARDISOPROJECT
+            auto solver = chrono_types::make_shared<ChSolverPardisoProject>();
             solver->UseSparsityPatternLearner(false);
             solver->LockSparsityPattern(true);
             solver->SetVerbose(false);
@@ -269,10 +298,17 @@ CH_BM_SIMULATION_LOOP(ANCFshell32_MUMPS, ANCFshell_MUMPS<32>, NUM_SKIP_STEPS, NU
 CH_BM_SIMULATION_LOOP(ANCFshell64_MUMPS, ANCFshell_MUMPS<64>, NUM_SKIP_STEPS, NUM_SIM_STEPS, 10);
 #endif
 
+#ifdef CHRONO_PARDISOPROJECT
+CH_BM_SIMULATION_LOOP(ANCFshell08_PARDISOPROJECT, ANCFshell_PARDISOPROJECT<8>, NUM_SKIP_STEPS, NUM_SIM_STEPS, 10);
+CH_BM_SIMULATION_LOOP(ANCFshell16_PARDISOPROJECT, ANCFshell_PARDISOPROJECT<16>, NUM_SKIP_STEPS, NUM_SIM_STEPS, 10);
+CH_BM_SIMULATION_LOOP(ANCFshell32_PARDISOPROJECT, ANCFshell_PARDISOPROJECT<32>, NUM_SKIP_STEPS, NUM_SIM_STEPS, 10);
+CH_BM_SIMULATION_LOOP(ANCFshell64_PARDISOPROJECT, ANCFshell_PARDISOPROJECT<64>, NUM_SKIP_STEPS, NUM_SIM_STEPS, 10);
+#endif
+
 // =============================================================================
 
 int main(int argc, char* argv[]) {
-    utils::ForceBenchmarkTabularOutput(&argc, &argv);
+    utils::AddComandLineArgument(&argc, &argv, "--benchmark_counters_tabular");
     ::benchmark::Initialize(&argc, argv);
 
 #ifdef CHRONO_IRRLICHT

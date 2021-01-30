@@ -64,6 +64,9 @@
 // If module SENSOR was enabled, define CHRONO_SENSOR
 @CHRONO_SENSOR@
 
+// If module PARDISOPROJECT was enabled, define CHRONO_PARDISOPROJECT
+@CHRONO_PARDISOPROJECT@
+
 // -----------------------------------------------------------------------------
 // OpenMP settings
 // -----------------------------------------------------------------------------

@@ -35,6 +35,10 @@
 #include "chrono_mumps/ChSolverMumps.h"
 #endif
 
+#ifdef CHRONO_PARDISOPROJECT
+#include "chrono_pardisoproject/ChSolverPardisoProject.h"
+#endif
+
 using namespace chrono;
 using namespace chrono::fea;
 
@@ -143,6 +147,21 @@ class SystemFixture : public ::benchmark::Fixture {
     }                                                                                 \
     BENCHMARK_REGISTER_F(SystemFixture, TEST_NAME)->Unit(benchmark::kMillisecond);
 
+#define BM_SOLVER_PARDISOPROJECT(TEST_NAME, N, WITH_LEARNER)                          \
+    BENCHMARK_TEMPLATE_DEFINE_F(SystemFixture, TEST_NAME, N)(benchmark::State & st) { \
+        auto solver = chrono_types::make_shared<ChSolverPardisoProject>();            \
+        solver->UseSparsityPatternLearner(WITH_LEARNER);                              \
+        solver->LockSparsityPattern(true);                                            \
+        solver->SetVerbose(false);                                                    \
+        m_system->SetSolver(solver);                                                  \
+        while (st.KeepRunning()) {                                                    \
+            solver->ForceSparsityPatternUpdate();                                     \
+            m_system->DoStaticLinear();                                               \
+        }                                                                             \
+        Report(st);                                                                   \
+    }                                                                                 \
+    BENCHMARK_REGISTER_F(SystemFixture, TEST_NAME)->Unit(benchmark::kMillisecond);
+
 #define BM_SOLVER_QR(TEST_NAME, N, WITH_LEARNER)                                      \
     BENCHMARK_TEMPLATE_DEFINE_F(SystemFixture, TEST_NAME, N)(benchmark::State & st) { \
         auto solver = chrono_types::make_shared<ChSolverSparseQR>();                  \
@@ -184,6 +203,19 @@ BM_SOLVER_MUMPS(MUMPS_learner_8000, 8000, true)
 BM_SOLVER_MUMPS(MUMPS_no_learner_8000, 8000, false)
 #endif
 
+#ifdef CHRONO_PARDISOPROJECT
+BM_SOLVER_PARDISOPROJECT(PARDISOPROJECT_learner_500, 500, true)
+BM_SOLVER_PARDISOPROJECT(PARDISOPROJECT_no_learner_500, 500, false)
+BM_SOLVER_PARDISOPROJECT(PARDISOPROJECT_learner_1000, 1000, true)
+BM_SOLVER_PARDISOPROJECT(PARDISOPROJECT_no_learner_1000, 1000, false)
+BM_SOLVER_PARDISOPROJECT(PARDISOPROJECT_learner_2000, 2000, true)
+BM_SOLVER_PARDISOPROJECT(PARDISOPROJECT_no_learner_2000, 2000, false)
+BM_SOLVER_PARDISOPROJECT(PARDISOPROJECT_learner_4000, 4000, true)
+BM_SOLVER_PARDISOPROJECT(PARDISOPROJECT_no_learner_4000, 4000, false)
+BM_SOLVER_PARDISOPROJECT(PARDISOPROJECT_learner_8000, 8000, true)
+BM_SOLVER_PARDISOPROJECT(PARDISOPROJECT_no_learner_8000, 8000, false)
+#endif
+
 BM_SOLVER_QR(QR_learner_500, 500, true)
 BM_SOLVER_QR(QR_no_learner_500, 500, false)
 BM_SOLVER_QR(QR_learner_1000, 1000, true)
@@ -196,7 +228,7 @@ BM_SOLVER_QR(QR_learner_8000, 8000, true)
 BM_SOLVER_QR(QR_no_learner_8000, 8000, false)
 
 int main(int argc, char* argv[]) {
-    utils::ForceBenchmarkTabularOutput(&argc, &argv);
+    utils::AddComandLineArgument(&argc, &argv, "--benchmark_counters_tabular");
     ::benchmark::Initialize(&argc, argv);
     ::benchmark::RunSpecifiedBenchmarks();
 }

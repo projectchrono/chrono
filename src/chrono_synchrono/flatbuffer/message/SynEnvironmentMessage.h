@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: 肖言 (Yan Xiao)
+// Authors: Yan Xiao
 // =============================================================================
 //
 // Message class for Environment Agents. This class is only used to send the
@@ -22,7 +22,7 @@
 #ifndef SYN_ENVIRONMENT_MESSAGE_H
 #define SYN_ENVIRONMENT_MESSAGE_H
 
-#include "chrono_synchrono/flatbuffer/message/SynAgentMessage.h"
+#include "chrono_synchrono/flatbuffer/message/SynMessage.h"
 #include "chrono_synchrono/flatbuffer/message/SynMAPMessage.h"
 #include "chrono_synchrono/flatbuffer/message/SynSPATMessage.h"
 
@@ -32,31 +32,32 @@ namespace synchrono {
 /// @addtogroup synchrono_flatbuffer
 /// @{
 
-struct SynEnvironmentMessageState : public SynMessageState {
-    int rank;
-
-    SynEnvironmentMessageState() : SynMessageState(0.0) {}
-
-    SynEnvironmentMessageState(double time, int rank) : SynMessageState(time), rank(rank) {}
-};
-
-/// Used to send the initial description for an environment agent
-class SYN_API SynEnvironmentMessage : public SynAgentMessage {
+///@brief The environment agent state class
+/// This should be inherited and stored with additional state information relevant to the environment agent
+/// Should hold frequently passed data, such as synchronization information
+/// For infrequently passed data, please see SynAgentDescriptionMessage
+///
+class SYN_API SynEnvironmentMessage : public SynMessage {
   public:
-    SynEnvironmentMessage(int rank, std::shared_ptr<SynEnvironmentMessageState> state = nullptr);
+    ///@brief Constructor
+    ///
+    ///@param source_id the id of the source to which the message is sent from
+    ///@param destination_id the id of the destination to which the message is sent to
+    SynEnvironmentMessage(unsigned int source_id, unsigned int destination_id);
 
-    virtual void StateFromMessage(const SynFlatBuffers::Message* message) override;
+    ///@brief Converts a received flatbuffer message to a SynMessage
+    ///
+    ///@param message the flatbuffer message to convert to a SynMessage
+    virtual void ConvertFromFlatBuffers(const SynFlatBuffers::Message* message) override;
 
-    virtual FlatBufferMessage MessageFromState(flatbuffers::FlatBufferBuilder& builder) override;
+    ///@brief Converts this object to a flatbuffer message
+    ///
+    ///@param builder a flatbuffer builder to construct the message with
+    ///@return FlatBufferMessage the constructed flatbuffer message
+    virtual FlatBufferMessage ConvertToFlatBuffers(flatbuffers::FlatBufferBuilder& builder) override;
 
-    virtual std::shared_ptr<SynMessageState> GetState() override { return m_state; }
-
-    virtual void DescriptionFromMessage(const SynFlatBuffers::Message* message) override;
-
-    virtual FlatBufferMessage MessageFromDescription(flatbuffers::FlatBufferBuilder& builder) override;
-
-  private:
-    std::shared_ptr<SynEnvironmentMessageState> m_state;
+    std::shared_ptr<SynMAPMessage> map_message;
+    std::shared_ptr<SynSPATMessage> spat_message;
 };
 
 /// @} synchrono_flatbuffer

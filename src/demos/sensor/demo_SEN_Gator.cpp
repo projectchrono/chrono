@@ -137,7 +137,7 @@ enum IMUNoiseModel {
 IMUNoiseModel imu_noise_type = NORMAL_DRIFT;
 
 // IMU update rate in Hz
-int imu_update_rate = 100;
+float imu_update_rate = 100.0f;
 
 // IMU lag (in seconds) between sensing and when data becomes accessible
 float imu_lag = 0.f;
@@ -149,14 +149,14 @@ float imu_collection_time = 0.f;
 // GPS parameters
 // -----------------------------------------------------------------------------
 // Noise model attached to the sensor
-enum GPSNoiseModel {
+enum class GPSNoiseModel {
     NORMAL,    // individually parameterized independent gaussian distribution
     GPS_NONE,  // no noise model
 };
-GPSNoiseModel gps_noise_type = GPS_NONE;
+GPSNoiseModel gps_noise_type = GPSNoiseModel::GPS_NONE;
 
 // GPS update rate in Hz
-int gps_update_rate = 10;
+float gps_update_rate = 10.0f;
 
 // Camera's horizontal field of view
 float fov = 1.408f;
@@ -324,12 +324,12 @@ int main(int argc, char* argv[]) {
         lidar_hfov,                                                               // horizontal field of view
         lidar_vmax,                                                               // vertical field of view
         lidar_vmin,                                                               // vertical field of view
-        100.0,                                                                    //
+        100.0f,                                                                   //
         1,                                                                        //
-        0,                                                                        //
-        STRONGEST_RETURN,                                                         //
-        RAYCAST,                                                                  //
-        .1                                                                        //
+        0.0f,                                                                     //
+        LidarReturnMode::STRONGEST_RETURN,                                        //
+        LidarModelType::RAYCAST,                                                  //
+        0.1f                                                                      //
     );
     lidar->SetName("Lidar Sensor");
     lidar->SetLag(1 / lidar_update_rate);
@@ -339,7 +339,7 @@ int main(int argc, char* argv[]) {
             chrono_types::make_shared<ChFilterVisualize>(horizontal_samples, vertical_samples, "Raw Lidar Data"));
     lidar->PushFilter(chrono_types::make_shared<ChFilterPCfromDepth>());
     if (sensor_vis)
-        lidar->PushFilter(chrono_types::make_shared<ChFilterVisualizePointCloud>(640, 480, .5, "Lidar Point Cloud"));
+        lidar->PushFilter(chrono_types::make_shared<ChFilterVisualizePointCloud>(640, 480, 0.5f, "Lidar Point Cloud"));
     if (sensor_save)
         lidar->PushFilter(chrono_types::make_shared<ChFilterSavePtCloud>(sens_dir + "/lidar/"));
     lidar->PushFilter(chrono_types::make_shared<ChFilterXYZIAccess>());
@@ -379,13 +379,13 @@ int main(int argc, char* argv[]) {
     // ---------------------------------------------
     std::shared_ptr<ChGPSNoiseModel> gps_noise_model;
     switch (gps_noise_type) {
-        case NORMAL:
+        case GPSNoiseModel::NORMAL:
             gps_noise_model =
                 chrono_types::make_shared<ChGPSNoiseNormal>(ChVector<float>(1.f, 1.f, 1.f),  // Mean
                                                             ChVector<float>(2.f, 3.f, 1.f)   // Standard Deviation
                 );
             break;
-        case GPS_NONE:
+        case GPSNoiseModel::GPS_NONE:
             gps_noise_model = chrono_types::make_shared<ChGPSNoiseNone>();
             break;
     }

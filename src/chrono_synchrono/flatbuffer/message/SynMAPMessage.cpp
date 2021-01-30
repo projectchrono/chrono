@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: 肖言 (Yan Xiao), Shuo He
+// Authors: Yan Xiao, Shuo He
 // =============================================================================
 //
 // Store the Map information in the simulation. Currently only used for traffic
@@ -22,73 +22,73 @@
 namespace chrono {
 namespace synchrono {
 
-Intersection::Intersection(const SynFlatBuffers::MAP::intersection* intersection) {
-    for (auto approach : *intersection->approaches())
-        approaches.emplace_back(approach);
-}
+SynMAPMessage::SynMAPMessage(unsigned int source_id, unsigned int destination_id)
+    : SynMessage(source_id, destination_id) {}
 
-SynMAPMessageState::SynMAPMessageState(const SynFlatBuffers::MAP::State* state) {
-    time = state->time();
-    rank = state->rank();
-
-    for (auto intersection : *state->intersections())
-        intersections.push_back(Intersection(intersection));
-}
-
-SynMAPMessage::SynMAPMessage(int rank, std::shared_ptr<SynMAPMessageState> state)
-    : SynMessage(rank, SynMessageType::MAP) {
-    m_state = state ? state : chrono_types::make_shared<SynMAPMessageState>();
-}
-
-void SynMAPMessage::StateFromMessage(const SynFlatBuffers::Message* message) {
+void SynMAPMessage::ConvertFromFlatBuffers(const SynFlatBuffers::Message* message) {
     if (message->message_type() != SynFlatBuffers::Type_MAP_State)
         return;
 
-    SynMAPMessageState state(message->message_as_MAP_State());
-    m_state->time = state.time;
-    m_state->intersections = state.intersections;
-    m_state->rank = state.rank;
+    m_source_id = message->source_id();
+    m_destination_id = message->destination_id();
+
+    auto state = message->message_as_MAP_State();
+    this->time = state->time();
+
+    for (auto flatbuffer_intersection : *state->intersections()) {
+        Intersection intersection;
+        for (auto flatbuffer_approach : *flatbuffer_intersection->approaches()) {
+            auto approach = chrono_types::make_shared<SynApproachMessage>(m_source_id, m_destination_id);
+            approach->ConvertSPATFromFlatBuffers(flatbuffer_approach);
+            intersection.approaches.push_back(approach);
+        }
+        this->intersections.push_back(intersection);
+    }
 }
 
-FlatBufferMessage SynMAPMessage::MessageFromState(flatbuffers::FlatBufferBuilder& builder) {
-    std::vector<flatbuffers::Offset<SynFlatBuffers::MAP::intersection>> intersections;
-    for (auto intersection : m_state->intersections) {
-        std::vector<flatbuffers::Offset<SynFlatBuffers::Approach::State>> Approaches;
+FlatBufferMessage SynMAPMessage::ConvertToFlatBuffers(flatbuffers::FlatBufferBuilder& builder) {
+    std::vector<flatbuffers::Offset<SynFlatBuffers::MAP::intersection>> flatbuffer_intersections;
+    for (auto intersection : intersections) {
+        std::vector<flatbuffers::Offset<SynFlatBuffers::Approach::State>> flatbuffer_approaches;
         for (auto approach : intersection.approaches) {
-            std::vector<flatbuffers::Offset<SynFlatBuffers::Approach::Lane>> lanes;
-            for (auto lane : approach.lanes) {
-                std::vector<flatbuffers::Offset<SynFlatBuffers::Vector>> control_points;
+            std::vector<flatbuffers::Offset<SynFlatBuffers::Approach::Lane>> flatbuffer_lanes;
+            for (auto lane : approach->lanes) {
+                std::vector<flatbuffers::Offset<SynFlatBuffers::Vector>> flatbuffer_control_points;
 
                 for (auto point : lane.controlPoints) {
-                    control_points.push_back(SynFlatBuffers::CreateVector(builder, point.x(), point.y(), point.z()));
+                    flatbuffer_control_points.push_back(
+                        SynFlatBuffers::CreateVector(builder, point.x(), point.y(), point.z()));
                 }
-                lanes.push_back(SynFlatBuffers::Approach::CreateLaneDirect(builder, lane.width, &control_points));
+                flatbuffer_lanes.push_back(
+                    SynFlatBuffers::Approach::CreateLaneDirect(builder, lane.width, &flatbuffer_control_points));
             }
 
-            Approaches.push_back(
-                SynFlatBuffers::Approach::CreateStateDirect(builder, approach.time, approach.rank, &lanes));
+            flatbuffer_approaches.push_back(
+                SynFlatBuffers::Approach::CreateStateDirect(builder, approach->time, &flatbuffer_lanes));
         }
-        intersections.push_back(SynFlatBuffers::MAP::Createintersection(builder, builder.CreateVector(Approaches)));
+        flatbuffer_intersections.push_back(
+            SynFlatBuffers::MAP::Createintersection(builder, builder.CreateVector(flatbuffer_approaches)));
     }
 
     flatbuffers::Offset<SynFlatBuffers::MAP::State> flatbuffer_state =
-        SynFlatBuffers::MAP::CreateState(builder, m_state->time, m_state->rank, builder.CreateVector(intersections));
+        SynFlatBuffers::MAP::CreateState(builder, time, builder.CreateVector(flatbuffer_intersections));
 
-    FlatBufferMessage message = flatbuffers::Offset<SynFlatBuffers::Message>(
-        SynFlatBuffers::CreateMessage(builder, SynFlatBuffers::Type_MAP_State, flatbuffer_state.Union(), m_rank));
+    FlatBufferMessage message = flatbuffers::Offset<SynFlatBuffers::Message>(SynFlatBuffers::CreateMessage(
+        builder, SynFlatBuffers::Type_MAP_State, flatbuffer_state.Union(), m_source_id, m_destination_id));
     return message;
 }
 
-int SynMAPMessage::AddLane(int intersection, int approach, ApproachLane lane) {
+unsigned SynMAPMessage::AddLane(int intersection, int approach, ApproachLane lane) {
     // Adding in blank intersections/approaches until we fill up to the intersection/approach you actually wanted to add
-    while (m_state->intersections.size() <= intersection)
-        m_state->intersections.emplace_back();
+    while (this->intersections.size() <= (size_t)intersection)
+        this->intersections.emplace_back();
 
-    while (m_state->intersections[intersection].approaches.size() <= approach)
-        m_state->intersections[intersection].approaches.emplace_back();
+    while (this->intersections[intersection].approaches.size() <= approach)
+        this->intersections[intersection].approaches.push_back(
+            chrono_types::make_shared<SynApproachMessage>(m_source_id, m_destination_id));
 
-    int num_lanes = m_state->intersections[intersection].approaches[approach].lanes.size();
-    m_state->intersections[intersection].approaches[approach].lanes.push_back(lane);
+    unsigned num_lanes = (unsigned)this->intersections[intersection].approaches[approach]->lanes.size();
+    this->intersections[intersection].approaches[approach]->lanes.push_back(lane);
 
     return num_lanes;
 }

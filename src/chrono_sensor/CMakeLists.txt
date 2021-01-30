@@ -54,7 +54,8 @@ SET(CH_SENSOR_INCLUDES
 list(APPEND LIBRARIES ${optix_LIBRARY})
 list(APPEND LIBRARIES ${optix_rpath})
 list(APPEND LIBRARIES ${CUDA_LIBRARIES})
-list(APPEND LIBRARIES ${CUDA_npp_LIBRARY})
+list(APPEND LIBRARIES ${CUDA_nppc_LIBRARY})
+list(APPEND LIBRARIES ${CUDA_nppig_LIBRARY})
 
 
 #add the necessary opengl, glfw, glew libraries to link list
@@ -384,7 +385,7 @@ source_group("utils\\tinyobjloader" FILES ${SENSOR_TINYOBJ_FILES})
 CUDA_WRAP_SRCS(ChronoEngine_sensor OBJ generated_obj_files ${ChronoEngine_sensor_CUDA_SOURCES} )
 
 # Generate the PTX files only if NVRTC is disabled
-if(NOT USE_CUDA_NVRTC)	
+if(NOT USE_CUDA_NVRTC)
   set(CUDA_GENERATED_OUTPUT_DIR "${CMAKE_BINARY_DIR}/sensor_ptx")
   add_definitions( -DPTX_GENERATED_PATH="${CUDA_GENERATED_OUTPUT_DIR}/" )
   CUDA_WRAP_SRCS(ChronoEngine_sensor PTX generated_rt_files ${ChronoEngine_sensor_RT_SOURCES} )
@@ -409,7 +410,7 @@ list(APPEND ALL_CH_SENSOR_FILES ${ChronoEngine_sensor_FILTERS_SOURCES})
 list(APPEND ALL_CH_SENSOR_FILES ${ChronoEngine_sensor_FILTERS_HEADERS})
 list(APPEND ALL_CH_SENSOR_FILES ${ChronoEngine_sensor_SCENE_SOURCES})
 list(APPEND ALL_CH_SENSOR_FILES ${ChronoEngine_sensor_SCENE_HEADERS})
-list(APPEND ALL_CH_SENSOR_FILES ${SENSOR_STB_FILES}) 
+list(APPEND ALL_CH_SENSOR_FILES ${SENSOR_STB_FILES})
 list(APPEND ALL_CH_SENSOR_FILES ${SENSOR_TINYOBJ_FILES})
 
 list(APPEND ALL_CH_SENSOR_FILES ${generated_obj_files})
@@ -454,14 +455,14 @@ set(CH_SENSOR_C_FLAGS       "${CH_SENSOR_C_FLAGS}"          PARENT_SCOPE)
 # On Windows, copy the GLEW and Optix DLLs to the bin/ directory
 # We do this through a custom command so that the DLLs are copied to the
 # appropriate directory (depending on the build type); however, we use
-# copy_if_different. 
+# copy_if_different.
 
 IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 
   # GLEW doesn't provide a 'root' variable so we make our own
   get_filename_component(GLEW_ROOT ${GLEW_INCLUDE_DIR}/../ ABSOLUTE)
 
-  # Set variables that point to the DLLs. OptiX (and thus Chrono::Sensor) don't 
+  # Set variables that point to the DLLs. OptiX (and thus Chrono::Sensor) don't
   # support 32 bit, so we just take the x64 version of GLEW.
   # CMake/the user already defines the variable optix_DLL but you could do...
   # SET(CH_OPTIX_DLL "${OptiX_INSTALL_DIR)/bin64/optix.6.5.0.dll")
@@ -481,7 +482,7 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     COMMENT "Copying OptiX and GLEW DLLs..."
   )
 
-  # copy the dlls into the installed package to be on the safe side 
+  # copy the dlls into the installed package to be on the safe side
   install(FILES "${optix_DLL}" DESTINATION bin)
   install(FILES "${CH_GLEW_DLL}" DESTINATION bin)
 

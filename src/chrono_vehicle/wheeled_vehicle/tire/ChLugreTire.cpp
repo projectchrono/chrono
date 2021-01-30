@@ -75,7 +75,7 @@ void ChLugreTire::AddVisualizationAssets(VisualizationType vis) {
     }
 
     m_texture = chrono_types::make_shared<ChTexture>();
-    m_texture->SetTextureFilename(GetChronoDataFile("greenwhite.png"));
+    m_texture->SetTextureFilename(GetChronoDataFile("textures/greenwhite.png"));
     m_wheel->GetSpindle()->AddAsset(m_texture);
 }
 

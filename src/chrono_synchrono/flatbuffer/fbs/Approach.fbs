@@ -25,7 +25,6 @@ namespace SynFlatBuffers.Approach;
 
 table State {
   time:double;
-  rank:int;
   lanes:[Lane];
 }
 

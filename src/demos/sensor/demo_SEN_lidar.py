@@ -158,10 +158,10 @@ noise_model="NONE"                  # No noise model
 # Lidar method for generating data
 # Just RAYCAST for now
 # TODO: implement PATH_TRACE
-lens_model = sens.RAYCAST;
+lens_model = sens.LidarModelType_RAYCAST
 
 # Lidar return mode
-return_mode = sens.STRONGEST_RETURN
+return_mode = sens.LidarReturnMode_STRONGEST_RETURN
 # return_mode = sens.MEAN_RETURN
 # return_mode = sens.FIRST_RETURN
 # return_mode = sens.LAST_RETURN

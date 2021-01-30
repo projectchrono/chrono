@@ -35,52 +35,36 @@ void ChSystemGpuMesh_impl::resetTriangleBroadphaseInformation() {
 __host__ void ChSystemGpuMesh_impl::runTriangleBroadphase() {
     METRICS_PRINTF("Resetting broadphase info!\n");
 
-    packSphereDataPointers();
-
     std::vector<unsigned int, cudallocator<unsigned int>> Triangle_NumSDsTouching;
     std::vector<unsigned int, cudallocator<unsigned int>> Triangle_SDsCompositeOffsets;
 
-    Triangle_NumSDsTouching.resize(meshSoup->nTrianglesInSoup, 0);
-    Triangle_SDsCompositeOffsets.resize(meshSoup->nTrianglesInSoup, 0);
+    unsigned int numTriangles = meshSoup->nTrianglesInSoup;
+    Triangle_NumSDsTouching.resize(numTriangles, 0);
+    Triangle_SDsCompositeOffsets.resize(numTriangles, 0);
 
-    const int nthreads = CUDA_THREADS_PER_BLOCK;
-    int nblocks = (meshSoup->nTrianglesInSoup + nthreads - 1) / nthreads;
-    triangleSoup_CountSDsTouched<<<nblocks, nthreads>>>(meshSoup, Triangle_NumSDsTouching.data(), gran_params,
-                                                        tri_params);
+    int nblocks = (numTriangles + CUDA_THREADS_PER_BLOCK - 1) / CUDA_THREADS_PER_BLOCK;
+    triangleSoup_CountSDsTouched<<<nblocks, CUDA_THREADS_PER_BLOCK>>>(meshSoup, Triangle_NumSDsTouching.data(),
+                                                                      gran_params, tri_params);
 
     gpuErrchk(cudaDeviceSynchronize());
     gpuErrchk(cudaPeekAtLastError());
 
-    unsigned int numTriangles = meshSoup->nTrianglesInSoup;
-    unsigned int num_entries = 0;
-
     // do prefix scan
-    {
-        void* d_temp_storage = NULL;
-        size_t temp_storage_bytes = 0;
-        unsigned int* out_ptr = Triangle_SDsCompositeOffsets.data();
-        unsigned int* in_ptr = Triangle_NumSDsTouching.data();
+    size_t temp_storage_bytes = 0;
+    unsigned int* out_ptr = Triangle_SDsCompositeOffsets.data();
+    unsigned int* in_ptr = Triangle_NumSDsTouching.data();
 
-        // copy data into the tmp array
-        gpuErrchk(cudaMemcpy(out_ptr, in_ptr, numTriangles * sizeof(unsigned int), cudaMemcpyDeviceToDevice));
-        cub::DeviceScan::ExclusiveSum(d_temp_storage, temp_storage_bytes, in_ptr, out_ptr, numTriangles);
+    // copy data into the tmp array
+    gpuErrchk(cudaMemcpy(out_ptr, in_ptr, numTriangles * sizeof(unsigned int), cudaMemcpyDeviceToDevice));
+    cub::DeviceScan::ExclusiveSum(NULL, temp_storage_bytes, in_ptr, out_ptr, numTriangles);
+    gpuErrchk(cudaDeviceSynchronize());
 
-        gpuErrchk(cudaDeviceSynchronize());
-        gpuErrchk(cudaPeekAtLastError());
-        // Allocate temporary storage
-        gpuErrchk(cudaMalloc(&d_temp_storage, temp_storage_bytes));
-
-        gpuErrchk(cudaDeviceSynchronize());
-        gpuErrchk(cudaPeekAtLastError());
-        // Run exclusive prefix sum
-        cub::DeviceScan::ExclusiveSum(d_temp_storage, temp_storage_bytes, in_ptr, out_ptr, numTriangles);
-
-        gpuErrchk(cudaDeviceSynchronize());
-        gpuErrchk(cudaPeekAtLastError());
-        gpuErrchk(cudaFree(d_temp_storage));
-        num_entries = out_ptr[numTriangles - 1] + in_ptr[numTriangles - 1];
-        // printf("%u entries total!\n", num_entries);
-    }
+    // get pointer to device memory; this memory block will be used internally by CUB, for scratch area
+    void* d_scratch_space = (void*)stateOfSolver_resources.pDeviceMemoryScratchSpace(temp_storage_bytes);
+    // Run exclusive prefix sum
+    cub::DeviceScan::ExclusiveSum(d_scratch_space, temp_storage_bytes, in_ptr, out_ptr, numTriangles);
+    gpuErrchk(cudaDeviceSynchronize());
+    unsigned num_entries = out_ptr[numTriangles - 1] + in_ptr[numTriangles - 1];
 
     // for (unsigned int i = 0; i < Triangle_NumSDsTouching.size(); i++) {
     //     printf("Triangle %u touches %u SDs, offset is %u\n", i, Triangle_NumSDsTouching[i],
@@ -107,35 +91,29 @@ __host__ void ChSystemGpuMesh_impl::runTriangleBroadphase() {
 
         // printf("first run: num entries is %u, theoretical max is %u\n", num_entries, nSDs *
         // MAX_TRIANGLE_COUNT_PER_SD);
-        triangleSoup_StoreSDsTouched<<<nblocks, nthreads>>>(
+        triangleSoup_StoreSDsTouched<<<nblocks, CUDA_THREADS_PER_BLOCK>>>(
             meshSoup, Triangle_NumSDsTouching.data(), Triangle_SDsCompositeOffsets.data(),
             Triangle_SDsComposite_SDs.data(), Triangle_SDsComposite_TriIDs.data(), gran_params, tri_params);
+        gpuErrchk(cudaDeviceSynchronize());
+
         unsigned int num_items = num_entries;
         unsigned int* d_keys_in = Triangle_SDsComposite_SDs.data();
         unsigned int* d_keys_out = Triangle_SDsComposite_SDs_out.data();
         unsigned int* d_values_in = Triangle_SDsComposite_TriIDs.data();
         unsigned int* d_values_out = Triangle_SDsComposite_TriIDs_out.data();
 
-        gpuErrchk(cudaDeviceSynchronize());
-
-        // Determine temporary device storage requirements
-        void* d_temp_storage = NULL;
-        size_t temp_storage_bytes = 0;
         // Run sorting operation
-        // pass null, cub tells us what it needs
-        cub::DeviceRadixSort::SortPairs(d_temp_storage, temp_storage_bytes, d_keys_in, d_keys_out, d_values_in,
+        // First, determine temporary device storage requirements; pass null, CUB tells us what it needs
+        cub::DeviceRadixSort::SortPairs(NULL, temp_storage_bytes, d_keys_in, d_keys_out, d_values_in,
                                         d_values_out, num_items);
         gpuErrchk(cudaDeviceSynchronize());
 
-        // Allocate temporary storage
-        gpuErrchk(cudaMalloc(&d_temp_storage, temp_storage_bytes));
-        gpuErrchk(cudaDeviceSynchronize());
-
-        cub::DeviceRadixSort::SortPairs(d_temp_storage, temp_storage_bytes, d_keys_in, d_keys_out, d_values_in,
+        // get pointer to device memory; this memory block will be used internally by CUB
+        void* d_scratch_space = (void*)stateOfSolver_resources.pDeviceMemoryScratchSpace(temp_storage_bytes);
+        cub::DeviceRadixSort::SortPairs(d_scratch_space, temp_storage_bytes, d_keys_in, d_keys_out, d_values_in,
                                         d_values_out, num_items);
         gpuErrchk(cudaDeviceSynchronize());
 
-        gpuErrchk(cudaFree(d_temp_storage));
     }
     // now Triangle_SDsComposite_SDs_out has an ordered list of active SDs, with one entry for each triangle
     //
@@ -208,9 +186,6 @@ __host__ void ChSystemGpuMesh_impl::runTriangleBroadphase() {
     // copy the composite data to the primary location
     gpuErrchk(cudaMemcpy(triangles_in_SD_composite.data(), Triangle_SDsComposite_TriIDs_out.data(),
                          Triangle_SDsComposite_TriIDs_out.size() * sizeof(unsigned int), cudaMemcpyDeviceToDevice));
-
-    gpuErrchk(cudaPeekAtLastError());
-    gpuErrchk(cudaDeviceSynchronize());
 }
 
 template <unsigned int N_CUDATHREADS>
@@ -287,7 +262,7 @@ __global__ void interactionTerrain_TriangleSoup(
         if (local_ID < numSDTriangles) {
             size_t SD_composite_offset = SD_TriangleCompositeOffsets[thisSD];
             if (SD_composite_offset == NULL_CHGPU_ID) {
-                ABORTABORTABORT("Invalid composite offset %llu for SD %u, touching %u triangles\n", NULL_CHGPU_ID,
+                ABORTABORTABORT("Invalid composite offset %lu for SD %u, touching %u triangles\n", NULL_CHGPU_ID,
                                 thisSD, numSDTriangles);
             }
             size_t offset_in_composite_Array = SD_composite_offset + local_ID;
@@ -485,7 +460,6 @@ __host__ double ChSystemGpuMesh_impl::AdvanceSimulation(float duration) {
     // Run the simulation, there are aggressive synchronizations because we want to have no race conditions
     for (; time_elapsed_SU < stepSize_SU * nsteps; time_elapsed_SU += stepSize_SU) {
         updateBCPositions();
-
         resetSphereAccelerations();
         resetBCForces();
         if (meshSoup->nTrianglesInSoup != 0 && mesh_collision_enabled) {
@@ -503,8 +477,6 @@ __host__ double ChSystemGpuMesh_impl::AdvanceSimulation(float duration) {
             computeSphereForces_frictionless<<<nSDs, MAX_COUNT_OF_SPHERES_PER_SD>>>(
                 sphere_data, gran_params, BC_type_list.data(), BC_params_list_SU.data(),
                 (unsigned int)BC_params_list_SU.size());
-            gpuErrchk(cudaPeekAtLastError());
-            gpuErrchk(cudaDeviceSynchronize());
         } else if (gran_params->friction_mode == CHGPU_FRICTION_MODE::SINGLE_STEP ||
                    gran_params->friction_mode == CHGPU_FRICTION_MODE::MULTI_STEP) {
             // figure out who is contacting
@@ -515,17 +487,13 @@ __host__ double ChSystemGpuMesh_impl::AdvanceSimulation(float duration) {
             computeSphereContactForces<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(
                 sphere_data, gran_params, BC_type_list.data(), BC_params_list_SU.data(),
                 (unsigned int)BC_params_list_SU.size(), nSpheres);
-            gpuErrchk(cudaPeekAtLastError());
-            gpuErrchk(cudaDeviceSynchronize());
-        }
-
-        if (meshSoup->nTrianglesInSoup != 0 && mesh_collision_enabled) {
-            gpuErrchk(cudaPeekAtLastError());
-            gpuErrchk(cudaDeviceSynchronize());
-            runTriangleBroadphase();
         }
         gpuErrchk(cudaPeekAtLastError());
         gpuErrchk(cudaDeviceSynchronize());
+
+        if (meshSoup->nTrianglesInSoup != 0 && mesh_collision_enabled) {
+            runTriangleBroadphase();
+        }
 
         if (meshSoup->numTriangleFamilies != 0 && mesh_collision_enabled) {
             // TODO please do not use a template here
@@ -540,31 +508,25 @@ __host__ double ChSystemGpuMesh_impl::AdvanceSimulation(float duration) {
         gpuErrchk(cudaPeekAtLastError());
         gpuErrchk(cudaDeviceSynchronize());
 
-        METRICS_PRINTF("Resetting broadphase info!\n");
-
-        resetBroadphaseInformation();
-
-        gpuErrchk(cudaPeekAtLastError());
-        gpuErrchk(cudaDeviceSynchronize());
-
         METRICS_PRINTF("Starting integrateSpheres!\n");
         integrateSpheres<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(stepSize_SU, sphere_data, nSpheres, gran_params);
-
         gpuErrchk(cudaPeekAtLastError());
         gpuErrchk(cudaDeviceSynchronize());
 
         if (gran_params->friction_mode != CHGPU_FRICTION_MODE::FRICTIONLESS) {
-            updateFrictionData<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(stepSize_SU, sphere_data, nSpheres, gran_params);
+            const unsigned int nThreadsUpdateHist = 2 * CUDA_THREADS_PER_BLOCK;
+            unsigned int fricMapSize = nSpheres * MAX_SPHERES_TOUCHED_BY_SPHERE;
+            unsigned int nBlocksFricHistoryPostProcess = (fricMapSize + nThreadsUpdateHist - 1) / nThreadsUpdateHist;
+            updateFrictionData<<<nBlocksFricHistoryPostProcess, nThreadsUpdateHist>>>(fricMapSize, sphere_data,
+                                                                                      gran_params);
+            gpuErrchk(cudaPeekAtLastError());
+            gpuErrchk(cudaDeviceSynchronize());
+            updateAngVels<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(stepSize_SU, sphere_data, nSpheres, gran_params);
             gpuErrchk(cudaPeekAtLastError());
             gpuErrchk(cudaDeviceSynchronize());
         }
 
         runSphereBroadphase();
-
-        packSphereDataPointers();
-
-        gpuErrchk(cudaPeekAtLastError());
-        gpuErrchk(cudaDeviceSynchronize());
         elapsedSimTime += (float)(stepSize_SU * TIME_SU2UU);  // Advance current time
     }
 

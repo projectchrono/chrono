@@ -241,9 +241,9 @@ int main(int argc, char* argv[]) {
     //----------------
     // Simulate system
     //----------------
-    float orbit_radius = 6.5;
-    float orbit_rate = 0.10;
-    float ch_time = 0.0;
+    float orbit_radius = 6.5f;
+    float orbit_rate = 0.10f;
+    float ch_time = 0.0f;
 
     while (ch_time < end_time) {
         // Rotate the cameras around the mesh at a fixed rate

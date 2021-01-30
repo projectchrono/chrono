@@ -104,7 +104,7 @@ int main(int argc, char* argv[]) {
 
     // optional, attach a texture for better visualization
     auto mtexture = chrono_types::make_shared<ChTexture>();
-    mtexture->SetTextureFilename(GetChronoDataFile("blu.png"));
+    mtexture->SetTextureFilename(GetChronoDataFile("textures/blue.png"));
     floorBody->AddAsset(mtexture);
 
     // Create the table that is subject to earthquake
@@ -118,7 +118,7 @@ int main(int argc, char* argv[]) {
 
     // optional, attach a texture for better visualization
     auto mtextureconcrete = chrono_types::make_shared<ChTexture>();
-    mtextureconcrete->SetTextureFilename(GetChronoDataFile("concrete.jpg"));
+    mtextureconcrete->SetTextureFilename(GetChronoDataFile("textures/concrete.jpg"));
     tableBody->AddAsset(mtextureconcrete);
 
     // Create the constraint between ground and table. If no earthquacke, it just

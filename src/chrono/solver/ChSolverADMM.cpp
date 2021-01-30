@@ -249,7 +249,7 @@ double ChSolverADMM::Solve(ChSystemDescriptor& sysd) {
     LS_solver->A() = A; 
     LS_solver->b() = B; 
 
-    for (unsigned int i = 0; i < nc; ++i)
+    for (int i = 0; i < nc; ++i)
         LS_solver->A().coeffRef(nv + i, nv + i) += -(sigma + vrho(i));  //  A = [M, Cq'; Cq, -diag(vsigma+vrho) + E ];
 
     m_timer_convert.stop();
@@ -391,7 +391,7 @@ double ChSolverADMM::Solve(ChSystemDescriptor& sysd) {
 
                 // Avoid rebuilding all sparse matrix: 
                 // A) just remove old rho with -= :
-                for (unsigned int i = 0; i < nc; ++i)
+                for (int i = 0; i < nc; ++i)
                     LS_solver->A().coeffRef(nv + i, nv + i) -= -(sigma + vrho(i));  
 
                 // Update rho
@@ -414,7 +414,7 @@ double ChSolverADMM::Solve(ChSystemDescriptor& sysd) {
                 //
                 // To avoid rebuilding A, we just removed the rho step from the diagonal in A), and now: 
                 // B) add old rho with += :
-                for (unsigned int i = 0; i < nc; ++i)
+                for (int i = 0; i < nc; ++i)
                     LS_solver->A().coeffRef(nv + i, nv + i) += -(sigma + vrho(i));  
 
                 LS_solver->SetupCurrent();  // LU decomposition ++++++++++++++++++++++++++++++++++++++

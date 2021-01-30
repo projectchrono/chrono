@@ -54,25 +54,21 @@ CH_SENSOR_API ChLidarSensor::ChLidarSensor(
       m_clip_near(clip_near),
       ChOptixSensor(parent, updateRate, offsetPose, w * (2 * sample_radius - 1), h * (2 * sample_radius - 1)) {
     // set the program to match the model requested
-    switch (lidar_model) {
-        default:  // same as RAYCAST
-            // select if we should use multisample ray casting method
-            if (sample_radius > 1) {
-                m_program_string = {"lidar", "multi_sample"};
-                m_ray_launch_params.push_back(std::make_tuple<std::string, RTobjecttype, void*>(
-                    "divergence_angle", RT_OBJECTTYPE_FLOAT, &m_divergence_angle));
-                m_ray_launch_params.push_back(std::make_tuple<std::string, RTobjecttype, void*>(
-                    "ray_samples", RT_OBJECTTYPE_INT, &m_sample_radius));
-                m_filters.push_back(
-                    chrono_types::make_shared<ChFilterLidarReduce>(return_mode, sample_radius, "lidar reduction"));
+    // select if we should use multisample ray casting method
+    if (sample_radius > 1) {
+        m_program_string = {"lidar", "multi_sample"};
+        m_ray_launch_params.push_back(std::make_tuple<std::string, RTobjecttype, void*>(
+            "divergence_angle", RT_OBJECTTYPE_FLOAT, &m_divergence_angle));
+        m_ray_launch_params.push_back(std::make_tuple<std::string, RTobjecttype, void*>(
+            "ray_samples", RT_OBJECTTYPE_INT, &m_sample_radius));
+        m_filters.push_back(
+            chrono_types::make_shared<ChFilterLidarReduce>(return_mode, sample_radius, "lidar reduction"));
 
-            } else {
-                m_program_string = {"lidar", "spherical"};
-            }
-
-            m_buffer_format = RT_FORMAT_FLOAT2;
-            break;
+    } else {
+        m_program_string = {"lidar", "spherical"};
     }
+
+    m_buffer_format = RT_FORMAT_FLOAT2;
 
     // list of parameters to pass to the ray generation program
     m_ray_launch_params.push_back(

@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: 肖言 (Yan Xiao), Jay Taves
+// Authors: Yan Xiao, Jay Taves
 // =============================================================================
 //
 // Class for Approach Messages, those contains data on approaches, which are a
@@ -34,41 +34,36 @@ struct ApproachLane {
     double width;                           ///< define the width of the lane. Control points to the side is width/2.
     std::vector<ChVector<>> controlPoints;  ///< The points define the center of the lane.
 
-    ///
-    /// @brief Construct a new Approach Lane object
-    ///
-    /// @param width Define the width of the lane, which means Control points to the side is width/2
-    /// @param control_points The points define the center of the lane. Each adjacent points will form a rectangle used
-    /// for lane detection. Will NOT form a Bezier curve
-    ApproachLane(double width, std::vector<ChVector<>> control_points) : width(width), controlPoints(control_points) {}
+    ApproachLane(double width, std::vector<ChVector<>> controlPoints) : width(width), controlPoints(controlPoints) {}
     ApproachLane(const SynFlatBuffers::Approach::Lane* lane);
 };
 
-struct SynApproachMessageState : public SynMessageState {
-    int rank;
-    std::vector<ApproachLane> lanes;
-
-    SynApproachMessageState() : SynMessageState(0.0) {}
-    SynApproachMessageState(double time, int rank, std::vector<ApproachLane> lanes)
-        : SynMessageState(time), rank(rank), lanes(lanes) {}
-    SynApproachMessageState(const SynFlatBuffers::Approach::State* approach);
-};
-
-/// Handles approach messages, which are a group of lanes going to or from an intersection
+///@brief Approach message
 class SYN_API SynApproachMessage : public SynMessage {
   public:
-    SynApproachMessage(int rank, std::shared_ptr<SynApproachMessageState> state = nullptr);
+    ///@brief Constructor
+    ///
+    ///@param source_id the id of the source to which the message is sent from
+    ///@param destination_id the id of the destination to which the message is sent to
+    SynApproachMessage(unsigned int source_id, unsigned int destination_id);
 
-    virtual void StateFromMessage(const SynFlatBuffers::Message* message) override;
+    ///@brief Converts a received flatbuffer message to a SynMessage
+    ///
+    ///@param message the flatbuffer message to convert to a SynMessage
+    virtual void ConvertFromFlatBuffers(const SynFlatBuffers::Message* message) override;
 
-    virtual FlatBufferMessage MessageFromState(flatbuffers::FlatBufferBuilder& builder) override;
+    ///@brief Converts a received spat flatbuffer message to a SynMessage
+    ///
+    ///@param message the spat flatbuffer message to convert to a SynMessage
+    void ConvertSPATFromFlatBuffers(const SynFlatBuffers::Approach::State* message);
 
-    virtual std::shared_ptr<SynMessageState> GetState() override { return m_state; }
+    ///@brief Converts this object to a flatbuffer message
+    ///
+    ///@param builder a flatbuffer builder to construct the message with
+    ///@return FlatBufferMessage the constructed flatbuffer message
+    virtual FlatBufferMessage ConvertToFlatBuffers(flatbuffers::FlatBufferBuilder& builder) override;
 
-    std::shared_ptr<SynApproachMessageState> GetApproachState() { return m_state; }
-
-  private:
-    std::shared_ptr<SynApproachMessageState> m_state;
+    std::vector<ApproachLane> lanes;
 };
 
 /// @} synchrono_flatbuffer

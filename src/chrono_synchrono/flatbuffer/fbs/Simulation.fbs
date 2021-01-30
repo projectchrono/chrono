@@ -1,0 +1,5 @@
+namespace SynFlatBuffers.Simulation;
+
+table State {}
+
+root_type State;

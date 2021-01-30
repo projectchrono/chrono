@@ -1,0 +1,108 @@
+ADAMS/View model name: test_Revolute_Case02
+!
+!-------------------------------- SYSTEM UNITS ---------------------------------
+!
+UNITS/
+, FORCE = NEWTON
+, MASS = KILOGRAM
+, LENGTH = METER
+, TIME = SECOND
+!
+!----------------------------------- PARTS -------------------------------------
+!
+!----------------------------------- Ground ------------------------------------
+PART/01, GROUND
+!                	World Coordinate System Marker
+MARKER/0101, PART = 01
+!			Revolute Joint Attachment Marker
+!			(-45 deg rotation about the X axis)
+MARKER/0102, PART = 01
+, QP = 1, 2, 3
+, REULER = 180D, 45D, 180D
+!
+!
+!                       Joint Geometry
+MARKER/0103, PART = 01
+, QP = 1, 1.717157288, 2.717157288
+, REULER = 180D, 45D, 180D
+!
+GRAPHICS/0101
+, CYLINDER
+, CM = 0103
+, LENGTH = .8
+, RADIUS = 0.05
+!
+!
+!---------------------------------- Pedulum ------------------------------------
+!
+PART/02, MASS = 1
+, CM = 0201, IP = 0.04, 0.1, 0.1
+!
+!			Pedulum Center Marker
+!			(-45 deg rotation about the X axis)
+MARKER/0201, PART = 02
+, QP = 3, 2, 3
+, REULER = 180D, 45D, 180D
+!
+!			Pedulum Revolute Joint Attachment Marker
+!			(-45 deg rotation about the X axis)
+MARKER/0202, PART = 02
+, QP = 1, 2, 3
+, REULER = 180D, 45D, 180D
+!
+!                       Draw Geometry
+!                       Main Pendulum Body
+!			(Point Z axis along original x axis)
+MARKER/0203, PART = 02
+, QP = 1, 2, 3
+, REULER = 90D, 90D, 0
+!
+GRAPHICS/0201
+, CYLINDER
+, CM = 0203
+, LENGTH = 4
+, RADIUS = 0.1
+!
+!                       Joint Cylinder
+MARKER/0204, PART = 02
+, QP = 1, 1.858578644, 2.858578644
+, REULER = 180D, 45D, 180D
+!
+GRAPHICS/0202
+, CYLINDER
+, CM = 0204
+, LENGTH = .4
+, RADIUS = 0.1
+!
+!-------------------------------- CONSTRAINTS ----------------------------------
+!
+!                           Pendulum Revolute Joint
+JOINT/1, REVOLUTE
+, I = 0102, J = 0202
+!
+!------------------------------ DATA STRUCTURES --------------------------------
+!
+!
+!------------------------- GRAVITATIONAL ACCELERATION --------------------------
+!
+ACCGRAV/
+, KGRAV = -9.80665
+!
+!------------------------------ OUTPUT REQUESTS --------------------------------
+!
+REQUEST/01, D,I=0201,J=0101,C=DISPLACEMENT: X Y Z PSI THETA PHI (body-fixed-3-1-3)
+REQUEST/02, V,I=0201,J=0101,C=VELOCITY X Y Z WX WY WZ
+REQUEST/03, A,I=0201,J=0101,C=ACCELERATION X Y Z WDX WDY WDZ
+REQUEST/04, F2=ORIENT(27,1,0201,0101)\F3=ORIENT(27,2,0201,0101)\F4=ORIENT(27,3,0201,0101)\F6=ORIENT(27,4,0201,0101),C=EULER PARAMETERS
+REQUEST/05, F2=JOINT(1,0,2,0)\F3=JOINT(1,0,3,0)\F4=JOINT(1,0,4,0)\F6=JOINT(1,0,6,0)\F7=JOINT(1,0,7,0)\F8=JOINT(1,0,8,0),C=RForce X Y Z RTorque X Y Z
+!
+!----------------------------- ANALYSIS SETTINGS -------------------------------
+!
+OUTPUT/
+, REQSAVE
+!, GRSAVE
+!
+!RESULTS/
+!, XRF
+!
+END

@@ -93,7 +93,7 @@ int main(int argc, char* argv[]) {
     my_system.Add(mfloor);
 
     auto mtexture = chrono_types::make_shared<ChTexture>();
-    mtexture->SetTextureFilename(GetChronoDataFile("concrete.jpg"));
+    mtexture->SetTextureFilename(GetChronoDataFile("textures/concrete.jpg"));
     mfloor->AddAsset(mtexture);
 
     // Create a step
@@ -159,8 +159,9 @@ int main(int argc, char* argv[]) {
     std::map<std::string, std::vector<std::shared_ptr<ChNodeFEAbase>>> node_sets;
 
     try {
-        ChMeshFileLoader::FromAbaqusFile(my_mesh, GetChronoDataFile("fea/tractor_wheel_coarse.INP").c_str(), mmaterial,
-                                         node_sets, tire_center, tire_alignment);
+        ChMeshFileLoader::FromAbaqusFile(my_mesh,
+                                         GetChronoDataFile("models/tractor_wheel/tractor_wheel_coarse.INP").c_str(),
+                                         mmaterial, node_sets, tire_center, tire_alignment);
     } catch (ChException myerr) {
         GetLog() << myerr.what();
         return 0;
@@ -196,7 +197,7 @@ int main(int argc, char* argv[]) {
     application.GetSystem()->Add(mwheel_rim);
 
     auto mobjmesh = chrono_types::make_shared<ChObjShapeFile>();
-    mobjmesh->SetFilename(GetChronoDataFile("fea/tractor_wheel_rim.obj"));
+    mobjmesh->SetFilename(GetChronoDataFile("models/tractor_wheel/tractor_wheel_rim.obj"));
     mwheel_rim->AddAsset(mobjmesh);
 
     // Connect rim and tire using constraints.
