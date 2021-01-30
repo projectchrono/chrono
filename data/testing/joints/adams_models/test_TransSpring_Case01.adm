@@ -1,0 +1,185 @@
+ADAMS/View model name: test_Distance_Case01
+!
+!-------------------------------- SYSTEM UNITS ---------------------------------
+!
+UNITS/
+, FORCE = NEWTON
+, MASS = KILOGRAM
+, LENGTH = METER
+, TIME = SECOND
+!
+!---------------------- STATEMENTS FROM ORIGINAL DATASET -----------------------
+!
+!                            adams_view_name='PART_1'
+PART/1
+, GROUND
+!
+!                	World Coordinate System Marker
+!                          adams_view_name='MARKER_101'
+MARKER/101
+, PART = 1
+!
+!			Distance Constraint Attachment Marker 
+!			(Aligned with the Global Coordinate System)
+!                          adams_view_name='MARKER_102'
+MARKER/102
+, PART = 1
+!
+!                        adams_view_name='ELLIPSOID_101'
+GRAPHICS/101
+, ELLIPSOID
+, CM = 102
+, XSCALE = 0.05
+, YSCALE = 0.05
+, ZSCALE = 0.05
+!
+!                            adams_view_name='PART_2'
+PART/2
+, MASS = 1
+, CM = 201
+, IP = 0.04, 0.1, 0.1
+!
+!			Pedulum Center Marker
+!			(Aligned with the Global Coordinate System)
+!                          adams_view_name='MARKER_201'
+MARKER/201
+, PART = 2
+, QP = 0, 2, 0
+!
+!			Pedulum Distance Constraint Attachment Marker
+!			(Aligned with the Global Coordinate System)
+!                          adams_view_name='MARKER_202'
+MARKER/202
+, PART = 2
+, QP = 0, 2, 0
+!
+!			Pedulum Geometry Center Marker
+!			(Point Z axis along original x axis)
+!                          adams_view_name='MARKER_203'
+MARKER/203
+, PART = 2
+, QP = -2, 1.9, -0.1
+, REULER = 90D, 90D, 0D
+!
+!                          Draw a Box
+!                           adams_view_name='BOX_201'
+GRAPHICS/201
+, BOX
+, CORNER = 203
+, X = 0.2
+, Y = 0.2
+, Z = 4
+!
+ACCGRAV/
+, KGRAV = -9.80665
+!
+!                          adams_view_name='REQUEST_1'
+REQUEST/1
+, DISPLACEMENT
+, I = 201
+, J = 101
+, COMMENT = DISPLACEMENT: X Y Z PSI THETA PHI (body-fixed-3-1-3)
+!
+!                          adams_view_name='REQUEST_2'
+REQUEST/2
+, VELOCITY
+, I = 201
+, J = 101
+, COMMENT = VELOCITY X Y Z WX WY WZ
+!
+!                          adams_view_name='REQUEST_3'
+REQUEST/3
+, ACCELERATION
+, I = 201
+, J = 101
+, COMMENT = ACCELERATION X Y Z WDX WDY WDZ
+!
+!                          adams_view_name='REQUEST_4'
+REQUEST/4
+, COMMENT = EULER PARAMETERS
+, F2 = ORIENT(27,1,201,101)\
+, F3 = ORIENT(27,2,201,101)\
+, F4 = ORIENT(27,3,201,101)\
+, F6 = ORIENT(27,4,201,101)
+!
+REQUEST/05, F2=FX(204,205)\F3=FY(204,205)\F4=FZ(204,205)\F6=TX(204,205)\F7=TY(204,205)\F8=TZ(204,205),C=RForce X Y Z RTorque X Y Z
+!                          adams_view_name='REQUEST_5'
+!REQUEST/5
+!, FORCE
+!, I = 102
+!, J = 202
+!, RM = 101
+!, COMMENT = RForce X Y Z RTorque X Y Z
+!
+OUTPUT/
+, REQSAVE
+!
+!------------------------------- NEW STATEMENTS --------------------------------
+!
+!                       adams_view_name='SPRING_1.sforce'
+SFORCE/1
+, TRANSLATIONAL
+, I = 204
+, J = 205
+, FUNCTION =  - 100.0*(dm(204,205)-2.0)
+, - 1.0*vr(204,205)
+, + 0.0
+!
+!                     adams_view_name='SPRING_1.deformation'
+VARIABLE/1
+, FUNCTION = DM(204,205) - 2.0
+!
+!                adams_view_name='SPRING_1.deformation_velocity'
+VARIABLE/2
+, FUNCTION = VR(204,205)
+!
+!                        adams_view_name='SPRING_1.force'
+VARIABLE/3
+, FUNCTION = (DX(204,205)*FX(204,205) +
+, DY(204,205)*FY(204,205) +
+, DZ(204,205)*FZ(204,205))/
+, DM(204,205)
+!
+!                   adams_view_name='SPRING_1.spring_graphic'
+GRAPHICS/204
+, SPDP
+, I = 204
+, J = 205
+, COILS = 10
+, DA = 0.4
+!
+!                   adams_view_name='SPRING_1.damper_graphic'
+GRAPHICS/205
+, SPDP
+, I = 204
+, J = 205
+, COILS = 0
+, DB = 0.2
+, DC = 0.16
+, LC = 1.34
+, LD = 1.34
+!
+!                      adams_view_name='SPRING_1.I_graphic'
+GRAPHICS/202
+, FORCE
+, ETYPE = SFORCE
+, EID = 1
+, EMARKER = 204
+!
+!                      adams_view_name='SPRING_1.J_graphic'
+GRAPHICS/203
+, FORCE
+, ETYPE = SFORCE
+, EID = 1
+, EMARKER = 205
+!
+!                          adams_view_name='MARKER_204'
+MARKER/204
+, PART = 1
+!
+!                          adams_view_name='MARKER_205'
+MARKER/205
+, PART = 2
+, QP = 0, 2, 0
+!
+END

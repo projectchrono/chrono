@@ -45,7 +45,7 @@ SynWheeledVehicleAgent::SynWheeledVehicleAgent(ChWheeledVehicle* vehicle, const 
                                     vehicle->GetWheel(0, LEFT)->GetTire()->GetMeshFilename());
         int num_wheels = 0;
         for (auto axle : vehicle->GetAxles())
-            num_wheels += axle->GetWheels().size();
+            num_wheels += static_cast<int>(axle->GetWheels().size());
         SetNumWheels(num_wheels);
     }
 }

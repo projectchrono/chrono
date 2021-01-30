@@ -26,8 +26,7 @@ if(NOT ENABLE_MODULE_VEHICLE)
     return()
 endif()
 
-set(SYN_INCLUDES ${SYN_INCLUDES})
-set(SYN_INCLUDES ${SYN_INCLUDES} "${CMAKE_CURRENT_SOURCE_DIR}/../chrono_thirdparty/flatbuffers/include")
+set(SYN_INCLUDES "${CMAKE_CURRENT_SOURCE_DIR}/../chrono_thirdparty/flatbuffers/include")
 
 set(SYN_CXX_FLAGS "${CH_CXX_FLAGS}")
 set(SYN_LINKER_FLAGS "${CH_LINKERFLAG_SHARED}")
@@ -213,8 +212,8 @@ if (ENABLE_MODULE_IRRLICHT)
   list(APPEND SYN_LIB_NAMES ChronoEngine_irrlicht)
   list(APPEND SYN_LIB_NAMES ChronoEngine_vehicle_irrlicht)
 
-  list(APPEND SYN_INCLUDES  ${CH_IRRLICHTINC})
-  list(APPEND SYN_CXX_FLAGS ${CH_IRRLICHT_CXX_FLAGS})
+  set(SYN_INCLUDES  ${SYN_INCLUDES} ${CH_IRRLICHTINC})
+  set(SYN_CXX_FLAGS "${SYN_CXX_FLAGS} ${CH_IRRLICHT_CXX_FLAGS}")
 endif()
 
 # Chrono::Vehicle is required

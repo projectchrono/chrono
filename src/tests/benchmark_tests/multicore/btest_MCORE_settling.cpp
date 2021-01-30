@@ -164,7 +164,7 @@ void SettlingSMC::SimulateVis() {
 using TEST_NAME = chrono::utils::ChBenchmarkFixture<SettlingSMC, 0>;
 BENCHMARK_DEFINE_F(TEST_NAME, Settle)(benchmark::State& st) {
     Reset(NUM_SKIP_STEPS);
-    m_test->SetNumthreads(st.range(0));
+    m_test->SetNumthreads((int)st.range(0));
     while (st.KeepRunning()) {
         m_test->Simulate(NUM_SIM_STEPS);
     }
@@ -184,7 +184,7 @@ BENCHMARK_REGISTER_F(TEST_NAME, Settle)
 // =============================================================================
 
 int main(int argc, char* argv[]) {
-    utils::ForceBenchmarkTabularOutput(&argc, &argv);
+    utils::AddComandLineArgument(&argc, &argv, "--benchmark_counters_tabular");
     ::benchmark::Initialize(&argc, argv);
 
 #ifdef CHRONO_IRRLICHT

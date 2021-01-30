@@ -45,8 +45,8 @@ void SynSCMMessage::ConvertFromFlatBuffers(const SynFlatBuffers::Message* messag
 
     modified_nodes.clear();
     auto nodes_size = state->nodes()->size();
-    for (int i = 0; i < nodes_size; i++) {
-        auto fb_node = state->nodes()->Get(i);
+    for (size_t i = 0; i < nodes_size; i++) {
+        auto fb_node = state->nodes()->Get((flatbuffers::uoffset_t)i);
 
         auto node = std::make_pair(ChVector2<>(fb_node->x(), fb_node->y()), fb_node->level());
         modified_nodes.push_back(node);

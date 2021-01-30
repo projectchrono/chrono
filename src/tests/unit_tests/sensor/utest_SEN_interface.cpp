@@ -47,7 +47,7 @@ TEST(SensorInterface, cameras) {
     auto manager = chrono_types::make_shared<ChSensorManager>(&mphysicalSystem);
 
     auto cam1 = chrono_types::make_shared<ChCameraSensor>(
-        boxA, 50, chrono::ChFrame<double>({-8, 0, 3}, Q_from_AngAxis(0, {1, 0, 0})), 1, 1, 1);
+        boxA, 50.0f, chrono::ChFrame<double>({-8, 0, 3}, Q_from_AngAxis(0, {1, 0, 0})), 1, 1, 1.0f);
     cam1->SetName("Camera Sensor");
     manager->AddSensor(cam1);
 
@@ -57,7 +57,7 @@ TEST(SensorInterface, cameras) {
     ASSERT_EQ(context->getEntryPointCount(), 1);
 
     auto cam2 = chrono_types::make_shared<ChCameraSensor>(
-        boxA, 50, chrono::ChFrame<double>({-8, 0, 3}, Q_from_AngAxis(0, {1, 0, 0})), 1, 1, 1);
+        boxA, 50.0f, chrono::ChFrame<double>({-8, 0, 3}, Q_from_AngAxis(0, {1, 0, 0})), 1, 1, 1.0f);
     cam2->SetName("Camera Sensor");
     manager->AddSensor(cam2);
 
@@ -76,7 +76,7 @@ TEST(SensorInterface, lidars) {
     auto manager = chrono_types::make_shared<ChSensorManager>(&mphysicalSystem);
 
     auto lidar1 = chrono_types::make_shared<ChLidarSensor>(
-        boxA, 50, chrono::ChFrame<double>({-8, 0, 3}, Q_from_AngAxis(0, {1, 0, 0})), 1, 1, 6.2, .1, -.1, 100);
+        boxA, 50.0f, chrono::ChFrame<double>({-8, 0, 3}, Q_from_AngAxis(0, {1, 0, 0})), 1, 1, 6.2f, 0.1f, -0.1f, 100.0f);
     lidar1->SetName("Camera Sensor");
     manager->AddSensor(lidar1);
 
@@ -86,7 +86,7 @@ TEST(SensorInterface, lidars) {
     ASSERT_EQ(context->getEntryPointCount(), 1);
 
     auto lidar2 = chrono_types::make_shared<ChLidarSensor>(
-        boxA, 50, chrono::ChFrame<double>({-8, 0, 3}, Q_from_AngAxis(0, {1, 0, 0})), 1, 1, 6.2, .1, -.1, 100);
+        boxA, 50.0f, chrono::ChFrame<double>({-8, 0, 3}, Q_from_AngAxis(0, {1, 0, 0})), 1, 1, 6.2f, 0.1f, -0.1f, 100.0f);
     lidar2->SetName("Camera Sensor");
     manager->AddSensor(lidar2);
 
@@ -103,7 +103,7 @@ TEST(SensorInterface, boxes) {
     auto manager = chrono_types::make_shared<ChSensorManager>(&mphysicalSystem);
 
     auto cam = chrono_types::make_shared<ChCameraSensor>(
-        boxA, 50, chrono::ChFrame<double>({-8, 0, 3}, Q_from_AngAxis(0, {1, 0, 0})), 1, 1, 1);
+        boxA, 50.0f, chrono::ChFrame<double>({-8, 0, 3}, Q_from_AngAxis(0, {1, 0, 0})), 1, 1, 1.0f);
     cam->SetName("Camera Sensor");
     manager->AddSensor(cam);
 
@@ -129,7 +129,7 @@ TEST(SensorInterface, spheres) {
     auto manager = chrono_types::make_shared<ChSensorManager>(&mphysicalSystem);
 
     auto cam = chrono_types::make_shared<ChCameraSensor>(
-        sphereA, 50, chrono::ChFrame<double>({-8, 0, 3}, Q_from_AngAxis(0, {1, 0, 0})), 1, 1, 1);
+        sphereA, 50.0f, chrono::ChFrame<double>({-8, 0, 3}, Q_from_AngAxis(0, {1, 0, 0})), 1, 1, 1.0f);
     cam->SetName("Camera Sensor");
     manager->AddSensor(cam);
 
@@ -155,7 +155,7 @@ TEST(SensorInterface, cylinders) {
     auto manager = chrono_types::make_shared<ChSensorManager>(&mphysicalSystem);
 
     auto cam = chrono_types::make_shared<ChCameraSensor>(
-        cylA, 50, chrono::ChFrame<double>({-8, 0, 3}, Q_from_AngAxis(0, {1, 0, 0})), 1, 1, 1);
+        cylA, 50.0f, chrono::ChFrame<double>({-8, 0, 3}, Q_from_AngAxis(0, {1, 0, 0})), 1, 1, 1.0f);
     cam->SetName("Camera Sensor");
     manager->AddSensor(cam);
 
@@ -176,7 +176,7 @@ TEST(SensorInterface, meshes) {
     ChSystemNSC mphysicalSystem;
 
     auto mmesh = chrono_types::make_shared<ChTriangleMeshConnected>();
-    mmesh->LoadWavefrontMesh(GetChronoDataFile("cube.obj"), false, true);
+    mmesh->LoadWavefrontMesh(GetChronoDataFile("models/cube.obj"), false, true);
 
     auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
     trimesh_shape->SetMesh(mmesh);
@@ -189,7 +189,7 @@ TEST(SensorInterface, meshes) {
     auto manager = chrono_types::make_shared<ChSensorManager>(&mphysicalSystem);
 
     auto cam = chrono_types::make_shared<ChCameraSensor>(
-        meshbodyA, 50, chrono::ChFrame<double>({-8, 0, 3}, Q_from_AngAxis(0, {1, 0, 0})), 1, 1, 1);
+        meshbodyA, 50.0f, chrono::ChFrame<double>({-8, 0, 3}, Q_from_AngAxis(0, {1, 0, 0})), 1, 1, 1.0f);
     cam->SetName("Camera Sensor");
     manager->AddSensor(cam);
 
@@ -254,11 +254,12 @@ TEST(SensorInterface, non_body_shapes) {
 
     auto cam = chrono_types::make_shared<ChCameraSensor>(
         box_body,                                                           // body camera is attached to
-        10,                                                                 // update rate in Hz
+        10.0f,                                                              // update rate in Hz
         chrono::ChFrame<double>({-8, 0, 0}, Q_from_AngAxis(0, {0, 1, 0})),  // offset pose
         640,                                                                // image width
         480,                                                                // image height
-        CH_C_PI / 3);                                                       // FOV
+        (float)CH_C_PI / 3                                                  // FOV
+    );
     cam->SetName("Camera Sensor");
     manager->AddSensor(cam);
 
