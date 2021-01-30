@@ -66,8 +66,8 @@ class CH_MODELS_API Little_Hexy : public Copter<6> {
 
   private:
     // clockwise (true) or CCW rotations according to Little Hexy manual
-    std::string chassis_mesh_path = "copters/hexi_body.obj";
-    std::string propeller_mesh_path = "copters/prop.obj";
+    std::string chassis_mesh_path = "robot/copters/hexi_body.obj";
+    std::string propeller_mesh_path = "robot/copters/prop.obj";
 };
 
 /// @} robot_models_copter

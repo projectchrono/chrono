@@ -162,7 +162,7 @@ Viper_Part::Viper_Part(const std::string& name,
 // Create Visulization assets -> Finer mesh
 void Viper_Part::AddVisualizationAssets() {
     // Read mesh from the obj folder
-    std::string vis_mesh_file = "viper/obj/" + m_mesh_name + ".obj";
+    std::string vis_mesh_file = "robot/viper/obj/" + m_mesh_name + ".obj";
     auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
     trimesh->LoadWavefrontMesh(GetChronoDataFile(vis_mesh_file), true, false);
     trimesh->Transform(m_offset, ChMatrix33<>(1));
@@ -181,7 +181,7 @@ void Viper_Part::SetCollide(bool state) {
 // Add collision assets -> Rougher mesh
 void Viper_Part::AddCollisionShapes() {
     // read mesh from the col folder
-    std::string vis_mesh_file = "viper/col/" + m_mesh_name + ".obj";
+    std::string vis_mesh_file = "robot/viper/col/" + m_mesh_name + ".obj";
     auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
     trimesh->LoadWavefrontMesh(GetChronoDataFile(vis_mesh_file), true, false);
     trimesh->Transform(m_offset, ChMatrix33<>(1));
@@ -213,7 +213,7 @@ Viper_Chassis::Viper_Chassis(const std::string& name,
 }
 
 void Viper_Chassis::Initialize() {
-    std::string vis_mesh_file = "viper/obj/" + m_mesh_name + ".obj";
+    std::string vis_mesh_file = "robot/viper/obj/" + m_mesh_name + ".obj";
     auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
     trimesh->LoadWavefrontMesh(GetChronoDataFile(vis_mesh_file), false, false);
     trimesh->Transform(ChVector<>(0, 0, 0), ChMatrix33<>(1));  // scale to a different size
@@ -268,7 +268,7 @@ Viper_Wheel::Viper_Wheel(const std::string& name,
 }
 
 void Viper_Wheel::Initialize() {
-    std::string vis_mesh_file = "viper/obj/" + m_mesh_name + ".obj";
+    std::string vis_mesh_file = "robot/viper/obj/" + m_mesh_name + ".obj";
     auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
     trimesh->LoadWavefrontMesh(GetChronoDataFile(vis_mesh_file), false, false);
     trimesh->Transform(ChVector<>(0, 0, 0), ChMatrix33<>(1));  // scale to a different size
@@ -334,7 +334,7 @@ Viper_Up_Arm::Viper_Up_Arm(const std::string& name,
 }
 
 void Viper_Up_Arm::Initialize() {
-    std::string vis_mesh_file = "viper/obj/" + m_mesh_name + ".obj";
+    std::string vis_mesh_file = "robot/viper/obj/" + m_mesh_name + ".obj";
     auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
     trimesh->LoadWavefrontMesh(GetChronoDataFile(vis_mesh_file), false, false);
     trimesh->Transform(ChVector<>(0, 0, 0), ChMatrix33<>(1));  // scale to a different size
@@ -400,7 +400,7 @@ Viper_Bottom_Arm::Viper_Bottom_Arm(const std::string& name,
 }
 
 void Viper_Bottom_Arm::Initialize() {
-    std::string vis_mesh_file = "viper/obj/" + m_mesh_name + ".obj";
+    std::string vis_mesh_file = "robot/viper/obj/" + m_mesh_name + ".obj";
     auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
     trimesh->LoadWavefrontMesh(GetChronoDataFile(vis_mesh_file), false, false);
     trimesh->Transform(ChVector<>(0, 0, 0), ChMatrix33<>(1));  // scale to a different size
@@ -466,7 +466,7 @@ Viper_Steer::Viper_Steer(const std::string& name,
 }
 
 void Viper_Steer::Initialize() {
-    std::string vis_mesh_file = "viper/obj/" + m_mesh_name + ".obj";
+    std::string vis_mesh_file = "robot/viper/obj/" + m_mesh_name + ".obj";
     auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
     trimesh->LoadWavefrontMesh(GetChronoDataFile(vis_mesh_file), false, false);
     trimesh->Transform(ChVector<>(0, 0, 0), ChMatrix33<>(1));  // scale to a different size
