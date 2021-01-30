@@ -1,13 +1,13 @@
-# Demo programs for sequential Viper simulations
+# Demo programs for sequential Copter simulations
 # ------------------------------------------------------------------------------
 
 if(NOT ENABLE_MODULE_VEHICLE)
-  message(STATUS "  Warning: the ViperRover projects require Chrono::Vehicle!")
+  message(STATUS "  Warning: the Copter projects require Chrono::Vehicle!")
   return()
 endif()
 
 if(NOT ENABLE_MODULE_IRRLICHT)
-  message(STATUS "  Warning: the ViperRover projects require Chrono::Irrlicht!")
+  message(STATUS "  Warning: the Copter projects require Chrono::Irrlicht!")
   return()
 endif()
 
@@ -21,8 +21,7 @@ include_directories(${CH_IRRLICHTINC})
 # ------------------------------------------------------------------------------
 
 set(DEMOS
-    demo_ROBOT_Viper_Rigid
-    demo_ROBOT_Viper_SCM
+    demo_ROBOT_LittleHexy
 )
 
 # ------------------------------------------------------------------------------
@@ -42,7 +41,6 @@ foreach(PROGRAM ${DEMOS})
 
     target_link_libraries(${PROGRAM}
                           ChronoEngine
-                          ChronoEngine_vehicle
                           ChronoModels_robot
                           ChronoEngine_irrlicht
                         )

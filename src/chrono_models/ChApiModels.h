@@ -51,6 +51,7 @@
        @{
          @defgroup robot_models_robosimian RoboSimian legged robot model
          @defgroup robot_models_viper Viper moon rover model
+         @defgroup robot_models_copter LittleHexy copter model
        @}
     @}
 */
