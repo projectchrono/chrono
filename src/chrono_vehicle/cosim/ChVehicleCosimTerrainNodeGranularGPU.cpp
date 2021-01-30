@@ -488,7 +488,7 @@ void ChVehicleCosimTerrainNodeGranularGPU::UpdateVisualizationParticles() {
 // -----------------------------------------------------------------------------
 
 void ChVehicleCosimTerrainNodeGranularGPU::WriteCheckpoint(const std::string& filename) {
-    assert(m_num_particles == m_systemGPU->getGranSystemSMC_TriMesh().getNumSpheres());
+    assert(m_num_particles == m_num_particles == m_systemGPU->GetNumParticles());
     utils::CSV_writer csv(" ");
 
     // Write current time and number of granular material bodies.
