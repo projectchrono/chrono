@@ -39,8 +39,9 @@ enum class LidarModelType { RAYCAST };
 enum class LidarReturnMode {
     STRONGEST_RETURN,  ///< range at peak intensity
     MEAN_RETURN,       ///< average beam range
-    FIRST_RETURN,      ///< shorted beam range
-    LAST_RETURN        ///< longest beam range
+    FIRST_RETURN,      ///< shortest beam range
+    LAST_RETURN,       ///< longest beam range
+    DUAL_RETURN        ///< shortest range and strongest beam
 };
 
 // struct LidarReturnMode
