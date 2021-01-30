@@ -7,6 +7,7 @@
 #include "chrono/physics/ChMaterialSurface.h"
 
 #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicle.h"
+#include "chrono_vehicle/tracked_vehicle/ChTrackedVehicle.h"
 
 #include "chrono_models/ChApiModels.h"
 
@@ -36,6 +37,14 @@
 
 #include "chrono_models/vehicle/gator/Gator.h"
 #include "chrono_models/vehicle/gator/Gator_Vehicle.h"
+
+#include "chrono_models/vehicle/rccar/RCCar.h"
+#include "chrono_models/vehicle/rccar/RCCar_Vehicle.h"
+
+#include "chrono_models/vehicle/feda/FEDA.h"
+#include "chrono_models/vehicle/feda/FEDA_Vehicle.h"
+
+#include "chrono_models/vehicle/m113/M113_Vehicle.h"
 %}
 
 
@@ -67,6 +76,14 @@
 %shared_ptr(chrono::vehicle::gator::Gator)
 %shared_ptr(chrono::vehicle::gator::Gator_Vehicle)
 
+%shared_ptr(chrono::vehicle::rccar::RCCar)
+%shared_ptr(chrono::vehicle::rccar::RCCar_Vehicle)
+
+%shared_ptr(chrono::vehicle::feda::FEDA)
+%shared_ptr(chrono::vehicle::feda::FEDA_Vehicle)
+
+%shared_ptr(chrono::vehicle::m113::M113_Vehicle)
+
 %import "chrono_csharp/core/ChMaterialSurface.i"
 %import "chrono_csharp/vehicle/ChSuspension.i"
 %import "chrono_csharp/vehicle/ChDriveline.i"
@@ -74,8 +91,12 @@
 %import "chrono_csharp/vehicle/ChPowertrain.i"
 %import "chrono_csharp/vehicle/ChChassis.i"
 %import "chrono_csharp/vehicle/ChTire.i"
+%import "chrono_csharp/vehicle/ChTrackAssembly.i"
+
 %import "../../chrono_vehicle/wheeled_vehicle/ChWheeledVehicle.h"
 %import "../../chrono_vehicle/wheeled_vehicle/vehicle/WheeledVehicle.h"
+%import "../../chrono_vehicle/tracked_vehicle/ChTrackedVehicle.h"
+%import "../../chrono_vehicle/tracked_vehicle/vehicle/TrackedVehicle.h"
 %import "../../chrono_vehicle/ChVehicle.h"
 
 // Model:
@@ -105,3 +126,11 @@
 
 %include "../../chrono_models/vehicle/gator/Gator.h"
 %include "../../chrono_models/vehicle/gator/Gator_Vehicle.h"
+
+%include "../../chrono_models/vehicle/rccar/RCCar.h"
+%include "../../chrono_models/vehicle/rccar/RCCar_Vehicle.h"
+
+%include "../../chrono_models/vehicle/feda/FEDA.h"
+%include "../../chrono_models/vehicle/feda/FEDA_Vehicle.h"
+
+%include "../../chrono_models/vehicle/m113/M113_Vehicle.h"
