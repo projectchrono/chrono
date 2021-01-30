@@ -65,7 +65,9 @@ using namespace chrono::vehicle::hmmwv;
 // =============================================================================
 
 // Better conserve mass by displacing soil to the sides of a rut
-const bool bulldozing = true;
+// Many more nodes are impacted with bulldozing and performance is tied to number of deformed nodes, so enabling this
+// can cause a significant slowdown
+const bool bulldozing = false;
 
 // Contact method
 ChContactMethod contact_method = ChContactMethod::SMC;
@@ -289,6 +291,9 @@ int main(int argc, char* argv[]) {
 #ifdef CHRONO_SENSOR
     ChSensorManager sensor_manager(hmmwv.GetSystem());
     if (cli.HasValueInVector<int>("sens", node_id)) {
+        sensor_manager.scene->AddPointLight({100, 100, 100}, {1, 1, 1}, 6000);
+        sensor_manager.scene->AddPointLight({-100, 100, 100}, {1, 1, 1}, 6000);
+
         // Give the camera a fixed place to live
         auto origin = chrono_types::make_shared<ChBody>();
         origin->SetBodyFixed(true);
@@ -429,7 +434,7 @@ void AddCommandLineOptions(ChCLI& cli) {
 
     // SCM specific options
     cli.AddOption<double>("Demo", "d,dpu", "Divisions per unit", "20");
-    cli.AddOption<std::string>("Demo", "t,terrain_type", "Terrain Type", "Rigid", "Rigid,SCM");
+    cli.AddOption<std::string>("Demo", "t,terrain_type", "Terrain Type", "SCM", "Rigid,SCM");
 
     // Visualization is the only reason you should be shy about terrain size. The implementation can easily handle a
     // practically infinite terrain (provided you don't need to visualize it)

@@ -40,6 +40,10 @@
 
 #include "chrono_models/vehicle/rccar/RCCar.h"
 #include "chrono_models/vehicle/rccar/RCCar_Vehicle.h"
+
+#include "chrono_models/vehicle/feda/FEDA.h"
+#include "chrono_models/vehicle/feda/FEDA_Vehicle.h"
+
 #include "chrono_models/vehicle/m113/M113_Vehicle.h"
 %}
 
@@ -74,6 +78,9 @@
 
 %shared_ptr(chrono::vehicle::rccar::RCCar)
 %shared_ptr(chrono::vehicle::rccar::RCCar_Vehicle)
+
+%shared_ptr(chrono::vehicle::feda::FEDA)
+%shared_ptr(chrono::vehicle::feda::FEDA_Vehicle)
 
 %shared_ptr(chrono::vehicle::m113::M113_Vehicle)
 
@@ -122,4 +129,8 @@
 
 %include "../../chrono_models/vehicle/rccar/RCCar.h"
 %include "../../chrono_models/vehicle/rccar/RCCar_Vehicle.h"
+
+%include "../../chrono_models/vehicle/feda/FEDA.h"
+%include "../../chrono_models/vehicle/feda/FEDA_Vehicle.h"
+
 %include "../../chrono_models/vehicle/m113/M113_Vehicle.h"

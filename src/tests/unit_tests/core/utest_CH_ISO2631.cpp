@@ -36,7 +36,7 @@ ShockTestbed::ShockTestbed()
     : m_tDuration(2)
     , m_fSample(160)
 {
-    size_t nPoints = m_tDuration * m_fSample + 1;
+    size_t nPoints = (size_t)(m_tDuration * m_fSample + 1);
     input_signal.resize(nPoints, 0.0);
     output_signal.resize(nPoints, 0.0);
     for(size_t i = 0; i < input_signal.size(); i++) {
@@ -84,7 +84,7 @@ double ShockTestbed::Test2()
 double ShockTestbed::Test3()
 {
     // Search the second maximum
-    size_t istart = 0.5 * m_fSample;
+    size_t istart = (size_t)(0.5 * m_fSample);
     double r = output_signal[istart];
     for(size_t i = istart + 1; i < output_signal.size(); i++) {
         if(output_signal[i] > r) {
@@ -180,7 +180,7 @@ SawtoothTestbed::SawtoothTestbed(size_t nSawTeeth)
         m_Nsaw = 0; // continous sawtooth signal
     }
     m_aSaw = CH_C_2PI / m_wSaw;
-    size_t nPoints = m_tDuration * m_fSample + 1;
+    size_t nPoints = (size_t)(m_tDuration * m_fSample + 1);
     input_signal.resize(nPoints, 0.0);
     output_signal.resize(nPoints, 0.0);
     const double t_ofs1 = 1.0;

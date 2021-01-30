@@ -77,6 +77,38 @@ set(CVM_HMMWV_FILES
 )
 source_group("hmmwv" FILES ${CVM_HMMWV_FILES})
 
+set(CVM_FEDA_FILES
+    feda/FEDA_AntirollBarRSD.h
+    feda/FEDA_AntirollBarRSD.cpp
+    feda/FEDA_BrakeSimple.cpp
+    feda/FEDA_BrakeSimple.h
+    feda/FEDA_BrakeShafts.cpp
+    feda/FEDA_BrakeShafts.h
+    feda/FEDA_Chassis.cpp
+    feda/FEDA_Chassis.h
+    feda/FEDA_DoubleWishbone.cpp
+    feda/FEDA_DoubleWishbone.h
+    feda/FEDA_Driveline4WD.cpp
+    feda/FEDA_Driveline4WD.h
+    feda/FEDA_Pac02Tire.cpp
+    feda/FEDA_Pac02Tire.h
+    feda/FEDA_PitmanArm.cpp
+    feda/FEDA_PitmanArm.h
+    feda/FEDA_RigidTire.cpp
+    feda/FEDA_RigidTire.h
+    feda/FEDA_SimpleMapPowertrain.cpp
+    feda/FEDA_SimpleMapPowertrain.h
+    feda/FEDA_Powertrain.cpp
+    feda/FEDA_Powertrain.h
+    feda/FEDA_Vehicle.cpp
+    feda/FEDA_Vehicle.h   
+    feda/FEDA_Wheel.cpp
+    feda/FEDA_Wheel.h   
+    feda/FEDA.cpp
+    feda/FEDA.h   
+)
+source_group("feda" FILES ${CVM_FEDA_FILES})
+
 set(CVM_FMTV_FILES
     mtv/FMTV_ChassisFront.cpp
     mtv/FMTV_ChassisFront.h
@@ -534,6 +566,7 @@ set(LIBRARIES ChronoEngine ChronoEngine_vehicle)
 add_library(ChronoModels_vehicle SHARED
     ${CVM_COMMON_FILES}
     ${CVM_HMMWV_FILES}
+    ${CVM_FEDA_FILES}
     ${CVM_FMTV_FILES}
     ${CVM_UAZ_FILES}
     ${CVM_GENERIC_FILES}

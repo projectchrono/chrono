@@ -162,7 +162,7 @@ void ChVehicleIrrApp::EnableSound(bool sound) {
         // To play a sound, call play2D(). The second parameter tells the engine to
         // play it looped.
         if (m_sound_engine) {
-            m_car_sound = m_sound_engine->play2D(GetChronoDataFile("carsound.ogg").c_str(), true, false, true);
+            m_car_sound = m_sound_engine->play2D(GetChronoDataFile("vehicle/sounds/carsound.ogg").c_str(), true, false, true);
             m_car_sound->setIsPaused(true);
         } else
             GetLog() << "Cannot start sound engine Irrklang \n";

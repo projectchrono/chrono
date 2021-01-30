@@ -31,7 +31,7 @@ mradius = 0.5
 density = 1000
 
 # Create a texture asset. It can be shared between bodies.
-textureasset = chrono.ChTexture(chrono.GetChronoDataFile("bluwhite.png"))
+textureasset = chrono.ChTexture(chrono.GetChronoDataFile("textures/bluewhite.png"))
 
 # Create some spheres that roll horizontally, with increasing rolling friction values
 for bi in range(10):
@@ -130,7 +130,7 @@ vshape_5 = chrono.ChBoxShape()
 vshape_5.GetBoxGeometry().SetLengths(chrono.ChVectorD(20.99, 2, 1))
 vshape_5.GetBoxGeometry().Pos = chrono.ChVectorD(0, 1, 10)
 bin.AddAsset(vshape_5)
-bin.AddAsset(chrono.ChTexture(chrono.GetChronoDataFile("blu.png")))
+bin.AddAsset(chrono.ChTexture(chrono.GetChronoDataFile("textures/blue.png")))
 
 mphysicalSystem.Add(bin)
 

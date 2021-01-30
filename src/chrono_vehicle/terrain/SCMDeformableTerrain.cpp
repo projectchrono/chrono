@@ -1399,6 +1399,8 @@ void SCMDeformableSoil::UpdateMeshVertexCoordinates(const ChVector2<int> ij, int
                 else
                     mcolor = ChColor(0, 0, 1);
                 break;
+            case SCMDeformableTerrain::PLOT_NONE:
+                break;
         }
         colors[iv] = {mcolor.R, mcolor.G, mcolor.B};
     }

@@ -34,6 +34,7 @@
        @brief Collection of concrete ground vehicle models
        @{
          @defgroup vehicle_models_hmmwv HMMWV model
+         @defgroup vehicle_models_feda FED-alpha model
          @defgroup vehicle_models_sedan Passenger car model
          @defgroup vehicle_models_citybus City bus model
          @defgroup vehicle_models_uaz UAZ model
@@ -50,6 +51,7 @@
        @{
          @defgroup robot_models_robosimian RoboSimian legged robot model
          @defgroup robot_models_viper Viper moon rover model
+         @defgroup robot_models_copter LittleHexy copter model
        @}
     @}
 */
