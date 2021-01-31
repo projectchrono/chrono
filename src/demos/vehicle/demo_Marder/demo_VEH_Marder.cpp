@@ -137,12 +137,12 @@ int main(int argc, char* argv[]) {
     VisualizationType track_vis =
         (shoe_type == TrackShoeType::SINGLE_PIN) ? VisualizationType::MESH : VisualizationType::PRIMITIVES;
     marder.SetChassisVisualizationType(VisualizationType::PRIMITIVES);
-    marder.SetSprocketVisualizationType(VisualizationType::PRIMITIVES);
+    marder.SetSprocketVisualizationType(track_vis);
     marder.SetIdlerVisualizationType(track_vis);
-    marder.SetRollerVisualizationType(VisualizationType::MESH);
+    marder.SetRollerVisualizationType(track_vis);
     marder.SetRoadWheelAssemblyVisualizationType(track_vis);
     marder.SetRoadWheelVisualizationType(track_vis);
-    marder.SetTrackShoeVisualizationType(track_vis);
+    marder.SetTrackShoeVisualizationType(VisualizationType::PRIMITIVES);
 
     // --------------------------------------------------
     // Control internal collisions and contact monitoring

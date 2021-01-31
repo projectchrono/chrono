@@ -40,15 +40,15 @@ const ChVector<> Marder_SprocketSinglePin::m_gear_inertia(0.646, 0.883, 0.646);
 const double Marder_SprocketSinglePin::m_axle_inertia = 0.4;
 const double Marder_SprocketSinglePin::m_separation = 0.225;
 
-const double Marder_SprocketSinglePin::m_gear_RT = 0.324;        // Outer radius
-const double Marder_SprocketSinglePin::m_gear_RC = 0.319661482;  // Arc centers radius
-const double Marder_SprocketSinglePin::m_gear_R = 0.07;          // Arc radius
-const double Marder_SprocketSinglePin::m_gear_RA = 0.275;        // assembly radius
+const double Marder_SprocketSinglePin::m_gear_RT = 0.29;    // Outer radius
+const double Marder_SprocketSinglePin::m_gear_RC = 0.3197;  // Arc centers radius
+const double Marder_SprocketSinglePin::m_gear_R = 0.07;     // Arc radius
+const double Marder_SprocketSinglePin::m_gear_RA = 0.275;   // Assembly radius
 
-const double Marder_SprocketSinglePin::m_lateral_backlash = 0.02;
+const double Marder_SprocketSinglePin::m_lateral_backlash = 0.01;
 
-const std::string Marder_SprocketSinglePinLeft::m_meshFile = "M113/Sprocket_L.obj";
-const std::string Marder_SprocketSinglePinRight::m_meshFile = "M113/Sprocket_R.obj";
+const std::string Marder_SprocketSinglePinLeft::m_meshFile = "Marder/Sprocket_L.obj";
+const std::string Marder_SprocketSinglePinRight::m_meshFile = "Marder/Sprocket_R.obj";
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -66,8 +66,9 @@ void Marder_SprocketSinglePin::CreateContactMaterial(ChContactMethod contact_met
 // -----------------------------------------------------------------------------
 void Marder_SprocketSinglePin::AddVisualizationAssets(VisualizationType vis) {
     if (vis == VisualizationType::MESH) {
-        auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
-        trimesh->LoadWavefrontMesh(GetMeshFile(), false, false);
+        ////auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
+        ////trimesh->LoadWavefrontMesh(GetMeshFile(), false, false);
+        auto trimesh = CreateVisualizationMesh(0.15, 0.03, 0.02);
         auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
         trimesh_shape->SetMesh(trimesh);
         trimesh_shape->SetName(filesystem::path(GetMeshFile()).stem());
