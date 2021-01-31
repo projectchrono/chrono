@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: 肖言 (Yan Xiao), Shuo He
+// Authors: Yan Xiao, Shuo He
 // =============================================================================
 //
 // Wraps data received from a flatbuffer SPAT message into a corresponding C++

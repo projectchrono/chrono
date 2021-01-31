@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: 肖言 (Yan Xiao)
+// Authors: Yan Xiao
 // =============================================================================
 //
 // Agent class that defines a series of intersections, lanes and traffic lights.

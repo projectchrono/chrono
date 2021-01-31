@@ -11,10 +11,10 @@
 
 
 // Define the module to be used in Python when typing 
-//  'import pychrono.robosimian'
+//  'import pychrono.robot'
 
 
-%module(directors="1") robosimian
+%module(directors="1") robot
 
 
 // Turn on the documentation of members, for more intuitive IDE typing
@@ -64,10 +64,12 @@
 #include "Eigen/src/Core/util/Memory.h"
 
 #include "chrono_models/ChApiModels.h"
-#include "chrono_models/robosimian/RoboSimian.h"
+#include "chrono_models/robot/robosimian/RoboSimian.h"
+#include "chrono_models/robot/viper/Viper.h"
 
 using namespace chrono;
 using namespace chrono::robosimian;
+using namespace chrono::viper;
 
 %}
 
@@ -126,18 +128,19 @@ using namespace chrono::robosimian;
 %shared_ptr(chrono::ChFunction_Recorder)
 %shared_ptr(chrono::ChBezierCurve)
 %shared_ptr(chrono::ChLinkMarkers)
+
 %shared_ptr(chrono::robosimian::RS_Part)
 %shared_ptr(chrono::robosimian::RS_Chassis)
 %shared_ptr(chrono::robosimian::RS_Sled)
 %shared_ptr(chrono::robosimian::RS_WheelDD)
-
-/*
-from this module: pay attention to inheritance in the model namespace (generic, sedan etc). 
-If those classes are wrapped, their parents are marked as shared_ptr while they are not, SWIG can't hanlde them.
-Before adding a shared_ptr, mark as shared ptr all its inheritance tree in the model namespaces
-*/
-
 %shared_ptr(chrono::robosimian::RS_Driver)
+
+%shared_ptr(chrono::viper::Viper_Part)
+%shared_ptr(chrono::viper::Viper_Chassis)
+%shared_ptr(chrono::viper::Viper_Wheel)
+%shared_ptr(chrono::viper::Viper_Up_Arm)
+%shared_ptr(chrono::viper::Viper_Bottom_Arm)
+%shared_ptr(chrono::viper::Viper_Steer)
 
 //
 // B- INCLUDE HEADERS
@@ -194,12 +197,15 @@ Before adding a shared_ptr, mark as shared ptr all its inheritance tree in the m
 %rename(VisualizationType_MESH) chrono::robosimian::VisualizationType::MESH;
 %rename(VisualizationType_COLLISION) chrono::robosimian::VisualizationType::COLLISION;
 %rename(CollisionFlags_COLLISION) chrono::robosimian::CollisionFlags::CHASSIS;
+
+%rename(SideNum_LF) chrono::robosimian::CollisionFamily::CHASSIS;
+
+
 %ignore chrono::robosimian::RS_Driver::GetCurrentPhase;
 %feature("director")  chrono::robosimian::RS_Driver::PhaseChangeCallback;
-%include "../chrono_models/robosimian/RoboSimian.h"
 
-// Tracked vehicles are not going to be wrapped in the short term
-
+%include "../chrono_models/robot/robosimian/RoboSimian.h"
+%include "../chrono_models/robot/viper/Viper.h"
 
 //
 // C- DOWNCASTING OF SHARED POINTERS

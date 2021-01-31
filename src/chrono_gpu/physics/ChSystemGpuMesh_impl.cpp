@@ -91,11 +91,14 @@ void ChSystemGpuMesh_impl::initializeTriangles() {
     }
 
     TRACK_VECTOR_RESIZE(SD_numTrianglesTouching, nSDs, "SD_numTrianglesTouching", 0);
-    TRACK_VECTOR_RESIZE(SD_TriangleCompositeOffsets, nSDs, "SD_TriangleCompositeOffsets", 0);
+    TRACK_VECTOR_RESIZE(SD_TrianglesCompositeOffsets, nSDs, "SD_TrianglesCompositeOffsets", 0);
+
+    TRACK_VECTOR_RESIZE(Triangle_NumSDsTouching, meshSoup->nTrianglesInSoup, "Triangle_NumSDsTouching", 0);
+    TRACK_VECTOR_RESIZE(Triangle_SDsCompositeOffsets, meshSoup->nTrianglesInSoup, "Triangle_SDsCompositeOffsets", 0);
 
     // TODO do we have a good heuristic???
     // this gets resized on-the-fly every timestep
-    TRACK_VECTOR_RESIZE(triangles_in_SD_composite, 0, "triangles_in_SD_composite", 0);
+    TRACK_VECTOR_RESIZE(SD_trianglesInEachSD_composite, 0, "SD_trianglesInEachSD_composite", 0);
 }
 
 // p = pos + rot_mat * p
