@@ -74,7 +74,7 @@ Marder_Idler::Marder_Idler(const std::string& name) : ChDoubleIdler(name) {
 
 void Marder_Idler::CreateContactMaterial(ChContactMethod contact_method) {
     MaterialInfo minfo;
-    minfo.mu = 0.7f;
+    minfo.mu = 0.4f;
     minfo.cr = 0.75f;
     minfo.Y = 1e7f;
     m_material = minfo.CreateMaterial(contact_method);
