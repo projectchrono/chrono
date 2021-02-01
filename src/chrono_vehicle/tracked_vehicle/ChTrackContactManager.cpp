@@ -31,9 +31,6 @@ ChTrackContactManager::ChTrackContactManager()
 }
 
 void ChTrackContactManager::Process(ChTrackedVehicle* vehicle) {
-    if (m_flags == 0)
-        return;
-
     // Initialize the manager if not already done.
     if (!m_initialized) {
         m_chassis = vehicle->GetChassis();
@@ -52,6 +49,9 @@ void ChTrackContactManager::Process(ChTrackedVehicle* vehicle) {
 
         m_initialized = true;
     }
+
+    if (m_flags == 0)
+        return;
 
     // Clear lists
     m_chassis_contacts.clear();
@@ -97,41 +97,40 @@ void ChTrackContactManager::Process(ChTrackedVehicle* vehicle) {
             m_csv << m_shoe_R_contacts.size();
 
             // Chassis contact points
-            for (auto it = m_chassis_contacts.begin(); it != m_chassis_contacts.end(); ++it) {
-                m_csv << m_chassis->GetBody()->TransformPointParentToLocal(it->m_point);
+            for (const auto& c : m_chassis_contacts) {
+                m_csv << m_chassis->GetBody()->TransformPointParentToLocal(c.m_point);
             }
 
-            // Left sprocket contact points
-            for (auto it = m_sprocket_L_contacts.begin(); it != m_sprocket_L_contacts.end(); ++it) {
-                m_csv << m_sprocket_L->GetGearBody()->TransformPointParentToLocal(it->m_point);
+            for (const auto& c : m_sprocket_L_contacts) {
+                m_csv << m_sprocket_L->GetGearBody()->TransformPointParentToLocal(c.m_point);            
             }
 
             // Right sprocket contact points
-            for (auto it = m_sprocket_R_contacts.begin(); it != m_sprocket_R_contacts.end(); ++it) {
-                m_csv << m_sprocket_R->GetGearBody()->TransformPointParentToLocal(it->m_point);
+            for (const auto& c : m_sprocket_R_contacts) {
+                m_csv << m_sprocket_R->GetGearBody()->TransformPointParentToLocal(c.m_point);
             }
 
             // Left idler contact points
-            for (auto it = m_idler_L_contacts.begin(); it != m_idler_L_contacts.end(); ++it) {
-                m_csv << m_idler_L->GetWheelBody()->TransformPointParentToLocal(it->m_point);
+            for (const auto& c : m_idler_L_contacts) {
+                m_csv << m_idler_L->GetWheelBody()->TransformPointParentToLocal(c.m_point);
             }
 
             // Right idler contact points
-            for (auto it = m_idler_R_contacts.begin(); it != m_idler_R_contacts.end(); ++it) {
-                m_csv << m_idler_R->GetWheelBody()->TransformPointParentToLocal(it->m_point);
+            for (const auto& c : m_idler_R_contacts) {
+                m_csv << m_idler_R->GetWheelBody()->TransformPointParentToLocal(c.m_point);
             }
 
             // Left track shoe contact points
             if (m_shoe_L) {
-                for (auto it = m_shoe_L_contacts.begin(); it != m_shoe_L_contacts.end(); ++it) {
-                    m_csv << m_shoe_L->GetShoeBody()->TransformPointParentToLocal(it->m_point);
+                for (const auto& c : m_shoe_L_contacts) {
+                    m_csv << m_shoe_L->GetShoeBody()->TransformPointParentToLocal(c.m_point);
                 }
             }
 
             // Right track shoe contact points
             if (m_shoe_R) {
-                for (auto it = m_shoe_R_contacts.begin(); it != m_shoe_R_contacts.end(); ++it) {
-                    m_csv << m_shoe_R->GetShoeBody()->TransformPointParentToLocal(it->m_point);
+                for (const auto& c : m_shoe_R_contacts) {
+                    m_csv << m_shoe_R->GetShoeBody()->TransformPointParentToLocal(c.m_point);
                 }
             }
 
@@ -141,7 +140,7 @@ void ChTrackContactManager::Process(ChTrackedVehicle* vehicle) {
 }
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
+
 bool ChTrackContactManager::InContact(TrackedCollisionFlag::Enum part) const {
     switch (part) {
         case TrackedCollisionFlag::CHASSIS:
@@ -162,6 +161,25 @@ bool ChTrackContactManager::InContact(TrackedCollisionFlag::Enum part) const {
             return false;
     }
 }
+
+// -----------------------------------------------------------------------------
+
+ChVector<> ChTrackContactManager::GetSprocketResistiveTorque(VehicleSide side) const {
+    const auto& contacts = (side == VehicleSide::LEFT) ? m_sprocket_L_contacts : m_sprocket_R_contacts;
+    const auto& spoint =
+        (side == VehicleSide::LEFT) ? m_sprocket_L->GetGearBody()->GetPos() : m_sprocket_R->GetGearBody()->GetPos();
+
+    ChVector<> torque(0);
+    for (auto& c : contacts) {
+        ChVector<> F = c.m_csys * c.m_force;
+        ChVector<> T = c.m_csys * c.m_torque;
+        torque += (c.m_point - spoint).Cross(F) + T;
+    }
+
+    return torque;
+}
+
+// -----------------------------------------------------------------------------
 
 bool ChTrackContactManager::OnReportContact(const ChVector<>& pA,
                                             const ChVector<>& pB,

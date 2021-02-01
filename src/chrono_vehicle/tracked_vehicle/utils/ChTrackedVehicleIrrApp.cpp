@@ -73,10 +73,9 @@ void ChTrackedVehicleIrrApp::renderOtherStats(int left, int top) {
 void ChTrackedVehicleIrrApp::renderOtherGraphics() {
     // Contact normals on left sprocket.
     // Note that we only render information for contacts on the outside gear profile
-    for (auto it = m_tvehicle->m_contact_manager->m_sprocket_L_contacts.begin();
-         it != m_tvehicle->m_contact_manager->m_sprocket_L_contacts.end(); ++it) {
-        ChVector<> v1 = it->m_point;
-        ChVector<> v2 = v1 + it->m_csys.Get_A_Xaxis();
+    for (const auto& c : m_tvehicle->m_contact_manager->m_sprocket_L_contacts) {
+        ChVector<> v1 = c.m_point;
+        ChVector<> v2 = v1 + c.m_csys.Get_A_Xaxis();
 
         if (v1.y() > m_tvehicle->GetTrackAssembly(LEFT)->GetSprocket()->GetGearBody()->GetPos().y())
             irrlicht::ChIrrTools::drawSegment(GetVideoDriver(), v1, v2, video::SColor(255, 180, 0, 0), false);
@@ -84,10 +83,9 @@ void ChTrackedVehicleIrrApp::renderOtherGraphics() {
 
     // Contact normals on rear sprocket.
     // Note that we only render information for contacts on the outside gear profile
-    for (auto it = m_tvehicle->m_contact_manager->m_sprocket_R_contacts.begin();
-         it != m_tvehicle->m_contact_manager->m_sprocket_R_contacts.end(); ++it) {
-        ChVector<> v1 = it->m_point;
-        ChVector<> v2 = v1 + it->m_csys.Get_A_Xaxis();
+    for (const auto& c : m_tvehicle->m_contact_manager->m_sprocket_R_contacts) {
+        ChVector<> v1 = c.m_point;
+        ChVector<> v2 = v1 + c.m_csys.Get_A_Xaxis();
 
         if (v1.y() < m_tvehicle->GetTrackAssembly(RIGHT)->GetSprocket()->GetGearBody()->GetPos().y())
             irrlicht::ChIrrTools::drawSegment(GetVideoDriver(), v1, v2, video::SColor(255, 180, 0, 0), false);
@@ -108,9 +106,9 @@ void ChTrackedVehicleIrrApp::renderOtherGraphics() {
 // Render normal for all contacts in the specified list, using the given color.
 void ChTrackedVehicleIrrApp::renderContactNormals(const std::list<ChTrackContactManager::ContactInfo>& lst,
                                                   const video::SColor& col) {
-    for (auto it = lst.begin(); it != lst.end(); ++it) {
-        ChVector<> v1 = it->m_point;
-        ChVector<> v2 = v1 + it->m_csys.Get_A_Xaxis();
+    for (const auto& c : lst) {
+        ChVector<> v1 = c.m_point;
+        ChVector<> v2 = v1 + c.m_csys.Get_A_Xaxis();
 
         irrlicht::ChIrrTools::drawSegment(GetVideoDriver(), v1, v2, col, false);
     }

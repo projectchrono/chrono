@@ -59,6 +59,8 @@ class CH_VEHICLE_API ChTrackContactManager : public ChContactContainer::ReportCo
 
     bool InContact(TrackedCollisionFlag::Enum part) const;
 
+    ChVector<> GetSprocketResistiveTorque(VehicleSide side) const;
+
   private:
     /// Contact information data structure.
     struct ContactInfo {
