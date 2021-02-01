@@ -37,7 +37,7 @@ static const double supp_z_offset = 0.02;
 
 const double Marder_TrackAssemblySinglePin::m_right_x_offset = 0.1;
 const ChVector<> Marder_TrackAssemblySinglePin::m_sprocket_loc(0, 0, 0);
-const ChVector<> Marder_TrackAssemblySinglePin::m_idler_loc(-5.4724, 0, -0.0447);
+const ChVector<> Marder_TrackAssemblySinglePin::m_idler_loc(-5.4, 0, -0.0447);
 const ChVector<> Marder_TrackAssemblySinglePin::m_susp_locs_L[6] = {
     ChVector<>(-0.8458, 0, -0.3759), ChVector<>(-1.6258, 0, -0.3759), ChVector<>(-2.4058, 0, -0.3759),
     ChVector<>(-3.1858, 0, -0.3759), ChVector<>(-3.9658, 0, -0.3759), ChVector<>(-4.7458, 0, -0.3759)};

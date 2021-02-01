@@ -58,7 +58,7 @@ void Marder_SprocketSinglePin::CreateContactMaterial(ChContactMethod contact_met
     MaterialInfo minfo;
     minfo.mu = 0.4f;
     minfo.cr = 0.75f;
-    minfo.Y = 1e7f;
+    minfo.Y = 1e8f;
     m_material = minfo.CreateMaterial(contact_method);
 }
 

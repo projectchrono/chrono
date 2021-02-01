@@ -33,7 +33,7 @@ namespace marder {
 // Static variables
 // -----------------------------------------------------------------------------
 const double Marder_TrackShoeSinglePin::m_shoe_height = 0.06;
-const double Marder_TrackShoeSinglePin::m_shoe_pitch = 0.156;
+const double Marder_TrackShoeSinglePin::m_shoe_pitch = 0.153;
 const double Marder_TrackShoeSinglePin::m_shoe_mass = 18.02;
 const ChVector<> Marder_TrackShoeSinglePin::m_shoe_inertia(0.22, 0.04, 0.25);
 
@@ -99,7 +99,7 @@ void Marder_TrackShoeSinglePin::CreateContactMaterials(ChContactMethod contact_m
         MaterialInfo minfo;
         minfo.mu = 0.8f;
         minfo.cr = 0.75f;
-        minfo.Y = 1e7f;
+        minfo.Y = 1e8f;
         m_shoe_sprk_material = minfo.CreateMaterial(contact_method);
     }
 
