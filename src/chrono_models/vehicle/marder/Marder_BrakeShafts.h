@@ -36,7 +36,7 @@ class CH_MODELS_API Marder_BrakeShafts : public ChTrackBrakeShafts {
     Marder_BrakeShafts(const std::string& name) : ChTrackBrakeShafts(name) {}
     ~Marder_BrakeShafts() {}
 
-    virtual double GetMaxBrakingTorque() override { return 10000.0; }
+    virtual double GetMaxBrakingTorque() override { return 30000.0; }
     virtual double GetShaftInertia() override { return 0.4; }
 };
 

@@ -30,7 +30,7 @@ namespace marder {
 // -----------------------------------------------------------------------------
 const double Marder_SimplePowertrain::m_max_torque = 1000;
 const double Marder_SimplePowertrain::m_max_speed = 18850;  // 3000 RPM
-const double Marder_SimplePowertrain::m_fwd_gear_ratio = 0.1;
+const double Marder_SimplePowertrain::m_fwd_gear_ratio = 0.05;
 const double Marder_SimplePowertrain::m_rev_gear_ratio = -0.3;
 
 // -----------------------------------------------------------------------------

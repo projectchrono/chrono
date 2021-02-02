@@ -57,11 +57,11 @@ Marder_Chassis::Marder_Chassis(const std::string& name, bool fixed, CollisionTyp
     //   width: 170
     //   points in x-z transversal plane: (-417.0 -14.3), (4.1, -14.3), (21.4, 34.3)
     //   thickness: 20
-    double width = 1.70;
-    double Ax = -4.17;
-    double Az = -0.143;
+    double width = 2.045;
+    double Ax = -5.45;
+    double Az = -0.4;
     double Bx = 0.041;
-    double Bz = -0.143;
+    double Bz = -0.243;
     double Cx = 0.214;
     double Cz = 0.343;
     double thickness = 0.2;
@@ -84,7 +84,7 @@ Marder_Chassis::Marder_Chassis(const std::string& name, bool fixed, CollisionTyp
     m_geometry.m_vis_boxes.push_back(box2);
 
     m_geometry.m_has_mesh = true;
-    m_geometry.m_vis_mesh_file = "M113/Chassis.obj";
+    m_geometry.m_vis_mesh_file = "Marder/Hull.obj";
 
     m_geometry.m_has_collision = (chassis_collision_type != CollisionType::NONE);
     switch (chassis_collision_type) {

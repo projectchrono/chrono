@@ -33,17 +33,17 @@ namespace marder {
 // -----------------------------------------------------------------------------
 // Static variables
 // -----------------------------------------------------------------------------
-const int Marder_SprocketSinglePin::m_num_teeth = 13;
+const int Marder_SprocketSinglePin::m_num_teeth = 12;
 
 const double Marder_SprocketSinglePin::m_gear_mass = 27.68;
 const ChVector<> Marder_SprocketSinglePin::m_gear_inertia(0.646, 0.883, 0.646);
 const double Marder_SprocketSinglePin::m_axle_inertia = 0.4;
 const double Marder_SprocketSinglePin::m_separation = 0.225;
 
-const double Marder_SprocketSinglePin::m_gear_RT = 0.29;    // Outer radius
-const double Marder_SprocketSinglePin::m_gear_RC = 0.3197;  // Arc centers radius
-const double Marder_SprocketSinglePin::m_gear_R = 0.07;     // Arc radius
-const double Marder_SprocketSinglePin::m_gear_RA = 0.275;   // Assembly radius
+const double Marder_SprocketSinglePin::m_gear_RT = 0.3;          // Outer radius
+const double Marder_SprocketSinglePin::m_gear_RC = 0.328414781;  // Arc centers radius
+const double Marder_SprocketSinglePin::m_gear_R = 0.07;          // Arc radius
+const double Marder_SprocketSinglePin::m_gear_RA = 0.275;        // Assembly radius
 
 const double Marder_SprocketSinglePin::m_lateral_backlash = 0.01;
 

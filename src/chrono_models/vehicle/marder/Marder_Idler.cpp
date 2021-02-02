@@ -44,8 +44,8 @@ const double Marder_Idler::m_carrier_radius = 0.02;
 
 const double Marder_Idler::m_tensioner_l0 = 0.75;
 const double Marder_Idler::m_tensioner_f = 9.81 * 25000.0 / 10.0;  // 10% Weight Force      M113: 2e4;
-const double Marder_Idler::m_tensioner_k = 3e6;
-const double Marder_Idler::m_tensioner_c = 3.4e4;
+const double Marder_Idler::m_tensioner_k = 2e6;
+const double Marder_Idler::m_tensioner_c = Marder_Idler::m_tensioner_k * 0.05;
 
 const std::string Marder_IdlerLeft::m_meshFile = "Marder/Idler_L.obj";
 const std::string Marder_IdlerRight::m_meshFile = "Marder/Idler_R.obj";

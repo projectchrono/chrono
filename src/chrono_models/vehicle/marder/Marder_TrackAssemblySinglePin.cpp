@@ -37,7 +37,7 @@ static const double supp_z_offset = 0.02;
 
 const double Marder_TrackAssemblySinglePin::m_right_x_offset = 0.1;
 const ChVector<> Marder_TrackAssemblySinglePin::m_sprocket_loc(0, 0, 0);
-const ChVector<> Marder_TrackAssemblySinglePin::m_idler_loc(-5.4, 0, -0.0447);
+const ChVector<> Marder_TrackAssemblySinglePin::m_idler_loc(-5.4, 0, -0.0647);
 const ChVector<> Marder_TrackAssemblySinglePin::m_susp_locs_L[6] = {
     ChVector<>(-0.8458, 0, -0.3759), ChVector<>(-1.6258, 0, -0.3759), ChVector<>(-2.4058, 0, -0.3759),
     ChVector<>(-3.1858, 0, -0.3759), ChVector<>(-3.9658, 0, -0.3759), ChVector<>(-4.7458, 0, -0.3759)};
@@ -72,7 +72,7 @@ Marder_TrackAssemblySinglePin::Marder_TrackAssemblySinglePin(VehicleSide side, B
             m_idler = chrono_types::make_shared<Marder_IdlerLeft>();
             m_brake = chrono_types::make_shared<Marder_BrakeSimple>("Marder_BrakeLeft");
             m_sprocket = chrono_types::make_shared<Marder_SprocketSinglePinLeft>();
-            num_shoes = 83 + 3;
+            num_shoes = 77;
             suspName += "Left_";
             shoeName += "Left_";
             m_rollers[0] = chrono_types::make_shared<Marder_SupportRollerLeft>(0);
@@ -84,7 +84,7 @@ Marder_TrackAssemblySinglePin::Marder_TrackAssemblySinglePin(VehicleSide side, B
             m_idler = chrono_types::make_shared<Marder_IdlerRight>();
             m_brake = chrono_types::make_shared<Marder_BrakeSimple>("Marder_BrakeRight");
             m_sprocket = chrono_types::make_shared<Marder_SprocketSinglePinRight>();
-            num_shoes = 84 + 3;
+            num_shoes = 78;
             suspName += "Right_";
             shoeName += "Right_";
             m_rollers[0] = chrono_types::make_shared<Marder_SupportRollerRight>(0);

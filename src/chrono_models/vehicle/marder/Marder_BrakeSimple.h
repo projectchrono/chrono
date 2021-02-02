@@ -36,7 +36,7 @@ class CH_MODELS_API Marder_BrakeSimple : public ChTrackBrakeSimple {
     Marder_BrakeSimple(const std::string& name) : ChTrackBrakeSimple(name) {}
     ~Marder_BrakeSimple() {}
 
-    virtual double GetMaxBrakingTorque() override { return 10000.0; }
+    virtual double GetMaxBrakingTorque() override { return 30000.0; }
 };
 
 /// @} vehicle_models_m113

@@ -33,7 +33,7 @@ namespace marder {
 // Static variables
 // -----------------------------------------------------------------------------
 const double Marder_TrackShoeSinglePin::m_shoe_height = 0.06;
-const double Marder_TrackShoeSinglePin::m_shoe_pitch = 0.153;
+const double Marder_TrackShoeSinglePin::m_shoe_pitch = 0.17;
 const double Marder_TrackShoeSinglePin::m_shoe_mass = 18.02;
 const ChVector<> Marder_TrackShoeSinglePin::m_shoe_inertia(0.22, 0.04, 0.25);
 
@@ -47,19 +47,19 @@ const ChVector<> Marder_TrackShoeSinglePin::m_pin_center(0.045, 0, 0.0375);
 // -----------------------------------------------------------------------------
 Marder_TrackShoeSinglePin::Marder_TrackShoeSinglePin(const std::string& name) : ChTrackShoeSinglePin(name) {
     // Collision box: pad bottom (ground contact)
-    ChVehicleGeometry::BoxShape box_bottom(ChVector<>(0, 0, -0.015), QUNIT, ChVector<>(0.11, 0.19, 0.03), 0);
+    ChVehicleGeometry::BoxShape box_bottom(ChVector<>(0, 0, -0.015), QUNIT, ChVector<>(0.11, 0.4, 0.03), 0);
 
     // Collision box: pad top (wheel contact)
-    ChVehicleGeometry::BoxShape box_top(ChVector<>(0, 0, +0.015), QUNIT, ChVector<>(0.10, 0.18, 0.03), 1);
+    ChVehicleGeometry::BoxShape box_top(ChVector<>(0, 0, +0.015), QUNIT, ChVector<>(0.10, 0.4, 0.03), 1);
 
     // Collision box: guide pin (wheel contact)
     ChVehicleGeometry::BoxShape box_guide(ChVector<>(0.045, 0, 0.0375), QUNIT, ChVector<>(0.0284, 0.0114, 0.075), 2);
 
     // Collision box: pad side outer (ground contact)
-    ChVehicleGeometry::BoxShape box_side_outer(ChVector<>(0, +0.16245, 0), QUNIT, ChVector<>(0.1315, 0.0542, 0.02), 0);
+    ChVehicleGeometry::BoxShape box_side_outer(ChVector<>(0, +0.43 / 2, 0), QUNIT, ChVector<>(0.1315, 0.0542, 0.02), 0);
 
     // Collision box: pad side inner (ground contact)
-    ChVehicleGeometry::BoxShape box_side_inner(ChVector<>(0, -0.16245, 0), QUNIT, ChVector<>(0.1315, 0.0542, 0.02), 0);
+    ChVehicleGeometry::BoxShape box_side_inner(ChVector<>(0, -0.43 / 2, 0), QUNIT, ChVector<>(0.1315, 0.0542, 0.02), 0);
 
     m_geometry.m_coll_boxes.push_back(box_bottom);
     m_geometry.m_coll_boxes.push_back(box_top);
