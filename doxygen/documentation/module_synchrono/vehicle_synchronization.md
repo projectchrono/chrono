@@ -5,7 +5,7 @@ Wheeled and Tracked Vehicle Synchronization {#vehicle_synchronization}
 
 SynChrono provides state synchronization for [Chrono::Vehicle](@ref manual_vehicle) model templates. Wheeled and tracked vehicle synchronization are currently supported.
 
-### General Concepts
+## General Concepts {#veh_sync_general_concepts}
 
 To achieve SynChrono's goal of extending Project Chrono's physics into the multi-agent realm, the first step was to enable large-scale vehicle scenarios. Single vehicle simulations was already supported through the [Chrono::Vehicle](@ref manual_vehicle) module, but a scalable solution for 10s to 100s of additional vehicles was desired. Through SynChrono's synchronization backbone, this became feasible. Synchronization within SynChrono is explained in depth [here](state_synchronization.html). 
 
@@ -15,15 +15,15 @@ To allow for time and space coherence between agents, state passing is performed
 
 Wheeled and tracked vehicles will distribute individual state and description information through SynChrono. State data describes the current position and orientation of specific components of the vehicles. During the initial handshake of SynChrono, description messages are sent that describe how to reconstruct the vehicle as a zombie. See the [Wheeled Vehicle Synchronization](#wheeled-vehicle-synchronization) or the [Tracked Vehicle Synchronization](#tracked-vehicle-synchronization) sections for a detailed description about the exact data types.
 
-#### Limitations
+### Limitations {#veh_sync_limitations}
 
 Currently, only position and orientation of various vehicle components is shared between agents. Contact forces are not shared, hence agents are only space coherent (i.e. have knowledge of), not space interactive. 
 
-### Wheeled Vehicle Synchronization
+## Wheeled Vehicle Synchronization {#veh_sync_wheeled}
 
 A [SynWheeledVehicleAgent](@ref chrono::synchrono::SynWheeledVehicleAgent) simply wraps a pointer for a [ChWheeledVehicle's](@ref chrono::vehicle::ChWheeledVehicle).
 
-#### Description
+### Description Messages {#veh_sync_wheeled_description}
 
 To reconstruct a [ChWheeledVehicle's](@ref chrono::vehicle::ChWheeledVehicle), one must know the visual representation of its chassis, rims and tires. To enhance generality and allow for multiple vehicle configurations (i.e. more than four wheels), the number of wheels is sent, as well. Each visual file is represented as a string which is then read relative to the Chrono data directory. 
 
@@ -39,7 +39,7 @@ table Description {
 }
 ```
 
-#### State
+### State Messages {#veh_sync_wheeled_state}
 
 The state information for a wheeled vehicle is rather simple. The pose (position and orientation) of the chassis and the models wheels are sent to the other agents. Wheels and tires share the same pose information.
 
@@ -57,11 +57,11 @@ table State {
 }
 ```
 
-### Tracked Vehicle Synchronization
+## Tracked Vehicle Synchronization {#veh_sync_tracked}
 
 A [SynTrackedVehicleAgent](@ref chrono::synchrono::SynTrackedVehicleAgent) simply wraps a pointer for a [ChTrackedVehicle's](@ref chrono::vehicle::ChTrackedVehicle).
 
-#### Description
+### Description Messages {#veh_sync_tracked_description}
 
 To reconstruct a [ChTrackedVehicle's](@ref chrono::vehicle::ChTrackedVehicle), one must know the visual representation of its chassis, track shoes, sprockets, idlers and road wheels. Other than the chassis and track shoe, different meshes could be used for different sides, so the left and right files are sent separately. To enhance generality and allow for multiple vehicle configurations (i.e. more or less sprockets/idlers/etc.), the number of track shoes, sprockets, idlers and road_wheels are sent. Each visual file is represented as a string which is then read relative to the Chrono data directory.
 
@@ -83,7 +83,7 @@ table Description {
 }
 ```
 
-#### State
+### State Messages {#veh_sync_tracked_state}
 
 The state information for a tracked vehicle is simply a long list of poses for each component handled by the agent. The position of each component is updated on reception and the attached vehicle pointer is queried for position and orientation on sending.
 
