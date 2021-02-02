@@ -36,6 +36,9 @@ enum class CollisionType {
 /// Namespace for the HMMWV vehicle model
 namespace hmmwv {}
 
+/// Namespace for the FED-alpha vehicle model
+namespace feda {}
+
 /// Namespace for the passenger vehicle model
 namespace sedan {}
 

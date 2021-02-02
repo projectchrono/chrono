@@ -124,9 +124,9 @@ void create_debris(ChIrrApp& application, double dt, double particles_second) {
     if (remaind > ChRandom())
         particles_dt += 1;
 
-    video::ITexture* bluwhiteMap = application.GetVideoDriver()->getTexture(GetChronoDataFile("bluwhite.png").c_str());
+    video::ITexture* bluwhiteMap = application.GetVideoDriver()->getTexture(GetChronoDataFile("textures/bluewhite.png").c_str());
     video::ITexture* pinkwhiteMap =
-        application.GetVideoDriver()->getTexture(GetChronoDataFile("pinkwhite.png").c_str());
+        application.GetVideoDriver()->getTexture(GetChronoDataFile("textures/pinkwhite.png").c_str());
 
     auto sphere_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
     sphere_mat->SetFriction(0.2f);
@@ -149,7 +149,7 @@ void create_debris(ChIrrApp& application, double dt, double particles_second) {
                                                                           sphere_mat);  // contact material
             mrigidBody->SetPos(ChVector<>(-0.5 * xnozzlesize + ChRandom() * xnozzlesize, ynozzle + i * 0.005,
                                           -0.5 * znozzlesize + ChRandom() * znozzlesize));
-            mrigidBody->AddAsset(chrono_types::make_shared<ChTexture>(GetChronoDataFile("bluwhite.png")));
+            mrigidBody->AddAsset(chrono_types::make_shared<ChTexture>(GetChronoDataFile("textures/bluewhite.png")));
 
             application.GetSystem()->Add(mrigidBody);
 
@@ -173,7 +173,7 @@ void create_debris(ChIrrApp& application, double dt, double particles_second) {
                                                          box_mat);  // contact material
             mrigidBody->SetPos(ChVector<>(-0.5 * xnozzlesize + ChRandom() * xnozzlesize, ynozzle + i * 0.005,
                                           -0.5 * znozzlesize + ChRandom() * znozzlesize));
-            mrigidBody->AddAsset(chrono_types::make_shared<ChTexture>(GetChronoDataFile("cubetexture_bluwhite.png")));
+            mrigidBody->AddAsset(chrono_types::make_shared<ChTexture>(GetChronoDataFile("textures/cubetexture_bluewhite.png")));
 
             application.GetSystem()->Add(mrigidBody);
 
@@ -192,7 +192,7 @@ void create_debris(ChIrrApp& application, double dt, double particles_second) {
                                                                             cyl_mat);            // contact material
             mrigidBody->SetPos(ChVector<>(-0.5 * xnozzlesize + ChRandom() * xnozzlesize, ynozzle + i * 0.005,
                                           -0.5 * znozzlesize + ChRandom() * znozzlesize));
-            mrigidBody->AddAsset(chrono_types::make_shared<ChTexture>(GetChronoDataFile("pinkwhite.png")));
+            mrigidBody->AddAsset(chrono_types::make_shared<ChTexture>(GetChronoDataFile("textures/pinkwhite.png")));
 
             application.GetSystem()->Add(mrigidBody);
 

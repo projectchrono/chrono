@@ -290,7 +290,7 @@ int main(int argc, char* argv[]) {
         auto material = chrono_types::make_shared<ChMaterialShellKirchhoff>(melasticity);
         material->SetDensity(density);
 
-        ChMeshFileLoader::BSTShellFromObjFile(my_mesh, GetChronoDataFile("cube.obj").c_str(), material, thickness);
+        ChMeshFileLoader::BSTShellFromObjFile(my_mesh, GetChronoDataFile("models/cube.obj").c_str(), material, thickness);
     }
 
     // ==Asset== attach a visualization of the FEM mesh.

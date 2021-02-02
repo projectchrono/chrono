@@ -189,7 +189,7 @@ int main(int argc, char* argv[]) {
     utils::AddBoxGeometry(ground.get(), ground_mat, ChVector<>(5.1, 1, 0.1), ChVector<>(0, 0, +5));
     ground->GetCollisionModel()->BuildModel();
 
-    ground->AddAsset(chrono_types::make_shared<ChTexture>(GetChronoDataFile("blu.png")));
+    ground->AddAsset(chrono_types::make_shared<ChTexture>(GetChronoDataFile("textures/blue.png")));
     ground->AddAsset(obstacle.GetVisualization());
 
     // Create the falling ball
@@ -205,7 +205,7 @@ int main(int argc, char* argv[]) {
     utils::AddSphereGeometry(ball.get(), ball_mat, ball_radius);
     ball->GetCollisionModel()->BuildModel();
 
-    ball->AddAsset(chrono_types::make_shared<ChTexture>(GetChronoDataFile("bluwhite.png")));
+    ball->AddAsset(chrono_types::make_shared<ChTexture>(GetChronoDataFile("textures/bluewhite.png")));
 
     // Create a custom collision detection callback object and register it with the system
     auto my_collision =

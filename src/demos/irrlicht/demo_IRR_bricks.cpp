@@ -64,7 +64,7 @@ void create_wall_bodies(ChSystemNSC& mphysicalSystem) {
 
                 // optional, attach a texture for better visualization
                 auto mtexture = chrono_types::make_shared<ChTexture>();
-                mtexture->SetTextureFilename(GetChronoDataFile("cubetexture_borders.png"));
+                mtexture->SetTextureFilename(GetChronoDataFile("textures/cubetexture_borders.png"));
                 mrigidBody->AddAsset(mtexture);
             }
         }
@@ -97,7 +97,7 @@ void create_wall_bodies(ChSystemNSC& mphysicalSystem) {
 
     // optional, attach a texture for better visualization
     auto mtextureball = chrono_types::make_shared<ChTexture>();
-    mtextureball->SetTextureFilename(GetChronoDataFile("bluwhite.png"));
+    mtextureball->SetTextureFilename(GetChronoDataFile("textures/bluewhite.png"));
     mrigidBall->AddAsset(mtextureball);
 }
 
@@ -172,7 +172,7 @@ void create_jengatower_bodies(ChSystemNSC& mphysicalSystem) {
 
     // optional, attach a texture for better visualization
     auto mtextureball = chrono_types::make_shared<ChTexture>();
-    mtextureball->SetTextureFilename(GetChronoDataFile("bluwhite.png"));
+    mtextureball->SetTextureFilename(GetChronoDataFile("textures/bluewhite.png"));
     mrigidBall->AddAsset(mtextureball);
 }
 

@@ -126,7 +126,7 @@ std::shared_ptr<ChBody> create_mecanum_wheel(ChSystemNSC& mphysicalSystem,
 	mphysicalSystem.Add(mCentralWheel);
 
 	auto mtexturepw = chrono_types::make_shared<ChTexture>();
-    mtexturepw->SetTextureFilename(GetChronoDataFile("pinkwhite.png"));
+    mtexturepw->SetTextureFilename(GetChronoDataFile("textures/pinkwhite.png"));
     mCentralWheel->AddAsset(mtexturepw);
 
     auto wheel_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
@@ -304,7 +304,7 @@ int main(int argc, char* argv[]) {
 	mphysicalSystem.Add(ground);
 
 	auto mtexture = chrono_types::make_shared<ChTexture>();
-    mtexture->SetTextureFilename(GetChronoDataFile("concrete.jpg"));
+    mtexture->SetTextureFilename(GetChronoDataFile("textures/concrete.jpg"));
     mtexture->SetTextureScale(100, 100);
 
     ground->AddAsset(mtexture);

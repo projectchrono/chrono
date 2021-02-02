@@ -55,7 +55,7 @@ void AddFallingItems(ChSystemNSC& sys) {
         sys.Add(msphereBody);
 
         auto mtexture = chrono_types::make_shared<ChTexture>();
-        mtexture->SetTextureFilename(GetChronoDataFile("bluwhite.png"));
+        mtexture->SetTextureFilename(GetChronoDataFile("textures/bluewhite.png"));
         msphereBody->AddAsset(mtexture);
 
         auto mboxBody = chrono_types::make_shared<ChBodyEasyBox>(1.5, 1.5, 1.5,  // x,y,z size
@@ -68,7 +68,7 @@ void AddFallingItems(ChSystemNSC& sys) {
         sys.Add(mboxBody);
 
         auto mtexturebox = chrono_types::make_shared<ChTexture>();
-        mtexturebox->SetTextureFilename(GetChronoDataFile("cubetexture_bluwhite.png"));
+        mtexturebox->SetTextureFilename(GetChronoDataFile("textures/cubetexture_bluewhite.png"));
         mboxBody->AddAsset(mtexturebox);
 
         auto mcylBody = chrono_types::make_shared<ChBodyEasyCylinder>(0.75, 0.5,  // radius, height
@@ -82,7 +82,7 @@ void AddFallingItems(ChSystemNSC& sys) {
 
         // optional, attach a texture for better visualization
         auto mtexturecyl = chrono_types::make_shared<ChTexture>();
-        mtexturecyl->SetTextureFilename(GetChronoDataFile("pinkwhite.png"));
+        mtexturecyl->SetTextureFilename(GetChronoDataFile("textures/pinkwhite.png"));
         mcylBody->AddAsset(mtexturecyl);
     }
 }
@@ -119,7 +119,7 @@ std::shared_ptr<ChBody> AddContainer(ChSystemNSC& sys) {
 
     // optional, attach  textures for better visualization
     auto mtexturewall = chrono_types::make_shared<ChTexture>();
-    mtexturewall->SetTextureFilename(GetChronoDataFile("concrete.jpg"));
+    mtexturewall->SetTextureFilename(GetChronoDataFile("textures/concrete.jpg"));
     wallBody1->AddAsset(mtexturewall);  // note: most assets can be shared
     wallBody2->AddAsset(mtexturewall);
     wallBody3->AddAsset(mtexturewall);

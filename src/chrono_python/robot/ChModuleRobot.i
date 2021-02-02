@@ -66,10 +66,13 @@
 #include "chrono_models/ChApiModels.h"
 #include "chrono_models/robot/robosimian/RoboSimian.h"
 #include "chrono_models/robot/viper/Viper.h"
+#include "chrono_models/robot/copters/Copter.h"
+#include "chrono_models/robot/copters/Little_Hexy.h"
 
 using namespace chrono;
 using namespace chrono::robosimian;
 using namespace chrono::viper;
+using namespace chrono::copter;
 
 %}
 
@@ -206,6 +209,13 @@ using namespace chrono::viper;
 
 %include "../chrono_models/robot/robosimian/RoboSimian.h"
 %include "../chrono_models/robot/viper/Viper.h"
+
+%include "../chrono_models/robot/copters/Copter.h"
+%template(ChCopter6) chrono::copter::Copter<6>;
+%template(ChCopter4) chrono::copter::Copter<4>;
+%include "../chrono_models/robot/copters/Little_Hexy.h"
+
+
 
 //
 // C- DOWNCASTING OF SHARED POINTERS

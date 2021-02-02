@@ -40,7 +40,7 @@ ground.SetBodyFixed(True)
 system.Add(ground)
 
 texture = chrono.ChTexture()
-texture.SetTextureFilename(chrono.GetChronoDataFile("concrete.jpg"))
+texture.SetTextureFilename(chrono.GetChronoDataFile("textures/concrete.jpg"))
 ground.AddAsset(texture)
 
 # Create Viper rover
