@@ -136,7 +136,7 @@ int main(int argc, char* argv[]) {
     // Set visualization type for vehicle components.
     VisualizationType track_vis =
         (shoe_type == TrackShoeType::SINGLE_PIN) ? VisualizationType::MESH : VisualizationType::PRIMITIVES;
-    marder.SetChassisVisualizationType(VisualizationType::PRIMITIVES);
+    marder.SetChassisVisualizationType(VisualizationType::MESH);
     marder.SetSprocketVisualizationType(track_vis);
     marder.SetIdlerVisualizationType(track_vis);
     marder.SetRollerVisualizationType(track_vis);
