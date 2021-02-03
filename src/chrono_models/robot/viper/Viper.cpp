@@ -21,6 +21,7 @@
 #include <cmath>
 
 #include "chrono/assets/ChBoxShape.h"
+#include "chrono/physics/ChBodyEasy.h"
 #include "chrono/assets/ChColorAsset.h"
 #include "chrono/assets/ChCylinderShape.h"
 #include "chrono/assets/ChSphereShape.h"
@@ -95,7 +96,7 @@ void AddRevoluteJoint(std::shared_ptr<ChBodyAuxRef> body_1,
 
 // Add a rotational speed controlled motor between body 'steer' and body 'wheel'
 // rel_joint_pos and rel_joint_rot are the position and the rotation of the motor
-std::shared_ptr<ChLinkMotorRotationSpeed> AddMotor(std::shared_ptr<ChBodyAuxRef> steer,
+std::shared_ptr<ChLinkMotorRotationSpeed> AddMotor(std::shared_ptr<ChBody> steer,
                                                    std::shared_ptr<ChBodyAuxRef> wheel,
                                                    std::shared_ptr<ChBodyAuxRef> chassis,
                                                    ChSystem* system,
@@ -508,6 +509,10 @@ void Viper_Steer::Translate(const ChVector<>& shift) {
     m_body->SetPos(m_body->GetPos() + shift);
 }
 
+
+
+
+
 // ==========================================================
 // Rover Class for the entire rover model
 ViperRover::ViperRover(ChSystem* system, 
@@ -793,16 +798,33 @@ void ViperRover::Initialize() {
             AddRevoluteJoint(m_up_suss[i]->GetBody(), m_steers[i]->GetBody(), m_chassis->GetBody(), m_system,
                              SR_Rel_pos_Upper, z2x);
 
+            auto steer_rod = chrono_types::make_shared<ChBodyEasyBox>(0.1, 0.1, 0.1, 1000, true, false, DefaultContactMaterial(m_system->GetContactMethod()));
+
+            const ChFrame<>& X_GP = m_chassis->GetBody()->GetFrame_REF_to_abs(); 
+            ChFrame<> X_PC(Wheel_Rel_pos,ChQuaternion<>(1,0,0,0));                         
+            ChFrame<> X_GC = X_GP * X_PC;      
+
+            steer_rod->SetPos(X_GC.GetCoord().pos);
+            steer_rod->SetBodyFixed(false);
+            steer_rod->SetCollide(false);
+            m_system->Add(steer_rod);
+
             ChQuaternion<> z2y;
             z2y.Q_from_AngAxis(CH_C_PI / 2, ChVector<>(1, 0, 0));
 
             // initialize and store the const speed function
             auto const_speed_function = chrono_types::make_shared<ChFunction_Const>(CH_C_PI);  // speed w=3.145 rad/sec
 
+            auto const_steer_speed_function = chrono_types::make_shared<ChFunction_Const>(0.0);
+           
             m_motors_func.push_back(const_speed_function);
+            m_steer_motors_func.push_back(const_steer_speed_function);
 
-            m_motors.push_back(AddMotor(m_steers[i]->GetBody(), m_wheels[i]->GetBody(), m_chassis->GetBody(), m_system,
+            m_motors.push_back(AddMotor(steer_rod, m_wheels[i]->GetBody(), m_chassis->GetBody(), m_system,
                                         Wheel_Rel_pos, z2y, const_speed_function));
+            
+            m_steer_motors.push_back(AddMotor(steer_rod, m_steers[i]->GetBody(), m_chassis->GetBody(), m_system,
+                                        Wheel_Rel_pos, ChQuaternion<>(1,0,0,0), const_steer_speed_function));
 
             // after motors are set, get speed function and store then in private fields
             m_sus_springs.push_back(AddSuspensionSpring(m_chassis->GetBody(), m_steers[i]->GetBody(), m_system,
@@ -861,6 +883,124 @@ double ViperRover::GetRoverMass() {
 
 double ViperRover::GetWheelMass() {
     return m_wheels[0]->GetBody()->GetMass();
+}
+
+std::shared_ptr<ChFunction_Const> ViperRover::GetMainMotorFunc(WheelID id){
+    return m_motors_func[id];
+}
+
+std::shared_ptr<ChFunction_Const> ViperRover::GetSteerMotorFunc(WheelID id){
+    return m_steer_motors_func[id];
+}
+
+std::shared_ptr<ChLinkMotorRotationSpeed> ViperRover::GetMainMotorLink(WheelID id){
+    return m_motors[id];
+}
+
+std::shared_ptr<ChLinkMotorRotationSpeed> ViperRover::GetSteerMotorLink(WheelID id){
+    return m_steer_motors[id];
+}
+
+void ViperRover::SetTurn(TurnSig id, double turn_speed){
+    // maximum valid turn_speed input is 4 * CH_C_PI 
+    std::cout<<"turn_speed:"<<turn_speed<<std::endl;
+    if(abs(turn_speed) > 4 * CH_C_PI){
+        std::cout<<"FATAL ERROR, STEERING SPEED CANNOT EXCEED 4*PI"<<std::endl;
+        return;
+    }
+
+    switch (id)
+    {
+
+    case TurnSig::L :
+        for (int i = 0; i < 4; i++){
+            if(i == 0 || i == 1){
+                m_steer_motors_func[i]->Set_yconst(turn_speed);
+            }else if(i == 2 || i == 3){
+                m_steer_motors_func[i]->Set_yconst(-turn_speed);
+            }
+        }
+        cur_turn_state = TurnSig::L;
+        break;
+
+    case TurnSig::R :
+        for (int i = 0; i < 4; i++){
+            if(i == 0 || i == 1){
+                m_steer_motors_func[i]->Set_yconst(-turn_speed);
+            }else if(i == 2 || i == 3){
+                m_steer_motors_func[i]->Set_yconst(turn_speed);
+
+            }
+        }
+        cur_turn_state = TurnSig::R;
+        break;
+
+    case TurnSig::HOLD :
+        for (int i = 0; i < 4; i++){
+            m_steer_motors_func[i]->Set_yconst(0.0);
+
+        }
+        cur_turn_state = TurnSig::HOLD;
+        break;
+    
+    default:
+        break;
+    }
+
+}
+
+// turning angle ranges from -pi/3 to pi/3
+double ViperRover::GetTurnAngle(){
+    return 2*(m_steer_motors[0]->GetMotorRot());
+}
+
+TurnSig ViperRover::GetTurnState(){
+    return cur_turn_state;
+}
+
+
+void ViperRover::Update(){
+    switch (cur_turn_state)
+    {
+    case TurnSig::L:
+        for( int i = 0 ; i < 4 ; i ++ ){
+            if(i==0 || i==1){
+                if(m_steer_motors[i]->GetMotorRot() > CH_C_PI/6){
+                    m_steer_motors_func[i]->Set_yconst(0.0);
+                }
+            }else if(i==2 || i==3){
+                if(m_steer_motors[i]->GetMotorRot() < -CH_C_PI/6){
+                    m_steer_motors_func[i]->Set_yconst(0.0);
+                }
+            }
+
+        }
+        break;
+
+
+    case TurnSig::R:
+        for( int i = 0 ; i < 4 ; i ++ ){
+            if(i==0 || i==1){
+                if(m_steer_motors[i]->GetMotorRot() < -CH_C_PI/6){
+                    m_steer_motors_func[i]->Set_yconst(0.0);
+                }
+            }else if(i==2 || i==3){
+                if(m_steer_motors[i]->GetMotorRot() > CH_C_PI/6){
+                    m_steer_motors_func[i]->Set_yconst(7410.0);
+                }
+            }
+
+        }
+        break;
+
+
+    case TurnSig::HOLD:
+        break;
+
+    default:
+        break;
+    }
+
 }
 
 }  // namespace viper

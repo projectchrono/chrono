@@ -52,6 +52,13 @@ enum WheelID {
     RB   ///< right back
 };
 
+/// Viper turning signal
+enum TurnSig{
+  L,  ///< left turn signal
+  R,  ///< right turn signal
+  HOLD  ///< hold signal
+};
+
 /// Base class definition of the Viper Rover Part.
 /// Viper Rover Parts include Chassis, Steering, Upper Suspension Arm, Bottom Suspension Arm and Wheel
 /// This class encapsulates base fields and functions 
@@ -220,7 +227,7 @@ class CH_MODELS_API Viper_Bottom_Arm : public Viper_Part {
 };
 
 /// Steering rod of the Viper rover.
-/// The steering rod is directly connected to the wheel by a rotational controlled motor.
+/// The steering rod is connected to the steering cyl, this link is controlled steering.
 /// There are two connecting rods on the steering rod, linking to upper and bottom arms of the suspension.
 class CH_MODELS_API Viper_Steer : public Viper_Part {
   public:
@@ -247,6 +254,8 @@ class CH_MODELS_API Viper_Steer : public Viper_Part {
     void Translate(const ChVector<>& shift);
     friend class Viper_Rover;
 };
+
+
 
 /// Viper rover class.
 /// This class encapsulates the location and rotation information of all Viper parts wrt the chassis.
@@ -301,6 +310,32 @@ class CH_MODELS_API ViperRover {
     /// Get total wheel mass
     double GetWheelMass();
 
+    /// Get main motor function ptr
+    std::shared_ptr<ChFunction_Const> GetMainMotorFunc(WheelID id);
+
+    /// Get steer motor function ptr
+    std::shared_ptr<ChFunction_Const> GetSteerMotorFunc(WheelID id);
+
+    /// Get main motor link ptr
+    std::shared_ptr<ChLinkMotorRotationSpeed> GetMainMotorLink(WheelID id);
+
+    /// Get steer motor link ptr
+    std::shared_ptr<ChLinkMotorRotationSpeed> GetSteerMotorLink(WheelID id);
+
+    /// Set viper turning signal left/right/hold
+    void SetTurn(TurnSig id, double turn_speed=0.0);
+
+    /// Get viper turning angle - ranges from -CH_C_PI/3 to CH_C_PI/3
+    double GetTurnAngle();
+
+    /// Get viper turning state - HOLD, L(EFT), OR R(IGHT)
+    TurnSig GetTurnState();
+
+    /// A viper status check and update function
+    /// Note: this function needs to be included in the main simulation loop
+    void Update();
+
+    
   private:
 
     /// This function initializes all parameters for the rover
@@ -315,16 +350,24 @@ class CH_MODELS_API ViperRover {
     std::vector<std::shared_ptr<Viper_Wheel>> m_wheels;     ///< rover wheels - 1:FL, 2:FR, 3:RL, 4:RR
     std::vector<std::shared_ptr<Viper_Up_Arm>> m_up_suss;   ///< rover upper Suspensions - 1:FL, 2:FR, 3:RL, 4:RR
     std::vector<std::shared_ptr<Viper_Bottom_Arm>> m_bts_suss;  ///< rover bottom suspensions - 1:FL, 2:FR, 3:RL, 4:RR
-    std::vector<std::shared_ptr<Viper_Steer>> m_steers;     ///< rover bottom suspensions - 1:FL, 2:FR, 3:RL, 4:RR
+    std::vector<std::shared_ptr<Viper_Steer>> m_steers;     ///< rover steering stand - 1:FL, 2:FR, 3:RL, 4:RR
+    std::vector<std::shared_ptr<ChBody>> m_steers_rod;      ///< rover steering rod, no vis - 1:FL, 2:FR, 3:RL, 4:RR
 
     ChQuaternion<> m_rover_rot;
     ChVector<> m_rover_pos;
 
     std::vector<std::shared_ptr<ChLinkMotorRotationSpeed>> m_motors;  ///< vector to store motors
                                                                       ///< 1-LF,2-RF,3-LB,4-RB
+    std::vector<std::shared_ptr<ChLinkMotorRotationSpeed>> m_steer_motors; ///< vector to store steering motors
+                                                                          ///< 1-LF,2-RF,3-LB,4-RB
+    std::vector<std::shared_ptr<ChLinkMotorRotationSpeed>> m_lift_motors; ///TODO: < vector to store lifting motors
+                                                                          ///< 1-LF,2-RF,3-LB,4-RB
+
+    TurnSig cur_turn_state = TurnSig::HOLD;       ///< Turning state of the viper rover
 
     std::vector<std::shared_ptr<ChFunction_Const>> m_motors_func;  ///< constant motor angular speed func
-
+    std::vector<std::shared_ptr<ChFunction_Const>> m_steer_motors_func; ///< constant steering motor angular speed func
+    std::vector<std::shared_ptr<ChFunction_Const>> m_lift_motors_func; ///TODO: < constant lifting motor angular speed func
     // suspension spring
     std::vector<std::shared_ptr<ChLinkTSDA>> m_sus_springs;  ///< suspension springs
 
