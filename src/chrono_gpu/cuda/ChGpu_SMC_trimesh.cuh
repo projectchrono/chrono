@@ -76,18 +76,18 @@ __inline__ __device__ void triangle_figureOutSDBox(const float3& vA,
     min_pt.z = MIN(vA.z, MIN(vB.z, vC.z));
 
     // Enlarge bounding box
-    min_pt.x -= gran_params->SD_size_X_SU/SAFETY_PARAM;
-    min_pt.y -= gran_params->SD_size_Y_SU/SAFETY_PARAM;
-    min_pt.z -= gran_params->SD_size_Z_SU/SAFETY_PARAM;
+    min_pt.x -= gran_params->SD_size_X_SU / SAFETY_PARAM;
+    min_pt.y -= gran_params->SD_size_Y_SU / SAFETY_PARAM;
+    min_pt.z -= gran_params->SD_size_Z_SU / SAFETY_PARAM;
 
     int3 max_pt;
     max_pt.x = MAX(vA.x, MAX(vB.x, vC.x));
     max_pt.y = MAX(vA.y, MAX(vB.y, vC.y));
     max_pt.z = MAX(vA.z, MAX(vB.z, vC.z));
 
-    max_pt.x += gran_params->SD_size_X_SU/SAFETY_PARAM;
-    max_pt.y += gran_params->SD_size_Y_SU/SAFETY_PARAM;
-    max_pt.z += gran_params->SD_size_Z_SU/SAFETY_PARAM;
+    max_pt.x += gran_params->SD_size_X_SU / SAFETY_PARAM;
+    max_pt.y += gran_params->SD_size_Y_SU / SAFETY_PARAM;
+    max_pt.z += gran_params->SD_size_Z_SU / SAFETY_PARAM;
 
     int3 tmp = pointSDTriplet(min_pt.x, min_pt.y, min_pt.z, gran_params);
     L[0] = tmp.x;
@@ -100,7 +100,7 @@ __inline__ __device__ void triangle_figureOutSDBox(const float3& vA,
     U[2] = tmp.z;
 }
 
-/// Takes in a triangle's position in UU and finds out how many SDs it touches
+/// Takes in a triangle's position in UU and finds out how many SDs it touches.
 /// Triangle broadphase is done in float by applying the frame transform
 /// and then converting the GRF position to SU
 inline __device__ unsigned int triangle_countTouchedSDs(unsigned int triangleID,
@@ -171,9 +171,9 @@ inline __device__ unsigned int triangle_countTouchedSDs(unsigned int triangleID,
     for (int i = L[0]; i <= U[0]; i++) {
         for (int j = L[1]; j <= U[1]; j++) {
             for (int k = L[2]; k <= U[2]; k++) {
-                SDhalfSizes[0] = (gran_params->SD_size_X_SU + gran_params->SD_size_X_SU/SAFETY_PARAM) / 2;
-                SDhalfSizes[1] = (gran_params->SD_size_Y_SU + gran_params->SD_size_Y_SU/SAFETY_PARAM) / 2;
-                SDhalfSizes[2] = (gran_params->SD_size_Z_SU + gran_params->SD_size_Z_SU/SAFETY_PARAM) / 2;
+                SDhalfSizes[0] = (gran_params->SD_size_X_SU + gran_params->SD_size_X_SU / SAFETY_PARAM) / 2;
+                SDhalfSizes[1] = (gran_params->SD_size_Y_SU + gran_params->SD_size_Y_SU / SAFETY_PARAM) / 2;
+                SDhalfSizes[2] = (gran_params->SD_size_Z_SU + gran_params->SD_size_Z_SU / SAFETY_PARAM) / 2;
 
                 SDcenter[0] = gran_params->BD_frame_X + (i * 2 + 1) * gran_params->SD_size_X_SU / 2;
                 SDcenter[1] = gran_params->BD_frame_Y + (j * 2 + 1) * gran_params->SD_size_Y_SU / 2;
@@ -191,14 +191,14 @@ inline __device__ unsigned int triangle_countTouchedSDs(unsigned int triangleID,
     return numSDsTouched;
 }
 
-/// Takes in a triangle's position in UU and finds out what SDs it touches
+/// Takes in a triangle's position in UU and finds out what SDs it touches.
 /// Triangle broadphase is done in float by applying the frame transform
 /// and then converting the GRF position to SU
 inline __device__ void triangle_figureOutTouchedSDs(unsigned int triangleID,
                                                     const ChSystemGpuMesh_impl::TriangleSoupPtr triangleSoup,
                                                     unsigned int* touchedSDs,
-                                                    ChSystemGpu_impl::GranParamsPtr gran_params,
-                                                    ChSystemGpuMesh_impl::MeshParamsPtr tri_params) {
+                                                    const ChSystemGpu_impl::GranParamsPtr& gran_params,
+                                                    const ChSystemGpuMesh_impl::MeshParamsPtr& tri_params) {
     float3 vA, vB, vC;
 
     // Transform LRF to GRF
@@ -233,7 +233,6 @@ inline __device__ void triangle_figureOutTouchedSDs(unsigned int triangleID,
 
     unsigned int SD_count = 0;
 
-
     unsigned int n_axes_diff = 0;  // Count axes that have different SD bounds
     unsigned int axes_diff;        // axis of variation (if only one)
 
@@ -258,16 +257,15 @@ inline __device__ void triangle_figureOutTouchedSDs(unsigned int triangleID,
         return;
     }
 
-
     // Case 3: Triangle spans more than one dimension of spheresTouchingThisSD
     float SDcenter[3];
     float SDhalfSizes[3];
     for (int i = L[0]; i <= U[0]; i++) {
         for (int j = L[1]; j <= U[1]; j++) {
             for (int k = L[2]; k <= U[2]; k++) {
-                SDhalfSizes[0] = (gran_params->SD_size_X_SU + gran_params->SD_size_X_SU/SAFETY_PARAM) / 2;
-                SDhalfSizes[1] = (gran_params->SD_size_Y_SU + gran_params->SD_size_Y_SU/SAFETY_PARAM) / 2;
-                SDhalfSizes[2] = (gran_params->SD_size_Z_SU + gran_params->SD_size_Z_SU/SAFETY_PARAM) / 2;
+                SDhalfSizes[0] = (gran_params->SD_size_X_SU + gran_params->SD_size_X_SU / SAFETY_PARAM) / 2;
+                SDhalfSizes[1] = (gran_params->SD_size_Y_SU + gran_params->SD_size_Y_SU / SAFETY_PARAM) / 2;
+                SDhalfSizes[2] = (gran_params->SD_size_Z_SU + gran_params->SD_size_Z_SU / SAFETY_PARAM) / 2;
 
                 SDcenter[0] = gran_params->BD_frame_X + (i * 2 + 1) * gran_params->SD_size_X_SU / 2;
                 SDcenter[1] = gran_params->BD_frame_Y + (j * 2 + 1) * gran_params->SD_size_Y_SU / 2;
@@ -284,9 +282,9 @@ inline __device__ void triangle_figureOutTouchedSDs(unsigned int triangleID,
     }
 }
 
-__global__ void triangleSoup_CountSDsTouched(
+__global__ void determineCountOfSDsTouchedByEachTriangle(
     const ChSystemGpuMesh_impl::TriangleSoupPtr d_triangleSoup,
-    unsigned int* Triangle_NumSDsTouching,
+    unsigned int* Triangle_NumSDsTouching,  //!< number of SDs touching this Triangle
     ChSystemGpu_impl::GranParamsPtr gran_params,
     ChSystemGpuMesh_impl::MeshParamsPtr mesh_params) {
     // Figure out what triangleID this thread will handle. We work with a 1D block structure and a 1D grid structure
@@ -298,15 +296,23 @@ __global__ void triangleSoup_CountSDsTouched(
     }
 }
 
-__global__ void triangleSoup_StoreSDsTouched(
-    const ChSystemGpuMesh_impl::TriangleSoupPtr d_triangleSoup,  ///< collection of triangles
-    unsigned int* Triangle_NumSDsTouching,                       ///< number of SDs touching this Triangle
-    unsigned int* TriangleSDCompositeOffsets,                    ///< number of SDs touching this Triangle
-    unsigned int* Triangle_SDsComposite,                         ///< number of SDs touching this Triangle
-    unsigned int* Triangle_TriIDsComposite,                      ///< number of SDs touching this Triangle
-    ChSystemGpu_impl::GranParamsPtr gran_params,                 ///< granular material parameters
-    ChSystemGpuMesh_impl::MeshParamsPtr mesh_params              ///< mesh parameters
-) {
+/// <summary>
+/// kernel is called to populate two arrays
+/// </summary>
+/// <param name="d_triangleSoup">- the collection of triangles in this mesh soup</param>
+/// <param name="Triangle_NumSDsTouching">- number of SDs touched by each triangle</param>
+/// <param name="TriangleSDCompositeOffsets">- offsets in the array that say each SD what triangles touch it</param>
+/// <param name="Triangle_SDsComposite">- the list of SDs touched by each triangle; triangle by triangle</param>
+/// <param name="Triangle_TriIDsComposite">- array that goes hand in hand with Triangle_SDsComposite; it repeats the
+/// triangle ID for a subsequent sort by key op that is performed elsewhere</param> <param name="gran_params"></param> <param
+/// name="mesh_params"></param> <returns></returns>
+__global__ void storeSDsTouchedByEachTriangle(const ChSystemGpuMesh_impl::TriangleSoupPtr d_triangleSoup,
+                                             const unsigned int* Triangle_NumSDsTouching,
+                                             const unsigned int* TriangleSDCompositeOffsets,
+                                             unsigned int* Triangle_SDsComposite,
+                                             unsigned int* Triangle_TriIDsComposite,
+                                             ChSystemGpu_impl::GranParamsPtr gran_params,
+                                             ChSystemGpuMesh_impl::MeshParamsPtr mesh_params) {
     // Figure out what triangleID this thread will handle. We work with a 1D block structure and a 1D grid structure
     unsigned int myTriangleID = threadIdx.x + blockIdx.x * blockDim.x;
 
@@ -314,10 +320,11 @@ __global__ void triangleSoup_StoreSDsTouched(
         triangle_figureOutTouchedSDs(myTriangleID, d_triangleSoup,
                                      Triangle_SDsComposite + TriangleSDCompositeOffsets[myTriangleID], gran_params,
                                      mesh_params);
-        // TODO could be faster
-        for (unsigned int i = 0; i < Triangle_NumSDsTouching[myTriangleID]; i++) {
+        unsigned int numSDsTouched = Triangle_NumSDsTouching[myTriangleID];
+        unsigned int offsetInComposite = TriangleSDCompositeOffsets[myTriangleID];
+        for (unsigned int i = 0; i < numSDsTouched; i++) {
             // write back this triangle ID to be sorted
-            Triangle_TriIDsComposite[TriangleSDCompositeOffsets[myTriangleID] + i] = myTriangleID;
+            Triangle_TriIDsComposite[offsetInComposite + i] = myTriangleID;
         }
     }
 }

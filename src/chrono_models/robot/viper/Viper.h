@@ -14,7 +14,7 @@
 //
 // NASA VIPER Lunar Rover Model Class.
 // This class contains model for NASA's VIPER lunar rover for NASA's 2024 Moon
-// exploration mission. 
+// exploration mission.
 //
 // =============================================================================
 
@@ -52,9 +52,16 @@ enum WheelID {
     RB   ///< right back
 };
 
+/// Viper turning signal
+enum class TurnSig {
+    LEFT = +1,   ///< left turn signal
+    RIGHT = -1,  ///< right turn signal
+    HOLD = 0     ///< hold signal
+};
+
 /// Base class definition of the Viper Rover Part.
-/// Viper Rover Parts include Chassis, Steering, Upper Suspension Arm, Bottom Suspension Arm and Wheel
-/// This class encapsulates base fields and functions 
+/// Viper Rover Parts include Chassis, Steering, Upper Suspension Arm, Bottom Suspension Arm and Wheel.
+/// This class encapsulates base fields and functions.
 class CH_MODELS_API Viper_Part {
   public:
     Viper_Part(const std::string& name,
@@ -86,7 +93,6 @@ class CH_MODELS_API Viper_Part {
     const ChQuaternion<>& GetRot() const { return m_body->GetFrame_REF_to_abs().GetRot(); }
 
   protected:
-
     /// Initialize the visulization mesh of the Viper part.
     void AddVisualizationAssets();
 
@@ -110,8 +116,8 @@ class CH_MODELS_API Viper_Part {
     ChQuaternion<> m_rot;  ///< Viper part's relative rotation wrt the chassis
     double m_density;      ///< Viper part's density
 
-    bool m_collide; ///< Viper part's collision indicator
-    bool m_fixed; ///< Viper part's fixed indication
+    bool m_collide;  ///< Viper part's collision indicator
+    bool m_fixed;    ///< Viper part's fixed indication
 };
 
 /// Viper rover Chassis.
@@ -133,7 +139,6 @@ class CH_MODELS_API Viper_Chassis : public Viper_Part {
     void SetCollide(bool state);
 
   private:
-
     /// Translate the chassis by the specified value.
     void Translate(const ChVector<>& shift);
     friend class Viper_Rover;
@@ -159,7 +164,6 @@ class CH_MODELS_API Viper_Wheel : public Viper_Part {
     void SetCollide(bool state);
 
   private:
-
     /// Translate the chassis by the specified value.
     void Translate(const ChVector<>& shift);
     friend class Viper_Rover;
@@ -186,7 +190,6 @@ class CH_MODELS_API Viper_Up_Arm : public Viper_Part {
     void SetCollide(bool state);
 
   private:
-
     /// Translate the upper arm by the specified value.
     void Translate(const ChVector<>& shift);
     friend class Viper_Rover;
@@ -196,14 +199,14 @@ class CH_MODELS_API Viper_Up_Arm : public Viper_Part {
 class CH_MODELS_API Viper_Bottom_Arm : public Viper_Part {
   public:
     Viper_Bottom_Arm(const std::string& name,
-                 bool fixed,
-                 std::shared_ptr<ChMaterialSurface> mat,
-                 ChSystem* system,
-                 const ChVector<>& body_pos,
-                 const ChQuaternion<>& body_rot,
-                 std::shared_ptr<ChBodyAuxRef> chassis,
-                 bool collide,
-                 const int& side);  ///< indicate which side of the suspension 0->L, 1->R
+                     bool fixed,
+                     std::shared_ptr<ChMaterialSurface> mat,
+                     ChSystem* system,
+                     const ChVector<>& body_pos,
+                     const ChQuaternion<>& body_rot,
+                     std::shared_ptr<ChBodyAuxRef> chassis,
+                     bool collide,
+                     const int& side);  ///< indicate which side of the suspension 0->L, 1->R
     ~Viper_Bottom_Arm() {}
 
     /// Initialize the bottom arm of the suspension at the specified (absolute) position.
@@ -213,14 +216,13 @@ class CH_MODELS_API Viper_Bottom_Arm : public Viper_Part {
     void SetCollide(bool state);
 
   private:
-
     /// Translate the bottom arm by the specified value.
     void Translate(const ChVector<>& shift);
     friend class Viper_Rover;
 };
 
 /// Steering rod of the Viper rover.
-/// The steering rod is directly connected to the wheel by a rotational controlled motor.
+/// The steering rod is connected to the steering cyl, this link is controlled steering.
 /// There are two connecting rods on the steering rod, linking to upper and bottom arms of the suspension.
 class CH_MODELS_API Viper_Steer : public Viper_Part {
   public:
@@ -242,7 +244,6 @@ class CH_MODELS_API Viper_Steer : public Viper_Part {
     void SetCollide(bool state);
 
   private:
-
     /// Translate the steering rod by the specified value.
     void Translate(const ChVector<>& shift);
     friend class Viper_Rover;
@@ -253,85 +254,110 @@ class CH_MODELS_API Viper_Steer : public Viper_Part {
 /// This class should be the entry point to create a complete rover.
 class CH_MODELS_API ViperRover {
   public:
-    ViperRover(ChSystem* system, 
-              const ChVector<>& rover_pos, 
-              const ChQuaternion<>& rover_rot, 
-              std::shared_ptr<ChMaterialSurface> wheel_mat);
-    ViperRover(ChSystem* system, 
-              const ChVector<>& rover_pos, 
-              const ChQuaternion<>& rover_rot);
+    ViperRover(ChSystem* system,
+               const ChVector<>& rover_pos,
+               const ChQuaternion<>& rover_rot,
+               std::shared_ptr<ChMaterialSurface> wheel_mat = nullptr);
     ~ViperRover();
 
     /// Initialize the Viper rover using current parameters.
     void Initialize();
 
-    /// Get the ChSystem
+    /// Get the containing system.
     ChSystem* GetSystem() { return m_system; }
 
-    /// Set Motor Speed
+    /// Set motor speed.
     void SetMotorSpeed(double rad_speed, WheelID id);
 
-    /// Get wheel speed
+    /// Get wheel speed.
     ChVector<> GetWheelSpeed(WheelID id);
 
-    /// Get wheel angular velocity
+    /// Get wheel angular velocity.
     ChQuaternion<> GetWheelAngVel(WheelID id);
 
-    /// Get wheel contact force
+    /// Get wheel contact force.
     ChVector<> GetWheelContactForce(WheelID id);
 
-    /// Get wheel contact torque
+    /// Get wheel contact torque.
     ChVector<> GetWheelContactTorque(WheelID id);
 
-    /// Get wheel total applied force
+    /// Get wheel total applied force.
     ChVector<> GetWheelAppliedForce(WheelID id);
 
-    /// Get wheel total applied torque
+    /// Get wheel total applied torque.
     ChVector<> GetWheelAppliedTorque(WheelID id);
 
-    /// Get the chassis body
+    /// Get the chassis body.
     std::shared_ptr<ChBodyAuxRef> GetChassisBody();
 
-    /// Get the wheel body
+    /// Get the wheel body.
     std::shared_ptr<ChBodyAuxRef> GetWheelBody(WheelID id);
 
-    /// Get total rover mass
+    /// Get total rover mass.
     double GetRoverMass();
 
-    /// Get total wheel mass
+    /// Get total wheel mass.
     double GetWheelMass();
 
-  private:
+    /// Get main motor function.
+    std::shared_ptr<ChFunction_Const> GetMainMotorFunc(WheelID id);
 
-    /// This function initializes all parameters for the rover
-    /// Note: The rover will not be constructed in the ChSystem until Initialize() is called
+    /// Get steer motor function.
+    std::shared_ptr<ChFunction_Const> GetSteerMotorFunc(WheelID id);
+
+    /// Get main motor link.
+    std::shared_ptr<ChLinkMotorRotationSpeed> GetMainMotorLink(WheelID id);
+
+    /// Get steer motor link.
+    std::shared_ptr<ChLinkMotorRotationSpeed> GetSteerMotorLink(WheelID id);
+
+    /// Set viper turning signal left/right/hold.
+    void SetTurn(TurnSig id, double turn_speed = 0.0);
+
+    /// Get viper turning angle - ranges from -CH_C_PI/3 to CH_C_PI/3.
+    double GetTurnAngle() const;
+
+    /// Get viper turning state - HOLD, LEFT, OR RIGHT.
+    TurnSig GetTurnState() const;
+
+    /// A viper status check and update function.
+    /// Note: this function needs to be included in the main simulation loop.
+    void Update();
+
+  private:
+    /// This function initializes all parameters for the rover.
+    /// Note: The rover will not be constructed in the ChSystem until Initialize() is called.
     void Create();
 
     ChSystem* m_system;  ///< pointer to the Chrono system
 
-    bool m_custom_wheel_mat;  ///< bool indicating whether the wheel material is customized
-
-    std::shared_ptr<Viper_Chassis> m_chassis;               ///< rover chassis
-    std::vector<std::shared_ptr<Viper_Wheel>> m_wheels;     ///< rover wheels - 1:FL, 2:FR, 3:RL, 4:RR
-    std::vector<std::shared_ptr<Viper_Up_Arm>> m_up_suss;   ///< rover upper Suspensions - 1:FL, 2:FR, 3:RL, 4:RR
+    std::shared_ptr<Viper_Chassis> m_chassis;                   ///< rover chassis
+    std::vector<std::shared_ptr<Viper_Wheel>> m_wheels;         ///< rover wheels - 1:FL, 2:FR, 3:RL, 4:RR
+    std::vector<std::shared_ptr<Viper_Up_Arm>> m_up_suss;       ///< rover upper Suspensions - 1:FL, 2:FR, 3:RL, 4:RR
     std::vector<std::shared_ptr<Viper_Bottom_Arm>> m_bts_suss;  ///< rover bottom suspensions - 1:FL, 2:FR, 3:RL, 4:RR
-    std::vector<std::shared_ptr<Viper_Steer>> m_steers;     ///< rover bottom suspensions - 1:FL, 2:FR, 3:RL, 4:RR
+    std::vector<std::shared_ptr<Viper_Steer>> m_steers;         ///< rover steering stand - 1:FL, 2:FR, 3:RL, 4:RR
+    std::vector<std::shared_ptr<ChBody>> m_steers_rod;          ///< rover steering rod, no vis - 1:FL, 2:FR, 3:RL, 4:RR
 
     ChQuaternion<> m_rover_rot;
     ChVector<> m_rover_pos;
 
-    std::vector<std::shared_ptr<ChLinkMotorRotationSpeed>> m_motors;  ///< vector to store motors
-                                                                      ///< 1-LF,2-RF,3-LB,4-RB
+    std::vector<std::shared_ptr<ChLinkMotorRotationSpeed>> m_motors;        ///< vector to store motors
+    std::vector<std::shared_ptr<ChLinkMotorRotationSpeed>> m_steer_motors;  ///< vector to store steering motors
+    std::vector<std::shared_ptr<ChLinkMotorRotationSpeed>> m_lift_motors;   /// TODO: < vector to store lifting motors
 
-    std::vector<std::shared_ptr<ChFunction_Const>> m_motors_func;  ///< constant motor angular speed func
+    TurnSig cur_turn_state = TurnSig::HOLD;  ///< Turning state of the viper rover
 
+    std::vector<std::shared_ptr<ChFunction_Const>> m_motors_func;        ///< constant motor angular speed func
+    std::vector<std::shared_ptr<ChFunction_Const>> m_steer_motors_func;  ///< constant steering motor angular speed func
+    std::vector<std::shared_ptr<ChFunction_Const>>
+        m_lift_motors_func;  /// TODO: < constant lifting motor angular speed func
     // suspension spring
     std::vector<std::shared_ptr<ChLinkTSDA>> m_sus_springs;  ///< suspension springs
 
     // model parts material
-    std::shared_ptr<ChMaterialSurface> m_chassis_material;  ///< chassis contact material
-    std::shared_ptr<ChMaterialSurface> m_wheel_material;    ///< wheel contact material (shared across limbs)
-    std::shared_ptr<ChMaterialSurface> m_steer_material;
+    std::shared_ptr<ChMaterialSurface> m_chassis_material;     ///< chassis contact material
+    std::shared_ptr<ChMaterialSurface> m_wheel_material;       ///< wheel contact material (shared across limbs)
+    std::shared_ptr<ChMaterialSurface> m_steer_material;       ///< steering body contact material
     std::shared_ptr<ChMaterialSurface> m_suspension_material;  ///< link contact material (shared across limbs)
 };
 
