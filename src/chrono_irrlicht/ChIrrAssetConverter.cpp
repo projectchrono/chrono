@@ -244,10 +244,13 @@ void ChIrrAssetConverter::_recursePopulateIrrlicht(std::vector<std::shared_ptr<C
                     mproxynode->drop();
 
                     //mchildnode->setMaterialFlag(video::EMF_WIREFRAME, mysurf->IsWireframe());
-                    //mchildnode->setMaterialFlag(video::EMF_BACK_FACE_CULLING, mysurf->IsBackfaceCull());
-				} else if (auto mybarrel = std::dynamic_pointer_cast<ChBarrelShape>(k_asset)) {
-					auto mbarrelmesh = createEllipticalMesh(mybarrel->GetRhor(), mybarrel->GetRvert(), mybarrel->GetHlow(), mybarrel->GetHsup(), mybarrel->GetRoffset(), 15, 8);
-					ISceneNode* mproxynode = new ChIrrNodeProxyToAsset(mybarrel, mnode);
+                    // mchildnode->setMaterialFlag(video::EMF_BACK_FACE_CULLING, mysurf->IsBackfaceCull());
+                } else if (auto mybarrel = std::dynamic_pointer_cast<ChBarrelShape>(k_asset)) {
+                    auto mbarrelmesh =
+                        createEllipticalMesh((irr::f32)(mybarrel->GetRhor()), (irr::f32)(mybarrel->GetRvert()),
+                                             (irr::f32)(mybarrel->GetHlow()), (irr::f32)(mybarrel->GetHsup()),
+                                             (irr::f32)(mybarrel->GetRoffset()), 15, 8);
+                    ISceneNode* mproxynode = new ChIrrNodeProxyToAsset(mybarrel, mnode);
                     ISceneNode* mchildnode = scenemanager->addMeshSceneNode(mbarrelmesh, mproxynode);
                     mproxynode->drop();
 

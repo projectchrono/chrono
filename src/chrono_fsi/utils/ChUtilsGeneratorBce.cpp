@@ -14,10 +14,12 @@
 //
 // Utility class for generating fluid markers.//
 // =============================================================================
-#include <fstream>  // std::ifstream
-#include <sstream>  // std::stringstream
 
-#include "chrono/core/ChMathematics.h"  // for CH_C_PI
+#include <fstream>
+#include <sstream>
+#include <cmath>
+
+#include "chrono/core/ChMathematics.h"
 
 #include "chrono/fea/ChElementCableANCF.h"
 #include "chrono/fea/ChElementShellANCF.h"
@@ -35,10 +37,10 @@ void CreateBCE_On_Sphere(thrust::host_vector<Real4>& posRadBCE, Real rad, std::s
     for (Real r = 0.5*spacing; r < rad; r += spacing) {
         Real deltaTeta = spacing / r;
         Real deltaPhi = deltaTeta;
-        int numphi = (int)floor(3.1415 * r / spacing);
+        int numphi = (int)std::floor(3.1415 * r / spacing);
         for (size_t p = 0; p < numphi; p++) {
             Real phi = p * 3.1415 / numphi;
-            int numTheta = (int)floor(2 * 3.1415 * r * sin(phi) / spacing);
+            int numTheta = (int)std::floor(2 * 3.1415 * r * sin(phi) / spacing);
             for (Real t = 0.0; t < numTheta; t++) {
                 Real teta = t * 2 * 3.1415 / numTheta;
                 Real3 BCE_Pos_local = mR3(r * sin(phi) * cos(teta), r * sin(phi) * sin(teta), r * cos(phi));
@@ -57,10 +59,10 @@ void CreateBCE_On_surface_of_Sphere(thrust::host_vector<Real4>& posRadBCE, Real 
     Real deltaTeta = spacing / r;
     Real deltaPhi = deltaTeta;
 
-    int numphi = (int)floor(3.1415 * r / spacing);
+    int numphi = (int)std::floor(3.1415 * r / spacing);
     for (size_t p = 0; p < numphi; p++) {
         Real phi = p * 3.1415 / numphi;
-        int numTheta = (int)floor(2 * 3.1415 * r * sin(phi) / spacing);
+        int numTheta = (int)std::floor(2 * 3.1415 * r * sin(phi) / spacing);
         for (Real t = 0.0; t < numTheta; t++) {
             Real teta = t * 2 * 3.1415 / numTheta;
             Real3 BCE_Pos_local = mR3(r * sin(phi) * cos(teta), r * sin(phi) * sin(teta), r * cos(phi));
@@ -76,7 +78,7 @@ void CreateBCE_On_Cylinder(thrust::host_vector<Real4>& posRadBCE,
                            Real kernel_h,
                            bool cartesian) {
     Real spacing = kernel_h * paramsH->MULT_INITSPACE;
-    int num_layers = (int)floor(1.00001*cyl_h / spacing) + 1;
+    int num_layers = (int)std::floor(1.00001*cyl_h / spacing) + 1;
     for (size_t si = 0; si < num_layers; si++) {
         // The spacing / 2 is to make sure the center of cylinder is at 0
         Real s = -0.5 * cyl_h  + spacing * si; //-0.5 * cyl_h + spacing / 2 + (cyl_h / num_layers) * si
@@ -91,11 +93,11 @@ void CreateBCE_On_Cylinder(thrust::host_vector<Real4>& posRadBCE,
             Real3 centerPointLF = mR3(0, s, 0);
             posRadBCE.push_back(mR4(0, s, 0, kernel_h));
             printf("creating markers on the surface of the cylinder at layer at y=%f\n", s);
-            int numr = (int)floor(1.00001*cyl_rad / spacing);
+            int numr = (int)std::floor(1.00001*cyl_rad / spacing);
             for (size_t ir = 0; ir < numr; ir++) {
                 Real r = 0.5*spacing + ir * spacing;//spacing + ir * cyl_rad / numr;//
                 //                Real deltaTeta = 2 * spacing / r;
-                int numTheta = floor(2 * 3.1415 * r / spacing);
+                int numTheta = (int)std::floor(2 * 3.1415 * r / spacing);
                 for (size_t t = 0; t < numTheta; t++) {
                     Real teta = t * 2 * 3.1415 / numTheta;
                     Real3 BCE_Pos_local = mR3(r * cos(teta), 0, r * sin(teta)) + centerPointLF;
@@ -113,7 +115,7 @@ void CreateBCE_On_Cone(thrust::host_vector<Real4>& posRadBCE,
                        Real kernel_h,
                        bool cartesian) {
     Real spacing = kernel_h * paramsH->MULT_INITSPACE;
-    int num_layers = (int)floor(cone_h / spacing);
+    int num_layers = (int)std::floor(cone_h / spacing);
     for (size_t si = 0; si < num_layers; si++) {
         // The spacing / 2 is to make sure the center of cone is at 0
         Real s = -0.5 * cone_h + spacing / 2 + (cone_h / num_layers) * si;
@@ -130,13 +132,13 @@ void CreateBCE_On_Cone(thrust::host_vector<Real4>& posRadBCE,
         Real3 centerPointLF = mR3(0, 0, s);
         posRadBCE.push_back(mR4(0, 0, s, kernel_h));
         printf("creating markers on the surface of the cone at layer at y=%f\n", s);
-        Real numr = floor(cone_r0 / spacing) + 2;
+        Real numr = std::floor(cone_r0 / spacing) + 2;
         // Real spacing_r = cone_r0 / numr;
         if (si > 0) {
             for (size_t ir = 1; ir < numr; ir++) {
                 Real r = cone_r0 - 0.5*spacing - (ir-1) * spacing;
                 if(r > 0.1*spacing){
-                    int numTheta = (int)floor(2 * 3.1415 * r / spacing) + 2;
+                    int numTheta = (int)std::floor(2 * 3.1415 * r / spacing) + 2;
                     Real det_Theta = 2 * 3.1415 / numTheta;
                     for (size_t t = 0; t < numTheta; t++) {
                         Real teta = t * det_Theta + 0.0 * (ir - 1) * det_Theta;
@@ -150,12 +152,12 @@ void CreateBCE_On_Cone(thrust::host_vector<Real4>& posRadBCE,
         if(1==0){
             Real cone_r1 = 0.5 * cone_rad;
             Real3 centerPointLF_1 = mR3(0, 0, s + cone_h);
-            Real numr1 = floor(cone_r1 / spacing) + 2;
+            Real numr1 = std::floor(cone_r1 / spacing) + 2;
             Real spacing_r = cone_r1 / numr1;
             // if (si > 0) {
                 for (size_t ir = 1; ir < numr1; ir++) {
                     Real r = ir * spacing_r;
-                    int numTheta = (int)floor(2 * 3.1415 * r / spacing) + 2;
+                    int numTheta = (int)std::floor(2 * 3.1415 * r / spacing) + 2;
                     Real det_Theta = 2 * 3.1415 / numTheta;
                     for (size_t t = 0; t < numTheta; t++) {
                         Real teta = t * det_Theta + 0.0 * (ir - 1) * det_Theta;
@@ -174,7 +176,7 @@ void CreateBCE_On_surface_of_Cylinder(thrust::host_vector<Real4>& posRadBCE,
                                       Real cyl_rad,
                                       Real cyl_h,
                                       Real spacing) {
-    int num_layers = (int)floor(cyl_h / spacing);
+    int num_layers = (int)std::floor(cyl_h / spacing);
     for (size_t si = 0; si < num_layers; si++) {
         Real s = -0.5 * cyl_h + (cyl_h / num_layers) * si;
         ///////////
@@ -188,11 +190,11 @@ void CreateBCE_On_surface_of_Cylinder(thrust::host_vector<Real4>& posRadBCE,
         //        }
         Real3 centerPointLF = mR3(0, s, 0);
         printf("creating markers on the surface of the cylinder at layer at y=%f\n", s);
-        Real numr = floor(cyl_rad / spacing);
+        Real numr = std::floor(cyl_rad / spacing);
         for (size_t ir = 1; ir < numr; ir++) {
             Real r = spacing + ir * cyl_rad / numr;
             //                Real deltaTeta = 2 * spacing / r;
-            int numTheta = (int)floor(2 * 3.1415 * r / spacing);
+            int numTheta = (int)std::floor(2 * 3.1415 * r / spacing);
             for (size_t t = 0; t < numTheta; t++) {
                 Real teta = t * 2 * 3.1415 / numTheta;
                 Real3 BCE_Pos_local = mR3(r * cos(teta), 0, r * sin(teta)) + centerPointLF;
@@ -306,10 +308,10 @@ void CreateBCE_On_shell(thrust::host_vector<Real4>& posRadBCE,
     double dx = shell->GetLengthX() / 2 - initSpace0 / 2;
     double dy = shell->GetLengthY() / 2 - initSpace0 / 2;
 
-    double nX = dx / (initSpace0)-floor(dx / (initSpace0));
-    double nY = dy / (initSpace0)-floor(dy / (initSpace0));
-    int nFX = (int)floor(dx / (initSpace0));
-    int nFY = (int)floor(dy / (initSpace0));
+    double nX = dx / initSpace0 - std::floor(dx / initSpace0);
+    double nY = dy / initSpace0 - std::floor(dy / initSpace0);
+    int nFX = (int)std::floor(dx / initSpace0);
+    int nFY = (int)std::floor(dy / initSpace0);
     if (nX > 0.5)
         nFX++;
     if (nY > 0.5)
@@ -360,8 +362,8 @@ void CreateBCE_On_ChElementCableANCF(thrust::host_vector<Real4>& posRadBCE,
     Real initSpace0 = paramsH->MULT_INITSPACE * paramsH->HSML;
 
     double dx = (cable->GetNodeB()->GetX0() - cable->GetNodeA()->GetX0()).Length();
-    double nX = dx / (initSpace0)-floor(dx / (initSpace0));
-    int nFX = (int)floor(dx / (initSpace0));
+    double nX = dx / initSpace0 - std::floor(dx / initSpace0);
+    int nFX = (int)std::floor(dx / initSpace0);
     if (nX > 0.5)
         nFX++;
 
@@ -439,10 +441,10 @@ void CreateBCE_On_ChElementShellANCF(thrust::host_vector<Real4>& posRadBCE,
     double dy = shell->GetLengthY() / 2;
     printf("CreateBCE_On_ChElementShellANCF: dx,dy=%f,%f\n", dx, dy);
 
-    double nX = dx / (initSpace0)-floor(dx / (initSpace0));
-    double nY = dy / (initSpace0)-floor(dy / (initSpace0));
-    int nFX = (int)floor(dx / (initSpace0));
-    int nFY = (int)floor(dy / (initSpace0));
+    double nX = dx / initSpace0 - std::floor(dx / initSpace0);
+    double nY = dy / initSpace0 - std::floor(dy / initSpace0);
+    int nFX = (int)std::floor(dx / initSpace0);
+    int nFY = (int)std::floor(dy / initSpace0);
     if (nX > 0.5)
         nFX++;
     if (nY > 0.5)
