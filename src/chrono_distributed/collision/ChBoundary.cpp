@@ -89,7 +89,7 @@ ChBoundary::Plane::Plane(const ChFrame<>& frame_loc, const ChFrame<>& frame, con
     : m_frame_loc(frame_loc), m_frame(frame), m_hlen(lengths * 0.5), m_normal(frame.GetA().Get_A_Zaxis()) {}
 
 void ChBoundary::OnCustomCollision(ChSystem* system) {
-    auto sys = static_cast<ChSystemParallel*>(system);
+    auto sys = static_cast<ChSystemMulticore*>(system);
 
     m_crt_count = 0;
 
@@ -101,12 +101,12 @@ void ChBoundary::OnCustomCollision(ChSystem* system) {
         if (!sys->data_manager->host_data.active_rigid[body->GetId()])
             continue;
 
-        auto model = std::static_pointer_cast<collision::ChCollisionModelParallel>(body->GetCollisionModel());
+        auto model = std::static_pointer_cast<collision::ChCollisionModelMulticore>(body->GetCollisionModel());
 
         //// TODO: Broadphase rejection based on model AABB?
 
         for (auto s : model->GetShapes()) {
-            auto shape = std::static_pointer_cast<collision::ChCollisionShapeParallel>(s);
+            auto shape = std::static_pointer_cast<collision::ChCollisionShapeMulticore>(s);
             switch (shape->GetType()) {
                 case collision::ChCollisionShape::Type::SPHERE : {
                     ChVector<> center_loc = ChVector<>(shape->A.x, shape->A.y, shape->A.z);
@@ -176,7 +176,7 @@ void ChBoundary::CheckSpherePlane(collision::ChCollisionModel* model,
     contact.distance = depth;
     contact.eff_radius = radius;
 
-    auto sys = static_cast<ChSystemParallel*>(m_body->GetSystem());
+    auto sys = static_cast<ChSystemMulticore*>(m_body->GetSystem());
     sys->GetContactContainer()->AddContact(contact, m_material, material);
 
     m_crt_count++;

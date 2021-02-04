@@ -12,17 +12,26 @@
 // Authors: Rainer Gericke
 // =============================================================================
 //
-// Template for the "Tire Model made Easy"
+// Template for the "Tire Model made Easy". Our implementation is a basic version
+// of the algorithms in http://www.tmeasy.de/, a comercial tire simulation code
+// developed by Prof. Dr. Georg Rill.
+//
 //
 // Ref: Georg Rill, "Road Vehicle Dynamics - Fundamentals and Modelling",
-//          @2012 CRC Press, ISBN 978-1-4398-3898-3
+//          https://www.routledge.com/Road-Vehicle-Dynamics-Fundamentals-and-Modeling-with-MATLAB/Rill-Castro/p/book/9780367199739
 //      Georg Rill, "An Engineer's Guess On Tyre Model Parameter Made Possible With TMeasy",
-//          https://hps.hs-regensburg.de/rig39165/Rill_Tyre_Coll_2015.pdf
+//          https://www.researchgate.net/publication/317036908_An_Engineer's_Guess_on_Tyre_Parameter_made_possible_with_TMeasy
 //      Georg Rill, "Simulation von Kraftfahrzeugen",
-//          @1994 Vieweg-Verlag, ISBN: 978-3-52808-931-3
-//          https://hps.hs-regensburg.de/rig39165/Simulation_von_Kraftfahrzeugen.pdf
+//          https://www.researchgate.net/publication/317037037_Simulation_von_Kraftfahrzeugen
 //
-// No parking slip calculations.
+// Known differences to the comercial version:
+//  - No parking slip calculations
+//  - No dynamic parking torque
+//  - No dynamic tire inflation pressure
+//  - No belt dynamics
+//  - Simplified stand still handling
+//  - Optional tire contact smoothing based on "A New Analytical Tire Model for Vehicle Dynamic Analysis" by
+//      J. Shane Sui & John A Hirshey II
 //
 // Changes:
 // 2017-12-21 - There is a simple form of contact smoothing now. It works on flat
@@ -56,6 +65,8 @@ namespace vehicle {
 /// @{
 
 /// TMeasy tire model.
+/// The Chrono implementation is a basic version of the commercial models available at
+/// <a href="http://www.tmeasy.de/">www.tmeasy.de</a>.
 class CH_VEHICLE_API ChTMeasyTire : public ChTire {
   public:
     ChTMeasyTire(const std::string& name);
@@ -264,7 +275,7 @@ class CH_VEHICLE_API ChTMeasyTire : public ChTire {
         return (fz / m_TMeasyCoeff.pn) * (2.0 * w1 - 0.5 * w2 - (w1 - 0.5 * w2) * (fz / m_TMeasyCoeff.pn));
     };
 
-  //private:
+    // private:
     void UpdateVerticalStiffness();
 
     /// Get the tire force and moment.

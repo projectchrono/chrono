@@ -34,11 +34,12 @@ const double UAZBUS_Chassis::m_mass = 2321.0;
 const ChVector<> UAZBUS_Chassis::m_inertiaXX(785.0, 2612.0, 2761.0);
 const ChVector<> UAZBUS_Chassis::m_inertiaXY(0, 0, 0);
 const ChVector<> UAZBUS_Chassis::m_COM_loc(-1.204, 0.0, 0.3);
+const ChVector<> UAZBUS_Chassis::m_connector_rear_loc(-3.5, 0, -0.05);
 const ChCoordsys<> UAZBUS_Chassis::m_driverCsys(ChVector<>(0.0, 0.7, 0.5), ChQuaternion<>(1, 0, 0, 0));
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-UAZBUS_Chassis::UAZBUS_Chassis(const std::string& name, bool fixed, ChassisCollisionType chassis_collision_type)
+UAZBUS_Chassis::UAZBUS_Chassis(const std::string& name, bool fixed, CollisionType chassis_collision_type)
     : ChRigidChassis(name, fixed) {
     m_inertia(0, 0) = m_inertiaXX.x();
     m_inertia(1, 1) = m_inertiaXX.y();
@@ -53,8 +54,7 @@ UAZBUS_Chassis::UAZBUS_Chassis(const std::string& name, bool fixed, ChassisColli
 
     //// TODO:
     //// A more appropriate contact shape from primitives
-    ChRigidChassisGeometry::BoxShape box1(ChVector<>(-1.0, 0.0, 0.1), ChQuaternion<>(1, 0, 0, 0),
-                                          ChVector<>(1.6, 1.0, 0.2));
+    ChVehicleGeometry::BoxShape box1(ChVector<>(-1.0, 0.0, 0.1), ChQuaternion<>(1, 0, 0, 0), ChVector<>(1.6, 1.0, 0.2));
 
     m_geometry.m_has_primitives = true;
     m_geometry.m_vis_boxes.push_back(box1);
@@ -62,14 +62,14 @@ UAZBUS_Chassis::UAZBUS_Chassis(const std::string& name, bool fixed, ChassisColli
     m_geometry.m_has_mesh = true;
     m_geometry.m_vis_mesh_file = "uaz/uazbus_chassis.obj";
 
-    m_geometry.m_has_collision = (chassis_collision_type != ChassisCollisionType::NONE);
+    m_geometry.m_has_collision = (chassis_collision_type != CollisionType::NONE);
     switch (chassis_collision_type) {
-        case ChassisCollisionType::PRIMITIVES:
+        case CollisionType::PRIMITIVES:
             box1.m_matID = 0;
             m_geometry.m_coll_boxes.push_back(box1);
             break;
-        case ChassisCollisionType::MESH: {
-            ChRigidChassisGeometry::ConvexHullsShape hull("uaz/uazbus_chassis_simple.obj", 0);
+        case CollisionType::HULLS: {
+            ChVehicleGeometry::ConvexHullsShape hull("uaz/uazbus_chassis_simple.obj", 0);
             m_geometry.m_coll_hulls.push_back(hull);
             break;
         }

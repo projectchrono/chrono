@@ -32,66 +32,6 @@ namespace vehicle {
 
 // -----------------------------------------------------------------------------
 
-/// Utility class defining geometry (visualization and collision) and contact materials for a rigid chassis.
-class CH_VEHICLE_API ChRigidChassisGeometry {
-  public:
-    ChRigidChassisGeometry();
-
-    struct BoxShape {
-        BoxShape(const ChVector<>& pos, const ChQuaternion<>& rot, const ChVector<>& dims, int matID = -1)
-            : m_pos(pos), m_rot(rot), m_dims(dims), m_matID(matID) {}
-        ChVector<> m_pos;
-        ChQuaternion<> m_rot;
-        ChVector<> m_dims;
-        int m_matID;
-    };
-
-    struct SphereShape {
-        SphereShape(const ChVector<>& pos, double radius, int matID = -1)
-            : m_pos(pos), m_radius(radius), m_matID(matID) {}
-        ChVector<> m_pos;
-        double m_radius;
-        int m_matID;
-    };
-
-    struct CylinderShape {
-        CylinderShape(const ChVector<>& pos, const ChQuaternion<>& rot, double radius, double length, int matID = -1)
-            : m_pos(pos), m_rot(rot), m_radius(radius), m_length(length), m_matID(matID) {}
-        ChVector<> m_pos;
-        ChQuaternion<> m_rot;
-        double m_radius;
-        double m_length;
-        int m_matID;
-    };
-
-    struct ConvexHullsShape {
-        ConvexHullsShape(const std::string& filename, int matID = -1) : m_filename(filename), m_matID(matID) {}
-        std::string m_filename;
-        int m_matID;
-    };
-
-    bool m_has_collision;
-    std::vector<std::shared_ptr<ChMaterialSurface>> m_materials;
-    std::vector<BoxShape> m_coll_boxes;
-    std::vector<SphereShape> m_coll_spheres;
-    std::vector<CylinderShape> m_coll_cylinders;
-    std::vector<ConvexHullsShape> m_coll_hulls;
-
-    bool m_has_primitives;
-    std::vector<BoxShape> m_vis_boxes;
-    std::vector<SphereShape> m_vis_spheres;
-    std::vector<CylinderShape> m_vis_cylinders;
-    ChColor m_color;
-
-    bool m_has_mesh;
-    std::string m_vis_mesh_file;
-
-    void AddVisualizationAssets(std::shared_ptr<ChBodyAuxRef> body, VisualizationType vis);
-    void AddCollisionShapes(std::shared_ptr<ChBodyAuxRef> body, int collision_family);
-};
-
-// -----------------------------------------------------------------------------
-
 /// Template for a rigid-body main chassis vehicle subsystem.
 class CH_VEHICLE_API ChRigidChassis : public ChChassis {
   public:
@@ -136,7 +76,7 @@ class CH_VEHICLE_API ChRigidChassis : public ChChassis {
     virtual void RemoveVisualizationAssets() override final;
 
   protected:
-    ChRigidChassisGeometry m_geometry;
+    ChVehicleGeometry m_geometry;  ///< collection of visualization and collision shapes
 
     /// Load contact materials. A derived class must implement this only if it sets m_has_collision to 'true' and should
     /// use contact materials consistent with the specified contact method.
@@ -177,10 +117,10 @@ class CH_VEHICLE_API ChRigidChassisRear : public ChChassisRear {
     /// the chassis with all other collision shapes in the simulation.
     virtual void SetCollide(bool state) override { m_body->SetCollide(state); }
 
-    /// Initialize the rear chassis at the specified position
-    /// (relative to and expressed in the reference frame of the front chassis).
+    /// Initialize the rear chassis relative to the specified front chassis.
+    /// The orientation is set to be the same as that of the front chassis while the location is based on the connector
+    /// position on the front and rear chassis.
     virtual void Initialize(std::shared_ptr<ChChassis> chassis,  ///< [in] front chassis
-                            const ChVector<>& location,          ///< [in] location relative to front chassis frame
                             int collision_family = 0             ///< [in] chassis collision family
                             ) override;
 
@@ -191,7 +131,7 @@ class CH_VEHICLE_API ChRigidChassisRear : public ChChassisRear {
     virtual void RemoveVisualizationAssets() override final;
 
   protected:
-    ChRigidChassisGeometry m_geometry;
+    ChVehicleGeometry m_geometry;  ///< collection of visualization and collision shapes
 
     /// Load contact materials. A derived class must implement this only if it sets m_has_collision to 'true' and should
     /// use contact materials consistent with the specified contact method.

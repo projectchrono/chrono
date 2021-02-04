@@ -554,6 +554,19 @@ void AddBoxBce(std::shared_ptr<ChFsiDataManager> fsiData,
 }
 
 // =============================================================================
+void AddBCE_FromPoints(std::shared_ptr<ChFsiDataManager> fsiData,
+                       std::shared_ptr<SimParams> paramsH,
+                       std::shared_ptr<ChBody> body,
+                       const std::vector<chrono::ChVector<>>& points,
+                       chrono::ChVector<> collisionShapeRelativePos,
+                       chrono::ChQuaternion<> collisionShapeRelativeRot) {
+    thrust::host_vector<Real4> posRadBCE;
+    for (auto& p : points)
+        posRadBCE.push_back(mR4(p.x(), p.y(), p.z(), paramsH->HSML));
+    CreateBceGlobalMarkersFromBceLocalPos(fsiData, paramsH, posRadBCE, body, collisionShapeRelativePos,
+                                          collisionShapeRelativeRot);
+}
+
 void AddBCE_FromFile(std::shared_ptr<ChFsiDataManager> fsiData,
                      std::shared_ptr<fsi::SimParams> paramsH,
                      std::shared_ptr<ChBody> body,

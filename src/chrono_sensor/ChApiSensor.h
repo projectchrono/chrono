@@ -34,13 +34,13 @@
 
 /**
     @defgroup sensor SENSOR module
-    @brief Sensor modeling and simulation
+    @brief Modeling and simulation of sensors
 
-    This module provides support for modelling sensor for simulating autonomous behavior
+    This module provides support for modeling and simulating sensors for autonomous behavior.
 
     For additional information, see:
-    - the [installation guide](@ref module_vehicle_installation)
-    - the [tutorials](@ref tutorial_table_of_content_chrono_vehicle)
+    - the [installation guide](@ref module_sensor_installation)
+    - the [tutorials](@ref tutorial_table_of_content_chrono_sensor)
 
     @{
         @defgroup sensor_sensors Sensors
@@ -62,7 +62,8 @@ namespace chrono {
 /// Namespace for Chrono::Sensor
 namespace sensor {}
 
-/// @}
+/// @} sensor
+
 }  // namespace chrono
 
 #endif

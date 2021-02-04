@@ -717,8 +717,8 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
 
     // Give private access
     friend class ChSystem;
-    friend class ChSystemParallel;
-    friend class ChSystemParallelNSC;
+    friend class ChSystemMulticore;
+    friend class ChSystemMulticoreNSC;
     friend class ChAssembly;
     friend class ChConveyor;
 };

@@ -15,25 +15,29 @@ Additional Chrono functionality is provided through optional modules. Building o
 
 -   [FSI module](@ref module_fsi_installation)
 
--   [GRANULAR module](@ref module_granular_installation)
+-   [GPU module](@ref module_gpu_installation)
 
 -   [IRRLICHT module](@ref module_irrlicht_installation)
 
 -   [MATLAB module](@ref module_matlab_installation)
 
--   [MKL module](@ref module_mkl_installation)
+-   [Pardiso MKL module](@ref module_mkl_installation)
+
+-   [Pardiso Project module](@ref module_pardisoproject_installation)
+
+-   [MULTICORE module](@ref module_multicore_installation)
 
 -   [MUMPS module](@ref module_mumps_installation)
 
 -   [OPENGL module](@ref module_opengl_installation)
-
--   [PARALLEL module](@ref module_parallel_installation)
 
 -   [POSTPROCESS module](@ref module_postprocess_installation)
 
 -   [PYTHON module](@ref module_python_installation)
 
 -   [SENSOR module](@ref module_sensor_installation)	
+
+-   [SYNCHRONO module](@ref module_synchrono_installation)
 
 -   [VEHICLE module](@ref module_vehicle_installation)
 

@@ -80,7 +80,7 @@ int main(int argc, char* argv[]) {
     HMMWV_Reduced my_hmmwv;
     my_hmmwv.SetContactMethod(ChContactMethod::NSC);
     my_hmmwv.SetChassisFixed(false);
-    my_hmmwv.SetChassisCollisionType(ChassisCollisionType::NONE);
+    my_hmmwv.SetChassisCollisionType(CollisionType::NONE);
     my_hmmwv.SetInitPosition(ChCoordsys<>(initLoc, Q_from_AngY(initYaw)));
     my_hmmwv.SetPowertrainType(PowertrainModelType::SIMPLE);
     my_hmmwv.SetDriveType(DrivelineType::RWD);

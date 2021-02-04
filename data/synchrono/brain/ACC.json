@@ -1,0 +1,12 @@
+{
+    "Name": "Adaptive Cruise Control (ACC) Brain",
+    "Type": "Brain",
+    "Template": "VehicleBrain",
+  
+    "Driver": {
+        "Type": "ChPathFollowerACCDriver",
+        
+    }
+    
+  }
+  

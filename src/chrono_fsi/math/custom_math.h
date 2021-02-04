@@ -66,6 +66,16 @@ inline __host__ __device__ float rsqrtf(float x) {
     return 1.0f / sqrtf(x);
 }
 
+/// Square a float value.
+inline __host__ __device__ Real square(Real a) {
+    return a * a;
+}
+
+/// Cube a float value.
+inline __host__ __device__ Real cube(Real a) {
+    return a * a * a;
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 // implementations of basic cuda types
 ////////////////////////////////////////////////////////////////////////////////
@@ -1564,8 +1574,8 @@ __host__ __device__ inline Real3 sgn(Real3 a) {
 }
 
 __host__ __device__ inline Real2 Cables_ShapeFunctions(Real xi) {
-    //	Real NA = 1 - 3 * pow(xi, 2) + 2 * pow(xi, 3);
-    //	Real NB = 3 * pow(xi, 2) - 2 * pow(xi, 3);
+    //	Real NA = 1 - 3 * square(xi) + 2 * cube(xi);
+    //	Real NB = 3 * square(xi) - 2 * cube(xi);
 
     Real NA = 1 - xi;
     Real NB = xi;

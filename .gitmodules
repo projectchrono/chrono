@@ -4,3 +4,6 @@
 [submodule "src/chrono_thirdparty/googlebenchmark"]
 	path = src/chrono_thirdparty/googlebenchmark
 	url = https://github.com/google/benchmark.git
+[submodule "src/chrono_thirdparty/flatbuffers"]
+	path = src/chrono_thirdparty/flatbuffers
+	url = https://github.com/google/flatbuffers.git
