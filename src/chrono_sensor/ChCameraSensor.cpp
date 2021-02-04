@@ -33,12 +33,11 @@ CH_SENSOR_API ChCameraSensor::ChCameraSensor(std::shared_ptr<chrono::ChBody> par
                                              unsigned int h,                   // image height
                                              float hFOV,                       // horizontal field of view
                                              unsigned int supersample_factor,  // super sampling factor
-                                             CameraLensModelType lens_model    // lens model to use
-                                             )
-    : m_hFOV(hFOV),
+                                             CameraLensModelType lens_model,    // lens model to use
+                                             int use_gi) : m_hFOV(hFOV),
       m_supersample_factor(supersample_factor),
       m_lens_model_type(lens_model),
-      ChOptixSensor(parent, updateRate, offsetPose, w * supersample_factor, h * supersample_factor) {
+      ChOptixSensor(parent, updateRate, offsetPose, w * supersample_factor, h * supersample_factor, use_gi) {
     // set the program to match the model requested
     switch (lens_model) {
         case SPHERICAL:
@@ -46,11 +45,19 @@ CH_SENSOR_API ChCameraSensor::ChCameraSensor(std::shared_ptr<chrono::ChBody> par
             m_buffer_format = RT_FORMAT_FLOAT4;
             // m_buffer_format = RT_FORMAT_UNSIGNED_BYTE4;
             break;
-        default:  // same as PINHOLE
-            m_program_string = {"camera", "pinhole_camera"};
-            m_buffer_format = RT_FORMAT_FLOAT4;
+
+        default:  // same as PINHOLEP
+        {
+            if (use_gi) {
+                m_program_string = {"camera", "pinhole_gi_camera"};
+                m_buffer_format = RT_FORMAT_FLOAT4;
+            } else {
+                m_program_string = {"camera", "pinhole_camera"};
+                m_buffer_format = RT_FORMAT_FLOAT4;
+            }
             // m_buffer_format = RT_FORMAT_UNSIGNED_BYTE4;
             break;
+        }
     }
 
     if (m_supersample_factor > 1) {

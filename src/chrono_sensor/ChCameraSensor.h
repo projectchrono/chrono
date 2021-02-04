@@ -55,7 +55,8 @@ class CH_SENSOR_API ChCameraSensor : public ChOptixSensor {
                    unsigned int h,                             // image height
                    float hFOV,                                 // horizontal field of view
                    unsigned int supersample_factor = 1,        // number of samples per pixel for antialiasing
-                   CameraLensModelType lens_model = PINHOLE);  // camera model to use for rendering
+                   CameraLensModelType lens_model = PINHOLE,
+	   int use_gi = 0);  // camera model to use for rendering
 
     /// camera class destructor
     ~ChCameraSensor();

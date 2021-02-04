@@ -75,9 +75,11 @@ void ChOptixEngine::AssignSensor(std::shared_ptr<ChOptixSensor> sensor) {
 
         sensor->m_context = m_context;
         m_assignedSensor.push_back(sensor);
-
+        std::cout << "adding sensors" << std::endl;
         // initialize filters just in case they want to create any chunks of memory from the start
         for (auto f : sensor->GetFilterList()) {
+
+            std::cout << "init filters" << f->Name() << std::endl;
             f->Initialize(sensor);  // master thread should always be the one to initialize
         }
         sensor->LockFilterList();
@@ -466,7 +468,7 @@ void ChOptixEngine::staticTrimeshVisualization(std::shared_ptr<ChTriangleMeshSha
     }
     vertex_index_buffer->unmap();
 
-    // copy over the vertex index buffer
+    // copy over the normal index buffer
     unsigned int* tmp_normal_index_buffer = (unsigned int*)(normal_index_buffer->map());
     for (int i = 0; i < mesh->getIndicesNormals().size(); i++) {
         tmp_normal_index_buffer[3 * i] = (unsigned int)mesh->getIndicesNormals().data()[i].x();
@@ -755,6 +757,7 @@ void ChOptixEngine::Initialize() {
 
     rtContextSetExceptionEnabled(m_context->get(), RT_EXCEPTION_ALL, true);
     m_context->setPrintEnabled(true);
+    m_context->setPrintBufferSize(4096);
 
     unsigned int n_devices;
     rtContextGetDeviceCount(m_context->get(), &n_devices);
@@ -788,7 +791,6 @@ void ChOptixEngine::Initialize() {
     m_context->setRayTypeCount(3);  // 0=camera, 1=shadow, 2=lidar
     m_context->setMaxTraceDepth(
         m_recursions);  // max allowable by OptiX, doesn't mean we should try to go this far though
-
     m_context["max_scene_distance"]->setFloat(1.e4f);
     m_context["max_depth"]->setInt(m_recursions);
     m_context["scene_epsilon"]->setFloat(1.0e-3f);

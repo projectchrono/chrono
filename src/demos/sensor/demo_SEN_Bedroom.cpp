@@ -106,7 +106,7 @@ int main(int argc, char* argv[]) {
     // add a mesh to be visualized by a camera
     // ---------------------------------------
     auto mmesh = chrono_types::make_shared<ChTriangleMeshConnected>();
-    mmesh->LoadWavefrontMesh("C:/Users/15647/Documents/-真正的我的文件-/chrono_data/Bedroom11.obj", true, true);
+    mmesh->LoadWavefrontMesh("C:/Users/15647/Documents/Chrono/3Dmodels/Box/box.obj", true, true);
     // mmesh->LoadWavefrontMesh(GetChronoDataFile("sensor/cube_bumpy.obj"), false, true);
     // mmesh->Transform(ChVector<>(0, 0, 0), ChMatrix33<>(2));  // scale to a different size
     // mmesh->Transform(ChVector<>(0, 0, 15), ChMatrix33<>(CH_C_PI_2, {1,0,0}));
@@ -141,7 +141,7 @@ int main(int argc, char* argv[]) {
     auto manager = chrono_types::make_shared<ChSensorManager>(&mphysicalSystem);
     // manager->scene->AddPointLight({2, 2.5, 100}, {intensity, intensity, intensity}, 1500);
     // manager->scene->AddPointLight({9, 2.5, 100}, {intensity, intensity, intensity}, 1500);
-    manager->scene->AddPointLight({16, 2.5, 100}, {intensity, 0.9451, 0.8784}, 15000);
+    manager->scene->AddPointLight({0.0, 0.0, 3.8}, {2, 1.8902, 1.7568}, 10);
     // manager->scene->AddPointLight({x_ax, y_ax, z_ax}, {intensity, intensity, intensity}, 10000);
 
     // manager->scene->AddPointLight({.2, 0, 1.0}, {intensity * 3, intensity * 3, intensity * 3}, 50);
@@ -150,14 +150,16 @@ int main(int argc, char* argv[]) {
     // Create a second camera and add it to the sensor manager
     // -------------------------------------------------------
     ChQuaternion<> rotation = QUNIT;
-
+    // Highway
+    // ChQuaternion<> qA = Q_from_AngAxis(30 * CH_C_DEG_TO_RAD, VECT_Y);
+    // ChQuaternion<> qB = Q_from_AngAxis(135 * CH_C_DEG_TO_RAD, VECT_Z);
 
     // bedroom 
-    ChQuaternion<> qA = Q_from_AngAxis(CH_C_PI_2, {0, 1, 0});
-    ChQuaternion<> qB =  Q_from_AngAxis(CH_C_PI_2, {0, 0, 1});
+    // ChQuaternion<> qA = Q_from_AngAxis(CH_C_PI_2, {0, 1, 0});
+    // ChQuaternion<> qB =  Q_from_AngAxis(CH_C_PI_2, {0, 0, 1});
 
-    rotation = rotation >> qA >> qB;
-
+    //Box
+    ChQuaternion<> qB = Q_from_AngAxis(90 * CH_C_DEG_TO_RAD, VECT_Z);
     // city street
     // ChQuaternion<> qA = Q_from_AngAxis(CH_C_PI_2, {0, 1, 0});
     // ChQuaternion<> qB = Q_from_AngAxis(CH_C_PI_2, {0, 1, 0});
@@ -165,8 +167,13 @@ int main(int argc, char* argv[]) {
 
     // rotation = rotation >> qA >> qB >> qC;
 
+    rotation = rotation >> qB;
     // bedroom 
-    chrono::ChFrame<double> offset_pose2({1, 2, 0}, rotation);
+    // chrono::ChFrame<double> offset_pose2({1, 2, 0}, rotation);
+    // Highway
+    // chrono::ChFrame<double> offset_pose2({20, -40, 15}, rotation);
+    // Box
+    chrono::ChFrame<double> offset_pose2({0, -7, 2}, rotation);
     auto cam2 = chrono_types::make_shared<ChCameraSensor>(ground_body,   // body camera is attached to
                                                           update_rate,   // update rate in Hz
                                                           offset_pose2,  // offset pose
@@ -174,7 +181,7 @@ int main(int argc, char* argv[]) {
                                                           image_height,  // image height
                                                           fov,           // camera's horizontal field of view
                                                           alias_factor,  // supersample factor for antialiasing
-                                                          lens_model);   // FOV
+                                                          lens_model, true);   // FOV
     cam2->SetName("Antialiasing Camera Sensor");
     cam2->SetLag(lag);
     cam2->SetCollectionWindow(exposure_time);

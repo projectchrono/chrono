@@ -41,6 +41,7 @@ rtDeclareVariable(float3, Ks, , );
 rtDeclareVariable(float, transparency, , );
 rtDeclareVariable(float, phong_exp, , );
 rtDeclareVariable(float, roughness, , );
+rtDeclareVariable(float, metallic, , );
 rtDeclareVariable(float, fresnel_exp, , );
 rtDeclareVariable(float, fresnel_min, , );
 rtDeclareVariable(float, fresnel_max, , );
@@ -60,20 +61,19 @@ rtDeclareVariable(int, max_depth, , );
 rtBuffer<PointLight> lights;
 
 static __device__ float NormalDist(float NdH, float roughness) {
-    float numerator = roughness * roughness;
-    float den_2 = NdH * NdH * (numerator - 1) + 1;
+    float rough_sqr = roughness * roughness;
+    float den_2 = NdH * NdH * (rough_sqr - 1) + 1;
     float denominator = den_2 * den_2;
 
-    return numerator / denominator;
+    return rough_sqr / denominator;
 }
 
-static __device__ float GeomSmithSchlick(float NdV, float NdL, float roughness) {
-    float r_remap = (roughness + 1) * (roughness + 1) / 8;
-
-    float s_ndv = NdV / (NdV * (1 - r_remap) + r_remap);
-    float s_ndl = NdL / (NdL * (1 - r_remap) + r_remap);
-
-    return s_ndv * s_ndl;
+// https://www.gdcvault.com/play/1024478/PBR-Diffuse-Lighting-for-GGX
+static __device__ float HammonSmith(float NdV, float NdL, float roughness) {
+    NdV = abs(NdV);
+    NdL = abs(NdL);
+    float denominator = lerp(2 * NdV * NdL, NdL + NdV, roughness);
+    return 0.5 / denominator;
 }
 
 static __device__ float checkerboard3(float3 loc) {
@@ -133,27 +133,34 @@ RT_PROGRAM void pbr_shader() {
 
     forward_normal = normalize(rtTransformNormal(RT_OBJECT_TO_WORLD, forward_normal));
 
-    if (dot(forward_normal, -ray.direction) < 0) {
-        forward_normal = -forward_normal;
-    }
+    // Filp the normal when the ray hit the triangle on the back 
+    // if (dot(forward_normal, -ray.direction) < 0) {
+    //     forward_normal = -forward_normal;
+    // }
+
+    // Filp the normal when the ray hit the triangle on the back 
+    forward_normal = faceforward(forward_normal, -ray.direction, forward_normal);
 
     float3 hit_point = ray.origin + ray.direction * t_hit;  // + 0.01 * forward_normal;
 
-    // get Kd either from color or from texture
-    float3 tmp_kd = Kd;
+    // get subsurface_albedo either from color or from texture
+    float3 subsurface_albedo = Kd;
+
     if (has_texture) {
-        tmp_kd = make_float3(tex2D(Kd_map, texcoord.x, texcoord.y));
+        subsurface_albedo = make_float3(tex2D(Kd_map, texcoord.x, texcoord.y));
     }
+
+   
 
     // ==========================================================
     // Ambient Color - fudge factor to prevent super dark shadows
     // ==========================================================
-    prd_camera.color = make_float3(0);  // = tmp_kd * ambient_light_color;
+    prd_camera.color = make_float3(0);
 
     //=================
     // Reflected color
     //=================
-    float3 reflect_amount = make_float3(0);
+    /* float3 reflect_amount = make_float3(0);
     if (roughness < .99) {
         reflect_amount = Ks * fresnel_schlick(dot(forward_normal, -ray.direction), fresnel_exp,
                                               make_float3(fresnel_min), make_float3(fresnel_max));
@@ -188,87 +195,168 @@ RT_PROGRAM void pbr_shader() {
             prd_camera.color += refract_importance * prd_refraction.color;
         }
     }
+    */ 
 
     //=================
-    // Diffuse color
+    // punctual lights
     //=================
-
+    float3 reflected_color = make_float3(0.0f);
     // iterate through the lights
     for (int i = 0; i < lights.size(); i++) {
         PointLight l = lights[i];
         float dist_to_light = length(l.pos - hit_point);
-        if (dist_to_light < 2 * l.max_range) {
-            float3 dir_to_light = normalize(l.pos - hit_point);
 
-            float NdL = dot(forward_normal, dir_to_light);
+        if (dist_to_light >= 2 * l.max_range) {
+            continue;
+        }
 
-            // 0 if we already know there is a shadow, 1 if we might be able to see the light
-            float3 light_attenuation = make_float3(static_cast<float>(NdL > 0.f));
+        float3 dir_to_light = normalize(l.pos - hit_point);
+        float NdL = dot(forward_normal, dir_to_light);
 
-            // if we think we can see the light, let's see if we are correct
-            if (NdL > 0.0f) {
-                light_attenuation = make_float3(NdL);
+        // 0 if we already know there is a shadow, 1 if we might be able to see the light
+        float3 light_attenuation = make_float3(static_cast<float>(NdL > 0.f));
 
-                // check shadows
-                PerRayData_shadow prd_shadow;
-                prd_shadow.attenuation = make_float3(1.0f);
-                Ray shadow_ray(hit_point, dir_to_light, SHADOW_RAY_TYPE, scene_epsilon, dist_to_light);
-                // rtTrace(root_node, shadow_ray, prd_shadow, RT_RAY_FLAG_TERMINATE_ON_FIRST_HIT);
-                rtTrace(root_node, shadow_ray, prd_shadow, RT_RAY_FLAG_TERMINATE_ON_FIRST_HIT);
+        // if we think we can see the light, let's see if we are correct
+        if (NdL > 0.0f) {
+            // check shadows
+            PerRayData_shadow prd_shadow;
+            prd_shadow.attenuation = make_float3(1.0f);
+            Ray shadow_ray(hit_point, dir_to_light, SHADOW_RAY_TYPE, scene_epsilon, dist_to_light);
+            // rtTrace(root_node, shadow_ray, prd_shadow, RT_RAY_FLAG_TERMINATE_ON_FIRST_HIT);
+            rtTrace(root_node, shadow_ray, prd_shadow, RT_RAY_FLAG_TERMINATE_ON_FIRST_HIT);
+            light_attenuation = prd_shadow.attenuation;
+        }
 
-                light_attenuation = prd_shadow.attenuation;
+        float point_light_falloff = (l.max_range / (dist_to_light * dist_to_light + l.max_range));
+        
+        float3 incoming_light_ray = l.color * light_attenuation * point_light_falloff * NdL;
+        // if any of our channels can see the light, let's calculate the contribution
+        if (fmaxf(incoming_light_ray) > 0.0f) {
+            
+            float3 halfway = normalize(dir_to_light - ray.direction);
+            float NdV = dot(forward_normal, -ray.direction);
+
+            float NdH = dot(forward_normal, halfway);
+            float VdH = dot(-ray.direction, halfway); // Same as LdH
+
+            float3 F = make_float3(0.5f);
+            // Metallic workflow
+            if (true) {
+                float3 default_dielectrics_F0 = make_float3(0.04f);
+                subsurface_albedo =
+                    (1 - metallic) * subsurface_albedo;  // since metals do not do subsurface reflection
+                F = metallic * subsurface_albedo + (1 - metallic) * default_dielectrics_F0;
             }
-
-            // if any of our channels can see the light, let's calculate the contribution
-            if (fmaxf(light_attenuation) > 0.0f) {
-                float NdL_result = (.01f * l.max_range * l.max_range /
-                                    (dist_to_light * dist_to_light + .01f * l.max_range * l.max_range)) *
-                                   NdL;
-
-                if (NdL_result > 1e-6f) {
-                    // ==========================================
-                    // Cook-Torrence Model for blending the light
-                    // ==========================================
-
-                    float3 halfway = normalize(dir_to_light - ray.direction);
-                    float NdH = dot(forward_normal, halfway);
-                    float NdV = dot(forward_normal, -ray.direction);
-
-                    float N = NormalDist(NdH, roughness);
-                    float D = GeomSmithSchlick(NdV, NdL, roughness);
-                    float3 F = fresnel_schlick(dot(halfway, dir_to_light), fresnel_exp, make_float3(fresnel_min),
-                                               make_float3(fresnel_max));
-                    float3 f_ct = N * D * F / (4 * NdV * NdL);
-
-                    // lighting equation for cook-torrence
-                    float3 obj_color =
-                        ((make_float3(1) - Ks) * tmp_kd + Ks * f_ct) * l.color * light_attenuation * NdL_result;
-                    prd_camera.color += (1 - reflect_amount) * (1 - refract_importance) * obj_color;
-                }
+            // Ks Workflow
+            else if (false) {
+                float3 F0 = Ks * 0.08f;
+                F = fresnel_schlick(VdH, 5, F0, make_float3(1) /*make_float3(fresnel_max) it is usually 1*/);
             }
+            // Fresnel_at_0 to Fresnel_at_90 workflow
+            else if (false) {
+                F = fresnel_schlick(VdH, fresnel_exp, make_float3(fresnel_min), make_float3(fresnel_max));
+            }
+            // IoF workflow
+            else {
+                // float3 ratio = (iof1 - iof2) / (iof1 + iof2); // one of them should be air (iof = 1)
+                // float3 F0 = ratio * ratio;
+                // F = fresnel_schlick(NdV, 5, F0, make_float3(1));
+            }
+            // ==========================================
+            // diffuse reflection
+            // ==========================================
+            reflected_color += (1 - F) * subsurface_albedo * incoming_light_ray;
+                   
+            // ==========================================
+            // specular reflection
+            // ==========================================
+            // Get parameters for specular reflection
+
+            float D = NormalDist(NdH, roughness); // 1/pi omitted
+            float G = HammonSmith(NdV, NdL, roughness);  // 4  * NdV * NdL omitted
+                
+            float3 f_ct = F * D * G;
+
+            reflected_color += f_ct * incoming_light_ray;
+            
         }
     }
-    prd_camera.color = fmaxf(prd_camera.color, tmp_kd * ambient_light_color);
-    float3 hitpoint = prd_camera.origin + t_hit * prd_camera.direction;
-    prd_camera.origin = hitpoint;
+    prd_camera.color = reflected_color;
+    // If user want to disable GL
+    if (false) {
+        prd_camera.color = prd_camera.color + ambient_light_color * subsurface_albedo;
+        return;
+    }
+    prd_camera.color *= prd_camera.contribution_to_firsthit;
 
+    // GL Path
 
-    float3 world_shading_normal = normalize(rtTransformNormal(RT_OBJECT_TO_WORLD, shading_normal));
-    float3 world_geometric_normal = normalize(rtTransformNormal(RT_OBJECT_TO_WORLD, shading_normal));
-    float3 ffnormal = faceforward(world_shading_normal, -prd_camera.direction, world_geometric_normal);
-
+    // faceforward(world_shading_normal, -ray.direction, world_geometric_normal);
     float z1 = rnd(prd_camera.seed);
     float z2 = rnd(prd_camera.seed);
     float3 p;
     cosine_sample_hemisphere(z1, z2, p);
-    optix::Onb onb(ffnormal);
-    onb.inverse_transform(p);
-    prd_camera.direction = p;
-    float3 modulated_diffuse_color = tmp_kd * (0.2f + 0.8f * checkerboard3(hitpoint));
 
-    if (prd_camera.depth == 2) {
-        prd_camera.normal = ffnormal;
-        prd_camera.albedo = modulated_diffuse_color;
+    optix::Onb onb(forward_normal);
+    onb.inverse_transform(p);
+
+    prd_camera.origin = hit_point;
+    prd_camera.direction = normalize(p);
+    
+    // run rendering equation again for this new direction
+    float3 contribution_to_this_point = make_float3(0.0f);
+    float NdL = dot(forward_normal, prd_camera.direction);
+    float3 halfway = normalize(prd_camera.direction - ray.direction);
+    float NdV = dot(forward_normal, -ray.direction);
+
+    float NdH = dot(forward_normal, halfway);
+    float VdH = dot(-ray.direction, halfway);  // Same as LdH
+
+    float3 F = make_float3(0.5f);
+    // Metallic workflow
+    if (true) {
+        float3 default_dielectrics_F0 = make_float3(0.04f);
+        subsurface_albedo = (1 - metallic) * subsurface_albedo;  // since metals do not do subsurface reflection
+        F = metallic * subsurface_albedo + (1 - metallic) * default_dielectrics_F0;
+    }
+    // Ks Workflow
+    else if (false) {
+        float3 F0 = Ks * 0.08f;
+        F = fresnel_schlick(VdH, 5, F0, make_float3(1) /*make_float3(fresnel_max) it is usually 1*/);
+    }
+    // Fresnel_at_0 to Fresnel_at_90 workflow
+    else if (false) {
+        F = fresnel_schlick(VdH, fresnel_exp, make_float3(fresnel_min), make_float3(fresnel_max));
+    }
+    // IoF workflow
+    else {
+        // float3 ratio = (iof1 - iof2) / (iof1 + iof2); // one of them should be air (iof = 1)
+        // float3 F0 = ratio * ratio;
+        // F = fresnel_schlick(NdV, 5, F0, make_float3(1));
+    }
+    // ==========================================
+    // diffuse reflection
+    // ==========================================
+    contribution_to_this_point += (1 - F) * subsurface_albedo * NdL; 
+    // no light fall off or attenuation. Maybe in future when we have volumn we shall change it
+
+
+    // ==========================================
+    // specular reflection
+    // ==========================================
+    // Get parameters for specular reflection
+
+    float D = NormalDist(NdH, roughness);        // 1/pi omitted
+    float G = HammonSmith(NdV, NdL, roughness);  // 4  * NdV * NdL omitted
+
+    float3 f_ct = F * D * G;
+
+    contribution_to_this_point += f_ct * NdL;
+    prd_camera.contribution_to_firsthit *= contribution_to_this_point;
+
+    if (prd_camera.depth == 1) {
+        prd_camera.normal = forward_normal;
+        prd_camera.albedo = subsurface_albedo;
     }
 
 }

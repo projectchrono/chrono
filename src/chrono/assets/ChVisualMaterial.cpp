@@ -24,7 +24,7 @@ ChVisualMaterial::ChVisualMaterial()
       d(1),
       fresnel_exp(5),
       fresnel_max(1),
-      fresnel_min(0),
+      fresnel_min(0.4),
       roughness(.5) {}
 
 void ChVisualMaterial::SetAmbientColor(ChVector<float> rgb) {

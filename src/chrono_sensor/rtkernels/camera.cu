@@ -33,8 +33,8 @@ rtDeclareVariable(float, max_scene_distance, , );
 rtDeclareVariable(rtObject, root_node, , );
 rtDeclareVariable(float3, default_color, , );
 rtDeclareVariable(float, default_depth, , );
-rtDeclareVariable(int, max_depth, , );
-
+rtDeclareVariable(int, max_depth, , );  
+rtDeclareVariable(int, gi_pass, , );          // For GI camera only, which pass 
 // camera parameters
 rtDeclareVariable(float, hFOV, , );        // camera horizontal field of view
 rtDeclareVariable(float, start_time, , );  // launch time for the sensor
@@ -49,8 +49,11 @@ rtTextureSampler<float4, 2> environment_map;
 rtDeclareVariable(int, has_environment_map, , );
 
 rtBuffer<float4, 2> output_buffer;  // byte version
-rtBuffer<float4, 2> normal_buffer;  // byte version
-rtBuffer<float4, 2> albedo_buffer;  // byte version
+rtBuffer<float4, 2> gi_pass_normal_buffer;  // byte version
+rtBuffer<float4, 2> gi_pass_albedo_buffer;  // byte version
+rtBuffer<float4, 2> gi_pass_output_buffer;  // byte version
+rtBuffer<float4, 2> gi_pass_denoised_buffer;  // byte version
+
 rtBuffer<float> noise_buffer;
 
 // temporary using Optix Example !!!!
@@ -65,6 +68,117 @@ static __host__ __device__ __inline__ float rnd(unsigned int& prev) {
     return ((float)lcg(prev) / (float)0x01000000);
 }
 
+RT_PROGRAM void pinhole_gi_camera() {
+    if (gi_pass == 0) {
+        // This is the GI pass
+        size_t2 screen = gi_pass_output_buffer.size();
+
+        float rand = noise_buffer[screen.x * launch_index.y + launch_index.x];
+        unsigned int seed = (unsigned int)(rand * 2147483648u);
+        noise_buffer[screen.x * launch_index.y + launch_index.x] = sensor_rand(seed);
+
+        const float current_time = start_time + (end_time - start_time) * rand;
+
+        // set the ray direction based on the proportion of image the pixel is located at
+        float2 d = (make_float2(launch_index) + make_float2(0.5, 0.5)) / make_float2(screen) * 2.f - 1.f;
+        d.y *= (float)(screen.y) / (float)(screen.x);
+        // origin of the camera is  0,0,0 for now
+
+        const float h_factor = hFOV / CUDART_PI_F * 2.0;
+
+        const Quaternion q0(rot_0.y, rot_0.z, rot_0.w, rot_0.x);
+        const Quaternion q1(rot_1.y, rot_1.z, rot_1.w, rot_1.x);
+
+        Quaternion q_current = nlerp(q0, q1, rand);
+
+        Matrix4x4 basis;
+        q_current.toMatrix(basis.getData());
+        float3 forward = make_float3(basis[0], basis[4], basis[8]);  // TODO: calcualte from quaternion
+        float3 left = make_float3(basis[1], basis[5], basis[9]);
+        float3 up = make_float3(basis[2], basis[6], basis[10]);
+
+        float3 ray_origin = lerp(origin_0, origin_1, rand);
+        float3 ray_direction = normalize(forward - d.x * left * h_factor + d.y * up * h_factor);
+
+        float3 accumColor = make_float3(0);
+        float attenuation = 1;
+
+        // Initialze per-ray data
+        PerRayData_camera prd_camera = make_camera_data(make_float3(0), 1.f, 1);
+        prd_camera.seed = seed;
+        prd_camera.origin = ray_origin;
+        prd_camera.direction = ray_direction;
+        // Each iteration is a segment of the ray path.  The closest hit will
+        // return new segments to be traced here.
+        for (;;) {
+            prd_camera.color = make_float3(0);
+            optix::Ray ray(ray_origin, ray_direction, CAMERA_RAY_TYPE, scene_epsilon, max_scene_distance);
+            rtTrace(root_node, ray, current_time, prd_camera);
+
+            // Russian roulette termination
+            if (prd_camera.depth >= 3) {
+                if (rnd(prd_camera.seed) >= attenuation)
+                    break;
+                attenuation *= 0.3;
+            }
+            
+
+            prd_camera.depth++;
+            accumColor += prd_camera.color;//            *attenuation;
+
+            if (fmaxf(prd_camera.contribution_to_firsthit) < 0.00001f)
+                break;
+
+            // Update ray data for the next path segment
+            ray_origin = prd_camera.origin;
+            ray_direction = prd_camera.direction;
+        }
+
+        gi_pass_output_buffer[launch_index] = make_float4(accumColor, 1);
+        gi_pass_normal_buffer[launch_index] = make_float4(prd_camera.normal, 1);// * 0.5f + 0.5f;
+        gi_pass_albedo_buffer[launch_index] = make_float4(prd_camera.albedo, 1);
+    } else if (gi_pass == 1) {
+        size_t2 screen = output_buffer.size();
+
+        float rand = noise_buffer[screen.x * launch_index.y + launch_index.x];
+        unsigned int seed = (unsigned int)(rand * 2147483648u);
+        noise_buffer[screen.x * launch_index.y + launch_index.x] = sensor_rand(seed);
+
+        const float current_time = start_time + (end_time - start_time) * rand;
+
+        // set the ray direction based on the proportion of image the pixel is located at
+        float2 d = (make_float2(launch_index) + make_float2(0.5, 0.5)) / make_float2(screen) * 2.f - 1.f;
+        d.y *= (float)(screen.y) / (float)(screen.x);
+        // origin of the camera is  0,0,0 for now
+
+        const float h_factor = hFOV / CUDART_PI_F * 2.0;
+
+        const Quaternion q0(rot_0.y, rot_0.z, rot_0.w, rot_0.x);
+        const Quaternion q1(rot_1.y, rot_1.z, rot_1.w, rot_1.x);
+
+        Quaternion q_current = nlerp(q0, q1, rand);
+
+        Matrix4x4 basis;
+        q_current.toMatrix(basis.getData());
+        float3 forward = make_float3(basis[0], basis[4], basis[8]);  // TODO: calcualte from quaternion
+        float3 left = make_float3(basis[1], basis[5], basis[9]);
+        float3 up = make_float3(basis[2], basis[6], basis[10]);
+
+        float3 ray_origin = lerp(origin_0, origin_1, rand);
+        float3 ray_direction = normalize(forward - d.x * left * h_factor + d.y * up * h_factor);
+
+        // create a ray based on the calculated parameters
+        optix::Ray ray(ray_origin, ray_direction, CAMERA_RAY_TYPE, scene_epsilon, max_scene_distance);
+        // set the ray pay load
+        PerRayData_camera prd_camera = make_camera_data(make_float3(0), 1.f, 2);
+        // prd_camera.gl_color = gi_pass_denoised_buffer[make_uint2(launch_index.x / 2, launch_index.y / 2)];
+
+        rtTrace(root_node, ray, current_time, prd_camera);
+        output_buffer[launch_index] = make_float4(prd_camera.color, 1);
+    } else  {
+        rtPrintf("unknown pass");
+    } 
+}
 
 // This kernel is launched once for each pixel in the image
 RT_PROGRAM void pinhole_camera() {
@@ -96,42 +210,14 @@ RT_PROGRAM void pinhole_camera() {
 
     float3 ray_origin = lerp(origin_0, origin_1, rand);
     float3 ray_direction = normalize(forward - d.x * left * h_factor + d.y * up * h_factor);
-    
-    float3 accumColor = make_float3(0);
-    float attenuation = 1;
 
-    // Initialze per-ray data
+    // create a ray based on the calculated parameters
+    optix::Ray ray(ray_origin, ray_direction, CAMERA_RAY_TYPE, scene_epsilon, max_scene_distance);
+    // set the ray pay load
     PerRayData_camera prd_camera = make_camera_data(make_float3(0), 1.f, 2);
-    prd_camera.seed = seed;
-    prd_camera.depth = 2;
-    prd_camera.origin = ray_origin;
-    prd_camera.direction = ray_direction;
-    // Each iteration is a segment of the ray path.  The closest hit will
-    // return new segments to be traced here.
-    for (;;) {
-        prd_camera.color = make_float3(0);
-        optix::Ray ray(ray_origin, ray_direction, CAMERA_RAY_TYPE, scene_epsilon, max_scene_distance);
-        rtTrace(root_node, ray, current_time, prd_camera);
 
-        // Russian roulette termination
-        if (prd_camera.depth >= 2) {
-            if (rnd(prd_camera.seed) >= attenuation)
-                break;
-            attenuation *= 0.5;
-        }
-
-        prd_camera.depth++;
-        accumColor += prd_camera.color * attenuation;
-
-        // Update ray data for the next path segment
-        ray_origin = prd_camera.origin;
-        ray_direction = prd_camera.direction;
-    }
-
-    output_buffer[launch_index] = make_float4(accumColor, 1);
-    normal_buffer[launch_index] = make_float4(prd_camera.normal, 1);
-    albedo_buffer[launch_index] = make_float4(prd_camera.albedo, 1);
-    // output_buffer[launch_index] = make_color(prd_camera.color);
+    rtTrace(root_node, ray, current_time, prd_camera);
+    output_buffer[launch_index] = make_float4(prd_camera.color, 1);
 }
 
 // This kernel is launched once for each pixel in the image

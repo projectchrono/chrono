@@ -33,6 +33,7 @@ rtTextureSampler<float4, 2> environment_map;
 rtDeclareVariable(int, has_environment_map, , );
 
 RT_PROGRAM void camera_miss() {
+ 
     if (has_environment_map) {
         float theta = atan2f(ray.direction.x, ray.direction.y);
         float phi = asinf(ray.direction.z);
@@ -42,8 +43,14 @@ RT_PROGRAM void camera_miss() {
         prd_camera.color = make_float3(tex2D(environment_map, tex_x, tex_y));
 
     } else {
-        prd_camera.color = default_color;
+        prd_camera.color = make_float3(0.0f);
     }
+    if (prd_camera.depth == 1) {
+        prd_camera.normal = normalize(-ray.direction);
+        prd_camera.albedo = make_float3(0.0f);
+    }
+    prd_camera.color *= prd_camera.contribution_to_firsthit;
+    prd_camera.contribution_to_firsthit = make_float3(0.0f);
 }
 
 RT_PROGRAM void lidar_miss() {

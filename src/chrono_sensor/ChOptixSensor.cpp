@@ -29,8 +29,9 @@ CH_SENSOR_API ChOptixSensor::ChOptixSensor(std::shared_ptr<chrono::ChBody> paren
                                            double updateRate,
                                            chrono::ChFrame<double> offsetPose,
                                            unsigned int w,
-                                           unsigned int h)
-    : m_width(w), m_height(h), ChSensor(parent, updateRate, offsetPose) {
+                                           unsigned int h, 
+                                           int use_gi)
+    : m_width(w), m_height(h), m_use_gi(use_gi), ChSensor(parent, updateRate, offsetPose) {
     // Camera sensor get rendered by Optix, so they must has as their first filter an optix renderer.
     m_filters.push_front(chrono_types::make_shared<ChFilterOptixRender>());
 }
