@@ -193,16 +193,12 @@ using namespace chrono::copter;
 %import(module = "pychrono.core") "../chrono/physics/ChLinkBase.h"
 %import(module = "pychrono.core") "../chrono/assets/ChTriangleMeshShape.h"
 
-
 %rename(CollisionFamily_CHASSIS) chrono::robosimian::CollisionFamily::CHASSIS;
 %rename(CollisionFamily_SLED) chrono::robosimian::CollisionFamily::SLED;
 %rename(VisualizationType_NONE) chrono::robosimian::VisualizationType::NONE;
 %rename(VisualizationType_MESH) chrono::robosimian::VisualizationType::MESH;
 %rename(VisualizationType_COLLISION) chrono::robosimian::VisualizationType::COLLISION;
 %rename(CollisionFlags_COLLISION) chrono::robosimian::CollisionFlags::CHASSIS;
-
-%rename(SideNum_LF) chrono::robosimian::CollisionFamily::CHASSIS;
-
 
 %ignore chrono::robosimian::RS_Driver::GetCurrentPhase;
 %feature("director")  chrono::robosimian::RS_Driver::PhaseChangeCallback;
