@@ -74,7 +74,7 @@ class ChSolverStateData {
     inline unsigned int currentMaxNumberSpheresInAnySD() const { return crntMaxNumberSpheresInAnySD; }
     
     ///return raw pointer to swath of device memory that is at least "sizeNeeded" large
-    inline char* pDeviceMemoryScratchSpace(unsigned int sizeNeeded) {
+    inline char* pDeviceMemoryScratchSpace(size_t sizeNeeded) {
         if (deviceScratchSpace.size() < sizeNeeded) {
             deviceScratchSpace.resize(sizeNeeded, 0);
         }

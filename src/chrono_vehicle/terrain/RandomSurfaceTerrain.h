@@ -209,8 +209,8 @@ class CH_VEHICLE_API RandomSurfaceTerrain : public ChTerrain {
     double m_ymin;            ///< y coordinate where the uneven surface begins
     double m_ymax;            ///< y coordinate where the uneven surface ends
     double m_dx;              ///< length of a single surface patch
-    size_t m_nx;              ///< number of points in x-direction
-    size_t m_ny;              ///< number of points in y-direction
+    int m_nx;                 ///< number of points in x-direction
+    int m_ny;                 ///< number of points in y-direction
     std::vector<double> m_y;  ///< hold the unequally spaced y values
     ChMatrixDynamic<> m_Q;    ///< matrix of uneven height values
     ChMatrixDynamic<> m_a0;   ///< polynom coefficients f(x,y) = a0 + a1*x + a2*y + a3*x*y
@@ -222,7 +222,7 @@ class CH_VEHICLE_API RandomSurfaceTerrain : public ChTerrain {
     double m_lambda_max;  ///< maximal spatial wavelength
     double m_f_fft_min;
     double m_f_fft_max;
-    size_t m_Nfft;               ///< number of fft coefficients to avoid periodicity in x[xmin...xmax]
+    int m_Nfft;                  ///< number of fft coefficients to avoid periodicity in x[xmin...xmax]
     std::vector<double> m_ck;    ///< Fourier coefficients
     std::vector<double> m_wfft;  ///< natural freqencies for iFFT
     ChVectorDynamic<> m_phase_left;
