@@ -857,7 +857,7 @@ void ViperRover::Update() {
                     }
                 } else {
                     if (m_steer_motors[i]->GetMotorRot() > CH_C_PI / 6) {
-                        m_steer_motors_func[i]->Set_yconst(7410.0);
+                        m_steer_motors_func[i]->Set_yconst(0.0);
                     }
                 }
             }
