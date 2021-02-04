@@ -13,7 +13,7 @@
 // =============================================================================
 //
 // Demo to show Viper Rover operated on Rigid Terrain
-// This Demo includes operation to spawn a Viper rover, control wheel speed, and 
+// This Demo includes operation to spawn a Viper rover, control wheel speed, and
 // control rover steering
 //
 // =============================================================================
@@ -86,7 +86,7 @@ std::shared_ptr<ChMaterialSurface> CustomWheelMaterial(ChContactMethod contact_m
 }
 
 // Simulation time step
-double time_step = 0.0005;  
+double time_step = 0.0005;
 
 int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
@@ -132,17 +132,17 @@ int main(int argc, char* argv[]) {
     ChVector<double> body_pos(0, -0.2, 0);
     ChQuaternion<> body_rot = Q_from_AngX(-CH_C_PI / 2);
 
-    std::shared_ptr<ViperRover> viper; 
+    std::shared_ptr<ViperRover> viper;
 
     if (use_custom_mat == true) {
         // If use the customized wheel material
-        viper = chrono_types::make_shared<ViperRover>(&mphysicalSystem, body_pos, body_rot, CustomWheelMaterial(ChContactMethod::NSC));
-        viper->Initialize();
+        viper = chrono_types::make_shared<ViperRover>(&mphysicalSystem, body_pos, body_rot,
+                                                      CustomWheelMaterial(ChContactMethod::NSC));
     } else {
         // If use default wheel material
-        viper = viper = chrono_types::make_shared<ViperRover>(&mphysicalSystem, body_pos, body_rot);
-        viper->Initialize();
+        viper = chrono_types::make_shared<ViperRover>(&mphysicalSystem, body_pos, body_rot);
     }
+    viper->Initialize();
 
     // Use this function for adding a ChIrrNodeAsset to all items
     // Otherwise use application.AssetBind(myitem); on a per-item basis.
@@ -165,32 +165,25 @@ int main(int argc, char* argv[]) {
     while (application.GetDevice()->run()) {
         time = time + time_step;
         // Display turning angle - ranges from -pi/3 to pi/3
-        std::cout<<"turn angle: "<<viper->GetTurnAngle()<<std::endl;
+        std::cout << "turn angle: " << viper->GetTurnAngle() << std::endl;
 
         // Once the viper rover turning angle returns back to 0, HOLD the steering
-        if((viper->GetTurnAngle()-0)<1e-8 && viper->GetTurnState()==TurnSig::R){
+        if ((viper->GetTurnAngle() - 0) < 1e-8 && viper->GetTurnState() == TurnSig::RIGHT) {
             viper->SetTurn(TurnSig::HOLD);
         }
 
-        // at time 1.0, send turn left signal
-        if(abs(time-1.0)<1e-5){
-            viper->SetTurn(TurnSig::L, CH_C_PI/8);
-        }   // at time 5.0, send turn right signal
-        else if(abs(time-7.0)<1e-5){
-            viper->SetTurn(TurnSig::R, CH_C_PI/8);
+        if (abs(time - 1.0) < 1e-5) {
+            viper->SetTurn(TurnSig::LEFT, CH_C_PI / 8);
+        } else if (abs(time - 7.0) < 1e-5) {
+            viper->SetTurn(TurnSig::RIGHT, CH_C_PI / 8);
         }
 
-        viper->Update();    // note->viper steering control needs to be updated every simulation loop
+        viper->Update();  // note->viper steering control needs to be updated every simulation loop
 
         application.BeginScene(true, true, SColor(255, 140, 161, 192));
-
         application.DrawAll();
-
         application.DoStep();
-
         application.EndScene();
-
-
     }
 
     return 0;
