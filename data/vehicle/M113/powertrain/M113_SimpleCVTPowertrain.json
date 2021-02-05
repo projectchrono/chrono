@@ -6,5 +6,6 @@
   "Forward Gear Ratio":      0.240,
   "Reverse Gear Ratio":      -0.151,
   "Maximum Engine Torque":   610.12,
-  "Maximum Engine Power":    156597
+  "Maximum Engine Power":    156597,
+  "Maximum Engine Speed":    550
 }

@@ -31,7 +31,7 @@
 #include "chrono_vehicle/ChConfigVehicle.h"
 #include "chrono_vehicle/ChVehicleModelData.h"
 
-#include "chrono_vehicle/powertrain/SimplePowertrain.h"
+#include "chrono_vehicle/powertrain/SimpleCVTPowertrain.h"
 #include "chrono_vehicle/driver/ChDataDriver.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
 #include "chrono_vehicle/tracked_vehicle/vehicle/TrackedVehicle.h"
@@ -105,7 +105,7 @@ int main(int argc, char* argv[]) {
     ////vehicle.GetDriveline()->SetGyrationMode(true);
 
     // Initialize the vehicle at the specified position.
-    vehicle.Initialize(ChCoordsys<>(ChVector<>(0, 0, 1.2), QUNIT));
+    vehicle.Initialize(ChCoordsys<>(ChVector<>(0, 0, 0.8), QUNIT));
 
     // Set visualization type for vehicle components
     vehicle.SetChassisVisualizationType(VisualizationType::PRIMITIVES);
@@ -135,7 +135,7 @@ int main(int argc, char* argv[]) {
     RigidTerrain terrain(vehicle.GetSystem(), vehicle::GetDataFile(rigidterrain_file));
 
     // Create and initialize the powertrain system
-    auto powertrain = chrono_types::make_shared<SimplePowertrain>(vehicle::GetDataFile(simplepowertrain_file));
+    auto powertrain = chrono_types::make_shared<SimpleCVTPowertrain>(vehicle::GetDataFile(simplepowertrain_file));
     vehicle.InitializePowertrain(powertrain);
 
 #ifdef USE_IRRLICHT

@@ -36,7 +36,7 @@ namespace vehicle {
 /// and no transmission box.
 class CH_VEHICLE_API ChSimpleCVTPowertrain : public ChPowertrain {
   public:
-    ChSimpleCVTPowertrain(const std::string& name, double motor_max_speed = 10000);
+    ChSimpleCVTPowertrain(const std::string& name);
 
     virtual ~ChSimpleCVTPowertrain() {}
 
@@ -91,8 +91,8 @@ class CH_VEHICLE_API ChSimpleCVTPowertrain : public ChPowertrain {
     /// Return the maximum motor power.
     virtual double GetMaxPower() const = 0;
 
-    /// Return the critical motor speed (torque cutoff).
-    virtual double GetCriticalSpeed() const = 0;
+    /// Return the maximum motor speed (above which torque is 0).
+    virtual double GetMaxSpeed() const = 0;
 
   private:
     /// Initialize the powertrain system.
@@ -114,7 +114,7 @@ class CH_VEHICLE_API ChSimpleCVTPowertrain : public ChPowertrain {
     double m_motorSpeed;
     double m_motorTorque;
     double m_shaftTorque;
-    double m_motorMaxSpeed;
+    double m_critical_speed;
 };
 
 /// @} vehicle_powertrain

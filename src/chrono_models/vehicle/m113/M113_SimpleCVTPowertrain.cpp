@@ -30,10 +30,9 @@ namespace m113 {
 // -----------------------------------------------------------------------------
 const double M113_SimpleCVTPowertrain::m_max_torque = 450 / 0.73756;  // 450 lb-ft
 const double M113_SimpleCVTPowertrain::m_max_power = 156597;          // 210 BHP
+const double M113_SimpleCVTPowertrain::m_max_speed = 550;             // > 5000 RPM
 const double M113_SimpleCVTPowertrain::m_fwd_gear_ratio = 0.240;
 const double M113_SimpleCVTPowertrain::m_rev_gear_ratio = -0.151;
-const double M113_SimpleCVTPowertrain::m_critical_speed =
-    M113_SimpleCVTPowertrain::m_max_power / M113_SimpleCVTPowertrain::m_max_torque;
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
