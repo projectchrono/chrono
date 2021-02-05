@@ -164,6 +164,87 @@ class CH_MODELS_API Curiosity_Wheel : public Curiosity_Part {
     friend class Curiosity_Rover;
 };
 
+
+/// Curiosity rover Connecting Arm.
+class CH_MODELS_API Curiosity_Arm : public Curiosity_Part {
+  public:
+    Curiosity_Arm(const std::string& name,
+                bool fixed,
+                std::shared_ptr<ChMaterialSurface> mat,
+                ChSystem* system,
+                const ChVector<>& body_pos,
+                const ChQuaternion<>& body_rot,
+                std::shared_ptr<ChBodyAuxRef> chassis,
+                bool collide,
+                const int& side);   // 0 == FL, 1 == FR, 2 == BL, 3 == BR
+    ~Curiosity_Arm() {}
+
+    /// Initialize the wheel at the specified (absolute) position.
+    void Initialize();
+
+    /// Enable/disable collision for the wheel.
+    void SetCollide(bool state);
+
+  private:
+
+    /// Translate the chassis by the specified value.
+    void Translate(const ChVector<>& shift);
+    friend class Curiosity_Rover;
+};
+
+/// Curiosity rover steering rod.
+class CH_MODELS_API Curiosity_Steer : public Curiosity_Part {
+  public:
+    Curiosity_Steer(const std::string& name,
+                bool fixed,
+                std::shared_ptr<ChMaterialSurface> mat,
+                ChSystem* system,
+                const ChVector<>& body_pos,
+                const ChQuaternion<>& body_rot,
+                std::shared_ptr<ChBodyAuxRef> chassis,
+                bool collide);
+    ~Curiosity_Steer() {}
+
+    /// Initialize the wheel at the specified (absolute) position.
+    void Initialize();
+
+    /// Enable/disable collision for the wheel.
+    void SetCollide(bool state);
+
+  private:
+
+    /// Translate the chassis by the specified value.
+    void Translate(const ChVector<>& shift);
+    friend class Curiosity_Rover;
+};
+
+/// Curiosity rover steering rod.
+class CH_MODELS_API Curiosity_Balancer : public Curiosity_Part {
+  public:
+    Curiosity_Balancer(const std::string& name,
+                bool fixed,
+                std::shared_ptr<ChMaterialSurface> mat,
+                ChSystem* system,
+                const ChVector<>& body_pos,
+                const ChQuaternion<>& body_rot,
+                std::shared_ptr<ChBodyAuxRef> chassis,
+                bool collide,
+                const int& side);   // 0 - > L, 1 - > R, 2 - > M
+    ~Curiosity_Balancer() {}
+
+    /// Initialize the wheel at the specified (absolute) position.
+    void Initialize();
+
+    /// Enable/disable collision for the wheel.
+    void SetCollide(bool state);
+
+  private:
+
+    /// Translate the chassis by the specified value.
+    void Translate(const ChVector<>& shift);
+    friend class Curiosity_Rover;
+};
+
 /// Curiosity rover class.
 /// This class encapsulates the location and rotation information of all Curiosity parts wrt the chassis.
 /// This class should be the entry point to create a complete rover.
@@ -229,6 +310,9 @@ class CH_MODELS_API CuriosityRover {
 
     std::shared_ptr<Curiosity_Chassis> m_chassis;               ///< rover chassis
     std::vector<std::shared_ptr<Curiosity_Wheel>> m_wheels;     ///< rover wheels - 1:FL, 2:FR, 3:RL, 4:RR
+    std::vector<std::shared_ptr<Curiosity_Arm>> m_arms;
+    std::vector<std::shared_ptr<Curiosity_Steer>> m_steers;
+    std::vector<std::shared_ptr<Curiosity_Balancer>> m_balancers;
 
     ChQuaternion<> m_rover_rot;
     ChVector<> m_rover_pos;
@@ -237,6 +321,9 @@ class CH_MODELS_API CuriosityRover {
     // model parts material
     std::shared_ptr<ChMaterialSurface> m_chassis_material;  ///< chassis contact material
     std::shared_ptr<ChMaterialSurface> m_wheel_material;    ///< wheel contact material (shared across limbs)
+    std::shared_ptr<ChMaterialSurface> m_arm_material;    ///< arm contact material (shared across suspension arms)
+    std::shared_ptr<ChMaterialSurface> m_steer_material;    ///< steer contact material
+    std::shared_ptr<ChMaterialSurface> m_balancer_material;    ///< balancer contact material
 
 };
 
