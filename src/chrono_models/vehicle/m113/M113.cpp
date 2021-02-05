@@ -24,6 +24,7 @@
 #include "chrono_models/vehicle/m113/M113.h"
 
 #include "chrono_models/vehicle/m113/M113_SimpleCVTPowertrain.h"
+#include "chrono_models/vehicle/m113/M113_SimpleMapPowertrain.h"
 #include "chrono_models/vehicle/m113/M113_ShaftsPowertrain.h"
 
 namespace chrono {
@@ -41,7 +42,7 @@ M113::M113()
       m_brake_type(BrakeType::SIMPLE),
       m_shoe_type(TrackShoeType::SINGLE_PIN),
       m_driveline_type(DrivelineTypeTV::SIMPLE),
-      m_powertrain_type(PowertrainModelType::SIMPLE),
+      m_powertrain_type(PowertrainModelType::SIMPLE_CVT),
       m_initFwdVel(0),
       m_initPos(ChCoordsys<>(ChVector<>(0, 0, 1), QUNIT)),
       m_apply_drag(false) {}
@@ -56,7 +57,7 @@ M113::M113(ChSystem* system)
       m_brake_type(BrakeType::SIMPLE),
       m_shoe_type(TrackShoeType::SINGLE_PIN),
       m_driveline_type(DrivelineTypeTV::SIMPLE),
-      m_powertrain_type(PowertrainModelType::SIMPLE),
+      m_powertrain_type(PowertrainModelType::SIMPLE_CVT),
       m_initFwdVel(0),
       m_initPos(ChCoordsys<>(ChVector<>(0, 0, 1), QUNIT)),
       m_apply_drag(false) {}
@@ -95,6 +96,11 @@ void M113::Initialize() {
             std::cout << "Warning! M113 powertrain type not supported. Reverting to Simple CVT Powertrain" << std::endl;
         case PowertrainModelType::SIMPLE_CVT: {
             auto powertrain = chrono_types::make_shared<M113_SimpleCVTPowertrain>("Powertrain");
+            m_vehicle->InitializePowertrain(powertrain);
+            break;
+        }
+        case PowertrainModelType::SIMPLE_MAP: {
+            auto powertrain = chrono_types::make_shared<M113_SimpleMapPowertrain>("Powertrain");
             m_vehicle->InitializePowertrain(powertrain);
             break;
         }

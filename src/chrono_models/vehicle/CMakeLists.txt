@@ -457,16 +457,18 @@ set(CVM_M113_FILES
     m113/M113_Chassis.cpp
     m113/M113_DrivelineBDS.cpp
     m113/M113_DrivelineBDS.h
+    m113/M113_SimpleDriveline.cpp
+    m113/M113_SimpleDriveline.h
     m113/M113_Idler.cpp
     m113/M113_Idler.h
     m113/M113_RoadWheel.cpp
     m113/M113_RoadWheel.h
     m113/M113_ShaftsPowertrain.cpp
     m113/M113_ShaftsPowertrain.h
-    m113/M113_SimpleDriveline.cpp
-    m113/M113_SimpleDriveline.h
     m113/M113_SimpleCVTPowertrain.cpp
     m113/M113_SimpleCVTPowertrain.h
+    m113/M113_SimpleMapPowertrain.cpp
+    m113/M113_SimpleMapPowertrain.h
     m113/M113_SprocketSinglePin.cpp
     m113/M113_SprocketSinglePin.h
     m113/M113_SprocketDoublePin.cpp
