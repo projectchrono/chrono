@@ -73,7 +73,7 @@ mysurfmaterial.SetAdhesion(0)
 do_mesh_collision_floor = False
 
 mmeshbox = chrono.ChTriangleMeshConnected()
-mmeshbox.LoadWavefrontMesh(chrono.GetChronoDataFile("cube.obj"), True, True)
+mmeshbox.LoadWavefrontMesh(chrono.GetChronoDataFile("models/cube.obj"), True, True)
 
 if (do_mesh_collision_floor) :
     # floor as a triangle mesh surface:
@@ -93,7 +93,7 @@ if (do_mesh_collision_floor) :
     mfloor.AddAsset(masset_meshbox)
     
     masset_texture = chrono.ChTexture()
-    masset_texture.SetTextureFilename(chrono.GetChronoDataFile("concrete.jpg"))
+    masset_texture.SetTextureFilename(chrono.GetChronoDataFile("textures/concrete.jpg"))
     mfloor.AddAsset(masset_texture)
 
 else :
@@ -104,7 +104,7 @@ else :
     my_system.Add(mfloor)
     
     masset_texture = chrono.ChTexture()
-    masset_texture.SetTextureFilename(chrono.GetChronoDataFile("concrete.jpg"))
+    masset_texture.SetTextureFilename(chrono.GetChronoDataFile("textures/concrete.jpg"))
     mfloor.AddAsset(masset_texture)
 
 

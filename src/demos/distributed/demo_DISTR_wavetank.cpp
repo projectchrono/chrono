@@ -267,7 +267,7 @@ int main(int argc, char* argv[]) {
     if (num_threads < 1 || time_end <= 0 || hx < 0 || hy < 0 || height < 0) {
         if (my_rank == MASTER)
             std::cout << "Invalid parameter or missing required parameter." << std::endl;
-        return false;
+        return 1;
     }
 
     // Output directory and files
@@ -351,7 +351,7 @@ int main(int argc, char* argv[]) {
         binY = 1;
 
     // Acounts for the amount of filling for the desired setup
-    binZ = (int)std::ceil(subsize.z()) * 0.75 / factor;
+    binZ = (int)(std::ceil(subsize.z()) * 0.75 / factor);
     if (binZ == 0)
         binZ = 1;
 

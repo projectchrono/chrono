@@ -18,6 +18,7 @@
 #include "chrono_models/vehicle/uaz/UAZBUS_Wheel.h"
 #include "chrono_models/vehicle/gator/Gator_Wheel.h"
 #include "chrono_models/vehicle/rccar/RCCar_Wheel.h"
+#include "chrono_models/vehicle/feda/FEDA_Wheel.h"
 %}
 
 
@@ -47,6 +48,8 @@
 %shared_ptr(chrono::vehicle::rccar::RCCar_WheelLeft)
 %shared_ptr(chrono::vehicle::rccar::RCCar_WheelRight)
 
+%shared_ptr(chrono::vehicle::feda::FEDA_Wheel)
+
 %import "../../chrono_vehicle/wheeled_vehicle/ChWheel.h"
 
 // Model:
@@ -59,3 +62,4 @@
 %include "../../chrono_models/vehicle/uaz/UAZBUS_Wheel.h"
 %include "../../chrono_models/vehicle/gator/Gator_Wheel.h"
 %include "../../chrono_models/vehicle/rccar/RCCar_Wheel.h"
+%include "../../chrono_models/vehicle/feda/FEDA_Wheel.h"

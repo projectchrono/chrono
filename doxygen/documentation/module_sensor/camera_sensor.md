@@ -8,17 +8,19 @@ In Chrono:Sensor:ChCameraSensor, the synthetic data is generated via GPU-based r
 ## Camera sensor Setup
 
 ~~~{.cpp}
-chrono::ChFrame<double> offset_pose({10, 2, .5},   // Position
-    Q_from_AngAxis(CH_C_PI, {0, 0, 1}));            // Rotation
+chrono::ChFrame<double> offset_pose({10, 2, .5},                           // Position
+                                     Q_from_AngAxis(CH_C_PI, {0, 0, 1}));  // Rotation
 
-auto Camera = chrono_types::make_shared<ChCameraSensor>(ground_body,   // body camera is attached to
-                                                        update_rate,   // update rate in Hz
-                                                        offset_pose,   // offset pose
-                                                        image_width,   // image width
-                                                        image_height,  // image height
-                                                        fov,           // camera's horizontal field of view
-                                                        alias_factor,  // supersample factor for antialiasing
-                                                        lens_model);   // FOV
+auto Camera = chrono_types::make_shared<ChCameraSensor>(
+                    ground_body,   // body camera is attached to
+                    update_rate,   // update rate in Hz
+                    offset_pose,   // offset pose
+                    image_width,   // image width
+                    image_height,  // image height
+                    fov,           // camera's horizontal field of view
+                    alias_factor,  // supersample factor for antialiasing
+                    lens_model);   // FOV
+
 Camera->SetName("Camera Sensor");
 Camera->SetLag(lag);
 Camera->SetCollectionWindow(exposure_time);
@@ -70,8 +72,8 @@ Any number of filters can be append to the list and modify the final result. The
 
 The position and rotation of the camera can be easily changed using `SetOffsetPose` during simulation
 ~~~{.cpp}
-Camera->SetOffsetPose(chrono::ChFrame<double>({8, 2, .5},   // Position
-                    Q_from_AngAxis(CH_C_PI, {0, 0, 1})));   // Rotation
+Camera->SetOffsetPose(chrono::ChFrame<double>({8, 2, .5},    // Position
+                      Q_from_AngAxis(CH_C_PI, {0, 0, 1})));  // Rotation
 ~~~
 
 ## Data access

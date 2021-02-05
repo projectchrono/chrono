@@ -107,7 +107,7 @@ class Model(object):
              self.body_floor_shape.GetBoxGeometry().Size = chrono.ChVectorD(3, 1, 3)
              self.body_floor.GetAssets().push_back(self.body_floor_shape)
              self.body_floor_texture = chrono.ChTexture()
-             self.body_floor_texture.SetTextureFilename(chrono.GetChronoDataFile('concrete.jpg'))
+             self.body_floor_texture.SetTextureFilename(chrono.GetChronoDataFile('textures/concrete.jpg'))
              self.body_floor.GetAssets().push_back(self.body_floor_texture)
 
       self.rev_pend_sys.Add(self.body_floor)
@@ -125,7 +125,7 @@ class Model(object):
              self.body_table.GetAssets().push_back(self.body_table_shape)
        
              self.body_table_texture = chrono.ChTexture()
-             self.body_table_texture.SetTextureFilename(chrono.GetChronoDataFile('concrete.jpg'))
+             self.body_table_texture.SetTextureFilename(chrono.GetChronoDataFile('textures/concrete.jpg'))
              self.body_table.GetAssets().push_back(self.body_table_texture)
       self.body_table.SetMass(0.1)
       self.rev_pend_sys.Add(self.body_table)
