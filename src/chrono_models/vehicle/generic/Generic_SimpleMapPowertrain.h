@@ -65,6 +65,10 @@ class CH_MODELS_API Generic_SimpleMapPowertrain : public ChPowertrain {
     /// This simplified model does not have a torque converter.
     virtual double GetTorqueConverterOutputTorque() const override { return 0; }
 
+    /// Return the torque converter output shaft speed.
+    /// This simplified model does not have a torque converter.
+    virtual double GetTorqueConverterOutputSpeed() const override { return 0; }
+
     /// Return the current transmission gear
     /// This simplified model does not have a transmission box.
     virtual int GetCurrentTransmissionGear() const override { return 1; }
