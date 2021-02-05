@@ -62,7 +62,7 @@ if (USE_FAST_DDS)
 	find_package(fastcdr REQUIRED)
 	find_package(fastrtps REQUIRED)
 
-	set(SYN_OTHER_LIBRARIES
+	list(APPEND SYN_LIBRARIES
 		fastrtps
 		fastcdr
 	)
@@ -169,8 +169,6 @@ set(SYN_FLATBUFFER_FILES
 	flatbuffer/message/SynTrackedVehicleMessage.h
 	flatbuffer/message/SynTrackedVehicleMessage.cpp
 	
-	# # flatbuffer/message/SynSensorMessage.h
-	# # flatbuffer/message/SynSensorMessage.cpp
 	flatbuffer/message/SynSCMMessage.h
 	flatbuffer/message/SynSCMMessage.cpp
     
@@ -249,7 +247,7 @@ target_compile_definitions(ChronoEngine_synchrono PRIVATE "SYN_API_COMPILE")
 
 target_include_directories(ChronoEngine_synchrono PUBLIC ${SYN_INCLUDES})
 
-target_link_libraries(ChronoEngine_synchrono ${SYN_LIB_NAMES} ${SYN_LIBRARIES} ${SYN_OTHER_LIBRARIES})
+target_link_libraries(ChronoEngine_synchrono ${SYN_LIB_NAMES} ${SYN_LIBRARIES})
 
 install(TARGETS ChronoEngine_synchrono
         RUNTIME DESTINATION bin
