@@ -23,7 +23,7 @@
 
 #include "chrono_models/vehicle/m113/M113.h"
 
-#include "chrono_models/vehicle/m113/M113_SimplePowertrain.h"
+#include "chrono_models/vehicle/m113/M113_SimpleCVTPowertrain.h"
 #include "chrono_models/vehicle/m113/M113_ShaftsPowertrain.h"
 
 namespace chrono {
@@ -92,9 +92,9 @@ void M113::Initialize() {
     // Create and initialize the powertrain system
     switch (m_powertrain_type) {
         default:
-            std::cout << "Warning! M113 powertrain type not supported. Reverting to Simple Powertrain" << std::endl;
-        case PowertrainModelType::SIMPLE: {
-            auto powertrain = chrono_types::make_shared<M113_SimplePowertrain>("Powertrain");
+            std::cout << "Warning! M113 powertrain type not supported. Reverting to Simple CVT Powertrain" << std::endl;
+        case PowertrainModelType::SIMPLE_CVT: {
+            auto powertrain = chrono_types::make_shared<M113_SimpleCVTPowertrain>("Powertrain");
             m_vehicle->InitializePowertrain(powertrain);
             break;
         }

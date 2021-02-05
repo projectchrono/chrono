@@ -23,7 +23,7 @@
 #include "chrono_vehicle/terrain/RigidTerrain.h"
 #include "chrono_vehicle/tracked_vehicle/track_shoe/ChTrackShoeBand.h"
 
-#include "chrono_models/vehicle/m113/M113_SimplePowertrain.h"
+#include "chrono_models/vehicle/m113/M113_SimpleCVTPowertrain.h"
 #include "chrono_models/vehicle/m113/M113_Vehicle.h"
 
 #ifdef CHRONO_IRRLICHT
@@ -167,6 +167,13 @@ int main(int argc, char* argv[]) {
     // monitored parts.  Data can be written to a file by invoking ChTrackedVehicle::WriteContacts().
     ////vehicle.SetContactCollection(true);
 
+    // ----------------------------
+    // Create the powertrain system
+    // ----------------------------
+
+    auto powertrain = chrono_types::make_shared<M113_SimpleCVTPowertrain>("powertrain");
+    vehicle.InitializePowertrain(powertrain);
+
     // ------------------
     // Create the terrain
     // ------------------
@@ -187,13 +194,6 @@ int main(int argc, char* argv[]) {
     // -------------------
 
     AddFixedObstacles(vehicle.GetSystem());
-
-    // ----------------------------
-    // Create the powertrain system
-    // ----------------------------
-
-    auto powertrain = chrono_types::make_shared<M113_SimplePowertrain>("powertrain");
-    vehicle.InitializePowertrain(powertrain);
 
 #ifdef USE_IRRLICHT
     // ---------------------------------------

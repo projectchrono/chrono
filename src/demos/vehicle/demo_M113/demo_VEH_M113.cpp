@@ -99,9 +99,9 @@ int main(int argc, char* argv[]) {
     ChContactMethod contact_method = ChContactMethod::SMC;
     CollisionType chassis_collision_type = CollisionType::NONE;
     TrackShoeType shoe_type = TrackShoeType::SINGLE_PIN;
-    DrivelineTypeTV driveline_type = DrivelineTypeTV::SIMPLE;
     BrakeType brake_type = BrakeType::SIMPLE;
-    PowertrainModelType powertrain_type = PowertrainModelType::SIMPLE;
+    DrivelineTypeTV driveline_type = DrivelineTypeTV::SIMPLE;
+    PowertrainModelType powertrain_type = PowertrainModelType::SIMPLE_CVT;
 
     //// TODO
     //// When using SMC, a double-pin shoe type requires MKL or MUMPS.
@@ -164,7 +164,7 @@ int main(int argc, char* argv[]) {
     ////                        TrackedCollisionFlag::SHOES_LEFT | TrackedCollisionFlag::IDLER_LEFT);
 
     // Monitor only contacts involving the chassis.
-    m113.GetVehicle().MonitorContacts(TrackedCollisionFlag::CHASSIS);
+    ////m113.GetVehicle().MonitorContacts(TrackedCollisionFlag::CHASSIS);
 
     // Collect contact information.
     // If enabled, number of contacts and local contact point locations are collected for all

@@ -12,14 +12,14 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// Simple powertrain model for the M113 vehicle.
+// Simple CVT powertrain model for the M113 vehicle.
 // - simple speed-torque curve
 // - no torque converter
 // - no transmission box
 //
 // =============================================================================
 
-#include "chrono_models/vehicle/m113/M113_SimplePowertrain.h"
+#include "chrono_models/vehicle/m113/M113_SimpleCVTPowertrain.h"
 
 namespace chrono {
 namespace vehicle {
@@ -28,14 +28,16 @@ namespace m113 {
 // -----------------------------------------------------------------------------
 // Static variables
 // -----------------------------------------------------------------------------
-const double M113_SimplePowertrain::m_max_torque = 600;
-const double M113_SimplePowertrain::m_max_speed = 350;
-const double M113_SimplePowertrain::m_fwd_gear_ratio = 0.240;
-const double M113_SimplePowertrain::m_rev_gear_ratio = -0.151;
+const double M113_SimpleCVTPowertrain::m_max_torque = 450 / 0.73756;  // 450 lb-ft
+const double M113_SimpleCVTPowertrain::m_max_power = 156597;          // 210 BHP
+const double M113_SimpleCVTPowertrain::m_fwd_gear_ratio = 0.240;
+const double M113_SimpleCVTPowertrain::m_rev_gear_ratio = -0.151;
+const double M113_SimpleCVTPowertrain::m_critical_speed =
+    M113_SimpleCVTPowertrain::m_max_power / M113_SimpleCVTPowertrain::m_max_torque;
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-M113_SimplePowertrain::M113_SimplePowertrain(const std::string& name) : ChSimplePowertrain(name) {}
+M113_SimpleCVTPowertrain::M113_SimpleCVTPowertrain(const std::string& name) : ChSimpleCVTPowertrain(name) {}
 
 }  // end namespace m113
 }  // end namespace vehicle

@@ -463,8 +463,8 @@ set(CVM_M113_FILES
     m113/M113_ShaftsPowertrain.h
     m113/M113_SimpleDriveline.cpp
     m113/M113_SimpleDriveline.h
-    m113/M113_SimplePowertrain.cpp
-    m113/M113_SimplePowertrain.h
+    m113/M113_SimpleCVTPowertrain.cpp
+    m113/M113_SimpleCVTPowertrain.h
     m113/M113_SprocketSinglePin.cpp
     m113/M113_SprocketSinglePin.h
     m113/M113_SprocketDoublePin.cpp

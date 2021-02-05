@@ -60,7 +60,7 @@ std::string vehicle_file("M113/vehicle/M113_Vehicle_SinglePin.json");
 ////std::string vehicle_file("M113/vehicle/M113_Vehicle_DoublePin.json");
 
 // JSON file for powertrain
-std::string simplepowertrain_file("M113/powertrain/M113_SimplePowertrain.json");
+std::string simplepowertrain_file("M113/powertrain/M113_SimpleCVTPowertrain.json");
 
 // JSON files for terrain (rigid plane)
 std::string rigidterrain_file("terrain/RigidPlane.json");

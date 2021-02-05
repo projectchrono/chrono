@@ -53,7 +53,7 @@ void SimpleCVTPowertrain::Create(const rapidjson::Document& d) {
     m_max_torque = d["Maximum Engine Torque"].GetDouble();
     m_max_power = d["Maximum Engine Power"].GetDouble();
 
-    m_critical_speed = m_max_power / m_max_torque / CH_C_2PI;
+    m_critical_speed = m_max_power / m_max_torque;
 }
 
 }  // end namespace vehicle

@@ -97,7 +97,7 @@ int main(int argc, char* argv[]) {
     m113.SetTrackShoeType(TrackShoeType::SINGLE_PIN);
     m113.SetDrivelineType(DrivelineTypeTV::SIMPLE);
     m113.SetBrakeType(BrakeType::SIMPLE);
-    m113.SetPowertrainType(PowertrainModelType::SIMPLE);
+    m113.SetPowertrainType(PowertrainModelType::SIMPLE_CVT);
     m113.SetChassisCollisionType(CollisionType::NONE);
 
     // Control steering type (enable crossdrive capability)
