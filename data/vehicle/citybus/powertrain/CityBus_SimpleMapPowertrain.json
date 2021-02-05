@@ -6,7 +6,7 @@
   "Engine":
   {
     "Maximal Engine Speed RPM":   2200.0,
-    "Torque Map":            [
+    "Map Full Throttle":     [
                                 [ -100.0,     0.0 ],
                                 [    100,   300.0 ],
                                 [    400,   500.0 ],
@@ -21,7 +21,7 @@
                                 [   2100,   820.0 ],
                                 [   2200,  -100.0 ]
                              ],
-    "Losses Map":            [
+    "Map Zero Throttle":     [
                                 [ -100.0,    0 ],
                                 [      0,    0 ],
                                 [    100,    0 ],

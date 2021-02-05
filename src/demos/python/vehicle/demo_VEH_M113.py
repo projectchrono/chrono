@@ -52,7 +52,7 @@ def main():
     # Create the powertrain system
     # ----------------------------
 
-    powertrain = veh.M113_SimplePowertrain("Powertrain")
+    powertrain = veh.M113_SimpleCVTPowertrain("Powertrain")
     vehicle.InitializePowertrain(powertrain)
 
     # Create the terrain

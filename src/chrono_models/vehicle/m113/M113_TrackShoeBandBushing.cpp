@@ -76,7 +76,7 @@ void M113_TrackShoeBandBushing::CreateContactMaterials(ChContactMethod contact_m
     {
         MaterialInfo minfo;
         minfo.mu = 0.8f;
-        minfo.cr = 0.1f;
+        minfo.cr = 0.75f;
         minfo.Y = 1e7f;
         m_pad_material = minfo.CreateMaterial(contact_method);
     }
@@ -85,7 +85,7 @@ void M113_TrackShoeBandBushing::CreateContactMaterials(ChContactMethod contact_m
     {
         MaterialInfo minfo;
         minfo.mu = 0.8f;
-        minfo.cr = 0.1f;
+        minfo.cr = 0.75f;
         minfo.Y = 1e7f;
         m_body_material = minfo.CreateMaterial(contact_method);
     }
@@ -97,7 +97,7 @@ void M113_TrackShoeBandBushing::CreateContactMaterials(ChContactMethod contact_m
     {
         MaterialInfo minfo;
         minfo.mu = 0.8f;
-        minfo.cr = 0.1f;
+        minfo.cr = 0.75f;
         minfo.Y = 1e7f;
         m_tooth_material = minfo.CreateMaterial(contact_method);
     }

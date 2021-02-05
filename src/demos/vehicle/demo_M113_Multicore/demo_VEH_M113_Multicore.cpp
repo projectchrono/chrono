@@ -45,8 +45,7 @@
 #include "chrono_vehicle/driver/ChDataDriver.h"
 
 // M113 model header files
-#include "chrono_models/vehicle/m113/M113_SimplePowertrain.h"
-#include "chrono_models/vehicle/m113/M113_Vehicle.h"
+#include "chrono_models/vehicle/m113/M113.h"
 
 #include "chrono_thirdparty/filesystem/path.h"
 
@@ -362,28 +361,31 @@ int main(int argc, char* argv[]) {
     // --------------------------
 
     // Create and initialize vehicle system
-    M113_Vehicle vehicle(true, TrackShoeType::SINGLE_PIN, BrakeType::SIMPLE, system);
-    ////vehicle.SetStepsize(0.0001);
+    M113 m113(system);
+    m113.SetTrackShoeType(TrackShoeType::SINGLE_PIN);
+    m113.SetDrivelineType(DrivelineTypeTV::SIMPLE);
+    m113.SetBrakeType(BrakeType::SIMPLE);
+    m113.SetPowertrainType(PowertrainModelType::SIMPLE_CVT);
+    m113.SetChassisCollisionType(CollisionType::NONE);
 
-    vehicle.Initialize(ChCoordsys<>(initLoc, initRot));
+    ////m113.GetVehicle().SetStepsize(0.0001);
 
-    vehicle.SetChassisVisualizationType(VisualizationType::NONE);
-    vehicle.SetSprocketVisualizationType(VisualizationType::MESH);
-    vehicle.SetIdlerVisualizationType(VisualizationType::MESH);
-    vehicle.SetRoadWheelAssemblyVisualizationType(VisualizationType::PRIMITIVES);
-    vehicle.SetRoadWheelVisualizationType(VisualizationType::MESH);
-    vehicle.SetTrackShoeVisualizationType(VisualizationType::MESH);
+    m113.SetInitPosition(ChCoordsys<>(initLoc, initRot));
+    m113.Initialize();
 
-    ////vehicle.SetCollide(TrackCollide::NONE);
-    ////vehicle.SetCollide(TrackCollide::WHEELS_LEFT | TrackCollide::WHEELS_RIGHT);
-    ////vehicle.SetCollide(TrackCollide::ALL & (~TrackCollide::SPROCKET_LEFT) & (~TrackCollide::SPROCKET_RIGHT));
+    m113.SetChassisVisualizationType(VisualizationType::NONE);
+    m113.SetSprocketVisualizationType(VisualizationType::MESH);
+    m113.SetIdlerVisualizationType(VisualizationType::MESH);
+    m113.SetRoadWheelAssemblyVisualizationType(VisualizationType::PRIMITIVES);
+    m113.SetRoadWheelVisualizationType(VisualizationType::MESH);
+    m113.SetTrackShoeVisualizationType(VisualizationType::MESH);
 
-    // Create the powertrain system
-    auto powertrain = chrono_types::make_shared<M113_SimplePowertrain>("Powertrain");
-    vehicle.InitializePowertrain(powertrain);
+    ////m113.GetVehicle().SetCollide(TrackCollide::NONE);
+    ////m113.GetVehicle().SetCollide(TrackCollide::WHEELS_LEFT | TrackCollide::WHEELS_RIGHT);
+    ////m113.GetVehicle().SetCollide(TrackCollide::ALL & (~TrackCollide::SPROCKET_LEFT) & (~TrackCollide::SPROCKET_RIGHT));
 
     // Create the driver system
-    ChDataDriver driver(vehicle, vehicle::GetDataFile("M113/driver/Acceleration.txt"));
+    ChDataDriver driver(m113.GetVehicle(), vehicle::GetDataFile("M113/driver/Acceleration.txt"));
     driver.Initialize();
 
     // ---------------
@@ -410,16 +412,16 @@ int main(int argc, char* argv[]) {
     int num_contacts = 0;
 
     // Inter-module communication data
-    BodyStates shoe_states_left(vehicle.GetNumTrackShoes(LEFT));
-    BodyStates shoe_states_right(vehicle.GetNumTrackShoes(RIGHT));
-    TerrainForces shoe_forces_left(vehicle.GetNumTrackShoes(LEFT));
-    TerrainForces shoe_forces_right(vehicle.GetNumTrackShoes(RIGHT));
+    BodyStates shoe_states_left(m113.GetVehicle().GetNumTrackShoes(LEFT));
+    BodyStates shoe_states_right(m113.GetVehicle().GetNumTrackShoes(RIGHT));
+    TerrainForces shoe_forces_left(m113.GetVehicle().GetNumTrackShoes(LEFT));
+    TerrainForces shoe_forces_right(m113.GetVehicle().GetNumTrackShoes(RIGHT));
 
     while (time < time_end) {
         // Collect output data from modules
         ChDriver::Inputs driver_inputs = driver.GetInputs();
-        vehicle.GetTrackShoeStates(LEFT, shoe_states_left);
-        vehicle.GetTrackShoeStates(RIGHT, shoe_states_right);
+        m113.GetVehicle().GetTrackShoeStates(LEFT, shoe_states_left);
+        m113.GetVehicle().GetTrackShoeStates(RIGHT, shoe_states_right);
 
         // Output
         if (sim_frame == next_out_frame) {
@@ -445,18 +447,18 @@ int main(int argc, char* argv[]) {
         }
 
         // Release the vehicle chassis at the end of the hold time.
-        if (vehicle.GetChassisBody()->GetBodyFixed() && time > time_hold) {
+        if (m113.GetChassisBody()->GetBodyFixed() && time > time_hold) {
             std::cout << std::endl << "Release vehicle t = " << time << std::endl;
-            vehicle.GetChassisBody()->SetBodyFixed(false);
+            m113.GetChassisBody()->SetBodyFixed(false);
         }
 
         // Update modules (process inputs from other modules)
         driver.Synchronize(time);
-        vehicle.Synchronize(time, driver_inputs, shoe_forces_left, shoe_forces_right);
+        m113.Synchronize(time, driver_inputs, shoe_forces_left, shoe_forces_right);
 
         // Advance simulation for one timestep for all modules
         driver.Advance(time_step);
-        vehicle.Advance(time_step);
+        m113.Advance(time_step);
         system->DoStepDynamics(time_step);
 
 #ifdef CHRONO_OPENGL
@@ -470,7 +472,7 @@ int main(int argc, char* argv[]) {
 
         // Periodically display maximum constraint violation
         if (monitor_bilaterals && sim_frame % bilateral_frame_interval == 0) {
-            vehicle.LogConstraintViolations();
+            m113.GetVehicle().LogConstraintViolations();
         }
 
         // Update counters.

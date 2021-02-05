@@ -128,9 +128,9 @@ double ChSimpleTrackDriveline::GetSprocketTorque(VehicleSide side) const {
 double ChSimpleTrackDriveline::GetSprocketSpeed(VehicleSide side) const {
     switch (side) {
         case LEFT:
-            return m_shaft_left->GetPos_dt();
+            return -m_shaft_left->GetPos_dt();
         case RIGHT:
-            return m_shaft_right->GetPos_dt();
+            return -m_shaft_right->GetPos_dt();
     }
 
     return 0;

@@ -545,7 +545,7 @@ HMMWV_Full* CreateVehicle(ChSystem* system, double vertical_offset) {
     hmmwv->SetInitPosition(ChCoordsys<>(initLoc + ChVector<>(0, 0, vertical_offset), initRot));
     hmmwv->SetInitFwdVel(initSpeed);
     hmmwv->SetPowertrainType(PowertrainModelType::SIMPLE_MAP);
-    hmmwv->SetDriveType(DrivelineType::AWD);
+    hmmwv->SetDriveType(DrivelineTypeWV::AWD);
     hmmwv->SetTireType(TireModelType::RIGID);
 
     hmmwv->Initialize();

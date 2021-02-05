@@ -502,7 +502,7 @@ enum class PowertrainModelType {
 };
 
 /// Enum for available wheeled-vehicle suspension model templates.
-enum class SuspensionType {
+enum class SuspensionTypeWV {
     DOUBLE_WISHBONE,                  ///< double wishbone
     DOUBLE_WISHBONE_REDUCED,          ///< simplified double wishbone (constraint-based)
     HENDRICKSON_PRIMAXX,              ///< Hendrickson PRIMAXX (walking beam)
@@ -528,17 +528,23 @@ enum class BrakeType {
 };
 
 /// Enum for available wheeled-vehicle steering model templates.
-enum class SteeringType {
+enum class SteeringTypeWV {
     PITMAN_ARM,         ///< Pitman arm (input to revolute joint)
     PITMAN_ARM_SHAFTS,  ///< Pitman arm with compliant column (input to steering wheel)
     RACK_PINION         ///< rack-pinion (input to pinion)
 };
 
-/// Enum for drive types.
-enum class DrivelineType {
+/// Enum for wheeled-vehicle driveline types.
+enum class DrivelineTypeWV {
     FWD,    ///< front-wheel drive
     RWD,    ///< rear-wheel drive
     AWD,    ///< all-wheel drive
+    SIMPLE  ///< simple kinematic driveline
+};
+
+/// Enum for tracked-vehicle driveline types.
+enum class DrivelineTypeTV {
+    BDS,    ///< braked differential steering
     SIMPLE  ///< simple kinematic driveline
 };
 

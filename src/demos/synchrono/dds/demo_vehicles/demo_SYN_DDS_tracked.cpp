@@ -334,7 +334,7 @@ void GetVehicleModelFiles(VehicleType type,
     switch (type) {
         case VehicleType::M113:
             vehicle = vehicle::GetDataFile("M113/vehicle/M113_Vehicle_SinglePin.json");
-            powertrain = vehicle::GetDataFile("M113/powertrain/M113_SimplePowertrain.json");
+            powertrain = vehicle::GetDataFile("M113/powertrain/M113_SimpleCVTPowertrain.json");
             zombie = synchrono::GetDataFile("vehicle/M113.json");
             cam_distance = 8.0;
             break;

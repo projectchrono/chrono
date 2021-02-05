@@ -69,6 +69,9 @@ class CH_VEHICLE_API ChShaftsPowertrain : public ChPowertrain {
     /// Return the output torque from the torque converter.
     virtual double GetTorqueConverterOutputTorque() const override { return m_torqueconverter->GetTorqueReactionOnOutput(); }
 
+    /// Return the torque converter output shaft speed.
+    virtual double GetTorqueConverterOutputSpeed() const override { return m_shaft_ingear->GetPos_dt(); }
+
     /// Return the current transmission gear.
     virtual int GetCurrentTransmissionGear() const override { return m_current_gear; }
 

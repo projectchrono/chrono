@@ -9,34 +9,28 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Radu Serban
+// Authors: Rainer Gericke
 // =============================================================================
 //
-// Simple powertrain model for the M113 vehicle.
-// - simple speed-torque curve
-// - no torque converter
-// - no transmission box
+// A simplified Marder driveline.
 //
 // =============================================================================
 
-#include "chrono_models/vehicle/m113/M113_SimplePowertrain.h"
+#include "chrono_models/vehicle/marder/Marder_SimpleDriveline.h"
 
 namespace chrono {
 namespace vehicle {
-namespace m113 {
+namespace marder {
 
 // -----------------------------------------------------------------------------
 // Static variables
 // -----------------------------------------------------------------------------
-const double M113_SimplePowertrain::m_max_torque = 1000;
-const double M113_SimplePowertrain::m_max_speed = 3000 * CH_C_2PI;
-const double M113_SimplePowertrain::m_fwd_gear_ratio = 0.1;
-const double M113_SimplePowertrain::m_rev_gear_ratio = -0.3;
+const double Marder_SimpleDriveline::m_diff_maxBias = 1;  //// 3;
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-M113_SimplePowertrain::M113_SimplePowertrain(const std::string& name) : ChSimplePowertrain(name) {}
+Marder_SimpleDriveline::Marder_SimpleDriveline() : ChSimpleTrackDriveline("Marder_SimpleDriveline") {}
 
-}  // end namespace m113
+}  // namespace marder
 }  // end namespace vehicle
 }  // end namespace chrono
