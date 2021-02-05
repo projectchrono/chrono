@@ -24,6 +24,7 @@
 #include "chrono_models/vehicle/marder/Marder.h"
 
 #include "chrono_models/vehicle/marder/Marder_SimplePowertrain.h"
+#include "chrono_models/vehicle/marder/Marder_SimpleCVTPowertrain.h"
 //#include "chrono_models/vehicle/marder/Marder_ShaftsPowertrain.h"
 
 namespace chrono {
@@ -97,6 +98,12 @@ void Marder::Initialize() {
             auto powertrain = chrono_types::make_shared<Marder_SimplePowertrain>("Powertrain");
             m_vehicle->InitializePowertrain(powertrain);
             break;
+        }
+        case PowertrainModelType::SIMPLE_CVT: {
+            auto powertrain = chrono_types::make_shared<Marder_SimpleCVTPowertrain>("Powertrain");
+            m_vehicle->InitializePowertrain(powertrain);
+            break;
+        
         }
     }
 }

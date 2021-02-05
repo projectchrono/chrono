@@ -438,6 +438,8 @@ set(CVM_MARDER_FILES
     marder/Marder_SimpleDriveline.cpp
     marder/Marder_SimplePowertrain.h 
     marder/Marder_SimplePowertrain.cpp
+    marder/Marder_SimpleCVTPowertrain.h 
+    marder/Marder_SimpleCVTPowertrain.cpp
     marder/Marder_TrackAssemblySinglePin.h
     marder/Marder_TrackAssemblySinglePin.cpp
     marder/Marder_Vehicle.h

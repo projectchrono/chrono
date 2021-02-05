@@ -101,7 +101,7 @@ int main(int argc, char* argv[]) {
     TrackShoeType shoe_type = TrackShoeType::SINGLE_PIN;
     DrivelineTypeTV driveline_type = DrivelineTypeTV::SIMPLE;
     BrakeType brake_type = BrakeType::SIMPLE;
-    PowertrainModelType powertrain_type = PowertrainModelType::SIMPLE;
+    PowertrainModelType powertrain_type = PowertrainModelType::SIMPLE_CVT;
 
     //// TODO
     //// When using SMC, a double-pin shoe type requires MKL or MUMPS.
