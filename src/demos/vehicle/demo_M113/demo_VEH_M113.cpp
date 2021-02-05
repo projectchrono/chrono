@@ -337,7 +337,7 @@ int main(int argc, char* argv[]) {
         integrator->SetStepControl(false);
         integrator->SetModifiedNewton(false);
         integrator->SetScaling(true);
-        integrator->SetVerbose(true);
+        ////integrator->SetVerbose(true);
 #endif
     } else {
         auto solver = chrono_types::make_shared<ChSolverBB>();
@@ -455,7 +455,7 @@ int main(int argc, char* argv[]) {
         realtime_timer.Spin(step_size);
     }
 
-    m113.GetVehicle().WriteContacts("M113_contacts.out");
+    m113.GetVehicle().WriteContacts(out_dir + "/M113_contacts.out");
 
     return 0;
 }
