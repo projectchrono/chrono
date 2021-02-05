@@ -37,6 +37,7 @@
 #include "chrono_models/vehicle/feda/FEDA_SimpleMapPowertrain.h"
 
 #include "chrono_models/vehicle/m113/M113_SimpleCVTPowertrain.h"
+#include "chrono_models/vehicle/m113/M113_SimpleMapPowertrain.h"
 #include "chrono_models/vehicle/m113/M113_ShaftsPowertrain.h"
 %}
 
@@ -67,6 +68,7 @@
 %shared_ptr(chrono::vehicle::feda::FEDA_SimpleMapPowertrain)
 
 %shared_ptr(chrono::vehicle::m113::M113_SimpleCVTPowertrain)
+%shared_ptr(chrono::vehicle::m113::M113_SimpleMapPowertrain)
 %shared_ptr(chrono::vehicle::m113::M113_ShaftsPowertrain)
 
 %import "chrono_python/vehicle/ChPowertrain.i"
@@ -98,4 +100,5 @@
 %include "../../chrono_models/vehicle/feda/FEDA_SimpleMapPowertrain.h"
 
 %include "../../chrono_models/vehicle/m113/M113_SimpleCVTPowertrain.h"
+%include "../../chrono_models/vehicle/m113/M113_SimpleMapPowertrain.h"
 %include "../../chrono_models/vehicle/m113/M113_ShaftsPowertrain.h"

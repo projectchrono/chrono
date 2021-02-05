@@ -61,8 +61,8 @@ void SimpleMapPowertrain::Create(const rapidjson::Document& d) {
 
     m_max_engine_speed = rpm2rads * d["Engine"]["Maximal Engine Speed RPM"].GetDouble();
 
-    ReadMapData(d["Engine"]["Torque Map"], m_engine_torque);
-    ReadMapData(d["Engine"]["Losses Map"], m_engine_losses);
+    ReadMapData(d["Engine"]["Map Full Throttle"], m_engine_map_full);
+    ReadMapData(d["Engine"]["Map Zero Throttle"], m_engine_map_zero);
 
     // Read transmission data
     assert(d.HasMember("Transmission"));
@@ -104,12 +104,12 @@ void SimpleMapPowertrain::SetMapData(const MapData& map_data, std::shared_ptr<Ch
 }
 
 void SimpleMapPowertrain::SetEngineTorqueMaps(ChFunction_Recorder& map0, ChFunction_Recorder& mapF) {
-    for (unsigned int i = 0; i < m_engine_losses.m_n; i++) {
-        map0.AddPoint(rpm2rads * m_engine_losses.m_x[i], m_engine_losses.m_y[i]);
+    for (unsigned int i = 0; i < m_engine_map_zero.m_n; i++) {
+        map0.AddPoint(rpm2rads * m_engine_map_zero.m_x[i], m_engine_map_zero.m_y[i]);
     }
 
-    for (unsigned int i = 0; i < m_engine_torque.m_n; i++) {
-        mapF.AddPoint(rpm2rads * m_engine_torque.m_x[i], m_engine_torque.m_y[i]);
+    for (unsigned int i = 0; i < m_engine_map_full.m_n; i++) {
+        mapF.AddPoint(rpm2rads * m_engine_map_full.m_x[i], m_engine_map_full.m_y[i]);
     }
 }
 
