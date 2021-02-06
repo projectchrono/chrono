@@ -298,6 +298,8 @@ int main(int argc, char* argv[]) {
             SynLog() << (time_span.count() / 1e3) / time << "\n";
         }
     }
+    // Properly shuts down other ranks when one rank ends early
+    syn_manager.QuitSimulation();
 
     return 0;
 }

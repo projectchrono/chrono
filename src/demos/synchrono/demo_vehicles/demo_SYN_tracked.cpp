@@ -293,6 +293,7 @@ int main(int argc, char* argv[]) {
             SynLog() << (time_span.count() / 1e3) / time << "\n";
         }
     }
+    syn_manager.QuitSimulation();
 
     return 0;
 }

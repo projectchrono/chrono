@@ -22,7 +22,6 @@ include "Agent.fbs";
 include "SPAT.fbs";
 include "MAP.fbs";
 include "Terrain.fbs";
-include "Sensor.fbs";
 include "Approach.fbs";
 include "Simulation.fbs";
 
@@ -34,7 +33,6 @@ union Type {
   SPAT.State, 
   MAP.State, 
   Terrain.State, 
-  Sensor.State,
   Approach.State,
   Simulation.State
 }
