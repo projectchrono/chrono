@@ -245,7 +245,7 @@ void Curiosity_Chassis::Initialize() {
     trimesh->ComputeMassProperties(true, mmass, mcog, minertia);
     mmass = 4.3;
     mcog = ChVector<>(0, 0, 0);
-    minertia = ChMatrix33<>(1.0);
+    minertia = ChMatrix33<>(43.9581);
     ChMatrix33<> principal_inertia_rot;
     ChVector<> principal_I;
     ChInertiaUtils::PrincipalInertia(minertia, principal_I, principal_inertia_rot);
@@ -379,7 +379,7 @@ void Curiosity_Arm::Initialize() {
     trimesh->ComputeMassProperties(true, mmass, mcog, minertia);
     mmass = 4.3;
     mcog = ChVector<>(0, 0, 0);
-    minertia = ChMatrix33<>(1.0);
+    minertia = ChMatrix33<>(5.0);
 
 
     ChMatrix33<> principal_inertia_rot;
@@ -883,25 +883,26 @@ void CuriosityRover::Initialize() {
         if (i == 0){
             ChVector<> rev_pos = cr_rel_pos_lf;
             ChQuaternion<> rev_rot = Q_from_AngAxis(-CH_C_PI / 2, ChVector<>(1, 0, 0));
-            AddLockJoint(m_arms[i]->GetBody(), m_chassis->GetBody(), m_chassis->GetBody(), m_system, rev_pos, rev_rot);
+            AddRevoluteJoint(m_arms[i]->GetBody(), m_chassis->GetBody(), m_chassis->GetBody(), m_system, rev_pos, rev_rot);
         } 
 
         if (i == 1){
             ChVector<> rev_pos = cr_rel_pos_rf;
             ChQuaternion<> rev_rot = Q_from_AngAxis(-CH_C_PI / 2, ChVector<>(1, 0, 0));
-            AddLockJoint(m_arms[i]->GetBody(), m_chassis->GetBody(), m_chassis->GetBody(), m_system, rev_pos, rev_rot);
+            AddRevoluteJoint(m_arms[i]->GetBody(), m_chassis->GetBody(), m_chassis->GetBody(), m_system, rev_pos, rev_rot);
         }
 
         if (i == 2){
             ChVector<> rev_pos = cr_rel_pos_lb;
             ChQuaternion<> rev_rot = Q_from_AngAxis(-CH_C_PI / 2, ChVector<>(1, 0, 0));
-            AddLockJoint(m_arms[i]->GetBody(), m_arms[i-2]->GetBody(), m_chassis->GetBody(), m_system, rev_pos, rev_rot);
+            AddRevoluteJoint(m_arms[i]->GetBody(), m_arms[i - 2]->GetBody(), m_chassis->GetBody(), m_system, rev_pos,
+                             rev_rot);
         }
 
         if (i == 3){
             ChVector<> rev_pos = cr_rel_pos_rb;
             ChQuaternion<> rev_rot = Q_from_AngAxis(-CH_C_PI / 2, ChVector<>(1, 0, 0));
-            AddLockJoint(m_arms[i]->GetBody(), m_arms[i-2]->GetBody(), m_chassis->GetBody(), m_system, rev_pos, rev_rot);
+            AddRevoluteJoint(m_arms[i]->GetBody(), m_arms[i-2]->GetBody(), m_chassis->GetBody(), m_system, rev_pos, rev_rot);
         }
     }
 
