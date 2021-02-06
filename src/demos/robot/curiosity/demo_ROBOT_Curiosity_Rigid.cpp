@@ -138,10 +138,12 @@ int main(int argc, char* argv[]) {
         // If use the customized wheel material
         rover = chrono_types::make_shared<CuriosityRover>(&mphysicalSystem, body_pos, body_rot, CustomWheelMaterial(ChContactMethod::NSC));
         rover->Initialize();
+        std::cout<<"total mass:"<<rover->GetRoverMass()<<std::endl;
     } else {
         // If use default wheel material
         rover = rover = chrono_types::make_shared<CuriosityRover>(&mphysicalSystem, body_pos, body_rot);
         rover->Initialize();
+        std::cout<<"total mass:"<<rover->GetRoverMass()<<std::endl;
     }
 
 

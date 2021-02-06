@@ -229,7 +229,7 @@ Curiosity_Chassis::Curiosity_Chassis(const std::string& name,
     m_mesh_name = "curiosity_chassis";
     m_offset = ChVector<>(0, 0, 0);
     m_color = ChColor(0.4f, 0.4f, 0.7f);
-    m_density = 5;
+    m_density = 100;
 }
 
 void Curiosity_Chassis::Initialize() {
@@ -301,6 +301,7 @@ void Curiosity_Wheel::Initialize() {
     ChVector<> mcog;
     ChMatrix33<> minertia;
     trimesh->ComputeMassProperties(true, mmass, mcog, minertia);
+    mmass = 0.1;
     ChMatrix33<> principal_inertia_rot;
     ChVector<> principal_I;
     ChInertiaUtils::PrincipalInertia(minertia, principal_I, principal_inertia_rot);
@@ -430,7 +431,7 @@ Curiosity_Steer::Curiosity_Steer(const std::string& name,
 
     m_offset = ChVector<>(0, 0, 0);
     m_color = ChColor(0.4f, 0.4f, 0.7f);
-    m_density = 10;
+    m_density = 100;
 }
 
 void Curiosity_Steer::Initialize() {
@@ -952,6 +953,31 @@ std::shared_ptr<ChBodyAuxRef> CuriosityRover::GetChassisBody() {
 
 double CuriosityRover::GetRoverMass() {
     double tot_mass = 0.0;
+    tot_mass = tot_mass + m_chassis->GetBody()->GetMass();
+
+
+    for(int i = 0 ; i < 6; i ++){
+        tot_mass = tot_mass + m_wheels[i]->GetBody()->GetMass();
+        std::cout<<"wheel "<<i<<" mass: "<<m_wheels[i]->GetBody()->GetMass()<<std::endl;
+    }
+
+
+    for(int i = 0; i < 4; i ++){
+        tot_mass = tot_mass + m_arms[i]->GetBody()->GetMass();
+        std::cout<<"arm "<<i<<" mass: "<<m_arms[i]->GetBody()->GetMass()<<std::endl;
+    }
+
+
+    for(int i = 0; i < 4; i ++){
+        tot_mass = tot_mass + m_steers[i]->GetBody()->GetMass();
+        std::cout<<"steer "<<i<<" mass: "<<m_steers[i]->GetBody()->GetMass()<<std::endl;
+    }
+
+
+    for(int i = 0; i < 3; i ++){
+        tot_mass = tot_mass + m_balancers[i]->GetBody()->GetMass();
+        std::cout<<"balancer "<<i<<" mass: "<<m_balancers[i]->GetBody()->GetMass()<<std::endl;
+    }
     return tot_mass;
 }
 
