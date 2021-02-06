@@ -317,6 +317,10 @@ class CH_MODELS_API CuriosityRover {
     ChQuaternion<> m_rover_rot;
     ChVector<> m_rover_pos;
 
+    std::vector<std::shared_ptr<ChLinkMotorRotationSpeed>> m_motors;  ///< vector to store motors
+                                                                      ///< 0-LF,1-RF,2-LM,3-RM,4-LB,5-RB
+
+    std::vector<std::shared_ptr<ChFunction_Const>> m_motors_func;  ///< constant motor angular speed func
 
     // model parts material
     std::shared_ptr<ChMaterialSurface> m_chassis_material;  ///< chassis contact material
