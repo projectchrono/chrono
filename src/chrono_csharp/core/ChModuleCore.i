@@ -67,6 +67,7 @@
 #include "chrono/assets/ChSurfaceShape.h"
 #include "chrono/assets/ChTriangleMeshShape.h"
 #include "chrono/assets/ChEllipsoidShape.h"
+#include "chrono/assets/ChVisualMaterial.h"
 #include "chrono/assets/ChGlyphs.h"
 #include "chrono/collision/ChCollisionUtils.h"
 #include "chrono/collision/ChCollisionSystem.h"
@@ -133,6 +134,7 @@ using namespace chrono::fea;
 %shared_ptr(chrono::ChBoxShape) 
 %shared_ptr(chrono::ChSphereShape)
 %shared_ptr(chrono::ChEllipsoidShape)
+%shared_ptr(chrono::ChVisualMaterial)
 %shared_ptr(chrono::ChCylinderShape)
 %shared_ptr(chrono::ChCamera) 
 %shared_ptr(chrono::ChLineShape)
@@ -164,6 +166,8 @@ using namespace chrono::fea;
 %shared_ptr(chrono::ChFunction_Sequence)
 %shared_ptr(chrono::ChFunction_Sigma)
 %shared_ptr(chrono::ChFunction_Sine)
+%shared_ptr(chrono::ChFunction_Setpoint)
+%shared_ptr(chrono::ChFunction_SetpointCallback)
 
 %shared_ptr(chrono::ChFunctionRotation)
 %shared_ptr(chrono::ChFunctionRotation_axis)
@@ -331,6 +335,7 @@ using namespace chrono::fea;
 // assets
 %include "ChAsset.i"
 %include "ChColor.i"
+%include "../chrono/assets/ChVisualMaterial.h"
 %include "ChVisualization.i"
 %include "ChColorAsset.i"
 %include "ChAssetLevel.i"
@@ -441,6 +446,7 @@ using namespace chrono::fea;
 %DefSharedPtrDynamicDowncast(chrono,ChAsset,ChPointPointSpring)
 %DefSharedPtrDynamicDowncast(chrono,ChAsset,ChTriangleMeshShape)
 %DefSharedPtrDynamicDowncast(chrono,ChAsset,ChEllipsoidShape)
+%DefSharedPtrDynamicDowncast(chrono,ChAsset,ChVisualMaterial)
 
 %DefSharedPtrDynamicDowncast(chrono,ChBodyFrame, ChBody)
 %DefSharedPtrDynamicDowncast(chrono,ChBodyFrame, ChBodyAuxRef)

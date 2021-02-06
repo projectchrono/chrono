@@ -65,8 +65,6 @@
 
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChVehicle.h"
-#include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicle.h"
-#include "chrono_vehicle/wheeled_vehicle/vehicle/WheeledVehicle.h"
 #include "chrono_vehicle/ChSubsysDefs.h"
 #include "chrono_vehicle/ChVehicleOutput.h"
 #include "chrono_vehicle/ChVehicleModelData.h"
@@ -81,7 +79,9 @@
 
 // Wheeled vehicle
 #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicle.h"
+#include "chrono_vehicle/wheeled_vehicle/ChWheeledTrailer.h"
 #include "chrono_vehicle/wheeled_vehicle/vehicle/WheeledVehicle.h"
+#include "chrono_vehicle/wheeled_vehicle/vehicle/WheeledTrailer.h"
 
 #include "chrono_vehicle/wheeled_vehicle/ChWheel.h"
 #include "chrono_vehicle/wheeled_vehicle/wheel/Wheel.h"
@@ -130,6 +130,9 @@ using namespace chrono::vehicle::citybus;
 using namespace chrono::vehicle::man;
 using namespace chrono::vehicle::uaz;
 using namespace chrono::vehicle::gator;
+using namespace chrono::vehicle::man;
+using namespace chrono::vehicle::fmtv;
+using namespace chrono::vehicle::kraz;
 
 using namespace chrono::vehicle::m113;
 %}
@@ -153,11 +156,8 @@ using namespace chrono::vehicle::m113;
 // different c++ class, when possible.
 
 %include "std_string.i"
-////%include "std_wstring.i"
 %include "std_vector.i"
 %include "typemaps.i"
-////%include "wchar.i"
-////%include "python/cwstring.i"
 %include "cstring.i"
 
 // This is to enable references to double,int,etc. types in function parameters
@@ -229,7 +229,9 @@ Before adding a shared_ptr, mark as shared ptr all its inheritance tree in the m
 %shared_ptr(chrono::vehicle::ChVehicle)
 %shared_ptr(chrono::vehicle::ChAxle)
 %shared_ptr(chrono::vehicle::ChWheeledVehicle)
+%shared_ptr(chrono::vehicle::ChWheeledTrailer)
 %shared_ptr(chrono::vehicle::WheeledVehicle)
+%shared_ptr(chrono::vehicle::WheeledTrailer)
 
 %shared_ptr(chrono::vehicle::ChSprocket)
 %shared_ptr(chrono::vehicle::ChIdler)
@@ -364,7 +366,9 @@ Before adding a shared_ptr, mark as shared ptr all its inheritance tree in the m
 %include "../../chrono_vehicle/wheeled_vehicle/ChAxle.h"
 
 %include "../../chrono_vehicle/wheeled_vehicle/ChWheeledVehicle.h"
+%include "../../chrono_vehicle/wheeled_vehicle/ChWheeledTrailer.h"
 %include "../../chrono_vehicle/wheeled_vehicle/vehicle/WheeledVehicle.h"
+%include "../../chrono_vehicle/wheeled_vehicle/vehicle/WheeledTrailer.h"
 
 // Tracked vehicles
 %include "ChTrackAssembly.i"
@@ -431,7 +435,13 @@ Before adding a shared_ptr, mark as shared ptr all its inheritance tree in the m
 %DefSharedPtrDynamicDowncast(chrono::vehicle,ChSteering, ChPitmanArmShafts)
 %DefSharedPtrDynamicDowncast(chrono::vehicle,ChSteering, ChRackPinion)
 %DefSharedPtrDynamicDowncast(chrono::vehicle,ChSteering, ChRotaryArm)
+
 %DefSharedPtrDynamicDowncast(chrono::vehicle,ChChassis, ChRigidChassis)
+%DefSharedPtrDynamicDowncast(chrono::vehicle,ChChassisRear, ChRigidChassisRear)
+
+%DefSharedPtrDynamicDowncast(chrono::vehicle,ChChassisConnector, ChChassisConnectorArticulated)
+%DefSharedPtrDynamicDowncast(chrono::vehicle,ChChassisConnector, ChChassisConnectorHitch)
+%DefSharedPtrDynamicDowncast(chrono::vehicle,ChChassisConnector, ChChassisConnectorTorsion)
 
 %DefSharedPtrDynamicDowncast(chrono::vehicle,ChTire, ChTMeasyTire)
 %DefSharedPtrDynamicDowncast(chrono::vehicle,ChTire, ChRigidTire)

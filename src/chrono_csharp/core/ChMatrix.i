@@ -13,17 +13,6 @@ using namespace chrono;
 
 %}
 
-
-
-
-
-
-
-
-
-
-
-
 template <typename Real = double>
 class chrono::ChMatrixDynamic : public Eigen::Matrix<Real, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> {
 	public:
@@ -127,7 +116,6 @@ class chrono::ChVectorDynamic : public Eigen::Matrix<T, Eigen::Dynamic, 1, Eigen
 
 			}
 		};
-
 
 %ignore chrono::ChMatrixDynamic;
 %include "../../chrono/core/ChMatrix.h"

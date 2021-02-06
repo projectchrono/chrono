@@ -33,28 +33,4 @@
 
 
 %template(ChQuaternionD) chrono::ChQuaternion<double>; 
-//%template(ChQuaternionF) chrono::ChQuaternion<float>; 
-
-
-
-%extend chrono::ChQuaternion<double>{
-		public:
-					// Add function to support python 'print(...)'
-			char *__str__() 
-					{
-						static char temp[256];
-						sprintf(temp,"[ %g, %g, %g, %g ]", $self->e0(),$self->e1(),$self->e2(),$self->e3());
-						return &temp[0];
-					}
-					// operator  ~  as ! in c++ 
-			ChQuaternion<double> __invert__() const  
-					{
-						return $self->operator!();
-					}
-					// operator  ^  as ^ in c++ 
-			double __xor__(const ChQuaternion<double>& other) const 
-					{ 
-						return $self->operator^(other);
-					}
-		};
-
+%template(ChQuaternionF) chrono::ChQuaternion<float>; 
