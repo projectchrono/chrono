@@ -86,10 +86,10 @@ class CH_SENSOR_API ChLidarSensor : public ChOptixSensor {
                   float min_vertical_angle,
                   float max_distance,
                   unsigned int sample_radius = 1,
-                  float divergence_angle = .003,
+                  float divergence_angle = 0.003f,
                   LidarReturnMode return_mode = LidarReturnMode::STRONGEST_RETURN,
                   LidarModelType lidar_model = LidarModelType::RAYCAST,
-                  float clip_near = 1e-3);
+                  float clip_near = 1e-3f);
 
     /// Class destructor
     ~ChLidarSensor();

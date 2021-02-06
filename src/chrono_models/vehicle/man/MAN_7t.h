@@ -119,7 +119,6 @@ class CH_MODELS_API MAN_7t {
 
     double m_tire_mass;
     bool m_use_shafts_drivetrain;
-    double m_drivetrain_max_speed;  // (rad/s) max. omega of simple cvt powertrain
 };
 
 /// @} vehicle_models_man

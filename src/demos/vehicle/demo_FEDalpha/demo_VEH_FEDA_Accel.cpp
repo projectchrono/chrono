@@ -58,7 +58,7 @@ VisualizationType wheel_vis_type = VisualizationType::MESH;
 PowertrainModelType powertrain_model = PowertrainModelType::SHAFTS;
 
 // Drive type (FWD, RWD, or AWD)
-DrivelineType drive_type = DrivelineType::AWD;
+DrivelineTypeWV drive_type = DrivelineTypeWV::AWD;
 
 // Type of tire model (PAC02)
 TireModelType tire_model = TireModelType::PAC02;

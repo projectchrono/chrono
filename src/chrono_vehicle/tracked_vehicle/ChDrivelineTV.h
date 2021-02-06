@@ -24,6 +24,7 @@
 
 #include "chrono_vehicle/ChDriveline.h"
 #include "chrono_vehicle/ChChassis.h"
+#include "chrono_vehicle/ChDriver.h"
 #include "chrono_vehicle/tracked_vehicle/ChTrackAssembly.h"
 
 namespace chrono {
@@ -62,7 +63,13 @@ class CH_VEHICLE_API ChDrivelineTV : public ChDriveline {
     virtual void Synchronize(double steering, double torque);
 
   protected:
+    virtual void CombineDriverInputs(const ChDriver::Inputs& driver_inputs,
+                                     double& braking_left,
+                                     double& braking_right);
+
     bool m_gyration_mode;  ///< flag indicating if in gyration mode (turn in place)
+
+    friend class ChTrackedVehicle;
 };
 
 /// @} vehicle_tracked_driveline

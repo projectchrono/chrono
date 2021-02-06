@@ -26,7 +26,7 @@ if(NOT ENABLE_MODULE_VEHICLE)
     return()
 endif()
 
-set(SYN_INCLUDES "${CMAKE_CURRENT_SOURCE_DIR}/../chrono_thirdparty/flatbuffers/include")
+set(SYN_INCLUDES "${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/flatbuffers/include")
 
 set(SYN_CXX_FLAGS "${CH_CXX_FLAGS}")
 set(SYN_LINKER_FLAGS "${CH_LINKERFLAG_SHARED}")

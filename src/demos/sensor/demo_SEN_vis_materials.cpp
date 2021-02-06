@@ -93,11 +93,12 @@ int main(int argc, char* argv[]) {
     int alias_factor = 4;
     auto cam = chrono_types::make_shared<ChCameraSensor>(
         sphere2,                                                             // body camera is attached to
-        30,                                                                  // update rate in Hz
+        30.0f,                                                               // update rate in Hz
         chrono::ChFrame<double>({-12, 0, 0}, Q_from_AngAxis(0, {0, 1, 0})),  // offset pose
         1280,                                                                // image width
         720,                                                                 // image height
-        CH_C_PI / 3);                                                        // FOV
+        (float)CH_C_PI / 3                                                   // FOV
+    );
     cam->SetName("Camera Sensor");
     // cam->SetLag(0);
     // cam->SetCollectionWindow(0);

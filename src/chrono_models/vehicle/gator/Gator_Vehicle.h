@@ -35,14 +35,14 @@ namespace gator {
 class CH_MODELS_API Gator_Vehicle : public ChWheeledVehicle {
   public:
     Gator_Vehicle(const bool fixed,
-                  DrivelineType driveline_type,
+                  DrivelineTypeWV driveline_type,
                   BrakeType brake_type,
                   ChContactMethod contact_method,
                   CollisionType chassis_collision_type);
 
     Gator_Vehicle(ChSystem* system,
                   const bool fixed,
-                  DrivelineType driveline_type,
+                  DrivelineTypeWV driveline_type,
                   BrakeType brake_type,
                   CollisionType chassis_collision_type);
 
@@ -70,10 +70,7 @@ class CH_MODELS_API Gator_Vehicle : public ChWheeledVehicle {
     void DebugLog(int what);       /// shock forces and lengths, constraints, etc.
 
   private:
-    void Create(bool fixed,
-                DrivelineType driveline_type,
-                BrakeType brake_type,
-                CollisionType chassis_collision_type);
+    void Create(bool fixed, DrivelineTypeWV driveline_type, BrakeType brake_type, CollisionType chassis_collision_type);
 
     std::vector<double> m_omega;
 };
