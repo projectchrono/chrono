@@ -15,6 +15,7 @@
 %csmethodmodifiers chrono::ChSolverBiCGSTAB::Solve "public"
 %csmethodmodifiers chrono::ChSolverGMRES::Solve "public"
 %csmethodmodifiers chrono::ChSolverMINRES::Solve "public"
+%csmethodmodifiers chrono::ChSolverADMM::Solve "public"
 
 %csmethodmodifiers chrono::ChSolverAPGD::GetType "public"
 %csmethodmodifiers chrono::ChSolverBB::GetType "public"
@@ -23,6 +24,7 @@
 %csmethodmodifiers chrono::ChSolverBiCGSTAB::GetType "public"
 %csmethodmodifiers chrono::ChSolverGMRES::GetType "public"
 %csmethodmodifiers chrono::ChSolverMINRES::GetType "public"
+%csmethodmodifiers chrono::ChSolverADMM::GetType "public"
 
 %csmethodmodifiers chrono::ChSolverAPGD::GetError "public"
 %csmethodmodifiers chrono::ChSolverBB::GetError "public"
@@ -31,6 +33,7 @@
 %csmethodmodifiers chrono::ChSolverBiCGSTAB::GetError "public"
 %csmethodmodifiers chrono::ChSolverGMRES::GetError "public"
 %csmethodmodifiers chrono::ChSolverMINRES::GetError "public"
+%csmethodmodifiers chrono::ChSolverADMM::GetError "public"
 
 %csmethodmodifiers chrono::ChIterativeSolverVI::GetIterations "public"
 %csmethodmodifiers chrono::ChSolverBiCGSTAB::GetIterations "public"
@@ -44,6 +47,7 @@
 %csmethodmodifiers chrono::ChSolverBiCGSTAB::ArchiveIN "public"
 %csmethodmodifiers chrono::ChSolverGMRES::ArchiveIN "public"
 %csmethodmodifiers chrono::ChSolverMINRES::ArchiveIN "public"
+%csmethodmodifiers chrono::ChSolverADMM::ArchiveIN "public"
 
 %csmethodmodifiers chrono::ChSolverAPGD::ArchiveOUT "public"
 %csmethodmodifiers chrono::ChSolverBB::ArchiveOUT "public"
@@ -52,6 +56,7 @@
 %csmethodmodifiers chrono::ChSolverBiCGSTAB::ArchiveOUT "public"
 %csmethodmodifiers chrono::ChSolverGMRES::ArchiveOUT "public"
 %csmethodmodifiers chrono::ChSolverMINRES::ArchiveOUT "public"
+%csmethodmodifiers chrono::ChSolverADMM::ArchiveOUT "public"
 
 // ============================================================
 

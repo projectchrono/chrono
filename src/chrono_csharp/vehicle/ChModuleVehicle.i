@@ -208,8 +208,8 @@ using namespace chrono::vehicle::m113;
 %shared_ptr(chrono::collision::ChCollisionSystem::BroadphaseCallback)
 %shared_ptr(chrono::collision::ChCollisionSystem::NarrowphaseCallback)
 
-%feature("director") chrono::collision::ChCollisionSystem::BroadphaseCallback;
-%feature("director") chrono::collision::ChCollisionSystem::NarrowphaseCallback;
+////%feature("director") chrono::collision::ChCollisionSystem::BroadphaseCallback;
+////%feature("director") chrono::collision::ChCollisionSystem::NarrowphaseCallback;
 
 /*
 from this module: pay attention to inheritance in the model namespace (generic, sedan etc). 
