@@ -142,6 +142,8 @@ install(TARGETS ChronoEngine_pyparser
         LIBRARY DESTINATION lib
         ARCHIVE DESTINATION lib)
 
+INSTALL(FILES ${ChronoEngine_PYPARSER_HEADERS} DESTINATION include/chrono_python)
+
 #-----------------------------------------------------------------------------
 # MODULE for the core wrapper, including most of the C::E
 #-----------------------------------------------------------------------------

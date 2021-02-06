@@ -14,8 +14,8 @@
 
   "Contact Material":
   {
-      "Coefficient of Friction":    0.7,
-      "Coefficient of Restitution": 0.1,
+      "Coefficient of Friction":    0.4,
+      "Coefficient of Restitution": 0.75,
 
       "Properties": {
           "Young Modulus":          1e7,

@@ -6,7 +6,7 @@
   "Number Teeth":                   17,
   "Gear Mass":                      27.68,
   "Gear Inertia":                   [ 0.646, 0.883, 0.646 ],
-  "Axle Inertia":                   0.02,
+  "Axle Inertia":                   0.4,
   "Gear Separation":                0.278,
   "Lateral Backlash":               0.02,
 
@@ -22,7 +22,7 @@
   "Contact Material":
   {
       "Coefficient of Friction":    0.4,
-      "Coefficient of Restitution": 0.1,
+      "Coefficient of Restitution": 0.75,
 
       "Properties": {
           "Young Modulus":          1e7,

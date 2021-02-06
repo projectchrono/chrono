@@ -48,7 +48,7 @@ class CH_VEHICLE_API ChSprocketDoublePin : public ChSprocket {
     /// of sub-paths of type ChLineArc or ChLineSegment sub-lines. These must be added in
     /// clockwise order, and the end of sub-path i must be coincident with beginning of
     /// sub-path i+1.
-    virtual std::shared_ptr<geometry::ChLinePath> GetProfile() override;
+    virtual std::shared_ptr<geometry::ChLinePath> GetProfile() const override;
 
     /// Return the custom collision callback object.
     virtual std::shared_ptr<ChSystem::CustomCollisionCallback> GetCollisionCallback(
