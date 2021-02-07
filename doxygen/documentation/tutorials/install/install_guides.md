@@ -11,6 +11,8 @@ Additional Chrono functionality is provided through optional modules. Building o
 
 -   [COSIMULATION module](@ref module_cosimulation_installation)
 
+-   [CSHARP module](@ref module_csharp_installation)
+
 -   [DISTRIBUTED module](@ref module_distributed_installation)
 
 -   [FSI module](@ref module_fsi_installation)
