@@ -7,7 +7,6 @@ SynChrono Reference Manual {#manual_synchrono}
     * [Wheeled and Tracked Vehicle Synchronization](@ref vehicle_synchronization)
     * [Deformable Terrain Synchronization](@ref terrain_synchronization)
     * [Adding new Agent types](@ref new_agents)
-    * [Flatbuffer usage](@ref flatbuffers)
 * [SynChrono tutorials](@ref tutorial_table_of_content_chrono_synchrono)
 
 More coming soon...
