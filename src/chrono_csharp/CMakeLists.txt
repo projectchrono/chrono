@@ -48,7 +48,7 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 endif()
 
 # Set location of SWIG-generated files.
-set(CMAKE_SWIG_OUTDIR "${PROJECT_BINARY_DIR}/swig_csharp")
+set(CMAKE_SWIG_OUTDIR "${PROJECT_BINARY_DIR}/chrono_csharp")
 SET(CMAKE_SWIG_FLAGS "-c++")
 
 message(STATUS "SWIG_USE_FILE:      ${SWIG_USE_FILE}")
@@ -57,6 +57,13 @@ message(STATUS "CMAKE_SWIG_OUTDIR:  ${CMAKE_SWIG_OUTDIR}")
 #-----------------------------------------------------------------------------
 
 set(CMAKE_BUILD_RPATH_USE_ORIGIN TRUE)
+
+# Output library destination
+if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+    set(LIB_OUT_DIR ${EXECUTABLE_OUTPUT_PATH})
+else()
+    set(LIB_OUT_DIR "${PROJECT_BINARY_DIR}/lib")
+endif()
 
 #-----------------------------------------------------------------------------
 # Wrapper for CORE Chrono module
@@ -81,16 +88,23 @@ set_source_files_properties(${INTERFACE_FILE_CORE} PROPERTIES CPLUSPLUS ON)
 SWIG_ADD_LIBRARY(${MODULE_CORE} LANGUAGE csharp SOURCES ${INTERFACE_FILE_CORE})
 SWIG_LINK_LIBRARIES(${MODULE_CORE} ChronoEngine)
 
-# Ensure that the resulting library is generated in the bin/ directory.
 set_target_properties(${SWIG_MODULE_${MODULE_CORE}_REAL_NAME} PROPERTIES 
                       PROJECT_LABEL "${MODULE_CORE}"
                       OUTPUT_NAME   "${SWIG_MODULE_${MODULE_CORE}_REAL_NAME}"
-                      LIBRARY_OUTPUT_DIRECTORY "${EXECUTABLE_OUTPUT_PATH}"
+                      LIBRARY_OUTPUT_DIRECTORY "${LIB_OUT_DIR}"
                       )
 
 target_compile_definitions(${SWIG_MODULE_${MODULE_CORE}_REAL_NAME} PRIVATE "CH_IGNORE_DEPRECATED")
 
 ADD_DEPENDENCIES(${SWIG_MODULE_${MODULE_CORE}_REAL_NAME} ChronoEngine)
+
+if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+    install(TARGETS ChronoEngine_csharp_core
+            LIBRARY DESTINATION bin)
+else()
+    install(TARGETS ChronoEngine_csharp_core
+            LIBRARY DESTINATION lib)
+endif()
 
 message(STATUS "Module name:     ${MODULE_CORE}")
 message(STATUS "SWIG_REAL_NAME:  ${SWIG_MODULE_${MODULE_CORE}_REAL_NAME}")
@@ -118,11 +132,10 @@ SWIG_LINK_LIBRARIES(${MODULE_VEHICLE} ChronoEngine)
 SWIG_LINK_LIBRARIES(${MODULE_VEHICLE} ChronoEngine_vehicle)
 SWIG_LINK_LIBRARIES(${MODULE_VEHICLE} ChronoModels_vehicle)
 
-# Ensure that the resulting library is generated in the bin/ directory.
 set_target_properties(${SWIG_MODULE_${MODULE_VEHICLE}_REAL_NAME} PROPERTIES 
                       PROJECT_LABEL "${MODULE_VEHICLE}"
                       OUTPUT_NAME   "${SWIG_MODULE_${MODULE_VEHICLE}_REAL_NAME}"
-                      LIBRARY_OUTPUT_DIRECTORY "${EXECUTABLE_OUTPUT_PATH}"
+                      LIBRARY_OUTPUT_DIRECTORY "${LIB_OUT_DIR}"
                       )
 
 target_compile_definitions(${SWIG_MODULE_${MODULE_VEHICLE}_REAL_NAME} PRIVATE "CH_IGNORE_DEPRECATED")
@@ -131,5 +144,20 @@ ADD_DEPENDENCIES(${SWIG_MODULE_${MODULE_VEHICLE}_REAL_NAME} ChronoEngine)
 ADD_DEPENDENCIES(${SWIG_MODULE_${MODULE_VEHICLE}_REAL_NAME} ChronoEngine_vehicle)
 ADD_DEPENDENCIES(${SWIG_MODULE_${MODULE_VEHICLE}_REAL_NAME} ChronoModels_vehicle)
 
+if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+    install(TARGETS ChronoEngine_csharp_vehicle
+            LIBRARY DESTINATION bin)
+else()
+    install(TARGETS ChronoEngine_csharp_vehicle
+            LIBRARY DESTINATION lib)
+endif()
+
 message(STATUS "Module name:     ${MODULE_VEHICLE}")
 message(STATUS "SWIG_REAL_NAME:  ${SWIG_MODULE_${MODULE_VEHICLE}_REAL_NAME}")
+
+#-----------------------------------------------------------------------------
+# Install swig-generate C# files
+
+install(DIRECTORY ${CMAKE_SWIG_OUTDIR}/
+        DESTINATION include/chrono_csharp
+        FILES_MATCHING PATTERN "*.cs")
