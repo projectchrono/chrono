@@ -41,6 +41,7 @@
 #include "chrono/geometry/ChLinePath.h"
 #include "chrono/geometry/ChLineSegment.h"
 #include "chrono/geometry/ChLineArc.h"
+#include "chrono/geometry/ChTriangleMeshConnected.h"
 
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChPart.h"
@@ -105,11 +106,18 @@ class CH_VEHICLE_API ChSprocket : public ChPart {
                             ChTrackAssembly* track                  ///< [in] pointer to containing track assembly
     );
 
-    /// Apply the provided motor torque.
-    /// The given torque is applied to the axle. This function provides the interface
-    /// to the drivetrain subsystem (intermediated by the vehicle system).
-    void ApplyAxleTorque(double torque  ///< [in] value of applied torque
-                         );
+    /// Apply the provided torque to the sprocket's axle (for debugging and testing).
+    /// Note that this torque is added to any torque applied by the driveline. As such, this function should be called
+    /// only after a call to the vehicle Synchronize function. A positive value corresponds to forward motion.
+    void ApplyAxleTorque(double torque);
+
+    /// Utility function to create a sprocket visualization mesh.
+    std::shared_ptr<geometry::ChTriangleMeshConnected> CreateVisualizationMesh(
+        double radius,                                    ///< inner radius
+        double width,                                     ///< gear width
+        double delta,                                     ///< arclength between points
+        ChVector<float> color = ChVector<float>(1, 1, 1)  ///< mesh color
+    ) const;
 
     /// Add visualization assets for the sprocket subsystem.
     virtual void AddVisualizationAssets(VisualizationType vis) override;
@@ -141,7 +149,7 @@ class CH_VEHICLE_API ChSprocket : public ChPart {
     /// of sub-paths of type ChLineArc or ChLineSegment sub-lines. These must be added in
     /// clockwise order, and the end of sub-path i must be coincident with beginning of
     /// sub-path i+1.
-    virtual std::shared_ptr<geometry::ChLinePath> GetProfile() = 0;
+    virtual std::shared_ptr<geometry::ChLinePath> GetProfile() const = 0;
 
     /// Create the contact material consistent with the specified contact method.
     virtual void CreateContactMaterial(ChContactMethod contact_method) = 0;
@@ -151,8 +159,10 @@ class CH_VEHICLE_API ChSprocket : public ChPart {
         ChTrackAssembly* track  ///< [in] pointer to containing track assembly
         ) = 0;
 
+    /// Export this subsystem's component list to the specified JSON object.
     virtual void ExportComponentList(rapidjson::Document& jsonDocument) const override;
 
+    /// Output data for this subsystem's component list to the specified database.
     virtual void Output(ChVehicleOutput& database) const override;
 
     std::shared_ptr<ChBody> m_gear;                   ///< handle to the sprocket gear body

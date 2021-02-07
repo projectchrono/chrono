@@ -100,45 +100,6 @@ struct StateBuilder;
 
 }  // namespace Terrain
 
-namespace Sensor {
-namespace Camera {
-
-struct RGBA8;
-
-struct R8;
-
-}  // namespace Camera
-
-namespace Lidar {
-
-struct XYZI;
-
-struct DI;
-
-}  // namespace Lidar
-
-namespace IMU {
-
-struct Vec;
-
-struct IMUData;
-
-}  // namespace IMU
-
-namespace GPS {
-
-struct GPSData;
-
-}  // namespace GPS
-
-struct SensorBuffer;
-struct SensorBufferBuilder;
-
-struct State;
-struct StateBuilder;
-
-}  // namespace Sensor
-
 namespace Simulation {
 
 struct State;
@@ -154,7 +115,7 @@ struct MessageBuilder;
 
 namespace SPAT {
 
-enum Color : int8_t {
+enum Color {
   Color_Green = 0,
   Color_Yellow = 1,
   Color_Red = 2,
@@ -191,7 +152,7 @@ inline const char *EnumNameColor(Color e) {
 
 namespace Agent {
 
-enum Type : uint8_t {
+enum Type {
   Type_NONE = 0,
   Type_WheeledVehicle_State = 1,
   Type_WheeledVehicle_Description = 2,
@@ -271,7 +232,7 @@ bool VerifyTypeVector(flatbuffers::Verifier &verifier, const flatbuffers::Vector
 
 namespace Terrain {
 
-enum Type : uint8_t {
+enum Type {
   Type_NONE = 0,
   Type_SCM_State = 1,
   Type_MIN = Type_NONE,
@@ -314,67 +275,20 @@ bool VerifyTypeVector(flatbuffers::Verifier &verifier, const flatbuffers::Vector
 
 }  // namespace Terrain
 
-namespace Sensor {
-
-enum Type : int8_t {
-  Type_Camera_RGBA8 = 0,
-  Type_Camera_R8 = 1,
-  Type_Lidar_DI = 2,
-  Type_Lidar_XYZI = 3,
-  Type_IMU_IMUData = 4,
-  Type_GPS_GPSData = 5,
-  Type_MIN = Type_Camera_RGBA8,
-  Type_MAX = Type_GPS_GPSData
-};
-
-inline const Type (&EnumValuesType())[6] {
-  static const Type values[] = {
-    Type_Camera_RGBA8,
-    Type_Camera_R8,
-    Type_Lidar_DI,
-    Type_Lidar_XYZI,
-    Type_IMU_IMUData,
-    Type_GPS_GPSData
-  };
-  return values;
-}
-
-inline const char * const *EnumNamesType() {
-  static const char * const names[7] = {
-    "Camera_RGBA8",
-    "Camera_R8",
-    "Lidar_DI",
-    "Lidar_XYZI",
-    "IMU_IMUData",
-    "GPS_GPSData",
-    nullptr
-  };
-  return names;
-}
-
-inline const char *EnumNameType(Type e) {
-  if (flatbuffers::IsOutRange(e, Type_Camera_RGBA8, Type_GPS_GPSData)) return "";
-  const size_t index = static_cast<size_t>(e);
-  return EnumNamesType()[index];
-}
-
-}  // namespace Sensor
-
-enum Type : uint8_t {
+enum Type {
   Type_NONE = 0,
   Type_Agent_State = 1,
   Type_Agent_Description = 2,
   Type_SPAT_State = 3,
   Type_MAP_State = 4,
   Type_Terrain_State = 5,
-  Type_Sensor_State = 6,
-  Type_Approach_State = 7,
-  Type_Simulation_State = 8,
+  Type_Approach_State = 6,
+  Type_Simulation_State = 7,
   Type_MIN = Type_NONE,
   Type_MAX = Type_Simulation_State
 };
 
-inline const Type (&EnumValuesType())[9] {
+inline const Type (&EnumValuesType())[8] {
   static const Type values[] = {
     Type_NONE,
     Type_Agent_State,
@@ -382,7 +296,6 @@ inline const Type (&EnumValuesType())[9] {
     Type_SPAT_State,
     Type_MAP_State,
     Type_Terrain_State,
-    Type_Sensor_State,
     Type_Approach_State,
     Type_Simulation_State
   };
@@ -390,14 +303,13 @@ inline const Type (&EnumValuesType())[9] {
 }
 
 inline const char * const *EnumNamesType() {
-  static const char * const names[10] = {
+  static const char * const names[9] = {
     "NONE",
     "Agent_State",
     "Agent_Description",
     "SPAT_State",
     "MAP_State",
     "Terrain_State",
-    "Sensor_State",
     "Approach_State",
     "Simulation_State",
     nullptr
@@ -435,10 +347,6 @@ template<> struct TypeTraits<SynFlatBuffers::Terrain::State> {
   static const Type enum_value = Type_Terrain_State;
 };
 
-template<> struct TypeTraits<SynFlatBuffers::Sensor::State> {
-  static const Type enum_value = Type_Sensor_State;
-};
-
 template<> struct TypeTraits<SynFlatBuffers::Approach::State> {
   static const Type enum_value = Type_Approach_State;
 };
@@ -460,10 +368,8 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(8) NodeLevel FLATBUFFERS_FINAL_CLASS {
   double level_;
 
  public:
-  NodeLevel()
-      : x_(0),
-        y_(0),
-        level_(0) {
+  NodeLevel() {
+    memset(static_cast<void *>(this), 0, sizeof(NodeLevel));
   }
   NodeLevel(int32_t _x, int32_t _y, double _level)
       : x_(flatbuffers::EndianScalar(_x)),
@@ -484,233 +390,6 @@ FLATBUFFERS_STRUCT_END(NodeLevel, 16);
 
 }  // namespace SCM
 }  // namespace Terrain
-
-namespace Sensor {
-namespace Camera {
-
-FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(1) RGBA8 FLATBUFFERS_FINAL_CLASS {
- private:
-  int8_t R_;
-  int8_t G_;
-  int8_t B_;
-  int8_t A_;
-
- public:
-  RGBA8()
-      : R_(0),
-        G_(0),
-        B_(0),
-        A_(0) {
-  }
-  RGBA8(int8_t _R, int8_t _G, int8_t _B, int8_t _A)
-      : R_(flatbuffers::EndianScalar(_R)),
-        G_(flatbuffers::EndianScalar(_G)),
-        B_(flatbuffers::EndianScalar(_B)),
-        A_(flatbuffers::EndianScalar(_A)) {
-  }
-  int8_t R() const {
-    return flatbuffers::EndianScalar(R_);
-  }
-  int8_t G() const {
-    return flatbuffers::EndianScalar(G_);
-  }
-  int8_t B() const {
-    return flatbuffers::EndianScalar(B_);
-  }
-  int8_t A() const {
-    return flatbuffers::EndianScalar(A_);
-  }
-};
-FLATBUFFERS_STRUCT_END(RGBA8, 4);
-
-FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(1) R8 FLATBUFFERS_FINAL_CLASS {
- private:
-  int8_t R_;
-
- public:
-  R8()
-      : R_(0) {
-  }
-  R8(int8_t _R)
-      : R_(flatbuffers::EndianScalar(_R)) {
-  }
-  int8_t R() const {
-    return flatbuffers::EndianScalar(R_);
-  }
-};
-FLATBUFFERS_STRUCT_END(R8, 1);
-
-}  // namespace Camera
-
-namespace Lidar {
-
-FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) XYZI FLATBUFFERS_FINAL_CLASS {
- private:
-  float x_;
-  float y_;
-  float z_;
-  float intensity_;
-
- public:
-  XYZI()
-      : x_(0),
-        y_(0),
-        z_(0),
-        intensity_(0) {
-  }
-  XYZI(float _x, float _y, float _z, float _intensity)
-      : x_(flatbuffers::EndianScalar(_x)),
-        y_(flatbuffers::EndianScalar(_y)),
-        z_(flatbuffers::EndianScalar(_z)),
-        intensity_(flatbuffers::EndianScalar(_intensity)) {
-  }
-  float x() const {
-    return flatbuffers::EndianScalar(x_);
-  }
-  float y() const {
-    return flatbuffers::EndianScalar(y_);
-  }
-  float z() const {
-    return flatbuffers::EndianScalar(z_);
-  }
-  float intensity() const {
-    return flatbuffers::EndianScalar(intensity_);
-  }
-};
-FLATBUFFERS_STRUCT_END(XYZI, 16);
-
-FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) DI FLATBUFFERS_FINAL_CLASS {
- private:
-  float range_;
-  float intensity_;
-
- public:
-  DI()
-      : range_(0),
-        intensity_(0) {
-  }
-  DI(float _range, float _intensity)
-      : range_(flatbuffers::EndianScalar(_range)),
-        intensity_(flatbuffers::EndianScalar(_intensity)) {
-  }
-  float range() const {
-    return flatbuffers::EndianScalar(range_);
-  }
-  float intensity() const {
-    return flatbuffers::EndianScalar(intensity_);
-  }
-};
-FLATBUFFERS_STRUCT_END(DI, 8);
-
-}  // namespace Lidar
-
-namespace IMU {
-
-FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(8) Vec FLATBUFFERS_FINAL_CLASS {
- private:
-  double x_;
-  double y_;
-  double z_;
-
- public:
-  Vec()
-      : x_(0),
-        y_(0),
-        z_(0) {
-  }
-  Vec(double _x, double _y, double _z)
-      : x_(flatbuffers::EndianScalar(_x)),
-        y_(flatbuffers::EndianScalar(_y)),
-        z_(flatbuffers::EndianScalar(_z)) {
-  }
-  double x() const {
-    return flatbuffers::EndianScalar(x_);
-  }
-  double y() const {
-    return flatbuffers::EndianScalar(y_);
-  }
-  double z() const {
-    return flatbuffers::EndianScalar(z_);
-  }
-};
-FLATBUFFERS_STRUCT_END(Vec, 24);
-
-FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(8) IMUData FLATBUFFERS_FINAL_CLASS {
- private:
-  SynFlatBuffers::Sensor::IMU::Vec Accel_;
-  double Roll_;
-  double Pitch_;
-  double Yaw_;
-
- public:
-  IMUData()
-      : Accel_(),
-        Roll_(0),
-        Pitch_(0),
-        Yaw_(0) {
-  }
-  IMUData(const SynFlatBuffers::Sensor::IMU::Vec &_Accel, double _Roll, double _Pitch, double _Yaw)
-      : Accel_(_Accel),
-        Roll_(flatbuffers::EndianScalar(_Roll)),
-        Pitch_(flatbuffers::EndianScalar(_Pitch)),
-        Yaw_(flatbuffers::EndianScalar(_Yaw)) {
-  }
-  const SynFlatBuffers::Sensor::IMU::Vec &Accel() const {
-    return Accel_;
-  }
-  double Roll() const {
-    return flatbuffers::EndianScalar(Roll_);
-  }
-  double Pitch() const {
-    return flatbuffers::EndianScalar(Pitch_);
-  }
-  double Yaw() const {
-    return flatbuffers::EndianScalar(Yaw_);
-  }
-};
-FLATBUFFERS_STRUCT_END(IMUData, 48);
-
-}  // namespace IMU
-
-namespace GPS {
-
-FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(8) GPSData FLATBUFFERS_FINAL_CLASS {
- private:
-  double Latitude_;
-  double Longitude_;
-  double Altitude_;
-  double Time_;
-
- public:
-  GPSData()
-      : Latitude_(0),
-        Longitude_(0),
-        Altitude_(0),
-        Time_(0) {
-  }
-  GPSData(double _Latitude, double _Longitude, double _Altitude, double _Time)
-      : Latitude_(flatbuffers::EndianScalar(_Latitude)),
-        Longitude_(flatbuffers::EndianScalar(_Longitude)),
-        Altitude_(flatbuffers::EndianScalar(_Altitude)),
-        Time_(flatbuffers::EndianScalar(_Time)) {
-  }
-  double Latitude() const {
-    return flatbuffers::EndianScalar(Latitude_);
-  }
-  double Longitude() const {
-    return flatbuffers::EndianScalar(Longitude_);
-  }
-  double Altitude() const {
-    return flatbuffers::EndianScalar(Altitude_);
-  }
-  double Time() const {
-    return flatbuffers::EndianScalar(Time_);
-  }
-};
-FLATBUFFERS_STRUCT_END(GPSData, 32);
-
-}  // namespace GPS
-}  // namespace Sensor
 
 namespace SPAT {
 
@@ -750,6 +429,7 @@ struct StateBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
+  StateBuilder &operator=(const StateBuilder &);
   flatbuffers::Offset<State> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<State>(end);
@@ -828,6 +508,7 @@ struct LaneBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
+  LaneBuilder &operator=(const LaneBuilder &);
   flatbuffers::Offset<Lane> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<Lane>(end);
@@ -893,6 +574,7 @@ struct VectorBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
+  VectorBuilder &operator=(const VectorBuilder &);
   flatbuffers::Offset<Vector> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<Vector>(end);
@@ -962,6 +644,7 @@ struct QuaternionBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
+  QuaternionBuilder &operator=(const QuaternionBuilder &);
   flatbuffers::Offset<Quaternion> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<Quaternion>(end);
@@ -1055,6 +738,7 @@ struct PoseBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
+  PoseBuilder &operator=(const PoseBuilder &);
   flatbuffers::Offset<Pose> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<Pose>(end);
@@ -1118,6 +802,7 @@ struct StateBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
+  StateBuilder &operator=(const StateBuilder &);
   flatbuffers::Offset<State> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<State>(end);
@@ -1182,6 +867,7 @@ struct LaneBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
+  LaneBuilder &operator=(const LaneBuilder &);
   flatbuffers::Offset<Lane> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<Lane>(end);
@@ -1250,6 +936,7 @@ struct StateBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
+  StateBuilder &operator=(const StateBuilder &);
   flatbuffers::Offset<State> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<State>(end);
@@ -1306,6 +993,7 @@ struct intersectionBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
+  intersectionBuilder &operator=(const intersectionBuilder &);
   flatbuffers::Offset<intersection> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<intersection>(end);
@@ -1380,6 +1068,7 @@ struct StateBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
+  StateBuilder &operator=(const StateBuilder &);
   flatbuffers::Offset<State> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<State>(end);
@@ -1465,6 +1154,7 @@ struct DescriptionBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
+  DescriptionBuilder &operator=(const DescriptionBuilder &);
   flatbuffers::Offset<Description> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<Description>(end);
@@ -1582,6 +1272,7 @@ struct StateBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
+  StateBuilder &operator=(const StateBuilder &);
   flatbuffers::Offset<State> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<State>(end);
@@ -1751,6 +1442,7 @@ struct DescriptionBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
+  DescriptionBuilder &operator=(const DescriptionBuilder &);
   flatbuffers::Offset<Description> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<Description>(end);
@@ -1866,6 +1558,7 @@ struct StateBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
+  StateBuilder &operator=(const StateBuilder &);
   flatbuffers::Offset<State> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<State>(end);
@@ -1899,6 +1592,7 @@ struct DescriptionBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
+  DescriptionBuilder &operator=(const DescriptionBuilder &);
   flatbuffers::Offset<Description> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<Description>(end);
@@ -1992,6 +1686,7 @@ struct StateBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
+  StateBuilder &operator=(const StateBuilder &);
   flatbuffers::Offset<State> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<State>(end);
@@ -2096,6 +1791,7 @@ struct DescriptionBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
+  DescriptionBuilder &operator=(const DescriptionBuilder &);
   flatbuffers::Offset<Description> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<Description>(end);
@@ -2168,6 +1864,7 @@ struct StateBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
+  StateBuilder &operator=(const StateBuilder &);
   flatbuffers::Offset<State> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<State>(end);
@@ -2241,6 +1938,7 @@ struct StateBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
+  StateBuilder &operator=(const StateBuilder &);
   flatbuffers::Offset<State> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<State>(end);
@@ -2260,143 +1958,19 @@ inline flatbuffers::Offset<State> CreateState(
 
 }  // namespace Terrain
 
-namespace Sensor {
-
-struct SensorBuffer FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
-  typedef SensorBufferBuilder Builder;
-  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
-    VT_WIDTH = 4,
-    VT_HEIGHT = 6,
-    VT_BUFFER = 8
-  };
-  int32_t Width() const {
-    return GetField<int32_t>(VT_WIDTH, 0);
-  }
-  int32_t Height() const {
-    return GetField<int32_t>(VT_HEIGHT, 0);
-  }
-  const flatbuffers::Vector<uint8_t> *Buffer() const {
-    return GetPointer<const flatbuffers::Vector<uint8_t> *>(VT_BUFFER);
-  }
-  bool Verify(flatbuffers::Verifier &verifier) const {
-    return VerifyTableStart(verifier) &&
-           VerifyField<int32_t>(verifier, VT_WIDTH) &&
-           VerifyField<int32_t>(verifier, VT_HEIGHT) &&
-           VerifyOffset(verifier, VT_BUFFER) &&
-           verifier.VerifyVector(Buffer()) &&
-           verifier.EndTable();
-  }
-};
-
-struct SensorBufferBuilder {
-  typedef SensorBuffer Table;
-  flatbuffers::FlatBufferBuilder &fbb_;
-  flatbuffers::uoffset_t start_;
-  void add_Width(int32_t Width) {
-    fbb_.AddElement<int32_t>(SensorBuffer::VT_WIDTH, Width, 0);
-  }
-  void add_Height(int32_t Height) {
-    fbb_.AddElement<int32_t>(SensorBuffer::VT_HEIGHT, Height, 0);
-  }
-  void add_Buffer(flatbuffers::Offset<flatbuffers::Vector<uint8_t>> Buffer) {
-    fbb_.AddOffset(SensorBuffer::VT_BUFFER, Buffer);
-  }
-  explicit SensorBufferBuilder(flatbuffers::FlatBufferBuilder &_fbb)
-        : fbb_(_fbb) {
-    start_ = fbb_.StartTable();
-  }
-  flatbuffers::Offset<SensorBuffer> Finish() {
-    const auto end = fbb_.EndTable(start_);
-    auto o = flatbuffers::Offset<SensorBuffer>(end);
-    return o;
-  }
-};
-
-inline flatbuffers::Offset<SensorBuffer> CreateSensorBuffer(
-    flatbuffers::FlatBufferBuilder &_fbb,
-    int32_t Width = 0,
-    int32_t Height = 0,
-    flatbuffers::Offset<flatbuffers::Vector<uint8_t>> Buffer = 0) {
-  SensorBufferBuilder builder_(_fbb);
-  builder_.add_Buffer(Buffer);
-  builder_.add_Height(Height);
-  builder_.add_Width(Width);
-  return builder_.Finish();
-}
-
-inline flatbuffers::Offset<SensorBuffer> CreateSensorBufferDirect(
-    flatbuffers::FlatBufferBuilder &_fbb,
-    int32_t Width = 0,
-    int32_t Height = 0,
-    const std::vector<uint8_t> *Buffer = nullptr) {
-  auto Buffer__ = Buffer ? _fbb.CreateVector<uint8_t>(*Buffer) : 0;
-  return SynFlatBuffers::Sensor::CreateSensorBuffer(
-      _fbb,
-      Width,
-      Height,
-      Buffer__);
-}
-
-struct State FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
-  typedef StateBuilder Builder;
-  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
-    VT_BUFFER = 4,
-    VT_TYPE = 6
-  };
-  const SynFlatBuffers::Sensor::SensorBuffer *buffer() const {
-    return GetPointer<const SynFlatBuffers::Sensor::SensorBuffer *>(VT_BUFFER);
-  }
-  SynFlatBuffers::Sensor::Type type() const {
-    return static_cast<SynFlatBuffers::Sensor::Type>(GetField<int8_t>(VT_TYPE, 0));
-  }
-  bool Verify(flatbuffers::Verifier &verifier) const {
-    return VerifyTableStart(verifier) &&
-           VerifyOffset(verifier, VT_BUFFER) &&
-           verifier.VerifyTable(buffer()) &&
-           VerifyField<int8_t>(verifier, VT_TYPE) &&
-           verifier.EndTable();
-  }
-};
-
-struct StateBuilder {
-  typedef State Table;
-  flatbuffers::FlatBufferBuilder &fbb_;
-  flatbuffers::uoffset_t start_;
-  void add_buffer(flatbuffers::Offset<SynFlatBuffers::Sensor::SensorBuffer> buffer) {
-    fbb_.AddOffset(State::VT_BUFFER, buffer);
-  }
-  void add_type(SynFlatBuffers::Sensor::Type type) {
-    fbb_.AddElement<int8_t>(State::VT_TYPE, static_cast<int8_t>(type), 0);
-  }
-  explicit StateBuilder(flatbuffers::FlatBufferBuilder &_fbb)
-        : fbb_(_fbb) {
-    start_ = fbb_.StartTable();
-  }
-  flatbuffers::Offset<State> Finish() {
-    const auto end = fbb_.EndTable(start_);
-    auto o = flatbuffers::Offset<State>(end);
-    return o;
-  }
-};
-
-inline flatbuffers::Offset<State> CreateState(
-    flatbuffers::FlatBufferBuilder &_fbb,
-    flatbuffers::Offset<SynFlatBuffers::Sensor::SensorBuffer> buffer = 0,
-    SynFlatBuffers::Sensor::Type type = SynFlatBuffers::Sensor::Type_Camera_RGBA8) {
-  StateBuilder builder_(_fbb);
-  builder_.add_buffer(buffer);
-  builder_.add_type(type);
-  return builder_.Finish();
-}
-
-}  // namespace Sensor
-
 namespace Simulation {
 
 struct State FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef StateBuilder Builder;
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
+    VT_QUIT_SIM = 4
+  };
+  bool quit_sim() const {
+    return GetField<uint8_t>(VT_QUIT_SIM, 0) != 0;
+  }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
+           VerifyField<uint8_t>(verifier, VT_QUIT_SIM) &&
            verifier.EndTable();
   }
 };
@@ -2405,10 +1979,14 @@ struct StateBuilder {
   typedef State Table;
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
+  void add_quit_sim(bool quit_sim) {
+    fbb_.AddElement<uint8_t>(State::VT_QUIT_SIM, static_cast<uint8_t>(quit_sim), 0);
+  }
   explicit StateBuilder(flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
+  StateBuilder &operator=(const StateBuilder &);
   flatbuffers::Offset<State> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<State>(end);
@@ -2417,8 +1995,10 @@ struct StateBuilder {
 };
 
 inline flatbuffers::Offset<State> CreateState(
-    flatbuffers::FlatBufferBuilder &_fbb) {
+    flatbuffers::FlatBufferBuilder &_fbb,
+    bool quit_sim = false) {
   StateBuilder builder_(_fbb);
+  builder_.add_quit_sim(quit_sim);
   return builder_.Finish();
 }
 
@@ -2452,6 +2032,7 @@ struct BufferBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
+  BufferBuilder &operator=(const BufferBuilder &);
   flatbuffers::Offset<Buffer> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<Buffer>(end);
@@ -2506,9 +2087,6 @@ struct Message FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   const SynFlatBuffers::Terrain::State *message_as_Terrain_State() const {
     return message_type() == SynFlatBuffers::Type_Terrain_State ? static_cast<const SynFlatBuffers::Terrain::State *>(message()) : nullptr;
   }
-  const SynFlatBuffers::Sensor::State *message_as_Sensor_State() const {
-    return message_type() == SynFlatBuffers::Type_Sensor_State ? static_cast<const SynFlatBuffers::Sensor::State *>(message()) : nullptr;
-  }
   const SynFlatBuffers::Approach::State *message_as_Approach_State() const {
     return message_type() == SynFlatBuffers::Type_Approach_State ? static_cast<const SynFlatBuffers::Approach::State *>(message()) : nullptr;
   }
@@ -2552,10 +2130,6 @@ template<> inline const SynFlatBuffers::Terrain::State *Message::message_as<SynF
   return message_as_Terrain_State();
 }
 
-template<> inline const SynFlatBuffers::Sensor::State *Message::message_as<SynFlatBuffers::Sensor::State>() const {
-  return message_as_Sensor_State();
-}
-
 template<> inline const SynFlatBuffers::Approach::State *Message::message_as<SynFlatBuffers::Approach::State>() const {
   return message_as_Approach_State();
 }
@@ -2584,6 +2158,7 @@ struct MessageBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
+  MessageBuilder &operator=(const MessageBuilder &);
   flatbuffers::Offset<Message> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<Message>(end);
@@ -2638,10 +2213,6 @@ namespace SCM {
 }  // namespace SCM
 
 }  // namespace Terrain
-
-namespace Sensor {
-
-}  // namespace Sensor
 
 namespace Simulation {
 
@@ -2748,10 +2319,6 @@ inline bool VerifyType(flatbuffers::Verifier &verifier, const void *obj, Type ty
     }
     case Type_Terrain_State: {
       auto ptr = reinterpret_cast<const SynFlatBuffers::Terrain::State *>(obj);
-      return verifier.VerifyTable(ptr);
-    }
-    case Type_Sensor_State: {
-      auto ptr = reinterpret_cast<const SynFlatBuffers::Sensor::State *>(obj);
       return verifier.VerifyTable(ptr);
     }
     case Type_Approach_State: {

@@ -173,6 +173,12 @@ class CH_VEHICLE_API ChTrackedVehicle : public ChVehicle {
     /// Return true if the specified vehicle part is currently experiencing a collision.
     bool IsPartInContact(TrackedCollisionFlag::Enum part) const { return m_contact_manager->InContact(part); }
 
+    /// Return estimated resistive torque on the specified sprocket.
+    /// This torque is available only if monitoring of contacts for that sprocket is enabled.
+    ChVector<> GetSprocketResistiveTorque(VehicleSide side) const {
+        return m_contact_manager->GetSprocketResistiveTorque(side);
+    }
+
     /// Write contact information to file.
     /// If data collection was enabled and at least one subsystem is monitored,
     /// contact information is written (in CSV format) to the specified file.

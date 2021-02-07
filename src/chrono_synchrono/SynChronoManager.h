@@ -68,6 +68,10 @@ class SYN_API SynChronoManager {
     ///
     void UpdateAgents();
 
+    /// @brief If our simulation is still running, sends a quit message to everyone else to exit as well
+    ///     Needed specifically for MPI where we don't wait for timeouts
+    void QuitSimulation();
+
     // ------------------------------------------------------------------------
 
     ///@brief Get the agents list
@@ -79,8 +83,8 @@ class SYN_API SynChronoManager {
     ///
     void SetHeartbeat(double heartbeat) { m_heartbeat = heartbeat; }
 
-    /// TODO:
-    bool IsOk() { return true; }
+    /// @brief Should the simulation still be running?
+    bool IsOk() { return m_is_ok; }
 
   private:
     // These methods are only available to derived classes.
@@ -130,6 +134,7 @@ class SYN_API SynChronoManager {
 
     // --------------------------------------------------------------------------------------------------------------
 
+    bool m_is_ok;
     bool m_initialized;       ///< Has the Initialize function been called?
     SynNodeID m_nid;          ///< The node id assigned to this manager
     SynAgentNum m_num_nodes;  ///< The number of nodes in the SynChrono world

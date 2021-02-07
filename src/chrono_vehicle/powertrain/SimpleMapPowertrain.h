@@ -81,8 +81,8 @@ class CH_VEHICLE_API SimpleMapPowertrain : public ChSimpleMapPowertrain {
     double m_rev_gear;
     std::vector<double> m_fwd_gear;
 
-    MapData m_engine_torque;
-    MapData m_engine_losses;
+    MapData m_engine_map_full;
+    MapData m_engine_map_zero;
     MapData m_shift_bands;
 };
 

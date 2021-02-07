@@ -102,12 +102,6 @@ class CH_VEHICLE_API ChShaftsDriveline4WD : public ChDrivelineWV {
     virtual double GetRearConicalGearRatio() const = 0;
     /// Return the gear ratio for the front conical gear.
     virtual double GetFrontConicalGearRatio() const = 0;
-    /// Return the gear ratio for the rear differential.
-    virtual double GetRearDifferentialRatio() const = 0;
-    /// Return the gear ratio for the front differential.
-    virtual double GetFrontDifferentialRatio() const = 0;
-    /// Return the gear ratio for the central differential.
-    virtual double GetCentralDifferentialRatio() const = 0;
 
     /// Return the limit for the axle differential locking torque.
     virtual double GetAxleDifferentialLockingLimit() const = 0;

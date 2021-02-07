@@ -45,11 +45,12 @@ TEST(ChOptixEngine, assign_sensor_safety) {
 
     auto cam = chrono_types::make_shared<ChCameraSensor>(
         box,                                                                // body camera is attached to
-        10,                                                                 // update rate in Hz
+        10.0f,                                                              // update rate in Hz
         chrono::ChFrame<double>({-8, 0, 1}, Q_from_AngAxis(0, {0, 1, 0})),  // offset pose
         64,                                                                 // image width
         48,                                                                 // image height
-        CH_C_PI / 3);                                                       // FOV
+        (float)CH_C_PI / 3                                                  // FOV
+    );
     cam->SetName("Camera Sensor");
     manager->AddSensor(cam);
 
@@ -66,11 +67,12 @@ TEST(ChOptixEngine, assign_sensor_safety) {
 
     auto cam2 = chrono_types::make_shared<ChCameraSensor>(
         box,                                                                // body camera is attached to
-        10,                                                                 // update rate in Hz
+        10.0f,                                                              // update rate in Hz
         chrono::ChFrame<double>({-4, 0, 1}, Q_from_AngAxis(0, {0, 1, 0})),  // offset pose
         64,                                                                 // image width
         48,                                                                 // image height
-        CH_C_PI / 3);                                                       // FOV
+        (float)CH_C_PI / 3                                                  // FOV
+    );
     cam2->SetName("Camera Sensor");
     manager->AddSensor(cam2);
 
@@ -97,11 +99,12 @@ TEST(ChOptixEngine, construct_scene_safety) {
 
     auto cam = chrono_types::make_shared<ChCameraSensor>(
         box,                                                                // body camera is attached to
-        10,                                                                 // update rate in Hz
+        10.0f,                                                              // update rate in Hz
         chrono::ChFrame<double>({-8, 0, 1}, Q_from_AngAxis(0, {0, 1, 0})),  // offset pose
         64,                                                                 // image width
         48,                                                                 // image height
-        CH_C_PI / 3);                                                       // FOV
+        (float)CH_C_PI / 3                                                  // FOV
+    );
     cam->SetName("Camera Sensor");
     manager->AddSensor(cam);
 
@@ -144,11 +147,12 @@ TEST(ChOptixEngine, construct_scene_safety_2) {
 
     auto cam = chrono_types::make_shared<ChCameraSensor>(
         box,                                                                // body camera is attached to
-        10,                                                                 // update rate in Hz
+        10.0f,                                                              // update rate in Hz
         chrono::ChFrame<double>({-8, 0, 1}, Q_from_AngAxis(0, {0, 1, 0})),  // offset pose
         64,                                                                 // image width
         48,                                                                 // image height
-        CH_C_PI / 3);                                                       // FOV
+        (float)CH_C_PI / 3                                                  // FOV
+    );
     cam->SetName("Camera Sensor");
     // cam->PushFilter(chrono_types::make_shared<ChFilterVisualize>(640,480,"RGB Camera"));
     manager->AddSensor(cam);
@@ -192,11 +196,12 @@ TEST(ChOptixEngine, lights) {
 
     auto cam = chrono_types::make_shared<ChCameraSensor>(
         box,                                                                // body camera is attached to
-        10,                                                                 // update rate in Hz
+        10.0f,                                                              // update rate in Hz
         chrono::ChFrame<double>({-8, 0, 1}, Q_from_AngAxis(0, {0, 1, 0})),  // offset pose
         1,                                                                  // image width
         1,                                                                  // image height
-        CH_C_PI / 3);                                                       // FOV
+        (float)CH_C_PI / 3                                                  // FOV
+    );
     cam->SetName("Camera Sensor");
     manager->AddSensor(cam);
 

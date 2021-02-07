@@ -43,8 +43,10 @@ SynDDSSubscriber::~SynDDSSubscriber() {
     if (m_reader && m_subscriber)
         m_subscriber->delete_datareader(m_reader);
 
-    if (m_message)
-        delete m_message;
+    if (m_message) {
+        auto message = (SynDDSMessage*)m_message;
+        delete message;
+    }
 
     if (m_listener)
         delete m_listener;

@@ -5,7 +5,7 @@ Change Log
 ==========
 
 - [Unreleased (development version)](#unreleased-development-branch)
-  - [RoboSimian and Viper models](#added-robosimian-and-viper-models)
+  - [RoboSimian, Viper, and LittleHexy models](#added-robosimian-viper-and-littlehexy-models)
   - [Contact force reporting through user-provided callback](#added-contact-force-reporting-through-user-provided-callback)
   - [Chrono::Gpu module rename](#changed-chronogpu-module-rename)
   - [Chrono::Multicore module rename](#changed-chronomulticore-module-rename)
@@ -33,9 +33,9 @@ Change Log
 
 ## Unreleased (development branch)
 
-### [Added] RoboSimian and Viper models
+### [Added] RoboSimian, Viper, and LittleHexy models
 
-Models of the legged RoboSimian robot and the wheeled Viper rover are now included in the collection of Chrono models.  These models have no dependencies beyond the core Chrono module, except for an optional utility class for RoboSimian visualization with Irrlicht. Python wrappers are also provided, allowing use of these models with PyChrono. Related demo programs illustrate the robots moving over rigid or SCM deformable terrain (using a core Chrono system) and over granular terrain (using the Chrono::Multicore module).
+Models of the legged RoboSimian robot, the wheeled Viper rover, and the six-propeller LittleHexy copter are now included in the collection of Chrono models.  These models have no dependencies beyond the core Chrono module, except for an optional utility class for RoboSimian visualization with Irrlicht. Python wrappers are also provided, allowing use of these models with PyChrono. Related demo programs illustrate the robots moving over rigid or SCM deformable terrain (using a core Chrono system) and over granular terrain (using the Chrono::Multicore module).
 
 ### [Added] Contact force reporting through user-provided callback
 

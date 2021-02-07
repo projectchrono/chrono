@@ -70,11 +70,6 @@ void SynDDSPublisher::DeleteDDSEntities(DomainParticipant* participant) {
 bool SynDDSPublisher::Publish(void* message) {
     m_writer->write(message);
 
-    // if (m_writer->wait_for_acknowledgments({5}) != ReturnCode_t::RETCODE_OK) {
-    //     std::cerr << "Writer failed to receive acknowledgments." << std::endl;
-    //     return false;
-    // }
-
     return true;
 }
 

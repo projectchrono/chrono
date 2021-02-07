@@ -41,9 +41,9 @@ namespace hmmwv {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 HMMWV_VehicleFull::HMMWV_VehicleFull(const bool fixed,
-                                     DrivelineType drive_type,
+                                     DrivelineTypeWV drive_type,
                                      BrakeType brake_type,
-                                     SteeringType steering_type,
+                                     SteeringTypeWV steering_type,
                                      bool rigid_steering_column,
                                      ChContactMethod contact_method,
                                      CollisionType chassis_collision_type)
@@ -53,9 +53,9 @@ HMMWV_VehicleFull::HMMWV_VehicleFull(const bool fixed,
 
 HMMWV_VehicleFull::HMMWV_VehicleFull(ChSystem* system,
                                      const bool fixed,
-                                     DrivelineType drive_type,
+                                     DrivelineTypeWV drive_type,
                                      BrakeType brake_type,
-                                     SteeringType steering_type,
+                                     SteeringTypeWV steering_type,
                                      bool rigid_steering_column,
                                      CollisionType chassis_collision_type)
     : HMMWV_Vehicle("HMMWVfull", system, drive_type) {
@@ -64,7 +64,7 @@ HMMWV_VehicleFull::HMMWV_VehicleFull(ChSystem* system,
 
 void HMMWV_VehicleFull::Create(bool fixed,
                                BrakeType brake_type,
-                               SteeringType steering_type,
+                               SteeringTypeWV steering_type,
                                bool rigid_steering_column,
                                CollisionType chassis_collision_type) {
     // Create the chassis subsystem
@@ -73,10 +73,10 @@ void HMMWV_VehicleFull::Create(bool fixed,
     // Create the steering subsystem
     m_steerings.resize(1);
     switch (steering_type) {
-        case SteeringType::PITMAN_ARM:
+        case SteeringTypeWV::PITMAN_ARM:
             m_steerings[0] = chrono_types::make_shared<HMMWV_PitmanArm>("Steering");
             break;
-        case SteeringType::PITMAN_ARM_SHAFTS:
+        case SteeringTypeWV::PITMAN_ARM_SHAFTS:
             m_steerings[0] = chrono_types::make_shared<HMMWV_PitmanArmShafts>("Steering", rigid_steering_column);
             break;
         default:
@@ -116,14 +116,14 @@ void HMMWV_VehicleFull::Create(bool fixed,
 
     // Create the driveline
     switch (m_driveType) {
-        case DrivelineType::FWD:
-        case DrivelineType::RWD:
+        case DrivelineTypeWV::FWD:
+        case DrivelineTypeWV::RWD:
             m_driveline = chrono_types::make_shared<HMMWV_Driveline2WD>("Driveline");
             break;
-        case DrivelineType::AWD:
+        case DrivelineTypeWV::AWD:
             m_driveline = chrono_types::make_shared<HMMWV_Driveline4WD>("Driveline");
             break;
-        case DrivelineType::SIMPLE:
+        case DrivelineTypeWV::SIMPLE:
             m_driveline = chrono_types::make_shared<HMMWV_SimpleDriveline>("Driveline");
             break;
     }
@@ -153,14 +153,14 @@ void HMMWV_VehicleFull::Initialize(const ChCoordsys<>& chassisPos, double chassi
     std::vector<int> driven_susp_indexes(m_driveline->GetNumDrivenAxles());
 
     switch (m_driveType) {
-        case DrivelineType::FWD:
+        case DrivelineTypeWV::FWD:
             driven_susp_indexes[0] = 0;
             break;
-        case DrivelineType::RWD:
+        case DrivelineTypeWV::RWD:
             driven_susp_indexes[0] = 1;
             break;
-        case DrivelineType::AWD:
-        case DrivelineType::SIMPLE:
+        case DrivelineTypeWV::AWD:
+        case DrivelineTypeWV::SIMPLE:
             driven_susp_indexes[0] = 0;
             driven_susp_indexes[1] = 1;
             break;

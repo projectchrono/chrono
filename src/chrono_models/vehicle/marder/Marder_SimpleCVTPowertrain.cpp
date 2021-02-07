@@ -12,35 +12,32 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// Chassis subsystem for the articulated vehicle.
+// Simple CVT powertrain model for the Marder vehicle.
+// - simple speed-torque curve
+// - no torque converter
+// - no transmission box
 //
 // =============================================================================
 
-#include "subsystems/TT_Chassis.h"
+#include "chrono_models/vehicle/marder/Marder_SimpleCVTPowertrain.h"
 
-using namespace chrono;
-using namespace chrono::vehicle;
+namespace chrono {
+namespace vehicle {
+namespace marder {
 
 // -----------------------------------------------------------------------------
 // Static variables
 // -----------------------------------------------------------------------------
-const double TT_Chassis::m_mass = 3500;
-const ChVector<> TT_Chassis::m_inertiaXX(125.8, 497.4, 531.4);
-const ChVector<> TT_Chassis::m_inertiaXY(0, 0, 0);
-const ChVector<> TT_Chassis::m_COM_loc(-0.2, 0, 0.8);
-const ChCoordsys<> TT_Chassis::m_driverCsys(ChVector<>(0.0, 0.5, 1.2), ChQuaternion<>(1, 0, 0, 0));
+const double Marder_SimpleCVTPowertrain::m_max_torque = 10000.0;
+const double Marder_SimpleCVTPowertrain::m_max_power = 441176.4706;  // 600 BHP
+const double Marder_SimpleCVTPowertrain::m_max_speed = 550;          // > 5000 RPM
+const double Marder_SimpleCVTPowertrain::m_fwd_gear_ratio = 0.240;
+const double Marder_SimpleCVTPowertrain::m_rev_gear_ratio = -0.151;
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-TT_Chassis::TT_Chassis(const std::string& name) : ChRigidChassis(name) {
-    m_inertia(0, 0) = m_inertiaXX.x();
-    m_inertia(1, 1) = m_inertiaXX.y();
-    m_inertia(2, 2) = m_inertiaXX.z();
+Marder_SimpleCVTPowertrain::Marder_SimpleCVTPowertrain(const std::string& name) : ChSimpleCVTPowertrain(name) {}
 
-    m_inertia(0, 1) = m_inertiaXY.x();
-    m_inertia(0, 2) = m_inertiaXY.y();
-    m_inertia(1, 2) = m_inertiaXY.z();
-    m_inertia(1, 0) = m_inertiaXY.x();
-    m_inertia(2, 0) = m_inertiaXY.y();
-    m_inertia(2, 1) = m_inertiaXY.z();
-}
+}  // end namespace marder
+}  // end namespace vehicle
+}  // end namespace chrono
