@@ -19,14 +19,13 @@
 
 #include "chrono_synchrono/flatbuffer/message/SynMessageFactory.h"
 
-// #include "chrono_synchrono/flatbuffer/message/SynSensorMessage.h"
 #include "chrono_synchrono/flatbuffer/message/SynMAPMessage.h"
 #include "chrono_synchrono/flatbuffer/message/SynSCMMessage.h"
 #include "chrono_synchrono/flatbuffer/message/SynSPATMessage.h"
 #include "chrono_synchrono/flatbuffer/message/SynWheeledVehicleMessage.h"
 #include "chrono_synchrono/flatbuffer/message/SynTrackedVehicleMessage.h"
 #include "chrono_synchrono/flatbuffer/message/SynEnvironmentMessage.h"
-// #include "chrono_synchrono/flatbuffer/message/SynSimulationMessage.h"
+#include "chrono_synchrono/flatbuffer/message/SynSimulationMessage.h"
 
 namespace chrono {
 namespace synchrono {
@@ -75,19 +74,19 @@ std::shared_ptr<SynMessage> SynMessageFactory::GenerateMessage(const SynFlatBuff
             throw ChException(message);
         }
     } else if (incoming_message->message_type() == SynFlatBuffers::Type_Simulation_State) {
-        // message = chrono_types::make_shared<SynSimulationMessage>(source_id, destination_id);
+        message = chrono_types::make_shared<SynSimulationMessage>(source_id, destination_id);
     } else if (incoming_message->message_type() == SynFlatBuffers::Type_SPAT_State) {
         message = chrono_types::make_shared<SynSPATMessage>(source_id, destination_id);
     } else if (incoming_message->message_type() == SynFlatBuffers::Type_MAP_State) {
         message = chrono_types::make_shared<SynMAPMessage>(source_id, destination_id);
-    } else if (incoming_message->message_type() == SynFlatBuffers::Type_Sensor_State) {
-        // message = chrono_types::make_shared<SynSensorMessage>(source_id, destination_id);
     } else {
         std::string message = "SynMessageFactory::GenerateMessage: Unknown type.";
         throw ChException(message);
     }
 
+    message->SetMessageType(incoming_message->message_type());
     message->ConvertFromFlatBuffers(incoming_message);
+
     return message;
 }
 

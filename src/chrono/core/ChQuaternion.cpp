@@ -231,7 +231,7 @@ ChVector<double> Q_to_Euler123(const ChQuaternion<double>& mq) {
 }
 
 void Q_to_AngAxis(const ChQuaternion<double>& quat, double& angle, ChVector<double>& axis) {
-    if (fabs(quat.e0()) < 0.99999999) {
+    if (std::abs(quat.e0()) < 0.99999999) {
         double arg = acos(quat.e0());
         double invsine = 1 / sin(arg);
         ChVector<double> vtemp;
