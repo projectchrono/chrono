@@ -915,7 +915,7 @@ void CuriosityRover::Initialize() {
 }
 
 void CuriosityRover::SetMotorSpeed(double rad_speed, WheelID id) {
-    //m_motors_func[id]->Set_yconst(rad_speed);
+    m_motors_func[id]->Set_yconst(rad_speed);
 }
 
 
@@ -958,31 +958,31 @@ double CuriosityRover::GetRoverMass() {
 
     for(int i = 0 ; i < 6; i ++){
         tot_mass = tot_mass + m_wheels[i]->GetBody()->GetMass();
-        std::cout<<"wheel "<<i<<" mass: "<<m_wheels[i]->GetBody()->GetMass()<<std::endl;
+        //std::cout<<"wheel "<<i<<" mass: "<<m_wheels[i]->GetBody()->GetMass()<<std::endl;
     }
 
 
     for(int i = 0; i < 4; i ++){
         tot_mass = tot_mass + m_arms[i]->GetBody()->GetMass();
-        std::cout<<"arm "<<i<<" mass: "<<m_arms[i]->GetBody()->GetMass()<<std::endl;
+        //std::cout<<"arm "<<i<<" mass: "<<m_arms[i]->GetBody()->GetMass()<<std::endl;
     }
 
 
     for(int i = 0; i < 4; i ++){
         tot_mass = tot_mass + m_steers[i]->GetBody()->GetMass();
-        std::cout<<"steer "<<i<<" mass: "<<m_steers[i]->GetBody()->GetMass()<<std::endl;
+        //std::cout<<"steer "<<i<<" mass: "<<m_steers[i]->GetBody()->GetMass()<<std::endl;
     }
 
 
     for(int i = 0; i < 3; i ++){
         tot_mass = tot_mass + m_balancers[i]->GetBody()->GetMass();
-        std::cout<<"balancer "<<i<<" mass: "<<m_balancers[i]->GetBody()->GetMass()<<std::endl;
+        //std::cout<<"balancer "<<i<<" mass: "<<m_balancers[i]->GetBody()->GetMass()<<std::endl;
     }
     return tot_mass;
 }
 
 double CuriosityRover::GetWheelMass() {
-    //return m_wheels[0]->GetBody()->GetMass();
+    return m_wheels[0]->GetBody()->GetMass();
     return 0.0;
 }
 
