@@ -131,47 +131,48 @@ void PrintToFile(const thrust::device_vector<Real4>& posRadD,
     fileNameFluidParticles.close();
 
     //*****************************************************
-    const std::string nameFluidBoundaries =
-        out_dir + std::string("/boundary") + std::string(fileCounter) + std::string(".csv");
+    if(dumNumChar == 0){
+        const std::string nameFluidBoundaries =
+            out_dir + std::string("/boundary") + std::string(fileCounter) + std::string(".csv");
 
-    std::ofstream fileNameFluidBoundaries;
-    fileNameFluidBoundaries.open(nameFluidBoundaries);
-    std::stringstream ssFluidBoundaryParticles;
-    if (printToParaview){
-        if(short_out){
-            ssFluidBoundaryParticles << "x,y,z,v_x,v_y,v_z,|U|,rho,pressure\n";
+        std::ofstream fileNameFluidBoundaries;
+        fileNameFluidBoundaries.open(nameFluidBoundaries);
+        std::stringstream ssFluidBoundaryParticles;
+        if (printToParaview){
+            if(short_out){
+                ssFluidBoundaryParticles << "x,y,z,v_x,v_y,v_z,|U|,rho,pressure\n";
+            }
+            else{
+                ssFluidBoundaryParticles << "x,y,z,h,v_x,v_y,v_z,|U|,rho(rpx),p(rpy),mu(rpz),sr,tau,I,mu_i,type(rpw)\n";
+            }
         }
-        else{
-            ssFluidBoundaryParticles << "x,y,z,h,v_x,v_y,v_z,|U|,rho(rpx),p(rpy),mu(rpz),sr,tau,I,mu_i,type(rpw)\n";
+
+        //		ssFluidBoundaryParticles.precision(20);
+        for (size_t i = referenceArray[haveHelper + haveGhost + 1].x; i < referenceArray[haveHelper + haveGhost + 1].y;
+            i++) {
+            Real4 rP = rhoPresMuH[i];
+            if (rP.w != 0)
+                continue;
+            Real4 pos = posRadH[i];
+            Real3 vel = velMasH[i] + mR3(1e-20);
+            Real4 stIm = h_sr_tau_I_mu_i[i] + mR4(1e-20);
+
+            Real velMag = length(vel);
+            if(short_out){
+                ssFluidBoundaryParticles << pos.x << ", " << pos.y << ", " << pos.z << ", " 
+                                << vel.x + eps << ", "<< vel.y + eps << ", " << vel.z + eps << ", " 
+                                << velMag + eps << ", " << rP.x << ", " << rP.y + eps << std::endl;
+            }
+            else{
+                ssFluidBoundaryParticles << pos.x << ", " << pos.y << ", " << pos.z << ", " << pos.w << ", " << vel.x + eps
+                                        << ", " << vel.y + eps << ", " << vel.z + eps << ", " << velMag + eps << ", " << rP.x
+                                        << ", " << rP.y + eps << ", " << rP.z << ", " << stIm.x << ", " << stIm.y + eps << ", "
+                                        << stIm.z << ", " << stIm.w << ", " << rP.w << std::endl;
+            }
         }
+        fileNameFluidBoundaries << ssFluidBoundaryParticles.str();
+        fileNameFluidBoundaries.close();
     }
-
-    //		ssFluidBoundaryParticles.precision(20);
-    for (size_t i = referenceArray[haveHelper + haveGhost + 1].x; i < referenceArray[haveHelper + haveGhost + 1].y;
-         i++) {
-        Real4 rP = rhoPresMuH[i];
-        if (rP.w != 0)
-            continue;
-        Real4 pos = posRadH[i];
-        Real3 vel = velMasH[i] + mR3(1e-20);
-        Real4 stIm = h_sr_tau_I_mu_i[i] + mR4(1e-20);
-
-        Real velMag = length(vel);
-        if(short_out){
-            ssFluidBoundaryParticles << pos.x << ", " << pos.y << ", " << pos.z << ", " 
-                             << vel.x + eps << ", "<< vel.y + eps << ", " << vel.z + eps << ", " 
-                             << velMag + eps << ", " << rP.x << ", " << rP.y + eps << std::endl;
-        }
-        else{
-            ssFluidBoundaryParticles << pos.x << ", " << pos.y << ", " << pos.z << ", " << pos.w << ", " << vel.x + eps
-                                    << ", " << vel.y + eps << ", " << vel.z + eps << ", " << velMag + eps << ", " << rP.x
-                                    << ", " << rP.y + eps << ", " << rP.z << ", " << stIm.x << ", " << stIm.y + eps << ", "
-                                    << stIm.z << ", " << stIm.w << ", " << rP.w << std::endl;
-        }
-    }
-    fileNameFluidBoundaries << ssFluidBoundaryParticles.str();
-    fileNameFluidBoundaries.close();
-
     //*****************************************************
     int refSize = (int)referenceArray.size();
     if (refSize > haveHelper + haveGhost + 2) {
