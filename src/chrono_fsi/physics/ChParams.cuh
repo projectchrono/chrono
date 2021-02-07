@@ -239,6 +239,10 @@ struct SimParams {
     Real bodyIniPosX;
     Real bodyIniPosY;
     Real bodyIniPosZ;
+    Real bodyIniVelX;
+    Real bodyIniVelY;
+    Real bodyIniVelZ;
+    Real bodyIniAngVel;
     Real bodyMass;
     Real bodyDensity;
 };  // namespace fsi
