@@ -45,7 +45,7 @@ int main(int argc, char* argv[]) {
                         make_float3(params.box_X, params.box_Y, params.box_Z));
 
     // Add spherically-decomposed underlying terrain.
-    std::string objfilename(GetChronoDataFile("gpu/demo_GPU_fixedterrain/fixedterrain.obj"));
+    std::string objfilename(GetChronoDataFile("models/fixedterrain.obj"));
 
     ChVector<float> scaling(params.box_X / 2, params.box_Y / 2, params.box_Z);
     ChVector<float> offset(0, 0, -params.box_Z / 2);
@@ -144,7 +144,10 @@ int main(int argc, char* argv[]) {
                            CHGPU_OUTPUT_FLAGS::FIXITY);
 
     // Create data directory
-    filesystem::create_directory(filesystem::path(params.output_dir));
+    std::string out_dir = GetChronoOutputPath() + "GPU/";
+    filesystem::create_directory(filesystem::path(out_dir));
+    out_dir = out_dir + params.output_dir;
+    filesystem::create_directory(filesystem::path(out_dir));
 
     // Finalize initialization of the Chrono::Gpu system
     gpu_sys.Initialize();
@@ -156,7 +159,7 @@ int main(int argc, char* argv[]) {
     for (double t = 0; t < (double)params.time_end; t += frame_step, currframe++) {
         std::cout << "Rendering frame " << (currframe + 1) << " of " << total_frames << std::endl;
         char filename[100];
-        sprintf(filename, "%s/step%06d", params.output_dir.c_str(), currframe);
+        sprintf(filename, "%s/step%06d", out_dir.c_str(), currframe);
         gpu_sys.WriteFile(std::string(filename));
 
         gpu_sys.AdvanceSimulation((float)frame_step);

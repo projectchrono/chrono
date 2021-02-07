@@ -21,6 +21,7 @@
 
 #include "GpuDemoUtils.hpp"
 
+#include "chrono/core/ChGlobal.h"
 #include "chrono/core/ChStream.h"
 #include "chrono/core/ChVector.h"
 #include "chrono/utils/ChUtilsSamplers.h"
@@ -102,7 +103,11 @@ int main(int argc, char* argv[]) {
 
     gpu_sys.SetGravitationalAcceleration(ChVector<float>(params.grav_X, params.grav_Y, params.grav_Z));
     gpu_sys.SetOutputMode(params.write_mode);
-    filesystem::create_directory(filesystem::path(params.output_dir));
+
+    std::string out_dir = GetChronoOutputPath() + "GPU/";
+    filesystem::create_directory(filesystem::path(out_dir));
+    out_dir = out_dir + params.output_dir;
+    filesystem::create_directory(filesystem::path(out_dir));
 
     // Set the position of the BD fixed
     gpu_sys.SetBDFixed(true);
@@ -164,7 +169,7 @@ int main(int argc, char* argv[]) {
 
         // write position
         char filename[100];
-        sprintf(filename, "%s/step%06d", params.output_dir.c_str(), curr_frame);
+        sprintf(filename, "%s/step%06d", out_dir.c_str(), curr_frame);
         gpu_sys.WriteFile(std::string(filename));
         gpu_sys.AdvanceSimulation(frame_step);
 

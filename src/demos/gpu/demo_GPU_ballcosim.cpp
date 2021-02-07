@@ -158,7 +158,7 @@ int main(int argc, char* argv[]) {
     // gpu_sys.SetRollingCoeff_SPH2WALL(params.rolling_friction_coeffS2W);
     // gpu_sys.SetRollingCoeff_SPH2MESH(params.rolling_friction_coeffS2M);
 
-    std::string mesh_filename(GetChronoDataFile("gpu/demo_GPU_ballcosim/sphere.obj"));
+    std::string mesh_filename(GetChronoDataFile("models/sphere.obj"));
     std::vector<string> mesh_filenames(1, mesh_filename);
 
     std::vector<float3> mesh_translations(1, make_float3(0.f, 0.f, 0.f));
@@ -174,7 +174,11 @@ int main(int argc, char* argv[]) {
 
     gpu_sys.SetOutputMode(params.write_mode);
     gpu_sys.SetVerbosity(params.verbose);
-    filesystem::create_directory(filesystem::path(params.output_dir));
+
+    std::string out_dir = GetChronoOutputPath() + "GPU/";
+    filesystem::create_directory(filesystem::path(out_dir));
+    out_dir = out_dir + params.output_dir;
+    filesystem::create_directory(filesystem::path(out_dir));
 
     std::cout << gpu_sys.GetNumMeshes() << " meshes" << std::endl;
 
@@ -231,7 +235,7 @@ int main(int argc, char* argv[]) {
         if (curr_step % out_steps == 0) {
             std::cout << "Output frame " << currframe + 1 << " of " << total_frames << std::endl;
             char filename[100];
-            sprintf(filename, "%s/step%06d", params.output_dir.c_str(), currframe++);
+            sprintf(filename, "%s/step%06d", out_dir.c_str(), currframe++);
             gpu_sys.WriteFile(std::string(filename));
             gpu_sys.WriteMeshes(std::string(filename));
 

@@ -20,6 +20,7 @@
 #include <string>
 #include <cmath>
 
+#include "chrono/core/ChGlobal.h"
 #include "chrono/utils/ChUtilsSamplers.h"
 
 #include "chrono_gpu/physics/ChSystemGpu.h"
@@ -63,7 +64,10 @@ int main(int argc, char* argv[]) {
     gpu_sys.SetGravitationalAcceleration(ChVector<float>(params.grav_X, params.grav_Y, params.grav_Z));
     gpu_sys.SetOutputMode(params.write_mode);
 
-    filesystem::create_directory(filesystem::path(params.output_dir));
+    std::string out_dir = GetChronoOutputPath() + "GPU/";
+    filesystem::create_directory(filesystem::path(out_dir));
+    out_dir = out_dir + params.output_dir;
+    filesystem::create_directory(filesystem::path(out_dir));
 
     // fill box, layer by layer
     ChVector<float> hdims((float)(params.box_X / 2.0 - 1.2), (float)(params.box_Y / 2.0 - 1.2),
@@ -117,7 +121,7 @@ int main(int argc, char* argv[]) {
     unsigned int total_frames = (unsigned int)((float)params.time_end * fps);
 
     char filename[100];
-    sprintf(filename, "%s/step%06d", params.output_dir.c_str(), currframe++);
+    sprintf(filename, "%s/step%06d", out_dir.c_str(), currframe++);
     gpu_sys.WriteFile(std::string(filename));
 
     std::cout << "frame step is " << frame_step << std::endl;
@@ -128,7 +132,7 @@ int main(int argc, char* argv[]) {
         curr_time += frame_step;
         printf("rendering frame %u of %u\n", currframe, total_frames);
         char filename[100];
-        sprintf(filename, "%s/step%06d", params.output_dir.c_str(), currframe++);
+        sprintf(filename, "%s/step%06d", out_dir.c_str(), currframe++);
         gpu_sys.WriteFile(std::string(filename));
     }
 
