@@ -165,12 +165,13 @@ class ISO3888_Helper {
         rightCones.push_back((rightLine[4] + rightLine[5]) / 2);
         rightCones.push_back(rightLine[5]);
 
-        std::ofstream tst("bla.txt");
-        for (int i = 0; i < leftLine.size(); i++) {
-            tst << leftLine[i].x() << "\t" << centerLine[i].x() << "\t" << leftLine[i].y() << "\t" << centerLine[i].y()
-                << "\t" << rightLine[i].y() << std::endl;
-        }
-        tst.close();
+        ////std::ofstream tst("bla.txt");
+        ////for (int i = 0; i < leftLine.size(); i++) {
+        ////    tst << leftLine[i].x() << "\t" << centerLine[i].x() << "\t" << leftLine[i].y() << "\t" << centerLine[i].y()
+        ////        << "\t" << rightLine[i].y() << std::endl;
+        ////}
+        ////tst.close();
+
         // prepare path spline definition
         ChVector<> offset(lengthB / 3, 0, 0);
         for (size_t i = 0; i < centerLine.size(); i++) {
