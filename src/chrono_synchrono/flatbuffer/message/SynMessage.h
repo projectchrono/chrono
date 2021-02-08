@@ -68,6 +68,9 @@ class SYN_API SynMessage {
     ///@return unsigned int the destination id
     unsigned int GetDestinationID() { return m_destination_id; }
 
+    SynFlatBuffers::Type GetMessageType() { return m_msg_type; }
+    void SetMessageType(SynFlatBuffers::Type msg_type) { m_msg_type = msg_type; }
+
     double time;  ///< simulation time
 
   protected:
@@ -76,10 +79,11 @@ class SYN_API SynMessage {
     ///@param source_id the id of the source to which the message is sent from
     ///@param destination_id the id of the destination to which the message is sent to
     SynMessage(unsigned int source_id, unsigned int destination_id)
-        : m_source_id(source_id), m_destination_id(destination_id), time(0.0) {}
+        : time(0.0), m_source_id(source_id), m_destination_id(destination_id) {}
 
     unsigned int m_source_id;       ///< id for the source which sent this message
     unsigned int m_destination_id;  ///< id for the destination of this message
+    SynFlatBuffers::Type m_msg_type;  ///< Type of message that we contain
 };
 
 typedef std::vector<std::shared_ptr<SynMessage>> SynMessageList;

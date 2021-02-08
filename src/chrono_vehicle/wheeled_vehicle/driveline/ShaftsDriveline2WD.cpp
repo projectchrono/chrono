@@ -58,7 +58,6 @@ void ShaftsDriveline2WD::Create(const rapidjson::Document& d) {
     // Read gear ratios.
     assert(d.HasMember("Gear Ratio"));
     m_conicalgear_ratio = d["Gear Ratio"]["Conical Gear"].GetDouble();
-    m_differential_ratio = d["Gear Ratio"]["Differential"].GetDouble();
 
     m_axle_differential_locking_limit = 100;
     if (d.HasMember("Axle Differential Locking Limit")) {

@@ -542,6 +542,7 @@ add_subdirectory(chrono_vehicle)
 add_subdirectory(chrono_fsi)
 add_subdirectory(chrono_sensor)
 add_subdirectory(chrono_synchrono)
+add_subdirectory(chrono_csharp)
 
 # Add directories for model libraries
 add_subdirectory(chrono_models)
@@ -563,7 +564,7 @@ endif()
 
 install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/chrono_thirdparty
         DESTINATION include
-	FILES_MATCHING PATTERN "*.h" PATTERN "*.cuh" PATTERN "*.hpp")
+	FILES_MATCHING PATTERN "*.h" PATTERN "*.cuh" PATTERN "*.hpp" PATTERN "*.inl")
 
 #------------------------------------------------------------
 # Generate and install the Chrono configuration header

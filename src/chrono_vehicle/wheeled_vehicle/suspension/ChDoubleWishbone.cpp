@@ -409,8 +409,8 @@ void ChDoubleWishbone::AddVisualizationAssets(VisualizationType vis) {
     AddVisualizationControlArm(m_LCA[RIGHT], m_pointsR[LCA_F], m_pointsR[LCA_B], m_pointsR[LCA_U], getLCARadius());
 
     // Add visualization for the springs and shocks
-    m_spring[LEFT]->AddAsset(chrono_types::make_shared<ChPointPointSpring>(0.06, 150, 15));
-    m_spring[RIGHT]->AddAsset(chrono_types::make_shared<ChPointPointSpring>(0.06, 150, 15));
+    m_spring[LEFT]->AddAsset(chrono_types::make_shared<ChPointPointSpring>(2 * getLCARadius(), 150, 15));
+    m_spring[RIGHT]->AddAsset(chrono_types::make_shared<ChPointPointSpring>(2 * getLCARadius(), 150, 15));
 
     m_shock[LEFT]->AddAsset(chrono_types::make_shared<ChPointPointSegment>());
     m_shock[RIGHT]->AddAsset(chrono_types::make_shared<ChPointPointSegment>());

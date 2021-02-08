@@ -122,7 +122,7 @@ unsigned ChMultiplePathSteeringController::addPath(std::shared_ptr<ChBezierCurve
     m_path.push_back(path);
     auto m_tracker_element = chrono_types::make_shared<ChBezierCurveTracker>(path, isClosedPath);
     m_tracker.push_back(m_tracker_element);
-    return m_tracker.size() - 1;
+    return (unsigned)(m_tracker.size() - 1);
 }
 
 }  // namespace synchrono

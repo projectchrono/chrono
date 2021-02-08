@@ -73,9 +73,9 @@ unsigned int horizontal_samples = 4500;
 unsigned int vertical_samples = 32;
 
 // Horizontal and vertical field of view (radians)
-float horizontal_fov = (float) (2 * CH_C_PI);   // 360 degree scan
-float max_vert_angle = (float) CH_C_PI / 12;  // 15 degrees up
-float min_vert_angle = (float) -CH_C_PI / 6;  // 30 degrees down
+float horizontal_fov = (float)(2 * CH_C_PI);  // 360 degree scan
+float max_vert_angle = (float)CH_C_PI / 12;   // 15 degrees up
+float min_vert_angle = (float)-CH_C_PI / 6;   // 30 degrees down
 
 // Lag time
 float lag = 0.f;
@@ -158,14 +158,15 @@ int main(int argc, char* argv[]) {
     // -----------------------------------------------
     auto offset_pose = chrono::ChFrame<double>({-4, 0, 1}, Q_from_AngAxis(0, {0, 1, 0}));
 
-    auto lidar = chrono_types::make_shared<ChLidarSensor>(box_body,        // body lidar is attached to
-                                                          update_rate,     // scanning rate in Hz
-                                                          offset_pose,     // offset pose
-                                                          900,             // number of horizontal samples
-                                                          30,              // number of vertical channels
-                                                          horizontal_fov,  // horizontal field of view
-                                                          max_vert_angle, min_vert_angle, 100  // vertical field of view
-    );
+    auto lidar =
+        chrono_types::make_shared<ChLidarSensor>(box_body,                               // body lidar is attached to
+                                                 update_rate,                            // scanning rate in Hz
+                                                 offset_pose,                            // offset pose
+                                                 900,                                    // number of horizontal samples
+                                                 30,                                     // number of vertical channels
+                                                 horizontal_fov,                         // horizontal field of view
+                                                 max_vert_angle, min_vert_angle, 100.0f  // vertical field of view
+        );
     lidar->SetName("Lidar Sensor 1");
     lidar->SetLag(lag);
     lidar->SetCollectionWindow(collection_time);
@@ -214,10 +215,10 @@ int main(int argc, char* argv[]) {
     // Create a multi-sample lidar, where each beam
     // is traced by multiple rays
     // -----------------------------------------------------------------------
-    unsigned int sample_radius = 2;                                         // radius of samples to use, 1->1
-                                                                            // sample,2->9 samples, 3->25 samples...
-    float vert_divergence_angle = 0.003;                                         // 3mm radius (as cited by velodyne)
-    float hori_divergence_angle = 0.003;
+    unsigned int sample_radius = 2;        // radius of samples to use, 1->1
+                                           // sample,2->9 samples, 3->25 samples...
+    float vert_divergence_angle = 0.003f;  // 3mm radius (as cited by velodyne)
+    float hori_divergence_angle = 0.003f;
     auto lidar2 = chrono_types::make_shared<ChLidarSensor>(box_body,        // body lidar is attached to
                                                            update_rate,     // scanning rate in Hz
                                                            offset_pose,     // offset pose
@@ -225,15 +226,15 @@ int main(int argc, char* argv[]) {
                                                            32,              // number of vertical channels
                                                            horizontal_fov,  // horizontal field of view
                                                            max_vert_angle,
-                                                           min_vert_angle,    // vertical field of view
-                                                           100,               // max distance
-                                                           "ellipse",          // beam shape
-                                                           sample_radius,     // sample radius
+                                                           min_vert_angle,         // vertical field of view
+                                                           100,                    // max distance
+                                                           "ellipse",              // beam shape
+                                                           sample_radius,          // sample radius
                                                            vert_divergence_angle,  // vertical divergence angle
                                                            hori_divergence_angle,  // horizontal divergence angle
-                                                           return_mode,       // return mode for the lidar
-                                                           lidar_model        // method/model to use for
-                                                                              // generating data
+                                                           return_mode,            // return mode for the lidar
+                                                           lidar_model             // method/model to use for
+                                                                                   // generating data
     );
     lidar2->SetName("Lidar Sensor 2");
     lidar2->SetLag(lag);

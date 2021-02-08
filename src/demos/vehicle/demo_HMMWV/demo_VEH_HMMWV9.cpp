@@ -92,7 +92,7 @@ int main(int argc, char* argv[]) {
     my_hmmwv.SetChassisCollisionType(CollisionType::NONE);
     my_hmmwv.SetInitPosition(ChCoordsys<>(initLoc, initRot));
     my_hmmwv.SetPowertrainType(powertrain_model);
-    my_hmmwv.SetDriveType(DrivelineType::RWD);
+    my_hmmwv.SetDriveType(DrivelineTypeWV::RWD);
     my_hmmwv.SetTireType(tire_model);
     my_hmmwv.SetTireStepSize(tire_step_size);
     my_hmmwv.Initialize();

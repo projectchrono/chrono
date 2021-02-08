@@ -69,6 +69,7 @@
 #include "chrono_vehicle/wheeled_vehicle/wheel/Wheel.h"
 
 #include "chrono_vehicle/tracked_vehicle/brake/TrackBrakeSimple.h"
+#include "chrono_vehicle/tracked_vehicle/brake/TrackBrakeShafts.h"
 #include "chrono_vehicle/tracked_vehicle/driveline/SimpleTrackDriveline.h"
 #include "chrono_vehicle/tracked_vehicle/driveline/TrackDrivelineBDS.h"
 #include "chrono_vehicle/tracked_vehicle/idler/DoubleIdler.h"
@@ -590,6 +591,8 @@ std::shared_ptr<ChTrackBrake> ReadTrackBrakeJSON(const std::string& filename) {
     // Create the brake using the appropriate template.
     if (subtype.compare("TrackBrakeSimple") == 0) {
         brake = chrono_types::make_shared<TrackBrakeSimple>(d);
+    } else if (subtype.compare("TrackBrakeShafts") == 0) {
+        brake = chrono_types::make_shared<TrackBrakeShafts>(d);
     } else {
         throw ChException("Brake type not supported in ReadTrackBrakeJSON.");
     }

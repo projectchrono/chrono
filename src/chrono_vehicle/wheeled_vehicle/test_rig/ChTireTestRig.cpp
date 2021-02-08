@@ -429,7 +429,7 @@ void ChTireTestRig::CreateTerrainRigid() {
         terrain->AddPatch(patch_mat, location, ChVector<>(0, 0, 1), m_params_rigid.length, m_params_rigid.width, 0.1);
 
     patch->SetColor(ChColor(0.8f, 0.8f, 0.8f));
-    patch->SetTexture(GetChronoDataFile("pinkwhite.png"), 10 * (float)m_params_rigid.length,
+    patch->SetTexture(GetChronoDataFile("textures/pinkwhite.png"), 10 * (float)m_params_rigid.length,
                       10 * (float)m_params_rigid.width);
     terrain->Initialize();
 

@@ -166,7 +166,7 @@ int main(int argc, char* argv[]) {
     // Create a 'fan ventilator' object, using Irrlicht mesh loading and handling 
     // (this object is here for aesthetical reasons, it is NOT handled by Chrono)
     double fan_radius = 5.3;
-    IAnimatedMesh* fanMesh = application.GetSceneManager()->getMesh(GetChronoDataFile("fan2.obj").c_str());
+    IAnimatedMesh* fanMesh = application.GetSceneManager()->getMesh(GetChronoDataFile("models/fan2.obj").c_str());
     IAnimatedMeshSceneNode* fanNode = application.GetSceneManager()->addAnimatedMeshSceneNode(fanMesh);
     fanNode->setScale(irr::core::vector3df((irr::f32)fan_radius, (irr::f32)fan_radius, (irr::f32)fan_radius));
 

@@ -86,6 +86,8 @@
 // ===================================================================================================================
 
 #include <random>
+#include <cmath>
+
 #include "chrono_vehicle/terrain/RandomSurfaceTerrain.h"
 #include "chrono_vehicle/ChWorldFrame.h"
 #include "chrono/geometry/ChLineBezier.h"
@@ -113,7 +115,7 @@ RandomSurfaceTerrain::RandomSurfaceTerrain(ChSystem* system, double length, doub
     m_xmax = floor(length);
     m_ymin = -ceil(width / 2.0);
     m_ymax = ceil(width / 2.0);
-    m_nx = m_xmax / m_dx + 1;
+    m_nx = static_cast<int>(m_xmax / m_dx + 1);
     m_ny = 7;
     m_y.resize(m_ny);
     m_y[0] = m_ymin;
@@ -126,7 +128,7 @@ RandomSurfaceTerrain::RandomSurfaceTerrain(ChSystem* system, double length, doub
     m_f_fft_min = 1.0 / m_length;
     m_f_fft_max = 10.0;
     double dtmax = m_dx;
-    size_t p = ceil(-log(m_f_fft_min * dtmax) / log(2));
+    int p = static_cast<int>(std::ceil(-std::log(m_f_fft_min * dtmax) / std::log(2.0)));
     m_Nfft = 2 << p;
     // ground body, carries the graphic assets
     m_ground = std::shared_ptr<ChBody>(system->NewBody());
@@ -144,7 +146,7 @@ RandomSurfaceTerrain::RandomSurfaceTerrain(ChSystem* system, double length, doub
 
 void RandomSurfaceTerrain::ApplyAmplitudes() {
     m_rms = 0.0;
-    for (size_t i = 0; i < m_nx; i++) {
+    for (int i = 0; i < m_nx; i++) {
         double x = m_dx * double(i);
         double A_left = CalculateAmplitudeLeft(x);
         double A_right = CalculateAmplitudeRight(x);
@@ -152,10 +154,10 @@ void RandomSurfaceTerrain::ApplyAmplitudes() {
         m_Q(i, 2) = A_right;
         m_Q(i, 4) = A_left;
         m_Q(i, 5) = A_left;
-        m_rms += pow(A_right, 2) + pow(A_left, 2);
+        m_rms += A_right * A_right + A_left * A_left;
     }
-    m_rms = sqrt(m_rms / 2.0 / m_nx);
-    m_iri = 2.21 * sqrt(m_unevenness * 1e6) * exp(-0.356 * (m_waviness - 2.0) + 0.13 * pow(m_waviness - 2.0, 2.0));
+    m_rms = std::sqrt(m_rms / (2.0 * m_nx));
+    m_iri = 2.21 * std::sqrt(m_unevenness * 1e6) * std::exp(-0.356 * (m_waviness - 2.0) + 0.13 * std::pow(m_waviness - 2.0, 2));
 }
 
 double RandomSurfaceTerrain::GetHeight(const ChVector<>& loc) const {
@@ -164,9 +166,9 @@ double RandomSurfaceTerrain::GetHeight(const ChVector<>& loc) const {
         return m_height;
     if (loc_ISO.y() < m_ymin || loc_ISO.y() > m_ymax)
         return m_height;
-    size_t ix = (std::abs(loc_ISO.x() - m_xmax) > 1e-6) ? (loc_ISO.x() - m_xmin) / m_dx : m_nx - 2;
+    int ix = (std::abs(loc_ISO.x() - m_xmax) > 1e-6) ? static_cast<int>((loc_ISO.x() - m_xmin) / m_dx) : m_nx - 2;
     int iy = -1;
-    for (size_t i = 0; i < m_ny - 1; i++) {
+    for (int i = 0; i < m_ny - 1; i++) {
         if (loc_ISO.y() >= m_y[i] && loc_ISO.y() <= m_y[i + 1]) {
             iy = i;
             break;
@@ -359,8 +361,8 @@ void RandomSurfaceTerrain::GenerateSurfaceFromPreset(SurfaceType theSurface, dou
 
 void RandomSurfaceTerrain::CalculatePolynomialCoefficients() {
     // m_Q was set up before!
-    for (size_t i = 0; i < m_nx - 1; i++) {
-        for (size_t j = 0; j < m_ny - 1; j++) {
+    for (int i = 0; i < m_nx - 1; i++) {
+        for (int j = 0; j < m_ny - 1; j++) {
             double Q11 = m_Q(i, j);
             double Q12 = m_Q(i, j + 1);
             double Q21 = m_Q(i + 1, j);
@@ -385,15 +387,15 @@ void RandomSurfaceTerrain::CalculatePolynomialCoefficients() {
 
 void RandomSurfaceTerrain::CalculateSpectralCoefficients(double Phi_h0, double waviness) {
     const double w0 = 1.0;
-    for (size_t i = 1; i < m_Nfft; i++) {
-        double f = m_f_fft_min * double(i);
+    for (int i = 1; i < m_Nfft; i++) {
+        double f = m_f_fft_min * i;
         if (f > m_f_fft_max)
             break;
         double Lbd = 1.0 / f;
         if (Lbd > m_lambda_max)
             continue;
         double w = CH_C_2PI * f;
-        double ck = sqrt(Phi_h0 * pow(w / w0, -waviness) * m_f_fft_min);
+        double ck = std::sqrt(Phi_h0 * std::pow(w / w0, -waviness) * m_f_fft_min);
         m_ck.push_back(ck);
         m_wfft.push_back(w);
     }
@@ -401,11 +403,11 @@ void RandomSurfaceTerrain::CalculateSpectralCoefficients(double Phi_h0, double w
     std::uniform_real_distribution<double> distribution(0.0, CH_C_2PI);
 
     m_phase_left.resize(m_ck.size());
-    for (size_t i = 0; i < m_ck.size(); i++) {
+    for (int i = 0; i < m_ck.size(); i++) {
         m_phase_left[i] = distribution(generator);
     }
     m_phase_right.resize(m_ck.size());
-    for (size_t i = 0; i < m_ck.size(); i++) {
+    for (int i = 0; i < m_ck.size(); i++) {
         m_phase_right[i] = distribution(generator);
     }
 }
@@ -417,7 +419,7 @@ void RandomSurfaceTerrain::CalculateSpectralCoefficientsCorr(double Phi_h0,
                                                              double waviness,
                                                              double a) {
     const double w0 = 1.0;
-    for (size_t i = 1; i < m_Nfft; i++) {
+    for (int i = 1; i < m_Nfft; i++) {
         double f = m_f_fft_min * double(i);
         if (f > m_f_fft_max)
             break;
@@ -425,7 +427,7 @@ void RandomSurfaceTerrain::CalculateSpectralCoefficientsCorr(double Phi_h0,
         if (Lbd > 20.0)
             continue;
         double w = CH_C_2PI * f;
-        double ck = sqrt(Phi_h0 * pow(w / w0, -waviness) * m_f_fft_min);
+        double ck = std::sqrt(Phi_h0 * std::pow(w / w0, -waviness) * m_f_fft_min);
         m_ck.push_back(ck);
         m_wfft.push_back(w);
     }
@@ -433,15 +435,15 @@ void RandomSurfaceTerrain::CalculateSpectralCoefficientsCorr(double Phi_h0,
     std::uniform_real_distribution<double> distribution(0.0, CH_C_2PI);
 
     m_phase_left.resize(m_ck.size());
-    for (size_t i = 0; i < m_ck.size(); i++) {
+    for (int i = 0; i < m_ck.size(); i++) {
         m_phase_left[i] = distribution(generator);
     }
     m_phase_right.resize(m_ck.size());
-    for (size_t i = 0; i < m_ck.size(); i++) {
+    for (int i = 0; i < m_ck.size(); i++) {
         m_phase_right[i] = distribution(generator);
     }
     // consider correlation by blending the phase angles via coherence function
-    for (size_t i = 0; i < m_wfft.size(); i++) {
+    for (int i = 0; i < m_wfft.size(); i++) {
         double coh = Coherence(m_wfft[i], trackWidth, omega_p, p, waviness, a);
         double ph_left = m_phase_left[i];
         double ph_right = m_phase_right[i];
@@ -451,7 +453,7 @@ void RandomSurfaceTerrain::CalculateSpectralCoefficientsCorr(double Phi_h0,
 
 double RandomSurfaceTerrain::CalculateAmplitudeLeft(double x) {
     double A = 0.0;
-    for (size_t i = 0; i < m_ck.size(); i++) {
+    for (int i = 0; i < m_ck.size(); i++) {
         A += m_ck[i] * cos(m_wfft[i] * x + m_phase_left[i]);
     }
     double fade = ChSineStep(x, 0, 0, 10.0, 1.0) * ChSineStep(x, m_xmax - 10.0, 1.0, m_xmax, 0.0);
@@ -460,7 +462,7 @@ double RandomSurfaceTerrain::CalculateAmplitudeLeft(double x) {
 
 double RandomSurfaceTerrain::CalculateAmplitudeRight(double x) {
     double A = 0.0;
-    for (size_t i = 0; i < m_ck.size(); i++) {
+    for (int i = 0; i < m_ck.size(); i++) {
         A += m_ck[i] * cos(m_wfft[i] * x + m_phase_right[i]);
     }
     double fade = ChSineStep(x, 0, 0, 10.0, 1.0) * ChSineStep(x, m_xmax - 10.0, 1.0, m_xmax, 0.0);
@@ -473,18 +475,18 @@ double RandomSurfaceTerrain::Coherence(double omega,
                                        double p,
                                        double waviness,
                                        double a) {
-    return pow(1.0 + pow(omega * pow(trackWidth, a) / omega_p, waviness), -p);
+    return std::pow(1.0 + std::pow(omega * std::pow(trackWidth, a) / omega_p, waviness), -p);
 }
 
 void RandomSurfaceTerrain::GenerateCurves() {
     std::vector<ChVector<>> pl, pr;
-    size_t np = static_cast<size_t>(m_xmax / m_dx);
+    int np = static_cast<int>(m_xmax / m_dx);
 
     int j_left = 1;
     int j_right = 5;
     double yl = m_y[j_left];
     double yr = m_y[j_right];
-    for (size_t i = 0; i < np; i++) {
+    for (int i = 0; i < np; i++) {
         double x = m_xmin + i * m_dx;
         double zl = m_Q(i, j_left);
         double zr = m_Q(i, j_right);
@@ -527,9 +529,9 @@ void RandomSurfaceTerrain::SetupMeshGraphics() {
     auto& normals = m_mesh->getCoordsNormals();
     auto& normidx = m_mesh->getIndicesNormals();
 
-    for (size_t i = 0; i < m_nx; i++) {
+    for (int i = 0; i < m_nx; i++) {
         double x = m_dx * double(i);
-        for (size_t j = 0; j < m_y.size(); j++) {
+        for (int j = 0; j < m_y.size(); j++) {
             double y = m_y[j];
             double z = m_Q(i, j);
             coords.push_back(ChWorldFrame::FromISO(ChVector<>(x, y, z)));
@@ -538,12 +540,12 @@ void RandomSurfaceTerrain::SetupMeshGraphics() {
     }
     // Define the faces
     for (int i = 0; i < m_nx - 1; i++) {
-        int ofs = m_y.size() * i;
+        int ysize = static_cast<int>(m_y.size());
         for (int j = 0; j < m_y.size() - 1; j++) {
-            indices.push_back(ChVector<int>(j + ofs, j + m_y.size() + ofs, j + 1 + ofs));
-            indices.push_back(ChVector<int>(j + 1 + ofs, j + m_y.size() + ofs, j + 1 + m_y.size() + ofs));
-            normidx.push_back(ChVector<int>(j + ofs, j + m_y.size() + ofs, j + 1 + ofs));
-            normidx.push_back(ChVector<int>(j + 1 + ofs, j + m_y.size() + ofs, j + 1 + m_y.size() + ofs));
+            indices.push_back(ChVector<int>(j + 0 + ysize * i, j + ysize + ysize * i, j + 1 + ysize * i));
+            indices.push_back(ChVector<int>(j + 1 + ysize * i, j + ysize + ysize * i, j + 1 + ysize + ysize * i));
+            normidx.push_back(ChVector<int>(j + 0 + ysize * i, j + ysize + ysize * i, j + 1 + ysize * i));
+            normidx.push_back(ChVector<int>(j + 1 + ysize * i, j + ysize + ysize * i, j + 1 + ysize + ysize * i));
         }
     }
     auto vmesh = chrono_types::make_shared<ChTriangleMeshShape>();
@@ -579,7 +581,7 @@ void RandomSurfaceTerrain::Initialize(double iri,
                                       double vehicleTrackWidth,
                                       bool considerCorrelation,
                                       RandomSurfaceTerrain::VisualisationType vType) {
-    double unevenness = pow(iri / 2.21, 2.0) * 1.0e-6;
+    double unevenness = std::pow(iri / 2.21, 2) * 1.0e-6;
     double waviness = 2.0;
     Initialize(unevenness, waviness, vehicleTrackWidth, considerCorrelation, vType);
 }

@@ -60,8 +60,8 @@ CH_SENSOR_API void ChFilterGPSUpdate::Apply(std::shared_ptr<ChSensor> pSensor,
             coords += std::get<1>(c);
             last_ch_time = std::get<0>(c);
         }
-        coords = coords / pGPS->gps_key_frames.size();
-        ch_time = ch_time / pGPS->gps_key_frames.size();
+        coords = coords / (double)(pGPS->gps_key_frames.size());
+        ch_time = ch_time / (float)(pGPS->gps_key_frames.size());
     }
 
     if (m_noise_model) {
@@ -84,7 +84,7 @@ CH_SENSOR_API void ChFilterGPSUpdate::Apply(std::shared_ptr<ChSensor> pSensor,
 
 CH_SENSOR_API ChGPSNoiseNormal::ChGPSNoiseNormal(ChVector<float> mean, ChVector<float> stdev)
     : m_mean(mean), m_stdev(stdev), ChGPSNoiseModel() {
-    m_generator = std::minstd_rand(std::chrono::high_resolution_clock::now().time_since_epoch().count());
+    m_generator = std::minstd_rand((unsigned int)(std::chrono::high_resolution_clock::now().time_since_epoch().count()));
 }
 CH_SENSOR_API ChGPSNoiseNormal::~ChGPSNoiseNormal() {}
 CH_SENSOR_API void ChGPSNoiseNormal::AddNoise(ChVector<double>& coords) {

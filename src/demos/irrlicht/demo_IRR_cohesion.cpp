@@ -178,7 +178,7 @@ void create_some_falling_items(ChSystemNSC& mphysicalSystem) {
 
     // optional, attach  textures for better visualization
     auto mtexturewall = chrono_types::make_shared<ChTexture>();
-    mtexturewall->SetTextureFilename(GetChronoDataFile("concrete.jpg"));
+    mtexturewall->SetTextureFilename(GetChronoDataFile("textures/concrete.jpg"));
     wallBody1->AddAsset(mtexturewall);  // note: most assets can be shared
     wallBody2->AddAsset(mtexturewall);
     wallBody3->AddAsset(mtexturewall);

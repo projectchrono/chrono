@@ -75,7 +75,7 @@ void ChSingleRoadWheel::AddVisualizationAssets(VisualizationType vis) {
     m_wheel->AddAsset(cyl);
 
     auto tex = chrono_types::make_shared<ChTexture>();
-    tex->SetTextureFilename(chrono::GetChronoDataFile("greenwhite.png"));
+    tex->SetTextureFilename(chrono::GetChronoDataFile("textures/greenwhite.png"));
     m_wheel->AddAsset(tex);
 }
 

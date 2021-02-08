@@ -62,7 +62,7 @@ void create_some_falling_items(ChSystemNSC& system) {
 
     // Create the five walls of the rectangular container.
     auto texture = chrono_types::make_shared<ChTexture>();
-    texture->SetTextureFilename(GetChronoDataFile("blu.png"));
+    texture->SetTextureFilename(GetChronoDataFile("textures/blue.png"));
 
     auto wall_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
     wall_mat->SetFriction(0.0f);
@@ -116,7 +116,7 @@ void create_some_falling_items(ChSystemNSC& system) {
     ball_mat->SetFriction(0.0f);
 
     auto ball_texture = chrono_types::make_shared<ChTexture>();
-    ball_texture->SetTextureFilename(GetChronoDataFile("bluwhite.png"));
+    ball_texture->SetTextureFilename(GetChronoDataFile("textures/bluewhite.png"));
 
     for (int ib = 0; ib < 12; ib++) {
         auto ball = chrono_types::make_shared<ChBodyEasySphere>(0.02 + ChRandom() * 0.02, 100, true, true, ball_mat);

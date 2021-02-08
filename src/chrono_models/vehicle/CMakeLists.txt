@@ -77,6 +77,38 @@ set(CVM_HMMWV_FILES
 )
 source_group("hmmwv" FILES ${CVM_HMMWV_FILES})
 
+set(CVM_FEDA_FILES
+    feda/FEDA_AntirollBarRSD.h
+    feda/FEDA_AntirollBarRSD.cpp
+    feda/FEDA_BrakeSimple.cpp
+    feda/FEDA_BrakeSimple.h
+    feda/FEDA_BrakeShafts.cpp
+    feda/FEDA_BrakeShafts.h
+    feda/FEDA_Chassis.cpp
+    feda/FEDA_Chassis.h
+    feda/FEDA_DoubleWishbone.cpp
+    feda/FEDA_DoubleWishbone.h
+    feda/FEDA_Driveline4WD.cpp
+    feda/FEDA_Driveline4WD.h
+    feda/FEDA_Pac02Tire.cpp
+    feda/FEDA_Pac02Tire.h
+    feda/FEDA_PitmanArm.cpp
+    feda/FEDA_PitmanArm.h
+    feda/FEDA_RigidTire.cpp
+    feda/FEDA_RigidTire.h
+    feda/FEDA_SimpleMapPowertrain.cpp
+    feda/FEDA_SimpleMapPowertrain.h
+    feda/FEDA_Powertrain.cpp
+    feda/FEDA_Powertrain.h
+    feda/FEDA_Vehicle.cpp
+    feda/FEDA_Vehicle.h   
+    feda/FEDA_Wheel.cpp
+    feda/FEDA_Wheel.h   
+    feda/FEDA.cpp
+    feda/FEDA.h   
+)
+source_group("feda" FILES ${CVM_FEDA_FILES})
+
 set(CVM_FMTV_FILES
     mtv/FMTV_ChassisFront.cpp
     mtv/FMTV_ChassisFront.h
@@ -383,6 +415,39 @@ set(CVM_GATOR_FILES
 )
 source_group("gator" FILES ${CVM_GATOR_FILES})
 
+set(CVM_MARDER_FILES
+    marder/Marder.h
+    marder/Marder.cpp
+    marder/Marder_Chassis.h
+    marder/Marder_Chassis.cpp
+    marder/Marder_BrakeSimple.h
+    marder/Marder_BrakeShafts.h
+    marder/Marder_Idler.h
+    marder/Marder_Idler.cpp
+    marder/Marder_RoadWheel.h
+    marder/Marder_RoadWheel.cpp
+    marder/Marder_SprocketSinglePin.h
+    marder/Marder_SprocketSinglePin.cpp
+    marder/Marder_SupportRoller.h
+    marder/Marder_SupportRoller.cpp
+    marder/Marder_TrackShoeSinglePin.h
+    marder/Marder_TrackShoeSinglePin.cpp
+    marder/Marder_Suspension.h
+    marder/Marder_Suspension.cpp
+    marder/Marder_SimpleDriveline.h 
+    marder/Marder_SimpleDriveline.cpp
+    marder/Marder_SimplePowertrain.h 
+    marder/Marder_SimplePowertrain.cpp
+    marder/Marder_SimpleCVTPowertrain.h 
+    marder/Marder_SimpleCVTPowertrain.cpp
+    marder/Marder_TrackAssemblySinglePin.h
+    marder/Marder_TrackAssemblySinglePin.cpp
+    marder/Marder_Vehicle.h
+    marder/Marder_Vehicle.cpp
+)
+
+source_group("marder" FILES ${CVM_MARDER_FILES})
+
 set(CVM_M113_FILES
     m113/M113.h
     m113/M113.cpp
@@ -392,16 +457,18 @@ set(CVM_M113_FILES
     m113/M113_Chassis.cpp
     m113/M113_DrivelineBDS.cpp
     m113/M113_DrivelineBDS.h
+    m113/M113_SimpleDriveline.cpp
+    m113/M113_SimpleDriveline.h
     m113/M113_Idler.cpp
     m113/M113_Idler.h
     m113/M113_RoadWheel.cpp
     m113/M113_RoadWheel.h
     m113/M113_ShaftsPowertrain.cpp
     m113/M113_ShaftsPowertrain.h
-    m113/M113_SimpleDriveline.cpp
-    m113/M113_SimpleDriveline.h
-    m113/M113_SimplePowertrain.cpp
-    m113/M113_SimplePowertrain.h
+    m113/M113_SimpleCVTPowertrain.cpp
+    m113/M113_SimpleCVTPowertrain.h
+    m113/M113_SimpleMapPowertrain.cpp
+    m113/M113_SimpleMapPowertrain.h
     m113/M113_SprocketSinglePin.cpp
     m113/M113_SprocketSinglePin.h
     m113/M113_SprocketDoublePin.cpp
@@ -503,6 +570,7 @@ set(LIBRARIES ChronoEngine ChronoEngine_vehicle)
 add_library(ChronoModels_vehicle SHARED
     ${CVM_COMMON_FILES}
     ${CVM_HMMWV_FILES}
+    ${CVM_FEDA_FILES}
     ${CVM_FMTV_FILES}
     ${CVM_UAZ_FILES}
     ${CVM_GENERIC_FILES}
@@ -510,6 +578,7 @@ add_library(ChronoModels_vehicle SHARED
     ${CVM_CITYBUS_FILES}
     ${CVM_GATOR_FILES}
     ${CVM_M113_FILES}
+    ${CVM_MARDER_FILES}
     ${CVM_MAN_FILES}
     ${CVM_RCCAR_FILES}
     ${CVM_KRAZ_FILES}
