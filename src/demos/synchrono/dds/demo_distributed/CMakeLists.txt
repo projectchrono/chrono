@@ -13,6 +13,9 @@ set(DEMOS
 
 # --------------------------------------------------------------
 
+find_package(fastcdr REQUIRED)
+find_package(fastrtps REQUIRED)
+
 include_directories(${SYN_INCLUDES})
 
 foreach(PROGRAM ${DEMOS})
