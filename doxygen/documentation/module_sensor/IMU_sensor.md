@@ -3,8 +3,7 @@ IMU Sensor Model {#IMU_sensor}
 
 \tableofcontents
 
-Details of the IMU sensor implemented in Chrono::Sensor.
-
+The IMU in Chrono consists of a gyroscope and accelerometer. These sensors query the dynamics of the underlying Chrono system to compute their ground-truth information.
 
 #### IMU Creation
 ~~~{.cpp}
