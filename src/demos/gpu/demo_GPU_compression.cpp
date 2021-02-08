@@ -28,6 +28,7 @@
 
 #include "chrono_thirdparty/filesystem/path.h"
 
+#include "chrono_gpu/ChGpuData.h"
 #include "chrono_gpu/physics/ChSystemGpu.h"
 #include "chrono_gpu/utils/ChGpuJsonParser.h"
 
@@ -41,7 +42,7 @@ float L_CGS_TO_SI = 1e-2f;
 
 int main(int argc, char* argv[]) {
     ChGpuSimulationParameters params;
-    if (argc != 2 || ParseJSON(argv[1], params) == false) {
+    if (argc != 2 || ParseJSON(gpu::GetDataFile(argv[1]), params) == false) {
         std::cout << "Usage:\n./demo_GPU_compression <json_file>" << std::endl;
         return 1;
     }

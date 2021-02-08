@@ -39,7 +39,7 @@ int main(int argc, char* argv[]) {
     ChGpuSimulationParameters params;
 
     // Some of the default values might be overwritten by user via command line
-    if (argc != 2 || ParseJSON(argv[1], params) == false) {
+    if (argc != 2 || ParseJSON(gpu::GetDataFile(argv[1]), params) == false) {
         std::cout << "Usage:\n./demo_GPU_repose <json_file>" << std::endl;
         return 1;
     }

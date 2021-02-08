@@ -29,6 +29,7 @@
 #include "chrono/utils/ChUtilsCreators.h"
 #include "chrono/assets/ChSphereShape.h"
 
+#include "chrono_gpu/ChGpuData.h"
 #include "chrono_gpu/physics/ChSystemGpu.h"
 #include "chrono_gpu/utils/ChGpuJsonParser.h"
 #include "chrono_gpu/utils/ChGpuVisualization.h"
@@ -77,7 +78,7 @@ void writeMeshFrames(std::ostringstream& outstream, ChBody& body, std::string ob
 
 int main(int argc, char* argv[]) {
     ChGpuSimulationParameters params;
-    if (argc != 2 || ParseJSON(argv[1], params) == false) {
+    if (argc != 2 || ParseJSON(gpu::GetDataFile(argv[1]), params) == false) {
         std::cout << "Usage:\n./demo_GPU_ballcosim <json_file>" << std::endl;
         return 1;
     }
