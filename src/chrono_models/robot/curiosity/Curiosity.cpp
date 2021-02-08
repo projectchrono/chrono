@@ -224,9 +224,25 @@ Curiosity_Chassis::Curiosity_Chassis(const std::string& name,
                              ChSystem* system,
                              const ChVector<>& body_pos,
                              const ChQuaternion<>& body_rot,
-                             bool collide)
+                             bool collide,
+                             Chassis_Type chassis_type)
     : Curiosity_Part(name, fixed, mat, system, body_pos, body_rot, NULL, collide) {
-    m_mesh_name = "curiosity_chassis";
+    m_chassis_type = chassis_type;
+    switch (m_chassis_type)
+    {
+    case Chassis_Type::FullRover:
+        m_mesh_name = "curiosity_chassis";
+        break;
+    
+    case Chassis_Type::Scarecrow:
+        m_mesh_name = "scarecrow_chassis";
+        break;
+
+    default:
+        m_mesh_name = "curiosity_chassis";
+        break;
+    }
+    
     m_offset = ChVector<>(0, 0, 0);
     m_color = ChColor(0.4f, 0.4f, 0.7f);
     m_density = 100;
@@ -243,9 +259,27 @@ void Curiosity_Chassis::Initialize() {
     ChVector<> mcog;
     ChMatrix33<> minertia;
     trimesh->ComputeMassProperties(true, mmass, mcog, minertia);
-    mmass = 4.3;
-    mcog = ChVector<>(0, 0, 0);
-    minertia = ChMatrix33<>(43.9581);
+    switch (m_chassis_type)
+    {
+    case Chassis_Type::FullRover:
+        mmass = 4.3;
+        mcog = ChVector<>(0, 0, 0);
+        minertia = ChMatrix33<>(20.0);
+        break;
+    
+    case Chassis_Type::Scarecrow:
+        mmass = 1.0;
+        mcog = ChVector<>(0, 0, 0);
+        minertia = ChMatrix33<>(3.0);
+        break;
+    
+    default:
+        mmass = 4.3;
+        mcog = ChVector<>(0, 0, 0);
+        minertia = ChMatrix33<>(20.0);
+        break;
+    }
+
     ChMatrix33<> principal_inertia_rot;
     ChVector<> principal_I;
     ChInertiaUtils::PrincipalInertia(minertia, principal_I, principal_inertia_rot);
@@ -355,11 +389,9 @@ Curiosity_Arm::Curiosity_Arm(const std::string& name,
     }
     if(side == 2){
         m_mesh_name = "curiosity_B_L_arm";
-        //m_mesh_name = "curiosity_wheel";
     }
     if(side == 3){
         m_mesh_name = "curiosity_B_R_arm";
-        //m_mesh_name = "curiosity_wheel";
     }
     
     m_offset = ChVector<>(0, 0, 0);
@@ -547,15 +579,18 @@ void Curiosity_Balancer::Translate(const ChVector<>& shift) {
 CuriosityRover::CuriosityRover(ChSystem* system, 
                     const ChVector<>& rover_pos, 
                     const ChQuaternion<>& rover_rot, 
-                    std::shared_ptr<ChMaterialSurface> wheel_mat)
-    : m_system(system), m_rover_pos(rover_pos), m_rover_rot(rover_rot), m_wheel_material(wheel_mat), m_custom_wheel_mat(true){
+                    std::shared_ptr<ChMaterialSurface> wheel_mat,
+                    Chassis_Type chassis_type)
+    : m_system(system), m_rover_pos(rover_pos), m_rover_rot(rover_rot), m_wheel_material(wheel_mat), m_custom_wheel_mat(true), 
+      m_chassis_type(chassis_type){
     Create();
 }
 
 CuriosityRover::CuriosityRover(ChSystem* system, 
                     const ChVector<>& rover_pos, 
-                    const ChQuaternion<>& rover_rot)
-    : m_system(system), m_rover_pos(rover_pos), m_rover_rot(rover_rot), m_custom_wheel_mat(false){
+                    const ChQuaternion<>& rover_rot,
+                    Chassis_Type chassis_type)
+    : m_system(system), m_rover_pos(rover_pos), m_rover_rot(rover_rot), m_custom_wheel_mat(false),m_chassis_type(chassis_type){
     Create();
 }
 
@@ -589,7 +624,7 @@ void CuriosityRover::Create() {
     ChQuaternion<> body_rot;
     // TEMP TODO: move this body
     m_chassis = chrono_types::make_shared<Curiosity_Chassis>("chassis", false, m_chassis_material, m_system, m_rover_pos,
-                                                         m_rover_rot, false);
+                                                         m_rover_rot, false, m_chassis_type);
     // initilize rover wheels
     ChVector<> wheel_rel_pos_lf = ChVector<>( 1.095, 1.063 ,0.249);
     ChVector<> wheel_rel_pos_rf = ChVector<>( 1.095, -1.063, 0.249);
@@ -906,13 +941,13 @@ void CuriosityRover::Initialize() {
             AddRevoluteJoint(m_arms[i]->GetBody(), m_arms[i-2]->GetBody(), m_chassis->GetBody(), m_system, rev_pos, rev_rot);
         }
     }
-
-
-
-
-
-
 }
+
+/// Get Chassis Type
+Chassis_Type CuriosityRover::GetChassisType(){
+    return m_chassis_type;
+}
+
 
 void CuriosityRover::SetMotorSpeed(double rad_speed, WheelID id) {
     m_motors_func[id]->Set_yconst(rad_speed);

@@ -53,6 +53,12 @@ enum WheelID {
     RB   ///< right back
 };
 
+/// Curiosity chassis type
+enum Chassis_Type{
+  FullRover,
+  Scarecrow
+};
+
 /// Base class definition of the Curiosity Rover Part.
 class CH_MODELS_API Curiosity_Part {
   public:
@@ -122,7 +128,8 @@ class CH_MODELS_API Curiosity_Chassis : public Curiosity_Part {
                   ChSystem* system,
                   const ChVector<>& body_pos,
                   const ChQuaternion<>& body_rot,
-                  bool collide);
+                  bool collide, 
+                  Chassis_Type chassis_type);
     ~Curiosity_Chassis() {}
 
     /// Initialize the chassis at the specified (absolute) position.
@@ -132,6 +139,8 @@ class CH_MODELS_API Curiosity_Chassis : public Curiosity_Part {
     void SetCollide(bool state);
 
   private:
+
+    Chassis_Type m_chassis_type = Chassis_Type::FullRover;
 
     /// Translate the chassis by the specified value.
     void Translate(const ChVector<>& shift);
@@ -253,10 +262,12 @@ class CH_MODELS_API CuriosityRover {
     CuriosityRover(ChSystem* system, 
               const ChVector<>& rover_pos, 
               const ChQuaternion<>& rover_rot, 
-              std::shared_ptr<ChMaterialSurface> wheel_mat);
+              std::shared_ptr<ChMaterialSurface> wheel_mat,
+              Chassis_Type chassis_type=Chassis_Type::FullRover);
     CuriosityRover(ChSystem* system, 
               const ChVector<>& rover_pos, 
-              const ChQuaternion<>& rover_rot);
+              const ChQuaternion<>& rover_rot,
+              Chassis_Type chassis_type=Chassis_Type::FullRover);
     ~CuriosityRover();
 
     /// Initialize the Curiosity rover using current parameters.
@@ -264,6 +275,9 @@ class CH_MODELS_API CuriosityRover {
 
     /// Get the ChSystem
     ChSystem* GetSystem() { return m_system; }
+
+    /// Get Chassis Type
+    Chassis_Type GetChassisType();
 
     /// Set Motor Speed
     void SetMotorSpeed(double rad_speed, WheelID id);
@@ -305,6 +319,8 @@ class CH_MODELS_API CuriosityRover {
     void Create();
 
     ChSystem* m_system;  ///< pointer to the Chrono system
+
+    Chassis_Type m_chassis_type = Chassis_Type::FullRover;
 
     bool m_custom_wheel_mat;  ///< bool indicating whether the wheel material is customized
 

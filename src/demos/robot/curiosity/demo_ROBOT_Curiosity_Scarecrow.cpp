@@ -12,8 +12,9 @@
 // Authors: Jason Zhou
 // =============================================================================
 //
-// Demo to show Curiosity rovering on rigid terrain
+// Demo to show Curiosity Scarecrow testing rovers being operated on Rigid terrain
 // Includes an obstacle to show Rocker-bogie suspension system
+// Note: The obstacle has been lowered since Scarecrow has a smaller weight
 //
 // =============================================================================
 
@@ -49,6 +50,9 @@ using namespace irr::video;
 
 // Use custom material for the Viper Wheel
 bool use_custom_mat = false;
+
+// Choose Curiosity rover chassis type
+Chassis_Type chassis_type = Chassis_Type::Scarecrow;
 
 std::shared_ptr<ChMaterialSurface> CustomWheelMaterial(ChContactMethod contact_method) {
     float mu = 0.4f;   // coefficient of friction
@@ -135,43 +139,42 @@ int main(int argc, char* argv[]) {
 
     if (use_custom_mat == true) {
         // If use the customized wheel material
-        rover = chrono_types::make_shared<CuriosityRover>(&mphysicalSystem, body_pos, body_rot, CustomWheelMaterial(ChContactMethod::NSC));
+        rover = chrono_types::make_shared<CuriosityRover>(&mphysicalSystem, body_pos, body_rot, CustomWheelMaterial(ChContactMethod::NSC),chassis_type);
         rover->Initialize();
         std::cout<<"total mass:"<<rover->GetRoverMass()<<std::endl;
     } else {
         // If use default wheel material
-        rover = rover = chrono_types::make_shared<CuriosityRover>(&mphysicalSystem, body_pos, body_rot);
+        rover = rover = chrono_types::make_shared<CuriosityRover>(&mphysicalSystem, body_pos, body_rot,chassis_type);
         rover->Initialize();
         std::cout<<"total mass:"<<rover->GetRoverMass()<<std::endl;
     }
 
-
-
     // Create a box
-    auto mbox = chrono_types::make_shared<ChBodyEasyBox>(0.6, 0.3, 1, 1000, true, true, floor_mat);
+    auto mbox = chrono_types::make_shared<ChBodyEasyBox>(0.6, 0.15, 1, 1000, true, true, floor_mat);
  
 
-    mbox->SetPos(ChVector<>(3, -0.4, 1));
+    mbox->SetPos(ChVector<>(2, -0.45, 1));
     mbox->SetBodyFixed(true);
     mbox->SetCollide(true);
     mphysicalSystem.Add(mbox);
 
     
     // Create a box
-    auto mbox_2 = chrono_types::make_shared<ChBodyEasyBox>(0.6, 0.6, 1, 1000, true, true, floor_mat);
+    auto mbox_2 = chrono_types::make_shared<ChBodyEasyBox>(0.6, 0.3, 1, 1000, true, true, floor_mat);
  
-    mbox_2->SetPos(ChVector<>(3.3, -0.4, 1));
+    mbox_2->SetPos(ChVector<>(2.3, -0.45, 1));
     mbox_2->SetBodyFixed(true);
     mbox_2->SetCollide(true);
     mphysicalSystem.Add(mbox_2);
 
     // Create a box
-    auto mbox_3 = chrono_types::make_shared<ChBodyEasyBox>(0.6, 0.8, 1, 1000, true, true, floor_mat);
+    auto mbox_3 = chrono_types::make_shared<ChBodyEasyBox>(0.6, 0.4, 1, 1000, true, true, floor_mat);
  
-    mbox_3->SetPos(ChVector<>(3.6, -0.4, 1));
+    mbox_3->SetPos(ChVector<>(2.6, -0.45, 1));
     mbox_3->SetBodyFixed(true);
     mbox_3->SetCollide(true);
     mphysicalSystem.Add(mbox_3);
+
 
     // Use this function for adding a ChIrrNodeAsset to all items
     // Otherwise use application.AssetBind(myitem); on a per-item basis.

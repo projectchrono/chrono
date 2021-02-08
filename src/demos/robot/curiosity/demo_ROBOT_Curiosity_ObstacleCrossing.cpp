@@ -12,7 +12,8 @@
 // Authors: Jason Zhou
 // =============================================================================
 //
-// Demo to show Curiosity Rover operated on SCM Terrain
+// Demo to show Curiosity Rovering across obstacles with symmetric arrangement
+// on SCM terrain
 //
 // =============================================================================
 
@@ -192,6 +193,188 @@ int main(int argc, char* argv[]) {
         // curiosity->SetMotorSpeed(CH_C_PI,WheelID::RB);
     }
 
+    std::shared_ptr<ChBodyAuxRef> rock_1;
+    std::shared_ptr<ChBodyAuxRef> rock_2;
+    std::shared_ptr<ChBodyAuxRef> rock_3;
+    std::shared_ptr<ChBodyAuxRef> rock_4;
+    std::shared_ptr<ChBodyAuxRef> rock_5;
+    std::shared_ptr<ChBodyAuxRef> rock_6;
+
+    // create default SMC materials for the obstacles
+    std::shared_ptr<ChMaterialSurface> rockSufaceMaterial = CustomWheelMaterial(ChContactMethod::SMC);
+
+
+    for(int i = 0; i < 2; i ++ )
+    {
+        // Create a rock
+        auto rock_1_mmesh = chrono_types::make_shared<ChTriangleMeshConnected>();
+        std::string rock1_obj_path = GetChronoDataFile("robot/curiosity/rocks/rock1.obj");
+        double scale_ratio = 0.8;
+        rock_1_mmesh->LoadWavefrontMesh(rock1_obj_path, false, true);
+        rock_1_mmesh->Transform(ChVector<>(0, 0, 0), ChMatrix33<>(scale_ratio));     // scale to a different size
+        rock_1_mmesh->RepairDuplicateVertexes(1e-9);                                 // if meshes are not watertight                 
+
+        // compute mass inertia from mesh
+        double mmass;
+        ChVector<> mcog;
+        ChMatrix33<> minertia;
+        double mdensity = 5000;//paramsH->bodyDensity;
+        rock_1_mmesh->ComputeMassProperties(true, mmass, mcog, minertia);
+        ChMatrix33<> principal_inertia_rot;
+        ChVector<> principal_I;
+        ChInertiaUtils::PrincipalInertia(minertia, principal_I, principal_inertia_rot);
+
+        // set the abs orientation, position and velocity
+        auto rock1_Body = chrono_types::make_shared<ChBodyAuxRef>();
+        ChQuaternion<> rock1_rot = ChQuaternion<>(1,0,0,0);
+        ChVector<> rock1_pos;
+        if(i==0){
+            rock1_pos = ChVector<>(-2.5, -0.3, -1.0);
+        }else{
+            rock1_pos = ChVector<>(-2.5, -0.3, 1.0);
+        }
+
+        rock1_Body->SetFrame_COG_to_REF(ChFrame<>(mcog, principal_inertia_rot));
+
+        rock1_Body->SetMass(mmass * mdensity);//mmass * mdensity
+        rock1_Body->SetInertiaXX(mdensity * principal_I);
+
+        rock1_Body->SetFrame_REF_to_abs(ChFrame<>(ChVector<>(rock1_pos),ChQuaternion<>(rock1_rot)));                              
+        my_system.Add(rock1_Body);
+
+        rock1_Body->SetBodyFixed(false);
+        rock1_Body->GetCollisionModel()->ClearModel();
+        rock1_Body->GetCollisionModel()->AddTriangleMesh(rockSufaceMaterial, rock_1_mmesh, false, false, VNULL, ChMatrix33<>(1), 0.005);
+        rock1_Body->GetCollisionModel()->BuildModel();
+        rock1_Body->SetCollide(true);
+
+        auto rock1_mesh = chrono_types::make_shared<ChTriangleMeshShape>();
+        rock1_mesh->SetMesh(rock_1_mmesh);
+        rock1_mesh->SetBackfaceCull(true);
+        rock1_Body->AddAsset(rock1_mesh);
+
+        if(i == 0){
+            rock_1 = rock1_Body;
+        }else{
+            rock_2 = rock1_Body;
+        }
+        
+    }
+
+    for(int i = 0; i < 2; i ++)
+    {
+        // Create a rock
+        auto rock_2_mmesh = chrono_types::make_shared<ChTriangleMeshConnected>();
+        std::string rock2_obj_path = GetChronoDataFile("robot/curiosity/rocks/rock2.obj");
+        double scale_ratio = 0.4;
+        rock_2_mmesh->LoadWavefrontMesh(rock2_obj_path, false, true);
+        rock_2_mmesh->Transform(ChVector<>(0, 0, 0), ChMatrix33<>(scale_ratio));     // scale to a different size
+        rock_2_mmesh->RepairDuplicateVertexes(1e-9);                                 // if meshes are not watertight                 
+
+        // compute mass inertia from mesh
+        double mmass;
+        ChVector<> mcog;
+        ChMatrix33<> minertia;
+        double mdensity = 5000;//paramsH->bodyDensity;
+        rock_2_mmesh->ComputeMassProperties(true, mmass, mcog, minertia);
+        ChMatrix33<> principal_inertia_rot;
+        ChVector<> principal_I;
+        ChInertiaUtils::PrincipalInertia(minertia, principal_I, principal_inertia_rot);
+
+        // set the abs orientation, position and velocity
+        auto rock2_Body = chrono_types::make_shared<ChBodyAuxRef>();
+        ChQuaternion<> rock2_rot = ChQuaternion<>(1,0,0,0);
+        ChVector<> rock2_pos;
+        if(i==0){
+            rock2_pos = ChVector<>(-1.0, -0.3, -1.0);
+        }else{
+            rock2_pos = ChVector<>(-1.0, -0.3, 1.0);
+        }
+
+        rock2_Body->SetFrame_COG_to_REF(ChFrame<>(mcog, principal_inertia_rot));
+
+        rock2_Body->SetMass(mmass * mdensity);//mmass * mdensity
+        rock2_Body->SetInertiaXX(mdensity * principal_I);
+
+        rock2_Body->SetFrame_REF_to_abs(ChFrame<>(ChVector<>(rock2_pos),ChQuaternion<>(rock2_rot)));                              
+        my_system.Add(rock2_Body);
+
+        rock2_Body->SetBodyFixed(false);
+        rock2_Body->GetCollisionModel()->ClearModel();
+        rock2_Body->GetCollisionModel()->AddTriangleMesh(rockSufaceMaterial, rock_2_mmesh, false, false, VNULL, ChMatrix33<>(1), 0.005);
+        rock2_Body->GetCollisionModel()->BuildModel();
+        rock2_Body->SetCollide(true);
+
+        auto rock2_mesh = chrono_types::make_shared<ChTriangleMeshShape>();
+        rock2_mesh->SetMesh(rock_2_mmesh);
+        rock2_mesh->SetBackfaceCull(true);
+        rock2_Body->AddAsset(rock2_mesh);
+
+        if(i == 0){
+            rock_3 = rock2_Body; 
+        }else{
+            rock_4 = rock2_Body; 
+        }
+        
+    }
+
+    for(int i = 0; i < 2 ; i ++)
+    {
+        // Create a rock
+        auto rock_3_mmesh = chrono_types::make_shared<ChTriangleMeshConnected>();
+        std::string rock3_obj_path = GetChronoDataFile("robot/curiosity/rocks/rock3.obj");
+        double scale_ratio = 0.4;
+        rock_3_mmesh->LoadWavefrontMesh(rock3_obj_path, false, true);
+        rock_3_mmesh->Transform(ChVector<>(0, 0, 0), ChMatrix33<>(scale_ratio));     // scale to a different size
+        rock_3_mmesh->RepairDuplicateVertexes(1e-9);                                 // if meshes are not watertight                 
+
+        // compute mass inertia from mesh
+        double mmass;
+        ChVector<> mcog;
+        ChMatrix33<> minertia;
+        double mdensity = 5000;//paramsH->bodyDensity;
+        rock_3_mmesh->ComputeMassProperties(true, mmass, mcog, minertia);
+        ChMatrix33<> principal_inertia_rot;
+        ChVector<> principal_I;
+        ChInertiaUtils::PrincipalInertia(minertia, principal_I, principal_inertia_rot);
+
+        // set the abs orientation, position and velocity
+        auto rock3_Body = chrono_types::make_shared<ChBodyAuxRef>();
+        ChQuaternion<> rock3_rot = ChQuaternion<>(1,0,0,0);
+        ChVector<> rock3_pos;
+        if(i==0){
+            rock3_pos = ChVector<>(0.5, -0.3, -1.0);
+        }else{
+            rock3_pos = ChVector<>(0.5, -0.3, 1.0);
+        }
+
+        rock3_Body->SetFrame_COG_to_REF(ChFrame<>(mcog, principal_inertia_rot));
+
+        rock3_Body->SetMass(mmass * mdensity);//mmass * mdensity
+        rock3_Body->SetInertiaXX(mdensity * principal_I);
+
+        rock3_Body->SetFrame_REF_to_abs(ChFrame<>(ChVector<>(rock3_pos),ChQuaternion<>(rock3_rot)));                              
+        my_system.Add(rock3_Body);
+
+        rock3_Body->SetBodyFixed(false);
+        rock3_Body->GetCollisionModel()->ClearModel();
+        rock3_Body->GetCollisionModel()->AddTriangleMesh(rockSufaceMaterial, rock_3_mmesh, false, false, VNULL, ChMatrix33<>(1), 0.005);
+        rock3_Body->GetCollisionModel()->BuildModel();
+        rock3_Body->SetCollide(true);
+
+        auto rock3_mesh = chrono_types::make_shared<ChTriangleMeshShape>();
+        rock3_mesh->SetMesh(rock_3_mmesh);
+        rock3_mesh->SetBackfaceCull(true);
+        rock3_Body->AddAsset(rock3_mesh);
+
+        if(i == 0){
+            rock_5 = rock3_Body; 
+        }else{
+            rock_6 = rock3_Body; 
+        }
+        
+    }
+
     //
     // THE DEFORMABLE TERRAIN
     //
@@ -247,6 +430,13 @@ int main(int argc, char* argv[]) {
         mterrain.AddMovingPatch(rover->GetWheelBody(WheelID::RM), ChVector<>(0, 0, 0), ChVector<>(0.5, 2 * wheel_range, 2 * wheel_range));
         mterrain.AddMovingPatch(rover->GetWheelBody(WheelID::LB), ChVector<>(0, 0, 0), ChVector<>(0.5, 2 * wheel_range, 2 * wheel_range));
         mterrain.AddMovingPatch(rover->GetWheelBody(WheelID::RB), ChVector<>(0, 0, 0), ChVector<>(0.5, 2 * wheel_range, 2 * wheel_range));
+
+        mterrain.AddMovingPatch(rock_1, ChVector<>(0, 0, 0), ChVector<>(0.5, 2 * wheel_range, 2 * wheel_range));
+        mterrain.AddMovingPatch(rock_2, ChVector<>(0, 0, 0), ChVector<>(0.5, 2 * wheel_range, 2 * wheel_range));
+        mterrain.AddMovingPatch(rock_3, ChVector<>(0, 0, 0), ChVector<>(0.5, 2 * wheel_range, 2 * wheel_range));
+        mterrain.AddMovingPatch(rock_4, ChVector<>(0, 0, 0), ChVector<>(0.5, 2 * wheel_range, 2 * wheel_range));
+        mterrain.AddMovingPatch(rock_5, ChVector<>(0, 0, 0), ChVector<>(0.5, 2 * wheel_range, 2 * wheel_range));
+        mterrain.AddMovingPatch(rock_6, ChVector<>(0, 0, 0), ChVector<>(0.5, 2 * wheel_range, 2 * wheel_range));
     }
 
     // Set some visualization parameters: either with a texture, or with falsecolor plot, etc.
