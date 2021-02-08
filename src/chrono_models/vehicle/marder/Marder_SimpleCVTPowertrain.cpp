@@ -29,8 +29,8 @@ namespace marder {
 // Static variables
 // -----------------------------------------------------------------------------
 const double Marder_SimpleCVTPowertrain::m_max_torque = 10000.0;
-const double Marder_SimpleCVTPowertrain::m_max_power = 441176.4706;  // 600 BHP
-const double Marder_SimpleCVTPowertrain::m_max_speed = 550;          // > 5000 RPM
+const double Marder_SimpleCVTPowertrain::m_max_power = 800000.0;  // 600 BHP original = 444 kW
+const double Marder_SimpleCVTPowertrain::m_max_speed = 550;       // > 5000 RPM
 const double Marder_SimpleCVTPowertrain::m_fwd_gear_ratio = 0.240;
 const double Marder_SimpleCVTPowertrain::m_rev_gear_ratio = -0.151;
 
