@@ -50,14 +50,7 @@ SynDDSPublisher::SynDDSPublisher(Publisher* publisher,
                                  std::shared_ptr<SynDDSTopic> topic)
     : m_publisher(publisher), m_writer(writer), m_listener(listener), m_topic(topic) {}
 
-SynDDSPublisher::~SynDDSPublisher() {
-    // Clean the Publisher
-    if (m_writer && m_publisher)
-        m_publisher->delete_datawriter(m_writer);
-
-    if (m_listener)
-        delete m_listener;
-}
+SynDDSPublisher::~SynDDSPublisher() {}
 
 void SynDDSPublisher::DeleteDDSEntities(DomainParticipant* participant) {
     if (m_topic)

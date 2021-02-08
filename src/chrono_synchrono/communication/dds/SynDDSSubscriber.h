@@ -120,6 +120,8 @@ class SYN_API SynDDSSubscriber {
     ///@brief Is the Subscriber set to a synchronous subscriber?
     ///
     bool IsSynchronous() { return m_is_synchronous; }
+    eprosima::fastdds::dds::Subscriber* GetSubscriber() { return m_subscriber; }
+    eprosima::fastdds::dds::DataReader* GetDataReader() { return m_reader; }
 
   private:
     bool m_is_synchronous;  ///< Is the Subscriber set to a synchronous subscriber?
