@@ -4,7 +4,8 @@
 Change Log
 ==========
 
-- [Unreleased (development version)](#unreleased-development-branch)
+<!-- - [Unreleased (development version)](#unreleased-development-branch) -->
+- [Release 6.0.0](#release-600---2021-02-10) 
   - [New Chrono::Csharp module](#added-new-chronocsharp-module)
   - [RoboSimian, Viper, and LittleHexy models](#added-robosimian-viper-and-littlehexy-models)
   - [Contact force reporting through user-provided callback](#added-contact-force-reporting-through-user-provided-callback)
@@ -32,9 +33,11 @@ Change Log
   - [Eigen sparse matrices](#changed-eigen-sparse-matrices-and-updates-to-direct-sparse-linear-solvers)
 - [Release 4.0.0](#release-400---2019-02-22)
 
-## Unreleased (development branch)
+<!-- ## Unreleased (development branch) -->
 
-## [Added] New Chrono::Csharp module
+## Release 6.0.0 - 2021-02-10
+
+### [Added] New Chrono::Csharp module
 
 The new Chrono::Csharp module provides a C# interface to selected Chrono functionality.  This allows using Chrono from C# programs and facilitates the integration of Chrono with external engines such as Unity.
 
