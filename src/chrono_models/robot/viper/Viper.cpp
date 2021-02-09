@@ -869,6 +869,21 @@ std::shared_ptr<ChBodyAuxRef> ViperRover::GetChassisBody() {
     return m_chassis->GetBody();
 }
 
+/// Get the steering body
+std::shared_ptr<ChBodyAuxRef> ViperRover::GetSteeringBody(WheelID id){
+    return m_steers[id]->GetBody();
+}
+
+/// Get the upper arm body
+std::shared_ptr<ChBodyAuxRef> ViperRover::GetUpArmBody(WheelID id){
+    return m_up_suss[id]->GetBody();
+}
+
+/// Get the bottom arm body
+std::shared_ptr<ChBodyAuxRef> ViperRover::GetBottomArmBody(WheelID id){
+    return m_bts_suss[id]->GetBody();
+}
+
 double ViperRover::GetRoverMass() {
     double tot_mass = 0.0;
     for (int i = 0; i < 4; i++) {
@@ -986,7 +1001,7 @@ void ViperRover::Update(){
                 }
             }else if(i==2 || i==3){
                 if(m_steer_motors[i]->GetMotorRot() > CH_C_PI/6){
-                    m_steer_motors_func[i]->Set_yconst(7410.0);
+                    m_steer_motors_func[i]->Set_yconst(0.0);
                 }
             }
 

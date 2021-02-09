@@ -13,8 +13,7 @@
 // =============================================================================
 //
 // NASA Curiosity Mars Rover Model Class.
-// This class contains model for NASA's Curiosity Mars rover for NASA's 2024 Moon
-// exploration mission.
+// This class contains model for NASA's Curiosity Mars rover
 //
 // =============================================================================
 

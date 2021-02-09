@@ -304,6 +304,16 @@ class CH_MODELS_API ViperRover {
     /// Get the wheel body
     std::shared_ptr<ChBodyAuxRef> GetWheelBody(WheelID id);
 
+
+    /// Get the steering body
+    std::shared_ptr<ChBodyAuxRef> GetSteeringBody(WheelID id);
+
+    /// Get the upper arm body
+    std::shared_ptr<ChBodyAuxRef> GetUpArmBody(WheelID id);
+
+    /// Get the bottom arm body
+    std::shared_ptr<ChBodyAuxRef> GetBottomArmBody(WheelID id);
+
     /// Get total rover mass
     double GetRoverMass();
 
