@@ -13,6 +13,7 @@ ENDIF()
 SET(DEMOS
     demo_VEH_Marder
     demo_VEH_MarderShock
+    demo_VEH_MarderShockTool
 )
 
 #--------------------------------------------------------------
