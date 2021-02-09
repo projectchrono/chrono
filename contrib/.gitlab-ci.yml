@@ -14,7 +14,8 @@ variables:
     -DBUILD_BENCHMARKING=TRUE -DENABLE_MODULE_POSTPROCESS=TRUE 
     -DENABLE_MODULE_PYTHON=TRUE -DENABLE_MODULE_COSIMULATION=FALSE 
     -DENABLE_MODULE_IRRLICHT=TRUE -DENABLE_MODULE_VEHICLE=TRUE 
-    -DENABLE_MODULE_PARALLEL=TRUE -DENABLE_MODULE_OPENGL=TRUE"
+    -DENABLE_MODULE_MULTICORE=TRUE -DENABLE_MODULE_OPENGL=TRUE
+    -DENABLE_MODULE_SYNCHRONO=TRUE"
 
 #---------------------#
 # Arch Linux Builders #
@@ -38,16 +39,22 @@ variables:
   - git submodule init
   - git submodule update
   - mkdir -p build
+# Make flatbuffers
+  - cd src/chrono_thirdparty/flatbuffers
+  - cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release
+  - make
+  - cd $CI_PROJECT_DIR
 
 linux:arch-gcc:build:
   stage: build
   extends: .archlinux
   script:
   - cd build
+  - echo $CI_PROJECT_DIR
   - cmake ../ $CHRONO_UNIX_SHARED -DENABLE_MODULE_DISTRIBUTED=TRUE 
     -DENABLE_MODULE_FSI=TRUE -DCMAKE_C_COMPILER=/usr/bin/gcc 
-    -DCMAKE_CXX_COMPILER=/usr/bin/g++ -DCUDA_HOST_COMPILER=/usr/bin/gcc-9 
-    -DEIGEN3_INCLUDE_DIR=/usr/include/eigen3 -DENABLE_MODULE_GRANULAR=TRUE
+    -DCMAKE_CXX_COMPILER=/usr/bin/g++ 
+    -DEIGEN3_INCLUDE_DIR=/usr/include/eigen3 -DENABLE_MODULE_GPU=TRUE
   - make -j 8
   artifacts:
     expire_in: 60m
@@ -101,7 +108,7 @@ linux:doxygen:deploy:
     url: http://api.projectchrono.org/
   rules:
     - if: '$CI_COMMIT_REF_NAME == "develop"'
-      when: on_success
+      when: always
   
 
 
@@ -113,8 +120,8 @@ linux:arch-llvm:build:
   - cd build
   - cmake ../ $CHRONO_UNIX_SHARED -DENABLE_MODULE_DISTRIBUTED=TRUE 
     -DENABLE_MODULE_FSI=TRUE -DCMAKE_C_COMPILER=/usr/bin/clang 
-    -DCMAKE_CXX_COMPILER=/usr/bin/clang++ -DCUDA_HOST_COMPILER=/usr/bin/gcc-9 
-    -DEIGEN3_INCLUDE_DIR=/usr/include/eigen3 -DENABLE_MODULE_GRANULAR=TRUE
+    -DCMAKE_CXX_COMPILER=/usr/bin/clang++ -DCUDA_HOST_COMPILER=/usr/bin/gcc 
+    -DEIGEN3_INCLUDE_DIR=/usr/include/eigen3 -DENABLE_MODULE_GPU=TRUE
   - make -j 8
   artifacts:
     expire_in: 60m
@@ -186,7 +193,7 @@ linux:arch-llvm:test:
   - cmake ../ $CHRONO_UNIX_SHARED -DENABLE_MODULE_DISTRIBUTED=TRUE
       -DCMAKE_C_COMPILER=/opt/rh/devtoolset-8/root/usr/bin/gcc 
       -DCMAKE_CXX_COMPILER=/opt/rh/devtoolset-8/root/usr/bin/g++ 
-      -DENABLE_MODULE_GRANULAR=TRUE
+      -DENABLE_MODULE_GPU=TRUE
       -DCUDA_HOST_COMPILER=/opt/rh/devtoolset-8/root/usr/bin/gcc
       # -DENABLE_MODULE_FSI=TRUE 
   - make -j 8
@@ -214,11 +221,11 @@ linux:arch-llvm:test:
   tags:
     - linux
   image:
-    name: nvidia/cuda:10.1-base-ubuntu18.04
+    name: nvidia/cuda:11.0-devel-ubuntu18.04
   before_script:
     - uname -a
     - export DEBIAN_FRONTEND=noninteractive
-    - apt-get update; apt-get -y install cuda wget python git 
+    - apt-get update; apt-get -y install wget python git 
         cmake build-essential libboost-dev swig3.0 libeigen3-dev 
         libglfw3-dev libglm-dev libglew-dev freeglut3-dev libirrlicht-dev
         libopenmpi-dev python3 python3-dev
@@ -229,6 +236,11 @@ linux:arch-llvm:test:
     - git submodule init
     - git submodule update
     - mkdir -p build
+    # Make flatbuffers
+    - cd src/chrono_thirdparty/flatbuffers
+    - cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release
+    - make
+    - cd $CI_PROJECT_DIR
 
 .ubuntu-deploy-base:
   extends: .ubuntu
@@ -236,7 +248,7 @@ linux:arch-llvm:test:
     # this script overwrites the default ubuntu script to include conda preparations
     - uname -a
     - export DEBIAN_FRONTEND=noninteractive
-    - apt-get update; apt-get -y install cuda wget python git 
+    - apt-get update; apt-get -y install wget python git 
         cmake build-essential libboost-dev swig3.0 libeigen3-dev 
         libglfw3-dev libglm-dev libglew-dev freeglut3-dev libirrlicht-dev
         libopenmpi-dev python3 python3-dev
@@ -278,7 +290,7 @@ linux:ubuntu1804:build:
     - cd build
     - cmake ../ $CHRONO_UNIX_SHARED -DENABLE_MODULE_DISTRIBUTED=TRUE
         -DCMAKE_C_COMPILER=/usr/bin/gcc -DCMAKE_CXX_COMPILER=/usr/bin/g++
-        -DPYTHON_EXECUTABLE=/usr/bin/python3 -DENABLE_MODULE_GRANULAR=TRUE
+        -DPYTHON_EXECUTABLE=/usr/bin/python3 -DENABLE_MODULE_GPU=TRUE
         -DCUDA_HOST_COMPILER=/usr/bin/gcc
     - make -j 8
   artifacts:
@@ -345,8 +357,9 @@ linux:ubuntu1804:deploy-python3.8:
     "-DENABLE_MODULE_COSIMULATION=FALSE",
     "-DENABLE_MODULE_IRRLICHT=TRUE",
     "-DENABLE_MODULE_VEHICLE=TRUE",
-    "-DENABLE_MODULE_PARALLEL=TRUE",
-    "-DENABLE_MODULE_OPENGL=TRUE"
+    "-DENABLE_MODULE_MULTICORE=TRUE",
+    "-DENABLE_MODULE_OPENGL=TRUE",
+    "-DENABLE_MODULE_SYNCHRONO=TRUE"
     )
     #  - wget -UseBasicParsing https://bitbucket.org/blaze-lib/blaze/downloads/blaze-3.5.tar.gz -OutFile blaze-3.5.tar.gz
     #  - tar -xf .\blaze-3.5.tar.gz blaze-3.5/blaze
@@ -360,27 +373,32 @@ linux:ubuntu1804:deploy-python3.8:
     "-DGLEW_INCLUDE_DIR=C:/Users/builder/Documents/glew-2.1.0/include",
     "-DGLEW_LIBRARY=C:/Users/builder/Documents/glew-2.1.0/lib/Release/x64/glew32.lib",
     "-DGLFW_DLL=C:/Users/builder/Documents/glfw-3.3/lib-vc2015/glfw3.dll",
-    "-DGLFW_INCLUDE_DIR=C:/Users/builder/Documents/glfw-3.3/include/GLFW",
+    "-DGLFW_INCLUDE_DIR=C:/Users/builder/Documents/glfw-3.3/include",
     "-DGLFW_LIBRARY=C:/Users/builder/Documents/glfw-3.3/lib-vc2015/glfw3dll.lib",
     "-DIRRLICHT_LIBRARY=C:/Users/builder/Documents/irrlicht-1.8.4/lib/Win64-visualStudio/Irrlicht.lib",
     "-DIRRLICHT_ROOT=C:/Users/builder/Documents/irrlicht-1.8.4",
     "-DEIGEN3_INCLUDE_DIR=C:/Users/builder/Documents/eigen-3.3.7"
     )
+  - echo $CI_PROJECT_DIR
   - git submodule init
   - git submodule update
   - mkdir -Force build
-
 
 windows:vs2019:build:
   stage: build
   extends: .windows
   script:
-  - cd build
+  # Build flatbuffers
+  - cd $CI_PROJECT_DIR/src/chrono_thirdparty/flatbuffers
+  - cmake -G "Visual Studio 16 2019" -DCMAKE_BUILD_TYPE=Release
+  - '& "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\MSBuild\Current\Bin\MSBuild.exe" FlatBuffers.sln -maxcpucount:8 -property:Configuration=Release'
+  # Main build
+  - cd $CI_PROJECT_DIR/build
   - cmake ../ -G "Visual Studio 16 2019" -A x64 -T v142 
     @CHRONO_W64_SHARED 
     @CHRONO_W64_LIBRARIES 
-    -DUSE_PARALLEL_CUDA=OFF
-    -DENABLE_MODULE_GRANULAR=TRUE
+    -DUSE_MULTICORE_CUDA=OFF
+    -DENABLE_MODULE_GPU=TRUE
     -DENABLE_MODULE_FSI=TRUE
   #- Invoke-Expression "& `'C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\devenv.com`' Chrono.sln -Build `"Release|x64`" -log buildlog.txt"
   - '& "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\MSBuild\Current\Bin\MSBuild.exe" Chrono.sln -maxcpucount:8 -property:Configuration=Release'
@@ -436,11 +454,15 @@ windows:vs2017:build:
   stage: build
   extends: .windows
   script:
-  - cd build
+    # Build flatbuffers
+  - cd $CI_PROJECT_DIR/src/chrono_thirdparty/flatbuffers
+  - cmake -G "Visual Studio 16 2019" -DCMAKE_BUILD_TYPE=Release
+  - '& "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\MSBuild\Current\Bin\MSBuild.exe" FlatBuffers.sln -maxcpucount:8 -property:Configuration=Release'
+  - cd $CI_PROJECT_DIR/build
   - cmake ../ -G "Visual Studio 16 2019" -A x64 -T v141
     @CHRONO_W64_SHARED
     @CHRONO_W64_LIBRARIES
-    -DUSE_PARALLEL_CUDA=OFF
+    -DUSE_MULTICORE_CUDA=OFF
   #- Invoke-Expression "& `'C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\devenv.com`' Chrono.sln -Build `"Release|x64`" -log buildlog.txt"
   - '& "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\MSBuild\Current\Bin\MSBuild.exe" Chrono.sln -maxcpucount:8 -property:Configuration=Release'
   artifacts:
@@ -456,7 +478,7 @@ windows:vs2017:build:
   - cmake ../ -G "Visual Studio 16 2019" -A x64 -T v140
     @CHRONO_W64_SHARED
     @CHRONO_W64_LIBRARIES
-    -DUSE_PARALLEL_CUDA=OFF 
+    -DUSE_MULTICORE_CUDA=OFF 
   #- Invoke-Expression "& `'C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\devenv.com`' Chrono.sln -Build `"Release|x64`" -log buildlog.txt"
   - '& "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\MSBuild\Current\Bin\MSBuild.exe" Chrono.sln -maxcpucount:8 -property:Configuration=Release'
   artifacts:
@@ -482,7 +504,7 @@ windows:vs2017:build:
   before_script:
     - export CONDA_NPY=19
     - wget https://repo.anaconda.com/miniconda/Miniconda3-latest-MacOSX-x86_64.sh -O ~/miniconda.sh
-    - rm -r $HOME/miniconda
+    - rm -r $HOME/miniconda > /dev/null 2>&1 || FAILED=true
     - bash ~/miniconda.sh -b -p $HOME/miniconda
     - export PATH=$HOME/miniconda/bin:$PATH
     - conda install --yes -c intel jinja2
@@ -507,11 +529,11 @@ macos:highsierra:build:
   extends: .macos
   script:
   - cd build
-  - cmake ../ $CHRONO_UNIX_SHARED -DENABLE_MODULE_DISTRIBUTED=FALSE 
+  - cmake ../ $CHRONO_UNIX_SHARED -DENABLE_MODULE_DISTRIBUTED=FALSE -DENABLE_MODULE_SYNCHRONO=FALSE 
     -DENABLE_MODULE_FSI=FALSE -DCMAKE_C_COMPILER=$(which clang)
     -DCMAKE_CXX_COMPILER=$(which clang++)
     -DCMAKE_CXX_FLAGS="-Wno-deprecated-declarations -Xpreprocessor -fopenmp -lomp -Wno-unused-command-line-argument"
-    -DUSE_PARALLEL_CUDA=FALSE -DCUDA_NVCC_FLAGS=-std=c++11
+    -DUSE_MULTICORE_CUDA=FALSE -DCUDA_NVCC_FLAGS=-std=c++11
     -DEIGEN3_INCLUDE_DIR=/usr/local/include/eigen3
     -DBLAZE_DIR=/usr/local/include
   - make -j 3
@@ -587,7 +609,7 @@ macos:macos-deploy-python3.8:
     -DBUILD_BENCHMARKING=TRUE -DENABLE_MODULE_POSTPROCESS=TRUE 
     -DENABLE_MODULE_PYTHON=TRUE -DENABLE_MODULE_COSIMULATION=FALSE 
     -DENABLE_MODULE_IRRLICHT=TRUE -DENABLE_MODULE_VEHICLE=TRUE 
-    -DENABLE_MODULE_PARALLEL=TRUE -DENABLE_MODULE_OPENGL=TRUE 
+    -DENABLE_MODULE_MULTICORE=TRUE -DENABLE_MODULE_OPENGL=TRUE 
     -DENABLE_MODULE_DISTRIBUTED=TRUE -DEIGEN3_INCLUDE_DIR=/usr/include/eigen3
   - make -j 8
   artifacts:

@@ -290,20 +290,25 @@ std::shared_ptr<ChLidarSensor> ReadLidarSensorJSON(const std::string& filename,
     // float exposure_time = properties["Collection Window"].GetFloat();
 
     unsigned int sample_radius = 1;
-    float divergence_angle = .003;
-    LidarReturnMode return_mode = STRONGEST_RETURN;
-    LidarModelType lidar_model = RAYCAST;
+    std::string beam_shape = "rectangle";
+    float vert_divergence_angle = .003;
+    float hori_divergence_angle = .003;
+    LidarReturnMode return_mode = LidarReturnMode::STRONGEST_RETURN;
+    LidarModelType lidar_model = LidarModelType::RAYCAST;
 
     if (properties.HasMember("Sample Radius")) {
         sample_radius = properties["Sample Radius"].GetInt();
     }
-    if (properties.HasMember("Divergence Angle")) {
-        divergence_angle = properties["Divergence Angle"].GetFloat();
+    if (properties.HasMember("Vertical Divergence Angle")) {
+        vert_divergence_angle = properties["Vertical Divergence Angle"].GetFloat();
+    }
+    if (properties.HasMember("Horizontal Divergence Angle")){
+        hori_divergence_angle = properties["Horizontal Divergence Angle"].GetFloat();
     }
     if (properties.HasMember("Return Mode")) {
         std::string s = properties["Return Mode"].GetString();
         if (s == "MEAN_RETURN") {
-            return_mode = MEAN_RETURN;
+            return_mode = LidarReturnMode::MEAN_RETURN;
         }
     }
     if (properties.HasMember("Lidar Model")) {
@@ -312,7 +317,8 @@ std::shared_ptr<ChLidarSensor> ReadLidarSensorJSON(const std::string& filename,
     }
 
     auto lidar = chrono_types::make_shared<ChLidarSensor>(parent, updateRate, offsetPose, w, h, hfov, max_v_angle,
-                                                          min_v_angle, max_distance, sample_radius, divergence_angle,
+                                                          min_v_angle, max_distance, beam_shape, sample_radius, 
+                                                          vert_divergence_angle, hori_divergence_angle,
                                                           return_mode, lidar_model);
 
     if (properties.HasMember("Lag")) {

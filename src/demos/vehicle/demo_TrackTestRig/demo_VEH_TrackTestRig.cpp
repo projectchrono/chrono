@@ -30,8 +30,8 @@
 
 #include "chrono_thirdparty/filesystem/path.h"
 
-#ifdef CHRONO_MKL
-#include "chrono_mkl/ChSolverMKL.h"
+#ifdef CHRONO_PARDISO_MKL
+#include "chrono_pardisomkl/ChSolverPardisoMKL.h"
 #endif
 
 #ifdef CHRONO_MUMPS
@@ -221,17 +221,17 @@ int main(int argc, char* argv[]) {
         use_mumps = false;
     }
 
-#ifndef CHRONO_MKL
+#ifndef CHRONO_PARDISO_MKL
     use_mkl = false;
 #endif
-#ifndef CHRONO_MUMPS
+#ifndef CHRONO_PARDISO_MUMPS
     use_mumps = false;
 #endif
 
     if (use_mkl) {
-#ifdef CHRONO_MKL
-        std::cout << "Solver: MKL" << std::endl;
-        auto mkl_solver = chrono_types::make_shared<ChSolverMKL>();
+#ifdef CHRONO_PARDISO_MKL
+        std::cout << "Solver: PardisoMKL" << std::endl;
+        auto mkl_solver = chrono_types::make_shared<ChSolverPardisoMKL>();
         mkl_solver->LockSparsityPattern(true);
         mkl_solver->SetVerbose(verbose_solver);
         rig->GetSystem()->SetSolver(mkl_solver);

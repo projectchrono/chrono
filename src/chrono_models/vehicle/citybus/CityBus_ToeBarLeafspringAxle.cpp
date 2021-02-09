@@ -41,7 +41,7 @@ static const double lbfpin2Npm = 175.12677;
 const double CityBus_ToeBarLeafspringAxle::m_axleTubeMass = 124.0 * 4.1;
 const double CityBus_ToeBarLeafspringAxle::m_spindleMass = 14.705 * 4.1;
 const double CityBus_ToeBarLeafspringAxle::m_knuckleMass = 10.0 * 4.1;
-const double CityBus_ToeBarLeafspringAxle::m_tierodMass  = 5.0 * 4.1;
+const double CityBus_ToeBarLeafspringAxle::m_tierodMass = 5.0 * 4.1;
 const double CityBus_ToeBarLeafspringAxle::m_draglinkMass = 5.0 * 4.1;
 
 const double CityBus_ToeBarLeafspringAxle::m_axleTubeRadius = 0.0476;
@@ -62,11 +62,10 @@ const double CityBus_ToeBarLeafspringAxle::m_springCoefficient = 565480;
 const double CityBus_ToeBarLeafspringAxle::m_springRestLength = m_springDesignLength + 0.0621225507207084;
 const double CityBus_ToeBarLeafspringAxle::m_springMinLength = m_springDesignLength - 0.10;
 const double CityBus_ToeBarLeafspringAxle::m_springMaxLength = m_springDesignLength + 0.10;
-const double CityBus_ToeBarLeafspringAxle::m_damperCoefficient = 30276*2;
+const double CityBus_ToeBarLeafspringAxle::m_damperCoefficient = 30276 * 2;
 const double CityBus_ToeBarLeafspringAxle::m_damperDegressivityCompression = 3.0;
 const double CityBus_ToeBarLeafspringAxle::m_damperDegressivityExpansion = 1.0;
 const double CityBus_ToeBarLeafspringAxle::m_axleShaftInertia = 0.4 * 6.56;
-
 
 // ---------------------------------------------------------------------------------------
 // CityBus spring functor class - implements a linear spring + bump stop + rebound stop
@@ -75,61 +74,56 @@ class CityBus_SpringForceFront : public ChLinkTSDA::ForceFunctor {
   public:
     CityBus_SpringForceFront(double spring_constant, double min_length, double max_length);
 
-    virtual double operator()(double time,
-                              double rest_length,
-                              double length,
-                              double vel,
-                              ChLinkTSDA* link) override;
+    virtual double operator()(double time, double rest_length, double length, double vel, ChLinkTSDA* link) override;
 
   private:
     double m_spring_constant;
     double m_min_length;
     double m_max_length;
-    
-    ChFunction_Recorder m_bump;
 
+    ChFunction_Recorder m_bump;
 };
 
-CityBus_SpringForceFront::CityBus_SpringForceFront(double spring_constant, double min_length, double max_length) :
-    m_spring_constant(spring_constant),
-    m_min_length(min_length),
-    m_max_length(max_length)  {
-    
+CityBus_SpringForceFront::CityBus_SpringForceFront(double spring_constant, double min_length, double max_length)
+    : m_spring_constant(spring_constant), m_min_length(min_length), m_max_length(max_length) {
     // From ADAMS/Car
-    m_bump.AddPoint(0.0,          0.0);
-    m_bump.AddPoint(2.0e-3,     200.0);
-    m_bump.AddPoint(4.0e-3,     400.0);
-    m_bump.AddPoint(6.0e-3,     600.0);
-    m_bump.AddPoint(8.0e-3,     800.0);
-    m_bump.AddPoint(10.0e-3,   1000.0);
-    m_bump.AddPoint(20.0e-3,   2500.0);
-    m_bump.AddPoint(30.0e-3,   4500.0);
-    m_bump.AddPoint(40.0e-3,   7500.0);
-    m_bump.AddPoint(50.0e-3,  12500.0);
-
+    m_bump.AddPoint(0.0, 0.0);
+    m_bump.AddPoint(2.0e-3, 200.0);
+    m_bump.AddPoint(4.0e-3, 400.0);
+    m_bump.AddPoint(6.0e-3, 600.0);
+    m_bump.AddPoint(8.0e-3, 800.0);
+    m_bump.AddPoint(10.0e-3, 1000.0);
+    m_bump.AddPoint(20.0e-3, 2500.0);
+    m_bump.AddPoint(30.0e-3, 4500.0);
+    m_bump.AddPoint(40.0e-3, 7500.0);
+    m_bump.AddPoint(50.0e-3, 12500.0);
 }
 
-double CityBus_SpringForceFront::operator()(double time, double rest_length, double length, double vel, ChLinkTSDA* link) {
+double CityBus_SpringForceFront::operator()(double time,
+                                            double rest_length,
+                                            double length,
+                                            double vel,
+                                            ChLinkTSDA* link) {
     /*
-     * 
-    */
+     *
+     */
 
     double force = 0;
 
-    double defl_spring  = rest_length - length;
-    double defl_bump    = 0.0;
+    double defl_spring = rest_length - length;
+    double defl_bump = 0.0;
     double defl_rebound = 0.0;
-    
-    if(length < m_min_length) {
+
+    if (length < m_min_length) {
         defl_bump = m_min_length - length;
     }
-    
-    if(length > m_max_length) {
+
+    if (length > m_max_length) {
         defl_rebound = length - m_max_length;
     }
-    
+
     force = defl_spring * m_spring_constant + m_bump.Get_y(defl_bump) - m_bump.Get_y(defl_rebound);
-    
+
     return force;
 }
 
@@ -139,15 +133,11 @@ double CityBus_SpringForceFront::operator()(double time, double rest_length, dou
 class CityBus_ShockForceFront : public ChLinkTSDA::ForceFunctor {
   public:
     CityBus_ShockForceFront(double compression_slope,
-                     double compression_degressivity,
-                     double expansion_slope,
-                     double expansion_degressivity);
+                            double compression_degressivity,
+                            double expansion_slope,
+                            double expansion_degressivity);
 
-    virtual double operator()(double time,
-                              double rest_length,
-                              double length,
-                              double vel,
-                              ChLinkTSDA* link) override;
+    virtual double operator()(double time, double rest_length, double length, double vel, ChLinkTSDA* link) override;
 
   private:
     double m_slope_compr;
@@ -157,18 +147,22 @@ class CityBus_ShockForceFront : public ChLinkTSDA::ForceFunctor {
 };
 
 CityBus_ShockForceFront::CityBus_ShockForceFront(double compression_slope,
-                                   double compression_degressivity,
-                                   double expansion_slope,
-                                   double expansion_degressivity)
+                                                 double compression_degressivity,
+                                                 double expansion_slope,
+                                                 double expansion_degressivity)
     : m_slope_compr(compression_slope),
       m_degres_compr(compression_degressivity),
       m_slope_expand(expansion_slope),
       m_degres_expand(expansion_degressivity) {}
 
-double CityBus_ShockForceFront::operator()(double time, double rest_length, double length, double vel, ChLinkTSDA* link) {
+double CityBus_ShockForceFront::operator()(double time,
+                                           double rest_length,
+                                           double length,
+                                           double vel,
+                                           ChLinkTSDA* link) {
     /*
      * Simple model of a degressive damping characteristic
-    */
+     */
 
     double force = 0;
 
@@ -181,7 +175,6 @@ double CityBus_ShockForceFront::operator()(double time, double rest_length, doub
 
     return force;
 }
-
 
 CityBus_ToeBarLeafspringAxle::CityBus_ToeBarLeafspringAxle(const std::string& name) : ChToeBarLeafspringAxle(name) {
     m_springForceCB =
@@ -201,23 +194,23 @@ const ChVector<> CityBus_ToeBarLeafspringAxle::getLocation(PointId which) {
         case SPRING_A:
             return ChVector<>(0.0, 0.3824, m_axleTubeRadius);
         case SPRING_C:
-            return ChVector<>(0.0, 0.3824, m_axleTubeRadius+m_springDesignLength-0.1);
+            return ChVector<>(0.0, 0.3824, m_axleTubeRadius + m_springDesignLength - 0.1);
         case SHOCK_A:
             return ChVector<>(-0.125, 0.441, -0.0507);
         case SHOCK_C:
-            return ChVector<>(-0.2,  0.4193, 0.5298-0.1);
+            return ChVector<>(-0.2, 0.4193, 0.5298 - 0.1);
         case SPINDLE:
-            return ChVector<>(0.0, 0.7325+0.275, 0.0);
+            return ChVector<>(0.0, 0.7325 + 0.275, 0.0);
         case KNUCKLE_CM:
-            return ChVector<>(0.0, 0.7325+0.08, 0.0);
+            return ChVector<>(0.0, 0.7325 + 0.08, 0.0);
         case KNUCKLE_L:
-            return ChVector<>(0.0, 0.7325+0.08+0.0098058067569092, -0.1);
-        case KNUCKLE_U :
-            return ChVector<>(0.0, 0.7325+0.08-0.0098058067569092, 0.1);
+            return ChVector<>(0.0, 0.7325 + 0.08 + 0.0098058067569092, -0.1);
+        case KNUCKLE_U:
+            return ChVector<>(0.0, 0.7325 + 0.08 - 0.0098058067569092, 0.1);
         case KNUCKLE_DRL:
-            return ChVector<>(0.02909228*2, 0.7325+0.08-0.19787278*1.5, 0.2);
+            return ChVector<>(0.02909228 * 2, 0.7325 + 0.08 - 0.19787278 * 1.5, 0.2);
         case TIEROD_K:
-            return ChVector<>(-0.24777*2, 0.7325+0.08-0.033323*1.5, 0.0);
+            return ChVector<>(-0.24777 * 2, 0.7325 + 0.08 - 0.033323 * 1.5, 0.0);
         case DRAGLINK_C:
             return ChVector<>(0.6 + 0.6 + 0.4, 0.7325 + 0.08 - 0.19787278 * 1.5, 0.1);
         default:

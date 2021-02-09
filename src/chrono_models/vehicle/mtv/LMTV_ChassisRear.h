@@ -35,7 +35,7 @@ namespace fmtv {
 /// LMTV rear chassis subsystem.
 class CH_MODELS_API LMTV_ChassisRear : public ChRigidChassisRear {
   public:
-    LMTV_ChassisRear(const std::string& name, ChassisCollisionType chassis_collision_type = ChassisCollisionType::NONE);
+    LMTV_ChassisRear(const std::string& name, CollisionType chassis_collision_type = CollisionType::NONE);
     ~LMTV_ChassisRear() {}
 
     /// Return the mass of the rear chassis body.
@@ -48,7 +48,7 @@ class CH_MODELS_API LMTV_ChassisRear : public ChRigidChassisRear {
     virtual const ChVector<>& GetLocalPosCOM() const override { return m_COM_loc; }
 
     /// Get the location (in the local frame of this chassis) of the connection to the front chassis.
-    virtual const ChVector<>& GetLocalPosConnector() const override { return m_connector_loc; }
+    virtual const ChVector<>& GetLocalPosFrontConnector() const override { return m_connector_loc; }
 
   protected:
     virtual void CreateContactMaterials(ChContactMethod contact_method) override;

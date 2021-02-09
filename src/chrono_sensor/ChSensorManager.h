@@ -107,7 +107,7 @@ class CH_SENSOR_API ChSensorManager {
     int GetKeyframeSize() { return m_num_keyframes; }
 
     /// Set the max key frame size from a simulation time step and the largest collection window
-    /// @param timestep The estimated timestep to be used in the simulation
+    /// @param min_timestep The estimated timestep to be used in the simulation
     /// @param max_collection_window The largest collection window of any rendering sensor (camera or lidar)
     void SetKeyframeSizeFromTimeStep(float min_timestep, float max_collection_window);
 

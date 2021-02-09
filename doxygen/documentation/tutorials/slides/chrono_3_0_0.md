@@ -93,7 +93,7 @@ These slides refer to the API of Chrono release 3.0.0.
 
 ## Hands-on Exercises
 
-The following hands-on exercises use code available in the GitHub repository [chrono-tutorials](https://github.com/projectchrono/chrono-tutorial.pdf)
+The following hands-on exercises use code available in the GitHub repository [chrono-tutorials](https://github.com/projectchrono/chrono-tutorial)
 
 - Chrono core exercises
   [pdf](http://www.projectchrono.org/assets/slides_3_0_0/7_HandsOn/Chrono_Handson.pdf)

@@ -5,7 +5,7 @@ The Chrono distribution contains several demos for modeling and simulating senso
 
 Chrono::Sensor provides support for Camera, Lidar, GPS, and IMU. These are parameterized models of sensors commonly used in robotic and autonomous vehicle systems.
 
-In addition to the main library, the SENSOR module also creates a library of pre-defined [SENSOR models](@ref sensor_models) which currently contains:
+In addition to the main library, the SENSOR module also creates a library of pre-defined [SENSOR models](@ref sensor_overview) which currently contains:
 
 - Camera Sensor
 - Lidar Sensor

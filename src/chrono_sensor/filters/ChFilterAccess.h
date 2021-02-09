@@ -63,11 +63,11 @@ class CH_SENSOR_API ChFilterAccess : public ChFilter {
         m_user_buffer = chrono_types::make_shared<BufferType>();
     }
 
-    /// User calls this to get access and owndership of the buffer memory on the host.
+    /// User calls this to get access and ownership of the buffer memory on the host.
     /// user can store the returned pointer or modify as desired,
     /// user has the ownership of the memory. Underlying framework has released all ownership.
     /// Filter graph will create new memory during the next run.
-    /// @param A user buffer that is safe for the user to access.
+    /// Returns a user buffer that is safe for the user to access.
     UserBufferType GetBuffer() {
         // lock the mutex before shifting ownership of the data
         std::lock_guard<std::mutex> lck(m_mutexBufferAccess);

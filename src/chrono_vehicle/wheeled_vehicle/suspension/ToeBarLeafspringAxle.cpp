@@ -30,7 +30,7 @@ namespace vehicle {
 // Construct a solid axle suspension using data from the specified JSON file.
 // -----------------------------------------------------------------------------
 ToeBarLeafspringAxle::ToeBarLeafspringAxle(const std::string& filename)
-    : ChToeBarLeafspringAxle(""), m_springForceCB(NULL), m_shockForceCB(NULL) {
+    : ChToeBarLeafspringAxle(""), m_springForceCB(NULL), m_shockForceCB(NULL), m_use_left_knuckle(true) {
     Document d = ReadFileJSON(filename);
     if (d.IsNull())
         return;
@@ -41,7 +41,7 @@ ToeBarLeafspringAxle::ToeBarLeafspringAxle(const std::string& filename)
 }
 
 ToeBarLeafspringAxle::ToeBarLeafspringAxle(const rapidjson::Document& d)
-    : ChToeBarLeafspringAxle(""), m_springForceCB(NULL), m_shockForceCB(NULL) {
+    : ChToeBarLeafspringAxle(""), m_springForceCB(NULL), m_shockForceCB(NULL), m_use_left_knuckle(true) {
     Create(d);
 }
 

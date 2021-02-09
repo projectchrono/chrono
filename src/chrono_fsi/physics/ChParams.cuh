@@ -212,8 +212,8 @@ struct SimParams {
     Real K_bulk;        ///< bulk modulus
     Real Nu_poisson;    ///< Poisson’s ratio
     Real Ar_stress;     ///< Artifical stress
-    Real Ar_vis_alpha;  ///< Artifical viscosity
-    Real Ar_vis_beta;   ///< Artifical viscosity
+    Real Ar_vis_alpha;  ///< Artifical viscosity coefficient
+    Real Ar_vis_beta;   ///< Artifical viscosity coefficient
     Real Fri_angle;     ///< frictional angle of granular material
     Real Dil_angle;     ///< dilate angle of granular material
     Real Coh_coeff;     ///< cohesion coefficient
@@ -229,6 +229,18 @@ struct SimParams {
     Real fluidDimX;
     Real fluidDimY;
     Real fluidDimZ;
+
+    ///< information of the body in fluid/granular material
+    Real bodyDimX;
+    Real bodyDimY;
+    Real bodyDimZ;
+    Real bodyRad;
+    Real bodyLength;
+    Real bodyIniPosX;
+    Real bodyIniPosY;
+    Real bodyIniPosZ;
+    Real bodyMass;
+    Real bodyDensity;
 };  // namespace fsi
 
 }  // namespace fsi

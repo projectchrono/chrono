@@ -72,9 +72,6 @@ class CH_VEHICLE_API TrackShoeDoublePin : public ChTrackShoeDoublePin {
     /// Create the contact materials.
     void CreateContactMaterials(ChContactMethod contact_method) override;
 
-    /// Add visualization assets for the idler subsystem.
-    virtual void AddVisualizationAssets(VisualizationType vis) override;
-
     double m_shoe_mass;
     ChVector<> m_shoe_inertia;
     double m_shoe_length;
@@ -88,9 +85,6 @@ class CH_VEHICLE_API TrackShoeDoublePin : public ChTrackShoeDoublePin {
     double m_connector_width;
 
     ChVector<> m_pin_center;
-
-    bool m_has_mesh;
-    std::string m_meshFile;
 
     std::vector<MaterialInfo> m_shoe_mat_info;
     MaterialInfo m_cyl_mat_info;

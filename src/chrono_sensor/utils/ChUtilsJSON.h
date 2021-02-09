@@ -70,6 +70,7 @@ CH_SENSOR_API ChFrame<> ReadFrameJSON(const rapidjson::Value& a);
 /// Load and return a sensor from the specified JSON file.
 /// @param filename The name/path to the JSON file defining the sensor parameters
 /// @param parent The ChBody to which the sensor should be attached
+/// @param offsetPose The position and rotation of the Sensor
 /// @return A shared pointer to a ChSensor constructed from the JSON file
 CH_SENSOR_API std::shared_ptr<ChSensor> ReadSensorJSON(const std::string& filename,
                                                        std::shared_ptr<chrono::ChBody> parent,
@@ -78,6 +79,7 @@ CH_SENSOR_API std::shared_ptr<ChSensor> ReadSensorJSON(const std::string& filena
 /// Load and return a camera sensor from the specified JSON file.
 /// @param filename The name/path to the JSON file defining the camera sensor parameters
 /// @param parent The ChBody to which the sensor should be attached
+/// @param offsetPose The position and rotation of the Camera Sensor
 /// @return A shared pointer to a ChCameraSensor constructed from the JSON file
 CH_SENSOR_API std::shared_ptr<ChCameraSensor> ReadCameraSensorJSON(const std::string& filename,
                                                                    std::shared_ptr<chrono::ChBody> parent,
@@ -86,6 +88,7 @@ CH_SENSOR_API std::shared_ptr<ChCameraSensor> ReadCameraSensorJSON(const std::st
 /// Load and return a gps sensor from the specified JSON file.
 /// @param filename The name/path to the JSON file defining the GPS sensor parameters
 /// @param parent The ChBody to which the sensor should be attached
+/// @param offsetPose The position and rotation of the GPS Sensor
 /// @return A shared pointer to a ChGPSSensor constructed from the JSON file
 CH_SENSOR_API std::shared_ptr<ChGPSSensor> ReadGPSSensorJSON(const std::string& filename,
                                                              std::shared_ptr<chrono::ChBody> parent,
@@ -94,6 +97,7 @@ CH_SENSOR_API std::shared_ptr<ChGPSSensor> ReadGPSSensorJSON(const std::string& 
 /// Load and return a imu sensor from the specified JSON file.
 /// @param filename The name/path to the JSON file defining the IMU sensor parameters
 /// @param parent The ChBody to which the sensor should be attached
+/// @param offsetPose The position and rotation of the IMU Sensor
 /// @return A shared pointer to a ChIMUSensor constructed from the JSON file
 CH_SENSOR_API std::shared_ptr<ChIMUSensor> ReadIMUSensorJSON(const std::string& filename,
                                                              std::shared_ptr<chrono::ChBody> parent,
@@ -102,6 +106,7 @@ CH_SENSOR_API std::shared_ptr<ChIMUSensor> ReadIMUSensorJSON(const std::string& 
 /// Load and return a lidar sensor from the specified JSON file.
 /// @param filename The name/path to the JSON file defining the lidar sensor parameters
 /// @param parent The ChBody to which the sensor should be attached
+/// @param offsetPose The position and rotation of the Lidar Sensr
 /// @return A shared pointer to a ChLidarSensor constructed from the JSON file
 CH_SENSOR_API std::shared_ptr<ChLidarSensor> ReadLidarSensorJSON(const std::string& filename,
                                                                  std::shared_ptr<chrono::ChBody> parent,

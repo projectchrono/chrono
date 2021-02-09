@@ -192,6 +192,13 @@ void TrackAssemblySinglePin::Create(const rapidjson::Document& d) {
         }
         m_num_track_shoes = d["Track Shoes"]["Number Shoes"].GetInt();
         ReadTrackShoes(vehicle::GetDataFile(file_name), m_num_track_shoes, output);
+    
+        if (d["Track Shoes"].HasMember("Joint Torsion")) {
+            m_connection_type = ChTrackAssemblySegmented::ConnectionType::RSDA_JOINT;
+            double torsion_k = d["Track Shoes"]["Joint Torsion"]["Spring Constant"].GetDouble();
+            double torsion_c = d["Track Shoes"]["Joint Torsion"]["Damping Coefficient"].GetDouble();
+            m_torque_funct = chrono_types::make_shared<LinearSpringDamperTorque>(torsion_k, torsion_c);
+        }
     }
 }
 

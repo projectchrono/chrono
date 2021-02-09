@@ -43,7 +43,7 @@ namespace man {
 MAN_5t_Vehicle::MAN_5t_Vehicle(const bool fixed,
                                BrakeType brake_type,
                                ChContactMethod contact_method,
-                               ChassisCollisionType chassis_collision_type,
+                               CollisionType chassis_collision_type,
                                bool useShaftDrivetrain)
     : ChWheeledVehicle("MAN_5t", contact_method), m_omega({0, 0, 0, 0}), m_use_shafts_drivetrain(useShaftDrivetrain) {
     Create(fixed, brake_type, chassis_collision_type);
@@ -52,13 +52,13 @@ MAN_5t_Vehicle::MAN_5t_Vehicle(const bool fixed,
 MAN_5t_Vehicle::MAN_5t_Vehicle(ChSystem* system,
                                const bool fixed,
                                BrakeType brake_type,
-                               ChassisCollisionType chassis_collision_type,
+                               CollisionType chassis_collision_type,
                                bool useShaftDrivetrain)
     : ChWheeledVehicle("MAN_5t", system), m_omega({0, 0, 0, 0}), m_use_shafts_drivetrain(useShaftDrivetrain) {
     Create(fixed, brake_type, chassis_collision_type);
 }
 
-void MAN_5t_Vehicle::Create(bool fixed, BrakeType brake_type, ChassisCollisionType chassis_collision_type) {
+void MAN_5t_Vehicle::Create(bool fixed, BrakeType brake_type, CollisionType chassis_collision_type) {
     // Create the chassis subsystem
     m_chassis = chrono_types::make_shared<MAN_5t_Chassis>("Chassis", fixed, chassis_collision_type);
 

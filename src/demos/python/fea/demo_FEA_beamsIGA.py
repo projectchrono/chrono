@@ -12,7 +12,7 @@
 import math as m
 import pychrono as chrono
 import pychrono.fea as fea
-import pychrono.mkl as mkl
+import pychrono.pardisomkl as mkl
 import pychrono.irrlicht as chronoirr
 
 print ("Example: FEA of the Jeffcott rotor passing through resonance.");
@@ -186,7 +186,7 @@ myapplication.AssetUpdateAll()
 # my_system.SetTimestepperType(chrono.ChTimestepper.Type_HHT)
 
 # Change the solver form the default SOR to the MKL Pardiso, more precise for fea.
-msolver = mkl.ChSolverMKL()
+msolver = mkl.ChSolverPardisoMKL()
 my_system.SetSolver(msolver)
 
 myapplication.SetTimestep(0.002)

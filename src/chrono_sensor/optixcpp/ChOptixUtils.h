@@ -20,7 +20,9 @@
 #define CHOPTIXUTILS_H
 
 #ifdef _WIN32
- #define NOMINMAX
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
 #endif
 
 #include <optix.h>
@@ -72,7 +74,7 @@ ByteImageData LoadImage(std::string filename);
 
 /// creates an empty optix transform::node
 /// @param context the optix context
-optix::Transform CreateEmptyTransform(optix::Context contex);
+optix::Transform CreateEmptyTransform(optix::Context context);
 
 /// creates an opti::transform node
 /// @param context optix context

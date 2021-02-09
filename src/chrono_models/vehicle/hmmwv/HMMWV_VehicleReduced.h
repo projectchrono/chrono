@@ -40,20 +40,20 @@ class CH_MODELS_API HMMWV_VehicleReduced : public HMMWV_Vehicle {
                          DrivelineType drive_type,
                          BrakeType brake_type,
                          ChContactMethod contact_method,
-                         ChassisCollisionType chassis_collision_type);
+                         CollisionType chassis_collision_type);
 
     HMMWV_VehicleReduced(ChSystem* system,
                          const bool fixed,
                          DrivelineType drive_type,
                          BrakeType brake_type,
-                         ChassisCollisionType chassis_collision_type);
+                         CollisionType chassis_collision_type);
 
     ~HMMWV_VehicleReduced();
 
     virtual void Initialize(const ChCoordsys<>& chassisPos, double chassisFwdVel = 0) override;
 
   private:
-    void Create(bool fixed, BrakeType brake_type, ChassisCollisionType chassis_collision_type);
+    void Create(bool fixed, BrakeType brake_type, CollisionType chassis_collision_type);
 };
 
 /// @} vehicle_models_hmmwv

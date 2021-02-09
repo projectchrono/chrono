@@ -68,6 +68,9 @@ class CH_VEHICLE_API ChChassis : public ChPart {
     /// This is a coordinate system relative to the chassis reference frame.
     virtual ChCoordsys<> GetLocalDriverCoordsys() const = 0;
 
+    /// Get the location (in the local frame of this chassis) of the connection to a rear chassis.
+    virtual const ChVector<> GetLocalPosRearConnector() const { return ChVector<>(0); }
+
     /// Get a handle to the vehicle's chassis body.
     std::shared_ptr<ChBodyAuxRef> GetBody() const { return m_body; }
 
@@ -175,12 +178,12 @@ class CH_VEHICLE_API ChChassisRear : public ChChassis {
     virtual ~ChChassisRear() {}
 
     /// Get the location (in the local frame of this chassis) of the connection to the front chassis.
-    virtual const ChVector<>& GetLocalPosConnector() const = 0;
+    virtual const ChVector<>& GetLocalPosFrontConnector() const = 0;
 
-    /// Initialize the rear chassis at the specified position
-    /// (relative to and expressed in the reference frame of the front chassis).
+    /// Initialize the rear chassis relative to the specified front chassis.
+    /// The orientation is set to be the same as that of the front chassis while the location is based on the connector
+    /// position on the front and rear chassis.
     virtual void Initialize(std::shared_ptr<ChChassis> chassis,  ///< [in] front chassis
-                            const ChVector<>& location,          ///< [in] location relative to front chassis frame
                             int collision_family = 0             ///< [in] chassis collision family
     );
 

@@ -74,9 +74,6 @@ class CH_MODELS_API M113_TrackShoeDoublePin : public ChTrackShoeDoublePin {
     /// Create the contact materials.
     void CreateContactMaterials(ChContactMethod contact_method) override;
 
-    /// Add visualization assets for the track shoe subsystem.
-    virtual void AddVisualizationAssets(VisualizationType vis) override;
-
     static const double m_shoe_mass;
     static const ChVector<> m_shoe_inertia;
     static const double m_shoe_length;
@@ -90,8 +87,6 @@ class CH_MODELS_API M113_TrackShoeDoublePin : public ChTrackShoeDoublePin {
     static const double m_connector_radius;
     static const double m_connector_length;
     static const double m_connector_width;
-
-    static const std::string m_meshFile;
 };
 
 /// @} vehicle_models_m113

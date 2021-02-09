@@ -12,6 +12,13 @@ option(BUILD_DEMOS "Build demo programs" ON)
 option(BUILD_BENCHMARKING "Build benchmark tests" OFF)
 
 #-----------------------------------------------------------------------------
+# Search prefixes specified by <PackageName>_ROOT
+#-----------------------------------------------------------------------------
+if (POLICY CMP0074)
+  cmake_policy(SET CMP0074 NEW)
+endif()
+
+#-----------------------------------------------------------------------------
 # Collect compiler flags required to build the Chrono libraries
 #-----------------------------------------------------------------------------
 
@@ -137,100 +144,111 @@ if(ENABLE_OPENMP)
   set(OPENMP_INCLUDE_DIR "${OpenMP_CXX_INCLUDE_DIRS}")
   set(OPENMP_LIBRARIES "${OpenMP_CXX_LIBRARIES}")
 else()
-	# As an alternative, if TBB is located the Parallel module will use it for all thrust calls
+	# As an alternative, if TBB is located the Multicore module will use it for all thrust calls
 	find_package("TBB")
 	cmake_dependent_option(ENABLE_TBB "Enable TBB support in Chrono::Engine" ON "TBB_FOUND" OFF)
 endif()
 
 #-----------------------------------------------------------------------------
-# SSE and AVX support
+# SSE / AVX / FMA / NEON support
 #-----------------------------------------------------------------------------
 
-# Figure out SIMD level support
-message(STATUS "Seaching for SSE...")
-find_package(SSE)
+option(USE_SIMD "Enable use of SIMD if supported (SSE, AVX, NEON)" ON)
 
-# Set substitution variables for configuration file
-if(SSE_FOUND)
-  set(CHRONO_HAS_SSE "#define CHRONO_HAS_SSE")
-  set(CHRONO_SSE_LEVEL "#define CHRONO_SSE_LEVEL \"${SSE_VERSION}\"")
-  if(DETECTED_SSE_10)
-    set(CHRONO_SSE_1_0 "#define CHRONO_SSE_1_0")
-  endif()
-  if(DETECTED_SSE_20)
-    set(CHRONO_SSE_2_0 "#define CHRONO_SSE_2_0")
-  endif()
-  if(DETECTED_SSE_30)
-    set(CHRONO_SSE_3_0 "#define CHRONO_SSE_3_0")
-  endif()
-  if(DETECTED_SSE_41)
-    set(CHRONO_SSE_4_1 "#define CHRONO_SSE_4_1")
-  endif()
-  if(DETECTED_SSE_42)
-    set(CHRONO_SSE_4_2 "#define CHRONO_SSE_4_2")
-  endif()
-endif()
+if(USE_SIMD)
 
-# Figure out AVX level support
-message(STATUS "Searching for AVX...")
-find_package(AVX)
+   # Figure out SIMD level support
+   message(STATUS "Seaching for SSE...")
+   find_package(SSE)
+   
+   # Set substitution variables for configuration file
+   if(SSE_FOUND)
+     set(CHRONO_HAS_SSE "#define CHRONO_HAS_SSE")
+     set(CHRONO_SSE_LEVEL "#define CHRONO_SSE_LEVEL \"${SSE_VERSION}\"")
+     if(DETECTED_SSE_10)
+       set(CHRONO_SSE_1_0 "#define CHRONO_SSE_1_0")
+     endif()
+     if(DETECTED_SSE_20)
+       set(CHRONO_SSE_2_0 "#define CHRONO_SSE_2_0")
+     endif()
+     if(DETECTED_SSE_30)
+       set(CHRONO_SSE_3_0 "#define CHRONO_SSE_3_0")
+     endif()
+     if(DETECTED_SSE_41)
+       set(CHRONO_SSE_4_1 "#define CHRONO_SSE_4_1")
+     endif()
+     if(DETECTED_SSE_42)
+       set(CHRONO_SSE_4_2 "#define CHRONO_SSE_4_2")
+     endif()
+   endif()
+   
+   # Figure out AVX level support
+   message(STATUS "Searching for AVX...")
+   find_package(AVX)
+   
+   # Set substitution variables for configuration file
+   if(AVX_FOUND)
+     set(CHRONO_HAS_AVX "#define CHRONO_HAS_AVX")
+     set(CHRONO_AVX_LEVEL "#define CHRONO_AVX_LEVEL \"${AVX_VERSION}\"")
+     if(DETECTED_AVX_10)
+       set(CHRONO_AVX_1_0 "#define CHRONO_AVX_1_0")
+     endif()
+     if(DETECTED_AVX_20)
+       set(CHRONO_AVX_2_0 "#define CHRONO_AVX_2_0")
+     endif()
+   endif()
 
-# Set substitution variables for configuration file
-if(AVX_FOUND)
-  set(CHRONO_HAS_AVX "#define CHRONO_HAS_AVX")
-  set(CHRONO_AVX_LEVEL "#define CHRONO_AVX_LEVEL \"${AVX_VERSION}\"")
-  if(DETECTED_AVX_10)
-    set(CHRONO_AVX_1_0 "#define CHRONO_AVX_1_0")
-  endif()
-  if(DETECTED_AVX_20)
-    set(CHRONO_AVX_2_0 "#define CHRONO_AVX_2_0")
-  endif()
-endif()
+   # Figure out FMA level support
+   message(STATUS "Searching for FMA...")
+   find_package(FMA)
+   
+   # Set substitution variables for configuration file
+   if(FMA_FOUND)
+     set(CHRONO_HAS_FMA "#define CHRONO_HAS_FMA")
+   endif()
+   
+   # Add SSE, AVX, and FMA flags to Chrono compiler flags
+   # Note that these flags are already added to CMake compiler flags
+   set(CH_CXX_FLAGS "${CH_CXX_FLAGS} ${SSE_FLAGS} ${AVX_FLAGS} ${FMA_FLAGS}")
+   set(CH_C_FLAGS "${CH_C_FLAGS} ${SSE_FLAGS} ${AVX_FLAGS} ${FMA_FLAGS}")
+   
+   # Check if the system has NEON support
+   message(STATUS "Searching for NEON...")
+   find_package(NEON)
+   
+   # Set substitution variables for configuration file.
+   if (NEON_FOUND)
+     set (CHRONO_HAS_NEON "#define CHRONO_HAS_NEON")
+   endif()
 
-# Figure out FMA level support
-message(STATUS "Searching for FMA...")
-find_package(FMA)
+   # Add NEON flags to Chrono compiler flags
+   # Note that these flags are already added to CMake compiler flags
+   set(CH_CXX_FLAGS "${CH_CXX_FLAGS} ${NEON_FLAGS}")
+   set(CH_C_FLAGS "${CH_C_FLAGS} ${NEON_FLAGS}")
 
-# Set substitution variables for configuration file
-if(FMA_FOUND)
-  set(CHRONO_HAS_FMA "#define CHRONO_HAS_FMA")
-endif()
+else()
 
-# Add SSE, AVX, and FMA flags to Chrono compiler flags
-# Note that these flags are already added to CMake compiler flags
-set(CH_CXX_FLAGS "${CH_CXX_FLAGS} ${SSE_FLAGS} ${AVX_FLAGS} ${FMA_FLAGS}")
-set(CH_C_FLAGS "${CH_C_FLAGS} ${SSE_FLAGS} ${AVX_FLAGS} ${FMA_FLAGS}")
+   message(STATUS "SIMD support disabled")
 
-#-----------------------------------------------------------------------------
-# NEON support
-#-----------------------------------------------------------------------------
+endif() 
 
-# Check if the system has NEON support
-message(STATUS "Searching for NEON...")
-find_package(NEON)
+message(STATUS "C++ compiler flags: ${CH_CXX_FLAGS}")
+message(STATUS "C compile flags:    ${CH_C_FLAGS}")
 
-# Set substitution variables for configuration file.
-if (NEON_FOUND)
-  set (CHRONO_HAS_NEON "#define CHRONO_HAS_NEON")
-endif()
-
-# Add NEON flags to Chrono compiler flags
-# Note that these flags are already added to CMake compiler flags
-set(CH_CXX_FLAGS "${CH_CXX_FLAGS} ${NEON_FLAGS}")
-set(CH_C_FLAGS "${CH_C_FLAGS} ${NEON_FLAGS}")
 
 #-----------------------------------------------------------------------------
 # Eigen library
 #-----------------------------------------------------------------------------
 
+message(STATUS "Searching for Eigen3...")
 find_package(Eigen3 3.3.0)
 if(EIGEN3_FOUND)
-  message(STATUS "Eigen3 version: ${EIGEN3_VERSION}")
-  message(STATUS "Eigen3 include directory: ${EIGEN3_INCLUDE_DIR}")
+  message(STATUS "  Eigen3 version: ${EIGEN3_VERSION}")
+  message(STATUS "  Eigen3 include directory: ${EIGEN3_INCLUDE_DIR}")
 else()
   # mark_as_advanced(CLEAR EIGEN3_INCLUDE_DIR)
   mark_as_advanced(FORCE Eigen3_DIR)
-  message(FATAL_ERROR "Eigen3 not found. Specify EIGEN3_INCLUDE_DIR")
+  message(FATAL_ERROR "  Eigen3 not found. Specify EIGEN3_INCLUDE_DIR")
 endif()
 
 # Fix for VS 2017 15.8 and newer to handle alignment specification with Eigen.
@@ -238,6 +256,13 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 	if(MSVC AND ${MSVC_VERSION} GREATER_EQUAL 1915)
 	  add_definitions( "-D_ENABLE_EXTENDED_ALIGNED_STORAGE" )
 	endif()
+endif()
+
+cmake_dependent_option(USE_EIGEN_OPENMP "Compile Chrono with OpenMP support in Eigen" ON "ENABLE_OPENMP" OFF)
+
+if (NOT USE_EIGEN_OPENMP)
+  set(CH_CXX_FLAGS "${CH_CXX_FLAGS} -DEIGEN_DONT_PARALLELIZE")
+  set(CH_C_FLAGS "${CH_C_FLAGS} -DEIGEN_DONT_PARALLELIZE")
 endif()
 
 #-----------------------------------------------------------------------------
@@ -500,21 +525,23 @@ include_directories(${CH_INCLUDES})
 
 # Add directories to build various optional modules.  Each module is supposed
 # to provide an option for enabling that particular module.
-add_subdirectory(chrono_mkl)
+add_subdirectory(chrono_pardisomkl)
 add_subdirectory(chrono_mumps)
 add_subdirectory(chrono_matlab)
 add_subdirectory(chrono_irrlicht)
 add_subdirectory(chrono_cascade)
 add_subdirectory(chrono_postprocess)
+add_subdirectory(chrono_pardisoproject)
 add_subdirectory(chrono_cosimulation)
 add_subdirectory(chrono_python)
-add_subdirectory(chrono_parallel)
-add_subdirectory(chrono_granular)
+add_subdirectory(chrono_multicore)
 add_subdirectory(chrono_opengl)
+add_subdirectory(chrono_gpu)
 add_subdirectory(chrono_distributed)
 add_subdirectory(chrono_vehicle)
 add_subdirectory(chrono_fsi)
 add_subdirectory(chrono_sensor)
+add_subdirectory(chrono_synchrono)
 
 # Add directories for model libraries
 add_subdirectory(chrono_models)
@@ -547,7 +574,7 @@ install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/chrono_thirdparty
 #       that a particular module was successfully built, not just
 #       enabled)
 
-if(ENABLE_UNIT_CASCADE)
+if(ENABLE_MODULE_CASCADE)
   set(CHRONO_CASCADE "#define CHRONO_CASCADE")
 else()
   set(CHRONO_CASCADE "#undef CHRONO_CASCADE")
@@ -577,10 +604,10 @@ else()
   set(CHRONO_MATLAB "#undef CHRONO_MATLAB")
 endif()
 
-if(ENABLE_MODULE_MKL)
-  set(CHRONO_MKL "#define CHRONO_MKL")
+if(ENABLE_MODULE_PARDISO_MKL)
+  set(CHRONO_PARDISO_MKL "#define CHRONO_PARDISO_MKL")
 else()
-  set(CHRONO_MKL "#undef CHRONO_MKL")
+  set(CHRONO_PARDISO_MKL "#undef CHRONO_PARDISO_MKL")
 endif()
 
 if(ENABLE_MODULE_MUMPS)
@@ -589,10 +616,10 @@ else()
   set(CHRONO_MUMPS "#undef CHRONO_MUMPS")
 endif()
 
-if(ENABLE_MODULE_PARALLEL)
-  set(CHRONO_PARALLEL "#define CHRONO_PARALLEL")
+if(ENABLE_MODULE_MULTICORE)
+  set(CHRONO_MULTICORE "#define CHRONO_MULTICORE")
 else()
-  set(CHRONO_PARALLEL "#undef CHRONO_PARALLEL")
+  set(CHRONO_MULTICORE "#undef CHRONO_MULTICORE")
 endif()
 
 if(ENABLE_MODULE_OPENGL)
@@ -611,6 +638,12 @@ if(ENABLE_MODULE_POSTPROCESS)
   set(CHRONO_POSTPROCESS "#define CHRONO_POSTPROCESS")
 else()
   set(CHRONO_POSTPROCESS "#undef CHRONO_POSTPROCESS")
+endif()
+
+if(ENABLE_MODULE_PARDISO_PROJECT)
+  set(CHRONO_PARDISOPROJECT "#define CHRONO_PARDISOPROJECT")
+else()
+  set(CHRONO_PARDISOPROJECT "#undef CHRONO_PARDISOPROJECT")
 endif()
 
 if(ENABLE_MODULE_PYTHON)
@@ -635,6 +668,12 @@ if(ENABLE_MODULE_SENSOR)
   set(CHRONO_SENSOR "#define CHRONO_SENSOR")
 else()
   set(CHRONO_SENSOR "#undef CHRONO_SENSOR")
+endif()
+
+if(ENABLE_MODULE_SYNCHRONO)
+  set(CHRONO_SYNCHRONO "#define CHRONO_SYNCHRONO")
+else()
+  set(CHRONO_SYNCHRONO "#undef CHRONO_SYNCHRONO")
 endif()
 
 if(ENABLE_OPENMP)

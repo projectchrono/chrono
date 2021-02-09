@@ -70,7 +70,6 @@ CH_SENSOR_API void ChFilterVisualizePointCloud::Apply(std::shared_ptr<ChSensor> 
         glMatrixMode(GL_MODELVIEW);
         glLoadIdentity();
 
-        GLfloat x, y, z, angle;  // Storage for coordinates and angles
         // Clear the window with current clearing color
         glClear(GL_COLOR_BUFFER_BIT);
 
@@ -84,22 +83,51 @@ CH_SENSOR_API void ChFilterVisualizePointCloud::Apply(std::shared_ptr<ChSensor> 
         glPointSize(1.0);
         glBegin(GL_POINTS);
 
-        if (pDeviceXYZIBuffer) {
-            int data_w = pDeviceXYZIBuffer->Width;
-            int data_h = pDeviceXYZIBuffer->Height;
-            unsigned int sz = data_w * data_h * sizeof(PixelXYZI);
-            auto tmp_buf = std::make_unique<PixelXYZI[]>(sz);
+//        if (pDeviceXYZIBuffer) {
+//            int data_w = pDeviceXYZIBuffer->Width;
+//            int data_h = pDeviceXYZIBuffer->Height;
+//            unsigned int sz = data_w * data_h * sizeof(PixelXYZI);
+//            auto tmp_buf = std::make_unique<PixelXYZI[]>(sz);
+//
+//            cudaMemcpy(tmp_buf.get(), pDeviceXYZIBuffer->Buffer.get(), sz, cudaMemcpyDeviceToHost);
+//
+//            // draw the vertices, color them by the intensity of the lidar point (red=0, green=1)
+//            for (int i = 0; i < data_w; i++) {
+//                for (int j = 0; j < data_h; j++) {
+//                    if (tmp_buf[i * data_h + j].intensity > 1e-6) {
+//                        float inten = tmp_buf[i * data_h + j].intensity;
+//                        glColor3f(1 - inten, inten, 0);
+//                        glVertex3f(-tmp_buf[i * data_h + j].y, tmp_buf[i * data_h + j].z, tmp_buf[i * data_h + j].x);
+//                    }
+//                }
+//            }
+//        }
+        if (pDeviceXYZIBuffer){
+            if (pDeviceXYZIBuffer->Dual_return){
+                unsigned int sz = pDeviceXYZIBuffer->Beam_return_count * 2 * sizeof(PixelXYZI);
+                auto tmp_buf = std::make_unique<PixelXYZI[]>(sz);
 
-            cudaMemcpy(tmp_buf.get(), pDeviceXYZIBuffer->Buffer.get(), sz, cudaMemcpyDeviceToHost);
+                cudaMemcpy(tmp_buf.get(), pDeviceXYZIBuffer->Buffer.get(), sz, cudaMemcpyDeviceToHost);
 
-            // draw the vertices, color them by the intensity of the lidar point (red=0, green=1)
-            for (int i = 0; i < data_w; i++) {
-                for (int j = 0; j < data_h; j++) {
-                    if (tmp_buf[i * data_h + j].intensity > 1e-6) {
-                        float inten = tmp_buf[i * data_h + j].intensity;
-                        glColor3f(1 - inten, inten, 0);
-                        glVertex3f(-tmp_buf[i * data_h + j].y, tmp_buf[i * data_h + j].z, tmp_buf[i * data_h + j].x);
-                    }
+                // draw the vertices, color them by the intensity of the lidar point (red=0, green=1)
+                // multiple 2*i to display strongest return, add i+1 to display first return
+                for (int i = 0; i < pDeviceXYZIBuffer->Beam_return_count * 2; i++){
+                    float inten = tmp_buf[2 * i].intensity;
+                    glColor3f(1 - inten, inten, 0);
+                    glVertex3f(-tmp_buf[2 * i].y, tmp_buf[2 * i].z, tmp_buf[2 * i].x);
+                }
+
+            } else {
+                unsigned int sz = pDeviceXYZIBuffer->Beam_return_count * sizeof(PixelXYZI);
+                auto tmp_buf = std::make_unique<PixelXYZI[]>(sz);
+
+                cudaMemcpy(tmp_buf.get(), pDeviceXYZIBuffer->Buffer.get(), sz, cudaMemcpyDeviceToHost);
+
+                // draw the vertices, color them by the intensity of the lidar point (red=0, green=1)
+                for (int i = 0; i < pDeviceXYZIBuffer->Beam_return_count; i++){
+                    float inten = tmp_buf[i].intensity;
+                    glColor3f(1 - inten, inten, 0);
+                    glVertex3f(-tmp_buf[i].y, tmp_buf[i].z, tmp_buf[i].x);
                 }
             }
         }

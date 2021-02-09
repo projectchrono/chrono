@@ -22,7 +22,7 @@
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/terrain/GranularTerrain.h"
 
-#include "chrono_parallel/physics/ChSystemParallel.h"
+#include "chrono_multicore/physics/ChSystemMulticore.h"
 
 #include "chrono_opengl/ChOpenGLWindow.h"
 
@@ -71,15 +71,15 @@ int main(int argc, char* argv[]) {
     enum CameraType { FIXED, FRONT, TRACK };
     CameraType cam_type = FIXED;
 
-    // ---------------------------------
-    // Create the parallel Chrono system
-    // ---------------------------------
+    // ----------------------------------
+    // Create the multicore Chrono system
+    // ----------------------------------
 
     // Prepare rotated acceleration vector
     ChVector<> gravity(0, 0, -9.81);
     ChVector<> gravityR = ChMatrix33<>(slope_g, ChVector<>(0, 1, 0)) * gravity;
 
-    ChSystemParallelNSC* system = new ChSystemParallelNSC();
+    ChSystemMulticoreNSC* system = new ChSystemMulticoreNSC();
     system->Set_G_acc(gravity);
 
     // Set number of threads

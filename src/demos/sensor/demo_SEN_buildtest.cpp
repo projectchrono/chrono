@@ -350,7 +350,6 @@ int main(int argc, char* argv[]) {
         cam->SetOffsetPose(chrono::ChFrame<double>(
             {-orbit_radius * cos(ch_time * orbit_rate), -orbit_radius * sin(ch_time * orbit_rate), 3},
             Q_from_AngAxis(ch_time * orbit_rate, {0, 0, 1})));
-        PointLight p;
         lights[0].pos = {-orbit_radius * cos(ch_time * orbit_rate * 2), -orbit_radius * sin(ch_time * orbit_rate * 2),
                          10};
 

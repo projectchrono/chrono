@@ -164,7 +164,7 @@ double RandomSurfaceTerrain::GetHeight(const ChVector<>& loc) const {
         return m_height;
     if (loc_ISO.y() < m_ymin || loc_ISO.y() > m_ymax)
         return m_height;
-    size_t ix = (loc_ISO.x() - m_xmin) / m_dx;
+    size_t ix = (std::abs(loc_ISO.x() - m_xmax) > 1e-6) ? (loc_ISO.x() - m_xmin) / m_dx : m_nx - 2;
     int iy = -1;
     for (size_t i = 0; i < m_ny - 1; i++) {
         if (loc_ISO.y() >= m_y[i] && loc_ISO.y() <= m_y[i + 1]) {

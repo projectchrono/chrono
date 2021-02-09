@@ -3,12 +3,12 @@
 
 #--------------------------------------------------------------
 # Additional include paths (for ChronoEngine_Utils)
-INCLUDE_DIRECTORIES(${CH_DISTRIBUTED_INCLUDES} ${CH_PARALLEL_INCLUDES})
+INCLUDE_DIRECTORIES(${CH_DISTRIBUTED_INCLUDES} ${CH_MULTICORE_INCLUDES})
 
 # Libraries
 SET(LIBRARIES
     ChronoEngine
-    ChronoEngine_parallel
+    ChronoEngine_multicore
     ChronoEngine_distributed
 )
 

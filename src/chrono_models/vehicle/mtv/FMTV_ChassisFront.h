@@ -37,7 +37,7 @@ class CH_MODELS_API FMTV_ChassisFront : public ChRigidChassis {
   public:
     FMTV_ChassisFront(const std::string& name,
                       bool fixed = false,
-                      ChassisCollisionType chassis_collision_type = ChassisCollisionType::NONE);
+                      CollisionType chassis_collision_type = CollisionType::NONE);
     ~FMTV_ChassisFront() {}
 
     /// Return the mass of the front chassis body.
@@ -48,6 +48,9 @@ class CH_MODELS_API FMTV_ChassisFront : public ChRigidChassis {
 
     /// Get the location of the center of mass in the chassis frame.
     virtual const ChVector<>& GetLocalPosCOM() const override { return m_COM_loc; }
+
+    /// Get the location (in the local frame of this chassis) of the connection to the rear chassis.
+    virtual const chrono::ChVector<> GetLocalPosRearConnector() const override { return m_connector_loc; }
 
     /// Get the local driver position and orientation.
     /// This is a coordinate system relative to the chassis reference frame.
@@ -62,6 +65,7 @@ class CH_MODELS_API FMTV_ChassisFront : public ChRigidChassis {
     static const ChVector<> m_inertiaXX;
     static const ChVector<> m_inertiaXY;
     static const ChVector<> m_COM_loc;
+    static const chrono::ChVector<> m_connector_loc;
     static const ChCoordsys<> m_driverCsys;
 };
 

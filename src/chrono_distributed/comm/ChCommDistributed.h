@@ -18,7 +18,7 @@
 
 #include "chrono/physics/ChBody.h"
 
-#include "chrono_parallel/ChDataManager.h"
+#include "chrono_multicore/ChDataManager.h"
 
 #include "chrono_distributed/ChApiDistributed.h"
 #include "chrono_distributed/ChDistributedDataManager.h"
@@ -123,10 +123,10 @@ class CH_DISTR_API ChCommDistributed {
     MPI_Datatype BodyUpdateType;
     MPI_Datatype ShapeType;
 
-    /// Pointer to underlying chrono::parallel data
-    ChParallelDataManager* data_manager;
+    /// Pointer to underlying Chrono::Multicore data
+    ChMulticoreDataManager* data_manager;
 
-    /// Set of data for scaffolding on top of chrono::parallel
+    /// Set of data for scaffolding on top of Chrono::Multicore
     ChDistributedDataManager* ddm;
 
   private:

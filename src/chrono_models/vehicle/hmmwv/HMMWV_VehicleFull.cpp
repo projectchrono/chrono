@@ -46,7 +46,7 @@ HMMWV_VehicleFull::HMMWV_VehicleFull(const bool fixed,
                                      SteeringType steering_type,
                                      bool rigid_steering_column,
                                      ChContactMethod contact_method,
-                                     ChassisCollisionType chassis_collision_type)
+                                     CollisionType chassis_collision_type)
     : HMMWV_Vehicle("HMMWVfull", contact_method, drive_type) {
     Create(fixed, brake_type, steering_type, rigid_steering_column, chassis_collision_type);
 }
@@ -57,7 +57,7 @@ HMMWV_VehicleFull::HMMWV_VehicleFull(ChSystem* system,
                                      BrakeType brake_type,
                                      SteeringType steering_type,
                                      bool rigid_steering_column,
-                                     ChassisCollisionType chassis_collision_type)
+                                     CollisionType chassis_collision_type)
     : HMMWV_Vehicle("HMMWVfull", system, drive_type) {
     Create(fixed, brake_type, steering_type, rigid_steering_column, chassis_collision_type);
 }
@@ -66,7 +66,7 @@ void HMMWV_VehicleFull::Create(bool fixed,
                                BrakeType brake_type,
                                SteeringType steering_type,
                                bool rigid_steering_column,
-                               ChassisCollisionType chassis_collision_type) {
+                               CollisionType chassis_collision_type) {
     // Create the chassis subsystem
     m_chassis = chrono_types::make_shared<HMMWV_Chassis>("Chassis", fixed, chassis_collision_type);
 

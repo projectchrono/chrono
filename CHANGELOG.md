@@ -1,22 +1,223 @@
+<!-- For syntax, see  https://github.github.com/gfm/ -->
+
+
 Change Log
 ==========
 
 - [Unreleased (development version)](#unreleased-development-branch)
-	- [Redesigned SCM deformable terrain](#changed-redesigned-scm-deformable-terrain)
-	- [Tracked vehicle support in PyChrono](#added-tracked-vehicle-support-in-pychrono)
-    - [Constitutive models for Euler beams](#changed-constitutive-models-for-euler-beams)
-    - [Constitutive models for IGA beams](#changed-constitutive-models-for-iga-beams)
-    - [Applied forces](#added-applied-forces)
-    - [Chrono::Vehicle simulation world frame](#added-chronovehicle-simulation-world-frame)
-    - [CASCADE module](#changed-cascade-module)
-	- [Collision shapes and contact materials](#changed-collision-shapes-and-contact-materials)
+  - [RoboSimian and Viper models](#added-robosimian-and-viper-models)
+  - [Contact force reporting through user-provided callback](#added-contact-force-reporting-through-user-provided-callback)
+  - [Chrono::Gpu module rename](#changed-chronogpu-module-rename)
+  - [Chrono::Multicore module rename](#changed-chronomulticore-module-rename)
+  - [Geometric stiffness for Euler beams](#added-geometric-stiffness-for-euler-beams)
+  - [New Chrono::Synchrono module](#added-new-chronosynchrono-module)
+  - [Rename Intel MKL Pardiso interface module](#changed-rename-intel-mkl-pardiso-interface-module)
+  - [Saving POV-Ray files from Irrlicht interactive view](#added-saving-pov-ray-files-from-irrlicht-interactive-view)
+  - [Support for modelling wheeled trailers](#added-support-for-modelling-wheeled-trailers)
+  - [Enhancements to Chrono::FSI](#changed-enhancements-to-chronofsi)
+  - [New Chrono::Sensor module](#added-new-chronosensor-module)
+  - [Setting OpenMP number of threads](#changed-setting-openmp-number-of-threads)
+  - [Redesigned SCM deformable terrain](#changed-redesigned-scm-deformable-terrain)
+  - [Tracked vehicle support in PyChrono](#added-tracked-vehicle-support-in-pychrono)
+  - [Constitutive models for Euler beams](#changed-constitutive-models-for-euler-beams)
+  - [Constitutive models for IGA beams](#changed-constitutive-models-for-iga-beams)
+  - [Obtaining body applied forces](#added-obtaining-body-applied-forces)
+  - [Chrono::Vehicle simulation world frame](#added-chronovehicle-simulation-world-frame)
+  - [CASCADE module](#changed-cascade-module)
+  - [Collision shapes and contact materials](#changed-collision-shapes-and-contact-materials)
 - [Release 5.0.1](#release-501---2020-02-29)
 - [Release 5.0.0](#release-500---2020-02-24)
-	- [Eigen dense linear algebra](#changed-refactoring-of-dense-linear-algebra)
-	- [Eigen sparse matrices](#changed-eigen-sparse-matrices-and-updates-to-direct-sparse-linear-solvers)
+  - [Eigen dense linear algebra](#changed-refactoring-of-dense-linear-algebra)
+  - [Eigen sparse matrices](#changed-eigen-sparse-matrices-and-updates-to-direct-sparse-linear-solvers)
 - [Release 4.0.0](#release-400---2019-02-22)
 
 ## Unreleased (development branch)
+
+### [Added] RoboSimian and Viper models
+
+Models of the legged RoboSimian robot and the wheeled Viper rover are now included in the collection of Chrono models.  These models have no dependencies beyond the core Chrono module, except for an optional utility class for RoboSimian visualization with Irrlicht. Python wrappers are also provided, allowing use of these models with PyChrono. Related demo programs illustrate the robots moving over rigid or SCM deformable terrain (using a core Chrono system) and over granular terrain (using the Chrono::Multicore module).
+
+### [Added] Contact force reporting through user-provided callback
+
+The `OnReportContact` method of a user-supplied reporter callback (derived from `ChContactContainer::ReportContactCallback`) is now called with the proper force and torque for the current contact when using a Chrono::Multicore parallel system (of either NSC or SMC type).  The reported contact force and torque are provided at the contact point and expressed in the *contact frame* (defined by the provided rotation matrix).
+
+For examples of using the contact reporting feature with a Chrono::Multicore system, see `demo_MCORE_callbackNSC` and `demo_MCORE_callbackSMC`.
+
+### [Changed] Chrono::Gpu module rename
+
+For consistency and to better reflect the purpose of this module, Chrono::Granular was renamed to **Chrono::Gpu**.
+With this change, the set of three Chrono modules targeting different parallel hardware (each providing different level of support for different types of simulations) are:
+- Chrono::Multicore (for shared-memory multicore parallel computing using OpenMP)
+- Chrono::Gpu (for GPU parallel computing using CUDA)
+- Chrono::Distributed (for distributed-memory parallel computing using MPI)
+
+The name change for Chrono::Gpu and its associated classes was done in conjunction with a relatively extensive refactoring of its API.  The user's interaction with the Chrono::Gpu module was streamlined by exposing in the public API a single Chrono::Gpu system object (of type `ChSystemGpu` or `ChSystemGpuMesh`) and hidding the underlying implementation in a private class.
+
+See the various Chrono::Gpu demos in the Chrono distribution (e.g., demo_GPU_ballcosim) for usage of the new Chrono::Gpu module. The main API changes are as follows:
+- user code only needs to include one Chrono::Gpu header, namely `chrono_gpu/physics/ChSystemGpu.h`;
+- optional utilities are available in the `utils/` subdirectory (e.g. `chrono_gpu/utils/GpuJsonParser.h` and `chrono_gpu/utils/ChGpuSphereDecomp.h`; see demo_GPU_ballcosim and demo_GPU_fixedterrain, respectively);
+- user must create a Chrono::Gpu object (of type `ChSystemGpu` or `ChSystemGpuMesh`, as appropriate) by specifying the radius of the granular material spherical particles, their density, and the domain size.   This system object intermediates all interactions with the solver (through various setter and getter methods) and provides wrapper functions to initialize the problem (before the simulation loop) and advance the system state (inside the simulation loop);
+- note that names of ChSystemGpu methods were changed throughout for uniformity and coherence.
+
+As part of this refactoring, we have also added run-time visualization support for Chrono::Gpu simulations using the Chrono::OpenGL module (if the latter is not enabled in your Chrono build, run-time visualization support is disabled).  While run-time visualization adds some overhead, it may prove to be a useful debugging tool.  To use it:
+- include the header `chrono_gpu/utils/ChGpuVisualization`;
+- create the visualization object by passing it a pointer to the Chrono::Gpu system and (optionally) a pointer to a Chrono system (if one already exists, e.g. for a co-simulation problem;  if passing `nullptr`, such a system is created automatically);
+- initialize the visualization system (this must be done after the Chrono::Gpu system itself was initialized) by invoking the function ChGpuVisualization::Initialize();
+- in the simulation loop, at any desired frequency, invoke the function ChGpuVisualization::Render().
+
+See demo_GPU_ballcosim, demo_GPU_mixer, or demo_GPU_repose for use of the run-time visualization option.
+
+
+Finally, note that a future version of the Chrono::Gpu module may simplify its public API even further by collapsing the two current classes ChsystemGpu and ChSystemGpuMesh into a single one.
+
+### [Changed] Chrono::Multicore module rename
+
+For consistency and to better reflect the purpose of this module, Chrono::Parallel was renamed to **Chrono::Multicore**.
+
+The related API changes are simply replacements of *parallel* with *multicore*, keeping the same capitalization:
+- `chrono_multicore/` replaces `chrono_parallel/`
+- class names use `Multicore` instead of `Parallel` (e.g.; `ChSystemMulticore`)
+- macro names use `MULTICORE` instead of `PARALLEL` (e.g.; `CHRONO_MULTICORE`)
+- the CMake project configuration script ChronoConfig.cmake expects the component name `Multicore` instead of `Parallel` 
+
+In addition, names of related demos, unit tests, and benchmark tests include the string `MCORE` instead of `PAR` (e.g.; `demo_MCORE_mixerNSC`).
+
+Users of the Chrono::Multicore module should rerun CMake since the variables related to this module have also changed name (e.g.; `ENABLE_MODULE_MULTICORE`).
+
+### [Added] Geometric stiffness for Euler beams
+
+The geometric stiffness term is now introduced also for the chrono::ChElementBeamEuler beam element (Euler-Bernoulli corotational beams). It is turned on by default, and it is computed via an analytical expression, with minimal cpu overhead. 
+Note that geometric stiffness was already considered in IGA and ANCF beams, only the Euler beam was missing. Geometric stiffness is responsible of the fact that if you pull a thin beam like a string, its natural frequencies will increase, or viceversa, if you push it, its lateral stiffness decreases up to buckling instability. 
+Note that Euler beams ware able to simulate buckling or pulled-string stiffening even before, but only doing time integration in multiple time steps: instead, if one exported the M,K matrices for doing modal analysis of a pre-stretched Euler beam after a static analysis, the K matrix was missing the contribution of the geometric stiffness hence frequencies were uncorrect only in modal analysis.
+
+
+### [Added] New Chrono::Synchrono module
+
+The new `Chrono::SynChrono` (or simply SynChrono) module has been introduced. SynChrono aims to provide an easier entry point for physics-based autonomous vehicle simulations, and to this end it uses MPI to parallelize simulations in the case where there is no physical interaction between agents. For example in a simulation of two vehicles driving separately, there is no need to simulate interaction between them, yet they must have some knowledge of each other for visualization and for any sensors that they may carry.
+
+SynChrono is equipped to synchronize any "agent" (e.g. an arbitrary robot whose state is defined by some combination of mechanisms), but currently there are concrete wrapper classes for synchronizing `Chrono::Vehicle`'s, these are `SynWheeledVehicleAgent` and `SynTrackedVehicleAgent`. Another example of an agent, that can be used as a model for a user-defined agent, is `SynEnvironmentAgent` which represents a smart traffic intersection. Synchronization of `SCMDeformableTerrain` is also possible.
+
+While SynChrono's primary purpose is to synchronize the state of agents, the MPI communication that synchronizes state data can also be used to send other messages. Examples of these could be messages from an intelligent traffic light to a vehicle (see `flatbuffer/message/Syn[SPAT/MAP]Message`) or from a vehicle to a vehicle with some sensor information (see `SynSensorMessage`). SynChrono supports both `Chrono::Irrlicht` and `Chrono::Sensor`-camera rendering of scenes, and `visualization/` packages some simple defaults along with a class to facilitate easy swapping between the two.
+
+### [Changed] Rename Intel MKL Pardiso interface module
+
+For consistency and clarity, the `Chrono::MKL` module was renamed to `Chrono::PardisoMKL` (indeed, this module interfaces only to the sparse direct linear solver Pardiso from the Intel MKL library).  From a public API perspective, this name change requires the following changes to user code:
+
+- Include header
+
+   ```cpp
+   #include "chrono_pardisomkl/ChSolverPardisoMKL.h"
+   ```
+
+- The new solver name is `ChSolverPardisoMKL`.  For example:
+
+   ```cpp
+   auto my_solver = chrono_types::make_shared<ChSolverPardisoMKL>();
+   my_solver->LockSparsityPattern(true);
+   my_system.SetSolver(my_solver);
+   ```
+
+- Solver type enum value for this solver is now `ChSolver::Type::PARDISO_MKL`
+
+- Use in CMake project configuration script
+
+  To request this new module when configuring an external project to use Chrono, use the component name `PardisoMKL` in your CMake call to `find_pakage(Chrono...)`.  Recall that the names of the components are case insensitive
+
+
+### [Added] Saving POV-Ray files from Irrlicht interactive view
+
+New feature in the Irrlicht interactive 3D view. When pressing the F12 key, a directory `povray_project` is immediately created on disk, and .pov .ini .assets etc. files are created inside it, so that later you can use POVray to load the .ini and render the simulation with high quality ray tracing. Press F12 again to stop saving the POVray files. Note that you must later edit the `povray_project/render_frames.pov` to change/add the lights, global illumination, and other specific raytracing settings.
+This feature is available only if you build also the `POSTPROCESS` module, so check *both* `ENABLE_MODULE_IRRLICHT` and  `ENABLE_MODULE_POSTPROCESSING` in CMake.
+
+Also, the API of the `ChPovRay` class has been simplified. One just uses the new `SetBasePath()` function to set the directory that will contain all .ini, .pov, etc. files, and anim/, output/ subdirectories. The user does not need to create these folders anymore, these are automatically generated if necessary, when setting up ChPovRay with `ExportScript()`. Also, some features of ChPovRay have been fixed / improved.
+
+
+### [Added] Support for modelling wheeled trailers
+
+New templates were added to Chrono::Vehicle to allow creating wheeled trailers.  A trailer is an assembly consisting of a "rear chassis" (see `ChChassisRear`), an arbitrary number of `ChAxle` subsystems (each including a suspension subsystem, 2 or 4 wheels, and optionally brake subsystems), and a hitch connector (see `ChChassisConnectorHitch`) for attaching the trailer to a vehicle chassis.
+
+Similar to a wheeled vehicle, a concrete trailer system can be implemented in concrete C++ classes (see the Kraz semi-trailer truck model and `demo_VEH_Kraz_OpenLoop`), or else through JSON specification files (see the files in `data/vehicle/ultra_tow` and `demo_VEH_WheeledJSON`).
+
+A concrete wheeled trailer system class implements the abstract class `ChWheeledTrailer`. A trailer can be attached to any vehicle chassis and is initialized based on the vehicle pose, the hitch location on the vehicle chassis (see `ChChassis::GetLocalPosRearConnector`), and the hitch location on the trailer chassis (see `ChChassisRear::GetLocalPosFrontConnector`):
+
+```cpp
+WheeledTrailer trailer(vehicle.GetSystem(), trailer_JSON_file);
+trailer.Initialize(vehicle.GetChassis());
+trailer.SetChassisVisualizationType(VisualizationType::PRIMITIVES);
+trailer.SetSuspensionVisualizationType(VisualizationType::PRIMITIVES);
+trailer.SetWheelVisualizationType(VisualizationType::NONE);
+for (auto& axle : trailer.GetAxles()) {
+    for (auto& wheel : axle->GetWheels()) {
+        auto tire = ReadTireJSON(trailer_tire_JSON_file);
+        trailer.InitializeTire(tire, wheel, VisualizationType::PRIMITIVES);
+    }
+}
+```
+
+### [Changed] Enhancements to Chrono::FSI
+
+- The WCSPH based explicit solver now supports both fluid dynamics and granular material dynamics.
+
+	- The fluid dynamics is executed by default.
+	- The granular material dynamics is executed by setting an "Elastic SPH" option in the input JSON file.
+
+- Add a consistent SPH discretization into the explicit SPH solver.
+
+	- Both the gradient and Laplacian operators in the NS equations are discretized by a consistent format.
+	- The correction matrices are calculated for both operators to enhance the consistency.
+	- A second-order accuracy will be recovered by this consistent discretization.
+
+- Add a new particle shifting technique into Chrono::FSI.
+
+	- The particle shifting strategy is a penetration-based particle shifting technique.
+	- It supports three-dimensional fluid/granular material dynamics problems with a free surface.
+
+- Make the granular material solver more stable and accurate in the framework of WCSPH.
+
+	- The Drucker-Prager yield criterion is implemented in conjunction with a four-step update strategy for the stress tensor of the granular material.
+	- The interaction between a rigid multibody system and granular material is supported.
+
+### [Added] New Chrono::Sensor module
+
+A new module (`Chrono::Sensor`) has been introduced to allow for sensor simulation within Chrono. `Chrono::Sensor` provides an interface for modeling and simulating sensors in the Chrono system to provide input for perception and control algorithms. For example, `Chrono::Sensor` may be used in combination with `Chrono::Vehicle` to simulate an autonomous vehicle equipped with multiple cameras and lidars. The module containes a API for modeling sensors with noise and distortion using a filter-graph paradigm for customization. Rendered sensors (camera and lidar) utilize ray tracing via OptiX to generate synthetic data.
+
+Parameterized models for camera, lidar, GPS and IMU have been added with the ability to extend or implement custom sensors.
+
+`Chrono::Sensor` is designed around a `ChSensorManager` which maintains all time synchronization and resources management between the sensing module and the core chrono system. Sensors such as a `ChCameraSensor` and `ChLidarSensor` can be added to the manager and mounted to a Chrono body which will determine the sensor's dynamics. The sensor are maintained by the `ChSensorManager` and all data is received via an added `ChFilterAccess` in the filter graph, determined by the sensor's parameters.
+
+Locations:
+- `Chrono::Sensor` source code is maintained under `src/chrono_sensor/`
+- Demos are located in `src/demos/sensor/`
+- Sensor specific data is located in `data/sensor/`
+
+### [Changed] Setting OpenMP number of threads
+
+The mechanism for setting the number of OpenMP threads used in various parts of Chrono has been modified and unified. The API is common to Chrono and Chrono::Parallel; however, the number of OpenMP threads is set differently for the two classes of systems.
+
+- ChSystem: ChSystemNSC and ChSystemSMC
+
+  OpenMP (enabled by default) may be used in three different places. The number of threads used for each can be set separately and independently, using:
+  ```cpp
+  my_system.SetNumThreads(nthreads_chrono, nthreads_collision, nthreads_eigen);
+  ```
+  If passing a value of 0 for either `nthreads_collision` or `nthreads_eigen` these values are set to be equal to `nthreads_chrono`. 
+
+  - Currently, Chrono itself uses OpenMP for the parallel evaluation of internal forces and Jacobians for FEA and for parallel ray-casting in SCM deformable terrain. In both cases, the value `nthreads_chrono` is used in a **num_threads** clause for the OpenMP parallel for loops.
+  - The latest Bullet collision detection system embedded in Chrono is built by default with OpenMP support (this can be disabled during CMake configuration). The value `nthreads_collision` is used through **num_threads** clauses in all Bullet-internal OpenMP parallel for loops (note that this is a Chrono-specific modification to Bullet).
+  - Eigen uses OpenMP in a few algorithms. For Chrono use, the most relevant ones are the Eigen sparse direct solvers, SparseLU and SparseQR. These will employ the number of threads specified as `nthreads_eigen`.
+
+  By default, that is if `SetNumThreads` is not called, we use `nthreads_chrono=omp_get_num_procs()`, `nthreads_collision=1`, and `nthreads_eigen=1`.
+
+- ChSystemParallel: ChSystemParallelNSC and ChSystemParallelSMC
+
+  In Chrono::Parallel, the same number of OpenMP threads (default `omp_get_num_procs()`) is used for both the parallel collision detection algorithm and for the parallel iterative solvers.
+  In the call to `SetNumThreads`, the value `nthreads_collision` is ignored and automatically set to be equal to `nthreads_chrono`.  As such, typical user code will have
+  ```cpp
+  my_system.SetNumThreads(nthreads);
+  ```
+
+- The number of OpenMP threads used by the sparse direct solvers in Chrono::MKL (Pardiso) and Chrono::MUMPS are specified as an optional constructor argument.  By default, both solvers use a number of threads equal to the number of available processors (as returned by `omp_get_num_procs`).
+
 
 ### [Changed] Redesigned SCM deformable terrain
 
@@ -26,13 +227,13 @@ The SCM deformable terrain was completely redesigned for improved performance. C
   
   A flat SCM terrain patch can be initialized using
   ```cpp
-    terrain.Initialize(length, width, resolution);
+  terrain.Initialize(length, width, resolution);
   ```
   where `length` and `height` are the patch dimensions in the reference plane and `resolution` is the grid spacing. Note that the height (level) of the patch is implicitly defined by the center of the ACM reference plane (specified through `SCMDeformableTerrain::SetPlane`).
 
   A height-field SCM terrain patch can be initialized using
   ```cpp
-    terrain.Initialize(filename, sizeX, sizeY, min_height, max_height, resolution);
+  terrain.Initialize(filename, sizeX, sizeY, min_height, max_height, resolution);
   ```
   where `filename` is the name of an image file, `sizeX` and `sizeY` specify the patchg extents in the reference plane, `min_height` and `max_height` define the height range (a purely black image pixel corresponds to min_height, a purely white pixel corresponds to max_height) and `resolution` is the SCM grid spacing.
 
@@ -40,7 +241,7 @@ The SCM deformable terrain was completely redesigned for improved performance. C
 
 - A "moving patch" is now defined by specifying an object-oriented-box attached to a moving body. For example,
   ```cpp
-    terrain.AddMovingPatch(my_body, ChVector<>(0, 0, 0), ChVector<>(5, 3, 1));
+  terrain.AddMovingPatch(my_body, ChVector<>(0, 0, 0), ChVector<>(5, 3, 1));
   ``` 
   associates a moving patch with the box of size (5,3,1) attached at the center of the body reference frame of `my_body`.  Ray casting is performed only for the SCM grid nodes that are in the current projection of this OBB onto the SCM reference plane.
 
@@ -90,8 +291,7 @@ from the ChBeamSectionCosserat *and* from all elastic/damping/plastic models. We
 and `ChBeamSectionCosseratEasyCircular` that in a single shot create elastic and inertia models, sets them as rectangular or circular, and sets the visualization type.
 
 
-
-### [Added] Applied forces
+### [Added] Obtaining body applied forces
 
 The new functions `ChBody::GetAppliedForce` and `ChBody::GetAppliedTorque` return the body resultant applied force and torque, respectively.
 
@@ -136,80 +336,82 @@ The new API requires you to always pass a material (as a shared pointer) wheneve
 
 Here's a summary of the main API changes (there were many other changes under the hood, but here we only highlight changes to the public API).  Moreover, we discuss only the C++ API, but the equivalent changes also apply to the Python API.
 
-1.	Renamed headers.  For consistency, we renamed various files under src/chrono/collision which had a prefix `ChC` to simply have the prefix `Ch`.  For example, `ChCCollisionModel.h`  -->  `ChCollisionModel.h`
+1. Renamed headers.  For consistency, we renamed various files under src/chrono/collision which had a prefix `ChC` to simply have the prefix `Ch`.  For example, `ChCCollisionModel.h`  -->  `ChCollisionModel.h`
 
-2.	The contact method, NSC or SMC, is now a top-level enum class named `ChContactMethod` (previously it was nested under ChMaterialSurface).  So use things like:
-	```cpp
-  	if (system->GetContactMethod() == ChContactMethod::NSC) {
-  	    ...
-  	}
-	```
+2. The contact method, NSC or SMC, is now a top-level enum class named `ChContactMethod` (previously it was nested under ChMaterialSurface).  So use things like:
+   ```cpp
+   if (system->GetContactMethod() == ChContactMethod::NSC) {
+       ...
+   }
+   ```
 
-3.  Contact materials. The functionality of the base class `ChMaterialSurface` and derived classes `ChMaterialSurfaceNSC` and `ChMaterialSurfaceSMC` is unchanged.  However, for convenience, material properties common between NSC and SMC were moved to the base class (these include coefficients of friction for sliding, rolling, spinning and the coefficient of restitution). Furthermore, we provide a utility method to create a contact material of the specified type with corresponding default parameters.  In a program that can switch between SMC and NSC formulations (say, based on a flag `ChContactMethod contact_method`), you can then write
-	```cpp
-	ChContactMethod contact_method = ChContactMethod::SMC;  // or ChContactMethod::NSC
-	...
-	auto mat = ChMaterialSurface::DefaultMaterial(contact_method);
-	mat->SetFriction(0.7f);
-	```
-	If you also want to change a contact method-specific property, you must then use something like:
-	```cpp
-	if (contact_method == ChContactMethod::SMC) {
-	    std::static_pointer_cast<ChMaterialSurfaceSMC>(mat)->SetYoungModulus(1e7f);
-	}
-	```
+3. Contact materials. The functionality of the base class `ChMaterialSurface` and derived classes `ChMaterialSurfaceNSC` and `ChMaterialSurfaceSMC` is unchanged.  However, for convenience, material properties common between NSC and SMC were moved to the base class (these include coefficients of friction for sliding, rolling, spinning and the coefficient of restitution). Furthermore, we provide a utility method to create a contact material of the specified type with corresponding default parameters.  In a program that can switch between SMC and NSC formulations (say, based on a flag `ChContactMethod contact_method`), you can then write
+   ```cpp
+   ChContactMethod contact_method = ChContactMethod::SMC;  // or ChContactMethod::NSC
+   ...
+   auto mat = ChMaterialSurface::DefaultMaterial(contact_method);
+   mat->SetFriction(0.7f);
+   ```
+   If you also want to change a contact method-specific property, you must then use something like:
+   ```cpp
+   if (contact_method == ChContactMethod::SMC) {
+      std::static_pointer_cast<ChMaterialSurfaceSMC>(mat)->SetYoungModulus(1e7f);
+   }
+   ```
 
-4.	The `ChBody` constructor does not take the contact method as an argument anymore (which previously defaulted to NSC)
+4. The `ChBody` constructor does not take the contact method as an argument anymore (which previously defaulted to NSC)
 
-5.	`ChBodyEasy***` classes. The list of constructor arguments here has changed, for a more natural order.  All collision-related arguments have been moved to the end of the list. In particular, the flag to indicate whether or not to create a visual asset (default `true`) comes before the flag to indicate whether or not to create a collision shape (default `false`).  If the latter is `true`, the next argument must be a contact material (default `nullptr`).
+5. `ChBodyEasy***` classes. The list of constructor arguments here has changed, for a more natural order.  All collision-related arguments have been moved to the end of the list. In particular, the flag to indicate whether or not to create a visual asset (default `true`) comes before the flag to indicate whether or not to create a collision shape (default `false`).  If the latter is `true`, the next argument must be a contact material (default `nullptr`).
 
-	Be careful here, as it's easy to overlook the correct changes (because of arguments with default values).  For example, the old:
-	```cpp
-  	auto body = chrono_types::make_shared<ChBodyEasySphere>(radius, density, true);  // old
-	```
-	would create a sphere with visualization and collision enabled (with material properties from the body itself).  This is also valid with the new code, but this will now create a body with a sphere visualization asset but **no** collision shape.  To get the expected result, you need to use:
-	```cpp
-  	auto body = chrono_types::make_shared<ChBodyEasySphere>(radius, density, true, true, material);  // new
-	```
-	and pass a valid material (consistent with the system to which you will add the body).
+   Be careful here, as it's easy to overlook the correct changes (because of arguments with default values).  For example, the old:
+   ```cpp
+   auto body = chrono_types::make_shared<ChBodyEasySphere>(radius, density, true);  // old
+   ```
 
-6.	There is now a proper `ChCollisionShape` class which is very light weight (it carries only the type of shape, from an enum ChCollisionShape::Type, and a (shared) pointer to a contact material).  There are derived classes for the various collision systems (namely the one based on Bullet and the one used in Chrono::Parallel), but few users would have to worry about or work with those.
+   would create a sphere with visualization and collision enabled (with material properties from the body itself).  This is also valid with the new code, but this will now create a body with a sphere visualization asset but **no** collision shape.  To get the expected result, you need to use:
 
-7.	A collision model maintains a vector of collision shapes (in the order they were added to the model by the user).  There are public accessor methods on ChCollisionModel to get the list of shapes or individual shapes (by its index in the list).
+   ```cpp
+   auto body = chrono_types::make_shared<ChBodyEasySphere>(radius, density, true, true, material);  // new
+   ```
+   and pass a valid material (consistent with the system to which you will add the body).
 
-8.	Adding collision shapes.  All `ChCollisionModel::Add***` methods now take as their first argument a (shared) pointer to a contact material.  There is no "default" material automatically constructed under the hood for you anymore.   However, the NSC and SMC contact materials still have constructors that set their respective properties to some default values.  So you can write something like:
-	```cpp
-  	// construct an SMC material with default properties
-  	auto my_mat = chrono_types::make_shared<ChMaterialSurfaceSMC>(); 
-  	auto my_body = chrono_types::make_shared<ChBody>();  // note: no need to specify SMC contact here!
-  	...
-  	my_body->GetCollisionModel()->AddSphere(my_mat, radius);
-  	...
-  	my_system.AddBody(my_body);  // it is assumed that my_system is a ChSystemSMC
-  	```
+6. There is now a proper `ChCollisionShape` class which is very light weight (it carries only the type of shape, from an enum ChCollisionShape::Type, and a (shared) pointer to a contact material).  There are derived classes for the various collision systems (namely the one based on Bullet and the one used in Chrono::Parallel), but few users would have to worry about or work with those.
 
-9.	Utility functions in ChUtilsCreators.  Similar to `ChBodyEasy***`, the various `utils::Add***Geometry` functions now also require a contact material;  this is always their 2nd argument.
+7. A collision model maintains a vector of collision shapes (in the order they were added to the model by the user).  There are public accessor methods on ChCollisionModel to get the list of shapes or individual shapes (by its index in the list).
 
-10.	FEA contact surfaces.  The two options, `ChContactSurfaceMesh` and `ChContactSurfaceNodeCloud` now require a contact material at construction (there is no SetSurfaceMaterial() method anymore).  As you already know, the only acceptable type of material in this case is ChMaterialSurfaceSMC.  Note that the contact material passed at construction is shared by all components of the FEA contact surface (triangles or nodes, respectively).  Sample code:
-	```cpp
-  	auto my_surf = chrono_types::make_shared<ChContactSurfaceMesh>(my_materialSMC);
-  	my_mesh->AddContactSurface(my_surf);
-  	my_surf->AddFacesFromBoundary(0.05);
-  	```
+8. Adding collision shapes.  All `ChCollisionModel::Add***` methods now take as their first argument a (shared) pointer to a contact material.  There is no "default" material automatically constructed under the hood for you anymore.   However, the NSC and SMC contact materials still have constructors that set their respective properties to some default values.  So you can write something like:
+   ```cpp
+   // construct an SMC material with default properties
+   auto my_mat = chrono_types::make_shared<ChMaterialSurfaceSMC>(); 
+   auto my_body = chrono_types::make_shared<ChBody>();  // note: no need to specify SMC contact here!
+   ...
+   my_body->GetCollisionModel()->AddSphere(my_mat, radius);
+   ...
+   my_system.AddBody(my_body);  // it is assumed that my_system is a ChSystemSMC
+   ```
 
-11.	`ChCollisionInfo` and user-provided contact callbacks.  A ChCollisionInfo object (which encapsulates information about a collision pair and is used internally to create contacts) now also include pointers to the colliding shapes in the two interacting collision models.   When a contact must be created internally, a composite contact material is created on the fly from the contact materials of the two colliding shapes.
+9. Utility functions in ChUtilsCreators.  Similar to `ChBodyEasy***`, the various `utils::Add***Geometry` functions now also require a contact material;  this is always their 2nd argument.
 
-	This has a direct impact on how a user can add custom contacts through a `ChSystem::CustomCollisionCallback` object.   Indeed, in its override of OnCustomCollision, a derived callback class is expected to create a ChCollisionInfo object and then pass it to the AddContact method of the underlying contact container.  However, such a custom collision has no collision shapes to work with!   For this purpose, we added a new form of `AddContact` that takes as additional argument to ChMaterialSurface objects.   In this case, the ChCollisionInfo object can set its collision shape members to `nullptr`.
+10. FEA contact surfaces.  The two options, `ChContactSurfaceMesh` and `ChContactSurfaceNodeCloud` now require a contact material at construction (there is no SetSurfaceMaterial() method anymore).  As you already know, the only acceptable type of material in this case is ChMaterialSurfaceSMC.  Note that the contact material passed at construction is shared by all components of the FEA contact surface (triangles or nodes, respectively).  Sample code:
+    ```cpp
+    auto my_surf = chrono_types::make_shared<ChContactSurfaceMesh>(my_materialSMC);
+    my_mesh->AddContactSurface(my_surf);
+    my_surf->AddFacesFromBoundary(0.05);
+    ```
 
-	For examples, look at two new demos: `demo_IRR_custom_contact` and `demo_PAR_custom_contact`.
+11. `ChCollisionInfo` and user-provided contact callbacks.  A ChCollisionInfo object (which encapsulates information about a collision pair and is used internally to create contacts) now also include pointers to the colliding shapes in the two interacting collision models.   When a contact must be created internally, a composite contact material is created on the fly from the contact materials of the two colliding shapes.
 
-12.	`Chrono::Vehicle` changes.  Most of the changes here were low-level (and as such transparent to the user).  The notable difference has to do with terrain specification.  The RigidTerrain::AddPatch function now expect as their first argument a contact material (consistent with the containing system) that will be used for that one patch (box patch, trimesh patch , or height-field patch).  
+    This has a direct impact on how a user can add custom contacts through a `ChSystem::CustomCollisionCallback` object.   Indeed, in its override of OnCustomCollision, a derived callback class is expected to create a ChCollisionInfo object and then pass it to the AddContact method of the underlying contact container.  However, such a custom collision has no collision shapes to work with!   For this purpose, we added a new form of `AddContact` that takes as additional argument to ChMaterialSurface objects.   In this case, the ChCollisionInfo object can set its collision shape members to `nullptr`.
 
-	If you are using vehicles specified through JSON files, beware that for some subsystems the schema has changed for entries related to collision shapes and contact materials.   See the examples provided in the various sub-directories of `data/vehicle/`.
+    For examples, look at two new demos: `demo_IRR_custom_contact` and `demo_PAR_custom_contact`.
 
-13.	`Chrono::Parallel` and `Chrono::Distributed`.  Here too, the vast majority of the changes happened under the hood.  Besides the changes described above (related to how collision shapes are defined), there are only a couple of things to mention:
-	-	In Chrono::Parallel, the custom specification of collision shapes was merged into a new class ChCollisionShapeParallel.  If, for any reason, you need to traverse the list of collision shapes in a collision model, simply loop through the vector of shapes in ChCollisionModel (see #7 above).
-	-	In Chrono::Distributed, the analytical plane boundaries now require a contact material at construction (internally, this is used in a custom collision callback, as described in #11 above).
+12. `Chrono::Vehicle` changes.  Most of the changes here were low-level (and as such transparent to the user).  The notable difference has to do with terrain specification.  The RigidTerrain::AddPatch function now expect as their first argument a contact material (consistent with the containing system) that will be used for that one patch (box patch, trimesh patch , or height-field patch).  
+
+    If you are using vehicles specified through JSON files, beware that for some subsystems the schema has changed for entries related to collision shapes and contact materials.   See the examples provided in the various sub-directories of `data/vehicle/`.
+
+13. `Chrono::Parallel` and `Chrono::Distributed`.  Here too, the vast majority of the changes happened under the hood.  Besides the changes described above (related to how collision shapes are defined), there are only a couple of things to mention:
+ - In Chrono::Parallel, the custom specification of collision shapes was merged into a new class ChCollisionShapeParallel.  If, for any reason, you need to traverse the list of collision shapes in a collision model, simply loop through the vector of shapes in ChCollisionModel (see #7 above).
+ - In Chrono::Distributed, the analytical plane boundaries now require a contact material at construction (internally, this is used in a custom collision callback, as described in #11 above).
 
 
 ## Release 5.0.1 - 2020-02-29

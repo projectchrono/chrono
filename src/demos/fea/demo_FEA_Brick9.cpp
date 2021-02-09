@@ -36,7 +36,7 @@
 #include "chrono/fea/ChContactSurfaceNodeCloud.h"
 #include "chrono/fea/ChContactSurfaceMesh.h"
 
-#include "chrono_mkl/ChSolverMKL.h"
+#include "chrono_pardisomkl/ChSolverPardisoMKL.h"
 
 #include "chrono_irrlicht/ChIrrApp.h"
 #include "chrono_irrlicht/ChIrrAppInterface.h"
@@ -333,7 +333,7 @@ void DPCapPress() {
     application.AssetUpdateAll();
 
     // Use the MKL Solver
-    auto mkl_solver = chrono_types::make_shared<ChSolverMKL>();
+    auto mkl_solver = chrono_types::make_shared<ChSolverPardisoMKL>();
     my_system.SetSolver(mkl_solver);
     mkl_solver->LockSparsityPattern(true);
 
@@ -679,7 +679,7 @@ void ShellBrickContact() {
     application.AssetUpdateAll();
 
     // Use the MKL Solver
-    auto mkl_solver = chrono_types::make_shared<ChSolverMKL>();
+    auto mkl_solver = chrono_types::make_shared<ChSolverPardisoMKL>();
     my_system.SetSolver(mkl_solver);
     mkl_solver->LockSparsityPattern(true);
 
@@ -987,7 +987,7 @@ void SimpleBoxContact() {
     application.AssetUpdateAll();
 
     // Use the MKL Solver
-    auto mkl_solver = chrono_types::make_shared<ChSolverMKL>();
+    auto mkl_solver = chrono_types::make_shared<ChSolverPardisoMKL>();
     my_system.SetSolver(mkl_solver);
     mkl_solver->LockSparsityPattern(true);
 
@@ -1311,7 +1311,7 @@ void SoilBin() {
     application.AssetUpdateAll();
 
     // Use the MKL Solver
-    auto mkl_solver = chrono_types::make_shared<ChSolverMKL>();
+    auto mkl_solver = chrono_types::make_shared<ChSolverPardisoMKL>();
     my_system.SetSolver(mkl_solver);
     mkl_solver->LockSparsityPattern(true);
 
@@ -1595,7 +1595,7 @@ void AxialDynamics() {
     // application.AssetUpdateAll();
 
     // Use the MKL Solver
-    auto mkl_solver = chrono_types::make_shared<ChSolverMKL>();
+    auto mkl_solver = chrono_types::make_shared<ChSolverPardisoMKL>();
     my_system.SetSolver(mkl_solver);
     mkl_solver->LockSparsityPattern(true);
 
@@ -1831,7 +1831,7 @@ void BendingQuasiStatic() {
     // ----------------------------------
 
     // Use the MKL Solver
-    auto mkl_solver = chrono_types::make_shared<ChSolverMKL>();
+    auto mkl_solver = chrono_types::make_shared<ChSolverPardisoMKL>();
     my_system.SetSolver(mkl_solver);
     mkl_solver->LockSparsityPattern(true);
 
@@ -2065,7 +2065,7 @@ void SwingingShell() {
     // ----------------------------------
 
     // Use the MKL Solver
-    auto mkl_solver = chrono_types::make_shared<ChSolverMKL>();
+    auto mkl_solver = chrono_types::make_shared<ChSolverPardisoMKL>();
     my_system.SetSolver(mkl_solver);
     mkl_solver->LockSparsityPattern(true);
 

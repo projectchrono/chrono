@@ -1,0 +1,51 @@
+{
+  "Name": "Simple Vehicle Scenario",
+  "Type": "Scenario",
+
+  "Ranks": [{
+      "Rank": 0,
+      "Agent": {
+        "Type": "WheeledVehicleAgent",
+        "Input File": "agent/SedanAgent.json",
+        "Location": [0, -3, 0.75],
+        "Orientation": [1, 0, 0, 0]
+      }
+    },
+    {
+      "Rank": 1,
+      "Agent": {
+        "Type": "WheeledVehicleAgent",
+        "Input File": "agent/SedanAgent.json",
+        "Location": [0, 0, 0.75],
+        "Orientation": [1, 0, 0, 0]
+      }
+    },
+    {
+      "Rank": 2,
+      "Agent": {
+        "Type": "WheeledVehicleAgent",
+        "Input File": "agent/HMMWVAgent.json",
+        "Location": [0, 3, 0.75],
+        "Orientation": [1, 0, 0, 0]
+      }
+    },
+    {
+      "Rank": 3,
+      "Agent": {
+        "Type": "WheeledVehicleAgent",
+        "Input File": "agent/CityBusAgent.json",
+        "Location": [0, 6.0, 0.75],
+        "Orientation": [1, 0, 0, 0]
+      }
+    },
+    {
+      "Rank": 4,
+      "Agent": {
+        "Type": "TrackedVehicleAgent",
+        "Input File": "agent/M113Agent.json",
+        "Location": [0, 10, 0.75],
+        "Orientation": [1, 0, 0, 0]
+      }
+    }
+  ]
+}

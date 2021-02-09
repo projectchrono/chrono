@@ -11,7 +11,7 @@
 
 import pychrono as chrono
 import pychrono.fea as fea
-import pychrono.mkl as mkl
+import pychrono.pardisomkl as mkl
 import pychrono.irrlicht as chronoirr
 
 print ("Example: PyChrono using  beam finite elements");
@@ -190,14 +190,14 @@ myapplication.AssetUpdateAll()
 
 
 # Change the solver form the default SOR to the MKL Pardiso, more precise for fea.
-msolver = mkl.ChSolverMKL()
+msolver = mkl.ChSolverPardisoMKL()
 my_system.SetSolver(msolver)
 
 
 myapplication.SetTimestep(0.001);
 
 #	application.GetSystem().DoStaticLinear()
-
+ 
 while(myapplication.GetDevice().run()):
     myapplication.BeginScene()
     myapplication.DrawAll()

@@ -32,7 +32,7 @@
 
 #include "chrono_irrlicht/ChIrrApp.h"
 
-#include "chrono_mkl/ChSolverMKL.h"
+#include "chrono_pardisomkl/ChSolverPardisoMKL.h"
 
 #include "chrono_postprocess/ChGnuPlot.h"
 
@@ -349,8 +349,8 @@ int main(int argc, char* argv[]) {
     // THE SOFT-REAL-TIME CYCLE
     //
 
-    // Change solver to MKL
-    auto mkl_solver = chrono_types::make_shared<ChSolverMKL>();
+    // Change solver to PardisoMKL
+    auto mkl_solver = chrono_types::make_shared<ChSolverPardisoMKL>();
     mkl_solver->LockSparsityPattern(true);
     my_system.SetSolver(mkl_solver);
 

@@ -145,7 +145,8 @@ class ChApi ChBuilderBeamANCF {
                    const ChVector<> CUR,                     ///< initial nodal curvature
                    const bool Poisson_effect = false,        ///< set true to evaluate poisson effects
                    const bool grav = false,                  ///< set true to apply gravity force
-                   const double damp = 0);                   ///< damping
+                   const double damp = 0                     ///< damping
+    );
 
     /// Access the list of elements used by the last built beam.
     /// It can be useful for changing properties afterwards.

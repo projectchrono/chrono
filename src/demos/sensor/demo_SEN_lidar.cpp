@@ -59,11 +59,11 @@ NoiseModel noise_model = CONST_NORMAL_XYZI;
 // Lidar method for generating data
 // Just RAYCAST for now
 // TODO: implement PATH_TRACE
-LidarModelType lidar_model = RAYCAST;
+LidarModelType lidar_model = LidarModelType::RAYCAST;
 
 // Lidar return mode
 // Either STRONGEST_RETURN, MEAN_RETURN, FIRST_RETURN, LAST_RETURN
-LidarReturnMode return_mode = STRONGEST_RETURN;
+LidarReturnMode return_mode = LidarReturnMode::STRONGEST_RETURN;
 
 // Update rate in Hz
 float update_rate = 5.f;
@@ -216,7 +216,8 @@ int main(int argc, char* argv[]) {
     // -----------------------------------------------------------------------
     unsigned int sample_radius = 2;                                         // radius of samples to use, 1->1
                                                                             // sample,2->9 samples, 3->25 samples...
-    float divergence_angle = 0.003;                                         // 3mm radius (as cited by velodyne)
+    float vert_divergence_angle = 0.003;                                         // 3mm radius (as cited by velodyne)
+    float hori_divergence_angle = 0.003;
     auto lidar2 = chrono_types::make_shared<ChLidarSensor>(box_body,        // body lidar is attached to
                                                            update_rate,     // scanning rate in Hz
                                                            offset_pose,     // offset pose
@@ -226,8 +227,10 @@ int main(int argc, char* argv[]) {
                                                            max_vert_angle,
                                                            min_vert_angle,    // vertical field of view
                                                            100,               // max distance
+                                                           "ellipse",          // beam shape
                                                            sample_radius,     // sample radius
-                                                           divergence_angle,  // divergence angle
+                                                           vert_divergence_angle,  // vertical divergence angle
+                                                           hori_divergence_angle,  // horizontal divergence angle
                                                            return_mode,       // return mode for the lidar
                                                            lidar_model        // method/model to use for
                                                                               // generating data

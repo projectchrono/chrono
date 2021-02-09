@@ -22,6 +22,8 @@
     "Location":     [0, 0.5, 1.2],
     "Orientation":  [1, 0, 0, 0]
   },
+  
+  "Rear Connector Location": [ -2.5, 0, -0.25 ],
 
   "Visualization":
   {

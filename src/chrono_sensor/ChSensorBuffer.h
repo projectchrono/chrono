@@ -19,7 +19,9 @@
 
 
 #ifdef _WIN32
- #define NOMINMAX
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
 #endif
 
 #include <optix.h>
@@ -46,6 +48,8 @@ struct SensorBuffer {
     float TimeStamp;      ///< The time stamp on the buffer (simulation time when data collection stopped)
     unsigned int Width;   ///< The width of the data (image width when data is an image)
     unsigned int Height;  ///< The height of the data (image height when data is an image)
+    unsigned int Beam_return_count; ///< number of beam returns for lidar model
+    bool Dual_return; ///< true if dual return mode, false otherwise
     unsigned int
         LaunchedCount;  ///<  number of times updates have been launched. This may not reflect how many have been
                         // completed.

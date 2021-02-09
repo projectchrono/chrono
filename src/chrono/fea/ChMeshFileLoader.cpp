@@ -423,6 +423,10 @@ void ChMeshFileLoader::FromAbaqusFile(std::shared_ptr<ChMesh> mesh,
             std::string token;
             std::istringstream ss(line);
             while (std::getline(ss, token, ',') && ntoken < 20) {
+                if (!token.empty() && token.back() == '\r') {
+                    // Fix for possible Windows line ending (\r\n)
+                    break;
+                }
                 std::istringstream stoken(token);
                 stoken >> tokenvals[ntoken];
                 ++ntoken;

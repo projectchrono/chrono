@@ -111,10 +111,27 @@ CH_SENSOR_API void ChFilterVisualize::Apply(std::shared_ptr<ChSensor> pSensor,
         else if (pDI) {  // grayscal image in GPU memory
             // TODO: there must be a better way than copying the grayscale GPU buffer to host and then setting
             // texture...
-            float* buf = new float[pDI->Width * pDI->Height * 2];
-            cudaMemcpy(buf, pDI->Buffer.get(), pDI->Width * pDI->Height * 2 * sizeof(float), cudaMemcpyDeviceToHost);
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RG32F, pDI->Width, pDI->Height, 0, GL_RG, GL_FLOAT, buf);
-            delete buf;
+            if (pDI->Dual_return){
+                float* dual_buf = new float[pDI->Width * pDI->Height * 4];
+                float* strongest_buf = new float[pDI->Width * pDI->Height * 2];
+                cudaMemcpy(dual_buf, pDI->Buffer.get(), pDI->Width * pDI->Height * 4 * sizeof(float), cudaMemcpyDeviceToHost);
+                for (int i = 0; i < pDI->Width * pDI->Height; i++){
+                    strongest_buf[i] = dual_buf[2 * i];
+                    strongest_buf[i + 1] = dual_buf[2 * i + 1];
+                }
+                glTexImage2D(GL_TEXTURE_2D, 0, GL_RG32F, pDI->Width, pDI->Height, 0, GL_RG, GL_FLOAT, strongest_buf);
+                delete dual_buf;
+                delete strongest_buf;
+            } else {
+                float* buf = new float[pDI->Width * pDI->Height * 2];
+                cudaMemcpy(buf, pDI->Buffer.get(), pDI->Width * pDI->Height * 2 * sizeof(float), cudaMemcpyDeviceToHost);
+                glTexImage2D(GL_TEXTURE_2D, 0, GL_RG32F, pDI->Width, pDI->Height, 0, GL_RG, GL_FLOAT, buf);
+                delete buf;
+            }
+
+
+
+
         }
 
         // 1:1 texel to pixel mapping with glOrtho(0, 1, 0, 1, -1, 1) setup:

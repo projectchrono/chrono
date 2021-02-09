@@ -24,7 +24,7 @@ namespace fsi {
 /// @addtogroup fsi_physics
 /// @{
 
-/// @brief Child class of ChForceParallel that implements the I2SPH method.
+/// @brief Derived class of ChFsiForce that implements the I2SPH method.
 class CH_FSI_API ChFsiForceI2SPH : public ChFsiForce {
   private:
     thrust::device_vector<Real> _sumWij_inv;

@@ -174,7 +174,7 @@ using namespace chrono::cascade;
 //  myvis = chrono.CastToChVisualizationShared(myasset)
 //  print ('Could be cast to visualization object?', !myvis.IsNull())
 
-//%DefSharedPtrDynamicDowncast(ChSolver,ChSolverMKL) 
+//%DefSharedPtrDynamicDowncast(ChSolver,ChSolverPardisoMKL) 
 
 
 //

@@ -89,7 +89,7 @@ void ChTrackAssembly::Initialize(std::shared_ptr<ChChassis> chassis, const ChVec
     std::shared_ptr<ChTrackShoe> next;
     for (size_t i = 0; i < num_shoes; ++i) {
         next = (i == num_shoes - 1) ? GetTrackShoe(0) : GetTrackShoe(i + 1);
-        GetTrackShoe(i)->Connect(next, ccw);
+        GetTrackShoe(i)->Connect(next, this, ccw);
     }
 }
 

@@ -55,7 +55,7 @@ The 10t truck was the very first model to go in service in the late 70s. Most of
 
 ### UAZ {#vehicle_models_uaz}
 
-UAZ stands for Ulyanovski Avtomobilny Zavod. The UAZ 452 Bus/Van/Lorry is popular in Russia since 1965. It has a all-wheel-drive and two leaf-sprung axles. The front axle has a toebar steering mechanism.
+UAZ stands for Ulyanovski Avtomobilny Zavod. The UAZ 452 Bus/Van/Lorry has been popular in Russia since 1965. It has an all-wheel-drive and two leaf-spring axles. The front axle has a toebar steering mechanism.
 
 <img src="http://www.projectchrono.org/assets/manual/vehicle/models/UAZBUS.png" width="600" />
 
@@ -66,6 +66,14 @@ The UAZ 469 jeep-like vehicle has been used since 1965 in the Soviet Army. It sh
 <img src="http://www.projectchrono.org/assets/manual/vehicle/models/UAZ469.png" width="600" />
 
 <img src="http://www.projectchrono.org/assets/manual/vehicle/models/UAZ469_suspension.png" width="600" />
+
+### Gator {#vehicle_models_gator}
+
+Tha Gator is a model of a John Deere electric utility vehicle instrumented for autonomous driving.  The Gator model uses a single-wishbone suspension in the front and a rigid axle in the rear.  It has a rack-and-pinion steering mechanism and brakes only on the rear wheels.  The electric motor is connected through a differential to the rear wheels.
+
+### KRAZ {#vehicle_models_kraz}
+
+This model, based on the Ukrainian Kraz 64431, is a semi-trailer truck. The tractor has a toebar leaf-spring front suspension, steered through a rotary arm mechanism and two leaf-spring rear suspensions. The tractor is in a 6x4 configuration with the two rear axles driven. The trailer, connected to the tractor through a hitch, has three axles all of leaf-spring type.
 
 ### Generic wheeld vehicle {#vehicle_models_generic}
 

@@ -19,6 +19,9 @@
 #include "chrono_vehicle/chassis/ChChassisConnectorTorsion.h"
 #include "chrono_vehicle/chassis/ChChassisConnectorHitch.h"
 #include "chrono_vehicle/chassis/RigidChassis.h"
+#include "chrono_vehicle/chassis/ChassisConnectorArticulated.h"
+#include "chrono_vehicle/chassis/ChassisConnectorHitch.h"
+#include "chrono_vehicle/chassis/ChassisConnectorTorsion.h"
 
 #include "chrono_thirdparty/rapidjson/document.h"
 
@@ -33,6 +36,10 @@
 %shared_ptr(chrono::vehicle::ChChassisConnectorTorsion)
 %shared_ptr(chrono::vehicle::ChChassisConnectorHitch)
 %shared_ptr(chrono::vehicle::RigidChassis)
+%shared_ptr(chrono::vehicle::RigidChassisRear)
+%shared_ptr(chrono::vehicle::ChassisConnectorArticulated)
+%shared_ptr(chrono::vehicle::ChassisConnectorHitch)
+%shared_ptr(chrono::vehicle::ChassisConnectorTorsion)
 
 
 %import(module = "pychrono.core") "../../chrono/assets/ChAsset.h"
@@ -46,5 +53,8 @@
 %include "../../chrono_vehicle/chassis/ChChassisConnectorTorsion.h"
 %include "../../chrono_vehicle/chassis/ChChassisConnectorHitch.h"
 %include "../../chrono_vehicle/chassis/RigidChassis.h"
+%include "../../chrono_vehicle/chassis/ChassisConnectorArticulated.h"
+%include "../../chrono_vehicle/chassis/ChassisConnectorHitch.h"
+%include "../../chrono_vehicle/chassis/ChassisConnectorTorsion.h"
 
 %include "chrono_python/models/ChassisModels.i"

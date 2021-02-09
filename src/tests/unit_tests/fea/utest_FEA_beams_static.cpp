@@ -24,8 +24,8 @@
 #include "chrono/fea/ChBuilderBeam.h"
 #include "chrono/fea/ChMesh.h"
 
-#ifdef CHRONO_MKL
-#include "chrono_mkl/ChSolverMKL.h"
+#ifdef CHRONO_PARDISO_MKL
+#include "chrono_pardisomkl/ChSolverPardisoMKL.h"
 #endif
 
 using namespace chrono;
@@ -386,13 +386,13 @@ int main(int argc, char* argv[]) {
     ChSystemNSC sys;
 
     // Solver settings
-#ifndef CHRONO_MKL
+#ifndef CHRONO_PARDISO_MKL
     use_MKL = false;
 #endif
 
     if (use_MKL) {
-#ifdef CHRONO_MKL
-        auto solver = chrono_types::make_shared<ChSolverMKL>();
+#ifdef CHRONO_PARDISO_MKL
+        auto solver = chrono_types::make_shared<ChSolverPardisoMKL>();
         solver->SetVerbose(true);
         sys.SetSolver(solver);
 #endif

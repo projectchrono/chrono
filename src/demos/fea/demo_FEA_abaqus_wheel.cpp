@@ -30,7 +30,7 @@
 #include "chrono/fea/ChContactSurfaceNodeCloud.h"
 #include "chrono/fea/ChVisualizationFEAmesh.h"
 #include "chrono/fea/ChLinkPointFrame.h"
-#include "chrono_mkl/ChSolverMKL.h"
+#include "chrono_pardisomkl/ChSolverPardisoMKL.h"
 #include "chrono_irrlicht/ChIrrApp.h"
 
 using namespace chrono;
@@ -277,8 +277,8 @@ int main(int argc, char* argv[]) {
     // SIMULATION LOOP
     //
 
-    // Change solver to Pardiso from Chrono::MKL
-    auto mkl_solver = chrono_types::make_shared<ChSolverMKL>();
+    // Change solver to Pardiso from Chrono::PardisoMKL
+    auto mkl_solver = chrono_types::make_shared<ChSolverPardisoMKL>();
     mkl_solver->LockSparsityPattern(true);
     my_system.SetSolver(mkl_solver);
     my_system.Update();

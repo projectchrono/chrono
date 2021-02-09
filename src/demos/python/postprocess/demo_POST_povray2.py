@@ -134,16 +134,16 @@ for ix in range(0,2):
 
 pov_exporter = postprocess.ChPovRay(my_system)
 
- # Sets some file names for in-out processes.
-pov_exporter.SetTemplateFile(chrono.GetChronoDataFile('_template_POV.pov'))
-pov_exporter.SetOutputScriptFile("rendering_frames.pov")
-if not os.path.exists("output"):
-    os.mkdir("output")
-if not os.path.exists("anim"):
-    os.mkdir("anim")
-pov_exporter.SetOutputDataFilebase("output/my_state")
-pov_exporter.SetPictureFilebase("anim/picture")
+# Important: set where the template is (this path depends to where you execute this script,
+# ex.here we assume you run it from src/demo/python/postprocess/ )
+pov_exporter.SetTemplateFile  ("../../../../data/_template_POV.pov")
 
+# Set the path where it will save all .pov, .ini, .asset and .dat files,
+# this directory will be created if not existing. For example:
+pov_exporter.SetBasePath("povray_pychrono_generated")
+
+
+# Some  settings for the POV rendering:
 pov_exporter.SetCamera(chrono.ChVectorD(0.2,0.3,0.5), chrono.ChVectorD(0,0,0), 35)
 pov_exporter.SetLight(chrono.ChVectorD(-2,2,-1), chrono.ChColor(1.1,1.2,1.2), True)
 pov_exporter.SetPictureSize(640,480)

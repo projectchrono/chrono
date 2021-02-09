@@ -55,7 +55,7 @@ VisualizationType steering_vis_type = VisualizationType::PRIMITIVES;
 VisualizationType wheel_vis_type = VisualizationType::PRIMITIVES;
 
 // Collision type for chassis (PRIMITIVES, MESH, or NONE)
-ChassisCollisionType chassis_collision_type = ChassisCollisionType::NONE;
+CollisionType chassis_collision_type = CollisionType::NONE;
 
 // Type of tire model (RIGID)
 TireModelType tire_model = TireModelType::RIGID;

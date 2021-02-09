@@ -40,6 +40,7 @@
 #include "chrono_vehicle/tracked_vehicle/track_shoe/ChTrackShoeBand.h"
 #include "chrono_vehicle/tracked_vehicle/track_shoe/ChTrackShoeBandANCF.h"
 #include "chrono_vehicle/tracked_vehicle/track_shoe/ChTrackShoeBandBushing.h"
+#include "chrono_vehicle/tracked_vehicle/track_shoe/ChTrackShoeSegmented.h"
 #include "chrono_vehicle/tracked_vehicle/track_shoe/ChTrackShoeSinglePin.h"
 #include "chrono_vehicle/tracked_vehicle/track_shoe/ChTrackShoeDoublePin.h"
 #include "chrono_vehicle/tracked_vehicle/track_shoe/TrackShoeBandANCF.h"
@@ -51,6 +52,7 @@
 #include "chrono_vehicle/tracked_vehicle/track_assembly/ChTrackAssemblyBand.h"
 #include "chrono_vehicle/tracked_vehicle/track_assembly/ChTrackAssemblyBandANCF.h"
 #include "chrono_vehicle/tracked_vehicle/track_assembly/ChTrackAssemblyBandBushing.h"
+#include "chrono_vehicle/tracked_vehicle/track_assembly/ChTrackAssemblySegmented.h"
 #include "chrono_vehicle/tracked_vehicle/track_assembly/ChTrackAssemblySinglePin.h"
 #include "chrono_vehicle/tracked_vehicle/track_assembly/ChTrackAssemblyDoublePin.h"
 #include "chrono_vehicle/tracked_vehicle/track_assembly/TrackAssemblyBandANCF.h"
@@ -92,6 +94,7 @@
 %shared_ptr(chrono::vehicle::ChTrackShoeBand)
 %shared_ptr(chrono::vehicle::ChTrackShoeBandANCF)
 %shared_ptr(chrono::vehicle::ChTrackShoeBandBushing)
+%shared_ptr(chrono::vehicle::ChTrackShoeSegmented)
 %shared_ptr(chrono::vehicle::ChTrackShoeSinglePin)
 %shared_ptr(chrono::vehicle::ChTrackShoeDoublePin)
 %shared_ptr(chrono::vehicle::TrackShoeBandANCF)
@@ -103,6 +106,7 @@
 %shared_ptr(chrono::vehicle::ChTrackAssemblyBand)
 %shared_ptr(chrono::vehicle::ChTrackAssemblyBandANCF)
 %shared_ptr(chrono::vehicle::ChTrackAssemblyBandBushing)
+%shared_ptr(chrono::vehicle::ChTrackAssemblySegmented)
 %shared_ptr(chrono::vehicle::ChTrackAssemblySinglePin)
 %shared_ptr(chrono::vehicle::ChTrackAssemblyDoublePin)
 %shared_ptr(chrono::vehicle::TrackAssemblyBandANCF)
@@ -147,6 +151,7 @@
 %include "../../chrono_vehicle/tracked_vehicle/track_shoe/ChTrackShoeBand.h"
 %include "../../chrono_vehicle/tracked_vehicle/track_shoe/ChTrackShoeBandANCF.h"
 %include "../../chrono_vehicle/tracked_vehicle/track_shoe/ChTrackShoeBandBushing.h"
+%include "../../chrono_vehicle/tracked_vehicle/track_shoe/ChTrackShoeSegmented.h"
 %include "../../chrono_vehicle/tracked_vehicle/track_shoe/ChTrackShoeSinglePin.h"
 %include "../../chrono_vehicle/tracked_vehicle/track_shoe/ChTrackShoeDoublePin.h"
 %include "../../chrono_vehicle/tracked_vehicle/track_shoe/TrackShoeBandANCF.h"
@@ -158,6 +163,7 @@
 %include "../../chrono_vehicle/tracked_vehicle/track_assembly/ChTrackAssemblyBand.h"
 %include "../../chrono_vehicle/tracked_vehicle/track_assembly/ChTrackAssemblyBandANCF.h"
 %include "../../chrono_vehicle/tracked_vehicle/track_assembly/ChTrackAssemblyBandBushing.h"
+%include "../../chrono_vehicle/tracked_vehicle/track_assembly/ChTrackAssemblySegmented.h"
 %include "../../chrono_vehicle/tracked_vehicle/track_assembly/ChTrackAssemblySinglePin.h"
 %include "../../chrono_vehicle/tracked_vehicle/track_assembly/ChTrackAssemblyDoublePin.h"
 %include "../../chrono_vehicle/tracked_vehicle/track_assembly/TrackAssemblyBandANCF.h"

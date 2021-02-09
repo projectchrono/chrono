@@ -141,6 +141,66 @@ double ChDirectSolverLS::Solve(ChSystemDescriptor& sysd) {
     return result;
 }
 
+
+bool ChDirectSolverLS::SetupCurrent() {
+    m_timer_setup_assembly.start();
+
+    // Allow the matrix to be compressed, if not yet compressed
+    m_mat.makeCompressed();
+
+    m_timer_setup_assembly.stop();
+
+    // Let the concrete solver perform the factorization
+    m_timer_setup_solvercall.start();
+    bool result = FactorizeMatrix();
+    m_timer_setup_solvercall.stop();
+
+    if (verbose) {
+        GetLog() << " Solver SetupCurrent() [" << m_setup_call << "] n = " << m_dim << "  nnz = " << (int)m_mat.nonZeros()
+                 << "\n";
+        GetLog() << "  assembly matrix:   " << m_timer_setup_assembly.GetTimeSecondsIntermediate() << "s\n"
+                 << "  analyze+factorize: " << m_timer_setup_solvercall.GetTimeSecondsIntermediate() << "s\n";
+    }
+
+    m_setup_call++;
+
+    if (!result) {
+        // If the factorization failed, let the concrete solver display an error message.
+        GetLog() << "Solver SetupCurrent() failed\n";
+        PrintErrorMessage();
+    }
+
+    return result;
+}
+
+double ChDirectSolverLS::SolveCurrent() {
+    m_timer_solve_assembly.start();
+    m_sol.resize(m_rhs.size());
+    m_timer_solve_assembly.stop();
+
+    // Let the concrete solver compute the solution
+    m_timer_solve_solvercall.start();
+    bool result = SolveSystem();
+    m_timer_solve_solvercall.stop();
+
+    if (verbose) {
+        double res_norm = (m_rhs - m_mat * m_sol).norm();
+        GetLog() << " Solver SolveCurrent() [" << m_solve_call << "]  |residual| = " << res_norm << "\n\n";
+        GetLog() << "  assembly rhs+sol:  " << m_timer_solve_assembly.GetTimeSecondsIntermediate() << "s\n"
+                 << "  solve:             " << m_timer_solve_solvercall.GetTimeSecondsIntermediate() << "\n";
+    }
+
+    if (!result) {
+        // If the solution failed, let the concrete solver display an error message.
+        GetLog() << "Solver SolveCurrent() failed\n";
+        PrintErrorMessage();
+    }
+
+    return result;
+}
+
+
+
 void ChDirectSolverLS::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChDirectSolverLS>();

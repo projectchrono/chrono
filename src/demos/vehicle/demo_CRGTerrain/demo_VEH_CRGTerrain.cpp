@@ -20,7 +20,7 @@
 // at the top of the main function.  This will use a world frame with Y up, X
 // forward, and Z to the right.
 //
-// NOTES: 
+// NOTES:
 // (1) changing the world frame from the ISO default must be done *before* any
 //     other Chrono::Vehicle library calls.
 // (2) modifications to user code to use a different world frame are minimal:
@@ -39,7 +39,7 @@
 
 #include "chrono_models/vehicle/hmmwv/HMMWV.h"
 
-#include "chrono_thirdparty/SimpleOpt/SimpleOpt.h"
+#include "chrono_thirdparty/cxxopts/ChCLI.h"
 #include "chrono_thirdparty/filesystem/path.h"
 
 using namespace chrono;
@@ -50,10 +50,11 @@ using namespace chrono::vehicle::hmmwv;
 // Problem parameters
 
 enum class DriverModelType {
-    PID,   // pure PID lateral controller with constant speed controller
-    XT,    // alternative PID lateral controller with constant speed controller
-    SR,    // alternative PID lateral controller with constant speed controller
-    HUMAN  // simple realistic human driver
+    PID,      // pure PID lateral controller with constant speed controller
+    STANLEY,  // geometrical P heading and PID lateral controller with constant speed controller
+    XT,       // alternative PID lateral controller with constant speed controller
+    SR,       // alternative PID lateral controller with constant speed controller
+    HUMAN     // simple realistic human driver
 };
 
 // Type of tire model (LUGRE, FIALA, PACEJKA, or TMEASY)
@@ -78,16 +79,22 @@ bool output_images = false;
 double fps = 60;
 const std::string out_dir = GetChronoOutputPath() + "OPENCRG_DEMO";
 
-// =============================================================================
-
-enum { OPT_HELP, OPT_YUP, OPT_DRIVER_MODEL, OPT_ROAD_FILE };
-CSimpleOptA::SOption g_options[] = {{OPT_DRIVER_MODEL, "--driver-model", SO_REQ_CMB},
-                                    {OPT_ROAD_FILE, "--road-file", SO_REQ_CMB},
-                                    {OPT_YUP, "--yup", SO_NONE},
-                                    {OPT_HELP, "--help", SO_NONE},
-                                    SO_END_OF_OPTIONS};
-void ShowUsage();
-bool GetProblemSpecs(int argc, char** argv, DriverModelType& model, std::string& road_file, bool& yup);
+DriverModelType DriverModelFromString(const std::string& str) {
+    if (str == "HUMAN")
+        return DriverModelType::HUMAN;
+    if (str == "PID")
+        return DriverModelType::PID;
+    if (str == "STANLEY")
+        return DriverModelType::STANLEY;
+    if (str == "SR")
+        return DriverModelType::SR;
+    if (str == "XT")
+        return DriverModelType::XT;
+    std::cerr << "String \"" + str +
+                     "\" does not represent a valid DriverModelType (HUMAN/PID/SR/XT) - returned DriverModelType::HUMAN"
+              << std::endl;
+    return DriverModelType::HUMAN;
+}
 
 // =============================================================================
 
@@ -112,6 +119,19 @@ class MyDriver {
 
                 m_driver = driverPID;
                 m_steering_controller = &driverPID->GetSteeringController();
+                break;
+            }
+            case DriverModelType::STANLEY: {
+                m_driver_type = "STANLEY";
+
+                auto driverStanley = chrono_types::make_shared<ChPathFollowerDriver>(vehicle, path, "my_path",
+                                                                                     target_speed, path_is_closed);
+                driverStanley->GetSteeringController().SetLookAheadDistance(5.0);
+                driverStanley->GetSteeringController().SetGains(0.5, 0.0, 0.0);
+                driverStanley->GetSpeedController().SetGains(0.4, 0, 0);
+
+                m_driver = driverStanley;
+                m_steering_controller = &driverStanley->GetSteeringController();
                 break;
             }
             case DriverModelType::XT: {
@@ -143,10 +163,10 @@ class MyDriver {
             case DriverModelType::HUMAN: {
                 m_driver_type = "HUMAN";
 
-                // Driver model read from JSONJ file
+                // Driver model read from JSON file
                 ////auto driverHUMAN = chrono_types::make_shared<ChHumanDriver>(
-                ////    vehicle::GetDataFile("hmmwv/driver/HumanController.json"), vehicle, path, "my_path", path_is_closed,
-                ////    road_width, vehicle.GetMaxSteeringAngle(), 3.2);
+                ////    vehicle::GetDataFile("hmmwv/driver/HumanController.json"), vehicle, path, "my_path",
+                ////    path_is_closed, road_width, vehicle.GetMaxSteeringAngle(), 3.2);
 
                 auto driverHUMAN = chrono_types::make_shared<ChHumanDriver>(
                     vehicle, path, "my_path", path_is_closed, road_width, vehicle.GetMaxSteeringAngle(), 3.2);
@@ -208,17 +228,23 @@ class MyDriver {
 int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
-    // Parse arguments
+    ChCLI cli(argv[0]);
+
+    // Set up parameter defaults and command-line arguments
+    DriverModelType driver_type = DriverModelType::HUMAN;
     std::string crg_road_file = "terrain/crg_roads/Barber.crg";
     bool yup = false;
-    DriverModelType driver_type = DriverModelType::HUMAN;
-    if (argc == 1) {
-        std::cout << "Type 'demo_VEH_CRGTerrain --help' for a complete list of available options.\n" << std::endl;
-    }
-    if (!GetProblemSpecs(argc, argv, driver_type, crg_road_file, yup)) {
+
+    cli.AddOption<std::string>("Demo", "m,model", "Controller model type - PID, STANLEY, XT, SR, HUMAN", "HUMAN");
+    cli.AddOption<std::string>("Demo", "f,roadfile", "CRG road filename", crg_road_file);
+    cli.AddOption<bool>("Demo", "y,yup", "Use YUP world frame", std::to_string(yup));
+
+    if (!cli.Parse(argc, argv, true))
         return 1;
-    }
-    crg_road_file = vehicle::GetDataFile(crg_road_file);
+
+    driver_type = DriverModelFromString(cli.GetAsType<std::string>("model"));
+    crg_road_file = vehicle::GetDataFile(cli.GetAsType<std::string>("roadfile"));
+    yup = cli.GetAsType<bool>("yup");
 
     // ---------------
     // Set World Frame
@@ -298,7 +324,8 @@ int main(int argc, char* argv[]) {
         ChVector<>(+150, +150, 200)   //
     };
 
-    ChWheeledVehicleIrrApp app(&my_hmmwv.GetVehicle(), L"OpenCRG Steering", irr::core::dimension2d<irr::u32>(1000, 800));
+    ChWheeledVehicleIrrApp app(&my_hmmwv.GetVehicle(), L"OpenCRG Steering",
+                               irr::core::dimension2d<irr::u32>(1000, 800));
     app.SetHUDLocation(500, 20);
     app.SetSkyBox();
     app.AddTypicalLogo();
@@ -385,75 +412,4 @@ int main(int argc, char* argv[]) {
     driver.PrintStats();
 
     return 0;
-}
-
-// =============================================================================
-
-void ShowUsage() {
-    std::cout << "Usage:  demo_VEH_CRGTerrain [OPTIONS]" << std::endl;
-    std::cout << std::endl;
-    std::cout << " --driver-model=MODEL" << std::endl;
-    std::cout << "        Controller model type. 0: PID, 1: XT, 2: SR, 3: HUMAN " << std::endl;
-    std::cout << "        Default: 3" << std::endl;
-    std::cout << " --road-file=FILE" << std::endl;
-    std::cout << "        CRG road filename";
-    std::cout << "        Default: \"terrain/crg_roads/Barber.crg\"]" << std::endl;
-    std::cout << " --yup" << std::endl;
-    std::cout << "        Use YUP world frame" << std::endl;
-    std::cout << "        Default: ISO frame (Z up)";
-    std::cout << " --help" << std::endl;
-    std::cout << "        Print this message and exit." << std::endl;
-    std::cout << std::endl;
-}
-
-bool GetProblemSpecs(int argc, char** argv, DriverModelType& model, std::string& road_file, bool& yup) {
-    // Create the option parser and pass it the program arguments and the array of valid options.
-    CSimpleOptA args(argc, argv, g_options);
-
-        // Then loop for as long as there are arguments to be processed.
-    while (args.Next()) {
-        // Exit immediately if we encounter an invalid argument.
-        if (args.LastError() != SO_SUCCESS) {
-            std::cout << "Invalid argument: " << args.OptionText() << std::endl;
-            ShowUsage();
-            return false;
-        }
-    
-        // Process the current argument.
-        switch (args.OptionId()) {
-            case OPT_HELP:
-                ShowUsage();
-                return false;
-            case OPT_DRIVER_MODEL: {
-                auto model_in = std::stoi(args.OptionArg());
-                switch (model_in) {
-                    case 0:
-                        model = DriverModelType::PID;
-                        break;
-                    case 1:
-                        model = DriverModelType::XT;
-                        break;
-                    case 2:
-                        model = DriverModelType::SR;
-                        break;
-                    case 3:
-                        model = DriverModelType::HUMAN;
-                        break;
-                    default:
-                        std::cout << "Incorrect driver model type" << std::endl;
-                        ShowUsage();
-                        break;
-                }
-                break;
-            }
-            case OPT_ROAD_FILE:
-                road_file = args.OptionArg();
-                break;
-            case OPT_YUP:
-                yup = true;
-                break;
-        }
-    }
-
-    return true;
 }

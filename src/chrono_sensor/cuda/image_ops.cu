@@ -27,7 +27,7 @@ __global__ void image_gauss_kernel_vert(unsigned char* buf, int w, int h, int c,
     // only run for each output pixel
     if (index < w * h * c) {
         // float f_std = (float)f / 2.f;
-        // int f_width = (int)(2.f * 3.14 * f_std);
+        // int f_width = (int)(2.f * 3.14f * f_std);
 
         int channel = index % c;
         int col = index / c % w;
@@ -39,7 +39,7 @@ __global__ void image_gauss_kernel_vert(unsigned char* buf, int w, int h, int c,
             if (row + i >= h)
                 index_in = channel + col * c + (2 * h - (row + i + 1)) * w * c;
 
-            // float weight = exp(-i * i / (2 * f_std * f_std)) / sqrtf(2.f * 3.14 * f_std * f_std);
+            // float weight = exp(-i * i / (2 * f_std * f_std)) / sqrtf(2.f * 3.14f * f_std * f_std);
             sum += dweights[i + f_width] * ((float)buf[index_in]);
             // sum += ((float)buf[index_in]);
         }
@@ -108,16 +108,16 @@ void cuda_image_gauss_blur_char(void* buf, int w, int h, int c, int factor) {
     int nBlocks = (w * h * c + nThreads - 1) / nThreads;
 
     float f_std = (float)factor / 4.f;
-    int f_width = (int)(3.14 * f_std);
+    int f_width = (int)(3.14f * f_std);
 
-    // float weight = exp(-i * i / (2 * f_std * f_std)) / sqrtf(2.f * 3.14 * f_std * f_std);
+    // float weight = exp(-i * i / (2 * f_std * f_std)) / sqrtf(2.f * 3.14f * f_std * f_std);
     int entries = 2 * f_width + 1;
 
     float* weights = new float[entries];
 
     for (int i = 0; i <= 2 * f_width; i++) {
         int offset = i - f_width;
-        weights[i] = exp(-offset * offset / (2 * f_std * f_std)) / sqrtf(2.f * 3.14 * f_std * f_std);
+        weights[i] = exp(-offset * offset / (2 * f_std * f_std)) / sqrtf(2.f * 3.14f * f_std * f_std);
     }
     float* dweights;
     cudaMalloc(&dweights, entries * sizeof(float));

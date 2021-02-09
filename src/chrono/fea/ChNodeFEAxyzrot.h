@@ -74,9 +74,9 @@ class ChApi ChNodeFEAxyzrot : public ChNodeFEAbase, public ChBodyFrame, public C
     /// Get the 3d applied force, in absolute reference
     const ChVector<>& GetForce() const { return Force; }
 
-    /// Set the 3d applied torque, in absolute reference
+    /// Set the 3d applied torque, in node reference
     void SetTorque(ChVector<> mf) { Torque = mf; }
-    /// Get the 3d applied torque, in absolute reference
+    /// Get the 3d applied torque, in node reference
     const ChVector<>& GetTorque() const { return Torque; }
 
     /// Access the frame of the node - in absolute csys,

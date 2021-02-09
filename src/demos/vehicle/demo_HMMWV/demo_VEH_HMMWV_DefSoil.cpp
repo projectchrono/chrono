@@ -12,7 +12,7 @@
 // Author: Radu Serban
 // =============================================================================
 //
-// Chrono::Vehicle + ChronoParallel demo program for simulating a HMMWV vehicle
+// Chrono::Vehicle + Chrono::Multicore demo program for simulating a HMMWV vehicle
 // over rigid or granular material.
 //
 // Contact uses the SMC (penalty) formulation.

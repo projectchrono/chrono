@@ -53,13 +53,31 @@ CH_SENSOR_API void ChFilterLidarReduce::Apply(std::shared_ptr<ChSensor> pSensor,
     // std::unique_ptr<int> p2(std::move(p1));
 
     if (!m_buffer) {
-        m_buffer = chrono_types::make_shared<SensorDeviceDIBuffer>();
-        DeviceDIBufferPtr b(
-            cudaMallocHelper<PixelDI>(width * height / ((m_reduce_radius * 2 - 1) * (m_reduce_radius * 2 - 1))),
-            cudaFreeHelper<PixelDI>);
-        m_buffer->Buffer = std::move(b);
-        m_buffer->Width = width / (m_reduce_radius * 2 - 1);
-        m_buffer->Height = height / (m_reduce_radius * 2 - 1);
+        switch (m_ret){
+            case LidarReturnMode::DUAL_RETURN:
+                {
+                m_buffer = chrono_types::make_shared<SensorDeviceDIBuffer>();
+                DeviceDIBufferPtr b(
+                    cudaMallocHelper<PixelDI>(width * height * 2/ ((m_reduce_radius * 2 - 1) * (m_reduce_radius * 2 - 1))),
+                    cudaFreeHelper<PixelDI>);
+                m_buffer->Buffer = std::move(b);
+                m_buffer->Width = width / (m_reduce_radius * 2 - 1);
+                m_buffer->Height = height / (m_reduce_radius * 2 - 1);
+                m_buffer->Dual_return = true;
+                }
+                break;
+            default:
+                {
+                m_buffer = chrono_types::make_shared<SensorDeviceDIBuffer>();
+                DeviceDIBufferPtr b(
+                    cudaMallocHelper<PixelDI>(width * height / ((m_reduce_radius * 2 - 1) * (m_reduce_radius * 2 - 1))),
+                    cudaFreeHelper<PixelDI>);
+                m_buffer->Buffer = std::move(b);
+                m_buffer->Width = width / (m_reduce_radius * 2 - 1);
+                m_buffer->Height = height / (m_reduce_radius * 2 - 1);
+                m_buffer->Dual_return = false;
+                }
+        }
     }
 
     // we need id of first device for this context (should only have 1 anyway)
@@ -67,11 +85,17 @@ CH_SENSOR_API void ChFilterLidarReduce::Apply(std::shared_ptr<ChSensor> pSensor,
     void* ptr = pSen->Buffer->getDevicePointer(device_id);  // hard coded to grab from device 0
 
     switch (m_ret) {
-        case MEAN_RETURN:
+        case LidarReturnMode::MEAN_RETURN:
             cuda_lidar_mean_reduce(ptr, m_buffer->Buffer.get(), (int)width, (int)height, m_reduce_radius);
             break;
-        case STRONGEST_RETURN:
+        case LidarReturnMode::STRONGEST_RETURN:
             cuda_lidar_strong_reduce(ptr, m_buffer->Buffer.get(), (int)width, (int)height, m_reduce_radius);
+            break;
+        case LidarReturnMode::FIRST_RETURN:
+            cuda_lidar_first_reduce(ptr, m_buffer->Buffer.get(), (int)width, (int)height, m_reduce_radius);
+            break;
+        case LidarReturnMode::DUAL_RETURN:
+            cuda_lidar_dual_reduce(ptr, m_buffer->Buffer.get(), (int)width, (int)height, m_reduce_radius);
             break;
         default:
             throw std::runtime_error("Lidar reduce mode not yet supported");

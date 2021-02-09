@@ -190,9 +190,9 @@ void SCMDeformableTerrain::Initialize(const std::string& heightmap_file,
     m_ground->Initialize(heightmap_file, sizeX, sizeY, hMin, hMax, delta);
 }
 
-// Get the heights of all grid nodes that were modified over last step.
-std::vector<SCMDeformableTerrain::NodeLevel> SCMDeformableTerrain::GetModifiedNodes() const {
-    return m_ground->GetModifiedNodes();
+// Get the heights of modified grid nodes.
+std::vector<SCMDeformableTerrain::NodeLevel> SCMDeformableTerrain::GetModifiedNodes(bool all_nodes) const {
+    return m_ground->GetModifiedNodes(all_nodes);
 }
 
 // Modify the level of grid nodes from the given list.
@@ -1173,7 +1173,7 @@ void SCMDeformableSoil::ComputeInternalForces() {
             // Calculate the displaced material from all touched nodes and identify boundary
             double tot_step_flow = 0;
             for (const auto& ij : p.nodes) {                          // for each node in contact patch
-                auto nr = m_grid_map.at(ij);                          //   get node record
+                const auto& nr = m_grid_map.at(ij);                   //   get node record
                 if (nr.p_sigma <= 0)                                  //   if node not touched
                     continue;                                         //     skip (not in effective patch)
                 tot_step_flow += nr.p_step_plastic_flow;              //   accumulate displaced material
@@ -1300,7 +1300,7 @@ void SCMDeformableSoil::ComputeInternalForces() {
     if (m_trimesh_shape) {
         // Loop over list of modified nodes and adjust corresponding mesh vertices
         for (const auto& ij : m_modified_nodes) {
-            auto nr = m_grid_map.at(ij);              // grid node record
+            const auto& nr = m_grid_map.at(ij);       // grid node record
             int iv = GetMeshVertexIndex(ij);          // mesh vertex index
             UpdateMeshVertexCoordinates(ij, iv, nr);  // update vertex coordinates and color
             modified_vertices.push_back(iv);
@@ -1423,13 +1423,19 @@ void SCMDeformableSoil::UpdateMeshVertexNormal(const ChVector2<int> ij, int iv) 
     normals[iv] /= (double)faces.size();
 }
 
-// Get the heights of all grid nodes that were modified over last step.
-std::vector<SCMDeformableTerrain::NodeLevel> SCMDeformableSoil::GetModifiedNodes() const {
+// Get the heights of modified grid nodes.
+std::vector<SCMDeformableTerrain::NodeLevel> SCMDeformableSoil::GetModifiedNodes(bool all_nodes) const {
     std::vector<SCMDeformableTerrain::NodeLevel> nodes;
-    for (const auto& ij : m_modified_nodes) {
-        auto rec = m_grid_map.find(ij);
-        assert(rec != m_grid_map.end());
-        nodes.push_back(std::make_pair(ij, rec->second.p_level));
+    if (all_nodes) {
+        for (const auto& nr : m_grid_map) {
+            nodes.push_back(std::make_pair(nr.first, nr.second.p_level));
+        }
+    } else {
+        for (const auto& ij : m_modified_nodes) {
+            auto rec = m_grid_map.find(ij);
+            assert(rec != m_grid_map.end());
+            nodes.push_back(std::make_pair(ij, rec->second.p_level));
+        }
     }
     return nodes;
 }
@@ -1447,7 +1453,7 @@ void SCMDeformableSoil::SetModifiedNodes(const std::vector<SCMDeformableTerrain:
     if (m_trimesh_shape) {
         for (const auto& n : nodes) {
             auto ij = n.first;                        // grid location
-            auto nr = m_grid_map.at(ij);              // grid node record
+            const auto& nr = m_grid_map.at(ij);       // grid node record
             int iv = GetMeshVertexIndex(ij);          // mesh vertex index
             UpdateMeshVertexCoordinates(ij, iv, nr);  // update vertex coordinates and color
             m_external_modified_vertices.push_back(iv);

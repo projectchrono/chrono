@@ -153,7 +153,7 @@ class CH_VEHICLE_API ChSteeringController {
     bool m_collect;            ///< flag indicating whether or not data is being collected
 };
 
-/// Concrete path-following steering PID controller.
+/// Path-following steering PID controller.
 /// The path to be followed is specified as a ChBezierCurve object and the
 /// target point is defined to be the point on that path that is closest to the
 /// current location of the sentinel point.
@@ -171,7 +171,6 @@ class CH_VEHICLE_API ChPathSteeringController : public ChSteeringController {
                              std::shared_ptr<ChBezierCurve> path,
                              bool isClosedPath = false);
 
-    /// Destructor for ChPathSteeringController.
     ~ChPathSteeringController() {}
 
     /// Return a pointer to the Bezier curve
@@ -192,12 +191,12 @@ class CH_VEHICLE_API ChPathSteeringController : public ChSteeringController {
     std::unique_ptr<ChBezierCurveTracker> m_tracker;  ///< path tracker
 };
 
-/// Concrete path-following steering 3(2) channel PDT1/PT1 controller.
+/// Path-following steering 3(2) channel PDT1/PT1 controller.
 /// The path to be followed is specified as a ChBezierCurve object and the
 /// target point is defined to be the point on that path that is closest to the
 /// current location of the sentinel point. The sentinel point should never
 /// leave the end or beginning of the path.
-
+///
 /// The controller is sensitive to tire relaxiation, when steering oscillations
 /// occure and do not calm down after a short driving distance, Kp should be
 /// reduced carefully.
@@ -219,7 +218,6 @@ class CH_VEHICLE_API ChPathSteeringControllerXT : public ChSteeringController {
                                bool isClosedPath = false,
                                double max_wheel_turn_angle = 0.0);
 
-    /// Destructor for ChPathSteeringController.
     ~ChPathSteeringControllerXT() {}
 
     /// Return a pointer to the Bezier curve
@@ -278,7 +276,7 @@ class CH_VEHICLE_API ChPathSteeringControllerXT : public ChSteeringController {
     ChVector<> m_vel;  ///< vehicle velocity vector
 };
 
-/// Concrete path-following steering P-like controller with variable path prediction.
+/// Path-following steering P-like controller with variable path prediction.
 /// The algorithm is from :
 /// BEST, M.C., 2012. A simple realistic driver model. Presented at:
 /// AVEC `12: The 11th International Symposium on Advanced Vehicle Control, 9th-12th September 2012, Seoul, Korea.
@@ -305,7 +303,6 @@ class CH_VEHICLE_API ChPathSteeringControllerSR : public ChSteeringController {
                                double max_wheel_turn_angle = 0.0,
                                double axle_space = 2.5);
 
-    /// Destructor for ChPathSteeringController.
     ~ChPathSteeringControllerSR() {}
 
     /// Return a pointer to the Bezier curve
@@ -347,6 +344,83 @@ class CH_VEHICLE_API ChPathSteeringControllerSR : public ChSteeringController {
     std::vector<ChVector<> > S_l;   ///< course definition points
     std::vector<ChVector<> > R_l;   ///< direction vector: S_l[i+1] = S_l[i] + R_l[i]
     std::vector<ChVector<> > R_lu;  ///< R_l with unit length, precalculated to avoid redundant calculations
+};
+
+/// This is called the "Stanley" Controller named after an autonomous vehicle called Stanley.
+/// It minimizes lateral error and heading error. Time delay of the driver's reaction is considered.
+/// This driver can be parametrized by a PID json file. It can consider a dead zone left and right to the
+/// path, where no path information is recognized. This can be useful when the path information contains
+/// lateral disturbances, that could cause bad disturbances of the controller.
+/// dead_zone = 0.05 means:
+///     0 <= lat_err <= 0.05        no driver reaction
+///     0.05 < lat_err <= 2*0.05    smooth transition interval to complete controller engagement
+/// The Stanley driver should find 'always' back to the path, despite of great heading or lateral error.
+/// If an integral term is used, its state is getting reset every 30 secs to avoid controller wind-up.
+///
+/// The algorithm comes from from :
+///
+/// Gabriel M. Hoffmann, Claire J. Tomlin, Michael Montemerlo, Sebastian Thrun:
+/// "Autonomous Automobile Trajectory Tracking for Off-Road Driving", 2005
+/// Stanford University
+/// Stanford, CA 94305, USA
+
+class CH_VEHICLE_API ChPathSteeringControllerStanley : public ChSteeringController {
+  public:
+    /// Construct a steering controller to track the specified path.
+    /// This version uses default controller parameters (zero gains).
+    /// The user is responsible for calling SetGains and SetLookAheadDistance.
+    ChPathSteeringControllerStanley(std::shared_ptr<ChBezierCurve> path,
+                                    bool isClosedPath = false,
+                                    double max_wheel_turn_angle = 0.0);
+
+    /// Construct a steering controller to track the specified path.
+    /// This version reads controller gains and lookahead distance from the
+    /// specified JSON file.
+    ChPathSteeringControllerStanley(const std::string& filename,
+                                    std::shared_ptr<ChBezierCurve> path,
+                                    bool isClosedPath = false,
+                                    double max_wheel_turn_angle = 0.0);
+
+    ~ChPathSteeringControllerStanley() {}
+
+    /// Return a pointer to the Bezier curve
+    std::shared_ptr<ChBezierCurve> GetPath() const { return m_path; }
+
+    void SetGains(double Kp = 0, double Ki = 0, double Kd = 0);
+
+    void SetDeadZone(double dead_zone = 0.0) { m_deadZone = std::abs(dead_zone); }
+
+    /// Advance the state of the P controller.
+    double Advance(const ChVehicle& vehicle, double step);
+
+    /// Reset the PID controller.
+    /// This function resets the underlying path tracker using the current location
+    /// of the sentinel point.
+    virtual void Reset(const ChVehicle& vehicle) override;
+
+    /// Calculate the current target point location.
+    /// The target point is the point on the associated path that is closest to
+    /// the current location of the sentinel point.
+    virtual void CalcTargetLocation() override;
+
+    double CalcHeadingError(ChVector<>& a, ChVector<>& b);
+
+  private:
+    std::shared_ptr<utils::ChFilterPT1> m_delayFilter;
+    std::shared_ptr<ChBezierCurve> m_path;            ///< tracked path (piecewise cubic Bezier curve)
+    std::unique_ptr<ChBezierCurveTracker> m_tracker;  ///< path tracker
+
+    double m_pcurvature;    ///< local curvature
+    ChVector<> m_ptangent;  ///< local path tangent
+
+    bool m_isClosedPath;  ///< needed for point extraction
+
+    double m_delta;      ///< average turn angle of the steered wheels (bycicle model of the vehicle)
+    double m_delta_max;  ///< max. allowed average turn angle of the steered wheels (bycicle model of the vehicle)
+    double m_umin;       ///< threshold where the controller gets active
+    double m_Treset;     ///< the integral error gets reset after this time automatically, no wind-up should happen
+    double m_deadZone;  ///< lateral zone where no lateral error is recognized, reduces sensitivity to path disturbances
+    double m_Tdelay;    ///< delay time to consider driver reaction (around 0.4 sec)
 };
 
 /// @} vehicle_utils

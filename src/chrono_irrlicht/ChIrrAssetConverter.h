@@ -20,6 +20,7 @@
 #include "chrono/assets/ChBoxShape.h"
 #include "chrono/assets/ChCylinderShape.h"
 #include "chrono/assets/ChSphereShape.h"
+#include "chrono/assets/ChCapsuleShape.h"
 #include "chrono/assets/ChObjShapeFile.h"
 #include "chrono/assets/ChTexture.h"
 #include "chrono/assets/ChVisualization.h"
@@ -47,6 +48,7 @@ class ChApiIrr ChIrrAssetConverter {
     irr::scene::IAnimatedMesh* sphereMesh;
     irr::scene::IMesh* cubeMesh;
     irr::scene::IMesh* cylinderMesh;
+    irr::scene::IMesh* capsuleMesh;
 
     irr::scene::ISceneManager* scenemanager;
     irr::IrrlichtDevice* mdevice;

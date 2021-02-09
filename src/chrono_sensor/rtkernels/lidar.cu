@@ -49,9 +49,12 @@ rtDeclareVariable(float4, rot_1, , );     // rotation at time 0 (no rotation is 
 rtBuffer<float2, 2> output_buffer;  // byte version
 rtBuffer<float> noise_buffer;
 
+
 // for beam divergence and multi-sample kernel
-rtDeclareVariable(float, divergence_angle, , );  // lidar beam divergence
+rtDeclareVariable(float, vert_divergence_angle, , );  // lidar beam vertical divergence
+rtDeclareVariable(float, hori_divergence_angle, , );  // lidar beam horizontal divergance
 rtDeclareVariable(int, ray_samples, , );         // samples per beam
+rtDeclareVariable(int, beam_shape, , );          // beam shape, 0=ellipse, 1=rectangle
 
 // This kernel is launched once for each pixel in the image
 RT_PROGRAM void spherical() {
@@ -99,53 +102,75 @@ RT_PROGRAM void spherical() {
 
 RT_PROGRAM void multi_sample() {
     size_t2 screen = output_buffer.size();
+    int2 temp = make_int2(screen.x, screen.y);
 
-    float div_angle = divergence_angle;
+    float hori_div_angle = hori_divergence_angle;
+    float vert_div_angle = vert_divergence_angle;
     int sample_radius = ray_samples;
 
+    // global_beam_dims = number of horizontal and vertical samples
     int2 global_beam_dims = make_int2(screen.x / (sample_radius * 2 - 1), screen.y / (sample_radius * 2 - 1));
     int2 local_beam_dims = make_int2(sample_radius * 2 - 1, sample_radius * 2 - 1);
 
     // index of center of beam
     int beam_index_x = launch_index.x / (sample_radius * 2 - 1);
     int beam_index_y = launch_index.y / (sample_radius * 2 - 1);
-    float2 beam_id_fraction =
-        (make_float2(beam_index_x, beam_index_y) + make_float2(0.5, 0.5)) / make_float2(global_beam_dims) * 2.f -
-        1.f;  //[-1,1]
+
+    float2 beam_id_fraction = 
+        (make_float2(beam_index_x, beam_index_y) + make_float2(0.5, 0.5)) / make_float2(global_beam_dims) * 2.f - 1.f;  
+        //[-1,1]
 
     // theta and phi for beam center
-    float beam_theta = beam_id_fraction.x * hFOV / 2.0;
+    float beam_theta = beam_id_fraction.x * hFOV / 2.0; 
     float beam_phi = min_vert_angle + (beam_id_fraction.y * .5 + .5) * (max_vert_angle - min_vert_angle);
 
-    // index of local ray in beam
-    int local_ray_index_x = launch_index.x % (sample_radius * 2 - 1);
-    int local_ray_index_y = launch_index.y % (sample_radius * 2 - 1);
-    float2 local_ray_id_fraction = (make_float2(local_ray_index_x, local_ray_index_y) + make_float2(0.5, 0.5)) /
-                                       make_float2(local_beam_dims) * 2.f -
-                                   1.f;  //[-1,1]
+    // index of local ray in beam,  0~sample_radius * 2 - 1, and sample_radius - 1 is index of center ray
+    int local_ray_index_x = launch_index.x % (sample_radius * 2 -1);
+    int local_ray_index_y = launch_index.y % (sample_radius * 2 -1);
+
+    float2 local_ray_id_fraction = 
+        (make_float2(local_ray_index_x, local_ray_index_y) + make_float2(0.5, 0.5)) /
+                                           make_float2(local_beam_dims) * 2.f - 1.f;  //[-1,1]
 
     // relative theta and phi for local ray in beam
-    float local_ray_theta = local_ray_id_fraction.x * div_angle / 2.0;
-    float local_ray_phi = local_ray_id_fraction.y * div_angle / 2.0;
+    float local_ray_theta;
+    float local_ray_phi;
+
+    // beam shape is rectangular
+    if (beam_shape==1){
+        local_ray_theta = local_ray_id_fraction.x * hori_div_angle / 2.0;
+        local_ray_phi = local_ray_id_fraction.y * vert_div_angle / 2.0;
+    // beam shape is elliptical
+    } else if (beam_shape == 0){
+        float angle = atan2(local_ray_id_fraction.y, local_ray_id_fraction.x);
+        float ring = max(abs(local_ray_id_fraction.x),abs(local_ray_id_fraction.y));
+        float2 axis = make_float2(vert_div_angle / 2.0 * ring, hori_div_angle / 2.0 * ring);
+        float radius;
+        if ( axis.y == 0 && axis.x == 0){
+            radius = 0;
+        } else {
+            radius = (axis.x * axis.y) / sqrt(axis.x * axis.x * sin(angle) * sin(angle) + axis.y * axis.y * cos(angle) * cos(angle));
+        }
+        local_ray_theta = radius * sin(angle);
+        local_ray_phi = radius * cos(angle);
+    }
 
     // carry on ray-tracing per ray
     float theta = beam_theta + local_ray_theta;
     float phi = beam_phi + local_ray_phi;
 
     float xy_proj = cos(phi);
-
     float z = sin(phi);
     float y = xy_proj * sin(theta);
     float x = xy_proj * cos(theta);
 
     const Quaternion q0(rot_0.y, rot_0.z, rot_0.w, rot_0.x);
     const Quaternion q1(rot_1.y, rot_1.z, rot_1.w, rot_1.x);
-
-    Quaternion q_current = nlerp(q0, q1, (beam_index_x / (float)global_beam_dims.x));
+    Quaternion q_current = nlerp(q0, q1, (beam_index_x / (float) global_beam_dims.x));
 
     Matrix4x4 basis;
     q_current.toMatrix(basis.getData());
-    float3 forward = make_float3(basis[0], basis[4], basis[8]);  // TODO: calcualte from quaternion
+    float3 forward = make_float3(basis[0], basis[4], basis[8]);  // TODO: calculate from quaternion
     float3 left = make_float3(basis[1], basis[5], basis[9]);
     float3 up = make_float3(basis[2], basis[6], basis[10]);
 

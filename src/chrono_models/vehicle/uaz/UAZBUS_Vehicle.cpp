@@ -43,7 +43,7 @@ UAZBUS_Vehicle::UAZBUS_Vehicle(const bool fixed,
                                BrakeType brake_type,
                                SteeringType steering_model,
                                ChContactMethod contact_method,
-                               ChassisCollisionType chassis_collision_type)
+                               CollisionType chassis_collision_type)
     : ChWheeledVehicle("UAZBUS", contact_method), m_omega({0, 0, 0, 0}) {
     Create(fixed, brake_type, steering_model, chassis_collision_type);
 }
@@ -52,7 +52,7 @@ UAZBUS_Vehicle::UAZBUS_Vehicle(ChSystem* system,
                                const bool fixed,
                                BrakeType brake_type,
                                SteeringType steering_model,
-                               ChassisCollisionType chassis_collision_type)
+                               CollisionType chassis_collision_type)
     : ChWheeledVehicle("UAZBUS", system), m_omega({0, 0, 0, 0}) {
     Create(fixed, brake_type, steering_model, chassis_collision_type);
 }
@@ -60,7 +60,7 @@ UAZBUS_Vehicle::UAZBUS_Vehicle(ChSystem* system,
 void UAZBUS_Vehicle::Create(bool fixed,
                             BrakeType brake_type,
                             SteeringType steering_model,
-                            ChassisCollisionType chassis_collision_type) {
+                            CollisionType chassis_collision_type) {
     // Create the chassis subsystem
     m_chassis = chrono_types::make_shared<UAZBUS_Chassis>("Chassis", fixed, chassis_collision_type);
 

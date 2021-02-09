@@ -159,6 +159,10 @@ class CH_VEHICLE_API ChSolidThreeLinkAxle : public ChSuspension {
     virtual double getAxleTubeMass() const = 0;
     /// Return the mass of the spindle body.
     virtual double getSpindleMass() const = 0;
+    /// Return the mass of the triangle body.
+    virtual double getTriangleMass() const = 0;
+    /// Return the mass of the triangle body.
+    virtual double getLinkMass() const = 0;
 
     /// Return the radius of the axle tube body (visualization only).
     virtual double getAxleTubeRadius() const = 0;
@@ -167,6 +171,10 @@ class CH_VEHICLE_API ChSolidThreeLinkAxle : public ChSuspension {
     virtual const ChVector<>& getAxleTubeInertia() const = 0;
     /// Return the moments of inertia of the spindle body.
     virtual const ChVector<>& getSpindleInertia() const = 0;
+    /// Return the moments of inertia of the triangle body.
+    virtual const ChVector<>& getTriangleInertia() const = 0;
+    /// Return the moments of inertia of the triangle body.
+    virtual const ChVector<>& getLinkInertia() const = 0;
 
     /// Return the inertia of the axle shaft.
     virtual double getAxleInertia() const = 0;
@@ -183,8 +191,14 @@ class CH_VEHICLE_API ChSolidThreeLinkAxle : public ChSuspension {
 
     std::shared_ptr<ChLinkLockFree> m_axleTubeGuide;  ///< allows all translations and rotations
 
-    std::shared_ptr<ChLinkDistance> m_triangle[2];  ///< longitudinal & lateral axle guides
-    std::shared_ptr<ChLinkDistance> m_link[2];      ///< longitudinal axle guides
+    std::shared_ptr<ChBody> m_triangleBody;              ///< axle guide body with spherical link and rotary link
+    std::shared_ptr<ChLinkLockRevolute> m_triangleRev;   ///< triangle to chassis revolute joint
+    std::shared_ptr<ChLinkLockSpherical> m_triangleSph;  ///< triangle to axle tube spherical joint
+
+    std::shared_ptr<ChBody> m_linkBody[2];  ///< axle guide body with spherical link and universal link
+    // std::shared_ptr<ChLinkLockSpherical> m_linkBodyToChassis[2];
+    std::shared_ptr<ChLinkUniversal> m_linkBodyToChassis[2];
+    std::shared_ptr<ChLinkLockSpherical> m_linkBodyToAxleTube[2];
 
     std::shared_ptr<ChLinkTSDA> m_shock[2];   ///< handles to the spring links (L/R)
     std::shared_ptr<ChLinkTSDA> m_spring[2];  ///< handles to the shock links (L/R)
@@ -197,6 +211,17 @@ class CH_VEHICLE_API ChSolidThreeLinkAxle : public ChSuspension {
     // Points for axle tube visualization
     ChVector<> m_axleOuterL;
     ChVector<> m_axleOuterR;
+
+    // Points for triangle visualization
+    ChVector<> m_triangle_sph_point;
+    ChVector<> m_triangle_left_point;
+    ChVector<> m_triangle_right_point;
+
+    // Points for link visualization
+    ChVector<> m_link_axleL;
+    ChVector<> m_link_axleR;
+    ChVector<> m_link_chassisL;
+    ChVector<> m_link_chassisR;
 
     // Points for tierod visualization
     ChVector<> m_tierodOuterL;

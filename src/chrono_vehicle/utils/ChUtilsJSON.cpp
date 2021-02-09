@@ -21,6 +21,9 @@
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
 
 #include "chrono_vehicle/chassis/RigidChassis.h"
+#include "chrono_vehicle/chassis/ChassisConnectorHitch.h"
+#include "chrono_vehicle/chassis/ChassisConnectorArticulated.h"
+#include "chrono_vehicle/chassis/ChassisConnectorTorsion.h"
 
 #include "chrono_vehicle/powertrain/ShaftsPowertrain.h"
 #include "chrono_vehicle/powertrain/SimpleCVTPowertrain.h"
@@ -172,6 +175,62 @@ std::shared_ptr<ChChassis> ReadChassisJSON(const std::string& filename) {
     }
 
     return chassis;
+}
+
+std::shared_ptr<ChChassisRear> ReadChassisRearJSON(const std::string& filename) {
+    std::shared_ptr<ChChassisRear> chassis;
+
+    Document d = ReadFileJSON(filename);
+    if (d.IsNull())
+        return nullptr;
+
+    // Check that the given file is a rear chassis specification file.
+    assert(d.HasMember("Type"));
+    std::string type = d["Type"].GetString();
+    assert(type.compare("ChassisRear") == 0);
+
+    // Extract the chassis type.
+    assert(d.HasMember("Template"));
+    std::string subtype = d["Template"].GetString();
+
+    // Create the chassis using the appropriate template.
+    if (subtype.compare("RigidChassisRear") == 0) {
+        chassis = chrono_types::make_shared<RigidChassisRear>(d);
+    } else {
+        throw ChException("Chassis type not supported in ReadChassisRearJSON.");
+    }
+
+    return chassis;
+}
+
+std::shared_ptr<ChChassisConnector> ReadChassisConnectorJSON(const std::string& filename) {
+    std::shared_ptr<ChChassisConnector> connector;
+
+    Document d = ReadFileJSON(filename);
+    if (d.IsNull())
+        return nullptr;
+
+    // Check that the given file is a chassis connector specification file.
+    assert(d.HasMember("Type"));
+    std::string type = d["Type"].GetString();
+    assert(type.compare("ChassisConnector") == 0);
+
+    // Extract the connector type.
+    assert(d.HasMember("Template"));
+    std::string subtype = d["Template"].GetString();
+
+    // Create the connector using the appropriate template.
+    if (subtype.compare("ChassisConnectorHitch") == 0) {
+        connector = chrono_types::make_shared<ChassisConnectorHitch>(d);
+    } else if (subtype.compare("ChassisConnectorArticulated") == 0) {
+        connector = chrono_types::make_shared<ChassisConnectorArticulated>(d);
+    } else if (subtype.compare("ChassisConnectorTorsion") == 0) {
+        connector = chrono_types::make_shared<ChassisConnectorTorsion>(d);
+    } else {
+        throw ChException("Chassis type not supported in ReadChassisConnectorJSON.");
+    }
+
+    return connector;
 }
 
 std::shared_ptr<ChPowertrain> ReadPowertrainJSON(const std::string& filename) {

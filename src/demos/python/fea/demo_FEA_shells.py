@@ -18,7 +18,7 @@
 
 import pychrono as chrono
 import pychrono.fea as fea
-import pychrono.mkl as mkl
+import pychrono.pardisomkl as mkl
 import pychrono.irrlicht as chronoirr
 import os
 import numpy as np
@@ -387,8 +387,8 @@ application.AssetUpdateAll()
 #
 # THE SOFT-REAL-TIME CYCLE
 #
-# Change solver to MKL
-mkl_solver = mkl.ChSolverMKL()
+# Change solver to PardisoMKL
+mkl_solver = mkl.ChSolverPardisoMKL()
 mkl_solver.LockSparsityPattern(True)
 my_system.SetSolver(mkl_solver)
 

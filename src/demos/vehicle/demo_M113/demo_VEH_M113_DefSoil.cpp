@@ -26,8 +26,8 @@
 #include "chrono_models/vehicle/m113/M113_SimplePowertrain.h"
 #include "chrono_models/vehicle/m113/M113_Vehicle.h"
 
-#ifdef CHRONO_MKL
-#include "chrono_mkl/ChSolverMKL.h"
+#ifdef CHRONO_PARDISO_MKL
+#include "chrono_pardisomkl/ChSolverPardisoMKL.h"
 #endif
 
 #include "chrono_thirdparty/filesystem/path.h"
@@ -58,7 +58,7 @@ double delta = 0.05;          // SCM grid spacing
 // Simulation step size
 double step_size = 1e-3;
 
-// Use MKL
+// Use PardisoMKL
 bool use_mkl = false;
 
 // Time interval between two render frames
@@ -95,16 +95,16 @@ int main(int argc, char* argv[]) {
     ChSystem* system = vehicle.GetSystem();
     system->SetNumThreads(std::min(8, ChOMP::GetNumProcs()));
 
-#ifndef CHRONO_MKL
-    // Do not use MKL if not available
+#ifndef CHRONO_PARDISO_MKL
+    // Do not use PardisoMKL if not available
     use_mkl = false;
 #endif
 
     // Solver and integrator settings
     if (use_mkl) {
-#ifdef CHRONO_MKL
-        GetLog() << "Using MKL solver\n";
-        auto mkl_solver = chrono_types::make_shared<ChSolverMKL>();
+#ifdef CHRONO_PARDISO_MKL
+        GetLog() << "Using PardisoMKL solver\n";
+        auto mkl_solver = chrono_types::make_shared<ChSolverPardisoMKL>();
         mkl_solver->LockSparsityPattern(true);
         system->SetSolver(mkl_solver);
 

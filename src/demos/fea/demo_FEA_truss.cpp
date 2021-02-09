@@ -244,7 +244,7 @@ int main(int argc, char* argv[]) {
     //
 
     // Change solver to MKL
-    // auto mkl_solver = chrono_types::make_shared<ChSolverMKL>();
+    // auto mkl_solver = chrono_types::make_shared<ChSolverPardisoMKL>();
     // mkl_solver->LockSparsityPattern(true);
     // my_system.SetSolver(mkl_solver);
 

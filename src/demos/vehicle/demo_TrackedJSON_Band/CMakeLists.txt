@@ -3,11 +3,11 @@
 # a tracked vehicle model with continuous-band track, specified entirely
 # through JSON specification files.
 # This example program works with and without Irrlicht run-time visualization
-# and requires the MKL or MUMPS Chrono modules.
+# and requires the PArdisoMKL or MUMPS Chrono modules.
 #=============================================================================
 
 # MUMPS or MKL required. IRRLICHT required
-if ((NOT ENABLE_MODULE_MKL AND NOT ENABLE_MODULE_MUMPS) OR NOT ENABLE_MODULE_IRRLICHT)
+if ((NOT ENABLE_MODULE_PARDISO_MKL AND NOT ENABLE_MODULE_MUMPS) OR NOT ENABLE_MODULE_IRRLICHT)
     return()
 endif()
 
@@ -33,11 +33,11 @@ set(LIBRARIES
     ChronoModels_vehicle
     )
 
-if (ENABLE_MODULE_MKL)
+if (ENABLE_MODULE_PARDISO_MKL)
     include_directories(${CH_MKL_INCLUDES})
     set(COMPILER_FLAGS "${COMPILER_FLAGS} ${CH_MKL_CXX_FLAGS}")
     set(LINKER_FLAGS "${LINKER_FLAGS} ${CH_MKL_LINK_FLAGS}")
-    set(LIBRARIES ${LIBRARIES} ChronoEngine_mkl)
+    set(LIBRARIES ${LIBRARIES} ChronoEngine_pardisomkl)
 endif()
 
 if (ENABLE_MODULE_MUMPS)

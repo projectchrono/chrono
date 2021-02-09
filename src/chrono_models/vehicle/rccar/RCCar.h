@@ -37,9 +37,14 @@ namespace chrono {
 namespace vehicle {
 namespace rccar {
 
-/// @addtogroup vehicle_models_RCCar
+/// @addtogroup vehicle_models_rccar
 /// @{
 
+/// Definition of the RCCar assembly.
+/// This class encapsulates a concrete wheeled vehicle model with parameters corresponding to
+/// a RC car, the powertrain model, and the 4 tires. It provides wrappers to access the different
+/// systems and subsystems, functions for specifying the tire types, as well as functions for
+/// controlling the visualization mode of each component.
 class CH_MODELS_API RCCar {
   public:
     RCCar();
@@ -50,7 +55,7 @@ class CH_MODELS_API RCCar {
     void SetContactMethod(ChContactMethod val) { m_contactMethod = val; }
 
     void SetChassisFixed(bool val) { m_fixed = val; }
-    void SetChassisCollisionType(ChassisCollisionType val) { m_chassisCollisionType = val; }
+    void SetChassisCollisionType(CollisionType val) { m_chassisCollisionType = val; }
 
     void SetTireType(TireModelType val) { m_tireType = val; }
 
@@ -87,7 +92,7 @@ class CH_MODELS_API RCCar {
 
   protected:
     ChContactMethod m_contactMethod;
-    ChassisCollisionType m_chassisCollisionType;
+    CollisionType m_chassisCollisionType;
     bool m_fixed;
 
     TireModelType m_tireType;
@@ -109,7 +114,7 @@ class CH_MODELS_API RCCar {
     double m_tire_mass;
 };
 
-/// @} vehicle_models_RCCar
+/// @} vehicle_models_rccar
 
 }  // namespace rccar
 }  // namespace vehicle

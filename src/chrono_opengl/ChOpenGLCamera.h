@@ -19,7 +19,7 @@
 
 #include "chrono_opengl/core/ChOpenGLBase.h"
 
-#include <glfw3.h>
+#include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
 

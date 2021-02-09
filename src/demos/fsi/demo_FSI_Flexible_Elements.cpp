@@ -19,8 +19,8 @@
 
 #include "chrono/physics/ChSystemSMC.h"
 
-#ifdef CHRONO_MKL
-#include "chrono_mkl/ChSolverMKL.h"
+#ifdef CHRONO_PARDISO_MKL
+#include "chrono_pardisomkl/ChSolverPardisoMKL.h"
 #endif
 
 #include "chrono/solver/ChIterativeSolverLS.h"
@@ -143,9 +143,9 @@ int main(int argc, char* argv[]) {
 
     int step_count = 0;
     double mTime = 0;
-#undef CHRONO_MKL
-#ifdef CHRONO_MKL
-    auto mkl_solver = chrono_types::make_shared<ChSolverMKL>();
+#undef CHRONO_PARDISO_MKL
+#ifdef CHRONO_PARDISO_MKL
+    auto mkl_solver = chrono_types::make_shared<ChSolverPardisoMKL>();
     mkl_solver->LockSparsityPattern(true);
     mphysicalSystem.SetSolver(mkl_solver);
 #else

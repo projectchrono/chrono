@@ -46,22 +46,20 @@ body_2.GetAssets().push_back(myasset)
 #
 # Create an exporter to POVray !!!
 #
+print(chrono.GetChronoDataFile("_template_POV.pov"))
 
 pov_exporter = postprocess.ChPovRay(my_system)
 
- # Sets some file names for in-out processes.
-pov_exporter.SetTemplateFile        (chrono.GetChronoDataFile("_template_POV.pov"))
-pov_exporter.SetOutputScriptFile    ("rendering_frames.pov")
-pov_exporter.SetOutputDataFilebase  ("my_state")
-pov_exporter.SetPictureFilebase     ("picture")
- # Save the .dat files and the .bmp files in two subdirectories,
- # to avoid cluttering the current directory...
-if not os.path.exists("output"):
-    os.mkdir("output")
-if not os.path.exists("anim"):
-    os.mkdir("anim")
-pov_exporter.SetOutputDataFilebase("output/my_state")
-pov_exporter.SetPictureFilebase("anim/picture")
+# Important: set where the template is (this path depends to where you execute this script,
+# ex.here we assume you run it from src/demo/python/postprocess/ )
+pov_exporter.SetTemplateFile  ("../../../../data/_template_POV.pov")
+
+# Set the path where it will save all .pov, .ini, .asset and .dat files,
+# this directory will be created if not existing. For example:
+pov_exporter.SetBasePath("povray_pychrono_generated")
+
+
+
 
  # Tell selectively which physical items you want to render, or use AddAll()
 pov_exporter.Add(body_1)

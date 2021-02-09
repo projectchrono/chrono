@@ -153,6 +153,7 @@ set(CV_BASE_FILES
     ChPowertrain.h
     ChPowertrain.cpp
     ChSubsysDefs.h
+    ChSubsysDefs.cpp
     ChTerrain.h
     ChTerrain.cpp
     ChVehicle.h
@@ -178,6 +179,13 @@ set(CV_CHASSIS_FILES
 
     chassis/RigidChassis.h
     chassis/RigidChassis.cpp
+
+    chassis/ChassisConnectorHitch.h
+    chassis/ChassisConnectorHitch.cpp
+    chassis/ChassisConnectorArticulated.h
+    chassis/ChassisConnectorArticulated.cpp
+    chassis/ChassisConnectorTorsion.h
+    chassis/ChassisConnectorTorsion.cpp    
 )
 source_group("chassis" FILES ${CV_CHASSIS_FILES})
 
@@ -300,6 +308,8 @@ set(CV_WV_BASE_FILES
     wheeled_vehicle/ChSteering.cpp
     wheeled_vehicle/ChSubchassis.h
     wheeled_vehicle/ChSubchassis.cpp
+    wheeled_vehicle/ChWheeledTrailer.h
+    wheeled_vehicle/ChWheeledTrailer.cpp
     wheeled_vehicle/ChWheeledVehicle.h
     wheeled_vehicle/ChWheeledVehicle.cpp
     wheeled_vehicle/ChWheel.h
@@ -537,6 +547,8 @@ endif()
 source_group("wheeled_vehicle\\utils" FILES ${CV_WV_UTILS_FILES} ${CVIRR_WV_UTILS_FILES})
 
 set(CV_WV_VEHICLE_FILES
+    wheeled_vehicle/vehicle/WheeledTrailer.h
+    wheeled_vehicle/vehicle/WheeledTrailer.cpp
     wheeled_vehicle/vehicle/WheeledVehicle.h
     wheeled_vehicle/vehicle/WheeledVehicle.cpp
 )
@@ -685,6 +697,8 @@ set(CV_TV_SUSPENSION_FILES
 source_group("tracked_vehicle\\suspension" FILES ${CV_TV_SUSPENSION_FILES})
 
 set(CV_TV_TRACKSHOE_FILES
+    tracked_vehicle/track_shoe/ChTrackShoeSegmented.h
+    tracked_vehicle/track_shoe/ChTrackShoeSegmented.cpp
     tracked_vehicle/track_shoe/ChTrackShoeSinglePin.h
     tracked_vehicle/track_shoe/ChTrackShoeSinglePin.cpp
     tracked_vehicle/track_shoe/ChTrackShoeDoublePin.h
@@ -708,6 +722,8 @@ set(CV_TV_TRACKSHOE_FILES
 source_group("tracked_vehicle\\track_shoe" FILES ${CV_TV_TRACKSHOE_FILES})
 
 set(CV_TV_TRACKASSEMBLY_FILES
+    tracked_vehicle/track_assembly/ChTrackAssemblySegmented.h
+    tracked_vehicle/track_assembly/ChTrackAssemblySegmented.cpp
     tracked_vehicle/track_assembly/ChTrackAssemblySinglePin.h
     tracked_vehicle/track_assembly/ChTrackAssemblySinglePin.cpp
     tracked_vehicle/track_assembly/ChTrackAssemblyDoublePin.h

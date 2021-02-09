@@ -78,6 +78,10 @@ if (NOT INTEL_ROOT AND NOT $ENV{INTELROOT} STREQUAL "")
   set(INTEL_ROOT $ENV{INTELROOT})
 endif()
 
+# if (NOT ONEAPI_ROOT AND NOT $ENV{ONEAPI_ROOT} STREQUAL "")
+#   set(INTEL_ROOT $ENV{ONEAPI_ROOT})
+# endif()
+
 if (INTEL_ROOT)
   file(TO_CMAKE_PATH ${INTEL_ROOT} INTEL_ROOT)
 endif()
@@ -107,13 +111,16 @@ if (WIN32)
 	FILE(TO_CMAKE_PATH "$ENV{${PROGRAM_FILE_ENVVAR}}" PRG_FOLD)
 	list(APPEND _MKL_ROOT_SEARCH_DIRS "${PRG_FOLD}/Intel/Composer XE/mkl") # default until ParallelStudioXE2015
 	list(APPEND _MKL_ROOT_SEARCH_DIRS "${PRG_FOLD}/IntelSWTools/compilers_and_libraries/windows/mkl") # default for ParallelStudioXE2016 and later
+	list(APPEND _MKL_ROOT_SEARCH_DIRS "${PRG_FOLD}/Intel/oneAPI/mkl") # default for oneAPI (2020 and later)
 elseif(UNIX AND NOT APPLE)
 	foreach (_MKL_VER ${_MKL_TEST_VERSIONS})
 		list(APPEND _MKL_ROOT_SEARCH_DIRS "/opt/intel/composerxe-${_MKL_VER}/mkl") # default until ParallelStudioXE2015 (root permissions)
 		list(APPEND _MKL_ROOT_SEARCH_DIRS "$ENV{HOME}/intel/composerxe-${_MKL_VER}/mkl") # default until ParallelStudioXE2015 (no root permissions)
 	endforeach()
 	list(APPEND _MKL_ROOT_SEARCH_DIRS "/opt/intel/compilers_and_libraries/linux/mkl") # default for ParallelStudioXE2016 and later (root permissions)
-	list(APPEND _MKL_ROOT_SEARCH_DIRS "$ENV{HOME}/intel/compilers_and_libraries/linux/mkl") # default for ParallelStudioXE2016 and later (no root permissions)
+	list(APPEND _MKL_ROOT_SEARCH_DIRS "/opt/intel/oneapi/mkl") # default for oneAPI (2020) and later (root permissions)
+    list(APPEND _MKL_ROOT_SEARCH_DIRS "$ENV{HOME}/intel/compilers_and_libraries/linux/mkl") # default for ParallelStudioXE2016 and later (no root permissions)
+    list(APPEND _MKL_ROOT_SEARCH_DIRS "$ENV{HOME}/intel/oneapi/mkl") # default for oneAPI (2020) and later (no root permissions)
 endif()
 
 
@@ -126,7 +133,7 @@ endif()
 find_path(MKL_INCLUDE_DIR
     NAMES mkl.h
     PATHS ${_MKL_ROOT_SEARCH_DIRS}
-    PATH_SUFFIXES include
+    PATH_SUFFIXES "include" "latest/include"
     DOC "The path to Intel(R) MKL header files"
 )
 
@@ -144,11 +151,20 @@ else()
 endif()
 
 # Find MKL library directory
-set(_INTEL_LIBRARY_DIR_SUFFIXES "lib")
+if (WIN32)
+    SET(OSKEYWORD "windows")
+elseif(APPLE)
+    SET(OSKEYWORD "macos")
+elseif(UNIX)
+    SET(OSKEYWORD "linux")
+endif()
+set(_MKL_LIBRARY_DIR_SUFFIXES "lib")
 if (_MKL_IA32)
-    list(APPEND _INTEL_LIBRARY_DIR_SUFFIXES "lib/ia32")
+    list(APPEND _MKL_LIBRARY_DIR_SUFFIXES "lib/ia32")
+    list(APPEND _MKL_LIBRARY_DIR_SUFFIXES "latest/lib/ia32")
 elseif (_MKL_INTEL64)
-    list(APPEND _INTEL_LIBRARY_DIR_SUFFIXES "lib/intel64")
+    list(APPEND _MKL_LIBRARY_DIR_SUFFIXES "lib/intel64")
+    list(APPEND _MKL_LIBRARY_DIR_SUFFIXES "latest/lib/intel64")
 else()
     message(FATAL_ERROR "unreachable")
 endif()
@@ -160,7 +176,7 @@ endif()
 
 if (MKL_FIND_DEBUG)
     message(STATUS "[ ${CMAKE_CURRENT_LIST_FILE}:${CMAKE_CURRENT_LIST_LINE} ] "
-                   "_INTEL_LIBRARY_DIR_SUFFIXES = ${_INTEL_LIBRARY_DIR_SUFFIXES}")
+                   "_MKL_LIBRARY_DIR_SUFFIXES = ${_MKL_LIBRARY_DIR_SUFFIXES}")
     message(STATUS "[ ${CMAKE_CURRENT_LIST_FILE}:${CMAKE_CURRENT_LIST_LINE} ] "
                    "_MKL_LIBRARY_SEARCH_DIRS = ${_MKL_LIBRARY_SEARCH_DIRS}")
 endif()
@@ -196,7 +212,7 @@ foreach (_MKL_LIB_RAW ${_MKL_LIBRARIES})
     find_library(${_MKL_LIB_UPPER}_LIBRARY
         NAMES ${_MKL_LIB}
         PATHS ${_MKL_LIBRARY_SEARCH_DIRS}
-        PATH_SUFFIXES ${_INTEL_LIBRARY_DIR_SUFFIXES}
+        PATH_SUFFIXES ${_MKL_LIBRARY_DIR_SUFFIXES}
         DOC "The path to Intel(R) MKL ${_MKL_LIB_RAW} library"
     )
     mark_as_advanced(${_MKL_LIB_UPPER}_LIBRARY)
@@ -216,16 +232,36 @@ foreach (_MKL_LIB_RAW ${_MKL_LIBRARIES})
 endforeach()
 
 ## Find OpenMP, pthread and math libraries
-
-set(_INTEL_LIBRARY_SEARCH_DIRS
-  ${INTEL_ROOT}
-  ${INTEL_ROOT}/compiler
-)
+if (INTEL_ROOT)
+    set(_INTEL_LIBRARY_SEARCH_DIRS
+        ${INTEL_ROOT}
+        ${INTEL_ROOT}/compiler
+    )
+endif()
 
 foreach(_MKL_DIR ${_MKL_ROOT_SEARCH_DIRS})
     list(APPEND _INTEL_LIBRARY_SEARCH_DIRS "${_MKL_DIR}/..")
     list(APPEND _INTEL_LIBRARY_SEARCH_DIRS "${_MKL_DIR}/../compiler")
+    list(APPEND _INTEL_LIBRARY_SEARCH_DIRS "${_MKL_DIR}/../compiler/latest/${OSKEYWORD}/compiler")
 endforeach()
+
+if (WIN32)
+    SET(OSKEYWORD_SHORT "win")
+elseif(APPLE)
+    SET(OSKEYWORD_SHORT "macos")
+elseif(UNIX)
+    SET(OSKEYWORD_SHORT "linux")
+endif()
+set(_INTEL_LIBRARY_DIR_SUFFIXES "lib")
+if (_MKL_IA32)
+    list(APPEND _INTEL_LIBRARY_DIR_SUFFIXES "lib/ia32")
+    list(APPEND _INTEL_LIBRARY_DIR_SUFFIXES "lib/ia32_${OSKEYWORD_SHORT}")
+elseif (_MKL_INTEL64)
+    list(APPEND _INTEL_LIBRARY_DIR_SUFFIXES "lib/intel64")
+    list(APPEND _INTEL_LIBRARY_DIR_SUFFIXES "lib/intel64_${OSKEYWORD_SHORT}")
+else()
+    message(FATAL_ERROR "unreachable")
+endif()
 
 if (MKL_FIND_DEBUG)
     message(STATUS "[ ${CMAKE_CURRENT_LIST_FILE}:${CMAKE_CURRENT_LIST_LINE} ] "

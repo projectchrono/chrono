@@ -37,17 +37,17 @@ static const double in2m = 0.0254;
 // -----------------------------------------------------------------------------
 RCCar_Vehicle::RCCar_Vehicle(const bool fixed,
                              ChContactMethod contact_method,
-                             ChassisCollisionType chassis_collision_type)
+                             CollisionType chassis_collision_type)
     : ChWheeledVehicle("RCCar", contact_method), m_omega({0, 0, 0, 0}) {
     Create(fixed, chassis_collision_type);
 }
 
-RCCar_Vehicle::RCCar_Vehicle(ChSystem* system, const bool fixed, ChassisCollisionType chassis_collision_type)
+RCCar_Vehicle::RCCar_Vehicle(ChSystem* system, const bool fixed, CollisionType chassis_collision_type)
     : ChWheeledVehicle("RCCar", system), m_omega({0, 0, 0, 0}) {
     Create(fixed, chassis_collision_type);
 }
 
-void RCCar_Vehicle::Create(bool fixed, ChassisCollisionType chassis_collision_type) {
+void RCCar_Vehicle::Create(bool fixed, CollisionType chassis_collision_type) {
     // Create the chassis subsystem
     m_chassis = chrono_types::make_shared<RCCar_Chassis>("Chassis", fixed, chassis_collision_type);
 

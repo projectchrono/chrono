@@ -26,19 +26,17 @@
     "Conservative Discretization":    true,
     "Gradient Discretization Type":    2,
     "Laplacian Discretization Type":   2
-
-
   },
 
   "Time Stepping":
   {
     "Adaptive Time stepping":        false,
     "CFL number":                    0.2,
-    "Fluid time step":               0.002,
+    "Fluid time step":               0.001,
     "Solid time step":               0.001,
     "Maximum time step":             0.001,
-    "End time":                      1.0,
-    "Write frame per second":        50
+    "End time":                      10.0,
+    "Write frame per second":        20
   },
 
 
@@ -57,7 +55,15 @@
     "Verbose monitoring":       false,
     "Constraint Pressure":      false,
     "Average Pressure":         0.0
+  },
+
+  "Geometry Inf":
+  {
+    "BoxDimensionX":                6.0,
+    "BoxDimensionY":                1.0,
+    "BoxDimensionZ":                4.0,
+    "FluidDimensionX":              2.0,
+    "FluidDimensionY":              1.0,
+    "FluidDimensionZ":              2.0
   }
-
-
 }

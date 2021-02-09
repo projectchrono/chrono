@@ -75,7 +75,7 @@ int main(int argc, char* argv[]) {
     // Create the Gator vehicle, set parameters, and initialize
     Gator gator;
     gator.SetContactMethod(ChContactMethod::NSC);
-    gator.SetChassisCollisionType(ChassisCollisionType::NONE);
+    gator.SetChassisCollisionType(CollisionType::NONE);
     gator.SetChassisFixed(false);
     gator.SetInitPosition(ChCoordsys<>(initLoc, initRot));
     gator.SetBrakeType(brake_type);

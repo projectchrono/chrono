@@ -38,7 +38,7 @@ def main():
                                veh.TrackShoeType_SINGLE_PIN, 
                                veh.BrakeType_SIMPLE, 
                                chrono.ChContactMethod_SMC,
-                               veh.ChassisCollisionType_NONE)
+                               veh.CollisionType_NONE)
 
     vehicle.Initialize(chrono.ChCoordsysD(initLoc, initRot))
 
@@ -160,7 +160,7 @@ initLoc = chrono.ChVectorD(0, 0, 1.1)
 initRot = chrono.ChQuaternionD(1, 0, 0, 0)
 
 # Collision type for chassis (PRIMITIVES, MESH, or NONE)
-chassis_collision_type = veh.ChassisCollisionType_NONE
+chassis_collision_type = veh.CollisionType_NONE
 
 # Rigid terrain
 terrainHeight = 0;      # terrain height (FLAT terrain only)

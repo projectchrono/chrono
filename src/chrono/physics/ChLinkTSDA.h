@@ -289,7 +289,7 @@ class ChApi ChLinkTSDA : public ChLink {
 
     static const double m_FD_delta;  ///< perturbation for finite-difference Jacobian approximation
 
-    friend class ChSystemParallel;
+    friend class ChSystemMulticore;
 };
 
 CH_CLASS_VERSION(ChLinkTSDA, 0)

@@ -22,11 +22,12 @@
 namespace chrono {
 namespace vehicle {
 
-/// Enumeration of collision shape types.
-enum class ChassisCollisionType {
+/// Enumeration of collision model types.
+enum class CollisionType {
     NONE,        ///< no contact shapes
     PRIMITIVES,  ///< contact model composed of primitives
-    MESH         ///< contact model composed of convex hulls
+    HULLS,       ///< contact model composed of convex hulls
+    MESH         ///< contact model composed of trimeshes
 };
 
 /// @addtogroup vehicle_models
@@ -47,20 +48,26 @@ namespace citybus {}
 /// Namespace for the generic wheeled vehicle model
 namespace generic {}
 
-/// Namespace for the M113 track vehicle
+/// Namespace for the M113 track vehicle model
 namespace m113 {}
 
-/// Namespace for the MAN truck models
+/// Namespace for the MAN truck vehicle models
 namespace man {}
 
-/// Namespace for the rccar model
+/// Namespace for the rccar vehicle model
 namespace rccar {}
 
-/// Namespace for the Gator vehicle
+/// Namespace for the Gator vehicle model
 namespace gator {}
 
-/// Namespace for the FMTV vehicles
+/// Namespace for the FMTV vehicle models
 namespace fmtv {}
+
+/// namespace for the RCCar vehicle model
+namespace rccar {}
+
+/// namespace for the Kraz truck vehicle model
+namespace kraz {}
 
 /// @} vehicle_models
 

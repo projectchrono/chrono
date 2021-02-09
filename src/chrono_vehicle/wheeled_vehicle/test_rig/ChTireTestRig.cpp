@@ -352,7 +352,7 @@ void ChTireTestRig::CreateMechanism() {
                    m_tire->GetMass();
     m_applied_load = m_total_mass * m_grav - m_normal_load;
 
-    // Approach using ChLoad does not work with Chrono::Parallel (loads currently not supported).
+    // Approach using ChLoad does not work with Chrono::Multicore (loads currently not supported).
     // Instead use a force accumulator (updated in ChTireTestRig::Advance)
 
     ////auto load = chrono_types::make_shared<ChLoadBodyForce>(m_chassis_body, ChVector<>(0, 0, m_applied_load), false,

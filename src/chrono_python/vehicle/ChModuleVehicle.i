@@ -84,7 +84,9 @@
 
 // Wheeled vehicle
 #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicle.h"
+#include "chrono_vehicle/wheeled_vehicle/ChWheeledTrailer.h"
 #include "chrono_vehicle/wheeled_vehicle/vehicle/WheeledVehicle.h"
+#include "chrono_vehicle/wheeled_vehicle/vehicle/WheeledTrailer.h"
 
 #include "chrono_vehicle/wheeled_vehicle/ChWheel.h"
 #include "chrono_vehicle/wheeled_vehicle/wheel/Wheel.h"
@@ -226,7 +228,9 @@ Before adding a shared_ptr, mark as shared ptr all its inheritance tree in the m
 %shared_ptr(chrono::vehicle::ChVehicle)
 %shared_ptr(chrono::vehicle::ChAxle)
 %shared_ptr(chrono::vehicle::ChWheeledVehicle)
+%shared_ptr(chrono::vehicle::ChWheeledTrailer)
 %shared_ptr(chrono::vehicle::WheeledVehicle)
+%shared_ptr(chrono::vehicle::WheeledTrailer)
 
 %shared_ptr(chrono::vehicle::ChSprocket)
 %shared_ptr(chrono::vehicle::ChIdler)
@@ -361,7 +365,9 @@ Before adding a shared_ptr, mark as shared ptr all its inheritance tree in the m
 %include "../../chrono_vehicle/wheeled_vehicle/ChAxle.h"
 
 %include "../../chrono_vehicle/wheeled_vehicle/ChWheeledVehicle.h"
+%include "../../chrono_vehicle/wheeled_vehicle/ChWheeledTrailer.h"
 %include "../../chrono_vehicle/wheeled_vehicle/vehicle/WheeledVehicle.h"
+%include "../../chrono_vehicle/wheeled_vehicle/vehicle/WheeledTrailer.h"
 
 // Tracked vehicles
 %include "ChTrackAssembly.i"
@@ -427,6 +433,11 @@ Before adding a shared_ptr, mark as shared ptr all its inheritance tree in the m
 %DefSharedPtrDynamicDowncast(chrono::vehicle,ChSteering, ChRotaryArm)
 
 %DefSharedPtrDynamicDowncast(chrono::vehicle,ChChassis, ChRigidChassis)
+%DefSharedPtrDynamicDowncast(chrono::vehicle,ChChassisRear, ChRigidChassisRear)
+
+%DefSharedPtrDynamicDowncast(chrono::vehicle,ChChassisConnector, ChChassisConnectorArticulated)
+%DefSharedPtrDynamicDowncast(chrono::vehicle,ChChassisConnector, ChChassisConnectorHitch)
+%DefSharedPtrDynamicDowncast(chrono::vehicle,ChChassisConnector, ChChassisConnectorTorsion)
 
 %DefSharedPtrDynamicDowncast(chrono::vehicle,ChTire, ChTMeasyTire)
 %DefSharedPtrDynamicDowncast(chrono::vehicle,ChTire, ChRigidTire)

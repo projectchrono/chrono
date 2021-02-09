@@ -201,7 +201,7 @@ plus optional:
   - chrono::fea::ChBeamSectionEulerAdvancedGeneric , if non-uniform elasticity or non-uniform density
   - chrono::fea::ChBeamSectionEulerEasyCircular , an easy-to-use shortcut
   - chrono::fea::ChBeamSectionEulerEasyRectangular , an easy-to-use shortcut
-
+- both material and geometric stiffness are computed.
 
 
 # ChElementBeamIGA   {#manual_ChElementBeamIGA}
@@ -237,7 +237,7 @@ shape, and relying on the Geometrically Exact Beam theory.
     - chrono::fea::ChDampingCosseratRayleigh 	
   - Plasticity model from chrono::fea::ChPlastcityCosserat (optional)
 - Some of the sectional properties above support the case of offsets in center of mass, center of shear, center of axial elastic forces, as well as rotation of the section axes, for defining complex beams like helicopter blades
-
+- Both material and geometric stiffness are considered.
 
 
   

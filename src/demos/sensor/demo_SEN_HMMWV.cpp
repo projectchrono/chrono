@@ -67,8 +67,8 @@ VisualizationType steering_vis_type = VisualizationType::PRIMITIVES;
 VisualizationType wheel_vis_type = VisualizationType::MESH;
 VisualizationType tire_vis_type = VisualizationType::MESH;
 
-// Collision type for chassis (PRIMITIVES, MESH, or NONE)
-ChassisCollisionType chassis_collision_type = ChassisCollisionType::NONE;
+// Collision type for chassis (PRIMITIVES, HULLS, or NONE)
+CollisionType chassis_collision_type = CollisionType::NONE;
 
 // Type of powertrain model (SHAFTS, SIMPLE)
 PowertrainModelType powertrain_model = PowertrainModelType::SHAFTS;
@@ -311,7 +311,7 @@ int main(int argc, char* argv[]) {
     auto manager = chrono_types::make_shared<ChSensorManager>(my_hmmwv.GetSystem());
     manager->scene->AddPointLight({100, 100, 100}, {2, 2, 2}, 5000);
 
-    manager->SetKeyframeSizeFromTimeStep(step_size, exposure_time);
+    manager->SetKeyframeSizeFromTimeStep((float)step_size, (float)exposure_time);
 
     // Set environment map
     // manager->scene->GetBackground().has_texture = true;
@@ -402,7 +402,7 @@ int main(int argc, char* argv[]) {
 
     if (sensor_vis)
         // Renders the point cloud
-        lidar->PushFilter(chrono_types::make_shared<ChFilterVisualizePointCloud>(640, 480, 3, "Lidar Point Cloud"));
+        lidar->PushFilter(chrono_types::make_shared<ChFilterVisualizePointCloud>(640, 480, 3.0f, "Lidar Point Cloud"));
 
     if (sensor_save)
         // Save the XYZI data

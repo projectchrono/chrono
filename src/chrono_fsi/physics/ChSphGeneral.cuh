@@ -62,10 +62,10 @@ __device__ inline Real W3_Spline(Real d) {  // d is positive. h is the sph parti
     Real h = paramsD.HSML;
     Real q = fabs(d) / h;
     if (q < 1) {
-        return (0.25f / (PI * h * h * h) * (pow(2 - q, Real(3)) - 4 * pow(1 - q, Real(3))));
+        return (0.25f / (PI * h * h * h) * (cube(2 - q) - 4 * cube(1 - q)));
     }
     if (q < 2) {
-        return (0.25f / (PI * h * h * h) * pow(2 - q, Real(3)));
+        return (0.25f / (PI * h * h * h) * cube(2 - q));
     }
     return 0;
 }
@@ -75,10 +75,10 @@ __host__ __device__ inline Real W3h_Spline(Real d, Real h) {  // d is positive. 
                                                               // the document) d is the distance of 2 particles
     Real q = fabs(d) / h;
     if (q < 1) {
-        return (0.25f / (PI * h * h * h) * (pow(2 - q, Real(3)) - 4 * pow(1 - q, Real(3))));
+        return (0.25f / (PI * h * h * h) * (cube(2 - q) - 4 * cube(1 - q)));
     }
     if (q < 2) {
-        return (0.25f / (PI * h * h * h) * pow(2 - q, Real(3)));
+        return (0.25f / (PI * h * h * h) * cube(2 - q));
     }
     return 0;
 }
@@ -88,7 +88,7 @@ __host__ __device__ inline Real W3h_High(Real d, Real h) {  // d is positive. h 
                                                             // the document) d is the distance of 2 particles
     Real q = fabs(d) / h;
     if (q < 2) {
-        return (5.0f / (4.0f * PI * h * h * h) * (3.0 / 16.0 * pow(q, 2.0) - 3.0 / 4.0 * q + 3.0 / 4.0));
+        return (5.0f / (4.0f * PI * h * h * h) * (3.0 / 16.0 * square(q) - 3.0 / 4.0 * q + 3.0 / 4.0));
     }
     return 0;
 }
@@ -136,11 +136,10 @@ __device__ inline Real3 W3H_GRADW(Real3 d, Real h) {  // d is positive. h is the
 //	Real h = paramsD.HSML;
 //	Real q = fabs(d) / h;
 //	if (q < 1) {
-//		return (5 / (14 * PI * h * h) * (pow(2 - q, Real(3)) - 4 * pow(1 -
-// q, Real(3))));
+//		return (5 / (14 * PI * h * h) * (cube(2 - q) - 4 * cube(1 - q)));
 //	}
 //	if (q < 2) {
-//		return (5 / (14 * PI * h * h) * pow(2 - q, Real(3)));
+//		return (5 / (14 * PI * h * h) * cube(2 - q));
 //	}
 //	return 0;
 //}
@@ -151,7 +150,7 @@ __device__ inline Real3 W3H_GRADW(Real3 d, Real h) {  // d is positive. h is the
 // document) d is the distance of 2 particles
 //	Real q = fabs(d) / h;
 //	if (q < 2) {
-//		return (1.25f / (PI * h * h * h) * .75f * (pow(.5f * q, Real(2)) -
+//		return (1.25f / (PI * h * h * h) * .75f * (square(.5f * q) -
 // q + 1));
 //	}
 //	return 0;
@@ -163,7 +162,7 @@ __device__ inline Real3 W3H_GRADW(Real3 d, Real h) {  // d is positive. h is the
 // document) d is the distance of 2 particles
 //	Real q = fabs(d) / h;
 //	if (q < 2) {
-//		return (2.0f / (PI * h * h) * .75f * (pow(.5f * q, Real(2)) - q +
+//		return (2.0f / (PI * h * h) * .75f * (square(.5f * q) - q +
 // 1));
 //	}
 //	return 0;

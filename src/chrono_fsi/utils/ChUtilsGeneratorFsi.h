@@ -110,6 +110,13 @@ CH_FSI_API void AddBoxBce(std::shared_ptr<ChFsiDataManager> fsiData,
                           bool isSolid = false,
                           bool add_to_previous = false);
 
+CH_FSI_API void AddBCE_FromPoints(std::shared_ptr<ChFsiDataManager> fsiData,
+                                  std::shared_ptr<SimParams> paramsH,
+                                  std::shared_ptr<ChBody> body,
+                                  const std::vector<chrono::ChVector<>>& points,
+                                  chrono::ChVector<> collisionShapeRelativePos = chrono::ChVector<>(0),
+                                  chrono::ChQuaternion<> collisionShapeRelativeRot = chrono::QUNIT);
+
 CH_FSI_API void AddBCE_FromFile(std::shared_ptr<ChFsiDataManager> fsiData,
                                 std::shared_ptr<SimParams> paramsH,
                                 std::shared_ptr<ChBody> body,

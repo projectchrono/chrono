@@ -56,7 +56,7 @@ NoiseModel noise_model = PIXEL_DEPENDENT;
 CameraLensModelType lens_model = SPHERICAL;
 
 // Update rate in Hz
-float update_rate = 30;
+float update_rate = 30.f;
 
 // Image width and height
 unsigned int image_width = 1280;
@@ -69,7 +69,7 @@ float fov = (float)CH_C_PI / 3.;
 float lag = .05f;
 
 // Exposure (in seconds) of each image
-float exposure_time = 0.02;
+float exposure_time = 0.02f;
 
 int alias_factor = 2;
 

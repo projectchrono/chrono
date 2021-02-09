@@ -16,9 +16,6 @@
 //
 // =============================================================================
 
-//// RADU
-//// Todo: extend to allow axles with double wheels
-
 #include "chrono_vehicle/wheeled_vehicle/vehicle/WheeledVehicle.h"
 
 #include "chrono_vehicle/ChVehicleModelData.h"
@@ -187,12 +184,14 @@ void WheeledVehicle::Create(const std::string& filename) {
             m_axles[i]->m_wheels[1] = ReadWheelJSON(vehicle::GetDataFile(file_name));
         }
 
-        // Left and right brakes
-        file_name = d["Axles"][i]["Left Brake Input File"].GetString();
-        m_axles[i]->m_brake_left = ReadBrakeJSON(vehicle::GetDataFile(file_name));
+        // Left and right brakes (may be absent)
+        if (d["Axles"][i].HasMember("Left Brake Input File")) {
+            file_name = d["Axles"][i]["Left Brake Input File"].GetString();
+            m_axles[i]->m_brake_left = ReadBrakeJSON(vehicle::GetDataFile(file_name));
 
-        file_name = d["Axles"][i]["Right Brake Input File"].GetString();
-        m_axles[i]->m_brake_right = ReadBrakeJSON(vehicle::GetDataFile(file_name));
+            file_name = d["Axles"][i]["Right Brake Input File"].GetString();
+            m_axles[i]->m_brake_right = ReadBrakeJSON(vehicle::GetDataFile(file_name));
+        }
 
         if (d["Axles"][i].HasMember("Output")) {
             bool output = d["Axles"][i]["Output"].GetBool();

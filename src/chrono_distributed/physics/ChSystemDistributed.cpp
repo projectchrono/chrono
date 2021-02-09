@@ -34,9 +34,9 @@
 #include "chrono_distributed/physics/ChDomainDistributed.h"
 #include "chrono_distributed/physics/ChSystemDistributed.h"
 
-#include "chrono_parallel/ChDataManager.h"
-#include "chrono_parallel/ChParallelDefines.h"
-#include "chrono_parallel/collision/ChCollisionSystemParallel.h"
+#include "chrono_multicore/ChDataManager.h"
+#include "chrono_multicore/ChMulticoreDefines.h"
+#include "chrono_multicore/collision/ChCollisionSystemMulticore.h"
 
 using namespace chrono;
 using namespace collision;
@@ -125,7 +125,7 @@ bool ChSystemDistributed::Integrate_Y() {
     assert(domain->IsSplit());
     ddm->initial_add = false;
 
-    bool ret = ChSystemParallelSMC::Integrate_Y();
+    bool ret = ChSystemMulticoreSMC::Integrate_Y();
     if (num_ranks != 1) {
         data_manager->system_timer.start("Exchange");
         comm->Exchange();
@@ -138,7 +138,7 @@ bool ChSystemDistributed::Integrate_Y() {
 }
 
 void ChSystemDistributed::UpdateRigidBodies() {
-    this->ChSystemParallel::UpdateRigidBodies();
+    this->ChSystemMulticore::UpdateRigidBodies();
 
 #pragma omp parallel for
     for (int i = 0; i < assembly.bodylist.size(); i++) {
@@ -181,7 +181,7 @@ void ChSystemDistributed::AddBodyAllRanks(std::shared_ptr<ChBody> newbody) {
     data_manager->host_data.collide_rigid.push_back(true);
 
     // Let derived classes reserve space for specific material surface data
-    ChSystemParallelSMC::AddMaterialSurfaceData(newbody);
+    ChSystemMulticoreSMC::AddMaterialSurfaceData(newbody);
 }
 
 void ChSystemDistributed::AddBody(std::shared_ptr<ChBody> newbody) {
@@ -245,7 +245,7 @@ void ChSystemDistributed::AddBody(std::shared_ptr<ChBody> newbody) {
     data_manager->host_data.collide_rigid.push_back(true);
 
     // Let derived classes reserve space for specific material surface data
-    ChSystemParallelSMC::AddMaterialSurfaceData(newbody);
+    ChSystemMulticoreSMC::AddMaterialSurfaceData(newbody);
 }
 
 // Should only be called to add a body when there are no free spaces to insert it into
@@ -275,7 +275,7 @@ void ChSystemDistributed::AddBodyExchange(std::shared_ptr<ChBody> newbody, distr
 
     ddm->gid_to_localid[newbody->GetGid()] = newbody->GetId();
     // Let derived classes reserve space for specific material surface data
-    ChSystemParallelSMC::AddMaterialSurfaceData(newbody);
+    ChSystemMulticoreSMC::AddMaterialSurfaceData(newbody);
 }
 
 void ChSystemDistributed::RemoveBodyExchange(int index) {

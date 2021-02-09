@@ -44,8 +44,8 @@ class CH_SENSOR_API ChCameraSensor : public ChOptixSensor {
     /// @param w The width of the image the camera should generate.
     /// @param h The height of the image the camera should generate.
     /// @param hFOV The horizontal field of view of the camera lens.
-    /// @param lag The lag between when data collection is stopped and when data should be available to the user.
-    /// @param exposure_time The time the camera should be collecting data for each frame.
+    // @param lag The lag between when data collection is stopped and when data should be available to the user.
+    // @param exposure_time The time the camera should be collecting data for each frame.
     /// @param supersample_factor The number of rays that should be sampled per pixel for antialiasing.
     /// @param lens_model A enum specifying the desired lens model.
     ChCameraSensor(std::shared_ptr<chrono::ChBody> parent,     // object to which the sensor is attached
