@@ -89,39 +89,39 @@ CH_SENSOR_API void ChFilterPCfromDepth::Apply(std::shared_ptr<ChSensor> pSensor,
     m_buffer->Beam_return_count = 0;
     // host buffer to store data
     if (bool_dualRet){
-        float* buf = new float[m_buffer->Width * m_buffer->Height * 4 * 2];
-        float* new_buf = new float[m_buffer->Width * m_buffer->Height * 4 * 2];
-        cudaMemcpy(buf, m_buffer->Buffer.get(), m_buffer->Width * m_buffer->Height * 2 * sizeof(PixelXYZI), cudaMemcpyDeviceToHost);
+        std::vector<float> buf(m_buffer->Width * m_buffer->Height * 4 * 2);
+        std::vector<float> new_buf(m_buffer->Width * m_buffer->Height * 4 * 2);
+        cudaMemcpy(buf.data(), m_buffer->Buffer.get(), m_buffer->Width * m_buffer->Height * 2 * sizeof(PixelXYZI), cudaMemcpyDeviceToHost);
 
         for (unsigned int i = 0; i < m_buffer->Width * m_buffer->Height; i++){
-            if (buf[i * 8 + 3] > 0) {
-                new_buf[m_buffer->Beam_return_count * 8] = buf[i * 8];
-                new_buf[m_buffer->Beam_return_count * 8 + 1] = buf[i * 8 + 1];
-                new_buf[m_buffer->Beam_return_count * 8 + 2] = buf[i * 8 + 2];
-                new_buf[m_buffer->Beam_return_count * 8 + 3] = buf[i * 8 + 3];
-                new_buf[m_buffer->Beam_return_count * 8 + 4] = buf[i * 8 + 4];
-                new_buf[m_buffer->Beam_return_count * 8 + 5] = buf[i * 8 + 5];
-                new_buf[m_buffer->Beam_return_count * 8 + 6] = buf[i * 8 + 6];
-                new_buf[m_buffer->Beam_return_count * 8 + 7] = buf[i * 8 + 7];
+            if (buf.data()[i * 8 + 3] > 0) {
+                new_buf.data()[m_buffer->Beam_return_count * 8] = buf.data()[i * 8];
+                new_buf.data()[m_buffer->Beam_return_count * 8 + 1] = buf.data()[i * 8 + 1];
+                new_buf.data()[m_buffer->Beam_return_count * 8 + 2] = buf.data()[i * 8 + 2];
+                new_buf.data()[m_buffer->Beam_return_count * 8 + 3] = buf.data()[i * 8 + 3];
+                new_buf.data()[m_buffer->Beam_return_count * 8 + 4] = buf.data()[i * 8 + 4];
+                new_buf.data()[m_buffer->Beam_return_count * 8 + 5] = buf.data()[i * 8 + 5];
+                new_buf.data()[m_buffer->Beam_return_count * 8 + 6] = buf.data()[i * 8 + 6];
+                new_buf.data()[m_buffer->Beam_return_count * 8 + 7] = buf.data()[i * 8 + 7];
                 m_buffer->Beam_return_count++;
             }
         }
-        cudaMemcpy(m_buffer->Buffer.get(), new_buf, m_buffer->Beam_return_count * 2 * sizeof(PixelXYZI), cudaMemcpyHostToDevice);
+        cudaMemcpy(m_buffer->Buffer.get(), new_buf.data(), m_buffer->Beam_return_count * 2 * sizeof(PixelXYZI), cudaMemcpyHostToDevice);
     } else {
-        float* buf = new float[m_buffer->Width * m_buffer->Height * 4];
-        float* new_buf = new float[m_buffer->Width * m_buffer->Height * 4];
-        cudaMemcpy(buf, m_buffer->Buffer.get(), m_buffer->Width * m_buffer->Height * sizeof(PixelXYZI), cudaMemcpyDeviceToHost);
+        std::vector<float> buf(m_buffer->Width * m_buffer->Height * 4);
+        std::vector<float> new_buf(m_buffer->Width * m_buffer->Height * 4);
+        cudaMemcpy(buf.data(), m_buffer->Buffer.get(), m_buffer->Width * m_buffer->Height * sizeof(PixelXYZI), cudaMemcpyDeviceToHost);
 
         for (unsigned int i = 0; i < m_buffer->Width * m_buffer->Height; i++){
-            if (buf[i * 4 + 3] > 0) {
-                new_buf[m_buffer->Beam_return_count * 4] = buf[i * 4];
-                new_buf[m_buffer->Beam_return_count * 4 + 1] = buf[i * 4 + 1];
-                new_buf[m_buffer->Beam_return_count * 4 + 2] = buf[i * 4 + 2];
-                new_buf[m_buffer->Beam_return_count * 4 + 3] = buf[i * 4 + 3];
+            if (buf.data()[i * 4 + 3] > 0) {
+                new_buf.data()[m_buffer->Beam_return_count * 4] = buf.data()[i * 4];
+                new_buf.data()[m_buffer->Beam_return_count * 4 + 1] = buf.data()[i * 4 + 1];
+                new_buf.data()[m_buffer->Beam_return_count * 4 + 2] = buf.data()[i * 4 + 2];
+                new_buf.data()[m_buffer->Beam_return_count * 4 + 3] = buf.data()[i * 4 + 3];
                 m_buffer->Beam_return_count++;
             }
         }
-        cudaMemcpy(m_buffer->Buffer.get(), new_buf, m_buffer->Beam_return_count * sizeof(PixelXYZI), cudaMemcpyHostToDevice);
+        cudaMemcpy(m_buffer->Buffer.get(), new_buf.data(), m_buffer->Beam_return_count * sizeof(PixelXYZI), cudaMemcpyHostToDevice);
     }
 //    printf("%i %i\n", m_buffer->Dual_return, m_buffer->Width * m_buffer->Height);
 
