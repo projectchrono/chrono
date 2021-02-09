@@ -356,7 +356,20 @@ void CreateSolidPhase(ChSystemNSC& mphysicalSystem,
 
     rover = chrono_types::make_shared<ViperRover>(&mphysicalSystem, body_pos, body_rot, CustomWheelMaterial(ChContactMethod::NSC));
     rover->Initialize();
-    
+
+    for(int i = 0; i < 4; i ++){
+        auto wheel_body;
+        if(i == 0){wheel_body = rover->GetWheelBody(WheelID::LF);}
+        if(i == 1){wheel_body = rover->GetWheelBody(WheelID::RF);}
+        if(i == 2){wheel_body = rover->GetWheelBody(WheelID::LB);}
+        if(i == 3){wheel_body = rover->GetWheelBody(WheelID::RB);}
+
+        myFsiSystem.AddFsiBody(wheel_body);
+        std::string BCE_path = GetChronoDataFile("fsi/demo_BCE/BCE_simplifiedWheel_low.txt");
+        fsi::utils::AddBCE_FromFile(myFsiSystem.GetDataManager(), paramsH, wheel_body, BCE_path, 
+                                    ChVector<double>(0), QUNIT, scale_ratio);
+    }
+
     // double FSI_MASS = myFsiSystem.GetDataManager()->numObjects->numRigid_SphMarkers * paramsH->markerMass;
     // printf("inertia=%f,%f,%f\n", mass * gyration.x(), mass * gyration.y(), mass * gyration.z());
     // printf("\nreal mass=%f, FSI_MASS=%f\n\n", mass, FSI_MASS);
