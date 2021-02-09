@@ -291,7 +291,7 @@ void SynChronoManager::CreateAgentsFromDescriptions() {
 
                     // SynLog() << "Added agent with ID " << message->GetSourceID() << "\n";
                 }
-                messages.erase(it);
+                it = messages.erase(it);
 
             } catch (ChException err) {
                 ++it;
