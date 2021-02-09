@@ -93,7 +93,7 @@ endif()
  
 # Set location of SWIG-generated files.
 # Note that *.py files are also generated in this location.
-set(CMAKE_SWIG_OUTDIR "${PROJECT_BINARY_DIR}/swig")
+set(CMAKE_SWIG_OUTDIR "${PROJECT_BINARY_DIR}/chrono_python")
 SET(CMAKE_SWIG_FLAGS "-c++")
 
 if(DBG_SCRIPT)
