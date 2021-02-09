@@ -173,8 +173,12 @@ int main(int argc, char* argv[]) {
     fyDim = paramsH->fluidDimY + smalldis;
     fzDim = paramsH->fluidDimZ + smalldis;
 
+    
+
     myFsiSystem.SetFluidDynamics(paramsH->fluid_dynamic_type);
     myFsiSystem.SetFluidSystemLinearSolver(paramsH->LinearSolver);
+
+    
 
     // fsi::utils::ParseJSON sets default values to cMin and cMax which may need
     // to be modified depending on the case (e.g periodic BC)
@@ -184,6 +188,8 @@ int main(int argc, char* argv[]) {
     // call FinalizeDomain to setup the binning for neighbor search or write your own
     fsi::utils::FinalizeDomain(paramsH);
     fsi::utils::PrepareOutputDir(paramsH, demo_dir, out_dir, argv[1]);
+
+    
 
     // ******************************* Create Fluid region ****************************************
     /// Create an initial box of fluid
@@ -203,7 +209,7 @@ int main(int argc, char* argv[]) {
             fsi::mR3(0.0e0),                               // tauxxyyzz
             fsi::mR3(0.0e0));                              // tauxyxzyz
     }
-
+    
     size_t numPhases = myFsiSystem.GetDataManager()->fsiGeneralData->referenceArray.size();
 
     if (numPhases != 0) {
@@ -217,7 +223,7 @@ int main(int argc, char* argv[]) {
 
     /// Create MBD or FE model
     CreateSolidPhase(mphysicalSystem, myFsiSystem, paramsH);
-
+ 
     /// Construction of the FSI system must be finalized
     myFsiSystem.Finalize();
 
@@ -225,7 +231,7 @@ int main(int argc, char* argv[]) {
     double mTime = 0;
     int stepEnd = int(paramsH->tFinal / paramsH->dT);
     stepEnd = 1000000;
-
+  
     /// use the following to write a VTK file of the Rover
     std::vector<std::vector<double>> vCoor;
     std::vector<std::vector<int>> faces;
@@ -243,6 +249,7 @@ int main(int argc, char* argv[]) {
     /// Get the body from the FSI system
     std::vector<std::shared_ptr<ChBody>>& FSI_Bodies = myFsiSystem.GetFsiBodies();
     auto Rover = FSI_Bodies[0];
+
     SaveParaViewFiles(myFsiSystem, mphysicalSystem, paramsH, 0, 0);
 
     /// write the Penetration into file
@@ -258,7 +265,6 @@ int main(int argc, char* argv[]) {
            << Rover->GetPos_dt().y() << "\t"
            << Rover->GetPos_dt().z() << "\n";
     myFile.close();
-
     Real time = 0;
     Real Global_max_dT = paramsH->dT_Max;
     for (int tStep = 0; tStep < stepEnd + 1; tStep++) {
@@ -358,7 +364,7 @@ void CreateSolidPhase(ChSystemNSC& mphysicalSystem,
     rover->Initialize();
 
     for(int i = 0; i < 4; i ++){
-        auto wheel_body;
+        std::shared_ptr<ChBodyAuxRef> wheel_body;
         if(i == 0){wheel_body = rover->GetWheelBody(WheelID::LF);}
         if(i == 1){wheel_body = rover->GetWheelBody(WheelID::RF);}
         if(i == 2){wheel_body = rover->GetWheelBody(WheelID::LB);}
@@ -367,9 +373,9 @@ void CreateSolidPhase(ChSystemNSC& mphysicalSystem,
         myFsiSystem.AddFsiBody(wheel_body);
         std::string BCE_path = GetChronoDataFile("fsi/demo_BCE/BCE_simplifiedWheel_low.txt");
         fsi::utils::AddBCE_FromFile(myFsiSystem.GetDataManager(), paramsH, wheel_body, BCE_path, 
-                                    ChVector<double>(0), QUNIT, scale_ratio);
+                                    ChVector<double>(0), QUNIT, 1.0);
     }
-
+    
     // double FSI_MASS = myFsiSystem.GetDataManager()->numObjects->numRigid_SphMarkers * paramsH->markerMass;
     // printf("inertia=%f,%f,%f\n", mass * gyration.x(), mass * gyration.y(), mass * gyration.z());
     // printf("\nreal mass=%f, FSI_MASS=%f\n\n", mass, FSI_MASS);
@@ -405,7 +411,7 @@ void SaveParaViewFiles(fsi::ChSystemFsi& myFsiSystem,
             ChQuaternion<> body_rot = body_ref_frame.GetRot();//body->GetRot(); 
 
             auto mmesh = chrono_types::make_shared<ChTriangleMeshConnected>();
-            std::string obj_path = (GetChronoDataFile("robot/viper/obj/viper_chassis"));
+            std::string obj_path = (GetChronoDataFile("robot/viper/obj/viper_chassis.obj"));
             double scale_ratio = 1.0;
             mmesh->LoadWavefrontMesh(obj_path, false, true);
             mmesh->Transform(ChVector<>(0, 0, 0), ChMatrix33<>(scale_ratio));     // scale to a different size
@@ -448,19 +454,24 @@ void SaveParaViewFiles(fsi::ChSystemFsi& myFsiSystem,
                 file.close();
             }
         }
+
+ 
+
+
         // save the wheels to obj/vtk files
         for (int i = 0; i < 4; i++) {
             std::shared_ptr<ChBodyAuxRef> body;
-            if(i==1){body=rover->GetWheelBody(WheelID::LF);}
-            if(i==2){body=rover->GetWheelBody(WheelID::RF);}
-            if(i==3){body=rover->GetWheelBody(WheelID::LB);}
-            if(i==4){body=rover->GetWheelBody(WheelID::RB);}
+            if(i==0){body=rover->GetWheelBody(WheelID::LF);}
+            if(i==1){body=rover->GetWheelBody(WheelID::RF);}
+            if(i==2){body=rover->GetWheelBody(WheelID::LB);}
+            if(i==3){body=rover->GetWheelBody(WheelID::RB);}
+
             ChFrame<> body_ref_frame = body->GetFrame_REF_to_abs();
             ChVector<> body_pos = body_ref_frame.GetPos();//body->GetPos();
             ChQuaternion<> body_rot = body_ref_frame.GetRot();//body->GetRot(); 
 
             auto mmesh = chrono_types::make_shared<ChTriangleMeshConnected>();
-            std::string obj_path = GetChronoDataFile("robot/viper/obj/viper_wheel");
+            std::string obj_path = GetChronoDataFile("robot/viper/obj/viper_wheel.obj");
             double scale_ratio = 1.0;
             mmesh->LoadWavefrontMesh(obj_path, false, true);
             mmesh->Transform(ChVector<>(0, 0, 0), ChMatrix33<>(scale_ratio));     // scale to a different size
@@ -472,7 +483,7 @@ void SaveParaViewFiles(fsi::ChSystemFsi& myFsiSystem,
             mmesh->ComputeMassProperties(true, mmass, mcog, minertia);
             mmesh->Transform(body_pos, ChMatrix33<>(body_rot));  // rotate the mesh based on the orientation of body
 
-            char filename[4096];
+            char filename[4096];    
             if(1==0){// save to obj file
                 sprintf(filename, "%s/wheel_%d_%d.obj", paramsH->demo_dir, i+1, next_frame);
                 std::vector<geometry::ChTriangleMeshConnected> meshes = { *mmesh };
@@ -503,13 +514,15 @@ void SaveParaViewFiles(fsi::ChSystemFsi& myFsiSystem,
                 file.close();
             }
         } 
+
+
         // save the steering rod to obj/vtk files
         for (int i = 0; i < 4; i++) {
             std::shared_ptr<ChBodyAuxRef> body;
-            if(i==1){body=rover->GetSteeringBody(WheelID::LF);}
-            if(i==2){body=rover->GetSteeringBody(WheelID::RF);}
-            if(i==3){body=rover->GetSteeringBody(WheelID::LB);}
-            if(i==4){body=rover->GetSteeringBody(WheelID::RB);}
+            if(i==0){body=rover->GetSteeringBody(WheelID::LF);}
+            if(i==1){body=rover->GetSteeringBody(WheelID::RF);}
+            if(i==2){body=rover->GetSteeringBody(WheelID::LB);}
+            if(i==3){body=rover->GetSteeringBody(WheelID::RB);}
             ChFrame<> body_ref_frame = body->GetFrame_REF_to_abs();
             ChVector<> body_pos = body_ref_frame.GetPos();//body->GetPos();
             ChQuaternion<> body_rot = body_ref_frame.GetRot();//body->GetRot(); 
@@ -517,10 +530,10 @@ void SaveParaViewFiles(fsi::ChSystemFsi& myFsiSystem,
             auto mmesh = chrono_types::make_shared<ChTriangleMeshConnected>();
             std::string obj_path = "";
             if(i == 0 || i == 2){
-                obj_path = GetChronoDataFile("robot/viper/obj/viper_L_steer");
+                obj_path = GetChronoDataFile("robot/viper/obj/viper_L_steer.obj");
             }
             if(i == 1 || i == 3){
-                obj_path = GetChronoDataFile("robot/viper/obj/viper_R_steer");
+                obj_path = GetChronoDataFile("robot/viper/obj/viper_R_steer.obj");
             }
             double scale_ratio = 1.0;
             mmesh->LoadWavefrontMesh(obj_path, false, true);
@@ -567,10 +580,10 @@ void SaveParaViewFiles(fsi::ChSystemFsi& myFsiSystem,
         // save the lower rod to obj/vtk files
         for (int i = 0; i < 4; i++) {
             std::shared_ptr<ChBodyAuxRef> body;
-            if(i==1){body=rover->GetBottomArmBody(WheelID::LF);}
-            if(i==2){body=rover->GetBottomArmBody(WheelID::RF);}
-            if(i==3){body=rover->GetBottomArmBody(WheelID::LB);}
-            if(i==4){body=rover->GetBottomArmBody(WheelID::RB);}
+            if(i==0){body=rover->GetBottomArmBody(WheelID::LF);}
+            if(i==1){body=rover->GetBottomArmBody(WheelID::RF);}
+            if(i==2){body=rover->GetBottomArmBody(WheelID::LB);}
+            if(i==3){body=rover->GetBottomArmBody(WheelID::RB);}
             ChFrame<> body_ref_frame = body->GetFrame_REF_to_abs();
             ChVector<> body_pos = body_ref_frame.GetPos();//body->GetPos();
             ChQuaternion<> body_rot = body_ref_frame.GetRot();//body->GetRot(); 
@@ -578,10 +591,10 @@ void SaveParaViewFiles(fsi::ChSystemFsi& myFsiSystem,
             auto mmesh = chrono_types::make_shared<ChTriangleMeshConnected>();
             std::string obj_path = "";
             if(i == 0 || i == 2){
-                obj_path = GetChronoDataFile("robot/viper/obj/viper_L_bt_sus");
+                obj_path = GetChronoDataFile("robot/viper/obj/viper_L_bt_sus.obj");
             }
             if(i == 1 || i == 3){
-                obj_path = GetChronoDataFile("robot/viper/obj/viper_R_bt_sus");
+                obj_path = GetChronoDataFile("robot/viper/obj/viper_R_bt_sus.obj");
             }
             double scale_ratio = 1.0;
             mmesh->LoadWavefrontMesh(obj_path, false, true);
@@ -628,10 +641,10 @@ void SaveParaViewFiles(fsi::ChSystemFsi& myFsiSystem,
         // save the upper rod to obj/vtk files
         for (int i = 0; i < 4; i++) {
             std::shared_ptr<ChBodyAuxRef> body;
-            if(i==1){body=rover->GetUpArmBody(WheelID::LF);}
-            if(i==2){body=rover->GetUpArmBody(WheelID::RF);}
-            if(i==3){body=rover->GetUpArmBody(WheelID::LB);}
-            if(i==4){body=rover->GetUpArmBody(WheelID::RB);}
+            if(i==0){body=rover->GetUpArmBody(WheelID::LF);}
+            if(i==1){body=rover->GetUpArmBody(WheelID::RF);}
+            if(i==2){body=rover->GetUpArmBody(WheelID::LB);}
+            if(i==3){body=rover->GetUpArmBody(WheelID::RB);}
             ChFrame<> body_ref_frame = body->GetFrame_REF_to_abs();
             ChVector<> body_pos = body_ref_frame.GetPos();//body->GetPos();
             ChQuaternion<> body_rot = body_ref_frame.GetRot();//body->GetRot(); 
@@ -639,10 +652,10 @@ void SaveParaViewFiles(fsi::ChSystemFsi& myFsiSystem,
             auto mmesh = chrono_types::make_shared<ChTriangleMeshConnected>();
             std::string obj_path = "";
             if(i == 0 || i == 2){
-                obj_path = GetChronoDataFile("robot/viper/obj/viper_L_up_sus");
+                obj_path = GetChronoDataFile("robot/viper/obj/viper_L_up_sus.obj");
             }
             if(i == 1 || i == 3){
-                obj_path = GetChronoDataFile("robot/viper/obj/viper_R_up_sus");
+                obj_path = GetChronoDataFile("robot/viper/obj/viper_R_up_sus.obj");
             }
             
             double scale_ratio = 1.0;
