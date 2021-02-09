@@ -45,7 +45,6 @@
         @defgroup synchrono_communication Communication
         @{
             @defgroup synchrono_communication_mpi MPI
-            @defgroup synchrono_communication_dds DDS
         @}
         @defgroup synchrono_flatbuffer Flatbuffer Messages
         @defgroup synchrono_utils Utilities
