@@ -87,6 +87,9 @@ class SYN_API SynDDSPublisher {
     ///
     void WaitForMatches(unsigned int matches);
 
+    eprosima::fastdds::dds::Publisher* GetPublisher() { return m_publisher; }
+    eprosima::fastdds::dds::DataWriter* GetDataWriter() { return m_writer; }
+
   private:
     eprosima::fastdds::dds::Publisher* m_publisher;  ///< FastDDS publisher that handles data writers
     eprosima::fastdds::dds::DataWriter* m_writer;    ///< FastDDS Data writer which handles data writing (sending)

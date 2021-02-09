@@ -17,6 +17,8 @@
 //
 // =============================================================================
 
+#include <chrono>
+
 #include "chrono_vehicle/ChConfigVehicle.h"
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
@@ -301,6 +303,7 @@ int main(int argc, char* argv[]) {
             SynLog() << (time_span.count() / 1e3) / time << "\n";
         }
     }
+    syn_manager.QuitSimulation();
 
     return 0;
 }

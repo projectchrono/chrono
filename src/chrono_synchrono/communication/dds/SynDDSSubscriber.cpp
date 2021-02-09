@@ -38,19 +38,7 @@ SynDDSSubscriber::SynDDSSubscriber(Subscriber* subscriber,
       m_message(message),
       m_is_synchronous(is_synchronous) {}
 
-SynDDSSubscriber::~SynDDSSubscriber() {
-    // Clean the DataReader
-    if (m_reader && m_subscriber)
-        m_subscriber->delete_datareader(m_reader);
-
-    if (m_message) {
-        auto message = (SynDDSMessage*)m_message;
-        delete message;
-    }
-
-    if (m_listener)
-        delete m_listener;
-}
+SynDDSSubscriber::~SynDDSSubscriber() {}
 
 void SynDDSSubscriber::DeleteDDSEntities(DomainParticipant* participant) {
     m_topic->DeleteDDSTopic(participant);

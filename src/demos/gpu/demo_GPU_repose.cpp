@@ -39,12 +39,15 @@ int main(int argc, char* argv[]) {
     ChGpuSimulationParameters params;
 
     // Some of the default values might be overwritten by user via command line
-    if (argc != 2 || ParseJSON(argv[1], params) == false) {
+    if (argc != 2 || ParseJSON(gpu::GetDataFile(argv[1]), params) == false) {
         std::cout << "Usage:\n./demo_GPU_repose <json_file>" << std::endl;
         return 1;
     }
 
-    filesystem::create_directory(filesystem::path(params.output_dir));
+    std::string out_dir = GetChronoOutputPath() + "GPU/";
+    filesystem::create_directory(filesystem::path(out_dir));
+    out_dir = out_dir + params.output_dir;
+    filesystem::create_directory(filesystem::path(out_dir));
 
     // Setup simulation
     ChSystemGpu gpu_sys(params.sphere_radius, params.sphere_density,
@@ -120,7 +123,6 @@ int main(int argc, char* argv[]) {
     gpu_sys.SetTimeIntegrator(CHGPU_TIME_INTEGRATOR::EXTENDED_TAYLOR);
     gpu_sys.SetFixedStepSize(params.step_size);
 
-    filesystem::create_directory(filesystem::path(params.output_dir));
     gpu_sys.SetVerbosity(params.verbose);
     std::cout << "verbose: " << static_cast<int>(params.verbose) << std::endl;
     gpu_sys.SetRecordingContactInfo(true);
@@ -143,11 +145,11 @@ int main(int argc, char* argv[]) {
 
     // write an initial frame
     char filename[100];
-    sprintf(filename, "%s/step%06d", params.output_dir.c_str(), currframe);
+    sprintf(filename, "%s/step%06d", out_dir.c_str(), currframe);
     gpu_sys.WriteFile(std::string(filename));
 
     char contactFilename[100];
-    sprintf(contactFilename, "%s/contact%06d", params.output_dir.c_str(), currframe);
+    sprintf(contactFilename, "%s/contact%06d", out_dir.c_str(), currframe);
     gpu_sys.WriteContactInfoFile(std::string(contactFilename));
 
     currframe++;
@@ -160,11 +162,11 @@ int main(int argc, char* argv[]) {
             break;
 
         printf("Output frame %u of %u\n", currframe, total_frames);
-        sprintf(filename, "%s/step%06d", params.output_dir.c_str(), currframe);
+        sprintf(filename, "%s/step%06d", out_dir.c_str(), currframe);
         gpu_sys.WriteFile(std::string(filename));
 
         char contactFilename[100];
-        sprintf(contactFilename, "%s/contact%06d", params.output_dir.c_str(), currframe);
+        sprintf(contactFilename, "%s/contact%06d", out_dir.c_str(), currframe);
         gpu_sys.WriteContactInfoFile(std::string(contactFilename));
 
         curr_time += frame_step;

@@ -82,8 +82,28 @@ void SynDDSCommunicator::CreateParticipant(DomainParticipantQos& qos) {
 }
 
 SynDDSCommunicator::~SynDDSCommunicator() {
-    if (m_listener)
-        delete m_listener;
+    for (auto& publisher : m_publishers) {
+        publisher->GetPublisher()->delete_datawriter(publisher->GetDataWriter());
+    }
+
+    for (auto& subscriber : m_subscribers) {
+        subscriber->GetSubscriber()->delete_datareader(subscriber->GetDataReader());
+    }
+
+    for (auto& pair : m_topics) {
+        auto topic = pair.second;
+        m_participant->delete_topic(topic->GetDDSTopic());
+    }
+
+    for (auto& publisher : m_publishers) {
+        m_participant->delete_publisher(publisher->GetPublisher());
+    }
+
+    for (auto& subscriber : m_subscribers) {
+        m_participant->delete_subscriber(subscriber->GetSubscriber());
+    }
+
+    DomainParticipantFactory::get_instance()->delete_participant(m_participant);
 }
 
 bool SynDDSCommunicator::Initialize() {

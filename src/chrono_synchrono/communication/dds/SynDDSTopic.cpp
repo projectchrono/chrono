@@ -45,10 +45,7 @@ void SynDDSTopic::Initialize(DomainParticipant* participant) {
     }
 }
 
-SynDDSTopic::~SynDDSTopic() {
-    if (m_dds_type)
-        delete m_dds_type;
-}
+SynDDSTopic::~SynDDSTopic() {}
 
 // -----------------------------------------------------------------------------------------------
 
