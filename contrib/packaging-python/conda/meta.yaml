@@ -1,7 +1,7 @@
 # change the version number in case of a release build
 package:
   name: pychrono
-  version: 5.0.1
+  version: 6.0.0
 
 source:
   path: ../../..

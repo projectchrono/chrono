@@ -23,32 +23,27 @@ namespace chrono {
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChSolverADMM)
 
-ChSolverADMM::ChSolverADMM() : 
-    r_prim (0),
-    r_dual (0),
-    precond (false),
-    rho(0.1),
-    rho_b(1e-9),
-    sigma(1e-6),
-    stepadjust_each(5),
-    stepadjust_threshold(1.5),
-    stepadjust_maxfactor(50),
-    stepadjust_type(AdmmStepType::BALANCED_FAST),
-    tol_prim(1e-6),
-    tol_dual(1e-6)
-{
+ChSolverADMM::ChSolverADMM()
+    : r_prim(0),
+      r_dual(0),
+      precond(false),
+      rho(0.1),
+      rho_b(1e-9),
+      sigma(1e-6),
+      stepadjust_each(5),
+      stepadjust_threshold(1.5),
+      stepadjust_maxfactor(50),
+      stepadjust_type(AdmmStepType::BALANCED_FAST),
+      tol_prim(1e-6),
+      tol_dual(1e-6) {
     LS_solver = chrono_types::make_shared<ChSolverSparseQR>();
 }
 
-ChSolverADMM::ChSolverADMM(std::shared_ptr<ChDirectSolverLS> my_LS_engine) : 
-    ChSolverADMM()
-{ 
+ChSolverADMM::ChSolverADMM(std::shared_ptr<ChDirectSolverLS> my_LS_engine) : ChSolverADMM() {
     this->LS_solver = my_LS_engine;
 }
 
-
 double ChSolverADMM::Solve(ChSystemDescriptor& sysd) {
-
     ChTimer<> m_timer_convert;
     ChTimer<> m_timer_factorize;
     ChTimer<> m_timer_solve;
@@ -65,45 +60,43 @@ double ChSolverADMM::Solve(ChSystemDescriptor& sysd) {
 
     // shortcut for the case of no constraints:
     if (nc == 0) {
-
         ChSparseMatrix H(nv, nv);
         ChVectorDynamic<> k(nv);
 
-
         m_timer_convert.start();
 
-        //sysd.ConvertToMatrixForm(0, &LS_solver->A(), 0, &LS_solver->b(), 0, 0, 0);
+        // sysd.ConvertToMatrixForm(0, &LS_solver->A(), 0, &LS_solver->b(), 0, 0, 0);
         // much faster to fill brand new sparse matrices??!!
 
         ChSparsityPatternLearner sparsity_pattern(nv, nv);
-        sysd.ConvertToMatrixForm(&sparsity_pattern, 0); 
+        sysd.ConvertToMatrixForm(&sparsity_pattern, 0);
         sparsity_pattern.Apply(H);
-        sysd.ConvertToMatrixForm(&H,&k);  
-        LS_solver->A() = H; 
-        LS_solver->b() = k; 
+        sysd.ConvertToMatrixForm(&H, &k);
+        LS_solver->A() = H;
+        LS_solver->b() = k;
 
         m_timer_convert.stop();
-        if (this->verbose) GetLog() << " Time for ConvertToMatrixForm: << " << m_timer_convert.GetTimeSecondsIntermediate() << "s\n";
+        if (this->verbose)
+            GetLog() << " Time for ConvertToMatrixForm: << " << m_timer_convert.GetTimeSecondsIntermediate() << "s\n";
 
         // v = H\k
         LS_solver->SetupCurrent();
         LS_solver->SolveCurrent();
 
-        //v = LS_solver->x();
+        // v = LS_solver->x();
         sysd.FromVectorToVariables(LS_solver->x());
 
         return 0;
     }
-        
-    ChSparseMatrix Cq(nc,nv);
-    ChSparseMatrix E(nc,nc);
+
+    ChSparseMatrix Cq(nc, nv);
+    ChSparseMatrix E(nc, nc);
     ChVectorDynamic<> k(nv);
     ChVectorDynamic<> b(nc);
 
-    ChSparseMatrix    A(nv+nc,nv+nc);
-    ChVectorDynamic<> B(nv+nc);
-    //ChVectorDynamic<> X(nv+nc);
-
+    ChSparseMatrix A(nv + nc, nv + nc);
+    ChVectorDynamic<> B(nv + nc);
+    // ChVectorDynamic<> X(nv+nc);
 
     ChVectorDynamic<> l(nc);
     ChVectorDynamic<> z(nc);
@@ -113,7 +106,7 @@ double ChSolverADMM::Solve(ChSystemDescriptor& sysd) {
     ChVectorDynamic<> l_old(nc);
     ChVectorDynamic<> z_old(nc);
     ChVectorDynamic<> y_old(nc);
-    
+
     sysd.ConvertToMatrixForm(&Cq, 0, &E, &k, &b, 0);
     Cq.makeCompressed();
     E.makeCompressed();
@@ -122,29 +115,28 @@ double ChSolverADMM::Solve(ChSystemDescriptor& sysd) {
         l.setZero();
         z.setZero();
         y.setZero();
-    }
-    else
-    {
+    } else {
         // warmstarted l:
         sysd.FromConstraintsToVector(l, false);
 
         // warmstarted v:
-        //v = H\(k + D*l); // PERFORMANCE HIT, probably better reuse last v if possible..
-        sysd.FromVariablesToVector(v, false); // this works supposing that variables have been warmstarted with "v" too, otherwise:  
+        // v = H\(k + D*l); // PERFORMANCE HIT, probably better reuse last v if possible..
+        sysd.FromVariablesToVector(
+            v, false);  // this works supposing that variables have been warmstarted with "v" too, otherwise:
 
         // warmstarted y:
         // the following correct only if r_dual was approx.=0. //***TODO*** as parameter
-        y = - (Cq*v - E*l + b); //  dual residual exploiting the kkt form instead of - (N*l+r), faster!
-            
+        y = -(Cq * v - E * l + b);  //  dual residual exploiting the kkt form instead of - (N*l+r), faster!
+
         /*
         GetLog() << "Y warmastarted:  \n";
         for (int k = 0; k < ChMin(y.rows(), 10); ++k)
             GetLog() << "  " << y(k) << "\n";
         */
-        
+
         // warmstarted z:
-        z = l; //  warm start also this - should project? //***TODO*** as parameter
-        //sysd.ConstraintsProject(z);
+        z = l;  //  warm start also this - should project? //***TODO*** as parameter
+        // sysd.ConstraintsProject(z);
 
         // y_hat  = y;   // only for spectral stepsize
     }
@@ -153,7 +145,7 @@ double ChSolverADMM::Solve(ChSystemDescriptor& sysd) {
 
     if (this->precond == true) {
         // Compute diagonal values of N , only mass effect, neglecting stiffness for the moment, TODO
-        //  g_i=[Cq_i]*[invM_i]*[Cq_i]' 
+        //  g_i=[Cq_i]*[invM_i]*[Cq_i]'
         for (unsigned int ic = 0; ic < mconstraints.size(); ic++)
             mconstraints[ic]->Update_auxiliary();
 
@@ -178,32 +170,32 @@ double ChSolverADMM::Solve(ChSystemDescriptor& sysd) {
         int d_i = 0;
         for (unsigned int ic = 0; ic < mconstraints.size(); ic++)
             if (mconstraints[ic]->IsActive()) {
-                S(d_i, 0) = sqrt(mconstraints[ic]->Get_g_i());  // square root of diagonal of N, just mass matrices considered, no stiffness matrices anyway
+                S(d_i, 0) = sqrt(mconstraints[ic]->Get_g_i());  // square root of diagonal of N, just mass matrices
+                                                                // considered, no stiffness matrices anyway
                 ++d_i;
             }
         // Now we should scale Cq, E, b as
         // Cq = Cq*diag(S);
         // E = diag(S)*E*diag(S);
-        
-        // but to avoid storing Cq and E and assembly in A, we postpone this by scaling the entire A matrix later via a IS*A*IS operation
-        
+
+        // but to avoid storing Cq and E and assembly in A, we postpone this by scaling the entire A matrix later via a
+        // IS*A*IS operation
+
         // b = diag(S)*b;
         b = b.cwiseProduct(S);
 
         // warm started values must be scaled too
-        l = l.cwiseQuotient(S); // from l to \breve{l}
-        z = z.cwiseQuotient(S); 
+        l = l.cwiseQuotient(S);  // from l to \breve{l}
+        z = z.cwiseQuotient(S);
         y = y.cwiseProduct(S);
 
-    }
-    else {
+    } else {
         S.setConstant(1);
-    }  
+    }
 
     // vsigma = ones(nconstr,1)*sigma;
-    ChVectorDynamic<> vsigma(nc); // not needed
+    ChVectorDynamic<> vsigma(nc);  // not needed
     vsigma.setConstant(this->sigma);
-    
 
     // vrho = ones(nconstr,1)*rho;
     ChVectorDynamic<> vrho(nc);
@@ -213,54 +205,55 @@ double ChSolverADMM::Solve(ChSystemDescriptor& sysd) {
     int s_c = 0;
     for (unsigned int ic = 0; ic < mconstraints.size(); ic++) {
         if (mconstraints[ic]->IsActive()) {
-            if (mconstraints[ic]->GetMode()==eChConstraintMode::CONSTRAINT_LOCK)
+            if (mconstraints[ic]->GetMode() == eChConstraintMode::CONSTRAINT_LOCK)
                 vrho(s_c) = rho_b;
             s_c++;
         }
     }
- 
+
     // FACTORIZATION
     //
     // A = [M, Cq'; Cq, -diag(vsigma+vrho) + E ];
 
-    
     m_timer_convert.start();
 
-    LS_solver->A().resize(nv + nc, nv + nc); // otherwise conservativeResize in ConvertToMatrixForm() causes error
+    LS_solver->A().resize(nv + nc, nv + nc);  // otherwise conservativeResize in ConvertToMatrixForm() causes error
 
-    //sysd.ConvertToMatrixForm(&LS_solver->A(),&LS_solver->b());  // A = [M, Cq'; Cq, E ];
+    // sysd.ConvertToMatrixForm(&LS_solver->A(),&LS_solver->b());  // A = [M, Cq'; Cq, E ];
     // much faster to fill brand new sparse matrices??!!
     ChSparsityPatternLearner sparsity_pattern(nv + nc, nv + nc);
     sysd.ConvertToMatrixForm(&sparsity_pattern, nullptr);
     sparsity_pattern.Apply(A);
 
-    sysd.ConvertToMatrixForm(&A,&B);  // A = [M, Cq'; Cq, E ]; 
+    sysd.ConvertToMatrixForm(&A, &B);  // A = [M, Cq'; Cq, E ];
 
     if (this->precond) {
-        // the following is equivalent to having scaled 
+        // the following is equivalent to having scaled
         // Cq = Cq*diag(S);
         // E = diag(S)*E*diag(S);
         ChVectorDynamic<> IS(nv + nc);
-        IS << Eigen::VectorXd::Ones(nv) , S;
+        IS << Eigen::VectorXd::Ones(nv), S;
         A = IS.asDiagonal() * A * IS.asDiagonal();
-        B = IS.asDiagonal() * B; // not needed? B here only factorization...
+        B = IS.asDiagonal() * B;  // not needed? B here only factorization...
     }
 
-    LS_solver->A() = A; 
-    LS_solver->b() = B; 
+    LS_solver->A() = A;
+    LS_solver->b() = B;
 
     for (int i = 0; i < nc; ++i)
         LS_solver->A().coeffRef(nv + i, nv + i) += -(sigma + vrho(i));  //  A = [M, Cq'; Cq, -diag(vsigma+vrho) + E ];
 
     m_timer_convert.stop();
-    if (this->verbose) GetLog() << " Time for ConvertToMatrixForm: << " << m_timer_convert.GetTimeSecondsIntermediate() << "s\n";
+    if (this->verbose)
+        GetLog() << " Time for ConvertToMatrixForm: << " << m_timer_convert.GetTimeSecondsIntermediate() << "s\n";
 
     m_timer_factorize.start();
-                
+
     LS_solver->SetupCurrent();  // LU decomposition ++++++++++++++++++++++++++++++++++++++
 
     m_timer_factorize.stop();
-    if (this->verbose) GetLog() << " Time for factorize : << " << m_timer_factorize.GetTimeSecondsIntermediate() << "s\n";
+    if (this->verbose)
+        GetLog() << " Time for factorize : << " << m_timer_factorize.GetTimeSecondsIntermediate() << "s\n";
 
     /*
     res_story.r_prim=zeros(1,1);
@@ -274,58 +267,57 @@ double ChSolverADMM::Solve(ChSystemDescriptor& sysd) {
     */
 
     for (int iter = 0; iter < m_max_iterations; iter++) {
-
         // diagnostic
         l_old = l;
         z_old = z;
         y_old = y;
-        //y_hat_old = y_hat;
+        // y_hat_old = y_hat;
 
         // X   (lambda)
 
         // SOLVE LINEAR SYSTEM HERE
         // ckkt = -bkkt + (vsigma+vrho).*z - y;
-        
+
         ChVectorDynamic<> ckkt = -b + (vsigma + vrho).cwiseProduct(z) - y;
-        LS_solver->b() << k, ckkt;         // B = [k;ckkt];
-        
+        LS_solver->b() << k, ckkt;  // B = [k;ckkt];
+
         m_timer_solve.start();
 
-        LS_solver->SolveCurrent();                                                      // LU forward/backsolve ++++++++++++++++++++++++++++++++++++++
-        
-        m_timer_solve.stop();
-        if (this->verbose) GetLog() << " Time for solve : << " << m_timer_solve.GetTimeSecondsIntermediate() << "s\n";
+        LS_solver->SolveCurrent();  // LU forward/backsolve ++++++++++++++++++++++++++++++++++++++
 
-        // x = dA\B;      // A* x = B  with x = [v, -l]    
+        m_timer_solve.stop();
+        if (this->verbose)
+            GetLog() << " Time for solve : << " << m_timer_solve.GetTimeSecondsIntermediate() << "s\n";
+
+        // x = dA\B;      // A* x = B  with x = [v, -l]
         l = -LS_solver->x().block(nv, 0, nc, 1);
-        v =  LS_solver->x().block(0, 0, nv, 1);
-        
+        v = LS_solver->x().block(0, 0, nv, 1);
 
         // Z
 
-        //    z = project_orthogonal(l + y. / vrho, fric); 
+        //    z = project_orthogonal(l + y. / vrho, fric);
         z = l + y.cwiseQuotient(vrho);
-        sysd.ConstraintsProject(z); 
+        sysd.ConstraintsProject(z);
 
         // Y
 
         y = y + vrho.asDiagonal() * (l - z);
 
-
-        // y_hat = y + vrho .* (l - z_old);   
-
+        // y_hat = y + vrho .* (l - z_old);
 
         // Compute residuals for tolerances
 
+        r_prim = ((z - l).cwiseProduct(S)).lpNorm<Eigen::Infinity>();  // r_prim     = norm((z - l).*S, inf);
+        double r_prim_pre = (z - l).lpNorm<Eigen::Infinity>();         // r_prim_pre = norm((z - l)   , inf);
 
-        r_prim = ((z - l).cwiseProduct(S)).lpNorm<Eigen::Infinity>();     //r_prim     = norm((z - l).*S, inf);   
-        double r_prim_pre = (z - l).lpNorm<Eigen::Infinity>();              //r_prim_pre = norm((z - l)   , inf); 
+        // r_dual = norm((vrho.*(z - z_old)). / S, inf); % even faster!
+        // See book of Boyd.But coincides only for alpha = 1 !!!
+        r_dual = (((z - z_old).cwiseProduct(vrho)).cwiseQuotient(S)).lpNorm<Eigen::Infinity>();
+        // r_dual_pre = norm((vrho.*(z - z_old))   ,inf);
+        double r_dual_pre = ((z - z_old).cwiseProduct(vrho)).lpNorm<Eigen::Infinity>();  
 
-        r_dual = (((z - z_old).cwiseProduct(vrho)).cwiseQuotient(S)).lpNorm<Eigen::Infinity>(); // r_dual = norm((vrho.*(z - z_old)). / S, inf); % even faster!See book of Boyd.But coincides only for alpha = 1 !!!
-        double r_dual_pre = ((z - z_old).cwiseProduct(vrho)).lpNorm<Eigen::Infinity>();  // r_dual_pre     = norm((vrho.*(z - z_old))   ,inf); 
-
-        //r_combined = norm((z - l).*S, 2) + norm((z - z_old). / S, 2);% combined res.in original metric
-        //r_combined_pre = norm((z - l), 2) + norm((z - z_old), 2);% combined res.in precond.metric
+        // r_combined = norm((z - l).*S, 2) + norm((z - z_old). / S, 2);% combined res.in original metric
+        // r_combined_pre = norm((z - l), 2) + norm((z - z_old), 2);% combined res.in precond.metric
 
         /*
         res_story.r_prim(j) = r_prim;
@@ -338,9 +330,9 @@ double ChSolverADMM::Solve(ChSystemDescriptor& sysd) {
         */
 
         if (this->verbose)
-            GetLog() << "ADMM iter=" << iter << " prim=" << r_prim << " dual=" << r_dual << "  rho=" << rho_i << "  tols=" << this->tol_prim << " " << this->tol_dual <<  "\n";
+            GetLog() << "ADMM iter=" << iter << " prim=" << r_prim << " dual=" << r_dual << "  rho=" << rho_i
+                     << "  tols=" << this->tol_prim << " " << this->tol_dual << "\n";
 
-        
         // Termination:
         if ((r_prim < this->tol_prim) && (r_dual < this->tol_dual)) {
             if (this->verbose)
@@ -348,12 +340,9 @@ double ChSolverADMM::Solve(ChSystemDescriptor& sysd) {
             break;
         }
 
-
-
         // once in a while update the rho step parameter
         if ((iter % this->stepadjust_each) == 0) {
-
-            double rhofactor = 1; // default do not shrink / enlarge
+            double rhofactor = 1;  // default do not shrink / enlarge
 
             if (this->stepadjust_type == AdmmStepType::NONE) {
                 rhofactor = 1.;
@@ -364,8 +353,12 @@ double ChSolverADMM::Solve(ChSystemDescriptor& sysd) {
             }
 
             if (this->stepadjust_type == AdmmStepType::BALANCED_FAST) {
-                double r_prim_scaled = r_prim_pre / (ChMax(z.lpNorm<Eigen::Infinity>(), l.lpNorm<Eigen::Infinity>()) + 1e-10); // maybe norm(l, inf) very similar to norm(z, inf)
-                double r_dual_scaled = r_dual_pre / (y.lpNorm<Eigen::Infinity>() + 1e-10);  //  as in "ADMM Penalty Parameter Selection by Residual Balancing", Brendt Wohlberg
+                double r_prim_scaled = r_prim_pre / (ChMax(z.lpNorm<Eigen::Infinity>(), l.lpNorm<Eigen::Infinity>()) +
+                                                     1e-10);  // maybe norm(l, inf) very similar to norm(z, inf)
+                double r_dual_scaled =
+                    r_dual_pre /
+                    (y.lpNorm<Eigen::Infinity>() +
+                     1e-10);  //  as in "ADMM Penalty Parameter Selection by Residual Balancing", Brendt Wohlberg
                 rhofactor = sqrt(r_prim_scaled / (r_dual_scaled + 1e-10));
             }
 
@@ -374,7 +367,6 @@ double ChSolverADMM::Solve(ChSystemDescriptor& sysd) {
                 double r_dual_scaled = r_dual / this->tol_dual;
                 rhofactor = sqrt(r_prim_scaled / (r_dual_scaled + 1e-10));
             }
-
 
             // safeguards against extreme shrinking
             if (rhofactor < 1.0 / this->stepadjust_maxfactor) {
@@ -385,14 +377,13 @@ double ChSolverADMM::Solve(ChSystemDescriptor& sysd) {
             }
 
             if ((rhofactor > this->stepadjust_threshold) || (rhofactor < 1.0 / this->stepadjust_threshold)) {
-
                 ChTimer<> m_timer_factorize;
                 m_timer_factorize.start();
 
-                // Avoid rebuilding all sparse matrix: 
+                // Avoid rebuilding all sparse matrix:
                 // A) just remove old rho with -= :
                 for (int i = 0; i < nc; ++i)
-                    LS_solver->A().coeffRef(nv + i, nv + i) -= -(sigma + vrho(i));  
+                    LS_solver->A().coeffRef(nv + i, nv + i) -= -(sigma + vrho(i));
 
                 // Update rho
                 rho_i = rho_i * rhofactor;
@@ -402,7 +393,7 @@ double ChSolverADMM::Solve(ChSystemDescriptor& sysd) {
                 int s_c = 0;
                 for (unsigned int ic = 0; ic < mconstraints.size(); ic++) {
                     if (mconstraints[ic]->IsActive()) {
-                        if (mconstraints[ic]->GetMode()==eChConstraintMode::CONSTRAINT_LOCK)
+                        if (mconstraints[ic]->GetMode() == eChConstraintMode::CONSTRAINT_LOCK)
                             vrho(s_c) = rho_b;
                         s_c++;
                     }
@@ -412,21 +403,22 @@ double ChSolverADMM::Solve(ChSystemDescriptor& sysd) {
                 //
                 //  A = [M, Cq'; Cq, -diag(vsigma+vrho) + E ];
                 //
-                // To avoid rebuilding A, we just removed the rho step from the diagonal in A), and now: 
+                // To avoid rebuilding A, we just removed the rho step from the diagonal in A), and now:
                 // B) add old rho with += :
                 for (int i = 0; i < nc; ++i)
-                    LS_solver->A().coeffRef(nv + i, nv + i) += -(sigma + vrho(i));  
+                    LS_solver->A().coeffRef(nv + i, nv + i) += -(sigma + vrho(i));
 
                 LS_solver->SetupCurrent();  // LU decomposition ++++++++++++++++++++++++++++++++++++++
 
                 m_timer_factorize.stop();
-                if (this->verbose) GetLog() << " Time for re-factorize : << " << m_timer_factorize.GetTimeSecondsIntermediate() << "s\n";
+                if (this->verbose)
+                    GetLog() << " Time for re-factorize : << " << m_timer_factorize.GetTimeSecondsIntermediate()
+                             << "s\n";
             }
 
-        } // end step adjust
+        }  // end step adjust
 
-
-    } // end iteration
+    }  // end iteration
 
     l = l.cwiseProduct(S);
 

@@ -44,7 +44,7 @@ float render_fps = 2000;
 int main(int argc, char* argv[]) {
     ChGpuSimulationParameters params;
 
-    if (argc != 2 || ParseJSON(argv[1], params) == false) {
+    if (argc != 2 || ParseJSON(gpu::GetDataFile(argv[1]), params) == false) {
         std::cout << "Usage:\n./demo_GPU_mixer <json_file>" << std::endl;
         return 1;
     }
@@ -87,7 +87,10 @@ int main(int argc, char* argv[]) {
 
     gpu_sys.SetOutputMode(params.write_mode);
 
-    filesystem::create_directory(filesystem::path(params.output_dir));
+    std::string out_dir = GetChronoOutputPath() + "GPU/";
+    filesystem::create_directory(filesystem::path(out_dir));
+    out_dir = out_dir + params.output_dir;
+    filesystem::create_directory(filesystem::path(out_dir));
 
     gpu_sys.SetTimeIntegrator(CHGPU_TIME_INTEGRATOR::CENTERED_DIFFERENCE);
     gpu_sys.SetFixedStepSize(params.step_size);
@@ -123,7 +126,7 @@ int main(int argc, char* argv[]) {
     gpu_sys.SetGravitationalAcceleration(ChVector<float>(0, 0, -980));
 
     std::vector<string> mesh_filenames;
-    mesh_filenames.push_back(gpu::GetDataFile("demo_GPU_mixer/internal_mixer.obj"));
+    mesh_filenames.push_back(GetChronoDataFile("models/mixer/internal_mixer.obj"));
 
     std::vector<ChMatrix33<float>> mesh_rotscales;
     std::vector<float3> mesh_translations;
@@ -157,7 +160,7 @@ int main(int argc, char* argv[]) {
         mixer = chrono_types::make_shared<ChBody>();
         auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
         auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
-        trimesh->LoadWavefrontMesh(gpu::GetDataFile("demo_GPU_mixer/internal_mixer.obj"));
+        trimesh->LoadWavefrontMesh(GetChronoDataFile("models/mixer/internal_mixer.obj"));
         trimesh->Transform(ChVector<>(0, 0, 0), ChMatrix33<>(ChVector<>(scaling.x, scaling.y, scaling.z)));
         trimesh_shape->SetMesh(trimesh);
         mixer->AddAsset(trimesh_shape);
@@ -185,7 +188,7 @@ int main(int argc, char* argv[]) {
         if (step % out_steps == 0) {
             std::cout << "Output frame " << (currframe + 1) << " of " << total_frames << std::endl;
             char filename[100];
-            sprintf(filename, "%s/step%06u", params.output_dir.c_str(), currframe++);
+            sprintf(filename, "%s/step%06u", out_dir.c_str(), currframe++);
             gpu_sys.WriteFile(std::string(filename));
             gpu_sys.WriteMeshes(std::string(filename));
 
