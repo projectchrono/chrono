@@ -76,10 +76,26 @@ Following the hierarchy of subsystem templates for its given type (wheeled or tr
 
 Each vehicle subsystem is defined with respect to its own reference frame; in other words, all hardpoint locations in a vehicle subsystem template must be provided with respect to the subsystem's reference frame.  A vehicle system, be it wheeled or tracked, is then constructed as a collection of concrete instantiations of templates for its constituent components by specifying their position and orientation with respect to the vehicle reference frame and providing connectivity information, as required (e.g., attaching a particular steering mechanism to a particular axle/suspension of a wheeled vehicle).
 
-Chrono::Vehicle uses exclusively the ISO vehicle axes convention, namely a right-hand frame with X forward, Z up, and Y pointing to the left of the vehicle (see ISO 8855:2011).  The figure below illustrates the vehicle reference frame O<sub>1</sub> (by convention aligned with that of the chassis subsystem), as well as subsystem reference frames (O'<sub>2</sub> and O''<sub>2</sub> for the front and rear suspensions, and O<sub>3</sub> for the steering mechanism) for a wheeled vehicle with two axles.
+For modeling, Chrono::Vehicle uses exclusively the ISO vehicle axes convention, namely a right-hand frame with X forward, Z up, and Y pointing to the left of the vehicle (see ISO 8855:2011).  The figure below illustrates the vehicle reference frame O<sub>1</sub> (by convention aligned with that of the chassis subsystem), as well as subsystem reference frames (O'<sub>2</sub> and O''<sub>2</sub> for the front and rear suspensions, and O<sub>3</sub> for the steering mechanism) for a wheeled vehicle with two axles.
 
 
 <img src="http://www.projectchrono.org/assets/manual/vehicle/ISO_frame.png" width="600" />
+
+### Simulation world frame
+
+While the default world frame for Chrono::Vehicle simulations is also an ISO (Z up) frame, support is provided to simulate vehicles in a scene specified in a different reference frame (for example, an Y up frame).
+The world frame is uniquely defined through a rotation matrix (the rotation required to align the ISO frame with the desired world frame). To change the world frame definition from the default ISO convention, the desired world frame must be set **before** any Chrono::Vehicle library call:
+~~~{.cpp}
+ChWorldFrame::Set(world_rotation);
+~~~
+A shortcut is provided to specify a world frame with Y up (and X forward, Z to the right):
+~~~{.cpp}
+ChWorldFrame::SetYUP();
+~~~
+The [ChWorldFrame](@ref chrono::vehicle::ChWorldFrame) class provides utilities to query the world normal, forward direction, the height of a given 3D point (component along the world's vertical direction), to project a point onto the world's horizontal plane, as well as to express a 3D vector to and from the base ISO frame.
+
+See `demo_VEH_HMMWV9_YUP` for an example of a Chrono::Vehicle simulation in an Y up world frame.
+
 
 ## Simulation loop {#vehicle_simulation_loop}
 

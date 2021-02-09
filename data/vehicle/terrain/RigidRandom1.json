@@ -5,11 +5,11 @@
 
   "Patches": [
      {
-      "Location": [ 0, 0, -5 ],
+      "Location": [ 0, 0, 0 ],
       "Orientation": [ 1, 0, 0, 0 ],
 
       "Geometry": {
-        "Dimensions": [ 200, 200, 10 ]
+        "Dimensions": [ 200, 200, 2 ]
       },
 
       "Contact Material": {

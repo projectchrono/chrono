@@ -29,7 +29,7 @@ namespace fea {
 
 /// Utility functions for rotations in 3D and their derivatives.
 /// Adapted from the MBDyn library.
-namespace ChRotUtils {
+namespace rotutils {
 
 const int COEFF_A = 1;
 const int COEFF_B = 2;
@@ -113,52 +113,52 @@ void RotCo(const int cid, const T1& phi, const ChVector<>& p, T2* const cf) {
     return;
 };
 
-// Coefficients:            up to a     (COEFF_A)
+/// Coefficients:            up to a     (COEFF_A)
 template <class T1, class T2>
 void CoeffA(const T1& phi, const ChVector<>& p, T2* const coeff) {
     RotCo(COEFF_A, phi, p, coeff);
 };
 
-// Coefficients:            up to b     (COEFF_B)
+/// Coefficients:            up to b     (COEFF_B)
 template <class T1, class T2>
 void CoeffB(const T1& phi, const ChVector<>& p, T2* const coeff) {
     RotCo(COEFF_B, phi, p, coeff);
 };
 
-// Coefficients:            up to c     (COEFF_C)
+/// Coefficients:            up to c     (COEFF_C)
 template <class T1, class T2>
 void CoeffC(const T1& phi, const ChVector<>& p, T2* const coeff) {
     RotCo(COEFF_C, phi, p, coeff);
 };
 
-// Coefficients:            up to d     (COEFF_D)
+/// Coefficients:            up to d     (COEFF_D)
 template <class T1, class T2>
 void CoeffD(const T1& phi, const ChVector<>& p, T2* const coeff) {
     RotCo(COEFF_D, phi, p, coeff);
 };
 
-// Coefficients:            up to e     (COEFF_E)
+/// Coefficients:            up to e     (COEFF_E)
 template <class T1, class T2>
 void CoeffE(const T1& phi, const ChVector<>& p, T2* const coeff) {
     RotCo(COEFF_E, phi, p, coeff);
 };
 
-// Coefficients:            up to f     (COEFF_F)
+/// Coefficients:            up to f     (COEFF_F)
 template <class T1, class T2>
 void CoeffF(const T1& phi, const ChVector<>& p, T2* const coeff) {
     RotCo(COEFF_F, phi, p, coeff);
 };
 
-// Starred coefficients:    up to c*    (COEFF_C_STAR)
-// Coefficients:            up to d     (COEFF_D)
+/// Starred coefficients:    up to c*    (COEFF_C_STAR)
+/// Coefficients:            up to d     (COEFF_D)
 template <class T1, class T2>
 void CoeffCStar(const T1& phi, const ChVector<>& p, T2* const coeff, T2* const coeffs) {
     RotCo(COEFF_D, phi, p, coeff);
     coeffs[0] = -coeff[3] / (coeff[1] * 2.);
 };
 
-// Starred coefficients:    up to e*    (COEFF_E_STAR)
-// Coefficients:            up to f     (COEFF_F)
+/// Starred coefficients:    up to e*    (COEFF_E_STAR)
+/// Coefficients:            up to f     (COEFF_F)
 template <class T1, class T2>
 void CoeffEStar(const T1& phi, const ChVector<>& p, T2* const coeff, T2* const coeffs) {
     RotCo(COEFF_F, phi, p, coeff);
@@ -167,7 +167,7 @@ void CoeffEStar(const T1& phi, const ChVector<>& p, T2* const coeff, T2* const c
 };
 
 /// Compute the rotation matrix Phi from Euler Rogriguez's parameters phi.
-static ChMatrix33<> Rot(const ChVector<>& phi) {
+ChMatrix33<> Rot(const ChVector<>& phi) {
     double coeff[COEFF_B];
 
     CoeffB(phi, phi, coeff);
@@ -181,7 +181,7 @@ static ChMatrix33<> Rot(const ChVector<>& phi) {
 
 /// Compute a G matrix from Euler Rogriguez's parameters Phi.
 /// G is defined in such a way that dPhi * PhiT = G * dphi.
-static ChMatrix33<> DRot(const ChVector<>& phi) {
+ChMatrix33<> DRot(const ChVector<>& phi) {
     double coeff[COEFF_C];
 
     CoeffC(phi, phi, coeff);
@@ -194,7 +194,7 @@ static ChMatrix33<> DRot(const ChVector<>& phi) {
 }
 
 /// Compute rotation matrix Phi and Ga matrix from Euler Rogriguez's parameters Phi.
-static void RotAndDRot(const ChVector<>& phi, ChMatrix33<>& Phi, ChMatrix33<>& Ga) {
+void RotAndDRot(const ChVector<>& phi, ChMatrix33<>& Phi, ChMatrix33<>& Ga) {
     double coeff[COEFF_C];
 
     CoeffC(phi, phi, coeff);
@@ -217,7 +217,7 @@ static void RotAndDRot(const ChVector<>& phi, ChMatrix33<>& Phi, ChMatrix33<>& G
 }
 
 /// Compute the inverse transpose of G matrix from Euler Rogriguez's parameters Phi.
-static ChMatrix33<> DRot_IT(const ChVector<>& phi) {
+ChMatrix33<> DRot_IT(const ChVector<>& phi) {
     double coeff[COEFF_D], coeffs[COEFF_C_STAR];
 
     CoeffCStar(phi, phi, coeff, coeffs);
@@ -230,7 +230,7 @@ static ChMatrix33<> DRot_IT(const ChVector<>& phi) {
 }
 
 /// Compute the inverse of G matrix from Euler Rogriguez's parameters Phi.
-static ChMatrix33<> DRot_I(const ChVector<>& phi) {
+ChMatrix33<> DRot_I(const ChVector<>& phi) {
     double coeff[COEFF_D], coeffs[COEFF_C_STAR];
 
     CoeffCStar(phi, phi, coeff, coeffs);
@@ -244,7 +244,7 @@ static ChMatrix33<> DRot_I(const ChVector<>& phi) {
 
 
 /// Compute Euler Rogriguez's parameters phi from rotation matrix Phi.
-static ChVector<> VecRot(const ChMatrix33<>& Phi) {
+ChVector<> VecRot(const ChMatrix33<>& Phi) {
     double a, cosphi, sinphi;
     ChVector<> unit;
 
@@ -281,7 +281,7 @@ static ChVector<> VecRot(const ChMatrix33<>& Phi) {
 
 /// Compute, given Euler Rogriguez's parameters phi, a L matrix such that
 /// dG * a = L(phi, a) * dphi.
-static ChMatrix33<> Elle(const ChVector<>& phi, const ChVector<>& a) {
+ChMatrix33<> Elle(const ChVector<>& phi, const ChVector<>& a) {
     double coeff[COEFF_E];
     CoeffE(phi, phi, coeff);
 
@@ -292,7 +292,7 @@ static ChMatrix33<> Elle(const ChVector<>& phi, const ChVector<>& a) {
     return L;
 }
 
-}  // end of namespace ChRotUtils
+}  // end of namespace rotutils
 
 /// @} fea_math
 

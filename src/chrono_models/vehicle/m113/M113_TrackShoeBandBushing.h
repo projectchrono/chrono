@@ -61,9 +61,6 @@ class CH_MODELS_API M113_TrackShoeBandBushing : public ChTrackShoeBandBushing {
     /// These will be distributed over the specified number of web segments.
     virtual const ChVector<>& GetWebInertia() const override { return m_web_inertias; }
 
-    /// Add visualization assets for the track shoe subsystem.
-    virtual void AddVisualizationAssets(VisualizationType vis) override;
-
     /// Return the dimensions of the contact box for the guiding pin.
     /// Note that this is for contact with wheels, idler, and ground only.
     /// This contact geometry does not affect contact with the sprocket.
@@ -102,6 +99,13 @@ class CH_MODELS_API M113_TrackShoeBandBushing : public ChTrackShoeBandBushing {
     virtual const std::string& GetTreadVisualizationMeshName() const override { return m_tread_meshName; }
 
   private:
+    /// Create the 4 contact materials, consistent with the specified contact method, for interactionss with the
+    /// sprocket, wheels, and ground.
+    virtual void CreateContactMaterials(ChContactMethod contact_method) override;
+
+    /// Add visualization assets for the track shoe subsystem.
+    virtual void AddVisualizationAssets(VisualizationType vis) override;
+
     static const double m_tread_mass;
     static const ChVector<> m_tread_inertias;
 
@@ -125,7 +129,6 @@ class CH_MODELS_API M113_TrackShoeBandBushing : public ChTrackShoeBandBushing {
     static const ChVector<> m_guide_box_dims;
     static const double m_guide_box_offset_x;
 
-    static const std::string m_meshName;        // name for tread visualization mesh read from OBJ file
     static const std::string m_meshFile;        // name of OBJ file with tread visualization mesh
     static const std::string m_tread_meshName;  // name for procedurally-generated tread visualization mesh
 };

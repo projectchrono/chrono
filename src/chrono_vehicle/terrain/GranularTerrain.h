@@ -55,41 +55,11 @@ class CH_VEHICLE_API GranularTerrain : public ChTerrain {
 
     ~GranularTerrain() {}
 
-    /// Set coefficient of friction.
-    /// The default value is 0.9
-    void SetContactFrictionCoefficient(float friction_coefficient);
+    /// Set contact material (must be consistent with the containing system).
+    void SetContactMaterial(std::shared_ptr<ChMaterialSurface> material) { m_material = material; }
 
-    /// Set coefficient of restitution.
-    /// The default value is 0.
-    void SetContactRestitutionCoefficient(float restitution_coefficient);
-
-    /// Set the cohesion constant.
-    /// The default value is 0.
-    void SetContactCohesion(float cohesion);
-
-    /// Set contact material properties.
-    /// These values are used to calculate contact material coefficients (if the containing
-    /// system is so configured and if the SMC contact method is being used).
-    /// The default values are: Y = 2e5 and nu = 0.3
-    void SetContactMaterialProperties(float young_modulus,  ///< [in] Young's modulus of elasticity
-                                      float poisson_ratio   ///< [in] Poisson ratio
-                                      );
-
-    /// Set contact material coefficients.
-    /// These values are used directly to compute contact forces (if the containing system
-    /// is so configured and if the SMC contact method is being used).
-    /// The default values are: kn=2e5, gn=40, kt=2e5, gt=20
-    void SetContactMaterialCoefficients(float kn,  ///< [in] normal contact stiffness
-                                        float gn,  ///< [in] normal contact damping
-                                        float kt,  ///< [in] tangential contact stiffness
-                                        float gt   ///< [in] tangential contact damping
-                                        );
-
-    /// Set contact material for SMC method.
-    void SetContactMaterialSMC(std::shared_ptr<ChMaterialSurfaceSMC> mat);
-
-    /// Set contact material for NSC method.
-    void SetContactMaterialNSC(std::shared_ptr<ChMaterialSurfaceNSC> mat);
+    /// Get the current contact material.
+    std::shared_ptr<ChMaterialSurface> GetContactMaterial() const { return m_material; }
 
     /// Set outward collision envelope.
     /// This value is used for the internal custom collision detection for imposing
@@ -120,25 +90,6 @@ class CH_VEHICLE_API GranularTerrain : public ChTerrain {
     /// Set start value for body identifiers of generated particles (default: 1000000).
     /// It is assumed that all bodies with a larger identifier are granular material particles.
     void SetStartIdentifier(int id) { m_start_id = id; }
-
-    /// Get coefficient of friction for contact material.
-    float GetCoefficientFriction() const { return m_matSMC->GetSfriction(); }
-    /// Get coefficient of restitution for contact material.
-    float GetCoefficientRestitution() const { return m_matSMC->GetRestitution(); }
-    /// Get cohesion constant.
-    float GetCohesion() const { return m_matSMC->GetAdhesion(); }
-    /// Get Young's modulus of elasticity for contact material.
-    float GetYoungModulus() const { return m_matSMC->GetYoungModulus(); }
-    /// Get Poisson ratio for contact material.
-    float GetPoissonRatio() const { return m_matSMC->GetPoissonRatio(); }
-    /// Get normal stiffness coefficient for contact material.
-    float GetKn() const { return m_matSMC->GetKn(); }
-    /// Get tangential stiffness coefficient for contact material.
-    float GetKt() const { return m_matSMC->GetKt(); }
-    /// Get normal viscous damping coefficient for contact material.
-    float GetGn() const { return m_matSMC->GetGn(); }
-    /// Get tangential viscous damping coefficient for contact material.
-    float GetGt() const { return m_matSMC->GetGt(); }
 
     /// Enable/disable visualization of boundaries (default: false).
     void EnableVisualization(bool val) { m_vis_enabled = val; }
@@ -185,21 +136,21 @@ class CH_VEHICLE_API GranularTerrain : public ChTerrain {
     /// Get the number of particles.
     unsigned int GetNumParticles() const { return m_num_particles; }
 
-    /// Get the terrain height at the specified (x,y) location.
+    /// Get the terrain height below the specified location.
     /// This function returns the highest point over all granular particles.
-    virtual double GetHeight(double x, double y) const override;
+    virtual double GetHeight(const ChVector<>& loc) const override;
 
-    /// Get the terrain normal at the specified (x,y) location.
-    virtual chrono::ChVector<> GetNormal(double x, double y) const override { return ChVector<>(1, 0, 0); }
+    /// Get the terrain normal at the point below the specified location.
+    virtual chrono::ChVector<> GetNormal(const ChVector<>& loc) const override;
 
-    /// Get the terrain coefficient of friction at the specified (x,y) location.
+    /// Get the terrain coefficient of friction at the point below the specified location.
     /// This coefficient of friction value may be used by certain tire models to modify
     /// the tire characteristics, but it will have no effect on the interaction of the terrain
     /// with other objects (including tire models that do not explicitly use it).
     /// For GranularTerrain, this function defers to the user-provided functor object of type
     /// ChTerrain::FrictionFunctor, if one was specified.
     /// Otherwise, it returns the constant value specified through SetContactFrictionCoefficient.
-    virtual float GetCoefficientFriction(double x, double y) const override;
+    virtual float GetCoefficientFriction(const ChVector<>& loc) const override;
 
   private:
     unsigned int m_min_num_particles;  ///< requested minimum number of particles
@@ -240,8 +191,7 @@ class CH_VEHICLE_API GranularTerrain : public ChTerrain {
     std::shared_ptr<ChBody> m_ground;       ///< ground body
     std::shared_ptr<ChColorAsset> m_color;  ///< color of boundary visualization asset
 
-    std::shared_ptr<ChMaterialSurfaceSMC> m_matSMC;  ///< contact material properties (SMC method)
-    std::shared_ptr<ChMaterialSurfaceNSC> m_matNSC;  ///< contact material properties (NSC method)
+    std::shared_ptr<ChMaterialSurface> m_material; ///< contact material properties    
 
     bool m_verbose;  ///< verbose output
 

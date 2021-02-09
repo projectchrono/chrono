@@ -26,7 +26,7 @@
 #include <vector>
 
 #include "chrono_vehicle/ChApiVehicle.h"
-#include "chrono_vehicle/tracked_vehicle/ChTrackAssembly.h"
+#include "chrono_vehicle/tracked_vehicle/track_assembly/ChTrackAssemblySegmented.h"
 #include "chrono_vehicle/tracked_vehicle/sprocket/ChSprocketSinglePin.h"
 #include "chrono_vehicle/tracked_vehicle/track_shoe/ChTrackShoeSinglePin.h"
 
@@ -40,12 +40,11 @@ namespace vehicle {
 /// A track assembly consists of a sprocket, an idler (with tensioner mechanism),
 /// a set of suspensions (road-wheel assemblies), and a collection of track shoes.
 /// This class defines the template for a track assembly using single-pin track shoes.
-class CH_VEHICLE_API ChTrackAssemblySinglePin : public ChTrackAssembly {
+class CH_VEHICLE_API ChTrackAssemblySinglePin : public ChTrackAssemblySegmented {
   public:
     ChTrackAssemblySinglePin(const std::string& name,  ///< [in] name of the subsystem
                              VehicleSide side          ///< [in] assembly on left/right vehicle side
-                             )
-        : ChTrackAssembly(name, side) {}
+    );
 
     virtual ~ChTrackAssemblySinglePin() {}
 

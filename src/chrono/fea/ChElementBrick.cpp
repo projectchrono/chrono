@@ -1251,7 +1251,7 @@ void ChElementBrick::ComputeInternalForces(ChVectorDynamic<>& Fi) {
                 INV_KALPHA.col(ii) = KALPHA.colPivHouseholderQr().solve(DAMMY_vec);
             }
             stock_jac_EAS_elem = GDEPSP.transpose() * INV_KALPHA * GDEPSP;
-            SetStockJac(stock_jac_EAS_elem);
+            m_stock_jac_EAS = stock_jac_EAS_elem;
         }
     } else {
         ////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1379,8 +1379,8 @@ void ChElementBrick::ComputeInternalForces(ChVectorDynamic<>& Fi) {
                 INV_KALPHA.col(ii) = KALPHA.colPivHouseholderQr().solve(DAMMY_vec);
             }
             stock_jac_EAS_elem = GDEPSP.transpose() * INV_KALPHA * GDEPSP;
-            SetStockKTE(KTE);
-            SetStockJac(stock_jac_EAS_elem);
+            m_stock_KTE = KTE;
+            m_stock_jac_EAS = stock_jac_EAS_elem;
         }
     }  // end of else for numerical or analytical
 

@@ -40,31 +40,33 @@ namespace man {
 MAN_7t::MAN_7t()
     : m_system(nullptr),
       m_vehicle(nullptr),
-      m_contactMethod(ChMaterialSurface::NSC),
-      m_chassisCollisionType(ChassisCollisionType::NONE),
+      m_contactMethod(ChContactMethod::NSC),
+      m_chassisCollisionType(CollisionType::NONE),
       m_fixed(false),
+      m_brake_locking(false),
+      m_brake_type(BrakeType::SIMPLE),
       m_tireType(TireModelType::TMEASY),
       m_tire_step_size(-1),
       m_initFwdVel(0),
       m_initPos(ChCoordsys<>(ChVector<>(0, 0, 1), QUNIT)),
       m_initOmega({0, 0, 0, 0, 0, 0}),
       m_use_shafts_drivetrain(false),
-      m_drivetrain_max_speed(300),
       m_apply_drag(false) {}
 
 MAN_7t::MAN_7t(ChSystem* system)
     : m_system(system),
       m_vehicle(nullptr),
-      m_contactMethod(ChMaterialSurface::NSC),
-      m_chassisCollisionType(ChassisCollisionType::NONE),
+      m_contactMethod(ChContactMethod::NSC),
+      m_chassisCollisionType(CollisionType::NONE),
       m_fixed(false),
+      m_brake_locking(false),
+      m_brake_type(BrakeType::SIMPLE),
       m_tireType(TireModelType::TMEASY),
       m_tire_step_size(-1),
       m_initFwdVel(0),
       m_initPos(ChCoordsys<>(ChVector<>(0, 0, 1), QUNIT)),
       m_initOmega({0, 0, 0, 0, 0, 0}),
       m_use_shafts_drivetrain(false),
-      m_drivetrain_max_speed(300),
       m_apply_drag(false) {}
 
 MAN_7t::~MAN_7t() {
@@ -83,8 +85,8 @@ void MAN_7t::SetAerodynamicDrag(double Cd, double area, double air_density) {
 // -----------------------------------------------------------------------------
 void MAN_7t::Initialize() {
     // Create and initialize the MAN_7t vehicle
-    m_vehicle = m_system ? new MAN_7t_Vehicle(m_system, m_fixed, m_chassisCollisionType)
-                         : new MAN_7t_Vehicle(m_fixed, m_contactMethod, m_chassisCollisionType);
+    m_vehicle = m_system ? new MAN_7t_Vehicle(m_system, m_fixed, m_brake_type, m_chassisCollisionType)
+                         : new MAN_7t_Vehicle(m_fixed, m_brake_type, m_contactMethod, m_chassisCollisionType);
 
     m_vehicle->SetInitWheelAngVel(m_initOmega);
     m_vehicle->Initialize(m_initPos, m_initFwdVel);
@@ -99,7 +101,7 @@ void MAN_7t::Initialize() {
         auto powertrain = chrono_types::make_shared<MAN_7t_SimpleMapPowertrain>("Powertrain");
         m_vehicle->InitializePowertrain(powertrain);
     } else {
-        auto powertrain = chrono_types::make_shared<MAN_7t_SimpleCVTPowertrain>("Powertrain", m_drivetrain_max_speed);
+        auto powertrain = chrono_types::make_shared<MAN_7t_SimpleCVTPowertrain>("Powertrain");
         m_vehicle->InitializePowertrain(powertrain);
     }
 
@@ -194,6 +196,8 @@ void MAN_7t::Initialize() {
                 wheel->GetTire()->SetStepsize(m_tire_step_size);
         }
     }
+
+    m_vehicle->EnableBrakeLocking(m_brake_locking);
 }
 
 // -----------------------------------------------------------------------------

@@ -1,7 +1,7 @@
 #=============================================================================
 # CMake configuration file for the test rig with continuous band track demo.
 # This example program requires Irrlicht run-time visualization and the
-# MKL or MUMPS Chrono modules.
+# PardisoMKL or MUMPS Chrono modules.
 #=============================================================================
 
 # Irrlicht required
@@ -10,7 +10,7 @@ if(NOT ENABLE_MODULE_IRRLICHT)
 endif()
 
 # MUMPS or MKL required
-if (NOT ENABLE_MODULE_MKL AND NOT ENABLE_MODULE_MUMPS)
+if (NOT ENABLE_MODULE_PARDISO_MKL AND NOT ENABLE_MODULE_MUMPS)
     return()
 endif()
 
@@ -32,14 +32,15 @@ set(LIBRARIES
     ChronoEngine
     ChronoEngine_irrlicht
     ChronoEngine_vehicle
+    ChronoEngine_vehicle_irrlicht
     ChronoModels_vehicle
     )
 
-if (ENABLE_MODULE_MKL)
+if (ENABLE_MODULE_PARDISO_MKL)
     include_directories(${CH_MKL_INCLUDES})
     set(COMPILER_FLAGS "${COMPILER_FLAGS} ${CH_MKL_CXX_FLAGS}")
     set(LINKER_FLAGS "${LINKER_FLAGS} ${CH_MKL_LINK_FLAGS}")
-    set(LIBRARIES ${LIBRARIES} ChronoEngine_mkl)
+    set(LIBRARIES ${LIBRARIES} ChronoEngine_pardisomkl)
 endif()
 
 if (ENABLE_MODULE_MUMPS)
@@ -50,17 +51,18 @@ endif()
 #--------------------------------------------------------------
 # Add executables
 
-foreach(DEMO ${DEMOS})
-
-    message(STATUS "...add ${DEMO}")
+foreach(PROGRAM ${DEMOS})
+    message(STATUS "...add ${PROGRAM}")
     
-    add_executable(${DEMO} ${DEMO}.cpp)
-    source_group("" FILES ${DEMO}.cpp)
-    set_target_properties(${DEMO} PROPERTIES
+    add_executable(${PROGRAM} ${PROGRAM}.cpp)
+    source_group("" FILES ${PROGRAM}.cpp)
+
+    set_target_properties(${PROGRAM} PROPERTIES
                           FOLDER demos 
                           COMPILE_FLAGS "${COMPILER_FLAGS}"
                           LINK_FLAGS "${LINKER_FLAGS}")
-    target_link_libraries(${DEMO} ${LIBRARIES})
-    install(TARGETS ${DEMO} DESTINATION ${CH_INSTALL_DEMO})
+    set_property(TARGET ${PROGRAM} PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:${PROGRAM}>")
+    target_link_libraries(${PROGRAM} ${LIBRARIES})
 
+    install(TARGETS ${PROGRAM} DESTINATION ${CH_INSTALL_DEMO})
 endforeach()

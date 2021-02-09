@@ -45,10 +45,7 @@ LinearDamperRWAssembly::LinearDamperRWAssembly(const rapidjson::Document& d, boo
     Create(d);
 }
 
-LinearDamperRWAssembly::~LinearDamperRWAssembly() {
-    delete m_shock_forceCB;
-    delete m_spring_torqueCB;
-}
+LinearDamperRWAssembly::~LinearDamperRWAssembly() {}
 
 void LinearDamperRWAssembly::Create(const rapidjson::Document& d) {
     // Invoke base class method.
@@ -72,7 +69,7 @@ void LinearDamperRWAssembly::Create(const rapidjson::Document& d) {
     double torsion_k = d["Torsional Spring"]["Spring Constant"].GetDouble();
     double torsion_c = d["Torsional Spring"]["Damping Coefficient"].GetDouble();
     double torsion_t = d["Torsional Spring"]["Preload"].GetDouble();
-    m_spring_torqueCB = new LinearSpringDamperActuatorTorque(torsion_k, torsion_c, torsion_t);
+    m_spring_torqueCB = chrono_types::make_shared<LinearSpringDamperActuatorTorque>(torsion_k, torsion_c, torsion_t);
 
     // Read linear shock data
     assert(d.HasMember("Damper"));
@@ -80,7 +77,7 @@ void LinearDamperRWAssembly::Create(const rapidjson::Document& d) {
     m_points[SHOCK_C] = ReadVectorJSON(d["Damper"]["Location Chassis"]);
     m_points[SHOCK_A] = ReadVectorJSON(d["Damper"]["Location Arm"]);
     double shock_c = d["Damper"]["Damping Coefficient"].GetDouble();
-    m_shock_forceCB = new LinearDamperForce(shock_c);
+    m_shock_forceCB = chrono_types::make_shared<LinearDamperForce>(shock_c);
 
     // Create the associated road-wheel
     assert(d.HasMember("Road Wheel Input File"));

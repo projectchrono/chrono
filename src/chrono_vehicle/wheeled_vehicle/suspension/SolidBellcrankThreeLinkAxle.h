@@ -58,6 +58,12 @@ class CH_VEHICLE_API SolidBellcrankThreeLinkAxle : public ChSolidBellcrankThreeL
     virtual double getDraglinkMass() const override { return m_draglinkMass; }
     /// Return the mass of the bellcrank body.
     virtual double getBellcrankMass() const override { return m_bellcrankMass; }
+    /// Return the mass of the triangle body.
+    virtual double getTriangleMass() const override { return m_trangleMass; }
+    /// Return the mass of the link body.
+    virtual double getLinkMass() const override { return m_linkMass; }
+    /// Return the mass of the tierod body.
+    virtual double getTierodMass() const override { return m_tierodMass; }
 
     /// Return the radius of the axle tube body (visualization only).
     virtual double getAxleTubeRadius() const override { return m_axleTubeRadius; }
@@ -74,6 +80,13 @@ class CH_VEHICLE_API SolidBellcrankThreeLinkAxle : public ChSolidBellcrankThreeL
     /// Return the moments of inertia of the draglink body.
     virtual const ChVector<>& getDraglinkInertia() const override { return m_draglinkInertia; }
 
+    /// Return the moments of inertia of the triangle body.
+    virtual const ChVector<>& getTriangleInertia() const override { return m_triangleInertia; }
+    /// Return the moments of inertia of the link body.
+    virtual const ChVector<>& getLinkInertia() const override { return m_linkInertia; }
+    /// Return the moments of inertia of the tierod body.
+    virtual const ChVector<>& getTierodInertia() const override { return m_tierodInertia; }
+
     /// Return the inertia of the axle shaft.
     virtual double getAxleInertia() const override { return m_axleInertia; }
 
@@ -81,17 +94,17 @@ class CH_VEHICLE_API SolidBellcrankThreeLinkAxle : public ChSolidBellcrankThreeL
     virtual double getSpringRestLength() const override { return m_springRestLength; }
 
     /// Return the functor object for spring force.
-    virtual ChLinkTSDA::ForceFunctor* getSpringForceFunctor() const override { return m_springForceCB; }
+    virtual std::shared_ptr<ChLinkTSDA::ForceFunctor> getSpringForceFunctor() const override { return m_springForceCB; }
     /// Return the functor object for shock force.
-    virtual ChLinkTSDA::ForceFunctor* getShockForceFunctor() const override { return m_shockForceCB; }
+    virtual std::shared_ptr<ChLinkTSDA::ForceFunctor> getShockForceFunctor() const override { return m_shockForceCB; }
 
   private:
     virtual const ChVector<> getLocation(PointId which) override { return m_points[which]; }
 
     virtual void Create(const rapidjson::Document& d) override;
 
-    ChLinkTSDA::ForceFunctor* m_springForceCB;
-    ChLinkTSDA::ForceFunctor* m_shockForceCB;
+    std::shared_ptr<ChLinkTSDA::ForceFunctor> m_springForceCB;
+    std::shared_ptr<ChLinkTSDA::ForceFunctor> m_shockForceCB;
 
     ChVector<> m_points[NUM_POINTS];
 
@@ -103,6 +116,9 @@ class CH_VEHICLE_API SolidBellcrankThreeLinkAxle : public ChSolidBellcrankThreeL
     double m_knuckleMass;
     double m_bellcrankMass;
     double m_draglinkMass;
+    double m_trangleMass;
+    double m_linkMass;
+    double m_tierodMass;
 
     double m_spindleRadius;
     double m_spindleWidth;
@@ -117,6 +133,10 @@ class CH_VEHICLE_API SolidBellcrankThreeLinkAxle : public ChSolidBellcrankThreeL
     ChVector<> m_knuckleInertia;
     ChVector<> m_bellcrankInertia;
     ChVector<> m_draglinkInertia;
+
+    ChVector<> m_triangleInertia;
+    ChVector<> m_linkInertia;
+    ChVector<> m_tierodInertia;
 };
 
 /// @} vehicle_wheeled_suspension

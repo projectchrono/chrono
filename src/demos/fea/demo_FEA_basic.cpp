@@ -16,7 +16,7 @@
 //
 // =============================================================================
 
-#include "chrono/physics/ChSystemNSC.h"
+#include "chrono/physics/ChSystemSMC.h"
 #include "chrono/solver/ChIterativeSolverLS.h"
 
 #include "chrono/fea/ChElementSpring.h"
@@ -39,7 +39,7 @@ void test_1() {
     GetLog() << "TEST: spring element FEM  \n\n";
 
     // The physical system: it contains all physical objects.
-    ChSystemNSC my_system;
+    ChSystemSMC my_system;
 
     // Create a mesh, that is a container for groups
     // of elements and their referenced nodes.
@@ -119,7 +119,7 @@ void test_2() {
     GetLog() << "TEST: LINEAR tetrahedral element FEM  \n\n";
 
     // The physical system: it contains all physical objects.
-    ChSystemNSC my_system;
+    ChSystemSMC my_system;
 
     // Create a mesh, that is a container for groups
     // of elements and their referenced nodes.
@@ -220,7 +220,7 @@ void test_3() {
     GetLog() << "TEST: QUADRATIC tetrahedral element FEM  \n\n";
 
     // The physical system: it contains all physical objects.
-    ChSystemNSC my_system;
+    ChSystemSMC my_system;
 
     // Create a mesh, that is a container for groups
     // of elements and their referenced nodes.
@@ -330,7 +330,7 @@ void test_4() {
     GetLog() << "TEST: LINEAR hexahedral element FEM  \n\n";
 
     // The physical system: it contains all physical objects.
-    ChSystemNSC my_system;
+    ChSystemSMC my_system;
 
     // Create a mesh, that is a container for groups
     // of elements and their referenced nodes.
@@ -450,7 +450,7 @@ void test_5() {
     GetLog() << "TEST: QUADRATIC hexahedral element FEM  \n\n";
 
     // The physical system: it contains all physical objects.
-    ChSystemNSC my_system;
+    ChSystemSMC my_system;
 
     // Create a mesh, that is a container for groups
     // of elements and their referenced nodes.

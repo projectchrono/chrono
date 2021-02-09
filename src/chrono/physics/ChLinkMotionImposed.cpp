@@ -181,17 +181,19 @@ void ChLinkMotionImposed::ConstraintsBiLoad_Ct(double factor) {
     if (!this->IsActive())
         return;
 
-	ChVector<> mv     = - position_function->Get_p_ds(this->GetChTime());
-	ChVector<> mw_loc = - rotation_function->Get_w_loc(this->GetChTime());
+    double T = this->GetChTime();
+	ChVector<> mv = -position_function->Get_p_ds(T);
+	ChVector<> mw_loc = -rotation_function->Get_w_loc(T);
+	ChVector<> mv_rot = rotation_function->Get_q(T).RotateBack(mv); // need velocity in local rotated system
 
     if (mask.Constr_N(0).IsActive()) {
-        mask.Constr_N(0).Set_b_i(mask.Constr_N(0).Get_b_i() + factor * mv.x());
+        mask.Constr_N(0).Set_b_i(mask.Constr_N(0).Get_b_i() + factor * mv_rot.x());
     }
 	if (mask.Constr_N(1).IsActive()) {
-        mask.Constr_N(1).Set_b_i(mask.Constr_N(1).Get_b_i() + factor * mv.y());
+        mask.Constr_N(1).Set_b_i(mask.Constr_N(1).Get_b_i() + factor * mv_rot.y());
     }
 	if (mask.Constr_N(2).IsActive()) {
-        mask.Constr_N(2).Set_b_i(mask.Constr_N(2).Get_b_i() + factor * mv.z());
+        mask.Constr_N(2).Set_b_i(mask.Constr_N(2).Get_b_i() + factor * mv_rot.z());
     }
 	if (mask.Constr_N(3).IsActive()) {
         mask.Constr_N(3).Set_b_i(mask.Constr_N(3).Get_b_i() + factor * 0.5 * mw_loc.x());

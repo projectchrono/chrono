@@ -25,25 +25,25 @@
 #include "chrono/solver/ChSystemDescriptor.h"
 #include "chrono/solver/ChIterativeSolverLS.h"
 
-#include "chrono/collision/ChCCollisionSystemBullet.h"
+#include "chrono/collision/ChCollisionSystemBullet.h"
 
 namespace chrono {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChSystemSMC)
 
-ChSystemSMC::ChSystemSMC(bool use_material_properties, unsigned int max_objects, double scene_size)
+ChSystemSMC::ChSystemSMC(bool use_material_properties)
     : ChSystem(),
       m_use_mat_props(use_material_properties),
       m_contact_model(Hertz),
-      m_adhesion_model(Constant),
+      m_adhesion_model(AdhesionForceModel::Constant),
       m_tdispl_model(OneStep),
       m_stiff_contact(false) {
     descriptor = chrono_types::make_shared<ChSystemDescriptor>();
 
     SetSolverType(ChSolver::Type::PSOR);
 
-    collision_system = chrono_types::make_shared<collision::ChCollisionSystemBullet>(max_objects, scene_size);
+    collision_system = chrono_types::make_shared<collision::ChCollisionSystemBullet>();
 
     // For default SMC there is no need to create contacts 'in advance'
     // when models are closer than the safety envelope, so set default envelope to 0
@@ -81,9 +81,9 @@ class my_enum_mappers : public ChSystemSMC {
     CH_ENUM_MAPPER_END(ContactForceModel);
 
     CH_ENUM_MAPPER_BEGIN(AdhesionForceModel);
-    CH_ENUM_VAL(Constant);
-    CH_ENUM_VAL(DMT);
-    CH_ENUM_VAL(Perko);
+    CH_ENUM_VAL(AdhesionForceModel::Constant);
+    CH_ENUM_VAL(AdhesionForceModel::DMT);
+    CH_ENUM_VAL(AdhesionForceModel::Perko);
     CH_ENUM_MAPPER_END(AdhesionForceModel);
 
     CH_ENUM_MAPPER_BEGIN(TangentialDisplacementModel);

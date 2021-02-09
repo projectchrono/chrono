@@ -53,10 +53,10 @@ int main(int argc, char* argv[]) {
 
     // Create the terrain
     RigidTerrain terrain(&sys);
-    auto patch = terrain.AddPatch(ChCoordsys<>(ChVector<>(0, 0, -5), QUNIT), ChVector<>(200, 100, 10));
-    patch->SetContactFrictionCoefficient(0.9f);
-    patch->SetContactRestitutionCoefficient(0.01f);
-    patch->SetContactMaterialProperties(2e7f, 0.3f);
+    auto patch_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    patch_mat->SetFriction(0.9f);
+    patch_mat->SetRestitution(0.01f);
+    auto patch = terrain.AddPatch(patch_mat, ChVector<>(0, 0, 0), ChVector<>(0, 0, 1), 200, 100);
     patch->SetColor(ChColor(0.8f, 0.8f, 0.5f));
     patch->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 200, 200);
     terrain.Initialize();
@@ -65,7 +65,7 @@ int main(int argc, char* argv[]) {
     HMMWV_Reduced hmmwv_1(&sys);
     hmmwv_1.SetInitPosition(ChCoordsys<>(ChVector<>(0, -1.5, 1.0), QUNIT));
     hmmwv_1.SetPowertrainType(PowertrainModelType::SIMPLE);
-    hmmwv_1.SetDriveType(DrivelineType::RWD);
+    hmmwv_1.SetDriveType(DrivelineTypeWV::RWD);
     hmmwv_1.SetTireType(TireModelType::RIGID);
     hmmwv_1.Initialize();
     hmmwv_1.SetChassisVisualizationType(VisualizationType::PRIMITIVES);
@@ -87,7 +87,7 @@ int main(int argc, char* argv[]) {
     HMMWV_Reduced hmmwv_2(&sys);
     hmmwv_2.SetInitPosition(ChCoordsys<>(ChVector<>(7, 1.5, 1.0), QUNIT));
     hmmwv_2.SetPowertrainType(PowertrainModelType::SIMPLE);
-    hmmwv_2.SetDriveType(DrivelineType::RWD);
+    hmmwv_2.SetDriveType(DrivelineTypeWV::RWD);
     hmmwv_2.SetTireType(TireModelType::RIGID);
     hmmwv_2.Initialize();
     hmmwv_2.SetChassisVisualizationType(VisualizationType::PRIMITIVES);

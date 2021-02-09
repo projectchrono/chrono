@@ -32,9 +32,6 @@ const double UAZBUS_Driveline4WD::m_driveshaft_inertia = 0.5;
 const double UAZBUS_Driveline4WD::m_frontshaft_inertia = 0.5;
 const double UAZBUS_Driveline4WD::m_rearshaft_inertia = 0.5;
 
-const double UAZBUS_Driveline4WD::m_central_differential_ratio = -1;
-const double UAZBUS_Driveline4WD::m_front_differential_ratio = -1;
-const double UAZBUS_Driveline4WD::m_rear_differential_ratio = -1;
 const double UAZBUS_Driveline4WD::m_front_conicalgear_ratio = -1.0/4.625;
 const double UAZBUS_Driveline4WD::m_rear_conicalgear_ratio = -1.0/4.625;
 

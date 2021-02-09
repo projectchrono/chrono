@@ -16,6 +16,7 @@
 ////    Serialization/deserialization of unique_ptr members is currently commented
 ////    out until support for unique_ptr is implemented in ChArchive.
 
+#include "chrono/physics/ChSystem.h"
 #include "chrono/physics/ChLinkLock.h"
 
 namespace chrono {
@@ -67,7 +68,7 @@ ChLinkLock::~ChLinkLock() {}
 //// Note: ability to explicitly provide joint forces was removed.
 //// If ever needed, these functions can be re-enabled. In that case,
 //// a typical user call would be:
-////         auto my_force = std::make_unique<ChLinkForce>();
+////         auto my_force = chrono_types::make_unique<ChLinkForce>();
 ////         my_joint->SetForce_X(std::move(my_force));
 
 /*
@@ -99,49 +100,49 @@ void ChLinkLock::SetForce_Rz(std::unique_ptr<ChLinkForce>&& force) {
 
 ChLinkForce& ChLinkLock::GetForce_D() {
     if (!force_D)
-        force_D = std::make_unique<ChLinkForce>();
+        force_D = chrono_types::make_unique<ChLinkForce>();
     return *force_D;
 }
 ChLinkForce& ChLinkLock::GetForce_R() {
     if (!force_R)
-        force_R = std::make_unique<ChLinkForce>();
+        force_R = chrono_types::make_unique<ChLinkForce>();
     return *force_R;
 }
 ChLinkForce& ChLinkLock::GetForce_X() {
     if (!force_X)
-        force_X = std::make_unique<ChLinkForce>();
+        force_X = chrono_types::make_unique<ChLinkForce>();
     return *force_X;
 }
 ChLinkForce& ChLinkLock::GetForce_Y() {
     if (!force_Y)
-        force_Y = std::make_unique<ChLinkForce>();
+        force_Y = chrono_types::make_unique<ChLinkForce>();
     return *force_Y;
 }
 ChLinkForce& ChLinkLock::GetForce_Z() {
     if (!force_Z)
-        force_Z = std::make_unique<ChLinkForce>();
+        force_Z = chrono_types::make_unique<ChLinkForce>();
     return *force_Z;
 }
 ChLinkForce& ChLinkLock::GetForce_Rx() {
     if (!force_Rx)
-        force_Rx = std::make_unique<ChLinkForce>();
+        force_Rx = chrono_types::make_unique<ChLinkForce>();
     return *force_Rx;
 }
 ChLinkForce& ChLinkLock::GetForce_Ry() {
     if (!force_Ry)
-        force_Ry = std::make_unique<ChLinkForce>();
+        force_Ry = chrono_types::make_unique<ChLinkForce>();
     return *force_Ry;
 }
 ChLinkForce& ChLinkLock::GetForce_Rz() {
     if (!force_Rz)
-        force_Rz = std::make_unique<ChLinkForce>();
+        force_Rz = chrono_types::make_unique<ChLinkForce>();
     return *force_Rz;
 }
 
 //// Note: ability to explicitly provide limits was removed.
 //// If ever needed, these functions can be re-enabled. In that case,
 //// a typical user call would be:
-////         auto my_limit = std::make_unique<ChLinkLimit>();
+////         auto my_limit = chrono_types::make_unique<ChLinkLimit>();
 ////         my_joint->SetLimit_X(std::move(my_force));
 
 /*
@@ -173,42 +174,42 @@ void ChLinkLock::SetLimit_D(std::unique_ptr<ChLinkLimit>&& limit) {
 
 ChLinkLimit& ChLinkLock::GetLimit_X() {
     if (!limit_X)
-        limit_X = std::make_unique<ChLinkLimit>();
+        limit_X = chrono_types::make_unique<ChLinkLimit>();
     return *limit_X;
 }
 ChLinkLimit& ChLinkLock::GetLimit_Y() {
     if (!limit_Y)
-        limit_Y = std::make_unique<ChLinkLimit>();
+        limit_Y = chrono_types::make_unique<ChLinkLimit>();
     return *limit_Y;
 }
 ChLinkLimit& ChLinkLock::GetLimit_Z() {
     if (!limit_Z)
-        limit_Z = std::make_unique<ChLinkLimit>();
+        limit_Z = chrono_types::make_unique<ChLinkLimit>();
     return *limit_Z;
 }
 ChLinkLimit& ChLinkLock::GetLimit_Rx() {
     if (!limit_Rx)
-        limit_Rx = std::make_unique<ChLinkLimit>();
+        limit_Rx = chrono_types::make_unique<ChLinkLimit>();
     return *limit_Rx;
 }
 ChLinkLimit& ChLinkLock::GetLimit_Ry() {
     if (!limit_Ry)
-        limit_Ry = std::make_unique<ChLinkLimit>();
+        limit_Ry = chrono_types::make_unique<ChLinkLimit>();
     return *limit_Ry;
 }
 ChLinkLimit& ChLinkLock::GetLimit_Rz() {
     if (!limit_Rz)
-        limit_Rz = std::make_unique<ChLinkLimit>();
+        limit_Rz = chrono_types::make_unique<ChLinkLimit>();
     return *limit_Rz;
 }
 ChLinkLimit& ChLinkLock::GetLimit_Rp() {
     if (!limit_Rp)
-        limit_Rp = std::make_unique<ChLinkLimit>();
+        limit_Rp = chrono_types::make_unique<ChLinkLimit>();
     return *limit_Rp;
 }
 ChLinkLimit& ChLinkLock::GetLimit_D() {
     if (!limit_D)
-        limit_D = std::make_unique<ChLinkLimit>();
+        limit_D = chrono_types::make_unique<ChLinkLimit>();
     return *limit_D;
 }
 
@@ -317,6 +318,7 @@ void ChLinkLock::BuildLinkType(LinkType link_type) {
             break;
         case LinkType::ALIGN:
             BuildLink(false, false, false, false, true, true, true);
+            break;
         case LinkType::PARALLEL:
             BuildLink(false, false, false, false, true, true, false);
             break;
@@ -1952,6 +1954,99 @@ void ChLinkLock::ArchiveIN(ChArchiveIn& marchive) {
     ////marchive >> CHNVP(limit_Rz);
     ////marchive >> CHNVP(limit_Rp);
     ////marchive >> CHNVP(limit_D);
+}
+
+// =======================================================================================
+
+void ChLinkLockRevolute::Lock(bool lock) {
+    BuildLink(true, true, true, false, true, true, lock);
+    if (system) {
+        system->ForceUpdate();
+    }
+}
+
+void ChLinkLockSpherical::Lock(bool lock) {
+    BuildLink(true, true, true, false, lock, lock, lock);
+    if (system) {
+        system->ForceUpdate();
+    }
+}
+
+void ChLinkLockCylindrical::Lock(bool lock) {
+    BuildLink(true, true, lock, false, true, true, lock);
+    if (system) {
+        system->ForceUpdate();
+    }
+}
+
+void ChLinkLockPrismatic::Lock(bool lock) {
+    BuildLink(true, true, lock, false, true, true, true);
+    if (system) {
+        system->ForceUpdate();
+    }
+}
+
+void ChLinkLockPointPlane::Lock(bool lock) {
+    BuildLink(lock, lock, true, false, lock, lock, lock);
+    if (system) {
+        system->ForceUpdate();
+    }
+}
+
+void ChLinkLockPointLine::Lock(bool lock) {
+    BuildLink(lock, true, true, false, lock, lock, lock);
+    if (system) {
+        system->ForceUpdate();
+    }
+}
+
+void ChLinkLockPlanePlane::Lock(bool lock) {
+    BuildLink(lock, lock, true, false, true, true, lock);
+    if (system) {
+        system->ForceUpdate();
+    }
+}
+
+void ChLinkLockOldham::Lock(bool lock) {
+    BuildLink(lock, lock, true, false, true, true, true);
+    if (system) {
+        system->ForceUpdate();
+    }
+}
+
+void ChLinkLockFree::Lock(bool lock) {
+    BuildLink(lock, lock, lock, false, lock, lock, lock);
+    if (system) {
+        system->ForceUpdate();
+    }
+}
+
+void ChLinkLockAlign::Lock(bool lock) {
+    BuildLink(lock, lock, lock, false, true, true, true);
+    if (system) {
+        system->ForceUpdate();
+    }
+}
+
+void ChLinkLockParallel::Lock(bool lock) {
+    BuildLink(lock, lock, lock, false, true, true, lock);
+    if (system) {
+        system->ForceUpdate();
+    }
+}
+
+void ChLinkLockPerpend::Lock(bool lock) {
+    BuildLink(lock, lock, lock, false, true, lock, true);
+    if (system) {
+        system->ForceUpdate();
+    }
+}
+
+void ChLinkLockRevolutePrismatic::Lock(bool lock) {
+    BuildLink(lock, true, true, false, true, true, lock);
+    if (system) {
+        system->ForceUpdate();
+    }
 }
 
 // =======================================================================================

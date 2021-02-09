@@ -15,15 +15,42 @@
 #ifndef CHMATRIX_H
 #define CHMATRIX_H
 
-// Include this before ChMatrixEigenExtensions, that draws on it
+// Include these before ChMatrixEigenExtensions
 #include "chrono/serialization/ChArchive.h"
 #include "chrono/serialization/ChArchiveAsciiDump.h"
 
+// -----------------------------------------------------------------------------
+
 namespace chrono {
-	// A collective tag for storing version in ArchiveIN / ArchiveOUT:
-	class ChMatrix_dense_version_tag { }; 
-	CH_CLASS_VERSION(ChMatrix_dense_version_tag, 1)
-}
+// A collective tag for storing version in ArchiveIN / ArchiveOUT:
+class ChMatrix_dense_version_tag {};
+CH_CLASS_VERSION(ChMatrix_dense_version_tag, 1)
+}  // end namespace chrono
+
+// -----------------------------------------------------------------------------
+
+// Define Eigen::eigen_assert_exception. Note that this must precede inclusion of Eigen headers.
+// Required for Eigen 3.3.8 (bug in Eigen?)
+namespace Eigen {
+static const bool should_raise_an_assert = false;
+
+// Used to avoid to raise two exceptions at a time in which case the exception is not properly caught.
+// This may happen when a second exceptions is triggered in a destructor.
+static bool no_more_assert = false;
+static bool report_on_cerr_on_assert_failure = true;
+
+struct eigen_assert_exception {
+    eigen_assert_exception(void) {}
+    ~eigen_assert_exception() { Eigen::no_more_assert = false; }
+};
+
+struct eigen_static_assert_exception {
+    eigen_static_assert_exception(void) {}
+    ~eigen_static_assert_exception() { Eigen::no_more_assert = false; }
+};
+}  // end namespace Eigen
+
+// -----------------------------------------------------------------------------
 
 #define EIGEN_MATRIXBASE_PLUGIN "chrono/core/ChMatrixEigenExtensions.h"
 #define EIGEN_SPARSEMATRIX_PLUGIN "chrono/core/ChSparseMatrixEigenExtensions.h"
@@ -32,7 +59,6 @@ namespace chrono {
 
 #include "chrono/ChConfig.h"
 #include "chrono/core/ChTypes.h"
-
 
 namespace chrono {
 

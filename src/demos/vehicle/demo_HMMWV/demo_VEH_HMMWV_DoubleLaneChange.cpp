@@ -165,12 +165,13 @@ class ISO3888_Helper {
         rightCones.push_back((rightLine[4] + rightLine[5]) / 2);
         rightCones.push_back(rightLine[5]);
 
-        std::ofstream tst("bla.txt");
-        for (int i = 0; i < leftLine.size(); i++) {
-            tst << leftLine[i].x() << "\t" << centerLine[i].x() << "\t" << leftLine[i].y() << "\t" << centerLine[i].y()
-                << "\t" << rightLine[i].y() << std::endl;
-        }
-        tst.close();
+        ////std::ofstream tst("bla.txt");
+        ////for (int i = 0; i < leftLine.size(); i++) {
+        ////    tst << leftLine[i].x() << "\t" << centerLine[i].x() << "\t" << leftLine[i].y() << "\t" << centerLine[i].y()
+        ////        << "\t" << rightLine[i].y() << std::endl;
+        ////}
+        ////tst.close();
+
         // prepare path spline definition
         ChVector<> offset(lengthB / 3, 0, 0);
         for (size_t i = 0; i < centerLine.size(); i++) {
@@ -264,7 +265,7 @@ VisualizationType tire_vis_type = VisualizationType::PRIMITIVES;
 PowertrainModelType powertrain_model = PowertrainModelType::SHAFTS;
 
 // Drive type (FWD, RWD, or AWD)
-DrivelineType drive_type = DrivelineType::AWD;
+DrivelineTypeWV drive_type = DrivelineTypeWV::AWD;
 
 // Type of tire model (RIGID, RIGID_MESH, PACEJKA, LUGRE, FIALA, PAC89, PAC02, TMEASY)
 TireModelType tire_model = TireModelType::PAC02;
@@ -388,7 +389,7 @@ int main(int argc, char* argv[]) {
     // Create the HMMWV vehicle, set parameters, and initialize.
     // Typical aerodynamic drag for HMMWV: Cd = 0.5 and area ~5 m2
     HMMWV_Full my_hmmwv;
-    my_hmmwv.SetContactMethod(ChMaterialSurface::SMC);
+    my_hmmwv.SetContactMethod(ChContactMethod::SMC);
     my_hmmwv.SetChassisFixed(false);
     my_hmmwv.SetInitPosition(ChCoordsys<>(ChVector<>(-terrainLength / 2 + 5, 0, 0.7), ChQuaternion<>(1, 0, 0, 0)));
     my_hmmwv.SetPowertrainType(powertrain_model);
@@ -418,11 +419,12 @@ int main(int argc, char* argv[]) {
 
     // Create the terrain
     RigidTerrain terrain(my_hmmwv.GetSystem());
-    auto patch =
-        terrain.AddPatch(ChCoordsys<>(ChVector<>(0, 0, -5), QUNIT), ChVector<>(terrainLength, terrainWidth, 10));
-    patch->SetContactFrictionCoefficient(0.9f);
-    patch->SetContactRestitutionCoefficient(0.01f);
-    patch->SetContactMaterialProperties(2e7f, 0.3f);
+    auto patch_mat = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+    patch_mat->SetFriction(0.9f);
+    patch_mat->SetRestitution(0.01f);
+    patch_mat->SetYoungModulus(2e7f);
+    patch_mat->SetPoissonRatio(0.3f);
+    auto patch = terrain.AddPatch(patch_mat, ChVector<>(0, 0, 0), ChVector<>(0, 0, 1), terrainLength, terrainWidth);
     patch->SetColor(ChColor(0.8f, 0.8f, 0.5f));
     patch->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), (float)terrainLength, (float)terrainWidth);
     terrain.Initialize();
@@ -450,14 +452,14 @@ int main(int argc, char* argv[]) {
     for (size_t i = 0; i < helper.GetConePositions(); i++) {
         ChVector<> pL = helper.GetConePosition(i, true) + ChVector<>(0, coneBaseWidth / 2, 0);
         irr::scene::IAnimatedMesh* mesh_coneL =
-            app.GetSceneManager()->getMesh(GetChronoDataFile("trafficCone750mm.obj").c_str());
+            app.GetSceneManager()->getMesh(GetChronoDataFile("models/traffic_cone/trafficCone750mm.obj").c_str());
         irr::scene::IAnimatedMeshSceneNode* node_coneL = app.GetSceneManager()->addAnimatedMeshSceneNode(mesh_coneL);
         node_coneL->getMaterial(0).EmissiveColor = irr::video::SColor(0, 100, 0, 0);
         node_coneL->setPosition(irr::core::vector3dfCH(pL));
 
         ChVector<> pR = helper.GetConePosition(i, false) + ChVector<>(0, -coneBaseWidth / 2, 0);
         irr::scene::IAnimatedMesh* mesh_coneR =
-            app.GetSceneManager()->getMesh(GetChronoDataFile("trafficCone750mm.obj").c_str());
+            app.GetSceneManager()->getMesh(GetChronoDataFile("models/traffic_cone/trafficCone750mm.obj").c_str());
         irr::scene::IAnimatedMeshSceneNode* node_coneR = app.GetSceneManager()->addAnimatedMeshSceneNode(mesh_coneR);
         node_coneR->getMaterial(0).EmissiveColor = irr::video::SColor(0, 0, 100, 0);
         node_coneR->setPosition(irr::core::vector3dfCH(pR));
@@ -507,8 +509,8 @@ int main(int argc, char* argv[]) {
     while (app.GetDevice()->run()) {
         time = my_hmmwv.GetSystem()->GetChTime();
         double speed = speed_filter.Add(my_hmmwv.GetVehicle().GetVehicleSpeed());
-        double accel =
-            accel_filter.Filter(my_hmmwv.GetVehicle().GetVehicleAcceleration(ChVector<>(-wheel_base / 2, 0, 0)).y());
+        double accel = accel_filter.Filter(
+            my_hmmwv.GetVehicle().GetVehiclePointAcceleration(ChVector<>(-wheel_base / 2, 0, 0)).y());
 
         speed_recorder.AddPoint(time, speed);
         accel_recorder.AddPoint(time, accel);

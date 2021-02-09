@@ -63,18 +63,17 @@ ChMultiLink::ChMultiLink(const std::string& name) : ChSuspension(name) {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChMultiLink::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
+void ChMultiLink::Initialize(std::shared_ptr<ChChassis> chassis,
+                             std::shared_ptr<ChSubchassis> subchassis,
+                             std::shared_ptr<ChSteering> steering,
                              const ChVector<>& location,
-                             std::shared_ptr<ChBody> tierod_body,
-                             int steering_index,
                              double left_ang_vel,
                              double right_ang_vel) {
     m_location = location;
-    m_steering_index = steering_index;
 
     // Express the suspension reference frame in the absolute coordinate system.
     ChFrame<> suspension_to_abs(location);
-    suspension_to_abs.ConcatenatePreTransformation(chassis->GetFrame_REF_to_abs());
+    suspension_to_abs.ConcatenatePreTransformation(chassis->GetBody()->GetFrame_REF_to_abs());
 
     // Transform all points and directions to absolute frame
     m_pointsL.resize(NUM_POINTS);
@@ -98,8 +97,9 @@ void ChMultiLink::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     }
 
     // Initialize left and right sides.
-    InitializeSide(LEFT, chassis, tierod_body, m_pointsL, m_dirsL, left_ang_vel);
-    InitializeSide(RIGHT, chassis, tierod_body, m_pointsR, m_dirsR, right_ang_vel);
+    std::shared_ptr<ChBody> tierod_body = (steering == nullptr) ? chassis->GetBody() : steering->GetSteeringLink();
+    InitializeSide(LEFT, chassis->GetBody(), tierod_body, m_pointsL, m_dirsL, left_ang_vel);
+    InitializeSide(RIGHT, chassis->GetBody(), tierod_body, m_pointsR, m_dirsR, right_ang_vel);
 }
 
 void ChMultiLink::InitializeSide(VehicleSide side,

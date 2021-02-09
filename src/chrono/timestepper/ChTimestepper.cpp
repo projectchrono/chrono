@@ -81,7 +81,7 @@ void ChTimestepperEulerExpl::Advance(const double dt) {
 
     GetIntegrable()->StateGather(Y, T);  // state <- system
 
-    GetIntegrable()->StateSolve(dYdt, L, Y, T, dt, false);  // dY/dt = f(Y,T)
+    GetIntegrable()->StateSolve(dYdt, L, Y, T, dt, false, false);  // dY/dt = f(Y,T)
 
     // Euler formula!
     //   y_new= y + dy/dt * dt
@@ -90,7 +90,7 @@ void ChTimestepperEulerExpl::Advance(const double dt) {
 
     T += dt;
 
-    GetIntegrable()->StateScatter(Y, T);            // state -> system
+    GetIntegrable()->StateScatter(Y, T, true);            // state -> system
     GetIntegrable()->StateScatterDerivative(dYdt);  // -> system auxiliary data
     GetIntegrable()->StateScatterReactions(L);      // -> system auxiliary data
 }
@@ -121,7 +121,7 @@ void ChTimestepperEulerExplIIorder::Advance(const double dt) {
 
     mintegrable->StateGather(X, V, T);  // state <- system
 
-    mintegrable->StateSolveA(A, L, X, V, T, dt, false);  // Dv/dt = f(x,v,T)
+    mintegrable->StateSolveA(A, L, X, V, T, dt, false, false);  // Dv/dt = f(x,v,T)
 
     // Euler formula!
 
@@ -131,7 +131,7 @@ void ChTimestepperEulerExplIIorder::Advance(const double dt) {
 
     T += dt;
 
-    mintegrable->StateScatter(X, V, T);        // state -> system
+    mintegrable->StateScatter(X, V, T, true);  // state -> system
     mintegrable->StateScatterAcceleration(A);  // -> system auxiliary data
     mintegrable->StateScatterReactions(L);     // -> system auxiliary data
 }
@@ -158,7 +158,7 @@ void ChTimestepperEulerSemiImplicit::Advance(const double dt) {
 
     mintegrable->StateGather(X, V, T);  // state <- system
 
-    mintegrable->StateSolveA(A, L, X, V, T, dt, false);  // Dv/dt = f(x,v,T)   Dv = f(x,v,T)*dt
+    mintegrable->StateSolveA(A, L, X, V, T, dt, false, false);  // Dv/dt = f(x,v,T)   Dv = f(x,v,T)*dt
 
     // Semi-implicit Euler formula!   (note the order of update of x and v, respect to original Euler II order explicit)
 
@@ -168,7 +168,7 @@ void ChTimestepperEulerSemiImplicit::Advance(const double dt) {
 
     T += dt;
 
-    mintegrable->StateScatter(X, V, T);        // state -> system
+    mintegrable->StateScatter(X, V, T, true);  // state -> system
     mintegrable->StateScatterAcceleration(A);  // -> system auxiliary data
     mintegrable->StateScatterReactions(L);     // -> system auxiliary data
 }
@@ -197,22 +197,24 @@ void ChTimestepperRungeKuttaExpl::Advance(const double dt) {
     GetIntegrable()->StateGather(Y, T);  // state <- system
 
     GetIntegrable()->StateSolve(Dydt1, L, Y, T, dt,
-                                false);  // note, 'false'=no need to update with StateScatter before computation
+                                false,  // no need to scatter state before computation
+                                false   // full update? (not used since no scatter)
+    );  
 
     y_new = Y + Dydt1 * 0.5 * dt;  // integrable.StateIncrement(y_new, Y, Dydt1*0.5*dt);
-    GetIntegrable()->StateSolve(Dydt2, L, y_new, T + dt * 0.5, dt);
+    GetIntegrable()->StateSolve(Dydt2, L, y_new, T + dt * 0.5, dt, true, true);
 
     y_new = Y + Dydt2 * 0.5 * dt;  // integrable.StateIncrement(y_new, Y, Dydt2*0.5*dt);
-    GetIntegrable()->StateSolve(Dydt3, L, y_new, T + dt * 0.5, dt);
+    GetIntegrable()->StateSolve(Dydt3, L, y_new, T + dt * 0.5, dt, true, true);
 
     y_new = Y + Dydt3 * dt;  // integrable.StateIncrement(y_new, Y, Dydt3*dt);
-    GetIntegrable()->StateSolve(Dydt4, L, y_new, T + dt, dt);
+    GetIntegrable()->StateSolve(Dydt4, L, y_new, T + dt, dt, true, true);
 
     Y = Y + (Dydt1 + Dydt2 * 2.0 + Dydt3 * 2.0 + Dydt4) * (1. / 6.) * dt;  // integrable.StateIncrement(...);
     dYdt = Dydt4;                                                          // to check
     T += dt;
 
-    GetIntegrable()->StateScatter(Y, T);            // state -> system
+    GetIntegrable()->StateScatter(Y, T, true);            // state -> system
     GetIntegrable()->StateScatterDerivative(dYdt);  // -> system auxiliary data
     GetIntegrable()->StateScatterReactions(L);      // -> system auxiliary data
 }
@@ -239,16 +241,17 @@ void ChTimestepperHeun::Advance(const double dt) {
     GetIntegrable()->StateGather(Y, T);  // state <- system
 
     GetIntegrable()->StateSolve(Dydt1, L, Y, T, dt,
-                                false);  // note, 'false'=no need to update with StateScatter before computation
-
+                                false,  // no need to scatter state before computation
+                                false   // full update? ( not used, since no scatter)
+    );
     y_new = Y + Dydt1 * dt;
-    GetIntegrable()->StateSolve(Dydt2, L, y_new, T + dt, dt);
+    GetIntegrable()->StateSolve(Dydt2, L, y_new, T + dt, dt, true, true);
 
     Y = Y + (Dydt1 + Dydt2) * (dt / 2.);
     dYdt = Dydt2;
     T += dt;
 
-    GetIntegrable()->StateScatter(Y, T);            // state -> system
+    GetIntegrable()->StateScatter(Y, T, true);            // state -> system
     GetIntegrable()->StateScatterDerivative(dYdt);  // -> system auxiliary data
     GetIntegrable()->StateScatterReactions(L);      // -> system auxiliary data
 }
@@ -283,7 +286,7 @@ void ChTimestepperLeapfrog::Advance(const double dt) {
     X = X + V * dt + Aold * (0.5 * dt * dt);
 
     // computes new A  (NOTE!!true for imposing a state-> system scatter update,because X changed..)
-    mintegrable->StateSolveA(A, L, X, V, T, dt, true);  // Dv/dt = f(x,v,T)   Dv = f(x,v,T)*dt
+    mintegrable->StateSolveA(A, L, X, V, T, dt, true, true);  // Dv/dt = f(x,v,T)   Dv = f(x,v,T)*dt
 
     // advance V
 
@@ -291,7 +294,7 @@ void ChTimestepperLeapfrog::Advance(const double dt) {
 
     T += dt;
 
-    mintegrable->StateScatter(X, V, T);        // state -> system
+    mintegrable->StateScatter(X, V, T, true);  // state -> system
     mintegrable->StateScatterAcceleration(A);  // -> system auxiliary data
     mintegrable->StateScatterReactions(L);     // -> system auxiliary data
 }
@@ -335,7 +338,7 @@ void ChTimestepperEulerImplicit::Advance(const double dt) {
     numsolves = 0;
 
     for (int i = 0; i < this->GetMaxiters(); ++i) {
-        mintegrable->StateScatter(Xnew, Vnew, T + dt);  // state -> system
+        mintegrable->StateScatter(Xnew, Vnew, T + dt, false);  // state -> system
         R.setZero();
         Qc.setZero();
         mintegrable->LoadResidual_F(R, dt);
@@ -350,14 +353,15 @@ void ChTimestepperEulerImplicit::Advance(const double dt) {
         if ((R.lpNorm<Eigen::Infinity>() < abstolS) && (Qc.lpNorm<Eigen::Infinity>() < abstolL))
             break;
 
-        mintegrable->StateSolveCorrection(
-            Dv, Dl, R, Qc,
-            1.0,                 // factor for  M
-            -dt,                 // factor for  dF/dv
-            -dt * dt,            // factor for  dF/dx
-            Xnew, Vnew, T + dt,  // not used here (scatter = false)
-            false,               // do not StateScatter update to Xnew Vnew T+dt before computing correction
-            true                 // always call the solver's Setup
+        mintegrable->StateSolveCorrection(  //
+            Dv, Dl, R, Qc,                  //
+            1.0,                            // factor for  M
+            -dt,                            // factor for  dF/dv
+            -dt * dt,                       // factor for  dF/dx
+            Xnew, Vnew, T + dt,             // not used here (scatter = false)
+            false,                          // do not scatter update to Xnew Vnew T+dt before computing correction
+            false,                          // full update? (not used, since no scatter)
+            true                            // always call the solver's Setup
         );
 
         numiters++;
@@ -379,7 +383,7 @@ void ChTimestepperEulerImplicit::Advance(const double dt) {
     V = Vnew;
     T += dt;
 
-    mintegrable->StateScatter(X, V, T);     // state -> system
+    mintegrable->StateScatter(X, V, T, true);     // state -> system
     mintegrable->StateScatterReactions(L);  // -> system auxiliary data
 }
 
@@ -429,14 +433,15 @@ void ChTimestepperEulerImplicitLinearized::Advance(const double dt) {
     mintegrable->LoadConstraint_C(Qc, 1.0 / dt, Qc_do_clamp, Qc_clamping);
     mintegrable->LoadConstraint_Ct(Qc, 1.0);
 
-    mintegrable->StateSolveCorrection(
-        V, L, R, Qc,
-        1.0,           // factor for  M
-        -dt,           // factor for  dF/dv
-        -dt * dt,      // factor for  dF/dx
-        X, V, T + dt,  // not needed
-        false,         // do not StateScatter update to Xnew Vnew T+dt before computing correction
-        true           // force a call to the solver's Setup() function
+    mintegrable->StateSolveCorrection(  //
+        V, L, R, Qc,                    //
+        1.0,                            // factor for  M
+        -dt,                            // factor for  dF/dv
+        -dt * dt,                       // factor for  dF/dx
+        X, V, T + dt,                   // not needed
+        false,                          // do not scatter update to Xnew Vnew T+dt before computing correction
+        false,                          // full update? (not used, since no scatter)
+        true                            // force a call to the solver's Setup() function
     );
 
     L *= (1.0 / dt);  // Note it is not -(1.0/dt) because we assume StateSolveCorrection already flips sign of Dl
@@ -448,8 +453,8 @@ void ChTimestepperEulerImplicitLinearized::Advance(const double dt) {
 
     T += dt;
 
-    mintegrable->StateScatter(X, V, T);     // state -> system
-    mintegrable->StateScatterReactions(L);  // -> system auxiliary data
+    mintegrable->StateScatter(X, V, T, true);  // state -> system
+    mintegrable->StateScatterReactions(L);     // -> system auxiliary data
 }
 
 // -----------------------------------------------------------------------------
@@ -491,14 +496,15 @@ void ChTimestepperEulerImplicitProjected::Advance(const double dt) {
     mintegrable->LoadConstraint_C(Qc, 1.0 / dt, Qc_do_clamp, 0);  // may be avoided
     mintegrable->LoadConstraint_Ct(Qc, 1.0);
 
-    mintegrable->StateSolveCorrection(
-        V, L, R, Qc,
-        1.0,           // factor for  M
-        -dt,           // factor for  dF/dv
-        -dt * dt,      // factor for  dF/dx
-        X, V, T + dt,  // not needed
-        false,         // do not StateScatter update to Xnew Vnew T+dt before computing correction
-        true           // force a call to the solver's Setup() function
+    mintegrable->StateSolveCorrection(  //
+        V, L, R, Qc,                    //
+        1.0,                            // factor for  M
+        -dt,                            // factor for  dF/dv
+        -dt * dt,                       // factor for  dF/dx
+        X, V, T + dt,                   // not needed
+        false,                          // do not scatter update to Xnew Vnew T+dt before computing correction
+        false,                          // full update? (not used, since no scatter)
+        true                            // force a call to the solver's Setup() function
     );
 
     L *= (1.0 / dt);  // Note it is not -(1.0/dt) because we assume StateSolveCorrection already flips sign of Dl
@@ -510,8 +516,8 @@ void ChTimestepperEulerImplicitProjected::Advance(const double dt) {
 
     T += dt;
 
-    mintegrable->StateScatter(X, V, T);     // state -> system
-    mintegrable->StateScatterReactions(L);  // -> system auxiliary data
+    mintegrable->StateScatter(X, V, T, false);  // state -> system
+    mintegrable->StateScatterReactions(L);      // -> system auxiliary data
 
     // 2
     // Do the position stabilization (single NR step on constraints, with mass matrix as metric)
@@ -528,19 +534,20 @@ void ChTimestepperEulerImplicitProjected::Advance(const double dt) {
 
     mintegrable->LoadConstraint_C(Qc, 1.0, false, 0);
 
-    mintegrable->StateSolveCorrection(
-        Vold, L, R, Qc,
-        1.0,      // factor for  M
-        0,        // factor for  dF/dv
-        0,        // factor for  dF/dx
-        X, V, T,  // not needed
-        false,    // do not StateScatter update to Xnew Vnew T+dt before computing correction
-        true      // force a call to the solver's Setup() function
+    mintegrable->StateSolveCorrection(  //
+        Vold, L, R, Qc,                 //
+        1.0,                            // factor for  M
+        0,                              // factor for  dF/dv
+        0,                              // factor for  dF/dx
+        X, V, T,                        // not needed
+        false,                          // do not scatter update to Xnew Vnew T+dt before computing correction
+        false,                          // full update? (not used, since no scatter)
+        true                            // force a call to the solver's Setup() function
     );
 
     X += Vold;  // here we used 'Vold' as 'dpos' to recycle Vold and avoid allocating a new vector dpos
 
-    mintegrable->StateScatter(X, V, T);  // state -> system
+    mintegrable->StateScatter(X, V, T, true);  // state -> system
 }
 
 // -----------------------------------------------------------------------------
@@ -593,7 +600,7 @@ void ChTimestepperTrapezoidal::Advance(const double dt) {
     numsolves = 0;
 
     for (int i = 0; i < this->GetMaxiters(); ++i) {
-        mintegrable->StateScatter(Xnew, Vnew, T + dt);  // state -> system
+        mintegrable->StateScatter(Xnew, Vnew, T + dt, false);  // state -> system
         R = Rold;
         Qc.setZero();
         mintegrable->LoadResidual_F(R, dt * 0.5);                               // + dt/2*f_new
@@ -608,14 +615,15 @@ void ChTimestepperTrapezoidal::Advance(const double dt) {
         if ((R.lpNorm<Eigen::Infinity>() < abstolS) && (Qc.lpNorm<Eigen::Infinity>() < abstolL))
             break;
 
-        mintegrable->StateSolveCorrection(
-            Dv, Dl, R, Qc,
-            1.0,                 // factor for  M
-            -dt * 0.5,           // factor for  dF/dv
-            -dt * dt * 0.25,     // factor for  dF/dx
-            Xnew, Vnew, T + dt,  // not used here (scatter = false)
-            false,               // do not StateScatter update to Xnew Vnew T+dt before computing correction
-            true                 // always force a call to the solver's Setup() function
+        mintegrable->StateSolveCorrection(  //
+            Dv, Dl, R, Qc,                  //
+            1.0,                            // factor for  M
+            -dt * 0.5,                      // factor for  dF/dv
+            -dt * dt * 0.25,                // factor for  dF/dx
+            Xnew, Vnew, T + dt,             // not used here (scatter = false)
+            false,                          // do not scatter update to Xnew Vnew T+dt before computing correction
+            false,                          // full update? (not used, since no scatter)
+            true                            // always force a call to the solver's Setup() function
         );
 
         numiters++;
@@ -637,7 +645,7 @@ void ChTimestepperTrapezoidal::Advance(const double dt) {
     V = Vnew;
     T += dt;
 
-    mintegrable->StateScatter(X, V, T);  // state -> system
+    mintegrable->StateScatter(X, V, T, true);  // state -> system
     mintegrable->StateScatterReactions(L *=
                                        0.5);  // -> system auxiliary data   (*=0.5 cause we used the hack of l_old = 0)
 }
@@ -682,7 +690,7 @@ void ChTimestepperTrapezoidalLinearized::Advance(const double dt) {
     mintegrable->LoadResidual_Mv(Rold, V, 1.0);   // M*v_old
     // mintegrable->LoadResidual_CqL(Rold, L, dt*0.5); // dt/2*l_old  assume l_old = 0;
 
-    mintegrable->StateScatter(Xnew, Vnew, T + dt);  // state -> system
+    mintegrable->StateScatter(Xnew, Vnew, T + dt, false);  // state -> system
     R = Rold;
     Qc.setZero();
     mintegrable->LoadResidual_F(R, dt * 0.5);     // + dt/2*f_new
@@ -690,14 +698,15 @@ void ChTimestepperTrapezoidalLinearized::Advance(const double dt) {
     // mintegrable->LoadResidual_CqL(R, L, dt*0.5); // + dt/2*Cq*l_new  assume l_old = 0;
     mintegrable->LoadConstraint_C(Qc, 1.0 / dt, Qc_do_clamp, Qc_clamping);  // -C/dt
 
-    mintegrable->StateSolveCorrection(
-        Dv, Dl, R, Qc,
-        1.0,                 // factor for  M
-        -dt * 0.5,           // factor for  dF/dv
-        -dt * dt * 0.25,     // factor for  dF/dx
-        Xnew, Vnew, T + dt,  // not used here (scatter = false)
-        false,               // do not StateScatter update to Xnew Vnew T+dt before computing correction
-        true                 // force a call to the solver's Setup() function
+    mintegrable->StateSolveCorrection(  //
+        Dv, Dl, R, Qc,                  //
+        1.0,                            // factor for  M
+        -dt * 0.5,                      // factor for  dF/dv
+        -dt * dt * 0.25,                // factor for  dF/dx
+        Xnew, Vnew, T + dt,             // not used here (scatter = false)
+        false,                          // do not scatter update to Xnew Vnew T+dt before computing correction
+        false,                          // full update? (not used, since no scatter)
+        true                            // force a call to the solver's Setup() function
     );
 
     numiters = 1;
@@ -715,7 +724,7 @@ void ChTimestepperTrapezoidalLinearized::Advance(const double dt) {
     V = Vnew;
     T += dt;
 
-    mintegrable->StateScatter(X, V, T);                       // state -> system
+    mintegrable->StateScatter(X, V, T, true);                 // state -> system
     mintegrable->StateScatterAcceleration((Dv *= (1 / dt)));  // -> system auxiliary data (i.e acceleration as measure)
     mintegrable->StateScatterReactions(L *= 0.5);             // -> system auxiliary data (*=0.5 because use l_old = 0)
 }
@@ -757,19 +766,20 @@ void ChTimestepperTrapezoidalLinearized2::Advance(const double dt) {
     mintegrable->LoadResidual_F(R, dt * 0.5);  // dt/2*f_old
     mintegrable->LoadResidual_Mv(R, V, 1.0);   // M*v_old
 
-    mintegrable->StateScatter(Xnew, Vnew, T + dt);  // state -> system
+    mintegrable->StateScatter(Xnew, Vnew, T + dt, false);  // state -> system
     Qc.setZero();
     mintegrable->LoadResidual_F(R, dt * 0.5);                               // + dt/2*f_new
     mintegrable->LoadConstraint_C(Qc, 1.0 / dt, Qc_do_clamp, Qc_clamping);  // -C/dt
 
-    mintegrable->StateSolveCorrection(
-        Vnew, L, R, Qc,
-        1.0,                 // factor for  M
-        -dt * 0.5,           // factor for  dF/dv
-        -dt * dt * 0.25,     // factor for  dF/dx
-        Xnew, Vnew, T + dt,  // not used here (scatter = false)
-        false,               // do not StateScatter update to Xnew Vnew T+dt before computing correction
-        true                 // force a call to the solver's Setup() function
+    mintegrable->StateSolveCorrection(  //
+        Vnew, L, R, Qc,                 //
+        1.0,                            // factor for  M
+        -dt * 0.5,                      // factor for  dF/dv
+        -dt * dt * 0.25,                // factor for  dF/dx
+        Xnew, Vnew, T + dt,             // not used here (scatter = false)
+        false,                          // do not scatter update to Xnew Vnew T+dt before computing correction
+        false,                          // full update? (not used, since no scatter)
+        true                            // force a call to the solver's Setup() function
     );
 
     numiters = 1;
@@ -787,8 +797,8 @@ void ChTimestepperTrapezoidalLinearized2::Advance(const double dt) {
 
     T += dt;
 
-    mintegrable->StateScatter(X, V, T);     // state -> system
-    mintegrable->StateScatterReactions(L);  // -> system auxiliary data
+    mintegrable->StateScatter(X, V, T, true);  // state -> system
+    mintegrable->StateScatterReactions(L);     // -> system auxiliary data
 }
 
 // -----------------------------------------------------------------------------
@@ -848,7 +858,7 @@ void ChTimestepperNewmark::Advance(const double dt) {
     numsolves = 0;
 
     for (int i = 0; i < this->GetMaxiters(); ++i) {
-        mintegrable->StateScatter(Xnew, Vnew, T + dt);  // state -> system
+        mintegrable->StateScatter(Xnew, Vnew, T + dt, false);  // state -> system
 
         R.setZero(mintegrable->GetNcoords_v());
         Qc.setZero(mintegrable->GetNconstr());
@@ -864,14 +874,15 @@ void ChTimestepperNewmark::Advance(const double dt) {
         if ((R.lpNorm<Eigen::Infinity>() < abstolS) && (Qc.lpNorm<Eigen::Infinity>() < abstolL))
             break;
 
-        mintegrable->StateSolveCorrection(
-            Da, Dl, R, Qc,
-            1.0,                 // factor for  M
-            -dt * gamma,         // factor for  dF/dv
-            -dt * dt * beta,     // factor for  dF/dx
-            Xnew, Vnew, T + dt,  // not used here (scatter = false)
-            false,               // do not StateScatter update to Xnew Vnew T+dt before computing correction
-            true                 // force a call to the solver's Setup() function
+        mintegrable->StateSolveCorrection(  //
+            Da, Dl, R, Qc,                  //
+            1.0,                            // factor for  M
+            -dt * gamma,                    // factor for  dF/dv
+            -dt * dt * beta,                // factor for  dF/dx
+            Xnew, Vnew, T + dt,             // not used here (scatter = false)
+            false,                          // do not scatter update to Xnew Vnew T+dt before computing correction
+            false,                          // full update? (not used, since no scatter)
+            true                            // force a call to the solver's Setup() function
         );
 
         numiters++;
@@ -891,7 +902,7 @@ void ChTimestepperNewmark::Advance(const double dt) {
     A = Anew;
     T += dt;
 
-    mintegrable->StateScatter(X, V, T);        // state -> system
+    mintegrable->StateScatter(X, V, T, true);  // state -> system
     mintegrable->StateScatterAcceleration(A);  // -> system auxiliary data
     mintegrable->StateScatterReactions(L);     // -> system auxiliary data
 }

@@ -25,6 +25,8 @@
 
 #include "chrono_models/vehicle/m113/M113_TrackShoeDoublePin.h"
 
+#include "chrono_thirdparty/filesystem/path.h"
+
 namespace chrono {
 namespace vehicle {
 namespace m113 {
@@ -39,39 +41,81 @@ const double M113_TrackShoeDoublePin::m_shoe_length = 0.0984;  // 3.875''
 const double M113_TrackShoeDoublePin::m_shoe_width = 0.2781;   // 10.95''
 const double M113_TrackShoeDoublePin::m_shoe_height = 0.06;
 
+const ChVector<> M113_TrackShoeDoublePin::m_pin_center(0.045, 0, 0.0375);
+
 const double M113_TrackShoeDoublePin::m_connector_mass = 2.0;                  //// TODO
 const ChVector<> M113_TrackShoeDoublePin::m_connector_inertia(0.1, 0.1, 0.1);  //// TODO
 const double M113_TrackShoeDoublePin::m_connector_radius = 0.02;               // 0.88''
 const double M113_TrackShoeDoublePin::m_connector_length = 0.054;              // 2.125''
 const double M113_TrackShoeDoublePin::m_connector_width = 0.02;
 
-const ChVector<> M113_TrackShoeDoublePin::m_pad_box_dims(0.11, 0.19, 0.06);
-const ChVector<> M113_TrackShoeDoublePin::m_pad_box_loc(0, 0, 0);
-const ChVector<> M113_TrackShoeDoublePin::m_guide_box_dims(0.0284, 0.0114, 0.075);
-const ChVector<> M113_TrackShoeDoublePin::m_guide_box_loc(0.045, 0, 0.0375);
-
-const std::string M113_TrackShoeDoublePin::m_meshName = "TrackShoeDoublePin_POV_geom";
-const std::string M113_TrackShoeDoublePin::m_meshFile = "M113/TrackShoeDoublePin.obj";
-
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 M113_TrackShoeDoublePin::M113_TrackShoeDoublePin(const std::string& name) : ChTrackShoeDoublePin(name) {
-    SetContactFrictionCoefficient(0.8f);
-    SetContactRestitutionCoefficient(0.1f);
-    SetContactMaterialProperties(1e7f, 0.3f);
-    SetContactMaterialCoefficients(2e5f, 40.0f, 2e5f, 20.0f);
+    // Collision box: pad bottom (ground contact)
+    ChVehicleGeometry::BoxShape box_bottom(ChVector<>(0, 0, -0.015), QUNIT, ChVector<>(0.11, 0.19, 0.03), 0);
+
+    // Collision box: pad top (wheel contact)
+    ChVehicleGeometry::BoxShape box_top(ChVector<>(0, 0, +0.015), QUNIT, ChVector<>(0.10, 0.18, 0.03), 1);
+
+    // Collision box: guide pin (wheel contact)
+    ChVehicleGeometry::BoxShape box_guide(ChVector<>(0.045, 0, 0.0375), QUNIT, ChVector<>(0.0284, 0.0114, 0.075), 2);
+
+    m_geometry.m_coll_boxes.push_back(box_bottom);
+    m_geometry.m_coll_boxes.push_back(box_top);
+    m_geometry.m_coll_boxes.push_back(box_guide);
+
+    m_geometry.m_has_primitives = true;
+
+    m_geometry.m_vis_boxes.push_back(box_bottom);
+    m_geometry.m_vis_boxes.push_back(box_top);
+    m_geometry.m_vis_boxes.push_back(box_guide);
+
+    // Visualization cylinder: pin revolute joints
+    m_geometry.m_vis_cylinders.push_back(
+        ChVehicleGeometry::CylinderShape(ChVector<>(+0.0492, 0, 0), QUNIT, 0.01, 0.3381, -1));
+    m_geometry.m_vis_cylinders.push_back(
+        ChVehicleGeometry::CylinderShape(ChVector<>(-0.0492, 0, 0), QUNIT, 0.01, 0.3381, -1));
+
+    m_geometry.m_has_mesh = false;
+    m_geometry.m_vis_mesh_file = "M113/TrackShoeDoublePin.obj";
 }
 
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-void M113_TrackShoeDoublePin::AddVisualizationAssets(VisualizationType vis) {
-    if (vis == VisualizationType::MESH) {
-        //// TODO:
-        //// Set up meshes for shoe and connectors
-        //// For now, default to PRIMITIVE visualization
-        ChTrackShoeDoublePin::AddVisualizationAssets(vis);
-    } else {
-        ChTrackShoeDoublePin::AddVisualizationAssets(vis);
+void M113_TrackShoeDoublePin::CreateContactMaterials(ChContactMethod contact_method) {
+    // Material for connectors (sprocket contact)
+    {
+        MaterialInfo minfo;
+        minfo.mu = 0.8f;
+        minfo.cr = 0.75f;
+        minfo.Y = 1e7f;
+        m_shoe_sprk_material = minfo.CreateMaterial(contact_method);
+    }
+
+    // Material 0: pad bottom (ground contact)
+    {
+        MaterialInfo minfo;
+        minfo.mu = 0.8f;
+        minfo.cr = 0.75f;
+        minfo.Y = 1e7f;
+        m_geometry.m_materials.push_back(minfo.CreateMaterial(contact_method));
+    }
+
+    // Material 1: pad top (wheel contact)
+    {
+        MaterialInfo minfo;
+        minfo.mu = 0.8f;
+        minfo.cr = 0.75f;
+        minfo.Y = 1e7f;
+        m_geometry.m_materials.push_back(minfo.CreateMaterial(contact_method));
+    }
+
+    // Material 2: guide pin (wheel contact)
+    {
+        MaterialInfo minfo;
+        minfo.mu = 0.8f;
+        minfo.cr = 0.75f;
+        minfo.Y = 1e7f;
+        m_geometry.m_materials.push_back(minfo.CreateMaterial(contact_method));
     }
 }
 

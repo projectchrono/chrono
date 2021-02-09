@@ -63,22 +63,21 @@ int main(int argc, char* argv[]) {
     ChIrrWizard::add_typical_Lights(application.GetDevice());
     ChIrrWizard::add_typical_Camera(application.GetDevice(), core::vector3df(0, 4, -6), core::vector3df(0, -2, 0));
 
-    //
     // CREATE THE SYSTEM OBJECTS
-    //
 
     // Create the floor:
+    auto floor_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
 
-    auto floorBody = chrono_types::make_shared<ChBodyEasyBox>(20, 1, 20, 1000, true, true);
+    auto floorBody = chrono_types::make_shared<ChBodyEasyBox>(20, 1, 20, 1000, true, true, floor_mat);
     floorBody->SetPos(ChVector<>(0, -5, 0));
     floorBody->SetBodyFixed(true);
 
     floorBody->GetCollisionModel()->ClearModel();
-    floorBody->GetCollisionModel()->AddBox(10, 0.5, 10);
-    //    floorBody->GetCollisionModel()->AddBox(1,12,20,ChVector<>(-5,0,0));
-    //    floorBody->GetCollisionModel()->AddBox(1,12,20,ChVector<>( 5,0,0));
-    //    floorBody->GetCollisionModel()->AddBox(10,12,1,ChVector<>(0,0,-5));
-    //    floorBody->GetCollisionModel()->AddBox(10,12,1,ChVector<>( 0,0,5));
+    floorBody->GetCollisionModel()->AddBox(floor_mat, 10, 0.5, 10);
+    //    floorBody->GetCollisionModel()->AddBox(floor_mat, 1,12,20,ChVector<>(-5,0,0));
+    //    floorBody->GetCollisionModel()->AddBox(floor_mat, 1,12,20,ChVector<>( 5,0,0));
+    //    floorBody->GetCollisionModel()->AddBox(floor_mat, 10,12,1,ChVector<>(0,0,-5));
+    //    floorBody->GetCollisionModel()->AddBox(floor_mat, 10,12,1,ChVector<>( 0,0,5));
     floorBody->GetCollisionModel()->BuildModel();
 
     auto mvisual = chrono_types::make_shared<ChColorAsset>();
@@ -101,112 +100,100 @@ int main(int argc, char* argv[]) {
     floorBody->AddAsset(mpov_asset);
 
     mphysicalSystem.Add(floorBody);
+
     /*
-        /// Create 6 falling cubes, each with an attached emitter, this will
-        /// cause six jets of particles
+    // Create 6 falling cubes, each with an attached emitter, this will cause six jets of particles
 
-        for (int i=0;i<6; ++i)
-        {
-            double stonehenge_rad = 1;
-            double phase = CH_C_2PI * ((double)i/6.0);
+    for (int i = 0; i < 6; ++i) {
+        double stonehenge_rad = 1;
+        double phase = CH_C_2PI * ((double)i / 6.0);
 
-            // Create a rigid body :
-            auto movingBody = chrono_types::make_shared<ChBodyEasyBox>(1.2, 0.4, 1.2, 3000, false);
-            movingBody->SetPos(ChVector<>(stonehenge_rad*cos(phase),1,stonehenge_rad*sin(phase)));
-            movingBody->SetPos_dt(ChVector<>(1.1*cos(phase),4,1.1*sin(phase)));
-            movingBody->SetWvel_par(ChVector<>(2*cos(phase),2,2*sin(phase)));
-            mphysicalSystem.Add(movingBody);
+        // Create a rigid body :
+        auto movingBody = chrono_types::make_shared<ChBodyEasyBox>(1.2, 0.4, 1.2, 3000, true, false);
+        movingBody->SetPos(ChVector<>(stonehenge_rad * cos(phase), 1, stonehenge_rad * sin(phase)));
+        movingBody->SetPos_dt(ChVector<>(1.1 * cos(phase), 4, 1.1 * sin(phase)));
+        movingBody->SetWvel_par(ChVector<>(2 * cos(phase), 2, 2 * sin(phase)));
+        mphysicalSystem.Add(movingBody);
 
-            auto mvisual = chrono_types::make_shared<ChColorAsset>();
-            mvisual->SetColor(ChColor(1.0f, 0.5f, 0.1f));
-            movingBody->AddAsset(mvisual);
+        auto mvisual = chrono_types::make_shared<ChColorAsset>();
+        mvisual->SetColor(ChColor(1.0f, 0.5f, 0.1f));
+        movingBody->AddAsset(mvisual);
 
-            // Create a  emitter asset, that contains a ChParticleEmitter, and that will follow the body:
-            auto emitter_asset = chrono_types::make_shared<ChEmitterAsset>();
+        // Create a  emitter asset, that contains a ChParticleEmitter, and that will follow the body:
+        auto emitter_asset = chrono_types::make_shared<ChEmitterAsset>();
 
-            // Attach the emitter asset to the moving body:
-            movingBody->AddAsset(emitter_asset);
+        // Attach the emitter asset to the moving body:
+        movingBody->AddAsset(emitter_asset);
 
-            // Define features of the emitter:
+        // Define features of the emitter:
+        emitter_asset->Emitter().ParticlesPerSecond() = 3000;
+        emitter_asset->Emitter().SetJitterDeclustering(true);
+        emitter_asset->Emitter().SetInheritSpeed(false);
+        emitter_asset->Emitter().SetUseParticleReservoir(true);
+        emitter_asset->Emitter().ParticleReservoirAmount() = 5500;
 
-            emitter_asset->Emitter().ParticlesPerSecond() = 3000;
-            emitter_asset->Emitter().SetJitterDeclustering(true);
-            emitter_asset->Emitter().SetInheritSpeed(false);
-            emitter_asset->Emitter().SetUseParticleReservoir(true);
-            emitter_asset->Emitter().ParticleReservoirAmount() = 5500;
+        // ---Initialize the randomizer for positions
+        auto emitter_positions = chrono_types::make_shared<ChRandomParticlePositionRectangleOutlet>();
+        emitter_positions->Outlet() =
+            ChCoordsys<>(ChVector<>(0, 0.2, 0),               // position, wrt owner moving body
+                         Q_from_AngAxis(CH_C_PI_2, VECT_X));  // rotation, wrt owner moving body
+        emitter_positions->OutletWidth() = 1.2;
+        emitter_positions->OutletHeight() = 1.2;
+        emitter_asset->Emitter().SetParticlePositioner(emitter_positions);
 
-     
+        // ---Initialize the randomizer for alignments
+        auto emitter_rotations = chrono_types::make_shared<ChRandomParticleAlignmentUniform>();
+        emitter_asset->Emitter().SetParticleAligner(emitter_rotations);
 
+        // ---Initialize the randomizer for velocities, with statistical distribution
+        auto mvelo = chrono_types::make_shared<ChRandomParticleVelocityConstantDirection>();
+        mvelo->SetDirection(VECT_Y);
+        mvelo->SetModulusDistribution(5.0);
+        emitter_asset->Emitter().SetParticleVelocity(mvelo);
 
-            // ---Initialize the randomizer for positions
-            auto emitter_positions = chrono_types::make_shared<ChRandomParticlePositionRectangleOutlet>();
-            emitter_positions->Outlet() = ChCoordsys<>(ChVector<>(0, 0.2, 0),    // position, respect to owner moving
-     body Q_from_AngAxis(CH_C_PI_2, VECT_X));  // rotation, respect to owner moving body
-            emitter_positions->OutletWidth() = 1.2;
-            emitter_positions->OutletHeight() = 1.2;
-            emitter_asset->Emitter().SetParticlePositioner(emitter_positions);
+        // ---Initialize a ChRandomShapeCreator object (ex. here for sphere particles)
+        auto mcreator_spheres = chrono_types::make_shared<ChRandomShapeCreatorSpheres>();
+        mcreator_spheres->SetDiameterDistribution(chrono_types::make_shared<ChMinMaxDistribution>(0.05, 0.15));
+        mcreator_spheres->SetDensityDistribution(chrono_types::make_shared<ChConstantDistribution>(1600));
+        mcreator_spheres->SetAddCollisionShape(false);
 
-            // ---Initialize the randomizer for alignments
-            auto emitter_rotations = chrono_types::make_shared<ChRandomParticleAlignmentUniform>();
-            emitter_asset->Emitter().SetParticleAligner(emitter_rotations);
+        // Finally, tell to the emitter that it must use the creator above:
+        emitter_asset->Emitter().SetParticleCreator(mcreator_spheres);
 
-            // ---Initialize the randomizer for velocities, with statistical distribution
-            auto mvelo = chrono_types::make_shared<ChRandomParticleVelocityConstantDirection>();
-            mvelo->SetDirection(VECT_Y);
-            mvelo->SetModulusDistribution(5.0);
-            emitter_asset->Emitter().SetParticleVelocity(mvelo);
+        // Optional: for visualization etc.
+        // a- define a class that implement your custom OnAddBody method...
+        class MyCreatorForAll : public ChRandomShapeCreator::AddBodyCallback {
+          public:
+            virtual void OnAddBody(std::shared_ptr<ChBody> mbody,
+                                   ChCoordsys<> mcoords,
+                                   ChRandomShapeCreator& mcreator) override {
+                // Enable Irrlicht visualization for all particles
+                airrlicht_application->AssetBind(mbody);
+                airrlicht_application->AssetUpdate(mbody);
 
-        
+                // Enable PovRay rendering
+                auto mpov_asset = chrono_types::make_shared<ChPovRayAsset>();
+                mbody->AddAsset(mpov_asset);
 
+                // Add custom POVray material..
+                auto mPOVcustom = chrono_types::make_shared<ChPovRayAssetCustom>();
+                mPOVcustom->SetCommands(" texture {finish { specular 0.9 } pigment{ color rgb<0.3,0.5,0.55>} }\n");
+                mbody->AddAsset(mPOVcustom);
 
-            // ---Initialize a ChRandomShapeCreator object (ex. here for sphere particles)
-            auto mcreator_spheres = chrono_types::make_shared<ChRandomShapeCreatorSpheres>();
-            mcreator_spheres->SetDiameterDistribution(chrono_types::make_shared<ChMinMaxDistribution>(0.05, 0.15));
-            mcreator_spheres->SetDensityDistribution(chrono_types::make_shared<ChConstantDistribution>(1600));
-            mcreator_spheres->SetAddCollisionShape(false);
-
-            // Finally, tell to the emitter that it must use the creator above:
-            emitter_asset->Emitter().SetParticleCreator(mcreator_spheres);
-
-            // Optional: for visualization etc.
-            // a- define a class that implement your custom OnAddBody method...
-            class MyCreatorForAll : public ChRandomShapeCreator::AddBodyCallback {
-              public:
-                virtual void OnAddBody(std::shared_ptr<ChBody> mbody, ChCoordsys<> mcoords, ChRandomShapeCreator&
-     mcreator) override {
-
-                    // Enable Irrlicht visualization for all particles
-                    airrlicht_application->AssetBind(mbody);
-                    airrlicht_application->AssetUpdate(mbody);
-
-                        // Enable PovRay rendering
-                        auto mpov_asset = chrono_types::make_shared<ChPovRayAsset>();
-                        mbody->AddAsset(mpov_asset);
-                    
-
-
-                        // Add custom POVray material..
-                        auto mPOVcustom = chrono_types::make_shared<ChPovRayAssetCustom>();
-                        mPOVcustom->SetCommands(" texture {finish { specular 0.9 } pigment{ color rgb<0.3,0.5,0.55>} }
-     \n"); mbody->AddAsset(mPOVcustom);
-                    
-
-
-
-                    // Other stuff, ex. disable gyroscopic forces for increased integrator stabilty
-                    mbody->SetNoGyroTorque(true);
-                }
-                irrlicht::ChIrrApp* airrlicht_application;
-            };
-            // b- create the callback object...
-            MyCreatorForAll* mcreation_callback = new MyCreatorForAll;
-            // c- set callback own data that he might need...
-            mcreation_callback->airrlicht_application = &application;
-            // d- attach the callback to the emitter!
-            emitter_asset->Emitter().RegisterAddBodyCallback(mcreation_callback);
-
-        }
+                // Other stuff, ex. disable gyroscopic forces for increased integrator stabilty
+                mbody->SetNoGyroTorque(true);
+            }
+            irrlicht::ChIrrApp* airrlicht_application;
+        };
+        // b- create the callback object...
+        auto mcreation_callback = chrono_types::make_shared<MyCreatorForAll>();
+        // c- set callback own data that he might need...
+        mcreation_callback->airrlicht_application = &application;
+        // d- attach the callback to the emitter!
+        emitter_asset->Emitter().RegisterAddBodyCallback(mcreation_callback);
+    }
     */
+
     //****TEST****
     int num_emitters = 5;
     std::vector<ChParticleEmitter> emitters(num_emitters);
@@ -231,7 +218,7 @@ int main(int argc, char* argv[]) {
         emitters[ie].SetParticlePositioner(emitter_positions);
 
         // just for visualizing outlet
-        auto boxbody = chrono_types::make_shared<ChBodyEasyBox>(1.2, 0.4, 1.2, 3000, false);
+        auto boxbody = chrono_types::make_shared<ChBodyEasyBox>(1.2, 0.4, 1.2, 3000, true, false);
         boxbody->SetPos(ChVector<>(xpos, -4.1, 0));
         boxbody->SetBodyFixed(true);
         mphysicalSystem.Add(boxbody);
@@ -274,7 +261,7 @@ int main(int argc, char* argv[]) {
                 mbody->AddAsset(mPOVcustom);
             }
         };
-        MyCreator_spheres* callback_spheres = new MyCreator_spheres;
+        auto callback_spheres = chrono_types::make_shared<MyCreator_spheres>();
         mcreator_spheres->RegisterAddBodyCallback(callback_spheres);
 
         // B)
@@ -301,7 +288,7 @@ int main(int argc, char* argv[]) {
                 mbody->AddAsset(mPOVcustom);
             }
         };
-        MyCreator_hulls* callback_hulls = new MyCreator_hulls;
+        auto callback_hulls = chrono_types::make_shared<MyCreator_hulls>();
         mcreator_hulls->RegisterAddBodyCallback(callback_hulls);
 
         // Create a parent ChRandomShapeCreator that 'mixes' some generators above,
@@ -341,7 +328,7 @@ int main(int argc, char* argv[]) {
             ChIrrApp* airrlicht_application;
         };
         // b- create the callback object...
-        MyCreatorForAll* mcreation_callback = new MyCreatorForAll;
+        auto mcreation_callback = chrono_types::make_shared<MyCreatorForAll>();
         // c- set callback own data that he might need...
         mcreation_callback->airrlicht_application = &application;
         // d- attach the callback to the emitter!
@@ -355,32 +342,15 @@ int main(int argc, char* argv[]) {
     // Use this function for 'converting' assets into Irrlicht meshes
     application.AssetUpdateAll();
 
-    // Create (if needed) the output directory
-    const std::string demo_dir = GetChronoOutputPath() + "DEMO_EMITTER";
-    if (!filesystem::create_directory(filesystem::path(demo_dir))) {
-        std::cout << "Error creating directory " << demo_dir << std::endl;
-        return 1;
-    }
 
     // Create an exporter to POVray !!
     ChPovRay pov_exporter = ChPovRay(&mphysicalSystem);
 
-    // Sets some file names for in-out processes.
+    // Important: set the path to the template:
     pov_exporter.SetTemplateFile(GetChronoDataFile("_template_POV.pov"));
-    pov_exporter.SetOutputScriptFile(demo_dir + "/rendering_frames.pov");
-    pov_exporter.SetOutputDataFilebase("my_state");
-    pov_exporter.SetPictureFilebase("picture");
 
-    // Even better: save the .dat files and the .bmp files
-    // in two subdirectories, to avoid cluttering the current
-    // directory...
-    const std::string out_dir = demo_dir + "/output";
-    const std::string anim_dir = demo_dir + "/anim";
-    filesystem::create_directory(filesystem::path(out_dir));
-    filesystem::create_directory(filesystem::path(anim_dir));
-
-    pov_exporter.SetOutputDataFilebase(out_dir + "/my_state");
-    pov_exporter.SetPictureFilebase(anim_dir + "/picture");
+    // Set the path where it will save all .pov, .ini, .asset and .dat files, a directory will be created if not existing
+    pov_exporter.SetBasePath(GetChronoOutputPath() + "DEMO_EMITTER");
 
     pov_exporter.SetLight(VNULL, ChColor(0, 0, 0), false);
     pov_exporter.SetCustomPOVcommandsScript(

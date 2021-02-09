@@ -47,7 +47,7 @@ HMMWV_TMeasyTire::HMMWV_TMeasyTire(const std::string& name) : ChTMeasyTire(name)
 void HMMWV_TMeasyTire::SetTMeasyParams() {
     // Tire Size = 37 x 12.5 x 16.5 Load Range D
     // Tire Load 3850 lbs at 50 psi (Goodyear Military Tire Brochure 6th Edition)
-    
+
     const double lbs2N = 4.4482216153;
     unsigned int li = 108;  // guessed from load spec. of the vehicle
     const double in2m = 0.0254;
@@ -57,7 +57,7 @@ void HMMWV_TMeasyTire::SetTMeasyParams() {
     double rimdia = 16.5 * in2m;
 
     double load = 3850.0 * lbs2N;
-    
+
     GuessTruck80Par(load,   // tire load [N]
                     w,      // tire width [m]
                     r,      // aspect ratio []
@@ -76,8 +76,8 @@ void HMMWV_TMeasyTire::GenerateCharacteristicPlots(const std::string& dirname) {
 // -----------------------------------------------------------------------------
 void HMMWV_TMeasyTire::AddVisualizationAssets(VisualizationType vis) {
     if (vis == VisualizationType::MESH) {
-        m_trimesh_shape = AddVisualizationMesh(vehicle::GetDataFile(m_meshFile_left),    // left side
-                                               vehicle::GetDataFile(m_meshFile_right));  // right side
+        m_trimesh_shape = AddVisualizationMesh(m_meshFile_left,    // left side
+                                               m_meshFile_right);  // right side
     } else {
         ChTMeasyTire::AddVisualizationAssets(vis);
     }

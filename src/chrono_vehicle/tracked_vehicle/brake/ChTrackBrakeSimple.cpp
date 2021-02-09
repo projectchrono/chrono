@@ -17,6 +17,8 @@
 //
 // =============================================================================
 
+#include "chrono/physics/ChLinkLock.h"
+
 #include "chrono_vehicle/tracked_vehicle/brake/ChTrackBrakeSimple.h"
 
 namespace chrono {
@@ -26,8 +28,9 @@ ChTrackBrakeSimple::ChTrackBrakeSimple(const std::string& name) : ChTrackBrake(n
     m_brake = chrono_types::make_shared<ChLinkBrake>();
 }
 
-void ChTrackBrakeSimple::Initialize(std::shared_ptr<ChLinkLockRevolute> hub) {
-    ChSystem* my_system = hub->GetSystem();
+void ChTrackBrakeSimple::Initialize(std::shared_ptr<ChChassis> chassis, std::shared_ptr<ChSprocket> sprocket) {
+    auto hub = sprocket->GetRevolute();
+    auto sys = hub->GetSystem();
 
     // Reuse the same bodies and link coordinate of the hub revolute joint.
     // Note that we wrap raw pointers in local shared_ptr.  For this, we must provide
@@ -41,7 +44,7 @@ void ChTrackBrakeSimple::Initialize(std::shared_ptr<ChLinkLockRevolute> hub) {
     auto mb2 = std::dynamic_pointer_cast<ChBody>(mbf2);
 
     m_brake->Initialize(mb1, mb2, true, hub->GetMarker1()->GetCoord(), hub->GetMarker2()->GetCoord());
-    my_system->AddLink(m_brake);
+    sys->AddLink(m_brake);
 }
 
 void ChTrackBrakeSimple::Synchronize(double braking) {

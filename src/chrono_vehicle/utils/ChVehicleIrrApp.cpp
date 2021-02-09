@@ -22,6 +22,7 @@
 
 #include <algorithm>
 
+#include "chrono_vehicle/ChWorldFrame.h"
 #include "chrono_vehicle/utils/ChVehicleIrrApp.h"
 
 using namespace irr;
@@ -106,8 +107,8 @@ bool ChCameraEventReceiver::OnEvent(const SEvent& event) {
 // Construct a vehicle Irrlicht application.
 // -----------------------------------------------------------------------------
 ChVehicleIrrApp::ChVehicleIrrApp(ChVehicle* vehicle,
-                                 const wchar_t* title,
-                                 irr::core::dimension2d<irr::u32> dims,
+                                 const std::wstring& title,
+                                 const irr::core::dimension2d<irr::u32>& dims,
                                  irr::ELOG_LEVEL log_level)
     : ChIrrApp(vehicle->GetSystem(), title, dims, false, false, true, irr::video::EDT_OPENGL, log_level),
       m_vehicle(vehicle),
@@ -115,14 +116,13 @@ ChVehicleIrrApp::ChVehicleIrrApp(ChVehicle* vehicle,
       m_stepsize(1e-3),
       m_HUD_x(700),
       m_HUD_y(20),
-      m_renderGrid(false),
       m_renderStats(true),
-      m_gridHeight(0.02),
       m_steering(0),
       m_throttle(0),
       m_braking(0) {
     // Initialize the chase camera with default values.
-    m_camera.Initialize(ChVector<>(0, 0, 1), vehicle->GetChassis()->GetLocalDriverCoordsys(), 6.0, 0.5);
+    m_camera.Initialize(ChVector<>(0, 0, 1), vehicle->GetChassis()->GetLocalDriverCoordsys(), 6.0, 0.5,
+                        ChWorldFrame::Vertical(), ChWorldFrame::Forward());
     ChVector<> cam_pos = m_camera.GetCameraPos();
     ChVector<> cam_target = m_camera.GetTargetPos();
 
@@ -134,9 +134,9 @@ ChVehicleIrrApp::ChVehicleIrrApp(ChVehicle* vehicle,
     scene::ICameraSceneNode* camera = GetSceneManager()->addCameraSceneNode(
         GetSceneManager()->getRootSceneNode(), core::vector3df(0, 0, 0), core::vector3df(0, 0, 0));
 
-    camera->setUpVector(core::vector3df(0, 0, 1));
-    camera->setPosition(core::vector3df((f32)cam_pos.x(), (f32)cam_pos.y(), (f32)cam_pos.z()));
-    camera->setTarget(core::vector3df((f32)cam_target.x(), (f32)cam_target.y(), (f32)cam_target.z()));
+    camera->setUpVector(core::vector3dfCH(ChWorldFrame::Vertical()));
+    camera->setPosition(core::vector3dfCH(cam_pos));
+    camera->setTarget(core::vector3dfCH(cam_target));
 
 #ifdef CHRONO_IRRKLANG
     m_sound_engine = 0;
@@ -162,7 +162,7 @@ void ChVehicleIrrApp::EnableSound(bool sound) {
         // To play a sound, call play2D(). The second parameter tells the engine to
         // play it looped.
         if (m_sound_engine) {
-            m_car_sound = m_sound_engine->play2D(GetChronoDataFile("carsound.ogg").c_str(), true, false, true);
+            m_car_sound = m_sound_engine->play2D(GetChronoDataFile("vehicle/sounds/carsound.ogg").c_str(), true, false, true);
             m_car_sound->setIsPaused(true);
         } else
             GetLog() << "Cannot start sound engine Irrklang \n";
@@ -186,14 +186,17 @@ void ChVehicleIrrApp::SetSkyBox() {
     irr::scene::ISceneNode* mbox = GetSceneManager()->addSkyBoxSceneNode(
         GetVideoDriver()->getTexture(str_up.c_str()), GetVideoDriver()->getTexture(str_dn.c_str()), map_skybox_side,
         map_skybox_side, map_skybox_side, map_skybox_side);
-    mbox->setRotation(irr::core::vector3df(90, 0, 0));
+    ChMatrix33<> A = ChWorldFrame::Rotation() * ChMatrix33<>(Q_from_AngX(-CH_C_PI_2));
+    auto angles = CH_C_RAD_TO_DEG * A.Get_A_Rxyz();
+    mbox->setRotation(irr::core::vector3dfCH(angles));
 }
 
 // -----------------------------------------------------------------------------
 // Set parameters for the underlying chase camera.
 // -----------------------------------------------------------------------------
 void ChVehicleIrrApp::SetChaseCamera(const ChVector<>& ptOnChassis, double chaseDist, double chaseHeight) {
-    m_camera.Initialize(ptOnChassis, m_vehicle->GetChassis()->GetLocalDriverCoordsys(), chaseDist, chaseHeight);
+    m_camera.Initialize(ptOnChassis, m_vehicle->GetChassis()->GetLocalDriverCoordsys(), chaseDist, chaseHeight,
+                        ChWorldFrame::Vertical(), ChWorldFrame::Forward());
     ChVector<> cam_pos = m_camera.GetCameraPos();
     ChVector<> cam_target = m_camera.GetTargetPos();
 }
@@ -227,9 +230,8 @@ void ChVehicleIrrApp::Advance(double step) {
     ChVector<> cam_target = m_camera.GetTargetPos();
 
     scene::ICameraSceneNode* camera = GetSceneManager()->getActiveCamera();
-
-    camera->setPosition(core::vector3df((f32)cam_pos.x(), (f32)cam_pos.y(), (f32)cam_pos.z()));
-    camera->setTarget(core::vector3df((f32)cam_target.x(), (f32)cam_target.y(), (f32)cam_target.z()));
+    camera->setPosition(core::vector3dfCH(cam_pos));
+    camera->setTarget(core::vector3dfCH(cam_target));
 
 #ifdef CHRONO_IRRKLANG
     static int stepsbetweensound = 0;
@@ -237,7 +239,7 @@ void ChVehicleIrrApp::Advance(double step) {
     // Update sound pitch
     if (m_car_sound && m_vehicle->GetPowertrain()) {
         stepsbetweensound++;
-        double engine_rpm = m_vehicle->GetPowertrain()->GetMotorSpeed() * 60 / chrono::CH_C_2PI;
+        double engine_rpm = m_vehicle->GetPowertrain()->GetMotorSpeed() * 60 / CH_C_2PI;
         double soundspeed = engine_rpm / (8000.);  // denominator: to guess
         if (soundspeed < 0.1)
             soundspeed = 0.1;
@@ -255,9 +257,6 @@ void ChVehicleIrrApp::Advance(double step) {
 // Render the Irrlicht scene and additional visual elements.
 // -----------------------------------------------------------------------------
 void ChVehicleIrrApp::DrawAll() {
-    if (m_renderGrid)
-        renderGrid();
-
     ChIrrAppInterface::DrawAll();
 
     if (m_renderStats)
@@ -267,11 +266,21 @@ void ChVehicleIrrApp::DrawAll() {
     renderOtherGraphics();
 }
 
-// Render a horizontal grid.
-void ChVehicleIrrApp::renderGrid() {
-    ChCoordsys<> gridCsys(ChVector<>(0, 0, m_gridHeight), chrono::Q_from_AngAxis(-CH_C_PI_2, VECT_Z));
+// Render a horizontal grid
+void ChVehicleIrrApp::RenderGrid(const ChVector<>& loc, int num_divs, double delta) {
+    irrlicht::ChIrrTools::drawGrid(GetVideoDriver(), delta, delta, num_divs, num_divs,
+                                   ChCoordsys<>(loc, ChWorldFrame::Quaternion()),
+                                   irr::video::SColor(255, 255, 200, 0), true);
+}
 
-    irrlicht::ChIrrTools::drawGrid(GetVideoDriver(), 0.5, 0.5, 100, 100, gridCsys, video::SColor(255, 80, 130, 255), true);
+// Render a reference frame (aligned with the world frame) at the specified location
+void ChVehicleIrrApp::RenderFrame(const ChVector<>& loc, double axis_length) {
+    irrlicht::ChIrrTools::drawSegment(GetVideoDriver(), loc, loc + ChVector<>(axis_length, 0, 0),
+                                      irr::video::SColor(255, 255, 0, 0));
+    irrlicht::ChIrrTools::drawSegment(GetVideoDriver(), loc, loc + ChVector<>(0, axis_length, 0),
+                                      irr::video::SColor(255, 0, 255, 0));
+    irrlicht::ChIrrTools::drawSegment(GetVideoDriver(), loc, loc + ChVector<>(0, 0, axis_length),
+                                      irr::video::SColor(255, 0, 0, 255));
 }
 
 // Render a linear gauge in the HUD.
@@ -333,7 +342,7 @@ void ChVehicleIrrApp::renderStats() {
 
     auto powertrain = m_vehicle->GetPowertrain();
     if (powertrain) {
-        double engine_rpm = powertrain->GetMotorSpeed() * 60 / chrono::CH_C_2PI;
+        double engine_rpm = powertrain->GetMotorSpeed() * 60 / CH_C_2PI;
         sprintf(msg, "Eng. RPM: %+.2f", engine_rpm);
         renderLinGauge(std::string(msg), engine_rpm / 7000, false, m_HUD_x, m_HUD_y + 50, 120, 15);
 
@@ -353,6 +362,10 @@ void ChVehicleIrrApp::renderStats() {
         sprintf(msg, "T.conv. out Nm: %+.2f", tc_torqueout);
         renderLinGauge(std::string(msg), tc_torqueout / 600, false, m_HUD_x, m_HUD_y + 130, 120, 15);
 
+        double tc_rpmout = powertrain->GetTorqueConverterOutputSpeed() * 60 / CH_C_2PI;
+        sprintf(msg, "T.conv. out RPM: %+.2f", tc_rpmout);
+        renderLinGauge(std::string(msg), tc_rpmout / 7000, false, m_HUD_x, m_HUD_y + 150, 120, 15);
+
         int ngear = powertrain->GetCurrentTransmissionGear();
         ChPowertrain::DriveMode drivemode = powertrain->GetDriveMode();
         switch (drivemode) {
@@ -369,7 +382,7 @@ void ChVehicleIrrApp::renderStats() {
                 sprintf(msg, "Gear:");
                 break;
         }
-        renderLinGauge(std::string(msg), (double)ngear / 4.0, false, m_HUD_x, m_HUD_y + 150, 120, 15);
+        renderLinGauge(std::string(msg), (double)ngear / 4.0, false, m_HUD_x, m_HUD_y + 170, 120, 15);
     }
 
     // Display information from driver system.
@@ -392,7 +405,7 @@ void ChVehicleIrrApp::renderStats() {
 
     // Allow derived classes to display additional information (e.g. driveline)
 
-    renderOtherStats(m_HUD_x, m_HUD_y + 180);
+    renderOtherStats(m_HUD_x, m_HUD_y + 200);
 }
 
 // -----------------------------------------------------------------------------

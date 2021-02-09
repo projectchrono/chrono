@@ -62,11 +62,11 @@ template <typename EnumClass, EnumClass TIRE_MODEL>
 HmmwvDlcTest<EnumClass, TIRE_MODEL>::HmmwvDlcTest() : m_step_veh(2e-3), m_step_tire(1e-3) {
     PowertrainModelType powertrain_model = PowertrainModelType::SHAFTS;
     TireModelType tire_model = TireModelType::RIGID_MESH;
-    DrivelineType drive_type = DrivelineType::AWD;
+    DrivelineTypeWV drive_type = DrivelineTypeWV::AWD;
 
     // Create the HMMWV vehicle, set parameters, and initialize.
     m_hmmwv = new HMMWV_Full();
-    m_hmmwv->SetContactMethod(ChMaterialSurface::SMC);
+    m_hmmwv->SetContactMethod(ChContactMethod::SMC);
     m_hmmwv->SetChassisFixed(false);
     m_hmmwv->SetInitPosition(ChCoordsys<>(ChVector<>(-120, 0, 0.7), ChQuaternion<>(1, 0, 0, 0)));
     m_hmmwv->SetPowertrainType(powertrain_model);
@@ -84,10 +84,11 @@ HmmwvDlcTest<EnumClass, TIRE_MODEL>::HmmwvDlcTest() : m_step_veh(2e-3), m_step_t
 
     // Create the terrain
     m_terrain = new RigidTerrain(m_hmmwv->GetSystem());
-    auto patch = m_terrain->AddPatch(ChCoordsys<>(ChVector<>(0, 0, -5), QUNIT), ChVector<>(300, 20, 10));
-    patch->SetContactFrictionCoefficient(0.9f);
-    patch->SetContactRestitutionCoefficient(0.01f);
-    patch->SetContactMaterialProperties(2e7f, 0.3f);
+    auto patch_material = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+    patch_material->SetFriction(0.9f);
+    patch_material->SetRestitution(0.01f);
+    patch_material->SetYoungModulus(2e7f);
+    auto patch = m_terrain->AddPatch(patch_material, ChVector<>(0, 0, 0), ChVector<>(0, 0, 1), 300, 20);
     patch->SetColor(ChColor(0.8f, 0.8f, 0.8f));
     patch->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 300, 20);
     m_terrain->Initialize();
@@ -183,6 +184,7 @@ CH_BM_SIMULATION_ONCE(HmmwvDLC_RIGIDMESH, rigidmesh_test_type, NUM_SKIP_STEPS, N
 // =============================================================================
 
 int main(int argc, char* argv[]) {
+    utils::AddComandLineArgument(&argc, &argv, "--benchmark_counters_tabular");
     ::benchmark::Initialize(&argc, argv);
 
 #ifdef CHRONO_IRRLICHT

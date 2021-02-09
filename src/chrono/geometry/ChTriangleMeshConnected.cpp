@@ -329,7 +329,7 @@ int InPlaceParser::Parse(
 {
     assert(callback);
     if (!mData)
-        return 0;
+        return -1;
 
     int ret = 0;
 
@@ -518,7 +518,6 @@ class OBJ : public InPlaceParserInterface {
 
 int OBJ::LoadMesh(const char* fname, GeometryInterface* iface, bool textured) {
     mTextured = textured;
-    int ret = 0;
 
     mVerts.clear();
     mTexels.clear();
@@ -533,7 +532,7 @@ int OBJ::LoadMesh(const char* fname, GeometryInterface* iface, bool textured) {
 
     InPlaceParser ipp(fname);
 
-    ipp.Parse(this);
+    int ret = ipp.Parse(this);
 
     return ret;
 }
@@ -889,7 +888,7 @@ void ChTriangleMeshConnected::ComputeMassProperties(bool bodyCoords,
 
 using namespace WAVEFRONT;
 
-void ChTriangleMeshConnected::LoadWavefrontMesh(std::string filename, bool load_normals, bool load_uv) {
+bool ChTriangleMeshConnected::LoadWavefrontMesh(std::string filename, bool load_normals, bool load_uv) {
     this->m_vertices.clear();
     this->m_normals.clear();
     this->m_UV.clear();
@@ -903,7 +902,11 @@ void ChTriangleMeshConnected::LoadWavefrontMesh(std::string filename, bool load_
 
     OBJ obj;
 
-    obj.LoadMesh(filename.c_str(), &emptybm, true);
+    int ret = obj.LoadMesh(filename.c_str(), &emptybm, true);
+    if (ret == -1) {
+        std::cerr << "Error loading OBJ file " << filename << std::endl;
+        return false;
+    }
 
     for (unsigned int iv = 0; iv < obj.mVerts.size(); iv += 3) {
         this->m_vertices.push_back(ChVector<double>(obj.mVerts[iv], obj.mVerts[iv + 1], obj.mVerts[iv + 2]));
@@ -936,98 +939,9 @@ void ChTriangleMeshConnected::LoadWavefrontMesh(std::string filename, bool load_
         this->m_UV.clear();
         this->m_face_uv_indices.clear();
     }
+
+    return true;
 }
-
-/*
-using namespace WAVEFRONT;
-
-
-WavefrontObj::WavefrontObj(void)
-{
-    mVertexCount = 0;
-    mTriCount    = 0;
-    mIndices     = 0;
-    mVertices    = NULL;
-    mTexCoords   = NULL;
-}
-
-WavefrontObj::~WavefrontObj(void)
-{
-    delete mIndices;
-    delete mVertices;
-}
-
-unsigned int WavefrontObj::loadObj(const char *fname, bool textured) // load a wavefront obj returns number of triangles
-that were loaded.  Data is persists until the class is destructed.
-{
-
-    unsigned int ret = 0;
-
-    delete mVertices;
-    mVertices = 0;
-    delete mIndices;
-    mIndices = 0;
-    mVertexCount = 0;
-    mTriCount = 0;
-
-
-  BuildMesh bm;
-
-  OBJ obj;
-
-  obj.LoadMesh(fname,&bm, textured);
-
-
-    const FloatVector &vlist = bm.GetVertices();
-    const IntVector &indices = bm.GetIndices();
-    if ( vlist.size() )
-    {
-        mVertexCount = (int)vlist.size()/3;
-        mVertices = new float[mVertexCount*3];
-        memcpy( mVertices, &vlist[0], sizeof(float)*mVertexCount*3 );
-
-        if (textured)
-        {
-            mTexCoords = new float[mVertexCount * 2];
-            const FloatVector& tList = bm.GetTexCoords();
-            memcpy( mTexCoords, &tList[0], sizeof(float) * mVertexCount * 2);
-        }
-
-        mTriCount = (int)indices.size()/3;
-        mIndices = new int[mTriCount*3*sizeof(int)];
-        memcpy(mIndices, &indices[0], sizeof(int)*mTriCount*3);
-        ret = mTriCount;
-    }
-
-
-    return ret;
-}
-
-
-bool WavefrontObj::saveObj(const char *fname,int vcount,const float *vertices,int tcount,const int *indices)
-{
-  bool ret = false;
-
-  FILE *fph = fopen(fname,"wb");
-  if ( fph )
-  {
-    for (int i=0; i<vcount; i++)
-    {
-      fprintf(fph,"v %0.9f %0.9f %0.9f\r\n", vertices[0], vertices[1], vertices[2] );
-      vertices+=3;
-    }
-    for (int i=0; i<tcount; i++)
-    {
-      fprintf(fph,"f %d %d %d\r\n", indices[0]+1, indices[1]+1, indices[2]+1 );
-      indices+=3;
-    }
-    fclose(fph);
-    ret = true;
-  }
-  return ret;
-}
-
-*/
 
 // Write the specified meshes in a Wavefront .obj file
 void ChTriangleMeshConnected::WriteWavefront(const std::string& filename,
@@ -1063,10 +977,36 @@ void ChTriangleMeshConnected::WriteWavefront(const std::string& filename,
         v_off += static_cast<int>(m.getCoordsVertices().size());
     }
 
+    std::vector<bool> has_normals;
+    std::vector<int> vn_offsets;
+    int vn_off = 1;
+    for (auto& m : meshes) {
+        has_normals.push_back(m.getCoordsNormals().size() > 0);
+        for (auto& v : m.getCoordsNormals()) {
+            mf << "vn " << v.x() << " " << v.y() << " " << v.z() << std::endl;
+        }
+        vn_offsets.push_back(vn_off);
+        vn_off += static_cast<int>(m.getCoordsNormals().size());
+    }
+
     for (size_t i = 0; i < meshes.size(); i++) {
         v_off = v_offsets[i];
-        for (auto& f : meshes[i].getIndicesVertexes()) {
-            mf << "f " << f.x() + v_off << " " << f.y() + v_off << " " << f.z() + v_off << std::endl;
+        if (has_normals[i]) {
+            auto& idxV = meshes[i].getIndicesVertexes();
+            auto& idxN = meshes[i].getIndicesNormals();
+            assert(idxV.size() == idxN.size());
+            vn_off = vn_offsets[i];
+            for (int j = 0; j < idxV.size(); j++) {
+                mf << "f " <<                                                      //
+                    idxV[j].x() + v_off << "//" << idxN[j].x() + vn_off << " " <<  //
+                    idxV[j].y() + v_off << "//" << idxN[j].y() + vn_off << " " <<  //
+                    idxV[j].z() + v_off << "//" << idxN[j].z() + vn_off <<         //
+                    std::endl;
+            }
+        } else {
+            for (auto& f : meshes[i].getIndicesVertexes()) {
+                mf << "f " << f.x() + v_off << " " << f.y() + v_off << " " << f.z() + v_off << std::endl;
+            }
         }
     }
 

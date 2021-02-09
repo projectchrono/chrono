@@ -131,6 +131,16 @@ class ChApi ChDirectSolverLS : public ChSolverLS {
     /// Get a handle to the underlying matrix.
     ChSparseMatrix& GetMatrix() { return m_mat; }
 
+    /// Get shortcut handle to underlying A matrix, for A*x=b
+    ChSparseMatrix& A() { return m_mat; }
+
+    /// Get shortcut handle to underlying x solution vector, for A*x=b
+    ChVectorDynamic<double>& x() { return m_sol; }
+
+    /// Get shortcut handle to underlying b right hand-side known vector, for A*x=b
+    ChVectorDynamic<double>& b() { return m_rhs; }
+
+
     /// Perform the solver setup operations.
     /// Here, sysd is the system description with constraints and variables.
     /// Returns true if successful and false otherwise.
@@ -139,6 +149,24 @@ class ChApi ChDirectSolverLS : public ChSolverLS {
     /// Solve linear system.
     /// Here, sysd is the system description with constraints and variables.
     virtual double Solve(ChSystemDescriptor& sysd) override;
+
+
+    /// Generic setup-solve without passing through the ChSystemDescriptor,
+    /// in cases where a sparse matrix has been already assembled. 
+    /// Performs the solver setup operations, assuming someone
+    /// has already filled A() matrix before calling this.
+    virtual bool SetupCurrent();
+
+    /// Generic setup-solve without passing through the ChSystemDescriptor,
+    /// in cases where the a sparse matrix has been already assembled. 
+    /// Here, sysd is the system description with constraints and variables.
+    /// Performs the solver setup operations, assuming someone
+    /// has already filled the b() vector before calling this. 
+    /// Call x() afterward to get results.
+    virtual double SolveCurrent();
+
+
+
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOUT(ChArchiveOut& marchive) override;
@@ -215,7 +243,7 @@ class ChApi ChSolverSparseLU : public ChDirectSolverLS {
     Eigen::SparseLU<ChSparseMatrix, Eigen::COLAMDOrdering<int>> m_engine;  ///< Eigen SparseLU solver
 };
 
-/// Sparse LU direct solver.\n
+/// Sparse QR direct solver.\n
 /// Interface to Eigen's SparseQR solver, a left-looking rank-revealing QR factorization.\n
 /// Cannot handle VI and complementarity problems, so it cannot be used with NSC formulations.\n
 /// See ChDirectSolverLS for more details.

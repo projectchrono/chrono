@@ -1,12 +1,29 @@
 Project CHRONO
 ==============
 
-Project Chrono represents a community effort aimed at producing a physics-based modelling and simulation infrastructure based on a platform-independent, open-source design. The name of this software infrastructure is Chrono. Some of its features are listed below. More information is available at the [project website](http://www.projectchrono.org/). The applications areas in which Chrono is most often used are **vehicle dynamics**, **robotics**, and **machine design**. In vehicle dynamics, Chrono has mature support for tire/terrain interaction modeling and simulation.
+[![pipeline status](https://gitlab.com/uwsbel/chrono/badges/develop/pipeline.svg)](https://gitlab.com/uwsbel/chrono/commits/develop)
+[![BSD License](http://www.projectchrono.org/assets/logos/chrono-bsd.svg)](https://projectchrono.org/license-chrono.txt)
+
+Project Chrono represents a community effort aimed at producing a physics-based modelling and simulation infrastructure based on a platform-independent, open-source design. The name of this software infrastructure is Chrono. Some of its features are listed below. The applications areas in which Chrono is most often used are **vehicle dynamics**, **robotics**, and **machine design**. In vehicle dynamics, Chrono has mature support for tire/terrain interaction modeling and simulation.
+
+
+- [Project website](http://projectchrono.org/)
+- [Build and install instructions](http://api.projectchrono.org/4.0.0/tutorial_table_of_content_install.html)
+- Documentation
+	- [development branch](http://api.projectchrono.org/)
+	- [release 5.0.0](http://api.projectchrono.org/5.0.0/)
+	- [release 4.0.0](http://api.projectchrono.org/4.0.0/)
+
+
+
+
+Features
+========
 
 ### Physics modeling
 
 -   Rigid body support
--   Flexible body support via Chrono::FEA module - both for ANCF and co-rotational nonlinear finite element analysis
+-   Flexible body support - both for ANCF and co-rotational nonlinear finite element analysis
 -   Support for fluid-solid interaction problems, via Chrono::FSI module
 -   Coulomb friction model capturing stick-slip phenomena.
 -   Support for rolling friction and spinning friction.
@@ -69,9 +86,4 @@ Project Chrono represents a community effort aimed at producing a physics-based 
 - Classes for interfacing external geometric data (NURBS, splines).
 - Scripting via Python.
 - Makefile system based on CMake (cross-platform, on Windows 32/64 bit, Linux, OSX).
-
-## CI/CD Status
-| Branch | Status |
-| ------ | ------ |
-| develop | [![pipeline status](https://gitlab.com/uwsbel/chrono/badges/develop/pipeline.svg)](https://gitlab.com/uwsbel/chrono/commits/develop) |
 

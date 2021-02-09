@@ -60,7 +60,7 @@ class ChApi ChTriangleMeshConnected : public ChTriangleMesh {
     std::vector<ChVector<int>>& getIndicesColors() { return m_face_col_indices; }
 
     /// Load a triangle mesh saved as a Wavefront .obj file
-    void LoadWavefrontMesh(std::string filename, bool load_normals = true, bool load_uv = false);
+    bool LoadWavefrontMesh(std::string filename, bool load_normals = true, bool load_uv = false);
 
     /// Write the specified meshes in a Wavefront .obj file
     static void WriteWavefront(const std::string& filename, std::vector<ChTriangleMeshConnected>& meshes);

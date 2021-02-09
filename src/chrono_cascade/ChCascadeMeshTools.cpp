@@ -17,8 +17,6 @@
 #include <TopoDS_Shape.hxx>
 #include <TopoDS.hxx>
 #include <TopoDS_HShape.hxx>
-#include <Handle_TopoDS_HShape.hxx>
-#include <Handle_TopoDS_TShape.hxx>
 #include <STEPControl_Reader.hxx>
 #include <STEPControl_StepModelType.hxx>
 #include <TopoDS_Edge.hxx>
@@ -27,7 +25,6 @@
 #include <BRep_Builder.hxx>
 #include <BRepTools.hxx>
 #include <BRep_Tool.hxx>
-#include <BRepMesh.hxx>
 #include <BRepBuilderAPI_MakeEdge.hxx>
 #include <BRepBuilderAPI_MakeVertex.hxx>
 #include <TopExp_Explorer.hxx>
@@ -198,12 +195,11 @@ void ChCascadeMeshTools::fillTriangleMeshFromCascadeFace(ChTriangleMesh& chmesh,
 
 void ChCascadeMeshTools::fillTriangleMeshFromCascade(ChTriangleMeshConnected& chmesh,
                                                      const TopoDS_Shape& mshape,
-                                                     double deflection,
-                                                     bool   relative_deflection,
-                                                     double angulardeflection) {
+                                                     const ChCascadeTriangulateTolerances& mtolerances 
+) {
     BRepTools::Clean(mshape);
-    BRepMesh_IncrementalMesh M(mshape, deflection, relative_deflection , angulardeflection, true);
-    // GetLog() << "    ..tesselation done \n";
+    BRepMesh_IncrementalMesh M(mshape, mtolerances.deflection, mtolerances.deflection_is_relative, mtolerances.angular_deflection, true);
+    //GetLog() << "    ..inc.tesselation done \n";
     
     chmesh.Clear();
 
@@ -217,12 +213,11 @@ void ChCascadeMeshTools::fillTriangleMeshFromCascade(ChTriangleMeshConnected& ch
 
 void ChCascadeMeshTools::fillObjFileFromCascade(ChStreamOutAscii& objfile,
                                                 const TopoDS_Shape& mshape,
-                                                double deflection,
-                                                bool  relative_deflection,
-                                                double angulardeflection) {
+                                                const ChCascadeTriangulateTolerances& mtolerances 
+) {
     BRepTools::Clean(mshape);
-    BRepMesh_IncrementalMesh M(mshape, deflection, relative_deflection , angulardeflection, true);
-    // GetLog() << "    ..tesselation done \n";
+    BRepMesh_IncrementalMesh M(mshape, mtolerances.deflection, mtolerances.deflection_is_relative, mtolerances.angular_deflection, true);
+    //GetLog() << "    ..increm.tesselation done \n";
 
     TopExp_Explorer ex;
     int vertface = 0;

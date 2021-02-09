@@ -54,7 +54,6 @@ class Model(object):
              
              self.myapplication = chronoirr.ChIrrApp(self.rev_pend_sys)
              self.myapplication.AddShadowAll();
-             self.myapplication.SetStepManage(True)
              self.myapplication.SetTimestep(0.01)
              self. myapplication.SetTryRealtime(True)
              
@@ -79,8 +78,7 @@ class Model(object):
       self.body_rod.SetMass(self.mass_rod)
 
       self.body_rod.SetInertiaXX(chrono.ChVectorD(self.inertia_rod_x,self.inertia_rod_y,self.inertia_rod_x))
-    # set collision surface properties
-      self.body_rod.SetMaterialSurface(self.rod_material)
+
 
 
 
@@ -101,7 +99,6 @@ class Model(object):
       self.body_floor = chrono.ChBody()
       self.body_floor.SetBodyFixed(True)
       self.body_floor.SetPos(chrono.ChVectorD(0, -5, 0 ))
-      self.body_floor.SetMaterialSurface(self.rod_material)
 
 
 
@@ -110,7 +107,7 @@ class Model(object):
              self.body_floor_shape.GetBoxGeometry().Size = chrono.ChVectorD(3, 1, 3)
              self.body_floor.GetAssets().push_back(self.body_floor_shape)
              self.body_floor_texture = chrono.ChTexture()
-             self.body_floor_texture.SetTextureFilename(chrono.GetChronoDataFile('concrete.jpg'))
+             self.body_floor_texture.SetTextureFilename(chrono.GetChronoDataFile('textures/concrete.jpg'))
              self.body_floor.GetAssets().push_back(self.body_floor_texture)
 
       self.rev_pend_sys.Add(self.body_floor)
@@ -119,7 +116,6 @@ class Model(object):
 
       self.body_table = chrono.ChBody()
       self.body_table.SetPos(chrono.ChVectorD(0, -self.size_table_y/2, 0 ))
-      self.body_table.SetMaterialSurface(self.rod_material)
 
 
       if self.render:
@@ -129,7 +125,7 @@ class Model(object):
              self.body_table.GetAssets().push_back(self.body_table_shape)
        
              self.body_table_texture = chrono.ChTexture()
-             self.body_table_texture.SetTextureFilename(chrono.GetChronoDataFile('concrete.jpg'))
+             self.body_table_texture.SetTextureFilename(chrono.GetChronoDataFile('textures/concrete.jpg'))
              self.body_table.GetAssets().push_back(self.body_table_texture)
       self.body_table.SetMass(0.1)
       self.rev_pend_sys.Add(self.body_table)

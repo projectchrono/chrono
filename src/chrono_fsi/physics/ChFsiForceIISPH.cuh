@@ -24,7 +24,7 @@ namespace fsi {
 /// @addtogroup fsi_physics
 /// @{
 
-/// @brief Child class of ChForceParallel that implements the I2SPH method.
+/// @brief Derived class of ChFsiForce that implements the IISPH method.
 class CH_FSI_API ChFsiForceIISPH : public ChFsiForce {
   public:
     ChFsiForceIISPH(std::shared_ptr<ChBce> otherBceWorker,  ///< Pointer to the ChBce object that handles BCE markers

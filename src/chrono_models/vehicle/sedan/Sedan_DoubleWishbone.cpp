@@ -114,17 +114,14 @@ double Sedan_ShockForce::operator()(double time,
 // Constructors
 // -----------------------------------------------------------------------------
 Sedan_DoubleWishbone::Sedan_DoubleWishbone(const std::string& name) : ChDoubleWishbone(name) {
-    m_springForceCB = new LinearSpringForce(m_springCoefficient);
-    m_shockForceCB = new LinearDamperForce(m_dampingCoefficient);
+    m_springForceCB = chrono_types::make_shared<LinearSpringForce>(m_springCoefficient);
+    m_shockForceCB = chrono_types::make_shared<LinearDamperForce>(m_dampingCoefficient);
 }
 
 // -----------------------------------------------------------------------------
 // Destructors
 // -----------------------------------------------------------------------------
-Sedan_DoubleWishbone::~Sedan_DoubleWishbone() {
-    delete m_springForceCB;
-    delete m_shockForceCB;
-}
+Sedan_DoubleWishbone::~Sedan_DoubleWishbone() {}
 
 // -----------------------------------------------------------------------------
 // Implementation of the getLocation() virtual method.

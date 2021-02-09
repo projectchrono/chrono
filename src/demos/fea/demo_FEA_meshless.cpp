@@ -57,7 +57,7 @@ int main(int argc, char* argv[]) {
     mfloorBody->SetBodyFixed(true);
     mfloorBody->SetPos(ChVector<>(0, -5, 0));
 
-    ChSharedPtr<ChTexture> mtexture( new ChTexture(GetChronoDataFile("concrete.jpg").c_str()));
+    ChSharedPtr<ChTexture> mtexture( new ChTexture(GetChronoDataFile("textures/concrete.jpg").c_str()));
     mfloorBody->AddAsset(mtexture);
 
    
@@ -149,7 +149,6 @@ int main(int argc, char* argv[]) {
     //
 
     static int printed_prox = 0;
-    application.SetStepManage(true);
     application.SetTimestep(0.002);
 
     while (application.GetDevice()->run()) {

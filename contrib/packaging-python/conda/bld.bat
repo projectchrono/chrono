@@ -9,9 +9,8 @@ REM set env variables needed by MKL
 set MKL_INTERFACE_LAYER = LP64
 set MKL_THREADING_LAYER = INTEL
 set CONFIGURATION=Release
-REM Use Ninja (conda build could fail to interface directly with VS). 
 REM Configure step
-cmake -G "Ninja" ^
+cmake -G "Visual Studio 16 2019" ^
  -DCMAKE_INSTALL_PREFIX="%LIBRARY_PREFIX%" ^
  -DCMAKE_PREFIX_PATH="%LIBRARY_PREFIX%" ^
  -DCMAKE_SYSTEM_PREFIX_PATH="%LIBRARY_PREFIX%" ^
@@ -19,6 +18,8 @@ cmake -G "Ninja" ^
  -DPYTHON_EXECUTABLE:FILEPATH="%PYTHON%" ^
  -DPYTHON_INCLUDE_DIR:PATH="%PREFIX%"/include ^
  -DPYTHON_LIBRARY:FILEPATH="%PREFIX%"/libs/python%MY_PY_VER%.lib ^
+ -DSWIG_DIR="%CONDA_INSTALL_LOCN%"\pkgs\swig-4.0.2-0\Library\bin\Lib\ ^
+ -DSWIG_EXECUTABLE="%CONDA_INSTALL_LOCN%"\pkgs\swig-4.0.2-0\Library\bin\swig.exe ^
  -DCMAKE_BUILD_TYPE="%CONFIGURATION%" ^
  -DENABLE_MODULE_IRRLICHT=ON ^
  -DENABLE_MODULE_POSTPROCESS=ON ^
@@ -31,19 +32,19 @@ cmake -G "Ninja" ^
  -DIRRLICHT_ROOT="C:\Users\builder\Documents\irrlicht-1.8.4" ^
  -DIRRLICHT_LIBRARY="C:\Users\builder\Documents\irrlicht-1.8.4\lib\Win64-visualStudio\Irrlicht.lib" ^
  -DEIGEN3_INCLUDE_DIR="C:\Users\builder\Documents\eigen-3.3.7" ^
- -DENABLE_MODULE_CASCADE=OFF ^
- -DCASCADE_INCLUDE_DIR="%CONDA_INSTALL_LOCN%"\Library\include\oce ^
+ -DENABLE_MODULE_CASCADE=ON ^
+ -DCASCADE_INCLUDE_DIR="%CONDA_INSTALL_LOCN%"\Library\include\opencascade ^
  -DCASCADE_LIBDIR="%CONDA_INSTALL_LOCN%"\Library\lib ^
  -DENABLE_MODULE_MKL=ON ^
  -DMKL_INCLUDE_DIR="%CONDA_INSTALL_LOCN%"\Library\include ^
  -DMKL_RT_LIBRARY="%CONDA_INSTALL_LOCN%"\Library\lib\mkl_rt.lib ^
  -DIOMP5_LIBRARY="%CONDA_INSTALL_LOCN%"\Library\lib\libiomp5md.lib ^
- -DPYCHRONO_DATA_PATH="..\..\..\..\Library\data" ^
+ -DPYCHRONO_DATA_PATH="..\..\..\..\..\Library\data" ^
  .. >> "%LOG_DIR%"\cmakeconfiglog.txt 2>&1
 if errorlevel 1 exit 1
  
 REM Build step 
-cmake --build . --config "%CONFIGURATION%"
+cmake --build . --config "%CONFIGURATION%" >> "%LOG_DIR%"\cmakebuildlog.txt 2>&1
 if errorlevel 1 exit 1
 
 REM Install step 

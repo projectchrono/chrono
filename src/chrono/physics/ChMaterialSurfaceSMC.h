@@ -19,39 +19,10 @@
 
 namespace chrono {
 
-/// Material data for a surface for use with smooth (penalty) contact method.
-/// This data is used to define surface properties owned by ChBody rigid bodies and
-/// similar objects; it carries information that is used to make contacts.
+/// Material data for a collision surface for use with smooth (penalty) contact method.
 class ChApi ChMaterialSurfaceSMC : public ChMaterialSurface {
 
   public:
-    float young_modulus;      ///< Young's modulus (elastic modulus)
-    float poisson_ratio;      ///< Poisson ratio
-    float static_friction;    ///< Static coefficient of friction
-    float sliding_friction;   ///< Kinetic coefficient of friction
-    float rolling_friction;   ///< Rolling coefficient of friction
-    float spinning_friction;  ///< Spinning coefficient of friction
-    float restitution;        ///< Coefficient of restitution
-    float constant_adhesion;  ///< Constant adhesion force, when constant adhesion model is used
-    float adhesionMultDMT;    ///< Adhesion multiplier used in DMT model.
-    float adhesionSPerko;     ///< Adhesion multiplier used in Perko model.
-
-    // DMT adhesion model:
-    //     adhesion = adhesionMultDMT * sqrt(R_eff).
-    // Given the surface energy, w,
-    //     adhesionMultDMT = 2 * CH_C_PI * w * sqrt(R_eff).
-    // Given the equilibrium penetration distance, y_eq,
-    //     adhesionMultDMT = 4.0 / 3.0 * E_eff * powf(y_eq, 1.5)
-    // Perko et al. (2001) ahdesion  model:
-    //     adhesion = adhesionSPerko * R_eff
-    // Given S a the measurement of cleanliness
-    //     adhesionSPerko = 3.6E-2 * S^2 (for lunar regolith)
-
-    float kn;  ///< user-specified normal stiffness coefficient
-    float kt;  ///< user-specified tangential stiffness coefficient
-    float gn;  ///< user-specified normal damping coefficient
-    float gt;  ///< user-specified tangential damping coefficient
-
     ChMaterialSurfaceSMC();
     ChMaterialSurfaceSMC(const ChMaterialSurfaceSMC& other);
     ~ChMaterialSurfaceSMC() {}
@@ -59,7 +30,7 @@ class ChApi ChMaterialSurfaceSMC : public ChMaterialSurface {
     /// "Virtual" copy constructor (covariant return type).
     virtual ChMaterialSurfaceSMC* Clone() const override { return new ChMaterialSurfaceSMC(*this); }
 
-    virtual ContactMethod GetContactMethod() const override { return SMC; }
+    virtual ChContactMethod GetContactMethod() const override { return ChContactMethod::SMC; }
 
     /// Young's modulus.
     void SetYoungModulus(float val) { young_modulus = val; }
@@ -69,42 +40,30 @@ class ChApi ChMaterialSurfaceSMC : public ChMaterialSurface {
     void SetPoissonRatio(float val) { poisson_ratio = val; }
     float GetPoissonRatio() const { return poisson_ratio; }
 
-    /// Static sliding friction coefficient.
-    /// Usually in 0..1 range, rarely above. Default 0.6
-    void SetSfriction(float val) { static_friction = val; }
-    float GetSfriction() const { return static_friction; }
-
-    /// Kinetic sliding friction coefficient.
-    void SetKfriction(float val) { sliding_friction = val; }
-    float GetKfriction() const { return sliding_friction; }
-
-    /// Set both static friction and kinetic friction at once, with same value.
-    void SetFriction(float val);
-
-	/// Rolling friction coefficient. Usually around 1E-3. Default = 0
-    void SetRollingFriction(float val) { rolling_friction = val; }
-    float GetRollingFriction() const { return rolling_friction; }
-
-	/// Spinning friction coefficient. Usually around 1E-3. Default = 0
-    void SetSpinningFriction(float val) { spinning_friction = val; }
-    float GetSpinningFriction() const { return spinning_friction; }
-
-    /// Normal coefficient of restitution.
-    void SetRestitution(float val) { restitution = val; }
-    float GetRestitution() const { return restitution; }
-
     /// Constant cohesion force.
     void SetAdhesion(float val) { constant_adhesion = val; }
     float GetAdhesion() const { return constant_adhesion; }
 
     /// Adhesion multiplier in the Derjaguin-Muller-Toporov model.
+    /// <pre>
+    /// In this model,
+    ///    adhesion = adhesionMultDMT * sqrt(R_eff)
+    /// given the surface energy, w,
+    ///    adhesionMultDMT = 2 * CH_C_PI * w * sqrt(R_eff)
+    /// given the equilibrium penetration distance, y_eq,
+    ///    adhesionMultDMT = 4.0 / 3.0 * E_eff * powf(y_eq, 1.5)
+    /// </pre>
     void SetAdhesionMultDMT(float val) { adhesionMultDMT = val; }
     float GetAdhesionMultDMT() const { return adhesionMultDMT; }
 
 	/// Coefficient for Perko adhesion model.
-    /// In this model (see Perko et al., 2001), adhesion = adhesionSPerko * R.
-    /// The coefficient adhesionSPerko is function of the Hamaker constant A and a measurement of cleanliness S.
-    /// For lunar regolith, adhesionSPerko = 3.6e-2 * S^2.
+    /// <pre>
+    /// In this model (see Perko et al., 2001),
+    ///    adhesion = adhesionSPerko * R
+    /// The coefficient adhesionSPerko is function of the Hamaker constant A and a measure of cleanliness S.
+    /// For lunar regolith, 
+    ///    adhesionSPerko = 3.6e-2 * S^2
+    /// </pre>
     void SetAdhesionSPerko(float val) { adhesionSPerko = val; }
     float GetAdhesionSPerko() const { return adhesionSPerko; }
 
@@ -119,7 +78,7 @@ class ChApi ChMaterialSurfaceSMC : public ChMaterialSurface {
     float GetGn() const { return gn; }
     float GetGt() const { return gt; }
 
-    /// Method to allow serializing transient data into in ASCII.
+    /// Method to allow serialization transient data into ASCII.
     virtual void StreamOUT(ChStreamOutAscii& mstream) { mstream << "Material SMC \n"; }
 
     /// Method to allow serialization of transient data to archives.
@@ -127,6 +86,17 @@ class ChApi ChMaterialSurfaceSMC : public ChMaterialSurface {
 
     /// Method to allow deserialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
+
+    float young_modulus;      ///< Young's modulus (elastic modulus)
+    float poisson_ratio;      ///< Poisson ratio
+    float constant_adhesion;  ///< Constant adhesion force, when constant adhesion model is used
+    float adhesionMultDMT;    ///< Adhesion multiplier used in DMT model.
+    float adhesionSPerko;     ///< Adhesion multiplier used in Perko model.
+
+    float kn;  ///< user-specified normal stiffness coefficient
+    float kt;  ///< user-specified tangential stiffness coefficient
+    float gn;  ///< user-specified normal damping coefficient
+    float gt;  ///< user-specified tangential damping coefficient
 };
 
 CH_CLASS_VERSION(ChMaterialSurfaceSMC, 0)
@@ -151,7 +121,7 @@ class ChApi ChMaterialCompositeSMC : public ChMaterialComposite {
 
     ChMaterialCompositeSMC();
 
-    ChMaterialCompositeSMC(ChMaterialCompositionStrategy<float>* strategy,
+    ChMaterialCompositeSMC(ChMaterialCompositionStrategy* strategy,
                            std::shared_ptr<ChMaterialSurfaceSMC> mat1,
                            std::shared_ptr<ChMaterialSurfaceSMC> mat2);
 };

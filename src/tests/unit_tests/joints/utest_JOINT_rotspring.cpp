@@ -191,7 +191,7 @@ bool TestRotSpring(const ChVector<>& jointLoc,      // absolute location of join
 
     // Add a rotational spring damper to the revolute joint
 
-    auto force = std::make_unique<ChLinkForce>();
+    auto force = chrono_types::make_unique<ChLinkForce>();
     auto customSpring = chrono_types::make_shared<ChFunction_CustomSpring>();
 
     revoluteJoint->GetForce_Rz().SetActive(true);

@@ -49,14 +49,13 @@ ChSolidBellcrankThreeLinkAxle::ChSolidBellcrankThreeLinkAxle(const std::string& 
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChSolidBellcrankThreeLinkAxle::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
+void ChSolidBellcrankThreeLinkAxle::Initialize(std::shared_ptr<ChChassis> chassis,
+                                               std::shared_ptr<ChSubchassis> subchassis,
+                                               std::shared_ptr<ChSteering> steering,
                                                const ChVector<>& location,
-                                               std::shared_ptr<ChBody> tierod_body,
-                                               int steering_index,
                                                double left_ang_vel,
                                                double right_ang_vel) {
     m_location = location;
-    m_steering_index = steering_index;
 
     // Unit vectors for orientation matrices.
     ChVector<> u;
@@ -66,7 +65,7 @@ void ChSolidBellcrankThreeLinkAxle::Initialize(std::shared_ptr<ChBodyAuxRef> cha
 
     // Express the suspension reference frame in the absolute coordinate system.
     ChFrame<> suspension_to_abs(location);
-    suspension_to_abs.ConcatenatePreTransformation(chassis->GetFrame_REF_to_abs());
+    suspension_to_abs.ConcatenatePreTransformation(chassis->GetBody()->GetFrame_REF_to_abs());
 
     // Transform the location of the axle body COM to absolute frame.
     ChVector<> axleCOM_local = getAxleTubeCOM();
@@ -82,13 +81,13 @@ void ChSolidBellcrankThreeLinkAxle::Initialize(std::shared_ptr<ChBodyAuxRef> cha
     m_axleOuterR = suspension_to_abs.TransformPointLocalToParent(outer_local);
 
     // Create and initialize the axle body.
-    m_axleTube = std::shared_ptr<ChBody>(chassis->GetSystem()->NewBody());
+    m_axleTube = std::shared_ptr<ChBody>(chassis->GetBody()->GetSystem()->NewBody());
     m_axleTube->SetNameString(m_name + "_axleTube");
     m_axleTube->SetPos(axleCOM);
-    m_axleTube->SetRot(chassis->GetFrame_REF_to_abs().GetRot());
+    m_axleTube->SetRot(chassis->GetBody()->GetFrame_REF_to_abs().GetRot());
     m_axleTube->SetMass(getAxleTubeMass());
     m_axleTube->SetInertiaXX(getAxleTubeInertia());
-    chassis->GetSystem()->AddBody(m_axleTube);
+    chassis->GetBody()->GetSystem()->AddBody(m_axleTube);
 
     // Transform all hardpoints to absolute frame.
     m_pointsL.resize(NUM_POINTS);
@@ -100,9 +99,53 @@ void ChSolidBellcrankThreeLinkAxle::Initialize(std::shared_ptr<ChBodyAuxRef> cha
         m_pointsR[i] = suspension_to_abs.TransformLocalToParent(rel_pos);
     }
 
+    m_tierodInnerL = m_pointsL[BELLCRANK_T];
+    m_tierodInnerR = m_pointsR[BELLCRANK_T];
+    m_tierodOuterL = m_pointsL[KNUCKLE_T];
+    m_tierodOuterR = m_pointsR[KNUCKLE_T];
+
+    // Fix the triangle body to the axle tube body
+    ChVector<> pt_tri_axle = (m_pointsL[TRIANGLE_A] + m_pointsR[TRIANGLE_A]) / 2.0;
+    ChVector<> pt_tri_chassis = (m_pointsL[TRIANGLE_C] + m_pointsR[TRIANGLE_C]) / 2.0;
+    pt_tri_chassis.y() = 0.0;
+    ChVector<> pt_tri_cog = (pt_tri_axle + pt_tri_chassis) / 2.0;
+    m_triangle_left_point = m_pointsL[TRIANGLE_C];
+    m_triangle_right_point = m_pointsR[TRIANGLE_C];
+    m_triangle_sph_point = pt_tri_axle;
+
+    // generate triangle body
+    m_triangleBody = std::shared_ptr<ChBody>(chassis->GetBody()->GetSystem()->NewBody());
+    m_triangleBody->SetNameString(m_name + "_triangleGuide");
+    m_triangleBody->SetPos(pt_tri_cog);
+    m_triangleBody->SetRot(chassis->GetBody()->GetFrame_REF_to_abs().GetRot());
+    m_triangleBody->SetMass(getTriangleMass());
+    m_triangleBody->SetInertiaXX(getTriangleInertia());
+    chassis->GetBody()->GetSystem()->AddBody(m_triangleBody);
+
+    // Create and initialize the revolute joint between axle tube and triangle.
+    ChCoordsys<> rev_csys(pt_tri_axle,
+                          chassis->GetBody()->GetFrame_REF_to_abs().GetRot() * Q_from_AngAxis(CH_C_PI / 2.0, VECT_X));
+    m_triangleRev = chrono_types::make_shared<ChLinkLockRevolute>();
+    m_triangleRev->SetNameString(m_name + "_revoluteTriangle");
+    m_triangleRev->Initialize(m_triangleBody, chassis->GetBody(), rev_csys);
+    chassis->GetBody()->GetSystem()->AddLink(m_triangleRev);
+
+    // Create and initialize the revolute joint between axle tube and triangle.
+    ChCoordsys<> sph_csys(pt_tri_chassis, chassis->GetBody()->GetFrame_REF_to_abs().GetRot());
+    m_triangleSph = chrono_types::make_shared<ChLinkLockSpherical>();
+    m_triangleSph->SetNameString(m_name + "_sphericalTriangle");
+    m_triangleSph->Initialize(m_triangleBody, m_axleTube, sph_csys);
+    chassis->GetBody()->GetSystem()->AddLink(m_triangleSph);
+
+    m_link_axleL = m_pointsL[LINK_A];
+    m_link_axleR = m_pointsR[LINK_A];
+    m_link_chassisL = m_pointsL[LINK_C];
+    m_link_chassisR = m_pointsR[LINK_C];
+
     // Initialize left and right sides.
-    InitializeSide(LEFT, chassis, tierod_body, m_pointsL, left_ang_vel);
-    InitializeSide(RIGHT, chassis, tierod_body, m_pointsR, right_ang_vel);
+    std::shared_ptr<ChBody> tierod_body = (steering == nullptr) ? chassis->GetBody() : steering->GetSteeringLink();
+    InitializeSide(LEFT, chassis->GetBody(), tierod_body, m_pointsL, left_ang_vel);
+    InitializeSide(RIGHT, chassis->GetBody(), tierod_body, m_pointsR, right_ang_vel);
 
 }  // namespace vehicle
 
@@ -192,18 +235,6 @@ void ChSolidBellcrankThreeLinkAxle::InitializeSide(VehicleSide side,
     m_axle_to_spindle[side]->Initialize(m_axle[side], m_spindle[side], ChVector<>(0, -1, 0));
     chassis->GetSystem()->Add(m_axle_to_spindle[side]);
 
-    // Create triangular guide
-    m_triangle[side] = chrono_types::make_shared<ChLinkDistance>();
-    m_triangle[side]->SetNameString(m_name + "_triangle_axle_to_chassis" + suffix);
-    m_triangle[side]->Initialize(chassis, m_axleTube, false, points[TRIANGLE_C], points[TRIANGLE_A]);
-    chassis->GetSystem()->AddLink(m_triangle[side]);
-
-    // Create longitudinal guide
-    m_link[side] = chrono_types::make_shared<ChLinkDistance>();
-    m_link[side]->SetNameString(m_name + "_longlink_axle_to_chassis" + suffix);
-    m_link[side]->Initialize(chassis, m_axleTube, false, points[LINK_C], points[LINK_A]);
-    chassis->GetSystem()->AddLink(m_link[side]);
-
     if (side == LEFT) {
         // create bellcrank body
         m_bellcrank = std::shared_ptr<ChBody>(chassis->GetSystem()->NewBody());
@@ -240,7 +271,9 @@ void ChSolidBellcrankThreeLinkAxle::InitializeSide(VehicleSide side,
         // Create and initialize the draglink body (one side only).
         // Determine the rotation matrix of the draglink based on the plane of the hard points
         // (z-axis along the length of the draglink)
-        v = Vcross(m_pointsL[BELLCRANK_D], m_pointsL[DRAGLINK_S]);
+        // v = Vcross(m_pointsL[BELLCRANK_D], m_pointsL[DRAGLINK_S]);
+        // v = Vcross(m_pointsL[BELLCRANK_D] - m_pointsL[BELLCRANK_A], m_pointsL[DRAGLINK_S] - m_pointsL[BELLCRANK_A]);
+        v = Vcross(m_pointsL[DRAGLINK_S] - m_pointsL[BELLCRANK_D], ChVector<>(0, 0, 1));
         v.Normalize();
         w = m_pointsL[DRAGLINK_S] - m_pointsL[BELLCRANK_D];
         w.Normalize();
@@ -254,18 +287,73 @@ void ChSolidBellcrankThreeLinkAxle::InitializeSide(VehicleSide side,
                                         ChFrame<>(m_pointsL[BELLCRANK_D], rot.Get_A_quaternion()));
         chassis->GetSystem()->AddLink(m_universalDraglink);
     }
-    // Create the tierod as massless links
-    m_tierod[side] = chrono_types::make_shared<ChLinkDistance>();
-    m_tierod[side]->SetNameString(m_name + "m_tierod" + suffix);
-    m_tierod[side]->Initialize(m_knuckle[side], m_bellcrank, false, points[KNUCKLE_T], points[BELLCRANK_T]);
-    chassis->GetSystem()->AddLink(m_tierod[side]);
+
+    // Create and initialize spindle body (same orientation as the chassis)
+    m_linkBody[side] = std::shared_ptr<ChBody>(chassis->GetSystem()->NewBody());
+    m_linkBody[side]->SetNameString(m_name + "_linkBody" + suffix);
+    m_linkBody[side]->SetPos((points[LINK_A] + points[LINK_C]) / 2.0);
+    m_linkBody[side]->SetRot(chassisRot);
+    m_linkBody[side]->SetMass(getLinkMass());
+    m_linkBody[side]->SetInertiaXX(getLinkInertia());
+    chassis->GetSystem()->AddBody(m_linkBody[side]);
+
+    // Create and initialize the spherical joint between axle tube and link body.
+    ChCoordsys<> sph1_csys(points[LINK_A], chassisRot);
+    m_linkBodyToAxleTube[side] = chrono_types::make_shared<ChLinkLockSpherical>();
+    m_linkBodyToAxleTube[side]->SetNameString(m_name + "_sphericalLinkToAxle" + suffix);
+    m_linkBodyToAxleTube[side]->Initialize(m_linkBody[side], m_axleTube, sph1_csys);
+    chassis->GetSystem()->AddLink(m_linkBodyToAxleTube[side]);
+
+    // Create and initialize the spherical joint between chassis and link body.
+    // ChCoordsys<> sph2_csys(points[LINK_C], chassisRot);
+    // m_linkBodyToChassis[side] = chrono_types::make_shared<ChLinkLockSpherical>();
+    // m_linkBodyToChassis[side]->SetNameString(m_name + "_sphericalLinkToChassis" + suffix);
+    // m_linkBodyToChassis[side]->Initialize(m_linkBody[side], chassis, sph2_csys);
+    // chassis->GetSystem()->AddLink(m_linkBodyToChassis[side]);
+    v = Vcross(m_pointsL[LINK_C] - m_pointsL[LINK_A], ChVector<>(0, 1, 0));
+    v.Normalize();
+    w = m_pointsL[LINK_C] - m_pointsL[LINK_A];
+    w.Normalize();
+    u = Vcross(v, w);
+    rot.Set_A_axis(u, v, w);
+
+    // Create and initialize the universal joint between draglink and knuckle
+    m_linkBodyToChassis[side] = chrono_types::make_shared<ChLinkUniversal>();
+    m_linkBodyToChassis[side]->SetNameString(m_name + "_universalDraglink");
+    m_linkBodyToChassis[side]->Initialize(m_linkBody[side], chassis,
+                                          ChFrame<>(m_pointsL[LINK_C], rot.Get_A_quaternion()));
+    chassis->GetSystem()->AddLink(m_linkBodyToChassis[side]);
+
+    // Create the tierod as rigid body
+    m_tierodBody[side] = std::shared_ptr<ChBody>(chassis->GetSystem()->NewBody());
+    m_tierodBody[side]->SetNameString(m_name + "_tierodBody" + suffix);
+    m_tierodBody[side]->SetPos((points[KNUCKLE_T] + points[BELLCRANK_T]) / 2.0);
+    m_tierodBody[side]->SetRot(chassisRot);
+    m_tierodBody[side]->SetMass(getTierodMass());
+    m_tierodBody[side]->SetInertiaXX(getTierodInertia());
+    chassis->GetSystem()->AddBody(m_tierodBody[side]);
+
+    // Connect tierod to knuckle via spherical link
+    ChCoordsys<> sph3_csys(points[KNUCKLE_T], chassisRot);
+    m_tierodBodyToKnuckle[side] = chrono_types::make_shared<ChLinkLockSpherical>();
+    m_tierodBodyToKnuckle[side]->SetNameString(m_name + "_tierodLinkToKnuckle" + suffix);
+    m_tierodBodyToKnuckle[side]->Initialize(m_tierodBody[side], m_knuckle[side], sph3_csys);
+    chassis->GetSystem()->AddLink(m_tierodBodyToKnuckle[side]);
+
+    // Connect tierod to bellcrank via spherical link
+    ChCoordsys<> sph4_csys(points[BELLCRANK_T], chassisRot);
+    m_tierodBodyToBellcrank[side] = chrono_types::make_shared<ChLinkLockSpherical>();
+    m_tierodBodyToBellcrank[side]->SetNameString(m_name + "_tierodLinkToBellcrank" + suffix);
+    m_tierodBodyToBellcrank[side]->Initialize(m_tierodBody[side], m_bellcrank, sph4_csys);
+    chassis->GetSystem()->AddLink(m_tierodBodyToBellcrank[side]);
 }
 
 // -----------------------------------------------------------------------------
 // Get the total mass of the suspension subsystem.
 // -----------------------------------------------------------------------------
 double ChSolidBellcrankThreeLinkAxle::GetMass() const {
-    return getAxleTubeMass() + 2 * (getSpindleMass() + 2 * getKnuckleMass() + getBellcrankMass() + getDraglinkMass());
+    return getAxleTubeMass() + getTriangleMass() + getBellcrankMass() + getDraglinkMass() +
+           2 * (getSpindleMass() + getKnuckleMass() + getTierodMass() + getLinkMass());
 }
 
 // -----------------------------------------------------------------------------
@@ -282,9 +370,17 @@ ChVector<> ChSolidBellcrankThreeLinkAxle::GetCOMPos() const {
     com += getKnuckleMass() * m_knuckle[LEFT]->GetPos();
     com += getKnuckleMass() * m_knuckle[RIGHT]->GetPos();
 
+    com += getLinkMass() * m_linkBody[LEFT]->GetPos();
+    com += getLinkMass() * m_linkBody[RIGHT]->GetPos();
+
+    com += getTierodMass() * m_tierodBody[LEFT]->GetPos();
+    com += getTierodMass() * m_tierodBody[RIGHT]->GetPos();
+
     com += getBellcrankMass() * m_bellcrank->GetPos();
 
     com += getDraglinkMass() * m_draglink->GetPos();
+
+    com += getTriangleMass() * m_triangleBody->GetPos();
 
     return com / GetMass();
 }
@@ -345,6 +441,18 @@ void ChSolidBellcrankThreeLinkAxle::AddVisualizationAssets(VisualizationType vis
     // visualize the axle tube
     AddVisualizationLink(m_axleTube, m_axleOuterL, m_axleOuterR, getAxleTubeRadius(), ChColor(0.7f, 0.7f, 0.7f));
 
+    // visualize the trangle body
+    AddVisualizationLink(m_triangleBody, m_triangle_sph_point, m_triangle_left_point, getAxleTubeRadius() / 2.0,
+                         ChColor(0.7f, 0.3f, 0.8f));
+    AddVisualizationLink(m_triangleBody, m_triangle_sph_point, m_triangle_right_point, getAxleTubeRadius() / 2.0,
+                         ChColor(0.7f, 0.3f, 0.8f));
+
+    // visualize the trangle body
+    AddVisualizationLink(m_linkBody[LEFT], m_link_axleL, m_link_chassisL, getAxleTubeRadius() / 2.0,
+                         ChColor(0.3f, 0.3f, 0.8f));
+    AddVisualizationLink(m_linkBody[RIGHT], m_link_axleR, m_link_chassisR, getAxleTubeRadius() / 2.0,
+                         ChColor(0.3f, 0.3f, 0.8f));
+
     // visualize the draglink
     AddVisualizationLink(m_draglink, m_pointsL[DRAGLINK_S], m_pointsL[BELLCRANK_D], 0.02, ChColor(0.3f, 0.3f, 0.3f));
 
@@ -370,15 +478,8 @@ void ChSolidBellcrankThreeLinkAxle::AddVisualizationAssets(VisualizationType vis
     AddVisualizationLink(m_knuckle[RIGHT], m_axleOuterR, m_pointsR[KNUCKLE_T], 0.03, ChColor(0.7f, 0.3f, 0.3f));
 
     // visualize the tierods
-    m_tierod[LEFT]->AddAsset(chrono_types::make_shared<ChPointPointSegment>());
-    m_tierod[RIGHT]->AddAsset(chrono_types::make_shared<ChPointPointSegment>());
-
-    // Add visualization for the links
-    m_triangle[LEFT]->AddAsset(chrono_types::make_shared<ChPointPointSegment>());
-    m_triangle[RIGHT]->AddAsset(chrono_types::make_shared<ChPointPointSegment>());
-
-    m_link[LEFT]->AddAsset(chrono_types::make_shared<ChPointPointSegment>());
-    m_link[RIGHT]->AddAsset(chrono_types::make_shared<ChPointPointSegment>());
+    AddVisualizationLink(m_tierodBody[LEFT], m_tierodOuterL, m_tierodInnerL, 0.03, ChColor(0.3f, 0.7f, 0.3f));
+    AddVisualizationLink(m_tierodBody[RIGHT], m_tierodOuterR, m_tierodInnerR, 0.03, ChColor(0.3f, 0.7f, 0.3f));
 
     // Add visualization for the springs and shocks
     m_spring[LEFT]->AddAsset(chrono_types::make_shared<ChPointPointSpring>(0.06, 150, 15));
@@ -392,12 +493,6 @@ void ChSolidBellcrankThreeLinkAxle::RemoveVisualizationAssets() {
     ChSuspension::RemoveVisualizationAssets();
 
     m_axleTube->GetAssets().clear();
-
-    m_triangle[LEFT]->GetAssets().clear();
-    m_triangle[RIGHT]->GetAssets().clear();
-
-    m_link[LEFT]->GetAssets().clear();
-    m_link[RIGHT]->GetAssets().clear();
 
     m_spring[LEFT]->GetAssets().clear();
     m_spring[RIGHT]->GetAssets().clear();

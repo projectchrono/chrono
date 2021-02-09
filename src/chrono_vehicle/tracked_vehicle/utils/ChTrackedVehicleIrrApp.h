@@ -33,11 +33,11 @@ namespace vehicle {
 class CH_VEHICLE_API ChTrackedVehicleIrrApp : public ChVehicleIrrApp {
   public:
     /// Construct a tracked vehicle Irrlicht application.
-    ChTrackedVehicleIrrApp(
-        ChVehicle* vehicle,        ///< pointer to the associated vehicle system
-        const wchar_t* title = 0,  ///< window title
-        irr::core::dimension2d<irr::u32> dims = irr::core::dimension2d<irr::u32>(1000, 800),  ///< window dimensions
-        irr::ELOG_LEVEL log_level = irr::ELL_INFORMATION  ///< Irrlicht logging level
+    ChTrackedVehicleIrrApp(ChVehicle* vehicle,  ///< pointer to the associated vehicle system
+                           const std::wstring& title = L"Chrono::Vehicle",  ///< window title
+                           const irr::core::dimension2d<irr::u32>& dims =
+                               irr::core::dimension2d<irr::u32>(1000, 800),  ///< window dimensions
+                           irr::ELOG_LEVEL log_level = irr::ELL_INFORMATION  ///< Irrlicht logging level
     );
 
     ~ChTrackedVehicleIrrApp() {}
@@ -45,7 +45,7 @@ class CH_VEHICLE_API ChTrackedVehicleIrrApp : public ChVehicleIrrApp {
   private:
     virtual void renderOtherGraphics() override;
     virtual void renderOtherStats(int left, int top) override;
-    void renderContactNormals(const std::list<ChTrackContactInfo>& lst, const irr::video::SColor& col);
+    void renderContactNormals(const std::list<ChTrackContactManager::ContactInfo>& lst, const irr::video::SColor& col);
 
     ChTrackedVehicle* m_tvehicle;
 };

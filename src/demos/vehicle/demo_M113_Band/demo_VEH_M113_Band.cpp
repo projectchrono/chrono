@@ -23,7 +23,7 @@
 #include "chrono_vehicle/terrain/RigidTerrain.h"
 #include "chrono_vehicle/tracked_vehicle/track_shoe/ChTrackShoeBand.h"
 
-#include "chrono_models/vehicle/m113/M113_SimplePowertrain.h"
+#include "chrono_models/vehicle/m113/M113_SimpleCVTPowertrain.h"
 #include "chrono_models/vehicle/m113/M113_Vehicle.h"
 
 #ifdef CHRONO_IRRLICHT
@@ -36,8 +36,8 @@
 #include "chrono_mumps/ChSolverMumps.h"
 #endif
 
-#ifdef CHRONO_MKL
-#include "chrono_mkl/ChSolverMKL.h"
+#ifdef CHRONO_PARDISO_MKL
+#include "chrono_pardisomkl/ChSolverPardisoMKL.h"
 #endif
 
 #include "chrono_thirdparty/filesystem/path.h"
@@ -68,9 +68,8 @@ double t_end = 1.0;
 // Simulation step size
 double step_size = 1e-4;
 
-// Linear solver
-enum SolverType { MUMPS, MKL };
-SolverType solver_type = MUMPS;
+// Linear solver (MUMPS or PARDISO_MKL)
+ChSolver::Type solver_type = ChSolver::Type::MUMPS;
 
 // Time interval between two render frames
 double render_step_size = 1.0 / 50;  // FPS = 50
@@ -116,8 +115,9 @@ int main(int argc, char* argv[]) {
     // Construct the M113 vehicle
     // --------------------------
 
-    ChassisCollisionType chassis_collision_type = ChassisCollisionType::PRIMITIVES;
-    M113_Vehicle vehicle(false, TrackShoeType::BAND_BUSHING, ChMaterialSurface::SMC, chassis_collision_type);
+    CollisionType chassis_collision_type = CollisionType::PRIMITIVES;
+    M113_Vehicle vehicle(false, TrackShoeType::BAND_BUSHING, DrivelineTypeTV::SIMPLE, BrakeType::SIMPLE,
+                         ChContactMethod::SMC, chassis_collision_type);
 
     // Disable gravity in this simulation
     ////vehicle.GetSystem()->Set_G_acc(ChVector<>(0, 0, 0));
@@ -167,16 +167,24 @@ int main(int argc, char* argv[]) {
     // monitored parts.  Data can be written to a file by invoking ChTrackedVehicle::WriteContacts().
     ////vehicle.SetContactCollection(true);
 
+    // ----------------------------
+    // Create the powertrain system
+    // ----------------------------
+
+    auto powertrain = chrono_types::make_shared<M113_SimpleCVTPowertrain>("powertrain");
+    vehicle.InitializePowertrain(powertrain);
+
     // ------------------
     // Create the terrain
     // ------------------
 
     RigidTerrain terrain(vehicle.GetSystem());
-    auto patch = terrain.AddPatch(ChCoordsys<>(ChVector<>(0, 0, -5), QUNIT),
-                                  ChVector<>(terrainLength, terrainWidth, 10));
-    patch->SetContactFrictionCoefficient(0.9f);
-    patch->SetContactRestitutionCoefficient(0.01f);
-    patch->SetContactMaterialProperties(2e7f, 0.3f);
+    auto patch_mat = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+    patch_mat->SetFriction(0.9f);
+    patch_mat->SetRestitution(0.01f);
+    patch_mat->SetYoungModulus(2e7f);
+    patch_mat->SetPoissonRatio(0.3f);
+    auto patch = terrain.AddPatch(patch_mat, ChVector<>(0, 0, 0), ChVector<>(0, 0, 1), terrainLength, terrainWidth);
     patch->SetColor(ChColor(0.5f, 0.8f, 0.5f));
     patch->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 200, 200);
     terrain.Initialize();
@@ -186,13 +194,6 @@ int main(int argc, char* argv[]) {
     // -------------------
 
     AddFixedObstacles(vehicle.GetSystem());
-
-    // ----------------------------
-    // Create the powertrain system
-    // ----------------------------
-
-    auto powertrain = chrono_types::make_shared<M113_SimplePowertrain>("powertrain");
-    vehicle.InitializePowertrain(powertrain);
 
 #ifdef USE_IRRLICHT
     // ---------------------------------------
@@ -279,18 +280,18 @@ int main(int argc, char* argv[]) {
     // Solver and integrator settings
     // ------------------------------
 
-#ifndef CHRONO_MKL
-    if (solver_type == MKL)
-        solver_type = MUMPS;
+#ifndef CHRONO_PARDISO_MKL
+    if (solver_type == ChSolver::Type::PARDISO_MKL)
+        solver_type = ChSolver::Type::MUMPS;
 #endif
 #ifndef CHRONO_MUMPS
-    if (solver_type == MUMPS)
-        solver_type = MKL;
+    if (solver_type == ChSolver::Type::MUMPS)
+        solver_type = ChSolver::Type::PARDISO_MKL;
 #endif
 
     switch (solver_type) {
 #ifdef CHRONO_MUMPS
-        case MUMPS: {
+        case ChSolver::Type::MUMPS : {
             auto mumps_solver = chrono_types::make_shared<ChSolverMumps>();
             mumps_solver->LockSparsityPattern(true);
             mumps_solver->SetVerbose(verbose_solver);
@@ -298,9 +299,9 @@ int main(int argc, char* argv[]) {
             break;
         }
 #endif
-#ifdef CHRONO_MKL
-        case MKL: {
-            auto mkl_solver = chrono_types::make_shared<ChSolverMKL>();
+#ifdef CHRONO_PARDISO_MKL
+        case ChSolver::Type::PARDISO_MKL : {
+            auto mkl_solver = chrono_types::make_shared<ChSolverPardisoMKL>();
             mkl_solver->LockSparsityPattern(true);
             mkl_solver->SetVerbose(verbose_solver);
             vehicle.GetSystem()->SetSolver(mkl_solver);
@@ -465,14 +466,10 @@ int main(int argc, char* argv[]) {
 }
 
 // =============================================================================
+
 void AddFixedObstacles(ChSystem* system) {
     double radius = 2.2;
     double length = 6;
-
-    float friction_coefficient = 0.9f;
-    float restitution_coefficient = 0.01f;
-    float young_modulus = 2e7f;
-    float poisson_ratio = 0.3f;
 
     auto obstacle = std::shared_ptr<ChBody>(system->NewBody());
     obstacle->SetPos(ChVector<>(10, 0, -1.8));
@@ -498,22 +495,15 @@ void AddFixedObstacles(ChSystem* system) {
 #endif
 
     // Contact
-    obstacle->GetCollisionModel()->ClearModel();
-    obstacle->GetCollisionModel()->AddCylinder(radius, radius, length * 0.5);
-    obstacle->GetCollisionModel()->BuildModel();
+    auto obst_mat = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+    obst_mat->SetFriction(0.9f);
+    obst_mat->SetRestitution(0.01f);
+    obst_mat->SetYoungModulus(2e7f);
+    obst_mat->SetPoissonRatio(0.3f);
 
-    switch (obstacle->GetContactMethod()) {
-        case ChMaterialSurface::NSC:
-            obstacle->GetMaterialSurfaceNSC()->SetFriction(friction_coefficient);
-            obstacle->GetMaterialSurfaceNSC()->SetRestitution(restitution_coefficient);
-            break;
-        case ChMaterialSurface::SMC:
-            obstacle->GetMaterialSurfaceSMC()->SetFriction(friction_coefficient);
-            obstacle->GetMaterialSurfaceSMC()->SetRestitution(restitution_coefficient);
-            obstacle->GetMaterialSurfaceSMC()->SetYoungModulus(young_modulus);
-            obstacle->GetMaterialSurfaceSMC()->SetPoissonRatio(poisson_ratio);
-            break;
-    }
+    obstacle->GetCollisionModel()->ClearModel();
+    obstacle->GetCollisionModel()->AddCylinder(obst_mat, radius, radius, length * 0.5);
+    obstacle->GetCollisionModel()->BuildModel();
 
     system->AddBody(obstacle);
 }

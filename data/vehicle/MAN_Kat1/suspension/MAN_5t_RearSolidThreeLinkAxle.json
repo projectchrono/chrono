@@ -22,12 +22,16 @@
 
   "Triangular Link" :
   {
+  	"Mass":							50.0,
+    "Inertia":            			 	[0.2, 0.2, 0.2],
     "Location Chassis":             [-0.762, 0.420, 0.100],
     "Location Axle":                [0.000, 0.000, 0.260]
   }, 
 
   "Longitudinal Link" :
   {
+  	"Mass":							25.0,
+    "Inertia":            			 	[0.5, 0.1, 0.1],
     "Location Chassis":             [1.139, 0.400, 0.100],
     "Location Axle":                [0.115, 0.688, -0.090]
   }, 

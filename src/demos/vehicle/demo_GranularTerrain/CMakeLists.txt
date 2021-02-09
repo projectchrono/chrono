@@ -1,10 +1,10 @@
 #=============================================================================
 # CMake configuration file for the GRANULAR_TERRAIN demo.
-# This example program requires Chrono:Parallel and the OpenGL module for
+# This example program requires Chrono:Multicore and the OpenGL module for
 # run-time visualization.
 #=============================================================================
 
-IF(NOT ENABLE_MODULE_OPENGL OR NOT ENABLE_MODULE_PARALLEL)
+IF(NOT ENABLE_MODULE_OPENGL OR NOT ENABLE_MODULE_MULTICORE)
   RETURN()
 ENDIF()
 
@@ -19,25 +19,26 @@ SET(DEMOS
 #--------------------------------------------------------------
 # Additional include directories
 
-INCLUDE_DIRECTORIES(${CH_PARALLEL_INCLUDES} ${CH_OPENGL_INCLUDES})
+INCLUDE_DIRECTORIES(${CH_MULTICORE_INCLUDES} ${CH_OPENGL_INCLUDES})
 
 #--------------------------------------------------------------
 # Add executables
 
-FOREACH(DEMO ${DEMOS})
+FOREACH(PROGRAM ${DEMOS})
+    MESSAGE(STATUS "...add ${PROGRAM}")
 
-    MESSAGE(STATUS "...add ${DEMO}")
+    ADD_EXECUTABLE(${PROGRAM} ${PROGRAM}.cpp)
+    SOURCE_GROUP("" FILES ${PROGRAM}.cpp)
 
-    ADD_EXECUTABLE(${DEMO} ${DEMO}.cpp)
-    SOURCE_GROUP("" FILES ${DEMO}.cpp)
-    SET_TARGET_PROPERTIES(${DEMO} PROPERTIES 
-                          COMPILE_FLAGS "${CH_CXX_FLAGS} ${CH_PARALLEL_CXX_FLAGS}"
+    SET_TARGET_PROPERTIES(${PROGRAM} PROPERTIES 
+                          COMPILE_FLAGS "${CH_CXX_FLAGS} ${CH_MULTICORE_CXX_FLAGS}"
                           LINK_FLAGS "${CH_LINKERFLAG_EXE}")
-    TARGET_LINK_LIBRARIES(${DEMO}
+    SET_PROPERTY(TARGET ${PROGRAM} PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:${PROGRAM}>")
+    TARGET_LINK_LIBRARIES(${PROGRAM}
                           ChronoEngine
                           ChronoEngine_vehicle
-                          ChronoEngine_parallel
+                          ChronoEngine_multicore
                           ChronoEngine_opengl)
-    INSTALL(TARGETS ${DEMO} DESTINATION ${CH_INSTALL_DEMO})
 
+    INSTALL(TARGETS ${PROGRAM} DESTINATION ${CH_INSTALL_DEMO})
 ENDFOREACH()

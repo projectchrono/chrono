@@ -62,13 +62,18 @@ class CH_MODELS_API M113_SprocketSinglePin : public ChSprocketSinglePin {
     /// Return the radius of the tooth arc centers.
     virtual double GetArcCentersRadius() const override { return m_gear_RC; }
 
-    /// Add visualization of the sprocket.
-    virtual void AddVisualizationAssets(VisualizationType vis) override;
+    /// Return the allowed backlash (play) before lateral contact with track shoes is enabled (to prevent detracking).
+    virtual double GetLateralBacklash() const override { return m_lateral_backlash; }
 
   protected:
     M113_SprocketSinglePin(const std::string& name);
 
-    virtual std::string GetMeshName() const = 0;
+    /// Create the contact material consistent with the specified contact method.
+    virtual void CreateContactMaterial(ChContactMethod contact_method) override;
+
+    /// Add visualization of the sprocket.
+    virtual void AddVisualizationAssets(VisualizationType vis) override;
+
     virtual std::string GetMeshFile() const = 0;
 
     static const int m_num_teeth;
@@ -83,6 +88,8 @@ class CH_MODELS_API M113_SprocketSinglePin : public ChSprocketSinglePin {
     static const double m_gear_RC;
     static const double m_gear_R;
     static const double m_gear_RA;
+
+    static const double m_lateral_backlash;
 };
 
 /// M113 sprocket subsystem, suitable for interaction with single-pin track shoes (left side).
@@ -91,11 +98,9 @@ class CH_MODELS_API M113_SprocketSinglePinLeft : public M113_SprocketSinglePin {
     M113_SprocketSinglePinLeft() : M113_SprocketSinglePin("M113_SprocketLeft") {}
     ~M113_SprocketSinglePinLeft() {}
 
-    virtual std::string GetMeshName() const override { return m_meshName; }
     virtual std::string GetMeshFile() const override { return GetDataFile(m_meshFile); }
 
   private:
-    static const std::string m_meshName;
     static const std::string m_meshFile;
 };
 
@@ -105,11 +110,9 @@ class CH_MODELS_API M113_SprocketSinglePinRight : public M113_SprocketSinglePin 
     M113_SprocketSinglePinRight() : M113_SprocketSinglePin("M113_SprocketRight") {}
     ~M113_SprocketSinglePinRight() {}
 
-    virtual std::string GetMeshName() const override { return m_meshName; }
     virtual std::string GetMeshFile() const override { return GetDataFile(m_meshFile); }
 
   private:
-    static const std::string m_meshName;
     static const std::string m_meshFile;
 };
 

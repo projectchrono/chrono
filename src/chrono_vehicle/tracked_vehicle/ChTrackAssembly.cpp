@@ -58,20 +58,20 @@ void ChTrackAssembly::GetTrackShoeStates(BodyStates& states) const {
 // -----------------------------------------------------------------------------
 // Initialize this track assembly subsystem.
 // -----------------------------------------------------------------------------
-void ChTrackAssembly::Initialize(std::shared_ptr<ChBodyAuxRef> chassis, const ChVector<>& location, bool create_shoes) {
+void ChTrackAssembly::Initialize(std::shared_ptr<ChChassis> chassis, const ChVector<>& location, bool create_shoes) {
     // Initialize the sprocket, idler, and brake
-    GetSprocket()->Initialize(chassis, location + GetSprocketLocation(), this);
-    m_idler->Initialize(chassis, location + GetIdlerLocation());
-    m_brake->Initialize(GetSprocket()->GetRevolute());
+    GetSprocket()->Initialize(chassis->GetBody(), location + GetSprocketLocation(), this);
+    m_idler->Initialize(chassis->GetBody(), location + GetIdlerLocation());
+    m_brake->Initialize(chassis, GetSprocket());
 
     // Initialize the suspension subsystems
     for (size_t i = 0; i < m_suspensions.size(); ++i) {
-        m_suspensions[i]->Initialize(chassis, location + GetRoadWhelAssemblyLocation(static_cast<int>(i)));
+        m_suspensions[i]->Initialize(chassis->GetBody(), location + GetRoadWhelAssemblyLocation(static_cast<int>(i)));
     }
 
     // Initialize the roller subsystems
     for (size_t i = 0; i < m_rollers.size(); ++i) {
-        m_rollers[i]->Initialize(chassis, location + GetRollerLocation(static_cast<int>(i)));
+        m_rollers[i]->Initialize(chassis->GetBody(), location + GetRollerLocation(static_cast<int>(i)));
     }
 
     if (!create_shoes) {
@@ -81,18 +81,15 @@ void ChTrackAssembly::Initialize(std::shared_ptr<ChBodyAuxRef> chassis, const Ch
 
     // Assemble the track. This positions all track shoes around the sprocket,
     // road wheels, and idler. (Implemented by derived classes)
-    bool ccw = Assemble(chassis);
+    bool ccw = Assemble(chassis->GetBody());
 
     // Loop over all track shoes and allow them to connect themselves to their
     // neighbor.
     size_t num_shoes = GetNumTrackShoes();
     std::shared_ptr<ChTrackShoe> next;
     for (size_t i = 0; i < num_shoes; ++i) {
-        if (ccw)
-            next = (i == num_shoes - 1) ? GetTrackShoe(0) : GetTrackShoe(i + 1);
-        else
-            next = (i == 0) ? GetTrackShoe(num_shoes - 1) : GetTrackShoe(i - 1);
-        GetTrackShoe(i)->Connect(next);
+        next = (i == num_shoes - 1) ? GetTrackShoe(0) : GetTrackShoe(i + 1);
+        GetTrackShoe(i)->Connect(next, this, ccw);
     }
 }
 
@@ -150,6 +147,9 @@ double ChTrackAssembly::GetMass() const {
 // Update the state of this track assembly at the current time.
 // -----------------------------------------------------------------------------
 void ChTrackAssembly::Synchronize(double time, double braking, const TerrainForces& shoe_forces) {
+    // Zero out applied torque on sprocket axle
+    GetSprocket()->m_axle->SetAppliedTorque(0.0);
+
     // Apply track shoe forces
     for (size_t i = 0; i < GetNumTrackShoes(); ++i) {
         GetTrackShoe(i)->m_shoe->Empty_forces_accumulators();
@@ -172,7 +172,8 @@ void ChTrackAssembly::SetOutput(bool state) {
         suspension->SetOutput(state);
     for (auto roller : m_rollers)
         roller->SetOutput(state);
-    GetTrackShoe(0)->SetOutput(state);
+    if (GetNumTrackShoes() > 0)
+        GetTrackShoe(0)->SetOutput(state);
 }
 
 // -----------------------------------------------------------------------------
@@ -221,7 +222,7 @@ void ChTrackAssembly::ExportComponentList(rapidjson::Document& jsonDocument) con
     }
     jsonDocument.AddMember("rollers", rollerArray, jsonDocument.GetAllocator());
 
-    {
+    if (GetNumTrackShoes() > 0) {
         rapidjson::Document jsonSubDocument(&jsonDocument.GetAllocator());
         jsonSubDocument.SetObject();
         GetTrackShoe(0)->ExportComponentList(jsonSubDocument);
@@ -256,8 +257,10 @@ void ChTrackAssembly::Output(ChVehicleOutput& database) const {
         roller->Output(database);
     }
 
-    database.WriteSection(GetTrackShoe(0)->GetName());
-    GetTrackShoe(0)->Output(database);
+    if (GetNumTrackShoes() > 0) {
+        database.WriteSection(GetTrackShoe(0)->GetName());
+        GetTrackShoe(0)->Output(database);
+    }
 }
 
 // -----------------------------------------------------------------------------

@@ -95,7 +95,7 @@ class ChApi MixtureIngredient {
 
     /// Specify a callback object to be used each time a body is generated using this
     /// mixture ingredient specification.
-    void RegisterAddBodyCallback(AddBodyCallback* callback) { add_body_callback = callback; }
+    void RegisterAddBodyCallback(std::shared_ptr<AddBodyCallback> callback) { add_body_callback = callback; }
 
   private:
     void freeMaterialDist();
@@ -135,7 +135,7 @@ class ChApi MixtureIngredient {
     ChVector<> m_minSize, m_maxSize;
     std::normal_distribution<>* m_sizeDist;
 
-    AddBodyCallback* add_body_callback;
+    std::shared_ptr<AddBodyCallback> add_body_callback;
 
     friend class Generator;
 };

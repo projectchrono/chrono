@@ -35,7 +35,7 @@ ChSimpleDrivelineXWD::ChSimpleDrivelineXWD(const std::string& name) : ChDrivelin
 // Initialize the driveline subsystem.
 // This function connects this driveline to the specified axles.
 // -----------------------------------------------------------------------------
-void ChSimpleDrivelineXWD::Initialize(std::shared_ptr<ChBody> chassis,
+void ChSimpleDrivelineXWD::Initialize(std::shared_ptr<ChChassis> chassis,
                                       const ChAxleList& axles,
                                       const std::vector<int>& driven_axles) {
     assert(axles.size() >= 1);

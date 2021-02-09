@@ -22,6 +22,8 @@
 #include "chrono_vehicle/tracked_vehicle/track_shoe/TrackShoeBandANCF.h"
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
 
+#include "chrono_thirdparty/filesystem/path.h"
+
 using namespace rapidjson;
 
 namespace chrono {
@@ -81,39 +83,34 @@ void TrackShoeBandANCF::Create(const rapidjson::Document& d) {
     m_guide_box_dims = ReadVectorJSON(d["Guide Pin"]["Dimensions"]);
     m_guide_box_offset_x = d["Guide Pin"]["Offset"].GetDouble();
 
-    // Read contact material data
-    assert(d.HasMember("Contact Material"));
+    // Read contact material information (defer creating the materials until CreateContactMaterials.
+    assert(d.HasMember("Contact Materials"));
+    assert(d["Contact Materials"].HasMember("Pad Material"));
+    assert(d["Contact Materials"].HasMember("Body Material"));
+    assert(d["Contact Materials"].HasMember("Guide Material"));
+    assert(d["Contact Materials"].HasMember("Tooth Material"));
 
-    float mu = d["Contact Material"]["Coefficient of Friction"].GetFloat();
-    float cr = d["Contact Material"]["Coefficient of Restitution"].GetFloat();
-
-    SetContactFrictionCoefficient(mu);
-    SetContactRestitutionCoefficient(cr);
-
-    if (d["Contact Material"].HasMember("Properties")) {
-        float ym = d["Contact Material"]["Properties"]["Young Modulus"].GetFloat();
-        float pr = d["Contact Material"]["Properties"]["Poisson Ratio"].GetFloat();
-        SetContactMaterialProperties(ym, pr);
-    }
-    if (d["Contact Material"].HasMember("Coefficients")) {
-        float kn = d["Contact Material"]["Coefficients"]["Normal Stiffness"].GetFloat();
-        float gn = d["Contact Material"]["Coefficients"]["Normal Damping"].GetFloat();
-        float kt = d["Contact Material"]["Coefficients"]["Tangential Stiffness"].GetFloat();
-        float gt = d["Contact Material"]["Coefficients"]["Tangential Damping"].GetFloat();
-        SetContactMaterialCoefficients(kn, gn, kt, gt);
-    }
+    m_pad_mat_info = ReadMaterialInfoJSON(d["Contact Materials"]["Pad Material"]);
+    m_body_mat_info = ReadMaterialInfoJSON(d["Contact Materials"]["Body Material"]);
+    m_guide_mat_info = ReadMaterialInfoJSON(d["Contact Materials"]["Guide Material"]);
+    m_tooth_mat_info = ReadMaterialInfoJSON(d["Contact Materials"]["Tooth Material"]);
 
     // Read wheel visualization
     if (d.HasMember("Visualization")) {
-        assert(d["Visualization"].HasMember("Mesh Filename"));
-        assert(d["Visualization"].HasMember("Mesh Name"));
-        m_meshFile = d["Visualization"]["Mesh Filename"].GetString();
-        m_meshName = d["Visualization"]["Mesh Name"].GetString();
+        assert(d["Visualization"].HasMember("Mesh"));
+        m_meshFile = d["Visualization"]["Mesh"].GetString();
         m_has_mesh = true;
     }
 
     // Set name for procedurally-generated tread visualization mesh.
     m_tread_meshName = GetName();
+}
+
+void TrackShoeBandANCF::CreateContactMaterials(ChContactMethod contact_method) {
+    m_pad_material = m_pad_mat_info.CreateMaterial(contact_method);      // shoe pad (ground contact)
+    m_body_material = m_body_mat_info.CreateMaterial(contact_method);    // shoe body (wheel contact)
+    m_guide_material = m_guide_mat_info.CreateMaterial(contact_method);  // guide (wheel contact)
+    m_tooth_material = m_tooth_mat_info.CreateMaterial(contact_method);  // teeth (sprocket contact)
 }
 
 // -----------------------------------------------------------------------------
@@ -124,7 +121,7 @@ void TrackShoeBandANCF::AddVisualizationAssets(VisualizationType vis) {
         trimesh->LoadWavefrontMesh(vehicle::GetDataFile(m_meshFile), false, false);
         auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
         trimesh_shape->SetMesh(trimesh);
-        trimesh_shape->SetName(m_meshName);
+        trimesh_shape->SetName(filesystem::path(m_meshFile).stem());
         trimesh_shape->SetStatic(true);
         m_shoe->AddAsset(trimesh_shape);
     } else {

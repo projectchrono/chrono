@@ -18,7 +18,7 @@
 
 #include "chrono/physics/ChLinkMate.h"
 #include "chrono/physics/ChLoadContainer.h"
-#include "chrono/physics/ChSystemNSC.h"
+#include "chrono/physics/ChSystemSMC.h"
 #include "chrono/solver/ChIterativeSolverLS.h"
 
 #include "chrono/fea/ChElementBar.h"
@@ -46,7 +46,7 @@ void test_1() {
     GetLog() << "TEST: load applied to a beam                       \n\n";
 
     // The physical system: it contains all physical objects.
-    ChSystemNSC my_system;
+    ChSystemSMC my_system;
 
     // Create a mesh:
     auto my_mesh = chrono_types::make_shared<ChMesh>();
@@ -64,7 +64,7 @@ void test_1() {
     my_mesh->AddNode(mnodeB);
 
     // Create beam section & material
-    auto msection = chrono_types::make_shared<ChBeamSectionAdvanced>();
+    auto msection = chrono_types::make_shared<ChBeamSectionEulerAdvanced>();
     double beam_wy = 0.1;
     double beam_wz = 0.2;
     msection->SetAsRectangularSection(beam_wy, beam_wz);

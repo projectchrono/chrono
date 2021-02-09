@@ -84,11 +84,12 @@ void ChShaft::IntStateScatter(const unsigned int off_x,  // offset in x state ve
                               const ChState& x,          // state vector, position part
                               const unsigned int off_v,  // offset in v state vector
                               const ChStateDelta& v,     // state vector, speed part
-                              const double T             // time
-                              ) {
+                              const double T,            // time
+                              bool full_update           // perform complete update
+) {
     SetPos(x(off_x));
     SetPos_dt(v(off_v));
-    Update(T);
+    Update(T, full_update);
 }
 
 void ChShaft::IntStateGatherAcceleration(const unsigned int off_a, ChStateDelta& a) {

@@ -26,13 +26,9 @@ namespace chrono {
 CH_FACTORY_REGISTER(ChMaterialSurfaceSMC)
 
 ChMaterialSurfaceSMC::ChMaterialSurfaceSMC()
-    : young_modulus(2e5),
+    : ChMaterialSurface(),
+      young_modulus(2e5),
       poisson_ratio(0.3f),
-      static_friction(0.6f),
-      sliding_friction(0.6f),
-      rolling_friction(0),
-      spinning_friction(0),
-      restitution(0.4f),
       constant_adhesion(0),
       adhesionMultDMT(0),
       adhesionSPerko(0),
@@ -41,14 +37,9 @@ ChMaterialSurfaceSMC::ChMaterialSurfaceSMC()
       gn(40),
       gt(20) {}
 
-ChMaterialSurfaceSMC::ChMaterialSurfaceSMC(const ChMaterialSurfaceSMC& other) {
+ChMaterialSurfaceSMC::ChMaterialSurfaceSMC(const ChMaterialSurfaceSMC& other) : ChMaterialSurface(other) {
     young_modulus = other.young_modulus;
     poisson_ratio = other.poisson_ratio;
-    static_friction = other.static_friction;
-    sliding_friction = other.sliding_friction;
-    rolling_friction = other.rolling_friction;
-    spinning_friction = other.spinning_friction;
-    restitution = other.restitution;
     constant_adhesion = other.constant_adhesion;
     adhesionMultDMT = other.adhesionMultDMT;
     adhesionSPerko = other.adhesionSPerko;
@@ -56,11 +47,6 @@ ChMaterialSurfaceSMC::ChMaterialSurfaceSMC(const ChMaterialSurfaceSMC& other) {
     kt = other.kt;
     gn = other.gn;
     gt = other.gt;
-}
-
-void ChMaterialSurfaceSMC::SetFriction(float val) {
-    SetSfriction(val);
-    SetKfriction(val);
 }
 
 void ChMaterialSurfaceSMC::ArchiveOUT(ChArchiveOut& marchive) {
@@ -73,11 +59,6 @@ void ChMaterialSurfaceSMC::ArchiveOUT(ChArchiveOut& marchive) {
     // serialize all member data:
     marchive << CHNVP(young_modulus);
     marchive << CHNVP(poisson_ratio);
-    marchive << CHNVP(static_friction);
-    marchive << CHNVP(sliding_friction);
-    marchive << CHNVP(rolling_friction);
-    marchive << CHNVP(spinning_friction);
-    marchive << CHNVP(restitution);
     marchive << CHNVP(constant_adhesion);
     marchive << CHNVP(adhesionMultDMT);
     marchive << CHNVP(adhesionSPerko);
@@ -97,11 +78,6 @@ void ChMaterialSurfaceSMC::ArchiveIN(ChArchiveIn& marchive) {
     // stream in all member data:
     marchive >> CHNVP(young_modulus);
     marchive >> CHNVP(poisson_ratio);
-    marchive >> CHNVP(static_friction);
-    marchive >> CHNVP(sliding_friction);
-    marchive >> CHNVP(rolling_friction);
-    marchive >> CHNVP(spinning_friction);
-    marchive >> CHNVP(restitution);
     marchive >> CHNVP(constant_adhesion);
     marchive >> CHNVP(adhesionMultDMT);
     marchive >> CHNVP(adhesionSPerko);
@@ -128,7 +104,7 @@ ChMaterialCompositeSMC::ChMaterialCompositeSMC()
       gn(0),
       gt(0) {}
 
-ChMaterialCompositeSMC::ChMaterialCompositeSMC(ChMaterialCompositionStrategy<float>* strategy,
+ChMaterialCompositeSMC::ChMaterialCompositeSMC(ChMaterialCompositionStrategy* strategy,
                                                std::shared_ptr<ChMaterialSurfaceSMC> mat1,
                                                std::shared_ptr<ChMaterialSurfaceSMC> mat2) {
     float inv_E = (1 - mat1->poisson_ratio * mat1->poisson_ratio) / mat1->young_modulus +

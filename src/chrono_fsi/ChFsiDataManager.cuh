@@ -164,8 +164,7 @@ class FsiBodiesDataH {
     thrust::host_vector<Real3> posRigid_fsiBodies_H;      ///< Vector of the linear positions of rigid bodies
     thrust::host_vector<Real4> velMassRigid_fsiBodies_H;  ///< Vector of the linear velocities of rigid bodies
     thrust::host_vector<Real3> accRigid_fsiBodies_H;      ///< Vector of the linear acceleration of rigid bodies
-    thrust::host_vector<Real4>
-        q_fsiBodies_H;  ///< Vector of the orientations (Euler parameters as Quaternion) of rigid bodies
+    thrust::host_vector<Real4> q_fsiBodies_H;  ///< Vector of the orientations (Euler parameters as Quaternion) of rigid bodies
     thrust::host_vector<Real3> omegaVelLRF_fsiBodies_H;  ///< Vector of the angular velocities of rigid bodies
     thrust::host_vector<Real3> omegaAccLRF_fsiBodies_H;  ///< Vector of the angular acceleration of rigid bodies
 
@@ -183,8 +182,7 @@ class FsiBodiesDataD {
     thrust::device_vector<Real3> posRigid_fsiBodies_D;      ///< Vector of the linear positions of rigid bodies
     thrust::device_vector<Real4> velMassRigid_fsiBodies_D;  ///< Vector of the linear velocities of rigid bodies
     thrust::device_vector<Real3> accRigid_fsiBodies_D;      ///< Vector of the linear acceleration of rigid bodies
-    thrust::device_vector<Real4>
-        q_fsiBodies_D;  ///< Vector of the orientations (Euler parameters as Quaternion) of rigid bodies
+    thrust::device_vector<Real4> q_fsiBodies_D;  ///< Vector of the orientations (Euler parameters as Quaternion) of rigid bodies
     thrust::device_vector<Real3> omegaVelLRF_fsiBodies_D;  ///< Vector of the angular velocities of rigid bodies
     thrust::device_vector<Real3> omegaAccLRF_fsiBodies_D;  ///< Vector of the angular acceleration of rigid bodies
 
@@ -299,8 +297,7 @@ class ChronoBodiesDataH {
     thrust::host_vector<Real3> pos_ChSystemH;  ///< Vector of the linear positions of rigid bodies
     thrust::host_vector<Real3> vel_ChSystemH;  ///< Vector of the linear velocities of rigid bodies
     thrust::host_vector<Real3> acc_ChSystemH;  ///< Vector of the linear accelerations of rigid bodies
-    thrust::host_vector<Real4>
-        quat_ChSystemH;  ///< Vector of the orientations (Euler parameters as Quaternion) of rigid bodies
+    thrust::host_vector<Real4> quat_ChSystemH;  ///< Vector of the orientations (Euler parameters as Quaternion) of rigid bodies
     thrust::host_vector<Real3> omegaVelGRF_ChSystemH;  ///< Vector of the angular velocities of rigid bodies
     thrust::host_vector<Real3> omegaAccGRF_ChSystemH;  ///< Vector of the angular acceleraion of rigid bodies
 
@@ -361,8 +358,7 @@ class FsiGeneralData {
     // ----------------
     // fluidfsiBodeisIndex
     thrust::host_vector<int4> referenceArray;  ///< Holds information of each phase in the array of sph markers
-    thrust::host_vector<int4>
-        referenceArray_FEA;  ///< Holds information of each phase in the array of sph markers for Flexible elements
+    thrust::host_vector<int4> referenceArray_FEA;  ///< Holds information of each phase in the array of sph markers for Flexible elements
     // ----------------
     //  device
     // ----------------
@@ -429,8 +425,7 @@ class CH_FSI_API ChFsiDataManager {
     void ArrangeDataManager();
     void ConstructReferenceArray();
     void InitNumObjects();
-    void
-    CalcNumObjects();  ///< Calculates the number of rigid bodies, flexible bodies, etc. based on the type of markers
+    void CalcNumObjects();  ///< Calculates the number of rigid bodies, flexible bodies, etc. based on the type of markers
 };
 
 }  // end namespace fsi

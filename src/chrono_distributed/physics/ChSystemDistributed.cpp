@@ -25,21 +25,18 @@
 #include <numeric>
 #include <string>
 
-#include "chrono/collision/ChCCollisionSystem.h"
+#include "chrono/collision/ChCollisionSystem.h"
 #include "chrono/physics/ChBody.h"
 
 #include "chrono_distributed/ChDistributedDataManager.h"
 #include "chrono_distributed/collision/ChCollisionModelDistributed.h"
 #include "chrono_distributed/collision/ChCollisionSystemDistributed.h"
-#include "chrono_distributed/other_types.h"
 #include "chrono_distributed/physics/ChDomainDistributed.h"
 #include "chrono_distributed/physics/ChSystemDistributed.h"
 
-#include "chrono_parallel/ChDataManager.h"
-#include "chrono_parallel/ChParallelDefines.h"
-#include "chrono_parallel/collision/ChCollisionSystemParallel.h"
-#include "chrono_parallel/math/other_types.h"
-#include "chrono_parallel/math/real3.h"
+#include "chrono_multicore/ChDataManager.h"
+#include "chrono_multicore/ChMulticoreDefines.h"
+#include "chrono_multicore/collision/ChCollisionSystemMulticore.h"
 
 using namespace chrono;
 using namespace collision;
@@ -72,7 +69,7 @@ ChSystemDistributed::ChSystemDistributed(MPI_Comm communicator, double ghostlaye
 
     // Reserve starting space
     int init = maxobjects;  // / num_ranks;
-    bodylist.reserve(init);
+    assembly.bodylist.reserve(init);
 
     ddm->global_id.reserve(init);
     ddm->comm_status.reserve(init);
@@ -85,12 +82,6 @@ ChSystemDistributed::ChSystemDistributed(MPI_Comm communicator, double ghostlaye
     data_manager->host_data.active_rigid.reserve(init);
     data_manager->host_data.collide_rigid.reserve(init);
     data_manager->host_data.mass_rigid.reserve(init);
-
-    data_manager->host_data.elastic_moduli.reserve(init);
-    data_manager->host_data.mu.reserve(init);
-    data_manager->host_data.cr.reserve(init);
-    data_manager->host_data.smc_coeffs.reserve(init);
-    data_manager->host_data.adhesionMultDMT_data.reserve(init);
 
     data_manager->shape_data.fam_rigid.reserve(init);
     data_manager->shape_data.id_rigid.reserve(init);
@@ -134,7 +125,7 @@ bool ChSystemDistributed::Integrate_Y() {
     assert(domain->IsSplit());
     ddm->initial_add = false;
 
-    bool ret = ChSystemParallelSMC::Integrate_Y();
+    bool ret = ChSystemMulticoreSMC::Integrate_Y();
     if (num_ranks != 1) {
         data_manager->system_timer.start("Exchange");
         comm->Exchange();
@@ -147,20 +138,20 @@ bool ChSystemDistributed::Integrate_Y() {
 }
 
 void ChSystemDistributed::UpdateRigidBodies() {
-    this->ChSystemParallel::UpdateRigidBodies();
+    this->ChSystemMulticore::UpdateRigidBodies();
 
 #pragma omp parallel for
-    for (int i = 0; i < bodylist.size(); i++) {
-        ddm->global_id[i] = bodylist[i]->GetGid();
+    for (int i = 0; i < assembly.bodylist.size(); i++) {
+        ddm->global_id[i] = assembly.bodylist[i]->GetGid();
     }
 }
 
 ChBody* ChSystemDistributed::NewBody() {
-    return new ChBody(chrono_types::make_shared<collision::ChCollisionModelDistributed>(), ChMaterialSurface::SMC);
+    return new ChBody(chrono_types::make_shared<collision::ChCollisionModelDistributed>());
 }
 
 ChBodyAuxRef* ChSystemDistributed::NewBodyAuxRef() {
-    return new ChBodyAuxRef(chrono_types::make_shared<collision::ChCollisionModelDistributed>(), ChMaterialSurface::SMC);
+    return new ChBodyAuxRef(chrono_types::make_shared<collision::ChCollisionModelDistributed>());
 }
 
 void ChSystemDistributed::AddBodyAllRanks(std::shared_ptr<ChBody> newbody) {
@@ -176,7 +167,7 @@ void ChSystemDistributed::AddBodyAllRanks(std::shared_ptr<ChBody> newbody) {
     ddm->global_id.push_back(newbody->GetGid());
 
     newbody->SetId(data_manager->num_rigid_bodies);
-    bodylist.push_back(newbody);
+    assembly.bodylist.push_back(newbody);
 
     ddm->gid_to_localid[newbody->GetGid()] = newbody->GetId();
 
@@ -190,7 +181,7 @@ void ChSystemDistributed::AddBodyAllRanks(std::shared_ptr<ChBody> newbody) {
     data_manager->host_data.collide_rigid.push_back(true);
 
     // Let derived classes reserve space for specific material surface data
-    ChSystemParallelSMC::AddMaterialSurfaceData(newbody);
+    ChSystemMulticoreSMC::AddMaterialSurfaceData(newbody);
 }
 
 void ChSystemDistributed::AddBody(std::shared_ptr<ChBody> newbody) {
@@ -240,7 +231,7 @@ void ChSystemDistributed::AddBody(std::shared_ptr<ChBody> newbody) {
     ddm->global_id.push_back(newbody->GetGid());
 
     newbody->SetId(data_manager->num_rigid_bodies);
-    bodylist.push_back(newbody);
+    assembly.bodylist.push_back(newbody);
 
     ddm->gid_to_localid[newbody->GetGid()] = newbody->GetId();
 
@@ -254,7 +245,7 @@ void ChSystemDistributed::AddBody(std::shared_ptr<ChBody> newbody) {
     data_manager->host_data.collide_rigid.push_back(true);
 
     // Let derived classes reserve space for specific material surface data
-    ChSystemParallelSMC::AddMaterialSurfaceData(newbody);
+    ChSystemMulticoreSMC::AddMaterialSurfaceData(newbody);
 }
 
 // Should only be called to add a body when there are no free spaces to insert it into
@@ -262,7 +253,7 @@ void ChSystemDistributed::AddBodyExchange(std::shared_ptr<ChBody> newbody, distr
     ddm->comm_status.push_back(status);
     ddm->global_id.push_back(newbody->GetGid());
     newbody->SetId(data_manager->num_rigid_bodies);
-    bodylist.push_back(newbody);
+    assembly.bodylist.push_back(newbody);
 
     ddm->body_shape_start.push_back(0);
     ddm->body_shape_count.push_back(0);
@@ -284,26 +275,26 @@ void ChSystemDistributed::AddBodyExchange(std::shared_ptr<ChBody> newbody, distr
 
     ddm->gid_to_localid[newbody->GetGid()] = newbody->GetId();
     // Let derived classes reserve space for specific material surface data
-    ChSystemParallelSMC::AddMaterialSurfaceData(newbody);
+    ChSystemMulticoreSMC::AddMaterialSurfaceData(newbody);
 }
 
 void ChSystemDistributed::RemoveBodyExchange(int index) {
     ddm->comm_status[index] = distributed::EMPTY;
-    bodylist[index]->SetBodyFixed(true);
-    bodylist[index]->SetCollide(false);                  // NOTE: Calls collisionsystem::remove
-    bodylist[index]->GetCollisionModel()->ClearModel();  // NOTE: Ensures new model is clear
+    assembly.bodylist[index]->SetBodyFixed(true);
+    assembly.bodylist[index]->SetCollide(false);                  // NOTE: Calls collisionsystem::remove
+    assembly.bodylist[index]->GetCollisionModel()->ClearModel();  // NOTE: Ensures new model is clear
     ddm->gid_to_localid.erase(ddm->global_id[index]);
 }
 
 // Trusts the ID to be correct on the body
 void ChSystemDistributed::RemoveBody(std::shared_ptr<ChBody> body) {
     int index = body->GetId();
-    if (bodylist.size() <= index || body.get() != bodylist[index].get())
+    if (assembly.bodylist.size() <= index || body.get() != assembly.bodylist[index].get())
         return;
 
     ddm->comm_status[index] = distributed::EMPTY;
-    bodylist[index]->SetBodyFixed(true);
-    bodylist[index]->SetCollide(false);  // NOTE: Calls collisionsystem::remove
+    assembly.bodylist[index]->SetBodyFixed(true);
+    assembly.bodylist[index]->SetCollide(false);  // NOTE: Calls collisionsystem::remove
     if (index < ddm->first_empty)
         ddm->first_empty = index;
     ddm->gid_to_localid.erase(body->GetGid());
@@ -319,9 +310,9 @@ void ChSystemDistributed::ErrorAbort(std::string msg) {
 void ChSystemDistributed::PrintBodyStatus() {
     GetLog() << "Rank: " << my_rank << "\n";
     GetLog() << "\tBodylist:\n";
-    std::vector<std::shared_ptr<ChBody>>::iterator bl_itr = bodylist.begin();
+    std::vector<std::shared_ptr<ChBody>>::iterator bl_itr = assembly.bodylist.begin();
     int i = 0;
-    for (; bl_itr != bodylist.end(); bl_itr++, i++) {
+    for (; bl_itr != assembly.bodylist.end(); bl_itr++, i++) {
         ChVector<double> pos = (*bl_itr)->GetPos();
         ChVector<double> vel = (*bl_itr)->GetPos_dt();
         if (ddm->comm_status[i] != distributed::EMPTY) {
@@ -360,9 +351,9 @@ void ChSystemDistributed::PrintBodyStatus() {
 }
 
 void ChSystemDistributed::PrintShapeData() {
-    std::vector<std::shared_ptr<ChBody>>::iterator bl_itr = bodylist.begin();
+    std::vector<std::shared_ptr<ChBody>>::iterator bl_itr = assembly.bodylist.begin();
     int i = 0;
-    for (; bl_itr != bodylist.end(); bl_itr++, i++) {
+    for (; bl_itr != assembly.bodylist.end(); bl_itr++, i++) {
         if (ddm->comm_status[i] != distributed::EMPTY) {
             int body_start = ddm->body_shape_start[i];
             printf("Body %d: ", ddm->global_id[i]);
@@ -371,12 +362,12 @@ void ChSystemDistributed::PrintShapeData() {
                 int shape_index = ddm->body_shapes[body_start + j];
 
                 switch (data_manager->shape_data.typ_rigid[shape_index]) {
-                    case chrono::collision::SPHERE:
+                    case ChCollisionShape::Type::SPHERE:
                         printf(
                             "%d | Sphere: r %.3f, ", my_rank,
                             data_manager->shape_data.sphere_rigid[data_manager->shape_data.start_rigid[shape_index]]);
                         break;
-                    case chrono::collision::BOX:
+                    case ChCollisionShape::Type::BOX:
                         printf("%d | Box: ", my_rank);
                         break;
                     default:
@@ -394,12 +385,12 @@ void ChSystemDistributed::PrintShapeData() {
 
 void ChSystemDistributed::PrintEfficiency() {
     double used = 0.0;
-    for (int i = 0; i < bodylist.size(); i++) {
+    for (int i = 0; i < assembly.bodylist.size(); i++) {
         if (ddm->comm_status[i] != distributed::EMPTY) {
             used += 1.0;
         }
     }
-    used = used / bodylist.size();
+    used = used / assembly.bodylist.size();
 
     double shapes_used = 0.0;
     for (int i = 0; i < data_manager->shape_data.id_rigid.size(); i++) {
@@ -444,7 +435,7 @@ double ChSystemDistributed::GetHighestZ() {
 
 void ChSystemDistributed::CheckIds() {
     for (uint i = 0; i < data_manager->num_rigid_bodies; i++) {
-        if (bodylist[i]->GetId() != i) {
+        if (assembly.bodylist[i]->GetId() != i) {
             GetLog() << "Mismatched ID " << i << " Ranks " << my_rank << "\n";
         }
     }
@@ -499,7 +490,7 @@ int ChSystemDistributed::RemoveBodiesBelow(double z) {
     for (uint i = 0; i < data_manager->num_rigid_bodies; i++) {
         auto status = ddm->comm_status[i];
         if (status != distributed::EMPTY && data_manager->host_data.pos_rigid[i][2] < z) {
-            RemoveBody(bodylist[i]);
+            RemoveBody(assembly.bodylist[i]);
             if (status == distributed::OWNED || status == distributed::SHARED_DOWN ||
                 status == distributed::SHARED_UP) {
                 count++;
@@ -520,10 +511,10 @@ void ChSystemDistributed::SetBodyStates(const std::vector<uint>& gids, const std
 void ChSystemDistributed::SetBodyState(uint gid, const BodyState& state) {
     int local_id = ddm->GetLocalIndex(gid);
     if (local_id != -1 && ddm->comm_status[local_id] != distributed::EMPTY) {
-        bodylist[local_id]->SetPos(state.pos);
-        bodylist[local_id]->SetRot(state.rot);
-        bodylist[local_id]->SetPos_dt(state.pos_dt);
-        bodylist[local_id]->SetRot_dt(state.rot_dt);
+        assembly.bodylist[local_id]->SetPos(state.pos);
+        assembly.bodylist[local_id]->SetRot(state.rot);
+        assembly.bodylist[local_id]->SetPos_dt(state.pos_dt);
+        assembly.bodylist[local_id]->SetRot_dt(state.rot_dt);
     }
 }
 

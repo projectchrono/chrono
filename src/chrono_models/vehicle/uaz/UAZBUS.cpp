@@ -31,12 +31,14 @@ namespace uaz {
 UAZBUS::UAZBUS()
     : m_system(nullptr),
       m_vehicle(nullptr),
-      m_contactMethod(ChMaterialSurface::NSC),
-      m_chassisCollisionType(ChassisCollisionType::NONE),
+      m_contactMethod(ChContactMethod::NSC),
+      m_chassisCollisionType(CollisionType::NONE),
       m_fixed(false),
+      m_brake_locking(false),
+      m_brake_type(BrakeType::SIMPLE),
       m_tireType(TireModelType::RIGID),
       m_tire_step_size(-1),
-      m_steeringType(SteeringType::PITMAN_ARM),
+      m_steeringType(SteeringTypeWV::PITMAN_ARM),
       m_initFwdVel(0),
       m_initPos(ChCoordsys<>(ChVector<>(0, 0, 1), QUNIT)),
       m_initOmega({0, 0, 0, 0}),
@@ -45,12 +47,14 @@ UAZBUS::UAZBUS()
 UAZBUS::UAZBUS(ChSystem* system)
     : m_system(system),
       m_vehicle(nullptr),
-      m_contactMethod(ChMaterialSurface::NSC),
-      m_chassisCollisionType(ChassisCollisionType::NONE),
+      m_contactMethod(ChContactMethod::NSC),
+      m_chassisCollisionType(CollisionType::NONE),
       m_fixed(false),
+      m_brake_locking(false),
+      m_brake_type(BrakeType::SIMPLE),
       m_tireType(TireModelType::RIGID),
       m_tire_step_size(-1),
-      m_steeringType(SteeringType::PITMAN_ARM),
+      m_steeringType(SteeringTypeWV::PITMAN_ARM),
       m_initFwdVel(0),
       m_initPos(ChCoordsys<>(ChVector<>(0, 0, 1), QUNIT)),
       m_initOmega({0, 0, 0, 0}),
@@ -72,8 +76,9 @@ void UAZBUS::SetAerodynamicDrag(double Cd, double area, double air_density) {
 // -----------------------------------------------------------------------------
 void UAZBUS::Initialize() {
     // Create and initialize the UAZBUS vehicle
-    m_vehicle = m_system ? new UAZBUS_Vehicle(m_system, m_fixed, m_steeringType, m_chassisCollisionType)
-                         : new UAZBUS_Vehicle(m_fixed, m_steeringType, m_contactMethod, m_chassisCollisionType);
+    m_vehicle =
+        m_system ? new UAZBUS_Vehicle(m_system, m_fixed, m_brake_type, m_steeringType, m_chassisCollisionType)
+                 : new UAZBUS_Vehicle(m_fixed, m_brake_type, m_steeringType, m_contactMethod, m_chassisCollisionType);
 
     m_vehicle->SetInitWheelAngVel(m_initOmega);
     m_vehicle->Initialize(m_initPos, m_initFwdVel);
@@ -150,6 +155,8 @@ void UAZBUS::Initialize() {
                 wheel->GetTire()->SetStepsize(m_tire_step_size);
         }
     }
+
+    m_vehicle->EnableBrakeLocking(m_brake_locking);
 }
 
 // -----------------------------------------------------------------------------

@@ -22,7 +22,7 @@
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChSubsysDefs.h"
 
-#include "chrono_vehicle/tracked_vehicle/ChTrackShoe.h"
+#include "chrono_vehicle/tracked_vehicle/track_shoe/ChTrackShoeSegmented.h"
 
 namespace chrono {
 namespace vehicle {
@@ -31,7 +31,7 @@ namespace vehicle {
 /// @{
 
 /// Base class for a double-pin track shoe (template definition).
-class CH_VEHICLE_API ChTrackShoeDoublePin : public ChTrackShoe {
+class CH_VEHICLE_API ChTrackShoeDoublePin : public ChTrackShoeSegmented {
   public:
     ChTrackShoeDoublePin(const std::string& name  ///< [in] name of the subsystem
                          );
@@ -69,11 +69,6 @@ class CH_VEHICLE_API ChTrackShoeDoublePin : public ChTrackShoe {
                     const ChQuaternion<>& rot_connector     ///< [in] orientation of connector bodies
                     );
 
-    /// Connect this track shoe to the specified neighbor.
-    /// This function must be called only after both track shoes have been initialized.
-    virtual void Connect(std::shared_ptr<ChTrackShoe> next  ///< [in] handle to the neighbor track shoe
-                         ) override;
-
     /// Add visualization assets for the track shoe subsystem.
     virtual void AddVisualizationAssets(VisualizationType vis) override;
 
@@ -101,19 +96,6 @@ class CH_VEHICLE_API ChTrackShoeDoublePin : public ChTrackShoe {
     /// Return the radius of a connector body.
     virtual double GetConnectorRadius() const = 0;
 
-    /// Return dimensions and locations of the contact boxes for the shoe and guiding pin.
-    /// Note that this is for contact with wheels, idler, and ground only.
-    /// This contact geometry does not affect contact with the sprocket.
-    virtual const ChVector<>& GetPadBoxDimensions() const = 0;
-    virtual const ChVector<>& GetPadBoxLocation() const = 0;
-    virtual const ChVector<>& GetGuideBoxDimensions() const = 0;
-    virtual const ChVector<>& GetGuideBoxLocation() const = 0;
-
-    /// Add contact geometry for the track shoe.
-    /// Note that this is for contact with wheels, idler, and ground only.
-    /// This contact geometry does not affect contact with the sprocket.
-    virtual void AddShoeContact();
-
     virtual void ExportComponentList(rapidjson::Document& jsonDocument) const override;
 
     virtual void Output(ChVehicleOutput& database) const override;
@@ -124,16 +106,20 @@ class CH_VEHICLE_API ChTrackShoeDoublePin : public ChTrackShoe {
     std::shared_ptr<ChLinkLockRevolute> m_revolute_L;  ///< handle to shoe - left connector joint
     std::shared_ptr<ChLinkLockRevolute> m_revolute_R;  ///< handle to shoe - right connector joint
 
+  private:
+    /// Connect this track shoe to the specified neighbor.
+    /// This function must be called only after both track shoes have been initialized.
+    virtual void Connect(std::shared_ptr<ChTrackShoe> next,  ///< [in] handle to the neighbor track shoe
+                         ChTrackAssembly* assembly,          ///< [in] containing track assembly
+                         bool ccw                            ///< [in] track assembled in counter clockwise direction
+                         ) override final;
+
+    /// Add visualization of a connector body based on primitives corresponding to the contact shapes.
+    void AddConnectorVisualization(std::shared_ptr<ChBody> connector, VisualizationType vis);
+
     friend class ChSprocketDoublePin;
     friend class SprocketDoublePinContactCB;
     friend class ChTrackAssemblyDoublePin;
-
-  private:
-    /// Add visualization of the shoe body, based on primitives corresponding to the contact shapes.
-    void AddShoeVisualization();
-
-    /// Add visualization of a connector body based on primitives corresponding to the contact shapes.
-    void AddConnectorVisualization(std::shared_ptr<ChBody> connector);
 };
 
 /// Vector of handles to double-pin track shoe subsystems.

@@ -67,16 +67,18 @@ class CH_VEHICLE_API SprocketBand : public ChSprocketBand {
     virtual double GetToothDepth() const override { return m_gear_tooth_depth; }
     /// Return the radius of the (concave) tooth circular arc.
     virtual double GetArcRadius() const override { return m_gear_arc_radius; }
-    /// Return the total width of the sprocket guiding wheel that acts similar to another road wheel.
-    virtual double GetGuideWheelWidth() const override { return m_gear_guide_wheel_width; }
-    /// Return the gap width of the sprocket guiding wheel that acts similar to another road wheel.
-    virtual double GetGuideWheelGap() const override { return m_gear_guide_wheel_gap; }
 
-    /// Add visualization of the sprocket.
-    virtual void AddVisualizationAssets(VisualizationType vis) override;
+    /// Return the allowed backlash (play) before lateral contact with track shoes is enabled (to prevent detracking).
+    virtual double GetLateralBacklash() const override { return m_lateral_backlash; }
 
   private:
     virtual void Create(const rapidjson::Document& d) override;
+
+    /// Create the contact material consistent with the specified contact method.
+    virtual void CreateContactMaterial(ChContactMethod contact_method) override;
+
+    /// Add visualization of the sprocket.
+    virtual void AddVisualizationAssets(VisualizationType vis) override;
 
     int m_num_teeth;
 
@@ -91,12 +93,13 @@ class CH_VEHICLE_API SprocketBand : public ChSprocketBand {
     double m_gear_tooth_depth;
     double m_gear_arc_radius;
     double m_gear_RA;
-    double m_gear_guide_wheel_width;
-    double m_gear_guide_wheel_gap;
+
+    double m_lateral_backlash;
 
     bool m_has_mesh;
-    std::string m_meshName;
     std::string m_meshFile;
+
+    MaterialInfo m_mat_info;
 };
 
 /// @} vehicle_tracked_sprocket

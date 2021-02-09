@@ -5,7 +5,7 @@ Install the PYTHON module {#module_python_installation}
 
 This is an optional module that adds Python support in Chrono.
 
-##Features
+## Features
 
 The **PYTHON module** allows users to use [Python](http://www.python.org)  
 for creating simulations. As with any scripting language, this allows for immediate execution, no compilers involved, simple to use, etc.
@@ -15,14 +15,14 @@ This module consists of *two* main sets of build targets:
 
 - The Python modules for [PyChrono](@ref pychrono_introduction). 
   Currently, the PyChrono Python modules that are built are:
-    - *pychrono*, that wraps most Chrono classes, equivalent to the chrono:: namespace
-	- *pychrono.fea*, that wraps FEA classes, equivalent to the chrono::fea:: namespace.
-    - *pychrono.postprocess*, that wraps the POSTPROCESS module.
-    - *pychrono.irrlicht*, that wraps the IRRLICHT module.
-    - *pychrono.mkl*, that wraps the MKL module.
-	- *pychrono.cascade*, that wraps the CASCADE module (doesn't work on the Mac).
+    - *pychrono*, which wraps most Chrono classes, equivalent to the chrono namespace
+    - *pychrono.fea*, which wraps FEA classes, equivalent to the chrono::fea namespace.
+    - *pychrono.postprocess*, which wraps the POSTPROCESS module.
+    - *pychrono.irrlicht*, which wraps the IRRLICHT module.
+    - *pychrono.pardisomkl*, which wraps the Pardiso MKL module.
+    - *pychrono.cascade*, which wraps the CASCADE module (doesn't work on the Mac).
 
-- A *PYPARSER module* is built, that is a C++ module for parsing / executing / interpreting 
+- A *PYPARSER module*, which is a C++ module for parsing / executing / interpreting 
   Python instructions from C++ programs.
 
   
@@ -128,24 +128,22 @@ Chrono in 32 bit mode. If you installed
 Python for 64bit, you must compile Chrono in 64 bit mode. 
 </div>
 
-
 <div class="ce-warning">
 In some distributions of Python, the debug library 'python33_d.lib' (the debug version of the python33.lib library) is not included by default. 
 If you need it because you recompile the python module in debug mode, either you recompile the entire Python source, or you modify pyconfig.h to force the use of python33.lib by following these steps:
-<br>
 1. Comment out the line:
-
-        //#define Py_DEBUG
-
+   ~~~{.py}
+   //#define Py_DEBUG
+   ~~~
 2. Modify
-
-        #if defined(_DEBUG)
-        #pragma comment(lib,"python33_d.lib")
-
+   ~~~{.py}
+   #if defined(_DEBUG)
+   #pragma comment(lib,"python33_d.lib")
+   ~~~
    to
-
-        #if defined(_DEBUG)
-        #pragma comment(lib,"python33.lib")
-
+   ~~~{.py}
+   #if defined(_DEBUG)
+   #pragma comment(lib,"python33.lib")
+   ~~~
 3. Press 'Advanced' in CMake, set the PYTHON_DEBUG_LIBRARY to the same lib that you have in PYTHON_LIBRARY, and press 'Generate' so that your project will link 'python33.lib' instead than 'python33_d.lib'.
 </div>

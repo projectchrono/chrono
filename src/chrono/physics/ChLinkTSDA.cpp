@@ -314,14 +314,15 @@ void ChLinkTSDA::IntStateScatter(const unsigned int off_x,  // offset in x state
                                  const ChState& x,          // state vector, position part
                                  const unsigned int off_v,  // offset in v state vector
                                  const ChStateDelta& v,     // state vector, speed part
-                                 const double T             // time
+                                 const double T,            // time
+                                 bool full_update           // perform complete update
 ) {
     // Important: set the internal states first, as they will be used in Update.
     if (m_variables) {
         m_states = v.segment(off_v, m_nstates);
     }
 
-    Update(T);  //// RADU: we don't need to update assets here, do we?
+    Update(T, full_update);
 }
 
 void ChLinkTSDA::IntStateGatherAcceleration(const unsigned int off_a, ChStateDelta& a) {

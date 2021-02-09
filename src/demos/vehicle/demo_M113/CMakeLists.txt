@@ -24,31 +24,33 @@ set(COMPILER_FLAGS "${CH_CXX_FLAGS}  ${CH_IRRLICHT_CXX_FLAGS}")
 set(LINKER_FLAGS "${CH_LINKERFLAG_EXE}")
 list(APPEND LIBS "")
 
-if(ENABLE_MODULE_MKL)
+if(ENABLE_MODULE_PARDISO_MKL)
     include_directories(${CH_MKL_INCLUDES})
     set(COMPILER_FLAGS "${COMPILER_FLAGS} ${CH_MKL_CXX_FLAGS}")
     set(LINKER_FLAGS "${LINKER_FLAGS} ${CH_MKL_LINK_FLAGS}")
-    list(APPEND LIBS "ChronoEngine_mkl")
+    list(APPEND LIBS "ChronoEngine_pardisomkl")
 endif()
 
 #--------------------------------------------------------------
 # Add executables
 
-FOREACH(DEMO ${DEMOS})
+FOREACH(PROGRAM ${DEMOS})
+    MESSAGE(STATUS "...add ${PROGRAM}")
 
-    MESSAGE(STATUS "...add ${DEMO}")
+    ADD_EXECUTABLE(${PROGRAM} ${PROGRAM}.cpp)
+    SOURCE_GROUP("" FILES ${PROGRAM}.cpp)
 
-    ADD_EXECUTABLE(${DEMO} ${DEMO}.cpp ${MODEL_FILES})
-    SOURCE_GROUP("" FILES ${DEMO}.cpp)
-    SET_TARGET_PROPERTIES(${DEMO} PROPERTIES 
+    SET_TARGET_PROPERTIES(${PROGRAM} PROPERTIES 
                           COMPILE_FLAGS "${COMPILER_FLAGS}"
                           LINK_FLAGS "${LINKER_FLAGS}")
-    TARGET_LINK_LIBRARIES(${DEMO} 
+    SET_PROPERTY(TARGET ${PROGRAM} PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:${PROGRAM}>")
+    TARGET_LINK_LIBRARIES(${PROGRAM} 
                           ChronoEngine
                           ChronoEngine_irrlicht
                           ChronoEngine_vehicle
+                          ChronoEngine_vehicle_irrlicht
                           ChronoModels_vehicle
                           ${LIBS})
-    INSTALL(TARGETS ${DEMO} DESTINATION ${CH_INSTALL_DEMO})
-    
+                          
+    INSTALL(TARGETS ${PROGRAM} DESTINATION ${CH_INSTALL_DEMO})  
 ENDFOREACH()

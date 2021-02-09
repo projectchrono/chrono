@@ -38,29 +38,12 @@ void ChRoller::Initialize(std::shared_ptr<ChBodyAuxRef> chassis, const ChVector<
     // Create and initialize the roller body.
     m_wheel = std::shared_ptr<ChBody>(chassis->GetSystem()->NewBody());
     m_wheel->SetNameString(m_name + "_wheel");
+    m_wheel->SetIdentifier(BodyID::ROLER_BODY);
     m_wheel->SetPos(roller_to_abs.GetPos());
     m_wheel->SetRot(roller_to_abs.GetRot());
     m_wheel->SetMass(GetMass());
     m_wheel->SetInertiaXX(GetInertia());
     chassis->GetSystem()->AddBody(m_wheel);
-
-    // Set roller contact material properties.
-    switch (m_wheel->GetContactMethod()) {
-        case ChMaterialSurface::NSC:
-            m_wheel->GetMaterialSurfaceNSC()->SetFriction(m_friction);
-            m_wheel->GetMaterialSurfaceNSC()->SetRestitution(m_restitution);
-            break;
-        case ChMaterialSurface::SMC:
-            m_wheel->GetMaterialSurfaceSMC()->SetFriction(m_friction);
-            m_wheel->GetMaterialSurfaceSMC()->SetRestitution(m_restitution);
-            m_wheel->GetMaterialSurfaceSMC()->SetYoungModulus(m_young_modulus);
-            m_wheel->GetMaterialSurfaceSMC()->SetPoissonRatio(m_poisson_ratio);
-            m_wheel->GetMaterialSurfaceSMC()->SetKn(m_kn);
-            m_wheel->GetMaterialSurfaceSMC()->SetGn(m_gn);
-            m_wheel->GetMaterialSurfaceSMC()->SetKt(m_kt);
-            m_wheel->GetMaterialSurfaceSMC()->SetGt(m_gt);
-            break;
-    }
 
     // Create and initialize the revolute joint between roller and chassis.
     // The axis of rotation is the y axis of the road wheel reference frame.

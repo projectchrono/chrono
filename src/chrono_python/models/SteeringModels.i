@@ -18,6 +18,9 @@
 #include "chrono_vehicle/wheeled_vehicle/steering/RackPinion.h"
 #include "chrono_vehicle/wheeled_vehicle/steering/RotaryArm.h"
 
+#include "chrono_models/vehicle/hmmwv/HMMWV_PitmanArm.h"
+#include "chrono_models/vehicle/hmmwv/HMMWV_RackPinion.h"
+
 #include "chrono_models/vehicle/citybus/CityBus_RotaryArm.h"
 #include "chrono_models/vehicle/citybus/CityBus_RackPinion.h"
 
@@ -25,7 +28,16 @@
 #include "chrono_models/vehicle/man/MAN_10t_RotaryArm2.h"
 
 #include "chrono_models/vehicle/uaz/UAZBUS_RotaryArm.h"
+
+#include "chrono_models/vehicle/gator/Gator_RackPinion.h"
+
+#include "chrono_models/vehicle/rccar/RCCar_PitmanArm.h"
+
+#include "chrono_models/vehicle/feda/FEDA_PitmanArm.h"
 %}
+
+%shared_ptr(chrono::vehicle::hmmwv::HMMWV_PitmanArm)
+%shared_ptr(chrono::vehicle::hmmwv::HMMWV_RackPinion)
 
 %shared_ptr(chrono::vehicle::citybus::CityBus_RotaryArm)
 %shared_ptr(chrono::vehicle::citybus::CityBus_RackPinion)
@@ -35,15 +47,30 @@
 
 %shared_ptr(chrono::vehicle::uaz::UAZBUS_RotaryArm)
 
+%shared_ptr(chrono::vehicle::rccar::RCCar_PitmanArm)
+
+%shared_ptr(chrono::vehicle::gator::Gator_RackPinion)
+
+%shared_ptr(chrono::vehicle::feda::FEDA_PitmanArm)
+
 /* Parse the header file to generate wrappers */
-%import "ChSteering.i"
+%import "chrono_python/vehicle/ChSteering.i"
 
 // Model:
 
-%include "../chrono_models/vehicle/citybus/CityBus_RotaryArm.h"
-%include "../chrono_models/vehicle/citybus/CityBus_RackPinion.h"
+%include "../../chrono_models/vehicle/hmmwv/HMMWV_PitmanArm.h"
+%include "../../chrono_models/vehicle/hmmwv/HMMWV_RackPinion.h"
 
-%include "../chrono_models/vehicle/man/MAN_5t_RotaryArm.h"
-%include "../chrono_models/vehicle/man/MAN_10t_RotaryArm2.h"
+%include "../../chrono_models/vehicle/citybus/CityBus_RotaryArm.h"
+%include "../../chrono_models/vehicle/citybus/CityBus_RackPinion.h"
 
-%include "../chrono_models/vehicle/uaz/UAZBUS_RotaryArm.h"
+%include "../../chrono_models/vehicle/man/MAN_5t_RotaryArm.h"
+%include "../../chrono_models/vehicle/man/MAN_10t_RotaryArm2.h"
+
+%include "../../chrono_models/vehicle/uaz/UAZBUS_RotaryArm.h"
+
+%include "../../chrono_models/vehicle/gator/Gator_RackPinion.h"
+
+%include "../../chrono_models/vehicle/rccar/RCCar_PitmanArm.h"
+
+%include "../../chrono_models/vehicle/feda/FEDA_PitmanArm.h"

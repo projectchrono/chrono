@@ -6,11 +6,11 @@
   "Patches": [
     // Patch 1:  box
     {
-      "Location": [ 0, 0, -5 ],
+      "Location": [ -15, 0, 0 ],
       "Orientation": [ 1, 0, 0, 0 ],
 
       "Geometry": {
-        "Dimensions": [ 20, 20, 10 ]
+        "Dimensions": [ 60, 20, 2 ]
       },
 
       "Contact Material": {
@@ -31,17 +31,17 @@
       "Visualization": {
         "Color": [ 1.0, 0.5, 0.5 ],
         "Texture File": "terrain/textures/tile4.jpg",
-        "Texture Scaling": [ 20, 20 ]
+        "Texture Scaling": [ 60, 20 ]
       }
     },
 
     // Patch 2: box
     {
-      "Location": [ 20, 0, -5 ],
+      "Location": [ 20, 0, 0.1 ],
       "Orientation": [ 1, 0, 0, 0 ],
 
       "Geometry": {
-        "Dimensions": [ 20, 30, 10.6 ]
+        "Dimensions": [ 20, 30, 2 ]
       },
 
       "Contact Material": {
@@ -66,11 +66,11 @@
 
     // Patch 3: height-map
     {
-      "Location": [ 0, 40, -1 ],
+      "Location": [ 0, 42, 0 ],
       "Orientation": [ 1, 0, 0, 0 ],
 
       "Geometry": {
-        "Height Map Filename": "terrain/height_maps/test64.bmp",
+        "Height Map Filename": "terrain/height_maps/bump64.bmp",
         "Mesh Name": "terrain_test64_POV_geom",
         "Size": [ 64, 64 ],
         "Height Range": [ 0, 3 ]
@@ -100,11 +100,11 @@
 
     // Patch 4: Mesh
     {
-      "Location": [ 120, -152, 0 ],
+      "Location": [ 0, -42, 0 ],
       "Orientation": [ 1, 0, 0, 0 ],
 
       "Geometry": {
-        "Mesh Filename": "terrain/meshes/test.obj",
+        "Mesh Filename": "terrain/meshes/bump.obj",
         "Mesh Name": "terrain_test_POV_geom"
       },
 

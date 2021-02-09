@@ -25,8 +25,7 @@
 #include "chrono_vehicle/terrain/RigidTerrain.h"
 #include "chrono_vehicle/utils/ChVehiclePath.h"
 
-#include "chrono_models/vehicle/m113/M113_SimplePowertrain.h"
-#include "chrono_models/vehicle/m113/M113_Vehicle.h"
+#include "chrono_models/vehicle/m113/M113.h"
 
 #ifdef CHRONO_IRRLICHT
 #include "chrono_vehicle/tracked_vehicle/utils/ChTrackedVehicleIrrApp.h"
@@ -50,7 +49,7 @@ public:
     void SimulateVis();
 
 private:
-    M113_Vehicle* m_m113;
+    M113* m_m113;
     RigidTerrain* m_terrain;
     ChPathFollowerDriver* m_driver;
 
@@ -62,12 +61,23 @@ private:
 
 template <typename EnumClass, EnumClass SHOE_TYPE>
 M113AccTest<EnumClass, SHOE_TYPE>::M113AccTest() : m_step(1e-3) {
-    ChMaterialSurface::ContactMethod contact_method = ChMaterialSurface::NSC;
-    ChassisCollisionType chassis_collision_type = ChassisCollisionType::NONE;
+    DrivelineTypeTV driveline_type = DrivelineTypeTV::SIMPLE;
+    BrakeType brake_type = BrakeType::SIMPLE;
+    ChContactMethod contact_method = ChContactMethod::NSC;
+    PowertrainModelType powertrain_type = PowertrainModelType::SIMPLE;
+    CollisionType chassis_collision_type = CollisionType::NONE;
 
     // Create the M113 vehicle, set parameters, and initialize.
-    m_m113 = new M113_Vehicle(false, SHOE_TYPE, contact_method, chassis_collision_type);
-    m_m113->Initialize(ChCoordsys<>(ChVector<>(-250 + 5, 0, 1.1), ChQuaternion<>(1, 0, 0, 0)));
+    m_m113 = new M113();
+    m_m113->SetContactMethod(contact_method);
+    m_m113->SetTrackShoeType(SHOE_TYPE);
+    m_m113->SetDrivelineType(driveline_type);
+    m_m113->SetBrakeType(brake_type);
+    m_m113->SetPowertrainType(powertrain_type);
+    m_m113->SetChassisCollisionType(chassis_collision_type);
+
+    m_m113->SetInitPosition(ChCoordsys<>(ChVector<>(-250 + 5, 0, 1.1), ChQuaternion<>(1, 0, 0, 0)));
+    m_m113->Initialize();
 
     m_m113->SetChassisVisualizationType(VisualizationType::NONE);
     m_m113->SetSprocketVisualizationType(VisualizationType::PRIMITIVES);
@@ -76,23 +86,20 @@ M113AccTest<EnumClass, SHOE_TYPE>::M113AccTest() : m_step(1e-3) {
     m_m113->SetRoadWheelVisualizationType(VisualizationType::PRIMITIVES);
     m_m113->SetTrackShoeVisualizationType(VisualizationType::PRIMITIVES);
 
-    // Create the powertrain
-    auto powertrain = chrono_types::make_shared<M113_SimplePowertrain>("Powertrain");
-    m_m113->InitializePowertrain(powertrain);
-
     // Create the terrain
     m_terrain = new RigidTerrain(m_m113->GetSystem());
-    auto patch = m_terrain->AddPatch(ChCoordsys<>(ChVector<>(0, 0, -5), QUNIT), ChVector<>(500, 5, 10));
-    patch->SetContactFrictionCoefficient(0.9f);
-    patch->SetContactRestitutionCoefficient(0.01f);
-    patch->SetContactMaterialProperties(2e7f, 0.3f);
+    auto patch_material = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+    patch_material->SetFriction(0.9f);
+    patch_material->SetRestitution(0.01f);
+    patch_material->SetYoungModulus(2e7f);
+    auto patch = m_terrain->AddPatch(patch_material, ChVector<>(0, 0, 0), ChVector<>(0, 0, 1), 500, 5);
     patch->SetColor(ChColor(0.8f, 0.8f, 0.8f));
     patch->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 500, 5);
     m_terrain->Initialize();
 
     // Create the straight path and the driver system
     auto path = StraightLinePath(ChVector<>(-250, 0, 0.5), ChVector<>(250, 0, 0.5), 1);
-    m_driver = new ChPathFollowerDriver(*m_m113, path, "my_path", 1000.0);
+    m_driver = new ChPathFollowerDriver(m_m113->GetVehicle(), path, "my_path", 1000.0);
     m_driver->GetSteeringController().SetLookAheadDistance(5.0);
     m_driver->GetSteeringController().SetGains(0.5, 0, 0);
     m_driver->GetSpeedController().SetGains(0.4, 0, 0);
@@ -108,8 +115,8 @@ M113AccTest<EnumClass, SHOE_TYPE>::M113AccTest() : m_step(1e-3) {
     m_m113->GetSystem()->SetMaxPenetrationRecoverySpeed(1.5);
     m_m113->GetSystem()->SetMinBounceSpeed(2.0);
 
-    m_shoeL.resize(m_m113->GetNumTrackShoes(LEFT));
-    m_shoeR.resize(m_m113->GetNumTrackShoes(RIGHT));
+    m_shoeL.resize(m_m113->GetVehicle().GetNumTrackShoes(LEFT));
+    m_shoeR.resize(m_m113->GetVehicle().GetNumTrackShoes(RIGHT));
 }
 
 template <typename EnumClass, EnumClass SHOE_TYPE>
@@ -121,7 +128,7 @@ M113AccTest<EnumClass, SHOE_TYPE>::~M113AccTest() {
 
 template <typename EnumClass, EnumClass SHOE_TYPE>
 void M113AccTest<EnumClass, SHOE_TYPE>::ExecuteStep() {
-    double time = m_m113->GetChTime();
+    double time = m_m113->GetVehicle().GetChTime();
 
     if (time < 0.5) {
         m_driver->SetDesiredSpeed(0);
@@ -146,7 +153,7 @@ void M113AccTest<EnumClass, SHOE_TYPE>::ExecuteStep() {
 template <typename EnumClass, EnumClass SHOE_TYPE>
 void M113AccTest<EnumClass, SHOE_TYPE>::SimulateVis() {
 #ifdef CHRONO_IRRLICHT
-    ChTrackedVehicleIrrApp app(m_m113, L"M113 acceleration test");
+    ChTrackedVehicleIrrApp app(&m_m113->GetVehicle(), L"M113 acceleration test");
     app.SetSkyBox();
     app.AddTypicalLights(irr::core::vector3df(-200.f, -30.f, 100.f), irr::core::vector3df(-200.f, 50.f, 100.f), 250, 130);
     app.SetChaseCamera(ChVector<>(0.0, 0.0, 0.0), 6.0, 0.5);
@@ -183,6 +190,7 @@ CH_BM_SIMULATION_LOOP(M113Acc_DP, dp_test_type, NUM_SKIP_STEPS, NUM_SIM_STEPS, R
 // =============================================================================
 
 int main(int argc, char* argv[]) {
+    utils::AddComandLineArgument(&argc, &argv, "--benchmark_counters_tabular");
     ::benchmark::Initialize(&argc, argv);
 
 #ifdef CHRONO_IRRLICHT

@@ -50,6 +50,9 @@ void ChRigidTire::Initialize(std::shared_ptr<ChWheel> wheel) {
 
     auto wheel_body = wheel->GetSpindle();
 
+    CreateContactMaterial(wheel_body->GetSystem()->GetContactMethod());
+    assert(m_material && m_material->GetContactMethod() == wheel_body->GetSystem()->GetContactMethod());
+    
     wheel_body->SetCollide(true);
 
     wheel_body->GetCollisionModel()->ClearModel();
@@ -69,32 +72,15 @@ void ChRigidTire::Initialize(std::shared_ptr<ChWheel> wheel) {
                 m_trimesh->m_vertices[i].y() += offset;
         }
 
-        wheel_body->GetCollisionModel()->AddTriangleMesh(m_trimesh, false, false, ChVector<>(0), ChMatrix33<>(1),
-                                                         m_sweep_sphere_radius);
+        wheel_body->GetCollisionModel()->AddTriangleMesh(m_material, m_trimesh, false, false, ChVector<>(0),
+                                                         ChMatrix33<>(1), m_sweep_sphere_radius);
     } else {
         // Cylinder contact
-        wheel_body->GetCollisionModel()->AddCylinder(GetRadius(), GetRadius(), GetWidth() / 2,
+        wheel_body->GetCollisionModel()->AddCylinder(m_material, GetRadius(), GetRadius(), GetWidth() / 2,
                                                      ChVector<>(0, GetOffset(), 0));
     }
 
     wheel_body->GetCollisionModel()->BuildModel();
-
-    switch (wheel_body->GetContactMethod()) {
-        case ChMaterialSurface::NSC:
-            wheel_body->GetMaterialSurfaceNSC()->SetFriction(m_friction);
-            wheel_body->GetMaterialSurfaceNSC()->SetRestitution(m_restitution);
-            break;
-        case ChMaterialSurface::SMC:
-            wheel_body->GetMaterialSurfaceSMC()->SetFriction(m_friction);
-            wheel_body->GetMaterialSurfaceSMC()->SetRestitution(m_restitution);
-            wheel_body->GetMaterialSurfaceSMC()->SetYoungModulus(m_young_modulus);
-            wheel_body->GetMaterialSurfaceSMC()->SetPoissonRatio(m_poisson_ratio);
-            wheel_body->GetMaterialSurfaceSMC()->SetKn(m_kn);
-            wheel_body->GetMaterialSurfaceSMC()->SetGn(m_gn);
-            wheel_body->GetMaterialSurfaceSMC()->SetKt(m_kt);
-            wheel_body->GetMaterialSurfaceSMC()->SetGt(m_gt);
-            break;
-    }
 }
 
 // -----------------------------------------------------------------------------
@@ -110,7 +96,7 @@ void ChRigidTire::AddVisualizationAssets(VisualizationType vis) {
     m_wheel->GetSpindle()->AddAsset(m_cyl_shape);
 
     m_texture = chrono_types::make_shared<ChTexture>();
-    m_texture->SetTextureFilename(GetChronoDataFile("greenwhite.png"));
+    m_texture->SetTextureFilename(GetChronoDataFile("textures/greenwhite.png"));
     m_wheel->GetSpindle()->AddAsset(m_texture);
 }
 
@@ -204,15 +190,15 @@ TerrainForce ChRigidTire::ReportTireForce(ChTerrain* terrain) const {
     tire_force.force = m_wheel->GetSpindle()->GetContactForce();
     tire_force.moment = m_wheel->GetSpindle()->GetContactTorque();
 
-    // Approach using the RigidTireContactReporter does not work in Chrono::Parallel
+    // Approach using the RigidTireContactReporter does not work in Chrono::Multicore
     // since contact forces and torques passed to OnReportContact are always zero.
     /*
-    RigidTireContactReporter reporter(m_wheel);
+    auto reporter = chrono_types::make_shared<RigidTireContactReporter>(m_wheel);
     m_wheel->GetSpindle()->GetSystem()->GetContactContainer()->ReportAllContacts(&reporter);
     TerrainForce tire_force;
     tire_force.point = m_wheel->GetSpindle()->GetPos();
-    tire_force.force = reporter.GetAccumulatedForce();
-    tire_force.moment = reporter.GetAccumulatedTorque();
+    tire_force.force = reporter->GetAccumulatedForce();
+    tire_force.moment = reporter->GetAccumulatedTorque();
     */
 
     return tire_force;
@@ -225,6 +211,11 @@ unsigned int ChRigidTire::GetNumVertices() const {
     return static_cast<unsigned int>(m_trimesh->getCoordsVertices().size());
 }
 
+unsigned int ChRigidTire::GetNumNormals() const {
+    assert(m_use_contact_mesh);
+    return static_cast<unsigned int>(m_trimesh->getCoordsNormals().size());
+}
+
 unsigned int ChRigidTire::GetNumTriangles() const {
     assert(m_use_contact_mesh);
     return static_cast<unsigned int>(m_trimesh->getIndicesVertexes().size());
@@ -233,6 +224,11 @@ unsigned int ChRigidTire::GetNumTriangles() const {
 const std::vector<ChVector<int>>& ChRigidTire::GetMeshConnectivity() const {
     assert(m_use_contact_mesh);
     return m_trimesh->getIndicesVertexes();
+}
+
+const std::vector<ChVector<int>>& ChRigidTire::GetMeshNormalIndices() const {
+    assert(m_use_contact_mesh);
+    return m_trimesh->getIndicesNormals();
 }
 
 const std::vector<ChVector<>>& ChRigidTire::GetMeshVertices() const {

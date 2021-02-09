@@ -80,27 +80,28 @@ TestRigChassis::TestRigChassis() : ChRigidChassis("Ground") {
 
 // =============================================================================
 // Definition of a terrain object for use by a suspension test rig.
+// Note that this assumes an ISO world frame.
 class TestRigTerrain : public ChTerrain {
   public:
     TestRigTerrain();
-    virtual double GetHeight(double x, double y) const override;
-    virtual ChVector<> GetNormal(double x, double y) const override;
-    virtual float GetCoefficientFriction(double x, double y) const override;
+    virtual double GetHeight(const ChVector<>& loc) const override;
+    virtual ChVector<> GetNormal(const ChVector<>& loc) const override;
+    virtual float GetCoefficientFriction(const ChVector<>& loc) const override;
     double m_height_L;
     double m_height_R;
 };
 
 TestRigTerrain::TestRigTerrain() : m_height_L(-1000), m_height_R(-1000) {}
 
-double TestRigTerrain::GetHeight(double x, double y) const {
-    return (y < 0) ? m_height_R : m_height_L;
+double TestRigTerrain::GetHeight(const ChVector<>& loc) const {
+    return (loc.y() < 0) ? m_height_R : m_height_L;
 }
 
-ChVector<> TestRigTerrain::GetNormal(double x, double y) const {
+ChVector<> TestRigTerrain::GetNormal(const ChVector<>& loc) const {
     return ChVector<>(0, 0, 1);
 }
 
-float TestRigTerrain::GetCoefficientFriction(double x, double y) const {
+float TestRigTerrain::GetCoefficientFriction(const ChVector<>& loc) const {
     return 0.8f;
 }
 
@@ -117,10 +118,11 @@ const double ChSuspensionTestRigPushrod::m_rod_radius = 0.02;
 // =============================================================================
 ChSuspensionTestRig::ChSuspensionTestRig(ChWheeledVehicle& vehicle,
                                          int axle_index,
+                                         int steering_index,
                                          double displ_limit,
                                          std::shared_ptr<ChTire> tire_left,
                                          std::shared_ptr<ChTire> tire_right,
-                                         ChMaterialSurface::ContactMethod contact_method)
+                                         ChContactMethod contact_method)
     : ChVehicle("SuspensionTestRig", contact_method),
       m_displ_limit(displ_limit),
       m_ride_height(-1),
@@ -143,7 +145,6 @@ ChSuspensionTestRig::ChSuspensionTestRig(ChWheeledVehicle& vehicle,
     m_wheel[RIGHT] = vehicle.GetAxle(axle_index)->m_wheels[1];
 
     // Load steering subsystem (if needed)
-    int steering_index = m_suspension->GetSteeringIndex();
     if (steering_index >= 0) {
         m_steering = vehicle.GetSteering(steering_index);
         m_steeringLoc = m_steering->GetPosition().pos;
@@ -159,7 +160,7 @@ ChSuspensionTestRig::ChSuspensionTestRig(const std::string& filename,
                                          double displ_limit,
                                          std::shared_ptr<ChTire> tire_left,
                                          std::shared_ptr<ChTire> tire_right,
-                                         ChMaterialSurface::ContactMethod contact_method)
+                                         ChContactMethod contact_method)
     : ChVehicle("SuspensionTestRig", contact_method),
       m_displ_limit(displ_limit),
       m_ride_height(-1),
@@ -225,7 +226,7 @@ ChSuspensionTestRig::ChSuspensionTestRig(const std::string& filename,
 ChSuspensionTestRig::ChSuspensionTestRig(const std::string& filename,
                                          std::shared_ptr<ChTire> tire_left,
                                          std::shared_ptr<ChTire> tire_right,
-                                         ChMaterialSurface::ContactMethod contact_method)
+                                         ChContactMethod contact_method)
     : ChVehicle("SuspensionTestRig", contact_method),
       m_vis_suspension(VisualizationType::PRIMITIVES),
       m_vis_steering(VisualizationType::PRIMITIVES),
@@ -302,19 +303,16 @@ void ChSuspensionTestRig::InitializeSubsystems() {
     // Create the terrain system
     m_terrain = std::unique_ptr<ChTerrain>(new TestRigTerrain);
 
-    // Initialize the suspension and steering subsystems.
-    if (m_steering) {
-        m_steering->Initialize(m_chassis->GetBody(), m_steeringLoc, m_steeringRot);
-        m_suspension->Initialize(m_chassis->GetBody(), m_suspLoc, m_steering->GetSteeringLink(), 0);
-    } else {
-        m_suspension->Initialize(m_chassis->GetBody(), m_suspLoc, m_chassis->GetBody(), -1);
-    }
+    // Initialize the steering subsystem.
+    if (m_steering)
+        m_steering->Initialize(m_chassis, m_steeringLoc, m_steeringRot);
+
+    // Initialize the suspension subsystem.
+    m_suspension->Initialize(m_chassis, nullptr, m_steering, m_suspLoc);
 
     // Initialize the antirollbar subsystem.
-    if (HasAntirollbar()) {
-        m_antirollbar->Initialize(m_chassis->GetBody(), m_antirollbarLoc, m_suspension->GetLeftBody(),
-                                  m_suspension->GetRightBody());
-    }
+    if (m_antirollbar)
+        m_antirollbar->Initialize(m_chassis, m_suspension, m_antirollbarLoc);
 
     // Initialize the two wheels
     m_wheel[LEFT]->Initialize(m_suspension->GetSpindle(LEFT), LEFT);
@@ -544,25 +542,26 @@ void ChSuspensionTestRig::SetPlotOutput(double output_step) {
 // ChSuspensionTestRigPlatform class implementation
 // =============================================================================
 ChSuspensionTestRigPlatform::ChSuspensionTestRigPlatform(
-    ChWheeledVehicle& vehicle,                       // vehicle source
-    int axle_index,                                  // index of the suspension to be tested
-    double displ_limit,                              // limits for post displacement
-    std::shared_ptr<ChTire> tire_left,               // left tire
-    std::shared_ptr<ChTire> tire_right,              // right tire
-    ChMaterialSurface::ContactMethod contact_method  // contact method
+    ChWheeledVehicle& vehicle,           // vehicle source
+    int axle_index,                      // index of test suspension
+    int steering_index,                  // index of associated steering subsystem (-1 for no steering)
+    double displ_limit,                  // limits for post displacement
+    std::shared_ptr<ChTire> tire_left,   // left tire
+    std::shared_ptr<ChTire> tire_right,  // right tire
+    ChContactMethod contact_method       // contact method
     )
-    : ChSuspensionTestRig(vehicle, axle_index, displ_limit, tire_left, tire_right, contact_method) {
+    : ChSuspensionTestRig(vehicle, axle_index, steering_index, displ_limit, tire_left, tire_right, contact_method) {
     InitializeSubsystems();
     Create();
 }
 
 ChSuspensionTestRigPlatform::ChSuspensionTestRigPlatform(
-    const std::string& filename,                     // JSON file with vehicle specification
-    int axle_index,                                  // index of the suspension to be tested
-    double displ_limit,                              // limits for post displacement
-    std::shared_ptr<ChTire> tire_left,               // left tire
-    std::shared_ptr<ChTire> tire_right,              // right tire
-    ChMaterialSurface::ContactMethod contact_method  // contact method
+    const std::string& filename,         // JSON file with vehicle specification
+    int axle_index,                      // index of the suspension to be tested
+    double displ_limit,                  // limits for post displacement
+    std::shared_ptr<ChTire> tire_left,   // left tire
+    std::shared_ptr<ChTire> tire_right,  // right tire
+    ChContactMethod contact_method       // contact method
     )
     : ChSuspensionTestRig(filename, axle_index, displ_limit, tire_left, tire_right, contact_method) {
     InitializeSubsystems();
@@ -570,10 +569,10 @@ ChSuspensionTestRigPlatform::ChSuspensionTestRigPlatform(
 }
 
 ChSuspensionTestRigPlatform::ChSuspensionTestRigPlatform(
-    const std::string& filename,                     // JSON file with test rig specification
-    std::shared_ptr<ChTire> tire_left,               // left tire
-    std::shared_ptr<ChTire> tire_right,              // right tire
-    ChMaterialSurface::ContactMethod contact_method  // contact method
+    const std::string& filename,         // JSON file with test rig specification
+    std::shared_ptr<ChTire> tire_left,   // left tire
+    std::shared_ptr<ChTire> tire_right,  // right tire
+    ChContactMethod contact_method       // contact method
     )
     : ChSuspensionTestRig(filename, tire_left, tire_right, contact_method) {
     InitializeSubsystems();
@@ -581,6 +580,11 @@ ChSuspensionTestRigPlatform::ChSuspensionTestRigPlatform(
 }
 
 void ChSuspensionTestRigPlatform::Create() {
+    // Create a contact material for the two posts (shared)
+    //// TODO: are default material properties ok?
+    MaterialInfo minfo;
+    auto post_mat = minfo.CreateMaterial(m_system->GetContactMethod());
+
     // Create the left post body (green)
     ChVector<> spindle_L_pos = m_suspension->GetSpindlePos(LEFT);
     ChVector<> post_L_pos = spindle_L_pos - ChVector<>(0, 0, m_tire[LEFT]->GetRadius());
@@ -593,7 +597,7 @@ void ChSuspensionTestRigPlatform::Create() {
     AddPostVisualization(LEFT, ChColor(0.1f, 0.8f, 0.15f));
 
     m_post[LEFT]->GetCollisionModel()->ClearModel();
-    m_post[LEFT]->GetCollisionModel()->AddCylinder(m_post_radius, m_post_radius, m_post_hheight,
+    m_post[LEFT]->GetCollisionModel()->AddCylinder(post_mat, m_post_radius, m_post_radius, m_post_hheight,
                                                    ChVector<>(0, 0, -m_post_hheight),
                                                    ChMatrix33<>(Q_from_AngX(CH_C_PI / 2)));
     m_post[LEFT]->GetCollisionModel()->BuildModel();
@@ -610,7 +614,7 @@ void ChSuspensionTestRigPlatform::Create() {
     AddPostVisualization(RIGHT, ChColor(0.8f, 0.1f, 0.1f));
 
     m_post[RIGHT]->GetCollisionModel()->ClearModel();
-    m_post[RIGHT]->GetCollisionModel()->AddCylinder(m_post_radius, m_post_radius, m_post_hheight,
+    m_post[RIGHT]->GetCollisionModel()->AddCylinder(post_mat, m_post_radius, m_post_radius, m_post_hheight,
                                                     ChVector<>(0, 0, -m_post_hheight),
                                                     ChMatrix33<>(Q_from_AngX(CH_C_PI / 2)));
     m_post[RIGHT]->GetCollisionModel()->BuildModel();
@@ -754,7 +758,7 @@ void ChSuspensionTestRigPlatform::PlotOutput(const std::string& out_dir, const s
     mplot.SetCommand("set terminal wxt size 800, 600");
     mplot.Plot(out_file.c_str(), 4, 7, "left", " with lines lw 2");
     mplot.Plot(out_file.c_str(), 10, 13, "right", " with lines lw 2");
-    
+
     title = "Suspension test rig - Camber angle";
     mplot.OutputWindow(2);
     mplot.SetTitle(title.c_str());
@@ -771,25 +775,26 @@ void ChSuspensionTestRigPlatform::PlotOutput(const std::string& out_dir, const s
 // ChSuspensionTestRigPushrod class implementation
 // =============================================================================
 ChSuspensionTestRigPushrod::ChSuspensionTestRigPushrod(
-    ChWheeledVehicle& vehicle,                       // vehicle source
-    int axle_index,                                  // index of the suspension to be tested
-    double displ_limit,                              // limits for post displacement
-    std::shared_ptr<ChTire> tire_left,               // left tire
-    std::shared_ptr<ChTire> tire_right,              // right tire
-    ChMaterialSurface::ContactMethod contact_method  // contact method
+    ChWheeledVehicle& vehicle,           // vehicle source
+    int axle_index,                      // index of test suspension
+    int steering_index,                  // index of associated steering subsystem (-1 for no steering)
+    double displ_limit,                  // limits for post displacement
+    std::shared_ptr<ChTire> tire_left,   // left tire
+    std::shared_ptr<ChTire> tire_right,  // right tire
+    ChContactMethod contact_method       // contact method
     )
-    : ChSuspensionTestRig(vehicle, axle_index, displ_limit, tire_left, tire_right, contact_method) {
+    : ChSuspensionTestRig(vehicle, axle_index, steering_index, displ_limit, tire_left, tire_right, contact_method) {
     InitializeSubsystems();
     Create();
 }
 
 ChSuspensionTestRigPushrod::ChSuspensionTestRigPushrod(
-    const std::string& filename,                     // JSON file with vehicle specification
-    int axle_index,                                  // index of the suspension to be tested
-    double displ_limit,                              // limits for post displacement
-    std::shared_ptr<ChTire> tire_left,               // left tire
-    std::shared_ptr<ChTire> tire_right,              // right tire
-    ChMaterialSurface::ContactMethod contact_method  // contact method
+    const std::string& filename,         // JSON file with vehicle specification
+    int axle_index,                      // index of the suspension to be tested
+    double displ_limit,                  // limits for post displacement
+    std::shared_ptr<ChTire> tire_left,   // left tire
+    std::shared_ptr<ChTire> tire_right,  // right tire
+    ChContactMethod contact_method       // contact method
     )
     : ChSuspensionTestRig(filename, axle_index, displ_limit, tire_left, tire_right, contact_method) {
     InitializeSubsystems();
@@ -797,10 +802,10 @@ ChSuspensionTestRigPushrod::ChSuspensionTestRigPushrod(
 }
 
 ChSuspensionTestRigPushrod::ChSuspensionTestRigPushrod(
-    const std::string& filename,                     // JSON file with test rig specification
-    std::shared_ptr<ChTire> tire_left,               // left tire
-    std::shared_ptr<ChTire> tire_right,              // right tire
-    ChMaterialSurface::ContactMethod contact_method  // contact method
+    const std::string& filename,         // JSON file with test rig specification
+    std::shared_ptr<ChTire> tire_left,   // left tire
+    std::shared_ptr<ChTire> tire_right,  // right tire
+    ChContactMethod contact_method       // contact method
     )
     : ChSuspensionTestRig(filename, tire_left, tire_right, contact_method) {
     InitializeSubsystems();

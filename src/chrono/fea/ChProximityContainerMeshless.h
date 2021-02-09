@@ -17,7 +17,6 @@
 
 #include <list>
 
-#include "chrono/collision/ChCModelBullet.h"
 #include "chrono/physics/ChProximityContainer.h"
 
 namespace chrono {

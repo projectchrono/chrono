@@ -19,7 +19,7 @@ subject to the following restrictions:
 #include "btCEtriangleShape.h"
 #include "BulletCollision/CollisionShapes/btCollisionMargin.h"
 #include "LinearMath/btQuaternion.h"
-#include "chrono/collision/ChCModelBullet.h"
+#include "chrono/collision/ChCollisionModelBullet.h"
 #include <stdio.h>
 
 using namespace chrono;
@@ -127,7 +127,7 @@ void btCEtriangleShape::getAabb(const btTransform& t,btVector3& aabbMin,btVector
     btVector3 p2_w = t.getOrigin()+ t.getBasis()*btVector3((btScalar)this->p2->x(), (btScalar)this->p2->y(), (btScalar)this->p2->z());
     btVector3 p3_w = t.getOrigin()+ t.getBasis()*btVector3((btScalar)this->p3->x(), (btScalar)this->p3->y(), (btScalar)this->p3->z());
 
-    collision::ChModelBullet* triModel = (collision::ChModelBullet*)this->getUserPointer();
+    collision::ChCollisionModelBullet* triModel = (collision::ChCollisionModelBullet*)this->getUserPointer();
 
 	btVector3 venvelope (triModel->GetEnvelope(), triModel->GetEnvelope(), triModel->GetEnvelope());
     btVector3 vsphereswept ((btScalar)this->sphereswept_rad,(btScalar)this->sphereswept_rad,(btScalar)this->sphereswept_rad);

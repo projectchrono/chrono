@@ -22,7 +22,7 @@ foreach(PROGRAM ${TESTS})
     set_target_properties(${PROGRAM} PROPERTIES
         FOLDER demos
         COMPILE_FLAGS "${COMPILER_FLAGS}"
-        LINK_FLAGS "${LINKER_FLAGS}"
-    )
+        LINK_FLAGS "${LINKER_FLAGS}")
+    set_property(TARGET ${PROGRAM} PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:${PROGRAM}>")
     target_link_libraries(${PROGRAM} ${LIBS} benchmark_main)
 endforeach(PROGRAM)

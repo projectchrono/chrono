@@ -30,8 +30,8 @@ class ChApiIrr ChIrrApp : public ChIrrAppInterface {
   public:
     /// Create the application with Irrlicht context (3D view, device, etc.).
     ChIrrApp(ChSystem* psystem,
-             const wchar_t* title = 0,
-             irr::core::dimension2d<irr::u32> dimens = irr::core::dimension2d<irr::u32>(640, 480),
+             const std::wstring& title = L"Chrono",
+             const irr::core::dimension2d<irr::u32>& dimens = irr::core::dimension2d<irr::u32>(640, 480),
              bool do_fullscreen = false,
              bool do_shadows = false,
              bool do_antialias = true,

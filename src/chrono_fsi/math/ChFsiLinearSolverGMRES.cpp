@@ -74,14 +74,21 @@ void ChFsiLinearSolverGMRES::Solve(int SIZE,
                                    unsigned int* AcolIdx,
                                    double* x,
                                    double* b) {
+#ifndef CUDART_VERSION
+#error CUDART_VERSION Undefined!
+#elif (CUDART_VERSION == 11000)
+
     restart = 10;
     cublasHandle_t cublasHandle = 0;
     cusparseHandle_t cusparseHandle = 0;
-    cusparseMatDescr_t descrA = 0;
-    cusparseMatDescr_t descrM = 0;
-    cudaStream_t stream = 0;
-    cusparseSolveAnalysisInfo_t info_l = 0;
-    cusparseSolveAnalysisInfo_t info_u = 0;
+    cusparseDnVecDescr_t vecX, vecW, vecV0;
+    cusparseSpMatDescr_t descrA;
+    size_t bufferSize = 0;
+    void *bufferX = NULL;
+    void *bufferW = NULL;
+    const cusparseOperation_t trans_A  = CUSPARSE_OPERATION_NON_TRANSPOSE;
+    cusparseCreateCsr(&descrA, SIZE, SIZE, NNZ, (int*)ArowIdx, (int*)AcolIdx, A,
+                      CUSPARSE_INDEX_32I, CUSPARSE_INDEX_32I, CUSPARSE_INDEX_BASE_ZERO, CUDA_R_64F);
 
     double *w, *v0, *V, *sDev, *H, *s, *cs, *sn;
 
@@ -114,37 +121,12 @@ void ChFsiLinearSolverGMRES::Solve(int SIZE,
 
     //====== Get handle to the CUBLAS context ========
     cublasStatus_t cublasStatus;
-    cublasStatus = cublasCreate(&cublasHandle);
+    cublasCreate(&cublasHandle);
     cudaDeviceSynchronize();
 
     //====== Get handle to the CUSPARSE context ======
-    cusparseStatus_t cusparseStatus1, cusparseStatus2;
-    cusparseStatus1 = cusparseCreate(&cusparseHandle);
-    cusparseStatus2 = cusparseCreate(&cusparseHandle);
-    cudaDeviceSynchronize();
-
-    //============ initialize CUBLAS ===============================================
-    if (cublasCreate(&cublasHandle) != CUBLAS_STATUS_SUCCESS) {
-        fprintf(stderr, "!!!! CUBLAS initialization error\n");
-        exit(0);
-    }
-    //============ initialize CUSPARSE ===============================================
-    if (cusparseCreate(&cusparseHandle) != CUSPARSE_STATUS_SUCCESS) {
-        fprintf(stderr, "CUSPARSE initialization failed\n");
-        exit(0);
-    }
-
-    //============ create three matrix descriptors =======================================
-    cusparseStatus1 = cusparseCreateMatDescr(&descrA);
-    cusparseStatus2 = cusparseCreateMatDescr(&descrM);
-    if ((cusparseStatus1 != CUSPARSE_STATUS_SUCCESS) || (cusparseStatus2 != CUSPARSE_STATUS_SUCCESS)) {
-        fprintf(stderr, "!!!! CUSPARSE cusparseCreateMatDescr (coefficient matrix or preconditioner) error\n");
-    }
-    cudaDeviceSynchronize();
-
-    //    ==========create three matrix descriptors ===========================================
-    cusparseSetMatType(descrA, CUSPARSE_MATRIX_TYPE_GENERAL);
-    cusparseSetMatIndexBase(descrA, CUSPARSE_INDEX_BASE_ZERO);
+    cusparseStatus_t cusparseStatus;
+    cusparseCreate(&cusparseHandle);
     cudaDeviceSynchronize();
 
     //===========================Solution=====================================================
@@ -158,21 +140,23 @@ void ChFsiLinearSolverGMRES::Solve(int SIZE,
     for (Iterations = 0; Iterations < max_iter; Iterations++) {
         //        printf("-----1\n");
         // compute initial residual w=Ax0 (using initial guess in x)
-        cusparseDcsrmv(cusparseHandle, CUSPARSE_OPERATION_NON_TRANSPOSE, SIZE, SIZE, NNZ, &one, descrA, A,
-                       (int*)ArowIdx, (int*)AcolIdx, x, &zero, w);
+        // w = A * x
+        cusparseCreateDnVec(&vecX, SIZE, x, CUDA_R_64F);
+        cusparseCreateDnVec(&vecW, SIZE, w, CUDA_R_64F);
+        cusparseStatus = cusparseSpMV_bufferSize(cusparseHandle, trans_A, &one, descrA, vecX, &zero, vecW,
+                     CUDA_R_64F, CUSPARSE_MV_ALG_DEFAULT, &bufferSize);
+        cudaMalloc((void**)&bufferX, bufferSize);
+        cusparseStatus = cusparseSpMV(cusparseHandle, trans_A, &one, descrA, vecX, &zero, vecW, 
+                     CUDA_R_64F, CUSPARSE_MV_ALG_DEFAULT, bufferX);
 
-        cudaDeviceSynchronize();
         cublasDaxpy(cublasHandle, SIZE, &mone, b, 1, w, 1);  // w=w-b
-        cudaDeviceSynchronize();
         cublasDnrm2(cublasHandle, SIZE, w, 1, &beta);  // beta=norm(w,2)
-        cudaDeviceSynchronize();
         nrmr = beta;
         if (Iterations == 0)
             nrmr0 = beta;
 
         mOneOverBeta = -1.0 / beta;
         cublasDscal(cublasHandle, SIZE, &mOneOverBeta, w, 1);  // w=-w/beta
-        cudaDeviceSynchronize();
         cudaMemcpy(V, w, SIZE * sizeof(double), cudaMemcpyDeviceToDevice);
         memset(s, 0, sizeof(double) * (restart + 1));
 
@@ -181,8 +165,12 @@ void ChFsiLinearSolverGMRES::Solve(int SIZE,
 
         for (size_t m = 0; m < restart; m++) {
             // v0=A*w
-            cusparseDcsrmv(cusparseHandle, CUSPARSE_OPERATION_NON_TRANSPOSE, SIZE, SIZE, NNZ, &one, descrA, A,
-                           (int*)ArowIdx, (int*)AcolIdx, w, &zero, v0);
+            cusparseCreateDnVec(&vecV0, SIZE, v0, CUDA_R_64F);
+            cusparseStatus = cusparseSpMV_bufferSize(cusparseHandle, trans_A, &one, descrA, vecW, &zero, vecV0,
+                     CUDA_R_64F, CUSPARSE_MV_ALG_DEFAULT, &bufferSize);
+            cudaMalloc((void**)&bufferW, bufferSize);
+            cusparseStatus = cusparseSpMV(cusparseHandle, trans_A, &one, descrA, vecW, &zero, vecV0, 
+                     CUDA_R_64F, CUSPARSE_MV_ALG_DEFAULT, bufferW);
 
             cudaMemcpy(w, v0, SIZE * sizeof(double), cudaMemcpyDeviceToDevice);
             cublasDnrm2(cublasHandle, SIZE, w, 1, &temp);
@@ -256,8 +244,8 @@ void ChFsiLinearSolverGMRES::Solve(int SIZE,
         residual = nrmr;
     }
 
-    cusparseDestroySolveAnalysisInfo(info_l);
-    cusparseDestroySolveAnalysisInfo(info_u);
+    //cusparseDestroySolveAnalysisInfo(info_l);
+    //cusparseDestroySolveAnalysisInfo(info_u);
     cudaFree(w);
     cudaFree(v0);
     cudaFree(V);
@@ -267,6 +255,7 @@ void ChFsiLinearSolverGMRES::Solve(int SIZE,
     free(s);
     free(cs);
     free(sn);
+#endif
 }
 
 }  // end namespace fsi

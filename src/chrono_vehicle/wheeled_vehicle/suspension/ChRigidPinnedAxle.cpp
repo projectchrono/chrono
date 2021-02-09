@@ -44,17 +44,17 @@ ChRigidPinnedAxle::ChRigidPinnedAxle(const std::string& name) : ChSuspension(nam
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChRigidPinnedAxle::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
+void ChRigidPinnedAxle::Initialize(std::shared_ptr<ChChassis> chassis,
+                                   std::shared_ptr<ChSubchassis> subchassis,
+                                   std::shared_ptr<ChSteering> steering,
                                    const ChVector<>& location,
-                                   std::shared_ptr<ChBody> tierod_body,
-                                   int steering_index,
                                    double left_ang_vel,
                                    double right_ang_vel) {
     m_location = location;
 
     // Express the suspension reference frame in the absolute coordinate system.
     ChFrame<> suspension_to_abs(location);
-    suspension_to_abs.ConcatenatePreTransformation(chassis->GetFrame_REF_to_abs());
+    suspension_to_abs.ConcatenatePreTransformation(chassis->GetBody()->GetFrame_REF_to_abs());
 
     // Transform all hardpoints to absolute frame.
     m_pointsL.resize(NUM_POINTS);
@@ -68,25 +68,25 @@ void ChRigidPinnedAxle::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
 
     // Create the rigid axle and its connection to the chassis
     ChVector<> axleCOM = suspension_to_abs.TransformLocalToParent(getAxleTubeCOM());
-    m_axleTube = std::shared_ptr<ChBody>(chassis->GetSystem()->NewBody());
+    m_axleTube = std::shared_ptr<ChBody>(chassis->GetBody()->GetSystem()->NewBody());
     m_axleTube->SetNameString(m_name + "_axleTube");
     m_axleTube->SetPos(axleCOM);
-    m_axleTube->SetRot(chassis->GetFrame_REF_to_abs().GetRot());
+    m_axleTube->SetRot(chassis->GetBody()->GetFrame_REF_to_abs().GetRot());
     m_axleTube->SetMass(getAxleTubeMass());
     m_axleTube->SetInertiaXX(getAxleTubeInertia());
-    chassis->GetSystem()->AddBody(m_axleTube);
+    chassis->GetBody()->GetSystem()->AddBody(m_axleTube);
 
     m_axlePinLoc = suspension_to_abs.TransformLocalToParent(getAxlePinLocation());
-    ChQuaternion<> chassisRot = chassis->GetFrame_REF_to_abs().GetRot();
+    ChQuaternion<> chassisRot = chassis->GetBody()->GetFrame_REF_to_abs().GetRot();
     ChCoordsys<> rev_csys(m_axlePinLoc, chassisRot * Q_from_AngY(CH_C_PI_2));
     m_axlePin = chrono_types::make_shared<ChLinkLockRevolute>();
     m_axlePin->SetNameString(m_name + "_axlePin");
-    m_axlePin->Initialize(m_axleTube, chassis, rev_csys);
-    chassis->GetSystem()->AddLink(m_axlePin);
+    m_axlePin->Initialize(m_axleTube, chassis->GetBody(), rev_csys);
+    chassis->GetBody()->GetSystem()->AddLink(m_axlePin);
 
     // Initialize left and right sides.
-    InitializeSide(LEFT, chassis, m_pointsL, left_ang_vel);
-    InitializeSide(RIGHT, chassis, m_pointsR, right_ang_vel);
+    InitializeSide(LEFT, chassis->GetBody(), m_pointsL, left_ang_vel);
+    InitializeSide(RIGHT, chassis->GetBody(), m_pointsR, right_ang_vel);
 }
 
 void ChRigidPinnedAxle::InitializeSide(VehicleSide side,

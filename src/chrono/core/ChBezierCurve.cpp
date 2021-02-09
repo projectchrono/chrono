@@ -50,9 +50,9 @@ namespace chrono {
 // Initialize static members
 // -----------------------------------------------------------------------------
 const size_t ChBezierCurve::m_maxNumIters = 50;
-const double ChBezierCurve::m_sqrDistTol = 1e-4;
+const double ChBezierCurve::m_sqrDistTol = 1e-6;
 const double ChBezierCurve::m_cosAngleTol = 1e-4;
-const double ChBezierCurve::m_paramTol = 1e-4;
+const double ChBezierCurve::m_paramTol = 1e-8;
 
 // -----------------------------------------------------------------------------
 // ChBezierCurve::ChBezierCurve()
@@ -376,7 +376,7 @@ ChVector<> ChBezierCurve::calcClosestPoint(const ChVector<>& loc, size_t i, doub
         Qd = evalD(i, t);
 
         double dot = Vdot(vec, Qd);
-        double cosAngle = dot / (vec.Length() * Qd.Length());
+        double cosAngle = dot / (std::sqrt(d2) * Qd.Length());
 
         if (fabs(cosAngle) < m_cosAngleTol)
             break;

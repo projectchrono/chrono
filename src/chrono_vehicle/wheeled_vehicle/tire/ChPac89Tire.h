@@ -165,7 +165,7 @@ class CH_VEHICLE_API ChPac89Tire : public ChTire {
 
     PacCoeff m_PacCoeff;
 
-  private:
+  //private:
     /// Get the tire force and moment.
     /// This represents the output from this tire system that is passed to the
     /// vehicle system.  Typically, the vehicle subsystem will pass the tire force

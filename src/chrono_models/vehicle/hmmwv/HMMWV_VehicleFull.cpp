@@ -23,6 +23,16 @@
 #include "chrono_vehicle/ChVehicleModelData.h"
 
 #include "chrono_models/vehicle/hmmwv/HMMWV_VehicleFull.h"
+#include "chrono_models/vehicle/hmmwv/HMMWV_Chassis.h"
+#include "chrono_models/vehicle/hmmwv/HMMWV_BrakeSimple.h"
+#include "chrono_models/vehicle/hmmwv/HMMWV_BrakeShafts.h"
+#include "chrono_models/vehicle/hmmwv/HMMWV_DoubleWishbone.h"
+#include "chrono_models/vehicle/hmmwv/HMMWV_Driveline2WD.h"
+#include "chrono_models/vehicle/hmmwv/HMMWV_Driveline4WD.h"
+#include "chrono_models/vehicle/hmmwv/HMMWV_SimpleDriveline.h"
+#include "chrono_models/vehicle/hmmwv/HMMWV_PitmanArm.h"
+#include "chrono_models/vehicle/hmmwv/HMMWV_PitmanArmShafts.h"
+#include "chrono_models/vehicle/hmmwv/HMMWV_Wheel.h"
 
 namespace chrono {
 namespace vehicle {
@@ -31,39 +41,42 @@ namespace hmmwv {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 HMMWV_VehicleFull::HMMWV_VehicleFull(const bool fixed,
-                                     DrivelineType drive_type,
-                                     SteeringType steering_type,
+                                     DrivelineTypeWV drive_type,
+                                     BrakeType brake_type,
+                                     SteeringTypeWV steering_type,
                                      bool rigid_steering_column,
-                                     ChMaterialSurface::ContactMethod contact_method,
-                                     ChassisCollisionType chassis_collision_type)
+                                     ChContactMethod contact_method,
+                                     CollisionType chassis_collision_type)
     : HMMWV_Vehicle("HMMWVfull", contact_method, drive_type) {
-    Create(fixed, steering_type, rigid_steering_column, chassis_collision_type);
+    Create(fixed, brake_type, steering_type, rigid_steering_column, chassis_collision_type);
 }
 
 HMMWV_VehicleFull::HMMWV_VehicleFull(ChSystem* system,
                                      const bool fixed,
-                                     DrivelineType drive_type,
-                                     SteeringType steering_type,
+                                     DrivelineTypeWV drive_type,
+                                     BrakeType brake_type,
+                                     SteeringTypeWV steering_type,
                                      bool rigid_steering_column,
-                                     ChassisCollisionType chassis_collision_type)
+                                     CollisionType chassis_collision_type)
     : HMMWV_Vehicle("HMMWVfull", system, drive_type) {
-    Create(fixed, steering_type, rigid_steering_column, chassis_collision_type);
+    Create(fixed, brake_type, steering_type, rigid_steering_column, chassis_collision_type);
 }
 
 void HMMWV_VehicleFull::Create(bool fixed,
-                               SteeringType steering_type,
+                               BrakeType brake_type,
+                               SteeringTypeWV steering_type,
                                bool rigid_steering_column,
-                               ChassisCollisionType chassis_collision_type) {
+                               CollisionType chassis_collision_type) {
     // Create the chassis subsystem
     m_chassis = chrono_types::make_shared<HMMWV_Chassis>("Chassis", fixed, chassis_collision_type);
 
     // Create the steering subsystem
     m_steerings.resize(1);
     switch (steering_type) {
-        case SteeringType::PITMAN_ARM:
+        case SteeringTypeWV::PITMAN_ARM:
             m_steerings[0] = chrono_types::make_shared<HMMWV_PitmanArm>("Steering");
             break;
-        case SteeringType::PITMAN_ARM_SHAFTS:
+        case SteeringTypeWV::PITMAN_ARM_SHAFTS:
             m_steerings[0] = chrono_types::make_shared<HMMWV_PitmanArmShafts>("Steering", rigid_steering_column);
             break;
         default:
@@ -86,21 +99,31 @@ void HMMWV_VehicleFull::Create(bool fixed,
     m_axles[1]->m_wheels[0] = chrono_types::make_shared<HMMWV_Wheel>("Wheel_RL");
     m_axles[1]->m_wheels[1] = chrono_types::make_shared<HMMWV_Wheel>("Wheel_RR");
 
-    m_axles[0]->m_brake_left = chrono_types::make_shared<HMMWV_BrakeSimple>("Brake_FL");
-    m_axles[0]->m_brake_right = chrono_types::make_shared<HMMWV_BrakeSimple>("Brake_FR");
-    m_axles[1]->m_brake_left = chrono_types::make_shared<HMMWV_BrakeSimple>("Brake_RL");
-    m_axles[1]->m_brake_right = chrono_types::make_shared<HMMWV_BrakeSimple>("Brake_RR");
+    switch (brake_type) {
+        case BrakeType::SIMPLE:
+            m_axles[0]->m_brake_left = chrono_types::make_shared<HMMWV_BrakeSimple>("Brake_FL");
+            m_axles[0]->m_brake_right = chrono_types::make_shared<HMMWV_BrakeSimple>("Brake_FR");
+            m_axles[1]->m_brake_left = chrono_types::make_shared<HMMWV_BrakeSimple>("Brake_RL");
+            m_axles[1]->m_brake_right = chrono_types::make_shared<HMMWV_BrakeSimple>("Brake_RR");
+            break;
+        case BrakeType::SHAFTS:
+            m_axles[0]->m_brake_left = chrono_types::make_shared<HMMWV_BrakeShafts>("Brake_FL");
+            m_axles[0]->m_brake_right = chrono_types::make_shared<HMMWV_BrakeShafts>("Brake_FR");
+            m_axles[1]->m_brake_left = chrono_types::make_shared<HMMWV_BrakeShafts>("Brake_RL");
+            m_axles[1]->m_brake_right = chrono_types::make_shared<HMMWV_BrakeShafts>("Brake_RR");
+            break;
+    }
 
     // Create the driveline
     switch (m_driveType) {
-        case DrivelineType::FWD:
-        case DrivelineType::RWD:
+        case DrivelineTypeWV::FWD:
+        case DrivelineTypeWV::RWD:
             m_driveline = chrono_types::make_shared<HMMWV_Driveline2WD>("Driveline");
             break;
-        case DrivelineType::AWD:
+        case DrivelineTypeWV::AWD:
             m_driveline = chrono_types::make_shared<HMMWV_Driveline4WD>("Driveline");
             break;
-        case DrivelineType::SIMPLE:
+        case DrivelineTypeWV::SIMPLE:
             m_driveline = chrono_types::make_shared<HMMWV_SimpleDriveline>("Driveline");
             break;
     }
@@ -118,32 +141,32 @@ void HMMWV_VehicleFull::Initialize(const ChCoordsys<>& chassisPos, double chassi
     // frame).
     ChVector<> offset = ChVector<>(1.24498, 0, 0.101322);
     ChQuaternion<> rotation = Q_from_AngAxis(18.5 * CH_C_PI / 180, ChVector<>(0, 1, 0));
-    m_steerings[0]->Initialize(m_chassis->GetBody(), offset, rotation);
+    m_steerings[0]->Initialize(m_chassis, offset, rotation);
 
     // Initialize the axle subsystems.
-    m_axles[0]->Initialize(m_chassis->GetBody(), ChVector<>(1.688965, 0, 0), ChVector<>(0),
-                           m_steerings[0]->GetSteeringLink(), 0, 0.0, m_omega[0], m_omega[1]);
-    m_axles[1]->Initialize(m_chassis->GetBody(), ChVector<>(-1.688965, 0, 0), ChVector<>(0), m_chassis->GetBody(), -1,
-                           0.0, m_omega[2], m_omega[3]);
+    m_axles[0]->Initialize(m_chassis, nullptr, m_steerings[0], ChVector<>(1.688965, 0, 0), ChVector<>(0), 0.0,
+                           m_omega[0], m_omega[1]);
+    m_axles[1]->Initialize(m_chassis, nullptr, nullptr, ChVector<>(-1.688965, 0, 0), ChVector<>(0), 0.0, m_omega[2],
+                           m_omega[3]);
 
     // Initialize the driveline subsystem
     std::vector<int> driven_susp_indexes(m_driveline->GetNumDrivenAxles());
 
     switch (m_driveType) {
-        case DrivelineType::FWD:
+        case DrivelineTypeWV::FWD:
             driven_susp_indexes[0] = 0;
             break;
-        case DrivelineType::RWD:
+        case DrivelineTypeWV::RWD:
             driven_susp_indexes[0] = 1;
             break;
-        case DrivelineType::AWD:
-        case DrivelineType::SIMPLE:
+        case DrivelineTypeWV::AWD:
+        case DrivelineTypeWV::SIMPLE:
             driven_susp_indexes[0] = 0;
             driven_susp_indexes[1] = 1;
             break;
     }
 
-    m_driveline->Initialize(m_chassis->GetBody(), m_axles, driven_susp_indexes);
+    m_driveline->Initialize(m_chassis, m_axles, driven_susp_indexes);
 }
 
 // -----------------------------------------------------------------------------

@@ -33,11 +33,24 @@ using namespace irr;
 bool output = false;
 const std::string out_dir = GetChronoOutputPath() + "SCM_DEF_SOIL";
 
+// Type of tire (controls both contact and visualization)
+enum class TireType { CYLINDRICAL, LUGGED };
+TireType tire_type = TireType::LUGGED;
+
+// SCM grid spacing
+double mesh_resolution = 0.04;
+
+// Enable/disable bulldozing effects
+bool enable_bulldozing = true;
+
+// Enable/disable moving patch feature
+bool enable_moving_patch = true;
+
 // If true, use provided callback to change soil properties based on location
 bool var_params = true;
 
 // Custom callback for setting location-dependent soil properties.
-// Note that the (x,y) location is given in the terrain's reference plane. 
+// Note that the (x,y) location is given in the terrain's reference plane.
 // Here, the vehicle moves in the terrain's negative y direction!
 class MySoilParams : public vehicle::SCMDeformableTerrain::SoilParametersCallback {
   public:
@@ -66,6 +79,9 @@ class MySoilParams : public vehicle::SCMDeformableTerrain::SoilParametersCallbac
 
 int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+
+    // Set world frame with Y up
+    vehicle::ChWorldFrame::SetYUP();
 
     // Global parameter for tire:
     double tire_rad = 0.8;
@@ -100,7 +116,7 @@ int main(int argc, char* argv[]) {
     utils::CSV_writer csv(" ");
 
     //
-    // CREATE A RIGID BODY WITH A MESH
+    // Create a rigid body with a mesh or a cylinder collision shape
     //
 
     std::shared_ptr<ChBody> mrigidbody(new ChBody);
@@ -109,15 +125,35 @@ int main(int argc, char* argv[]) {
     mrigidbody->SetInertiaXX(ChVector<>(20, 20, 20));
     mrigidbody->SetPos(tire_center + ChVector<>(0, 0.3, 0));
 
-    auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
-    trimesh->LoadWavefrontMesh(GetChronoDataFile("tractor_wheel.obj"));
-
-    std::shared_ptr<ChTriangleMeshShape> mrigidmesh(new ChTriangleMeshShape);
-    mrigidmesh->SetMesh(trimesh);
-    mrigidbody->AddAsset(mrigidmesh);
-
+    auto material = chrono_types::make_shared<ChMaterialSurfaceSMC>();
     mrigidbody->GetCollisionModel()->ClearModel();
-    mrigidbody->GetCollisionModel()->AddTriangleMesh(trimesh, false, false, VNULL, ChMatrix33<>(1), 0.01);
+    switch (tire_type) {
+        case TireType::LUGGED: {
+            auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
+            trimesh->LoadWavefrontMesh(GetChronoDataFile("models/tractor_wheel/tractor_wheel.obj"));
+
+            std::shared_ptr<ChTriangleMeshShape> mrigidmesh(new ChTriangleMeshShape);
+            mrigidmesh->SetMesh(trimesh);
+            mrigidbody->AddAsset(mrigidmesh);
+
+            mrigidbody->GetCollisionModel()->AddTriangleMesh(material, trimesh, false, false, VNULL, ChMatrix33<>(1),
+                                                             0.01);
+            break;
+        }
+        case TireType::CYLINDRICAL: {
+            double radius = 0.5;
+            double width = 0.4;
+            mrigidbody->GetCollisionModel()->AddCylinder(material, radius, radius, width / 2, ChVector<>(0), Q_from_AngZ(CH_C_PI_2));
+            
+            auto cyl_shape = chrono_types::make_shared<ChCylinderShape>();
+            cyl_shape->GetCylinderGeometry().rad = radius;
+            cyl_shape->GetCylinderGeometry().p1 = ChVector<>(+width / 2, 0, 0);
+            cyl_shape->GetCylinderGeometry().p2 = ChVector<>(-width / 2, 0, 0);
+            mrigidbody->AddAsset(cyl_shape);
+
+            break;
+        }
+    }
     mrigidbody->GetCollisionModel()->BuildModel();
     mrigidbody->SetCollide(true);
 
@@ -141,18 +177,23 @@ int main(int argc, char* argv[]) {
     // Displace/rotate the terrain reference plane.
     // Note that SCMDeformableTerrain uses a default ISO reference frame (Z up). Since the mechanism is modeled here in
     // a Y-up global frame, we rotate the terrain plane by -90 degrees about the X axis.
-    mterrain.SetPlane(ChCoordsys<>(ChVector<>(0, 0, 0), Q_from_AngX(-CH_C_PI_2)));
+    mterrain.SetPlane(ChCoordsys<>(ChVector<>(0, 0.2, 0), Q_from_AngX(-CH_C_PI_2)));
 
-    // Initialize the geometry of the soil: use either a regular grid:
-    mterrain.Initialize(0.2, 1.5, 5, 20, 60);
-    // or use a height map:
+    // Initialize the geometry of the soil
+
+    // Use either a regular grid:
+    double length = 6;
+    double width = 2;
+    mterrain.Initialize(width, length, mesh_resolution);
+
+    // Or use a height map:
     ////mterrain.Initialize(vehicle::GetDataFile("terrain/height_maps/test64.bmp"), "test64", 1.6, 1.6, 0, 0.3);
 
     // Set the soil terramechanical parameters
-    MySoilParams my_params;
     if (var_params) {
         // Location-dependent soil properties
-        mterrain.RegisterSoilParametersCallback(&my_params);
+        auto my_params = chrono_types::make_shared<MySoilParams>();
+        mterrain.RegisterSoilParametersCallback(my_params);
     } else {
         // Constant soil properties
         mterrain.SetSoilParameters(0.2e6,  // Bekker Kphi
@@ -177,19 +218,19 @@ int main(int argc, char* argv[]) {
         ////);
     }
 
-    mterrain.SetBulldozingFlow(true);  // inflate soil at the border of the rut
-    mterrain.SetBulldozingParameters(
-        55,   // angle of friction for erosion of displaced material at the border of the rut
-        1,    // displaced material vs downward pressed material.
-        5,    // number of erosion refinements per timestep
-        10);  // number of concentric vertex selections subject to erosion
-    // Turn on the automatic level of detail refinement, so a coarse terrain mesh
-    // is automatically improved by adding more points under the wheel contact patch:
-    mterrain.SetAutomaticRefinement(true);
-    mterrain.SetAutomaticRefinementResolution(0.04);
+    if (enable_bulldozing) {
+        mterrain.EnableBulldozing(true);  // inflate soil at the border of the rut
+        mterrain.SetBulldozingParameters(
+            55,   // angle of friction for erosion of displaced material at the border of the rut
+            1,    // displaced material vs downward pressed material.
+            5,    // number of erosion refinements per timestep
+            6);  // number of concentric vertex selections subject to erosion
+    }
 
     // Optionally, enable moving patch feature (reduces number of ray casts)
-    ////mterrain.EnableMovingPatch(mrigidbody, ChVector<>(0, 0, 0), 2 * tire_rad, 2 * tire_rad);
+    if (enable_moving_patch) {
+        mterrain.AddMovingPatch(mrigidbody, ChVector<>(0, 0, 0), ChVector<>(0.5, 2 * tire_rad, 2 * tire_rad));
+    }
 
     // Set some visualization parameters: either with a texture, or with falsecolor plot, etc.
     ////mterrain.SetTexture(vehicle::GetDataFile("terrain/textures/grass.jpg"), 16, 16);

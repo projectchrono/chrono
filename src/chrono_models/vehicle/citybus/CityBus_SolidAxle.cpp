@@ -113,27 +113,21 @@ const double CityBus_SolidAxleRear::m_twin_tire_dist = 0.33528;
 // Constructors
 // -----------------------------------------------------------------------------
 CityBus_SolidAxleFront::CityBus_SolidAxleFront(const std::string& name) : ChSolidAxle(name) {
-    m_springForceCB = new LinearSpringForce(m_springCoefficient);
-    m_shockForceCB = new LinearDamperForce(m_dampingCoefficient);
+    m_springForceCB = chrono_types::make_shared<LinearSpringForce>(m_springCoefficient);
+    m_shockForceCB = chrono_types::make_shared<LinearDamperForce>(m_dampingCoefficient);
 }
 
 CityBus_SolidAxleRear::CityBus_SolidAxleRear(const std::string& name) : ChSolidAxle(name) {
-    m_springForceCB = new LinearSpringForce(m_springCoefficient);
-    m_shockForceCB = new LinearDamperForce(m_dampingCoefficient);
+    m_springForceCB = chrono_types::make_shared<LinearSpringForce>(m_springCoefficient);
+    m_shockForceCB = chrono_types::make_shared<LinearDamperForce>(m_dampingCoefficient);
 }
 
 // -----------------------------------------------------------------------------
 // Destructors
 // -----------------------------------------------------------------------------
-CityBus_SolidAxleFront::~CityBus_SolidAxleFront() {
-    delete m_springForceCB;
-    delete m_shockForceCB;
-}
+CityBus_SolidAxleFront::~CityBus_SolidAxleFront() {}
 
-CityBus_SolidAxleRear::~CityBus_SolidAxleRear() {
-    delete m_springForceCB;
-    delete m_shockForceCB;
-}
+CityBus_SolidAxleRear::~CityBus_SolidAxleRear() {}
 
 // -----------------------------------------------------------------------------
 // Implementation of the getLocation() virtual methods.

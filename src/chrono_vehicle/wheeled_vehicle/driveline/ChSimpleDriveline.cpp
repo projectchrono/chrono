@@ -35,7 +35,7 @@ ChSimpleDriveline::ChSimpleDriveline(const std::string& name) : ChDrivelineWV(na
 // Initialize the driveline subsystem.
 // This function connects this driveline to the specified axles.
 // -----------------------------------------------------------------------------
-void ChSimpleDriveline::Initialize(std::shared_ptr<ChBody> chassis,
+void ChSimpleDriveline::Initialize(std::shared_ptr<ChChassis> chassis,
                                    const ChAxleList& axles,
                                    const std::vector<int>& driven_axles) {
     assert(axles.size() >= 2);

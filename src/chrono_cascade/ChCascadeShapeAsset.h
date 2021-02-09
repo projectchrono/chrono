@@ -20,10 +20,7 @@
 
 #include <TopoDS_Shape.hxx>
 
-
-
 namespace chrono {
-
 namespace cascade {
 
 /// @addtogroup cascade_module
@@ -33,47 +30,27 @@ namespace cascade {
 /// In this way one can attach a 3D cad shape to a physics item.
 
 class ChApiCASCADE ChCascadeShapeAsset : public chrono::ChAsset {
-
-  protected:
-    //
-    // DATA
-    //
-    TopoDS_Shape mshape;
-
   public:
-    //
-    // CONSTRUCTORS
-    //
-
     ChCascadeShapeAsset();
-
     ChCascadeShapeAsset(const TopoDS_Shape& ms);
-
     virtual ~ChCascadeShapeAsset();
 
-    //
-    // FUNCTIONS
-    //
-
-    // Access the OpenCASCADE shape
+    /// Access the OpenCASCADE shape
     TopoDS_Shape& Shape() { return mshape; }
 
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOUT(ChArchiveOut& marchive);
 
-    //
-    // SERIALIZATION
-    //
+    /// Method to allow deserialization of transient data from archives.
+    virtual void ArchiveIN(ChArchiveIn& marchive);
 
-	virtual void ArchiveOUT(ChArchiveOut& marchive);
-    
-	virtual void ArchiveIN(ChArchiveIn& marchive);
-    
+  protected:
+    TopoDS_Shape mshape;  ///< OpenCASCADE shape
 };
-
 
 /// @} cascade_module
 
-}  // END_OF_NAMESPACE____
-}  // END_OF_NAMESPACE____
-
+}  // namespace cascade
+}  // end namespace chrono
 
 #endif

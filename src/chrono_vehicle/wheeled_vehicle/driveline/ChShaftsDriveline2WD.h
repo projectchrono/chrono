@@ -74,7 +74,7 @@ class CH_VEHICLE_API ChShaftsDriveline2WD : public ChDrivelineWV {
 
     /// Initialize the driveline subsystem.
     /// This function connects this driveline subsystem to the specified axle subsystems.
-    virtual void Initialize(std::shared_ptr<ChBody> chassis,      ///< handle to the chassis body
+    virtual void Initialize(std::shared_ptr<ChChassis> chassis,   ///< associated chassis subsystem
                             const ChAxleList& axles,              ///< list of all vehicle axle subsystems
                             const std::vector<int>& driven_axles  ///< indexes of the driven vehicle axles
                             ) override;
@@ -90,9 +90,6 @@ class CH_VEHICLE_API ChShaftsDriveline2WD : public ChDrivelineWV {
 
     /// Return the gear ratio for the conical gear.
     virtual double GetConicalGearRatio() const = 0;
-
-    /// Return the gear ratio for the differential.
-    virtual double GetDifferentialRatio() const = 0;
 
     /// Return the limit for the axle differential locking torque.
     virtual double GetAxleDifferentialLockingLimit() const = 0;

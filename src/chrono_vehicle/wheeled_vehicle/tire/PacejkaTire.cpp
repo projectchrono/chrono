@@ -66,8 +66,8 @@ void PacejkaTire::Create(const rapidjson::Document& d) {
 // -----------------------------------------------------------------------------
 void PacejkaTire::AddVisualizationAssets(VisualizationType vis) {
     if (vis == VisualizationType::MESH && m_has_mesh) {
-        m_trimesh_shape = AddVisualizationMesh(vehicle::GetDataFile(m_meshFile_left),    // left side
-                                               vehicle::GetDataFile(m_meshFile_right));  // right side
+        m_trimesh_shape = AddVisualizationMesh(m_meshFile_left,    // left side
+                                               m_meshFile_right);  // right side
     } else {
         ChPacejkaTire::AddVisualizationAssets(vis);
     }

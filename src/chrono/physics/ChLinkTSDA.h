@@ -121,7 +121,7 @@ class ChApi ChLinkTSDA : public ChLink {
     };
 
     /// Specify the functor object for calculating the force.
-    void RegisterForceFunctor(ForceFunctor* functor) { m_force_fun = functor; }
+    void RegisterForceFunctor(std::shared_ptr<ForceFunctor> functor) { m_force_fun = functor; }
 
     /// Class to be used as a callback interface for specifying the ODE, y' = f(t,y); y(0) = y0.
     class ChApi ODE {
@@ -199,7 +199,8 @@ class ChApi ChLinkTSDA : public ChLink {
                                  const ChState& x,
                                  const unsigned int off_v,
                                  const ChStateDelta& v,
-                                 const double T) override;
+                                 const double T,
+                                 bool full_update) override;
     virtual void IntStateGatherAcceleration(const unsigned int off_a, ChStateDelta& a) override;
     virtual void IntStateScatterAcceleration(const unsigned int off_a, const ChStateDelta& a) override;
     virtual void IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, const double c) override;
@@ -275,8 +276,8 @@ class ChApi ChLinkTSDA : public ChLink {
     double m_r;  ///< damping coefficient (if no force functor provided)
     double m_f;  ///< constant actuation (if no force functor provided)
 
-    ForceFunctor* m_force_fun;  ///< functor for force calculation
-    double m_force;             ///< force in distance coordinates
+    std::shared_ptr<ForceFunctor> m_force_fun;  ///< functor for force calculation
+    double m_force;                             ///< force in distance coordinates
 
     ODE* m_ode_fun;                               ///< functor for ODE specification
     int m_nstates;                                ///< number of internal ODE states
@@ -288,7 +289,7 @@ class ChApi ChLinkTSDA : public ChLink {
 
     static const double m_FD_delta;  ///< perturbation for finite-difference Jacobian approximation
 
-    friend class ChSystemParallel;
+    friend class ChSystemMulticore;
 };
 
 CH_CLASS_VERSION(ChLinkTSDA, 0)

@@ -28,6 +28,7 @@
 
 #include "chrono/physics/ChBody.h"
 #include "chrono/assets/ChCylinderShape.h"
+#include "chrono/assets/ChTriangleMeshShape.h"
 
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChPart.h"
@@ -111,12 +112,19 @@ class CH_VEHICLE_API ChWheel : public ChPart {
     /// Remove visualization assets for the wheel subsystem.
     virtual void RemoveVisualizationAssets() override;
 
+    /// Get the name of the Wavefront file with wheel visualization mesh.
+    /// An empty string is returned if no mesh was specified.
+    const std::string& GetMeshFilename() const { return m_vis_mesh_file; }
+
   protected:
     std::shared_ptr<ChBody> m_spindle;             ///< associated suspension spindle body
     std::shared_ptr<ChTire> m_tire;                ///< attached tire subsystem
     VehicleSide m_side;                            ///< wheel mounted on left/right side
     double m_offset;                               ///< offset from spindle center
-    std::shared_ptr<ChCylinderShape> m_cyl_shape;  ///< visualization cylinder asset
+
+    std::string m_vis_mesh_file;                           ///< visualization mesh file (may be empty)
+    std::shared_ptr<ChTriangleMeshShape> m_trimesh_shape;  ///< visualization mesh asset
+    std::shared_ptr<ChCylinderShape> m_cyl_shape;          ///< visualization cylinder asset
 
     friend class ChTire;
     friend class ChWheeledVehicle;

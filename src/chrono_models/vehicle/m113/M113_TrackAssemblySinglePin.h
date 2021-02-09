@@ -34,7 +34,7 @@ namespace m113 {
 /// M113 track assembly using single-pin track shoes.
 class CH_MODELS_API M113_TrackAssemblySinglePin : public ChTrackAssemblySinglePin {
   public:
-    M113_TrackAssemblySinglePin(VehicleSide side);
+    M113_TrackAssemblySinglePin(VehicleSide side, BrakeType brake_type);
 
     virtual const ChVector<> GetSprocketLocation() const override;
     virtual const ChVector<> GetIdlerLocation() const override;

@@ -16,7 +16,7 @@
 //
 // =============================================================================
 
-#include "chrono/physics/ChSystemNSC.h"
+#include "chrono/physics/ChSystemSMC.h"
 #include "chrono/fea/ChElementBrick.h"
 #include "chrono/fea/ChElementBar.h"
 #include "chrono/fea/ChLinkPointFrame.h"
@@ -34,7 +34,7 @@ using namespace irr;
 int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
-    ChSystemNSC my_system;
+    ChSystemSMC my_system;
 
     // Create the Irrlicht visualization (open the Irrlicht device,
     // bind a simple user interface, etc. etc.)
@@ -179,11 +179,8 @@ int main(int argc, char* argv[]) {
     int elemcount = 0;
     while (elemcount < TotalNumElements) {
         auto element = chrono_types::make_shared<ChElementBrick>();
-        ChVectorN<double, 3> InertFlexVec;  // read element length, used in ChElementBrick
-        InertFlexVec.setZero();
-        InertFlexVec(0) = ElemLengthXY(elemcount, 0);
-        InertFlexVec(1) = ElemLengthXY(elemcount, 1);
-        InertFlexVec(2) = ElemLengthXY(elemcount, 2);
+        ChVector<double> InertFlexVec(ElemLengthXY(elemcount, 0), ElemLengthXY(elemcount, 1),
+                                      ElemLengthXY(elemcount, 2));  // read element length, used in ChElementBrick
         element->SetInertFlexVec(InertFlexVec);
         element->SetNodes(std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(NumNodes(elemcount, 0))),
                           std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(NumNodes(elemcount, 1))),

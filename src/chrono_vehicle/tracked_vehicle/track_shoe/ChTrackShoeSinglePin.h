@@ -23,7 +23,7 @@
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChSubsysDefs.h"
 
-#include "chrono_vehicle/tracked_vehicle/ChTrackShoe.h"
+#include "chrono_vehicle/tracked_vehicle/track_shoe/ChTrackShoeSegmented.h"
 
 namespace chrono {
 namespace vehicle {
@@ -33,7 +33,7 @@ namespace vehicle {
 
 /// Base class for a single-pin track shoe (template definition).
 /// A single-pin track shoe can be either of CENTRAL_PIN or LATERAL_PIN type.
-class CH_VEHICLE_API ChTrackShoeSinglePin : public ChTrackShoe {
+class CH_VEHICLE_API ChTrackShoeSinglePin : public ChTrackShoeSegmented {
   public:
     ChTrackShoeSinglePin(const std::string& name  ///< [in] name of the subsystem
                          );
@@ -56,17 +56,6 @@ class CH_VEHICLE_API ChTrackShoeSinglePin : public ChTrackShoe {
                             const ChQuaternion<>& rotation          ///< [in] orientation relative to the chassis frame
                             ) override;
 
-    /// Connect this track shoe to the specified neighbor.
-    /// This function must be called only after both track shoes have been initialized.
-    virtual void Connect(std::shared_ptr<ChTrackShoe> next  ///< [in] handle to the neighbor track shoe
-                         ) override;
-
-    /// Add visualization assets for the track-shoe subsystem.
-    virtual void AddVisualizationAssets(VisualizationType vis) override;
-
-    /// Remove visualization assets for the track-shoe subsystem.
-    virtual void RemoveVisualizationAssets() override final;
-
   protected:
     /// Return the mass of the shoe body.
     virtual double GetShoeMass() const = 0;
@@ -85,25 +74,20 @@ class CH_VEHICLE_API ChTrackShoeSinglePin : public ChTrackShoe {
     /// Return the radius of the contact cylinders.
     virtual double GetCylinderRadius() const = 0;
 
-    /// Return dimensions and locations of the contact boxes for the shoe and guiding pin.
-    /// Note that this is for contact with wheels, idler, and ground only.
-    /// This contact geometry does not affect contact with the sprocket.
-    virtual const ChVector<>& GetPadBoxDimensions() const = 0;
-    virtual const ChVector<>& GetPadBoxLocation() const = 0;
-    virtual const ChVector<>& GetGuideBoxDimensions() const = 0;
-    virtual const ChVector<>& GetGuideBoxLocation() const = 0;
-
-    /// Add contact geometry for the track shoe.
-    /// Note that this is for contact with wheels, idler, and ground only.
-    /// This contact geometry does not affect contact with the sprocket.
-    /// The default implementation uses contact boxes for the pad and central guiding pin.
-    virtual void AddShoeContact();
-
     virtual void ExportComponentList(rapidjson::Document& jsonDocument) const override;
 
     virtual void Output(ChVehicleOutput& database) const override;
 
+  private:
+    /// Connect this track shoe to the specified neighbor.
+    /// This function must be called only after both track shoes have been initialized.
+    virtual void Connect(std::shared_ptr<ChTrackShoe> next,  ///< [in] handle to the neighbor track shoe
+                         ChTrackAssembly* assembly,          ///< [in] containing track assembly
+                         bool ccw                            ///< [in] track assembled in counter clockwise direction
+                         ) override final;
+
     friend class ChSprocketSinglePin;
+    friend class SprocketSinglePinContactCB;
     friend class ChTrackAssemblySinglePin;
 };
 

@@ -23,11 +23,10 @@
 #include "chrono_vehicle/terrain/SCMDeformableTerrain.h"
 #include "chrono_vehicle/tracked_vehicle/utils/ChTrackedVehicleIrrApp.h"
 
-#include "chrono_models/vehicle/m113/M113_SimplePowertrain.h"
-#include "chrono_models/vehicle/m113/M113_Vehicle.h"
+#include "chrono_models/vehicle/m113/M113.h"
 
-#ifdef CHRONO_MKL
-#include "chrono_mkl/ChSolverMKL.h"
+#ifdef CHRONO_PARDISO_MKL
+#include "chrono_pardisomkl/ChSolverPardisoMKL.h"
 #endif
 
 #include "chrono_thirdparty/filesystem/path.h"
@@ -51,16 +50,14 @@ ChQuaternion<> initRot(1, 0, 0, 0);
 // ChQuaternion<> initRot(0, 0, 0, 1);
 
 // Terrain dimensions
-double terrainHeight = 0;
 double terrainLength = 20.0;  // size in X direction
 double terrainWidth = 4.0;    // size in Y direction
-int divLength = 160;          // initial number of divisions in X direction
-int divWidth = 32;            // initial number of divisions in Y direction
+double delta = 0.05;          // SCM grid spacing
 
 // Simulation step size
 double step_size = 1e-3;
 
-// Use MKL
+// Use PardisoMKL
 bool use_mkl = false;
 
 // Time interval between two render frames
@@ -91,63 +88,52 @@ void AddMovingObstacles(ChSystem* system);
 int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
+    // --------------------------
     // Construct the M113 vehicle
-    M113_Vehicle vehicle(false, TrackShoeType::SINGLE_PIN, ChMaterialSurface::SMC);
+    // --------------------------
 
-#ifndef CHRONO_MKL
-    // Do not use MKL if not available
-    use_mkl = false;
-#endif
-
-    // Solver and integrator settings
-    if (use_mkl) {
-#ifdef CHRONO_MKL
-        GetLog() << "Using MKL solver\n";
-        auto mkl_solver = chrono_types::make_shared<ChSolverMKL>();
-        mkl_solver->LockSparsityPattern(true);
-        vehicle.GetSystem()->SetSolver(mkl_solver);
-
-        vehicle.GetSystem()->SetTimestepperType(ChTimestepper::Type::HHT);
-        auto integrator = std::static_pointer_cast<ChTimestepperHHT>(vehicle.GetSystem()->GetTimestepper());
-        integrator->SetAlpha(-0.2);
-        integrator->SetMaxiters(50);
-        integrator->SetAbsTolerances(5e-05, 1.8e00);
-        integrator->SetMode(ChTimestepperHHT::POSITION);
-        integrator->SetModifiedNewton(false);
-        integrator->SetScaling(true);
-        integrator->SetVerbose(true);
-#endif
-    } else {
-        vehicle.GetSystem()->SetSolverMaxIterations(50);
-    }
+    M113 m113;
+    m113.SetContactMethod(ChContactMethod::SMC);
+    m113.SetTrackShoeType(TrackShoeType::SINGLE_PIN);
+    m113.SetDrivelineType(DrivelineTypeTV::SIMPLE);
+    m113.SetBrakeType(BrakeType::SIMPLE);
+    m113.SetPowertrainType(PowertrainModelType::SIMPLE_CVT);
+    m113.SetChassisCollisionType(CollisionType::NONE);
 
     // Control steering type (enable crossdrive capability)
     ////vehicle.GetDriveline()->SetGyrationMode(true);
 
     // Initialize the vehicle at the specified position
-    vehicle.Initialize(ChCoordsys<>(initLoc, initRot));
+    m113.SetInitPosition(ChCoordsys<>(initLoc, initRot));
+    m113.Initialize();
 
     // Set visualization type for vehicle components.
-    vehicle.SetChassisVisualizationType(VisualizationType::PRIMITIVES);
-    vehicle.SetSprocketVisualizationType(VisualizationType::PRIMITIVES);
-    vehicle.SetIdlerVisualizationType(VisualizationType::PRIMITIVES);
-    vehicle.SetRoadWheelAssemblyVisualizationType(VisualizationType::PRIMITIVES);
-    vehicle.SetRoadWheelVisualizationType(VisualizationType::PRIMITIVES);
-    vehicle.SetTrackShoeVisualizationType(VisualizationType::PRIMITIVES);
+    m113.SetChassisVisualizationType(VisualizationType::PRIMITIVES);
+    m113.SetSprocketVisualizationType(VisualizationType::PRIMITIVES);
+    m113.SetIdlerVisualizationType(VisualizationType::PRIMITIVES);
+    m113.SetRoadWheelAssemblyVisualizationType(VisualizationType::PRIMITIVES);
+    m113.SetRoadWheelVisualizationType(VisualizationType::PRIMITIVES);
+    m113.SetTrackShoeVisualizationType(VisualizationType::PRIMITIVES);
 
     // Control internal collisions and contact monitoring.
 
     // Disable contact for all tracked vehicle parts
-    ////vehicle.SetCollide(TrackedCollisionFlag::NONE);
+    ////m113.GetVehicle().SetCollide(TrackedCollisionFlag::NONE);
 
     // Monitor internal contacts for the left sprocket, left idler, and first shoe on the left track.
-    ////vehicle.MonitorContacts(TrackedCollisionFlag::SPROCKET_LEFT | TrackedCollisionFlag::SHOES_LEFT | TrackedCollisionFlag::IDLER_LEFT);
+    ////m113.GetVehicle().MonitorContacts(TrackedCollisionFlag::SPROCKET_LEFT | TrackedCollisionFlag::SHOES_LEFT |
+    ///TrackedCollisionFlag::IDLER_LEFT);
 
     // Collect contact information
-    ////vehicle.SetContactCollection(true);
+    ////m113.GetVehicle().SetContactCollection(true);
 
-    // Create the terrain
-    SCMDeformableTerrain terrain(vehicle.GetSystem());
+    ChSystem* system = m113.GetSystem();
+
+    // ----------------------
+    // Create the SCM terrain
+    // ----------------------
+
+    SCMDeformableTerrain terrain(system);
     terrain.SetSoilParameters(2e7,   // Bekker Kphi
                               0,     // Bekker Kc
                               1.1,   // Bekker n exponent
@@ -158,23 +144,20 @@ int main(int argc, char* argv[]) {
                               3e4    // Damping (Pa s/m), proportional to negative vertical speed (optional)
     );
 
-    terrain.SetAutomaticRefinement(true);
-    terrain.SetAutomaticRefinementResolution(0.04);
-
     terrain.SetPlotType(vehicle::SCMDeformableTerrain::PLOT_PRESSURE_YELD, 0, 30000.2);
     ////terrain.SetPlotType(vehicle::SCMDeformableTerrain::PLOT_SINKAGE, 0, 0.15);
 
-    terrain.Initialize(terrainHeight, terrainLength, terrainWidth, divLength, divWidth);
+    terrain.Initialize(terrainLength, terrainWidth, delta);
 
-    AddFixedObstacles(vehicle.GetSystem());
-    ////AddMovingObstacles(vehicle.GetSystem());
+    // Add obstacles
+    AddFixedObstacles(system);
+    ////AddMovingObstacles(system);
 
-    // Create the powertrain system
-    auto powertrain = chrono_types::make_shared<M113_SimplePowertrain>("Powertrain");
-    vehicle.InitializePowertrain(powertrain);
+    // ---------------------------------
+    // Create the run-time visualization
+    // ---------------------------------
 
-    // Create the vehicle Irrlicht application
-    ChTrackedVehicleIrrApp app(&vehicle, L"M113 Vehicle Demo");
+    ChTrackedVehicleIrrApp app(&m113.GetVehicle(), L"M113 SCM Demo");
     app.SetSkyBox();
     app.AddTypicalLights(irr::core::vector3df(30.f, -30.f, 100.f), irr::core::vector3df(30.f, 50.f, 100.f), 250, 130);
     app.SetChaseCamera(trackPoint, 4.0, 1.0);
@@ -184,7 +167,10 @@ int main(int argc, char* argv[]) {
     app.AssetBindAll();
     app.AssetUpdateAll();
 
+    // ------------------------
     // Create the driver system
+    // ------------------------
+
     ChIrrGuiDriver driver(app);
 
     // Set the time response for keyboard inputs.
@@ -201,7 +187,10 @@ int main(int argc, char* argv[]) {
 
     driver.Initialize();
 
+    // -----------------
     // Initialize output
+    // -----------------
+
     if (!filesystem::create_directory(filesystem::path(out_dir))) {
         std::cout << "Error creating directory " << out_dir << std::endl;
         return 1;
@@ -214,15 +203,48 @@ int main(int argc, char* argv[]) {
         }
     }
 
+    // -------------------
+    // Simulation settings
+    // -------------------
+
+    system->SetNumThreads(std::min(8, ChOMP::GetNumProcs()));
+
+#ifndef CHRONO_PARDISO_MKL
+    // Do not use PardisoMKL if not available
+    use_mkl = false;
+#endif
+
+    // Solver and integrator settings
+    if (use_mkl) {
+#ifdef CHRONO_PARDISO_MKL
+        GetLog() << "Using PardisoMKL solver\n";
+        auto mkl_solver = chrono_types::make_shared<ChSolverPardisoMKL>();
+        mkl_solver->LockSparsityPattern(true);
+        system->SetSolver(mkl_solver);
+
+        system->SetTimestepperType(ChTimestepper::Type::HHT);
+        auto integrator = std::static_pointer_cast<ChTimestepperHHT>(system->GetTimestepper());
+        integrator->SetAlpha(-0.2);
+        integrator->SetMaxiters(50);
+        integrator->SetAbsTolerances(5e-05, 1.8e00);
+        integrator->SetMode(ChTimestepperHHT::POSITION);
+        integrator->SetModifiedNewton(false);
+        integrator->SetScaling(true);
+        integrator->SetVerbose(true);
+#endif
+    } else {
+        system->SetSolverMaxIterations(50);
+    }
+
     // ---------------
     // Simulation loop
     // ---------------
 
     // Inter-module communication data
-    BodyStates shoe_states_left(vehicle.GetNumTrackShoes(LEFT));
-    BodyStates shoe_states_right(vehicle.GetNumTrackShoes(RIGHT));
-    TerrainForces shoe_forces_left(vehicle.GetNumTrackShoes(LEFT));
-    TerrainForces shoe_forces_right(vehicle.GetNumTrackShoes(RIGHT));
+    BodyStates shoe_states_left(m113.GetVehicle().GetNumTrackShoes(LEFT));
+    BodyStates shoe_states_right(m113.GetVehicle().GetNumTrackShoes(RIGHT));
+    TerrainForces shoe_forces_left(m113.GetVehicle().GetNumTrackShoes(LEFT));
+    TerrainForces shoe_forces_right(m113.GetVehicle().GetNumTrackShoes(RIGHT));
 
     // Number of simulation steps between two 3D view render frames
     int render_steps = (int)std::ceil(render_step_size / step_size);
@@ -248,20 +270,20 @@ int main(int argc, char* argv[]) {
 
         // Collect output data from modules
         ChDriver::Inputs driver_inputs = driver.GetInputs();
-        vehicle.GetTrackShoeStates(LEFT, shoe_states_left);
-        vehicle.GetTrackShoeStates(RIGHT, shoe_states_right);
+        m113.GetVehicle().GetTrackShoeStates(LEFT, shoe_states_left);
+        m113.GetVehicle().GetTrackShoeStates(RIGHT, shoe_states_right);
 
         // Update modules (process inputs from other modules)
-        double time = vehicle.GetChTime();
+        double time = m113.GetVehicle().GetChTime();
         driver.Synchronize(time);
         terrain.Synchronize(time);
-        vehicle.Synchronize(time, driver_inputs, shoe_forces_left, shoe_forces_right);
+        m113.Synchronize(time, driver_inputs, shoe_forces_left, shoe_forces_right);
         app.Synchronize("", driver_inputs);
 
         // Advance simulation for one timestep for all modules
         driver.Advance(step_size);
         terrain.Advance(step_size);
-        vehicle.Advance(step_size);
+        m113.Advance(step_size);
         app.Advance(step_size);
 
         // Increment frame number
@@ -270,12 +292,12 @@ int main(int argc, char* argv[]) {
         app.EndScene();
 
         // Execution time 
-        double step_timing = vehicle.GetSystem()->GetTimerStep();
+        double step_timing = system->GetTimerStep();
         total_timing += step_timing;
         ////std::cout << step_number << " " << step_timing << " " << total_timing << std::endl;
     }
 
-    vehicle.WriteContacts("M113_contacts.out");
+    m113.GetVehicle().WriteContacts("M113_contacts.out");
 
     return 0;
 }
@@ -284,11 +306,6 @@ int main(int argc, char* argv[]) {
 void AddFixedObstacles(ChSystem* system) {
     double radius = 2;
     double length = 10;
-
-    float friction_coefficient = 0.9f;
-    float restitution_coefficient = 0.01f;
-    float young_modulus = 2e7f;
-    float poisson_ratio = 0.3f;
 
     auto obstacle = std::shared_ptr<ChBody>(system->NewBody());
     obstacle->SetPos(ChVector<>(0, 0, -1.8));
@@ -312,22 +329,15 @@ void AddFixedObstacles(ChSystem* system) {
     obstacle->AddAsset(texture);
 
     // Contact
-    obstacle->GetCollisionModel()->ClearModel();
-    obstacle->GetCollisionModel()->AddCylinder(radius, radius, length * 0.5);
-    obstacle->GetCollisionModel()->BuildModel();
+    MaterialInfo minfo;
+    minfo.mu = 0.9f;
+    minfo.cr = 0.01f;
+    minfo.Y = 2e7f;
+    auto obst_mat = minfo.CreateMaterial(system->GetContactMethod());
 
-    switch (obstacle->GetContactMethod()) {
-        case ChMaterialSurface::NSC:
-            obstacle->GetMaterialSurfaceNSC()->SetFriction(friction_coefficient);
-            obstacle->GetMaterialSurfaceNSC()->SetRestitution(restitution_coefficient);
-            break;
-        case ChMaterialSurface::SMC:
-            obstacle->GetMaterialSurfaceSMC()->SetFriction(friction_coefficient);
-            obstacle->GetMaterialSurfaceSMC()->SetRestitution(restitution_coefficient);
-            obstacle->GetMaterialSurfaceSMC()->SetYoungModulus(young_modulus);
-            obstacle->GetMaterialSurfaceSMC()->SetPoissonRatio(poisson_ratio);
-            break;
-    }
+    obstacle->GetCollisionModel()->ClearModel();
+    obstacle->GetCollisionModel()->AddCylinder(obst_mat, radius, radius, length * 0.5);
+    obstacle->GetCollisionModel()->BuildModel();
 
     system->AddBody(obstacle);
 }
@@ -354,12 +364,10 @@ void AddMovingObstacles(ChSystem* system) {
     ball->SetPos_dt(init_vel);
     ball->SetWvel_loc(init_ang_vel);
     ball->SetBodyFixed(false);
-    ball->SetMaterialSurface(material);
-
     ball->SetCollide(true);
 
     ball->GetCollisionModel()->ClearModel();
-    ball->GetCollisionModel()->AddSphere(radius);
+    ball->GetCollisionModel()->AddSphere(material, radius);
     ball->GetCollisionModel()->BuildModel();
 
     ball->SetInertiaXX(0.4 * mass * radius * radius * ChVector<>(1, 1, 1));
@@ -369,7 +377,7 @@ void AddMovingObstacles(ChSystem* system) {
     ball->AddAsset(sphere);
 
     auto mtexture = chrono_types::make_shared<ChTexture>();
-    mtexture->SetTextureFilename(GetChronoDataFile("bluwhite.png"));
+    mtexture->SetTextureFilename(GetChronoDataFile("textures/bluewhite.png"));
     ball->AddAsset(mtexture);
 
     system->AddBody(ball);

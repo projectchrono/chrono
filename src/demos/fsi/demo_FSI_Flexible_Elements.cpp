@@ -19,8 +19,8 @@
 
 #include "chrono/physics/ChSystemSMC.h"
 
-#ifdef CHRONO_MKL
-#include "chrono_mkl/ChSolverMKL.h"
+#ifdef CHRONO_PARDISO_MKL
+#include "chrono_pardisomkl/ChSolverPardisoMKL.h"
 #endif
 
 #include "chrono/solver/ChIterativeSolverLS.h"
@@ -143,9 +143,9 @@ int main(int argc, char* argv[]) {
 
     int step_count = 0;
     double mTime = 0;
-#undef CHRONO_MKL
-#ifdef CHRONO_MKL
-    auto mkl_solver = chrono_types::make_shared<ChSolverMKL>();
+#undef CHRONO_PARDISO_MKL
+#ifdef CHRONO_PARDISO_MKL
+    auto mkl_solver = chrono_types::make_shared<ChSolverPardisoMKL>();
     mkl_solver->LockSparsityPattern(true);
     mphysicalSystem.SetSolver(mkl_solver);
 #else
@@ -224,7 +224,6 @@ void Create_MB_FE(ChSystemSMC& mphysicalSystem,
     ground->SetIdentifier(-1);
     ground->SetBodyFixed(true);
     ground->SetCollide(true);
-    ground->SetMaterialSurface(mysurfmaterial);
 
     ground->GetCollisionModel()->ClearModel();
     Real initSpace0 = paramsH->MULT_INITSPACE * paramsH->HSML;
@@ -245,11 +244,11 @@ void Create_MB_FE(ChSystemSMC& mphysicalSystem,
     ChVector<> pos_yn(0, -byDim / 2 - 3 * initSpace0, bzDim / 2 + 1 * initSpace0);
 
     // MBD representation of walls
-    chrono::utils::AddBoxGeometry(ground.get(), sizeBottom, posBot, chrono::QUNIT, true);
-    chrono::utils::AddBoxGeometry(ground.get(), size_YZ, pos_xp, chrono::QUNIT, true);
-    chrono::utils::AddBoxGeometry(ground.get(), size_YZ, pos_xn, chrono::QUNIT, true);
-    chrono::utils::AddBoxGeometry(ground.get(), size_XZ, pos_yp, chrono::QUNIT, true);
-    chrono::utils::AddBoxGeometry(ground.get(), size_XZ, pos_yn, chrono::QUNIT, true);
+    chrono::utils::AddBoxGeometry(ground.get(), mysurfmaterial, sizeBottom, posBot, chrono::QUNIT, true);
+    chrono::utils::AddBoxGeometry(ground.get(), mysurfmaterial, size_YZ, pos_xp, chrono::QUNIT, true);
+    chrono::utils::AddBoxGeometry(ground.get(), mysurfmaterial, size_YZ, pos_xn, chrono::QUNIT, true);
+    chrono::utils::AddBoxGeometry(ground.get(), mysurfmaterial, size_XZ, pos_yp, chrono::QUNIT, true);
+    chrono::utils::AddBoxGeometry(ground.get(), mysurfmaterial, size_XZ, pos_yn, chrono::QUNIT, true);
     mphysicalSystem.AddBody(ground);
 
     // Fluid representation of walls

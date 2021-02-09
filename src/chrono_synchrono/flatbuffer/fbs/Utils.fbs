@@ -1,0 +1,48 @@
+// =============================================================================
+// PROJECT CHRONO - http://projectchrono.org
+//
+// Copyright (c) 2020 projectchrono.org
+// All rights reserved.
+//
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
+//
+// =============================================================================
+// Authors: Aaron Young
+// =============================================================================
+//
+// Schema file that defines several common data types that are used by many fbs
+// files. These typically correspond to pretty core Chrono concepts 
+// (vector/quaternion). 
+//
+// =============================================================================
+
+namespace SynFlatBuffers;
+
+// "Public" tables that should be available to each class
+// TODO: Make structs
+
+table Vector {
+  x:double;
+  y:double;
+  z:double;
+}
+
+table Quaternion {
+  e0:double;
+  e1:double;
+  e2:double;
+  e3:double;
+}
+
+table Pose {
+  pos:Vector;
+  rot:Quaternion;
+
+  pos_dt:Vector;
+  rot_dt:Quaternion;
+
+  pos_dtdt:Vector;
+  rot_dtdt:Quaternion;
+}

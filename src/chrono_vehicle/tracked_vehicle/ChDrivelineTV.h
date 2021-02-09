@@ -23,6 +23,8 @@
 #define CH_DRIVELINE_TV_H
 
 #include "chrono_vehicle/ChDriveline.h"
+#include "chrono_vehicle/ChChassis.h"
+#include "chrono_vehicle/ChDriver.h"
 #include "chrono_vehicle/tracked_vehicle/ChTrackAssembly.h"
 
 namespace chrono {
@@ -49,9 +51,9 @@ class CH_VEHICLE_API ChDrivelineTV : public ChDriveline {
 
     /// Initialize the driveline subsystem.
     /// This function connects this driveline subsystem to the sprockets of the two track assembly subsystems.
-    virtual void Initialize(std::shared_ptr<ChBody> chassis,              ///< handle to the chassis body
-                            std::shared_ptr<ChTrackAssembly> track_left,  ///< handle to the left track assembly
-                            std::shared_ptr<ChTrackAssembly> track_right  ///< handle to the right track assembly
+    virtual void Initialize(std::shared_ptr<ChChassis> chassis,           ///< associated chassis subsystem
+                            std::shared_ptr<ChTrackAssembly> track_left,  ///< left track assembly
+                            std::shared_ptr<ChTrackAssembly> track_right  ///< right track assembly
                             ) = 0;
 
     /// Update the driveline subsystem.
@@ -61,7 +63,13 @@ class CH_VEHICLE_API ChDrivelineTV : public ChDriveline {
     virtual void Synchronize(double steering, double torque);
 
   protected:
+    virtual void CombineDriverInputs(const ChDriver::Inputs& driver_inputs,
+                                     double& braking_left,
+                                     double& braking_right);
+
     bool m_gyration_mode;  ///< flag indicating if in gyration mode (turn in place)
+
+    friend class ChTrackedVehicle;
 };
 
 /// @} vehicle_tracked_driveline

@@ -245,24 +245,20 @@ bool TestTranSpringCB(const ChVector<>& jointLocGnd,   // absolute location of t
     pendulum->SetMass(mass);
     pendulum->SetInertiaXX(inertiaXX);
 
-    // Create a translational spring damper force between pendulum at
-    // "jointLocPend"
-    // and ground at "jointLocGnd" in the global reference frame.
-    // The free length is set equal to the inital distance between
-    // "jointLocPend" and "jointLocGnd".
-
-    ChLinkTSDA::ForceFunctor* force;
+    // Create a translational spring damper force between pendulum at "jointLocPend" and ground at
+    // "jointLocGnd" in the global reference frame.
+    // The free length is set equal to the initial distance between "jointLocPend" and "jointLocGnd".
 
     auto spring = chrono_types::make_shared<ChLinkTSDA>();
     spring->Initialize(pendulum, ground, false, jointLocPend, jointLocGnd, true);
     if (customSpringType == 1) {
-        force = new MySpringForceCase01;
+        auto force = chrono_types::make_shared<MySpringForceCase01>();
         spring->RegisterForceFunctor(force);
     } else if (customSpringType == 2) {
-        force = new MySpringForceCase02;
+        auto force = chrono_types::make_shared<MySpringForceCase02>();
         spring->RegisterForceFunctor(force);
     } else if (customSpringType == 3) {
-        force = new MySpringForceCase03;
+        auto force = chrono_types::make_shared<MySpringForceCase03>();
         spring->RegisterForceFunctor(force);
     }
     my_system.AddLink(spring);

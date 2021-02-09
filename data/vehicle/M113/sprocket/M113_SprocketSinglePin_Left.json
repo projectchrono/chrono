@@ -6,8 +6,9 @@
   "Number Teeth":                   10,
   "Gear Mass":                      27.68,
   "Gear Inertia":                   [0.646, 0.883, 0.646],
-  "Axle Inertia":                   0.02,
+  "Axle Inertia":                   0.4,
   "Gear Separation":                0.225,
+  "Lateral Backlash":               0.02,
 
   "Profile": 
   {
@@ -20,7 +21,7 @@
   "Contact Material":
   {
       "Coefficient of Friction":    0.4,
-      "Coefficient of Restitution": 0.1,
+      "Coefficient of Restitution": 0.75,
 
       "Properties": {
           "Young Modulus":          1e7,
@@ -37,7 +38,6 @@
 
   "Visualization":
   {
-      "Mesh Filename":              "M113/Sprocket_L.obj",
-      "Mesh Name":                  "Sprocket_L_POV_geom"
+      "Mesh":              "M113/Sprocket_L.obj"
   }
 }

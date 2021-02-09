@@ -19,7 +19,7 @@ set(FEA_DEMOS ${FEA_DEMOS}
     demo_FEA_brick
     demo_FEA_cosimulate_load
     demo_FEA_loads_dynamics
-	demo_FEA_truss
+    demo_FEA_truss
 )
 endif()
 
@@ -30,9 +30,17 @@ set(FEA_DEMOS ${FEA_DEMOS}
 )
 endif()
 
-# Add demos that require Irrlicht and MKL
-if(ENABLE_MODULE_IRRLICHT AND ENABLE_MODULE_MKL)
+# Add demos that require Irrlicht and Matlab
+if(ENABLE_MODULE_IRRLICHT AND ENABLE_MODULE_PARDISO_PROJECT)
 set(FEA_DEMOS ${FEA_DEMOS}
+    demo_FEA_cablesPARPROJ
+)
+endif()
+
+# Add demos that require Irrlicht and MKL
+if(ENABLE_MODULE_IRRLICHT AND ENABLE_MODULE_PARDISO_MKL)
+set(FEA_DEMOS ${FEA_DEMOS}
+    demo_FEA_contacts_NSC
     demo_FEA_beams
     demo_FEA_beams_static
     demo_FEA_beams_constr
@@ -40,7 +48,7 @@ set(FEA_DEMOS ${FEA_DEMOS}
     demo_FEA_cablesMKL
     demo_FEA_abaqus_wheel
     demo_FEA_shells
-	demo_FEA_shellsBST
+    demo_FEA_shellsBST
     demo_FEA_ContactANCF
     demo_FEA_Brick9
     demo_FEA_beamsIGA
@@ -72,11 +80,11 @@ if(ENABLE_MODULE_IRRLICHT)
   list(APPEND LIBS "ChronoEngine_irrlicht")
 endif()
 
-if(ENABLE_MODULE_MKL)
+if(ENABLE_MODULE_PARDISO_MKL)
   include_directories(${CH_MKL_INCLUDES})
   set(COMPILER_FLAGS "${COMPILER_FLAGS} ${CH_MKL_CXX_FLAGS}")
   set(LINKER_FLAGS "${LINKER_FLAGS} ${CH_MKL_LINK_FLAGS}")
-  list(APPEND LIBS "ChronoEngine_mkl")
+  list(APPEND LIBS "ChronoEngine_pardisomkl")
 endif()
 
 if(ENABLE_MODULE_MUMPS)
@@ -87,6 +95,12 @@ endif()
 if(ENABLE_MODULE_MATLAB)
   include_directories(${CH_MATLABINC})
   list(APPEND LIBS "ChronoEngine_matlab")
+endif()
+
+if(ENABLE_MODULE_PARDISO_PROJECT)
+  include_directories(${CH_PARDISOPROJECT_INCLUDES})
+  list(APPEND LIBS "ChronoEngine_pardisoproject")
+  list(APPEND LIBS ${PARDISOPROJECT_LIBRARIES})
 endif()
 
 #--------------------------------------------------------------
@@ -102,9 +116,10 @@ foreach(PROGRAM ${FEA_DEMOS})
     set_target_properties(${PROGRAM} PROPERTIES
         FOLDER demos
         COMPILE_FLAGS "${COMPILER_FLAGS}"
-        LINK_FLAGS "${LINKER_FLAGS}"
-    )
+        LINK_FLAGS "${LINKER_FLAGS}")
+    set_property(TARGET ${PROGRAM} PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:${PROGRAM}>")
     target_link_libraries(${PROGRAM} ${LIBS})
+    
     install(TARGETS ${PROGRAM} DESTINATION ${CH_INSTALL_DEMO})
 endforeach(PROGRAM)
 

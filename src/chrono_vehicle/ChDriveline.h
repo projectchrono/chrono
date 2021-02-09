@@ -19,7 +19,6 @@
 #ifndef CH_DRIVELINE_H
 #define CH_DRIVELINE_H
 
-#include "chrono/core/ChVector.h"
 #include "chrono/physics/ChShaft.h"
 
 #include "chrono_vehicle/ChApiVehicle.h"
