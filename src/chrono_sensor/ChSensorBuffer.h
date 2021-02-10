@@ -17,7 +17,6 @@
 #ifndef CHSENSORBUFFER_H
 #define CHSENSORBUFFER_H
 
-
 #ifdef _WIN32
 #ifndef NOMINMAX
 #define NOMINMAX
@@ -45,11 +44,11 @@ struct SensorBuffer {
 
     /// virtual destructor so class is virtual so it can participate in dynamic_pointer_cast<>'s
     virtual ~SensorBuffer() {}
-    float TimeStamp;      ///< The time stamp on the buffer (simulation time when data collection stopped)
-    unsigned int Width;   ///< The width of the data (image width when data is an image)
-    unsigned int Height;  ///< The height of the data (image height when data is an image)
-    unsigned int Beam_return_count; ///< number of beam returns for lidar model
-    bool Dual_return; ///< true if dual return mode, false otherwise
+    float TimeStamp;                 ///< The time stamp on the buffer (simulation time when data collection stopped)
+    unsigned int Width;              ///< The width of the data (image width when data is an image)
+    unsigned int Height;             ///< The height of the data (image height when data is an image)
+    unsigned int Beam_return_count;  ///< number of beam returns for lidar model
+    bool Dual_return;                ///< true if dual return mode, false otherwise
     unsigned int
         LaunchedCount;  ///<  number of times updates have been launched. This may not reflect how many have been
                         // completed.
@@ -144,17 +143,39 @@ using UserXYZIBufferPtr = std::shared_ptr<SensorHostXYZIBuffer>;
 // IMU Data Format and Buffers
 //=============================
 
-/// IMU data in generic format
-struct IMUData {
-    double Accel[3];  ///< Translational acceleration (x,y,z)
-    double Roll;      ///< Roll rate (angular velocity (rad/s))
-    double Pitch;     ///< Pitch rate (angular velocity (rad/s))
-    double Yaw;       ///< Yaw rate (angular velocity (rad/s))
+/// Accelerometer data
+struct AccelData {
+    double X;  /// translational acceleration in local x-direction
+    double Y;  /// translational acceleration in local y-direction
+    double Z;  /// translational acceleration in local z-direction
 };
-/// IMU host buffer to be used by IMU filters in the graph
-using SensorHostIMUBuffer = SensorBufferT<std::shared_ptr<IMUData[]>>;
-/// pointer to an IMU buffer on the host that has been moved for safety and can be given to the user
-using UserIMUBufferPtr = std::shared_ptr<SensorHostIMUBuffer>;
+/// acclerometer host buffer to be used by acclerometer filters in the graph
+using SensorHostAccelBuffer = SensorBufferT<std::shared_ptr<AccelData[]>>;
+/// pointer to an acclerometer buffer on the host that has been moved for safety and can be given to the user
+using UserAccelBufferPtr = std::shared_ptr<SensorHostAccelBuffer>;
+
+/// Gyroscope data
+struct GyroData {
+    double Roll;   /// angular velocity in local x-direction
+    double Pitch;  /// angular velocity in local y-direction
+    double Yaw;    /// angular velocity in local z-direction
+};
+/// acclerometer host buffer to be used by acclerometer filters in the graph
+using SensorHostGyroBuffer = SensorBufferT<std::shared_ptr<GyroData[]>>;
+/// pointer to an acclerometer buffer on the host that has been moved for safety and can be given to the user
+using UserGyroBufferPtr = std::shared_ptr<SensorHostGyroBuffer>;
+
+/// Magnetometer data
+struct MagnetData {
+    double H;  /// horizontal field intensity
+    double X;  /// latitudinal component of magnetic field
+    double Y;  /// longitudinal component of magnetic field
+    double Z;  /// vertical component of magnetic field
+};
+/// acclerometer host buffer to be used by acclerometer filters in the graph
+using SensorHostMagnetBuffer = SensorBufferT<std::shared_ptr<MagnetData[]>>;
+/// pointer to an acclerometer buffer on the host that has been moved for safety and can be given to the user
+using UserMagnetBufferPtr = std::shared_ptr<SensorHostMagnetBuffer>;
 
 //============================
 // GPS Data Format and Buffers

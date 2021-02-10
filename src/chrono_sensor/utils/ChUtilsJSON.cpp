@@ -35,6 +35,7 @@
 #include "chrono_sensor/filters/ChFilterPCfromDepth.h"
 #include "chrono_sensor/filters/ChFilterVisualizePointCloud.h"
 #include "chrono_sensor/filters/ChFilterImageOps.h"
+#include "chrono_sensor/ChNoiseModel.h"
 //
 #include "chrono_thirdparty/rapidjson/filereadstream.h"
 #include "chrono_thirdparty/rapidjson/istreamwrapper.h"
@@ -106,8 +107,12 @@ std::shared_ptr<ChSensor> ReadSensorJSON(const std::string& filename,
         sensor = ReadCameraSensorJSON(filename, parent, offsetPose);
     } else if (sensor_type.compare("GPS") == 0) {
         sensor = ReadGPSSensorJSON(filename, parent, offsetPose);
-    } else if (sensor_type.compare("IMU") == 0) {
-        sensor = ReadIMUSensorJSON(filename, parent, offsetPose);
+    } else if (sensor_type.compare("Accelerometer") == 0) {
+        sensor = ReadAccelerometerSensorJSON(filename, parent, offsetPose);
+    } else if (sensor_type.compare("Gyroscope") == 0) {
+        sensor = ReadGyroscopeSensorJSON(filename, parent, offsetPose);
+    } else if (sensor_type.compare("Magnetometer") == 0) {
+        sensor = ReadMagnetometerSensorJSON(filename, parent, offsetPose);
     } else if (sensor_type.compare("Lidar") == 0) {
         sensor = ReadLidarSensorJSON(filename, parent, offsetPose);
     } else {
@@ -199,7 +204,7 @@ std::shared_ptr<ChGPSSensor> ReadGPSSensorJSON(const std::string& filename,
     float updateRate = properties["Update Rate"].GetFloat();
     // ChFrame<> offsetPose = ReadFrameJSON(properties["Offset Pose"]);
     ChVector<> gps_reference = ReadVectorJSON(properties["GPS Reference"]);
-    std::shared_ptr<ChGPSNoiseModel> noise_model = CreateGPSNoiseJSON(properties["GPS Noise Model"]);
+    std::shared_ptr<ChNoiseModel> noise_model = CreateNoiseJSON(properties["Noise Model"]);
 
     auto gps = chrono_types::make_shared<ChGPSSensor>(parent, updateRate, offsetPose, gps_reference, noise_model);
     if (properties.HasMember("Lag")) {
@@ -214,9 +219,9 @@ std::shared_ptr<ChGPSSensor> ReadGPSSensorJSON(const std::string& filename,
     return gps;
 }
 
-std::shared_ptr<ChIMUSensor> ReadIMUSensorJSON(const std::string& filename,
-                                               std::shared_ptr<chrono::ChBody> parent,
-                                               chrono::ChFrame<double> offsetPose) {
+std::shared_ptr<ChAccelerometerSensor> ReadAccelerometerSensorJSON(const std::string& filename,
+                                                                   std::shared_ptr<chrono::ChBody> parent,
+                                                                   chrono::ChFrame<double> offsetPose) {
     Document d = ReadFileJSON(filename);
     if (d.IsNull())
         return nullptr;
@@ -229,8 +234,9 @@ std::shared_ptr<ChIMUSensor> ReadIMUSensorJSON(const std::string& filename,
     // Extract the sensor type.
     assert(d.HasMember("Template"));
     std::string subtype = d["Template"].GetString();
-    if (!subtype.compare("IMU") == 0) {
-        throw ChException("ChUtilsJSON::ReadIMUSensorJSON: Sensor type of " + subtype + " must be GPS.");
+    if (!subtype.compare("Accelerometer") == 0) {
+        throw ChException("ChUtilsJSON::ReadAccelerometerSensorJSON: Sensor type of " + subtype +
+                          " must be Accelerometer.");
     }
 
     // Read sensor properties
@@ -240,18 +246,101 @@ std::shared_ptr<ChIMUSensor> ReadIMUSensorJSON(const std::string& filename,
     // Create the gps sensor.
     float updateRate = properties["Update Rate"].GetFloat();
     // ChFrame<> offsetPose = ReadFrameJSON(properties["Offset Pose"]);
-    std::shared_ptr<ChIMUNoiseModel> noise_model = CreateIMUNoiseJSON(properties["IMU Noise Model"]);
-    auto imu = chrono_types::make_shared<ChIMUSensor>(parent, updateRate, offsetPose, noise_model);
+    std::shared_ptr<ChNoiseModel> noise_model = CreateNoiseJSON(properties["Noise Model"]);
+    auto acc = chrono_types::make_shared<ChAccelerometerSensor>(parent, updateRate, offsetPose, noise_model);
 
     if (properties.HasMember("Lag")) {
         float lag = properties["Lag"].GetFloat();
-        imu->SetLag(lag);
+        acc->SetLag(lag);
     }
     if (properties.HasMember("Collection Window")) {
         float collection = properties["Collection Window"].GetFloat();
-        imu->SetCollectionWindow(collection);
+        acc->SetCollectionWindow(collection);
     }
-    return imu;
+    return acc;
+}
+
+std::shared_ptr<ChGyroscopeSensor> ReadGyroscopeSensorJSON(const std::string& filename,
+                                                           std::shared_ptr<chrono::ChBody> parent,
+                                                           chrono::ChFrame<double> offsetPose) {
+    Document d = ReadFileJSON(filename);
+    if (d.IsNull())
+        return nullptr;
+
+    // Check that the given file is a sensor specification file.
+    assert(d.HasMember("Type"));
+    std::string type = d["Type"].GetString();
+    assert(type.compare("Sensor") == 0);
+
+    // Extract the sensor type.
+    assert(d.HasMember("Template"));
+    std::string subtype = d["Template"].GetString();
+    if (!subtype.compare("Gyroscope") == 0) {
+        throw ChException("ChUtilsJSON::ReadGyroscopeSensorJSON: Sensor type of " + subtype + " must be Gyroscope.");
+    }
+
+    // Read sensor properties
+    assert(d.HasMember("Properties"));
+    const Value& properties = d["Properties"];
+
+    // Create the gps sensor.
+    float updateRate = properties["Update Rate"].GetFloat();
+    // ChFrame<> offsetPose = ReadFrameJSON(properties["Offset Pose"]);
+    std::shared_ptr<ChNoiseModel> noise_model = CreateNoiseJSON(properties["Noise Model"]);
+    auto gyro = chrono_types::make_shared<ChGyroscopeSensor>(parent, updateRate, offsetPose, noise_model);
+
+    if (properties.HasMember("Lag")) {
+        float lag = properties["Lag"].GetFloat();
+        gyro->SetLag(lag);
+    }
+    if (properties.HasMember("Collection Window")) {
+        float collection = properties["Collection Window"].GetFloat();
+        gyro->SetCollectionWindow(collection);
+    }
+    return gyro;
+}
+
+std::shared_ptr<ChMagnetometerSensor> ReadMagnetometerSensorJSON(const std::string& filename,
+                                                                 std::shared_ptr<chrono::ChBody> parent,
+                                                                 chrono::ChFrame<double> offsetPose) {
+    Document d = ReadFileJSON(filename);
+    if (d.IsNull())
+        return nullptr;
+
+    // Check that the given file is a sensor specification file.
+    assert(d.HasMember("Type"));
+    std::string type = d["Type"].GetString();
+    assert(type.compare("Sensor") == 0);
+
+    // Extract the sensor type.
+    assert(d.HasMember("Template"));
+    std::string subtype = d["Template"].GetString();
+    if (!subtype.compare("Magnetometer") == 0) {
+        throw ChException("ChUtilsJSON::ReadMagnetometerSensorJSON: Sensor type of " + subtype +
+                          " must be Magnetometer.");
+    }
+
+    // Read sensor properties
+    assert(d.HasMember("Properties"));
+    const Value& properties = d["Properties"];
+
+    // Create the gps sensor.
+    float updateRate = properties["Update Rate"].GetFloat();
+    // ChFrame<> offsetPose = ReadFrameJSON(properties["Offset Pose"]);
+    std::shared_ptr<ChNoiseModel> noise_model = CreateNoiseJSON(properties["Noise Model"]);
+    ChVector<> gps_reference = ReadVectorJSON(properties["GPS Reference"]);
+    auto mag =
+        chrono_types::make_shared<ChMagnetometerSensor>(parent, updateRate, offsetPose, noise_model, gps_reference);
+
+    if (properties.HasMember("Lag")) {
+        float lag = properties["Lag"].GetFloat();
+        mag->SetLag(lag);
+    }
+    if (properties.HasMember("Collection Window")) {
+        float collection = properties["Collection Window"].GetFloat();
+        mag->SetCollectionWindow(collection);
+    }
+    return mag;
 }
 
 std::shared_ptr<ChLidarSensor> ReadLidarSensorJSON(const std::string& filename,
@@ -302,7 +391,7 @@ std::shared_ptr<ChLidarSensor> ReadLidarSensorJSON(const std::string& filename,
     if (properties.HasMember("Vertical Divergence Angle")) {
         vert_divergence_angle = properties["Vertical Divergence Angle"].GetFloat();
     }
-    if (properties.HasMember("Horizontal Divergence Angle")){
+    if (properties.HasMember("Horizontal Divergence Angle")) {
         hori_divergence_angle = properties["Horizontal Divergence Angle"].GetFloat();
     }
     if (properties.HasMember("Return Mode")) {
@@ -316,10 +405,9 @@ std::shared_ptr<ChLidarSensor> ReadLidarSensorJSON(const std::string& filename,
         // for when we add raytraced lidar model
     }
 
-    auto lidar = chrono_types::make_shared<ChLidarSensor>(parent, updateRate, offsetPose, w, h, hfov, max_v_angle,
-                                                          min_v_angle, max_distance, beam_shape, sample_radius, 
-                                                          vert_divergence_angle, hori_divergence_angle,
-                                                          return_mode, lidar_model);
+    auto lidar = chrono_types::make_shared<ChLidarSensor>(
+        parent, updateRate, offsetPose, w, h, hfov, max_v_angle, min_v_angle, max_distance, beam_shape, sample_radius,
+        vert_divergence_angle, hori_divergence_angle, return_mode, lidar_model);
 
     if (properties.HasMember("Lag")) {
         float lag = properties["Lag"].GetFloat();
@@ -361,16 +449,7 @@ std::shared_ptr<ChFilter> CreateFilterJSON(const Value& value) {
 
     // Create the filter
     std::shared_ptr<ChFilter> filter;
-    if (type.compare("ChFilterOptixRender") == 0) {
-        filter = chrono_types::make_shared<ChFilterOptixRender>();
-    } else if (type.compare("ChFilterIMUUpdate") == 0) {
-        std::shared_ptr<ChIMUNoiseModel> model = CreateIMUNoiseJSON(value["IMU Noise Model"]);
-        filter = chrono_types::make_shared<ChFilterIMUUpdate>(model);
-    } else if (type.compare("ChFilterGPSUpdate") == 0) {
-        ChVector<> gps_reference = ReadVectorJSON(value["GPS Reference"]);
-        std::shared_ptr<ChGPSNoiseModel> model = CreateGPSNoiseJSON(value["GPS Noise Model"]);
-        filter = chrono_types::make_shared<ChFilterGPSUpdate>(gps_reference, model);
-    } else if (type.compare("ChFilterCameraNoiseConstNormal") == 0) {
+    if (type.compare("ChFilterCameraNoiseConstNormal") == 0) {
         float mean = value["Mean"].GetFloat();
         float stdev = value["Standard Deviation"].GetFloat();
         std::string name = GetStringMemberWithDefault(value, "Name");
@@ -415,9 +494,15 @@ std::shared_ptr<ChFilter> CreateFilterJSON(const Value& value) {
     } else if (type.compare("ChFilterDIAccess") == 0) {
         std::string name = GetStringMemberWithDefault(value, "Name");
         filter = chrono_types::make_shared<ChFilterDIAccess>(name);
-    } else if (type.compare("ChFilterIMUAccess") == 0) {
+    } else if (type.compare("ChFilterAccelAccess") == 0) {
         std::string name = GetStringMemberWithDefault(value, "Name");
-        filter = chrono_types::make_shared<ChFilterIMUAccess>(name);
+        filter = chrono_types::make_shared<ChFilterAccelAccess>(name);
+    } else if (type.compare("ChFilterGyroAccess") == 0) {
+        std::string name = GetStringMemberWithDefault(value, "Name");
+        filter = chrono_types::make_shared<ChFilterGyroAccess>(name);
+    } else if (type.compare("ChFilterMagnetAccess") == 0) {
+        std::string name = GetStringMemberWithDefault(value, "Name");
+        filter = chrono_types::make_shared<ChFilterMagnetAccess>(name);
     } else if (type.compare("ChFilterGPSAccess") == 0) {
         std::string name = GetStringMemberWithDefault(value, "Name");
         filter = chrono_types::make_shared<ChFilterGPSAccess>(name);
@@ -442,47 +527,27 @@ std::shared_ptr<ChFilter> CreateFilterJSON(const Value& value) {
     return filter;
 }
 
-std::shared_ptr<ChIMUNoiseModel> CreateIMUNoiseJSON(const Value& value) {
-    std::string type = value["Noise Model"].GetString();
+std::shared_ptr<ChNoiseModel> CreateNoiseJSON(const Value& value) {
+    std::string type = value["Noise Type"].GetString();
     // std::cout << "Noise Model Type :: " << type << "." << std::endl;
 
     // Create the filter
-    std::shared_ptr<ChIMUNoiseModel> model;
-    if (type.compare("ChIMUNoiseNone") == 0) {
-        model = chrono_types::make_shared<ChIMUNoiseNone>();
-    } else if (type.compare("ChIMUNoiseNormalDrift") == 0) {
-        float updateRate = value["Update Rate"].GetFloat();
-        float g_mean = value["Gaussian Mean"].GetFloat();
-        float g_stdev = value["Gaussian Standard Deviation"].GetFloat();
-        float g_bias_drift = value["Gaussian Bias Drift"].GetFloat();
-        float g_tau_drift = value["Gaussian Tau Drift"].GetFloat();
-        float a_mean = value["A Mean"].GetFloat();
-        float a_stdev = value["A Standard Deviation"].GetFloat();
-        float a_bias_drift = value["A Bias Drift"].GetFloat();
-        float a_tau_drift = value["A Tau Drift"].GetFloat();
-        model = chrono_types::make_shared<ChIMUNoiseNormalDrift>(updateRate, g_mean, g_stdev, g_bias_drift, g_tau_drift,
-                                                                 a_mean, a_stdev, a_bias_drift, a_tau_drift);
-    } else {
-        throw ChException("IMU noise model type of \"" + type + "\" not supported in ReadIMUNoiseJSON.");
-    }
-
-    return model;
-}
-
-std::shared_ptr<ChGPSNoiseModel> CreateGPSNoiseJSON(const Value& value) {
-    std::string type = value["Noise Model"].GetString();
-    // std::cout << "Noise Model Type :: " << type << "." << std::endl;
-
-    // Create the filter
-    std::shared_ptr<ChGPSNoiseModel> model;
-    if (type.compare("ChGPSNoiseNone") == 0) {
-        model = chrono_types::make_shared<ChGPSNoiseNone>();
-    } else if (type.compare("ChGPSNoiseNormal") == 0) {
+    std::shared_ptr<ChNoiseModel> model;
+    if (type.compare("ChNoiseNone") == 0) {
+        model = chrono_types::make_shared<ChNoiseNone>();
+    } else if (type.compare("ChNoiseNormal") == 0) {
         ChVector<float> mean = ReadVectorJSON(value["Mean"]);
-        ChVector<float> stdev = ReadVectorJSON(value["Standard Deviation"]);
-        model = chrono_types::make_shared<ChGPSNoiseNormal>(mean, stdev);
+        ChVector<float> stdev = ReadVectorJSON(value["Mean"]);
+        model = chrono_types::make_shared<ChNoiseNormal>(mean, stdev);
+    } else if (type.compare("ChNoiseNormalDrift") == 0) {
+        float updateRate = value["Update Rate"].GetFloat();
+        ChVector<float> mean = ReadVectorJSON(value["Mean"]);
+        ChVector<float> stdev = ReadVectorJSON(value["Mean"]);
+        float drift_bias = value["Drift Bias"].GetFloat();
+        float tau_drift = value["Tau Drift"].GetFloat();
+        model = chrono_types::make_shared<ChNoiseNormalDrift>(updateRate, mean, stdev, drift_bias, tau_drift);
     } else {
-        throw ChException("GPS noise model type of \"" + type + "\" not supported in ReadGPSNoiseJSON.");
+        throw ChException("Noise model type of \"" + type + "\" not supported in ReadNoiseJSON.");
     }
 
     return model;

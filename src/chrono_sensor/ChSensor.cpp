@@ -101,9 +101,21 @@ CH_SENSOR_API UserXYZIBufferPtr ChSensor::GetMostRecentBuffer() {
 }
 
 template <>
-CH_SENSOR_API UserIMUBufferPtr ChSensor::GetMostRecentBuffer() {
+CH_SENSOR_API UserAccelBufferPtr ChSensor::GetMostRecentBuffer() {
     // call the templated helper function
-    return GetMostRecentBufferHelper<UserIMUBufferPtr, ChFilterIMUAccess, ChFilterIMUAccessName>();
+    return GetMostRecentBufferHelper<UserAccelBufferPtr, ChFilterAccelAccess, ChFilterAccelAccessName>();
+}
+
+template <>
+CH_SENSOR_API UserGyroBufferPtr ChSensor::GetMostRecentBuffer() {
+    // call the templated helper function
+    return GetMostRecentBufferHelper<UserGyroBufferPtr, ChFilterGyroAccess, ChFilterGyroAccessName>();
+}
+
+template <>
+CH_SENSOR_API UserMagnetBufferPtr ChSensor::GetMostRecentBuffer() {
+    // call the templated helper function
+    return GetMostRecentBufferHelper<UserMagnetBufferPtr, ChFilterMagnetAccess, ChFilterMagnetAccessName>();
 }
 
 // -----------------------------------------------------------------------------

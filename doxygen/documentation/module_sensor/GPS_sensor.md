@@ -8,7 +8,7 @@ Details of the GPS sensor implemented in Chrono::Sensor.
 #### GPS Creation
 ~~~{.cpp}
 // create a noise model
-auto gps_noise_model=chrono_types::make_shared<ChGPSNoiseNormal>(
+auto gps_noise_model=chrono_types::make_shared<ChNoiseNormal>(
     ChVector<float>(1.f, 1.f, 1.f),  // Mean
     ChVector<float>(2.f, 3.f, 1.f)   // Standard Deviation
 );
