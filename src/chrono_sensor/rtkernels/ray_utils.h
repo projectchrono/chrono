@@ -18,11 +18,11 @@
 #define SHADOW_RAY_TYPE 1
 #define LIDAR_RAY_TYPE 2
 
-#define FIRST_HIT_PASS 0
-#define GLOBAL_ILLUMINATION_PASS 1
+#define FIRST_HIT 0
+#define GLOBAL_ILLUMINATION 1
 
 struct PerRayData_camera {
-    int pass;
+    int mode;
     int depth;
 
     float3 color;
@@ -43,13 +43,17 @@ struct PerRayData_lidar {
 };
 
 static __device__ __inline__ PerRayData_camera make_camera_data(const float3& r_color,
-                                                                const float& r_importance,
-                                                                const int& r_depth) {
+                                                                const int& r_mode,
+                                                                const int& r_depth,
+                                                                const float& r_importance) {
     PerRayData_camera ray_data;
-    ray_data.pass = FIRST_HIT_PASS;
-    ray_data.color = r_color;
-    ray_data.contribution_to_firsthit = make_float3(r_importance);
+    ray_data.mode = r_mode;
     ray_data.depth = r_depth;
+
+    ray_data.color = r_color;
+    
+    ray_data.contribution_to_firsthit = make_float3(r_importance);
+    
     return ray_data;
 }
 

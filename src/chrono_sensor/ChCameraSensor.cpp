@@ -33,8 +33,9 @@ CH_SENSOR_API ChCameraSensor::ChCameraSensor(std::shared_ptr<chrono::ChBody> par
                                              unsigned int h,                   // image height
                                              float hFOV,                       // horizontal field of view
                                              unsigned int supersample_factor,  // super sampling factor
-                                             CameraLensModelType lens_model,    // lens model to use
-                                             int use_gi) : m_hFOV(hFOV),
+                                             CameraLensModelType lens_model,   // lens model to use
+                                             int use_gi                        // 1 to use Global Illumination 
+                                            ) : m_hFOV(hFOV),
       m_supersample_factor(supersample_factor),
       m_lens_model_type(lens_model),
       ChOptixSensor(parent, updateRate, offsetPose, w * supersample_factor, h * supersample_factor, use_gi) {

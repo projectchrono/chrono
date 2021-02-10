@@ -81,7 +81,7 @@ class CH_SENSOR_API ChOptixSensor : public ChSensor {
     unsigned int m_launch_index;  ///< for holding the launch index that tells optix which sensor this is
     float m_time_stamp;           ///< time stamp for when the data (render) was launched
 
-    int m_use_gi;
+    int m_use_gi;                 ///< to hold reference to whether user what to use GI or not
 
     friend class ChFilterOptixRender;  ///< ChFilterOptixRender is allowed to set and use the private members
     friend class ChOptixEngine;        ///< ChOptixEngine is allowed to set and use the private members

@@ -90,7 +90,7 @@ bool save = false;
 bool vis = true;
 
 // Output directory
-const std::string out_dir = "SENSOR_OUTPUT/CAM_DEMO/";
+const std::string out_dir = "SENSOR_OUTPUT/";
 
 int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2020 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
@@ -192,7 +192,7 @@ int main(int argc, char* argv[]) {
 
     // Save the antialiased image
     if (save)
-        cam2->PushFilter(chrono_types::make_shared<ChFilterSave>(out_dir + "antialiased/"));
+        cam2->PushFilter(chrono_types::make_shared<ChFilterSave>(out_dir + "bedroom/"));
 
     // Provide the host access to the RGBA8 buffer
     // cam2->PushFilter(chrono_types::make_shared<ChFilterRGBA8Access>());

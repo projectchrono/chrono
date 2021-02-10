@@ -172,99 +172,58 @@ CH_SENSOR_API void ChFilterOptixRender::Initialize(std::shared_ptr<ChSensor> pSe
         }
     }
 
-    m_program = ray_gen_program;
+    m_program = ray_gen_program;   
+    
+    // give the ray gen program back to the sensor (DANGEROUS THREADING ISSUES - SHOULD THE SENSOR REALLY EXPOSE
+    // THIS TO THE USER?)
     pOptixSensor->m_ray_gen = m_program;
 
     unsigned int numEntryPoints = context->getEntryPointCount();
     context->setEntryPointCount(numEntryPoints + 1);  // set the entry point count
     pOptixSensor->m_launch_index = numEntryPoints;
+    context->setRayGenerationProgram(pOptixSensor->m_launch_index, pOptixSensor->m_ray_gen);
 
     optix::Buffer buffer = AllocateBuffer(pSensor);
     pOptixSensor->m_ray_gen["output_buffer"]->set(buffer);
-
-    optix::Buffer normal_buffer =
-        pOptixSensor->m_context->createBuffer(RT_BUFFER_INPUT_OUTPUT | RT_BUFFER_COPY_ON_DIRTY, RT_FORMAT_FLOAT4,
-                                              pOptixSensor->m_width / 2, pOptixSensor->m_height / 2);
-    optix::Buffer albedo_buffer =
-        pOptixSensor->m_context->createBuffer(RT_BUFFER_INPUT_OUTPUT | RT_BUFFER_COPY_ON_DIRTY, RT_FORMAT_FLOAT4,
-                                              pOptixSensor->m_width / 2, pOptixSensor->m_height / 2);
-    optix::Buffer gi_pass_buffer =
-        pOptixSensor->m_context->createBuffer(RT_BUFFER_INPUT_OUTPUT | RT_BUFFER_COPY_ON_DIRTY, RT_FORMAT_FLOAT4,
-                                              pOptixSensor->m_width / 2, pOptixSensor->m_height / 2);
-    
-    pOptixSensor->m_ray_gen["gi_pass_normal_buffer"]->set(normal_buffer);
-    pOptixSensor->m_ray_gen["gi_pass_albedo_buffer"]->set(albedo_buffer);
-    pOptixSensor->m_ray_gen["gi_pass_output_buffer"]->set(gi_pass_buffer);
-
-    // give the ray gen program back to the sensor (DANGEROUS THREADING ISSUES - SHOULD THE SENSOR REALLY EXPOSE
-    // THIS TO THE USER?)
-
     m_buffer = std::make_unique<SensorOptixBuffer>();
-   
 
+    // setup denoiser buffer for global illumination
     if (pOptixSensor->m_use_gi) {
-        context->setRayGenerationProgram(pOptixSensor->m_launch_index, pOptixSensor->m_ray_gen);
-        // context->setMissProgram(pOptixSensor->m_launch_index, pOptixSensor->MissProgram());
+        optix::Buffer normal_buffer = AllocateBuffer(pSensor);
+        optix::Buffer albedo_buffer = AllocateBuffer(pSensor);
+        optix::Buffer gi_denoised_output_buffer = AllocateBuffer(pSensor);
+
+        pOptixSensor->m_ray_gen["gi_pass_normal_buffer"]->set(normal_buffer);
+        pOptixSensor->m_ray_gen["gi_pass_albedo_buffer"]->set(albedo_buffer);
 
         // Setup Optix denoiser
-        // optix::Buffer tonemap_buffer = pOptixSensor->m_context->createBuffer(
-        //     RT_BUFFER_INPUT_OUTPUT | RT_BUFFER_COPY_ON_DIRTY, pOptixSensor->RenderBufferFormat(), pOptixSensor->m_width,
-        //     pOptixSensor->m_height);
-
-        optix::Buffer gi_denoised_buffer = 
-            pOptixSensor->m_context->createBuffer(RT_BUFFER_INPUT_OUTPUT | RT_BUFFER_COPY_ON_DIRTY, RT_FORMAT_FLOAT4, 
-            pOptixSensor->m_width / 2, pOptixSensor->m_height / 2);
-
-        // pOptixSensor->m_ray_gen["tonemap_buffer"]->set(tonemap_buffer);
-        pOptixSensor->m_ray_gen["gi_pass_denoised_buffer"]->set(gi_denoised_buffer);
-
-        // optix::PostprocessingStage tonemapStage =
-        //     pOptixSensor->m_context->createBuiltinPostProcessingStage("TonemapperSimple");
         optix::PostprocessingStage denoiserStage =
             pOptixSensor->m_context->createBuiltinPostProcessingStage("DLDenoiser");
 
-   
-        // tonemapStage->declareVariable("input_buffer")->set(buffer);
-        // tonemapStage->declareVariable("output_buffer")->set(tonemap_buffer);
-        // tonemapStage->declareVariable("exposure")->setFloat(1.25f);
-        // tonemapStage->declareVariable("gamma")->setFloat(2.2f);
-
-        denoiserStage->declareVariable("input_buffer")->set(gi_pass_buffer);
-        denoiserStage->declareVariable("output_buffer")->set(gi_denoised_buffer);
+        denoiserStage->declareVariable("input_buffer")->set(buffer);
+        denoiserStage->declareVariable("output_buffer")->set(gi_denoised_output_buffer);
         denoiserStage->declareVariable("blend")->setFloat(0);
         denoiserStage->declareVariable("input_albedo_buffer")->set(albedo_buffer);
         denoiserStage->declareVariable("input_normal_buffer")->set(normal_buffer);
 
-     
-        // Create two command lists with two postprocessing topologies we want:
-        // One with the denoiser stage, one without. Note that both share the same
-        // tonemap stage.
+   
 
         commandListWithDenoiser = pOptixSensor->m_context->createCommandList();
-        commandListWithDenoiser->appendLaunch(pOptixSensor->m_launch_index, pOptixSensor->m_width/2,
-                                              pOptixSensor->m_height/2);
-        // commandListWithDenoiser->appendPostprocessingStage(tonemapStage, pOptixSensor->m_width, pOptixSensor->m_height);
-        // commandListWithDenoiser->appendPostprocessingStage(denoiserStage, pOptixSensor->m_width / 2,
-        //                                                    pOptixSensor->m_height / 2);
+        commandListWithDenoiser->appendLaunch(pOptixSensor->m_launch_index, pOptixSensor->m_width,
+                                              pOptixSensor->m_height);
+        commandListWithDenoiser->appendPostprocessingStage(denoiserStage, pOptixSensor->m_width,
+                                                           pOptixSensor->m_height);
 
         commandListWithDenoiser->finalize();
 
-        m_buffer->Buffer = gi_pass_buffer;
-        m_buffer->Width = pOptixSensor->m_width / 2;
-        m_buffer->Height = pOptixSensor->m_height / 2;
-
-        // m_buffer->Buffer = buffer;
-        // m_buffer->Width = pOptixSensor->m_width;
-        // m_buffer->Height = pOptixSensor->m_height;
-    } else {
-        // give the ray gen program back to the sensor (DANGEROUS THREADING ISSUES - SHOULD THE SENSOR REALLY EXPOSE
-        // THIS TO THE USER?)
         m_buffer->Buffer = buffer;
         m_buffer->Width = pOptixSensor->m_width;
         m_buffer->Height = pOptixSensor->m_height;
-        context->setRayGenerationProgram(pOptixSensor->m_launch_index, pOptixSensor->m_ray_gen);
-        // context->setMissProgram(pOptixSensor->m_launch_index, pOptixSensor->MissProgram());
 
+    } else {
+        m_buffer->Buffer = buffer;
+        m_buffer->Width = pOptixSensor->m_width;
+        m_buffer->Height = pOptixSensor->m_height;
     }
 
     
@@ -280,7 +239,7 @@ CH_SENSOR_API void ChFilterOptixRender::Initialize(std::shared_ptr<ChSensor> pSe
 CH_SENSOR_API optix::Buffer ChFilterOptixRender::AllocateBuffer(std::shared_ptr<ChSensor> pSensor) {
     // to render, the sensor *must* inherit from ChOptixSensor
     if (auto pOptixSensor = std::dynamic_pointer_cast<ChOptixSensor>(pSensor)) {
-        optix::Buffer buffer = pOptixSensor->m_context->createBuffer(RT_BUFFER_OUTPUT | RT_BUFFER_COPY_ON_DIRTY,
+        optix::Buffer buffer = pOptixSensor->m_context->createBuffer(RT_BUFFER_INPUT_OUTPUT | RT_BUFFER_COPY_ON_DIRTY,
                                                                      pOptixSensor->RenderBufferFormat(),
                                                                      pOptixSensor->m_width, pOptixSensor->m_height);
         return buffer;

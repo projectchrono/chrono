@@ -45,12 +45,15 @@ RT_PROGRAM void camera_miss() {
     } else {
         prd_camera.color = make_float3(0.0f);
     }
-    if (prd_camera.depth == 1) {
-        prd_camera.normal = normalize(-ray.direction);
-        prd_camera.albedo = make_float3(0.0f);
+    if (prd_camera.mode == GLOBAL_ILLUMINATION) {
+        if (prd_camera.depth == 1) {
+            prd_camera.normal = normalize(-ray.direction);
+            prd_camera.albedo = prd_camera.color;
+        }
+        prd_camera.color *= prd_camera.contribution_to_firsthit;
+        // terminate the ray when it hit the environment map
+        prd_camera.contribution_to_firsthit = make_float3(0.0f);
     }
-    prd_camera.color *= prd_camera.contribution_to_firsthit;
-    prd_camera.contribution_to_firsthit = make_float3(0.0f);
 }
 
 RT_PROGRAM void lidar_miss() {

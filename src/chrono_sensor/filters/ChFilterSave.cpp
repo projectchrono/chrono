@@ -64,7 +64,7 @@ CH_SENSOR_API void ChFilterSave::Apply(std::shared_ptr<ChSensor> pSensor, std::s
         void* imageData = buffer->map(0, RT_BUFFER_MAP_READ);
 
         // int stbi_write_png(char const* filename, int w, int h, int comp, const void* data, int stride_in_bytes);
-        if (!stbi_write_png(filename.c_str(), width, height, comp, imageData, comp * width)) {
+        if (!stbi_write_png(filename.c_str(), width, height, 4, imageData, comp * width)) {
             std::cerr << "Failed to write image: " << filename << "\n";
         }
 

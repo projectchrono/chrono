@@ -152,53 +152,7 @@ RT_PROGRAM void pbr_shader() {
         subsurface_albedo = make_float3(tex2D(Kd_map, texcoord.x, texcoord.y));
     }
 
-   
-
-    // ==========================================================
-    // Ambient Color - fudge factor to prevent super dark shadows
-    // ==========================================================
     prd_camera.color = make_float3(0);
-
-    //=================
-    // Reflected color
-    //=================
-    /* float3 reflect_amount = make_float3(0);
-    if (roughness < .99) {
-        reflect_amount = Ks * fresnel_schlick(dot(forward_normal, -ray.direction), fresnel_exp,
-                                              make_float3(fresnel_min), make_float3(fresnel_max));
-
-        float reflect_importance = prd_camera.importance * luminance(reflect_amount);
-
-        if (reflect_importance > importance_cutoff && prd_camera.depth < max_depth) {
-            PerRayData_camera prd_reflection =
-                make_camera_data(make_float3(0), reflect_importance, prd_camera.depth + 1);
-
-            float3 reflect_dir = reflect(ray.direction, forward_normal);
-            Ray reflection_ray(hit_point, reflect_dir, CAMERA_RAY_TYPE, scene_epsilon, max_scene_distance);
-            rtTrace(root_node, reflection_ray, prd_reflection, RT_RAY_FLAG_DISABLE_ANYHIT);
-            prd_camera.color += reflect_importance * prd_reflection.color;
-        }
-    }
-
-    //=================
-    // Refracted color
-    //=================
-    float refract_importance = 0;
-    if (transparency < .99) {
-        refract_importance = prd_camera.importance * (1 - transparency) * (1 - luminance(reflect_amount));
-        if (refract_importance > importance_cutoff && prd_camera.depth < max_depth) {
-            PerRayData_camera prd_refraction =
-                make_camera_data(make_float3(0), refract_importance, prd_camera.depth + 1);
-
-            float3 refract_dir;
-            refract(refract_dir, ray.direction, forward_normal, 1.f);
-            Ray refraction_ray(hit_point, refract_dir, CAMERA_RAY_TYPE, scene_epsilon, max_scene_distance);
-            rtTrace(root_node, refraction_ray, prd_refraction);
-            prd_camera.color += refract_importance * prd_refraction.color;
-        }
-    }
-    */ 
-
     //=================
     // punctual lights
     //=================
@@ -232,6 +186,7 @@ RT_PROGRAM void pbr_shader() {
         float point_light_falloff = (l.max_range / (dist_to_light * dist_to_light + l.max_range));
         
         float3 incoming_light_ray = l.color * light_attenuation * point_light_falloff * NdL;
+        
         // if any of our channels can see the light, let's calculate the contribution
         if (fmaxf(incoming_light_ray) > 0.0f) {
             
