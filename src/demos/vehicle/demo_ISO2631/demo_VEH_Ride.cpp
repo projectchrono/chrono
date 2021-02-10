@@ -101,7 +101,8 @@ int main(int argc, char* argv[]) {
             GetLog() << "Using standard values for simulation:\n"
                      << "Terrain No. = " << iTerrain << "\n"
                      << "Speed       = " << target_speed << " m/s\n"
-                     << "Tire Code (1=TMeasy, 2=Fiala, 3=Pacejka, 4=Pacejka89, 5=Pacejka02, 6=Rigid) = " << iTire << "\n";
+                     << "Tire Code (1=TMeasy, 2=Fiala, 3=Pacejka, 4=Pacejka89, 5=Pacejka02, 6=Rigid) = " << iTire
+                     << "\n";
             break;
         case 2:
             if (atoi(argv[1]) >= 1 && atoi(argv[1]) <= 8) {
@@ -111,7 +112,8 @@ int main(int argc, char* argv[]) {
             GetLog() << "Using values for simulation:\n"
                      << "Terrain No. = " << iTerrain << "\n"
                      << "Speed       = " << target_speed << " m/s\n"
-                     << "Tire Code (1=TMeasy, 2=Fiala, 3=Pacejka, 4=Pacejka89, 5=Pacejka02, 6=Rigid) = " << iTire << "\n";
+                     << "Tire Code (1=TMeasy, 2=Fiala, 3=Pacejka, 4=Pacejka89, 5=Pacejka02, 6=Rigid) = " << iTire
+                     << "\n";
             break;
         case 3:
             if (atoi(argv[1]) >= 1 && atoi(argv[1]) <= 8) {
@@ -122,7 +124,8 @@ int main(int argc, char* argv[]) {
             GetLog() << "Using values for simulation:\n"
                      << "Terrain No. = " << iTerrain << "\n"
                      << "Speed       = " << target_speed << " m/s\n"
-                     << "Tire Code (1=TMeasy, 2=Fiala, 3=Pacejka, 4=Pacejka89, 5=Pacejka02, 6=Rigid) = " << iTire << "\n";
+                     << "Tire Code (1=TMeasy, 2=Fiala, 3=Pacejka, 4=Pacejka89, 5=Pacejka02, 6=Rigid) = " << iTire
+                     << "\n";
             break;
         case 4:
             if (atoi(argv[1]) >= 1 && atoi(argv[1]) <= 8) {
@@ -130,13 +133,14 @@ int main(int argc, char* argv[]) {
                 rigidterrain_file = "terrain/RigidRandom" + std::to_string(iTerrain) + ".json";
             }
             target_speed = atof(argv[2]);
-            if (atoi(argv[3]) >= 1 && atoi(argv[3]) <= 5) {
+            if (atoi(argv[3]) >= 1 && atoi(argv[3]) <= 6) {
                 iTire = atoi(argv[3]);
             }
             GetLog() << "Using values for simulation:\n"
                      << "Terrain No. = " << iTerrain << "\n"
                      << "Speed       = " << target_speed << " m/s\n"
-                     << "Tire Code (1=TMeasy, 2=Fiala, 3=Pacejka, 4=Pacejka89, 5=Pacejka02, 6=Rigid) = " << iTire << "\n";
+                     << "Tire Code (1=TMeasy, 2=Fiala, 3=Pacejka, 4=Pacejka89, 5=Pacejka02, 6=Rigid) = " << iTire
+                     << "\n";
             break;
     }
 
