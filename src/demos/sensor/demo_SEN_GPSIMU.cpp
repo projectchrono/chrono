@@ -132,6 +132,11 @@ int main(int argc, char* argv[]) {
     pendulum_leg_2->SetBodyFixed(false);
     mphysicalSystem.Add(pendulum_leg_2);
 
+    auto plate = chrono_types::make_shared<ChBodyEasyBox>(.4, .2, .2, 1000, true, false);
+    plate->SetPos(ChVector<>(0, 0, 4));
+    plate->SetBodyFixed(true);
+    mphysicalSystem.Add(plate);
+
     auto link1 = chrono_types::make_shared<ChLinkLockRevolute>();
     link1->Initialize(base, pendulum_leg_1, ChCoordsys<>({0, 0, 1}, chrono::Q_from_AngAxis(CH_C_PI / 2, VECT_Y)));
     mphysicalSystem.AddLink(link1);
@@ -202,7 +207,7 @@ int main(int argc, char* argv[]) {
     gyro->PushFilter(chrono_types::make_shared<ChFilterGyroAccess>());  // Add a filter to access the imu data
     manager->AddSensor(gyro);                                           // Add the IMU sensor to the sensor manager
 
-    auto mag = chrono_types::make_shared<ChMagnetometerSensor>(pendulum_leg_1,   // body to which the IMU is attached
+    auto mag = chrono_types::make_shared<ChMagnetometerSensor>(plate,            // body to which the IMU is attached
                                                                imu_update_rate,  // update rate
                                                                imu_offset_pose,  // offset pose from body
                                                                mag_noise_model,  // IMU noise model
@@ -286,7 +291,12 @@ int main(int argc, char* argv[]) {
     int imu_last_launch = 0;
     int gps_last_launch = 0;
 
+    double rot_rate = 1;
+    double ang;
+    ChVector<double> axis;
+
     while (ch_time < end_time) {
+        plate->SetRot(Q_from_AngZ(rot_rate * ch_time));
         // Get the most recent imu data
         bufferAcc = acc->GetMostRecentBuffer<UserAccelBufferPtr>();
         bufferGyro = gyro->GetMostRecentBuffer<UserGyroBufferPtr>();
@@ -297,6 +307,9 @@ int main(int argc, char* argv[]) {
             AccelData acc_data = bufferAcc->Buffer[0];
             GyroData gyro_data = bufferGyro->Buffer[0];
             MagnetData mag_data = bufferMag->Buffer[0];
+
+            plate->GetRot().Q_to_AngAxis(ang, axis);
+
             imu_csv << std::fixed << std::setprecision(6);
             imu_csv << acc_data.X;
             imu_csv << acc_data.Y;
@@ -304,7 +317,6 @@ int main(int argc, char* argv[]) {
             imu_csv << gyro_data.Roll;
             imu_csv << gyro_data.Pitch;
             imu_csv << gyro_data.Yaw;
-            imu_csv << mag_data.H;
             imu_csv << mag_data.X;
             imu_csv << mag_data.Y;
             imu_csv << mag_data.Z;

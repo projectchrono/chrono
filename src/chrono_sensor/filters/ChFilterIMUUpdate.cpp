@@ -134,13 +134,9 @@ CH_SENSOR_API void ChFilterMagnetometerUpdate::Apply(std::shared_ptr<ChSensor> p
     ChVector<double> pos = {0, 0, 0};
     if (pMag->m_keyframes.size() > 0) {
         for (auto c : pMag->m_keyframes) {
-            pos += c;
+            pos += c.GetPos();
         }
         pos = pos / (float)(pMag->m_keyframes.size());
-    }
-
-    if (m_noise_model) {
-        m_noise_model->AddNoise(pos);
     }
 
     if (!m_buffer) {
@@ -167,11 +163,24 @@ CH_SENSOR_API void ChFilterMagnetometerUpdate::Apply(std::shared_ptr<ChSensor> p
     } else {
         beta = asin(cos(phi - phi_0) * (cos(theta_0) / sin_theta_m));
     }
+
+    // get magnetic field in sensor frame
+    double H = B_abs * cos(alpha);
+    ChVector<double> mag_field = {H * cos(beta), H * sin(beta), B_abs * sin(alpha)};
+
+    double ang;
+    ChVector<double> axis;
+    pMag->m_keyframes[0].GetRot().Q_to_AngAxis(ang, axis);
+    ChVector<double> mag_field_sensor = pMag->m_keyframes[0].GetRot().Rotate(mag_field);
+
+    if (m_noise_model) {
+        m_noise_model->AddNoise(mag_field_sensor);
+    }
+
     // pack magnetometer data
-    m_buffer->Buffer[0].H = B_abs * cos(alpha);                 // mag[0];
-    m_buffer->Buffer[0].X = B_abs * sin(alpha);                 // mag[1];
-    m_buffer->Buffer[0].Y = m_buffer->Buffer[0].H * cos(beta);  // mag[2];
-    m_buffer->Buffer[0].Z = m_buffer->Buffer[0].H * sin(beta);  // mag[0 * 2];
+    m_buffer->Buffer[0].X = mag_field_sensor.x();  // units of Gauss
+    m_buffer->Buffer[0].Y = mag_field_sensor.y();  // units of Gauss
+    m_buffer->Buffer[0].Z = mag_field_sensor.z();  // units of Gauss
 
     m_buffer->LaunchedCount = pSensor->GetNumLaunches();
     m_buffer->TimeStamp = (float)pSensor->GetParent()->GetSystem()->GetChTime();

@@ -99,7 +99,7 @@ class CH_SENSOR_API ChFilterMagnetometerUpdate : public ChFilter {
 
     const double theta_0 = 80.65 * CH_C_DEG_TO_RAD;  // latitude of magnetic pole
     const double phi_0 = -72.68 * CH_C_DEG_TO_RAD;   // longitude of magnetic pole
-    const double B_0 = 0.0000305;                    // mean magnetic field at magnetic equator
+    const double B_0 = 0.305;                        // mean magnetic field at magnetic equator (in Gauss)
 };
 
 /// @}

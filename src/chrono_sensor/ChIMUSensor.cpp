@@ -67,8 +67,9 @@ CH_SENSOR_API ChMagnetometerSensor::ChMagnetometerSensor(std::shared_ptr<chrono:
 }
 
 CH_SENSOR_API void ChMagnetometerSensor::PushKeyFrame() {
-    ChVector<double> pos_data = m_parent->TransformPointLocalToParent(m_offsetPose.GetPos());
-    m_keyframes.push_back(pos_data);
+    ChFrame<double> frame;
+    m_parent->ChFrame<double>::TransformLocalToParent(m_offsetPose, frame);
+    m_keyframes.push_back(frame);
 }
 CH_SENSOR_API void ChMagnetometerSensor::ClearKeyFrames() {
     m_keyframes.clear();

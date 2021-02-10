@@ -104,7 +104,7 @@ class CH_SENSOR_API ChMagnetometerSensor : public ChDynamicSensor {
     virtual void ClearKeyFrames();
 
   private:
-    std::vector<ChVector<double>> m_keyframes;
+    std::vector<ChFrame<double>> m_keyframes;
     friend class ChFilterMagnetometerUpdate;
 };
 /// @} sensor_sensors

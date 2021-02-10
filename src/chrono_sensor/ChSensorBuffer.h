@@ -167,10 +167,9 @@ using UserGyroBufferPtr = std::shared_ptr<SensorHostGyroBuffer>;
 
 /// Magnetometer data
 struct MagnetData {
-    double H;  /// horizontal field intensity
-    double X;  /// latitudinal component of magnetic field
-    double Y;  /// longitudinal component of magnetic field
-    double Z;  /// vertical component of magnetic field
+    double X;  /// x component of magnetic field
+    double Y;  /// y component of magnetic field
+    double Z;  /// z component of magnetic field
 };
 /// acclerometer host buffer to be used by acclerometer filters in the graph
 using SensorHostMagnetBuffer = SensorBufferT<std::shared_ptr<MagnetData[]>>;
