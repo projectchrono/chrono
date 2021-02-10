@@ -689,6 +689,14 @@ else()
   set(CHRONO_TBB_ENABLED "#undef CHRONO_TBB_ENABLED")
 endif()
 
+if(CUDA_FOUND)
+  set(CHRONO_CUDA_FOUND "#define CHRONO_CUDA_FOUND")
+  set(CHRONO_CUDA_VERSION "#define CHRONO_CUDA_VERSION \"${CUDA_VERSION_STRING}\"")
+else()
+  set(CHRONO_CUDA_FOUND "#undef CHRONO_CUDA_FOUND")
+  set(CHRONO_CUDA_VERSION "#undef CHRONO_CUDA_VERSION")
+endif()
+
 configure_file("${CMAKE_CURRENT_SOURCE_DIR}/chrono/ChConfig.h.in"
                "${PROJECT_BINARY_DIR}/chrono/ChConfig.h"
                @ONLY)
