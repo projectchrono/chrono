@@ -190,7 +190,6 @@ CH_BM_SIMULATION_LOOP(M113Acc_DP, dp_test_type, NUM_SKIP_STEPS, NUM_SIM_STEPS, R
 // =============================================================================
 
 int main(int argc, char* argv[]) {
-    utils::AddComandLineArgument(&argc, &argv, "--benchmark_counters_tabular");
     ::benchmark::Initialize(&argc, argv);
 
 #ifdef CHRONO_IRRLICHT
