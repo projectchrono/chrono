@@ -74,13 +74,14 @@ endif()
 # Add optional HDF5 support
 # ------------------------------------------------------------------------------
 
-if(HDF5_FOUND)
-    include_directories(${HDF5_INCLUDE_DIRS})
-    set(CH_GPU_INCLUDES ${CH_GPU_INCLUDES} ${HDF5_INCLUDE_DIRS})
-    set(CH_CPU_COMPILE_DEFS "${CH_CPU_COMPILE_DEFS} ${H5_BUILT_AS_DYNAMIC_LIB}")
-    list(APPEND CH_GPU_LINKED_LIBRARIES ${HDF5_CXX_LIBRARIES})
-    add_definitions(-DUSE_HDF5)
-endif()
+#if(HDF5_FOUND)
+#    include_directories(${HDF5_INCLUDE_DIRS})
+#    set(CH_GPU_INCLUDES ${CH_GPU_INCLUDES} ${HDF5_INCLUDE_DIRS})
+##    set(CH_CPU_COMPILE_DEFS "${CH_CPU_COMPILE_DEFS} ${HDF5_COMPILE_DEFS} ${H5_BUILT_AS_DYNAMIC_LIB}")
+#    set(CH_CPU_COMPILE_DEFS "${CH_CPU_COMPILE_DEFS} ${H5_BUILT_AS_DYNAMIC_LIB}")
+#    list(APPEND CH_GPU_LINKED_LIBRARIES ${HDF5_CXX_LIBRARIES})
+#    add_definitions(-DUSE_HDF5)
+#endif()
 
 # ------------------------------------------------------------------------------
 # Make some variables visible from parent directory
@@ -159,6 +160,10 @@ CUDA_ADD_LIBRARY(ChronoEngine_gpu SHARED
 set_target_properties(ChronoEngine_gpu PROPERTIES
                       LINK_FLAGS "${CH_GPU_LINKER_FLAGS}"
                       COMPILE_DEFINITIONS "CH_API_COMPILE_GPU ${CH_CPU_COMPILE_DEFS}")
+
+#if(HDF5_FOUND)
+#target_compile_definitions(ChronoEngine_gpu PRIVATE ${HDF5_COMPILE_DEFS})
+#endif()
 
 target_link_libraries(ChronoEngine_gpu ${CH_GPU_LINKED_LIBRARIES})
 
