@@ -521,11 +521,11 @@ ENDIF()
 
 # Install required chrono_thirdparty headers
 install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/easylogging
-        DESTINATION include/chrono_thirdparty/easylogging
+        DESTINATION include/chrono_thirdparty
         FILES_MATCHING PATTERN "*.h" PATTERN "*.cuh" PATTERN "*.hpp" PATTERN "*.inl")
 
 if(USE_MULTICORE_CUDA)
   install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/cub
-          DESTINATION include/chrono_thirdparty/cub
+          DESTINATION include/chrono_thirdparty
           FILES_MATCHING PATTERN "*.h" PATTERN "*.cuh" PATTERN "*.hpp" PATTERN "*.inl")
 endif()
