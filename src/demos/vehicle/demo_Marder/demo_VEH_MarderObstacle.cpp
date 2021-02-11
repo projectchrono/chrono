@@ -12,7 +12,7 @@
 // Authors: Radu Serban / Rainer Gericke
 // =============================================================================
 //
-// Demonstration program for Marder vehicle on rigid terrain.
+// Demonstration program for Marder vehicle on rigid NRMM trapezoidal obstacle
 //
 // =============================================================================
 
@@ -25,7 +25,7 @@
 #include "chrono_vehicle/driver/ChIrrGuiDriver.h"
 #include "chrono_vehicle/driver/ChPathFollowerDriver.h"
 
-#include "chrono_vehicle/terrain/RandomSurfaceTerrain.h"
+#include "chrono_vehicle/terrain/ObsModTerrain.h"
 #include "chrono_vehicle/output/ChVehicleOutputASCII.h"
 
 #include "chrono_vehicle/tracked_vehicle/utils/ChTrackedVehicleIrrApp.h"
@@ -102,31 +102,19 @@ int main(int argc, char* argv[]) {
     const double mphToMetersPerSec = 0.44704;
     const double MetersPerSecToMph = 2.2369362921;
 
-    ChFunction_Recorder zeroLoad;
-    zeroLoad.AddPoint(0, 0);
-    zeroLoad.AddPoint(5.0, 2.80372);
-    zeroLoad.AddPoint(10.0, 3.8346);
-    zeroLoad.AddPoint(15.0, 4.78549);
-
     ChFunction_Recorder accTravel;
-    accTravel.AddPoint(1.0, 10.0);
+    accTravel.AddPoint(1.0, 1.0);
     accTravel.AddPoint(5.0, 10.0);
     accTravel.AddPoint(10.0, 25.0);
     accTravel.AddPoint(15.0, 80.0);
     accTravel.AddPoint(20.0, 300.0);
 
-    int iTerrain = 2;
-    if (argc != 3) {
-        GetLog() << "usage: prog TerrainNumber Speed\n";
-        return 1;
-    }
-    iTerrain = atoi(argv[1]);
-
-    double target_speed = atof(argv[2]);
+    double target_speed = 2.0;
     double xpos_max = 100.0;
     initLoc.x() = -accTravel.Get_y(target_speed);
+
     // --------------------------
-    // Construct the M113 vehicle
+    // Construct the Marder vehicle
     // --------------------------
 
     ChContactMethod contact_method = ChContactMethod::SMC;
@@ -219,37 +207,16 @@ int main(int argc, char* argv[]) {
     minfo.Y = 2e7f;
 
     // Create the ground
-    RandomSurfaceTerrain terrain(marder.GetSystem(), xpos_max);
-    double track_width = 2.72;
+    double base_height = 0.0;
+    double friction_coef = 0.8;
+    double aa = 170.0;
+    double obl = 5.0;
+    double obh = 1.0;
+    ObsModTerrain terrain(marder.GetSystem(), base_height, friction_coef, aa, obl, obh);
     auto terrain_mat = minfo.CreateMaterial(contact_method);
-    terrain.EnableCollisionMesh(terrain_mat, std::abs(initLoc.x()) + 5, 0.005);
-    switch (iTerrain) {
-        default:
-        case 1:
-            terrain.Initialize(RandomSurfaceTerrain::SurfaceType::ISO8608_A_CORR, track_width);
-            break;
-        case 2:
-            terrain.Initialize(RandomSurfaceTerrain::SurfaceType::ISO8608_B_CORR, track_width);
-            break;
-        case 3:
-            terrain.Initialize(RandomSurfaceTerrain::SurfaceType::ISO8608_C_CORR, track_width);
-            break;
-        case 4:
-            terrain.Initialize(RandomSurfaceTerrain::SurfaceType::ISO8608_D_CORR, track_width);
-            break;
-        case 5:
-            terrain.Initialize(RandomSurfaceTerrain::SurfaceType::ISO8608_E_CORR, track_width);
-            break;
-        case 6:
-            terrain.Initialize(RandomSurfaceTerrain::SurfaceType::ISO8608_F_NOCORR, track_width);
-            break;
-        case 7:
-            terrain.Initialize(RandomSurfaceTerrain::SurfaceType::ISO8608_G_NOCORR, track_width);
-            break;
-        case 8:
-            terrain.Initialize(RandomSurfaceTerrain::SurfaceType::ISO8608_H_NOCORR, track_width);
-            break;
-    }
+    terrain.EnableCollisionMesh(terrain_mat, std::abs(initLoc.x()) + 5, 0.03);
+    terrain.Initialize(ObsModTerrain::VisualisationType::MESH);
+    xpos_max = terrain.GetXObstacleEnd() + 10.0;
 
     // ---------------------------------------
     // Create the vehicle Irrlicht application
@@ -358,14 +325,11 @@ int main(int argc, char* argv[]) {
     double contact_speed = 0.0;
     std::ofstream kurs("kurs.txt");
 
-    ChFunction_Recorder accLogger;
-    utils::ChButterworth_Lowpass lp(4, step_size, 30.0);
-    utils::ChRunningAverage avg(50);
-
-    ChISO2631_Vibration_SeatCushionLogger seat_logger(step_size);
     ChTimer<> timer;
     timer.reset();
     timer.start();
+    double sim_time = 0;
+    double bail_out_time = 30.0;
     while (app.GetDevice()->run()) {
         // Debugging output
         if (dbg_output) {
@@ -424,17 +388,17 @@ int main(int argc, char* argv[]) {
         }
 
         double time = marder.GetVehicle().GetChTime();
-        double speed = avg.Add(marder.GetVehicle().GetVehicleSpeed());
+        sim_time = time;
+        double speed = marder.GetVehicle().GetVehicleSpeed();
         double xpos = marder.GetVehicle().GetVehiclePos().x();
         double yerr = marder.GetVehicle().GetVehiclePos().y();
         kurs << time << "\t" << xpos << "\t" << yerr << "\t" << speed << "\t" << std::endl;
-        if (xpos >= 0.0) {
-            ChVector<double> acc =
-                marder.GetVehicle().GetVehiclePointAcceleration(marder.GetChassis()->GetLocalDriverCoordsys().pos);
-            seat_logger.AddData(speed, acc);
-        }
-        if (xpos > xpos_max)
+        if (xpos > xpos_max) {
             break;
+        }
+        if (time > bail_out_time) {
+            break;
+        }
         driver.SetDesiredSpeed(ChSineStep(time, 1.0, 0.0, 2.0, target_speed));
         // Collect output data from modules
         ChDriver::Inputs driver_inputs = driver.GetInputs();
@@ -470,22 +434,9 @@ int main(int argc, char* argv[]) {
     kurs.close();
     marder.GetVehicle().WriteContacts("Marder_contacts.out");
 
-    double awv = seat_logger.GetAW_V();
-    double ap = seat_logger.GetAbsorbedPowerVertical();
-    double vel_avg = seat_logger.GetAVGSpeed();
-    double tex = seat_logger.GetExposureTime();
-    double rms = terrain.GetRMS();
     double wallclock_time = timer.GetTimeSeconds();
-    GetLog() << "Roughness       = " << rms << " m\n";
-    GetLog() << "Avg speed       = " << vel_avg << " m/s\n";
-    GetLog() << "Awv             = " << awv << " m/s\n";
-    GetLog() << "Absorbed Power  = " << ap << " W\n";
-    GetLog() << "Exposure Time   = " << tex << " s\n";
+    GetLog() << "Model time      = " << sim_time << " s\n";
     GetLog() << "Wall clock time = " << wallclock_time << " s\n";
-    GetLog() << "\nNRMM Formatted Results:\n";
-    GetLog() << "Roughness       = " << rms * MetersToInch << " in\n";
-    GetLog() << "Avg speed       = " << vel_avg * MetersPerSecToMph << " mph\n";
-    GetLog() << "Absorbed Power  = " << (ap - zeroLoad.Get_y(vel_avg)) << " W\n";
 
     return 0;
 }
