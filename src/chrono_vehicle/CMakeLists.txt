@@ -54,7 +54,7 @@ if (ENABLE_OPENCRG)
 
    if(EXISTS "${OPENCRG_INCLUDE_DIR}/crgBaseLib.h" AND EXISTS "${OPENCRG_LIBRARY}")
      set(HAVE_OPENCRG ON)
-  else()
+   else()
      set(HAVE_OPENCRG OFF)
    endif()
 
@@ -947,14 +947,14 @@ install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/stb
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 
-    if(ENABLE_MODULE_IRRLICHT AND EXISTS ${CH_IRRKLANG_DLL})
+    if(ENABLE_MODULE_IRRLICHT AND EXISTS "${CH_IRRKLANG_DLL}")
         add_custom_command(TARGET ChronoEngine_vehicle_irrlicht POST_BUILD
             COMMAND ${CMAKE_COMMAND} -E copy_if_different
             "${CH_IRRKLANG_DLL}"
             "${PROJECT_BINARY_DIR}/bin/$<CONFIGURATION>")
     endif()
 
-    if(EXISTS ${OPENCRG_DLL})
+    if(EXISTS "${OPENCRG_DLL}")
         add_custom_command(TARGET ChronoEngine_vehicle POST_BUILD
             COMMAND ${CMAKE_COMMAND} -E copy_if_different
             "${OPENCRG_DLL}"
