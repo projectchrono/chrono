@@ -14,8 +14,6 @@
 
 #pragma once
 
-//#include <thrust/count.h>
-
 #include "chrono/solver/ChSystemDescriptor.h"
 
 #include "chrono_multicore/ChMulticoreDefines.h"

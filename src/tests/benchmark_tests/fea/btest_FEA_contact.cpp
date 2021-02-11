@@ -268,7 +268,6 @@ CH_BM_SIMULATION_ONCE(FEAcontact_MUMPS, FEAcontactTest_MUMPS, NUM_SKIP_STEPS, NU
 // =============================================================================
 
 int main(int argc, char* argv[]) {
-    utils::AddComandLineArgument(&argc, &argv, "--benchmark_counters_tabular");
     ::benchmark::Initialize(&argc, argv);
 
 #ifdef CHRONO_IRRLICHT

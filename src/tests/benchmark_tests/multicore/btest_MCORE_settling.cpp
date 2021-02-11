@@ -184,7 +184,6 @@ BENCHMARK_REGISTER_F(TEST_NAME, Settle)
 // =============================================================================
 
 int main(int argc, char* argv[]) {
-    utils::AddComandLineArgument(&argc, &argv, "--benchmark_counters_tabular");
     ::benchmark::Initialize(&argc, argv);
 
 #ifdef CHRONO_IRRLICHT
