@@ -212,3 +212,8 @@ install(TARGETS ChronoEngine_synchrono
 install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/
         DESTINATION include/chrono_synchrono
         FILES_MATCHING PATTERN "*.h")
+
+# Install required chrono_thirdparty headers
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/flatbuffers
+        DESTINATION include/chrono_thirdparty/flatbuffers
+        FILES_MATCHING PATTERN "*.h" PATTERN "*.cuh" PATTERN "*.hpp" PATTERN "*.inl")

@@ -932,6 +932,15 @@ install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/
         DESTINATION include/chrono_vehicle
         FILES_MATCHING PATTERN "*.h")
 
+# Install required chrono_thirdparty headers
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/Easy_BMP
+        DESTINATION include/chrono_thirdparty/Easy_BMP
+        FILES_MATCHING PATTERN "*.h" PATTERN "*.cuh" PATTERN "*.hpp" PATTERN "*.inl")
+
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/stb
+        DESTINATION include/chrono_thirdparty/stb
+        FILES_MATCHING PATTERN "*.h" PATTERN "*.cuh" PATTERN "*.hpp" PATTERN "*.inl")
+
 #-------------------------------------------------------------------------------
 # On Windows, copy DLLs (if specified)
 #-------------------------------------------------------------------------------

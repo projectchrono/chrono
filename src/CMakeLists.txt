@@ -562,9 +562,49 @@ endif()
 # Install headers from chrono_thirdparty folder
 #------------------------------------------------------------
 
-install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/chrono_thirdparty
-        DESTINATION include
-	FILES_MATCHING PATTERN "*.h" PATTERN "*.cuh" PATTERN "*.hpp" PATTERN "*.inl")
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/filesystem
+        DESTINATION include/chrono_thirdparty/filesystem
+        FILES_MATCHING PATTERN "*.h" PATTERN "*.cuh" PATTERN "*.hpp" PATTERN "*.inl")
+
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/cxxopts
+        DESTINATION include/chrono_thirdparty/cxxopts
+        FILES_MATCHING PATTERN "*.h" PATTERN "*.cuh" PATTERN "*.hpp" PATTERN "*.inl")
+
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/HACD
+        DESTINATION include/chrono_thirdparty/HACD
+        FILES_MATCHING PATTERN "*.h" PATTERN "*.cuh" PATTERN "*.hpp" PATTERN "*.inl")
+
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/HACDv2
+        DESTINATION include/chrono_thirdparty/HACDv2
+        FILES_MATCHING PATTERN "*.h" PATTERN "*.cuh" PATTERN "*.hpp" PATTERN "*.inl")
+
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/rapidjson
+        DESTINATION include/chrono_thirdparty/rapidjson
+        FILES_MATCHING PATTERN "*.h" PATTERN "*.cuh" PATTERN "*.hpp" PATTERN "*.inl")
+
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/rapidxml
+        DESTINATION include/chrono_thirdparty/rapidxml
+        FILES_MATCHING PATTERN "*.h" PATTERN "*.cuh" PATTERN "*.hpp" PATTERN "*.inl")
+
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/tinyobjloader
+        DESTINATION include/chrono_thirdparty/tinyobjloader
+        FILES_MATCHING PATTERN "*.h" PATTERN "*.cuh" PATTERN "*.hpp" PATTERN "*.inl")
+
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/yafel
+        DESTINATION include/chrono_thirdparty/yafel
+        FILES_MATCHING PATTERN "*.h" PATTERN "*.cuh" PATTERN "*.hpp" PATTERN "*.inl")
+
+if(BUILD_TESTING)
+   install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/googletest
+           DESTINATION include/chrono_thirdparty/googletest
+           FILES_MATCHING PATTERN "*.h" PATTERN "*.cuh" PATTERN "*.hpp" PATTERN "*.inl")
+endif()
+
+if(BUILD_BENCHMARKING)
+   install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/googlebenchmark
+           DESTINATION include/chrono_thirdparty/googlebenchmark
+           FILES_MATCHING PATTERN "*.h" PATTERN "*.cuh" PATTERN "*.hpp" PATTERN "*.inl")
+endif()
 
 #------------------------------------------------------------
 # Generate and install the Chrono configuration header
