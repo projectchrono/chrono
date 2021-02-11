@@ -23,6 +23,10 @@
 
 #include <iostream>
 
+// Include the ChConfigMulticore header *before* any Thrust headers!
+#include "chrono_multicore/ChApiMulticore.h"
+#include "chrono_multicore/ChConfigMulticore.h"
+
 #include <thrust/reduce.h>
 #include <thrust/gather.h>
 #include <thrust/scan.h>
@@ -39,9 +43,6 @@
 #ifndef _MSC_VER
 #include <cfenv>
 #endif
-
-#include "chrono_multicore/ChApiMulticore.h"
-#include "chrono_multicore/ChConfigMulticore.h"
 
 typedef int shape_type;
 
