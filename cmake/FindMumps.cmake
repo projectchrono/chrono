@@ -22,13 +22,13 @@ UNSET(MUMPS_SHARED_LIBRARIES CACHE)
 ################# Mumps library itself #####################
 UNSET(MUMPS_ONLY_FOUND)
 find_library(MUMPS_ONLY_LIBRARY_COMMON
-			 "libmumps_common"
+			 "mumps_common"
 			 PATHS ${MUMPS_ROOT}
 			 PATH_SUFFIXES "lib" "lib64" "libraries"
          )
 		 
 find_library(MUMPS_ONLY_LIBRARY_ARITHMETIC_SPECIFIC
-			 "lib${MUMPS_ARITH_PREFIX}mumps"
+			 "${MUMPS_ARITH_PREFIX}mumps"
 			 PATHS ${MUMPS_ROOT}
 			 PATH_SUFFIXES "lib" "lib64" "libraries"
          )
@@ -36,7 +36,7 @@ find_library(MUMPS_ONLY_LIBRARY_ARITHMETIC_SPECIFIC
 find_file (MUMPS_SHARED_LIBRARIES
           "lib${MUMPS_ARITH_PREFIX}mumps${CMAKE_SHARED_LIBRARY_SUFFIX}"
           PATHS ${MUMPS_ROOT}
-	      PATH_SUFFIXES "bin"
+	      PATH_SUFFIXES "lib"
          )
 
 find_path(MUMPS_ONLY_INCLUDE_DIRS
@@ -64,7 +64,7 @@ IF (MUMPS_USE_MPI)
 	)
 	
 	find_library(MUMPS_MPI_LIBRARIES
-				libmpi
+				mpi
 	)
 	SET(MUMPS_MPI_FOUND TRUE)
 ELSE (MUMPS_USE_MPI)
@@ -79,7 +79,7 @@ ELSE (MUMPS_USE_MPI)
 	)
 	
 	find_library(MUMPS_MPI_LIBRARIES
-				libmpiseq
+				mpiseq
 				PATHS ${MUMPS_ROOT}
 				PATH_SUFFIXES "libseq" "libseqmpi" "lib" "lib64"
 				NO_DEFAULT_PATH
@@ -104,7 +104,7 @@ IF (MUMPS_USE_DEFAULT_ORDERINGS)
 	# )
 	
 	find_library(MUMPS_ORDERINGS_LIBRARIES
-				libpord
+				pord
 				PATHS ${MUMPS_ROOT}
 				PATH_SUFFIXES "PORD/lib" "PORD" "PORD/libraries" "lib" "lib64"
 	)
