@@ -127,6 +127,20 @@ class Copter {
     /// Set ground air temperature.
     void SetGroundTemperature(double temp) { Temp0 = temp; }
 
+	/// Get the number of propellers.
+    int GetNumProps() const { return nop; }
+
+	/// Get the propellers bodies.
+    std::vector<std::shared_ptr<ChBody>> GetProps() const { return props; }
+
+	/// Get the name of the Wavefront file with chassis visualization mesh.
+    /// An empty string is returned if no mesh was specified.
+    virtual const std::string& GetChassisMeshFilename() const { return chassis_mesh_path; }
+
+	/// Get the name of the Wavefront file with propeller visualization mesh.
+    /// An empty string is returned if no mesh was specified.
+    virtual const std::string& GetPropellerMeshFilename() const { return propeller_mesh_path; }
+
   private:
     // Would need to be modified for special condition (e.g. Mars atmosphere)
     // This model holds below 11 km altitude.
@@ -134,8 +148,8 @@ class Copter {
 
   protected:
     std::shared_ptr<ChBody> chassis;                    ///< Chassis body
-    std::string chassis_mesh_file;                      ///< Visualization meshes
-    std::string prop_mesh_file;                         ///< Visualization meshes
+    std::string chassis_mesh_path;                      ///< Visualization meshes
+    std::string propeller_mesh_path;                    ///< Visualization meshes
     std::vector<std::shared_ptr<ChBody>> props;         ///< Propeller bodies
     double rps_max;                                     ///< Max propeller angular speed [rot/s]
     double Dp;                                          ///< Propeller diameter [m]
@@ -201,7 +215,12 @@ Copter<nop>::Copter(ChSystem& sys,
         if (clockwise[p]) {
             motor_rot = Q_FLIP_AROUND_X * motor_rot;
         };
-        propmot->Initialize(prop, chassis, ChFrame<>(ppos[p], motor_rot));
+        
+        if (are_prop_pos_rel) {
+            propmot->Initialize(prop, chassis, ChFrame<>(cpos + ppos[p], motor_rot)); 
+        } else {
+            propmot->Initialize(prop, chassis, ChFrame<>(ppos[p], motor_rot));
+        }
         auto speed = chrono_types::make_shared<ChFunction_Const>(0);
         propmot->SetSpeedFunction(speed);
         sys.AddLink(propmot);
