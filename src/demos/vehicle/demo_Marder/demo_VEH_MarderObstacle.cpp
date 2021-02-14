@@ -193,10 +193,6 @@ int main(int argc, char* argv[]) {
     // monitored parts.  Data can be written to a file by invoking ChTrackedVehicle::WriteContacts().
     ////marder.GetVehicle().SetContactCollection(true);
 
-    // Enable custom contact force calculation for road wheel - track shoe collisions.
-    // If enabled, the underlying Chrono contact processing does not compute any forces.
-    ////vehicle.EnableCustomContact(chrono_types::make_shared<MyCustomContact>(), false, true);
-
     // ------------------
     // Create the terrain
     // ------------------
@@ -208,7 +204,7 @@ int main(int argc, char* argv[]) {
 
     // Create the ground
     double base_height = 0.0;
-    double friction_coef = 0.8;
+    float friction_coef = 0.8f;
     double aa = 170.0;
     double obl = 5.0;
     double obh = 1.0;
