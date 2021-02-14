@@ -39,6 +39,8 @@
 %shared_ptr(chrono::vehicle::SCMDeformableTerrain)
 %shared_ptr(chrono::vehicle::SCMDeformableTerrain::SoilParametersCallback)
 
+%template(ChPatchList) std::vector<std::shared_ptr<chrono::vehicle::RigidTerrain::Patch>>;
+
 /* Parse the header file to generate wrappers */
 %include "../../chrono_vehicle/ChTerrain.h"    
 %include "../../chrono_vehicle/terrain/FlatTerrain.h"
