@@ -25,6 +25,7 @@
 #include "chrono_vehicle/driver/ChIrrGuiDriver.h"
 #include "chrono_vehicle/driver/ChPathFollowerDriver.h"
 
+#include "chrono_vehicle/powertrain/ChSimpleCVTPowertrain.h"
 #include "chrono_vehicle/terrain/ObsModTerrain.h"
 #include "chrono_vehicle/output/ChVehicleOutputASCII.h"
 
@@ -193,6 +194,19 @@ int main(int argc, char* argv[]) {
     // monitored parts.  Data can be written to a file by invoking ChTrackedVehicle::WriteContacts().
     ////marder.GetVehicle().SetContactCollection(true);
 
+    // under belly points to estimate vehicle/ground interference
+    double heightCorr = 0.0;
+    std::vector<ChVector<double> > bellyPts;
+    bellyPts.push_back(ChVector<>(0.2332, 0, 0));
+    bellyPts.push_back(ChVector<double>(-0.1043, 0, -0.3759));
+    bellyPts.push_back(ChVector<double>(-1.45045, 0, -0.3759));
+    bellyPts.push_back(ChVector<double>(-2.7966, 0, -0.3759));
+    bellyPts.push_back(ChVector<double>(-4.14275, 0, -0.3759));
+    bellyPts.push_back(ChVector<double>(-5.4889, 0, -0.3759));
+    bellyPts.push_back(ChVector<double>(-5.9805, 0, 0.3655));
+    std::vector<ChFunction_Recorder> clearance;
+    clearance.resize(bellyPts.size());
+
     // ------------------
     // Create the terrain
     // ------------------
@@ -212,7 +226,7 @@ int main(int argc, char* argv[]) {
     auto terrain_mat = minfo.CreateMaterial(contact_method);
     terrain.EnableCollisionMesh(terrain_mat, std::abs(initLoc.x()) + 5, 0.03);
     terrain.Initialize(ObsModTerrain::VisualisationType::MESH);
-    xpos_max = terrain.GetXObstacleEnd() + 10.0;
+    xpos_max = terrain.GetXObstacleEnd() + 7.0;
 
     // ---------------------------------------
     // Create the vehicle Irrlicht application
@@ -326,6 +340,12 @@ int main(int argc, char* argv[]) {
     timer.start();
     double sim_time = 0;
     double bail_out_time = 30.0;
+
+    ChRunningAverage avg(100);                    // filter angine torque
+    std::vector<double> engineForce;              // store obstacle related tractive force
+    double effRadius = 0.328414781 + 0.06 / 2.0;  // sprocket pitch radius + track shoe thickness / 2
+    double gear_ratio = 0.05;
+
     while (app.GetDevice()->run()) {
         // Debugging output
         if (dbg_output) {
@@ -389,6 +409,16 @@ int main(int argc, char* argv[]) {
         double xpos = marder.GetVehicle().GetVehiclePos().x();
         double yerr = marder.GetVehicle().GetVehiclePos().y();
         kurs << time << "\t" << xpos << "\t" << yerr << "\t" << speed << "\t" << std::endl;
+        if (xpos >= -1.0 && xpos <= xpos_max) {
+            double eTorque =
+                avg.Add(std::static_pointer_cast<ChSimpleCVTPowertrain>(marder.GetPowertrain())->GetMotorTorque());
+            engineForce.push_back(eTorque * effRadius / gear_ratio);
+            for (size_t i = 0; i < bellyPts.size(); i++) {
+                ChVector<> p = marder.GetVehicle().GetVehiclePointLocation(bellyPts[i]);
+                double t = terrain.GetHeight(ChVector<>(p.x(), p.y(), 0));
+                clearance[i].AddPoint(xpos, p.z() - t);
+            }
+        }
         if (xpos > xpos_max) {
             break;
         }
@@ -430,9 +460,33 @@ int main(int argc, char* argv[]) {
     kurs.close();
     marder.GetVehicle().WriteContacts("Marder_contacts.out");
 
+    double clearMin = 99.0;
+    for (size_t i = 0; i < clearance.size(); i++) {
+        double x1, x2;
+        double vmin, vmax;
+        clearance[i].Estimate_x_range(x1, x2);
+        clearance[i].Estimate_y_range(x1, x2, vmin, vmax, 0);
+        GetLog() << "Clearance#" << i << " = " << vmin << "\n";
+        if (vmin < clearMin) {
+            clearMin = vmin;
+        }
+    }
+
     double wallclock_time = timer.GetTimeSeconds();
     GetLog() << "Model time      = " << sim_time << " s\n";
     GetLog() << "Wall clock time = " << wallclock_time << " s\n";
+
+    double fMax = 0.0;
+    double fMean = 0.0;
+    for (size_t i = 0; i < engineForce.size(); i++) {
+        if (engineForce[i] > fMax)
+            fMax = engineForce[i];
+        fMean += engineForce[i];
+    }
+    fMean /= double(engineForce.size());
+    GetLog() << "Average Tractive Force = " << fMean << " N\n";
+    GetLog() << "Max Tractive Force     = " << fMax << " N\n";
+    GetLog() << "Min. Clearance         = " << clearMin << " m\n";
 
     return 0;
 }
