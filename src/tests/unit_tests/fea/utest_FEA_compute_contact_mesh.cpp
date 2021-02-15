@@ -26,7 +26,6 @@
 
 #include "chrono/ChConfig.h"
 #include "chrono/physics/ChContactContainerSMC.h"
-#include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/solver/ChIterativeSolverLS.h"
 #include "chrono/utils/ChUtilsCreators.h"
@@ -37,6 +36,7 @@
 
 using namespace chrono;
 using namespace chrono::fea;
+
 // ====================================================================================
 
 // ---------------------
@@ -90,66 +90,27 @@ double bin_width = 10;
 double bin_length = 10;
 double bin_thickness = 0.1;
 
-// Forward declaration
-bool test_computecontact(ChMaterialSurface::ContactMethod method);
-
 // ====================================================================================
 
 int main(int argc, char* argv[]) {
-    bool passed = true;
-    passed &= test_computecontact(ChMaterialSurface::SMC);
-    // passed &= test_computecontact(ChMaterialSurface::NSC);
+    ChSystemSMC system;
+    system.UseMaterialProperties(use_mat_properties);
+    system.SetContactForceModel(force_model);
+    system.SetTangentialDisplacementModel(tdispl_model);
+    system.SetStiffContact(stiff_contact);
 
-    // Return 0 if all tests passed.
-    return !passed;
-}
 
-// ====================================================================================
+    auto material = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+    material->SetYoungModulus(young_modulus);
+    material->SetRestitution(restitution);
+    material->SetFriction(friction);
+    material->SetAdhesion(adhesion);
+    material->SetKn(kn);
+    material->SetGn(gn);
+    material->SetKt(kt);
+    material->SetGt(gt);
 
-bool test_computecontact(ChMaterialSurface::ContactMethod method) {
-    // Create system and contact material.
-    ChSystem* system;
-    std::shared_ptr<ChMaterialSurface> material;
-
-    switch (method) {
-        case ChMaterialSurface::SMC: {
-            GetLog() << "Using PENALTY method.\n";
-
-            ChSystemSMC* sys = new ChSystemSMC;
-            sys->UseMaterialProperties(use_mat_properties);
-            sys->SetContactForceModel(force_model);
-            sys->SetTangentialDisplacementModel(tdispl_model);
-            sys->SetStiffContact(stiff_contact);
-            system = sys;
-
-            auto mat = chrono_types::make_shared<ChMaterialSurfaceSMC>();
-            mat->SetYoungModulus(young_modulus);
-            mat->SetRestitution(restitution);
-            mat->SetFriction(friction);
-            mat->SetAdhesion(adhesion);
-            mat->SetKn(kn);
-            mat->SetGn(gn);
-            mat->SetKt(kt);
-            mat->SetGt(gt);
-            material = mat;
-
-            break;
-        }
-        case ChMaterialSurface::NSC: {
-            GetLog() << "Using COMPLEMENTARITY method.\n";
-
-            system = new ChSystemNSC;
-
-            auto mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
-            mat->SetRestitution(restitution);
-            mat->SetFriction(friction);
-            material = mat;
-
-            break;
-        }
-    }
-
-    system->Set_G_acc(ChVector<>(0, gravity, 0));
+    system.Set_G_acc(ChVector<>(0, gravity, 0));
 
     // Create the ANCF shell element mesh
 
@@ -239,20 +200,19 @@ bool test_computecontact(ChMaterialSurface::ContactMethod method) {
     mysurfmaterial->SetGn(gn);
     mysurfmaterial->SetGt(gt);
 
-    auto contact_surf = chrono_types::make_shared<ChContactSurfaceNodeCloud>();
+    auto contact_surf = chrono_types::make_shared<ChContactSurfaceNodeCloud>(mysurfmaterial);
     my_mesh->AddContactSurface(contact_surf);
     contact_surf->AddAllNodes(m_contact_node_radius);
-    contact_surf->SetMaterialSurface(mysurfmaterial);
 
     // Switch off mesh class gravity (ANCF shell elements have a custom implementation)
     my_mesh->SetAutomaticGravity(false);
 
     // Remember to add the mesh to the system!
-    system->Add(my_mesh);
+    system.Add(my_mesh);
 
     // Create container box
     auto ground =
-        utils::CreateBoxContainer(system, binId, material, ChVector<>(bin_width, bin_length, 200 * dy), bin_thickness,
+        utils::CreateBoxContainer(&system, binId, material, ChVector<>(bin_width, bin_length, 200 * dy), bin_thickness,
         ChVector<>(0, -1.5*m_contact_node_radius, 0), ChQuaternion<>(1, 0, 0, 0), true, true, false, false);
 
     // -------------------
@@ -262,20 +222,19 @@ bool test_computecontact(ChMaterialSurface::ContactMethod method) {
     switch (solver_type) {
         case DEFAULT_SOLVER: {
             GetLog() << "Using DEFAULT solver.\n";
-            system->SetSolverMaxIterations(100);
-            system->SetSolverForceTolerance(1e-6);
+            system.SetSolverMaxIterations(100);
+            system.SetSolverForceTolerance(1e-6);
             break;
         }
         case MINRES_SOLVER: {
             GetLog() << "Using MINRES solver.\n";
             auto solver = chrono_types::make_shared<ChSolverMINRES>();
-            system->SetSolver(solver);
+            system.SetSolver(solver);
             solver->SetMaxIterations(100);
             solver->SetTolerance(1e-8);
             solver->EnableDiagonalPreconditioner(true);
             solver->SetVerbose(false);
-
-            system->SetSolverForceTolerance(1e-6);
+            system.SetSolverForceTolerance(1e-6);
             break;
         }
         default:
@@ -286,17 +245,12 @@ bool test_computecontact(ChMaterialSurface::ContactMethod method) {
     // Setup integrator
     // ----------------
 
-    if (method == ChMaterialSurface::SMC) {
-        GetLog() << "Using HHT integrator.\n";
-        system->SetTimestepperType(ChTimestepper::Type::HHT);
-        auto integrator = std::static_pointer_cast<ChTimestepperHHT>(system->GetTimestepper());
-        integrator->SetAlpha(0.0);
-        integrator->SetMaxiters(100);
-        integrator->SetAbsTolerances(1e-08);
-        integrator->SetScaling(false);
-    } else {
-        GetLog() << "Using default integrator.\n";
-    }
+    GetLog() << "Using HHT integrator.\n";
+    auto integrator = chrono_types::make_shared<ChTimestepperHHT>(&system);
+    integrator->SetAlpha(0.0);
+    integrator->SetMaxiters(100);
+    integrator->SetAbsTolerances(1e-08);
+    integrator->SetScaling(false);
 
     // ---------------
     // Simulation loop
@@ -304,20 +258,20 @@ bool test_computecontact(ChMaterialSurface::ContactMethod method) {
 
     bool passed = true;
     double total_weight = rho*plate_lenght_x*plate_lenght_y*plate_lenght_z*std::abs(gravity);
-    while (system->GetChTime() < end_time) {
-        system->DoStepDynamics(time_step);
+    while (system.GetChTime() < end_time) {
+        system.DoStepDynamics(time_step);
 
-        system->GetContactContainer()->ComputeContactForces();
+        system.GetContactContainer()->ComputeContactForces();
         ChVector<> contact_force = ground->GetContactForce();
-        GetLog() << "t = " << system->GetChTime() << " num contacts = " <<
-        system->GetContactContainer()->GetNcontacts()
+        GetLog() << "t = " << system.GetChTime() << " num contacts = " <<
+        system.GetContactContainer()->GetNcontacts()
                  << "  force =  " << contact_force.y() << "\n";
         GetLog() << "Vertical Displacement of a Node: " << nodeRef->GetPos().y() << "\n";
         GetLog() << "Total Weight of Shell: " << total_weight << "\n";
 
-        if (system->GetChTime() > start_time) {
+        if (system.GetChTime() > start_time) {
             if (std::abs(1 - std::abs(contact_force.y()) / total_weight) > rtol) {
-                GetLog() << "t = " << system->GetChTime() << "  force =  " << contact_force.y() << "\n";
+                GetLog() << "t = " << system.GetChTime() << "  force =  " << contact_force.y() << "\n";
                 passed = false;
                 break;
             }
@@ -326,6 +280,5 @@ bool test_computecontact(ChMaterialSurface::ContactMethod method) {
 
     GetLog() << "Test " << (passed ? "PASSED" : "FAILED") << "\n\n\n";
 
-    delete system;
-    return passed;
+    return !passed;
 }

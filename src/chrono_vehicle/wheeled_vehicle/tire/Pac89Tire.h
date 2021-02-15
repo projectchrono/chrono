@@ -22,14 +22,13 @@
 
 #include "chrono_vehicle/wheeled_vehicle/tire/ChPac89Tire.h"
 #include "chrono_vehicle/ChApiVehicle.h"
-#include "chrono/assets/ChTriangleMeshShape.h"
 
 #include "chrono_thirdparty/rapidjson/document.h"
 
 namespace chrono {
 namespace vehicle {
 
-/// @addtogroup vehicle_models_hmmwv
+/// @addtogroup vehicle_wheeled_tire
 /// @{
 
 /// PAC89 tire model from JSON file.
@@ -72,12 +71,12 @@ class CH_VEHICLE_API Pac89Tire : public ChPac89Tire {
     ChFunction_Recorder m_vert_map;
 
     double m_visualization_width;
-    std::string m_meshName;
-    std::string m_meshFile;
+    std::string m_meshFile_left;
+    std::string m_meshFile_right;
     std::shared_ptr<ChTriangleMeshShape> m_trimesh_shape;
 };
 
-/// @} vehicle_models_hmmwv
+/// @} vehicle_wheeled_tire
 
 }  // namespace vehicle
 }  // end namespace chrono

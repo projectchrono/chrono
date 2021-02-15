@@ -60,13 +60,14 @@ int main(int argc, char* argv[]) {
     //
 
     // Create the floor:
+    auto floor_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
 
-    auto floorBody = chrono_types::make_shared<ChBodyEasyBox>(20, 1, 20, 1000, true, true);
+    auto floorBody = chrono_types::make_shared<ChBodyEasyBox>(20, 1, 20, 1000, true, true, floor_mat);
     floorBody->SetPos(ChVector<>(0, -5, 0));
     floorBody->SetBodyFixed(true);
 
     auto mtexture = chrono_types::make_shared<ChTexture>();
-    mtexture->SetTextureFilename(GetChronoDataFile("concrete.jpg"));
+    mtexture->SetTextureFilename(GetChronoDataFile("textures/concrete.jpg"));
     floorBody->AddAsset(mtexture);
 
     mphysicalSystem.Add(floorBody);
@@ -146,7 +147,7 @@ int main(int argc, char* argv[]) {
             mbody->AddAsset(mvisual);
         }
     };
-    MyCreator_boxes* callback_boxes = new MyCreator_boxes;
+    auto callback_boxes = chrono_types::make_shared<MyCreator_boxes>();
     mcreator_boxes->RegisterAddBodyCallback(callback_boxes);
 
     // Finally, tell to the emitter that it must use the 'mixer' above:
@@ -172,7 +173,7 @@ int main(int argc, char* argv[]) {
         ChIrrApp* airrlicht_application;
     };
     // b- create the callback object...
-    MyCreatorForAll* mcreation_callback = new MyCreatorForAll;
+    auto mcreation_callback = chrono_types::make_shared<MyCreatorForAll>();
     // c- set callback own data that he might need...
     mcreation_callback->airrlicht_application = &application;
     // d- attach the callback to the emitter!

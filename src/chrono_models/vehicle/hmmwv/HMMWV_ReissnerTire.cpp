@@ -69,7 +69,7 @@ const std::vector<int> HMMWV_ReissnerTire::m_material_id_tread{{2, 1, 1, 0}};
 const int HMMWV_ReissnerTire::m_div_circumference = 90;
 
 const float HMMWV_ReissnerTire::m_friction = 0.9f;
-const float HMMWV_ReissnerTire::m_restiturion = 0.1f;
+const float HMMWV_ReissnerTire::m_restitution = 0.1f;
 const float HMMWV_ReissnerTire::m_Young = 2.0e6f;
 const float HMMWV_ReissnerTire::m_Poisson = 0.3f;
 const float HMMWV_ReissnerTire::m_kn = 2.0e6f;
@@ -121,18 +121,19 @@ const double HMMWV_ReissnerTire::m_profile[71][3] = {
 HMMWV_ReissnerTire::HMMWV_ReissnerTire(const std::string& name) : ChReissnerTire(name) {
     m_div_width = 2 * (m_num_elements_bead + m_num_elements_sidewall + m_num_elements_tread);
 
-    // Set contact material properties
-    SetContactFrictionCoefficient(m_friction);
-    SetContactRestitutionCoefficient(m_restitution);
-    SetContactMaterialProperties(m_Young, m_Poisson);
-    SetContactMaterialCoefficients(m_kn, m_gn, m_kt, m_gt);
-
     // Create the vector of orthotropic layer materials
     // Initialize with (density, E_x, E_y,nu_xy, Gxy, Gxz, Gyz)
     m_materials.resize(3);
     m_materials[0] = chrono_types::make_shared<ChMaterialShellReissnerOrthotropic>(m_rho_0, m_E_0.x(), m_E_0.y(), m_nu_0, m_G_0.x(), m_G_0.y(), m_G_0.z());
     m_materials[1] = chrono_types::make_shared<ChMaterialShellReissnerOrthotropic>(m_rho_1, m_E_1.x(), m_E_1.y(), m_nu_1, m_G_1.x(), m_G_1.y(), m_G_1.z());
     m_materials[2] = chrono_types::make_shared<ChMaterialShellReissnerOrthotropic>(m_rho_2, m_E_2.x(), m_E_2.y(), m_nu_2, m_G_2.x(), m_G_2.y(), m_G_2.z());
+
+	auto mdamping = chrono_types::make_shared<ChDampingReissnerRayleigh>(m_materials[0]->GetElasticity(),m_alpha);
+	m_materials[0]->SetDamping(mdamping);
+	mdamping = chrono_types::make_shared<ChDampingReissnerRayleigh>(m_materials[1]->GetElasticity(),m_alpha);
+	m_materials[1]->SetDamping(mdamping);
+	mdamping = chrono_types::make_shared<ChDampingReissnerRayleigh>(m_materials[2]->GetElasticity(),m_alpha);
+	m_materials[2]->SetDamping(mdamping);
 
     // Set the profile
     m_profile_t.resize(m_num_points);
@@ -242,9 +243,6 @@ void HMMWV_ReissnerTire::CreateMesh(const ChFrameMoving<>& wheel_frame, VehicleS
                 }
             }
 
-            // Set other element properties
-            element->SetAlphaDamp(m_alpha);
-
             // Add element to mesh
             m_mesh->AddElement(element);
         }
@@ -268,6 +266,18 @@ std::vector<std::shared_ptr<fea::ChNodeFEAbase>> HMMWV_ReissnerTire::GetConnecte
     }
 
     return nodes;
+}
+
+void HMMWV_ReissnerTire::CreateContactMaterial() {
+    m_contact_mat = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+    m_contact_mat->SetFriction(m_friction);
+    m_contact_mat->SetRestitution(m_restitution);
+    m_contact_mat->SetYoungModulus(m_Young);
+    m_contact_mat->SetPoissonRatio(m_Poisson);
+    m_contact_mat->SetKn(m_kn);
+    m_contact_mat->SetGn(m_gn);
+    m_contact_mat->SetKt(m_kt);
+    m_contact_mat->SetGt(m_gt);
 }
 
 }  // end namespace hmmwv

@@ -67,16 +67,17 @@ int main(int argc, char* argv[]) {
     //
 
     // Create the floor:
+    auto floor_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
 
-    auto floorBody = chrono_types::make_shared<ChBodyEasyBox>(20, 1, 20, 1000, true, true);
+    auto floorBody = chrono_types::make_shared<ChBodyEasyBox>(20, 1, 20, 1000, true, true, floor_mat);
     floorBody->SetPos(ChVector<>(0, -5, 0));
     floorBody->SetBodyFixed(true);
     floorBody->GetCollisionModel()->ClearModel();
-    floorBody->GetCollisionModel()->AddBox(10, 0.5, 10);
-    floorBody->GetCollisionModel()->AddBox(1, 12, 20, ChVector<>(-5, 0, 0));
-    floorBody->GetCollisionModel()->AddBox(1, 12, 20, ChVector<>(5, 0, 0));
-    floorBody->GetCollisionModel()->AddBox(10, 12, 1, ChVector<>(0, 0, -5));
-    floorBody->GetCollisionModel()->AddBox(10, 12, 1, ChVector<>(0, 0, 5));
+    floorBody->GetCollisionModel()->AddBox(floor_mat, 10, 0.5, 10);
+    floorBody->GetCollisionModel()->AddBox(floor_mat, 1, 12, 20, ChVector<>(-5, 0, 0));
+    floorBody->GetCollisionModel()->AddBox(floor_mat, 1, 12, 20, ChVector<>(5, 0, 0));
+    floorBody->GetCollisionModel()->AddBox(floor_mat, 10, 12, 1, ChVector<>(0, 0, -5));
+    floorBody->GetCollisionModel()->AddBox(floor_mat, 10, 12, 1, ChVector<>(0, 0, 5));
     floorBody->GetCollisionModel()->BuildModel();
 
     auto mvisual = chrono_types::make_shared<ChColorAsset>();
@@ -170,7 +171,7 @@ int main(int argc, char* argv[]) {
             mbody->AddAsset(mPOVcustom);
         }
     };
-    MyCreator_spheres* callback_spheres = new MyCreator_spheres;
+    auto callback_spheres = chrono_types::make_shared<MyCreator_spheres>();
     mcreator_spheres->RegisterAddBodyCallback(callback_spheres);
 
     // B)
@@ -204,7 +205,7 @@ int main(int argc, char* argv[]) {
                 mPOVcustom->SetCommands(" texture {pigment{ color rgb<0.3,0.3,0.8>} }  \n");
         }
     };
-    MyCreator_plastic* callback_boxes = new MyCreator_plastic;
+    auto callback_boxes = chrono_types::make_shared<MyCreator_plastic>();
     mcreator_boxes->RegisterAddBodyCallback(callback_boxes);
 
     // C)
@@ -232,7 +233,7 @@ int main(int argc, char* argv[]) {
             mbody->AddAsset(mPOVcustom);
         }
     };
-    MyCreator_hulls* callback_hulls = new MyCreator_hulls;
+    auto callback_hulls = chrono_types::make_shared<MyCreator_hulls>();
     mcreator_hulls->RegisterAddBodyCallback(callback_hulls);
 
     // D)
@@ -259,7 +260,7 @@ int main(int argc, char* argv[]) {
             mbody->AddAsset(mvisual);
         }
     };
-    MyCreator_shavings* callback_shavings = new MyCreator_shavings;
+    auto callback_shavings = chrono_types::make_shared<MyCreator_shavings>();
     mcreator_shavings->RegisterAddBodyCallback(callback_shavings);
 
     // Create a parent ChRandomShapeCreator that 'mixes' some generators above,
@@ -302,7 +303,7 @@ int main(int argc, char* argv[]) {
         ChIrrApp* airrlicht_application;
     };
     // b- create the callback object...
-    MyCreatorForAll* mcreation_callback = new MyCreatorForAll;
+    auto mcreation_callback = chrono_types::make_shared<MyCreatorForAll>();
     // c- set callback own data that he might need...
     mcreation_callback->airrlicht_application = &application;
     // d- attach the callback to the emitter!
@@ -315,31 +316,16 @@ int main(int argc, char* argv[]) {
     // Use this function for 'converting' assets into Irrlicht meshes
     application.AssetUpdateAll();
 
-    // Create (if needed) the output directory
-    const std::string demo_dir = GetChronoOutputPath() + "EMIT_CREATION";
-    if (!filesystem::create_directory(filesystem::path(demo_dir))) {
-        std::cout << "Error creating directory " << demo_dir << std::endl;
-        return 1;
-    }
 
     // Create an exporter to POVray !!
     ChPovRay pov_exporter = ChPovRay(&mphysicalSystem);
 
-    // Sets some file names for in-out processes.
+    // Important: set the path to the template:
     pov_exporter.SetTemplateFile(GetChronoDataFile("_template_POV.pov"));
-    pov_exporter.SetOutputScriptFile(demo_dir + "/rendering_frames.pov");
-    pov_exporter.SetOutputDataFilebase("my_state");
-    pov_exporter.SetPictureFilebase("picture");
 
-    // Even better: save the .dat files and the .bmp files in two subdirectories,
-    // to avoid cluttering the current directory.
-    const std::string out_dir = demo_dir + "/output";
-    const std::string anim_dir = demo_dir + "/anim";
-    filesystem::create_directory(filesystem::path(out_dir));
-    filesystem::create_directory(filesystem::path(anim_dir));
+    // Set the path where it will save all .pov, .ini, .asset and .dat files, a directory will be created if not existing
+    pov_exporter.SetBasePath(GetChronoOutputPath() + "EMIT_CREATION");
 
-    pov_exporter.SetOutputDataFilebase(out_dir + "/my_state");
-    pov_exporter.SetPictureFilebase(anim_dir + "/picture");
 
     pov_exporter.SetLight(VNULL, ChColor(0, 0, 0), false);
     pov_exporter.SetCustomPOVcommandsScript(

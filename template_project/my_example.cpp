@@ -41,18 +41,15 @@ int main(int argc, char* argv[]) {
     // Create a Chrono physical system
     ChSystemNSC mphysicalSystem;
 
-    // Create the Irrlicht visualization (open the Irrlicht device,
-    // bind a simple user interface, etc. etc.)
-    ChIrrApp application(&mphysicalSystem, L"A simple project template", core::dimension2d<u32>(800, 600),
-                         false);  // screen dimensions
+    // Create the Irrlicht visualization
+    ChIrrApp application(&mphysicalSystem, L"A simple project template", core::dimension2d<u32>(800, 600), false);
 
     // Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
     application.AddTypicalLogo();
     application.AddTypicalSky();
     application.AddTypicalLights();
-    application.AddTypicalCamera(core::vector3df(2, 2, -5),
-                                 core::vector3df(0, 1, 0));  // to change the position of camera
-    // application.AddLightWithShadow(vector3df(1,25,-5), vector3df(0,0,0), 35, 0.2,35, 55, 512, video::SColorf(1,1,1));
+    application.AddTypicalCamera(core::vector3df(2, 2, -5), core::vector3df(0, 1, 0));
+    ////application.AddLightWithShadow(vector3df(1,25,-5), vector3df(0,0,0), 35, 0.2,35, 55, 512, video::SColorf(1,1,1));
 
     //======================================================================
 
@@ -64,8 +61,8 @@ int main(int argc, char* argv[]) {
 
     auto floorBody = std::make_shared<ChBodyEasyBox>(10, 2, 10,  // x, y, z dimensions
                                                      3000,       // density
-                                                     false,      // no contact geometry
-                                                     true        // enable visualization geometry
+                                                     true,       // create visualization asset
+                                                     false       // no collision geometry
                                                      );
     floorBody->SetPos(ChVector<>(0, -2, 0));
     floorBody->SetBodyFixed(true);
@@ -76,8 +73,8 @@ int main(int argc, char* argv[]) {
 
     auto pendulumBody = std::make_shared<ChBodyEasyBox>(0.5, 2, 0.5,  // x, y, z dimensions
                                                         3000,         // density
-                                                        false,        // no contact geometry
-                                                        true          // enable visualization geometry
+                                                        true,         // create visualization asset
+                                                        false         // no collision geometry
                                                         );
     pendulumBody->SetPos(ChVector<>(0, 3, 0));
     pendulumBody->SetPos_dt(ChVector<>(1, 0, 0));
@@ -99,20 +96,20 @@ int main(int argc, char* argv[]) {
 
     mphysicalSystem.Add(sphericalLink);
 
-    // Optionally, attach a RGB color asset to the floor, for better visualization
+    // Optionally, attach a color asset to the floor
     auto color = std::make_shared<ChColorAsset>();
     color->SetColor(ChColor(0.2f, 0.25f, 0.25f));
     floorBody->AddAsset(color);
 
     // Optionally, attach a texture to the pendulum, for better visualization
     auto texture = std::make_shared<ChTexture>();
-    texture->SetTextureFilename(GetChronoDataFile("cubetexture_bluwhite.png"));  // texture in ../data
+    texture->SetTextureFilename(GetChronoDataFile("cubetexture_bluwhite.png"));
     pendulumBody->AddAsset(texture);
 
     //======================================================================
 
     // Use this function for adding a ChIrrNodeAsset to all items
-    // Otherwise use application.AssetBind(myitem); on a per-item basis.
+    // Otherwise use application.AssetBind(myitem) on a per-item basis.
     application.AssetBindAll();
 
     // Use this function for 'converting' assets into Irrlicht meshes
@@ -122,10 +119,7 @@ int main(int argc, char* argv[]) {
     application.SetTimestep(0.005);
     application.SetTryRealtime(true);
 
-    //
-    // THE SOFT-REAL-TIME CYCLE
-    //
-
+    // Simulation loop
     while (application.GetDevice()->run()) {
         application.BeginScene();
 

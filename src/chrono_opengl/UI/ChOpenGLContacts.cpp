@@ -19,9 +19,9 @@
 #include "chrono_opengl/UI/ChOpenGLContacts.h"
 #include "chrono_opengl/ChOpenGLMaterials.h"
 
-#ifdef CHRONO_PARALLEL
-#include "chrono_parallel/physics/ChSystemParallel.h"
-#include "chrono_parallel/ChDataManager.h"
+#ifdef CHRONO_MULTICORE
+#include "chrono_multicore/physics/ChSystemMulticore.h"
+#include "chrono_multicore/ChDataManager.h"
 #endif
 
 namespace chrono {
@@ -57,9 +57,10 @@ void ChOpenGLContacts::UpdateChrono(ChSystem* system) {
     //    counter++;
     //  }
 }
-void ChOpenGLContacts::UpdateChronoParallel(ChSystemParallel* system) {
-#ifdef CHRONO_PARALLEL
-    ChParallelDataManager* data_manager = system->data_manager;
+
+void ChOpenGLContacts::UpdateChronoMulticore(ChSystemMulticore* system) {
+#ifdef CHRONO_MULTICORE
+    ChMulticoreDataManager* data_manager = system->data_manager;
     int num_contacts = data_manager->num_rigid_contacts + data_manager->num_rigid_fluid_contacts +
                        data_manager->num_rigid_tet_contacts + data_manager->num_rigid_tet_node_contacts;
 
@@ -133,9 +134,9 @@ void ChOpenGLContacts::UpdateChronoParallel(ChSystemParallel* system) {
 
 void ChOpenGLContacts::Update(ChSystem* physics_system) {
     contact_data.clear();
-#ifdef CHRONO_PARALLEL
-    if (ChSystemParallel* system_parallel = dynamic_cast<ChSystemParallel*>(physics_system)) {
-        UpdateChronoParallel(system_parallel);
+#ifdef CHRONO_MULTICORE
+    if (ChSystemMulticore* system_mc = dynamic_cast<ChSystemMulticore*>(physics_system)) {
+        UpdateChronoMulticore(system_mc);
     } else
 #endif
     {

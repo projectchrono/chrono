@@ -21,25 +21,22 @@
 #include "chrono/core/ChTransform.h"
 #include "chrono/core/ChVector.h"
 
-using std::cout;
-using std::endl;
-using namespace chrono;
-
 int main(int argc, char* argv[]) {
-    cout << "\n=== Creation and assignment ===\n" << endl;
+    ///! [Basic operations with matrices]
+    std::cout << "\n=== Creation and assignment ===\n" << std::endl;
     {
         // Matrix allocated on the heap.
-        ChMatrixDynamic<> Md1(5, 7);
-        ChMatrixDynamic<> Md2(4, 4);
+        chrono::ChMatrixDynamic<> Md1(5, 7);
+        chrono::ChMatrixDynamic<> Md2(4, 4);
 
         // Matrix allocated on the stack.
-        ChMatrixNM<double, 4, 4> Ms;
+        chrono::ChMatrixNM<double, 4, 4> Ms;
 
         // 3x3 matrices, mostly used for coordinate transformations.
-        ChMatrix33<> ma;
+        chrono::ChMatrix33<> ma;
 
         Ms.setConstant(0.1);  // Fill a matrix with an element
-        cout << Ms << endl;
+        std::cout << Ms << std::endl;
 
         Md1.setRandom();         // initialize with random numbers
         Md1.transposeInPlace();  // transpose the matrix in place
@@ -53,20 +50,20 @@ int main(int argc, char* argv[]) {
         Md2(1, 2) = Md2(0, 0) + Md2(1, 1);
         Md2(2, 2) = 4;
 
-        ChMatrixDynamic<> M1(Md2);   // Copy constructor
-        ChMatrixDynamic<> M2(-Ms);   // The - unary operator returns a negated matrix
-        ChMatrixDynamic<> M3(8, 4);  // 8x4 uninitialized matrix
-        M3 = M1;                     // Copy (resize as needed)
-        M3 = M1.transpose();         // transposed copy.
+        chrono::ChMatrixDynamic<> M1(Md2);   // Copy constructor
+        chrono::ChMatrixDynamic<> M2(-Ms);   // The - unary operator returns a negated matrix
+        chrono::ChMatrixDynamic<> M3(8, 4);  // 8x4 uninitialized matrix
+        M3 = M1;                             // Copy (resize as needed)
+        M3 = M1.transpose();                 // transposed copy.
     }
 
-    cout << "\n=== Matrix operations ===\n" << endl;
+    std::cout << "\n=== Matrix operations ===\n" << std::endl;
     {
-        ChMatrixNM<double, 2, 3> A;
-        ChMatrixDynamic<double> B(2, 3);
+        chrono::ChMatrixNM<double, 2, 3> A;
+        chrono::ChMatrixDynamic<double> B(2, 3);
         A.setRandom();
         B.setRandom();
-        ChMatrixDynamic<> result(A + B);
+        chrono::ChMatrixDynamic<> result(A + B);
         result = A + B;
         result = A;
         result += B;
@@ -79,183 +76,184 @@ int main(int argc, char* argv[]) {
         // Multiplication with scalar
         result = A * 10;
         result = 10 * A;
-        cout << result << endl;
+        std::cout << result << std::endl;
 
         result = A;
         result *= 10;
-        cout << result << endl;
+        std::cout << result << std::endl;
 
         // Matrix multiplications
-        ChMatrixDynamic<> C(3, 2);
-        ChMatrixDynamic<> D(2, 3);
-        ChMatrixDynamic<double> CD = C * D;
-        ChMatrixDynamic<double> CD_t = D.transpose() * C.transpose();
+        chrono::ChMatrixDynamic<> C(3, 2);
+        chrono::ChMatrixDynamic<> D(2, 3);
+        chrono::ChMatrixDynamic<double> CD = C * D;
+        chrono::ChMatrixDynamic<double> CD_t = D.transpose() * C.transpose();
 
-        ChMatrix33<> R(Q_from_AngX(CH_C_PI / 3));
-        cout << "rot * matrix\n" << R * C << endl;
-        cout << "matrix * rot\n" << D * R << endl;
+        chrono::ChMatrix33<> R(chrono::Q_from_AngX(chrono::CH_C_PI / 3));
+        std::cout << "rot * matrix\n" << R * C << std::endl;
+        std::cout << "matrix * rot\n" << D * R << std::endl;
     }
 
-    cout << "\n=== Chrono extensions to Eigen::MatrixBase ===\n" << endl;
+    std::cout << "\n=== Chrono extensions to Eigen::MatrixBase ===\n" << std::endl;
     {
-        ChMatrixNM<double, 2, 3> A;
+        chrono::ChMatrixNM<double, 2, 3> A;
         A.setRandom();
-        cout << "random 2x3 matrix A:\n" << A << endl;
+        std::cout << "random 2x3 matrix A:\n" << A << std::endl;
         A.fillDiagonal(10.1);
-        cout << "fill diagonal with 10.1:\n" << A << endl;
+        std::cout << "fill diagonal with 10.1:\n" << A << std::endl;
         A.fill(2.1);
-        cout << "fill entire matrix with 2.1:\n" << A << endl;
+        std::cout << "fill entire matrix with 2.1:\n" << A << std::endl;
 
-        ChMatrixNM<double, 2, 3> B(A);
+        chrono::ChMatrixNM<double, 2, 3> B(A);
         B(1, 2) += 0.01;
-        cout << "matrix B = A with B(1,2) incremented by 0.01\n" << B << endl;
-        cout << "|A-B| < 0.1?   " << A.equals(B, 0.1) << endl;
-        cout << "|A-B| < 0.001? " << A.equals(B, 0.001) << endl;
+        std::cout << "matrix B = A with B(1,2) incremented by 0.01\n" << B << std::endl;
+        std::cout << "|A-B| < 0.1?   " << A.equals(B, 0.1) << std::endl;
+        std::cout << "|A-B| < 0.001? " << A.equals(B, 0.001) << std::endl;
 
-        ChVectorDynamic<> v(3);
+        chrono::ChVectorDynamic<> v(3);
         v << 2, 3, 4;
-        ChVectorDynamic<> w(3);
+        chrono::ChVectorDynamic<> w(3);
         w << 0.1, 0.2, 0.3;
-        cout << "||v||_wrms, w = " << v.wrmsNorm(w) << endl;
-        cout << "||v + v||_wrms, w = " << (v + v).wrmsNorm(w) << endl;
+        std::cout << "||v||_wrms, w = " << v.wrmsNorm(w) << std::endl;
+        std::cout << "||v + v||_wrms, w = " << (v + v).wrmsNorm(w) << std::endl;
 
-        cout << "v + v + 1: " << (v + v) + 1 << endl;
-        cout << "1 + v: " << 1 + v << endl;
+        std::cout << "v + v + 1: " << (v + v) + 1 << std::endl;
+        std::cout << "1 + v: " << 1 + v << std::endl;
     }
 
-    cout << "\n=== Matrix comparison tests ===\n" << endl;
+    std::cout << "\n=== Matrix comparison tests ===\n" << std::endl;
     {
-        ChMatrixNM<double, 2, 3> A;
+        chrono::ChMatrixNM<double, 2, 3> A;
         A.setRandom();
-        ChMatrixDynamic<> B(A);
+        chrono::ChMatrixDynamic<> B(A);
         if (A == B) {
-            cout << "Matrices are exactly equal" << endl;
+            std::cout << "Matrices are exactly equal" << std::endl;
         }
 
         // Tolerance comparison
         B(1, 2) += 0.001;
         if (A.equals(B, 0.002)) {
-            cout << "Matrices are equal within tol 0.002 \n";
+            std::cout << "Matrices are equal within tol 0.002 \n";
         }
     }
 
-    cout << "\n=== Pasting matrices and matrix-blocks ===\n" << endl;
+    std::cout << "\n=== Pasting matrices and matrix-blocks ===\n" << std::endl;
     {
-        ChMatrixDynamic<> A(4, 6);
+        chrono::ChMatrixDynamic<> A(4, 6);
         A.setRandom();
-        cout << A << "\n\n";
+        std::cout << A << "\n\n";
 
-        ChMatrixNM<double, 2, 3> B;
+        chrono::ChMatrixNM<double, 2, 3> B;
         B << 1, 2, 3, 4, 5, 6;
-        cout << B << "\n\n";
+        std::cout << B << "\n\n";
 
-        ChMatrixNM<double, 5, 7> C;
+        chrono::ChMatrixNM<double, 5, 7> C;
         C.setZero();
         C.block<2, 3>(1, 1) << 10, 20, 30, 40, 50, 60;
-        cout << C << "\n\n";
+        std::cout << C << "\n\n";
 
-        ChMatrixDynamic<> X = A;
+        chrono::ChMatrixDynamic<> X = A;
         X.block<2, 3>(1, 2) = B;
-        cout << X << "\n\n";
+        std::cout << X << "\n\n";
 
         X.block<2, 3>(1, 2) += C.block<2, 3>(1, 1);
-        cout << X << "\n\n";
+        std::cout << X << "\n\n";
     }
 
-    cout << "\n=== 3x3 matrix times vector ===\n" << endl;
+    std::cout << "\n=== 3x3 matrix times vector ===\n" << std::endl;
     {
-        ChVector<> v(1, 2, 3);
-        ChMatrix33<> A;
+        chrono::ChVector<> v(1, 2, 3);
+        chrono::ChMatrix33<> A;
         A.setRandom();
 
-        ChMatrix33<> B(1);
-        cout << B << endl;
+        chrono::ChMatrix33<> B(1);
+        std::cout << B << std::endl;
 
         // Vector transformation, typical product [A] * v
-        ChVector<> res1 = A * v;
+        chrono::ChVector<> res1 = A * v;
 
         // Inverse vector transformation, [A]' * v
-        ChVector<> res2 = A.transpose() * v;
+        chrono::ChVector<> res2 = A.transpose() * v;
 
-        cout << A << endl;
-        cout << res1 << endl;
-        cout << res2 << endl;
+        std::cout << A << std::endl;
+        std::cout << res1 << std::endl;
+        std::cout << res2 << std::endl;
     }
 
-    cout << "\n=== Custom 3x4, 4x3, and 4x4 matrices ===\n" << endl;
+    std::cout << "\n=== Custom 3x4, 4x3, and 4x4 matrices ===\n" << std::endl;
     {
-        ChMatrix34<> G = Eigen::Matrix<double, 3, 4>::Ones(3, 4);
-        ChQuaternion<> q(1, 2, 3, 4);
-        ChVector<> v = G * q;
-        cout << v << endl;
+        chrono::ChMatrix34<> G = Eigen::Matrix<double, 3, 4>::Ones(3, 4);
+        chrono::ChQuaternion<> q(1, 2, 3, 4);
+        chrono::ChVector<> v = G * q;
+        std::cout << v << std::endl;
 
-        ChMatrix43<> Gt = 2 * G.transpose();
-        cout << Gt << endl;
+        chrono::ChMatrix43<> Gt = 2 * G.transpose();
+        std::cout << Gt << std::endl;
         q = Gt * v;
-        cout << q << endl;
+        std::cout << q << std::endl;
         q = G.transpose() * v;
-        cout << q << endl;
+        std::cout << q << std::endl;
 
-        ChMatrix33<> rot(Q_from_AngX(CH_C_PI / 6));
-        cout << rot << endl;
-        cout << rot.transpose() << endl;
+        chrono::ChMatrix33<> rot(chrono::Q_from_AngX(chrono::CH_C_PI / 6));
+        std::cout << rot << std::endl;
+        std::cout << rot.transpose() << std::endl;
 
-        ChMatrix34<> res1 = rot * G;
-        ChMatrix34<> res2 = rot * Gt.transpose();
-        ChMatrix43<> res3 = Gt * rot;
-        ChMatrix43<> res4 = G.transpose() * rot;
+        chrono::ChMatrix34<> res1 = rot * G;
+        chrono::ChMatrix34<> res2 = rot * Gt.transpose();
+        chrono::ChMatrix43<> res3 = Gt * rot;
+        chrono::ChMatrix43<> res4 = G.transpose() * rot;
 
-        ChMatrix44<> A44;
+        chrono::ChMatrix44<> A44;
         A44.setRandom();
-        ChQuaternion<> q2 = A44 * q;
+        chrono::ChQuaternion<> q2 = A44 * q;
 
-        ChStarMatrix44<> X(ChQuaternion<>(1, 2, 3, 4));
-        cout << "4x4 star matrix X:\n" << X << endl;
+        chrono::ChStarMatrix44<> X(chrono::ChQuaternion<>(1, 2, 3, 4));
+        std::cout << "4x4 star matrix X:\n" << X << std::endl;
         X.semiTranspose();
-        cout << "Semi-transpose X:\n" << X << endl;
+        std::cout << "Semi-transpose X:\n" << X << std::endl;
         X.semiNegate();
-        cout << "Semi-negate X:\n" << X << endl;
+        std::cout << "Semi-negate X:\n" << X << std::endl;
     }
 
-    cout << "\n=== Use of ChTransform ===\n" << endl;
+    std::cout << "\n=== Use of ChTransform ===\n" << std::endl;
     {
-        ChVector<> vl(2, 3, 4);        // local point to transform
-        ChVector<> t(5, 6, 7);         // translation of coord system
-        ChQuaternion<> q(1, 3, 4, 5);  // rotation of coord system (quaternion)
-        q.Normalize();                 // as unit quaternion, must be normalized
-        ChMatrix33<> R;                // rotation of coord system (rotation matrix)
-        R.Set_A_quaternion(q);         // set from quaternion
-        Coordsys csys(t, q);           // coordinate system representing translation + rotation
+        chrono::ChVector<> vl(2, 3, 4);        // local point to transform
+        chrono::ChVector<> t(5, 6, 7);         // translation of coord system
+        chrono::ChQuaternion<> q(1, 3, 4, 5);  // rotation of coord system (quaternion)
+        q.Normalize();                         // as unit quaternion, must be normalized
+        chrono::ChMatrix33<> R;                // rotation of coord system (rotation matrix)
+        R.Set_A_quaternion(q);                 // set from quaternion
+        chrono::Coordsys csys(t, q);           // coordinate system representing translation + rotation
 
         // Perform the transformation: v = t + [R] * v'
         // NOTE: all the following ways will give the same result, so you can use them equivalently!
-        auto va1 = ChTransform<>::TransformLocalToParent(vl, t, R);
-        auto va2 = ChTransform<>::TransformLocalToParent(vl, t, q);
+        auto va1 = chrono::ChTransform<>::TransformLocalToParent(vl, t, R);
+        auto va2 = chrono::ChTransform<>::TransformLocalToParent(vl, t, q);
         auto va3 = csys.TransformLocalToParent(vl);
         auto va4 = t + R * vl;
-        cout << va2.Equals(va1, 1e-6) << " " << va3.Equals(va1, 1e-6) << " " << va4.Equals(va1, 1e-6) << endl;
+        std::cout << va2.Equals(va1, 1e-6) << " " << va3.Equals(va1, 1e-6) << " " << va4.Equals(va1, 1e-6) << std::endl;
 
         // Inverse transformation
-        auto vl1 = ChTransform<>::TransformParentToLocal(va1, t, q);
-        auto vl2 = ChTransform<>::TransformParentToLocal(va1, t, R);
+        auto vl1 = chrono::ChTransform<>::TransformParentToLocal(va1, t, q);
+        auto vl2 = chrono::ChTransform<>::TransformParentToLocal(va1, t, R);
         auto vl3 = csys.TransformParentToLocal(va1);
         auto vl4 = R.transpose() * (va1 - t);
-        cout << vl1.Equals(vl, 1e-6) << " " << vl2.Equals(vl, 1e-6) << " " << vl3.Equals(vl, 1e-6) << " "
-             << vl4.Equals(vl, 1e-6) << endl;
+        std::cout << vl1.Equals(vl, 1e-6) << " " << vl2.Equals(vl, 1e-6) << " " << vl3.Equals(vl, 1e-6) << " "
+                  << vl4.Equals(vl, 1e-6) << std::endl;
     }
 
-    cout << "\n=== Linear systems ===\n" << endl;
+    std::cout << "\n=== Linear systems ===\n" << std::endl;
     {
-        ChMatrixNM<double, 3, 3> A;
+        chrono::ChMatrixNM<double, 3, 3> A;
         Eigen::Vector3d b;
         A << 1, 2, 3, 4, 5, 6, 7, 8, 10;
         b << 3, 3, 4;
-        cout << "matrix A:\n" << A << endl;
-        cout << "vector b:\n" << b << endl;
+        std::cout << "matrix A:\n" << A << std::endl;
+        std::cout << "vector b:\n" << b << std::endl;
         Eigen::Vector3d x = A.colPivHouseholderQr().solve(b);
-        cout << "solution:\n" << x << endl;
-        cout << "Ax-b:\n" << A * x - b << endl;
+        std::cout << "solution:\n" << x << std::endl;
+        std::cout << "Ax-b:\n" << A * x - b << std::endl;
     }
+    ///! [Basic operations with matrices]
 
     return 0;
 }

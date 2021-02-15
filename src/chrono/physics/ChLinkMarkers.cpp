@@ -32,9 +32,7 @@ ChLinkMarkers::ChLinkMarkers()
       relWvel(VNULL),
       relWacc(VNULL),
       C_force(VNULL),
-      C_torque(VNULL),
-      Scr_force(VNULL),
-      Scr_torque(VNULL) {}
+      C_torque(VNULL) {}
 
 ChLinkMarkers::ChLinkMarkers(const ChLinkMarkers& other) : ChLink(other) {
     marker1 = NULL;
@@ -56,9 +54,6 @@ ChLinkMarkers::ChLinkMarkers(const ChLinkMarkers& other) : ChLink(other) {
 
     C_force = other.C_force;
     C_torque = other.C_torque;
-
-    Scr_force = other.Scr_force;
-    Scr_torque = other.Scr_torque;
 }
 
 void ChLinkMarkers::SetUpMarkers(ChMarker* mark1, ChMarker* mark2) {
@@ -318,12 +313,9 @@ void ChLinkMarkers::UpdateRelMarkerCoords() {
 }
 
 void ChLinkMarkers::UpdateForces(double mytime) {
+    // reset internal force accumulators
     C_force = VNULL;  // initialize int.forces accumulators
     C_torque = VNULL;
-
-    // First and only operation: add the 'externally set' script forces (torques)
-    C_force = Vadd(C_force, Scr_force);
-    C_torque = Vadd(C_torque, Scr_torque);
 }
 
 void ChLinkMarkers::Update(double time, bool update_assets) {

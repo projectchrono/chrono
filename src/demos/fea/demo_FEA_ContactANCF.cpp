@@ -25,7 +25,7 @@
 #include "chrono/utils/ChUtilsInputOutput.h"
 
 #include "chrono/solver/ChIterativeSolverLS.h"
-#include "chrono_mkl/ChSolverMKL.h"
+#include "chrono_pardisomkl/ChSolverPardisoMKL.h"
 
 #include "chrono/fea/ChContactSurfaceMesh.h"
 #include "chrono/fea/ChContactSurfaceNodeCloud.h"
@@ -39,8 +39,6 @@
 #include "chrono/fea/ChVisualizationFEAmesh.h"
 #include "chrono/fea/ChVisualizationFEAmesh.h"
 
-#include "chrono_irrlicht/ChBodySceneNode.h"
-#include "chrono_irrlicht/ChBodySceneNodeTools.h"
 #include "chrono_irrlicht/ChIrrApp.h"
 #include "chrono_irrlicht/ChIrrAppInterface.h"
 #include "chrono_irrlicht/ChIrrTools.h"
@@ -112,13 +110,12 @@ int main(int argc, char* argv[]) {
 
     // Adding the ground
     if (true) {
-        auto mfloor = chrono_types::make_shared<ChBodyEasyBox>(3, 3, 0.2, 8000, true);
+        auto mfloor = chrono_types::make_shared<ChBodyEasyBox>(3, 3, 0.2, 8000, true, true, mysurfmaterial);
 
         mfloor->SetBodyFixed(true);
-        mfloor->SetMaterialSurface(mysurfmaterial);
         my_system.Add(mfloor);
         auto masset_texture = chrono_types::make_shared<ChTexture>();
-        masset_texture->SetTextureFilename(GetChronoDataFile("concrete.jpg"));
+        masset_texture->SetTextureFilename(GetChronoDataFile("textures/concrete.jpg"));
         mfloor->AddAsset(masset_texture);
     }
 
@@ -143,10 +140,13 @@ int main(int argc, char* argv[]) {
         return 0;
     }
 
-    auto mcontactsurf = chrono_types::make_shared<ChContactSurfaceMesh>();
+    auto mcontactsurf = chrono_types::make_shared<ChContactSurfaceMesh>(mysurfmaterial);
     my_mesh->AddContactSurface(mcontactsurf);
     mcontactsurf->AddFacesFromBoundary(sphere_swept_thickness);  // do this after my_mesh->AddContactSurface
-    mcontactsurf->SetMaterialSurface(mysurfmaterial);            // use the SMC penalty contacts
+
+    ////auto mcontactcloud = chrono_types::make_shared<ChContactSurfaceNodeCloud>(mysurfmaterial);
+    ////my_mesh->AddContactSurface(mcontactcloud);
+    ////mcontactcloud->AddAllNodes(sphere_swept_thickness);
 
     TotalNumNodes = my_mesh->GetNnodes();
     TotalNumElements = my_mesh->GetNelements();
@@ -205,7 +205,7 @@ int main(int argc, char* argv[]) {
     // Simulation loop
     // ---------------
 
-    ////auto mkl_solver = chrono_types::make_shared<ChSolverMKL>();
+    ////auto mkl_solver = chrono_types::make_shared<ChSolverPardisoMKL>();
     ////my_system.SetSolver(mkl_solver);
     ////mkl_solver->LockSparsityPattern(true);
     ////my_system.Update();
@@ -235,6 +235,7 @@ int main(int argc, char* argv[]) {
         application.BeginScene();
         application.DrawAll();
         ////std::cout << "Time t = " << my_system.GetChTime() << "s \t";
+        ////std::cout << "n contacts: " << my_system.GetNcontacts() << "\t";
         ////std::cout << "pos.y = " << sampleNode->pos.y - y0 << "vs. " << -0.5 * 9.8 * pow(my_system.GetChTime(), 2)
         ////          << "\n";
         double t_s = my_system.GetChTime();

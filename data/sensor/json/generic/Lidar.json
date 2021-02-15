@@ -1,0 +1,51 @@
+{
+  "Name": "Generic sensor",
+  "Type": "Sensor",
+  "Template": "Lidar",
+
+  "Properties": {
+    "Update Rate": 30,
+    "Width": 4500,
+    "Height": 32,
+    "Horizontal Field of View": 6.28318530718,
+    "Max Vertical Angle": 0.2,
+    "Min Vertical Angle": -0.399,
+    "Max Distance": 100.0,
+    "Lag": 0.01,
+    "Collection Time": 0
+  },
+
+  "Filters":
+  [
+    {
+      "Filter": "ChFilterDIAccess"
+    },
+    {
+      "Filter": "ChFilterVisualize",
+      "Width": 640,
+      "Height": 360
+    },
+    {
+      "Filter": "ChFilterPCfromDepth"
+    },
+    {
+      "Filter": "ChFilterXYZIAccess"
+    },
+    {
+      "Filter": "ChFilterLidarNoiseXYZI",
+      "Standard Deviation Range": 0.01,
+      "Standard Deviation Vertical Angle": 0.001,
+      "Standard Deviation Horizontal Angle": 0.001,
+      "Standard Deviation Intensity": 0.01
+    },
+    {
+      "Filter": "ChFilterVisualizePointCloud",
+      "Width": 800,
+      "Height": 800,
+      "Zoom": 1.3
+    },
+    {
+      "Filter": "ChFilterXYZIAccess"
+    }
+  ]
+}

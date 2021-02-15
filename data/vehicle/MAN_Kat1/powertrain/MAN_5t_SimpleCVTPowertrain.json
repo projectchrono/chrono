@@ -1,0 +1,11 @@
+{
+  "Name":                    "MAN 5t Simplified CVT Powertrain",
+  "Type":                    "Powertrain",
+  "Template":                "SimpleCVTPowertrain",
+
+  "Forward Gear Ratio":      0.022858795,
+  "Reverse Gear Ratio":      -0.022858795,
+  "Maximum Engine Torque":   785.0,
+  "Maximum Engine Power":    188000,
+  "Maximum Engine Speed":    300
+}

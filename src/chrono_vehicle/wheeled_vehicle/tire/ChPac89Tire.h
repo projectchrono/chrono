@@ -28,6 +28,12 @@
 #include "chrono_vehicle/wheeled_vehicle/ChTire.h"
 #include "chrono_vehicle/ChTerrain.h"
 
+// The following undef is required in order to compile in conda-forge
+// on OSX for Python 3.6 (somehow termios.h gets included and defines
+// B0 to be 0, leading to a syntax error).
+// see https://github.com/projectchrono/chrono/pull/222
+#undef B0
+
 namespace chrono {
 namespace vehicle {
 
@@ -159,7 +165,7 @@ class CH_VEHICLE_API ChPac89Tire : public ChTire {
 
     PacCoeff m_PacCoeff;
 
-  private:
+  //private:
     /// Get the tire force and moment.
     /// This represents the output from this tire system that is passed to the
     /// vehicle system.  Typically, the vehicle subsystem will pass the tire force

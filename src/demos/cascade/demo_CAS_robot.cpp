@@ -24,6 +24,8 @@
 #include "chrono_cascade/ChCascadeDoc.h"
 #include "chrono_cascade/ChCascadeShapeAsset.h"
 #include "chrono_irrlicht/ChIrrApp.h"
+#include "chrono/solver/ChSolverADMM.h"
+#include "chrono/assets/ChColorAsset.h"
 
 // Use the namespace of Chrono
 using namespace chrono;
@@ -49,16 +51,23 @@ int main(int argc, char* argv[]) {
     //    will be handled by this ChSystemNSC object.
     ChSystemNSC my_system;
 
+    // Create a surface material to be used for collisions, if any
+    auto mysurfmaterial = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    mysurfmaterial->SetFriction(0.3f);
+    mysurfmaterial->SetRestitution(0);
+
     // Create the Irrlicht visualization (open the Irrlicht device,
     // bind a simple user interface, etc. etc.)
-    ChIrrApp application(&my_system, L"Load a robot model from STEP file", core::dimension2d<u32>(800, 600), false, true);
+    ChIrrApp application(&my_system, L"Load a robot model from STEP file", core::dimension2d<u32>(800, 600), false,
+                         true);
 
     // Easy shortcuts to add logo, camera, lights and sky in Irrlicht scene:
     ChIrrWizard::add_typical_Logo(application.GetDevice());
     ChIrrWizard::add_typical_Sky(application.GetDevice());
     ChIrrWizard::add_typical_Lights(application.GetDevice(), core::vector3df(30, 100, 30),
                                     core::vector3df(30, -80, -30), 200, 130);
-    ChIrrWizard::add_typical_Camera(application.GetDevice(), core::vector3df(0.2f, 1.6f, -3.5f), core::vector3df(0.0f, 1.0f, 0.0f));
+    ChIrrWizard::add_typical_Camera(application.GetDevice(), core::vector3df(0.2f, 1.6f, 3.5f),
+                                    core::vector3df(0.0f, 1.0f, 0.0f));
 
     //
     // Load a STEP file, containing a mechanism. The demo STEP file has been
@@ -66,7 +75,7 @@ int main(int argc, char* argv[]) {
     //
 
     // Create the ChCascadeDoc, a container that loads the STEP model
-    // and manages its subassembles
+    // and manages its subassemblies
     ChCascadeDoc mydoc;
 
     // load the STEP model using this command:
@@ -104,12 +113,9 @@ int main(int argc, char* argv[]) {
     ChFrameMoving<> root_frame(ChVector<>(0, 0, 0), tot_rotation);
 
     if (load_ok) {
-        
-
         TopoDS_Shape shape_base;
         if (mydoc.GetNamedShape(shape_base, "Assem10/Assem8")) {
-
-            std::shared_ptr<ChBodyEasyCascade> mbody (new ChBodyEasyCascade(shape_base, 1000, false, true));
+            auto mbody = chrono_types::make_shared<ChBodyEasyCascade>(shape_base, 1000, true, false);
             mrigidBody_base = mbody;
 
             my_system.Add(mrigidBody_base);
@@ -123,12 +129,9 @@ int main(int argc, char* argv[]) {
 
         TopoDS_Shape shape_turret;
         if (mydoc.GetNamedShape(shape_turret, "Assem10/Assem4")) {
-
-            std::shared_ptr<ChBodyEasyCascade> mbody (new ChBodyEasyCascade(shape_turret, 1000, false, true));
+            auto mbody = chrono_types::make_shared<ChBodyEasyCascade>(shape_turret, 1000, true, false);
             mrigidBody_turret = mbody;
-
             my_system.Add(mrigidBody_turret);
-
             // Move the body as for global displacement/rotation
             mrigidBody_turret->ConcatenatePreTransformation(root_frame);
         } else
@@ -136,12 +139,9 @@ int main(int argc, char* argv[]) {
 
         TopoDS_Shape shape_bicep;
         if (mydoc.GetNamedShape(shape_bicep, "Assem10/Assem1")) {
-
-            std::shared_ptr<ChBodyEasyCascade> mbody (new ChBodyEasyCascade(shape_bicep, 1000, false, true));
+            auto mbody = chrono_types::make_shared<ChBodyEasyCascade>(shape_bicep, 1000, true, false);
             mrigidBody_bicep = mbody;
-
             my_system.Add(mrigidBody_bicep);
-
             // Move the body as for global displacement/rotation
             mrigidBody_bicep->ConcatenatePreTransformation(root_frame);
         } else
@@ -149,12 +149,9 @@ int main(int argc, char* argv[]) {
 
         TopoDS_Shape shape_elbow;
         if (mydoc.GetNamedShape(shape_elbow, "Assem10/Assem5")) {
-            
-            std::shared_ptr<ChBodyEasyCascade> mbody (new ChBodyEasyCascade(shape_elbow, 1000, false, true));
+            auto mbody = chrono_types::make_shared<ChBodyEasyCascade>(shape_elbow, 1000, true, false);
             mrigidBody_elbow = mbody;
-
             my_system.Add(mrigidBody_elbow);
-
             // Move the body as for global displacement/rotation
             mrigidBody_elbow->ConcatenatePreTransformation(root_frame);
         } else
@@ -162,12 +159,9 @@ int main(int argc, char* argv[]) {
 
         TopoDS_Shape shape_forearm;
         if (mydoc.GetNamedShape(shape_forearm, "Assem10/Assem7")) {
-
-            std::shared_ptr<ChBodyEasyCascade> mbody (new ChBodyEasyCascade(shape_forearm, 1000, false, true));
+            auto mbody = chrono_types::make_shared<ChBodyEasyCascade>(shape_forearm, 1000, true, false);
             mrigidBody_forearm = mbody;
-
             my_system.Add(mrigidBody_forearm);
-
             // Move the body as for global displacement/rotation
             mrigidBody_forearm->ConcatenatePreTransformation(root_frame);
         } else
@@ -175,12 +169,9 @@ int main(int argc, char* argv[]) {
 
         TopoDS_Shape shape_wrist;
         if (mydoc.GetNamedShape(shape_wrist, "Assem10/Assem6")) {
-            
-            std::shared_ptr<ChBodyEasyCascade> mbody (new ChBodyEasyCascade(shape_wrist, 1000, false, true));
+            auto mbody = chrono_types::make_shared<ChBodyEasyCascade>(shape_wrist, 1000, true, false);
             mrigidBody_wrist = mbody;
-
             my_system.Add(mrigidBody_wrist);
-
             // Move the body as for global displacement/rotation
             mrigidBody_wrist->ConcatenatePreTransformation(root_frame);
         } else
@@ -188,25 +179,28 @@ int main(int argc, char* argv[]) {
 
         TopoDS_Shape shape_hand;
         if (mydoc.GetNamedShape(shape_hand, "Assem10/Assem9")) {
-
-            std::shared_ptr<ChBodyEasyCascade> mbody (new ChBodyEasyCascade(shape_hand, 1000, false, true));
+            auto mbody = chrono_types::make_shared<ChBodyEasyCascade>(shape_hand, 1000, true, false);
             mrigidBody_hand = mbody;
-
             my_system.Add(mrigidBody_hand);
-
             // Move the body as for global displacement/rotation
             mrigidBody_hand->ConcatenatePreTransformation(root_frame);
+
+            // also create a collision shape attached to the hand:
+            auto mcube = chrono_types::make_shared<ChBodyEasyBox>(0.2, 0.08, 0.08, 1000, true, true, mysurfmaterial);
+            mcube->SetCoord(ChCoordsys<>(ChVector<>(0.1,0,0)) >> mrigidBody_hand->GetCoord());
+            my_system.Add(mcube);
+            auto mcubelink = chrono_types::make_shared<ChLinkLockLock>();
+            mcubelink->Initialize(mcube, mrigidBody_hand, mcube->GetCoord());
+            my_system.Add(mcubelink);
+           
         } else
             GetLog() << "Warning. Desired object not found in document \n";
 
         TopoDS_Shape shape_cylinder;
         if (mydoc.GetNamedShape(shape_cylinder, "Assem10/Assem3")) {
-            
-            std::shared_ptr<ChBodyEasyCascade> mbody (new ChBodyEasyCascade(shape_cylinder, 1000, false, true));
+            auto mbody = chrono_types::make_shared<ChBodyEasyCascade>(shape_cylinder, 1000, true, false);
             mrigidBody_cylinder = mbody;
-
             my_system.Add(mrigidBody_cylinder);
-
             // Move the body as for global displacement/rotation
             mrigidBody_cylinder->ConcatenatePreTransformation(root_frame);
         } else
@@ -214,12 +208,9 @@ int main(int argc, char* argv[]) {
 
         TopoDS_Shape shape_rod;
         if (mydoc.GetNamedShape(shape_rod, "Assem10/Assem2")) {
-
-            std::shared_ptr<ChBodyEasyCascade> mbody (new ChBodyEasyCascade(shape_rod, 1000, false, true));
+            auto mbody = chrono_types::make_shared<ChBodyEasyCascade>(shape_rod, 1000, true, false);
             mrigidBody_rod = mbody;
-
             my_system.Add(mrigidBody_rod);
-
             // Move the body as for global displacement/rotation
             mrigidBody_rod->ConcatenatePreTransformation(root_frame);
         } else
@@ -230,7 +221,13 @@ int main(int argc, char* argv[]) {
 
     if (!mrigidBody_base || !mrigidBody_turret || !mrigidBody_bicep || !mrigidBody_elbow || !mrigidBody_forearm ||
         !mrigidBody_wrist || !mrigidBody_hand) {
-        return 0;
+        return 1;
+    }
+
+    // add color to created bodies
+    for (auto mbody : my_system.Get_bodylist()) {
+        auto mcol = chrono_types::make_shared<ChColorAsset>(1.0f,0.5f,0.0f);
+        mbody->AddAsset(mcol);
     }
 
     // Create joints between two parts.
@@ -367,28 +364,28 @@ int main(int argc, char* argv[]) {
     // motion for Z coordinate and four for Y coordinate, we join them with
     // ChFunction_Sequence and we repeat sequence by ChFunction_Repeat
 
-    std::shared_ptr<ChFunction_ConstAcc> motlaw_z1 (new ChFunction_ConstAcc);
+    std::shared_ptr<ChFunction_ConstAcc> motlaw_z1(new ChFunction_ConstAcc);
     motlaw_z1->Set_h(-0.7);
     motlaw_z1->Set_end(1);
-    std::shared_ptr<ChFunction_Const> motlaw_z2 (new ChFunction_Const);
-    std::shared_ptr<ChFunction_ConstAcc> motlaw_z3 (new ChFunction_ConstAcc);
+    std::shared_ptr<ChFunction_Const> motlaw_z2(new ChFunction_Const);
+    std::shared_ptr<ChFunction_ConstAcc> motlaw_z3(new ChFunction_ConstAcc);
     motlaw_z3->Set_h(0.7);
     motlaw_z3->Set_end(1);
-    std::shared_ptr<ChFunction_Const> motlaw_z4 (new ChFunction_Const);
+    std::shared_ptr<ChFunction_Const> motlaw_z4(new ChFunction_Const);
     std::shared_ptr<ChFunction_Sequence> motlaw_z_seq(new ChFunction_Sequence);
     motlaw_z_seq->InsertFunct(motlaw_z1, 1, 1, true);
     motlaw_z_seq->InsertFunct(motlaw_z2, 1, 1, true);  // true = force c0 continuity, traslating fx
     motlaw_z_seq->InsertFunct(motlaw_z3, 1, 1, true);
     motlaw_z_seq->InsertFunct(motlaw_z4, 1, 1, true);
-    std::shared_ptr<ChFunction_Repeat> motlaw_z (new ChFunction_Repeat);
+    std::shared_ptr<ChFunction_Repeat> motlaw_z(new ChFunction_Repeat);
     motlaw_z->Set_fa(motlaw_z_seq);
     motlaw_z->Set_window_length(4);
 
-    std::shared_ptr<ChFunction_Const>    motlaw_y1 (new ChFunction_Const);
-    std::shared_ptr<ChFunction_ConstAcc> motlaw_y2 (new ChFunction_ConstAcc);
+    std::shared_ptr<ChFunction_Const> motlaw_y1(new ChFunction_Const);
+    std::shared_ptr<ChFunction_ConstAcc> motlaw_y2(new ChFunction_ConstAcc);
     motlaw_y2->Set_h(-0.6);
     motlaw_y2->Set_end(1);
-    std::shared_ptr<ChFunction_Const>    motlaw_y3(new ChFunction_Const);
+    std::shared_ptr<ChFunction_Const> motlaw_y3(new ChFunction_Const);
     std::shared_ptr<ChFunction_ConstAcc> motlaw_y4(new ChFunction_ConstAcc);
     motlaw_y4->Set_h(0.6);
     motlaw_y4->Set_end(1);
@@ -404,17 +401,29 @@ int main(int argc, char* argv[]) {
     my_marker_move->SetMotion_Z(motlaw_z);
     my_marker_move->SetMotion_Y(motlaw_y);
 
-    
     // Create a large cube as a floor.
 
-    std::shared_ptr<ChBodyEasyBox> mfloor( new ChBodyEasyBox(6,1,6,1000,true,true));
+    std::shared_ptr<ChBodyEasyBox> mfloor(new ChBodyEasyBox(8, 1, 8, 1000, true, true, mysurfmaterial));
     mfloor->SetPos(ChVector<>(0, -0.5, 0));
     my_system.Add(mfloor);
     mfloor->SetBodyFixed(true);
 
-    std::shared_ptr<ChTexture> mtexture( new ChTexture(GetChronoDataFile("blu.png").c_str()));
-    mfloor->AddAsset(mtexture);
+    // Create a stack of boxes to be impacted  
+    if (true) {
+        double brick_h = 0.3;
+        for (int ix = 0; ix < 3; ++ix)  
+        for (int ib = 0; ib < 6; ++ib) {
+            std::shared_ptr<ChBodyEasyBox> mcube(new ChBodyEasyBox(0.4, brick_h, 0.4, 1000, true, true, mysurfmaterial));
+            mcube->SetPos(ChVector<>(-1.4, (0.5*brick_h)+ib*brick_h, -0.4 -0.5*ix));
+            mcube->SetRot(Q_from_AngAxis(ib*0.1,VECT_Y));
+            my_system.Add(mcube);
+            auto mcol = chrono_types::make_shared<ChColorAsset>(0.5f+float(0.5*ChRandom()), 0.5f+float(0.5*ChRandom()), 0.5f+float(0.5*ChRandom()));
+            mcube->AddAsset(mcol);
+        }
+    }
 
+    std::shared_ptr<ChTexture> mtexture(new ChTexture(GetChronoDataFile("textures/blue.png").c_str()));
+    mfloor->AddAsset(mtexture);
 
     // Use this function for adding a ChIrrNodeAsset to all items
     // Otherwise use application.AssetBind(myitem); on a per-item basis.
@@ -423,11 +432,9 @@ int main(int argc, char* argv[]) {
     // Use this function for 'converting' assets into Irrlicht meshes
     application.AssetUpdateAll();
 
-
     //
     // THE SOFT-REAL-TIME CYCLE, SHOWING THE SIMULATION
     //
-
 
     // Modify the settings of the solver.
     // By default, the solver might not have sufficient precision to keep the
@@ -438,14 +445,25 @@ int main(int argc, char* argv[]) {
     // 'teaching mode' IK.
     // So switch to a more precise solver, ex. BARZILAIBORWEIN
 
+    
     my_system.SetSolverType(ChSolver::Type::BARZILAIBORWEIN);
-    my_system.SetSolverMaxIterations(120);
+    my_system.SetSolverMaxIterations(200);
+    
+    /*
+    // Alternative: the ADMM solver offers higher precision and it can also support FEA + nonsmooth contacts 
+    auto solver = chrono_types::make_shared<ChSolverADMM>(); //faster, if MKL enabled: chrono_types::make_shared<ChSolverPardisoMKL>());
+    solver->EnableWarmStart(true);
+    solver->SetMaxIterations(60);
+    solver->SetRho(1);
+    solver->SetSigma(1e-8);
+    solver->SetStepAdjustPolicy(ChSolverADMM::AdmmStepType::BALANCED_UNSCALED);
+    my_system.SetSolver(solver);
+    */
 
     //
     // THE SOFT-REAL-TIME CYCLE, SHOWING THE SIMULATION
     //
 
-    application.SetStepManage(true);
     application.SetTimestep(0.01);
     application.SetTryRealtime(true);
 
@@ -460,8 +478,8 @@ int main(int argc, char* argv[]) {
         application.DoStep();
 
         // .. plot something on realtime view
-        ChIrrTools::drawChFunction(application.GetDevice(), motlaw_z.get(), 0, 10, -0.9, 0.2,10,400,300,80);
-        ChIrrTools::drawChFunction(application.GetDevice(), motlaw_y.get(), 0, 10, -0.9, 0.2,10,500,300,80);
+        ChIrrTools::drawChFunction(application.GetDevice(), motlaw_z.get(), 0, 10, -0.9, 0.2, 10, 400, 300, 80);
+        ChIrrTools::drawChFunction(application.GetDevice(), motlaw_y.get(), 0, 10, -0.9, 0.2, 10, 500, 300, 80);
 
         application.EndScene();
     }

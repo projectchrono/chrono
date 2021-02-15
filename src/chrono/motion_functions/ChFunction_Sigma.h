@@ -19,8 +19,11 @@
 
 namespace chrono {
 
+/// @addtogroup chrono_functions
+/// @{
+
 /// Sigma function:
-///   y = polynomial smooth ramp
+///   `y = polynomial smooth ramp`
 class ChApi ChFunction_Sigma : public ChFunction {
   private:
     double amp;
@@ -61,6 +64,8 @@ class ChApi ChFunction_Sigma : public ChFunction {
     /// Method to allow de-serialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
+
+/// @} chrono_functions
 
 CH_CLASS_VERSION(ChFunction_Sigma, 0)
 

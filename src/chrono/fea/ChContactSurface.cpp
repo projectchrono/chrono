@@ -13,5 +13,10 @@
 #include "chrono/fea/ChContactSurface.h"
 
 namespace chrono {
-namespace fea {}  // end namespace fea
+namespace fea {
+
+ChContactSurface::ChContactSurface(std::shared_ptr<ChMaterialSurface> material, ChMesh* mesh)
+    : m_material(material), m_mesh(mesh) {}
+
+}  // end namespace fea
 }  // end namespace chrono

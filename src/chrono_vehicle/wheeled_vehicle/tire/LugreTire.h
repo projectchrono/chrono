@@ -19,8 +19,6 @@
 #ifndef LUGRE_TIRE_H
 #define LUGRE_TIRE_H
 
-#include "chrono/assets/ChTriangleMeshShape.h"
-
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/ChLugreTire.h"
 
@@ -69,8 +67,8 @@ class CH_VEHICLE_API LugreTire : public ChLugreTire {
     ChVector<> m_inertia;
 
     bool m_has_mesh;
-    std::string m_meshName;
-    std::string m_meshFile;
+    std::string m_meshFile_left;
+    std::string m_meshFile_right;
     std::shared_ptr<ChTriangleMeshShape> m_trimesh_shape;
 };
 

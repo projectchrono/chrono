@@ -25,14 +25,13 @@
 
 #include "chrono/core/ChStream.h"
 #include "chrono/core/ChRealtimeStep.h"
-#include "chrono/physics/ChLinkDistance.h"
-#include "chrono/solver/ChSolverPSOR.h"
+#include "chrono/solver/ChSolverBB.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 
 #include "chrono_vehicle/ChConfigVehicle.h"
 #include "chrono_vehicle/ChVehicleModelData.h"
 
-#include "chrono_vehicle/powertrain/SimplePowertrain.h"
+#include "chrono_vehicle/powertrain/SimpleCVTPowertrain.h"
 #include "chrono_vehicle/driver/ChDataDriver.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
 #include "chrono_vehicle/tracked_vehicle/vehicle/TrackedVehicle.h"
@@ -61,7 +60,7 @@ std::string vehicle_file("M113/vehicle/M113_Vehicle_SinglePin.json");
 ////std::string vehicle_file("M113/vehicle/M113_Vehicle_DoublePin.json");
 
 // JSON file for powertrain
-std::string simplepowertrain_file("M113/powertrain/M113_SimplePowertrain.json");
+std::string simplepowertrain_file("M113/powertrain/M113_SimpleCVTPowertrain.json");
 
 // JSON files for terrain (rigid plane)
 std::string rigidterrain_file("terrain/RigidPlane.json");
@@ -70,11 +69,11 @@ std::string rigidterrain_file("terrain/RigidPlane.json");
 std::string driver_file("generic/driver/Sample_Maneuver.txt");
 
 // Simulation step size
-double step_size = 2e-3;
+double step_size = 1e-3;
 
 // Simulation length (Povray only)
 double tend = 10.0;
-double render_step_size = 1.0 / 50;  // FPS = 50
+double render_step_size = 1.0 / 120;  // FPS = 120
 
 // Output directories (Povray only)
 const std::string out_dir = GetChronoOutputPath() + "M113_JSON";
@@ -90,14 +89,14 @@ int main(int argc, char* argv[]) {
     // --------------------------
 
     // Contact formulation
-    ChMaterialSurface::ContactMethod contact_method = ChMaterialSurface::NSC;
+    ChContactMethod contact_method = ChContactMethod::NSC;
 
     //// NOTE
     //// When using SMC, a double-pin shoe type requires MKL or MUMPS.  
     //// However, there appear to still be redundant constraints in the double-pin assembly
     //// resulting in solver failures with MKL and MUMPS (rank-deficient matrix).
     ////
-    //// For now, use ChMaterialSurface::NSC for a double-pin track model
+    //// For now, use ChContactMethod::NSC for a double-pin track model
 
     // Create the vehicle system
     TrackedVehicle vehicle(vehicle::GetDataFile(vehicle_file), contact_method);
@@ -106,7 +105,7 @@ int main(int argc, char* argv[]) {
     ////vehicle.GetDriveline()->SetGyrationMode(true);
 
     // Initialize the vehicle at the specified position.
-    vehicle.Initialize(ChCoordsys<>(ChVector<>(0, 0, 1.2), QUNIT));
+    vehicle.Initialize(ChCoordsys<>(ChVector<>(0, 0, 0.8), QUNIT));
 
     // Set visualization type for vehicle components
     vehicle.SetChassisVisualizationType(VisualizationType::PRIMITIVES);
@@ -123,8 +122,8 @@ int main(int argc, char* argv[]) {
     ////vehicle.SetChassisVehicleCollide(false);
 
     // Solver settings.
-    auto solver = chrono_types::make_shared<ChSolverPSOR>();
-    solver->SetMaxIterations(50);
+    auto solver = chrono_types::make_shared<ChSolverBB>();
+    solver->SetMaxIterations(100);
     solver->SetOmega(0.8);
     solver->SetSharpnessLambda(1.0);
     vehicle.GetSystem()->SetSolver(solver);
@@ -136,7 +135,7 @@ int main(int argc, char* argv[]) {
     RigidTerrain terrain(vehicle.GetSystem(), vehicle::GetDataFile(rigidterrain_file));
 
     // Create and initialize the powertrain system
-    auto powertrain = chrono_types::make_shared<SimplePowertrain>(vehicle::GetDataFile(simplepowertrain_file));
+    auto powertrain = chrono_types::make_shared<SimpleCVTPowertrain>(vehicle::GetDataFile(simplepowertrain_file));
     vehicle.InitializePowertrain(powertrain);
 
 #ifdef USE_IRRLICHT
@@ -188,15 +187,18 @@ int main(int argc, char* argv[]) {
     int render_steps = (int)std::ceil(render_step_size / step_size);
 
     // Initialize simulation frame counter and simulation time
+    int step_number = 0;
 
 #ifdef USE_IRRLICHT
 
     ChRealtimeStepTimer realtime_timer;
     while (app.GetDevice()->run()) {
-        // Render scene
-        app.BeginScene(true, true, irr::video::SColor(255, 140, 161, 192));
-        app.DrawAll();
-        app.EndScene();
+        if (step_number % render_steps == 0) {
+            // Render scene
+            app.BeginScene(true, true, irr::video::SColor(255, 140, 161, 192));
+            app.DrawAll();
+            app.EndScene();
+        }
 
         // Collect output data from modules (for inter-module communication)
         ChDriver::Inputs driver_inputs = driver.GetInputs();
@@ -215,6 +217,9 @@ int main(int argc, char* argv[]) {
         terrain.Advance(step_size);
         app.Advance(step_size);
 
+        // Increment frame number
+        step_number++;
+
         // Spin in place for real time to catch up
         realtime_timer.Spin(step_size);
     }
@@ -222,7 +227,6 @@ int main(int argc, char* argv[]) {
 #else
 
     double time = 0;
-    int step_number = 0;
     int render_frame = 0;
 
     if (!filesystem::create_directory(filesystem::path(out_dir))) {

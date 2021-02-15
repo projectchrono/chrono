@@ -40,6 +40,9 @@ void ChSingleRoadWheel::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     // Invoke the base class method
     ChRoadWheel::Initialize(chassis, carrier, location);
 
+    CreateContactMaterial(m_wheel->GetSystem()->GetContactMethod());
+    assert(m_material && m_material->GetContactMethod() == m_wheel->GetSystem()->GetContactMethod());
+
     // Add contact geometry.
     double radius = GetWheelRadius();
     double width = GetWheelWidth();
@@ -51,7 +54,7 @@ void ChSingleRoadWheel::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     m_wheel->GetCollisionModel()->SetFamily(TrackedCollisionFamily::WHEELS);
     m_wheel->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(TrackedCollisionFamily::IDLERS);
 
-    m_wheel->GetCollisionModel()->AddCylinder(radius, radius, width / 2);
+    m_wheel->GetCollisionModel()->AddCylinder(m_material, radius, radius, width / 2);
 
     m_wheel->GetCollisionModel()->BuildModel();
 }
@@ -72,7 +75,7 @@ void ChSingleRoadWheel::AddVisualizationAssets(VisualizationType vis) {
     m_wheel->AddAsset(cyl);
 
     auto tex = chrono_types::make_shared<ChTexture>();
-    tex->SetTextureFilename(chrono::GetChronoDataFile("greenwhite.png"));
+    tex->SetTextureFilename(chrono::GetChronoDataFile("textures/greenwhite.png"));
     m_wheel->AddAsset(tex);
 }
 

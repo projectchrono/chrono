@@ -43,15 +43,17 @@ void ChIrrNodeProxyToAsset::Update() {
     if (!visualization_asset)
         return;
 
-    if (initial_update) {
-        initial_update = false;
-    } else if (auto asset = std::dynamic_pointer_cast<ChVisualization>(visualization_asset)) {
-        if (asset->IsStatic())
+    if (!initial_update) {
+        auto asset = std::dynamic_pointer_cast<ChVisualization>(visualization_asset);
+        if (asset && asset->IsStatic())
             return;
     }
 
     if (auto trianglemesh = std::dynamic_pointer_cast<ChTriangleMeshShape>(visualization_asset)) {
-        UpdateTriangleMesh(trianglemesh);
+        if (trianglemesh->FixedConnectivity())
+            UpdateTriangleMeshFixedConnectivity(trianglemesh);
+        else
+            UpdateTriangleMesh(trianglemesh);
     } else if (auto glyphs = std::dynamic_pointer_cast<ChGlyphs>(visualization_asset)) {
         UpdateGlyphs(glyphs);
     } else if (auto surface = std::dynamic_pointer_cast<ChSurfaceShape>(visualization_asset)) {
@@ -61,6 +63,8 @@ void ChIrrNodeProxyToAsset::Update() {
     } else if (auto line_shape = std::dynamic_pointer_cast<ChLineShape>(visualization_asset)) {
         UpdateLine(line_shape->GetLineGeometry(), line_shape->GetNumRenderPoints());
     }
+
+    initial_update = false;
 }
 
 void ChIrrNodeProxyToAsset::UpdateTriangleMesh(std::shared_ptr<ChTriangleMeshShape> trianglemesh) {
@@ -169,6 +173,80 @@ void ChIrrNodeProxyToAsset::UpdateTriangleMesh(std::shared_ptr<ChTriangleMeshSha
     meshnode->setMaterialFlag(video::EMF_BACK_FACE_CULLING, trianglemesh->IsBackfaceCull());
 
     meshnode->setMaterialFlag(video::EMF_COLOR_MATERIAL, true);  // so color shading = vertexes  color
+}
+
+// Update a trimesh by keeping fixed the connectivity and only touching the specified modified vertices.
+void ChIrrNodeProxyToAsset::UpdateTriangleMeshFixedConnectivity(std::shared_ptr<ChTriangleMeshShape> trianglemesh) {
+    // Access the Irrlicht mesh (first child node)
+    ISceneNode* childnode = *(getChildren().begin());
+    if (!childnode)
+        return;
+
+    if (!(childnode->getType() == scene::ESNT_MESH))
+        return;
+
+    scene::IMeshSceneNode* meshnode = (scene::IMeshSceneNode*)childnode;
+    if (meshnode->getMesh()->getMeshBufferCount() == 0)
+        return;
+
+    scene::CDynamicMeshBuffer* irrmesh = (scene::CDynamicMeshBuffer*)meshnode->getMesh()->getMeshBuffer(0);
+    auto& vertexbuffer = irrmesh->getVertexBuffer();
+    auto& indexbuffer = irrmesh->getIndexBuffer();
+
+    // Access Chrono triangle mesh
+    geometry::ChTriangleMeshConnected* mesh = trianglemesh->GetMesh().get();
+    std::vector<ChVector<>>& vertices = mesh->getCoordsVertices();
+    std::vector<ChVector<>>& normals = mesh->getCoordsNormals();
+    std::vector<ChVector<int>>& idx_vertices = mesh->getIndicesVertexes();
+    std::vector<ChVector<int>>& idx_normals = mesh->getIndicesNormals();
+    std::vector<ChVector<>>& uv_coords = mesh->getCoordsUV();
+    std::vector<ChVector<float>>& cols = mesh->getCoordsColors();
+
+    // Chrono mesh -> Irrlicht mesh
+    if (initial_update) {
+        // Full setup of the Irrlicht mesh
+        unsigned int ntriangles = (unsigned int)mesh->getIndicesVertexes().size();
+        unsigned int nvertices = (unsigned int)mesh->getCoordsVertices().size();
+
+        vertexbuffer.set_used(nvertices);
+        indexbuffer.set_used(ntriangles * 3);
+
+        for (unsigned int i = 0; i < nvertices; i++) {
+            vertexbuffer[i] = video::S3DVertex(                                    //
+                (f32)vertices[i].x(), (f32)vertices[i].y(), (f32)vertices[i].z(),  //
+                (f32)normals[i].x(), (f32)normals[i].y(), (f32)normals[i].z(),     //
+                video::SColor(255, (u32)(cols[i].x() * 255), (u32)(cols[i].y() * 255),
+                              (u32)(cols[i].z() * 255)),      //
+                (f32)uv_coords[i].x(), (f32)uv_coords[i].y()  //
+            );
+        }
+
+        for (unsigned int i = 0; i < ntriangles; i++) {
+            indexbuffer.setValue(3 * i + 0, idx_vertices[i].x());
+            indexbuffer.setValue(3 * i + 1, idx_vertices[i].y());
+            indexbuffer.setValue(3 * i + 2, idx_vertices[i].z());
+        }
+
+        irrmesh->setHardwareMappingHint(scene::EHM_DYNAMIC);  // EHM_DYNAMIC for faster hw mapping
+        irrmesh->recalculateBoundingBox();
+
+        meshnode->setAutomaticCulling(scene::EAC_OFF);                                 // disable automatic culling
+        meshnode->setMaterialFlag(video::EMF_WIREFRAME, trianglemesh->IsWireframe());  // set as wireframe?
+        meshnode->setMaterialFlag(video::EMF_LIGHTING, !trianglemesh->IsWireframe());  // no shading if wireframe
+        meshnode->setMaterialFlag(video::EMF_BACK_FACE_CULLING, trianglemesh->IsBackfaceCull());
+
+    } else {
+        // Incremental update of the Irrlicht mesh
+        for (auto i : trianglemesh->GetModifiedVertices()) {
+            vertexbuffer[i].Pos = core::vector3df((f32)vertices[i].x(), (f32)vertices[i].y(), (f32)vertices[i].z());
+            vertexbuffer[i].Normal = core::vector3df((f32)normals[i].x(), (f32)normals[i].y(), (f32)normals[i].z());
+            vertexbuffer[i].Color =
+                video::SColor(255, (u32)(cols[i].x() * 255), (u32)(cols[i].y() * 255), (u32)(cols[i].z() * 255));
+        }
+    }
+
+    irrmesh->setDirty();                                         // to force update of hardware buffers
+    meshnode->setMaterialFlag(video::EMF_COLOR_MATERIAL, true);  // color shading = vertexes  color
 }
 
 void ChIrrNodeProxyToAsset::UpdateGlyphs(std::shared_ptr<ChGlyphs> glyphs) {
@@ -396,10 +474,10 @@ void ChIrrNodeProxyToAsset::UpdateSurface(std::shared_ptr<ChSurfaceShape> surfac
     scene::CDynamicMeshBuffer* irrmesh = (scene::CDynamicMeshBuffer*)amesh->getMeshBuffer(0);
 
     if (!surface->IsWireframe()) {
-        size_t sections_u = surface->GetResolutionU() * 4;  //***TEST***
-        size_t sections_v = surface->GetResolutionV() * 4;  //***TEST***
-        size_t nvertexes = (sections_u + 1) * (sections_v + 1);
-        size_t ntriangles = (sections_u) * (sections_v)*2;
+        auto sections_u = surface->GetResolutionU() * 4;  //***TEST***
+        auto sections_v = surface->GetResolutionV() * 4;  //***TEST***
+        auto nvertexes = (sections_u + 1) * (sections_v + 1);
+        auto ntriangles = (sections_u) * (sections_v)*2;
 
         // smart inflating of allocated buffers, only if necessary, and once in a while shrinking
         if (irrmesh->getIndexBuffer().allocated_size() > (ntriangles * 3) * 1.5)
@@ -412,10 +490,10 @@ void ChIrrNodeProxyToAsset::UpdateSurface(std::shared_ptr<ChSurfaceShape> surfac
 
         int itri = 0;
 
-        for (unsigned int iv = 0; iv <= sections_v; ++iv) {
+        for (auto iv = 0; iv <= sections_v; ++iv) {
             double mV = 1.0 * ((double)iv / (double)(sections_v));  // v abscissa
 
-            for (unsigned int iu = 0; iu <= sections_u; ++iu) {
+            for (auto iu = 0; iu <= sections_u; ++iu) {
                 double mU = 1.0 * ((double)iu / (double)(sections_u));  // u abscissa
 
                 ChVector<> P;
@@ -454,14 +532,14 @@ void ChIrrNodeProxyToAsset::UpdateSurface(std::shared_ptr<ChSurfaceShape> surfac
         meshnode->setMaterialFlag(video::EMF_LIGHTING, true);  // avoid shading for wireframe
         meshnode->setMaterialFlag(video::EMF_BACK_FACE_CULLING, false);
         meshnode->setMaterialFlag(video::EMF_COLOR_MATERIAL, true);
-    } else {                    // if wirewrame u v isolines
-        size_t isolines_u = 4;  //***TEST***
-        size_t isolines_v = 3;  //***TEST***
-        size_t sections_u = surface->GetResolutionU() * isolines_u;
-        size_t sections_v = surface->GetResolutionV() * isolines_v;
+    } else {                  // if wirewrame u v isolines
+        auto isolines_u = 4;  //***TEST***
+        auto isolines_v = 3;  //***TEST***
+        auto sections_u = surface->GetResolutionU() * isolines_u;
+        auto sections_v = surface->GetResolutionV() * isolines_v;
 
-        size_t nvertexes = (sections_u + 1) * (isolines_v) + (sections_v + 1) * (isolines_u);
-        size_t ntriangles = (sections_u) * (isolines_v) + (sections_v) * (isolines_u);
+        auto nvertexes = (sections_u + 1) * (isolines_v) + (sections_v + 1) * (isolines_u);
+        auto ntriangles = (sections_u) * (isolines_v) + (sections_v) * (isolines_u);
 
         // smart inflating of allocated buffers, only if necessary, and once in a while shrinking
         if (irrmesh->getIndexBuffer().allocated_size() > (ntriangles * 3) * 1.5)
@@ -474,10 +552,10 @@ void ChIrrNodeProxyToAsset::UpdateSurface(std::shared_ptr<ChSurfaceShape> surfac
 
         int itri = 0;
 
-        for (unsigned int iv = 0; iv < isolines_v; ++iv) {
+        for (auto iv = 0; iv < isolines_v; ++iv) {
             double mV = 1.0 * ((double)iv / (double)(isolines_v - 1));  // v abscissa
 
-            for (unsigned int iu = 0; iu <= sections_u; ++iu) {
+            for (auto iu = 0; iu <= sections_u; ++iu) {
                 double mU = 1.0 * ((double)iu / (double)(sections_u));  // u abscissa
 
                 ChVector<> P;
@@ -495,11 +573,11 @@ void ChIrrNodeProxyToAsset::UpdateSurface(std::shared_ptr<ChSurfaceShape> surfac
                 }
             }
         }
-        size_t stride = (sections_u + 1) * isolines_v;
-        for (unsigned int iu = 0; iu < isolines_u; ++iu) {
+        auto stride = (sections_u + 1) * isolines_v;
+        for (auto iu = 0; iu < isolines_u; ++iu) {
             double mU = 1.0 * ((double)iu / (double)(isolines_u - 1));  // u abscissa
 
-            for (unsigned int iv = 0; iv <= sections_v; ++iv) {
+            for (auto iv = 0; iv <= sections_v; ++iv) {
                 double mV = 1.0 * ((double)iv / (double)(sections_v));  // v abscissa
 
                 ChVector<> P;

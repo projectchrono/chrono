@@ -41,8 +41,8 @@ const double Sedan_DoubleWishbone::m_uprightMass = 1.397;
 const double Sedan_DoubleWishbone::m_UCAMass = 1.032;
 const double Sedan_DoubleWishbone::m_LCAMass = 1.611;
 
-const double Sedan_DoubleWishbone::m_spindleRadius = 0.15;
-const double Sedan_DoubleWishbone::m_spindleWidth = 0.06;
+const double Sedan_DoubleWishbone::m_spindleRadius = 0.1;
+const double Sedan_DoubleWishbone::m_spindleWidth = 0.02;
 const double Sedan_DoubleWishbone::m_uprightRadius = 0.025;
 const double Sedan_DoubleWishbone::m_UCARadius = 0.02;
 const double Sedan_DoubleWishbone::m_LCARadius = 0.03;
@@ -114,17 +114,14 @@ double Sedan_ShockForce::operator()(double time,
 // Constructors
 // -----------------------------------------------------------------------------
 Sedan_DoubleWishbone::Sedan_DoubleWishbone(const std::string& name) : ChDoubleWishbone(name) {
-    m_springForceCB = new LinearSpringForce(m_springCoefficient);
-    m_shockForceCB = new LinearDamperForce(m_dampingCoefficient);
+    m_springForceCB = chrono_types::make_shared<LinearSpringForce>(m_springCoefficient);
+    m_shockForceCB = chrono_types::make_shared<LinearDamperForce>(m_dampingCoefficient);
 }
 
 // -----------------------------------------------------------------------------
 // Destructors
 // -----------------------------------------------------------------------------
-Sedan_DoubleWishbone::~Sedan_DoubleWishbone() {
-    delete m_springForceCB;
-    delete m_shockForceCB;
-}
+Sedan_DoubleWishbone::~Sedan_DoubleWishbone() {}
 
 // -----------------------------------------------------------------------------
 // Implementation of the getLocation() virtual method.

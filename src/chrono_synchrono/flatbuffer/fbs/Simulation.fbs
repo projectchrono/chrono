@@ -1,0 +1,7 @@
+namespace SynFlatBuffers.Simulation;
+
+table State {
+    quit_sim:bool = false;
+}
+
+root_type State;

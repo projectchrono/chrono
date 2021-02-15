@@ -88,9 +88,9 @@ void LugreTire::Create(const rapidjson::Document& d) {
 
     // Check how to visualize this tire.
     if (d.HasMember("Visualization")) {
-        if (d["Visualization"].HasMember("Mesh Filename")) {
-            m_meshFile = d["Visualization"]["Mesh Filename"].GetString();
-            m_meshName = d["Visualization"]["Mesh Name"].GetString();
+        if (d["Visualization"].HasMember("Mesh Filename Left") && d["Visualization"].HasMember("Mesh Filename Right")) {
+            m_meshFile_left = d["Visualization"]["Mesh Filename Left"].GetString();
+            m_meshFile_right = d["Visualization"]["Mesh Filename Right"].GetString();
             m_has_mesh = true;
         }
     }
@@ -99,14 +99,8 @@ void LugreTire::Create(const rapidjson::Document& d) {
 // -----------------------------------------------------------------------------
 void LugreTire::AddVisualizationAssets(VisualizationType vis) {
     if (vis == VisualizationType::MESH && m_has_mesh) {
-        auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
-        trimesh->LoadWavefrontMesh(vehicle::GetDataFile(m_meshFile), false, false);
-        trimesh->Transform(ChVector<>(0, GetOffset(), 0), ChMatrix33<>(1));
-        m_trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
-        m_trimesh_shape->SetMesh(trimesh);
-        m_trimesh_shape->SetName(m_meshName);
-        m_trimesh_shape->SetStatic(true);
-        m_wheel->GetSpindle()->AddAsset(m_trimesh_shape);
+        m_trimesh_shape = AddVisualizationMesh(m_meshFile_left,    // left side
+                                               m_meshFile_right);  // right side
     }
     else {
         ChLugreTire::AddVisualizationAssets(vis);
@@ -115,14 +109,7 @@ void LugreTire::AddVisualizationAssets(VisualizationType vis) {
 
 void LugreTire::RemoveVisualizationAssets() {
     ChLugreTire::RemoveVisualizationAssets();
-
-    // Make sure we only remove the assets added by LugreTire::AddVisualizationAssets.
-    // This is important for the ChTire object because a wheel may add its own assets
-    // to the same body (the spindle/wheel).
-    auto& assets = m_wheel->GetSpindle()->GetAssets();
-    auto it = std::find(assets.begin(), assets.end(), m_trimesh_shape);
-    if (it != assets.end())
-        assets.erase(it);
+    RemoveVisualizationMesh(m_trimesh_shape);
 }
 
 }  // end namespace vehicle

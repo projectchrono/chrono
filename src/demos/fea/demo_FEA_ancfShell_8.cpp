@@ -15,8 +15,8 @@
 // Demo on using 8-node ANCF shell elements. These demo reproduces the example
 // 3.3 of the paper: 'Analysis of higher-order quadrilateral plate elements based
 // on the absolute nodal coordinate formulation for three-dimensional elasticity'
-// H.C.J. Ebel, M.K.Matikainen, V.V.T. Hurskainen, A.M.Mikkola, Multibody System
-// Dynamics, To be published, 2017
+// H.C.J. Ebel, M.K.Matikainen, V.V.T. Hurskainen, A.M.Mikkola, Advances in
+// Mechanical Engineering, 2017
 //
 // =============================================================================
 
@@ -265,13 +265,28 @@ int main(int argc, char* argv[]) {
             nodetip1->SetForce(ChVector<>(0, 0, -20.0/3 * my_system.GetChTime()));
             nodetip2->SetForce(ChVector<>(0, 0, -20.0/3 * my_system.GetChTime()));
             nodetip3->SetForce(ChVector<>(0, 0, -20.0/3 * my_system.GetChTime()));
-        } else {
-            nodetip1->SetForce(ChVector<>(0, 0, -2/3.0));
-            nodetip2->SetForce(ChVector<>(0, 0, -2/3.0));
-            nodetip3->SetForce(ChVector<>(0, 0, -2/3.0));
-        }
-        // std::cout << "Node tip vertical position: " << nodetip1->GetPos().z << "\n";
-        GetLog() << "Node tip vertical position: " << nodetip1->GetPos().z() << "\n";
+		} else {
+			nodetip1->SetForce(ChVector<>(0, 0, -2 / 3.0));
+			nodetip2->SetForce(ChVector<>(0, 0, -2 / 3.0));
+			nodetip3->SetForce(ChVector<>(0, 0, -2 / 3.0));
+		}
+
+        GetLog() << "Node tip vertical position: " << nodetip1->GetPos().z()
+				<< "\n";
+
+		auto element = std::dynamic_pointer_cast<ChElementShellANCF_8>(
+				my_mesh->GetElement(TotalNumElements - 1));
+		const ChStrainStress3D strainStressOut =
+				element->EvaluateSectionStrainStress(ChVector<double> (0, 0, 0), 0);
+
+		std::cout << "Strain xx: " << strainStressOut.strain[0] << " \n";
+		std::cout << "Strain yy: " << strainStressOut.strain[1] << " \n";
+		std::cout << "Strain xy: " << strainStressOut.strain[2] << " \n";
+
+		std::cout << "Stress xx: " << strainStressOut.stress[0] << " \n";
+		std::cout << "Stress yy: " << strainStressOut.stress[1] << " \n";
+		std::cout << "Stress xy: " << strainStressOut.stress[2] << " \n";
+
         application.BeginScene();
         application.DrawAll();
         application.DoStep();

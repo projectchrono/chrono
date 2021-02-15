@@ -20,31 +20,8 @@
 
 namespace chrono {
 
-enum eChOperation {
-    ChOP_ADD = 0,
-    ChOP_SUB,
-    ChOP_MUL,
-    ChOP_DIV,
-    ChOP_POW,
-    ChOP_MAX,
-    ChOP_MIN,
-    ChOP_MODULO,
-    ChOP_FABS,
-    ChOP_FUNCT,
-};
-
-CH_ENUM_MAPPER_BEGIN(eChOperation);
-CH_ENUM_VAL(ChOP_ADD);
-CH_ENUM_VAL(ChOP_SUB);
-CH_ENUM_VAL(ChOP_MUL);
-CH_ENUM_VAL(ChOP_DIV);
-CH_ENUM_VAL(ChOP_POW);
-CH_ENUM_VAL(ChOP_MAX);
-CH_ENUM_VAL(ChOP_MIN);
-CH_ENUM_VAL(ChOP_MODULO);
-CH_ENUM_VAL(ChOP_FABS);
-CH_ENUM_VAL(ChOP_FUNCT);
-CH_ENUM_MAPPER_END(eChOperation);
+/// @addtogroup chrono_functions
+/// @{
 
 /// Operation between functions:
 ///
@@ -52,15 +29,24 @@ CH_ENUM_MAPPER_END(eChOperation);
 ///   - fa = first operand function
 ///   - fb = second operand function
 class ChApi ChFunction_Operation : public ChFunction {
-  private:
-    std::shared_ptr<ChFunction> fa;
-    std::shared_ptr<ChFunction> fb;
-    eChOperation op_type;
-
   public:
     ChFunction_Operation();
     ChFunction_Operation(const ChFunction_Operation& other);
     ~ChFunction_Operation() {}
+
+    /// Type of operation.
+    enum eChOperation {
+        ChOP_ADD = 0,
+        ChOP_SUB,
+        ChOP_MUL,
+        ChOP_DIV,
+        ChOP_POW,
+        ChOP_MAX,
+        ChOP_MIN,
+        ChOP_MODULO,
+        ChOP_FABS,
+        ChOP_FUNCT,
+    };
 
     /// "Virtual" copy constructor (covariant return type).
     virtual ChFunction_Operation* Clone() const override { return new ChFunction_Operation(*this); }
@@ -85,7 +71,29 @@ class ChApi ChFunction_Operation : public ChFunction {
 
     /// Method to allow de-serialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
+
+    /// @cond
+    CH_ENUM_MAPPER_BEGIN(eChOperation);
+    CH_ENUM_VAL(ChOP_ADD);
+    CH_ENUM_VAL(ChOP_SUB);
+    CH_ENUM_VAL(ChOP_MUL);
+    CH_ENUM_VAL(ChOP_DIV);
+    CH_ENUM_VAL(ChOP_POW);
+    CH_ENUM_VAL(ChOP_MAX);
+    CH_ENUM_VAL(ChOP_MIN);
+    CH_ENUM_VAL(ChOP_MODULO);
+    CH_ENUM_VAL(ChOP_FABS);
+    CH_ENUM_VAL(ChOP_FUNCT);
+    CH_ENUM_MAPPER_END(eChOperation);
+    /// @endcond
+
+  private:
+    std::shared_ptr<ChFunction> fa;
+    std::shared_ptr<ChFunction> fb;
+    eChOperation op_type;
 };
+
+/// @} chrono_functions
 
 CH_CLASS_VERSION(ChFunction_Operation, 0)
 

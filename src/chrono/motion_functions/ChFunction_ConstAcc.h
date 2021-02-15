@@ -19,6 +19,9 @@
 
 namespace chrono {
 
+/// @addtogroup chrono_functions
+/// @{
+
 /// Constant acceleration function:
 ///
 ///   h = height, amount of displacement
@@ -99,6 +102,8 @@ class ChApi ChFunction_ConstAcc : public ChFunction {
     /// Method to allow de-serialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
+
+/// @} chrono_functions
 
 CH_CLASS_VERSION(ChFunction_ConstAcc, 0)
 

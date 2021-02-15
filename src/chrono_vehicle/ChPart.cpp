@@ -25,17 +25,7 @@ namespace vehicle {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-ChPart::ChPart(const std::string& name)
-    : m_name(name),
-      m_output(false),
-      m_friction(0.7f),
-      m_restitution(0.1f),
-      m_young_modulus(1e7f),
-      m_poisson_ratio(0.3f),
-      m_kn(2e6),
-      m_kt(2e5),
-      m_gn(40),
-      m_gt(20) {}
+ChPart::ChPart(const std::string& name) : m_name(name), m_output(false) {}
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -57,20 +47,6 @@ void ChPart::Create(const rapidjson::Document& d) {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChPart::SetContactMaterialProperties(float young_modulus, float poisson_ratio) {
-    m_young_modulus = young_modulus;
-    m_poisson_ratio = poisson_ratio;
-}
-
-void ChPart::SetContactMaterialCoefficients(float kn, float gn, float kt, float gt) {
-    m_kn = kn;
-    m_gn = gn;
-    m_kt = kt;
-    m_gt = gt;
-}
-
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 void ChPart::SetVisualizationType(VisualizationType vis) {
     RemoveVisualizationAssets();
     AddVisualizationAssets(vis);
@@ -87,7 +63,7 @@ ChMatrix33<> ChPart::TransformInertiaMatrix(
     const ChVector<>& products,       // products of inertia in vehicle-aligned centroidal frame
     const ChMatrix33<>& vehicle_rot,  // vehicle absolute orientation matrix
     const ChMatrix33<>& body_rot      // body absolute orientation matrix
-    ) {
+) {
     // Calculate rotation matrix body-to-vehicle
     ChMatrix33<> R = vehicle_rot.transpose() * body_rot;
 
@@ -161,7 +137,8 @@ void ChPart::ExportJointList(rapidjson::Document& jsonDocument, std::vector<std:
     jsonDocument.AddMember("joints", jsonArray, allocator);
 }
 
-void ChPart::ExportCouplesList(rapidjson::Document& jsonDocument, std::vector<std::shared_ptr<ChShaftsCouple>> couples) {
+void ChPart::ExportCouplesList(rapidjson::Document& jsonDocument,
+                               std::vector<std::shared_ptr<ChShaftsCouple>> couples) {
     rapidjson::Document::AllocatorType& allocator = jsonDocument.GetAllocator();
 
     rapidjson::Value jsonArray(rapidjson::kArrayType);
@@ -177,7 +154,6 @@ void ChPart::ExportCouplesList(rapidjson::Document& jsonDocument, std::vector<st
         jsonArray.PushBack(obj, allocator);
     }
     jsonDocument.AddMember("couples", jsonArray, allocator);
-
 }
 
 void ChPart::ExportMarkerList(rapidjson::Document& jsonDocument, std::vector<std::shared_ptr<ChMarker>> markers) {
@@ -196,8 +172,7 @@ void ChPart::ExportMarkerList(rapidjson::Document& jsonDocument, std::vector<std
     jsonDocument.AddMember("markers", jsonArray, allocator);
 }
 
-void ChPart::ExportLinSpringList(rapidjson::Document& jsonDocument,
-                                 std::vector<std::shared_ptr<ChLinkTSDA>> springs) {
+void ChPart::ExportLinSpringList(rapidjson::Document& jsonDocument, std::vector<std::shared_ptr<ChLinkTSDA>> springs) {
     rapidjson::Document::AllocatorType& allocator = jsonDocument.GetAllocator();
 
     rapidjson::Value jsonArray(rapidjson::kArrayType);
@@ -256,6 +231,38 @@ void ChPart::ExportBodyLoadList(rapidjson::Document& jsonDocument, std::vector<s
         jsonArray.PushBack(obj, allocator);
     }
     jsonDocument.AddMember("body-body loads", jsonArray, allocator);
+}
+
+// =============================================================================
+
+MaterialInfo::MaterialInfo() : mu(0.8f), cr(0.01f), Y(2e7f), nu(0.3f), kn(2e5f), gn(40.0f), kt(2e5f), gt(20.0f) {}
+
+MaterialInfo::MaterialInfo(float mu_, float cr_, float Y_, float nu_, float kn_, float gn_, float kt_, float gt_)
+    : mu(mu_), cr(cr_), Y(Y_), nu(nu_), kn(kn_), gn(gn_), kt(kt_), gt(gt_) {}
+
+std::shared_ptr<ChMaterialSurface> MaterialInfo::CreateMaterial(ChContactMethod contact_method) {
+    switch (contact_method) {
+        case ChContactMethod::NSC: {
+            auto matNSC = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+            matNSC->SetFriction(mu);
+            matNSC->SetRestitution(cr);
+            return matNSC;
+        }
+        case ChContactMethod::SMC: {
+            auto matSMC = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+            matSMC->SetFriction(mu);
+            matSMC->SetRestitution(cr);
+            matSMC->SetYoungModulus(Y);
+            matSMC->SetPoissonRatio(nu);
+            matSMC->SetKn(kn);
+            matSMC->SetGn(gn);
+            matSMC->SetKt(kt);
+            matSMC->SetGt(gt);
+            return matSMC;
+        }
+        default:
+            return std::shared_ptr<ChMaterialSurface>();
+    }
 }
 
 }  // end namespace vehicle

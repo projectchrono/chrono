@@ -1,0 +1,12 @@
+# Blender MTL File: 'None'
+# Material Count: 1
+
+newmtl Tire_Black
+Ns 94.117644
+Ka 1.000000 1.000000 1.000000
+Kd 0.244706 0.244706 0.244706
+Ks 0.449020 0.449020 0.449020
+Ke 0.0 0.0 0.0
+Ni 1.000000
+d 1.000000
+illum 2

@@ -34,13 +34,16 @@ namespace m113 {
 /// M113 continuous band track assembly subsystem using rigid-link track shoes.
 class CH_MODELS_API M113_TrackAssemblyBandANCF : public ChTrackAssemblyBandANCF {
   public:
-    M113_TrackAssemblyBandANCF(VehicleSide side);
+    M113_TrackAssemblyBandANCF(VehicleSide side, BrakeType brake_type);
 
     virtual const ChVector<> GetSprocketLocation() const override;
     virtual const ChVector<> GetIdlerLocation() const override;
     virtual const ChVector<> GetRoadWhelAssemblyLocation(int which) const override;
 
   private:
+    /// Create the contact material for the web mesh, consistent with the specified contact method.
+    virtual void CreateContactMaterial(ChContactMethod contact_method) override;
+
     static const ChVector<> m_sprocket_loc;
     static const ChVector<> m_idler_loc;
     static const ChVector<> m_susp_locs_L[5];

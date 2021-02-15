@@ -5,7 +5,7 @@
 
 # Known NVIDIA GPU achitectures Chrono can be compiled for.
 # This list will be used for CUDA_ARCH_NAME = All option
-SET(KNOWN_GPU_ARCHITECTURES "3.0 3.5 5.0 6.0 6.1 7.0 7.5")
+SET(KNOWN_GPU_ARCHITECTURES "3.5 3.7 5.0 5.2 5.3 6.0 6.1 6.2 7.0 7.2 7.5 8.0 8.6")
 
 ################################################################################################
 # Removes duplicates from LIST(s)
@@ -43,7 +43,7 @@ FUNCTION(DETECT_INSTALLED_GPUS OUT_VARIABLE)
       "  return 0;\n"
       "}\n")
 
-    EXECUTE_PROCESS(COMMAND "${CUDA_NVCC_EXECUTABLE}" "--run" "${__cufile}"
+    EXECUTE_PROCESS(COMMAND "${CUDA_NVCC_EXECUTABLE}" "--compiler-bindir" "${CMAKE_CXX_COMPILER}" "--run" "${__cufile}"
                     WORKING_DIRECTORY "${PROJECT_BINARY_DIR}/CMakeFiles/"
                     RESULT_VARIABLE __nvcc_res OUTPUT_VARIABLE __nvcc_out
                     ERROR_QUIET OUTPUT_STRIP_TRAILING_WHITESPACE)
@@ -61,6 +61,13 @@ FUNCTION(DETECT_INSTALLED_GPUS OUT_VARIABLE)
 
   IF(NOT CUDA_GPU_DETECT_OUTPUT)
     message(STATUS "Automatic GPU detection failed. Building for all known architectures.")
+      # Check CUDA version and remove unsupported architectures
+      if (${CUDA_VERSION} VERSION_LESS "10.0")
+        STRING(REPLACE "7.5" "" KNOWN_GPU_ARCHITECTURES "${KNOWN_GPU_ARCHITECTURES}")
+      endif()
+      if(${CUDA_VERSION} VERSION_LESS "11.0")
+        STRING(REPLACE "8.0 8.6" "" KNOWN_GPU_ARCHITECTURES "${KNOWN_GPU_ARCHITECTURES}")
+      endif()
     SET(${OUT_VARIABLE} ${KNOWN_GPU_ARCHITECTURES} PARENT_SCOPE)
   ELSE()
     SET(${OUT_VARIABLE} ${CUDA_GPU_DETECT_OUTPUT} PARENT_SCOPE)
@@ -74,7 +81,7 @@ ENDFUNCTION()
 #   SELECT_NVCC_ARCH_FLAGS(out_variable)
 FUNCTION(SELECT_NVCC_ARCH_FLAGS out_variable)
   # List of arch names
-  SET(__archs_names "Kepler" "Maxwell" "Pascal" "Volta" "Turing" "All" "Manual")
+  SET(__archs_names "Kepler" "Maxwell" "Pascal" "Volta" "Turing" "Ampere" "All" "Manual")
   SET(__archs_name_default "All")
   IF(NOT CMAKE_CROSSCOMPILING)
     LIST(APPEND __archs_names "Auto")
@@ -103,23 +110,28 @@ FUNCTION(SELECT_NVCC_ARCH_FLAGS out_variable)
 
   # IF(${CUDA_ARCH_NAME} STREQUAL "Fermi")
   #   SET(__cuda_arch_bin "2.0 2.1(2.0)")
-  IF(${CUDA_ARCH_NAME} STREQUAL "Kepler")
-    SET(__cuda_arch_bin "3.0 3.5")
-  elseIF(${CUDA_ARCH_NAME} STREQUAL "Maxwell")
-    SET(__cuda_arch_bin "5.0")
-  elseIF(${CUDA_ARCH_NAME} STREQUAL "Pascal")
-    SET(__cuda_arch_bin "6.0 6.1")
+  #IF(${CUDA_ARCH_NAME} STREQUAL "Kepler")
+  #  SET(__cuda_arch_bin "3.0 3.5")
+  if(${CUDA_ARCH_NAME} STREQUAL "Kepler")
+    SET(__cuda_arch_bin "3.5 3.7")
+  elseif(${CUDA_ARCH_NAME} STREQUAL "Maxwell")
+    SET(__cuda_arch_bin "5.0 5.2 5.3")
+  elseif(${CUDA_ARCH_NAME} STREQUAL "Pascal")
+    SET(__cuda_arch_bin "6.0 6.1 6.2")
   elseIF(${CUDA_ARCH_NAME} STREQUAL "Volta")
-    SET(__cuda_arch_bin "7.0")
-  elseIF(${CUDA_ARCH_NAME} STREQUAL "Turing")
+    SET(__cuda_arch_bin "7.0 7.2")
+  elseif(${CUDA_ARCH_NAME} STREQUAL "Turing")
     SET(__cuda_arch_bin "7.5")
-  elseIF(${CUDA_ARCH_NAME} STREQUAL "All")
+  elseif(${CUDA_ARCH_NAME} STREQUAL "Ampere")
+	  SET(__cuda_arch_bin "8.0 8.6")
+  elseif(${CUDA_ARCH_NAME} STREQUAL "All")
+    # Enable build of all supported architectures
     SET(__cuda_arch_bin ${KNOWN_GPU_ARCHITECTURES})
-  elseIF(${CUDA_ARCH_NAME} STREQUAL "Auto")
+  elseif(${CUDA_ARCH_NAME} STREQUAL "Auto")
     DETECT_INSTALLED_GPUS(__cuda_arch_bin)
   else()  # (${CUDA_ARCH_NAME} STREQUAL "Manual")
     SET(__cuda_arch_bin ${CUDA_ARCH_BIN})
-  ENDIF()
+  endif()
 
   MESSAGE(STATUS "Compiling for CUDA architecture: ${__cuda_arch_bin}")
 

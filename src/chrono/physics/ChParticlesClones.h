@@ -17,10 +17,9 @@
 
 #include <cmath>
 
-#include "chrono/collision/ChCCollisionModel.h"
+#include "chrono/collision/ChCollisionModel.h"
 #include "chrono/physics/ChContactable.h"
 #include "chrono/physics/ChIndexedParticles.h"
-#include "chrono/physics/ChMaterialSurfaceNSC.h"
 #include "chrono/solver/ChVariablesBodySharedMass.h"
 
 namespace chrono {
@@ -77,9 +76,6 @@ class ChApi ChAparticle : public ChParticleBase, public ChContactable_1vars<6> {
     /// Increment the provided state of this object by the given state-delta increment.
     /// Compute: x_new = x + dw.
     virtual void ContactableIncrementState(const ChState& x, const ChStateDelta& dw, ChState& x_new) override;
-
-    /// Return the pointer to the contact surface material.
-    virtual std::shared_ptr<ChMaterialSurface>& GetMaterialSurface() override;
 
     /// Express the local point in absolute frame, for the given state position.
     virtual ChVector<> GetContactPoint(const ChVector<>& loc_point, const ChState& state_x) override;
@@ -203,7 +199,6 @@ class ChApi ChParticlesClones : public ChIndexedParticles {
     virtual ChParticlesClones* Clone() const override { return new ChParticlesClones(*this); }
 
     /// Enable/disable the collision for this cluster of particles.
-    /// After setting ON, remember RecomputeCollisionModel()
     /// before anim starts (it is not automatically
     /// recomputed here because of performance issues.)
     void SetCollide(bool mcoll);
@@ -257,7 +252,8 @@ class ChApi ChParticlesClones : public ChIndexedParticles {
                                  const ChState& x,
                                  const unsigned int off_v,
                                  const ChStateDelta& v,
-                                 const double T) override;
+                                 const double T,
+                                 bool full_update) override;
     virtual void IntStateGatherAcceleration(const unsigned int off_a, ChStateDelta& a) override;
     virtual void IntStateScatterAcceleration(const unsigned int off_a, const ChStateDelta& a) override;
     virtual void IntStateIncrement(const unsigned int off_x,

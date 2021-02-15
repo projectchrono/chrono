@@ -21,20 +21,14 @@
 #include <algorithm>
 #include <functional>
 
-#include "chrono/collision/ChCCollisionModel.h"
 #include "chrono/physics/ChContactContainerSMC.h"
-#include "chrono/physics/ChContactSMC.h"
-#include "chrono/physics/ChContactTuple.h"
-#include "chrono/physics/ChContactable.h"
-#include "chrono/physics/ChMaterialSurfaceSMC.h"
 #include "chrono/physics/ChSystemSMC.h"
+
 #include "chrono/solver/ChIterativeSolverLS.h"
 
 #include "chrono/fea/ChElementShellANCF.h"
 #include "chrono/fea/ChMesh.h"
 #include "chrono/fea/ChContactSurfaceMesh.h"
-#include "chrono/fea/ChLoadContactSurfaceMesh.h"
-#include "chrono/fea/ChContactSurfaceNodeCloud.h"
 #include "chrono/fea/ChVisualizationFEAmesh.h"
 
 using namespace chrono;
@@ -202,7 +196,7 @@ bool EvaluateContact(std::shared_ptr<ChMaterialShellANCF> material,
                      ChVector<> trans_elem2,
                      ChMatrix33<> rot_elem2,
                      bool AlsoPrint) {
-    ChSystemSMC my_system(false, 16000, 500);
+    ChSystemSMC my_system(false);
 
     collision::ChCollisionModel::SetDefaultSuggestedMargin(0.001);
     my_system.SetContactForceModel(ChSystemSMC::Hooke);
@@ -267,14 +261,12 @@ bool EvaluateContact(std::shared_ptr<ChMaterialShellANCF> material,
     my_meshes_2->AddElement(Element2);
     std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_meshes_1->GetNode(0))->SetFixed(true);
 
-    auto mcontactsurf_1 = chrono_types::make_shared<ChContactSurfaceMesh>();
-    auto mcontactsurf_2 = chrono_types::make_shared<ChContactSurfaceMesh>();
+    auto mcontactsurf_1 = chrono_types::make_shared<ChContactSurfaceMesh>(mysurfmaterial);
+    auto mcontactsurf_2 = chrono_types::make_shared<ChContactSurfaceMesh>(mysurfmaterial);
     my_meshes_1->AddContactSurface(mcontactsurf_1);
     my_meshes_2->AddContactSurface(mcontactsurf_2);
     mcontactsurf_1->AddFacesFromBoundary(sphere_swept_thickness);  // do this after my_mesh->AddContactSurface
-    mcontactsurf_1->SetMaterialSurface(mysurfmaterial);            // use the SMC penalty contacts
     mcontactsurf_2->AddFacesFromBoundary(sphere_swept_thickness);  // do this after my_mesh->AddContactSurface
-    mcontactsurf_2->SetMaterialSurface(mysurfmaterial);
 
     // use the SMC penalty contacts
     my_meshes_1->SetAutomaticGravity(addGravity);

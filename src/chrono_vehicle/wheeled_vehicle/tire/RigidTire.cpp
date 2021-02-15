@@ -54,25 +54,7 @@ void RigidTire::Create(const rapidjson::Document& d) {
 
     // Read contact material data
     assert(d.HasMember("Contact Material"));
-
-    float mu = d["Contact Material"]["Coefficient of Friction"].GetFloat();
-    float cr = d["Contact Material"]["Coefficient of Restitution"].GetFloat();
-
-    SetContactFrictionCoefficient(mu);
-    SetContactRestitutionCoefficient(cr);
-
-    if (d["Contact Material"].HasMember("Properties")) {
-        float ym = d["Contact Material"]["Properties"]["Young Modulus"].GetFloat();
-        float pr = d["Contact Material"]["Properties"]["Poisson Ratio"].GetFloat();
-        SetContactMaterialProperties(ym, pr);
-    }
-    if (d["Contact Material"].HasMember("Coefficients")) {
-        float kn = d["Contact Material"]["Coefficients"]["Normal Stiffness"].GetFloat();
-        float gn = d["Contact Material"]["Coefficients"]["Normal Damping"].GetFloat();
-        float kt = d["Contact Material"]["Coefficients"]["Tangential Stiffness"].GetFloat();
-        float gt = d["Contact Material"]["Coefficients"]["Tangential Damping"].GetFloat();
-        SetContactMaterialCoefficients(kn, gn, kt, gt);
-    }
+    m_mat_info = ReadMaterialInfoJSON(d["Contact Material"]);
 
     // Check if using contact mesh.
     if (d.HasMember("Contact Mesh")) {
@@ -83,25 +65,23 @@ void RigidTire::Create(const rapidjson::Document& d) {
 
     // Check how to visualize this tire.
     if (d.HasMember("Visualization")) {
-        if (d["Visualization"].HasMember("Mesh Filename")) {
-            m_meshFile = d["Visualization"]["Mesh Filename"].GetString();
-            m_meshName = d["Visualization"]["Mesh Name"].GetString();
+        if (d["Visualization"].HasMember("Mesh Filename Left") && d["Visualization"].HasMember("Mesh Filename Right")) {
+            m_meshFile_left = d["Visualization"]["Mesh Filename Left"].GetString();
+            m_meshFile_right = d["Visualization"]["Mesh Filename Right"].GetString();
             m_has_mesh = true;
         }
     }
 }
 
 // -----------------------------------------------------------------------------
+void RigidTire::CreateContactMaterial(ChContactMethod contact_method) {
+    m_material = m_mat_info.CreateMaterial(contact_method);
+}
+
 void RigidTire::AddVisualizationAssets(VisualizationType vis) {
     if (vis == VisualizationType::MESH && m_has_mesh) {
-        auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
-        trimesh->LoadWavefrontMesh(vehicle::GetDataFile(m_meshFile), false, false);
-        trimesh->Transform(ChVector<>(0, GetOffset(), 0), ChMatrix33<>(1));
-        m_trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
-        m_trimesh_shape->SetMesh(trimesh);
-        m_trimesh_shape->SetName(m_meshName);
-        m_trimesh_shape->SetStatic(true);
-        m_wheel->GetSpindle()->AddAsset(m_trimesh_shape);
+        m_trimesh_shape = AddVisualizationMesh(m_meshFile_left,    // left side
+                                               m_meshFile_right);  // right side
     } else {
         ChRigidTire::AddVisualizationAssets(vis);
     }
@@ -109,14 +89,7 @@ void RigidTire::AddVisualizationAssets(VisualizationType vis) {
 
 void RigidTire::RemoveVisualizationAssets() {
     ChRigidTire::RemoveVisualizationAssets();
-
-    // Make sure we only remove the assets added by RigidTire::AddVisualizationAssets.
-    // This is important for the ChTire object because a wheel may add its own assets
-    // to the same body (the spindle/wheel).
-    auto& assets = m_wheel->GetSpindle()->GetAssets();
-    auto it = std::find(assets.begin(), assets.end(), m_trimesh_shape);
-    if (it != assets.end())
-        assets.erase(it);
+    RemoveVisualizationMesh(m_trimesh_shape);
 }
 
 }  // end namespace vehicle

@@ -39,6 +39,9 @@ namespace citybus {
 /// @addtogroup vehicle_models_citybus
 /// @{
 
+/// Definition of the city bus assembly.
+/// This class encapsulates a concrete wheeled vehicle model with parameters corresponding to
+/// a city bus, the powertrain model, and the tires.
 class CH_MODELS_API CityBus {
   public:
     CityBus();
@@ -46,11 +49,12 @@ class CH_MODELS_API CityBus {
 
     ~CityBus();
 
-    void SetContactMethod(ChMaterialSurface::ContactMethod val) { m_contactMethod = val; }
+    void SetContactMethod(ChContactMethod val) { m_contactMethod = val; }
 
     void SetChassisFixed(bool val) { m_fixed = val; }
-    void SetChassisCollisionType(ChassisCollisionType val) { m_chassisCollisionType = val; }
+    void SetChassisCollisionType(CollisionType val) { m_chassisCollisionType = val; }
 
+    void SetBrakeType(BrakeType brake_type) { m_brake_type = brake_type; }
     void SetTireType(TireModelType val) { m_tireType = val; }
 
     void SetInitPosition(const ChCoordsys<>& pos) { m_initPos = pos; }
@@ -58,6 +62,8 @@ class CH_MODELS_API CityBus {
     void SetInitWheelAngVel(const std::vector<double>& omega) { m_initOmega = omega; }
 
     void SetTireStepSize(double step_size) { m_tire_step_size = step_size; }
+
+    void EnableBrakeLocking(bool lock) { m_brake_locking = lock; }
 
     ChSystem* GetSystem() const { return m_vehicle->GetSystem(); }
     ChWheeledVehicle& GetVehicle() const { return *m_vehicle; }
@@ -83,10 +89,12 @@ class CH_MODELS_API CityBus {
     void DebugLog(int what) { m_vehicle->DebugLog(what); }
 
   protected:
-    ChMaterialSurface::ContactMethod m_contactMethod;
-    ChassisCollisionType m_chassisCollisionType;
+    ChContactMethod m_contactMethod;
+    CollisionType m_chassisCollisionType;
     bool m_fixed;
+    bool m_brake_locking;
 
+    BrakeType m_brake_type;
     TireModelType m_tireType;
 
     double m_tire_step_size;

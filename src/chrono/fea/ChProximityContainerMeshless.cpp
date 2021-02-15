@@ -12,7 +12,6 @@
 // Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 
-#include "chrono/collision/ChCModelBullet.h"
 #include "chrono/physics/ChBody.h"
 #include "chrono/physics/ChSystem.h"
 #include "chrono/fea/ChMatterMeshless.h"

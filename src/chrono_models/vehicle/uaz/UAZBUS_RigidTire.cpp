@@ -35,34 +35,30 @@ const double UAZBUS_RigidTire::m_width = 0.228;
 const double UAZBUS_RigidTire::m_mass = 19.8;
 const ChVector<> UAZBUS_RigidTire::m_inertia(1.2369, 2.22357, 1.2369);
 
-const std::string UAZBUS_RigidTire::m_meshName = "uaz_tire_POV_geom";
-const std::string UAZBUS_RigidTire::m_meshFile = "uaz/uazbus_tire.obj";
+const std::string UAZBUS_RigidTire::m_meshFile = "uaz/uaz_tire_fine.obj";
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 UAZBUS_RigidTire::UAZBUS_RigidTire(const std::string& name, bool use_mesh) : ChRigidTire(name) {
-    SetContactFrictionCoefficient(0.9f);
-    SetContactRestitutionCoefficient(0.1f);
-    SetContactMaterialProperties(2e7f, 0.3f);
-    SetContactMaterialCoefficients(2e5f, 40.0f, 2e5f, 20.0f);
-
     if (use_mesh) {
-        SetMeshFilename(GetDataFile("uaz/uazbus_tire.obj"), 0.005);
+        SetMeshFilename(GetDataFile("uaz/uaz_tire_fine.obj"), 0.005);
     }
 }
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
+void UAZBUS_RigidTire::CreateContactMaterial(ChContactMethod contact_method) {
+    MaterialInfo minfo;
+    minfo.mu = 0.9f;
+    minfo.cr = 0.1f;
+    minfo.Y = 2e7f;
+    m_material = minfo.CreateMaterial(contact_method);
+}
+
 void UAZBUS_RigidTire::AddVisualizationAssets(VisualizationType vis) {
     if (vis == VisualizationType::MESH) {
-        auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
-        trimesh->LoadWavefrontMesh(vehicle::GetDataFile(m_meshFile), false, false);
-        trimesh->Transform(ChVector<>(0, GetOffset(), 0), ChMatrix33<>(1));
-        m_trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
-        m_trimesh_shape->SetMesh(trimesh);
-        m_trimesh_shape->SetName(m_meshName);
-        m_trimesh_shape->SetStatic(true);
-        m_wheel->GetSpindle()->AddAsset(m_trimesh_shape);
+        m_trimesh_shape = AddVisualizationMesh(m_meshFile,   // left side
+                                               m_meshFile);  // right side
     } else {
         ChRigidTire::AddVisualizationAssets(vis);
     }
@@ -70,14 +66,7 @@ void UAZBUS_RigidTire::AddVisualizationAssets(VisualizationType vis) {
 
 void UAZBUS_RigidTire::RemoveVisualizationAssets() {
     ChRigidTire::RemoveVisualizationAssets();
-
-    // Make sure we only remove the assets added by UAZBUS_RigidTire::AddVisualizationAssets.
-    // This is important for the ChTire object because a wheel may add its own assets
-    // to the same body (the spindle/wheel).
-    auto& assets = m_wheel->GetSpindle()->GetAssets();
-    auto it = std::find(assets.begin(), assets.end(), m_trimesh_shape);
-    if (it != assets.end())
-        assets.erase(it);
+    RemoveVisualizationMesh(m_trimesh_shape);
 }
 
 }  // end namespace uaz

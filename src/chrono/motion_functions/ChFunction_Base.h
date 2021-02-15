@@ -31,8 +31,7 @@ namespace chrono {
 /// @addtogroup chrono_functions
 /// @{
 
-/// Interface base class for scalar functions of the type:
-///    y= f(x)
+/// Interface base class for scalar functions of the type:  `y= f(x)`
 ///
 /// The ChFunction class defines the base class for all Chrono
 /// functions of type y=f(x), that is scalar functions of an

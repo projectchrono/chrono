@@ -37,16 +37,124 @@ class ChBody;
 /// represent either forces and torques, depending on a flag.
 
 class ChApi ChForce : public ChObj {
-
   public:
-    // Types of force application
+    /// Types of force application
     enum ForceType { FORCE, TORQUE };
 
-    // Reference for position frame
+    /// Reference for position frame
     enum ReferenceFrame { BODY, WORLD };
 
-    // Reference for alignment
+    /// Reference for alignment
     enum AlignmentFrame { BODY_DIR, WORLD_DIR };
+
+  public:
+    ChForce();
+    ChForce(const ChForce& other);
+    ~ChForce() {}
+
+    /// "Virtual" copy constructor (covariant return type).
+    virtual ChForce* Clone() const override { return new ChForce(*this); }
+
+    /// Return the parent body (the force belongs to this rigid body)
+    ChBody* GetBody() { return Body; }
+    /// Sets the parent body (the force belongs to this rigid body)
+    void SetBody(ChBody* newRB) { Body = newRB; }
+
+    /// Sets the mode (force or torque)
+    void SetMode(ForceType m_mode) { mode = m_mode; }
+    ForceType GetMode() const { return mode; }
+
+    /// Sets the alignment method.
+    /// The force will rotate together with this reference.
+    void SetAlign(AlignmentFrame m_align) { align = m_align; }
+    AlignmentFrame GetAlign() const { return align; }
+
+    /// Sets the alignment method.
+    /// The force application point will follow this reference.
+    void SetFrame(ReferenceFrame m_frame) {
+        frame = m_frame;
+        SetVpoint(vpoint);
+    }
+    ReferenceFrame GetFrame() const { return frame; }
+
+    /// Gets the application point, in absolute coordinates.
+    ChVector<> GetVpoint() const { return vpoint; }
+    /// Gets the application point, in rigid body coordinates.
+    ChVector<> GetVrelpoint() const { return vrelpoint; }
+
+    /// Sets the application point, in absolute coordinates.
+    void SetVpoint(ChVector<> mypoint);
+    /// Sets the application point, in rigid body coordinates.
+    void SetVrelpoint(ChVector<> myrelpoint);
+
+    /// Gets the force (or torque) direction, in absolute coordinates.
+    ChVector<> GetDir() const { return vdir; }
+    /// Gets the force (or torque) direction, in rigid body coordinates.
+    ChVector<> GetRelDir() const { return vreldir; }
+    /// Sets the force (or torque) direction, in absolute coordinates.
+    void SetDir(ChVector<> newf);
+    /// Sets the force (or torque) direction, in rigid body coordinates.
+    void SetRelDir(ChVector<> newf);
+
+    /// Sets force (or torque) modulus.
+    void SetMforce(double newf);
+    /// Gets force (or torque) modulus.
+    double GetMforce() const { return mforce; }
+
+    /// Sets a function for time-modulation of the force.
+    void SetModulation(std::shared_ptr<ChFunction> m_funct) { modula = m_funct; }
+    std::shared_ptr<ChFunction> GetModulation() const { return modula; }
+
+    /// Sets a function for time dependency of position (on x axis)
+    void SetMove_x(std::shared_ptr<ChFunction> m_funct) { move_x = m_funct; }
+    std::shared_ptr<ChFunction> GetMove_x() const { return move_x; }
+    /// Sets a function for time dependency of position (on y axis)
+    void SetMove_y(std::shared_ptr<ChFunction> m_funct) { move_y = m_funct; }
+    std::shared_ptr<ChFunction> GetMove_y() const { return move_y; }
+    /// Sets a function for time dependency of position (on z axis)
+    void SetMove_z(std::shared_ptr<ChFunction> m_funct) { move_z = m_funct; }
+    std::shared_ptr<ChFunction> GetMove_z() const { return move_z; }
+
+    /// Sets a function for time dependency of force X component.
+    void SetF_x(std::shared_ptr<ChFunction> m_funct) { f_x = m_funct; }
+    std::shared_ptr<ChFunction> GetF_x() const { return f_x; }
+    /// Sets a function for time dependency of force Y component.
+    void SetF_y(std::shared_ptr<ChFunction> m_funct) { f_y = m_funct; }
+    std::shared_ptr<ChFunction> GetF_y() const { return f_y; }
+    /// Sets a function for time dependency of force Z component.
+    void SetF_z(std::shared_ptr<ChFunction> m_funct) { f_z = m_funct; }
+    std::shared_ptr<ChFunction> GetF_z() const { return f_z; }
+
+    /// Gets the instant force vector -or torque vector- in absolute coordinates.
+    ChVector<> GetForce() const { return force; }
+    /// Gets the instant force vector -or torque vector- in rigid body coordinates.
+    ChVector<> GetRelForce() const { return relforce; }
+    /// Gets the instant force vector -or torque vector- modulus.
+    double GetForceMod() const { return force.Length(); }
+
+    /// Gets force-torque applied to rigid body, as lagrangian generalized force (7x1 matrix).
+    const ChVectorN<double, 7>& GetQf() const { return Qf; }
+    /// Gets force-torque applied to rigid body, as force vector (in absol.coords)
+    /// and torque vector (in body coords).
+    void GetBodyForceTorque(ChVector<>& body_force, ChVector<>& body_torque) const;
+
+    //
+    // UPDATING
+    //
+
+    void UpdateTime(double mytime);
+    void UpdateState();
+    void Update(double mytime);
+
+    //
+    // SERIALIZATION
+    //
+
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
+
+    /// Method to allow deserialization of transient data from archives.
+    virtual void ArchiveIN(ChArchiveIn& marchive) override;
 
   private:
     CH_ENUM_MAPPER_BEGIN(ForceType);
@@ -93,119 +201,9 @@ class ChApi ChForce : public ChObj {
     ChVector<> relforce;  ///< TOTAL force vect (rel.coord) = fm*vdir +fx+fy+fz
 
     ChVectorN<double, 7> Qf;  ///< Lagrangian force
-
-  public:
-    ChForce();
-    ChForce(const ChForce& other);
-    ~ChForce() {}
-
-    /// "Virtual" copy constructor (covariant return type).
-    virtual ChForce* Clone() const override { return new ChForce(*this); }
-
-    /// Return the parent body (the force belongs to this rigid body)
-    ChBody* GetBody() { return Body; }
-    /// Sets the parent body (the force belongs to this rigid body)
-    void SetBody(ChBody* newRB) { Body = newRB; }
-
-    /// Sets the mode (force or torque)
-    void SetMode(ForceType m_mode) { mode = m_mode; }
-    ForceType GetMode() const { return mode; }
-
-    /// Sets the alignment method.
-    /// The force will rotate together with this reference.
-    void SetAlign(AlignmentFrame m_align) { align = m_align; }
-    AlignmentFrame GetAlign() const { return align; }
-
-    /// Sets the alignment method.
-    /// The force application point will follow this reference.
-    void SetFrame(ReferenceFrame m_frame) {
-        frame = m_frame;
-        SetVpoint(vpoint);
-    }
-    ReferenceFrame GetFrame() const { return frame; }
-
-    /// Gets the application point, in absolute coordinates.
-    ChVector<> GetVpoint() const { return vpoint; }
-    /// Gets the application point, in rigid body coordinates.
-    ChVector<> GetVrelpoint() const { return vrelpoint; }
-
-    /// Gets the application point, in absolute coordinates.
-    void SetVpoint(ChVector<> mypoint);
-    /// Gets the application point, in rigid body coordinates.
-    void SetVrelpoint(ChVector<> myrelpoint);
-
-    /// Gets the force (or torque) direction, in absolute coordinates.
-    ChVector<> GetDir() const { return vdir; }
-    /// Gets the force (or torque) direction, in rigid body coordinates.
-    ChVector<> GetRelDir() const { return vreldir; }
-    /// Sets the force (or torque) direction, in absolute coordinates.
-    void SetDir(ChVector<> newf);
-    /// Sets the force (or torque) direction, in rigid body coordinates.
-    void SetRelDir(ChVector<> newf);
-
-    /// Sets force (or torque) modulus.
-    void SetMforce(double newf);
-    /// Gets force (or torque) modulus.
-    double GetMforce() const { return mforce; }
-
-    /// Sets a f(t) function for time-modulation of the force.
-    void SetModulation(std::shared_ptr<ChFunction> m_funct) { modula = m_funct; }
-    std::shared_ptr<ChFunction> GetModulation() const { return modula; }
-
-    /// Sets a f(t) function for time dependency of position (on x axis)
-    void SetMove_x(std::shared_ptr<ChFunction> m_funct) { move_x = m_funct; }
-    std::shared_ptr<ChFunction> GetMove_x() const { return move_x; }
-    /// Sets a f(t) function for time dependency of position (on y axis)
-    void SetMove_y(std::shared_ptr<ChFunction> m_funct) { move_y = m_funct; }
-    std::shared_ptr<ChFunction> GetMove_y() const { return move_y; }
-    /// Sets a f(t) function for time dependency of position (on z axis)
-    void SetMove_z(std::shared_ptr<ChFunction> m_funct) { move_z = m_funct; }
-    std::shared_ptr<ChFunction> GetMove_z() const { return move_z; }
-
-    /// Sets a f(t) function for time dependency of force X component.
-    void SetF_x(std::shared_ptr<ChFunction> m_funct) { f_x = m_funct; }
-    std::shared_ptr<ChFunction> GetF_x() const { return f_x; }
-    /// Sets a f(t) function for time dependency of force Y component.
-    void SetF_y(std::shared_ptr<ChFunction> m_funct) { f_y = m_funct; }
-    std::shared_ptr<ChFunction> GetF_y() const { return f_y; }
-    /// Sets a f(t) function for time dependency of force Z component.
-    void SetF_z(std::shared_ptr<ChFunction> m_funct) { f_z = m_funct; }
-    std::shared_ptr<ChFunction> GetF_z() const { return f_z; }
-
-    /// Gets the instant force vector -or torque vector- in absolute coordinates.
-    ChVector<> GetForce() const { return force; }
-    /// Gets the instant force vector -or torque vector- in rigid body coordinates.
-    ChVector<> GetRelForce() const { return relforce; }
-    /// Gets the instant force vector -or torque vector- modulus.
-    double GetForceMod() const { return force.Length(); }
-
-    /// Gets force-torque applied to rigid body, as lagrangian generalized force (7x1 matrix).
-    const ChVectorN<double, 7>& GetQf() const{ return Qf; }
-    /// Gets force-torque applied to rigid body, as force vector (in absol.coords)
-    /// and torque vector (in body coords).
-    void GetBodyForceTorque(ChVector<>& body_force, ChVector<>& body_torque) const;
-
-    //
-    // UPDATING
-    //
-
-    void UpdateTime(double mytime);
-    void UpdateState();
-    void Update(double mytime);
-
-    //
-    // SERIALIZATION
-    //
-
-    /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
-
-    /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
 
-CH_CLASS_VERSION(ChForce,0)
-
+CH_CLASS_VERSION(ChForce, 0)
 
 }  // end namespace chrono
 

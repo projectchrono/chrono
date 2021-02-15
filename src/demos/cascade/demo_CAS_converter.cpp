@@ -14,8 +14,10 @@
 //   conversion features of OpenCASCADE library
 // =============================================================================
 
+#include <cstdlib>
+
 #include "chrono/core/ChRealtimeStep.h"
-#include "chrono/collision/ChCConvexDecomposition.h"
+#include "chrono/collision/ChConvexDecomposition.h"
 #include "chrono/physics/ChSystemNSC.h"
 
 #include "chrono_cascade/ChCascadeDoc.h"
@@ -25,8 +27,6 @@
 #include <TopoDS_Shape.hxx>
 #include <TopoDS.hxx>
 #include <TopoDS_HShape.hxx>
-#include <Handle_TopoDS_HShape.hxx>
-#include <Handle_TopoDS_TShape.hxx>
 #include <STEPControl_Reader.hxx>
 #include <STEPControl_StepModelType.hxx>
 #include <TopoDS_Edge.hxx>
@@ -35,7 +35,6 @@
 #include <BRep_Builder.hxx>
 #include <BRepTools.hxx>
 #include <BRep_Tool.hxx>
-#include <BRepMesh.hxx>
 #include <BRepBuilderAPI_MakeEdge.hxx>
 #include <BRepBuilderAPI_MakeVertex.hxx>
 #include <TopExp_Explorer.hxx>
@@ -84,7 +83,6 @@ using namespace chrono;
 using namespace chrono::irrlicht;
 
 // Use the main namespace of Irrlicht
-// (and prefer not to use 'using ...' also for others(irr::video, irr::gui, etc.), to avoid name pollution)
 using namespace irr;
 
 // Use the namespace with OpenCascade stuff
@@ -96,12 +94,7 @@ scene::IAnimatedMesh* modelMesh;
 scene::IAnimatedMeshSceneNode* modelNode;
 scene::ISceneNode* decompositionNode;
 
-collision::ChConvexDecompositionJR mydecompositionJR;
 collision::ChConvexDecompositionHACDv2 mydecompositionHACDv2;
-
-collision::ChConvexDecomposition* used_decomposition;
-
-int algo_type = 0;
 
 int hacd_maxhullcount;
 int hacd_maxhullmerge;
@@ -109,13 +102,6 @@ int hacd_maxhullvertexes;
 double hacd_concavity;
 double hacd_smallclusterthreshold;
 double hacd_fusetolerance;
-
-int decompdepth;
-int maxhullvert;
-float concavity;
-float merge;
-float volumep;
-bool useinitialislands;
 
 // LOAD A TRIANGLE MESH USING IRRLICHT IMPORTERS
 //
@@ -199,42 +185,23 @@ void DecomposeModel(ChIrrAppInterface* application) {
     // modelNode->getMesh();
     fillChTrimeshFromIrlichtMesh(&chmesh, modelNode->getMesh());  // modelMesh->getMesh(0));
 
-    // Perform the convex decomposition
-    // using the desired parameters.
+    // Perform the convex decomposition using the desired parameters.
+    mydecompositionHACDv2.Reset();
+    mydecompositionHACDv2.AddTriangleMesh(chmesh);
 
-    if (algo_type == 0) {
-        mydecompositionJR.Reset();
-        mydecompositionJR.AddTriangleMesh(chmesh);
-        mydecompositionJR.SetParameters(0,                  // skin width
-                                        decompdepth,        // decomp.depth
-                                        maxhullvert,        // max hull vertexes
-                                        concavity,          // concavity threshold percent
-                                        merge,              // merge threshold percent
-                                        volumep,            // volume split percent
-                                        useinitialislands,  // initial islands
-                                        false);
-        mydecompositionJR.ComputeConvexDecomposition();
-        used_decomposition = &mydecompositionJR;
-    }
-
-    if (algo_type == 1) {
-        mydecompositionHACDv2.Reset();
-        mydecompositionHACDv2.AddTriangleMesh(chmesh);
-
-        mydecompositionHACDv2.SetParameters(hacd_maxhullcount, hacd_maxhullmerge, hacd_maxhullvertexes, hacd_concavity,
-                                            hacd_smallclusterthreshold, hacd_fusetolerance);
-        mydecompositionHACDv2.ComputeConvexDecomposition();
-        used_decomposition = &mydecompositionHACDv2;
-    }
+    mydecompositionHACDv2.SetParameters(hacd_maxhullcount, hacd_maxhullmerge, hacd_maxhullvertexes,
+                                        (float)hacd_concavity, (float)hacd_smallclusterthreshold,
+                                        (float)hacd_fusetolerance);
+    mydecompositionHACDv2.ComputeConvexDecomposition();
 
     // Visualize the resulting convex decomposition by creating many
     // colored meshes, each per convex hull.
-    for (unsigned int j = 0; j < used_decomposition->GetHullCount(); j++) {
+    for (unsigned int j = 0; j < mydecompositionHACDv2.GetHullCount(); j++) {
         scene::SMesh* mmesh = new scene::SMesh();
 
         // Get the j-th convex hull as a ChTriangleMesh.
         geometry::ChTriangleMeshSoup chmesh_hull;
-        used_decomposition->GetConvexHullResult(j, chmesh_hull);
+        mydecompositionHACDv2.GetConvexHullResult(j, chmesh_hull);
 
         video::SColor clr(255, 20 + (int)(140. * ChRandom()), 20 + (int)(140. * ChRandom()),
                           20 + (int)(140. * ChRandom()));
@@ -271,7 +238,7 @@ void SaveHullsWavefront(ChIrrAppInterface* application, const char* filename) {
 
     try {
         ChStreamOutAsciiFile decomposed_objfile(filename);
-        mydecompositionJR.WriteConvexHullsAsWavefrontObj(decomposed_objfile);
+        mydecompositionHACDv2.WriteConvexHullsAsWavefrontObj(decomposed_objfile);
     } catch (ChException myex) {
         application->GetIGUIEnvironment()->addMessageBox(L"Save file error", L"Impossible to write into file.");
     }
@@ -283,7 +250,7 @@ void SaveHullsChulls(ChIrrAppInterface* application, const char* filename) {
 
     try {
         ChStreamOutAsciiFile decomposed_objfile(filename);
-        mydecompositionJR.WriteConvexHullsAsChullsFile(decomposed_objfile);
+        mydecompositionHACDv2.WriteConvexHullsAsChullsFile(decomposed_objfile);
     } catch (ChException myex) {
         application->GetIGUIEnvironment()->addMessageBox(L"Save file error", L"Impossible to write into file.");
     }
@@ -319,46 +286,8 @@ class MyEventReceiver : public IEventReceiver {
         submenu->addItem(L"View model", 93);
         submenu->addItem(L"View decomposition", 94);
 
-        gad_algo_type = app->GetIGUIEnvironment()->addComboBox(core::rect<s32>(510, 35, 650, 50), 0, 201);
-        gad_algo_type->addItem(L"JR algorithm");
-        gad_algo_type->addItem(L"HACDv2 algorithm");
-        gad_algo_type->setSelected(algo_type);
-
-        // ..add a GUI
-        edit_decompdepth = app->GetIGUIEnvironment()->addEditBox(irr::core::stringw((int)decompdepth).c_str(),
-                                                                 core::rect<s32>(510, 60, 650, 75), true, 0, 101);
-        text_decompdepth =
-            app->GetIGUIEnvironment()->addStaticText(L"Decomp.depth ", core::rect<s32>(650, 60, 750, 75), false);
-
-        // ..add a GUI
-        edit_maxhullvert = app->GetIGUIEnvironment()->addEditBox(irr::core::stringw((int)maxhullvert).c_str(),
-                                                                 core::rect<s32>(510, 85, 650, 100), true, 0, 102);
-        text_maxhullvert =
-            app->GetIGUIEnvironment()->addStaticText(L"Max hull vertexes", core::rect<s32>(650, 85, 750, 100), false);
-
-        // ..add a GUI
-        edit_concavity = app->GetIGUIEnvironment()->addEditBox(irr::core::stringw(concavity).c_str(),
-                                                               core::rect<s32>(510, 110, 650, 125), true, 0, 103);
-        text_concavity = app->GetIGUIEnvironment()->addStaticText(L"Concavity threshold",
-                                                                  core::rect<s32>(650, 110, 750, 125), false);
-
-        // ..add a GUI
-        edit_merge = app->GetIGUIEnvironment()->addEditBox(irr::core::stringw(merge).c_str(),
-                                                           core::rect<s32>(510, 135, 650, 150), true, 0, 104);
-        text_merge =
-            app->GetIGUIEnvironment()->addStaticText(L"Merge threshold", core::rect<s32>(650, 135, 750, 150), false);
-
-        // ..add a GUI
-        edit_volume = app->GetIGUIEnvironment()->addEditBox(irr::core::stringw(volumep).c_str(),
-                                                            core::rect<s32>(510, 160, 650, 175), true, 0, 105);
-        text_volume =
-            app->GetIGUIEnvironment()->addStaticText(L"Volume threshold", core::rect<s32>(650, 160, 750, 175), false);
-
-        // ..add a GUI
-        checkbox_islands =
-            app->GetIGUIEnvironment()->addCheckBox(useinitialislands, core::rect<s32>(620, 185, 650, 200), 0, 110);
-        text_islands = app->GetIGUIEnvironment()->addStaticText(L"Use initial mesh islands",
-                                                                core::rect<s32>(650, 185, 850, 200), false);
+        text_algo_type =
+            app->GetIGUIEnvironment()->addStaticText(L"HACDv2 algorithm", core::rect<s32>(510, 35, 650, 50), false);
 
         // ..add a GUI
         edit_hacd_maxhullcount = app->GetIGUIEnvironment()->addEditBox(
@@ -400,30 +329,18 @@ class MyEventReceiver : public IEventReceiver {
         button_decompose = app->GetIGUIEnvironment()->addButton(core::rect<s32>(510, 210, 650, 225), 0, 106,
                                                                 L"Decompose", L"Perform convex decomposition");
 
-        edit_decompdepth->setVisible(algo_type == 0);
-        text_decompdepth->setVisible(algo_type == 0);
-        edit_maxhullvert->setVisible(algo_type == 0);
-        text_maxhullvert->setVisible(algo_type == 0);
-        edit_concavity->setVisible(algo_type == 0);
-        text_concavity->setVisible(algo_type == 0);
-        edit_merge->setVisible(algo_type == 0);
-        text_merge->setVisible(algo_type == 0);
-        edit_volume->setVisible(algo_type == 0);
-        text_volume->setVisible(algo_type == 0);
-        checkbox_islands->setVisible(algo_type == 0);
-        text_islands->setVisible(algo_type == 0);
-        text_hacd_maxhullcount->setVisible(algo_type == 1);
-        edit_hacd_maxhullcount->setVisible(algo_type == 1);
-        text_hacd_maxhullmerge->setVisible(algo_type == 1);
-        edit_hacd_maxhullmerge->setVisible(algo_type == 1);
-        text_hacd_maxhullvertexes->setVisible(algo_type == 1);
-        edit_hacd_maxhullvertexes->setVisible(algo_type == 1);
-        text_hacd_concavity->setVisible(algo_type == 1);
-        edit_hacd_concavity->setVisible(algo_type == 1);
-        text_hacd_smallclusterthreshold->setVisible(algo_type == 1);
-        edit_hacd_smallclusterthreshold->setVisible(algo_type == 1);
-        text_hacd_fusetolerance->setVisible(algo_type == 1);
-        edit_hacd_fusetolerance->setVisible(algo_type == 1);
+        text_hacd_maxhullcount->setVisible(true);
+        edit_hacd_maxhullcount->setVisible(true);
+        text_hacd_maxhullmerge->setVisible(true);
+        edit_hacd_maxhullmerge->setVisible(true);
+        text_hacd_maxhullvertexes->setVisible(true);
+        edit_hacd_maxhullvertexes->setVisible(true);
+        text_hacd_concavity->setVisible(true);
+        edit_hacd_concavity->setVisible(true);
+        text_hacd_smallclusterthreshold->setVisible(true);
+        edit_hacd_smallclusterthreshold->setVisible(true);
+        text_hacd_fusetolerance->setVisible(true);
+        edit_hacd_fusetolerance->setVisible(true);
     }
 
     bool OnEvent(const SEvent& event) {
@@ -491,106 +408,33 @@ class MyEventReceiver : public IEventReceiver {
                     }
                 } break;
 
-                case gui::EGET_CHECKBOX_CHANGED: {
-                    switch (id) {
-                        case 110:
-                            useinitialislands = checkbox_islands->isChecked();
-                            GetLog() << checkbox_islands->isChecked() << "\n";
-                            return true;
-                        default:
-                            return false;
-                    }
-                }
-
                 case gui::EGET_EDITBOX_ENTER: {
                     // load the model file, selected in the file open dialog
                     gui::IGUIEditBox* medit = (gui::IGUIEditBox*)event.GUIEvent.Caller;
 
                     switch (id) {
-                        case 101:
-                            decompdepth = (int)atof(irr::core::stringc(medit->getText()).c_str());
-                            medit->setText(irr::core::stringw((int)decompdepth).c_str());
-                            break;
-                        case 102:
-                            maxhullvert = (int)atof(irr::core::stringc(medit->getText()).c_str());
-                            medit->setText(irr::core::stringw((int)maxhullvert).c_str());
-                            break;
-                        case 103:
-                            concavity = (float)atof(irr::core::stringc(medit->getText()).c_str());
-                            medit->setText(irr::core::stringw(concavity).c_str());
-                            break;
-                        case 104:
-                            merge = (float)atof(irr::core::stringc(medit->getText()).c_str());
-                            medit->setText(irr::core::stringw(merge).c_str());
-                            break;
-                        case 105:
-                            volumep = (float)atof(irr::core::stringc(medit->getText()).c_str());
-                            medit->setText(irr::core::stringw(volumep).c_str());
-                            break;
-                        case 121:
-                            hacd_maxhullcount = atof(irr::core::stringc(medit->getText()).c_str());
-                            medit->setText(irr::core::stringw(hacd_maxhullcount).c_str());
-                            break;
                         case 122:
-                            hacd_maxhullmerge = atof(irr::core::stringc(medit->getText()).c_str());
+                            hacd_maxhullmerge = std::atoi(irr::core::stringc(medit->getText()).c_str());
                             medit->setText(irr::core::stringw(hacd_maxhullmerge).c_str());
                             break;
                         case 123:
-                            hacd_maxhullvertexes = atof(irr::core::stringc(medit->getText()).c_str());
+                            hacd_maxhullvertexes = std::atoi(irr::core::stringc(medit->getText()).c_str());
                             medit->setText(irr::core::stringw(hacd_maxhullvertexes).c_str());
                             break;
                         case 124:
-                            hacd_concavity = atof(irr::core::stringc(medit->getText()).c_str());
+                            hacd_concavity = std::atof(irr::core::stringc(medit->getText()).c_str());
                             medit->setText(irr::core::stringw(hacd_concavity).c_str());
                             break;
                         case 125:
-                            hacd_smallclusterthreshold = atof(irr::core::stringc(medit->getText()).c_str());
+                            hacd_smallclusterthreshold = std::atof(irr::core::stringc(medit->getText()).c_str());
                             medit->setText(irr::core::stringw(hacd_smallclusterthreshold).c_str());
                             break;
                         case 126:
-                            hacd_fusetolerance = atof(irr::core::stringc(medit->getText()).c_str());
+                            hacd_fusetolerance = std::atof(irr::core::stringc(medit->getText()).c_str());
                             medit->setText(irr::core::stringw(hacd_fusetolerance).c_str());
                             break;
                     }
                 } break;
-
-                case gui::EGET_COMBO_BOX_CHANGED:
-                    if (id == 201) {
-                        int sel = ((gui::IGUIComboBox*)event.GUIEvent.Caller)->getSelected();
-                        switch (sel) {
-                            case 0:
-                                algo_type = 0;
-                                break;
-                            case 1:
-                                algo_type = 1;
-                                break;
-                        }
-                        edit_decompdepth->setVisible(algo_type == 0);
-                        text_decompdepth->setVisible(algo_type == 0);
-                        edit_maxhullvert->setVisible(algo_type == 0);
-                        text_maxhullvert->setVisible(algo_type == 0);
-                        edit_concavity->setVisible(algo_type == 0);
-                        text_concavity->setVisible(algo_type == 0);
-                        edit_merge->setVisible(algo_type == 0);
-                        text_merge->setVisible(algo_type == 0);
-                        edit_volume->setVisible(algo_type == 0);
-                        text_volume->setVisible(algo_type == 0);
-                        checkbox_islands->setVisible(algo_type == 0);
-                        text_islands->setVisible(algo_type == 0);
-                        text_hacd_maxhullcount->setVisible(algo_type == 1);
-                        edit_hacd_maxhullcount->setVisible(algo_type == 1);
-                        text_hacd_maxhullmerge->setVisible(algo_type == 1);
-                        edit_hacd_maxhullmerge->setVisible(algo_type == 1);
-                        text_hacd_maxhullvertexes->setVisible(algo_type == 1);
-                        edit_hacd_maxhullvertexes->setVisible(algo_type == 1);
-                        text_hacd_concavity->setVisible(algo_type == 1);
-                        edit_hacd_concavity->setVisible(algo_type == 1);
-                        text_hacd_smallclusterthreshold->setVisible(algo_type == 1);
-                        edit_hacd_smallclusterthreshold->setVisible(algo_type == 1);
-                        text_hacd_fusetolerance->setVisible(algo_type == 1);
-                        edit_hacd_fusetolerance->setVisible(algo_type == 1);
-                        break;
-                    }
 
                 case gui::EGET_BUTTON_CLICKED: {
                     switch (id) {
@@ -603,12 +447,7 @@ class MyEventReceiver : public IEventReceiver {
                     break;
                 }
 
-                case gui::EGET_SCROLL_BAR_CHANGED:
-                    if (id == 101) {
-                        s32 pos = ((gui::IGUIScrollBar*)event.GUIEvent.Caller)->getPos();
-                        decompdepth = (int)(double(pos) * (64.0 / 100.0));
-                        return true;
-                    }
+                default:
                     break;
             }
         }
@@ -620,19 +459,8 @@ class MyEventReceiver : public IEventReceiver {
     ChIrrAppInterface* app;
 
     gui::IGUIContextMenu* menu;
-    gui::IGUIStaticText* text_decompdepth;
-    gui::IGUIEditBox* edit_decompdepth;
-    gui::IGUIStaticText* text_maxhullvert;
-    gui::IGUIEditBox* edit_maxhullvert;
-    gui::IGUIStaticText* text_concavity;
-    gui::IGUIEditBox* edit_concavity;
-    gui::IGUIStaticText* text_merge;
-    gui::IGUIEditBox* edit_merge;
-    gui::IGUIStaticText* text_volume;
-    gui::IGUIEditBox* edit_volume;
-    gui::IGUICheckBox* checkbox_islands;
-    gui::IGUIStaticText* text_islands;
     gui::IGUIButton* button_decompose;
+    gui::IGUIStaticText* text_algo_type;
     gui::IGUIStaticText* text_hacd_maxhullcount;
     gui::IGUIEditBox* edit_hacd_maxhullcount;
     gui::IGUIStaticText* text_hacd_maxhullmerge;
@@ -645,7 +473,6 @@ class MyEventReceiver : public IEventReceiver {
     gui::IGUIEditBox* edit_hacd_smallclusterthreshold;
     gui::IGUIStaticText* text_hacd_fusetolerance;
     gui::IGUIEditBox* edit_hacd_fusetolerance;
-    gui::IGUIComboBox* gad_algo_type;
 };
 
 //
@@ -678,15 +505,6 @@ int main(int argc, char* argv[]) {
     hacd_concavity = 0.2;
     hacd_smallclusterthreshold = 0.0;
     hacd_fusetolerance = 1e-9;
-
-    decompdepth = 8;
-    maxhullvert = 640;
-    concavity = 0.1f;
-    merge = 30.f;
-    volumep = 0.1f;
-    useinitialislands = true;
-
-    used_decomposition = &mydecompositionHACDv2;
 
     //
     // USER INTERFACE

@@ -1,0 +1,11 @@
+{
+  "Name":                    "MAN 7t/10t Simplified CVT Powertrain",
+  "Type":                    "Powertrain",
+  "Template":                "SimpleCVTPowertrain",
+
+  "Forward Gear Ratio":      0.011211001,
+  "Reverse Gear Ratio":      -0.011211001,
+  "Maximum Engine Torque":   890.0,
+  "Maximum Engine Power":    256000,
+  "Maximum Engine Speed":    300
+}

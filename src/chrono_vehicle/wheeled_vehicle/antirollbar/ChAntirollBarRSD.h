@@ -55,18 +55,15 @@ class CH_VEHICLE_API ChAntirollBarRSD : public ChAntirollBar {
     /// Get the name of the vehicle subsystem template.
     virtual std::string GetTemplateName() const override { return "AntirollBarRSD"; }
 
-    /// The anti-roll bar subsystem is initialized by attaching it to the specified
-    /// chassis body at the specified location (with respect to and expressed in
-    /// the reference frame of the chassis). It is assumed that the suspension
-    /// reference frame is always aligned with the chassis reference frame.
-    /// Finally, susp_body_left and susp_body_right are handles to the suspension
-    /// bodies to which the anti-roll bar's droplinks are to be attached.
-    virtual void Initialize(
-        std::shared_ptr<ChBodyAuxRef> chassis,   ///< [in] handle to the chassis body
-        const ChVector<>& location,              ///< [in] location relative to the chassis frame
-        std::shared_ptr<ChBody> susp_body_left,  ///< [in] susp body to which left droplink is connected
-        std::shared_ptr<ChBody> susp_body_right  ///< [in] susp body to which right droplink is connected
-        ) override;
+    /// Initialize this anti-roll bar subsystem.
+    /// The anti-roll bar subsystem is initialized by attaching it to the specified chassis at the given location (with
+    /// respect to and expressed in the reference frame of the chassis) and associating it with the specified suspension
+    /// subsystem (assumed to be independent). It is assumed that the anti-roll bar reference frame is always aligned
+    /// with the chassis reference frame.
+    virtual void Initialize(std::shared_ptr<ChChassis> chassis,        ///< [in] handle to the chassis body
+                            std::shared_ptr<ChSuspension> suspension,  ///< [in] associated suspension subsystem
+                            const ChVector<>& location                 ///< [in] location relative to the chassis frame
+                            ) override;
 
     /// Get the total mass of the anti-roll bar subsystem.
     virtual double GetMass() const override;

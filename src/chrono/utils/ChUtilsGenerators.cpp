@@ -56,7 +56,7 @@ MixtureIngredient::~MixtureIngredient() {
 void MixtureIngredient::setDefaultMaterial(std::shared_ptr<ChMaterialSurface> mat) {
     assert(mat->GetContactMethod() == m_generator->m_system->GetContactMethod());
 
-    if (mat->GetContactMethod() == ChMaterialSurface::NSC) {
+    if (mat->GetContactMethod() == ChContactMethod::NSC) {
         m_defMaterialNSC = std::static_pointer_cast<ChMaterialSurfaceNSC>(mat);
     } else {
         m_defMaterialSMC = std::static_pointer_cast<ChMaterialSurfaceSMC>(mat);
@@ -214,35 +214,35 @@ double MixtureIngredient::getDensity() {
 // from this ingredient type.
 void MixtureIngredient::calcGeometricProps(const ChVector<>& size, double& volume, ChVector<>& gyration) {
     switch (m_type) {
-        case SPHERE:
+        case MixtureType::SPHERE:
             volume = CalcSphereVolume(size.x());
             gyration = CalcSphereGyration(size.x()).diagonal();
             break;
-        case ELLIPSOID:
+        case MixtureType::ELLIPSOID:
             volume = CalcEllipsoidVolume(size);
             gyration = CalcEllipsoidGyration(size).diagonal();
             break;
-        case BOX:
+        case MixtureType::BOX:
             volume = CalcBoxVolume(size);
             gyration = CalcBoxGyration(size).diagonal();
             break;
-        case CYLINDER:
+        case MixtureType::CYLINDER:
             volume = CalcCylinderVolume(size.x(), size.y());
             gyration = CalcCylinderGyration(size.x(), size.y()).diagonal();
             break;
-        case CONE:
+        case MixtureType::CONE:
             volume = CalcConeVolume(size.x(), size.y());
             gyration = CalcConeGyration(size.x(), size.y()).diagonal();
             break;
-        case BISPHERE:
+        case MixtureType::BISPHERE:
             volume = CalcBiSphereVolume(size.x(), size.y());
             gyration = CalcBiSphereGyration(size.x(), size.y()).diagonal();
             break;
-        case CAPSULE:
+        case MixtureType::CAPSULE:
             volume = CalcCapsuleVolume(size.x(), size.y());
             gyration = CalcCapsuleGyration(size.x(), size.y()).diagonal();
             break;
-        case ROUNDEDCYLINDER:
+        case MixtureType::ROUNDEDCYLINDER:
             volume = CalcRoundedCylinderVolume(size.x(), size.y(), size.z());
             gyration = CalcRoundedCylinderGyration(size.x(), size.y(), size.z()).diagonal();
             break;
@@ -292,20 +292,20 @@ void Generator::createObjectsBox(SamplingType sType,
     normalizeMixture();
 
     // Generate the object locations
-    if (m_system->GetContactMethod() == ChMaterialSurface::SMC)
+    if (m_system->GetContactMethod() == ChContactMethod::SMC)
         dist = calcMinSeparation(dist);
 
     PointVector points;
     switch (sType) {
-        case REGULAR_GRID: {
+        case SamplingType::REGULAR_GRID : {
             GridSampler<> sampler(dist);
             points = sampler.SampleBox(pos, hdims);
         } break;
-        case POISSON_DISK: {
+        case SamplingType::POISSON_DISK: {
             PDSampler<> sampler(dist);
             points = sampler.SampleBox(pos, hdims);
         } break;
-        case HCP_PACK: {
+        case SamplingType::HCP_PACK: {
             HCPSampler<> sampler(dist);
             points = sampler.SampleBox(pos, hdims);
         } break;
@@ -327,7 +327,7 @@ void Generator::createObjectsBox(const ChVector<>& dist,
 
     // When using SMC, make sure there is no shape overlap.
     ChVector<> distv;
-    if (m_system->GetContactMethod() == ChMaterialSurface::SMC)
+    if (m_system->GetContactMethod() == ChContactMethod::SMC)
         distv = calcMinSeparation(dist);
     else
         distv = dist;
@@ -354,20 +354,20 @@ void Generator::createObjectsCylinderX(SamplingType sType,
     normalizeMixture();
 
     // Generate the object locations
-    if (m_system->GetContactMethod() == ChMaterialSurface::SMC)
+    if (m_system->GetContactMethod() == ChContactMethod::SMC)
         dist = calcMinSeparation(dist);
 
     PointVector points;
     switch (sType) {
-        case REGULAR_GRID: {
+        case SamplingType::REGULAR_GRID: {
             GridSampler<> sampler(dist);
             points = sampler.SampleCylinderX(pos, radius, halfHeight);
         } break;
-        case POISSON_DISK: {
+        case SamplingType::POISSON_DISK: {
             PDSampler<> sampler(dist);
             points = sampler.SampleCylinderX(pos, radius, halfHeight);
         } break;
-        case HCP_PACK: {
+        case SamplingType::HCP_PACK: {
             HCPSampler<> sampler(dist);
             points = sampler.SampleCylinderX(pos, radius, halfHeight);
         } break;
@@ -386,20 +386,20 @@ void Generator::createObjectsCylinderY(SamplingType sType,
     normalizeMixture();
 
     // Generate the object locations
-    if (m_system->GetContactMethod() == ChMaterialSurface::SMC)
+    if (m_system->GetContactMethod() == ChContactMethod::SMC)
         dist = calcMinSeparation(dist);
 
     PointVector points;
     switch (sType) {
-        case REGULAR_GRID: {
+        case SamplingType::REGULAR_GRID: {
             GridSampler<> sampler(dist);
             points = sampler.SampleCylinderY(pos, radius, halfHeight);
         } break;
-        case POISSON_DISK: {
+        case SamplingType::POISSON_DISK: {
             PDSampler<> sampler(dist);
             points = sampler.SampleCylinderY(pos, radius, halfHeight);
         } break;
-        case HCP_PACK: {
+        case SamplingType::HCP_PACK: {
             HCPSampler<> sampler(dist);
             points = sampler.SampleCylinderY(pos, radius, halfHeight);
         } break;
@@ -418,20 +418,20 @@ void Generator::createObjectsCylinderZ(SamplingType sType,
     normalizeMixture();
 
     // Generate the object locations
-    if (m_system->GetContactMethod() == ChMaterialSurface::SMC)
+    if (m_system->GetContactMethod() == ChContactMethod::SMC)
         dist = calcMinSeparation(dist);
 
     PointVector points;
     switch (sType) {
-        case REGULAR_GRID: {
+        case SamplingType::REGULAR_GRID: {
             GridSampler<> sampler(dist);
             points = sampler.SampleCylinderZ(pos, radius, halfHeight);
         } break;
-        case POISSON_DISK: {
+        case SamplingType::POISSON_DISK: {
             PDSampler<> sampler(dist);
             points = sampler.SampleCylinderZ(pos, radius, halfHeight);
         } break;
-        case HCP_PACK: {
+        case SamplingType::HCP_PACK: {
             HCPSampler<> sampler(dist);
             points = sampler.SampleCylinderZ(pos, radius, halfHeight);
         } break;
@@ -444,7 +444,7 @@ void Generator::createObjectsCylinderZ(SamplingType sType,
 // the exclusive scan of these ratios.
 void Generator::normalizeMixture() {
     if (m_mixture.empty()) {
-        AddMixtureIngredient(SPHERE, 1);
+        AddMixtureIngredient(MixtureType::SPHERE, 1);
         return;
     }
 
@@ -513,18 +513,26 @@ void Generator::createObjects(const PointVector& points, const ChVector<>& vel) 
         // Select the type of object to be created.
         int index = selectIngredient();
 
-        // Create the body (with appropriate contact method and collision model, consistent
-        // with the associated system) and set contact material
-        ChBody* body = m_system->NewBody();
-
+        // Create a contact material consistent with the associated system and modify it based on attributes of the
+        // current ingredient.
+        std::shared_ptr<ChMaterialSurface> mat;
         switch (m_system->GetContactMethod()) {
-            case ChMaterialSurface::NSC:
-                m_mixture[index]->setMaterialProperties(body->GetMaterialSurfaceNSC());
+            case ChContactMethod::NSC: {
+                auto matNSC = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+                m_mixture[index]->setMaterialProperties(matNSC);
+                mat = matNSC;
                 break;
-            case ChMaterialSurface::SMC:
-                m_mixture[index]->setMaterialProperties(body->GetMaterialSurfaceSMC());
+            }
+            case ChContactMethod::SMC: {
+                auto matSMC = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+                m_mixture[index]->setMaterialProperties(matSMC);
+                mat = matSMC;
                 break;
+            }
         }
+
+        // Create the body (with appropriate collision model, consistent with the associated system)
+        ChBody* body = m_system->NewBody();
 
         // Set identifier
         body->SetIdentifier(m_crtBodyId++);
@@ -554,29 +562,29 @@ void Generator::createObjects(const PointVector& points, const ChVector<>& vel) 
         body->GetCollisionModel()->ClearModel();
 
         switch (m_mixture[index]->m_type) {
-            case SPHERE:
-                AddSphereGeometry(body, size.x());
+            case MixtureType::SPHERE:
+                AddSphereGeometry(body, mat, size.x());
                 break;
-            case ELLIPSOID:
-                AddEllipsoidGeometry(body, size);
+            case MixtureType::ELLIPSOID:
+                AddEllipsoidGeometry(body, mat, size);
                 break;
-            case BOX:
-                AddBoxGeometry(body, size);
+            case MixtureType::BOX:
+                AddBoxGeometry(body, mat, size);
                 break;
-            case CYLINDER:
-                AddCylinderGeometry(body, size.x(), size.y());
+            case MixtureType::CYLINDER:
+                AddCylinderGeometry(body, mat, size.x(), size.y());
                 break;
-            case CONE:
-                AddConeGeometry(body, size.x(), size.y());
+            case MixtureType::CONE:
+                AddConeGeometry(body, mat, size.x(), size.y());
                 break;
-            case BISPHERE:
-            	AddBiSphereGeometry(body, size.x(), size.y());
+            case MixtureType::BISPHERE:
+            	AddBiSphereGeometry(body, mat, size.x(), size.y());
                 break;
-            case CAPSULE:
-                AddCapsuleGeometry(body, size.x(), size.y());
+            case MixtureType::CAPSULE:
+                AddCapsuleGeometry(body, mat, size.x(), size.y());
                 break;
-            case ROUNDEDCYLINDER:
-                AddRoundedCylinderGeometry(body, size.x(), size.y(), size.z());
+            case MixtureType::ROUNDEDCYLINDER:
+                AddRoundedCylinderGeometry(body, mat, size.x(), size.y(), size.z());
                 break;
         }
 
@@ -603,20 +611,11 @@ void Generator::writeObjectInfo(const std::string& filename) {
     CSV_writer csv;
 
     for (int i = 0; i < m_bodies.size(); i++) {
-        csv << m_bodies[i].m_type;
+        csv << static_cast<int>(m_bodies[i].m_type);
         csv << m_bodies[i].m_body->GetPos() << m_bodies[i].m_size;
         csv << m_bodies[i].m_density << m_bodies[i].m_body->GetMass();
 
-        switch (m_system->GetContactMethod()) {
-            case ChMaterialSurface::NSC: {
-                std::shared_ptr<ChMaterialSurfaceNSC> mat = m_bodies[i].m_body->GetMaterialSurfaceNSC();
-                csv << mat->GetSfriction() << mat->GetCohesion();
-            } break;
-            case ChMaterialSurface::SMC: {
-                std::shared_ptr<ChMaterialSurfaceSMC> mat = m_bodies[i].m_body->GetMaterialSurfaceSMC();
-                csv << mat->GetYoungModulus() << mat->GetPoissonRatio() << mat->GetSfriction() << mat->GetRestitution();
-            } break;
-        }
+        //// RADU: write collision shape information, including contact material properties?
 
         csv << std::endl;
     }

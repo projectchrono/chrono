@@ -25,6 +25,7 @@
 #include "chrono/core/ChCoordsys.h"
 #include "chrono/core/ChQuaternion.h"
 #include "chrono/core/ChVector.h"
+#include "chrono/assets/ChTriangleMeshShape.h"
 #include "chrono/motion_functions/ChFunction_Recorder.h"
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChPart.h"
@@ -46,7 +47,7 @@ class CH_VEHICLE_API ChTire : public ChPart {
     enum class CollisionType { SINGLE_POINT, FOUR_POINTS, ENVELOPE };
 
     ChTire(const std::string& name  ///< [in] name of this tire system
-           );
+    );
 
     virtual ~ChTire() {}
 
@@ -105,10 +106,14 @@ class CH_VEHICLE_API ChTire : public ChPart {
                                       double rim_diameter,  ///< rim diameter [in]
                                       double tire_mass,     ///< mass of the tire [kg]
                                       double t_factor = 2   ///< tread to sidewall thickness factor
-                                      );
+    );
 
     /// Report the tire deflection.
     virtual double GetDeflection() const { return 0; }
+
+    /// Get the name of the Wavefront file with tire visualization mesh.
+    /// An empty string is returned if no mesh was specified.
+    const std::string& GetMeshFilename() const { return m_vis_mesh_file; }
 
   public:
     // NOTE: Typically, users should not directly call these functions. They are public for use in special cases and to
@@ -149,6 +154,17 @@ class CH_VEHICLE_API ChTire : public ChPart {
     /// and moments, else tire forces are double counted.
     virtual TerrainForce GetTireForce() const = 0;
 
+    /// Add mesh visualization to the body associated with this tire (a wheel spindle body). The two meshes are assumed
+    /// to be specified with respect to a frame with origin at the center of the tire and Y axis pointing towards the
+    /// outside. This function uses one of the two provided OBJ files, depending on the side on which the tire is
+    /// mounted. The name of the output mesh shape is set to be the stem of the input filename.
+    std::shared_ptr<ChTriangleMeshShape> AddVisualizationMesh(const std::string& mesh_file_left,
+                                                              const std::string& mesh_file_right);
+
+    /// Remove the specified mesh shape from the visualization assets of the body associated with this tire (a wheel
+    /// spindle body).
+    void RemoveVisualizationMesh(std::shared_ptr<ChTriangleMeshShape> trimesh_shape);
+
     /// Perform disc-terrain collision detection.
     /// This utility function checks for contact between a disc of specified
     /// radius with given position and orientation (specified as the location of
@@ -165,7 +181,7 @@ class CH_VEHICLE_API ChTire : public ChPart {
         double disc_radius,             ///< [in] disc radius
         ChCoordsys<>& contact,          ///< [out] contact coordinate system (relative to the global frame)
         double& depth                   ///< [out] penetration depth (positive if contact occurred)
-        );
+    );
 
     /// Perform disc-terrain collision detection considering the curvature of the road
     /// surface. The surface normal is calculated based on 4 different height values below
@@ -188,7 +204,7 @@ class CH_VEHICLE_API ChTire : public ChPart {
         ChCoordsys<>& contact,          ///< [out] contact coordinate system (relative to the global frame)
         double& depth,                  ///< [out] penetration depth (positive if contact occurred)
         double& camber_angle            ///< [out] tire camber angle
-        );
+    );
 
     /// Collsion algorithm based on a paper of J. Shane Sui and John A. Hirshey II:
     /// "A New Analytical Tire Model for Vehicle Dynamic Analysis" presented at 2001 MSC User Meeting
@@ -209,6 +225,8 @@ class CH_VEHICLE_API ChTire : public ChPart {
     std::shared_ptr<ChWheel> m_wheel;  ///< associated wheel subsystem
     double m_stepsize;                 ///< tire integration step size (if applicable)
     CollisionType m_collision_type;    ///< method used for tire-terrain collision
+
+    std::string m_vis_mesh_file;  ///< name of OBJ file for visualization of this tire (may be empty)
 
   private:
     double m_slip_angle;

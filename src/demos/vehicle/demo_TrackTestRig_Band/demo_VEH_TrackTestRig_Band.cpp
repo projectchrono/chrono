@@ -33,8 +33,8 @@
 #include "chrono_mumps/ChSolverMumps.h"
 #endif
 
-#ifdef CHRONO_MKL
-#include "chrono_mkl/ChSolverMKL.h"
+#ifdef CHRONO_PARDISO_MKL
+#include "chrono_pardisomkl/ChSolverPardisoMKL.h"
 #endif
 
 using namespace chrono;
@@ -60,9 +60,8 @@ std::string driver_file("M113/test_rig/TTR_inputs.dat");
 bool use_JSON = false;
 std::string filename("M113/track_assembly/M113_TrackAssemblyBandANCF_Left.json");
 
-// Linear solver
-enum SolverType { MUMPS, MKL };
-SolverType solver_type = MUMPS;
+// Linear solver (MUMPS or PARDISO_MKL)
+ChSolver::Type solver_type = ChSolver::Type::MUMPS;
 
 // Output directories
 const std::string out_dir = GetChronoOutputPath() + "TRACKBAND_TEST_RIG";
@@ -85,7 +84,8 @@ class MyContactReporter : public ChContactContainer::ReportContactCallback {
         cout << "Report contacts" << endl;
         m_num_contacts = 0;
         m_num_contacts_bb = 0;
-        m_rig->GetSystem()->GetContactContainer()->ReportAllContacts(this);
+        std::shared_ptr<MyContactReporter> shared_this(this, [](MyContactReporter*) {});
+        m_rig->GetSystem()->GetContactContainer()->ReportAllContacts(shared_this);
         cout << "Total number contacts:        " << m_num_contacts << endl;
         cout << "Number of body-body contacts: " << m_num_contacts_bb << endl;
     }
@@ -141,20 +141,21 @@ int main(int argc, char* argv[]) {
 
     ChTrackTestRig* rig = nullptr;
     if (use_JSON) {
-        rig = new ChTrackTestRig(vehicle::GetDataFile(filename), create_track, ChMaterialSurface::SMC);
+        rig = new ChTrackTestRig(vehicle::GetDataFile(filename), create_track, ChContactMethod::SMC);
     } else {
         VehicleSide side = LEFT;
         TrackShoeType type = TrackShoeType::BAND_BUSHING;
+        BrakeType brake_type = BrakeType::SIMPLE;
         std::shared_ptr<ChTrackAssembly> track_assembly;
         switch (type) {
             case TrackShoeType::BAND_BUSHING: {
-                auto assembly = chrono_types::make_shared<M113_TrackAssemblyBandBushing>(side);
+                auto assembly = chrono_types::make_shared<M113_TrackAssemblyBandBushing>(side, brake_type);
                 track_assembly = assembly;
                 break;
             }
             case TrackShoeType::BAND_ANCF: {
-                auto assembly = chrono_types::make_shared<M113_TrackAssemblyBandANCF>(side);
-                assembly->SetContactSurfaceType(ChTrackAssemblyBandANCF::NONE);
+                auto assembly = chrono_types::make_shared<M113_TrackAssemblyBandANCF>(side, brake_type);
+                assembly->SetContactSurfaceType(ChTrackAssemblyBandANCF::ContactSurfaceType::NONE);
                 track_assembly = assembly;
                 break;
             }
@@ -163,7 +164,7 @@ int main(int argc, char* argv[]) {
                 return 1;
         }
 
-        rig = new ChTrackTestRig(track_assembly, create_track, ChMaterialSurface::SMC);
+        rig = new ChTrackTestRig(track_assembly, create_track, ChContactMethod::SMC);
         std::cout << "Rig uses M113 track assembly:  type " << (int)type << " side " << side << std::endl;
     }
 
@@ -242,18 +243,18 @@ int main(int argc, char* argv[]) {
     // Solver and integrator settings
     // ------------------------------
 
-#ifndef CHRONO_MKL
-    if (solver_type == MKL)
-        solver_type = MUMPS;
+#ifndef CHRONO_PARDISO_MKL
+    if (solver_type == ChSolver::Type::PARDISO_MKL)
+        solver_type = ChSolver::Type::MUMPS;
 #endif
 #ifndef CHRONO_MUMPS
-    if (solver_type == MUMPS)
-        solver_type = MKL;
+    if (solver_type == ChSolver::Type::MUMPS)
+        solver_type = ChSolver::Type::PARDISO_MKL;
 #endif
 
     switch (solver_type) {
 #ifdef CHRONO_MUMPS
-        case MUMPS: {
+        case ChSolver::Type::MUMPS: {
             auto mumps_solver = chrono_types::make_shared<ChSolverMumps>();
             mumps_solver->LockSparsityPattern(true);
             mumps_solver->SetVerbose(verbose_solver);
@@ -261,9 +262,9 @@ int main(int argc, char* argv[]) {
             break;
         }
 #endif
-#ifdef CHRONO_MKL
-        case MKL: {
-            auto mkl_solver = chrono_types::make_shared<ChSolverMKL>();
+#ifdef CHRONO_PARDISO_MKL
+        case ChSolver::Type::PARDISO_MKL: {
+            auto mkl_solver = chrono_types::make_shared<ChSolverPardisoMKL>();
             mkl_solver->LockSparsityPattern(true);
             mkl_solver->SetVerbose(verbose_solver);
             rig->GetSystem()->SetSolver(mkl_solver);

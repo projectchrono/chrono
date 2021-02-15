@@ -622,6 +622,62 @@ void ChDampingReissner::ComputeDampingMatrix(
 
 
 
+// -----------------------------------------------------------------------------
+
+
+ChDampingReissnerRayleigh::ChDampingReissnerRayleigh(
+									std::shared_ptr<ChElasticityReissner> melasticity, 
+									const double& mbeta) {
+	this->beta = mbeta;
+	this->section_elasticity = melasticity;
+	this->updated = false;
+}
+
+
+
+void ChDampingReissnerRayleigh::ComputeStress(
+									ChVector<>& n_u,          ///< forces along \e u direction (per unit length)
+									ChVector<>& n_v,          ///< forces along \e v direction (per unit length)
+									ChVector<>& m_u,          ///< torques along \e u direction (per unit length)
+									ChVector<>& m_v,          ///< torques along \e v direction (per unit length)
+									const ChVector<>& deps_u,  ///< time derivative of strains along \e u direction
+									const ChVector<>& deps_v,  ///< time derivative of strains along \e v direction
+									const ChVector<>& dkur_u,  ///< time derivative of curvature along \e u direction
+									const ChVector<>& dkur_v,  ///< time derivative of curvature along \e v direction
+									const double z_inf,       ///< layer lower z value (along thickness coord)
+									const double z_sup,       ///< layer upper z value (along thickness coord)
+									const double angle        ///< layer angle respect to x (if needed) 
+									) {
+	if (!this->updated && this->section_elasticity->section) {
+		this->section_elasticity->ComputeStiffnessMatrix(this->E_const, VNULL, VNULL, VNULL, VNULL, z_inf, z_sup, angle);
+		this->updated = true;
+	}
+	ChVectorN<double, 12> mdstrain;
+    ChVectorN<double, 12> mstress;
+    mdstrain.segment(0 , 3) = deps_u.eigen();
+    mdstrain.segment(3 , 3) = deps_v.eigen();
+	mdstrain.segment(6 , 3) = dkur_u.eigen();
+	mdstrain.segment(9 , 3) = dkur_v.eigen();
+    mstress = this->beta * this->E_const * mdstrain;
+    n_u = mstress.segment(0, 3);
+	n_v = mstress.segment(3, 3);
+	m_u = mstress.segment(6, 3);
+	m_v = mstress.segment(9, 3);   
+}
+
+void ChDampingReissnerRayleigh::ComputeDampingMatrix(	ChMatrixRef R,      ///< 12x12 material damping matrix values here
+										const ChVector<>& deps_u,  ///< time derivative of strains along \e u direction
+										const ChVector<>& deps_v,  ///< time derivative of strains along \e v direction
+										const ChVector<>& dkur_u,  ///< time derivative of curvature along \e u direction
+										const ChVector<>& dkur_v,  ///< time derivative of curvature along \e v direction
+										const double z_inf,       ///< layer lower z value (along thickness coord)
+										const double z_sup,       ///< layer upper z value (along thickness coord)
+										const double angle        ///< layer angle respect to x (if needed) -not used in this, isotropic
+										) {
+	R = this->beta * this->E_const;
+}
+
+
 
 // -----------------------------------------------------------------------------
 

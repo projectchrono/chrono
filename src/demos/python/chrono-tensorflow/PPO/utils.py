@@ -38,7 +38,7 @@ class Scaler(object):
         """
         if self.first_pass:
             if os.path.isfile("./savedmodel/"+self.env_name+"/scaler.dat") :
-                   resumed = np.load("./savedmodel/"+self.env_name+"/scaler.dat")
+                   resumed = np.load("./savedmodel/"+self.env_name+"/scaler.dat", allow_pickle=True)
                    self.means = resumed[0: self.means.size]
                    self.vars = resumed[self.means.size : self.means.size+self.vars.size]
                    self.m = resumed[self.means.size+self.vars.size: resumed.size]

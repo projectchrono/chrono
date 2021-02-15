@@ -22,6 +22,9 @@
 
 namespace chrono {
 
+/// @addtogroup chrono_functions
+/// @{
+
 class ChApi ChRecPoint {
   public:
     double x;  ///< argument value
@@ -84,6 +87,8 @@ class ChApi ChFunction_Recorder : public ChFunction {
     /// Method to allow de-serialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
+
+/// @} chrono_functions
 
 CH_CLASS_VERSION(ChFunction_Recorder, 0)
 

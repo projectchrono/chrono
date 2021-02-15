@@ -23,5 +23,15 @@ namespace vehicle {
 
 ChTerrain::ChTerrain() : m_friction_fun(nullptr) {}
 
+double ChTerrain::GetHeight(const ChVector<>& loc) const {
+    return 0;
+}
+ChVector<> ChTerrain::GetNormal(const ChVector<>& loc) const {
+    return ChVector<>(0, 0, 1);
+}
+float ChTerrain::GetCoefficientFriction(const ChVector<>& loc) const {
+    return 0.8f;
+}
+
 }  // end namespace vehicle
 }  // end namespace chrono

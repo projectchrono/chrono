@@ -22,13 +22,11 @@
     "Location":     [0, 0.5, 1.2],
     "Orientation":  [1, 0, 0, 0]
   },
+  
+  "Rear Connector Location": [ -2.5, 0, -0.25 ],
 
   "Visualization":
   {
-    "Mesh":
-    {
-       "Filename":  "hmmwv/hmmwv_chassis.obj",
-       "Name":      "hmmwv_chassis_POV_geom"
-    }
+    "Mesh":  "hmmwv/hmmwv_chassis.obj"
   }
 }

@@ -1296,10 +1296,10 @@ void ChElementShellANCF::EvaluateDeflection(double& def) {
     def = defVec.Length();
 }
 
-ChVector<> ChElementShellANCF::EvaluateSectionStrains() {
+ChStrainStress3D ChElementShellANCF::EvaluateSectionStrainStress(const ChVector<>& loc, int layer_id) {
     // Element shape function
     ShapeVector N;
-    ShapeFunctions(N, 0, 0, 0);
+    ShapeFunctions(N, loc.x(), loc.y(), loc.z());
 
     // Determinant of position vector gradient matrix: Initial configuration
     ShapeVector Nx;
@@ -1308,13 +1308,13 @@ ChVector<> ChElementShellANCF::EvaluateSectionStrains() {
     ChMatrixNM<double, 1, 3> Nx_d0;
     ChMatrixNM<double, 1, 3> Ny_d0;
     ChMatrixNM<double, 1, 3> Nz_d0;
-    double detJ0 = this->Calc_detJ0(0, 0, 0, Nx, Ny, Nz, Nx_d0, Ny_d0, Nz_d0);
+    double detJ0 = this->Calc_detJ0(loc.x(), loc.y(), loc.z(), Nx, Ny, Nz, Nx_d0, Ny_d0, Nz_d0);
 
     // ANS shape function
     ChMatrixNM<double, 1, 4> S_ANS;  // Shape function vector for Assumed Natural Strain
     ChMatrixNM<double, 6, 5> M;      // Shape function vector for Enhanced Assumed Strain
-    this->ShapeFunctionANSbilinearShell(S_ANS, 0, 0);
-    this->Basis_M(M, 0, 0, 0);
+    this->ShapeFunctionANSbilinearShell(S_ANS,  loc.x(), loc.y());
+    this->Basis_M(M, loc.x(), loc.y(), loc.z());
 
     // Transformation : Orthogonal transformation (A and J)
     ChVector<double> G1xG2;  // Cross product of first and second column of
@@ -1385,15 +1385,9 @@ ChVector<> ChElementShellANCF::EvaluateSectionStrains() {
     beta(8) = Vdot(AA3, j03);
 
     // Transformation matrix, function of fiber angle
-    const ChMatrixNM<double, 6, 6>& T0 = this->GetLayer(0).Get_T0();
+    const ChMatrixNM<double, 6, 6>& T0 = this->GetLayer(layer_id).Get_T0();
     // Determinant of the initial position vector gradient at the element center
-    double detJ0C = this->GetLayer(0).Get_detJ0C();
-
-    // Enhanced Assumed Strain
-
-    // Enhanced Assumed Strain
-    ChMatrixNM<double, 6, 5> G = T0 * M * (detJ0C / detJ0);
-    ChVectorN<double, 6> strain_EAS = G * this->m_alphaEAS[0];
+    double detJ0C = this->GetLayer(layer_id).Get_detJ0C();
 
     ChVectorN<double, 8> ddNx = m_ddT * Nx.transpose();
     ChVectorN<double, 8> ddNy = m_ddT * Ny.transpose();
@@ -1438,7 +1432,11 @@ ChVector<> ChElementShellANCF::EvaluateSectionStrains() {
                 strain_til(4) * (beta(2) * beta(7) + beta(1) * beta(8)) +
                 strain_til(5) * (beta(5) * beta(7) + beta(4) * beta(8));
 
-    return ChVector<>(strain(0), strain(1), strain(2));
+    const ChMatrixNM<double, 6, 6>& E_eps = GetLayer(layer_id).GetMaterial()->Get_E_eps();
+    const ChVectorN<double, 6>& stress = E_eps * strain;
+    ChStrainStress3D strainStressOut = {strain, stress};
+
+    return strainStressOut;
 }
 void ChElementShellANCF::EvaluateSectionDisplacement(const double u,
                                                      const double v,
@@ -1553,6 +1551,54 @@ void ChElementShellANCF::ComputeNF(
     Qi.segment(15, 3) = N(5) * F.segment(0, 3);
     Qi.segment(18, 3) = N(6) * F.segment(0, 3);
     Qi.segment(21, 3) = N(7) * F.segment(0, 3);
+
+    //// RADU: Under development; requires additional testing
+    /*
+    // Compute the generalized force vector for the applied moment
+    ShapeVector Nx;
+    ShapeVector Ny;
+    ShapeVector Nz;
+    ChMatrixNM<double, 8, 3> e_bar;
+    ChMatrixNM<double, 3, 8> Sxi_D_transpose;
+    ChMatrix33<double> J_Cxi;
+    ChMatrix33<double> J_Cxi_Inv;
+    ChVectorN<double, 8> G_A;
+    ChVectorN<double, 8> G_B;
+    ChVectorN<double, 8> G_C;
+    ChVectorN<double, 3> M_scaled = 0.5 * F.segment(3, 3);
+
+    ShapeFunctionsDerivativeX(Nx, U, V, 0);
+    ShapeFunctionsDerivativeY(Ny, U, V, 0);
+    ShapeFunctionsDerivativeZ(Nz, U, V, 0);
+    Sxi_D_transpose.row(0) = Nx;
+    Sxi_D_transpose.row(1) = Ny;
+    Sxi_D_transpose.row(2) = Nz;
+
+    CalcCoordMatrix(e_bar);
+
+    // Calculate the element Jacobian between the current configuration and the normalized configuration
+    J_Cxi.noalias() = e_bar.transpose() * Sxi_D_transpose.transpose();
+    J_Cxi_Inv = J_Cxi.inverse();
+
+    // Compute the unique pieces that make up the moment projection matrix "G"
+    // See: Antonio M Recuero, Javier F Aceituno, Jose L Escalona, and Ahmed A Shabana.
+    // A nonlinear approach for modeling rail flexibility using the absolute nodal coordinate
+    // formulation. Nonlinear Dynamics, 83(1-2):463-481, 2016.
+    G_A = Sxi_D_transpose.row(0) * J_Cxi_Inv(0, 0) + Sxi_D_transpose.row(1) * J_Cxi_Inv(1, 0) +
+        Sxi_D_transpose.row(2) * J_Cxi_Inv(2, 0);
+    G_B = Sxi_D_transpose.row(0) * J_Cxi_Inv(0, 1) + Sxi_D_transpose.row(1) * J_Cxi_Inv(1, 1) +
+        Sxi_D_transpose.row(2) * J_Cxi_Inv(2, 1);
+    G_C = Sxi_D_transpose.row(0) * J_Cxi_Inv(0, 2) + Sxi_D_transpose.row(1) * J_Cxi_Inv(1, 2) +
+        Sxi_D_transpose.row(2) * J_Cxi_Inv(2, 2);
+
+    // Compute G'M without actually forming the complete matrix "G" (since it has a sparsity pattern to it)
+    //// MIKE Clean-up when slicing becomes available in Eigen 3.4
+    for (unsigned int i = 0; i < 8; i++) {
+        Qi(3 * i + 0) += M_scaled(1) * G_C(i) - M_scaled(2) * G_B(i);
+        Qi(3 * i + 1) += M_scaled(2) * G_A(i) - M_scaled(0) * G_C(i);
+        Qi(3 * i + 2) += M_scaled(0) * G_B(i) - M_scaled(1) * G_A(i);
+    }
+    */
 }
 
 // Evaluate N'*F , where N is the shape function evaluated at (U,V,W) coordinates of the surface.
@@ -1580,6 +1626,54 @@ void ChElementShellANCF::ComputeNF(
     Qi.segment(15, 3) = N(5) * F.segment(0, 3);
     Qi.segment(18, 3) = N(6) * F.segment(0, 3);
     Qi.segment(21, 3) = N(7) * F.segment(0, 3);
+
+    //// RADU: Under development; requires additional testing
+    /*
+    // Compute the generalized force vector for the applied moment
+    ShapeVector Nx;
+    ShapeVector Ny;
+    ShapeVector Nz;
+    ChMatrixNM<double, 8, 3> e_bar;
+    ChMatrixNM<double, 3, 8> Sxi_D_transpose;
+    ChMatrix33<double> J_Cxi;
+    ChMatrix33<double> J_Cxi_Inv;
+    ChVectorN<double, 8> G_A;
+    ChVectorN<double, 8> G_B;
+    ChVectorN<double, 8> G_C;
+    ChVectorN<double, 3> M_scaled = 0.5 * F.segment(3, 3);
+
+    ShapeFunctionsDerivativeX(Nx, U, V, W);
+    ShapeFunctionsDerivativeY(Ny, U, V, W);
+    ShapeFunctionsDerivativeZ(Nz, U, V, W);
+    Sxi_D_transpose.row(0) = Nx;
+    Sxi_D_transpose.row(1) = Ny;
+    Sxi_D_transpose.row(2) = Nz;
+
+    CalcCoordMatrix(e_bar);
+
+    // Calculate the element Jacobian between the current configuration and the normalized configuration
+    J_Cxi.noalias() = e_bar.transpose() * Sxi_D_transpose.transpose();
+    J_Cxi_Inv = J_Cxi.inverse();
+
+    // Compute the unique pieces that make up the moment projection matrix "G"
+    // See: Antonio M Recuero, Javier F Aceituno, Jose L Escalona, and Ahmed A Shabana.
+    // A nonlinear approach for modeling rail flexibility using the absolute nodal coordinate
+    // formulation. Nonlinear Dynamics, 83(1-2):463-481, 2016.
+    G_A = Sxi_D_transpose.row(0) * J_Cxi_Inv(0, 0) + Sxi_D_transpose.row(1) * J_Cxi_Inv(1, 0) +
+        Sxi_D_transpose.row(2) * J_Cxi_Inv(2, 0);
+    G_B = Sxi_D_transpose.row(0) * J_Cxi_Inv(0, 1) + Sxi_D_transpose.row(1) * J_Cxi_Inv(1, 1) +
+        Sxi_D_transpose.row(2) * J_Cxi_Inv(2, 1);
+    G_C = Sxi_D_transpose.row(0) * J_Cxi_Inv(0, 2) + Sxi_D_transpose.row(1) * J_Cxi_Inv(1, 2) +
+        Sxi_D_transpose.row(2) * J_Cxi_Inv(2, 2);
+
+    // Compute G'M without actually forming the complete matrix "G" (since it has a sparsity pattern to it)
+    //// MIKE Clean-up when slicing becomes available in Eigen 3.4
+    for (unsigned int i = 0; i < 8; i++) {
+        Qi(3 * i + 0) += M_scaled(1) * G_C(i) - M_scaled(2) * G_B(i);
+        Qi(3 * i + 1) += M_scaled(2) * G_A(i) - M_scaled(0) * G_C(i);
+        Qi(3 * i + 2) += M_scaled(0) * G_B(i) - M_scaled(1) * G_A(i);
+    }
+    */
 }
 
 // -----------------------------------------------------------------------------

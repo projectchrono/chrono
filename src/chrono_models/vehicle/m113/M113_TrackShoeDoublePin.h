@@ -56,6 +56,9 @@ class CH_MODELS_API M113_TrackShoeDoublePin : public ChTrackShoeDoublePin {
     /// Return shoe width (separation between connectors).
     virtual double GetShoeWidth() const override { return m_shoe_width; }
 
+    /// Return the location of the guiding pin center, expressed in the shoe reference frame.
+    virtual ChVector<> GetLateralContactPoint() const override { return m_pin_center; }
+
     /// Return the mass of a connector body.
     virtual double GetConnectorMass() const override { return m_connector_mass; }
     /// Return the moments of inertia of a connector body.
@@ -67,37 +70,23 @@ class CH_MODELS_API M113_TrackShoeDoublePin : public ChTrackShoeDoublePin {
     /// Return the width of a connector body (visualization only).
     virtual double GetConnectorWidth() const override { return m_connector_width; }
 
-    /// Add visualization assets for the track shoe subsystem.
-    virtual void AddVisualizationAssets(VisualizationType vis) override;
-
-    /// Return dimensions and locations of the contact boxes for the shoe and guiding pin.
-    /// Note that this is for contact with wheels, idler, and ground only.
-    /// This contact geometry does not affect contact with the sprocket.
-    virtual const ChVector<>& GetPadBoxDimensions() const override { return m_pad_box_dims; }
-    virtual const ChVector<>& GetPadBoxLocation() const override { return m_pad_box_loc; }
-    virtual const ChVector<>& GetGuideBoxDimensions() const override { return m_guide_box_dims; }
-    virtual const ChVector<>& GetGuideBoxLocation() const override { return m_guide_box_loc; }
-
   private:
+    /// Create the contact materials.
+    void CreateContactMaterials(ChContactMethod contact_method) override;
+
     static const double m_shoe_mass;
     static const ChVector<> m_shoe_inertia;
     static const double m_shoe_length;
     static const double m_shoe_width;
     static const double m_shoe_height;
 
+    static const ChVector<> m_pin_center;
+
     static const double m_connector_mass;
     static const ChVector<> m_connector_inertia;
     static const double m_connector_radius;
     static const double m_connector_length;
     static const double m_connector_width;
-
-    static const ChVector<> m_pad_box_dims;
-    static const ChVector<> m_pad_box_loc;
-    static const ChVector<> m_guide_box_dims;
-    static const ChVector<> m_guide_box_loc;
-
-    static const std::string m_meshName;
-    static const std::string m_meshFile;
 };
 
 /// @} vehicle_models_m113

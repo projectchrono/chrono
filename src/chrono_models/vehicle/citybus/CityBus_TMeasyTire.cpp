@@ -30,7 +30,6 @@ namespace citybus {
 // Static variables
 // -----------------------------------------------------------------------------
 
-const std::string CityBus_TMeasyTire::m_meshName = "citybus_tire_POV_geom";
 const std::string CityBus_TMeasyTire::m_meshFile = "citybus/CityBusTire.obj";
 
 const double CityBus_TMeasyTire::m_mass = 68.6;
@@ -75,14 +74,8 @@ void CityBus_TMeasyTire::GenerateCharacteristicPlots(const std::string& dirname)
 // -----------------------------------------------------------------------------
 void CityBus_TMeasyTire::AddVisualizationAssets(VisualizationType vis) {
     if (vis == VisualizationType::MESH) {
-        auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
-        trimesh->LoadWavefrontMesh(vehicle::GetDataFile(m_meshFile), false, false);
-        trimesh->Transform(ChVector<>(0, GetOffset(), 0), ChMatrix33<>(1));
-        m_trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
-        m_trimesh_shape->SetMesh(trimesh);
-        m_trimesh_shape->SetStatic(true);
-        m_trimesh_shape->SetName(m_meshName);
-        m_wheel->GetSpindle()->AddAsset(m_trimesh_shape);
+        m_trimesh_shape = AddVisualizationMesh(m_meshFile,   // left side
+                                               m_meshFile);  // right side
     } else {
         ChTMeasyTire::AddVisualizationAssets(vis);
     }
@@ -90,14 +83,7 @@ void CityBus_TMeasyTire::AddVisualizationAssets(VisualizationType vis) {
 
 void CityBus_TMeasyTire::RemoveVisualizationAssets() {
     ChTMeasyTire::RemoveVisualizationAssets();
-
-    // Make sure we only remove the assets added by CityBus_TMeasyTire::AddVisualizationAssets.
-    // This is important for the ChTire object because a wheel may add its own assets
-    // to the same body (the spindle/wheel).
-    auto& assets = m_wheel->GetSpindle()->GetAssets();
-    auto it = std::find(assets.begin(), assets.end(), m_trimesh_shape);
-    if (it != assets.end())
-        assets.erase(it);
+    RemoveVisualizationMesh(m_trimesh_shape);
 }
 
 }  // end namespace citybus

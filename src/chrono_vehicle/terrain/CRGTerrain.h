@@ -56,6 +56,9 @@ class CH_VEHICLE_API CRGTerrain : public ChTerrain {
     CRGTerrain(ChSystem* system  ///< [in] pointer to the containing multibody system
     );
 
+    /// Enable verbose messages from CRG (default : false).
+    void EnableVerbose(bool val);
+
     /// Set the road visualization mode (mesh or boundary lines).
     /// Default: mesh.
     void UseMeshVisualization(bool val) { m_use_vis_mesh = val; }
@@ -70,26 +73,29 @@ class CH_VEHICLE_API CRGTerrain : public ChTerrain {
 
     ~CRGTerrain();
 
-    /// Get the terrain height at the specified (x,y) location.
-    /// Returns the constant value passed at construction.
-    virtual double GetHeight(double x, double y) const override;
+    /// Get the terrain height below the specified location.
+    virtual double GetHeight(const ChVector<>& loc) const override;
 
-    /// Get the terrain normal at the specified (x,y) location.
-    /// Returns a constant unit vector along the Z axis.
-    virtual ChVector<> GetNormal(double x, double y) const override;
+    /// Get the terrain normal at the point below the specified location.
+    virtual ChVector<> GetNormal(const ChVector<>& loc) const override;
 
-    /// Get the terrain coefficient of friction at the specified (x,y) location.
+    /// Get the terrain coefficient of friction at the point below the specified location.
     /// This coefficient of friction value may be used by certain tire models to modify
     /// the tire characteristics, but it will have no effect on the interaction of the terrain
     /// with other objects (including tire models that do not explicitly use it).
     /// For CRGTerrain, this function defers to the user-provided functor object
     /// of type ChTerrain::FrictionFunctor, if one was specified.
     /// Otherwise, it returns the constant value specified at construction.
-    virtual float GetCoefficientFriction(double x, double y) const override;
+    virtual float GetCoefficientFriction(const ChVector<>& loc) const override;
 
-    /// Get the vehicle path as ChBezierCurve.
-    /// This function returns a path along the road's midline.
-    std::shared_ptr<ChBezierCurve> GetPath();
+    /// Get the road center line as a Bezier curve.
+    std::shared_ptr<ChBezierCurve> GetRoadCenterLine();
+
+    /// Get the road left boundary as a Bezier curve.
+    std::shared_ptr<ChBezierCurve> GetRoadBoundaryLeft() const { return m_road_left; }
+
+    /// Get the road right boundary as a Bezier curve.
+    std::shared_ptr<ChBezierCurve> GetRoadBoundaryRight() const { return m_road_right; }
 
     /// Get the road mesh.
     std::shared_ptr<geometry::ChTriangleMeshConnected> GetMesh() const { return m_mesh; }
@@ -106,20 +112,31 @@ class CH_VEHICLE_API CRGTerrain : public ChTerrain {
     /// Export road mesh to Wavefront file.
     void ExportMeshWavefront(const std::string& out_dir);
 
-    /// Export the patch mesh as a macro in a PovRay include file.
+    /// Export the patch mesh as a macro in a POV-Ray include file.
     void ExportMeshPovray(const std::string& out_dir);
+
+    /// Export the road boundary curves as a macro in a POV-Ray include file.
+    /// This function does nothing if using mesh visualization for the road.
+    void ExportCurvesPovray(const std::string& out_dir);
 
   private:
     /// Build the graphical representation.
     void SetupLineGraphics();
     void SetupMeshGraphics();
     void GenerateMesh();
+    void GenerateCurves();
 
     std::shared_ptr<ChBody> m_ground;  ///< ground body
     bool m_use_vis_mesh;               ///< mesh or boundary visual asset?
     float m_friction;                  ///< contact coefficient of friction
 
+    std::string m_mesh_name;
+    std::string m_curve_left_name;
+    std::string m_curve_right_name;
+
     std::shared_ptr<geometry::ChTriangleMeshConnected> m_mesh;  ///< mesh for visualization/export
+    std::shared_ptr<ChBezierCurve> m_road_left;                 ///< curve for left road boundary
+    std::shared_ptr<ChBezierCurve> m_road_right;                ///< curve for right road boundary
 
     bool m_isClosed;  ///< closed road profile?
 
@@ -130,8 +147,6 @@ class CH_VEHICLE_API CRGTerrain : public ChTerrain {
     double m_vinc, m_vbeg, m_vend;  // increment, begin , end of lateral road coordinates
 
     std::vector<double> m_v;  // vector with distinct v values, if m_vinc <= 0.01 m
-
-    static const std::string m_mesh_name;
 };
 
 /// @} vehicle_terrain

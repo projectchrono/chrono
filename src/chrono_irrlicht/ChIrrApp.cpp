@@ -18,8 +18,8 @@ namespace irrlicht {
 using namespace irr;
 
 ChIrrApp::ChIrrApp(ChSystem* psystem,
-                   const wchar_t* title,
-                   core::dimension2d<u32> dimens,
+                   const std::wstring& title,
+                   const core::dimension2d<u32>& dimens,
                    bool do_fullscreen,
                    bool do_shadows,
                    bool do_antialias,

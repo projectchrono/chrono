@@ -30,8 +30,8 @@
 
 #include "chrono_thirdparty/filesystem/path.h"
 
-#ifdef CHRONO_MKL
-#include "chrono_mkl/ChSolverMKL.h"
+#ifdef CHRONO_PARDISO_MKL
+#include "chrono_pardisomkl/ChSolverPardisoMKL.h"
 #endif
 
 #ifdef CHRONO_MUMPS
@@ -69,7 +69,7 @@ std::string filename("M113/track_assembly/M113_TrackAssemblySinglePin_Left.json"
 
 // Use HHT + MKL / MUMPS
 bool use_mkl = false;
-bool use_mumps = true;
+bool use_mumps = false;
 
 // Solver output level (MKL and MUMPS)
 bool verbose_solver = false;
@@ -88,14 +88,14 @@ int main(int argc, char* argv[]) {
     // -----------------------
 
     bool create_track = true;
-    ChMaterialSurface::ContactMethod contact_method = ChMaterialSurface::NSC;
+    ChContactMethod contact_method = ChContactMethod::SMC;
 
     //// NOTE
     //// When using SMC, a double-pin shoe type requires MKL or MUMPS.
     //// However, there appear to still be redundant constraints in the double-pin assembly
     //// resulting in solver failures with MKL and MUMPS (rank-deficient matrix).
     ////
-    //// For now, use ChMaterialSurface::NSC for a double-pin track model
+    //// For now, use ChContactMethod::NSC for a double-pin track model
 
     ChTrackTestRig* rig = nullptr;
     if (use_JSON) {
@@ -103,16 +103,18 @@ int main(int argc, char* argv[]) {
         std::cout << "Rig uses track assembly from JSON file: " << vehicle::GetDataFile(filename) << std::endl;
     } else {
         VehicleSide side = LEFT;
-        TrackShoeType type = TrackShoeType::DOUBLE_PIN;
+        TrackShoeType type = TrackShoeType::SINGLE_PIN;
+        BrakeType brake_type = BrakeType::SIMPLE;
         std::shared_ptr<ChTrackAssembly> track_assembly;
         switch (type) {
             case TrackShoeType::SINGLE_PIN: {
-                auto assembly = chrono_types::make_shared<M113_TrackAssemblySinglePin>(side);
+                auto assembly = chrono_types::make_shared<M113_TrackAssemblySinglePin>(side, brake_type);
                 track_assembly = assembly;
                 break;
             }
             case TrackShoeType::DOUBLE_PIN: {
-                auto assembly = chrono_types::make_shared<M113_TrackAssemblyDoublePin>(side);
+                contact_method = ChContactMethod::NSC; // force NSC
+                auto assembly = chrono_types::make_shared<M113_TrackAssemblyDoublePin>(side, brake_type);
                 track_assembly = assembly;
                 break;
             }
@@ -131,13 +133,15 @@ int main(int argc, char* argv[]) {
 
     ////ChVector<> target_point = rig->GetPostPosition();
     ////ChVector<> target_point = rig->GetTrackAssembly()->GetIdler()->GetWheelBody()->GetPos();
-    ChVector<> target_point = rig->GetTrackAssembly()->GetSprocket()->GetGearBody()->GetPos();
+    ////ChVector<> target_point = rig->GetTrackAssembly()->GetSprocket()->GetGearBody()->GetPos();
+    ChVector<> target_point = 0.5 * (rig->GetTrackAssembly()->GetSprocket()->GetGearBody()->GetPos() +
+                                     rig->GetTrackAssembly()->GetIdler()->GetWheelBody()->GetPos());
 
     ChVehicleIrrApp app(rig, L"Suspension Test Rig");
     app.SetSkyBox();
     app.AddTypicalLights(irr::core::vector3df(30.f, -30.f, 100.f), irr::core::vector3df(30.f, 50.f, 100.f), 250, 130);
     app.SetChaseCamera(ChVector<>(0), 3.0, 0.0);
-    app.SetChaseCameraPosition(target_point + ChVector<>(-2, 3, 0));
+    app.SetChaseCameraPosition(target_point + ChVector<>(0, 3, 0));
     app.SetChaseCameraState(utils::ChChaseCamera::Free);
     app.SetChaseCameraAngle(-CH_C_PI_2);
     app.SetChaseCameraMultipliers(1e-4, 10);
@@ -212,22 +216,22 @@ int main(int argc, char* argv[]) {
     // ------------------------------
 
     // Cannot use HHT with MKL/MUMPS with NSC contact
-    if (contact_method == ChMaterialSurface::NSC) {
+    if (contact_method == ChContactMethod::NSC) {
         use_mkl = false;
         use_mumps = false;
     }
 
-#ifndef CHRONO_MKL
+#ifndef CHRONO_PARDISO_MKL
     use_mkl = false;
 #endif
-#ifndef CHRONO_MUMPS
+#ifndef CHRONO_PARDISO_MUMPS
     use_mumps = false;
 #endif
 
     if (use_mkl) {
-#ifdef CHRONO_MKL
-        std::cout << "Solver: MKL" << std::endl;
-        auto mkl_solver = chrono_types::make_shared<ChSolverMKL>();
+#ifdef CHRONO_PARDISO_MKL
+        std::cout << "Solver: PardisoMKL" << std::endl;
+        auto mkl_solver = chrono_types::make_shared<ChSolverPardisoMKL>();
         mkl_solver->LockSparsityPattern(true);
         mkl_solver->SetVerbose(verbose_solver);
         rig->GetSystem()->SetSolver(mkl_solver);
@@ -244,7 +248,7 @@ int main(int argc, char* argv[]) {
     } else {
         std::cout << "Solver: SOR" << std::endl;
         auto solver = chrono_types::make_shared<ChSolverPSOR>();
-        solver->SetMaxIterations(50);
+        solver->SetMaxIterations(60);
         solver->SetOmega(0.8);
         solver->SetSharpnessLambda(1.0);
         rig->GetSystem()->SetSolver(solver);
@@ -266,7 +270,7 @@ int main(int argc, char* argv[]) {
         integrator->SetScaling(true);
         integrator->SetVerbose(verbose_solver);
     } else {
-        std::cout << "Solver: Default" << std::endl;
+        std::cout << "Integrator: Default" << std::endl;
     }
 
     // ---------------

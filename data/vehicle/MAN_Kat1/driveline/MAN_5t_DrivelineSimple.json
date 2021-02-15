@@ -1,0 +1,10 @@
+{
+  "Name":                       "MAN 5t 4WD Driveline",
+  "Type":                       "Driveline",
+  "Template":                   "SimpleDriveline",
+
+  "Front Torque Fraction":       0.33,
+
+  "Front Differential Max Bias": 2.0,
+  "Rear Differential Max Bias":  2.0
+}

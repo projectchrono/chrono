@@ -869,10 +869,15 @@ RECURSIVE              = YES
 EXCLUDE                = ../src/chrono/collision/bullet \
                          ../src/chrono/collision/convexdecomposition \
                          ../src/chrono/collision/gimpact \
-						 ../src/chrono/collision/edgetempest \
+                         ../src/chrono/collision/edgetempest \
                          ../src/chrono_matlab \
-						 ../src/chrono_thirdparty \
-						 ../src/chrono_python
+                         ../src/chrono_thirdparty \
+                         ../src/chrono_synchrono/flatbuffer/message/SynFlatBuffers_generated.h \
+                         ../src/chrono_synchrono/README.md \
+                         ../src/chrono_sensor/README.md \
+                         ../src/chrono_fsi/README.md \
+                         ../src/chrono_python/sensor_readme.md \
+                         ../stc/tests/README.md
 
 # The EXCLUDE_SYMLINKS tag can be used to select whether or not files or
 # directories that are symbolic links (a Unix file system feature) are excluded
@@ -1071,7 +1076,7 @@ USE_HTAGS              = NO
 # See also: Section \class.
 # The default value is: YES.
 
-VERBATIM_HEADERS       = YES
+VERBATIM_HEADERS       = NO
 
 # If the CLANG_ASSISTED_PARSING tag is set to YES then doxygen will use the
 # clang parser (see: http://clang.llvm.org/) for more accurate parsing at the

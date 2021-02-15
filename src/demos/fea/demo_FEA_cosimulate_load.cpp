@@ -163,23 +163,20 @@ int main(int argc, char* argv[]) {
     std::map<std::string, std::vector<std::shared_ptr<ChNodeFEAbase>>> node_sets;
 
     try {
-        ChMeshFileLoader::FromAbaqusFile(my_mesh, GetChronoDataFile("fea/tractor_wheel_coarse.INP").c_str(), mmaterial,
-                                         node_sets, tire_center, tire_alignment);
+        ChMeshFileLoader::FromAbaqusFile(my_mesh,
+                                         GetChronoDataFile("models/tractor_wheel/tractor_wheel_coarse.INP").c_str(),
+                                         mmaterial, node_sets, tire_center, tire_alignment);
     } catch (ChException myerr) {
         GetLog() << myerr.what();
         return 0;
     }
 
     // Create the contact surface(s).
-    // Use the AddFacesFromBoundary() to select automatically the outer skin of the tetrahedron mesh:
-
-    auto mcontactsurf = chrono_types::make_shared<ChContactSurfaceMesh>();
+    // Use the AddFacesFromBoundary() to select automatically the outer skin of the tetrahedron mesh.
+    // Note that the contact material specified here is not used, as contacts will be emulated through cosimulation.
+    auto mcontactsurf = chrono_types::make_shared<ChContactSurfaceMesh>(mysurfmaterial);
     my_mesh->AddContactSurface(mcontactsurf);
-
     mcontactsurf->AddFacesFromBoundary();
-
-    mcontactsurf->SetMaterialSurface(
-        mysurfmaterial);  // by the way it is not needed because contacts will be emulated by cosimulation
 
     // Create a mesh load for cosimulation, acting on the contact surface above
     // (forces on nodes will be computed by an external procedure)
@@ -220,7 +217,7 @@ int main(int argc, char* argv[]) {
     mrigidbody->SetPos(tire_center + ChVector<>(-1, 0, 0));
 
     auto mrigidmesh = chrono_types::make_shared<ChTriangleMeshShape>();
-    mrigidmesh->GetMesh()->LoadWavefrontMesh(GetChronoDataFile("tractor_wheel_fine.obj"));
+    mrigidmesh->GetMesh()->LoadWavefrontMesh(GetChronoDataFile("models/tractor_wheel/tractor_wheel_fine.obj"));
     mrigidmesh->GetMesh()->Transform(VNULL, Q_from_AngAxis(CH_C_PI, VECT_Y));
     mrigidbody->AddAsset(mrigidmesh);
 

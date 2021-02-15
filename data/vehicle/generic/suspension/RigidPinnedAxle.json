@@ -1,0 +1,28 @@
+{
+  "Name":                       "Generic Rigid Pinned Axle",
+  "Type":                       "Suspension",
+  "Template":                   "RigidPinnedAxle",
+
+  "Spindle" :
+  {
+    "Mass":                     1.0,
+    "COM":                      [0.0, 1.1, 0.0],
+    "Inertia":                  [0.0005, 0.0005, 0.0005],
+    "Radius":                   0.15,
+    "Width":                    0.06
+  },
+
+  "Tube" :
+  {
+    "Mass":                     10.0,
+    "COM":                      [0.0, 0.0, 0.0],
+    "Inertia":                  [0.006, 0.003, 0.006],
+    "Radius":                   0.05,
+    "Pin Location":             [0.0, 0.0, 0.15]
+  },
+
+  "Axle":
+  {
+    "Inertia":                  0.4
+  }
+}

@@ -20,6 +20,9 @@
 
 namespace chrono {
 
+/// @addtogroup chrono_functions
+/// @{
+
 /// Node for the list of functions in a ChFunction_Sequence object.
 class ChApi ChFseqNode {
   public:
@@ -58,7 +61,7 @@ class ChApi ChFseqNode {
 CH_CLASS_VERSION(ChFseqNode, 0)
 
 /// Sequence function:
-///   y = sequence_of_functions(f1(y), f2(y), f3(y))
+///   `y = sequence_of_functions(f1(y), f2(y), f3(y))`
 /// All other function types can be inserted into this.
 /// This function is very important because very complex motion
 /// laws can be created by sequencing many basic ChFunctions.
@@ -148,6 +151,8 @@ class ChApi ChFunction_Sequence : public ChFunction {
     /// Method to allow de-serialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
+
+/// @} chrono_functions
 
 }  // end namespace chrono
 

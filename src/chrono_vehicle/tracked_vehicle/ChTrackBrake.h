@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Alessandro Tasora
+// Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 //
 // Base class for a sprocket brake.
@@ -19,12 +19,9 @@
 #ifndef CH_TRACK_BRAKE_H
 #define CH_TRACK_BRAKE_H
 
-#include <vector>
-
-#include "chrono/physics/ChLinkLock.h"
-
 #include "chrono_vehicle/ChApiVehicle.h"
-#include "chrono_vehicle/ChPart.h"
+#include "chrono_vehicle/ChChassis.h"
+#include "chrono_vehicle/tracked_vehicle/ChSprocket.h"
 
 namespace chrono {
 namespace vehicle {
@@ -35,17 +32,20 @@ namespace vehicle {
 /// Base class for a tracked vehicle brake subsystem.
 class CH_VEHICLE_API ChTrackBrake : public ChPart {
   public:
-      ChTrackBrake(const std::string& name  ///< [in] name of the subsystem
-          );
+    ChTrackBrake(const std::string& name);
 
     virtual ~ChTrackBrake() {}
 
     /// Initialize the brake by providing the sprocket's revolute link.
-    virtual void Initialize(std::shared_ptr<ChLinkLockRevolute> hub) = 0;
+    virtual void Initialize(std::shared_ptr<ChChassis> chassis,   ///< associated chassis subsystem
+                            std::shared_ptr<ChSprocket> sprocket  ///< associated sprocket subsystem
+                            ) = 0;
 
     /// Update the brake subsystem for the given braking driver input.
+    /// <pre>
     ///   braking = 0 : completely free,
     ///   braking = 1 : provide maximum braking torque
+    /// </pre>
     virtual void Synchronize(double braking) = 0;
 
     /// Get the current brake torque.

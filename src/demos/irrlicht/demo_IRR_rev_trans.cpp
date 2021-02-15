@@ -50,7 +50,8 @@ int main(int argc, char* argv[]) {
     ground->SetPos(ChVector<>(0, 0, -1));
 
     auto cyl = chrono_types::make_shared<ChBoxShape>();
-    cyl->GetBoxGeometry().Size = ChVector<>(3, 0.04, 0.06);
+    cyl->GetBoxGeometry().Size = ChVector<>(10, 0.04, 0.06);
+    cyl->GetBoxGeometry().Pos = ChVector<>(5, 0, 0);
     ground->AddAsset(cyl);
 
     auto col_g = chrono_types::make_shared<ChColorAsset>();

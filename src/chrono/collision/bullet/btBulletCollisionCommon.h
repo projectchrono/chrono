@@ -33,6 +33,7 @@ subject to the following restrictions:
 #include "BulletCollision/CollisionShapes/btTriangleMesh.h"
 #include "BulletCollision/CollisionShapes/btConvexTriangleMeshShape.h"
 #include "BulletCollision/CollisionShapes/btBvhTriangleMeshShape.h"
+#include "BulletCollision/CollisionShapes/btScaledBvhTriangleMeshShape.h"
 #include "BulletCollision/CollisionShapes/btTriangleMeshShape.h"
 #include "BulletCollision/CollisionShapes/btTriangleIndexVertexArray.h"
 #include "BulletCollision/CollisionShapes/btCompoundShape.h"
@@ -44,7 +45,6 @@ subject to the following restrictions:
 ///Narrowphase Collision Detector
 #include "BulletCollision/CollisionDispatch/btSphereSphereCollisionAlgorithm.h"
 
-//btSphereBoxCollisionAlgorithm is broken, use gjk for now
 //#include "BulletCollision/CollisionDispatch/btSphereBoxCollisionAlgorithm.h"
 #include "BulletCollision/CollisionDispatch/btDefaultCollisionConfiguration.h"
 
@@ -52,7 +52,6 @@ subject to the following restrictions:
 #include "BulletCollision/CollisionDispatch/btCollisionDispatcher.h"
 #include "BulletCollision/BroadphaseCollision/btSimpleBroadphase.h"
 #include "BulletCollision/BroadphaseCollision/btAxisSweep3.h"
-#include "BulletCollision/BroadphaseCollision/btMultiSapBroadphase.h"
 #include "BulletCollision/BroadphaseCollision/btDbvtBroadphase.h"
 
 ///Math library & Utils
@@ -63,6 +62,4 @@ subject to the following restrictions:
 #include "LinearMath/btIDebugDraw.h"
 #include "LinearMath/btSerializer.h"
 
-
-#endif //BULLET_COLLISION_COMMON_H
-
+#endif  //BULLET_COLLISION_COMMON_H

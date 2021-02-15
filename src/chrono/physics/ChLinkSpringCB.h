@@ -157,7 +157,8 @@ ChLinkSpringCB : public ChLinkMarkers {
                                  const ChState& x,
                                  const unsigned int off_v,
                                  const ChStateDelta& v,
-                                 const double T) override;
+                                 const double T,
+                                 bool full_update) override;
     virtual void IntStateGatherAcceleration(const unsigned int off_a, ChStateDelta& a) override;
     virtual void IntStateScatterAcceleration(const unsigned int off_a, const ChStateDelta& a) override;
     virtual void IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, const double c) override;
@@ -197,7 +198,7 @@ ChLinkSpringCB : public ChLinkMarkers {
     ChVectorDynamic<> m_rhs;                      ///< current ODE right-hand side
     ChVariablesGenericDiagonalMass* m_variables;  ///< carrier for internal dynamics states
 
-    friend class ChSystemParallel;
+    friend class ChSystemMulticore;
 };
 
 CH_CLASS_VERSION(ChLinkSpringCB, 0)

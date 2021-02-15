@@ -1,0 +1,28 @@
+{
+  "Name":                       "Trailer Rigid Tire",
+  "Type":                       "Tire",
+  "Template":                   "RigidTire",
+
+  "Radius":                     0.16,
+  "Width":                      0.122,
+  "Mass":                       2.0,
+  "Inertia":                    [0.1, 0.2, 0.1],
+
+  "Contact Material":
+  {
+      "Coefficient of Friction":    0.9,
+      "Coefficient of Restitution": 0.1,
+
+      "Properties": {
+          "Young Modulus":          2e7,
+          "Poisson Ratio":          0.3
+      },
+
+      "Coefficients": {
+          "Normal Stiffness":       2e5,
+          "Normal Damping":         40.0,
+          "Tangential Stiffness":   2e5,
+          "Tangential Damping":     20.0
+      }
+  }
+}

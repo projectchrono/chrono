@@ -14,6 +14,8 @@
 //
 // Hendrickson PRIMAXX suspension constructed with data from file.
 //
+// TODO: properly specify universal joint axes
+//       (when base class ChHendricksonPRIMAXX is completed)
 // =============================================================================
 
 #include <cstdio>
@@ -46,8 +48,7 @@ HendricksonPRIMAXX::HendricksonPRIMAXX(const rapidjson::Document& d) : ChHendric
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-HendricksonPRIMAXX::~HendricksonPRIMAXX() {
-}
+HendricksonPRIMAXX::~HendricksonPRIMAXX() {}
 
 // -----------------------------------------------------------------------------
 // Worker function for creating a HendricksonPRIMAXX suspension using data in
@@ -67,13 +68,99 @@ void HendricksonPRIMAXX::Create(const rapidjson::Document& d) {
     m_spindleRadius = d["Spindle"]["Radius"].GetDouble();
     m_spindleWidth = d["Spindle"]["Width"].GetDouble();
 
-    //// TODO
+    // Read Axle Housing data
+    assert(d.HasMember("Axle Housing"));
+    assert(d["Axle Housing"].IsObject());
+
+    m_axlehousingMass = d["Axle Housing"]["Mass"].GetDouble();
+    m_axlehousingCOM = ReadVectorJSON(d["Axle Housing"]["COM"]);
+    m_axlehousingInertia = ReadVectorJSON(d["Axle Housing"]["Inertia"]);
+    m_axlehousingRadius = d["Axle Housing"]["Radius"].GetDouble();
+
+    // Read Transverse Beam data
+    assert(d.HasMember("Transverse Beam"));
+    assert(d["Transverse Beam"].IsObject());
+
+    m_transversebeamMass = d["Transverse Beam"]["Mass"].GetDouble();
+    m_transversebeamCOM = ReadVectorJSON(d["Transverse Beam"]["COM"]);
+    m_transversebeamInertia = ReadVectorJSON(d["Transverse Beam"]["Inertia"]);
+    m_transversebeamRadius = d["Transverse Beam"]["Radius"].GetDouble();
+
+    // Read Lower Beam data
+    assert(d.HasMember("Lower Beam"));
+    assert(d["Lower Beam"].IsObject());
+
+    m_lowerbeamMass = d["Lower Beam"]["Mass"].GetDouble();
+    m_points[LOWERBEAM_CM] = ReadVectorJSON(d["Lower Beam"]["COM"]);
+    m_lowerbeamInertia = ReadVectorJSON(d["Lower Beam"]["Inertia"]);
+    m_lowerbeamRadius = d["Lower Beam"]["Radius"].GetDouble();
+    m_points[LOWERBEAM_C] = ReadVectorJSON(d["Lower Beam"]["Chassis Attachment Point"]);
+    m_points[LOWERBEAM_AH] = ReadVectorJSON(d["Lower Beam"]["Axle Housing Attachment Point"]);
+    m_points[LOWERBEAM_TB] = ReadVectorJSON(d["Lower Beam"]["Transverse Beam Attachment Point"]);
+
+    // Read Torque Rod data
+    assert(d.HasMember("Torque Rod"));
+    assert(d["Torque Rod"].IsObject());
+
+    m_torquerodMass = d["Torque Rod"]["Mass"].GetDouble();
+    m_points[TORQUEROD_CM] = ReadVectorJSON(d["Torque Rod"]["COM"]);
+    m_torquerodInertia = ReadVectorJSON(d["Torque Rod"]["Inertia"]);
+    m_torquerodRadius = d["Torque Rod"]["Radius"].GetDouble();
+    m_points[TORQUEROD_C] = ReadVectorJSON(d["Torque Rod"]["Chassis Attachment Point"]);
+    m_points[TORQUEROD_AH] = ReadVectorJSON(d["Torque Rod"]["Axle Housing Attachment Point"]);
+
+    // Read Knuckle data
+    assert(d.HasMember("Knuckle"));
+    assert(d["Knuckle"].IsObject());
+
+    m_knuckleMass = d["Knuckle"]["Mass"].GetDouble();
+    m_points[KNUCKLE_CM] = ReadVectorJSON(d["Knuckle"]["COM"]);
+    m_knuckleInertia = ReadVectorJSON(d["Knuckle"]["Inertia"]);
+    m_knuckleRadius = d["Knuckle"]["Radius"].GetDouble();
+    m_points[KNUCKLE_L] = ReadVectorJSON(d["Knuckle"]["Lower Attachment Point"]);
+    m_points[KNUCKLE_U] = ReadVectorJSON(d["Knuckle"]["Upper Attachment Point"]);
+
+    // Read Tierod data
+    assert(d.HasMember("Tierod"));
+    assert(d["Tierod"].IsObject());
+
+    m_points[TIEROD_C] = ReadVectorJSON(d["Tierod"]["Location Chassis"]);
+    m_points[TIEROD_K] = ReadVectorJSON(d["Tierod"]["Location Knuckle"]);
+
+    // Read spring/shock data and create force callbacks
+    //// TODO:  add support for map-based spring-damper
+    ////        add support for bump stops
+    assert(d.HasMember("Shock Axle Housing"));
+    assert(d["Shock Axle Housing"].IsObject());
+
+    m_points[SHOCKAH_C] = ReadVectorJSON(d["Shock Axle Housing"]["Location Chassis"]);
+    m_points[SHOCKAH_AH] = ReadVectorJSON(d["Shock Axle Housing"]["Location Axle Housing"]);
+    m_shockAH_restLength = d["Shock Axle Housing"]["Free Length"].GetDouble();
+    m_shockAHForceCB =
+        chrono_types::make_shared<LinearSpringDamperForce>(d["Shock Axle Housing"]["Spring Coefficient"].GetDouble(),
+                                                           d["Shock Axle Housing"]["Damping Coefficient"].GetDouble());
+
+    assert(d.HasMember("Shock Lower Beam"));
+    assert(d["Shock Lower Beam"].IsObject());
+
+    m_points[SHOCKLB_C] = ReadVectorJSON(d["Shock Lower Beam"]["Location Chassis"]);
+    m_points[SHOCKLB_LB] = ReadVectorJSON(d["Shock Lower Beam"]["Location Lower Beam"]);
+    m_shockLB_restLength = d["Shock Lower Beam"]["Free Length"].GetDouble();
+    m_shockLBForceCB =
+        chrono_types::make_shared<LinearSpringDamperForce>(d["Shock Lower Beam"]["Spring Coefficient"].GetDouble(),
+                                                           d["Shock Lower Beam"]["Damping Coefficient"].GetDouble());
 
     // Read axle inertia
     assert(d.HasMember("Axle"));
     assert(d["Axle"].IsObject());
 
     m_axleInertia = d["Axle"]["Inertia"].GetDouble();
+
+    //// TODO
+    m_dirs[UNIV_AXIS_TORQUEROD_ROD] = ChVector<>(1, 0, 0);
+    m_dirs[UNIV_AXIS_TORQUEROD_CHASSIS] = ChVector<>(1, 0, 0);
+    m_dirs[UNIV_AXIS_LOWERBEAM_BEAM] = ChVector<>(1, 0, 0);
+    m_dirs[UNIV_AXIS_LOWERBEAM_CHASSIS] = ChVector<>(1, 0, 0);
 }
 
 }  // end namespace vehicle

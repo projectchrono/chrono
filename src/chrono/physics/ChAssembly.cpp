@@ -74,6 +74,36 @@ ChAssembly::~ChAssembly() {
     RemoveAllOtherPhysicsItems();
 }
 
+ChAssembly& ChAssembly::operator=(ChAssembly other) {
+    ChAssembly tmp(other);
+    swap(*this, other);
+    return *this;
+}
+
+// Note: implement this as a friend function (instead of a member function swap(ChAssembly& other)) so that other
+// classes that have a ChAssembly member (currently only ChSystem) could use it, the same way we use std::swap here.
+void swap(ChAssembly& first, ChAssembly& second) {
+    using std::swap;
+    swap(first.nbodies, second.nbodies);
+    swap(first.nlinks, second.nlinks);
+    swap(first.nmeshes, second.nmeshes);
+    swap(first.nphysicsitems, second.nphysicsitems);
+    swap(first.ncoords, second.ncoords);
+    swap(first.ncoords_w, second.ncoords_w);
+    swap(first.ndoc, second.ndoc);
+    swap(first.ndoc_w, second.ndoc_w);
+    swap(first.ndoc_w_C, second.ndoc_w_C);
+    swap(first.ndoc_w_D, second.ndoc_w_D);
+    swap(first.ndof, second.ndof);
+    swap(first.nsysvars, second.nsysvars);
+    swap(first.nsysvars_w, second.nsysvars_w);
+    swap(first.nbodies_sleep, second.nbodies_sleep);
+    swap(first.nbodies_fixed, second.nbodies_fixed);
+
+    //// RADU
+    //// TODO: deal with all other member variables...
+}
+
 void ChAssembly::Clear() {
     RemoveAllLinks();
     RemoveAllBodies();
@@ -280,6 +310,11 @@ std::shared_ptr<ChBody> ChAssembly::SearchBody(const char* name) {
         name, bodylist.begin(), bodylist.end());
 }
 
+std::shared_ptr<ChBody> ChAssembly::SearchBodyID(int bodyID) {
+    return ChContainerSearchFromID<std::shared_ptr<ChBody>, std::vector<std::shared_ptr<ChBody>>::iterator>(
+        bodyID, bodylist.begin(), bodylist.end());
+}
+
 std::shared_ptr<ChLinkBase> ChAssembly::SearchLink(const char* name) {
     return ChContainerSearchFromName<std::shared_ptr<ChLinkBase>, std::vector<std::shared_ptr<ChLinkBase>>::iterator>(
         name, linklist.begin(), linklist.end());
@@ -370,6 +405,21 @@ void ChAssembly::SyncCollisionModels() {
 
 // -----------------------------------------------------------------------------
 // UPDATING ROUTINES
+
+void ChAssembly::SetupInitial() {
+    for (int ip = 0; ip < bodylist.size(); ++ip) {
+        bodylist[ip]->SetupInitial();
+    }
+    for (int ip = 0; ip < linklist.size(); ++ip) {
+        linklist[ip]->SetupInitial();
+    }
+    for (int ip = 0; ip < meshlist.size(); ++ip) {
+        meshlist[ip]->SetupInitial();
+    }
+    for (int ip = 0; ip < otherphysicslist.size(); ++ip) {
+        otherphysicslist[ip]->SetupInitial();
+    }
+}
 
 // Count all bodies, links, meshes, and other physics items.
 // Set counters (DOF, num constraints, etc) and offsets.
@@ -540,7 +590,8 @@ void ChAssembly::IntStateScatter(const unsigned int off_x,
                                  const ChState& x,
                                  const unsigned int off_v,
                                  const ChStateDelta& v,
-                                 const double T) {
+                                 const double T,
+                                 bool full_update) {
     // Notes:
     // 1. All IntStateScatter() calls below will automatically call Update() for each object, therefore:
     //    - do not call Update() on this (assembly).
@@ -554,21 +605,21 @@ void ChAssembly::IntStateScatter(const unsigned int off_x,
 
     for (auto& body : bodylist) {
         if (body->IsActive())
-            body->IntStateScatter(displ_x + body->GetOffset_x(), x, displ_v + body->GetOffset_w(), v, T);
+            body->IntStateScatter(displ_x + body->GetOffset_x(), x, displ_v + body->GetOffset_w(), v, T, full_update);
         else
-            body->Update(T);
+            body->Update(T, full_update);
     }
     for (auto& mesh : meshlist) {
-        mesh->IntStateScatter(displ_x + mesh->GetOffset_x(), x, displ_v + mesh->GetOffset_w(), v, T);
+        mesh->IntStateScatter(displ_x + mesh->GetOffset_x(), x, displ_v + mesh->GetOffset_w(), v, T, full_update);
     }
     for (auto& link : linklist) {
         if (link->IsActive())
-            link->IntStateScatter(displ_x + link->GetOffset_x(), x, displ_v + link->GetOffset_w(), v, T);
+            link->IntStateScatter(displ_x + link->GetOffset_x(), x, displ_v + link->GetOffset_w(), v, T, full_update);
         else
-            link->Update(T);
+            link->Update(T, full_update);
     }
     for (auto& item : otherphysicslist) {
-        item->IntStateScatter(displ_x + item->GetOffset_x(), x, displ_v + item->GetOffset_w(), v, T);
+        item->IntStateScatter(displ_x + item->GetOffset_x(), x, displ_v + item->GetOffset_w(), v, T, full_update);
     }
     SetChTime(T);
 }
@@ -1107,7 +1158,7 @@ void ChAssembly::KRMmatricesLoad(double Kfactor, double Rfactor, double Mfactor)
 // -----------------------------------------------------------------------------
 //  STREAMING - FILE HANDLING
 
-void ChAssembly::ShowHierarchy(ChStreamOutAscii& m_file, int level) {
+void ChAssembly::ShowHierarchy(ChStreamOutAscii& m_file, int level) const {
     std::string mtabs;
     for (int i = 0; i < level; ++i)
         mtabs += "  ";

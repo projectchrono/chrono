@@ -280,7 +280,7 @@ void ChPac02Tire::AddVisualizationAssets(VisualizationType vis) {
     m_wheel->GetSpindle()->AddAsset(m_cyl_shape);
 
     m_texture = chrono_types::make_shared<ChTexture>();
-    m_texture->SetTextureFilename(GetChronoDataFile("greenwhite.png"));
+    m_texture->SetTextureFilename(GetChronoDataFile("textures/greenwhite.png"));
     m_wheel->GetSpindle()->AddAsset(m_texture);
 }
 
@@ -308,7 +308,7 @@ void ChPac02Tire::Synchronize(double time, const ChTerrain& terrain) {
     CalculateKinematics(time, wheel_state, terrain);
 
     // Get mu at wheel location
-    m_mu = terrain.GetCoefficientFriction(wheel_state.pos.x(), wheel_state.pos.y());
+    m_mu = terrain.GetCoefficientFriction(wheel_state.pos);
 
     // Extract the wheel normal (expressed in global frame)
     ChMatrix33<> A(wheel_state.rot);

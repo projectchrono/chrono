@@ -166,49 +166,40 @@ double Generic_ShockForce::operator()(double time,
 // Constructors
 // -----------------------------------------------------------------------------
 Generic_DoubleWishbone::Generic_DoubleWishbone(const std::string& name) : ChDoubleWishbone(name) {
-    m_springForceCB = new LinearSpringForce(m_springCoefficient);
-    m_shockForceCB = new LinearDamperForce(m_dampingCoefficient);
+    m_springForceCB = chrono_types::make_shared<LinearSpringForce>(m_springCoefficient);
+    m_shockForceCB = chrono_types::make_shared<LinearDamperForce>(m_dampingCoefficient);
 }
 
 Generic_DoubleWishboneFront::Generic_DoubleWishboneFront(const std::string& name) : ChDoubleWishbone(name) {
-    m_springForceCB = new LinearSpringForce(m_springCoefficient);
+    m_springForceCB = chrono_types::make_shared<LinearSpringForce>(m_springCoefficient);
 
     std::vector<double> vel({-1.2700, -0.2540, -0.1524, -0.1270, -0.1016, -0.0762, -0.0508, -0.0254, 0.0, 0.0254,
                              0.0508, 0.0762, 0.1016, 0.1270, 0.1524, 0.2540, 1.2700});
     std::vector<double> frc({1495.5, 809.5, 654.8, 587.1, 533.8, 455.5, 370.1, 206.4, 0.0, -462.6, -695.4, -854.0,
                              -966.4, -1085.1, -1171.4, -1423.4, -3218.1});
 
-    m_shockForceCB = new Generic_ShockForce(vel, frc);
+    m_shockForceCB = chrono_types::make_shared<Generic_ShockForce>(vel, frc);
 }
 
 Generic_DoubleWishboneRear::Generic_DoubleWishboneRear(const std::string& name) : ChDoubleWishbone(name) {
-    m_springForceCB = new LinearSpringForce(m_springCoefficient);
+    m_springForceCB = chrono_types::make_shared<LinearSpringForce>(m_springCoefficient);
 
     std::vector<double> vel({-1.2700, -0.2540, -0.1524, -0.1270, -0.1016, -0.0762, -0.0508, -0.0254, 0.0, 0.0254,
                              0.0508, 0.0762, 0.1016, 0.1270, 0.1524, 0.2540, 1.2700});
     std::vector<double> frc({1495.5, 809.5, 654.8, 587.1, 533.8, 455.5, 370.1, 206.4, 0.0, -462.6, -695.4, -854.0,
                              -966.4, -1085.1, -1171.4, -1423.4, -3218.1});
 
-    m_shockForceCB = new Generic_ShockForce(vel, frc);
+    m_shockForceCB = chrono_types::make_shared<Generic_ShockForce>(vel, frc);
 }
 
 // -----------------------------------------------------------------------------
 // Destructors
 // -----------------------------------------------------------------------------
-Generic_DoubleWishbone::~Generic_DoubleWishbone() {
-    delete m_springForceCB;
-    delete m_shockForceCB;
-}
+Generic_DoubleWishbone::~Generic_DoubleWishbone() {}
 
-Generic_DoubleWishboneFront::~Generic_DoubleWishboneFront() {
-    delete m_springForceCB;
-    delete m_shockForceCB;
-}
+Generic_DoubleWishboneFront::~Generic_DoubleWishboneFront() {}
 
-Generic_DoubleWishboneRear::~Generic_DoubleWishboneRear() {
-    delete m_springForceCB;
-    delete m_shockForceCB;
-}
+Generic_DoubleWishboneRear::~Generic_DoubleWishboneRear() {}
 
 // -----------------------------------------------------------------------------
 // Implementation of the getLocation() virtual method.

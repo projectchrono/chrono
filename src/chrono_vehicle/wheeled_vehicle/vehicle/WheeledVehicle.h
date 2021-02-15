@@ -34,8 +34,7 @@ namespace vehicle {
 /// Wheeled vehicle model constructed from a JSON specification file.
 class CH_VEHICLE_API WheeledVehicle : public ChWheeledVehicle {
   public:
-    WheeledVehicle(const std::string& filename,
-                   ChMaterialSurface::ContactMethod contact_method = ChMaterialSurface::NSC);
+    WheeledVehicle(const std::string& filename, ChContactMethod contact_method = ChContactMethod::NSC);
 
     WheeledVehicle(ChSystem* system, const std::string& filename);
 
@@ -64,6 +63,8 @@ class CH_VEHICLE_API WheeledVehicle : public ChWheeledVehicle {
     std::vector<ChQuaternion<> > m_strRotations;  // orientations of the steering subsystems relative to chassis
 
     std::vector<int> m_driven_axles;  // indexes of the driven axles
+
+    std::vector<double> m_wheelSeparations; // wheel separations for each axle
 
     double m_turn_radius;  // minimum turning radius
     double m_steer_angle;  // maximum steering angle

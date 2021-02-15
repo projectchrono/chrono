@@ -19,8 +19,6 @@
 #ifndef CITYBUS_PAC02_TIRE_H
 #define CITYBUS_PAC02_TIRE_H
 
-#include "chrono/assets/ChTriangleMeshShape.h"
-
 #include "chrono_vehicle/wheeled_vehicle/tire/ChPac02Tire.h"
 
 #include "chrono_models/ChApiModels.h"
@@ -59,7 +57,6 @@ class CH_MODELS_API CityBus_Pac02Tire : public ChPac02Tire {
     ChFunction_Recorder m_vert_map;
     bool m_use_vert_map;
 
-    static const std::string m_meshName;
     static const std::string m_meshFile;
     std::shared_ptr<ChTriangleMeshShape> m_trimesh_shape;
 };

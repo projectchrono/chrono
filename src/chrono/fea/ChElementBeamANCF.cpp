@@ -1534,6 +1534,38 @@ void ChElementBeamANCF::ShapeFunctionsDerivativeZ(ShapeVector& Nz, double x, dou
     Nz(8) = 1 - x * x;
 }
 
+void ChElementBeamANCF::Calc_Sxi_D(ChMatrixNM<double, 9, 3>& Sxi_D, double xi, double eta, double zeta) {
+    Sxi_D(0, 0) = xi - 0.5;
+    Sxi_D(1, 0) = 0.25*m_thicknessY*eta*(2.0*xi - 1.0);
+    Sxi_D(2, 0) = 0.25*m_thicknessZ*zeta*(2.0*xi - 1.0);
+    Sxi_D(3, 0) = xi + 0.5;
+    Sxi_D(4, 0) = 0.25*m_thicknessY*eta*(2.0*xi + 1.0);
+    Sxi_D(5, 0) = 0.25*m_thicknessZ*zeta*(2.0*xi + 1.0);
+    Sxi_D(6, 0) = -2.0*xi;
+    Sxi_D(7, 0) = -m_thicknessY*eta*xi;
+    Sxi_D(8, 0) = -m_thicknessZ*zeta*xi;
+
+    Sxi_D(0, 1) = 0.0;
+    Sxi_D(1, 1) = 0.25*m_thicknessY*(xi*xi - xi);
+    Sxi_D(2, 1) = 0.0;
+    Sxi_D(3, 1) = 0.0;
+    Sxi_D(4, 1) = 0.25*m_thicknessY*(xi*xi + xi);
+    Sxi_D(5, 1) = 0.0;
+    Sxi_D(6, 1) = 0.0;
+    Sxi_D(7, 1) = 0.5*m_thicknessY*(1 - xi*xi);
+    Sxi_D(8, 1) = 0.0;
+
+    Sxi_D(0, 2) = 0.0;
+    Sxi_D(1, 2) = 0.0;
+    Sxi_D(2, 2) = 0.25*m_thicknessZ*(xi*xi - xi);
+    Sxi_D(3, 2) = 0.0;
+    Sxi_D(4, 2) = 0.0;
+    Sxi_D(5, 2) = 0.25*m_thicknessZ*(xi*xi + xi);
+    Sxi_D(6, 2) = 0.0;
+    Sxi_D(7, 2) = 0.0;
+    Sxi_D(8, 2) = 0.5*m_thicknessZ*(1 - xi*xi);
+}
+
 // -----------------------------------------------------------------------------
 // Helper functions
 // -----------------------------------------------------------------------------
@@ -1788,46 +1820,38 @@ ChVector<> ChElementBeamANCF::EvaluateBeamSectionStrains() {
     return ChVector<>(strain(0), strain(1), strain(2));
 }
 
-// void ChElementBeamANCF::EvaluateSectionDisplacement(const double u,
-//                                                    const double v,
-//                                                    ChVector<>& u_displ,
-//                                                    ChVector<>& u_rotaz) {
-//    // this is not a corotational element, so just do:
-//    EvaluateSectionPoint(u, v, displ, u_displ);
-//    u_rotaz = VNULL;  // no angles.. this is ANCF (or maybe return here the slope derivatives?)
-//}
-//
-// void ChElementBeamANCF::EvaluateSectionFrame(const double u,
-//                                             const double v,
-//                                             ChVector<>& point,
-//                                             ChQuaternion<>& rot) {
-//    // this is not a corotational element, so just do:
-//    EvaluateSectionPoint(u, v, displ, point);
-//    rot = QUNIT;  // or maybe use gram-schmidt to get csys of section from slopes?
-//}
-//
-// void ChElementBeamANCF::EvaluateSectionPoint(const double u,
-//                                             const double v,
-//                                             ChVector<>& point) {
-//    ChVector<> u_displ;
-//
-//    ChMatrixNM<double, 1, 8> N;
-//
-//    double x = u;  // because ShapeFunctions() works in -1..1 range
-//    double y = v;  // because ShapeFunctions() works in -1..1 range
-//    double z = 0;
-//
-//    this->ShapeFunctions(N, x, y, z);
-//
-//    const ChVector<>& pA = m_nodes[0]->GetPos();
-//    const ChVector<>& pB = m_nodes[1]->GetPos();
-//    const ChVector<>& pC = m_nodes[2]->GetPos();
-//    const ChVector<>& pD = m_nodes[3]->GetPos();
-//
-//    point.x() = N(0) * pA.x() + N(2) * pB.x() + N(4) * pC.x() + N(6) * pD.x();
-//    point.y() = N(0) * pA.y() + N(2) * pB.y() + N(4) * pC.y() + N(6) * pD.y();
-//    point.z() = N(0) * pA.z() + N(2) * pB.z() + N(4) * pC.z() + N(6) * pD.z();
-//}
+void ChElementBeamANCF::EvaluateSectionDisplacement(const double eta, ChVector<>& u_displ, ChVector<>& u_rotaz) {
+    //// TODO?
+}
+
+void ChElementBeamANCF::EvaluateSectionFrame(const double eta, ChVector<>& point, ChQuaternion<>& rot) {
+    ChMatrixNM<double, 9, 3> mD;
+    ShapeVector N;
+    ShapeVector Nx;
+    ShapeVector Ny;
+
+    CalcCoordMatrix(mD);
+
+    // r = Se
+    ShapeFunctions(N, eta, 0, 0);
+    point = mD.transpose() * N.transpose();
+
+    // Since ANCF does not use rotations, calculate an approximate
+    // rotation based off the position vector gradients
+    ShapeFunctionsDerivativeX(Nx, eta, 0, 0);
+    ShapeFunctionsDerivativeY(Ny, eta, 0, 0);
+    ChVector<double> BeamAxisTangent = mD.transpose() * Nx.transpose();
+    ChVector<double> CrossSectionY = mD.transpose() * Ny.transpose();
+
+    // Since the position vector gradients are not in general orthogonal,
+    // set the Dx direction tangent to the beam axis and
+    // compute the Dy and Dz directions by using a
+    // Gram-Schmidt orthonormalization, guided by the cross section Y direction
+    ChMatrix33<> msect;
+    msect.Set_A_Xdir(BeamAxisTangent, CrossSectionY);
+
+    rot = msect.Get_A_quaternion();
+}
 
 // -----------------------------------------------------------------------------
 // Functions for ChLoadable interface
@@ -1905,7 +1929,7 @@ void ChElementBeamANCF::ComputeNF(
     ShapeFunctions(N, U, 0, 0);
 
     detJ = Calc_detJ0(U, 0, 0);
-    detJ *= m_GaussScaling;
+    detJ *= m_GaussScaling;  //// MIKE: Determine if a different Jacobian needs to be returned
 
     Qi.segment(0, 3) = N(0) * F.segment(0, 3);
     Qi.segment(3, 3) = N(1) * F.segment(0, 3);
@@ -1916,6 +1940,43 @@ void ChElementBeamANCF::ComputeNF(
     Qi.segment(18, 3) = N(6) * F.segment(0, 3);
     Qi.segment(21, 3) = N(7) * F.segment(0, 3);
     Qi.segment(24, 3) = N(8) * F.segment(0, 3);
+
+    // Compute the generalized force vector for the applied moment
+    ChMatrixNM<double, 9, 3> e_bar;
+    ChMatrixNM<double, 9, 3> Sxi_D;
+    ChMatrixNM<double, 3, 9> Sxi_D_transpose;
+    ChMatrix33<double> J_Cxi;
+    ChMatrix33<double> J_Cxi_Inv;
+    ChVectorN<double, 9> G_A;
+    ChVectorN<double, 9> G_B;
+    ChVectorN<double, 9> G_C;
+    ChVectorN<double, 3> M_scaled = 0.5 * F.segment(3, 3);
+
+    CalcCoordMatrix(e_bar);
+    Calc_Sxi_D(Sxi_D, U, 0, 0);
+
+    J_Cxi.noalias() = e_bar.transpose() * Sxi_D;
+    J_Cxi_Inv = J_Cxi.inverse();
+
+    // Compute the unique pieces that make up the moment projection matrix "G"
+    // See: Antonio M Recuero, Javier F Aceituno, Jose L Escalona, and Ahmed A Shabana.
+    // A nonlinear approach for modeling rail flexibility using the absolute nodal coordinate
+    // formulation. Nonlinear Dynamics, 83(1-2):463-481, 2016.
+    Sxi_D_transpose = Sxi_D.transpose();
+    G_A = Sxi_D_transpose.row(0) * J_Cxi_Inv(0, 0) + Sxi_D_transpose.row(1) * J_Cxi_Inv(1, 0) +
+          Sxi_D_transpose.row(2) * J_Cxi_Inv(2, 0);
+    G_B = Sxi_D_transpose.row(0) * J_Cxi_Inv(0, 1) + Sxi_D_transpose.row(1) * J_Cxi_Inv(1, 1) +
+          Sxi_D_transpose.row(2) * J_Cxi_Inv(2, 1);
+    G_C = Sxi_D_transpose.row(0) * J_Cxi_Inv(0, 2) + Sxi_D_transpose.row(1) * J_Cxi_Inv(1, 2) +
+          Sxi_D_transpose.row(2) * J_Cxi_Inv(2, 2);
+
+    // Compute G'M without actually forming the complete matrix "G" (since it has a sparsity pattern to it)
+    //// MIKE Clean-up when slicing becomes available in Eigen 3.4
+    for (unsigned int i = 0; i < 9; i++) {
+        Qi(3 * i + 0) += M_scaled(1) * G_C(i) - M_scaled(2) * G_B(i);
+        Qi(3 * i + 1) += M_scaled(2) * G_A(i) - M_scaled(0) * G_C(i);
+        Qi(3 * i + 2) += M_scaled(0) * G_B(i) - M_scaled(1) * G_A(i);
+    }
 }
 
 // Evaluate N'*F , where N is the shape function evaluated at (U,V,W) coordinates of the surface.
@@ -1933,7 +1994,7 @@ void ChElementBeamANCF::ComputeNF(
     ShapeFunctions(N, U, V, W);
 
     detJ = Calc_detJ0(U, V, W);
-    detJ *= m_GaussScaling;
+    detJ *= m_GaussScaling;  //// MIKE: Determine if a different Jacobian needs to be returned
 
     Qi.segment(0, 3) = N(0) * F.segment(0, 3);
     Qi.segment(3, 3) = N(1) * F.segment(0, 3);
@@ -1944,6 +2005,43 @@ void ChElementBeamANCF::ComputeNF(
     Qi.segment(18, 3) = N(6) * F.segment(0, 3);
     Qi.segment(21, 3) = N(7) * F.segment(0, 3);
     Qi.segment(24, 3) = N(8) * F.segment(0, 3);
+
+    // Compute the generalized force vector for the applied moment
+    ChMatrixNM<double, 9, 3> e_bar;
+    ChMatrixNM<double, 9, 3> Sxi_D;
+    ChMatrixNM<double, 3, 9> Sxi_D_transpose;
+    ChMatrix33<double> J_Cxi;
+    ChMatrix33<double> J_Cxi_Inv;
+    ChVectorN<double, 9> G_A;
+    ChVectorN<double, 9> G_B;
+    ChVectorN<double, 9> G_C;
+    ChVectorN<double, 3> M_scaled = 0.5 * F.segment(3, 3);
+
+    CalcCoordMatrix(e_bar);
+    Calc_Sxi_D(Sxi_D, U, V, W);
+
+    J_Cxi.noalias() = e_bar.transpose() * Sxi_D;
+    J_Cxi_Inv = J_Cxi.inverse();
+
+    // Compute the unique pieces that make up the moment projection matrix "G"
+    // See: Antonio M Recuero, Javier F Aceituno, Jose L Escalona, and Ahmed A Shabana.
+    // A nonlinear approach for modeling rail flexibility using the absolute nodal coordinate
+    // formulation. Nonlinear Dynamics, 83(1-2):463-481, 2016.
+    Sxi_D_transpose = Sxi_D.transpose();
+    G_A = Sxi_D_transpose.row(0) * J_Cxi_Inv(0, 0) + Sxi_D_transpose.row(1) * J_Cxi_Inv(1, 0) +
+          Sxi_D_transpose.row(2) * J_Cxi_Inv(2, 0);
+    G_B = Sxi_D_transpose.row(0) * J_Cxi_Inv(0, 1) + Sxi_D_transpose.row(1) * J_Cxi_Inv(1, 1) +
+          Sxi_D_transpose.row(2) * J_Cxi_Inv(2, 1);
+    G_C = Sxi_D_transpose.row(0) * J_Cxi_Inv(0, 2) + Sxi_D_transpose.row(1) * J_Cxi_Inv(1, 2) +
+          Sxi_D_transpose.row(2) * J_Cxi_Inv(2, 2);
+
+    // Compute G'M without actually forming the complete matrix "G" (since it has a sparsity pattern to it)
+    //// MIKE Clean-up when slicing becomes available in Eigen 3.4
+    for (unsigned int i = 0; i < 9; i++) {
+        Qi(3 * i + 0) += M_scaled(1) * G_C(i) - M_scaled(2) * G_B(i);
+        Qi(3 * i + 1) += M_scaled(2) * G_A(i) - M_scaled(0) * G_C(i);
+        Qi(3 * i + 2) += M_scaled(0) * G_B(i) - M_scaled(1) * G_A(i);
+    }
 }
 
 // -----------------------------------------------------------------------------

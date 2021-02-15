@@ -30,8 +30,8 @@ namespace vehicle {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 ChWheeledVehicleIrrApp::ChWheeledVehicleIrrApp(ChVehicle* vehicle,
-                                               const wchar_t* title,
-                                               irr::core::dimension2d<irr::u32> dims,
+                                               const std::wstring& title,
+                                               const irr::core::dimension2d<irr::u32>& dims,
                                                irr::ELOG_LEVEL log_level)
     : ChVehicleIrrApp(vehicle, title, dims, log_level) {
     m_wvehicle = dynamic_cast<ChWheeledVehicle*>(vehicle);

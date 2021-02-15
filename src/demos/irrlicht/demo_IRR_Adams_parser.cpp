@@ -59,13 +59,13 @@ int main(int argc, char* argv[]) {
     rep.Print();
     std::cout << "---------" << std::endl;
 
-    // Adda a ground for perspective
-    auto my_ground = chrono_types::make_shared<ChBodyEasyBox>(40, 2, 40, 1000, true, true, my_system.GetContactMethod());
+    // Adda a ground for perspective (no collision)
+    auto my_ground = chrono_types::make_shared<ChBodyEasyBox>(40, 2, 40, 1000, true, false);
     my_system.AddBody(my_ground);
     my_ground->SetBodyFixed(true);
     my_ground->SetPos(ChVector<>(0, -2.9, 0));
     my_ground->SetNameString(std::string("ground"));
-    my_ground->AddAsset(chrono_types::make_shared<ChTexture>(GetChronoDataFile("concrete.jpg")));
+    my_ground->AddAsset(chrono_types::make_shared<ChTexture>(GetChronoDataFile("textures/concrete.jpg")));
 
     // Set up Irrlicht
     ChIrrApp application(&my_system, L"Model loaded from ADAMS file", core::dimension2d<u32>(800, 600), false, true);

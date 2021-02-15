@@ -71,12 +71,12 @@ class CH_MODELS_API Generic_DoubleWishbone : public ChDoubleWishbone {
     virtual double getAxleInertia() const override { return m_axleInertia; }
 
     virtual double getSpringRestLength() const override { return m_springRestLength; }
-    virtual ChLinkTSDA::ForceFunctor* getSpringForceFunctor() const override { return m_springForceCB; }
-    virtual ChLinkTSDA::ForceFunctor* getShockForceFunctor() const override { return m_shockForceCB; }
+    virtual std::shared_ptr<ChLinkTSDA::ForceFunctor> getSpringForceFunctor() const override { return m_springForceCB; }
+    virtual std::shared_ptr<ChLinkTSDA::ForceFunctor> getShockForceFunctor() const override { return m_shockForceCB; }
 
   private:
-    ChLinkTSDA::ForceFunctor* m_springForceCB;
-    ChLinkTSDA::ForceFunctor* m_shockForceCB;
+    std::shared_ptr<ChLinkTSDA::ForceFunctor> m_springForceCB;
+    std::shared_ptr<ChLinkTSDA::ForceFunctor> m_shockForceCB;
 
     static const double m_spindleMass;
     static const double m_uprightMass;
@@ -139,12 +139,12 @@ class CH_MODELS_API Generic_DoubleWishboneFront : public ChDoubleWishbone {
     virtual double getAxleInertia() const override { return m_axleInertia; }
 
     virtual double getSpringRestLength() const override { return m_springRestLength; }
-    virtual ChLinkTSDA::ForceFunctor* getSpringForceFunctor() const override { return m_springForceCB; }
-    virtual ChLinkTSDA::ForceFunctor* getShockForceFunctor() const override { return m_shockForceCB; }
+    virtual std::shared_ptr<ChLinkTSDA::ForceFunctor> getSpringForceFunctor() const override { return m_springForceCB; }
+    virtual std::shared_ptr<ChLinkTSDA::ForceFunctor> getShockForceFunctor() const override { return m_shockForceCB; }
 
   private:
-    ChLinkTSDA::ForceFunctor* m_springForceCB;
-    ChLinkTSDA::ForceFunctor* m_shockForceCB;
+    std::shared_ptr<ChLinkTSDA::ForceFunctor> m_springForceCB;
+    std::shared_ptr<ChLinkTSDA::ForceFunctor> m_shockForceCB;
 
     static const double m_spindleMass;
     static const double m_uprightMass;
@@ -206,12 +206,12 @@ class CH_MODELS_API Generic_DoubleWishboneRear : public ChDoubleWishbone {
     virtual double getAxleInertia() const override { return m_axleInertia; }
 
     virtual double getSpringRestLength() const override { return m_springRestLength; }
-    virtual ChLinkTSDA::ForceFunctor* getSpringForceFunctor() const override { return m_springForceCB; }
-    virtual ChLinkTSDA::ForceFunctor* getShockForceFunctor() const override { return m_shockForceCB; }
+    virtual std::shared_ptr<ChLinkTSDA::ForceFunctor> getSpringForceFunctor() const override { return m_springForceCB; }
+    virtual std::shared_ptr<ChLinkTSDA::ForceFunctor> getShockForceFunctor() const override { return m_shockForceCB; }
 
   private:
-    ChLinkTSDA::ForceFunctor* m_springForceCB;
-    ChLinkTSDA::ForceFunctor* m_shockForceCB;
+    std::shared_ptr<ChLinkTSDA::ForceFunctor> m_springForceCB;
+    std::shared_ptr<ChLinkTSDA::ForceFunctor> m_shockForceCB;
 
     static const double m_spindleMass;
     static const double m_uprightMass;

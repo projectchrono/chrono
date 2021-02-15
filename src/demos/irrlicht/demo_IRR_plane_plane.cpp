@@ -35,13 +35,13 @@ int main(int argc, char* argv[]) {
     system.Set_G_acc(ChVector<>(0, 0, 0));
 
     // Create the ground body
-    auto ground = chrono_types::make_shared<ChBodyEasyBox>(3, 2, 0.1, 10, false, true);
+    auto ground = chrono_types::make_shared<ChBodyEasyBox>(3, 2, 0.1, 10, true, false);
     system.AddBody(ground);
     ground->SetBodyFixed(true);
 
     // Create the sliding body
     // Give an initial angular velocity
-    auto body = chrono_types::make_shared<ChBodyEasyBox>(0.5, 0.5, 0.5, 10, false, true);
+    auto body = chrono_types::make_shared<ChBodyEasyBox>(0.5, 0.5, 0.5, 10, true, false);
     system.AddBody(body);
     body->SetBodyFixed(false);
     body->SetPos(ChVector<>(-1.25, -0.75, 0.1));

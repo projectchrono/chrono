@@ -41,17 +41,17 @@ ChRigidSuspension::ChRigidSuspension(const std::string& name) : ChSuspension(nam
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChRigidSuspension::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
+void ChRigidSuspension::Initialize(std::shared_ptr<ChChassis> chassis,
+                                   std::shared_ptr<ChSubchassis> subchassis,
+                                   std::shared_ptr<ChSteering> steering,
                                    const ChVector<>& location,
-                                   std::shared_ptr<ChBody> tierod_body,
-                                   int steering_index,
                                    double left_ang_vel,
                                    double right_ang_vel) {
     m_location = location;
 
     // Express the suspension reference frame in the absolute coordinate system.
     ChFrame<> suspension_to_abs(location);
-    suspension_to_abs.ConcatenatePreTransformation(chassis->GetFrame_REF_to_abs());
+    suspension_to_abs.ConcatenatePreTransformation(chassis->GetBody()->GetFrame_REF_to_abs());
 
     // Transform all hardpoints to absolute frame.
     m_pointsL.resize(NUM_POINTS);
@@ -64,13 +64,12 @@ void ChRigidSuspension::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     }
 
     // Initialize left and right sides.
-    InitializeSide(LEFT, chassis, tierod_body, m_pointsL, left_ang_vel);
-    InitializeSide(RIGHT, chassis, tierod_body, m_pointsR, right_ang_vel);
+    InitializeSide(LEFT, chassis->GetBody(), m_pointsL, left_ang_vel);
+    InitializeSide(RIGHT, chassis->GetBody(), m_pointsR, right_ang_vel);
 }
 
 void ChRigidSuspension::InitializeSide(VehicleSide side,
                                        std::shared_ptr<ChBodyAuxRef> chassis,
-                                       std::shared_ptr<ChBody> tierod_body,
                                        const std::vector<ChVector<> >& points,
                                        double ang_vel) {
     std::string suffix = (side == LEFT) ? "_L" : "_R";

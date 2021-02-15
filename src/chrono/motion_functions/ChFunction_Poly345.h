@@ -19,6 +19,9 @@
 
 namespace chrono {
 
+/// @addtogroup chrono_functions
+/// @{
+
 /// Ramp function, as a 3-4-5 polynomial:
 ///
 ///   - h   = height, amount of displacement
@@ -68,6 +71,8 @@ class ChApi ChFunction_Poly345 : public ChFunction {
     /// Method to allow de-serialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
+
+/// @} chrono_functions
 
 CH_CLASS_VERSION(ChFunction_Poly345, 0)
 

@@ -50,17 +50,17 @@ ChThreeLinkIRS::ChThreeLinkIRS(const std::string& name) : ChSuspension(name) {}
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChThreeLinkIRS::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
+void ChThreeLinkIRS::Initialize(std::shared_ptr<ChChassis> chassis,
+                                std::shared_ptr<ChSubchassis> subchassis,
+                                std::shared_ptr<ChSteering> steering,
                                 const ChVector<>& location,
-                                std::shared_ptr<ChBody> tierod_body,
-                                int steering_index,
                                 double left_ang_vel,
                                 double right_ang_vel) {
     m_location = location;
 
     // Express the suspension reference frame in the absolute coordinate system.
     ChFrame<> suspension_to_abs(location);
-    suspension_to_abs.ConcatenatePreTransformation(chassis->GetFrame_REF_to_abs());
+    suspension_to_abs.ConcatenatePreTransformation(chassis->GetBody()->GetFrame_REF_to_abs());
 
     // Transform all hardpoints and directions to absolute frame.
     m_pointsL.resize(NUM_POINTS);
@@ -84,8 +84,8 @@ void ChThreeLinkIRS::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     }
 
     // Initialize left and right sides.
-    InitializeSide(LEFT, chassis, m_pointsL, m_dirsL, left_ang_vel);
-    InitializeSide(RIGHT, chassis, m_pointsR, m_dirsR, right_ang_vel);
+    InitializeSide(LEFT, chassis->GetBody(), m_pointsL, m_dirsL, left_ang_vel);
+    InitializeSide(RIGHT, chassis->GetBody(), m_pointsR, m_dirsR, right_ang_vel);
 }
 
 void ChThreeLinkIRS::InitializeSide(VehicleSide side,

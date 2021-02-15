@@ -46,32 +46,26 @@ class CH_VEHICLE_API ChAxle {
 
     ~ChAxle() {}
 
-    /// Get the location of the suspension subsystem relative to the chassis reference frame.
-    /// The suspension reference frame is always aligned with the chassis reference frame.
-    const ChVector<>& GetSuspensionLocation() const { return m_susp_location; }
-
     /// Enable/disable output for this subsystem.
     void SetOutput(bool state);
 
     /// Initialize this axle subsystem, by initializing its components.
-    /// The suspension subsystem is initialized by attaching it to the specified chassis body at the specified location
-    /// (with respect to and expressed in the reference frame of the chassis). It is assumed that the suspension
-    /// reference frame is always aligned with the chassis reference frame.
-    /// 'tierod_body' is a handle to the body to which the suspension tierods are to be attached. For a steered
-    /// suspension, this will be the steering (central) link of a suspension subsystem.  Otherwise, this is the chassis.
-    /// If this suspension is steered, 'steering_index' indicates the index of the associated steering mechanism in the
-    /// vehicle's list (-1 for a non-steered suspension).
+    /// The suspension subsystem is initialized by attaching it to the specified chassis and (if provided) to the
+    /// specified subchassis, at the specified location (with respect to and expressed in the reference frame of the
+    /// chassis). It is assumed that the suspension reference frame is always aligned with the chassis reference frame.
+    /// If a steering subsystem is provided, the suspension tierods are to be attached to the steering's central link
+    /// body (steered suspension); otherwise they are to be attached to the chassis (non-steered suspension).
     /// 'wheel_separation' is the distance between wheel centers on one side of the axle (if using double wheels). The
     /// default value of 0 indicates the common case of a single wheel per side.
     virtual void Initialize(
-        std::shared_ptr<ChBodyAuxRef> chassis,  ///< [in] handle to the chassis body
-        const ChVector<>& susp_location,        ///< [in] suspension location relative to the chassis frame
-        const ChVector<>& arb_location,         ///< [in] antirollbar location relative to chassis frame
-        std::shared_ptr<ChBody> tierod_body,    ///< [in] body to which tireods are connected
-        int steering_index,                     ///< [in] index of the associated steering mechanism
-        double wheel_separation = 0,            ///< [in] distance between wheel centers on one side
-        double left_ang_vel = 0,                ///< [in] initial angular velocity of left wheel
-        double right_ang_vel = 0                ///< [in] initial angular velocity of right wheel
+        std::shared_ptr<ChChassis> chassis,        ///< [in] associated chassis subsystem
+        std::shared_ptr<ChSubchassis> subchassis,  ///< [in] associated subchassis subsystem (may be null)
+        std::shared_ptr<ChSteering> steering,      ///< [in] associated steering subsystem (may be null)
+        const ChVector<>& susp_location,           ///< [in] suspension location relative to the chassis frame
+        const ChVector<>& arb_location,            ///< [in] antirollbar location relative to chassis frame
+        double wheel_separation = 0,               ///< [in] distance between wheel centers on one side
+        double left_ang_vel = 0,                   ///< [in] initial angular velocity of left wheel
+        double right_ang_vel = 0                   ///< [in] initial angular velocity of right wheel
     );
 
     /// Synchronize this suspension subsystem.
@@ -86,18 +80,14 @@ class CH_VEHICLE_API ChAxle {
     /// Get the specified wheel of this axle.
     std::shared_ptr<ChWheel> GetWheel(VehicleSide side, WheelLocation location = SINGLE) const;
 
+    ///  Get the sdpecified brake of this axle.
+    std::shared_ptr<ChBrake> GetBrake(VehicleSide side) const;
+
     std::shared_ptr<ChSuspension> m_suspension;
     std::shared_ptr<ChBrake> m_brake_left;
     std::shared_ptr<ChBrake> m_brake_right;
     std::shared_ptr<ChAntirollBar> m_antirollbar;
     ChWheelList m_wheels;
-
-  protected:
-    ChVector<> m_susp_location;  ///< suspension location relative to chassis
-    int m_steering_index;        ///< index of associated steering mechanism
-
-    bool m_double_wheel;        ///< true if doulbe wheels on each side
-    double m_wheel_separation;  ///< distance between wheel centers (0 for single wheel)
 };
 
 /// Vector of handles to axle subsystems.

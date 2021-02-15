@@ -1,0 +1,80 @@
+{
+    "Name": "Generic Hendrickson PRIMAXX",
+    "Type": "Suspension",
+    "Template": "HendricksonPRIMAXX",
+
+    "Axle Housing": {
+        "Mass": 44.958,
+        "COM": [ 0.0, 0.0, 0.0 ],
+        "Inertia": [ 0.744, 0.045, 0.744 ],
+        "Radius": 0.03
+    },
+
+    "Transverse Beam": {
+        "Mass": 1.0,
+        "COM": [ -0.376, 0, -0.197 ],
+        "Inertia": [ 0.5, 0.2, 0.5 ],
+        "Radius": 0.02
+    },
+
+    "Spindle": {
+        "Mass": 1.103,
+        "COM": [ 0, 0.910, 0 ],
+        "Inertia": [ 0.0000558, 0.0000279, 0.0000558 ],
+        "Radius": 0.08,
+        "Width": 0.04
+    },
+
+    "Lower Beam": {
+        "Mass": 2.892,
+        "COM": [ 0.0, 0.65, 0.0 ],
+        "Inertia": [ 0.0514, 0.0514, 0.00037 ],
+        "Radius": 0.03,
+        "Chassis Attachment Point": [ 0.629, 0.65, -0.0 ],
+        "Axle Housing Attachment Point": [ -0.0, 0.65, -0.197 ],
+        "Transverse Beam Attachment Point": [ -0.376, 0.65, -0.197 ]
+    },
+
+    "Torque Rod": {
+        "Mass": 1.446,
+        "COM": [ 0.0, 0.65, 0.0 ],
+        "Inertia": [ 0.011, 0.011, 0.000142 ],
+        "Radius": 0.02,
+        "Chassis Attachment Point": [ 0.629, 0.65, 0.1 ],
+        "Axle Housing Attachment Point": [ -0.0, 0.65, 0.1 ]
+    },
+
+    "Knuckle": {
+        "Mass": 1.356,
+        "COM": [ -0.006, 0.834, 0.015 ],
+        "Inertia": [ 0.00255, 0.00134, 0.00196 ],
+        "Radius": 0.02,
+        "Lower Attachment Point": [ 0.006, 0.849, -0.061 ],
+        "Upper Attachment Point": [ -0.018, 0.819, 0.091 ]
+    },
+
+    "Tierod": {
+        "Location Chassis": [ -0.091, 0.400, -0.079 ],
+        "Location Knuckle": [ -0.091, 0.825, -0.079 ]
+    },
+
+    "Shock Axle Housing": {
+        "Location Chassis": [ -0.1, 0.65, 0.15 ],
+        "Location Axle Housing": [ -0.1, 0.65, -0.1 ],
+        "Spring Coefficient": 0.0,
+        "Damping Coefficient":  22459.0,
+        "Free Length": 0.3948
+    },
+
+    "Shock Lower Beam": {
+        "Location Chassis": [ -0.376, 0.65, 0.15 ],
+        "Location Lower Beam": [ -0.376, 0.65, -0.197 ],
+        "Spring Coefficient": 267062.0,
+        "Damping Coefficient": 0.0,
+        "Free Length": 0.3948
+    },
+
+    "Axle": {
+        "Inertia": 0.4
+    }
+}

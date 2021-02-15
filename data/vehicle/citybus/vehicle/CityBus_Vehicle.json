@@ -1,0 +1,50 @@
+{
+  "Name": "CityBus Vehicle",
+  "Type": "Vehicle",
+  "Template": "WheeledVehicle",
+
+  "Chassis": {
+    "Input File": "citybus/chassis/CityBus_Chassis.json"
+  },
+
+  "Axles": [
+    {
+      "Suspension Input File": "citybus/suspension/CityBus_ToeLeafspringAxle.json",
+      "Suspension Location": [ 0, 0, 0.545 ],
+      "Steering Index": 0,
+      "Left Wheel Input File": "citybus/wheel/CityBus_Wheel.json",
+      "Right Wheel Input File": "citybus/wheel/CityBus_Wheel.json",
+      "Left Brake Input File": "citybus/brake/CityBus_BrakeSimple.json",
+      "Right Brake Input File": "citybus/brake/CityBus_BrakeSimple.json"
+    },
+
+    {
+      "Suspension Input File": "citybus/suspension/CityBus_LeafspringAxle.json",
+      "Suspension Location": [ -7.184, 0, 0.545 ],
+      "Wheel Separation": 0.33528,
+      "Left Inside Wheel Input File": "citybus/wheel/CityBus_Wheel.json",
+      "Right Inside Wheel Input File": "citybus/wheel/CityBus_Wheel.json",
+      "Left Outside Wheel Input File": "citybus/wheel/CityBus_Wheel.json",
+      "Right Outside Wheel Input File": "citybus/wheel/CityBus_Wheel.json",
+      "Left Brake Input File": "citybus/brake/CityBus_BrakeSimple.json",
+      "Right Brake Input File": "citybus/brake/CityBus_BrakeSimple.json"
+    }
+  ],
+
+  "Steering Subsystems": [
+    {
+      "Input File": "citybus/steering/CityBus_RotaryArm.json",
+      "Location": [ 0, 0, 0.545 ],
+      "Orientation": [ 1, 0, 0, 0 ]
+    }
+  ],
+
+  "Wheelbase": 7.184,
+  "Minimum Turning Radius": 13.1,
+  "Maximum Steering Angle": 27.0,
+
+  "Driveline": {
+    "Input File": "citybus/driveline/CityBus_Driveline2WD.json",
+    "Suspension Indexes": [ 1 ]
+  }
+}

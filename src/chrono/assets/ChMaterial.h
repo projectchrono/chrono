@@ -22,67 +22,37 @@
 
 namespace chrono {
 
-enum ChMaterialType { CH_MATERIAL_DIFFUSE, CH_MATERIAL_PHONG, CH_MATERIAL_CONDUCTOR, CH_MATERIAL_PLASTIC };
-
-CH_ENUM_MAPPER_BEGIN(ChMaterialType);
-CH_ENUM_VAL(CH_MATERIAL_DIFFUSE);
-CH_ENUM_VAL(CH_MATERIAL_PHONG);
-CH_ENUM_VAL(CH_MATERIAL_CONDUCTOR);
-CH_ENUM_VAL(CH_MATERIAL_PLASTIC);
-CH_ENUM_MAPPER_END(ChMaterialType);
-
-struct material_option {
-    std::string type, parameter, value;
-
-    // SERIALIZATION
-
-    /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive) {
-        marchive.VersionWrite<material_option>();
-        // serialize all member data:
-        marchive << CHNVP(type);
-        marchive << CHNVP(parameter);
-        marchive << CHNVP(value);
-    }
-
-    /// Method to allow de-serialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) {
-        int version = marchive.VersionRead<material_option>();
-        // deserialize all member data:
-        marchive >> CHNVP(type);
-        marchive >> CHNVP(parameter);
-        marchive >> CHNVP(value);
-    }
-};
-
-CH_CLASS_VERSION(ChMaterialOption, 0)
-
+/// Visualization material properties.
 class ChApi ChMaterial {
   public:
-    ChMaterial();
-    ~ChMaterial();
+    ChMaterial() {}
+    ~ChMaterial() {}
+
+    enum ChMaterialType { CH_MATERIAL_DIFFUSE, CH_MATERIAL_PHONG, CH_MATERIAL_CONDUCTOR, CH_MATERIAL_PLASTIC };
 
     bool IsVisible() const { return visible; }
     void SetVisible(bool mv) { visible = mv; }
 
-    // Get the color of the surface.
-    // This information could be used by visualization postprocessing.
+    /// Get the color of the surface.
+    /// This information could be used by visualization postprocessing.
     const ChColor& GetColor() const { return color; }
 
-    // Set the color of the surface.
-    // This information could be used by visualization postprocessing.
+    /// Set the color of the surface.
+    /// This information could be used by visualization postprocessing.
     void SetColor(const ChColor& mc) { color = mc; }
 
-    // Get the fading amount, 0..1.
-    // If =0, no transparency of surface, it =1 surface is completely transparent.
+    /// Get the fading amount, 0..1.
+    /// If =0, no transparency of surface, it =1 surface is completely transparent.
     float GetFading() const { return fading; }
 
-    // Set the fading amount, 0..1.
-    // If =0, no transparency of surface, it =1 surface is completely transparent.
+    /// Set the fading amount, 0..1.
+    /// If =0, no transparency of surface, it =1 surface is completely transparent.
     void SetFading(const float mc) { fading = mc; }
 
+    /// Set the material type.
     void SetType(const ChMaterialType type) { material_type = type; }
 
+    /// Set material properties.
     void SetOption(const std::string& type, const std::string& parameter, const std::string& value) {
         material_option temp;
         temp.type = type;
@@ -91,11 +61,10 @@ class ChApi ChMaterial {
         options.push_back(temp);
     }
 
-    ChColor color;  // color of material
-    float fading;   // transparency of material
-    ChMaterialType material_type;
-    std::vector<material_option> options;
-    bool visible;
+    ChColor color;                 ///< material color
+    float fading;                  ///< transparency level
+    ChMaterialType material_type;  ///< material type
+    bool visible;                  ///< true if material is visible
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOUT(ChArchiveOut& marchive) {
@@ -124,6 +93,42 @@ class ChApi ChMaterial {
         marchive >> CHNVP(options);
         marchive >> CHNVP(visible);
     }
+
+    /// @cond
+    CH_ENUM_MAPPER_BEGIN(ChMaterialType);
+    CH_ENUM_VAL(CH_MATERIAL_DIFFUSE);
+    CH_ENUM_VAL(CH_MATERIAL_PHONG);
+    CH_ENUM_VAL(CH_MATERIAL_CONDUCTOR);
+    CH_ENUM_VAL(CH_MATERIAL_PLASTIC);
+    CH_ENUM_MAPPER_END(ChMaterialType);
+    /// @endcond
+
+  private:
+    struct material_option {
+        std::string type, parameter, value;
+
+        // SERIALIZATION
+
+        /// Method to allow serialization of transient data to archives.
+        virtual void ArchiveOUT(ChArchiveOut& marchive) {
+            marchive.VersionWrite<material_option>();
+            // serialize all member data:
+            marchive << CHNVP(type);
+            marchive << CHNVP(parameter);
+            marchive << CHNVP(value);
+        }
+
+        /// Method to allow de-serialization of transient data from archives.
+        virtual void ArchiveIN(ChArchiveIn& marchive) {
+            int version = marchive.VersionRead<material_option>();
+            // deserialize all member data:
+            marchive >> CHNVP(type);
+            marchive >> CHNVP(parameter);
+            marchive >> CHNVP(value);
+        }
+    };
+
+    std::vector<material_option> options;
 };
 
 CH_CLASS_VERSION(ChMaterial, 0)

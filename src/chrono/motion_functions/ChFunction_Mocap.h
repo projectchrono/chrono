@@ -19,8 +19,11 @@
 
 namespace chrono {
 
+/// @addtogroup chrono_functions
+/// @{
+
 /// Motion capture (sample) function:
-/// y = (linear interpolated array of samples)
+/// `y = (linear interpolated array of samples)`
 class ChApi ChFunction_Mocap : public ChFunction {
   private:
     ChArray<> array_y;
@@ -76,6 +79,8 @@ class ChApi ChFunction_Mocap : public ChFunction {
     void Compute_array_dt(const ChArray<>& array_A, ChArray<>& array_A_dt) const;
     double LinInterp(const ChArray<>& array, double x, double x_max) const;
 };
+
+/// @} chrono_functions
 
 CH_CLASS_VERSION(ChFunction_Mocap, 0)
 

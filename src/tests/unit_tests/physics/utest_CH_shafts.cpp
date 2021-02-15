@@ -30,7 +30,7 @@
 using namespace chrono;
 using namespace chrono::collision;
 
-class ChShaftTest : public ::testing::TestWithParam<int> {
+class ChShaftTest : public ::testing::TestWithParam<ChContactMethod> {
   protected:
     ChShaftTest() {
         // Settings
@@ -51,16 +51,16 @@ class ChShaftTest : public ::testing::TestWithParam<int> {
 
         // Create the mechanical system
         switch (GetParam()) {
-            case ChMaterialSurface::SMC:
+            case ChContactMethod::SMC:
                 system = new ChSystemSMC();
                 break;
-            case ChMaterialSurface::NSC:
+            case ChContactMethod::NSC:
                 system = new ChSystemNSC();
                 break;
         }
 
         // Edit system settings
-        if (GetParam() == ChMaterialSurface::NSC) {
+        if (GetParam() == ChContactMethod::NSC) {
             system->SetSolverType(ChSolver::Type::APGD);
         }
         system->SetSolverMaxIterations(150);
@@ -422,4 +422,4 @@ TEST_P(ChShaftTest, shaft_shaft_shaft) {
     ////          << "     on C: " << planetaryBAC->GetTorqueReactionOn3() << "\n\n\n";
 }
 
-INSTANTIATE_TEST_CASE_P(Physics, ChShaftTest, ::testing::Values(ChMaterialSurface::NSC, ChMaterialSurface::SMC));
+INSTANTIATE_TEST_CASE_P(Physics, ChShaftTest, ::testing::Values(ChContactMethod::NSC, ChContactMethod::SMC));

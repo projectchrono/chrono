@@ -30,8 +30,8 @@ namespace hmmwv {
 // Static variables
 // -----------------------------------------------------------------------------
 
-const std::string HMMWV_TMeasyTire::m_meshName = "hmmwv_tire_POV_geom";
-const std::string HMMWV_TMeasyTire::m_meshFile = "hmmwv/hmmwv_tire.obj";
+const std::string HMMWV_TMeasyTire::m_meshFile_left = "hmmwv/hmmwv_tire_left.obj";
+const std::string HMMWV_TMeasyTire::m_meshFile_right = "hmmwv/hmmwv_tire_right.obj";
 
 const double HMMWV_TMeasyTire::m_mass = 37.6;
 const ChVector<> HMMWV_TMeasyTire::m_inertia(3.84, 6.69, 3.84);
@@ -47,7 +47,7 @@ HMMWV_TMeasyTire::HMMWV_TMeasyTire(const std::string& name) : ChTMeasyTire(name)
 void HMMWV_TMeasyTire::SetTMeasyParams() {
     // Tire Size = 37 x 12.5 x 16.5 Load Range D
     // Tire Load 3850 lbs at 50 psi (Goodyear Military Tire Brochure 6th Edition)
-    
+
     const double lbs2N = 4.4482216153;
     unsigned int li = 108;  // guessed from load spec. of the vehicle
     const double in2m = 0.0254;
@@ -57,7 +57,7 @@ void HMMWV_TMeasyTire::SetTMeasyParams() {
     double rimdia = 16.5 * in2m;
 
     double load = 3850.0 * lbs2N;
-    
+
     GuessTruck80Par(load,   // tire load [N]
                     w,      // tire width [m]
                     r,      // aspect ratio []
@@ -76,14 +76,8 @@ void HMMWV_TMeasyTire::GenerateCharacteristicPlots(const std::string& dirname) {
 // -----------------------------------------------------------------------------
 void HMMWV_TMeasyTire::AddVisualizationAssets(VisualizationType vis) {
     if (vis == VisualizationType::MESH) {
-        auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
-        trimesh->LoadWavefrontMesh(vehicle::GetDataFile(m_meshFile), false, false);
-        trimesh->Transform(ChVector<>(0, GetOffset(), 0), ChMatrix33<>(1));
-        m_trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
-        m_trimesh_shape->SetMesh(trimesh);
-        m_trimesh_shape->SetName(m_meshName);
-        m_trimesh_shape->SetStatic(true);
-        m_wheel->GetSpindle()->AddAsset(m_trimesh_shape);
+        m_trimesh_shape = AddVisualizationMesh(m_meshFile_left,    // left side
+                                               m_meshFile_right);  // right side
     } else {
         ChTMeasyTire::AddVisualizationAssets(vis);
     }
@@ -91,14 +85,7 @@ void HMMWV_TMeasyTire::AddVisualizationAssets(VisualizationType vis) {
 
 void HMMWV_TMeasyTire::RemoveVisualizationAssets() {
     ChTMeasyTire::RemoveVisualizationAssets();
-
-    // Make sure we only remove the assets added by HMMWV_TMeasyTire::AddVisualizationAssets.
-    // This is important for the ChTire object because a wheel may add its own assets
-    // to the same body (the spindle/wheel).
-    auto& assets = m_wheel->GetSpindle()->GetAssets();
-    auto it = std::find(assets.begin(), assets.end(), m_trimesh_shape);
-    if (it != assets.end())
-        assets.erase(it);
+    RemoveVisualizationMesh(m_trimesh_shape);
 }
 
 }  // end namespace hmmwv

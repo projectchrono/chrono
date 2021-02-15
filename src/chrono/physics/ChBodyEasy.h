@@ -20,7 +20,8 @@
 #include "chrono/core/ChApiCE.h"
 #include "chrono/physics/ChBody.h"
 #include "chrono/physics/ChBodyAuxRef.h"
-#include "chrono/collision/ChCModelBullet.h"
+#include "chrono/collision/ChCollisionModelBullet.h"
+#include "chrono/geometry/ChTriangleMeshConnected.h"
 
 namespace chrono {
 
@@ -36,13 +37,13 @@ class ChApi ChBodyEasySphere : public ChBody {
     /// Creates a ChBody plus adds a visualization shape and, optionally, a collision shape.
     /// Mass and inertia are set automatically depending on density.
     /// Sphere is assumed with center at body reference coordsystem.
-    ChBodyEasySphere(double radius,             ///< radius of the sphere
-                     double mdensity,           ///< density of the body
-                     bool collide = false,      ///< enable the collision detection
-                     bool visual_asset = true,  ///< attach a visualization asset to the body
-                     ChMaterialSurface::ContactMethod contact_method = ChMaterialSurface::NSC,  ///< contact method
+    ChBodyEasySphere(double radius,                                          ///< radius of the sphere
+                     double mdensity,                                        ///< density of the body
+                     bool visualize = true,                                  ///< create visualization asset
+                     bool collide = false,                                   ///< enable collision
+                     std::shared_ptr<ChMaterialSurface> material = nullptr,  ///< surface contact material
                      std::shared_ptr<collision::ChCollisionModel> collision_model =
-                         chrono_types::make_shared<collision::ChModelBullet>()  ///< collision model
+                         chrono_types::make_shared<collision::ChCollisionModelBullet>()  ///< collision model
     );
 };
 
@@ -58,13 +59,13 @@ class ChApi ChBodyEasyEllipsoid : public ChBody {
     /// Creates a ChBody plus adds a visualization shape and, optionally, a collision shape.
     /// Mass and inertia are set automatically depending on density.
     /// Ellipsoid is assumed with center at body reference coordsystem.
-    ChBodyEasyEllipsoid(ChVector<> radius,         ///< radii of the ellipsoid
-                        double mdensity,           ///< density of the body
-                        bool collide = false,      ///< enable the collision detection
-                        bool visual_asset = true,  ///< attach a visualization asset to the body
-                        ChMaterialSurface::ContactMethod contact_method = ChMaterialSurface::NSC,  ///< contact method
+    ChBodyEasyEllipsoid(ChVector<> radius,                                      ///< radii of the ellipsoid
+                        double mdensity,                                        ///< density of the body
+                        bool visualize = true,                                  ///< create visualization asset
+                        bool collide = false,                                   ///< enable collision
+                        std::shared_ptr<ChMaterialSurface> material = nullptr,  ///< surface contact material
                         std::shared_ptr<collision::ChCollisionModel> collision_model =
-                            chrono_types::make_shared<collision::ChModelBullet>()  ///< collision model
+                            chrono_types::make_shared<collision::ChCollisionModelBullet>()  ///< collision model
     );
 };
 
@@ -79,15 +80,15 @@ class ChApi ChBodyEasyCylinder : public ChBody {
   public:
     /// Creates a ChBody plus adds an optional visualization shape and, optionally, a collision shape.
     /// Mass and inertia are set automatically depending on density.
-    /// Cylinder is assumed with body Y axis as vertical, and reference is at half height.
-    ChBodyEasyCylinder(double radius,             ///< radius of the cylinder
-                       double height,             ///< height of the cylinder (along the Y axis)
-                       double mdensity,           ///< density of the body
-                       bool collide = false,      ///< enable the collision detection
-                       bool visual_asset = true,  ///< attach a visualization asset to the body
-                       ChMaterialSurface::ContactMethod contact_method = ChMaterialSurface::NSC,  ///< contact method
+    /// Cylinder is assumed with body Y axis as vertical, and reference at half height.
+    ChBodyEasyCylinder(double radius,                                          ///< radius of the cylinder
+                       double height,                                          ///< height of the cylinder
+                       double mdensity,                                        ///< density of the body
+                       bool visualize = true,                                  ///< create visualization asset
+                       bool collide = false,                                   ///< enable collision
+                       std::shared_ptr<ChMaterialSurface> material = nullptr,  ///< surface contact material
                        std::shared_ptr<collision::ChCollisionModel> collision_model =
-                           chrono_types::make_shared<collision::ChModelBullet>()  ///< collision model
+                           chrono_types::make_shared<collision::ChCollisionModelBullet>()  ///< collision model
     );
 };
 
@@ -103,15 +104,15 @@ class ChApi ChBodyEasyBox : public ChBody {
     /// Creates a ChBody plus adds an optional visualization shape and, optionally, a collision shape.
     /// Mass and inertia are set automatically depending on density.
     /// Box is assumed centered, i.e. and reference of body in the middle.
-    ChBodyEasyBox(double Xsize,              ///< size along the X dimension
-                  double Ysize,              ///< size along the Y dimension
-                  double Zsize,              ///< size along the Z dimension
-                  double mdensity,           ///< density of the body
-                  bool collide = false,      ///< enable the collision detection
-                  bool visual_asset = true,  ///< attach a visualization asset to the body
-                  ChMaterialSurface::ContactMethod contact_method = ChMaterialSurface::NSC,  ///< contact method
+    ChBodyEasyBox(double Xsize,                                           ///< size along the X dimension
+                  double Ysize,                                           ///< size along the Y dimension
+                  double Zsize,                                           ///< size along the Z dimension
+                  double mdensity,                                        ///< density of the body
+                  bool visualize = true,                                  ///< create visualization asset
+                  bool collide = false,                                   ///< enable collision
+                  std::shared_ptr<ChMaterialSurface> material = nullptr,  ///< surface contact material
                   std::shared_ptr<collision::ChCollisionModel> collision_model =
-                      chrono_types::make_shared<collision::ChModelBullet>()  ///< collision model
+                      chrono_types::make_shared<collision::ChCollisionModelBullet>()  ///< collision model
     );
 };
 
@@ -129,14 +130,19 @@ class ChApi ChBodyEasyConvexHull : public ChBody {
     /// Creates a ChBody plus adds an optional visualization shape and, optionally, a collision shape.
     /// Mass and inertia are set automatically depending on density.
     /// Convex hull is defined with a set of points.
-    ChBodyEasyConvexHull(std::vector<ChVector<> >& points,  ///< points of the convex hull
-                         double mdensity,                   ///< density of the body
-                         bool collide = false,              ///< enable the collision detection
-                         bool visual_asset = true,          ///< attach a visualization asset to the body
-                         ChMaterialSurface::ContactMethod contact_method = ChMaterialSurface::NSC,  ///< contact method
+    ChBodyEasyConvexHull(std::vector<ChVector<> >& points,                       ///< points of the convex hull
+                         double mdensity,                                        ///< density of the body
+                         bool visualize = true,                                  ///< create visualization asset
+                         bool collide = false,                                   ///< enable collision
+                         std::shared_ptr<ChMaterialSurface> material = nullptr,  ///< surface contact material
                          std::shared_ptr<collision::ChCollisionModel> collision_model =
-                             chrono_types::make_shared<collision::ChModelBullet>()  ///< collision model
+                             chrono_types::make_shared<collision::ChCollisionModelBullet>()  ///< collision model
     );
+
+    std::shared_ptr<geometry::ChTriangleMeshConnected> GetMesh() const { return m_mesh; }
+
+  private:
+    std::shared_ptr<geometry::ChTriangleMeshConnected> m_mesh;
 };
 
 /// Easy-to-use class for quick creation of rigid bodies with a convex hull shape,
@@ -155,16 +161,20 @@ class ChApi ChBodyEasyConvexHullAuxRef : public ChBodyAuxRef {
   public:
     /// Creates a ChBody plus adds an optional visualization shape and, optionally, a collision shape.
     /// Mass and inertia are set automatically depending on density.
-    /// Convex hull is defined with a set of points.
-    ChBodyEasyConvexHullAuxRef(
-        std::vector<ChVector<> >& points,  ///< points defined respect REF c.sys of body (initially REF=0,0,0 pos.)
-        double mdensity,                   ///< density of the body
-        bool collide = false,              ///< enable the collision detection?
-        bool visual_asset = true,          ///< attach a visual asset to the body?
-        ChMaterialSurface::ContactMethod contact_method = ChMaterialSurface::NSC,  ///< contact method
-        std::shared_ptr<collision::ChCollisionModel> collision_model =
-            chrono_types::make_shared<collision::ChModelBullet>()  ///< collision model
+    /// Convex hull is defined with a set of points (specified with respect to the body reference frame)
+    ChBodyEasyConvexHullAuxRef(std::vector<ChVector<> >& points,                       ///< convex hull points
+                               double mdensity,                                        ///< density of the body
+                               bool visualize = true,                                  ///< create visualization asset
+                               bool collide = false,                                   ///< enable collision
+                               std::shared_ptr<ChMaterialSurface> material = nullptr,  ///< surface contact material
+                               std::shared_ptr<collision::ChCollisionModel> collision_model =
+                                   chrono_types::make_shared<collision::ChCollisionModelBullet>()  ///< collision model
     );
+
+    std::shared_ptr<geometry::ChTriangleMeshConnected> GetMesh() const { return m_mesh; }
+
+  private:
+    std::shared_ptr<geometry::ChTriangleMeshConnected> m_mesh;
 };
 
 /// Easy-to-use class for quick creation of rigid bodies with a triangle mesh shape,
@@ -183,18 +193,42 @@ class ChApi ChBodyEasyConvexHullAuxRef : public ChBodyAuxRef {
 class ChApi ChBodyEasyMesh : public ChBodyAuxRef {
   public:
     /// Creates a ChBody plus adds an optional visualization shape and, optionally, a collision shape.
-    /// Mass and inertia are set automatically depending on density.
+    /// The mesh is assumed to be provided in an OBJ Wavefront file and defined with respect to the body reference
+    /// frame. Mass and inertia are set automatically depending on density.
     ChBodyEasyMesh(
-        const std::string filename,   ///< .OBJ mesh defined respect REF c.sys of body (initially REF=0,0,0 pos.)
-        double mdensity,              ///< density of the body
-        bool compute_mass = true,     ///< automatic evaluation of the mass and inertia properties
-        bool collide = false,         ///< enable the collision detection
+        const std::string filename,                             ///< file name for OBJ Wavefront mesh
+        double mdensity,                                        ///< density of the body
+        bool compute_mass = true,                               ///< automatic evaluation of inertia properties
+        bool visualize = true,                                  ///< create visualization asset
+        bool collide = false,                                   ///< enable collision
+        std::shared_ptr<ChMaterialSurface> material = nullptr,  ///< surface contact material
         double sphere_swept = 0.001,  ///< radius of 'inflating' of mesh, leads to more robust collision detection
-        bool visual_asset = true,     ///< attach a visualization asset to the body
-        ChMaterialSurface::ContactMethod contact_method = ChMaterialSurface::NSC,  ///< contact method
         std::shared_ptr<collision::ChCollisionModel> collision_model =
-            chrono_types::make_shared<collision::ChModelBullet>()  ///< collision model
+            chrono_types::make_shared<collision::ChCollisionModelBullet>()  ///< collision model
     );
+
+    ChBodyEasyMesh(
+        std::shared_ptr<geometry::ChTriangleMeshConnected> mesh,  ///< triangular mesh
+        double mdensity,                                          ///< density of the body
+        bool compute_mass = true,                                 ///< automatic evaluation of inertia properties
+        bool visualize = true,                                    ///< create visualization asset
+        bool collide = false,                                     ///< enable collision
+        std::shared_ptr<ChMaterialSurface> material = nullptr,    ///< surface contact material
+        double sphere_swept = 0.001,  ///< radius of 'inflating' of mesh, leads to more robust collision detection
+        std::shared_ptr<collision::ChCollisionModel> collision_model =
+            chrono_types::make_shared<collision::ChCollisionModelBullet>()  ///< collision model
+    );
+
+  private:
+    void SetupBody(std::shared_ptr<geometry::ChTriangleMeshConnected> trimesh,
+                   const std::string& name,
+                   double mdensity,
+                   bool compute_mass,
+                   bool visualize,
+                   bool collide,
+                   std::shared_ptr<ChMaterialSurface> material,
+                   double sphere_swept,
+                   std::shared_ptr<collision::ChCollisionModel> collision_model);
 };
 
 /// Easy-to-use class for quick creation of rigid bodies with a shape made of a cluster
@@ -212,15 +246,14 @@ class ChApi ChBodyEasyClusterOfSpheres : public ChBody {
     /// Creates a ChBody plus adds an optional visualization shape and, optionally, a collision shape.
     /// Mass and inertia are set automatically depending on density.
     /// The cluster of spheres will be displaced so that their center of mass corresponds to the origin of the ChBody.
-    ChBodyEasyClusterOfSpheres(
-        std::vector<ChVector<> >& positions,  ///< position of the spheres
-        std::vector<double>& radii,           ///< radius of the sphere
-        double mdensity,                      ///< attach a visualization asset to the body
-        bool collide = false,                 ///< attach a visualization asset to the body
-        bool visual_asset = true,             ///< attach a visualization asset to the body
-        ChMaterialSurface::ContactMethod contact_method = ChMaterialSurface::NSC,  ///< contact method
-        std::shared_ptr<collision::ChCollisionModel> collision_model =
-            chrono_types::make_shared<collision::ChModelBullet>()  ///< collision model
+    ChBodyEasyClusterOfSpheres(std::vector<ChVector<> >& positions,                    ///< position of the spheres
+                               std::vector<double>& radii,                             ///< sphere radius
+                               double mdensity,                                        ///< density of the body
+                               bool visualize = true,                                  ///< create visualization asset
+                               bool collide = false,                                   ///< enable collision
+                               std::shared_ptr<ChMaterialSurface> material = nullptr,  ///< surface contact material
+                               std::shared_ptr<collision::ChCollisionModel> collision_model =
+                                   chrono_types::make_shared<collision::ChCollisionModelBullet>()  ///< collision model
     );
 };
 

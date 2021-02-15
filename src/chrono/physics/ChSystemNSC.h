@@ -30,14 +30,8 @@ class ChApi ChSystemNSC : public ChSystem {
 
   public:
     /// Create a physical system.
-    /// Note, in case you will use collision detection, the values of
-    /// 'max_objects' and 'scene_size' can be used to initialize the broadphase
-    /// collision algorithm in an optimal way. Scene size should be approximately
-    /// the radius of the expected area where colliding objects will move.
-    /// The default collision broadphase does not make use of max_objects and scene_size.
-    /// If init_sys is false it does not initialize the collision system or solver
-    /// assumes that the user will do so.
-    ChSystemNSC(unsigned int max_objects = 16000, double scene_size = 500, bool init_sys = true);
+    /// If init_sys is false, the collision system oand solver are not initialized.
+    ChSystemNSC(bool init_sys = true);
 
     /// Copy constructor
     ChSystemNSC(const ChSystemNSC& other);
@@ -49,18 +43,7 @@ class ChApi ChSystemNSC : public ChSystem {
     virtual ChSystemNSC* Clone() const override { return new ChSystemNSC(*this); }
 
     /// Return the contact method supported by this system.
-    /// Bodies added to this system must be compatible.
-    virtual ChMaterialSurface::ContactMethod GetContactMethod() const override {
-        return ChMaterialSurface::NSC;
-    }
-
-    /// Create a new body, consistent with the contact method and collision model used by this system.
-    /// The returned body is not added to the system.
-    virtual ChBody* NewBody() override { return new ChBody(ChMaterialSurface::NSC); }
-
-    /// Create a new body with non-centroidal reference frame, consistent with the contact method and
-    /// collision model used by this system.  The returned body is not added to the system.
-    virtual ChBodyAuxRef* NewBodyAuxRef() override { return new ChBodyAuxRef(ChMaterialSurface::NSC); }
+    virtual ChContactMethod GetContactMethod() const override final { return ChContactMethod::NSC; }
 
     /// Replace the contact container.
     virtual void SetContactContainer(std::shared_ptr<ChContactContainer> container) override;

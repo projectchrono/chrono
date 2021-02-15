@@ -19,11 +19,9 @@
 #ifndef PACEJKA_TIRE_H
 #define PACEJKA_TIRE_H
 
-#include "chrono/assets/ChTriangleMeshShape.h"
-//
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/ChPacejkaTire.h"
-//
+
 #include "chrono_thirdparty/rapidjson/document.h"
 
 namespace chrono {
@@ -52,8 +50,8 @@ class CH_VEHICLE_API PacejkaTire : public ChPacejkaTire {
     ChVector<> m_inertia;
 
     bool m_has_mesh;
-    std::string m_meshName;
-    std::string m_meshFile;
+    std::string m_meshFile_left;
+    std::string m_meshFile_right;
     std::shared_ptr<ChTriangleMeshShape> m_trimesh_shape;
 };
 

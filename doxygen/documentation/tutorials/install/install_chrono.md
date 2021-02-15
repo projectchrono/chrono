@@ -1,6 +1,9 @@
 Install Chrono {#tutorial_install_chrono}
 ==========================
-
+<div class="ce-info">
+Looking for Linux installation instructions?<br>
+A detailed install guide may be found [here](@ref tutorial_install_chrono_linux).
+</div>
 
 A summary of the process required to **build** Chrono is provided in the picture below. 
 
@@ -11,7 +14,6 @@ A summary of the process required to **build** Chrono is provided in the picture
 
 Recommended compilers:
 - Microsoft Visual C++: Visual Studio 2015 or newer. The [community edition of the latest Visual Studio](https://visualstudio.microsoft.com/downloads/) is available for free. 
-- GNU C++ compiler for Linux-based platforms (version 4.9 or newer).
 - Xcode Package for MacOS: Download via App Store for free - it contains the clang++ compiler.
 
 Other compilers were also tested (e.g. Intel C++, PGI) but they are not officially supported and maintained.
@@ -32,7 +34,7 @@ error compiling Chrono. [Upgrade](https://www.visualstudio.com/en-us/news/vs2015
 
 ## 2) Download and install the Eigen library
 
-Chrono now uses [Eigen3](http://eigen.tuxfamily.org/) for all of its internal dense linear algebra needs. Chrono requires Eigen version 3.3.0 or newer, but we strongly encourage using the **latest stable release, Eigen 3.3.7**.
+Chrono now uses [Eigen3](http://eigen.tuxfamily.org/) for all of its internal dense linear algebra needs. Chrono requires Eigen version 3.3.0 or newer, but we strongly encourage using the **latest stable release, Eigen 3.3.7**. On the Mac you should install it via homebrew: <tt>brew install eigen</tt>.
 
 <div class="ce-warning"> 
 Chrono has been tested most extensively with Eigen 3.3.4 and Eigen 3.3.7.<br>
@@ -52,8 +54,6 @@ better to install a pure command line version via homebrew (https://brew.sh). Af
 
 On Windows and MacOS, you might want to **download and install** [SourceTree](http://www.sourcetreeapp.com/). <br>
 On MacOS you will find an Application Bundle under /Applications<br>
-On Linux, there are several good [options](https://git-scm.com/download/gui/linux).
-
 
 ## 5) Download the project by cloning the Git repository
 
@@ -86,35 +86,11 @@ While Chrono::Irrlicht is an optional module and not required to begin modeling 
 - **unzip** it in a directory of your choice. For example, here we suppose that you unzipped it in <tt>C:/workspace/libraries/irrlicht-1.8.4</tt>.
 
 <div class="ce-info">
-Release v.1.8.4 should work perfectly. MacOS users should use this, since previous releases showed some issues.<br>
+Release v.1.8.4 should work perfectly. MacOS users should use this, since previous releases showed some issues. The best way to install irrlicht on the Mac is: <tt>brew install irrlicht</tt>. Cmake can find irrlicht automatically then without any extra settings. Actually MacOS 11 (Big Sur) has been released by Apple. Chrono_opengl demos run well, but chrono_irrlicht demos have a scaling problem, but they work yet. We hope, this can be resolved soon.<br>
 If you encounter any problem with version 1.8.4 please try to roll back to [release 1.8.2](http://downloads.sourceforge.net/irrlicht/irrlicht-1.8.2.zip).<br>
 Release v.1.8.3 does not contain the precompiled 64bit DLL.<br>
 Release v.1.8.0 has issues with soft shadows.<br>
 </div>
-
-<div class="ce-warning"> 
-**MacOS issues:** irrlicht-1.8.4 is fairly outdated compared to XCode 9.3.1.
-<br>
-Before any building, you must correct a bug in the file `irrlicht-1.8.4/source/Irrlicht/MacOSX/CIrrDeviceMacOSX.mm`. 
-Open it with CotEdit or BBEdit. Search for the string `NSFileManagerDelegate` and replace it by `NSApplicationDelegate`.
-In the terminal go to the directory containing the `MacOSX.xcodeproj` bundle:
-
-    % cd irrlicht-1.8.4/source/Irrlicht/MacOSX
-To build the library, type:
-
-    % xcodebuild
-The `libIrrlicht.a` library should be found in `irrlicht-1.8.4/source/Irrlicht/MacOSX/build/Release`.
-It can be used from here, but it is better to copy it to `irrlicht-1.8.4/lib/MacOS`. After copying type:
-    
-    % cd irrlicht-1.8.4/lib/MacOSX
-    % ranlib libIrrlicht.a
-If you use Mac OS >= 10.13 (High Sierra) and Xcode 10, please apply the patch from the contribution directory before building.
-Unlike the Windows version, we get a static library that will be part of <tt>libChrono_irrlicht.dylib</tt>, so we don't have to copy it around 
-anymore after building chrono.
-<br>
-For chrono_opengl users:
-Beginning with Mac OS 10.14 GLFW 3.2.1 doesn't work any more, use the latest version from GitHub.
-</div> 
 
 
 ## 7) Run CMake
@@ -123,7 +99,7 @@ Start CMake to configure the build. We assume that you are using the graphical i
 -  In the field "Where is the source code" set the path to your Chrono directory. <br>
    This is the directory where you created your Git repository, in our example is <tt>C:/workspace/chrono</tt>. 
 -  In the field "Where to build the binaries" set the path to *another* directory on your system, 
-   that must be empty. This is where the Visual C++ project will be created (or the Makefile, if on Linux). <br>
+   that must be empty. This is where the Visual C++ project will be created. <br>
    For our example, let's use <tt>C:/workspace/chrono_build</tt>  
    <img src="http://www.projectchrono.org/assets/manual/Install_cmake_destinations.png" class="img-responsive">
 
@@ -188,7 +164,7 @@ For Visual Studio:
 
 5. Repeat step 3 and 4, but choosing **Debug** as configuration type. This will generate the binaries with debugging symbols: they will be placed under the bin/Debug subfolder.
 
-For Linux/GCC and for MacOS/clang:
+For MacOS/clang:
 
 - CMake generates a hierarchy of makefiles in the directory specified in "Where to build the binaries".
 
@@ -198,18 +174,18 @@ For Linux/GCC and for MacOS/clang:
 
 <div class="ce-warning"> 
 **MacOS issues:** clang++ does not come with OpenMP support out of the box.
-You will not be able to build <tt>libChrono_parallel</tt> successfully.<br> 
-However, OpenMP support can be added using the OpenMP sources from the <tt>llvm.org</tt> project. 
-Download the source code from there, then configure the omp library with CMake, build it, and install it to /usr/local.<br>
+You will not be able to build <tt>libChronoEngine_multicore</tt> successfully.<br> 
+However, OpenMP support can be added using homebrew: <tt>brew install libomp</tt>. 
 Having done so, you can then configure Chrono with OpenMP support. For this, you must define the right compiler flags:<br>
-<tt>-Xpreprocessor -fopenmp</tt> for the compiler and <tt>-lomp</tt> for the linker.
+<tt>-Xpreprocessor -fopenmp</tt> for the compiler and <tt>-lomp</tt> for the linker. Please give the OpenMP options for both, the C compiler
+and the C++ compiler, otherwise the OpenMP configuration will fail.
 </div> 
 
 
 ## 9) Test the demos
 
 Go to the directory that you set in "Where to build the binaries", 
-in our case <tt>C:/workspace/chrono_build</tt>, then go to <tt>bin/Release</tt> or <tt>bin/Debug</tt> (Windows), or to <tt>bin</tt> (Linux).
+in our case <tt>C:/workspace/chrono_build</tt>, then go to <tt>bin/Release</tt> or <tt>bin/Debug</tt> (Windows).
 
 <div class="ce-info">
 **Windows**: If demos using 3D visualization do not start, this may indicate that the **Irrlicht.dll** is not found.  
@@ -218,5 +194,5 @@ You have to manually copy the Irrlicht.dll from your Irrlicht `/bin/Win64-visual
 
 <div class="ce-danger">
 IMPORTANT: never mix 64-bit and 32-bit binaries and libraries! 
-For example, you must link the 64-bit Irrlicht library.  
+For example, you must link the 64-bit Irrlicht library. Beginning with MacOS 10.15 Catalina there is no 32-bit support anymore.
 </div>

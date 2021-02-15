@@ -20,7 +20,7 @@
 #ifndef CH_BENCHMARK_H
 #define CH_BENCHMARK_H
 
-#include "benchmark/benchmark.h"
+#include "chrono_thirdparty/googlebenchmark/include/benchmark/benchmark.h"
 #include "chrono/physics/ChSystem.h"
 
 namespace chrono {
@@ -45,11 +45,12 @@ class ChBenchmarkTest {
     double m_timer_step;              ///< time for performing simulation
     double m_timer_advance;           ///< time for integration
     double m_timer_jacobian;          ///< time for evaluating/loading Jacobian data
-    double m_timer_setup;             ///< time for solver setup
-    double m_timer_solver;            ///< time for solver solve
+    double m_timer_ls_setup;          ///< time for solver setup
+    double m_timer_ls_solve;          ///< time for solver solve
     double m_timer_collision;         ///< time for collision detection
     double m_timer_collision_broad;   ///< time for broad-phase collision
     double m_timer_collision_narrow;  ///< time for narrow-phase collision
+    double m_timer_setup;             ///< time for system update
     double m_timer_update;            ///< time for system update
 };
 
@@ -57,11 +58,12 @@ inline ChBenchmarkTest::ChBenchmarkTest()
     : m_timer_step(0),
       m_timer_advance(0),
       m_timer_jacobian(0),
-      m_timer_setup(0),
-      m_timer_solver(0),
+      m_timer_ls_setup(0),
+      m_timer_ls_solve(0),
       m_timer_collision(0),
       m_timer_collision_broad(0),
       m_timer_collision_narrow(0),
+      m_timer_setup(0),
       m_timer_update(0) {}
 
 inline void ChBenchmarkTest::Simulate(int num_steps) {
@@ -72,11 +74,12 @@ inline void ChBenchmarkTest::Simulate(int num_steps) {
         m_timer_step += GetSystem()->GetTimerStep();
         m_timer_advance += GetSystem()->GetTimerAdvance();
         m_timer_jacobian += GetSystem()->GetTimerJacobian();
-        m_timer_setup += GetSystem()->GetTimerSetup();
-        m_timer_solver += GetSystem()->GetTimerSolver();
+        m_timer_ls_setup += GetSystem()->GetTimerLSsetup();
+        m_timer_ls_solve += GetSystem()->GetTimerLSsolve();
         m_timer_collision += GetSystem()->GetTimerCollision();
         m_timer_collision_broad += GetSystem()->GetTimerCollisionBroad();
         m_timer_collision_narrow += GetSystem()->GetTimerCollisionNarrow();
+        m_timer_setup += GetSystem()->GetTimerSetup();
         m_timer_update += GetSystem()->GetTimerUpdate();
     }
 }
@@ -85,11 +88,12 @@ inline void ChBenchmarkTest::ResetTimers() {
     m_timer_step = 0;
     m_timer_advance = 0;
     m_timer_jacobian = 0;
-    m_timer_setup = 0;
-    m_timer_solver = 0;
+    m_timer_ls_setup = 0;
+    m_timer_ls_solve = 0;
     m_timer_collision = 0;
     m_timer_collision_broad = 0;
     m_timer_collision_narrow = 0;
+    m_timer_setup = 0;
     m_timer_update = 0;
 }
 
@@ -156,10 +160,11 @@ class ChBenchmarkFixture : public ::benchmark::Fixture {
     void Report(benchmark::State& st) {
         st.counters["Step_Total"] = m_test->m_timer_step * 1e3;
         st.counters["Step_Advance"] = m_test->m_timer_advance * 1e3;
+        st.counters["Step Setup"] = m_test->m_timer_setup * 1e3;
         st.counters["Step_Update"] = m_test->m_timer_update * 1e3;
         st.counters["LS_Jacobian"] = m_test->m_timer_jacobian * 1e3;
-        st.counters["LS_Setup"] = m_test->m_timer_setup * 1e3;
-        st.counters["LS_Solve"] = m_test->m_timer_solver * 1e3;
+        st.counters["LS_Setup"] = m_test->m_timer_ls_setup * 1e3;
+        st.counters["LS_Solve"] = m_test->m_timer_ls_solve * 1e3;
         st.counters["CD_Total"] = m_test->m_timer_collision * 1e3;
         st.counters["CD_Broad"] = m_test->m_timer_collision_broad * 1e3;
         st.counters["CD_Narrow"] = m_test->m_timer_collision_narrow * 1e3;

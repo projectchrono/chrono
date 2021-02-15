@@ -141,8 +141,8 @@ class ChApi ChParserOpenSim {
     /// Parse the specified OpenSim input file and create the model in a new system.
     /// Note that the created system is not deleted in the parser's destructor;
     /// rather, ownership is transferred to the caller.
-    ChSystem* Parse(const std::string& filename,  ///< [in] OpenSim input file name
-                    ChMaterialSurface::ContactMethod contact_method = ChMaterialSurface::NSC  ///< [in] contact method
+    ChSystem* Parse(const std::string& filename,                           ///< [in] OpenSim input file name
+                    ChContactMethod contact_method = ChContactMethod::NSC  ///< [in] contact method
     );
 
     /// Get the report for this parser.

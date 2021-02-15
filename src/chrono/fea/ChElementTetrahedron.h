@@ -15,7 +15,7 @@
 #ifndef CHELEMENTTETRAHEDRON_H
 #define CHELEMENTTETRAHEDRON_H
 
-#include "chrono/fea/ChElement3D.h"
+#include "chrono/fea/ChElementGeneric.h"
 #include "chrono/fea/ChElementCorotational.h"
 
 namespace chrono {
@@ -25,16 +25,21 @@ namespace fea {
 /// @{
 
 /// Class for tetrahedral elements.
-class ChApi ChElementTetrahedron : public ChElement3D, public ChElementCorotational {
+class ChApi ChElementTetrahedron : public ChElementGeneric, public ChElementCorotational {
   public:
-    int ID;
+    ChElementTetrahedron() : Volume(0) {}
+
+    double GetVolume() { return Volume; }
 
     virtual void Update() {
         // parent class update:
-        ChElement3D::Update();
+        ChElementGeneric::Update();
         // always keep updated the rotation matrix A:
         this->UpdateRotation();
     }
+
+  protected:
+    double Volume;
 };
 
 /// @} fea_elements

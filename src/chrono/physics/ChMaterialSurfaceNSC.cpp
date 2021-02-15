@@ -25,11 +25,7 @@ namespace chrono {
 CH_FACTORY_REGISTER(ChMaterialSurfaceNSC)
 
 ChMaterialSurfaceNSC::ChMaterialSurfaceNSC()
-    : static_friction(0.6f),
-      sliding_friction(0.6f),
-      rolling_friction(0),
-      spinning_friction(0),
-      restitution(0),
+    : ChMaterialSurface(),
       cohesion(0),
       dampingf(0),
       compliance(0),
@@ -37,23 +33,13 @@ ChMaterialSurfaceNSC::ChMaterialSurfaceNSC()
       complianceRoll(0),
       complianceSpin(0) {}
 
-ChMaterialSurfaceNSC::ChMaterialSurfaceNSC(const ChMaterialSurfaceNSC& other) {
-    static_friction = other.static_friction;
-    sliding_friction = other.sliding_friction;
-    rolling_friction = other.rolling_friction;
-    spinning_friction = other.spinning_friction;
-    restitution = other.restitution;
+ChMaterialSurfaceNSC::ChMaterialSurfaceNSC(const ChMaterialSurfaceNSC& other) : ChMaterialSurface(other) {
     cohesion = other.cohesion;
     dampingf = other.dampingf;
     compliance = other.compliance;
     complianceT = other.complianceT;
     complianceRoll = other.complianceRoll;
     complianceSpin = other.complianceSpin;
-}
-
-void ChMaterialSurfaceNSC::SetFriction(float mval) {
-    SetSfriction(mval);
-    SetKfriction(mval);
 }
 
 void ChMaterialSurfaceNSC::ArchiveOUT(ChArchiveOut& marchive) {
@@ -64,11 +50,6 @@ void ChMaterialSurfaceNSC::ArchiveOUT(ChArchiveOut& marchive) {
     ChMaterialSurface::ArchiveOUT(marchive);
 
     // serialize all member data:
-    marchive << CHNVP(static_friction);
-    marchive << CHNVP(sliding_friction);
-    marchive << CHNVP(rolling_friction);
-    marchive << CHNVP(spinning_friction);
-    marchive << CHNVP(restitution);
     marchive << CHNVP(cohesion);
     marchive << CHNVP(dampingf);
     marchive << CHNVP(compliance);
@@ -85,11 +66,6 @@ void ChMaterialSurfaceNSC::ArchiveIN(ChArchiveIn& marchive) {
     ChMaterialSurface::ArchiveIN(marchive);
 
     // stream in all member data:
-    marchive >> CHNVP(static_friction);
-    marchive >> CHNVP(sliding_friction);
-    marchive >> CHNVP(rolling_friction);
-    marchive >> CHNVP(spinning_friction);
-    marchive >> CHNVP(restitution);
     marchive >> CHNVP(cohesion);
     marchive >> CHNVP(dampingf);
     marchive >> CHNVP(compliance);
@@ -113,7 +89,7 @@ ChMaterialCompositeNSC::ChMaterialCompositeNSC()
       complianceRoll(0),
       complianceSpin(0) {}
 
-ChMaterialCompositeNSC::ChMaterialCompositeNSC(ChMaterialCompositionStrategy<float>* strategy,
+ChMaterialCompositeNSC::ChMaterialCompositeNSC(ChMaterialCompositionStrategy* strategy,
                                                std::shared_ptr<ChMaterialSurfaceNSC> mat1,
                                                std::shared_ptr<ChMaterialSurfaceNSC> mat2) {
     static_friction = strategy->CombineFriction(mat1->static_friction, mat2->static_friction);

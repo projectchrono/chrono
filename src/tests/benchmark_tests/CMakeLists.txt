@@ -10,7 +10,7 @@ SET(CMAKE_SKIP_BUILD_RPATH  FALSE)
 
 # when building, don't use the install RPATH already
 # (but later on when installing)
-SET(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE) 
+SET(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE)
 
 SET(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
 
@@ -35,18 +35,30 @@ INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/src/chrono_thirdparty/googlebenchmark/
 option(BUILD_BENCHMARKING_BASE "Build benchmark tests for base Chrono module" TRUE)
 mark_as_advanced(FORCE BUILD_BENCHMARKING_BASE)
 if(BUILD_BENCHMARKING_BASE)
-	ADD_SUBDIRECTORY(core)
-	ADD_SUBDIRECTORY(physics)
+    ADD_SUBDIRECTORY(core)
+    ADD_SUBDIRECTORY(physics)
 endif()
 
 option(BUILD_BENCHMARKING_FEA "Build benchmark tests for FEA" TRUE)
 mark_as_advanced(FORCE BUILD_BENCHMARKING_FEA)
 if(BUILD_BENCHMARKING_FEA)
-	ADD_SUBDIRECTORY(fea)
+    ADD_SUBDIRECTORY(fea)
+endif()
+
+option(BUILD_BENCHMARKING_MULTICORE "Build benchmark tests for MULTICORE module" TRUE)
+mark_as_advanced(FORCE BUILD_BENCHMARKING_MULTICORE)
+if(BUILD_BENCHMARKING_MULTICORE)
+    ADD_SUBDIRECTORY(multicore)
 endif()
 
 option(BUILD_BENCHMARKING_VEHICLE "Build benchmark tests for VEHICLE module" TRUE)
 mark_as_advanced(FORCE BUILD_BENCHMARKING_VEHICLE)
 if(BUILD_BENCHMARKING_VEHICLE)
-	ADD_SUBDIRECTORY(vehicle)
+    ADD_SUBDIRECTORY(vehicle)
+endif()
+
+option(BUILD_BENCHMARKING_SENSOR "Build benchmark tests for SENSOR module" TRUE)
+mark_as_advanced(FORCE BUILD_BENCHMARKING_SENSOR)
+if(BUILD_BENCHMARKING_SENSOR)
+    ADD_SUBDIRECTORY(sensor)
 endif()

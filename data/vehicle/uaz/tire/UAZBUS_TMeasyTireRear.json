@@ -41,8 +41,8 @@
   // Visualization mesh (OPTIONAL)
 
   "Visualization": {
-    "Mesh Filename": "uazbus/uazbus_tire.obj",
-    "Mesh Name": "uazbus_tire_POV_geom"
+    "Mesh Filename Left":  "uaz/uaz_tire.obj",
+    "Mesh Filename Right": "uaz/uaz_tire.obj"
   }
 
 }

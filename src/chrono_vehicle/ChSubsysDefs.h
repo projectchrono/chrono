@@ -19,12 +19,16 @@
 #ifndef CH_SUBSYS_DEFS_H
 #define CH_SUBSYS_DEFS_H
 
+#include <string>
 #include <vector>
 
 #include "chrono/core/ChQuaternion.h"
 #include "chrono/core/ChVector.h"
+#include "chrono/physics/ChBodyAuxRef.h"
+#include "chrono/physics/ChMaterialSurface.h"
 #include "chrono/physics/ChLinkRotSpringCB.h"
 #include "chrono/physics/ChLinkTSDA.h"
+#include "chrono/assets/ChColor.h"
 
 #include "chrono_vehicle/ChApiVehicle.h"
 
@@ -94,11 +98,7 @@ typedef std::vector<TerrainForce> TerrainForces;
 class LinearSpringForce : public ChLinkTSDA::ForceFunctor {
   public:
     LinearSpringForce(double k) : m_k(k) {}
-    virtual double operator()(double time,
-                              double rest_length,
-                              double length,
-                              double vel,
-                              ChLinkTSDA* link) override {
+    virtual double operator()(double time, double rest_length, double length, double vel, ChLinkTSDA* link) override {
         return -m_k * (length - rest_length);
     }
 
@@ -110,11 +110,7 @@ class LinearSpringForce : public ChLinkTSDA::ForceFunctor {
 class LinearDamperForce : public ChLinkTSDA::ForceFunctor {
   public:
     LinearDamperForce(double c) : m_c(c) {}
-    virtual double operator()(double time,
-                              double rest_length,
-                              double length,
-                              double vel,
-                              ChLinkTSDA* link) override {
+    virtual double operator()(double time, double rest_length, double length, double vel, ChLinkTSDA* link) override {
         return -m_c * vel;
     }
 
@@ -126,11 +122,7 @@ class LinearDamperForce : public ChLinkTSDA::ForceFunctor {
 class LinearSpringDamperForce : public ChLinkTSDA::ForceFunctor {
   public:
     LinearSpringDamperForce(double k, double c) : m_k(k), m_c(c) {}
-    virtual double operator()(double time,
-                              double rest_length,
-                              double length,
-                              double vel,
-                              ChLinkTSDA* link) override {
+    virtual double operator()(double time, double rest_length, double length, double vel, ChLinkTSDA* link) override {
         return -m_k * (length - rest_length) - m_c * vel;
     }
 
@@ -143,11 +135,7 @@ class LinearSpringDamperForce : public ChLinkTSDA::ForceFunctor {
 class LinearSpringDamperActuatorForce : public ChLinkTSDA::ForceFunctor {
   public:
     LinearSpringDamperActuatorForce(double k, double c, double f) : m_k(k), m_c(c), m_f(f) {}
-    virtual double operator()(double time,
-                              double rest_length,
-                              double length,
-                              double vel,
-                              ChLinkTSDA* link) override {
+    virtual double operator()(double time, double rest_length, double length, double vel, ChLinkTSDA* link) override {
         return m_f - m_k * (length - rest_length) - m_c * vel;
     }
 
@@ -167,11 +155,7 @@ class MapSpringForce : public ChLinkTSDA::ForceFunctor {
         }
     }
     void add_point(double x, double y) { m_map.AddPoint(x, y); }
-    virtual double operator()(double time,
-                              double rest_length,
-                              double length,
-                              double vel,
-                              ChLinkTSDA* link) override {
+    virtual double operator()(double time, double rest_length, double length, double vel, ChLinkTSDA* link) override {
         return -m_map.Get_y(length - rest_length);
     }
 
@@ -196,11 +180,7 @@ class MapSpringBistopForce : public ChLinkTSDA::ForceFunctor {
         }
     }
     void add_point(double x, double y) { m_map.AddPoint(x, y); }
-    virtual double operator()(double time,
-                              double rest_length,
-                              double length,
-                              double vel,
-                              ChLinkTSDA* link) override {
+    virtual double operator()(double time, double rest_length, double length, double vel, ChLinkTSDA* link) override {
         double defl_bump = 0.0;
         double defl_rebound = 0.0;
 
@@ -280,11 +260,7 @@ class LinearSpringBistopForce : public ChLinkTSDA::ForceFunctor {
         m_rebound.AddPoint(60.0e-3, 125000.0);
     }
 
-    virtual double operator()(double time,
-                              double rest_length,
-                              double length,
-                              double vel,
-                              ChLinkTSDA* link) override {
+    virtual double operator()(double time, double rest_length, double length, double vel, ChLinkTSDA* link) override {
         double force = 0;
 
         double defl_spring = rest_length - length;
@@ -338,15 +314,11 @@ class DegressiveDamperForce : public ChLinkTSDA::ForceFunctor {
           m_c_expansion(c_expansion),
           m_degr_expansion(degr_expansion) {}
 
-    virtual double operator()(double time,
-                              double rest_length,
-                              double length,
-                              double vel,
-                              ChLinkTSDA* link) override {
+    virtual double operator()(double time, double rest_length, double length, double vel, ChLinkTSDA* link) override {
         if (vel >= 0) {
             return -m_c_expansion * vel / (1.0 + m_degr_expansion * vel);
         } else {
-            return -m_c_compression * vel / (1.0 + m_degr_compression * std::abs(vel));
+            return -m_c_compression * vel / (1.0 - m_degr_compression * vel);
         }
     }
 
@@ -367,11 +339,7 @@ class MapDamperForce : public ChLinkTSDA::ForceFunctor {
         }
     }
     void add_point(double x, double y) { m_map.AddPoint(x, y); }
-    virtual double operator()(double time,
-                              double rest_length,
-                              double length,
-                              double vel,
-                              ChLinkTSDA* link) override {
+    virtual double operator()(double time, double rest_length, double length, double vel, ChLinkTSDA* link) override {
         return -m_map.Get_y(vel);
     }
 
@@ -396,11 +364,7 @@ class MapSpringDamperActuatorForce : public ChLinkTSDA::ForceFunctor {
     void add_pointK(double x, double y) { m_mapK.AddPoint(x, y); }
     void add_pointC(double x, double y) { m_mapC.AddPoint(x, y); }
     void set_f(double f) { m_f = f; }
-    virtual double operator()(double time,
-                              double rest_length,
-                              double length,
-                              double vel,
-                              ChLinkTSDA* link) override {
+    virtual double operator()(double time, double rest_length, double length, double vel, ChLinkTSDA* link) override {
         return m_f - m_mapK.Get_y(length - rest_length) - m_mapC.Get_y(vel);
     }
 
@@ -538,31 +502,49 @@ enum class PowertrainModelType {
 };
 
 /// Enum for available wheeled-vehicle suspension model templates.
-enum class SuspensionType {
-    DOUBLE_WISHBONE,          ///< double wishbone
-    DOUBLE_WISHBONE_REDUCED,  ///< simplified double wishbone (constraint-based)
-    SOLID_AXLE,               ///< solid axle
-    MULTI_LINK,               ///< multi-link
-    HENDRICKSON_PRIMAXX,      ///< Hendrickson PRIMAXX (walking beam)
-    MACPHERSON_STRUT,         ///< MacPherson strut
-    SEMI_TRAILING_ARM,        ///< semi trailing arm
-    THREE_LINK_IRS,           ///< three-link independent rear suspension
-    RIGID_PINNED,             ///< pinned rigid beam
-    RIGID_SUSPENSION          ///< rigid suspension
+enum class SuspensionTypeWV {
+    DOUBLE_WISHBONE,                  ///< double wishbone
+    DOUBLE_WISHBONE_REDUCED,          ///< simplified double wishbone (constraint-based)
+    HENDRICKSON_PRIMAXX,              ///< Hendrickson PRIMAXX (walking beam)
+    LEAF_SPRING_AXLE,                 ///< leaf-spring solid axle
+    SAE_LEAF_SPRING_AXLE,             ///< leaf-spring solid axle with kinematic leaf-spring model
+    MACPHERSON_STRUT,                 ///< MacPherson strut
+    MULTI_LINK,                       ///< multi-link
+    RIGID_PINNED,                     ///< pinned rigid beam
+    RIGID_SUSPENSION,                 ///< rigid suspension
+    SEMI_TRAILING_ARM,                ///< semi trailing arm
+    SOLID_AXLE,                       ///< solid axle
+    SOLID_THREE_LINK_AXLE,            ///< rigid suspension + 3 guiding links
+    SOLID_BELLCRANK_THREE_LINK_AXLE,  ///< rigid suspension + 3 guiding linls + bellcrank steering mechanism
+    THREE_LINK_IRS,                   ///< three-link independent rear suspension
+    TOE_BAR_LEAF_SPRING_AXLE,         ///< steerable leaf-spring solid axle
+    SAE_TOE_BAR_LEAF_SPRING_AXLE      ///< steerable leaf-spring solid axle with kinematic leaf-spring model
+};
+
+/// Enum for available brake model templates.
+enum class BrakeType {
+    SHAFTS, ///< brake model using a clutch between two shafts
+    SIMPLE  ///< brake model using a simple speed-dependent torque
 };
 
 /// Enum for available wheeled-vehicle steering model templates.
-enum class SteeringType {
+enum class SteeringTypeWV {
     PITMAN_ARM,         ///< Pitman arm (input to revolute joint)
     PITMAN_ARM_SHAFTS,  ///< Pitman arm with compliant column (input to steering wheel)
     RACK_PINION         ///< rack-pinion (input to pinion)
 };
 
-/// Enum for drive types.
-enum class DrivelineType {
+/// Enum for wheeled-vehicle driveline types.
+enum class DrivelineTypeWV {
     FWD,    ///< front-wheel drive
     RWD,    ///< rear-wheel drive
     AWD,    ///< all-wheel drive
+    SIMPLE  ///< simple kinematic driveline
+};
+
+/// Enum for tracked-vehicle driveline types.
+enum class DrivelineTypeTV {
+    BDS,    ///< braked differential steering
     SIMPLE  ///< simple kinematic driveline
 };
 
@@ -628,6 +610,103 @@ enum OutputInformation {
     OUT_SHOCKS = 1 << 1,       ///< suspension shock information
     OUT_CONSTRAINTS = 1 << 2,  ///< constraint violation information
     OUT_TESTRIG = 1 << 3       ///< test-rig specific information
+};
+
+/// Identifiers for specific component bodies.
+enum BodyID {
+    CHASSIS_BODY = -99990,
+    SPROCKET_BODY = -99991,
+    IDLER_BODY = -99992,
+    WHEEL_BODY = -99993,
+    ROLER_BODY = -99994,
+    SHOE_BODY = -99995
+};
+
+// -----------------------------------------------------------------------------
+// Class defining geometry (visualization and collision) and contact materials.
+// -----------------------------------------------------------------------------
+
+/// Utility class defining geometry (visualization and collision) and contact materials for a rigid vehicle body.
+/// Holds vectors of primitive shapes (any one of which may be empty) and a list of contact materials.
+/// Each shape defines its position and orientation relative to the parent body, geometric dimensions, and an index into
+/// the list of contact materials.
+class CH_VEHICLE_API ChVehicleGeometry {
+  public:
+    ChVehicleGeometry();
+
+    /// Box shape for visualization and/or collision.
+    struct BoxShape {
+        BoxShape(const ChVector<>& pos, const ChQuaternion<>& rot, const ChVector<>& dims, int matID = -1)
+            : m_pos(pos), m_rot(rot), m_dims(dims), m_matID(matID) {}
+        ChVector<> m_pos;      ///< position relative to body
+        ChQuaternion<> m_rot;  ///< orientation relative to body
+        ChVector<> m_dims;     ///< box dimensions
+        int m_matID;           ///< index in contact material list
+    };
+
+    /// Sphere shape for visualization and/or collision.
+    struct SphereShape {
+        SphereShape(const ChVector<>& pos, double radius, int matID = -1)
+            : m_pos(pos), m_radius(radius), m_matID(matID) {}
+        ChVector<> m_pos;  ///< position relative to body
+        double m_radius;   ///< sphere radius
+        int m_matID;       ///< index in contact material list
+    };
+
+    /// Cylinder shape for visualization and/or collision.
+    struct CylinderShape {
+        CylinderShape(const ChVector<>& pos, const ChQuaternion<>& rot, double radius, double length, int matID = -1)
+            : m_pos(pos), m_rot(rot), m_radius(radius), m_length(length), m_matID(matID) {}
+        ChVector<> m_pos;      ///< position relative to body
+        ChQuaternion<> m_rot;  ///< orientation relative to body
+        double m_radius;       ///< cylinder radius
+        double m_length;       ///< cylinder length
+        int m_matID;           ///< index in contact material list
+    };
+
+    /// Convex hulls shape for collision.
+    struct ConvexHullsShape {
+        ConvexHullsShape(const std::string& filename, int matID = -1) : m_filename(filename), m_matID(matID) {}
+        std::string m_filename;  ///< name of Wavefront OBJ file
+        int m_matID;             ///< index in contact material list
+    };
+
+    /// Tri-mesh shape for collision.
+    struct TrimeshShape {
+        TrimeshShape(const ChVector<>& pos, const std::string& filename, double radius, int matID = -1)
+            : m_pos(pos), m_filename(filename), m_radius(radius), m_matID(matID) {}
+        std::string m_filename;  ///< name of Wavefront OBJ file
+        double m_radius;         ///< radius of sweeping sphere
+        ChVector<> m_pos;        ///< position relative to body
+        int m_matID;             ///< index in contact material list
+    };
+
+    bool m_has_collision;                                         ///< true if body has a collision model
+    std::vector<std::shared_ptr<ChMaterialSurface>> m_materials;  ///< list of contact materials
+    std::vector<BoxShape> m_coll_boxes;                           ///< list of collision boxes
+    std::vector<SphereShape> m_coll_spheres;                      ///< list of collision spheres
+    std::vector<CylinderShape> m_coll_cylinders;                  ///< list of collision cylinders
+    std::vector<ConvexHullsShape> m_coll_hulls;                   ///< list of collision convex hulls
+    std::vector<TrimeshShape> m_coll_meshes;                      ///< list of collision trimeshes
+
+    bool m_has_primitives;                       ///< true if the body uses visualization primitives
+    std::vector<BoxShape> m_vis_boxes;           ///< list of visualization boxes
+    std::vector<SphereShape> m_vis_spheres;      ///< list of visualization spheres
+    std::vector<CylinderShape> m_vis_cylinders;  ///< list of visualization cylinders
+
+    bool m_has_colors;          ///< true if primitive colors were provided
+    ChColor m_color_boxes;      ///< visualization color
+    ChColor m_color_spheres;    ///< visualization color
+    ChColor m_color_cylinders;  ///< visualization color
+
+    bool m_has_mesh;              ///< true if the body uses a visualization mesh
+    std::string m_vis_mesh_file;  ///< name of Wavefront OBJ file with visualizaiton mesh
+
+    /// Create visualization assets for the specified body.
+    void AddVisualizationAssets(std::shared_ptr<ChBody> body, VisualizationType vis);
+
+    /// Create collision shapes for the specified body.
+    void AddCollisionShapes(std::shared_ptr<ChBody> body, int collision_family);
 };
 
 /// @} vehicle

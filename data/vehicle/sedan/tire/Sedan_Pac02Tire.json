@@ -153,8 +153,8 @@
         "qsy4": 0.0
     },
     "Visualization": {
-        "Mesh Filename": "sedan/tire.obj",
-        "Mesh Name": "sedan_tire_POV_geom",
+        "Mesh Filename Left":  "sedan/sedan_tire.obj",
+        "Mesh Filename Right": "sedan/sedan_tire.obj",
         "Width": 0.225
     }
 }

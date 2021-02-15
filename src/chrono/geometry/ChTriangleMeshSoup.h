@@ -34,14 +34,14 @@ class ChApi ChTriangleMeshSoup : public ChTriangleMesh {
     /// "Virtual" copy constructor (covariant return type).
     virtual ChTriangleMeshSoup* Clone() const override { return new ChTriangleMeshSoup(*this); }
 
+    /// Load from the given Wavefront .obj file
+    bool LoadWavefrontMesh(std::string filename);
+
     /// Access the n-th triangle in mesh
     virtual ChTriangle& Triangle(int index) { return m_triangles[index]; }
 
     /// Add a triangle to this triangle mesh, by specifying the three coordinates
-    virtual void addTriangle(const ChVector<>& vertex0, const ChVector<>& vertex1, const ChVector<>& vertex2) override {
-        ChTriangle tri(vertex0, vertex1, vertex2);
-        m_triangles.push_back(tri);
-    }
+    virtual void addTriangle(const ChVector<>& vertex0, const ChVector<>& vertex1, const ChVector<>& vertex2) override;
 
     /// Add a triangle to this triangle mesh, by specifying a ChTriangle
     virtual void addTriangle(const ChTriangle& atriangle) override { m_triangles.push_back(atriangle); }

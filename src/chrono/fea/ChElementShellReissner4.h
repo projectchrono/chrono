@@ -31,21 +31,30 @@ namespace fea {
 /// @addtogroup fea_elements
 /// @{
 
-/// Shell with geometrically exact kinematics, with 4 nodes.
-/// Uses ANS to avoid shear locking.
-/// Based on the paper:
-/// "Implementation and validation of a 4-node shell finite element"
-/// Marco Morandini, Pierangelo Masarati.  IDETC/CIE 2014.
+/// Laminated thick shell with geometrically exact kinematics, with 4 nodes.
+/// It generalizes the Reissner thick shell theory (in fact each layer requires 
+/// a ChMaterialShellReissner) by using the Chroscielewski 6-dof field shell theory
+/// as discussed in:
+///
+/// Wojciech Witkowski, "4-Node combined shell element with semi-EAS-ANS strain interpolations 
+/// in 6-parameter shell theories with drilling degrees of freedom", Comp.Mech 2009.
+/// 
+/// This specific implementation is based on the paper:
+///
+/// Marco Morandini, Pierangelo Masarati, "Implementation and validation of 
+/// a 4-node shell finite element", IDETC/CIE 2014.
 ///
 /// The node numbering is in ccw fashion as in the following scheme:
+/// <pre>
 ///         v
 ///         ^
+///         |
 /// D o-----+-----o C
 ///   |     |     |
-/// --+-----+-----+-> u
+/// --+-----+-----+----> u
 ///   |     |     |
 /// A o-----+-----o B
-///
+/// </pre>
 class ChApi ChElementShellReissner4 : public ChElementShell, public ChLoadableUV, public ChLoadableUVW {
   public:
     using ShapeVector = ChMatrixNM<double, 1, 4>;
@@ -152,12 +161,9 @@ class ChApi ChElementShellReissner4 : public ChElementShell, public ChLoadableUV
     /// Get a handle to the specified layer.
     const Layer& GetLayer(size_t i) const { return m_layers[i]; }
 
-    /// Set the structural damping: this is the Rayleigh "alpha" for the
-    /// stiffness-proportional damping. This assumes damping forces as F=alpha*[Km]*v
-    /// where [Km] is the stiffness matrix (material part, i.e.excluding geometric stiffness)
-    /// and v is a vector of node speeds. Usually, alpha in the range 0.0 - 0.1
-    /// Note that the mass-proportional term of classical Rayleigh damping is not supported.
-    void SetAlphaDamp(double a) { m_Alpha = a; }
+    /// Set the structural damping: this is the Rayleigh "alpha"
+	/// ***OBSOLETE*** create a ChDampingReissnerRayleigh object and add to layer material to have the same effect
+    ///void SetAlphaDamp(double a) { m_Alpha = a; } 
 
     /// Get the element length in the X direction.
     double GetLengthX() const { return m_lenX; }
@@ -210,7 +216,7 @@ class ChApi ChElementShellReissner4 : public ChElementShell, public ChLoadableUV
     double tot_thickness;                         ///< total element thickness
     double m_lenX;                                ///< element length in X direction
     double m_lenY;                                ///< element length in Y direction
-    double m_Alpha;                               ///< structural damping
+
     ChMatrixNM<double, 24, 24> m_MassMatrix;      ///< mass matrix
     ChMatrixNM<double, 24, 24> m_JacobianMatrix;  ///< Jacobian matrix (Kfactor*[K] + Rfactor*[R])
 
@@ -368,7 +374,7 @@ class ChApi ChElementShellReissner4 : public ChElementShell, public ChLoadableUV
     ChVectorN<double, 12> epsilon;
 
     // Reference constitutive law tangent matrices
-    ChMatrixNM<double, 12, 12> DRef[NUMIP];
+    //ChMatrixNM<double, 12, 12> DRef[NUMIP];
 
     // stress
     ChVectorN<double, 12> stress_i[NUMIP];

@@ -23,12 +23,10 @@
     "Orientation":  [1, 0, 0, 0]
   },
 
+  "Rear Connector Location": [-3.5, 0, -0.05],
+  
   "Visualization":
   {
-    "Mesh":
-    {
-       "Filename":  "uaz/uazbus_chassis.obj",
-       "Name":      "hmmwv_chassis_POV_geom"
-    }
+    //"Mesh":  "uaz/uazbus_chassis.obj"
   }
 }

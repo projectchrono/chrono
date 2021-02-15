@@ -168,7 +168,7 @@ class ChApi ChElasticityKirchhoffOrthotropic : public ChElasticityKirchhoff {
         const double angle        ///< layer angle respect to x (if needed) -not used in this, isotropic
     ) override;
 
-    /// Compute 12x12 stiffness matrix [Km] , that is [ds/de], the tangent of the constitutive relation
+    /// Compute 6x6 stiffness matrix [Km] , that is [ds/de], the tangent of the constitutive relation
     /// per-unit-length forces/torques vs generalized strains.
     virtual void ComputeStiffnessMatrix(
         ChMatrixRef mC,           ///< tangent matrix
@@ -222,7 +222,7 @@ class ChApi ChElasticityKirchhoffGeneric : public ChElasticityKirchhoff {
         const double angle        ///< layer angle respect to x (if needed) -not used in this, isotropic
     ) override;
 
-    /// Compute 12x12 stiffness matrix [Km] , that is [ds/de], the tangent of the constitutive relation
+    /// Compute 6x6 stiffness matrix [Km] , that is [ds/de], the tangent of the constitutive relation
     /// per-unit-length forces/torques vs generalized strains.
     virtual void ComputeStiffnessMatrix(
         ChMatrixRef mC,           ///< tangent matrix
@@ -293,7 +293,7 @@ class ChApi ChPlasticityKirchhoff {
         const double angle        ///< layer angle respect to x (if needed) 
         ) = 0;
 
-    /// Compute the 12x12 tangent material stiffness matrix [Km] = d&sigma;/d&epsilon;,
+    /// Compute the 6x6 tangent material stiffness matrix [Km] = d&sigma;/d&epsilon;,
     /// given actual internal data and deformation and curvature (if needed). If in
     /// plastic regime, uses elastoplastic matrix, otherwise uses elastic.
     /// This must be overridden by subclasses if an analytical solution is
@@ -355,7 +355,7 @@ class ChApi ChDampingKirchhoff {
     /// This must be overridden by subclasses if an analytical solution is
     /// known (preferred for high performance), otherwise the base behaviour here is to compute
     /// [Rm] by numerical differentiation calling ComputeStress() multiple times.
-    virtual void ComputeDampingMatrix(	ChMatrixRef R,      ///< 12x12 material damping matrix values here
+    virtual void ComputeDampingMatrix(	ChMatrixRef R,			  ///< 6x6 material damping matrix values here
 										const ChVector<>& deps,   ///< time derivative of strains   de_11/dt, de_22/dt, de_12/dt
 										const ChVector<>& dkur,   ///< time derivative of curvature dk_11/dt, dk_22/dt, dk_12/dt
 										const double z_inf,       ///< layer lower z value (along thickness coord)
@@ -364,6 +364,74 @@ class ChApi ChDampingKirchhoff {
     );
 
     ChMaterialShellKirchhoff* section;
+};
+
+
+
+
+/// Simple Rayleight damping of a Kirchhoff shell layer,
+/// where damping is proportional to stiffness via a beta coefficient.
+/// In order to generalize it also in case of nonlinearity, the full
+/// element tangent stiffness matrix cannot be used (it may contain negative eigenvalues)
+/// and it can't be used to recover instant nodal caused by damping as F=beta*K*q_dt
+/// so it is generalized to the following implementation at the material stress level
+///   <pre>
+///   {n,m}=beta*[E]*{e',k'}
+///   </pre>
+/// where 
+/// - beta is the 2nd Rayleigh damping parameter
+/// - [E] is the 6x6 shell stiffness matrix at the undeformed unstressed case (hence assumed constant)
+/// - {e',k'} is the speed of deformation/curvature
+/// Note that the alpha mass-proportional parameter (the first of the alpha,beta parameters of the original
+/// Rayleigh model) is not supported.
+
+class ChApi ChDampingKirchhoffRayleigh : public ChDampingKirchhoff {
+  public:
+		/// Construct the Rayleigh damping model from the stiffness model used by the shell layer.
+		/// This is important because the Rayleigh damping is proportional to the stiffness,
+		/// so the model must know which is the stiffness matrix of the material.
+	    /// Note: melasticity must be alreay set with proper values: its [E] stiffness matrix will be
+		/// fetched just once for all.
+	ChDampingKirchhoffRayleigh(std::shared_ptr<ChElasticityKirchhoff> melasticity, const double& mbeta = 0);
+
+	virtual ~ChDampingKirchhoffRayleigh() {}
+
+	/// Compute the generalized cut force and cut torque, caused by structural damping,
+    /// given actual deformation speed and curvature speed.
+	virtual void ComputeStress(
+		ChVector<>& n,            ///< forces  n_11, n_22, n_12 (per unit length)
+		ChVector<>& m,            ///< torques m_11, m_22, m_12 (per unit length)
+		const ChVector<>& deps,   ///< time derivative of strains   de_11/dt, de_22/dt, de_12/dt
+		const ChVector<>& dkur,   ///< time derivative of curvature dk_11/dt, dk_22/dt, dk_12/dt
+		const double z_inf,       ///< layer lower z value (along thickness coord)
+		const double z_sup,       ///< layer upper z value (along thickness coord)
+		const double angle        ///< layer angle respect to x (if needed)
+	);
+
+    /// Compute the 6x6 tangent material damping matrix, ie the jacobian [Rm]=dstress/dstrainspeed.
+    /// In this model, it is beta*[E] where [E] is the 6x6 stiffness matrix at material level, assumed constant
+    virtual void ComputeDampingMatrix(	ChMatrixRef R,			  ///< 6x6 material damping matrix values here
+										const ChVector<>& deps,   ///< time derivative of strains   de_11/dt, de_22/dt, de_12/dt
+										const ChVector<>& dkur,   ///< time derivative of curvature dk_11/dt, dk_22/dt, dk_12/dt
+										const double z_inf,       ///< layer lower z value (along thickness coord)
+										const double z_sup,       ///< layer upper z value (along thickness coord)
+										const double angle        ///< layer angle respect to x (if needed) -not used in this, isotropic
+    );
+
+	/// Get the beta Rayleigh parameter (stiffness proportional damping)
+    double GetBeta() { return beta; }
+    /// Set the beta Rayleigh parameter (stiffness proportional damping)
+	void SetBeta(const double mbeta) { beta = mbeta; }
+
+
+  private:
+	std::shared_ptr<ChElasticityKirchhoff> section_elasticity;
+    ChMatrixNM<double, 6, 6> E_const; // to store the precomputed stiffness matrix at undeformed unstressed initial state
+	double beta;
+	bool updated;
+
+  public:
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 };
 
 

@@ -64,7 +64,7 @@ residual error: |Ax - b|/|b|. Default: machine precision.
 By default, these solvers use a diagonal preconditioner and no warm start. Recall that the warm start option should
 be used **only** in conjunction with the Euler implicit linearized integrator.
 */
-class ChApi ChIterativeSolverLS : public ChSolverLS, public ChIterativeSolver {
+class ChApi ChIterativeSolverLS : public ChIterativeSolver, public ChSolverLS {
   public:
     virtual ~ChIterativeSolverLS();
 

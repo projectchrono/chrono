@@ -35,13 +35,15 @@ class ChApi ChSystemSMC : public ChSystem {
     enum ContactForceModel {
         Hooke,        ///< linear Hookean model
         Hertz,        ///< nonlinear Hertzian model
-        PlainCoulomb  ///< basic tangential force definition for non-granular bodies
+        PlainCoulomb, ///< basic tangential force definition for non-granular bodies
+        Flores        ///< nonlinear Hertzian model
     };
 
     /// Enum for adhesion force model.
     enum AdhesionForceModel {
         Constant,  ///< constant adhesion force
-        DMT        ///< Derjagin-Muller-Toropov model
+        DMT,       ///< Derjagin-Muller-Toropov model
+        Perko      ///< Perko et al. (2001) model
     };
 
     /// Enum for tangential displacement model.
@@ -52,14 +54,7 @@ class ChApi ChSystemSMC : public ChSystem {
     };
 
     /// Constructor for ChSystemSMC.
-    /// Note that, in case you will use collision detection, the values of
-    /// 'max_objects' and 'scene_size' can be used to initialize the broadphase
-    /// collision algorithm in an optimal way. Scene size should be approximately
-    /// the radius of the expected area where colliding objects will move.
-    ChSystemSMC(bool use_material_properties = true,  ///< use physical contact material properties
-                unsigned int max_objects = 16000,     ///< maximum number of contactable objects
-                double scene_size = 500               ///< approximate bounding radius of the scene
-                );
+    ChSystemSMC(bool use_material_properties = true);
 
     /// Copy constructor
     ChSystemSMC(const ChSystemSMC& other);
@@ -70,18 +65,7 @@ class ChApi ChSystemSMC : public ChSystem {
     virtual ChSystemSMC* Clone() const override { return new ChSystemSMC(*this); }
 
     /// Return the contact method supported by this system.
-    /// Bodies added to this system must be compatible.
-    virtual ChMaterialSurface::ContactMethod GetContactMethod() const override {
-        return ChMaterialSurface::SMC;
-    }
-
-    /// Create a new body, consistent with the contact method and collision model used by this system.
-    /// The returned body is not added to the system.
-    virtual ChBody* NewBody() override { return new ChBody(ChMaterialSurface::SMC); }
-
-    /// Create a new body with non-centroidal reference frame, consistent with the contact method and
-    /// collision model used by this system.  The returned body is not added to the system.
-    virtual ChBodyAuxRef* NewBodyAuxRef() override { return new ChBodyAuxRef(ChMaterialSurface::SMC); }
+    virtual ChContactMethod GetContactMethod() const override { return ChContactMethod::SMC; }
 
     /// Replace the contact container.
     /// The provided container object must be inherited from ChContactContainerSMC.

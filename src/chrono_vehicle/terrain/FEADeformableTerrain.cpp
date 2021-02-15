@@ -27,6 +27,7 @@
 #include "chrono/fea/ChVisualizationFEAmesh.h"
 
 #include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/ChWorldFrame.h"
 #include "chrono_vehicle/terrain/FEADeformableTerrain.h"
 
 using namespace chrono::fea;
@@ -50,20 +51,20 @@ FEADeformableTerrain::FEADeformableTerrain(ChSystem* system)
 }
 
 // Return the terrain height at the specified location
-double FEADeformableTerrain::GetHeight(double x, double y) const {
+double FEADeformableTerrain::GetHeight(const ChVector<>& loc) const {
     //// TODO
     return 0;
 }
 
 // Return the terrain normal at the specified location
-ChVector<> FEADeformableTerrain::GetNormal(double x, double y) const {
+ChVector<> FEADeformableTerrain::GetNormal(const ChVector<>& loc) const {
     //// TODO
-    return ChVector<>(0, 0, 1);
+    return ChWorldFrame::Vertical();
 }
 
 // Return the terrain coefficient of friction at the specified location
-float FEADeformableTerrain::GetCoefficientFriction(double x, double y) const {
-    return m_friction_fun ? (*m_friction_fun)(x, y) : 0.8f;
+float FEADeformableTerrain::GetCoefficientFriction(const ChVector<>& loc) const {
+    return m_friction_fun ? (*m_friction_fun)(loc) : 0.8f;
 }
 
 // Set properties of the FEA soil model

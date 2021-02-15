@@ -2,273 +2,379 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Author: Milad Rakhsha
+// Author: Milad Rakhsha, Wei Hu
 // =============================================================================
 
 // General Includes
 #include <cassert>
-#include <climits>
 #include <cstdlib>
 #include <ctime>
-#include <fstream>
-#include <iostream>
-#include <string>
-#include <vector>
 
+// Chrono includes
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/utils/ChUtilsCreators.h"
 #include "chrono/utils/ChUtilsGenerators.h"
 #include "chrono/utils/ChUtilsGeometry.h"
-#include "chrono/utils/ChUtilsInputOutput.h"
 #include "chrono/assets/ChBoxShape.h"
-
-// Chrono general utils
 #include "chrono/core/ChTransform.h"
-#include "chrono_thirdparty/filesystem/path.h"
-#include "chrono_thirdparty/filesystem/resolver.h"
 
 // Chrono fsi includes
-#include "chrono_fsi/ChDeviceUtils.cuh"
-#include "chrono_fsi/ChFsiTypeConvert.h"
 #include "chrono_fsi/ChSystemFsi.h"
 #include "chrono_fsi/utils/ChUtilsGeneratorFsi.h"
-#include "chrono_fsi/utils/ChUtilsJsonInput.h"
+#include "chrono_fsi/utils/ChUtilsJSON.h"
 #include "chrono_fsi/utils/ChUtilsPrintSph.cuh"
-
-#define AddBoundaries
 
 // Chrono namespaces
 using namespace chrono;
 using namespace collision;
-using namespace filesystem;
 
 using std::cout;
 using std::endl;
 std::ofstream simParams;
-//****************************************************************************************
-// Output directory
+typedef fsi::Real Real;
+ 
+// Output directories and settings
 const std::string out_dir = GetChronoOutputPath() + "FSI_CYLINDER_DROP/";
 std::string demo_dir;
-bool pv_output = true;
-typedef fsi::Real Real;
 
-/// Dimensions of the cylinder, fluid and boundary
-Real bxDim = 1;
-Real byDim = 0.55;
-Real bzDim = 1.3;
+// Save data as csv files to see the results off-line using Paraview
+bool save_output = true;
 
-Real fxDim = bxDim;
-Real fyDim = byDim;
-Real fzDim = 1;
+// Dimension of the space domain
+Real bxDim;
+Real byDim;
+Real bzDim;
+// Dimension of the fluid domain
+Real fxDim;
+Real fyDim;
+Real fzDim;
 
-double cyl_length = 0.15001;
-double cyl_radius = .12;
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-/// Forward declaration of helper functions
-void SaveParaViewFiles(fsi::ChSystemFsi& myFsiSystem,
-                       ChSystemSMC& mphysicalSystem,
-                       fsi::SimParams* paramsH,
-                       int tStep,
-                       double mTime,
-                       std::shared_ptr<ChBody> Cylinder);
+// Size of the cylinder
+double cyl_length;
+double cyl_radius;
 
-void AddWall(std::shared_ptr<ChBody> body, const ChVector<>& dim, const ChVector<>& loc) {
-    body->GetCollisionModel()->AddBox(dim.x(), dim.y(), dim.z(), loc);
+// -----------------------------------------------------------------
+void ShowUsage() {
+    cout << "usage: ./demo_FSI_CylinderDrop <json_file>" << endl;
+    cout << "or to use default input parameters ./demo_FSI_CylinderDrop " << endl;
+}
+
+//------------------------------------------------------------------
+// Function to add walls into Chrono system
+//------------------------------------------------------------------
+void AddWall(std::shared_ptr<ChBody> body, 
+             const ChVector<>& dim, 
+             std::shared_ptr<ChMaterialSurface> mat,
+             const ChVector<>& loc) {
+    body->GetCollisionModel()->AddBox(mat, dim.x(), dim.y(), dim.z(), loc);
     auto box = chrono_types::make_shared<ChBoxShape>();
     box->GetBoxGeometry().Size = dim;
     box->GetBoxGeometry().Pos = loc;
 }
 
-void ShowUsage() {
-    cout << "usage: ./demo_FSI_CylinderDrop <json_file>" << endl;
-    cout << "or to use default input parameters ./demo_FSI_CylinderDrop " << endl;
-}
 //------------------------------------------------------------------
-// Create the objects of the MBD system. Rigid bodies, and if fsi, their
-// bce representation are created and added to the systems
+// Function to save cylinder to Paraview VTK files
 //------------------------------------------------------------------
-void CreateSolidPhase(ChSystemSMC& mphysicalSystem, fsi::ChSystemFsi& myFsiSystem, fsi::SimParams* paramsH) {
-    Real initSpace0 = paramsH->MULT_INITSPACE * paramsH->HSML;
+void WriteCylinderVTK(std::shared_ptr<ChBody> Body, 
+                      double radius, 
+                      double length, 
+                      int res, 
+                      char SaveAsBuffer[256]) {
+    std::ofstream output;
+    output.open(SaveAsBuffer, std::ios::app);
+    output << "# vtk DataFile Version 1.0\nUnstructured Grid Example\nASCII\n\n" << std::endl;
+    output << "DATASET UNSTRUCTURED_GRID\nPOINTS " << 2 * res << " float\n";
 
+    ChVector<> center = Body->GetPos();
+    // printf("POS=%f,%f,%f", center.x(), center.y(), center.z());
+
+    ChMatrix33<> Rotation = Body->GetRot();
+    ChVector<double> vertex;
+    for (int i = 0; i < res; i++) {
+        ChVector<double> thisNode;
+        thisNode.x() = radius * cos(2 * i * 3.1415 / res);
+        thisNode.y() = -1 * length / 2;
+        thisNode.z() = radius * sin(2 * i * 3.1415 / res);
+        vertex = Rotation * thisNode + center;  // rotate/scale, if needed
+        output << vertex.x() << " " << vertex.y() << " " << vertex.z() << "\n";
+    }
+
+    for (int i = 0; i < res; i++) {
+        ChVector<double> thisNode;
+        thisNode.x() = radius * cos(2 * i * 3.1415 / res);
+        thisNode.y() = +1 * length / 2;
+        thisNode.z() = radius * sin(2 * i * 3.1415 / res);
+        vertex = Rotation * thisNode + center;  // rotate/scale, if needed
+        output << vertex.x() << " " << vertex.y() << " " << vertex.z() << "\n";
+    }
+
+    output << "\n\nCELLS " << (unsigned int)res + res << "\t" << (unsigned int)5 * (res + res) << "\n";
+
+    for (int i = 0; i < res - 1; i++) {
+        output << "4 " << i << " " << i + 1 << " " << i + res + 1 << " " << i + res << "\n";
+    }
+    output << "4 " << res - 1 << " " << 0 << " " << res << " " << 2 * res - 1 << "\n";
+
+    for (int i = 0; i < res / 4; i++) {
+        output << "4 " << i << " " << i + 1 << " " << +res / 2 - i - 1 << " " << +res / 2 - i << "\n";
+    }
+
+    for (int i = 0; i < res / 4; i++) {
+        output << "4 " << i + res << " " << i + 1 + res << " " << +res / 2 - i - 1 + res << " " << +res / 2 - i + res
+               << "\n";
+    }
+
+    output << "4 " << +res / 2 << " " << 1 + res / 2 << " " << +res - 1 << " " << 0 << "\n";
+
+    for (int i = 1; i < res / 4; i++) {
+        output << "4 " << i + res / 2 << " " << i + 1 + res / 2 << " " << +res / 2 - i - 1 + res / 2 << " "
+               << +res / 2 - i + res / 2 << "\n";
+    }
+
+    output << "4 " << 3 * res / 2 << " " << 1 + 3 * res / 2 << " " << +2 * res - 1 << " " << +res << "\n";
+
+    for (int i = 1; i < res / 4; i++) {
+        output << "4 " << i + 3 * res / 2 << " " << i + 1 + 3 * res / 2 << " " << +2 * res - i - 1 << " "
+               << +2 * res - i << "\n";
+    }
+
+    output << "\nCELL_TYPES " << res + res << "\n";
+
+    for (int iele = 0; iele < (res + res); iele++) {
+        output << "9\n";
+    }
+}
+
+//------------------------------------------------------------------
+// Function to save the paraview files
+//------------------------------------------------------------------
+void SaveParaViewFiles(fsi::ChSystemFsi& myFsiSystem,
+                       ChSystemSMC& mphysicalSystem,
+                       std::shared_ptr<fsi::SimParams> paramsH,
+                       int this_frame,
+                       double mTime,
+                       std::shared_ptr<ChBody> Cylinder) {
+    // Simulation steps between two output frames
+    int out_steps = (int)ceil((1.0 / paramsH->dT) / paramsH->out_fps);
+
+    // Simulation time between two output frames
+    double frame_time = 1.0 / paramsH->out_fps;
+
+    // Output data to files
+    if (save_output && std::abs(mTime - (this_frame)*frame_time) < 1e-9) {
+        // save particles to cvs files
+        fsi::utils::PrintToFile(myFsiSystem.GetDataManager()->sphMarkersD2->posRadD,
+                                myFsiSystem.GetDataManager()->sphMarkersD2->velMasD,
+                                myFsiSystem.GetDataManager()->sphMarkersD2->rhoPresMuD,
+                                myFsiSystem.GetDataManager()->fsiGeneralData->sr_tau_I_mu_i,
+                                myFsiSystem.GetDataManager()->fsiGeneralData->referenceArray,
+                                myFsiSystem.GetDataManager()->fsiGeneralData->referenceArray_FEA, demo_dir, true);
+        // save rigid bodies to vtk files
+        char SaveAsRigidObjVTK[256];
+        static int RigidCounter = 0;
+        snprintf(SaveAsRigidObjVTK, sizeof(char) * 256, (demo_dir + "/Cylinder.%d.vtk").c_str(), RigidCounter);
+        WriteCylinderVTK(Cylinder, cyl_radius, cyl_length, 100, SaveAsRigidObjVTK);
+        RigidCounter++;
+        cout << "\n--------------------------------\n" << endl;
+        cout << "------------ Output Frame:   " << this_frame << endl;
+        cout << "------------ Sim Time:       " << mTime << " (s)\n" <<endl;
+        cout << "--------------------------------\n" << endl;
+    }
+}
+
+//------------------------------------------------------------------
+// Create the objects of the MBD system. Rigid bodies, and if FSI, 
+// their BCE representation are created and added to the systems
+//------------------------------------------------------------------
+void CreateSolidPhase(ChSystemSMC& mphysicalSystem,
+                      fsi::ChSystemFsi& myFsiSystem,
+                      std::shared_ptr<fsi::SimParams> paramsH) {
+    // Set gravity to the rigid body system in chrono
     ChVector<> gravity = ChVector<>(paramsH->gravity.x, paramsH->gravity.y, paramsH->gravity.z);
     mphysicalSystem.Set_G_acc(gravity);
 
+    // Set common material Properties
     auto mysurfmaterial = chrono_types::make_shared<ChMaterialSurfaceSMC>();
-    /// Set common material Properties
     mysurfmaterial->SetYoungModulus(1e8);
     mysurfmaterial->SetFriction(0.2f);
-    mysurfmaterial->SetRestitution(0.05);
+    mysurfmaterial->SetRestitution(0.05f);
     mysurfmaterial->SetAdhesion(0);
 
-    /// Bottom wall
-    ChVector<> sizeBottom(bxDim / 2 + 3 * initSpace0, byDim / 2 + 3 * initSpace0, 2 * initSpace0);
-    ChVector<> posBottom(0, 0, -2 * initSpace0);
-    ChVector<> posTop(0, 0, bzDim + 2 * initSpace0);
+    // Create the geometry of the boundaries
+    Real initSpace0 = paramsH->MULT_INITSPACE * paramsH->HSML;
 
-    /// left and right Wall
+    // Bottom and Top wall - size and position
+    ChVector<> size_XY(bxDim / 2 + 3 * initSpace0, byDim / 2 + 3 * initSpace0, 2 * initSpace0);
+    ChVector<> pos_zp(0, 0, bzDim + 1 * initSpace0);
+    ChVector<> pos_zn(0, 0, -3 * initSpace0);
+
+    // Left and right Wall - size and position
     ChVector<> size_YZ(2 * initSpace0, byDim / 2 + 3 * initSpace0, bzDim / 2);
-    ChVector<> pos_xp(bxDim / 2 + initSpace0, 0.0, bzDim / 2 + 1 * initSpace0);
-    ChVector<> pos_xn(-bxDim / 2 - 3 * initSpace0, 0.0, bzDim / 2 + 1 * initSpace0);
+    ChVector<> pos_xp(bxDim / 2 + initSpace0, 0.0, bzDim / 2 + 0 * initSpace0);
+    ChVector<> pos_xn(-bxDim / 2 - 3 * initSpace0, 0.0, bzDim / 2 + 0 * initSpace0);
 
-    /// Front and back Wall
+    // Front and back Wall - size and position
     ChVector<> size_XZ(bxDim / 2, 2 * initSpace0, bzDim / 2);
-    ChVector<> pos_yp(0, byDim / 2 + initSpace0, bzDim / 2 + 1 * initSpace0);
-    ChVector<> pos_yn(0, -byDim / 2 - 3 * initSpace0, bzDim / 2 + 1 * initSpace0);
+    ChVector<> pos_yp(0, byDim / 2 + initSpace0, bzDim / 2 + 0 * initSpace0);
+    ChVector<> pos_yn(0, -byDim / 2 - 3 * initSpace0, bzDim / 2 + 0 * initSpace0);
 
-    /// Create a container
-    auto bin = chrono_types::make_shared<ChBody>(ChMaterialSurface::SMC);
+    // Create a container
+    auto bin = chrono_types::make_shared<ChBody>();
     bin->SetPos(ChVector<>(0.0, 0.0, 0.0));
     bin->SetRot(ChQuaternion<>(1, 0, 0, 0));
     bin->SetIdentifier(-1);
     bin->SetBodyFixed(true);
     bin->GetCollisionModel()->ClearModel();
     bin->GetCollisionModel()->SetSafeMargin(initSpace0 / 2);
-    bin->SetMaterialSurface(mysurfmaterial);
-    /// MBD representation of the walls
-    AddWall(bin, sizeBottom, posBottom);
-    AddWall(bin, sizeBottom, posTop + ChVector<>(0.0, 0.0, 3 * initSpace0));
-    AddWall(bin, size_YZ, pos_xp);
-    AddWall(bin, size_YZ, pos_xn);
-    AddWall(bin, size_XZ, pos_yp + ChVector<>(+1.5 * initSpace0, +1.5 * initSpace0, 0.0));
-    AddWall(bin, size_XZ, pos_yn + ChVector<>(-0.5 * initSpace0, -0.5 * initSpace0, 0.0));
-    bin->GetCollisionModel()->BuildModel();
 
+    // Add the walls into chrono system
+    AddWall(bin, size_XY, mysurfmaterial, pos_zp);
+    AddWall(bin, size_XY, mysurfmaterial, pos_zn);
+    AddWall(bin, size_YZ, mysurfmaterial, pos_xp);
+    AddWall(bin, size_YZ, mysurfmaterial, pos_xn);
+    AddWall(bin, size_XZ, mysurfmaterial, pos_yp);
+    AddWall(bin, size_XZ, mysurfmaterial, pos_yn);
+    bin->GetCollisionModel()->BuildModel();
     bin->SetCollide(true);
     mphysicalSystem.AddBody(bin);
 
-    /// Fluid-Solid Coupling at the walls via Condition Enforcement (BCE) Markers
-    fsi::utils::AddBoxBce(myFsiSystem.GetDataManager(), paramsH, bin, posBottom, QUNIT, sizeBottom);
-    fsi::utils::AddBoxBce(myFsiSystem.GetDataManager(), paramsH, bin, posTop, QUNIT, sizeBottom);
-    fsi::utils::AddBoxBce(myFsiSystem.GetDataManager(), paramsH, bin, pos_xp, QUNIT, size_YZ, 23);
-    fsi::utils::AddBoxBce(myFsiSystem.GetDataManager(), paramsH, bin, pos_xn, QUNIT, size_YZ, 23);
-    fsi::utils::AddBoxBce(myFsiSystem.GetDataManager(), paramsH, bin, pos_yp, QUNIT, size_XZ, 13);
-    fsi::utils::AddBoxBce(myFsiSystem.GetDataManager(), paramsH, bin, pos_yn, QUNIT, size_XZ, 13);
+    // Add BCE particles attached on the walls into FSI system
+    fsi::utils::AddBoxBce(myFsiSystem.GetDataManager(), paramsH, bin, pos_zp, chrono::QUNIT, size_XY, 12);
+    fsi::utils::AddBoxBce(myFsiSystem.GetDataManager(), paramsH, bin, pos_zn, chrono::QUNIT, size_XY, 12);
+    fsi::utils::AddBoxBce(myFsiSystem.GetDataManager(), paramsH, bin, pos_xp, chrono::QUNIT, size_YZ, 23);
+    fsi::utils::AddBoxBce(myFsiSystem.GetDataManager(), paramsH, bin, pos_xn, chrono::QUNIT, size_YZ, 23);
+    fsi::utils::AddBoxBce(myFsiSystem.GetDataManager(), paramsH, bin, pos_yp, chrono::QUNIT, size_XZ, 13);
+    fsi::utils::AddBoxBce(myFsiSystem.GetDataManager(), paramsH, bin, pos_yn, chrono::QUNIT, size_XZ, 13);
 
-    /// Create falling cylinder
-    ChVector<> cyl_pos = ChVector<>(0, 0, fzDim + cyl_radius + 2 * initSpace0);
-    ChQuaternion<> cyl_rot = QUNIT;
-    auto cylinder = chrono_types::make_shared<ChBody>(ChMaterialSurface::SMC);
-    cylinder->SetPos(cyl_pos);
-    double volume = utils::CalcCylinderVolume(cyl_radius, cyl_length);
-    ChVector<> gyration = utils::CalcCylinderGyration(cyl_radius, cyl_length).diagonal();
+    // Create a falling cylinder
+    auto cylinder = chrono_types::make_shared<ChBody>();
 
-    // This is the interesting part, sanity check suing the Archimedes' principle
-    // If you reduce the density of the solid you should be able to see
-    // it does not submerge. Alternatively, if you increase this density you
-    // will see that the cylinder fully sinks.
-    // If water density is used, then the cylinder should float
-    double density = 2 * paramsH->rho0;
+    // Set the general properties of the cylinder
+    double volume = utils::CalcCylinderVolume(cyl_radius, cyl_length / 2);
+    double density = paramsH->rho0 * 2.0;
     double mass = density * volume;
+    ChVector<> cyl_pos = ChVector<>(0, 0, fzDim + cyl_radius + 2 * initSpace0);
+    ChVector<> cyl_vel = ChVector<>(0.0, 0.0, 0.0);
+    ChQuaternion<> cyl_rot = QUNIT;
+    ChVector<> gyration = utils::CalcCylinderGyration(cyl_radius, cyl_length / 2).diagonal();
+    cylinder->SetPos(cyl_pos);
+    cylinder->SetPos_dt(cyl_vel);
+    cylinder->SetMass(mass);
+    cylinder->SetInertiaXX(mass * gyration);
+
+    // Set the collision type of the cylinder
     cylinder->SetCollide(true);
     cylinder->SetBodyFixed(false);
-    cylinder->SetMass(mass);
-    cylinder->SetMaterialSurface(mysurfmaterial);
-    cylinder->SetInertiaXX(mass * gyration);
     cylinder->GetCollisionModel()->ClearModel();
     cylinder->GetCollisionModel()->SetSafeMargin(initSpace0);
-    utils::AddCylinderGeometry(cylinder.get(), cyl_radius, cyl_length, ChVector<>(0.0, 0.0, 0.0),
+    utils::AddCylinderGeometry(cylinder.get(), mysurfmaterial, cyl_radius, cyl_length, 
+                               ChVector<>(0.0, 0.0, 0.0),
                                ChQuaternion<>(1, 0, 0, 0));
     cylinder->GetCollisionModel()->BuildModel();
-    int numRigidObjects = mphysicalSystem.Get_bodylist().size();
+
+    // Add this body to chrono system
     mphysicalSystem.AddBody(cylinder);
 
-    /// Add this body to the FSI system
+    // Add this body to the FSI system (only those have inetraction with fluid)
     myFsiSystem.AddFsiBody(cylinder);
-    /// Fluid-Solid Coupling of the cylinder via Condition Enforcement (BCE) Markers
+
+    // Add BCE particles attached on the cylinder into FSI system
     fsi::utils::AddCylinderBce(myFsiSystem.GetDataManager(), paramsH, cylinder, ChVector<>(0, 0, 0),
                                ChQuaternion<>(1, 0, 0, 0), cyl_radius, cyl_length + initSpace0, paramsH->HSML, false);
 }
 
-// =============================================================================
 
+// =============================================================================
 int main(int argc, char* argv[]) {
+     // Create a physics system and an FSI system
     ChSystemSMC mphysicalSystem;
-    fsi::ChSystemFsi myFsiSystem(&mphysicalSystem, true, fsi::ChFluidDynamics::Integrator::IISPH);
-    fsi::SimParams* paramsH = myFsiSystem.GetSimParams();
+    fsi::ChSystemFsi myFsiSystem(mphysicalSystem);
+
+    // Get the pointer to the system parameter and use a JSON file to fill it out with the user parameters
+    std::shared_ptr<fsi::SimParams> paramsH = myFsiSystem.GetSimParams();
 
     // Use the default input file or you may enter your input parameters as a command line argument
-    std::string inputJson = GetChronoDataFile("fsi/input_json/demo_FSI_CylinderDrop.json");
-    if (argc == 1 && fsi::utils::ParseJSON(inputJson.c_str(), paramsH, fsi::mR3(bxDim, byDim, bzDim))) {
-    } else if (argc == 2 && fsi::utils::ParseJSON(argv[1], paramsH, fsi::mR3(bxDim, byDim, bzDim))) {
+    std::string inputJson = GetChronoDataFile("fsi/input_json/demo_FSI_CylinderDrop_Explicit.json");
+    if (argc == 1) {
+        fsi::utils::ParseJSON(inputJson, paramsH, fsi::mR3(bxDim, byDim, bzDim));
+    } else if (argc == 2) {
+        fsi::utils::ParseJSON(argv[1], paramsH, fsi::mR3(bxDim, byDim, bzDim));
+        std::string input_json = std::string(argv[1]);
+        inputJson = GetChronoDataFile(input_json);
     } else {
         ShowUsage();
         return 1;
     }
 
-    myFsiSystem.SetFluidSystemLinearSolver(paramsH->LinearSolver);
+    // Dimension of the space domain
+    bxDim = paramsH->boxDimX;
+    byDim = paramsH->boxDimY;
+    bzDim = paramsH->boxDimZ;
+    // Dimension of the fluid domain
+    fxDim = paramsH->fluidDimX;
+    fyDim = paramsH->fluidDimY;
+    fzDim = paramsH->fluidDimZ;
+
+    // Size of the dropping cylinder
+    cyl_radius = paramsH->bodyRad;
+    cyl_length = paramsH->bodyLength;
+
+    // Set up the periodic boundary condition (if not, set relative larger values)
     Real initSpace0 = paramsH->MULT_INITSPACE * paramsH->HSML;
-    paramsH->cMin = fsi::mR3(-bxDim / 2, -byDim / 2, -bzDim / 2 - 5 * initSpace0) * 10 - 4 * initSpace0;
-    paramsH->cMax = fsi::mR3(bxDim / 2, byDim / 2, bzDim + 10 * initSpace0) * 10 + 4 * initSpace0;
-    // call FinalizeDomainCreating to setup the binning for neighbor search or write your own
-    fsi::utils::FinalizeDomainCreating(paramsH);
+    paramsH->cMin = chrono::fsi::mR3(-bxDim / 2, -byDim / 2, -bzDim - 10 * initSpace0) * 10;
+    paramsH->cMax = chrono::fsi::mR3( bxDim / 2,  byDim / 2,  bzDim + 10 * initSpace0) * 10;
 
-    if (strcmp(paramsH->out_name, "Undefined") == 0)
-        demo_dir = out_dir + "Paraview/";
-    else
-        demo_dir = out_dir + paramsH->out_name + "/";
+    // Set the time integration type and the linear solver type (only for ISPH)
+    myFsiSystem.SetFluidDynamics(paramsH->fluid_dynamic_type);
+    myFsiSystem.SetFluidSystemLinearSolver(paramsH->LinearSolver);
 
-    if (!filesystem::create_directory(filesystem::path(out_dir))) {
-        std::cout << "Error creating directory " << out_dir << std::endl;
-        return 1;
-    }
-    if (!filesystem::create_directory(filesystem::path(demo_dir))) {
-        std::cout << "Error creating directory " << out_dir << std::endl;
-        return 1;
-    }
-    const std::string removeFiles = (std::string("rm ") + demo_dir + "/* ");
-    system(removeFiles.c_str());
-    if (argc == 2) {
-        const std::string copyInputs = (std::string("cp ") + argv[1] + " " + demo_dir);
-        system(copyInputs.c_str());
-    }
+    // Call FinalizeDomainCreating to setup the binning for neighbor search
+    fsi::utils::FinalizeDomain(paramsH);
+    fsi::utils::PrepareOutputDir(paramsH, demo_dir, out_dir, inputJson);
 
-    /// Create an initial box of fluid
-    utils::GridSampler<> sampler(initSpace0);
-    ChVector<> boxCenter(0, 0 * initSpace0, fzDim / 2 + 1 * initSpace0);
+    // Create Fluid region and discretize with SPH particles
+    ChVector<> boxCenter(0.0, 0.0, fzDim / 2);
     ChVector<> boxHalfDim(fxDim / 2, fyDim / 2, fzDim / 2);
+
+    // Use a chrono sampler to create a bucket of points
+    utils::GridSampler<> sampler(initSpace0);
     utils::Generator::PointVector points = sampler.SampleBox(boxCenter, boxHalfDim);
-    int numPart = points.size();
+
+    // Add fluid particles from the sampler points to the FSI system
+    size_t numPart = points.size();
     for (int i = 0; i < numPart; i++) {
-        myFsiSystem.GetDataManager()->AddSphMarker(fsi::mR4(points[i].x(), points[i].y(), points[i].z(), paramsH->HSML),
-                                                   fsi::mR3(1e-10),
-                                                   fsi::mR4(paramsH->rho0, paramsH->BASEPRES, paramsH->mu0, -1));
+        // Calculate the pressure of a steady state (p = rho*g*h)
+        Real pre_ini = paramsH->rho0 * abs(paramsH->gravity.z) * (-points[i].z() + fzDim);
+        Real rho_ini = paramsH->rho0 + pre_ini / (paramsH->Cs * paramsH->Cs);
+        myFsiSystem.GetDataManager()->AddSphMarker(
+            fsi::mR4(points[i].x(), points[i].y(), points[i].z(), paramsH->HSML),
+            fsi::mR3(1e-10),
+            fsi::mR4(rho_ini, pre_ini, paramsH->mu0, -1));
     }
-
-    int numPhases = myFsiSystem.GetDataManager()->fsiGeneralData.referenceArray.size();
-
+    size_t numPhases = myFsiSystem.GetDataManager()->fsiGeneralData->referenceArray.size();
     if (numPhases != 0) {
         std::cout << "Error! numPhases is wrong, thrown from main\n" << std::endl;
         std::cin.get();
         return -1;
     } else {
-        myFsiSystem.GetDataManager()->fsiGeneralData.referenceArray.push_back(mI4(0, numPart, -1, -1));
-        myFsiSystem.GetDataManager()->fsiGeneralData.referenceArray.push_back(mI4(numPart, numPart, 0, 0));
+        myFsiSystem.GetDataManager()->fsiGeneralData->referenceArray.push_back(mI4(0, (int)numPart, -1, -1));
+        myFsiSystem.GetDataManager()->fsiGeneralData->referenceArray.push_back(mI4((int)numPart, (int)numPart, 0, 0));
     }
 
-    /// Create MBD or FE model
+    // Create Solid region and attach BCE SPH particles
     CreateSolidPhase(mphysicalSystem, myFsiSystem, paramsH);
-    /// Construction of the FSI system must be finalized
+
+    // Construction of the FSI system must be finalized before running
     myFsiSystem.Finalize();
 
-    /// Get the cylinder body from the FSI system for visualization
-    double mTime = 0;
-    int stepEnd = int(paramsH->tFinal / paramsH->dT);
-    stepEnd = 1000000;
-
-    /// use the following to write a VTK file of the cylinder
-    std::vector<std::vector<double>> vCoor;
-    std::vector<std::vector<int>> faces;
-    std::string RigidConectivity = demo_dir + "RigidConectivity.vtk";
-
-    /// Set up integrator for the MBD
+    // Set up integrator for the multi-body dynamics system
     mphysicalSystem.SetTimestepperType(ChTimestepper::Type::HHT);
     auto mystepper = std::static_pointer_cast<ChTimestepperHHT>(mphysicalSystem.GetTimestepper());
     mystepper->SetAlpha(-0.2);
@@ -277,66 +383,36 @@ int main(int argc, char* argv[]) {
     mystepper->SetMode(ChTimestepperHHT::ACCELERATION);
     mystepper->SetScaling(true);
 
-    /// Get the body from the FSI system
-    std::vector<std::shared_ptr<ChBody>>* FSI_Bodies = (myFsiSystem.GetFsiBodiesPtr());
-    auto Cylinder = ((*FSI_Bodies)[0]);
-    SaveParaViewFiles(myFsiSystem, mphysicalSystem, paramsH, 0, 0, Cylinder);
-
+    // Start the simulation
     Real time = 0;
-    Real Global_max_dT = paramsH->dT_Max;
+    int stepEnd = int(paramsH->tFinal / paramsH->dT);
+    double TIMING_sta = clock();
     for (int tStep = 0; tStep < stepEnd + 1; tStep++) {
         printf("\nstep : %d, time= : %f (s) \n", tStep, time);
         double frame_time = 1.0 / paramsH->out_fps;
-        int next_frame = std::floor((time + 1e-6) / frame_time) + 1;
-        double next_frame_time = next_frame * frame_time;
-        double max_allowable_dt = next_frame_time - time;
-        if (max_allowable_dt > 1e-7)
-            paramsH->dT_Max = std::min(Global_max_dT, max_allowable_dt);
-        else
-            paramsH->dT_Max = Global_max_dT;
+        int this_frame = (int)floor((time + 1e-9) / frame_time);
 
-        myFsiSystem.DoStepDynamics_FSI();
-        time += paramsH->dT;
-        SaveParaViewFiles(myFsiSystem, mphysicalSystem, paramsH, next_frame, time, Cylinder);
-
+        // Get the position of the container and cylinder
         auto bin = mphysicalSystem.Get_bodylist()[0];
         auto cyl = mphysicalSystem.Get_bodylist()[1];
 
         printf("bin=%f,%f,%f\n", bin->GetPos().x(), bin->GetPos().y(), bin->GetPos().z());
         printf("cyl=%f,%f,%f\n", cyl->GetPos().x(), cyl->GetPos().y(), cyl->GetPos().z());
 
-        if (time > paramsH->tFinal)
-            break;
+        // Get the cylinder from the FSI system and Save data of the simulation
+        std::vector<std::shared_ptr<ChBody>>& FSI_Bodies = myFsiSystem.GetFsiBodies();
+        auto Cylinder = FSI_Bodies[0];
+        SaveParaViewFiles(myFsiSystem, mphysicalSystem, paramsH, this_frame, time, Cylinder);
+        
+        // Call the FSI solver
+        myFsiSystem.DoStepDynamics_FSI();
+        time += paramsH->dT;
     }
+
+    // Total computational cost
+    double TIMING_end = (clock() - TIMING_sta) / (double)CLOCKS_PER_SEC;
+    printf("\nSimulation Finished in %f (s)\n", TIMING_end);
 
     return 0;
 }
 
-//------------------------------------------------------------------
-// Function to save the povray files of the MBD
-//------------------------------------------------------------------
-void SaveParaViewFiles(fsi::ChSystemFsi& myFsiSystem,
-                       ChSystemSMC& mphysicalSystem,
-                       fsi::SimParams* paramsH,
-                       int next_frame,
-                       double mTime,
-                       std::shared_ptr<ChBody> Cylinder) {
-    int out_steps = std::ceil((1.0 / paramsH->dT) / paramsH->out_fps);
-    int num_contacts = mphysicalSystem.GetNcontacts();
-    double frame_time = 1.0 / paramsH->out_fps;
-    static int out_frame = 0;
-
-    if (pv_output && std::abs(mTime - (next_frame)*frame_time) < 1e-7) {
-        fsi::utils::PrintToFile(myFsiSystem.GetDataManager()->sphMarkersD2.posRadD,
-                                myFsiSystem.GetDataManager()->sphMarkersD2.velMasD,
-                                myFsiSystem.GetDataManager()->sphMarkersD2.rhoPresMuD,
-                                myFsiSystem.GetDataManager()->fsiGeneralData.referenceArray,
-                                myFsiSystem.GetDataManager()->fsiGeneralData.referenceArray_FEA, demo_dir, true);
-        cout << "-------------------------------------\n" << endl;
-        cout << "             Output frame:   " << next_frame << endl;
-        cout << "             Time:           " << mTime << endl;
-        cout << "-------------------------------------\n" << endl;
-
-        out_frame++;
-    }
-}

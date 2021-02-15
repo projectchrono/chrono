@@ -33,7 +33,7 @@ using namespace chrono;
 
 // ====================================================================================
 
-class ContactForceTest : public ::testing::TestWithParam<ChMaterialSurface::ContactMethod> {
+class ContactForceTest : public ::testing::TestWithParam<ChContactMethod> {
   protected:
     ContactForceTest();
     ~ContactForceTest() { delete system; }
@@ -48,7 +48,7 @@ ContactForceTest::ContactForceTest() {
     std::shared_ptr<ChMaterialSurface> material;
 
     switch (method) {
-        case ChMaterialSurface::SMC: {
+        case ChContactMethod::SMC: {
             std::cout << "Using PENALTY method." << std::endl;
 
             bool use_mat_properties = false;
@@ -86,7 +86,7 @@ ContactForceTest::ContactForceTest() {
 
             break;
         }
-        case ChMaterialSurface::NSC: {
+        case ChContactMethod::NSC: {
             std::cout << "Using COMPLEMENTARITY method." << std::endl;
 
             system = new ChSystemNSC;
@@ -131,10 +131,9 @@ ContactForceTest::ContactForceTest() {
         ball->SetWvel_par(init_omg);
         ball->SetCollide(true);
         ball->SetBodyFixed(false);
-        ball->SetMaterialSurface(material);
 
         ball->GetCollisionModel()->ClearModel();
-        ball->GetCollisionModel()->AddSphere(radius);
+        ball->GetCollisionModel()->AddSphere(material, radius);
         ball->GetCollisionModel()->BuildModel();
 
         system->AddBody(ball);
@@ -167,7 +166,7 @@ ContactForceTest::ContactForceTest() {
     // Setup integrator
     // ----------------
 
-    if (method == ChMaterialSurface::SMC) {
+    if (method == ChContactMethod::SMC) {
         std::cout << "Using HHT integrator." << std::endl;
         system->SetTimestepperType(ChTimestepper::Type::HHT);
         auto integrator = std::static_pointer_cast<ChTimestepperHHT>(system->GetTimestepper());
@@ -202,4 +201,4 @@ TEST_P(ContactForceTest, simulate) {
     }
 }
 
-INSTANTIATE_TEST_CASE_P(Chrono, ContactForceTest, ::testing::Values(ChMaterialSurface::NSC, ChMaterialSurface::SMC));
+INSTANTIATE_TEST_CASE_P(Chrono, ContactForceTest, ::testing::Values(ChContactMethod::NSC, ChContactMethod::SMC));

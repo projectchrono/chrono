@@ -22,6 +22,7 @@
 #include "chrono/core/ChStream.h"
 #include "chrono/core/ChRealtimeStep.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
+#include "chrono/utils/ChFilters.h"
 
 #include "chrono_vehicle/ChConfigVehicle.h"
 #include "chrono_vehicle/ChVehicleModelData.h"
@@ -53,15 +54,16 @@ VisualizationType chassis_vis_type = VisualizationType::MESH;
 VisualizationType suspension_vis_type = VisualizationType::PRIMITIVES;
 VisualizationType steering_vis_type = VisualizationType::PRIMITIVES;
 VisualizationType wheel_vis_type = VisualizationType::MESH;
+VisualizationType tire_vis_type = VisualizationType::MESH;
 
 // Collision type for chassis (PRIMITIVES, MESH, or NONE)
-ChassisCollisionType chassis_collision_type = ChassisCollisionType::NONE;
+CollisionType chassis_collision_type = CollisionType::NONE;
 
 // Type of tire model (RIGID, TMEASY, PAC02)
 TireModelType tire_model = TireModelType::PAC02;
 
 // Rigid terrain
-RigidTerrain::Type terrain_model = RigidTerrain::BOX;
+RigidTerrain::PatchType terrain_model = RigidTerrain::PatchType::BOX;
 double terrainHeight = 0;      // terrain height (FLAT terrain only)
 double terrainLength = 100.0;  // size in X direction
 double terrainWidth = 100.0;   // size in Y direction
@@ -70,12 +72,12 @@ double terrainWidth = 100.0;   // size in Y direction
 ChVector<> trackPoint(0.0, 0.0, 1.75);
 
 // Contact method
-ChMaterialSurface::ContactMethod contact_method = ChMaterialSurface::SMC;
+ChContactMethod contact_method = ChContactMethod::SMC;
 bool contact_vis = false;
 
 // Simulation step sizes
-double step_size = 1e-3;
-double tire_step_size = step_size;
+double step_size = 3e-3;
+double tire_step_size = 1e-3;
 
 // Simulation end time
 double t_end = 1000;
@@ -113,8 +115,6 @@ int main(int argc, char* argv[]) {
     my_sedan.SetTireStepSize(tire_step_size);
     my_sedan.Initialize();
 
-    VisualizationType tire_vis_type = VisualizationType::MESH;
-
     my_sedan.SetChassisVisualizationType(chassis_vis_type);
     my_sedan.SetSuspensionVisualizationType(suspension_vis_type);
     my_sedan.SetSteeringVisualizationType(steering_vis_type);
@@ -124,27 +124,30 @@ int main(int argc, char* argv[]) {
     // Create the terrain
     RigidTerrain terrain(my_sedan.GetSystem());
 
+    MaterialInfo minfo;
+    minfo.mu = 0.9f;
+    minfo.cr = 0.01f;
+    minfo.Y = 2e7f;
+    auto patch_mat = minfo.CreateMaterial(contact_method);
+
     std::shared_ptr<RigidTerrain::Patch> patch;
     switch (terrain_model) {
-        case RigidTerrain::BOX:
-            patch = terrain.AddPatch(ChCoordsys<>(ChVector<>(0, 0, terrainHeight - 5), QUNIT),
-                                     ChVector<>(terrainLength, terrainWidth, 10));
+        case RigidTerrain::PatchType::BOX:
+            patch = terrain.AddPatch(patch_mat, ChVector<>(0, 0, 0), ChVector<>(0, 0, 1), terrainLength, terrainWidth);
             patch->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 200, 200);
             break;
-        case RigidTerrain::HEIGHT_MAP:
-            patch = terrain.AddPatch(CSYSNORM, vehicle::GetDataFile("terrain/height_maps/test64.bmp"), "test64", 128,
-                                     128, 0, 4);
+        case RigidTerrain::PatchType::HEIGHT_MAP:
+            patch = terrain.AddPatch(patch_mat, CSYSNORM, vehicle::GetDataFile("terrain/height_maps/test64.bmp"),
+                                     "test64", 128, 128, 0, 4);
             patch->SetTexture(vehicle::GetDataFile("terrain/textures/grass.jpg"), 16, 16);
             break;
-        case RigidTerrain::MESH:
-            patch = terrain.AddPatch(CSYSNORM, vehicle::GetDataFile("terrain/meshes/test.obj"), "test_mesh");
+        case RigidTerrain::PatchType::MESH:
+            patch = terrain.AddPatch(patch_mat, CSYSNORM, vehicle::GetDataFile("terrain/meshes/test.obj"), "test_mesh");
             patch->SetTexture(vehicle::GetDataFile("terrain/textures/grass.jpg"), 100, 100);
             break;
     }
-    patch->SetContactFrictionCoefficient(0.9f);
-    patch->SetContactRestitutionCoefficient(0.01f);
-    patch->SetContactMaterialProperties(2e7f, 0.3f);
     patch->SetColor(ChColor(0.8f, 0.8f, 0.5f));
+
     terrain.Initialize();
 
     // Create the vehicle Irrlicht interface
@@ -208,8 +211,8 @@ int main(int argc, char* argv[]) {
         my_sedan.LogHardpointLocations();
     }
 
-    // output vehicle mass
-    std::cout << "VEHICLE MASS: " << my_sedan.GetVehicle().GetVehicleMass() << std::endl;
+    my_sedan.GetVehicle().LogSubsystemTypes();
+    std::cout << "\nVehicle mass: " << my_sedan.GetVehicle().GetVehicleMass() << std::endl;
 
     // Number of simulation steps between miscellaneous events
     int render_steps = (int)std::ceil(render_step_size / step_size);
@@ -225,6 +228,8 @@ int main(int argc, char* argv[]) {
     }
 
     ChRealtimeStepTimer realtime_timer;
+    utils::ChRunningAverage RTF_filter(50);
+ 
     while (app.GetDevice()->run()) {
         double time = my_sedan.GetSystem()->GetChTime();
 
@@ -280,6 +285,7 @@ int main(int argc, char* argv[]) {
 
         // Spin in place for real time to catch up
         realtime_timer.Spin(step_size);
+        ////std::cout << RTF_filter.Add(realtime_timer.RTF) << std::endl;
     }
 
     if (driver_mode == RECORD) {

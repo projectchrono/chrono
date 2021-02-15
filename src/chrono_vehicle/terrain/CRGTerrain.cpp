@@ -46,7 +46,10 @@
 #include "chrono/assets/ChLineShape.h"
 #include "chrono/assets/ChPathShape.h"
 
+#include "chrono_vehicle/ChWorldFrame.h"
 #include "chrono_vehicle/terrain/CRGTerrain.h"
+
+#include "chrono_thirdparty/filesystem/path.h"
 
 extern "C" {
 #include "crgBaseLib.h"
@@ -54,8 +57,6 @@ extern "C" {
 
 namespace chrono {
 namespace vehicle {
-
-const std::string CRGTerrain::m_mesh_name = "crg_road";
 
 CRGTerrain::CRGTerrain(ChSystem* system)
     : m_use_vis_mesh(true), m_friction(0.8f), m_dataSetId(0), m_cpId(0), m_isClosed(false) {
@@ -65,12 +66,21 @@ CRGTerrain::CRGTerrain(ChSystem* system)
     m_ground->SetBodyFixed(true);
     m_ground->SetCollide(false);
     system->Add(m_ground);
+
+    crgMsgSetLevel(dCrgMsgLevelNone);
 }
 
 CRGTerrain::~CRGTerrain() {
     crgContactPointDelete(m_cpId);
     crgDataSetRelease(m_dataSetId);
     crgMemRelease();
+}
+
+void CRGTerrain::EnableVerbose(bool val) {
+    if (val)
+        crgMsgSetLevel(dCrgMsgLevelInfo);
+    else
+        crgMsgSetLevel(dCrgMsgLevelNone);
 }
 
 void CRGTerrain::Initialize(const std::string& crg_file) {
@@ -138,7 +148,14 @@ void CRGTerrain::Initialize(const std::string& crg_file) {
         m_isClosed = (uIsClosed != 0);
     }
 
+    // Set mesh and curve names based on name of CRG input file.
+    auto stem = filesystem::path(crg_file).stem();
+    m_mesh_name = stem + "_mesh";
+    m_curve_left_name = stem + "_left";
+    m_curve_right_name = stem + "_right";
+
     GenerateMesh();
+    GenerateCurves();
 
     if (m_use_vis_mesh) {
         SetupMeshGraphics();
@@ -147,13 +164,14 @@ void CRGTerrain::Initialize(const std::string& crg_file) {
     }
 }
 
-float CRGTerrain::GetCoefficientFriction(double x, double y) const {
-    return m_friction_fun ? (*m_friction_fun)(x, y) : m_friction;
+float CRGTerrain::GetCoefficientFriction(const ChVector<>& loc) const {
+    return m_friction_fun ? (*m_friction_fun)(loc) : m_friction;
 }
 
-double CRGTerrain::GetHeight(double x, double y) const {
+double CRGTerrain::GetHeight(const ChVector<>& loc) const {
+    ChVector<> loc_ISO = ChWorldFrame::ToISO(loc);
     double u, v, z;
-    int uv_ok = crgEvalxy2uv(m_cpId, x, y, &u, &v);
+    int uv_ok = crgEvalxy2uv(m_cpId, loc_ISO.x(), loc_ISO.y(), &u, &v);
     if (uv_ok != 1) {
         GetLog() << "CRGTerrain::GetHeight(): error during xy -> uv coordinate transformation\n";
     }
@@ -170,27 +188,33 @@ double CRGTerrain::GetHeight(double x, double y) const {
     return z;
 }
 
-ChVector<> CRGTerrain::GetNormal(double x, double y) const {
+ChVector<> CRGTerrain::GetNormal(const ChVector<>& loc) const {
+    ChVector<> loc_ISO = ChWorldFrame::ToISO(loc);
     // to avoid 'jumping' of the normal vector, we take this smoothing approach
     const double delta = 0.05;
     double z0, zfront, zleft;
-    z0 = GetHeight(x, y);
-    zfront = GetHeight(x + delta, y);
-    zleft = GetHeight(x, y + delta);
-    ChVector<> p0(x, y, z0), pfront(x + delta, y, zfront), pleft(x, y + delta, zleft), normal;
+    z0 = GetHeight(loc);
+    zfront = GetHeight(ChWorldFrame::FromISO(loc_ISO + ChVector<>(delta, 0, 0)));
+    zleft = GetHeight(ChWorldFrame::FromISO(loc_ISO + ChVector<>(0, delta, 0)));
+    ChVector<> p0(loc_ISO.x(), loc_ISO.y(), z0);
+    ChVector<> pfront(loc_ISO.x() + delta, loc_ISO.y(), zfront);
+    ChVector<> pleft(loc_ISO.x(), loc_ISO.y() + delta, zleft);
+    ChVector<> normal_ISO;
     ChVector<> r1, r2;
     r1 = pfront - p0;
     r2 = pleft - p0;
-    normal = Vcross(r1, r2);
-    if (normal.z() <= 0.0) {
+    normal_ISO = Vcross(r1, r2);
+    if (normal_ISO.z() <= 0.0) {
         GetLog() << "Fatal: wrong surface normal!\n";
         exit(99);
     }
+    ChVector<> normal = ChWorldFrame::FromISO(normal_ISO);
     normal.Normalize();
+
     return normal;
 }
 
-std::shared_ptr<ChBezierCurve> CRGTerrain::GetPath() {
+std::shared_ptr<ChBezierCurve> CRGTerrain::GetRoadCenterLine() {
     std::vector<ChVector<>> pathpoints;
 
     // damp z oscillation for the path definition
@@ -215,7 +239,7 @@ std::shared_ptr<ChBezierCurve> CRGTerrain::GetPath() {
             GetLog() << "CRGTerrain::SetupGraphics(): error during uv -> z coordinate transformation\n";
         }
         ////zm = avg.Add(zm);
-        pathpoints.push_back(ChVector<>(xm, ym, zm + 0.2));
+        pathpoints.push_back(ChWorldFrame::FromISO(ChVector<>(xm, ym, zm + 0.2)));
     }
 
     if (m_isClosed) {
@@ -225,16 +249,14 @@ std::shared_ptr<ChBezierCurve> CRGTerrain::GetPath() {
     return chrono_types::make_shared<ChBezierCurve>(pathpoints);
 }
 
-void CRGTerrain::SetupLineGraphics() {
+void CRGTerrain::GenerateCurves() {
     double dp = 3.0;
     size_t np = static_cast<size_t>(m_uend / dp);
-    std::vector<ChVector<>> pl, pr;
-    unsigned int num_render_points = std::max<unsigned int>(static_cast<unsigned int>(3 * np), 400);
-
     double du = (m_uend - m_ubeg) / double(np - 1);
+    std::vector<ChVector<>> pl, pr;
 
     for (size_t i = 0; i < np; i++) {
-        double u = m_ubeg + double(i) * du;
+        double u = m_ubeg + i * du;
         double xl, yl, zl;
         double xr, yr, zr;
 
@@ -254,8 +276,8 @@ void CRGTerrain::SetupLineGraphics() {
         if (z_ok != 1) {
             GetLog() << "CRGTerrain::SetupGraphics(): error during uv -> z coordinate transformation\n";
         }
-        pl.push_back(ChVector<>(xl, yl, zl));
-        pr.push_back(ChVector<>(xr, yr, zr));
+        pl.push_back(ChWorldFrame::FromISO(ChVector<>(xl, yl, zl)));
+        pr.push_back(ChWorldFrame::FromISO(ChVector<>(xr, yr, zr)));
     }
 
     if (m_isClosed) {
@@ -263,24 +285,31 @@ void CRGTerrain::SetupLineGraphics() {
         pr.back() = pr[0];
     }
 
+    // Create the two road boundary Bezier curves
+    m_road_left = chrono_types::make_shared<ChBezierCurve>(pl);
+    m_road_right = chrono_types::make_shared<ChBezierCurve>(pr);
+}
+
+void CRGTerrain::SetupLineGraphics() {
     auto mfloorcolor = chrono_types::make_shared<ChColorAsset>();
     mfloorcolor->SetColor(ChColor(0.3f, 0.3f, 0.6f));
     m_ground->AddAsset(mfloorcolor);
 
-    // Create a Bezier curve asset, reusing the points
-    auto bezier_curve_left = chrono_types::make_shared<ChBezierCurve>(pl);
-    auto bezier_line_left = chrono_types::make_shared<geometry::ChLineBezier>(bezier_curve_left);
+    auto np = m_road_left->getNumPoints();
+    unsigned int num_render_points = std::max<unsigned int>(static_cast<unsigned int>(3 * np), 400);
+
+    auto bezier_line_left = chrono_types::make_shared<geometry::ChLineBezier>(m_road_left);
     auto bezier_asset_left = chrono_types::make_shared<ChLineShape>();
     bezier_asset_left->SetLineGeometry(bezier_line_left);
     bezier_asset_left->SetNumRenderPoints(num_render_points);
+    bezier_asset_left->SetName(m_curve_left_name);
     m_ground->AddAsset(bezier_asset_left);
 
-    // Create a Bezier curve asset, reusing the points
-    auto bezier_curve_right = chrono_types::make_shared<ChBezierCurve>(pr);
-    auto bezier_line_right = chrono_types::make_shared<geometry::ChLineBezier>(bezier_curve_right);
+    auto bezier_line_right = chrono_types::make_shared<geometry::ChLineBezier>(m_road_right);
     auto bezier_asset_right = chrono_types::make_shared<ChLineShape>();
     bezier_asset_right->SetLineGeometry(bezier_line_right);
     bezier_asset_right->SetNumRenderPoints(num_render_points);
+    bezier_asset_right->SetName(m_curve_right_name);
     m_ground->AddAsset(bezier_asset_right);
 }
 
@@ -318,9 +347,9 @@ void CRGTerrain::GenerateMesh() {
                     z0.push_back(z);
                 }
                 if (i == nu - 1 && m_isClosed) {
-                    coords.push_back(ChVector<>(x0[j], y0[j], z0[j]));
+                    coords.push_back(ChWorldFrame::FromISO(ChVector<>(x0[j], y0[j], z0[j])));
                 } else {
-                    coords.push_back(ChVector<>(x, y, z));
+                    coords.push_back(ChWorldFrame::FromISO(ChVector<>(x, y, z)));
                 }
             }
         }
@@ -348,9 +377,9 @@ void CRGTerrain::GenerateMesh() {
                     z0.push_back(z);
                 }
                 if (i == nu - 1 && m_isClosed) {
-                    coords.push_back(ChVector<>(x0[j], y0[j], z0[j]));
+                    coords.push_back(ChWorldFrame::FromISO(ChVector<>(x0[j], y0[j], z0[j])));
                 } else {
-                    coords.push_back(ChVector<>(x, y, z));
+                    coords.push_back(ChWorldFrame::FromISO(ChVector<>(x, y, z)));
                 }
             }
         }
@@ -379,13 +408,21 @@ void CRGTerrain::SetupMeshGraphics() {
 }
 
 void CRGTerrain::ExportMeshWavefront(const std::string& out_dir) {
-    std::vector<geometry::ChTriangleMeshConnected> meshes = { *m_mesh };
+    std::vector<geometry::ChTriangleMeshConnected> meshes = {*m_mesh};
     geometry::ChTriangleMeshConnected::WriteWavefront(out_dir + "/" + m_mesh_name + ".obj", meshes);
 }
 
 void CRGTerrain::ExportMeshPovray(const std::string& out_dir) {
     utils::WriteMeshPovray(*m_mesh, m_mesh_name, out_dir, ChColor(1, 1, 1));
 }
+
+void CRGTerrain::ExportCurvesPovray(const std::string& out_dir) {
+    if (m_use_vis_mesh)
+        return;
+    utils::WriteCurvePovray(*m_road_left, m_curve_left_name, out_dir, 0.04, ChColor(0.5f, 0.8f, 0.0f));
+    utils::WriteCurvePovray(*m_road_right, m_curve_right_name, out_dir, 0.04, ChColor(0.5f, 0.8f, 0.0f));
+}
+
 
 }  // end namespace vehicle
 }  // end namespace chrono

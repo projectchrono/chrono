@@ -14,40 +14,7 @@ background on the modularity of the Chrono project.
 
 The **VEHICLE module** allows users to model and simulate vehicles. 
 
-Here are the main features:
-
-- template-based definition of vehicles
-- both tracked and wheeled vehicles
-- different types of tire models
-	- Pacejka
-	- Fiala
-	- deformable FEA (multi-layer ANCF shell elements)
-	- rigid
-- different types of soil models
-	- rigid
-	- deformable SCM (Soil Contact Model)
-	- deformable FEA (ANCF solid elements)
-	- granular
-- use JSON for easy specification of models (vehicles and sub-systems)
-- different types of suspensions for wheeled vehicles
-	- double wishbone
-	- multilink
-	- solid axle
-	- McPherson
-	- semi-trailing arm
-	- Hendrickson
-- various templates for segmented tracks
-    - single-pin track shoes
-    - double-pin track shoes
-- driveline and powertrain 1D primitives
-	- clutches
-	- thermal engines
-	- reducers
-	- gears
-	- planetary gears
-- driver models
-    - interactive (Irrlicht key and mouse controls)
-    - closed-loop (path-follower, constant speed controller, etc.)
+For more detail, read the [Chrono::Vehicle](@ref manual_vehicle) section of the reference manual.
 
 
 ## Requirements
@@ -56,6 +23,7 @@ Here are the main features:
 
 - To **build** applications based on this module there are no requirements
 
+For run-time visualization, it is recommended to enable and install the [Chrono::Irrlicht](@ref tutorial_install_chrono) module and/or the [Chrono::OpenGL](@ref module_opengl_installation) module. To use the [CRGTerrain](@ref vehicle_terrain_crg) feature, you must download, install, and enable the [OpenCRG](http://opencrg.org/download.html) library. 
 
 ## Building instructions
    
@@ -65,9 +33,13 @@ Here are the main features:
 	 
 3. Press 'Configure' again, then 'Generate', and proceed as usual in the installation instructions.
 
+If enabling OpenCRG support (`ENABLE_OPENCRG`), you will be prompted to provide the location of a local installation of OpenCRG, including the location of the headers, library, and (Windows only) the location of the OpenCRG DLL.
+
 
 ## How to use it
 
-- Look at the [API section](group__vehicle.html) of this module for documentation about classes and functions.
+- Consult the [reference manual](@ref manual_vehicle).
+
+- Look at the [API section](@ref vehicle) of this module for documentation about classes and functions.
 
 - Look at the C++ source of [demos](@ref tutorial_table_of_content_chrono_vehicle) to learn how to use the functions of this module.

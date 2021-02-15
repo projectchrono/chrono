@@ -61,6 +61,10 @@ class CH_VEHICLE_API ChSimpleCVTPowertrain : public ChPowertrain {
     /// This simplified model does not have a torque converter.
     virtual double GetTorqueConverterOutputTorque() const override { return 0; }
 
+    /// Return the torque converter output shaft speed.
+    /// This simplified model does not have a torque converter.
+    virtual double GetTorqueConverterOutputSpeed() const override { return 0; }
+
     /// Return the current transmission gear.
     /// This simplified model does not have a transmission box.
     virtual int GetCurrentTransmissionGear() const override { return 1; }
@@ -87,8 +91,8 @@ class CH_VEHICLE_API ChSimpleCVTPowertrain : public ChPowertrain {
     /// Return the maximum motor power.
     virtual double GetMaxPower() const = 0;
 
-    /// Return the critical motor speed (torque cutoff).
-    virtual double GetCriticalSpeed() const = 0;
+    /// Return the maximum motor speed (above which torque is 0).
+    virtual double GetMaxSpeed() const = 0;
 
   private:
     /// Initialize the powertrain system.
@@ -110,6 +114,7 @@ class CH_VEHICLE_API ChSimpleCVTPowertrain : public ChPowertrain {
     double m_motorSpeed;
     double m_motorTorque;
     double m_shaftTorque;
+    double m_critical_speed;
 };
 
 /// @} vehicle_powertrain

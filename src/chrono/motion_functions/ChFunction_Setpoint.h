@@ -19,6 +19,9 @@
 
 namespace chrono {
 
+/// @addtogroup chrono_functions
+/// @{
+
 /// Function that returns Y from an externally-provided value,
 /// as a ZOH (zero order hold) block. This means that the Y value
 /// does NOT change if you call Get_y(double x) with different values
@@ -124,6 +127,8 @@ class ChApi ChFunction_SetpointCallback : public ChFunction_Setpoint {
         SetSetpoint(y, x);
     };
 };
+
+/// @} chrono_functions
 
 CH_CLASS_VERSION(ChFunction_SetpointCallback, 0)
 

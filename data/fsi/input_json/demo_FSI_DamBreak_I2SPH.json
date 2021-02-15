@@ -1,0 +1,69 @@
+{
+
+  "Output Folder": "DamBreak_I2SPH",
+
+
+  "Physical Properties of Fluid":
+  {
+    "Density":                1000,
+    "Viscosity":              0.001,
+    "Body Force":             [0.0, 0.0,  0.0],
+    "Gravity":                [0.0, 0.0, -9.81],
+    "Surface Tension Kappa":   0.0,
+    "Characteristic Length":   1.0
+  },
+
+  "SPH Parameters":
+  {
+    "Method":                         "I2SPH", //WCSPH, IISPH, I2SPHH
+    "Kernel h":                       0.1,
+    "Initial Spacing":                0.1,
+    "Epsilon":                        0.01,
+    "Maximum Velocity":               1.0,
+    "XSPH Coefficient":               0.1,
+    "Shifting Coefficient":           0.00,
+    "Density Reinitialization":       0,
+    "Conservative Discretization":    true,
+    "Gradient Discretization Type":    2,
+    "Laplacian Discretization Type":   2
+  },
+
+  "Time Stepping":
+  {
+    "Adaptive Time stepping":        false,
+    "CFL number":                    0.2,
+    "Fluid time step":               0.001,
+    "Solid time step":               0.001,
+    "Maximum time step":             0.001,
+    "End time":                      10.0,
+    "Write frame per second":        20
+  },
+
+
+  "Pressure Equation":
+  {
+    "Boundary Conditions":     "Generalized Wall BC",
+    "Linear solver":           "Jacobi",
+    "Poisson source term":     "Density-Based",
+    "Projection method":       "Non-Incremental",
+    "Under-relaxation":         1.0,
+    "Clamp Pressure":           true,
+    "Alpha Source Term":        1.0,
+    "Absolute residual":        1e-8,
+    "Relative residual":        0.0,
+    "Maximum Iterations":       1000,
+    "Verbose monitoring":       false,
+    "Constraint Pressure":      false,
+    "Average Pressure":         0.0
+  },
+
+  "Geometry Inf":
+  {
+    "BoxDimensionX":                6.0,
+    "BoxDimensionY":                1.0,
+    "BoxDimensionZ":                4.0,
+    "FluidDimensionX":              2.0,
+    "FluidDimensionY":              1.0,
+    "FluidDimensionZ":              2.0
+  }
+}

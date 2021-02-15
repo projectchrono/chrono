@@ -20,6 +20,8 @@
 
 namespace chrono {
 
+/// @addtogroup chrono_functions
+/// @{
 
 /**
  * \class ChFunction_Lambda
@@ -93,6 +95,8 @@ std::shared_ptr<ChFunction_Lambda<T>> make_shared_ChFunction_Lambda(T && func) {
     return chrono_types::make_shared<ChFunction_Lambda<T>>(std::forward<T>(func));
 }
 
-} // end namespace chrono
+/// @} chrono_functions
+
+}  // end namespace chrono
 
 #endif //CHRONO_CHFUNCTION_LAMBDA_H

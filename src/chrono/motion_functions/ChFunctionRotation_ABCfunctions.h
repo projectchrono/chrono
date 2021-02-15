@@ -81,14 +81,14 @@ class ChApi ChFunctionRotation_ABCfunctions : public ChFunctionRotation {
 
    
 	/// Return the rotation as a quaternion, function of s, as q=f(s).
-	virtual ChQuaternion<> Get_q(double s) const;
+	virtual ChQuaternion<> Get_q(double s) const override;
 
 
     /// Method to allow serialization of transient data to archives
-    virtual void ArchiveOUT(ChArchiveOut& marchive);
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
 
     /// Method to allow de-serialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive);
+    virtual void ArchiveIN(ChArchiveIn& marchive) override;
 
 private:
 	std::shared_ptr<ChFunction> angleA;

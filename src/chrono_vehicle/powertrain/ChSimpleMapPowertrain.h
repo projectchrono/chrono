@@ -37,7 +37,7 @@ namespace vehicle {
 /// @addtogroup vehicle_powertrain
 /// @{
 
-/// Simple powertrain model, based on speed-torque engine maps.
+/// Template for simple powertrain model based on speed-torque engine maps.
 /// This model has no torque converter and can have either a manual or an automatic transmission.
 /// It accepts a single reverse gear and any number of forward gears.
 /// In automatic mode, gear shifting is done based on specified ideal shift points.
@@ -68,6 +68,10 @@ class CH_VEHICLE_API ChSimpleMapPowertrain : public ChPowertrain {
     /// Return the output torque from the torque converter.
     /// This simplified model does not have a torque converter.
     virtual double GetTorqueConverterOutputTorque() const override { return 0; }
+
+    /// Return the torque converter output shaft speed.
+    /// This simplified model does not have a torque converter.
+    virtual double GetTorqueConverterOutputSpeed() const override { return 0; }
 
     /// Return the current transmission gear.
     /// Returns 0 if in REVERSE, or the current gear if in FORWARD mode.

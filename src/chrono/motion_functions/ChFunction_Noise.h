@@ -19,6 +19,9 @@
 
 namespace chrono {
 
+/// @addtogroup chrono_functions
+/// @{
+
 /// Noise function:
 /// y = multi-octave noise with cubic interpolation
 class ChApi ChFunction_Noise : public ChFunction {
@@ -58,6 +61,8 @@ class ChApi ChFunction_Noise : public ChFunction {
     /// Method to allow de-serialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
+
+/// @} chrono_functions
 
 CH_CLASS_VERSION(ChFunction_Noise, 0)
 

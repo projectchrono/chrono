@@ -1,4 +1,4 @@
-Chrono FEA module tutorials {#tutorial_table_of_content_chrono_fea}
+Chrono FEA tutorials {#tutorial_table_of_content_chrono_fea}
 ===========================
 
 Tutorials that teach how to use the 

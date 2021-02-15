@@ -1,24 +1,26 @@
 Chrono PYTHON module tutorials   {#tutorial_table_of_content_chrono_python}
 ================================
 
-Tutorials that teach how to use the 
-[PYTHON module](group__python__module.html).
+Tutorials for using the [PYTHON module](group__python__module.html).
 
-These examples show how to parse Python programs **from the C++ side**, using
-the Python module.
+The examples below show how to parse Python programs **from the C++ side**, using the Chrono::Python module.
+For examples of using the Chrono::Python module **from the Python side** see the 
+[tutorials for PyChrono](@ref tutorial_table_of_content_pychrono).
 
-<div class="ce-info">
-If you want to learn about Python syntax to use 
-Chrono **from the Python side** see also 
-[the tutorials for PyChrono](@ref tutorial_table_of_content_pychrono)
-</div>
+<span style="color:red;font-weight:bold">ATTENTION!</span> Sources for these demos, **compatible** with the version of the Chrono libraries you have installed, can be found in the Chrono source tree under `src/demos/pyparser`.
 
 
-- @subpage  tutorial_demo_pyparser
+- demo_PY_parser.cpp
 
-  How to load and execute Python commands or programs **from the C++ side.**
+	How to load and execute Python commands or programs **from the C++ side.**
 
-- @subpage  tutorial_demo_import_solidworks
+<br>
 
-  Load a mechanism that you exported from SolidWorks
-  
+- demo_PY_import_solidworks.cpp
+
+	Load a mechanism that you exported from SolidWorks
+  	- load a SolidWorks mechanism into Chrono::Engine
+	- retrieve pointers to SolidWorks exported parts, given their name
+	- show a realtime simulation with Irrlicht 
+
+<br>

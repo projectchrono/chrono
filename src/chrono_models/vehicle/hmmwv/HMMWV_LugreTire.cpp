@@ -39,8 +39,8 @@ const double HMMWV_LugreTire::m_discLocs[] = {-5 * in2m, 0 * in2m, 5 * in2m};
 const double HMMWV_LugreTire::m_normalStiffness = 326332;
 const double HMMWV_LugreTire::m_normalDamping = 348;
 
-const std::string HMMWV_LugreTire::m_meshName = "hmmwv_tire_POV_geom";
-const std::string HMMWV_LugreTire::m_meshFile = "hmmwv/hmmwv_tire.obj";
+const std::string HMMWV_LugreTire::m_meshFile_left = "hmmwv/hmmwv_tire_left.obj";
+const std::string HMMWV_LugreTire::m_meshFile_right = "hmmwv/hmmwv_tire_right.obj";
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -74,14 +74,8 @@ void HMMWV_LugreTire::SetLugreParams() {
 // -----------------------------------------------------------------------------
 void HMMWV_LugreTire::AddVisualizationAssets(VisualizationType vis) {
     if (vis == VisualizationType::MESH) {
-        auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
-        trimesh->LoadWavefrontMesh(vehicle::GetDataFile(m_meshFile), false, false);
-        trimesh->Transform(ChVector<>(0, GetOffset(), 0), ChMatrix33<>(1));
-        m_trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
-        m_trimesh_shape->SetMesh(trimesh);
-        m_trimesh_shape->SetName(m_meshName);
-        m_trimesh_shape->SetStatic(true);
-        m_wheel->GetSpindle()->AddAsset(m_trimesh_shape);
+        m_trimesh_shape = AddVisualizationMesh(m_meshFile_left,    // left side
+                                               m_meshFile_right);  // right side
     } else {
         ChLugreTire::AddVisualizationAssets(vis);
     }
@@ -89,14 +83,7 @@ void HMMWV_LugreTire::AddVisualizationAssets(VisualizationType vis) {
 
 void HMMWV_LugreTire::RemoveVisualizationAssets() {
     ChLugreTire::RemoveVisualizationAssets();
-
-    // Make sure we only remove the assets added by HMMWV_LugreTire::AddVisualizationAssets.
-    // This is important for the ChTire object because a wheel may add its own assets
-    // to the same body (the spindle/wheel).
-    auto& assets = m_wheel->GetSpindle()->GetAssets();
-    auto it = std::find(assets.begin(), assets.end(), m_trimesh_shape);
-    if (it != assets.end())
-        assets.erase(it);
+    RemoveVisualizationMesh(m_trimesh_shape);
 }
 
 }  // end namespace hmmwv

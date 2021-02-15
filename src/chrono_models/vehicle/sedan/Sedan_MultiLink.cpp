@@ -39,7 +39,7 @@ const double Sedan_MultiLink::m_lateralMass = 1.910;
 const double Sedan_MultiLink::m_trailingLinkMass = 15.204;
 const double Sedan_MultiLink::m_uprightMass = 3.201;
 
-const double Sedan_MultiLink::m_spindleRadius = 0.15;
+const double Sedan_MultiLink::m_spindleRadius = 0.1;
 const double Sedan_MultiLink::m_spindleWidth = 0.03;
 const double Sedan_MultiLink::m_upperArmRadius = 0.02;
 const double Sedan_MultiLink::m_lateralRadius = 0.02;
@@ -62,17 +62,14 @@ const double Sedan_MultiLink::m_springRestLength = 0.339;
 // Constructor
 // -----------------------------------------------------------------------------
 Sedan_MultiLink::Sedan_MultiLink(const std::string& name) : ChMultiLink(name) {
-    m_springForceCB = new LinearSpringForce(m_springCoefficient);
-    m_shockForceCB = new LinearDamperForce(m_dampingCoefficient);
+    m_springForceCB = chrono_types::make_shared<LinearSpringForce>(m_springCoefficient);
+    m_shockForceCB = chrono_types::make_shared<LinearDamperForce>(m_dampingCoefficient);
 }
 
 // -----------------------------------------------------------------------------
 // Destructor
 // -----------------------------------------------------------------------------
-Sedan_MultiLink::~Sedan_MultiLink() {
-    delete m_springForceCB;
-    delete m_shockForceCB;
-}
+Sedan_MultiLink::~Sedan_MultiLink() {}
 
 // -----------------------------------------------------------------------------
 // Implementation of the getLocation() virtual methods.

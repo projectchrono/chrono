@@ -15,28 +15,21 @@
 #ifndef CHELEMENTHEXAHEDRON_H
 #define CHELEMENTHEXAHEDRON_H
 
-#include "chrono/fea/ChElement3D.h"
+#include "chrono/fea/ChElementGeneric.h"
 #include "chrono/fea/ChElementCorotational.h"
+#include "chrono/fea/ChGaussIntegrationRule.h"
 
 namespace chrono {
 namespace fea {
 
-/// Class for hexahedral elements.
-class ChApi ChElementHexahedron : public ChElement3D,
-                                  public ChElementCorotational
-//                                        //       __ __ __ __      //
-{                                         //      /           /|    //
-  protected:                              //     /_ __ __ __ / |    //
-    ChGaussIntegrationRule* ir;           //    |           |  |    //
-    std::vector<ChGaussPoint*> GpVector;  //    |           |  |    //
-                                          //    |           |  |    //
-                                          //    |           | /     //
-                                          //    |__ __ __ __|/      //
-  public:
-    int ID;
+/// @addtogroup fea_elements
+/// @{
 
-    ChElementHexahedron() : ir(nullptr) {}
-    
+/// Class for hexahedral elements.
+class ChApi ChElementHexahedron : public ChElementGeneric, public ChElementCorotational {
+  public:
+    ChElementHexahedron() : ir(nullptr), Volume(0) {}
+
     virtual ~ChElementHexahedron() {
         delete ir;
         for (auto gpoint : GpVector)
@@ -44,13 +37,22 @@ class ChApi ChElementHexahedron : public ChElement3D,
         GpVector.clear();
     }
 
+    double GetVolume() { return Volume; }
+
     virtual void Update() {
         // parent class update:
-        ChElement3D::Update();
+        ChElementGeneric::Update();
         // always keep updated the rotation matrix A:
         this->UpdateRotation();
     }
+
+  protected:
+    ChGaussIntegrationRule* ir;
+    std::vector<ChGaussPoint*> GpVector;
+    double Volume;
 };
+
+/// @} fea_elements
 
 }  // end namespace fea
 }  // end namespace chrono

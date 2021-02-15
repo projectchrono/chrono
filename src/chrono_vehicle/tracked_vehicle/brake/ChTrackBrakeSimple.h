@@ -42,12 +42,16 @@ class CH_VEHICLE_API ChTrackBrakeSimple : public ChTrackBrake {
     /// Get the name of the vehicle subsystem template.
     virtual std::string GetTemplateName() const override { return "TrackBrakeSimple"; }
 
-    /// Initialize the brake by providing the sprocket's revolute link.
-    virtual void Initialize(std::shared_ptr<ChLinkLockRevolute> hub) override;
+    /// Initialize the brake by providing the chassis and associated sprocket.
+    virtual void Initialize(std::shared_ptr<ChChassis> chassis,   ///< associated chassis subsystem
+                            std::shared_ptr<ChSprocket> sprocket  ///< associated sprocket subsystem
+                            ) override;
 
     /// Update the brake subsystem for the given braking driver input.
+    /// <pre>
     ///   braking = 0 : completely free,
     ///   braking = 1 : provide maximum braking torque
+    /// </pre>
     virtual void Synchronize(double braking) override;
 
     /// Get the current brake torque.

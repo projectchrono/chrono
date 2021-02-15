@@ -51,8 +51,8 @@ ChLinkUniversal::ChLinkUniversal(const ChLinkUniversal& other) : ChLink(other) {
 // -----------------------------------------------------------------------------
 // Link initialization functions
 // -----------------------------------------------------------------------------
-void ChLinkUniversal::Initialize(std::shared_ptr<ChBodyFrame> body1,
-                                 std::shared_ptr<ChBodyFrame> body2,
+void ChLinkUniversal::Initialize(std::shared_ptr<ChBody> body1,
+                                 std::shared_ptr<ChBody> body2,
                                  const ChFrame<>& frame) {
     Body1 = body1.get();
     Body2 = body2.get();
@@ -74,8 +74,8 @@ void ChLinkUniversal::Initialize(std::shared_ptr<ChBodyFrame> body1,
     m_C(3) = 0.0;
 }
 
-void ChLinkUniversal::Initialize(std::shared_ptr<ChBodyFrame> body1,
-                                 std::shared_ptr<ChBodyFrame> body2,
+void ChLinkUniversal::Initialize(std::shared_ptr<ChBody> body1,
+                                 std::shared_ptr<ChBody> body2,
                                  bool local,
                                  const ChFrame<>& frame1,
                                  const ChFrame<>& frame2) {

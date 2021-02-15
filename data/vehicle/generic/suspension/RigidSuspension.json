@@ -1,0 +1,19 @@
+{
+  "Name":                       "Generic Rigid Suspension",
+  "Type":                       "Suspension",
+  "Template":                   "RigidSuspension",
+
+  "Spindle" :
+  {
+    "Mass":                     1.0,
+    "COM":                      [0.0, 1.1, 0.0],
+    "Inertia":                  [0.0005, 0.0005, 0.0005],
+    "Radius":                   0.15,
+    "Width":                    0.06
+  },
+
+  "Axle":
+  {
+    "Inertia":                  0.4
+  }
+}

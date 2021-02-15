@@ -48,12 +48,27 @@ void ChElementSpring::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfactor, do
 
     // note that stiffness and damping matrices are the same, so join stuff here
     double commonfactor = this->spring_k * Kfactor + this->damper_r * Rfactor;
-    ChMatrix33<> submatr = commonfactor * dircolumn * dircolumn.transpose();
+	ChMatrix33<> V = dircolumn * dircolumn.transpose();
+    ChMatrix33<> keV = commonfactor * V;
 
-    H.block(0, 0, 3, 3) = submatr;
-    H.block(3, 3, 3, 3) = submatr;
-    H.block(0, 3, 3, 3) = -submatr;
-    H.block(3, 0, 3, 3) = -submatr;
+    H.block(0, 0, 3, 3) = keV;
+    H.block(3, 3, 3, 3) = keV;
+    H.block(0, 3, 3, 3) = -keV;
+    H.block(3, 0, 3, 3) = -keV;
+
+	// add geometric stiffness - in future it might become an option to switch off if not needed.
+	// See for ex. http://shodhbhagirathi.iitr.ac.in:8081/jspui/handle/123456789/8433 pag. 14-15
+	if (true) {
+		double L_ref = (nodes[1]->GetX0() - nodes[0]->GetX0()).Length();
+		double L = (nodes[1]->GetPos() - nodes[0]->GetPos()).Length();
+		double internal_Kforce_local = this->spring_k * (L - L_ref);
+
+		ChMatrix33<> kgV = Kfactor * (internal_Kforce_local / L_ref) * (ChMatrix33<>(1) - V);
+		H.block(0, 0, 3, 3) += kgV;
+		H.block(3, 3, 3, 3) += kgV;
+		H.block(0, 3, 3, 3) += -kgV;
+		H.block(3, 0, 3, 3) += -kgV;
+	}
 
     // finally, do nothing about mass matrix because this element is mass-less
 }
@@ -72,6 +87,16 @@ void ChElementSpring::ComputeInternalForces(ChVectorDynamic<>& Fi) {
     ChVector<> int_forceB = -dir * internal_force_local;
     Fi.segment(0, 3) = int_forceA.eigen();
     Fi.segment(3, 3) = int_forceB.eigen();
+}
+
+double ChElementSpring::GetCurrentForce() {
+	ChVector<> dir = (nodes[1]->GetPos() - nodes[0]->GetPos()).GetNormalized();
+	double L_ref = (nodes[1]->GetX0() - nodes[0]->GetX0()).Length();
+    double L = (nodes[1]->GetPos() - nodes[0]->GetPos()).Length();
+    double L_dt = Vdot((nodes[1]->GetPos_dt() - nodes[0]->GetPos_dt()), dir);
+    double internal_Kforce_local = this->spring_k * (L - L_ref);
+    double internal_Rforce_local = this->damper_r * L_dt;
+	return internal_Kforce_local + internal_Rforce_local;
 }
 
 }  // end namespace fea

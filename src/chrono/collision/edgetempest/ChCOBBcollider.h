@@ -13,7 +13,7 @@
 #ifndef CHC_OBBCOLLIDER
 #define CHC_OBBCOLLIDER
 
-#include "chrono/collision/ChCCollisionPair.h"
+#include "chrono/collision/ChCollisionPair.h"
 
 #include "chrono/collision/edgetempest/ChCCompile.h"
 #include "chrono/collision/edgetempest/ChCOBBTree.h"

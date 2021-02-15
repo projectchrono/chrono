@@ -19,6 +19,9 @@
 
 namespace chrono {
 
+/// @addtogroup chrono_functions
+/// @{
+
 /// Cubic fillet function (cubic poly with C0 C1 boundary conditions).
 ///
 ///  - y1 = y at the beginning
@@ -96,6 +99,8 @@ class ChApi ChFunction_Fillet3 : public ChFunction {
     /// Method to allow de-serialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
+
+/// @} chrono_functions
 
 }  // namespace chrono
 

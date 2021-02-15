@@ -63,18 +63,17 @@ ChDoubleWishbone::ChDoubleWishbone(const std::string& name, bool vehicle_frame_i
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChDoubleWishbone::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
+void ChDoubleWishbone::Initialize(std::shared_ptr<ChChassis> chassis,
+                                  std::shared_ptr<ChSubchassis> subchassis,
+                                  std::shared_ptr<ChSteering> steering,
                                   const ChVector<>& location,
-                                  std::shared_ptr<ChBody> tierod_body,
-                                  int steering_index,
                                   double left_ang_vel,
                                   double right_ang_vel) {
     m_location = location;
-    m_steering_index = steering_index;
 
     // Express the suspension reference frame in the absolute coordinate system.
     ChFrame<> suspension_to_abs(location);
-    suspension_to_abs.ConcatenatePreTransformation(chassis->GetFrame_REF_to_abs());
+    suspension_to_abs.ConcatenatePreTransformation(chassis->GetBody()->GetFrame_REF_to_abs());
 
     // Transform all hardpoints to absolute frame.
     m_pointsL.resize(NUM_POINTS);
@@ -87,8 +86,9 @@ void ChDoubleWishbone::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     }
 
     // Initialize left and right sides.
-    InitializeSide(LEFT, chassis, tierod_body, m_pointsL, left_ang_vel);
-    InitializeSide(RIGHT, chassis, tierod_body, m_pointsR, right_ang_vel);
+    std::shared_ptr<ChBody> tierod_body = (steering == nullptr) ? chassis->GetBody() : steering->GetSteeringLink();
+    InitializeSide(LEFT, chassis->GetBody(), tierod_body, m_pointsL, left_ang_vel);
+    InitializeSide(RIGHT, chassis->GetBody(), tierod_body, m_pointsR, right_ang_vel);
 }
 
 void ChDoubleWishbone::InitializeSide(VehicleSide side,
@@ -409,8 +409,8 @@ void ChDoubleWishbone::AddVisualizationAssets(VisualizationType vis) {
     AddVisualizationControlArm(m_LCA[RIGHT], m_pointsR[LCA_F], m_pointsR[LCA_B], m_pointsR[LCA_U], getLCARadius());
 
     // Add visualization for the springs and shocks
-    m_spring[LEFT]->AddAsset(chrono_types::make_shared<ChPointPointSpring>(0.06, 150, 15));
-    m_spring[RIGHT]->AddAsset(chrono_types::make_shared<ChPointPointSpring>(0.06, 150, 15));
+    m_spring[LEFT]->AddAsset(chrono_types::make_shared<ChPointPointSpring>(2 * getLCARadius(), 150, 15));
+    m_spring[RIGHT]->AddAsset(chrono_types::make_shared<ChPointPointSpring>(2 * getLCARadius(), 150, 15));
 
     m_shock[LEFT]->AddAsset(chrono_types::make_shared<ChPointPointSegment>());
     m_shock[RIGHT]->AddAsset(chrono_types::make_shared<ChPointPointSegment>());

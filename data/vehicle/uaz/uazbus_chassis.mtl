@@ -30,7 +30,7 @@ Tr 0
 d 1
 Ni 1.5
 Tf 1 1 1
-map_Kd uaz_main.jpg
+
 
 newmtl Feux_ar
 Kd 0.529412 0.196078 0.196078
@@ -42,7 +42,7 @@ Tr 0
 d 1
 Ni 1.5
 Tf 1 1 1
-map_Kd uaz_main.jpg
+
 
 newmtl Interieur_beige
 Kd 1 0.902778 0.777778
@@ -65,7 +65,7 @@ Tr 0
 d 1
 Ni 1.5
 Tf 1 1 1
-map_Kd uaz_main.jpg
+
 
 newmtl Interieur_sol
 Kd 0.172549 0.172549 0.172549
@@ -77,7 +77,7 @@ Tr 0
 d 1
 Ni 1.5
 Tf 1 1 1
-map_Kd pol.jpg
+
 
 newmtl Miroir
 Kd 0.254902 0.254902 0.254902
@@ -100,7 +100,7 @@ Tr 0
 d 1
 Ni 1.5
 Tf 1 1 1
-map_Kd vehiclelightson128.jpg
+
 
 newmtl Phare_vitre
 Kd 0.698039 0.698039 0.698039
@@ -112,7 +112,7 @@ Tr 0.11
 d 0.89
 Ni 1.5
 Tf 1 1 1
-map_Kd uaz_main.jpg
+
 
 newmtl Plaque_ar
 Kd 0.172549 0.172549 0.172549
@@ -124,7 +124,7 @@ Tr 0
 d 1
 Ni 1.5
 Tf 1 1 1
-map_Kd plate.jpg
+
 
 newmtl Plaque_av
 Kd 0.172549 0.172549 0.172549
@@ -136,7 +136,7 @@ Tr 0
 d 1
 Ni 1.5
 Tf 1 1 1
-map_Kd plate1.jpg
+
 
 newmtl Siege
 Kd 0.176471 0.176471 0.176471
@@ -148,7 +148,7 @@ Tr 0
 d 1
 Ni 1.5
 Tf 1 1 1
-map_Kd sidenia.jpg
+
 
 newmtl Vitre
 Kd 0.407843 0.435294 0.427451

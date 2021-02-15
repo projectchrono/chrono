@@ -20,9 +20,10 @@
 
 namespace chrono {
 
-/// Mirror function:
-///    y = __/\__
-///
+/// @addtogroup chrono_functions
+/// @{
+
+/// Mirror function:   `y = __/\__`
 /// Mirrors a function about a vertical axis.
 class ChApi ChFunction_Mirror : public ChFunction {
   private:
@@ -55,6 +56,8 @@ class ChApi ChFunction_Mirror : public ChFunction {
     /// Method to allow de-serialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
+
+/// @} chrono_functions
 
 CH_CLASS_VERSION(ChFunction_Mirror, 0)
 

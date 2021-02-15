@@ -65,14 +65,8 @@ class ChApi ChElementBrick : public ChElementGeneric, public ChLoadableUVW {
     void
     SetStockAlpha(double a1, double a2, double a3, double a4, double a5, double a6, double a7, double a8, double a9);
 
-    /// Set EAS Jacobian matrix.
-    void SetStockJac(const ChMatrixNM<double, 24, 24>& a) { m_stock_jac_EAS = a; }
-
-    /// Set Analytical Jacobian.
-    void SetStockKTE(const ChMatrixNM<double, 24, 24>& a) { m_stock_KTE = a; }
-
     /// Set some element parameters (dimensions).
-    void SetInertFlexVec(const ChVectorN<double, 3>& a) { m_InertFlexVec = a; }
+    void SetInertFlexVec(const ChVector<double>& a) { m_InertFlexVec = a; }
 
     int GetElemNum() const { return m_elementnumber; }
 
@@ -88,9 +82,9 @@ class ChApi ChElementBrick : public ChElementGeneric, public ChLoadableUVW {
     std::shared_ptr<ChNodeFEAxyz> GetNodeG() const { return m_nodes[6]; }
     std::shared_ptr<ChNodeFEAxyz> GetNodeH() const { return m_nodes[7]; }
 
-    double GetLengthX() const { return m_InertFlexVec(0); }
-    double GetLengthY() const { return m_InertFlexVec(1); }
-    double GetLengthZ() const { return m_InertFlexVec(2); }
+    double GetLengthX() const { return m_InertFlexVec.x(); }
+    double GetLengthY() const { return m_InertFlexVec.y(); }
+    double GetLengthZ() const { return m_InertFlexVec.z(); }
 
     void SetMaterial(std::shared_ptr<ChContinuumElastic> my_material) { m_Material = my_material; }
     std::shared_ptr<ChContinuumElastic> GetMaterial() const { return m_Material; }
@@ -172,7 +166,7 @@ class ChApi ChElementBrick : public ChElementGeneric, public ChLoadableUVW {
 
     ChMatrixNM<double, 24, 24> m_StiffnessMatrix;  ///< Stiffness matrix
     ChMatrixNM<double, 24, 24> m_MassMatrix;       ///< Mass matrix
-    ChVectorN<double, 3> m_InertFlexVec;           ///< for element size (EL,EW,EH)
+    ChVector<double> m_InertFlexVec;           ///< for element size (EL,EW,EH)
     // EAS
     int m_elementnumber;                         ///< Element number, for EAS
     ChMatrixNM<double, 24, 24> m_stock_jac_EAS;  ///< EAS Jacobian matrix
@@ -186,7 +180,8 @@ class ChApi ChElementBrick : public ChElementGeneric, public ChLoadableUVW {
     double CCOM1;       ///< First coefficient for Mooney-Rivlin
     double CCOM2;       ///< Second coefficient for Mooney-Rivlin
                         // Private Methods
-    virtual void Update() override;
+
+	virtual void Update() override;
 
     /// Fills the D vector with the current field values at the nodes of the element, with proper ordering.
     /// If the D vector has not the size of this->GetNdofs(), it will be resized.

@@ -117,12 +117,12 @@ int main(int argc, char* argv[]) {
     auto rev = chrono_types::make_shared<ChLinkLockRevolute>();
     rev->Initialize(body, ground, ChCoordsys<>(rev_pos, rev_rot));
     system.AddLink(rev);
-    
+
     // Create the rotational spring between body and ground
-    MySpringTorque torque;
+    auto torque = chrono_types::make_shared<MySpringTorque>();
     auto spring = chrono_types::make_shared<ChLinkRotSpringCB>();
     spring->Initialize(body, ground, ChCoordsys<>(rev_pos, rev_rot));
-    spring->RegisterTorqueFunctor(&torque);
+    spring->RegisterTorqueFunctor(torque);
     system.AddLink(spring);
 
     // Create the Irrlicht application

@@ -19,7 +19,10 @@
 
 namespace chrono {
 
-/// Constant function:  y = C
+/// @addtogroup chrono_functions
+/// @{
+
+/// Constant function:  `y = C`
 class ChApi ChFunction_Const : public ChFunction {
 
   private:
@@ -53,7 +56,9 @@ class ChApi ChFunction_Const : public ChFunction {
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
 
-CH_CLASS_VERSION(ChFunction_Const,0)
+/// @} chrono_functions
+
+CH_CLASS_VERSION(ChFunction_Const, 0)
 
 }  // end namespace chrono
 

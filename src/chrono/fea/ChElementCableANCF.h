@@ -18,7 +18,7 @@
 #define CHELEMENTCABLEANCF_H
 
 #include "chrono/core/ChVector.h"
-#include "chrono/fea/ChBeamSection.h"
+#include "chrono/fea/ChBeamSectionCable.h"
 #include "chrono/fea/ChElementBeam.h"
 #include "chrono/fea/ChNodeFEAxyzD.h"
 
@@ -30,15 +30,13 @@ namespace fea {
 
 /// Simple beam element with two nodes and ANCF gradient-deficient formulation.
 /// For this 'basic' implementation, constant section and constant material are assumed along the beam coordinate.
-/// Torsional stiffness is impossible because of the formulation.
-/// Based on the formulation in:
-///  "Analysis of Thin Beams and Cables Using the Absolute Nodal Co-ordinate Formulation"
-///  J.GERSTMAYR, A.SHABANA
-///  Nonlinear Dynamics (2006) 45: 109-130
-///  DOI: 10.1007/s11071-006-1856-1
-/// and in:
-/// "On the Validation and Applications of a Parallel Flexible Multi-body Dynamics Implementation"
-///  D. MELANZ
+/// Torsional stiffness is impossible because of the formulation. \n
+/// Based on the formulation in \n
+/// "Analysis of Thin Beams and Cables Using the Absolute Nodal Co-ordinate Formulation",
+/// J. Gerstmayr, A. Shabana, Nonlinear Dynamics (2006) 45: 109-130, DOI: 10.1007/s11071-006-1856-1 \n
+/// and \n
+/// "On the Validation and Applications of a Parallel Flexible Multi-body Dynamics Implementation",
+/// D. Melanz
 class ChApi ChElementCableANCF : public ChElementBeam, public ChLoadableU, public ChLoadableUVW {
   public:
     using ShapeVector = ChMatrixNM<double, 1, 4>;

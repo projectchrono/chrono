@@ -1,0 +1,53 @@
+{
+  "Name": "MAN TMeasy Tire",
+  "Type": "Tire",
+  "Template": "TMeasyTire",
+
+  // ------------------------------------------------
+  // Tire design (REQUIRED)
+
+  "Design": {
+    "Unloaded Radius [m]": 0.629,
+    "Mass [kg]": 104.0,
+    "Inertia [kg.m2]": [ 17.8651, 31.6623, 17.8651 ],
+    "Width [m]": 0.386,
+    "Rim Radius [m]": 0.254,
+    "Roundness of Cross Section": 0.1
+  },
+
+  "Coefficient of Friction": 0.8,
+
+  "Rolling Resistance Coefficients": [ 0.015, 0.015 ],
+
+  // ------------------------------------------------
+  // Vehicle type.
+  // Required only if tire specified with "load index" or "bearing capacity".
+  // Must be one of "Truck" or "Passenger"
+
+  "Vehicle Type": "Truck",
+
+  // ------------------------------------------------
+  // Load index specification.
+  // Takes priority over "bearing capacity" (used only if a full parameterization not provided)
+
+  "Load Index": 164,
+
+  // ------------------------------------------------
+  // Bearing capacity specification.
+  // Lowest priority (used only if no other specification provided)
+
+  "Maximum Bearing Capacity [N]": 49050,
+  
+  // consider reduced inflation pressure
+  "Inflation Pressure Design [Pa]": 7.6e5,
+  "Inflation Pressure Use [Pa]": 4.5e5,
+
+  // ------------------------------------------------
+  // Visualization mesh (OPTIONAL)
+
+  "Visualization": {
+    "Mesh Filename Left": "MAN_Kat1/meshes/MAN_tire.obj",
+    "Mesh Filename Right": "MAN_Kat1/meshes/MAN_tire.obj"
+  }
+
+}

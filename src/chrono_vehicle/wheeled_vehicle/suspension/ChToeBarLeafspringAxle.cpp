@@ -14,11 +14,11 @@
 //
 // Base class for a steerable leaf-spring solid axle suspension.
 //
-// This class is meant for modelling a very simple steerable solid leafspring 
+// This class is meant for modelling a very simple steerable solid leafspring
 // axle. The guiding function of leafspring is modelled by a ChLinkLockRevolutePrismatic
 // joint, it allows vertical movement and tilting of the axle tube but no elasticity.
 // The spring function of the leafspring is modelled by a vertical spring element.
-// Tie up of the leafspring is not possible with this approach, as well as the 
+// Tie up of the leafspring is not possible with this approach, as well as the
 // characteristic kinematics along wheel travel. The roll center and roll stability
 // is met well, if spring track is defined correctly. The class has been designed
 // for maximum easyness and numerical efficiency.
@@ -48,36 +48,26 @@ namespace vehicle {
 // -----------------------------------------------------------------------------
 // Static variables
 // -----------------------------------------------------------------------------
-const std::string ChToeBarLeafspringAxle::m_pointNames[] = {"SHOCK_A    ",
-                                                 "SHOCK_C    ",
-                                                 "KNUCKLE_L  ",
-                                                 "KNUCKLE_U  ",
-                                                 "KNUCKLE_DRL",
-                                                 "SPRING_A   ",
-                                                 "SPRING_C   ",
-                                                 "TIEROD_C   ",
-                                                 "TIEROD_K   ",
-                                                 "SPINDLE    ",
-                                                 "KNUCKLE_CM "};
+const std::string ChToeBarLeafspringAxle::m_pointNames[] = {"SHOCK_A    ", "SHOCK_C    ", "KNUCKLE_L  ", "KNUCKLE_U  ",
+                                                            "KNUCKLE_DRL", "SPRING_A   ", "SPRING_C   ", "TIEROD_C   ",
+                                                            "TIEROD_K   ", "SPINDLE    ", "KNUCKLE_CM "};
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-ChToeBarLeafspringAxle::ChToeBarLeafspringAxle(const std::string& name) : ChSuspension(name) {
-}
+ChToeBarLeafspringAxle::ChToeBarLeafspringAxle(const std::string& name) : ChSuspension(name) {}
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChToeBarLeafspringAxle::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
-                             const ChVector<>& location,
-                             std::shared_ptr<ChBody> tierod_body,
-                             int steering_index,
-                             double left_ang_vel,
-                             double right_ang_vel) {
+void ChToeBarLeafspringAxle::Initialize(std::shared_ptr<ChChassis> chassis,
+                                        std::shared_ptr<ChSubchassis> subchassis,
+                                        std::shared_ptr<ChSteering> steering,
+                                        const ChVector<>& location,
+                                        double left_ang_vel,
+                                        double right_ang_vel) {
     m_location = location;
-    m_steering_index = steering_index;
 
     m_left_knuckle_steers = isLeftKnuckleActuated();
-    
+
     // Unit vectors for orientation matrices.
     ChVector<> u;
     ChVector<> v;
@@ -86,7 +76,7 @@ void ChToeBarLeafspringAxle::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
 
     // Express the suspension reference frame in the absolute coordinate system.
     ChFrame<> suspension_to_abs(location);
-    suspension_to_abs.ConcatenatePreTransformation(chassis->GetFrame_REF_to_abs());
+    suspension_to_abs.ConcatenatePreTransformation(chassis->GetBody()->GetFrame_REF_to_abs());
 
     // Transform the location of the axle body COM to absolute frame.
     ChVector<> axleCOM_local = getAxleTubeCOM();
@@ -101,22 +91,22 @@ void ChToeBarLeafspringAxle::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     m_axleOuterR = suspension_to_abs.TransformPointLocalToParent(outer_local);
 
     // Create and initialize the axle body.
-    m_axleTube = std::shared_ptr<ChBody>(chassis->GetSystem()->NewBody());
+    m_axleTube = std::shared_ptr<ChBody>(chassis->GetBody()->GetSystem()->NewBody());
     m_axleTube->SetNameString(m_name + "_axleTube");
     m_axleTube->SetPos(axleCOM);
-    m_axleTube->SetRot(chassis->GetFrame_REF_to_abs().GetRot());
+    m_axleTube->SetRot(chassis->GetBody()->GetFrame_REF_to_abs().GetRot());
     m_axleTube->SetMass(getAxleTubeMass());
     m_axleTube->SetInertiaXX(getAxleTubeInertia());
-    chassis->GetSystem()->AddBody(m_axleTube);
- 
+    chassis->GetBody()->GetSystem()->AddBody(m_axleTube);
+
     // Fix the axle body to the chassis
     m_axleTubeGuide = chrono_types::make_shared<ChLinkLockRevolutePrismatic>();
     m_axleTubeGuide->SetNameString(m_name + "_revolutePrismaticAxleTube");
-    const ChQuaternion<>& guideRot = chassis->GetFrame_REF_to_abs().GetRot();
-    m_axleTubeGuide->Initialize(chassis, m_axleTube, ChCoordsys<>(axleCOM, guideRot * Q_from_AngY(CH_C_PI_2)));
+    const ChQuaternion<>& guideRot = chassis->GetBody()->GetFrame_REF_to_abs().GetRot();
+    m_axleTubeGuide->Initialize(chassis->GetBody(), m_axleTube,
+                                ChCoordsys<>(axleCOM, guideRot * Q_from_AngY(CH_C_PI_2)));
+    chassis->GetBody()->GetSystem()->AddLink(m_axleTubeGuide);
 
-    chassis->GetSystem()->AddLink(m_axleTubeGuide);
-    
     // Calculate end points on the tierod body, expressed in the absolute frame
     // (for visualization)
     ChVector<> tierodOuter_local(getLocation(TIEROD_K));
@@ -125,13 +115,13 @@ void ChToeBarLeafspringAxle::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     m_tierodOuterR = suspension_to_abs.TransformPointLocalToParent(tierodOuter_local);
 
     // Create and initialize the tierod body.
-    m_tierod = std::shared_ptr<ChBody>(chassis->GetSystem()->NewBody());
+    m_tierod = std::shared_ptr<ChBody>(chassis->GetBody()->GetSystem()->NewBody());
     m_tierod->SetNameString(m_name + "_tierodBody");
     m_tierod->SetPos((m_tierodOuterL + m_tierodOuterR) / 2);
-    m_tierod->SetRot(chassis->GetFrame_REF_to_abs().GetRot());
+    m_tierod->SetRot(chassis->GetBody()->GetFrame_REF_to_abs().GetRot());
     m_tierod->SetMass(getTierodMass());
     m_tierod->SetInertiaXX(getTierodInertia());
-    chassis->GetSystem()->AddBody(m_tierod);
+    chassis->GetBody()->GetSystem()->AddBody(m_tierod);
 
     // Transform all hardpoints to absolute frame.
     m_pointsL.resize(NUM_POINTS);
@@ -143,81 +133,82 @@ void ChToeBarLeafspringAxle::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
         m_pointsR[i] = suspension_to_abs.TransformLocalToParent(rel_pos);
     }
 
-  // Initialize left and right sides.
-    InitializeSide(LEFT, chassis, tierod_body, m_pointsL, left_ang_vel);
-    InitializeSide(RIGHT, chassis, tierod_body, m_pointsR, right_ang_vel);
-    
-    if (m_left_knuckle_steers) {
-      // Create and initialize the draglink body (one side only).
-      // Determine the rotation matrix of the draglink based on the plane of the hard points
-      // (z-axis along the length of the draglink)
-      v = Vcross(m_pointsL[KNUCKLE_DRL], m_pointsL[DRAGLINK_C]);
-      v.Normalize();
-      w = m_pointsL[DRAGLINK_C] - m_pointsL[KNUCKLE_DRL];
-      w.Normalize();
-      u = Vcross(v, w);
-      rot.Set_A_axis(u, v, w);
-    
-      m_draglink = std::shared_ptr<ChBody>(chassis->GetSystem()->NewBody());
-      m_draglink->SetNameString(m_name + "_draglink");
-      m_draglink->SetPos((m_pointsL[DRAGLINK_C] + m_pointsL[KNUCKLE_DRL]) / 2);
-      m_draglink->SetRot(rot.Get_A_quaternion());
-      m_draglink->SetMass(getDraglinkMass());
-      m_draglink->SetInertiaXX(getDraglinkInertia());
-      chassis->GetSystem()->AddBody(m_draglink);
-      
-      // Create and initialize the spherical joint between steering mechanism and draglink.
-      m_sphericalDraglink = chrono_types::make_shared<ChLinkLockSpherical>();
-      m_sphericalDraglink->SetNameString(m_name + "_sphericalDraglink" + "_L");
-      m_sphericalDraglink->Initialize(m_draglink, tierod_body, ChCoordsys<>(m_pointsL[DRAGLINK_C], QUNIT));
-      //m_sphericalDraglink->Initialize(m_draglink, chassis, ChCoordsys<>(points[DRAGLINK_C], QUNIT));
-      chassis->GetSystem()->AddLink(m_sphericalDraglink);
-    
-      // Create and initialize the universal joint between draglink and knuckle
-      m_universalDraglink = chrono_types::make_shared<ChLinkUniversal>();
-      m_universalDraglink->SetNameString(m_name + "_universalDraglink" + "_L");
-      m_universalDraglink->Initialize(m_draglink, m_knuckle[LEFT], ChFrame<>(m_pointsL[KNUCKLE_DRL], rot.Get_A_quaternion()));
-      chassis->GetSystem()->AddLink(m_universalDraglink);
-     } else {
-      // Create and initialize the draglink body (one side only).
-      // Determine the rotation matrix of the draglink based on the plane of the hard points
-      // (z-axis along the length of the draglink)
-      v = Vcross(m_pointsR[KNUCKLE_DRL], m_pointsL[DRAGLINK_C]);
-      v.Normalize();
-      w = m_pointsL[DRAGLINK_C] - m_pointsR[KNUCKLE_DRL];
-      w.Normalize();
-      u = Vcross(v, w);
-      rot.Set_A_axis(u, v, w);
-    
-      m_draglink = std::shared_ptr<ChBody>(chassis->GetSystem()->NewBody());
-      m_draglink->SetNameString(m_name + "_draglink");
-      m_draglink->SetPos((m_pointsL[DRAGLINK_C] + m_pointsR[KNUCKLE_DRL]) / 2);
-      m_draglink->SetRot(rot.Get_A_quaternion());
-      m_draglink->SetMass(getDraglinkMass());
-      m_draglink->SetInertiaXX(getDraglinkInertia());
-      chassis->GetSystem()->AddBody(m_draglink);
-      
-      // Create and initialize the spherical joint between steering mechanism and draglink.
-      m_sphericalDraglink = chrono_types::make_shared<ChLinkLockSpherical>();
-      m_sphericalDraglink->SetNameString(m_name + "_sphericalDraglink" + "_L");
-      m_sphericalDraglink->Initialize(m_draglink, tierod_body, ChCoordsys<>(m_pointsL[DRAGLINK_C], QUNIT));
-      //m_sphericalDraglink->Initialize(m_draglink, chassis, ChCoordsys<>(points[DRAGLINK_C], QUNIT));
-      chassis->GetSystem()->AddLink(m_sphericalDraglink);
-    
-      // Create and initialize the universal joint between draglink and knuckle
-      m_universalDraglink = chrono_types::make_shared<ChLinkUniversal>();
-      m_universalDraglink->SetNameString(m_name + "_universalDraglink" + "_R");
-      m_universalDraglink->Initialize(m_draglink, m_knuckle[RIGHT], ChFrame<>(m_pointsR[KNUCKLE_DRL], rot.Get_A_quaternion()));
-      chassis->GetSystem()->AddLink(m_universalDraglink);         
-     }
+    // Initialize left and right sides.
+    InitializeSide(LEFT, chassis->GetBody(), m_pointsL, left_ang_vel);
+    InitializeSide(RIGHT, chassis->GetBody(), m_pointsR, right_ang_vel);
 
+    // Create connection to steering mechanism
+    std::shared_ptr<ChBody> tierod_body = (steering == nullptr) ? chassis->GetBody() : steering->GetSteeringLink();
+
+    if (m_left_knuckle_steers) {
+        // Create and initialize the draglink body (one side only).
+        // Determine the rotation matrix of the draglink based on the plane of the hard points
+        // (z-axis along the length of the draglink)
+        v = Vcross(m_pointsL[KNUCKLE_DRL], m_pointsL[DRAGLINK_C]);
+        v.Normalize();
+        w = m_pointsL[DRAGLINK_C] - m_pointsL[KNUCKLE_DRL];
+        w.Normalize();
+        u = Vcross(v, w);
+        rot.Set_A_axis(u, v, w);
+
+        m_draglink = std::shared_ptr<ChBody>(chassis->GetBody()->GetSystem()->NewBody());
+        m_draglink->SetNameString(m_name + "_draglink");
+        m_draglink->SetPos((m_pointsL[DRAGLINK_C] + m_pointsL[KNUCKLE_DRL]) / 2);
+        m_draglink->SetRot(rot.Get_A_quaternion());
+        m_draglink->SetMass(getDraglinkMass());
+        m_draglink->SetInertiaXX(getDraglinkInertia());
+        chassis->GetBody()->GetSystem()->AddBody(m_draglink);
+
+        // Create and initialize the spherical joint between steering mechanism and draglink.
+        m_sphericalDraglink = chrono_types::make_shared<ChLinkLockSpherical>();
+        m_sphericalDraglink->SetNameString(m_name + "_sphericalDraglink" + "_L");
+        m_sphericalDraglink->Initialize(m_draglink, tierod_body, ChCoordsys<>(m_pointsL[DRAGLINK_C], QUNIT));
+        chassis->GetBody()->GetSystem()->AddLink(m_sphericalDraglink);
+
+        // Create and initialize the universal joint between draglink and knuckle
+        m_universalDraglink = chrono_types::make_shared<ChLinkUniversal>();
+        m_universalDraglink->SetNameString(m_name + "_universalDraglink" + "_L");
+        m_universalDraglink->Initialize(m_draglink, m_knuckle[LEFT],
+                                        ChFrame<>(m_pointsL[KNUCKLE_DRL], rot.Get_A_quaternion()));
+        chassis->GetBody()->GetSystem()->AddLink(m_universalDraglink);
+    } else {
+        // Create and initialize the draglink body (one side only).
+        // Determine the rotation matrix of the draglink based on the plane of the hard points
+        // (z-axis along the length of the draglink)
+        v = Vcross(m_pointsR[KNUCKLE_DRL], m_pointsL[DRAGLINK_C]);
+        v.Normalize();
+        w = m_pointsL[DRAGLINK_C] - m_pointsR[KNUCKLE_DRL];
+        w.Normalize();
+        u = Vcross(v, w);
+        rot.Set_A_axis(u, v, w);
+
+        m_draglink = std::shared_ptr<ChBody>(chassis->GetBody()->GetSystem()->NewBody());
+        m_draglink->SetNameString(m_name + "_draglink");
+        m_draglink->SetPos((m_pointsL[DRAGLINK_C] + m_pointsR[KNUCKLE_DRL]) / 2);
+        m_draglink->SetRot(rot.Get_A_quaternion());
+        m_draglink->SetMass(getDraglinkMass());
+        m_draglink->SetInertiaXX(getDraglinkInertia());
+        chassis->GetBody()->GetSystem()->AddBody(m_draglink);
+
+        // Create and initialize the spherical joint between steering mechanism and draglink.
+        m_sphericalDraglink = chrono_types::make_shared<ChLinkLockSpherical>();
+        m_sphericalDraglink->SetNameString(m_name + "_sphericalDraglink" + "_L");
+        m_sphericalDraglink->Initialize(m_draglink, tierod_body, ChCoordsys<>(m_pointsL[DRAGLINK_C], QUNIT));
+        chassis->GetBody()->GetSystem()->AddLink(m_sphericalDraglink);
+
+        // Create and initialize the universal joint between draglink and knuckle
+        m_universalDraglink = chrono_types::make_shared<ChLinkUniversal>();
+        m_universalDraglink->SetNameString(m_name + "_universalDraglink" + "_R");
+        m_universalDraglink->Initialize(m_draglink, m_knuckle[RIGHT],
+                                        ChFrame<>(m_pointsR[KNUCKLE_DRL], rot.Get_A_quaternion()));
+        chassis->GetBody()->GetSystem()->AddLink(m_universalDraglink);
+    }
 }
 
 void ChToeBarLeafspringAxle::InitializeSide(VehicleSide side,
-                                 std::shared_ptr<ChBodyAuxRef> chassis,
-                                 std::shared_ptr<ChBody> tierod_body,
-                                 const std::vector<ChVector<> >& points,
-                                 double ang_vel) {
+                                            std::shared_ptr<ChBodyAuxRef> chassis,
+                                            const std::vector<ChVector<>>& points,
+                                            double ang_vel) {
     std::string suffix = (side == LEFT) ? "_L" : "_R";
 
     // Unit vectors for orientation matrices.
@@ -238,7 +229,7 @@ void ChToeBarLeafspringAxle::InitializeSide(VehicleSide side,
     m_knuckle[side]->SetMass(getKnuckleMass());
     m_knuckle[side]->SetInertiaXX(getKnuckleInertia());
     chassis->GetSystem()->AddBody(m_knuckle[side]);
-    
+
     // Create and initialize spindle body (same orientation as the chassis)
     m_spindle[side] = std::shared_ptr<ChBody>(chassis->GetSystem()->NewBody());
     m_spindle[side]->SetNameString(m_name + "_spindle" + suffix);
@@ -301,41 +292,6 @@ void ChToeBarLeafspringAxle::InitializeSide(VehicleSide side,
     m_spring[side]->RegisterForceFunctor(getSpringForceFunctor());
     chassis->GetSystem()->AddLink(m_spring[side]);
 
-    /* Create and initialize the tierod distance constraint between chassis and upright.
-    if (side == LEFT) {
-      // Create and initialize the draglink body (one side only).
-      // Determine the rotation matrix of the draglink based on the plane of the hard points
-      // (z-axis along the length of the draglink)
-      v = Vcross(points[KNUCKLE_DRL], points[DRAGLINK_C]);
-      v.Normalize();
-      w = points[DRAGLINK_C] - points[KNUCKLE_DRL];
-      w.Normalize();
-      u = Vcross(v, w);
-      rot.Set_A_axis(u, v, w);
-    
-      m_draglink = std::shared_ptr<ChBody>(chassis->GetSystem()->NewBody());
-      m_draglink->SetNameString(m_name + "_draglink");
-      m_draglink->SetPos((points[DRAGLINK_C] + points[KNUCKLE_DRL]) / 2);
-      m_draglink->SetRot(rot.Get_A_quaternion());
-      m_draglink->SetMass(getDraglinkMass());
-      m_draglink->SetInertiaXX(getDraglinkInertia());
-      chassis->GetSystem()->AddBody(m_draglink);
-      
-      // Create and initialize the spherical joint between steering mechanism and draglink.
-      m_sphericalDraglink = chrono_types::make_shared<ChLinkLockSpherical>();
-      m_sphericalDraglink->SetNameString(m_name + "_sphericalDraglink" + suffix);
-      m_sphericalDraglink->Initialize(m_draglink, tierod_body, ChCoordsys<>(points[DRAGLINK_C], QUNIT));
-      //m_sphericalDraglink->Initialize(m_draglink, chassis, ChCoordsys<>(points[DRAGLINK_C], QUNIT));
-      chassis->GetSystem()->AddLink(m_sphericalDraglink);
-    
-      // Create and initialize the universal joint between draglink and bell crank.
-      m_universalDraglink = chrono_types::make_shared<ChLinkUniversal>();
-      m_universalDraglink->SetNameString(m_name + "_universalDraglink" + suffix);
-      m_universalDraglink->Initialize(m_draglink, m_knuckle[side], ChFrame<>(points[KNUCKLE_DRL], rot.Get_A_quaternion()));
-      chassis->GetSystem()->AddLink(m_universalDraglink);
-       
-     }
-*/
     // Create and initialize the axle shaft and its connection to the spindle. Note that the
     // spindle rotates about the Y axis.
     m_axle[side] = chrono_types::make_shared<ChShaft>();
@@ -354,8 +310,7 @@ void ChToeBarLeafspringAxle::InitializeSide(VehicleSide side,
 // Get the total mass of the suspension subsystem.
 // -----------------------------------------------------------------------------
 double ChToeBarLeafspringAxle::GetMass() const {
-    return getAxleTubeMass() + getTierodMass() + getDraglinkMass() +
-           2 * (getSpindleMass() + getKnuckleMass());
+    return getAxleTubeMass() + getTierodMass() + getDraglinkMass() + 2 * (getSpindleMass() + getKnuckleMass());
 }
 
 // -----------------------------------------------------------------------------
@@ -428,7 +383,6 @@ void ChToeBarLeafspringAxle::LogConstraintViolations(VehicleSide side) {
         GetLog() << "  " << C(4) << "\n";
     }
 
- 
     {
         ChVectorDynamic<> C = m_sphericalTierod->GetC();
         GetLog() << "Tierod spherical          ";
@@ -444,24 +398,22 @@ void ChToeBarLeafspringAxle::LogConstraintViolations(VehicleSide side) {
         GetLog() << "  " << C(2) << "\n";
     }
 
-
     {
-      ChVectorDynamic<> C = m_universalTierod->GetC();
-      GetLog() << "Tierod universal          ";
-      GetLog() << "  " << C(0) << "  ";
-      GetLog() << "  " << C(1) << "  ";
-      GetLog() << "  " << C(2) << "  ";
-      GetLog() << "  " << C(3) << "\n";
+        ChVectorDynamic<> C = m_universalTierod->GetC();
+        GetLog() << "Tierod universal          ";
+        GetLog() << "  " << C(0) << "  ";
+        GetLog() << "  " << C(1) << "  ";
+        GetLog() << "  " << C(2) << "  ";
+        GetLog() << "  " << C(3) << "\n";
     }
     {
-      ChVectorDynamic<> C = m_universalDraglink->GetC();
-      GetLog() << "Draglink universal          ";
-      GetLog() << "  " << C(0) << "  ";
-      GetLog() << "  " << C(1) << "  ";
-      GetLog() << "  " << C(2) << "  ";
-      GetLog() << "  " << C(3) << "\n";
+        ChVectorDynamic<> C = m_universalDraglink->GetC();
+        GetLog() << "Draglink universal          ";
+        GetLog() << "  " << C(0) << "  ";
+        GetLog() << "  " << C(1) << "  ";
+        GetLog() << "  " << C(2) << "  ";
+        GetLog() << "  " << C(3) << "\n";
     }
-
 }
 
 // -----------------------------------------------------------------------------
@@ -476,12 +428,12 @@ void ChToeBarLeafspringAxle::AddVisualizationAssets(VisualizationType vis) {
 
     AddVisualizationLink(m_tierod, m_tierodOuterL, m_tierodOuterR, getTierodRadius(), ChColor(0.7f, 0.7f, 0.7f));
 
-    if(m_left_knuckle_steers) {
+    if (m_left_knuckle_steers) {
         AddVisualizationLink(m_draglink, m_pointsL[DRAGLINK_C], m_pointsL[KNUCKLE_DRL], getDraglinkRadius(),
-                         ChColor(0.7f, 0.7f, 0.7f));
+                             ChColor(0.7f, 0.7f, 0.7f));
     } else {
         AddVisualizationLink(m_draglink, m_pointsL[DRAGLINK_C], m_pointsR[KNUCKLE_DRL], getDraglinkRadius(),
-                         ChColor(0.7f, 0.7f, 0.7f));        
+                             ChColor(0.7f, 0.7f, 0.7f));
     }
 
     AddVisualizationKnuckle(m_knuckle[LEFT], m_pointsL[KNUCKLE_U], m_pointsL[KNUCKLE_L], m_pointsL[TIEROD_K],
@@ -517,10 +469,10 @@ void ChToeBarLeafspringAxle::RemoveVisualizationAssets() {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChToeBarLeafspringAxle::AddVisualizationLink(std::shared_ptr<ChBody> body,
-                                       const ChVector<> pt_1,
-                                       const ChVector<> pt_2,
-                                       double radius,
-                                       const ChColor& color) {
+                                                  const ChVector<> pt_1,
+                                                  const ChVector<> pt_2,
+                                                  double radius,
+                                                  const ChColor& color) {
     // Express hardpoint locations in body frame.
     ChVector<> p_1 = body->TransformPointParentToLocal(pt_1);
     ChVector<> p_2 = body->TransformPointParentToLocal(pt_2);
@@ -536,12 +488,11 @@ void ChToeBarLeafspringAxle::AddVisualizationLink(std::shared_ptr<ChBody> body,
     body->AddAsset(col);
 }
 
-
 void ChToeBarLeafspringAxle::AddVisualizationKnuckle(std::shared_ptr<ChBody> knuckle,
-                                          const ChVector<> pt_U,
-                                          const ChVector<> pt_L,
-                                          const ChVector<> pt_T,
-                                          double radius) {
+                                                     const ChVector<> pt_U,
+                                                     const ChVector<> pt_L,
+                                                     const ChVector<> pt_T,
+                                                     double radius) {
     static const double threshold2 = 1e-6;
 
     // Express hardpoint locations in body frame.
