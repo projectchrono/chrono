@@ -41,7 +41,7 @@ namespace generic {
 /// subsystems (suspensions, steering, tires, etc.)
 class CH_MODELS_API Generic_Vehicle : public ChWheeledVehicle {
   public:
-    Generic_Vehicle(const bool fixed, SuspensionType suspType, ChContactMethod contactMethod = ChContactMethod::NSC);
+    Generic_Vehicle(const bool fixed, SuspensionTypeWV suspType, ChContactMethod contactMethod = ChContactMethod::NSC);
 
     ~Generic_Vehicle() {}
 
@@ -66,7 +66,7 @@ class CH_MODELS_API Generic_Vehicle : public ChWheeledVehicle {
     void DebugLog(int what);       /// shock forces and lengths, constraints, etc.
 
   private:
-    SuspensionType m_suspType;
+    SuspensionTypeWV m_suspType;
 };
 
 /// @} vehicle_models_generic

@@ -84,6 +84,9 @@ class SYN_API SynCommunicator {
     ///@param messages a list of handles to messages to add to the outgoing buffer
     void AddOutgoingMessages(SynMessageList& messages);
 
+    /// @brief Adds a quit message to the queue telling other nodes to end the simulation
+    void AddQuitMessage();
+
     ///@brief Add the messages to the incoming message buffer
     ///
     ///@param messages a list of handles to messages to add to the incoming buffer

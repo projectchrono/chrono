@@ -32,7 +32,7 @@ Camera->PushFilter(chrono_types::make_shared<ChFilterRGBA8Access>());
 manager->AddSensor(Camera);
 ~~~
 
-See [ChCameraSensor](@ref chrono::sensor::ChCameraSensor) for more details. 
+See [ChCameraSensor](@ref chrono::sensor::ChCameraSensor) for more details.
 
 The camera setup process will automatically add the [Optix Render Filter](@ref chrono::sensor::ChFilterOptixRender)
 to the filter list
@@ -42,9 +42,9 @@ If the camera supersample_factor is greater than 1, the setup process will adjus
 
 ## Rendering steps
 
-The Camera sensor in Chrono::sensor uses Optix as the render engine. For each pixel, the engine will shoot out a ray at that direction and find the first object intersects with the ray. By default, the engine uses the physically based BRDF shader for rendering objects. It will spawn additional rays for shadows, reflection, and refraction in a recursive fashion. 
+The Camera sensor in Chrono::sensor uses Optix as the render engine. For each pixel, the engine will shoot out a ray at that direction and find the first object intersects with the ray. By default, the engine uses the physically based BRDF shader for rendering objects. It will spawn additional rays for shadows, reflection, and refraction in a recursive fashion.
 
-The camera update frequency is much slower than the physics. Therefore the [ChOptixEngine](@ref chrono::sensor::ChOptixEngine) spawns a thread to perform the 
+The camera update frequency is much slower than the physics. Therefore the [ChOptixEngine](@ref chrono::sensor::ChOptixEngine) spawns a thread to perform the
 rendering, and it will not block the main thread
 
 ### Each Update (main thread)
@@ -55,7 +55,7 @@ rendering, and it will not block the main thread
 3. Continue to the next time step
 
 ### Rendering thread
-1. Wait until there is a camera in the render queue 
+1. Wait until there is a camera in the render queue
 2. Update those camera, clear the render queue, go back to step 1
 
 ## Filter Graphs
@@ -88,4 +88,3 @@ if (RGBA_ptr->Buffer) {
     uint8_t red_channel_at_100_100 = unsigned(pixel_at_100_100.R);
 }
 ~~~
-      

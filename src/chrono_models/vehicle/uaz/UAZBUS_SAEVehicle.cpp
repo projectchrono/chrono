@@ -31,7 +31,7 @@ namespace uaz {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 UAZBUS_SAEVehicle::UAZBUS_SAEVehicle(const bool fixed,
-                                     SteeringType steering_model,
+                                     SteeringTypeWV steering_model,
                                      ChContactMethod contact_method,
                                      CollisionType chassis_collision_type)
     : ChWheeledVehicle("UAZBUS", contact_method), m_omega({0, 0, 0, 0}) {
@@ -40,13 +40,13 @@ UAZBUS_SAEVehicle::UAZBUS_SAEVehicle(const bool fixed,
 
 UAZBUS_SAEVehicle::UAZBUS_SAEVehicle(ChSystem* system,
                                      const bool fixed,
-                                     SteeringType steering_model,
+                                     SteeringTypeWV steering_model,
                                      CollisionType chassis_collision_type)
     : ChWheeledVehicle("UAZBUS", system), m_omega({0, 0, 0, 0}) {
     Create(fixed, steering_model, chassis_collision_type);
 }
 
-void UAZBUS_SAEVehicle::Create(bool fixed, SteeringType steering_model, CollisionType chassis_collision_type) {
+void UAZBUS_SAEVehicle::Create(bool fixed, SteeringTypeWV steering_model, CollisionType chassis_collision_type) {
     // Create the chassis subsystem
     m_chassis = chrono_types::make_shared<UAZBUS_Chassis>("Chassis", fixed, chassis_collision_type);
 

@@ -3,46 +3,13 @@
 #include "chrono_synchrono/SynConfig.h"
 #include "chrono_synchrono/utils/SynLog.h"
 #include "chrono_synchrono/agent/SynAgentFactory.h"
-
-#ifdef CHRONO_FASTDDS
-#undef ALIVE
-
-#include "chrono_synchrono/communication/dds/SynDDSCommunicator.h"
-#include "chrono_synchrono/communication/dds/SynDDSListener.h"
-#include "chrono_synchrono/communication/dds/idl/SynDDSMessage.h"
-#include "chrono_synchrono/communication/dds/idl/SynDDSMessagePubSubTypes.h"
-#include "chrono_synchrono/communication/dds/SynDDSTopic.h"
-#endif
+#include "chrono_synchrono/flatbuffer/message/SynSimulationMessage.h"
 
 namespace chrono {
 namespace synchrono {
 
-#ifdef CHRONO_FASTDDS
-
-void ProcessMessage(std::shared_ptr<SynCommunicator> communicator, void* message) {
-    communicator->ProcessBuffer(((SynDDSMessage*)message)->data());
-}
-
-void RegisterParticipant(std::shared_ptr<SynCommunicator> communicator, const std::string& participant_name) {
-    std::string default_prefix = "/syn/node/";
-
-    std::size_t found = participant_name.find(default_prefix);
-    if (found == std::string::npos)
-        return;  // prefix not found
-
-    if (auto dds_communicator = std::dynamic_pointer_cast<SynDDSCommunicator>(communicator)) {
-        SynLog() << "Adding Participant: " << participant_name << "\n";
-
-        auto callback = std::bind(&ProcessMessage, communicator, std::placeholders::_1);
-        dds_communicator->CreateSubscriber(SynDDSTopic::RemovePrefix(participant_name), new SynDDSMessagePubSubType(),
-                                           callback, new SynDDSMessage(), true);
-    }
-}
-
-#endif
-
 SynChronoManager::SynChronoManager(SynNodeID nid, SynAgentNum num_nodes, std::shared_ptr<SynCommunicator> communicator)
-    : m_nid(nid), m_num_nodes(num_nodes), m_initialized(false), m_heartbeat(1e-2), m_next_sync(0.0) {
+    : m_is_ok(true), m_initialized(false), m_nid(nid), m_num_nodes(num_nodes), m_heartbeat(1e-2), m_next_sync(0.0) {
     if (communicator)
         SetCommunicator(communicator);
 
@@ -74,15 +41,6 @@ bool SynChronoManager::AddAgent(std::shared_ptr<SynAgent> agent) {
     m_agents[aid] = agent;
 
     agent->SetID(aid);
-
-#ifdef CHRONO_FASTDDS
-    if (auto dds_communicator = std::dynamic_pointer_cast<SynDDSCommunicator>(m_communicator)) {
-        // Create the topic that state information will be passed on
-        // and add the topic to the communicator
-        auto topic_name = "node/" + std::to_string(aid);
-        dds_communicator->CreatePublisher(topic_name, new SynDDSMessagePubSubType());
-    }
-#endif
 
     return true;
 }
@@ -126,19 +84,6 @@ bool SynChronoManager::Initialize(ChSystem* system) {
 
     // Initialize the communicator
     m_communicator->Initialize();
-
-#ifdef CHRONO_FASTDDS
-    // If the communicator uses DDS, we want to create subscribers that will listen to state information
-    // coming from the other nodes. This is done by setting the name of each governing participant to
-    // common names to be parsed. RegisterParticipant will parse these names and create Subscribers
-    // listening to incoming state data.
-    if (auto dds_communicator = std::dynamic_pointer_cast<SynDDSCommunicator>(m_communicator)) {
-        dds_communicator->Barrier(m_num_nodes - 1);
-
-        for (const std::string& participant_name : dds_communicator->GetMatchedParticipantNames())
-            RegisterParticipant(m_communicator, participant_name);
-    }
-#endif
 
     // Gather all of the underlying messages and add those to the communicator
     auto descriptions = GatherDescriptionMessages();
@@ -201,6 +146,14 @@ void SynChronoManager::UpdateAgents() {
         agent_pair.second->Update();
 }
 
+void SynChronoManager::QuitSimulation() {
+    if (m_is_ok) {
+        m_communicator->AddQuitMessage();
+        m_communicator->Synchronize();
+        m_is_ok = false;
+    }
+}
+
 // --------------------------------------------------------------------------------------------------------------
 
 SynMessageList SynChronoManager::GatherMessages() {
@@ -228,12 +181,12 @@ void SynChronoManager::ProcessReceivedMessages() {
     SynMessageList messages = m_communicator->GetMessages();
 
     for (auto message : messages) {
-        /// Check the messages intended destination
-        SynAgentID destination_id = message->GetDestinationID();
-
-        /// TODO: Sort into the intended destination
-        for (auto& agent_pair : m_agents) {
-            m_messages[agent_pair.second].push_back(message);
+        if (message->GetMessageType() == SynFlatBuffers::Type_Simulation_State) {
+            auto sim_msg = std::dynamic_pointer_cast<SynSimulationMessage>(message);
+            m_is_ok = !(sim_msg->m_quit_sim);
+        } else {
+            for (auto& agent_pair : m_agents)
+                m_messages[agent_pair.second].push_back(message);
         }
     }
 }
@@ -282,7 +235,7 @@ void SynChronoManager::CreateAgentsFromDescriptions() {
 
                     // SynLog() << "Added agent with ID " << message->GetSourceID() << "\n";
                 }
-                messages.erase(it);
+                it = messages.erase(it);
 
             } catch (ChException err) {
                 ++it;

@@ -73,10 +73,5 @@ flatbuffers::Offset<SynFlatBuffers::Pose> SynPose::ToFlatBuffers(flatbuffers::Fl
     return fb_pose;
 }
 
-void SynPose::Step(double dt) {
-    if (m_frame.coord_dt.pos.Length() > 0.05)
-        m_frame.SetCoord(m_frame.coord.pos + m_frame.coord_dt.pos * dt, m_frame.coord.rot + m_frame.coord_dt.rot * dt);
-}
-
 }  // namespace synchrono
 }  // namespace chrono

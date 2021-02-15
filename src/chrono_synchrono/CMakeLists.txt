@@ -26,7 +26,7 @@ if(NOT ENABLE_MODULE_VEHICLE)
     return()
 endif()
 
-set(SYN_INCLUDES "${CMAKE_CURRENT_SOURCE_DIR}/../chrono_thirdparty/flatbuffers/include")
+set(SYN_INCLUDES "${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/flatbuffers/include")
 
 set(SYN_CXX_FLAGS "${CH_CXX_FLAGS}")
 set(SYN_LINKER_FLAGS "${CH_LINKERFLAG_SHARED}")
@@ -47,37 +47,6 @@ set(SYN_LIBRARIES
     ${SYN_LIBRARIES}
     ${MPI_LIBRARIES}
 )
-
-#-----------------------------------------------------------------------------
-# Find DDS (Optional)
-#-----------------------------------------------------------------------------
-option(USE_FAST_DDS "Enable the FastDDS interface for the SynChrono Module" OFF)
-
-if (USE_FAST_DDS)
-	set(FAST_DDS_INSTALL_DIR "" CACHE PATH "Path to FastDDS install dir")
-	set(fastcdr_DIR "${FAST_DDS_INSTALL_DIR}/lib/cmake/fastcdr" CACHE FILEPATH "Path to the FastCDR cmake config file" FORCE)
-	set(fastrtps_DIR "${FAST_DDS_INSTALL_DIR}/share/fastrtps/cmake" CACHE FILEPATH "Path to the FastDDS cmake config file" FORCE)
-	set(foonathan_memory_DIR "${FAST_DDS_INSTALL_DIR}/lib/foonathan_memory/cmake" CACHE FILEPATH "Path to the foonathan memory cmake config file" FORCE)
-
-	find_package(fastcdr REQUIRED)
-	find_package(fastrtps REQUIRED)
-
-	set(SYN_OTHER_LIBRARIES
-		fastrtps
-		fastcdr
-	)
-endif()
-
-# ----------------------------------------------------------------------------
-# Generate and install configuration file
-# ----------------------------------------------------------------------------
-
-# Prepare replacement variables
-if(USE_FAST_DDS)
-	set(CHRONO_FASTDDS "#define CHRONO_FASTDDS")
-else()
-	set(CHRONO_FASTDDS "#undef CHRONO_FASTDDS")
-endif()
 
 # Generate the configuration header file using substitution variables.
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/SynConfig.h.in
@@ -134,26 +103,6 @@ set(SYN_COMMUNICATION_FILES
     communication/mpi/SynMPICommunicator.h
     communication/mpi/SynMPICommunicator.cpp
 )
-if(USE_FAST_DDS)
-	list(APPEND SYN_COMMUNICATION_FILES
-		communication/dds/SynDDSCommunicator.h
-		communication/dds/SynDDSCommunicator.cpp
-		
-		communication/dds/SynDDSPublisher.h
-		communication/dds/SynDDSPublisher.cpp
-		communication/dds/SynDDSSubscriber.h
-		communication/dds/SynDDSSubscriber.cpp
-		communication/dds/SynDDSTopic.h
-		communication/dds/SynDDSTopic.cpp
-		communication/dds/SynDDSListener.h
-		communication/dds/SynDDSListener.cpp
-
-		communication/dds/idl/SynDDSMessage.h
-		communication/dds/idl/SynDDSMessage.cxx
-		communication/dds/idl/SynDDSMessagePubSubTypes.h
-		communication/dds/idl/SynDDSMessagePubSubTypes.cxx
-	)
-endif()
 source_group("communication" FILES ${SYN_COMMUNICATION_FILES})
 
 set(SYN_FLATBUFFER_FILES
@@ -162,15 +111,15 @@ set(SYN_FLATBUFFER_FILES
 	
 	flatbuffer/message/SynFlatBuffers_generated.h
 
-	flatbuffer/message/SynMessage.h
+    flatbuffer/message/SynMessage.h
+    flatbuffer/message/SynSimulationMessage.h
+    flatbuffer/message/SynSimulationMessage.cpp
 
 	flatbuffer/message/SynWheeledVehicleMessage.h
 	flatbuffer/message/SynWheeledVehicleMessage.cpp
 	flatbuffer/message/SynTrackedVehicleMessage.h
 	flatbuffer/message/SynTrackedVehicleMessage.cpp
 	
-	# # flatbuffer/message/SynSensorMessage.h
-	# # flatbuffer/message/SynSensorMessage.cpp
 	flatbuffer/message/SynSCMMessage.h
 	flatbuffer/message/SynSCMMessage.cpp
     
@@ -249,7 +198,7 @@ target_compile_definitions(ChronoEngine_synchrono PRIVATE "SYN_API_COMPILE")
 
 target_include_directories(ChronoEngine_synchrono PUBLIC ${SYN_INCLUDES})
 
-target_link_libraries(ChronoEngine_synchrono ${SYN_LIB_NAMES} ${SYN_LIBRARIES} ${SYN_OTHER_LIBRARIES})
+target_link_libraries(ChronoEngine_synchrono ${SYN_LIB_NAMES} ${SYN_LIBRARIES})
 
 install(TARGETS ChronoEngine_synchrono
         RUNTIME DESTINATION bin
@@ -262,4 +211,9 @@ install(TARGETS ChronoEngine_synchrono
 
 install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/
         DESTINATION include/chrono_synchrono
-        FILES_MATCHING PATTERN "*.h")
+        FILES_MATCHING PATTERN "*.h" PATTERN "fbs" EXCLUDE)
+
+# Install required chrono_thirdparty headers
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/flatbuffers/include
+        DESTINATION include/chrono_thirdparty/flatbuffers
+        FILES_MATCHING PATTERN "*.h" PATTERN "*.cuh" PATTERN "*.hpp" PATTERN "*.inl")
