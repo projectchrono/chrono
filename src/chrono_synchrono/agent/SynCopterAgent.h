@@ -12,9 +12,9 @@
 // Authors: Simone Benatti
 // =============================================================================
 //
-// Class for an agent that wraps a Chrono::Vehicle wheeled vehicle. The
-// underlying dynamics are those of a wheeled vehicle, state data consists of
-// the position and orientation of the COM and the wheels of the vehicle
+// Class for an agent that wraps a Chrono::Copter hexacopter. The
+// underlying dynamics are those of a copter robot, state data consists of
+// the position and orientation of the COM and the propellers of the copter
 //
 // =============================================================================
 
@@ -83,16 +83,15 @@ class SYN_API SynCopterAgent : public SynAgent {
     ///@brief Set the zombie visualization files
     ///
     ///@param chassis_vis_file the file used for chassis visualization
-    ///@param wheel_vis_file the file used for wheel visualization
-    ///@param tire_vis_file the file used for tire visualization
+    ///@param propeller_vis_file the file used for propeller visualization
     void SetZombieVisualizationFiles(std::string chassis_vis_file, std::string propeller_vis_file) {
         m_description->SetVisualizationFiles(chassis_vis_file, propeller_vis_file);
     }
 
-    ///@brief Set the number of wheels of the underlying vehicle
+    ///@brief Set the number of propellers of the underlying vehicle
     ///
-    ///@param num_wheels number of wheels of the underlying vehicle
-    void SetNumProps(int num_wheels) { m_description->SetNumProps(num_wheels); }
+    ///@param num_props number of propellers of the underlying vehicle
+    void SetNumProps(int num_props) { m_description->SetNumProps(num_props); }
 
     ///@brief Set the Agent ID
     ///
@@ -115,9 +114,9 @@ class SYN_API SynCopterAgent : public SynAgent {
 
     // ------------------------------------------------------------------------
 
-    chrono::copter::Copter<6>* m_copter;  ///< Pointer to the ChWheeledVehicle this class wraps
+    chrono::copter::Copter<6>* m_copter;  ///< Pointer to the ChCopter this class wraps
 
-    std::shared_ptr<SynCopterStateMessage> m_state;  ///< State of the vehicle (See SynWheeledVehicleMessage)
+    std::shared_ptr<SynCopterStateMessage> m_state;  ///< State of the vehicle (See SynCopterMessage)
     std::shared_ptr<SynCopterDescriptionMessage> m_description;  ///< Description for zombie creation on discovery
 
     std::shared_ptr<ChBody> m_zombie_body;             ///< agent's zombie body

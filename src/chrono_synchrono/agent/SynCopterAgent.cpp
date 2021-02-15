@@ -12,9 +12,9 @@
 // Authors: Simone Benatti
 // =============================================================================
 //
-// Class for an agent that wraps a Chrono::Vehicle wheeled vehicle. The
-// underlying dynamics are those of a wheeled vehicle, state data consists of
-// the position and orientation of the COM and the wheels of the vehicle
+// Class for an agent that wraps a Chrono::Copter hexacopter. The
+// underlying dynamics are those of a copter robot, state data consists of
+// the position and orientation of the COM and the propellers of the copter
 //
 // =============================================================================
 
@@ -37,8 +37,7 @@ SynCopterAgent::~SynCopterAgent() {}
 void SynCopterAgent::InitializeZombie(ChSystem* system) {
     m_zombie_body = CreateChassisZombieBody(m_description->chassis_vis_file, system);
 
-    // For each wheel, create a tire mesh and wheel mesh.
-    // If it is a right side wheel, a 180 degree rotation is made
+    // For each prop, create a tire prop mesh.
 
     for (int i = 0; i < m_description->GetNumProps(); i++) {
         auto prop_trimesh = CreateMeshZombieComponent(m_description->propeller_vis_file);
@@ -74,8 +73,6 @@ void SynCopterAgent::Update() {
 
     std::vector<SynPose> props_poses;
     for (auto prop : m_copter->GetProps() ) {
-        // auto state = prop->GetState();
-        // auto wheel_abs = wheel->GetSpindle()->GetFrame_REF_to_abs();
         SynPose frame(prop->GetPos(), prop->GetRot());
         frame.GetFrame().SetPos_dt(prop->GetPos_dt());
         frame.GetFrame().SetPos_dtdt(prop->GetPos_dtdt());

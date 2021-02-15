@@ -20,7 +20,6 @@
 
 #include "chrono_synchrono/flatbuffer/message/SynCopterMessage.h"
 
-#include "chrono_vehicle/utils/ChUtilsJSON.h"
 
 namespace chrono {
 namespace synchrono {
@@ -64,13 +63,13 @@ FlatBufferMessage SynCopterStateMessage::ConvertToFlatBuffers(flatbuffers::FlatB
     for (auto& prop : this->props)
         flatbuffer_props.push_back(prop.ToFlatBuffers(builder));
 
-    auto vehicle_type = Agent::Type_Copter_State;
-    auto vehicle_state = Copter::CreateStateDirect(builder,             //
+    auto copter_type = Agent::Type_Copter_State;
+    auto copter_state = Copter::CreateStateDirect(builder,             //
                                                    this->time,          //
                                                    flatbuffer_chassis,  //
                                                    &flatbuffer_props).Union();
 
-    auto flatbuffer_state = Agent::CreateState(builder, vehicle_type, vehicle_state);
+    auto flatbuffer_state = Agent::CreateState(builder, copter_type, copter_state);
     auto flatbuffer_message = SynFlatBuffers::CreateMessage(builder,                           //
                                                             SynFlatBuffers::Type_Agent_State,  //
                                                             flatbuffer_state.Union(),          //
@@ -105,15 +104,15 @@ FlatBufferMessage SynCopterDescriptionMessage::ConvertToFlatBuffers(flatbuffers:
 
     auto flatbuffer_type = Agent::Type_Copter_Description;
 
-    flatbuffers::Offset<Copter::Description> vehicle_description = 0;
-    vehicle_description = Copter::CreateDescriptionDirect(builder,                         //
+    flatbuffers::Offset<Copter::Description> copter_description = 0;
+    copter_description = Copter::CreateDescriptionDirect(builder,                           //
                                                           this->chassis_vis_file.c_str(),  //
                                                           this->propeller_vis_file.c_str(),  //
                                                           this->num_props);                //
 
     auto flatbuffer_description = Agent::CreateDescription(builder,                        //
                                                            flatbuffer_type,                //
-                                                           vehicle_description.Union()    //
+                                                           copter_description.Union()  //
                                                            );               //
 
     return SynFlatBuffers::CreateMessage(builder,                                 //
