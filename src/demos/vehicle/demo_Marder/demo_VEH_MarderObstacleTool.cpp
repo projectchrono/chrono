@@ -16,6 +16,8 @@
 //
 // =============================================================================
 
+#include <iomanip>
+
 #include "chrono/utils/ChUtilsInputOutput.h"
 #include "chrono/utils/ChFilters.h"
 #include "chrono/core/ChTimer.h"
@@ -265,7 +267,7 @@ int main(int argc, char* argv[]) {
 
                 // Create the ground
                 double base_height = 0.0;
-                double friction_coef = 1.0;
+                float friction_coef = 1.0f;
                 double aa = CH_C_RAD_TO_DEG * angles[jAngle];
                 double obl = inchToMeters * widths[kWidth];
                 double obh = inchToMeters * heights[iHeight];
