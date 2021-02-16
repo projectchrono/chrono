@@ -93,6 +93,14 @@ class ChApi ChSolverADMM : public ChIterativeSolverVI {
     void   SetStepAdjustPolicy(AdmmStepType mr) { stepadjust_type = mr; }
     AdmmStepType GetStepAdjustPolicy() { return stepadjust_type; }
 
+    /// Types of ADMM enhancements
+    enum  AdmmAcceleration {
+        BASIC = 0,      // basic ADMM        
+        NESTEROV,       // inspired to  FAST ALTERNATING DIRECTION OPTIMIZATION METHODS, 2015, T. Goldstein et al.
+    };
+    /// Set the type of ADMM iteration, enabling acceleration variants
+    void   SetAcceleration(AdmmAcceleration mr) { acceleration = mr; }
+    AdmmAcceleration GetAcceleration() { return acceleration; }
 
     /// Set the absolute tolerance for the primal residual (force impulses error), if 
     /// the iteration falls below this and the dual tolerance, it stops iterating.
@@ -139,9 +147,17 @@ class ChApi ChSolverADMM : public ChIterativeSolverVI {
     AdmmStepType stepadjust_type;
     double tol_prim;
     double tol_dual;
+    AdmmAcceleration acceleration;
 
     std::shared_ptr<ChDirectSolverLS> LS_solver;
     //Eigen::SparseQR<ChSparseMatrix, Eigen::COLAMDOrdering<int>> m_engine;  ///< Eigen SparseQR solver (do not use SparseLU: it is broken!)
+
+    /// Performs basic ADMM, as in solve_kkt_ADMMbasic.m prototype 
+    virtual double _SolveBasic(ChSystemDescriptor& sysd);
+
+    /// Performs ADMM with Nesterov acceleration, as in solve_kkt_ADMMfast.m prototype 
+    virtual double _SolveFast(ChSystemDescriptor& sysd);
+
 };
 
 /// @} chrono_solver
