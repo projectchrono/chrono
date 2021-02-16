@@ -35,14 +35,12 @@ namespace synchrono {
 /// @addtogroup synchrono_agent
 /// @{
 
-/// Agent wrapper of a wheeled vehicle, in particular holds a pointer to a ChWheeledVehicle and sends out
-/// SynWheeledVehicleMessage-s to synchronize its state
+/// Agent wrapper of a copter model, sends out SynCopterMessage-s to synchronize its state
 class SYN_API SynCopterAgent : public SynAgent {
   public:
-    ///@brief Construct a wheeled vehicle agent with optionally a vehicle
+    ///@brief Construct a copter agent with an optional copter object
     ///
-    ///@param vehicle the vehicle this agent is responsible for (will be null if agent's a zombie)
-    ///@param filename json specification file for zombie visualization (will query vehicle if not passed)
+    ///@param copter the copter this agent is responsible for (will be null if the agent is a zombie)
     SynCopterAgent(chrono::copter::Copter<6>* copter = nullptr);
 
     ///@brief Destructor.
@@ -88,9 +86,9 @@ class SYN_API SynCopterAgent : public SynAgent {
         m_description->SetVisualizationFiles(chassis_vis_file, propeller_vis_file);
     }
 
-    ///@brief Set the number of propellers of the underlying vehicle
+    ///@brief Set the number of propellers of the underlying copter
     ///
-    ///@param num_props number of propellers of the underlying vehicle
+    ///@param num_props number of propellers of the underlying copter
     void SetNumProps(int num_props) { m_description->SetNumProps(num_props); }
 
     ///@brief Set the Agent ID
@@ -106,7 +104,7 @@ class SYN_API SynCopterAgent : public SynAgent {
     ///@return std::shared_ptr<ChTriangleMeshShape>
     std::shared_ptr<ChTriangleMeshShape> CreateMeshZombieComponent(const std::string& filename);
 
-    ///@brief Create a zombie chassis body. All ChVehicles have a chassis, so this can be defined here
+    ///@brief Create a zombie chassis body.
     ///
     ///@param filename the filename that describes the ChTriangleMeshShape that should represent the chassis
     ///@param system the system to add the body to
@@ -116,7 +114,7 @@ class SYN_API SynCopterAgent : public SynAgent {
 
     chrono::copter::Copter<6>* m_copter;  ///< Pointer to the ChCopter this class wraps
 
-    std::shared_ptr<SynCopterStateMessage> m_state;  ///< State of the vehicle (See SynCopterMessage)
+    std::shared_ptr<SynCopterStateMessage> m_state;              ///< State of the copter (See SynCopterMessage)
     std::shared_ptr<SynCopterDescriptionMessage> m_description;  ///< Description for zombie creation on discovery
 
     std::shared_ptr<ChBody> m_zombie_body;             ///< agent's zombie body

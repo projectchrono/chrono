@@ -58,7 +58,7 @@ class SYN_API SynCopterStateMessage : public SynMessage {
     ///
     ///@param time simulation time
     ///@param chassis copter's chassis pose
-    ///@param propellers vector of the copter's propellers poses
+    ///@param props vector of the copter's propellers poses
     void SetState(double time, SynPose chassis, std::vector<SynPose> props);
 
     // -------------------------------------------------------------------------------
