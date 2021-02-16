@@ -162,7 +162,7 @@ void ChVehicleIrrApp::EnableSound(bool sound) {
         // To play a sound, call play2D(). The second parameter tells the engine to
         // play it looped.
         if (m_sound_engine) {
-            m_car_sound = m_sound_engine->play2D(GetChronoDataFile("carsound.ogg").c_str(), true, false, true);
+            m_car_sound = m_sound_engine->play2D(GetChronoDataFile("vehicle/sounds/carsound.ogg").c_str(), true, false, true);
             m_car_sound->setIsPaused(true);
         } else
             GetLog() << "Cannot start sound engine Irrklang \n";
@@ -239,7 +239,7 @@ void ChVehicleIrrApp::Advance(double step) {
     // Update sound pitch
     if (m_car_sound && m_vehicle->GetPowertrain()) {
         stepsbetweensound++;
-        double engine_rpm = m_vehicle->GetPowertrain()->GetMotorSpeed() * 60 / chrono::CH_C_2PI;
+        double engine_rpm = m_vehicle->GetPowertrain()->GetMotorSpeed() * 60 / CH_C_2PI;
         double soundspeed = engine_rpm / (8000.);  // denominator: to guess
         if (soundspeed < 0.1)
             soundspeed = 0.1;
@@ -342,7 +342,7 @@ void ChVehicleIrrApp::renderStats() {
 
     auto powertrain = m_vehicle->GetPowertrain();
     if (powertrain) {
-        double engine_rpm = powertrain->GetMotorSpeed() * 60 / chrono::CH_C_2PI;
+        double engine_rpm = powertrain->GetMotorSpeed() * 60 / CH_C_2PI;
         sprintf(msg, "Eng. RPM: %+.2f", engine_rpm);
         renderLinGauge(std::string(msg), engine_rpm / 7000, false, m_HUD_x, m_HUD_y + 50, 120, 15);
 
@@ -362,6 +362,10 @@ void ChVehicleIrrApp::renderStats() {
         sprintf(msg, "T.conv. out Nm: %+.2f", tc_torqueout);
         renderLinGauge(std::string(msg), tc_torqueout / 600, false, m_HUD_x, m_HUD_y + 130, 120, 15);
 
+        double tc_rpmout = powertrain->GetTorqueConverterOutputSpeed() * 60 / CH_C_2PI;
+        sprintf(msg, "T.conv. out RPM: %+.2f", tc_rpmout);
+        renderLinGauge(std::string(msg), tc_rpmout / 7000, false, m_HUD_x, m_HUD_y + 150, 120, 15);
+
         int ngear = powertrain->GetCurrentTransmissionGear();
         ChPowertrain::DriveMode drivemode = powertrain->GetDriveMode();
         switch (drivemode) {
@@ -378,7 +382,7 @@ void ChVehicleIrrApp::renderStats() {
                 sprintf(msg, "Gear:");
                 break;
         }
-        renderLinGauge(std::string(msg), (double)ngear / 4.0, false, m_HUD_x, m_HUD_y + 150, 120, 15);
+        renderLinGauge(std::string(msg), (double)ngear / 4.0, false, m_HUD_x, m_HUD_y + 170, 120, 15);
     }
 
     // Display information from driver system.
@@ -401,7 +405,7 @@ void ChVehicleIrrApp::renderStats() {
 
     // Allow derived classes to display additional information (e.g. driveline)
 
-    renderOtherStats(m_HUD_x, m_HUD_y + 180);
+    renderOtherStats(m_HUD_x, m_HUD_y + 200);
 }
 
 // -----------------------------------------------------------------------------

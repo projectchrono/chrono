@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: 肖言 (Yan Xiao)
+// Authors: Yan Xiao
 // =============================================================================
 //
 // Agent class that defines a series of intersections, lanes and traffic lights.
@@ -62,7 +62,7 @@ class SYN_API SynEnvironmentAgent : public SynAgent {
     ///@param system the ChSystem used to initialize the zombie
     virtual void InitializeZombie(ChSystem* system) override;
 
-    ///@brief Synchronoize this agents zombie with the rest of the simulation.
+    ///@brief Synchronize this agents zombie with the rest of the simulation.
     /// Updates agent based on the passed message.
     /// Any message can be passed, so a check should be done to ensure this message was intended for this agent.
     ///

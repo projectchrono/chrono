@@ -65,7 +65,9 @@ using namespace chrono::vehicle::hmmwv;
 // =============================================================================
 
 // Better conserve mass by displacing soil to the sides of a rut
-const bool bulldozing = true;
+// Many more nodes are impacted with bulldozing and performance is tied to number of deformed nodes, so enabling this
+// can cause a significant slowdown
+const bool bulldozing = false;
 
 // Contact method
 ChContactMethod contact_method = ChContactMethod::SMC;
@@ -83,7 +85,7 @@ ChVector<> trackPoint(0.0, 0.0, 1.75);
 double render_step_size = 1.0 / 100;  // FPS = 50
 
 // How often SynChrono state messages are interchanged
-float heartbeat = 1e-2;  // 100[Hz]
+double heartbeat = 1e-2;  // 100[Hz]
 
 // Forward declares for straight forward helper functions
 void LogCopyright(bool show);
@@ -161,7 +163,7 @@ int main(int argc, char* argv[]) {
     hmmwv.SetChassisFixed(false);
     hmmwv.SetInitPosition(ChCoordsys<>(initLoc, initRot));
     hmmwv.SetPowertrainType(PowertrainModelType::SHAFTS);
-    hmmwv.SetDriveType(DrivelineType::AWD);
+    hmmwv.SetDriveType(DrivelineTypeWV::AWD);
     hmmwv.SetTireType(use_scm ? TireModelType::RIGID : TireModelType::TMEASY);
     hmmwv.Initialize();
 
@@ -245,8 +247,8 @@ int main(int argc, char* argv[]) {
             auto box_texture = chrono_types::make_shared<ChVisualMaterial>();
             box_texture->SetKdTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"));
             // FresnelMax and SpecularColor should make it less shiny
-            box_texture->SetFresnelMax(0.2);
-            box_texture->SetSpecularColor({0.2, 0.2, 0.2});
+            box_texture->SetFresnelMax(0.2f);
+            box_texture->SetSpecularColor({0.2f, 0.2f, 0.2f});
 
             visual_asset->material_list.push_back(box_texture);
         }
@@ -289,6 +291,9 @@ int main(int argc, char* argv[]) {
 #ifdef CHRONO_SENSOR
     ChSensorManager sensor_manager(hmmwv.GetSystem());
     if (cli.HasValueInVector<int>("sens", node_id)) {
+        sensor_manager.scene->AddPointLight({100, 100, 100}, {1, 1, 1}, 6000);
+        sensor_manager.scene->AddPointLight({-100, 100, 100}, {1, 1, 1}, 6000);
+
         // Give the camera a fixed place to live
         auto origin = chrono_types::make_shared<ChBody>();
         origin->SetBodyFixed(true);
@@ -313,11 +318,12 @@ int main(int argc, char* argv[]) {
 
         auto overhead_camera = chrono_types::make_shared<chrono::sensor::ChCameraSensor>(
             origin,                                         // body camera is attached to
-            30,                                             // update rate in Hz
+            30.0f,                                          // update rate in Hz
             chrono::ChFrame<double>(camera_loc, rotation),  // offset pose
             cam_res_width,                                  // image width
             cam_res_height,                                 // image height
-            CH_C_PI / 3);
+            (float)CH_C_PI / 3                              // FOV
+        );
 
         overhead_camera->SetName("Overhead Cam");
         overhead_camera->PushFilter(chrono_types::make_shared<ChFilterRGBA8Access>());
@@ -406,6 +412,7 @@ int main(int argc, char* argv[]) {
             SynLog() << (time_span.count() / 1e3) / time << "\n";
         }
     }
+    syn_manager.QuitSimulation();
 
     return 0;
 }
@@ -428,7 +435,7 @@ void AddCommandLineOptions(ChCLI& cli) {
 
     // SCM specific options
     cli.AddOption<double>("Demo", "d,dpu", "Divisions per unit", "20");
-    cli.AddOption<std::string>("Demo", "t,terrain_type", "Terrain Type", "Rigid", "Rigid,SCM");
+    cli.AddOption<std::string>("Demo", "t,terrain_type", "Terrain Type", "SCM", "Rigid,SCM");
 
     // Visualization is the only reason you should be shy about terrain size. The implementation can easily handle a
     // practically infinite terrain (provided you don't need to visualize it)

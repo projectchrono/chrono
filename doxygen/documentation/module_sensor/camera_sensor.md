@@ -8,17 +8,19 @@ In Chrono:Sensor:ChCameraSensor, the synthetic data is generated via GPU-based r
 ## Camera sensor Setup
 
 ~~~{.cpp}
-chrono::ChFrame<double> offset_pose({10, 2, .5},   // Position
-    Q_from_AngAxis(CH_C_PI, {0, 0, 1}));            // Rotation
+chrono::ChFrame<double> offset_pose({10, 2, .5},                           // Position
+                                     Q_from_AngAxis(CH_C_PI, {0, 0, 1}));  // Rotation
 
-auto Camera = chrono_types::make_shared<ChCameraSensor>(ground_body,   // body camera is attached to
-                                                        update_rate,   // update rate in Hz
-                                                        offset_pose,   // offset pose
-                                                        image_width,   // image width
-                                                        image_height,  // image height
-                                                        fov,           // camera's horizontal field of view
-                                                        alias_factor,  // supersample factor for antialiasing
-                                                        lens_model);   // FOV
+auto Camera = chrono_types::make_shared<ChCameraSensor>(
+                    ground_body,   // body camera is attached to
+                    update_rate,   // update rate in Hz
+                    offset_pose,   // offset pose
+                    image_width,   // image width
+                    image_height,  // image height
+                    fov,           // camera's horizontal field of view
+                    alias_factor,  // supersample factor for antialiasing
+                    lens_model);   // FOV
+
 Camera->SetName("Camera Sensor");
 Camera->SetLag(lag);
 Camera->SetCollectionWindow(exposure_time);
@@ -30,7 +32,7 @@ Camera->PushFilter(chrono_types::make_shared<ChFilterRGBA8Access>());
 manager->AddSensor(Camera);
 ~~~
 
-See [ChCameraSensor](@ref chrono::sensor::ChCameraSensor) for more details. 
+See [ChCameraSensor](@ref chrono::sensor::ChCameraSensor) for more details.
 
 The camera setup process will automatically add the [Optix Render Filter](@ref chrono::sensor::ChFilterOptixRender)
 to the filter list
@@ -40,9 +42,9 @@ If the camera supersample_factor is greater than 1, the setup process will adjus
 
 ## Rendering steps
 
-The Camera sensor in Chrono::sensor uses Optix as the render engine. For each pixel, the engine will shoot out a ray at that direction and find the first object intersects with the ray. By default, the engine uses the physically based BRDF shader for rendering objects. It will spawn additional rays for shadows, reflection, and refraction in a recursive fashion. 
+The Camera sensor in Chrono::sensor uses Optix as the render engine. For each pixel, the engine will shoot out a ray at that direction and find the first object intersects with the ray. By default, the engine uses the physically based BRDF shader for rendering objects. It will spawn additional rays for shadows, reflection, and refraction in a recursive fashion.
 
-The camera update frequency is much slower than the physics. Therefore the [ChOptixEngine](@ref chrono::sensor::ChOptixEngine) spawns a thread to perform the 
+The camera update frequency is much slower than the physics. Therefore the [ChOptixEngine](@ref chrono::sensor::ChOptixEngine) spawns a thread to perform the
 rendering, and it will not block the main thread
 
 ### Each Update (main thread)
@@ -53,7 +55,7 @@ rendering, and it will not block the main thread
 3. Continue to the next time step
 
 ### Rendering thread
-1. Wait until there is a camera in the render queue 
+1. Wait until there is a camera in the render queue
 2. Update those camera, clear the render queue, go back to step 1
 
 ## Filter Graphs
@@ -70,8 +72,8 @@ Any number of filters can be append to the list and modify the final result. The
 
 The position and rotation of the camera can be easily changed using `SetOffsetPose` during simulation
 ~~~{.cpp}
-Camera->SetOffsetPose(chrono::ChFrame<double>({8, 2, .5},   // Position
-                    Q_from_AngAxis(CH_C_PI, {0, 0, 1})));   // Rotation
+Camera->SetOffsetPose(chrono::ChFrame<double>({8, 2, .5},    // Position
+                      Q_from_AngAxis(CH_C_PI, {0, 0, 1})));  // Rotation
 ~~~
 
 ## Data access
@@ -86,4 +88,3 @@ if (RGBA_ptr->Buffer) {
     uint8_t red_channel_at_100_100 = unsigned(pixel_at_100_100.R);
 }
 ~~~
-      

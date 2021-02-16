@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: 肖言 (Yan Xiao), Shuo He
+// Authors: Yan Xiao, Shuo He
 // =============================================================================
 //
 // Store the Map information in the simulation. Currently only used for traffic
@@ -78,16 +78,16 @@ FlatBufferMessage SynMAPMessage::ConvertToFlatBuffers(flatbuffers::FlatBufferBui
     return message;
 }
 
-int SynMAPMessage::AddLane(int intersection, int approach, ApproachLane lane) {
+unsigned SynMAPMessage::AddLane(int intersection, int approach, ApproachLane lane) {
     // Adding in blank intersections/approaches until we fill up to the intersection/approach you actually wanted to add
-    while (this->intersections.size() <= intersection)
+    while (this->intersections.size() <= (size_t)intersection)
         this->intersections.emplace_back();
 
     while (this->intersections[intersection].approaches.size() <= approach)
         this->intersections[intersection].approaches.push_back(
             chrono_types::make_shared<SynApproachMessage>(m_source_id, m_destination_id));
 
-    int num_lanes = this->intersections[intersection].approaches[approach]->lanes.size();
+    unsigned num_lanes = (unsigned)this->intersections[intersection].approaches[approach]->lanes.size();
     this->intersections[intersection].approaches[approach]->lanes.push_back(lane);
 
     return num_lanes;

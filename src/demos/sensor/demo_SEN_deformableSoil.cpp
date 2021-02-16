@@ -86,7 +86,7 @@ ChQuaternion<> initRot(1, 0, 0, 0);
 // -----------------------------------------------------------------------------
 
 // Update Rate in Hz
-int update_rate = 30;
+float update_rate = 30.0f;
 
 // Image width and height
 unsigned int image_width = 1920;
@@ -218,7 +218,7 @@ int main(int argc, char* argv[]) {
     my_hmmwv.SetChassisFixed(false);
     my_hmmwv.SetInitPosition(ChCoordsys<>(initLoc, initRot));
     my_hmmwv.SetPowertrainType(PowertrainModelType::SHAFTS);
-    my_hmmwv.SetDriveType(DrivelineType::AWD);
+    my_hmmwv.SetDriveType(DrivelineTypeWV::AWD);
     switch (tire_type) {
         case TireType::CYLINDRICAL:
             my_hmmwv.SetTireType(TireModelType::RIGID_MESH);

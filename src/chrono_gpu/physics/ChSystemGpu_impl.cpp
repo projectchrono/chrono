@@ -165,6 +165,7 @@ void ChSystemGpu_impl::packSphereDataPointers() {
 
     sphere_data->SD_NumSpheresTouching = SD_NumSpheresTouching.data();
     sphere_data->SD_SphereCompositeOffsets = SD_SphereCompositeOffsets.data();
+    sphere_data->SD_SphereCompositeOffsets_SP = SD_SphereCompositeOffsets_ScratchPad.data();
     sphere_data->spheres_in_SD_composite = spheres_in_SD_composite.data();
 
     if (gran_params->friction_mode == CHGPU_FRICTION_MODE::MULTI_STEP ||
@@ -188,12 +189,6 @@ void ChSystemGpu_impl::packSphereDataPointers() {
             sphere_data->rolling_friction_torque = rolling_friction_torque.data();
         }
     }
-
-    // DN: had to comment this prefetch for now; crashing on Windows
-    //// force prefetch the sphere data pointer after update:
-    // int dev_ID;
-    // gpuErrchk(cudaGetDevice(&dev_ID));
-    // gpuErrchk(cudaMemPrefetchAsync(sphere_data, sizeof(*sphere_data), dev_ID));
 }
 
 void ChSystemGpu_impl::WriteFile(std::string ofile) const {
@@ -474,8 +469,8 @@ void ChSystemGpu_impl::WriteContactInfoFile(std::string ofile) const {
             unsigned int bodyAoffset = n * MAX_SPHERES_TOUCHED_BY_SPHERE;
             // go through all possible neighbors
             for (unsigned int neighborID = 0; neighborID < MAX_SPHERES_TOUCHED_BY_SPHERE; neighborID++) {
-                int theirSphereMappingID = bodyAoffset + neighborID;
-                int theirSphereID = contact_partners_map[theirSphereMappingID];
+                unsigned int theirSphereMappingID = bodyAoffset + neighborID;
+                unsigned int theirSphereID = contact_partners_map[theirSphereMappingID];
                 // only write when bi < bj
                 if (theirSphereID >= n && theirSphereID < nSpheres) {
                     outstrstream << n << ", " << theirSphereID;
@@ -993,6 +988,7 @@ void ChSystemGpu_impl::partitionBD() {
     // allocate mem for array saying for each SD how many spheres touch it
     TRACK_VECTOR_RESIZE(SD_NumSpheresTouching, nSDs, "SD_numSpheresTouching", 0);
     TRACK_VECTOR_RESIZE(SD_SphereCompositeOffsets, nSDs, "SD_SphereCompositeOffsets", 0);
+    TRACK_VECTOR_RESIZE(SD_SphereCompositeOffsets_ScratchPad, nSDs, "SD_SphereCompositeOffsets_ScratchPad", 0);
 }
 
 // Convert unit parameters from UU to SU

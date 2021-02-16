@@ -88,10 +88,12 @@ double ChSolverADMM::_SolveBasic(ChSystemDescriptor& sysd) {
 
         m_timer_convert.start();
 
+        // sysd.ConvertToMatrixForm(0, &LS_solver->A(), 0, &LS_solver->b(), 0, 0, 0);
         //sysd.ConvertToMatrixForm(0, &LS_solver->A(), 0, &LS_solver->b(), 0, 0, 0);
         // much faster to fill brand new sparse matrices??!!
 
         ChSparsityPatternLearner sparsity_pattern(nv, nv);
+        sysd.ConvertToMatrixForm(&sparsity_pattern, 0);
         sysd.ConvertToMatrixForm(&sparsity_pattern, 0); 
         sparsity_pattern.Apply(H);
         sysd.ConvertToMatrixForm(&H,&k);  
@@ -264,18 +266,20 @@ double ChSolverADMM::_SolveBasic(ChSystemDescriptor& sysd) {
     LS_solver->A() = A; 
     LS_solver->b() = B; 
 
-    for (unsigned int i = 0; i < nc; ++i)
+    for (int i = 0; i < nc; ++i)
         LS_solver->A().coeffRef(nv + i, nv + i) += -(sigma + vrho(i));  //  A = [M, Cq'; Cq, -diag(vsigma+vrho) + E ];
 
     m_timer_convert.stop();
-    if (this->verbose) GetLog() << " Time for ConvertToMatrixForm: << " << m_timer_convert.GetTimeSecondsIntermediate() << "s\n";
+    if (this->verbose)
+        GetLog() << " Time for ConvertToMatrixForm: << " << m_timer_convert.GetTimeSecondsIntermediate() << "s\n";
 
     m_timer_factorize.start();
-                
+
     LS_solver->SetupCurrent();  // LU decomposition ++++++++++++++++++++++++++++++++++++++
 
     m_timer_factorize.stop();
-    if (this->verbose) GetLog() << " Time for factorize : << " << m_timer_factorize.GetTimeSecondsIntermediate() << "s\n";
+    if (this->verbose)
+        GetLog() << " Time for factorize : << " << m_timer_factorize.GetTimeSecondsIntermediate() << "s\n";
 
     /*
     res_story.r_prim=zeros(1,1);
@@ -289,7 +293,6 @@ double ChSolverADMM::_SolveBasic(ChSystemDescriptor& sysd) {
     */
 
     for (int iter = 0; iter < m_max_iterations; iter++) {
-
         // diagnostic
         l_old = l;
         z_old = z;
@@ -299,10 +302,10 @@ double ChSolverADMM::_SolveBasic(ChSystemDescriptor& sysd) {
 
         // SOLVE LINEAR SYSTEM HERE
         // ckkt = -bkkt + (vsigma+vrho).*z - y;
-        
+
         ChVectorDynamic<> ckkt = -b + (vsigma + vrho).cwiseProduct(z) - y;
-        LS_solver->b() << k, ckkt;         // B = [k;ckkt];
-        
+        LS_solver->b() << k, ckkt;  // B = [k;ckkt];
+
         m_timer_solve.start();
 
         LS_solver->SolveCurrent();                                                      // LU forward/backsolve ++++++++++++++++++++++++++++++++++++++
@@ -411,8 +414,8 @@ double ChSolverADMM::_SolveBasic(ChSystemDescriptor& sysd) {
 
                 // Avoid rebuilding all sparse matrix: 
                 // A) just remove old rho with -= :
-                for (unsigned int i = 0; i < nc; ++i)
-                    LS_solver->A().coeffRef(nv + i, nv + i) -= -(sigma + vrho(i));  
+                for (int i = 0; i < nc; ++i)
+                    LS_solver->A().coeffRef(nv + i, nv + i) -= -(sigma + vrho(i));
 
                 // Update rho
                 rho_i = rho_i * rhofactor;
@@ -434,8 +437,8 @@ double ChSolverADMM::_SolveBasic(ChSystemDescriptor& sysd) {
                 //
                 // To avoid rebuilding A, we just removed the rho step from the diagonal in A), and now: 
                 // B) add old rho with += :
-                for (unsigned int i = 0; i < nc; ++i)
-                    LS_solver->A().coeffRef(nv + i, nv + i) += -(sigma + vrho(i));  
+                for (int i = 0; i < nc; ++i)
+                    LS_solver->A().coeffRef(nv + i, nv + i) += -(sigma + vrho(i));
 
                 LS_solver->SetupCurrent();  // LU decomposition ++++++++++++++++++++++++++++++++++++++
 

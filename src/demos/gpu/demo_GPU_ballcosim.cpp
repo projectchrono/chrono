@@ -11,9 +11,9 @@
 // =============================================================================
 // Authors: Nic Olsen
 // =============================================================================
-// Chrono::Gpu demo using SMC method. A body whose geometry is described
-// by an OBJ file is time-integrated in Chrono and interacts with a granular
-// wave tank in Chrono::Gpu via the co-simulation framework.
+// Chrono::Gpu demo using SMC method. A body whose geometry is described by an
+// OBJ file is time-integrated in Chrono and interacts with a granular wave tank
+// in Chrono::Gpu via the co-simulation framework.
 // =============================================================================
 
 #include <iostream>
@@ -29,6 +29,7 @@
 #include "chrono/utils/ChUtilsCreators.h"
 #include "chrono/assets/ChSphereShape.h"
 
+#include "chrono_gpu/ChGpuData.h"
 #include "chrono_gpu/physics/ChSystemGpu.h"
 #include "chrono_gpu/utils/ChGpuJsonParser.h"
 #include "chrono_gpu/utils/ChGpuVisualization.h"
@@ -44,10 +45,6 @@ float out_fps = 50;
 // Enable/disable run-time visualization (if Chrono::OpenGL is available)
 bool render = true;
 float render_fps = 2000;
-
-void ShowUsage(std::string name) {
-    std::cout << "usage: " + name + " <json_file>" << std::endl;
-}
 
 void writeMeshFrames(std::ostringstream& outstream, ChBody& body, std::string obj_name, float mesh_scaling) {
     outstream << obj_name << ",";
@@ -81,8 +78,8 @@ void writeMeshFrames(std::ostringstream& outstream, ChBody& body, std::string ob
 
 int main(int argc, char* argv[]) {
     ChGpuSimulationParameters params;
-    if (argc != 2 || ParseJSON(argv[1], params) == false) {
-        ShowUsage(argv[0]);
+    if (argc != 2 || ParseJSON(gpu::GetDataFile(argv[1]), params) == false) {
+        std::cout << "Usage:\n./demo_GPU_ballcosim <json_file>" << std::endl;
         return 1;
     }
 
@@ -162,7 +159,7 @@ int main(int argc, char* argv[]) {
     // gpu_sys.SetRollingCoeff_SPH2WALL(params.rolling_friction_coeffS2W);
     // gpu_sys.SetRollingCoeff_SPH2MESH(params.rolling_friction_coeffS2M);
 
-    std::string mesh_filename(GetChronoDataFile("gpu/demo_GPU_ballcosim/sphere.obj"));
+    std::string mesh_filename(GetChronoDataFile("models/sphere.obj"));
     std::vector<string> mesh_filenames(1, mesh_filename);
 
     std::vector<float3> mesh_translations(1, make_float3(0.f, 0.f, 0.f));
@@ -178,7 +175,11 @@ int main(int argc, char* argv[]) {
 
     gpu_sys.SetOutputMode(params.write_mode);
     gpu_sys.SetVerbosity(params.verbose);
-    filesystem::create_directory(filesystem::path(params.output_dir));
+
+    std::string out_dir = GetChronoOutputPath() + "GPU/";
+    filesystem::create_directory(filesystem::path(out_dir));
+    out_dir = out_dir + params.output_dir;
+    filesystem::create_directory(filesystem::path(out_dir));
 
     std::cout << gpu_sys.GetNumMeshes() << " meshes" << std::endl;
 
@@ -235,7 +236,7 @@ int main(int argc, char* argv[]) {
         if (curr_step % out_steps == 0) {
             std::cout << "Output frame " << currframe + 1 << " of " << total_frames << std::endl;
             char filename[100];
-            sprintf(filename, "%s/step%06d", params.output_dir.c_str(), currframe++);
+            sprintf(filename, "%s/step%06d", out_dir.c_str(), currframe++);
             gpu_sys.WriteFile(std::string(filename));
             gpu_sys.WriteMeshes(std::string(filename));
 

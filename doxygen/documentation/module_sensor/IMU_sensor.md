@@ -3,8 +3,7 @@ IMU Sensor Model {#IMU_sensor}
 
 \tableofcontents
 
-Details of the IMU sensor implemented in Chrono::Sensor.
-
+The IMU in Chrono consists of a gyroscope and accelerometer. These sensors query the dynamics of the underlying Chrono system to compute their ground-truth information.
 
 #### IMU Creation
 ~~~{.cpp}
@@ -23,10 +22,11 @@ imu_noise_model=chrono_types::make_shared<ChIMUNoiseNormalDrift>(
 );
 
 auto imu= chrono_types::make_shared<ChIMUSensor>(
-    my_body,    // body to which the IMU is attached
-    imu_update_rate,   // update rate
-    imu_offset_pose,   // offset pose from bodyimu_noise_model
-);  
+    my_body,          // body to which the IMU is attached
+    imu_update_rate,  // update rate
+    imu_offset_pose,  // offset pose from bodyimu_noise_model
+);
+
 // IMU noise model
 imu->SetName("IMU");
 
@@ -46,7 +46,7 @@ manager->AddSensor(imu);
 ~~~{.cpp}
 utils::CSV_writer imu_csv(" ");
 UserIMUBufferPtr bufferIMU;
-while(){
+while () {
     bufferIMU=imu->GetMostRecentBuffer<UserIMUBufferPtr>();       
     if(bufferIMU->Buffer) {
         // Save the imudata to file

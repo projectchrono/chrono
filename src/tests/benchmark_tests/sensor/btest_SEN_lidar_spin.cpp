@@ -85,7 +85,7 @@ int main(int argc, char* argv[]) {
     // -----------------------
     // Create a sensor manager
     // -----------------------
-    float step_size = .01;
+    float step_size = 0.01f;
     auto manager = std::make_shared<ChSensorManager>(&mphysicalSystem);
     manager->scene->AddPointLight({-100, 100, 100}, {1, 1, 1}, 1000);
     manager->SetKeyframeSizeFromTimeStep(step_size, 1);
@@ -96,27 +96,27 @@ int main(int argc, char* argv[]) {
 
     auto lidar1 = std::make_shared<ChLidarSensor>(
         cart,                                                              // body lidar is attached to
-        1,                                                                 // scanning rate in Hz
+        1.0f,                                                              // scanning rate in Hz
         chrono::ChFrame<double>({0, 0, 0}, Q_from_AngAxis(0, {0, 1, 0})),  // offset pose
         1000,                                                              // number of horizontal samples
         10,                                                                // number of vertical channels
-        2 * CH_C_PI,                                                       // horizontal field of view
-        .1, -.1, 100                                                       // vertical field of view
+        2 * (float)CH_C_PI,                                                // horizontal field of view
+        0.1f, -0.1f, 100.0f                                                // vertical field of view
     );
     lidar1->SetName("Lidar Sensor");
     lidar1->SetLag(1);
     lidar1->SetCollectionWindow(1);
     lidar1->PushFilter(std::make_shared<ChFilterPCfromDepth>());
-    lidar1->PushFilter(std::make_shared<ChFilterVisualizePointCloud>(800, 800, 1.5));
+    lidar1->PushFilter(std::make_shared<ChFilterVisualizePointCloud>(800, 800, 1.5f));
     manager->AddSensor(lidar1);
 
     auto camera = std::make_shared<ChCameraSensor>(
         cart,                                                              // body lidar is attached to
-        10,                                                                // scanning rate in Hz
+        10.0f,                                                             // scanning rate in Hz
         chrono::ChFrame<double>({0, 0, 0}, Q_from_AngAxis(0, {0, 1, 0})),  // offset pose
         1280,                                                              // number of horizontal samples
         720,                                                               // number of vertical channels
-        CH_C_PI / 4                                                        // horizontal field of view
+        (float)CH_C_PI / 4                                                 // horizontal field of view
     );
     camera->SetName("Camera Sensor");
     camera->SetLag(0);

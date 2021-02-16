@@ -42,17 +42,16 @@ if(BUILD_DEMOS_BASE)
 	add_subdirectory(core)
 endif()
 
-
 option(BUILD_DEMOS_FEA "Build demo programs for FEA" TRUE)
 mark_as_advanced(FORCE BUILD_DEMOS_FEA)
 if(BUILD_DEMOS_FEA)
 	add_subdirectory(fea)
 endif()
 
-option(BUILD_DEMOS_ROBOSIMIAN "Build RoboSimian demo programs" ON)
-mark_as_advanced(FORCE BUILD_DEMOS_ROBOSIMIAN)
-if(BUILD_DEMOS_ROBOSIMIAN)
-  add_subdirectory(robosimian)
+option(BUILD_DEMOS_ROBOT "Build robot demo programs" ON)
+mark_as_advanced(FORCE BUILD_DEMOS_ROBOT)
+if(BUILD_DEMOS_ROBOT)
+  add_subdirectory(robot)
 endif()
 
 if(ENABLE_MODULE_COSIMULATION)

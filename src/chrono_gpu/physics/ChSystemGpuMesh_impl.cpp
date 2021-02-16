@@ -77,9 +77,7 @@ void ChSystemGpuMesh_impl::initializeTriangles() {
 
     tri_params->rolling_coeff_s2m_SU = (float)rolling_coeff_s2m_UU;
 
-    double* meshRot = new double[4];
-    memset(meshRot, 0.0, sizeof(meshRot));
-    meshRot[0] = 1.0;
+    const double meshRot[4] = {1.,0.,0.,0.};
     for (unsigned int fam = 0; fam < meshSoup->numTriangleFamilies; fam++) {
         generate_rot_matrix<float>(meshRot, tri_params->fam_frame_broad[fam].rot_mat);
         tri_params->fam_frame_broad[fam].pos[0] = (float)0.0;
@@ -94,6 +92,9 @@ void ChSystemGpuMesh_impl::initializeTriangles() {
 
     TRACK_VECTOR_RESIZE(SD_numTrianglesTouching, nSDs, "SD_numTrianglesTouching", 0);
     TRACK_VECTOR_RESIZE(SD_TriangleCompositeOffsets, nSDs, "SD_TriangleCompositeOffsets", 0);
+
+    TRACK_VECTOR_RESIZE(Triangle_NumSDsTouching, meshSoup->nTrianglesInSoup, "Triangle_NumSDsTouching", 0);
+    TRACK_VECTOR_RESIZE(Triangle_SDsCompositeOffsets, meshSoup->nTrianglesInSoup, "Triangle_SDsCompositeOffsets", 0);
 
     // TODO do we have a good heuristic???
     // this gets resized on-the-fly every timestep

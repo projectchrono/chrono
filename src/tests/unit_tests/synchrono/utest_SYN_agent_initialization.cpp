@@ -107,16 +107,16 @@ TEST(SynChrono, SynChronoInit) {
     auto check_agent_list = syn_manager_ptr->GetAgents();
 
     // Agent list size after sync
-    int check_agent_size = check_agent_list.size();
+    int check_agent_size = static_cast<int>(check_agent_list.size());
 
     // Var to store msg on the current rank after mpi sync
     SynMessageList messages;
     check_agent_list[rank]->GatherMessages(messages);
-    auto msg_rcevd = messages[0];
+    auto msg_recvd = messages[0];
 
     // Check whether agent size is num_ranks
     EXPECT_EQ(check_agent_size, num_ranks);
 
     // Check whether the msg in the agent on the curr rank is intact
-    EXPECT_EQ(msg_rcevd, msg_sent);
+    EXPECT_EQ(msg_recvd, msg_sent);
 }

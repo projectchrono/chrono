@@ -75,7 +75,7 @@ int main(int argc, char* argv[]) {
     mphysicalSystem.Add(mfloor2);
 
     auto masset_texture = chrono_types::make_shared<ChTexture>();
-    masset_texture->SetTextureFilename(GetChronoDataFile("concrete.jpg"));
+    masset_texture->SetTextureFilename(GetChronoDataFile("textures/concrete.jpg"));
     mfloor2->AddAsset(masset_texture);
 
     // - Create a falling item with triangle mesh shape
@@ -87,13 +87,13 @@ int main(int argc, char* argv[]) {
     // piece of code:
     //
     // auto mfalling = chrono_types::make_shared<ChBodyEasyMesh>(
-    //	  GetChronoDataFile("shoe_view.obj"),   ///< file name for OBJ Wavefront mesh
-    //	  1000,                                 ///< density of the body
-    //	  true,			                        ///< automatic evaluation of mass, COG position, inertia tensor
-    //    true,                                 ///< attach visualization asset
-    //	  true,			                        ///< enable the collision detection
-    //    mat,                                  ///< surface contact material
-    //	  0.005			                        ///< radius of 'inflating' of mesh (for more robust collision detection)
+    //	  GetChronoDataFile("models/bulldozer/shoe_view.obj"),  // file name for OBJ Wavefront mesh
+    //	  1000,                                                 // density of the body
+    //	  true,			                                        // automatic evaluation of mass, COG position, inertia tensor
+    //    true,                                                 // attach visualization asset
+    //	  true,			                                        // enable the collision detection
+    //    mat,                                                  // surface contact material
+    //	  0.005			                                        // radius of 'inflating' of mesh (for more robust collision detection)
     //	  );
     // mfalling->SetFrame_REF_to_abs(ChFrame<>(ChVector<>(-0.9 + ChRandom() * 1.4, 0.4 + j * 0.12, -0.9 + ChRandom()
     // * 1.4))); mphysicalSystem.Add(mfalling);
@@ -104,7 +104,7 @@ int main(int argc, char* argv[]) {
 	// imported mesh; also we want to scale the imported mesh using Transform().
 
     auto mmesh = chrono_types::make_shared<ChTriangleMeshConnected>();
-    mmesh->LoadWavefrontMesh(GetChronoDataFile("shoe_view.obj"), false, true);
+    mmesh->LoadWavefrontMesh(GetChronoDataFile("models/bulldozer/shoe_view.obj"), false, true);
     mmesh->Transform(ChVector<>(0, 0, 0), ChMatrix33<>(1.2));  // scale to a different size
     mmesh->RepairDuplicateVertexes(1e-9);                      // if meshes are not watertight
 

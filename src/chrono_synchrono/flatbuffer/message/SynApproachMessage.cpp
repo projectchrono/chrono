@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: 肖言 (Yan Xiao), Jay Taves
+// Authors: Yan Xiao, Jay Taves
 // =============================================================================
 //
 // Class for Approach Messages, those contains data on approaches, which are a

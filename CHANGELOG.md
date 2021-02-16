@@ -5,8 +5,11 @@ Change Log
 ==========
 
 - [Unreleased (development version)](#unreleased-development-branch)
-  - [RoboSimian model](#added-robosimian-model)
+- [Release 6.0.0](#release-600---2021-02-10) 
+  - [New Chrono::Csharp module](#added-new-chronocsharp-module)
+  - [RoboSimian, Viper, and LittleHexy models](#added-robosimian-viper-and-littlehexy-models)
   - [Contact force reporting through user-provided callback](#added-contact-force-reporting-through-user-provided-callback)
+  - [Chrono::Gpu module rename](#changed-chronogpu-module-rename)
   - [Chrono::Multicore module rename](#changed-chronomulticore-module-rename)
   - [Geometric stiffness for Euler beams](#added-geometric-stiffness-for-euler-beams)
   - [New Chrono::Synchrono module](#added-new-chronosynchrono-module)
@@ -32,15 +35,50 @@ Change Log
 
 ## Unreleased (development branch)
 
-### [Added] RoboSimian model
+## Release 6.0.0 - 2021-02-10
 
-A model of the legged RoboSimian robot is now included in the collection of Chrono models.  The model has no dependencies beyond the core Chrono module, except for an (optional) utility class for visualization with Irrlicht.  A Python wrapper is also provided. Related demo programs illustrate the robot moving over rigid or SCM deformable terrain (using a core Chrono system) and over granular terrain (using the Chrono::Multicore module).
+### [Added] New Chrono::Csharp module
+
+The new Chrono::Csharp module provides a C# interface to selected Chrono functionality.  This allows using Chrono from C# programs and facilitates the integration of Chrono with external engines such as Unity.
+
+The module relies on SWIG to automatically generate the interface library and wrapper C# classes.  Upon build, the module creates the wrapper C# files under a `chrono_csharp/` directory in the build tree and a number of shared libraries (dll on Windows, so on Linux) in either the `bin/` or `lib/` directory, depending on platform. Currently, the Chrono::Csharp module provides an interface to the multibody dynamics capabilities in the core Chrono module, as well as to Chrono::Vehicle and the associated vehicle models.
+
+### [Added] RoboSimian, Viper, and LittleHexy models
+
+Models of the legged RoboSimian robot, the wheeled Viper rover, and the six-propeller LittleHexy copter are now included in the collection of Chrono models.  These models have no dependencies beyond the core Chrono module, except for an optional utility class for RoboSimian visualization with Irrlicht. Python wrappers are also provided, allowing use of these models with PyChrono. Related demo programs illustrate the robots moving over rigid or SCM deformable terrain (using a core Chrono system) and over granular terrain (using the Chrono::Multicore module).
 
 ### [Added] Contact force reporting through user-provided callback
 
-The `OnReportContact` method of a user-supplied reporter callback (derived from `ChContactContainer::ReportContactCallback`) is now called with the proper force and torque for the current contact when using a Chrono::Multicore parallel system (of either NSC or SMC type).  The reported contact force and torque are provided at the contact point and expressed in the *contact frame* (defined by the given rotation matrix).
+The `OnReportContact` method of a user-supplied reporter callback (derived from `ChContactContainer::ReportContactCallback`) is now called with the proper force and torque for the current contact when using a Chrono::Multicore parallel system (of either NSC or SMC type).  The reported contact force and torque are provided at the contact point and expressed in the *contact frame* (defined by the provided rotation matrix).
 
 For examples of using the contact reporting feature with a Chrono::Multicore system, see `demo_MCORE_callbackNSC` and `demo_MCORE_callbackSMC`.
+
+### [Changed] Chrono::Gpu module rename
+
+For consistency and to better reflect the purpose of this module, Chrono::Granular was renamed to **Chrono::Gpu**.
+With this change, the set of three Chrono modules targeting different parallel hardware (each providing different level of support for different types of simulations) are:
+- Chrono::Multicore (for shared-memory multicore parallel computing using OpenMP)
+- Chrono::Gpu (for GPU parallel computing using CUDA)
+- Chrono::Distributed (for distributed-memory parallel computing using MPI)
+
+The name change for Chrono::Gpu and its associated classes was done in conjunction with a relatively extensive refactoring of its API.  The user's interaction with the Chrono::Gpu module was streamlined by exposing in the public API a single Chrono::Gpu system object (of type `ChSystemGpu` or `ChSystemGpuMesh`) and hidding the underlying implementation in a private class.
+
+See the various Chrono::Gpu demos in the Chrono distribution (e.g., demo_GPU_ballcosim) for usage of the new Chrono::Gpu module. The main API changes are as follows:
+- user code only needs to include one Chrono::Gpu header, namely `chrono_gpu/physics/ChSystemGpu.h`;
+- optional utilities are available in the `utils/` subdirectory (e.g. `chrono_gpu/utils/GpuJsonParser.h` and `chrono_gpu/utils/ChGpuSphereDecomp.h`; see demo_GPU_ballcosim and demo_GPU_fixedterrain, respectively);
+- user must create a Chrono::Gpu object (of type `ChSystemGpu` or `ChSystemGpuMesh`, as appropriate) by specifying the radius of the granular material spherical particles, their density, and the domain size.   This system object intermediates all interactions with the solver (through various setter and getter methods) and provides wrapper functions to initialize the problem (before the simulation loop) and advance the system state (inside the simulation loop);
+- note that names of ChSystemGpu methods were changed throughout for uniformity and coherence.
+
+As part of this refactoring, we have also added run-time visualization support for Chrono::Gpu simulations using the Chrono::OpenGL module (if the latter is not enabled in your Chrono build, run-time visualization support is disabled).  While run-time visualization adds some overhead, it may prove to be a useful debugging tool.  To use it:
+- include the header `chrono_gpu/utils/ChGpuVisualization`;
+- create the visualization object by passing it a pointer to the Chrono::Gpu system and (optionally) a pointer to a Chrono system (if one already exists, e.g. for a co-simulation problem;  if passing `nullptr`, such a system is created automatically);
+- initialize the visualization system (this must be done after the Chrono::Gpu system itself was initialized) by invoking the function ChGpuVisualization::Initialize();
+- in the simulation loop, at any desired frequency, invoke the function ChGpuVisualization::Render().
+
+See demo_GPU_ballcosim, demo_GPU_mixer, or demo_GPU_repose for use of the run-time visualization option.
+
+
+Finally, note that a future version of the Chrono::Gpu module may simplify its public API even further by collapsing the two current classes ChsystemGpu and ChSystemGpuMesh into a single one.
 
 ### [Changed] Chrono::Multicore module rename
 

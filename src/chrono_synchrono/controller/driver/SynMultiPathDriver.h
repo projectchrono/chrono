@@ -34,7 +34,7 @@ class SYN_API ChMultiplePathSteeringController : public vehicle::ChSteeringContr
 
     /// Add another path to the steering Controller, will return the path index in
     /// the array
-    int addPath(std::shared_ptr<ChBezierCurve> path, bool isClosedPath = false);
+    unsigned addPath(std::shared_ptr<ChBezierCurve> path, bool isClosedPath = false);
 
     /// Reset the PID controller.
     /// This function resets the underlying path tracker using the current location
@@ -62,13 +62,13 @@ class SYN_API ChMultiPathFollowerACCDriver : public vehicle::ChDriver {
   public:
     /// Construct using the specified Bezier curve.
     ChMultiPathFollowerACCDriver(vehicle::ChVehicle& vehicle,  ///< associated vehicle
-                               std::vector<std::pair<std::shared_ptr<ChBezierCurve>, bool>>
-                                   path_pairs,                ///< an array of Bezier curve with target path
-                               const std::string& path_name,  ///< name of the path curve
-                               double target_speed,           ///< constant target speed
-                               double target_following_time,  ///< seconds of following time
-                               double target_min_distance,    ///< min following distance
-                               double current_distance        ///< current distance to the vehicle in front
+                                 std::vector<std::pair<std::shared_ptr<ChBezierCurve>, bool>>
+                                     path_pairs,                ///< an array of Bezier curve with target path
+                                 const std::string& path_name,  ///< name of the path curve
+                                 double target_speed,           ///< constant target speed
+                                 double target_following_time,  ///< seconds of following time
+                                 double target_min_distance,    ///< min following distance
+                                 double current_distance        ///< current distance to the vehicle in front
     );
 
     ~ChMultiPathFollowerACCDriver() {}
@@ -112,7 +112,7 @@ class SYN_API ChMultiPathFollowerACCDriver : public vehicle::ChDriver {
     void changePath(int path) { m_steeringPID.changePath(path); }
 
     /// Add another path into the array
-    int addPath(std::shared_ptr<ChBezierCurve> path, bool isClosedPath = false) {
+    unsigned addPath(std::shared_ptr<ChBezierCurve> path, bool isClosedPath = false) {
         return m_steeringPID.addPath(path, isClosedPath);
     }
 

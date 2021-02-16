@@ -111,14 +111,15 @@ Output:
   - normal:     contact normal, from pt2 to pt1
 A return value of "true" signals collision.
 */
-__device__ bool face_sphere_cd(const double3& A,           //!< First vertex of the triangle
-                               const double3& B,           //!< Second vertex of the triangle
-                               const double3& C,           //!< Third vertex of the triangle
-                               const double3& sphere_pos,  //!< Location of the center of the sphere
-                               const int radius,           //!< Sphere radius
-                               float3& normal,
-                               float& depth,
-                               double3& pt1) {
+__device__ bool face_sphere_cd(const double3& A,           ///< First vertex of the triangle
+                               const double3& B,           ///< Second vertex of the triangle
+                               const double3& C,           ///< Third vertex of the triangle
+                               const double3& sphere_pos,  ///< Location of the center of the sphere
+                               const int radius,           ///< Sphere radius
+                               float3& normal,             ///< contact normal
+                               float& depth,               ///< penetration
+                               double3& pt1                ///< contact point on triangle
+) {
     // Calculate face normal using RHR
     double3 face_n = face_normal(A, B, C);
 

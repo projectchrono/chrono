@@ -31,6 +31,58 @@ typedef unsigned char not_stupid_bool;
 namespace chrono {
 namespace gpu {
 
+/// <summary>
+/// ChSolverStateData contains information that pertains the solver, at a certain point in time. It contains
+/// information about the current sim time, current time step, max number of spheres in each SD, etc.
+/// This is the type of information that changes (or not) from time step to time step.
+/// </summary>
+class ChSolverStateData {
+  private:
+    /// variable stores at each time step the largest number of spheres in any domain; this is useful when deciding
+    /// on the number of threads in a block for a kernel call. It is also useful to settle once and for all whether
+    /// we exceed the threshold MAX_COUNT_OF_SPHERES_PER_SD. Avoids having these checks in the kernel. Stored in
+    /// managed memory.
+    unsigned int* pMaxNumberSpheresInAnySD;
+    unsigned int crntMaxNumberSpheresInAnySD;  // redundant with info above, but info above is on the device
+    unsigned int largestMaxNumberSpheresInAnySD_thusFar;
+
+    /// vector of unsigned int that lives on the device; used by CUB or by anybody else that needs scrap space.
+    /// Please pay attention to the type the vector stores.
+    std::vector<char, cudallocator<char>> deviceScratchSpace; 
+
+    /// current integration time step
+    float crntStepSize_SU;  // DN: needs to be brought here from GranParams
+    float crntSimTime_SU;   // DN: needs to be brought here from GranParams
+  public:
+    ChSolverStateData() {
+        cudaMallocManaged(&pMaxNumberSpheresInAnySD, sizeof(unsigned int));
+        largestMaxNumberSpheresInAnySD_thusFar = 0;
+    }
+    ~ChSolverStateData() { cudaFree(pMaxNumberSpheresInAnySD); }
+    inline unsigned int* pMM_maxNumberSpheresInAnySD() {
+        return pMaxNumberSpheresInAnySD;  ///< returns pointer to managed memory
+    }
+    /// keep track of the largest number of spheres that touched an SD thus far into the simulation
+    inline void recordCrntMaxNumberSpheresInAnySD(unsigned int someVal) {
+        crntMaxNumberSpheresInAnySD = someVal;
+        if (someVal > largestMaxNumberSpheresInAnySD_thusFar)
+            largestMaxNumberSpheresInAnySD_thusFar = someVal;
+    }
+    /// reports the largest number of spheres that touched any SD thus far into the simulation
+    inline unsigned int MaxNumberSpheresInAnySDThusFar() const { return largestMaxNumberSpheresInAnySD_thusFar; }
+    /// reports the largest number of spheres that touched any SD at the most recent broadphase CD function call
+    inline unsigned int currentMaxNumberSpheresInAnySD() const { return crntMaxNumberSpheresInAnySD; }
+    
+    ///return raw pointer to swath of device memory that is at least "sizeNeeded" large
+    inline char* pDeviceMemoryScratchSpace(size_t sizeNeeded) {
+        if (deviceScratchSpace.size() < sizeNeeded) {
+            deviceScratchSpace.resize(sizeNeeded, 0);
+        }
+        return deviceScratchSpace.data();
+    }
+};
+    
+
 // Underlying implementation of the Chrono::Gpu system.
 // used to control and dispatch the GPU sphere-only solver.
 class ChSystemGpu_impl {
@@ -157,9 +209,10 @@ class ChSystemGpu_impl {
         float3* tangential_friction_force;  ///< Track sliding friction force
         float3* rolling_friction_torque;    ///< Track rolling friction force
 
-        unsigned int* SD_NumSpheresTouching;      ///< Number of particles touching each subdomain
-        unsigned int* SD_SphereCompositeOffsets;  ///< Offset of each subdomain in the big composite array
-        unsigned int* spheres_in_SD_composite;    ///< Big composite array of sphere-subdomain membership
+        unsigned int* SD_NumSpheresTouching;         ///< Number of particles touching each subdomain
+        unsigned int* SD_SphereCompositeOffsets;     ///< Offset of each subdomain in the big composite array
+        unsigned int* SD_SphereCompositeOffsets_SP;  ///< like SD_SphereCompositeOffsets, scratch pad (SP) used
+        unsigned int* spheres_in_SD_composite;       ///< Big composite array of sphere-subdomain membership
 
         unsigned int* sphere_owner_SDs;  ///< List of owner subdomains for each sphere
     };
@@ -389,6 +442,9 @@ class ChSystemGpu_impl {
     /// Holds system degrees of freedom
     SphereData* sphere_data;
 
+    /// Contains information about the status of the granular simulator (solver)
+    ChSolverStateData stateOfSolver_resources;
+
     /// Allows the code to be very verbose for debugging
     CHGPU_VERBOSITY verbosity;
 
@@ -484,9 +540,11 @@ class ChSystemGpu_impl {
 
     /// Entry "i" says how many spheres touch subdomain i
     std::vector<unsigned int, cudallocator<unsigned int>> SD_NumSpheresTouching;
+    ///  Entry "i" says where spheres touching ith SD are stored in the big composite array (the offset)
     std::vector<unsigned int, cudallocator<unsigned int>> SD_SphereCompositeOffsets;
-
-    /// Array containing the IDs of the spheres stored in the SDs associated with the box
+    /// Scratch area, needed to populate data in the big composite array
+    std::vector<unsigned int, cudallocator<unsigned int>> SD_SphereCompositeOffsets_ScratchPad;
+    /// Array with the IDs of the spheres touching each SD associated with the box; organized SD after SD
     std::vector<unsigned int, cudallocator<unsigned int>> spheres_in_SD_composite;
 
     /// List of owner subdomains for each sphere

@@ -11,7 +11,7 @@
 // Holds internal functions and kernels for running a sphere-sphere timestep
 //
 // =============================================================================
-// Authors: Conlain Kelly, Nic Olsen, Dan Negrut
+// Contributors: Conlain Kelly, Nic Olsen, Dan Negrut, Ruochun Zhang
 // =============================================================================
 
 #pragma once
@@ -27,6 +27,7 @@
 #include <sstream>
 #include <string>
 #include <cstdint>
+#include <algorithm>
 
 #include "chrono_gpu/ChGpuDefines.h"
 #include "chrono_gpu/physics/ChSystemGpu_impl.h"
@@ -67,30 +68,26 @@ inline __device__ __host__ int64_t3 convertPosLocalToGlobal(unsigned int ownerSD
 /// which subdomains described in the corresponding 8-SD cube are touched by the sphere. The kernel then converts
 /// these indices to indices into the global SD list via the (currently local) conv[3] data structure Should be
 /// mostly bug-free, especially away from boundaries
-inline __device__ void figureOutTouchedSD(int64_t sphCenter_X_relative,
-                                          int64_t sphCenter_Y_relative,
-                                          int64_t sphCenter_Z_relative,
+inline __device__ void figureOutTouchedSD(int sphCenter_X_local,
+                                          int sphCenter_Y_local,
+                                          int sphCenter_Z_local,
+                                          int3 ownerSD,
                                           unsigned int SDs[MAX_SDs_TOUCHED_BY_SPHERE],
                                           ChSystemGpu_impl::GranParamsPtr gran_params) {
     // grab radius as signed so we can use it intelligently
     const signed int sphereRadius_SU = gran_params->sphereRadius_SU;
-    // I added these to fix a bug, we can inline them if/when needed but they ARE necessary
-    // We need to offset so that the bottom-left corner is at the origin
 
-    // TODO this should never be over 2 billion anyways
-    signed int nx[2], ny[2], nz[2];
+    int nx[2], ny[2], nz[2];
 
-    // get the bottom-left-most SD that the particle touches
-    // nx = (xCenter - radius) / wx
-    nx[0] = (signed int)((sphCenter_X_relative - sphereRadius_SU) / gran_params->SD_size_X_SU);
-    // Same for Y and Z
-    ny[0] = (signed int)((sphCenter_Y_relative - sphereRadius_SU) / gran_params->SD_size_Y_SU);
-    nz[0] = (signed int)((sphCenter_Z_relative - sphereRadius_SU) / gran_params->SD_size_Z_SU);
+    // if the sphere touches the SD to the negative directions of its owner
+    nx[0] = (sphCenter_X_local - sphereRadius_SU) > 0 ? 0 : -1;
+    ny[0] = (sphCenter_Y_local - sphereRadius_SU) > 0 ? 0 : -1;
+    nz[0] = (sphCenter_Z_local - sphereRadius_SU) > 0 ? 0 : -1;
 
-    // get the top-right-most SD that the particle touches
-    nx[1] = (signed int)((sphCenter_X_relative + sphereRadius_SU) / gran_params->SD_size_X_SU);
-    ny[1] = (signed int)((sphCenter_Y_relative + sphereRadius_SU) / gran_params->SD_size_Y_SU);
-    nz[1] = (signed int)((sphCenter_Z_relative + sphereRadius_SU) / gran_params->SD_size_Z_SU);
+    // if the sphere touches the SD to the positive directions of its owner
+    nx[1] = (sphCenter_X_local + sphereRadius_SU) < gran_params->SD_size_X_SU ? 0 : 1;
+    ny[1] = (sphCenter_Y_local + sphereRadius_SU) < gran_params->SD_size_Y_SU ? 0 : 1;
+    nz[1] = (sphCenter_Z_local + sphereRadius_SU) < gran_params->SD_size_Z_SU ? 0 : 1;
     // figure out what
     // number of iterations in each direction
     int num_x = (nx[0] == nx[1]) ? 1 : 2;
@@ -101,26 +98,14 @@ inline __device__ void figureOutTouchedSD(int64_t sphCenter_X_relative,
     for (int i = 0; i < num_x; i++) {
         for (int j = 0; j < num_y; j++) {
             for (int k = 0; k < num_z; k++) {
-                // composite index to write to
-                int id = i * 4 + j * 2 + k;
-                // if I ran out of the box, give up and set this to NULL
-                if ((nx[i] < 0 || nx[i] >= gran_params->nSDs_X) || (ny[j] < 0 || ny[j] >= gran_params->nSDs_Y) ||
-                    (nz[k] < 0 || nz[k] >= gran_params->nSDs_Z)) {
-                    SDs[id] = NULL_CHGPU_ID;
-                    continue;  // skip this SD
-                }
-
-                // ok so now this SD id is ok, carry on
-                SDs[id] = nx[i] * gran_params->nSDs_Y * gran_params->nSDs_Z + ny[j] * gran_params->nSDs_Z + nz[k];
+                // will return NULL_CHGPU_ID if this is an out-of-domain SD
+                SDs[i * 4 + j * 2 + k] = SDTripletID(ownerSD.x + nx[i], ownerSD.y + ny[j], ownerSD.z + nz[k], gran_params);
             }
         }
     }
 }
 
 /**
- * This kernel call prepares information that will be used in a subsequent kernel that performs the actual time
- * stepping.
- *
  * Template arguments:
  *   - CUB_THREADS: the number of threads used in this kernel, comes into play when invoking CUB block collectives
  *
@@ -134,7 +119,7 @@ inline __device__ void figureOutTouchedSD(int64_t sphCenter_X_relative,
  *       - The z-axis is along the height H of the box
  *   - A sphere cannot touch more than eight SDs
  *
- * Basic idea: use domain decomposition on the rectangular box and figure out how many SDs each sphere touches.
+ * Basic idea: use domain decomposition on the rectangular box and figure out how many sphere touche each SD.
  * The subdomains are axis-aligned relative to the reference frame associated with the *box*. The origin of the box is
  * at the center of the box. The orientation of the box is defined relative to a world inertial reference frame.
  *
@@ -143,16 +128,12 @@ inline __device__ void figureOutTouchedSD(int64_t sphCenter_X_relative,
  *   - BD: the big-domain, which is the union of all SDs
  *   - NULL_CHGPU_ID: the equivalent of a non-sphere SD ID, or a non-sphere ID
  *
- * Notes:
- *   - The SD with ID=0 is the catch-all SD. This is the SD in which a sphere ends up if its not inside the rectangular
- * box. Usually, there is no sphere in this SD (THIS IS NOT IMPLEMENTED AS SUCH FOR NOW)
- *
  */
 template <unsigned int CUB_THREADS>  // Number of CUB threads engaged in block-collective CUB operations. Should be a
                                      // multiple of 32
-__global__ void sphereBroadphase_dryrun(ChSystemGpu_impl::GranSphereDataPtr sphere_data,
-                                        unsigned int nSpheres,  // Number of spheres in the box
-                                        ChSystemGpu_impl::GranParamsPtr gran_params) {
+__global__ void getNumberOfSpheresTouchingEachSD(ChSystemGpu_impl::GranSphereDataPtr sphere_data,
+                                                 unsigned int nSpheres,  // Number of spheres in the box
+                                                 ChSystemGpu_impl::GranParamsPtr gran_params) {
     /// Set aside shared memory
     volatile __shared__ bool shMem_head_flags[CUB_THREADS * MAX_SDs_TOUCHED_BY_SPHERE];
 
@@ -166,24 +147,16 @@ __global__ void sphereBroadphase_dryrun(ChSystemGpu_impl::GranSphereDataPtr sphe
     unsigned int mySphereID = threadIdx.x + blockIdx.x * blockDim.x;
 
     // This uses a lot of registers but is needed
-    unsigned int SDsTouched[MAX_SDs_TOUCHED_BY_SPHERE] = {NULL_CHGPU_ID, NULL_CHGPU_ID, NULL_CHGPU_ID,
-                                                          NULL_CHGPU_ID, NULL_CHGPU_ID, NULL_CHGPU_ID,
-                                                          NULL_CHGPU_ID, NULL_CHGPU_ID};
+    unsigned int SDsTouched[MAX_SDs_TOUCHED_BY_SPHERE] = {NULL_CHGPU_ID, NULL_CHGPU_ID, NULL_CHGPU_ID, NULL_CHGPU_ID,
+                                                          NULL_CHGPU_ID, NULL_CHGPU_ID, NULL_CHGPU_ID, NULL_CHGPU_ID};
     if (mySphereID < nSpheres) {
         // Coalesced mem access
         int3 ownerSD_triplet = SDIDTriplet(sphere_data->sphere_owner_SDs[mySphereID], gran_params);
-        // positions are relative to Big Domain corner
-        int64_t sphere_pos_relative_X =
-            ((int64_t)ownerSD_triplet.x) * gran_params->SD_size_X_SU + sphere_data->sphere_local_pos_X[mySphereID];
-        int64_t sphere_pos_relative_Y =
-            ((int64_t)ownerSD_triplet.y) * gran_params->SD_size_Y_SU + sphere_data->sphere_local_pos_Y[mySphereID];
-        int64_t sphere_pos_relative_Z =
-            ((int64_t)ownerSD_triplet.z) * gran_params->SD_size_Z_SU + sphere_data->sphere_local_pos_Z[mySphereID];
 
-        // printf("relative pos is %lld, %lld, %lld\n", sphere_pos_relative_X, sphere_pos_relative_Y,
-        //        sphere_pos_relative_Z);
-        figureOutTouchedSD(sphere_pos_relative_X, sphere_pos_relative_Y, sphere_pos_relative_Z, SDsTouched,
-                           gran_params);
+        figureOutTouchedSD(sphere_data->sphere_local_pos_X[mySphereID], 
+                          sphere_data->sphere_local_pos_Y[mySphereID], 
+                          sphere_data->sphere_local_pos_Z[mySphereID], 
+                          ownerSD_triplet, SDsTouched, gran_params);
     }
 
     __syncthreads();
@@ -227,118 +200,45 @@ __global__ void sphereBroadphase_dryrun(ChSystemGpu_impl::GranSphereDataPtr sphe
     }
 }
 
-/// Broadphase collision detection.
-template <unsigned int CUB_THREADS>  // Number of CUB threads engaged in block-collective CUB operations. Should be a
-                                     // multiple of 32
-__global__ void sphereBroadphase(ChSystemGpu_impl::GranSphereDataPtr sphere_data,
-                                 unsigned int nSpheres,  // Number of spheres in the box
-                                 ChSystemGpu_impl::GranParamsPtr gran_params) {
-    // Set aside shared memory
-    // SD component of offset into composite array
-    volatile __shared__ unsigned int sphere_composite_offsets[CUB_THREADS * MAX_SDs_TOUCHED_BY_SPHERE];
-    volatile __shared__ bool shMem_head_flags[CUB_THREADS * MAX_SDs_TOUCHED_BY_SPHERE];
-
-    typedef cub::BlockRadixSort<unsigned int, CUB_THREADS, MAX_SDs_TOUCHED_BY_SPHERE, unsigned int> BlockRadixSortOP;
-    __shared__ typename BlockRadixSortOP::TempStorage temp_storage_sort;
-
-    typedef cub::BlockDiscontinuity<unsigned int, CUB_THREADS> Block_Discontinuity;
-    __shared__ typename Block_Discontinuity::TempStorage temp_storage_disc;
-
-    // Figure out what sphereID this thread will handle. We work with a 1D block structure and a 1D grid structure
+/// <summary>
+/// Kernel figures out whether a sphere touches an SD. Since a sphere can touch at most 8 SDs, the number of threads
+/// launched in conjunction with this kernel is eight times the number of spheres.
+/// There will be one thread that the sphere clearly touches: the one in which its center lives. Beyond that, all bets
+/// are off. The idea is that the thread whose ID is a multiple of 8 will add this SD. Beyond that 8 threads will check
+/// to add the other SDs that are touched by this sphere.
+/// One possible approach: the multiple-8 thread adds the SD in which the center of the sphere lies. Then,
+/// that same thread looks at one of the eight potential SDs, and the one found only if it's different than the "host"
+/// SD (host SD is the one that hosts the center of the sphere).
+/// CAVEATS: make sure the center doesn't show up in two or more SDs - might be the case if the sphere is exactly on the
+/// boundary between two or more SDs.
+/// </summary>
+/// <param name="sphere_data"> state information about the granular system</param>
+/// <param name="nSpheres"> number of spheres in the gran material</param>
+/// <param name="gran_params"> the set of parameters associated with this simulation </param>
+/// <returns></returns>
+static __global__ void populateSpheresInEachSD(ChSystemGpu_impl::GranSphereDataPtr sphere_data,
+                                         unsigned int nSpheres,  // Number of spheres in the box
+                                         ChSystemGpu_impl::GranParamsPtr gran_params) {
+    
     unsigned int mySphereID = threadIdx.x + blockIdx.x * blockDim.x;
-    unsigned int sphIDs[MAX_SDs_TOUCHED_BY_SPHERE] = {mySphereID, mySphereID, mySphereID, mySphereID,
-                                                      mySphereID, mySphereID, mySphereID, mySphereID};
-
-    // This uses a lot of registers but is needed
-    unsigned int SDsTouched[MAX_SDs_TOUCHED_BY_SPHERE] = {NULL_CHGPU_ID, NULL_CHGPU_ID, NULL_CHGPU_ID,
-                                                          NULL_CHGPU_ID, NULL_CHGPU_ID, NULL_CHGPU_ID,
-                                                          NULL_CHGPU_ID, NULL_CHGPU_ID};
+    
+    unsigned int SDsTouched[MAX_SDs_TOUCHED_BY_SPHERE] = {NULL_CHGPU_ID, NULL_CHGPU_ID, NULL_CHGPU_ID, NULL_CHGPU_ID,
+                                                          NULL_CHGPU_ID, NULL_CHGPU_ID, NULL_CHGPU_ID, NULL_CHGPU_ID};
     if (mySphereID < nSpheres) {
         // Coalesced mem access
         int3 ownerSD_triplet = SDIDTriplet(sphere_data->sphere_owner_SDs[mySphereID], gran_params);
-        // positions are relative to Big Domain corner
-        int64_t sphere_pos_relative_X =
-            ((int64_t)ownerSD_triplet.x) * gran_params->SD_size_X_SU + sphere_data->sphere_local_pos_X[mySphereID];
-        int64_t sphere_pos_relative_Y =
-            ((int64_t)ownerSD_triplet.y) * gran_params->SD_size_Y_SU + sphere_data->sphere_local_pos_Y[mySphereID];
-        int64_t sphere_pos_relative_Z =
-            ((int64_t)ownerSD_triplet.z) * gran_params->SD_size_Z_SU + sphere_data->sphere_local_pos_Z[mySphereID];
 
-        // printf("relative pos is %lld, %lld, %lld\n", sphere_pos_relative_X, sphere_pos_relative_Y,
-        //        sphere_pos_relative_Z);
-        figureOutTouchedSD(sphere_pos_relative_X, sphere_pos_relative_Y, sphere_pos_relative_Z, SDsTouched,
-                           gran_params);
-    }
-
-    __syncthreads();
-
-    // Sort by the ID of the SD touched
-    BlockRadixSortOP(temp_storage_sort).Sort(SDsTouched, sphIDs);
-    __syncthreads();
-
-    // Do a winningStreak search on whole block, might not have high utilization here
-    bool head_flags[MAX_SDs_TOUCHED_BY_SPHERE];
-    Block_Discontinuity(temp_storage_disc).FlagHeads(head_flags, SDsTouched, cub::Inequality());
-    __syncthreads();
-
-    // Write back to shared memory; eight-way bank conflicts here - to revisit later
-    for (unsigned int i = 0; i < MAX_SDs_TOUCHED_BY_SPHERE; i++) {
-        shMem_head_flags[MAX_SDs_TOUCHED_BY_SPHERE * threadIdx.x + i] = head_flags[i];
-    }
-
-    // Seed offsetInComposite_SphInSD_Array with "no valid ID" so that we know later on what is legit;
-    // No shmem bank coflicts here, good access...
-    for (unsigned int i = 0; i < MAX_SDs_TOUCHED_BY_SPHERE; i++) {
-        sphere_composite_offsets[i * CUB_THREADS + threadIdx.x] = NULL_CHGPU_ID;
-    }
-
-    __syncthreads();
-
-    // Count how many times an SD shows up in conjunction with the collection of CUB_THREADS spheres. There
-    // will be some thread divergence here.
-    // Loop through each potential SD, after sorting, and see if it is the start of a head
-    for (unsigned int i = 0; i < MAX_SDs_TOUCHED_BY_SPHERE; i++) {
-        // SD currently touched, could easily be inlined
-        unsigned int touchedSD = SDsTouched[i];
-        if (touchedSD != NULL_CHGPU_ID && head_flags[i]) {
-            // current index into shared datastructure of length 8*CUB_THREADS, could easily be inlined
-            unsigned int idInShared = MAX_SDs_TOUCHED_BY_SPHERE * threadIdx.x + i;
-            unsigned int winningStreak = 0;  // should always be under 256 by simulation constraints
-            // This is the beginning of a sequence of SDs with a new ID
-            do {
-                winningStreak++;
-                // Go until we run out of threads on the warp or until we find a new head
-            } while (idInShared + winningStreak < MAX_SDs_TOUCHED_BY_SPHERE * CUB_THREADS &&
-                     !(shMem_head_flags[idInShared + winningStreak]));
-
-            // Store start of new entries
-            // TODO this assumes that the offset is less than uint
-            unsigned int sphere_offset = atomicAdd(sphere_data->SD_SphereCompositeOffsets + touchedSD, winningStreak);
-
-            // Produce the offsets for this streak of spheres with identical SD ids
-            for (unsigned int sphereInStreak = 0; sphereInStreak < winningStreak; sphereInStreak++) {
-                // add this sphere to that sd, incrementing offset for next guy
-                sphere_composite_offsets[idInShared + sphereInStreak] = sphere_offset++;
+        figureOutTouchedSD(sphere_data->sphere_local_pos_X[mySphereID], 
+                          sphere_data->sphere_local_pos_Y[mySphereID], 
+                          sphere_data->sphere_local_pos_Z[mySphereID], 
+                          ownerSD_triplet, SDsTouched, gran_params);
+        
+        for (unsigned int i = 0; i < MAX_SDs_TOUCHED_BY_SPHERE; i++) {
+            if (SDsTouched[i] != NULL_CHGPU_ID) {
+                unsigned int offsetInCompositeArray = 
+                    atomicAdd(sphere_data->SD_SphereCompositeOffsets_SP + SDsTouched[i], 1);
+                sphere_data->spheres_in_SD_composite[offsetInCompositeArray] = mySphereID;
             }
-        }
-    }
-
-    __syncthreads();  // needed since we write to shared memory above; i.e., offsetInComposite_SphInSD_Array
-
-    // Write out the data now; register with sphere_data->spheres_in_SD_composite each sphere that touches a certain ID
-    for (unsigned int i = 0; i < MAX_SDs_TOUCHED_BY_SPHERE; i++) {
-        unsigned int offset = sphere_composite_offsets[MAX_SDs_TOUCHED_BY_SPHERE * threadIdx.x + i];
-        // Add offsets together
-        // bad SD means not a valid offset
-        if (offset != NULL_CHGPU_ID) {
-            // if (offset >= max_composite_index) {
-            //     ABORTABORTABORT(
-            //         "overrun during priming on thread %u block %u, offset is %zu, max is %zu,  sphere is %u\n",
-            //         threadIdx.x, blockIdx.x, offset, max_composite_index, sphIDs[i]);
-            // } else {
-            // printf("%s\n", );
-            sphere_data->spheres_in_SD_composite[offset] = sphIDs[i];
-            // }
         }
     }
 }
@@ -396,20 +296,16 @@ inline __device__ void findNewLocalCoords(ChSystemGpu_impl::GranSphereDataPtr sp
     unsigned int SDID = SDTripletID(ownerSD, gran_params);
 
     if (sphere_pos_local_X < 0 || sphere_pos_local_Y < 0 || sphere_pos_local_Z < 0) {
-
         float l_unit = gran_params->LENGTH_UNIT;
-        printf("error! sphere %u has negative local pos in SD %u (%d, %d, %d), pos_local: %e, %e, %e, pos_global: %e, %e, %e, BD starts at: %e, %e, %e\n", 
-        mySphereID, SDID, ownerSD.x, ownerSD.y, ownerSD.z, 
-        (float)sphere_pos_local_X * l_unit, 
-        (float)sphere_pos_local_Y * l_unit, 
-        (float)sphere_pos_local_Z * l_unit, 
-        (float)global_pos_X * l_unit, (float)global_pos_Y * l_unit, (float)global_pos_Z * l_unit, 
-        (float)gran_params->BD_frame_X * l_unit, 
-        (float)gran_params->BD_frame_Y * l_unit, 
-        (float)gran_params->BD_frame_Z * l_unit);
+        printf(
+            "error! sphere %u has negative local pos in SD %u (%d, %d, %d), pos_local: %e, %e, %e, pos_global: %e, %e, "
+            "%e, BD starts at: %e, %e, %e\n",
+            mySphereID, SDID, ownerSD.x, ownerSD.y, ownerSD.z, (float)sphere_pos_local_X * l_unit,
+            (float)sphere_pos_local_Y * l_unit, (float)sphere_pos_local_Z * l_unit, (float)global_pos_X * l_unit,
+            (float)global_pos_Y * l_unit, (float)global_pos_Z * l_unit, (float)gran_params->BD_frame_X * l_unit,
+            (float)gran_params->BD_frame_Y * l_unit, (float)gran_params->BD_frame_Z * l_unit);
         __threadfence();
         cub::ThreadTrap();
-
     }
 
     // write local pos back to global memory
@@ -563,8 +459,7 @@ inline __device__ void applyExternalForces(unsigned int currSphereID,
             }
             case BC_type::CYLINDER: {
                 addBCForces_Zcyl(currSphereID, BC_id, sphPos_global, sphVel, sphOmega, sphere_force, sphere_ang_acc,
-                                  gran_params, sphere_data, bc_params_list[BC_id], bc_params_list[BC_id].track_forces);
-
+                                 gran_params, sphere_data, bc_params_list[BC_id], bc_params_list[BC_id].track_forces);
 
                 break;
             }
@@ -718,7 +613,8 @@ static __global__ void computeSphereContactForces(ChSystemGpu_impl::GranSphereDa
     // my sphere ID, we're using a 1D thread->sphere map
     unsigned int mySphereID = threadIdx.x + blockIdx.x * blockDim.x;
 
-//    float force_unit = gran_params->MASS_UNIT * gran_params->LENGTH_UNIT / (gran_params->TIME_UNIT * gran_params->TIME_UNIT);
+    //    float force_unit = gran_params->MASS_UNIT * gran_params->LENGTH_UNIT / (gran_params->TIME_UNIT *
+    //    gran_params->TIME_UNIT);
 
     // don't overrun the array
     if (mySphereID < nSpheres) {
@@ -739,103 +635,132 @@ static __global__ void computeSphereContactForces(ChSystemGpu_impl::GranSphereDa
 
         float3 my_sphere_vel = make_float3(sphere_data->pos_X_dt[mySphereID], sphere_data->pos_Y_dt[mySphereID],
                                            sphere_data->pos_Z_dt[mySphereID]);
+        size_t body_A_offset = MAX_SPHERES_TOUCHED_BY_SPHERE * mySphereID;
+
+        // Put spheres contacting this sphere into a vector, then sort based on their sphere IDs
+        // This is because if we don't sort, we have no control over the order the contact forces are added together
+        // And if that's the case, due to the non-associative property of float addition, our result is not
+        // deterministic
+        unsigned int theirIDList[MAX_SPHERES_TOUCHED_BY_SPHERE];
+        unsigned char contactIDList[MAX_SPHERES_TOUCHED_BY_SPHERE];
+        unsigned char numActiveContacts = 0;
+        for (unsigned char body_B_offset = 0; body_B_offset < MAX_SPHERES_TOUCHED_BY_SPHERE; body_B_offset++) {
+            bool active_contact = sphere_data->contact_active_map[body_A_offset + body_B_offset];
+            if (active_contact) {
+                theirIDList[numActiveContacts] = sphere_data->contact_partners_map[body_A_offset + body_B_offset];
+                contactIDList[numActiveContacts] = body_B_offset;
+                numActiveContacts++;
+            }
+        }
+
+        // Sort. Simple but should be effective since we have 12 contacts max
+        for (unsigned char ii = 0; ii < numActiveContacts; ii++) {
+            for (unsigned char jj = ii + 1; jj < numActiveContacts; jj++) {
+                if (theirIDList[ii] > theirIDList[jj]) {
+                    unsigned int tmp_int = theirIDList[ii];
+                    theirIDList[ii] = theirIDList[jj];
+                    theirIDList[jj] = tmp_int;
+                    unsigned char tmp_char = contactIDList[ii];
+                    contactIDList[ii] = contactIDList[jj];
+                    contactIDList[jj] = tmp_char;
+                }
+            }
+        }
 
         // Now compute the force each contact partner exerts
         // Force applied to this sphere
         float3 bodyA_force = {0.f, 0.f, 0.f};
         float3 bodyA_AngAcc = {0.f, 0.f, 0.f};
 
-        size_t body_A_offset = MAX_SPHERES_TOUCHED_BY_SPHERE * mySphereID;
         // for each sphere contacting me, compute the forces
-        for (unsigned char contact_id = 0; contact_id < MAX_SPHERES_TOUCHED_BY_SPHERE; contact_id++) {
-            // who am I colliding with?
-            bool active_contact = sphere_data->contact_active_map[body_A_offset + contact_id];
- 
-            if (active_contact) {
-                unsigned int theirSphereID = sphere_data->contact_partners_map[body_A_offset + contact_id];
+        for (unsigned char ii = 0; ii < numActiveContacts; ii++) {
+            // All contacts here are active
+            const unsigned int theirSphereID = theirIDList[ii];
+            const unsigned char contact_id = contactIDList[ii];
 
-                if (theirSphereID >= nSpheres) {
-                    ABORTABORTABORT("Invalid other sphere id found for sphere %u at slot %u, other is %u\n", mySphereID,
-                                    contact_id, theirSphereID);
-                }
-
-                unsigned int theirOwnerSD = sphere_data->sphere_owner_SDs[theirSphereID];
-                int3 their_pos = make_int3(sphere_data->sphere_local_pos_X[theirSphereID],
-                                           sphere_data->sphere_local_pos_Y[theirSphereID],
-                                           sphere_data->sphere_local_pos_Z[theirSphereID]);
-
-                if (theirOwnerSD != myOwnerSD) {
-                    // if the spheres are in different subdomains, offset their positions accordingly
-                    their_pos = their_pos + getOffsetFromSDs(myOwnerSD, theirOwnerSD, gran_params);
-                }
-
-                float3 vrel_t;      // tangent relative velocity
-                float reciplength;  // used to compute contact normal
-                float3 delta_r;     // used for contact normal
-                float3 force_accum = computeSphereNormalForces(
-                    reciplength, vrel_t, delta_r, my_sphere_pos, their_pos, my_sphere_vel,
-                    make_float3(sphere_data->pos_X_dt[theirSphereID], sphere_data->pos_Y_dt[theirSphereID],
-                                sphere_data->pos_Z_dt[theirSphereID]),
-                    gran_params);
-
-                if (gran_params->recording_contactInfo == true){
-                    sphere_data->normal_contact_force[body_A_offset + contact_id] = force_accum;}
-
-                float hertz_force_factor = std::sqrt(2. * (1 - (1. / reciplength)));  // sqrt(delta_n / (2 R_eff)
-
-                // add frictional terms, if needed
-                if (gran_params->friction_mode != CHGPU_FRICTION_MODE::FRICTIONLESS) {
-                    float3 their_omega = make_float3(sphere_data->sphere_Omega_X[theirSphereID],
-                                                     sphere_data->sphere_Omega_Y[theirSphereID],
-                                                     sphere_data->sphere_Omega_Z[theirSphereID]);
-                    // delta_r * radius is dimensional vector to center of contact point
-                    // (omega_b cross r_b - omega_a cross r_a), where r_b  = -r_a = delta_r * radius
-                    // add tangential components if they exist, these are automatically tangential from the cross
-                    // product
-                    vrel_t = vrel_t + Cross((my_omega + their_omega), -1.f * delta_r * sphereRadius_SU);
-
-                    // compute alpha due to rolling resistance (zero if rolling mode is no resistance)
-                    float3 rolling_resist_ang_acc = computeRollingAngAcc(
-                        sphere_data, gran_params, gran_params->rolling_coeff_s2s_SU, gran_params->spinning_coeff_s2s_SU,
-                        force_accum, my_omega, their_omega, delta_r * sphereRadius_SU);
-                    bodyA_AngAcc = bodyA_AngAcc + rolling_resist_ang_acc;
-
-                    const float m_eff = gran_params->sphere_mass_SU / 2.f;
-
-                    float3 tangent_force = computeFrictionForces(
-                        gran_params, sphere_data, body_A_offset + contact_id, gran_params->static_friction_coeff_s2s,
-                        gran_params->K_t_s2s_SU, gran_params->Gamma_t_s2s_SU, hertz_force_factor, m_eff, force_accum,
-                        vrel_t, delta_r * reciplength);
-
-                    if (gran_params->recording_contactInfo == true){
-                        // record friction force
-                        sphere_data->tangential_friction_force[body_A_offset + contact_id] = tangent_force;
-                        // record rolling resistance torque
-                        float3 rolling_resistance_torque = rolling_resist_ang_acc * gran_params->sphereInertia_by_r * gran_params->sphereRadius_SU;
-                        if (gran_params->rolling_mode != CHGPU_ROLLING_MODE::NO_RESISTANCE){
-                            sphere_data->rolling_friction_torque[body_A_offset + contact_id] = rolling_resistance_torque;
-                        }
-                    }
-
-                    // tau = r cross f = radius * n cross F
-                    // 2 * radius * n = -1 * delta_r * sphdiameter
-                    // assume abs(r) ~ radius, so n = delta_r
-                    // compute accelerations caused by torques on body
-                    bodyA_AngAcc = bodyA_AngAcc + Cross(-1 * delta_r, tangent_force) / gran_params->sphereInertia_by_r;
-                    // add to total forces
-                    force_accum = force_accum + tangent_force;
-                }
-
-                // Add cohesion term against contact normal
-                // delta_r * reciplength is contact normal
-                force_accum =
-                    force_accum - gran_params->sphere_mass_SU * gran_params->cohesionAcc_s2s * delta_r * reciplength;
-
-                // finally, we add this per-contact accumulator to the total force
-                bodyA_force = bodyA_force + force_accum;
+            if (theirSphereID >= nSpheres) {
+                ABORTABORTABORT("Invalid other sphere id found for sphere %u at slot %u, other is %u\n", mySphereID,
+                                contact_id, theirSphereID);
             }
+
+            unsigned int theirOwnerSD = sphere_data->sphere_owner_SDs[theirSphereID];
+            int3 their_pos = make_int3(sphere_data->sphere_local_pos_X[theirSphereID],
+                                       sphere_data->sphere_local_pos_Y[theirSphereID],
+                                       sphere_data->sphere_local_pos_Z[theirSphereID]);
+
+            if (theirOwnerSD != myOwnerSD) {
+                // if the spheres are in different subdomains, offset their positions accordingly
+                their_pos = their_pos + getOffsetFromSDs(myOwnerSD, theirOwnerSD, gran_params);
+            }
+
+            float3 vrel_t;      // tangent relative velocity
+            float reciplength;  // used to compute contact normal
+            float3 delta_r;     // used for contact normal
+            float3 force_accum = computeSphereNormalForces(
+                reciplength, vrel_t, delta_r, my_sphere_pos, their_pos, my_sphere_vel,
+                make_float3(sphere_data->pos_X_dt[theirSphereID], sphere_data->pos_Y_dt[theirSphereID],
+                            sphere_data->pos_Z_dt[theirSphereID]),
+                gran_params);
+
+            if (gran_params->recording_contactInfo == true) {
+                sphere_data->normal_contact_force[body_A_offset + contact_id] = force_accum;
+            }
+
+            float hertz_force_factor = std::sqrt(2. * (1 - (1. / reciplength)));  // sqrt(delta_n / (2 R_eff)
+
+            // add frictional terms, if needed
+            if (gran_params->friction_mode != CHGPU_FRICTION_MODE::FRICTIONLESS) {
+                float3 their_omega =
+                    make_float3(sphere_data->sphere_Omega_X[theirSphereID], sphere_data->sphere_Omega_Y[theirSphereID],
+                                sphere_data->sphere_Omega_Z[theirSphereID]);
+                // delta_r * radius is dimensional vector to center of contact point
+                // (omega_b cross r_b - omega_a cross r_a), where r_b  = -r_a = delta_r * radius
+                // add tangential components if they exist, these are automatically tangential from the cross
+                // product
+                vrel_t = vrel_t + Cross((my_omega + their_omega), -1.f * delta_r * sphereRadius_SU);
+
+                // compute alpha due to rolling resistance (zero if rolling mode is no resistance)
+                float3 rolling_resist_ang_acc = computeRollingAngAcc(
+                    sphere_data, gran_params, gran_params->rolling_coeff_s2s_SU, gran_params->spinning_coeff_s2s_SU,
+                    force_accum, my_omega, their_omega, delta_r * sphereRadius_SU);
+                bodyA_AngAcc = bodyA_AngAcc + rolling_resist_ang_acc;
+
+                const float m_eff = gran_params->sphere_mass_SU / 2.f;
+
+                float3 tangent_force = computeFrictionForces(
+                    gran_params, sphere_data, body_A_offset + contact_id, gran_params->static_friction_coeff_s2s,
+                    gran_params->K_t_s2s_SU, gran_params->Gamma_t_s2s_SU, hertz_force_factor, m_eff, force_accum,
+                    vrel_t, delta_r * reciplength);
+
+                if (gran_params->recording_contactInfo == true) {
+                    // record friction force
+                    sphere_data->tangential_friction_force[body_A_offset + contact_id] = tangent_force;
+                    // record rolling resistance torque
+                    float3 rolling_resistance_torque =
+                        rolling_resist_ang_acc * gran_params->sphereInertia_by_r * gran_params->sphereRadius_SU;
+                    if (gran_params->rolling_mode != CHGPU_ROLLING_MODE::NO_RESISTANCE) {
+                        sphere_data->rolling_friction_torque[body_A_offset + contact_id] = rolling_resistance_torque;
+                    }
+                }
+
+                // tau = r cross f = radius * n cross F
+                // 2 * radius * n = -1 * delta_r * sphdiameter
+                // assume abs(r) ~ radius, so n = delta_r
+                // compute accelerations caused by torques on body
+                bodyA_AngAcc = bodyA_AngAcc + Cross(-1 * delta_r, tangent_force) / gran_params->sphereInertia_by_r;
+                // add to total forces
+                force_accum = force_accum + tangent_force;
+            }
+
+            // Add cohesion term against contact normal
+            // delta_r * reciplength is contact normal
+            force_accum =
+                force_accum - gran_params->sphere_mass_SU * gran_params->cohesionAcc_s2s * delta_r * reciplength;
+
+            // finally, we add this per-contact accumulator to the total force
+            bodyA_force = bodyA_force + force_accum;
         }
-        
+
         // add in gravity and wall forces
         applyExternalForces(mySphereID, myOwnerSD, my_sphere_pos, my_sphere_vel, my_omega, bodyA_force, bodyA_AngAcc,
                             gran_params, sphere_data, bc_type_list, bc_params_list, nBCs);
@@ -1023,7 +948,7 @@ static __global__ void integrateSpheres(const float stepsize_SU,
         // no divergence, same for every thread in block
         switch (gran_params->time_integrator) {
             case CHGPU_TIME_INTEGRATOR::CENTERED_DIFFERENCE:  // centered diff also computes velocity with the same
-                                                             // signature as Euler
+                                                              // signature as Euler
             case CHGPU_TIME_INTEGRATOR::EXTENDED_TAYLOR:      // fall through to Euler for this one
             case CHGPU_TIME_INTEGRATOR::FORWARD_EULER: {
                 v_update_X = integrateForwardEuler(stepsize_SU, curr_acc_X);
@@ -1080,14 +1005,12 @@ static __global__ void integrateSpheres(const float stepsize_SU,
                 break;
             }
         }
-        int3 sphere_pos_local =
-            make_int3(sphere_data->sphere_local_pos_X[mySphereID] + (lround)(position_update_x),
-                      sphere_data->sphere_local_pos_Y[mySphereID] + (lround)(position_update_y),
-                      sphere_data->sphere_local_pos_Z[mySphereID] + (lround)(position_update_z));  
+        int3 sphere_pos_local = make_int3(sphere_data->sphere_local_pos_X[mySphereID] + (lround)(position_update_x),
+                                          sphere_data->sphere_local_pos_Y[mySphereID] + (lround)(position_update_y),
+                                          sphere_data->sphere_local_pos_Z[mySphereID] + (lround)(position_update_z));
 
         int64_t3 sphPos_global =
             convertPosLocalToGlobal(sphere_data->sphere_owner_SDs[mySphereID], sphere_pos_local, gran_params);
-
 
         findNewLocalCoords(sphere_data, mySphereID, sphPos_global.x, sphPos_global.y, sphPos_global.z, gran_params);
     }
@@ -1099,7 +1022,6 @@ static __global__ void integrateSpheres(const float stepsize_SU,
 static __global__ void updateFrictionData(unsigned int frictionHistoryMapSize,
                                           ChSystemGpu_impl::GranSphereDataPtr sphere_data,
                                           ChSystemGpu_impl::GranParamsPtr gran_params) {
-
     unsigned int offsetInFrictionMap = threadIdx.x + blockIdx.x * blockDim.x;
 
     if (offsetInFrictionMap < frictionHistoryMapSize) {

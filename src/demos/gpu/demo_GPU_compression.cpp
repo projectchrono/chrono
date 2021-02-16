@@ -11,8 +11,8 @@
 // =============================================================================
 // Authors: Luning Fang
 // =============================================================================
-// Chrono::Gpu simulation of granular material settled in cylinder first
-// , then compressed from a plate on top modelled as a boundary condition
+// Chrono::Gpu simulation of granular material settled in cylinder first, then
+// compressed from a plate on top modelled as a boundary condition
 // =============================================================================
 
 #include <iostream>
@@ -21,12 +21,14 @@
 
 #include "GpuDemoUtils.hpp"
 
+#include "chrono/core/ChGlobal.h"
 #include "chrono/core/ChStream.h"
 #include "chrono/core/ChVector.h"
 #include "chrono/utils/ChUtilsSamplers.h"
 
 #include "chrono_thirdparty/filesystem/path.h"
 
+#include "chrono_gpu/ChGpuData.h"
 #include "chrono_gpu/physics/ChSystemGpu.h"
 #include "chrono_gpu/utils/ChGpuJsonParser.h"
 
@@ -34,19 +36,14 @@ using namespace chrono;
 using namespace chrono::gpu;
 
 // unit conversion from cgs to si
-float F_CGS_TO_SI = 1e-5;
-float KE_CGS_TO_SI = 1e-7;
-float L_CGS_TO_SI = 1e-2;
-
-// Show command line usage
-void ShowUsage(std::string name) {
-    std::cout << "usage: " + name + " <json_file> " << std::endl;
-}
+float F_CGS_TO_SI = 1e-5f;
+float KE_CGS_TO_SI = 1e-7f;
+float L_CGS_TO_SI = 1e-2f;
 
 int main(int argc, char* argv[]) {
     ChGpuSimulationParameters params;
-    if (argc != 2 || ParseJSON(argv[1], params) == false) {
-        ShowUsage(argv[0]);
+    if (argc != 2 || ParseJSON(gpu::GetDataFile(argv[1]), params) == false) {
+        std::cout << "Usage:\n./demo_GPU_compression <json_file>" << std::endl;
         return 1;
     }
 
@@ -60,7 +57,7 @@ int main(int argc, char* argv[]) {
     size_t cyl_id = gpu_sys.CreateBCCylinderZ(cyl_center, cyl_rad, false, true);
 
     // initialize sampler, set distance between center of spheres as 2.1r
-    utils::HCPSampler<float> sampler(2.1 * params.sphere_radius);
+    utils::HCPSampler<float> sampler(2.1f * params.sphere_radius);
     std::vector<ChVector<float>> initialPos;
 
     // randomize by layer
@@ -69,14 +66,14 @@ int main(int argc, char* argv[]) {
     while (center.z() + params.sphere_radius < params.box_Z / 2) {
         auto points = sampler.SampleCylinderZ(center, cyl_rad - params.sphere_radius, 0);
         initialPos.insert(initialPos.end(), points.begin(), points.end());
-        center.z() += 2.1 * params.sphere_radius;
+        center.z() += 2.1f * params.sphere_radius;
     }
 
-    int numSpheres = initialPos.size();
+    size_t numSpheres = initialPos.size();
 
     // create initial velocity vector
     std::vector<ChVector<float>> initialVelo;
-    for (int i = 0; i < numSpheres; i++) {
+    for (size_t i = 0; i < numSpheres; i++) {
         ChVector<float> velo(-initialPos.at(i).x() / cyl_rad, -initialPos.at(i).x() / cyl_rad, 0.0f);
         initialVelo.push_back(velo);
     }
@@ -107,7 +104,11 @@ int main(int argc, char* argv[]) {
 
     gpu_sys.SetGravitationalAcceleration(ChVector<float>(params.grav_X, params.grav_Y, params.grav_Z));
     gpu_sys.SetOutputMode(params.write_mode);
-    filesystem::create_directory(filesystem::path(params.output_dir));
+
+    std::string out_dir = GetChronoOutputPath() + "GPU/";
+    filesystem::create_directory(filesystem::path(out_dir));
+    out_dir = out_dir + params.output_dir;
+    filesystem::create_directory(filesystem::path(out_dir));
 
     // Set the position of the BD fixed
     gpu_sys.SetBDFixed(true);
@@ -157,7 +158,7 @@ int main(int argc, char* argv[]) {
     // top plate move downward with velocity 1cm/s
     topWall_vel = -1.0f;
     // i would like it to start from the top most sphere
-    topWall_offset = gpu_sys.GetMaxParticleZ() + params.sphere_radius - topWallPos[2];
+    topWall_offset = (float)gpu_sys.GetMaxParticleZ() + params.sphere_radius - topWallPos[2];
     topWall_moveTime = curr_time;
 
     // sphere settled now push the plate downward
@@ -169,7 +170,7 @@ int main(int argc, char* argv[]) {
 
         // write position
         char filename[100];
-        sprintf(filename, "%s/step%06d", params.output_dir.c_str(), curr_frame);
+        sprintf(filename, "%s/step%06d", out_dir.c_str(), curr_frame);
         gpu_sys.WriteFile(std::string(filename));
         gpu_sys.AdvanceSimulation(frame_step);
 

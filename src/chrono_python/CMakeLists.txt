@@ -93,7 +93,7 @@ endif()
  
 # Set location of SWIG-generated files.
 # Note that *.py files are also generated in this location.
-set(CMAKE_SWIG_OUTDIR "${PROJECT_BINARY_DIR}/swig")
+set(CMAKE_SWIG_OUTDIR "${PROJECT_BINARY_DIR}/chrono_python")
 SET(CMAKE_SWIG_FLAGS "-c++")
 
 if(DBG_SCRIPT)
@@ -141,6 +141,8 @@ install(TARGETS ChronoEngine_pyparser
         RUNTIME DESTINATION bin
         LIBRARY DESTINATION lib
         ARCHIVE DESTINATION lib)
+
+INSTALL(FILES ${ChronoEngine_PYPARSER_HEADERS} DESTINATION include/chrono_python)
 
 #-----------------------------------------------------------------------------
 # MODULE for the core wrapper, including most of the C::E
@@ -762,30 +764,30 @@ endif()
 
 
 #-----------------------------------------------------------------------------
-# Module for the RoboSimian model
+# Module for the robot models
 #-----------------------------------------------------------------------------
 
-  message(STATUS "...add python robosimian module:  pychrono.robosimian")
+  message(STATUS "...add python robot module:  pychrono.robot")
   
   # Python module name
-  set(CHPY_RS robosimian)
+  set(CHPY_RS robot)
 
   # Interface files
-  set(CHPY_ROBOSIMIAN_MODULE_FILE 
-      robosimian/ChModuleRoboSimian.i
+  set(CHPY_ROBOT_MODULE_FILE 
+      robot/ChModuleRobot.i
       )
 
   #include_directories(${VEHICLE_INCLUDE_DIR})
 
-  set_source_files_properties(${CHPY_ROBOSIMIAN_MODULE_FILE} PROPERTIES CPLUSPLUS ON)
+  set_source_files_properties(${CHPY_ROBOT_MODULE_FILE} PROPERTIES CPLUSPLUS ON)
 
   # Create the SWIG module.
   if(${CMAKE_VERSION} VERSION_LESS "3.8.0")
-    SWIG_ADD_MODULE(${CHPY_RS} python ${CHPY_ROBOSIMIAN_MODULE_FILE})
+    SWIG_ADD_MODULE(${CHPY_RS} python ${CHPY_ROBOT_MODULE_FILE})
   else()
-    SWIG_ADD_LIBRARY(${CHPY_RS} LANGUAGE python SOURCES ${CHPY_ROBOSIMIAN_MODULE_FILE})
+    SWIG_ADD_LIBRARY(${CHPY_RS} LANGUAGE python SOURCES ${CHPY_ROBOT_MODULE_FILE})
   endif()
-  SWIG_LINK_LIBRARIES(${CHPY_RS} ${PYTHON_LIBRARY} ChronoEngine ChronoModels_robosimian)
+  SWIG_LINK_LIBRARIES(${CHPY_RS} ${PYTHON_LIBRARY} ChronoEngine ChronoModels_robot)
 
   IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     ADD_DEFINITIONS( "/DWNT" )
@@ -806,7 +808,7 @@ endif()
                         )
 
   ADD_DEPENDENCIES(${SWIG_MODULE_${CHPY_RS}_REAL_NAME} ChronoEngine)
-  ADD_DEPENDENCIES(${SWIG_MODULE_${CHPY_RS}_REAL_NAME} ChronoModels_robosimian)
+  ADD_DEPENDENCIES(${SWIG_MODULE_${CHPY_RS}_REAL_NAME} ChronoModels_robot)
   ADD_DEPENDENCIES(${SWIG_MODULE_${CHPY_RS}_REAL_NAME} ${SWIG_MODULE_${CHPY_CORE}_REAL_NAME})
 
   # Copy PY file in a package dir 

@@ -82,7 +82,7 @@ void create_items(ChIrrAppInterface& application) {
                                                                          true,       // collision?
                                                                          material);  // contact material
                 mrigidBody->SetPos(ChVector<>(0.5, sphrad + level, 0.7));
-                mrigidBody->AddAsset(chrono_types::make_shared<ChTexture>(GetChronoDataFile("bluwhite.png")));
+                mrigidBody->AddAsset(chrono_types::make_shared<ChTexture>(GetChronoDataFile("textures/bluewhite.png")));
 
                 application.GetSystem()->Add(mrigidBody);
             } else {
@@ -93,7 +93,7 @@ void create_items(ChIrrAppInterface& application) {
                                                                       material);               // contact material
                 mrigidBody->SetPos(ChVector<>(0.5, sphrad + level, 0.7));
                 mrigidBody->AddAsset(
-                    chrono_types::make_shared<ChTexture>(GetChronoDataFile("cubetexture_bluwhite.png")));
+                    chrono_types::make_shared<ChTexture>(GetChronoDataFile("textures/cubetexture_bluewhite.png")));
 
                 application.GetSystem()->Add(mrigidBody);
             }
@@ -118,7 +118,7 @@ void create_items(ChIrrAppInterface& application) {
                                                                                material);        // contact material
                     mrigidWall->SetPos(ChVector<>(-0.8 + ui * 0.4 + 0.2 * (bi % 2), 0.10 + bi * 0.2, -0.5 + ai * 0.6));
                     mrigidWall->AddAsset(
-                        chrono_types::make_shared<ChTexture>(GetChronoDataFile("cubetexture_bluwhite.png")));
+                        chrono_types::make_shared<ChTexture>(GetChronoDataFile("textures/cubetexture_bluewhite.png")));
 
                     application.GetSystem()->Add(mrigidWall);
                 }
@@ -137,7 +137,7 @@ void create_items(ChIrrAppInterface& application) {
                                                                        true,            // collision?
                                                                        material);       // contact material
         mrigidHeavy->SetPos(ChVector<>(0.5, sphrad + 0.6, -1));
-        mrigidHeavy->AddAsset(chrono_types::make_shared<ChTexture>(GetChronoDataFile("pinkwhite.png")));
+        mrigidHeavy->AddAsset(chrono_types::make_shared<ChTexture>(GetChronoDataFile("textures/pinkwhite.png")));
 
         application.GetSystem()->Add(mrigidHeavy);
 
@@ -155,7 +155,7 @@ void create_items(ChIrrAppInterface& application) {
                                                                 material);  // contact material
     mrigidFloor->SetPos(ChVector<>(0, -2, 0));
     mrigidFloor->SetBodyFixed(true);
-    mrigidFloor->AddAsset(chrono_types::make_shared<ChTexture>(GetChronoDataFile("concrete.jpg")));
+    mrigidFloor->AddAsset(chrono_types::make_shared<ChTexture>(GetChronoDataFile("textures/concrete.jpg")));
 
     application.GetSystem()->Add(mrigidFloor);
 }

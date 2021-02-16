@@ -60,11 +60,11 @@ TireModelType tire_model = TireModelType::TMEASY;
 PowertrainModelType powertrain_model = PowertrainModelType::SHAFTS;
 
 // Drive type (FWD, RWD, or AWD)
-DrivelineType drive_type = DrivelineType::RWD;
+DrivelineTypeWV drive_type = DrivelineTypeWV::RWD;
 
 // Steering type (PITMAN_ARM or PITMAN_ARM_SHAFTS)
 // Note: Compliant steering requires higher PID gains.
-SteeringType steering_type = SteeringType::PITMAN_ARM;
+SteeringTypeWV steering_type = SteeringTypeWV::PITMAN_ARM;
 
 // Visualization type for vehicle parts (PRIMITIVES, MESH, or NONE)
 VisualizationType chassis_vis_type = VisualizationType::PRIMITIVES;

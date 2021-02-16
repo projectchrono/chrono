@@ -336,87 +336,64 @@ __host__ void ChSystemGpu_impl::setupSphereDataStructures() {
     packSphereDataPointers();
 }
 
+/// <summary>
+/// runSphereBroadphase goes through three stages. First, a kernel figures out for each SD, how many spheres touch it.
+/// Then, there is a prefix scan done (which requires two CUB function calls) to figure out offsets into the big fat
+/// array that contains, for SD after SD, which spheres touch the SD. This last thing is accomplished by a kernel call.
+/// 
+/// CAVEAT: in this approach, the outcome of the prefix scan operation will be canibalized during the kernel call that
+/// updates the big fat composite array. As such, there is a "scratch-pad" version that is used along the way
+/// </summary>
+/// <returns></returns>
 __host__ void ChSystemGpu_impl::runSphereBroadphase() {
     METRICS_PRINTF("Resetting broadphase info!\n");
 
+    // reset the number of spheres per SD, the offsets in the big composite array, and the big fat composite array
     resetBroadphaseInformation();
-    // Figure our the number of blocks that need to be launched to cover the box
+
+    // Frist stage of the computation in this function: Figure out the how many spheres touch each SD. 
     unsigned int nBlocks = (nSpheres + CUDA_THREADS_PER_BLOCK - 1) / CUDA_THREADS_PER_BLOCK;
-
-    packSphereDataPointers();
-
-    sphereBroadphase_dryrun<CUDA_THREADS_PER_BLOCK>
+    getNumberOfSpheresTouchingEachSD<CUDA_THREADS_PER_BLOCK>
         <<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(sphere_data, nSpheres, gran_params);
-
     gpuErrchk(cudaDeviceSynchronize());
     gpuErrchk(cudaPeekAtLastError());
 
-    void* d_temp_storage = NULL;
-    size_t temp_storage_bytes = 0;
-
-    // num spheres in last SD
-    unsigned int last_SD_num_spheres = SD_NumSpheresTouching.at(nSDs - 1);
-
+    // Starting the second stage of this function call - the prefix scan operation
     unsigned int* out_ptr = SD_SphereCompositeOffsets.data();
     unsigned int* in_ptr = SD_NumSpheresTouching.data();
-
-    // copy data into the tmp array
     gpuErrchk(cudaMemcpy(out_ptr, in_ptr, nSDs * sizeof(unsigned int), cudaMemcpyDeviceToDevice));
-    cub::DeviceScan::ExclusiveSum(d_temp_storage, temp_storage_bytes, in_ptr, out_ptr, nSDs);
 
+    // cold run; CUB determines the amount of storage it needs (since first argument is NULL pointer)
+    size_t temp_storage_bytes = 0;
+    cub::DeviceScan::ExclusiveSum(NULL, temp_storage_bytes, in_ptr, out_ptr, nSDs);
     gpuErrchk(cudaDeviceSynchronize());
     gpuErrchk(cudaPeekAtLastError());
-    // Allocate temporary storage
-    gpuErrchk(cudaMalloc(&d_temp_storage, temp_storage_bytes));
-
+   
+    // give CUB needed temporary storage on the device
+    void* d_scratch_space = (void*)stateOfSolver_resources.pDeviceMemoryScratchSpace(temp_storage_bytes);
+    // Run the actual exclusive prefix sum
+    cub::DeviceScan::ExclusiveSum(d_scratch_space, temp_storage_bytes, in_ptr, out_ptr, nSDs);
     gpuErrchk(cudaDeviceSynchronize());
     gpuErrchk(cudaPeekAtLastError());
-    // Run exclusive prefix sum
-    cub::DeviceScan::ExclusiveSum(d_temp_storage, temp_storage_bytes, in_ptr, out_ptr, nSDs);
 
-    gpuErrchk(cudaDeviceSynchronize());
-    gpuErrchk(cudaPeekAtLastError());
-    // total number of sphere entries to record
+    // Beginning of the last stage of computation in this function: assembling the big composite array.
+    // num_entries: total number of sphere entries to record in the big fat composite array
     unsigned int num_entries = out_ptr[nSDs - 1] + in_ptr[nSDs - 1];
     spheres_in_SD_composite.resize(num_entries, NULL_CHGPU_ID);
+    sphere_data->spheres_in_SD_composite = spheres_in_SD_composite.data();
 
-    // make sure the DEs pointer is updated
-    packSphereDataPointers();
-
-    // printf("first run: num entries is %u, theoretical max is %u\n", num_entries, nSDs * MAX_COUNT_OF_SPHERES_PER_SD);
-
-    // for (unsigned int i = 0; i < nSDs; i++) {
-    //     printf("SD %d has offset %u, N %u \n", i, out_ptr[i], in_ptr[i]);
-    // }
-
-    // back up the offsets
-    // TODO use a cached allocator, CUB provides one
-    std::vector<unsigned int, cudallocator<unsigned int>> SD_SphereCompositeOffsets_bak;
-    SD_SphereCompositeOffsets_bak.resize(SD_SphereCompositeOffsets.size());
-    gpuErrchk(cudaMemcpy(SD_SphereCompositeOffsets_bak.data(), SD_SphereCompositeOffsets.data(),
+    // Copy the offesets in the scratch pad; the subsequent kernel call would step on the outcome of the prefix scan
+    gpuErrchk(cudaMemcpy(SD_SphereCompositeOffsets_ScratchPad.data(), SD_SphereCompositeOffsets.data(),
                          nSDs * sizeof(unsigned int), cudaMemcpyDeviceToDevice));
-
+    // Populate the composite array; in the process, the content of the scratch pad will be modified
+    // nBlocks = (MAX_SDs_TOUCHED_BY_SPHERE * nSpheres + 2*CUDA_THREADS_PER_BLOCK - 1) / (2*CUDA_THREADS_PER_BLOCK);
+    // populateSpheresInEachSD<<<nBlocks, 2*CUDA_THREADS_PER_BLOCK>>>(sphere_data, nSpheres, gran_params);
+    nBlocks = (nSpheres + CUDA_THREADS_PER_BLOCK - 1) / (CUDA_THREADS_PER_BLOCK);
+    populateSpheresInEachSD<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(sphere_data, nSpheres, gran_params);
     gpuErrchk(cudaDeviceSynchronize());
     gpuErrchk(cudaPeekAtLastError());
-
-    sphereBroadphase<CUDA_THREADS_PER_BLOCK><<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(sphere_data, nSpheres, gran_params);
-    gpuErrchk(cudaDeviceSynchronize());
-    gpuErrchk(cudaPeekAtLastError());
-
-    //
-    // for (unsigned int i = 0; i < nSDs; i++) {
-    //     printf("SD %d has offset %u, N %u \n", i, out_ptr[i], in_ptr[i]);
-    // }
-    //
-    // for (unsigned int i = 0; i < num_entries; i++) {
-    //     printf("entry %u is %u\n", i, spheres_in_SD_composite[i]);
-    // }
-
-    // restore the old offsets
-    gpuErrchk(cudaMemcpy(SD_SphereCompositeOffsets.data(), SD_SphereCompositeOffsets_bak.data(),
-                         nSDs * sizeof(unsigned int), cudaMemcpyDeviceToDevice));
-    gpuErrchk(cudaFree(d_temp_storage));
 }
+
 
 __host__ void ChSystemGpu_impl::updateBCPositions() {
     for (unsigned int i = 0; i < BC_params_list_UU.size(); i++) {
@@ -478,13 +455,8 @@ __host__ double ChSystemGpu_impl::AdvanceSimulation(float duration) {
     // Run the simulation, there are aggressive synchronizations because we want to have no race conditions
     for (unsigned int n = 0; n < nsteps; n++) {
         updateBCPositions();
-
         runSphereBroadphase();
         packSphereDataPointers();
-
-        gpuErrchk(cudaPeekAtLastError());
-        gpuErrchk(cudaDeviceSynchronize());
-
         resetSphereAccelerations();
         resetBCForces();
 

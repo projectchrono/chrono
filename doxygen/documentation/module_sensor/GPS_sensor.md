@@ -3,7 +3,7 @@ GPS Sensor Model {#GPS_sensor}
 
 \tableofcontents
 
-Details of the GPS sensor implemented in Chrono::Sensor.
+The GPS in Chrono computes the latitude, longitude, and altitude using a spherical coordinate system and GPS reference location that specifies the origin on the simulation. The GPS assumes the Chrono system is Z-Up, X-East, Y-North.
 
 #### GPS Creation
 ~~~{.cpp}
@@ -12,12 +12,12 @@ auto gps_noise_model=chrono_types::make_shared<ChGPSNoiseNormal>(
     ChVector<float>(1.f, 1.f, 1.f),  // Mean
     ChVector<float>(2.f, 3.f, 1.f)   // Standard Deviation
 );
-auto gps= chrono_types::make_shared<ChGPSSensor>(
-    my_body,   // body to which the GPS is attached
-    gps_update_rate,  // update rate
-    gps_offset_pose,  // offset pose from body
-    gps_reference,    // reference GPS location (GPS coordinates of simulation origin)
-    gps_noise_model// noise model to use for adding GPS noise
+auto gps = chrono_types::make_shared<ChGPSSensor>(
+                my_body,          // body to which the GPS is attached
+                gps_update_rate,  // update rate
+                gps_offset_pose,  // offset pose from body
+                gps_reference,    // reference GPS location (GPS coordinates of simulation origin)
+                gps_noise_model   // noise model to use for adding GPS noise
 );
 
 gps->SetName("GPS");
@@ -37,7 +37,7 @@ manager->AddSensor(gps);
 ~~~{.cpp}
 utils::CSV_writergps_csv(" ");
 UserGPSBufferPtr bufferGPS;
-while(){
+while () {
     bufferGPS=gps->GetMostRecentBuffer<UserGPSBufferPtr>();
     if(bufferGPS->Buffer) {
         // Save the gpsdata to file
