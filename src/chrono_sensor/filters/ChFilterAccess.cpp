@@ -218,6 +218,7 @@ CH_SENSOR_API void ChFilterAccess<SensorHostDIBuffer, UserDIBufferPtr>::Apply(
     tmp_buffer->Height = bufferInOut->Height;
     tmp_buffer->LaunchedCount = bufferInOut->LaunchedCount;
     tmp_buffer->TimeStamp = bufferInOut->TimeStamp;
+    tmp_buffer->Dual_return = bufferInOut->Dual_return;
 
     cudaMemcpy(tmp_buffer->Buffer.get(), dev_buffer_ptr, sz * sizeof(PixelDI), cudaMemcpyDeviceToHost);
 

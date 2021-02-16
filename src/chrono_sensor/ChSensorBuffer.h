@@ -39,9 +39,9 @@ namespace sensor {
 /// The base buffer class that contains sensor data (contains meta data of the buffer and pointer to raw data)
 struct SensorBuffer {
     /// Default constructor that intializes all zero values
-    SensorBuffer() : Width(0), Height(0), LaunchedCount(0), TimeStamp(0) {}
+    SensorBuffer() : Width(0), Height(0), LaunchedCount(0), TimeStamp(0), Dual_return(false) {}
     /// Constructor based on height, width, and time
-    SensorBuffer(unsigned int w, unsigned int h, float t) : Width(w), Height(h), LaunchedCount(0), TimeStamp(t) {}
+    SensorBuffer(unsigned int w, unsigned int h, float t) : Width(w), Height(h), LaunchedCount(0), TimeStamp(t), Dual_return(false){}
 
     /// virtual destructor so class is virtual so it can participate in dynamic_pointer_cast<>'s
     virtual ~SensorBuffer() {}

@@ -68,7 +68,6 @@ CH_SENSOR_API ChLidarSensor::ChLidarSensor(
     // set the program to match the model requested
     if (sample_radius > 1) {
         m_program_string = {"lidar", "multi_sample"};
-          m_program_string = {"lidar", "spherical"};
         m_ray_launch_params.push_back(std::make_tuple<std::string, RTobjecttype, void*>(
             "beam_shape", RT_OBJECTTYPE_INT, &m_beam_shape));
         m_ray_launch_params.push_back(std::make_tuple<std::string, RTobjecttype, void*>(
@@ -79,7 +78,6 @@ CH_SENSOR_API ChLidarSensor::ChLidarSensor(
             "ray_samples", RT_OBJECTTYPE_INT, &m_sample_radius));
         m_filters.push_back(
             chrono_types::make_shared<ChFilterLidarReduce>(return_mode, sample_radius, "lidar reduction"));
-
     } else {
         m_program_string = {"lidar", "spherical"};
     }

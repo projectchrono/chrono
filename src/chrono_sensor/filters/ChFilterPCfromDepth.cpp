@@ -48,6 +48,7 @@ CH_SENSOR_API void ChFilterPCfromDepth::Apply(std::shared_ptr<ChSensor> pSensor,
         // we need id of first device for this context (should only have 1 anyway)
         int device_id = pOpx->Buffer->getContext()->getEnabledDevices()[0];
         ptr = pOpx->Buffer->getDevicePointer(device_id);  // hard coded to grab from device 0
+        bool_dualRet = pOpx->Dual_return;
     } else if (auto pDI = std::dynamic_pointer_cast<SensorDeviceDIBuffer>(bufferInOut)) {
         ptr = (void*)pDI->Buffer.get();
         bool_dualRet = pDI->Dual_return;
@@ -128,6 +129,7 @@ CH_SENSOR_API void ChFilterPCfromDepth::Apply(std::shared_ptr<ChSensor> pSensor,
     m_buffer->LaunchedCount = bufferInOut->LaunchedCount;
     m_buffer->TimeStamp = bufferInOut->TimeStamp;
     bufferInOut = m_buffer;
+//    printf("%i %i\n", bool_dualRet, m_buffer->Beam_return_count++);
 }
 }  // namespace sensor
 }  // namespace chrono
