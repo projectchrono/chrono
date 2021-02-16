@@ -45,6 +45,7 @@
 #include "chrono_sensor/utils/ChVisualMaterialUtils.h"
 #include "chrono_sensor/ChGPSSensor.h"
 #include "chrono_sensor/ChIMUSensor.h"
+#include "chrono_sensor/ChNoiseModel.h"
 #include "chrono_sensor/ChSensorManager.h"
 #include "chrono_sensor/filters/ChFilterAccess.h"
 #include "chrono_sensor/filters/ChFilterVisualize.h"
@@ -347,48 +348,78 @@ int main(int argc, char* argv[]) {
     lidar->PushFilter(chrono_types::make_shared<ChFilterXYZIAccess>());
     manager->AddSensor(lidar);
 
-    std::shared_ptr<ChIMUNoiseModel> imu_noise_model;
+    std::shared_ptr<ChNoiseModel> acc_noise_model;
+    std::shared_ptr<ChNoiseModel> gyro_noise_model;
+    std::shared_ptr<ChNoiseModel> mag_noise_model;
     switch (imu_noise_type) {
         case NORMAL_DRIFT:
-            imu_noise_model = chrono_types::make_shared<ChIMUNoiseNormalDrift>(100.f,   // float updateRate,
-                                                                               0.f,     // float g_mean,
-                                                                               .001f,   // float g_stdev,
-                                                                               .0f,     // float g_bias_drift,
-                                                                               .1f,     // float g_tau_drift,
-                                                                               .0f,     // float a_mean,
-                                                                               .0075f,  // float a_stdev,
-                                                                               .001f,   // float a_bias_drift,
-                                                                               .1f      // float a_tau_drift);
-            );
+            // Set the imu noise model to a gaussian model
+            acc_noise_model = chrono_types::make_shared<ChNoiseNormalDrift>(100.f,         // double updateRate,
+                                                                            {0., 0., 0.},  // double mean,
+                                                                            {0.001, 0.001, 0.001},  // double stdev,
+                                                                            .0001,          // double bias_drift,
+                                                                            .1);            // double tau_drift,
+            gyro_noise_model = chrono_types::make_shared<ChNoiseNormalDrift>(100.f,         // float updateRate,
+                                                                             {0., 0., 0.},  // float mean,
+                                                                             {0.0075, 0.0075, 0.0075},  // float stdev,
+                                                                             .001,              // double bias_drift,
+                                                                             .1);               // double tau_drift,
+            mag_noise_model = chrono_types::make_shared<ChNoiseNormal>({0., 0., 0.},            // float mean,
+                                                                       {0.001, 0.001, 0.001});  // float stdev,
             break;
         case IMU_NONE:
-            imu_noise_model = chrono_types::make_shared<ChIMUNoiseNone>();
+            // Set the imu noise model to none (does not affect the data)
+            imu_noise_model = chrono_types::make_shared<ChNoiseNone>();
+            gyro_noise_model = chrono_types::make_shared<ChNoiseNone>();
+            mag_noise_model = chrono_types::make_shared<ChNoiseNone>();
             break;
     }
+
     auto imu_offset_pose = chrono::ChFrame<double>({0, 0, 1.45}, Q_from_AngAxis(0, {1, 0, 0}));
-    auto imu = chrono_types::make_shared<ChIMUSensor>(gator.GetChassisBody(),  // body to which the IMU is attached
-                                                      imu_update_rate,         // update rate
-                                                      imu_offset_pose,         // offset pose from body
-                                                      imu_noise_model);        // IMU noise model
-    imu->SetName("IMU");
-    imu->SetLag(imu_lag);
-    imu->SetCollectionWindow(imu_collection_time);
-    imu->PushFilter(chrono_types::make_shared<ChFilterIMUAccess>());
-    manager->AddSensor(imu);
+    auto acc =
+        chrono_types::make_shared<ChAccelerometerSensor>(gator.GetChassisBody(),  // body to which the IMU is attached
+                                                         imu_update_rate,         // update rate
+                                                         imu_offset_pose,         // offset pose from body
+                                                         acc_noise_model);        // IMU noise model
+    acc->SetName("IMU - Accelerometer");
+    acc->SetLag(imu_lag);
+    acc->SetCollectionWindow(imu_collection_time);
+    acc->PushFilter(chrono_types::make_shared<ChFilterAccelAccess>());  // Add a filter to access the imu data
+    manager->AddSensor(acc);                                            // Add the IMU sensor to the sensor manager
+
+    auto gyro = chrono_types::make_shared<ChGyroscopeSensor>(imu_parent,         // body to which the IMU is attached
+                                                             100,                // update rate
+                                                             imu_offset_pose,    // offset pose from body
+                                                             gyro_noise_model);  // IMU noise model
+    gyro->SetName("IMU - Gyroscope");
+    gyro->SetLag(imu_lag);
+    gyro->SetCollectionWindow(imu_collection_time);
+    gyro->PushFilter(chrono_types::make_shared<ChFilterGyroAccess>());  // Add a filter to access the imu data
+    manager->AddSensor(gyro);                                           // Add the IMU sensor to the sensor manager
+
+    auto mag = chrono_types::make_shared<ChMagnetometerSensor>(imu_parent,        // body to which the IMU is attached
+                                                               100,               // update rate
+                                                               imu_offset_pose,   // offset pose from body
+                                                               mag_noise_model);  // IMU noise model
+    mag->SetName("IMU - Magnetometer");
+    mag->SetLag(imu_lag);
+    mag->SetCollectionWindow(imu_collection_time);
+    mag->PushFilter(chrono_types::make_shared<ChFilterMagnetAccess>());  // Add a filter to access the imu data
+    manager->AddSensor(mag);                                             // Add the IMU sensor to the sensor manager
 
     // ---------------------------------------------
     // Create a GPS and add it to the sensor manager
     // ---------------------------------------------
-    std::shared_ptr<ChGPSNoiseModel> gps_noise_model;
+    std::shared_ptr<ChNoiseModel> gps_noise_model;
     switch (gps_noise_type) {
         case GPSNoiseModel::NORMAL:
             gps_noise_model =
-                chrono_types::make_shared<ChGPSNoiseNormal>(ChVector<float>(1.f, 1.f, 1.f),  // Mean
-                                                            ChVector<float>(2.f, 3.f, 1.f)   // Standard Deviation
+                chrono_types::make_shared<ChNoiseNormal>(ChVector<float>(1.f, 1.f, 1.f),  // Mean
+                                                         ChVector<float>(2.f, 3.f, 1.f)   // Standard Deviation
                 );
             break;
         case GPSNoiseModel::GPS_NONE:
-            gps_noise_model = chrono_types::make_shared<ChGPSNoiseNone>();
+            gps_noise_model = chrono_types::make_shared<ChNoiseNone>();
             break;
     }
     auto gps_offset_pose = chrono::ChFrame<double>({0, 0, 1.45}, Q_from_AngAxis(0, {1, 0, 0}));

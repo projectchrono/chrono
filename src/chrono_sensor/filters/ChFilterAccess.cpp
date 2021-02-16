@@ -239,25 +239,25 @@ CH_SENSOR_API void ChFilterAccess<SensorHostDIBuffer, UserDIBufferPtr>::Apply(
 }
 
 template <>
-CH_SENSOR_API void ChFilterAccess<SensorHostIMUBuffer, UserIMUBufferPtr>::Apply(
+CH_SENSOR_API void ChFilterAccess<SensorHostAccelBuffer, UserAccelBufferPtr>::Apply(
     std::shared_ptr<ChSensor> pSensor,
     std::shared_ptr<SensorBuffer>& bufferInOut) {
     // to copy to a host buffer, we need to know what buffer to copy.
     // for now, that means this filter can only work with sensor that use an Optix buffer.
     // std::cout<<"Apply Method Called \n";
-    std::shared_ptr<SensorHostIMUBuffer> pIMU = std::dynamic_pointer_cast<SensorHostIMUBuffer>(bufferInOut);
-    if (!pIMU) {
-        throw std::runtime_error("cannot copy supplied buffer type to a Host IMU buffer.");
+    std::shared_ptr<SensorHostAccelBuffer> pAcc = std::dynamic_pointer_cast<SensorHostAccelBuffer>(bufferInOut);
+    if (!pAcc) {
+        throw std::runtime_error("cannot copy supplied buffer type to a Host Accel buffer.");
     }
 
     // create a new buffer to push to the lag buffer list
-    std::shared_ptr<SensorHostIMUBuffer> tmp_buffer;
+    std::shared_ptr<SensorHostAccelBuffer> tmp_buffer;
     if (m_empty_lag_buffers.size() > 0) {
         tmp_buffer = m_empty_lag_buffers.top();
         m_empty_lag_buffers.pop();
     } else {
-        tmp_buffer = chrono_types::make_shared<SensorHostIMUBuffer>();
-        tmp_buffer->Buffer = std::make_unique<IMUData[]>(1);
+        tmp_buffer = chrono_types::make_shared<SensorHostAccelBuffer>();
+        tmp_buffer->Buffer = std::make_unique<AccelData[]>(1);
     }
 
     tmp_buffer->Width = bufferInOut->Width;
@@ -266,7 +266,99 @@ CH_SENSOR_API void ChFilterAccess<SensorHostIMUBuffer, UserIMUBufferPtr>::Apply(
     tmp_buffer->TimeStamp = bufferInOut->TimeStamp;
 
     // copy the data into our new buffer
-    memcpy(tmp_buffer->Buffer.get(), pIMU->Buffer.get(), sizeof(IMUData));
+    memcpy(tmp_buffer->Buffer.get(), pAcc->Buffer.get(), sizeof(AccelData));
+
+    {  // lock in this scope before pushing to lag buffer queue
+        std::lock_guard<std::mutex> lck(m_mutexBufferAccess);
+
+        // push our buffer into the lag queue
+        m_lag_buffers.push(tmp_buffer);
+
+        // prevent lag buffer overflow - remove any super old buffers that have expired. We don't want the lag_buffer to
+        // grow unbounded
+        while (m_lag_buffers.size() > m_max_lag_buffers) {
+            m_empty_lag_buffers.push(
+                m_lag_buffers.front());  // push the buffer back for efficiency if it wasn't given to the user
+            m_lag_buffers.pop();
+        }
+    }
+}
+
+template <>
+CH_SENSOR_API void ChFilterAccess<SensorHostGyroBuffer, UserGyroBufferPtr>::Apply(
+    std::shared_ptr<ChSensor> pSensor,
+    std::shared_ptr<SensorBuffer>& bufferInOut) {
+    // to copy to a host buffer, we need to know what buffer to copy.
+    // for now, that means this filter can only work with sensor that use an Optix buffer.
+    // std::cout<<"Apply Method Called \n";
+    std::shared_ptr<SensorHostGyroBuffer> pGyro = std::dynamic_pointer_cast<SensorHostGyroBuffer>(bufferInOut);
+    if (!pGyro) {
+        throw std::runtime_error("cannot copy supplied buffer type to a Host Gyro buffer.");
+    }
+
+    // create a new buffer to push to the lag buffer list
+    std::shared_ptr<SensorHostGyroBuffer> tmp_buffer;
+    if (m_empty_lag_buffers.size() > 0) {
+        tmp_buffer = m_empty_lag_buffers.top();
+        m_empty_lag_buffers.pop();
+    } else {
+        tmp_buffer = chrono_types::make_shared<SensorHostGyroBuffer>();
+        tmp_buffer->Buffer = std::make_unique<GyroData[]>(1);
+    }
+
+    tmp_buffer->Width = bufferInOut->Width;
+    tmp_buffer->Height = bufferInOut->Height;
+    tmp_buffer->LaunchedCount = bufferInOut->LaunchedCount;
+    tmp_buffer->TimeStamp = bufferInOut->TimeStamp;
+
+    // copy the data into our new buffer
+    memcpy(tmp_buffer->Buffer.get(), pGyro->Buffer.get(), sizeof(GyroData));
+
+    {  // lock in this scope before pushing to lag buffer queue
+        std::lock_guard<std::mutex> lck(m_mutexBufferAccess);
+
+        // push our buffer into the lag queue
+        m_lag_buffers.push(tmp_buffer);
+
+        // prevent lag buffer overflow - remove any super old buffers that have expired. We don't want the lag_buffer to
+        // grow unbounded
+        while (m_lag_buffers.size() > m_max_lag_buffers) {
+            m_empty_lag_buffers.push(
+                m_lag_buffers.front());  // push the buffer back for efficiency if it wasn't given to the user
+            m_lag_buffers.pop();
+        }
+    }
+}
+
+template <>
+CH_SENSOR_API void ChFilterAccess<SensorHostMagnetBuffer, UserMagnetBufferPtr>::Apply(
+    std::shared_ptr<ChSensor> pSensor,
+    std::shared_ptr<SensorBuffer>& bufferInOut) {
+    // to copy to a host buffer, we need to know what buffer to copy.
+    // for now, that means this filter can only work with sensor that use an Optix buffer.
+    // std::cout<<"Apply Method Called \n";
+    std::shared_ptr<SensorHostMagnetBuffer> pMag = std::dynamic_pointer_cast<SensorHostMagnetBuffer>(bufferInOut);
+    if (!pMag) {
+        throw std::runtime_error("cannot copy supplied buffer type to a Host Magnet buffer.");
+    }
+
+    // create a new buffer to push to the lag buffer list
+    std::shared_ptr<SensorHostMagnetBuffer> tmp_buffer;
+    if (m_empty_lag_buffers.size() > 0) {
+        tmp_buffer = m_empty_lag_buffers.top();
+        m_empty_lag_buffers.pop();
+    } else {
+        tmp_buffer = chrono_types::make_shared<SensorHostMagnetBuffer>();
+        tmp_buffer->Buffer = std::make_unique<MagnetData[]>(1);
+    }
+
+    tmp_buffer->Width = bufferInOut->Width;
+    tmp_buffer->Height = bufferInOut->Height;
+    tmp_buffer->LaunchedCount = bufferInOut->LaunchedCount;
+    tmp_buffer->TimeStamp = bufferInOut->TimeStamp;
+
+    // copy the data into our new buffer
+    memcpy(tmp_buffer->Buffer.get(), pMag->Buffer.get(), sizeof(MagnetData));
 
     {  // lock in this scope before pushing to lag buffer queue
         std::lock_guard<std::mutex> lck(m_mutexBufferAccess);

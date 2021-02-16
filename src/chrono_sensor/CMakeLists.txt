@@ -214,6 +214,7 @@ source_group("Cuda" FILES
 #-----------------------------------------------------------------------------
 set(ChronoEngine_sensor_SOURCES
     ChSensor.cpp
+    ChNoiseModel.cpp
     ChOptixSensor.cpp
     ChCameraSensor.cpp
     ChLidarSensor.cpp
@@ -222,10 +223,12 @@ set(ChronoEngine_sensor_SOURCES
     ChSensorManager.cpp
     ChDynamicsManager.cpp
     Sensor.cpp
+
 )
 set(ChronoEngine_sensor_HEADERS
   	ChApiSensor.h
     ChSensor.h
+    ChNoiseModel.h
     ChOptixSensor.h
     ChCameraSensor.h
     ChLidarSensor.h
@@ -235,6 +238,7 @@ set(ChronoEngine_sensor_HEADERS
     ChDynamicsManager.h
   	ChSensorBuffer.h
     Sensor.h
+
 )
 
 source_group("Source" FILES
@@ -348,11 +352,13 @@ ENDIF()
 set(ChronoEngine_sensor_UTILS_SOURCES
     utils/ChVisualMaterialUtils.cpp
     utils/ChUtilsJSON.cpp
+    utils/ChGPSUtils.cpp
 )
 set(ChronoEngine_sensor_UTILS_HEADERS
     utils/ChVisualMaterialUtils.h
   	utils/CudaMallocHelper.h
     utils/ChUtilsJSON.h
+    utils/ChGPSUtils.h
 )
 
 source_group(Utils FILES

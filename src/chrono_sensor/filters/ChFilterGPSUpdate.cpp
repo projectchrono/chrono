@@ -18,12 +18,13 @@
 #include "chrono/physics/ChSystem.h"
 #include "chrono_sensor/ChGPSSensor.h"
 #include "chrono_sensor/ChSensor.h"
+#include "chrono_sensor/ChNoiseModel.h"
 #include <chrono>
 
 namespace chrono {
 namespace sensor {
 
-ChFilterGPSUpdate::ChFilterGPSUpdate(ChVector<double> gps_reference, std::shared_ptr<ChGPSNoiseModel> noise_model)
+ChFilterGPSUpdate::ChFilterGPSUpdate(ChVector<double> gps_reference, std::shared_ptr<ChNoiseModel> noise_model)
     : m_ref(gps_reference), m_noise_model(noise_model), ChFilter("GPS Updater") {}
 
 CH_SENSOR_API void ChFilterGPSUpdate::Apply(std::shared_ptr<ChSensor> pSensor,
@@ -37,14 +38,6 @@ CH_SENSOR_API void ChFilterGPSUpdate::Apply(std::shared_ptr<ChSensor> pSensor,
         throw std::runtime_error("GPS Update filter can only be used on a GPS sensor\n");
     }
 
-    // TODO: This sensor is not currently threadsafe, so we need to have the sensormanager do the computation directly
-    // for now. Possible solution is to have the sensormanager save relavant scene information in threadsafe struct so
-    // each worker thread can access as it wishes
-
-    // TODO: have the GPS use data from ALL chrono timesteps and average to get the "ground truth" data
-
-    // TODO: change to account for offset pose
-
     if (!m_buffer) {
         m_buffer = chrono_types::make_shared<SensorHostGPSBuffer>();
         m_buffer->Buffer = std::make_unique<GPSData[]>(1);
@@ -54,18 +47,18 @@ CH_SENSOR_API void ChFilterGPSUpdate::Apply(std::shared_ptr<ChSensor> pSensor,
     ChVector<double> coords = {0, 0, 0};
     float ch_time = 0;
     float last_ch_time = 0;
-    if (pGPS->gps_key_frames.size() > 0) {
-        for (auto c : pGPS->gps_key_frames) {
+    if (pGPS->m_keyframes.size() > 0) {
+        for (auto c : pGPS->m_keyframes) {
             ch_time += std::get<0>(c);
             coords += std::get<1>(c);
             last_ch_time = std::get<0>(c);
         }
-        coords = coords / (double)(pGPS->gps_key_frames.size());
-        ch_time = ch_time / (float)(pGPS->gps_key_frames.size());
+        coords = coords / (double)(pGPS->m_keyframes.size());
+        ch_time = ch_time / (float)(pGPS->m_keyframes.size());
     }
 
     if (m_noise_model) {
-        m_noise_model->AddNoise(coords);
+        m_noise_model->AddNoise(coords);  // 3 is length of ChVector
     }
 
     Cartesian2GPS(coords, m_ref);
@@ -80,19 +73,6 @@ CH_SENSOR_API void ChFilterGPSUpdate::Apply(std::shared_ptr<ChSensor> pSensor,
     m_buffer->TimeStamp = last_ch_time;
 
     bufferInOut = m_buffer;
-}
-
-CH_SENSOR_API ChGPSNoiseNormal::ChGPSNoiseNormal(ChVector<float> mean, ChVector<float> stdev)
-    : m_mean(mean), m_stdev(stdev), ChGPSNoiseModel() {
-    m_generator = std::minstd_rand((unsigned int)(std::chrono::high_resolution_clock::now().time_since_epoch().count()));
-}
-CH_SENSOR_API ChGPSNoiseNormal::~ChGPSNoiseNormal() {}
-CH_SENSOR_API void ChGPSNoiseNormal::AddNoise(ChVector<double>& coords) {
-    std::normal_distribution<double> gps_dist_x(m_mean.x(), m_stdev.x());
-    std::normal_distribution<double> gps_dist_y(m_mean.y(), m_stdev.y());
-    std::normal_distribution<double> gps_dist_z(m_mean.z(), m_stdev.z());
-
-    coords = coords + ChVector<double>(gps_dist_x(m_generator), gps_dist_y(m_generator), gps_dist_z(m_generator));
 }
 
 }  // namespace sensor
