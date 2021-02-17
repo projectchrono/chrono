@@ -9,7 +9,7 @@ background on the modularity of the Chrono project.
 
 ## Features
 
-The **SynChrono module** allows users to parallelize the dynamics computations for Chrono::Vehicles across MPI entities.
+The **SynChrono module** allows users to parallelize the dynamics computations for Chrono::Vehicles across MPI or DDS entities.
 
 
 ## Required Dependencies
@@ -20,6 +20,10 @@ The **SynChrono module** allows users to parallelize the dynamics computations f
     - Windows: Tested with [Intel MPI](https://software.intel.com/en-us/mpi-library/choose-download/windows) and [MS-MPI](https://docs.microsoft.com/en-us/message-passing-interface/microsoft-mpi). You must ensure that the MPI dll (either `impi.dll` or `msmpi.dll`) is on your system path, for example by running a post-installation script ([Intel MPI example](https://software.intel.com/content/www/us/en/develop/documentation/mpi-developer-guide-windows/top/installation-and-prerequisites/prerequisite-steps.html)).
   * [FlatBuffers](http://google.github.io/flatbuffers/) 
     - A version is included in chrono_thirdparty as a submodule, for general development either that version or an externally built one can be used.
+- The following are optional:
+  * [FastDDS](https://fast-dds.docs.eprosima.com/en/latest/)
+    - Please use the [latest binaries](https://www.eprosima.com/index.php/component/ars/repository/eprosima-fast-dds) for installation.
+    - Versions provided by package managers will likely work as well if they are reasonably up to date.
 
 ## Building instructions
 
@@ -31,7 +35,11 @@ The **SynChrono module** allows users to parallelize the dynamics computations f
 
 3. Set the `ENABLE_MODULE_SYNCHRONO` as 'on', then press 'Configure' (to refresh the variable list).
 
-4. Press 'Configure' again, then 'Generate', and proceed as usual in the installation instructions.
+4. (Optional) If using Fast_DDS set `USE_FAST_DDS` to 'on', then press 'Configure'. 
+    - If you used the installed binaries they should be picked up automatically by CMake
+    - If you built from source or installed in a non-standard location, you'll have to manually specify `FAST_DDS_INSTALL_DIR`.
+
+5. Press 'Configure' again, then 'Generate', and proceed as usual in the installation instructions.
 
 
 ## How to use it

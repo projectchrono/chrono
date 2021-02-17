@@ -48,6 +48,46 @@ set(SYN_LIBRARIES
     ${MPI_LIBRARIES}
 )
 
+#-----------------------------------------------------------------------------
+# Find DDS (Optional)
+#-----------------------------------------------------------------------------
+option(USE_FAST_DDS "Enable the FastDDS interface for the SynChrono Module" OFF)
+
+if (USE_FAST_DDS)
+	set(FAST_DDS_INSTALL_DIR "" CACHE PATH "Path to FastDDS install dir")
+	set(fastcdr_DIR "${FAST_DDS_INSTALL_DIR}/lib/cmake/fastcdr" CACHE PATH "Path to the FastCDR cmake config file" FORCE)
+	set(fastrtps_DIR "${FAST_DDS_INSTALL_DIR}/share/fastrtps/cmake" CACHE PATH "Path to the FastDDS cmake config file" FORCE)
+	set(foonathan_memory_DIR "${FAST_DDS_INSTALL_DIR}/lib/foonathan_memory/cmake" CACHE PATH "Path to the foonathan memory cmake config file" FORCE)
+	if (NOT EXISTS ${foonathan_memory_DIR})
+		set(foonathan_memory_DIR "${FAST_DDS_INSTALL_DIR}/lib64/foonathan_memory/cmake" CACHE PATH "Path to the foonathan memory cmake config file" FORCE)
+	endif()
+
+	find_package(fastcdr REQUIRED)
+	find_package(fastrtps REQUIRED)
+
+	list(APPEND SYN_LIBRARIES
+		fastrtps
+		fastcdr
+	)
+
+	set(SYN_INCLUDES
+		${SYN_INCLUDES}
+		${fastrtps_INCLUDE_DIR}
+		${fastcdr_INCLUDE_DIR}
+	)
+endif()
+
+# ----------------------------------------------------------------------------
+# Generate and install configuration file
+# ----------------------------------------------------------------------------
+
+# Prepare replacement variables
+if(USE_FAST_DDS)
+	set(CHRONO_FASTDDS "#define CHRONO_FASTDDS")
+else()
+	set(CHRONO_FASTDDS "#undef CHRONO_FASTDDS")
+endif()
+
 # Generate the configuration header file using substitution variables.
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/SynConfig.h.in
 			   ${PROJECT_BINARY_DIR}/chrono_synchrono/SynConfig.h)
@@ -106,6 +146,26 @@ set(SYN_COMMUNICATION_FILES
     communication/mpi/SynMPICommunicator.h
     communication/mpi/SynMPICommunicator.cpp
 )
+if(USE_FAST_DDS)
+	list(APPEND SYN_COMMUNICATION_FILES
+		communication/dds/SynDDSCommunicator.h
+		communication/dds/SynDDSCommunicator.cpp
+		
+		communication/dds/SynDDSPublisher.h
+		communication/dds/SynDDSPublisher.cpp
+		communication/dds/SynDDSSubscriber.h
+		communication/dds/SynDDSSubscriber.cpp
+		communication/dds/SynDDSTopic.h
+		communication/dds/SynDDSTopic.cpp
+		communication/dds/SynDDSListener.h
+		communication/dds/SynDDSListener.cpp
+
+		communication/dds/idl/SynDDSMessage.h
+		communication/dds/idl/SynDDSMessage.cxx
+		communication/dds/idl/SynDDSMessagePubSubTypes.h
+		communication/dds/idl/SynDDSMessagePubSubTypes.cxx
+	)
+endif()
 source_group("communication" FILES ${SYN_COMMUNICATION_FILES})
 
 set(SYN_FLATBUFFER_FILES

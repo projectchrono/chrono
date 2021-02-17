@@ -67,11 +67,15 @@ table State {
 
 ## Communication Types {#syn_communication}
 
-After the nodes reach a heartbeat and use FlatBuffers to pack their data, a `SynCommunicator` takes charge of sending this binary data to all other nodes in the simulation for consumption. There is currently one type of communicator, based on the Message Passing Interface (MPI), but others can be defined so long as they handle the task of interchanging data between all nodes in the simulation.
+After the nodes reach a heartbeat and use FlatBuffers to pack their data, a `SynCommunicator` takes charge of sending this binary data to all other nodes in the simulation for consumption. Currently there are two types of communicator, one based on the Message Passing Interface (MPI) and the other based on the Data Distribution Service (DDS), but others can be defined so long as they handle the task of interchanging data between all nodes in the simulation.
 
 ### Message Passing Interface (MPI) {#syn_mpi}
 
 Synchronization with MPI is accomplished using two MPI calls. While many types of agents will send messages of a fixed size (vehicles, for example), others (Deformable terrain) will not. For this reason, nodes don't immediately know how much space they'll need for incoming state data. MPI synchronization uses a first call to determine how much space each node will need for their state data, and a second call to collect that data after the nodes have allocated space to receive it. More details are in the [MPI synchronization section](@ref state_sync_MPI) of the manual.
+
+### Data Distribution Service (DDS) {#syn_dds}
+
+Synchronization can also be accomplished using DDS. Rather than the collective communication of MPI, DDS communication is point-to-point via a collection of "topics", one for each node's state data. To synchronize state, each node subscribes to topics for all other nodes. DDS takes advantage of multi-threading to handle sending and receiving from multiple nodes at once. DDS is usually preferred over MPI outside of cluster situations, where MPI is less available and more communication flexibility is required as DDS can communicate using UDP. More details are in the [DDS synchronization section](@ref state_sync_DDS) of the manual.
 
 ## Support for Other Chrono Modules {#syn_modules}
 

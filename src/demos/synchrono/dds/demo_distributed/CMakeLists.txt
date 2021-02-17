@@ -3,20 +3,18 @@
 # ------------------------------------------------------------------------------
 
 # Requires Irrlicht run-time visualization.
-if(NOT ENABLE_MODULE_IRRLICHT)
+if(NOT ENABLE_MODULE_IRRLICHT OR NOT USE_FAST_DDS)
   return()
 endif()
 
-set(DEMOS
-  demo_SYN_highway
+set(DEMOS 
+    demo_SYN_DDS_distributed
 )
 
-#--------------------------------------------------------------
+# --------------------------------------------------------------
 
-if(USE_FAST_DDS)
-  find_package(fastcdr REQUIRED)
-  find_package(fastrtps REQUIRED)
-endif()
+find_package(fastcdr REQUIRED)
+find_package(fastrtps REQUIRED)
 
 include_directories(${SYN_INCLUDES})
 
@@ -27,8 +25,6 @@ foreach(PROGRAM ${DEMOS})
   source_group("" FILES ${PROGRAM}.cpp)
 
   set_target_properties(${PROGRAM} PROPERTIES COMPILE_FLAGS "${SYN_CXX_FLAGS}")
-  set_property(TARGET ${PROGRAM} PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:${PROGRAM}>")
-  target_link_libraries(${PROGRAM} ChronoEngine_synchrono)
 
-  install(TARGETS ${PROGRAM} DESTINATION ${CH_INSTALL_DEMO})
+  target_link_libraries(${PROGRAM} ChronoEngine_synchrono)
 endforeach()
