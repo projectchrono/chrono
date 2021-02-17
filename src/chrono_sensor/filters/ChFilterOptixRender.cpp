@@ -57,24 +57,24 @@ CH_SENSOR_API void ChFilterOptixRender::Apply(std::shared_ptr<ChSensor> pSensor,
 
     try {
         if (m_use_gi) {
-            start = high_resolution_clock::now();
+            // start = high_resolution_clock::now();
             commandListWithDenoiser->execute();
             // m_program["gi_pass"]->setInt(1);
             // pOptixSensor->m_context->launch(pOptixSensor->m_launch_index, pOptixSensor->m_width,
             //                                           pOptixSensor->m_height);
             // m_program["gi_pass"]->setInt(0);
             end = high_resolution_clock::now();
-            duration_sec = std::chrono::duration_cast<duration<double, std::milli>>(end - start);
-            std::cout << duration_sec.count() << std::endl;
+            // duration_sec = std::chrono::duration_cast<duration<double, std::milli>>(end - start);
+            // std::cout << duration_sec.count() << std::endl;
         } else {
-            start = high_resolution_clock::now();
+            // start = high_resolution_clock::now();
             pOptixSensor->m_context->launch(pOptixSensor->m_launch_index, pOptixSensor->m_width,
                                             pOptixSensor->m_height);
             end = high_resolution_clock::now();
-            duration_sec = std::chrono::duration_cast<duration<double, std::milli>>(end - start);
-            std::cout << duration_sec.count() << std::endl;
+            // duration_sec = std::chrono::duration_cast<duration<double, std::milli>>(end - start);
+            // std::cout << duration_sec.count() << std::endl;
         }
-            
+
     } catch (const optix::Exception& ex) {
         throw std::runtime_error("Error launching optix render for sensor " + pSensor->GetName() + ": " +
                                  ex.getErrorString());
@@ -97,7 +97,7 @@ CH_SENSOR_API void ChFilterOptixRender::Initialize(std::shared_ptr<ChSensor> pSe
 
     optix::Program ray_gen_program = GetRTProgram(context, pOptixSensor->RenderProgramString().file_name,
                                                   pOptixSensor->RenderProgramString().program_name);
-    
+
     // get the sensor reference frames
     ChFrame<double> f_offset = pSensor->GetOffsetPose();
     ChFrame<double> f_body = pSensor->GetParent()->GetAssetsFrame();
@@ -113,7 +113,7 @@ CH_SENSOR_API void ChFilterOptixRender::Initialize(std::shared_ptr<ChSensor> pSe
                                         (float)global_loc.GetA()(6));  // camera left
     ray_gen_program["c_up"]->setFloat((float)global_loc.GetA()(2), (float)global_loc.GetA()(4),
                                       (float)global_loc.GetA()(7));  // camera up
-   
+
     // go through any custom parameters
     for (auto param : pOptixSensor->RayLaunchParameters()) {
         std::string var_name = std::get<0>(param);
@@ -172,8 +172,8 @@ CH_SENSOR_API void ChFilterOptixRender::Initialize(std::shared_ptr<ChSensor> pSe
         }
     }
 
-    m_program = ray_gen_program;   
-    
+    m_program = ray_gen_program;
+
     // give the ray gen program back to the sensor (DANGEROUS THREADING ISSUES - SHOULD THE SENSOR REALLY EXPOSE
     // THIS TO THE USER?)
     pOptixSensor->m_ray_gen = m_program;
@@ -206,8 +206,6 @@ CH_SENSOR_API void ChFilterOptixRender::Initialize(std::shared_ptr<ChSensor> pSe
         denoiserStage->declareVariable("input_albedo_buffer")->set(albedo_buffer);
         denoiserStage->declareVariable("input_normal_buffer")->set(normal_buffer);
 
-   
-
         commandListWithDenoiser = pOptixSensor->m_context->createCommandList();
         commandListWithDenoiser->appendLaunch(pOptixSensor->m_launch_index, pOptixSensor->m_width,
                                               pOptixSensor->m_height);
@@ -226,7 +224,6 @@ CH_SENSOR_API void ChFilterOptixRender::Initialize(std::shared_ptr<ChSensor> pSe
         m_buffer->Height = pOptixSensor->m_height;
     }
 
-    
     // check that the context is valid
     try {
         pOptixSensor->m_context->validate();

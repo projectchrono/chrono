@@ -56,7 +56,7 @@ list(APPEND LIBRARIES ${optix_rpath})
 list(APPEND LIBRARIES ${CUDA_LIBRARIES})
 list(APPEND LIBRARIES ${CUDA_nppc_LIBRARY})
 list(APPEND LIBRARIES ${CUDA_nppig_LIBRARY})
-
+list(APPEND LIBRARIES ${CUDA_nppidei_LIBRARY})
 
 #add the necessary opengl, glfw, glew libraries to link list
 list(APPEND LIBRARIES ${GLFW_LIBRARY})
