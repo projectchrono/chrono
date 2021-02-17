@@ -218,7 +218,7 @@ int main(int argc, char* argv[]) {
     RandomSurfaceTerrain terrain(marder.GetSystem(), xpos_max);
     double track_width = 2.72;
     auto terrain_mat = minfo.CreateMaterial(contact_method);
-    terrain.EnableCollisionMesh(terrain_mat, std::abs(initLoc.x()) + 5, 0.005);
+    terrain.EnableCollisionMesh(terrain_mat, std::abs(initLoc.x()) + 5, 0.06);
     switch (iTerrain) {
         default:
         case 1:
