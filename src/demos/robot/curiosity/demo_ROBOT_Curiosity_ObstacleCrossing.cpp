@@ -49,6 +49,8 @@
 
 #include "chrono_thirdparty/filesystem/path.h"
 
+#include <chrono>
+
 using namespace chrono;
 using namespace chrono::irrlicht;
 using namespace chrono::geometry;
@@ -89,11 +91,11 @@ class MySoilParams : public vehicle::SCMDeformableTerrain::SoilParametersCallbac
 };
 
 // Use custom material for the Viper Wheel
-bool use_custom_mat = false;
+bool use_custom_mat = true;
 
 // Return customized wheel material parameters
 std::shared_ptr<ChMaterialSurface> CustomWheelMaterial(ChContactMethod contact_method) {
-    float mu = 0.4f;   // coefficient of friction
+    float mu = 0.65f;   // coefficient of friction
     float cr = 0.1f;   // coefficient of restitution
     float Y = 2e7f;    // Young's modulus
     float nu = 0.3f;   // Poisson ratio
@@ -138,10 +140,10 @@ int main(int argc, char* argv[]) {
 
     // Create the Irrlicht visualization (open the Irrlicht device,
     // bind a simple user interface, etc. etc.)
-    ChIrrApp application(&my_system, L"Viper Rover on SCM", core::dimension2d<u32>(1280, 720), false, true);
+    ChIrrApp application(&my_system, L"Viper Rover on SCM", core::dimension2d<u32>(1800, 1000), false, true);
 
     // Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
-    application.AddTypicalLogo();
+    //application.AddTypicalLogo();
     application.AddTypicalSky();
     application.AddTypicalLights();
     application.AddTypicalCamera(core::vector3df(2.0f, 1.4f, 0.0f), core::vector3df(0, (f32)wheel_range, 0));
@@ -167,6 +169,7 @@ int main(int argc, char* argv[]) {
     if (use_custom_mat == true) {
         // if customize wheel material
         rover = chrono_types::make_shared<CuriosityRover>(&my_system, body_pos, body_rot, CustomWheelMaterial(ChContactMethod::SMC));
+        rover->SetDCControl(true);
         rover->Initialize();
 
         // Default value is w = 3.1415 rad/s
@@ -181,6 +184,7 @@ int main(int argc, char* argv[]) {
     } else {
         // if use default material
         rover = chrono_types::make_shared<CuriosityRover>(&my_system, body_pos, body_rot);
+        rover->SetDCControl(true);
         rover->Initialize();
 
         // Default value is w = 3.1415 rad/s
@@ -266,7 +270,7 @@ int main(int argc, char* argv[]) {
         // Create a rock
         auto rock_2_mmesh = chrono_types::make_shared<ChTriangleMeshConnected>();
         std::string rock2_obj_path = GetChronoDataFile("robot/curiosity/rocks/rock1.obj");
-        double scale_ratio = 0.6;
+        double scale_ratio = 0.45;
         rock_2_mmesh->LoadWavefrontMesh(rock2_obj_path, false, true);
         rock_2_mmesh->Transform(ChVector<>(0, 0, 0), ChMatrix33<>(scale_ratio));     // scale to a different size
         rock_2_mmesh->RepairDuplicateVertexes(1e-9);                                 // if meshes are not watertight                 
@@ -323,7 +327,7 @@ int main(int argc, char* argv[]) {
         // Create a rock
         auto rock_3_mmesh = chrono_types::make_shared<ChTriangleMeshConnected>();
         std::string rock3_obj_path = GetChronoDataFile("robot/curiosity/rocks/rock3.obj");
-        double scale_ratio = 0.4;
+        double scale_ratio = 0.45;
         rock_3_mmesh->LoadWavefrontMesh(rock3_obj_path, false, true);
         rock_3_mmesh->Transform(ChVector<>(0, 0, 0), ChMatrix33<>(scale_ratio));     // scale to a different size
         rock_3_mmesh->RepairDuplicateVertexes(1e-9);                                 // if meshes are not watertight                 
@@ -456,23 +460,29 @@ int main(int argc, char* argv[]) {
     // Use shadows in realtime view
     application.AddShadowAll();
 
-    application.SetTimestep(0.0005);
+    application.SetTimestep(0.001);
+
+    int step = 0;
 
     while (application.GetDevice()->run()) {
         if (output) {
             // vehicle::TerrainForce frc = mterrain.GetContactForce(mrigidbody);
             // csv << my_system.GetChTime() << frc.force << frc.moment << frc.point << std::endl;
         }
+        rover->Update();
         application.BeginScene();
 
         application.GetSceneManager()->getActiveCamera()->setTarget(core::vector3dfCH(rover->GetChassisBody()->GetPos()));
         application.DrawAll();
 
         application.DoStep();
-        ChIrrTools::drawColorbar(0, 20000, "Pressure yield [Pa]", application.GetDevice(), 1180);
+        ChIrrTools::drawColorbar(0, 20000, "Pressure yield [Pa]", application.GetDevice(), 1600);
         application.EndScene();
 
-        ////mterrain.PrintStepStatistics(std::cout);
+        mterrain.PrintStepStatistics(std::cout);
+        step = step + 1;
+        std::cout<<"step: "<<step<<std::endl;
+
     }
 
     if (output) {

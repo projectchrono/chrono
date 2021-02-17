@@ -112,10 +112,10 @@ void AddLockJoint(std::shared_ptr<ChBodyAuxRef> body_1,
     system->AddLink(revo);
 }
 
-// Add a rotational speed controlled motor between body 'steer' and body 'wheel'
+// Add a rotational speed controlled motor between body 'body_A' and body 'body_B'
 // rel_joint_pos and rel_joint_rot are the position and the rotation of the motor
-std::shared_ptr<ChLinkMotorRotationSpeed> AddMotor(std::shared_ptr<ChBodyAuxRef> steer,
-                                                   std::shared_ptr<ChBodyAuxRef> wheel,
+std::shared_ptr<ChLinkMotorRotationSpeed> AddMotor(std::shared_ptr<ChBodyAuxRef> body_A,
+                                                   std::shared_ptr<ChBodyAuxRef> body_B,
                                                    std::shared_ptr<ChBodyAuxRef> chassis,
                                                    ChSystem* system,
                                                    const ChVector<>& rel_joint_pos,
@@ -126,7 +126,7 @@ std::shared_ptr<ChLinkMotorRotationSpeed> AddMotor(std::shared_ptr<ChBodyAuxRef>
     ChFrame<> X_GC = X_GP * X_PC;                            // global -> child
 
     auto motor_angle = chrono_types::make_shared<ChLinkMotorRotationSpeed>();
-    motor_angle->Initialize(steer, wheel, ChFrame<>(X_GC.GetCoord().pos, X_GC.GetCoord().rot));
+    motor_angle->Initialize(body_A, body_B, ChFrame<>(X_GC.GetCoord().pos, X_GC.GetCoord().rot));
     system->AddLink(motor_angle);
     motor_angle->SetSpeedFunction(speed_func);
     return motor_angle;
@@ -263,7 +263,7 @@ void Curiosity_Chassis::Initialize() {
     case Chassis_Type::FullRover:
         mmass = 6.3;
         mcog = ChVector<>(0, 0, 0);
-        minertia = ChMatrix33<>(20.0);
+        minertia = ChMatrix33<>(8.0);
         break;
     
     case Chassis_Type::Scarecrow:
@@ -862,8 +862,13 @@ void CuriosityRover::Initialize() {
         if(i==3){
             rev_steer_suspension = sr_rel_pos_rb;
         }
-        AddLockJoint(m_steers[i]->GetBody(), m_arms[i]->GetBody(),m_chassis->GetBody(), m_system,
-                         rev_steer_suspension, ori);
+        // set up steering motors
+        // defaultly speed to 0
+        auto const_steer_function = chrono_types::make_shared<ChFunction_Const>(0);  // speed w=3.145 rad/sec
+
+        m_steer_motors.push_back(AddMotor(m_steers[i]->GetBody(), m_arms[i]->GetBody(),m_chassis->GetBody(), m_system,
+                         rev_steer_suspension, ori, const_steer_function));
+        m_steer_motors_func.push_back(const_steer_function);
     }
 
 
@@ -952,6 +957,46 @@ void CuriosityRover::SetMotorSpeed(double rad_speed, WheelID id) {
     m_motors_func[id]->Set_yconst(rad_speed);
 }
 
+void CuriosityRover::SetDCControl(bool dc_control){
+    m_dc_motor_control = dc_control;
+    for(int i = 0; i < 6; i ++){
+        m_stall_torque.push_back(1000);
+        m_no_load_speed.push_back(CH_C_PI);
+    }
+}
+
+void CuriosityRover::SetSteerSpeed(double speed, WheelID id){
+    if(abs(speed) > CH_C_PI){
+        std::cout << "invalid steering speed, max is w = pi rad/s" << std::endl;
+        return;
+    }
+    if(id == WheelID::LM || id == WheelID::RM){
+        std::cout << "Middle wheels don't have steering capability! Invalid SetSpeed() call" << std::endl;
+        return;
+    }
+
+    switch (id)
+    {
+    case WheelID::LF:
+        return m_steer_motors_func[0]->Set_yconst(speed);
+        break;
+
+    case WheelID::RF:
+        return m_steer_motors_func[1]->Set_yconst(speed);
+        break;
+    
+    case WheelID::LB:
+        return m_steer_motors_func[2]->Set_yconst(speed);
+        break;
+
+    case WheelID::RB:
+        return m_steer_motors_func[3]->Set_yconst(speed);
+        break;
+    
+    default:
+        break;
+    }    
+}
 
 ChVector<> CuriosityRover::GetWheelSpeed(WheelID id) {
     return m_wheels[id]->GetBody()->GetPos_dt();
@@ -983,6 +1028,69 @@ std::shared_ptr<ChBodyAuxRef> CuriosityRover::GetWheelBody(WheelID id) {
 
 std::shared_ptr<ChBodyAuxRef> CuriosityRover::GetChassisBody() {
     return m_chassis->GetBody();
+}
+
+
+double CuriosityRover::GetSteerAngle(WheelID id){
+    if(id == WheelID::LM || id == WheelID::RM){
+        std::cout << "Middle wheels don't have steering capability! Invalid GetAngle() call" << std::endl;
+        return 4*CH_C_PI;
+    }
+
+    switch (id)
+    {
+    case WheelID::LF:
+        return m_steer_motors[0]->GetMotorRot();
+        break;
+
+    case WheelID::RF:
+        return m_steer_motors[1]->GetMotorRot();
+        break;
+    
+    case WheelID::LB:
+        return m_steer_motors[2]->GetMotorRot();
+        break;
+
+    case WheelID::RB:
+        return m_steer_motors[3]->GetMotorRot();
+        break;
+    
+    default:
+        break;
+    }
+
+    return 4*CH_C_PI;
+}
+
+double CuriosityRover::GetSteerSpeed(WheelID id){
+    if(id == WheelID::LM || id == WheelID::RM){
+        std::cout << "Middle wheels don't have steering capability! Invalid GetSpeed() call" << std::endl;
+        return 4*CH_C_PI;
+    }
+
+    switch (id)
+    {
+    case WheelID::LF:
+        return m_steer_motors_func[0]->Get_yconst();
+        break;
+
+    case WheelID::RF:
+        return m_steer_motors_func[1]->Get_yconst();
+        break;
+    
+    case WheelID::LB:
+        return m_steer_motors_func[2]->Get_yconst();
+        break;
+
+    case WheelID::RB:
+        return m_steer_motors_func[3]->Get_yconst();
+        break;
+    
+    default:
+        break;
+    }    
+
+    return 4*CH_C_PI;
 }
 
 double CuriosityRover::GetRoverMass() {
@@ -1018,6 +1126,34 @@ double CuriosityRover::GetRoverMass() {
 double CuriosityRover::GetWheelMass() {
     return m_wheels[0]->GetBody()->GetMass();
     return 0.0;
+}
+
+
+void CuriosityRover::Update(){
+    UpdateDCMotorControl();
+}
+
+// A sloppy DC motor control
+// A better model is needed
+void CuriosityRover::UpdateDCMotorControl(){
+    if(m_dc_motor_control == false){return;}
+
+    std::vector<double> torque_reading;
+    std::vector<double> speed_reading;
+    for(int i = 0; i < 6; i ++)
+    {
+        torque_reading.push_back(m_motors[i]->GetMotorTorque());
+        speed_reading.push_back(m_motors_func[i]->Get_yconst());
+    }
+
+
+    std::vector<double> target_speed;
+    for(int i = 0; i < 6; i ++)
+    {
+        if(torque_reading[i] < 0){torque_reading[i] = 0;}
+        target_speed.push_back(m_no_load_speed[i] - (torque_reading[i] / m_stall_torque[i] * m_no_load_speed[i]));
+        m_motors_func[i]->Set_yconst(target_speed[i]);
+    }
 }
 
 

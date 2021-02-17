@@ -275,6 +275,14 @@ class CH_MODELS_API CuriosityRover {
     /// Initialize the Curiosity rover using current parameters.
     void Initialize();
 
+    /// General control updated function
+    /// Note: This is the main caller function, submodule controls such as steering and traction 
+    /// are handled by sub helper functions
+    void Update();
+
+    /// Sub-updated function to update DC motor limit control
+    void UpdateDCMotorControl();
+
     /// Get the ChSystem
     ChSystem* GetSystem() { return m_system; }
 
@@ -283,6 +291,12 @@ class CH_MODELS_API CuriosityRover {
 
     /// Set Motor Speed
     void SetMotorSpeed(double rad_speed, WheelID id);
+
+    /// Set dc motor control
+    void SetDCControl(bool dc_control);
+
+    /// Set steer motor speed
+    void SetSteerSpeed(double speed, WheelID id);
 
     /// Get wheel speed
     ChVector<> GetWheelSpeed(WheelID id);
@@ -308,6 +322,12 @@ class CH_MODELS_API CuriosityRover {
     /// Get the wheel body
     std::shared_ptr<ChBodyAuxRef> GetWheelBody(WheelID id);
 
+    /// Get steering motor angle -/+ range
+    double GetSteerAngle(WheelID id);
+
+    /// Get steering motor speed -/+ range
+    double GetSteerSpeed(WheelID id);
+
     /// Get total rover mass
     double GetRoverMass();
 
@@ -326,6 +346,8 @@ class CH_MODELS_API CuriosityRover {
 
     bool m_custom_wheel_mat;  ///< bool indicating whether the wheel material is customized
 
+    bool m_dc_motor_control = false;  ///< enable dc motor control, default set to false
+
     std::shared_ptr<Curiosity_Chassis> m_chassis;               ///< rover chassis
     std::vector<std::shared_ptr<Curiosity_Wheel>> m_wheels;     ///< rover wheels - 1:LF, 2:RF, 3:LM, 4:RM, 5:LB, 6:RB
     std::vector<std::shared_ptr<Curiosity_Arm>> m_arms;         ///< rover arms
@@ -337,8 +359,14 @@ class CH_MODELS_API CuriosityRover {
 
     std::vector<std::shared_ptr<ChLinkMotorRotationSpeed>> m_motors;  ///< vector to store motors
                                                                       ///< 0-LF,1-RF,2-LM,3-RM,4-LB,5-RB
+    std::vector<std::shared_ptr<ChLinkMotorRotationSpeed>> m_steer_motors; ///< vector to store steering motors
+                                                                           ///< 0-LF,1-RF,2-LM,3-RM,4-LB,5-RB
 
     std::vector<std::shared_ptr<ChFunction_Const>> m_motors_func;  ///< constant motor angular speed func
+    std::vector<std::shared_ptr<ChFunction_Const>> m_steer_motors_func;   ///< constant steering motor angular speed func
+
+    std::vector<double> m_stall_torque;   ///< stall torque of the motors
+    std::vector<double> m_no_load_speed;  ///< no load speed of the motors
 
     // model parts material
     std::shared_ptr<ChMaterialSurface> m_chassis_material;  ///< chassis contact material
@@ -346,6 +374,7 @@ class CH_MODELS_API CuriosityRover {
     std::shared_ptr<ChMaterialSurface> m_arm_material;    ///< arm contact material (shared across suspension arms)
     std::shared_ptr<ChMaterialSurface> m_steer_material;    ///< steer contact material
     std::shared_ptr<ChMaterialSurface> m_balancer_material;    ///< balancer contact material
+
 
 };
 
