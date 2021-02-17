@@ -210,7 +210,7 @@ int main(int argc, char* argv[]) {
         chrono::ChFrame<double>({-10, 0, 1}, Q_from_AngAxis(0, {0, 0, 1})),  // offset pose
         1280,                                                                // image width
         720,                                                                 // image height
-        CH_C_PI / 3                                                          // field of view
+        CH_C_PI / 3, 1, PINHOLE, 1                                           // field of view
     );
 
     std::string color_data_path = "SENSOR_OUTPUT/cam_color/";
@@ -268,7 +268,7 @@ int main(int argc, char* argv[]) {
         lidar->PushFilter(chrono_types::make_shared<ChFilterVisualizePointCloud>(640, 480, 2, "Lidar Point Cloud"));
     lidar->PushFilter(chrono_types::make_shared<ChFilterXYZIAccess>());
     // lidar->PushFilter(chrono_types::make_shared<ChFilterXYZIAccess>());
-    manager->AddSensor(lidar);
+    // manager->AddSensor(lidar);
 
     // add an IMU sensor to one of the boxes
     // auto imu_noise_none = chrono_types::make_shared<ChIMUNoiseNone>();
@@ -328,7 +328,7 @@ int main(int argc, char* argv[]) {
             cam1->PushFilter(chrono_types::make_shared<ChFilterSave>("SENSOR_OUTPUT/cam" + std::to_string(i) + "/"));
 
         // add sensor to the manager
-        manager->AddSensor(cam1);
+        //manager->AddSensor(cam1);
     }
 
     // ---------------

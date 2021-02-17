@@ -111,7 +111,7 @@ RT_PROGRAM void pinhole_gi_camera() {
         rtTrace(root_node, ray, current_time, prd_camera);
 
         // Russian roulette termination, as depth increase, more likely to attenuate
-        if (prd_camera.depth >= 5) {
+        if (prd_camera.depth >= 3) {
             if (rnd(prd_camera.seed) >= attenuation)
                 break;
             attenuation *= 0.5;
