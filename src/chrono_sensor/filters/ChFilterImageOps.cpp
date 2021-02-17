@@ -24,6 +24,47 @@
 namespace chrono {
 namespace sensor {
 
+CH_SENSOR_API ChFilterImageFloat4ToRGBA8::ChFilterImageFloat4ToRGBA8(std::string name) : ChFilter(name) {}
+
+CH_SENSOR_API void ChFilterImageFloat4ToRGBA8::Apply(std::shared_ptr<ChSensor> pSensor,
+                                                     std::shared_ptr<SensorBuffer>& bufferInOut) {
+    // this filter CANNOT be the first filter in a sensor's filter list, so the bufferIn CANNOT null.
+    assert(bufferInOut != nullptr);
+    if (!bufferInOut)
+        throw std::runtime_error("The Float4->RGBA9 filter was not supplied an input buffer");
+
+    if (auto pOpx = std::dynamic_pointer_cast<SensorOptixBuffer>(bufferInOut)) {
+        if (pOpx->Buffer->getFormat() != RT_FORMAT_FLOAT4) {
+            throw std::runtime_error("The only optix format FLOAT4 can be converted to RGBA8");
+        }
+
+        if (!m_buffer_rgba8) {
+            RTsize width, height;
+            pOpx->Buffer->getSize(width, height);
+            m_buffer_rgba8 = chrono_types::make_shared<SensorDeviceRGBA8Buffer>();
+            DeviceRGBA8BufferPtr b(cudaMallocHelper<PixelRGBA8>(width * height), cudaFreeHelper<PixelRGBA8>);
+            m_buffer_rgba8->Buffer = std::move(b);
+            m_buffer_rgba8->Width = width;
+            m_buffer_rgba8->Height = height;
+        }
+
+        // we need id of first device for this context (should only have 1 anyway)
+        int device_id = pOpx->Buffer->getContext()->getEnabledDevices()[0];
+        void* ptr = pOpx->Buffer->getDevicePointer(device_id);  // hard coded to grab from device 0
+
+        nppiScale_32f8u_C4R((float*)ptr, m_buffer_rgba8->Width * 4 * sizeof(float),
+                            (unsigned char*)m_buffer_rgba8->Buffer.get(), m_buffer_rgba8->Width * 4,
+                            NppiSize({(int)m_buffer_rgba8->Width, (int)m_buffer_rgba8->Height}), 0.f, 1.f);
+
+        m_buffer_rgba8->LaunchedCount = bufferInOut->LaunchedCount;
+        m_buffer_rgba8->TimeStamp = bufferInOut->TimeStamp;
+        bufferInOut = m_buffer_rgba8;
+
+    } else {
+        throw std::runtime_error("The Float4->RGBA9 filter an Optix FLOAT4 buffer");
+    }
+}
+
 CH_SENSOR_API ChFilterImageResize::ChFilterImageResize(int w, int h, std::string name)
     : m_w(w), m_h(h), ChFilter(name) {}
 
