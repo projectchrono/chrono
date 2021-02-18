@@ -24,6 +24,7 @@ set(DEMOS
     demo_ROBOT_Curiosity_ObstacleCrossing
     demo_ROBOT_Curiosity_Rigid
     demo_ROBOT_Curiosity_Scarecrow
+    demo_ROBOT_Curiosity_Steering
 )
 
 # ------------------------------------------------------------------------------

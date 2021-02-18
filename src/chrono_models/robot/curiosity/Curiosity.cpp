@@ -955,6 +955,9 @@ Chassis_Type CuriosityRover::GetChassisType(){
 
 void CuriosityRover::SetMotorSpeed(double rad_speed, WheelID id) {
     m_motors_func[id]->Set_yconst(rad_speed);
+    if(m_dc_motor_control == true){
+        m_no_load_speed[id] = rad_speed;
+    }
 }
 
 void CuriosityRover::SetDCControl(bool dc_control){

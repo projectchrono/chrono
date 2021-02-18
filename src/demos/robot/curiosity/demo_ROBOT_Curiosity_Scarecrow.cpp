@@ -98,7 +98,7 @@ int main(int argc, char* argv[]) {
 
     // Create the Irrlicht visualization (open the Irrlicht device,
     // bind a simple user interface, etc. etc.)
-    ChIrrApp application(&mphysicalSystem, L"Viper Rover on Rigid Terrain", core::dimension2d<u32>(1280, 720), false);
+    ChIrrApp application(&mphysicalSystem, L"Scarecrow on Rigid Terrain", core::dimension2d<u32>(1280, 720), false);
 
     // set gravity
     mphysicalSystem.Set_G_acc(ChVector<>(0, -9.81, 0));

@@ -12,8 +12,8 @@
 // Authors: Jason Zhou
 // =============================================================================
 //
-// Demo to show Curiosity Rovering across obstacles with symmetric arrangement
-// on SCM terrain
+// Demo to show the steering capability of the Curiosity Rover on SCM terrain
+// Demo includes slight turning and spinning of the rover
 //
 // =============================================================================
 
@@ -140,14 +140,14 @@ int main(int argc, char* argv[]) {
 
     // Create the Irrlicht visualization (open the Irrlicht device,
     // bind a simple user interface, etc. etc.)
-    ChIrrApp application(&my_system, L"Curiosity Obstacle Crossing on SCM", core::dimension2d<u32>(1800, 1000), false, true);
+    ChIrrApp application(&my_system, L"Curiosity Steering Maneuver", core::dimension2d<u32>(1800, 1000), false, true);
 
     // Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
     //application.AddTypicalLogo();
     application.AddTypicalSky();
     application.AddTypicalLights();
     application.AddTypicalCamera(core::vector3df(2.0f, 1.4f, 0.0f), core::vector3df(0, (f32)wheel_range, 0));
-    application.AddLightWithShadow(core::vector3df(-5.0f, 8.0f, -0.5f), core::vector3df(-1.0, 0, 0), 100, 1, 35, 85, 512,
+    application.AddLightWithShadow(core::vector3df(-5.0f, 8.0f, -0.5f), core::vector3df(-1.0, 0, 0), 100, 1, 35, 100, 512,
                                    video::SColorf(0.8f, 0.8f, 1.0f));
 
     // Initialize output
@@ -203,188 +203,6 @@ int main(int argc, char* argv[]) {
         // curiosity->SetMotorSpeed(CH_C_PI,WheelID::RB);
     }
 
-    std::shared_ptr<ChBodyAuxRef> rock_1;
-    std::shared_ptr<ChBodyAuxRef> rock_2;
-    std::shared_ptr<ChBodyAuxRef> rock_3;
-    std::shared_ptr<ChBodyAuxRef> rock_4;
-    std::shared_ptr<ChBodyAuxRef> rock_5;
-    std::shared_ptr<ChBodyAuxRef> rock_6;
-
-    // create default SMC materials for the obstacles
-    std::shared_ptr<ChMaterialSurface> rockSufaceMaterial = CustomWheelMaterial(ChContactMethod::SMC);
-
-
-    for(int i = 0; i < 2; i ++ )
-    {
-        // Create a rock
-        auto rock_1_mmesh = chrono_types::make_shared<ChTriangleMeshConnected>();
-        std::string rock1_obj_path = GetChronoDataFile("robot/curiosity/rocks/rock1.obj");
-        double scale_ratio = 0.8;
-        rock_1_mmesh->LoadWavefrontMesh(rock1_obj_path, false, true);
-        rock_1_mmesh->Transform(ChVector<>(0, 0, 0), ChMatrix33<>(scale_ratio));     // scale to a different size
-        rock_1_mmesh->RepairDuplicateVertexes(1e-9);                                 // if meshes are not watertight                 
-
-        // compute mass inertia from mesh
-        double mmass;
-        ChVector<> mcog;
-        ChMatrix33<> minertia;
-        double mdensity = 8000;//paramsH->bodyDensity;
-        rock_1_mmesh->ComputeMassProperties(true, mmass, mcog, minertia);
-        ChMatrix33<> principal_inertia_rot;
-        ChVector<> principal_I;
-        ChInertiaUtils::PrincipalInertia(minertia, principal_I, principal_inertia_rot);
-
-        // set the abs orientation, position and velocity
-        auto rock1_Body = chrono_types::make_shared<ChBodyAuxRef>();
-        ChQuaternion<> rock1_rot = ChQuaternion<>(1,0,0,0);
-        ChVector<> rock1_pos;
-        if(i==0){
-            rock1_pos = ChVector<>(-2.5, -0.3, -1.0);
-        }else{
-            rock1_pos = ChVector<>(-2.5, -0.3, 1.0);
-        }
-
-        rock1_Body->SetFrame_COG_to_REF(ChFrame<>(mcog, principal_inertia_rot));
-
-        rock1_Body->SetMass(mmass * mdensity);//mmass * mdensity
-        rock1_Body->SetInertiaXX(mdensity * principal_I);
-
-        rock1_Body->SetFrame_REF_to_abs(ChFrame<>(ChVector<>(rock1_pos),ChQuaternion<>(rock1_rot)));                              
-        my_system.Add(rock1_Body);
-
-        rock1_Body->SetBodyFixed(false);
-        rock1_Body->GetCollisionModel()->ClearModel();
-        rock1_Body->GetCollisionModel()->AddTriangleMesh(rockSufaceMaterial, rock_1_mmesh, false, false, VNULL, ChMatrix33<>(1), 0.005);
-        rock1_Body->GetCollisionModel()->BuildModel();
-        rock1_Body->SetCollide(true);
-
-        auto rock1_mesh = chrono_types::make_shared<ChTriangleMeshShape>();
-        rock1_mesh->SetMesh(rock_1_mmesh);
-        rock1_mesh->SetBackfaceCull(true);
-        rock1_Body->AddAsset(rock1_mesh);
-
-        if(i == 0){
-            rock_1 = rock1_Body;
-        }else{
-            rock_2 = rock1_Body;
-        }
-        
-    }
-
-    for(int i = 0; i < 2; i ++)
-    {
-        // Create a rock
-        auto rock_2_mmesh = chrono_types::make_shared<ChTriangleMeshConnected>();
-        std::string rock2_obj_path = GetChronoDataFile("robot/curiosity/rocks/rock1.obj");
-        double scale_ratio = 0.45;
-        rock_2_mmesh->LoadWavefrontMesh(rock2_obj_path, false, true);
-        rock_2_mmesh->Transform(ChVector<>(0, 0, 0), ChMatrix33<>(scale_ratio));     // scale to a different size
-        rock_2_mmesh->RepairDuplicateVertexes(1e-9);                                 // if meshes are not watertight                 
-
-        // compute mass inertia from mesh
-        double mmass;
-        ChVector<> mcog;
-        ChMatrix33<> minertia;
-        double mdensity = 8000;//paramsH->bodyDensity;
-        rock_2_mmesh->ComputeMassProperties(true, mmass, mcog, minertia);
-        ChMatrix33<> principal_inertia_rot;
-        ChVector<> principal_I;
-        ChInertiaUtils::PrincipalInertia(minertia, principal_I, principal_inertia_rot);
-
-        // set the abs orientation, position and velocity
-        auto rock2_Body = chrono_types::make_shared<ChBodyAuxRef>();
-        ChQuaternion<> rock2_rot = ChQuaternion<>(1,0,0,0);
-        ChVector<> rock2_pos;
-        if(i==0){
-            rock2_pos = ChVector<>(-1.0, -0.3, -1.0);
-        }else{
-            rock2_pos = ChVector<>(-1.0, -0.3, 1.0);
-        }
-
-        rock2_Body->SetFrame_COG_to_REF(ChFrame<>(mcog, principal_inertia_rot));
-
-        rock2_Body->SetMass(mmass * mdensity);//mmass * mdensity
-        rock2_Body->SetInertiaXX(mdensity * principal_I);
-
-        rock2_Body->SetFrame_REF_to_abs(ChFrame<>(ChVector<>(rock2_pos),ChQuaternion<>(rock2_rot)));                              
-        my_system.Add(rock2_Body);
-
-        rock2_Body->SetBodyFixed(false);
-        rock2_Body->GetCollisionModel()->ClearModel();
-        rock2_Body->GetCollisionModel()->AddTriangleMesh(rockSufaceMaterial, rock_2_mmesh, false, false, VNULL, ChMatrix33<>(1), 0.005);
-        rock2_Body->GetCollisionModel()->BuildModel();
-        rock2_Body->SetCollide(true);
-
-        auto rock2_mesh = chrono_types::make_shared<ChTriangleMeshShape>();
-        rock2_mesh->SetMesh(rock_2_mmesh);
-        rock2_mesh->SetBackfaceCull(true);
-        rock2_Body->AddAsset(rock2_mesh);
-
-        if(i == 0){
-            rock_3 = rock2_Body; 
-        }else{
-            rock_4 = rock2_Body; 
-        }
-        
-    }
-
-    for(int i = 0; i < 2 ; i ++)
-    {
-        // Create a rock
-        auto rock_3_mmesh = chrono_types::make_shared<ChTriangleMeshConnected>();
-        std::string rock3_obj_path = GetChronoDataFile("robot/curiosity/rocks/rock3.obj");
-        double scale_ratio = 0.45;
-        rock_3_mmesh->LoadWavefrontMesh(rock3_obj_path, false, true);
-        rock_3_mmesh->Transform(ChVector<>(0, 0, 0), ChMatrix33<>(scale_ratio));     // scale to a different size
-        rock_3_mmesh->RepairDuplicateVertexes(1e-9);                                 // if meshes are not watertight                 
-
-        // compute mass inertia from mesh
-        double mmass;
-        ChVector<> mcog;
-        ChMatrix33<> minertia;
-        double mdensity = 8000;//paramsH->bodyDensity;
-        rock_3_mmesh->ComputeMassProperties(true, mmass, mcog, minertia);
-        ChMatrix33<> principal_inertia_rot;
-        ChVector<> principal_I;
-        ChInertiaUtils::PrincipalInertia(minertia, principal_I, principal_inertia_rot);
-
-        // set the abs orientation, position and velocity
-        auto rock3_Body = chrono_types::make_shared<ChBodyAuxRef>();
-        ChQuaternion<> rock3_rot = ChQuaternion<>(1,0,0,0);
-        ChVector<> rock3_pos;
-        if(i==0){
-            rock3_pos = ChVector<>(0.5, -0.3, -1.0);
-        }else{
-            rock3_pos = ChVector<>(0.5, -0.3, 1.0);
-        }
-
-        rock3_Body->SetFrame_COG_to_REF(ChFrame<>(mcog, principal_inertia_rot));
-
-        rock3_Body->SetMass(mmass * mdensity);//mmass * mdensity
-        rock3_Body->SetInertiaXX(mdensity * principal_I);
-
-        rock3_Body->SetFrame_REF_to_abs(ChFrame<>(ChVector<>(rock3_pos),ChQuaternion<>(rock3_rot)));                              
-        my_system.Add(rock3_Body);
-
-        rock3_Body->SetBodyFixed(false);
-        rock3_Body->GetCollisionModel()->ClearModel();
-        rock3_Body->GetCollisionModel()->AddTriangleMesh(rockSufaceMaterial, rock_3_mmesh, false, false, VNULL, ChMatrix33<>(1), 0.005);
-        rock3_Body->GetCollisionModel()->BuildModel();
-        rock3_Body->SetCollide(true);
-
-        auto rock3_mesh = chrono_types::make_shared<ChTriangleMeshShape>();
-        rock3_mesh->SetMesh(rock_3_mmesh);
-        rock3_mesh->SetBackfaceCull(true);
-        rock3_Body->AddAsset(rock3_mesh);
-
-        if(i == 0){
-            rock_5 = rock3_Body; 
-        }else{
-            rock_6 = rock3_Body; 
-        }
-        
-    }
-
     //
     // THE DEFORMABLE TERRAIN
     //
@@ -399,8 +217,8 @@ int main(int argc, char* argv[]) {
     mterrain.SetPlane(ChCoordsys<>(ChVector<>(0, -0.5, 0), Q_from_AngX(-CH_C_PI_2)));
 
     // Use a regular grid:
-    double length = 14;
-    double width = 4;
+    double length = 15;
+    double width = 15;
     mterrain.Initialize(length, width, mesh_resolution);
 
     // Set the soil terramechanical parameters
@@ -442,14 +260,6 @@ int main(int argc, char* argv[]) {
         mterrain.AddMovingPatch(rover->GetWheelBody(WheelID::RM), ChVector<>(0, 0, 0), ChVector<>(0.5, 2 * wheel_range, 2 * wheel_range));
         mterrain.AddMovingPatch(rover->GetWheelBody(WheelID::LB), ChVector<>(0, 0, 0), ChVector<>(0.5, 2 * wheel_range, 2 * wheel_range));
         mterrain.AddMovingPatch(rover->GetWheelBody(WheelID::RB), ChVector<>(0, 0, 0), ChVector<>(0.5, 2 * wheel_range, 2 * wheel_range));
-
-        // add moving patch for all obstacles
-        mterrain.AddMovingPatch(rock_1, ChVector<>(0, 0, 0), ChVector<>(0.5, 2 * wheel_range, 2 * wheel_range));
-        mterrain.AddMovingPatch(rock_2, ChVector<>(0, 0, 0), ChVector<>(0.5, 2 * wheel_range, 2 * wheel_range));
-        mterrain.AddMovingPatch(rock_3, ChVector<>(0, 0, 0), ChVector<>(0.5, 2 * wheel_range, 2 * wheel_range));
-        mterrain.AddMovingPatch(rock_4, ChVector<>(0, 0, 0), ChVector<>(0.5, 2 * wheel_range, 2 * wheel_range));
-        mterrain.AddMovingPatch(rock_5, ChVector<>(0, 0, 0), ChVector<>(0.5, 2 * wheel_range, 2 * wheel_range));
-        mterrain.AddMovingPatch(rock_6, ChVector<>(0, 0, 0), ChVector<>(0.5, 2 * wheel_range, 2 * wheel_range));
     }
 
     // Set some visualization parameters: either with a texture, or with falsecolor plot, etc.
@@ -470,12 +280,93 @@ int main(int argc, char* argv[]) {
 
     int step = 0;
 
+    // this state number helps to identify the process of the demo
+    // state 0 : initial state, after step 1000, start the one-side turning procedure, steering motors start rotating
+    // state 1 : one-side turning lock stage, after step 1800 steering motors are locked, rover will keep the one-side turning procedure
+    // state 2 : after step 6000, stop main motors, steers return to orginal position
+    // state 3 : stop steer rotation
+    // state 4 : start preparing for rover spin turning
+    // state 5 : lock steers when rover is in position
+    // state 6 : start spin turning
+    int state = 0;
+
     while (application.GetDevice()->run()) {
         if (output) {
             // vehicle::TerrainForce frc = mterrain.GetContactForce(mrigidbody);
             // csv << my_system.GetChTime() << frc.force << frc.moment << frc.point << std::endl;
         }
+
+        if(step == 1000){
+            rover->SetSteerSpeed(CH_C_PI/8,WheelID::LF);
+            rover->SetSteerSpeed(CH_C_PI/8,WheelID::RF);
+            rover->SetSteerSpeed(-CH_C_PI/8,WheelID::LB);
+            rover->SetSteerSpeed(-CH_C_PI/8,WheelID::RB);
+            state = 1;
+            std::cout<<"Entering state 1"<<std::endl;
+        }
+
+        if(step == 1800){
+            rover->SetSteerSpeed(0,WheelID::LF);
+            rover->SetSteerSpeed(0,WheelID::RF);
+            rover->SetSteerSpeed(0,WheelID::LB);
+            rover->SetSteerSpeed(0,WheelID::RB);
+            state = 2;
+            std::cout<<"Entering state 2"<<std::endl;
+        }
+
+        if(step == 6000){
+            rover->SetMotorSpeed(0,WheelID::LF);
+            rover->SetMotorSpeed(0,WheelID::RF);
+            rover->SetMotorSpeed(0,WheelID::LM);
+            rover->SetMotorSpeed(0,WheelID::RM);
+            rover->SetMotorSpeed(0,WheelID::LB);
+            rover->SetMotorSpeed(0,WheelID::RB);
+            rover->SetSteerSpeed(-CH_C_PI/8,WheelID::LF);
+            rover->SetSteerSpeed(-CH_C_PI/8,WheelID::RF);
+            rover->SetSteerSpeed(CH_C_PI/8,WheelID::LB);
+            rover->SetSteerSpeed(CH_C_PI/8,WheelID::RB);
+            state = 3;
+            std::cout<<"Entering state 3"<<std::endl;
+        }
+
+        if(state == 3 && (abs(rover->GetSteerAngle(WheelID::LF) - 0) < 1e-3)){
+            rover->SetSteerSpeed(0,WheelID::LF);
+            rover->SetSteerSpeed(0,WheelID::RF);
+            rover->SetSteerSpeed(0,WheelID::LB);
+            rover->SetSteerSpeed(0,WheelID::RB);
+            state = 4;
+            std::cout<<"Entering state 4"<<std::endl;
+        }
+
+        if(state == 4){
+            rover->SetSteerSpeed(-CH_C_PI/8,WheelID::LF);
+            rover->SetSteerSpeed(CH_C_PI/8,WheelID::RF);
+            rover->SetSteerSpeed(CH_C_PI/8,WheelID::LB);
+            rover->SetSteerSpeed(-CH_C_PI/8,WheelID::RB);
+            state = 5;
+            std::cout<<"Entering state 5"<<std::endl;
+        }
+
+        if(state == 5 && (abs(rover->GetSteerAngle(WheelID::LF) - (-CH_C_PI/9)) < 1e-3)){
+            rover->SetSteerSpeed(0,WheelID::LF);
+            rover->SetSteerSpeed(0,WheelID::RF);
+            rover->SetSteerSpeed(0,WheelID::LB);
+            rover->SetSteerSpeed(0,WheelID::RB);
+            state = 6;
+            std::cout<<"Entering state 6"<<std::endl;
+        }
+
+        if(state == 6){
+            rover->SetMotorSpeed(-CH_C_PI,WheelID::LF);
+            rover->SetMotorSpeed(-CH_C_PI,WheelID::LM);
+            rover->SetMotorSpeed(-CH_C_PI,WheelID::LB);
+            rover->SetMotorSpeed(CH_C_PI,WheelID::RF);
+            rover->SetMotorSpeed(CH_C_PI,WheelID::RM);
+            rover->SetMotorSpeed(CH_C_PI,WheelID::RB);
+        }
+
         rover->Update();
+
         application.BeginScene();
 
         application.GetSceneManager()->getActiveCamera()->setTarget(core::vector3dfCH(rover->GetChassisBody()->GetPos()));
@@ -485,10 +376,8 @@ int main(int argc, char* argv[]) {
         ChIrrTools::drawColorbar(0, 20000, "Pressure yield [Pa]", application.GetDevice(), 1600);
         application.EndScene();
 
-        mterrain.PrintStepStatistics(std::cout);
+        ////mterrain.PrintStepStatistics(std::cout);
         step = step + 1;
-        std::cout<<"step: "<<step<<std::endl;
-
     }
 
     if (output) {
