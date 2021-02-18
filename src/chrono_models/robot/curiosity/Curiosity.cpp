@@ -960,6 +960,14 @@ void CuriosityRover::SetMotorSpeed(double rad_speed, WheelID id) {
     }
 }
 
+void CuriosityRover::SetMotorStallTorque(double torque, WheelID id){
+    if(m_dc_motor_control == true){
+        m_stall_torque[id] = torque;
+    }else{
+        std::cout<<"DC_Control set to false, torque set invalid"<<std::endl;
+    }
+}
+
 void CuriosityRover::SetDCControl(bool dc_control){
     m_dc_motor_control = dc_control;
     for(int i = 0; i < 6; i ++){

@@ -290,7 +290,12 @@ class CH_MODELS_API CuriosityRover {
     Chassis_Type GetChassisType();
 
     /// Set Motor Speed
+    /// If DC_Motor Control is enabled, the function will set the no_load_speed
     void SetMotorSpeed(double rad_speed, WheelID id);
+
+    /// Set Motor Stall Torque
+    /// This function only works if DC_Motor Control is enabled, if not, does nothing
+    void SetMotorStallTorque(double torque, WheelID id);
 
     /// Set dc motor control
     void SetDCControl(bool dc_control);
