@@ -170,6 +170,16 @@ int main(int argc, char* argv[]) {
         // if customize wheel material
         rover = chrono_types::make_shared<CuriosityRover>(&my_system, body_pos, body_rot, CustomWheelMaterial(ChContactMethod::SMC));
 
+        // The user can also choose to use simplified wheel
+        /*
+        rover = chrono_types::make_shared<CuriosityRover>(&my_system, 
+                                                            body_pos, 
+                                                            body_rot, 
+                                                            CustomWheelMaterial(ChContactMethod::SMC),
+                                                            Chassis_Type::FullRover,
+                                                            Wheel_Type::SimpleWheel);
+        */
+
         // the user can choose to enable DC motor option
         // if the DC motor option has been enabled, the rotational speed will be switched to no-load-speed of the DC motor
         rover->SetDCControl(true);
@@ -187,6 +197,16 @@ int main(int argc, char* argv[]) {
     } else {
         // if use default material
         rover = chrono_types::make_shared<CuriosityRover>(&my_system, body_pos, body_rot);
+
+        // The user can also choose to use simplified wheel
+        /*
+        rover = chrono_types::make_shared<CuriosityRover>(&my_system, 
+                                                        body_pos, 
+                                                        body_rot,
+                                                        Chassis_Type::FullRover,
+                                                        Wheel_Type::SimpleWheel);
+        */
+
 
         // the user can choose to enable DC motor option
         // if the DC motor option has been enabled, the rotational speed will be switched to no-load-speed of the DC motor

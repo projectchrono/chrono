@@ -315,9 +315,24 @@ Curiosity_Wheel::Curiosity_Wheel(const std::string& name,
                          const ChVector<>& body_pos,
                          const ChQuaternion<>& body_rot,
                          std::shared_ptr<ChBodyAuxRef> chassis,
-                         bool collide)
+                         bool collide,
+                         Wheel_Type wheel_type)
     : Curiosity_Part(name, fixed, mat, system, body_pos, body_rot, chassis, collide) {
-    m_mesh_name = "curiosity_wheel";
+    switch (wheel_type)
+    {
+    case Wheel_Type::RealWheel:
+        m_mesh_name = "curiosity_wheel";
+        break;
+
+    case Wheel_Type::SimpleWheel:
+        m_mesh_name = "curiosity_simplewheel";
+        break;
+    
+    default:
+        m_mesh_name = "curiosity_wheel";
+        break;
+    }
+    
     m_offset = ChVector<>(0, 0, 0);
     m_color = ChColor(0.4f, 0.4f, 0.7f);
     m_density = 200;
@@ -579,17 +594,20 @@ CuriosityRover::CuriosityRover(ChSystem* system,
                     const ChVector<>& rover_pos, 
                     const ChQuaternion<>& rover_rot, 
                     std::shared_ptr<ChMaterialSurface> wheel_mat,
-                    Chassis_Type chassis_type)
+                    Chassis_Type chassis_type,
+                    Wheel_Type wheel_type)
     : m_system(system), m_rover_pos(rover_pos), m_rover_rot(rover_rot), m_wheel_material(wheel_mat), m_custom_wheel_mat(true), 
-      m_chassis_type(chassis_type){
+      m_chassis_type(chassis_type), m_wheel_type(wheel_type){
     Create();
 }
 
 CuriosityRover::CuriosityRover(ChSystem* system, 
                     const ChVector<>& rover_pos, 
                     const ChQuaternion<>& rover_rot,
-                    Chassis_Type chassis_type)
-    : m_system(system), m_rover_pos(rover_pos), m_rover_rot(rover_rot), m_custom_wheel_mat(false),m_chassis_type(chassis_type){
+                    Chassis_Type chassis_type,
+                    Wheel_Type wheel_type)
+    : m_system(system), m_rover_pos(rover_pos), m_rover_rot(rover_rot), m_custom_wheel_mat(false),m_chassis_type(chassis_type),
+    m_wheel_type(wheel_type){
     Create();
 }
 
@@ -660,10 +678,10 @@ void CuriosityRover::Create() {
             std::shared_ptr<Curiosity_Wheel> m_wheel;
             if (i == 1 || i == 3 || i == 5) {
                 m_wheel = chrono_types::make_shared<Curiosity_Wheel>("wheel", false, m_wheel_material, m_system, wheel_pos,
-                                                                 wheel_rot_ori_pi, m_chassis->GetBody(), true);
+                                                                 wheel_rot_ori_pi, m_chassis->GetBody(), true, m_wheel_type);
             } else {
                 m_wheel = chrono_types::make_shared<Curiosity_Wheel>("wheel", false, m_wheel_material, m_system, wheel_pos,
-                                                                 wheel_rot_ori, m_chassis->GetBody(), true);
+                                                                 wheel_rot_ori, m_chassis->GetBody(), true, m_wheel_type);
             }
             m_wheels.push_back(m_wheel);
         }

@@ -61,6 +61,9 @@ enum Chassis_Type{
   Scarecrow
 };
 
+/// Curiostiy wheel type
+enum Wheel_Type { RealWheel, SimpleWheel };
+
 /// Base class definition of the Curiosity Rover Part.
 class CH_MODELS_API Curiosity_Part {
   public:
@@ -159,7 +162,8 @@ class CH_MODELS_API Curiosity_Wheel : public Curiosity_Part {
                 const ChVector<>& body_pos,
                 const ChQuaternion<>& body_rot,
                 std::shared_ptr<ChBodyAuxRef> chassis,
-                bool collide);
+                bool collide,
+                Wheel_Type wheel_type);
     ~Curiosity_Wheel() {}
 
     /// Initialize the wheel at the specified (absolute) position.
@@ -265,11 +269,13 @@ class CH_MODELS_API CuriosityRover {
               const ChVector<>& rover_pos, 
               const ChQuaternion<>& rover_rot, 
               std::shared_ptr<ChMaterialSurface> wheel_mat,
-              Chassis_Type chassis_type=Chassis_Type::FullRover);
+              Chassis_Type chassis_type=Chassis_Type::FullRover,
+              Wheel_Type wheel_type=Wheel_Type::RealWheel);
     CuriosityRover(ChSystem* system, 
               const ChVector<>& rover_pos, 
               const ChQuaternion<>& rover_rot,
-              Chassis_Type chassis_type=Chassis_Type::FullRover);
+              Chassis_Type chassis_type=Chassis_Type::FullRover,
+              Wheel_Type wheel_type=Wheel_Type::RealWheel);
     ~CuriosityRover();
 
     /// Initialize the Curiosity rover using current parameters.
@@ -301,7 +307,7 @@ class CH_MODELS_API CuriosityRover {
     void SetDCControl(bool dc_control);
 
     /// Set steer motor speed
-    void SetSteerSpeed(double speed, WheelID id);
+    void SetSteerSpeed(double speed, WheelID id);    
 
     /// Get wheel speed
     ChVector<> GetWheelSpeed(WheelID id);
@@ -348,6 +354,7 @@ class CH_MODELS_API CuriosityRover {
     ChSystem* m_system;  ///< pointer to the Chrono system
 
     Chassis_Type m_chassis_type = Chassis_Type::FullRover;  ///< curiosity chassis type
+    Wheel_Type m_wheel_type = Wheel_Type::RealWheel; ///< curiosity chassis type
 
     bool m_custom_wheel_mat;  ///< bool indicating whether the wheel material is customized
 
