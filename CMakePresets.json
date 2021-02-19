@@ -53,13 +53,16 @@
 		{
 			"name": "macosci",
 			"displayName": "macOS CI Configuration",
-			"description": "Options for macOS",
+			"description": "Options for macOS (with brew)",
 			"inherits": [
 				"unixci-base",
 				"genericci-base"
 			],
 			"cacheVariables": {
-				"CMAKE_CXX_FLAGS": "-Wno-deprecated-declarations -Xpreprocessor -fopenmp -lomp -Wno-unused-command-line-argument",
+				"CMAKE_CXX_FLAGS": "-Wno-deprecated-declarations -Wno-unused-command-line-argument",
+				"OpenMP_CXX_FLAGS": "-Xpreprocessor -fopenmp -I/usr/local/opt/libomp/include",
+				"OpenMP_CXX_LIB_NAMES": "omp",
+				"OpenMP_omp_LIBRARY": "/usr/local/opt/libomp/lib/libomp.a",
 				"EIGEN3_INCLUDE_DIR": "/usr/local/include/eigen3",
 				"BLAZE_DIR": "/usr/local/include",
 				"ENABLE_MODULE_DISTRIBUTED": "OFF",
