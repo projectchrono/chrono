@@ -199,7 +199,7 @@ class ChApi ChTriangleMeshConnected : public ChTriangleMesh {
     /// tends to produce triangles with bounded angles even if starting from skewed/skinny
     /// triangles in the coarse mesh.
     /// Based on "Multithread parallelization of Lepp-bisection algorithms"
-    ///    M.-C. Rivara et al., Applied Numerical Mathematics 62 (2012) 473–488
+    ///    M.-C. Rivara et al., Applied Numerical Mathematics 62 (2012) 473?88
 
     void RefineMeshEdges(
         std::vector<int>& marked_tris,     ///< indexes of triangles to refine (also surrounding triangles might be

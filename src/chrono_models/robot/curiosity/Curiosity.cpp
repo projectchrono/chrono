@@ -112,6 +112,7 @@ void AddLockJoint(std::shared_ptr<ChBodyAuxRef> body_1,
     system->AddLink(revo);
 }
 
+
 // Add a rotational speed controlled motor between body 'body_A' and body 'body_B'
 // rel_joint_pos and rel_joint_rot are the position and the rotation of the motor
 std::shared_ptr<ChLinkMotorRotationSpeed> AddMotor(std::shared_ptr<ChBodyAuxRef> body_A,
@@ -332,7 +333,6 @@ Curiosity_Wheel::Curiosity_Wheel(const std::string& name,
         m_mesh_name = "curiosity_wheel";
         break;
     }
-    
     m_offset = ChVector<>(0, 0, 0);
     m_color = ChColor(0.4f, 0.4f, 0.7f);
     m_density = 200;
@@ -1026,6 +1026,7 @@ void CuriosityRover::SetSteerSpeed(double speed, WheelID id){
         break;
     }    
 }
+
 
 ChVector<> CuriosityRover::GetWheelSpeed(WheelID id) {
     return m_wheels[id]->GetBody()->GetPos_dt();

@@ -157,7 +157,7 @@ int main(int argc, char* argv[]) {
     mbox->SetCollide(true);
     mphysicalSystem.Add(mbox);
 
-    
+
     // Create the second step of the stair-shaped obstacle
     auto mbox_2 = chrono_types::make_shared<ChBodyEasyBox>(0.6, 0.3, 1, 1000, true, true, floor_mat);
  
