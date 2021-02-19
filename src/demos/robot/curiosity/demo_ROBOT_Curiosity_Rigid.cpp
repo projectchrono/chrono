@@ -154,6 +154,7 @@ int main(int argc, char* argv[]) {
 
     // Create the first step of the stair-shaped obstacle
     auto mbox = chrono_types::make_shared<ChBodyEasyBox>(0.6, 0.3, 1, 1000, true, true, floor_mat);
+ 
     mbox->SetPos(ChVector<>(3, -0.4, 1));
     mbox->SetBodyFixed(true);
     mbox->SetCollide(true);

@@ -48,6 +48,7 @@
 #include "chrono_vehicle/terrain/SCMDeformableTerrain.h"
 
 #include "chrono_thirdparty/filesystem/path.h"
+
 #include <chrono>
 
 using namespace chrono;
@@ -196,7 +197,7 @@ int main(int argc, char* argv[]) {
     } else {
         // if use default material
         rover = chrono_types::make_shared<CuriosityRover>(&my_system, body_pos, body_rot);
-      
+
         // The user can also choose to use simplified wheel
         /*
         rover = chrono_types::make_shared<CuriosityRover>(&my_system, 
@@ -352,7 +353,6 @@ int main(int argc, char* argv[]) {
         // Create a rock
         auto rock_3_mmesh = chrono_types::make_shared<ChTriangleMeshConnected>();
         std::string rock3_obj_path = GetChronoDataFile("robot/curiosity/rocks/rock3.obj");
-
         double scale_ratio = 0.45;
         rock_3_mmesh->LoadWavefrontMesh(rock3_obj_path, false, true);
         rock_3_mmesh->Transform(ChVector<>(0, 0, 0), ChMatrix33<>(scale_ratio));     // scale to a different size
@@ -463,7 +463,6 @@ int main(int argc, char* argv[]) {
         mterrain.AddMovingPatch(rover->GetWheelBody(WheelID::LB), ChVector<>(0, 0, 0), ChVector<>(0.5, 2 * wheel_range, 2 * wheel_range));
         mterrain.AddMovingPatch(rover->GetWheelBody(WheelID::RB), ChVector<>(0, 0, 0), ChVector<>(0.5, 2 * wheel_range, 2 * wheel_range));
 
-
         // add moving patch for all obstacles
         mterrain.AddMovingPatch(rock_1, ChVector<>(0, 0, 0), ChVector<>(0.5, 2 * wheel_range, 2 * wheel_range));
         mterrain.AddMovingPatch(rock_2, ChVector<>(0, 0, 0), ChVector<>(0.5, 2 * wheel_range, 2 * wheel_range));
@@ -503,7 +502,6 @@ int main(int argc, char* argv[]) {
         application.DrawAll();
 
         application.DoStep();
-      
         ChIrrTools::drawColorbar(0, 20000, "Pressure yield [Pa]", application.GetDevice(), 1600);
         application.EndScene();
 

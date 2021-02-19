@@ -353,7 +353,6 @@ class CH_MODELS_API CuriosityRover {
 
     ChSystem* m_system;  ///< pointer to the Chrono system
 
-
     Chassis_Type m_chassis_type = Chassis_Type::FullRover;  ///< curiosity chassis type
     Wheel_Type m_wheel_type = Wheel_Type::RealWheel; ///< curiosity chassis type
 
