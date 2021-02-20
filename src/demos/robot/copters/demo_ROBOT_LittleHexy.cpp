@@ -30,9 +30,7 @@ using namespace chrono::copter;
 // Use the main namespaces of Irrlicht
 using namespace irr;
 using namespace irr::core;
-using namespace irr::scene;
 using namespace irr::video;
-using namespace irr::io;
 using namespace irr::gui;
 
 /// Following class will be used to manage events from the user interface
@@ -132,8 +130,6 @@ int main(int argc, char* argv[]) {
     RTSCamera* camera =
         new RTSCamera(application.GetDevice(), application.GetDevice()->getSceneManager()->getRootSceneNode(),
                       application.GetDevice()->getSceneManager(), -1, -160.0f, 1.0f, 0.003f);
-
-    // camera->bindTargetAndRotation(true);
 
     camera->setPosition(core::vector3df(5, 5, 2));
     camera->setTarget(core::vector3df(0, 0, 0));
