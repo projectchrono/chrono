@@ -196,6 +196,12 @@ int main(int argc, char* argv[]) {
 
         rover->Update();
 
+        // Read rover chassis velocity
+        // std::cout <<"Rover Chassis Speedo Reading: " << rover -> GetChassisVel() << std::endl;
+
+        // Read rover chassis acceleration
+        // std::cout << "Rover Chassis Accelerometer Reading: "<< rover -> GetChassisAcc() << std::endl;
+
         application.BeginScene(true, true, SColor(255, 140, 161, 192));
 
         application.DrawAll();

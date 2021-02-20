@@ -286,7 +286,7 @@ class CH_MODELS_API CuriosityRover {
     /// are handled by sub helper functions
     void Update();
 
-    /// Sub-updated function to update DC motor limit control
+    /// Sub-update function to update DC motor limit control
     void UpdateDCMotorControl();
 
     /// Get the ChSystem
@@ -332,6 +332,12 @@ class CH_MODELS_API CuriosityRover {
 
     /// Get the wheel body
     std::shared_ptr<ChBodyAuxRef> GetWheelBody(WheelID id);
+
+    /// Get chassis speedometer 
+    ChVector<> GetChassisVel();
+
+    /// Get chassis accelerometer 
+    ChVector<> GetChassisAcc(); 
 
     /// Get steering motor angle -/+ range
     double GetSteerAngle(WheelID id);

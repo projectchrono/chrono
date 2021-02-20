@@ -266,6 +266,13 @@ class CH_MODELS_API ViperRover {
     /// Get the containing system.
     ChSystem* GetSystem() { return m_system; }
 
+    /// Set Motor Stall Torque
+    /// This function only works if DC_Motor Control is enabled, if not, does nothing
+    void SetMotorStallTorque(double torque, WheelID id);
+
+    /// Set DC motor control
+    void SetDCControl(bool dc_control);
+
     /// Set motor speed.
     void SetMotorSpeed(double rad_speed, WheelID id);
 
@@ -292,6 +299,21 @@ class CH_MODELS_API ViperRover {
 
     /// Get the wheel body.
     std::shared_ptr<ChBodyAuxRef> GetWheelBody(WheelID id);
+
+    /// Get the steering body
+    std::shared_ptr<ChBodyAuxRef> GetSteeringBody(WheelID id);
+
+    /// Get the upper arm body
+    std::shared_ptr<ChBodyAuxRef> GetUpArmBody(WheelID id);
+
+    /// Get the bottom arm body
+    std::shared_ptr<ChBodyAuxRef> GetBottomArmBody(WheelID id);
+
+    /// Get chassis speedometer 
+    ChVector<> GetChassisVel();
+
+    /// Get chassis accelerometer 
+    ChVector<> GetChassisAcc(); 
 
     /// Get total rover mass.
     double GetRoverMass();
@@ -324,12 +346,20 @@ class CH_MODELS_API ViperRover {
     /// Note: this function needs to be included in the main simulation loop.
     void Update();
 
+    /// Sub-update function to update DC motor limit control
+    void UpdateDCMotorControl();
+
+    /// Sub-update function to update steering control
+    void UpdateSteeringControl();
+
   private:
     /// This function initializes all parameters for the rover.
     /// Note: The rover will not be constructed in the ChSystem until Initialize() is called.
     void Create();
 
     ChSystem* m_system;  ///< pointer to the Chrono system
+
+    bool m_dc_motor_control = false;
 
     std::shared_ptr<Viper_Chassis> m_chassis;                   ///< rover chassis
     std::vector<std::shared_ptr<Viper_Wheel>> m_wheels;         ///< rover wheels - 1:FL, 2:FR, 3:RL, 4:RR
@@ -344,6 +374,9 @@ class CH_MODELS_API ViperRover {
     std::vector<std::shared_ptr<ChLinkMotorRotationSpeed>> m_motors;        ///< vector to store motors
     std::vector<std::shared_ptr<ChLinkMotorRotationSpeed>> m_steer_motors;  ///< vector to store steering motors
     std::vector<std::shared_ptr<ChLinkMotorRotationSpeed>> m_lift_motors;   /// TODO: < vector to store lifting motors
+
+    std::vector<double> m_stall_torque;   ///< stall torque of the motors
+    std::vector<double> m_no_load_speed;  ///< no load speed of the motors
 
     TurnSig cur_turn_state = TurnSig::HOLD;  ///< Turning state of the viper rover
 

@@ -180,6 +180,12 @@ int main(int argc, char* argv[]) {
 
         viper->Update();  // note->viper steering control needs to be updated every simulation loop
 
+        // Read rover chassis velocity
+        // std::cout <<"Rover Chassis Speedo Reading: " << viper -> GetChassisVel() << std::endl;
+
+        // Read rover chassis acceleration
+        // std::cout << "Rover Chassis Accelerometer Reading: "<< viper -> GetChassisAcc() << std::endl;
+
         application.BeginScene(true, true, SColor(255, 140, 161, 192));
         application.DrawAll();
         application.DoStep();

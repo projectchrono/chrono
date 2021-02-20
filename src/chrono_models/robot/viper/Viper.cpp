@@ -596,10 +596,10 @@ void ViperRover::Create() {
     double sr_ly = 0.2067 + 0.32 + 0.0831;
     double sr_lz = 0.0;
     ChVector<> sr_rel_pos[] = {
-        ChVector<>(+sr_lx, +sr_ly, -cr_lz),  // LF
-        ChVector<>(+sr_lx, -sr_ly, -cr_lz),  // RF
-        ChVector<>(-sr_lx, +sr_ly, -cr_lz),  // LB
-        ChVector<>(-sr_lx, -sr_ly, -cr_lz)   // RB
+        ChVector<>(+sr_lx, +sr_ly, -sr_lz),  // LF
+        ChVector<>(+sr_lx, -sr_ly, -sr_lz),  // RF
+        ChVector<>(-sr_lx, +sr_ly, -sr_lz),  // LB
+        ChVector<>(-sr_lx, -sr_ly, -sr_lz)   // RB
     };
 
     for (int i = 0; i < 4; i++) {
@@ -717,6 +717,25 @@ void ViperRover::Initialize() {
 
 void ViperRover::SetMotorSpeed(double rad_speed, WheelID id) {
     m_motors_func[id]->Set_yconst(rad_speed);
+    if(m_dc_motor_control == true){
+        m_no_load_speed[id] = rad_speed;
+    }
+}
+
+void ViperRover::SetMotorStallTorque(double torque, WheelID id){
+    if(m_dc_motor_control == true){
+        m_stall_torque[id] = torque;
+    }else{
+        std::cout<<"DC_Control set to false, torque set invalid"<<std::endl;
+    }
+}
+
+void ViperRover::SetDCControl(bool dc_control){
+    m_dc_motor_control = dc_control;
+    for(int i = 0; i < 4; i ++){
+        m_stall_torque.push_back(1000);
+        m_no_load_speed.push_back(m_motors_func[i]->Get_yconst());
+    }
 }
 
 ChVector<> ViperRover::GetWheelSpeed(WheelID id) {
@@ -767,6 +786,14 @@ double ViperRover::GetWheelMass() {
     return m_wheels[0]->GetBody()->GetMass();
 }
 
+ChVector<> ViperRover::GetChassisVel(){
+    return m_chassis->GetBody()->GetPos_dt();
+}
+
+ChVector<> ViperRover::GetChassisAcc(){
+    return m_chassis->GetBody()->GetPos_dtdt();
+}
+
 std::shared_ptr<ChFunction_Const> ViperRover::GetMainMotorFunc(WheelID id) {
     return m_motors_func[id];
 }
@@ -781,6 +808,21 @@ std::shared_ptr<ChLinkMotorRotationSpeed> ViperRover::GetMainMotorLink(WheelID i
 
 std::shared_ptr<ChLinkMotorRotationSpeed> ViperRover::GetSteerMotorLink(WheelID id) {
     return m_steer_motors[id];
+}
+
+/// Get the steering body
+std::shared_ptr<ChBodyAuxRef> ViperRover::GetSteeringBody(WheelID id){
+    return m_steers[id]->GetBody();
+}
+
+/// Get the upper arm body
+std::shared_ptr<ChBodyAuxRef> ViperRover::GetUpArmBody(WheelID id){
+    return m_up_suss[id]->GetBody();
+}
+
+/// Get the bottom arm body
+std::shared_ptr<ChBodyAuxRef> ViperRover::GetBottomArmBody(WheelID id){
+    return m_bts_suss[id]->GetBody();
 }
 
 void ViperRover::SetTurn(TurnSig id, double turn_speed) {
@@ -834,6 +876,34 @@ TurnSig ViperRover::GetTurnState() const {
 }
 
 void ViperRover::Update() {
+    UpdateDCMotorControl();
+    UpdateSteeringControl();
+}
+
+// A sloppy DC motor control
+// TODO: A better model is needed
+void ViperRover::UpdateDCMotorControl(){
+    if(m_dc_motor_control == false){return;}
+
+    std::vector<double> torque_reading;
+    std::vector<double> speed_reading;
+    for(int i = 0; i < 4; i ++)
+    {
+        torque_reading.push_back(m_motors[i]->GetMotorTorque());
+        speed_reading.push_back(m_motors_func[i]->Get_yconst());
+    }
+
+
+    std::vector<double> target_speed;
+    for(int i = 0; i < 4; i ++)
+    {
+        if(torque_reading[i] < 0){torque_reading[i] = 0;}
+        target_speed.push_back(m_no_load_speed[i] - (torque_reading[i] / m_stall_torque[i] * m_no_load_speed[i]));
+        m_motors_func[i]->Set_yconst(target_speed[i]);
+    }
+}
+
+void ViperRover::UpdateSteeringControl(){
     switch (cur_turn_state) {
         case TurnSig::LEFT:
             for (int i = 0; i < 4; i++) {

@@ -988,10 +988,13 @@ void CuriosityRover::SetMotorStallTorque(double torque, WheelID id){
 
 void CuriosityRover::SetDCControl(bool dc_control){
     m_dc_motor_control = dc_control;
-    for(int i = 0; i < 6; i ++){
-        m_stall_torque.push_back(1000);
-        m_no_load_speed.push_back(CH_C_PI);
+    if(m_dc_motor_control == true){
+        for(int i = 0; i < 6; i ++){
+            m_stall_torque.push_back(1000);
+            m_no_load_speed.push_back(m_motors_func[i]->Get_yconst());
+        }
     }
+
 }
 
 void CuriosityRover::SetSteerSpeed(double speed, WheelID id){
@@ -1025,6 +1028,14 @@ void CuriosityRover::SetSteerSpeed(double speed, WheelID id){
     default:
         break;
     }    
+}
+
+ChVector<> CuriosityRover::GetChassisVel(){
+    return m_chassis->GetBody()->GetPos_dt();
+}
+
+ChVector<> CuriosityRover::GetChassisAcc(){
+    return m_chassis->GetBody()->GetPos_dtdt();
 }
 
 ChVector<> CuriosityRover::GetWheelSpeed(WheelID id) {
@@ -1163,7 +1174,7 @@ void CuriosityRover::Update(){
 }
 
 // A sloppy DC motor control
-// A better model is needed
+// TODO: A better model is needed
 void CuriosityRover::UpdateDCMotorControl(){
     if(m_dc_motor_control == false){return;}
 

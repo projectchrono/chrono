@@ -180,10 +180,13 @@ int main(int argc, char* argv[]) {
                                                             Wheel_Type::SimpleWheel);
         */
 
+        rover->Initialize();
+
         // the user can choose to enable DC motor option
         // if the DC motor option has been enabled, the rotational speed will be switched to no-load-speed of the DC motor
+        // Note: This function has to be called after initialization
         rover->SetDCControl(true);
-        rover->Initialize();
+
 
         // Default value is w = 3.1415 rad/s
         // User can define using SetMotorSpeed
@@ -208,10 +211,12 @@ int main(int argc, char* argv[]) {
         */
 
 
+        rover->Initialize();
+
         // the user can choose to enable DC motor option
         // if the DC motor option has been enabled, the rotational speed will be switched to no-load-speed of the DC motor
+        // Note: This function has to be called after initialization
         rover->SetDCControl(true);
-        rover->Initialize();
 
         // Default value is w = 3.1415 rad/s
         // User can define using SetMotorSpeed
