@@ -19,7 +19,7 @@ MARK_AS_ADVANCED(CLEAR VSG_LIBRARY)
 MARK_AS_ADVANCED(CLEAR VSG_ROOT)
 
 #-------------------------------------------------------------------------------
-# List all the files in the ChronoEngine_irrlicht lib
+# List all the files in the ChronoEngine_vsg lib
 SET(ChronoEngine_VSG_SOURCES
     ChVSGApp.cpp
     ChVSGApp2.cpp
@@ -62,7 +62,7 @@ endif()
 
 find_package(vsg REQUIRED)
 find_package(vsgImGui REQUIRED)
-find_package(vsgXchange QUIET)
+find_package(vsgXchange REQUIRED)
 
 # set the use of C++17 here as VSG requires it
 set(CMAKE_CXX_STANDARD 17)
@@ -84,9 +84,10 @@ TARGET_LINK_LIBRARIES(ChronoEngine_vsg
   ChronoEngine
   vsg::vsg
   vsgImGui::vsgImGui
+  vsgXchange::vsgXchange
 )
 
-ADD_DEPENDENCIES (ChronoEngine_vsg ChronoEngine vsgImGui::vsgImGui vsg::vsg)
+ADD_DEPENDENCIES (ChronoEngine_vsg ChronoEngine vsgImGui::vsgImGui vsg::vsg vsgXchange::vsgXchange)
 
 
 #-------------------------------------------------------------------------------
