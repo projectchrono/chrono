@@ -584,7 +584,7 @@ class ChApi ChBeamSectionRayleighEasyCircular : public ChBeamSectionRayleighSimp
 /// but adds the effect of Jyy Jzz rotational sectional inertias.
 /// The Jxx inertia of the Euler base class is automatically computed from Jyy Jzz by the polar theorem.
 class ChApi ChBeamSectionRayleighAdvancedGeneric : public ChBeamSectionEulerAdvancedGeneric {
-  private:
+  protected:
       double Jzz; // sectional inertia per unit length, in centerline reference, measured along centerline main axes
       double Jyy; // sectional inertia per unit length, in centerline reference, measured along centerline main axes
       double Jyz; // sectional inertia per unit length, in centerline reference, measured along centerline main axes
