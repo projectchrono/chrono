@@ -440,7 +440,7 @@ class ChApi ChBeamSectionEulerAdvancedGeneric : public ChBeamSectionEuler {
     /// Get inertia moment per unit length Jxx_massref, as assumed computed in the "mass reference"
     /// frame, ie. centered at the center of mass
     virtual double GetInertiaJxxPerUnitLengthInMassReference() {
-        return this->Jxx - this->mu * this->Mz * this->Mz + this->mu * this->My * this->My;
+        return this->Jxx - this->mu * this->Mz * this->Mz - this->mu * this->My * this->My;
     }
 
     /// "mass reference": set the displacement of the center of mass respect to
