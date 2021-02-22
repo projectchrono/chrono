@@ -976,8 +976,10 @@ __global__ void Navier_Stokes(Real4* sortedDerivVelRho,
     Real A_i[27] = {0.0};
     Real L_i[9] = {0.0};
     calc_G_Matrix(sortedPosRad,sortedVelMas,sortedRhoPreMu,G_i,cellStart,cellEnd,numAllMarkers);
-    calc_A_Matrix(sortedPosRad,sortedVelMas,sortedRhoPreMu,A_i,G_i,cellStart,cellEnd,numAllMarkers);
-    calc_L_Matrix(sortedPosRad,sortedVelMas,sortedRhoPreMu,A_i,L_i,G_i,cellStart,cellEnd,numAllMarkers);
+    if(!paramsD.elastic_SPH){
+        calc_A_Matrix(sortedPosRad,sortedVelMas,sortedRhoPreMu,A_i,G_i,cellStart,cellEnd,numAllMarkers);
+        calc_L_Matrix(sortedPosRad,sortedVelMas,sortedRhoPreMu,A_i,L_i,G_i,cellStart,cellEnd,numAllMarkers);
+    }
     float Gi[9] = {1.0,0.0,0.0, 0.0,1.0,0.0, 0.0,0.0,1.0};
     float Li[9] = {1.0,0.0,0.0, 0.0,1.0,0.0, 0.0,0.0,1.0};
     Gi[0] = G_i[0];
@@ -1091,7 +1093,7 @@ __global__ void Navier_Stokes(Real4* sortedDerivVelRho,
                             sum_w_i = sum_w_i + W3h(d, sortedPosRad[index].w) * cube(sortedPosRad[index].w * paramsD.MULT_INITSPACE);
                             N_ = N_ + 1;
                         }
-                        Real radii = paramsD.MULT_INITSPACE * paramsD.HSML*1.0000241;//1.129;//1.241
+                        Real radii = paramsD.MULT_INITSPACE * paramsD.HSML*1.241;//1.129;//1.241
                         Real3 v_ab = (velMasA + velMasA)*0.5;
                         Real v_ab_m = length(v_ab);
                         Real Pen = (radii - d)/radii;
@@ -1171,7 +1173,7 @@ __global__ void Navier_Stokes(Real4* sortedDerivVelRho,
     else{
         shift_r[index] = inner_sum * det_r_max/(det_r_A + 1e-9);
     }
-    shift_r[index] = mR3(0.0);
+    // shift_r[index] = mR3(0.0);
     
     // shift_r[index].y = 0.0;
     // if (sum_w_i < 0.95 && sortedRhoPreMu[index].w < -0.5)

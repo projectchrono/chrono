@@ -42,18 +42,16 @@ class CH_VEHICLE_API TrackDrivelineBDS : public ChTrackDrivelineBDS {
     virtual double GetDifferentialBoxInertia() const override { return m_differentialbox_inertia; }
 
     virtual double GetConicalGearRatio() const override { return m_conicalgear_ratio; }
-    virtual double GetDifferentialRatio() const override { return m_differential_ratio; }
 
   private:
     virtual void Create(const rapidjson::Document& d) override;
 
-    // Shaft inertias.
+    // Shaft inertias
     double m_driveshaft_inertia;
     double m_differentialbox_inertia;
 
-    // Gear ratios.
+    // Gear ratio
     double m_conicalgear_ratio;
-    double m_differential_ratio;
 };
 
 /// @} vehicle_tracked_driveline

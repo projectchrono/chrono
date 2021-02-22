@@ -138,7 +138,7 @@ void ChSimpleMapPowertrain::Synchronize(double time, double throttle) {
     if (m_automatic && m_drive_mode == DriveMode::FORWARD)
         CheckShift();
 
-    double shaft_speed = m_driveline->GetDriveshaftSpeed();
+    double shaft_speed = std::abs(m_driveline->GetDriveshaftSpeed());
 
     // Calculate engine speed and clamp to specified maximum:
     m_motor_speed = shaft_speed / m_current_gear_ratio;

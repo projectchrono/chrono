@@ -30,11 +30,12 @@
 
 #include <algorithm>
 #include <stdexcept>
-#include <thrust/sort.h>
 
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/physics/ChMaterialSurfaceSMC.h"
 #include "chrono_multicore/solver/ChIterativeSolverMulticore.h"
+
+#include <thrust/sort.h>
 
 #if defined _WIN32
 #include <cstdint>

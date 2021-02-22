@@ -5,7 +5,9 @@ Change Log
 ==========
 
 - [Unreleased (development version)](#unreleased-development-branch)
-  - [RoboSimian and Viper models](#added-robosimian-and-viper-models)
+- [Release 6.0.0](#release-600---2021-02-10) 
+  - [New Chrono::Csharp module](#added-new-chronocsharp-module)
+  - [RoboSimian, Viper, and LittleHexy models](#added-robosimian-viper-and-littlehexy-models)
   - [Contact force reporting through user-provided callback](#added-contact-force-reporting-through-user-provided-callback)
   - [Chrono::Gpu module rename](#changed-chronogpu-module-rename)
   - [Chrono::Multicore module rename](#changed-chronomulticore-module-rename)
@@ -33,9 +35,17 @@ Change Log
 
 ## Unreleased (development branch)
 
-### [Added] RoboSimian and Viper models
+## Release 6.0.0 - 2021-02-10
 
-Models of the legged RoboSimian robot and the wheeled Viper rover are now included in the collection of Chrono models.  These models have no dependencies beyond the core Chrono module, except for an optional utility class for RoboSimian visualization with Irrlicht. Python wrappers are also provided, allowing use of these models with PyChrono. Related demo programs illustrate the robots moving over rigid or SCM deformable terrain (using a core Chrono system) and over granular terrain (using the Chrono::Multicore module).
+### [Added] New Chrono::Csharp module
+
+The new Chrono::Csharp module provides a C# interface to selected Chrono functionality.  This allows using Chrono from C# programs and facilitates the integration of Chrono with external engines such as Unity.
+
+The module relies on SWIG to automatically generate the interface library and wrapper C# classes.  Upon build, the module creates the wrapper C# files under a `chrono_csharp/` directory in the build tree and a number of shared libraries (dll on Windows, so on Linux) in either the `bin/` or `lib/` directory, depending on platform. Currently, the Chrono::Csharp module provides an interface to the multibody dynamics capabilities in the core Chrono module, as well as to Chrono::Vehicle and the associated vehicle models.
+
+### [Added] RoboSimian, Viper, and LittleHexy models
+
+Models of the legged RoboSimian robot, the wheeled Viper rover, and the six-propeller LittleHexy copter are now included in the collection of Chrono models.  These models have no dependencies beyond the core Chrono module, except for an optional utility class for RoboSimian visualization with Irrlicht. Python wrappers are also provided, allowing use of these models with PyChrono. Related demo programs illustrate the robots moving over rigid or SCM deformable terrain (using a core Chrono system) and over granular terrain (using the Chrono::Multicore module).
 
 ### [Added] Contact force reporting through user-provided callback
 

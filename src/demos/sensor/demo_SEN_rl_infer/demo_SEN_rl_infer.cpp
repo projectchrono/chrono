@@ -111,10 +111,10 @@ CollisionType chassis_collision_type = CollisionType::NONE;
 // Type of powertrain model (SHAFTS, SIMPLE)
 PowertrainModelType powertrain_model = PowertrainModelType::SHAFTS;
 
-// Drive type (FWD)
-DrivelineType drive_type = DrivelineType::AWD;
+// Drive type (AWD)
+DrivelineTypeWV drive_type = DrivelineTypeWV::AWD;
 
-SteeringType steering_type = SteeringType::PITMAN_ARM;
+SteeringTypeWV steering_type = SteeringTypeWV::PITMAN_ARM;
 
 // Type of tire model (RIGID, RIGID_MESH, TMEASY, PACEJKA, LUGRE, FIALA, PAC89, PAC02)
 TireModelType tire_model = TireModelType::PAC02;

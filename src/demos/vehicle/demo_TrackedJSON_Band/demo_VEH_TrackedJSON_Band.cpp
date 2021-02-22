@@ -59,7 +59,7 @@ std::string vehicle_file("M113/vehicle/M113_Vehicle_BandBushing.json");
 ////std::string vehicle_file("M113/vehicle/M113_Vehicle_BandANCF.json");
 
 // JSON file for powertrain
-std::string simplepowertrain_file("M113/powertrain/M113_SimplePowertrain.json");
+std::string simplepowertrain_file("M113/powertrain/M113_SimpleCVTPowertrain.json");
 
 // Initial vehicle position
 ChVector<> initLoc(0, 0, 1.1);

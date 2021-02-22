@@ -31,6 +31,10 @@
 #include "chrono_multicore/math/real4.h"        // for quaternion, real4
 #include "chrono_multicore/math/matrix.h"       // for quaternion, real4
 
+#ifdef CHRONO_MULTICORE_USE_CUDA
+#include "chrono_multicore/physics/ChMPM.cuh"
+#endif
+
 namespace chrono {
 
 using namespace collision;

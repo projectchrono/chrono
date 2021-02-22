@@ -18,7 +18,4 @@
 
 // -----------------------------------------------------------------------------
 
-// If FastDDS support was enabled, define CHRONO_FASTDDS
-@CHRONO_FASTDDS@
-
 #endif

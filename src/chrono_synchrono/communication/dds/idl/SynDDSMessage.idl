@@ -1,4 +1,0 @@
-struct SynDDSMessage {
-  unsigned long rank;
-  sequence<octet> data;
-};
