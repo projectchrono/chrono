@@ -4,7 +4,7 @@
 Change Log
 ==========
 
-<!-- - [Unreleased (development version)](#unreleased-development-branch) -->
+- [Unreleased (development version)](#unreleased-development-branch)
 - [Release 6.0.0](#release-600---2021-02-10) 
   - [New Chrono::Csharp module](#added-new-chronocsharp-module)
   - [RoboSimian, Viper, and LittleHexy models](#added-robosimian-viper-and-littlehexy-models)
@@ -33,7 +33,7 @@ Change Log
   - [Eigen sparse matrices](#changed-eigen-sparse-matrices-and-updates-to-direct-sparse-linear-solvers)
 - [Release 4.0.0](#release-400---2019-02-22)
 
-<!-- ## Unreleased (development branch) -->
+## Unreleased (development branch)
 
 ## Release 6.0.0 - 2021-02-10
 

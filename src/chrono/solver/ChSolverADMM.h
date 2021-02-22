@@ -29,8 +29,9 @@ namespace chrono {
 /// solver.
 class ChApi ChSolverADMM : public ChIterativeSolverVI {
   public:
-    /// Default constructor: uses the SparseQR direct solver from Eigen, slow and non-optimal.
-    /// Prefer the other constructor where you can pass a different directo solver, e.g. Pardiso.
+
+    /// Default constructor: uses the SparseQR direct solver from Eigine, slow and UNOPTIMAL.
+    /// Prefer the other constructor where you can pass the MKL direct solver.
     ChSolverADMM();
 
     /// Constructor where you can pass a better direct solver than the
@@ -78,14 +79,28 @@ class ChApi ChSolverADMM : public ChIterativeSolverVI {
     double GetStepAdjustMaxfactor() { return stepadjust_maxfactor; }
 
     /// Types of step adaption policies for the ADMM solver
-    enum AdmmStepType { NONE = 0, BALANCED_UNSCALED, BALANCED_FAST, BALANCED_RANGE };
+    enum  AdmmStepType {
+        NONE = 0,            
+        BALANCED_UNSCALED,
+        BALANCED_FAST,
+        BALANCED_RANGE
+    };
 
     /// Set the step adjust max factor F, if new step scaling is higher than F
     /// it is clamped to F, if lower than 1/F it is clamped to F, to avoid exploding results.
     void SetStepAdjustPolicy(AdmmStepType mr) { stepadjust_type = mr; }
     AdmmStepType GetStepAdjustPolicy() { return stepadjust_type; }
 
-    /// Set the absolute tolerance for the primal residual (force impulses error), if
+    /// Types of ADMM enhancements
+    enum  AdmmAcceleration {
+        BASIC = 0,      // basic ADMM        
+        NESTEROV,       // inspired to  FAST ALTERNATING DIRECTION OPTIMIZATION METHODS, 2015, T. Goldstein et al.
+    };
+    /// Set the type of ADMM iteration, enabling acceleration variants
+    void   SetAcceleration(AdmmAcceleration mr) { acceleration = mr; }
+    AdmmAcceleration GetAcceleration() { return acceleration; }
+
+    /// Set the absolute tolerance for the primal residual (force impulses error), if 
     /// the iteration falls below this and the dual tolerance, it stops iterating.
     void SetTolerancePrimal(double mr) { tol_prim = mr; }
     double GetTolerancePrimal() { return tol_prim; }
@@ -126,10 +141,17 @@ class ChApi ChSolverADMM : public ChIterativeSolverVI {
     AdmmStepType stepadjust_type;
     double tol_prim;
     double tol_dual;
+    AdmmAcceleration acceleration;
 
     std::shared_ptr<ChDirectSolverLS> LS_solver;
-    // Eigen::SparseQR<ChSparseMatrix, Eigen::COLAMDOrdering<int>> m_engine;  ///< Eigen SparseQR solver (do not use
+    //Eigen::SparseQR<ChSparseMatrix, Eigen::COLAMDOrdering<int>> m_engine;  ///< Eigen SparseQR solver (do not use SparseLU: it is broken!)
     // SparseLU: it is broken!)
+    /// Performs basic ADMM, as in solve_kkt_ADMMbasic.m prototype 
+    virtual double _SolveBasic(ChSystemDescriptor& sysd);
+
+    /// Performs ADMM with Nesterov acceleration, as in solve_kkt_ADMMfast.m prototype 
+    virtual double _SolveFast(ChSystemDescriptor& sysd);
+
 };
 
 /// @} chrono_solver
