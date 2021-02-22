@@ -101,10 +101,8 @@ class ChApi ChBeamSectionEuler : public ChBeamSection {
     void SetBeamRaleyghDamping(double mr) { this->rdamping = mr; }
     double GetBeamRaleyghDamping() { return this->rdamping; }
 
-  private:
-    double rdamping;
-
   protected:
+    double rdamping;
     double JzzJyy_factor;
 };
 
