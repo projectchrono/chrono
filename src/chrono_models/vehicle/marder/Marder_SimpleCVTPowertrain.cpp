@@ -35,8 +35,12 @@ const double Marder_SimpleCVTPowertrain::m_fwd_gear_ratio = 0.240;
 const double Marder_SimpleCVTPowertrain::m_rev_gear_ratio = -0.151;
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 Marder_SimpleCVTPowertrain::Marder_SimpleCVTPowertrain(const std::string& name) : ChSimpleCVTPowertrain(name) {}
+
+void Marder_SimpleCVTPowertrain::SetGearRatios(std::vector<double>& fwd, double& rev) {
+    rev = m_rev_gear_ratio;
+    fwd.push_back(m_fwd_gear_ratio);
+}
 
 }  // end namespace marder
 }  // end namespace vehicle

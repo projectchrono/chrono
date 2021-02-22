@@ -44,15 +44,16 @@ FMTV_Powertrain::FMTV_Powertrain(const std::string& name) : ChShaftsPowertrain(n
 // -----------------------------------------------------------------------------
 // Initialize vector of gear ratios
 // -----------------------------------------------------------------------------
-void FMTV_Powertrain::SetGearRatios(std::vector<double>& gear_ratios) {
-    gear_ratios.push_back(-1.0 / 11.8);      // 0: reverse gear;
-    gear_ratios.push_back(1.0 / 11.921875);  // 1: 1st gear;
-    gear_ratios.push_back(1.0 / 5.484375);   // 2: 2nd gear;
-    gear_ratios.push_back(1.0 / 2.984375);   // 3: 3rd gear;
-    gear_ratios.push_back(1.0 / 2.234375);   // 4: 4th gear;
-    gear_ratios.push_back(1.0 / 1.5625);     // 5: 5th gear;
-    gear_ratios.push_back(1.0 / 1.15625);    // 6: 6th gear;
-    gear_ratios.push_back(1.0);              // 7: 7th gear;
+void FMTV_Powertrain::SetGearRatios(std::vector<double>& fwd, double& rev) {
+    rev = -1.0 / 11.8;      // reverse gear
+
+    fwd.push_back(1.0 / 11.921875);  // 1st gear
+    fwd.push_back(1.0 / 5.484375);   // 2nd gear
+    fwd.push_back(1.0 / 2.984375);   // 3rd gear
+    fwd.push_back(1.0 / 2.234375);   // 4th gear
+    fwd.push_back(1.0 / 1.5625);     // 5th gear
+    fwd.push_back(1.0 / 1.15625);    // 6th gear
+    fwd.push_back(1.0);              // 7th gear
 }
 
 // -----------------------------------------------------------------------------
