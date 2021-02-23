@@ -121,9 +121,9 @@ int main(int argc, char* argv[]) {
     ////m113.SetChassisFixed(true);
     ////m113.CreateTrack(false);
 
-    // Replace collision shapes from cylindricalto cylshell.
-    ////vehicle.GetTrackAssembly(LEFT)->SetWheelCollisionType(false, false, false);
-    ////vehicle.GetTrackAssembly(RIGHT)->SetWheelCollisionType(false, false, false);
+    // Replace collision shapes from cylindrical to cylshell for road-wheels and/or idlers.
+    ////m113.SetWheelCollisionType(LEFT, false, false);
+    ////m113.SetWheelCollisionType(RIGHT, false, false);
 
     // Disable gravity in this simulation
     ////m113.GetSystem()->Set_G_acc(ChVector<>(0, 0, 0));
