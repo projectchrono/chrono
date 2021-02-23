@@ -43,6 +43,7 @@ class ChApi ChVisualMaterial : public ChAsset {
     void SetFresnelMax(float max);
     void SetFresnelMin(float min);
     void SetRoughness(float r);
+    void SetMetallic(float m);
 
     // accessor functions
     ChVector<float> GetAmbientColor() { return Ka; }
@@ -56,6 +57,7 @@ class ChApi ChVisualMaterial : public ChAsset {
     float GetFresnelMax() { return fresnel_max; }
     float GetFresnelMin() { return fresnel_min; }
     float GetRoughness() { return roughness; }
+    float GetMetallic() { return metallic; }
 
   private:
     ChVector<float> Ka;  // ambient color 0-1
@@ -69,6 +71,7 @@ class ChApi ChVisualMaterial : public ChAsset {
     float d;   // transparency
 
     float roughness;
+    float metallic;
 
     bool has_texture;
     std::string kd_texture;

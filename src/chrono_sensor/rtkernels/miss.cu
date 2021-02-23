@@ -43,7 +43,7 @@ RT_PROGRAM void camera_miss() {
         prd_camera.color = make_float3(tex2D(environment_map, tex_x, tex_y));
 
     } else {
-        prd_camera.color = make_float3(0.0f);
+        prd_camera.color = make_float3(0.4f);
     }
     if (prd_camera.mode == GLOBAL_ILLUMINATION) {
         if (prd_camera.depth == 1) {

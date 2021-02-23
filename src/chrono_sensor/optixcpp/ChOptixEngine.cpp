@@ -1238,13 +1238,13 @@ Material ChOptixEngine::GetDefaultMaterial() {
     m_default_material["Ka"]->setFloat(.2f, .2f, .2f);
     m_default_material["Kd"]->setFloat(.5f, .5f, .5f);
     m_default_material["Ks"]->setFloat(.5f, .5f, .5f);
-    m_default_material["phong_exp"]->setFloat(88.f);
+    // m_default_material["phong_exp"]->setFloat(88.f);
     m_default_material["fresnel_exp"]->setFloat(5.f);
     m_default_material["fresnel_min"]->setFloat(0.f);
     m_default_material["fresnel_max"]->setFloat(1.f);
     m_default_material["transparency"]->setFloat(1.0);
-    m_default_material["roughness"]->setFloat(.5);
-
+    m_default_material["roughness"]->setFloat(1);
+    m_default_material["metallic"]->setFloat(0);
     if (!m_empty_tex_sampler)
         m_empty_tex_sampler = CreateTexture();
 
@@ -1277,7 +1277,7 @@ Material ChOptixEngine::CreateMaterial(std::shared_ptr<ChVisualMaterial> chmat) 
     mat["Ka"]->setFloat(chmat->GetAmbientColor().x(), chmat->GetAmbientColor().y(), chmat->GetAmbientColor().z());
     mat["Kd"]->setFloat(chmat->GetDiffuseColor().x(), chmat->GetDiffuseColor().y(), chmat->GetDiffuseColor().z());
     mat["Ks"]->setFloat(chmat->GetSpecularColor().x(), chmat->GetSpecularColor().y(), chmat->GetSpecularColor().z());
-    mat["phong_exp"]->setFloat(chmat->GetSpecularExponent());
+    mat["metallic"]->setFloat(chmat->GetMetallic());
     mat["fresnel_exp"]->setFloat(chmat->GetFresnelExp());
     mat["fresnel_min"]->setFloat(chmat->GetFresnelMin());
     mat["fresnel_max"]->setFloat(chmat->GetFresnelMax());

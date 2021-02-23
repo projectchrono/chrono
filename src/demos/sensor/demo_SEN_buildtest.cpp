@@ -210,7 +210,7 @@ int main(int argc, char* argv[]) {
         chrono::ChFrame<double>({-10, 0, 1}, Q_from_AngAxis(0, {0, 0, 1})),  // offset pose
         1280,                                                                // image width
         720,                                                                 // image height
-        CH_C_PI / 3, 1, PINHOLE, 1                                           // field of view
+        CH_C_PI / 3, 1, PINHOLE, 0                                           // field of view
     );
 
     std::string color_data_path = "SENSOR_OUTPUT/cam_color/";

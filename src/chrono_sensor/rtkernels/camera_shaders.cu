@@ -41,7 +41,6 @@ rtDeclareVariable(float3, Ka, , );
 rtDeclareVariable(float3, Kd, , );
 rtDeclareVariable(float3, Ks, , );
 rtDeclareVariable(float, transparency, , );
-rtDeclareVariable(float, phong_exp, , );
 rtDeclareVariable(float, roughness, , );
 rtDeclareVariable(float, metallic, , );
 rtDeclareVariable(float, fresnel_exp, , );
@@ -198,14 +197,15 @@ RT_PROGRAM void pbr_shader() {
 
             float3 F = make_float3(0.5f);
             // Metallic workflow
-            if (true) {
+            if (false) {
                 float3 default_dielectrics_F0 = make_float3(0.04f);
+                
+                F = metallic * subsurface_albedo + (1 - metallic) * default_dielectrics_F0;
                 subsurface_albedo =
                     (1 - metallic) * subsurface_albedo;  // since metals do not do subsurface reflection
-                F = metallic * subsurface_albedo + (1 - metallic) * default_dielectrics_F0;
             }
             // Ks Workflow
-            else if (false) {
+            else if (true) {
                 float3 F0 = Ks * 0.08f;
                 F = fresnel_schlick(VdH, 5, F0, make_float3(1) /*make_float3(fresnel_max) it is usually 1*/);
             }
@@ -239,18 +239,23 @@ RT_PROGRAM void pbr_shader() {
         }
     }
     prd_camera.color = reflected_color;
-    // If user want to disable GL
-    if (false) {
-        prd_camera.color = prd_camera.color + ambient_light_color * subsurface_albedo;
+    float NdV = dot(forward_normal, -ray.direction);
+    // In ambient light mode
+    if (prd_camera.mode == FIRST_HIT) {
+        prd_camera.color = prd_camera.color + ambient_light_color * Ka * make_float3(NdV) * subsurface_albedo ;
+        // prd_camera.color = make_float3(roughness);
         return;
     }
     prd_camera.color *= prd_camera.contribution_to_firsthit;
 
+    
+    if (prd_camera.mode == FIRST_HIT) return;
     // GL Path
-
     // faceforward(world_shading_normal, -ray.direction, world_geometric_normal);
     float z1 = rnd(prd_camera.seed);
     float z2 = rnd(prd_camera.seed);
+    // float z1 = rnd(((unsigned int)(hit_point.x * 100.0f)));
+    // float z2 = rnd(((unsigned int)(hit_point.y * 100.0f)));
     float3 p;
     cosine_sample_hemisphere(z1, z2, p);
 
@@ -264,20 +269,19 @@ RT_PROGRAM void pbr_shader() {
     float3 contribution_to_this_point = make_float3(0.0f);
     float NdL = dot(forward_normal, prd_camera.direction);
     float3 halfway = normalize(prd_camera.direction - ray.direction);
-    float NdV = dot(forward_normal, -ray.direction);
 
     float NdH = dot(forward_normal, halfway);
     float VdH = dot(-ray.direction, halfway);  // Same as LdH
 
     float3 F = make_float3(0.5f);
     // Metallic workflow
-    if (true) {
+    if (false) {
         float3 default_dielectrics_F0 = make_float3(0.04f);
-        subsurface_albedo = (1 - metallic) * subsurface_albedo;  // since metals do not do subsurface reflection
         F = metallic * subsurface_albedo + (1 - metallic) * default_dielectrics_F0;
+        subsurface_albedo = (1 - metallic) * subsurface_albedo;  // since metals do not do subsurface reflection
     }
     // Ks Workflow
-    else if (false) {
+    else if (true) {
         float3 F0 = Ks * 0.08f;
         F = fresnel_schlick(VdH, 5, F0, make_float3(1) /*make_float3(fresnel_max) it is usually 1*/);
     }

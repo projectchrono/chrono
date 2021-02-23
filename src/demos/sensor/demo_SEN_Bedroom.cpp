@@ -71,7 +71,7 @@ float lag = .05f;
 // Exposure (in seconds) of each image
 float exposure_time = 0.02;
 
-int alias_factor = 1;
+int alias_factor = 2;
 
 // -----------------------------------------------------------------------------
 // Simulation parameters
@@ -106,8 +106,8 @@ int main(int argc, char* argv[]) {
     // add a mesh to be visualized by a camera
     // ---------------------------------------
     auto mmesh = chrono_types::make_shared<ChTriangleMeshConnected>();
-    mmesh->LoadWavefrontMesh("C:/Users/15647/Documents/Chrono/3Dmodels/Box/box.obj", true, true);
-    // mmesh->LoadWavefrontMesh(GetChronoDataFile("sensor/cube_bumpy.obj"), false, true);
+    // mmesh->LoadWavefrontMesh("C:/Users/15647/Documents/Chrono/3Dmodels/Highway/Highway_vis.obj", true, true);
+    mmesh->LoadWavefrontMesh(GetChronoDataFile("sensor/geometries/box.obj"), false, true);
     // mmesh->Transform(ChVector<>(0, 0, 0), ChMatrix33<>(2));  // scale to a different size
     // mmesh->Transform(ChVector<>(0, 0, 15), ChMatrix33<>(CH_C_PI_2, {1,0,0}));
 
@@ -139,9 +139,11 @@ int main(int argc, char* argv[]) {
     // -----------------------
     float intensity = 1;
     auto manager = chrono_types::make_shared<ChSensorManager>(&mphysicalSystem);
-    // manager->scene->AddPointLight({2, 2.5, 100}, {intensity, intensity, intensity}, 1500);
-    // manager->scene->AddPointLight({9, 2.5, 100}, {intensity, intensity, intensity}, 1500);
+    // manager->scene->AddPointLight({2, 2.5, 100}, {2, 1.8902, 1.7568}, 1500);
+    // manager->scene->AddPointLight({9, 2.5, 100}, {2, 1.8902, 1.7568}, 1500);
     manager->scene->AddPointLight({0.0, 0.0, 3.8}, {2, 1.8902, 1.7568}, 10);
+
+    // manager->scene->AddPointLight({0.0, 0.0, 100}, {2, 1.8902, 1.7568}, 10000);
     // manager->scene->AddPointLight({x_ax, y_ax, z_ax}, {intensity, intensity, intensity}, 10000);
 
     // manager->scene->AddPointLight({.2, 0, 1.0}, {intensity * 3, intensity * 3, intensity * 3}, 50);
@@ -160,6 +162,7 @@ int main(int argc, char* argv[]) {
 
     //Box
     ChQuaternion<> qB = Q_from_AngAxis(90 * CH_C_DEG_TO_RAD, VECT_Z);
+
     // city street
     // ChQuaternion<> qA = Q_from_AngAxis(CH_C_PI_2, {0, 1, 0});
     // ChQuaternion<> qB = Q_from_AngAxis(CH_C_PI_2, {0, 1, 0});
@@ -167,7 +170,7 @@ int main(int argc, char* argv[]) {
 
     // rotation = rotation >> qA >> qB >> qC;
 
-    rotation = rotation >> qB;
+    rotation = rotation >>  qB;
     // bedroom 
     // chrono::ChFrame<double> offset_pose2({1, 2, 0}, rotation);
     // Highway

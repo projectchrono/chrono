@@ -48,8 +48,13 @@ rtTextureSampler<float4, 2> environment_map;
 rtDeclareVariable(int, has_environment_map, , );
 
 rtBuffer<float4, 2> output_buffer;  // byte version
+// rtBuffer<float4, 2> gi_pass_gi_buffer;  // byte version
 rtBuffer<float4, 2> gi_pass_normal_buffer;  // byte version
 rtBuffer<float4, 2> gi_pass_albedo_buffer;  // byte version
+
+// rtBuffer<float4, 2> gi_pass_gi_buffer_pre;  // byte version
+// rtBuffer<float4, 2> gi_pass_normal_buffer_pre;  // byte version
+// rtBuffer<float4, 2> gi_pass_albedo_buffer_pre;  // byte version
 
 rtBuffer<float> noise_buffer;
 
@@ -99,7 +104,7 @@ RT_PROGRAM void pinhole_gi_camera() {
     float attenuation = 1;
 
     // Initialze per-ray data
-    PerRayData_camera prd_camera = make_camera_data(make_float3(0), 1, 1, 1.f);
+    PerRayData_camera prd_camera = make_camera_data(make_float3(0), GLOBAL_ILLUMINATION, 1, 1.f);
     prd_camera.seed = seed;
     prd_camera.origin = ray_origin;
     prd_camera.direction = ray_direction;
@@ -168,7 +173,7 @@ RT_PROGRAM void pinhole_camera() {
     // create a ray based on the calculated parameters
     optix::Ray ray(ray_origin, ray_direction, CAMERA_RAY_TYPE, scene_epsilon, max_scene_distance);
     // set the ray pay load
-    PerRayData_camera prd_camera = make_camera_data(make_float3(0), 0, 1, 1.f);
+    PerRayData_camera prd_camera = make_camera_data(make_float3(0), FIRST_HIT, 1, 1.f);
 
     rtTrace(root_node, ray, current_time, prd_camera);
     output_buffer[launch_index] = make_float4(prd_camera.color, 1);
@@ -227,7 +232,7 @@ RT_PROGRAM void fov_lens_camera() {
     optix::Ray ray(ray_origin, ray_direction, CAMERA_RAY_TYPE, scene_epsilon, max_scene_distance);
 
     // set the ray pay load
-    PerRayData_camera prd_camera = make_camera_data(make_float3(0), 0, 1, 1.f);
+    PerRayData_camera prd_camera = make_camera_data(make_float3(0), FIRST_HIT, 1, 1.f);
 
     // launch the ray
     rtTrace(root_node, ray, current_time, prd_camera, RT_RAY_FLAG_DISABLE_ANYHIT);
