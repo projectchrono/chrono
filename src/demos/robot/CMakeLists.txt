@@ -11,3 +11,4 @@ MESSAGE(STATUS "Demo programs for ROBOT models...")
 
 ADD_SUBDIRECTORY(robosimian)
 ADD_SUBDIRECTORY(viper)
+ADD_SUBDIRECTORY(copters)

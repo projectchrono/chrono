@@ -129,7 +129,7 @@ def CreateTerrain(sys, length, width, height, offset) :
     ground.AddAsset(box)
 
     texture = chrono.ChTexture()
-    texture.SetTextureFilename(chrono.GetChronoDataFile("pinkwhite.png"))
+    texture.SetTextureFilename(chrono.GetChronoDataFile("textures/pinkwhite.png"))
     texture.SetTextureScale(10 * length, 10 * width)
     ground.AddAsset(texture)
 
@@ -231,28 +231,28 @@ robot.Initialize(chrono.ChCoordsysD(chrono.ChVectorD(0, 0, 0), chrono.Q_from_Ang
 if mode == robosimian.LocomotionMode_WALK:
 		driver = robosimian.RS_Driver(
 			"",                                                                  # start input file
-			chrono.GetChronoDataFile("robosimian/actuation/walking_cycle.txt"),  # cycle input file
+			chrono.GetChronoDataFile("robot/robosimian/actuation/walking_cycle.txt"),  # cycle input file
 			"",                                                                  # stop input file
 			True)
 elif mode == robosimian.LocomotionMode_SCULL:
 		driver = robosimian.RS_Driver(
-			chrono.GetChronoDataFile("robosimian/actuation/sculling_start.txt"),   # start input file
-			chrono.GetChronoDataFile("robosimian/actuation/sculling_cycle2.txt"),  # cycle input file
-			chrono.GetChronoDataFile("robosimian/actuation/sculling_stop.txt"),    # stop input file
+			chrono.GetChronoDataFile("robot/robosimian/actuation/sculling_start.txt"),   # start input file
+			chrono.GetChronoDataFile("robot/robosimian/actuation/sculling_cycle2.txt"),  # cycle input file
+			chrono.GetChronoDataFile("robot/robosimian/actuation/sculling_stop.txt"),    # stop input file
 			True)
 
 elif mode == robosimian.LocomotionMode_INCHWORM:
 		driver = robosimian.RS_Driver(
-			chrono.GetChronoDataFile("robosimian/actuation/inchworming_start.txt"),  # start input file
-			chrono.GetChronoDataFile("robosimian/actuation/inchworming_cycle.txt"),  # cycle input file
-			chrono.GetChronoDataFile("robosimian/actuation/inchworming_stop.txt"),   # stop input file
+			chrono.GetChronoDataFile("robot/robosimian/actuation/inchworming_start.txt"),  # start input file
+			chrono.GetChronoDataFile("robot/robosimian/actuation/inchworming_cycle.txt"),  # cycle input file
+			chrono.GetChronoDataFile("robot/robosimian/actuation/inchworming_stop.txt"),   # stop input file
 			True)
 
 elif mode == robosimian.LocomotionMode_DRIVE:
 		driver = robosimian.RS_Driver(
-			chrono.GetChronoDataFile("robosimian/actuation/driving_start.txt"),  # start input file
-			chrono.GetChronoDataFile("robosimian/actuation/driving_cycle.txt"),  # cycle input file
-			chrono.GetChronoDataFile("robosimian/actuation/driving_stop.txt"),   # stop input file
+			chrono.GetChronoDataFile("robot/robosimian/actuation/driving_start.txt"),  # start input file
+			chrono.GetChronoDataFile("robot/robosimian/actuation/driving_cycle.txt"),  # cycle input file
+			chrono.GetChronoDataFile("robot/robosimian/actuation/driving_stop.txt"),   # stop input file
 			True)
 else:
     raise('Unvalid contact method')

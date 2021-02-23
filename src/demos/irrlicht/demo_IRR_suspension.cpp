@@ -119,7 +119,7 @@ class MySimpleCar {
 
         // Texture for wheels
         auto texture = chrono_types::make_shared<ChTexture>();
-        texture->SetTextureFilename(GetChronoDataFile("bluwhite.png"));
+        texture->SetTextureFilename(GetChronoDataFile("textures/bluewhite.png"));
 
         // Contact materials for the various components
         auto chassis_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
@@ -618,7 +618,7 @@ int main(int argc, char* argv[]) {
 
     // ..the world
     auto texture = chrono_types::make_shared<ChTexture>();
-    texture->SetTextureFilename(GetChronoDataFile("blu.png"));
+    texture->SetTextureFilename(GetChronoDataFile("textures/blue.png"));
 
     // ..contact materials
     auto ground_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();

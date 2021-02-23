@@ -708,7 +708,7 @@ std::shared_ptr<ChSystem::CustomCollisionCallback> ChSprocketBand::GetCollisionC
 // -----------------------------------------------------------------------------
 // Create and return the sprocket gear profile.
 // -----------------------------------------------------------------------------
-std::shared_ptr<geometry::ChLinePath> ChSprocketBand::GetProfile() {
+std::shared_ptr<geometry::ChLinePath> ChSprocketBand::GetProfile() const {
     auto profile = chrono_types::make_shared<geometry::ChLinePath>();
 
     int num_teeth = GetNumTeeth();

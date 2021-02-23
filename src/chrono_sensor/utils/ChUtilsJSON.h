@@ -94,14 +94,32 @@ CH_SENSOR_API std::shared_ptr<ChGPSSensor> ReadGPSSensorJSON(const std::string& 
                                                              std::shared_ptr<chrono::ChBody> parent,
                                                              chrono::ChFrame<double> offsetPose);
 
-/// Load and return a imu sensor from the specified JSON file.
-/// @param filename The name/path to the JSON file defining the IMU sensor parameters
+/// Load and return a accelerometer sensor from the specified JSON file.
+/// @param filename The name/path to the JSON file defining the accelerometer sensor parameters
 /// @param parent The ChBody to which the sensor should be attached
-/// @param offsetPose The position and rotation of the IMU Sensor
-/// @return A shared pointer to a ChIMUSensor constructed from the JSON file
-CH_SENSOR_API std::shared_ptr<ChIMUSensor> ReadIMUSensorJSON(const std::string& filename,
-                                                             std::shared_ptr<chrono::ChBody> parent,
-                                                             chrono::ChFrame<double> offsetPose);
+/// @param offsetPose The position and rotation of the accelerometer Sensor
+/// @return A shared pointer to a ChAccelerometerSensor constructed from the JSON file
+CH_SENSOR_API std::shared_ptr<ChAccelerometerSensor> ReadAccelerometerSensorJSON(const std::string& filename,
+                                                                                 std::shared_ptr<chrono::ChBody> parent,
+                                                                                 chrono::ChFrame<double> offsetPose);
+
+/// Load and return a gyroscope sensor from the specified JSON file.
+/// @param filename The name/path to the JSON file defining the gyroscope sensor parameters
+/// @param parent The ChBody to which the sensor should be attached
+/// @param offsetPose The position and rotation of the gyroscope Sensor
+/// @return A shared pointer to a ChGyroscopeSensor constructed from the JSON file
+CH_SENSOR_API std::shared_ptr<ChGyroscopeSensor> ReadGyroscopeSensorJSON(const std::string& filename,
+                                                                         std::shared_ptr<chrono::ChBody> parent,
+                                                                         chrono::ChFrame<double> offsetPose);
+
+/// Load and return a magnetometer sensor from the specified JSON file.
+/// @param filename The name/path to the JSON file defining the magnetometer sensor parameters
+/// @param parent The ChBody to which the sensor should be attached
+/// @param offsetPose The position and rotation of the magnetometer Sensor
+/// @return A shared pointer to a ChMagnetometerSensor constructed from the JSON file
+CH_SENSOR_API std::shared_ptr<ChMagnetometerSensor> ReadMagnetometerSensorJSON(const std::string& filename,
+                                                                               std::shared_ptr<chrono::ChBody> parent,
+                                                                               chrono::ChFrame<double> offsetPose);
 
 /// Load and return a lidar sensor from the specified JSON file.
 /// @param filename The name/path to the JSON file defining the lidar sensor parameters
@@ -124,15 +142,10 @@ CH_SENSOR_API void ReadFilterListJSON(const std::string& filename, std::shared_p
 /// @return A ChFilter parsed from the JSON value
 CH_SENSOR_API std::shared_ptr<ChFilter> CreateFilterJSON(const rapidjson::Value& value);
 
-/// Load and return a imu noise model from the specified JSON value
+/// Load and return a noise model from the specified JSON value
 /// @param value The JSON value to be parsed
-/// @return A ChIMUNoiseModel parsed from the JSON value
-CH_SENSOR_API std::shared_ptr<ChIMUNoiseModel> CreateIMUNoiseJSON(const rapidjson::Value& value);
-
-/// Load and return a gps noise model from the specified JSON value
-/// @param value The JSON value to be parsed
-/// @return A ChGPSNoiseModel parsed from the JSON value
-CH_SENSOR_API std::shared_ptr<ChGPSNoiseModel> CreateGPSNoiseJSON(const rapidjson::Value& value);
+/// @return A ChNoiseModel parsed from the JSON value
+CH_SENSOR_API std::shared_ptr<ChNoiseModel> CreateNoiseJSON(const rapidjson::Value& value);
 
 /// Load and return a std::string from the specified JSON value
 /// Will check if member exists and returns if it does, def if not\

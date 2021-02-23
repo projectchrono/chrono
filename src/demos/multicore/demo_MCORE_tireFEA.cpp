@@ -100,8 +100,9 @@ int main(int argc, char* argv[]) {
     // Note that not all features of INP files are supported. Also, quadratic tetahedrons are promoted to linear.
     uint current_nodes = my_system.data_manager->num_fea_nodes;
     std::map<std::string, std::vector<std::shared_ptr<ChNodeFEAbase> > > node_sets;
-    ChMeshFileLoader::FromAbaqusFile(my_mesh, GetChronoDataFile("fea/tractor_wheel_coarse.INP").c_str(), mmaterial,
-                                     node_sets, tire_center, tire_alignment);
+    ChMeshFileLoader::FromAbaqusFile(my_mesh,
+                                     GetChronoDataFile("models/tractor_wheel/tractor_wheel_coarse.INP").c_str(),
+                                     mmaterial, node_sets, tire_center, tire_alignment);
 
     //
     uint num_nodes = my_mesh->GetNnodes();

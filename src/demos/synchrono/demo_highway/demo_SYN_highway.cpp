@@ -358,6 +358,7 @@ int main(int argc, char* argv[]) {
         if (node_id == 0 && std::abs(vehicle.GetSystem()->GetChTime() - lane_change_time) < 1e-2)
             std::dynamic_pointer_cast<ChMultiPathFollowerACCDriver>(driver)->changePath(1);
     }
+    syn_manager.QuitSimulation();
 
     return 0;
 }

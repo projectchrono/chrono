@@ -1,4 +1,4 @@
-# Demo programs for sequential RoboSimian simulations
+# Demo programs for sequential Viper simulations
 # ------------------------------------------------------------------------------
 
 if(NOT ENABLE_MODULE_VEHICLE)

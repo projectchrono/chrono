@@ -40,7 +40,7 @@ namespace gator {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 Gator_Vehicle::Gator_Vehicle(const bool fixed,
-                             DrivelineType driveline_type,
+                             DrivelineTypeWV driveline_type,
                              BrakeType brake_type,
                              ChContactMethod contact_method,
                              CollisionType chassis_collision_type)
@@ -50,7 +50,7 @@ Gator_Vehicle::Gator_Vehicle(const bool fixed,
 
 Gator_Vehicle::Gator_Vehicle(ChSystem* system,
                              const bool fixed,
-                             DrivelineType driveline_type,
+                             DrivelineTypeWV driveline_type,
                              BrakeType brake_type,
                              CollisionType chassis_collision_type)
     : ChWheeledVehicle("Gator", system), m_omega({0, 0, 0, 0}) {
@@ -58,7 +58,7 @@ Gator_Vehicle::Gator_Vehicle(ChSystem* system,
 }
 
 void Gator_Vehicle::Create(bool fixed,
-                           DrivelineType driveline_type,
+                           DrivelineTypeWV driveline_type,
                            BrakeType brake_type,
                            CollisionType chassis_collision_type) {
     // Create the chassis subsystem
@@ -97,13 +97,13 @@ void Gator_Vehicle::Create(bool fixed,
 
     // Create the driveline
     switch (driveline_type) {
-        case DrivelineType::FWD:
-        case DrivelineType::AWD:
+        case DrivelineTypeWV::FWD:
+        case DrivelineTypeWV::AWD:
             // fall through
-        case DrivelineType::SIMPLE:
+        case DrivelineTypeWV::SIMPLE:
             m_driveline = chrono_types::make_shared<Gator_SimpleDriveline>("Driveline");
             break;
-        case DrivelineType::RWD:
+        case DrivelineTypeWV::RWD:
             m_driveline = chrono_types::make_shared<Gator_Driveline2WD>("Driveline");
             break;
     }

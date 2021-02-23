@@ -32,5 +32,12 @@ void ChDrivelineTV::Synchronize(double steering, double torque) {
     ChDriveline::Synchronize(torque);
 }
 
+void ChDrivelineTV::CombineDriverInputs(const ChDriver::Inputs& driver_inputs,
+                                        double& braking_left,
+                                        double& braking_right) {
+    braking_left = driver_inputs.m_braking;
+    braking_right = driver_inputs.m_braking;
+}
+
 }  // end namespace vehicle
 }  // end namespace chrono

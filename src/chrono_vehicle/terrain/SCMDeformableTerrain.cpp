@@ -53,7 +53,7 @@ double SCMDeformableTerrain::GetHeight(const ChVector<>& loc) const {
 
 // Get the terrain normal at the point below the specified location.
 ChVector<> SCMDeformableTerrain::GetNormal(const ChVector<>& loc) const {
-    return m_ground->GetHeight(loc);
+    return m_ground->GetNormal(loc);
 }
 
 // Return the terrain coefficient of friction at the specified location.
@@ -895,7 +895,7 @@ void SCMDeformableSoil::ComputeInternalForces() {
             ChVector<> to = vertex_abs + N * m_test_offset_up;
             ChVector<> from = to - N * m_test_offset_down;
 
-            // Ray-OBB test (quick rejection)6
+            // Ray-OBB test (quick rejection)
             if (m_moving_patch && !RayOBBtest(p, from, N))
                 continue;
 
@@ -1398,6 +1398,8 @@ void SCMDeformableSoil::UpdateMeshVertexCoordinates(const ChVector2<int> ij, int
                     mcolor = ChColor(1, 0, 0);
                 else
                     mcolor = ChColor(0, 0, 1);
+                break;
+            case SCMDeformableTerrain::PLOT_NONE:
                 break;
         }
         colors[iv] = {mcolor.R, mcolor.G, mcolor.B};

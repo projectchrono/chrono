@@ -77,12 +77,12 @@ void ChOpenGLOBJLoader::LoadObject(const char* mesh_file,
 
             // hashed as vertex_id * indices + normal_id to make sure it is unique among the indices: vertex_id,
             // normal_id pair
-            int hashed_id = vertex_id * shapes[i].mesh.indices.size() + normal_id;
+            int hashed_id = vertex_id * (int)(shapes[i].mesh.indices.size()) + normal_id;
 
             // vertex_id normal_id combo not yet in index buffer
             if (mapped_ids.find(hashed_id) == mapped_ids.end()) {
                 //
-                int new_index = vertices[i].size();
+                GLuint new_index = (GLuint)(vertices[i].size());
 
                 vertices[i].push_back(glm::vec3(att.vertices[3 * vertex_id + 0], att.vertices[3 * vertex_id + 1],
                                                 att.vertices[3 * vertex_id + 2]));
@@ -94,9 +94,9 @@ void ChOpenGLOBJLoader::LoadObject(const char* mesh_file,
                     texcoords[i].push_back(
                         glm::vec2(att.texcoords[2 * texcood_id + 0], -1 * att.texcoords[2 * texcood_id + 1]));
 
-                indices[i].push_back(GLuint(new_index));
+                indices[i].push_back(new_index);
 
-                mapped_ids[hashed_id] = GLuint(new_index);
+                mapped_ids[hashed_id] = new_index;
             } else {
                 // vertex_id normal_id combo already in index buffer
                 indices[i].push_back(mapped_ids[hashed_id]);

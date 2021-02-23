@@ -22,8 +22,10 @@
 
 #include "GpuDemoUtils.hpp"
 
+#include "chrono/core/ChGlobal.h"
 #include "chrono/utils/ChUtilsSamplers.h"
 
+#include "chrono_gpu/ChGpuData.h"
 #include "chrono_gpu/physics/ChSystemGpu.h"
 #include "chrono_gpu/utils/ChGpuJsonParser.h"
 
@@ -49,7 +51,7 @@ int main(int argc, char* argv[]) {
     ChGpuSimulationParameters params;
 
     // Some of the default values are overwritten by user via command line
-    if (argc < 2 || (argc > 2 && argc != num_args_full) || ParseJSON(argv[1], params) == false) {
+    if (argc < 2 || (argc > 2 && argc != num_args_full) || ParseJSON(gpu::GetDataFile(argv[1]), params) == false) {
         ShowUsage(argv[0]);
         return 1;
     }
@@ -132,8 +134,13 @@ int main(int argc, char* argv[]) {
 
     gpu_sys.SetTimeIntegrator(CHGPU_TIME_INTEGRATOR::EXTENDED_TAYLOR);
     gpu_sys.SetFixedStepSize(params.step_size);
+
+    std::string out_dir;
     if (params.write_mode != CHGPU_OUTPUT_MODE::NONE) {
-        filesystem::create_directory(filesystem::path(params.output_dir));
+        out_dir = GetChronoOutputPath() + "GPU/";
+        filesystem::create_directory(filesystem::path(out_dir));
+        out_dir = out_dir + params.output_dir;
+        filesystem::create_directory(filesystem::path(out_dir));
     }
     gpu_sys.SetBDFixed(true);
 
@@ -148,7 +155,7 @@ int main(int argc, char* argv[]) {
 
     // write an initial frame
     char filename[100];
-    sprintf(filename, "%s/step%06d", params.output_dir.c_str(), currframe++);
+    sprintf(filename, "%s/step%06d", out_dir.c_str(), currframe++);
     gpu_sys.WriteFile(std::string(filename));
 
     std::cout << "frame step is " << frame_step << std::endl;
@@ -158,7 +165,7 @@ int main(int argc, char* argv[]) {
         gpu_sys.AdvanceSimulation(frame_step);
         curr_time += frame_step;
         printf("rendering frame %u of %u\n", currframe, total_frames + 1);
-        sprintf(filename, "%s/step%06d", params.output_dir.c_str(), currframe++);
+        sprintf(filename, "%s/step%06d", out_dir.c_str(), currframe++);
         gpu_sys.WriteFile(std::string(filename));
     }
     std::chrono::high_resolution_clock::time_point end = std::chrono::high_resolution_clock::now();

@@ -26,7 +26,6 @@
 
 #include "ChSensorBuffer.h"
 #include "chrono/physics/ChBody.h"
-#include "chrono_sensor/ChApiSensor.h"
 #include "chrono_sensor/filters/ChFilter.h"
 #include "chrono_sensor/optixcpp/ChOptixUtils.h"
 
@@ -37,12 +36,14 @@ namespace sensor {
 /// @{
 
 /// global constanst for use in template parameters
-const char ChFilterR8AccessName[] = "ChFilterR8Access";        /// single channel 8 bit array
-const char ChFilterRGBA8AccessName[] = "ChFilterRGBA8Access";  /// 4 channel 8 bit array
-const char ChFilterDIAccessName[] = "ChFilterDIAccess";        /// 2 channel float array (Depth+Intenisty)
-const char ChFilterXYZIAccessName[] = "ChFilterXYZIAccess";    /// 4 channel float array (XYZ positions+Intensity)
-const char ChFilterIMUAccessName[] = "ChFilterIMUAccess";      /// IMU data format (6 floats total)
-const char ChFilterGPSAccessName[] = "ChFilterGPSAccess";      /// GPS data format (4 doubles total)
+const char ChFilterR8AccessName[] = "ChFilterR8Access";          /// single channel 8 bit array
+const char ChFilterRGBA8AccessName[] = "ChFilterRGBA8Access";    /// 4 channel 8 bit array
+const char ChFilterDIAccessName[] = "ChFilterDIAccess";          /// 2 channel float array (Depth+Intenisty)
+const char ChFilterXYZIAccessName[] = "ChFilterXYZIAccess";      /// 4 channel float array (XYZ positions+Intensity)
+const char ChFilterAccelAccessName[] = "ChFilterAccelAccess";    /// Accelerometer data format (3 doubles total)
+const char ChFilterGyroAccessName[] = "ChFilterGyroAccess";      /// Gyroscope data format (3 doubles total)
+const char ChFilterMagnetAccessName[] = "ChFilterMagnetAccess";  /// Magnetometer data format (3 doubles total)
+const char ChFilterGPSAccessName[] = "ChFilterGPSAccess";        /// GPS data format (4 doubles total)
 
 /// Base class for a chrono sensor. A specific sensor can inherit from here
 class CH_SENSOR_API ChSensor {
@@ -153,6 +154,15 @@ class CH_SENSOR_API ChSensor {
     std::mutex m_dataAccess;                     ///< data access mutex to prevent data race in the sensor class
 
 };  // class ChSensor
+
+class CH_SENSOR_API ChDynamicSensor : public ChSensor {
+  public:
+    ChDynamicSensor(std::shared_ptr<chrono::ChBody> parent, float updateRate, chrono::ChFrame<double> offsetPose)
+        : ChSensor(parent, updateRate, offsetPose) {}
+    ~ChDynamicSensor() {}
+    virtual void PushKeyFrame() = 0;
+    virtual void ClearKeyFrames() = 0;
+};
 
 /// @} sensor_sensors
 
