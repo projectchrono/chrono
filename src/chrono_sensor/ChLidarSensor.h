@@ -70,7 +70,7 @@ class CH_SENSOR_API ChLidarSensor : public ChOptixSensor {
     /// @param beam_shape Shape of lidar beam, only rectangules and ellipse are supported currently.
     /// @param sample_radius The radius in samples for multisampling beams (total samples per beam is 2*radius-1)
     /// @param vert_divergence_angle The vertical divergence angle of the lidar's laser beam
-    /// @param hori_divergence_angle The horizontal divergence angle of the lidar's laser beam 
+    /// @param hori_divergence_angle The horizontal divergence angle of the lidar's laser beam
     /// @param return_mode The return mode for lidar data when multiple objects are visible
     /// @param lidar_model The model to be used for generating lidar data
     /// @param clip_near Near clipping distance so that lidar sensor can be easily placed inside a visualization object
@@ -87,11 +87,11 @@ class CH_SENSOR_API ChLidarSensor : public ChOptixSensor {
                   float max_distance,
                   std::string beam_shape = "ellipse",
                   unsigned int sample_radius = 1,
-                  float vert_divergence_angle = .003,
-                  float hori_divergence_angle = .003, 
+                  float vert_divergence_angle = .003f,
+                  float hori_divergence_angle = .003f,
                   LidarReturnMode return_mode = LidarReturnMode::STRONGEST_RETURN,
                   LidarModelType lidar_model = LidarModelType::RAYCAST,
-                  float clip_near = 1e-3);
+                  float clip_near = 1e-3f);
 
     /// Class destructor
     ~ChLidarSensor();
@@ -120,7 +120,7 @@ class CH_SENSOR_API ChLidarSensor : public ChOptixSensor {
     float m_max_distance;           ///< maximum distance for lidar based on 90% reflectance
     LidarModelType m_model_type;    ///< lens model used by the camera
     unsigned int m_sample_radius;   ///< radius of the beam samples
-    int m_beam_shape;       ///< lidar beam shape
+    int m_beam_shape;               ///< lidar beam shape
     float m_vert_divergence_angle;  ///< vertical divergence angle of the beam
     float m_hori_divergence_angle;  ///< horizontal divergence angle of the beam
     LidarReturnMode m_return_mode;  ///< return mode of the lidar

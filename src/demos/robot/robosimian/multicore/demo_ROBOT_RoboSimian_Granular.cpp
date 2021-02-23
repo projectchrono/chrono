@@ -271,7 +271,7 @@ int main(int argc, char* argv[]) {
         case robosimian::LocomotionMode::WALK: {
             auto drv = chrono_types::make_shared<robosimian::RS_Driver>(
                 "",                                                           // start input file
-                GetChronoDataFile("robosimian/actuation/walking_cycle.txt"),  // cycle input file
+                GetChronoDataFile("robot/robosimian/actuation/walking_cycle.txt"),  // cycle input file
                 "",                                                           // stop input file
                 true);
             driver = drv;
@@ -280,9 +280,9 @@ int main(int argc, char* argv[]) {
         }
         case robosimian::LocomotionMode::SCULL: {
             auto drv = chrono_types::make_shared<robosimian::RS_Driver>(
-                GetChronoDataFile("robosimian/actuation/sculling_start.txt"),   // start input file
-                GetChronoDataFile("robosimian/actuation/sculling_cycle2.txt"),  // cycle input file
-                GetChronoDataFile("robosimian/actuation/sculling_stop.txt"),    // stop input file
+                GetChronoDataFile("robot/robosimian/actuation/sculling_start.txt"),   // start input file
+                GetChronoDataFile("robot/robosimian/actuation/sculling_cycle2.txt"),  // cycle input file
+                GetChronoDataFile("robot/robosimian/actuation/sculling_stop.txt"),    // stop input file
                 true);
             driver = drv;
             cout << "Locomotion mode: SCULL" << endl;
@@ -290,9 +290,9 @@ int main(int argc, char* argv[]) {
         }
         case robosimian::LocomotionMode::INCHWORM: {
             auto drv = chrono_types::make_shared<robosimian::RS_Driver>(
-                GetChronoDataFile("robosimian/actuation/inchworming_start.txt"),  // start input file
-                GetChronoDataFile("robosimian/actuation/inchworming_cycle.txt"),  // cycle input file
-                GetChronoDataFile("robosimian/actuation/inchworming_stop.txt"),   // stop input file
+                GetChronoDataFile("robot/robosimian/actuation/inchworming_start.txt"),  // start input file
+                GetChronoDataFile("robot/robosimian/actuation/inchworming_cycle.txt"),  // cycle input file
+                GetChronoDataFile("robot/robosimian/actuation/inchworming_stop.txt"),   // stop input file
                 true);
             driver = drv;
             cout << "Locomotion mode: INCHWORM" << endl;
@@ -300,9 +300,9 @@ int main(int argc, char* argv[]) {
         }
         case robosimian::LocomotionMode::DRIVE: {
             auto drv = chrono_types::make_shared<robosimian::RS_Driver>(
-                GetChronoDataFile("robosimian/actuation/driving_start.txt"),  // start input file
-                GetChronoDataFile("robosimian/actuation/driving_cycle.txt"),  // cycle input file
-                GetChronoDataFile("robosimian/actuation/driving_stop.txt"),   // stop input file
+                GetChronoDataFile("robot/robosimian/actuation/driving_start.txt"),  // start input file
+                GetChronoDataFile("robot/robosimian/actuation/driving_cycle.txt"),  // cycle input file
+                GetChronoDataFile("robot/robosimian/actuation/driving_stop.txt"),   // stop input file
                 true);
             driver = drv;
             cout << "Locomotion mode: DRIVE" << endl;

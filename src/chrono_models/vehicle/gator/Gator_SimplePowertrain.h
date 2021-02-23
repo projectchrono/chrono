@@ -46,6 +46,7 @@ class CH_MODELS_API Gator_SimplePowertrain : public ChPowertrain {
     virtual double GetTorqueConverterSlippage() const override { return 0; }
     virtual double GetTorqueConverterInputTorque() const override { return 0; }
     virtual double GetTorqueConverterOutputTorque() const override { return 0; }
+    virtual double GetTorqueConverterOutputSpeed() const override { return 0; }
     virtual int GetCurrentTransmissionGear() const override { return 1; }
     virtual double GetOutputTorque() const override { return m_shaftTorque; }
     virtual void SetDriveMode(ChPowertrain::DriveMode mmode) override;

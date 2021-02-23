@@ -120,8 +120,12 @@ using ChFilterRGBA8Access = ChFilterAccess<SensorHostRGBA8Buffer, UserRGBA8Buffe
 using ChFilterXYZIAccess = ChFilterAccess<SensorHostXYZIBuffer, UserXYZIBufferPtr>;
 /// Access to depth/intensity data
 using ChFilterDIAccess = ChFilterAccess<SensorHostDIBuffer, UserDIBufferPtr>;
-/// Access to IMU data
-using ChFilterIMUAccess = ChFilterAccess<SensorHostIMUBuffer, UserIMUBufferPtr>;
+/// Access to accelerometer data
+using ChFilterAccelAccess = ChFilterAccess<SensorHostAccelBuffer, UserAccelBufferPtr>;
+/// Access to gyroscope data
+using ChFilterGyroAccess = ChFilterAccess<SensorHostGyroBuffer, UserGyroBufferPtr>;
+/// Access to magnetometer data
+using ChFilterMagnetAccess = ChFilterAccess<SensorHostMagnetBuffer, UserMagnetBufferPtr>;
 /// Access to GPS data
 using ChFilterGPSAccess = ChFilterAccess<SensorHostGPSBuffer, UserGPSBufferPtr>;
 

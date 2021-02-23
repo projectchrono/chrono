@@ -128,7 +128,7 @@ int main(int argc, char* argv[]) {
     // ==Asset== Attach, in this level, a 'Wavefront mesh' asset,
     // referencing a .obj file:
     auto mobjmesh = chrono_types::make_shared<ChObjShapeFile>();
-    mobjmesh->SetFilename(GetChronoDataFile("forklift_body.obj"));
+    mobjmesh->SetFilename(GetChronoDataFile("models/forklift/body.obj"));
     mlevelA->AddAsset(mobjmesh);
 
     // ==Asset== Attach also a texture, that will affect only the
@@ -136,7 +136,7 @@ int main(int argc, char* argv[]) {
     // NOTE: the path to texture is the path relative to this .exe,
     // as when you are using the Irrlicht visualization.
     auto mtexture = chrono_types::make_shared<ChTexture>();
-    mtexture->SetTextureFilename(GetChronoDataFile("bluwhite.png"));
+    mtexture->SetTextureFilename(GetChronoDataFile("textures/bluewhite.png"));
     mlevelA->AddAsset(mtexture);
 
     // Change the position of mlevelA, thus moving also its sub-assets:

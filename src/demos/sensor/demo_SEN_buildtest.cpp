@@ -34,6 +34,7 @@
 #include "chrono_sensor/ChCameraSensor.h"
 #include "chrono_sensor/ChGPSSensor.h"
 #include "chrono_sensor/ChIMUSensor.h"
+#include "chrono_sensor/ChNoiseModel.h"
 #include "chrono_sensor/ChLidarSensor.h"
 #include "chrono_sensor/ChSensorManager.h"
 #include "chrono_sensor/filters/ChFilterAccess.h"
@@ -82,7 +83,7 @@ int main(int argc, char* argv[]) {
 
     // add a mesh
     // auto mmesh = chrono_types::make_shared<ChTriangleMeshConnected>();
-    // mmesh->LoadWavefrontMesh(GetChronoDataFile("shoe_view.obj"), false, true);
+    // mmesh->LoadWavefrontMesh(GetChronoDataFile("models/bulldozer/shoe_view.obj"), false, true);
     // mmesh->Transform(ChVector<>(0, 0, 0), ChMatrix33<>(1));  // scale to a different size
     // mmesh->RepairDuplicateVertexes(1e-9);
     //
@@ -206,11 +207,11 @@ int main(int argc, char* argv[]) {
 
     auto cam = chrono_types::make_shared<ChCameraSensor>(
         floor,                                                               // body camera is attached to
-        25,                                                                  // update rate in Hz
+        25.0f,                                                               // update rate in Hz
         chrono::ChFrame<double>({-10, 0, 1}, Q_from_AngAxis(0, {0, 0, 1})),  // offset pose
         1280,                                                                // image width
         720,                                                                 // image height
-        CH_C_PI / 3                                                          // field of view
+        (float)CH_C_PI / 3                                                   // field of view
     );
 
     std::string color_data_path = "SENSOR_OUTPUT/cam_color/";
@@ -250,12 +251,12 @@ int main(int argc, char* argv[]) {
     // add a lidar to the floor facing the falling objects
     auto lidar = chrono_types::make_shared<ChLidarSensor>(
         floor,                                                              // body to which the IMU is attached
-        10,                                                                 // update rate
+        10.0f,                                                              // update rate
         chrono::ChFrame<double>({-8, 0, 1}, Q_from_AngAxis(0, {1, 0, 0})),  // offset pose from body
         923,                                                                // horizontal samples
         24,                                                                 // vertical samples/channels
-        (float)2.0f * (float)CH_C_PI / 3.0f,                                // horizontal field of view
-        (float)CH_C_PI / 8.f, -(float)CH_C_PI / 8.f, 100.0                  // vertical field of view
+        2.0f * (float)CH_C_PI / 3.0f,                                       // horizontal field of view
+        (float)CH_C_PI / 8.0f, -(float)CH_C_PI / 8.0f, 100.0f               // vertical field of view
     );
     lidar->SetName("Lidar Sensor");
     lidar->SetLag(.1f);
@@ -265,46 +266,63 @@ int main(int argc, char* argv[]) {
         lidar->PushFilter(chrono_types::make_shared<ChFilterVisualize>(923, 48, "Raw Lidar Data"));
     lidar->PushFilter(chrono_types::make_shared<ChFilterPCfromDepth>());
     if (display_data)
-        lidar->PushFilter(chrono_types::make_shared<ChFilterVisualizePointCloud>(640, 480, 2, "Lidar Point Cloud"));
+        lidar->PushFilter(chrono_types::make_shared<ChFilterVisualizePointCloud>(640, 480, 2.0f, "Lidar Point Cloud"));
     lidar->PushFilter(chrono_types::make_shared<ChFilterXYZIAccess>());
     // lidar->PushFilter(chrono_types::make_shared<ChFilterXYZIAccess>());
     manager->AddSensor(lidar);
 
     // add an IMU sensor to one of the boxes
-    // auto imu_noise_none = chrono_types::make_shared<ChIMUNoiseNone>();
-    // auto imu = chrono_types::make_shared<ChIMUSensor>(imu_parent,  // body to which the IMU is attached
-    //                                                   10,          // update rate
-    //                                                   chrono::ChFrame<double>({0, 0, 0}, Q_from_AngAxis(0, {1, 0,
-    //                                                   0})), .01, .01, imu_noise_none);  // offset pose from body
-    // imu->SetName("IMU");
-    // imu->PushFilter(chrono_types::make_shared<ChFilterIMUAccess>());
-    // manager->AddSensor(imu);
-    //
-    // // add an IMU sensor to one of the boxes
-    // auto noise_model =
-    //     chrono_types::make_shared<ChGPSNoiseNormal>(ChVector<float>(0.f, 0.f, 0.f), ChVector<float>(1.f, 1.f, 1.f));
-    // auto gps = chrono_types::make_shared<ChGPSSensor>(
-    //     gps_parent,                                                        // body to which the GPS is attached
-    //     10,                                                                // update rate
-    //     chrono::ChFrame<double>({0, 0, 0}, Q_from_AngAxis(0, {1, 0, 0})),  // offset pose from body
-    //     0, 0,
-    //     ChVector<double>(43.300, -89.000, 260.0),  // reference GPS location (GPS coordinates of simulation origin)
-    //     noise_model                                // noise model to use for adding GPS noise (NOT THREAD SAFE)
-    // );
-    // gps->SetName("GPS");
-    // gps->PushFilter(chrono_types::make_shared<ChFilterGPSAccess>());
-    // manager->AddSensor(gps);
+    auto imu_offset_pose = chrono::ChFrame<double>({0, 0, 0}, Q_from_AngAxis(0, {1, 0, 0}));
+    auto noise_none = chrono_types::make_shared<ChNoiseNone>();
+    auto acc = chrono_types::make_shared<ChAccelerometerSensor>(imu_parent,       // body to which the IMU is attached
+                                                                100,              // update rate
+                                                                imu_offset_pose,  // offset pose from body
+                                                                noise_none);      // IMU noise model
+    acc->SetName("IMU - Accelerometer");
+    acc->PushFilter(chrono_types::make_shared<ChFilterAccelAccess>());  // Add a filter to access the imu data
+    manager->AddSensor(acc);                                            // Add the IMU sensor to the sensor manager
+
+    auto gyro = chrono_types::make_shared<ChGyroscopeSensor>(imu_parent,       // body to which the IMU is attached
+                                                             100,              // update rate
+                                                             imu_offset_pose,  // offset pose from body
+                                                             noise_none);      // IMU noise model
+    gyro->SetName("IMU - Accelerometer");
+    gyro->PushFilter(chrono_types::make_shared<ChFilterGyroAccess>());  // Add a filter to access the imu data
+    manager->AddSensor(gyro);                                           // Add the IMU sensor to the sensor manager
+
+    auto mag = chrono_types::make_shared<ChMagnetometerSensor>(imu_parent,       // body to which the IMU is attached
+                                                               100,              // update rate
+                                                               imu_offset_pose,  // offset pose from body
+                                                               noise_none,       // IMU noise model
+                                                               ChVector<double>(43.300, -89.000, 260.0));
+    mag->SetName("IMU - Accelerometer");
+    mag->PushFilter(chrono_types::make_shared<ChFilterMagnetAccess>());  // Add a filter to access the imu data
+    manager->AddSensor(mag);                                             // Add the IMU sensor to the sensor manager
+
+    // add an IMU sensor to one of the boxes
+    auto noise_model =
+        chrono_types::make_shared<ChNoiseNormal>(ChVector<float>(0.f, 0.f, 0.f), ChVector<float>(1.f, 1.f, 1.f));
+    auto gps = chrono_types::make_shared<ChGPSSensor>(
+        gps_parent,                                                        // body to which the GPS is attached
+        10,                                                                // update rate
+        chrono::ChFrame<double>({0, 0, 0}, Q_from_AngAxis(0, {1, 0, 0})),  // offset pose from body
+        ChVector<double>(43.300, -89.000, 260.0),  // reference GPS location (GPS coordinates of simulation origin)
+        noise_model                                // noise model to use for adding GPS noise (NOT THREAD SAFE)
+    );
+    gps->SetName("GPS");
+    gps->PushFilter(chrono_types::make_shared<ChFilterGPSAccess>());
+    manager->AddSensor(gps);
 
     std::vector<std::shared_ptr<ChCameraSensor>> cams;
 
     for (int i = 0; i < num_cameras; i++) {
         auto cam1 = chrono_types::make_shared<ChCameraSensor>(
             floor,                                                              // body camera is attached to
-            10 + 10 * (i % 4 + 1),                                              // 30 + i, // update rate in Hz
+            10.0f + 10.0f * (i % 4 + 1),                                        // 30 + i, // update rate in Hz
             chrono::ChFrame<double>({-3, 0, 2}, Q_from_AngAxis(0, {1, 0, 0})),  // offset pose
             1280,                                                               // image width
             720,                                                                // image height
-            CH_C_PI / 3);
+            (float)CH_C_PI / 3);
         cams.push_back(cam1);
 
         std::stringstream nm;

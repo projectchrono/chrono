@@ -26,8 +26,7 @@ if(NOT ENABLE_MODULE_VEHICLE)
     return()
 endif()
 
-set(SYN_INCLUDES ${SYN_INCLUDES})
-set(SYN_INCLUDES ${SYN_INCLUDES} "${CMAKE_CURRENT_SOURCE_DIR}/../chrono_thirdparty/flatbuffers/include")
+set(SYN_INCLUDES "${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/flatbuffers/include")
 
 set(SYN_CXX_FLAGS "${CH_CXX_FLAGS}")
 set(SYN_LINKER_FLAGS "${CH_LINKERFLAG_SHARED}")
@@ -63,7 +62,7 @@ if (USE_FAST_DDS)
 	find_package(fastcdr REQUIRED)
 	find_package(fastrtps REQUIRED)
 
-	set(SYN_OTHER_LIBRARIES
+	list(APPEND SYN_LIBRARIES
 		fastrtps
 		fastcdr
 	)
@@ -163,15 +162,15 @@ set(SYN_FLATBUFFER_FILES
 	
 	flatbuffer/message/SynFlatBuffers_generated.h
 
-	flatbuffer/message/SynMessage.h
+    flatbuffer/message/SynMessage.h
+    flatbuffer/message/SynSimulationMessage.h
+    flatbuffer/message/SynSimulationMessage.cpp
 
 	flatbuffer/message/SynWheeledVehicleMessage.h
 	flatbuffer/message/SynWheeledVehicleMessage.cpp
 	flatbuffer/message/SynTrackedVehicleMessage.h
 	flatbuffer/message/SynTrackedVehicleMessage.cpp
 	
-	# # flatbuffer/message/SynSensorMessage.h
-	# # flatbuffer/message/SynSensorMessage.cpp
 	flatbuffer/message/SynSCMMessage.h
 	flatbuffer/message/SynSCMMessage.cpp
     
@@ -213,8 +212,8 @@ if (ENABLE_MODULE_IRRLICHT)
   list(APPEND SYN_LIB_NAMES ChronoEngine_irrlicht)
   list(APPEND SYN_LIB_NAMES ChronoEngine_vehicle_irrlicht)
 
-  list(APPEND SYN_INCLUDES  ${CH_IRRLICHTINC})
-  list(APPEND SYN_CXX_FLAGS ${CH_IRRLICHT_CXX_FLAGS})
+  set(SYN_INCLUDES  ${SYN_INCLUDES} ${CH_IRRLICHTINC})
+  set(SYN_CXX_FLAGS "${SYN_CXX_FLAGS} ${CH_IRRLICHT_CXX_FLAGS}")
 endif()
 
 # Chrono::Vehicle is required
@@ -250,7 +249,7 @@ target_compile_definitions(ChronoEngine_synchrono PRIVATE "SYN_API_COMPILE")
 
 target_include_directories(ChronoEngine_synchrono PUBLIC ${SYN_INCLUDES})
 
-target_link_libraries(ChronoEngine_synchrono ${SYN_LIB_NAMES} ${SYN_LIBRARIES} ${SYN_OTHER_LIBRARIES})
+target_link_libraries(ChronoEngine_synchrono ${SYN_LIB_NAMES} ${SYN_LIBRARIES})
 
 install(TARGETS ChronoEngine_synchrono
         RUNTIME DESTINATION bin

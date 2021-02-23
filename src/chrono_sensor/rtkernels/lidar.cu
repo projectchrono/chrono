@@ -44,7 +44,7 @@ rtDeclareVariable(float, clip_near, , );  // lidar minimum distance -> for use w
 rtDeclareVariable(float3, origin_0, , );  // origin at time 0
 rtDeclareVariable(float3, origin_1, , );  // origin at time 1
 rtDeclareVariable(float4, rot_0, , );     // rotation at time 0 (no rotation is x forward, y left, x up)
-rtDeclareVariable(float4, rot_1, , );     // rotation at time 0 (no rotation is x forward, y left, x up)
+rtDeclareVariable(float4, rot_1, , );     // rotation at time 1 (no rotation is x forward, y left, x up)
 
 rtBuffer<float2, 2> output_buffer;  // byte version
 rtBuffer<float> noise_buffer;

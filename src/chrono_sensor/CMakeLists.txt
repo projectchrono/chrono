@@ -53,7 +53,6 @@ SET(CH_SENSOR_INCLUDES
 # add the necessary optix libraries to the list to link
 list(APPEND LIBRARIES ${optix_LIBRARY})
 list(APPEND LIBRARIES ${optix_rpath})
-list(APPEND LIBRARIES ${CUDA_LIBRARIES})
 list(APPEND LIBRARIES ${CUDA_nppc_LIBRARY})
 list(APPEND LIBRARIES ${CUDA_nppig_LIBRARY})
 
@@ -215,6 +214,7 @@ source_group("Cuda" FILES
 #-----------------------------------------------------------------------------
 set(ChronoEngine_sensor_SOURCES
     ChSensor.cpp
+    ChNoiseModel.cpp
     ChOptixSensor.cpp
     ChCameraSensor.cpp
     ChLidarSensor.cpp
@@ -223,11 +223,14 @@ set(ChronoEngine_sensor_SOURCES
     ChSensorManager.cpp
     ChDynamicsManager.cpp
     Sensor.cpp
+
 )
 set(ChronoEngine_sensor_HEADERS
   	ChApiSensor.h
     ChSensor.h
+    ChNoiseModel.h
     ChOptixSensor.h
+    ChCameraSensor.h
     ChLidarSensor.h
     ChIMUSensor.h
     ChGPSSensor.h
@@ -235,6 +238,7 @@ set(ChronoEngine_sensor_HEADERS
     ChDynamicsManager.h
   	ChSensorBuffer.h
     Sensor.h
+
 )
 
 source_group("Source" FILES
@@ -348,11 +352,13 @@ ENDIF()
 set(ChronoEngine_sensor_UTILS_SOURCES
     utils/ChVisualMaterialUtils.cpp
     utils/ChUtilsJSON.cpp
+    utils/ChGPSUtils.cpp
 )
 set(ChronoEngine_sensor_UTILS_HEADERS
     utils/ChVisualMaterialUtils.h
   	utils/CudaMallocHelper.h
     utils/ChUtilsJSON.h
+    utils/ChGPSUtils.h
 )
 
 source_group(Utils FILES
@@ -424,7 +430,7 @@ IF(USE_TENSOR_RT)
     list(APPEND ALL_CH_SENSOR_FILES ${ChronoEngine_sensor_TENSORRT_HEADERS})
 ENDIF()
 
-add_library(ChronoEngine_sensor SHARED
+cuda_add_library(ChronoEngine_sensor SHARED
     ${ALL_CH_SENSOR_FILES}
 )
 

@@ -28,7 +28,6 @@
 #include "chrono/fea/ChLinkPointFrame.h"
 #include "chrono/fea/ChMesh.h"
 #include "chrono/fea/ChVisualizationFEAmesh.h"
-#include "chrono/fea/ChRotUtils.h"
 
 #include "chrono_irrlicht/ChIrrApp.h"
 

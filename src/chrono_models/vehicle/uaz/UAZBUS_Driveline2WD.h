@@ -41,18 +41,16 @@ class CH_MODELS_API UAZBUS_Driveline2WD : public ChShaftsDriveline2WD {
     virtual double GetDifferentialBoxInertia() const override { return m_differentialbox_inertia; }
 
     virtual double GetConicalGearRatio() const override { return m_conicalgear_ratio; }
-    virtual double GetDifferentialRatio() const override { return m_differential_ratio; }
 
     virtual double GetAxleDifferentialLockingLimit() const override { return m_axle_differential_locking_limit; }
 
   private:
-    // Shaft inertias.
+    // Shaft inertias
     static const double m_driveshaft_inertia;
     static const double m_differentialbox_inertia;
 
-    // Gear ratios.
+    // Gear ratio
     static const double m_conicalgear_ratio;
-    static const double m_differential_ratio;
 
     // Differential locking torque limit.
     static const double m_axle_differential_locking_limit;

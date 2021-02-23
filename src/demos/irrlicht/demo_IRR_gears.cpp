@@ -69,7 +69,7 @@ int main(int argc, char* argv[]) {
     mbody_truss->SetPos(ChVector<>(0, 0, 3));
 
     // ...a texture asset that will be shared among the four wheels
-    auto cylinder_texture = chrono_types::make_shared<ChTexture>(GetChronoDataFile("pinkwhite.png"));
+    auto cylinder_texture = chrono_types::make_shared<ChTexture>(GetChronoDataFile("textures/pinkwhite.png"));
 
     // ...the rotating bar support for the two epicycloidal wheels
     auto mbody_train = chrono_types::make_shared<ChBodyEasyBox>(8, 1.5, 1.0, 1000, true, false, mat);

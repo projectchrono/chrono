@@ -166,20 +166,52 @@ def main():
     # Create an IMU sensor and add it to the manager
     # ----------------------------------------------
     offset_pose = chrono.ChFrameD(chrono.ChVectorD(-8, 0, 1), chrono.Q_from_AngAxis(0, chrono.ChVectorD(0, 1, 0)))
-    imu = sens.ChIMUSensor(box,                     # body imu is attached to
+    acc = sens.ChAccelerometerSensor(box,                     # body imu is attached to
                            imu_update_rate,         # update rate in Hz
                            offset_pose,             # offset pose
-                           imu_noise_none,          # noise model
+                           noise_none,          # noise model
                            )
-    imu.SetName("IMU Sensor")
-    imu.SetLag(imu_lag)
-    imu.SetCollectionWindow(imu_collection_time)
+    acc.SetName("Accelerometer")
+    acc.SetLag(imu_lag)
+    acc.SetCollectionWindow(imu_collection_time)
 
     # Provides the host access to the imu data
-    imu.PushFilter(sens.ChFilterIMUAccess())
+    acc.PushFilter(sens.ChFilterAccelAccess())
 
     # Add the imu to the sensor manager
-    manager.AddSensor(imu)
+    manager.AddSensor(acc)
+
+    gyro = sens.ChGyroscopeSensor(box,                     # body imu is attached to
+                           imu_update_rate,         # update rate in Hz
+                           offset_pose,             # offset pose
+                           noise_none,          # noise model
+                           )
+    gyro.SetName("Gyroscope")
+    gyro.SetLag(imu_lag)
+    gyro.SetCollectionWindow(imu_collection_time)
+
+    # Provides the host access to the imu data
+    gyro.PushFilter(sens.ChFilterGyroAccess())
+
+    # Add the imu to the sensor manager
+    manager.AddSensor(gyro)
+
+    mag = sens.ChMagnetometerSensor(box,                     # body imu is attached to
+                           imu_update_rate,         # update rate in Hz
+                           offset_pose,             # offset pose
+                           noise_none,          # noise model
+                           gps_reference
+                           )
+    mag.SetName("Magnetometer")
+    mag.SetLag(imu_lag)
+    mag.SetCollectionWindow(imu_collection_time)
+
+    # Provides the host access to the imu data
+    mag.PushFilter(sens.ChFilterMagnetAccess())
+
+    # Add the imu to the sensor manager
+    manager.AddSensor(mag)
+
 
     # ----------------------------------------------
     # Create an GPS sensor and add it to the manager
@@ -189,7 +221,7 @@ def main():
                            gps_update_rate,       # update rate in Hz
                            offset_pose,             # offset pose
                            gps_reference,
-                           gps_noise_none          # noise model
+                           noise_none          # noise model
                            )
     gps.SetName("GPS Sensor")
     gps.SetLag(gps_lag)
@@ -214,7 +246,9 @@ def main():
         lidar_data_DI = lidar.GetMostRecentDIBuffer()
         lidar_data_XYZI = lidar.GetMostRecentXYZIBuffer()
         gps_data = gps.GetMostRecentGPSBuffer()
-        imu_data = imu.GetMostRecentIMUBuffer()
+        acc_data = acc.GetMostRecentAccelBuffer()
+        gyro_data = gyro.GetMostRecentGyroBuffer()
+        mag_data = mag.GetMostRecentMagnetBuffer()
 
         # Check data is present
         # If so, print out the max value
@@ -228,8 +262,12 @@ def main():
             print("Lidar XYZI:",lidar_data_XYZI.GetXYZIData().shape,"max:",np.max(lidar_data_XYZI.GetXYZIData()))
         if gps_data.HasData():
             print("GPS:",gps_data.GetGPSData().shape,"max:",np.max(gps_data.GetGPSData()))
-        if imu_data.HasData():
-            print("IMU:",imu_data.GetIMUData().shape,"max:",np.max(imu_data.GetIMUData()))
+        if acc_data.HasData():
+            print("Accelerometer:",acc_data.GetAccelData().shape,"max:",np.max(acc_data.GetAccelData()))
+        if gyro_data.HasData():
+            print("Gyroscope:",gyro_data.GetGyroData().shape,"max:",np.max(gyro_data.GetGyroData()))
+        if mag_data.HasData():
+            print("Magnetometer:",mag_data.GetMagnetData().shape,"max:",np.max(mag_data.GetMagnetData()))
 
         # Update sensor manager
         # Will render/save/filter automatically
@@ -289,8 +327,7 @@ gps_reference = chrono.ChVectorD(-89.400, 43.070, 260.0)
 
 # IMU and GPS noise models
 # Setting to none (does not affect the data)
-imu_noise_none = sens.ChIMUNoiseNone()
-gps_noise_none = sens.ChGPSNoiseNone()
+noise_none = sens.ChNoiseNone()
 
 # ---------------------
 # Simulation parameters

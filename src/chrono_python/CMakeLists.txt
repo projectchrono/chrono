@@ -93,7 +93,7 @@ endif()
  
 # Set location of SWIG-generated files.
 # Note that *.py files are also generated in this location.
-set(CMAKE_SWIG_OUTDIR "${PROJECT_BINARY_DIR}/swig")
+set(CMAKE_SWIG_OUTDIR "${PROJECT_BINARY_DIR}/chrono_python")
 SET(CMAKE_SWIG_FLAGS "-c++")
 
 if(DBG_SCRIPT)
@@ -141,6 +141,8 @@ install(TARGETS ChronoEngine_pyparser
         RUNTIME DESTINATION bin
         LIBRARY DESTINATION lib
         ARCHIVE DESTINATION lib)
+
+INSTALL(FILES ${ChronoEngine_PYPARSER_HEADERS} DESTINATION include/chrono_python)
 
 #-----------------------------------------------------------------------------
 # MODULE for the core wrapper, including most of the C::E
