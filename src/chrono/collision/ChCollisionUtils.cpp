@@ -175,49 +175,5 @@ bool DegenerateTriangle(const ChVector<>& v1, const ChVector<>& v2, const ChVect
 }
 
 }  // end namespace utils
-
-ChConvexHullLibraryWrapper::ChConvexHullLibraryWrapper() {
-}
-
-void ChConvexHullLibraryWrapper::ComputeHull(const std::vector<ChVector<> >& points,
-                                             geometry::ChTriangleMeshConnected& vshape) {
-    HullLibrary hl;
-    HullResult hresult;
-    HullDesc desc;
-
-    desc.SetHullFlag(QF_TRIANGLES);
-
-    btVector3* btpoints = new btVector3[points.size()];
-    for (unsigned int ip = 0; ip < points.size(); ++ip) {
-        btpoints[ip].setX((btScalar)points[ip].x());
-        btpoints[ip].setY((btScalar)points[ip].y());
-        btpoints[ip].setZ((btScalar)points[ip].z());
-    }
-    desc.mVcount = (unsigned int)points.size();
-    desc.mVertices = btpoints;
-    desc.mVertexStride = sizeof(btVector3);
-
-    HullError hret = hl.CreateConvexHull(desc, hresult);
-
-    if (hret == QE_OK) {
-        vshape.Clear();
-
-        vshape.getIndicesVertexes().resize(hresult.mNumFaces);
-        for (unsigned int it = 0; it < hresult.mNumFaces; ++it) {
-            vshape.getIndicesVertexes()[it] = ChVector<int>(
-                hresult.m_Indices[it * 3 + 0], hresult.m_Indices[it * 3 + 1], hresult.m_Indices[it * 3 + 2]);
-        }
-        vshape.getCoordsVertices().resize(hresult.mNumOutputVertices);
-        for (unsigned int iv = 0; iv < hresult.mNumOutputVertices; ++iv) {
-            vshape.getCoordsVertices()[iv] = ChVector<>(
-                hresult.m_OutputVertices[iv].x(), hresult.m_OutputVertices[iv].y(), hresult.m_OutputVertices[iv].z());
-        }
-    }
-
-    delete[] btpoints;
-
-    hl.ReleaseResult(hresult);
-}
-
 }  // end namespace collision
 }  // end namespace chrono

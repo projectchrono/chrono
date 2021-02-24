@@ -16,7 +16,7 @@
 #include <array>
 
 #include "chrono/collision/ChCollisionSystemBullet.h"
-#include "chrono/collision/ChCollisionUtils.h"
+#include "chrono/collision/ChCollisionUtilsBullet.h"
 #include "chrono/collision/ChConvexDecomposition.h"
 #include "chrono/collision/ChCollisionModelBullet.h"
 #include "chrono/collision/bullet/BulletCollision/CollisionShapes/bt2DShape.h"
@@ -449,7 +449,7 @@ bool ChCollisionModelBullet::AddConvexHull(std::shared_ptr<ChMaterialSurface> ma
     SetSafeMargin((btScalar)ChMin(GetSafeMargin(), approx_chord * 0.2));
 
     // shrink the convex hull by GetSafeMargin()
-    collision::ChConvexHullLibraryWrapper lh;
+    utils::ChConvexHullLibraryWrapper lh;
     geometry::ChTriangleMeshConnected mmesh;
     lh.ComputeHull(pointlist, mmesh);
     mmesh.MakeOffset(-GetSafeMargin());

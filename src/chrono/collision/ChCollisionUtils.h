@@ -16,8 +16,6 @@
 #define CH_COLLISION_UTILS_H
 
 #include "chrono/core/ChApiCE.h"
-#include "chrono/collision/bullet/LinearMath/btConvexHull.h"
-#include "chrono/geometry/ChTriangleMeshConnected.h"
 #include "chrono/physics/ChBody.h"
 
 namespace chrono {
@@ -69,14 +67,6 @@ ChApi bool DegenerateTriangle(const ChVector<>& Dx, const ChVector<>& Dy);
 ChApi bool DegenerateTriangle(const ChVector<>& v1, const ChVector<>& v2, const ChVector<>& v3);
 
 }  // end namespace utils
-
-/// Wrapper for using and exporting the Bullet implementation of the convex hull library.
-class ChApi ChConvexHullLibraryWrapper {
-  public:
-    ChConvexHullLibraryWrapper();
-    void ComputeHull(const std::vector<ChVector<> >& points, geometry::ChTriangleMeshConnected& vshape);
-};
-
 }  // end namespace collision
 }  // end namespace chrono
 
