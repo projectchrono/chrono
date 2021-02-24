@@ -31,7 +31,6 @@ namespace fea {
 /// Contact element of triangular type.
 /// This can be used to 'tessellate' the surface of FEA meshes for collision purposes.
 class ChApi ChContactTriangleXYZ : public ChContactable_3vars<3, 3, 3>, public ChLoadableUV {
-
   public:
     ChContactTriangleXYZ();
     ChContactTriangleXYZ(std::shared_ptr<ChNodeFEAxyz> n1,
@@ -70,8 +69,8 @@ class ChApi ChContactTriangleXYZ : public ChContactable_3vars<3, 3, 3>, public C
     // INTERFACE TO ChContactable
     //
 
-	virtual ChContactable::eChContactableType GetContactableType() const override { return CONTACTABLE_333; }
-	
+    virtual ChContactable::eChContactableType GetContactableType() const override { return CONTACTABLE_333; }
+
     /// Access variables for node 1
     virtual ChVariables* GetVariables1() override { return &mnode1->Variables(); }
     /// Access variables for node 2
@@ -191,9 +190,9 @@ class ChApi ChContactTriangleXYZ : public ChContactable_3vars<3, 3, 3>, public C
 
         double s2, s3;
         double dist;
-        int is_into;
+        bool is_into;
         ChVector<> p_projected;
-        dist = collision::ChCollisionUtils::PointTriangleDistance(point, A1, A2, A3, s2, s3, is_into, p_projected);
+        dist = collision::utils::PointTriangleDistance(point, A1, A2, A3, s2, s3, is_into, p_projected);
         double s1 = 1 - s2 - s3;
         Q.segment(offset + 0, 3) = F.eigen() * s1;
         Q.segment(offset + 3, 3) = F.eigen() * s2;
@@ -208,38 +207,34 @@ class ChApi ChContactTriangleXYZ : public ChContactable_3vars<3, 3, 3>, public C
                                                type_constraint_tuple& jacobian_tuple_U,
                                                type_constraint_tuple& jacobian_tuple_V,
                                                bool second) override {
-        
         // compute the triangular area-parameters s1 s2 s3:
         double s2, s3;
         double dist;
-        int is_into;
+        bool is_into;
         ChVector<> p_projected;
-        dist = collision::ChCollisionUtils::PointTriangleDistance(abs_point, 
-                                    this->GetNode1()->pos, 
-                                    this->GetNode2()->pos, 
-                                    this->GetNode3()->pos, 
-                                    s2, s3, is_into, p_projected);
+        dist = collision::utils::PointTriangleDistance(abs_point, this->GetNode1()->pos, this->GetNode2()->pos,
+                                                       this->GetNode3()->pos, s2, s3, is_into, p_projected);
         double s1 = 1 - s2 - s3;
 
         ChMatrix33<> Jx1 = contact_plane.transpose();
         if (!second)
             Jx1 *= -1;
 
-        jacobian_tuple_N.Get_Cq_1().segment(0,3) = Jx1.row(0);
-        jacobian_tuple_U.Get_Cq_1().segment(0,3) = Jx1.row(1);
-        jacobian_tuple_V.Get_Cq_1().segment(0,3) = Jx1.row(2);
+        jacobian_tuple_N.Get_Cq_1().segment(0, 3) = Jx1.row(0);
+        jacobian_tuple_U.Get_Cq_1().segment(0, 3) = Jx1.row(1);
+        jacobian_tuple_V.Get_Cq_1().segment(0, 3) = Jx1.row(2);
         jacobian_tuple_N.Get_Cq_1() *= s1;
         jacobian_tuple_U.Get_Cq_1() *= s1;
         jacobian_tuple_V.Get_Cq_1() *= s1;
-        jacobian_tuple_N.Get_Cq_2().segment(0,3) = Jx1.row(0);
-        jacobian_tuple_U.Get_Cq_2().segment(0,3) = Jx1.row(1);
-        jacobian_tuple_V.Get_Cq_2().segment(0,3) = Jx1.row(2);
+        jacobian_tuple_N.Get_Cq_2().segment(0, 3) = Jx1.row(0);
+        jacobian_tuple_U.Get_Cq_2().segment(0, 3) = Jx1.row(1);
+        jacobian_tuple_V.Get_Cq_2().segment(0, 3) = Jx1.row(2);
         jacobian_tuple_N.Get_Cq_2() *= s2;
         jacobian_tuple_U.Get_Cq_2() *= s2;
         jacobian_tuple_V.Get_Cq_2() *= s2;
-        jacobian_tuple_N.Get_Cq_3().segment(0,3) = Jx1.row(0);
-        jacobian_tuple_U.Get_Cq_3().segment(0,3) = Jx1.row(1);
-        jacobian_tuple_V.Get_Cq_3().segment(0,3) = Jx1.row(2);
+        jacobian_tuple_N.Get_Cq_3().segment(0, 3) = Jx1.row(0);
+        jacobian_tuple_U.Get_Cq_3().segment(0, 3) = Jx1.row(1);
+        jacobian_tuple_V.Get_Cq_3().segment(0, 3) = Jx1.row(2);
         jacobian_tuple_N.Get_Cq_3() *= s3;
         jacobian_tuple_U.Get_Cq_3() *= s3;
         jacobian_tuple_V.Get_Cq_3() *= s3;
@@ -273,7 +268,11 @@ class ChApi ChContactTriangleXYZ : public ChContactable_3vars<3, 3, 3>, public C
     virtual void LoadableGetStateBlock_w(int block_offset, ChStateDelta& mD) override;
 
     /// Increment all DOFs using a delta.
-    virtual void LoadableStateIncrement(const unsigned int off_x, ChState& x_new, const ChState& x, const unsigned int off_v, const ChStateDelta& Dv) override;
+    virtual void LoadableStateIncrement(const unsigned int off_x,
+                                        ChState& x_new,
+                                        const ChState& x,
+                                        const unsigned int off_v,
+                                        const ChStateDelta& Dv) override;
 
     /// Number of coordinates in the interpolated field, ex=3 for a
     /// tetrahedron finite element or a cable, = 1 for a thermal problem, etc.
@@ -325,10 +324,10 @@ class ChApi ChContactTriangleXYZ : public ChContactable_3vars<3, 3, 3>, public C
     /// v is node1->node3 direction
     void ComputeUVfromP(const ChVector<> P, double& u, double& v) {
         double dist;
-        int is_into;
+        bool is_into;
         ChVector<> p_projected;
-        dist = collision::ChCollisionUtils::PointTriangleDistance(P, mnode1->pos, mnode2->pos, mnode3->pos, u, v,
-                                                                  is_into, p_projected);
+        dist = collision::utils::PointTriangleDistance(P, mnode1->pos, mnode2->pos, mnode3->pos, u, v, is_into,
+                                                       p_projected);
     }
 
   private:
@@ -350,7 +349,6 @@ class ChApi ChContactTriangleXYZ : public ChContactable_3vars<3, 3, 3>, public C
 /// This can be used to 'tessellate' a generic surface like the
 /// outer of tetrahedral meshes
 class ChApi ChContactTriangleXYZROT : public ChContactable_3vars<6, 6, 6>, public ChLoadableUV {
-
   public:
     ChContactTriangleXYZROT();
     ChContactTriangleXYZROT(std::shared_ptr<ChNodeFEAxyzrot> n1,
@@ -389,7 +387,7 @@ class ChApi ChContactTriangleXYZROT : public ChContactable_3vars<6, 6, 6>, publi
     // INTERFACE TO ChContactable
     //
 
-	virtual ChContactable::eChContactableType GetContactableType() const override { return CONTACTABLE_666; }
+    virtual ChContactable::eChContactableType GetContactableType() const override { return CONTACTABLE_666; }
 
     /// Access variables for node 1
     virtual ChVariables* GetVariables1() override { return &mnode1->Variables(); }
@@ -520,9 +518,9 @@ class ChApi ChContactTriangleXYZROT : public ChContactable_3vars<6, 6, 6>, publi
 
         double s2, s3;
         double dist;
-        int is_into;
+        bool is_into;
         ChVector<> p_projected;
-        dist = collision::ChCollisionUtils::PointTriangleDistance(point, A1, A2, A3, s2, s3, is_into, p_projected);
+        dist = collision::utils::PointTriangleDistance(point, A1, A2, A3, s2, s3, is_into, p_projected);
         double s1 = 1 - s2 - s3;
         Q.segment(offset + 0, 3) = F.eigen() * s1;
         Q.segment(offset + 6, 3) = F.eigen() * s2;
@@ -540,34 +538,32 @@ class ChApi ChContactTriangleXYZROT : public ChContactable_3vars<6, 6, 6>, publi
         // compute the triangular area-parameters s1 s2 s3:
         double s2, s3;
         double dist;
-        int is_into;
+        bool is_into;
         ChVector<> p_projected;
-        dist = collision::ChCollisionUtils::PointTriangleDistance(abs_point, 
-                                    this->GetNode1()->coord.pos, 
-                                    this->GetNode2()->coord.pos, 
-                                    this->GetNode3()->coord.pos, 
-                                    s2, s3, is_into, p_projected);
+        dist =
+            collision::utils::PointTriangleDistance(abs_point, this->GetNode1()->coord.pos, this->GetNode2()->coord.pos,
+                                                    this->GetNode3()->coord.pos, s2, s3, is_into, p_projected);
         double s1 = 1 - s2 - s3;
 
         ChMatrix33<> Jx1 = contact_plane.transpose();
         if (!second)
             Jx1 *= -1;
 
-        jacobian_tuple_N.Get_Cq_1().segment(0,3) = Jx1.row(0);
-        jacobian_tuple_U.Get_Cq_1().segment(0,3) = Jx1.row(1);
-        jacobian_tuple_V.Get_Cq_1().segment(0,3) = Jx1.row(2);
+        jacobian_tuple_N.Get_Cq_1().segment(0, 3) = Jx1.row(0);
+        jacobian_tuple_U.Get_Cq_1().segment(0, 3) = Jx1.row(1);
+        jacobian_tuple_V.Get_Cq_1().segment(0, 3) = Jx1.row(2);
         jacobian_tuple_N.Get_Cq_1() *= s1;
         jacobian_tuple_U.Get_Cq_1() *= s1;
         jacobian_tuple_V.Get_Cq_1() *= s1;
-        jacobian_tuple_N.Get_Cq_2().segment(0,3) = Jx1.row(0);
-        jacobian_tuple_U.Get_Cq_2().segment(0,3) = Jx1.row(1);
-        jacobian_tuple_V.Get_Cq_2().segment(0,3) = Jx1.row(2);
+        jacobian_tuple_N.Get_Cq_2().segment(0, 3) = Jx1.row(0);
+        jacobian_tuple_U.Get_Cq_2().segment(0, 3) = Jx1.row(1);
+        jacobian_tuple_V.Get_Cq_2().segment(0, 3) = Jx1.row(2);
         jacobian_tuple_N.Get_Cq_2() *= s2;
         jacobian_tuple_U.Get_Cq_2() *= s2;
         jacobian_tuple_V.Get_Cq_2() *= s2;
-        jacobian_tuple_N.Get_Cq_3().segment(0,3) = Jx1.row(0);
-        jacobian_tuple_U.Get_Cq_3().segment(0,3) = Jx1.row(1);
-        jacobian_tuple_V.Get_Cq_3().segment(0,3) = Jx1.row(2);
+        jacobian_tuple_N.Get_Cq_3().segment(0, 3) = Jx1.row(0);
+        jacobian_tuple_U.Get_Cq_3().segment(0, 3) = Jx1.row(1);
+        jacobian_tuple_V.Get_Cq_3().segment(0, 3) = Jx1.row(2);
         jacobian_tuple_N.Get_Cq_3() *= s3;
         jacobian_tuple_U.Get_Cq_3() *= s3;
         jacobian_tuple_V.Get_Cq_3() *= s3;
@@ -601,7 +597,11 @@ class ChApi ChContactTriangleXYZROT : public ChContactable_3vars<6, 6, 6>, publi
     virtual void LoadableGetStateBlock_w(int block_offset, ChStateDelta& mD) override;
 
     /// Increment all DOFs using a delta.
-    virtual void LoadableStateIncrement(const unsigned int off_x, ChState& x_new, const ChState& x, const unsigned int off_v, const ChStateDelta& Dv) override;
+    virtual void LoadableStateIncrement(const unsigned int off_x,
+                                        ChState& x_new,
+                                        const ChState& x,
+                                        const unsigned int off_v,
+                                        const ChStateDelta& Dv) override;
 
     /// Number of coordinates in the interpolated field, ex=3 for a
     /// tetrahedron finite element or a cable, = 1 for a thermal problem, etc.
@@ -653,10 +653,10 @@ class ChApi ChContactTriangleXYZROT : public ChContactable_3vars<6, 6, 6>, publi
     /// v is node1->node3 direction
     void ComputeUVfromP(const ChVector<> P, double& u, double& v) {
         double dist;
-        int is_into;
+        bool is_into;
         ChVector<> p_projected;
-        dist = collision::ChCollisionUtils::PointTriangleDistance(P, mnode1->GetPos(), mnode2->GetPos(),
-                                                                  mnode3->GetPos(), u, v, is_into, p_projected);
+        dist = collision::utils::PointTriangleDistance(P, mnode1->GetPos(), mnode2->GetPos(), mnode3->GetPos(), u, v,
+                                                       is_into, p_projected);
     }
 
   private:
@@ -703,7 +703,7 @@ class ChApi ChContactSurfaceMesh : public ChContactSurface {
 
     void AddFacesFromBoundary(double sphere_swept = 0.0,  ///< radius of swept sphere
                               bool ccw = true             ///< indicate clockwise or counterclockwise vertex ordering
-                              );
+    );
 
     /// As AddFacesFromBoundary, but only for faces containing selected nodes in node_set.
     // void AddFacesFromNodeSet(std::vector<std::shared_ptr<ChNodeFEAbase> >& node_set); ***TODO***

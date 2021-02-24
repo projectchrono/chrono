@@ -27,7 +27,7 @@ class ChVariablesBody;
 class ChContactContainer;
 class ChProximityContainer;
 
-/// Namespace with classes for collision detection
+/// Collision detection classes
 namespace collision {
 
 /// Base class for generic collision engine.

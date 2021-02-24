@@ -1629,7 +1629,7 @@ void btCEtriangleShapeCollisionAlgorithm::processCollision(const btCollisionObje
     ChVector<> candid_pA;
     ChVector<> candid_pB;
     double dist = 1e20;
-    int is_into;
+    bool is_into;
     ChVector<> p_projected;
     double mu, mv;
     double candid_mu, candid_mv;
@@ -1638,7 +1638,7 @@ void btCEtriangleShapeCollisionAlgorithm::processCollision(const btCollisionObje
     // represent chunks of beams) just do an edge-edge test (as capsule-capsule) and return:
     if ((pA2 == pA3) && (pB2 == pB3) && triA->owns_e1() && triB->owns_e1()) {
         ChVector<> cA, cB, D;
-        if (ChCollisionUtils::LineLineIntersect(pA1, pA2, pB1, pB2, &cA, &cB, &mu, &mv)) {
+        if (utils::LineLineIntersect(pA1, pA2, pB1, pB2, &cA, &cB, &mu, &mv)) {
             D = cB - cA;
             dist = D.Length();
             if (dist < max_allowed_dist && dist > min_allowed_dist && mu > 0 && mu < 1 && mv > 0 && mv < 1) {
@@ -1652,7 +1652,7 @@ void btCEtriangleShapeCollisionAlgorithm::processCollision(const btCollisionObje
     // vertex-face tests:
 
     if (triA->owns_v1()) {
-        dist = ChCollisionUtils::PointTriangleDistance(pA1, pB1, pB2, pB3, mu, mv, is_into, p_projected);
+        dist = utils::PointTriangleDistance(pA1, pB1, pB2, pB3, mu, mv, is_into, p_projected);
         if (is_into) {
             if (dist < max_allowed_dist && dist > min_allowed_dist) {
                 _add_contact(pA1, p_projected, dist, resultOut, offset_A, offset_B);
@@ -1667,7 +1667,7 @@ void btCEtriangleShapeCollisionAlgorithm::processCollision(const btCollisionObje
         }
     }
     if (triA->owns_v2()) {
-        dist = ChCollisionUtils::PointTriangleDistance(pA2, pB1, pB2, pB3, mu, mv, is_into, p_projected);
+        dist = utils::PointTriangleDistance(pA2, pB1, pB2, pB3, mu, mv, is_into, p_projected);
         if (is_into) {
             if (dist < max_allowed_dist && dist > min_allowed_dist) {
                 _add_contact(pA2, p_projected, dist, resultOut, offset_A, offset_B);
@@ -1680,7 +1680,7 @@ void btCEtriangleShapeCollisionAlgorithm::processCollision(const btCollisionObje
         }
     }
     if (triA->owns_v3()) {
-        dist = ChCollisionUtils::PointTriangleDistance(pA3, pB1, pB2, pB3, mu, mv, is_into, p_projected);
+        dist = utils::PointTriangleDistance(pA3, pB1, pB2, pB3, mu, mv, is_into, p_projected);
         if (is_into) {
             if (dist < max_allowed_dist && dist > min_allowed_dist) {
                 _add_contact(pA3, p_projected, dist, resultOut, offset_A, offset_B);
@@ -1694,7 +1694,7 @@ void btCEtriangleShapeCollisionAlgorithm::processCollision(const btCollisionObje
     }
 
     if (triB->owns_v1()) {
-        dist = ChCollisionUtils::PointTriangleDistance(pB1, pA1, pA2, pA3, mu, mv, is_into, p_projected);
+        dist = utils::PointTriangleDistance(pB1, pA1, pA2, pA3, mu, mv, is_into, p_projected);
         if (is_into) {
             if (dist < max_allowed_dist && dist > min_allowed_dist) {
                 _add_contact(p_projected, pB1, dist, resultOut, offset_A, offset_B);
@@ -1707,7 +1707,7 @@ void btCEtriangleShapeCollisionAlgorithm::processCollision(const btCollisionObje
         }
     }
     if (triB->owns_v2()) {
-        dist = ChCollisionUtils::PointTriangleDistance(pB2, pA1, pA2, pA3, mu, mv, is_into, p_projected);
+        dist = utils::PointTriangleDistance(pB2, pA1, pA2, pA3, mu, mv, is_into, p_projected);
         if (is_into) {
             if (dist < max_allowed_dist && dist > min_allowed_dist) {
                 _add_contact(p_projected, pB2, dist, resultOut, offset_A, offset_B);
@@ -1720,7 +1720,7 @@ void btCEtriangleShapeCollisionAlgorithm::processCollision(const btCollisionObje
         }
     }
     if (triB->owns_v3()) {
-        dist = ChCollisionUtils::PointTriangleDistance(pB3, pA1, pA2, pA3, mu, mv, is_into, p_projected);
+        dist = utils::PointTriangleDistance(pB3, pA1, pA2, pA3, mu, mv, is_into, p_projected);
         if (is_into) {
             if (dist < max_allowed_dist && dist > min_allowed_dist) {
                 _add_contact(p_projected, pB3, dist, resultOut, offset_A, offset_B);
@@ -1813,7 +1813,7 @@ void btCEtriangleShapeCollisionAlgorithm::processCollision(const btCollisionObje
     // edge A1 vs edge B1
     if (triA->owns_e1() && triB->owns_e1())
         if (beta_A1 > beta_convex_limit && beta_B1 > beta_convex_limit) {
-            if (ChCollisionUtils::LineLineIntersect(pA1, pA2, pB1, pB2, &cA, &cB, &mu, &mv)) {
+            if (utils::LineLineIntersect(pA1, pA2, pB1, pB2, &cA, &cB, &mu, &mv)) {
                 D = cB - cA;
                 dist = D.Length();
                 if (dist < max_allowed_dist && dist > min_allowed_dist && mu > 0 && mu < 1 && mv > 0 && mv < 1) {
@@ -1834,7 +1834,7 @@ void btCEtriangleShapeCollisionAlgorithm::processCollision(const btCollisionObje
     // edge A1 vs edge B2
     if (triA->owns_e1() && triB->owns_e2())
         if (beta_A1 > beta_convex_limit && beta_B2 > beta_convex_limit) {
-            if (ChCollisionUtils::LineLineIntersect(pA1, pA2, pB2, pB3, &cA, &cB, &mu, &mv)) {
+            if (utils::LineLineIntersect(pA1, pA2, pB2, pB3, &cA, &cB, &mu, &mv)) {
                 D = cB - cA;
                 dist = D.Length();
                 if (dist < max_allowed_dist && dist > min_allowed_dist && mu > 0 && mu < 1 && mv > 0 && mv < 1) {
@@ -1856,7 +1856,7 @@ void btCEtriangleShapeCollisionAlgorithm::processCollision(const btCollisionObje
     // edge A1 vs edge B3
     if (triA->owns_e1() && triB->owns_e3())
         if (beta_A1 > beta_convex_limit && beta_B3 > beta_convex_limit) {
-            if (ChCollisionUtils::LineLineIntersect(pA1, pA2, pB3, pB1, &cA, &cB, &mu, &mv)) {
+            if (utils::LineLineIntersect(pA1, pA2, pB3, pB1, &cA, &cB, &mu, &mv)) {
                 D = cB - cA;
                 dist = D.Length();
                 if (dist < max_allowed_dist && dist > min_allowed_dist && mu > 0 && mu < 1 && mv > 0 && mv < 1) {
@@ -1878,7 +1878,7 @@ void btCEtriangleShapeCollisionAlgorithm::processCollision(const btCollisionObje
     // edge A2 vs edge B1
     if (triA->owns_e2() && triB->owns_e1())
         if (beta_A2 > beta_convex_limit && beta_B1 > beta_convex_limit) {
-            if (ChCollisionUtils::LineLineIntersect(pA2, pA3, pB1, pB2, &cA, &cB, &mu, &mv)) {
+            if (utils::LineLineIntersect(pA2, pA3, pB1, pB2, &cA, &cB, &mu, &mv)) {
                 D = cB - cA;
                 dist = D.Length();
                 if (dist < max_allowed_dist && dist > min_allowed_dist && mu > 0 && mu < 1 && mv > 0 && mv < 1) {
@@ -1900,7 +1900,7 @@ void btCEtriangleShapeCollisionAlgorithm::processCollision(const btCollisionObje
     // edge A2 vs edge B2
     if (triA->owns_e2() && triB->owns_e2())
         if (beta_A2 > beta_convex_limit && beta_B2 > beta_convex_limit) {
-            if (ChCollisionUtils::LineLineIntersect(pA2, pA3, pB2, pB3, &cA, &cB, &mu, &mv)) {
+            if (utils::LineLineIntersect(pA2, pA3, pB2, pB3, &cA, &cB, &mu, &mv)) {
                 D = cB - cA;
                 dist = D.Length();
                 if (dist < max_allowed_dist && dist > min_allowed_dist && mu > 0 && mu < 1 && mv > 0 && mv < 1) {
@@ -1922,7 +1922,7 @@ void btCEtriangleShapeCollisionAlgorithm::processCollision(const btCollisionObje
     // edge A2 vs edge B3
     if (triA->owns_e2() && triB->owns_e3())
         if (beta_A2 > beta_convex_limit && beta_B3 > beta_convex_limit) {
-            if (ChCollisionUtils::LineLineIntersect(pA2, pA3, pB3, pB1, &cA, &cB, &mu, &mv)) {
+            if (utils::LineLineIntersect(pA2, pA3, pB3, pB1, &cA, &cB, &mu, &mv)) {
                 D = cB - cA;
                 dist = D.Length();
                 if (dist < max_allowed_dist && dist > min_allowed_dist && mu > 0 && mu < 1 && mv > 0 && mv < 1) {
@@ -1944,7 +1944,7 @@ void btCEtriangleShapeCollisionAlgorithm::processCollision(const btCollisionObje
     // edge A3 vs edge B1
     if (triA->owns_e3() && triB->owns_e1())
         if (beta_A3 > beta_convex_limit && beta_B1 > beta_convex_limit) {
-            if (ChCollisionUtils::LineLineIntersect(pA3, pA1, pB1, pB2, &cA, &cB, &mu, &mv)) {
+            if (utils::LineLineIntersect(pA3, pA1, pB1, pB2, &cA, &cB, &mu, &mv)) {
                 D = cB - cA;
                 dist = D.Length();
                 if (dist < max_allowed_dist && dist > min_allowed_dist && mu > 0 && mu < 1 && mv > 0 && mv < 1) {
@@ -1966,7 +1966,7 @@ void btCEtriangleShapeCollisionAlgorithm::processCollision(const btCollisionObje
     // edge A3 vs edge B2
     if (triA->owns_e3() && triB->owns_e2())
         if (beta_A3 > beta_convex_limit && beta_B2 > beta_convex_limit) {
-            if (ChCollisionUtils::LineLineIntersect(pA3, pA1, pB2, pB3, &cA, &cB, &mu, &mv)) {
+            if (utils::LineLineIntersect(pA3, pA1, pB2, pB3, &cA, &cB, &mu, &mv)) {
                 D = cB - cA;
                 dist = D.Length();
                 if (dist < max_allowed_dist && dist > min_allowed_dist && mu > 0 && mu < 1 && mv > 0 && mv < 1) {
@@ -1988,7 +1988,7 @@ void btCEtriangleShapeCollisionAlgorithm::processCollision(const btCollisionObje
     // edge A3 vs edge B3
     if (triA->owns_e3() && triB->owns_e3())
         if (beta_A3 > beta_convex_limit && beta_B3 > beta_convex_limit) {
-            if (ChCollisionUtils::LineLineIntersect(pA3, pA1, pB3, pB1, &cA, &cB, &mu, &mv)) {
+            if (utils::LineLineIntersect(pA3, pA1, pB3, pB1, &cA, &cB, &mu, &mv)) {
                 D = cB - cA;
                 dist = D.Length();
                 if (dist < max_allowed_dist && dist > min_allowed_dist && mu > 0 && mu < 1 && mv > 0 && mv < 1) {
