@@ -220,7 +220,7 @@ std::shared_ptr<SynDDSSubscriber> SynDDSCommunicator::CreateSubscriber(const std
         return nullptr;
     }
 
-    return CreateSubscriber(topic, callback, message, is_synchronous);
+    return CreateSubscriber(topic, callback, message, is_synchronous, is_managed);
 }
 
 std::shared_ptr<SynDDSPublisher> SynDDSCommunicator::CreatePublisher(std::shared_ptr<SynDDSTopic> topic,
