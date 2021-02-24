@@ -141,6 +141,8 @@ class Copter {
     /// An empty string is returned if no mesh was specified.
     virtual const std::string& GetPropellerMeshFilename() const { return propeller_mesh_path; }
 
+	/// Rotates the whole copter given a 3x3 rotation matrix.
+    void RotateCopter(ChMatrix33<>& A);
   private:
     // Would need to be modified for special condition (e.g. Mars atmosphere)
     // This model holds below 11 km altitude.
@@ -230,6 +232,7 @@ Copter<nop>::Copter(ChSystem& sys,
 
         u_p[p] = 0;
         auto thrust = chrono_types::make_shared<ChForce>();
+        thrust->SetBody(prop.get());
         prop->AddForce(thrust);
         thrust->SetMode(ChForce::FORCE);
         thrust->SetMforce(0);
@@ -238,10 +241,11 @@ Copter<nop>::Copter(ChSystem& sys,
 
         auto backtorque = std::make_shared<ChForce>();
         backtorque->SetBody(prop.get());
+        prop->AddForce(backtorque);
         backtorque->SetMode(ChForce::TORQUE);
         backtorque->SetMforce(0);
         // Resistance Torque direction opposed to omega
-        ChVector<> tdir = (clockwise) ? up : -up;
+        ChVector<> tdir = (clockwise[p]) ? up : -up;
         backtorque->SetRelDir(tdir);
         backtorques.push_back(backtorque);
     }
@@ -321,7 +325,7 @@ void Copter<nop>::Update(double timestep) {
     for (int i = 0; i < nop; i++) {
         double rps = motors[i]->GetMotorRot_dt() / CH_C_2PI;
         thrusts[i]->SetMforce(Ct * rho * pow(rps, 2) * pow(Dp, 4));
-        backtorques[i]->SetMforce((1 / CH_C_2PI) * Cp * rho * pow(rps, 4) * pow(Dp, 5));
+        backtorques[i]->SetMforce((1 / CH_C_2PI) * Cp * rho * pow(rps, 2) * pow(Dp, 5));
     }
     // update linear drag / drag torque
     lin_drag->SetMforce(0.5 * Cd * Surf * rho * chassis->GetPos_dt().Length2());
@@ -337,6 +341,18 @@ void Copter<nop>::UpdateAirData() {
     Altitude = Altitude0 + (chassis->GetPos() ^ up - h0);
     Temp = Temp0 - (6.5 * (Altitude / 1000));
     pressure = pressure0 * pow((Temp0 / Temp), -5.255877);
+}
+
+template <int nop>
+void Copter<nop>::RotateCopter(ChMatrix33<>& A) {
+    ChMatrix33<> mrot = this->GetChassis()->GetA() * A.transpose();
+    this->GetChassis()->SetRot(mrot);
+    for (auto prop : this->GetProps()) {
+        ChMatrix33<> proprot = prop->GetA() * A.transpose();
+        prop->SetRot(proprot);
+        ChVector<> deltap = A * (prop->GetPos() - this->GetChassis()->GetPos());
+        prop->SetPos(prop->GetPos() + deltap);
+    }
 }
 
 /// @} robot_models_copter
