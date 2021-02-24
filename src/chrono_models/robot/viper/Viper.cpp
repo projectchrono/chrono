@@ -21,6 +21,7 @@
 #include <cmath>
 
 #include "chrono/assets/ChBoxShape.h"
+#include "chrono/physics/ChBodyEasy.h"
 #include "chrono/assets/ChColorAsset.h"
 #include "chrono/assets/ChCylinderShape.h"
 #include "chrono/assets/ChSphereShape.h"
@@ -95,7 +96,7 @@ void AddRevoluteJoint(std::shared_ptr<ChBodyAuxRef> body_1,
 
 // Add a rotational speed controlled motor between body 'steer' and body 'wheel'
 // rel_joint_pos and rel_joint_rot are the position and the rotation of the motor
-std::shared_ptr<ChLinkMotorRotationSpeed> AddMotor(std::shared_ptr<ChBodyAuxRef> steer,
+std::shared_ptr<ChLinkMotorRotationSpeed> AddMotor(std::shared_ptr<ChBody> steer,
                                                    std::shared_ptr<ChBodyAuxRef> wheel,
                                                    std::shared_ptr<ChBodyAuxRef> chassis,
                                                    ChSystem* system,
@@ -162,7 +163,7 @@ Viper_Part::Viper_Part(const std::string& name,
 // Create Visulization assets -> Finer mesh
 void Viper_Part::AddVisualizationAssets() {
     // Read mesh from the obj folder
-    std::string vis_mesh_file = "viper/obj/" + m_mesh_name + ".obj";
+    std::string vis_mesh_file = "robot/viper/obj/" + m_mesh_name + ".obj";
     auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
     trimesh->LoadWavefrontMesh(GetChronoDataFile(vis_mesh_file), true, false);
     trimesh->Transform(m_offset, ChMatrix33<>(1));
@@ -181,7 +182,7 @@ void Viper_Part::SetCollide(bool state) {
 // Add collision assets -> Rougher mesh
 void Viper_Part::AddCollisionShapes() {
     // read mesh from the col folder
-    std::string vis_mesh_file = "viper/col/" + m_mesh_name + ".obj";
+    std::string vis_mesh_file = "robot/viper/col/" + m_mesh_name + ".obj";
     auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
     trimesh->LoadWavefrontMesh(GetChronoDataFile(vis_mesh_file), true, false);
     trimesh->Transform(m_offset, ChMatrix33<>(1));
@@ -213,7 +214,7 @@ Viper_Chassis::Viper_Chassis(const std::string& name,
 }
 
 void Viper_Chassis::Initialize() {
-    std::string vis_mesh_file = "viper/obj/" + m_mesh_name + ".obj";
+    std::string vis_mesh_file = "robot/viper/obj/" + m_mesh_name + ".obj";
     auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
     trimesh->LoadWavefrontMesh(GetChronoDataFile(vis_mesh_file), false, false);
     trimesh->Transform(ChVector<>(0, 0, 0), ChMatrix33<>(1));  // scale to a different size
@@ -268,7 +269,7 @@ Viper_Wheel::Viper_Wheel(const std::string& name,
 }
 
 void Viper_Wheel::Initialize() {
-    std::string vis_mesh_file = "viper/obj/" + m_mesh_name + ".obj";
+    std::string vis_mesh_file = "robot/viper/obj/" + m_mesh_name + ".obj";
     auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
     trimesh->LoadWavefrontMesh(GetChronoDataFile(vis_mesh_file), false, false);
     trimesh->Transform(ChVector<>(0, 0, 0), ChMatrix33<>(1));  // scale to a different size
@@ -334,7 +335,7 @@ Viper_Up_Arm::Viper_Up_Arm(const std::string& name,
 }
 
 void Viper_Up_Arm::Initialize() {
-    std::string vis_mesh_file = "viper/obj/" + m_mesh_name + ".obj";
+    std::string vis_mesh_file = "robot/viper/obj/" + m_mesh_name + ".obj";
     auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
     trimesh->LoadWavefrontMesh(GetChronoDataFile(vis_mesh_file), false, false);
     trimesh->Transform(ChVector<>(0, 0, 0), ChMatrix33<>(1));  // scale to a different size
@@ -379,14 +380,14 @@ void Viper_Up_Arm::Translate(const ChVector<>& shift) {
 // ==========================================================
 // Viper Bottom Suspension Arm
 Viper_Bottom_Arm::Viper_Bottom_Arm(const std::string& name,
-                           bool fixed,
-                           std::shared_ptr<ChMaterialSurface> mat,
-                           ChSystem* system,
-                           const ChVector<>& body_pos,
-                           const ChQuaternion<>& body_rot,
-                           std::shared_ptr<ChBodyAuxRef> chassis,
-                           bool collide,
-                           const int& side)
+                                   bool fixed,
+                                   std::shared_ptr<ChMaterialSurface> mat,
+                                   ChSystem* system,
+                                   const ChVector<>& body_pos,
+                                   const ChQuaternion<>& body_rot,
+                                   std::shared_ptr<ChBodyAuxRef> chassis,
+                                   bool collide,
+                                   const int& side)
     : Viper_Part(name, fixed, mat, system, body_pos, body_rot, chassis, collide) {
     if (side == 0) {
         m_mesh_name = "viper_L_bt_sus";
@@ -400,7 +401,7 @@ Viper_Bottom_Arm::Viper_Bottom_Arm(const std::string& name,
 }
 
 void Viper_Bottom_Arm::Initialize() {
-    std::string vis_mesh_file = "viper/obj/" + m_mesh_name + ".obj";
+    std::string vis_mesh_file = "robot/viper/obj/" + m_mesh_name + ".obj";
     auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
     trimesh->LoadWavefrontMesh(GetChronoDataFile(vis_mesh_file), false, false);
     trimesh->Transform(ChVector<>(0, 0, 0), ChMatrix33<>(1));  // scale to a different size
@@ -466,7 +467,7 @@ Viper_Steer::Viper_Steer(const std::string& name,
 }
 
 void Viper_Steer::Initialize() {
-    std::string vis_mesh_file = "viper/obj/" + m_mesh_name + ".obj";
+    std::string vis_mesh_file = "robot/viper/obj/" + m_mesh_name + ".obj";
     auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
     trimesh->LoadWavefrontMesh(GetChronoDataFile(vis_mesh_file), false, false);
     trimesh->Transform(ChVector<>(0, 0, 0), ChMatrix33<>(1));  // scale to a different size
@@ -510,48 +511,37 @@ void Viper_Steer::Translate(const ChVector<>& shift) {
 
 // ==========================================================
 // Rover Class for the entire rover model
-ViperRover::ViperRover(ChSystem* system, 
-                    const ChVector<>& rover_pos, 
-                    const ChQuaternion<>& rover_rot, 
-                    std::shared_ptr<ChMaterialSurface> wheel_mat)
-    : m_system(system), m_rover_pos(rover_pos), m_rover_rot(rover_rot), m_wheel_material(wheel_mat), m_custom_wheel_mat(true){
-    Create();
-}
+ViperRover::ViperRover(ChSystem* system,
+                       const ChVector<>& rover_pos,
+                       const ChQuaternion<>& rover_rot,
+                       std::shared_ptr<ChMaterialSurface> wheel_mat)
+    : m_system(system),
+      m_rover_pos(rover_pos),
+      m_rover_rot(rover_rot),
+      m_wheel_material(wheel_mat) {
 
-ViperRover::ViperRover(ChSystem* system, 
-                    const ChVector<>& rover_pos, 
-                    const ChQuaternion<>& rover_rot)
-    : m_system(system), m_rover_pos(rover_pos), m_rover_rot(rover_rot), m_custom_wheel_mat(false){
+    // Set default collision model envelope commensurate with model dimensions.
+    // Note that an SMC system automatically sets envelope to 0.
+    auto contact_method = m_system->GetContactMethod();
+    if (contact_method == ChContactMethod::NSC) {
+        collision::ChCollisionModel::SetDefaultSuggestedEnvelope(0.01);
+        collision::ChCollisionModel::SetDefaultSuggestedMargin(0.005);
+    }
+
+    // Create the contact materials
+    m_chassis_material = DefaultContactMaterial(contact_method);
+    m_suspension_material = DefaultContactMaterial(contact_method);
+    m_steer_material = DefaultContactMaterial(contact_method);
+    if (!m_wheel_material)
+        m_wheel_material = DefaultContactMaterial(contact_method);
+
     Create();
 }
 
 ViperRover::~ViperRover() {}
 
 void ViperRover::Create() {
-    auto contact_method = m_system->GetContactMethod();
-
-    // Set default collision model envelope commensurate with model dimensions.
-    // Note that an SMC system automatically sets envelope to 0.
-    if (contact_method == ChContactMethod::NSC) {
-        collision::ChCollisionModel::SetDefaultSuggestedEnvelope(0.01);
-        collision::ChCollisionModel::SetDefaultSuggestedMargin(0.005);
-    }
-
-    if(m_custom_wheel_mat == true){
-        m_chassis_material = DefaultContactMaterial(contact_method);
-        m_suspension_material = DefaultContactMaterial(contact_method);
-        m_steer_material = DefaultContactMaterial(contact_method);
-    }else{
-        // Create the contact materials (all with default properties)
-        m_chassis_material = DefaultContactMaterial(contact_method);
-        m_wheel_material = DefaultContactMaterial(contact_method);
-        m_suspension_material = DefaultContactMaterial(contact_method);
-        m_steer_material = DefaultContactMaterial(contact_method);
-    }
-
-
     // initialize rover chassis
-    ChQuaternion<> body_rot;
     m_chassis = chrono_types::make_shared<Viper_Chassis>("chassis", false, m_chassis_material, m_system, m_rover_pos,
                                                          m_rover_rot, false);
 
@@ -559,136 +549,62 @@ void ViperRover::Create() {
     double w_lx = 0.5618 + 0.08;
     double w_ly = 0.2067 + 0.32 + 0.0831;
     double w_lz = 0.0;
-    ChVector<> wheel_rel_pos_lf = ChVector<>(w_lx, w_ly, w_lz);
-    ChVector<> wheel_rel_pos_rf = ChVector<>(w_lx, -w_ly, w_lz);
-    ChVector<> wheel_rel_pos_lb = ChVector<>(-w_lx, w_ly, w_lz);
-    ChVector<> wheel_rel_pos_rb = ChVector<>(-w_lx, -w_ly, w_lz);
-    {
-        ChVector<> wheel_pos;
-        ChQuaternion<> wheel_rot_ori = ChQuaternion<>(1, 0, 0, 0);
-        ChQuaternion<> wheel_rot_ori_pi;
-        wheel_rot_ori_pi = Q_from_Euler123(ChVector<double>(0, 0, CH_C_PI));
 
-        for (int i = 0; i < 4; i++) {
-            if (i == 0) {
-                wheel_pos = wheel_rel_pos_lf;
-            }
-            if (i == 1) {
-                wheel_pos = wheel_rel_pos_rf;
-            }
-            if (i == 2) {
-                wheel_pos = wheel_rel_pos_lb;
-            }
-            if (i == 3) {
-                wheel_pos = wheel_rel_pos_rb;
-            }
-            std::shared_ptr<Viper_Wheel> m_wheel;
-            if (i == 1 || i == 3) {
-                m_wheel = chrono_types::make_shared<Viper_Wheel>("wheel", false, m_wheel_material, m_system, wheel_pos,
-                                                                 wheel_rot_ori, m_chassis->GetBody(), true);
-            } else {
-                m_wheel = chrono_types::make_shared<Viper_Wheel>("wheel", false, m_wheel_material, m_system, wheel_pos,
-                                                                 wheel_rot_ori_pi, m_chassis->GetBody(), true);
-            }
-            m_wheels.push_back(m_wheel);
-        }
-    }
+    m_wheels.push_back(chrono_types::make_shared<Viper_Wheel>("wheelLF", false, m_wheel_material, m_system,
+                                                              ChVector<>(+w_lx, +w_ly, w_lz), Q_from_AngZ(CH_C_PI),
+                                                              m_chassis->GetBody(), true));
+    m_wheels.push_back(chrono_types::make_shared<Viper_Wheel>("wheelRF", false, m_wheel_material, m_system,
+                                                              ChVector<>(+w_lx, -w_ly, w_lz), QUNIT,
+                                                              m_chassis->GetBody(), true));
+    m_wheels.push_back(chrono_types::make_shared<Viper_Wheel>("wheelLB", false, m_wheel_material, m_system,
+                                                              ChVector<>(-w_lx, +w_ly, w_lz), Q_from_AngZ(CH_C_PI),
+                                                              m_chassis->GetBody(), true));
+    m_wheels.push_back(chrono_types::make_shared<Viper_Wheel>("wheelRB", false, m_wheel_material, m_system,
+                                                              ChVector<>(-w_lx, -w_ly, w_lz), QUNIT,
+                                                              m_chassis->GetBody(), true));
 
     // initialize rover up and bottom suspensions
     double cr_lx = 0.5618 + 0.08;
     double cr_ly = 0.2067;  // + 0.32/2;
     double cr_lz = 0.0525;
-    ChVector<> cr_rel_pos_lf_lower = ChVector<>(cr_lx, cr_ly, -cr_lz);
-    ChVector<> cr_rel_pos_rf_lower = ChVector<>(cr_lx, -cr_ly, -cr_lz);
-    ChVector<> cr_rel_pos_lb_lower = ChVector<>(-cr_lx, cr_ly, -cr_lz);
-    ChVector<> cr_rel_pos_rb_lower = ChVector<>(-cr_lx, -cr_ly, -cr_lz);
-    ChVector<> cr_rel_pos_lf_upper = ChVector<>(cr_lx, cr_ly, cr_lz);
-    ChVector<> cr_rel_pos_rf_upper = ChVector<>(cr_lx, -cr_ly, cr_lz);
-    ChVector<> cr_rel_pos_lb_upper = ChVector<>(-cr_lx, cr_ly, cr_lz);
-    ChVector<> cr_rel_pos_rb_upper = ChVector<>(-cr_lx, -cr_ly, cr_lz);
-    {
-        ChVector<> sus_rel_pos;
-        ChQuaternion<> sus_rel_rot = ChQuaternion<>(1, 0, 0, 0);
-        for (int i = 0; i < 8; i++) {
-            if (i == 0) {
-                sus_rel_pos = cr_rel_pos_lf_lower;
-            }
-            if (i == 1) {
-                sus_rel_pos = cr_rel_pos_rf_lower;
-            }
-            if (i == 2) {
-                sus_rel_pos = cr_rel_pos_lb_lower;
-            }
-            if (i == 3) {
-                sus_rel_pos = cr_rel_pos_rb_lower;
-            }
-            if (i == 4) {
-                sus_rel_pos = cr_rel_pos_lf_upper;
-            }
-            if (i == 5) {
-                sus_rel_pos = cr_rel_pos_rf_upper;
-            }
-            if (i == 6) {
-                sus_rel_pos = cr_rel_pos_lb_upper;
-            }
-            if (i == 7) {
-                sus_rel_pos = cr_rel_pos_rb_upper;
-            }
-            int side = i % 2;
-            if (i < 4) {
-                std::shared_ptr<Viper_Bottom_Arm> m_bt_sus = chrono_types::make_shared<Viper_Bottom_Arm>(
-                    "bt_sus", false, m_suspension_material, m_system, sus_rel_pos, sus_rel_rot, m_chassis->GetBody(),
-                    false, side);
-                m_bts_suss.push_back(m_bt_sus);
-            } else {
-                std::shared_ptr<Viper_Up_Arm> m_up_sus = chrono_types::make_shared<Viper_Up_Arm>(
-                    "up_sus", false, m_suspension_material, m_system, sus_rel_pos, sus_rel_rot, m_chassis->GetBody(),
-                    false, side);
-                m_up_suss.push_back(m_up_sus);
-            }
-        }
+
+    ChVector<> cr_rel_pos_lower[] = {
+        ChVector<>(+cr_lx, +cr_ly, -cr_lz),  // LF
+        ChVector<>(+cr_lx, -cr_ly, -cr_lz),  // RF
+        ChVector<>(-cr_lx, +cr_ly, -cr_lz),  // LB
+        ChVector<>(-cr_lx, -cr_ly, -cr_lz)   // RB
+    };
+
+    ChVector<> cr_rel_pos_upper[] = {
+        ChVector<>(+cr_lx, +cr_ly, cr_lz),  // LF
+        ChVector<>(+cr_lx, -cr_ly, cr_lz),  // RF
+        ChVector<>(-cr_lx, +cr_ly, cr_lz),  // LB
+        ChVector<>(-cr_lx, -cr_ly, cr_lz)   // RB
+    };
+
+    for (int i = 0; i < 4; i++) {
+        m_bts_suss.push_back(chrono_types::make_shared<Viper_Bottom_Arm>("bt_sus", false, m_suspension_material,
+                                                                         m_system, cr_rel_pos_lower[i], QUNIT,
+                                                                         m_chassis->GetBody(), false, i % 2));
+        m_up_suss.push_back(chrono_types::make_shared<Viper_Up_Arm>("up_sus", false, m_suspension_material, m_system,
+                                                                    cr_rel_pos_upper[i], QUNIT, m_chassis->GetBody(),
+                                                                    false, i % 2));
     }
 
     // initialize steering rod
     double sr_lx = 0.5618 + 0.08;
     double sr_ly = 0.2067 + 0.32 + 0.0831;
     double sr_lz = 0.0;
-    double sr_ly_joint = 0.2067 + 0.32;
-    ChVector<> sr_rel_pos_lf = ChVector<>(sr_lx, sr_ly, sr_lz);
-    ChVector<> sr_rel_pos_rf = ChVector<>(sr_lx, -sr_ly, sr_lz);
-    ChVector<> sr_rel_pos_lb = ChVector<>(-sr_lx, sr_ly, sr_lz);
-    ChVector<> sr_rel_pos_rb = ChVector<>(-sr_lx, -sr_ly, sr_lz);
+    ChVector<> sr_rel_pos[] = {
+        ChVector<>(+sr_lx, +sr_ly, -cr_lz),  // LF
+        ChVector<>(+sr_lx, -sr_ly, -cr_lz),  // RF
+        ChVector<>(-sr_lx, +sr_ly, -cr_lz),  // LB
+        ChVector<>(-sr_lx, -sr_ly, -cr_lz)   // RB
+    };
 
-    ChVector<> sr_rel_pos_lf_lower = ChVector<>(sr_lx, sr_ly_joint, -cr_lz);
-    ChVector<> sr_rel_pos_rf_lower = ChVector<>(sr_lx, -sr_ly_joint, -cr_lz);
-    ChVector<> sr_rel_pos_lb_lower = ChVector<>(-sr_lx, sr_ly_joint, -cr_lz);
-    ChVector<> sr_rel_pos_rb_lower = ChVector<>(-sr_lx, -sr_ly_joint, -cr_lz);
-    ChVector<> sr_rel_pos_lf_upper = ChVector<>(sr_lx, sr_ly_joint, cr_lz);
-    ChVector<> sr_rel_pos_rf_upper = ChVector<>(sr_lx, -sr_ly_joint, cr_lz);
-    ChVector<> sr_rel_pos_lb_upper = ChVector<>(-sr_lx, sr_ly_joint, cr_lz);
-    ChVector<> sr_rel_pos_rb_upper = ChVector<>(-sr_lx, -sr_ly_joint, cr_lz);
-    {
-        ChVector<> steer_rel_pos;
-        ChQuaternion<> steer_rel_rot = ChQuaternion<>(1, 0, 0, 0);
-        for (int i = 0; i < 4; i++) {
-            if (i == 0) {
-                steer_rel_pos = sr_rel_pos_lf;
-            }
-            if (i == 1) {
-                steer_rel_pos = sr_rel_pos_rf;
-            }
-            if (i == 2) {
-                steer_rel_pos = sr_rel_pos_lb;
-            }
-            if (i == 3) {
-                steer_rel_pos = sr_rel_pos_rb;
-            }
-            int side = i % 2;
-            std::shared_ptr<Viper_Steer> m_steer =
-                chrono_types::make_shared<Viper_Steer>("steering", false, m_steer_material, m_system, steer_rel_pos,
-                                                       steer_rel_rot, m_chassis->GetBody(), false, side);
-            m_steers.push_back(m_steer);
-        }
+    for (int i = 0; i < 4; i++) {
+        m_steers.push_back(chrono_types::make_shared<Viper_Steer>(
+            "steering", false, m_steer_material, m_system, sr_rel_pos[i], QUNIT, m_chassis->GetBody(), false, i % 2));
     }
 }
 
@@ -716,98 +632,86 @@ void ViperRover::Initialize() {
     double w_ly = 0.2067 + 0.32 + 0.0831;
     double w_lz = 0.0;
 
-    ChVector<> wheel_rel_pos_lf = ChVector<>(w_lx, w_ly, w_lz);
-    ChVector<> wheel_rel_pos_rf = ChVector<>(w_lx, -w_ly, w_lz);
-    ChVector<> wheel_rel_pos_lb = ChVector<>(-w_lx, w_ly, w_lz);
-    ChVector<> wheel_rel_pos_rb = ChVector<>(-w_lx, -w_ly, w_lz);
+    ChVector<> wheel_rel_pos[] = {
+        ChVector<>(+w_lx, +w_ly, w_lz),  // LF
+        ChVector<>(+w_lx, -w_ly, w_lz),  // RF
+        ChVector<>(-w_lx, +w_ly, w_lz),  // LB
+        ChVector<>(-w_lx, -w_ly, w_lz)   // RB
+    };
 
-    ChVector<> sr_rel_pos_lf = ChVector<>(sr_lx, sr_ly, sr_lz);
-    ChVector<> sr_rel_pos_rf = ChVector<>(sr_lx, -sr_ly, sr_lz);
-    ChVector<> sr_rel_pos_lb = ChVector<>(-sr_lx, sr_ly, sr_lz);
-    ChVector<> sr_rel_pos_rb = ChVector<>(-sr_lx, -sr_ly, sr_lz);
+    ChVector<> sr_rel_pos_lower[] = {
+        ChVector<>(+sr_lx, +sr_ly_joint, -cr_lz),  // LF
+        ChVector<>(+sr_lx, -sr_ly_joint, -cr_lz),  // RF
+        ChVector<>(-sr_lx, +sr_ly_joint, -cr_lz),  // LB
+        ChVector<>(-sr_lx, -sr_ly_joint, -cr_lz)   // RB
+    };
 
-    ChVector<> sr_rel_pos_lf_lower = ChVector<>(sr_lx, sr_ly_joint, -cr_lz);
-    ChVector<> sr_rel_pos_rf_lower = ChVector<>(sr_lx, -sr_ly_joint, -cr_lz);
-    ChVector<> sr_rel_pos_lb_lower = ChVector<>(-sr_lx, sr_ly_joint, -cr_lz);
-    ChVector<> sr_rel_pos_rb_lower = ChVector<>(-sr_lx, -sr_ly_joint, -cr_lz);
-    ChVector<> sr_rel_pos_lf_upper = ChVector<>(sr_lx, sr_ly_joint, cr_lz);
-    ChVector<> sr_rel_pos_rf_upper = ChVector<>(sr_lx, -sr_ly_joint, cr_lz);
-    ChVector<> sr_rel_pos_lb_upper = ChVector<>(-sr_lx, sr_ly_joint, cr_lz);
-    ChVector<> sr_rel_pos_rb_upper = ChVector<>(-sr_lx, -sr_ly_joint, cr_lz);
+    ChVector<> sr_rel_pos_upper[] = {
+        ChVector<>(+sr_lx, +sr_ly_joint, cr_lz),  // LF
+        ChVector<>(+sr_lx, -sr_ly_joint, cr_lz),  // RF
+        ChVector<>(-sr_lx, +sr_ly_joint, cr_lz),  // LB
+        ChVector<>(-sr_lx, -sr_ly_joint, cr_lz)   // RB
+    };
 
-    ChVector<> cr_rel_pos_lf_lower = ChVector<>(cr_lx, cr_ly, -cr_lz);
-    ChVector<> cr_rel_pos_rf_lower = ChVector<>(cr_lx, -cr_ly, -cr_lz);
-    ChVector<> cr_rel_pos_lb_lower = ChVector<>(-cr_lx, cr_ly, -cr_lz);
-    ChVector<> cr_rel_pos_rb_lower = ChVector<>(-cr_lx, -cr_ly, -cr_lz);
-    ChVector<> cr_rel_pos_lf_upper = ChVector<>(cr_lx, cr_ly, cr_lz);
-    ChVector<> cr_rel_pos_rf_upper = ChVector<>(cr_lx, -cr_ly, cr_lz);
-    ChVector<> cr_rel_pos_lb_upper = ChVector<>(-cr_lx, cr_ly, cr_lz);
-    ChVector<> cr_rel_pos_rb_upper = ChVector<>(-cr_lx, -cr_ly, cr_lz);
+    ChVector<> cr_rel_pos_lower[] = {
+        ChVector<>(+cr_lx, +cr_ly, -cr_lz),  // LF
+        ChVector<>(+cr_lx, -cr_ly, -cr_lz),  // RF
+        ChVector<>(-cr_lx, +cr_ly, -cr_lz),  // LB
+        ChVector<>(-cr_lx, -cr_ly, -cr_lz)   // RB
+    };
 
-    {
-        for (int i = 0; i < 4; i++) {
-            // pick up relative position of wheel and conecting rod to the body
-            ChVector<> CR_Rel_pos_Lower;
-            ChVector<> CR_Rel_pos_Upper;
-            ChVector<> SR_Rel_pos_Lower;
-            ChVector<> SR_Rel_pos_Upper;
-            ChVector<> Wheel_Rel_pos;
-            if (i == 0) {
-                Wheel_Rel_pos = wheel_rel_pos_lf;
-                CR_Rel_pos_Lower = cr_rel_pos_lf_lower;
-                CR_Rel_pos_Upper = cr_rel_pos_lf_upper;
-                SR_Rel_pos_Lower = sr_rel_pos_lf_lower;
-                SR_Rel_pos_Upper = sr_rel_pos_lf_upper;
-            }
-            if (i == 1) {
-                Wheel_Rel_pos = wheel_rel_pos_rf;
-                CR_Rel_pos_Lower = cr_rel_pos_rf_lower;
-                CR_Rel_pos_Upper = cr_rel_pos_rf_upper;
-                SR_Rel_pos_Lower = sr_rel_pos_rf_lower;
-                SR_Rel_pos_Upper = sr_rel_pos_rf_upper;
-            }
-            if (i == 2) {
-                Wheel_Rel_pos = wheel_rel_pos_lb;
-                CR_Rel_pos_Lower = cr_rel_pos_lb_lower;
-                CR_Rel_pos_Upper = cr_rel_pos_lb_upper;
-                SR_Rel_pos_Lower = sr_rel_pos_lb_lower;
-                SR_Rel_pos_Upper = sr_rel_pos_lb_upper;
-            }
-            if (i == 3) {
-                Wheel_Rel_pos = wheel_rel_pos_rb;
-                CR_Rel_pos_Lower = cr_rel_pos_rb_lower;
-                CR_Rel_pos_Upper = cr_rel_pos_rb_upper;
-                SR_Rel_pos_Lower = sr_rel_pos_rb_lower;
-                SR_Rel_pos_Upper = sr_rel_pos_rb_upper;
-            }
+    ChVector<> cr_rel_pos_upper[] = {
+        ChVector<>(+cr_lx, +cr_ly, cr_lz),  // LF
+        ChVector<>(+cr_lx, -cr_ly, cr_lz),  // RF
+        ChVector<>(-cr_lx, +cr_ly, cr_lz),  // LB
+        ChVector<>(-cr_lx, -cr_ly, cr_lz)   // RB
+    };
 
-            ChQuaternion<> z2x;
-            z2x.Q_from_AngAxis(-CH_C_PI / 2, ChVector<>(0, 1, 0));
+    for (int i = 0; i < 4; i++) {
+        ChQuaternion<> z2x;
+        z2x.Q_from_AngAxis(-CH_C_PI / 2, ChVector<>(0, 1, 0));
 
-            AddRevoluteJoint(m_chassis->GetBody(), m_bts_suss[i]->GetBody(), m_chassis->GetBody(), m_system,
-                             CR_Rel_pos_Lower, z2x);
-            AddRevoluteJoint(m_chassis->GetBody(), m_up_suss[i]->GetBody(), m_chassis->GetBody(), m_system,
-                             CR_Rel_pos_Upper, z2x);
-            AddRevoluteJoint(m_bts_suss[i]->GetBody(), m_steers[i]->GetBody(), m_chassis->GetBody(), m_system,
-                             SR_Rel_pos_Lower, z2x);
-            AddRevoluteJoint(m_up_suss[i]->GetBody(), m_steers[i]->GetBody(), m_chassis->GetBody(), m_system,
-                             SR_Rel_pos_Upper, z2x);
+        AddRevoluteJoint(m_chassis->GetBody(), m_bts_suss[i]->GetBody(), m_chassis->GetBody(), m_system,
+                         cr_rel_pos_lower[i], z2x);
+        AddRevoluteJoint(m_chassis->GetBody(), m_up_suss[i]->GetBody(), m_chassis->GetBody(), m_system,
+                         cr_rel_pos_upper[i], z2x);
+        AddRevoluteJoint(m_bts_suss[i]->GetBody(), m_steers[i]->GetBody(), m_chassis->GetBody(), m_system,
+                         sr_rel_pos_lower[i], z2x);
+        AddRevoluteJoint(m_up_suss[i]->GetBody(), m_steers[i]->GetBody(), m_chassis->GetBody(), m_system,
+                         sr_rel_pos_upper[i], z2x);
 
-            ChQuaternion<> z2y;
-            z2y.Q_from_AngAxis(CH_C_PI / 2, ChVector<>(1, 0, 0));
+        auto steer_rod = chrono_types::make_shared<ChBodyEasyBox>(0.1, 0.1, 0.1, 1000, true, false,
+                                                                  DefaultContactMaterial(m_system->GetContactMethod()));
 
-            // initialize and store the const speed function
-            auto const_speed_function = chrono_types::make_shared<ChFunction_Const>(CH_C_PI);  // speed w=3.145 rad/sec
+        const ChFrame<>& X_GP = m_chassis->GetBody()->GetFrame_REF_to_abs();
+        ChFrame<> X_PC(wheel_rel_pos[i], ChQuaternion<>(1, 0, 0, 0));
+        ChFrame<> X_GC = X_GP * X_PC;
 
-            m_motors_func.push_back(const_speed_function);
+        steer_rod->SetPos(X_GC.GetCoord().pos);
+        steer_rod->SetBodyFixed(false);
+        steer_rod->SetCollide(false);
+        m_system->Add(steer_rod);
 
-            m_motors.push_back(AddMotor(m_steers[i]->GetBody(), m_wheels[i]->GetBody(), m_chassis->GetBody(), m_system,
-                                        Wheel_Rel_pos, z2y, const_speed_function));
+        ChQuaternion<> z2y;
+        z2y.Q_from_AngAxis(CH_C_PI / 2, ChVector<>(1, 0, 0));
 
-            // after motors are set, get speed function and store then in private fields
-            m_sus_springs.push_back(AddSuspensionSpring(m_chassis->GetBody(), m_steers[i]->GetBody(), m_system,
-                                                        CR_Rel_pos_Upper, SR_Rel_pos_Lower));
-        }
+        // initialize and store the const speed function
+        auto const_speed_function = chrono_types::make_shared<ChFunction_Const>(CH_C_PI);  // speed w=3.145 rad/sec
+
+        auto const_steer_speed_function = chrono_types::make_shared<ChFunction_Const>(0.0);
+
+        m_motors_func.push_back(const_speed_function);
+        m_steer_motors_func.push_back(const_steer_speed_function);
+
+        m_motors.push_back(AddMotor(steer_rod, m_wheels[i]->GetBody(), m_chassis->GetBody(), m_system, wheel_rel_pos[i],
+                                    z2y, const_speed_function));
+
+        m_steer_motors.push_back(AddMotor(steer_rod, m_steers[i]->GetBody(), m_chassis->GetBody(), m_system,
+                                          wheel_rel_pos[i], ChQuaternion<>(1, 0, 0, 0), const_steer_speed_function));
+
+        // after motors are set, get speed function and store then in private fields
+        m_sus_springs.push_back(AddSuspensionSpring(m_chassis->GetBody(), m_steers[i]->GetBody(), m_system,
+                                                    cr_rel_pos_upper[i], sr_rel_pos_lower[i]));
     }
 }
 
@@ -861,6 +765,110 @@ double ViperRover::GetRoverMass() {
 
 double ViperRover::GetWheelMass() {
     return m_wheels[0]->GetBody()->GetMass();
+}
+
+std::shared_ptr<ChFunction_Const> ViperRover::GetMainMotorFunc(WheelID id) {
+    return m_motors_func[id];
+}
+
+std::shared_ptr<ChFunction_Const> ViperRover::GetSteerMotorFunc(WheelID id) {
+    return m_steer_motors_func[id];
+}
+
+std::shared_ptr<ChLinkMotorRotationSpeed> ViperRover::GetMainMotorLink(WheelID id) {
+    return m_motors[id];
+}
+
+std::shared_ptr<ChLinkMotorRotationSpeed> ViperRover::GetSteerMotorLink(WheelID id) {
+    return m_steer_motors[id];
+}
+
+void ViperRover::SetTurn(TurnSig id, double turn_speed) {
+    // maximum valid turn_speed input is 4 * CH_C_PI
+    std::cout << "turn_speed:" << turn_speed << std::endl;
+    if (std::abs(turn_speed) > 4 * CH_C_PI) {
+        std::cout << "FATAL ERROR, STEERING SPEED CANNOT EXCEED 4*PI" << std::endl;
+        return;
+    }
+
+    switch (id) {
+        case TurnSig::LEFT:
+            for (int i = 0; i < 4; i++) {
+                if (i == 0 || i == 1) {
+                    m_steer_motors_func[i]->Set_yconst(turn_speed);
+                } else {
+                    m_steer_motors_func[i]->Set_yconst(-turn_speed);
+                }
+            }
+            break;
+
+        case TurnSig::RIGHT:
+            for (int i = 0; i < 4; i++) {
+                if (i == 0 || i == 1) {
+                    m_steer_motors_func[i]->Set_yconst(-turn_speed);
+                } else {
+                    m_steer_motors_func[i]->Set_yconst(turn_speed);
+                }
+            }
+            break;
+
+        case TurnSig::HOLD:
+            for (int i = 0; i < 4; i++) {
+                m_steer_motors_func[i]->Set_yconst(0.0);
+            }
+            break;
+
+        default:
+            break;
+    }
+    cur_turn_state = id;
+}
+
+// turning angle ranges from -pi/3 to pi/3
+double ViperRover::GetTurnAngle() const {
+    return 2 * (m_steer_motors[0]->GetMotorRot());
+}
+
+TurnSig ViperRover::GetTurnState() const {
+    return cur_turn_state;
+}
+
+void ViperRover::Update() {
+    switch (cur_turn_state) {
+        case TurnSig::LEFT:
+            for (int i = 0; i < 4; i++) {
+                if (i == 0 || i == 1) {
+                    if (m_steer_motors[i]->GetMotorRot() > CH_C_PI / 6) {
+                        m_steer_motors_func[i]->Set_yconst(0.0);
+                    }
+                } else {
+                    if (m_steer_motors[i]->GetMotorRot() < -CH_C_PI / 6) {
+                        m_steer_motors_func[i]->Set_yconst(0.0);
+                    }
+                }
+            }
+            break;
+
+        case TurnSig::RIGHT:
+            for (int i = 0; i < 4; i++) {
+                if (i == 0 || i == 1) {
+                    if (m_steer_motors[i]->GetMotorRot() < -CH_C_PI / 6) {
+                        m_steer_motors_func[i]->Set_yconst(0.0);
+                    }
+                } else {
+                    if (m_steer_motors[i]->GetMotorRot() > CH_C_PI / 6) {
+                        m_steer_motors_func[i]->Set_yconst(0.0);
+                    }
+                }
+            }
+            break;
+
+        case TurnSig::HOLD:
+            break;
+
+        default:
+            break;
+    }
 }
 
 }  // namespace viper

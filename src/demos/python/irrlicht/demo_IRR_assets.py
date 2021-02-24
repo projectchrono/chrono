@@ -181,13 +181,13 @@ mlevelA = chrono.ChAssetLevel()
 # ==Asset== Attach, in this level, a 'Wavefront mesh' asset,
 # referencing a .obj file:
 mobjmesh = chrono.ChObjShapeFile()
-mobjmesh.SetFilename(chrono.GetChronoDataFile('forklift_body.obj'))
+mobjmesh.SetFilename(chrono.GetChronoDataFile('models/forklift/body.obj'))
 mlevelA.AddAsset(mobjmesh)
 
 # ==Asset== Attach also a texture, taht will affect only the
 # assets in mlevelA:
 mtexture = chrono.ChTexture()
-mtexture.SetTextureFilename(chrono.GetChronoDataFile('bluwhite.png'))
+mtexture.SetTextureFilename(chrono.GetChronoDataFile('textures/bluewhite.png'))
 mlevelA.AddAsset(mtexture)
 
 # Change the position of mlevelA, thus moving also its sub-assets:

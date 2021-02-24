@@ -3,6 +3,7 @@
 #include "chrono_synchrono/SynConfig.h"
 #include "chrono_synchrono/utils/SynLog.h"
 #include "chrono_synchrono/agent/SynAgentFactory.h"
+#include "chrono_synchrono/flatbuffer/message/SynSimulationMessage.h"
 
 #ifdef CHRONO_FASTDDS
 #undef ALIVE
@@ -42,7 +43,7 @@ void RegisterParticipant(std::shared_ptr<SynCommunicator> communicator, const st
 #endif
 
 SynChronoManager::SynChronoManager(SynNodeID nid, SynAgentNum num_nodes, std::shared_ptr<SynCommunicator> communicator)
-    : m_nid(nid), m_num_nodes(num_nodes), m_initialized(false), m_heartbeat(1e-2), m_next_sync(0.0) {
+    : m_is_ok(true), m_initialized(false), m_nid(nid), m_num_nodes(num_nodes), m_heartbeat(1e-2), m_next_sync(0.0) {
     if (communicator)
         SetCommunicator(communicator);
 
@@ -201,6 +202,14 @@ void SynChronoManager::UpdateAgents() {
         agent_pair.second->Update();
 }
 
+void SynChronoManager::QuitSimulation() {
+    if (m_is_ok) {
+        m_communicator->AddQuitMessage();
+        m_communicator->Synchronize();
+        m_is_ok = false;
+    }
+}
+
 // --------------------------------------------------------------------------------------------------------------
 
 SynMessageList SynChronoManager::GatherMessages() {
@@ -228,12 +237,12 @@ void SynChronoManager::ProcessReceivedMessages() {
     SynMessageList messages = m_communicator->GetMessages();
 
     for (auto message : messages) {
-        /// Check the messages intended destination
-        SynAgentID destination_id = message->GetDestinationID();
-
-        /// TODO: Sort into the intended destination
-        for (auto& agent_pair : m_agents) {
-            m_messages[agent_pair.second].push_back(message);
+        if (message->GetMessageType() == SynFlatBuffers::Type_Simulation_State) {
+            auto sim_msg = std::dynamic_pointer_cast<SynSimulationMessage>(message);
+            m_is_ok = !(sim_msg->m_quit_sim);
+        } else {
+            for (auto& agent_pair : m_agents)
+                m_messages[agent_pair.second].push_back(message);
         }
     }
 }

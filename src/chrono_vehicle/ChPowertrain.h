@@ -62,6 +62,9 @@ class CH_VEHICLE_API ChPowertrain : public ChPart {
     /// Return the output torque from the torque converter.
     virtual double GetTorqueConverterOutputTorque() const = 0;
 
+    /// Return the torque converter output shaft speed.
+    virtual double GetTorqueConverterOutputSpeed() const = 0;
+
     /// Return the current transmission gear.
     virtual int GetCurrentTransmissionGear() const = 0;
 

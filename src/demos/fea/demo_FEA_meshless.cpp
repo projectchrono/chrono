@@ -57,7 +57,7 @@ int main(int argc, char* argv[]) {
     mfloorBody->SetBodyFixed(true);
     mfloorBody->SetPos(ChVector<>(0, -5, 0));
 
-    ChSharedPtr<ChTexture> mtexture( new ChTexture(GetChronoDataFile("concrete.jpg").c_str()));
+    ChSharedPtr<ChTexture> mtexture( new ChTexture(GetChronoDataFile("textures/concrete.jpg").c_str()));
     mfloorBody->AddAsset(mtexture);
 
    

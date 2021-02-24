@@ -118,7 +118,7 @@ body_floor_shape.GetBoxGeometry().Size = chrono.ChVectorD(3, 1, 3)
 body_floor.GetAssets().push_back(body_floor_shape)
 
 body_floor_texture = chrono.ChTexture()
-body_floor_texture.SetTextureFilename(chrono.GetChronoDataFile('concrete.jpg'))
+body_floor_texture.SetTextureFilename(chrono.GetChronoDataFile('textures/concrete.jpg'))
 body_floor.GetAssets().push_back(body_floor_texture)
 
 my_system.Add(body_floor)
@@ -147,7 +147,7 @@ body_table_shape.SetColor(chrono.ChColor(0.4,0.4,0.5))
 body_table.GetAssets().push_back(body_table_shape)
 
 body_table_texture = chrono.ChTexture()
-body_table_texture.SetTextureFilename(chrono.GetChronoDataFile('concrete.jpg'))
+body_table_texture.SetTextureFilename(chrono.GetChronoDataFile('textures/concrete.jpg'))
 body_table.GetAssets().push_back(body_table_texture)
 
 my_system.Add(body_table)

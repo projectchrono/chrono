@@ -17,7 +17,7 @@
         "Cylinder Material": {
             // Material for sprocket contact surfaces
             "Coefficient of Friction": 0.8,
-            "Coefficient of Restitution": 0.1,
+            "Coefficient of Restitution": 0.75,
             "Properties": {
                 "Young Modulus": 1e7,
                 "Poisson Ratio": 0.3
@@ -34,7 +34,7 @@
             {
                 // Material 0: pad bottom (ground contact)
                 "Coefficient of Friction": 0.8,
-                "Coefficient of Restitution": 0.1,
+                "Coefficient of Restitution": 0.75,
                 "Properties": {
                     "Young Modulus": 1e7,
                     "Poisson Ratio": 0.3
@@ -49,7 +49,7 @@
             {
                 // Material 1: pad top (wheel contact)
                 "Coefficient of Friction": 0.8,
-                "Coefficient of Restitution": 0.1,
+                "Coefficient of Restitution": 0.75,
                 "Properties": {
                     "Young Modulus": 1e7,
                     "Poisson Ratio": 0.3
@@ -65,7 +65,7 @@
             {
                 // Material 2: guide pin (wheel contact)
                 "Coefficient of Friction": 0.8,
-                "Coefficient of Restitution": 0.1,
+                "Coefficient of Restitution": 0.75,
                 "Properties": {
                     "Young Modulus": 1e7,
                     "Poisson Ratio": 0.3

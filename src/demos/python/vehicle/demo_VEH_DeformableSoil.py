@@ -78,7 +78,7 @@ body.SetPos(tire_center + chrono.ChVectorD(0, 0.3, 0))
 
 # Load mesh
 mesh = chrono.ChTriangleMeshConnected()
-mesh.LoadWavefrontMesh(chrono.GetChronoDataFile('tractor_wheel.obj'))
+mesh.LoadWavefrontMesh(chrono.GetChronoDataFile('models/tractor_wheel/tractor_wheel.obj'))
 
 # Set visualization assets
 vis_shape = chrono.ChTriangleMeshShape()

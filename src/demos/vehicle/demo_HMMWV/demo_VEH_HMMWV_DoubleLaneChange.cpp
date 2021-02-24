@@ -165,12 +165,13 @@ class ISO3888_Helper {
         rightCones.push_back((rightLine[4] + rightLine[5]) / 2);
         rightCones.push_back(rightLine[5]);
 
-        std::ofstream tst("bla.txt");
-        for (int i = 0; i < leftLine.size(); i++) {
-            tst << leftLine[i].x() << "\t" << centerLine[i].x() << "\t" << leftLine[i].y() << "\t" << centerLine[i].y()
-                << "\t" << rightLine[i].y() << std::endl;
-        }
-        tst.close();
+        ////std::ofstream tst("bla.txt");
+        ////for (int i = 0; i < leftLine.size(); i++) {
+        ////    tst << leftLine[i].x() << "\t" << centerLine[i].x() << "\t" << leftLine[i].y() << "\t" << centerLine[i].y()
+        ////        << "\t" << rightLine[i].y() << std::endl;
+        ////}
+        ////tst.close();
+
         // prepare path spline definition
         ChVector<> offset(lengthB / 3, 0, 0);
         for (size_t i = 0; i < centerLine.size(); i++) {
@@ -264,7 +265,7 @@ VisualizationType tire_vis_type = VisualizationType::PRIMITIVES;
 PowertrainModelType powertrain_model = PowertrainModelType::SHAFTS;
 
 // Drive type (FWD, RWD, or AWD)
-DrivelineType drive_type = DrivelineType::AWD;
+DrivelineTypeWV drive_type = DrivelineTypeWV::AWD;
 
 // Type of tire model (RIGID, RIGID_MESH, PACEJKA, LUGRE, FIALA, PAC89, PAC02, TMEASY)
 TireModelType tire_model = TireModelType::PAC02;
@@ -451,14 +452,14 @@ int main(int argc, char* argv[]) {
     for (size_t i = 0; i < helper.GetConePositions(); i++) {
         ChVector<> pL = helper.GetConePosition(i, true) + ChVector<>(0, coneBaseWidth / 2, 0);
         irr::scene::IAnimatedMesh* mesh_coneL =
-            app.GetSceneManager()->getMesh(GetChronoDataFile("trafficCone750mm.obj").c_str());
+            app.GetSceneManager()->getMesh(GetChronoDataFile("models/traffic_cone/trafficCone750mm.obj").c_str());
         irr::scene::IAnimatedMeshSceneNode* node_coneL = app.GetSceneManager()->addAnimatedMeshSceneNode(mesh_coneL);
         node_coneL->getMaterial(0).EmissiveColor = irr::video::SColor(0, 100, 0, 0);
         node_coneL->setPosition(irr::core::vector3dfCH(pL));
 
         ChVector<> pR = helper.GetConePosition(i, false) + ChVector<>(0, -coneBaseWidth / 2, 0);
         irr::scene::IAnimatedMesh* mesh_coneR =
-            app.GetSceneManager()->getMesh(GetChronoDataFile("trafficCone750mm.obj").c_str());
+            app.GetSceneManager()->getMesh(GetChronoDataFile("models/traffic_cone/trafficCone750mm.obj").c_str());
         irr::scene::IAnimatedMeshSceneNode* node_coneR = app.GetSceneManager()->addAnimatedMeshSceneNode(mesh_coneR);
         node_coneR->getMaterial(0).EmissiveColor = irr::video::SColor(0, 0, 100, 0);
         node_coneR->setPosition(irr::core::vector3dfCH(pR));

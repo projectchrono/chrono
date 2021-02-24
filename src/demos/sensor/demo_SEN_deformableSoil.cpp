@@ -218,7 +218,7 @@ int main(int argc, char* argv[]) {
     my_hmmwv.SetChassisFixed(false);
     my_hmmwv.SetInitPosition(ChCoordsys<>(initLoc, initRot));
     my_hmmwv.SetPowertrainType(PowertrainModelType::SHAFTS);
-    my_hmmwv.SetDriveType(DrivelineType::AWD);
+    my_hmmwv.SetDriveType(DrivelineTypeWV::AWD);
     switch (tire_type) {
         case TireType::CYLINDRICAL:
             my_hmmwv.SetTireType(TireModelType::RIGID_MESH);

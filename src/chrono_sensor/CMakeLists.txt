@@ -53,7 +53,6 @@ SET(CH_SENSOR_INCLUDES
 # add the necessary optix libraries to the list to link
 list(APPEND LIBRARIES ${optix_LIBRARY})
 list(APPEND LIBRARIES ${optix_rpath})
-list(APPEND LIBRARIES ${CUDA_LIBRARIES})
 list(APPEND LIBRARIES ${CUDA_nppc_LIBRARY})
 list(APPEND LIBRARIES ${CUDA_nppig_LIBRARY})
 
@@ -228,6 +227,7 @@ set(ChronoEngine_sensor_HEADERS
   	ChApiSensor.h
     ChSensor.h
     ChOptixSensor.h
+    ChCameraSensor.h
     ChLidarSensor.h
     ChIMUSensor.h
     ChGPSSensor.h
@@ -424,7 +424,7 @@ IF(USE_TENSOR_RT)
     list(APPEND ALL_CH_SENSOR_FILES ${ChronoEngine_sensor_TENSORRT_HEADERS})
 ENDIF()
 
-add_library(ChronoEngine_sensor SHARED
+cuda_add_library(ChronoEngine_sensor SHARED
     ${ALL_CH_SENSOR_FILES}
 )
 

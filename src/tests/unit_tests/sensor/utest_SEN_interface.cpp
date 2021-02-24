@@ -176,7 +176,7 @@ TEST(SensorInterface, meshes) {
     ChSystemNSC mphysicalSystem;
 
     auto mmesh = chrono_types::make_shared<ChTriangleMeshConnected>();
-    mmesh->LoadWavefrontMesh(GetChronoDataFile("cube.obj"), false, true);
+    mmesh->LoadWavefrontMesh(GetChronoDataFile("models/cube.obj"), false, true);
 
     auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
     trimesh_shape->SetMesh(mmesh);

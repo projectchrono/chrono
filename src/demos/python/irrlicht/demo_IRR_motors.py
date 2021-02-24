@@ -87,7 +87,7 @@ floorBody.SetBodyFixed(True)
 mphysicalSystem.Add(floorBody)
 
 mtexture = chrono.ChTexture()
-mtexture.SetTextureFilename(chrono.GetChronoDataFile("blu.png"))
+mtexture.SetTextureFilename(chrono.GetChronoDataFile("textures/blue.png"))
 floorBody.AddAsset(mtexture)
 
 # In the following we will create different types of motors
