@@ -299,20 +299,25 @@ INSTALL(TARGETS ChronoEngine_opengl
 
 INSTALL(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/
     DESTINATION include/chrono_opengl
-    FILES_MATCHING PATTERN "*.h")
+    FILES_MATCHING PATTERN "*.h" PATTERN "resources" EXCLUDE)
+
+# Install required chrono_thirdparty headers
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/tinyobjloader
+        DESTINATION include/chrono_thirdparty
+        FILES_MATCHING PATTERN "*.h" PATTERN "*.cuh" PATTERN "*.hpp" PATTERN "*.inl")
 
 #-------------------------------------------------------------------------------
 # On Windows, copy the GLEW and GLFW DLLs (if specified)
 #-------------------------------------------------------------------------------
 
 IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-    IF(EXISTS ${GLEW_DLL})
+    IF(EXISTS "${GLEW_DLL}")
       ADD_CUSTOM_COMMAND(TARGET ChronoEngine_opengl POST_BUILD
                          COMMAND ${CMAKE_COMMAND} -E copy_if_different
                                  "${GLEW_DLL}"
                                  "${CMAKE_BINARY_DIR}/bin/$<CONFIGURATION>")
     ENDIF()
-    IF(EXISTS ${GLFW_DLL})
+    IF(EXISTS "${GLFW_DLL}")
       ADD_CUSTOM_COMMAND(TARGET ChronoEngine_opengl POST_BUILD
                          COMMAND ${CMAKE_COMMAND} -E copy_if_different
                          "${GLFW_DLL}"

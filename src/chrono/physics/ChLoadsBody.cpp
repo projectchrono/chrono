@@ -36,7 +36,8 @@ ChLoadBodyForce::ChLoadBodyForce(std::shared_ptr<ChBody> body,
 
 void ChLoadBodyForce::ComputeQ(ChState* state_x, ChStateDelta* state_w) {
     auto mbody = std::dynamic_pointer_cast<ChBody>(this->loadable);
-    double detJ;  // not used
+    if (!mbody->Variables().IsActive())
+        return;
 
     ChVector<> abs_force;
     if (m_local_force)
@@ -62,10 +63,14 @@ void ChLoadBodyForce::ComputeQ(ChState* state_x, ChStateDelta* state_w) {
     mF(5) = 0;
 
     // Compute Q = N(u,v,w)'*F
+    double detJ;  // not used
     mbody->ComputeNF(abs_point.x(), abs_point.y(), abs_point.z(), load_Q, detJ, mF, state_x, state_w);
 }
 
 void ChLoadBodyForce::Update(double time) {
+    if (!std::dynamic_pointer_cast<ChBody>(this->loadable)->Variables().IsActive())
+        return;
+
     m_modulation->Update(time);
     m_scale = m_modulation->Get_y(time);
     ChLoadCustom::Update(time);
@@ -96,7 +101,8 @@ ChLoadBodyTorque::ChLoadBodyTorque(std::shared_ptr<ChBody> body, const ChVector<
 
 void ChLoadBodyTorque::ComputeQ(ChState* state_x, ChStateDelta* state_w) {
     auto mbody = std::dynamic_pointer_cast<ChBody>(this->loadable);
-    double detJ;  // not used
+    if (!mbody->Variables().IsActive())
+        return;
 
     ChVector<> abs_torque;
     if (m_local_torque)
@@ -116,10 +122,14 @@ void ChLoadBodyTorque::ComputeQ(ChState* state_x, ChStateDelta* state_w) {
     mF(5) = abs_torque.z();
 
     // Compute Q = N(u,v,w)'*F
+    double detJ;  // not used
     mbody->ComputeNF(0, 0, 0, load_Q, detJ, mF, state_x, state_w);
 }
 
 void ChLoadBodyTorque::Update(double time) {
+    if (!std::dynamic_pointer_cast<ChBody>(this->loadable)->Variables().IsActive())
+        return;
+
     m_modulation->Update(time);
     m_scale = m_modulation->Get_y(time);
     ChLoadCustom::Update(time);
@@ -175,7 +185,7 @@ void ChLoadBodyBody::ComputeQ(ChState* state_x, ChStateDelta* state_w) {
     frame_Bw = ChFrameMoving<>(loc_application_B) >> bodycoordB;
     ChFrameMoving<> rel_AB = frame_Aw >> frame_Bw.GetInverse();
 
-    // OMPUTE THE FORCE
+    // COMPUTE THE FORCE
 
     ComputeBodyBodyForceTorque(rel_AB, locB_force, locB_torque);
 

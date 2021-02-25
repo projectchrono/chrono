@@ -78,6 +78,27 @@ table Description {
 
 root_type State;
 
+// Derived "class" of Agent
+// Creates a copter agent message
+namespace SynFlatBuffers.Agent.Copter;
+
+table State {
+  time:double;
+
+  chassis:Pose;
+
+  propellers:[Pose];
+}
+
+table Description {
+  chassis_vis_file:string;
+  propeller_vis_file:string;
+
+  num_props:int;
+}
+
+root_type State;
+
 namespace SynFlatBuffers.Agent.Environment;
 
 table State {
@@ -100,7 +121,9 @@ union Type {
   TrackedVehicle.State, 
   TrackedVehicle.Description, 
   Environment.State,
-  Environment.Description
+  Environment.Description,
+  Copter.State,
+  Copter.Description
 }
 
 table State {

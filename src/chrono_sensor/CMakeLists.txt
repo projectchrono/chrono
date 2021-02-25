@@ -53,7 +53,6 @@ SET(CH_SENSOR_INCLUDES
 # add the necessary optix libraries to the list to link
 list(APPEND LIBRARIES ${optix_LIBRARY})
 list(APPEND LIBRARIES ${optix_rpath})
-list(APPEND LIBRARIES ${CUDA_LIBRARIES})
 list(APPEND LIBRARIES ${CUDA_nppc_LIBRARY})
 list(APPEND LIBRARIES ${CUDA_nppig_LIBRARY})
 
@@ -228,6 +227,7 @@ set(ChronoEngine_sensor_HEADERS
   	ChApiSensor.h
     ChSensor.h
     ChOptixSensor.h
+    ChCameraSensor.h
     ChLidarSensor.h
     ChIMUSensor.h
     ChGPSSensor.h
@@ -424,7 +424,7 @@ IF(USE_TENSOR_RT)
     list(APPEND ALL_CH_SENSOR_FILES ${ChronoEngine_sensor_TENSORRT_HEADERS})
 ENDIF()
 
-add_library(ChronoEngine_sensor SHARED
+cuda_add_library(ChronoEngine_sensor SHARED
     ${ALL_CH_SENSOR_FILES}
 )
 
@@ -501,14 +501,19 @@ install(TARGETS ChronoEngine_sensor
         ARCHIVE DESTINATION lib)
 
 install(FILES ${ChronoEngine_sensor_HEADERS}
-		DESTINATION include/chrono_sensor)
+        DESTINATION include/chrono_sensor)
 install(FILES ${ChronoEngine_sensor_UTILS_HEADERS}
-		DESTINATION include/chrono_sensor/utils)
+        DESTINATION include/chrono_sensor/utils)
 install(FILES ${ChronoEngine_sensor_OPTIX_HEADERS}
         DESTINATION include/chrono_sensor/optixcpp)
 install(FILES ${ChronoEngine_sensor_FILTERS_HEADERS}
         DESTINATION include/chrono_sensor/filters)
 install(FILES ${ChronoEngine_sensor_CUDA_HEADERS}
-      DESTINATION include/chrono_sensor/cuda)
+        DESTINATION include/chrono_sensor/cuda)
 install(FILES ${ChronoEngine_sensor_SCENE_HEADERS}
-      DESTINATION include/chrono_sensor/scene)
+        DESTINATION include/chrono_sensor/scene)
+
+# Install required chrono_thirdparty headers
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/stb
+        DESTINATION include/chrono_thirdparty
+        FILES_MATCHING PATTERN "*.h" PATTERN "*.cuh" PATTERN "*.hpp" PATTERN "*.inl")

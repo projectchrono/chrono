@@ -40,28 +40,34 @@ namespace m113 {
 // -----------------------------------------------------------------------------
 M113_Vehicle::M113_Vehicle(bool fixed,
                            TrackShoeType shoe_type,
+                           DrivelineTypeTV driveline_type,
                            BrakeType brake_type,
                            ChContactMethod contact_method,
                            CollisionType chassis_collision_type)
-    : ChTrackedVehicle("M113", contact_method), m_type(shoe_type) {
-    Create(fixed, brake_type, chassis_collision_type);
+    : ChTrackedVehicle("M113", contact_method), m_create_track(true) {
+    Create(fixed, shoe_type, driveline_type, brake_type, chassis_collision_type);
 }
 
 M113_Vehicle::M113_Vehicle(bool fixed,
                            TrackShoeType shoe_type,
+                           DrivelineTypeTV driveline_type,
                            BrakeType brake_type,
                            ChSystem* system,
                            CollisionType chassis_collision_type)
-    : ChTrackedVehicle("M113", system), m_type(shoe_type) {
-    Create(fixed, brake_type, chassis_collision_type);
+    : ChTrackedVehicle("M113", system), m_create_track(true) {
+    Create(fixed, shoe_type, driveline_type, brake_type, chassis_collision_type);
 }
 
-void M113_Vehicle::Create(bool fixed, BrakeType brake_type, CollisionType chassis_collision_type) {
+void M113_Vehicle::Create(bool fixed,
+                          TrackShoeType shoe_type,
+                          DrivelineTypeTV driveline_type,
+                          BrakeType brake_type,
+                          CollisionType chassis_collision_type) {
     // Create the chassis subsystem
     m_chassis = chrono_types::make_shared<M113_Chassis>("Chassis", fixed, chassis_collision_type);
 
     // Create the track assembly subsystems
-    switch (m_type) {
+    switch (shoe_type) {
         case TrackShoeType::SINGLE_PIN:
             m_tracks[0] = chrono_types::make_shared<M113_TrackAssemblySinglePin>(LEFT, brake_type);
             m_tracks[1] = chrono_types::make_shared<M113_TrackAssemblySinglePin>(RIGHT, brake_type);
@@ -81,8 +87,14 @@ void M113_Vehicle::Create(bool fixed, BrakeType brake_type, CollisionType chassi
     }
 
     // Create the driveline
-    m_driveline = chrono_types::make_shared<M113_SimpleDriveline>();
-    ////m_driveline = chrono_types::make_shared<M113_DrivelineBDS>();
+    switch (driveline_type) {
+        case DrivelineTypeTV::SIMPLE:
+            m_driveline = chrono_types::make_shared<M113_SimpleDriveline>();
+            break;
+        case DrivelineTypeTV::BDS:
+            m_driveline = chrono_types::make_shared<M113_DrivelineBDS>();
+            break;
+    }
 
     GetLog() << "M113 vehicle mass = " << GetVehicleMass() << " kg.\n";
 }
@@ -95,8 +107,8 @@ void M113_Vehicle::Initialize(const ChCoordsys<>& chassisPos, double chassisFwdV
 
     // Initialize the left and right track assemblies.
     double track_offset = 1.0795;
-    m_tracks[0]->Initialize(m_chassis, ChVector<>(0, track_offset, 0));
-    m_tracks[1]->Initialize(m_chassis, ChVector<>(0, -track_offset, 0));
+    m_tracks[0]->Initialize(m_chassis, ChVector<>(0, track_offset, 0), m_create_track);
+    m_tracks[1]->Initialize(m_chassis, ChVector<>(0, -track_offset, 0), m_create_track);
 
     // Initialize the driveline subsystem
     m_driveline->Initialize(m_chassis, m_tracks[0], m_tracks[1]);

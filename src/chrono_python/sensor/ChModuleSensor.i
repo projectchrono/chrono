@@ -61,6 +61,7 @@
 //#include <irrlicht.h>
 #include "chrono_sensor/ChApiSensor.h"
 #include "chrono_sensor/ChSensor.h"
+#include "chrono_sensor/Sensor.h"
 #include "chrono_sensor/ChOptixSensor.h"
 #include "chrono_sensor/ChCameraSensor.h"
 #include "chrono_sensor/ChConfigSensor.h.in"
@@ -84,6 +85,7 @@
 #include "chrono_sensor/filters/ChFilterImageOps.h"
 #include "chrono_sensor/filters/ChFilterVisualizePointCloud.h"
 #include "chrono_sensor/ChSensor.h"
+#include "chrono_sensor/Sensor.h"
 #include "chrono_sensor/ChLidarSensor.h"
 #include "chrono_sensor/ChIMUSensor.h"
 #include "chrono_sensor/ChGPSSensor.h"
@@ -276,6 +278,7 @@ using namespace chrono::sensor;
 %include "chrono_sensor/scene/ChScene.h"
 
 %include "chrono_sensor/ChSensor.h"
+%include "chrono_sensor/Sensor.h"
 %include "chrono_sensor/ChOptixSensor.h"
 %include "chrono_sensor/ChCameraSensor.h"
 %include "chrono_sensor/ChConfigSensor.h.in"

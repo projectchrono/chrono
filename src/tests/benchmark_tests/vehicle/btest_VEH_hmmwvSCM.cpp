@@ -102,7 +102,7 @@ class HmmwvScmTest : public utils::ChBenchmarkTest {
 template <int TIRE_TYPE, bool OBJECTS>
 HmmwvScmTest<TIRE_TYPE, OBJECTS>::HmmwvScmTest() : m_step(2e-3) {
     PowertrainModelType powertrain_model = PowertrainModelType::SHAFTS;
-    DrivelineType drive_type = DrivelineType::AWD;
+    DrivelineTypeWV drive_type = DrivelineTypeWV::AWD;
     TireModelType tire_type = (TIRE_TYPE == MESH_TIRE) ? TireModelType::RIGID_MESH : TireModelType::RIGID;
     VisualizationType tire_vis = (TIRE_TYPE == MESH_TIRE) ? VisualizationType::MESH : VisualizationType::PRIMITIVES;
 
@@ -242,7 +242,6 @@ CH_BM_SIMULATION_ONCE(HmmwvSCM_CYL_1, cyl_1_test_type, NUM_SKIP_STEPS, NUM_SIM_S
 // =============================================================================
 
 int main(int argc, char* argv[]) {
-    utils::AddComandLineArgument(&argc, &argv, "--benchmark_counters_tabular");
     ::benchmark::Initialize(&argc, argv);
 
 #ifdef CHRONO_IRRLICHT

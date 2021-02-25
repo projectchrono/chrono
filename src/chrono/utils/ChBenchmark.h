@@ -180,14 +180,6 @@ class ChBenchmarkFixture : public ::benchmark::Fixture {
     TEST* m_test;
 };
 
-static void AddComandLineArgument(int* argc, char** argv[], const char* extra) {
-    std::vector<char*> new_argv(*argv, *argv + *argc);
-    new_argv.push_back((char*)extra);
-    new_argv.push_back(nullptr);
-    *argv = new_argv.data();
-    *argc += 1;
-}
-
 }  // end namespace utils
 }  // end namespace chrono
 

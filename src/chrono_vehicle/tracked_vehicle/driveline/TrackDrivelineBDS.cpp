@@ -54,7 +54,6 @@ void TrackDrivelineBDS::Create(const rapidjson::Document& d) {
     m_differentialbox_inertia = d["Differential Box Inertia"].GetDouble();
 
     m_conicalgear_ratio = d["Conical Gear Ratio"].GetDouble();
-    m_differential_ratio = d["Differential Ratio"].GetDouble();
 }
 
 }  // end namespace vehicle
