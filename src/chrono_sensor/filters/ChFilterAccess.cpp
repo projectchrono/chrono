@@ -218,7 +218,6 @@ CH_SENSOR_API void ChFilterAccess<SensorHostDIBuffer, UserDIBufferPtr>::Apply(
     tmp_buffer->Height = bufferInOut->Height;
     tmp_buffer->LaunchedCount = bufferInOut->LaunchedCount;
     tmp_buffer->TimeStamp = bufferInOut->TimeStamp;
-    tmp_buffer->Dual_return = bufferInOut->Dual_return;
 
     cudaMemcpy(tmp_buffer->Buffer.get(), dev_buffer_ptr, sz * sizeof(PixelDI), cudaMemcpyDeviceToHost);
 
@@ -420,6 +419,65 @@ CH_SENSOR_API void ChFilterAccess<SensorHostGPSBuffer, UserGPSBufferPtr>::Apply(
         }
     }
 }
+template <>
+CH_SENSOR_API void ChFilterAccess<SensorHostDNormBuffer, UserDNormBufferPtr>::Apply(
+    std::shared_ptr<ChSensor>pSensor,
+    std::shared_ptr<SensorBuffer>& bufferInOut){
+    // to copy to a host buffer, we need to know what buffer to copy.
+    // for now, that means this filter can only work with sensor that use an Optix buffer.
+    std::shared_ptr<SensorOptixBuffer> pOpx = std::dynamic_pointer_cast<SensorOptixBuffer>(bufferInOut);
+    std::shared_ptr<SensorDeviceDNormBuffer> pDev = std::dynamic_pointer_cast<SensorDeviceDNormBuffer>(bufferInOut);
+    if (!pOpx && !pDev){
+        throw std::runtime_error("cannot copy supplied buffer type to a Host DNorm buffer");
+    }
 
+    void * dev_buffer_ptr;
+
+    // if we have an optix buffer
+    if (pOpx){
+        int device_id = pOpx->Buffer->getContext()->getEnabledDevices()[0];
+        dev_buffer_ptr = pOpx->Buffer->getDevicePointer(device_id);
+    }
+    // if we have a device buffer
+    else if (pDev){
+        dev_buffer_ptr = (void*)(pDev->Buffer.get());
+    }
+
+    unsigned int sz = bufferInOut->Width * bufferInOut->Height;
+
+    // create a new buffer to push to the lag buffer list
+    std::shared_ptr<SensorHostDNormBuffer> tmp_buffer;
+    if (m_empty_lag_buffers.size()>0){
+        tmp_buffer = m_empty_lag_buffers.top();
+        m_empty_lag_buffers.pop();
+    } else {
+        tmp_buffer = chrono_types::make_shared<SensorHostDNormBuffer>();
+        tmp_buffer->Buffer = std::make_unique<PixelDNorm[]>(sz);
+    }
+
+    tmp_buffer->Width = bufferInOut->Width;
+    tmp_buffer->Height = bufferInOut->Height;
+    tmp_buffer->LaunchedCount = bufferInOut->LaunchedCount;
+    tmp_buffer->TimeStamp = bufferInOut->TimeStamp;
+
+    cudaMemcpy(tmp_buffer->Buffer.get(), dev_buffer_ptr,sz * sizeof(PixelDNorm), cudaMemcpyDeviceToHost);
+
+    
+    {
+        // lock in this scope before pushing to lag buffer queue
+        std::lock_guard<std::mutex> lck(m_mutexBufferAccess);
+
+        // push our buffer into the lag queue
+        m_lag_buffers.push(tmp_buffer);
+
+        // prevent lag buffer overflow - remove any old buffers that have expired. We don't want the lag_buffer to
+        // grow unbounded
+        while (m_lag_buffers.size() > m_max_lag_buffers){
+            m_empty_lag_buffers.push(
+                m_lag_buffers.front()); // push the buffer back for efficiency if it wasn't give to the user
+            m_lag_buffers.pop();
+        }
+    }
+}
 }  // namespace sensor
 }  // namespace chrono
