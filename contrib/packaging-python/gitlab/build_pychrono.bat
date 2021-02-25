@@ -5,6 +5,8 @@ call conda install --yes anaconda-client
 call conda uninstall --yes conda-build
 call conda install --yes conda-build=3.18.11
 call conda install --yes -c intel mkl-devel
+Rem needed for libiomp5md.lib
+Rem conda install -c intel openmp
 call conda install -c conda-forge swig=4.0.2-0 --yes
 call conda install -c dlr-sc opencascade --yes
 call conda install mkl --yes
