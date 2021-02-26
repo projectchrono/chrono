@@ -73,13 +73,13 @@ int main(int argc, char* argv[]) {
     float ground_gt = 20;
 
     // Parameters for the falling object
-    double init_height = 0.75;
+    double init_height = 0.65;
     double init_x = 0.0;
     double init_z = 0.0;
-    double init_roll = 10 * CH_C_DEG_TO_RAD;
+    double init_roll = 0 * CH_C_DEG_TO_RAD;
 
     ChVector<> init_vel(0, 0, 0);
-    ChVector<> init_omg(0, 0, 0);
+    ChVector<> init_omg(0, 0, 5);
 
     double radius = 0.5;  // cylinder radius
     double hlen = 0.4;    // cylinder half-length
@@ -285,8 +285,15 @@ int main(int argc, char* argv[]) {
         system->DoStepDynamics(time_step);
 
         ////if (system->GetNcontacts()) {
+        ////    // Report all contacts
         ////    std::cout << system->GetChTime() << "  " << system->GetNcontacts() << std::endl;
         ////    system->GetContactContainer()->ReportAllContacts(cmanager);
+
+        ////    // Cumulative contact force on object
+        ////    ChVector<> frc1 = object->GetContactForce();
+        ////    ChVector<> trq1 = object->GetContactTorque();
+        ////    printf("  Contact force at COM:  %7.3f  %7.3f  %7.3f", frc1.x(), frc1.y(), frc1.z());
+        ////    printf("  Contact torque at COM: %7.3f  %7.3f  %7.3f\n", trq1.x(), trq1.y(), trq1.z());
         ////}
     }
 

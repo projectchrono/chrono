@@ -244,11 +244,11 @@ btCylshellBoxCollisionAlgorithm::~btCylshellBoxCollisionAlgorithm() {
 // Check and add contact between the given cylshell point and the specified box face.
 // 'iface' is +1, +2, +3 for the "positive" x, y, or z box face, respectively.
 // 'iface' is -1, -2, -3 for the "negative" x, y, or z box face, respectively.
-int btCylshellBoxCollisionAlgorithm::addContactPoint(const btVector3& pc,
-                                                     int iface,
-                                                     const btTransform& X_box,
-                                                     const btVector3& hdims,
-                                                     btManifoldResult* resultOut) {
+int addContactPoint(const btVector3& pc,
+                    int iface,
+                    const btVector3& hdims,
+                    const btTransform& X_box,
+                    btManifoldResult* resultOut) {
     assert(iface >= -3 && iface <= +3 && iface != 0);
 
     // No contact if point outside box
@@ -289,8 +289,29 @@ int btCylshellBoxCollisionAlgorithm::addContactPoint(const btVector3& pc,
     return 1;  // one contact added
 }
 
-//// Different option (1, 2, 3, 4, 5)
-#define CYLSHELL_BOX_ALG 5
+// Add contact between the given box point (assumed to be in or on the cylinder) and the cylshell.
+// All input vectors are assumed to be expressed in the box frame. 
+int addContactPoint(const btVector3& p,
+                    const btVector3& c,
+                    const btVector3& a,
+                    const btScalar h,
+                    const btScalar r,
+                    const btTransform& X_box,
+                    btManifoldResult* resultOut) {
+    // Find closest point on cylindrical surface to given location
+    btVector3 q = utils::ProjectPointOnLine(c, a, p);
+    btVector3 v = p - q;
+    btScalar dist = v.length();
+    btVector3 n = v / dist;
+    btVector3 pc = q + n * r;
+
+    btVector3 normal = X_box.getBasis() * (-n);
+    btVector3 point = X_box(p);
+
+    resultOut->addContactPoint(normal, point, dist - r);
+
+    return 1;
+}
 
 // Cylshell-box intersection test:
 //   - cylinder caps are ignored
@@ -329,20 +350,19 @@ void btCylshellBoxCollisionAlgorithm::processCollision(const btCollisionObjectWr
     btScalar radius = cyl->getRadius();    // cylinder radius
     btScalar hlen = cyl->getHalfLength();  // cylinder half-length
 
-#if CYLSHELL_BOX_ALG == 5
-    // - Loop over each direction of the box frame (i.e., each of the 3 face normals).
-    // - For each direction, consider two segments on the cylindrical surface that are on a plane defined by the axis
-    //   and the face normal. (Note that, in principle, we could only consider the segment "closest" to the box, but
-    //   that is not trivial to define in all configurations). All segments are parameterized by t in [-H,H].
-    // - For each segment, if the segment intersects the box, consider 3 candidate contact points: the 2 segment ends
-    //   and the midpoint between the intersection points. A contact is added if the segment point is inside the box.
-    //   Furthermore, the corresponding box point is located on the box face that is closest to the intersection
-    //   midpoint candidate.
-
     const btScalar parallel_tol = btScalar(1e-5);           // tolearance for parallelism tests
     const btScalar near_tol = btScalar(1e-4) * (2 * hlen);  // tolerance for line parameters of near duplicate points
 
     int num_contacts = 0;
+
+    // - Loop over each direction of the box frame (i.e., each of the 3 face normals).
+    // - For each direction, consider two segments on the cylindrical surface that are on a plane defined by the axis
+    //   and the face normal. (Note that, in principle, we could only consider the segment "closest" to the box, but
+    //   that is not trivial to define in all configurations). All segments are parameterized by t in [-H,H].
+    // - For each segment, if the segment intersects the box, consider 3 candidate contact points: the 2 intersection
+    //   points and their midpoint. A contact is added if the segment point is inside the box.
+    //   Furthermore, the corresponding box point is located on the box face that is closest to the intersection
+    //   midpoint candidate.
     for (int idir = 0; idir < 3; idir++) {
         // current box direction
         btVector3 ndir(0, 0, 0);
@@ -366,419 +386,63 @@ void btCylshellBoxCollisionAlgorithm::processCollision(const btCollisionObjectWr
             // Check for intersection with box
             btScalar tMin, tMax;
             if (utils::IntersectSegmentBox(hdims, cs, a, hlen, parallel_tol, tMin, tMax)) {
-                // Consider the segment end points and the midpoint between intersection points as candidates
-                btVector3 eMin = cs - a * hlen;                 // 1st segment end
-                btVector3 eMax = cs + a * hlen;                 // 2nd segment end
-                btVector3 pMid = cs + a * ((tMin + tMax) / 2);  // intersection midpoint
+                // Consider the intersection points and their midpoint as candidates
+                btVector3 pMin = cs + a * tMin;
+                btVector3 pMax = cs + a * tMax;
+                btVector3 pMid = cs + a * ((tMin + tMax) / 2);
 
                 // Pick box face that is closest to midpoint
                 int iface = utils::FindClosestBoxFace(hdims, pMid);
 
                 // Add a contact for any of the candidate points that is inside the box
-                num_contacts += addContactPoint(eMin, iface, abs_X_box, hdims, resultOut);  // 1st segment end
-                num_contacts += addContactPoint(eMax, iface, abs_X_box, hdims, resultOut);  // 2nd segment end
-                num_contacts += addContactPoint(pMid, iface, abs_X_box, hdims, resultOut);  // intersection midpoint
+                num_contacts += addContactPoint(pMin, iface, hdims, abs_X_box, resultOut);  // 1st segment end
+                num_contacts += addContactPoint(pMax, iface, hdims, abs_X_box, resultOut);  // 2nd segment end
+                num_contacts += addContactPoint(pMid, iface, hdims, abs_X_box, resultOut);  // intersection midpoint
             }
         }
     }
 
-    ////std::cout << num_contacts << std::endl;
+    // If a box face supports the cylinder, do not check box edges. 
+    if (num_contacts > 0)
+        return;
 
-#endif
+    // - Loop over each direction of the box frame.
+    // - For each direction, check intersection with the cylinder for all 4 edges parallel to that direction.
+    // - If an edge intersects the cylinder, consider 3 candidate contact points: the 2 intersection points
+    //   and their midpoint.
+    for (int idir = 0; idir < 3; idir++) {
+        // current box edge direction and halflength
+        btVector3 eD(0, 0, 0);
+        eD[idir] = 1;
+        btScalar eH = hdims[idir];
+        // The other two box directions
+        int jdir = (idir + 1) % 3;
+        int kdir = (idir + 2) % 3;
+        for (int j = -1; j <= +1; j += 2) {
+            for (int k = -1; k <= +1; k += 2) {
+                btVector3 eC;
+                eC[idir] = 0;
+                eC[jdir] = j * hdims[jdir];
+                eC[kdir] = k * hdims[kdir];
+                // Check for edge intersection with cylinder
+                btScalar tMin, tMax;
+                if (utils::IntersectSegmentCylinder(eC, eD, eH, c, a, hlen, radius, parallel_tol, tMin, tMax)) {
+                    // Consider the intersection points and their midpoint as candidates
+                    btVector3 pMin = eC + eD * tMin;
+                    btVector3 pMax = eC + eD * tMax;
+                    btVector3 pMid = eC + eD * ((tMin + tMax) / 2);
 
-#if CYLSHELL_BOX_ALG == 4
-    // Loop over each direction of the box frame (i.e., each of the 3 face normals).
-    // In each case, consider two segments on the cylindrical surface that are on a plane defined by the axis and the
-    // face normal. (Note that, in principle, we could only consider the segment "closest" to the box, but that is not
-    // trivial to define in all configurations). Such segments are parameterized by t in [-H,H].
-    //
-    // Consider (at most) 4 candidate points on each segment: the 2 ends and the intersections of the segment with the
-    // box (if such an intersection exists).
-
-    const btScalar parallel_tol = btScalar(1e-5);           // tolearance for parallelism tests
-    const btScalar near_tol = btScalar(1e-4) * (2 * hlen);  // tolerance for line parameters of near duplicate points
-
-    //// TODO:  MUST collect all candidate segments over all box faces and only add contacts for one combination at any
-    ////        given time.
-
-    int num_contacts = 0;
-    for (int i = 0; i < 3; i++) {
-        // "positive" face normal
-        btVector3 n(0, 0, 0);
-        n[i] = 1;
-
-        // If the axis is parallel to the face normal, no contact.
-        if (std::abs(a[i] - 1) < parallel_tol || std::abs(a[i] + 1) < parallel_tol)
-            continue;
-
-        // Direction perpendicular to cylinder axis (in direction opposite to n)
-        btVector3 v = n.cross(a);
-        btVector3 r = v.cross(a);
-        r.normalize();
-
-        // Consider segments in both "negative" and "positive" r direction
-        btScalar dir[2] = {-1, 1};
-        for (int idir = 0; idir < 2; idir++) {
-            // Calculate current segment center
-            btVector3 cs = c + dir[idir] * radius * r;
-            // Check for intersection with box
-            btScalar tMin, tMax;
-            if (utils::IntersectSegmentBox(hdims, cs, a, hlen, parallel_tol, tMin, tMax)) {
-                // Consider the segment end points and the midpoint between intersection points as candidates
-                btVector3 pMid = cs + a * ((tMin + tMax) / 2);  // intersection midpoint
-                btVector3 eMin = cs - a * hlen;                 // 1st segment end
-                btVector3 eMax = cs + a * hlen;                 // 2nd segment end
-
-                // Pick "positive" or "negative" box face in current direction (closest to midpoint)
-                int iface = (pMid[i] > 0) ? i : -i;
-
-                // Add a contact for any of the candidate points that is inside the box
-                num_contacts += addContactPoint(eMin, iface, abs_X_box, hdims, resultOut);  // 1st segment end
-                num_contacts += addContactPoint(eMax, iface, abs_X_box, hdims, resultOut);  // 2nd segment end
-                num_contacts += addContactPoint(pMid, iface, abs_X_box, hdims, resultOut);  // intersection midpoint
+                    // Add a contact for any of the candidate points that is inside the cylinder
+                    num_contacts += addContactPoint(pMin, c, a, hlen, radius, abs_X_box, resultOut);
+                    num_contacts += addContactPoint(pMax, c, a, hlen, radius, abs_X_box, resultOut);
+                    num_contacts += addContactPoint(pMid, c, a, hlen, radius, abs_X_box, resultOut);
+                }
             }
         }
+
     }
 
     ////std::cout << num_contacts << std::endl;
-
-#endif
-
-#if CYLSHELL_BOX_ALG == 3
-    btVector3 dummy = c;
-    int code = utils::SnapPointToBox(hdims, dummy);
-    int i;
-    switch (code) {
-        case 1:
-            i = 0;
-            break;
-        case 2:
-            i = 1;
-            break;
-        case 4:
-            i = 2;
-            break;
-        default:
-            return;
-    }
-
-    int j = (i + 1) % 3;
-    int k = (i + 2) % 3;
-    int sign = btSign(c[i]);
-
-    btScalar tMin = -BT_LARGE_FLOAT;
-    btScalar tMax = +BT_LARGE_FLOAT;
-
-    const btScalar threshold = btScalar(1e-5);  // threshold for line parallel to face tests
-
-    if (std::abs(a[j]) > threshold) {
-        btScalar t1 = (-hdims[j] - c[j]) / a[j];
-        btScalar t2 = (+hdims[j] - c[j]) / a[j];
-
-        tMin = btMax(tMin, btMin(t1, t2));
-        tMax = btMin(tMax, btMax(t1, t2));
-
-        if (tMin > tMax)
-            return;
-    }
-
-    if (std::abs(a[k]) > threshold) {
-        btScalar t1 = (-hdims[k] - c[k]) / a[k];
-        btScalar t2 = (+hdims[k] - c[k]) / a[k];
-
-        tMin = btMax(tMin, btMin(t1, t2));
-        tMax = btMin(tMax, btMax(t1, t2));
-
-        if (tMin > tMax)
-            return;
-    }
-
-    btVector3 locs[2] = {c + tMin * a, c + tMax * a};
-    btScalar t[2];
-    for (int i = 0; i < 2; i++) {
-        t[i] = btClamped(a.dot(locs[i] - c), -hlen, hlen);
-    }
-
-    // Check if the two points almost coincide (in which case consider only one of them)
-    int numPoints = std::abs(t[0] - t[1]) < 1e-4 ? 1 : 2;
-
-    for (int ip = 0; ip < numPoints; ip++) {
-        // Calculate the center of the corresponding sphere on the capsule centerline (expressed in the box
-        // frame).
-        btVector3 spherePos = c + a * t[ip];
-
-        // Snap the sphere position to the surface of the box.
-        btVector3 boxPos = spherePos;
-        utils::SnapPointToBox(hdims, boxPos);
-
-        // If the distance from the sphere center to the closest point is larger than the radius plus the
-        // separation value, then there is no contact. Also, ignore contact if the sphere center (almost)
-        // coincides with the closest point, in which case we couldn't decide on the proper contact direction.
-        btVector3 delta = spherePos - boxPos;
-        btScalar dist2 = delta.length2();
-
-        if (dist2 >= radius * radius || dist2 <= 1e-12)
-            continue;
-
-        // Generate contact information.
-        btScalar dist = btSqrt(dist2);
-        btScalar penetration = dist - radius;
-        // Transform to absolute frame
-        btVector3 normal = abs_X_box.getBasis() * (delta / dist);
-        btVector3 point = abs_X_box(boxPos);
-
-        // A new contact point must specify:
-        //   normal, pointing from B towards A
-        //   point, located on surface of B
-        //   distance, negative for penetration
-        resultOut->addContactPoint(normal, point, penetration);
-
-        ////std::cout << "add --  t= " << t[ip] << "  dist= " << dist << "  depth= " << penetration << std::endl;
-    }
-#endif
-
-#if CYLSHELL_BOX_ALG == 2
-    // Inflate the box by the radius of the capsule plus the separation value and check if the capsule centerline
-    // intersects the expanded box. We do this by clamping the capsule axis to the volume between two parallel faces
-    // of the box, considering in turn the x, y, and z faces.
-    btVector3 hdims_exp = hdims + btVector3(radius, radius, radius);
-    btScalar tMin = -BT_LARGE_FLOAT;
-    btScalar tMax = +BT_LARGE_FLOAT;
-
-    const btScalar threshold = btScalar(1e-5);  // threshold for line parallel to face tests
-
-    if (std::abs(a.x()) < threshold) {
-        // Capsule axis parallel to the box x-faces
-        if (std::abs(c.x()) > hdims_exp.x())
-            return;
-    } else {
-        btScalar t1 = (-hdims_exp.x() - c.x()) / a.x();
-        btScalar t2 = (+hdims_exp.x() - c.x()) / a.x();
-
-        tMin = btMax(tMin, btMin(t1, t2));
-        tMax = btMin(tMax, btMax(t1, t2));
-
-        if (tMin > tMax)
-            return;
-    }
-
-    if (std::abs(a.y()) < threshold) {
-        // Capsule axis parallel to the box y-faces
-        if (std::abs(c.y()) > hdims_exp.y())
-            return;
-    } else {
-        btScalar t1 = (-hdims_exp.y() - c.y()) / a.y();
-        btScalar t2 = (+hdims_exp.y() - c.y()) / a.y();
-
-        tMin = btMax(tMin, btMin(t1, t2));
-        tMax = btMin(tMax, btMax(t1, t2));
-
-        if (tMin > tMax)
-            return;
-    }
-
-    if (std::abs(a.z()) < threshold) {
-        // Capsule axis parallel to the box z-faces
-        if (std::abs(c.z()) > hdims_exp.z())
-            return;
-    } else {
-        btScalar t1 = (-hdims_exp.z() - c.z()) / a.z();
-        btScalar t2 = (+hdims_exp.z() - c.z()) / a.z();
-
-        tMin = btMax(tMin, btMin(t1, t2));
-        tMax = btMin(tMax, btMax(t1, t2));
-
-        if (tMin > tMax)
-            return;
-    }
-
-    // Generate the two points where the cylinder centerline intersects the exapanded box (still expressed in the
-    // box frame). Snap these locations to the original box, then snap back onto the cylinder axis. This reduces
-    // the collision problem to 1 or 2 collisions.
-    btVector3 locs[2] = {c + tMin * a, c + tMax * a};
-    btScalar t[2];
-
-    for (int i = 0; i < 2; i++) {
-        utils::SnapPointToBox(hdims, locs[i]);
-        t[i] = btClamped(a.dot(locs[i] - c), -hlen, hlen);
-    }
-
-    // Check if the two points almost coincide (in which case consider only one of them)
-    int numPoints = std::abs(t[0] - t[1]) < 1e-4 ? 1 : 2;
-
-    // Perform collision tests.
-    for (int i = 0; i < numPoints; i++) {
-        // Point on the cylinder axis (expressed in the box frame).
-        btVector3 axisPoint = c + a * t[i];
-
-        // Snap to box. If axis point inside box, no contact.
-        btVector3 boxPoint = axisPoint;
-        int code = utils::SnapPointToBox(hdims, boxPoint);
-        if (code == 0)
-            continue;
-
-        // Find closest point on cylinder to the box. If this point is on the cylinder centerline, no contact.
-        btVector3 u = axisPoint - boxPoint;
-        btScalar u_length = u.length();
-        if (u_length < threshold)
-            continue;
-        u /= u_length;
-        btVector3 w = u.cross(a);
-        if (w.length() < threshold)
-            continue;
-        btVector3 v = w.cross(a);
-        v.normalize();
-        btVector3 cylPoint = axisPoint + radius * v;
-
-        // If cylinder point outside box, no contact.
-        code = utils::SnapPointToBox(hdims, cylPoint);
-        if (code != 0)
-            continue;
-
-        // Moving in the u direction, project cylinder point onto box surface.
-        btScalar step = BT_LARGE_FLOAT;
-        if (std::abs(u.x()) > threshold)
-            step = btMin((btSign(u.x()) * hdims.x() - cylPoint.x()) / u.x(), step);
-        if (std::abs(u.y()) > threshold)
-            step = btMin((btSign(u.y()) * hdims.y() - cylPoint.y()) / u.y(), step);
-        if (std::abs(u.z()) > threshold)
-            step = btMin((btSign(u.z()) * hdims.z() - cylPoint.z()) / u.z(), step);
-        boxPoint = cylPoint + step * u;
-
-        // Debug check: boxPoint inside cylinder
-        assert(std::abs(a.dot(boxPoint - c)) <= btScalar(1.01) * hlen);
-
-        // Calculate penetration
-        btVector3 delta = boxPoint - cylPoint;
-        btScalar dist = delta.length();
-        if (dist < 1e-10)
-            continue;
-
-        // Generate contact information (transform to absolute frame).
-        btScalar penetration = -dist;                              // distance, negative for penetration
-        btVector3 normal = abs_X_box.getBasis() * (delta / dist);  // normal, pointing from B to A
-        btVector3 point = abs_X_box(boxPoint);                     // point, located on surface of B
-
-        resultOut->addContactPoint(normal, point, penetration);
-
-        ////std::cout << "add contact --  t= " << t[i] << "  face " << i << "  dist= " << dist << "  depth= " << penetration << std::endl;
-    }
-#endif
-
-#if CYLSHELL_BOX_ALG == 1
-    //==  USE CAPSULE ==//
-
-    // Contact distance
-    btScalar contactDist = radius;
-    ////btScalar contactDist = radius + m_manifoldPtr->getContactBreakingThreshold();
-
-    // Inflate the box by the radius of the capsule plus the separation value
-    // and check if the capsule centerline intersects the expanded box. We do
-    // this by clamping the capsule axis to the volume between two parallel
-    // faces of the box, considering in turn the x, y, and z faces.
-    btVector3 hdims_exp = hdims + btVector3(radius, radius, radius);
-    btScalar tMin = -BT_LARGE_FLOAT;
-    btScalar tMax = +BT_LARGE_FLOAT;
-
-    const btScalar threshold = btScalar(1e-5);  // threshold for line parallel to face tests
-
-    if (std::abs(a.x()) < threshold) {
-        // Capsule axis parallel to the box x-faces
-        if (std::abs(c.x()) > hdims_exp.x())
-            return;
-    } else {
-        btScalar t1 = (-hdims_exp.x() - c.x()) / a.x();
-        btScalar t2 = (+hdims_exp.x() - c.x()) / a.x();
-
-        tMin = btMax(tMin, btMin(t1, t2));
-        tMax = btMin(tMax, btMax(t1, t2));
-
-        if (tMin > tMax)
-            return;
-    }
-
-    if (std::abs(a.y()) < threshold) {
-        // Capsule axis parallel to the box y-faces
-        if (std::abs(c.y()) > hdims_exp.y())
-            return;
-    } else {
-        btScalar t1 = (-hdims_exp.y() - c.y()) / a.y();
-        btScalar t2 = (+hdims_exp.y() - c.y()) / a.y();
-
-        tMin = btMax(tMin, btMin(t1, t2));
-        tMax = btMin(tMax, btMax(t1, t2));
-
-        if (tMin > tMax)
-            return;
-    }
-
-    if (std::abs(a.z()) < threshold) {
-        // Capsule axis parallel to the box z-faces
-        if (std::abs(c.z()) > hdims_exp.z())
-            return;
-    } else {
-        btScalar t1 = (-hdims_exp.z() - c.z()) / a.z();
-        btScalar t2 = (+hdims_exp.z() - c.z()) / a.z();
-
-        tMin = btMax(tMin, btMin(t1, t2));
-        tMax = btMin(tMax, btMax(t1, t2));
-
-        if (tMin > tMax)
-            return;
-    }
-
-    // Generate the two points where the capsule centerline intersects
-    // the exapanded box (still expressed in the box frame). Snap these
-    // locations onto the original box, then snap back onto the capsule
-    // axis. This reduces the collision problem to 1 or 2 box-sphere
-    // collisions.
-    btVector3 locs[2] = {c + tMin * a, c + tMax * a};
-    btScalar t[2];
-
-    for (int i = 0; i < 2; i++) {
-        utils::SnapPointToBox(hdims, locs[i]);
-        t[i] = btClamped(a.dot(locs[i] - c), -hlen, hlen);
-    }
-
-    // Check if the two points almost coincide (in which case consider only one of them)
-    int numSpheres = std::abs(t[0] - t[1]) < 1e-4 ? 1 : 2;
-
-    // Perform box-sphere tests, and keep track of actual number of contacts.
-    int j = 0;
-
-    for (int i = 0; i < numSpheres; i++) {
-        // Calculate the center of the corresponding sphere on the capsule centerline (expressed in the box frame).
-        btVector3 spherePos = c + a * t[i];
-
-        // Snap the sphere position to the surface of the box.
-        btVector3 boxPos = spherePos;
-        utils::SnapPointToBox(hdims, boxPos);
-
-        // If the distance from the sphere center to the closest point is larger than the radius plus the separation
-        // value, then there is no contact. Also, ignore contact if the sphere center (almost) coincides with the
-        // closest point, in which case we couldn't decide on the proper contact direction.
-        btVector3 delta = spherePos - boxPos;
-        btScalar dist2 = delta.length2();
-
-        if (dist2 >= contactDist * contactDist || dist2 <= 1e-12)
-            continue;
-
-        // Generate contact information.
-        btScalar dist = btSqrt(dist2);
-        btScalar penetration = dist - radius;
-        // Transform to absolute frame
-        btVector3 normal = abs_X_box.getBasis() * (delta / dist);
-        btVector3 point = abs_X_box(boxPos);
-
-        // A new contact point must specify:
-        //   normal, pointing from B towards A
-        //   point, located on surface of B
-        //   distance, negative for penetration
-        resultOut->addContactPoint(normal, point, penetration);
-
-        ////std::cout << "add contact --  t= " << t[i] << "  face " << i << "  dist= " << dist << "  depth= " << penetration << std::endl;
-    }
-#endif
 
     if (m_ownManifold && m_manifoldPtr->getNumContacts()) {
         resultOut->refreshContactPoints();
