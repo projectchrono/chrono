@@ -21,6 +21,24 @@ namespace utils {
 
 // -----------------------------------------------------------------------------
 
+// Project point onto line.
+btVector3 ProjectPointOnLine(const btVector3& lP,  // point on line
+                             const btVector3& lD,  // line direction (unit vector)
+                             const btVector3& P    // point
+) {
+    return lP + (P - lP).dot(lD) * lD;
+}
+
+btScalar DistancePointToLine(const btVector3& lP,  // point on line
+                             const btVector3& lD,  // line direction (unit vector)
+                             const btVector3& P    // point
+) {
+    btVector3 Q = ProjectPointOnLine(lP, lD, P);
+    return (Q - P).length();
+}
+
+// -----------------------------------------------------------------------------
+
 // Snap the specified location to a point on a box with given half-dimensions.
 // The in/out location is assumed to be specified in the frame of the box (which is therefore assumed to be an AABB
 // centered at the origin).  The return code indicates the box axes that caused snapping:
@@ -159,6 +177,10 @@ bool IntersectSegmentBox(const btVector3& hdims,  // box half-dimensions
             return false;
     }
 
+    // If both intersection points are outside the segment, no intersection
+    if ((tMin < -hlen && tMax < -hlen) || (tMin > +hlen && tMax > +hlen))
+        return false;
+
     // Clamp intersection points to segment length
     ChClampValue(tMin, -hlen, +hlen);
     ChClampValue(tMax, -hlen, +hlen);
@@ -233,9 +255,18 @@ bool IntersectSegmentCylinder(const btVector3& sC,  // segment center point
     btScalar b = vsD - vcD * cDsD;
     btScalar c = vv - vcD * vcD - cR * cR;
 
+    // Intersection with cylindrical surface.
     // a >= 0 always
     // a == 0 indicates line parallel to cylinder axis
-    if (std::abs(a) > tol) {
+    if (std::abs(a) < tol) {
+        // line parallel to cylinder axis
+        btScalar dist2 = (v - vcD * cD).length2();
+        if (dist2 > cR * cR)
+            return false;
+        tMin = -sH;
+        tMax = +sH;
+    } else {
+        // line intersects cylindrical surface
         btScalar discr = b * b - a * c;
         if (discr < 0)
             return false;  // no real roots, no intersection
@@ -244,20 +275,38 @@ bool IntersectSegmentCylinder(const btVector3& sC,  // segment center point
         tMax = (-b + discr) / a;
     }
 
-    // Clamp to positive and negative cylinder end-caps
-    btScalar t;
-    if (IntersectLinePlane(sC, sD, cC + cH * cD, cD, tol, t)) {
-        tMax = btMin(tMax, t);
-        tMin = btMax(tMin, t);
-    }
-    if (IntersectLinePlane(sC, sD, cC - cH * cD, cD, tol, t)) {
-        tMax = btMin(tMax, t);
-        tMin = btMax(tMin, t);
+    // Intersection with end-caps.
+    btScalar t1;
+    bool code1 = IntersectLinePlane(sC, sD, cC + cH * cD, cD, tol, t1);
+    btScalar t2;
+    bool code2 = IntersectLinePlane(sC, sD, cC - cH * cD, cD, tol, t2);
+    assert(code1 == code2);
+    if (code1) {
+        // line intersects end-caps
+        if (t1 < t2) {
+            tMin = btMax(tMin, t1);
+            tMax = btMin(tMax, t2);
+        } else {
+            tMin = btMax(tMin, t2);
+            tMax = btMin(tMax, t1);        
+        }
+        if (tMax < tMin)
+            return false;
+    } else {
+        // line parallel to end-cap planes
+        btScalar d1 = std::abs(cD.dot(cC + cH * cD - sC));
+        btScalar d2 = std::abs(cD.dot(cC - cH * cD - sC));
+        if (d1 > 2 * cH || d2 > 2 * cH)
+            return false;
     }
 
+    // If both intersection points are outside the segment, no intersection
+    if ((tMin < -sH && tMax < -sH) || (tMin > +sH && tMax > +sH))
+        return false;
+
     // Clamp to segment length
-    btClamp(tMin, -cH, +cH);
-    btClamp(tMax, -cH, +cH);
+    btClamp(tMin, -sH, +sH);
+    btClamp(tMax, -sH, +sH);
 
     assert(tMin <= tMax);
 

@@ -27,6 +27,19 @@ namespace chrono {
 namespace collision {
 namespace utils {
 
+/// Project point onto line.
+ChApi btVector3 ProjectPointOnLine(const btVector3& lP,  ///< point on line
+                                   const btVector3& lD,  ///< line direction (unit vector)
+                                   const btVector3& P    ///< point
+);
+
+/// Calculate distance from point to line
+ChApi btScalar DistancePointToLine(const btVector3& lP,  ///< point on line
+                                   const btVector3& lD,  ///< line direction (unit vector)
+                                   const btVector3& P    ///< point
+);
+
+
 /// Snap the specified location to a point on a box with given half-dimensions.
 /// The in/out location is assumed to be specified in the frame of the box (which is therefore assumed to be an AABB
 /// centered at the origin).  The return code indicates the box axes that caused snapping:
