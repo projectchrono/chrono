@@ -72,12 +72,11 @@ void ChShaftsDriveline4WD::Initialize(std::shared_ptr<ChChassis> chassis,
     // Create the central differential, i.e. an epicycloidal mechanism that
     // connects three rotating members. This class of mechanisms can be simulated
     // using ChShaftsPlanetary; a proper 'ordinary' transmission ratio t0 must be
-    // assigned according to Willis formula. The case of the differential is
-    // simple: t0=-1.
+    // assigned according to Willis formula. For a differential, t0=-1.
     m_central_differential = chrono_types::make_shared<ChShaftsPlanetary>();
     m_central_differential->Initialize(m_driveshaft,  // the carrier
                                        m_rear_shaft, m_front_shaft);
-    m_central_differential->SetTransmissionRatioOrdinary(GetCentralDifferentialRatio());
+    m_central_differential->SetTransmissionRatioOrdinary(-1.0);
     sys->Add(m_central_differential);
 
     // Create the clutch for central differential locking. By default, unlocked.
@@ -108,12 +107,11 @@ void ChShaftsDriveline4WD::Initialize(std::shared_ptr<ChChassis> chassis,
     // Create a differential, i.e. an epicycloidal mechanism that connects three
     // rotating members. This class of mechanisms can be simulated using
     // ChShaftsPlanetary; a proper 'ordinary' transmission ratio t0 must be
-    // assigned according to Willis formula. The case of the differential is
-    // simple: t0=-1.
+    // assigned according to Willis formula. For a differential, t0=-1.
     m_rear_differential = chrono_types::make_shared<ChShaftsPlanetary>();
     m_rear_differential->Initialize(m_rear_differentialbox, axles[m_driven_axles[1]]->m_suspension->GetAxle(LEFT),
                                     axles[m_driven_axles[1]]->m_suspension->GetAxle(RIGHT));
-    m_rear_differential->SetTransmissionRatioOrdinary(GetRearDifferentialRatio());
+    m_rear_differential->SetTransmissionRatioOrdinary(-1.0);
     sys->Add(m_rear_differential);
 
     // Create the clutch for rear differential locking. By default, unlocked.
@@ -145,12 +143,11 @@ void ChShaftsDriveline4WD::Initialize(std::shared_ptr<ChChassis> chassis,
     // Create a differential, i.e. an epicycloidal mechanism that connects three
     // rotating members. This class of mechanisms can be simulated using
     // ChShaftsPlanetary; a proper 'ordinary' transmission ratio t0 must be
-    // assigned according to Willis formula. The case of the differential is
-    // simple: t0=-1.
+    // assigned according to Willis formula. For a differential, t0=-1.
     m_front_differential = chrono_types::make_shared<ChShaftsPlanetary>();
     m_front_differential->Initialize(m_front_differentialbox, axles[m_driven_axles[0]]->m_suspension->GetAxle(LEFT),
                                      axles[m_driven_axles[0]]->m_suspension->GetAxle(RIGHT));
-    m_front_differential->SetTransmissionRatioOrdinary(GetFrontDifferentialRatio());
+    m_front_differential->SetTransmissionRatioOrdinary(-1.0);
     sys->Add(m_front_differential);
 
     // Create the clutch for front differential locking. By default, unlocked.

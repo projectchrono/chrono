@@ -66,10 +66,13 @@
 #include "chrono_models/ChApiModels.h"
 #include "chrono_models/robot/robosimian/RoboSimian.h"
 #include "chrono_models/robot/viper/Viper.h"
+#include "chrono_models/robot/copters/Copter.h"
+#include "chrono_models/robot/copters/Little_Hexy.h"
 
 using namespace chrono;
 using namespace chrono::robosimian;
 using namespace chrono::viper;
+using namespace chrono::copter;
 
 %}
 
@@ -190,7 +193,6 @@ using namespace chrono::viper;
 %import(module = "pychrono.core") "../chrono/physics/ChLinkBase.h"
 %import(module = "pychrono.core") "../chrono/assets/ChTriangleMeshShape.h"
 
-
 %rename(CollisionFamily_CHASSIS) chrono::robosimian::CollisionFamily::CHASSIS;
 %rename(CollisionFamily_SLED) chrono::robosimian::CollisionFamily::SLED;
 %rename(VisualizationType_NONE) chrono::robosimian::VisualizationType::NONE;
@@ -198,14 +200,18 @@ using namespace chrono::viper;
 %rename(VisualizationType_COLLISION) chrono::robosimian::VisualizationType::COLLISION;
 %rename(CollisionFlags_COLLISION) chrono::robosimian::CollisionFlags::CHASSIS;
 
-%rename(SideNum_LF) chrono::robosimian::CollisionFamily::CHASSIS;
-
-
 %ignore chrono::robosimian::RS_Driver::GetCurrentPhase;
 %feature("director")  chrono::robosimian::RS_Driver::PhaseChangeCallback;
 
 %include "../chrono_models/robot/robosimian/RoboSimian.h"
 %include "../chrono_models/robot/viper/Viper.h"
+
+%include "../chrono_models/robot/copters/Copter.h"
+%template(ChCopter6) chrono::copter::Copter<6>;
+%template(ChCopter4) chrono::copter::Copter<4>;
+%include "../chrono_models/robot/copters/Little_Hexy.h"
+
+
 
 //
 // C- DOWNCASTING OF SHARED POINTERS

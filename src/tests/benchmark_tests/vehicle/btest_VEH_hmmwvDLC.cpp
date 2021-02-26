@@ -62,7 +62,7 @@ template <typename EnumClass, EnumClass TIRE_MODEL>
 HmmwvDlcTest<EnumClass, TIRE_MODEL>::HmmwvDlcTest() : m_step_veh(2e-3), m_step_tire(1e-3) {
     PowertrainModelType powertrain_model = PowertrainModelType::SHAFTS;
     TireModelType tire_model = TireModelType::RIGID_MESH;
-    DrivelineType drive_type = DrivelineType::AWD;
+    DrivelineTypeWV drive_type = DrivelineTypeWV::AWD;
 
     // Create the HMMWV vehicle, set parameters, and initialize.
     m_hmmwv = new HMMWV_Full();
@@ -184,7 +184,6 @@ CH_BM_SIMULATION_ONCE(HmmwvDLC_RIGIDMESH, rigidmesh_test_type, NUM_SKIP_STEPS, N
 // =============================================================================
 
 int main(int argc, char* argv[]) {
-    utils::ForceBenchmarkTabularOutput(&argc, &argv);
     ::benchmark::Initialize(&argc, argv);
 
 #ifdef CHRONO_IRRLICHT

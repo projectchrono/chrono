@@ -15,6 +15,7 @@
 #ifndef CHQUATERNION_H
 #define CHQUATERNION_H
 
+#include <cmath>
 #include <algorithm>
 #include <limits>
 
@@ -900,8 +901,8 @@ inline bool ChQuaternion<Real>::Equals(const ChQuaternion<Real>& other) const {
 
 template <class Real>
 inline bool ChQuaternion<Real>::Equals(const ChQuaternion<Real>& other, Real tol) const {
-    return (fabs(other.m_data[0] - m_data[0]) < tol) && (fabs(other.m_data[1] - m_data[1]) < tol) &&
-           (fabs(other.m_data[2] - m_data[2]) < tol) && (fabs(other.m_data[3] - m_data[3]) < tol);
+    return (std::abs(other.m_data[0] - m_data[0]) < tol) && (std::abs(other.m_data[1] - m_data[1]) < tol) &&
+           (std::abs(other.m_data[2] - m_data[2]) < tol) && (std::abs(other.m_data[3] - m_data[3]) < tol);
 }
 
 template <class Real>
@@ -942,9 +943,9 @@ inline Real ChQuaternion<Real>::Length2() const {
 
 template <class Real>
 inline Real ChQuaternion<Real>::LengthInf() const {
-    Real e0e1 = std::max(fabs(m_data[0]), fabs(m_data[1]));
-    Real e0e1e2 = std::max(e0e1, fabs(m_data[2]));
-    return std::max(e0e1e2, fabs(m_data[3]));
+    Real e0e1 = std::max(std::abs(m_data[0]), std::abs(m_data[1]));
+    Real e0e1e2 = std::max(e0e1, std::abs(m_data[2]));
+    return std::max(e0e1e2, std::abs(m_data[3]));
 }
 
 template <class Real>

@@ -117,7 +117,7 @@ int main(int argc, char* argv[]) {
         system.Add(sphere);
         sphere->SetPos(ChVector<>(-5 + ChRandom() * 10, 4 + bi * 0.05, -5 + ChRandom() * 10));
         if (bi == 0) {
-            sphere->AddAsset(chrono_types::make_shared<ChTexture>(GetChronoDataFile("bluwhite.png")));
+            sphere->AddAsset(chrono_types::make_shared<ChTexture>(GetChronoDataFile("textures/bluewhite.png")));
             my_sphere = sphere;
         }
 
@@ -125,7 +125,7 @@ int main(int argc, char* argv[]) {
         system.Add(box);
         box->SetPos(ChVector<>(-5 + ChRandom() * 10, 4 + bi * 0.05, -5 + ChRandom() * 10));
         if (bi == 0) {
-            box->AddAsset(chrono_types::make_shared<ChTexture>(GetChronoDataFile("cubetexture_bluwhite.png")));
+            box->AddAsset(chrono_types::make_shared<ChTexture>(GetChronoDataFile("textures/cubetexture_bluewhite.png")));
             my_box = box;
         }
 
@@ -133,7 +133,7 @@ int main(int argc, char* argv[]) {
         system.Add(cylinder);
         cylinder->SetPos(ChVector<>(-5 + ChRandom() * 10, 4 + bi * 0.05, -5 + ChRandom() * 10));
         if (bi == 0) {
-            cylinder->AddAsset(chrono_types::make_shared<ChTexture>(GetChronoDataFile("pinkwhite.png")));
+            cylinder->AddAsset(chrono_types::make_shared<ChTexture>(GetChronoDataFile("textures/pinkwhite.png")));
             my_cylinder = cylinder;
         }
     }

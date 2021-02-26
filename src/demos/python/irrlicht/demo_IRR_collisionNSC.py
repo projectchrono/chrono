@@ -37,7 +37,7 @@ def AddFallingItems(sys):
         sys.Add(msphereBody)
 
         mtexture = chrono.ChTexture()
-        mtexture.SetTextureFilename(chrono.GetChronoDataFile("bluwhite.png"))
+        mtexture.SetTextureFilename(chrono.GetChronoDataFile("textures/bluewhite.png"))
         msphereBody.AddAsset(mtexture)
 
         mboxBody = chrono.ChBodyEasyBox(1.5, 1.5, 1.5, # x,y,z size
@@ -50,7 +50,7 @@ def AddFallingItems(sys):
         sys.Add(mboxBody)
 
         mtexturebox = chrono.ChTexture()
-        mtexturebox.SetTextureFilename(chrono.GetChronoDataFile("cubetexture_bluwhite.png"))
+        mtexturebox.SetTextureFilename(chrono.GetChronoDataFile("textures/cubetexture_bluewhite.png"))
         mboxBody.AddAsset(mtexturebox)
 
         mcylBody = chrono.ChBodyEasyCylinder(0.75, 0.5, # radius, height
@@ -64,7 +64,7 @@ def AddFallingItems(sys):
 
         # optional, attach a texture for better visualization
         mtexturecyl = chrono.ChTexture()
-        mtexturecyl.SetTextureFilename(chrono.GetChronoDataFile("pinkwhite.png"))
+        mtexturecyl.SetTextureFilename(chrono.GetChronoDataFile("textures/pinkwhite.png"))
         mcylBody.AddAsset(mtexturecyl)
 
 def AddContainer(sys):
@@ -99,7 +99,7 @@ def AddContainer(sys):
 
     # optional, attach  textures for better visualization
     mtexturewall = chrono.ChTexture()
-    mtexturewall.SetTextureFilename(chrono.GetChronoDataFile("concrete.jpg"))
+    mtexturewall.SetTextureFilename(chrono.GetChronoDataFile("textures/concrete.jpg"))
     wallBody1.AddAsset(mtexturewall)  # note: most assets can be shared
     wallBody2.AddAsset(mtexturewall)
     wallBody3.AddAsset(mtexturewall)

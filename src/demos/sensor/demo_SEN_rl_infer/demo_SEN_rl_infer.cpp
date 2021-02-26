@@ -111,10 +111,10 @@ CollisionType chassis_collision_type = CollisionType::NONE;
 // Type of powertrain model (SHAFTS, SIMPLE)
 PowertrainModelType powertrain_model = PowertrainModelType::SHAFTS;
 
-// Drive type (FWD)
-DrivelineType drive_type = DrivelineType::AWD;
+// Drive type (AWD)
+DrivelineTypeWV drive_type = DrivelineTypeWV::AWD;
 
-SteeringType steering_type = SteeringType::PITMAN_ARM;
+SteeringTypeWV steering_type = SteeringTypeWV::PITMAN_ARM;
 
 // Type of tire model (RIGID, RIGID_MESH, TMEASY, PACEJKA, LUGRE, FIALA, PAC89, PAC02)
 TireModelType tire_model = TireModelType::PAC02;
@@ -222,7 +222,7 @@ int main(int argc, char* argv[]) {
     auto ground_body = patch->GetGroundBody();
     auto visual_asset = std::dynamic_pointer_cast<ChVisualization>(ground_body->GetAssets()[0]);
     auto vis_mat = chrono_types::make_shared<ChVisualMaterial>();
-    vis_mat->SetKdTexture(GetChronoDataFile("concrete.jpg"));
+    vis_mat->SetKdTexture(GetChronoDataFile("textures/concrete.jpg"));
     visual_asset->material_list.push_back(vis_mat);
 
     // Create the vehicle Irrlicht interface

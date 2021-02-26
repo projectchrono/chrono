@@ -65,6 +65,11 @@ class CH_VEHICLE_API ChTrackDrivelineBDS : public ChDrivelineTV {
                             std::shared_ptr<ChTrackAssembly> track_right  ///< right track assembly
                             ) override;
 
+    /// Update the driveline subsystem.
+    /// The motor torque represents the input to the driveline subsystem from the
+    /// powertrain system.
+    virtual void Synchronize(double steering, double torque) override;
+
     /// Get the motor torque to be applied to the specified sprocket.
     virtual double GetSprocketTorque(VehicleSide side) const override;
 
@@ -79,10 +84,12 @@ class CH_VEHICLE_API ChTrackDrivelineBDS : public ChDrivelineTV {
 
     /// Return the gear ratio for the conical gear.
     virtual double GetConicalGearRatio() const = 0;
-    /// Return the gear ratio for the differential.
-    virtual double GetDifferentialRatio() const = 0;
 
   private:
+    virtual void CombineDriverInputs(const ChDriver::Inputs& driver_inputs,
+                                     double& braking_left,
+                                     double& braking_right) override;
+
     std::shared_ptr<ChShaftsGearboxAngled> m_conicalgear;
     std::shared_ptr<ChShaft> m_differentialbox;
     std::shared_ptr<ChShaftsPlanetary> m_differential;

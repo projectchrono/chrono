@@ -33,7 +33,8 @@ class SYN_API SynSimulationMessage : public SynMessage {
     ///
     ///@param source_id the id of the source to which the message is sent from
     ///@param destination_id the id of the destination to which the message is sent to
-    SynSimulationMessage(unsigned int source_id, unsigned int destination_id);
+    ///@param quit_sim whether this message instructs the manager to end the simulation
+    SynSimulationMessage(unsigned int source_id, unsigned int destination_id, bool quit_sim = false);
 
     ///@brief Destroy the SynMessage object
     virtual ~SynSimulationMessage();
@@ -48,6 +49,10 @@ class SYN_API SynSimulationMessage : public SynMessage {
     ///@param builder a flatbuffer builder to construct the message with
     ///@return FlatBufferMessage the constructed flatbuffer message
     virtual FlatBufferMessage ConvertToFlatBuffers(flatbuffers::FlatBufferBuilder& builder) override;
+
+    // ---------------------------------------------------------------
+
+    bool m_quit_sim;  ///< Instruction to end the simulation early
 };
 
 /// @} synchrono_flatbuffer

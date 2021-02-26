@@ -103,7 +103,7 @@ int main(int argc, char* argv[]) {
 
     // Create the vehicle: specify if chassis is fixed, the suspension type
     // and visualization mode for the various vehicle components.
-    Generic_Vehicle vehicle(false, SuspensionType::MACPHERSON_STRUT, ChContactMethod::NSC);
+    Generic_Vehicle vehicle(false, SuspensionTypeWV::MACPHERSON_STRUT, ChContactMethod::NSC);
     vehicle.Initialize(ChCoordsys<>(initLoc, initRot));
     vehicle.SetChassisVisualizationType(VisualizationType::PRIMITIVES);
     vehicle.SetSuspensionVisualizationType(VisualizationType::PRIMITIVES);

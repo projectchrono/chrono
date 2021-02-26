@@ -30,7 +30,7 @@
 
 /**
     @defgroup synchrono SYNCHRONO module
-    @brief MPI parallelization of agent-level simulation
+    @brief Distributed agent-level simulation
 
     This module provides support for modelling sensor for simulating autonomous behavior
 
@@ -45,7 +45,6 @@
         @defgroup synchrono_communication Communication
         @{
             @defgroup synchrono_communication_mpi MPI
-            @defgroup synchrono_communication_dds DDS
         @}
         @defgroup synchrono_flatbuffer Flatbuffer Messages
         @defgroup synchrono_utils Utilities

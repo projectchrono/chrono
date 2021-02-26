@@ -22,6 +22,7 @@
 // =============================================================================
 
 #include "chrono_synchrono/communication/SynCommunicator.h"
+#include "chrono_synchrono/flatbuffer/message/SynSimulationMessage.h"
 
 namespace chrono {
 namespace synchrono {
@@ -45,6 +46,12 @@ void SynCommunicator::Reset() {
 void SynCommunicator::AddOutgoingMessages(SynMessageList& messages) {
     for (auto message : messages)
         m_flatbuffers_manager.AddMessage(message);
+}
+
+void SynCommunicator::AddQuitMessage() {
+    // Source and destination are meaningless in this case
+    auto message = chrono_types::make_shared<SynSimulationMessage>(0, 0, true);
+    m_flatbuffers_manager.AddMessage(message);
 }
 
 void SynCommunicator::AddIncomingMessages(SynMessageList& messages) {

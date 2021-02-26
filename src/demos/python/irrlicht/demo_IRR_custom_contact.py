@@ -182,7 +182,7 @@ vshape_5.GetBoxGeometry().SetLengths(chrono.ChVectorD(10.2, 2, 0.2))
 vshape_5.GetBoxGeometry().Pos = chrono.ChVectorD(0, 0, 5)
 ground.AddAsset(vshape_5)
 
-ground.AddAsset(chrono.ChTexture(chrono.GetChronoDataFile("blu.png")))
+ground.AddAsset(chrono.ChTexture(chrono.GetChronoDataFile("textures/blue.png")))
 
 # Add obstacle visualization (in a separate level with a different color).
 ground.AddAsset(obstacle.GetVisualization())
@@ -205,7 +205,7 @@ vshape_s = chrono.ChSphereShape()
 vshape_s.GetSphereGeometry().rad = ball_radius
 vshape_s.GetSphereGeometry().Pos = ball.GetPos()
 ball.AddAsset(vshape_s)
-ball.AddAsset(chrono.ChTexture(chrono.GetChronoDataFile("bluwhite.png")))
+ball.AddAsset(chrono.ChTexture(chrono.GetChronoDataFile("textures/bluewhite.png")))
 
 # Create a custom collision detection callback object and register it with the system
 my_collision = MyCustomCollisionDetection(ball, ground, ball_mat, obst_mat, ball_radius, obstacle)
