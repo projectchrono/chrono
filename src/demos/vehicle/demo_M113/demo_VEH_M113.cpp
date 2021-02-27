@@ -124,6 +124,9 @@ int main(int argc, char* argv[]) {
     m113.SetChassisFixed(fix_chassis);
     m113.CreateTrack(create_track);
 
+    // Disable gravity in this simulation
+    ////m113.GetSystem()->Set_G_acc(ChVector<>(0, 0, 0));
+
     // Control steering type (enable crossdrive capability)
     ////m113.GetDriveline()->SetGyrationMode(true);
 
@@ -166,8 +169,12 @@ int main(int argc, char* argv[]) {
     // Monitor only contacts involving the chassis.
     ////m113.GetVehicle().MonitorContacts(TrackedCollisionFlag::CHASSIS);
 
+    // Monitor contacts involving one of the sprockets.
     ////m113.GetVehicle().MonitorContacts(TrackedCollisionFlag::SPROCKET_LEFT | TrackedCollisionFlag::SPROCKET_RIGHT);
 
+    // Monitor only contacts involving the left idler.
+    ////m113.GetVehicle().MonitorContacts(TrackedCollisionFlag::IDLER_LEFT);
+    
     // Collect contact information.
     // If enabled, number of contacts and local contact point locations are collected for all
     // monitored parts.  Data can be written to a file by invoking ChTrackedVehicle::WriteContacts().
@@ -270,8 +277,8 @@ int main(int argc, char* argv[]) {
     // Add fixed and/or falling objects
     // --------------------------------
 
-    ////AddFixedObstacles(vehicle.GetSystem());
-    ////AddFallingObjects(vehicle.GetSystem());
+    ////AddFixedObstacles(m113.GetSystem());
+    ////AddFallingObjects(m113.GetSystem());
 
     // ---------------------------------------
     // Create the vehicle Irrlicht application
@@ -281,7 +288,7 @@ int main(int argc, char* argv[]) {
     app.SetSkyBox();
     app.AddTypicalLights(irr::core::vector3df(30.f, -30.f, 100.f), irr::core::vector3df(30.f, 50.f, 100.f), 250, 130);
     app.SetChaseCamera(trackPoint, 6.0, 0.5);
-    ////app.SetChaseCameraPosition(vehicle.GetVehiclePos() + ChVector<>(0, 2, 0));
+    ////app.SetChaseCameraPosition(m113.GetVehicle().GetVehiclePos() + ChVector<>(0, 2, 0));
     app.SetChaseCameraMultipliers(1e-4, 10);
     app.SetTimestep(step_size);
     app.AssetBindAll();
@@ -339,9 +346,6 @@ int main(int argc, char* argv[]) {
     // ------------------------------
     // Solver and integrator settings
     // ------------------------------
-
-    // Disable gravity in this simulation
-    ////m113.GetSystem()->Set_G_acc(ChVector<>(0, 0, 0));
 
     // Cannot use HHT + MKL with NSC contact
     if (contact_method == ChContactMethod::NSC) {

@@ -70,6 +70,10 @@ void ChCollisionSystemMulticore::Add(ChCollisionModel* model) {
                     start = (int)data_manager->shape_data.box_like_rigid.size();
                     data_manager->shape_data.box_like_rigid.push_back(obB);
                     break;
+                case ChCollisionShape::Type::CYLSHELL:
+                    start = (int)data_manager->shape_data.box_like_rigid.size();
+                    data_manager->shape_data.box_like_rigid.push_back(obB);
+                    break;
                 case ChCollisionShape::Type::CONE:
                     start = (int)data_manager->shape_data.box_like_rigid.size();
                     data_manager->shape_data.box_like_rigid.push_back(obB);
@@ -145,37 +149,40 @@ void ChCollisionSystemMulticore::Remove(ChCollisionModel* model) {
 
 
                 switch (type) {
-                case chrono::collision::SPHERE:
+                case ChCollisionShape::Type::SPHERE:
                     ERASE_MACRO_LEN(data_manager->shape_data.sphere_rigid, start, length);
                     break;
-                case chrono::collision::ELLIPSOID:
+                case ChCollisionShape::Type::ELLIPSOID:
                     ERASE_MACRO_LEN(data_manager->shape_data.box_like_rigid, start, length);
                     break;
-                case chrono::collision::BOX:
+                case ChCollisionShape::Type::BOX:
                     ERASE_MACRO_LEN(data_manager->shape_data.box_like_rigid, start, length);
                     break;
-                case chrono::collision::CYLINDER:
+                case ChCollisionShape::Type::CYLINDER:
                     ERASE_MACRO_LEN(data_manager->shape_data.box_like_rigid, start, length);
                     break;
-                case chrono::collision::CONE:
+                case ChCollisionShape::Type::CYLSHELL:
                     ERASE_MACRO_LEN(data_manager->shape_data.box_like_rigid, start, length);
                     break;
-                case chrono::collision::CAPSULE:
+                case ChCollisionShape::Type::CONE:
+                    ERASE_MACRO_LEN(data_manager->shape_data.box_like_rigid, start, length);
+                    break;
+                case ChCollisionShape::Type::CAPSULE:
                     ERASE_MACRO_LEN(data_manager->shape_data.capsule_rigid, start, length);
                     break;
-                case chrono::collision::ROUNDEDBOX:
+                case ChCollisionShape::Type::ROUNDEDBOX:
                     ERASE_MACRO_LEN(data_manager->shape_data.rbox_like_rigid, start, length);
                     break;
-                case chrono::collision::ROUNDEDCYL:
+                case ChCollisionShape::Type::ROUNDEDCYL:
                     ERASE_MACRO_LEN(data_manager->shape_data.rbox_like_rigid, start, length);
                     break;
-                case chrono::collision::ROUNDEDCONE:
+                case ChCollisionShape::Type::ROUNDEDCONE:
                     ERASE_MACRO_LEN(data_manager->shape_data.rbox_like_rigid, start, length);
                     break;
-                case chrono::collision::CONVEX:
+                case ChCollisionShape::Type::CONVEX:
                     ERASE_MACRO_LEN(data_manager->shape_data.convex_rigid, start, length);
                     break;
-                case chrono::collision::TRIANGLE:
+                case ChCollisionShape::Type::TRIANGLE:
                     ERASE_MACRO_LEN(data_manager->shape_data.convex_rigid, start, 3);
                     break;
                 }

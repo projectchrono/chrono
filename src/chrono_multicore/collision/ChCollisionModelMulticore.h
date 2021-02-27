@@ -134,6 +134,15 @@ class CH_MULTICORE_API ChCollisionModelMulticore : public ChCollisionModel {
         const ChMatrix33<>& rot = ChMatrix33<>(1)     ///< rotation in model coordinates
         ) override;
 
+    /// Add a cylindrical shell to this collision model (default axis in Y direction).
+    virtual bool AddCylindricalShell(                 //
+        std::shared_ptr<ChMaterialSurface> material,  ///< surface contact material
+        double radius,                                ///< cylinder radius
+        double hlen,                                  ///< cylinder half length
+        const ChVector<>& pos = ChVector<>(),         ///< center position in model coordinates
+        const ChMatrix33<>& rot = ChMatrix33<>(1)     ///< rotation in model coordinates
+        ) override;
+
     /// Add a rounded cylinder to this collision model (default axis on Y direction).
     virtual bool AddRoundedCylinder(                  //
         std::shared_ptr<ChMaterialSurface> material,  ///< surface contact material
@@ -232,6 +241,7 @@ class CH_MULTICORE_API ChCollisionModelMulticore : public ChCollisionModel {
     /// BOX          x-halfdim y-halfdim z-halfdim
     /// ELLIPSOID    x-radius y-radius z-radius
     /// CYLINDER     x-radius z-radius halflength
+    /// CYLSHELL     radius halflength
     /// CONE         x-radius z-radius halfheight
     /// CAPSULE      radius halflength
     /// ROUNDEDBOX   x-halfdim y-halfdim z-halfdim sphere_rad
