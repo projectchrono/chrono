@@ -3,13 +3,11 @@
 # ------------------------------------------------------------------------------
 
 # Requires Irrlicht run-time visualization.
-if(NOT ENABLE_MODULE_IRRLICHT OR NOT USE_FAST_DDS)
+if(NOT ENABLE_MODULE_IRRLICHT)
   return()
 endif()
 
-set(DEMOS 
-    demo_SYN_DDS_distributed
-)
+set(DEMOS demo_SYN_copter)
 
 # --------------------------------------------------------------
 
@@ -21,9 +19,8 @@ foreach(PROGRAM ${DEMOS})
   add_executable(${PROGRAM} ${PROGRAM}.cpp)
   source_group("" FILES ${PROGRAM}.cpp)
 
-  set_target_properties(
-    ${PROGRAM} PROPERTIES COMPILE_FLAGS "${SYN_CXX_FLAGS}"
-                          LINK_FLAGS "${CH_LINKERFLAG_EXE} ${MPI_LINK_FLAGS}")
-
-  target_link_libraries(${PROGRAM} ChronoEngine_synchrono ${SYN_LIBRARIES})
+  set_target_properties(${PROGRAM} PROPERTIES COMPILE_FLAGS "${SYN_CXX_FLAGS}")
+  set_property(TARGET ${PROGRAM} PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:${PROGRAM}>")                        
+  target_link_libraries(${PROGRAM} ChronoEngine_synchrono ChronoModels_robot)
+  install(TARGETS ${PROGRAM} DESTINATION ${CH_INSTALL_DEMO})
 endforeach()

@@ -48,37 +48,6 @@ set(SYN_LIBRARIES
     ${MPI_LIBRARIES}
 )
 
-#-----------------------------------------------------------------------------
-# Find DDS (Optional)
-#-----------------------------------------------------------------------------
-option(USE_FAST_DDS "Enable the FastDDS interface for the SynChrono Module" OFF)
-
-if (USE_FAST_DDS)
-	set(FAST_DDS_INSTALL_DIR "" CACHE PATH "Path to FastDDS install dir")
-	set(fastcdr_DIR "${FAST_DDS_INSTALL_DIR}/lib/cmake/fastcdr" CACHE FILEPATH "Path to the FastCDR cmake config file" FORCE)
-	set(fastrtps_DIR "${FAST_DDS_INSTALL_DIR}/share/fastrtps/cmake" CACHE FILEPATH "Path to the FastDDS cmake config file" FORCE)
-	set(foonathan_memory_DIR "${FAST_DDS_INSTALL_DIR}/lib/foonathan_memory/cmake" CACHE FILEPATH "Path to the foonathan memory cmake config file" FORCE)
-
-	find_package(fastcdr REQUIRED)
-	find_package(fastrtps REQUIRED)
-
-	list(APPEND SYN_LIBRARIES
-		fastrtps
-		fastcdr
-	)
-endif()
-
-# ----------------------------------------------------------------------------
-# Generate and install configuration file
-# ----------------------------------------------------------------------------
-
-# Prepare replacement variables
-if(USE_FAST_DDS)
-	set(CHRONO_FASTDDS "#define CHRONO_FASTDDS")
-else()
-	set(CHRONO_FASTDDS "#undef CHRONO_FASTDDS")
-endif()
-
 # Generate the configuration header file using substitution variables.
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/SynConfig.h.in
 			   ${PROJECT_BINARY_DIR}/chrono_synchrono/SynConfig.h)
@@ -109,6 +78,9 @@ set(SYN_AGENT_FILES
 	agent/SynWheeledVehicleAgent.cpp
 	agent/SynTrackedVehicleAgent.h
 	agent/SynTrackedVehicleAgent.cpp
+	
+	agent/SynCopterAgent.h
+	agent/SynCopterAgent.cpp
 
 	agent/SynSCMTerrainAgent.h
 	agent/SynSCMTerrainAgent.cpp
@@ -134,26 +106,6 @@ set(SYN_COMMUNICATION_FILES
     communication/mpi/SynMPICommunicator.h
     communication/mpi/SynMPICommunicator.cpp
 )
-if(USE_FAST_DDS)
-	list(APPEND SYN_COMMUNICATION_FILES
-		communication/dds/SynDDSCommunicator.h
-		communication/dds/SynDDSCommunicator.cpp
-		
-		communication/dds/SynDDSPublisher.h
-		communication/dds/SynDDSPublisher.cpp
-		communication/dds/SynDDSSubscriber.h
-		communication/dds/SynDDSSubscriber.cpp
-		communication/dds/SynDDSTopic.h
-		communication/dds/SynDDSTopic.cpp
-		communication/dds/SynDDSListener.h
-		communication/dds/SynDDSListener.cpp
-
-		communication/dds/idl/SynDDSMessage.h
-		communication/dds/idl/SynDDSMessage.cxx
-		communication/dds/idl/SynDDSMessagePubSubTypes.h
-		communication/dds/idl/SynDDSMessagePubSubTypes.cxx
-	)
-endif()
 source_group("communication" FILES ${SYN_COMMUNICATION_FILES})
 
 set(SYN_FLATBUFFER_FILES
@@ -170,6 +122,9 @@ set(SYN_FLATBUFFER_FILES
 	flatbuffer/message/SynWheeledVehicleMessage.cpp
 	flatbuffer/message/SynTrackedVehicleMessage.h
 	flatbuffer/message/SynTrackedVehicleMessage.cpp
+
+	flatbuffer/message/SynCopterMessage.h
+	flatbuffer/message/SynCopterMessage.cpp
 	
 	flatbuffer/message/SynSCMMessage.h
 	flatbuffer/message/SynSCMMessage.cpp
@@ -262,4 +217,9 @@ install(TARGETS ChronoEngine_synchrono
 
 install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/
         DESTINATION include/chrono_synchrono
-        FILES_MATCHING PATTERN "*.h")
+        FILES_MATCHING PATTERN "*.h" PATTERN "fbs" EXCLUDE)
+
+# Install required chrono_thirdparty headers
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/flatbuffers/include
+        DESTINATION include/chrono_thirdparty/flatbuffers
+        FILES_MATCHING PATTERN "*.h" PATTERN "*.cuh" PATTERN "*.hpp" PATTERN "*.inl")

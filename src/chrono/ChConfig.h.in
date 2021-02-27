@@ -158,6 +158,15 @@
 @CHRONO_HAS_HDF5@
 
 // -----------------------------------------------------------------------------
+// CUDA settings
+// -----------------------------------------------------------------------------
+
+// If CUDA is available, define CHRONO_CUDA_FOUND and CHRONO_CUDA_VERSION
+
+@CHRONO_CUDA_FOUND@
+@CHRONO_CUDA_VERSION@
+
+// -----------------------------------------------------------------------------
 
 // If Google Test and Benchmark are enabled and available, then
 //   #define CHRONO_HAS_GTEST

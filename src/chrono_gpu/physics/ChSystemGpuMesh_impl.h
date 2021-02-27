@@ -112,7 +112,7 @@ class ChSystemGpuMesh_impl : public ChSystemGpu_impl {
     ChSystemGpuMesh_impl(float sphere_rad, float density, float3 boxDims);
 
     /// Apply rigid body motion to specified mesh.
-    void ApplyMeshMotion(unsigned int mesh,
+    void ApplyMeshMotion(unsigned int mesh_id,
                          const double* pos,
                          const double* rot,
                          const double* lin_vel,
