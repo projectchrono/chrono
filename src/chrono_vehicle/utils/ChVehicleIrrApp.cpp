@@ -229,9 +229,8 @@ void ChVehicleIrrApp::Advance(double step) {
     ChVector<> cam_pos = m_camera.GetCameraPos();
     ChVector<> cam_target = m_camera.GetTargetPos();
 
-    scene::ICameraSceneNode* camera = GetSceneManager()->getActiveCamera();
-    camera->setPosition(core::vector3dfCH(cam_pos));
-    camera->setTarget(core::vector3dfCH(cam_target));
+    GetActiveCamera()->setPosition(core::vector3dfCH(cam_pos));
+    GetActiveCamera()->setTarget(core::vector3dfCH(cam_target));
 
 #ifdef CHRONO_IRRKLANG
     static int stepsbetweensound = 0;

@@ -282,7 +282,7 @@ int main(int argc, char* argv[]) {
         }
         application.BeginScene();
 
-        application.GetSceneManager()->getActiveCamera()->setTarget(core::vector3dfCH(Body_1->GetPos()));
+        application.GetActiveCamera()->setTarget(core::vector3dfCH(Body_1->GetPos()));
         application.DrawAll();
 
         application.DoStep();

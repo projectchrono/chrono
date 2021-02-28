@@ -123,7 +123,7 @@ int main() {
     application.AssetBindAll();
     application.AssetUpdateAll();
 
-    auto camera = application.GetSceneManager()->getActiveCamera();
+    auto camera = application.GetActiveCamera();
     camera->setFOV(irr::core::PI / 4.5f);
 
     // Perform the simulation

@@ -588,11 +588,9 @@ void ChIrrAppInterface::SetPOVraySave(bool val) {
 
         pov_exporter->AddAll();
 
-        pov_exporter->SetCamera(ChVectorIrr(this->GetSceneManager()->getActiveCamera()->getAbsolutePosition()),
-                                ChVectorIrr(this->GetSceneManager()->getActiveCamera()->getTarget()),
-                                this->GetSceneManager()->getActiveCamera()->getFOV() *
-                                    this->GetSceneManager()->getActiveCamera()->getAspectRatio() *
-                                    chrono::CH_C_RAD_TO_DEG);
+        pov_exporter->SetCamera(
+            ChVectorIrr(GetActiveCamera()->getAbsolutePosition()), ChVectorIrr(GetActiveCamera()->getTarget()),
+            GetActiveCamera()->getFOV() * GetActiveCamera()->getAspectRatio() * chrono::CH_C_RAD_TO_DEG);
 
         pov_exporter->ExportScript();
 
@@ -626,11 +624,11 @@ void ChIrrAppInterface::BeginScene(bool backBuffer, bool zBuffer, irr::video::SC
     GetVideoDriver()->beginScene(backBuffer, zBuffer, color);
 
     if (camera_auto_rotate_speed) {
-        irr::core::vector3df pos = GetSceneManager()->getActiveCamera()->getPosition();
-        irr::core::vector3df target = GetSceneManager()->getActiveCamera()->getTarget();
+        irr::core::vector3df pos = GetActiveCamera()->getPosition();
+        irr::core::vector3df target = GetActiveCamera()->getTarget();
         pos.rotateXZBy(camera_auto_rotate_speed, target);
-        GetSceneManager()->getActiveCamera()->setPosition(pos);
-        GetSceneManager()->getActiveCamera()->setTarget(target);
+        GetActiveCamera()->setPosition(pos);
+        GetActiveCamera()->setTarget(target);
     }
 }
 

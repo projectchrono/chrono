@@ -171,8 +171,8 @@ int main(int argc, char* argv[]) {
         ChVector<float> pos = myhexy.GetChassis()->GetPos();
         core::vector3df ipos(pos.x(), pos.y(), pos.z());
         core::vector3df offset(1, -1, 1);
-        application.GetSceneManager()->getActiveCamera()->setPosition(ipos + offset);
-        application.GetSceneManager()->getActiveCamera()->setTarget(ipos);
+        application.GetActiveCamera()->setPosition(ipos + offset);
+        application.GetActiveCamera()->setTarget(ipos);
 
         application.BeginScene(true, true, SColor(255, 140, 161, 192));
         application.DrawAll();

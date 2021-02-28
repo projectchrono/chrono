@@ -64,6 +64,7 @@ class ChApiIrr ChIrrAppInterface {
     irr::IrrlichtDevice* GetDevice() { return device; }
     irr::video::IVideoDriver* GetVideoDriver() { return device->getVideoDriver(); }
     irr::scene::ISceneManager* GetSceneManager() { return device->getSceneManager(); }
+    irr::scene::ICameraSceneNode* GetActiveCamera() { return device->getSceneManager()->getActiveCamera(); }
     irr::gui::IGUIEnvironment* GetIGUIEnvironment() { return device->getGUIEnvironment(); }
     EffectHandler* GetEffects() { return effect; }
     irr::scene::ISceneNode* GetContainer() { return container; }

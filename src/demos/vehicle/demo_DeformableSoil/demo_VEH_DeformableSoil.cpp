@@ -281,7 +281,7 @@ int main(int argc, char* argv[]) {
         }
 
         application.BeginScene();
-        application.GetSceneManager()->getActiveCamera()->setTarget(core::vector3dfCH(mrigidbody->GetPos()));
+        application.GetActiveCamera()->setTarget(core::vector3dfCH(mrigidbody->GetPos()));
         application.DrawAll();
         application.DoStep();
         ChIrrTools::drawColorbar(0, 30000, "Pressure yield [Pa]", application.GetDevice(), 1180);
