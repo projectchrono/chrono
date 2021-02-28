@@ -193,9 +193,9 @@ int main(int argc, char* argv[]) {
     while (application.GetDevice()->run()) {
         application.BeginScene(true, true, irr::video::SColor(255, 140, 161, 192));
         application.DrawAll();
-        irrlicht::ChIrrTools::drawGrid(application.GetVideoDriver(), 0.5, 0.5, 12, 12,
+        irrlicht::tools::drawGrid(application.GetVideoDriver(), 0.5, 0.5, 12, 12,
                                        ChCoordsys<>(ChVector<>(0, 0, 0), Q_from_AngX(CH_C_PI_2)));
-        irrlicht::ChIrrTools::drawAllCOGs(system, application.GetVideoDriver(), 1.0);
+        irrlicht::tools::drawAllCOGs(system, application.GetVideoDriver(), 1.0);
 
         application.DoStep();
         application.EndScene();

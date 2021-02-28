@@ -145,8 +145,8 @@ int main(int argc, char* argv[]) {
     while (application.GetDevice()->run()) {
         application.BeginScene();
         application.DrawAll();
-        ChIrrTools::drawAllCOGs(system, application.GetVideoDriver(), 1.0);
-        ChIrrTools::drawAllLinkframes(system, application.GetVideoDriver(), 1.5);
+        tools::drawAllCOGs(system, application.GetVideoDriver(), 1.0);
+        tools::drawAllLinkframes(system, application.GetVideoDriver(), 1.5);
         application.EndScene();
         application.DoStep();
 

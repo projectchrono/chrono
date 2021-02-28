@@ -132,18 +132,18 @@ int main(int argc, char* argv[]) {
         // .. draw items belonging to Irrlicht scene, if any
         application.DrawAll();
         // .. draw a grid
-        ChIrrTools::drawGrid(application.GetVideoDriver(), 0.5, 0.5);
+        tools::drawGrid(application.GetVideoDriver(), 0.5, 0.5);
         // .. draw GUI items belonging to Irrlicht screen, if any
         application.GetIGUIEnvironment()->drawAll();
 
         // .. draw the rod (from joint BC to joint CA)
-        ChIrrTools::drawSegment(application.GetVideoDriver(), my_link_BC->GetMarker1()->GetAbsCoord().pos,
+        tools::drawSegment(application.GetVideoDriver(), my_link_BC->GetMarker1()->GetAbsCoord().pos,
                                 my_link_CA->GetMarker1()->GetAbsCoord().pos, video::SColor(255, 0, 255, 0));
         // .. draw the crank (from joint AB to joint BC)
-        ChIrrTools::drawSegment(application.GetVideoDriver(), my_link_AB->GetLinkAbsoluteCoords().pos,
+        tools::drawSegment(application.GetVideoDriver(), my_link_AB->GetLinkAbsoluteCoords().pos,
                                 my_link_BC->GetMarker1()->GetAbsCoord().pos, video::SColor(255, 255, 0, 0));
         // .. draw a small circle at crank origin
-        ChIrrTools::drawCircle(application.GetVideoDriver(), 0.1, ChCoordsys<>(ChVector<>(0, 0, 0), QUNIT));
+        tools::drawCircle(application.GetVideoDriver(), 0.1, ChCoordsys<>(ChVector<>(0, 0, 0), QUNIT));
 
         /* test: delete a link after 10 seconds
         if (my_system.GetChTime() >10 && (!removed))

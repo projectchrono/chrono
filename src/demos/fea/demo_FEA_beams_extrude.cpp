@@ -288,7 +288,7 @@ int main(int argc, char* argv[]) {
         application.BeginScene();
 
         application.DrawAll();
-        ChIrrTools::drawGrid(application.GetVideoDriver(), 0.1, 0.1,20,20,CSYSNORM, irr::video::SColor(255,100,100,100),true);
+        tools::drawGrid(application.GetVideoDriver(), 0.1, 0.1,20,20,CSYSNORM, irr::video::SColor(255,100,100,100),true);
 
         application.DoStep();
 

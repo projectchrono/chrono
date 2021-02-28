@@ -637,7 +637,7 @@ void ChIrrAppInterface::EndScene() {
     utils::ChProfileManager::Stop_Profile();
 
     if (show_profiler)
-        ChIrrTools::drawProfiler(this->GetDevice());
+        tools::drawProfiler(this->GetDevice());
 
     GetVideoDriver()->endScene();
 }
@@ -789,33 +789,32 @@ void ChIrrAppInterface::DrawAll() {
         GetSceneManager()->drawAll();  // DRAW 3D SCENE the usual way, if no shadow maps
 
     int dmode = gad_drawcontacts->getSelected();
-    ChIrrTools::drawAllContactPoints(system->GetContactContainer(), GetVideoDriver(), symbolscale,
-                                     (ChIrrTools::eCh_ContactsDrawMode)dmode);
+    tools::drawAllContactPoints(system->GetContactContainer(), GetVideoDriver(), symbolscale,
+                                (IrrContactsDrawMode)dmode);
 
     int lmode = gad_labelcontacts->getSelected();
-    ChIrrTools::drawAllContactLabels(system->GetContactContainer(), GetDevice(),
-                                     (ChIrrTools::eCh_ContactsLabelMode)lmode);
+    tools::drawAllContactLabels(system->GetContactContainer(), GetDevice(), (IrrContactsLabelMode)lmode);
 
     int dmodeli = gad_drawlinks->getSelected();
-    ChIrrTools::drawAllLinks(*system, GetVideoDriver(), symbolscale, (ChIrrTools::eCh_LinkDrawMode)dmodeli);
+    tools::drawAllLinks(*system, GetVideoDriver(), symbolscale, (IrrLinkDrawMode)dmodeli);
 
     int lmodeli = gad_labellinks->getSelected();
-    ChIrrTools::drawAllLinkLabels(*system, GetDevice(), (ChIrrTools::eCh_LinkLabelMode)lmodeli);
+    tools::drawAllLinkLabels(*system, GetDevice(), (IrrLinkLabelMode)lmodeli);
 
     if (gad_plot_aabb->isChecked())
-        ChIrrTools::drawAllBoundingBoxes(*system, GetVideoDriver());
+        tools::drawAllBoundingBoxes(*system, GetVideoDriver());
 
     if (gad_plot_cogs->isChecked())
-        ChIrrTools::drawAllCOGs(*system, GetVideoDriver(), symbolscale);
+        tools::drawAllCOGs(*system, GetVideoDriver(), symbolscale);
 
     if (gad_plot_linkframes->isChecked())
-        ChIrrTools::drawAllLinkframes(*system, GetVideoDriver(), symbolscale);
+        tools::drawAllLinkframes(*system, GetVideoDriver(), symbolscale);
 
     if (gad_plot_collisionshapes->isChecked())
-        ChIrrTools::drawCollisionShapes(*system, GetDevice());
+        tools::drawCollisionShapes(*system, GetDevice());
 
     if (gad_plot_convergence->isChecked())
-        ChIrrTools::drawHUDviolation(GetVideoDriver(), GetDevice(), *system, 240, 370, 300, 100, 100.0);
+        tools::drawHUDviolation(GetVideoDriver(), GetDevice(), *system, 240, 370, 300, 100, 100.0);
 
     gad_tabbed->setVisible(show_infos);
     gad_treeview->setVisible(show_explorer);
@@ -932,6 +931,56 @@ void ChIrrAppInterface::DumpSystemMatrices() {
     } catch (ChException myexc) {
         GetLog() << myexc.what();
     }
+}
+
+// -----------------------------------------------------------------------------
+
+void ChIrrAppInterface::AddTypicalLogo(const std::string& mlogofilename) {
+    tools::add_typical_Logo(GetDevice(), mlogofilename);
+}
+
+void ChIrrAppInterface::AddTypicalCamera(irr::core::vector3df pos, irr::core::vector3df targ) {
+    tools::add_typical_Camera(GetDevice(), pos, targ, y_up);
+}
+
+void ChIrrAppInterface::AddTypicalLights(irr::core::vector3df pos1,
+                                         irr::core::vector3df pos2,
+                                         double rad1,
+                                         double rad2,
+                                         irr::video::SColorf col1,
+                                         irr::video::SColorf col2) {
+    tools::add_typical_Lights(GetDevice(), pos1, pos2, rad1, rad2, col1, col2);
+}
+
+void ChIrrAppInterface::AddTypicalSky(const std::string& mtexturedir) {
+    tools::add_typical_Sky(GetDevice(), y_up, mtexturedir);
+}
+
+irr::scene::ILightSceneNode* ChIrrAppInterface::AddLight(irr::core::vector3df pos,
+                                                         double radius,
+                                                         irr::video::SColorf color) {
+    irr::scene::ILightSceneNode* mlight = device->getSceneManager()->addLightSceneNode(0, pos, color, (irr::f32)radius);
+    return mlight;
+}
+
+irr::scene::ILightSceneNode* ChIrrAppInterface::AddLightWithShadow(irr::core::vector3df pos,
+                                                                   irr::core::vector3df aim,
+                                                                   double radius,
+                                                                   double mnear,
+                                                                   double mfar,
+                                                                   double angle,
+                                                                   irr::u32 resolution,
+                                                                   irr::video::SColorf color,
+                                                                   bool directional,
+                                                                   bool clipborder) {
+    irr::scene::ILightSceneNode* mlight = device->getSceneManager()->addLightSceneNode(0, pos, color, (irr::f32)radius);
+    effect->addShadowLight(SShadowLight(resolution, pos, aim, color, (irr::f32)mnear, (irr::f32)mfar,
+                                        ((irr::f32)angle * irr::core::DEGTORAD), directional));
+    if (clipborder == false) {
+        effect->getShadowLight(effect->getShadowLightCount() - 1).setClipBorder(clipborder);
+    }
+    use_effects = true;
+    return mlight;
 }
 
 }  // end namespace irrlicht

@@ -257,11 +257,11 @@ void ANCFshell<N>::SimulateVis() {
     while (application.GetDevice()->run()) {
         application.BeginScene();
         application.DrawAll();
-        irrlicht::ChIrrTools::drawSegment(application.GetVideoDriver(), ChVector<>(0), ChVector<>(1, 0, 0),
+        irrlicht::tools::drawSegment(application.GetVideoDriver(), ChVector<>(0), ChVector<>(1, 0, 0),
                                           irr::video::SColor(255, 255, 0, 0));
-        irrlicht::ChIrrTools::drawSegment(application.GetVideoDriver(), ChVector<>(0), ChVector<>(0, 1, 0),
+        irrlicht::tools::drawSegment(application.GetVideoDriver(), ChVector<>(0), ChVector<>(0, 1, 0),
                                           irr::video::SColor(255, 0, 255, 0));
-        irrlicht::ChIrrTools::drawSegment(application.GetVideoDriver(), ChVector<>(0), ChVector<>(0, 0, 1),
+        irrlicht::tools::drawSegment(application.GetVideoDriver(), ChVector<>(0), ChVector<>(0, 0, 1),
                                           irr::video::SColor(255, 0, 0, 255));
         ExecuteStep();
         application.EndScene();

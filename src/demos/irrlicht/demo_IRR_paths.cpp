@@ -54,7 +54,7 @@ int main(int argc, char* argv[]) {
 
     // This means that contactforces will be shown in Irrlicht application
     application.SetSymbolscale(0.2);
-    application.SetContactsDrawMode(ChIrrTools::eCh_ContactsDrawMode::CONTACT_NORMALS);
+    application.SetContactsDrawMode(IrrContactsDrawMode::CONTACT_NORMALS);
 
     //
     // EXAMPLE 1:

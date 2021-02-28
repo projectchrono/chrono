@@ -189,7 +189,7 @@ int main(int argc, char* argv[]) {
         application.DrawAll();
 
         // Draw also a grid on the horizontal XZ plane
-        ChIrrTools::drawGrid(application.GetVideoDriver(), 2, 2, 20, 20,
+        tools::drawGrid(application.GetVideoDriver(), 2, 2, 20, 20,
                              ChCoordsys<>(ChVector<>(0, -20, 0), Q_from_AngX(CH_C_PI_2)),
                              video::SColor(255, 80, 100, 100), true);
 
@@ -203,7 +203,7 @@ int main(int argc, char* argv[]) {
         ChFrame<> my_fan_framerotation(my_fan_coord);
         ChFrame<> my_fan_framespin(ChCoordsys<>(VNULL, my_fan_spin));
         ChCoordsys<> my_fan_coordsys = (my_fan_framespin >> my_fan_framerotation).GetCoord();
-        ChIrrTools::alignIrrlichtNodeToChronoCsys(fanNode, my_fan_coordsys);
+        tools::alignIrrlichtNodeToChronoCsys(fanNode, my_fan_coordsys);
 
         // Apply forces caused by fan & wind if Chrono rigid bodies are
         // in front of the fan, using a simple tutorial function (see above):

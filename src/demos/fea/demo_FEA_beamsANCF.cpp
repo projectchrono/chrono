@@ -189,11 +189,11 @@ int main(int argc, char* argv[]) {
 
         application.BeginScene();
         application.DrawAll();
-        irrlicht::ChIrrTools::drawSegment(application.GetVideoDriver(), ChVector<>(0), ChVector<>(0.3, 0, 0),
+        irrlicht::tools::drawSegment(application.GetVideoDriver(), ChVector<>(0), ChVector<>(0.3, 0, 0),
                                           irr::video::SColor(255, 255, 0, 0));
-        irrlicht::ChIrrTools::drawSegment(application.GetVideoDriver(), ChVector<>(0), ChVector<>(0, 0.3, 0),
+        irrlicht::tools::drawSegment(application.GetVideoDriver(), ChVector<>(0), ChVector<>(0, 0.3, 0),
                                           irr::video::SColor(255, 0, 255, 0));
-        irrlicht::ChIrrTools::drawSegment(application.GetVideoDriver(), ChVector<>(0), ChVector<>(0, 0, 0.3),
+        irrlicht::tools::drawSegment(application.GetVideoDriver(), ChVector<>(0), ChVector<>(0, 0, 0.3),
                                           irr::video::SColor(255, 0, 0, 255));
         application.EndScene();
 

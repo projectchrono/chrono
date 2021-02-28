@@ -131,7 +131,7 @@ int main(int argc, char* argv[]) {
         application.DrawAll();
 
         // Draw also a grid on the horizontal XZ plane
-        ChIrrTools::drawGrid(application.GetVideoDriver(), 2, 2, 20, 20,
+        tools::drawGrid(application.GetVideoDriver(), 2, 2, 20, 20,
                              ChCoordsys<>(ChVector<>(0, -20, 0), Q_from_AngX(CH_C_PI_2)),
                              video::SColor(255, 80, 100, 100), true);
         application.DoStep();

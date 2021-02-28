@@ -267,18 +267,18 @@ void ChVehicleIrrApp::DrawAll() {
 
 // Render a horizontal grid
 void ChVehicleIrrApp::RenderGrid(const ChVector<>& loc, int num_divs, double delta) {
-    irrlicht::ChIrrTools::drawGrid(GetVideoDriver(), delta, delta, num_divs, num_divs,
+    irrlicht::tools::drawGrid(GetVideoDriver(), delta, delta, num_divs, num_divs,
                                    ChCoordsys<>(loc, ChWorldFrame::Quaternion()),
                                    irr::video::SColor(255, 255, 200, 0), true);
 }
 
 // Render a reference frame (aligned with the world frame) at the specified location
 void ChVehicleIrrApp::RenderFrame(const ChVector<>& loc, double axis_length) {
-    irrlicht::ChIrrTools::drawSegment(GetVideoDriver(), loc, loc + ChVector<>(axis_length, 0, 0),
+    irrlicht::tools::drawSegment(GetVideoDriver(), loc, loc + ChVector<>(axis_length, 0, 0),
                                       irr::video::SColor(255, 255, 0, 0));
-    irrlicht::ChIrrTools::drawSegment(GetVideoDriver(), loc, loc + ChVector<>(0, axis_length, 0),
+    irrlicht::tools::drawSegment(GetVideoDriver(), loc, loc + ChVector<>(0, axis_length, 0),
                                       irr::video::SColor(255, 0, 255, 0));
-    irrlicht::ChIrrTools::drawSegment(GetVideoDriver(), loc, loc + ChVector<>(0, 0, axis_length),
+    irrlicht::tools::drawSegment(GetVideoDriver(), loc, loc + ChVector<>(0, 0, axis_length),
                                       irr::video::SColor(255, 0, 0, 255));
 }
 

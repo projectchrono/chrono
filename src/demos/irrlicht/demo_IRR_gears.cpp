@@ -221,27 +221,27 @@ int main(int argc, char* argv[]) {
 
         // .. draw also some circle lines representing gears - just for aesthetical reasons
 
-        ChIrrTools::drawCircle(application.GetVideoDriver(), link_gearBC->Get_r2(),
+        tools::drawCircle(application.GetVideoDriver(), link_gearBC->Get_r2(),
                                (link_gearBC->Get_local_shaft2() >> *link_gearBC->GetBody2()).GetCoord(),
                                video::SColor(255, 255, 0, 0), 50, true);
-        ChIrrTools::drawCircle(application.GetVideoDriver(), link_gearAD->Get_r1(),
+        tools::drawCircle(application.GetVideoDriver(), link_gearAD->Get_r1(),
                                (link_gearAD->Get_local_shaft1() >> *link_gearAD->GetBody1()).GetCoord(),
                                video::SColor(255, 255, 0, 0), 30, true);
-        ChIrrTools::drawCircle(application.GetVideoDriver(), link_gearAD->Get_r2(),
+        tools::drawCircle(application.GetVideoDriver(), link_gearAD->Get_r2(),
                                (link_gearAD->Get_local_shaft2() >> *link_gearAD->GetBody2()).GetCoord(),
                                video::SColor(255, 255, 0, 0), 30, true);
 
-        ChIrrTools::drawCircle(application.GetVideoDriver(), 0.1,
+        tools::drawCircle(application.GetVideoDriver(), 0.1,
                                ChCoordsys<>(link_gearAB->GetMarker2()->GetAbsCoord().pos, QUNIT));
-        ChIrrTools::drawCircle(application.GetVideoDriver(), 0.1,
+        tools::drawCircle(application.GetVideoDriver(), 0.1,
                                ChCoordsys<>(link_gearAD->GetMarker2()->GetAbsCoord().pos, QUNIT));
-        ChIrrTools::drawCircle(application.GetVideoDriver(), 0.1,
+        tools::drawCircle(application.GetVideoDriver(), 0.1,
                                ChCoordsys<>(link_gearBC->GetMarker2()->GetAbsCoord().pos, QUNIT));
 
         // ..draw also some segments for a simplified representation of pulley
-        ChIrrTools::drawSegment(application.GetVideoDriver(), link_pulleyDE->Get_belt_up1(),
+        tools::drawSegment(application.GetVideoDriver(), link_pulleyDE->Get_belt_up1(),
                                 link_pulleyDE->Get_belt_up2(), video::SColor(255, 0, 255, 0), true);
-        ChIrrTools::drawSegment(application.GetVideoDriver(), link_pulleyDE->Get_belt_low1(),
+        tools::drawSegment(application.GetVideoDriver(), link_pulleyDE->Get_belt_low1(),
                                 link_pulleyDE->Get_belt_low2(), video::SColor(255, 0, 255, 0), true);
 
         // ADVANCE THE SIMULATION FOR ONE STEP

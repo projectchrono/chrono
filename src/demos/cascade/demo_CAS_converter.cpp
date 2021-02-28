@@ -527,7 +527,7 @@ int main(int argc, char* argv[]) {
         application.DrawAll();
 
         // .. draw also a grid (rotated so that it's horizontal)
-        // ChIrrTools::drawGrid(application.GetVideoDriver(), 2, 2, 30,30,
+        // tools::drawGrid(application.GetVideoDriver(), 2, 2, 30,30,
         //	ChCoordsys<>(ChVector<>(0,0.01,0), Q_from_AngX(CH_C_PI_2) ),
         //	video::SColor(40, 90,130,140), true);
 

@@ -491,7 +491,7 @@ int main(int argc, char* argv[]) {
         application.DrawAll();
 
         // .. draw also a grid
-        ChIrrTools::drawGrid(application.GetVideoDriver(), 1, 1);
+        tools::drawGrid(application.GetVideoDriver(), 1, 1);
 
         // ...update load at end nodes, as simple lumped nodal forces
 

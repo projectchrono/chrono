@@ -148,7 +148,7 @@ int main(int argc, char* argv[]) {
 
         application.BeginScene();
         application.DrawAll();
-        ChIrrTools::drawAllLinkframes(system, application.GetVideoDriver(), 1.0);
+        tools::drawAllLinkframes(system, application.GetVideoDriver(), 1.0);
         application.DoStep();
         application.EndScene();
     }

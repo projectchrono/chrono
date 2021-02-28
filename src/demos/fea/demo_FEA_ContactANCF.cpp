@@ -82,7 +82,7 @@ int main(int argc, char* argv[]) {
     application.AddTypicalLights();
     application.AddTypicalCamera(core::vector3df(+0.5f, 0.5f, 0.3f),  // camera location
                                  core::vector3df(0.0f, 0.f, 0.f));    // "look at" location
-    application.SetContactsDrawMode(ChIrrTools::CONTACT_DISTANCES);
+    application.SetContactsDrawMode(IrrContactsDrawMode::CONTACT_DISTANCES);
 
     // collision::ChCollisionModel::SetDefaultSuggestedEnvelope(0.0); // not needed, already 0 when using
     collision::ChCollisionModel::SetDefaultSuggestedMargin(

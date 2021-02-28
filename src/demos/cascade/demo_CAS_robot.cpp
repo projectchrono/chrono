@@ -473,8 +473,8 @@ int main(int argc, char* argv[]) {
         application.DoStep();
 
         // .. plot something on realtime view
-        ChIrrTools::drawChFunction(application.GetDevice(), motlaw_z.get(), 0, 10, -0.9, 0.2, 10, 400, 300, 80);
-        ChIrrTools::drawChFunction(application.GetDevice(), motlaw_y.get(), 0, 10, -0.9, 0.2, 10, 500, 300, 80);
+        tools::drawChFunction(application.GetDevice(), motlaw_z.get(), 0, 10, -0.9, 0.2, 10, 400, 300, 80);
+        tools::drawChFunction(application.GetDevice(), motlaw_y.get(), 0, 10, -0.9, 0.2, 10, 500, 300, 80);
 
         application.EndScene();
     }

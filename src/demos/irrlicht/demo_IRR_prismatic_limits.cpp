@@ -157,13 +157,13 @@ int main(int argc, char* argv[]) {
 
         application.BeginScene();
         application.DrawAll();
-        ChIrrTools::drawSegment(application.GetVideoDriver(), ChVector<>(+2, 0, 0), ChVector<>(+2, 0, -2),
+        tools::drawSegment(application.GetVideoDriver(), ChVector<>(+2, 0, 0), ChVector<>(+2, 0, -2),
                                 irr::video::SColor(255, 255, 150, 0), true);
         if (max_lim_enabled) {
-            ChIrrTools::drawSegment(application.GetVideoDriver(), ChVector<>(-1, 0, 0), ChVector<>(-1, 0, -2),
+            tools::drawSegment(application.GetVideoDriver(), ChVector<>(-1, 0, 0), ChVector<>(-1, 0, -2),
                                     irr::video::SColor(255, 255, 150, 0), true);
         }
-        ChIrrTools::drawAllLinkframes(system, application.GetVideoDriver(), 1.0);
+        tools::drawAllLinkframes(system, application.GetVideoDriver(), 1.0);
         application.DoStep();
         application.EndScene();
     }

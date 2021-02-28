@@ -264,7 +264,7 @@ int main(int argc, char* argv[]) {
         // draw spring elements as lines
         for (auto mspring : springs) {
             if (mspring->GetSpringK() > 0) {
-                ChIrrTools::drawSegment(application.GetVideoDriver(),
+                tools::drawSegment(application.GetVideoDriver(),
                                         std::dynamic_pointer_cast<ChNodeFEAxyz>(mspring->GetNodeN(0))->GetPos(),
                                         std::dynamic_pointer_cast<ChNodeFEAxyz>(mspring->GetNodeN(1))->GetPos(),
                                         irr::video::SColor(255, 255, 255, 255), true);

@@ -710,7 +710,7 @@ int main(int argc, char* argv[]) {
         application.DrawAll();
 
         // .. draw a grid (rotated so that it's horizontal)
-        ChIrrTools::drawGrid(application.GetVideoDriver(), 2, 2, 30, 30,
+        tools::drawGrid(application.GetVideoDriver(), 2, 2, 30, 30,
                              ChCoordsys<>(ChVector<>(0, 0.01, 0), Q_from_AngX(CH_C_PI_2)),
                              video::SColor(255, 80, 130, 130), true);
 
@@ -721,10 +721,10 @@ int main(int argc, char* argv[]) {
         // .. draw the spring constraints as simplified spring helix
         for (auto link : my_system.Get_linklist()) {
             if (auto linkdist = std::dynamic_pointer_cast<ChLinkDistance>(link)) {
-                ChIrrTools::drawSegment(application.GetVideoDriver(), linkdist->GetEndPoint1Abs(),
+                tools::drawSegment(application.GetVideoDriver(), linkdist->GetEndPoint1Abs(),
                                         linkdist->GetEndPoint2Abs(), video::SColor(255, 0, 20, 0), true);
             } else if (auto linkspring = std::dynamic_pointer_cast<ChLinkTSDA>(link)) {
-                ChIrrTools::drawSpring(application.GetVideoDriver(), 0.03, linkspring->GetPoint1Abs(),
+                tools::drawSpring(application.GetVideoDriver(), 0.03, linkspring->GetPoint1Abs(),
                                        linkspring->GetPoint2Abs(), video::SColor(255, 150, 20, 20), 80, 10, true);
             }
         }

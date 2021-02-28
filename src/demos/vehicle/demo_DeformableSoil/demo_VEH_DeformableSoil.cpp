@@ -284,7 +284,7 @@ int main(int argc, char* argv[]) {
         application.GetActiveCamera()->setTarget(core::vector3dfCH(mrigidbody->GetPos()));
         application.DrawAll();
         application.DoStep();
-        ChIrrTools::drawColorbar(0, 30000, "Pressure yield [Pa]", application.GetDevice(), 1180);
+        tools::drawColorbar(0, 30000, "Pressure yield [Pa]", application.GetDevice(), 1180);
         application.EndScene();
 
         ////mterrain.PrintStepStatistics(std::cout);
