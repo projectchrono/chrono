@@ -214,7 +214,7 @@ int main(int argc, char* argv[]) {
     // Create the vehicle Irrlicht interface
     if (cli.HasValueInVector<int>("irr", node_id)) {
         auto application = chrono_types::make_shared<ChIrrApp>(&mphysicalSystem, L"HexaCopter Test",
-                                                               core::dimension2d<u32>(800, 600), false);
+                                                               core::dimension2d<u32>(800, 600));
         appwrap.Set(application);
 
         // create text with info
