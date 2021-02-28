@@ -212,8 +212,7 @@ impose_5.Initialize(mmoved_5, mfloor, chrono.ChFrameD(mmoved_5.GetPos()))
 impose_5.SetRotationFunction(f_squad)
 
 # Create the Irrlicht application
-application = irr.ChIrrApp(
-    system, "Imposing rotation and position to bodies demo", irr.dimension2du(800, 600), False, True)
+application = irr.ChIrrApp(system, "Imposing rotation and position to bodies demo", irr.dimension2du(800, 600))
 application.AddTypicalLogo()
 application.AddTypicalSky()
 application.AddTypicalLights()

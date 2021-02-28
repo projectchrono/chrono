@@ -157,11 +157,11 @@ system.AddBody(box2)
 # Create the visualization window
 # -------------------------------
 
-application = chronoirr.ChIrrApp(system, "SMC callbacks", chronoirr.dimension2du(800, 600), False, True)
-chronoirr.ChIrrWizard.add_typical_Logo(application.GetDevice())
-chronoirr.ChIrrWizard.add_typical_Sky(application.GetDevice())
-chronoirr.ChIrrWizard.add_typical_Lights(application.GetDevice())
-chronoirr.ChIrrWizard.add_typical_Camera(application.GetDevice(), chronoirr.vector3df(4, 4, -6))
+application = chronoirr.ChIrrApp(system, "SMC callbacks", chronoirr.dimension2du(800, 600))
+application.AddTypicalLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
+application.AddTypicalSky()
+application.AddTypicalLights()
+application.AddTypicalCamera(chronoirr.vector3df(4, 4, -6))
 
 application.AssetBindAll()
 application.AssetUpdateAll()
