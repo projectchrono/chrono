@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Conlain Kelly, Nic Olsen, Dan Negrut, Radu Serban
+// Authors: Conlain Kelly, Nic Olsen, Dan Negrut, Radu Serban, Ruochun Zhang
 // =============================================================================
 
 #include <vector>
@@ -91,14 +91,14 @@ void ChSystemGpuMesh_impl::initializeTriangles() {
     }
 
     TRACK_VECTOR_RESIZE(SD_numTrianglesTouching, nSDs, "SD_numTrianglesTouching", 0);
-    TRACK_VECTOR_RESIZE(SD_TriangleCompositeOffsets, nSDs, "SD_TriangleCompositeOffsets", 0);
+    TRACK_VECTOR_RESIZE(SD_TrianglesCompositeOffsets, nSDs, "SD_TrianglesCompositeOffsets", 0);
 
     TRACK_VECTOR_RESIZE(Triangle_NumSDsTouching, meshSoup->nTrianglesInSoup, "Triangle_NumSDsTouching", 0);
     TRACK_VECTOR_RESIZE(Triangle_SDsCompositeOffsets, meshSoup->nTrianglesInSoup, "Triangle_SDsCompositeOffsets", 0);
 
     // TODO do we have a good heuristic???
     // this gets resized on-the-fly every timestep
-    TRACK_VECTOR_RESIZE(triangles_in_SD_composite, 0, "triangles_in_SD_composite", 0);
+    TRACK_VECTOR_RESIZE(SD_trianglesInEachSD_composite, 0, "SD_trianglesInEachSD_composite", 0);
 }
 
 // p = pos + rot_mat * p
@@ -179,28 +179,28 @@ void ChSystemGpuMesh_impl::cleanupTriMesh() {
     cudaFree(tri_params);
 }
 
-void ChSystemGpuMesh_impl::ApplyMeshMotion(unsigned int mesh,
+void ChSystemGpuMesh_impl::ApplyMeshMotion(unsigned int mesh_id,
                                            const double* pos,
                                            const double* rot,
                                            const double* lin_vel,
                                            const double* ang_vel) {
     // Set position and orientation
-    tri_params->fam_frame_broad[mesh].pos[0] = (float)pos[0];
-    tri_params->fam_frame_broad[mesh].pos[1] = (float)pos[1];
-    tri_params->fam_frame_broad[mesh].pos[2] = (float)pos[2];
-    generate_rot_matrix<float>(rot, tri_params->fam_frame_broad[mesh].rot_mat);
+    tri_params->fam_frame_broad[mesh_id].pos[0] = (float)pos[0];
+    tri_params->fam_frame_broad[mesh_id].pos[1] = (float)pos[1];
+    tri_params->fam_frame_broad[mesh_id].pos[2] = (float)pos[2];
+    generate_rot_matrix<float>(rot, tri_params->fam_frame_broad[mesh_id].rot_mat);
 
-    tri_params->fam_frame_narrow[mesh].pos[0] = pos[0];
-    tri_params->fam_frame_narrow[mesh].pos[1] = pos[1];
-    tri_params->fam_frame_narrow[mesh].pos[2] = pos[2];
-    generate_rot_matrix<double>(rot, tri_params->fam_frame_narrow[mesh].rot_mat);
+    tri_params->fam_frame_narrow[mesh_id].pos[0] = pos[0];
+    tri_params->fam_frame_narrow[mesh_id].pos[1] = pos[1];
+    tri_params->fam_frame_narrow[mesh_id].pos[2] = pos[2];
+    generate_rot_matrix<double>(rot, tri_params->fam_frame_narrow[mesh_id].rot_mat);
 
     // Set linear and angular velocity
     const float C_V = (float)(TIME_SU2UU / LENGTH_SU2UU);
-    meshSoup->vel[mesh] = make_float3(C_V * (float)lin_vel[0], C_V * (float)lin_vel[1], C_V * (float)lin_vel[2]);
+    meshSoup->vel[mesh_id] = make_float3(C_V * (float)lin_vel[0], C_V * (float)lin_vel[1], C_V * (float)lin_vel[2]);
 
     const float C_O = (float)TIME_SU2UU;
-    meshSoup->omega[mesh] = make_float3(C_O * (float)ang_vel[0], C_O * (float)ang_vel[1], C_O * (float)ang_vel[2]);
+    meshSoup->omega[mesh_id] = make_float3(C_O * (float)ang_vel[0], C_O * (float)ang_vel[1], C_O * (float)ang_vel[2]);
 }
 
 template <typename T>

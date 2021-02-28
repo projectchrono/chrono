@@ -327,62 +327,55 @@ size_t ChSystemGpu::EstimateMemUsage() const {
 
 // -----------------------------------------------------------------------------
 
-void ChSystemGpuMesh::LoadMeshes(std::vector<std::string> objfilenames,
-                                 std::vector<ChMatrix33<float>> rotscale,
-                                 std::vector<float3> translations,
-                                 std::vector<float> masses) {
-    unsigned int size = (unsigned int)objfilenames.size();
-    if (size != rotscale.size() || size != translations.size() || size != masses.size()) {
-        CHGPU_ERROR("Mesh loading vectors must all have same size\n");
-    }
+unsigned int ChSystemGpuMesh::AddMesh(std::shared_ptr<geometry::ChTriangleMeshConnected> mesh, float mass) {
+    unsigned int id = static_cast<unsigned int>(m_meshes.size());
+    m_meshes.push_back(mesh);
+    m_mesh_masses.push_back(mass);
 
-    if (size == 0) {
-        printf("WARNING: No meshes provided!\n");
-    }
-
-    unsigned int nTriangles = 0;
-    unsigned int numTriangleFamilies = 0;
-    std::vector<geometry::ChTriangleMeshConnected> all_meshes;
-    for (unsigned int i = 0; i < size; i++) {
-        // INFO_PRINTF("Importing %s...\n", objfilenames[i].c_str()); <--- work on this later
-        all_meshes.push_back(geometry::ChTriangleMeshConnected());
-        geometry::ChTriangleMeshConnected& mesh = all_meshes[all_meshes.size() - 1];
-
-        bool readin_flag = mesh.LoadWavefrontMesh(objfilenames[i], true, false);
-        if (!readin_flag) {
-            CHGPU_ERROR("ERROR! Mesh %s failed to load in! Exiting!\n", objfilenames[i].c_str());
-        }
-
-        // Apply displacement
-        ChVector<> displ(translations[i].x, translations[i].y, translations[i].z);
-
-        // Apply scaling and then rotation
-        mesh.Transform(displ, rotscale[i].cast<double>());
-
-        unsigned int num_triangles_curr = mesh.getNumTriangles();
-
-        if (num_triangles_curr == 0) {
-            printf("WARNING: Mesh %s has no triangles in it!\n", objfilenames[i].c_str());
-        }
-
-        nTriangles += num_triangles_curr;
-        numTriangleFamilies++;
-    }
-
-    // work on this later: INFO_PRINTF("nTriangles is %u\n", nTriangles);
-    // work on this later: INFO_PRINTF("nTriangleFamiliesInSoup is %u\n", numTriangleFamilies);
-
-    // Allocate memory to store mesh soup in unified memory
-    // work on this later: INFO_PRINTF("Allocating mesh unified memory\n");
-    SetMeshes(all_meshes, masses);
-    // work on this later: INFO_PRINTF("Done allocating mesh unified memory\n");
+    return id;
 }
 
-void ChSystemGpuMesh::SetMeshes(const std::vector<geometry::ChTriangleMeshConnected>& all_meshes,
-                                std::vector<float> masses) {
+unsigned int ChSystemGpuMesh::AddMesh(const std::string& filename,
+                                      const ChVector<float>& translation,
+                                      const ChMatrix33<float>& rotscale,
+                                      float mass) {
+    auto mesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
+    bool flag = mesh->LoadWavefrontMesh(filename, true, false);
+    if (!flag)
+        CHGPU_ERROR("ERROR! Mesh %s failed to load in! Exiting!\n", filename.c_str());
+    if (mesh->getNumTriangles() == 0)
+        printf("WARNING: Mesh %s has no triangles!\n", filename.c_str());
+    mesh->Transform(translation, rotscale.cast<double>());
+
+    unsigned int id = static_cast<unsigned int>(m_meshes.size());
+    m_meshes.push_back(mesh);
+    m_mesh_masses.push_back(mass);
+
+    return id;
+}
+
+std::vector<unsigned int> ChSystemGpuMesh::AddMeshes(const std::vector<std::string>& objfilenames,
+                                                     const std::vector<ChVector<float>>& translations,
+                                                     const std::vector<ChMatrix33<float>>& rotscales,
+                                                     const std::vector<float>& masses) {
+    unsigned int size = (unsigned int)objfilenames.size();
+    if (size != rotscales.size() || size != translations.size() || size != masses.size())
+        CHGPU_ERROR("Mesh loading vectors must all have same size\n");
+    if (size == 0)
+        printf("WARNING: No meshes provided!\n");
+
+    std::vector<unsigned int> ids(size);
+    for (unsigned int i = 0; i < size; i++) {
+        ids[i] = AddMesh(objfilenames[i], translations[i], rotscales[i], masses[i]);
+    }
+
+    return ids;
+}
+
+void ChSystemGpuMesh::SetMeshes() {
     int nTriangles = 0;
-    for (const auto& mesh : all_meshes)
-        nTriangles += mesh.getNumTriangles();
+    for (const auto& mesh : m_meshes)
+        nTriangles += mesh->getNumTriangles();
 
     ChSystemGpuMesh_impl* sys_trimesh = static_cast<ChSystemGpuMesh_impl*>(m_sys);
     ChSystemGpuMesh_impl::TriangleSoup* pMeshSoup = sys_trimesh->getMeshSoup();
@@ -404,9 +397,9 @@ void ChSystemGpuMesh::SetMeshes(const std::vector<geometry::ChTriangleMeshConnec
     unsigned int family = 0;
     unsigned int tri_i = 0;
     // for each obj file data set
-    for (const auto& mesh : all_meshes) {
-        for (int i = 0; i < mesh.getNumTriangles(); i++) {
-            geometry::ChTriangle tri = mesh.getTriangle(i);
+    for (const auto& mesh : m_meshes) {
+        for (int i = 0; i < mesh->getNumTriangles(); i++) {
+            geometry::ChTriangle tri = mesh->getTriangle(i);
 
             pMeshSoup->node1[tri_i] = make_float3((float)tri.p1.x(), (float)tri.p1.y(), (float)tri.p1.z());
             pMeshSoup->node2[tri_i] = make_float3((float)tri.p2.x(), (float)tri.p2.y(), (float)tri.p2.z());
@@ -415,8 +408,8 @@ void ChSystemGpuMesh::SetMeshes(const std::vector<geometry::ChTriangleMeshConnec
             pMeshSoup->triangleFamily_ID[tri_i] = family;
 
             // Normal of a single vertex... Should still work
-            int normal_i = mesh.m_face_n_indices.at(i).x();  // normals at each vertex of this triangle
-            ChVector<double> normal = mesh.m_normals[normal_i];
+            int normal_i = mesh->m_face_n_indices.at(i).x();  // normals at each vertex of this triangle
+            ChVector<double> normal = mesh->m_normals[normal_i];
 
             // Generate normal using RHR from nodes 1, 2, and 3
             ChVector<double> AB = tri.p2 - tri.p1;
@@ -441,7 +434,7 @@ void ChSystemGpuMesh::SetMeshes(const std::vector<geometry::ChTriangleMeshConnec
 
         for (unsigned int i = 0; i < family; i++) {
             // NOTE The SU conversion is done in initialize after the scaling is determined
-            pMeshSoup->familyMass_SU[i] = masses[i];
+            pMeshSoup->familyMass_SU[i] = m_mesh_masses[i];
         }
 
         gpuErrchk(cudaMallocManaged(&pMeshSoup->generalizedForcesPerFamily,
@@ -467,13 +460,13 @@ void ChSystemGpuMesh::SetMeshes(const std::vector<geometry::ChTriangleMeshConnec
     }
 }
 
-void ChSystemGpuMesh::ApplyMeshMotion(unsigned int mesh,
+void ChSystemGpuMesh::ApplyMeshMotion(unsigned int mesh_id,
                                       const ChVector<>& pos,
                                       const ChQuaternion<>& rot,
                                       const ChVector<>& lin_vel,
                                       const ChVector<>& ang_vel) {
     ChSystemGpuMesh_impl* sys_trimesh = static_cast<ChSystemGpuMesh_impl*>(m_sys);
-    sys_trimesh->ApplyMeshMotion(mesh, pos.data(), rot.data(), lin_vel.data(), ang_vel.data());
+    sys_trimesh->ApplyMeshMotion(mesh_id, pos.data(), rot.data(), lin_vel.data(), ang_vel.data());
 }
 
 // -----------------------------------------------------------------------------
@@ -516,12 +509,16 @@ void ChSystemGpu::SetParticlePositions(const std::vector<ChVector<float>>& point
 // -----------------------------------------------------------------------------
 
 void ChSystemGpuMesh::Initialize() {
+    if (m_meshes.size() > 0)
+        SetMeshes();
     ChSystemGpuMesh_impl* sys_trimesh = static_cast<ChSystemGpuMesh_impl*>(m_sys);
     sys_trimesh->initializeSpheres();
     sys_trimesh->initializeTriangles();
 }
 
 void ChSystemGpuMesh::InitializeMeshes() {
+    if (m_meshes.size() > 0)
+        SetMeshes();
     ChSystemGpuMesh_impl* sys_trimesh = static_cast<ChSystemGpuMesh_impl*>(m_sys);
     sys_trimesh->initializeTriangles();
 }
