@@ -400,12 +400,12 @@ void ChVehicleCosimTerrainNodeGranularGPU::CreateWheelProxy() {
     m_proxies.push_back(ProxyBody(body, 0));
 
     // Set mesh for granular system
-    std::vector<geometry::ChTriangleMeshConnected> all_meshes = {*trimesh};
-    std::vector<float> masses = {(float)m_rig_mass};
-    m_systemGPU->SetMeshes(all_meshes, masses);
+    m_systemGPU->AddMesh(trimesh, (float)m_rig_mass);
 
-    // Set composite material properties for external contacts and complete construction of the granular system
+    // Set composite material properties for external contacts
     SetMatPropertiesExternal();
+
+    // Complete construction of the granular system
     m_systemGPU->InitializeMeshes();
 }
 
