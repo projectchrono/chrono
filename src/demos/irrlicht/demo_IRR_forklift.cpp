@@ -430,7 +430,7 @@ int main(int argc, char* argv[]) {
 
     // Create the Irrlicht visualization (open the Irrlicht device,
     // bind a simple user interface, etc. etc.)
-    ChIrrApp application(&my_system, L"Drive a forklift", core::dimension2d<u32>(800, 600), false);
+    ChIrrApp application(&my_system, L"Drive a forklift", core::dimension2d<u32>(800, 600));
 
     // add text with info
     IGUIStaticText* textFPS = application.GetIGUIEnvironment()->addStaticText(

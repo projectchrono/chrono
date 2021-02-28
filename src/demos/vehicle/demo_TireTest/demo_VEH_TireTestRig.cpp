@@ -114,7 +114,7 @@ int main() {
     // Create the Irrlicht visualization
     // ---------------------------------
 
-    ChIrrApp application(&system, L"Tire Test Rig", irr::core::dimension2d<irr::u32>(1280, 720), false, true);
+    ChIrrApp application(&system, L"Tire Test Rig", irr::core::dimension2d<irr::u32>(1280, 720));
     application.AddTypicalLogo();
     application.AddTypicalSky();
     application.AddTypicalLights();

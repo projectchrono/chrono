@@ -44,7 +44,7 @@ int main(int argc, char* argv[]) {
     ChSystemNSC mphysicalSystem;
 
     // Create the Irrlicht visualization, attach camera and lights, set sky and logo
-    ChIrrApp application(&mphysicalSystem, L"Rolling friction", core::dimension2d<u32>(800, 600), false, true);
+    ChIrrApp application(&mphysicalSystem, L"Rolling friction", core::dimension2d<u32>(800, 600));
     ChIrrWizard::add_typical_Logo(application.GetDevice());
     ChIrrWizard::add_typical_Sky(application.GetDevice());
     ChIrrWizard::add_typical_Lights(application.GetDevice(), vector3df(30.f, 100.f, 30.f),

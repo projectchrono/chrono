@@ -26,9 +26,8 @@
 #include "chrono_irrlicht/ChIrrWizard.h"
 
 #ifdef CHRONO_POSTPROCESS
- #include "chrono_postprocess/ChPovRay.h"
+#include "chrono_postprocess/ChPovRay.h"
 #endif
-
 
 namespace chrono {
 namespace irrlicht {
@@ -39,20 +38,24 @@ namespace irrlicht {
 // Forward reference
 class ChIrrAppEventReceiver;
 
+/// Vertical direction
+enum class VerticalDir { Y, Z };
+
 /// Class to add some GUI to Irrlicht + ChronoEngine applications.
 /// This basic GUI can be used to monitor solver timings, to easily change
 /// physical system settings, etc.
 class ChApiIrr ChIrrAppInterface {
-public:
+  public:
     /// Create the IRRLICHT context (device, etc.)
     ChIrrAppInterface(ChSystem* psystem,
-        const std::wstring& title = L"Chrono",
-        const irr::core::dimension2d<irr::u32>& dimens = irr::core::dimension2d<irr::u32>(640, 480),
-        bool do_fullscreen = false,
-        bool do_shadows = false,
-        bool do_antialias = true,
-        irr::video::E_DRIVER_TYPE mydriver = irr::video::EDT_DIRECT3D9,
-        irr::ELOG_LEVEL log_level = irr::ELL_INFORMATION);
+                      const std::wstring& title = L"Chrono",
+                      const irr::core::dimension2d<irr::u32>& dimens = irr::core::dimension2d<irr::u32>(640, 480),
+                      VerticalDir vert = VerticalDir::Y,
+                      bool do_fullscreen = false,
+                      bool do_shadows = false,
+                      bool do_antialias = true,
+                      irr::video::E_DRIVER_TYPE mydriver = irr::video::EDT_DIRECT3D9,
+                      irr::ELOG_LEVEL log_level = irr::ELL_INFORMATION);
 
     /// Safely delete all Irrlicht items (including the Irrlicht scene nodes)
     virtual ~ChIrrAppInterface();
@@ -118,11 +121,11 @@ public:
     void SetPOVraySaveInterval(int val) { povray_each = val; }
     int GetPOVrayframeSaveInterval() { return povray_each; }
 
-    /// Access the internal ChPovRay exporter, for advanced tweaking. 
-    /// Returns 0 if not yet started (use SetPOVraySave(true) to start it) 
-    postprocess::ChPovRay* GetPOVrayexporter() {return this->pov_exporter;}
+    /// Access the internal ChPovRay exporter, for advanced tweaking.
+    /// Returns 0 if not yet started (use SetPOVraySave(true) to start it)
+    postprocess::ChPovRay* GetPOVrayexporter() { return this->pov_exporter; }
 
-    #endif
+#endif
 
     /// Set the label mode for contacts
     void SetContactsLabelMode(ChIrrTools::eCh_ContactsLabelMode mm) { this->gad_labelcontacts->setSelected((int)mm); }
@@ -194,9 +197,9 @@ public:
         ChIrrWizard::add_typical_Logo(GetDevice(), mlogofilename);
     }
 
-    void AddTypicalCamera(irr::core::vector3df mpos = irr::core::vector3df(0, 0, -8),
-                          irr::core::vector3df mtarg = irr::core::vector3df(0, 0, 0)) {
-        ChIrrWizard::add_typical_Camera(GetDevice(), mpos, mtarg);
+    void AddTypicalCamera(irr::core::vector3df pos = irr::core::vector3df(0, 0, -8),
+                          irr::core::vector3df targ = irr::core::vector3df(0, 0, 0)) {
+        ChIrrWizard::add_typical_Camera(GetDevice(), pos, targ, y_up);
     }
 
     void AddTypicalLights(irr::core::vector3df pos1 = irr::core::vector3df(30.f, 100.f, 30.f),
@@ -209,7 +212,7 @@ public:
     }
 
     void AddTypicalSky(const std::string& mtexturedir = GetChronoDataFile("skybox/")) {
-        ChIrrWizard::add_typical_Sky(GetDevice(), mtexturedir);
+        ChIrrWizard::add_typical_Sky(GetDevice(), y_up, mtexturedir);
     }
 
     /// Add a point light to the scene
@@ -264,6 +267,8 @@ public:
 
     irr::scene::ISceneNode* container;
 
+    bool y_up;
+
     bool show_infos;
     bool show_profiler;
     bool show_explorer;
@@ -277,13 +282,13 @@ public:
     int videoframe_num;
     int videoframe_each;
 
-#ifdef CHRONO_POSTPROCESS   
+#ifdef CHRONO_POSTPROCESS
     bool povray_save;
     postprocess::ChPovRay* pov_exporter;
     int povray_num;
     int povray_each;
 #endif
- 
+
     double symbolscale;
 
     double camera_auto_rotate_speed;

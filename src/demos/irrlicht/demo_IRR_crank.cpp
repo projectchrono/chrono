@@ -103,7 +103,7 @@ int main(int argc, char* argv[]) {
 
 
     // 4- Create the Irrlicht visualization
-    ChIrrApp application(&my_system, L"Simple slider-crank example", core::dimension2d<u32>(800, 600), false);
+    ChIrrApp application(&my_system, L"Simple slider-crank example", core::dimension2d<u32>(800, 600));
 
     // Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
     ChIrrWizard::add_typical_Logo(application.GetDevice());

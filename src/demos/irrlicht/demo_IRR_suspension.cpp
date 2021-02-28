@@ -606,7 +606,7 @@ int main(int argc, char* argv[]) {
     ChSystemNSC my_system;
 
     // 2.- Create the Irrlicht visualization.
-    ChIrrApp application(&my_system, L"Simple vehicle suspension", core::dimension2d<u32>(640, 480), false);
+    ChIrrApp application(&my_system, L"Simple vehicle suspension", core::dimension2d<u32>(640, 480));
     ChIrrWizard::add_typical_Logo(application.GetDevice());
     ChIrrWizard::add_typical_Sky(application.GetDevice());
     ChIrrWizard::add_typical_Lights(application.GetDevice());

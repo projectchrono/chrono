@@ -935,7 +935,7 @@ int main(int argc, char* argv[]) {
 
     // Create the Irrlicht visualization (open the Irrlicht device,
     // bind a simple user interface, etc. etc.)
-    ChIrrApp application(&mphysicalSystem, L"Soil bin demo", core::dimension2d<u32>(1024, 768), false);
+    ChIrrApp application(&mphysicalSystem, L"Soil bin demo", core::dimension2d<u32>(1024, 768));
     ChIrrWizard::add_typical_Logo(application.GetDevice());
     ChIrrWizard::add_typical_Sky(application.GetDevice());
     ChIrrWizard::add_typical_Lights(application.GetDevice(), irr::core::vector3df(20., 30., 25.),

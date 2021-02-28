@@ -97,7 +97,7 @@ int main(int argc, char* argv[]) {
     // Create the Irrlicht visualization (open the Irrlicht device,
     // bind a simple user interface, etc. etc.)
     ChIrrApp application(&my_system, L"Example of integration of Chrono and Irrlicht, with GUI",
-                         core::dimension2d<u32>(800, 600), false, true);
+                         core::dimension2d<u32>(800, 600));
 
     // Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
     application.AddTypicalLogo();

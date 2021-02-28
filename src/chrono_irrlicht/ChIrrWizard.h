@@ -57,6 +57,7 @@ class ChApiIrr ChIrrWizard {
     /// the following three texture images: sky_lf.jpg, sky_up.jpg, sky_dn.jpg
 
     static void add_typical_Sky(irr::IrrlichtDevice* device,
+                                bool y_up = true,
                                 const std::string& mtexturedir = GetChronoDataFile("skybox/"));
 
     /// A very basic and simple function which is just a shortcut to avoid lot of
@@ -69,8 +70,9 @@ class ChApiIrr ChIrrWizard {
     /// specs, just use plain commands of Irrlicht.
 
     static void add_typical_Camera(irr::IrrlichtDevice* device,
-                                   irr::core::vector3df mpos = irr::core::vector3df(0, 0, -8),
-                                   irr::core::vector3df mtarg = irr::core::vector3df(0, 0, 0));
+                                   irr::core::vector3df pos = irr::core::vector3df(0, 0, -8),
+                                   irr::core::vector3df targ = irr::core::vector3df(0, 0, 0),
+                                   bool y_up = true);
 };
 
 /// @} irrlicht_module

@@ -86,7 +86,7 @@ int main(int argc, char* argv[]) {
     system.SetSolverMaxIterations(20);
 
     // Create the Irrlicht application.
-    ChIrrApp application(&system, L"Number of collisions", irr::core::dimension2d<irr::u32>(800, 600), false);
+    ChIrrApp application(&system, L"Number of collisions", irr::core::dimension2d<irr::u32>(800, 600));
     ChIrrWizard::add_typical_Logo(application.GetDevice());
     ChIrrWizard::add_typical_Sky(application.GetDevice());
     ChIrrWizard::add_typical_Lights(application.GetDevice());

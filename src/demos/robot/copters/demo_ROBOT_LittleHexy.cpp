@@ -112,7 +112,7 @@ int main(int argc, char* argv[]) {
     myhexy.AddCollisionShapes(mymat);
     // Create the Irrlicht visualization (open the Irrlicht device,
     // bind a simple user interface, etc. etc.)
-    ChIrrApp application(&mphysicalSystem, L"HexaCopter Test", core::dimension2d<u32>(800, 600), false);
+    ChIrrApp application(&mphysicalSystem, L"HexaCopter Test", core::dimension2d<u32>(800, 600));
 
     mphysicalSystem.Set_G_acc(ChVector<>(0, 0, -9.81));
 
@@ -130,7 +130,8 @@ int main(int argc, char* argv[]) {
     RTSCamera* camera =
         new RTSCamera(application.GetDevice(), application.GetDevice()->getSceneManager()->getRootSceneNode(),
                       application.GetDevice()->getSceneManager(), -1, -160.0f, 1.0f, 0.003f);
-
+    camera->setZUp();
+    camera->setNearValue(0.2f);
     camera->setPosition(core::vector3df(5, 5, 2));
     camera->setTarget(core::vector3df(0, 0, 0));
 
@@ -182,7 +183,6 @@ int main(int argc, char* argv[]) {
         core::vector3df offset(1, -1, 1);
         camera->setPosition(ipos + offset);
         camera->setTarget(ipos);
-        camera->setUpVector(core::vector3df(0, 0, 1));
 
         application.BeginScene(true, true, SColor(255, 140, 161, 192));
 

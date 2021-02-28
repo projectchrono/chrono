@@ -37,7 +37,7 @@ void ChIrrWizard::add_typical_Lights(IrrlichtDevice* device,
     mlight2->enableCastShadow(false);
 }
 
-void ChIrrWizard::add_typical_Sky(IrrlichtDevice* device, const std::string& mtexturedir) {
+void ChIrrWizard::add_typical_Sky(IrrlichtDevice* device, bool y_up, const std::string& mtexturedir) {
     // create sky box
     std::string str_lf = mtexturedir + "sky_lf.jpg";
     std::string str_up = mtexturedir + "sky_up.jpg";
@@ -45,19 +45,27 @@ void ChIrrWizard::add_typical_Sky(IrrlichtDevice* device, const std::string& mte
 
     irr::video::ITexture* map_skybox_side = device->getVideoDriver()->getTexture(str_lf.c_str());
 
-    device->getSceneManager()->addSkyBoxSceneNode(device->getVideoDriver()->getTexture(str_up.c_str()),
-                                                  device->getVideoDriver()->getTexture(str_dn.c_str()), map_skybox_side,
-                                                  map_skybox_side, map_skybox_side, map_skybox_side);
+    auto mbox = device->getSceneManager()->addSkyBoxSceneNode(
+        device->getVideoDriver()->getTexture(str_up.c_str()), device->getVideoDriver()->getTexture(str_dn.c_str()),
+        map_skybox_side, map_skybox_side, map_skybox_side, map_skybox_side);
+
+    if (!y_up)
+        mbox->setRotation(irr::core::vector3df(90, 0, 0));
 }
 
-void ChIrrWizard::add_typical_Camera(IrrlichtDevice* device, irr::core::vector3df mpos, irr::core::vector3df mtarg) {
+void ChIrrWizard::add_typical_Camera(IrrlichtDevice* device,
+                                     irr::core::vector3df pos,
+                                     irr::core::vector3df targ,
+                                     bool y_up) {
     // create and init camera
     RTSCamera* camera = new RTSCamera(device, device->getSceneManager()->getRootSceneNode(), device->getSceneManager(),
                                       -1, -160.0f, 1.0f, 0.003f);
 
     // camera->bindTargetAndRotation(true);
-    camera->setPosition(mpos);
-    camera->setTarget(mtarg);
+    if (!y_up)
+        camera->setZUp();
+    camera->setPosition(pos);
+    camera->setTarget(targ);
 
     camera->setNearValue(0.1f);
     camera->setMinZoom(0.6f);

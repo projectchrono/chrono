@@ -245,7 +245,7 @@ ANCFshell<N>::ANCFshell(SolverType solver_type) {
 template <int N>
 void ANCFshell<N>::SimulateVis() {
 #ifdef CHRONO_IRRLICHT
-    irrlicht::ChIrrApp application(m_system, L"ANCF shells", irr::core::dimension2d<irr::u32>(800, 600), false, true);
+    irrlicht::ChIrrApp application(m_system, L"ANCF shells", irr::core::dimension2d<irr::u32>(800, 600));
     application.AddTypicalLogo();
     application.AddTypicalSky();
     application.AddTypicalLights();

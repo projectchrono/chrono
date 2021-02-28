@@ -176,7 +176,7 @@ int main(int argc, char* argv[]) {
     // Create the visualization window
     // -------------------------------
 
-    irrlicht::ChIrrApp application(&system, L"NSC callbacks", irr::core::dimension2d<irr::u32>(800, 600), false, true);
+    irrlicht::ChIrrApp application(&system, L"NSC callbacks", irr::core::dimension2d<irr::u32>(800, 600));
     irrlicht::ChIrrWizard::add_typical_Logo(application.GetDevice());
     irrlicht::ChIrrWizard::add_typical_Sky(application.GetDevice());
     irrlicht::ChIrrWizard::add_typical_Lights(application.GetDevice());

@@ -174,7 +174,7 @@ int main(int argc, char* argv[]) {
     mesh->AddAsset(vis_node);
 
     // Create the Irrlicht visualization
-    irrlicht::ChIrrApp application(&sys, L"ANCF beam", irr::core::dimension2d<irr::u32>(800, 600), false, true);
+    irrlicht::ChIrrApp application(&sys, L"ANCF beam", irr::core::dimension2d<irr::u32>(800, 600));
     application.AddTypicalLogo();
     application.AddTypicalSky();
     application.AddTypicalLights();

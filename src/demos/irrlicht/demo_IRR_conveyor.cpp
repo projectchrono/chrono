@@ -223,7 +223,7 @@ int main(int argc, char* argv[]) {
 
     // Create the Irrlicht visualization (open the Irrlicht device,
     // bind a simple user interface, etc. etc.)
-    ChIrrApp application(&mphysicalSystem, L"Conveyor belt", core::dimension2d<u32>(800, 600), false);
+    ChIrrApp application(&mphysicalSystem, L"Conveyor belt", core::dimension2d<u32>(800, 600));
 
     // Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
     ChIrrWizard::add_typical_Logo(application.GetDevice());

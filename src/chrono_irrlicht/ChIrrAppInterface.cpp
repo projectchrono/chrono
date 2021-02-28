@@ -123,17 +123,18 @@ bool ChIrrAppEventReceiver::OnEvent(const irr::SEvent& event) {
                 }
                 return true;
             case irr::KEY_F12:
-                #ifdef CHRONO_POSTPROCESS
-                 if (app->povray_save == false) {
+#ifdef CHRONO_POSTPROCESS
+                if (app->povray_save == false) {
                     GetLog() << "Start saving POVray postprocessing scripts...\n";
                     app->SetPOVraySave(true);
-                 } else {
+                } else {
                     app->SetPOVraySave(false);
                     GetLog() << "Stop saving POVray postprocessing scripts.\n";
-                 }
-                #else
-                 GetLog() << "Saving POVray files not supported. Rebuild the solution with ENABLE_MODULE_POSTPROCESSING in CMake. \n";
-                #endif
+                }
+#else
+                GetLog() << "Saving POVray files not supported. Rebuild the solution with ENABLE_MODULE_POSTPROCESSING "
+                            "in CMake. \n";
+#endif
                 return true;
             case irr::KEY_F4:
                 if (app->camera_auto_rotate_speed <= 0)
@@ -299,6 +300,7 @@ bool ChIrrAppEventReceiver::OnEvent(const irr::SEvent& event) {
 ChIrrAppInterface::ChIrrAppInterface(ChSystem* psystem,
                                      const std::wstring& title,
                                      const irr::core::dimension2d<irr::u32>& dimens,
+                                     VerticalDir vert,
                                      bool do_fullscreen,
                                      bool do_shadows,
                                      bool do_antialias,
@@ -314,13 +316,14 @@ ChIrrAppInterface::ChIrrAppInterface(ChSystem* psystem,
       videoframe_each(1),
       symbolscale(1.0),
       camera_auto_rotate_speed(0.0) {
-    #ifdef CHRONO_POSTPROCESS
+    y_up = vert == (VerticalDir::Y);
+
+#ifdef CHRONO_POSTPROCESS
     pov_exporter = 0;
     povray_save = false;
     povray_each = 1;
     povray_num = 0;
-    #endif
-    
+#endif
 
     irr::SIrrlichtCreationParameters params = irr::SIrrlichtCreationParameters();
     params.AntiAlias = do_antialias;
@@ -546,10 +549,10 @@ ChIrrAppInterface::ChIrrAppInterface(ChSystem* psystem,
 ChIrrAppInterface::~ChIrrAppInterface() {
     device->drop();
 
-    #ifdef CHRONO_POSTPROCESS
+#ifdef CHRONO_POSTPROCESS
     if (pov_exporter)
         delete pov_exporter;
-    #endif
+#endif
 
     // delete (receiver);
 }
@@ -562,12 +565,11 @@ void ChIrrAppInterface::SetTimestep(double val) {
     gad_timestep->setText(irr::core::stringw(message).c_str());
 }
 
-
 /// If set to true, each frame of the animation will be saved on the disk
 /// as a sequence of scripts to be rendered via POVray. Only if solution build with ENABLE_MODULE_POSTPROCESS.
 
 #ifdef CHRONO_POSTPROCESS
-void ChIrrAppInterface::SetPOVraySave(bool val) { 
+void ChIrrAppInterface::SetPOVraySave(bool val) {
     povray_save = val;
 
     if (!povray_save && pov_exporter) {
@@ -580,7 +582,7 @@ void ChIrrAppInterface::SetPOVraySave(bool val) {
         // Important: set the path to the template:
         pov_exporter->SetTemplateFile(GetChronoDataFile("_template_POV.pov"));
 
-        // Set the path where it will save all .pov, .ini, .asset and .dat files, 
+        // Set the path where it will save all .pov, .ini, .asset and .dat files,
         // a directory will be created if not existing
         pov_exporter->SetBasePath("povray_project");
 
@@ -588,7 +590,9 @@ void ChIrrAppInterface::SetPOVraySave(bool val) {
 
         pov_exporter->SetCamera(ChVectorIrr(this->GetSceneManager()->getActiveCamera()->getAbsolutePosition()),
                                 ChVectorIrr(this->GetSceneManager()->getActiveCamera()->getTarget()),
-                                this->GetSceneManager()->getActiveCamera()->getFOV() * this->GetSceneManager()->getActiveCamera()->getAspectRatio() * chrono::CH_C_RAD_TO_DEG);
+                                this->GetSceneManager()->getActiveCamera()->getFOV() *
+                                    this->GetSceneManager()->getActiveCamera()->getAspectRatio() *
+                                    chrono::CH_C_RAD_TO_DEG);
 
         pov_exporter->ExportScript();
 
@@ -668,14 +672,14 @@ void ChIrrAppInterface::DoStep() {
         videoframe_num++;
     }
 
-    #ifdef CHRONO_POSTPROCESS
-        if (povray_save && pov_exporter) {
-            if (povray_num % povray_each == 0) {
-                pov_exporter->ExportData();
-            }
-            povray_num++;
+#ifdef CHRONO_POSTPROCESS
+    if (povray_save && pov_exporter) {
+        if (povray_num % povray_each == 0) {
+            pov_exporter->ExportData();
         }
-    #endif
+        povray_num++;
+    }
+#endif
 
     try {
         system->DoStepDynamics(timestep);

@@ -44,7 +44,7 @@ int main(int argc, char* argv[]) {
 
     // Create the Irrlicht visualization (open the Irrlicht device,
     // bind a simple user interface, etc. etc.)
-    ChIrrApp application(&mphysicalSystem, L"Collisions between objects", core::dimension2d<u32>(1280, 720), false);
+    ChIrrApp application(&mphysicalSystem, L"Collisions between objects", core::dimension2d<u32>(1280, 720), VerticalDir::Y, false, true);
 
     // Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
     ChIrrWizard::add_typical_Logo(application.GetDevice());

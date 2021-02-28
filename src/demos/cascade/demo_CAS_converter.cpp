@@ -486,7 +486,7 @@ int main(int argc, char* argv[]) {
 
     // Create the Irrlicht visualization (open the Irrlicht device,
     // bind a simple user interface, etc. etc.)
-    ChIrrApp application(&my_system, L"Convex decomposition of a mesh", core::dimension2d<u32>(800, 600), false, true);
+    ChIrrApp application(&my_system, L"Convex decomposition of a mesh", core::dimension2d<u32>(800, 600));
 
     // Easy shortcuts to add logo, camera, lights and sky in Irrlicht scene:
     // ChIrrWizard::add_typical_Logo(application.GetDevice());

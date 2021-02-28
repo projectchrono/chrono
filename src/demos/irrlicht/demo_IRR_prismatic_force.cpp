@@ -123,7 +123,7 @@ int main(int argc, char* argv[]) {
     slider2->AddForce(frc2);
 
     // Create the Irrlicht application
-    ChIrrApp application(&system, L"Actuated prismatic joint", irr::core::dimension2d<irr::u32>(800, 600), false, true);
+    ChIrrApp application(&system, L"Actuated prismatic joint", irr::core::dimension2d<irr::u32>(800, 600));
     application.AddTypicalLogo();
     application.AddTypicalSky();
     application.AddTypicalLights();
