@@ -171,10 +171,10 @@ int main(int argc, char* argv[]) {
     // -------------------------------
 
     irrlicht::ChIrrApp application(&system, L"SMC callbacks", irr::core::dimension2d<irr::u32>(800, 600));
-    irrlicht::ChIrrWizard::add_typical_Logo(application.GetDevice());
-    irrlicht::ChIrrWizard::add_typical_Sky(application.GetDevice());
-    irrlicht::ChIrrWizard::add_typical_Lights(application.GetDevice());
-    irrlicht::ChIrrWizard::add_typical_Camera(application.GetDevice(), irr::core::vector3df(4, 4, -6));
+    application.AddTypicalLogo();
+    application.AddTypicalSky();
+    application.AddTypicalLights();
+    application.AddTypicalCamera(irr::core::vector3df(4, 4, -6));
 
     application.AssetBindAll();
     application.AssetUpdateAll();
