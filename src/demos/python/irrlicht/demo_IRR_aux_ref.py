@@ -148,7 +148,7 @@ system.AddLink(rev_2)
 
 
 # Create the Irrlicht application
-application = chronoirr.ChIrrApp(system, "ChBodyAuxRef demo", chronoirr.dimension2du(800, 600), False, True)
+application = chronoirr.ChIrrApp(system, "ChBodyAuxRef demo", chronoirr.dimension2du(800, 600))
 application.AddTypicalLogo()
 application.AddTypicalSky()
 application.AddTypicalLights()

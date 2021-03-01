@@ -123,8 +123,7 @@ frc2.SetF_x(mod)
 slider2.AddForce(frc2)
 
 # Create the Irrlicht application
-application = irr.ChIrrApp(
-    system, "Actuated prismatic joint", irr.dimension2du(800, 600), False, True)
+application = irr.ChIrrApp(system, "Actuated prismatic joint", irr.dimension2du(800, 600))
 application.AddTypicalLogo()
 application.AddTypicalSky()
 application.AddTypicalLights()

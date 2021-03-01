@@ -98,7 +98,7 @@ void ChIrrNode::OnAnimate(u32 timeMs) {
         // reorient/reposition the scene node every frame
         if (!physicsitem.expired()) {
             if (!physicsitem.lock()->GetAssetsFrameNclones()) {
-                ChIrrTools::alignIrrlichtNodeToChronoCsys(this, physicsitem.lock()->GetAssetsFrame().GetCoord());
+                tools::alignIrrlichtNodeToChronoCsys(this, physicsitem.lock()->GetAssetsFrame().GetCoord());
             } else {
                 // check that children clones are already as many as
                 // assets frame clones, and adjust it if not:
@@ -108,7 +108,7 @@ void ChIrrNode::OnAnimate(u32 timeMs) {
                     unsigned int iclone = 0;
                     irr::core::list<ISceneNode*>::ConstIterator it = this->getChildren().begin();
                     for (; it != Children.end(); ++it) {
-                        ChIrrTools::alignIrrlichtNodeToChronoCsys(
+                        tools::alignIrrlichtNodeToChronoCsys(
                             (*it), physicsitem.lock()->GetAssetsFrame(iclone).GetCoord());
                         ++iclone;
                     }

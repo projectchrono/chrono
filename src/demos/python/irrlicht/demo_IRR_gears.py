@@ -30,7 +30,7 @@ mphysicalSystem = chrono.ChSystemNSC()
 
 # Create the Irrlicht visualization (open the Irrlicht device,
 # bind a simple user interface, etc, etc.)
-application = chronoirr.ChIrrApp(mphysicalSystem, "Gears annd pulleys", chronoirr.dimension2du(800, 600),False)
+application = chronoirr.ChIrrApp(mphysicalSystem, "Gears annd pulleys", chronoirr.dimension2du(800, 600))
 
 
 # Easy shortcuts to add camera, lights, logo, and sky in Irrlicht scene:
