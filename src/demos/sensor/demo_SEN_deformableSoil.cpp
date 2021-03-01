@@ -390,7 +390,7 @@ int main(int argc, char* argv[]) {
         // Render scene
         app.BeginScene(true, true, irr::video::SColor(255, 140, 161, 192));
         app.DrawAll();
-        ChIrrTools::drawColorbar(0, 0.1, "Sinkage", app.GetDevice(), 30);
+        tools::drawColorbar(0, 0.1, "Sinkage", app.GetDevice(), 30);
         app.EndScene();
 
         if (img_output && step_number % render_steps == 0) {

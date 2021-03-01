@@ -430,17 +430,15 @@ int main(int argc, char* argv[]) {
 
     // Create the Irrlicht visualization (open the Irrlicht device,
     // bind a simple user interface, etc. etc.)
-    ChIrrApp application(&my_system, L"Drive a forklift", core::dimension2d<u32>(800, 600), false);
+    ChIrrApp application(&my_system, L"Drive a forklift", core::dimension2d<u32>(800, 600));
+    application.AddTypicalLogo();
+    application.AddTypicalSky();
+    application.AddTypicalLights();
+    application.AddTypicalCamera(core::vector3df(-6, 3, -6));
 
     // add text with info
     IGUIStaticText* textFPS = application.GetIGUIEnvironment()->addStaticText(
         L"Keys: steer=Q,W; throttle=A,Z; lift=S,X; bank=D,C", rect<s32>(150, 10, 430, 40), true);
-
-    // Easy shortcuts to add logo, camera, lights and sky in Irrlicht scene:
-    ChIrrWizard::add_typical_Logo(application.GetDevice());
-    ChIrrWizard::add_typical_Sky(application.GetDevice());
-    ChIrrWizard::add_typical_Lights(application.GetDevice());
-    ChIrrWizard::add_typical_Camera(application.GetDevice(), core::vector3df(-6, 3, -6));
 
     // Contact material for ground
     auto ground_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
