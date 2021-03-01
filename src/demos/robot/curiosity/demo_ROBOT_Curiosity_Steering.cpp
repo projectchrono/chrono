@@ -140,10 +140,7 @@ int main(int argc, char* argv[]) {
 
     // Create the Irrlicht visualization (open the Irrlicht device,
     // bind a simple user interface, etc. etc.)
-    ChIrrApp application(&my_system, L"Curiosity Steering Maneuver", core::dimension2d<u32>(1800, 1000), false, true);
-
-    // Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
-    //application.AddTypicalLogo();
+    ChIrrApp application(&my_system, L"Curiosity Steering Maneuver", core::dimension2d<u32>(1800, 1000), VerticalDir::Y, false, true);
     application.AddTypicalSky();
     application.AddTypicalLights();
     application.AddTypicalCamera(core::vector3df(2.0f, 1.4f, 0.0f), core::vector3df(0, (f32)wheel_range, 0));
@@ -162,7 +159,6 @@ int main(int argc, char* argv[]) {
     // Viper rover initial position and orientation
     ChVector<double> body_pos(-5, -0.2, 0);
     ChQuaternion<> body_rot = Q_from_AngX(-CH_C_PI / 2);
-
 
     std::shared_ptr<CuriosityRover> rover;
 
@@ -373,7 +369,7 @@ int main(int argc, char* argv[]) {
         application.DrawAll();
 
         application.DoStep();
-        ChIrrTools::drawColorbar(0, 20000, "Pressure yield [Pa]", application.GetDevice(), 1600);
+        tools::drawColorbar(0, 20000, "Pressure yield [Pa]", application.GetDevice(), 1600);
         application.EndScene();
 
         ////mterrain.PrintStepStatistics(std::cout);

@@ -95,24 +95,18 @@ int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
     // Create a ChronoENGINE physical system
     ChSystemNSC mphysicalSystem;
+    mphysicalSystem.Set_G_acc(ChVector<>(0, -9.81, 0));
 
     // Create the Irrlicht visualization (open the Irrlicht device,
     // bind a simple user interface, etc. etc.)
-    ChIrrApp application(&mphysicalSystem, L"Scarecrow on Rigid Terrain", core::dimension2d<u32>(1280, 720), false);
-
-    // set gravity
-    mphysicalSystem.Set_G_acc(ChVector<>(0, -9.81, 0));
-
-    // Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
-    ChIrrWizard::add_typical_Logo(application.GetDevice());
-    ChIrrWizard::add_typical_Sky(application.GetDevice());
-    ChIrrWizard::add_typical_Lights(application.GetDevice());
-    ChIrrWizard::add_typical_Camera(application.GetDevice(), core::vector3df(0, 2, -2));
-
+    ChIrrApp application(&mphysicalSystem, L"Scarecrow on Rigid Terrain", core::dimension2d<u32>(1280, 720), VerticalDir::Y);
+    application.AddTypicalLogo();
+    application.AddTypicalSky();
+    application.AddTypicalLights();
+    application.AddTypicalCamera(core::vector3df(0, 2, -2));
     application.AddLightWithShadow(core::vector3df(2.5f, 7.0f, 0.0f), core::vector3df(0, 0, 0), 50, 4, 25, 130, 512,
                                    video::SColorf(0.8f, 0.8f, 1.0f));
-
-    application.SetContactsDrawMode(ChIrrTools::eCh_ContactsDrawMode::CONTACT_DISTANCES);
+    application.SetContactsDrawMode(IrrContactsDrawMode::CONTACT_DISTANCES);
 
     collision::ChCollisionModel::SetDefaultSuggestedEnvelope(0.0025);
     collision::ChCollisionModel::SetDefaultSuggestedMargin(0.0025);
