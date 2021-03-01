@@ -78,7 +78,7 @@ void ChTrackedVehicleIrrApp::renderOtherGraphics() {
         ChVector<> v2 = v1 + c.m_csys.Get_A_Xaxis();
 
         if (v1.y() > m_tvehicle->GetTrackAssembly(LEFT)->GetSprocket()->GetGearBody()->GetPos().y())
-            irrlicht::ChIrrTools::drawSegment(GetVideoDriver(), v1, v2, video::SColor(255, 180, 0, 0), false);
+            irrlicht::tools::drawSegment(GetVideoDriver(), v1, v2, video::SColor(255, 180, 0, 0), false);
     }
 
     // Contact normals on rear sprocket.
@@ -88,7 +88,7 @@ void ChTrackedVehicleIrrApp::renderOtherGraphics() {
         ChVector<> v2 = v1 + c.m_csys.Get_A_Xaxis();
 
         if (v1.y() < m_tvehicle->GetTrackAssembly(RIGHT)->GetSprocket()->GetGearBody()->GetPos().y())
-            irrlicht::ChIrrTools::drawSegment(GetVideoDriver(), v1, v2, video::SColor(255, 180, 0, 0), false);
+            irrlicht::tools::drawSegment(GetVideoDriver(), v1, v2, video::SColor(255, 180, 0, 0), false);
     }
 
     // Contact normals on monitored track shoes.
@@ -110,7 +110,7 @@ void ChTrackedVehicleIrrApp::renderContactNormals(const std::list<ChTrackContact
         ChVector<> v1 = c.m_point;
         ChVector<> v2 = v1 + c.m_csys.Get_A_Xaxis();
 
-        irrlicht::ChIrrTools::drawSegment(GetVideoDriver(), v1, v2, col, false);
+        irrlicht::tools::drawSegment(GetVideoDriver(), v1, v2, col, false);
     }
 }
 

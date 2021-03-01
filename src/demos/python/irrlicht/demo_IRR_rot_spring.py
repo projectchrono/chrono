@@ -117,7 +117,7 @@ spring.RegisterTorqueFunctor(torque)
 system.AddLink(spring);
 
 # Create the Irrlicht application
-application = irr.ChIrrApp(system, "ChLinkRotSpringCB demo", irr.dimension2du(800, 600), False, True)
+application = irr.ChIrrApp(system, "ChLinkRotSpringCB demo", irr.dimension2du(800, 600))
 application.AddTypicalLogo()
 application.AddTypicalSky()
 application.AddTypicalLights()

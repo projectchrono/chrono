@@ -55,7 +55,7 @@ int main(int argc, char* argv[]) {
 
     // Create the Irrlicht visualization (open the Irrlicht device,
     // bind a simple user interface, etc. etc.)
-    ChIrrApp application(&my_system, L"FEA contacts", core::dimension2d<u32>(1280, 720), false, true);
+    ChIrrApp application(&my_system, L"FEA contacts", core::dimension2d<u32>(1280, 720), VerticalDir::Y, false, true);
 
     // Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
     application.AddTypicalLogo();
@@ -63,7 +63,7 @@ int main(int argc, char* argv[]) {
     application.AddTypicalLights();
     application.AddTypicalCamera(core::vector3dfCH(ChVector<>(1, 1.4, -1.2)),
                                  core::vector3dfCH(ChVector<>(0, tire_rad, 0)));
-    // application.SetContactsDrawMode(irr::ChIrrTools::CONTACT_DISTANCES);
+    // application.SetContactsDrawMode(irr::tools::CONTACT_DISTANCES);
 
     application.AddLightWithShadow(core::vector3dfCH(ChVector<>(1.5, 5.5, -2.5)), core::vector3df(0, 0, 0), 3, 2.2, 7.2,
                                    40, 512, video::SColorf((f32)0.8, (f32)0.8, (f32)1.0));

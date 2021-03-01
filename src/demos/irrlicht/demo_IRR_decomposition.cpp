@@ -387,14 +387,11 @@ int main(int argc, char* argv[]) {
 
     // Create the Irrlicht visualization (open the Irrlicht device,
     // bind a simple user interface, etc. etc.)
-    ChIrrApp application(&my_system, L"Convex decomposition of a mesh", core::dimension2d<u32>(800, 600), false, true);
-
-    // Easy shortcuts to add logo, camera, lights and sky in Irrlicht scene:
-    // ChIrrWizard::add_typical_Logo(application.GetDevice());
-    ChIrrWizard::add_typical_Sky(application.GetDevice());
-    ChIrrWizard::add_typical_Lights(application.GetDevice(), core::vector3df(30, 100, 30),
-                                    core::vector3df(30, -80, -30), 200, 130);
-    ChIrrWizard::add_typical_Camera(application.GetDevice(), core::vector3df(0, 1.5, -2));
+    ChIrrApp application(&my_system, L"Convex decomposition of a mesh", core::dimension2d<u32>(800, 600));
+    //application.AddTypicalLogo();
+    application.AddTypicalSky();
+    application.AddTypicalLights(core::vector3df(30, 100, 30), core::vector3df(30, -80, -30), 200, 130);
+    application.AddTypicalCamera(core::vector3df(0, 1.5, -2));
 
     // Initial settings
     modelMesh = 0;
@@ -431,7 +428,7 @@ int main(int argc, char* argv[]) {
         application.DrawAll();
 
         // .. draw also a grid (rotated so that it's horizontal)
-        // ChIrrTools::drawGrid(application.GetVideoDriver(), 2, 2, 30,30,
+        // tools::drawGrid(application.GetVideoDriver(), 2, 2, 30,30,
         //	ChCoordsys<>(ChVector<>(0,0.01,0), Q_from_AngX(CH_C_PI_2) ),
         //	video::SColor(40, 90,130,140), true);
 

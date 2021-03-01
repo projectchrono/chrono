@@ -53,7 +53,7 @@ int main(int argc, char* argv[]) {
     ChSystemSMC my_system;
 
     // Create the Irrlicht visualization
-    ChIrrApp application(&my_system, L"Loads on beams", irr::core::dimension2d<irr::u32>(800, 600), false, true);
+    ChIrrApp application(&my_system, L"Loads on beams", irr::core::dimension2d<irr::u32>(800, 600));
     application.AddTypicalLogo();
     application.AddTypicalSky();
     application.AddTypicalLights();

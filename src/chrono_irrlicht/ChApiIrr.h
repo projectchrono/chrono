@@ -40,13 +40,13 @@
 */
 
 namespace chrono {
-
 /// @addtogroup irrlicht_module
 /// @{
-
 /// Namespace with classes for the Irrlicht module.
-namespace irrlicht {}
-
+namespace irrlicht {
+/// Utilities for interfacing Chrono and Irrlicht
+namespace tools {}
+}
 /// @}
 }
 
