@@ -161,7 +161,7 @@ void ChVehicleCosimTerrainNodeSCM::Construct() {
     // Create the visualization window
     if (m_render) {
         m_irrapp = new irrlicht::ChIrrApp(m_system, L"Terrain Node (SCM)", irr::core::dimension2d<irr::u32>(1280, 720),
-                                          false, true);
+                                          irrlicht::VerticalDir::Y, false, true);
         m_irrapp->AddTypicalLogo();
         m_irrapp->AddTypicalSky();
         m_irrapp->AddTypicalLights();
@@ -285,7 +285,7 @@ void ChVehicleCosimTerrainNodeSCM::OnRender(double time) {
     m_irrapp->BeginScene();
     ////m_irrapp->GetSceneManager()->getActiveCamera()->setTarget(irr::core::vector3dfCH(mrigidbody->GetPos()));
     m_irrapp->DrawAll();
-    irrlicht::ChIrrTools::drawColorbar(0, 30000, "Pressure yield [Pa]", m_irrapp->GetDevice(), 1180);
+    irrlicht::tools::drawColorbar(0, 30000, "Pressure yield [Pa]", m_irrapp->GetDevice(), 1180);
     m_irrapp->EndScene();
 #endif
 }
