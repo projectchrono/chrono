@@ -44,7 +44,7 @@ int main(int argc, char* argv[]) {
 
     // Create the Irrlicht visualization (open the Irrlicht device,
     // bind a simple user interface, etc. etc.)
-    ChIrrApp application(&mphysicalSystem, L"Paths", core::dimension2d<u32>(800, 600), false, true);
+    ChIrrApp application(&mphysicalSystem, L"Paths", core::dimension2d<u32>(800, 600));
 
     // Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
     application.AddTypicalLogo();
@@ -54,7 +54,7 @@ int main(int argc, char* argv[]) {
 
     // This means that contactforces will be shown in Irrlicht application
     application.SetSymbolscale(0.2);
-    application.SetContactsDrawMode(ChIrrTools::eCh_ContactsDrawMode::CONTACT_NORMALS);
+    application.SetContactsDrawMode(IrrContactsDrawMode::CONTACT_NORMALS);
 
     // Contact material (shared among all collision shapes)
     auto mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();

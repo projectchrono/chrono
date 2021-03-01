@@ -143,7 +143,7 @@ spring_2.AddAsset(chrono.ChPointPointSpring(0.05, 80, 15))
 # Create the Irrlicht application
 # -------------------------------
 
-application = chronoirr.ChIrrApp(system, "ChLinkTSDA demo", chronoirr.dimension2du(800, 600), False, True)
+application = chronoirr.ChIrrApp(system, "ChLinkTSDA demo", chronoirr.dimension2du(800, 600))
 application.AddTypicalLogo()
 application.AddTypicalSky()
 application.AddTypicalLights()

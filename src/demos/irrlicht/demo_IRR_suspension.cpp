@@ -606,11 +606,11 @@ int main(int argc, char* argv[]) {
     ChSystemNSC my_system;
 
     // 2.- Create the Irrlicht visualization.
-    ChIrrApp application(&my_system, L"Simple vehicle suspension", core::dimension2d<u32>(640, 480), false);
-    ChIrrWizard::add_typical_Logo(application.GetDevice());
-    ChIrrWizard::add_typical_Sky(application.GetDevice());
-    ChIrrWizard::add_typical_Lights(application.GetDevice());
-    ChIrrWizard::add_typical_Camera(application.GetDevice(), core::vector3df(0, 0, -6));
+    ChIrrApp application(&my_system, L"Simple vehicle suspension", core::dimension2d<u32>(640, 480));
+    application.AddTypicalLogo();
+    application.AddTypicalSky();
+    application.AddTypicalLights();
+    application.AddTypicalCamera(core::vector3df(0, 0, -6));
 
     // 3- Create the rigid bodies of the simpified car suspension mechanical system
     //   maybe setting position/mass/inertias of
@@ -710,7 +710,7 @@ int main(int argc, char* argv[]) {
         application.DrawAll();
 
         // .. draw a grid (rotated so that it's horizontal)
-        ChIrrTools::drawGrid(application.GetVideoDriver(), 2, 2, 30, 30,
+        tools::drawGrid(application.GetVideoDriver(), 2, 2, 30, 30,
                              ChCoordsys<>(ChVector<>(0, 0.01, 0), Q_from_AngX(CH_C_PI_2)),
                              video::SColor(255, 80, 130, 130), true);
 
@@ -721,10 +721,10 @@ int main(int argc, char* argv[]) {
         // .. draw the spring constraints as simplified spring helix
         for (auto link : my_system.Get_linklist()) {
             if (auto linkdist = std::dynamic_pointer_cast<ChLinkDistance>(link)) {
-                ChIrrTools::drawSegment(application.GetVideoDriver(), linkdist->GetEndPoint1Abs(),
+                tools::drawSegment(application.GetVideoDriver(), linkdist->GetEndPoint1Abs(),
                                         linkdist->GetEndPoint2Abs(), video::SColor(255, 0, 20, 0), true);
             } else if (auto linkspring = std::dynamic_pointer_cast<ChLinkTSDA>(link)) {
-                ChIrrTools::drawSpring(application.GetVideoDriver(), 0.03, linkspring->GetPoint1Abs(),
+                tools::drawSpring(application.GetVideoDriver(), 0.03, linkspring->GetPoint1Abs(),
                                        linkspring->GetPoint2Abs(), video::SColor(255, 150, 20, 20), 80, 10, true);
             }
         }

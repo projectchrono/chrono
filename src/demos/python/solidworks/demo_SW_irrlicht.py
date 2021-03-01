@@ -59,7 +59,7 @@ for my_item in exported_items:
 #  Create an Irrlicht application to visualize the system
 #
 
-myapplication = chronoirr.ChIrrApp(my_system, 'Test: using data exported by Chrono::Solidworks', chronoirr.dimension2du(1024,768));
+myapplication = chronoirr.ChIrrApp(my_system, 'Test: using data exported by Chrono::Solidworks', chronoirr.dimension2du(1024,768))
 
 myapplication.AddTypicalSky()
 myapplication.AddTypicalLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))

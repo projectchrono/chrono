@@ -186,7 +186,7 @@ int main(int argc, char* argv[]) {
     ChSystemSMC sys;
 
     // Create the Irrlicht visualization
-    ChIrrApp application(&sys, L"SMC collision demo", core::dimension2d<u32>(800, 600), false, true);
+    ChIrrApp application(&sys, L"SMC collision demo", core::dimension2d<u32>(800, 600));
 
     // Add camera, lights, logo and sky in Irrlicht scene
     application.AddTypicalLogo();

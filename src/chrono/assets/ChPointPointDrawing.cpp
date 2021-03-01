@@ -50,7 +50,7 @@ void ChPointPointSegment::UpdateLineGeometry(const ChVector<>& endpoint1, const 
 void ChPointPointSpring::UpdateLineGeometry(const ChVector<>& endpoint1, const ChVector<>& endpoint2) {
 	auto linepath = chrono_types::make_shared<geometry::ChLinePath>();
 
-	// Following part was copied from irrlicht::ChIrrTools::drawSpring()
+	// Following part was copied from irrlicht::tools::drawSpring()
 	ChVector<> dist = endpoint2 - endpoint1;
 	ChVector<> Vx, Vy, Vz;
 	double length = dist.Length();
