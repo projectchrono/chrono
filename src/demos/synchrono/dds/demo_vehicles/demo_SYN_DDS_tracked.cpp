@@ -170,7 +170,7 @@ int main(int argc, char* argv[]) {
     // -----------------------
     // Create SynChronoManager
     // -----------------------
-    auto communicator = chrono_types::make_shared<SynDDSCommunicator>("/syn/node/" + std::to_string(node_id) + "0");
+    auto communicator = chrono_types::make_shared<SynDDSCommunicator>(node_id);
     SynChronoManager syn_manager(node_id, num_nodes, communicator);
 
     // Change SynChronoManager settings

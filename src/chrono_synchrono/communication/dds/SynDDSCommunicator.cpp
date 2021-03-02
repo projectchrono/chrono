@@ -53,7 +53,21 @@ using namespace eprosima::fastrtps::rtps;
 namespace chrono {
 namespace synchrono {
 
-SynDDSCommunicator::SynDDSCommunicator(const std::string& name) {
+SynDDSCommunicator::SynDDSCommunicator(int node_id, std::string prefix) : m_prefix(prefix) {
+    AgentKey agent_key = AgentKey(node_id, 0);
+    InitQoS(m_prefix + agent_key.GetKeyString());
+}
+
+SynDDSCommunicator::SynDDSCommunicator(const std::string& name, std::string prefix) : m_prefix(prefix) {
+    InitQoS(name);
+}
+
+SynDDSCommunicator::SynDDSCommunicator(eprosima::fastdds::dds::DomainParticipantQos& qos, std::string prefix)
+    : m_prefix(prefix) {
+    CreateParticipant(qos);
+}
+
+void SynDDSCommunicator::InitQoS(const std::string& name) {
     // Create domain participant qos and set its name
     DomainParticipantQos qos;
     qos.name(name);
@@ -62,10 +76,6 @@ SynDDSCommunicator::SynDDSCommunicator(const std::string& name) {
     qos.transport().user_transports.push_back(chrono_types::make_shared<UDPv4TransportDescriptor>());
     qos.transport().use_builtin_transports = false;
 
-    CreateParticipant(qos);
-}
-
-SynDDSCommunicator::SynDDSCommunicator(eprosima::fastdds::dds::DomainParticipantQos& qos) {
     CreateParticipant(qos);
 }
 
@@ -242,7 +252,6 @@ std::shared_ptr<SynDDSPublisher> SynDDSCommunicator::CreatePublisher(std::shared
     // Create the data reader qos and allow for automattic reallocation on data reception
     DataWriterQos qos;
     qos.reliability().kind = RELIABLE_RELIABILITY_QOS;
-    // qos.durability().kind = VOLATILE_DURABILITY_QOS;
     qos.endpoint().history_memory_policy = PREALLOCATED_WITH_REALLOC_MEMORY_MODE;
     qos.history().kind = KEEP_LAST_HISTORY_QOS;
 

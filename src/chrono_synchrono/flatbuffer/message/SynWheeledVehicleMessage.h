@@ -23,9 +23,6 @@
 
 #include "chrono_synchrono/flatbuffer/message/SynMessage.h"
 
-/// TODO: Create a class with utility functions
-#define SynAgentID uint32_t
-
 namespace chrono {
 namespace synchrono {
 
@@ -35,11 +32,13 @@ namespace synchrono {
 /// State class that holds state information for a SynWheeledVehicle
 class SYN_API SynWheeledVehicleStateMessage : public SynMessage {
   public:
+    SynWheeledVehicleStateMessage();
+
     ///@brief Constructor
     ///
-    ///@param source_id the id of the source to which the message is sent from
-    ///@param destination_id the id of the destination to which the message is sent to
-    SynWheeledVehicleStateMessage(SynAgentID source_id, SynAgentID destination_id);
+    ///@param source_key the id of the source to which the message is sent from
+    ///@param destination_key the id of the destination to which the message is sent to
+    SynWheeledVehicleStateMessage(AgentKey source_key, AgentKey destination_key);
 
     ///@brief Converts a received flatbuffer message to a SynMessage
     ///
@@ -74,10 +73,12 @@ class SYN_API SynWheeledVehicleDescriptionMessage : public SynMessage {
   public:
     ///@brief Constructor
     ///
-    ///@param source_id the id of the source to which the message is sent from
-    ///@param destination_id the id of the destination to which the message is sent to
+    ///@param source_key the id of the source to which the message is sent from
+    ///@param destination_key the id of the destination to which the message is sent to
     ///@param json the json specification file used to create an agent
-    SynWheeledVehicleDescriptionMessage(SynAgentID source_id, SynAgentID destination_id, const std::string& json = "");
+    SynWheeledVehicleDescriptionMessage(AgentKey source_key = AgentKey(),
+                                        AgentKey destination_key = AgentKey(),
+                                        const std::string& json = "");
 
     ///@brief Converts a received flatbuffer message to a SynMessage
     ///

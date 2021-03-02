@@ -32,9 +32,6 @@
 #include <vector>
 #include <functional>
 
-/// TODO: Create a class with utility functions
-#define SynAgentID uint32_t
-
 namespace chrono {
 namespace synchrono {
 

@@ -25,13 +25,13 @@ void ProcessMessage(std::shared_ptr<SynCommunicator> communicator, void* message
 }
 
 void RegisterParticipant(std::shared_ptr<SynCommunicator> communicator, const std::string& participant_name) {
-    std::string default_prefix = "/syn/node/";
-
-    std::size_t found = participant_name.find(default_prefix);
-    if (found == std::string::npos)
-        return;  // prefix not found
-
     if (auto dds_communicator = std::dynamic_pointer_cast<SynDDSCommunicator>(communicator)) {
+        std::string prefix = dds_communicator->m_prefix;
+
+        std::size_t found = participant_name.find(prefix);
+        if (found == std::string::npos)
+            return;  // prefix not found
+
         SynLog() << "Adding Participant: " << participant_name << "\n";
 
         auto callback = std::bind(&ProcessMessage, communicator, std::placeholders::_1);
@@ -42,19 +42,22 @@ void RegisterParticipant(std::shared_ptr<SynCommunicator> communicator, const st
 
 #endif
 
-SynChronoManager::SynChronoManager(SynNodeID nid, SynAgentNum num_nodes, std::shared_ptr<SynCommunicator> communicator)
-    : m_is_ok(true), m_initialized(false), m_nid(nid), m_num_nodes(num_nodes), m_heartbeat(1e-2), m_next_sync(0.0) {
+SynChronoManager::SynChronoManager(int node_id, int num_nodes, std::shared_ptr<SynCommunicator> communicator)
+    : m_is_ok(true),
+      m_initialized(false),
+      m_node_id(node_id),
+      m_num_nodes(num_nodes),
+      m_heartbeat(1e-2),
+      m_next_sync(0.0) {
     if (communicator)
         SetCommunicator(communicator);
 
     // Set logger for logging prefix
-    SetLogNodeID(nid);
+    SetLogNodeID(node_id);
 }
 
 SynChronoManager::~SynChronoManager() {}
 
-/// Unique id is a single integer where the last digit is the order of which it is added to the node
-/// TODO: Right now, a node can have a maximum of 10 agents (0 through 9 digits)
 // Set the agent at the specified node
 bool SynChronoManager::AddAgent(std::shared_ptr<SynAgent> agent) {
     // Because it is assumed a handshake is done when the Initialization function is called,
@@ -66,21 +69,19 @@ bool SynChronoManager::AddAgent(std::shared_ptr<SynAgent> agent) {
         return false;
     }
 
-    // Get the most recently added agent on this node and increment it's num by one.
-    // If no agents have been added, the agent's id will default to 0
-    SynAgentNum new_agent_num = m_agents.empty() ? 0 : m_agents.rbegin()->first + 1;
+    int new_agent_num = ++m_num_managed_agents;
 
     // concatenate the node id and the agent id
-    SynAgentID aid = std::stoul(std::to_string(m_nid) + std::to_string(new_agent_num));
-    m_agents[aid] = agent;
+    AgentKey agent_key = AgentKey(m_node_id, new_agent_num);
+    m_agents[agent_key] = agent;
 
-    agent->SetID(aid);
+    agent->SetKey(agent_key);
 
 #ifdef CHRONO_FASTDDS
     if (auto dds_communicator = std::dynamic_pointer_cast<SynDDSCommunicator>(m_communicator)) {
         // Create the topic that state information will be passed on
         // and add the topic to the communicator
-        auto topic_name = "node/" + std::to_string(aid);
+        auto topic_name = "node/" + agent_key.GetKeyString();
         dds_communicator->CreatePublisher(topic_name, new SynDDSMessagePubSubType(), true);
     }
 #endif
@@ -88,7 +89,7 @@ bool SynChronoManager::AddAgent(std::shared_ptr<SynAgent> agent) {
     return true;
 }
 
-bool SynChronoManager::AddZombie(std::shared_ptr<SynAgent> zombie, SynAgentID aid) {
+bool SynChronoManager::AddZombie(std::shared_ptr<SynAgent> zombie, AgentKey agent_key) {
     // Because it is assumed a handshake is done when the Initialization function is called,
     // it is not allowed to add a new zombie after this process to ensure each node/agent knows
     // about each other
@@ -98,8 +99,8 @@ bool SynChronoManager::AddZombie(std::shared_ptr<SynAgent> zombie, SynAgentID ai
         return false;
     }
 
-    m_zombies[aid] = zombie;
-    zombie->SetID(aid);
+    m_zombies[agent_key] = zombie;
+    zombie->SetKey(agent_key);
 
     return true;
 }
@@ -254,15 +255,17 @@ void SynChronoManager::DistributeMessages() {
         auto messages = message_agent_pair.second;
 
         for (auto message : messages) {
-            auto from_zombie = m_zombies[message->GetSourceID()];
+            auto from_zombie = m_zombies[message->GetSourceKey()];
 
             // std::map will return a nullptr if zombie does not exist (i.e. has never been added)
             if (!from_zombie) {
-                SynLog() << "The intended agent (" << message->GetSourceID() << ") is not on this node!\n";
+                std::string print_str("The intended agent (" + message->GetSourceKey().GetKeyString() +
+                                      ") is not on this node!\n");
+                SynLog() << print_str;
                 continue;
             }
 
-            // SynLog() << "Processing message from zombie with ID " << message->GetSourceID() << "\n";
+            // SynLog() << "Processing message from zombie with ID " << message->GetSourceKey() << "\n";
 
             from_zombie->SynchronizeZombie(message);
             to_agent->ProcessMessage(message);
@@ -282,14 +285,14 @@ void SynChronoManager::CreateAgentsFromDescriptions() {
             auto message = *it;
             try {
                 /// TODO: In the future, this shouldn't be necessary since destination and source will be used
-                if (auto zombie = m_zombies[message->GetSourceID()]) {
+                if (auto zombie = m_zombies[message->GetSourceKey()]) {
                     to_agent->RegisterZombie(zombie);
                 } else {
                     zombie = SynAgentFactory::CreateAgent(message);
-                    AddZombie(zombie, message->GetSourceID());
+                    AddZombie(zombie, message->GetSourceKey());
                     to_agent->RegisterZombie(zombie);
 
-                    // SynLog() << "Added agent with ID " << message->GetSourceID() << "\n";
+                    // SynLog() << "Added agent with ID " << message->GetSourceKey() << "\n";
                 }
                 it = messages.erase(it);
 

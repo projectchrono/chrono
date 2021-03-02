@@ -52,19 +52,23 @@ class SynDDSParticipantListener;
 /// @addtogroup synchrono_communication_dds
 /// @{
 
+const std::string default_prefix("/syn/node/");
+
 /// Derived communicator used to establish and facilitate communication between nodes.
 /// Uses the Data Distribution Service (DDS) standard
 class SYN_API SynDDSCommunicator : public SynCommunicator {
   public:
+    SynDDSCommunicator(int node_id, std::string prefix = default_prefix);
+
     ///@brief Default constructor
     ///
     ///@param name The name to set to the qos
-    SynDDSCommunicator(const std::string& name);
+    SynDDSCommunicator(const std::string& name, std::string prefix = default_prefix);
 
     ///@brief Set the QoS directly from the constructor
     ///
     ///@param qos the Quality of Service to set for the participant
-    SynDDSCommunicator(eprosima::fastdds::dds::DomainParticipantQos& qos);
+    SynDDSCommunicator(eprosima::fastdds::dds::DomainParticipantQos& qos, std::string prefix = default_prefix);
 
     ///@brief Destructor
     ///
@@ -175,7 +179,11 @@ class SYN_API SynDDSCommunicator : public SynCommunicator {
 
     // -----------------------------------------------------------------------------------------------
 
+    std::string m_prefix;
+
   private:
+    void InitQoS(const std::string& name);
+
     ///@brief Creates the underyling participant
     ///
     ///@param qos the Quality of Service to set to the participant

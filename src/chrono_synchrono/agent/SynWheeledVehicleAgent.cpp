@@ -34,8 +34,8 @@ namespace synchrono {
 
 SynWheeledVehicleAgent::SynWheeledVehicleAgent(ChWheeledVehicle* vehicle, const std::string& filename)
     : SynAgent(), m_vehicle(vehicle) {
-    m_state = chrono_types::make_shared<SynWheeledVehicleStateMessage>(0, 0);
-    m_description = chrono_types::make_shared<SynWheeledVehicleDescriptionMessage>(0, 0);
+    m_state = chrono_types::make_shared<SynWheeledVehicleStateMessage>(AgentKey(), AgentKey());
+    m_description = chrono_types::make_shared<SynWheeledVehicleDescriptionMessage>();
 
     if (!filename.empty()) {
         SetZombieVisualizationFilesFromJSON(filename);
@@ -120,10 +120,10 @@ void SynWheeledVehicleAgent::SetZombieVisualizationFilesFromJSON(const std::stri
     m_description->SetZombieVisualizationFilesFromJSON(filename);
 }
 
-void SynWheeledVehicleAgent::SetID(SynAgentID aid) {
-    m_description->SetSourceID(aid);
-    m_state->SetSourceID(aid);
-    m_aid = aid;
+void SynWheeledVehicleAgent::SetKey(AgentKey agent_key) {
+    m_description->SetSourceKey(agent_key);
+    m_state->SetSourceKey(agent_key);
+    m_agent_key = agent_key;
 }
 
 // ------------------------------------------------------------------------
