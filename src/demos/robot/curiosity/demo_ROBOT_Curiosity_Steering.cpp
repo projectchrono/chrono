@@ -168,6 +168,7 @@ int main(int argc, char* argv[]) {
 
         // the user can choose to enable DC motor option
         // if the DC motor option has been enabled, the rotational speed will be switched to no-load-speed of the DC motor
+        // defaut linear relationship is set to stall torque 1000 N-m, and no load speed 3.1415 rad/s
         rover->SetDCControl(true);
         rover->Initialize();
 
@@ -186,6 +187,7 @@ int main(int argc, char* argv[]) {
 
         // the user can choose to enable DC motor option
         // if the DC motor option has been enabled, the rotational speed will be switched to no-load-speed of the DC motor
+        // defaut linear relationship is set to stall torque 1000 N-m, and no load speed 3.1415 rad/s
         rover->SetDCControl(true);
         rover->Initialize();
 

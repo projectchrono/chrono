@@ -280,7 +280,7 @@ class CH_MODELS_API ViperRover {
     ChVector<> GetWheelSpeed(WheelID id);
 
     /// Get wheel angular velocity.
-    ChQuaternion<> GetWheelAngVel(WheelID id);
+    ChVector<> GetWheelAngVel(WheelID id);
 
     /// Get wheel contact force.
     ChVector<> GetWheelContactForce(WheelID id);

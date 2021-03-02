@@ -742,8 +742,8 @@ ChVector<> ViperRover::GetWheelSpeed(WheelID id) {
     return m_wheels[id]->GetBody()->GetPos_dt();
 }
 
-ChQuaternion<> ViperRover::GetWheelAngVel(WheelID id) {
-    return m_wheels[id]->GetBody()->GetRot_dt();
+ChVector<> ViperRover::GetWheelAngVel(WheelID id) {
+    return m_wheels[id]->GetBody()->GetWvel_par();
 }
 
 ChVector<> ViperRover::GetWheelContactForce(WheelID id) {

@@ -50,6 +50,11 @@ using namespace irr::video;
 // Use custom material for the Viper Wheel
 bool use_custom_mat = false;
 
+// Specify rover chassis type
+// The options are Chassis_Type::Scarecrow and Chassis_Type::FullRover
+Chassis_Type chassis_type = Chassis_Type::FullRover;
+
+
 // Helper function to create custom wheel material for the rover wheel body
 std::shared_ptr<ChMaterialSurface> CustomWheelMaterial(ChContactMethod contact_method) {
     float mu = 0.4f;   // coefficient of friction
@@ -130,7 +135,7 @@ int main(int argc, char* argv[]) {
 
     if (use_custom_mat == true) {
         // If use the customized wheel material
-        rover = chrono_types::make_shared<CuriosityRover>(&mphysicalSystem, body_pos, body_rot, CustomWheelMaterial(ChContactMethod::NSC));
+        rover = chrono_types::make_shared<CuriosityRover>(&mphysicalSystem, body_pos, body_rot, CustomWheelMaterial(ChContactMethod::NSC),chassis_type);
         rover->Initialize();
         rover->SetDCControl(true);
 
@@ -138,7 +143,7 @@ int main(int argc, char* argv[]) {
         std::cout<<"total mass:"<<rover->GetRoverMass()<<std::endl;
     } else {
         // If use default wheel material
-        rover = rover = chrono_types::make_shared<CuriosityRover>(&mphysicalSystem, body_pos, body_rot);
+        rover = rover = chrono_types::make_shared<CuriosityRover>(&mphysicalSystem, body_pos, body_rot, chassis_type);
         rover->Initialize();
         rover->SetDCControl(true);
         

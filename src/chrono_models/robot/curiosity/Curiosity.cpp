@@ -992,7 +992,7 @@ void CuriosityRover::SetDCControl(bool dc_control){
     if(m_dc_motor_control == true){
         for(int i = 0; i < 6; i ++){
             m_stall_torque.push_back(1000);
-            m_no_load_speed.push_back(m_motors_func[i]->Get_yconst());
+            m_no_load_speed.push_back(CH_C_PI);
         }
     }
 

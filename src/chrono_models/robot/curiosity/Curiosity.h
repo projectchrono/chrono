@@ -337,12 +337,12 @@ class CH_MODELS_API CuriosityRover {
     /// Get the wheel body
     std::shared_ptr<ChBodyAuxRef> GetWheelBody(WheelID id);
 
-	/// Get the wheel trimesh
-	/// This function is required for GPU module coupling
+	  /// Get the wheel trimesh
+	  /// This function is required for GPU module coupling
     std::shared_ptr<geometry::ChTriangleMeshConnected> GetWheelTrimesh(WheelID id);
 
-	/// Get the wheel part
-	/// This function returns the curiosity part, required for GPU module coupling
+	  /// Get the wheel part
+	  /// This function returns the curiosity part, required for GPU module coupling
     std::shared_ptr<Curiosity_Wheel> GetWheelPart(WheelID id);
 
     /// Get chassis speedometer 
