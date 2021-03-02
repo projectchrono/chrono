@@ -30,6 +30,7 @@
 #include "chrono/physics/ChLinkMotorRotationSpeed.h"
 #include "chrono/physics/ChLinkDistance.h"
 #include "chrono/physics/ChSystem.h"
+#include "chrono/assets/ChTriangleMeshShape.h"
 
 #include "chrono_models/ChApiModels.h"
 
@@ -86,6 +87,8 @@ class CH_MODELS_API Curiosity_Part {
     /// Return the ChBody of the corresponding Curiosity part.
     std::shared_ptr<ChBodyAuxRef> GetBody() const { return m_body; }
 
+	std::shared_ptr<geometry::ChTriangleMeshConnected> GetTrimesh(){ return m_trimesh; }
+
     /// Return the ChBody of the chassis wrt the Curiosity part.
     std::shared_ptr<ChBodyAuxRef> GetChassis() const { return m_chassis; }
 
@@ -115,6 +118,7 @@ class CH_MODELS_API Curiosity_Part {
     ChColor m_color;                          ///< visualization asset color
     ChSystem* m_system;                       ///< system which Curiosity Part belongs to
     std::shared_ptr<ChBodyAuxRef> m_chassis;  ///< the chassis body for the rover
+    std::shared_ptr<geometry::ChTriangleMeshConnected> m_trimesh;
 
     ChVector<> m_pos;      ///< Curiosity part's relative position wrt the chassis
     ChQuaternion<> m_rot;  ///< Curiosity part's relative rotation wrt the chassis
@@ -313,7 +317,7 @@ class CH_MODELS_API CuriosityRover {
     ChVector<> GetWheelSpeed(WheelID id);
 
     /// Get wheel angular velocity
-    ChQuaternion<> GetWheelAngVel(WheelID id);
+    ChVector<> GetWheelAngVel(WheelID id);
 
     /// Get wheel contact force
     ChVector<> GetWheelContactForce(WheelID id);
@@ -332,6 +336,14 @@ class CH_MODELS_API CuriosityRover {
 
     /// Get the wheel body
     std::shared_ptr<ChBodyAuxRef> GetWheelBody(WheelID id);
+
+	/// Get the wheel trimesh
+	/// This function is required for GPU module coupling
+    std::shared_ptr<geometry::ChTriangleMeshConnected> GetWheelTrimesh(WheelID id);
+
+	/// Get the wheel part
+	/// This function returns the curiosity part, required for GPU module coupling
+    std::shared_ptr<Curiosity_Wheel> GetWheelPart(WheelID id);
 
     /// Get chassis speedometer 
     ChVector<> GetChassisVel();

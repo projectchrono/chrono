@@ -1,0 +1,45 @@
+{
+    "sphere_radius": 1,
+    "sphere_density": 2.8,
+    "box_X": 400,
+    "box_Y": 300,
+    "box_Z": 200,
+    "step_size": 1e-5,
+    "time_end": 50,
+
+    "grav_X": 0,
+    "grav_Y": 0,
+    "grav_Z": -980,
+
+    "normalStiffS2S": 1e6,
+    "normalStiffS2W": 1e6,
+    "normalStiffS2M": 1e6,
+
+    "normalDampS2S": 30000,
+    "normalDampS2W": 30000,
+    "normalDampS2M": 30000,
+
+    "tangentStiffS2S": 1e6,
+    "tangentStiffS2W": 1e6,
+    "tangentStiffS2M": 1e6,
+
+    "tangentDampS2S": 5000,
+    "tangentDampS2W": 5000,
+    "tangentDampS2M": 5000,
+
+    "static_friction_coeffS2S": 0.75,
+    "static_friction_coeffS2W": 0.75,
+    "static_friction_coeffS2M": 0.75,
+
+    "cohesion_ratio": 0,
+    "adhesion_ratio_s2w": 0,
+    "adhesion_ratio_s2m": 0,
+
+    "verbose": 0,
+
+    "psi_T": 32,
+    "psi_L": 16,
+    
+    "output_dir": "Curiosity",
+    "write_mode": "csv"
+}

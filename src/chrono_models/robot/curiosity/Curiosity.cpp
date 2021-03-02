@@ -202,6 +202,7 @@ void Curiosity_Part::AddCollisionShapes() {
     // read mesh from the col folder
     std::string vis_mesh_file = "robot/curiosity/col/" + m_mesh_name + ".obj";
     auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
+    m_trimesh = trimesh;
     trimesh->LoadWavefrontMesh(GetChronoDataFile(vis_mesh_file), true, false);
     trimesh->Transform(m_offset, ChMatrix33<>(1));
     auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
@@ -1042,8 +1043,8 @@ ChVector<> CuriosityRover::GetWheelSpeed(WheelID id) {
     return m_wheels[id]->GetBody()->GetPos_dt();
 }
 
-ChQuaternion<> CuriosityRover::GetWheelAngVel(WheelID id) {
-    return m_wheels[id]->GetBody()->GetRot_dt();
+ChVector<> CuriosityRover::GetWheelAngVel(WheelID id) {
+    return m_wheels[id]->GetBody()->GetWvel_par();
 }
 
 ChVector<> CuriosityRover::GetWheelContactForce(WheelID id) {
@@ -1064,6 +1065,14 @@ ChVector<> CuriosityRover::GetWheelAppliedTorque(WheelID id) {
 
 std::shared_ptr<ChBodyAuxRef> CuriosityRover::GetWheelBody(WheelID id) {
     return m_wheels[id]->GetBody();
+}
+
+std::shared_ptr<geometry::ChTriangleMeshConnected> CuriosityRover::GetWheelTrimesh(WheelID id) {
+    return m_wheels[id]->GetTrimesh();
+}
+
+std::shared_ptr<Curiosity_Wheel> CuriosityRover::GetWheelPart(WheelID id) {
+    return m_wheels[id];
 }
 
 std::shared_ptr<ChBodyAuxRef> CuriosityRover::GetChassisBody() {
