@@ -187,6 +187,10 @@ class CH_VEHICLE_API SCMDeformableTerrain : public ChTerrain {
     /// Get the visualization triangular mesh.
     std::shared_ptr<ChTriangleMeshShape> GetMesh() const;
 
+    /// Set the visualization mesh as wireframe or as solid (default: wireframe).
+    /// Note: in wireframe mode, normals for the visualization mesh are not calculated.
+    void SetMeshWireframe(bool val);
+
     /// Save the visualization mesh as a Wavefront OBJ file.
     void WriteMesh(const std::string& filename) const;
 

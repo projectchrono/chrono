@@ -85,6 +85,11 @@ const ChCoordsys<>& SCMDeformableTerrain::GetPlane() const {
     return m_ground->m_plane;
 }
 
+// Set the visualization mesh as wireframe or as solid.
+void SCMDeformableTerrain::SetMeshWireframe(bool val) {
+    m_ground->m_trimesh_shape->SetWireframe(val);
+}
+
 // Get the trimesh that defines the ground shape.
 std::shared_ptr<ChTriangleMeshShape> SCMDeformableTerrain::GetMesh() const {
     return m_ground->m_trimesh_shape;
