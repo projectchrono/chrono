@@ -348,7 +348,7 @@ class CH_VEHICLE_API SCMDeformableSoil : public ChLoadContainer {
     double GetHeight(const ChVector2<int>& loc) const;
 
     // Get the terrain normal (relative to the SCM plane) at the specified grid vertex.
-    ChVector<> SCMDeformableSoil::GetNormal(const ChVector2<>& loc) const;
+    ChVector<> GetNormal(const ChVector2<>& loc) const;
 
     // Get the terrain height below the specified location.
     double GetHeight(const ChVector<>& loc) const;
