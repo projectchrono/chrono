@@ -81,7 +81,7 @@ rev.GetLimit_Rz().SetMax(max_angle)
 rev.Initialize(ground, pend, chrono.ChCoordsysD(chrono.VNULL, chrono.QUNIT))
 
 # Create the Irrlicht application
-application = irr.ChIrrApp(system, "Limits on LinkLockRevolute demo", irr.dimension2du(800, 600), False, True)
+application = irr.ChIrrApp(system, "Limits on LinkLockRevolute demo", irr.dimension2du(800, 600))
 application.AddTypicalLogo()
 application.AddTypicalSky()
 application.AddTypicalLights()

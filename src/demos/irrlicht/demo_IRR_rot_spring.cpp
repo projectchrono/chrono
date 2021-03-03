@@ -126,7 +126,7 @@ int main(int argc, char* argv[]) {
     system.AddLink(spring);
 
     // Create the Irrlicht application
-    ChIrrApp application(&system, L"ChLinkRotSpringCB demo", core::dimension2d<u32>(800, 600), false, true);
+    ChIrrApp application(&system, L"ChLinkRotSpringCB demo", core::dimension2d<u32>(800, 600));
     application.AddTypicalLogo();
     application.AddTypicalSky();
     application.AddTypicalLights();
@@ -145,8 +145,8 @@ int main(int argc, char* argv[]) {
     while (application.GetDevice()->run()) {
         application.BeginScene();
         application.DrawAll();
-        ChIrrTools::drawAllCOGs(system, application.GetVideoDriver(), 1.0);
-        ChIrrTools::drawAllLinkframes(system, application.GetVideoDriver(), 1.5);
+        tools::drawAllCOGs(system, application.GetVideoDriver(), 1.0);
+        tools::drawAllLinkframes(system, application.GetVideoDriver(), 1.5);
         application.EndScene();
         application.DoStep();
 

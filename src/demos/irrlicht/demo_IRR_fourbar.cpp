@@ -97,7 +97,7 @@ int main(int argc, char* argv[]) {
     // Create the Irrlicht visualization (open the Irrlicht device,
     // bind a simple user interface, etc. etc.)
     ChIrrApp application(&my_system, L"Example of integration of Chrono and Irrlicht, with GUI",
-                         core::dimension2d<u32>(800, 600), false, true);
+                         core::dimension2d<u32>(800, 600));
 
     // Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
     application.AddTypicalLogo();
@@ -200,26 +200,26 @@ int main(int argc, char* argv[]) {
         application.DrawAll();
 
         // .. draw a grid
-        ChIrrTools::drawGrid(application.GetVideoDriver(), 0.5, 0.5);
+        tools::drawGrid(application.GetVideoDriver(), 0.5, 0.5);
         // .. draw a circle representing flywheel
-        ChIrrTools::drawCircle(application.GetVideoDriver(), 2.1, ChCoordsys<>(ChVector<>(0, 0, 0), QUNIT));
+        tools::drawCircle(application.GetVideoDriver(), 2.1, ChCoordsys<>(ChVector<>(0, 0, 0), QUNIT));
         // .. draw a small circle representing joint BC
-        ChIrrTools::drawCircle(application.GetVideoDriver(), 0.06,
+        tools::drawCircle(application.GetVideoDriver(), 0.06,
                                ChCoordsys<>(my_link_BC->GetMarker1()->GetAbsCoord().pos, QUNIT));
         // .. draw a small circle representing joint CD
-        ChIrrTools::drawCircle(application.GetVideoDriver(), 0.06,
+        tools::drawCircle(application.GetVideoDriver(), 0.06,
                                ChCoordsys<>(my_link_CD->GetMarker1()->GetAbsCoord().pos, QUNIT));
         // .. draw a small circle representing joint DA
-        ChIrrTools::drawCircle(application.GetVideoDriver(), 0.06,
+        tools::drawCircle(application.GetVideoDriver(), 0.06,
                                ChCoordsys<>(my_link_DA->GetMarker1()->GetAbsCoord().pos, QUNIT));
         // .. draw the rod (from joint BC to joint CD)
-        ChIrrTools::drawSegment(application.GetVideoDriver(), my_link_BC->GetMarker1()->GetAbsCoord().pos,
+        tools::drawSegment(application.GetVideoDriver(), my_link_BC->GetMarker1()->GetAbsCoord().pos,
                                 my_link_CD->GetMarker1()->GetAbsCoord().pos, video::SColor(255, 0, 255, 0));
         // .. draw the rocker (from joint CD to joint DA)
-        ChIrrTools::drawSegment(application.GetVideoDriver(), my_link_CD->GetMarker1()->GetAbsCoord().pos,
+        tools::drawSegment(application.GetVideoDriver(), my_link_CD->GetMarker1()->GetAbsCoord().pos,
                                 my_link_DA->GetMarker1()->GetAbsCoord().pos, video::SColor(255, 255, 0, 0));
         // .. draw the trajectory of the rod-point
-        ChIrrTools::drawPolyline(application.GetVideoDriver(), mtrajectory, video::SColor(255, 0, 150, 0));
+        tools::drawPolyline(application.GetVideoDriver(), mtrajectory, video::SColor(255, 0, 150, 0));
 
         // HERE CHRONO INTEGRATION IS PERFORMED: THE
         // TIME OF THE SIMULATION ADVANCES FOR A SINGLE

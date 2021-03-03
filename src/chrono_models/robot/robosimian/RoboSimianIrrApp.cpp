@@ -63,7 +63,7 @@ RoboSimianIrrApp::RoboSimianIrrApp(RoboSimian* robot,
                                    RS_Driver* driver,
                                    const wchar_t* title,
                                    irr::core::dimension2d<irr::u32> dims)
-    : ChIrrApp(robot->GetSystem(), title, dims, false, true, true, irr::video::EDT_OPENGL),
+    : ChIrrApp(robot->GetSystem(), title, dims, irrlicht::VerticalDir::Y, false, true, true, irr::video::EDT_OPENGL),
       m_robot(robot),
       m_driver(driver),
       m_HUD_x(650),

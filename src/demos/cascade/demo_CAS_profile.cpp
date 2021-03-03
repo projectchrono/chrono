@@ -264,7 +264,8 @@ int main(int argc, char* argv[]) {
 
 	// Create the Irrlicht visualization (open the Irrlicht device,
     // bind a simple user interface, etc. etc.)
-    ChIrrApp application(&my_system, L"Use 2D profiles with OpenCASCADE for mass, inertia, meshing", core::dimension2d<u32>(1024, 768), false, true);
+    ChIrrApp application(&my_system, L"Use 2D profiles with OpenCASCADE for mass, inertia, meshing",
+                         core::dimension2d<u32>(1024, 768), VerticalDir::Y, false, true);
 
     // Easy shortcuts to add logo, camera, lights and sky in Irrlicht scene:
     application.AddTypicalLogo();

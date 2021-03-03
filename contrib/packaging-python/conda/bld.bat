@@ -35,7 +35,7 @@ cmake -G "Visual Studio 16 2019" ^
  -DENABLE_MODULE_CASCADE=ON ^
  -DCASCADE_INCLUDE_DIR="%CONDA_INSTALL_LOCN%"\Library\include\opencascade ^
  -DCASCADE_LIBDIR="%CONDA_INSTALL_LOCN%"\Library\lib ^
- -DENABLE_MODULE_MKL=ON ^
+ -DENABLE_MODULE_PARDISO_MKL=ON ^
  -DMKL_INCLUDE_DIR="%CONDA_INSTALL_LOCN%"\Library\include ^
  -DMKL_RT_LIBRARY="%CONDA_INSTALL_LOCN%"\Library\lib\mkl_rt.lib ^
  -DIOMP5_LIBRARY="%CONDA_INSTALL_LOCN%"\Library\lib\libiomp5md.lib ^

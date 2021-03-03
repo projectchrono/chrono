@@ -58,16 +58,11 @@ int main(int argc, char* argv[]) {
 
     // Create the Irrlicht visualization (open the Irrlicht device,
     // bind a simple user interface, etc. etc.)
-    ChIrrApp application(&my_system, L"Load a robot model from STEP file", core::dimension2d<u32>(800, 600), false,
-                         true);
-
-    // Easy shortcuts to add logo, camera, lights and sky in Irrlicht scene:
-    ChIrrWizard::add_typical_Logo(application.GetDevice());
-    ChIrrWizard::add_typical_Sky(application.GetDevice());
-    ChIrrWizard::add_typical_Lights(application.GetDevice(), core::vector3df(30, 100, 30),
-                                    core::vector3df(30, -80, -30), 200, 130);
-    ChIrrWizard::add_typical_Camera(application.GetDevice(), core::vector3df(0.2f, 1.6f, 3.5f),
-                                    core::vector3df(0.0f, 1.0f, 0.0f));
+    ChIrrApp application(&my_system, L"Load a robot model from STEP file", core::dimension2d<u32>(800, 600));
+    application.AddTypicalLogo();
+    application.AddTypicalSky();
+    application.AddTypicalLights(core::vector3df(30, 100, 30), core::vector3df(30, -80, -30), 200, 130);
+    application.AddTypicalCamera(core::vector3df(0.2f, 1.6f, 3.5f), core::vector3df(0.0f, 1.0f, 0.0f));
 
     //
     // Load a STEP file, containing a mechanism. The demo STEP file has been
@@ -478,8 +473,8 @@ int main(int argc, char* argv[]) {
         application.DoStep();
 
         // .. plot something on realtime view
-        ChIrrTools::drawChFunction(application.GetDevice(), motlaw_z.get(), 0, 10, -0.9, 0.2, 10, 400, 300, 80);
-        ChIrrTools::drawChFunction(application.GetDevice(), motlaw_y.get(), 0, 10, -0.9, 0.2, 10, 500, 300, 80);
+        tools::drawChFunction(application.GetDevice(), motlaw_z.get(), 0, 10, -0.9, 0.2, 10, 400, 300, 80);
+        tools::drawChFunction(application.GetDevice(), motlaw_y.get(), 0, 10, -0.9, 0.2, 10, 500, 300, 80);
 
         application.EndScene();
     }

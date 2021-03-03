@@ -24,6 +24,7 @@
 
 #include "chrono_synchrono/agent/SynWheeledVehicleAgent.h"
 #include "chrono_synchrono/agent/SynTrackedVehicleAgent.h"
+#include "chrono_synchrono/agent/SynCopterAgent.h"
 #include "chrono_synchrono/agent/SynSCMTerrainAgent.h"
 #include "chrono_synchrono/agent/SynEnvironmentAgent.h"
 
@@ -84,6 +85,14 @@ std::shared_ptr<SynAgent> SynAgentFactory::CreateAgent(std::shared_ptr<SynMessag
                                                 vehicle_description->num_road_wheels);  //
 
         agent = vehicle_agent;
+    } else if (auto copter_description = std::dynamic_pointer_cast<SynCopterDescriptionMessage>(description)) {
+        auto copter_agent = chrono_types::make_shared<SynCopterAgent>();
+        copter_agent->SetID(source_id);
+        copter_agent->SetZombieVisualizationFiles(copter_description->chassis_vis_file,  //
+                                                  copter_description->propeller_vis_file);  //
+
+        copter_agent->SetNumProps(copter_description->GetNumProps());
+		agent = copter_agent;
     } else if (auto terrain_message = std::dynamic_pointer_cast<SynSCMMessage>(description)) {
         auto terrain_agent = chrono_types::make_shared<SynSCMTerrainAgent>();
 
