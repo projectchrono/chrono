@@ -551,7 +551,7 @@ void ChSystemGpu::WriteContactInfoFile(std::string ofile) const {
     m_sys->WriteContactInfoFile(ofile);
 }
 
-void ChSystemGpuMesh::WriteMesh(std::string outfilename, unsigned int i) const {
+void ChSystemGpuMesh::WriteMesh(const std::string& outfilename, unsigned int i) const {
     ChSystemGpuMesh_impl* sys_trimesh = static_cast<ChSystemGpuMesh_impl*>(m_sys);
     if (sys_trimesh->file_write_mode == CHGPU_OUTPUT_MODE::NONE) {
         return;
@@ -576,7 +576,6 @@ void ChSystemGpuMesh::WriteMesh(std::string outfilename, unsigned int i) const {
 
     // Writing vertices
     ostream << "POINTS " << mmesh->getCoordsVertices().size() << " float" << std::endl;
-    ;
     for (auto& v : mmesh->getCoordsVertices()) {
         float3 point = make_float3(v.x(), v.y(), v.z());
         sys_trimesh->ApplyFrameTransform(point, sys_trimesh->tri_params->fam_frame_broad[i].pos,
@@ -600,7 +599,7 @@ void ChSystemGpuMesh::WriteMesh(std::string outfilename, unsigned int i) const {
     outfile << ostream.str();
 }
 
-void ChSystemGpuMesh::WriteMeshes(std::string outfilename) const {
+void ChSystemGpuMesh::WriteMeshes(const std::string& outfilename) const {
     ChSystemGpuMesh_impl* sys_trimesh = static_cast<ChSystemGpuMesh_impl*>(m_sys);
     if (sys_trimesh->file_write_mode == CHGPU_OUTPUT_MODE::NONE) {
         return;
@@ -611,7 +610,7 @@ void ChSystemGpuMesh::WriteMeshes(std::string outfilename) const {
         return;
     }
 
-    unsigned int vertexOffset[m_meshes.size() + 1] = {0};
+    std::vector<unsigned int> vertexOffset(m_meshes.size() + 1, 0);
     unsigned int total_f = 0;
     unsigned int total_v = 0;
 
