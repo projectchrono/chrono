@@ -228,9 +228,11 @@ int main(int argc, char* argv[]) {
         if (curr_step % out_steps == 0) {
             std::cout << "Output frame " << currframe + 1 << " of " << total_frames << std::endl;
             char filename[100];
-            sprintf(filename, "%s/step%06d", out_dir.c_str(), currframe++);
+            char mesh_filename[100];
+            sprintf(filename, "%s/step%06d", out_dir.c_str(), currframe);
+            sprintf(mesh_filename, "%s/step%06d_mesh", out_dir.c_str(), currframe++);
             gpu_sys.WriteFile(std::string(filename));
-            gpu_sys.WriteMeshes(std::string(filename));
+            gpu_sys.WriteMeshes(std::string(mesh_filename));
 
             /*  // disable meshframes output, for it may be confusing for users dealing with Chrono::Gpu only
             std::string mesh_output = std::string(filename) + "_meshframes.csv";

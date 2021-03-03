@@ -314,7 +314,10 @@ class CH_GPU_API ChSystemGpuMesh : public ChSystemGpu {
     /// Collect contact forces exerted on the specified meshe by the granular system.
     void CollectMeshContactForces(int mesh, ChVector<>& force, ChVector<>& torque);
 
-    /// Write visualization files for triangle meshes with current positions.
+    /// Write the i-th mesh cached in m_meshes, with the current position
+    void WriteMesh(std::string outfilename, unsigned int i) const;
+
+    /// Write all the meshes cached in m_meshes into a combined file, with their current positions
     void WriteMeshes(std::string outfilename) const;
 
   private:

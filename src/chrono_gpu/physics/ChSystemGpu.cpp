@@ -551,9 +551,126 @@ void ChSystemGpu::WriteContactInfoFile(std::string ofile) const {
     m_sys->WriteContactInfoFile(ofile);
 }
 
+void ChSystemGpuMesh::WriteMesh(std::string outfilename, unsigned int i) const {
+    ChSystemGpuMesh_impl* sys_trimesh = static_cast<ChSystemGpuMesh_impl*>(m_sys);
+    if (sys_trimesh->file_write_mode == CHGPU_OUTPUT_MODE::NONE) {
+        return;
+    }
+    if (i >= m_meshes.size()) {
+        printf("WARNING: attempted to write mesh %u, yet only %u meshes present. No mesh file generated.\n", i,
+               m_meshes.size());
+        return;
+    }
+
+    printf("Writing mesh family %u...\n", i);
+    std::ofstream outfile(outfilename + ".vtk", std::ios::out);
+    std::ostringstream ostream;
+    ostream << "# vtk DataFile Version 2.0\n";
+    ostream << "VTK from simulation\n";
+    ostream << "ASCII\n";
+    ostream << "\n\n";
+
+    ostream << "DATASET UNSTRUCTURED_GRID\n";
+
+    const auto& mmesh = m_meshes.at(i);
+
+    // Writing vertices
+    ostream << "POINTS " << mmesh->getCoordsVertices().size() << " float" << std::endl;
+    ;
+    for (auto& v : mmesh->getCoordsVertices()) {
+        float3 point = make_float3(v.x(), v.y(), v.z());
+        sys_trimesh->ApplyFrameTransform(point, sys_trimesh->tri_params->fam_frame_broad[i].pos,
+                                         sys_trimesh->tri_params->fam_frame_broad[i].rot_mat);
+        ostream << point.x << " " << point.y << " " << point.z << std::endl;
+    }
+
+    // Writing faces
+    ostream << "\n\n";
+    ostream << "CELLS " << mmesh->getIndicesVertexes().size() << " " << 4 * mmesh->getIndicesVertexes().size()
+            << std::endl;
+    for (auto& f : mmesh->getIndicesVertexes())
+        ostream << "3 " << f.x() << " " << f.y() << " " << f.z() << std::endl;
+
+    // Writing face types. Type 5 is generally triangles
+    ostream << "\n\n";
+    ostream << "CELL_TYPES " << mmesh->getIndicesVertexes().size() << std::endl;
+    for (auto& f : mmesh->getIndicesVertexes())
+        ostream << "5 " << std::endl;
+
+    outfile << ostream.str();
+}
+
 void ChSystemGpuMesh::WriteMeshes(std::string outfilename) const {
     ChSystemGpuMesh_impl* sys_trimesh = static_cast<ChSystemGpuMesh_impl*>(m_sys);
-    sys_trimesh->WriteMeshes(outfilename);
+    if (sys_trimesh->file_write_mode == CHGPU_OUTPUT_MODE::NONE) {
+        return;
+    }
+    if (m_meshes.size() == 0) {
+        printf(
+            "WARNING: attempted to write meshes to file yet no mesh found in system cache. No mesh file generated.\n");
+        return;
+    }
+
+    unsigned int vertexOffset[m_meshes.size() + 1] = {0};
+    unsigned int total_f = 0;
+    unsigned int total_v = 0;
+
+    printf("Writing %u mesh(es)...\n", m_meshes.size());
+    std::ofstream outfile(outfilename + ".vtk", std::ios::out);
+    std::ostringstream ostream;
+    ostream << "# vtk DataFile Version 2.0\n";
+    ostream << "VTK from simulation\n";
+    ostream << "ASCII\n";
+    ostream << "\n\n";
+
+    ostream << "DATASET UNSTRUCTURED_GRID\n";
+
+    // Prescan the V and F: to write all meshes to one file, we need vertex number offset info
+    unsigned int mesh_num = 0;
+    for (const auto& mmesh : m_meshes) {
+        vertexOffset[mesh_num + 1] = mmesh->getCoordsVertices().size();
+        total_v += mmesh->getCoordsVertices().size();
+        total_f += mmesh->getIndicesVertexes().size();
+        mesh_num++;
+    }
+    for (unsigned int i = 1; i < m_meshes.size(); i++)
+        vertexOffset[i] = vertexOffset[i] + vertexOffset[i - 1];
+
+    // Writing vertices
+    ostream << "POINTS " << total_v << " float" << std::endl;
+    mesh_num = 0;
+    for (const auto& mmesh : m_meshes) {
+        for (auto& v : mmesh->getCoordsVertices()) {
+            float3 point = make_float3(v.x(), v.y(), v.z());
+            sys_trimesh->ApplyFrameTransform(point, sys_trimesh->tri_params->fam_frame_broad[mesh_num].pos,
+                                             sys_trimesh->tri_params->fam_frame_broad[mesh_num].rot_mat);
+            ostream << point.x << " " << point.y << " " << point.z << std::endl;
+        }
+        mesh_num++;
+    }
+
+    // Writing faces
+    ostream << "\n\n";
+    ostream << "CELLS " << total_f << " " << 4 * total_f << std::endl;
+    mesh_num = 0;
+    for (const auto& mmesh : m_meshes) {
+        for (auto& f : mmesh->getIndicesVertexes()) {
+            ostream << "3 " << f.x() + vertexOffset[mesh_num] << " " << f.y() + vertexOffset[mesh_num] << " "
+                    << f.z() + vertexOffset[mesh_num] << std::endl;
+        }
+        mesh_num++;
+    }
+
+    // Writing face types. Type 5 is generally triangles
+    ostream << "\n\n";
+    ostream << "CELL_TYPES " << total_f << std::endl;
+    for (const auto& mmesh : m_meshes) {
+        for (auto& f : mmesh->getIndicesVertexes()) {
+            ostream << "5 " << std::endl;
+        }
+    }
+
+    outfile << ostream.str();
 }
 
 // -----------------------------------------------------------------------------

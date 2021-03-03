@@ -118,9 +118,6 @@ class ChSystemGpuMesh_impl : public ChSystemGpu_impl {
                          const double* lin_vel,
                          const double* ang_vel);
 
-    /// Write visualization files for triangle meshes with current positions
-    void WriteMeshes(std::string outfilename) const;
-
     /// Initialize trimeshes before starting simulation (typically called by initialize).
     void initializeTriangles();
 
