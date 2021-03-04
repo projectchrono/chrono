@@ -128,6 +128,8 @@ using ChFilterGyroAccess = ChFilterAccess<SensorHostGyroBuffer, UserGyroBufferPt
 using ChFilterMagnetAccess = ChFilterAccess<SensorHostMagnetBuffer, UserMagnetBufferPtr>;
 /// Access to GPS data
 using ChFilterGPSAccess = ChFilterAccess<SensorHostGPSBuffer, UserGPSBufferPtr>;
+/// Access to Radar data
+using ChFilterRadarAccess = ChFilterAccess<SensorHostDNormBuffer, UserDNormBufferPtr>;
 
 /// @}
 

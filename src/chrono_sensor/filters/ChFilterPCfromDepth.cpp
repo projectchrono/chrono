@@ -18,6 +18,7 @@
 #include "chrono_sensor/ChLidarSensor.h"
 #include "chrono_sensor/cuda/pointcloud.cuh"
 #include "chrono_sensor/utils/CudaMallocHelper.h"
+#include <chrono>
 
 namespace chrono {
 namespace sensor {
@@ -48,13 +49,17 @@ CH_SENSOR_API void ChFilterPCfromDepth::Apply(std::shared_ptr<ChSensor> pSensor,
         // we need id of first device for this context (should only have 1 anyway)
         int device_id = pOpx->Buffer->getContext()->getEnabledDevices()[0];
         ptr = pOpx->Buffer->getDevicePointer(device_id);  // hard coded to grab from device 0
-        bool_dualRet = pOpx->Dual_return;
+        bool_dualRet = pLidar->DualReturnFlag();
+
     } else if (auto pDI = std::dynamic_pointer_cast<SensorDeviceDIBuffer>(bufferInOut)) {
         ptr = (void*)pDI->Buffer.get();
-        bool_dualRet = pDI->Dual_return;
+        bool_dualRet = pLidar->DualReturnFlag();
     } else {
         throw std::runtime_error("The pointcloud filter cannot be run on the requested input buffer type");
     }
+
+    auto time1 = std::chrono::high_resolution_clock::now();
+
     if (!m_buffer) {
         if (bool_dualRet){
             m_buffer = chrono_types::make_shared<SensorDeviceXYZIBuffer>();
@@ -77,18 +82,19 @@ CH_SENSOR_API void ChFilterPCfromDepth::Apply(std::shared_ptr<ChSensor> pSensor,
 
     // carry out the conversion from depth to point cloud
     if (bool_dualRet){
-       cuda_pointcloud_from_depth_dual_return(ptr, m_buffer->Buffer.get(), (int)bufferInOut->Width, (int)bufferInOut->Height,
+        cuda_pointcloud_from_depth_dual_return(ptr, m_buffer->Buffer.get(), (int)bufferInOut->Width, (int)bufferInOut->Height,
                                    pLidar->GetHFOV(), pLidar->GetMaxVertAngle(), pLidar->GetMinVertAngle());
-
+        // thrust implementation of removing beams with no returns, performance gain is minimal (30us)
+//        int num_points = bufferInOut->Height * bufferInOut->Width * 2;
+//        m_buffer->Beam_return_count = remove_no_return_beams(m_buffer->Buffer.get(), num_points);
     } else {
         cuda_pointcloud_from_depth(ptr, m_buffer->Buffer.get(), (int)bufferInOut->Width, (int)bufferInOut->Height,
                                    pLidar->GetHFOV(), pLidar->GetMaxVertAngle(), pLidar->GetMinVertAngle());
-
+//        int num_points = bufferInOut->Height * bufferInOut->Width;
+//        m_buffer->Beam_return_count = remove_no_return_beams(m_buffer->Buffer.get(), num_points);
     }
-
-    // counter for beam returns
+    // removing beams with no returns
     m_buffer->Beam_return_count = 0;
-    // host buffer to store data
     if (bool_dualRet){
         std::vector<float> buf(m_buffer->Width * m_buffer->Height * 4 * 2);
         std::vector<float> new_buf(m_buffer->Width * m_buffer->Height * 4 * 2);
@@ -124,12 +130,10 @@ CH_SENSOR_API void ChFilterPCfromDepth::Apply(std::shared_ptr<ChSensor> pSensor,
         }
         cudaMemcpy(m_buffer->Buffer.get(), new_buf.data(), m_buffer->Beam_return_count * sizeof(PixelXYZI), cudaMemcpyHostToDevice);
     }
-//    printf("%i %i\n", m_buffer->Dual_return, m_buffer->Width * m_buffer->Height);
 
     m_buffer->LaunchedCount = bufferInOut->LaunchedCount;
     m_buffer->TimeStamp = bufferInOut->TimeStamp;
     bufferInOut = m_buffer;
-//    printf("%i %i\n", bool_dualRet, m_buffer->Beam_return_count++);
 }
 }  // namespace sensor
 }  // namespace chrono
