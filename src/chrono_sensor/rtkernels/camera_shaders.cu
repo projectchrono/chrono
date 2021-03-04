@@ -36,7 +36,6 @@ rtDeclareVariable(float3, tangent_vector, attribute tangent_vector, );
 rtDeclareVariable(float, t_hit, rtIntersectionDistance, );
 rtDeclareVariable(optix::Ray, ray, rtCurrentRay, );
 
-rtDeclareVariable(float3, ambient_light_color, , );
 rtDeclareVariable(float3, Ka, , );
 rtDeclareVariable(float3, Kd, , );
 rtDeclareVariable(float3, Ks, , );
@@ -182,7 +181,7 @@ RT_PROGRAM void pbr_shader() {
             light_attenuation = prd_shadow.attenuation;
         }
 
-        float point_light_falloff = (l.max_range / (dist_to_light * dist_to_light + l.max_range));
+        float point_light_falloff = (l.max_range * l.max_range / (dist_to_light * dist_to_light + l.max_range * l.max_range));
         
         float3 incoming_light_ray = l.color * light_attenuation * point_light_falloff * NdL;
         
@@ -242,8 +241,8 @@ RT_PROGRAM void pbr_shader() {
     float NdV = dot(forward_normal, -ray.direction);
     // In ambient light mode
     if (prd_camera.mode == FIRST_HIT) {
-        prd_camera.color = prd_camera.color + ambient_light_color * Ka * make_float3(NdV) * subsurface_albedo ;
-        // prd_camera.color = make_float3(roughness);
+        prd_camera.color = prd_camera.color + Ka * make_float3(NdV) * subsurface_albedo ;
+        // prd_camera.color = forward_normal;
         return;
     }
     prd_camera.color *= prd_camera.contribution_to_firsthit;
