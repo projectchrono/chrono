@@ -205,12 +205,19 @@ linux:arch-llvm:test:
 # Ubuntu Builder #
 #----------------#
 
+# Ubuntu 18.04 doesn't have a sufficiently new CMake for presets, so we rely on manual configuration
 linux:ubuntu1804:build:
   stage: build
   extends: .ubuntu
   script:
     - cd build
-    - cmake ../ --preset=linuxci
+    - cmake ../ -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=TRUE 
+        -DBUILD_BENCHMARKING=TRUE -DENABLE_MODULE_POSTPROCESS=TRUE 
+        -DENABLE_MODULE_PYTHON=TRUE -DENABLE_MODULE_COSIMULATION=FALSE 
+        -DENABLE_MODULE_IRRLICHT=TRUE -DENABLE_MODULE_VEHICLE=TRUE 
+        -DENABLE_MODULE_MULTICORE=TRUE -DENABLE_MODULE_OPENGL=TRUE
+        -DENABLE_MODULE_SYNCHRONO=TRUE -DENABLE_MODULE_CSHARP=TRUE
+        -DENABLE_MODULE_GPU=TRUE -DENABLE_MODULE_DISTRIBUTED=TRUE
         -DCMAKE_C_COMPILER=/usr/bin/gcc 
         -DCMAKE_CXX_COMPILER=/usr/bin/g++
         -DCUDA_HOST_COMPILER=/usr/bin/gcc
@@ -288,8 +295,9 @@ windows:vs2019:build:
   # Main build
   - cd $CI_PROJECT_DIR/build
   - cmake --preset=windowsci-vs2019 ..
+  - cmake --build . -t ALL_BUILD -j 8
   #- Invoke-Expression "& `'C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\devenv.com`' Chrono.sln -Build `"Release|x64`" -log buildlog.txt"
-  - '& "C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\MSBuild\Current\Bin\MSBuild.exe" Chrono.sln -maxcpucount:8 -property:Configuration=Release'
+  # - '& "C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\MSBuild\Current\Bin\MSBuild.exe" Chrono.sln -maxcpucount:8 -property:Configuration=Release'
   artifacts:
     expire_in: 60m
     paths:
@@ -348,8 +356,9 @@ windows:vs2017:build:
   - '& "C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\MSBuild\Current\Bin\MSBuild.exe" FlatBuffers.sln -maxcpucount:8 -property:Configuration=Release'
   - cd $CI_PROJECT_DIR/build
   - cmake --preset=windowsci-vs2017 ..
+  - cmake --build . -t ALL_BUILD -j 8
   #- Invoke-Expression "& `'C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\devenv.com`' Chrono.sln -Build `"Release|x64`" -log buildlog.txt"
-  - '& "C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\MSBuild\Current\Bin\MSBuild.exe" Chrono.sln -maxcpucount:8 -property:Configuration=Release'
+  #- '& "C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\MSBuild\Current\Bin\MSBuild.exe" Chrono.sln -maxcpucount:8 -property:Configuration=Release'
   artifacts:
     expire_in: 60m
     paths:
