@@ -17,9 +17,30 @@
 #include <cuda.h>
 #include "pointcloud.cuh"
 #include <iostream>
+#include <thrust/device_ptr.h>
+#include <thrust/copy.h>
+#include <thrust/device_vector.h>
+
 
 namespace chrono {
 namespace sensor {
+
+struct is_not_zero
+{
+    __host__ __device__
+    bool operator()(const float x)
+    {
+        return (x != 0);
+    }
+};
+
+struct is_zero
+{
+    __host__ __device__
+    bool operator()(const float x){
+        return (x==0);
+    }
+};
 
 // Converts 32bpp ARGB imgIn pixels to 8bpp Grayscale imgOut pixels
 __global__ void pointcloud_from_depth_kernel(float* imgIn,
@@ -125,6 +146,20 @@ void cuda_pointcloud_from_depth(void* bufDI,
     pointcloud_from_depth_kernel<<<nBlocks, nThreads>>>((float*)bufDI, (float*)bufOut, width, height, hfov, max_v_angle,
                                                         min_v_angle);
 }
+
+//int remove_no_return_beams(void* bufIn, unsigned int num_points){
+//    // each point has XYZI value -> multiply by 4
+//    thrust::device_vector<float> d_v((float*)bufIn, (float*)bufIn + num_points * 4);
+//    thrust::device_vector<float> d_r(num_points * 4);
+//
+//    int count = thrust::count_if(d_v.begin(), d_v.end(), is_zero());
+//    thrust::copy_if(d_v.begin(), d_v.end(), d_r.begin(), is_not_zero());
+//    
+//    float* ptr = thrust::raw_pointer_cast(d_r.data());
+//    cudaMemcpy(bufIn, ptr, sizeof(float) * count, cudaMemcpyDeviceToDevice);
+//
+//    return num_points - count/4;
+//}
 
 }  // namespace sensor
 }  // namespace chrono

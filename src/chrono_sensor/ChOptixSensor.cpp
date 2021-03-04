@@ -12,7 +12,7 @@
 // Authors: Asher Elmquist
 // =============================================================================
 //
-// Container class for a camera sensor
+// Container class for a camera, lidar sensor
 //
 // =============================================================================
 

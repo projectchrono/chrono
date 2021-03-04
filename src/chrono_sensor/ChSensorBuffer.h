@@ -37,18 +37,24 @@ namespace sensor {
 
 /// The base buffer class that contains sensor data (contains meta data of the buffer and pointer to raw data)
 struct SensorBuffer {
+//    /// Default constructor that intializes all zero values
+//    SensorBuffer() : Width(0), Height(0), LaunchedCount(0), TimeStamp(0), Dual_return(false) {}
+//    /// Constructor based on height, width, and time
+//    SensorBuffer(unsigned int w, unsigned int h, float t) : Width(w), Height(h), LaunchedCount(0), TimeStamp(t), Dual_return(false){}
+
     /// Default constructor that intializes all zero values
-    SensorBuffer() : Width(0), Height(0), LaunchedCount(0), TimeStamp(0), Dual_return(false) {}
+    SensorBuffer() : Width(0), Height(0), LaunchedCount(0), TimeStamp(0) {}
     /// Constructor based on height, width, and time
-    SensorBuffer(unsigned int w, unsigned int h, float t) : Width(w), Height(h), LaunchedCount(0), TimeStamp(t), Dual_return(false){}
+    SensorBuffer(unsigned int w, unsigned int h, float t) : Width(w), Height(h), LaunchedCount(0), TimeStamp(t){}
+
 
     /// virtual destructor so class is virtual so it can participate in dynamic_pointer_cast<>'s
     virtual ~SensorBuffer() {}
     float TimeStamp;                 ///< The time stamp on the buffer (simulation time when data collection stopped)
     unsigned int Width;              ///< The width of the data (image width when data is an image)
     unsigned int Height;             ///< The height of the data (image height when data is an image)
-    unsigned int Beam_return_count;  ///< number of beam returns for lidar model
-    bool Dual_return;                ///< true if dual return mode, false otherwise
+//    unsigned int Beam_return_count;  ///< number of beam returns for lidar model
+//    bool Dual_return;                ///< true if dual return mode, false otherwise
     unsigned int
         LaunchedCount;  ///<  number of times updates have been launched. This may not reflect how many have been
                         // completed.
@@ -60,6 +66,13 @@ template <class B>
 struct SensorBufferT : public SensorBuffer {
     SensorBufferT() {}
     B Buffer;
+};
+
+template <class B>
+struct LidarBufferT : public SensorBufferT<B>{
+    LidarBufferT():Dual_return(false){}
+    unsigned int Beam_return_count;
+    bool Dual_return;
 };
 
 //============================================================================
@@ -102,6 +115,22 @@ using SensorDeviceR8Buffer = SensorBufferT<DeviceR8BufferPtr>;
 using UserR8BufferPtr = std::shared_ptr<SensorHostR8Buffer>;
 
 //=====================================
+// Range Radar Data Formats and Buffers
+//=====================================
+struct PixelDNorm{
+    float range;
+    float3 normal;
+};
+/// Depth-intensity host buffer to be used by radar filters in the graph
+using SensorHostDNormBuffer = SensorBufferT<std::shared_ptr<PixelDNorm[]>>;
+/// Depth-intensity device buffer to be used by radar filters in the graph
+using DeviceDNormBufferPtr = std::shared_ptr<PixelDNorm[]>;
+/// Sensor buffer wrapper of a DeviceDNormBufferPtr
+using SensorDeviceDNormBuffer = SensorBufferT<DeviceDNormBufferPtr>;
+/// pointer to a depth-norm buffer on the host that has been moved for safety and can be given to the user
+using UserDNormBufferPtr = std::shared_ptr<SensorHostDNormBuffer>;
+
+//=====================================
 // Depth Lidar Data Formats and Buffers
 //=====================================
 
@@ -110,14 +139,24 @@ struct PixelDI {
     float range;      ///< Distance measurement of the lidar beam
     float intensity;  ///< Relative intensity of returned laser pulse
 };
+///// Depth-intensity host buffer to be used by lidar filters in the graph
+//using SensorHostDIBuffer = SensorBufferT<std::shared_ptr<PixelDI[]>>;
+///// Depth-intensity device buffer to be used by lidar filters in the graph
+//using DeviceDIBufferPtr = std::shared_ptr<PixelDI[]>;
+///// Sensor buffer wrapper of a DeviceDIBufferPtr
+//using SensorDeviceDIBuffer = SensorBufferT<DeviceDIBufferPtr>;
+///// pointer to a depth-intensity buffer on the host that has been moved for safety and can be given to the user
+//using UserDIBufferPtr = std::shared_ptr<SensorHostDIBuffer>;
+
 /// Depth-intensity host buffer to be used by lidar filters in the graph
-using SensorHostDIBuffer = SensorBufferT<std::shared_ptr<PixelDI[]>>;
+using SensorHostDIBuffer = LidarBufferT<std::shared_ptr<PixelDI[]>>;
 /// Depth-intensity device buffer to be used by lidar filters in the graph
 using DeviceDIBufferPtr = std::shared_ptr<PixelDI[]>;
 /// Sensor buffer wrapper of a DeviceDIBufferPtr
-using SensorDeviceDIBuffer = SensorBufferT<DeviceDIBufferPtr>;
+using SensorDeviceDIBuffer = LidarBufferT<DeviceDIBufferPtr>;
 /// pointer to a depth-intensity buffer on the host that has been moved for safety and can be given to the user
 using UserDIBufferPtr = std::shared_ptr<SensorHostDIBuffer>;
+
 
 //===========================================
 // Point Cloud Lidar Data Formats and Buffers
@@ -130,14 +169,24 @@ struct PixelXYZI {
     float z;          ///< z location of the point in space
     float intensity;  ///< intensity of the reflection at the corresponding point
 };
+///// Point cloud host buffer to be used by lidar filters in the graph
+//using SensorHostXYZIBuffer = SensorBufferT<std::shared_ptr<PixelXYZI[]>>;
+///// Point cloud device buffer to be used by lidar filters in the graph
+//using DeviceXYZIBufferPtr = std::shared_ptr<PixelXYZI[]>;
+///// Sensor buffer wrapper of a DeviceXYZIBufferPtr
+//using SensorDeviceXYZIBuffer = SensorBufferT<DeviceXYZIBufferPtr>;
+///// pointer to a point cloud buffer on the host that has been moved for safety and can be given to the user
+//using UserXYZIBufferPtr = std::shared_ptr<SensorHostXYZIBuffer>;
+
 /// Point cloud host buffer to be used by lidar filters in the graph
-using SensorHostXYZIBuffer = SensorBufferT<std::shared_ptr<PixelXYZI[]>>;
+using SensorHostXYZIBuffer = LidarBufferT<std::shared_ptr<PixelXYZI[]>>;
 /// Point cloud device buffer to be used by lidar filters in the graph
 using DeviceXYZIBufferPtr = std::shared_ptr<PixelXYZI[]>;
 /// Sensor buffer wrapper of a DeviceXYZIBufferPtr
-using SensorDeviceXYZIBuffer = SensorBufferT<DeviceXYZIBufferPtr>;
+using SensorDeviceXYZIBuffer = LidarBufferT<DeviceXYZIBufferPtr>;
 /// pointer to a point cloud buffer on the host that has been moved for safety and can be given to the user
 using UserXYZIBufferPtr = std::shared_ptr<SensorHostXYZIBuffer>;
+
 
 //=============================
 // IMU Data Format and Buffers

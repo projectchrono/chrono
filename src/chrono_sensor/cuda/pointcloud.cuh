@@ -52,6 +52,8 @@ void cuda_pointcloud_from_depth_dual_return(void* bufDI,
                                 float max_v_angle,
                                 float min_v_angle);
 
+int remove_no_return_beams(void* bufIn, unsigned int size);
+
 /// @}
 }  // namespace sensor
 }  // namespace chrono
