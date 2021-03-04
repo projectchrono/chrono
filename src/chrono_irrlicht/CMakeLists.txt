@@ -29,7 +29,7 @@ SET(ChronoEngine_IRRLICHT_SOURCES
   ChIrrNode.cpp
   ChIrrNodeProxyToAsset.cpp
   ChIrrTools.cpp
-  ChIrrWizard.cpp
+  ChIrrUtils.cpp
   ChIrrNodeAsset.cpp
 )
 
@@ -40,7 +40,7 @@ SET(ChronoEngine_IRRLICHT_HEADERS
   ChIrrApp.h
   ChIrrCamera.h
   ChIrrMeshTools.h
-  ChIrrWizard.h
+  ChIrrUtils.h
   ChIrrAssetConverter.h
   ChIrrNode.h
   ChIrrNodeProxyToAsset.h

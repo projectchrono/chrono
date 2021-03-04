@@ -241,7 +241,16 @@ using namespace chrono::copter;
 %}
 */
 
-
+%extend chrono::viper::ViperRover{
+		public:
+			ViperRover(chrono::ChSystem* system,
+               const chrono::ChVector<double>& rover_pos,
+               const chrono::ChQuaternion<double>& rover_rot){
+			   
+			   auto selfpoint = std::make_shared<chrono::viper::ViperRover>(system, rover_pos, rover_rot, nullptr);
+			   return selfpoint.get();
+			   }
+		};
 //
 // ADD PYTHON CODE
 //

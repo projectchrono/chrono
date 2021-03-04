@@ -54,7 +54,7 @@
 #include "chrono_irrlicht/ChIrrTools.h"
 #include "chrono_irrlicht/ChIrrEffects.h"
 #include "chrono_irrlicht/ChIrrTools.h"
-#include "chrono_irrlicht/ChIrrWizard.h"
+#include "chrono_irrlicht/ChIrrUtils.h"
 #include "chrono_irrlicht/ChIrrCamera.h"
 using namespace chrono;
 using namespace chrono::irrlicht;
@@ -167,7 +167,7 @@ using namespace gui;
 %include "chrono_irrlicht/ChIrrEffects.h"
 %include "chrono_irrlicht/ChIrrTools.h"
 %include "chrono_irrlicht/ChIrrCamera.h"
-%include "chrono_irrlicht/ChIrrWizard.h"
+%include "chrono_irrlicht/ChIrrUtils.h"
 %include "ChIrrAppInterface.i"
 %include "ChIrrAssetConverter.i"
 %include "ChIrrApp.i"

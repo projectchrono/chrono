@@ -255,8 +255,7 @@ int main(int argc, char* argv[]) {
 
     // Create the Irrlicht visualization (open the Irrlicht device,
     // bind a simple user interface, etc. etc.)
-    ChIrrApp application(&my_system, L"Beam continuous extrusion and FEA contacts", core::dimension2d<u32>(800, 600),
-                         false, true);
+    ChIrrApp application(&my_system, L"Beam continuous extrusion and FEA contacts", core::dimension2d<u32>(800, 600));
 
     // Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
     application.AddTypicalLogo();
@@ -289,7 +288,7 @@ int main(int argc, char* argv[]) {
         application.BeginScene();
 
         application.DrawAll();
-        ChIrrTools::drawGrid(application.GetVideoDriver(), 0.1, 0.1,20,20,CSYSNORM, irr::video::SColor(255,100,100,100),true);
+        tools::drawGrid(application.GetVideoDriver(), 0.1, 0.1,20,20,CSYSNORM, irr::video::SColor(255,100,100,100),true);
 
         application.DoStep();
 

@@ -68,11 +68,11 @@ class ChApiIrr RTSCamera : public irr::scene::ICameraSceneNode {
     virtual void setAspectRatio(irr::f32 aspect);
     virtual void setFOV(irr::f32 fovy);
     virtual void setViewMatrixAffector(const irr::core::matrix4& affector);
-    virtual void setUpVector(const irr::core::vector3df& pos);
     virtual void setProjectionMatrix(const irr::core::matrix4& projection, bool isOrthogonal = false);
     virtual void setPosition(const irr::core::vector3df& newpos);
     virtual void setTarget(const irr::core::vector3df& newpos);
     virtual void setRotation(const irr::core::vector3df& rotation) {}
+    void setZUp();
 
     virtual void setZoomSpeed(irr::f32 value);
     virtual void setTranslateSpeed(irr::f32 value);
@@ -98,6 +98,7 @@ class ChApiIrr RTSCamera : public irr::scene::ICameraSceneNode {
     // Properties
     irr::core::vector3df Target;
     irr::core::vector3df UpVector;
+    bool y_up;
     irr::core::matrix4 Projection;
     irr::core::matrix4 View;
     irr::core::matrix4 Affector;  //**ALEX
@@ -140,8 +141,8 @@ class ChApiIrr RTSCamera : public irr::scene::ICameraSceneNode {
     bool isMouseKeyDown(irr::s32 key);
     void animate();
     void updateAnimationState();
-    // Hammad: Adding this so that GCC and clang on osx do not complain
     void updateMatrices();
+    virtual void setUpVector(const irr::core::vector3df& pos) override final {}
 };
 
 /// @} irrlicht_module

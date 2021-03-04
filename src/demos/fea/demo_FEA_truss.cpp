@@ -219,7 +219,7 @@ int main(int argc, char* argv[]) {
     // Create the Irrlicht visualization (open the Irrlicht device,
     // bind a simple user interface, etc. etc.)
     ChIrrApp application(&my_system, L"Truss FEA test: use ChElementSpring and ChElementBar",
-                         core::dimension2d<u32>(1024, 768), false, true);
+                         core::dimension2d<u32>(1024, 768));
 
     // Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
     application.AddTypicalLogo();
@@ -264,7 +264,7 @@ int main(int argc, char* argv[]) {
         // draw spring elements as lines
         for (auto mspring : springs) {
             if (mspring->GetSpringK() > 0) {
-                ChIrrTools::drawSegment(application.GetVideoDriver(),
+                tools::drawSegment(application.GetVideoDriver(),
                                         std::dynamic_pointer_cast<ChNodeFEAxyz>(mspring->GetNodeN(0))->GetPos(),
                                         std::dynamic_pointer_cast<ChNodeFEAxyz>(mspring->GetNodeN(1))->GetPos(),
                                         irr::video::SColor(255, 255, 255, 255), true);

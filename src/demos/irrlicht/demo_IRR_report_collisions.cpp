@@ -86,11 +86,11 @@ int main(int argc, char* argv[]) {
     system.SetSolverMaxIterations(20);
 
     // Create the Irrlicht application.
-    ChIrrApp application(&system, L"Number of collisions", irr::core::dimension2d<irr::u32>(800, 600), false);
-    ChIrrWizard::add_typical_Logo(application.GetDevice());
-    ChIrrWizard::add_typical_Sky(application.GetDevice());
-    ChIrrWizard::add_typical_Lights(application.GetDevice());
-    ChIrrWizard::add_typical_Camera(application.GetDevice(), irr::core::vector3df(0, 14, -20));
+    ChIrrApp application(&system, L"Number of collisions", irr::core::dimension2d<irr::u32>(800, 600));
+    application.AddTypicalLogo();
+    application.AddTypicalSky();
+    application.AddTypicalLights();
+    application.AddTypicalCamera(irr::core::vector3df(0, 14, -20));
 
     // Create a contact material shared by all collision shapes
     auto mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();

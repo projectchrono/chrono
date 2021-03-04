@@ -134,7 +134,7 @@ void ChainTest<N>::SimulateVis() {
 #ifdef CHRONO_IRRLICHT
     float offset = static_cast<float>(N * m_length);
 
-    irrlicht::ChIrrApp application(m_system, L"Pendulum chain", irr::core::dimension2d<irr::u32>(800, 600), false, true);
+    irrlicht::ChIrrApp application(m_system, L"Pendulum chain", irr::core::dimension2d<irr::u32>(800, 600));
     application.AddTypicalLogo();
     application.AddTypicalSky();
     application.AddTypicalLights();

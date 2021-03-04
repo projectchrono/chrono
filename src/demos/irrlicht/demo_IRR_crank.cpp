@@ -101,20 +101,16 @@ int main(int argc, char* argv[]) {
     my_link_AB->SetSpeedFunction(my_speed_function);
     
 
-
     // 4- Create the Irrlicht visualization
-    ChIrrApp application(&my_system, L"Simple slider-crank example", core::dimension2d<u32>(800, 600), false);
-
-    // Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
-    ChIrrWizard::add_typical_Logo(application.GetDevice());
-    ChIrrWizard::add_typical_Sky(application.GetDevice());
-    ChIrrWizard::add_typical_Lights(application.GetDevice());
-    ChIrrWizard::add_typical_Camera(application.GetDevice(), core::vector3df(0, 0, -6));
+    ChIrrApp application(&my_system, L"Simple slider-crank example", core::dimension2d<u32>(800, 600));
+    application.AddTypicalLogo();
+    application.AddTypicalSky();
+    application.AddTypicalLights();
+    application.AddTypicalCamera(core::vector3df(0, 0, -6));
 
     // Bind assets
     application.AssetBindAll();
     application.AssetUpdateAll();
-
 
     //
     // THE SOFT-REAL-TIME CYCLE, SHOWING THE SIMULATION
@@ -136,18 +132,18 @@ int main(int argc, char* argv[]) {
         // .. draw items belonging to Irrlicht scene, if any
         application.DrawAll();
         // .. draw a grid
-        ChIrrTools::drawGrid(application.GetVideoDriver(), 0.5, 0.5);
+        tools::drawGrid(application.GetVideoDriver(), 0.5, 0.5);
         // .. draw GUI items belonging to Irrlicht screen, if any
         application.GetIGUIEnvironment()->drawAll();
 
         // .. draw the rod (from joint BC to joint CA)
-        ChIrrTools::drawSegment(application.GetVideoDriver(), my_link_BC->GetMarker1()->GetAbsCoord().pos,
+        tools::drawSegment(application.GetVideoDriver(), my_link_BC->GetMarker1()->GetAbsCoord().pos,
                                 my_link_CA->GetMarker1()->GetAbsCoord().pos, video::SColor(255, 0, 255, 0));
         // .. draw the crank (from joint AB to joint BC)
-        ChIrrTools::drawSegment(application.GetVideoDriver(), my_link_AB->GetLinkAbsoluteCoords().pos,
+        tools::drawSegment(application.GetVideoDriver(), my_link_AB->GetLinkAbsoluteCoords().pos,
                                 my_link_BC->GetMarker1()->GetAbsCoord().pos, video::SColor(255, 255, 0, 0));
         // .. draw a small circle at crank origin
-        ChIrrTools::drawCircle(application.GetVideoDriver(), 0.1, ChCoordsys<>(ChVector<>(0, 0, 0), QUNIT));
+        tools::drawCircle(application.GetVideoDriver(), 0.1, ChCoordsys<>(ChVector<>(0, 0, 0), QUNIT));
 
         /* test: delete a link after 10 seconds
         if (my_system.GetChTime() >10 && (!removed))
