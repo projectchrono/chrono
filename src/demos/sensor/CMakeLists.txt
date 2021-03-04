@@ -28,7 +28,7 @@ IF(ENABLE_MODULE_IRRLICHT AND ENABLE_MODULE_VEHICLE)
       demo_SEN_HMMWV
       demo_SEN_Gator
       demo_SEN_rccar
-      # demo_SEN_deformableSoil
+      demo_SEN_deformableSoil
     )
     list(APPEND CHRONO_LIBRARIES "ChronoEngine_irrlicht")
     list(APPEND CHRONO_LIBRARIES "ChronoEngine_vehicle")

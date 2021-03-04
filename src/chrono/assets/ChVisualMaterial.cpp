@@ -17,7 +17,7 @@
 namespace chrono {
 
 ChVisualMaterial::ChVisualMaterial()
-    : Ka({0.1, 0.1, 0.1}),
+    : Ka({0.2, 0.2, 0.2}),
       Kd({0.5, 0.5, 0.5}),
       Ks({0.2, 0.2, 0.2}),
       Ns(88),
