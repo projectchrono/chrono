@@ -50,7 +50,7 @@
 				"ENABLE_MODULE_FSI": "ON",
 				"ENABLE_MODULE_GPU": "ON",
 				"ENABLE_MODULE_SENSOR": "ON",
-				"OptiX_INSTALL_DIR"="/opt/optix/6.5.0"
+				"OptiX_INSTALL_DIR": "/opt/optix/6.5.0"
 			}
 		},
 		{
@@ -99,7 +99,7 @@
 				"USE_MULTICORE_CUDA": "OFF",
 				"ENABLE_HDF5": "OFF",
 				"ENABLE_MODULE_SENSOR": "ON",
-				"OptiX_INSTALL_DIR"= "C:/Program Files/NVIDIA Corporation/OptiX SDK 6.5.0"
+				"OptiX_INSTALL_DIR": "C:/Program Files/NVIDIA Corporation/OptiX SDK 6.5.0"
 			}
 		},
 		{
