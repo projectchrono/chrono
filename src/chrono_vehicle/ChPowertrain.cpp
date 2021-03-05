@@ -62,8 +62,8 @@ void ChPowertrain::ShiftDown() {
 }
 
 void ChPowertrain::SetGear(int gear) {
-    assert(igear >= 0);
-    assert(igear < m_gear_ratios.size());
+    assert(gear >= 0);
+    assert(gear < m_gear_ratios.size());
 
     m_current_gear = gear;
     m_current_gear_ratio = m_gear_ratios[m_current_gear];
