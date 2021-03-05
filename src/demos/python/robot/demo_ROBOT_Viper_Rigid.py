@@ -44,7 +44,7 @@ texture.SetTextureFilename(chrono.GetChronoDataFile("textures/concrete.jpg"))
 ground.AddAsset(texture)
 
 # Create Viper rover
-rover = viper.ViperRover(system, chrono.ChVectorD(0, -0.2, 0), chrono.ChQuaternionD(1, 0, 0, 0), chrono.ChMaterialSurfaceNSC())
+rover = viper.ViperRover(system, chrono.ChVectorD(0, -0.2, 0), chrono.ChQuaternionD(1, 0, 0, 0))
 rover.Initialize()
 
 # Create run-time visualization

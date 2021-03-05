@@ -32,8 +32,8 @@ const double Kraz_tractor_Driveline::m_driveshaft_inertia = 0.5;
 const double Kraz_tractor_Driveline::m_frontshaft_inertia = 0.5;
 const double Kraz_tractor_Driveline::m_rearshaft_inertia = 0.5;
 
-const double Kraz_tractor_Driveline::m_front_conicalgear_ratio = -1.0 / 6.154;
-const double Kraz_tractor_Driveline::m_rear_conicalgear_ratio = -1.0 / 6.154;
+const double Kraz_tractor_Driveline::m_front_conicalgear_ratio = 1 / 6.154;
+const double Kraz_tractor_Driveline::m_rear_conicalgear_ratio = 1 / 6.154;
 
 const double Kraz_tractor_Driveline::m_axle_differential_locking_limit = 100;
 const double Kraz_tractor_Driveline::m_central_differential_locking_limit = 10000;

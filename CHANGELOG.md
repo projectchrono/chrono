@@ -5,6 +5,8 @@ Change Log
 ==========
 
 - [Unreleased (development version)](#unreleased-development-branch)
+  - [Support for Z up camera in Chrono::Irrlicht](#changed-support-for-z-up-camera-in-chronoirrlicht)
+  - [Specifying collision meshes in Chrono::Gpu](#changed-specifying-collision-meshes-in-chronogpu)
 - [Release 6.0.0](#release-600---2021-02-10) 
   - [New Chrono::Csharp module](#added-new-chronocsharp-module)
   - [RoboSimian, Viper, and LittleHexy models](#added-robosimian-viper-and-littlehexy-models)
@@ -34,6 +36,45 @@ Change Log
 - [Release 4.0.0](#release-400---2019-02-22)
 
 ## Unreleased (development branch)
+
+### [Changed] Support for Z up camera in Chrono::Irrlicht
+
+While the default remains to construct a camera with Y up, the ChIrrApp class was modified to also support a camera with Z up.  To create a Z up Irrlicht visualization application, pass `VerticalDir::Z` as the 4th (optional) argument to the ChIrrApp constructor. For example:
+```cpp
+    ChIrrApp application(&system, L"Demo", irr::core::dimension2d<irr::u32>(800, 600), VerticalDir::Z);
+    application.AddTypicalLogo();
+    application.AddTypicalSky();
+    application.AddTypicalLights();
+    application.AddTypicalCamera(irr::core::vector3df(1, 1, 1));
+```
+Note that this will also properly orient the sky box.
+Rotating with the left mouse button and panning with the arrow and PageUp/PageDwn keys works the same as with a Y up camera.
+
+This API change also eliminates classes with only static methods (ChIrrTools and ChIrrWizard), replacing them with free functions in the `chrono::irrlicht::tools` namespace.  See the various Chrono demos for required changes to user code.
+
+### [Changed] Specifying collision meshes in Chrono::Gpu
+
+The mechanism for specifying collision meshes in a `ChSystemGpuMesh` was changed to allow adding meshes in a sequential manner, at any point and as many times as desired, prior to invoking `ChSystemGpuMesh::Initialize()`. Various different functions are provided for adding a mesh from memory:
+```cpp
+    unsigned int AddMesh(std::shared_ptr<geometry::ChTriangleMeshConnected> mesh,
+                         float mass);
+```
+from a Wavefron OBJ file:
+```cpp
+    unsigned int AddMesh(const std::string& filename,
+                         const ChVector<float>& translation,
+                         const ChMatrix33<float>& rotscale,
+                         float mass);
+```
+or adding multiple meshes from a list of Wavefront OBJ files:
+```cpp
+    std::vector<unsigned int> AddMeshes(const std::vector<std::string>& objfilenames,
+                                        const std::vector<ChVector<float>>& translations,
+                                        const std::vector<ChMatrix33<float>>& rotscales,
+                                        const std::vector<float>& masses);
+```
+
+All meshes such specified are offloaded to the GPU upon calling `ChSystemGpuMesh::Initialize()`.  Note that these functions return an integral mesh identifier which can be used in subsequent function calls (e.g., `ChSystemGpuMesh::ApplyMeshMotion()`) to identify a particular mesh.
 
 ## Release 6.0.0 - 2021-02-10
 
