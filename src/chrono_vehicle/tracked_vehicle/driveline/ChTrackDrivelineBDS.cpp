@@ -64,7 +64,7 @@ void ChTrackDrivelineBDS::Initialize(std::shared_ptr<ChChassis> chassis,
     // (the truss).
     m_conicalgear = chrono_types::make_shared<ChShaftsGearboxAngled>();
     m_conicalgear->Initialize(m_driveshaft, m_differentialbox, chassisBody, m_dir_motor_block, m_dir_axle);
-    m_conicalgear->SetTransmissionRatio(GetConicalGearRatio());
+    m_conicalgear->SetTransmissionRatio(-GetConicalGearRatio());
     sys->Add(m_conicalgear);
 
     // Create a differential, i.e. an epicycloidal mechanism that connects three rotating members.

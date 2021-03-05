@@ -187,6 +187,10 @@ class CH_VEHICLE_API SCMDeformableTerrain : public ChTerrain {
     /// Get the visualization triangular mesh.
     std::shared_ptr<ChTriangleMeshShape> GetMesh() const;
 
+    /// Set the visualization mesh as wireframe or as solid (default: wireframe).
+    /// Note: in wireframe mode, normals for the visualization mesh are not calculated.
+    void SetMeshWireframe(bool val);
+
     /// Save the visualization mesh as a Wavefront OBJ file.
     void WriteMesh(const std::string& filename) const;
 
@@ -337,17 +341,20 @@ class CH_VEHICLE_API SCMDeformableSoil : public ChLoadContainer {
         std::size_t operator()(const ChVector2<int>& p) const { return p.x() * 31 + p.y(); }
     };
 
-    // Get the terrain normal at the point below the specified location.
-    ChVector<> GetNormal(const ChVector<>& loc) const;
-
-    // Get the terrain height below the specified location.
-    double GetHeight(const ChVector<>& loc) const;
-
     // Get the initial undeformed terrain height (relative to the SCM plane) at the specified grid node.
     double GetInitHeight(const ChVector2<int>& loc) const;
 
     // Get the terrain height (relative to the SCM plane) at the specified grid node.
     double GetHeight(const ChVector2<int>& loc) const;
+
+    // Get the terrain normal (relative to the SCM plane) at the specified grid vertex.
+    ChVector<> GetNormal(const ChVector2<>& loc) const;
+
+    // Get the terrain height below the specified location.
+    double GetHeight(const ChVector<>& loc) const;
+
+    // Get the terrain normal at the point below the specified location.
+    ChVector<> GetNormal(const ChVector<>& loc) const;
 
     // Get index of trimesh vertex corresponding to the specified grid node.
     int GetMeshVertexIndex(const ChVector2<int>& loc);
