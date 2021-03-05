@@ -4,6 +4,9 @@
 #include "chrono/physics/ChBody.h"
 
 %}
+
+%template(ChForceList) std::vector< std::shared_ptr<chrono::ChForce> >;
+%template(ChMarkerList) std::vector< std::shared_ptr<chrono::ChMarker> >;
  
 %shared_ptr(chrono::ChBody)
 

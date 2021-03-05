@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Conlain Kelly, Nic Olsen, Dan Negrut
+// Authors: Conlain Kelly, Nic Olsen, Dan Negrut, Ruochun Zhang
 // =============================================================================
 
 #pragma once
@@ -297,7 +297,8 @@ __global__ void determineCountOfSDsTouchedByEachTriangle(
 }
 
 /// <summary>
-/// kernel is called to populate two arrays
+/// kernel is called to populate two arrays: one holds on to what SDs touch a triangle, and then a companion array that
+/// keeps repeating the triangle ID; in the end, these two arrays will be handled by a CUB sort-by-key op
 /// </summary>
 /// <param name="d_triangleSoup">- the collection of triangles in this mesh soup</param>
 /// <param name="Triangle_NumSDsTouching">- number of SDs touched by each triangle</param>
@@ -328,5 +329,28 @@ __global__ void storeSDsTouchedByEachTriangle(const ChSystemGpuMesh_impl::Triang
         }
     }
 }
+
+/// <summary>
+/// Upon input, pSD_numTrianglesTouching contains a bunch of zeros. Upon return, the array will reflect the fact that
+/// some SDs are touched by one or more triangles
+/// </summary>
+/// <param name="d_SDs_touched">- list of SDs that happen to be touched by at least one triangle</param>
+/// <param name="d_howManyTrianglesTouchTheTouchedSDs">- if SD is in the list above, it says how many triangles touch it</param>
+/// <param name="nSDs_touchedByTriangles">- how many SDs are actually touched by at least one triangle</param>
+/// <param name="pSD_numTrianglesTouching">- [in/out] array of size SDs, populated with numbre of triangles touched by each SD</param>
+/// <returns></returns>
+__global__ void finalizeSD_numTrianglesTouching(const unsigned int* d_SDs_touched,
+                                                const unsigned int* d_howManyTrianglesTouchTheTouchedSDs,
+                                                const unsigned int* nSDs_touchedByTriangles,
+                                                unsigned int* pSD_numTrianglesTouching) {
+    unsigned int threadID = threadIdx.x + blockIdx.x * blockDim.x;
+    if (threadID < (*nSDs_touchedByTriangles)) {
+        // this thread has work to do
+        unsigned int whichSD = d_SDs_touched[threadID];
+        unsigned int howManyTrianglesAreTouchingThisSD = d_howManyTrianglesTouchTheTouchedSDs[threadID];
+        pSD_numTrianglesTouching[whichSD] = howManyTrianglesAreTouchingThisSD;
+    }
+}
+
 
 /// @} gpu_cuda

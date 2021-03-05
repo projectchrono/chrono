@@ -201,8 +201,8 @@ int main(int argc, char* argv[]) {
     // ---------------------------------------
 
     ChTrackedVehicleIrrApp app(&vehicle, L"M113 Band-track Vehicle Demo");
+    app.AddTypicalLogo();
     app.SetSkyBox();
-    irrlicht::ChIrrWizard::add_typical_Logo(app.GetDevice());
     app.AddTypicalLights(irr::core::vector3df(30.f, -30.f, 100.f), irr::core::vector3df(30.f, 50.f, 100.f), 250, 130);
     app.SetChaseCamera(ChVector<>(0, 0, 0), 6.0, 0.5);
     ////app.SetChaseCameraPosition(vehicle.GetVehiclePos() + ChVector<>(0, 2, 0));

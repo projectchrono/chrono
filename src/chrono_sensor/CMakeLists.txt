@@ -507,14 +507,19 @@ install(TARGETS ChronoEngine_sensor
         ARCHIVE DESTINATION lib)
 
 install(FILES ${ChronoEngine_sensor_HEADERS}
-		DESTINATION include/chrono_sensor)
+        DESTINATION include/chrono_sensor)
 install(FILES ${ChronoEngine_sensor_UTILS_HEADERS}
-		DESTINATION include/chrono_sensor/utils)
+        DESTINATION include/chrono_sensor/utils)
 install(FILES ${ChronoEngine_sensor_OPTIX_HEADERS}
         DESTINATION include/chrono_sensor/optixcpp)
 install(FILES ${ChronoEngine_sensor_FILTERS_HEADERS}
         DESTINATION include/chrono_sensor/filters)
 install(FILES ${ChronoEngine_sensor_CUDA_HEADERS}
-      DESTINATION include/chrono_sensor/cuda)
+        DESTINATION include/chrono_sensor/cuda)
 install(FILES ${ChronoEngine_sensor_SCENE_HEADERS}
-      DESTINATION include/chrono_sensor/scene)
+        DESTINATION include/chrono_sensor/scene)
+
+# Install required chrono_thirdparty headers
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/stb
+        DESTINATION include/chrono_thirdparty
+        FILES_MATCHING PATTERN "*.h" PATTERN "*.cuh" PATTERN "*.hpp" PATTERN "*.inl")

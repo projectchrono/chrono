@@ -302,7 +302,7 @@ int main(int argc, char* argv[]) {
 
     if (contact_vis) {
         app.SetSymbolscale(1e-4);
-        app.SetContactsDrawMode(ChIrrTools::eCh_ContactsDrawMode::CONTACT_FORCES);
+        app.SetContactsDrawMode(IrrContactsDrawMode::CONTACT_FORCES);
     }
 
     // ---------------------------------------------

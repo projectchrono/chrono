@@ -21,13 +21,14 @@
 
 namespace chrono {
 namespace irrlicht {
+namespace tools {
 
 using namespace irr;
 
 // -----------------------------------------------------------------------------
 // Function to align an Irrlicht object to a Chrono::Engine coordsys.
 // -----------------------------------------------------------------------------
-void ChIrrTools::alignIrrlichtNodeToChronoCsys(scene::ISceneNode* mnode, const ChCoordsys<>& mcoords) {
+void alignIrrlichtNodeToChronoCsys(scene::ISceneNode* mnode, const ChCoordsys<>& mcoords) {
     // Output: will be an Irrlicht 4x4 matrix
     irr::core::matrix4 irrMat;
 
@@ -89,21 +90,21 @@ class _draw_reporter_class : public ChContactContainer::ReportContactCallback {
         irr::video::SColor mcol = irr::video::SColor(200, 255, 0, 0);
 
         switch (drawtype) {
-            case ChIrrTools::CONTACT_DISTANCES:
+            case IrrContactsDrawMode::CONTACT_DISTANCES:
                 v2 = pB;
                 if (distance > 0.0)
                     mcol = irr::video::SColor(200, 20, 255, 0);  // green: non penetration
                 else
                     mcol = irr::video::SColor(200, 255, 60, 60);  // red: penetration
                 break;
-            case ChIrrTools::CONTACT_NORMALS:
+            case IrrContactsDrawMode::CONTACT_NORMALS:
                 v2 = pA + vn * clen;
                 mcol = irr::video::SColor(200, 0, 100, 255);
                 break;
-            case ChIrrTools::CONTACT_FORCES_N:
+            case IrrContactsDrawMode::CONTACT_FORCES_N:
                 v2 = pA + vn * clen * react_forces.x();
                 break;
-            case ChIrrTools::CONTACT_FORCES:
+            case IrrContactsDrawMode::CONTACT_FORCES:
                 v2 = pA + (mplanecoord * (react_forces * clen));
                 break;
             default:
@@ -115,18 +116,18 @@ class _draw_reporter_class : public ChContactContainer::ReportContactCallback {
     }
 
     irr::video::IVideoDriver* cdriver;
-    ChIrrTools::eCh_ContactsDrawMode drawtype;
+    IrrContactsDrawMode drawtype;
     double clen;
 };
 
-int ChIrrTools::drawAllContactPoints(std::shared_ptr<ChContactContainer> mcontainer,
-                                     irr::video::IVideoDriver* driver,
-                                     double mlen,
-                                     eCh_ContactsDrawMode drawtype) {
-    if (drawtype == CONTACT_NONE)
+int drawAllContactPoints(std::shared_ptr<ChContactContainer> mcontainer,
+                         irr::video::IVideoDriver* driver,
+                         double mlen,
+                         IrrContactsDrawMode drawtype) {
+    if (drawtype == IrrContactsDrawMode::CONTACT_NONE)
         return 0;
 
-    //if (mphysicalSystem.GetNcontacts() == 0)
+    // if (mphysicalSystem.GetNcontacts() == 0)
     //    return 0;
 
     driver->setTransform(irr::video::ETS_WORLD, irr::core::matrix4());
@@ -169,25 +170,25 @@ class _label_reporter_class : public ChContactContainer::ReportContactCallback {
         gui::IGUIFont* font = this->cdevice->getGUIEnvironment()->getBuiltInFont();
 
         switch (labeltype) {
-            case ChIrrTools::CONTACT_DISTANCES_VAL:
+            case IrrContactsLabelMode::CONTACT_DISTANCES_VAL:
                 sprintf(buffer, "% 6.3g", distance);
                 break;
-            case ChIrrTools::CONTACT_FORCES_N_VAL:
+            case IrrContactsLabelMode::CONTACT_FORCES_N_VAL:
                 sprintf(buffer, "% 6.3g", react_forces.x());
                 break;
-            case ChIrrTools::CONTACT_FORCES_T_VAL:
+            case IrrContactsLabelMode::CONTACT_FORCES_T_VAL:
                 sprintf(buffer, "% 6.3g", ChVector<>(0, react_forces.y(), react_forces.z()).Length());
                 break;
-            case ChIrrTools::CONTACT_FORCES_VAL:
+            case IrrContactsLabelMode::CONTACT_FORCES_VAL:
                 sprintf(buffer, "% 6.3g", ChVector<>(react_forces).Length());
                 break;
-            case ChIrrTools::CONTACT_TORQUES_VAL:
+            case IrrContactsLabelMode::CONTACT_TORQUES_VAL:
                 sprintf(buffer, "% 6.3g", ChVector<>(react_torques).Length());
                 break;
-            case ChIrrTools::CONTACT_TORQUES_S_VAL:
+            case IrrContactsLabelMode::CONTACT_TORQUES_S_VAL:
                 sprintf(buffer, "% 6.3g", react_torques.x());
                 break;
-            case ChIrrTools::CONTACT_TORQUES_R_VAL:
+            case IrrContactsLabelMode::CONTACT_TORQUES_R_VAL:
                 sprintf(buffer, "% 6.3g", ChVector<>(0, react_torques.y(), react_torques.z()).Length());
                 break;
             default:
@@ -201,18 +202,18 @@ class _label_reporter_class : public ChContactContainer::ReportContactCallback {
     }
 
     irr::IrrlichtDevice* cdevice;
-    ChIrrTools::eCh_ContactsLabelMode labeltype;
+    IrrContactsLabelMode labeltype;
     irr::video::SColor ccol;
 };
 
-int ChIrrTools::drawAllContactLabels(std::shared_ptr<ChContactContainer> mcontainer,
-                                     irr::IrrlichtDevice* device,
-                                     eCh_ContactsLabelMode labeltype,
-                                     irr::video::SColor mcol) {
-    if (labeltype == CONTACT_NONE_VAL)
+int drawAllContactLabels(std::shared_ptr<ChContactContainer> mcontainer,
+                         irr::IrrlichtDevice* device,
+                         IrrContactsLabelMode labeltype,
+                         irr::video::SColor mcol) {
+    if (labeltype == IrrContactsLabelMode::CONTACT_NONE_VAL)
         return 0;
 
-    //if (mphysicalSystem.GetNcontacts() == 0)
+    // if (mphysicalSystem.GetNcontacts() == 0)
     //   return 0;
 
     auto my_label_rep = chrono_types::make_shared<_label_reporter_class>();
@@ -230,11 +231,8 @@ int ChIrrTools::drawAllContactLabels(std::shared_ptr<ChContactContainer> mcontai
 // -----------------------------------------------------------------------------
 // Draw links as glyps.
 // ---------------------------------------------------------------------------
-int ChIrrTools::drawAllLinks(ChSystem& mphysicalSystem,
-                             irr::video::IVideoDriver* driver,
-                             double mlen,
-                             eCh_LinkDrawMode drawtype) {
-    if (drawtype == LINK_NONE)
+int drawAllLinks(ChSystem& mphysicalSystem, irr::video::IVideoDriver* driver, double mlen, IrrLinkDrawMode drawtype) {
+    if (drawtype == IrrLinkDrawMode::LINK_NONE)
         return 0;
 
     driver->setTransform(irr::video::ETS_WORLD, irr::core::matrix4());
@@ -248,10 +246,10 @@ int ChIrrTools::drawAllLinks(ChSystem& mphysicalSystem,
         ChVector<> v1abs = mlinkframe.pos;
         ChVector<> v2;
         switch (drawtype) {
-            case ChIrrTools::LINK_REACT_FORCE:
+            case IrrLinkDrawMode::LINK_REACT_FORCE:
                 v2 = link->Get_react_force();
                 break;
-            case ChIrrTools::LINK_REACT_TORQUE:
+            case IrrLinkDrawMode::LINK_REACT_TORQUE:
                 v2 = link->Get_react_torque();
                 break;
             default:
@@ -271,11 +269,11 @@ int ChIrrTools::drawAllLinks(ChSystem& mphysicalSystem,
 // -----------------------------------------------------------------------------
 // Draw links as labels
 // ---------------------------------------------------------------------------
-int ChIrrTools::drawAllLinkLabels(ChSystem& mphysicalSystem,
-                                  irr::IrrlichtDevice* device,
-                                  eCh_LinkLabelMode labeltype,
-                                  irr::video::SColor mcol) {
-    if (labeltype == LINK_NONE_VAL)
+int drawAllLinkLabels(ChSystem& mphysicalSystem,
+                      irr::IrrlichtDevice* device,
+                      IrrLinkLabelMode labeltype,
+                      irr::video::SColor mcol) {
+    if (labeltype == IrrLinkLabelMode::LINK_NONE_VAL)
         return 0;
 
     for (auto link : mphysicalSystem.Get_linklist()) {
@@ -289,28 +287,28 @@ int ChIrrTools::drawAllLinkLabels(ChSystem& mphysicalSystem,
         gui::IGUIFont* font = device->getGUIEnvironment()->getBuiltInFont();
 
         switch (labeltype) {
-            case ChIrrTools::LINK_REACT_FORCE_VAL:
+            case IrrLinkLabelMode::LINK_REACT_FORCE_VAL:
                 sprintf(buffer, "% 6.3g", link->Get_react_force().Length());
                 break;
-            case ChIrrTools::LINK_REACT_FORCE_X:
+            case IrrLinkLabelMode::LINK_REACT_FORCE_X:
                 sprintf(buffer, "% 6.3g", link->Get_react_force().x());
                 break;
-            case ChIrrTools::LINK_REACT_FORCE_Y:
+            case IrrLinkLabelMode::LINK_REACT_FORCE_Y:
                 sprintf(buffer, "% 6.3g", link->Get_react_force().y());
                 break;
-            case ChIrrTools::LINK_REACT_FORCE_Z:
+            case IrrLinkLabelMode::LINK_REACT_FORCE_Z:
                 sprintf(buffer, "% 6.3g", link->Get_react_force().z());
                 break;
-            case ChIrrTools::LINK_REACT_TORQUE_VAL:
+            case IrrLinkLabelMode::LINK_REACT_TORQUE_VAL:
                 sprintf(buffer, "% 6.3g", link->Get_react_torque().Length());
                 break;
-            case ChIrrTools::LINK_REACT_TORQUE_X:
+            case IrrLinkLabelMode::LINK_REACT_TORQUE_X:
                 sprintf(buffer, "% 6.3g", link->Get_react_torque().x());
                 break;
-            case ChIrrTools::LINK_REACT_TORQUE_Y:
+            case IrrLinkLabelMode::LINK_REACT_TORQUE_Y:
                 sprintf(buffer, "% 6.3g", link->Get_react_torque().y());
                 break;
-            case ChIrrTools::LINK_REACT_TORQUE_Z:
+            case IrrLinkLabelMode::LINK_REACT_TORQUE_Z:
                 sprintf(buffer, "% 6.3g", link->Get_react_torque().z());
                 break;
             default:
@@ -327,7 +325,7 @@ int ChIrrTools::drawAllLinkLabels(ChSystem& mphysicalSystem,
 // -----------------------------------------------------------------------------
 // Draw collision objects bounding boxes for rigid bodies.
 // -----------------------------------------------------------------------------
-int ChIrrTools::drawAllBoundingBoxes(ChSystem& mphysicalSystem, irr::video::IVideoDriver* driver) {
+int drawAllBoundingBoxes(ChSystem& mphysicalSystem, irr::video::IVideoDriver* driver) {
     driver->setTransform(irr::video::ETS_WORLD, irr::core::matrix4());
     irr::video::SMaterial mattransp;
     mattransp.ZBuffer = true;
@@ -383,7 +381,7 @@ int ChIrrTools::drawAllBoundingBoxes(ChSystem& mphysicalSystem, irr::video::IVid
 // -----------------------------------------------------------------------------
 // Draw coordinate systems of ChBody objects bodies.
 // -----------------------------------------------------------------------------
-int ChIrrTools::drawAllCOGs(ChSystem& mphysicalSystem, irr::video::IVideoDriver* driver, double scale) {
+int drawAllCOGs(ChSystem& mphysicalSystem, irr::video::IVideoDriver* driver, double scale) {
     driver->setTransform(irr::video::ETS_WORLD, irr::core::matrix4());
     irr::video::SMaterial mattransp;
     mattransp.ZBuffer = true;
@@ -426,7 +424,7 @@ int ChIrrTools::drawAllCOGs(ChSystem& mphysicalSystem, irr::video::IVideoDriver*
 // -----------------------------------------------------------------------------
 // Draw coordinate systems of frames used by links.
 // -----------------------------------------------------------------------------
-int ChIrrTools::drawAllLinkframes(ChSystem& mphysicalSystem, irr::video::IVideoDriver* driver, double scale) {
+int drawAllLinkframes(ChSystem& mphysicalSystem, irr::video::IVideoDriver* driver, double scale) {
     driver->setTransform(irr::video::ETS_WORLD, irr::core::matrix4());
     irr::video::SMaterial mattransp;
     mattransp.ZBuffer = true;
@@ -486,14 +484,14 @@ int ChIrrTools::drawAllLinkframes(ChSystem& mphysicalSystem, irr::video::IVideoD
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChIrrTools::drawHUDviolation(irr::video::IVideoDriver* driver,
-                                  IrrlichtDevice* mdevice,
-                                  ChSystem& asystem,
-                                  int mx,
-                                  int my,
-                                  int sx,
-                                  int sy,
-                                  double spfact) {
+void drawHUDviolation(irr::video::IVideoDriver* driver,
+                      IrrlichtDevice* mdevice,
+                      ChSystem& asystem,
+                      int mx,
+                      int my,
+                      int sx,
+                      int sy,
+                      double spfact) {
     auto msolver_speed = std::dynamic_pointer_cast<ChIterativeSolverVI>(asystem.GetSolver());
     if (!msolver_speed)
         return;
@@ -532,16 +530,16 @@ void ChIrrTools::drawHUDviolation(irr::video::IVideoDriver* driver,
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChIrrTools::drawChFunction(IrrlichtDevice* mdevice,
-                                ChFunction* fx,
-                                double xmin,
-                                double xmax,
-                                double ymin,
-                                double ymax,
-                                int mx,
-                                int my,
-                                int sx,
-                                int sy) {
+void drawChFunction(IrrlichtDevice* mdevice,
+                    ChFunction* fx,
+                    double xmin,
+                    double xmax,
+                    double ymin,
+                    double ymax,
+                    int mx,
+                    int my,
+                    int sx,
+                    int sy) {
     irr::video::IVideoDriver* driver = mdevice->getVideoDriver();
 
     if (!fx)
@@ -591,11 +589,11 @@ void ChIrrTools::drawChFunction(IrrlichtDevice* mdevice,
 // -----------------------------------------------------------------------------
 // Draw segment lines in 3D space, with given color.
 // -----------------------------------------------------------------------------
-void ChIrrTools::drawSegment(irr::video::IVideoDriver* driver,
-                             ChVector<> mstart,
-                             ChVector<> mend,
-                             irr::video::SColor mcol,
-                             bool use_Zbuffer) {
+void drawSegment(irr::video::IVideoDriver* driver,
+                 ChVector<> mstart,
+                 ChVector<> mend,
+                 irr::video::SColor mcol,
+                 bool use_Zbuffer) {
     driver->setTransform(irr::video::ETS_WORLD, irr::core::matrix4());
     irr::video::SMaterial mattransp;
     mattransp.ZBuffer = use_Zbuffer;
@@ -607,10 +605,10 @@ void ChIrrTools::drawSegment(irr::video::IVideoDriver* driver,
 // -----------------------------------------------------------------------------
 // Draw a polyline in 3D space, given the array of points as a std::vector.
 // -----------------------------------------------------------------------------
-void ChIrrTools::drawPolyline(irr::video::IVideoDriver* driver,
-                              std::vector<ChVector<> >& mpoints,
-                              irr::video::SColor mcol,
-                              bool use_Zbuffer) {
+void drawPolyline(irr::video::IVideoDriver* driver,
+                  std::vector<ChVector<> >& mpoints,
+                  irr::video::SColor mcol,
+                  bool use_Zbuffer) {
     // not very efficient, but enough as an example..
     if (mpoints.size() < 2)
         return;
@@ -622,12 +620,12 @@ void ChIrrTools::drawPolyline(irr::video::IVideoDriver* driver,
 // -----------------------------------------------------------------------------
 // Draw a circle line in 3D space, with given color.
 // -----------------------------------------------------------------------------
-void ChIrrTools::drawCircle(irr::video::IVideoDriver* driver,
-                            double radius,
-                            ChCoordsys<> mpos,
-                            irr::video::SColor mcol,
-                            int mresolution,
-                            bool use_Zbuffer) {
+void drawCircle(irr::video::IVideoDriver* driver,
+                double radius,
+                ChCoordsys<> mpos,
+                irr::video::SColor mcol,
+                int mresolution,
+                bool use_Zbuffer) {
     driver->setTransform(irr::video::ETS_WORLD, irr::core::matrix4());
     irr::video::SMaterial mattransp;
     mattransp.ZBuffer = false;
@@ -649,14 +647,14 @@ void ChIrrTools::drawCircle(irr::video::IVideoDriver* driver,
 // -----------------------------------------------------------------------------
 // Draw a spring in 3D space, with given color.
 // -----------------------------------------------------------------------------
-void ChIrrTools::drawSpring(irr::video::IVideoDriver* driver,
-                            double radius,
-                            ChVector<> start,
-                            ChVector<> end,
-                            irr::video::SColor mcol,
-                            int mresolution,
-                            double turns,
-                            bool use_Zbuffer) {
+void drawSpring(irr::video::IVideoDriver* driver,
+                double radius,
+                ChVector<> start,
+                ChVector<> end,
+                irr::video::SColor mcol,
+                int mresolution,
+                double turns,
+                bool use_Zbuffer) {
     ChMatrix33<> rel_matrix;
     ChVector<> dist = end - start;
     ChVector<> Vx, Vy, Vz;
@@ -692,14 +690,14 @@ void ChIrrTools::drawSpring(irr::video::IVideoDriver* driver,
 // -----------------------------------------------------------------------------
 // Draw grids in 3D space, with given orientation, colour and spacing.
 // -----------------------------------------------------------------------------
-void ChIrrTools::drawGrid(irr::video::IVideoDriver* driver,
-                          double ustep,
-                          double vstep,
-                          int nu,
-                          int nv,
-                          ChCoordsys<> mpos,
-                          irr::video::SColor mcol,
-                          bool use_Zbuffer) {
+void drawGrid(irr::video::IVideoDriver* driver,
+              double ustep,
+              double vstep,
+              int nu,
+              int nv,
+              ChCoordsys<> mpos,
+              irr::video::SColor mcol,
+              bool use_Zbuffer) {
     driver->setTransform(irr::video::ETS_WORLD, irr::core::matrix4());
     irr::video::SMaterial mattransp;
     mattransp.ZBuffer = true;
@@ -720,14 +718,14 @@ void ChIrrTools::drawGrid(irr::video::IVideoDriver* driver,
 }
 
 /// Easy-to-use function to draw color map 2D legend
-void ChIrrTools::drawColorbar(double vmin,
-                              double vmax,
-                              const std::string& label,
-                              IrrlichtDevice* mdevice,
-                              int mx,
-                              int my,
-                              int sx,
-                              int sy) {
+void drawColorbar(double vmin,
+                  double vmax,
+                  const std::string& label,
+                  IrrlichtDevice* mdevice,
+                  int mx,
+                  int my,
+                  int sx,
+                  int sy) {
     irr::video::IVideoDriver* driver = mdevice->getVideoDriver();
 
     gui::IGUIFont* font = 0;
@@ -762,95 +760,83 @@ void ChIrrTools::drawColorbar(double vmin,
                irr::video::SColor(255, 0, 0, 0));
 }
 
-
-
 // utility class used for drawing coll shapes using the Bullet machinery (see drawCollisionShapes)
 class ChDebugDrawer : public btIDebugDraw {
-public:
-	explicit ChDebugDrawer(irr::video::IVideoDriver* driver) : 
-		driver_(driver), debugMode_(0), linecolor(255, 255, 0, 0) { }
+  public:
+    explicit ChDebugDrawer(irr::video::IVideoDriver* driver)
+        : driver_(driver), debugMode_(0), linecolor(255, 255, 0, 0) {}
 
-	~ChDebugDrawer() override { }
+    ~ChDebugDrawer() override {}
 
-	void drawLine(const btVector3 &from, const btVector3 &to, const btVector3 &color) override {
-		// Note: I did not use the color here as the visuals with the white box were not very
-		// appealing. But one could simply do a SCColor(255, color.x() * 255, color.y() * 255, color.z() * 255)
-		// to get native bullet colors. Useful as this override also results in drawing the x,y,z axis for
-		// the reference frames for the collision models.
-		driver_->draw3DLine(irr::core::vector3dfCH(ChVector<>(from.x(), from.y(), from.z())),
-			irr::core::vector3dfCH(ChVector<>(to.x(), to.y(), to.z())),
-			linecolor);
-	}
+    void drawLine(const btVector3& from, const btVector3& to, const btVector3& color) override {
+        // Note: I did not use the color here as the visuals with the white box were not very
+        // appealing. But one could simply do a SCColor(255, color.x() * 255, color.y() * 255, color.z() * 255)
+        // to get native bullet colors. Useful as this override also results in drawing the x,y,z axis for
+        // the reference frames for the collision models.
+        driver_->draw3DLine(irr::core::vector3dfCH(ChVector<>(from.x(), from.y(), from.z())),
+                            irr::core::vector3dfCH(ChVector<>(to.x(), to.y(), to.z())), linecolor);
+    }
 
-	void drawContactPoint(const btVector3 &PointOnB,
-		const btVector3 &normalOnB,
-		btScalar distance,
-		int lifeTime,
-		const btVector3 &color) override { }
+    void drawContactPoint(const btVector3& PointOnB,
+                          const btVector3& normalOnB,
+                          btScalar distance,
+                          int lifeTime,
+                          const btVector3& color) override {}
 
-	void reportErrorWarning(const char *warningString) override { }
-	void draw3dText(const btVector3 &location, const char *textString) override { }
+    void reportErrorWarning(const char* warningString) override {}
+    void draw3dText(const btVector3& location, const char* textString) override {}
 
-	void setDebugMode(int debugMode) override {
-		debugMode_ |= debugMode;
-	}
+    void setDebugMode(int debugMode) override { debugMode_ |= debugMode; }
 
-	int getDebugMode() const override {
-		return debugMode_;
-	}
+    int getDebugMode() const override { return debugMode_; }
 
-	void setLineColor(irr::video::SColor& mcolor) {
-		linecolor = mcolor;
-	}
+    void setLineColor(irr::video::SColor& mcolor) { linecolor = mcolor; }
 
-private:
-	irr::video::IVideoDriver* driver_;
-	int debugMode_;
-	irr::video::SColor linecolor;
+  private:
+    irr::video::IVideoDriver* driver_;
+    int debugMode_;
+    irr::video::SColor linecolor;
 };
 
-/// Draw the collision shapes as wireframe, overlayed to shapes.
-/// Note: this works only for the Bullet collision system (i.e. not working for Chrono::Multicore) 
-void ChIrrTools::drawCollisionShapes(ChSystem& asystem,
-	irr::IrrlichtDevice* mdevice,
-	irr::video::SColor mcol) {
+// Draw the collision shapes as wireframe, overlayed to shapes.
+// Note: this works only for the Bullet collision system (i.e. not working for Chrono::Multicore)
+void drawCollisionShapes(ChSystem& asystem, irr::IrrlichtDevice* mdevice, irr::video::SColor mcol) {
+    const auto& chCollisionSystem =
+        std::dynamic_pointer_cast<chrono::collision::ChCollisionSystemBullet>(asystem.GetCollisionSystem());
+    if (!chCollisionSystem)
+        return;
 
-	const auto& chCollisionSystem = std::dynamic_pointer_cast<chrono::collision::ChCollisionSystemBullet>(asystem.GetCollisionSystem());
-	if (!chCollisionSystem)
-		return;
+    auto bulletCollisionWorld = chCollisionSystem->GetBulletCollisionWorld();
+    ChDebugDrawer debugDrawer(mdevice->getVideoDriver());
+    debugDrawer.setDebugMode(btIDebugDraw::DBG_DrawWireframe);
+    debugDrawer.setLineColor(mcol);
+    bulletCollisionWorld->setDebugDrawer(&debugDrawer);
 
-	auto bulletCollisionWorld = chCollisionSystem->GetBulletCollisionWorld();
-	ChDebugDrawer debugDrawer(mdevice->getVideoDriver());
-	debugDrawer.setDebugMode(btIDebugDraw::DBG_DrawWireframe);
-	debugDrawer.setLineColor(mcol);
-	bulletCollisionWorld->setDebugDrawer(&debugDrawer);
+    mdevice->getVideoDriver()->setTransform(irr::video::ETS_WORLD, irr::core::matrix4());
+    irr::video::SMaterial mattransp;
+    mattransp.ZBuffer = true;
+    mattransp.Lighting = false;
+    mdevice->getVideoDriver()->setMaterial(mattransp);
 
-	mdevice->getVideoDriver()->setTransform(irr::video::ETS_WORLD, irr::core::matrix4());
-	irr::video::SMaterial mattransp;
-	mattransp.ZBuffer = true;
-	mattransp.Lighting = false;
-	mdevice->getVideoDriver()->setMaterial(mattransp);
-
-	bulletCollisionWorld->debugDrawWorld();
+    bulletCollisionWorld->debugDrawWorld();
 }
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChIrrTools::drawPlot3D(irr::video::IVideoDriver* driver,
-                            ChMatrixConstRef X,
-                            ChMatrixConstRef Y,
-                            ChMatrixConstRef Z,
-                            ChCoordsys<> mpos,
-                            irr::video::SColor mcol,
-                            bool use_Zbuffer) {
+void drawPlot3D(irr::video::IVideoDriver* driver,
+                ChMatrixConstRef X,
+                ChMatrixConstRef Y,
+                ChMatrixConstRef Z,
+                ChCoordsys<> mpos,
+                irr::video::SColor mcol,
+                bool use_Zbuffer) {
     driver->setTransform(irr::video::ETS_WORLD, irr::core::matrix4());
     irr::video::SMaterial mattransp;
     mattransp.ZBuffer = true;
     mattransp.Lighting = false;
     driver->setMaterial(mattransp);
 
-    if ((X.cols() != Y.cols()) || (X.cols() != Z.cols()) || (X.rows() != Y.rows()) ||
-        (X.rows() != Z.rows())) {
+    if ((X.cols() != Y.cols()) || (X.cols() != Z.cols()) || (X.rows() != Y.rows()) || (X.rows() != Z.rows())) {
         GetLog() << "drawPlot3D: X Y Z matrices must have the same size, as n.rows and n.columns \n";
         return;
     }
@@ -874,62 +860,76 @@ void ChIrrTools::drawPlot3D(irr::video::IVideoDriver* driver,
     }
 }
 
-
-void drawProfilerRecursive(utils::ChProfileIterator* profileIterator, irr::IrrlichtDevice* device, int mx, int my, int sx, int sy, int xspacing, int& ypos) {
+void drawProfilerRecursive(utils::ChProfileIterator* profileIterator,
+                           irr::IrrlichtDevice* device,
+                           int mx,
+                           int my,
+                           int sx,
+                           int sy,
+                           int xspacing,
+                           int& ypos) {
     profileIterator->First();
-	if (profileIterator->Is_Done())
-		return;
+    if (profileIterator->Is_Done())
+        return;
 
-    irr::gui::IGUIFont* font = device->getGUIEnvironment()->getSkin()->getFont();//getBuiltInFont();
+    irr::gui::IGUIFont* font = device->getGUIEnvironment()->getSkin()->getFont();  // getBuiltInFont();
 
-	float accumulated_time=0,parent_time = profileIterator->Is_Root() ? utils::ChProfileManager::Get_Time_Since_Reset() : profileIterator->Get_Current_Parent_Total_Time();
-	int i;
-	int frames_since_reset = utils::ChProfileManager::Get_Frame_Count_Since_Reset();
+    float accumulated_time = 0, parent_time = profileIterator->Is_Root()
+                                                  ? utils::ChProfileManager::Get_Time_Since_Reset()
+                                                  : profileIterator->Get_Current_Parent_Total_Time();
+    int i;
+    int frames_since_reset = utils::ChProfileManager::Get_Frame_Count_Since_Reset();
 
     float tot_frametime = utils::ChProfileManager::Get_Time_Since_Reset();
 
     char buffer[300];
-    irr::video::SColor mcol(255,255,255,90);
+    irr::video::SColor mcol(255, 255, 255, 90);
 
-	int numChildren = 0;
+    int numChildren = 0;
 
-	for (i = 0; !profileIterator->Is_Done(); i++,profileIterator->Next())
-	{
-		numChildren++;
-		float current_total_time = profileIterator->Get_Current_Total_Time();
-		accumulated_time += current_total_time;
-		float fraction = parent_time > FLT_EPSILON ? (current_total_time / parent_time) * 100 : 0.f;
-        float fraction_tot = tot_frametime > FLT_EPSILON ? (current_total_time/tot_frametime) *100 : 0.f;
+    for (i = 0; !profileIterator->Is_Done(); i++, profileIterator->Next()) {
+        numChildren++;
+        float current_total_time = profileIterator->Get_Current_Total_Time();
+        accumulated_time += current_total_time;
+        float fraction = parent_time > FLT_EPSILON ? (current_total_time / parent_time) * 100 : 0.f;
+        float fraction_tot = tot_frametime > FLT_EPSILON ? (current_total_time / tot_frametime) * 100 : 0.f;
 
-        irr::core::rect<s32> mrect(mx, my+ypos, mx+(int)(sx * (current_total_time/tot_frametime)), my+ypos+18);
-        device->getVideoDriver()->draw2DRectangle(irr::video::SColor(100, ((xspacing*200)%255), ((-xspacing*151+200)%255), 230), mrect);
+        irr::core::rect<s32> mrect(mx, my + ypos, mx + (int)(sx * (current_total_time / tot_frametime)),
+                                   my + ypos + 18);
+        device->getVideoDriver()->draw2DRectangle(
+            irr::video::SColor(100, ((xspacing * 200) % 255), ((-xspacing * 151 + 200) % 255), 230), mrect);
 
-		sprintf(buffer, "%d -- %s (%.2f %% parent, %.2f %% tot.) :: %.3f ms / frame (%d calls)\n",i, profileIterator->Get_Current_Name(), fraction, fraction_tot, (current_total_time / (double)frames_since_reset),profileIterator->Get_Current_Total_Calls());
-		irr::core::stringw mstring(buffer);
-        font->draw(mstring, irr::core::rect<irr::s32>(mx+xspacing, my+ypos, mx+sx, my+ypos+20), mcol);
+        sprintf(buffer, "%d -- %s (%.2f %% parent, %.2f %% tot.) :: %.3f ms / frame (%d calls)\n", i,
+                profileIterator->Get_Current_Name(), fraction, fraction_tot,
+                (current_total_time / (double)frames_since_reset), profileIterator->Get_Current_Total_Calls());
+        irr::core::stringw mstring(buffer);
+        font->draw(mstring, irr::core::rect<irr::s32>(mx + xspacing, my + ypos, mx + sx, my + ypos + 20), mcol);
         ypos += 20;
 
         profileIterator->Enter_Child(i);
-		drawProfilerRecursive(profileIterator, device, mx, my, sx, sy, xspacing+30, ypos);
-		profileIterator->Enter_Parent();
-        for (int j= 0; j < i; ++j)
+        drawProfilerRecursive(profileIterator, device, mx, my, sx, sy, xspacing + 30, ypos);
+        profileIterator->Enter_Parent();
+        for (int j = 0; j < i; ++j)
             profileIterator->Next();
-	}
+    }
 
     float fraction = parent_time > FLT_EPSILON ? ((parent_time - accumulated_time) / parent_time) * 100 : 0.f;
-    float fraction_tot = tot_frametime > FLT_EPSILON ? ((parent_time - accumulated_time)/tot_frametime) *100 : 0.f;
+    float fraction_tot = tot_frametime > FLT_EPSILON ? ((parent_time - accumulated_time) / tot_frametime) * 100 : 0.f;
 
-    irr::core::rect<s32> mrect(mx, my+ypos, mx+ (int)(sx *((parent_time - accumulated_time)/tot_frametime)), my+ypos+18);
-    device->getVideoDriver()->draw2DRectangle(irr::video::SColor(100, ((xspacing*200)%255), ((-xspacing*151+200)%255), 230), mrect);
+    irr::core::rect<s32> mrect(mx, my + ypos, mx + (int)(sx * ((parent_time - accumulated_time) / tot_frametime)),
+                               my + ypos + 18);
+    device->getVideoDriver()->draw2DRectangle(
+        irr::video::SColor(100, ((xspacing * 200) % 255), ((-xspacing * 151 + 200) % 255), 230), mrect);
 
-	sprintf(buffer, "n -- %s (%.2f %% parent, %.2f %% tot.) :: %.3f ms\n", "Unaccounted:", fraction, fraction_tot, parent_time - accumulated_time);
+    sprintf(buffer, "n -- %s (%.2f %% parent, %.2f %% tot.) :: %.3f ms\n", "Unaccounted:", fraction, fraction_tot,
+            parent_time - accumulated_time);
     irr::core::stringw mstringu(buffer);
-    font->draw(mstringu, irr::core::rect<irr::s32>(mx+xspacing, my+ypos, mx+sx, my+ypos+20), mcol);
+    font->draw(mstringu, irr::core::rect<irr::s32>(mx + xspacing, my + ypos, mx + sx, my + ypos + 20), mcol);
     ypos += 20;
 }
 
 /// Draw run-time profiler infos
-void ChIrrTools::drawProfiler(irr::IrrlichtDevice* device) {
+void drawProfiler(irr::IrrlichtDevice* device) {
     int mx = 230;
     int my = 30;
     int sx = 500;
@@ -937,13 +937,13 @@ void ChIrrTools::drawProfiler(irr::IrrlichtDevice* device) {
 
     int ypos = 0;
     utils::ChProfileIterator* profileIterator = 0;
-	profileIterator = utils::ChProfileManager::Get_Iterator();
+    profileIterator = chrono::utils::ChProfileManager::Get_Iterator();
 
-	drawProfilerRecursive(profileIterator, device, mx, my, sx, sy, 0, ypos);
+    drawProfilerRecursive(profileIterator, device, mx, my, sx, sy, 0, ypos);
 
-	utils::ChProfileManager::Release_Iterator(profileIterator);
+    utils::ChProfileManager::Release_Iterator(profileIterator);
 }
 
-
+}  // end namespace tools
 }  // end namespace irrlicht
 }  // end namespace chrono

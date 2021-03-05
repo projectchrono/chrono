@@ -125,25 +125,15 @@ int main(int argc, char* argv[]) {
     gpu_sys.SetParticlePositions(body_points);
     gpu_sys.SetGravitationalAcceleration(ChVector<float>(0, 0, -980));
 
-    std::vector<string> mesh_filenames;
-    mesh_filenames.push_back(GetChronoDataFile("models/mixer/internal_mixer.obj"));
-
-    std::vector<ChMatrix33<float>> mesh_rotscales;
-    std::vector<float3> mesh_translations;
-
+    // Add the mixer mesh to the GPU system
     float scale_xy = Bx / 2.f;
-    float scale_z = chamber_height;  // TODO fix this / make switch on mixer_type
-    float3 scaling = make_float3(scale_xy, scale_xy, scale_z);
-    mesh_rotscales.push_back(ChMatrix33<float>(ChVector<float>(scaling.x, scaling.y, scaling.z)));
-    mesh_translations.push_back(make_float3(0, 0, 0));
-
-    std::vector<float> mesh_masses;
+    float scale_z = chamber_height;
+    ChVector<> scaling(scale_xy, scale_xy, scale_z);
     float mixer_mass = 10;
-    mesh_masses.push_back(mixer_mass);
-
-    gpu_sys.LoadMeshes(mesh_filenames, mesh_rotscales, mesh_translations, mesh_masses);
-
-    std::cout << gpu_sys.GetNumMeshes() << " meshes" << std::endl;
+    auto mixer_mesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
+    mixer_mesh->LoadWavefrontMesh(GetChronoDataFile("models/mixer/internal_mixer.obj"), true, false);
+    mixer_mesh->Transform(ChVector<>(0, 0, 0), ChMatrix33<>(scaling));
+    auto mixer_mesh_id = gpu_sys.AddMesh(mixer_mesh, mixer_mass);
 
     float rev_per_sec = 1.f;
     float ang_vel_Z = rev_per_sec * 2 * (float)CH_C_PI;
@@ -158,11 +148,8 @@ int main(int argc, char* argv[]) {
     if (render) {
         // Create proxy body for mixer mesh
         mixer = chrono_types::make_shared<ChBody>();
-        auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
         auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
-        trimesh->LoadWavefrontMesh(GetChronoDataFile("models/mixer/internal_mixer.obj"));
-        trimesh->Transform(ChVector<>(0, 0, 0), ChMatrix33<>(ChVector<>(scaling.x, scaling.y, scaling.z)));
-        trimesh_shape->SetMesh(trimesh);
+        trimesh_shape->SetMesh(mixer_mesh);
         mixer->AddAsset(trimesh_shape);
         gpu_vis.AddProxyBody(mixer);
 
@@ -172,8 +159,8 @@ int main(int argc, char* argv[]) {
         gpu_vis.Initialize();
     }
 
-    unsigned int out_steps = (unsigned int)(1.0f / (out_fps * iteration_step));
-    unsigned int render_steps = (unsigned int)(1.0 / (render_fps * iteration_step));
+    unsigned int out_steps = (unsigned int)(1 / (out_fps * iteration_step));
+    unsigned int render_steps = (unsigned int)(1 / (render_fps * iteration_step));
     unsigned int total_frames = (unsigned int)(params.time_end * out_fps);
     std::cout << "out_steps " << out_steps << std::endl;
 
@@ -183,7 +170,7 @@ int main(int argc, char* argv[]) {
     for (float t = 0; t < params.time_end; t += iteration_step, step++) {
         ChVector<> mesh_pos(0, 0, chamber_bottom + chamber_height / 2.0);
         ChQuaternion<> mesh_rot = Q_from_AngZ(t * ang_vel_Z);
-        gpu_sys.ApplyMeshMotion(0, mesh_pos, mesh_rot, mesh_lin_vel, mesh_ang_vel);
+        gpu_sys.ApplyMeshMotion(mixer_mesh_id, mesh_pos, mesh_rot, mesh_lin_vel, mesh_ang_vel);
 
         if (step % out_steps == 0) {
             std::cout << "Output frame " << (currframe + 1) << " of " << total_frames << std::endl;
