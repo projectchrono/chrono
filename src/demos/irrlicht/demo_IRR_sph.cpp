@@ -134,13 +134,11 @@ int main(int argc, char* argv[]) {
 
     // Create the Irrlicht visualization (open the Irrlicht device,
     // bind a simple user interface, etc. etc.)
-    ChIrrApp application(&mphysicalSystem, L"SPH fluid", core::dimension2d<u32>(800, 600), false);
-
-    // Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
-    ChIrrWizard::add_typical_Logo(application.GetDevice());
-    ChIrrWizard::add_typical_Sky(application.GetDevice());
-    ChIrrWizard::add_typical_Lights(application.GetDevice());
-    ChIrrWizard::add_typical_Camera(application.GetDevice(), core::vector3df(0, 1, -1));
+    ChIrrApp application(&mphysicalSystem, L"SPH fluid", core::dimension2d<u32>(800, 600));
+    application.AddTypicalLogo();
+    application.AddTypicalSky();
+    application.AddTypicalLights();
+    application.AddTypicalCamera(core::vector3df(0, 1, -1));
 
     // Create all the rigid bodies.
     collision::ChCollisionModel::SetDefaultSuggestedEnvelope(0.003);
@@ -201,25 +199,25 @@ int main(int argc, char* argv[]) {
 
                     /*
                     double strain_scale =1;
-                    ChIrrTools::drawSegment(application.GetVideoDriver(), mnode->GetPos(),
+                    tools::drawSegment(application.GetVideoDriver(), mnode->GetPos(),
                     mnode->GetPos()+(VECT_X*mnode->p_strain.XX()* strain_scale), video::SColor(255,255,0,0),false);
-                    ChIrrTools::drawSegment(application.GetVideoDriver(), mnode->GetPos(),
+                    tools::drawSegment(application.GetVideoDriver(), mnode->GetPos(),
                     mnode->GetPos()+(VECT_Y*mnode->p_strain.YY()* strain_scale), video::SColor(255,0,255,0),false);
-                    ChIrrTools::drawSegment(application.GetVideoDriver(), mnode->GetPos(),
+                    tools::drawSegment(application.GetVideoDriver(), mnode->GetPos(),
                     mnode->GetPos()+(VECT_Z*mnode->p_strain.ZZ()* strain_scale), video::SColor(255,0,0,255),false);
                     */
 
                     /*
                     double stress_scale =0.008;
-                    ChIrrTools::drawSegment(application.GetVideoDriver(), mnode->GetPos(),
+                    tools::drawSegment(application.GetVideoDriver(), mnode->GetPos(),
                     mnode->GetPos()+(VECT_X*mnode->e_stress.XX()* stress_scale), video::SColor(100,255,0,0),false);
-                    ChIrrTools::drawSegment(application.GetVideoDriver(), mnode->GetPos(),
+                    tools::drawSegment(application.GetVideoDriver(), mnode->GetPos(),
                     mnode->GetPos()+(VECT_Y*mnode->e_stress.YY()* stress_scale), video::SColor(100,0,255,0),false);
-                    ChIrrTools::drawSegment(application.GetVideoDriver(), mnode->GetPos(),
+                    tools::drawSegment(application.GetVideoDriver(), mnode->GetPos(),
                     mnode->GetPos()+(VECT_Z*mnode->e_stress.ZZ()* stress_scale), video::SColor(100,0,0,255),false);
                     */
 
-                    // ChIrrTools::drawSegment(application.GetVideoDriver(), mnode->GetPos(),
+                    // tools::drawSegment(application.GetVideoDriver(), mnode->GetPos(),
                     // mnode->GetPos()+(mnode->UserForce * 0.1), video::SColor(100,0,0,0),false);
                 }
             }

@@ -76,7 +76,7 @@ void ChGpuVisualization::AddProxyBody(std::shared_ptr<ChBody> body) {
 void ChGpuVisualization::Initialize() {
 #ifdef CHRONO_OPENGL
     // Cache current number of bodies (if any) in m_system
-    m_part_start_index = m_system->Get_bodylist().size();
+    m_part_start_index = static_cast<unsigned int>(m_system->Get_bodylist().size());
 
     // Note: we cannot yet use ChSystemGpu::GetParticlePosition!
     for (int i = 0; i < m_systemGPU->GetNumParticles(); i++) {

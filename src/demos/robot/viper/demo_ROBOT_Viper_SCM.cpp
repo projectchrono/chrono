@@ -134,17 +134,18 @@ int main(int argc, char* argv[]) {
 
     // Create a Chrono::Engine physical system
     ChSystemSMC my_system;
+    my_system.Set_G_acc(ChVector<>(0, 0, -9.81));
 
     // Create the Irrlicht visualization (open the Irrlicht device,
     // bind a simple user interface, etc. etc.)
-    ChIrrApp application(&my_system, L"Viper Rover on SCM", core::dimension2d<u32>(1280, 720), false, true);
+    ChIrrApp application(&my_system, L"Viper Rover on SCM", core::dimension2d<u32>(1280, 720), VerticalDir::Z, false, true);
 
     // Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
     application.AddTypicalLogo();
     application.AddTypicalSky();
-    application.AddTypicalLights();
-    application.AddTypicalCamera(core::vector3df(2.0f, 1.4f, 0.0f), core::vector3df(0, (f32)wheel_range, 0));
-    application.AddLightWithShadow(core::vector3df(1.5f, 5.5f, -2.5f), core::vector3df(0, 0, 0), 10, 2.2, 15, 0, 512,
+    application.AddTypicalLights(irr::core::vector3df(30.f, 30.f, 100.f), irr::core::vector3df(30.f, -30.f, 100.f));
+    application.AddTypicalCamera(core::vector3df(2.0f, 0.0f, 1.4f), core::vector3df(0, 0, (f32)wheel_range));
+    application.AddLightWithShadow(core::vector3df(1.5f, -2.5f, 5.5f), core::vector3df(0, 0, 0), 10, 2.2, 15, 0, 512,
                                    video::SColorf(0.8f, 0.8f, 1.0f));
 
     // Initialize output
@@ -158,7 +159,6 @@ int main(int argc, char* argv[]) {
 
     // Viper rover initial position and orientation
     ChVector<double> body_pos(-5, -0.2, 0);
-    ChQuaternion<> body_rot = Q_from_AngX(-CH_C_PI / 2);
 
     // Create a Viper Rover instance
     std::shared_ptr<ChBodyAuxRef> Wheel_1;
@@ -169,7 +169,7 @@ int main(int argc, char* argv[]) {
 
     if (use_custom_mat == true) {
         // if customize wheel material
-        ViperRover viper(&my_system, body_pos, body_rot, CustomWheelMaterial(ChContactMethod::SMC));
+        ViperRover viper(&my_system, body_pos, QUNIT, CustomWheelMaterial(ChContactMethod::SMC));
         viper.Initialize();
 
         // Default value is w = 3.1415 rad/s
@@ -187,7 +187,7 @@ int main(int argc, char* argv[]) {
         Body_1 = viper.GetChassisBody();
     } else {
         // if use default material
-        ViperRover viper(&my_system, body_pos, body_rot);
+        ViperRover viper(&my_system, body_pos, QUNIT);
         viper.Initialize();
 
         // viper.SetMotorSpeed(CH_C_PI * 2,WheelID::LF);
@@ -214,7 +214,7 @@ int main(int argc, char* argv[]) {
     // Note that SCMDeformableTerrain uses a default ISO reference frame (Z up). Since the mechanism is modeled here in
     // a Y-up global frame, we rotate the terrain plane by -90 degrees about the X axis.
     // Note: Irrlicht uses a Y-up frame
-    mterrain.SetPlane(ChCoordsys<>(ChVector<>(0, -0.5, 0), Q_from_AngX(-CH_C_PI_2)));
+    mterrain.SetPlane(ChCoordsys<>(ChVector<>(0, 0, -0.5)));
 
     // Use a regular grid:
     double length = 14;
@@ -282,11 +282,11 @@ int main(int argc, char* argv[]) {
         }
         application.BeginScene();
 
-        application.GetSceneManager()->getActiveCamera()->setTarget(core::vector3dfCH(Body_1->GetPos()));
+        application.GetActiveCamera()->setTarget(core::vector3dfCH(Body_1->GetPos()));
         application.DrawAll();
 
         application.DoStep();
-        ChIrrTools::drawColorbar(0, 20000, "Pressure yield [Pa]", application.GetDevice(), 1180);
+        tools::drawColorbar(0, 20000, "Pressure yield [Pa]", application.GetDevice(), 1180);
         application.EndScene();
 
         ////mterrain.PrintStepStatistics(std::cout);

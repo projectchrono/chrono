@@ -105,34 +105,25 @@ int main(int argc, char* argv[]) {
 
     // Create a ChronoENGINE physical system
     ChSystemNSC mphysicalSystem;
+    mphysicalSystem.Set_G_acc(ChVector<>(0, 0, -9.81));
 
     Little_Hexy myhexy(mphysicalSystem, VNULL);
     myhexy.AddVisualizationAssets();
     auto mymat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
     myhexy.AddCollisionShapes(mymat);
-    // Create the Irrlicht visualization (open the Irrlicht device,
-    // bind a simple user interface, etc. etc.)
-    ChIrrApp application(&mphysicalSystem, L"HexaCopter Test", core::dimension2d<u32>(800, 600), false);
 
-    mphysicalSystem.Set_G_acc(ChVector<>(0, 0, -9.81));
+    // Create the Irrlicht visualization.
+    ChIrrApp application(&mphysicalSystem, L"HexaCopter Test", core::dimension2d<u32>(800, 600), VerticalDir::Z);
+    application.AddTypicalLogo();
+    application.AddTypicalSky();
+    application.AddTypicalLights();
+    application.AddTypicalCamera(core::vector3df(5, 5, 2));
 
     // create text with info
     IGUIStaticText* textFPS = application.GetIGUIEnvironment()->addStaticText(
         L"Keys: NUMPAD 8 up; NUMPAD 2 down; A Roll Left; D Roll Right; A Roll Left; W Pitch Down; S Pitch Up; NUMPAD 4 "
         L"Yaw_Left; NUMPAD 6 Yaw_Right",
         rect<s32>(150, 10, 430, 40), true);
-
-    // Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
-    ChIrrWizard::add_typical_Logo(application.GetDevice());
-    ChIrrWizard::add_typical_Sky(application.GetDevice());
-    ChIrrWizard::add_typical_Lights(application.GetDevice());
-
-    RTSCamera* camera =
-        new RTSCamera(application.GetDevice(), application.GetDevice()->getSceneManager()->getRootSceneNode(),
-                      application.GetDevice()->getSceneManager(), -1, -160.0f, 1.0f, 0.003f);
-
-    camera->setPosition(core::vector3df(5, 5, 2));
-    camera->setTarget(core::vector3df(0, 0, 0));
 
     // This is for GUI tweaking of system parameters..
     MyEventReceiver receiver(&application, &myhexy);
@@ -158,8 +149,6 @@ int main(int argc, char* argv[]) {
 
     ground->AddAsset(mtexture);
 
-    // Use this function for adding a ChIrrNodeAsset to all already created items.
-    // Otherwise use application.AssetBind(myitem); on a per-item basis.
     application.AssetBindAll();
     application.AssetUpdateAll();
 
@@ -174,26 +163,27 @@ int main(int argc, char* argv[]) {
 
     application.SetTimestep(0.005);
     application.SetTryRealtime(true);
+    
     double control[] = {.6, .6, .6, .6, .6, .6};
     myhexy.ControlAbsolute(control);
+
     while (application.GetDevice()->run()) {
         ChVector<float> pos = myhexy.GetChassis()->GetPos();
         core::vector3df ipos(pos.x(), pos.y(), pos.z());
         core::vector3df offset(1, -1, 1);
-        camera->setPosition(ipos + offset);
-        camera->setTarget(ipos);
-        camera->setUpVector(core::vector3df(0, 0, 1));
+        application.GetActiveCamera()->setPosition(ipos + offset);
+        application.GetActiveCamera()->setTarget(ipos);
 
         application.BeginScene(true, true, SColor(255, 140, 161, 192));
-
         application.DrawAll();
-        myhexy.Update(0.01);
+        application.EndScene();
+
         // ADVANCE THE SIMULATION FOR ONE TIMESTEP
+        myhexy.Update(0.01);
         application.DoStep();
 
         // change motor speeds depending on user setpoints from GUI
 
-        application.EndScene();
     }
 
     return 0;

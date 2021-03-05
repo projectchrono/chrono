@@ -28,14 +28,14 @@ except:
 
 # Chreate Chrono system
 system = chrono.ChSystemNSC()
-system.Set_G_acc(chrono.ChVectorD(0, -9.81, 0))
+system.Set_G_acc(chrono.ChVectorD(0, 0, -9.81))
 chrono.ChCollisionModel.SetDefaultSuggestedEnvelope(0.0025)
 chrono.ChCollisionModel.SetDefaultSuggestedMargin(0.0025)
 
 # Create ground body
 ground_mat = chrono.ChMaterialSurfaceNSC()
-ground = chrono.ChBodyEasyBox(20, 1, 20, 1000, True, True, ground_mat)
-ground.SetPos(chrono.ChVectorD(0, -1, 0))
+ground = chrono.ChBodyEasyBox(20, 20, 1, 1000, True, True, ground_mat)
+ground.SetPos(chrono.ChVectorD(0, 0, -1))
 ground.SetBodyFixed(True)
 system.Add(ground)
 
@@ -44,16 +44,16 @@ texture.SetTextureFilename(chrono.GetChronoDataFile("textures/concrete.jpg"))
 ground.AddAsset(texture)
 
 # Create Viper rover
-rover = viper.ViperRover(system, chrono.ChVectorD(0, -0.2, 0), chrono.Q_from_AngX(-chrono.CH_C_PI_2))
+rover = viper.ViperRover(system, chrono.ChVectorD(0, -0.2, 0), chrono.ChQuaternionD(1, 0, 0, 0))
 rover.Initialize()
 
 # Create run-time visualization
-application = chronoirr.ChIrrApp(system, "Viper rover - Rigid terrain", chronoirr.dimension2du(1280, 720))
+application = chronoirr.ChIrrApp(system, "Viper rover - Rigid terrain", chronoirr.dimension2du(1280, 720), chronoirr.VerticalDir_Z)
 application.AddTypicalLogo(chrono.GetChronoDataPath() + 'logo_pychrono_alpha.png')
 application.AddTypicalSky()
-application.AddTypicalCamera(chronoirr.vector3df(0, 2, -2), chronoirr.vector3df(0, 0, 0))
+application.AddTypicalCamera(chronoirr.vector3df(0, 2, 2), chronoirr.vector3df(0, 0, 0))
 application.AddTypicalLights(chronoirr.vector3df(100, 100, 100), chronoirr.vector3df(100, -100, 80))
-application.AddLightWithShadow(chronoirr.vector3df(1.5, 5.5, -2.5), chronoirr.vector3df(0, 0, 0), 3, 4, 10, 40, 512)
+application.AddLightWithShadow(chronoirr.vector3df(1.5, -2.5, 5.5), chronoirr.vector3df(0, 0, 0), 3, 4, 10, 40, 512)
 
 application.AssetBindAll()
 application.AssetUpdateAll()

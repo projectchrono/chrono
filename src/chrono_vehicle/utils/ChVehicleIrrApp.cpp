@@ -110,7 +110,7 @@ ChVehicleIrrApp::ChVehicleIrrApp(ChVehicle* vehicle,
                                  const std::wstring& title,
                                  const irr::core::dimension2d<irr::u32>& dims,
                                  irr::ELOG_LEVEL log_level)
-    : ChIrrApp(vehicle->GetSystem(), title, dims, false, false, true, irr::video::EDT_OPENGL, log_level),
+    : ChIrrApp(vehicle->GetSystem(), title, dims, irrlicht::VerticalDir::Z, false, false, true, irr::video::EDT_OPENGL, log_level),
       m_vehicle(vehicle),
       m_camera(vehicle->GetChassisBody()),
       m_stepsize(1e-3),
@@ -229,9 +229,8 @@ void ChVehicleIrrApp::Advance(double step) {
     ChVector<> cam_pos = m_camera.GetCameraPos();
     ChVector<> cam_target = m_camera.GetTargetPos();
 
-    scene::ICameraSceneNode* camera = GetSceneManager()->getActiveCamera();
-    camera->setPosition(core::vector3dfCH(cam_pos));
-    camera->setTarget(core::vector3dfCH(cam_target));
+    GetActiveCamera()->setPosition(core::vector3dfCH(cam_pos));
+    GetActiveCamera()->setTarget(core::vector3dfCH(cam_target));
 
 #ifdef CHRONO_IRRKLANG
     static int stepsbetweensound = 0;
@@ -268,18 +267,18 @@ void ChVehicleIrrApp::DrawAll() {
 
 // Render a horizontal grid
 void ChVehicleIrrApp::RenderGrid(const ChVector<>& loc, int num_divs, double delta) {
-    irrlicht::ChIrrTools::drawGrid(GetVideoDriver(), delta, delta, num_divs, num_divs,
+    irrlicht::tools::drawGrid(GetVideoDriver(), delta, delta, num_divs, num_divs,
                                    ChCoordsys<>(loc, ChWorldFrame::Quaternion()),
                                    irr::video::SColor(255, 255, 200, 0), true);
 }
 
 // Render a reference frame (aligned with the world frame) at the specified location
 void ChVehicleIrrApp::RenderFrame(const ChVector<>& loc, double axis_length) {
-    irrlicht::ChIrrTools::drawSegment(GetVideoDriver(), loc, loc + ChVector<>(axis_length, 0, 0),
+    irrlicht::tools::drawSegment(GetVideoDriver(), loc, loc + ChVector<>(axis_length, 0, 0),
                                       irr::video::SColor(255, 255, 0, 0));
-    irrlicht::ChIrrTools::drawSegment(GetVideoDriver(), loc, loc + ChVector<>(0, axis_length, 0),
+    irrlicht::tools::drawSegment(GetVideoDriver(), loc, loc + ChVector<>(0, axis_length, 0),
                                       irr::video::SColor(255, 0, 255, 0));
-    irrlicht::ChIrrTools::drawSegment(GetVideoDriver(), loc, loc + ChVector<>(0, 0, axis_length),
+    irrlicht::tools::drawSegment(GetVideoDriver(), loc, loc + ChVector<>(0, 0, axis_length),
                                       irr::video::SColor(255, 0, 0, 255));
 }
 

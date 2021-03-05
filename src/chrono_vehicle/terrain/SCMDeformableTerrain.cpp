@@ -85,6 +85,11 @@ const ChCoordsys<>& SCMDeformableTerrain::GetPlane() const {
     return m_ground->m_plane;
 }
 
+// Set the visualization mesh as wireframe or as solid.
+void SCMDeformableTerrain::SetMeshWireframe(bool val) {
+    m_ground->m_trimesh_shape->SetWireframe(val);
+}
+
 // Get the trimesh that defines the ground shape.
 std::shared_ptr<ChTriangleMeshShape> SCMDeformableTerrain::GetMesh() const {
     return m_ground->m_trimesh_shape;
@@ -627,14 +632,31 @@ double SCMDeformableSoil::GetHeight(const ChVector2<int>& loc) const {
 
     // Else return undeformed height
     switch (m_type) {
+        case PatchType::HEIGHT_MAP: {
+            auto x = ChClamp(loc.x(), -m_nx, +m_nx);
+            auto y = ChClamp(loc.y(), -m_ny, +m_ny);
+            return m_heights(x + m_nx, y + m_ny);
+        }
         case PatchType::FLAT:
-            return 0;
-        case PatchType::HEIGHT_MAP:
-            assert(loc.x() >= -m_nx && loc.x() <= m_nx);
-            assert(loc.y() >= -m_ny && loc.y() <= m_ny);
-            return m_heights(loc.x() + m_nx, loc.y() + m_ny);
         default:
             return 0;
+    }
+}
+
+// Get the terrain normal (relative to the SCM plane) at the specified grid vertex.
+ChVector<> SCMDeformableSoil::GetNormal(const ChVector2<>& loc) const {
+    switch (m_type) {
+        case PatchType::HEIGHT_MAP: {
+            // Average normals of 4 triangular faces incident to given grid node
+            auto hE = GetHeight(loc + ChVector2<int>(1, 0));  // east
+            auto hW = GetHeight(loc - ChVector2<int>(1, 0));  // west
+            auto hN = GetHeight(loc + ChVector2<int>(0, 1));  // north
+            auto hS = GetHeight(loc - ChVector2<int>(0, 1));  // south
+            return ChVector<>(hW - hE, hS - hN, 2 * m_delta).GetNormalized();
+        }
+        case PatchType::FLAT:
+        default:
+            return ChVector<>(0, 0, 1);
     }
 }
 
@@ -655,8 +677,17 @@ double SCMDeformableSoil::GetHeight(const ChVector<>& loc) const {
 
 // Get the terrain normal at the point below the specified location.
 ChVector<> SCMDeformableSoil::GetNormal(const ChVector<>& loc) const {
-    //// TODO
-    return m_plane.TransformDirectionLocalToParent(ChVector<>(0, 0, 1));
+    // Express location in the SCM frame
+    ChVector<> loc_loc = m_plane.TransformPointParentToLocal(loc);
+
+    // Get height (relative to SCM plane) at closest grid vertex (approximation)
+    int i = static_cast<int>(std::round(loc_loc.x() / m_delta));
+    int j = static_cast<int>(std::round(loc_loc.y() / m_delta));
+    auto nrm_loc = GetNormal(ChVector2<int>(i, j));
+
+    // Express in global frame
+    auto nrm_abs = m_plane.TransformDirectionLocalToParent(nrm_loc);
+    return ChWorldFrame::FromISO(nrm_abs);
 }
 
 // Synchronize information for a moving patch
