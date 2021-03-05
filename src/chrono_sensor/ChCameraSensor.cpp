@@ -34,12 +34,12 @@ CH_SENSOR_API ChCameraSensor::ChCameraSensor(std::shared_ptr<chrono::ChBody> par
                                              float hFOV,                       // horizontal field of view
                                              unsigned int supersample_factor,  // super sampling factor
                                              CameraLensModelType lens_model,   // lens model to use
-                                             int use_gi                        // 1 to use Global Illumination
+                                             bool use_gi                       // 1 to use Global Illumination
                                              )
     : m_hFOV(hFOV),
       m_supersample_factor(supersample_factor),
       m_lens_model_type(lens_model),
-      ChOptixSensor(parent, updateRate, offsetPose, w * supersample_factor, h * supersample_factor, use_gi) {
+      ChOptixSensor(parent, updateRate, offsetPose, w * supersample_factor, h * supersample_factor, use_gi, true) {
     // set the program to match the model requested
     switch (lens_model) {
         case SPHERICAL:

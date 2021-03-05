@@ -33,7 +33,6 @@ rtTextureSampler<float4, 2> environment_map;
 rtDeclareVariable(int, has_environment_map, , );
 
 RT_PROGRAM void camera_miss() {
- 
     if (has_environment_map) {
         float theta = atan2f(ray.direction.x, ray.direction.y);
         float phi = asinf(ray.direction.z);
@@ -43,7 +42,7 @@ RT_PROGRAM void camera_miss() {
         prd_camera.color = make_float3(tex2D(environment_map, tex_x, tex_y));
 
     } else {
-        prd_camera.color = make_float3(0.4f);
+        prd_camera.color = default_color;  // make_float3(0.4f);
     }
     if (prd_camera.mode == GLOBAL_ILLUMINATION) {
         if (prd_camera.depth == 1) {

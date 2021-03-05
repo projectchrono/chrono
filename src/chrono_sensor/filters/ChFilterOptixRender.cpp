@@ -185,21 +185,29 @@ CH_SENSOR_API void ChFilterOptixRender::Initialize(std::shared_ptr<ChSensor> pSe
     optix::Buffer buffer = AllocateBuffer(pSensor);
     pOptixSensor->m_ray_gen["output_buffer"]->set(buffer);
     m_buffer = std::make_unique<SensorOptixBuffer>();
+    m_buffer->Buffer = buffer;
     m_buffer->Width = pOptixSensor->m_width;
     m_buffer->Height = pOptixSensor->m_height;
 
-    optix::Buffer gi_tonemap_output_buffer = AllocateBuffer(pSensor);
-    optix::PostprocessingStage tonemapStage =
-        pOptixSensor->m_context->createBuiltinPostProcessingStage("TonemapperSimple");
-
-    tonemapStage->declareVariable("input_buffer")->set(buffer);
-    tonemapStage->declareVariable("output_buffer")->set(gi_tonemap_output_buffer);
-    tonemapStage->declareVariable("exposure")->setFloat(1.0f);
-    tonemapStage->declareVariable("gamma")->setFloat(2.2f);
-
     commandListWithDenoiser = pOptixSensor->m_context->createCommandList();
     commandListWithDenoiser->appendLaunch(pOptixSensor->m_launch_index, pOptixSensor->m_width, pOptixSensor->m_height);
-    commandListWithDenoiser->appendPostprocessingStage(tonemapStage, pOptixSensor->m_width, pOptixSensor->m_height);
+
+    optix::Buffer gi_tonemap_output_buffer;
+    if (pOptixSensor->m_use_tonemapper) {  // only a camera would want to use a tonemapper, lidar and radar will ignore
+                                           // this process
+        gi_tonemap_output_buffer = AllocateBuffer(pSensor);
+        optix::PostprocessingStage tonemapStage =
+            pOptixSensor->m_context->createBuiltinPostProcessingStage("TonemapperSimple");
+
+        tonemapStage->declareVariable("input_buffer")->set(buffer);
+        tonemapStage->declareVariable("output_buffer")->set(gi_tonemap_output_buffer);
+        tonemapStage->declareVariable("exposure")->setFloat(1.0f);
+        tonemapStage->declareVariable("gamma")->setFloat(2.2f);
+        commandListWithDenoiser->appendPostprocessingStage(tonemapStage, pOptixSensor->m_width, pOptixSensor->m_height);
+        if (!pOptixSensor->m_use_gi) {
+            m_buffer->Buffer = gi_tonemap_output_buffer;
+        }
+    }
 
     // setup denoiser buffer for global illumination
     if (pOptixSensor->m_use_gi) {
@@ -213,21 +221,22 @@ CH_SENSOR_API void ChFilterOptixRender::Initialize(std::shared_ptr<ChSensor> pSe
         // Setup Optix denoiser
         optix::PostprocessingStage denoiserStage =
             pOptixSensor->m_context->createBuiltinPostProcessingStage("DLDenoiser");
-
-        denoiserStage->declareVariable("input_buffer")->set(gi_tonemap_output_buffer);
+        if (pOptixSensor->m_use_tonemapper) {
+            denoiserStage->declareVariable("input_buffer")->set(gi_tonemap_output_buffer);
+        } else {
+            denoiserStage->declareVariable("input_buffer")->set(buffer);
+        }
         denoiserStage->declareVariable("output_buffer")->set(gi_denoised_output_buffer);
         denoiserStage->declareVariable("blend")->setFloat(0);
         denoiserStage->declareVariable("input_albedo_buffer")->set(albedo_buffer);
         denoiserStage->declareVariable("input_normal_buffer")->set(normal_buffer);
 
         commandListWithDenoiser->appendPostprocessingStage(denoiserStage, pOptixSensor->m_width,
-                                                            pOptixSensor->m_height);
-        
+                                                           pOptixSensor->m_height);
+
         m_buffer->Buffer = gi_denoised_output_buffer;
-    } else {
-        m_buffer->Buffer = gi_tonemap_output_buffer;
-        
     }
+
     commandListWithDenoiser->finalize();
 
     // check that the context is valid

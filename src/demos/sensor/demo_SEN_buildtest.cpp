@@ -269,7 +269,7 @@ int main(int argc, char* argv[]) {
         lidar->PushFilter(chrono_types::make_shared<ChFilterVisualizePointCloud>(640, 480, 2.0f, "Lidar Point Cloud"));
     lidar->PushFilter(chrono_types::make_shared<ChFilterXYZIAccess>());
     // lidar->PushFilter(chrono_types::make_shared<ChFilterXYZIAccess>());
-    // manager->AddSensor(lidar);
+    manager->AddSensor(lidar);
 
     // add an IMU sensor to one of the boxes
     auto imu_offset_pose = chrono::ChFrame<double>({0, 0, 0}, Q_from_AngAxis(0, {1, 0, 0}));
@@ -346,7 +346,7 @@ int main(int argc, char* argv[]) {
             cam1->PushFilter(chrono_types::make_shared<ChFilterSave>("SENSOR_OUTPUT/cam" + std::to_string(i) + "/"));
 
         // add sensor to the manager
-        //manager->AddSensor(cam1);
+        // manager->AddSensor(cam1);
     }
 
     // ---------------

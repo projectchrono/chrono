@@ -75,11 +75,10 @@ void ChOptixEngine::AssignSensor(std::shared_ptr<ChOptixSensor> sensor) {
 
         sensor->m_context = m_context;
         m_assignedSensor.push_back(sensor);
-        std::cout << "adding sensors" << std::endl;
+        // std::cout << "adding sensors" << std::endl;
         // initialize filters just in case they want to create any chunks of memory from the start
         for (auto f : sensor->GetFilterList()) {
-
-            std::cout << "init filters" << f->Name() << std::endl;
+            // std::cout << "init filters" << f->Name() << std::endl;
             f->Initialize(sensor);  // master thread should always be the one to initialize
         }
         sensor->LockFilterList();
