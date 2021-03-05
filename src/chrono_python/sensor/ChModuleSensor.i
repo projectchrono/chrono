@@ -218,6 +218,7 @@ using namespace chrono::sensor;
 
 %shared_ptr(chrono::sensor::ChFilterImgAlias)
 %shared_ptr(chrono::sensor::ChFilterImageResize)
+%shared_ptr(chrono::sensor::ChFilterImageFloat4ToRGBA8)
 //
 // B- INCLUDE HEADERS
 //
