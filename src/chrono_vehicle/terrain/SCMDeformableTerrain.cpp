@@ -940,7 +940,7 @@ void SCMDeformableSoil::ComputeInternalForces() {
                 {
                     // If this is the first hit from this node, initialize the node record
                     if (m_grid_map.find(ij) == m_grid_map.end()) {
-                        m_grid_map.insert(std::make_pair(ij, NodeRecord(z, z)));
+                        m_grid_map.insert(std::make_pair(ij, NodeRecord(z, z, GetNormal(ij))));
                     }
 
                     // Add to our map of hits to process
@@ -1224,15 +1224,15 @@ void SCMDeformableSoil::ComputeInternalForces() {
             double diff = m_flow_factor * tot_step_flow / p_boundary.size();
 
             // Raise boundary (create a sharp spike which will be later smoothed out with erosion)
-            for (const auto& ij : p_boundary) {                                  // for each node in the boundary
-                m_modified_nodes.push_back(ij);                                  //   mark as modified
-                if (m_grid_map.find(ij) == m_grid_map.end()) {                   //   if node not yet recorded
-                    double z = GetInitHeight(ij);                                //     undeformed node height
-                    m_grid_map.insert(std::make_pair(ij, NodeRecord(z, z)));     //     add new node record
-                }                                                                //
-                auto& nr = m_grid_map.at(ij);                                    //   node record
-                nr.p_erosion = true;                                             //   include in erosion domain
-                AddMaterialToNode(diff, nr);                                     //   add raise amount
+            for (const auto& ij : p_boundary) {                                              // for each node in bndry
+                m_modified_nodes.push_back(ij);                                              //   mark as modified
+                if (m_grid_map.find(ij) == m_grid_map.end()) {                               //   if not yet recorded
+                    double z = GetInitHeight(ij);                                            //     undeformed height
+                    m_grid_map.insert(std::make_pair(ij, NodeRecord(z, z, GetNormal(ij))));  //     add new node record
+                }                                                                            //
+                auto& nr = m_grid_map.at(ij);                                                //   node record
+                nr.p_erosion = true;                                                         //   add to erosion domain
+                AddMaterialToNode(diff, nr);                                                 //   add raise amount
             }
 
             // Accumulate boundary
@@ -1256,7 +1256,8 @@ void SCMDeformableSoil::ComputeInternalForces() {
                         continue;                                       //     ignore neighbor
                     if (m_grid_map.find(nbr_ij) == m_grid_map.end()) {  //   if neighbor not yet recorded
                         double z = GetInitHeight(nbr_ij);               //     undeformed height at neighbor location
-                        NodeRecord nr(z, z);                            //     create new record
+                        ChVector<> n = GetHeight(nbr_ij);               //     terrain normal at neighbor location
+                        NodeRecord nr(z, z, n);                         //     create new record
                         nr.p_erosion = true;                            //     include in erosion domain
                         m_grid_map.insert(std::make_pair(nbr_ij, nr));  //     add new node record
                         front.insert(nbr_ij);                           //     add neighbor to new front
@@ -1479,7 +1480,7 @@ std::vector<SCMDeformableTerrain::NodeLevel> SCMDeformableSoil::GetModifiedNodes
 void SCMDeformableSoil::SetModifiedNodes(const std::vector<SCMDeformableTerrain::NodeLevel>& nodes) {
     for (const auto& n : nodes) {
         // Modify existing entry in grid map or insert new one
-        m_grid_map[n.first] = SCMDeformableSoil::NodeRecord(n.second, n.second);
+        m_grid_map[n.first] = SCMDeformableSoil::NodeRecord(n.second, n.second, GetHeight(n.first));
     }
 
     // Update visualization

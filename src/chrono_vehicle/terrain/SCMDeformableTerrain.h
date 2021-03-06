@@ -300,38 +300,39 @@ class CH_VEHICLE_API SCMDeformableSoil : public ChLoadContainer {
 
     // Information at contacted node
     struct NodeRecord {
-        double p_sigma;
-        double p_sinkage_elastic;
-        double p_step_plastic_flow;
-        bool p_erosion;
-        double p_level;
-        double p_hit_level;
-        double p_level_initial;
-        double p_sinkage_plastic;
-        double p_sinkage;
-        double p_kshear;
-        double p_sigma_yield;
-        double p_tau;
-        double p_massremainder;
+        double p_level_initial;      // initial node level (relative to SCM frame)
+        double p_level;              // current node level (relative to SCM frame)
+        double p_hit_level;          // ray hit level (relative to SCM frame)
+        ChVector<> p_normal;         // normal of undeformed terrain (in SCM frame)
+        double p_sinkage;            // along local normal direction
+        double p_sinkage_plastic;    // along local normal direction
+        double p_sinkage_elastic;    // along local normal direction
+        double p_sigma;              // along local normal direction
+        double p_sigma_yield;        // along local normal direction
+        double p_kshear;             // along local tangent direction
+        double p_tau;                // along local tangent direction
+        bool p_erosion;              // for bulldozing
+        double p_massremainder;      // for bulldozing
+        double p_step_plastic_flow;  // for bulldozing
 
-        NodeRecord() : NodeRecord(0, 0) {}
+        NodeRecord() : NodeRecord(0, 0, ChVector<>(0,0,1)) {}
+        ~NodeRecord() {}
 
-        NodeRecord(double init_level, double level) {
-            p_sigma = 0;
-            p_sinkage_elastic = 0;
-            p_sinkage_plastic = 0;
-            p_step_plastic_flow = 0;
-            p_erosion = false;
-            p_level = level;
-            p_level_initial = init_level;
-            p_hit_level = 1e9;
-            p_sinkage_plastic = 0;
-            p_sinkage = init_level - level;
-            p_kshear = 0;
-            p_sigma_yield = 0;
-            p_tau = 0;
-            p_massremainder = 0;
-        }
+        NodeRecord(double init_level, double level, const ChVector<>& n)
+            : p_sigma(0),
+              p_sinkage_elastic(0),
+              p_sinkage_plastic(0),
+              p_step_plastic_flow(0),
+              p_erosion(false),
+              p_level(level),
+              p_level_initial(init_level),
+              p_hit_level(1e9),
+              p_sinkage(init_level - level),
+              p_kshear(0),
+              p_sigma_yield(0),
+              p_tau(0),
+              p_massremainder(0),
+              p_normal(n) {}
     };
 
     // Hash function for a pair of integer grid coordinates
