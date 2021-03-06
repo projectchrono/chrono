@@ -18,6 +18,7 @@
 				"CMAKE_BUILD_TYPE": "Release",
 				"BUILD_TESTING": "ON",
 				"BUILD_BENCHMARKING": "ON",
+				"ENABLE_HDF5": "ON",
 				"ENABLE_MODULE_POSTPROCESS": "ON",
 				"ENABLE_MODULE_PYTHON": "ON",
 				"ENABLE_MODULE_IRRLICHT": "ON",
@@ -92,7 +93,8 @@
 				"IRRLICHT_ROOT": "C:/Users/builder/Documents/irrlicht-1.8.4",
 				"PYTHON_EXECUTABLE": "C:/Users/builder/Anaconda3/python.exe",
 				"SWIG_EXECUTABLE": "C:/Users/builder/Documents/swigwin-4.0.2/swig.exe",
-				"USE_MULTICORE_CUDA": "OFF"
+				"USE_MULTICORE_CUDA": "OFF",
+				"ENABLE_HDF5": "OFF"
 			}
 		},
 		{
