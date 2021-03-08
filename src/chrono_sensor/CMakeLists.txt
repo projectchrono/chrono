@@ -55,7 +55,7 @@ list(APPEND LIBRARIES ${optix_LIBRARY})
 list(APPEND LIBRARIES ${optix_rpath})
 list(APPEND LIBRARIES ${CUDA_nppc_LIBRARY})
 list(APPEND LIBRARIES ${CUDA_nppig_LIBRARY})
-
+list(APPEND LIBRARIES ${CUDA_nppidei_LIBRARY})
 
 #add the necessary opengl, glfw, glew libraries to link list
 list(APPEND LIBRARIES ${GLFW_LIBRARY})
@@ -102,13 +102,11 @@ ENDIF()
 # ------------------------------------------------------------------------------
 set(USE_CUDA_NVRTC ON CACHE BOOL "Compile shader code at run-time with NVRTC rather than NVCC at build time to PTX")
 if(USE_CUDA_NVRTC)
-  find_library(CUDA_nvrtc_LIBRARY nvrtc ${CUDA_TOOLKIT_ROOT_DIR}/lib64)
-  mark_as_advanced(CUDA_nvrtc_LIBRARY)
-
-  if(NOT CUDA_nvrtc_LIBRARY)
+  if(NOT CUDA_NVRTC_LIBRARY)
+    message(STATUS "USE_CUDA_NVRTC disabled due to mising CUDA_NVRTC_LIBRARY")
     set(USE_CUDA_NVRTC OFF)
   else()
-    list(APPEND LIBRARIES ${CUDA_nvrtc_LIBRARY})
+    list(APPEND LIBRARIES ${CUDA_NVRTC_LIBRARY})
     add_definitions( -DUSE_CUDA_NVRTC )
     add_definitions( -DSENSOR_CUDA_SRC_DIR="${CMAKE_CURRENT_SOURCE_DIR}/rtkernels/" )
 
@@ -511,14 +509,19 @@ install(TARGETS ChronoEngine_sensor
         ARCHIVE DESTINATION lib)
 
 install(FILES ${ChronoEngine_sensor_HEADERS}
-		DESTINATION include/chrono_sensor)
+        DESTINATION include/chrono_sensor)
 install(FILES ${ChronoEngine_sensor_UTILS_HEADERS}
-		DESTINATION include/chrono_sensor/utils)
+        DESTINATION include/chrono_sensor/utils)
 install(FILES ${ChronoEngine_sensor_OPTIX_HEADERS}
         DESTINATION include/chrono_sensor/optixcpp)
 install(FILES ${ChronoEngine_sensor_FILTERS_HEADERS}
         DESTINATION include/chrono_sensor/filters)
 install(FILES ${ChronoEngine_sensor_CUDA_HEADERS}
-      DESTINATION include/chrono_sensor/cuda)
+        DESTINATION include/chrono_sensor/cuda)
 install(FILES ${ChronoEngine_sensor_SCENE_HEADERS}
-      DESTINATION include/chrono_sensor/scene)
+        DESTINATION include/chrono_sensor/scene)
+
+# Install required chrono_thirdparty headers
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/stb
+        DESTINATION include/chrono_thirdparty
+        FILES_MATCHING PATTERN "*.h" PATTERN "*.cuh" PATTERN "*.hpp" PATTERN "*.inl")

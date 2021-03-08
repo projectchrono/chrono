@@ -71,7 +71,9 @@ float lag = .05f;
 // Exposure (in seconds) of each image
 float exposure_time = 0.02f;
 
-int alias_factor = 2;
+int alias_factor = 1;
+
+bool use_gi = false;  // whether cameras should use global illumination
 
 // -----------------------------------------------------------------------------
 // Simulation parameters
@@ -153,7 +155,9 @@ int main(int argc, char* argv[]) {
                                                          image_width,   // image width
                                                          image_height,  // image height
                                                          fov,           // camera's horizontal field of view
-                                                         alias_factor);
+                                                         alias_factor,  // super sampling factor
+                                                         lens_model,    // lens model type
+                                                         use_gi);
     cam->SetName("Camera Sensor");
     cam->SetLag(lag);
     cam->SetCollectionWindow(exposure_time);
@@ -220,7 +224,8 @@ int main(int argc, char* argv[]) {
                                                           image_height,  // image height
                                                           fov,           // camera's horizontal field of view
                                                           alias_factor,  // supersample factor for antialiasing
-                                                          lens_model);   // FOV
+                                                          lens_model,
+                                                          use_gi);  // FOV
     cam2->SetName("Antialiasing Camera Sensor");
     cam2->SetLag(lag);
     cam2->SetCollectionWindow(exposure_time);

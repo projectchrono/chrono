@@ -22,9 +22,9 @@ SYN_API void SetLogNodeID(SynNodeID node_id);
 /// Will prepend any output with the global id set from SetLogNodeID
 SYN_API ChStreamOutAscii& SynLog();
 
-/// @} synchrono_utils
-
 }  // namespace synchrono
 }  // namespace chrono
+
+/// @} synchrono_utils
 
 #endif

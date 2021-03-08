@@ -32,8 +32,8 @@ const double FEDA_Driveline4WD::m_driveshaft_inertia = 0.5;
 const double FEDA_Driveline4WD::m_frontshaft_inertia = 0.5;
 const double FEDA_Driveline4WD::m_rearshaft_inertia = 0.5;
 
-const double FEDA_Driveline4WD::m_front_conicalgear_ratio = -1.0 / 4.88;
-const double FEDA_Driveline4WD::m_rear_conicalgear_ratio = -1.0 / 4.88;
+const double FEDA_Driveline4WD::m_front_conicalgear_ratio = 1 / 4.88;
+const double FEDA_Driveline4WD::m_rear_conicalgear_ratio = 1 / 4.88;
 
 const double FEDA_Driveline4WD::m_axle_differential_locking_limit = 100;
 const double FEDA_Driveline4WD::m_central_differential_locking_limit = 100;

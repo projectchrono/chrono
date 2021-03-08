@@ -55,6 +55,8 @@ class CH_SENSOR_API ChFilterOptixRender : public ChFilter {
 
     std::shared_ptr<SensorOptixBuffer> m_buffer;  ///< for holding the output buffer
     optix::Program m_program;                     ///< the render program used in optix
+    optix::CommandList commandListWithDenoiser;
+    bool m_use_gi;
 };
 
 /// @}

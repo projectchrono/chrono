@@ -89,7 +89,7 @@ void draw_affected_triangles(ChIrrApp& application,
         if (vert_hit == true) {
             std::vector<chrono::ChVector<>> fourpoints = {vert_pos[triangles[it].x()], vert_pos[triangles[it].y()],
                                                           vert_pos[triangles[it].z()], vert_pos[triangles[it].x()]};
-            ChIrrTools::drawPolyline(application.GetVideoDriver(), fourpoints, irr::video::SColor(255, 240, 200, 0),
+            tools::drawPolyline(application.GetVideoDriver(), fourpoints, irr::video::SColor(255, 240, 200, 0),
                                      true);
         }
     }
@@ -97,7 +97,7 @@ void draw_affected_triangles(ChIrrApp& application,
         for (int io = 0; io < vert_indexes.size(); ++io) {
             std::vector<chrono::ChVector<>> forceline = {vert_pos[vert_indexes[io]],
                                                          vert_pos[vert_indexes[io]] + vert_forces[io] * forcescale};
-            ChIrrTools::drawPolyline(application.GetVideoDriver(), forceline, irr::video::SColor(100, 240, 0, 0), true);
+            tools::drawPolyline(application.GetVideoDriver(), forceline, irr::video::SColor(100, 240, 0, 0), true);
         }
 }
 
@@ -117,7 +117,7 @@ int main(int argc, char* argv[]) {
 
     // Create the Irrlicht visualization (open the Irrlicht device,
     // bind a simple user interface, etc. etc.)
-    ChIrrApp application(&my_system, L"demo_FEA_cosimulate_load", core::dimension2d<u32>(1280, 720), false, true);
+    ChIrrApp application(&my_system, L"demo_FEA_cosimulate_load", core::dimension2d<u32>(1280, 720), VerticalDir::Y, false, true);
 
     // Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
     application.AddTypicalLogo();
@@ -314,7 +314,7 @@ int main(int argc, char* argv[]) {
         // End of cosimulation block
         // -------------------------------------------------------------------------
 
-        ChIrrTools::drawGrid(application.GetVideoDriver(), 0.1, 0.1, 20, 20, ChCoordsys<>(VNULL, CH_C_PI_2, VECT_X),
+        tools::drawGrid(application.GetVideoDriver(), 0.1, 0.1, 20, 20, ChCoordsys<>(VNULL, CH_C_PI_2, VECT_X),
                              video::SColor(50, 90, 90, 90), true);
 
         application.EndScene();

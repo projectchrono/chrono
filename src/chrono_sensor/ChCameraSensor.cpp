@@ -33,23 +33,37 @@ CH_SENSOR_API ChCameraSensor::ChCameraSensor(std::shared_ptr<chrono::ChBody> par
                                              unsigned int h,                   // image height
                                              float hFOV,                       // horizontal field of view
                                              unsigned int supersample_factor,  // super sampling factor
-                                             CameraLensModelType lens_model    // lens model to use
+                                             CameraLensModelType lens_model,   // lens model to use
+                                             bool use_gi                       // 1 to use Global Illumination
                                              )
     : m_hFOV(hFOV),
       m_supersample_factor(supersample_factor),
       m_lens_model_type(lens_model),
-      ChOptixSensor(parent, updateRate, offsetPose, w * supersample_factor, h * supersample_factor) {
+      ChOptixSensor(parent, updateRate, offsetPose, w * supersample_factor, h * supersample_factor, use_gi, true) {
     // set the program to match the model requested
     switch (lens_model) {
         case SPHERICAL:
             m_program_string = {"camera", "fov_lens_camera"};
-            m_buffer_format = RT_FORMAT_UNSIGNED_BYTE4;
+            m_buffer_format = RT_FORMAT_FLOAT4;
+            // m_buffer_format = RT_FORMAT_UNSIGNED_BYTE4;
             break;
-        default:  // same as PINHOLE
-            m_program_string = {"camera", "pinhole_camera"};
-            m_buffer_format = RT_FORMAT_UNSIGNED_BYTE4;
+
+        default:  // same as PINHOLEP
+        {
+            if (use_gi) {
+                m_program_string = {"camera", "pinhole_gi_camera"};
+                m_buffer_format = RT_FORMAT_FLOAT4;
+            } else {
+                m_program_string = {"camera", "pinhole_camera"};
+                m_buffer_format = RT_FORMAT_FLOAT4;
+            }
+            // m_buffer_format = RT_FORMAT_UNSIGNED_BYTE4;
             break;
+        }
     }
+
+    // convert from float4 to rgba8 format
+    m_filters.push_back(chrono_types::make_shared<ChFilterImageFloat4ToRGBA8>());
 
     if (m_supersample_factor > 1) {
         m_filters.push_back(chrono_types::make_shared<ChFilterImgAlias>(m_supersample_factor));

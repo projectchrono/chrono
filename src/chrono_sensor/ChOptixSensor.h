@@ -43,7 +43,9 @@ class CH_SENSOR_API ChOptixSensor : public ChSensor {
                   float updateRate,
                   chrono::ChFrame<double> offsetPose,
                   unsigned int w,
-                  unsigned int h);
+                  unsigned int h,
+                  bool use_gi = false,
+                  bool use_tonemapper = false);
 
     /// camera class destructor
     virtual ~ChOptixSensor();
@@ -79,6 +81,9 @@ class CH_SENSOR_API ChOptixSensor : public ChSensor {
     unsigned int m_height;        ///< to hold reference to the height for rendering
     unsigned int m_launch_index;  ///< for holding the launch index that tells optix which sensor this is
     float m_time_stamp;           ///< time stamp for when the data (render) was launched
+
+    bool m_use_gi;          ///< to hold reference to whether user what to use GI or not
+    bool m_use_tonemapper;  ///< whther the sensor should apply a tonemapper after rendering
 
     friend class ChFilterOptixRender;  ///< ChFilterOptixRender is allowed to set and use the private members
     friend class ChOptixEngine;        ///< ChOptixEngine is allowed to set and use the private members

@@ -13,6 +13,12 @@ HMMWV stands for the High Mobility Multipurpose Wheeled Vehicle familiy. The Chr
 
 <img src="http://www.projectchrono.org/assets/manual/vehicle/models/HMMWV_suspension.png" width="600" />
 
+### FEDA {#vehicle_models_feda}
+
+The FED ALPHA is a concept vehicle developed by the engineering firm Ricardo in collaboration with the U.S. military.  
+
+The Chrono::Vehicle FEDA is a 4WD model with double wishbone front and rear suspension, an anti-roll bar, and Pitman-arm steering mechanism.  Currently, only a Pacejka 2002 and rigid tire models are implemented.
+
 ### Sedan {#vehicle_models_sedan}
 
 The Sedan examples shows a generic average passenger car. It uses a double wishbone suspension on the front and a multilink suspension on the rear axle. The steering system is of type rack-and-pinion.
@@ -28,6 +34,16 @@ As the name suggests the Citybus is a typical bus you can find in every city of 
 <img src="http://www.projectchrono.org/assets/manual/vehicle/models/CityBus.png" width="600" />
 
 <img src="http://www.projectchrono.org/assets/manual/vehicle/models/CityBus_suspension.png" width="600" />
+
+### FMTV {#vehicle_models_fmtv}
+
+The Family of Medium Tactical Vehicles (FMTV) is a series of trucks currently manufactured by the Oshkosh Corporation.
+
+The Chrono vehcle models library provides models for two variants of these vehicles:
+- the LMTV (Light Medium Tactical Vehicle), a 2.5-ton, 4x4 truck 
+- the MTV (Medium Tactical Vehicle), a 5-ton, 6x4 truck
+
+Both vehicle models use leaf-spring rear axles and a leaf-spring with toe-bar steerable front axle and include a model of the torsional compliance between the cabin and cargo.  The MTV model has a balancer beam rear bogie.
 
 ### MAN {#vehicle_models_man}
 
@@ -91,3 +107,8 @@ The running gear consists of ten road wheels, two sprockets and two idler wheels
 
 <img src="http://www.projectchrono.org/assets/manual/vehicle/models/M113_suspension.png" width="600" />
 
+### Marder {#vehicle_models_marder}
+
+The Marder ("marten" in German) is a tracked infantry fighting vehicle used by the German Bundeswehr since 1969. It has a running gear with 12 road wheels, sprocket, idler and 3 support rollers. The first two and the last two road wheels on every side are damped by telescopic dampers. It is driven by a 444 kW Diesel engine, torque converter with lockup and 4 gear automatic gearbox. It carries up to nine soldiers (commander, gunner, driver and six infantrymen). 
+
+Our model is based only on public data available online and information found in literature. Although the original vehicle emplys double-pin tracks, the current Chrono model only implements a single-pin track.

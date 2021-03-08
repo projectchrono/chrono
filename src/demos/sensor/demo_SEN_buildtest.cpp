@@ -211,7 +211,7 @@ int main(int argc, char* argv[]) {
         chrono::ChFrame<double>({-10, 0, 1}, Q_from_AngAxis(0, {0, 0, 1})),  // offset pose
         1280,                                                                // image width
         720,                                                                 // image height
-        (float)CH_C_PI / 3                                                   // field of view
+        CH_C_PI / 3, 1, PINHOLE, 0                                           // field of view
     );
 
     std::string color_data_path = "SENSOR_OUTPUT/cam_color/";
@@ -346,7 +346,7 @@ int main(int argc, char* argv[]) {
             cam1->PushFilter(chrono_types::make_shared<ChFilterSave>("SENSOR_OUTPUT/cam" + std::to_string(i) + "/"));
 
         // add sensor to the manager
-        manager->AddSensor(cam1);
+        // manager->AddSensor(cam1);
     }
 
     // ---------------

@@ -19,10 +19,22 @@
 #define LIDAR_RAY_TYPE 2
 #define RADAR_RAY_TYPE 3
 
+#define FIRST_HIT 0
+#define GLOBAL_ILLUMINATION 1
+
 struct PerRayData_camera {
-    float3 color;
-    float importance;
+    int mode;
     int depth;
+
+    float3 color;
+    float3 albedo;
+    float3 normal;
+    
+    float3 origin;
+    float3 direction;
+    float3 contribution_to_firsthit;
+
+    unsigned int seed;
 };
 
 struct PerRayData_lidar {
@@ -37,12 +49,17 @@ struct PerRayData_radar {
 };
 
 static __device__ __inline__ PerRayData_camera make_camera_data(const float3& r_color,
-                                                                const float& r_importance,
-                                                                const int& r_depth) {
+                                                                const int& r_mode,
+                                                                const int& r_depth,
+                                                                const float& r_importance) {
     PerRayData_camera ray_data;
-    ray_data.color = r_color;
-    ray_data.importance = r_importance;
+    ray_data.mode = r_mode;
     ray_data.depth = r_depth;
+
+    ray_data.color = r_color;
+    
+    ray_data.contribution_to_firsthit = make_float3(r_importance);
+    
     return ray_data;
 };
 

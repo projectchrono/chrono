@@ -26,7 +26,7 @@ namespace chrono {
 namespace sensor {
 
 CH_SENSOR_API ChSensorManager::ChSensorManager(ChSystem* chrono_system)
-    : m_verbose(false), m_optix_reflections(7), m_num_keyframes(2) {
+    : m_verbose(true), m_optix_reflections(7), m_num_keyframes(2) {
     // save the chrono system handle
     m_system = chrono_system;
     scene = chrono_types::make_shared<ChScene>();

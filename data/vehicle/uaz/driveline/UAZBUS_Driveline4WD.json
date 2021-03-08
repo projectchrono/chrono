@@ -21,8 +21,8 @@
 
   "Gear Ratio":
   {
-    "Front Conical Gear":       -0.236,
-    "Rear Conical Gear":        -0.236
+    "Front Conical Gear":       0.236,
+    "Rear Conical Gear":        0.236
   },
 
   "Axle Differential Locking Limit":    100,

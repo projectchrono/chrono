@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Conlain Kelly, Nic Olsen, Dan Negrut, Radu Serban
+// Authors: Conlain Kelly, Nic Olsen, Dan Negrut, Radu Serban, Ruochun Zhang
 // =============================================================================
 
 #pragma once
@@ -112,7 +112,7 @@ class ChSystemGpuMesh_impl : public ChSystemGpu_impl {
     ChSystemGpuMesh_impl(float sphere_rad, float density, float3 boxDims);
 
     /// Apply rigid body motion to specified mesh.
-    void ApplyMeshMotion(unsigned int mesh,
+    void ApplyMeshMotion(unsigned int mesh_id,
                          const double* pos,
                          const double* rot,
                          const double* lin_vel,
@@ -123,12 +123,6 @@ class ChSystemGpuMesh_impl : public ChSystemGpu_impl {
 
     /// Initialize trimeshes before starting simulation (typically called by initialize).
     void initializeTriangles();
-
-    /// Reset information used for triangle broadphase collision detection
-    void resetTriangleBroadphaseInformation();
-
-    /// Reset computed forces and torques on each triangle family
-    void resetTriangleForces();
 
     /// Clean up data structures associated with triangle mesh
     void cleanupTriMesh();
@@ -176,14 +170,14 @@ class ChSystemGpuMesh_impl : public ChSystemGpu_impl {
     bool mesh_collision_enabled = true;
 
     /// stores list of triangles touching each SD; goes SD by SD; size can change during simulation
-    std::vector<unsigned int, cudallocator<unsigned int>> triangles_in_SD_composite;
+    std::vector<unsigned int, cudallocator<unsigned int>> SD_trianglesInEachSD_composite;
 
     /// the count of triangles touching each SD; size of vector should be # of SDs
     std::vector<unsigned int, cudallocator<unsigned int>> SD_numTrianglesTouching; 
 
     /// offsets in the composite array for each SD; i.e., offset where each SD starts storing its triangles.
     /// Size of vector should be # of SDs.
-    std::vector<unsigned int, cudallocator<unsigned int>> SD_TriangleCompositeOffsets;
+    std::vector<unsigned int, cudallocator<unsigned int>> SD_TrianglesCompositeOffsets;
 
     /// Number of SDs that each triangle touches; stored triangle by triangle.
     /// Nonessential array, only needed to carry out broadphase for mesh

@@ -229,7 +229,8 @@ void FEAcontactTest::CreateCables(std::shared_ptr<ChMaterialSurfaceSMC> cmat) {
 
 void FEAcontactTest::SimulateVis() {
 #ifdef CHRONO_IRRLICHT
-    irrlicht::ChIrrApp application(m_system, L"FEA contacts", irr::core::dimension2d<irr::u32>(800, 600), false, true);
+    irrlicht::ChIrrApp application(m_system, L"FEA contacts", irr::core::dimension2d<irr::u32>(800, 600),
+                                   irrlicht::VerticalDir::Y, false, true);
     application.AddTypicalLogo();
     application.AddTypicalSky();
     application.AddTypicalLights();
@@ -268,7 +269,6 @@ CH_BM_SIMULATION_ONCE(FEAcontact_MUMPS, FEAcontactTest_MUMPS, NUM_SKIP_STEPS, NU
 // =============================================================================
 
 int main(int argc, char* argv[]) {
-    utils::AddComandLineArgument(&argc, &argv, "--benchmark_counters_tabular");
     ::benchmark::Initialize(&argc, argv);
 
 #ifdef CHRONO_IRRLICHT

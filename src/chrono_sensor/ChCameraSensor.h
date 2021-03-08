@@ -48,14 +48,15 @@ class CH_SENSOR_API ChCameraSensor : public ChOptixSensor {
     // @param exposure_time The time the camera should be collecting data for each frame.
     /// @param supersample_factor The number of rays that should be sampled per pixel for antialiasing.
     /// @param lens_model A enum specifying the desired lens model.
-    ChCameraSensor(std::shared_ptr<chrono::ChBody> parent,     // object to which the sensor is attached
-                   float updateRate,                           // rate at which the sensor updates
-                   chrono::ChFrame<double> offsetPose,         // position of sensor relative to parent object
-                   unsigned int w,                             // image width
-                   unsigned int h,                             // image height
-                   float hFOV,                                 // horizontal field of view
-                   unsigned int supersample_factor = 1,        // number of samples per pixel for antialiasing
-                   CameraLensModelType lens_model = PINHOLE);  // camera model to use for rendering
+    ChCameraSensor(std::shared_ptr<chrono::ChBody> parent,  // object to which the sensor is attached
+                   float updateRate,                        // rate at which the sensor updates
+                   chrono::ChFrame<double> offsetPose,      // position of sensor relative to parent object
+                   unsigned int w,                          // image width
+                   unsigned int h,                          // image height
+                   float hFOV,                              // horizontal field of view
+                   unsigned int supersample_factor = 1,     // number of samples per pixel for antialiasing
+                   CameraLensModelType lens_model = PINHOLE,
+                   bool use_gi = false);  // camera model to use for rendering
 
     /// camera class destructor
     ~ChCameraSensor();

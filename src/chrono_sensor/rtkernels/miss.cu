@@ -42,7 +42,16 @@ RT_PROGRAM void camera_miss() {
         prd_camera.color = make_float3(tex2D(environment_map, tex_x, tex_y));
 
     } else {
-        prd_camera.color = default_color;
+        prd_camera.color = default_color;  // make_float3(0.4f);
+    }
+    if (prd_camera.mode == GLOBAL_ILLUMINATION) {
+        if (prd_camera.depth == 1) {
+            prd_camera.normal = normalize(-ray.direction);
+            prd_camera.albedo = prd_camera.color;
+        }
+        prd_camera.color *= prd_camera.contribution_to_firsthit;
+        // terminate the ray when it hit the environment map
+        prd_camera.contribution_to_firsthit = make_float3(0.0f);
     }
 }
 

@@ -41,9 +41,9 @@ namespace fmtv {
 /// @addtogroup vehicle_models_fmtv
 /// @{
 
-/// Definition of the UAZ assembly.
+/// Definition of the LMTV assembly.
 /// This class encapsulates a concrete wheeled vehicle model with parameters corresponding to
-/// a UAZ vehicle, the powertrain model, and the 4 tires.
+/// an LMTV vehicle, the powertrain model, and the 4 tires.
 class CH_MODELS_API LMTV {
   public:
     LMTV();

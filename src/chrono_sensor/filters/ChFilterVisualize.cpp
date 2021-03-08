@@ -79,6 +79,8 @@ CH_SENSOR_API void ChFilterVisualize::Apply(std::shared_ptr<ChSensor> pSensor,
 
             if (buffer_format == RT_FORMAT_UNSIGNED_BYTE4) {
                 glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, imageData);
+            } else if (buffer_format == RT_FORMAT_FLOAT4) {
+                glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, width, height, 0, GL_RGBA, GL_FLOAT, imageData);
             } else if (buffer_format == RT_FORMAT_FLOAT2) {
                 glTexImage2D(GL_TEXTURE_2D, 0, GL_RG32F, width, height, 0, GL_RG, GL_FLOAT, imageData);
             } else {

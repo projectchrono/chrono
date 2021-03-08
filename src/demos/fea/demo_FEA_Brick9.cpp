@@ -89,8 +89,7 @@ void DPCapPress() {
     my_system.Set_G_acc(ChVector<>(0, 0, 0));
 
     // Create the Irrlicht visualization (open the Irrlicht device, bind a simple user interface, etc.)
-    ChIrrApp application(&my_system, L"9-Node, Large Deformation Brick Element", core::dimension2d<u32>(800, 600),
-                         false, true);
+    ChIrrApp application(&my_system, L"9-Node, Large Deformation Brick Element", core::dimension2d<u32>(800, 600));
 
     // Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
     application.AddTypicalLogo();
@@ -414,8 +413,7 @@ void ShellBrickContact() {
     my_system.Set_G_acc(ChVector<>(0, 0, 0));
 
     // Create the Irrlicht visualization (open the Irrlicht device, bind a simple user interface, etc.)
-    ChIrrApp application(&my_system, L"9-Node, Large Deformation Brick Element", core::dimension2d<u32>(800, 600),
-                         false, true);
+    ChIrrApp application(&my_system, L"9-Node, Large Deformation Brick Element", core::dimension2d<u32>(800, 600));
 
     // Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
     application.AddTypicalLogo();
@@ -766,8 +764,7 @@ void SimpleBoxContact() {
     my_system.Set_G_acc(ChVector<>(0, 0, 0));
 
     // Create the Irrlicht visualization (open the Irrlicht device, bind a simple user interface, etc.)
-    ChIrrApp application(&my_system, L"9-Node, Large Deformation Brick Element", core::dimension2d<u32>(800, 600),
-                         false, true);
+    ChIrrApp application(&my_system, L"9-Node, Large Deformation Brick Element", core::dimension2d<u32>(800, 600));
 
     // Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
     application.AddTypicalLogo();
@@ -1066,8 +1063,7 @@ void SoilBin() {
     my_system.Set_G_acc(ChVector<>(0, 0, 0));
 
     // Create the Irrlicht visualization (open the Irrlicht device, bind a simple user interface, etc.)
-    ChIrrApp application(&my_system, L"9-Node, Large Deformation Brick Element", core::dimension2d<u32>(800, 600),
-                         false, true);
+    ChIrrApp application(&my_system, L"9-Node, Large Deformation Brick Element", core::dimension2d<u32>(800, 600));
 
     // Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
     application.AddTypicalLogo();
@@ -1662,7 +1658,7 @@ void BendingQuasiStatic() {
 
     // Create the Irrlicht visualization (open the Irrlicht device, bind a simple user interface, etc.)
     ChIrrApp application(&my_system, L"9-Node, Large Deformation Brick Element: Bending Problem",
-                         core::dimension2d<u32>(800, 600), false, true);
+                         core::dimension2d<u32>(800, 600));
 
     // Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
     application.AddTypicalLogo();
@@ -1892,7 +1888,7 @@ void SwingingShell() {
 
     // Create the Irrlicht visualization (open the Irrlicht device, bind a simple user interface, etc.)
     ChIrrApp application(&my_system, L"9-Node, Large Deformation Brick Element: Swinging (Bricked) Shell",
-                         core::dimension2d<u32>(800, 600), false, true);
+                         core::dimension2d<u32>(800, 600));
 
     // Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
     application.AddTypicalLogo();

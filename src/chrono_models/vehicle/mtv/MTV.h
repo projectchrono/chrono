@@ -41,9 +41,9 @@ namespace fmtv {
 /// @addtogroup vehicle_models_fmtv
 /// @{
 
-/// Definition of the UAZ assembly.
+/// Definition of the MTV assembly.
 /// This class encapsulates a concrete wheeled vehicle model with parameters corresponding to
-/// a UAZ vehicle, the powertrain model, and the 6 tires.
+/// an MTV vehicle, the powertrain model, and the 6 tires.
 class CH_MODELS_API MTV {
   public:
     MTV();

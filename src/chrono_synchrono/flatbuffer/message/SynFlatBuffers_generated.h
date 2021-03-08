@@ -67,6 +67,16 @@ struct DescriptionBuilder;
 
 }  // namespace TrackedVehicle
 
+namespace Copter {
+
+struct State;
+struct StateBuilder;
+
+struct Description;
+struct DescriptionBuilder;
+
+}  // namespace Copter
+
 namespace Environment {
 
 struct State;
@@ -115,7 +125,7 @@ struct MessageBuilder;
 
 namespace SPAT {
 
-enum Color {
+enum Color : int8_t {
   Color_Green = 0,
   Color_Yellow = 1,
   Color_Red = 2,
@@ -152,7 +162,7 @@ inline const char *EnumNameColor(Color e) {
 
 namespace Agent {
 
-enum Type {
+enum Type : uint8_t {
   Type_NONE = 0,
   Type_WheeledVehicle_State = 1,
   Type_WheeledVehicle_Description = 2,
@@ -160,11 +170,13 @@ enum Type {
   Type_TrackedVehicle_Description = 4,
   Type_Environment_State = 5,
   Type_Environment_Description = 6,
+  Type_Copter_State = 7,
+  Type_Copter_Description = 8,
   Type_MIN = Type_NONE,
-  Type_MAX = Type_Environment_Description
+  Type_MAX = Type_Copter_Description
 };
 
-inline const Type (&EnumValuesType())[7] {
+inline const Type (&EnumValuesType())[9] {
   static const Type values[] = {
     Type_NONE,
     Type_WheeledVehicle_State,
@@ -172,13 +184,15 @@ inline const Type (&EnumValuesType())[7] {
     Type_TrackedVehicle_State,
     Type_TrackedVehicle_Description,
     Type_Environment_State,
-    Type_Environment_Description
+    Type_Environment_Description,
+    Type_Copter_State,
+    Type_Copter_Description
   };
   return values;
 }
 
 inline const char * const *EnumNamesType() {
-  static const char * const names[8] = {
+  static const char * const names[10] = {
     "NONE",
     "WheeledVehicle_State",
     "WheeledVehicle_Description",
@@ -186,13 +200,15 @@ inline const char * const *EnumNamesType() {
     "TrackedVehicle_Description",
     "Environment_State",
     "Environment_Description",
+    "Copter_State",
+    "Copter_Description",
     nullptr
   };
   return names;
 }
 
 inline const char *EnumNameType(Type e) {
-  if (flatbuffers::IsOutRange(e, Type_NONE, Type_Environment_Description)) return "";
+  if (flatbuffers::IsOutRange(e, Type_NONE, Type_Copter_Description)) return "";
   const size_t index = static_cast<size_t>(e);
   return EnumNamesType()[index];
 }
@@ -225,6 +241,14 @@ template<> struct TypeTraits<SynFlatBuffers::Agent::Environment::Description> {
   static const Type enum_value = Type_Environment_Description;
 };
 
+template<> struct TypeTraits<SynFlatBuffers::Agent::Copter::State> {
+  static const Type enum_value = Type_Copter_State;
+};
+
+template<> struct TypeTraits<SynFlatBuffers::Agent::Copter::Description> {
+  static const Type enum_value = Type_Copter_Description;
+};
+
 bool VerifyType(flatbuffers::Verifier &verifier, const void *obj, Type type);
 bool VerifyTypeVector(flatbuffers::Verifier &verifier, const flatbuffers::Vector<flatbuffers::Offset<void>> *values, const flatbuffers::Vector<uint8_t> *types);
 
@@ -232,7 +256,7 @@ bool VerifyTypeVector(flatbuffers::Verifier &verifier, const flatbuffers::Vector
 
 namespace Terrain {
 
-enum Type {
+enum Type : uint8_t {
   Type_NONE = 0,
   Type_SCM_State = 1,
   Type_MIN = Type_NONE,
@@ -275,7 +299,7 @@ bool VerifyTypeVector(flatbuffers::Verifier &verifier, const flatbuffers::Vector
 
 }  // namespace Terrain
 
-enum Type {
+enum Type : uint8_t {
   Type_NONE = 0,
   Type_Agent_State = 1,
   Type_Agent_Description = 2,
@@ -368,8 +392,10 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(8) NodeLevel FLATBUFFERS_FINAL_CLASS {
   double level_;
 
  public:
-  NodeLevel() {
-    memset(static_cast<void *>(this), 0, sizeof(NodeLevel));
+  NodeLevel()
+      : x_(0),
+        y_(0),
+        level_(0) {
   }
   NodeLevel(int32_t _x, int32_t _y, double _level)
       : x_(flatbuffers::EndianScalar(_x)),
@@ -429,7 +455,6 @@ struct StateBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  StateBuilder &operator=(const StateBuilder &);
   flatbuffers::Offset<State> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<State>(end);
@@ -508,7 +533,6 @@ struct LaneBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  LaneBuilder &operator=(const LaneBuilder &);
   flatbuffers::Offset<Lane> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<Lane>(end);
@@ -574,7 +598,6 @@ struct VectorBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  VectorBuilder &operator=(const VectorBuilder &);
   flatbuffers::Offset<Vector> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<Vector>(end);
@@ -644,7 +667,6 @@ struct QuaternionBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  QuaternionBuilder &operator=(const QuaternionBuilder &);
   flatbuffers::Offset<Quaternion> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<Quaternion>(end);
@@ -738,7 +760,6 @@ struct PoseBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  PoseBuilder &operator=(const PoseBuilder &);
   flatbuffers::Offset<Pose> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<Pose>(end);
@@ -802,7 +823,6 @@ struct StateBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  StateBuilder &operator=(const StateBuilder &);
   flatbuffers::Offset<State> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<State>(end);
@@ -867,7 +887,6 @@ struct LaneBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  LaneBuilder &operator=(const LaneBuilder &);
   flatbuffers::Offset<Lane> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<Lane>(end);
@@ -936,7 +955,6 @@ struct StateBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  StateBuilder &operator=(const StateBuilder &);
   flatbuffers::Offset<State> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<State>(end);
@@ -993,7 +1011,6 @@ struct intersectionBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  intersectionBuilder &operator=(const intersectionBuilder &);
   flatbuffers::Offset<intersection> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<intersection>(end);
@@ -1068,7 +1085,6 @@ struct StateBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  StateBuilder &operator=(const StateBuilder &);
   flatbuffers::Offset<State> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<State>(end);
@@ -1154,7 +1170,6 @@ struct DescriptionBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  DescriptionBuilder &operator=(const DescriptionBuilder &);
   flatbuffers::Offset<Description> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<Description>(end);
@@ -1272,7 +1287,6 @@ struct StateBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  StateBuilder &operator=(const StateBuilder &);
   flatbuffers::Offset<State> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<State>(end);
@@ -1442,7 +1456,6 @@ struct DescriptionBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  DescriptionBuilder &operator=(const DescriptionBuilder &);
   flatbuffers::Offset<Description> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<Description>(end);
@@ -1520,6 +1533,164 @@ inline flatbuffers::Offset<Description> CreateDescriptionDirect(
 
 }  // namespace TrackedVehicle
 
+namespace Copter {
+
+struct State FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  typedef StateBuilder Builder;
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
+    VT_TIME = 4,
+    VT_CHASSIS = 6,
+    VT_PROPELLERS = 8
+  };
+  double time() const {
+    return GetField<double>(VT_TIME, 0.0);
+  }
+  const SynFlatBuffers::Pose *chassis() const {
+    return GetPointer<const SynFlatBuffers::Pose *>(VT_CHASSIS);
+  }
+  const flatbuffers::Vector<flatbuffers::Offset<SynFlatBuffers::Pose>> *propellers() const {
+    return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<SynFlatBuffers::Pose>> *>(VT_PROPELLERS);
+  }
+  bool Verify(flatbuffers::Verifier &verifier) const {
+    return VerifyTableStart(verifier) &&
+           VerifyField<double>(verifier, VT_TIME) &&
+           VerifyOffset(verifier, VT_CHASSIS) &&
+           verifier.VerifyTable(chassis()) &&
+           VerifyOffset(verifier, VT_PROPELLERS) &&
+           verifier.VerifyVector(propellers()) &&
+           verifier.VerifyVectorOfTables(propellers()) &&
+           verifier.EndTable();
+  }
+};
+
+struct StateBuilder {
+  typedef State Table;
+  flatbuffers::FlatBufferBuilder &fbb_;
+  flatbuffers::uoffset_t start_;
+  void add_time(double time) {
+    fbb_.AddElement<double>(State::VT_TIME, time, 0.0);
+  }
+  void add_chassis(flatbuffers::Offset<SynFlatBuffers::Pose> chassis) {
+    fbb_.AddOffset(State::VT_CHASSIS, chassis);
+  }
+  void add_propellers(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<SynFlatBuffers::Pose>>> propellers) {
+    fbb_.AddOffset(State::VT_PROPELLERS, propellers);
+  }
+  explicit StateBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+        : fbb_(_fbb) {
+    start_ = fbb_.StartTable();
+  }
+  flatbuffers::Offset<State> Finish() {
+    const auto end = fbb_.EndTable(start_);
+    auto o = flatbuffers::Offset<State>(end);
+    return o;
+  }
+};
+
+inline flatbuffers::Offset<State> CreateState(
+    flatbuffers::FlatBufferBuilder &_fbb,
+    double time = 0.0,
+    flatbuffers::Offset<SynFlatBuffers::Pose> chassis = 0,
+    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<SynFlatBuffers::Pose>>> propellers = 0) {
+  StateBuilder builder_(_fbb);
+  builder_.add_time(time);
+  builder_.add_propellers(propellers);
+  builder_.add_chassis(chassis);
+  return builder_.Finish();
+}
+
+inline flatbuffers::Offset<State> CreateStateDirect(
+    flatbuffers::FlatBufferBuilder &_fbb,
+    double time = 0.0,
+    flatbuffers::Offset<SynFlatBuffers::Pose> chassis = 0,
+    const std::vector<flatbuffers::Offset<SynFlatBuffers::Pose>> *propellers = nullptr) {
+  auto propellers__ = propellers ? _fbb.CreateVector<flatbuffers::Offset<SynFlatBuffers::Pose>>(*propellers) : 0;
+  return SynFlatBuffers::Agent::Copter::CreateState(
+      _fbb,
+      time,
+      chassis,
+      propellers__);
+}
+
+struct Description FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  typedef DescriptionBuilder Builder;
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
+    VT_CHASSIS_VIS_FILE = 4,
+    VT_PROPELLER_VIS_FILE = 6,
+    VT_NUM_PROPS = 8
+  };
+  const flatbuffers::String *chassis_vis_file() const {
+    return GetPointer<const flatbuffers::String *>(VT_CHASSIS_VIS_FILE);
+  }
+  const flatbuffers::String *propeller_vis_file() const {
+    return GetPointer<const flatbuffers::String *>(VT_PROPELLER_VIS_FILE);
+  }
+  int32_t num_props() const {
+    return GetField<int32_t>(VT_NUM_PROPS, 0);
+  }
+  bool Verify(flatbuffers::Verifier &verifier) const {
+    return VerifyTableStart(verifier) &&
+           VerifyOffset(verifier, VT_CHASSIS_VIS_FILE) &&
+           verifier.VerifyString(chassis_vis_file()) &&
+           VerifyOffset(verifier, VT_PROPELLER_VIS_FILE) &&
+           verifier.VerifyString(propeller_vis_file()) &&
+           VerifyField<int32_t>(verifier, VT_NUM_PROPS) &&
+           verifier.EndTable();
+  }
+};
+
+struct DescriptionBuilder {
+  typedef Description Table;
+  flatbuffers::FlatBufferBuilder &fbb_;
+  flatbuffers::uoffset_t start_;
+  void add_chassis_vis_file(flatbuffers::Offset<flatbuffers::String> chassis_vis_file) {
+    fbb_.AddOffset(Description::VT_CHASSIS_VIS_FILE, chassis_vis_file);
+  }
+  void add_propeller_vis_file(flatbuffers::Offset<flatbuffers::String> propeller_vis_file) {
+    fbb_.AddOffset(Description::VT_PROPELLER_VIS_FILE, propeller_vis_file);
+  }
+  void add_num_props(int32_t num_props) {
+    fbb_.AddElement<int32_t>(Description::VT_NUM_PROPS, num_props, 0);
+  }
+  explicit DescriptionBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+        : fbb_(_fbb) {
+    start_ = fbb_.StartTable();
+  }
+  flatbuffers::Offset<Description> Finish() {
+    const auto end = fbb_.EndTable(start_);
+    auto o = flatbuffers::Offset<Description>(end);
+    return o;
+  }
+};
+
+inline flatbuffers::Offset<Description> CreateDescription(
+    flatbuffers::FlatBufferBuilder &_fbb,
+    flatbuffers::Offset<flatbuffers::String> chassis_vis_file = 0,
+    flatbuffers::Offset<flatbuffers::String> propeller_vis_file = 0,
+    int32_t num_props = 0) {
+  DescriptionBuilder builder_(_fbb);
+  builder_.add_num_props(num_props);
+  builder_.add_propeller_vis_file(propeller_vis_file);
+  builder_.add_chassis_vis_file(chassis_vis_file);
+  return builder_.Finish();
+}
+
+inline flatbuffers::Offset<Description> CreateDescriptionDirect(
+    flatbuffers::FlatBufferBuilder &_fbb,
+    const char *chassis_vis_file = nullptr,
+    const char *propeller_vis_file = nullptr,
+    int32_t num_props = 0) {
+  auto chassis_vis_file__ = chassis_vis_file ? _fbb.CreateString(chassis_vis_file) : 0;
+  auto propeller_vis_file__ = propeller_vis_file ? _fbb.CreateString(propeller_vis_file) : 0;
+  return SynFlatBuffers::Agent::Copter::CreateDescription(
+      _fbb,
+      chassis_vis_file__,
+      propeller_vis_file__,
+      num_props);
+}
+
+}  // namespace Copter
+
 namespace Environment {
 
 struct State FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
@@ -1558,7 +1729,6 @@ struct StateBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  StateBuilder &operator=(const StateBuilder &);
   flatbuffers::Offset<State> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<State>(end);
@@ -1592,7 +1762,6 @@ struct DescriptionBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  DescriptionBuilder &operator=(const DescriptionBuilder &);
   flatbuffers::Offset<Description> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<Description>(end);
@@ -1639,6 +1808,12 @@ struct State FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   const SynFlatBuffers::Agent::Environment::Description *message_as_Environment_Description() const {
     return message_type() == SynFlatBuffers::Agent::Type_Environment_Description ? static_cast<const SynFlatBuffers::Agent::Environment::Description *>(message()) : nullptr;
   }
+  const SynFlatBuffers::Agent::Copter::State *message_as_Copter_State() const {
+    return message_type() == SynFlatBuffers::Agent::Type_Copter_State ? static_cast<const SynFlatBuffers::Agent::Copter::State *>(message()) : nullptr;
+  }
+  const SynFlatBuffers::Agent::Copter::Description *message_as_Copter_Description() const {
+    return message_type() == SynFlatBuffers::Agent::Type_Copter_Description ? static_cast<const SynFlatBuffers::Agent::Copter::Description *>(message()) : nullptr;
+  }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<uint8_t>(verifier, VT_MESSAGE_TYPE) &&
@@ -1672,6 +1847,14 @@ template<> inline const SynFlatBuffers::Agent::Environment::Description *State::
   return message_as_Environment_Description();
 }
 
+template<> inline const SynFlatBuffers::Agent::Copter::State *State::message_as<SynFlatBuffers::Agent::Copter::State>() const {
+  return message_as_Copter_State();
+}
+
+template<> inline const SynFlatBuffers::Agent::Copter::Description *State::message_as<SynFlatBuffers::Agent::Copter::Description>() const {
+  return message_as_Copter_Description();
+}
+
 struct StateBuilder {
   typedef State Table;
   flatbuffers::FlatBufferBuilder &fbb_;
@@ -1686,7 +1869,6 @@ struct StateBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  StateBuilder &operator=(const StateBuilder &);
   flatbuffers::Offset<State> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<State>(end);
@@ -1736,6 +1918,12 @@ struct Description FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   const SynFlatBuffers::Agent::Environment::Description *description_as_Environment_Description() const {
     return description_type() == SynFlatBuffers::Agent::Type_Environment_Description ? static_cast<const SynFlatBuffers::Agent::Environment::Description *>(description()) : nullptr;
   }
+  const SynFlatBuffers::Agent::Copter::State *description_as_Copter_State() const {
+    return description_type() == SynFlatBuffers::Agent::Type_Copter_State ? static_cast<const SynFlatBuffers::Agent::Copter::State *>(description()) : nullptr;
+  }
+  const SynFlatBuffers::Agent::Copter::Description *description_as_Copter_Description() const {
+    return description_type() == SynFlatBuffers::Agent::Type_Copter_Description ? static_cast<const SynFlatBuffers::Agent::Copter::Description *>(description()) : nullptr;
+  }
   const flatbuffers::String *json() const {
     return GetPointer<const flatbuffers::String *>(VT_JSON);
   }
@@ -1774,6 +1962,14 @@ template<> inline const SynFlatBuffers::Agent::Environment::Description *Descrip
   return description_as_Environment_Description();
 }
 
+template<> inline const SynFlatBuffers::Agent::Copter::State *Description::description_as<SynFlatBuffers::Agent::Copter::State>() const {
+  return description_as_Copter_State();
+}
+
+template<> inline const SynFlatBuffers::Agent::Copter::Description *Description::description_as<SynFlatBuffers::Agent::Copter::Description>() const {
+  return description_as_Copter_Description();
+}
+
 struct DescriptionBuilder {
   typedef Description Table;
   flatbuffers::FlatBufferBuilder &fbb_;
@@ -1791,7 +1987,6 @@ struct DescriptionBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  DescriptionBuilder &operator=(const DescriptionBuilder &);
   flatbuffers::Offset<Description> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<Description>(end);
@@ -1864,7 +2059,6 @@ struct StateBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  StateBuilder &operator=(const StateBuilder &);
   flatbuffers::Offset<State> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<State>(end);
@@ -1938,7 +2132,6 @@ struct StateBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  StateBuilder &operator=(const StateBuilder &);
   flatbuffers::Offset<State> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<State>(end);
@@ -1986,7 +2179,6 @@ struct StateBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  StateBuilder &operator=(const StateBuilder &);
   flatbuffers::Offset<State> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<State>(end);
@@ -2032,7 +2224,6 @@ struct BufferBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  BufferBuilder &operator=(const BufferBuilder &);
   flatbuffers::Offset<Buffer> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<Buffer>(end);
@@ -2158,7 +2349,6 @@ struct MessageBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  MessageBuilder &operator=(const MessageBuilder &);
   flatbuffers::Offset<Message> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<Message>(end);
@@ -2200,6 +2390,10 @@ namespace WheeledVehicle {
 namespace TrackedVehicle {
 
 }  // namespace TrackedVehicle
+
+namespace Copter {
+
+}  // namespace Copter
 
 namespace Environment {
 
@@ -2247,6 +2441,14 @@ inline bool VerifyType(flatbuffers::Verifier &verifier, const void *obj, Type ty
     }
     case Type_Environment_Description: {
       auto ptr = reinterpret_cast<const SynFlatBuffers::Agent::Environment::Description *>(obj);
+      return verifier.VerifyTable(ptr);
+    }
+    case Type_Copter_State: {
+      auto ptr = reinterpret_cast<const SynFlatBuffers::Agent::Copter::State *>(obj);
+      return verifier.VerifyTable(ptr);
+    }
+    case Type_Copter_Description: {
+      auto ptr = reinterpret_cast<const SynFlatBuffers::Agent::Copter::Description *>(obj);
       return verifier.VerifyTable(ptr);
     }
     default: return true;

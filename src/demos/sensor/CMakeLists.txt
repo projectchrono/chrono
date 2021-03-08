@@ -12,6 +12,7 @@ set(CHRONO_LINK_FLAGS ${CH_LINKERFLAG_EXE})
 #List of demos that show the sensor framework
 SET(DEMOS
   demo_SEN_buildtest
+  demo_SEN_Bedroom
   demo_SEN_camera
   demo_SEN_JSON
   demo_SEN_lidar
