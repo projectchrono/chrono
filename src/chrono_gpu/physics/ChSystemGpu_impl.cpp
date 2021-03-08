@@ -437,7 +437,7 @@ void ChSystemGpu_impl::WriteFile(std::string ofile) const {
             delete[] wx, wy, wz;
         }
 #else
-        CHGPU_ERROR("HDF5 Installation not found. Recompile with HDF5.\n");
+        CHGPU_ERROR("ERROR! HDF5 Installation not found. Recompile with HDF5.\n");
 #endif
     } else if (file_write_mode == CHGPU_OUTPUT_MODE::NONE) {
         // Do nothing, only here for symmetry

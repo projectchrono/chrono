@@ -254,6 +254,9 @@ class CH_GPU_API ChSystemGpuMesh : public ChSystemGpu {
     /// Enable/disable mesh collision (for all defined meshes).
     void EnableMeshCollision(bool val);
 
+    /// Enable/disable mesh normal-based orientation correction, see use_mesh_normals
+    void UseMeshNormals(bool val) { use_mesh_normals = val; }
+
     /// Apply rigid body motion to specified mesh.
     void ApplyMeshMotion(unsigned int mesh_id,
                          const ChVector<>& pos,
@@ -325,6 +328,8 @@ class CH_GPU_API ChSystemGpuMesh : public ChSystemGpu {
     void SetMeshes();
 
     CHGPU_MESH_VERBOSITY mesh_verbosity;                                       ///< mesh operations verbosity level
+    bool use_mesh_normals =
+        false;  ///< true: use mesh normals in file to correct mesh orientation; false: do nothing, implicitly use RHR
     std::vector<std::shared_ptr<geometry::ChTriangleMeshConnected>> m_meshes;  ///< list of meshes used in cosimulation
     std::vector<float> m_mesh_masses;                                          ///< associated mesh masses
 };

@@ -342,7 +342,7 @@ unsigned int ChSystemGpuMesh::AddMesh(const std::string& filename,
     auto mesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
     bool flag = mesh->LoadWavefrontMesh(filename, true, false);
     if (!flag)
-        CHGPU_ERROR("ERROR! Mesh %s failed to load in! Exiting!\n", filename.c_str());
+        CHGPU_ERROR("ERROR! Mesh %s failed to load in!\n", filename.c_str());
     if (mesh->getNumTriangles() == 0)
         printf("WARNING: Mesh %s has no triangles!\n", filename.c_str());
     mesh->Transform(translation, rotscale.cast<double>());
@@ -360,7 +360,7 @@ std::vector<unsigned int> ChSystemGpuMesh::AddMeshes(const std::vector<std::stri
                                                      const std::vector<float>& masses) {
     unsigned int size = (unsigned int)objfilenames.size();
     if (size != rotscales.size() || size != translations.size() || size != masses.size())
-        CHGPU_ERROR("Mesh loading vectors must all have same size\n");
+        CHGPU_ERROR("ERROR! Mesh loading vectors must all have same size!\n");
     if (size == 0)
         printf("WARNING: No meshes provided!\n");
 
@@ -380,7 +380,6 @@ void ChSystemGpuMesh::SetMeshes() {
     ChSystemGpuMesh_impl* sys_trimesh = static_cast<ChSystemGpuMesh_impl*>(m_sys);
     ChSystemGpuMesh_impl::TriangleSoup* pMeshSoup = sys_trimesh->getMeshSoup();
     pMeshSoup->nTrianglesInSoup = nTriangles;
-
     if (nTriangles != 0) {
         // Allocate all of the requisite pointers
         gpuErrchk(
@@ -407,20 +406,23 @@ void ChSystemGpuMesh::SetMeshes() {
 
             pMeshSoup->triangleFamily_ID[tri_i] = family;
 
-            // Normal of a single vertex... Should still work
-            int normal_i = mesh->m_face_n_indices.at(i).x();  // normals at each vertex of this triangle
-            ChVector<double> normal = mesh->m_normals[normal_i];
+            // If we wish to correct surface orientation based on given vertex normals, rather than using RHR...
+            if (use_mesh_normals) {
+                int normal_i = mesh->m_face_n_indices.at(i).x();  // normals at each vertex of this triangle
+                ChVector<double> normal = mesh->m_normals.at(normal_i);
 
-            // Generate normal using RHR from nodes 1, 2, and 3
-            ChVector<double> AB = tri.p2 - tri.p1;
-            ChVector<double> AC = tri.p3 - tri.p1;
-            ChVector<double> cross;
-            cross.Cross(AB, AC);
+                // Generate normal using RHR from nodes 1, 2, and 3
+                ChVector<double> AB = tri.p2 - tri.p1;
+                ChVector<double> AC = tri.p3 - tri.p1;
+                ChVector<double> cross;
+                cross.Cross(AB, AC);
 
-            // If the normal created by a RHR traversal is not correct, switch two vertices
-            if (cross.Dot(normal) < 0) {
-                std::swap(pMeshSoup->node2[tri_i], pMeshSoup->node3[tri_i]);
+                // If the normal created by a RHR traversal is not correct, switch two vertices
+                if (cross.Dot(normal) < 0) {
+                    std::swap(pMeshSoup->node2[tri_i], pMeshSoup->node3[tri_i]);
+                }
             }
+
             tri_i++;
         }
         family++;
@@ -458,6 +460,7 @@ void ChSystemGpuMesh::SetMeshes() {
             pMeshSoup->omega[i] = make_float3(0, 0, 0);
         }
     }
+
 }
 
 void ChSystemGpuMesh::ApplyMeshMotion(unsigned int mesh_id,
