@@ -98,7 +98,8 @@ const ChCoordsys<>& SCMDeformableTerrain::GetPlane() const {
 
 // Set the visualization mesh as wireframe or as solid.
 void SCMDeformableTerrain::SetMeshWireframe(bool val) {
-    m_ground->m_trimesh_shape->SetWireframe(val);
+    if (m_ground->m_trimesh_shape)
+        m_ground->m_trimesh_shape->SetWireframe(val);
 }
 
 // Get the trimesh that defines the ground shape.
@@ -351,16 +352,16 @@ void SCMDeformableSoil::Initialize(double sizeX, double sizeY, double delta) {
     m_delta = sizeX / (2 * m_nx);   // grid spacing
     m_area = std::pow(m_delta, 2);  // area of a cell
 
+    // Return now if no visualization
+    if (!m_trimesh_shape)
+        return;
+
     int nvx = 2 * m_nx + 1;                     // number of grid vertices in X direction
     int nvy = 2 * m_ny + 1;                     // number of grid vertices in Y direction
     int n_verts = nvx * nvy;                    // total number of vertices for initial visualization trimesh
     int n_faces = 2 * (2 * m_nx) * (2 * m_ny);  // total number of faces for initial visualization trimesh
     double x_scale = 0.5 / m_nx;                // scale for texture coordinates (U direction)
     double y_scale = 0.5 / m_ny;                // scale for texture coordinates (V direction)
-
-    // Return now if no visualization
-    if (!m_trimesh_shape)
-        return;
 
     // Readability aliases
     auto trimesh = m_trimesh_shape->GetMesh();
@@ -588,7 +589,7 @@ void SCMDeformableSoil::SetupInitial() {
     }
 }
 
-bool SCMDeformableSoil::CheckBounds(const ChVector2<int>& loc) const {
+bool SCMDeformableSoil::CheckMeshBounds(const ChVector2<int>& loc) const {
     return loc.x() >= -m_nx && loc.x() <= m_nx && loc.y() >= -m_ny && loc.y() <= m_ny;
 }
 
@@ -771,10 +772,10 @@ void SCMDeformableSoil::UpdateMovingPatch(MovingPatchInfo& p, const ChVector<>& 
     }
 
     // Find index ranges for grid vertices contained in the patch projection AABB
-    int x_min = ChClamp(static_cast<int>(std::ceil(p_min.x() / m_delta)), -m_nx, +m_nx);
-    int y_min = ChClamp(static_cast<int>(std::ceil(p_min.y() / m_delta)), -m_ny, +m_ny);
-    int x_max = ChClamp(static_cast<int>(std::floor(p_max.x() / m_delta)), -m_nx, +m_nx);
-    int y_max = ChClamp(static_cast<int>(std::floor(p_max.y() / m_delta)), -m_ny, +m_ny);
+    int x_min = static_cast<int>(std::ceil(p_min.x() / m_delta));
+    int y_min = static_cast<int>(std::ceil(p_min.y() / m_delta));
+    int x_max = static_cast<int>(std::floor(p_max.x() / m_delta));
+    int y_max = static_cast<int>(std::floor(p_max.y() / m_delta));
     int n_x = x_max - x_min + 1;
     int n_y = y_max - y_min + 1;
 
@@ -821,10 +822,10 @@ void SCMDeformableSoil::UpdateFixedPatch(MovingPatchInfo& p) {
     }
 
     // Find index ranges for grid vertices contained in the patch projection AABB
-    int x_min = ChClamp(static_cast<int>(std::ceil(p_min.x() / m_delta)), -m_nx, +m_nx);
-    int y_min = ChClamp(static_cast<int>(std::ceil(p_min.y() / m_delta)), -m_ny, +m_ny);
-    int x_max = ChClamp(static_cast<int>(std::floor(p_max.x() / m_delta)), -m_nx, +m_nx);
-    int y_max = ChClamp(static_cast<int>(std::floor(p_max.y() / m_delta)), -m_ny, +m_ny);
+    int x_min = static_cast<int>(std::ceil(p_min.x() / m_delta));
+    int y_min = static_cast<int>(std::ceil(p_min.y() / m_delta));
+    int x_max = static_cast<int>(std::floor(p_max.x() / m_delta));
+    int y_max = static_cast<int>(std::floor(p_max.y() / m_delta));
     int n_x = x_max - x_min + 1;
     int n_y = y_max - y_min + 1;
 
@@ -895,7 +896,7 @@ void SCMDeformableSoil::ComputeInternalForces() {
         nr.p_hit_level = 1e9;
 
         // Update visualization (only color changes relevant here)
-        if (m_trimesh_shape) {
+        if (m_trimesh_shape && CheckMeshBounds(ij)) {
             int iv = GetMeshVertexIndex(ij);          // mesh vertex index
             UpdateMeshVertexCoordinates(ij, iv, nr);  // update vertex coordinates and color
             modified_vertices.push_back(iv);
@@ -1258,8 +1259,8 @@ void SCMDeformableSoil::ComputeInternalForces() {
                 tot_step_flow += nr.p_step_plastic_flow;              //   accumulate displaced material
                 for (int k = 0; k < 4; k++) {                         //   check each node neighbor
                     ChVector2<int> nbr_ij = ij + neighbors4[k];       //     neighbor node coordinates
-                    if (!CheckBounds(nbr_ij))                         //     if neighbor out of bounds
-                        continue;                                     //       skip neighbor
+                    ////if (!CheckMeshBounds(nbr_ij))                     //     if neighbor out of bounds
+                    ////    continue;                                     //       skip neighbor
                     if (m_grid_map.find(nbr_ij) == m_grid_map.end())  //     if neighbor not yet recorded
                         p_boundary.insert(nbr_ij);                    //       set neighbor as boundary
                     else if (m_grid_map.at(nbr_ij).p_sigma <= 0)      //     if neighbor not touched
@@ -1301,8 +1302,8 @@ void SCMDeformableSoil::ComputeInternalForces() {
             for (const auto& ij : erosion_front) {                      // for each node in current erosion front
                 for (int k = 0; k < 4; k++) {                           // check each of its neighbors
                     ChVector2<int> nbr_ij = ij + neighbors4[k];         //   neighbor node coordinates
-                    if (!CheckBounds(nbr_ij))                           //   if out of bounds
-                        continue;                                       //     ignore neighbor
+                    ////if (!CheckMeshBounds(nbr_ij))                       //   if out of bounds
+                    ////    continue;                                       //     ignore neighbor
                     if (m_grid_map.find(nbr_ij) == m_grid_map.end()) {  //   if neighbor not yet recorded
                         double z = GetInitHeight(nbr_ij);               //     undeformed height at neighbor location
                         const ChVector<>& n = GetInitNormal(nbr_ij);    //     terrain normal at neighbor location
@@ -1379,20 +1380,17 @@ void SCMDeformableSoil::ComputeInternalForces() {
     m_timer_visualization.start();
 
     if (m_trimesh_shape) {
-        // Loop over list of modified nodes and adjust corresponding mesh vertices
+        // Loop over list of modified nodes and adjust corresponding mesh vertices.
+        // If not rendering a wireframe mesh, also update normals.
         for (const auto& ij : m_modified_nodes) {
+            if (!CheckMeshBounds(ij))                 // if node outside mesh
+                continue;                             //   do nothing
             const auto& nr = m_grid_map.at(ij);       // grid node record
             int iv = GetMeshVertexIndex(ij);          // mesh vertex index
             UpdateMeshVertexCoordinates(ij, iv, nr);  // update vertex coordinates and color
-            modified_vertices.push_back(iv);
-        }
-
-        // Update the visualization normals for modified vertices
-        if (!m_trimesh_shape->IsWireframe()) {
-            for (const auto& ij : m_modified_nodes) {
-                int iv = GetMeshVertexIndex(ij);  // mesh vertex index
-                UpdateMeshVertexNormal(ij, iv);   // update vertex normal
-            }
+            modified_vertices.push_back(iv);          // cache in list of modified mesh vertices
+            if (!m_trimesh_shape->IsWireframe())      // if not wireframe
+                UpdateMeshVertexNormal(ij, iv);       // update vertex normal
         }
 
         m_trimesh_shape->SetModifiedVertices(modified_vertices);
@@ -1535,18 +1533,15 @@ void SCMDeformableSoil::SetModifiedNodes(const std::vector<SCMDeformableTerrain:
     // Update visualization
     if (m_trimesh_shape) {
         for (const auto& n : nodes) {
-            auto ij = n.first;                        // grid location
-            const auto& nr = m_grid_map.at(ij);       // grid node record
-            int iv = GetMeshVertexIndex(ij);          // mesh vertex index
-            UpdateMeshVertexCoordinates(ij, iv, nr);  // update vertex coordinates and color
-            m_external_modified_vertices.push_back(iv);
-        }
-        if (!m_trimesh_shape->IsWireframe()) {
-            for (const auto& n : nodes) {
-                auto ij = n.first;                // grid location
-                int iv = GetMeshVertexIndex(ij);  // mesh vertex index
-                UpdateMeshVertexNormal(ij, iv);   // update vertex normal
-            }
+            auto ij = n.first;                           // grid location
+            if (!CheckMeshBounds(ij))                    // if outside mesh
+                continue;                                //   do nothing
+            const auto& nr = m_grid_map.at(ij);          // grid node record
+            int iv = GetMeshVertexIndex(ij);             // mesh vertex index
+            UpdateMeshVertexCoordinates(ij, iv, nr);     // update vertex coordinates and color
+            if (!m_trimesh_shape->IsWireframe())         // if not in wireframe mode
+                UpdateMeshVertexNormal(ij, iv);          //   update vertex normal
+            m_external_modified_vertices.push_back(iv);  // cache in list
         }
     }
 }

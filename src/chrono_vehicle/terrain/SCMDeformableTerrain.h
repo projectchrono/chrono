@@ -378,8 +378,8 @@ class CH_VEHICLE_API SCMDeformableSoil : public ChLoadContainer {
     // Get indices of trimesh faces incident to the specified grid vertex.
     std::vector<int> GetMeshFaceIndices(const ChVector2<int>& loc);
 
-    // Check if the provided grid location is within bounds
-    bool CheckBounds(const ChVector2<int>& loc) const;
+    // Check if the provided grid location is within the visualization mesh bounds
+    bool CheckMeshBounds(const ChVector2<int>& loc) const;
 
     // Complete setup before first simulation step.
     virtual void SetupInitial() override;
