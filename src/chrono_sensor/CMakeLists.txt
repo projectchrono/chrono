@@ -218,6 +218,7 @@ set(ChronoEngine_sensor_SOURCES
     ChOptixSensor.cpp
     ChCameraSensor.cpp
     ChLidarSensor.cpp
+    ChRadarSensor.cpp
     ChIMUSensor.cpp
     ChGPSSensor.cpp
     ChSensorManager.cpp
@@ -232,6 +233,7 @@ set(ChronoEngine_sensor_HEADERS
     ChOptixSensor.h
     ChCameraSensor.h
     ChLidarSensor.h
+    ChRadarSensor.h
     ChIMUSensor.h
     ChGPSSensor.h
     ChSensorManager.h
@@ -299,6 +301,7 @@ set(ChronoEngine_sensor_FILTERS_SOURCES
     filters/ChFilterVisualizePointCloud.cpp
     filters/ChFilterImageOps.cpp
     filters/ChFilterLidarIntensityClip.cpp
+    filters/ChFilterRadarPCfromRange.cpp
 )
 set(ChronoEngine_sensor_FILTERS_HEADERS
   	filters/ChFilter.h
@@ -317,6 +320,7 @@ set(ChronoEngine_sensor_FILTERS_HEADERS
     filters/ChFilterVisualizePointCloud.h
     filters/ChFilterImageOps.h
     filters/ChFilterLidarIntensityClip.h
+    filters/ChFilterRadarPCfromRange.h
 )
 
 source_group("Filters" FILES

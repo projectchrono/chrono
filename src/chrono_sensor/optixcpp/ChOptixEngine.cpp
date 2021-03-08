@@ -1229,8 +1229,13 @@ Material ChOptixEngine::GetDefaultMaterial() {
     if (!m_shadow_shader)
         m_shadow_shader = GetRTProgram(m_context, "shadow_shaders", "hit_shadow");
 
-    if (!m_lidar_shader)
+    if (!m_lidar_shader){
         m_lidar_shader = GetRTProgram(m_context, "lidar_shaders", "diffuse_shader");
+    }
+
+
+    if (!m_radar_shader)
+        m_radar_shader = GetRTProgram(m_context, "radar_shaders", "diffuse_shader");
 
     m_default_material["Ka"]->setFloat(.2f, .2f, .2f);
     m_default_material["Kd"]->setFloat(.5f, .5f, .5f);
@@ -1270,6 +1275,8 @@ Material ChOptixEngine::CreateMaterial(std::shared_ptr<ChVisualMaterial> chmat) 
         m_shadow_shader = GetRTProgram(m_context, "shadow_shaders", "hit_shadow");
     if (!m_lidar_shader)
         m_lidar_shader = GetRTProgram(m_context, "lidar_shaders", "diffuse_shader");
+    if (!m_radar_shader)
+        m_radar_shader = GetRTProgram(m_context, "radar_shaders", "diffuse_shader");
 
     mat["Ka"]->setFloat(chmat->GetAmbientColor().x(), chmat->GetAmbientColor().y(), chmat->GetAmbientColor().z());
     mat["Kd"]->setFloat(chmat->GetDiffuseColor().x(), chmat->GetDiffuseColor().y(), chmat->GetDiffuseColor().z());

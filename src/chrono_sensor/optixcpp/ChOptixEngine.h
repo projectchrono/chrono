@@ -244,6 +244,7 @@ class CH_SENSOR_API ChOptixEngine {
     // All RT Program should only be made once and then reused
     optix::Program m_camera_shader;    ///< camera material shader
     optix::Program m_lidar_shader;     ///< lidar material shader
+    optix::Program m_radar_shader;
     optix::Program m_shadow_shader;    ///< shadow shader
     optix::Program m_camera_miss;      ///< camera miss shader
     optix::Program m_lidar_miss;       ///< lidar miss shader
