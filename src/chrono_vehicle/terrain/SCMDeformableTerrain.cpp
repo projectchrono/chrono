@@ -430,7 +430,8 @@ void SCMDeformableSoil::Initialize(const std::string& heightmap_file,
     // Read the image file (request only 1 channel) and extract number of pixels.
     STB hmap;
     if (!hmap.ReadFromFile(heightmap_file, 1)) {
-        throw ChException("Cannot open height map image file");
+        std::cout << "STB error in reading height map file " << heightmap_file << std::endl;
+        throw ChException("Cannot read height map image file");
     }
     int nx_img = hmap.GetWidth();
     int ny_img = hmap.GetHeight();
@@ -1304,7 +1305,7 @@ void SCMDeformableSoil::ComputeInternalForces() {
                         continue;                                       //     ignore neighbor
                     if (m_grid_map.find(nbr_ij) == m_grid_map.end()) {  //   if neighbor not yet recorded
                         double z = GetInitHeight(nbr_ij);               //     undeformed height at neighbor location
-                        ChVector<> n = GetInitHeight(nbr_ij);           //     terrain normal at neighbor location
+                        const ChVector<>& n = GetInitNormal(nbr_ij);    //     terrain normal at neighbor location
                         NodeRecord nr(z, z, n);                         //     create new record
                         nr.p_erosion = true;                            //     include in erosion domain
                         m_grid_map.insert(std::make_pair(nbr_ij, nr));  //     add new node record
