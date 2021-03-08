@@ -17,6 +17,7 @@
 // =============================================================================
 
 #include "chrono/utils/ChUtilsInputOutput.h"
+#include "chrono/solver/ChSolverBB.h"
 
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/driver/ChIrrGuiDriver.h"
@@ -55,13 +56,13 @@ double terrainWidth = 4.0;    // size in Y direction
 double delta = 0.05;          // SCM grid spacing
 
 // Simulation step size
-double step_size = 1e-3;
+double step_size = 5e-4;
 
 // Use PardisoMKL
 bool use_mkl = false;
 
 // Time interval between two render frames
-double render_step_size = 1.0 / 50;  // FPS = 50
+double render_step_size = 1.0 / 120;  // FPS = 50
 
 // Point on chassis tracked by the camera
 ChVector<> trackPoint(-2.0, 0.0, 0.0);
@@ -233,7 +234,14 @@ int main(int argc, char* argv[]) {
         integrator->SetVerbose(true);
 #endif
     } else {
-        system->SetSolverMaxIterations(50);
+        auto solver = chrono_types::make_shared<ChSolverBB>();
+        solver->SetMaxIterations(120);
+        solver->SetOmega(0.8);
+        solver->SetSharpnessLambda(1.0);
+        m113.GetSystem()->SetSolver(solver);
+
+        m113.GetSystem()->SetMaxPenetrationRecoverySpeed(1.5);
+        m113.GetSystem()->SetMinBounceSpeed(2.0);
     }
 
     // ---------------
@@ -257,15 +265,17 @@ int main(int argc, char* argv[]) {
     double total_timing = 0;
 
     while (app.GetDevice()->run()) {
-        // Render scene
-        app.BeginScene(true, true, irr::video::SColor(255, 140, 161, 192));
-        app.DrawAll();
+        if (step_number % render_steps == 0) {
+            app.BeginScene(true, true, irr::video::SColor(255, 140, 161, 192));
+            app.DrawAll();
+            app.EndScene();
 
-        if (img_output && step_number % render_steps == 0) {
-            char filename[100];
-            sprintf(filename, "%s/img_%03d.jpg", img_dir.c_str(), render_frame + 1);
-            app.WriteImageToFile(filename);
-            render_frame++;
+            if (img_output) {
+                char filename[100];
+                sprintf(filename, "%s/img_%03d.jpg", img_dir.c_str(), render_frame + 1);
+                app.WriteImageToFile(filename);
+                render_frame++;
+            }
         }
 
         // Collect output data from modules
@@ -288,8 +298,6 @@ int main(int argc, char* argv[]) {
 
         // Increment frame number
         step_number++;
-
-        app.EndScene();
 
         // Execution time 
         double step_timing = system->GetTimerStep();
