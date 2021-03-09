@@ -198,7 +198,7 @@ ChLinkSpringCB : public ChLinkMarkers {
     ChVectorDynamic<> m_rhs;                      ///< current ODE right-hand side
     ChVariablesGenericDiagonalMass* m_variables;  ///< carrier for internal dynamics states
 
-    friend class ChSystemParallel;
+    friend class ChSystemMulticore;
 };
 
 CH_CLASS_VERSION(ChLinkSpringCB, 0)

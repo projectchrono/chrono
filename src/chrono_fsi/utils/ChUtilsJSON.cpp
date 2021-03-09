@@ -70,7 +70,7 @@ void InvalidArg(std::string arg) {
     std::cout << "Invalid arg: " << arg << std::endl;
 }
 
-bool ParseJSON(std::string json_file, std::shared_ptr<SimParams> paramsH, Real3 Domain) {
+bool ParseJSON(const std::string& json_file, std::shared_ptr<SimParams> paramsH, Real3 Domain) {
     std::cout << "Reading parameters: " << json_file << std::endl;
     FILE* fp = fopen(json_file.c_str(), "r");
     if (!fp) {
@@ -344,59 +344,118 @@ bool ParseJSON(std::string json_file, std::shared_ptr<SimParams> paramsH, Real3 
     // this part is for modeling granular material dynamics using elastic SPH
     if (doc.HasMember("Elastic SPH")) {
         paramsH->elastic_SPH = true;
-        paramsH->Nu_poisson = doc["Elastic SPH"]["Poisson ratio"].GetDouble();
-        paramsH->E_young = doc["Elastic SPH"]["Young modulus"].GetDouble();              // Young's modulus
-        paramsH->G_shear = paramsH->E_young / (2.0 * (1.0 + paramsH->Nu_poisson));       // shear modulus
-        paramsH->K_bulk = paramsH->E_young / (3.0 * (1.0 - 2.0 * paramsH->Nu_poisson));  // bulk modulus
-        paramsH->Cs = sqrt(paramsH->K_bulk / paramsH->rho0);
-        paramsH->Ar_stress = doc["Elastic SPH"]["Artificial stress"].GetDouble();
-        paramsH->Ar_vis_alpha = doc["Elastic SPH"]["Artificial viscosity alpha"].GetDouble();
-        paramsH->Ar_vis_beta = doc["Elastic SPH"]["Artificial viscosity beta"].GetDouble();
-
-        paramsH->mu_I0 = doc["Elastic SPH"]["I0"].GetDouble();
-        paramsH->mu_fric_s = doc["Elastic SPH"]["mu_s"].GetDouble();
-        paramsH->mu_fric_2 = doc["Elastic SPH"]["mu_2"].GetDouble();
-        paramsH->ave_diam = doc["Elastic SPH"]["particle diameter"].GetDouble();  // average particle diameter
-        paramsH->Fri_angle =
-            doc["Elastic SPH"]["frictional angle"].GetDouble();               // frictional angle of granular material
-        paramsH->Dil_angle = doc["Elastic SPH"]["dilate angle"].GetDouble();  // dilate angle of granular material
-        paramsH->Coh_coeff = doc["Elastic SPH"]["cohesion coefficient"].GetDouble();  // cohesion coefficient
-        paramsH->Q_FA =
-            6 * sin(paramsH->Fri_angle) /
-            (sqrt(3) * (3 + sin(paramsH->Fri_angle)));  // material constants calculate from frictional angle
-        paramsH->Q_DA = 6 * sin(paramsH->Dil_angle) /
-                        (sqrt(3) * (3 + sin(paramsH->Dil_angle)));  // material constants calculate from dilate angle
-        paramsH->K_FA =
-            6 * paramsH->Coh_coeff * cos(paramsH->Fri_angle) /
-            (sqrt(3) *
-             (3 +
-              sin(paramsH->Fri_angle)));  // material constants calculate from frictional angle and cohesion coefficient
+        if (doc["Elastic SPH"].HasMember("Poisson ratio")) {
+            paramsH->Nu_poisson = doc["Elastic SPH"]["Poisson ratio"].GetDouble();
+        }
+        if (doc["Elastic SPH"].HasMember("Young modulus")) {
+            paramsH->E_young = doc["Elastic SPH"]["Young modulus"].GetDouble();              // Young's modulus
+            paramsH->G_shear = paramsH->E_young / (2.0 * (1.0 + paramsH->Nu_poisson));       // shear modulus
+            paramsH->K_bulk = paramsH->E_young / (3.0 * (1.0 - 2.0 * paramsH->Nu_poisson));  // bulk modulus
+            paramsH->Cs = sqrt(paramsH->K_bulk / paramsH->rho0);
+        }
+        if (doc["Elastic SPH"].HasMember("Artificial stress")) {
+            paramsH->Ar_stress = doc["Elastic SPH"]["Artificial stress"].GetDouble();
+        }
+        if (doc["Elastic SPH"].HasMember("Artificial viscosity alpha")) {
+            paramsH->Ar_vis_alpha = doc["Elastic SPH"]["Artificial viscosity alpha"].GetDouble();
+        }
+        if (doc["Elastic SPH"].HasMember("Artificial viscosity beta")) {
+            paramsH->Ar_vis_beta = doc["Elastic SPH"]["Artificial viscosity beta"].GetDouble();
+        }
+        if (doc["Elastic SPH"].HasMember("I0")) {
+            paramsH->mu_I0 = doc["Elastic SPH"]["I0"].GetDouble();
+        }
+        if (doc["Elastic SPH"].HasMember("mu_s")) {
+            paramsH->mu_fric_s = doc["Elastic SPH"]["mu_s"].GetDouble();
+        }
+        if (doc["Elastic SPH"].HasMember("mu_2")) {
+            paramsH->mu_fric_2 = doc["Elastic SPH"]["mu_2"].GetDouble();
+        }
+        if (doc["Elastic SPH"].HasMember("particle diameter")) {
+            paramsH->ave_diam = doc["Elastic SPH"]["particle diameter"].GetDouble();  // average particle diameter
+        }
+        if (doc["Elastic SPH"].HasMember("frictional angle")) {
+            paramsH->Fri_angle = doc["Elastic SPH"]["frictional angle"].GetDouble();  // frictional angle of granular material
+        }
+        if (doc["Elastic SPH"].HasMember("dilate angle")) {
+            paramsH->Dil_angle = doc["Elastic SPH"]["dilate angle"].GetDouble();  // dilate angle of granular material
+        }
+        if (doc["Elastic SPH"].HasMember("cohesion coefficient")) {
+            paramsH->Coh_coeff = doc["Elastic SPH"]["cohesion coefficient"].GetDouble();  // cohesion coefficient
+            paramsH->Q_FA = 6 * sin(paramsH->Fri_angle) / (sqrt(3) * (3 + sin(paramsH->Fri_angle)));  // material constants calculate from frictional angle
+            paramsH->Q_DA = 6 * sin(paramsH->Dil_angle) / (sqrt(3) * (3 + sin(paramsH->Dil_angle)));  // material constants calculate from dilate angle
+            paramsH->K_FA = 6 * paramsH->Coh_coeff * cos(paramsH->Fri_angle) / (sqrt(3) * (3 + sin(paramsH->Fri_angle)));  // material constants calculate from frictional angle and cohesion coefficient
+        }
     } else {
         paramsH->elastic_SPH = false;
     }
 
     // Geometry Information
     if (doc.HasMember("Geometry Inf")) {
-        paramsH->boxDimX = doc["Geometry Inf"]["BoxDimensionX"].GetDouble();
-        paramsH->boxDimY = doc["Geometry Inf"]["BoxDimensionY"].GetDouble();
-        paramsH->boxDimZ = doc["Geometry Inf"]["BoxDimensionZ"].GetDouble();
-        paramsH->fluidDimX = doc["Geometry Inf"]["FluidDimensionX"].GetDouble();
-        paramsH->fluidDimY = doc["Geometry Inf"]["FluidDimensionY"].GetDouble();
-        paramsH->fluidDimZ = doc["Geometry Inf"]["FluidDimensionZ"].GetDouble();
+        if (doc["Geometry Inf"].HasMember("BoxDimensionX")) {
+            paramsH->boxDimX = doc["Geometry Inf"]["BoxDimensionX"].GetDouble();
+        }
+        if (doc["Geometry Inf"].HasMember("BoxDimensionY")) {
+            paramsH->boxDimY = doc["Geometry Inf"]["BoxDimensionY"].GetDouble();
+        }
+        if (doc["Geometry Inf"].HasMember("BoxDimensionZ")) {
+            paramsH->boxDimZ = doc["Geometry Inf"]["BoxDimensionZ"].GetDouble();
+        }
+        if (doc["Geometry Inf"].HasMember("FluidDimensionX")) {
+            paramsH->fluidDimX = doc["Geometry Inf"]["FluidDimensionX"].GetDouble();
+        }
+        if (doc["Geometry Inf"].HasMember("FluidDimensionY")) {
+            paramsH->fluidDimY = doc["Geometry Inf"]["FluidDimensionY"].GetDouble();
+        }
+        if (doc["Geometry Inf"].HasMember("FluidDimensionZ")) {
+            paramsH->fluidDimZ = doc["Geometry Inf"]["FluidDimensionZ"].GetDouble();
+        }
     }
 
     // Body Information
     if (doc.HasMember("Body Inf")) {
-        paramsH->bodyDimX = doc["Body Inf"]["BodyDimensionX"].GetDouble();
-        paramsH->bodyDimY = doc["Body Inf"]["BodyDimensionY"].GetDouble();
-        paramsH->bodyDimZ = doc["Body Inf"]["BodyDimensionZ"].GetDouble();
-        paramsH->bodyRad = doc["Body Inf"]["BodyRadius"].GetDouble();
-        paramsH->bodyLength = doc["Body Inf"]["BodyLength"].GetDouble();
-        paramsH->bodyIniPosX = doc["Body Inf"]["BodyIniPosX"].GetDouble();
-        paramsH->bodyIniPosY = doc["Body Inf"]["BodyIniPosY"].GetDouble();
-        paramsH->bodyIniPosZ = doc["Body Inf"]["BodyIniPosZ"].GetDouble();
-        paramsH->bodyMass = doc["Body Inf"]["BodyMass"].GetDouble();
-        paramsH->bodyDensity = doc["Body Inf"]["BodyDensity"].GetDouble();
+        if (doc["Body Inf"].HasMember("BodyDimensionX")) {
+            paramsH->bodyDimX = doc["Body Inf"]["BodyDimensionX"].GetDouble();
+        }
+        if (doc["Body Inf"].HasMember("BodyDimensionY")) {
+            paramsH->bodyDimY = doc["Body Inf"]["BodyDimensionY"].GetDouble();
+        }
+        if (doc["Body Inf"].HasMember("BodyDimensionZ")) {
+            paramsH->bodyDimZ = doc["Body Inf"]["BodyDimensionZ"].GetDouble();
+        }
+        if (doc["Body Inf"].HasMember("BodyRadius")) {
+            paramsH->bodyRad = doc["Body Inf"]["BodyRadius"].GetDouble();
+        }
+        if (doc["Body Inf"].HasMember("BodyLength")) {
+            paramsH->bodyLength = doc["Body Inf"]["BodyLength"].GetDouble();
+        }
+        if (doc["Body Inf"].HasMember("BodyIniPosX")) {
+            paramsH->bodyIniPosX = doc["Body Inf"]["BodyIniPosX"].GetDouble();
+        }
+        if (doc["Body Inf"].HasMember("BodyIniPosY")) {
+            paramsH->bodyIniPosY = doc["Body Inf"]["BodyIniPosY"].GetDouble();
+        }
+        if (doc["Body Inf"].HasMember("BodyIniPosZ")) {
+            paramsH->bodyIniPosZ = doc["Body Inf"]["BodyIniPosZ"].GetDouble();
+        }
+        if (doc["Body Inf"].HasMember("BodyIniVelX")) {
+            paramsH->bodyIniVelX = doc["Body Inf"]["BodyIniVelX"].GetDouble();
+        }
+        if (doc["Body Inf"].HasMember("BodyIniVelY")) {
+            paramsH->bodyIniVelY = doc["Body Inf"]["BodyIniVelY"].GetDouble();
+        }
+        if (doc["Body Inf"].HasMember("BodyIniVelZ")) {
+            paramsH->bodyIniVelZ = doc["Body Inf"]["BodyIniVelZ"].GetDouble();
+        }
+        if (doc["Body Inf"].HasMember("BodyIniAngVel")) {
+            paramsH->bodyIniAngVel = doc["Body Inf"]["BodyIniAngVel"].GetDouble();
+        }
+        if (doc["Body Inf"].HasMember("BodyMass")) {
+            paramsH->bodyMass = doc["Body Inf"]["BodyMass"].GetDouble();
+        }
+        if (doc["Body Inf"].HasMember("BodyDensity")) {
+            paramsH->bodyDensity = doc["Body Inf"]["BodyDensity"].GetDouble();
+        }
     }
 
     //===============================================================
@@ -495,7 +554,7 @@ bool ParseJSON(std::string json_file, std::shared_ptr<SimParams> paramsH, Real3 
     } else {
         paramsH->non_newtonian = false;
     }
-    //    paramsH->markerMass = pow(paramsH->MULT_INITSPACE * paramsH->HSML, 3) * paramsH->rho0;
+    //    paramsH->markerMass = cube(paramsH->MULT_INITSPACE * paramsH->HSML) * paramsH->rho0;
     int NN = 0;
     paramsH->markerMass = massCalculator(NN, paramsH->HSML, paramsH->MULT_INITSPACE * paramsH->HSML, paramsH->rho0);
     paramsH->num_neighbors = NN;

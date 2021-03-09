@@ -1,9 +1,7 @@
 Install the SYNCHRONO module   {#module_synchrono_installation}
 ===============================
 
-[TOC]
-
-This is an optional module that enables the paralellization of Chrono::Vehicle simulation across MPI computing ranks.
+This is an optional module that enables the parallelization of Chrono::Vehicle simulation across different computing entities.
 
 Read [the introduction to modules](modularity.html) for a technical
 background on the modularity of the Chrono project.
@@ -11,22 +9,27 @@ background on the modularity of the Chrono project.
 
 ## Features
 
-The **SynChrono module** allows users to paralellize the dynamics computations for Chrono::Vehicles across MPI ranks
+The **SynChrono module** allows users to parallelize the dynamics computations for Chrono::Vehicles across MPI entities.
 
 
 ## Required Dependencies
 
 - To build applications based on this module, the following are required:
-  * MPI - Tested with [OpenMPI](https://www.open-mpi.org/) and [MPICH](https://www.mpich.org/) on Linux and with [Intel MPI](https://software.intel.com/en-us/mpi-library/choose-download/windows) and [MS-MPI](https://docs.microsoft.com/en-us/message-passing-interface/microsoft-mpi) on Windows. NOTE: On Windows please ensure that the MPI dll (either `impi.dll` or `msmpi.dll`) is on your system path, for example by running a post-installation script ([Intel MPI example](https://software.intel.com/content/www/us/en/develop/documentation/mpi-developer-guide-windows/top/installation-and-prerequisites/prerequisite-steps.html)).
-  * [FlatBuffers](http://google.github.io/flatbuffers/) - A version is included in chrono_thirdparty as a submodule but a separately-installed version (for example through a package manager) will work as well.
+  * MPI
+    - Linux: Tested with [OpenMPI](https://www.open-mpi.org/) and [MPICH](https://www.mpich.org/).
+    - Windows: Tested with [Intel MPI](https://software.intel.com/en-us/mpi-library/choose-download/windows) and [MS-MPI](https://docs.microsoft.com/en-us/message-passing-interface/microsoft-mpi). You must ensure that the MPI dll (either `impi.dll` or `msmpi.dll`) is on your system path, for example by running a post-installation script ([Intel MPI example](https://software.intel.com/content/www/us/en/develop/documentation/mpi-developer-guide-windows/top/installation-and-prerequisites/prerequisite-steps.html)).
+  * [FlatBuffers](http://google.github.io/flatbuffers/) 
+    - A version is included in chrono_thirdparty as a submodule, for general development either that version or an externally built one can be used.
 
 ## Building instructions
 
-1. Repeat the instructions for the [full installation](@ref tutorial_install_chrono). The Chrono::Vehicle is required and at least one of Chrono::Irrlicht or Chrono::Sensor is recommended for visualization. When you see the CMake window, you must add the following steps:
+1. Initialize the FlatBuffers submodule in `chrono_thirdparty` with `git submodule init` and `git submodule update`. 
+    - For running programs with SynChrono you just need the FlatBuffers header from initializing the submodule.
+    - If you make modifications to the FlatBuffers message schemas you will need either an external version of the FlatBuffers binaries (for example from a package manager) or to [build the submodule version](https://google.github.io/flatbuffers/flatbuffers_guide_building.html) included in `chrono_thirdparty`.
 
-2. Set the `ENABLE_MODULE_SYNCHRONO` as 'on', then press 'Configure' (to refresh the variable list)
+2. Repeat the instructions for the [full installation](@ref tutorial_install_chrono). Chrono::Vehicle is required and at least one of Chrono::Irrlicht or Chrono::Sensor is recommended for visualization. When you see the CMake window, you must make these additional changes:
 
-3. If Flatbuffers is on your system path (for example package-manager installed versions), then CMake may pick it up automatically. Otherwise set `Flatbuffers_DIR` to the `CMake` folder within your Flatbuffers installation (for example `../src/chrono_thirdparty/flatbuffers/CMake`) and set `Flatbuffers_INCLUDE_DIR` to the include directory within your Flatbuffers installation (for example `../src/chrono_thirdparty/flatbuffers/include`).
+3. Set the `ENABLE_MODULE_SYNCHRONO` as 'on', then press 'Configure' (to refresh the variable list).
 
 4. Press 'Configure' again, then 'Generate', and proceed as usual in the installation instructions.
 

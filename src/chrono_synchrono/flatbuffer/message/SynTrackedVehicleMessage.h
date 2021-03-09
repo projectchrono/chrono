@@ -21,7 +21,10 @@
 #ifndef SYN_TRACKED_VEHICLE_MESSAGE_H
 #define SYN_TRACKED_VEHICLE_MESSAGE_H
 
-#include "chrono_synchrono/flatbuffer/message/SynAgentMessage.h"
+#include "chrono_synchrono/flatbuffer/message/SynMessage.h"
+
+/// TODO: Create a class with utility functions
+#define SynAgentID uint32_t
 
 namespace chrono {
 namespace synchrono {
@@ -29,157 +32,127 @@ namespace synchrono {
 /// @addtogroup synchrono_flatbuffer
 /// @{
 
-/// State struct that holds state information for a SynTrackedVehicleAgent
-struct SynTrackedVehicleState : SynMessageState {
-    SynPose chassis;                   ///< vehicle's chassis pose
-    std::vector<SynPose> track_shoes;  ///< vector of vehicle's track shoes
-    std::vector<SynPose> sprockets;    ///< vector of vehicle's sprockets
-    std::vector<SynPose> idlers;       ///< vector of vehicle's idlers
-    std::vector<SynPose> road_wheels;  ///< vector of vehicle's road wheels
+/// State class that holds state information for a SynTrackedVehicleAgent
+class SynTrackedVehicleStateMessage : public SynMessage {
+  public:
+    ///@brief Constructor
+    ///
+    ///@param source_id the id of the source to which the message is sent from
+    ///@param destination_id the id of the destination to which the message is sent to
+    SynTrackedVehicleStateMessage(SynAgentID source_id, SynAgentID destination_id);
 
-    /// Default Constructor
-    SynTrackedVehicleState() : SynMessageState(0.0) {}
+    ///@brief Converts a received flatbuffer message to a SynMessage
+    ///
+    ///@param message the flatbuffer message to convert to a SynMessage
+    virtual void ConvertFromFlatBuffers(const SynFlatBuffers::Message* message) override;
 
-    /// Creates state with specified chassis and wheels
-    SynTrackedVehicleState(double time,
-                           SynPose chassis,
-                           std::vector<SynPose> track_shoes,
-                           std::vector<SynPose> sprockets,
-                           std::vector<SynPose> idlers,
-                           std::vector<SynPose> road_wheels)
-        : SynMessageState(time),
-          chassis(chassis),
-          track_shoes(track_shoes),
-          sprockets(sprockets),
-          idlers(idlers),
-          road_wheels(road_wheels) {}
+    ///@brief Converts this object to a flatbuffer message
+    ///
+    ///@param builder a flatbuffer builder to construct the message with
+    ///@return FlatBufferMessage the constructed flatbuffer message
+    virtual FlatBufferMessage ConvertToFlatBuffers(flatbuffers::FlatBufferBuilder& builder) override;
 
+    // -------------------------------------------------------------------------------
+
+    ///@brief Set the state variables
+    ///
+    ///@param time simulation time
+    ///@param chassis vehicle's chassis pose
+    ///@param track_shoes vehicle's track shoe poses
+    ///@param sprockets vehicle's sprocket poses
+    ///@param idlers vehicle's idler poses
+    ///@param road_wheels vehicle's road wheel poses
     void SetState(double time,
                   SynPose chassis,
                   std::vector<SynPose> track_shoes,
                   std::vector<SynPose> sprockets,
                   std::vector<SynPose> idlers,
-                  std::vector<SynPose> road_wheels) {
-        this->time = time;
-        this->chassis = chassis;
-        this->track_shoes = track_shoes;
-        this->sprockets = sprockets;
-        this->idlers = idlers;
-        this->road_wheels = road_wheels;
-    }
+                  std::vector<SynPose> road_wheels);
+
+    // -------------------------------------------------------------------------------
+
+    SynPose chassis;                   ///< vehicle's chassis pose
+    std::vector<SynPose> track_shoes;  ///< vector of vehicle's track shoes
+    std::vector<SynPose> sprockets;    ///< vector of vehicle's sprockets
+    std::vector<SynPose> idlers;       ///< vector of vehicle's idlers
+    std::vector<SynPose> road_wheels;  ///< vector of vehicle's road wheels
 };
 
-///@brief The agent description struct
-/// Describes how to visualize a zombie agent
-struct SynTrackedVehicleDescription : public SynAgentDescription {
-    std::string m_chassis_vis_file = "";           ///< file name for chassis zombie visualization
-    std::string m_track_shoe_vis_file = "";        ///< file name for track shoe zombie visualization
-    std::string m_left_sprocket_vis_file = "";     ///< file name for the left sprocket zombie visualization
-    std::string m_right_sprocket_vis_file = "";    ///< file name for the right sprocket zombie visualization
-    std::string m_left_idler_vis_file = "";        ///< file name for the left idler zombie visualization
-    std::string m_right_idler_vis_file = "";       ///< file name for the right idler zombie visualization
-    std::string m_left_road_wheel_vis_file = "";   ///< file name for the left road wheel zombie visualization
-    std::string m_right_road_wheel_vis_file = "";  ///< file name for the right road wheel zombie visualization
-
-    int m_num_track_shoes;  ///< number of track shoes the zombie vehicle has
-    int m_num_sprockets;    ///< number of sprockets the zombie vehicle has
-    int m_num_idlers;       ///< number of idlers the zombie vehicle has
-    int m_num_road_wheels;  ///< number of road wheels the zombie vehicle has
-
-    ///@brief Construct a new SynTrackedVehicleDescription object
-    ///
-    ///@param json the json specification file used to create an agent
-    SynTrackedVehicleDescription(std::string json = "") : SynAgentDescription(json) {}
-
-    void SetVisualizationFiles(std::string chassis_vis_file,
-                               std::string track_shoe_vis_file,
-                               std::string left_sprocket_vis_file,
-                               std::string right_sprocket_vis_file,
-                               std::string left_idler_vis_file,
-                               std::string right_idler_vis_file,
-                               std::string left_road_wheel_vis_file,
-                               std::string right_road_wheel_vis_file) {
-        m_chassis_vis_file = chassis_vis_file;
-        m_track_shoe_vis_file = track_shoe_vis_file;
-        m_left_sprocket_vis_file = left_sprocket_vis_file;
-        m_right_sprocket_vis_file = right_sprocket_vis_file;
-        m_left_idler_vis_file = left_idler_vis_file;
-        m_right_idler_vis_file = right_idler_vis_file;
-        m_left_road_wheel_vis_file = left_road_wheel_vis_file;
-        m_right_road_wheel_vis_file = right_road_wheel_vis_file;
-    }
-
-    void SetNumAssemblyComponents(int num_track_shoes, int num_sprockets, int num_idlers, int num_road_wheels) {
-        m_num_track_shoes = num_track_shoes;
-        m_num_sprockets = num_sprockets;
-        m_num_idlers = num_idlers;
-        m_num_road_wheels = num_road_wheels;
-    }
-};
-
-/// Wraps data from a tracked vehicle state message into a corresponding C++ object.
-class SYN_API SynTrackedVehicleMessage : public SynAgentMessage {
+/// Description class that holds description information for a SynTrackedVehicle
+class SynTrackedVehicleDescriptionMessage : public SynMessage {
   public:
-    ///@brief Construct a new SynTrackedVehicleMessage object
+    ///@brief Constructor
     ///
-    ///@param rank the rank of this message
-    SynTrackedVehicleMessage(int rank,
-                             std::string json = "",
-                             std::shared_ptr<SynTrackedVehicleState> state = nullptr,
-                             std::shared_ptr<SynTrackedVehicleDescription> description = nullptr);
+    ///@param source_id the id of the source to which the message is sent from
+    ///@param destination_id the id of the destination to which the message is sent to
+    ///@param json the json specification file used to create an agent
+    SynTrackedVehicleDescriptionMessage(SynAgentID source_id, SynAgentID destination_id, const std::string& json = "");
 
-    ///@brief Construct a new SynTrackedVehicleMessage object
-    /// Initialize with the passed state and description
+    ///@brief Converts a received flatbuffer message to a SynMessage
     ///
-    ///@param rank the rank of this message
-    SynTrackedVehicleMessage(int rank,
-                             std::shared_ptr<SynTrackedVehicleState> state,
-                             std::shared_ptr<SynTrackedVehicleDescription> description = nullptr);
+    ///@param message the flatbuffer message to convert to a SynMessage
+    virtual void ConvertFromFlatBuffers(const SynFlatBuffers::Message* message) override;
 
-    ///@brief Generates and sets the state of this message from flatbuffer message
+    ///@brief Converts this object to a flatbuffer message
     ///
-    ///@param message the flatbuffer message to convert to a MessageState object
-    virtual void StateFromMessage(const SynFlatBuffers::Message* message) override;
+    ///@param builder a flatbuffer builder to construct the message with
+    ///@return FlatBufferMessage the constructed flatbuffer message
+    virtual FlatBufferMessage ConvertToFlatBuffers(flatbuffers::FlatBufferBuilder& builder) override;
 
-    ///@brief Generates a SynFlatBuffers::Message from the message state
+    // -------------------------------------------------------------------------------
+
+    ///@brief Set the visualization files from a JSON specification file
     ///
-    ///@param builder the flatbuffer builder used to construct messages
-    ///@return flatbuffers::Offset<SynFlatBuffers::Message> the generated message
-    virtual FlatBufferMessage MessageFromState(flatbuffers::FlatBufferBuilder& builder) override;
+    ///@param filename the json specification file
+    void SetZombieVisualizationFilesFromJSON(const std::string& filename);
 
-    ///@brief Get the SynMessageState object
+    ///@brief Set the visualization files
     ///
-    ///@return std::shared_ptr<SynMessageState> the state associated with this message
-    virtual std::shared_ptr<SynMessageState> GetState() override { return m_state; }
+    ///@param chassis_vis_file file name for chassis zombie visualization
+    ///@param track_shoe_vis_file file name for track shoe zombie visualization
+    ///@param left_sprocket_vis_file file name for the left sprocket zombie visualization
+    ///@param right_sprocket_vis_file file name for the right sprocket zombie visualization
+    ///@param left_idler_vis_file file name for the left idler zombie visualization
+    ///@param right_idler_vis_file file name for the right idler zombie visualization
+    ///@param left_road_wheel_vis_file file name for the left road wheel zombie visualization
+    ///@param right_road_wheel_vis_file file name for the right road wheel zombie visualization
+    void SetVisualizationFiles(const std::string& chassis_vis_file,
+                               const std::string& track_shoe_vis_file,
+                               const std::string& left_sprocket_vis_file,
+                               const std::string& right_sprocket_vis_file,
+                               const std::string& left_idler_vis_file,
+                               const std::string& right_idler_vis_file,
+                               const std::string& left_road_wheel_vis_file,
+                               const std::string& right_road_wheel_vis_file);
 
-    ///@brief Get the SynTrackedVehicleState object
+    ///@brief Set the number of each assembly component
     ///
-    ///@return std::shared_ptr<SynTrackedVehicleState> the state associated with this message
-    std::shared_ptr<SynTrackedVehicleState> GetTrackedState() { return m_state; }
+    ///@param num_track_shoes number of track shoes the zombie vehicle has
+    ///@param num_sprockets number of sprockets the zombie vehicle has
+    ///@param num_idlers number of idlers the zombie vehicle has
+    ///@param num_road_wheels number of road wheels the zombie vehicle has
+    void SetNumAssemblyComponents(int num_track_shoes,   //
+                                  int num_sprockets,     //
+                                  int num_idlers,        //
+                                  int num_road_wheels);  //
 
-    // ---------------------------------------------------------------------------------------------------------------
+    // -------------------------------------------------------------------------------
 
-    ///@brief Generates and sets the agent description from a flatbuffer message
-    ///
-    ///@param message the flatbuffer message to convert to a SynAgentDescription object
-    virtual void DescriptionFromMessage(const SynFlatBuffers::Message* message) override;
+    std::string json = "";  ///< the json specification file that is used to create an agent
 
-    ///@brief Generates a SynFlatBuffers::Message from the agent description
-    ///
-    ///@param builder the flatbuffer builder used to construct messages
-    ///@return flatbuffers::Offset<SynFlatBuffers::Message> the generated message
-    virtual FlatBufferMessage MessageFromDescription(flatbuffers::FlatBufferBuilder& builder) override;
+    std::string chassis_vis_file = "";           ///< file name for chassis zombie visualization
+    std::string track_shoe_vis_file = "";        ///< file name for track shoe zombie visualization
+    std::string left_sprocket_vis_file = "";     ///< file name for the left sprocket zombie visualization
+    std::string right_sprocket_vis_file = "";    ///< file name for the right sprocket zombie visualization
+    std::string left_idler_vis_file = "";        ///< file name for the left idler zombie visualization
+    std::string right_idler_vis_file = "";       ///< file name for the right idler zombie visualization
+    std::string left_road_wheel_vis_file = "";   ///< file name for the left road wheel zombie visualization
+    std::string right_road_wheel_vis_file = "";  ///< file name for the right road wheel zombie visualization
 
-    ///@brief Get the SynTrackedVehicleDescription object
-    ///
-    ///@return std::shared_ptr<SynTrackedVehicleDescription> the description associated with this message
-    std::shared_ptr<SynTrackedVehicleDescription> GetTrackedDescription() { return m_vehicle_description; }
-
-    // ---------------------------------------------------------------------------------------------------------------
-
-  private:
-    std::shared_ptr<SynTrackedVehicleState> m_state;                      ///< handle to the message state
-    std::shared_ptr<SynTrackedVehicleDescription> m_vehicle_description;  ///< handle to the agent description
+    int num_track_shoes = 0;  ///< number of track shoes the zombie vehicle has
+    int num_sprockets = 0;    ///< number of sprockets the zombie vehicle has
+    int num_idlers = 0;       ///< number of idlers the zombie vehicle has
+    int num_road_wheels = 0;  ///< number of road wheels the zombie vehicle has
 };
 
 /// @} synchrono_flatbuffer

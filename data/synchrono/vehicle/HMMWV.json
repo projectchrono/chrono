@@ -24,6 +24,6 @@
     "Chassis Visualization File": "hmmwv/hmmwv_chassis.obj",
     "Wheel Visualization File": "hmmwv/hmmwv_rim.obj",
     "Tire Visualization File": "hmmwv/hmmwv_tire_left.obj",
-    "Number Of Wheels": 4
+    "Number of Wheels": 4
   }
 }

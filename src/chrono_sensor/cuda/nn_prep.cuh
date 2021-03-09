@@ -49,10 +49,12 @@ void preprocess_RGBA8_to_FLOAT4_CHW(void* bufIn, void* bufOut, int c, int h, int
 
 /// Function that normalized input data in float format.
 /// @param bufIn Input device pointer in float format.
+/// @param add
+/// @param mult
 /// @param c Number of channels in the image.
 /// @param h Height of the image.
 /// @param w Width of the image.
-void preprocess_normalize_float(void* buf, float add, float mult, int c, int h, int w);
+void preprocess_normalize_float(void* bufIn, float add, float mult, int c, int h, int w);
 
 /// Function that converts float4 image to uchar RGBA8 image with channels first.
 /// @param bufIn Input device pointer in float format.

@@ -57,6 +57,7 @@ class CH_SENSOR_API ChFilterImageResize : public ChFilter {
 class CH_SENSOR_API ChFilterImgAlias : public ChFilter {
   public:
     /// Class constructor
+    /// @param factor reduction factor for antialiasing
     /// @param name String name of the filter
     ChFilterImgAlias(int factor, std::string name = {});
 

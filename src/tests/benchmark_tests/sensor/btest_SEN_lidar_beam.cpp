@@ -79,12 +79,12 @@ int main(int argc, char* argv[]) {
 
     auto lidar1 = std::make_shared<ChLidarSensor>(
         floor,                                                             // body lidar is attached to
-        10,                                                                // scanning rate in Hz
+        10.0f,                                                             // scanning rate in Hz
         chrono::ChFrame<double>({0, 0, 1}, Q_from_AngAxis(0, {0, 1, 0})),  // offset pose
         1,                                                                 // number of horizontal samples
         1,                                                                 // number of vertical channels
-        1,                                                                 // horizontal field of view
-        0, 0, 100                                                          // vertical field of view
+        1.0f,                                                              // horizontal field of view
+        0.0f, 0.0f, 100.0f                                                 // vertical field of view
     );
     lidar1->SetName("Lidar Sensor");
     lidar1->PushFilter(std::make_shared<ChFilterDIAccess>());
@@ -92,16 +92,16 @@ int main(int argc, char* argv[]) {
 
     auto lidar2 = chrono_types::make_shared<ChLidarSensor>(
         floor,                                                             // body lidar is attached to
-        10,                                                                // scanning rate in Hz
+        10.0f,                                                             // scanning rate in Hz
         chrono::ChFrame<double>({0, 0, 1}, Q_from_AngAxis(0, {0, 1, 0})),  // offset pose
         1,                                                                 // number of horizontal samples
         1,                                                                 // number of vertical channels
-        1,                                                                 // horizontal field of view
-        0, 0, 100,                                                         // vertical field of view
-        10,                // radius of samples to use, 1->1 sample,2->9 samples, 3->25 samples...
-        .003,              // 3 mradius cited by velodyne
-        STRONGEST_RETURN,  // return mode for the lidar
-        RAYCAST            // method/model to use for generating data
+        1.0f,                                                              // horizontal field of view
+        0.0f, 0.0f, 100.0f,                                                // vertical field of view
+        10,                                 // radius of samples to use, 1->1 sample,2->9 samples, 3->25 samples...
+        .003f,                              // 3 mradius cited by velodyne
+        LidarReturnMode::STRONGEST_RETURN,  // return mode for the lidar
+        LidarModelType::RAYCAST             // method/model to use for generating data
     );
     lidar2->SetName("Lidar Sensor");
     // lidar2->PushFilter(std::make_shared<ChFilterLidarNoiseXYZI>(.01f, .001f, .001f, .01f));
@@ -111,16 +111,16 @@ int main(int argc, char* argv[]) {
 
     auto lidar3 = chrono_types::make_shared<ChLidarSensor>(
         floor,                                                             // body lidar is attached to
-        10,                                                                // scanning rate in Hz
+        10.0f,                                                             // scanning rate in Hz
         chrono::ChFrame<double>({0, 0, 1}, Q_from_AngAxis(0, {0, 1, 0})),  // offset pose
         1,                                                                 // number of horizontal samples
         1,                                                                 // number of vertical channels
-        1,                                                                 // horizontal field of view
-        0, 0, 100,                                                         // vertical field of view
-        5,                 // radius of samples to use, 1->1 sample,2->9 samples, 3->25 samples...
-        .003,              // 3 mradius cited by velodyne
-        STRONGEST_RETURN,  // return mode for the lidar
-        RAYCAST            // method/model to use for generating data
+        1.0f,                                                              // horizontal field of view
+        0.0f, 0.0f, 100.0f,                                                // vertical field of view
+        5,                                  // radius of samples to use, 1->1 sample,2->9 samples, 3->25 samples...
+        0.003f,                             // 3 mradius cited by velodyne
+        LidarReturnMode::STRONGEST_RETURN,  // return mode for the lidar
+        LidarModelType::RAYCAST             // method/model to use for generating data
     );
     lidar3->SetName("Lidar Sensor");
     // lidar2->PushFilter(std::make_shared<ChFilterLidarNoiseXYZI>(.01f, .001f, .001f, .01f));

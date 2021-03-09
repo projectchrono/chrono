@@ -96,7 +96,7 @@ void ChRigidTire::AddVisualizationAssets(VisualizationType vis) {
     m_wheel->GetSpindle()->AddAsset(m_cyl_shape);
 
     m_texture = chrono_types::make_shared<ChTexture>();
-    m_texture->SetTextureFilename(GetChronoDataFile("greenwhite.png"));
+    m_texture->SetTextureFilename(GetChronoDataFile("textures/greenwhite.png"));
     m_wheel->GetSpindle()->AddAsset(m_texture);
 }
 
@@ -190,7 +190,7 @@ TerrainForce ChRigidTire::ReportTireForce(ChTerrain* terrain) const {
     tire_force.force = m_wheel->GetSpindle()->GetContactForce();
     tire_force.moment = m_wheel->GetSpindle()->GetContactTorque();
 
-    // Approach using the RigidTireContactReporter does not work in Chrono::Parallel
+    // Approach using the RigidTireContactReporter does not work in Chrono::Multicore
     // since contact forces and torques passed to OnReportContact are always zero.
     /*
     auto reporter = chrono_types::make_shared<RigidTireContactReporter>(m_wheel);
@@ -211,6 +211,11 @@ unsigned int ChRigidTire::GetNumVertices() const {
     return static_cast<unsigned int>(m_trimesh->getCoordsVertices().size());
 }
 
+unsigned int ChRigidTire::GetNumNormals() const {
+    assert(m_use_contact_mesh);
+    return static_cast<unsigned int>(m_trimesh->getCoordsNormals().size());
+}
+
 unsigned int ChRigidTire::GetNumTriangles() const {
     assert(m_use_contact_mesh);
     return static_cast<unsigned int>(m_trimesh->getIndicesVertexes().size());
@@ -219,6 +224,11 @@ unsigned int ChRigidTire::GetNumTriangles() const {
 const std::vector<ChVector<int>>& ChRigidTire::GetMeshConnectivity() const {
     assert(m_use_contact_mesh);
     return m_trimesh->getIndicesVertexes();
+}
+
+const std::vector<ChVector<int>>& ChRigidTire::GetMeshNormalIndices() const {
+    assert(m_use_contact_mesh);
+    return m_trimesh->getIndicesNormals();
 }
 
 const std::vector<ChVector<>>& ChRigidTire::GetMeshVertices() const {

@@ -30,7 +30,7 @@ mphysicalSystem = chrono.ChSystemNSC()
 
 # Create the Irrlicht visualization (open the Irrlicht device,
 # bind a simple user interface, etc, etc.)
-application = chronoirr.ChIrrApp(mphysicalSystem, "Gears annd pulleys", chronoirr.dimension2du(800, 600),False)
+application = chronoirr.ChIrrApp(mphysicalSystem, "Gears annd pulleys", chronoirr.dimension2du(800, 600))
 
 
 # Easy shortcuts to add camera, lights, logo, and sky in Irrlicht scene:
@@ -54,7 +54,7 @@ mbody_truss.SetBodyFixed(True)
 mbody_truss.SetPos(chrono.ChVectorD(0, 0, 3))
 
 # ...a texture asset that will be shared among the four wheels
-cylinder_texture = chrono.ChTexture(chrono.GetChronoDataFile("pinkwhite.png"))
+cylinder_texture = chrono.ChTexture(chrono.GetChronoDataFile("textures/pinkwhite.png"))
 
 # ...the rotating bar support for the two epicycloidal wheels
 mbody_train = chrono.ChBodyEasyBox(8, 1.5, 1.0, 1000, True, False, mat)

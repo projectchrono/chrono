@@ -28,18 +28,31 @@ namespace sensor {
 /// @{
 
 /// Lidar model type. Currently supports a ray cast model that does not include material properties.
-enum LidarModelType {
-    RAYCAST  ///< Beams are raycast in the environment with no bounces
-};           // TODO: implement PATH_TRACE, material properties
+// enum struct LidarModelType : unsigned int {
+//     RAYCAST  ///< Beams are raycast in the environment with no bounces
+// };           // TODO: implement PATH_TRACE, material properties
+
+enum class LidarModelType { RAYCAST };
 
 /// Lidar return mode when multiple objects are seen. Currently supported: strongest return (default), and mean return
 /// which averages all returned intensity and distance measurement data
-enum LidarReturnMode {
+enum class LidarReturnMode {
     STRONGEST_RETURN,  ///< range at peak intensity
     MEAN_RETURN,       ///< average beam range
     FIRST_RETURN,      ///< shorted beam range
     LAST_RETURN        ///< longest beam range
 };
+
+// struct LidarReturnMode
+// {
+// 	enum Type
+// 	{
+//     STRONGEST_RETURN,  ///< range at peak intensity
+//     MEAN_RETURN,       ///< average beam range
+//     FIRST_RETURN,      ///< shorted beam range
+//     LAST_RETURN        ///< longest beam range
+// 	};
+// };
 
 /// Lidar class. This corresponds to a scanning lidar.
 class CH_SENSOR_API ChLidarSensor : public ChOptixSensor {
@@ -53,8 +66,9 @@ class CH_SENSOR_API ChLidarSensor : public ChOptixSensor {
     /// @param hfov Horizontal field of view of the lidar
     /// @param max_vertical_angle Maximum vertical angle of the lidar
     /// @param min_vertical_angle Minimum vertical angle of the lidar
-    /// @param lag Lag time between end of data collection and when data becomes available to the user.
-    /// @param collection_time Collection time over which the sensor should collect data from the simulation.
+    /// @param max_distance Maximum range of lidar
+    // @param lag Lag time between end of data collection and when data becomes available to the user.
+    // @param collection_time Collection time over which the sensor should collect data from the simulation.
     /// @param sample_radius The radius in samples for multisampling beams (total samples per beam is 2*radius-1)
     /// @param divergence_angle The divergence angle of the lidar's laser beam
     /// @param return_mode The return mode for lidar data when multiple objects are visible
@@ -72,10 +86,10 @@ class CH_SENSOR_API ChLidarSensor : public ChOptixSensor {
                   float min_vertical_angle,
                   float max_distance,
                   unsigned int sample_radius = 1,
-                  float divergence_angle = .003,
-                  LidarReturnMode return_mode = STRONGEST_RETURN,
-                  LidarModelType lidar_model = RAYCAST,
-                  float clip_near = 1e-3);
+                  float divergence_angle = 0.003f,
+                  LidarReturnMode return_mode = LidarReturnMode::STRONGEST_RETURN,
+                  LidarModelType lidar_model = LidarModelType::RAYCAST,
+                  float clip_near = 1e-3f);
 
     /// Class destructor
     ~ChLidarSensor();

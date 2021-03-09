@@ -57,7 +57,7 @@ void ChFilterLidarNoiseXYZI::Apply(std::shared_ptr<ChSensor> pSensor, std::share
         m_rng = std::shared_ptr<curandState_t>(cudaMallocHelper<curandState_t>(width * height),
                                                cudaFreeHelper<curandState_t>);
 
-        init_cuda_rng(std::chrono::high_resolution_clock::now().time_since_epoch().count(), m_rng.get(),
+        init_cuda_rng((unsigned int)(std::chrono::high_resolution_clock::now().time_since_epoch().count()), m_rng.get(),
                       width * height);
 
         m_noise_init = false;

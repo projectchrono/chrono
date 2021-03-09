@@ -41,7 +41,7 @@ class CH_SENSOR_API ChFilterUFF : public ChFilter {
 
     /// Apply function runs data through neural network
     /// @param pSensor The sensor used for processing
-    /// @bufferInOut A shared pointer for passing data between filters
+    /// @param bufferInOut A shared pointer for passing data between filters
     virtual void Apply(std::shared_ptr<ChSensor> pSensor, std::shared_ptr<SensorBuffer>& bufferInOut);
 
     /// Initialize function for generating any information or structures needed once

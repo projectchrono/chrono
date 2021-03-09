@@ -290,9 +290,9 @@ std::shared_ptr<ChLidarSensor> ReadLidarSensorJSON(const std::string& filename,
     // float exposure_time = properties["Collection Window"].GetFloat();
 
     unsigned int sample_radius = 1;
-    float divergence_angle = .003;
-    LidarReturnMode return_mode = STRONGEST_RETURN;
-    LidarModelType lidar_model = RAYCAST;
+    float divergence_angle = .003f;
+    LidarReturnMode return_mode = LidarReturnMode::STRONGEST_RETURN;
+    LidarModelType lidar_model = LidarModelType::RAYCAST;
 
     if (properties.HasMember("Sample Radius")) {
         sample_radius = properties["Sample Radius"].GetInt();
@@ -303,7 +303,7 @@ std::shared_ptr<ChLidarSensor> ReadLidarSensorJSON(const std::string& filename,
     if (properties.HasMember("Return Mode")) {
         std::string s = properties["Return Mode"].GetString();
         if (s == "MEAN_RETURN") {
-            return_mode = MEAN_RETURN;
+            return_mode = LidarReturnMode::MEAN_RETURN;
         }
     }
     if (properties.HasMember("Lidar Model")) {

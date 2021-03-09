@@ -34,7 +34,7 @@ The following image is a snapshot from a simulation of ChSuspensionTestRigPushro
 
 The tire test rig allows  variation of longitudinal speed, wheel angular speed, and wheel slip angle as functions of time, provides support for automatic selection of longitudinal and angular speeds in order to enforce a specified longitudinal slip value, and allows specifying a camber angle (kept fixed during the simulation). 
 
-See demo_VEH_TireTestRig and demo_VEH_TireTestRig_Parallel.
+See demo_VEH_TireTestRig and demo_VEH_TireTestRig_Multicore.
 
 The images below are snapshots from single tire tests, using a Pac02 tire on rigid terrain and a rigid tire on SCM deformable terrain, respectively.
 

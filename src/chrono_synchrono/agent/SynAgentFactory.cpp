@@ -22,12 +22,10 @@
 
 #include "chrono_synchrono/agent/SynAgentFactory.h"
 
-#include "chrono_synchrono/utils/SynUtilsJSON.h"
-
-#include "chrono_synchrono/flatbuffer/message/SynWheeledVehicleMessage.h"
-
-#include "chrono_synchrono/agent/SynTrackedVehicleAgent.h"
 #include "chrono_synchrono/agent/SynWheeledVehicleAgent.h"
+#include "chrono_synchrono/agent/SynTrackedVehicleAgent.h"
+#include "chrono_synchrono/agent/SynCopterAgent.h"
+#include "chrono_synchrono/agent/SynSCMTerrainAgent.h"
 #include "chrono_synchrono/agent/SynEnvironmentAgent.h"
 
 using namespace rapidjson;
@@ -35,103 +33,75 @@ using namespace rapidjson;
 namespace chrono {
 namespace synchrono {
 
-std::shared_ptr<SynAgent> SynAgentFactory::CreateAgent(SynAgentMessage* message) {
+std::shared_ptr<SynAgent> SynAgentFactory::CreateAgent(std::shared_ptr<SynMessage> description) {
     // Create the agent
     std::shared_ptr<SynAgent> agent = nullptr;
 
     // For convenience
-    auto description = message->GetDescription();
-    auto rank = message->GetRank();
-    auto type = message->GetType();
+    auto source_id = description->GetSourceID();
+
+    /// TODO: Add json support
 
     // Parse the JSON file if it exists
-    if (description->json.compare("") != 0) {
-        // Parse JSON file to get the agent type
-        Document d = SynAgent::ParseAgentFileJSON(description->json);
-        std::string type = d["Template"].GetString();
+    // if (description->json.compare("") != 0) {
+    //     std::cout << description->json << std::endl;
+    //     // Parse JSON file to get the agent type
+    //     Document d = SynAgent::ParseAgentFileJSON(description->json);
+    //     std::string type = d["Template"].GetString();
 
-        if (type.compare("WheeledVehicleAgent") == 0) {
-            agent = chrono_types::make_shared<SynWheeledVehicleAgent>(rank, description->json);
-        } else if (type.compare("TrackedVehicleAgent") == 0) {
-            agent = chrono_types::make_shared<SynTrackedVehicleAgent>(rank, description->json);
-        } else {
-            std::string message = "SynAgentFactory::CreateAgent: Agent type \"" + type + "\" not recognized.";
-            throw ChException(message);
-        }
-    } else if (type == SynMessageType::WHEELED_VEHICLE) {
-        auto vehicle_description = std::static_pointer_cast<SynWheeledVehicleDescription>(description);
-        auto vehicle_agent = chrono_types::make_shared<SynWheeledVehicleAgent>(rank);
-        vehicle_agent->GetWheeledVehicle()->SetZombieVisualizationFiles(vehicle_description->m_chassis_vis_file,  //
-                                                                        vehicle_description->m_wheel_vis_file,    //
-                                                                        vehicle_description->m_tire_vis_file);    //
-        vehicle_agent->GetWheeledVehicle()->SetNumWheels(vehicle_description->m_num_wheels);
-
-        agent = vehicle_agent;
-    } else if (type == SynMessageType::TRACKED_VEHICLE) {
-        auto vehicle_description = std::static_pointer_cast<SynTrackedVehicleDescription>(description);
-        auto vehicle_agent = chrono_types::make_shared<SynTrackedVehicleAgent>(rank);
-        vehicle_agent->GetTrackedVehicle()->SetZombieVisualizationFiles(
-            vehicle_description->m_chassis_vis_file,            //
-            vehicle_description->m_track_shoe_vis_file,         //
-            vehicle_description->m_left_sprocket_vis_file,      //
-            vehicle_description->m_right_sprocket_vis_file,     //
-            vehicle_description->m_left_idler_vis_file,         //
-            vehicle_description->m_right_idler_vis_file,        //
-            vehicle_description->m_left_road_wheel_vis_file,    //
-            vehicle_description->m_right_road_wheel_vis_file);  //
-
-        vehicle_agent->GetTrackedVehicle()->SetNumAssemblyComponents(vehicle_description->m_num_track_shoes,   //
-                                                                     vehicle_description->m_num_sprockets,     //
-                                                                     vehicle_description->m_num_idlers,        //
-                                                                     vehicle_description->m_num_road_wheels);  //
+    //     if (type.compare("WheeledVehicleAgent") == 0) {
+    //         agent = chrono_types::make_shared<SynWheeledVehicleAgent>(source_id, description->json);
+    //     } else if (type.compare("TrackedVehicleAgent") == 0) {
+    //         agent = chrono_types::make_shared<SynTrackedVehicleAgent>(source_id, description->json);
+    //     } else {
+    //         std::string message = "SynAgentFactory::CreateAgent: Agent type \"" + type + "\" not recognized.";
+    //         throw ChException(message);
+    //     }
+    // } else
+    if (auto vehicle_description = std::dynamic_pointer_cast<SynWheeledVehicleDescriptionMessage>(description)) {
+        auto vehicle_agent = chrono_types::make_shared<SynWheeledVehicleAgent>();
+        vehicle_agent->SetID(source_id);
+        vehicle_agent->SetZombieVisualizationFiles(vehicle_description->chassis_vis_file,  //
+                                                   vehicle_description->wheel_vis_file,    //
+                                                   vehicle_description->tire_vis_file);    //
+        vehicle_agent->SetNumWheels(vehicle_description->num_wheels);
 
         agent = vehicle_agent;
-    } else if (type == SynMessageType::ENVIRONMENT) {
-        agent = chrono_types::make_shared<SynEnvironmentAgent>(rank);
+    } else if (auto vehicle_description = std::dynamic_pointer_cast<SynTrackedVehicleDescriptionMessage>(description)) {
+        auto vehicle_agent = chrono_types::make_shared<SynTrackedVehicleAgent>();
+        vehicle_agent->SetID(source_id);
+        vehicle_agent->SetZombieVisualizationFiles(vehicle_description->chassis_vis_file,            //
+                                                   vehicle_description->track_shoe_vis_file,         //
+                                                   vehicle_description->left_sprocket_vis_file,      //
+                                                   vehicle_description->right_sprocket_vis_file,     //
+                                                   vehicle_description->left_idler_vis_file,         //
+                                                   vehicle_description->right_idler_vis_file,        //
+                                                   vehicle_description->left_road_wheel_vis_file,    //
+                                                   vehicle_description->right_road_wheel_vis_file);  //
+
+        vehicle_agent->SetNumAssemblyComponents(vehicle_description->num_track_shoes,   //
+                                                vehicle_description->num_sprockets,     //
+                                                vehicle_description->num_idlers,        //
+                                                vehicle_description->num_road_wheels);  //
+
+        agent = vehicle_agent;
+    } else if (auto copter_description = std::dynamic_pointer_cast<SynCopterDescriptionMessage>(description)) {
+        auto copter_agent = chrono_types::make_shared<SynCopterAgent>();
+        copter_agent->SetID(source_id);
+        copter_agent->SetZombieVisualizationFiles(copter_description->chassis_vis_file,  //
+                                                  copter_description->propeller_vis_file);  //
+
+        copter_agent->SetNumProps(copter_description->GetNumProps());
+		agent = copter_agent;
+    } else if (auto terrain_message = std::dynamic_pointer_cast<SynSCMMessage>(description)) {
+        auto terrain_agent = chrono_types::make_shared<SynSCMTerrainAgent>();
+
+        agent = terrain_agent;
+    } else if (auto env_message = std::dynamic_pointer_cast<SynEnvironmentMessage>(description)) {
+        agent = chrono_types::make_shared<SynEnvironmentAgent>(nullptr);
+        agent->SetID(source_id);
     } else {
         std::string message = "SynAgentFactory::CreateAgent: Passed SynAgentDescription is not supported.";
-        throw ChException(message);
-    }
-
-    return agent;
-}
-
-std::shared_ptr<SynAgent> SynAgentFactory::CreateAgent(unsigned int rank,
-                                                       ChCoordsys<> coord_sys,
-                                                       const std::string& filename,
-                                                       ChSystem* system) {
-    // Create the agent
-    std::shared_ptr<SynAgent> agent;
-
-    // Parse JSON file to get the agent type
-    Document d = SynAgent::ParseAgentFileJSON(filename);
-    std::string type = d["Template"].GetString();
-
-    if (type.compare("VehicleAgent") == 0) {
-        agent = chrono_types::make_shared<SynWheeledVehicleAgent>(rank, coord_sys, filename, system);
-    } else {
-        std::string message = "Agent type \"" + type + "\" not recognized.";
-        throw ChException(message);
-    }
-
-    return agent;
-}
-
-std::shared_ptr<SynAgent> SynAgentFactory::CreateAgent(unsigned int rank,
-                                                       ChCoordsys<> coord_sys,
-                                                       const std::string& filename,
-                                                       ChContactMethod contact_method) {
-    // Create the agent
-    std::shared_ptr<SynAgent> agent;
-
-    // Parse JSON file to get the agent type
-    Document d = SynAgent::ParseAgentFileJSON(filename);
-    std::string type = d["Template"].GetString();
-
-    if (type.compare("VehicleAgent") == 0) {
-        agent = chrono_types::make_shared<SynWheeledVehicleAgent>(rank, coord_sys, filename, contact_method);
-    } else {
-        std::string message = "Agent type \"" + type + "\" not recognized.";
         throw ChException(message);
     }
 

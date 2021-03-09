@@ -82,7 +82,7 @@ void ChDoubleRoller::AddVisualizationAssets(VisualizationType vis) {
     m_wheel->AddAsset(cyl_2);
 
     auto tex = chrono_types::make_shared<ChTexture>();
-    tex->SetTextureFilename(chrono::GetChronoDataFile("redwhite.png"));
+    tex->SetTextureFilename(chrono::GetChronoDataFile("textures/redwhite.png"));
     m_wheel->AddAsset(tex);
 }
 

@@ -46,27 +46,24 @@ class ContactReporter : public ChContactContainer::ReportContactCallback {
                                  const ChVector<>& ctorque,
                                  ChContactable* modA,
                                  ChContactable* modB) override {
-        // Convert force in absolute frame
-        ChVector<> frc = plane_coord * cforce;
-
         // Check if contact involves box1
         if (modA == m_box1.get()) {
-            printf("  contact on Box 1 at pos: %7.3f  %7.3f  %7.3f", pA.x(), pA.y(), pA.z());
-            printf("  frc: %7.3f  %7.3f  %7.3f", frc.x(), frc.y(), frc.z());
+            printf("  A contact on Box 1 at pos: %7.3f  %7.3f  %7.3f", pA.x(), pA.y(), pA.z());
         } else if (modB == m_box1.get()) {
-            printf("  contact on Box 1 at pos: %7.3f  %7.3f  %7.3f", pB.x(), pB.y(), pB.z());
-            printf("  frc: %7.3f  %7.3f  %7.3f", frc.x(), frc.y(), frc.z());
+            printf("  B contact on Box 1 at pos: %7.3f  %7.3f  %7.3f", pB.x(), pB.y(), pB.z());
         }
 
         // Check if contact involves box2
         if (modA == m_box2.get()) {
-            printf("  contact on Box 2 at pos: %7.3f  %7.3f  %7.3f", pA.x(), pA.y(), pA.z());
-            printf("  frc: %7.3f  %7.3f  %7.3f", frc.x(), frc.y(), frc.z());
+            printf("  A contact on Box 2 at pos: %7.3f  %7.3f  %7.3f", pA.x(), pA.y(), pA.z());
         } else if (modB == m_box2.get()) {
-            printf("  contact on Box 2 at pos: %7.3f  %7.3f  %7.3f", pB.x(), pB.y(), pB.z());
-            printf("  frc: %7.3f  %7.3f  %7.3f", frc.x(), frc.y(), frc.z());
+            printf("  B contact on Box 2 at pos: %7.3f  %7.3f  %7.3f", pB.x(), pB.y(), pB.z());
         }
 
+        const ChVector<>& nrm = plane_coord.Get_A_Xaxis();
+        printf("  nrm: %7.3f, %7.3f  %7.3f", nrm.x(), nrm.y(), nrm.z());
+        printf("  frc: %7.3f  %7.3f  %7.3f", cforce.x(), cforce.y(), cforce.z());
+        printf("  trq: %7.3f, %7.3f  %7.3f", ctorque.x(), ctorque.y(), ctorque.z());
         printf("  penetration: %8.4f   eff. radius: %7.3f\n", distance, eff_radius);
 
         return true;
@@ -173,11 +170,11 @@ int main(int argc, char* argv[]) {
     // Create the visualization window
     // -------------------------------
 
-    irrlicht::ChIrrApp application(&system, L"SMC callbacks", irr::core::dimension2d<irr::u32>(800, 600), false, true);
-    irrlicht::ChIrrWizard::add_typical_Logo(application.GetDevice());
-    irrlicht::ChIrrWizard::add_typical_Sky(application.GetDevice());
-    irrlicht::ChIrrWizard::add_typical_Lights(application.GetDevice());
-    irrlicht::ChIrrWizard::add_typical_Camera(application.GetDevice(), irr::core::vector3df(4, 4, -6));
+    irrlicht::ChIrrApp application(&system, L"SMC callbacks", irr::core::dimension2d<irr::u32>(800, 600));
+    application.AddTypicalLogo();
+    application.AddTypicalSky();
+    application.AddTypicalLights();
+    application.AddTypicalCamera(irr::core::vector3df(4, 4, -6));
 
     application.AssetBindAll();
     application.AssetUpdateAll();
@@ -196,9 +193,9 @@ int main(int argc, char* argv[]) {
     while (application.GetDevice()->run()) {
         application.BeginScene(true, true, irr::video::SColor(255, 140, 161, 192));
         application.DrawAll();
-        irrlicht::ChIrrTools::drawGrid(application.GetVideoDriver(), 0.5, 0.5, 12, 12,
+        irrlicht::tools::drawGrid(application.GetVideoDriver(), 0.5, 0.5, 12, 12,
                                        ChCoordsys<>(ChVector<>(0, 0, 0), Q_from_AngX(CH_C_PI_2)));
-        irrlicht::ChIrrTools::drawAllCOGs(system, application.GetVideoDriver(), 1.0);
+        irrlicht::tools::drawAllCOGs(system, application.GetVideoDriver(), 1.0);
 
         application.DoStep();
         application.EndScene();

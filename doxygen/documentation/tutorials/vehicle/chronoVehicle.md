@@ -21,10 +21,10 @@ Selected vehicle demos:
 
 - demo_VEH_HMMWV - off-road 4WD wheeled vehicle (from the Vehicle models library)
 - demo_VEH_HMMWV_DefSoil - wheeled vehicle on [SCM deformable terrain](@ref vehicle_terrain_scm) (Bekker-Wong-type)
-- demo_VEH_HMMWV_Parallel - wheeled vehicle on [granular terrain](@ref vehicle_terrain_granular) simulation with the [PARALLEL module](@ref parallel_module)
+- demo_VEH_HMMWV_Multicore - wheeled vehicle on [granular terrain](@ref vehicle_terrain_granular) simulation with the [MULTICORE module](@ref multicore_module)
 - demo_VEH_M113 - tracked vehicle (from the Vehicle models library)
 - demo_VEH_M113_DefSoil - tracked vehicle on [SCM deformable terrain](@ref vehicle_terrain_scm) (Bekker-Wong-type)
-- demo_VEH_M113_Parallel - tracked vehicle simulation with the [PARALLEL module](@ref parallel_module)
+- demo_VEH_M113_Multicore - tracked vehicle simulation with the [MULTICORE module](@ref multicore_module)
 - demo_VEH_SteeringController - using a lateral steering controller for a double-lane change maneuver
 - demo_VEH_CRGTerrain - demonstration of the optional interface to OpenCRG
 - demo_VEH_ArticulatedVehicle - demonstration of extending Chrono::Vehicle (articulated chassis)

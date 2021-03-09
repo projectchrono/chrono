@@ -5,7 +5,15 @@ Change Log
 ==========
 
 - [Unreleased (development version)](#unreleased-development-branch)
-  - [Geometric stiffness for Euler beams](#geometric-stiffness-for-euler-beams)
+  - [Support for Z up camera in Chrono::Irrlicht](#changed-support-for-z-up-camera-in-chronoirrlicht)
+  - [Specifying collision meshes in Chrono::Gpu](#changed-specifying-collision-meshes-in-chronogpu)
+- [Release 6.0.0](#release-600---2021-02-10) 
+  - [New Chrono::Csharp module](#added-new-chronocsharp-module)
+  - [RoboSimian, Viper, and LittleHexy models](#added-robosimian-viper-and-littlehexy-models)
+  - [Contact force reporting through user-provided callback](#added-contact-force-reporting-through-user-provided-callback)
+  - [Chrono::Gpu module rename](#changed-chronogpu-module-rename)
+  - [Chrono::Multicore module rename](#changed-chronomulticore-module-rename)
+  - [Geometric stiffness for Euler beams](#added-geometric-stiffness-for-euler-beams)
   - [New Chrono::Synchrono module](#added-new-chronosynchrono-module)
   - [Rename Intel MKL Pardiso interface module](#changed-rename-intel-mkl-pardiso-interface-module)
   - [Saving POV-Ray files from Irrlicht interactive view](#added-saving-pov-ray-files-from-irrlicht-interactive-view)
@@ -28,6 +36,104 @@ Change Log
 - [Release 4.0.0](#release-400---2019-02-22)
 
 ## Unreleased (development branch)
+
+### [Changed] Support for Z up camera in Chrono::Irrlicht
+
+While the default remains to construct a camera with Y up, the ChIrrApp class was modified to also support a camera with Z up.  To create a Z up Irrlicht visualization application, pass `VerticalDir::Z` as the 4th (optional) argument to the ChIrrApp constructor. For example:
+```cpp
+    ChIrrApp application(&system, L"Demo", irr::core::dimension2d<irr::u32>(800, 600), VerticalDir::Z);
+    application.AddTypicalLogo();
+    application.AddTypicalSky();
+    application.AddTypicalLights();
+    application.AddTypicalCamera(irr::core::vector3df(1, 1, 1));
+```
+Note that this will also properly orient the sky box.
+Rotating with the left mouse button and panning with the arrow and PageUp/PageDwn keys works the same as with a Y up camera.
+
+This API change also eliminates classes with only static methods (ChIrrTools and ChIrrWizard), replacing them with free functions in the `chrono::irrlicht::tools` namespace.  See the various Chrono demos for required changes to user code.
+
+### [Changed] Specifying collision meshes in Chrono::Gpu
+
+The mechanism for specifying collision meshes in a `ChSystemGpuMesh` was changed to allow adding meshes in a sequential manner, at any point and as many times as desired, prior to invoking `ChSystemGpuMesh::Initialize()`. Various different functions are provided for adding a mesh from memory:
+```cpp
+    unsigned int AddMesh(std::shared_ptr<geometry::ChTriangleMeshConnected> mesh,
+                         float mass);
+```
+from a Wavefron OBJ file:
+```cpp
+    unsigned int AddMesh(const std::string& filename,
+                         const ChVector<float>& translation,
+                         const ChMatrix33<float>& rotscale,
+                         float mass);
+```
+or adding multiple meshes from a list of Wavefront OBJ files:
+```cpp
+    std::vector<unsigned int> AddMeshes(const std::vector<std::string>& objfilenames,
+                                        const std::vector<ChVector<float>>& translations,
+                                        const std::vector<ChMatrix33<float>>& rotscales,
+                                        const std::vector<float>& masses);
+```
+
+All meshes such specified are offloaded to the GPU upon calling `ChSystemGpuMesh::Initialize()`.  Note that these functions return an integral mesh identifier which can be used in subsequent function calls (e.g., `ChSystemGpuMesh::ApplyMeshMotion()`) to identify a particular mesh.
+
+## Release 6.0.0 - 2021-02-10
+
+### [Added] New Chrono::Csharp module
+
+The new Chrono::Csharp module provides a C# interface to selected Chrono functionality.  This allows using Chrono from C# programs and facilitates the integration of Chrono with external engines such as Unity.
+
+The module relies on SWIG to automatically generate the interface library and wrapper C# classes.  Upon build, the module creates the wrapper C# files under a `chrono_csharp/` directory in the build tree and a number of shared libraries (dll on Windows, so on Linux) in either the `bin/` or `lib/` directory, depending on platform. Currently, the Chrono::Csharp module provides an interface to the multibody dynamics capabilities in the core Chrono module, as well as to Chrono::Vehicle and the associated vehicle models.
+
+### [Added] RoboSimian, Viper, and LittleHexy models
+
+Models of the legged RoboSimian robot, the wheeled Viper rover, and the six-propeller LittleHexy copter are now included in the collection of Chrono models.  These models have no dependencies beyond the core Chrono module, except for an optional utility class for RoboSimian visualization with Irrlicht. Python wrappers are also provided, allowing use of these models with PyChrono. Related demo programs illustrate the robots moving over rigid or SCM deformable terrain (using a core Chrono system) and over granular terrain (using the Chrono::Multicore module).
+
+### [Added] Contact force reporting through user-provided callback
+
+The `OnReportContact` method of a user-supplied reporter callback (derived from `ChContactContainer::ReportContactCallback`) is now called with the proper force and torque for the current contact when using a Chrono::Multicore parallel system (of either NSC or SMC type).  The reported contact force and torque are provided at the contact point and expressed in the *contact frame* (defined by the provided rotation matrix).
+
+For examples of using the contact reporting feature with a Chrono::Multicore system, see `demo_MCORE_callbackNSC` and `demo_MCORE_callbackSMC`.
+
+### [Changed] Chrono::Gpu module rename
+
+For consistency and to better reflect the purpose of this module, Chrono::Granular was renamed to **Chrono::Gpu**.
+With this change, the set of three Chrono modules targeting different parallel hardware (each providing different level of support for different types of simulations) are:
+- Chrono::Multicore (for shared-memory multicore parallel computing using OpenMP)
+- Chrono::Gpu (for GPU parallel computing using CUDA)
+- Chrono::Distributed (for distributed-memory parallel computing using MPI)
+
+The name change for Chrono::Gpu and its associated classes was done in conjunction with a relatively extensive refactoring of its API.  The user's interaction with the Chrono::Gpu module was streamlined by exposing in the public API a single Chrono::Gpu system object (of type `ChSystemGpu` or `ChSystemGpuMesh`) and hidding the underlying implementation in a private class.
+
+See the various Chrono::Gpu demos in the Chrono distribution (e.g., demo_GPU_ballcosim) for usage of the new Chrono::Gpu module. The main API changes are as follows:
+- user code only needs to include one Chrono::Gpu header, namely `chrono_gpu/physics/ChSystemGpu.h`;
+- optional utilities are available in the `utils/` subdirectory (e.g. `chrono_gpu/utils/GpuJsonParser.h` and `chrono_gpu/utils/ChGpuSphereDecomp.h`; see demo_GPU_ballcosim and demo_GPU_fixedterrain, respectively);
+- user must create a Chrono::Gpu object (of type `ChSystemGpu` or `ChSystemGpuMesh`, as appropriate) by specifying the radius of the granular material spherical particles, their density, and the domain size.   This system object intermediates all interactions with the solver (through various setter and getter methods) and provides wrapper functions to initialize the problem (before the simulation loop) and advance the system state (inside the simulation loop);
+- note that names of ChSystemGpu methods were changed throughout for uniformity and coherence.
+
+As part of this refactoring, we have also added run-time visualization support for Chrono::Gpu simulations using the Chrono::OpenGL module (if the latter is not enabled in your Chrono build, run-time visualization support is disabled).  While run-time visualization adds some overhead, it may prove to be a useful debugging tool.  To use it:
+- include the header `chrono_gpu/utils/ChGpuVisualization`;
+- create the visualization object by passing it a pointer to the Chrono::Gpu system and (optionally) a pointer to a Chrono system (if one already exists, e.g. for a co-simulation problem;  if passing `nullptr`, such a system is created automatically);
+- initialize the visualization system (this must be done after the Chrono::Gpu system itself was initialized) by invoking the function ChGpuVisualization::Initialize();
+- in the simulation loop, at any desired frequency, invoke the function ChGpuVisualization::Render().
+
+See demo_GPU_ballcosim, demo_GPU_mixer, or demo_GPU_repose for use of the run-time visualization option.
+
+
+Finally, note that a future version of the Chrono::Gpu module may simplify its public API even further by collapsing the two current classes ChsystemGpu and ChSystemGpuMesh into a single one.
+
+### [Changed] Chrono::Multicore module rename
+
+For consistency and to better reflect the purpose of this module, Chrono::Parallel was renamed to **Chrono::Multicore**.
+
+The related API changes are simply replacements of *parallel* with *multicore*, keeping the same capitalization:
+- `chrono_multicore/` replaces `chrono_parallel/`
+- class names use `Multicore` instead of `Parallel` (e.g.; `ChSystemMulticore`)
+- macro names use `MULTICORE` instead of `PARALLEL` (e.g.; `CHRONO_MULTICORE`)
+- the CMake project configuration script ChronoConfig.cmake expects the component name `Multicore` instead of `Parallel` 
+
+In addition, names of related demos, unit tests, and benchmark tests include the string `MCORE` instead of `PAR` (e.g.; `demo_MCORE_mixerNSC`).
+
+Users of the Chrono::Multicore module should rerun CMake since the variables related to this module have also changed name (e.g.; `ENABLE_MODULE_MULTICORE`).
 
 ### [Added] Geometric stiffness for Euler beams
 
@@ -101,11 +207,39 @@ for (auto& axle : trailer.GetAxles()) {
 
 ### [Changed] Enhancements to Chrono::FSI
 
-TODO
+- The WCSPH based explicit solver now supports both fluid dynamics and granular material dynamics.
+
+	- The fluid dynamics is executed by default.
+	- The granular material dynamics is executed by setting an "Elastic SPH" option in the input JSON file.
+
+- Add a consistent SPH discretization into the explicit SPH solver.
+
+	- Both the gradient and Laplacian operators in the NS equations are discretized by a consistent format.
+	- The correction matrices are calculated for both operators to enhance the consistency.
+	- A second-order accuracy will be recovered by this consistent discretization.
+
+- Add a new particle shifting technique into Chrono::FSI.
+
+	- The particle shifting strategy is a penetration-based particle shifting technique.
+	- It supports three-dimensional fluid/granular material dynamics problems with a free surface.
+
+- Make the granular material solver more stable and accurate in the framework of WCSPH.
+
+	- The Drucker-Prager yield criterion is implemented in conjunction with a four-step update strategy for the stress tensor of the granular material.
+	- The interaction between a rigid multibody system and granular material is supported.
 
 ### [Added] New Chrono::Sensor module
 
-TODO
+A new module (`Chrono::Sensor`) has been introduced to allow for sensor simulation within Chrono. `Chrono::Sensor` provides an interface for modeling and simulating sensors in the Chrono system to provide input for perception and control algorithms. For example, `Chrono::Sensor` may be used in combination with `Chrono::Vehicle` to simulate an autonomous vehicle equipped with multiple cameras and lidars. The module containes a API for modeling sensors with noise and distortion using a filter-graph paradigm for customization. Rendered sensors (camera and lidar) utilize ray tracing via OptiX to generate synthetic data.
+
+Parameterized models for camera, lidar, GPS and IMU have been added with the ability to extend or implement custom sensors.
+
+`Chrono::Sensor` is designed around a `ChSensorManager` which maintains all time synchronization and resources management between the sensing module and the core chrono system. Sensors such as a `ChCameraSensor` and `ChLidarSensor` can be added to the manager and mounted to a Chrono body which will determine the sensor's dynamics. The sensor are maintained by the `ChSensorManager` and all data is received via an added `ChFilterAccess` in the filter graph, determined by the sensor's parameters.
+
+Locations:
+- `Chrono::Sensor` source code is maintained under `src/chrono_sensor/`
+- Demos are located in `src/demos/sensor/`
+- Sensor specific data is located in `data/sensor/`
 
 ### [Changed] Setting OpenMP number of threads
 

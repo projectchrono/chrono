@@ -333,13 +333,14 @@ using ChBeamSectionAdvanced = ChBeamSectionEulerAdvanced;
 /// have collective values of bending rigidities, and collective mass per unit length. This class
 /// allows using these values directly, bypassing any knowledge of area, density, Izz Iyy, E young modulus, etc.
 /// To be used with ChElementBeamEuler.
+/// The center of mass of the section can have an offset respect to the centerline.
 /// This material can be shared between multiple beams.
 ///
 /// \image html "http://www.projectchrono.org/assets/manual/fea_ChElementBeamEuler_section.png"
 ///
 
 class ChApi ChBeamSectionEulerAdvancedGeneric : public ChBeamSectionEuler {
-  private:
+  protected:
     double Ax;     // axial rigidity
     double Txx;    // torsion rigidity
     double Byy;    // bending about yy rigidity
@@ -523,6 +524,134 @@ class ChApi ChBeamSectionEulerEasyCircular : public ChBeamSectionEulerSimple {
                                    double density    ///< volumetric density (ex. in SI units: [kg/m^3])
     );
 };
+
+
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////
+// Rayleigh beam sections, like Euler sections but adding the effect of Jyy Jzz rotational inertias
+
+
+
+/// This works exactly as ChBeamSectionEulerSimple, but adds the effect of Jyy Jzz rotational sectional inertias,
+/// whereas the conventional Euler theory would assume the mass to be concentrated in the center of mass, hence Jyy Jzz =0.
+/// For wide sections, Jyy Jzz can become not negligible. 
+/// In this simple symmetric case with homogeneous density, the values of Jyy Jzz are computed automatically as
+///  \f$ J_{yy} = \rho I_{yy} \f$,  \f$ J_{zz} = \rho I_{zz} \f$
+/// This is a simple section model that assumes the elastic center, the shear center and the mass
+/// center to be all in the centerline of the beam (section origin); this is the case of symmetric sections for example.
+/// 
+/// To be used with ChElementBeamEuler.
+/// This material can be shared between multiple beams.
+///
+/// \image html "http://www.projectchrono.org/assets/manual/fea_ChElasticityCosseratSimple.png"
+///
+class ChApi ChBeamSectionRayleighSimple : public ChBeamSectionEulerSimple {
+public:
+
+    ChBeamSectionRayleighSimple() {}
+
+    virtual ~ChBeamSectionRayleighSimple() {}
+
+    /// Compute the 6x6 sectional inertia matrix, as in  {x_momentum,w_momentum}=[Mm]{xvel,wvel}
+    virtual void ComputeInertiaMatrix(ChMatrixNM<double, 6, 6>& M) override;
+};
+
+
+/// This works exactly as ChBeamSectionEulerEasyRectangular, 
+/// but adds the effect of Jyy Jzz rotational sectional inertias.
+class ChApi ChBeamSectionRayleighEasyRectangular : public ChBeamSectionRayleighSimple {
+  public:
+      ChBeamSectionRayleighEasyRectangular(double width_y,  ///< width of section in y direction
+          double width_z,  ///< width of section in z direction
+          double E,        ///< Young modulus
+          double G,        ///< Shear modulus (only needed for the torsion)
+          double density   ///< volumetric density (ex. in SI units: [kg/m^3])
+      );
+};
+
+/// This works exactly as ChBeamSectionEulerEasyCircular, 
+/// but adds the effect of Jyy Jzz rotational sectional inertias.
+class ChApi ChBeamSectionRayleighEasyCircular : public ChBeamSectionRayleighSimple {
+  public:
+      ChBeamSectionRayleighEasyCircular(double diameter,  ///< diameter of circular section
+          double E,         ///< Young modulus
+          double G,         ///< Shear modulus (only needed for the torsion)
+          double density    ///< volumetric density (ex. in SI units: [kg/m^3])
+      );
+};
+
+
+/// This works exactly as ChBeamSectionEulerAdvancedGeneric, 
+/// but adds the effect of Jyy Jzz rotational sectional inertias.
+/// The Jxx inertia of the Euler base class is automatically computed from Jyy Jzz by the polar theorem.
+class ChApi ChBeamSectionRayleighAdvancedGeneric : public ChBeamSectionEulerAdvancedGeneric {
+  private:
+      double Jzz; // sectional inertia per unit length, in centerline reference, measured along centerline main axes
+      double Jyy; // sectional inertia per unit length, in centerline reference, measured along centerline main axes
+      double Jyz; // sectional inertia per unit length, in centerline reference, measured along centerline main axes
+  public:
+    ChBeamSectionRayleighAdvancedGeneric()
+        : Jzz(0.5), Jyy(0.5), Jyz(0) {}
+
+    ChBeamSectionRayleighAdvancedGeneric(
+        const double mAx,      ///< axial rigidity
+        const double mTxx,     ///< torsion rigidity
+        const double mByy,     ///< bending regidity about yy
+        const double mBzz,     ///< bending rigidity about zz
+        const double malpha,   ///< section rotation about elastic center [rad]
+        const double mCy,      ///< elastic center y displacement respect to centerline
+        const double mCz,      ///< elastic center z displacement respect to centerline
+        const double mSy,      ///< shear center y displacement respect to centerline
+        const double mSz,      ///< shear center z displacement respect to centerline
+        const double mmu,      ///< mass per unit length
+        const double mJyy,     ///< inertia Jyy per unit lenght, in centerline reference, measured along centerline main axes
+        const double mJzz,     ///< inertia Jzz per unit lenght, in centerline reference, measured along centerline main axes
+        const double mJyz,     ///< inertia Jyz per unit lenght, in centerline reference, measured along centerline main axes
+        const double mMy = 0,  ///< mass center y displacement respect to centerline
+        const double mMz = 0   ///< mass center z displacement respect to centerline
+    )
+        : ChBeamSectionEulerAdvancedGeneric(mAx, mTxx, mByy, mBzz, malpha, mCy, mCz, mSy, mSz, mmu, (mJyy + mJzz), mMy, mMz), 
+        Jyy(mJyy), Jzz(mJzz), Jyz(mJyz) {}
+
+    virtual ~ChBeamSectionRayleighAdvancedGeneric() {}
+
+
+    /// Set the Jyy Jzz Jyz components of the sectional inertia per unit length, 
+    /// in centerline reference, measured along centerline main axes.
+    /// These are defined as: 
+    /// \f$ J_{yy} =  \int_\Omega \rho z^2 d\Omega \f$, also Jyy = Mm(4,4) 
+    /// \f$ J_{zz} =  \int_\Omega \rho y^2 d\Omega \f$, also Jzz = Mm(5,5) 
+    /// \f$ J_{yz} =  \int_\Omega \rho y z  d\Omega \f$, also Jyz = -Mm(4,5) = -Mm(5,4)
+    /// It is not needed to enter also Jxx because Jxx=(Jzz+Jyy) by the polar theorem.
+    virtual void SetInertiasPerUnitLength(const double mJyy, const double mJzz, const double mJyz);
+
+
+    /// Set inertia moments, per unit length, as assumed computed in the Ym Zm "mass reference"
+    /// frame, ie. centered at the center of mass and rotated by phi angle to match the main axes of inertia:
+    /// \f$ Jm_{yy} =  \int_\Omega \rho z_{m}^2 d\Omega \f$, 
+    /// \f$ Jm_{zz} =  \int_\Omega \rho y_{m}^2 d\Omega \f$.
+    /// Assuming the center of mass is already set.
+    virtual void SetMainInertiasInMassReference(double Jmyy, double Jmzz, double phi);
+
+    /// Get inertia moments, per unit length, as assumed computed in the Ym Zm "mass reference" frame, and the rotation phi of that frame,
+    /// ie. inertias centered at the center of mass and rotated by phi angle to match the main axes of inertia:
+    /// \f$ Jm_{yy} =  \int_\Omega \rho z_{m}^2 d\Omega \f$, 
+    /// \f$ Jm_{zz} =  \int_\Omega \rho y_{m}^2 d\Omega \f$.
+    /// Assuming the center of mass is already set.
+    virtual void GetMainInertiasInMassReference(double& Jmyy, double& Jmzz, double& phi);
+
+
+
+    // INTERFACES
+
+    /// Compute the 6x6 sectional inertia matrix, as in  {x_momentum,w_momentum}=[Mm]{xvel,wvel}
+    virtual void ComputeInertiaMatrix(ChMatrixNM<double, 6, 6>& M) override;
+
+};
+
+
+
 
 /// @} fea_utils
 

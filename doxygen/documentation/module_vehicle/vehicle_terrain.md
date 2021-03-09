@@ -26,7 +26,7 @@ Since the flat terrain model does not carry any collision and contact informatio
 
 ## Rigid terrain {#vehicle_terrain_rigid}
 
-[RigidTerrain](@ref chrono::vehicle::RigidTerrain) is a model of a rigid terrain with arbitrary geometry. A rigid terrain is spcified as a collection of patches, each of which can be one of the following:
+[RigidTerrain](@ref chrono::vehicle::RigidTerrain) is a model of a rigid terrain with arbitrary geometry. A rigid terrain is specified as a collection of patches, each of which can be one of the following:
 - a rectangular box, possibly rotated; the "driving" surface is the top face of the box (in the world's vertical direction)
 - a triangular mesh read from a user-specified Wavefront OBJ file
 - a triangular mesh generated programatically from a user-specified gray-scale BMP image
@@ -35,7 +35,7 @@ The rigid terrain model can be used with any of the Chrono::Vehicle tire models,
 
 A box patch is specified by the center of the top (driving) surface, the normal to the top surface, and the patch dimensions (length, width, and optionally thickness). Optionally, the box patch can be created from multiple adjacent tiles, each of which being a Chrono box contact shape; this is recommended for a box patch with large horizontal extent as a single collision shape of that dimension may lead to errors in the collision detection algorithm.
 
-An example of a mesh rigid terrain patch is shown in the image below.  It is assumed that the mesh is provided with respect to an ISO reference frame and that it has no "overhangs" (in other words, a vertical ray intersects the mesh in at most one point).  Optionally, the user can specify a "thickness" for the terrain mesh as the radius of a sweeping sphere. Specifying a small positive value for this radius can significantly iprove the robustness of the collision detection algorithm.
+An example of a mesh rigid terrain patch is shown in the image below.  It is assumed that the mesh is provided with respect to an ISO reference frame and that it has no "overhangs" (in other words, a vertical ray intersects the mesh in at most one point).  Optionally, the user can specify a "thickness" for the terrain mesh as the radius of a sweeping sphere. Specifying a small positive value for this radius can significantly improve the robustness of the collision detection algorithm.
 
 <img src="http://www.projectchrono.org/assets/manual/vehicle/terrain/Rigid_mesh.png" width="600" />
 
@@ -73,9 +73,10 @@ Since the CRG terrain model currently does not carry any collision and contact i
 
 ## Deformable SCM (Soil Contact Model) {#vehicle_terrain_scm}
 
-In SCM, the terain is represented by a mesh whose deformation is achieved via vertical deflection of its nodes. Differently from the original SCM model, which uses regular grids, Chrono's [SCMDeformableTerrain](@ref chrono::vehicle::SCMDeformableTerrain) extends this model to the case of non-structured triangular meshes. Moreover, to address memory and computational efficiency concerns, the Chrono implementation uses an automatic refinement of the mesh in order to create additional fine details where vehicle tires and track shoes interact with the soil.  This soil model draws on the general-purpose collision engine in Chrono and its lightweight formulation allows computing vehicle-terrain contact forces in close to real-time.
+In the recently redesigned [SCMDeformableTerrain](@ref chrono::vehicle::SCMDeformableTerrain), the terrain is represented by an implicit regular Cartesian grid whose deformation is achieved via vertical deflection of its nodes.  This soil model draws on the general-purpose collision engine in Chrono and its lightweight formulation allows computing vehicle-terrain contact forces in close to real-time.
+To address memory and computational efficiency concerns, the grid is never created explicitly. Instead, only nodes that have been deformed are maintained in a hash map.  Furthermore, ray-casting in the collision system (the most costly operation in the SCM calculation) is multi-threaded.  To allow efficient visualization of the deformed terrain, the Chrono SCM subsystem provides methods for incrementally updating a visualization mesh and, when using an external visualization system, reporting the subset of nodes deformed over the last time step.
 
-An illustration of the adaptive mesh refinement implemented in the Chrono version of the SCM is shown below:
+Shown below, a tire makes ruts in deformable soil, illustrating the mesh structure of the Chrono version of the SCM.
 
 <img src="http://www.projectchrono.org/assets/manual/vehicle/terrain/SCM_mesh_refinement.png" width="600" />
 
@@ -96,11 +97,10 @@ where \f$A\f$ is the area of such a contact patch and \f$L\f$ its perimeter.
 Some other features of the Chrono SCM implementation are:
 - the initial undeformed mesh can be created as
   - a regular tiled mesh (filling a flat rectangle)
-  - an arbitrary triangular mesh (provided as a Wavefront OBJ file)
-  - from a hight-map (provided as a gray-scale BMP image)
+  - from a height-map (provided as a gray-scale BMP image)
   - programatically
 - support for arbitrary orientation of the terrain reference plane; by default, the terrain is defined as the \f$(x,y)\f$ plane of a \f$z\f$-up [ISO frame](@ref vehicle_ISO_frame)
-- support for a moving-patch approach wherein the adaptive mesh refinement is confined to a rectangular domain around a given point on a moving vehicle  
+- support for a moving-patch approach wherein ray-casting (the most costly operation) is confined to a specified domain -- either a rectangular patch moving relative to the vehicle or the projection of a bounding box
 - support for specifying location-dependent soil parameters; this can be achieved by providing a custom callback class which implements a method that returns all soil parameters at a given \f$(x,y)\f$ point specified in the terrain's reference plane. See [SCMDeformableTerrain::SoilParametersCallback](@ref chrono::vehicle::SCMDeformableTerrain::SoilParametersCallback)
 
 Since the interaction with this terrain type is done through the underlying Chrono contact system, it can be used in conjunction with [rigid](@ref wheeled_tire_rigid) or [FEA](@ref wheeled_tire_fea) tire models and with tracked vehicles.
@@ -109,9 +109,9 @@ Since the interaction with this terrain type is done through the underlying Chro
 
 [GranularTerrain](@ref chrono::vehicle::GranularTerrain) implements a rectangular patch of granular material and leverages Chrono's extensive support for so-called Discrete Element Method (DEM) simulations. Currently, this terrain model is limited to monodisperse spherical granular material.
 
-Because simulation of large-scale granular dynamics can be computationally very intensive, the GranularTerrain object in Chrono::Vehicle provides support for a "moving patch" approach, wherein the simulation can be confined to a bin of granular material that is continuously relocated based on the position of a specified body (typically the vehicle's chassis). Curently, the moving patch can only be relocated in the \f$x\f$ (forward) direction.
+Because simulation of large-scale granular dynamics can be computationally very intensive, the GranularTerrain object in Chrono::Vehicle provides support for a "moving patch" approach, wherein the simulation can be confined to a bin of granular material that is continuously relocated based on the position of a specified body (typically the vehicle's chassis). Currently, the moving patch can only be relocated in the \f$x\f$ (forward) direction.
 
-An illustration of a vehicle acceleration test on GranularTerrain using the moving patch feature is shown below.  This simulation uses more than 700,000 particles and the [Chrono::Parallel](@ref parallel_module) module for multi-core parallel simulation.
+An illustration of a vehicle acceleration test on GranularTerrain using the moving patch feature is shown below.  This simulation uses more than 700,000 particles and the [Chrono::Multicore](@ref multicore_module) module for multi-core parallel simulation.
 
 <img src="http://www.projectchrono.org/assets/manual/vehicle/terrain/Granular_moving_patch.png" width="600" />
 

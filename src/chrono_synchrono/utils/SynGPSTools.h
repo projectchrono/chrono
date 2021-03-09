@@ -23,11 +23,12 @@
 #ifndef SYN_FRAMEWORK_H
 #define SYN_FRAMEWORK_H
 
-#include "chrono_synchrono/agent/SynAgent.h"
-#include "chrono_synchrono/terrain/SynTerrain.h"
-
 #include "chrono/core/ChVector.h"
 #include "chrono/core/ChBezierCurve.h"
+
+#include "chrono_vehicle/ChTerrain.h"
+
+#include "chrono_synchrono/agent/SynAgent.h"
 
 #ifdef CHRONO_SENSOR
 #include "chrono_sensor/ChGPSSensor.h"
@@ -68,7 +69,7 @@ class SYN_API GPScoord {
 class SYN_API SynGPSTools {
   public:
     /// Construct a SynGPSTools object with the specified origin and attached terrain
-    SynGPSTools(const GPScoord& origin, std::shared_ptr<SynTerrain> terrain);
+    SynGPSTools(const GPScoord& origin, std::shared_ptr<vehicle::ChTerrain> terrain);
 
     /// Destructor
     ~SynGPSTools();
@@ -88,7 +89,7 @@ class SYN_API SynGPSTools {
     ChVector<> To3DCartesian(const GPScoord& gps, double height = 0.5) const;
 
   private:
-    const std::shared_ptr<SynTerrain> m_terrain;  ///< handle to the SynTerrain attached to this framework
+    const std::shared_ptr<vehicle::ChTerrain> m_terrain;  ///< handle to the terrain attached to this framework
 
     GPScoord m_origin;    ///< origin associated with this GPS Tool
     double m_lat_origin;  ///< easy access for latitude of the origin

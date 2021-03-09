@@ -87,7 +87,7 @@ floorBody.SetBodyFixed(True)
 mphysicalSystem.Add(floorBody)
 
 mtexture = chrono.ChTexture()
-mtexture.SetTextureFilename(chrono.GetChronoDataFile("blu.png"))
+mtexture.SetTextureFilename(chrono.GetChronoDataFile("textures/blue.png"))
 floorBody.AddAsset(mtexture)
 
 # In the following we will create different types of motors
@@ -746,7 +746,7 @@ motor6.SetMotionFunction(motor6setpoint)
 
 # Create the Irrlicht visualization (open the Irrlicht device,
 # bind a simple user interface, etc. etc.)
-application = chronoirr.ChIrrApp(mphysicalSystem, "Motors", chronoirr.dimension2du(800, 600), False)
+application = chronoirr.ChIrrApp(mphysicalSystem, "Motors", chronoirr.dimension2du(800, 600))
 
 # Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
 application.AddTypicalLogo()

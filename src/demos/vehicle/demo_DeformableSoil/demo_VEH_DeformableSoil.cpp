@@ -92,7 +92,7 @@ int main(int argc, char* argv[]) {
 
     // Create the Irrlicht visualization (open the Irrlicht device,
     // bind a simple user interface, etc. etc.)
-    ChIrrApp application(&my_system, L"Deformable soil", core::dimension2d<u32>(1280, 720), false, true);
+    ChIrrApp application(&my_system, L"Deformable soil", core::dimension2d<u32>(1280, 720), VerticalDir::Y, false, true);
 
     // Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
     application.AddTypicalLogo();
@@ -130,7 +130,7 @@ int main(int argc, char* argv[]) {
     switch (tire_type) {
         case TireType::LUGGED: {
             auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
-            trimesh->LoadWavefrontMesh(GetChronoDataFile("tractor_wheel.obj"));
+            trimesh->LoadWavefrontMesh(GetChronoDataFile("models/tractor_wheel/tractor_wheel.obj"));
 
             std::shared_ptr<ChTriangleMeshShape> mrigidmesh(new ChTriangleMeshShape);
             mrigidmesh->SetMesh(trimesh);
@@ -281,10 +281,10 @@ int main(int argc, char* argv[]) {
         }
 
         application.BeginScene();
-        application.GetSceneManager()->getActiveCamera()->setTarget(core::vector3dfCH(mrigidbody->GetPos()));
+        application.GetActiveCamera()->setTarget(core::vector3dfCH(mrigidbody->GetPos()));
         application.DrawAll();
         application.DoStep();
-        ChIrrTools::drawColorbar(0, 30000, "Pressure yield [Pa]", application.GetDevice(), 1180);
+        tools::drawColorbar(0, 30000, "Pressure yield [Pa]", application.GetDevice(), 1180);
         application.EndScene();
 
         ////mterrain.PrintStepStatistics(std::cout);

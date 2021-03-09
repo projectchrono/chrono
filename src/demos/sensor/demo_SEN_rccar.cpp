@@ -241,7 +241,7 @@ int main(int argc, char* argv[]) {
 
     if (contact_vis) {
         app.SetSymbolscale(1e-4);
-        app.SetContactsDrawMode(ChIrrTools::eCh_ContactsDrawMode::CONTACT_FORCES);
+        app.SetContactsDrawMode(IrrContactsDrawMode::CONTACT_FORCES);
     }
 
     // create the sensor manager and a camera
@@ -258,11 +258,12 @@ int main(int argc, char* argv[]) {
 
     auto cam1 = chrono_types::make_shared<chrono::sensor::ChCameraSensor>(
         my_rccar.GetChassisBody(),                                           // body camera is attached to
-        30,                                                                  // update rate in Hz
+        30.0f,                                                               // update rate in Hz
         chrono::ChFrame<double>({-2, 0, 1}, Q_from_AngAxis(.3, {0, 1, 0})),  // offset pose
         1280,                                                                // image width
         720,                                                                 // image height
-        CH_C_PI / 3);
+        (float)CH_C_PI / 3                                                   // FOV
+    );
     cam1->SetName("Camera Sensor");
     // cam1->SetLag(1 / 30.0);
     // cam1->SetCollectionWindow(0);
@@ -272,11 +273,12 @@ int main(int argc, char* argv[]) {
 
     auto cam2 = chrono_types::make_shared<chrono::sensor::ChCameraSensor>(
         my_rccar.GetChassisBody(),                                          // body camera is attached to
-        30,                                                                 // update rate in Hz
+        30.0f,                                                              // update rate in Hz
         chrono::ChFrame<double>({0, 0, .2}, Q_from_AngAxis(0, {1, 0, 0})),  // offset pose
         640,                                                                // image width
         480,                                                                // image height
-        CH_C_PI / 3);
+        (float)CH_C_PI / 3                                                  // FOV
+    );
     cam2->SetName("Camera Sensor");
     // cam2->SetLag(1 / 30.0);
     // cam2->SetCollectionWindow(0);
@@ -286,20 +288,20 @@ int main(int argc, char* argv[]) {
 
     auto lidar = chrono_types::make_shared<ChLidarSensor>(
         my_rccar.GetChassisBody(),                                          // body to which the IMU is attached
-        10,                                                                 // update rate
+        10.0f,                                                              // update rate
         chrono::ChFrame<double>({0, 0, .1}, Q_from_AngAxis(0, {1, 0, 0})),  // offset pose from body
         2000,                                                               // horizontal samples
         50,                                                                 // vertical samples/channels
-        (float)2.0f * CH_C_PI,                                              // horizontal field of view
+        (float)CH_C_PI * 2.0f,                                              // horizontal field of view
         (float)CH_C_PI / 6.f, -(float)CH_C_PI / 6.f,                        // vertical field of view
-        100.0                                                               // max distance
+        100.0f                                                              // max distance
     );
     lidar->SetName("Lidar Sensor");
     // lidar->SetLag(1 / 10.0);
     // lidar->SetCollectionWindow(0);
     // lidar->PushFilter(chrono_types::make_shared<ChFilterVisualize>(1000,100,"Lidar Data"));
     lidar->PushFilter(chrono_types::make_shared<ChFilterPCfromDepth>());
-    lidar->PushFilter(chrono_types::make_shared<ChFilterVisualizePointCloud>(640, 480, 1.5, "Lidar Point Cloud"));
+    lidar->PushFilter(chrono_types::make_shared<ChFilterVisualizePointCloud>(640, 480, 1.5f, "Lidar Point Cloud"));
     lidar->PushFilter(chrono_types::make_shared<ChFilterXYZIAccess>());
     lidar->PushFilter(chrono_types::make_shared<ChFilterSavePtCloud>("output/ptcloud/sim1/lidar/"));
     manager->AddSensor(lidar);

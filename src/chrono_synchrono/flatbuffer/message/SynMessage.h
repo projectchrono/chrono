@@ -22,83 +22,75 @@
 #define SYN_MESSAGE_H
 
 #include "chrono_synchrono/flatbuffer/message/SynMessageUtils.h"
+#include "chrono_synchrono/flatbuffer/message/SynFlatBuffers_generated.h"
+
+#include <map>
 
 namespace chrono {
 namespace synchrono {
 
+/// @addtogroup synchrono_flatbuffer
+/// @{
+
 typedef flatbuffers::Offset<SynFlatBuffers::Message> FlatBufferMessage;
-
-///@brief Type of each message
-enum class SynMessageType {
-    NONE,
-    WHEELED_VEHICLE,
-    TRACKED_VEHICLE,
-    TRAFFIC_LIGHT,
-    SCM_TERRAIN,
-    ENVIRONMENT,
-    MAP,
-    SPAT,
-    APPROACH,
-    SENSOR,
-    CONTROL
-};
-
-///@brief The message state struct
-/// Holds information realted to the messages data
-/// Should be inherited and stored with additional information relavent to new message types
-/// Should hold data necessary to be passed often between ranks
-struct SynMessageState {
-    double time;
-
-    SynMessageState(double time) : time(time) {}
-    SynMessageState() : time(0.0) {}
-};
 
 ///@brief SynMessage is the base class for all messages
 /// Basically wraps the FlatBuffer methods to better handle the SynChrono message passing system
-/// Uses a state struct and info struct to store data associated with the message passing
 /// Will be inherited from to create new message types
-class SynMessage {
+class SYN_API SynMessage {
   public:
-    ///@brief Construct a new SynMessage object
-    ///
-    ///@param type the kind of message this object represents
-    ///@param rank the rank of which the message was sent from
-    SynMessage(int rank, SynMessageType type) : m_rank(rank), m_type(type) {}
-
     ///@brief Destroy the SynMessage object
     virtual ~SynMessage() {}
 
-    ///@brief Generates and sets the state of this message from flatbuffer message
+    ///@brief Converts a received flatbuffer message to a SynMessage
     ///
-    ///@param message the flatbuffer message to convert to a MessageState object
-    virtual void StateFromMessage(const SynFlatBuffers::Message* message) = 0;
+    ///@param message the flatbuffer message to convert to a SynMessage
+    virtual void ConvertFromFlatBuffers(const SynFlatBuffers::Message* message) = 0;
 
-    ///@brief Generates a SynFlatBuffers::Message from the message state
+    ///@brief Converts this object to a flatbuffer message
     ///
-    ///@param builder the flatbuffer builder used to construct messages
-    ///@return flatbuffers::Offset<SynFlatBuffers::Message> the generated message
-    virtual FlatBufferMessage MessageFromState(flatbuffers::FlatBufferBuilder& builder) = 0;
+    ///@param builder a flatbuffer builder to construct the message with
+    ///@return FlatBufferMessage the constructed flatbuffer message
+    virtual FlatBufferMessage ConvertToFlatBuffers(flatbuffers::FlatBufferBuilder& builder) = 0;
 
-    ///@brief Get the SynMessageType object
+    ///@brief Get the id of the source of this message
     ///
-    ///@return Type the type of this message
-    SynMessageType GetType() { return m_type; }
+    ///@return unsigned int the source id
+    unsigned int GetSourceID() { return m_source_id; }
 
-    ///@brief Get the rank from which this message originates
+    ///@brief Set the id of the source of this message
     ///
-    ///@return unsigned int the rank from which this message originates
-    unsigned int GetRank() { return m_rank; }
+    ///@param source_id unsigned int the source id
+    void SetSourceID(unsigned int source_id) { m_source_id = source_id; }
 
-    ///@brief Get the SynMessageState object
+    ///@brief Get the id of the destination for this message
     ///
-    ///@return std::shared_ptr<SynMessageState> the state associated with this message
-    virtual std::shared_ptr<SynMessageState> GetState() = 0;
+    ///@return unsigned int the destination id
+    unsigned int GetDestinationID() { return m_destination_id; }
+
+    SynFlatBuffers::Type GetMessageType() { return m_msg_type; }
+    void SetMessageType(SynFlatBuffers::Type msg_type) { m_msg_type = msg_type; }
+
+    double time;  ///< simulation time
 
   protected:
-    int m_rank;             ///< rank of which sent or maintains this message
-    SynMessageType m_type;  ///< type of which this message is
+    ///@brief Constructor
+    ///
+    ///@param source_id the id of the source to which the message is sent from
+    ///@param destination_id the id of the destination to which the message is sent to
+    SynMessage(unsigned int source_id, unsigned int destination_id)
+        : time(0.0), m_source_id(source_id), m_destination_id(destination_id) {}
+
+    unsigned int m_source_id;       ///< id for the source which sent this message
+    unsigned int m_destination_id;  ///< id for the destination of this message
+    SynFlatBuffers::Type m_msg_type;  ///< Type of message that we contain
 };
+
+typedef std::vector<std::shared_ptr<SynMessage>> SynMessageList;
+
+typedef std::map<int, std::map<int, std::shared_ptr<SynMessage>>> SynMessageMap;
+
+/// @} synchrono_flatbuffer
 
 }  // namespace synchrono
 }  // namespace chrono

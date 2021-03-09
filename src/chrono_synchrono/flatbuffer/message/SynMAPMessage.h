@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: 肖言 (Yan Xiao), Shuo He
+// Authors: Yan Xiao, Shuo He
 // =============================================================================
 //
 // Store the Map information in the simulation. Currently only used for traffic
@@ -31,64 +31,39 @@ namespace synchrono {
 
 /// Contains some number of approaches - see ApproachMessage
 struct Intersection {
-    std::vector<SynApproachMessageState> approaches;
-
-    Intersection() {}
-    Intersection(std::vector<SynApproachMessageState> approaches) : approaches(approaches) {}
-    Intersection(const SynFlatBuffers::MAP::intersection* intersection);
-};
-
-/// Contains some number of intersections
-struct SynMAPMessageState : public SynMessageState {
-    int rank;
-    std::vector<Intersection> intersections;
-
-    SynMAPMessageState() : SynMessageState(0.0) {}
-    SynMAPMessageState(double time, int rank, std::vector<Intersection> intersections)
-        : SynMessageState(time), rank(rank), intersections(intersections) {}
-    SynMAPMessageState(const SynFlatBuffers::MAP::State* state);
+    std::vector<std::shared_ptr<SynApproachMessage>> approaches;
 };
 
 /// Store the Map information in the simulation. Currently only used for traffic light. A Map has Intersections which
 /// have approaches which have lanes
 class SYN_API SynMAPMessage : public SynMessage {
   public:
-  public:
-    ///@brief Construct a new SynMAPMessage object
+    ///@brief Constructor
     ///
-    ///@param rank the rank of this message
-    SynMAPMessage(int rank, std::shared_ptr<SynMAPMessageState> state = nullptr);
+    ///@param source_id the id of the source to which the message is sent from
+    ///@param destination_id the id of the destination to which the message is sent to
+    SynMAPMessage(unsigned int source_id, unsigned int destination_id);
 
-    ///@brief Generates and sets the state of this message from flatbuffer message
+    ///@brief Converts a received flatbuffer message to a SynMessage
     ///
-    ///@param message the flatbuffer message to convert to a MessageState object
-    virtual void StateFromMessage(const SynFlatBuffers::Message* message) override;
+    ///@param message the flatbuffer message to convert to a SynMessage
+    virtual void ConvertFromFlatBuffers(const SynFlatBuffers::Message* message) override;
 
-    ///@brief Generates a SynFlatBuffers::Message from the message state
+    ///@brief Converts this object to a flatbuffer message
     ///
-    ///@param builder the flatbuffer builder used to construct messages
-    ///@return flatbuffers::Offset<SynFlatBuffers::Message> the generated message
-    virtual FlatBufferMessage MessageFromState(flatbuffers::FlatBufferBuilder& builder) override;
+    ///@param builder a flatbuffer builder to construct the message with
+    ///@return FlatBufferMessage the constructed flatbuffer message
+    virtual FlatBufferMessage ConvertToFlatBuffers(flatbuffers::FlatBufferBuilder& builder) override;
 
-    /**
-     * @brief Add the lane to environment.
-     *
-     * @return The lane's position in that approach
-     */
-    virtual int AddLane(int intersection, int approach, ApproachLane lane);
-
-    ///@brief Get the SynMessageState object
+    ///@brief Add the lane to environment.
     ///
-    ///@return std::shared_ptr<SynMessageState> the state associated with this message
-    virtual std::shared_ptr<SynMessageState> GetState() override { return m_state; }
+    ///@param intersection
+    ///@param approach
+    ///@param lane
+    ///@return int The lane's position in that approach
+    virtual unsigned AddLane(int intersection, int approach, ApproachLane lane);
 
-    ///@brief Get the SynMAPMessageState object
-    ///
-    ///@return std::shared_ptr<SynMAPMessageState> the state associated with this message
-    std::shared_ptr<SynMAPMessageState> GetMAPState() { return m_state; }
-
-  private:
-    std::shared_ptr<SynMAPMessageState> m_state;  ///< handle to the message state
+    std::vector<Intersection> intersections;
 };
 
 /// @} synchrono_flatbuffer

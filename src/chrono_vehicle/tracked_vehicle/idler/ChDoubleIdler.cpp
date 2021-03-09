@@ -84,7 +84,7 @@ void ChDoubleIdler::AddVisualizationAssets(VisualizationType vis) {
     m_wheel->AddAsset(cyl_2);
 
     auto tex = chrono_types::make_shared<ChTexture>();
-    tex->SetTextureFilename(chrono::GetChronoDataFile("bluwhite.png"));
+    tex->SetTextureFilename(chrono::GetChronoDataFile("textures/bluewhite.png"));
     m_wheel->AddAsset(tex);
 }
 

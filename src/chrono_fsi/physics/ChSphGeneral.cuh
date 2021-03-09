@@ -62,10 +62,10 @@ __device__ inline Real W3_Spline(Real d) {  // d is positive. h is the sph parti
     Real h = paramsD.HSML;
     Real q = fabs(d) / h;
     if (q < 1) {
-        return (0.25f / (PI * h * h * h) * (pow(2 - q, Real(3)) - 4 * pow(1 - q, Real(3))));
+        return (0.25f / (PI * h * h * h) * (cube(2 - q) - 4 * cube(1 - q)));
     }
     if (q < 2) {
-        return (0.25f / (PI * h * h * h) * pow(2 - q, Real(3)));
+        return (0.25f / (PI * h * h * h) * cube(2 - q));
     }
     return 0;
 }
@@ -75,10 +75,10 @@ __host__ __device__ inline Real W3h_Spline(Real d, Real h) {  // d is positive. 
                                                               // the document) d is the distance of 2 particles
     Real q = fabs(d) / h;
     if (q < 1) {
-        return (0.25f / (PI * h * h * h) * (pow(2 - q, Real(3)) - 4 * pow(1 - q, Real(3))));
+        return (0.25f / (PI * h * h * h) * (cube(2 - q) - 4 * cube(1 - q)));
     }
     if (q < 2) {
-        return (0.25f / (PI * h * h * h) * pow(2 - q, Real(3)));
+        return (0.25f / (PI * h * h * h) * cube(2 - q));
     }
     return 0;
 }
@@ -88,7 +88,7 @@ __host__ __device__ inline Real W3h_High(Real d, Real h) {  // d is positive. h 
                                                             // the document) d is the distance of 2 particles
     Real q = fabs(d) / h;
     if (q < 2) {
-        return (5.0f / (4.0f * PI * h * h * h) * (3.0 / 16.0 * pow(q, 2.0) - 3.0 / 4.0 * q + 3.0 / 4.0));
+        return (5.0f / (4.0f * PI * h * h * h) * (3.0 / 16.0 * square(q) - 3.0 / 4.0 * q + 3.0 / 4.0));
     }
     return 0;
 }
@@ -136,11 +136,10 @@ __device__ inline Real3 W3H_GRADW(Real3 d, Real h) {  // d is positive. h is the
 //	Real h = paramsD.HSML;
 //	Real q = fabs(d) / h;
 //	if (q < 1) {
-//		return (5 / (14 * PI * h * h) * (pow(2 - q, Real(3)) - 4 * pow(1 -
-// q, Real(3))));
+//		return (5 / (14 * PI * h * h) * (cube(2 - q) - 4 * cube(1 - q)));
 //	}
 //	if (q < 2) {
-//		return (5 / (14 * PI * h * h) * pow(2 - q, Real(3)));
+//		return (5 / (14 * PI * h * h) * cube(2 - q));
 //	}
 //	return 0;
 //}
@@ -151,7 +150,7 @@ __device__ inline Real3 W3H_GRADW(Real3 d, Real h) {  // d is positive. h is the
 // document) d is the distance of 2 particles
 //	Real q = fabs(d) / h;
 //	if (q < 2) {
-//		return (1.25f / (PI * h * h * h) * .75f * (pow(.5f * q, Real(2)) -
+//		return (1.25f / (PI * h * h * h) * .75f * (square(.5f * q) -
 // q + 1));
 //	}
 //	return 0;
@@ -163,7 +162,7 @@ __device__ inline Real3 W3H_GRADW(Real3 d, Real h) {  // d is positive. h is the
 // document) d is the distance of 2 particles
 //	Real q = fabs(d) / h;
 //	if (q < 2) {
-//		return (2.0f / (PI * h * h) * .75f * (pow(.5f * q, Real(2)) - q +
+//		return (2.0f / (PI * h * h) * .75f * (square(.5f * q) - q +
 // 1));
 //	}
 //	return 0;
@@ -849,221 +848,6 @@ __global__ void UpdateDensity(Real3* vis_vel,
                               uint* cellEnd,
                               size_t numAllMarkers,
                               volatile bool* isErrorD);
-
-//--------------------------------------------------------------------------------------------------------------------------------
-__global__ void Calc_HelperMarkers_normals(Real4* sortedPosRad,
-                                           Real4* sortedRhoPreMu,
-                                           Real3* helpers_normal,
-                                           int* myType,
-                                           uint* cellStart,
-                                           uint* cellEnd,
-                                           uint* gridMarkerIndexD,
-                                           size_t numAllMarkers,
-                                           volatile bool* isErrorD);
-//--------------------------------------------------------------------------------------------------------------------------------
-__global__ void Calc_Splits_and_Merges(Real4* sortedPosRad,
-                                       Real4* sortedRhoPreMu,
-                                       Real3* sortedVelMas,
-                                       Real3* helpers_normal,
-                                       Real* A_L,   // Laplacian Operator matrix
-                                       Real3* A_G,  // Gradient Operator matrix
-                                       Real* A_f,   // Function Operator matrix
-                                       const uint* csrColInd,
-                                       const uint* numContacts,
-                                       uint* splitMe,
-                                       uint* MergeMe,
-                                       int* myType,
-                                       uint* gridMarkerIndexD,
-                                       Real fineResolution,
-                                       Real coarseResolution,
-                                       size_t numAllMarkers,
-                                       int limit,
-                                       volatile bool* isErrorD);
-
-//--------------------------------------------------------------------------------------------------------------------------------
-__global__ void Split(Real4* sortedPosRad,
-                      Real4* sortedRhoPreMu,
-                      Real3* sortedVelMas,
-                      Real3* helpers_normal,
-                      Real* A_L,   // Laplacian Operator matrix
-                      Real3* A_G,  // Gradient Operator matrix
-                      Real* A_f,   // Function Operator matrix
-                      const uint* csrColInd,
-                      const uint* numContacts,
-                      uint* splitMe,
-                      uint* MergeMe,
-                      int* myType,
-                      uint* gridMarkerIndexD,
-                      Real fineResolution,
-                      Real coarseResolution,
-                      size_t numAllMarkers,
-                      int limit,
-                      volatile bool* isErrorD);
-//--------------------------------------------------------------------------------------------------------------------------------
-__global__ void calc_A_tensor(Real* A_tensor,
-                              Real* G_tensor,
-                              Real4* sortedPosRad,
-                              Real4* sortedRhoPreMu,
-                              Real* sumWij_inv,
-                              uint* cellStart,
-                              uint* cellEnd,
-                              const size_t numAllMarkers,
-                              volatile bool* isErrorD);
-//--------------------------------------------------------------------------------------------------------------------------------
-__global__ void calc_L_tensor(Real* A_tensor,
-                              Real* L_tensor,
-                              Real* G_tensor,
-                              Real4* sortedPosRad,
-                              Real4* sortedRhoPreMu,
-                              Real* sumWij_inv,
-                              uint* cellStart,
-                              uint* cellEnd,
-                              const size_t numAllMarkers,
-                              volatile bool* isErrorD);
-
-//--------------------------------------------------------------------------------------------------------------------------------
-__global__ void calcRho_kernel(Real4* sortedPosRad,  // input: sorted positionsmin(
-                               Real4* sortedRhoPreMu,
-                               Real* sumWij_inv,
-                               uint* cellStart,
-                               uint* cellEnd,
-                               uint* mynumContact,
-                               const size_t numAllMarkers,
-                               volatile bool* isErrorD);
-
-//--------------------------------------------------------------------------------------------------------------------------------
-__global__ void calcNormalizedRho_kernel(Real4* sortedPosRad,  // input: sorted positions
-                                         Real3* sortedVelMas,
-                                         Real4* sortedRhoPreMu,
-                                         Real* sumWij_inv,
-                                         Real* G_i,
-                                         Real3* normals,
-                                         Real* Color,
-                                         uint* cellStart,
-                                         uint* cellEnd,
-                                         const size_t numAllMarkers,
-                                         volatile bool* isErrorD);
-//--------------------------------------------------------------------------------------------------------------------------------
-__global__ void calcNormalizedRho_Gi_fillInMatrixIndices(Real4* sortedPosRad,  // input: sorted positions
-                                                         Real3* sortedVelMas,
-                                                         Real4* sortedRhoPreMu,
-                                                         Real* sumWij_inv,
-                                                         Real* G_i,
-                                                         Real3* normals,
-                                                         uint* csrColInd,
-                                                         uint* numContacts,
-                                                         uint* cellStart,
-                                                         uint* cellEnd,
-                                                         const size_t numAllMarkers,
-                                                         volatile bool* isErrorD);
-//--------------------------------------------------------------------------------------------------------------------------------
-__global__ void Function_Gradient_Laplacian_Operator(Real4* sortedPosRad,  // input: sorted positions
-                                                     Real3* sortedVelMas,
-                                                     Real4* sortedRhoPreMu,
-                                                     Real* sumWij_inv,
-                                                     Real* G_tensor,
-                                                     Real* L_tensor,
-                                                     Real* A_L,   // velcotiy Laplacian matrix;
-                                                     Real3* A_G,  // This is a matrix in a way that A*p gives the gradp
-                                                     Real* A_f,
-                                                     uint* csrColInd,
-                                                     uint* numContacts,
-                                                     const size_t numAllMarkers,
-                                                     volatile bool* isErrorD);
-//--------------------------------------------------------------------------------------------------------------------------------
-__global__ void Jacobi_SOR_Iter(Real4* sortedRhoPreMu,
-                                Real* A_Matrix,
-                                Real3* V_old,
-                                Real3* V_new,
-                                Real3* b3vec,
-                                Real* q_old,  // q=p^(n+1)-p^n
-                                Real* q_new,  // q=p^(n+1)-p^n
-                                Real* b1vec,
-                                const uint* csrColInd,
-                                const uint* numContacts,
-                                size_t numAllMarkers,
-                                bool _3dvector,
-                                volatile bool* isErrorD);
-//--------------------------------------------------------------------------------------------------------------------------------
-__global__ void Update_AND_Calc_Res(Real4* sortedRhoPreMu,
-                                    Real3* V_old,
-                                    Real3* V_new,
-                                    Real* q_old,
-                                    Real* q_new,
-                                    Real* Residuals,
-                                    const size_t numAllMarkers,
-                                    bool _3dvector,
-                                    volatile bool* isErrorD);
-//--------------------------------------------------------------------------------------------------------------------------------
-__global__ void Initialize_Variables(Real4* sortedRhoPreMu,
-                                     Real* p_old,
-                                     Real3* sortedVelMas,
-                                     Real3* V_new,
-                                     const size_t numAllMarkers,
-                                     volatile bool* isErrorD);
-
-//--------------------------------------------------------------------------------------------------------------------------------
-__global__ void UpdateDensity(Real3* vis_vel,
-                              Real3* XSPH_Vel,
-                              Real3* new_vel,       // Write
-                              Real4* sortedPosRad,  // Read
-                              Real4* sortedRhoPreMu,
-                              Real* sumWij_inv,
-                              uint* cellStart,
-                              uint* cellEnd,
-                              size_t numAllMarkers,
-                              volatile bool* isErrorD);
-
-//--------------------------------------------------------------------------------------------------------------------------------
-__global__ void Calc_HelperMarkers_normals(Real4* sortedPosRad,
-                                           Real4* sortedRhoPreMu,
-                                           Real3* helpers_normal,
-                                           int* myType,
-                                           uint* cellStart,
-                                           uint* cellEnd,
-                                           uint* gridMarkerIndexD,
-                                           size_t numAllMarkers,
-                                           volatile bool* isErrorD);
-//--------------------------------------------------------------------------------------------------------------------------------
-__global__ void Calc_Splits_and_Merges(Real4* sortedPosRad,
-                                       Real4* sortedRhoPreMu,
-                                       Real3* sortedVelMas,
-                                       Real3* helpers_normal,
-                                       Real* A_L,   /// Laplacian Operator matrix
-                                       Real3* A_G,  /// Gradient Operator matrix
-                                       Real* A_f,   /// Function Operator matrix
-                                       const uint* csrColInd,
-                                       const uint* numContacts,
-                                       uint* splitMe,
-                                       uint* MergeMe,
-                                       int* myType,
-                                       uint* gridMarkerIndexD,
-                                       Real fineResolution,
-                                       Real coarseResolution,
-                                       size_t numAllMarkers,
-                                       int limit,
-                                       volatile bool* isErrorD);
-
-//--------------------------------------------------------------------------------------------------------------------------------
-__global__ void Split(Real4* sortedPosRad,
-                      Real4* sortedRhoPreMu,
-                      Real3* sortedVelMas,
-                      Real3* helpers_normal,
-                      Real* A_L,   /// Laplacian Operator matrix
-                      Real3* A_G,  /// Gradient Operator matrix
-                      Real* A_f,   /// Function Operator matrix
-                      const uint* csrColInd,
-                      const uint* numContacts,
-                      uint* splitMe,
-                      uint* MergeMe,
-                      int* myType,
-                      uint* gridMarkerIndexD,
-                      Real fineResolution,
-                      Real coarseResolution,
-                      size_t numAllMarkers,
-                      int limit,
-                      volatile bool* isErrorD);
-//--------------------------------------------------------------------------------------------------------------------------------
 
 }  // namespace fsi
 }  // namespace chrono

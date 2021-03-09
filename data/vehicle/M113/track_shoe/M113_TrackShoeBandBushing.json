@@ -44,7 +44,7 @@
         "Pad Material": {
             // Material for shoe pad (ground contact)
             "Coefficient of Friction": 0.8,
-            "Coefficient of Restitution": 0.1,
+            "Coefficient of Restitution": 0.75,
             "Properties": {
                 "Young Modulus": 1e7,
                 "Poisson Ratio": 0.3
@@ -59,7 +59,7 @@
         "Body Material": {
             // Material for shoe body (wheel contact)
             "Coefficient of Friction": 0.8,
-            "Coefficient of Restitution": 0.1,
+            "Coefficient of Restitution": 0.75,
             "Properties": {
                 "Young Modulus": 1e7,
                 "Poisson Ratio": 0.3
@@ -74,7 +74,7 @@
         "Guide Material": {
             // Material for guide (wheel contact)
             "Coefficient of Friction": 0.8,
-            "Coefficient of Restitution": 0.1,
+            "Coefficient of Restitution": 0.75,
             "Properties": {
                 "Young Modulus": 1e7,
                 "Poisson Ratio": 0.3
@@ -89,7 +89,7 @@
         "Tooth Material": {
             // Material for teeth (sprocket contact)
             "Coefficient of Friction": 0.8,
-            "Coefficient of Restitution": 0.1,
+            "Coefficient of Restitution": 0.75,
             "Properties": {
                 "Young Modulus": 1e7,
                 "Poisson Ratio": 0.3

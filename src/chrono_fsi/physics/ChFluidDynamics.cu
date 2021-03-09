@@ -286,18 +286,18 @@ __global__ void UpdateFluidD(Real4* posRadD,
             updatedTauXxYyZz.x += p_tr;
             updatedTauXxYyZz.y += p_tr;
             updatedTauXxYyZz.z += p_tr;
-            Real tau_tr = pow(updatedTauXxYyZz.x, 2) 
-                        + pow(updatedTauXxYyZz.y, 2) 
-                        + pow(updatedTauXxYyZz.z, 2)
-                        + 2.0 * pow(updatedTauXyXzYz.x, 2) 
-                        + 2.0 * pow(updatedTauXyXzYz.y, 2) 
-                        + 2.0 * pow(updatedTauXyXzYz.z, 2);
-            Real tau_n = pow(tauXxYyZz.x, 2) 
-                       + pow(tauXxYyZz.y, 2) 
-                       + pow(tauXxYyZz.z, 2) 
-                       + 2.0 * pow(tauXyXzYz.x, 2) 
-                       + 2.0 * pow(tauXyXzYz.y, 2) 
-                       + 2.0 * pow(tauXyXzYz.z, 2);
+            Real tau_tr = square(updatedTauXxYyZz.x) 
+                        + square(updatedTauXxYyZz.y) 
+                        + square(updatedTauXxYyZz.z)
+                        + 2.0 * square(updatedTauXyXzYz.x) 
+                        + 2.0 * square(updatedTauXyXzYz.y) 
+                        + 2.0 * square(updatedTauXyXzYz.z);
+            Real tau_n = square(tauXxYyZz.x) 
+                       + square(tauXxYyZz.y) 
+                       + square(tauXxYyZz.z) 
+                       + 2.0 * square(tauXyXzYz.x) 
+                       + 2.0 * square(tauXyXzYz.y) 
+                       + 2.0 * square(tauXyXzYz.z);
             tau_tr = sqrt(0.5 * tau_tr);
             tau_n = sqrt(0.5 * tau_n);
             Real Chi = abs(tau_tr - tau_n) / dT / paramsD.G_shear;  // should use the positive magnitude according to "A constitutive 
@@ -335,12 +335,12 @@ __global__ void UpdateFluidD(Real4* posRadD,
                 updatedTauXyXzYz = mR3(0.0);
                 p_tr = 0.0;
             }
-            tau_tr = pow(updatedTauXxYyZz.x, 2) 
-                   + pow(updatedTauXxYyZz.y, 2) 
-                   + pow(updatedTauXxYyZz.z, 2)
-                   + 2.0 * pow(updatedTauXyXzYz.x, 2) 
-                   + 2.0 * pow(updatedTauXyXzYz.y, 2) 
-                   + 2.0 * pow(updatedTauXyXzYz.z, 2);
+            tau_tr = square(updatedTauXxYyZz.x) 
+                   + square(updatedTauXxYyZz.y) 
+                   + square(updatedTauXxYyZz.z)
+                   + 2.0 * square(updatedTauXyXzYz.x) 
+                   + 2.0 * square(updatedTauXyXzYz.y) 
+                   + 2.0 * square(updatedTauXyXzYz.z);
             tau_tr = sqrt(0.5 * tau_tr);
             sr_tau_I_mu_iD[index].y = tau_tr;
 

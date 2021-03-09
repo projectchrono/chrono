@@ -47,8 +47,8 @@ M113_RoadWheel::M113_RoadWheel(const std::string& name) : ChDoubleRoadWheel(name
 
 void M113_RoadWheel::CreateContactMaterial(ChContactMethod contact_method) {
     MaterialInfo minfo;
-    minfo.mu = 0.7f;
-    minfo.cr = 0.1f;
+    minfo.mu = 0.4f;
+    minfo.cr = 0.75f;
     minfo.Y = 1e7f;
     m_material = minfo.CreateMaterial(contact_method);
 }

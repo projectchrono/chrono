@@ -22,8 +22,8 @@ include "Agent.fbs";
 include "SPAT.fbs";
 include "MAP.fbs";
 include "Terrain.fbs";
-include "Sensor.fbs";
 include "Approach.fbs";
+include "Simulation.fbs";
 
 namespace SynFlatBuffers;
 
@@ -33,8 +33,8 @@ union Type {
   SPAT.State, 
   MAP.State, 
   Terrain.State, 
-  Sensor.State,
-  Approach.State
+  Approach.State,
+  Simulation.State
 }
 
 table Buffer {
@@ -43,7 +43,8 @@ table Buffer {
 
 table Message {
   message:Type;
-  rank:uint;
+  source_id:uint;
+  destination_id:uint;
 }
 
 root_type Buffer;

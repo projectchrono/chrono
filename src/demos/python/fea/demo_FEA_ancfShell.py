@@ -43,7 +43,7 @@ my_system = chrono.ChSystemSMC()
 my_system.Set_G_acc(chrono.ChVectorD(0, 0, -9.8))
 
 # Create the Irrlicht visualization (open the Irrlicht device, bind a simple user interface, etc.)
-application = chronoirr.ChIrrApp(my_system, "ANCF Shells", chronoirr.dimension2du(800, 600), False, True)
+application = chronoirr.ChIrrApp(my_system, "ANCF Shells", chronoirr.dimension2du(800, 600))
 
 # Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
 application.AddTypicalLogo()

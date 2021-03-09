@@ -20,7 +20,7 @@
 #ifndef CH_CLI_H
 #define CH_CLI_H
 
-#include "cxxopts.hpp"
+#include "chrono_thirdparty/cxxopts/cxxopts.hpp"
 
 namespace chrono {
 
@@ -35,7 +35,7 @@ class ChCLI {
     ~ChCLI() {}
 
     /// Parse messages and display help message, if needed
-    bool Parse(int argc, char* argv[], bool show_help = false) {
+    bool Parse(int argc, char** argv, bool show_help = false, bool count_help = true) {
         try {
             m_result = std::make_shared<cxxopts::ParseResult>(m_options.parse(argc, argv));
         } catch (cxxopts::OptionException& e) {
@@ -47,7 +47,7 @@ class ChCLI {
             return false;
         }
 
-        if (m_result->count("help")) {
+        if (count_help && m_result->count("help")) {
             if (show_help)
                 Help();
             return false;
@@ -56,8 +56,11 @@ class ChCLI {
         return true;
     }
 
-    /// Print our the help menu
+    /// Print the help menu
     void Help() { std::cout << m_options.help() << std::endl; }
+
+    /// Check if help was passed
+    bool CheckHelp() { return m_result->count("help") > 0; }
 
     /// Check for value in vector
     template <typename T>
@@ -112,6 +115,11 @@ class ChCLI {
             }
             exit(-1);
         }
+    }
+
+    template <typename T>
+    const bool Matches(const T& option, const T& value) {
+        return GetAsType<T>(option) == value;
     }
 
   private:

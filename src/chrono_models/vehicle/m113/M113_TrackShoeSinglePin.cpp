@@ -98,7 +98,7 @@ void M113_TrackShoeSinglePin::CreateContactMaterials(ChContactMethod contact_met
     {
         MaterialInfo minfo;
         minfo.mu = 0.8f;
-        minfo.cr = 0.1f;
+        minfo.cr = 0.75f;
         minfo.Y = 1e7f;
         m_shoe_sprk_material = minfo.CreateMaterial(contact_method);
     }  
@@ -107,7 +107,7 @@ void M113_TrackShoeSinglePin::CreateContactMaterials(ChContactMethod contact_met
     {
         MaterialInfo minfo;
         minfo.mu = 0.8f;
-        minfo.cr = 0.1f;
+        minfo.cr = 0.75f;
         minfo.Y = 1e7f;
         m_geometry.m_materials.push_back(minfo.CreateMaterial(contact_method));
     }
@@ -116,7 +116,7 @@ void M113_TrackShoeSinglePin::CreateContactMaterials(ChContactMethod contact_met
     {
         MaterialInfo minfo;
         minfo.mu = 0.8f;
-        minfo.cr = 0.1f;
+        minfo.cr = 0.75f;
         minfo.Y = 1e7f;
         m_geometry.m_materials.push_back(minfo.CreateMaterial(contact_method));
     }
@@ -125,7 +125,7 @@ void M113_TrackShoeSinglePin::CreateContactMaterials(ChContactMethod contact_met
     {
         MaterialInfo minfo;
         minfo.mu = 0.8f;
-        minfo.cr = 0.1f;
+        minfo.cr = 0.75f;
         minfo.Y = 1e7f;
         m_geometry.m_materials.push_back(minfo.CreateMaterial(contact_method));
     }

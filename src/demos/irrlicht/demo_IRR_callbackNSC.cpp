@@ -34,7 +34,7 @@ using namespace chrono;
 // -----------------------------------------------------------------------------
 class ContactReporter : public ChContactContainer::ReportContactCallback {
   public:
-    ContactReporter(std::shared_ptr<ChBody> box) : m_box(box) {}
+    ContactReporter(std::shared_ptr<ChBody> box1, std::shared_ptr<ChBody> box2) : m_box1(box1), m_box2(box2) {}
 
   private:
     virtual bool OnReportContact(const ChVector<>& pA,
@@ -46,15 +46,34 @@ class ContactReporter : public ChContactContainer::ReportContactCallback {
                                  const ChVector<>& ctorque,
                                  ChContactable* modA,
                                  ChContactable* modB) override {
-        if (modA == m_box.get()) {
-            printf("  %6.3f  %6.3f  %6.3f\n", pA.x(), pA.y(), pA.z());
-        } else if (modB == m_box.get()) {
-            printf("  %6.3f  %6.3f  %6.3f\n", pB.x(), pB.y(), pB.z());
+
+
+
+        // Check if contact involves box1
+        if (modA == m_box1.get()) {
+            printf("  A contact on Box 1 at pos: %7.3f  %7.3f  %7.3f", pA.x(), pA.y(), pA.z());
+        } else if (modB == m_box1.get()) {
+            printf("  B contact on Box 1 at pos: %7.3f  %7.3f  %7.3f", pB.x(), pB.y(), pB.z());
         }
+
+        // Check if contact involves box2
+        if (modA == m_box2.get()) {
+            printf("  A contact on Box 2 at pos: %7.3f  %7.3f  %7.3f", pA.x(), pA.y(), pA.z());
+        } else if (modB == m_box2.get()) {
+            printf("  B contact on Box 2 at pos: %7.3f  %7.3f  %7.3f", pB.x(), pB.y(), pB.z());
+        }
+
+        const ChVector<>& nrm = plane_coord.Get_A_Xaxis();
+        printf("  nrm: %7.3f, %7.3f  %7.3f", nrm.x(), nrm.y(), nrm.z());
+        printf("  frc: %7.3f  %7.3f  %7.3f", cforce.x(), cforce.y(), cforce.z());
+        printf("  trq: %7.3f, %7.3f  %7.3f", ctorque.x(), ctorque.y(), ctorque.z());
+        printf("  penetration: %8.4f   eff. radius: %7.3f\n", distance, eff_radius);
+
         return true;
     }
 
-    std::shared_ptr<ChBody> m_box;
+    std::shared_ptr<ChBody> m_box1;
+    std::shared_ptr<ChBody> m_box2;
 };
 
 // -----------------------------------------------------------------------------
@@ -157,11 +176,11 @@ int main(int argc, char* argv[]) {
     // Create the visualization window
     // -------------------------------
 
-    irrlicht::ChIrrApp application(&system, L"NSC callbacks", irr::core::dimension2d<irr::u32>(800, 600), false, true);
-    irrlicht::ChIrrWizard::add_typical_Logo(application.GetDevice());
-    irrlicht::ChIrrWizard::add_typical_Sky(application.GetDevice());
-    irrlicht::ChIrrWizard::add_typical_Lights(application.GetDevice());
-    irrlicht::ChIrrWizard::add_typical_Camera(application.GetDevice(), irr::core::vector3df(4, 4, -6));
+    irrlicht::ChIrrApp application(&system, L"NSC callbacks", irr::core::dimension2d<irr::u32>(800, 600));
+    application.AddTypicalLogo();
+    application.AddTypicalSky();
+    application.AddTypicalLights();
+    application.AddTypicalCamera(irr::core::vector3df(4, 4, -6));
 
     application.AssetBindAll();
     application.AssetUpdateAll();
@@ -170,7 +189,7 @@ int main(int argc, char* argv[]) {
     // Simulate system
     // ---------------
 
-    auto creporter = chrono_types::make_shared<ContactReporter>(box1);
+    auto creporter = chrono_types::make_shared<ContactReporter>(box1, box2);
 
     auto cmaterial = chrono_types::make_shared<ContactMaterial>();
     system.GetContactContainer()->RegisterAddContactCallback(cmaterial);
@@ -180,14 +199,24 @@ int main(int argc, char* argv[]) {
     while (application.GetDevice()->run()) {
         application.BeginScene(true, true, irr::video::SColor(255, 140, 161, 192));
         application.DrawAll();
-        irrlicht::ChIrrTools::drawGrid(application.GetVideoDriver(), 0.5, 0.5, 12, 12,
+        irrlicht::tools::drawGrid(application.GetVideoDriver(), 0.5, 0.5, 12, 12,
                                        ChCoordsys<>(ChVector<>(0, 0, 0), Q_from_AngX(CH_C_PI_2)));
         application.DoStep();
         application.EndScene();
 
         // Process contacts
         std::cout << system.GetChTime() << "  " << system.GetNcontacts() << std::endl;
-        system.GetContactContainer()->ReportAllContacts(creporter);
+        system.GetContactContainer()->ReportAllContacts(creporter);       
+
+        // Cumulative contact force and torque on boxes (as applied to COM)
+        ChVector<> frc1 = box1->GetContactForce();
+        ChVector<> trq1 = box1->GetContactTorque();
+        printf("  Box 1 contact force at COM: %7.3f  %7.3f  %7.3f", frc1.x(), frc1.y(), frc1.z());
+        printf("  contact torque at COM: %7.3f  %7.3f  %7.3f\n", trq1.x(), trq1.y(), trq1.z());
+        ChVector<> frc2 = box2->GetContactForce();
+        ChVector<> trq2 = box2->GetContactTorque();
+        printf("  Box 2 contact force at COM: %7.3f  %7.3f  %7.3f", frc2.x(), frc2.y(), frc2.z());
+        printf("  contact torque at COM: %7.3f  %7.3f  %7.3f\n", trq2.x(), trq2.y(), trq2.z());
     }
 
     return 0;

@@ -1,6 +1,7 @@
 {
   "Name": "Sedan",
   "Type": "Vehicle",
+  "Template": "WheeledVehicle",
 
   "Vehicle": {
     "Input File": "sedan/vehicle/Sedan_Vehicle.json",
@@ -23,6 +24,6 @@
     "Chassis Visualization File": "sedan/sedan_chassis_vis.obj",
     "Wheel Visualization File": "sedan/sedan_rim.obj",
     "Tire Visualization File": "sedan/sedan_tire.obj",
-    "Number Of Wheels": 4
+    "Number of Wheels": 4
   }
 }

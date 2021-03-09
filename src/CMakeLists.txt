@@ -144,7 +144,7 @@ if(ENABLE_OPENMP)
   set(OPENMP_INCLUDE_DIR "${OpenMP_CXX_INCLUDE_DIRS}")
   set(OPENMP_LIBRARIES "${OpenMP_CXX_LIBRARIES}")
 else()
-	# As an alternative, if TBB is located the Parallel module will use it for all thrust calls
+	# As an alternative, if TBB is located the Multicore module will use it for all thrust calls
 	find_package("TBB")
 	cmake_dependent_option(ENABLE_TBB "Enable TBB support in Chrono::Engine" ON "TBB_FOUND" OFF)
 endif()
@@ -531,16 +531,18 @@ add_subdirectory(chrono_matlab)
 add_subdirectory(chrono_irrlicht)
 add_subdirectory(chrono_cascade)
 add_subdirectory(chrono_postprocess)
+add_subdirectory(chrono_pardisoproject)
 add_subdirectory(chrono_cosimulation)
 add_subdirectory(chrono_python)
-add_subdirectory(chrono_parallel)
-add_subdirectory(chrono_granular)
+add_subdirectory(chrono_multicore)
 add_subdirectory(chrono_opengl)
+add_subdirectory(chrono_gpu)
 add_subdirectory(chrono_distributed)
 add_subdirectory(chrono_vehicle)
 add_subdirectory(chrono_fsi)
 add_subdirectory(chrono_sensor)
 add_subdirectory(chrono_synchrono)
+add_subdirectory(chrono_csharp)
 
 # Add directories for model libraries
 add_subdirectory(chrono_models)
@@ -560,9 +562,52 @@ endif()
 # Install headers from chrono_thirdparty folder
 #------------------------------------------------------------
 
-install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/chrono_thirdparty
-        DESTINATION include
-	FILES_MATCHING PATTERN "*.h" PATTERN "*.cuh" PATTERN "*.hpp")
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/filesystem
+        DESTINATION include/chrono_thirdparty
+        FILES_MATCHING PATTERN "*.h" PATTERN "*.cuh" PATTERN "*.hpp" PATTERN "*.inl")
+
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/cxxopts
+        DESTINATION include/chrono_thirdparty
+        FILES_MATCHING PATTERN "*.h" PATTERN "*.cuh" PATTERN "*.hpp" PATTERN "*.inl")
+
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/HACD
+        DESTINATION include/chrono_thirdparty
+        FILES_MATCHING PATTERN "*.h" PATTERN "*.cuh" PATTERN "*.hpp" PATTERN "*.inl")
+
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/HACDv2
+        DESTINATION include/chrono_thirdparty
+        FILES_MATCHING PATTERN "*.h" PATTERN "*.cuh" PATTERN "*.hpp" PATTERN "*.inl")
+
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/rapidjson
+        DESTINATION include/chrono_thirdparty
+        FILES_MATCHING PATTERN "*.h" PATTERN "*.cuh" PATTERN "*.hpp" PATTERN "*.inl")
+
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/rapidxml
+        DESTINATION include/chrono_thirdparty
+        FILES_MATCHING PATTERN "*.h" PATTERN "*.cuh" PATTERN "*.hpp" PATTERN "*.inl")
+
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/tinyobjloader
+        DESTINATION include/chrono_thirdparty
+        FILES_MATCHING PATTERN "*.h" PATTERN "*.cuh" PATTERN "*.hpp" PATTERN "*.inl")
+
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/yafel
+        DESTINATION include/chrono_thirdparty
+        FILES_MATCHING PATTERN "*.h" PATTERN "*.cuh" PATTERN "*.hpp" PATTERN "*.inl")
+
+if(BUILD_TESTING)
+   install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/googletest/googletest/include
+           DESTINATION include/chrono_thirdparty/googletest/googletest
+           FILES_MATCHING PATTERN "*.h" PATTERN "*.cuh" PATTERN "*.hpp" PATTERN "*.inl")
+   install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/googletest/googlemock/include
+           DESTINATION include/chrono_thirdparty/googletest/googlemock
+           FILES_MATCHING PATTERN "*.h" PATTERN "*.cuh" PATTERN "*.hpp" PATTERN "*.inl")
+endif()
+
+if(BUILD_BENCHMARKING)
+   install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/googlebenchmark/include
+           DESTINATION include/chrono_thirdparty/googlebenchmark
+           FILES_MATCHING PATTERN "*.h" PATTERN "*.cuh" PATTERN "*.hpp" PATTERN "*.inl")
+endif()
 
 #------------------------------------------------------------
 # Generate and install the Chrono configuration header
@@ -615,10 +660,10 @@ else()
   set(CHRONO_MUMPS "#undef CHRONO_MUMPS")
 endif()
 
-if(ENABLE_MODULE_PARALLEL)
-  set(CHRONO_PARALLEL "#define CHRONO_PARALLEL")
+if(ENABLE_MODULE_MULTICORE)
+  set(CHRONO_MULTICORE "#define CHRONO_MULTICORE")
 else()
-  set(CHRONO_PARALLEL "#undef CHRONO_PARALLEL")
+  set(CHRONO_MULTICORE "#undef CHRONO_MULTICORE")
 endif()
 
 if(ENABLE_MODULE_OPENGL)
@@ -637,6 +682,12 @@ if(ENABLE_MODULE_POSTPROCESS)
   set(CHRONO_POSTPROCESS "#define CHRONO_POSTPROCESS")
 else()
   set(CHRONO_POSTPROCESS "#undef CHRONO_POSTPROCESS")
+endif()
+
+if(ENABLE_MODULE_PARDISO_PROJECT)
+  set(CHRONO_PARDISOPROJECT "#define CHRONO_PARDISOPROJECT")
+else()
+  set(CHRONO_PARDISOPROJECT "#undef CHRONO_PARDISOPROJECT")
 endif()
 
 if(ENABLE_MODULE_PYTHON)
@@ -679,6 +730,14 @@ if(ENABLE_TBB)
   set(CHRONO_TBB_ENABLED "#define CHRONO_TBB_ENABLED")
 else()
   set(CHRONO_TBB_ENABLED "#undef CHRONO_TBB_ENABLED")
+endif()
+
+if(CUDA_FOUND)
+  set(CHRONO_CUDA_FOUND "#define CHRONO_CUDA_FOUND")
+  set(CHRONO_CUDA_VERSION "#define CHRONO_CUDA_VERSION \"${CUDA_VERSION_STRING}\"")
+else()
+  set(CHRONO_CUDA_FOUND "#undef CHRONO_CUDA_FOUND")
+  set(CHRONO_CUDA_VERSION "#undef CHRONO_CUDA_VERSION")
 endif()
 
 configure_file("${CMAKE_CURRENT_SOURCE_DIR}/chrono/ChConfig.h.in"

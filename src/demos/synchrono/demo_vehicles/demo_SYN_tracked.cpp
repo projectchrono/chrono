@@ -9,246 +9,327 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Asher Elmquist, Aaron Young
+// Authors: Aaron Young
 // =============================================================================
 //
 // Basic demonstration of multiple tracked vehicles in a single simulation using
 // the SynChrono wrapper
 //
 // =============================================================================
+
+#include <chrono>
+
+#include "chrono_vehicle/ChConfigVehicle.h"
+#include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/terrain/RigidTerrain.h"
+#include "chrono_vehicle/driver/ChIrrGuiDriver.h"
+#include "chrono_vehicle/utils/ChUtilsJSON.h"
+
+#include "chrono_vehicle/tracked_vehicle/vehicle/TrackedVehicle.h"
+#include "chrono_vehicle/tracked_vehicle/utils/ChTrackedVehicleIrrApp.h"
+
+#include "chrono_synchrono/SynConfig.h"
+#include "chrono_synchrono/SynChronoManager.h"
+#include "chrono_synchrono/agent/SynTrackedVehicleAgent.h"
+#include "chrono_synchrono/communication/mpi/SynMPICommunicator.h"
+#include "chrono_synchrono/utils/SynLog.h"
+#include "chrono_synchrono/utils/SynDataLoader.h"
+
 #include "chrono_thirdparty/cxxopts/ChCLI.h"
 
-#include "chrono_synchrono/utils/SynDataLoader.h"
-#include "chrono_synchrono/brain/SynVehicleBrain.h"
-#include "chrono_synchrono/vehicle/SynTrackedVehicle.h"
-#include "chrono_synchrono/agent/SynTrackedVehicleAgent.h"
-#include "chrono_synchrono/terrain/SynRigidTerrain.h"
-#include "chrono_synchrono/communication/mpi/SynMPIManager.h"
-#include "chrono_synchrono/visualization/SynVisualizationManager.h"
-
-#ifdef CHRONO_IRRLICHT
-#include "chrono_synchrono/visualization/SynIrrVehicleVisualization.h"
-
-#include "chrono_vehicle/driver/ChIrrGuiDriver.h"
-
-using namespace chrono::irrlicht;
-#endif
-
-#ifdef CHRONO_SENSOR
-#include "chrono_synchrono/visualization/SynSensorVisualization.h"
-
-using namespace chrono::sensor;
-#endif
-
-#include "chrono_models/vehicle/m113/M113.h"
-
 using namespace chrono;
+using namespace chrono::irrlicht;
 using namespace chrono::synchrono;
 using namespace chrono::vehicle;
-using namespace chrono::vehicle::m113;
 
 // =============================================================================
-const ChContactMethod contact_method = ChContactMethod::NSC;
 
-// [s]
+// Initial vehicle location and orientation
+ChVector<> initLoc(0, 0, 1.0);
+ChQuaternion<> initRot(1, 0, 0, 0);
+
+// Visualization type for vehicle parts (PRIMITIVES, MESH, or NONE)
+VisualizationType chassis_vis_type = VisualizationType::PRIMITIVES;
+VisualizationType track_shoe_vis_type = VisualizationType::PRIMITIVES;
+VisualizationType sprocket_vis_type = VisualizationType::PRIMITIVES;
+VisualizationType idler_vis_type = VisualizationType::PRIMITIVES;
+VisualizationType road_wheel_vis_type = VisualizationType::PRIMITIVES;
+VisualizationType road_wheel_assembly_vis_type = VisualizationType::PRIMITIVES;
+
+// Type of vehicle
+enum VehicleType { M113 };
+
+// Point on chassis tracked by the camera
+ChVector<> trackPoint(0.0, 0.0, 1.75);
+
+// Contact method
+ChContactMethod contact_method = ChContactMethod::SMC;
+
+// Simulation step sizes
+double step_size = 1.5e-3;
+
+// Simulation end time
 double end_time = 1000;
-double step_size = 3e-3;
+
+// How often SynChrono state messages are interchanged
+double heartbeat = 1e-2;  // 100[Hz]
 
 // Time interval between two render frames
 double render_step_size = 1.0 / 50;  // FPS = 50
 
-// How often SynChrono state messages are interchanged
-float heartbeat = 1e-2;  // 100[Hz]
+// =============================================================================
 
+// Forward declares for straight forward helper functions
+void LogCopyright(bool show);
 void AddCommandLineOptions(ChCLI& cli);
+void GetVehicleModelFiles(VehicleType type,
+                          std::string& vehicle,
+                          std::string& powertrain,
+                          std::string& zombie,
+                          double& cam_distance);
+
+class IrrAppWrapper {
+  public:
+    IrrAppWrapper(std::shared_ptr<ChTrackedVehicleIrrApp> app = nullptr) : app(app) {}
+
+    void Synchronize(const std::string& msg, const ChDriver::Inputs& driver_inputs) {
+        if (app)
+            app->Synchronize(msg, driver_inputs);
+    }
+
+    void Advance(double step) {
+        if (app)
+            app->Advance(step);
+    }
+
+    void Render() {
+        if (app) {
+            app->BeginScene(true, true, irr::video::SColor(255, 140, 161, 192));
+            app->DrawAll();
+            app->EndScene();
+        }
+    }
+
+    void Set(std::shared_ptr<ChTrackedVehicleIrrApp> app) { this->app = app; }
+    bool IsOk() { return app ? app->GetDevice()->run() : true; }
+
+    std::shared_ptr<ChTrackedVehicleIrrApp> app;
+};
+
+class DriverWrapper : public ChDriver {
+  public:
+    DriverWrapper(ChVehicle& vehicle) : ChDriver(vehicle) {}
+
+    /// Update the state of this driver system at the specified time.
+    virtual void Synchronize(double time) override {
+        if (irr_driver) {
+            irr_driver->Synchronize(time);
+            m_throttle = irr_driver->GetThrottle();
+            m_steering = irr_driver->GetSteering();
+            m_braking = irr_driver->GetBraking();
+        }
+    }
+
+    /// Advance the state of this driver system by the specified time step.
+    virtual void Advance(double step) override {
+        if (irr_driver)
+            irr_driver->Advance(step);
+    }
+
+    void Set(std::shared_ptr<ChIrrGuiDriver> irr_driver) { this->irr_driver = irr_driver; }
+
+    std::shared_ptr<ChIrrGuiDriver> irr_driver;
+};
 
 // =============================================================================
 
 int main(int argc, char* argv[]) {
-    // Initialize the MPIManager
-    SynMPIManager mpi_manager(argc, argv, MPI_CONFIG_DEFAULT);
-    int rank = mpi_manager.GetRank();
-    int num_ranks = mpi_manager.GetNumRanks();
+    // -----------------------
+    // Create SynChronoManager
+    // -----------------------
+    auto communicator = chrono_types::make_shared<SynMPICommunicator>(argc, argv);
+    int node_id = communicator->GetRank();
+    int num_nodes = communicator->GetNumRanks();
+    SynChronoManager syn_manager(node_id, num_nodes, communicator);
+
+    // Copyright
+    LogCopyright(node_id == 0);
 
     // -----------------------------------------------------
     // CLI SETUP - Get most parameters from the command line
     // -----------------------------------------------------
+
     ChCLI cli(argv[0]);
 
     AddCommandLineOptions(cli);
-
-    if (!cli.Parse(argc, argv, rank == 0))
-        mpi_manager.Exit();
+    if (!cli.Parse(argc, argv, node_id == 0))
+        return 0;
 
     // Normal simulation options
     step_size = cli.GetAsType<double>("step_size");
     end_time = cli.GetAsType<double>("end_time");
     heartbeat = cli.GetAsType<double>("heartbeat");
 
-    const bool use_sensor_vis = cli.HasValueInVector<int>("sens", rank);
-    const bool use_irrlicht_vis = !use_sensor_vis && cli.HasValueInVector<int>("irr", rank);
+    // Change SynChronoManager settings
+    syn_manager.SetHeartbeat(heartbeat);
 
-    mpi_manager.SetHeartbeat(heartbeat);
-    mpi_manager.SetEndTime(end_time);
+    // --------------
+    // Create systems
+    // --------------
 
-    // --------------------
-    // Agent Initialization
-    // --------------------
+    // Adjust position of each rank so they aren't on top of each other
+    initLoc.y() = node_id * 3;
 
-    // All ranks will be a tracked vehicle agent
-    auto agent = chrono_types::make_shared<SynTrackedVehicleAgent>(rank);
-    agent->SetStepSize(step_size);
-    mpi_manager.AddAgent(agent, rank);
+    // Get the vehicle JSON filenames
+    double cam_distance;
+    std::string vehicle_file, powertrain_file, zombie_file;
+    GetVehicleModelFiles((VehicleType)cli.GetAsType<int>("vehicle"), vehicle_file, powertrain_file, zombie_file,
+                         cam_distance);
 
-    // -------
-    // Vehicle
-    // -------
+    // Create the vehicle, set parameters, and initialize
+    TrackedVehicle vehicle(vehicle_file, contact_method);
+    vehicle.Initialize(ChCoordsys<>(initLoc, initRot));
+    vehicle.GetChassis()->SetFixed(false);
+    vehicle.SetChassisVisualizationType(chassis_vis_type);
+    vehicle.SetTrackShoeVisualizationType(track_shoe_vis_type);
+    vehicle.SetSprocketVisualizationType(sprocket_vis_type);
+    vehicle.SetIdlerVisualizationType(idler_vis_type);
+    vehicle.SetRoadWheelVisualizationType(road_wheel_vis_type);
+    vehicle.SetRoadWheelAssemblyVisualizationType(road_wheel_assembly_vis_type);
 
-    // Load in a M113 vehicle and it's subsequent SynChrono relavent information from a JSON specification file
-    std::shared_ptr<SynTrackedVehicle> vehicle;
-    ChCoordsys<> init_pos({0, 3.0 * rank, 0.75}, {1, 0, 0, 0});
-    if (rank % 2 == 0) {
-        // Even numbered ranks will be a custom vehicle that is not specified by a JSON file
-        auto m113 = chrono_types::make_shared<M113>();
-        m113->SetContactMethod(contact_method);
-        m113->SetChassisCollisionType(CollisionType::NONE);
-        m113->SetChassisFixed(false);
-        m113->SetInitPosition(init_pos);
-        m113->SetTrackShoeType(TrackShoeType::SINGLE_PIN);
-        m113->SetBrakeType(BrakeType::SIMPLE);
-        m113->Initialize();
+    // Create and initialize the powertrain system
+    auto powertrain = ReadPowertrainJSON(powertrain_file);
+    vehicle.InitializePowertrain(powertrain);
 
-        m113->SetChassisVisualizationType(VisualizationType::MESH);
-        m113->SetSprocketVisualizationType(VisualizationType::MESH);
-        m113->SetIdlerVisualizationType(VisualizationType::MESH);
-        m113->SetRoadWheelAssemblyVisualizationType(VisualizationType::NONE);
-        m113->SetRoadWheelVisualizationType(VisualizationType::MESH);
-        m113->SetTrackShoeVisualizationType(VisualizationType::MESH);
+    // Add vehicle as an agent and initialize SynChronoManager
+    auto agent = chrono_types::make_shared<SynTrackedVehicleAgent>(&vehicle, zombie_file);
+    syn_manager.AddAgent(agent);
+    syn_manager.Initialize(vehicle.GetSystem());
 
-        vehicle = chrono_types::make_shared<SynCustomTrackedVehicle<M113>>(m113);
+    // Create the terrain
+    RigidTerrain terrain(vehicle.GetSystem(), vehicle::GetDataFile("terrain/RigidPlane.json"));
 
-        // Set the zombie visualization assets of the vehicle
-        // This is done only with custom vehicles because this information is required in the JSON format
-        vehicle->SetZombieVisualizationFiles("M113/Chassis.obj",     //
-                                             "M113/TrackShoe.obj",   //
-                                             "M113/Sprocket_L.obj",  //
-                                             "M113/Sprocket_R.obj",  //
-                                             "M113/Idler_L.obj",     //
-                                             "M113/Idler_R.obj",     //
-                                             "M113/Roller_L.obj",    //
-                                             "M113/Roller_R.obj");   //
+    // Create the vehicle Irrlicht interface
+    IrrAppWrapper app;
+    DriverWrapper driver(vehicle);
+    if (cli.HasValueInVector<int>("irr", node_id)) {
+        auto temp_app = chrono_types::make_shared<ChTrackedVehicleIrrApp>(&vehicle, L"SynChrono Tracked Vehicle Demo");
+        temp_app->SetSkyBox();
+        temp_app->AddTypicalLights(irr::core::vector3df(30.f, -30.f, 100.f), irr::core::vector3df(30.f, 50.f, 100.f),
+                                   250, 130);
+        temp_app->SetChaseCamera(trackPoint, cam_distance, 0.5);
+        temp_app->SetTimestep(step_size);
+        temp_app->AssetBindAll();
+        temp_app->AssetUpdateAll();
 
-        vehicle->SetNumAssemblyComponents(127, 2, 2, 10);
-    } else {
-        // Odd ranks will be a M113 vehicle specified through a JSON file
-        auto vehicle_filename = synchrono::GetDataFile("vehicle/M113.json");
-        vehicle = chrono_types::make_shared<SynTrackedVehicle>(init_pos, vehicle_filename, contact_method);
-    }
-    agent->SetVehicle(vehicle);
+        // Create the interactive driver system
+        auto irr_driver = chrono_types::make_shared<ChIrrGuiDriver>(*temp_app);
 
-    // Specify the driver and brain of the vehicle
-    auto driver = chrono_types::make_shared<ChDriver>(vehicle->GetVehicle());
-    auto brain = chrono_types::make_shared<SynVehicleBrain>(rank, driver, vehicle->GetVehicle());
-    agent->SetBrain(brain);
+        // Set the time response for steering and throttle keyboard inputs.
+        double steering_time = 1.0;  // time to go from 0 to +1 (or from 0 to -1)
+        double throttle_time = 1.0;  // time to go from 0 to +1
+        double braking_time = 0.3;   // time to go from 0 to +1
+        irr_driver->SetSteeringDelta(render_step_size / steering_time);
+        irr_driver->SetThrottleDelta(render_step_size / throttle_time);
+        irr_driver->SetBrakingDelta(render_step_size / braking_time);
 
-    // -------
-    // Terrain
-    // -------
+        irr_driver->Initialize();
 
-    MaterialInfo minfo;
-    minfo.mu = 0.9f;
-    minfo.cr = 0.01f;
-    minfo.Y = 2e7f;
-    auto patch_mat = minfo.CreateMaterial(contact_method);
-
-    auto terrain = chrono_types::make_shared<RigidTerrain>(agent->GetSystem());
-    auto patch = terrain->AddPatch(patch_mat, ChVector<>(0, 0, 0), ChVector<>(0, 0, 1), 100, 100);
-    terrain->Initialize();
-
-    // Terrain visualization
-    // For irrlicht
-    patch->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 200, 200);
-    // For sensor
-    auto patch_asset = patch->GetGroundBody()->GetAssets()[0];
-    if (std::shared_ptr<ChVisualization> visual_asset = std::dynamic_pointer_cast<ChVisualization>(patch_asset)) {
-        std::shared_ptr<ChVisualMaterial> box_texture = chrono_types::make_shared<ChVisualMaterial>();
-        box_texture->SetKdTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"));
-        // FresnelMax and SpecularColor should make it less shiny
-        box_texture->SetFresnelMax(0.2);
-        box_texture->SetSpecularColor({0.2, 0.2, 0.2});
-
-        visual_asset->material_list.push_back(box_texture);
+        app.Set(temp_app);
+        driver.Set(irr_driver);
     }
 
-    // Set the agents terrain
-    agent->SetTerrain(chrono_types::make_shared<SynRigidTerrain>(terrain));
+    // ---------------
+    // Simulation loop
+    // ---------------
 
-    auto vis_manager = chrono_types::make_shared<SynVisualizationManager>();
-    agent->SetVisualizationManager(vis_manager);
-#ifdef CHRONO_IRRLICHT
-    if (use_irrlicht_vis) {
-        // Set driver as ChIrrGuiDriver
-        auto irr_vis = chrono_types::make_shared<SynIrrVehicleVisualization>();
-        irr_vis->SetRenderStepSize(render_step_size);
-        irr_vis->SetStepSize(step_size);
-        irr_vis->InitializeAsDefaultTrackedChaseCamera(vehicle, 10);
+    // Inter-module communication data
+    TerrainForces shoe_forces_left(vehicle.GetNumTrackShoes(LEFT));
+    TerrainForces shoe_forces_right(vehicle.GetNumTrackShoes(RIGHT));
 
-        // Set the driver in the vehicle brain and the irrlicht visualizer
-        auto driver = chrono_types::make_shared<ChIrrGuiDriver>(*irr_vis->GetIrrApp());
-        brain->SetDriver(driver);
-        irr_vis->SetDriver(driver);
+    // Number of simulation steps between miscellaneous events
+    int render_steps = (int)std::ceil(render_step_size / step_size);
 
-        // Add the visualization
-        vis_manager->AddVisualization(irr_vis);
-    }
-#endif
-
-#ifdef CHRONO_SENSOR
-    if (use_sensor_vis) {
-        auto sen_vis = chrono_types::make_shared<SynSensorVisualization>();
-        sen_vis->InitializeDefaultSensorManager(agent->GetSystem());
-        sen_vis->InitializeAsDefaultChaseCamera(agent->GetChVehicle().GetChassisBody());
-
-        if (cli.GetAsType<bool>("sens_save")) {
-            std::string path = std::string("SENSOR_OUTPUT/tracked") + std::to_string(rank) + std::string("/");
-            sen_vis->AddFilterSave(path);
-        }
-
-        if (cli.GetAsType<bool>("sens_vis"))
-            sen_vis->AddFilterVisualize();
-
-        vis_manager->AddVisualization(sen_vis);
-    }
-#endif
-
-    mpi_manager.Barrier();
-    mpi_manager.Initialize();
-
+    // Initialize simulation frame counters
     int step_number = 0;
 
-    // Simulation Loop
-    while (mpi_manager.IsOk()) {
-        mpi_manager.Advance(heartbeat * step_number++);
-        mpi_manager.Synchronize();
-        mpi_manager.Update();
-    }
+    std::chrono::high_resolution_clock::time_point start = std::chrono::high_resolution_clock::now();
 
-    std::cout << "Rank " << rank << " completed successfully" << std::endl;
+    while (app.IsOk() && syn_manager.IsOk()) {
+        double time = vehicle.GetSystem()->GetChTime();
+
+        // End simulation
+        if (time >= end_time)
+            break;
+
+        // Render scene
+        if (step_number % render_steps == 0)
+            app.Render();
+
+        // Get driver inputs
+        ChDriver::Inputs driver_inputs = driver.GetInputs();
+
+        // Update modules (process inputs from other modules)
+        syn_manager.Synchronize(time);  // Synchronize between nodes
+        driver.Synchronize(time);
+        terrain.Synchronize(time);
+        vehicle.Synchronize(time, driver_inputs, shoe_forces_left, shoe_forces_right);
+        app.Synchronize("", driver_inputs);
+
+        // Advance simulation for one timestep for all modules
+        driver.Advance(step_size);
+        terrain.Advance(step_size);
+        vehicle.Advance(step_size);
+        app.Advance(step_size);
+
+        // Increment frame number
+        step_number++;
+
+        // Log clock time
+        if (step_number % 100 == 0 && node_id == 0) {
+            std::chrono::high_resolution_clock::time_point end = std::chrono::high_resolution_clock::now();
+            auto time_span = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+
+            SynLog() << (time_span.count() / 1e3) / time << "\n";
+        }
+    }
+    syn_manager.QuitSimulation();
 
     return 0;
 }
 
+void LogCopyright(bool show) {
+    if (!show)
+        return;
+
+    SynLog() << "Copyright (c) 2020 projectchrono.org\n";
+    SynLog() << "Chrono version: " << CHRONO_VERSION << "\n\n";
+}
+
 void AddCommandLineOptions(ChCLI& cli) {
     // Standard demo options
-    cli.AddOption<double>("Simulation", "step_size", "Step size", std::to_string(step_size));
-    cli.AddOption<double>("Simulation", "end_time", "End time", std::to_string(end_time));
-    cli.AddOption<double>("Simulation", "heartbeat", "Heartbeat", std::to_string(heartbeat));
+    cli.AddOption<double>("Simulation", "s,step_size", "Step size", std::to_string(step_size));
+    cli.AddOption<double>("Simulation", "e,end_time", "End time", std::to_string(end_time));
+    cli.AddOption<double>("Simulation", "b,heartbeat", "Heartbeat", std::to_string(heartbeat));
 
     // Irrlicht options
-    cli.AddOption<std::vector<int>>("Irrlicht", "irr", "Ranks for irrlicht usage", "-1");
+    cli.AddOption<std::vector<int>>("Irrlicht", "i,irr", "Ranks for irrlicht usage", "-1");
 
-    // Sensor options
-    cli.AddOption<std::vector<int>>("Sensor", "sens", "Ranks for sensor usage", "-1");
-    cli.AddOption<bool>("Sensor", "sens_save", "Toggle sensor saving ON", "false");
-    cli.AddOption<bool>("Sensor", "sens_vis", "Toggle sensor visualization ON", "false");
+    // Other options
+    cli.AddOption<int>("Demo", "v,vehicle", "Vehicle Options [0]: M113", "0");
+}
+
+void GetVehicleModelFiles(VehicleType type,
+                          std::string& vehicle,
+                          std::string& powertrain,
+                          std::string& zombie,
+                          double& cam_distance) {
+    switch (type) {
+        case VehicleType::M113:
+            vehicle = vehicle::GetDataFile("M113/vehicle/M113_Vehicle_SinglePin.json");
+            powertrain = vehicle::GetDataFile("M113/powertrain/M113_SimpleCVTPowertrain.json");
+            zombie = synchrono::GetDataFile("vehicle/M113.json");
+            cam_distance = 8.0;
+            break;
+    }
 }

@@ -80,11 +80,17 @@ class CH_VEHICLE_API ChRigidTire : public ChTire {
     /// Return the number of vertices in the contact mesh.
     unsigned int GetNumVertices() const;
 
+    /// Return the number of normals in the contact mesh.
+    unsigned int GetNumNormals() const;
+
     /// Return the number of faces in the contact mesh.
     unsigned int GetNumTriangles() const;
 
     /// Get the contact mesh connectivity.
     const std::vector<ChVector<int>>& GetMeshConnectivity() const;
+
+    /// Get the mesh normal indices.
+    const std::vector<ChVector<int>>& GetMeshNormalIndices() const;
 
     /// Get the contact mesh vertices (in local frame).
     const std::vector<ChVector<>>& GetMeshVertices() const;

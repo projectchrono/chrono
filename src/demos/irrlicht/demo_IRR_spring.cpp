@@ -155,7 +155,7 @@ int main(int argc, char* argv[]) {
     // Create the Irrlicht application
     // -------------------------------
 
-    ChIrrApp application(&system, L"ChLinkTSDA demo", core::dimension2d<u32>(800, 600), false, true);
+    ChIrrApp application(&system, L"ChLinkTSDA demo", core::dimension2d<u32>(800, 600));
     application.AddTypicalLogo();
     application.AddTypicalSky();
     application.AddTypicalLights();

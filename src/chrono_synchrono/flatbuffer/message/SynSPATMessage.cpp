@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: 肖言 (Yan Xiao), Shuo He
+// Authors: Yan Xiao, Shuo He
 // =============================================================================
 //
 // Wraps data received from a flatbuffer SPAT message into a corresponding C++
@@ -23,51 +23,51 @@
 namespace chrono {
 namespace synchrono {
 
-SynSPATMessageState::SynSPATMessageState(const SynFlatBuffers::SPAT::State* state) {
-    time = state->time();
+SynSPATMessage::SynSPATMessage(unsigned int source_id, unsigned int destination_id)
+    : SynMessage(source_id, destination_id) {}
 
-    for (auto lane : *state->lanes())
-        lanes.emplace_back(lane->intersection(), lane->approach(), lane->lane(), static_cast<LaneColor>(lane->color()));
-}
-
-SynSPATMessage::SynSPATMessage(int rank, std::shared_ptr<SynSPATMessageState> state)
-    : SynMessage(rank, SynMessageType::SPAT) {
-    m_state = state ? state : chrono_types::make_shared<SynSPATMessageState>();
-}
-
-void SynSPATMessage::StateFromMessage(const SynFlatBuffers::Message* message) {
+void SynSPATMessage::ConvertFromFlatBuffers(const SynFlatBuffers::Message* message) {
     if (message->message_type() != SynFlatBuffers::Type_SPAT_State)
         return;
 
     const SynFlatBuffers::SPAT::State* state = message->message_as_SPAT_State();
 
-    std::vector<IntersectionLane> lanes;
+    this->lanes.clear();
     for (auto lane : (*state->lanes())) {
-        lanes.emplace_back(lane->intersection(), lane->approach(), lane->lane(), static_cast<LaneColor>(lane->color()));
+        this->lanes.emplace_back(lane->intersection(), lane->approach(), lane->lane(),
+                                 static_cast<LaneColor>(lane->color()));
     }
 
-    m_state = chrono_types::make_shared<SynSPATMessageState>(state->time(), lanes);
+    this->time = state->time();
 }
 
-FlatBufferMessage SynSPATMessage::MessageFromState(flatbuffers::FlatBufferBuilder& builder) {
-    std::vector<flatbuffers::Offset<SynFlatBuffers::SPAT::Lane>> lanes;
-    for (IntersectionLane lane : m_state->lanes) {
+void SynSPATMessage::ConvertSPATFromFlatBuffers(const SynFlatBuffers::SPAT::State* state) {
+    this->time = state->time();
+
+    for (auto lane : *state->lanes())
+        this->lanes.emplace_back(lane->intersection(), lane->approach(), lane->lane(),
+                                 static_cast<LaneColor>(lane->color()));
+}
+
+FlatBufferMessage SynSPATMessage::ConvertToFlatBuffers(flatbuffers::FlatBufferBuilder& builder) {
+    std::vector<flatbuffers::Offset<SynFlatBuffers::SPAT::Lane>> flatbuffer_lanes;
+    for (IntersectionLane lane : this->lanes) {
         auto color = SynFlatBuffers::SPAT::Color(lane.color);
-        lanes.push_back(SynFlatBuffers::SPAT::CreateLane(builder, lane.intersection, lane.approach, lane.lane,
-                                                         static_cast<SynFlatBuffers::SPAT::Color>(color)));
+        flatbuffer_lanes.push_back(SynFlatBuffers::SPAT::CreateLane(
+            builder, lane.intersection, lane.approach, lane.lane, static_cast<SynFlatBuffers::SPAT::Color>(color)));
     }
 
     flatbuffers::Offset<SynFlatBuffers::SPAT::State> flatbuffer_state =
-        SynFlatBuffers::SPAT::CreateState(builder, m_state->time, builder.CreateVector(lanes));
+        SynFlatBuffers::SPAT::CreateState(builder, this->time, builder.CreateVector(flatbuffer_lanes));
 
-    FlatBufferMessage message = flatbuffers::Offset<SynFlatBuffers::Message>(
-        SynFlatBuffers::CreateMessage(builder, SynFlatBuffers::Type_SPAT_State, flatbuffer_state.Union(), m_rank));
+    FlatBufferMessage message = flatbuffers::Offset<SynFlatBuffers::Message>(SynFlatBuffers::CreateMessage(
+        builder, SynFlatBuffers::Type_SPAT_State, flatbuffer_state.Union(), m_source_id, m_destination_id));
     return message;
 }
 
-void SynSPATMessage::setColor(int intersection, int approach, int lane_number, LaneColor color) {
+void SynSPATMessage::SetColor(int intersection, int approach, int lane_number, LaneColor color) {
     bool found = false;
-    for (auto& lane : m_state->lanes) {
+    for (auto& lane : this->lanes) {
         if (lane.intersection == intersection && lane.approach == approach && lane.lane == lane_number) {
             found = true;
             lane.color = color;
@@ -75,7 +75,7 @@ void SynSPATMessage::setColor(int intersection, int approach, int lane_number, L
     }
 
     if (!found)
-        m_state->lanes.push_back({intersection, approach, lane_number, color});
+        this->lanes.push_back({intersection, approach, lane_number, color});
 }
 
 }  // namespace synchrono

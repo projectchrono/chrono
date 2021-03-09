@@ -871,7 +871,13 @@ EXCLUDE                = ../src/chrono/collision/bullet \
                          ../src/chrono/collision/gimpact \
                          ../src/chrono/collision/edgetempest \
                          ../src/chrono_matlab \
-                         ../src/chrono_thirdparty
+                         ../src/chrono_thirdparty \
+                         ../src/chrono_synchrono/flatbuffer/message/SynFlatBuffers_generated.h \
+                         ../src/chrono_synchrono/README.md \
+                         ../src/chrono_sensor/README.md \
+                         ../src/chrono_fsi/README.md \
+                         ../src/chrono_python/sensor_readme.md \
+                         ../stc/tests/README.md
 
 # The EXCLUDE_SYMLINKS tag can be used to select whether or not files or
 # directories that are symbolic links (a Unix file system feature) are excluded

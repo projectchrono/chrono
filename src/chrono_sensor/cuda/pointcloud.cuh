@@ -26,7 +26,8 @@ namespace sensor {
 /// @param width The width of the lidar data.
 /// @param height The height of the lidar data.
 /// @param hfov The horizontal field of view of the lidar.
-/// @param vfov The vertical field of view of the lidar.
+/// @param max_v_angle The maximun vertical fov angle of the lidar
+/// @param min_v_angle The minimum vertical fov angle for the lidar
 void cuda_pointcloud_from_depth(void* bufDI,
                                 void* bufOut,
                                 int width,

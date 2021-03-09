@@ -35,7 +35,7 @@ namespace m113 {
 // -----------------------------------------------------------------------------
 const double M113_SprocketBand::m_gear_mass = 27.68;
 const ChVector<> M113_SprocketBand::m_gear_inertia(0.646, 0.883, 0.646);
-const double M113_SprocketBand::m_axle_inertia = 0.02;
+const double M113_SprocketBand::m_axle_inertia = 0.4;
 const double M113_SprocketBand::m_separation = 0.278;
 
 // Gear profile data
@@ -59,7 +59,7 @@ M113_SprocketBand::M113_SprocketBand(const std::string& name) : ChSprocketBand(n
 void M113_SprocketBand::CreateContactMaterial(ChContactMethod contact_method) {
     MaterialInfo minfo;
     minfo.mu = 0.4f;
-    minfo.cr = 0.1f;
+    minfo.cr = 0.75f;
     minfo.Y = 1e7f;
     m_material = minfo.CreateMaterial(contact_method);
 }

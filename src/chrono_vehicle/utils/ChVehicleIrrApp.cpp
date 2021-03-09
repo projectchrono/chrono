@@ -110,7 +110,7 @@ ChVehicleIrrApp::ChVehicleIrrApp(ChVehicle* vehicle,
                                  const std::wstring& title,
                                  const irr::core::dimension2d<irr::u32>& dims,
                                  irr::ELOG_LEVEL log_level)
-    : ChIrrApp(vehicle->GetSystem(), title, dims, false, false, true, irr::video::EDT_OPENGL, log_level),
+    : ChIrrApp(vehicle->GetSystem(), title, dims, irrlicht::VerticalDir::Z, false, false, true, irr::video::EDT_OPENGL, log_level),
       m_vehicle(vehicle),
       m_camera(vehicle->GetChassisBody()),
       m_stepsize(1e-3),
@@ -162,7 +162,7 @@ void ChVehicleIrrApp::EnableSound(bool sound) {
         // To play a sound, call play2D(). The second parameter tells the engine to
         // play it looped.
         if (m_sound_engine) {
-            m_car_sound = m_sound_engine->play2D(GetChronoDataFile("carsound.ogg").c_str(), true, false, true);
+            m_car_sound = m_sound_engine->play2D(GetChronoDataFile("vehicle/sounds/carsound.ogg").c_str(), true, false, true);
             m_car_sound->setIsPaused(true);
         } else
             GetLog() << "Cannot start sound engine Irrklang \n";
@@ -229,9 +229,8 @@ void ChVehicleIrrApp::Advance(double step) {
     ChVector<> cam_pos = m_camera.GetCameraPos();
     ChVector<> cam_target = m_camera.GetTargetPos();
 
-    scene::ICameraSceneNode* camera = GetSceneManager()->getActiveCamera();
-    camera->setPosition(core::vector3dfCH(cam_pos));
-    camera->setTarget(core::vector3dfCH(cam_target));
+    GetActiveCamera()->setPosition(core::vector3dfCH(cam_pos));
+    GetActiveCamera()->setTarget(core::vector3dfCH(cam_target));
 
 #ifdef CHRONO_IRRKLANG
     static int stepsbetweensound = 0;
@@ -239,7 +238,7 @@ void ChVehicleIrrApp::Advance(double step) {
     // Update sound pitch
     if (m_car_sound && m_vehicle->GetPowertrain()) {
         stepsbetweensound++;
-        double engine_rpm = m_vehicle->GetPowertrain()->GetMotorSpeed() * 60 / chrono::CH_C_2PI;
+        double engine_rpm = m_vehicle->GetPowertrain()->GetMotorSpeed() * 60 / CH_C_2PI;
         double soundspeed = engine_rpm / (8000.);  // denominator: to guess
         if (soundspeed < 0.1)
             soundspeed = 0.1;
@@ -268,18 +267,18 @@ void ChVehicleIrrApp::DrawAll() {
 
 // Render a horizontal grid
 void ChVehicleIrrApp::RenderGrid(const ChVector<>& loc, int num_divs, double delta) {
-    irrlicht::ChIrrTools::drawGrid(GetVideoDriver(), delta, delta, num_divs, num_divs,
+    irrlicht::tools::drawGrid(GetVideoDriver(), delta, delta, num_divs, num_divs,
                                    ChCoordsys<>(loc, ChWorldFrame::Quaternion()),
                                    irr::video::SColor(255, 255, 200, 0), true);
 }
 
 // Render a reference frame (aligned with the world frame) at the specified location
 void ChVehicleIrrApp::RenderFrame(const ChVector<>& loc, double axis_length) {
-    irrlicht::ChIrrTools::drawSegment(GetVideoDriver(), loc, loc + ChVector<>(axis_length, 0, 0),
+    irrlicht::tools::drawSegment(GetVideoDriver(), loc, loc + ChVector<>(axis_length, 0, 0),
                                       irr::video::SColor(255, 255, 0, 0));
-    irrlicht::ChIrrTools::drawSegment(GetVideoDriver(), loc, loc + ChVector<>(0, axis_length, 0),
+    irrlicht::tools::drawSegment(GetVideoDriver(), loc, loc + ChVector<>(0, axis_length, 0),
                                       irr::video::SColor(255, 0, 255, 0));
-    irrlicht::ChIrrTools::drawSegment(GetVideoDriver(), loc, loc + ChVector<>(0, 0, axis_length),
+    irrlicht::tools::drawSegment(GetVideoDriver(), loc, loc + ChVector<>(0, 0, axis_length),
                                       irr::video::SColor(255, 0, 0, 255));
 }
 
@@ -342,7 +341,7 @@ void ChVehicleIrrApp::renderStats() {
 
     auto powertrain = m_vehicle->GetPowertrain();
     if (powertrain) {
-        double engine_rpm = powertrain->GetMotorSpeed() * 60 / chrono::CH_C_2PI;
+        double engine_rpm = powertrain->GetMotorSpeed() * 60 / CH_C_2PI;
         sprintf(msg, "Eng. RPM: %+.2f", engine_rpm);
         renderLinGauge(std::string(msg), engine_rpm / 7000, false, m_HUD_x, m_HUD_y + 50, 120, 15);
 
@@ -362,6 +361,10 @@ void ChVehicleIrrApp::renderStats() {
         sprintf(msg, "T.conv. out Nm: %+.2f", tc_torqueout);
         renderLinGauge(std::string(msg), tc_torqueout / 600, false, m_HUD_x, m_HUD_y + 130, 120, 15);
 
+        double tc_rpmout = powertrain->GetTorqueConverterOutputSpeed() * 60 / CH_C_2PI;
+        sprintf(msg, "T.conv. out RPM: %+.2f", tc_rpmout);
+        renderLinGauge(std::string(msg), tc_rpmout / 7000, false, m_HUD_x, m_HUD_y + 150, 120, 15);
+
         int ngear = powertrain->GetCurrentTransmissionGear();
         ChPowertrain::DriveMode drivemode = powertrain->GetDriveMode();
         switch (drivemode) {
@@ -378,7 +381,7 @@ void ChVehicleIrrApp::renderStats() {
                 sprintf(msg, "Gear:");
                 break;
         }
-        renderLinGauge(std::string(msg), (double)ngear / 4.0, false, m_HUD_x, m_HUD_y + 150, 120, 15);
+        renderLinGauge(std::string(msg), (double)ngear / 4.0, false, m_HUD_x, m_HUD_y + 170, 120, 15);
     }
 
     // Display information from driver system.
@@ -401,7 +404,7 @@ void ChVehicleIrrApp::renderStats() {
 
     // Allow derived classes to display additional information (e.g. driveline)
 
-    renderOtherStats(m_HUD_x, m_HUD_y + 180);
+    renderOtherStats(m_HUD_x, m_HUD_y + 200);
 }
 
 // -----------------------------------------------------------------------------

@@ -27,7 +27,6 @@ namespace SynFlatBuffers.MAP;
 
 table State {
   time:double;
-  rank:int;
   intersections:[intersection];
 }
 

@@ -24,14 +24,18 @@ try:
 except:
     pass
 try:
-	import _pardisomkl
+    import _pardisomkl
 except:
     pass
 try:
     import _sensor
 except:
     pass
-	
+try:
+    import _robot
+except:
+    pass
+
 # The following allows the package "pychrono" to be directly
 # used as C++ namespace chrono:: ie. you just need to type
 #   import pychrono

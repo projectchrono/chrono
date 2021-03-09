@@ -42,7 +42,7 @@ class CH_SENSOR_API ChGPSNoiseModel {
 
     /// Virtual function that every GPS noise model must implement. Will be called when noise should be added to the
     /// data.
-    /// @param The Cartesian coordinates to be augmented with data.
+    /// @param coords The Cartesian coordinates to be augmented with data.
     virtual void AddNoise(ChVector<double>& coords) = 0;
 };
 
@@ -55,7 +55,7 @@ class CH_SENSOR_API ChGPSNoiseNone : public ChGPSNoiseModel {
     ~ChGPSNoiseNone() {}
 
     /// Noise addition function. Adds no noise for this model.
-    /// @param The Cartesian coordinates to be augmented with data.
+    /// @param coords The Cartesian coordinates to be augmented with data.
     virtual void AddNoise(ChVector<double>& coords) {}
 };
 
@@ -70,7 +70,7 @@ class CH_SENSOR_API ChGPSNoiseNormal : public ChGPSNoiseModel {
     ~ChGPSNoiseNormal();
 
     /// Noise addition function. Adds no noise for this model.
-    /// @param The Cartesian coordinates to be augmented with data.
+    /// @param coords The Cartesian coordinates to be augmented with data.
     virtual void AddNoise(ChVector<double>& coords);
 
   private:

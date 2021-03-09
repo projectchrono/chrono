@@ -352,7 +352,7 @@ void ChTireTestRig::CreateMechanism() {
                    m_tire->GetMass();
     m_applied_load = m_total_mass * m_grav - m_normal_load;
 
-    // Approach using ChLoad does not work with Chrono::Parallel (loads currently not supported).
+    // Approach using ChLoad does not work with Chrono::Multicore (loads currently not supported).
     // Instead use a force accumulator (updated in ChTireTestRig::Advance)
 
     ////auto load = chrono_types::make_shared<ChLoadBodyForce>(m_chassis_body, ChVector<>(0, 0, m_applied_load), false,
@@ -429,7 +429,7 @@ void ChTireTestRig::CreateTerrainRigid() {
         terrain->AddPatch(patch_mat, location, ChVector<>(0, 0, 1), m_params_rigid.length, m_params_rigid.width, 0.1);
 
     patch->SetColor(ChColor(0.8f, 0.8f, 0.8f));
-    patch->SetTexture(GetChronoDataFile("pinkwhite.png"), 10 * (float)m_params_rigid.length,
+    patch->SetTexture(GetChronoDataFile("textures/pinkwhite.png"), 10 * (float)m_params_rigid.length,
                       10 * (float)m_params_rigid.width);
     terrain->Initialize();
 

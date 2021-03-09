@@ -29,45 +29,45 @@ namespace Terrain = SynFlatBuffers::Terrain;
 namespace SCM = SynFlatBuffers::Terrain::SCM;
 
 /// Constructors
-SynSCMMessage::SynSCMMessage(int rank, std::shared_ptr<SynSCMTerrainState> state)
-    : SynMessage(rank, SynMessageType::SCM_TERRAIN) {
-    m_state = state ? state : chrono_types::make_shared<SynSCMTerrainState>();
-}
+SynSCMMessage::SynSCMMessage(unsigned int source_id, unsigned int destination_id)
+    : SynMessage(source_id, destination_id) {}
 
-void SynSCMMessage::StateFromMessage(const SynFlatBuffers::Message* message) {
+void SynSCMMessage::ConvertFromFlatBuffers(const SynFlatBuffers::Message* message) {
     // System of casts from SynFlatBuffers::Message to SynFlatBuffers::Terrain::SCM::State
     if (message->message_type() != SynFlatBuffers::Type_Terrain_State)
         return;
 
+    m_source_id = message->source_id();
+    m_destination_id = message->destination_id();
+
     auto terrain_state = message->message_as_Terrain_State();
     auto state = terrain_state->message_as_SCM_State();
 
-    std::vector<SCMDeformableTerrain::NodeLevel> modified_nodes;
+    modified_nodes.clear();
     auto nodes_size = state->nodes()->size();
-    for (int i = 0; i < nodes_size; i++) {
-        auto fb_node = state->nodes()->Get(i);
+    for (size_t i = 0; i < nodes_size; i++) {
+        auto fb_node = state->nodes()->Get((flatbuffers::uoffset_t)i);
 
         auto node = std::make_pair(ChVector2<>(fb_node->x(), fb_node->y()), fb_node->level());
         modified_nodes.push_back(node);
     }
 
-    m_state->time = state->time();
-    m_state->modified_nodes = modified_nodes;
+    this->time = state->time();
 }
 
 /// Generate FlatBuffers message from this message's state
-FlatBufferMessage SynSCMMessage::MessageFromState(flatbuffers::FlatBufferBuilder& builder) {
-    std::vector<SCM::NodeLevel> modified_nodes(m_state->modified_nodes.size());
-    for (auto& node : m_state->modified_nodes)
+FlatBufferMessage SynSCMMessage::ConvertToFlatBuffers(flatbuffers::FlatBufferBuilder& builder) {
+    std::vector<SCM::NodeLevel> modified_nodes(this->modified_nodes.size());
+    for (auto& node : this->modified_nodes)
         modified_nodes.push_back(SCM::NodeLevel(node.first.x(), node.first.y(), node.second));
 
-    auto scm_state = SCM::CreateStateDirect(builder, m_state->time, &modified_nodes);
+    auto scm_state = SCM::CreateStateDirect(builder, time, &modified_nodes);
 
     auto flatbuffer_state = Terrain::CreateState(builder, Terrain::Type::Type_SCM_State, scm_state.Union());
     auto flatbuffer_message = SynFlatBuffers::CreateMessage(builder,                             //
                                                             SynFlatBuffers::Type_Terrain_State,  //
                                                             flatbuffer_state.Union(),            //
-                                                            m_rank);                             //
+                                                            m_source_id, m_destination_id);      //
 
     return flatbuffers::Offset<SynFlatBuffers::Message>(flatbuffer_message);
 }

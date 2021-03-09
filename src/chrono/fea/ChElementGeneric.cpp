@@ -88,7 +88,7 @@ void ChElementGeneric::EleIntLoadResidual_F_gravity(ChVectorDynamic<>& R, const 
         int nodedofs = GetNodeNdofs(in);
         if (!GetNodeN(in)->GetFixed()) {
             for (int j = 0; j < nodedofs; j++)
-                //***ATOMIC*** as called from an OMP parallel loop: this is here to avoid race conditions when writing to R
+                //// ATOMIC as called from an OMP parallel loop: this is here to avoid race conditions when writing to R
                 #pragma omp atomic  
                 R(GetNodeN(in)->NodeGetOffset_w() + j) += mFg(stride + j);
         }
@@ -111,7 +111,7 @@ void ChElementGeneric::EleIntLoadResidual_F_gravity(ChVectorDynamic<>& R, const 
         if (G_acc != VNULL) {
                 auto common_gravity_loader = chrono_types::make_shared<ChLoad<ChLoaderGravity>>(mloadable);
                 common_gravity_loader->loader.Set_G_acc(G_acc);
-                common_gravity_loader->loader.SetNumIntPoints(1); //***TODO*** n. gauss points as parameter?
+                common_gravity_loader->loader.SetNumIntPoints(1); //// TODO n. gauss points as parameter?
                 if (mloadable->GetDensity()) {
                     // temporary set loader target and compute generalized forces term
                     common_gravity_loader->loader.loadable = mloadable;
@@ -138,7 +138,7 @@ void ChElementGeneric::ComputeGravityForces(ChVectorDynamic<>& Fg, const ChVecto
         if (G_acc != VNULL) {
                 auto common_gravity_loader = chrono_types::make_shared<ChLoad<ChLoaderGravity>>(mloadable);
                 common_gravity_loader->loader.Set_G_acc(G_acc);
-                common_gravity_loader->loader.SetNumIntPoints(1); //***TODO*** n. gauss points as parameter?
+                common_gravity_loader->loader.SetNumIntPoints(1); //// TODO n. gauss points as parameter?
                 if (mloadable->GetDensity()) {
                     // temporary set loader target and compute generalized forces term
                     common_gravity_loader->loader.loadable = mloadable;

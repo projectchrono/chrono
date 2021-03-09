@@ -51,7 +51,6 @@ list(APPEND ${CUDA_cudadevrt_LIBRARY} LIBRARIES)
 list(APPEND LIBRARIES ${CUDA_CUDART_LIBRARY})
 list(APPEND LIBRARIES ${CUDA_cusparse_LIBRARY})
 list(APPEND LIBRARIES ${CUDA_cublas_LIBRARY})
-list(APPEND LIBRARIES ${CUDA_cudart_static_LIBRARY})
 
 message(STATUS "CUDA libraries: ${LIBRARIES}")
 
@@ -156,10 +155,10 @@ set(CXX_FLAGS ${CH_CXX_FLAGS})
 list(APPEND LIBRARIES "ChronoEngine")
 #set(LIBRARIES "ChronoEngine")
 
-if(ENABLE_MODULE_PARALLEL)
-  set(CXX_FLAGS ${CH_PARALLEL_CXX_FLAGS})
-  include_directories(${CH_PARALLEL_INCLUDES})
-  list(APPEND LIBRARIES ChronoEngine_parallel)
+if(ENABLE_MODULE_MULTICORE)
+  set(CXX_FLAGS ${CH_MULTICORE_CXX_FLAGS})
+  include_directories(${CH_MULTICORE_INCLUDES})
+  list(APPEND LIBRARIES ChronoEngine_multicore)
 endif()
 
 if(ENABLE_MODULE_VEHICLE)
@@ -188,7 +187,6 @@ install(TARGETS ChronoEngine_fsi
         LIBRARY DESTINATION lib
         ARCHIVE DESTINATION lib)
 
-install(FILES ${ChronoEngine_FSI_HEADERS}
-        DESTINATION include/chrono_fsi)
-install(FILES ${ChronoEngine_FSI_UTILS_HEADERS}
-        DESTINATION include/chrono_fsi/utils)
+install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/
+        DESTINATION include/chrono_fsi
+        FILES_MATCHING PATTERN "*.h" PATTERN "*.cuh")

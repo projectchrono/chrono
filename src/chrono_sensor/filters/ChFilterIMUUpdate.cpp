@@ -54,8 +54,8 @@ CH_SENSOR_API void ChFilterIMUUpdate::Apply(std::shared_ptr<ChSensor> pSensor,
             ang_vel += std::get<0>(c);
             tran_acc += std::get<1>(c);
         }
-        ang_vel = ang_vel / pIMU->imu_key_frames.size();
-        tran_acc = tran_acc / pIMU->imu_key_frames.size();
+        ang_vel = ang_vel / (float)(pIMU->imu_key_frames.size());
+        tran_acc = tran_acc / (float)(pIMU->imu_key_frames.size());
     }
 
     if (m_noise_model) {
@@ -77,7 +77,7 @@ CH_SENSOR_API void ChFilterIMUUpdate::Apply(std::shared_ptr<ChSensor> pSensor,
     m_buffer->Buffer[0].Yaw = ang_vel.z();
 
     m_buffer->LaunchedCount = pSensor->GetNumLaunches();
-    m_buffer->TimeStamp = pSensor->GetParent()->GetSystem()->GetChTime();
+    m_buffer->TimeStamp = (float)pSensor->GetParent()->GetSystem()->GetChTime();
 
     bufferInOut = m_buffer;
 }
@@ -101,7 +101,7 @@ CH_SENSOR_API ChIMUNoiseNormalDrift::ChIMUNoiseNormalDrift(float updateRate,
       m_a_bias_drift(a_bias_drift),
       m_a_tau_drift(a_tau_drift),
       ChIMUNoiseModel() {
-    m_generator = std::minstd_rand(std::chrono::high_resolution_clock::now().time_since_epoch().count());
+    m_generator = std::minstd_rand((unsigned int)(std::chrono::high_resolution_clock::now().time_since_epoch().count()));
 }
 
 void ChIMUNoiseNormalDrift::AddNoise(chrono::ChVector<float>& gyro, chrono::ChVector<float>& acc) {

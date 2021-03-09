@@ -1,0 +1,29 @@
+{
+  "Name": "Sedan",
+  "Type": "Vehicle",
+  "Template": "WheeledVehicle",
+
+  "Vehicle": {
+    "Input File": "uaz/vehicle/UAZBUS_SAEVehicle.json",
+    "Chassis Visualization Type": "Mesh",
+    "Suspension Visualization Type": "None",
+    "Steering Visualization Type": "None",
+    "Wheel Visualization Type": "Mesh"
+  },
+
+  "Powertrain": {
+    "Input File": "uaz/powertrain/UAZBUS_SimpleMapPowertrain.json"
+  },
+
+  "Tire": {
+    "Input File": "uaz/tire/UAZBUS_TMeasyTireFront.json",
+    "Visualization Type": "Mesh"
+  },
+
+  "Zombie": {
+    "Chassis Visualization File": "uaz/uazbus_chassis.obj",
+    "Wheel Visualization File": "uaz/uaz_rim.obj",
+    "Tire Visualization File": "uaz/uaz_tire.obj",
+    "Number of Wheels": 4
+  }
+}

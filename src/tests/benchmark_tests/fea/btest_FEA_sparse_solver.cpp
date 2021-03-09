@@ -35,6 +35,10 @@
 #include "chrono_mumps/ChSolverMumps.h"
 #endif
 
+#ifdef CHRONO_PARDISOPROJECT
+#include "chrono_pardisoproject/ChSolverPardisoProject.h"
+#endif
+
 using namespace chrono;
 using namespace chrono::fea;
 
@@ -95,10 +99,18 @@ class SystemFixture : public ::benchmark::Fixture {
     void Report(benchmark::State& st) {
         auto descr = m_system->GetSystemDescriptor();
         auto num_it = st.iterations();
+        
         st.counters["SIZE"] = descr->CountActiveVariables() + descr->CountActiveConstraints();
+
         st.counters["LS_Jacobian"] = m_system->GetTimerJacobian() * 1e3 / num_it;
         st.counters["LS_Setup"] = m_system->GetTimerLSsetup() * 1e3 / num_it;
         st.counters["LS_Solve"] = m_system->GetTimerLSsolve() * 1e3 / num_it;
+
+        auto solver = std::static_pointer_cast<ChDirectSolverLS>(m_system->GetSolver());
+        st.counters["LS_Setup_assembly"] = solver->GetTimeSetup_Assembly() * 1e3 / num_it;
+        st.counters["LS_Setup_call"] = solver->GetTimeSetup_SolverCall() * 1e3 / num_it;
+        st.counters["LS_Solve_assembly"] = solver->GetTimeSolve_Assembly() * 1e3 / num_it;
+        st.counters["LS_Solve_call"] = solver->GetTimeSolve_SolverCall() * 1e3 / num_it;
     }
 
   protected:
@@ -123,6 +135,21 @@ class SystemFixture : public ::benchmark::Fixture {
 #define BM_SOLVER_MUMPS(TEST_NAME, N, WITH_LEARNER)                                   \
     BENCHMARK_TEMPLATE_DEFINE_F(SystemFixture, TEST_NAME, N)(benchmark::State & st) { \
         auto solver = chrono_types::make_shared<ChSolverMumps>();                     \
+        solver->UseSparsityPatternLearner(WITH_LEARNER);                              \
+        solver->LockSparsityPattern(true);                                            \
+        solver->SetVerbose(false);                                                    \
+        m_system->SetSolver(solver);                                                  \
+        while (st.KeepRunning()) {                                                    \
+            solver->ForceSparsityPatternUpdate();                                     \
+            m_system->DoStaticLinear();                                               \
+        }                                                                             \
+        Report(st);                                                                   \
+    }                                                                                 \
+    BENCHMARK_REGISTER_F(SystemFixture, TEST_NAME)->Unit(benchmark::kMillisecond);
+
+#define BM_SOLVER_PARDISOPROJECT(TEST_NAME, N, WITH_LEARNER)                          \
+    BENCHMARK_TEMPLATE_DEFINE_F(SystemFixture, TEST_NAME, N)(benchmark::State & st) { \
+        auto solver = chrono_types::make_shared<ChSolverPardisoProject>();            \
         solver->UseSparsityPatternLearner(WITH_LEARNER);                              \
         solver->LockSparsityPattern(true);                                            \
         solver->SetVerbose(false);                                                    \
@@ -176,6 +203,19 @@ BM_SOLVER_MUMPS(MUMPS_learner_8000, 8000, true)
 BM_SOLVER_MUMPS(MUMPS_no_learner_8000, 8000, false)
 #endif
 
+#ifdef CHRONO_PARDISOPROJECT
+BM_SOLVER_PARDISOPROJECT(PARDISOPROJECT_learner_500, 500, true)
+BM_SOLVER_PARDISOPROJECT(PARDISOPROJECT_no_learner_500, 500, false)
+BM_SOLVER_PARDISOPROJECT(PARDISOPROJECT_learner_1000, 1000, true)
+BM_SOLVER_PARDISOPROJECT(PARDISOPROJECT_no_learner_1000, 1000, false)
+BM_SOLVER_PARDISOPROJECT(PARDISOPROJECT_learner_2000, 2000, true)
+BM_SOLVER_PARDISOPROJECT(PARDISOPROJECT_no_learner_2000, 2000, false)
+BM_SOLVER_PARDISOPROJECT(PARDISOPROJECT_learner_4000, 4000, true)
+BM_SOLVER_PARDISOPROJECT(PARDISOPROJECT_no_learner_4000, 4000, false)
+BM_SOLVER_PARDISOPROJECT(PARDISOPROJECT_learner_8000, 8000, true)
+BM_SOLVER_PARDISOPROJECT(PARDISOPROJECT_no_learner_8000, 8000, false)
+#endif
+
 BM_SOLVER_QR(QR_learner_500, 500, true)
 BM_SOLVER_QR(QR_no_learner_500, 500, false)
 BM_SOLVER_QR(QR_learner_1000, 1000, true)
@@ -186,3 +226,8 @@ BM_SOLVER_QR(QR_learner_4000, 4000, true)
 BM_SOLVER_QR(QR_no_learner_4000, 4000, false)
 BM_SOLVER_QR(QR_learner_8000, 8000, true)
 BM_SOLVER_QR(QR_no_learner_8000, 8000, false)
+
+int main(int argc, char* argv[]) {
+    ::benchmark::Initialize(&argc, argv);
+    ::benchmark::RunSpecifiedBenchmarks();
+}

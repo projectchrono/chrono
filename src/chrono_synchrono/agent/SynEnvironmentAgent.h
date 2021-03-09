@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: 肖言 (Yan Xiao)
+// Authors: Yan Xiao
 // =============================================================================
 //
 // Agent class that defines a series of intersections, lanes and traffic lights.
@@ -24,8 +24,7 @@
 #include "chrono_synchrono/SynApi.h"
 #include "chrono_synchrono/agent/SynAgent.h"
 
-#include "chrono_synchrono/flatbuffer/message/SynMAPMessage.h"
-#include "chrono_synchrono/flatbuffer/message/SynSPATMessage.h"
+#include "chrono_synchrono/flatbuffer/message/SynEnvironmentMessage.h"
 
 namespace chrono {
 namespace synchrono {
@@ -33,8 +32,7 @@ namespace synchrono {
 /// @addtogroup synchrono_agent
 /// @{
 
-/// Agent that manages lanes and light changes for a traffic intersection. Transmits messages to receiving vehicle
-/// agents about the current state of the intersection that is managed
+/// Derived agent class. Acts as a traffic light and distributes MAP and/or SPAT data
 class SYN_API SynEnvironmentAgent : public SynAgent {
   public:
     /// @brief It defines the traffic light color and schedule for one lane
@@ -50,64 +48,88 @@ class SYN_API SynEnvironmentAgent : public SynAgent {
         double time_to_change;  ///< When the color should change to the next one
     };
 
-    /// @brief Construct a new Syn Environment Agent object, only need one for the simulation
+    ///@brief Default Constructor
     ///
-    /// @param rank Current rank the agent is at
-    /// @param system The Chrono system the agent is in.
-    SynEnvironmentAgent(int rank, ChSystem* system = 0);
+    ///@param system the ChSystem used for grabbing the current sim time
+    SynEnvironmentAgent(ChSystem* system);
 
-    /// Destructor
-    ~SynEnvironmentAgent();
+    ///@brief Destructor.
+    virtual ~SynEnvironmentAgent();
 
-    /// Advance the state of this vehicle agent until agent time syncs with passed time.
-    virtual void Advance(double time_of_next_sync) override;
-
-    /// Initialize this agents zombie representation.
-    /// Will use the passed system if agent system is null.
-    virtual void InitializeZombie(ChSystem* system = 0) override;
-
-    /// Synchronize this agents zombie with the rest of the simulation.
-    /// Updates agent based on specified message.
-    virtual void SynchronizeZombie(SynMessage* message) override;
-
-    /// Generate vector of SynMessages to send
-    virtual void GenerateMessagesToSend(std::vector<SynMessage*>& messages) override;
-
-    /// Environments have no state as such, they have state for SPAT + MAP
-    virtual std::shared_ptr<SynMessageState> GetState() override;
-    virtual std::shared_ptr<SynAgentMessage> GetMessage() override;
-
+    ///@brief Initialize this agents zombie representation
+    /// Bodies are added and represented in the lead agent's world.
     ///
+    ///@param system the ChSystem used to initialize the zombie
+    virtual void InitializeZombie(ChSystem* system) override;
+
+    ///@brief Synchronize this agents zombie with the rest of the simulation.
+    /// Updates agent based on the passed message.
+    /// Any message can be passed, so a check should be done to ensure this message was intended for this agent.
+    ///
+    ///@param message the message to process and is used to update the position of the zombie
+    virtual void SynchronizeZombie(std::shared_ptr<SynMessage> message) override;
+
+    ///@brief Update this agent
+    /// Typically used to update the state representation of the agent to be distributed to other agents
+    ///
+    virtual void Update() override;
+
+    ///@brief Generates messages to be sent to other nodes
+    /// Will create or get messages and pass them into the referenced message vector
+    ///
+    ///@param messages a referenced vector containing messages to be distributed from this rank
+    virtual void GatherMessages(SynMessageList& messages) override { messages.push_back(m_message); }
+
+    ///@brief Get the description messages for this agent
+    /// A single agent may have multiple description messages
+    ///
+    ///@param messages a referenced vector containing messages to be distributed from this rank
+    virtual void GatherDescriptionMessages(SynMessageList& messages) override { messages.push_back(m_message); }
+
+    // ------------------------------------------------------------------------
+
     /// @brief Add a lane to the environment, need to specify which intersection and which approach
     ///
-    /// @param lane lane information
+    /// @param intersection particular intersection to add to
+    /// @param approach particular approach to add to
+    /// @param lane particular lane to add to
     /// @param color current color of the lane
     /// @param behaviour Indicates when the traffic light's color will change. If currently is RED and behaviour is
     /// {a,b,c}, it will stay RED for a seconds, switch to GREEN for b seconds, and Yellow for c seconds. Then it will
     /// switch back to RED and do the cycle again.
     /// @return The lane's position in that Approach
-    ///
     int AddLane(int intersection, int approach, ApproachLane lane, LaneColor color, std::vector<double> behaviour);
 
-    /// @brief
+    /// @brief Change the current color of a light at an intersection. Does not alter cycles
     ///
-    /// @param lane The lane's position in that approach, returned in AddLane
+    /// @param intersection which intersection has the light we want to chane the color of
+    /// @param approach which approach has the light we want to change the color of
+    /// @param lane the lane's position in that approach, returned in AddLane
+    /// @param color which color to change to
     void SetColor(int intersection, int approach, int lane, LaneColor color);
+
+    ///@brief Set the Agent ID
+    ///
+    virtual void SetID(SynAgentID aid) override;
+
+    // ------------------------------------------------------------------------
 
   private:
     /// @brief Find the next color in this order ...->GREEN->YELLOW->RED->GREEN->...
+    ///
     LaneColor FindNextColor(LaneColor color);
 
-    // agent specific parameters
-    double m_current_time;
-    std::vector<LaneData> m_lane_light_data;  ///< Store all lane information
+    // ------------------------------------------------------------------------
 
-    std::shared_ptr<SynMAPMessage> m_map_msg;
-    std::shared_ptr<SynSPATMessage> m_spat_msg;
+    std::vector<LaneData> m_lane_data;  ///< Store all lane information
+
+    ChSystem* m_system;                                ///< Ptr to the system for getting sim time
+    std::shared_ptr<SynEnvironmentMessage> m_message;  ///< State of the environment
 };
 
 /// @} synchrono_agent
 
 }  // namespace synchrono
 }  // namespace chrono
+
 #endif

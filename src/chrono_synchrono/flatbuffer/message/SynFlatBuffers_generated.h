@@ -4,36 +4,45 @@
 #ifndef FLATBUFFERS_GENERATED_SYNFLATBUFFERS_SYNFLATBUFFERS_H_
 #define FLATBUFFERS_GENERATED_SYNFLATBUFFERS_SYNFLATBUFFERS_H_
 
-#include "chrono_thirdparty/flatbuffers/include/flatbuffers/flatbuffers.h"
+#include "flatbuffers/flatbuffers.h"
 
 namespace SynFlatBuffers {
 namespace SPAT {
 
 struct State;
+struct StateBuilder;
 
 struct Lane;
+struct LaneBuilder;
 
 }  // namespace SPAT
 
 struct Vector;
+struct VectorBuilder;
 
 struct Quaternion;
+struct QuaternionBuilder;
 
 struct Pose;
+struct PoseBuilder;
 
 namespace Approach {
 
 struct State;
+struct StateBuilder;
 
 struct Lane;
+struct LaneBuilder;
 
 }  // namespace Approach
 
 namespace MAP {
 
 struct State;
+struct StateBuilder;
 
 struct intersection;
+struct intersectionBuilder;
 
 }  // namespace MAP
 
@@ -41,30 +50,48 @@ namespace Agent {
 namespace WheeledVehicle {
 
 struct State;
+struct StateBuilder;
 
 struct Description;
+struct DescriptionBuilder;
 
 }  // namespace WheeledVehicle
 
 namespace TrackedVehicle {
 
 struct State;
+struct StateBuilder;
 
 struct Description;
+struct DescriptionBuilder;
 
 }  // namespace TrackedVehicle
+
+namespace Copter {
+
+struct State;
+struct StateBuilder;
+
+struct Description;
+struct DescriptionBuilder;
+
+}  // namespace Copter
 
 namespace Environment {
 
 struct State;
+struct StateBuilder;
 
 struct Description;
+struct DescriptionBuilder;
 
 }  // namespace Environment
 
 struct State;
+struct StateBuilder;
 
 struct Description;
+struct DescriptionBuilder;
 
 }  // namespace Agent
 
@@ -74,57 +101,31 @@ namespace SCM {
 struct NodeLevel;
 
 struct State;
+struct StateBuilder;
 
 }  // namespace SCM
 
 struct State;
+struct StateBuilder;
 
 }  // namespace Terrain
 
-namespace Sensor {
-namespace Camera {
-
-struct RGBA8;
-
-struct R8;
-
-}  // namespace Camera
-
-namespace Lidar {
-
-struct XYZI;
-
-struct DI;
-
-}  // namespace Lidar
-
-namespace IMU {
-
-struct Vec;
-
-struct IMUData;
-
-}  // namespace IMU
-
-namespace GPS {
-
-struct GPSData;
-
-}  // namespace GPS
-
-struct SensorBuffer;
+namespace Simulation {
 
 struct State;
+struct StateBuilder;
 
-}  // namespace Sensor
+}  // namespace Simulation
 
 struct Buffer;
+struct BufferBuilder;
 
 struct Message;
+struct MessageBuilder;
 
 namespace SPAT {
 
-enum Color {
+enum Color : int8_t {
   Color_Green = 0,
   Color_Yellow = 1,
   Color_Red = 2,
@@ -152,7 +153,7 @@ inline const char * const *EnumNamesColor() {
 }
 
 inline const char *EnumNameColor(Color e) {
-  if (e < Color_Green || e > Color_Red) return "";
+  if (flatbuffers::IsOutRange(e, Color_Green, Color_Red)) return "";
   const size_t index = static_cast<size_t>(e);
   return EnumNamesColor()[index];
 }
@@ -161,7 +162,7 @@ inline const char *EnumNameColor(Color e) {
 
 namespace Agent {
 
-enum Type {
+enum Type : uint8_t {
   Type_NONE = 0,
   Type_WheeledVehicle_State = 1,
   Type_WheeledVehicle_Description = 2,
@@ -169,11 +170,13 @@ enum Type {
   Type_TrackedVehicle_Description = 4,
   Type_Environment_State = 5,
   Type_Environment_Description = 6,
+  Type_Copter_State = 7,
+  Type_Copter_Description = 8,
   Type_MIN = Type_NONE,
-  Type_MAX = Type_Environment_Description
+  Type_MAX = Type_Copter_Description
 };
 
-inline const Type (&EnumValuesType())[7] {
+inline const Type (&EnumValuesType())[9] {
   static const Type values[] = {
     Type_NONE,
     Type_WheeledVehicle_State,
@@ -181,13 +184,15 @@ inline const Type (&EnumValuesType())[7] {
     Type_TrackedVehicle_State,
     Type_TrackedVehicle_Description,
     Type_Environment_State,
-    Type_Environment_Description
+    Type_Environment_Description,
+    Type_Copter_State,
+    Type_Copter_Description
   };
   return values;
 }
 
 inline const char * const *EnumNamesType() {
-  static const char * const names[8] = {
+  static const char * const names[10] = {
     "NONE",
     "WheeledVehicle_State",
     "WheeledVehicle_Description",
@@ -195,13 +200,15 @@ inline const char * const *EnumNamesType() {
     "TrackedVehicle_Description",
     "Environment_State",
     "Environment_Description",
+    "Copter_State",
+    "Copter_Description",
     nullptr
   };
   return names;
 }
 
 inline const char *EnumNameType(Type e) {
-  if (e < Type_NONE || e > Type_Environment_Description) return "";
+  if (flatbuffers::IsOutRange(e, Type_NONE, Type_Copter_Description)) return "";
   const size_t index = static_cast<size_t>(e);
   return EnumNamesType()[index];
 }
@@ -234,6 +241,14 @@ template<> struct TypeTraits<SynFlatBuffers::Agent::Environment::Description> {
   static const Type enum_value = Type_Environment_Description;
 };
 
+template<> struct TypeTraits<SynFlatBuffers::Agent::Copter::State> {
+  static const Type enum_value = Type_Copter_State;
+};
+
+template<> struct TypeTraits<SynFlatBuffers::Agent::Copter::Description> {
+  static const Type enum_value = Type_Copter_Description;
+};
+
 bool VerifyType(flatbuffers::Verifier &verifier, const void *obj, Type type);
 bool VerifyTypeVector(flatbuffers::Verifier &verifier, const flatbuffers::Vector<flatbuffers::Offset<void>> *values, const flatbuffers::Vector<uint8_t> *types);
 
@@ -241,7 +256,7 @@ bool VerifyTypeVector(flatbuffers::Verifier &verifier, const flatbuffers::Vector
 
 namespace Terrain {
 
-enum Type {
+enum Type : uint8_t {
   Type_NONE = 0,
   Type_SCM_State = 1,
   Type_MIN = Type_NONE,
@@ -266,7 +281,7 @@ inline const char * const *EnumNamesType() {
 }
 
 inline const char *EnumNameType(Type e) {
-  if (e < Type_NONE || e > Type_SCM_State) return "";
+  if (flatbuffers::IsOutRange(e, Type_NONE, Type_SCM_State)) return "";
   const size_t index = static_cast<size_t>(e);
   return EnumNamesType()[index];
 }
@@ -284,63 +299,17 @@ bool VerifyTypeVector(flatbuffers::Verifier &verifier, const flatbuffers::Vector
 
 }  // namespace Terrain
 
-namespace Sensor {
-
-enum Type {
-  Type_Camera_RGBA8 = 0,
-  Type_Camera_R8 = 1,
-  Type_Lidar_DI = 2,
-  Type_Lidar_XYZI = 3,
-  Type_IMU_IMUData = 4,
-  Type_GPS_GPSData = 5,
-  Type_MIN = Type_Camera_RGBA8,
-  Type_MAX = Type_GPS_GPSData
-};
-
-inline const Type (&EnumValuesType())[6] {
-  static const Type values[] = {
-    Type_Camera_RGBA8,
-    Type_Camera_R8,
-    Type_Lidar_DI,
-    Type_Lidar_XYZI,
-    Type_IMU_IMUData,
-    Type_GPS_GPSData
-  };
-  return values;
-}
-
-inline const char * const *EnumNamesType() {
-  static const char * const names[7] = {
-    "Camera_RGBA8",
-    "Camera_R8",
-    "Lidar_DI",
-    "Lidar_XYZI",
-    "IMU_IMUData",
-    "GPS_GPSData",
-    nullptr
-  };
-  return names;
-}
-
-inline const char *EnumNameType(Type e) {
-  if (e < Type_Camera_RGBA8 || e > Type_GPS_GPSData) return "";
-  const size_t index = static_cast<size_t>(e);
-  return EnumNamesType()[index];
-}
-
-}  // namespace Sensor
-
-enum Type {
+enum Type : uint8_t {
   Type_NONE = 0,
   Type_Agent_State = 1,
   Type_Agent_Description = 2,
   Type_SPAT_State = 3,
   Type_MAP_State = 4,
   Type_Terrain_State = 5,
-  Type_Sensor_State = 6,
-  Type_Approach_State = 7,
+  Type_Approach_State = 6,
+  Type_Simulation_State = 7,
   Type_MIN = Type_NONE,
-  Type_MAX = Type_Approach_State
+  Type_MAX = Type_Simulation_State
 };
 
 inline const Type (&EnumValuesType())[8] {
@@ -351,8 +320,8 @@ inline const Type (&EnumValuesType())[8] {
     Type_SPAT_State,
     Type_MAP_State,
     Type_Terrain_State,
-    Type_Sensor_State,
-    Type_Approach_State
+    Type_Approach_State,
+    Type_Simulation_State
   };
   return values;
 }
@@ -365,15 +334,15 @@ inline const char * const *EnumNamesType() {
     "SPAT_State",
     "MAP_State",
     "Terrain_State",
-    "Sensor_State",
     "Approach_State",
+    "Simulation_State",
     nullptr
   };
   return names;
 }
 
 inline const char *EnumNameType(Type e) {
-  if (e < Type_NONE || e > Type_Approach_State) return "";
+  if (flatbuffers::IsOutRange(e, Type_NONE, Type_Simulation_State)) return "";
   const size_t index = static_cast<size_t>(e);
   return EnumNamesType()[index];
 }
@@ -402,12 +371,12 @@ template<> struct TypeTraits<SynFlatBuffers::Terrain::State> {
   static const Type enum_value = Type_Terrain_State;
 };
 
-template<> struct TypeTraits<SynFlatBuffers::Sensor::State> {
-  static const Type enum_value = Type_Sensor_State;
-};
-
 template<> struct TypeTraits<SynFlatBuffers::Approach::State> {
   static const Type enum_value = Type_Approach_State;
+};
+
+template<> struct TypeTraits<SynFlatBuffers::Simulation::State> {
+  static const Type enum_value = Type_Simulation_State;
 };
 
 bool VerifyType(flatbuffers::Verifier &verifier, const void *obj, Type type);
@@ -423,8 +392,10 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(8) NodeLevel FLATBUFFERS_FINAL_CLASS {
   double level_;
 
  public:
-  NodeLevel() {
-    memset(static_cast<void *>(this), 0, sizeof(NodeLevel));
+  NodeLevel()
+      : x_(0),
+        y_(0),
+        level_(0) {
   }
   NodeLevel(int32_t _x, int32_t _y, double _level)
       : x_(flatbuffers::EndianScalar(_x)),
@@ -446,221 +417,10 @@ FLATBUFFERS_STRUCT_END(NodeLevel, 16);
 }  // namespace SCM
 }  // namespace Terrain
 
-namespace Sensor {
-namespace Camera {
-
-FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(1) RGBA8 FLATBUFFERS_FINAL_CLASS {
- private:
-  int8_t R_;
-  int8_t G_;
-  int8_t B_;
-  int8_t A_;
-
- public:
-  RGBA8() {
-    memset(static_cast<void *>(this), 0, sizeof(RGBA8));
-  }
-  RGBA8(int8_t _R, int8_t _G, int8_t _B, int8_t _A)
-      : R_(flatbuffers::EndianScalar(_R)),
-        G_(flatbuffers::EndianScalar(_G)),
-        B_(flatbuffers::EndianScalar(_B)),
-        A_(flatbuffers::EndianScalar(_A)) {
-  }
-  int8_t R() const {
-    return flatbuffers::EndianScalar(R_);
-  }
-  int8_t G() const {
-    return flatbuffers::EndianScalar(G_);
-  }
-  int8_t B() const {
-    return flatbuffers::EndianScalar(B_);
-  }
-  int8_t A() const {
-    return flatbuffers::EndianScalar(A_);
-  }
-};
-FLATBUFFERS_STRUCT_END(RGBA8, 4);
-
-FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(1) R8 FLATBUFFERS_FINAL_CLASS {
- private:
-  int8_t R_;
-
- public:
-  R8() {
-    memset(static_cast<void *>(this), 0, sizeof(R8));
-  }
-  R8(int8_t _R)
-      : R_(flatbuffers::EndianScalar(_R)) {
-  }
-  int8_t R() const {
-    return flatbuffers::EndianScalar(R_);
-  }
-};
-FLATBUFFERS_STRUCT_END(R8, 1);
-
-}  // namespace Camera
-
-namespace Lidar {
-
-FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) XYZI FLATBUFFERS_FINAL_CLASS {
- private:
-  float x_;
-  float y_;
-  float z_;
-  float intensity_;
-
- public:
-  XYZI() {
-    memset(static_cast<void *>(this), 0, sizeof(XYZI));
-  }
-  XYZI(float _x, float _y, float _z, float _intensity)
-      : x_(flatbuffers::EndianScalar(_x)),
-        y_(flatbuffers::EndianScalar(_y)),
-        z_(flatbuffers::EndianScalar(_z)),
-        intensity_(flatbuffers::EndianScalar(_intensity)) {
-  }
-  float x() const {
-    return flatbuffers::EndianScalar(x_);
-  }
-  float y() const {
-    return flatbuffers::EndianScalar(y_);
-  }
-  float z() const {
-    return flatbuffers::EndianScalar(z_);
-  }
-  float intensity() const {
-    return flatbuffers::EndianScalar(intensity_);
-  }
-};
-FLATBUFFERS_STRUCT_END(XYZI, 16);
-
-FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) DI FLATBUFFERS_FINAL_CLASS {
- private:
-  float range_;
-  float intensity_;
-
- public:
-  DI() {
-    memset(static_cast<void *>(this), 0, sizeof(DI));
-  }
-  DI(float _range, float _intensity)
-      : range_(flatbuffers::EndianScalar(_range)),
-        intensity_(flatbuffers::EndianScalar(_intensity)) {
-  }
-  float range() const {
-    return flatbuffers::EndianScalar(range_);
-  }
-  float intensity() const {
-    return flatbuffers::EndianScalar(intensity_);
-  }
-};
-FLATBUFFERS_STRUCT_END(DI, 8);
-
-}  // namespace Lidar
-
-namespace IMU {
-
-FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(8) Vec FLATBUFFERS_FINAL_CLASS {
- private:
-  double x_;
-  double y_;
-  double z_;
-
- public:
-  Vec() {
-    memset(static_cast<void *>(this), 0, sizeof(Vec));
-  }
-  Vec(double _x, double _y, double _z)
-      : x_(flatbuffers::EndianScalar(_x)),
-        y_(flatbuffers::EndianScalar(_y)),
-        z_(flatbuffers::EndianScalar(_z)) {
-  }
-  double x() const {
-    return flatbuffers::EndianScalar(x_);
-  }
-  double y() const {
-    return flatbuffers::EndianScalar(y_);
-  }
-  double z() const {
-    return flatbuffers::EndianScalar(z_);
-  }
-};
-FLATBUFFERS_STRUCT_END(Vec, 24);
-
-FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(8) IMUData FLATBUFFERS_FINAL_CLASS {
- private:
-  SynFlatBuffers::Sensor::IMU::Vec Accel_;
-  double Roll_;
-  double Pitch_;
-  double Yaw_;
-
- public:
-  IMUData() {
-    memset(static_cast<void *>(this), 0, sizeof(IMUData));
-  }
-  IMUData(const SynFlatBuffers::Sensor::IMU::Vec &_Accel, double _Roll, double _Pitch, double _Yaw)
-      : Accel_(_Accel),
-        Roll_(flatbuffers::EndianScalar(_Roll)),
-        Pitch_(flatbuffers::EndianScalar(_Pitch)),
-        Yaw_(flatbuffers::EndianScalar(_Yaw)) {
-  }
-  const SynFlatBuffers::Sensor::IMU::Vec &Accel() const {
-    return Accel_;
-  }
-  double Roll() const {
-    return flatbuffers::EndianScalar(Roll_);
-  }
-  double Pitch() const {
-    return flatbuffers::EndianScalar(Pitch_);
-  }
-  double Yaw() const {
-    return flatbuffers::EndianScalar(Yaw_);
-  }
-};
-FLATBUFFERS_STRUCT_END(IMUData, 48);
-
-}  // namespace IMU
-
-namespace GPS {
-
-FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(8) GPSData FLATBUFFERS_FINAL_CLASS {
- private:
-  double Latitude_;
-  double Longitude_;
-  double Altitude_;
-  double Time_;
-
- public:
-  GPSData() {
-    memset(static_cast<void *>(this), 0, sizeof(GPSData));
-  }
-  GPSData(double _Latitude, double _Longitude, double _Altitude, double _Time)
-      : Latitude_(flatbuffers::EndianScalar(_Latitude)),
-        Longitude_(flatbuffers::EndianScalar(_Longitude)),
-        Altitude_(flatbuffers::EndianScalar(_Altitude)),
-        Time_(flatbuffers::EndianScalar(_Time)) {
-  }
-  double Latitude() const {
-    return flatbuffers::EndianScalar(Latitude_);
-  }
-  double Longitude() const {
-    return flatbuffers::EndianScalar(Longitude_);
-  }
-  double Altitude() const {
-    return flatbuffers::EndianScalar(Altitude_);
-  }
-  double Time() const {
-    return flatbuffers::EndianScalar(Time_);
-  }
-};
-FLATBUFFERS_STRUCT_END(GPSData, 32);
-
-}  // namespace GPS
-}  // namespace Sensor
-
 namespace SPAT {
 
 struct State FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  typedef StateBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_TIME = 4,
     VT_LANES = 6
@@ -682,6 +442,7 @@ struct State FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
 };
 
 struct StateBuilder {
+  typedef State Table;
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
   void add_time(double time) {
@@ -694,7 +455,6 @@ struct StateBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  StateBuilder &operator=(const StateBuilder &);
   flatbuffers::Offset<State> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<State>(end);
@@ -724,6 +484,7 @@ inline flatbuffers::Offset<State> CreateStateDirect(
 }
 
 struct Lane FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  typedef LaneBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_INTERSECTION = 4,
     VT_APPROACH = 6,
@@ -753,6 +514,7 @@ struct Lane FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
 };
 
 struct LaneBuilder {
+  typedef Lane Table;
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
   void add_intersection(int32_t intersection) {
@@ -771,7 +533,6 @@ struct LaneBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  LaneBuilder &operator=(const LaneBuilder &);
   flatbuffers::Offset<Lane> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<Lane>(end);
@@ -796,6 +557,7 @@ inline flatbuffers::Offset<Lane> CreateLane(
 }  // namespace SPAT
 
 struct Vector FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  typedef VectorBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_X = 4,
     VT_Y = 6,
@@ -820,6 +582,7 @@ struct Vector FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
 };
 
 struct VectorBuilder {
+  typedef Vector Table;
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
   void add_x(double x) {
@@ -835,7 +598,6 @@ struct VectorBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  VectorBuilder &operator=(const VectorBuilder &);
   flatbuffers::Offset<Vector> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<Vector>(end);
@@ -856,6 +618,7 @@ inline flatbuffers::Offset<Vector> CreateVector(
 }
 
 struct Quaternion FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  typedef QuaternionBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_E0 = 4,
     VT_E1 = 6,
@@ -885,6 +648,7 @@ struct Quaternion FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
 };
 
 struct QuaternionBuilder {
+  typedef Quaternion Table;
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
   void add_e0(double e0) {
@@ -903,7 +667,6 @@ struct QuaternionBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  QuaternionBuilder &operator=(const QuaternionBuilder &);
   flatbuffers::Offset<Quaternion> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<Quaternion>(end);
@@ -926,6 +689,7 @@ inline flatbuffers::Offset<Quaternion> CreateQuaternion(
 }
 
 struct Pose FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  typedef PoseBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_POS = 4,
     VT_ROT = 6,
@@ -971,6 +735,7 @@ struct Pose FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
 };
 
 struct PoseBuilder {
+  typedef Pose Table;
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
   void add_pos(flatbuffers::Offset<SynFlatBuffers::Vector> pos) {
@@ -995,7 +760,6 @@ struct PoseBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  PoseBuilder &operator=(const PoseBuilder &);
   flatbuffers::Offset<Pose> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<Pose>(end);
@@ -1024,16 +788,13 @@ inline flatbuffers::Offset<Pose> CreatePose(
 namespace Approach {
 
 struct State FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  typedef StateBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_TIME = 4,
-    VT_RANK = 6,
-    VT_LANES = 8
+    VT_LANES = 6
   };
   double time() const {
     return GetField<double>(VT_TIME, 0.0);
-  }
-  int32_t rank() const {
-    return GetField<int32_t>(VT_RANK, 0);
   }
   const flatbuffers::Vector<flatbuffers::Offset<SynFlatBuffers::Approach::Lane>> *lanes() const {
     return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<SynFlatBuffers::Approach::Lane>> *>(VT_LANES);
@@ -1041,7 +802,6 @@ struct State FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<double>(verifier, VT_TIME) &&
-           VerifyField<int32_t>(verifier, VT_RANK) &&
            VerifyOffset(verifier, VT_LANES) &&
            verifier.VerifyVector(lanes()) &&
            verifier.VerifyVectorOfTables(lanes()) &&
@@ -1050,13 +810,11 @@ struct State FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
 };
 
 struct StateBuilder {
+  typedef State Table;
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
   void add_time(double time) {
     fbb_.AddElement<double>(State::VT_TIME, time, 0.0);
-  }
-  void add_rank(int32_t rank) {
-    fbb_.AddElement<int32_t>(State::VT_RANK, rank, 0);
   }
   void add_lanes(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<SynFlatBuffers::Approach::Lane>>> lanes) {
     fbb_.AddOffset(State::VT_LANES, lanes);
@@ -1065,7 +823,6 @@ struct StateBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  StateBuilder &operator=(const StateBuilder &);
   flatbuffers::Offset<State> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<State>(end);
@@ -1076,29 +833,26 @@ struct StateBuilder {
 inline flatbuffers::Offset<State> CreateState(
     flatbuffers::FlatBufferBuilder &_fbb,
     double time = 0.0,
-    int32_t rank = 0,
     flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<SynFlatBuffers::Approach::Lane>>> lanes = 0) {
   StateBuilder builder_(_fbb);
   builder_.add_time(time);
   builder_.add_lanes(lanes);
-  builder_.add_rank(rank);
   return builder_.Finish();
 }
 
 inline flatbuffers::Offset<State> CreateStateDirect(
     flatbuffers::FlatBufferBuilder &_fbb,
     double time = 0.0,
-    int32_t rank = 0,
     const std::vector<flatbuffers::Offset<SynFlatBuffers::Approach::Lane>> *lanes = nullptr) {
   auto lanes__ = lanes ? _fbb.CreateVector<flatbuffers::Offset<SynFlatBuffers::Approach::Lane>>(*lanes) : 0;
   return SynFlatBuffers::Approach::CreateState(
       _fbb,
       time,
-      rank,
       lanes__);
 }
 
 struct Lane FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  typedef LaneBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_WIDTH = 4,
     VT_CONTROLPOINTS = 6
@@ -1120,6 +874,7 @@ struct Lane FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
 };
 
 struct LaneBuilder {
+  typedef Lane Table;
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
   void add_width(double width) {
@@ -1132,7 +887,6 @@ struct LaneBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  LaneBuilder &operator=(const LaneBuilder &);
   flatbuffers::Offset<Lane> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<Lane>(end);
@@ -1166,16 +920,13 @@ inline flatbuffers::Offset<Lane> CreateLaneDirect(
 namespace MAP {
 
 struct State FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  typedef StateBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_TIME = 4,
-    VT_RANK = 6,
-    VT_INTERSECTIONS = 8
+    VT_INTERSECTIONS = 6
   };
   double time() const {
     return GetField<double>(VT_TIME, 0.0);
-  }
-  int32_t rank() const {
-    return GetField<int32_t>(VT_RANK, 0);
   }
   const flatbuffers::Vector<flatbuffers::Offset<SynFlatBuffers::MAP::intersection>> *intersections() const {
     return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<SynFlatBuffers::MAP::intersection>> *>(VT_INTERSECTIONS);
@@ -1183,7 +934,6 @@ struct State FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<double>(verifier, VT_TIME) &&
-           VerifyField<int32_t>(verifier, VT_RANK) &&
            VerifyOffset(verifier, VT_INTERSECTIONS) &&
            verifier.VerifyVector(intersections()) &&
            verifier.VerifyVectorOfTables(intersections()) &&
@@ -1192,13 +942,11 @@ struct State FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
 };
 
 struct StateBuilder {
+  typedef State Table;
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
   void add_time(double time) {
     fbb_.AddElement<double>(State::VT_TIME, time, 0.0);
-  }
-  void add_rank(int32_t rank) {
-    fbb_.AddElement<int32_t>(State::VT_RANK, rank, 0);
   }
   void add_intersections(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<SynFlatBuffers::MAP::intersection>>> intersections) {
     fbb_.AddOffset(State::VT_INTERSECTIONS, intersections);
@@ -1207,7 +955,6 @@ struct StateBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  StateBuilder &operator=(const StateBuilder &);
   flatbuffers::Offset<State> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<State>(end);
@@ -1218,29 +965,26 @@ struct StateBuilder {
 inline flatbuffers::Offset<State> CreateState(
     flatbuffers::FlatBufferBuilder &_fbb,
     double time = 0.0,
-    int32_t rank = 0,
     flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<SynFlatBuffers::MAP::intersection>>> intersections = 0) {
   StateBuilder builder_(_fbb);
   builder_.add_time(time);
   builder_.add_intersections(intersections);
-  builder_.add_rank(rank);
   return builder_.Finish();
 }
 
 inline flatbuffers::Offset<State> CreateStateDirect(
     flatbuffers::FlatBufferBuilder &_fbb,
     double time = 0.0,
-    int32_t rank = 0,
     const std::vector<flatbuffers::Offset<SynFlatBuffers::MAP::intersection>> *intersections = nullptr) {
   auto intersections__ = intersections ? _fbb.CreateVector<flatbuffers::Offset<SynFlatBuffers::MAP::intersection>>(*intersections) : 0;
   return SynFlatBuffers::MAP::CreateState(
       _fbb,
       time,
-      rank,
       intersections__);
 }
 
 struct intersection FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  typedef intersectionBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_APPROACHES = 4
   };
@@ -1257,6 +1001,7 @@ struct intersection FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
 };
 
 struct intersectionBuilder {
+  typedef intersection Table;
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
   void add_approaches(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<SynFlatBuffers::Approach::State>>> approaches) {
@@ -1266,7 +1011,6 @@ struct intersectionBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  intersectionBuilder &operator=(const intersectionBuilder &);
   flatbuffers::Offset<intersection> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<intersection>(end);
@@ -1297,6 +1041,7 @@ namespace Agent {
 namespace WheeledVehicle {
 
 struct State FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  typedef StateBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_TIME = 4,
     VT_CHASSIS = 6,
@@ -1324,6 +1069,7 @@ struct State FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
 };
 
 struct StateBuilder {
+  typedef State Table;
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
   void add_time(double time) {
@@ -1339,7 +1085,6 @@ struct StateBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  StateBuilder &operator=(const StateBuilder &);
   flatbuffers::Offset<State> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<State>(end);
@@ -1373,6 +1118,7 @@ inline flatbuffers::Offset<State> CreateStateDirect(
 }
 
 struct Description FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  typedef DescriptionBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_CHASSIS_VIS_FILE = 4,
     VT_WHEEL_VIS_FILE = 6,
@@ -1405,6 +1151,7 @@ struct Description FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
 };
 
 struct DescriptionBuilder {
+  typedef Description Table;
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
   void add_chassis_vis_file(flatbuffers::Offset<flatbuffers::String> chassis_vis_file) {
@@ -1423,7 +1170,6 @@ struct DescriptionBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  DescriptionBuilder &operator=(const DescriptionBuilder &);
   flatbuffers::Offset<Description> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<Description>(end);
@@ -1467,6 +1213,7 @@ inline flatbuffers::Offset<Description> CreateDescriptionDirect(
 namespace TrackedVehicle {
 
 struct State FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  typedef StateBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_TIME = 4,
     VT_CHASSIS = 6,
@@ -1515,6 +1262,7 @@ struct State FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
 };
 
 struct StateBuilder {
+  typedef State Table;
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
   void add_time(double time) {
@@ -1539,7 +1287,6 @@ struct StateBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  StateBuilder &operator=(const StateBuilder &);
   flatbuffers::Offset<State> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<State>(end);
@@ -1588,6 +1335,7 @@ inline flatbuffers::Offset<State> CreateStateDirect(
 }
 
 struct Description FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  typedef DescriptionBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_CHASSIS_VIS_FILE = 4,
     VT_TRACK_SHOE_VIS_FILE = 6,
@@ -1665,6 +1413,7 @@ struct Description FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
 };
 
 struct DescriptionBuilder {
+  typedef Description Table;
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
   void add_chassis_vis_file(flatbuffers::Offset<flatbuffers::String> chassis_vis_file) {
@@ -1707,7 +1456,6 @@ struct DescriptionBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  DescriptionBuilder &operator=(const DescriptionBuilder &);
   flatbuffers::Offset<Description> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<Description>(end);
@@ -1785,23 +1533,53 @@ inline flatbuffers::Offset<Description> CreateDescriptionDirect(
 
 }  // namespace TrackedVehicle
 
-namespace Environment {
+namespace Copter {
 
 struct State FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  typedef StateBuilder Builder;
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
+    VT_TIME = 4,
+    VT_CHASSIS = 6,
+    VT_PROPELLERS = 8
+  };
+  double time() const {
+    return GetField<double>(VT_TIME, 0.0);
+  }
+  const SynFlatBuffers::Pose *chassis() const {
+    return GetPointer<const SynFlatBuffers::Pose *>(VT_CHASSIS);
+  }
+  const flatbuffers::Vector<flatbuffers::Offset<SynFlatBuffers::Pose>> *propellers() const {
+    return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<SynFlatBuffers::Pose>> *>(VT_PROPELLERS);
+  }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
+           VerifyField<double>(verifier, VT_TIME) &&
+           VerifyOffset(verifier, VT_CHASSIS) &&
+           verifier.VerifyTable(chassis()) &&
+           VerifyOffset(verifier, VT_PROPELLERS) &&
+           verifier.VerifyVector(propellers()) &&
+           verifier.VerifyVectorOfTables(propellers()) &&
            verifier.EndTable();
   }
 };
 
 struct StateBuilder {
+  typedef State Table;
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
+  void add_time(double time) {
+    fbb_.AddElement<double>(State::VT_TIME, time, 0.0);
+  }
+  void add_chassis(flatbuffers::Offset<SynFlatBuffers::Pose> chassis) {
+    fbb_.AddOffset(State::VT_CHASSIS, chassis);
+  }
+  void add_propellers(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<SynFlatBuffers::Pose>>> propellers) {
+    fbb_.AddOffset(State::VT_PROPELLERS, propellers);
+  }
   explicit StateBuilder(flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  StateBuilder &operator=(const StateBuilder &);
   flatbuffers::Offset<State> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<State>(end);
@@ -1810,12 +1588,166 @@ struct StateBuilder {
 };
 
 inline flatbuffers::Offset<State> CreateState(
-    flatbuffers::FlatBufferBuilder &_fbb) {
+    flatbuffers::FlatBufferBuilder &_fbb,
+    double time = 0.0,
+    flatbuffers::Offset<SynFlatBuffers::Pose> chassis = 0,
+    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<SynFlatBuffers::Pose>>> propellers = 0) {
   StateBuilder builder_(_fbb);
+  builder_.add_time(time);
+  builder_.add_propellers(propellers);
+  builder_.add_chassis(chassis);
+  return builder_.Finish();
+}
+
+inline flatbuffers::Offset<State> CreateStateDirect(
+    flatbuffers::FlatBufferBuilder &_fbb,
+    double time = 0.0,
+    flatbuffers::Offset<SynFlatBuffers::Pose> chassis = 0,
+    const std::vector<flatbuffers::Offset<SynFlatBuffers::Pose>> *propellers = nullptr) {
+  auto propellers__ = propellers ? _fbb.CreateVector<flatbuffers::Offset<SynFlatBuffers::Pose>>(*propellers) : 0;
+  return SynFlatBuffers::Agent::Copter::CreateState(
+      _fbb,
+      time,
+      chassis,
+      propellers__);
+}
+
+struct Description FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  typedef DescriptionBuilder Builder;
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
+    VT_CHASSIS_VIS_FILE = 4,
+    VT_PROPELLER_VIS_FILE = 6,
+    VT_NUM_PROPS = 8
+  };
+  const flatbuffers::String *chassis_vis_file() const {
+    return GetPointer<const flatbuffers::String *>(VT_CHASSIS_VIS_FILE);
+  }
+  const flatbuffers::String *propeller_vis_file() const {
+    return GetPointer<const flatbuffers::String *>(VT_PROPELLER_VIS_FILE);
+  }
+  int32_t num_props() const {
+    return GetField<int32_t>(VT_NUM_PROPS, 0);
+  }
+  bool Verify(flatbuffers::Verifier &verifier) const {
+    return VerifyTableStart(verifier) &&
+           VerifyOffset(verifier, VT_CHASSIS_VIS_FILE) &&
+           verifier.VerifyString(chassis_vis_file()) &&
+           VerifyOffset(verifier, VT_PROPELLER_VIS_FILE) &&
+           verifier.VerifyString(propeller_vis_file()) &&
+           VerifyField<int32_t>(verifier, VT_NUM_PROPS) &&
+           verifier.EndTable();
+  }
+};
+
+struct DescriptionBuilder {
+  typedef Description Table;
+  flatbuffers::FlatBufferBuilder &fbb_;
+  flatbuffers::uoffset_t start_;
+  void add_chassis_vis_file(flatbuffers::Offset<flatbuffers::String> chassis_vis_file) {
+    fbb_.AddOffset(Description::VT_CHASSIS_VIS_FILE, chassis_vis_file);
+  }
+  void add_propeller_vis_file(flatbuffers::Offset<flatbuffers::String> propeller_vis_file) {
+    fbb_.AddOffset(Description::VT_PROPELLER_VIS_FILE, propeller_vis_file);
+  }
+  void add_num_props(int32_t num_props) {
+    fbb_.AddElement<int32_t>(Description::VT_NUM_PROPS, num_props, 0);
+  }
+  explicit DescriptionBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+        : fbb_(_fbb) {
+    start_ = fbb_.StartTable();
+  }
+  flatbuffers::Offset<Description> Finish() {
+    const auto end = fbb_.EndTable(start_);
+    auto o = flatbuffers::Offset<Description>(end);
+    return o;
+  }
+};
+
+inline flatbuffers::Offset<Description> CreateDescription(
+    flatbuffers::FlatBufferBuilder &_fbb,
+    flatbuffers::Offset<flatbuffers::String> chassis_vis_file = 0,
+    flatbuffers::Offset<flatbuffers::String> propeller_vis_file = 0,
+    int32_t num_props = 0) {
+  DescriptionBuilder builder_(_fbb);
+  builder_.add_num_props(num_props);
+  builder_.add_propeller_vis_file(propeller_vis_file);
+  builder_.add_chassis_vis_file(chassis_vis_file);
+  return builder_.Finish();
+}
+
+inline flatbuffers::Offset<Description> CreateDescriptionDirect(
+    flatbuffers::FlatBufferBuilder &_fbb,
+    const char *chassis_vis_file = nullptr,
+    const char *propeller_vis_file = nullptr,
+    int32_t num_props = 0) {
+  auto chassis_vis_file__ = chassis_vis_file ? _fbb.CreateString(chassis_vis_file) : 0;
+  auto propeller_vis_file__ = propeller_vis_file ? _fbb.CreateString(propeller_vis_file) : 0;
+  return SynFlatBuffers::Agent::Copter::CreateDescription(
+      _fbb,
+      chassis_vis_file__,
+      propeller_vis_file__,
+      num_props);
+}
+
+}  // namespace Copter
+
+namespace Environment {
+
+struct State FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  typedef StateBuilder Builder;
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
+    VT_MAP = 4,
+    VT_SPAT = 6
+  };
+  const SynFlatBuffers::Message *map() const {
+    return GetPointer<const SynFlatBuffers::Message *>(VT_MAP);
+  }
+  const SynFlatBuffers::Message *spat() const {
+    return GetPointer<const SynFlatBuffers::Message *>(VT_SPAT);
+  }
+  bool Verify(flatbuffers::Verifier &verifier) const {
+    return VerifyTableStart(verifier) &&
+           VerifyOffset(verifier, VT_MAP) &&
+           verifier.VerifyTable(map()) &&
+           VerifyOffset(verifier, VT_SPAT) &&
+           verifier.VerifyTable(spat()) &&
+           verifier.EndTable();
+  }
+};
+
+struct StateBuilder {
+  typedef State Table;
+  flatbuffers::FlatBufferBuilder &fbb_;
+  flatbuffers::uoffset_t start_;
+  void add_map(flatbuffers::Offset<SynFlatBuffers::Message> map) {
+    fbb_.AddOffset(State::VT_MAP, map);
+  }
+  void add_spat(flatbuffers::Offset<SynFlatBuffers::Message> spat) {
+    fbb_.AddOffset(State::VT_SPAT, spat);
+  }
+  explicit StateBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+        : fbb_(_fbb) {
+    start_ = fbb_.StartTable();
+  }
+  flatbuffers::Offset<State> Finish() {
+    const auto end = fbb_.EndTable(start_);
+    auto o = flatbuffers::Offset<State>(end);
+    return o;
+  }
+};
+
+inline flatbuffers::Offset<State> CreateState(
+    flatbuffers::FlatBufferBuilder &_fbb,
+    flatbuffers::Offset<SynFlatBuffers::Message> map = 0,
+    flatbuffers::Offset<SynFlatBuffers::Message> spat = 0) {
+  StateBuilder builder_(_fbb);
+  builder_.add_spat(spat);
+  builder_.add_map(map);
   return builder_.Finish();
 }
 
 struct Description FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  typedef DescriptionBuilder Builder;
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            verifier.EndTable();
@@ -1823,13 +1755,13 @@ struct Description FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
 };
 
 struct DescriptionBuilder {
+  typedef Description Table;
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
   explicit DescriptionBuilder(flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  DescriptionBuilder &operator=(const DescriptionBuilder &);
   flatbuffers::Offset<Description> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<Description>(end);
@@ -1846,6 +1778,7 @@ inline flatbuffers::Offset<Description> CreateDescription(
 }  // namespace Environment
 
 struct State FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  typedef StateBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_MESSAGE_TYPE = 4,
     VT_MESSAGE = 6
@@ -1874,6 +1807,12 @@ struct State FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   }
   const SynFlatBuffers::Agent::Environment::Description *message_as_Environment_Description() const {
     return message_type() == SynFlatBuffers::Agent::Type_Environment_Description ? static_cast<const SynFlatBuffers::Agent::Environment::Description *>(message()) : nullptr;
+  }
+  const SynFlatBuffers::Agent::Copter::State *message_as_Copter_State() const {
+    return message_type() == SynFlatBuffers::Agent::Type_Copter_State ? static_cast<const SynFlatBuffers::Agent::Copter::State *>(message()) : nullptr;
+  }
+  const SynFlatBuffers::Agent::Copter::Description *message_as_Copter_Description() const {
+    return message_type() == SynFlatBuffers::Agent::Type_Copter_Description ? static_cast<const SynFlatBuffers::Agent::Copter::Description *>(message()) : nullptr;
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
@@ -1908,7 +1847,16 @@ template<> inline const SynFlatBuffers::Agent::Environment::Description *State::
   return message_as_Environment_Description();
 }
 
+template<> inline const SynFlatBuffers::Agent::Copter::State *State::message_as<SynFlatBuffers::Agent::Copter::State>() const {
+  return message_as_Copter_State();
+}
+
+template<> inline const SynFlatBuffers::Agent::Copter::Description *State::message_as<SynFlatBuffers::Agent::Copter::Description>() const {
+  return message_as_Copter_Description();
+}
+
 struct StateBuilder {
+  typedef State Table;
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
   void add_message_type(SynFlatBuffers::Agent::Type message_type) {
@@ -1921,7 +1869,6 @@ struct StateBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  StateBuilder &operator=(const StateBuilder &);
   flatbuffers::Offset<State> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<State>(end);
@@ -1940,6 +1887,7 @@ inline flatbuffers::Offset<State> CreateState(
 }
 
 struct Description FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  typedef DescriptionBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_DESCRIPTION_TYPE = 4,
     VT_DESCRIPTION = 6,
@@ -1969,6 +1917,12 @@ struct Description FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   }
   const SynFlatBuffers::Agent::Environment::Description *description_as_Environment_Description() const {
     return description_type() == SynFlatBuffers::Agent::Type_Environment_Description ? static_cast<const SynFlatBuffers::Agent::Environment::Description *>(description()) : nullptr;
+  }
+  const SynFlatBuffers::Agent::Copter::State *description_as_Copter_State() const {
+    return description_type() == SynFlatBuffers::Agent::Type_Copter_State ? static_cast<const SynFlatBuffers::Agent::Copter::State *>(description()) : nullptr;
+  }
+  const SynFlatBuffers::Agent::Copter::Description *description_as_Copter_Description() const {
+    return description_type() == SynFlatBuffers::Agent::Type_Copter_Description ? static_cast<const SynFlatBuffers::Agent::Copter::Description *>(description()) : nullptr;
   }
   const flatbuffers::String *json() const {
     return GetPointer<const flatbuffers::String *>(VT_JSON);
@@ -2008,7 +1962,16 @@ template<> inline const SynFlatBuffers::Agent::Environment::Description *Descrip
   return description_as_Environment_Description();
 }
 
+template<> inline const SynFlatBuffers::Agent::Copter::State *Description::description_as<SynFlatBuffers::Agent::Copter::State>() const {
+  return description_as_Copter_State();
+}
+
+template<> inline const SynFlatBuffers::Agent::Copter::Description *Description::description_as<SynFlatBuffers::Agent::Copter::Description>() const {
+  return description_as_Copter_Description();
+}
+
 struct DescriptionBuilder {
+  typedef Description Table;
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
   void add_description_type(SynFlatBuffers::Agent::Type description_type) {
@@ -2024,7 +1987,6 @@ struct DescriptionBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  DescriptionBuilder &operator=(const DescriptionBuilder &);
   flatbuffers::Offset<Description> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<Description>(end);
@@ -2063,6 +2025,7 @@ namespace Terrain {
 namespace SCM {
 
 struct State FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  typedef StateBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_TIME = 4,
     VT_NODES = 6
@@ -2083,6 +2046,7 @@ struct State FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
 };
 
 struct StateBuilder {
+  typedef State Table;
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
   void add_time(double time) {
@@ -2095,7 +2059,6 @@ struct StateBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  StateBuilder &operator=(const StateBuilder &);
   flatbuffers::Offset<State> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<State>(end);
@@ -2127,6 +2090,7 @@ inline flatbuffers::Offset<State> CreateStateDirect(
 }  // namespace SCM
 
 struct State FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  typedef StateBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_MESSAGE_TYPE = 4,
     VT_MESSAGE = 6
@@ -2155,6 +2119,7 @@ template<> inline const SynFlatBuffers::Terrain::SCM::State *State::message_as<S
 }
 
 struct StateBuilder {
+  typedef State Table;
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
   void add_message_type(SynFlatBuffers::Terrain::Type message_type) {
@@ -2167,7 +2132,6 @@ struct StateBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  StateBuilder &operator=(const StateBuilder &);
   flatbuffers::Offset<State> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<State>(end);
@@ -2187,116 +2151,34 @@ inline flatbuffers::Offset<State> CreateState(
 
 }  // namespace Terrain
 
-namespace Sensor {
-
-struct SensorBuffer FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
-  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
-    VT_WIDTH = 4,
-    VT_HEIGHT = 6,
-    VT_BUFFER = 8
-  };
-  int32_t Width() const {
-    return GetField<int32_t>(VT_WIDTH, 0);
-  }
-  int32_t Height() const {
-    return GetField<int32_t>(VT_HEIGHT, 0);
-  }
-  const flatbuffers::Vector<uint8_t> *Buffer() const {
-    return GetPointer<const flatbuffers::Vector<uint8_t> *>(VT_BUFFER);
-  }
-  bool Verify(flatbuffers::Verifier &verifier) const {
-    return VerifyTableStart(verifier) &&
-           VerifyField<int32_t>(verifier, VT_WIDTH) &&
-           VerifyField<int32_t>(verifier, VT_HEIGHT) &&
-           VerifyOffset(verifier, VT_BUFFER) &&
-           verifier.VerifyVector(Buffer()) &&
-           verifier.EndTable();
-  }
-};
-
-struct SensorBufferBuilder {
-  flatbuffers::FlatBufferBuilder &fbb_;
-  flatbuffers::uoffset_t start_;
-  void add_Width(int32_t Width) {
-    fbb_.AddElement<int32_t>(SensorBuffer::VT_WIDTH, Width, 0);
-  }
-  void add_Height(int32_t Height) {
-    fbb_.AddElement<int32_t>(SensorBuffer::VT_HEIGHT, Height, 0);
-  }
-  void add_Buffer(flatbuffers::Offset<flatbuffers::Vector<uint8_t>> Buffer) {
-    fbb_.AddOffset(SensorBuffer::VT_BUFFER, Buffer);
-  }
-  explicit SensorBufferBuilder(flatbuffers::FlatBufferBuilder &_fbb)
-        : fbb_(_fbb) {
-    start_ = fbb_.StartTable();
-  }
-  SensorBufferBuilder &operator=(const SensorBufferBuilder &);
-  flatbuffers::Offset<SensorBuffer> Finish() {
-    const auto end = fbb_.EndTable(start_);
-    auto o = flatbuffers::Offset<SensorBuffer>(end);
-    return o;
-  }
-};
-
-inline flatbuffers::Offset<SensorBuffer> CreateSensorBuffer(
-    flatbuffers::FlatBufferBuilder &_fbb,
-    int32_t Width = 0,
-    int32_t Height = 0,
-    flatbuffers::Offset<flatbuffers::Vector<uint8_t>> Buffer = 0) {
-  SensorBufferBuilder builder_(_fbb);
-  builder_.add_Buffer(Buffer);
-  builder_.add_Height(Height);
-  builder_.add_Width(Width);
-  return builder_.Finish();
-}
-
-inline flatbuffers::Offset<SensorBuffer> CreateSensorBufferDirect(
-    flatbuffers::FlatBufferBuilder &_fbb,
-    int32_t Width = 0,
-    int32_t Height = 0,
-    const std::vector<uint8_t> *Buffer = nullptr) {
-  auto Buffer__ = Buffer ? _fbb.CreateVector<uint8_t>(*Buffer) : 0;
-  return SynFlatBuffers::Sensor::CreateSensorBuffer(
-      _fbb,
-      Width,
-      Height,
-      Buffer__);
-}
+namespace Simulation {
 
 struct State FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  typedef StateBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
-    VT_BUFFER = 4,
-    VT_TYPE = 6
+    VT_QUIT_SIM = 4
   };
-  const SynFlatBuffers::Sensor::SensorBuffer *buffer() const {
-    return GetPointer<const SynFlatBuffers::Sensor::SensorBuffer *>(VT_BUFFER);
-  }
-  SynFlatBuffers::Sensor::Type type() const {
-    return static_cast<SynFlatBuffers::Sensor::Type>(GetField<int8_t>(VT_TYPE, 0));
+  bool quit_sim() const {
+    return GetField<uint8_t>(VT_QUIT_SIM, 0) != 0;
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
-           VerifyOffset(verifier, VT_BUFFER) &&
-           verifier.VerifyTable(buffer()) &&
-           VerifyField<int8_t>(verifier, VT_TYPE) &&
+           VerifyField<uint8_t>(verifier, VT_QUIT_SIM) &&
            verifier.EndTable();
   }
 };
 
 struct StateBuilder {
+  typedef State Table;
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
-  void add_buffer(flatbuffers::Offset<SynFlatBuffers::Sensor::SensorBuffer> buffer) {
-    fbb_.AddOffset(State::VT_BUFFER, buffer);
-  }
-  void add_type(SynFlatBuffers::Sensor::Type type) {
-    fbb_.AddElement<int8_t>(State::VT_TYPE, static_cast<int8_t>(type), 0);
+  void add_quit_sim(bool quit_sim) {
+    fbb_.AddElement<uint8_t>(State::VT_QUIT_SIM, static_cast<uint8_t>(quit_sim), 0);
   }
   explicit StateBuilder(flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  StateBuilder &operator=(const StateBuilder &);
   flatbuffers::Offset<State> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<State>(end);
@@ -2306,17 +2188,16 @@ struct StateBuilder {
 
 inline flatbuffers::Offset<State> CreateState(
     flatbuffers::FlatBufferBuilder &_fbb,
-    flatbuffers::Offset<SynFlatBuffers::Sensor::SensorBuffer> buffer = 0,
-    SynFlatBuffers::Sensor::Type type = SynFlatBuffers::Sensor::Type_Camera_RGBA8) {
+    bool quit_sim = false) {
   StateBuilder builder_(_fbb);
-  builder_.add_buffer(buffer);
-  builder_.add_type(type);
+  builder_.add_quit_sim(quit_sim);
   return builder_.Finish();
 }
 
-}  // namespace Sensor
+}  // namespace Simulation
 
 struct Buffer FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  typedef BufferBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_BUFFER = 4
   };
@@ -2333,6 +2214,7 @@ struct Buffer FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
 };
 
 struct BufferBuilder {
+  typedef Buffer Table;
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
   void add_buffer(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<SynFlatBuffers::Message>>> buffer) {
@@ -2342,7 +2224,6 @@ struct BufferBuilder {
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  BufferBuilder &operator=(const BufferBuilder &);
   flatbuffers::Offset<Buffer> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<Buffer>(end);
@@ -2368,10 +2249,12 @@ inline flatbuffers::Offset<Buffer> CreateBufferDirect(
 }
 
 struct Message FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  typedef MessageBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_MESSAGE_TYPE = 4,
     VT_MESSAGE = 6,
-    VT_RANK = 8
+    VT_SOURCE_ID = 8,
+    VT_DESTINATION_ID = 10
   };
   SynFlatBuffers::Type message_type() const {
     return static_cast<SynFlatBuffers::Type>(GetField<uint8_t>(VT_MESSAGE_TYPE, 0));
@@ -2395,21 +2278,25 @@ struct Message FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   const SynFlatBuffers::Terrain::State *message_as_Terrain_State() const {
     return message_type() == SynFlatBuffers::Type_Terrain_State ? static_cast<const SynFlatBuffers::Terrain::State *>(message()) : nullptr;
   }
-  const SynFlatBuffers::Sensor::State *message_as_Sensor_State() const {
-    return message_type() == SynFlatBuffers::Type_Sensor_State ? static_cast<const SynFlatBuffers::Sensor::State *>(message()) : nullptr;
-  }
   const SynFlatBuffers::Approach::State *message_as_Approach_State() const {
     return message_type() == SynFlatBuffers::Type_Approach_State ? static_cast<const SynFlatBuffers::Approach::State *>(message()) : nullptr;
   }
-  uint32_t rank() const {
-    return GetField<uint32_t>(VT_RANK, 0);
+  const SynFlatBuffers::Simulation::State *message_as_Simulation_State() const {
+    return message_type() == SynFlatBuffers::Type_Simulation_State ? static_cast<const SynFlatBuffers::Simulation::State *>(message()) : nullptr;
+  }
+  uint32_t source_id() const {
+    return GetField<uint32_t>(VT_SOURCE_ID, 0);
+  }
+  uint32_t destination_id() const {
+    return GetField<uint32_t>(VT_DESTINATION_ID, 0);
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<uint8_t>(verifier, VT_MESSAGE_TYPE) &&
            VerifyOffset(verifier, VT_MESSAGE) &&
            VerifyType(verifier, message(), message_type()) &&
-           VerifyField<uint32_t>(verifier, VT_RANK) &&
+           VerifyField<uint32_t>(verifier, VT_SOURCE_ID) &&
+           VerifyField<uint32_t>(verifier, VT_DESTINATION_ID) &&
            verifier.EndTable();
   }
 };
@@ -2434,15 +2321,16 @@ template<> inline const SynFlatBuffers::Terrain::State *Message::message_as<SynF
   return message_as_Terrain_State();
 }
 
-template<> inline const SynFlatBuffers::Sensor::State *Message::message_as<SynFlatBuffers::Sensor::State>() const {
-  return message_as_Sensor_State();
-}
-
 template<> inline const SynFlatBuffers::Approach::State *Message::message_as<SynFlatBuffers::Approach::State>() const {
   return message_as_Approach_State();
 }
 
+template<> inline const SynFlatBuffers::Simulation::State *Message::message_as<SynFlatBuffers::Simulation::State>() const {
+  return message_as_Simulation_State();
+}
+
 struct MessageBuilder {
+  typedef Message Table;
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
   void add_message_type(SynFlatBuffers::Type message_type) {
@@ -2451,14 +2339,16 @@ struct MessageBuilder {
   void add_message(flatbuffers::Offset<void> message) {
     fbb_.AddOffset(Message::VT_MESSAGE, message);
   }
-  void add_rank(uint32_t rank) {
-    fbb_.AddElement<uint32_t>(Message::VT_RANK, rank, 0);
+  void add_source_id(uint32_t source_id) {
+    fbb_.AddElement<uint32_t>(Message::VT_SOURCE_ID, source_id, 0);
+  }
+  void add_destination_id(uint32_t destination_id) {
+    fbb_.AddElement<uint32_t>(Message::VT_DESTINATION_ID, destination_id, 0);
   }
   explicit MessageBuilder(flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  MessageBuilder &operator=(const MessageBuilder &);
   flatbuffers::Offset<Message> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<Message>(end);
@@ -2470,9 +2360,11 @@ inline flatbuffers::Offset<Message> CreateMessage(
     flatbuffers::FlatBufferBuilder &_fbb,
     SynFlatBuffers::Type message_type = SynFlatBuffers::Type_NONE,
     flatbuffers::Offset<void> message = 0,
-    uint32_t rank = 0) {
+    uint32_t source_id = 0,
+    uint32_t destination_id = 0) {
   MessageBuilder builder_(_fbb);
-  builder_.add_rank(rank);
+  builder_.add_destination_id(destination_id);
+  builder_.add_source_id(source_id);
   builder_.add_message(message);
   builder_.add_message_type(message_type);
   return builder_.Finish();
@@ -2499,6 +2391,10 @@ namespace TrackedVehicle {
 
 }  // namespace TrackedVehicle
 
+namespace Copter {
+
+}  // namespace Copter
+
 namespace Environment {
 
 }  // namespace Environment
@@ -2512,9 +2408,9 @@ namespace SCM {
 
 }  // namespace Terrain
 
-namespace Sensor {
+namespace Simulation {
 
-}  // namespace Sensor
+}  // namespace Simulation
 
 namespace Agent {
 
@@ -2545,6 +2441,14 @@ inline bool VerifyType(flatbuffers::Verifier &verifier, const void *obj, Type ty
     }
     case Type_Environment_Description: {
       auto ptr = reinterpret_cast<const SynFlatBuffers::Agent::Environment::Description *>(obj);
+      return verifier.VerifyTable(ptr);
+    }
+    case Type_Copter_State: {
+      auto ptr = reinterpret_cast<const SynFlatBuffers::Agent::Copter::State *>(obj);
+      return verifier.VerifyTable(ptr);
+    }
+    case Type_Copter_Description: {
+      auto ptr = reinterpret_cast<const SynFlatBuffers::Agent::Copter::Description *>(obj);
       return verifier.VerifyTable(ptr);
     }
     default: return true;
@@ -2619,12 +2523,12 @@ inline bool VerifyType(flatbuffers::Verifier &verifier, const void *obj, Type ty
       auto ptr = reinterpret_cast<const SynFlatBuffers::Terrain::State *>(obj);
       return verifier.VerifyTable(ptr);
     }
-    case Type_Sensor_State: {
-      auto ptr = reinterpret_cast<const SynFlatBuffers::Sensor::State *>(obj);
-      return verifier.VerifyTable(ptr);
-    }
     case Type_Approach_State: {
       auto ptr = reinterpret_cast<const SynFlatBuffers::Approach::State *>(obj);
+      return verifier.VerifyTable(ptr);
+    }
+    case Type_Simulation_State: {
+      auto ptr = reinterpret_cast<const SynFlatBuffers::Simulation::State *>(obj);
       return verifier.VerifyTable(ptr);
     }
     default: return true;

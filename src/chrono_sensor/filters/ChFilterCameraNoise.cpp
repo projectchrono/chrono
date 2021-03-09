@@ -75,7 +75,7 @@ CH_SENSOR_API void ChFilterCameraNoiseConstNormal::Apply(std::shared_ptr<ChSenso
     if (m_noise_init) {
         m_rng = std::shared_ptr<curandState_t>(cudaMallocHelper<curandState_t>(width * height),
                                                cudaFreeHelper<curandState_t>);
-        init_cuda_rng(std::chrono::high_resolution_clock::now().time_since_epoch().count(), m_rng.get(),
+        init_cuda_rng((unsigned int)(std::chrono::high_resolution_clock::now().time_since_epoch().count()), m_rng.get(),
                       width * height);
         m_noise_init = false;
     }
@@ -130,7 +130,7 @@ CH_SENSOR_API void ChFilterCameraNoisePixDep::Apply(std::shared_ptr<ChSensor> pS
     if (m_noise_init) {
         m_rng = std::shared_ptr<curandState_t>(cudaMallocHelper<curandState_t>(width * height),
                                                cudaFreeHelper<curandState_t>);
-        init_cuda_rng(std::chrono::high_resolution_clock::now().time_since_epoch().count(), m_rng.get(),
+        init_cuda_rng((unsigned int)std::chrono::high_resolution_clock::now().time_since_epoch().count(), m_rng.get(),
                       width * height);
         m_noise_init = false;
     }

@@ -19,6 +19,7 @@
 #include "chrono/assets/ChEllipsoidShape.h"
 #include "chrono/assets/ChSurfaceShape.h"
 #include "chrono/assets/ChBarrelShape.h"
+#include "chrono/assets/ChCapsuleShape.h"
 
 #include "chrono_irrlicht/ChIrrAssetConverter.h"
 #include "chrono_irrlicht/ChIrrTools.h"
@@ -31,7 +32,8 @@ namespace irrlicht {
 using namespace irr;
 using namespace irr::scene;
 
-ChIrrAssetConverter::ChIrrAssetConverter(ChIrrAppInterface& ainterface) {
+ChIrrAssetConverter::ChIrrAssetConverter(ChIrrAppInterface& ainterface)
+    : camera_found_in_assets(false), mcamera(nullptr) {
     minterface = &ainterface;
     scenemanager = ainterface.GetSceneManager();
     mdevice = ainterface.GetDevice();
@@ -39,6 +41,7 @@ ChIrrAssetConverter::ChIrrAssetConverter(ChIrrAppInterface& ainterface) {
     sphereMesh = createEllipticalMesh(1.0, 1.0, -2, +2, 0, 15, 8);
     cubeMesh = createCubeMesh(core::vector3df(2, 2, 2));  // -/+ 1 unit each xyz axis
     cylinderMesh = createCylinderMesh(1, 1, 32);
+    capsuleMesh = createCapsuleMesh(1, 1, 32, 32);
 
     // if (sphereMesh)
     //  sphereMesh->grab();
@@ -46,6 +49,8 @@ ChIrrAssetConverter::ChIrrAssetConverter(ChIrrAppInterface& ainterface) {
         cubeMesh->grab();
     if (cylinderMesh)
         cylinderMesh->grab();
+    if (capsuleMesh)
+        capsuleMesh->grab();
 }
 
 ChIrrAssetConverter::~ChIrrAssetConverter() {
@@ -55,6 +60,8 @@ ChIrrAssetConverter::~ChIrrAssetConverter() {
         cubeMesh->drop();
     if (cylinderMesh)
         cylinderMesh->drop();
+    if (capsuleMesh)
+        capsuleMesh->drop();
 }
 
 std::shared_ptr<ChIrrNodeAsset> ChIrrAssetConverter::GetIrrNodeAsset(std::shared_ptr<ChPhysicsItem> mitem) {
@@ -108,8 +115,8 @@ void ChIrrAssetConverter::CleanIrrlicht(std::shared_ptr<ChPhysicsItem> mitem) {
 }
 
 void ChIrrAssetConverter::PopulateIrrlicht(std::shared_ptr<ChPhysicsItem> mitem) {
-    camera_found_in_assets = 0;
-    mcamera = 0;
+    camera_found_in_assets = false;
+    mcamera = nullptr;
     std::vector<std::shared_ptr<ChAsset> > assetlist = mitem->GetAssets();
     std::shared_ptr<ChIrrNodeAsset> myirrasset;
 
@@ -237,10 +244,13 @@ void ChIrrAssetConverter::_recursePopulateIrrlicht(std::vector<std::shared_ptr<C
                     mproxynode->drop();
 
                     //mchildnode->setMaterialFlag(video::EMF_WIREFRAME, mysurf->IsWireframe());
-                    //mchildnode->setMaterialFlag(video::EMF_BACK_FACE_CULLING, mysurf->IsBackfaceCull());
-				} else if (auto mybarrel = std::dynamic_pointer_cast<ChBarrelShape>(k_asset)) {
-					auto mbarrelmesh = createEllipticalMesh(mybarrel->GetRhor(), mybarrel->GetRvert(), mybarrel->GetHlow(), mybarrel->GetHsup(), mybarrel->GetRoffset(), 15, 8);
-					ISceneNode* mproxynode = new ChIrrNodeProxyToAsset(mybarrel, mnode);
+                    // mchildnode->setMaterialFlag(video::EMF_BACK_FACE_CULLING, mysurf->IsBackfaceCull());
+                } else if (auto mybarrel = std::dynamic_pointer_cast<ChBarrelShape>(k_asset)) {
+                    auto mbarrelmesh =
+                        createEllipticalMesh((irr::f32)(mybarrel->GetRhor()), (irr::f32)(mybarrel->GetRvert()),
+                                             (irr::f32)(mybarrel->GetHlow()), (irr::f32)(mybarrel->GetHsup()),
+                                             (irr::f32)(mybarrel->GetRoffset()), 15, 8);
+                    ISceneNode* mproxynode = new ChIrrNodeProxyToAsset(mybarrel, mnode);
                     ISceneNode* mchildnode = scenemanager->addMeshSceneNode(mbarrelmesh, mproxynode);
                     mproxynode->drop();
 
@@ -251,7 +261,7 @@ void ChIrrAssetConverter::_recursePopulateIrrlicht(std::vector<std::shared_ptr<C
 
                     //double mradius = mysphere->GetSphereGeometry().rad;
                     //mchildnode->setScale(core::vector3dfCH(ChVector<>(mradius, mradius, mradius)));
-                    ChIrrTools::alignIrrlichtNodeToChronoCsys(mchildnode, irrspherecoords);
+                    tools::alignIrrlichtNodeToChronoCsys(mchildnode, irrspherecoords);
                     mchildnode->setMaterialFlag(video::EMF_NORMALIZE_NORMALS, true);
                 } else if (auto myglyphs = std::dynamic_pointer_cast<ChGlyphs>(k_asset)) {
                     CDynamicMeshBuffer* buffer =
@@ -298,7 +308,7 @@ void ChIrrAssetConverter::_recursePopulateIrrlicht(std::vector<std::shared_ptr<C
 
                         double mradius = mysphere->GetSphereGeometry().rad;
                         mchildnode->setScale(core::vector3dfCH(ChVector<>(mradius, mradius, mradius)));
-                        ChIrrTools::alignIrrlichtNodeToChronoCsys(mchildnode, irrspherecoords);
+                        tools::alignIrrlichtNodeToChronoCsys(mchildnode, irrspherecoords);
                         mchildnode->setMaterialFlag(video::EMF_NORMALIZE_NORMALS, true);
                     }
                 } else if (auto myellipsoid = std::dynamic_pointer_cast<ChEllipsoidShape>(k_asset)) {
@@ -313,7 +323,7 @@ void ChIrrAssetConverter::_recursePopulateIrrlicht(std::vector<std::shared_ptr<C
                         ChCoordsys<> irrspherecoords(pos, myellipsoid->Rot.Get_A_quaternion());
 
                         mchildnode->setScale(core::vector3dfCH(myellipsoid->GetEllipsoidGeometry().rad));
-                        ChIrrTools::alignIrrlichtNodeToChronoCsys(mchildnode, irrspherecoords);
+                        tools::alignIrrlichtNodeToChronoCsys(mchildnode, irrspherecoords);
                         mchildnode->setMaterialFlag(video::EMF_NORMALIZE_NORMALS, true);
                     }
                 } else if (auto mycylinder = std::dynamic_pointer_cast<ChCylinderShape>(k_asset)) {
@@ -341,8 +351,26 @@ void ChIrrAssetConverter::_recursePopulateIrrlicht(std::vector<std::shared_ptr<C
                         ChMatrix33<> rot = mycylinder->Rot * mrot;
                         ChCoordsys<> irrcylindercoords(pos, rot.Get_A_quaternion());
 
-                        ChIrrTools::alignIrrlichtNodeToChronoCsys(mchildnode, irrcylindercoords);
+                        tools::alignIrrlichtNodeToChronoCsys(mchildnode, irrcylindercoords);
                         core::vector3df irrsize((f32)rad, (f32)(0.5 * height), (f32)rad);
+                        mchildnode->setScale(irrsize);
+                        mchildnode->setMaterialFlag(video::EMF_NORMALIZE_NORMALS, true);
+                    }
+                } else if (auto capsule = std::dynamic_pointer_cast<ChCapsuleShape>(k_asset)) {
+                    if (capsuleMesh) {
+                        ISceneNode* mproxynode = new ChIrrNodeProxyToAsset(capsule, mnode);
+                        ISceneNode* mchildnode = scenemanager->addMeshSceneNode(capsuleMesh, mproxynode);
+                        mproxynode->drop();
+
+                        double rad = capsule->GetCapsuleGeometry().rad;
+                        double hlen = capsule->GetCapsuleGeometry().hlen;
+
+                        ChVector<> pos = capsule->Pos;
+                        ChMatrix33<> rot = capsule->Rot;
+                        ChCoordsys<> irrcapsulecoords(pos, rot.Get_A_quaternion());
+
+                        tools::alignIrrlichtNodeToChronoCsys(mchildnode, irrcapsulecoords);
+                        core::vector3df irrsize((f32)rad, (f32)hlen, (f32)rad);
                         mchildnode->setScale(irrsize);
                         mchildnode->setMaterialFlag(video::EMF_NORMALIZE_NORMALS, true);
                     }
@@ -359,7 +387,7 @@ void ChIrrAssetConverter::_recursePopulateIrrlicht(std::vector<std::shared_ptr<C
                         ChCoordsys<> irrboxcoords(pos, rot.Get_A_quaternion());
 
                         mchildnode->setScale(core::vector3dfCH(mybox->GetBoxGeometry().Size));
-                        ChIrrTools::alignIrrlichtNodeToChronoCsys(mchildnode, irrboxcoords);
+                        tools::alignIrrlichtNodeToChronoCsys(mchildnode, irrboxcoords);
                         mchildnode->setMaterialFlag(video::EMF_NORMALIZE_NORMALS, true);
                     }
                 } else if (auto mycamera = std::dynamic_pointer_cast<ChCamera>(k_asset)) {
@@ -437,7 +465,7 @@ void ChIrrAssetConverter::_recursePopulateIrrlicht(std::vector<std::shared_ptr<C
 
     // Set the rotation and position of the node container
     if (!(parentframe.GetCoord() == CSYSNORM)) {
-        ChIrrTools::alignIrrlichtNodeToChronoCsys(mnode, parentframe.GetCoord());
+        tools::alignIrrlichtNodeToChronoCsys(mnode, parentframe.GetCoord());
     }
 }
 

@@ -21,7 +21,10 @@
 #ifndef SYN_WHEELED_VEHICLE_MESSAGE_H
 #define SYN_WHEELED_VEHICLE_MESSAGE_H
 
-#include "chrono_synchrono/flatbuffer/message/SynAgentMessage.h"
+#include "chrono_synchrono/flatbuffer/message/SynMessage.h"
+
+/// TODO: Create a class with utility functions
+#define SynAgentID uint32_t
 
 namespace chrono {
 namespace synchrono {
@@ -29,115 +32,94 @@ namespace synchrono {
 /// @addtogroup synchrono_flatbuffer
 /// @{
 
-/// State struct that holds state information for a SynWheeledVehicleAgent
-struct SynWheeledVehicleState : SynMessageState {
+/// State class that holds state information for a SynWheeledVehicle
+class SYN_API SynWheeledVehicleStateMessage : public SynMessage {
+  public:
+    ///@brief Constructor
+    ///
+    ///@param source_id the id of the source to which the message is sent from
+    ///@param destination_id the id of the destination to which the message is sent to
+    SynWheeledVehicleStateMessage(SynAgentID source_id, SynAgentID destination_id);
+
+    ///@brief Converts a received flatbuffer message to a SynMessage
+    ///
+    ///@param message the flatbuffer message to convert to a SynMessage
+    virtual void ConvertFromFlatBuffers(const SynFlatBuffers::Message* message) override;
+
+    ///@brief Converts this object to a flatbuffer message
+    ///
+    ///@param builder a flatbuffer builder to construct the message with
+    ///@return FlatBufferMessage the constructed flatbuffer message
+    virtual FlatBufferMessage ConvertToFlatBuffers(flatbuffers::FlatBufferBuilder& builder) override;
+
+    // -------------------------------------------------------------------------------
+
+    ///@brief Set the state variables
+    ///
+    ///@param time simulation time
+    ///@param chassis vehicle's chassis pose
+    ///@param wheels vector of the vehicle's wheel poses
+    void SetState(double time, SynPose chassis, std::vector<SynPose> wheels);
+
+    // -------------------------------------------------------------------------------
+
     SynPose chassis;              ///< vehicle's chassis pose
     std::vector<SynPose> wheels;  ///< vector of vehicle's wheels
-
-    /// Default Constructor
-    SynWheeledVehicleState() : SynMessageState(0.0) {}
-
-    /// Creates state with specified chassis and wheels
-    SynWheeledVehicleState(double time, SynPose chassis, std::vector<SynPose> wheels)
-        : SynMessageState(time), chassis(chassis), wheels(wheels) {}
-
-    void SetState(double time, SynPose chassis, std::vector<SynPose> wheels) {
-        this->time = time;
-        this->chassis = chassis;
-        this->wheels = wheels;
-    }
 };
 
-///@brief The agent description struct
-/// Describes how to visualize a zombie agent
-struct SynWheeledVehicleDescription : public SynAgentDescription {
-    std::string m_chassis_vis_file = "";  ///< file name for chassis zombie visualization
-    std::string m_wheel_vis_file = "";    ///< file name for wheel zombie visualization
-    std::string m_tire_vis_file = "";     ///< file name for tire zombie visualization
+// ------------------------------------------------------------------------------------
 
-    int m_num_wheels = -1;  ///< number of wheels the zombie vehicle has
-
-    ///@brief Construct a new SynWheeledVehicleDescription object
+/// Description class that holds description information for a SynWheeledVehicle
+class SYN_API SynWheeledVehicleDescriptionMessage : public SynMessage {
+  public:
+    ///@brief Constructor
     ///
+    ///@param source_id the id of the source to which the message is sent from
+    ///@param destination_id the id of the destination to which the message is sent to
     ///@param json the json specification file used to create an agent
-    SynWheeledVehicleDescription(std::string json = "") : SynAgentDescription(json) {}
+    SynWheeledVehicleDescriptionMessage(SynAgentID source_id, SynAgentID destination_id, const std::string& json = "");
 
+    ///@brief Converts a received flatbuffer message to a SynMessage
+    ///
+    ///@param message the flatbuffer message to convert to a SynMessage
+    virtual void ConvertFromFlatBuffers(const SynFlatBuffers::Message* message) override;
+
+    ///@brief Converts this object to a flatbuffer message
+    ///
+    ///@param builder a flatbuffer builder to construct the message with
+    ///@return FlatBufferMessage the constructed flatbuffer message
+    virtual FlatBufferMessage ConvertToFlatBuffers(flatbuffers::FlatBufferBuilder& builder) override;
+
+    // -------------------------------------------------------------------------------
+
+    ///@brief Set the visualization files from a JSON specification file
+    ///
+    ///@param filename the json specification file
+    void SetZombieVisualizationFilesFromJSON(const std::string& filename);
+
+    ///@brief Set the visualization files used for zombie visualization
+    ///
+    ///@param chassis_vis_file filename for the chassis zombie visualization
+    ///@param wheel_vis_file filename for the wheel zombie visualization
+    ///@param tire_vis_file filename for the tire zombie visualization
     void SetVisualizationFiles(const std::string& chassis_vis_file,
                                const std::string& wheel_vis_file,
-                               const std::string& tire_vis_file) {
-        m_chassis_vis_file = chassis_vis_file;
-        m_wheel_vis_file = wheel_vis_file;
-        m_tire_vis_file = tire_vis_file;
-    }
+                               const std::string& tire_vis_file);
 
-    void SetNumWheels(int num_wheels) { m_num_wheels = num_wheels; }
-};
-
-/// Wraps data from a wheeled vehicle state message into a corresponding C++ object.
-class SYN_API SynWheeledVehicleMessage : public SynAgentMessage {
-  public:
-    ///@brief Construct a new SynWheeledVehicleMessage object
+    ///@brief Set the total number of wheels for this vehicle
     ///
-    ///@param rank the rank of this message
-    SynWheeledVehicleMessage(int rank,
-                             std::string json = "",
-                             std::shared_ptr<SynWheeledVehicleState> state = nullptr,
-                             std::shared_ptr<SynWheeledVehicleDescription> description = nullptr);
+    ///@param num_wheels the total number of wheels on the vehicle
+    void SetNumWheels(int num_wheels);
 
-    ///@brief Construct a new SynWheeledVehicleMessage object
-    ///       Initialize with the passed state and agent description
-    ///
-    ///@param rank the rank of this message
-    ///@param state the state of the agent
-    ///@param description the agent description
-    SynWheeledVehicleMessage(int rank,
-                             std::shared_ptr<SynWheeledVehicleState> state,
-                             std::shared_ptr<SynWheeledVehicleDescription> description = nullptr);
+    // -------------------------------------------------------------------------------
 
-    // ---------------------------------------------------------------------------------------------------------------
+    std::string json = "";  ///< the json specification file that is used to create an agent
 
-    ///@brief Generates and sets the state of this message from flatbuffer message
-    ///
-    ///@param message the flatbuffer message to convert to a MessageState object
-    virtual void StateFromMessage(const SynFlatBuffers::Message* message) override;
+    std::string chassis_vis_file = "";  ///< file name for chassis zombie visualization
+    std::string wheel_vis_file = "";    ///< file name for wheel zombie visualization
+    std::string tire_vis_file = "";     ///< file name for tire zombie visualization
 
-    ///@brief Generates a SynFlatBuffers::Message from the message state
-    ///
-    ///@param builder the flatbuffer builder used to construct messages
-    ///@return flatbuffers::Offset<SynFlatBuffers::Message> the generated message
-    virtual FlatBufferMessage MessageFromState(flatbuffers::FlatBufferBuilder& builder) override;
-
-    ///@brief Get the SynMessageState object
-    ///
-    ///@return std::shared_ptr<SynMessageState> the state associated with this message
-    virtual std::shared_ptr<SynMessageState> GetState() override { return m_state; }
-
-    ///@brief Get the SynWheeledVehicleState object
-    ///
-    ///@return std::shared_ptr<SynWheeledVehicleState> the state associated with this message
-    std::shared_ptr<SynWheeledVehicleState> GetWheeledState() { return m_state; }
-
-    // ---------------------------------------------------------------------------------------------------------------
-
-    ///@brief Generates and sets the agent description from a flatbuffer message
-    ///
-    ///@param message the flatbuffer message to convert to a SynAgentDescription object
-    virtual void DescriptionFromMessage(const SynFlatBuffers::Message* message) override;
-
-    ///@brief Generates a SynFlatBuffers::Message from the agent description
-    ///
-    ///@param builder the flatbuffer builder used to construct messages
-    ///@return flatbuffers::Offset<SynFlatBuffers::Message> the generated message
-    virtual FlatBufferMessage MessageFromDescription(flatbuffers::FlatBufferBuilder& builder) override;
-
-    ///@brief Get the SynWheeledVehicleDescription object
-    ///
-    ///@return std::shared_ptr<SynWheeledVehicleDescription> the description associated with this message
-    std::shared_ptr<SynWheeledVehicleDescription> GetWheeledDescription() { return m_vehicle_description; }
-
-  private:
-    std::shared_ptr<SynWheeledVehicleState> m_state;                      ///< handle to the message state
-    std::shared_ptr<SynWheeledVehicleDescription> m_vehicle_description;  ///< handle to the agent description
+    int num_wheels = 0;  ///< number of wheels the zombie vehicle has
 };
 
 /// @} synchrono_flatbuffer

@@ -59,11 +59,11 @@ NoiseModel noise_model = CONST_NORMAL_XYZI;
 // Lidar method for generating data
 // Just RAYCAST for now
 // TODO: implement PATH_TRACE
-LidarModelType lidar_model = RAYCAST;
+LidarModelType lidar_model = LidarModelType::RAYCAST;
 
 // Lidar return mode
 // Either STRONGEST_RETURN, MEAN_RETURN, FIRST_RETURN, LAST_RETURN
-LidarReturnMode return_mode = STRONGEST_RETURN;
+LidarReturnMode return_mode = LidarReturnMode::STRONGEST_RETURN;
 
 // Update rate in Hz
 float update_rate = 5.f;
@@ -164,7 +164,7 @@ int main(int argc, char* argv[]) {
                                                           900,             // number of horizontal samples
                                                           30,              // number of vertical channels
                                                           horizontal_fov,  // horizontal field of view
-                                                          max_vert_angle, min_vert_angle, 100  // vertical field of view
+                                                          max_vert_angle, min_vert_angle, 100.0f  // vertical field of view
     );
     lidar->SetName("Lidar Sensor 1");
     lidar->SetLag(lag);
@@ -214,18 +214,18 @@ int main(int argc, char* argv[]) {
     // Create a multi-sample lidar, where each beam
     // is traced by multiple rays
     // -----------------------------------------------------------------------
-    unsigned int sample_radius = 2;                                         // radius of samples to use, 1->1
-                                                                            // sample,2->9 samples, 3->25 samples...
-    float divergence_angle = 0.003;                                         // 3mm radius (as cited by velodyne)
-    auto lidar2 = chrono_types::make_shared<ChLidarSensor>(box_body,        // body lidar is attached to
-                                                           update_rate,     // scanning rate in Hz
-                                                           offset_pose,     // offset pose
-                                                           1080,            // number of horizontal samples
-                                                           32,              // number of vertical channels
-                                                           horizontal_fov,  // horizontal field of view
-                                                           max_vert_angle,
+    unsigned int sample_radius = 2;                                           // radius of samples to use, 1->1
+                                                                              // sample,2->9 samples, 3->25 samples...
+    float divergence_angle = 0.003f;                                          // 3mm radius (as cited by velodyne)
+    auto lidar2 = chrono_types::make_shared<ChLidarSensor>(box_body,          // body lidar is attached to
+                                                           update_rate,       // scanning rate in Hz
+                                                           offset_pose,       // offset pose
+                                                           1080,              // number of horizontal samples
+                                                           32,                // number of vertical channels
+                                                           horizontal_fov,    // horizontal field of view
+                                                           max_vert_angle,    //
                                                            min_vert_angle,    // vertical field of view
-                                                           100,               // max distance
+                                                           100.0f,            // max distance
                                                            sample_radius,     // sample radius
                                                            divergence_angle,  // divergence angle
                                                            return_mode,       // return mode for the lidar

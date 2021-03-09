@@ -16,4 +16,6 @@
 // Include main Chrono configuration  header
 #include "chrono/ChConfig.h"
 
+// -----------------------------------------------------------------------------
+
 #endif

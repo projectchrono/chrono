@@ -1,7 +1,10 @@
 SynChrono {#module_synchrono_overview}
 ==============
 
-\tableofcontents
+<div style="text-align:center">
+<img src="http://www.projectchrono.org/assets/manual/synchrono/synchrono-convoy.png" width="450" />
+<img src="http://www.projectchrono.org/assets/manual/synchrono/synchrono-highway.png" width="534" />
+</div>
 
 ## Project Overview
 
@@ -15,92 +18,63 @@ SynChrono is suited for scenarios where the dynamics of each agent are important
 This is the case for autonomous vehicles where, barring a collision, the dynamics of one vehicle will not impact any other.
 SynChrono synchronizes the motion of all agents, but allows their dynamics to be distributed across computing nodes rather than including all dynamics in one monolithic simulation.
 
-## Table of Contents
+_Images_: On the left a convoy of autonomous vehicles navigate obstacles on offroad terrain using a policy developed through machine learning. On the right an autonomous vehicle performs a lane change in a highway setting.
 
-- [General SynChrono Process](#General-SynChrono-Process)
-- [Building and Running](#Building-and-Running)
-- [Implementation Specific Details](#Implementation-Specific-Details)
-- [Other](#Other)
+## Agent Synchronization {#syn_agent_sync}
 
-## General SynChrono Process
+The dynamics of a "typical" Chrono system (for example one using `Chrono::Vehicle`) are handled by stepping the simulation forward in time by some timestep `Δt`, where at each timestep, new states are computed for each entity in the `ChSystem`. This is still the case in SynChrono except that each simulation node handles its own `ChSystem`, and these separate systems must be periodically synchronized. The situation is illustrated in the figure below:
 
-0. Environment setup
-   - Find an environment mesh: e.g. surface data for the specific roads or terrain your agent will move on)
-   - Obtain agents: Chrono::Vehicle provides many vehicle models but you can of course create your own in Chrono
-   - Define environment parameters: How many agents? What types are they? Where will they be? How long will the simulation run for? Will they have sensors? etc...
-1. Consult the agent's brain
-   - Each agent has a brain that tells it what to do, provided some inputs from the world around it.
-     For a vehicle the outputs will be the thrust, braking and steering driving parameters, and the input can be anything accessible to simulation.
-     There may be messages received from e.g. a stoplight.
-     There may be data received from sensors e.g. GPS coordinates, lidar point clouds
-   - Brains can be whatever the user would like and the goal of the SynChrono project is not to develop any particular brain, but rather to develop an environment where others can test their algorithms.
-   - SynChrono does currently provide some simple brains such as a brain that will follow a path defined by GPS coordinates and maintain an appropriate following distance to any vehicles ahead of it based on lidar data.
-2. Run Chrono simulation
-   - Each computing node starts up starts running a Chrono simulation for the agent(s) it is responsible for.
-     It will run this simulation until it gets to the next "heartbeat" or synchronization timestep.
-     This step 1 is the same as a normal Chrono simulation, iterating a particular system's dynamics for a particular number of timesteps
-   - For a vehicle this would be taking the thrust, braking, steering and computing how much the wheels will turn, how far the center of mass will travel, etc...
-   - Further Chrono specific details can be found on the Project Chrono [website](http://www.projectchrono.org/).
-3. Send state data to controller
-   - Having computed its state at the particular heartbeat, each agent now communicates its state to the central controller so that the control can synchronize all agents
-   - For a vehicle the state is just the locations and rotation angle of each of the wheels, for a stoplight it may just be the current color of the light, for a complex robot the state may be a large collection of the positions and rotations of each component of the robot.
-4. Synchronize all agents
-   - The central controller collects state data from every agent and sends it to every other agent in the simulation
-   - Each agent will create a "zombie" version of all other agents.
-     The dynamics for this zombie agent will not be simulated, it will just be placed in the world as a visual mesh so that the real agent can compute accurate sensor data.
-5. Rinse, wash, repeat
-   - Each Chrono simulation has a timestep and each heartbeat has a timestep, so repeatedly doing steps 1-4 advances the simulation through time
+<img src="http://www.projectchrono.org/assets/manual/synchrono/syn-timestep-heartbeat.png" width="600" />
 
-## Implementation Specific Details
+Each node steps forward in time, at the same constant timestep. Some nodes may move through their timesteps in less real-world time than the others, simply because they have more processing power, a simpler system, or for any other range of reasons. However after a certain number of timesteps have elapsed in simulation, called the heartbeat, all nodes will synchronize their current state. Between heartbeats, the zombie agents in a node's `ChSystem` are not updated, and will remain static until a heartbeat is reached and updated state information for them is applied to the `ChSystem`.
 
-### Multi-Agent
+Next we explain what exactly is communicated at each heartbeat ([State Information](#State-Information)), how this data is formatted ([FlatBuffers](#FlatBuffers)) and how the data is communicated between nodes ([Communication Types](#Communication-Types)).
 
-SynChrono's main aim is to provide robust scalability for large numbers of vehicles. SynChrono has been benchmarked at faster than realtime performance for over 100 vehicles on rigid terrain. Currently SynChrono supports one agent per Chrono system, with each Chrono system tied to an MPI rank. Future development will include support for multiple vehicles per rank, which can aid in resource-sharing for scenarios with large memory requirements.
+### State Information {#syn_state_info}
 
-### Physics
+The state information that is communicated at each heartbeat is specific to each type of agent, it should be the minimum required to construct a zombie agent in the world of another node. For vehicle agents we need to know two things:
+- What the zombie should look like
+- Where the zombie should be placed
 
-The physics for SynChrono is based on the physics of Chrono, for Vehicles this means Chrono::Vehicle's physics.
+__What__ the zombie looks like is handled through specification of the number of wheels and of mesh files to be used for the chassis and wheels, this happens just once at the beginning of the simulation. __Where__ the zombie is placed gets communicated at every heartbeat, and consists of the position and orientation (pose) of the vehicle's center of mass along with a pose for each of its wheels.
 
-### Sensing
+<img src="http://www.projectchrono.org/assets/manual/synchrono/synchrono_vehicle_synchronization.png" width="600" />
 
-Sensing support in SynChrono comes through the [Chrono::Sensor module](../chrono_sensor/README.md). Chrono::Sensor is based around OptiX ray-tracing and includes support for camera, lidar, GPS and IMU.
+### FlatBuffers {#syn_flatbuffers}
 
-### V2X Communication
+To communicate state information between nodes, we need to move data about each agent from C++ objects, to a series of bytes that travel over the wire between nodes. [FlatBuffers](https://google.github.io/flatbuffers/) is a library that handles exactly this serialization and deserialization of data.
 
-SynChrono includes support for arbitrary communication between agents in the system, by using the same flatbuffer message mechanism that is used for synchronizing state data. Currently the main example of this communication is V2V communication of sensor data, and Traffic Light to Vehicle communication of SPAT and MAP messages.
+Any agent that will be synchronized must have a flatbuffers schema (see example below) that defines how their state data is formatted, and a corresponding class that uses this schema to pack and unpack data into a C++ class.
 
-## Build Instructions
+````protobuf
+// Sample flatbuffers schema (see Agent.fbs and Utils.fbs)
 
-Follow the standard [Chrono build process](http://api.projectchrono.org/tutorial_install_chrono.html) to build SynChrono. The Chrono::Vehicle module is required, and one of Chrono::Irrlicht or Chrono::Sensor is recommended for visualization. The only additional dependencies that SynChrono requires are Flatbuffers and MPI.
+table Pose {
+  pos:Vector;
+  rot:Quaternion;
 
-#### Flatbuffers
+  // more details omitted...
+}
 
-Flatbuffers is included in chrono_thirdparty as a submodule but you can also use a local copy if it is already installed on your system. Follow the [build instructions](https://google.github.io/flatbuffers/flatbuffers_guide_building.html) and when you run the Chrono CMake, point `Flatbuffers_DIR` to `flatbuffers/CMake` and `Flatbuffers_INCLUDE_DIR` to `flatbuffers/include`.
+table State {
+  time:double;
 
-#### MPI
-For most systems (Linux, Mac OS X), you can use [OpenMPI](https://www.open-mpi.org/) or [MPICH](https://www.mpich.org/). For Windows there are two main options:
-- Intel MPI: [Intel MPI](https://software.intel.com/en-us/mpi-library/choose-download/windows)
-- MS-MPI: [MS-MPI](https://docs.microsoft.com/en-us/message-passing-interface/microsoft-mpi)
+  chassis:Pose;
 
-One consideration is the version of MPI that is supported. Intel MPI is MPI 3.1 compliant whereas MS-MPI is only MPI 2.2 compliant. SynChrono is typically developed and tested with MPI 3.x, but there is no reason that older versions will not work.
+  wheels:[Pose];
+}
+````
 
-#### Windows
-On Windows specifically, you'll need some CMake variables to be set correctly. For all of these variables, set both the CXX and C variation of them (e.g. both MPI_CXX_LIB_NAMES and MPI_C_LIB_NAMES). Example values are included for each variable, but they may vary depending on your specific system setup
-- MPI_CXX_ADDITIONAL_INCLUDE_DIRS - `C:/Program Files (x86)/IntelSWTools/compilers_and_libraries_2019.5.281/windows/mpi/intel64/include`
-- MPI_CXX_COMPILER - `C:/Program Files (x86)/IntelSWTools/compilers_and_libraries_2019.5.281/windows/mpi/intel64/bin/mpicl.bat`
-- MPI_CXX_HEADER_DIR - `C:/Program Files (x86)/IntelSWTools/mpi/2019.5.281/intel64/include/`
-- MPI_CXX_LIB_NAMES - set to `impi` if using Intel MPI or `msmpi` if using MS-MPI
+## Communication Types {#syn_communication}
 
-Intel MPI specific:
-- MPI_impi_LIBRARY - `C:/Program Files (x86)/IntelSWTools/compilers_and_libraries_2019.5.281/windows/mpi/intel64/lib/release/impi.lib`
-- MPI_impicxx_LIBRARY - `C:/Program Files (x86)/IntelSWTools/compilers_and_libraries_2019.5.281/windows/mpi/intel64/lib/impicxx.lib`
+After the nodes reach a heartbeat and use FlatBuffers to pack their data, a `SynCommunicator` takes charge of sending this binary data to all other nodes in the simulation for consumption. There is currently one type of communicator, based on the Message Passing Interface (MPI), but others can be defined so long as they handle the task of interchanging data between all nodes in the simulation.
 
-MS-MPI specific, most of these can be set automatically by running `set MSMPI` in `cmd`.
-- MPI_msmpi_LIBRARY - `C:/Program Files (x86)/Microsoft SDKs/MPI/Lib/x64/msmpi.lib`
-- MSMPI_BIN
-- MSMPI_INC
-- MSMPI_LIB32
-- MSMPI_LIB64
+### Message Passing Interface (MPI) {#syn_mpi}
 
-## Other
-Contact Jay Taves ([jtaves@wisc.edu](mailto:jtaves@wisc.edu)) and Aaron Young ([aryoung5@wisc.edu](mailto:aryoung5@wisc.edu)) for any complaints or concerns about SynChrono in general.
+Synchronization with MPI is accomplished using two MPI calls. While many types of agents will send messages of a fixed size (vehicles, for example), others (Deformable terrain) will not. For this reason, nodes don't immediately know how much space they'll need for incoming state data. MPI synchronization uses a first call to determine how much space each node will need for their state data, and a second call to collect that data after the nodes have allocated space to receive it. More details are in the [MPI synchronization section](@ref state_sync_MPI) of the manual.
+
+## Support for Other Chrono Modules {#syn_modules}
+
+The focus during SynChrono's development has been on autonomous vehicle simulation, so SynChrono currently depends on Chrono::Vehicle for proper operation. While this is not a fundamental limitation, there are also no additional dependencies required to build Chrono::Vehicle so this dependency should not be a burden.
+
+SynChrono supports visualization through both the Chrono::Irrlicht and Chrono::Sensor modules.

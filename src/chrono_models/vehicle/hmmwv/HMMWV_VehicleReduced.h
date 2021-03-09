@@ -37,14 +37,14 @@ namespace hmmwv {
 class CH_MODELS_API HMMWV_VehicleReduced : public HMMWV_Vehicle {
   public:
     HMMWV_VehicleReduced(const bool fixed,
-                         DrivelineType drive_type,
+                         DrivelineTypeWV drive_type,
                          BrakeType brake_type,
                          ChContactMethod contact_method,
                          CollisionType chassis_collision_type);
 
     HMMWV_VehicleReduced(ChSystem* system,
                          const bool fixed,
-                         DrivelineType drive_type,
+                         DrivelineTypeWV drive_type,
                          BrakeType brake_type,
                          CollisionType chassis_collision_type);
 

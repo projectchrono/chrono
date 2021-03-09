@@ -53,7 +53,7 @@ __device__ __inline__ void calc_G_Matrix(Real4* sortedPosRad,
                         Real3 rij = Distance(posRadA, posRadB);
                         Real d = length(rij);
                         Real h_j = sortedPosRad[j].w;
-                        Real m_j = pow(h_j * paramsD.MULT_INITSPACE, 3) * paramsD.rho0;
+                        Real m_j = cube(h_j * paramsD.MULT_INITSPACE) * paramsD.rho0;
                         Real h_ij = 0.5 * (h_j + h_i);
                         Real W3 = W3h(d, h_ij);
                         Real3 grad_i_wij = GradWh(rij, h_ij);
@@ -213,7 +213,7 @@ __device__ __inline__ void calc_L_Matrix(Real4* sortedPosRad,
                         Real3 eij = rij / d;
 
                         Real h_j = sortedPosRad[j].w;
-                        Real m_j = pow(h_j * paramsD.MULT_INITSPACE, 3) * paramsD.rho0;
+                        Real m_j = cube(h_j * paramsD.MULT_INITSPACE) * paramsD.rho0;
                         Real h_ij = 0.5 * (h_j + h_i);
                         Real3 grad_ij = GradWh(rij, h_ij);
                         Real V_j = paramsD.markerMass/paramsD.rho0;
@@ -482,7 +482,7 @@ __global__ void calcRho_kernel(Real4* sortedPosRad,
                             continue;
                         if (sortedRhoPreMu_old[j].w == -1) {  //
                             Real h_j = sortedPosRad[j].w;
-                            Real m_j = paramsD.markerMass;  // pow(h_j * paramsD.MULT_INITSPACE, 3) * paramsD.rho0;
+                            Real m_j = paramsD.markerMass;  // cube(h_j * paramsD.MULT_INITSPACE) * paramsD.rho0;
                             Real W3 = W3h(d, 0.5 * (h_j + h_i));
                             sum_mW += m_j * W3;
                             sum_W += W3;
@@ -714,7 +714,7 @@ __device__ inline Real4 DifVelocityRho(float G_i[9],
     Real rAB_Dot_GradWh_OverDist = rAB_Dot_GradWh / (d * d + paramsD.epsMinMarkersDis * paramsD.HSML * paramsD.HSML);
     Real3 derivV = - paramsD.markerMass *(rhoPresMuA.y / (rhoPresMuA.x * rhoPresMuA.x) + rhoPresMuB.y / (rhoPresMuB.x * rhoPresMuB.x)) * gradW
                    + paramsD.markerMass * (8.0f * multViscosity) * paramsD.mu0 
-                   * pow(rhoPresMuA.x + rhoPresMuB.x, Real(-2)) * rAB_Dot_GradWh_OverDist * (velMasA - velMasB);
+                   * rAB_Dot_GradWh_OverDist * (velMasA - velMasB) / square(rhoPresMuA.x + rhoPresMuB.x);
 
     //    Real derivRho = rhoPresMuA.x * paramsD.markerMass / rhoPresMuB.x * dot(vel_XSPH_A - vel_XSPH_B, gradW);
     //	Real zeta = 0;//.05;//.1;
@@ -976,8 +976,10 @@ __global__ void Navier_Stokes(Real4* sortedDerivVelRho,
     Real A_i[27] = {0.0};
     Real L_i[9] = {0.0};
     calc_G_Matrix(sortedPosRad,sortedVelMas,sortedRhoPreMu,G_i,cellStart,cellEnd,numAllMarkers);
-    calc_A_Matrix(sortedPosRad,sortedVelMas,sortedRhoPreMu,A_i,G_i,cellStart,cellEnd,numAllMarkers);
-    calc_L_Matrix(sortedPosRad,sortedVelMas,sortedRhoPreMu,A_i,L_i,G_i,cellStart,cellEnd,numAllMarkers);
+    if(!paramsD.elastic_SPH){
+        calc_A_Matrix(sortedPosRad,sortedVelMas,sortedRhoPreMu,A_i,G_i,cellStart,cellEnd,numAllMarkers);
+        calc_L_Matrix(sortedPosRad,sortedVelMas,sortedRhoPreMu,A_i,L_i,G_i,cellStart,cellEnd,numAllMarkers);
+    }
     float Gi[9] = {1.0,0.0,0.0, 0.0,1.0,0.0, 0.0,0.0,1.0};
     float Li[9] = {1.0,0.0,0.0, 0.0,1.0,0.0, 0.0,0.0,1.0};
     Gi[0] = G_i[0];
@@ -1016,7 +1018,7 @@ __global__ void Navier_Stokes(Real4* sortedDerivVelRho,
     int3 gridPos = calcGridPos(posRadA);
     Real3 inner_sum = mR3(0.0);
     // Real mi_bar = 0.0, r0 = 0.0;
-    Real sum_w_i = W3h(0.0, sortedPosRad[index].w) * pow(sortedPosRad[index].w * paramsD.MULT_INITSPACE, 3);
+    Real sum_w_i = W3h(0.0, sortedPosRad[index].w) * cube(sortedPosRad[index].w * paramsD.MULT_INITSPACE);
     int N_ = 1;
     int N_s = 0;
     for (int x = -1; x <= 1; x++) {
@@ -1084,14 +1086,14 @@ __global__ void Navier_Stokes(Real4* sortedDerivVelRho,
                         }
 
                         if (d > paramsD.HSML*1.0e-9) {
-                            // Real m_j = pow(sortedPosRad[j].w * paramsD.MULT_INITSPACE, 3) * paramsD.rho0;
+                            // Real m_j = cube(sortedPosRad[j].w * paramsD.MULT_INITSPACE) * paramsD.rho0;
                             // mi_bar += m_j;
                             // r0 += d;
                             // inner_sum += m_j * dist3 / (d * d * d); 
-                            sum_w_i = sum_w_i + W3h(d, sortedPosRad[index].w) * pow(sortedPosRad[index].w * paramsD.MULT_INITSPACE, 3);
+                            sum_w_i = sum_w_i + W3h(d, sortedPosRad[index].w) * cube(sortedPosRad[index].w * paramsD.MULT_INITSPACE);
                             N_ = N_ + 1;
                         }
-                        Real radii = paramsD.MULT_INITSPACE * paramsD.HSML*1.0000241;//1.129;//1.241
+                        Real radii = paramsD.MULT_INITSPACE * paramsD.HSML*1.241;//1.129;//1.241
                         Real3 v_ab = (velMasA + velMasA)*0.5;
                         Real v_ab_m = length(v_ab);
                         Real Pen = (radii - d)/radii;
@@ -1111,9 +1113,9 @@ __global__ void Navier_Stokes(Real4* sortedDerivVelRho,
                             }
                         }
                         // posGra += GradientOperator(Gi, dist3, sortedPosRad[index], sortedPosRad[j], 
-                        //                            pow(posRadA.x,2), pow(posRadB.x,2), rhoPresMuA, rhoPresMuB);
+                        //                            square(posRadA.x), square(posRadB.x), rhoPresMuA, rhoPresMuB);
                         // posLap += LaplacianOperator(Gi, Li, dist3, sortedPosRad[index], sortedPosRad[j], 
-                        //                             pow(posRadA.x,2), pow(posRadB.x,2), rhoPresMuA, rhoPresMuB);
+                        //                             square(posRadA.x), square(posRadB.x), rhoPresMuA, rhoPresMuB);
                     }
                 }
             }
@@ -1171,7 +1173,7 @@ __global__ void Navier_Stokes(Real4* sortedDerivVelRho,
     else{
         shift_r[index] = inner_sum * det_r_max/(det_r_A + 1e-9);
     }
-    shift_r[index] = mR3(0.0);
+    // shift_r[index] = mR3(0.0);
     
     // shift_r[index].y = 0.0;
     // if (sum_w_i < 0.95 && sortedRhoPreMu[index].w < -0.5)
@@ -1330,7 +1332,7 @@ void ChFsiForceExplicitSPH::CollideWrapper() {
 
     thrust::device_vector<Real3>::iterator iter =
         thrust::max_element(sortedSphMarkersD->velMasD.begin(), sortedSphMarkersD->velMasD.end(), compare_Real3_mag());
-    unsigned int position = iter - sortedSphMarkersD->velMasD.begin();
+    ////unsigned int position = iter - sortedSphMarkersD->velMasD.begin();
     Real MaxVel = length(*iter);
 
     if(paramsH->elastic_SPH){

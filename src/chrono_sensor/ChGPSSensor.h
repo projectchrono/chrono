@@ -45,8 +45,8 @@ class CH_SENSOR_API ChGPSSensor : public ChSensor {
     /// @param parent Body to which the sensor is attached.
     /// @param updateRate Rate at which the sensor should update.
     /// @param offsetPose Relative position and orientation of the sensor with respect to its parent object.
-    /// @param lag Lag time between end of data collection and when data becomes available to the user.
-    /// @param collection_window Collection time over which the sensor should collect data from the simulation.
+    // @param lag Lag time between end of data collection and when data becomes available to the user.
+    // @param collection_window Collection time over which the sensor should collect data from the simulation.
     /// @param gps_reference Reference location in GPS coordinates (longitude, latitude, altitude) of simulation origin
     /// @param noise_model The noise model that should be used for augmenting the GPS data.
     ChGPSSensor(std::shared_ptr<chrono::ChBody> parent,

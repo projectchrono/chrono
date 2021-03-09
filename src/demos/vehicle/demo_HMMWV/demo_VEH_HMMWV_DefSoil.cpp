@@ -12,7 +12,7 @@
 // Author: Radu Serban
 // =============================================================================
 //
-// Chrono::Vehicle + ChronoParallel demo program for simulating a HMMWV vehicle
+// Chrono::Vehicle + Chrono::Multicore demo program for simulating a HMMWV vehicle
 // over rigid or granular material.
 //
 // Contact uses the SMC (penalty) formulation.
@@ -181,7 +181,7 @@ int main(int argc, char* argv[]) {
     my_hmmwv.SetChassisFixed(false);
     my_hmmwv.SetInitPosition(ChCoordsys<>(initLoc, initRot));
     my_hmmwv.SetPowertrainType(PowertrainModelType::SHAFTS);
-    my_hmmwv.SetDriveType(DrivelineType::AWD);
+    my_hmmwv.SetDriveType(DrivelineTypeWV::AWD);
     switch (tire_type) {
         case TireType::CYLINDRICAL:
             my_hmmwv.SetTireType(TireModelType::RIGID_MESH);
@@ -318,7 +318,7 @@ int main(int argc, char* argv[]) {
         // Render scene
         app.BeginScene(true, true, irr::video::SColor(255, 140, 161, 192));
         app.DrawAll();
-        ChIrrTools::drawColorbar(0, 0.1, "Sinkage", app.GetDevice(), 30);
+        tools::drawColorbar(0, 0.1, "Sinkage", app.GetDevice(), 30);
         app.EndScene();
 
         if (img_output && step_number % render_steps == 0) {

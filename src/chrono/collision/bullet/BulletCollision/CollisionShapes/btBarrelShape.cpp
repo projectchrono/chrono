@@ -1,5 +1,5 @@
 /*
-*** ALEX ***
+***CHRONO***
 Bullet Continuous Collision Detection and Physics Library
 Copyright (c) 2003-2006 Erwin Coumans  http://continuousphysics.com/Bullet/
 
@@ -14,6 +14,7 @@ subject to the following restrictions:
 3. This notice may not be removed or altered from any source distribution.
 */
 
+#include <cmath>
 
 #include "btBarrelShape.h"
 
@@ -38,13 +39,13 @@ btBarrelShape::btBarrelShape(btScalar sY_low, btScalar sY_high, btScalar sR_vert
 
 	// suppport point on the lathed ellipse?
 	btScalar pY = vec0.y();
-	btScalar pR = sqrt (vec0.z()*vec0.z() + vec0.x()*vec0.x() );
+	btScalar pR = std::sqrt(vec0.z()*vec0.z() + vec0.x()*vec0.x());
 	btScalar pH = pR;
 	btScalar dX = vec0.x()/pR;
 	btScalar dZ = vec0.z()/pR;
-	btScalar tpar = atan((pY*R_vert)/(pH*R_hor));
-	btScalar sY = R_vert * sin(tpar);
-	btScalar sH = R_hor  * cos(tpar);
+	btScalar tpar = std::atan((pY*R_vert)/(pH*R_hor));
+	btScalar sY = R_vert * std::sin(tpar);
+	btScalar sH = R_hor  * std::cos(tpar);
 	btScalar sR = sH + R_offset;
 	btScalar sX = dX * sR;
 	btScalar sZ = dZ * sR;
@@ -52,23 +53,21 @@ btBarrelShape::btBarrelShape(btScalar sY_low, btScalar sY_high, btScalar sR_vert
 	btScalar len = supVec.length();
 
 	// support point on the top disc?
-	if ((fabs(Y_high) < R_vert)&(supVec.y()>Y_high))
-	{
-		btScalar R_high_ellips = R_hor * sqrt( 1- pow( Y_high/R_vert ,2) );
-		btScalar R_high = R_high_ellips + R_offset;
-		btScalar rad_ratio = pR/R_high;
-		supVecD.setValue(vec0.x()/rad_ratio, Y_high, vec0.z()/rad_ratio);
-		supVec = supVecD;
-	}
-	// support point on the bottom disc?
-	if ((fabs(Y_low) < R_vert)&(supVec.y()<Y_low))
-	{
-		btScalar R_low_ellips = R_hor * sqrt( 1- pow( Y_low/R_vert ,2) );
-		btScalar R_low = R_low_ellips + R_offset;
-		btScalar rad_ratio = pR/R_low;
-		supVecD.setValue(vec0.x()/rad_ratio, Y_low, vec0.z()/rad_ratio);
-		supVec = supVecD;
-	}
+    if ((std::abs(Y_high) < R_vert) && (supVec.y() > Y_high)) {
+        btScalar R_high_ellips = R_hor * std::sqrt(btScalar(1) - std::pow(Y_high / R_vert, btScalar(2)));
+        btScalar R_high = R_high_ellips + R_offset;
+        btScalar rad_ratio = pR / R_high;
+        supVecD.setValue(vec0.x() / rad_ratio, Y_high, vec0.z() / rad_ratio);
+        supVec = supVecD;
+    }
+    // support point on the bottom disc?
+    if ((std::abs(Y_low) < R_vert) && (supVec.y() < Y_low)) {
+        btScalar R_low_ellips = R_hor * std::sqrt(btScalar(1) - std::pow(Y_low / R_vert, btScalar(2)));
+        btScalar R_low = R_low_ellips + R_offset;
+        btScalar rad_ratio = pR / R_low;
+        supVecD.setValue(vec0.x() / rad_ratio, Y_low, vec0.z() / rad_ratio);
+        supVec = supVecD;
+    }
 
 	return supVec;
 }

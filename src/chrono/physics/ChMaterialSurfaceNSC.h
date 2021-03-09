@@ -20,17 +20,15 @@
 namespace chrono {
 
 /// Material data for a collision surface for use with non-smooth (complementarity) contact method.
-/// <pre>
 /// Notes:
-/// - Rolling friction
-///   Rolling resistant torque is Tr <= (normal force) * (rolling friction parameter)
-///   The rolling friction parameter is usually a very low value. Measuring unit: m.
+/// \li Rolling friction \n
+///   Rolling resistant torque is Tr <= (normal force) * (rolling friction parameter) \n
+///   The rolling friction parameter is usually a very low value. Measuring unit: m. \n
 ///   A non-zero value will make the simulation 2x slower!
-/// - Spinning friction
-///   Spinning resistant torque is Ts <= (normal force) * (spinning friction parameter)
-///   The spinning friction parameter is usually a very low value.  Measuring unit: m.
+/// \li Spinning friction \n
+///   Spinning resistant torque is Ts <= (normal force) * (spinning friction parameter) \n
+///   The spinning friction parameter is usually a very low value.  Measuring unit: m. \n
 ///   A non-zero value will make the simulation 2x slower!
-/// </pre>
 class ChApi ChMaterialSurfaceNSC : public ChMaterialSurface {
   public:
     ChMaterialSurfaceNSC();

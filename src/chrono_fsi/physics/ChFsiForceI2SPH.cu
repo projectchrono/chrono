@@ -79,7 +79,7 @@ __global__ void Viscosity_correction(Real4* sortedPosRad,  // input: sorted posi
         Real d = length(rij);
         Real3 eij = rij / d;
         Real h_j = sortedPosRad[j].w;
-        Real m_j = pow(h_j * paramsD.MULT_INITSPACE, 3) * paramsD.rho0;
+        Real m_j = cube(h_j * paramsD.MULT_INITSPACE) * paramsD.rho0;
         Real W3 = 0.5 * (W3h(d, h_i) + W3h(d, h_j));
         Real3 grad_i_wij = 0.5 * (GradWh(rij, h_i) + GradWh(rij, h_j));
 
@@ -116,7 +116,7 @@ __global__ void Viscosity_correction(Real4* sortedPosRad,  // input: sorted posi
             sortedRhoPreMu[i_idx].z = paramsD.mu_max;
         //        if (sr < rmaxr(gamma_y, paramsD.HB_sr0))
         //    if (sr < paramsD.HB_sr0)
-        //        sortedRhoPreMu[i_idx].z = paramsD.HB_tau0 * pow(sr / paramsD.HB_sr0, 1000) / paramsD.HB_sr0;
+        //        sortedRhoPreMu[i_idx].z = paramsD.HB_tau0 * pow(sr / paramsD.HB_sr0, 1000.0) / paramsD.HB_sr0;
         //    else if (sortedRhoPreMu_old[i_idx].x < paramsD.rho0)
         //        sortedRhoPreMu[i_idx].z = mu_ave;
         else
@@ -224,7 +224,7 @@ __global__ void V_star_Predictor(Real4* sortedPosRad,  // input: sorted position
         Real d = length(rij);
         Real3 eij = rij / d;
         Real h_j = sortedPosRad[j].w;
-        Real m_j = pow(h_j * paramsD.MULT_INITSPACE, 3) * paramsD.rho0;
+        Real m_j = cube(h_j * paramsD.MULT_INITSPACE) * paramsD.rho0;
         Real W3 = 0.5 * (W3h(d, h_i) + W3h(d, h_j));
         Real3 grad_i_wij = 0.5 * (GradWh(rij, h_i) + GradWh(rij, h_j));
 
@@ -417,7 +417,7 @@ __global__ void Pressure_Equation(Real4* sortedPosRad,  // input: sorted positio
                 A_Matrix[count] = 1 / rhoi * A_L[count] - 1.0 / (rhoi * rhoi) * dot(grad_rho_i, A_G[count]);
             }
 
-            double alpha = paramsD.Alpha;  // pow(rhoi / paramsD.rho0, 2);
+            double alpha = paramsD.Alpha;  // square(rhoi / paramsD.rho0);
             //            alpha = (alpha > 1) ? 1.0 : alpha;
             if (paramsD.DensityBaseProjetion)
                 Bi[i_idx] = alpha * (paramsD.rho0 - rhoi_star) / paramsD.rho0 * (TIME_SCALE / (delta_t * delta_t)) +
@@ -567,7 +567,7 @@ __global__ void Velocity_Correction_and_update(Real4* sortedPosRad,
     // be a race condition. For such variables one must use the old values.
     uint csrStartIdx = numContacts[i_idx];
     uint csrEndIdx = numContacts[i_idx + 1];  //- uint(paramsD.Pressure_Constraint);
-    //    Real m_i = pow(sortedPosRad_old[i_idx].w * paramsD.MULT_INITSPACE, 3) * paramsD.rho0;
+    //    Real m_i = cube(sortedPosRad_old[i_idx].w * paramsD.MULT_INITSPACE) * paramsD.rho0;
     Real m_i = paramsD.markerMass;
     Real TIME_SCALE = paramsD.DensityBaseProjetion ? (delta_t * delta_t) : delta_t;
     //    Real TIME_SCALE = 1.0;
@@ -583,7 +583,7 @@ __global__ void Velocity_Correction_and_update(Real4* sortedPosRad,
 
     for (int count = csrStartIdx; count < csrEndIdx; count++) {
         uint j = csrColInd[count];
-        //        Real m_j = pow(sortedPosRad_old[j].w * paramsD.MULT_INITSPACE, 3) * paramsD.rho0;
+        //        Real m_j = cube(sortedPosRad_old[j].w * paramsD.MULT_INITSPACE) * paramsD.rho0;
         Real m_j = paramsD.markerMass;
         Real rho_j = sortedRhoPreMu_old[j].x;
         Real3 rij = Distance(posA, mR3(sortedPosRad_old[j]));
@@ -783,7 +783,7 @@ __global__ void Shifting(Real4* sortedPosRad,
             xSPH_Sum += (sortedVelMas_old[j] - sortedVelMas_old[i_idx]) * Wd * m_j / rho_bar;
         }
         //        v_bar += length(A_f[count] * (sortedVelMas_old[j]));
-        //        Real m_j = pow(sortedPosRad_old[j].w * paramsD.MULT_INITSPACE, 3) * paramsD.rho0;
+        //        Real m_j = cube(sortedPosRad_old[j].w * paramsD.MULT_INITSPACE) * paramsD.rho0;
 
         mi_bar += m_j;
         r0 += d;

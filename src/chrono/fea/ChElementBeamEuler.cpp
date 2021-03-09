@@ -188,7 +188,7 @@ void ChElementBeamEuler::ComputeStiffnessMatrix() {
     double om_xy = 0;  // For Euler-Bernoulli
     /*
     if (false) {
-        //***TEST REDDY BEAMS***
+        //// TEST REDDY BEAMS
         double Ks_z = section->Ks_z;
         double Ks_y = section->Ks_y;
         double om_xz = E * Iyy / (G * Area * Ks_z * h);  // For Reddy's RBT
@@ -312,16 +312,16 @@ void ChElementBeamEuler::ComputeStiffnessMatrix() {
 void ChElementBeamEuler::ComputeGeometricStiffnessMatrix() {
     assert(section);
     
-    /// Compute the local geometric stiffness matrix Kg without the P multiplication term, that is Kg*(1/P), 
-    /// so that it is a constant matrix for performance reasons.
-    /// We used the analytical values from 
-    ///   [1] "Nonlinear finite element analysis of elastic frames", Kuo Mo, Hsiao Fang, Yu Hou
-    ///        Computers & Structures Volume 26, Issue 4, 1987, Pages 693-701
-    /// For the Reddy or timoshenko more detailed case with higher order terms, look also to:
-    ///   [2] "A Unified Approach to the Timoshenko Geometric Stiffness Matrix Considering Higher-Order Terms in the Strain Tensor"
-    ///        https://www.scielo.br/pdf/lajss/v16n4/1679-7825-lajss-16-04-e185.pdf
-    /// Look also at: https://enercalc.com/3d_help/toc161394033.html or in Plesha, Malkus, Cook “Concepts and Applications of Finite Element Analysis”, 
-    /// or in W. McGuire & R.H. Gallagher & R.D. Ziemian, “Matrix Structural Analysis”
+    // Compute the local geometric stiffness matrix Kg without the P multiplication term, that is Kg*(1/P), 
+    // so that it is a constant matrix for performance reasons.
+    // We used the analytical values from 
+    //   [1] "Nonlinear finite element analysis of elastic frames", Kuo Mo, Hsiao Fang, Yu Hou
+    //        Computers & Structures Volume 26, Issue 4, 1987, Pages 693-701
+    // For the Reddy or timoshenko more detailed case with higher order terms, look also to:
+    //   [2] "A Unified Approach to the Timoshenko Geometric Stiffness Matrix Considering Higher-Order Terms in the Strain Tensor"
+    //        https://www.scielo.br/pdf/lajss/v16n4/1679-7825-lajss-16-04-e185.pdf
+    // Look also at: https://enercalc.com/3d_help/toc161394033.html or in Plesha, Malkus, Cook “Concepts and Applications of Finite Element Analysis”, 
+    // or in W. McGuire & R.H. Gallagher & R.D. Ziemian, “Matrix Structural Analysis”
       
     double EA = this->section->GetAxialRigidity();
     double EIyy = this->section->GetYbendingRigidity();
@@ -582,7 +582,7 @@ void ChElementBeamEuler::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfactor,
         // ..rather do this because lumped mass matrix does not need rotation transf.
         H.block(0, 0, 12, 12) += Mloc;
 
-        //***TO DO*** better per-node lumping, or 4x4 consistent mass matrices, maybe with integration if not uniform
+        //// TODO better per-node lumping, or 4x4 consistent mass matrices, maybe with integration if not uniform
         // materials.
     }
 
@@ -674,7 +674,7 @@ void ChElementBeamEuler::ComputeGravityForces(ChVectorDynamic<>& Fg, const ChVec
     // [Maybe one can replace this function with a faster ad-hoc implementation in case of lumped masses.]
     Fg = mM * mG;
 
-    //***TO DO*** for the lumped mass matrix case, the mM * mG product can be unrolled into few multiplications as mM mostly zero, and same for mG
+    //// TODO for the lumped mass matrix case, the mM * mG product can be unrolled into few multiplications as mM mostly zero, and same for mG
 }
 
 

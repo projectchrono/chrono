@@ -46,8 +46,8 @@
 // If module OPENGL was enabled, define CHRONO_OPENGL
 @CHRONO_OPENGL@
 
-// If module PARALLEL was enabled, define CHRONO_PARALLEL
-@CHRONO_PARALLEL@
+// If module MULTICORE was enabled, define CHRONO_MULTICORE
+@CHRONO_MULTICORE@
 
 // If module POSTPROCESS was enabled, define CHRONO_POSTPROCESS
 @CHRONO_POSTPROCESS@
@@ -63,6 +63,9 @@
 
 // If module SENSOR was enabled, define CHRONO_SENSOR
 @CHRONO_SENSOR@
+
+// If module PARDISOPROJECT was enabled, define CHRONO_PARDISOPROJECT
+@CHRONO_PARDISOPROJECT@
 
 // -----------------------------------------------------------------------------
 // OpenMP settings
@@ -153,6 +156,15 @@
 //   #define CHRONO_HAS_HDF5
 
 @CHRONO_HAS_HDF5@
+
+// -----------------------------------------------------------------------------
+// CUDA settings
+// -----------------------------------------------------------------------------
+
+// If CUDA is available, define CHRONO_CUDA_FOUND and CHRONO_CUDA_VERSION
+
+@CHRONO_CUDA_FOUND@
+@CHRONO_CUDA_VERSION@
 
 // -----------------------------------------------------------------------------
 

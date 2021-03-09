@@ -51,7 +51,7 @@ int main(int argc, char* argv[]) {
 
     // Create the Irrlicht visualization (open the Irrlicht device,
     // bind a simple user interface, etc. etc.)
-    ChIrrApp application(&my_system, L"FEA contacts", core::dimension2d<u32>(800, 600), false, true);
+    ChIrrApp application(&my_system, L"FEA contacts", core::dimension2d<u32>(800, 600), VerticalDir::Y, false, true);
 
     // Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
     application.AddTypicalLogo();
@@ -61,7 +61,7 @@ int main(int argc, char* argv[]) {
     application.AddLightWithShadow(core::vector3df(1.5, 5.5, -2.5), core::vector3df(0, 0, 0), 3, 2.2, 7.2, 40, 512,
         video::SColorf(1, 1, 1));
 
-    application.SetContactsDrawMode(ChIrrTools::CONTACT_DISTANCES);
+    application.SetContactsDrawMode(IrrContactsDrawMode::CONTACT_DISTANCES);
 
     //
     // CREATE THE PHYSICAL SYSTEM
@@ -95,7 +95,7 @@ int main(int argc, char* argv[]) {
     bool do_mesh_collision_floor = false;
 
     auto mmeshbox = chrono_types::make_shared<ChTriangleMeshConnected>();
-    mmeshbox->LoadWavefrontMesh(GetChronoDataFile("cube.obj"), true, true);
+    mmeshbox->LoadWavefrontMesh(GetChronoDataFile("models/cube.obj"), true, true);
 
     if (do_mesh_collision_floor) {
         // floor as a triangle mesh surface:
@@ -115,7 +115,7 @@ int main(int argc, char* argv[]) {
         mfloor->AddAsset(masset_meshbox);
 
         auto masset_texture = chrono_types::make_shared<ChTexture>();
-        masset_texture->SetTextureFilename(GetChronoDataFile("concrete.jpg"));
+        masset_texture->SetTextureFilename(GetChronoDataFile("textures/concrete.jpg"));
         mfloor->AddAsset(masset_texture);
 
     }
@@ -127,7 +127,7 @@ int main(int argc, char* argv[]) {
         my_system.Add(mfloor);
 
         auto masset_texture = chrono_types::make_shared<ChTexture>();
-        masset_texture->SetTextureFilename(GetChronoDataFile("concrete.jpg"));
+        masset_texture->SetTextureFilename(GetChronoDataFile("textures/concrete.jpg"));
         mfloor->AddAsset(masset_texture);
     }
 
@@ -191,9 +191,10 @@ int main(int argc, char* argv[]) {
 
     if (false) {
         std::map<std::string, std::vector<std::shared_ptr<ChNodeFEAbase>>> node_sets;
-        ChCoordsys<> cpos(ChVector<>(0,0.8,0), Q_from_AngAxis(CH_C_PI_2, VECT_Y));
-        ChMeshFileLoader::FromAbaqusFile(my_mesh, GetChronoDataFile("fea/tractor_wheel_fine.INP").c_str(), mmaterial,
-                                         node_sets, cpos.pos, cpos.rot);
+        ChCoordsys<> cpos(ChVector<>(0, 0.8, 0), Q_from_AngAxis(CH_C_PI_2, VECT_Y));
+        ChMeshFileLoader::FromAbaqusFile(my_mesh,
+                                         GetChronoDataFile("models/tractor_wheel/tractor_wheel_fine.INP").c_str(),
+                                         mmaterial, node_sets, cpos.pos, cpos.rot);
     }
 
     // Create the contact surface(s).

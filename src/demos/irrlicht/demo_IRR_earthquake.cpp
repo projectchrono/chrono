@@ -82,7 +82,8 @@ int main(int argc, char* argv[]) {
 
     // Create the Irrlicht visualization (open the Irrlicht device,
     // bind a simple user interface, etc. etc.)
-    ChIrrApp application(&mphysicalSystem, L"Collisions between objects", core::dimension2d<u32>(800, 600), false);
+    ChIrrApp application(&mphysicalSystem, L"Collisions between objects", core::dimension2d<u32>(800, 600),
+                         VerticalDir::Y, false, true);
 
     // Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
     application.AddTypicalLogo();
@@ -104,7 +105,7 @@ int main(int argc, char* argv[]) {
 
     // optional, attach a texture for better visualization
     auto mtexture = chrono_types::make_shared<ChTexture>();
-    mtexture->SetTextureFilename(GetChronoDataFile("blu.png"));
+    mtexture->SetTextureFilename(GetChronoDataFile("textures/blue.png"));
     floorBody->AddAsset(mtexture);
 
     // Create the table that is subject to earthquake
@@ -118,7 +119,7 @@ int main(int argc, char* argv[]) {
 
     // optional, attach a texture for better visualization
     auto mtextureconcrete = chrono_types::make_shared<ChTexture>();
-    mtextureconcrete->SetTextureFilename(GetChronoDataFile("concrete.jpg"));
+    mtextureconcrete->SetTextureFilename(GetChronoDataFile("textures/concrete.jpg"));
     tableBody->AddAsset(mtextureconcrete);
 
     // Create the constraint between ground and table. If no earthquacke, it just

@@ -31,48 +31,27 @@ namespace synchrono {
 /// @addtogroup synchrono_flatbuffer
 /// @{
 
-struct SynSCMTerrainState : public SynMessageState {
-    std::vector<vehicle::SCMDeformableTerrain::NodeLevel> modified_nodes;
-
-    /// Default constructor
-    SynSCMTerrainState() : SynMessageState(0.0) {}
-
-    /// Creates state with specified diffs
-    SynSCMTerrainState(double time, std::vector<vehicle::SCMDeformableTerrain::NodeLevel> modified_nodes)
-        : SynMessageState(time), modified_nodes(modified_nodes) {}
-};
-
-/// Class that wraps data contained in a message about Soil Contact Model (SCM) Deformable terrain.
+/// SCM Message
 class SYN_API SynSCMMessage : public SynMessage {
   public:
-    ///@brief Construct a new SynSCMMessage object
+    ///@brief Constructor
     ///
-    ///@param rank the rank of this message
-    SynSCMMessage(int rank, std::shared_ptr<SynSCMTerrainState> state = nullptr);
+    ///@param source_id the id of the source to which the message is sent from
+    ///@param destination_id the id of the destination to which the message is sent to
+    SynSCMMessage(unsigned int source_id, unsigned int destination_id);
 
-    ///@brief Generates and sets the state of this message from flatbuffer message
+    ///@brief Converts a received flatbuffer message to a SynMessage
     ///
-    ///@param message the flatbuffer message to convert to a MessageState object
-    virtual void StateFromMessage(const SynFlatBuffers::Message* message) override;
+    ///@param message the flatbuffer message to convert to a SynMessage
+    virtual void ConvertFromFlatBuffers(const SynFlatBuffers::Message* message) override;
 
-    ///@brief Generates a SynFlatBuffers::Message from the message state
+    ///@brief Converts this object to a flatbuffer message
     ///
-    ///@param builder the flatbuffer builder used to construct messages
-    ///@return flatbuffers::Offset<SynFlatBuffers::Message> the generated message
-    virtual FlatBufferMessage MessageFromState(flatbuffers::FlatBufferBuilder& builder) override;
+    ///@param builder a flatbuffer builder to construct the message with
+    ///@return FlatBufferMessage the constructed flatbuffer message
+    virtual FlatBufferMessage ConvertToFlatBuffers(flatbuffers::FlatBufferBuilder& builder) override;
 
-    ///@brief Get the SynMessageState object
-    ///
-    ///@return std::shared_ptr<SynMessageState> the state associated with this message
-    virtual std::shared_ptr<SynMessageState> GetState() override { return m_state; }
-
-    ///@brief Get the SynSCMTerrainState object
-    ///
-    ///@return std::shared_ptr<SynSCMTerrainState> the state associated with this message
-    std::shared_ptr<SynSCMTerrainState> GetSCMState() { return m_state; }
-
-  private:
-    std::shared_ptr<SynSCMTerrainState> m_state;  ///< handle to the message state
+    std::vector<vehicle::SCMDeformableTerrain::NodeLevel> modified_nodes;
 };
 
 /// @} synchrono_flatbuffer

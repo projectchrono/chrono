@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: 肖言 (Yan Xiao), Shuo He
+// Authors: Yan Xiao, Shuo He
 // =============================================================================
 //
 // Wraps data received from a flatbuffer SPAT message into a corresponding C++
@@ -42,50 +42,44 @@ struct IntersectionLane {
         : intersection(intersection), approach(approach), lane(lane), color(color) {}
 };
 
-struct SynSPATMessageState : public SynMessageState {
-    std::vector<IntersectionLane> lanes;
-
-    SynSPATMessageState() : SynMessageState(0.0) {}
-    SynSPATMessageState(double time, std::vector<IntersectionLane> lanes) : SynMessageState(time), lanes(lanes) {}
-    SynSPATMessageState(const SynFlatBuffers::SPAT::State* state);
-};
-
-/// Wraps data from a SPAT message into a corresponding C++ object.
+/// SPAT Message
 class SYN_API SynSPATMessage : public SynMessage {
   public:
-    ///@brief Construct a new SynSPATMessage object
+    ///@brief Constructor
     ///
-    ///@param rank the rank of this message
-    SynSPATMessage(int rank, std::shared_ptr<SynSPATMessageState> state = nullptr);
+    ///@param source_id the id of the source to which the message is sent from
+    ///@param destination_id the id of the destination to which the message is sent to
+    SynSPATMessage(unsigned int source_id, unsigned int destination_id);
 
-    ///@brief Generates and sets the state of this message from flatbuffer message
+    ///@brief Converts a received flatbuffer message to a SynMessage
     ///
-    ///@param message the flatbuffer message to convert to a MessageState object
-    virtual void StateFromMessage(const SynFlatBuffers::Message* message) override;
+    ///@param message the flatbuffer message to convert to a SynMessage
+    virtual void ConvertFromFlatBuffers(const SynFlatBuffers::Message* message) override;
 
-    ///@brief Generates a SynFlatBuffers::Message from the message state
+    ///@brief Converts a received spat flatbuffer message to a SynMessage
     ///
-    ///@param builder the flatbuffer builder used to construct messages
-    ///@return flatbuffers::Offset<SynFlatBuffers::Message> the generated message
-    virtual FlatBufferMessage MessageFromState(flatbuffers::FlatBufferBuilder& builder) override;
+    ///@param state the spat flatbuffer message to convert to a SynMessage
+    void ConvertSPATFromFlatBuffers(const SynFlatBuffers::SPAT::State* state);
 
-    virtual void setColor(int intersection, int approach, int lane, LaneColor color);
-
-    ///@brief Get the SynMessageState object
+    ///@brief Converts this object to a flatbuffer message
     ///
-    ///@return std::shared_ptr<SynMessageState> the state associated with this message
-    virtual std::shared_ptr<SynMessageState> GetState() override { return m_state; }
+    ///@param builder a flatbuffer builder to construct the message with
+    ///@return FlatBufferMessage the constructed flatbuffer message
+    virtual FlatBufferMessage ConvertToFlatBuffers(flatbuffers::FlatBufferBuilder& builder) override;
 
-    ///@brief Get the SynSPATMessageState object
+    ///@brief Set the color
     ///
-    ///@return std::shared_ptr<SynSPATMessageState> the state associated with this message
-    std::shared_ptr<SynSPATMessageState> GetSPATState() { return m_state; }
+    ///@param intersection
+    ///@param approach
+    ///@param lane
+    ///@param color
+    virtual void SetColor(int intersection, int approach, int lane, LaneColor color);
 
-  private:
-    std::shared_ptr<SynSPATMessageState> m_state;  ///< handle to the message state
+    std::vector<IntersectionLane> lanes;
 };
 
 /// @} synchrono_flatbuffer
+
 }  // namespace synchrono
 }  // namespace chrono
 

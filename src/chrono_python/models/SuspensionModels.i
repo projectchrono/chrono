@@ -43,6 +43,8 @@
 #include "chrono_models/vehicle/gator/Gator_RigidSuspension.h"
 
 #include "chrono_models/vehicle/rccar/RCCar_DoubleWishbone.h"
+
+#include "chrono_models/vehicle/feda/FEDA_DoubleWishbone.h"
 %}
 
 
@@ -83,6 +85,10 @@
 %shared_ptr(chrono::vehicle::rccar::RCCar_DoubleWishboneRear)
 %shared_ptr(chrono::vehicle::rccar::RCCar_DoubleWishboneFront)
 
+%shared_ptr(chrono::vehicle::feda::FEDA_DoubleWishbone)
+%shared_ptr(chrono::vehicle::feda::FEDA_DoubleWishboneRear)
+%shared_ptr(chrono::vehicle::feda::FEDA_DoubleWishboneFront)
+
 /* Parse the header file to generate wrappers */
 %import "chrono_python/vehicle/ChSuspension.i"
 
@@ -112,3 +118,7 @@
 
 %include "../../chrono_models/vehicle/gator/Gator_SingleWishbone.h"
 %include "../../chrono_models/vehicle/gator/Gator_RigidSuspension.h"
+
+%include "../../chrono_models/vehicle/rccar/RCCar_DoubleWishbone.h"
+
+%include "../../chrono_models/vehicle/feda/FEDA_DoubleWishbone.h"

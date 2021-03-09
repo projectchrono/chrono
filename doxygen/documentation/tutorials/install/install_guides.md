@@ -11,11 +11,13 @@ Additional Chrono functionality is provided through optional modules. Building o
 
 -   [COSIMULATION module](@ref module_cosimulation_installation)
 
+-   [CSHARP module](@ref module_csharp_installation)
+
 -   [DISTRIBUTED module](@ref module_distributed_installation)
 
 -   [FSI module](@ref module_fsi_installation)
 
--   [GRANULAR module](@ref module_granular_installation)
+-   [GPU module](@ref module_gpu_installation)
 
 -   [IRRLICHT module](@ref module_irrlicht_installation)
 
@@ -23,11 +25,13 @@ Additional Chrono functionality is provided through optional modules. Building o
 
 -   [Pardiso MKL module](@ref module_mkl_installation)
 
+-   [Pardiso Project module](@ref module_pardisoproject_installation)
+
+-   [MULTICORE module](@ref module_multicore_installation)
+
 -   [MUMPS module](@ref module_mumps_installation)
 
 -   [OPENGL module](@ref module_opengl_installation)
-
--   [PARALLEL module](@ref module_parallel_installation)
 
 -   [POSTPROCESS module](@ref module_postprocess_installation)
 

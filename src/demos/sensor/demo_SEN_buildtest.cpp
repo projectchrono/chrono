@@ -82,7 +82,7 @@ int main(int argc, char* argv[]) {
 
     // add a mesh
     // auto mmesh = chrono_types::make_shared<ChTriangleMeshConnected>();
-    // mmesh->LoadWavefrontMesh(GetChronoDataFile("shoe_view.obj"), false, true);
+    // mmesh->LoadWavefrontMesh(GetChronoDataFile("models/bulldozer/shoe_view.obj"), false, true);
     // mmesh->Transform(ChVector<>(0, 0, 0), ChMatrix33<>(1));  // scale to a different size
     // mmesh->RepairDuplicateVertexes(1e-9);
     //
@@ -206,11 +206,11 @@ int main(int argc, char* argv[]) {
 
     auto cam = chrono_types::make_shared<ChCameraSensor>(
         floor,                                                               // body camera is attached to
-        25,                                                                  // update rate in Hz
+        25.0f,                                                               // update rate in Hz
         chrono::ChFrame<double>({-10, 0, 1}, Q_from_AngAxis(0, {0, 0, 1})),  // offset pose
         1280,                                                                // image width
         720,                                                                 // image height
-        CH_C_PI / 3                                                          // field of view
+        (float)CH_C_PI / 3                                                   // field of view
     );
 
     std::string color_data_path = "SENSOR_OUTPUT/cam_color/";
@@ -250,12 +250,12 @@ int main(int argc, char* argv[]) {
     // add a lidar to the floor facing the falling objects
     auto lidar = chrono_types::make_shared<ChLidarSensor>(
         floor,                                                              // body to which the IMU is attached
-        10,                                                                 // update rate
+        10.0f,                                                              // update rate
         chrono::ChFrame<double>({-8, 0, 1}, Q_from_AngAxis(0, {1, 0, 0})),  // offset pose from body
         923,                                                                // horizontal samples
         24,                                                                 // vertical samples/channels
-        (float)2.0f * (float)CH_C_PI / 3.0f,                                // horizontal field of view
-        (float)CH_C_PI / 8.f, -(float)CH_C_PI / 8.f, 100.0                  // vertical field of view
+        2.0f * (float)CH_C_PI / 3.0f,                                       // horizontal field of view
+        (float)CH_C_PI / 8.0f, -(float)CH_C_PI / 8.0f, 100.0f               // vertical field of view
     );
     lidar->SetName("Lidar Sensor");
     lidar->SetLag(.1f);
@@ -265,7 +265,7 @@ int main(int argc, char* argv[]) {
         lidar->PushFilter(chrono_types::make_shared<ChFilterVisualize>(923, 48, "Raw Lidar Data"));
     lidar->PushFilter(chrono_types::make_shared<ChFilterPCfromDepth>());
     if (display_data)
-        lidar->PushFilter(chrono_types::make_shared<ChFilterVisualizePointCloud>(640, 480, 2, "Lidar Point Cloud"));
+        lidar->PushFilter(chrono_types::make_shared<ChFilterVisualizePointCloud>(640, 480, 2.0f, "Lidar Point Cloud"));
     lidar->PushFilter(chrono_types::make_shared<ChFilterXYZIAccess>());
     // lidar->PushFilter(chrono_types::make_shared<ChFilterXYZIAccess>());
     manager->AddSensor(lidar);
@@ -300,11 +300,11 @@ int main(int argc, char* argv[]) {
     for (int i = 0; i < num_cameras; i++) {
         auto cam1 = chrono_types::make_shared<ChCameraSensor>(
             floor,                                                              // body camera is attached to
-            10 + 10 * (i % 4 + 1),                                              // 30 + i, // update rate in Hz
+            10.0f + 10.0f * (i % 4 + 1),                                        // 30 + i, // update rate in Hz
             chrono::ChFrame<double>({-3, 0, 2}, Q_from_AngAxis(0, {1, 0, 0})),  // offset pose
             1280,                                                               // image width
             720,                                                                // image height
-            CH_C_PI / 3);
+            (float)CH_C_PI / 3);
         cams.push_back(cam1);
 
         std::stringstream nm;
@@ -350,7 +350,6 @@ int main(int argc, char* argv[]) {
         cam->SetOffsetPose(chrono::ChFrame<double>(
             {-orbit_radius * cos(ch_time * orbit_rate), -orbit_radius * sin(ch_time * orbit_rate), 3},
             Q_from_AngAxis(ch_time * orbit_rate, {0, 0, 1})));
-        PointLight p;
         lights[0].pos = {-orbit_radius * cos(ch_time * orbit_rate * 2), -orbit_radius * sin(ch_time * orbit_rate * 2),
                          10};
 

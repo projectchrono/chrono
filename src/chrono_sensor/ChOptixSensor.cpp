@@ -26,7 +26,7 @@ namespace sensor {
 // Constructor
 // -----------------------------------------------------------------------------
 CH_SENSOR_API ChOptixSensor::ChOptixSensor(std::shared_ptr<chrono::ChBody> parent,
-                                           double updateRate,
+                                           float updateRate,
                                            chrono::ChFrame<double> offsetPose,
                                            unsigned int w,
                                            unsigned int h)

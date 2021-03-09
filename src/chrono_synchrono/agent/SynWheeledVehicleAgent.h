@@ -22,8 +22,12 @@
 #define SYN_WHEELED_VEHICLE_AGENT_H
 
 #include "chrono_synchrono/SynApi.h"
-#include "chrono_synchrono/agent/SynVehicleAgent.h"
-#include "chrono_synchrono/vehicle/SynWheeledVehicle.h"
+#include "chrono_synchrono/agent/SynAgent.h"
+#include "chrono_synchrono/flatbuffer/message/SynWheeledVehicleMessage.h"
+
+#include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicle.h"
+
+#include "chrono/physics/ChBodyAuxRef.h"
 
 namespace chrono {
 namespace synchrono {
@@ -31,94 +35,101 @@ namespace synchrono {
 /// @addtogroup synchrono_agent
 /// @{
 
-/// Agent wrapper of a wheeled vehicle, in particular holds a reference to a SynWheeledVehicle and sends out
+/// Agent wrapper of a wheeled vehicle, in particular holds a pointer to a ChWheeledVehicle and sends out
 /// SynWheeledVehicleMessage-s to synchronize its state
-class SYN_API SynWheeledVehicleAgent : public SynVehicleAgent {
+class SYN_API SynWheeledVehicleAgent : public SynAgent {
   public:
-    ///@brief Construct a vehicle agent with the specified rank and system
-    /// Underlying agent is set to a vehicle type automatically
+    ///@brief Construct a wheeled vehicle agent with optionally a vehicle
     ///
-    ///@param rank the rank of this agent
-    ///@param system an optional argument of the ChSystem to build the vehicle with
-    SynWheeledVehicleAgent(unsigned int rank, ChSystem* system = 0);
+    ///@param vehicle the vehicle this agent is responsible for (will be null if agent's a zombie)
+    ///@param filename json specification file for zombie visualization (will query vehicle if not passed)
+    SynWheeledVehicleAgent(chrono::vehicle::ChWheeledVehicle* vehicle = nullptr, const std::string& filename = "");
 
-    ///@brief Construct a wheeled vehicle agent with a json specification file
+    ///@brief Destructor.
+    virtual ~SynWheeledVehicleAgent();
+
+    ///@brief Initialize this agents zombie representation
+    /// Bodies are added and represented in the lead agent's world.
     ///
-    ///@param rank the rank of this agent
-    ///@param coord_sys the initial position and orientation of the vehicle
-    ///@param filename the json specification file
-    ///@param system the system to build the vehicle with
-    SynWheeledVehicleAgent(unsigned int rank, ChCoordsys<> coord_sys, const std::string& filename, ChSystem* system);
+    ///@param system the ChSystem used to initialize the zombie
+    virtual void InitializeZombie(ChSystem* system) override;
 
-    ///@brief Construct a wheeled vehicle agent with a json specification file
+    ///@brief Synchronize this agents zombie with the rest of the simulation.
+    /// Updates agent based on the passed message.
+    /// Any message can be passed, so a check should be done to ensure this message was intended for this agent.
     ///
-    ///@param rank the rank of this agent
-    ///@param coord_sys the initial position and orientation of the vehicle
-    ///@param filename the json specification file
-    ///@param system the contact method used to build the vehicle
-    SynWheeledVehicleAgent(unsigned int rank,
-                           ChCoordsys<> coord_sys,
-                           const std::string& filename,
-                           ChContactMethod contact_method);
+    ///@param message the message to process and is used to update the position of the zombie
+    virtual void SynchronizeZombie(std::shared_ptr<SynMessage> message) override;
 
-    ///@brief Construct a zombie vehicle agent from the specified json configuration and the ChSystem
+    ///@brief Update this agent
+    /// Typically used to update the state representation of the agent to be distributed to other agents
     ///
-    ///@param rank the rank of the zombie agent
-    ///@param filename the json specification file
-    SynWheeledVehicleAgent(unsigned int rank, const std::string& filename);
+    virtual void Update() override;
 
-    ///@brief Destroy the SynWheeledVehicleAgent
-    virtual ~SynWheeledVehicleAgent() {}
-
-    ///@brief Synchronize the underlying vehicle
-    ///
-    ///@param time the time to synchronize to
-    ///@param driver_inputs the driver inputs (i.e. throttle, braking, steering)
-    virtual void Synchronize(double step, vehicle::ChDriver::Inputs driver_inputs) override;
-
-    ///@brief Get the state of this agent
-    ///
-    ///@return std::shared_ptr<SynMessageState>
-    virtual std::shared_ptr<SynMessageState> GetState() override;
-
-    ///@brief Get the this agent's message to be pass to other ranks
-    ///
-    ///@return std::shared_ptr<SynMessageState>
-    virtual std::shared_ptr<SynAgentMessage> GetMessage() override { return m_msg; };
-
-    ///@brief Generates messages to be sent to other ranks
+    ///@brief Generates messages to be sent to other nodes
     /// Will create or get messages and pass them into the referenced message vector
     ///
     ///@param messages a referenced vector containing messages to be distributed from this rank
-    virtual void GenerateMessagesToSend(std::vector<SynMessage*>& messages) override;
+    virtual void GatherMessages(SynMessageList& messages) override { messages.push_back(m_state); }
 
-    /// Get/Set this agent's vehicle
-    virtual std::shared_ptr<SynVehicle> GetVehicle() override { return m_wheeled_vehicle; }
-    std::shared_ptr<SynWheeledVehicle> GetWheeledVehicle() { return m_wheeled_vehicle; }
-    void SetVehicle(std::shared_ptr<SynWheeledVehicle> wheeled_vehicle);
+    ///@brief Get the description messages for this agent
+    /// A single agent may have multiple description messages
+    ///
+    ///@param messages a referenced vector containing messages to be distributed from this rank
+    virtual void GatherDescriptionMessages(SynMessageList& messages) override { messages.push_back(m_description); }
 
-  private:
-    ///@brief Construct a zombie WheeledVehicleAgent from a json speficiation file
+    // ------------------------------------------------------------------------
+
+    ///@brief Set the zombie visualization files from a JSON specification file
     ///
     ///@param filename the json specification file
-    void VehicleAgentFromJSON(const std::string& filename);
+    void SetZombieVisualizationFilesFromJSON(const std::string& filename);
 
-    ///@brief Construct a VehicleAgent with a json specification file and a ChSystem
+    ///@brief Set the zombie visualization files
     ///
-    ///@param coord_sys the initial position and orientation of the vehicle
-    ///@param filename the json specification file
-    ///@param system the ChSystem to build the vehicle and the agent with
-    void VehicleAgentFromJSON(ChCoordsys<> coord_sys, const std::string& filename, ChSystem* system);
+    ///@param chassis_vis_file the file used for chassis visualization
+    ///@param wheel_vis_file the file used for wheel visualization
+    ///@param tire_vis_file the file used for tire visualization
+    void SetZombieVisualizationFiles(std::string chassis_vis_file,
+                                     std::string wheel_vis_file,
+                                     std::string tire_vis_file) {
+        m_description->SetVisualizationFiles(chassis_vis_file, wheel_vis_file, tire_vis_file);
+    }
 
-    ///@brief Construct a VehicleAgent with a json specification file and a ChSystem
+    ///@brief Set the number of wheels of the underlying vehicle
     ///
-    ///@param coord_sys the initial position and orientation of the vehicle
-    ///@param filename the json specification file
-    ///@param contact_method the contact method that should be used in this simulation
-    void VehicleAgentFromJSON(ChCoordsys<> coord_sys, const std::string& filename, ChContactMethod contact_method);
+    ///@param num_wheels number of wheels of the underlying vehicle
+    void SetNumWheels(int num_wheels) { m_description->SetNumWheels(num_wheels); }
 
-    std::shared_ptr<SynWheeledVehicleMessage> m_msg;       ///< handle to the message that will be passed between ranks
-    std::shared_ptr<SynWheeledVehicle> m_wheeled_vehicle;  ///< handle to this agent's vehicle
+    ///@brief Set the Agent ID
+    ///
+    virtual void SetID(SynAgentID aid) override;
+
+    // ------------------------------------------------------------------------
+
+  protected:
+    ///@brief Helper method used to create a ChTriangleMeshShape to be used on as a zombie body
+    ///
+    ///@param filename the file to generate a ChTriangleMeshShape from
+    ///@return std::shared_ptr<ChTriangleMeshShape>
+    std::shared_ptr<ChTriangleMeshShape> CreateMeshZombieComponent(const std::string& filename);
+
+    ///@brief Create a zombie chassis body. All ChVehicles have a chassis, so this can be defined here
+    ///
+    ///@param filename the filename that describes the ChTriangleMeshShape that should represent the chassis
+    ///@param system the system to add the body to
+    std::shared_ptr<ChBodyAuxRef> CreateChassisZombieBody(const std::string& filename, ChSystem* system);
+
+    // ------------------------------------------------------------------------
+
+    chrono::vehicle::ChWheeledVehicle* m_vehicle;  ///< Pointer to the ChWheeledVehicle this class wraps
+
+    std::shared_ptr<SynWheeledVehicleStateMessage> m_state;  ///< State of the vehicle (See SynWheeledVehicleMessage)
+    std::shared_ptr<SynWheeledVehicleDescriptionMessage>
+        m_description;  ///< Description for zombie creation on discovery
+
+    std::shared_ptr<ChBodyAuxRef> m_zombie_body;              ///< agent's zombie body reference
+    std::vector<std::shared_ptr<ChBodyAuxRef>> m_wheel_list;  ///< vector of this agent's zombie wheels
 };
 
 /// @} synchrono_agent
