@@ -31,6 +31,9 @@
 #include "chrono/physics/ChLinkMotorRotationSpeed.h"
 #include "chrono/physics/ChLinkDistance.h"
 #include "chrono/physics/ChSystem.h"
+#include "chrono/physics/ChShaft.h"
+#include "chrono/physics/ChShaftsGear.h"
+#include "chrono/physics/ChShaftsBody.h"
 
 #include "chrono_models/ChApiModels.h"
 
@@ -266,12 +269,16 @@ class CH_MODELS_API ViperRover {
     /// Get the containing system.
     ChSystem* GetSystem() { return m_system; }
 
+    /// Set DC motor control
+    void SetDCControl(bool dc_control);
+
     /// Set Motor Stall Torque
     /// This function only works if DC_Motor Control is enabled, if not, does nothing
     void SetMotorStallTorque(double torque, WheelID id);
 
-    /// Set DC motor control
-    void SetDCControl(bool dc_control);
+    /// Set DC motor no load Speed
+    /// This function only works if DC_Motor Control is enabled, if not, does nothing
+    void SetMotorNoLoadSpeed(double rad_speed, WheelID id);
 
     /// Set motor speed.
     void SetMotorSpeed(double rad_speed, WheelID id);
@@ -309,11 +316,11 @@ class CH_MODELS_API ViperRover {
     /// Get the bottom arm body
     std::shared_ptr<ChBodyAuxRef> GetBottomArmBody(WheelID id);
 
-    /// Get chassis speedometer 
+    /// Get chassis speedometer
     ChVector<> GetChassisVel();
 
-    /// Get chassis accelerometer 
-    ChVector<> GetChassisAcc(); 
+    /// Get chassis accelerometer
+    ChVector<> GetChassisAcc();
 
     /// Get total rover mass.
     double GetRoverMass();
@@ -374,6 +381,11 @@ class CH_MODELS_API ViperRover {
     std::vector<std::shared_ptr<ChLinkMotorRotationSpeed>> m_motors;        ///< vector to store motors
     std::vector<std::shared_ptr<ChLinkMotorRotationSpeed>> m_steer_motors;  ///< vector to store steering motors
     std::vector<std::shared_ptr<ChLinkMotorRotationSpeed>> m_lift_motors;   /// TODO: < vector to store lifting motors
+
+    // DC Motor Test
+    std::vector<std::shared_ptr<ChShaft>> m_power_shafts;
+    std::vector<std::shared_ptr<ChShaft>> m_driven_shafts;
+    std::vector<std::shared_ptr<ChShaftsGear>> m_shaft_gears;
 
     std::vector<double> m_stall_torque;   ///< stall torque of the motors
     std::vector<double> m_no_load_speed;  ///< no load speed of the motors

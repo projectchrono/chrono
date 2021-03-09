@@ -129,16 +129,22 @@ int main(int argc, char* argv[]) {
     // The default rotational speed of the Motor is speed w=3.145 rad/sec.
     // Note: the Viper Rover uses a Z-up frame, which will need to be translated to Y-up.
     std::shared_ptr<ViperRover> viper;
-    ChVector<double> body_pos(0, -0.2, 0);
+    ChVector<double> body_pos(0, 0, -0.2);
 
     if (use_custom_mat == true) {
         // If use the customized wheel material
         viper = chrono_types::make_shared<ViperRover>(&mphysicalSystem, body_pos, QUNIT,
                                                       CustomWheelMaterial(ChContactMethod::NSC));
+        // SetDCControl() should be called before initialize()
+        viper->SetDCControl(true);
     } else {
         // If use default wheel material
         viper = chrono_types::make_shared<ViperRover>(&mphysicalSystem, body_pos, QUNIT);
+
+        // SetDCControl() should be called before initialize()
+        viper->SetDCControl(true);
     }
+
     viper->Initialize();
 
     // Use this function for adding a ChIrrNodeAsset to all items
