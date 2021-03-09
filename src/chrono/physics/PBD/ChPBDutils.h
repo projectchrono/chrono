@@ -79,6 +79,8 @@ namespace chrono {
 		ChVector<> a = VNULL;
 		// variable true for distance constraints
 		bool dist_constr = false;
+		// distance value for distance constraints
+        double dist;
 		// Lagrangian of force and torque
 		double lambda_f = 0;
 		double lambda_t = 0;
@@ -261,10 +263,28 @@ CH_CLASS_VERSION(ChLinkPBDMotor, 0)
 		virtual ~ChLinkPBDDistance() {};
 
 		/// Translates the ChLinkLock limits into PBD formulation
-		void SetLimits();
+		//void SetLimits();
 	};
 
 	CH_CLASS_VERSION(ChLinkPBDDistance, 0);
+
+	class ChApi ChLinkPBDLinActuator : public ChLinkPBD {
+      public:
+        ChLinkLinActuator* link;
+        /// Create a LinkPBD
+        ChLinkPBDLinActuator(ChLinkLinActuator* linact, ChSystemPBD* sys);
+
+        /// Copy constructor
+        // ChLinkPBD(const ChLinkPBD& other);
+
+        /// Destructor
+        virtual ~ChLinkPBDLinActuator(){};
+
+        /// Translates the ChLinkLock limits into PBD formulation
+        //void SetLimits();
+    };
+
+    CH_CLASS_VERSION(ChLinkPBDLinActuator, 0);
 	/*
 	/// PBD method timesteppers.
 	class ChApi ChTimestepperPBD : public ChTimestepperIorder {

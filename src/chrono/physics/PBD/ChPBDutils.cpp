@@ -92,21 +92,29 @@ namespace chrono {
 			ChVector<> r1 = Body1->TransformDirectionLocalToParent(f1.coord.pos);
 			ChVector<> r2 = Body2->TransformDirectionLocalToParent(f2.coord.pos);
 			ChVector<> n0 = Body1->GetPos() + r1 - (Body2->GetPos() + r2);
-			// Rotation of the link frame w.r.t. global frame
-			//ChQuaternion<> q = f1.coord.rot * Body1->GetRot();
-			ChMatrix33<> M = f1.GetA() * Body1->GetA();
-			// get rid of unconstrained directions by element wise multiplication in the link frame reference
-			ChVector<> n_loc = (M.transpose()*n0)*p_dir;
-			// Add the correction due to limit violation
-			if (is_displ_limited || displ_actuated) n_loc -= ApplyDisplLimAct(n0);
-			// Now we bring the violation back in global coord and normaize it after saving its length
-			ChVector<> nt = M*n_loc;
-			double C = nt.Length();
-			if (dist_constr) {
-				if (displ_lims_low[0] < C && C < displ_lims_high[0]) { return; }
-				double max_violation = ChMax(C - displ_lims_high[0], 0.0);
-				double min_violation = ChMin(C - displ_lims_low[0], 0.0);
-				C = max_violation + min_violation;
+            ChVector<> nt;
+            double C = 0;
+            if (!dist_constr){
+				// Rotation of the link frame w.r.t. global frame
+				//ChQuaternion<> q = f1.coord.rot * Body1->GetRot();
+				ChMatrix33<> M = f1.GetA() * Body1->GetA();
+				// get rid of unconstrained directions by element wise multiplication in the link frame reference
+				ChVector<> n_loc = (M.transpose()*n0)*p_dir;
+				// Add the correction due to limit violation
+				if (is_displ_limited || displ_actuated) n_loc -= ApplyDisplLimAct(n0);
+				// Now we bring the violation back in global coord and normaize it after saving its length
+				nt = M*n_loc;
+				C = nt.Length();
+			}
+            else {
+                C = n0.Length();
+                nt = n0;
+				if (displ_actuated)
+                    dist = motor_func->Get_y(PBDsys->T);
+				C = C - dist;
+                if (abs(C) < 1E-3) {
+                    return;
+					}
 			}
 
 			if (nt.Normalize()) {
@@ -527,12 +535,12 @@ namespace chrono {
 	}
 
 
-	ChLinkPBDDistance::ChLinkPBDDistance(ChLinkDistance* alink, ChSystemPBD* sys) : ChLinkPBD(sys) {
-		link = alink;
+	ChLinkPBDLinActuator::ChLinkPBDLinActuator(ChLinkLinActuator* linact, ChSystemPBD* sys) : ChLinkPBD(sys) {
+        link = linact;
 		Body1 = dynamic_cast<ChBody*>(link->GetBody2());
 		Body2 = dynamic_cast<ChBody*>(link->GetBody1());
-		f1 = ChFrame<>(link->GetEndPoint2Rel());
-		f2 = ChFrame<>(link->GetEndPoint1Rel());
+        f1 = ChFrame<>(link->GetMarker2()->GetCoord());
+        f2 = ChFrame<>(link->GetMarker1()->GetCoord());
 		mask[0] = true;
 		mask[1] = true;
 		mask[2] = true;
@@ -544,10 +552,35 @@ namespace chrono {
 		r_free = true;
 		EvalMasses();
 		dist_constr = true;
-		double d = link->GetImposedDistance();
-		displ_lims_low[0] = d - 1E-4;
-		displ_lims_high[0] = d + 1E-4;
+        displ_actuated = true;
+        motor_func = link->Get_dist_funct();
+		//displ_lims_low[0] = d - 1E-4;
+		//displ_lims_high[0] = d + 1E-4;
 	}
+
+	ChLinkPBDDistance::ChLinkPBDDistance(ChLinkDistance* alink, ChSystemPBD* sys) : ChLinkPBD(sys) {
+        link = alink;
+        Body1 = dynamic_cast<ChBody*>(link->GetBody1());
+        Body2 = dynamic_cast<ChBody*>(link->GetBody2());
+        f1 = ChFrame<>(link->GetEndPoint1Rel());
+        f2 = ChFrame<>(link->GetEndPoint2Rel());
+        mask[0] = true;
+        mask[1] = true;
+        mask[2] = true;
+        mask[3] = false;
+        mask[4] = false;
+        mask[5] = false;
+        p_dir.Set(1, 1, 1);
+        p_free = false;
+        r_free = true;
+        EvalMasses();
+        dist_constr = true;
+        dist = link->GetImposedDistance();
+        alpha = 1E-3;
+        // displ_lims_low[0] = d - 1E-4;
+        // displ_lims_high[0] = d + 1E-4;
+    }
+
 	/*ChLinkPBD::ChLinkPBD(const ChLinkPBD& other) :  p_dir(ChVector<>(0, 0, 0)), r_dir(ChVector<>(0, 0, 0)), f1(ChFrame<double>(VNULL)), f2(ChFrame<double>(VNULL)), p_free(false), r_free(false) {
 	ChLinkPBD(other.link);
 	}*/
