@@ -102,8 +102,12 @@ ENDIF()
 # ------------------------------------------------------------------------------
 set(USE_CUDA_NVRTC ON CACHE BOOL "Compile shader code at run-time with NVRTC rather than NVCC at build time to PTX")
 if(USE_CUDA_NVRTC)
+  find_library(CUDA_NVRTC_LIBRARY nvrtc HINTS ${CUDA_TOOLKIT_ROOT_DIR}
+    ${CUDA_TOOLKIT_ROOT_DIR}/lib
+    ${CUDA_TOOLKIT_ROOT_DIR}/lib64 
+    ${CUDA_TOOLKIT_ROOT_DIR}/lib/x64)
   if(NOT CUDA_NVRTC_LIBRARY)
-    message(STATUS "USE_CUDA_NVRTC disabled due to mising CUDA_NVRTC_LIBRARY")
+    message(STATUS "USE_CUDA_NVRTC disabled due to missing CUDA_NVRTC_LIBRARY")
     set(USE_CUDA_NVRTC OFF)
   else()
     list(APPEND LIBRARIES ${CUDA_NVRTC_LIBRARY})
