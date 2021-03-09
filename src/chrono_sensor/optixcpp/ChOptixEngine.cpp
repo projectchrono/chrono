@@ -1234,8 +1234,6 @@ Material ChOptixEngine::GetDefaultMaterial() {
     if (!m_lidar_shader){
         m_lidar_shader = GetRTProgram(m_context, "lidar_shaders", "diffuse_shader");
     }
-
-
     if (!m_radar_shader)
         m_radar_shader = GetRTProgram(m_context, "radar_shaders", "diffuse_shader");
 
@@ -1261,6 +1259,7 @@ Material ChOptixEngine::GetDefaultMaterial() {
     m_default_material->setClosestHitProgram(0, m_camera_shader);
     m_default_material->setAnyHitProgram(1, m_shadow_shader);
     m_default_material->setClosestHitProgram(2, m_lidar_shader);
+//    m_default_material->setClosestHitProgram(3, m_radar_shader);
 
     m_default_material->validate();
 
@@ -1318,6 +1317,7 @@ Material ChOptixEngine::CreateMaterial(std::shared_ptr<ChVisualMaterial> chmat) 
     mat->setClosestHitProgram(0, m_camera_shader);
     mat->setAnyHitProgram(1, m_shadow_shader);
     mat->setClosestHitProgram(2, m_lidar_shader);
+//    mat->setClosestHitProgram(3, m_radar_shader);
     return mat;
 }
 

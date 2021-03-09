@@ -165,6 +165,8 @@ set(ChronoEngine_sensor_RT_SOURCES
     rtkernels/camera_shaders.cu
     rtkernels/lidar_shaders.cu
     rtkernels/shadow_shaders.cu
+    rtkernels/radar_shaders.cu
+    rtkernels/radar.cu
 )
 set(ChronoEngine_sensor_RT_HEADERS
     rtkernels/ray_utils.h

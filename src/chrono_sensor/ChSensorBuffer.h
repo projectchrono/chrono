@@ -75,6 +75,12 @@ struct LidarBufferT : public SensorBufferT<B>{
     bool Dual_return;
 };
 
+template <class B>
+struct RadarBufferT : public SensorBufferT<B>{
+    RadarBufferT(){}
+    unsigned int Beam_return_count;
+};
+
 //============================================================================
 // Buffer of Optix memory (contents described by members inside optix::Buffer)
 //============================================================================
@@ -117,18 +123,18 @@ using UserR8BufferPtr = std::shared_ptr<SensorHostR8Buffer>;
 //=====================================
 // Range Radar Data Formats and Buffers
 //=====================================
-struct PixelDNorm{
+struct PixelRangeRcs{
     float range;
-    float3 normal;
+    float3 rcs;
 };
 /// Depth-intensity host buffer to be used by radar filters in the graph
-using SensorHostDNormBuffer = SensorBufferT<std::shared_ptr<PixelDNorm[]>>;
+using SensorHostRangeRcsBuffer = RadarBufferT<std::shared_ptr<PixelRangeRcs[]>>;
 /// Depth-intensity device buffer to be used by radar filters in the graph
-using DeviceDNormBufferPtr = std::shared_ptr<PixelDNorm[]>;
-/// Sensor buffer wrapper of a DeviceDNormBufferPtr
-using SensorDeviceDNormBuffer = SensorBufferT<DeviceDNormBufferPtr>;
+using DeviceRangeRcsBufferPtr = std::shared_ptr<PixelRangeRcs[]>;
+/// Sensor buffer wrapper of a DeviceRangeRcsBufferPtr
+using SensorDeviceRangeRcsBuffer = RadarBufferT<DeviceRangeRcsBufferPtr>;
 /// pointer to a depth-norm buffer on the host that has been moved for safety and can be given to the user
-using UserDNormBufferPtr = std::shared_ptr<SensorHostDNormBuffer>;
+using UserRangeRcsBufferPtr = std::shared_ptr<SensorHostRangeRcsBuffer>;
 
 //=====================================
 // Depth Lidar Data Formats and Buffers

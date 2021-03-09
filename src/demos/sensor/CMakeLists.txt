@@ -19,6 +19,7 @@ SET(DEMOS
   demo_SEN_GPSIMU
   demo_SEN_vis_materials
   demo_SEN_normalmap
+  demo_SEN_radar
 )
 
 #list of demos that combine sensor simulation with vehicle dynamics

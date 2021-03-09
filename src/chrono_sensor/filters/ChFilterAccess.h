@@ -129,7 +129,7 @@ using ChFilterMagnetAccess = ChFilterAccess<SensorHostMagnetBuffer, UserMagnetBu
 /// Access to GPS data
 using ChFilterGPSAccess = ChFilterAccess<SensorHostGPSBuffer, UserGPSBufferPtr>;
 /// Access to Radar data
-using ChFilterRadarAccess = ChFilterAccess<SensorHostDNormBuffer, UserDNormBufferPtr>;
+using ChFilterRadarAccess = ChFilterAccess<SensorHostRangeRcsBuffer, UserRangeRcsBufferPtr>;
 
 /// @}
 

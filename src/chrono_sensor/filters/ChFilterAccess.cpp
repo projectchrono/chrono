@@ -420,15 +420,16 @@ CH_SENSOR_API void ChFilterAccess<SensorHostGPSBuffer, UserGPSBufferPtr>::Apply(
     }
 }
 template <>
-CH_SENSOR_API void ChFilterAccess<SensorHostDNormBuffer, UserDNormBufferPtr>::Apply(
+CH_SENSOR_API void ChFilterAccess<SensorHostRangeRcsBuffer, UserRangeRcsBufferPtr>::Apply(
     std::shared_ptr<ChSensor>pSensor,
     std::shared_ptr<SensorBuffer>& bufferInOut){
+
     // to copy to a host buffer, we need to know what buffer to copy.
     // for now, that means this filter can only work with sensor that use an Optix buffer.
     std::shared_ptr<SensorOptixBuffer> pOpx = std::dynamic_pointer_cast<SensorOptixBuffer>(bufferInOut);
-    std::shared_ptr<SensorDeviceDNormBuffer> pDev = std::dynamic_pointer_cast<SensorDeviceDNormBuffer>(bufferInOut);
+    std::shared_ptr<SensorDeviceRangeRcsBuffer> pDev = std::dynamic_pointer_cast<SensorDeviceRangeRcsBuffer>(bufferInOut);
     if (!pOpx && !pDev){
-        throw std::runtime_error("cannot copy supplied buffer type to a Host DNorm buffer");
+        throw std::runtime_error("cannot copy supplied buffer type to a Host RangeRcs buffer");
     }
 
     void * dev_buffer_ptr;
@@ -446,13 +447,13 @@ CH_SENSOR_API void ChFilterAccess<SensorHostDNormBuffer, UserDNormBufferPtr>::Ap
     unsigned int sz = bufferInOut->Width * bufferInOut->Height;
 
     // create a new buffer to push to the lag buffer list
-    std::shared_ptr<SensorHostDNormBuffer> tmp_buffer;
+    std::shared_ptr<SensorHostRangeRcsBuffer> tmp_buffer;
     if (m_empty_lag_buffers.size()>0){
         tmp_buffer = m_empty_lag_buffers.top();
         m_empty_lag_buffers.pop();
     } else {
-        tmp_buffer = chrono_types::make_shared<SensorHostDNormBuffer>();
-        tmp_buffer->Buffer = std::make_unique<PixelDNorm[]>(sz);
+        tmp_buffer = chrono_types::make_shared<SensorHostRangeRcsBuffer>();
+        tmp_buffer->Buffer = std::make_unique<PixelRangeRcs[]>(sz);
     }
 
     tmp_buffer->Width = bufferInOut->Width;
@@ -460,7 +461,7 @@ CH_SENSOR_API void ChFilterAccess<SensorHostDNormBuffer, UserDNormBufferPtr>::Ap
     tmp_buffer->LaunchedCount = bufferInOut->LaunchedCount;
     tmp_buffer->TimeStamp = bufferInOut->TimeStamp;
 
-    cudaMemcpy(tmp_buffer->Buffer.get(), dev_buffer_ptr,sz * sizeof(PixelDNorm), cudaMemcpyDeviceToHost);
+    cudaMemcpy(tmp_buffer->Buffer.get(), dev_buffer_ptr,sz * sizeof(PixelRangeRcs), cudaMemcpyDeviceToHost);
 
     
     {
