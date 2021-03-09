@@ -754,10 +754,6 @@ void ChOptixEngine::Initialize() {
     // initialize an optix context -> one for each render group
     m_context = Context::create();
 
-    rtContextSetExceptionEnabled(m_context->get(), RT_EXCEPTION_ALL, true);
-    m_context->setPrintEnabled(true);
-    m_context->setPrintBufferSize(4096);
-
     unsigned int n_devices;
     rtContextGetDeviceCount(m_context->get(), &n_devices);
     std::vector<int> dev_ids = std::vector<int>(n_devices);
@@ -769,6 +765,7 @@ void ChOptixEngine::Initialize() {
         }
         std::cout << std::endl;
         rtContextSetPrintEnabled(m_context->get(), 1);
+        rtContextSetExceptionEnabled(m_context->get(), RT_EXCEPTION_ALL, true);
     }
     if (m_deviceId > n_devices - 1) {
         std::cerr << "Requested GPU not available, falling back on RT Device 0\n";
@@ -827,11 +824,6 @@ void ChOptixEngine::Initialize() {
     m_light_buffer->setSize(0);
 
     m_context["lights"]->set(m_light_buffer);
-
-    // m_context->setStackSize(0);
-
-    // std::cout << "Context stack size: " << m_context->getStackSize() << std::endl;
-    // std::cout << "Context call depth size: " << m_context->getMaxCallableProgramDepth() << std::endl;
 }
 
 void ChOptixEngine::AddInstancedStaticSceneMeshes(std::vector<ChFrame<>>& frames,
