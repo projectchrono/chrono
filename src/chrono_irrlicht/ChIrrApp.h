@@ -32,6 +32,7 @@ class ChApiIrr ChIrrApp : public ChIrrAppInterface {
     ChIrrApp(ChSystem* psystem,
              const std::wstring& title = L"Chrono",
              const irr::core::dimension2d<irr::u32>& dimens = irr::core::dimension2d<irr::u32>(640, 480),
+             VerticalDir vert = VerticalDir::Y,
              bool do_fullscreen = false,
              bool do_shadows = false,
              bool do_antialias = true,

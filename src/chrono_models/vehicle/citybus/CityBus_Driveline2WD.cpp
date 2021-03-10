@@ -28,7 +28,7 @@ namespace citybus {
 const double CityBus_Driveline2WD::m_driveshaft_inertia = 1.5;
 const double CityBus_Driveline2WD::m_differentialbox_inertia = 1.6;
 
-const double CityBus_Driveline2WD::m_conicalgear_ratio = -0.2;
+const double CityBus_Driveline2WD::m_conicalgear_ratio = 0.2;
 
 const double CityBus_Driveline2WD::m_axle_differential_locking_limit = 100;
 

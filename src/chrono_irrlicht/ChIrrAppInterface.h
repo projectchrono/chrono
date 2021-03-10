@@ -23,12 +23,11 @@
 #include "chrono_irrlicht/ChApiIrr.h"
 #include "chrono_irrlicht/ChIrrEffects.h"
 #include "chrono_irrlicht/ChIrrTools.h"
-#include "chrono_irrlicht/ChIrrWizard.h"
+#include "chrono_irrlicht/ChIrrUtils.h"
 
 #ifdef CHRONO_POSTPROCESS
- #include "chrono_postprocess/ChPovRay.h"
+#include "chrono_postprocess/ChPovRay.h"
 #endif
-
 
 namespace chrono {
 namespace irrlicht {
@@ -39,20 +38,24 @@ namespace irrlicht {
 // Forward reference
 class ChIrrAppEventReceiver;
 
+/// Vertical direction
+enum class VerticalDir { Y, Z };
+
 /// Class to add some GUI to Irrlicht + ChronoEngine applications.
 /// This basic GUI can be used to monitor solver timings, to easily change
 /// physical system settings, etc.
 class ChApiIrr ChIrrAppInterface {
-public:
+  public:
     /// Create the IRRLICHT context (device, etc.)
     ChIrrAppInterface(ChSystem* psystem,
-        const std::wstring& title = L"Chrono",
-        const irr::core::dimension2d<irr::u32>& dimens = irr::core::dimension2d<irr::u32>(640, 480),
-        bool do_fullscreen = false,
-        bool do_shadows = false,
-        bool do_antialias = true,
-        irr::video::E_DRIVER_TYPE mydriver = irr::video::EDT_DIRECT3D9,
-        irr::ELOG_LEVEL log_level = irr::ELL_INFORMATION);
+                      const std::wstring& title = L"Chrono",
+                      const irr::core::dimension2d<irr::u32>& dimens = irr::core::dimension2d<irr::u32>(640, 480),
+                      VerticalDir vert = VerticalDir::Y,
+                      bool do_fullscreen = false,
+                      bool do_shadows = false,
+                      bool do_antialias = true,
+                      irr::video::E_DRIVER_TYPE mydriver = irr::video::EDT_DIRECT3D9,
+                      irr::ELOG_LEVEL log_level = irr::ELL_INFORMATION);
 
     /// Safely delete all Irrlicht items (including the Irrlicht scene nodes)
     virtual ~ChIrrAppInterface();
@@ -61,6 +64,7 @@ public:
     irr::IrrlichtDevice* GetDevice() { return device; }
     irr::video::IVideoDriver* GetVideoDriver() { return device->getVideoDriver(); }
     irr::scene::ISceneManager* GetSceneManager() { return device->getSceneManager(); }
+    irr::scene::ICameraSceneNode* GetActiveCamera() { return device->getSceneManager()->getActiveCamera(); }
     irr::gui::IGUIEnvironment* GetIGUIEnvironment() { return device->getGUIEnvironment(); }
     EffectHandler* GetEffects() { return effect; }
     irr::scene::ISceneNode* GetContainer() { return container; }
@@ -108,6 +112,7 @@ public:
     int GetVideoframeSaveInterval() { return videoframe_each; }
 
 #ifdef CHRONO_POSTPROCESS
+
     /// If set to true, each frame of the animation will be saved on the disk
     /// as a sequence of scripts to be rendered via POVray. Only if solution build with ENABLE_MODULE_POSTPROCESS.
     void SetPOVraySave(bool val);
@@ -118,20 +123,20 @@ public:
     void SetPOVraySaveInterval(int val) { povray_each = val; }
     int GetPOVrayframeSaveInterval() { return povray_each; }
 
-    /// Access the internal ChPovRay exporter, for advanced tweaking. 
-    /// Returns 0 if not yet started (use SetPOVraySave(true) to start it) 
-    postprocess::ChPovRay* GetPOVrayexporter() {return this->pov_exporter;}
+    /// Access the internal ChPovRay exporter, for advanced tweaking.
+    /// Returns 0 if not yet started (use SetPOVraySave(true) to start it)
+    postprocess::ChPovRay* GetPOVrayexporter() { return this->pov_exporter; }
 
-    #endif
+#endif
 
     /// Set the label mode for contacts
-    void SetContactsLabelMode(ChIrrTools::eCh_ContactsLabelMode mm) { this->gad_labelcontacts->setSelected((int)mm); }
+    void SetContactsLabelMode(IrrContactsLabelMode mm) { this->gad_labelcontacts->setSelected((int)mm); }
     /// Set the draw mode for contacts
-    void SetContactsDrawMode(ChIrrTools::eCh_ContactsDrawMode mm) { this->gad_drawcontacts->setSelected((int)mm); }
+    void SetContactsDrawMode(IrrContactsDrawMode mm) { this->gad_drawcontacts->setSelected((int)mm); }
     /// Set the label mode for links
-    void SetLinksLabelMode(ChIrrTools::eCh_LinkLabelMode mm) { this->gad_labellinks->setSelected((int)mm); }
+    void SetLinksLabelMode(IrrLinkLabelMode mm) { this->gad_labellinks->setSelected((int)mm); }
     /// Set the draw mode for links
-    void SetLinksDrawMode(ChIrrTools::eCh_LinkDrawMode mm) { this->gad_drawlinks->setSelected((int)mm); }
+    void SetLinksDrawMode(IrrLinkDrawMode mm) { this->gad_drawlinks->setSelected((int)mm); }
     /// Set if the AABB collision shapes will be plotted
     void SetPlotAABB(bool val) { this->gad_plot_aabb->setChecked(val); }
     /// Set if the COG frames will be plotted
@@ -187,39 +192,27 @@ public:
     void DumpSystemMatrices();
 
     //
-    // Some wizard functions for 'easy setup' of the application window:
+    // Some wrapper functions for 'easy setup' of the application window:
     //
 
-    void AddTypicalLogo(const std::string& mlogofilename = GetChronoDataFile("logo_chronoengine_alpha.png")) {
-        ChIrrWizard::add_typical_Logo(GetDevice(), mlogofilename);
-    }
+    void AddTypicalLogo(const std::string& mlogofilename = GetChronoDataFile("logo_chronoengine_alpha.png"));
 
-    void AddTypicalCamera(irr::core::vector3df mpos = irr::core::vector3df(0, 0, -8),
-                          irr::core::vector3df mtarg = irr::core::vector3df(0, 0, 0)) {
-        ChIrrWizard::add_typical_Camera(GetDevice(), mpos, mtarg);
-    }
+    void AddTypicalCamera(irr::core::vector3df pos = irr::core::vector3df(0, 0, -8),
+                          irr::core::vector3df targ = irr::core::vector3df(0, 0, 0));
 
     void AddTypicalLights(irr::core::vector3df pos1 = irr::core::vector3df(30.f, 100.f, 30.f),
                           irr::core::vector3df pos2 = irr::core::vector3df(30.f, 80.f, -30.f),
                           double rad1 = 290,
                           double rad2 = 190,
                           irr::video::SColorf col1 = irr::video::SColorf(0.7f, 0.7f, 0.7f, 1.0f),
-                          irr::video::SColorf col2 = irr::video::SColorf(0.7f, 0.8f, 0.8f, 1.0f)) {
-        ChIrrWizard::add_typical_Lights(GetDevice(), pos1, pos2, rad1, rad2, col1, col2);
-    }
+                          irr::video::SColorf col2 = irr::video::SColorf(0.7f, 0.8f, 0.8f, 1.0f));
 
-    void AddTypicalSky(const std::string& mtexturedir = GetChronoDataFile("skybox/")) {
-        ChIrrWizard::add_typical_Sky(GetDevice(), mtexturedir);
-    }
+    void AddTypicalSky(const std::string& mtexturedir = GetChronoDataFile("skybox/"));
 
     /// Add a point light to the scene
     irr::scene::ILightSceneNode* AddLight(irr::core::vector3df pos,
                                           double radius,
-                                          irr::video::SColorf color = irr::video::SColorf(0.7f, 0.7f, 0.7f, 1.0f)) {
-        irr::scene::ILightSceneNode* mlight =
-            device->getSceneManager()->addLightSceneNode(0, pos, color, (irr::f32)radius);
-        return mlight;
-    }
+                                          irr::video::SColorf color = irr::video::SColorf(0.7f, 0.7f, 0.7f, 1.0f));
 
     /// Add a point light that cast shadow (using soft shadows/shadow maps)
     /// Note that the quality of the shadow strictly depends on how you set 'mnear'
@@ -235,17 +228,7 @@ public:
                                                     irr::u32 resolution = 512,
                                                     irr::video::SColorf color = irr::video::SColorf(1.f, 1.f, 1.f, 1.f),
                                                     bool directional = false,
-                                                    bool clipborder = true) {
-        irr::scene::ILightSceneNode* mlight =
-            device->getSceneManager()->addLightSceneNode(0, pos, color, (irr::f32)radius);
-        effect->addShadowLight(SShadowLight(resolution, pos, aim, color, (irr::f32)mnear, (irr::f32)mfar,
-                                            ((irr::f32)angle * irr::core::DEGTORAD), directional));
-        if (clipborder == false) {
-            effect->getShadowLight(effect->getShadowLightCount() - 1).setClipBorder(clipborder);
-        }
-        use_effects = true;
-        return mlight;
-    }
+                                                    bool clipborder = true);
 
   private:
     // The Irrlicht engine:
@@ -264,6 +247,8 @@ public:
 
     irr::scene::ISceneNode* container;
 
+    bool y_up;
+
     bool show_infos;
     bool show_profiler;
     bool show_explorer;
@@ -277,13 +262,13 @@ public:
     int videoframe_num;
     int videoframe_each;
 
-#ifdef CHRONO_POSTPROCESS   
+#ifdef CHRONO_POSTPROCESS
     bool povray_save;
     postprocess::ChPovRay* pov_exporter;
     int povray_num;
     int povray_each;
 #endif
- 
+
     double symbolscale;
 
     double camera_auto_rotate_speed;

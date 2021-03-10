@@ -213,7 +213,7 @@ int main(int argc, char* argv[]) {
     sys->RegisterCustomCollisionCallback(my_collision);
 
     // Create the Irrlicht visualization
-    ChIrrApp application(sys, L"Custom contact demo", irr::core::dimension2d<irr::u32>(800, 600), false, true);
+    ChIrrApp application(sys, L"Custom contact demo", irr::core::dimension2d<irr::u32>(800, 600));
     application.AddTypicalLogo();
     application.AddTypicalSky();
     application.AddTypicalLights();

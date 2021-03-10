@@ -93,32 +93,31 @@ int main(int argc, char* argv[]) {
     // Create a ChronoENGINE physical system
     ChSystemNSC mphysicalSystem;
 
+    // set gravity
+    mphysicalSystem.Set_G_acc(ChVector<>(0, 0, -9.81));
+
     // Create the Irrlicht visualization (open the Irrlicht device,
     // bind a simple user interface, etc. etc.)
-    ChIrrApp application(&mphysicalSystem, L"Viper Rover on Rigid Terrain", core::dimension2d<u32>(1280, 720), false);
+    ChIrrApp application(&mphysicalSystem, L"Viper Rover on Rigid Terrain", core::dimension2d<u32>(1280, 720),
+                         VerticalDir::Z, false, true);
+    application.AddTypicalLogo();
+    application.AddTypicalSky();
+    application.AddTypicalLights(irr::core::vector3df(30.f, 30.f, 100.f), irr::core::vector3df(30.f, -30.f, 100.f));
+    application.AddTypicalCamera(core::vector3df(0, 2, 2));
 
-    // set gravity
-    mphysicalSystem.Set_G_acc(ChVector<>(0, -9.81, 0));
-
-    // Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
-    ChIrrWizard::add_typical_Logo(application.GetDevice());
-    ChIrrWizard::add_typical_Sky(application.GetDevice());
-    ChIrrWizard::add_typical_Lights(application.GetDevice());
-    ChIrrWizard::add_typical_Camera(application.GetDevice(), core::vector3df(0, 2, -2));
-
-    application.AddLightWithShadow(core::vector3df(1.5f, 5.5f, -2.5f), core::vector3df(0, 0, 0), 3, 4, 10, 40, 512,
+    application.AddLightWithShadow(core::vector3df(1.5f, 1.5f, 5.5f), core::vector3df(0, 0, 0), 3, 4, 10, 40, 512,
                                    video::SColorf(0.8f, 0.8f, 1.0f));
 
-    application.SetContactsDrawMode(ChIrrTools::eCh_ContactsDrawMode::CONTACT_DISTANCES);
+    application.SetContactsDrawMode(IrrContactsDrawMode::CONTACT_DISTANCES);
 
     collision::ChCollisionModel::SetDefaultSuggestedEnvelope(0.0025);
     collision::ChCollisionModel::SetDefaultSuggestedMargin(0.0025);
 
     // Create a floor
     auto floor_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
-    auto mfloor = chrono_types::make_shared<ChBodyEasyBox>(20, 1, 20, 1000, true, true, floor_mat);
+    auto mfloor = chrono_types::make_shared<ChBodyEasyBox>(20, 20, 1, 1000, true, true, floor_mat);
 
-    mfloor->SetPos(ChVector<>(0, -1, 0));
+    mfloor->SetPos(ChVector<>(0, 0, -1));
     mfloor->SetBodyFixed(true);
     mphysicalSystem.Add(mfloor);
 
@@ -129,18 +128,16 @@ int main(int argc, char* argv[]) {
     // Create a Viper Rover with default parameters.
     // The default rotational speed of the Motor is speed w=3.145 rad/sec.
     // Note: the Viper Rover uses a Z-up frame, which will need to be translated to Y-up.
-    ChVector<double> body_pos(0, -0.2, 0);
-    ChQuaternion<> body_rot = Q_from_AngX(-CH_C_PI / 2);
-
     std::shared_ptr<ViperRover> viper;
+    ChVector<double> body_pos(0, -0.2, 0);
 
     if (use_custom_mat == true) {
         // If use the customized wheel material
-        viper = chrono_types::make_shared<ViperRover>(&mphysicalSystem, body_pos, body_rot,
+        viper = chrono_types::make_shared<ViperRover>(&mphysicalSystem, body_pos, QUNIT,
                                                       CustomWheelMaterial(ChContactMethod::NSC));
     } else {
         // If use default wheel material
-        viper = chrono_types::make_shared<ViperRover>(&mphysicalSystem, body_pos, body_rot);
+        viper = chrono_types::make_shared<ViperRover>(&mphysicalSystem, body_pos, QUNIT);
     }
     viper->Initialize();
 
@@ -157,7 +154,7 @@ int main(int argc, char* argv[]) {
     application.SetTimestep(time_step);
 
     //
-    // THE SOFT-REAL-TIME CYCLE
+    // Simulation loop
     //
 
     double time = 0.0;

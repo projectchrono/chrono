@@ -6,5 +6,5 @@
   "Driveshaft Inertia": 0.5,
   "Differential Box Inertia": 0.6,
 
-  "Conical Gear Ratio": -0.5
+  "Conical Gear Ratio": 0.5
 }

@@ -159,31 +159,18 @@ int main(int argc, char* argv[]) {
     // gpu_sys.SetRollingCoeff_SPH2WALL(params.rolling_friction_coeffS2W);
     // gpu_sys.SetRollingCoeff_SPH2MESH(params.rolling_friction_coeffS2M);
 
-    std::string mesh_filename(GetChronoDataFile("models/sphere.obj"));
-    std::vector<string> mesh_filenames(1, mesh_filename);
-
-    std::vector<float3> mesh_translations(1, make_float3(0.f, 0.f, 0.f));
-
+    // Add a ball mesh to the GPU system
     float ball_radius = 20.f;
-    std::vector<ChMatrix33<float>> mesh_rotscales(1, ChMatrix33<float>(ball_radius));
-
     float ball_density = params.sphere_density;
-    float ball_mass = (float)(4.f * CH_C_PI * ball_radius * ball_radius * ball_radius * ball_density / 3.f);
-    std::vector<float> mesh_masses(1, ball_mass);
-
-    gpu_sys.LoadMeshes(mesh_filenames, mesh_rotscales, mesh_translations, mesh_masses);
+    float ball_mass = 4.0f * (float)CH_C_PI * ball_radius * ball_radius * ball_radius * ball_density / 3.f;
+    std::string mesh_filename(GetChronoDataFile("models/sphere.obj"));
+    auto ball_mesh_id = gpu_sys.AddMesh(mesh_filename, ChVector<float>(0), ChMatrix33<float>(ball_radius), ball_mass);
 
     gpu_sys.SetOutputMode(params.write_mode);
     gpu_sys.SetVerbosity(params.verbose);
 
-    std::string out_dir = GetChronoOutputPath() + "GPU/";
-    filesystem::create_directory(filesystem::path(out_dir));
-    out_dir = out_dir + params.output_dir;
-    filesystem::create_directory(filesystem::path(out_dir));
-
-    std::cout << gpu_sys.GetNumMeshes() << " meshes" << std::endl;
-
     gpu_sys.Initialize();
+    std::cout << gpu_sys.GetNumMeshes() << " meshes" << std::endl;
 
     // Create rigid ball_body simulation
     ChSystemSMC sys_ball;
@@ -211,10 +198,15 @@ int main(int argc, char* argv[]) {
         gpu_vis.Initialize();
     }
 
+    std::string out_dir = GetChronoOutputPath() + "GPU/";
+    filesystem::create_directory(filesystem::path(out_dir));
+    out_dir = out_dir + params.output_dir;
+    filesystem::create_directory(filesystem::path(out_dir));
+
     std::cout << "Output at    " << out_fps << " FPS" << std::endl;
     std::cout << "Rendering at " << render_fps << " FPS" << std::endl;
-    unsigned int out_steps = (unsigned int)(1.0 / (out_fps * iteration_step));
-    unsigned int render_steps = (unsigned int)(1.0 / (render_fps * iteration_step));
+    unsigned int out_steps = (unsigned int)(1 / (out_fps * iteration_step));
+    unsigned int render_steps = (unsigned int)(1 / (render_fps * iteration_step));
     unsigned int total_frames = (unsigned int)(params.time_end * out_fps);
 
     int currframe = 0;

@@ -163,11 +163,11 @@ int main(int argc, char* argv[]) {
     my_loadcontainer->Add(my_loadforce);
 
     // Create the Irrlicht application
-    ChIrrApp application(&system, L"ChLinkBushing", irr::core::dimension2d<irr::u32>(800, 600), false, true);
+    ChIrrApp application(&system, L"ChLinkBushing", irr::core::dimension2d<irr::u32>(800, 600), VerticalDir::Z);
     application.AddTypicalLogo();
     application.AddTypicalSky();
     application.AddTypicalLights();
-    application.AddTypicalCamera(irr::core::vector3df(3, 0, 3));
+    application.AddTypicalCamera(irr::core::vector3df(3, 3, 0), irr::core::vector3df(0,0,0));
 
     application.AssetBindAll();
     application.AssetUpdateAll();

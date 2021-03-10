@@ -794,19 +794,19 @@ class MyEventReceiver : public IEventReceiver {
         ChCoordsys<> wall1Csys = this->mtester->wall1->GetCoord();
         wall1Csys.rot = chrono::Q_from_AngAxis(CH_C_PI / 2.0, VECT_Y);
         wall1Csys.pos.x() += .05;
-        ChIrrTools::drawGrid(this->mapp->GetVideoDriver(), 0.1, 0.05, 24, 20, wall1Csys,
+        tools::drawGrid(this->mapp->GetVideoDriver(), 0.1, 0.05, 24, 20, wall1Csys,
                              video::SColor(255, 80, 130, 130), true);
 
         // wall 3
         ChCoordsys<> wall3Csys = this->mtester->wall3->GetCoord();
         wall3Csys.pos.z() += .05;
-        ChIrrTools::drawGrid(this->mapp->GetVideoDriver(), 0.1, 0.05, 10, 20, wall3Csys,
+        tools::drawGrid(this->mapp->GetVideoDriver(), 0.1, 0.05, 10, 20, wall3Csys,
                              video::SColor(255, 80, 130, 130), true);
 
         // wall 4
         ChCoordsys<> wall4Csys = this->mtester->wall4->GetCoord();
         wall4Csys.pos.z() -= .05;
-        ChIrrTools::drawGrid(this->mapp->GetVideoDriver(), 0.1, 0.05, 10, 20, wall4Csys,
+        tools::drawGrid(this->mapp->GetVideoDriver(), 0.1, 0.05, 10, 20, wall4Csys,
                              video::SColor(255, 80, 130, 130), true);
     }
 
@@ -935,12 +935,11 @@ int main(int argc, char* argv[]) {
 
     // Create the Irrlicht visualization (open the Irrlicht device,
     // bind a simple user interface, etc. etc.)
-    ChIrrApp application(&mphysicalSystem, L"Soil bin demo", core::dimension2d<u32>(1024, 768), false);
-    ChIrrWizard::add_typical_Logo(application.GetDevice());
-    ChIrrWizard::add_typical_Sky(application.GetDevice());
-    ChIrrWizard::add_typical_Lights(application.GetDevice(), irr::core::vector3df(20., 30., 25.),
-                                    irr::core::vector3df(25., 25., -25.), 65.0, 75.);
-    ChIrrWizard::add_typical_Camera(application.GetDevice(), core::vector3df(3.5f, 2.5f, -2.4f));
+    ChIrrApp application(&mphysicalSystem, L"Soil bin demo", core::dimension2d<u32>(1024, 768));
+    application.AddTypicalLogo();
+    application.AddTypicalSky();
+    application.AddTypicalLights(core::vector3df(20., 30., 25.), core::vector3df(25., 25., -25.), 65.0, 75.);
+    application.AddTypicalCamera(core::vector3df(3.5f, 2.5f, -2.4f));
 
     // ******* SOIL BIN WHEEL
     // Create the wheel

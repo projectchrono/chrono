@@ -95,49 +95,28 @@ void FMTV_Powertrain::SetEngineLossesMap(std::shared_ptr<ChFunction_Recorder>& m
     map->AddPoint(3000 * rpm_to_radsec, -90);
 }
 
+// TC data converted from data presented in:
+// Pohl B., "Transient Torque Converter Performance, Testing, Simulation and Reverse Engineering"
+// SAE Paper 2003-01-0249
+
 void FMTV_Powertrain::SetTorqueConverterCapacityFactorMap(std::shared_ptr<ChFunction_Recorder>& map) {
-    map->AddPoint(0.0, 15);
-    map->AddPoint(0.25, 15);
-    map->AddPoint(0.50, 15);
-    map->AddPoint(0.75, 16);
-    map->AddPoint(0.90, 18);
-    map->AddPoint(1.00, 35);
-    /*
-        map->AddPoint(0     ,   81.0000);
-        map->AddPoint(0.1000,   81.1589);
-        map->AddPoint(0.2000,   81.3667);
-        map->AddPoint(0.3000,   81.6476);
-        map->AddPoint(0.4000,   82.0445);
-        map->AddPoint(0.5000,   82.6390);
-        map->AddPoint(0.6000,   83.6067);
-        map->AddPoint(0.7000,   85.3955);
-        map->AddPoint(0.8000,   89.5183);
-        map->AddPoint(0.9000,  105.1189);
-        map->AddPoint(0.9700,  215.5284);
-        map->AddPoint(1.0000,  235.5284);
-    */
+    map->AddPoint(0.000000, 6.962242);
+    map->AddPoint(0.100000, 6.962242);
+    map->AddPoint(0.200000, 7.053054);
+    map->AddPoint(0.300000, 7.083325);
+    map->AddPoint(0.400000, 7.174137);
+    map->AddPoint(0.500000, 7.264949);
+    map->AddPoint(0.600000, 7.355760);
+    map->AddPoint(0.700000, 7.507113);
+    map->AddPoint(0.800000, 7.688737);
+    map->AddPoint(0.900000, 7.930902);
+    map->AddPoint(1.000000, 15.135309);
 }
 
 void FMTV_Powertrain::SetTorqeConverterTorqueRatioMap(std::shared_ptr<ChFunction_Recorder>& map) {
-    map->AddPoint(0.0, 2.00);
-    map->AddPoint(0.25, 1.80);
-    map->AddPoint(0.50, 1.50);
-    map->AddPoint(0.75, 1.15);
+    map->AddPoint(0.0, 2.17);
+    map->AddPoint(0.85, 1.00);
     map->AddPoint(1.00, 1.00);
-    /*
-        map->AddPoint(0,        1.7500);
-        map->AddPoint(0.1000,    1.6667);
-        map->AddPoint(0.2000,    1.5833);
-        map->AddPoint(0.3000,    1.5000);
-        map->AddPoint(0.4000,    1.4167);
-        map->AddPoint(0.5000,    1.3334);
-        map->AddPoint(0.6000,    1.2500);
-        map->AddPoint(0.7000,    1.1667);
-        map->AddPoint(0.8000,    1.0834);
-        map->AddPoint(0.9000,    1.0000);
-        map->AddPoint(0.9700,    1.0000);
-        map->AddPoint(1.0000,    1.0000);
-    */
 }
 
 }  // namespace fmtv
