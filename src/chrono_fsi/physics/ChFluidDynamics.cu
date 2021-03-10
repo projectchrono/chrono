@@ -335,6 +335,11 @@ __global__ void UpdateFluidD(Real4* posRadD,
                 updatedTauXyXzYz = mR3(0.0);
                 p_tr = 0.0;
             }
+            if (derivVelRho.w < 0.0e0) {
+                updatedTauXxYyZz = mR3(0.0);
+                updatedTauXyXzYz = mR3(0.0);
+                p_tr = 0.0;
+            }
             tau_tr = square(updatedTauXxYyZz.x) 
                    + square(updatedTauXxYyZz.y) 
                    + square(updatedTauXxYyZz.z)

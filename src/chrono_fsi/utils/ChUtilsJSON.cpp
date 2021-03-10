@@ -151,10 +151,13 @@ bool ParseJSON(const std::string& json_file, std::shared_ptr<SimParams> paramsH,
         } else
             paramsH->fluid_dynamic_type = fluid_dynamics::I2SPH;
 
-        if (doc["SPH Parameters"].HasMember("Kernel h"))
+        if (doc["SPH Parameters"].HasMember("Kernel h")){
             paramsH->HSML = doc["SPH Parameters"]["Kernel h"].GetDouble();
-        else
+            paramsH->INVHSML = 1.0 / paramsH->HSML;}
+        else{
             paramsH->HSML = 0.02;
+            paramsH->INVHSML = 1.0 / paramsH->HSML;
+        }
 
         if (doc["SPH Parameters"].HasMember("Initial Spacing"))
             paramsH->MULT_INITSPACE = doc["SPH Parameters"]["Initial Spacing"].GetDouble() / paramsH->HSML;
@@ -386,6 +389,11 @@ bool ParseJSON(const std::string& json_file, std::shared_ptr<SimParams> paramsH,
             paramsH->Q_DA = 6 * sin(paramsH->Dil_angle) / (sqrt(3) * (3 + sin(paramsH->Dil_angle)));  // material constants calculate from dilate angle
             paramsH->K_FA = 6 * paramsH->Coh_coeff * cos(paramsH->Fri_angle) / (sqrt(3) * (3 + sin(paramsH->Fri_angle)));  // material constants calculate from frictional angle and cohesion coefficient
         }
+        if (doc["Elastic SPH"].HasMember("kernel threshold")) {
+            paramsH->C_Wi = doc["Elastic SPH"]["kernel threshold"].GetDouble(); 
+        } else{
+            paramsH->C_Wi = 0.8;
+        }
     } else {
         paramsH->elastic_SPH = false;
     }
@@ -554,10 +562,14 @@ bool ParseJSON(const std::string& json_file, std::shared_ptr<SimParams> paramsH,
     } else {
         paramsH->non_newtonian = false;
     }
-    //    paramsH->markerMass = cube(paramsH->MULT_INITSPACE * paramsH->HSML) * paramsH->rho0;
+    
     int NN = 0;
     paramsH->markerMass = massCalculator(NN, paramsH->HSML, paramsH->MULT_INITSPACE * paramsH->HSML, paramsH->rho0);
+    paramsH->markerMass = cube(paramsH->MULT_INITSPACE * paramsH->HSML) * paramsH->rho0;
+    paramsH->volume0 = paramsH->markerMass / paramsH->rho0;
+    paramsH->invrho0 = 1.0 / paramsH->rho0;
     paramsH->num_neighbors = NN;
+    
 
     paramsH->Max_Pressure = 1e20;
     paramsH->cMin = mR3(-Domain.x * 2, -Domain.y * 2, -2 * Domain.z) - 10 * mR3(paramsH->HSML);
