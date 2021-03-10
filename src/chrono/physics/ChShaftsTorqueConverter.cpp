@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Alessandro Tasora, Radu Serban
+// Authors: Alessandro Tasora, Radu Serban, Rainer Gericke
 // =============================================================================
 
 #include "chrono/physics/ChShaft.h"
@@ -51,7 +51,7 @@ ChShaftsTorqueConverter::ChShaftsTorqueConverter(const ChShaftsTorqueConverter& 
 bool ChShaftsTorqueConverter::Initialize(std::shared_ptr<ChShaft> mshaft1,       // input shaft
                                          std::shared_ptr<ChShaft> mshaft2,       // output shaft
                                          std::shared_ptr<ChShaft> mshaft_stator  // stator shaft (often fixed)
-                                         ) {
+) {
     ChShaft* mm1 = mshaft1.get();
     ChShaft* mm2 = mshaft2.get();
     ChShaft* mm_stator = mshaft_stator.get();
@@ -129,7 +129,14 @@ void ChShaftsTorqueConverter::Update(double mytime, bool update_assets) {
 
     // compute output torque (with opposite sign because
     // applied to output shaft, with same direction of input shaft)
-    torque_out = -mT * torque_in;
+    if (state_warning_reverseflow) {
+        // in reverse flow situation the converter is always in clutch mode (TR=1)
+        // so the torque cannot be increased
+        torque_out = -torque_in;
+
+    } else {
+        torque_out = -mT * torque_in;
+    }
 }
 
 //// STATE BOOKKEEPING FUNCTIONS
@@ -137,7 +144,7 @@ void ChShaftsTorqueConverter::Update(double mytime, bool update_assets) {
 void ChShaftsTorqueConverter::IntLoadResidual_F(const unsigned int off,  // offset in R residual
                                                 ChVectorDynamic<>& R,    // result: the R residual, R += c*F
                                                 const double c           // a scaling factor
-                                                ) {
+) {
     if (shaft1->IsActive())
         R(shaft1->GetOffset_w()) += torque_in * c;
     if (shaft2->IsActive())
