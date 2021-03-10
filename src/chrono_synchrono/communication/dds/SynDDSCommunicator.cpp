@@ -186,10 +186,12 @@ std::shared_ptr<SynDDSSubscriber> SynDDSCommunicator::CreateSubscriber(std::shar
     // Create data reader qos and allow for automatic reallocation on data reception
     DataReaderQos qos;
     qos.reliability().kind = RELIABLE_RELIABILITY_QOS;
-    qos.durability().kind = TRANSIENT_LOCAL_DURABILITY_QOS;
-    qos.endpoint().history_memory_policy = PREALLOCATED_WITH_REALLOC_MEMORY_MODE;
+    qos.durability().kind = VOLATILE_DURABILITY_QOS;
+    // qos.durability().kind = TRANSIENT_LOCAL_DURABILITY_QOS;
+    // qos.endpoint().history_memory_policy = PREALLOCATED_WITH_REALLOC_MEMORY_MODE;
     qos.history().kind = KEEP_LAST_HISTORY_QOS;
-    qos.history().depth = 2;
+    qos.history().depth = 1;
+    // qos.history().depth = 2;
 
     // Create the listener
     auto listener = new SynDDSDataReaderListener(callback, message);
