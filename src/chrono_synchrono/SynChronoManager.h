@@ -134,6 +134,7 @@ class SYN_API SynChronoManager {
     bool m_initialized;       ///< Has the Initialize function been called?
     int m_node_id;            ///< The node id assigned to this manager (provided by user code)
     int m_num_nodes;          ///< The number of nodes in the SynChrono world (provided by user code)
+    AgentKey m_node_key;
 
     double m_heartbeat;  ///< Rate at which synchronization between nodes occurs
     double m_next_sync;  ///< Time at which next synchronization between nodes should occur

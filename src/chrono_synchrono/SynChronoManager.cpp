@@ -47,6 +47,7 @@ SynChronoManager::SynChronoManager(int node_id, int num_nodes, std::shared_ptr<S
       m_initialized(false),
       m_node_id(node_id),
       m_num_nodes(num_nodes),
+      m_node_key(node_id, 0),
       m_heartbeat(1e-2),
       m_next_sync(0.0) {
     if (communicator)
@@ -81,7 +82,7 @@ bool SynChronoManager::AddAgent(std::shared_ptr<SynAgent> agent) {
     if (auto dds_communicator = std::dynamic_pointer_cast<SynDDSCommunicator>(m_communicator)) {
         // Create the topic that state information will be passed on
         // and add the topic to the communicator
-        auto topic_name = "node/" + agent_key.GetKeyString();
+        auto topic_name = "node/" + m_node_key.GetKeyString();
         dds_communicator->CreatePublisher(topic_name, new SynDDSMessagePubSubType(), true);
     }
 #endif
