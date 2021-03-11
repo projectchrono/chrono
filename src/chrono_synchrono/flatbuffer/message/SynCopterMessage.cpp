@@ -20,7 +20,6 @@
 
 #include "chrono_synchrono/flatbuffer/message/SynCopterMessage.h"
 
-
 namespace chrono {
 namespace synchrono {
 
@@ -56,18 +55,20 @@ void SynCopterStateMessage::ConvertFromFlatBuffers(const SynFlatBuffers::Message
 }
 
 /// Generate FlatBuffers message from this message's state
-FlatBufferMessage SynCopterStateMessage::ConvertToFlatBuffers(flatbuffers::FlatBufferBuilder& builder) {
+FlatBufferMessage SynCopterStateMessage::ConvertToFlatBuffers(flatbuffers::FlatBufferBuilder& builder) const {
     auto flatbuffer_chassis = this->chassis.ToFlatBuffers(builder);
 
     std::vector<flatbuffers::Offset<SynFlatBuffers::Pose>> flatbuffer_props;
-    for (auto& prop : this->props)
+    flatbuffer_props.reserve(this->props.size());
+    for (const auto& prop : this->props)
         flatbuffer_props.push_back(prop.ToFlatBuffers(builder));
 
     auto copter_type = Agent::Type_Copter_State;
     auto copter_state = Copter::CreateStateDirect(builder,             //
-                                                   this->time,          //
-                                                   flatbuffer_chassis,  //
-                                                   &flatbuffer_props).Union();
+                                                  this->time,          //
+                                                  flatbuffer_chassis,  //
+                                                  &flatbuffer_props)
+                            .Union();
 
     auto flatbuffer_state = Agent::CreateState(builder, copter_type, copter_state);
     auto flatbuffer_message = SynFlatBuffers::CreateMessage(builder,                           //
@@ -94,26 +95,25 @@ void SynCopterDescriptionMessage::ConvertFromFlatBuffers(const SynFlatBuffers::M
     m_destination_id = message->destination_id();
     auto copter_description = description->description_as_Copter_Description();
     SetVisualizationFiles(copter_description->chassis_vis_file()->str(),
-                              copter_description->propeller_vis_file()->str());
+                          copter_description->propeller_vis_file()->str());
 
-	SetNumProps(copter_description->num_props());
+    SetNumProps(copter_description->num_props());
 }
 
 /// Generate FlatBuffers message from this agent's description
-FlatBufferMessage SynCopterDescriptionMessage::ConvertToFlatBuffers(flatbuffers::FlatBufferBuilder& builder) {
-
+FlatBufferMessage SynCopterDescriptionMessage::ConvertToFlatBuffers(flatbuffers::FlatBufferBuilder& builder) const {
     auto flatbuffer_type = Agent::Type_Copter_Description;
 
     flatbuffers::Offset<Copter::Description> copter_description = 0;
     copter_description = Copter::CreateDescriptionDirect(builder,                           //
-                                                          this->chassis_vis_file.c_str(),  //
-                                                          this->propeller_vis_file.c_str(),  //
-                                                          this->num_props);                //
+                                                         this->chassis_vis_file.c_str(),    //
+                                                         this->propeller_vis_file.c_str(),  //
+                                                         this->num_props);                  //
 
-    auto flatbuffer_description = Agent::CreateDescription(builder,                        //
-                                                           flatbuffer_type,                //
+    auto flatbuffer_description = Agent::CreateDescription(builder,                    //
+                                                           flatbuffer_type,            //
                                                            copter_description.Union()  //
-                                                           );               //
+    );                                                                                 //
 
     return SynFlatBuffers::CreateMessage(builder,                                 //
                                          SynFlatBuffers::Type_Agent_Description,  //

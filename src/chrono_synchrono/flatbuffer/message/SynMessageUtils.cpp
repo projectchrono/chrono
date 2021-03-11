@@ -42,7 +42,7 @@ SynPose::SynPose(const SynFlatBuffers::Pose* pose) {
                               pose->rot_dtdt()->e3()};
 }
 
-flatbuffers::Offset<SynFlatBuffers::Pose> SynPose::ToFlatBuffers(flatbuffers::FlatBufferBuilder& builder) {
+flatbuffers::Offset<SynFlatBuffers::Pose> SynPose::ToFlatBuffers(flatbuffers::FlatBufferBuilder& builder) const {
     auto fb_pos =
         SynFlatBuffers::CreateVector(builder, m_frame.coord.pos.x(), m_frame.coord.pos.y(), m_frame.coord.pos.z());
     auto fb_rot = SynFlatBuffers::CreateQuaternion(builder,
