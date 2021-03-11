@@ -49,7 +49,7 @@ void SynSPATMessage::ConvertSPATFromFlatBuffers(const SynFlatBuffers::SPAT::Stat
                                  static_cast<LaneColor>(lane->color()));
 }
 
-FlatBufferMessage SynSPATMessage::ConvertToFlatBuffers(flatbuffers::FlatBufferBuilder& builder) {
+FlatBufferMessage SynSPATMessage::ConvertToFlatBuffers(flatbuffers::FlatBufferBuilder& builder) const {
     std::vector<flatbuffers::Offset<SynFlatBuffers::SPAT::Lane>> flatbuffer_lanes;
     flatbuffer_lanes.reserve(this->lanes.size());
     for (const auto& lane : this->lanes) {

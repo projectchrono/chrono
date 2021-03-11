@@ -56,7 +56,7 @@ void SynSCMMessage::ConvertFromFlatBuffers(const SynFlatBuffers::Message* messag
 }
 
 /// Generate FlatBuffers message from this message's state
-FlatBufferMessage SynSCMMessage::ConvertToFlatBuffers(flatbuffers::FlatBufferBuilder& builder) {
+FlatBufferMessage SynSCMMessage::ConvertToFlatBuffers(flatbuffers::FlatBufferBuilder& builder) const {
     std::vector<SCM::NodeLevel> modified_nodes;
     modified_nodes.reserve(this->modified_nodes.size());
     for (const auto& node : this->modified_nodes)

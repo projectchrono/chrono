@@ -57,12 +57,12 @@ void SynWheeledVehicleStateMessage::ConvertFromFlatBuffers(const SynFlatBuffers:
 }
 
 /// Generate FlatBuffers message from this message's state
-FlatBufferMessage SynWheeledVehicleStateMessage::ConvertToFlatBuffers(flatbuffers::FlatBufferBuilder& builder) {
+FlatBufferMessage SynWheeledVehicleStateMessage::ConvertToFlatBuffers(flatbuffers::FlatBufferBuilder& builder) const {
     auto flatbuffer_chassis = this->chassis.ToFlatBuffers(builder);
 
     std::vector<flatbuffers::Offset<SynFlatBuffers::Pose>> flatbuffer_wheels;
     flatbuffer_wheels.reserve(this->wheels.size());
-    for (auto& wheel : this->wheels)
+    for (const auto& wheel : this->wheels)
         flatbuffer_wheels.push_back(wheel.ToFlatBuffers(builder));
 
     auto vehicle_type = Agent::Type_WheeledVehicle_State;
@@ -111,7 +111,8 @@ void SynWheeledVehicleDescriptionMessage::ConvertFromFlatBuffers(const SynFlatBu
 }
 
 /// Generate FlatBuffers message from this agent's description
-FlatBufferMessage SynWheeledVehicleDescriptionMessage::ConvertToFlatBuffers(flatbuffers::FlatBufferBuilder& builder) {
+FlatBufferMessage SynWheeledVehicleDescriptionMessage::ConvertToFlatBuffers(
+    flatbuffers::FlatBufferBuilder& builder) const {
     auto flatbuffer_json = builder.CreateString(this->json);
     auto flatbuffer_type = Agent::Type_WheeledVehicle_Description;
 

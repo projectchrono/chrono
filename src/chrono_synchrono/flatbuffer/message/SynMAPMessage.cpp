@@ -46,7 +46,7 @@ void SynMAPMessage::ConvertFromFlatBuffers(const SynFlatBuffers::Message* messag
     }
 }
 
-FlatBufferMessage SynMAPMessage::ConvertToFlatBuffers(flatbuffers::FlatBufferBuilder& builder) {
+FlatBufferMessage SynMAPMessage::ConvertToFlatBuffers(flatbuffers::FlatBufferBuilder& builder) const {
     std::vector<flatbuffers::Offset<SynFlatBuffers::MAP::intersection>> flatbuffer_intersections;
     flatbuffer_intersections.reserve(intersections.size());
     for (const auto& intersection : intersections) {

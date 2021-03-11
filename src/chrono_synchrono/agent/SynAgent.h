@@ -96,7 +96,7 @@ class SYN_API SynAgent {
 
     // -------------------------------------------------------------------------
 
-    SynAgentID GetID() { return m_aid; }
+    SynAgentID GetID() const { return m_aid; }
     virtual void SetID(SynAgentID aid) { m_aid = aid; }
 
   protected:

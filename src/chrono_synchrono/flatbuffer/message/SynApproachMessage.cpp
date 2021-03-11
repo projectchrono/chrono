@@ -46,7 +46,7 @@ void SynApproachMessage::ConvertSPATFromFlatBuffers(const SynFlatBuffers::Approa
         lanes.emplace_back(lane);
 }
 
-FlatBufferMessage SynApproachMessage::ConvertToFlatBuffers(flatbuffers::FlatBufferBuilder& builder) {
+FlatBufferMessage SynApproachMessage::ConvertToFlatBuffers(flatbuffers::FlatBufferBuilder& builder) const {
     std::vector<flatbuffers::Offset<SynFlatBuffers::Approach::Lane>> flatbuffer_lanes;
     flatbuffer_lanes.reserve(this->lanes.size());
     for (const auto& l : this->lanes) {
