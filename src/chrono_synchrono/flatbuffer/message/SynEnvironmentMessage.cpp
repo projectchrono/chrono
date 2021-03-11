@@ -48,7 +48,7 @@ void SynEnvironmentMessage::ConvertFromFlatBuffers(const SynFlatBuffers::Message
     spat_message->ConvertFromFlatBuffers(state->spat());
 }
 
-FlatBufferMessage SynEnvironmentMessage::ConvertToFlatBuffers(flatbuffers::FlatBufferBuilder& builder) {
+FlatBufferMessage SynEnvironmentMessage::ConvertToFlatBuffers(flatbuffers::FlatBufferBuilder& builder) const {
     auto map = map_message->ConvertToFlatBuffers(builder);
     auto spat = spat_message->ConvertToFlatBuffers(builder);
 
