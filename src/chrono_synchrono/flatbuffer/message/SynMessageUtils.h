@@ -45,7 +45,7 @@ class SYN_API AgentKey {
     int GetNodeID() const { return m_node_id; }
     int GetAgentID() const { return m_agent_id; }
     int GetUniqueID() const { return m_unique_id; }
-    const SynFlatBuffers::AgentKey* const GetFlatbuffersKey();
+    const SynFlatBuffers::AgentKey* const GetFlatbuffersKey() const;
 
   private:
     int m_node_id;
@@ -74,7 +74,7 @@ class SYN_API SynPose {
     ///
     ///@param builder the FlatBuffer builder used to construct messages
     ///@return flatbuffers::Offset<SynFlatBuffers::Pose> the flatbuffer pose
-    flatbuffers::Offset<SynFlatBuffers::Pose> ToFlatBuffers(flatbuffers::FlatBufferBuilder& builder);
+    flatbuffers::Offset<SynFlatBuffers::Pose> ToFlatBuffers(flatbuffers::FlatBufferBuilder& builder) const;
 
     ChFrameMoving<>& GetFrame() { return m_frame; }
 

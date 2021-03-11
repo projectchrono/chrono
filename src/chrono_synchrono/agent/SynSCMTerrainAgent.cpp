@@ -51,12 +51,12 @@ void SynSCMTerrainAgent::SynchronizeZombie(std::shared_ptr<SynMessage> message) 
 void SynSCMTerrainAgent::Update() {
     // Use [] because we want to update if it is there but otherwise insert
     auto modded = m_terrain->GetModifiedNodes();
-    for (auto h : modded)
+    for (const auto& h : modded)
         m_modified_nodes[h.first] = h.second;
 
     m_message->modified_nodes.clear();
-
-    for (auto v : m_modified_nodes)
+    m_message->modified_nodes.reserve(m_modified_nodes.size());
+    for (const auto& v : m_modified_nodes)
         m_message->modified_nodes.push_back(std::make_pair(v.first, v.second));
 }
 

@@ -28,15 +28,14 @@ AgentKey::AgentKey(int node_id, int agent_id) {
     m_agent_id = agent_id;
 
     // Matthew Szudzik pairing function (Cantor pair would also work)
-    m_unique_id = node_id;
-    // m_unique_id = node_id >= agent_id ? (node_id * node_id) + node_id + agent_id : (agent_id * agent_id) + node_id;
+    m_unique_id = node_id >= agent_id ? (node_id * node_id) + node_id + agent_id : (agent_id * agent_id) + node_id;
 }
 
 std::string AgentKey::GetKeyString() const {
     return std::to_string(m_node_id) + "." + std::to_string(m_agent_id);
 }
 
-const SynFlatBuffers::AgentKey* const AgentKey::GetFlatbuffersKey() {
+const SynFlatBuffers::AgentKey* const AgentKey::GetFlatbuffersKey() const {
     // This memory is freed when we clear out messages
     return new SynFlatBuffers::AgentKey(m_node_id, m_agent_id);
 }
@@ -60,7 +59,7 @@ SynPose::SynPose(const SynFlatBuffers::Pose* pose) {
                               pose->rot_dtdt()->e3()};
 }
 
-flatbuffers::Offset<SynFlatBuffers::Pose> SynPose::ToFlatBuffers(flatbuffers::FlatBufferBuilder& builder) {
+flatbuffers::Offset<SynFlatBuffers::Pose> SynPose::ToFlatBuffers(flatbuffers::FlatBufferBuilder& builder) const {
     auto fb_pos =
         SynFlatBuffers::CreateVector(builder, m_frame.coord.pos.x(), m_frame.coord.pos.y(), m_frame.coord.pos.z());
     auto fb_rot = SynFlatBuffers::CreateQuaternion(builder,

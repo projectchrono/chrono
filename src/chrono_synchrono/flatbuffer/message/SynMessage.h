@@ -51,7 +51,7 @@ class SYN_API SynMessage {
     ///
     ///@param builder a flatbuffer builder to construct the message with
     ///@return FlatBufferMessage the constructed flatbuffer message
-    virtual FlatBufferMessage ConvertToFlatBuffers(flatbuffers::FlatBufferBuilder& builder) = 0;
+    virtual FlatBufferMessage ConvertToFlatBuffers(flatbuffers::FlatBufferBuilder& builder) const = 0;
 
     ///@brief Get the key of the source of this message
     ///
@@ -79,10 +79,14 @@ class SYN_API SynMessage {
     ///@param source_key the key of the source to which the message is sent from
     ///@param destination_key the key of the destination to which the message is sent to
     SynMessage(AgentKey source_key = AgentKey(), AgentKey destination_key = AgentKey())
-        : time(0.0), m_source_key(source_key), m_destination_key(destination_key) {}
+        : time(0.0),
+          m_source_key(source_key),
+          m_destination_key(destination_key),
+          m_msg_type(SynFlatBuffers::Type::Type_NONE) {}
 
-    AgentKey m_source_key;            ///< key for the source which sent this message
-    AgentKey m_destination_key;       ///< key for the destination of this message
+    AgentKey m_source_key;       ///< key for the source which sent this message
+    AgentKey m_destination_key;  ///< key for the destination of this message
+
     SynFlatBuffers::Type m_msg_type;  ///< Type of message that we contain
 };
 

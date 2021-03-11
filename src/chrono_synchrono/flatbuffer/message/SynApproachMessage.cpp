@@ -46,15 +46,15 @@ void SynApproachMessage::ConvertSPATFromFlatBuffers(const SynFlatBuffers::Approa
         lanes.emplace_back(lane);
 }
 
-FlatBufferMessage SynApproachMessage::ConvertToFlatBuffers(flatbuffers::FlatBufferBuilder& builder) {
+FlatBufferMessage SynApproachMessage::ConvertToFlatBuffers(flatbuffers::FlatBufferBuilder& builder) const {
     std::vector<flatbuffers::Offset<SynFlatBuffers::Approach::Lane>> flatbuffer_lanes;
-
-    for (auto l : this->lanes) {
+    flatbuffer_lanes.reserve(this->lanes.size());
+    for (const auto& l : this->lanes) {
         std::vector<flatbuffers::Offset<SynFlatBuffers::Vector>> controlPoints;
-        for (auto points : l.controlPoints) {
+        controlPoints.reserve(l.controlPoints.size());
+        for (const auto& points : l.controlPoints) {
             controlPoints.push_back(SynFlatBuffers::CreateVector(builder, points.x(), points.y(), points.z()));
         }
-
         flatbuffer_lanes.push_back(
             SynFlatBuffers::Approach::CreateLane(builder, l.width, builder.CreateVector(controlPoints)));
     }

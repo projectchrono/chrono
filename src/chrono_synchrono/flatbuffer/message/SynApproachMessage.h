@@ -61,7 +61,7 @@ class SYN_API SynApproachMessage : public SynMessage {
     ///
     ///@param builder a flatbuffer builder to construct the message with
     ///@return FlatBufferMessage the constructed flatbuffer message
-    virtual FlatBufferMessage ConvertToFlatBuffers(flatbuffers::FlatBufferBuilder& builder) override;
+    virtual FlatBufferMessage ConvertToFlatBuffers(flatbuffers::FlatBufferBuilder& builder) const override;
 
     std::vector<ApproachLane> lanes;
 };

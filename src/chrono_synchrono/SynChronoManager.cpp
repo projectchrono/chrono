@@ -238,12 +238,12 @@ void SynChronoManager::ProcessReceivedMessages() {
     // get the message buffer from the underlying communicator
     SynMessageList messages = m_communicator->GetMessages();
 
-    for (auto message : messages) {
+    for (auto& message : messages) {
         if (message->GetMessageType() == SynFlatBuffers::Type_Simulation_State) {
             auto sim_msg = std::dynamic_pointer_cast<SynSimulationMessage>(message);
             m_is_ok = !(sim_msg->m_quit_sim);
         } else {
-            for (auto& agent_pair : m_agents)
+            for (const auto& agent_pair : m_agents)
                 m_messages[agent_pair.second].push_back(message);
         }
     }
@@ -265,8 +265,6 @@ void SynChronoManager::DistributeMessages() {
                 SynLog() << print_str;
                 continue;
             }
-
-            // SynLog() << "Processing message from zombie with ID " << message->GetSourceKey() << "\n";
 
             from_zombie->SynchronizeZombie(message);
             to_agent->ProcessMessage(message);
