@@ -33,7 +33,7 @@ rtDeclareVariable(float, max_scene_distance, , );
 rtDeclareVariable(rtObject, root_node, , );
 rtDeclareVariable(float3, default_color, , );
 rtDeclareVariable(float, default_depth, , );
-rtDeclareVariable(int, max_depth, , );  
+rtDeclareVariable(int, max_depth, , );
 // camera parameters
 rtDeclareVariable(float, hFOV, , );        // camera horizontal field of view
 rtDeclareVariable(float, start_time, , );  // launch time for the sensor
@@ -47,28 +47,11 @@ rtDeclareVariable(float4, rot_1, , );      // rotation at time 0 (no rotation is
 rtTextureSampler<float4, 2> environment_map;
 rtDeclareVariable(int, has_environment_map, , );
 
-rtBuffer<float4, 2> output_buffer;  // byte version
-// rtBuffer<float4, 2> gi_pass_gi_buffer;  // byte version
-rtBuffer<float4, 2> gi_pass_normal_buffer;  // byte version
-rtBuffer<float4, 2> gi_pass_albedo_buffer;  // byte version
-
-// rtBuffer<float4, 2> gi_pass_gi_buffer_pre;  // byte version
-// rtBuffer<float4, 2> gi_pass_normal_buffer_pre;  // byte version
-// rtBuffer<float4, 2> gi_pass_albedo_buffer_pre;  // byte version
+rtBuffer<float4, 2> output_buffer;
+rtBuffer<float4, 2> gi_pass_normal_buffer;
+rtBuffer<float4, 2> gi_pass_albedo_buffer;
 
 rtBuffer<float> noise_buffer;
-
-// temporary using Optix Example !!!!
-static __host__ __device__ __inline__ unsigned int lcg(unsigned int& prev) {
-    const unsigned int LCG_A = 1664525u;
-    const unsigned int LCG_C = 1013904223u;
-    prev = (LCG_A * prev + LCG_C);
-    return prev & 0x00FFFFFF;
-}
-// Generate random float in [0, 1)
-static __host__ __device__ __inline__ float rnd(unsigned int& prev) {
-    return ((float)lcg(prev) / (float)0x01000000);
-}
 
 RT_PROGRAM void pinhole_gi_camera() {
     size_t2 screen = output_buffer.size();
@@ -117,14 +100,14 @@ RT_PROGRAM void pinhole_gi_camera() {
 
         // Russian roulette termination, as depth increase, more likely to attenuate
         if (prd_camera.depth >= 3) {
-            if (rnd(prd_camera.seed) >= attenuation)
+            if (sensor_rand(prd_camera.seed) >= attenuation)
                 break;
             attenuation *= 0.5;
         }
-        
+
         prd_camera.depth++;
-        accumColor += prd_camera.color; // Accumulate the color
-        
+        accumColor += prd_camera.color;  // Accumulate the color
+
         // early termination if the contribution is low
         if (fmaxf(prd_camera.contribution_to_firsthit) < 0.01f)
             break;
@@ -135,7 +118,7 @@ RT_PROGRAM void pinhole_gi_camera() {
     }
 
     output_buffer[launch_index] = make_float4(accumColor, 1);
-    gi_pass_normal_buffer[launch_index] = make_float4(prd_camera.normal, 1);// * 0.5f + 0.5f;
+    gi_pass_normal_buffer[launch_index] = make_float4(prd_camera.normal, 1);  // * 0.5f + 0.5f;
     gi_pass_albedo_buffer[launch_index] = make_float4(prd_camera.albedo, 1);
 }
 
