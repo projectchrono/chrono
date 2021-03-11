@@ -60,6 +60,7 @@ FlatBufferMessage SynCopterStateMessage::ConvertToFlatBuffers(flatbuffers::FlatB
     auto flatbuffer_chassis = this->chassis.ToFlatBuffers(builder);
 
     std::vector<flatbuffers::Offset<SynFlatBuffers::Pose>> flatbuffer_props;
+    flatbuffer_props.reserve(this->props.size());
     for (auto& prop : this->props)
         flatbuffer_props.push_back(prop.ToFlatBuffers(builder));
 

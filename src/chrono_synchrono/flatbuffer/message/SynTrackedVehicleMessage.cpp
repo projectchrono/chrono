@@ -80,18 +80,22 @@ FlatBufferMessage SynTrackedVehicleStateMessage::ConvertToFlatBuffers(flatbuffer
     auto chassis = this->chassis.ToFlatBuffers(builder);
 
     std::vector<flatbuffers::Offset<SynFlatBuffers::Pose>> track_shoes;
+    track_shoes.reserve(this->track_shoes.size());
     for (auto& track_shoe : this->track_shoes)
         track_shoes.push_back(track_shoe.ToFlatBuffers(builder));
 
     std::vector<flatbuffers::Offset<SynFlatBuffers::Pose>> sprockets;
+    sprockets.reserve(this->sprockets.size());
     for (auto& sprocket : this->sprockets)
         sprockets.push_back(sprocket.ToFlatBuffers(builder));
 
     std::vector<flatbuffers::Offset<SynFlatBuffers::Pose>> idlers;
+    idlers.reserve(this->idlers.size());
     for (auto& idler : this->idlers)
         idlers.push_back(idler.ToFlatBuffers(builder));
 
     std::vector<flatbuffers::Offset<SynFlatBuffers::Pose>> road_wheels;
+    road_wheels.reserve(this->road_wheels.size());
     for (auto& road_wheel : this->road_wheels)
         road_wheels.push_back(road_wheel.ToFlatBuffers(builder));
 

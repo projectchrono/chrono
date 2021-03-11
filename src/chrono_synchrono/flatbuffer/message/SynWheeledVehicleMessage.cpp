@@ -61,6 +61,7 @@ FlatBufferMessage SynWheeledVehicleStateMessage::ConvertToFlatBuffers(flatbuffer
     auto flatbuffer_chassis = this->chassis.ToFlatBuffers(builder);
 
     std::vector<flatbuffers::Offset<SynFlatBuffers::Pose>> flatbuffer_wheels;
+    flatbuffer_wheels.reserve(this->wheels.size());
     for (auto& wheel : this->wheels)
         flatbuffer_wheels.push_back(wheel.ToFlatBuffers(builder));
 
