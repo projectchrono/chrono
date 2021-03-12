@@ -68,7 +68,7 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeSCM : public ChVehicleCosimTerrain
     void SetInputFromCheckpoint(const std::string& filename);
 
     /// Write checkpoint to the specified file (which will be created in the output directory).
-    virtual void WriteCheckpoint(const std::string& filename) override;
+    virtual void WriteCheckpoint(const std::string& filename) const override;
 
   private:
     ChSystem* m_system;               ///< containing system

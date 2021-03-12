@@ -706,7 +706,7 @@ void ChVehicleCosimTerrainNodeGranularOMP::WriteParticleInformation(utils::CSV_w
     }
 }
 
-void ChVehicleCosimTerrainNodeGranularOMP::WriteCheckpoint(const std::string& filename) {
+void ChVehicleCosimTerrainNodeGranularOMP::WriteCheckpoint(const std::string& filename) const {
     utils::CSV_writer csv(" ");
 
     // Write current time and number of granular material bodies.

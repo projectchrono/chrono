@@ -31,6 +31,7 @@
 #include "chrono/physics/ChLinkLock.h"
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/solver/ChIterativeSolver.h"
+#include "chrono/solver/ChDirectSolverLS.h"
 #include "chrono/timestepper/ChState.h"
 #include "chrono/utils/ChUtilsCreators.h"
 

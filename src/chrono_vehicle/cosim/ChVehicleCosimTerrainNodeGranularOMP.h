@@ -92,7 +92,7 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularOMP : public ChVehicleCosi
     void Settle();
 
     /// Write checkpoint to the specified file (which will be created in the output directory).
-    virtual void WriteCheckpoint(const std::string& filename) override;
+    virtual void WriteCheckpoint(const std::string& filename) const override;
 
   private:
     ChSystemMulticore* m_system;  ///< containing system

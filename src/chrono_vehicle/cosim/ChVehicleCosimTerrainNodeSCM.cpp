@@ -296,18 +296,18 @@ void ChVehicleCosimTerrainNodeSCM::OnOutputData(int frame) {
 
 // -----------------------------------------------------------------------------
 
-void ChVehicleCosimTerrainNodeSCM::WriteCheckpoint(const std::string& filename) {
+void ChVehicleCosimTerrainNodeSCM::WriteCheckpoint(const std::string& filename) const {
     utils::CSV_writer csv(" ");
 
     // Get all SCM grid nodes modified from start of simulation
-    auto& nodes = m_terrain->GetModifiedNodes(true);
+    const auto& nodes = m_terrain->GetModifiedNodes(true);
 
     // Write current time and total number of modified grid nodes.
     csv << m_system->GetChTime() << endl;
     csv << nodes.size() << endl;
 
     // Write node locations and heights
-    for (auto& node : nodes) {
+    for (const auto& node : nodes) {
         csv << node.first.x() << node.first.y() << node.second << endl;
     }
 

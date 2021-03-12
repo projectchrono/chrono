@@ -80,7 +80,7 @@ class CH_VEHICLE_API ChVehicleCosimBaseNode {
     virtual void OutputData(int frame) = 0;
 
     /// Write checkpoint to the specified file (which will be created in the output directory).
-    virtual void WriteCheckpoint(const std::string& filename) {}
+    virtual void WriteCheckpoint(const std::string& filename) const {}
 
   protected:
     /// Mesh data
