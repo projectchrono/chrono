@@ -20,8 +20,6 @@ set(CV_COSIM_FILES
     ChVehicleCosimRigNode.cpp
     ChVehicleCosimTerrainNode.h
     ChVehicleCosimTerrainNode.cpp
-    ChVehicleCosimTerrainNodeRigid.h
-    ChVehicleCosimTerrainNodeRigid.cpp
     ChVehicleCosimTerrainNodeSCM.h
     ChVehicleCosimTerrainNodeSCM.cpp
     )
@@ -35,6 +33,8 @@ set(LINKER_FLAGS "${CH_LINKERFLAG_SHARED}")
 
 if(ENABLE_MODULE_MULTICORE)
   set(CV_COSIM_FILES ${CV_COSIM_FILES}
+      ChVehicleCosimTerrainNodeRigid.h
+      ChVehicleCosimTerrainNodeRigid.cpp
       ChVehicleCosimTerrainNodeGranularOMP.h
       ChVehicleCosimTerrainNodeGranularOMP.cpp)
   include_directories(${CH_MULTICORE_INCLUDES})
