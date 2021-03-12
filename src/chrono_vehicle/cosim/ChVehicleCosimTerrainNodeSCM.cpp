@@ -161,13 +161,11 @@ void ChVehicleCosimTerrainNodeSCM::Construct() {
     // Create the visualization window
     if (m_render) {
         m_irrapp = new irrlicht::ChIrrApp(m_system, L"Terrain Node (SCM)", irr::core::dimension2d<irr::u32>(1280, 720),
-                                          irrlicht::VerticalDir::Y, false, true);
+                                          irrlicht::VerticalDir::Z);
         m_irrapp->AddTypicalLogo();
         m_irrapp->AddTypicalSky();
-        m_irrapp->AddTypicalLights();
-        m_irrapp->AddTypicalCamera(irr::core::vector3df(2.0f, 1.4f, 0.0f), irr::core::vector3df(0, 0, 0));
-        m_irrapp->AddLightWithShadow(irr::core::vector3df(1.5f, 5.5f, -2.5f), irr::core::vector3df(0, 0, 0), 3, 2.2,
-                                     7.2, 40, 512, irr::video::SColorf(0.8f, 0.8f, 1.0f));
+        m_irrapp->AddTypicalLights(irr::core::vector3df(30.f, +30.f, 100.f), irr::core::vector3df(30.f, -30.f, 100.f));
+        m_irrapp->AddTypicalCamera(irr::core::vector3df(2.0f, 1.4f, 1.0f), irr::core::vector3df(0, 0, 0));
     }
 #endif
 
