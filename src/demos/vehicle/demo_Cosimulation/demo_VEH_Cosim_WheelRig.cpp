@@ -90,6 +90,14 @@ int main(int argc, char** argv) {
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     MPI_Get_processor_name(procname, &name_len);
 
+    if (num_procs != 2) {
+        if (rank == 0) {
+            std::cout << "\n\nSingle wheel cosimulation code must be run on exactly 2 ranks!\n\n" << std::endl;
+        }
+        MPI_Abort(MPI_COMM_WORLD, 1);
+        return 1;
+    }
+
 #ifdef _DEBUG
     if (rank == 0) {
         int foo;
