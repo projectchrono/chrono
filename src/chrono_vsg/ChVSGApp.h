@@ -27,6 +27,7 @@
 #include "chrono/assets/ChVisualization.h"
 #include "chrono/assets/ChSphereShape.h"
 #include "chrono/assets/ChCylinderShape.h"
+#include "chrono_vsg/tools/ChVSGScreenshotHandler.h"
 
 #include <vsgImGui/RenderImGui.h>
 #include <vsgImGui/SendEventsToImGui.h>
@@ -69,6 +70,9 @@ class CH_VSG_API ChVSGApp {
     void UpdateSceneGraph();
     vsg::ref_ptr<vsg::MatrixTransform> GetTransform(std::shared_ptr<ChBody> body, std::shared_ptr<ChAsset> asset);
     void IncreaseWaitCounter();
+    vsg::ref_ptr<vsg::RenderPass> createRenderPassCompatibleWithReadingDepthBuffer(vsg::Device* device,
+                                                                                   VkFormat imageFormat,
+                                                                                   VkFormat depthFormat);
 
   private:
     uint32_t _allocatedTextureCount = 0;
@@ -98,6 +102,8 @@ class CH_VSG_API ChVSGApp {
     vsg::ref_ptr<vsg::Viewer> m_viewer;
 
     vsg::ref_ptr<vsg::Window> m_window;
+
+    vsg::ref_ptr<ChVSGScreenshotHandler> m_screenshotHandler;
 
     float m_clearColor[4];
 

@@ -31,6 +31,7 @@ SET(ChronoEngine_VSG_SOURCES
     shapes/VSGIndexBox.cpp
     shapes/VSGIndexSphere.cpp
     shapes/VSGIndexCylinder.cpp
+    tools/ChVSGScreenshotHandler.cpp
     ../chrono_thirdparty/stb/stb_image.cpp
 )
 
@@ -47,6 +48,7 @@ SET(ChronoEngine_VSG_HEADERS
     shapes/VSGIndexBox.h
     shapes/VSGIndexSphere.h
     shapes/VSGIndexCylinder.h
+    tools/ChVSGScreenshotHandler.h
 )
 
 SOURCE_GROUP("" FILES

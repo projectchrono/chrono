@@ -175,8 +175,11 @@ bool ChVSGApp::Initialize(int windowWidth, int windowHeight, const char* windowT
     m_windowTraits->windowTitle = windowTitle;
     m_windowTraits->width = windowWidth;
     m_windowTraits->height = windowHeight;
-    m_windowTraits->x = 100;
-    m_windowTraits->y = 100;
+
+    // enable transfer from the colour and deth buffer images
+    m_windowTraits->swapchainPreferences.imageUsage =
+        VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
+    m_windowTraits->depthImageUsage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
 
     m_scenegraph = vsg::Group::create();
 
@@ -199,6 +202,13 @@ bool ChVSGApp::Initialize(int windowWidth, int windowHeight, const char* windowT
         GetLog() << "Could not create windows.\n";
         return false;
     }
+
+    auto device = m_window->getOrCreateDevice();
+
+    // provide a custom RenderPass to ensure we can read from the depth buffer, only required by the 'd' dpeth
+    // screenshot code path
+    m_window->setRenderPass(createRenderPassCompatibleWithReadingDepthBuffer(device, m_window->surfaceFormat().format,
+                                                                             m_window->depthFormat()));
 
     VkClearColorValue& clearColor = m_window->clearColor();
     for (int i = 0; i < 4; i++) {
@@ -228,10 +238,18 @@ bool ChVSGApp::Initialize(int windowWidth, int windowHeight, const char* windowT
     // setup texture pool
     // setupTexPool(m_window, camera->getViewportState(), 128);
     // compile(m_scenegraph);
+    vsg::ref_ptr<vsg::Event> event =
+        vsg::Event::create(m_window->getOrCreateDevice());  // Vulkan creates vkEvent in an unsignled state
+
+    // Add ScreenshotHandler to respond to keyboard and mouse events.
+    m_screenshotHandler = ChVSGScreenshotHandler::create(event);
+    m_viewer->addEventHandler(m_screenshotHandler);
 
     auto commandGraph = vsg::createCommandGraphForView(m_window, camera, m_scenegraph);
     auto renderGraph = vsg::RenderGraph::create(m_window);
     commandGraph->addChild(renderGraph);
+    if (event)
+        commandGraph->addChild(vsg::SetEvent::create(event, VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT));
 
     // create the normal 3D view of the scene
     renderGraph->addChild(vsg::View::create(camera, m_scenegraph));
@@ -263,6 +281,12 @@ void ChVSGApp::Render() {
     m_viewer->handleEvents();
     m_viewer->update();
     m_viewer->recordAndSubmit();
+
+    if (m_screenshotHandler->do_image_capture)
+        m_screenshotHandler->screenshot_image(m_window);
+    if (m_screenshotHandler->do_depth_capture)
+        m_screenshotHandler->screenshot_depth(m_window);
+
     m_viewer->present();
 }
 
@@ -517,4 +541,36 @@ vsg::ref_ptr<vsg::MatrixTransform> ChVSGApp::GetTransform(std::shared_ptr<ChBody
         }
     }
     return transform;
+}
+
+vsg::ref_ptr<vsg::RenderPass> ChVSGApp::createRenderPassCompatibleWithReadingDepthBuffer(vsg::Device* device,
+                                                                                         VkFormat imageFormat,
+                                                                                         VkFormat depthFormat) {
+    auto colorAttachmet = vsg::defaultColorAttachment(imageFormat);
+    auto depthAttachment = vsg::defaultDepthAttachment(depthFormat);
+
+    // by deault storeOp is VK_ATTACHMENT_STORE_OP_DONT_CARE but we do care, so bake sure we store the depth value
+    depthAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+
+    vsg::RenderPass::Attachments attachments{colorAttachmet, depthAttachment};
+
+    vsg::SubpassDescription subpass = {};
+    subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+    subpass.colorAttachments.emplace_back(VkAttachmentReference{0, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL});
+    subpass.depthStencilAttachments.emplace_back(
+        VkAttachmentReference{1, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL});
+
+    vsg::RenderPass::Subpasses subpasses{subpass};
+
+    VkSubpassDependency dependency = {};
+    dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
+    dependency.dstSubpass = 0;
+    dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+    dependency.srcAccessMask = 0;
+    dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+    dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+
+    vsg::RenderPass::Dependencies dependencies{dependency};
+
+    return vsg::RenderPass::create(device, attachments, subpasses, dependencies);
 }
