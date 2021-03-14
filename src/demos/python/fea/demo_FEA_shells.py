@@ -413,7 +413,7 @@ while (application.GetDevice().run()) :
     application.BeginScene()
     application.DrawAll()
     # .. draw also a grid
-    chronoirr.ChIrrTools.drawGrid(application.GetVideoDriver(), 1, 1)
+    chronoirr.drawGrid(application.GetVideoDriver(), 1, 1)
     # ...update load at end nodes, as simple lumped nodal forces
     load_scale = mtime * 0.1
     for mendnode in(nodesLoad) :

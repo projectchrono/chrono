@@ -24,7 +24,7 @@ import os
 
 
 # Output directory
-out_dir = "./FEA_SHELLS"
+out_dir = chrono.GetChronoOutputPath() + "FEA_SHELLS_BST"
 
 # The path to the Chrono data directory containing various assets (meshes, textures, data files)
 # is automatically set, relative to the default location of this demo.

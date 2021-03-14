@@ -18,7 +18,6 @@
 
 import pychrono as chrono
 import pychrono.fea as fea
-#import pychrono.mkl as mkl
 import pychrono.irrlicht as chronoirr
 from cables import Model1, Model2, Model3
 
