@@ -155,14 +155,14 @@ class CH_VEHICLE_API SCMDeformableTerrain : public ChTerrain {
         /// An implementation of this method in a derived class must set all soil parameters.
         virtual void Set(double x, double y) = 0;
 
-        double m_Bekker_Kphi;    ///< Kphi, frictional modulus in Bekker model
-        double m_Bekker_Kc;      ///< Kc, cohesive modulus in Bekker model
-        double m_Bekker_n;       ///< n, exponent of sinkage in Bekker model (usually 0.6...1.8)
-        double m_Mohr_cohesion;  ///< Cohesion for shear failure [Pa]
-        double m_Mohr_friction;  ///< Friction angle for shear failure [degree]
-        double m_Janosi_shear;   ///< Shear parameter in Janosi-Hanamoto formula [m]
-        double m_elastic_K;      ///< elastic stiffness K per unit area, [Pa/m] (must be larger than Kphi)
-        double m_damping_R;      ///< vertical damping R per unit area [Pa.s/m] (proportional to vertical speed)
+        double Bekker_Kphi;    ///< Kphi, frictional modulus in Bekker model
+        double Bekker_Kc;      ///< Kc, cohesive modulus in Bekker model
+        double Bekker_n;       ///< n, exponent of sinkage in Bekker model (usually 0.6...1.8)
+        double Mohr_cohesion;  ///< Cohesion for shear failure [Pa]
+        double Mohr_friction;  ///< Friction angle for shear failure [degree]
+        double Janosi_shear;   ///< Shear parameter in Janosi-Hanamoto formula [m]
+        double elastic_K;      ///< elastic stiffness K per unit area, [Pa/m] (must be larger than Kphi)
+        double damping_R;      ///< vertical damping R per unit area [Pa.s/m] (proportional to vertical speed)
     };
 
     /// Specify the callback object to set the soil parameters at given (x,y) locations.
@@ -271,10 +271,10 @@ class CH_VEHICLE_API SCMContactableData {
                        double Janosi_shear    ///< shear parameter in Janosi-Hanamoto formula [m]
     );
 
-    double m_area_ratio;     ///< fraction of contactable surface where soil-soil parameters are overriden
-    double m_Mohr_cohesion;  ///< cohesion for shear failure [Pa]
-    double m_Mohr_friction;  ///< friction angle for shear failure [degree]
-    double m_Janosi_shear;   ///< shear parameter in Janosi-Hanamoto formula [m]
+    double area_ratio;     ///< fraction of contactable surface where soil-soil parameters are overriden
+    double Mohr_cohesion;  ///< cohesion for shear failure [Pa]
+    double Mohr_friction;  ///< friction angle for shear failure [degree]
+    double Janosi_shear;   ///< shear parameter in Janosi-Hanamoto formula [m]
 };
 
 /// Underlying implementation of the Soil Contact Model.
@@ -320,39 +320,39 @@ class CH_VEHICLE_API SCMDeformableSoil : public ChLoadContainer {
 
     // Information at contacted node
     struct NodeRecord {
-        double p_level_initial;      // initial node level (relative to SCM frame)
-        double p_level;              // current node level (relative to SCM frame)
-        double p_hit_level;          // ray hit level (relative to SCM frame)
-        ChVector<> p_normal;         // normal of undeformed terrain (in SCM frame)
-        double p_sinkage;            // along local normal direction
-        double p_sinkage_plastic;    // along local normal direction
-        double p_sinkage_elastic;    // along local normal direction
-        double p_sigma;              // along local normal direction
-        double p_sigma_yield;        // along local normal direction
-        double p_kshear;             // along local tangent direction
-        double p_tau;                // along local tangent direction
-        bool p_erosion;              // for bulldozing
-        double p_massremainder;      // for bulldozing
-        double p_step_plastic_flow;  // for bulldozing
+        double level_initial;      // initial node level (relative to SCM frame)
+        double level;              // current node level (relative to SCM frame)
+        double hit_level;          // ray hit level (relative to SCM frame)
+        ChVector<> normal;         // normal of undeformed terrain (in SCM frame)
+        double sinkage;            // along local normal direction
+        double sinkage_plastic;    // along local normal direction
+        double sinkage_elastic;    // along local normal direction
+        double sigma;              // along local normal direction
+        double sigma_yield;        // along local normal direction
+        double kshear;             // along local tangent direction
+        double tau;                // along local tangent direction
+        bool erosion;              // for bulldozing
+        double massremainder;      // for bulldozing
+        double step_plastic_flow;  // for bulldozing
 
         NodeRecord() : NodeRecord(0, 0, ChVector<>(0,0,1)) {}
         ~NodeRecord() {}
 
         NodeRecord(double init_level, double level, const ChVector<>& n)
-            : p_sigma(0),
-              p_sinkage_elastic(0),
-              p_sinkage_plastic(0),
-              p_step_plastic_flow(0),
-              p_erosion(false),
-              p_level(level),
-              p_level_initial(init_level),
-              p_hit_level(1e9),
-              p_sinkage(init_level - level),
-              p_kshear(0),
-              p_sigma_yield(0),
-              p_tau(0),
-              p_massremainder(0),
-              p_normal(n) {}
+            : sigma(0),
+              sinkage_elastic(0),
+              sinkage_plastic(0),
+              step_plastic_flow(0),
+              erosion(false),
+              level(level),
+              level_initial(init_level),
+              hit_level(1e9),
+              sinkage(init_level - level),
+              kshear(0),
+              sigma_yield(0),
+              tau(0),
+              massremainder(0),
+              normal(n) {}
     };
 
     // Hash function for a pair of integer grid coordinates
