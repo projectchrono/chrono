@@ -51,7 +51,7 @@ class SYN_API SynPose {
     ///
     ///@param builder the FlatBuffer builder used to construct messages
     ///@return flatbuffers::Offset<SynFlatBuffers::Pose> the flatbuffer pose
-    flatbuffers::Offset<SynFlatBuffers::Pose> ToFlatBuffers(flatbuffers::FlatBufferBuilder& builder);
+    flatbuffers::Offset<SynFlatBuffers::Pose> ToFlatBuffers(flatbuffers::FlatBufferBuilder& builder) const;
 
     ChFrameMoving<>& GetFrame() { return m_frame; }
 

@@ -23,7 +23,7 @@ void SynSimulationMessage::ConvertFromFlatBuffers(const SynFlatBuffers::Message*
 }
 
 /// Generate FlatBuffers message from this message's state
-FlatBufferMessage SynSimulationMessage::ConvertToFlatBuffers(flatbuffers::FlatBufferBuilder& builder) {
+FlatBufferMessage SynSimulationMessage::ConvertToFlatBuffers(flatbuffers::FlatBufferBuilder& builder) const {
     auto flatbuffer_state = Simulation::CreateState(builder, m_quit_sim);
     auto flatbuffer_message = SynFlatBuffers::CreateMessage(builder,                                //
                                                             SynFlatBuffers::Type_Simulation_State,  //
