@@ -30,7 +30,7 @@ namespace vehicle {
 // Constructors for ANCFTire
 // -----------------------------------------------------------------------------
 ANCFTire::ANCFTire(const std::string& filename) : ChANCFTire("") {
-    Document d = ReadFileJSON(filename);
+    Document d; ReadFileJSON(filename, d);
     if (d.IsNull())
         return;
 

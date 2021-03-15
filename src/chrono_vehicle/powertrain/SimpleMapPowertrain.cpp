@@ -35,7 +35,7 @@ const double rpm2rads = CH_C_PI / 30;
 // Constructor for a powertrain using data from the specified JSON file.
 // -----------------------------------------------------------------------------
 SimpleMapPowertrain::SimpleMapPowertrain(const std::string& filename) : ChSimpleMapPowertrain("") {
-    Document d = ReadFileJSON(filename);
+    Document d; ReadFileJSON(filename, d);
     if (d.IsNull())
         return;
 
