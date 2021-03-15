@@ -113,7 +113,7 @@ class ChApi ChContactable {
 
     /// Get the user-data using static cast to a known type.
     template <typename T>
-    auto GetUserData() const {
+    std::shared_ptr<T> GetUserData() const {
         return std::static_pointer_cast<T>(m_data);
     }
 
