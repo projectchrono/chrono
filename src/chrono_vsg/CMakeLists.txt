@@ -33,6 +33,7 @@ SET(ChronoEngine_VSG_SOURCES
     shapes/VSGIndexCylinder.cpp
     tools/ChVSGScreenshotHandler.cpp
     ../chrono_thirdparty/stb/stb_image.cpp
+    ../chrono_thirdparty/stb/stb_image_write.cpp
 )
 
 SET(ChronoEngine_VSG_HEADERS

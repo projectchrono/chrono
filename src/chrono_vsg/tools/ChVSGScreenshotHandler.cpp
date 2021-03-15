@@ -1,4 +1,3 @@
-#define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "chrono_thirdparty/stb/stb_image_write.h"
 #include "chrono_vsg/tools/ChVSGScreenshotHandler.h"
 
