@@ -101,7 +101,7 @@ application.SetTryRealtime(True)
 while (application.GetDevice().run()) :
     application.BeginScene()
     application.DrawAll()
-    irr.ChIrrTools.drawSegment(application.GetVideoDriver(), p0, p0 + p1 * 4, irr.SColor(255, 255, 150, 0), True);
-    irr.ChIrrTools.drawSegment(application.GetVideoDriver(), p0, p0 + p2 * 4, irr.SColor(255, 255, 150, 0), True);
+    irr.drawSegment(application.GetVideoDriver(), p0, p0 + p1 * 4, irr.SColor(255, 255, 150, 0), True);
+    irr.drawSegment(application.GetVideoDriver(), p0, p0 + p2 * 4, irr.SColor(255, 255, 150, 0), True);
     application.DoStep()
     application.EndScene()
