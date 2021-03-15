@@ -258,7 +258,7 @@ int main(int argc, char* argv[]) {
     // Set some visualization parameters: either with a texture, or with falsecolor plot, etc.
     mterrain.SetPlotType(vehicle::SCMDeformableTerrain::PLOT_PRESSURE, 0, 20000);
 
-    mterrain.GetMesh()->SetWireframe(true);
+    mterrain.SetMeshWireframe(true);
 
     // ==IMPORTANT!== Use this function for adding a ChIrrNodeAsset to all items
     application.AssetBindAll();

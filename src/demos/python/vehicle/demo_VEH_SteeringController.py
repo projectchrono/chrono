@@ -155,10 +155,10 @@ tire_vis_type = veh.VisualizationType_MESH
 powertrain_model = veh.PowertrainModelType_SHAFTS
 
 # Drive type (FWD, RWD, or AWD)
-drive_type = veh.DrivelineType_AWD
+drive_type = veh.DrivelineTypeWV_AWD
 
 # Steering type (PITMAN_ARM or PITMAN_ARM_SHAFTS)
-steering_type = veh.SteeringType_PITMAN_ARM
+steering_type = veh.SteeringTypeWV_PITMAN_ARM
 
 # Type of tire model (RIGID, RIGID_MESH, PACEJKA, LUGRE, FIALA, PAC89)
 tire_model = veh.TireModelType_TMEASY

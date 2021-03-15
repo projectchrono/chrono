@@ -50,7 +50,7 @@ class SYN_API SynCopterStateMessage : public SynMessage {
     ///
     ///@param builder a flatbuffer builder to construct the message with
     ///@return FlatBufferMessage the constructed flatbuffer message
-    virtual FlatBufferMessage ConvertToFlatBuffers(flatbuffers::FlatBufferBuilder& builder) override;
+    virtual FlatBufferMessage ConvertToFlatBuffers(flatbuffers::FlatBufferBuilder& builder) const override;
 
     // -------------------------------------------------------------------------------
 
@@ -87,7 +87,7 @@ class SYN_API SynCopterDescriptionMessage : public SynMessage {
     ///
     ///@param builder a flatbuffer builder to construct the message with
     ///@return FlatBufferMessage the constructed flatbuffer message
-    virtual FlatBufferMessage ConvertToFlatBuffers(flatbuffers::FlatBufferBuilder& builder) override;
+    virtual FlatBufferMessage ConvertToFlatBuffers(flatbuffers::FlatBufferBuilder& builder) const override;
 
     // -------------------------------------------------------------------------------
 
@@ -103,11 +103,11 @@ class SYN_API SynCopterDescriptionMessage : public SynMessage {
     void SetNumProps(int num_props);
 
     ///@brief Get the number of propellers for this copter
-    int GetNumProps() const {return num_props;}
+    int GetNumProps() const { return num_props; }
 
     // -------------------------------------------------------------------------------
 
-    std::string chassis_vis_file = "";  ///< file name for chassis zombie visualization
+    std::string chassis_vis_file = "";    ///< file name for chassis zombie visualization
     std::string propeller_vis_file = "";  ///< file name for propeller zombie visualization
 
     int num_props = 0;  ///< number of propellers the zombie copter has

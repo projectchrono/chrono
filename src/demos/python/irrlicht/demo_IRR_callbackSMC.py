@@ -180,9 +180,9 @@ application.SetTimestep(1e-3)
 while (application.GetDevice().run()) :
     application.BeginScene(True, True, chronoirr.SColor(255, 140, 161, 192))
     application.DrawAll()
-    chronoirr.ChIrrTools.drawGrid(application.GetVideoDriver(), 0.5, 0.5, 12, 12,
-                                   chrono.ChCoordsysD(chrono.ChVectorD(0, 0, 0), chrono.Q_from_AngX(chrono.CH_C_PI_2)))
-    chronoirr.ChIrrTools.drawAllCOGs(system, application.GetVideoDriver(), 1.0)
+    chronoirr.drawGrid(application.GetVideoDriver(), 0.5, 0.5, 12, 12,
+                       chrono.ChCoordsysD(chrono.ChVectorD(0, 0, 0), chrono.Q_from_AngX(chrono.CH_C_PI_2)))
+    chronoirr.drawAllCOGs(system, application.GetVideoDriver(), 1.0)
     application.DoStep()
     application.EndScene()
     

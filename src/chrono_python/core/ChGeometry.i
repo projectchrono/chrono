@@ -31,7 +31,35 @@ using namespace chrono;
 using namespace geometry;
 
 %}
+
+%shared_ptr(chrono::geometry::ChGeometry)
+%shared_ptr(chrono::geometry::ChLine)
+%shared_ptr(chrono::geometry::ChVolume)
+%shared_ptr(chrono::geometry::ChSurface)
+%shared_ptr(chrono::geometry::ChBox)
+%shared_ptr(chrono::geometry::ChSphere)
+%shared_ptr(chrono::geometry::ChCylinder)
+%shared_ptr(chrono::geometry::ChCapsule)
+%shared_ptr(chrono::geometry::ChCone)
+%shared_ptr(chrono::geometry::ChEllipsoid)
+%shared_ptr(chrono::geometry::ChLineArc)
+%shared_ptr(chrono::geometry::ChLineSegment)
+%shared_ptr(chrono::geometry::ChLineNurbs)
+%shared_ptr(chrono::geometry::ChLinePath)
+%shared_ptr(chrono::geometry::ChLinePoly)
+%shared_ptr(chrono::geometry::ChLineBezier)
+%shared_ptr(chrono::geometry::ChLineBspline)
+%shared_ptr(chrono::geometry::ChLineCam)
+%shared_ptr(chrono::geometry::ChTriangle)
+%shared_ptr(chrono::geometry::ChTriangleMesh)
+%shared_ptr(chrono::geometry::ChTriangleMeshSoup)
+%shared_ptr(chrono::geometry::ChTriangleMeshConnected)
+%shared_ptr(chrono::geometry::ChSurface)
+%shared_ptr(chrono::geometry::ChSurfaceNurbs)
  
+//%feature("director") chrono::geometry::ChGeometry;
+//%ignore chrono::geometry::ChGeometry::Clone;
+
 /* Parse the header file(s) to generate wrappers */
 %include "../../chrono/geometry/ChGeometry.h"
 %include "../../chrono/geometry/ChLine.h"
