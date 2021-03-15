@@ -33,7 +33,7 @@ namespace vehicle {
 // Constructors for ReissnerTire
 // -----------------------------------------------------------------------------
 ReissnerTire::ReissnerTire(const std::string& filename) : ChReissnerTire("") {
-    Document d = ReadFileJSON(filename);
+    Document d; ReadFileJSON(filename, d);
     if (d.IsNull())
         return;
 

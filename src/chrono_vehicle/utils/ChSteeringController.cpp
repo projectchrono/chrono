@@ -51,7 +51,7 @@ ChSteeringController::ChSteeringController()
 
 ChSteeringController::ChSteeringController(const std::string& filename)
     : m_sentinel(0, 0, 0), m_target(0, 0, 0), m_err(0), m_errd(0), m_erri(0), m_collect(false), m_csv(NULL) {
-    Document d = ReadFileJSON(filename);
+    Document d; ReadFileJSON(filename, d);
     if (d.IsNull())
         return;
 
@@ -226,7 +226,7 @@ ChPathSteeringControllerXT::ChPathSteeringControllerXT(const std::string& filena
         m_max_wheel_turn_angle = max_wheel_turn_angle;
     }
 
-    Document d = ReadFileJSON(filename);
+    Document d; ReadFileJSON(filename, d);
     if (d.IsNull())
         return;
 
@@ -463,7 +463,7 @@ ChPathSteeringControllerSR::ChPathSteeringControllerSR(const std::string& filena
     // retireve points
     CalcPathPoints();
 
-    Document d = ReadFileJSON(filename);
+    Document d; ReadFileJSON(filename, d);
     if (d.IsNull())
         return;
 
@@ -665,7 +665,7 @@ ChPathSteeringControllerStanley::ChPathSteeringControllerStanley(const std::stri
       m_delayFilter(nullptr) {
     SetGains(0.0, 0.0, 0.0);
     m_tracker = std::unique_ptr<ChBezierCurveTracker>(new ChBezierCurveTracker(path, isClosedPath));
-    Document d = ReadFileJSON(filename);
+    Document d; ReadFileJSON(filename, d);
     if (d.IsNull())
         return;
 

@@ -32,7 +32,7 @@ const double rpm2rads = CH_C_PI / 30;
 // Constructor a shafts powertrain using data from the specified JSON file.
 // -----------------------------------------------------------------------------
 ShaftsPowertrain::ShaftsPowertrain(const std::string& filename) : ChShaftsPowertrain("") {
-    Document d = ReadFileJSON(filename);
+    Document d; ReadFileJSON(filename, d);
     if (d.IsNull())
         return;
 

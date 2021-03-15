@@ -29,7 +29,7 @@ namespace vehicle {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 SimpleCVTPowertrain::SimpleCVTPowertrain(const std::string& filename) : ChSimpleCVTPowertrain("") {
-    Document d = ReadFileJSON(filename);
+    Document d; ReadFileJSON(filename, d);
     if (d.IsNull())
         return;
 

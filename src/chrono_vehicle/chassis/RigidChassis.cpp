@@ -29,7 +29,7 @@ namespace vehicle {
 // -----------------------------------------------------------------------------
 
 RigidChassis::RigidChassis(const std::string& filename) : ChRigidChassis("") {
-    Document d = ReadFileJSON(filename);
+    Document d; ReadFileJSON(filename, d);
     if (d.IsNull())
         return;
 
@@ -180,7 +180,7 @@ void RigidChassis::CreateContactMaterials(ChContactMethod contact_method) {
 // -----------------------------------------------------------------------------
 
 RigidChassisRear::RigidChassisRear(const std::string& filename) : ChRigidChassisRear("") {
-    Document d = ReadFileJSON(filename);
+    Document d; ReadFileJSON(filename, d);
     if (d.IsNull())
         return;
 
