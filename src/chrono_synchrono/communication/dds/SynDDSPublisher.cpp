@@ -61,9 +61,13 @@ void SynDDSPublisher::DeleteDDSEntities(DomainParticipant* participant) {
 }
 
 bool SynDDSPublisher::Publish(void* message) {
-    m_writer->write(message);
+    bool ret = m_writer->write(message);
 
-    return true;
+    if (!ret) {
+        std::cerr << "DataWriter failed to write on topic" << m_writer->get_topic()->get_name() << std::endl;
+    }
+
+    return ret;
 }
 
 ///@brief Wait for the specified number of matches
@@ -72,7 +76,7 @@ bool SynDDSPublisher::Publish(void* message) {
 /// a subscriber will just wait for a single listener.
 ///
 void SynDDSPublisher::WaitForMatches(unsigned int matches) {
-    // m_listener->BlockUntilMatches(matches);
+    m_listener->BlockUntilMatches(matches);
 }
 
 }  // namespace synchrono
