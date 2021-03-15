@@ -71,11 +71,18 @@ bool enable_moving_patch = true;
 bool var_params = true;
 
 // Custom callback for setting location-dependent soil properties.
-// Note that the (x,y) location is given in the terrain's reference plane.
-// Here, the vehicle moves in the terrain's negative y direction!
+// Note that the location is given in the SCM reference frame.
 class MySoilParams : public vehicle::SCMDeformableTerrain::SoilParametersCallback {
   public:
-    virtual void Set(double x, double y) override {
+    virtual void Set(const ChVector<>& loc,
+                     double& Bekker_Kphi,
+                     double& Bekker_Kc,
+                     double& Bekker_n,
+                     double& Mohr_cohesion,
+                     double& Mohr_friction,
+                     double& Janosi_shear,
+                     double& elastic_K,
+                     double& damping_R) override {
         Bekker_Kphi = 0.82e6;
         Bekker_Kc = 0.14e4;
         Bekker_n = 1.0;

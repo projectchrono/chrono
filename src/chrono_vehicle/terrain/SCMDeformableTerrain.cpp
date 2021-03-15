@@ -133,7 +133,7 @@ void SCMDeformableTerrain::SetSoilParameters(
     m_ground->m_Bekker_Kc = Bekker_Kc;
     m_ground->m_Bekker_n = Bekker_n;
     m_ground->m_Mohr_cohesion = Mohr_cohesion;
-    m_ground->m_Mohr_friction = Mohr_friction;
+    m_ground->m_Mohr_mu = std::tan(Mohr_friction * CH_C_DEG_TO_RAD);
     m_ground->m_Janosi_shear = Janosi_shear;
     m_ground->m_elastic_K = ChMax(elastic_K, Bekker_Kphi);
     m_ground->m_damping_R = damping_R;
@@ -146,13 +146,13 @@ void SCMDeformableTerrain::EnableBulldozing(bool val) {
 
 // Set parameters controlling the creation of side ruts (bulldozing effects).
 void SCMDeformableTerrain::SetBulldozingParameters(
-    double erosion_angle,     // angle of erosion of the displaced material (in degrees!)
+    double erosion_angle,     // angle of erosion of the displaced material [degrees]
     double flow_factor,       // growth of lateral volume relative to pressed volume
     int erosion_iterations,   // number of erosion refinements per timestep
     int erosion_propagations  // number of concentric vertex selections subject to erosion
 ) {
     m_ground->m_flow_factor = flow_factor;
-    m_ground->m_erosion_angle = erosion_angle;
+    m_ground->m_erosion_slope = std::tan(erosion_angle * CH_C_DEG_TO_RAD);
     m_ground->m_erosion_iterations = erosion_iterations;
     m_ground->m_erosion_propagations = erosion_propagations;
 }
@@ -298,7 +298,10 @@ SCMContactableData::SCMContactableData(double area_ratio,
                                        double Mohr_cohesion,
                                        double Mohr_friction,
                                        double Janosi_shear)
-    : area_ratio(area_ratio), Mohr_cohesion(Mohr_cohesion), Mohr_friction(Mohr_friction), Janosi_shear(Janosi_shear) {}
+    : area_ratio(area_ratio),
+      Mohr_cohesion(Mohr_cohesion),
+      Mohr_mu(std::tan(Mohr_friction * CH_C_DEG_TO_RAD)),
+      Janosi_shear(Janosi_shear) {}
 
 // -----------------------------------------------------------------------------
 // Implementation of SCMDeformableSoil
@@ -328,7 +331,7 @@ SCMDeformableSoil::SCMDeformableSoil(ChSystem* system, bool visualization_mesh) 
     // Bulldozing effects
     m_bulldozing = false;
     m_flow_factor = 1.2;
-    m_erosion_angle = 40;
+    m_erosion_slope = std::tan(40.0 * CH_C_DEG_TO_RAD);
     m_erosion_iterations = 3;
     m_erosion_propagations = 10;
 
@@ -337,7 +340,7 @@ SCMDeformableSoil::SCMDeformableSoil(ChSystem* system, bool visualization_mesh) 
     m_Bekker_Kc = 0;
     m_Bekker_n = 1.1;
     m_Mohr_cohesion = 50;
-    m_Mohr_friction = 20;
+    m_Mohr_mu = std::tan(20.0 * CH_C_DEG_TO_RAD);
     m_Janosi_shear = 0.01;
     m_elastic_K = 50000000;
     m_damping_R = 0;
@@ -1107,7 +1110,7 @@ void SCMDeformableSoil::ComputeInternalForces() {
     double Bekker_Kc = m_Bekker_Kc;
     double Bekker_n = m_Bekker_n;
     double Mohr_cohesion = m_Mohr_cohesion;
-    double Mohr_friction = m_Mohr_friction;
+    double Mohr_mu = m_Mohr_mu;
     double Janosi_shear = m_Janosi_shear;
     double elastic_K = m_elastic_K;
     double damping_R = m_damping_R;
@@ -1126,16 +1129,10 @@ void SCMDeformableSoil::ComputeInternalForces() {
         auto hit_point_loc = m_plane.TransformPointParentToLocal(hit_point_abs);
 
         if (m_soil_fun) {
-            m_soil_fun->Set(hit_point_loc.x(), hit_point_loc.y());
-
-            Bekker_Kphi = m_soil_fun->Bekker_Kphi;
-            Bekker_Kc = m_soil_fun->Bekker_Kc;
-            Bekker_n = m_soil_fun->Bekker_n;
-            Mohr_cohesion = m_soil_fun->Mohr_cohesion;
-            Mohr_friction = m_soil_fun->Mohr_friction;
-            Janosi_shear = m_soil_fun->Janosi_shear;
-            elastic_K = m_soil_fun->elastic_K;
-            damping_R = m_soil_fun->damping_R;
+            double Mohr_friction;
+            m_soil_fun->Set(hit_point_loc, Bekker_Kphi, Bekker_Kc, Bekker_n, Mohr_cohesion, Mohr_friction, Janosi_shear,
+                            elastic_K, damping_R);
+            Mohr_mu = std::tan(Mohr_friction * CH_C_DEG_TO_RAD);
         }
 
         nr.hit_level = hit_point_loc.z();                              // along SCM z axis
@@ -1190,7 +1187,7 @@ void SCMDeformableSoil::ComputeInternalForces() {
         ////}
 
         // Mohr-Coulomb
-        double tau_max = Mohr_cohesion + nr.sigma * tan(Mohr_friction * CH_C_DEG_TO_RAD);
+        double tau_max = Mohr_cohesion + nr.sigma * Mohr_mu;
 
         // Janosi-Hanamoto (along local tangent direction)
         nr.tau = tau_max * (1.0 - exp(-(nr.kshear / Janosi_shear)));
@@ -1204,7 +1201,7 @@ void SCMDeformableSoil::ComputeInternalForces() {
 
         if (auto cprops = contactable->GetUserData<vehicle::SCMContactableData>()) {
             // Use weighted sum of soil-contactable and soil-soil parameters
-            double c_tau_max = cprops->Mohr_cohesion + nr.sigma * tan(cprops->Mohr_friction * CH_C_DEG_TO_RAD);
+            double c_tau_max = cprops->Mohr_cohesion + nr.sigma * cprops->Mohr_mu;
             double c_tau = c_tau_max * (1.0 - exp(-(nr.kshear / cprops->Janosi_shear)));
             double ratio = cprops->area_ratio;
             Ft = T * m_area * ((1 - ratio) * nr.tau + ratio * c_tau);
@@ -1270,7 +1267,7 @@ void SCMDeformableSoil::ComputeInternalForces() {
         typedef std::unordered_set<ChVector2<int>, CoordHash> NodeSet;
 
         // Maximum level change between neighboring nodes (smoothing phase)
-        double dy_lim = m_delta * std::tan(m_erosion_angle * CH_C_DEG_TO_RAD);
+        double dy_lim = m_delta * m_erosion_slope;
 
         // (1) Raise boundaries of each contact patch
         m_timer_bulldozing_boundary.start();
