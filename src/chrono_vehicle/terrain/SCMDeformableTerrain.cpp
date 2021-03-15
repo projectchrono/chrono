@@ -291,6 +291,19 @@ void SCMDeformableTerrain::PrintStepStatistics(std::ostream& os) const {
 }
 
 // -----------------------------------------------------------------------------
+// Contactable user-data (contactable-soil parameters)
+// -----------------------------------------------------------------------------
+
+SCMContactableData::SCMContactableData(double area_ratio,
+                                       double Mohr_cohesion,
+                                       double Mohr_friction,
+                                       double Janosi_shear)
+    : m_area_ratio(area_ratio),
+      m_Mohr_cohesion(Mohr_cohesion),
+      m_Mohr_friction(Mohr_friction),
+      m_Janosi_shear(Janosi_shear) {}
+
+// -----------------------------------------------------------------------------
 // Implementation of SCMDeformableSoil
 // -----------------------------------------------------------------------------
 
@@ -1154,6 +1167,7 @@ void SCMDeformableSoil::ComputeInternalForces() {
         ChVector<> T = -(speed_abs - Vn * N);
         T.Normalize();
 
+        // Update total sinkage and current level for this hit node
         nr.p_sinkage = p_hit_offset;
         nr.p_level = nr.p_hit_level;
 
@@ -1173,7 +1187,7 @@ void SCMDeformableSoil::ComputeInternalForces() {
         // Elastic sinkage (along local normal direction)
         nr.p_sinkage_elastic = nr.p_sinkage - nr.p_sinkage_plastic;
 
-        // add compressive speed-proportional damping (not clamped by pressure yield)
+        // Add compressive speed-proportional damping (not clamped by pressure yield)
         ////if (Vn < 0) {
         nr.p_sigma += -Vn * damping_R;
         ////}
@@ -1184,8 +1198,23 @@ void SCMDeformableSoil::ComputeInternalForces() {
         // Janosi-Hanamoto (along local tangent direction)
         nr.p_tau = tau_max * (1.0 - exp(-(nr.p_kshear / Janosi_shear)));
 
-        ChVector<> Fn = N * m_area * nr.p_sigma;  // along local normal direction
-        ChVector<> Ft = T * m_area * nr.p_tau;    // along local tangent direction
+        // Calculate normal and tangential forces (in local node directions).
+        // If specified, combine properties for soil-contactable interaction and soil-soil interaction.
+        ChVector<> Fn = N * m_area * nr.p_sigma;
+        ChVector<> Ft;
+
+        //// TODO:  take into account "tread height" (add to SCMContactableData)?
+
+        if (auto cprops = contactable->GetUserData<vehicle::SCMContactableData>()) {
+            // Use weighted sum of soil-contactable and soil-soil parameters
+            double c_tau_max = cprops->m_Mohr_cohesion + nr.p_sigma * tan(cprops->m_Mohr_friction * CH_C_DEG_TO_RAD);
+            double c_tau = c_tau_max * (1.0 - exp(-(nr.p_kshear / cprops->m_Janosi_shear)));
+            double ratio = cprops->m_area_ratio;
+            Ft = T * m_area * ((1 - ratio) * nr.p_tau + ratio * c_tau);
+        } else {
+            // Use only soil-soil parameters
+            Ft = T * m_area * nr.p_tau;
+        }
 
         if (ChBody* rigidbody = dynamic_cast<ChBody*>(contactable)) {
             // [](){} Trick: no deletion for this shared ptr, since 'rigidbody' was not a new ChBody()

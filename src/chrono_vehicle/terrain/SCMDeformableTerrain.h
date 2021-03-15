@@ -262,8 +262,22 @@ class CH_VEHICLE_API SCMDeformableTerrain : public ChTerrain {
     std::shared_ptr<SCMDeformableSoil> m_ground;  ///< underlying load container for contact force generation
 };
 
-/// This class provides the underlying implementation of the Soil Contact Model.
-/// Used in SCMDeformableTerrain.
+/// Parameters for soil-contactable interaction.
+class CH_VEHICLE_API SCMContactableData {
+  public:
+    SCMContactableData(double area_ratio,     ///< area fraction with overriden parameters (in [0,1])
+                       double Mohr_cohesion,  ///< cohesion for shear failure [Pa]
+                       double Mohr_friction,  ///< friction angle for shear failure [degree]
+                       double Janosi_shear    ///< shear parameter in Janosi-Hanamoto formula [m]
+    );
+
+    double m_area_ratio;     ///< fraction of contactable surface where soil-soil parameters are overriden
+    double m_Mohr_cohesion;  ///< cohesion for shear failure [Pa]
+    double m_Mohr_friction;  ///< friction angle for shear failure [degree]
+    double m_Janosi_shear;   ///< shear parameter in Janosi-Hanamoto formula [m]
+};
+
+/// Underlying implementation of the Soil Contact Model.
 class CH_VEHICLE_API SCMDeformableSoil : public ChLoadContainer {
   public:
     SCMDeformableSoil(ChSystem* system, bool visualization_mesh);
@@ -463,14 +477,14 @@ class CH_VEHICLE_API SCMDeformableSoil : public ChLoadContainer {
     std::shared_ptr<ChColorAsset> m_color;                 // mesh edge default color
 
     // SCM parameters
-    double m_Bekker_Kphi;
-    double m_Bekker_Kc;
-    double m_Bekker_n;
-    double m_Mohr_cohesion;
-    double m_Mohr_friction;
-    double m_Janosi_shear;
-    double m_elastic_K;
-    double m_damping_R;
+    double m_Bekker_Kphi;    ///< Kphi, frictional modulus in Bekker model
+    double m_Bekker_Kc;      ///< Kc, cohesive modulus in Bekker model
+    double m_Bekker_n;       ///< n, exponent of sinkage in Bekker model (usually 0.6...1.8)
+    double m_Mohr_cohesion;  ///< Cohesion for shear failure [Pa]
+    double m_Mohr_friction;  ///< Friction angle for shear failure [degree]
+    double m_Janosi_shear;   ///< Shear parameter in Janosi-Hanamoto formula [m]
+    double m_elastic_K;      ///< elastic stiffness K per unit area, [Pa/m] (must be larger than Kphi)
+    double m_damping_R;      ///< vertical damping R per unit area [Pa.s/m] (proportional to vertical speed)
 
     // Callback object for position-dependent soil properties
     std::shared_ptr<SCMDeformableTerrain::SoilParametersCallback> m_soil_fun;
