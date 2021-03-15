@@ -116,11 +116,10 @@ SynDDSCommunicator::~SynDDSCommunicator() {
     DomainParticipantFactory::get_instance()->delete_participant(m_participant);
 }
 
-bool SynDDSCommunicator::Initialize() {
+void SynDDSCommunicator::Initialize() {
     // Wait for all participants to be available
     Barrier();
-
-    return SynCommunicator::Initialize();
+    SynCommunicator::Initialize();
 }
 
 void SynDDSCommunicator::Synchronize() {

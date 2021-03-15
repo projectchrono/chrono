@@ -31,10 +31,8 @@ SynCommunicator::SynCommunicator() : m_initialized(false) {}
 
 SynCommunicator::~SynCommunicator() {}
 
-bool SynCommunicator::Initialize() {
+void SynCommunicator::Initialize() {
     m_initialized = true;
-
-    return true;
 }
 
 // -----------------------------------------------------------------------------------------------

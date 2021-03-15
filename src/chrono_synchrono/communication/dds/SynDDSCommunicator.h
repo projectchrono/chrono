@@ -78,7 +78,7 @@ class SYN_API SynDDSCommunicator : public SynCommunicator {
     /// Although not mandatory, this function should handle initial peer-to-peer communication.
     /// This could mean a simple handshake or an actual exchange of information used during the simulation.
     ///
-    virtual bool Initialize() override;
+    virtual void Initialize() override;
 
     ///@brief This function is responsible for continuous synchronization steps
     /// This function, depending on it's implementation, could be blocking or non-blocking.
