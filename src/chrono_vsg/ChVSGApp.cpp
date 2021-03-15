@@ -175,6 +175,7 @@ bool ChVSGApp::Initialize(int windowWidth, int windowHeight, const char* windowT
     m_windowTraits->windowTitle = windowTitle;
     m_windowTraits->width = windowWidth;
     m_windowTraits->height = windowHeight;
+    m_windowTraits->swapchainPreferences.imageCount = 3;
 
     // enable transfer from the colour and deth buffer images
     m_windowTraits->swapchainPreferences.imageUsage =

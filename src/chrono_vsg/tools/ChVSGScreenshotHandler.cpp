@@ -251,22 +251,35 @@ void ChVSGScreenshotHandler::screenshot_image(vsg::ref_ptr<vsg::Window> window) 
     // vsg::Path outputFilename("screenshot.vsgt");
     // vsg::write(imageData, outputFilename);
 
-    unsigned char* data = reinterpret_cast<unsigned char*>(imageData->dataPointer());
-    int pixelsDataSize = width * height * 3;
-    unsigned char* pixels = new unsigned char[pixelsDataSize];
-    size_t k = 0;
-    for (size_t j = 0; j < imageData->dataSize(); j += 4) {
-        pixels[k++] = data[j + 2];
-        pixels[k++] = data[j + 1];
-        pixels[k++] = data[j];
+    // following issue has been found on a iMac with retina display
+    if (width > 1600) {
+        std::cout << "Could not make the desired screenshot due to STB limitations." << std::endl;
+        std::cout << "Framebuffer width = " << width << " pixels." << std::endl;
+        std::cout << "Please decrease window width setting to 800!" << std::endl;
+        return;
     }
+    unsigned char* data = reinterpret_cast<unsigned char*>(imageData->dataPointer());
+    const size_t channels = 3;  // we use RGB, RGBA seems to cause output problems
+    size_t pixelsDataSize = width * height * channels;
+    unsigned char* pixels = new unsigned char[pixelsDataSize];
+    if (pixels) {
+        size_t k = 0;
+        for (size_t j = 0; j < imageData->dataSize(); j += 4) {
+            // we have to swap RGB width BGR for output
+            pixels[k++] = data[j + 2];
+            pixels[k++] = data[j + 1];
+            pixels[k++] = data[j];
+        }
 
-    // int ans1 = stbi_write_bmp("screenshot.bmp", width, height, 3, pixels);
-    int ans2 = stbi_write_png("screenshot.png", width, height, 3, pixels, 0);
-    // int ans3 = stbi_write_jpg("screenshot.jpg", width, height, 3, pixels, 100);
-    // int ans4 = stbi_write_tga("screenshot.tga", width, height, 3, pixels);
+        // int ans1 = stbi_write_bmp("screenshot.bmp", width, height, 3, pixels);
+        int ans2 = stbi_write_png("screenshot.png", width, height, channels, pixels, 0);
+        // int ans3 = stbi_write_jpg("screenshot.jpg", width, height, 3, pixels, 100);
+        // int ans4 = stbi_write_tga("screenshot.tga", width, height, 3, pixels);
 
-    delete[] pixels;
+        delete[] pixels;
+    } else {
+        std::cout << "Not enough memory to make a screenshot! Decrease window size!" << std::endl;
+    }
 }
 
 void ChVSGScreenshotHandler::screenshot_depth(vsg::ref_ptr<vsg::Window> window) {

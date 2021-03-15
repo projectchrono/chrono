@@ -113,7 +113,7 @@ int main(int argc, char* argv[]) {
     app.setOutputStep(0.015);
     app.setUpVector(ChVector<>(0.0, 0.0, -1.0));
 
-    bool ok = app.Initialize(1200, 800, "VSG Friction Demo", &mphysicalSystem);
+    bool ok = app.Initialize(800, 1000, "VSG Friction Demo", &mphysicalSystem);
     double modelTime = 0.0;
     double maxModelTime = 10.0;
     ChTimer timer;
