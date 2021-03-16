@@ -522,7 +522,6 @@ bool ChOptimizerGenetic::InitializePopulation() {
             a2 = xv_sup[varindex];  // must lie within the max/min limits
             mvalue = a1 + (ChRandom() * (a2 - a1));
             population[mind]->genes(varindex) = mvalue;
-            varindex++;
         }
     }
 

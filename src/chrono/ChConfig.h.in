@@ -61,6 +61,12 @@
 // If module FSI was enabled, define CHRONO_FSI
 @CHRONO_FSI@
 
+// If module GPU was enabled, define CHRONO_GPU
+@CHRONO_GPU@
+
+// If module SYNCHRONO was enabled, define CHRONO_SYNCHRONO
+@CHRONO_SYNCHRONO@
+
 // If module SENSOR was enabled, define CHRONO_SENSOR
 @CHRONO_SENSOR@
 
