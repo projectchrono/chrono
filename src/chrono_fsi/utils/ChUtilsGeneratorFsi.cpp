@@ -573,11 +573,12 @@ void AddBCE_FromFile(std::shared_ptr<ChFsiDataManager> fsiData,
                      std::string dataPath,
                      ChVector<> collisionShapeRelativePos,
                      ChQuaternion<> collisionShapeRelativeRot,
-                     double scale) {
+                     double scale,
+                     bool isSolid) {
     thrust::host_vector<Real4> posRadBCE;
     LoadBCE_fromFile(posRadBCE, dataPath, scale, paramsH->HSML);
     CreateBceGlobalMarkersFromBceLocalPos(fsiData, paramsH, posRadBCE, body, collisionShapeRelativePos,
-                                          collisionShapeRelativeRot);
+                                          collisionShapeRelativeRot,isSolid);
     posRadBCE.clear();
 }
 

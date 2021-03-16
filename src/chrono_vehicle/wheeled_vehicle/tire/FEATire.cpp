@@ -33,7 +33,7 @@ namespace vehicle {
 // Constructors for FEATire
 // -----------------------------------------------------------------------------
 FEATire::FEATire(const std::string& filename) : ChFEATire("") {
-    Document d = ReadFileJSON(filename);
+    Document d; ReadFileJSON(filename, d);
     if (d.IsNull())
         return;
 

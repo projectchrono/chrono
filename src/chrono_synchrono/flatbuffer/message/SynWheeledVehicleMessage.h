@@ -50,7 +50,7 @@ class SYN_API SynWheeledVehicleStateMessage : public SynMessage {
     ///
     ///@param builder a flatbuffer builder to construct the message with
     ///@return FlatBufferMessage the constructed flatbuffer message
-    virtual FlatBufferMessage ConvertToFlatBuffers(flatbuffers::FlatBufferBuilder& builder) override;
+    virtual FlatBufferMessage ConvertToFlatBuffers(flatbuffers::FlatBufferBuilder& builder) const override;
 
     // -------------------------------------------------------------------------------
 
@@ -88,7 +88,7 @@ class SYN_API SynWheeledVehicleDescriptionMessage : public SynMessage {
     ///
     ///@param builder a flatbuffer builder to construct the message with
     ///@return FlatBufferMessage the constructed flatbuffer message
-    virtual FlatBufferMessage ConvertToFlatBuffers(flatbuffers::FlatBufferBuilder& builder) override;
+    virtual FlatBufferMessage ConvertToFlatBuffers(flatbuffers::FlatBufferBuilder& builder) const override;
 
     // -------------------------------------------------------------------------------
 

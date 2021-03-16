@@ -318,7 +318,12 @@ inline int btGetVersion()
 			}
 		#endif
 
-
+	    //***CHRONO***
+#ifdef _MSC_VER
+#ifdef __clang__
+#define BT_NO_SIMD_OPERATOR_OVERLOADS
+#endif
+#endif
 
 	//use this, in case there are clashes (such as xnamath.h)
 	#ifndef BT_NO_SIMD_OPERATOR_OVERLOADS
