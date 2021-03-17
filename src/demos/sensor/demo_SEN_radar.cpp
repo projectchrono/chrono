@@ -35,7 +35,7 @@
 #include "chrono_sensor/filters/ChFilterRadarSavePC.h"
 #include "chrono_sensor/filters/ChFilterVisualizePointCloud.h"
 #include "chrono_sensor/filters/ChFilterSavePtCloud.h"
-#include "chrono_sensor/filters/ChFilterRadarDBScan.h"
+// #include "chrono_sensor/filters/ChFilterRadarDBScan.h"
 
 
 
