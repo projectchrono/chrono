@@ -267,8 +267,7 @@ CH_SENSOR_API void ChFilterAccess<SensorHostAccelBuffer, UserAccelBufferPtr>::Ap
     // copy the data into our new buffer
     memcpy(tmp_buffer->Buffer.get(), pAcc->Buffer.get(), sizeof(AccelData));
 
-    {  // lock in this scope before pushing to lag buffer queue
-        std::lock_guard<std::mutex> lck(m_mutexBufferAccess);
+    {  // lock in this scope before pushing to lag buffer queue std::lock_guard<std::mutex> lck(m_mutexBufferAccess);
 
         // push our buffer into the lag queue
         m_lag_buffers.push(tmp_buffer);
@@ -462,8 +461,15 @@ CH_SENSOR_API void ChFilterAccess<SensorHostRangeRcsBuffer, UserRangeRcsBufferPt
     tmp_buffer->TimeStamp = bufferInOut->TimeStamp;
 
     cudaMemcpy(tmp_buffer->Buffer.get(), dev_buffer_ptr,sz * sizeof(PixelRangeRcs), cudaMemcpyDeviceToHost);
+//    int count = 0;
+//    for (int i = 0; i < sz; i ++){
+//        if (tmp_buffer->Buffer.get()[i].range > 0){
+//            count ++;
+//        }
+//    }
+//    std::cout<<count<<std::endl;
 
-    
+
     {
         // lock in this scope before pushing to lag buffer queue
         std::lock_guard<std::mutex> lck(m_mutexBufferAccess);

@@ -306,6 +306,8 @@ set(ChronoEngine_sensor_FILTERS_SOURCES
     filters/ChFilterImageOps.cpp
     filters/ChFilterLidarIntensityClip.cpp
     filters/ChFilterRadarPCfromRange.cpp
+    filters/ChFilterRadarSavePC.cpp
+#    filters/ChFilterRadarDBScan.cpp
 )
 set(ChronoEngine_sensor_FILTERS_HEADERS
   	filters/ChFilter.h
@@ -325,6 +327,8 @@ set(ChronoEngine_sensor_FILTERS_HEADERS
     filters/ChFilterImageOps.h
     filters/ChFilterLidarIntensityClip.h
     filters/ChFilterRadarPCfromRange.h
+    filters/ChFilterRadarSavePC.h
+#    filters/ChFilterRadarDBScan.h
 )
 
 source_group("Filters" FILES
@@ -361,12 +365,14 @@ set(ChronoEngine_sensor_UTILS_SOURCES
     utils/ChVisualMaterialUtils.cpp
     utils/ChUtilsJSON.cpp
     utils/ChGPSUtils.cpp
+#    utils/Dbscan.cpp
 )
 set(ChronoEngine_sensor_UTILS_HEADERS
     utils/ChVisualMaterialUtils.h
   	utils/CudaMallocHelper.h
     utils/ChUtilsJSON.h
     utils/ChGPSUtils.h
+#    utils/Dbscan.h
 )
 
 source_group(Utils FILES

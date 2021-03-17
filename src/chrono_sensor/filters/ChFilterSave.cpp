@@ -90,6 +90,7 @@ CH_SENSOR_API void ChFilterSave::Apply(std::shared_ptr<ChSensor> pSensor, std::s
 
         delete buf;
     }
+
 }
 
 CH_SENSOR_API void ChFilterSave::Initialize(std::shared_ptr<ChSensor> pSensor) {

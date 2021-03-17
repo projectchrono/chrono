@@ -70,14 +70,14 @@ struct SensorBufferT : public SensorBuffer {
 
 template <class B>
 struct LidarBufferT : public SensorBufferT<B>{
-    LidarBufferT():Dual_return(false){}
+    LidarBufferT():Dual_return(false), Beam_return_count(0){}
     unsigned int Beam_return_count;
     bool Dual_return;
 };
 
 template <class B>
 struct RadarBufferT : public SensorBufferT<B>{
-    RadarBufferT(){}
+    RadarBufferT(): Beam_return_count(0){}
     unsigned int Beam_return_count;
 };
 
@@ -125,7 +125,7 @@ using UserR8BufferPtr = std::shared_ptr<SensorHostR8Buffer>;
 //=====================================
 struct PixelRangeRcs{
     float range;
-    float3 rcs;
+    float rcs;
 };
 /// Depth-intensity host buffer to be used by radar filters in the graph
 using SensorHostRangeRcsBuffer = RadarBufferT<std::shared_ptr<PixelRangeRcs[]>>;

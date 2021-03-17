@@ -46,6 +46,7 @@ struct PerRayData_lidar {
 struct PerRayData_radar {
     float range;
     float rcs;
+    int depth;
 };
 
 static __device__ __inline__ PerRayData_camera make_camera_data(const float3& r_color,
@@ -74,11 +75,13 @@ static __device__ __inline__ PerRayData_lidar make_lidar_data(const float& r_ran
 };
 
 static __device__ __inline__ PerRayData_radar make_radar_data(const float& r_range,
-                                                              const float& r_rcs
+                                                              const float& r_rcs,
+                                                              const int& r_depth
                                                              ){
     PerRayData_radar ray_data;
     ray_data.range = r_range;
     ray_data.rcs = r_rcs;
+    ray_data.depth = r_depth;
     return ray_data;
 };
 
