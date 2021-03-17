@@ -1,4 +1,5 @@
 #include "chrono_thirdparty/stb/stb_image_write.h"
+#include "chrono_thirdparty/Easy_BMP/EasyBMP.h"
 #include "chrono_vsg/tools/ChVSGScreenshotHandler.h"
 
 using namespace chrono::vsg3d;
@@ -250,14 +251,36 @@ void ChVSGScreenshotHandler::screenshot_image(vsg::ref_ptr<vsg::Window> window) 
     // vsg::Path outputFilename("screenshot.vsgt");
     // vsg::write(imageData, outputFilename);
 
+    unsigned char* data = reinterpret_cast<unsigned char*>(imageData->dataPointer());
+
+    BMP outPic;
+    outPic.SetSize(width, height);
+    outPic.SetBitDepth(24);  // this is also the default for EasyBMP
+
+    size_t bytePos = 0;
+    for (size_t i = 0; i < height; i++) {
+        for (size_t j = 0; j < width; j++) {
+            outPic(j, i)->Red = data[bytePos + 2];
+            outPic(j, i)->Green = data[bytePos + 1];
+            outPic(j, i)->Blue = data[bytePos];
+            bytePos += 4;
+        }
+    }
+    std::cout << "subresource offset = " << subResourceLayout.offset << std::endl;
+    if (imageData->contigous()) {
+        std::cout << "Data contigous" << std::endl;
+    } else {
+        std::cout << "Data not contigous" << std::endl;
+    }
+    outPic.WriteToFile("screenshot.bmp");
+
     // following issue has been found on a iMac with retina display
-    if (width > 1600) {
+    if (width > 1620) {
         std::cout << "Could not make the desired screenshot due to STB limitations." << std::endl;
         std::cout << "Framebuffer width = " << width << " pixels." << std::endl;
         std::cout << "Please decrease window width setting to 800!" << std::endl;
         return;
     }
-    unsigned char* data = reinterpret_cast<unsigned char*>(imageData->dataPointer());
     const size_t channels = 3;  // we use RGB, RGBA seems to cause output problems
     size_t pixelsDataSize = width * height * channels;
     unsigned char* pixels = new unsigned char[pixelsDataSize];

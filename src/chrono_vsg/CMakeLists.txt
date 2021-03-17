@@ -34,6 +34,7 @@ SET(ChronoEngine_VSG_SOURCES
     tools/ChVSGScreenshotHandler.cpp
     ../chrono_thirdparty/stb/stb_image.cpp
     ../chrono_thirdparty/stb/stb_image_write.cpp
+    ../chrono_thirdparty/Easy_BMP/EasyBMP.cpp
 )
 
 SET(ChronoEngine_VSG_HEADERS
