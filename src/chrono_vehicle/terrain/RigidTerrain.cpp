@@ -61,7 +61,7 @@ RigidTerrain::RigidTerrain(ChSystem* system, const std::string& filename)
       m_use_friction_functor(false),
       m_contact_callback(nullptr) {
     // Open and parse the input file
-    Document d = ReadFileJSON(filename);
+    Document d; ReadFileJSON(filename, d);
     if (d.IsNull())
         return;
 

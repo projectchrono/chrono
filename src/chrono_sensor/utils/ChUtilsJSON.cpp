@@ -46,8 +46,7 @@ namespace sensor {
 
 // -----------------------------------------------------------------------------
 
-Document ReadFileJSON(const std::string& filename) {
-    Document d;
+void ReadFileJSON(const std::string& filename, Document& d) {
     std::ifstream ifs(filename);
     if (!ifs.good()) {
         GetLog() << "ERROR: Could not open JSON file: " << filename << "\n";
@@ -58,7 +57,6 @@ Document ReadFileJSON(const std::string& filename) {
             GetLog() << "ERROR: Invalid JSON file: " << filename << "\n";
         }
     }
-    return d;
 }
 
 // -----------------------------------------------------------------------------
@@ -88,7 +86,8 @@ std::shared_ptr<ChSensor> ReadSensorJSON(const std::string& filename,
                                          chrono::ChFrame<double> offsetPose) {
     std::shared_ptr<ChSensor> sensor;
 
-    Document d = ReadFileJSON(filename);
+    Document d;
+    ReadFileJSON(filename, d);
     if (d.IsNull())
         return nullptr;
 
@@ -120,7 +119,8 @@ std::shared_ptr<ChSensor> ReadSensorJSON(const std::string& filename,
 std::shared_ptr<ChCameraSensor> ReadCameraSensorJSON(const std::string& filename,
                                                      std::shared_ptr<chrono::ChBody> parent,
                                                      chrono::ChFrame<double> offsetPose) {
-    Document d = ReadFileJSON(filename);
+    Document d;
+    ReadFileJSON(filename, d);
     if (d.IsNull())
         return nullptr;
 
@@ -175,7 +175,8 @@ std::shared_ptr<ChCameraSensor> ReadCameraSensorJSON(const std::string& filename
 std::shared_ptr<ChGPSSensor> ReadGPSSensorJSON(const std::string& filename,
                                                std::shared_ptr<chrono::ChBody> parent,
                                                chrono::ChFrame<double> offsetPose) {
-    Document d = ReadFileJSON(filename);
+    Document d;
+    ReadFileJSON(filename, d);
     if (d.IsNull())
         return nullptr;
 
@@ -217,7 +218,8 @@ std::shared_ptr<ChGPSSensor> ReadGPSSensorJSON(const std::string& filename,
 std::shared_ptr<ChIMUSensor> ReadIMUSensorJSON(const std::string& filename,
                                                std::shared_ptr<chrono::ChBody> parent,
                                                chrono::ChFrame<double> offsetPose) {
-    Document d = ReadFileJSON(filename);
+    Document d;
+    ReadFileJSON(filename, d);
     if (d.IsNull())
         return nullptr;
 
@@ -257,7 +259,8 @@ std::shared_ptr<ChIMUSensor> ReadIMUSensorJSON(const std::string& filename,
 std::shared_ptr<ChLidarSensor> ReadLidarSensorJSON(const std::string& filename,
                                                    std::shared_ptr<chrono::ChBody> parent,
                                                    chrono::ChFrame<double> offsetPose) {
-    Document d = ReadFileJSON(filename);
+    Document d;
+    ReadFileJSON(filename, d);
     if (d.IsNull())
         return nullptr;
 
@@ -328,7 +331,8 @@ std::shared_ptr<ChLidarSensor> ReadLidarSensorJSON(const std::string& filename,
 }
 
 void ReadFilterListJSON(const std::string& filename, std::shared_ptr<ChSensor> sensor) {
-    Document d = ReadFileJSON(filename);
+    Document d;
+    ReadFileJSON(filename, d);
     if (d.IsNull())
         return;
 

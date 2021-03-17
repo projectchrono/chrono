@@ -123,7 +123,7 @@ ChHumanDriver::ChHumanDriver(const std::string& filename,
       m_speed_min(1.0e99),
       m_left_acc(0),
       m_right_acc(0) {
-    Document d = ReadFileJSON(filename);
+    Document d; ReadFileJSON(filename, d);
     if (d.IsNull())
         return;
 

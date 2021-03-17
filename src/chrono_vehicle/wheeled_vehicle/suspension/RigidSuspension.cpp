@@ -30,7 +30,7 @@ namespace vehicle {
 // Construct a Rigid suspension using data from the specified JSON file.
 // -----------------------------------------------------------------------------
 RigidSuspension::RigidSuspension(const std::string& filename) : ChRigidSuspension("") {
-    Document d = ReadFileJSON(filename);
+    Document d; ReadFileJSON(filename, d);
     if (d.IsNull())
         return;
 

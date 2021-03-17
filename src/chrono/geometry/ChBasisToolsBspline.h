@@ -244,7 +244,6 @@ class ChApi ChBasisToolsBsplineSurfaces {
 
         int uind = spanU - p_u;
         int vind = spanV - p_v;
-        double w = 0.0;
 
         for (int iv = 0; iv <= p_v; iv++) {
             for (int iu = 0; iu <= p_u; iu++) {
