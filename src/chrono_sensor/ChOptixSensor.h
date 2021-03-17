@@ -44,7 +44,6 @@ class CH_SENSOR_API ChOptixSensor : public ChSensor {
                   chrono::ChFrame<double> offsetPose,
                   unsigned int w,
                   unsigned int h,
-                  bool use_gi = false,
                   bool use_tonemapper = false);
 
     /// camera class destructor
@@ -61,6 +60,8 @@ class CH_SENSOR_API ChOptixSensor : public ChSensor {
     /// virtual function for getting any additional render parameters need by the sensor
     /// @return the list of parameters that need to be passed to the ray launch program of the sensor.
     std::vector<std::tuple<std::string, RTobjecttype, void*>>& RayLaunchParameters() { return m_ray_launch_params; }
+
+    void setGI(int use_gi) { m_use_gi = use_gi; }
 
   protected:
     ProgramString

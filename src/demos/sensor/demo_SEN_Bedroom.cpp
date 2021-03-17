@@ -141,7 +141,7 @@ int main(int argc, char* argv[]) {
     auto manager = chrono_types::make_shared<ChSensorManager>(&mphysicalSystem);
     // manager->scene->AddPointLight({2, 2.5, 100}, {2, 1.8902, 1.7568}, 1500);
     // manager->scene->AddPointLight({9, 2.5, 100}, {2, 1.8902, 1.7568}, 1500);
-    manager->scene->AddPointLight({0.0, 0.0, 3.8}, {2, 1.8902, 1.7568}, 10);
+    manager->scene->AddPointLight({0.0, 0.0, 3.8}, {2, 1.8902, 1.7568}, 3);
 
     // manager->scene->AddPointLight({0.0, 0.0, 100}, {2, 1.8902, 1.7568}, 10000);
     // manager->scene->AddPointLight({x_ax, y_ax, z_ax}, {intensity, intensity, intensity}, 10000);

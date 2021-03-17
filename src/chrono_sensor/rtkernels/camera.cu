@@ -49,7 +49,9 @@ rtDeclareVariable(int, has_environment_map, , );
 
 rtBuffer<float4, 2> output_buffer;
 rtBuffer<float4, 2> gi_pass_normal_buffer;
+rtBuffer<float4, 2> gi_pass_gi_color_buffer;
 rtBuffer<float4, 2> gi_pass_albedo_buffer;
+rtBuffer<float, 2> gi_pass_depth_buffer;
 
 rtBuffer<float> noise_buffer;
 
@@ -91,9 +93,32 @@ RT_PROGRAM void pinhole_gi_camera() {
     prd_camera.seed = seed;
     prd_camera.origin = ray_origin;
     prd_camera.direction = ray_direction;
+
+    // First Pass
+    optix::Ray ray(ray_origin, ray_direction, CAMERA_RAY_TYPE, scene_epsilon, max_scene_distance);
+    rtTrace(root_node, ray, current_time, prd_camera);
+    prd_camera.depth++;
+
+    float4 base_color = make_float4(prd_camera.color,1);
+
+    // float3 contribute = prd_camera.contribution_to_firsthit;
+    // prd_camera.contribution_to_firsthit = make_float3(1);
+
+    float3 this_normal = prd_camera.normal;
+    float3 this_albedo = prd_camera.albedo;
+    float this_distance = prd_camera.distance;
+    
+
+    ray_origin = prd_camera.origin;
+    ray_direction = prd_camera.direction;
+
     // Each iteration is a segment of the ray path.  The closest hit will
     // return new segments to be traced here.
     for (;;) {
+        // early termination if the contribution is low
+        if (fmaxf(prd_camera.contribution_to_firsthit) < 0.01f)
+            break;
+
         prd_camera.color = make_float3(0);
         optix::Ray ray(ray_origin, ray_direction, CAMERA_RAY_TYPE, scene_epsilon, max_scene_distance);
         rtTrace(root_node, ray, current_time, prd_camera);
@@ -108,18 +133,27 @@ RT_PROGRAM void pinhole_gi_camera() {
         prd_camera.depth++;
         accumColor += prd_camera.color;  // Accumulate the color
 
-        // early termination if the contribution is low
-        if (fmaxf(prd_camera.contribution_to_firsthit) < 0.01f)
-            break;
-
         // Update ray data for the next path segment
         ray_origin = prd_camera.origin;
         ray_direction = prd_camera.direction;
     }
 
-    output_buffer[launch_index] = make_float4(accumColor, 1);
-    gi_pass_normal_buffer[launch_index] = make_float4(prd_camera.normal, 1);  // * 0.5f + 0.5f;
-    gi_pass_albedo_buffer[launch_index] = make_float4(prd_camera.albedo, 1);
+    float3 previous_accumColor = make_float3(gi_pass_gi_color_buffer[launch_index].x, gi_pass_gi_color_buffer[launch_index].y, gi_pass_gi_color_buffer[launch_index].z);
+    float3 previous_normal = make_float3(gi_pass_normal_buffer[launch_index].x, gi_pass_normal_buffer[launch_index].y, gi_pass_normal_buffer[launch_index].z);
+    float3 previous_albedo = make_float3(gi_pass_albedo_buffer[launch_index].x, gi_pass_albedo_buffer[launch_index].y, gi_pass_albedo_buffer[launch_index].z);
+    float previous_distance = gi_pass_depth_buffer[launch_index];
+
+    gi_pass_normal_buffer[launch_index] = make_float4(this_normal, 1);  // * 0.5f + 0.5f;
+    gi_pass_albedo_buffer[launch_index] = make_float4(this_albedo, 1);
+    gi_pass_depth_buffer[launch_index] = this_distance;
+
+    float similarity = 1;
+    similarity *= 1 - length(this_normal - previous_normal) / 2;
+    similarity *= 1 / (fmaxf(this_distance - previous_distance, previous_distance -this_distance) + 1);
+
+    accumColor = 0.3 * accumColor + ((1-similarity) * accumColor + similarity * previous_accumColor) * 0.7;
+    gi_pass_gi_color_buffer[launch_index] = make_float4(accumColor, 1);
+    output_buffer[launch_index] = base_color + make_float4(accumColor, 1);
 }
 
 // This kernel is launched once for each pixel in the image

@@ -213,10 +213,16 @@ CH_SENSOR_API void ChFilterOptixRender::Initialize(std::shared_ptr<ChSensor> pSe
     if (pOptixSensor->m_use_gi) {
         optix::Buffer normal_buffer = AllocateBuffer(pSensor);
         optix::Buffer albedo_buffer = AllocateBuffer(pSensor);
+        optix::Buffer gi_color_buffer = AllocateBuffer(pSensor);
         optix::Buffer gi_denoised_output_buffer = AllocateBuffer(pSensor);
+        optix::Buffer depth_buffer =
+            pOptixSensor->m_context->createBuffer(RT_BUFFER_INPUT_OUTPUT | RT_BUFFER_COPY_ON_DIRTY, RT_FORMAT_FLOAT,
+                                                                     pOptixSensor->m_width, pOptixSensor->m_height);
 
         pOptixSensor->m_ray_gen["gi_pass_normal_buffer"]->set(normal_buffer);
         pOptixSensor->m_ray_gen["gi_pass_albedo_buffer"]->set(albedo_buffer);
+        pOptixSensor->m_ray_gen["gi_pass_gi_color_buffer"]->set(gi_color_buffer);
+        pOptixSensor->m_ray_gen["gi_pass_depth_buffer"]->set(depth_buffer);
 
         // Setup Optix denoiser
         optix::PostprocessingStage denoiserStage =

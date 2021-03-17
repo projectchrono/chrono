@@ -42,7 +42,15 @@ RT_PROGRAM void camera_miss() {
         prd_camera.color = make_float3(tex2D(environment_map, tex_x, tex_y));
 
     } else {
-        prd_camera.color = default_color;  // make_float3(0.4f);
+        float theta = atan2f(ray.direction.x, ray.direction.y);
+        float phi = asinf(ray.direction.z);
+        float tex_x = theta / (2 * M_PIf);
+        float tex_y = phi / (M_PIf) + 0.5;
+
+        prd_camera.color = make_float3(tex2D(environment_map, tex_x, tex_y));
+        // prd_camera.color.x = powf(prd_camera.color.x / 255.0f, 2.2f) * 255.0f;
+        // prd_camera.color.y = powf(prd_camera.color.y / 255.0f, 2.2f) * 255.0f;
+        // prd_camera.color.z = powf(prd_camera.color.z / 255.0f, 2.2f) * 255.0f;
     }
     if (prd_camera.mode == GLOBAL_ILLUMINATION) {
         if (prd_camera.depth == 1) {

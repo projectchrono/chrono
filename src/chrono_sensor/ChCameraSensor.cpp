@@ -39,12 +39,13 @@ CH_SENSOR_API ChCameraSensor::ChCameraSensor(std::shared_ptr<chrono::ChBody> par
     : m_hFOV(hFOV),
       m_supersample_factor(supersample_factor),
       m_lens_model_type(lens_model),
-      ChOptixSensor(parent, updateRate, offsetPose, w * supersample_factor, h * supersample_factor, use_gi, true) {
+      ChOptixSensor(parent, updateRate, offsetPose, w * supersample_factor, h * supersample_factor, true) {
     // set the program to match the model requested
     switch (lens_model) {
         case SPHERICAL:
             m_program_string = {"camera", "fov_lens_camera"};
             m_buffer_format = RT_FORMAT_FLOAT4;
+            ChOptixSensor::setGI(0);
             // m_buffer_format = RT_FORMAT_UNSIGNED_BYTE4;
             break;
 
@@ -53,10 +54,13 @@ CH_SENSOR_API ChCameraSensor::ChCameraSensor(std::shared_ptr<chrono::ChBody> par
             if (use_gi) {
                 m_program_string = {"camera", "pinhole_gi_camera"};
                 m_buffer_format = RT_FORMAT_FLOAT4;
+                ChOptixSensor::setGI(use_gi);
             } else {
                 m_program_string = {"camera", "pinhole_camera"};
                 m_buffer_format = RT_FORMAT_FLOAT4;
+                ChOptixSensor::setGI(0);
             }
+            
             // m_buffer_format = RT_FORMAT_UNSIGNED_BYTE4;
             break;
         }

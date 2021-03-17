@@ -237,7 +237,23 @@ RT_PROGRAM void pbr_shader() {
             
         }
     }
-    prd_camera.color = reflected_color;
+    float3 refracted_color = make_float3(0);
+
+    if (transparency < 0.99f) {
+        float refract_importance = fmaxf(prd_camera.contribution_to_firsthit * (1 - transparency));
+        if (refract_importance > importance_cutoff && prd_camera.depth + 1 < max_depth ) {
+            PerRayData_camera prd_refraction =
+                make_camera_data(make_float3(0), FIRST_HIT, prd_camera.depth + 1, 1.f);
+
+            float3 refract_dir;
+            refract(refract_dir, ray.direction, forward_normal, 1.f);
+            Ray refraction_ray(hit_point, refract_dir, CAMERA_RAY_TYPE, scene_epsilon, max_scene_distance);
+            rtTrace(root_node, refraction_ray, prd_refraction);
+            refracted_color = prd_refraction.color;
+        }
+    }
+    
+    prd_camera.color = reflected_color * (transparency) + refracted_color * (1-transparency);
     float NdV = dot(forward_normal, -ray.direction);
     // In ambient light mode
     if (prd_camera.mode == FIRST_HIT) {
@@ -317,6 +333,7 @@ RT_PROGRAM void pbr_shader() {
     if (prd_camera.depth == 1) {
         prd_camera.normal = forward_normal;
         prd_camera.albedo = subsurface_albedo;
+        prd_camera.distance = t_hit;
     }
 
 }

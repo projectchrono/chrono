@@ -30,11 +30,10 @@ CH_SENSOR_API ChOptixSensor::ChOptixSensor(std::shared_ptr<chrono::ChBody> paren
                                            chrono::ChFrame<double> offsetPose,
                                            unsigned int w,
                                            unsigned int h,
-                                           bool use_gi,
                                            bool use_tonemapper)
     : m_width(w),
       m_height(h),
-      m_use_gi(use_gi),
+      m_use_gi(0),
       m_use_tonemapper(use_tonemapper),
       ChSensor(parent, updateRate, offsetPose) {
     // Camera sensor get rendered by Optix, so they must has as their first filter an optix renderer.

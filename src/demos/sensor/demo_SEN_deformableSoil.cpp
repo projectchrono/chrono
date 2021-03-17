@@ -86,7 +86,7 @@ ChQuaternion<> initRot(1, 0, 0, 0);
 // -----------------------------------------------------------------------------
 
 // Update Rate in Hz
-float update_rate = 30.0f;
+float update_rate = 60.0f;
 
 // Image width and height
 unsigned int image_width = 1920;
@@ -126,10 +126,10 @@ bool img_output = false;
 float end_time = 20.0f;
 
 // Save camera images
-bool save = false;
+bool save = true;
 
 // Render camera images
-bool vis = true;
+bool vis = false;
 
 // =============================================================================
 
@@ -339,7 +339,7 @@ int main(int argc, char* argv[]) {
     // Set up Camera
     chrono::ChFrame<double> offset_pose1({-8, 0, 3}, Q_from_AngAxis(.2, {0, 1, 0}));
     auto cam = chrono_types::make_shared<ChCameraSensor>(my_hmmwv.GetChassisBody(), update_rate, offset_pose1,
-                                                         image_width, image_height, fov, 1, PINHOLE, 0);
+                                                         image_width, image_height, fov, 1, PINHOLE, 1);
     cam->SetName("Camera Sensor");
     cam->SetLag(lag);
     cam->SetCollectionWindow(exposure_time);

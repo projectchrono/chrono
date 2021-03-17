@@ -25,6 +25,7 @@ struct PerRayData_camera {
     int mode;
     int depth;
 
+    float distance;
     float3 color;
     float3 albedo;
     float3 normal;
@@ -49,7 +50,7 @@ static __device__ __inline__ PerRayData_camera make_camera_data(const float3& r_
     PerRayData_camera ray_data;
     ray_data.mode = r_mode;
     ray_data.depth = r_depth;
-
+    ray_data.distance = 0;
     ray_data.color = r_color;
     
     ray_data.contribution_to_firsthit = make_float3(r_importance);

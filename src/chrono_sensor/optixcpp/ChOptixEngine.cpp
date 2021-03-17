@@ -813,7 +813,7 @@ void ChOptixEngine::Initialize() {
     m_camera_miss["default_color"]->setFloat(0.5f, 0.6f, 0.7f);
     m_lidar_miss["default_depth"]->setFloat(-1.f);
 
-    TextureSampler tex_sampler = CreateTexture();
+    TextureSampler tex_sampler = CreateTexture(GetChronoDataFile("skybox/sky_lf.jpg"));
     m_camera_miss["environment_map"]->setTextureSampler(tex_sampler);
     m_camera_miss["has_environment_map"]->setInt(0);
 
@@ -1201,7 +1201,7 @@ void ChOptixEngine::UpdateSceneDescription(std::shared_ptr<ChScene> scene) {
             m_camera_miss["environment_map"]->setTextureSampler(tex_sampler);
             m_camera_miss["has_environment_map"]->setInt(1);
         } else {
-            TextureSampler tex_sampler = CreateTexture();
+            TextureSampler tex_sampler = CreateTexture(GetChronoDataFile("skybox/sky_lf.jpg"));
             m_camera_miss["environment_map"]->setTextureSampler(tex_sampler);
             m_camera_miss["has_environment_map"]->setInt(0);
         }
