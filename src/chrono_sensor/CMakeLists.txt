@@ -169,6 +169,8 @@ set(ChronoEngine_sensor_RT_SOURCES
     rtkernels/camera_shaders.cu
     rtkernels/lidar_shaders.cu
     rtkernels/shadow_shaders.cu
+    rtkernels/radar_shaders.cu
+    rtkernels/radar.cu
 )
 set(ChronoEngine_sensor_RT_HEADERS
     rtkernels/ray_utils.h
@@ -220,6 +222,7 @@ set(ChronoEngine_sensor_SOURCES
     ChOptixSensor.cpp
     ChCameraSensor.cpp
     ChLidarSensor.cpp
+    ChRadarSensor.cpp
     ChIMUSensor.cpp
     ChGPSSensor.cpp
     ChSensorManager.cpp
@@ -234,6 +237,7 @@ set(ChronoEngine_sensor_HEADERS
     ChOptixSensor.h
     ChCameraSensor.h
     ChLidarSensor.h
+    ChRadarSensor.h
     ChIMUSensor.h
     ChGPSSensor.h
     ChSensorManager.h
@@ -301,6 +305,9 @@ set(ChronoEngine_sensor_FILTERS_SOURCES
     filters/ChFilterVisualizePointCloud.cpp
     filters/ChFilterImageOps.cpp
     filters/ChFilterLidarIntensityClip.cpp
+    filters/ChFilterRadarPCfromRange.cpp
+    filters/ChFilterRadarSavePC.cpp
+#    filters/ChFilterRadarDBScan.cpp
 )
 set(ChronoEngine_sensor_FILTERS_HEADERS
   	filters/ChFilter.h
@@ -319,6 +326,9 @@ set(ChronoEngine_sensor_FILTERS_HEADERS
     filters/ChFilterVisualizePointCloud.h
     filters/ChFilterImageOps.h
     filters/ChFilterLidarIntensityClip.h
+    filters/ChFilterRadarPCfromRange.h
+    filters/ChFilterRadarSavePC.h
+#    filters/ChFilterRadarDBScan.h
 )
 
 source_group("Filters" FILES
@@ -355,12 +365,14 @@ set(ChronoEngine_sensor_UTILS_SOURCES
     utils/ChVisualMaterialUtils.cpp
     utils/ChUtilsJSON.cpp
     utils/ChGPSUtils.cpp
+#    utils/Dbscan.cpp
 )
 set(ChronoEngine_sensor_UTILS_HEADERS
     utils/ChVisualMaterialUtils.h
   	utils/CudaMallocHelper.h
     utils/ChUtilsJSON.h
     utils/ChGPSUtils.h
+#    utils/Dbscan.h
 )
 
 source_group(Utils FILES

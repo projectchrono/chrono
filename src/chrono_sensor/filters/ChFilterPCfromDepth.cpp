@@ -18,7 +18,6 @@
 #include "chrono_sensor/ChLidarSensor.h"
 #include "chrono_sensor/cuda/pointcloud.cuh"
 #include "chrono_sensor/utils/CudaMallocHelper.h"
-#include <chrono>
 
 namespace chrono {
 namespace sensor {
@@ -58,7 +57,6 @@ CH_SENSOR_API void ChFilterPCfromDepth::Apply(std::shared_ptr<ChSensor> pSensor,
         throw std::runtime_error("The pointcloud filter cannot be run on the requested input buffer type");
     }
 
-    auto time1 = std::chrono::high_resolution_clock::now();
 
     if (!m_buffer) {
         if (bool_dualRet){

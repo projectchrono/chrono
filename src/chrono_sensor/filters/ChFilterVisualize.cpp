@@ -37,8 +37,8 @@ CH_SENSOR_API void ChFilterVisualize::Apply(std::shared_ptr<ChSensor> pSensor,
     std::shared_ptr<SensorDeviceR8Buffer> pR8 = std::dynamic_pointer_cast<SensorDeviceR8Buffer>(bufferInOut);
     std::shared_ptr<SensorDeviceRGBA8Buffer> pRGBA8 = std::dynamic_pointer_cast<SensorDeviceRGBA8Buffer>(bufferInOut);
     std::shared_ptr<SensorDeviceDIBuffer> pDI = std::dynamic_pointer_cast<SensorDeviceDIBuffer>(bufferInOut);
-
-    if (!pOptix && !pR8 && !pRGBA8 && !pDI)
+    std::shared_ptr<SensorDeviceRangeRcsBuffer> pRR = std::dynamic_pointer_cast<SensorDeviceRangeRcsBuffer>(bufferInOut);
+    if (!pOptix && !pR8 && !pRGBA8 && !pDI && !pRR)
         throw std::runtime_error("This buffer type cannot be visualized");
 
     if (!m_window && !m_window_disabled) {
@@ -71,7 +71,6 @@ CH_SENSOR_API void ChFilterVisualize::Apply(std::shared_ptr<ChSensor> pSensor,
             uint32_t height = static_cast<int>(buffer_height_rts);
             RTformat buffer_format = pOptix->Buffer->getFormat();
             GLvoid* imageData = pOptix->Buffer->map(0, RT_BUFFER_MAP_READ);
-
             // TODO: not sure what's going on here...should the glPixelStorei line use elmt_size? or what is elmt_size
             // queried for?
             RTsize elmt_size = pOptix->Buffer->getElementSize();
@@ -86,7 +85,6 @@ CH_SENSOR_API void ChFilterVisualize::Apply(std::shared_ptr<ChSensor> pSensor,
             } else {
                 throw std::runtime_error("Unknown Optix buffer format.");
             }
-
             pOptix->Buffer->unmap();
 
         } else if (pR8) {  // grayscal image in GPU memory
@@ -105,7 +103,6 @@ CH_SENSOR_API void ChFilterVisualize::Apply(std::shared_ptr<ChSensor> pSensor,
                        cudaMemcpyDeviceToHost);
             glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, pRGBA8->Width, pRGBA8->Height, 0, GL_RGBA, GL_UNSIGNED_BYTE, buf);
             delete buf;
-
         }
 
         else if (pDI) {  // grayscal image in GPU memory
@@ -128,10 +125,13 @@ CH_SENSOR_API void ChFilterVisualize::Apply(std::shared_ptr<ChSensor> pSensor,
                 glTexImage2D(GL_TEXTURE_2D, 0, GL_RG32F, pDI->Width, pDI->Height, 0, GL_RG, GL_FLOAT, buf);
                 delete buf;
             }
+        }
 
-
-
-
+        else if (pRR){
+            float *buf = new float[pRR->Width * pRR->Height * 2];
+            cudaMemcpy(buf, pRR->Buffer.get(), pRR->Width * pRR->Height * 2 * sizeof(float), cudaMemcpyDeviceToHost);
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RG32F, pRR->Width, pRR->Height, 0, GL_RG, GL_FLOAT, buf);
+            delete buf;
         }
 
         // 1:1 texel to pixel mapping with glOrtho(0, 1, 0, 1, -1, 1) setup:

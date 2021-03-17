@@ -24,9 +24,11 @@ using namespace optix;
 
 rtDeclareVariable(PerRayData_camera, prd_camera, rtPayload, );
 rtDeclareVariable(PerRayData_lidar, prd_lidar, rtPayload, );
+rtDeclareVariable(PerRayData_radar, prd_radar, rtPayload, );
 rtDeclareVariable(optix::Ray, ray, rtCurrentRay, );
 rtDeclareVariable(float3, default_color, , );
 rtDeclareVariable(float, default_depth, , );
+rtDeclareVariable(float, default_range, , );
 
 // environment map
 rtTextureSampler<float4, 2> environment_map;
@@ -64,6 +66,11 @@ RT_PROGRAM void camera_miss() {
 }
 
 RT_PROGRAM void lidar_miss() {
-    prd_lidar.range = default_depth;
+    prd_lidar.range = -1;
     prd_lidar.intensity = 0.f;
+}
+
+RT_PROGRAM void radar_miss(){
+    prd_radar.range = -1;
+    prd_radar.rcs = 0;
 }

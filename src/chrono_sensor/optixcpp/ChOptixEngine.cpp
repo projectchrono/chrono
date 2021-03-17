@@ -784,7 +784,7 @@ void ChOptixEngine::Initialize() {
         printf("RTX Mode Disabled on this device. \n");
 
     // set context-wide parameters -> make changeable by functions before initialization
-    m_context->setRayTypeCount(3);  // 0=camera, 1=shadow, 2=lidar
+    m_context->setRayTypeCount(4);  // 0=camera, 1=shadow, 2=lidar, 3=radar
     m_context->setMaxTraceDepth(
         m_recursions);  // max allowable by OptiX, doesn't mean we should try to go this far though
     m_context["max_scene_distance"]->setFloat(1.e4f);
@@ -809,9 +809,11 @@ void ChOptixEngine::Initialize() {
 
     m_context->setMissProgram(0, m_camera_miss);
     m_context->setMissProgram(2, m_lidar_miss);
+    m_context->setMissProgram(3, m_radar_miss);
 
     m_camera_miss["default_color"]->setFloat(0.5f, 0.6f, 0.7f);
     m_lidar_miss["default_depth"]->setFloat(-1.f);
+//    m_radar_miss["default_range"]->setFloat(-1.f);
 
     TextureSampler tex_sampler = CreateTexture(GetChronoDataFile("skybox/sky_lf.jpg"));
     m_camera_miss["environment_map"]->setTextureSampler(tex_sampler);
@@ -1223,8 +1225,11 @@ Material ChOptixEngine::GetDefaultMaterial() {
     if (!m_shadow_shader)
         m_shadow_shader = GetRTProgram(m_context, "shadow_shaders", "hit_shadow");
 
-    if (!m_lidar_shader)
+    if (!m_lidar_shader){
         m_lidar_shader = GetRTProgram(m_context, "lidar_shaders", "diffuse_shader");
+    }
+    if (!m_radar_shader)
+        m_radar_shader = GetRTProgram(m_context, "radar_shaders", "diffuse_shader");
 
     m_default_material["Ka"]->setFloat(.2f, .2f, .2f);
     m_default_material["Kd"]->setFloat(.5f, .5f, .5f);
@@ -1248,6 +1253,7 @@ Material ChOptixEngine::GetDefaultMaterial() {
     m_default_material->setClosestHitProgram(0, m_camera_shader);
     m_default_material->setAnyHitProgram(1, m_shadow_shader);
     m_default_material->setClosestHitProgram(2, m_lidar_shader);
+    m_default_material->setClosestHitProgram(3, m_radar_shader);
 
     m_default_material->validate();
 
@@ -1264,6 +1270,8 @@ Material ChOptixEngine::CreateMaterial(std::shared_ptr<ChVisualMaterial> chmat) 
         m_shadow_shader = GetRTProgram(m_context, "shadow_shaders", "hit_shadow");
     if (!m_lidar_shader)
         m_lidar_shader = GetRTProgram(m_context, "lidar_shaders", "diffuse_shader");
+    if (!m_radar_shader)
+        m_radar_shader = GetRTProgram(m_context, "radar_shaders", "diffuse_shader");
 
     mat["Ka"]->setFloat(chmat->GetAmbientColor().x(), chmat->GetAmbientColor().y(), chmat->GetAmbientColor().z());
     mat["Kd"]->setFloat(chmat->GetDiffuseColor().x(), chmat->GetDiffuseColor().y(), chmat->GetDiffuseColor().z());
@@ -1303,6 +1311,7 @@ Material ChOptixEngine::CreateMaterial(std::shared_ptr<ChVisualMaterial> chmat) 
     mat->setClosestHitProgram(0, m_camera_shader);
     mat->setAnyHitProgram(1, m_shadow_shader);
     mat->setClosestHitProgram(2, m_lidar_shader);
+    mat->setClosestHitProgram(3, m_radar_shader);
     return mat;
 }
 
@@ -1391,6 +1400,7 @@ TextureSampler ChOptixEngine::CreateTexture() {
     tex_sampler->setWrapMode(0, RT_WRAP_REPEAT);
     tex_sampler->setWrapMode(1, RT_WRAP_REPEAT);
     tex_sampler->setWrapMode(2, RT_WRAP_REPEAT);
+//    tex_sampler->setWrapMode(3, RT_WRAP_REPEAT);
     tex_sampler->setIndexingMode(RT_TEXTURE_INDEX_NORMALIZED_COORDINATES);
     tex_sampler->setReadMode(RT_TEXTURE_READ_NORMALIZED_FLOAT);
     tex_sampler->setMaxAnisotropy(1.0f);

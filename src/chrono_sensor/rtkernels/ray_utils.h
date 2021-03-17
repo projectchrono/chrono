@@ -17,6 +17,7 @@
 #define CAMERA_RAY_TYPE 0
 #define SHADOW_RAY_TYPE 1
 #define LIDAR_RAY_TYPE 2
+#define RADAR_RAY_TYPE 3
 
 #define FIRST_HIT 0
 #define GLOBAL_ILLUMINATION 1
@@ -43,6 +44,12 @@ struct PerRayData_lidar {
     int depth;
 };
 
+struct PerRayData_radar {
+    float range;
+    float rcs;
+    int depth;
+};
+
 static __device__ __inline__ PerRayData_camera make_camera_data(const float3& r_color,
                                                                 const int& r_mode,
                                                                 const int& r_depth,
@@ -56,7 +63,7 @@ static __device__ __inline__ PerRayData_camera make_camera_data(const float3& r_
     ray_data.contribution_to_firsthit = make_float3(r_importance);
     
     return ray_data;
-}
+};
 
 static __device__ __inline__ PerRayData_lidar make_lidar_data(const float& r_range,
                                                               const float& r_intensity,
@@ -66,7 +73,18 @@ static __device__ __inline__ PerRayData_lidar make_lidar_data(const float& r_ran
     ray_data.intensity = r_intensity;
     ray_data.depth = r_depth;
     return ray_data;
-}
+};
+
+static __device__ __inline__ PerRayData_radar make_radar_data(const float& r_range,
+                                                              const float& r_rcs,
+                                                              const int& r_depth
+                                                             ){
+    PerRayData_radar ray_data;
+    ray_data.range = r_range;
+    ray_data.rcs = r_rcs;
+    ray_data.depth = r_depth;
+    return ray_data;
+};
 
 struct PerRayData_shadow {
     float3 attenuation;
