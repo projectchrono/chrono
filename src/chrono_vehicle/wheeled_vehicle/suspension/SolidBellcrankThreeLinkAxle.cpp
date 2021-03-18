@@ -32,7 +32,7 @@ namespace vehicle {
 // -----------------------------------------------------------------------------
 SolidBellcrankThreeLinkAxle::SolidBellcrankThreeLinkAxle(const std::string& filename)
     : ChSolidBellcrankThreeLinkAxle(""), m_springForceCB(NULL), m_shockForceCB(NULL) {
-    Document d = ReadFileJSON(filename);
+    Document d; ReadFileJSON(filename, d);
     if (d.IsNull())
         return;
 

@@ -19,7 +19,7 @@
 import math as m
 import pychrono as chrono
 import pychrono.fea as fea
-import pychrono.mkl as mkl
+import pychrono.pardisomkl as mkl
 import pychrono.irrlicht as chronoirr
 
 
@@ -39,9 +39,9 @@ application.AddTypicalSky()
 application.AddTypicalLights()
 application.AddTypicalCamera(chronoirr.vector3df(0, 0.6, -1))
 application.AddLightWithShadow(chronoirr.vector3df(1.5, 5.5, -2.5), chronoirr.vector3df(0, 0, 0), 3, 2.2, 7.2, 40, 512,
-               chronoirr.SColorf(1, 1, 1))
+                               chronoirr.SColorf(1, 1, 1))
 
-application.SetContactsDrawMode(chronoirr.ChIrrTools.CONTACT_DISTANCES)
+application.SetContactsDrawMode(chronoirr.IrrContactsDrawMode_CONTACT_DISTANCES)
 
 #
 # CREATE THE PHYSICAL SYSTEM

@@ -173,7 +173,7 @@ ChSuspensionTestRig::ChSuspensionTestRig(const std::string& filename,
       m_next_plot_output_time(0),
       m_csv(nullptr) {
     // Open and parse the input file (vehicle JSON specification file)
-    Document d = ReadFileJSON(filename);
+    Document d; ReadFileJSON(filename, d);
     if (d.IsNull())
         return;
 
@@ -237,7 +237,7 @@ ChSuspensionTestRig::ChSuspensionTestRig(const std::string& filename,
       m_next_plot_output_time(0),
       m_csv(nullptr) {
     // Open and parse the input file (rig JSON specification file)
-    Document d = ReadFileJSON(filename);
+    Document d; ReadFileJSON(filename, d);
     if (d.IsNull())
         return;
 

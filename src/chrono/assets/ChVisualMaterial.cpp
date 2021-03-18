@@ -17,16 +17,17 @@
 namespace chrono {
 
 ChVisualMaterial::ChVisualMaterial()
-    : Ka({0.2, 0.2, 0.2}),
-      Kd({0.5, 0.5, 0.5}),
-      Ks({0.2, 0.2, 0.2}),
+    : Ka({0.2f, 0.2f, 0.2f}),
+      Kd({0.5f, 0.5f, 0.5f}),
+      Ks({0.2f, 0.2f, 0.2f}),
       Ns(88),
       d(1),
       fresnel_exp(5),
       fresnel_max(1),
-      fresnel_min(0.4),
+      fresnel_min(0.4f),
       roughness(1),
-      metallic(0) {}
+      metallic(0),
+      has_texture(false) {}
 
 void ChVisualMaterial::SetAmbientColor(ChVector<float> rgb) {
     // valid rgb range [0,1]

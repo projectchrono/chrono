@@ -27,7 +27,7 @@ namespace chrono {
 namespace vehicle {
 
 ChassisConnectorTorsion::ChassisConnectorTorsion(const std::string& filename) : ChChassisConnectorTorsion("") {
-    Document d = ReadFileJSON(filename);
+    Document d; ReadFileJSON(filename, d);
     if (d.IsNull())
         return;
 

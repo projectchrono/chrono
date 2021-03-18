@@ -31,7 +31,7 @@ namespace vehicle {
 // -----------------------------------------------------------------------------
 SemiTrailingArm::SemiTrailingArm(const std::string& filename)
     : ChSemiTrailingArm(""), m_springForceCB(NULL), m_shockForceCB(NULL) {
-    Document d = ReadFileJSON(filename);
+    Document d; ReadFileJSON(filename, d);
     if (d.IsNull())
         return;
 

@@ -50,29 +50,37 @@ bool enable_moving_patch = true;
 bool var_params = true;
 
 // Custom callback for setting location-dependent soil properties.
-// Note that the (x,y) location is given in the terrain's reference plane.
+// Note that the location is given in the SCM reference frame.
 // Here, the vehicle moves in the terrain's negative y direction!
 class MySoilParams : public vehicle::SCMDeformableTerrain::SoilParametersCallback {
   public:
-    virtual void Set(double x, double y) override {
-        if (y > 0) {
-            m_Bekker_Kphi = 0.2e6;
-            m_Bekker_Kc = 0;
-            m_Bekker_n = 1.1;
-            m_Mohr_cohesion = 0;
-            m_Mohr_friction = 30;
-            m_Janosi_shear = 0.01;
-            m_elastic_K = 4e7;
-            m_damping_R = 3e4;
+    virtual void Set(const ChVector<>& loc,
+                     double& Bekker_Kphi,
+                     double& Bekker_Kc,
+                     double& Bekker_n,
+                     double& Mohr_cohesion,
+                     double& Mohr_friction,
+                     double& Janosi_shear,
+                     double& elastic_K,
+                     double& damping_R) override {
+        if (loc.y() > 0) {
+            Bekker_Kphi = 0.2e6;
+            Bekker_Kc = 0;
+            Bekker_n = 1.1;
+            Mohr_cohesion = 0;
+            Mohr_friction = 30;
+            Janosi_shear = 0.01;
+            elastic_K = 4e7;
+            damping_R = 3e4;
         } else {
-            m_Bekker_Kphi = 5301e3;
-            m_Bekker_Kc = 102e3;
-            m_Bekker_n = 0.793;
-            m_Mohr_cohesion = 1.3e3;
-            m_Mohr_friction = 31.1;
-            m_Janosi_shear = 1.2e-2;
-            m_elastic_K = 4e8;
-            m_damping_R = 3e4;
+            Bekker_Kphi = 5301e3;
+            Bekker_Kc = 102e3;
+            Bekker_n = 0.793;
+            Mohr_cohesion = 1.3e3;
+            Mohr_friction = 31.1;
+            Janosi_shear = 1.2e-2;
+            elastic_K = 4e8;
+            damping_R = 3e4;
         }
     }
 };
@@ -242,7 +250,7 @@ int main(int argc, char* argv[]) {
     ////mterrain.SetPlotType(vehicle::SCMDeformableTerrain::PLOT_STEP_PLASTIC_FLOW, 0, 0.0001);
     ////mterrain.SetPlotType(vehicle::SCMDeformableTerrain::PLOT_ISLAND_ID, 0, 8);
     ////mterrain.SetPlotType(vehicle::SCMDeformableTerrain::PLOT_IS_TOUCHED, 0, 8);
-    mterrain.GetMesh()->SetWireframe(true);
+    mterrain.SetMeshWireframe(true);
 
     // ==IMPORTANT!== Use this function for adding a ChIrrNodeAsset to all items
     application.AssetBindAll();

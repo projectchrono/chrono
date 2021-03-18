@@ -47,7 +47,9 @@ void ChSystemDescriptor::ComputeFeasabilityViolation(double& resulting_maxviolat
     resulting_maxviolation = 0;
     resulting_feasability = 0;
 
-    for (unsigned int ic = 0; ic < vconstraints.size(); ic++) {
+    auto vc_size = vconstraints.size();
+
+    for (size_t ic = 0; ic < vc_size; ic++) {
         // the the residual of the constraint..
         double mres_i = vconstraints[ic]->Compute_c_i();
 
@@ -67,9 +69,11 @@ void ChSystemDescriptor::ComputeFeasabilityViolation(double& resulting_maxviolat
 int ChSystemDescriptor::CountActiveVariables() {
     if (freeze_count)  // optimization, avoid list count all times
         return n_q;
+    
+    auto vv_size = vvariables.size();
 
     n_q = 0;
-    for (unsigned int iv = 0; iv < vvariables.size(); iv++) {
+    for (size_t iv = 0; iv < vv_size; iv++) {
         if (vvariables[iv]->IsActive()) {
             vvariables[iv]->SetOffset(n_q);  // also store offsets in state and MC matrix
             n_q += vvariables[iv]->Get_ndof();
@@ -82,8 +86,10 @@ int ChSystemDescriptor::CountActiveConstraints() {
     if (freeze_count)  // optimization, avoid list count all times
         return n_c;
 
+    auto vc_size = vconstraints.size();
+
     n_c = 0;
-    for (unsigned int ic = 0; ic < vconstraints.size(); ic++) {
+    for (size_t ic = 0; ic < vc_size; ic++) {
         if (vconstraints[ic]->IsActive()) {
             vconstraints[ic]->SetOffset(n_c);  // also store offsets in state and MC matrix
             n_c++;
@@ -110,10 +116,14 @@ void ChSystemDescriptor::ConvertToMatrixForm(ChSparseMatrix* Cq,
     std::vector<ChConstraint*>& mconstraints = GetConstraintsList();
     std::vector<ChVariables*>& mvariables = GetVariablesList();
 
+    auto mv_size = mvariables.size();
+    auto mc_size = mconstraints.size();
+    auto vs_size = vstiffness.size();
+
     // Count bilateral and other constraints.. (if wanted, bilaterals only)
 
     int mn_c = 0;
-    for (unsigned int ic = 0; ic < mconstraints.size(); ic++) {
+    for (size_t ic = 0; ic < mc_size; ic++) {
         if (mconstraints[ic]->IsActive())
             if (!((mconstraints[ic]->GetMode() == CONSTRAINT_FRIC) && only_bilaterals))
                 if (!((dynamic_cast<ChConstraintTwoTuplesFrictionTall*>(mconstraints[ic])) && skip_contacts_uv)) {
@@ -144,7 +154,7 @@ void ChSystemDescriptor::ConvertToMatrixForm(ChSparseMatrix* Cq,
     // Fills H submasses and 'f' vector,
     // by looping on variables
     int s_q = 0;
-    for (unsigned int iv = 0; iv < mvariables.size(); iv++) {
+    for (size_t iv = 0; iv < mv_size; iv++) {
         if (mvariables[iv]->IsActive()) {
             if (H)
                 mvariables[iv]->Build_M(*H, s_q, s_q, c_a);  // .. fills  H  (often H=M , the mass)
@@ -158,7 +168,7 @@ void ChSystemDescriptor::ConvertToMatrixForm(ChSparseMatrix* Cq,
     // also add it to the sparse H
     int s_k = 0;
     if (H) {
-        for (unsigned int ik = 0; ik < vstiffness.size(); ik++) {
+        for (size_t ik = 0; ik < vs_size; ik++) {
             vstiffness[ik]->Build_K(*H, true);
         }
     }
@@ -166,7 +176,7 @@ void ChSystemDescriptor::ConvertToMatrixForm(ChSparseMatrix* Cq,
     // Fills Cq jacobian, E 'compliance' matrix , the 'b' vector and friction coeff.vector,
     // by looping on constraints
     int s_c = 0;
-    for (unsigned int ic = 0; ic < mconstraints.size(); ic++) {
+    for (size_t ic = 0; ic < mc_size; ic++) {
         if (mconstraints[ic]->IsActive())
             if (!((mconstraints[ic]->GetMode() == CONSTRAINT_FRIC) && only_bilaterals))
                 if (!((dynamic_cast<ChConstraintTwoTuplesFrictionTall*>(mconstraints[ic])) && skip_contacts_uv)) {
@@ -194,9 +204,13 @@ void ChSystemDescriptor::ConvertToMatrixForm(ChSparseMatrix* Z, ChVectorDynamic<
     std::vector<ChConstraint*>& mconstraints = GetConstraintsList();
     std::vector<ChVariables*>& mvariables = GetVariablesList();
 
+    auto mv_size = mvariables.size();
+    auto mc_size = mconstraints.size();
+    auto vs_size = vstiffness.size();
+
     // Count constraints.
     int mn_c = 0;
-    for (unsigned int ic = 0; ic < mconstraints.size(); ic++) {
+    for (size_t ic = 0; ic < mc_size; ic++) {
         if (mconstraints[ic]->IsActive())
             mn_c++;
     }
@@ -210,7 +224,7 @@ void ChSystemDescriptor::ConvertToMatrixForm(ChSparseMatrix* Z, ChVectorDynamic<
 
         // Fill Z with masses and inertias.
         int s_q = 0;
-        for (unsigned int iv = 0; iv < mvariables.size(); iv++) {
+        for (size_t iv = 0; iv < mv_size; iv++) {
             if (mvariables[iv]->IsActive()) {
                 // Masses and inertias in upper-left block of Z
                 mvariables[iv]->Build_M(*Z, s_q, s_q, c_a);
@@ -220,13 +234,13 @@ void ChSystemDescriptor::ConvertToMatrixForm(ChSparseMatrix* Z, ChVectorDynamic<
 
         // If present, add stiffness matrix K to upper-left block of Z.
         int s_k = 0;
-        for (unsigned int ik = 0; ik < vstiffness.size(); ik++) {
+        for (size_t ik = 0; ik < vs_size; ik++) {
             vstiffness[ik]->Build_K(*Z, true);
         }
 
         // Fill Z by looping over constraints.
         int s_c = 0;
-        for (unsigned int ic = 0; ic < mconstraints.size(); ic++) {
+        for (size_t ic = 0; ic < mc_size; ic++) {
             if (mconstraints[ic]->IsActive()) {
                 // Constraint Jacobian in lower-left block of Z
                 mconstraints[ic]->Build_Cq(*Z, n_q + s_c);
@@ -244,7 +258,7 @@ void ChSystemDescriptor::ConvertToMatrixForm(ChSparseMatrix* Z, ChVectorDynamic<
 
         // Fill rhs with forces.
         int s_q = 0;
-        for (unsigned int iv = 0; iv < mvariables.size(); iv++) {
+        for (size_t iv = 0; iv < mv_size; iv++) {
             if (mvariables[iv]->IsActive()) {
                 // Forces in upper section of rhs
                 rhs->segment(s_q, vvariables[iv]->Get_ndof()) = vvariables[iv]->Get_fb();
@@ -254,7 +268,7 @@ void ChSystemDescriptor::ConvertToMatrixForm(ChSparseMatrix* Z, ChVectorDynamic<
 
         // Fill rhs by looping over constraints.
         int s_c = 0;
-        for (unsigned int ic = 0; ic < mconstraints.size(); ic++) {
+        for (size_t ic = 0; ic < mc_size; ic++) {
             if (mconstraints[ic]->IsActive()) {
                 // -b term in lower section of rhs
                 (*rhs)(n_q + s_c) = -(mconstraints[ic]->Get_b_i());
@@ -331,8 +345,10 @@ int ChSystemDescriptor::BuildFbVector(ChVectorDynamic<>& Fvector) {
     n_q = CountActiveVariables();
     Fvector.setZero(n_q);
 
+    auto vv_size = vvariables.size();
+
     // Fills the 'f' vector
-    for (int iv = 0; iv < (int)vvariables.size(); iv++) {
+    for (size_t iv = 0; iv < vv_size; iv++) {
         if (vvariables[iv]->IsActive()) {
             Fvector.segment(vvariables[iv]->GetOffset(), vvariables[iv]->Get_ndof()) = vvariables[iv]->Get_fb();
         }
@@ -344,8 +360,10 @@ int ChSystemDescriptor::BuildBiVector(ChVectorDynamic<>& Bvector) {
     n_c = CountActiveConstraints();
     Bvector.setZero(n_c);
 
+    auto vc_size = vconstraints.size();
+
     // Fill the 'b' vector
-    for (int ic = 0; ic < (int)vconstraints.size(); ic++) {
+    for (size_t ic = 0; ic < vc_size; ic++) {
         if (vconstraints[ic]->IsActive()) {
             Bvector(vconstraints[ic]->GetOffset()) = vconstraints[ic]->Get_b_i();
         }
@@ -359,15 +377,18 @@ int ChSystemDescriptor::BuildDiVector(ChVectorDynamic<>& Dvector) {
     n_c = CountActiveConstraints();
     Dvector.setZero(n_q + n_c);
 
+    auto vv_size = vvariables.size();
+    auto vc_size = vconstraints.size();
+
     // Fills the 'f' vector part
-    for (int iv = 0; iv < (int)vvariables.size(); iv++) {
+    for (size_t iv = 0; iv < vv_size; iv++) {
         if (vvariables[iv]->IsActive()) {
             Dvector.segment(vvariables[iv]->GetOffset(), vvariables[iv]->Get_ndof()) = vvariables[iv]->Get_fb();
         }
     }
 
     // Fill the '-b' vector (with flipped sign!)
-    for (int ic = 0; ic < (int)vconstraints.size(); ic++) {
+    for (size_t ic = 0; ic < vc_size; ic++) {
         if (vconstraints[ic]->IsActive()) {
             Dvector(vconstraints[ic]->GetOffset() + n_q) = -vconstraints[ic]->Get_b_i();
         }
@@ -381,21 +402,25 @@ int ChSystemDescriptor::BuildDiagonalVector(ChVectorDynamic<>& Diagonal_vect) {
     n_c = CountActiveConstraints();
     Diagonal_vect.setZero(n_q + n_c);
 
+    auto vs_size = vstiffness.size();
+    auto vv_size = vvariables.size();
+    auto vc_size = vconstraints.size();
+
     // Fill the diagonal values given by ChKblock objects , if any
     // (This cannot be easily parallelized because of possible write concurrency).
-    for (int is = 0; is < (int)vstiffness.size(); is++) {
+    for (size_t is = 0; is < vs_size; is++) {
         vstiffness[is]->DiagonalAdd(Diagonal_vect);
     }
 
     // Get the 'M' diagonal terms given by ChVariables objects
-    for (int iv = 0; iv < (int)vvariables.size(); iv++) {
+    for (size_t iv = 0; iv < vv_size; iv++) {
         if (vvariables[iv]->IsActive()) {
             vvariables[iv]->DiagonalAdd(Diagonal_vect, c_a);
         }
     }
 
     // Get the 'E' diagonal terms (E_i = cfm_i )
-    for (int ic = 0; ic < (int)vconstraints.size(); ic++) {
+    for (size_t ic = 0; ic < vc_size; ic++) {
         if (vconstraints[ic]->IsActive()) {
             Diagonal_vect(vconstraints[ic]->GetOffset() + n_q) = vconstraints[ic]->Get_cfm_i();
         }
@@ -412,7 +437,8 @@ int ChSystemDescriptor::FromVariablesToVector(ChVectorDynamic<>& mvector, bool r
     }
 
     // Fill the vector
-    for (int iv = 0; iv < (int)vvariables.size(); iv++) {
+    auto vv_size = vvariables.size();
+    for (size_t iv = 0; iv < vv_size; iv++) {
         if (vvariables[iv]->IsActive()) {
             mvector.segment(vvariables[iv]->GetOffset(), vvariables[iv]->Get_ndof()) = vvariables[iv]->Get_qb();
         }
@@ -425,7 +451,8 @@ int ChSystemDescriptor::FromVectorToVariables(const ChVectorDynamic<>& mvector) 
     assert(CountActiveVariables() == mvector.rows());
 
     // fetch from the vector
-    for (int iv = 0; iv < (int)vvariables.size(); iv++) {
+    auto vv_size = vvariables.size();
+    for (size_t iv = 0; iv < vv_size; iv++) {
         if (vvariables[iv]->IsActive()) {
             vvariables[iv]->Get_qb() = mvector.segment(vvariables[iv]->GetOffset(), vvariables[iv]->Get_ndof());
         }
@@ -441,8 +468,10 @@ int ChSystemDescriptor::FromConstraintsToVector(ChVectorDynamic<>& mvector, bool
         mvector.setZero(n_c);
     }
 
+    auto vc_size = (int)vconstraints.size();
+
     // Fill the vector
-    for (int ic = 0; ic < (int)vconstraints.size(); ic++) {
+    for (size_t ic = 0; ic < vc_size; ic++) {
         if (vconstraints[ic]->IsActive()) {
             mvector(vconstraints[ic]->GetOffset()) = vconstraints[ic]->Get_l_i();
         }
@@ -456,8 +485,10 @@ int ChSystemDescriptor::FromVectorToConstraints(const ChVectorDynamic<>& mvector
 
     assert(n_c == mvector.size());
 
+    auto vc_size = (int)vconstraints.size();
+
     // Fill the vector
-    for (int ic = 0; ic < (int)vconstraints.size(); ic++) {
+    for (size_t ic = 0; ic < vc_size; ic++) {
         if (vconstraints[ic]->IsActive()) {
             vconstraints[ic]->Set_l_i(mvector(vconstraints[ic]->GetOffset()));
         }
@@ -475,15 +506,18 @@ int ChSystemDescriptor::FromUnknownsToVector(ChVectorDynamic<>& mvector, bool re
         mvector.setZero(n_q + n_c);
     }
 
+    auto vv_size = (int)vvariables.size();
+    auto vc_size = (int)vconstraints.size();
+
     // Fill the first part of vector, x.q ,with variables q
-    for (int iv = 0; iv < (int)vvariables.size(); iv++) {
+    for (size_t iv = 0; iv < vv_size; iv++) {
         if (vvariables[iv]->IsActive()) {
             mvector.segment(vvariables[iv]->GetOffset(), vvariables[iv]->Get_ndof()) = vvariables[iv]->Get_qb();
         }
     }
 
     // Fill the second part of vector, x.l, with constraint multipliers -l (with flipped sign!)
-    for (int ic = 0; ic < (int)vconstraints.size(); ic++) {
+    for (size_t ic = 0; ic < vc_size; ic++) {
         if (vconstraints[ic]->IsActive()) {
             mvector(vconstraints[ic]->GetOffset() + n_q) = -vconstraints[ic]->Get_l_i();
         }
@@ -498,15 +532,18 @@ int ChSystemDescriptor::FromVectorToUnknowns(const ChVectorDynamic<>& mvector) {
 
     assert((n_q + n_c) == mvector.size());
 
+    auto vv_size = vvariables.size();
+    auto vc_size = vconstraints.size();
+
     // Fetch from the first part of vector (x.q = q)
-    for (int iv = 0; iv < (int)vvariables.size(); iv++) {
+    for (size_t iv = 0; iv < vv_size; iv++) {
         if (vvariables[iv]->IsActive()) {
             vvariables[iv]->Get_qb() = mvector.segment(vvariables[iv]->GetOffset(), vvariables[iv]->Get_ndof());
         }
     }
 
     // Fetch from the second part of vector (x.l = -l), with flipped sign!
-    for (int ic = 0; ic < (int)vconstraints.size(); ic++) {
+    for (size_t ic = 0; ic < vc_size; ic++) {
         if (vconstraints[ic]->IsActive()) {
             vconstraints[ic]->Set_l_i(-mvector(vconstraints[ic]->GetOffset() + n_q));
         }
@@ -527,9 +564,12 @@ void ChSystemDescriptor::ShurComplementProduct(ChVectorDynamic<>& result,
     // Performs the sparse product    result = [N]*l = [ [Cq][M^(-1)][Cq'] - [E] ] *l
     // in different phases:
 
+    auto vv_size = vvariables.size();
+    auto vc_size = vconstraints.size();
+
     // 1 - set the qb vector (aka speeds, in each ChVariable sparse data) as zero
 
-    for (int iv = 0; iv < (int)vvariables.size(); iv++) {
+    for (size_t iv = 0; iv < vv_size; iv++) {
         if (vvariables[iv]->IsActive())
             vvariables[iv]->Get_qb().setZero();
     }
@@ -540,7 +580,7 @@ void ChSystemDescriptor::ShurComplementProduct(ChVectorDynamic<>& result,
     //     Also, begin to add the cfm term ( -[E]*l ) to the result.
 
     // ATTENTION:  this loop cannot be parallelized! Concurrent write to some q may happen
-    for (int ic = 0; ic < (int)vconstraints.size(); ic++) {
+    for (size_t ic = 0; ic < vc_size; ic++) {
         if (vconstraints[ic]->IsActive()) {
             int s_c = vconstraints[ic]->GetOffset();
 
@@ -562,7 +602,7 @@ void ChSystemDescriptor::ShurComplementProduct(ChVectorDynamic<>& result,
     // 3 - performs    result=[Cq']*qb    by
     //     iterating over all constraints
 
-    for (int ic = 0; ic < (int)vconstraints.size(); ic++) {
+    for (size_t ic = 0; ic < vc_size; ic++) {
         if (vconstraints[ic]->IsActive()) {
             bool process = (!enabled) || (*enabled)[vconstraints[ic]->GetOffset()];
 
@@ -580,29 +620,33 @@ void ChSystemDescriptor::SystemProduct(ChVectorDynamic<>& result, const ChVector
 
     result.setZero(n_q + n_c);
 
+    auto vv_size = vvariables.size();
+    auto vc_size = vconstraints.size();
+    auto vs_size = vstiffness.size();
+
     // 1) First row: result.q part =  [M + K]*x.q + [Cq']*x.l
 
     // 1.1)  do  M*x.q
-    for (int iv = 0; iv < (int)vvariables.size(); iv++) {
+    for (size_t iv = 0; iv < vv_size; iv++) {
         if (vvariables[iv]->IsActive()) {
             vvariables[iv]->MultiplyAndAdd(result, x, c_a);
         }
     }
 
     // 1.2)  add also K*x.q  (NON straight parallelizable - risk of concurrency in writing)
-    for (int ik = 0; ik < (int)vstiffness.size(); ik++) {
+    for (size_t ik = 0; ik < vs_size; ik++) {
         vstiffness[ik]->MultiplyAndAdd(result, x);
     }
 
     // 1.3)  add also [Cq]'*x.l  (NON straight parallelizable - risk of concurrency in writing)
-    for (int ic = 0; ic < (int)vconstraints.size(); ic++) {
+    for (size_t ic = 0; ic < vc_size; ic++) {
         if (vconstraints[ic]->IsActive()) {
             vconstraints[ic]->MultiplyTandAdd(result, x(vconstraints[ic]->GetOffset() + n_q));
         }
     }
 
     // 2) Second row: result.l part =  [C_q]*x.q + [E]*x.l
-    for (int ic = 0; ic < (int)vconstraints.size(); ic++) {
+    for (size_t ic = 0; ic < vc_size; ic++) {
         if (vconstraints[ic]->IsActive()) {
             int s_c = vconstraints[ic]->GetOffset() + n_q;
             vconstraints[ic]->MultiplyAndAdd(result(s_c), x);       // result.l_i += [C_q_i]*x.q
@@ -614,7 +658,9 @@ void ChSystemDescriptor::SystemProduct(ChVectorDynamic<>& result, const ChVector
 void ChSystemDescriptor::ConstraintsProject(ChVectorDynamic<>& multipliers) {
     FromVectorToConstraints(multipliers);
 
-    for (int ic = 0; ic < (int)vconstraints.size(); ic++) {
+    auto vc_size = vconstraints.size();
+
+    for (size_t ic = 0; ic < vc_size; ic++) {
         if (vconstraints[ic]->IsActive())
             vconstraints[ic]->Project();
     }
@@ -625,23 +671,25 @@ void ChSystemDescriptor::ConstraintsProject(ChVectorDynamic<>& multipliers) {
 void ChSystemDescriptor::UnknownsProject(ChVectorDynamic<>& mx) {
     n_q = CountActiveVariables();
 
+    auto vc_size = vconstraints.size();
+
     // vector -> constraints
     // Fetch from the second part of vector (x.l = -l), with flipped sign!
-    for (int ic = 0; ic < (int)vconstraints.size(); ic++) {
+    for (size_t ic = 0; ic < vc_size; ic++) {
         if (vconstraints[ic]->IsActive()) {
             vconstraints[ic]->Set_l_i(-mx(vconstraints[ic]->GetOffset() + n_q));
         }
     }
 
     // constraint projection!
-    for (int ic = 0; ic < (int)vconstraints.size(); ic++) {
+    for (size_t ic = 0; ic < vc_size; ic++) {
         if (vconstraints[ic]->IsActive())
             vconstraints[ic]->Project();
     }
 
     // constraints -> vector
     // Fill the second part of vector, x.l, with constraint multipliers -l (with flipped sign!)
-    for (int ic = 0; ic < (int)vconstraints.size(); ic++) {
+    for (size_t ic = 0; ic < vc_size; ic++) {
         if (vconstraints[ic]->IsActive()) {
             mx(vconstraints[ic]->GetOffset() + n_q) = -vconstraints[ic]->Get_l_i();
         }

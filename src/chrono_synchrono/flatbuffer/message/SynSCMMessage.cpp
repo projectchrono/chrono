@@ -43,11 +43,11 @@ void SynSCMMessage::ConvertFromFlatBuffers(const SynFlatBuffers::Message* messag
     auto terrain_state = message->message_as_Terrain_State();
     auto state = terrain_state->message_as_SCM_State();
 
-    modified_nodes.clear();
     auto nodes_size = state->nodes()->size();
+    modified_nodes.clear();
+    modified_nodes.reserve(nodes_size);
     for (size_t i = 0; i < nodes_size; i++) {
         auto fb_node = state->nodes()->Get((flatbuffers::uoffset_t)i);
-
         auto node = std::make_pair(ChVector2<>(fb_node->x(), fb_node->y()), fb_node->level());
         modified_nodes.push_back(node);
     }
@@ -56,9 +56,10 @@ void SynSCMMessage::ConvertFromFlatBuffers(const SynFlatBuffers::Message* messag
 }
 
 /// Generate FlatBuffers message from this message's state
-FlatBufferMessage SynSCMMessage::ConvertToFlatBuffers(flatbuffers::FlatBufferBuilder& builder) {
-    std::vector<SCM::NodeLevel> modified_nodes(this->modified_nodes.size());
-    for (auto& node : this->modified_nodes)
+FlatBufferMessage SynSCMMessage::ConvertToFlatBuffers(flatbuffers::FlatBufferBuilder& builder) const {
+    std::vector<SCM::NodeLevel> modified_nodes;
+    modified_nodes.reserve(this->modified_nodes.size());
+    for (const auto& node : this->modified_nodes)
         modified_nodes.push_back(SCM::NodeLevel(node.first.x(), node.first.y(), node.second));
 
     auto scm_state = SCM::CreateStateDirect(builder, time, &modified_nodes);
