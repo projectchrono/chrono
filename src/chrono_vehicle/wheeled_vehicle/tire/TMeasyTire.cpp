@@ -31,7 +31,7 @@ namespace vehicle {
 
 // -----------------------------------------------------------------------------
 TMeasyTire::TMeasyTire(const std::string& filename) : ChTMeasyTire(""), m_has_mesh(false) {
-    Document d = ReadFileJSON(filename);
+    Document d; ReadFileJSON(filename, d);
     if (d.IsNull())
         return;
 

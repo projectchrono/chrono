@@ -1141,8 +1141,8 @@ inline void ChQuaternion<Real>::Q_to_AngAxis(Real& a_angle, ChVector<Real>& a_ax
     // For non-zero rotation
     if (sin_squared > 0) {
         Real sin_theta = sqrt(sin_squared);
-        a_angle = 2.0 * atan2(sin_theta, m_data[0]);
-        Real k = 1.0 / sin_theta;
+        a_angle = 2 * atan2(sin_theta, m_data[0]);
+        Real k = 1 / sin_theta;
         a_axis.x() = m_data[1] * k;
         a_axis.y() = m_data[2] * k;
         a_axis.z() = m_data[3] * k;
@@ -1200,12 +1200,12 @@ inline ChVector<Real> ChQuaternion<Real>::Q_to_NasaAngles() {
 template <class Real>
 inline void ChQuaternion<Real>::Q_from_Euler123(const ChVector<Real>& ang) {
     // Angles {phi;theta;psi} aka {roll;pitch;yaw}
-    Real t0 = cos(ang.z() * 0.5);
-    Real t1 = sin(ang.z() * 0.5);
-    Real t2 = cos(ang.x() * 0.5);
-    Real t3 = sin(ang.x() * 0.5);
-    Real t4 = cos(ang.y() * 0.5);
-    Real t5 = sin(ang.y() * 0.5);
+    Real t0 = cos(ang.z() * Real(0.5));
+    Real t1 = sin(ang.z() * Real(0.5));
+    Real t2 = cos(ang.x() * Real(0.5));
+    Real t3 = sin(ang.x() * Real(0.5));
+    Real t4 = cos(ang.y() * Real(0.5));
+    Real t5 = sin(ang.y() * Real(0.5));
 
     m_data[0] = t0 * t2 * t4 + t1 * t3 * t5;
     m_data[1] = t0 * t3 * t4 - t1 * t2 * t5;

@@ -32,7 +32,7 @@ namespace vehicle {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 SprocketDoublePin::SprocketDoublePin(const std::string& filename) : ChSprocketDoublePin(""), m_has_mesh(false) {
-    Document d = ReadFileJSON(filename);
+    Document d; ReadFileJSON(filename, d);
     if (d.IsNull())
         return;
 

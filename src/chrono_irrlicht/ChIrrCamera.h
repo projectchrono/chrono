@@ -37,49 +37,49 @@ class ChApiIrr RTSCamera : public irr::scene::ICameraSceneNode {
               irr::f32 zoomSpeed = 1.0f,
               irr::f32 translationSpeed = 0.003f);
 
-    virtual ~RTSCamera() {}
+    ~RTSCamera() {}
 
     // Events
-    virtual void render();
-    virtual bool OnEvent(const irr::SEvent& event);
-    virtual void OnRegisterSceneNode();
-    virtual void OnAnimate(irr::u32 timeMs);
+    virtual void render() override;
+    virtual bool OnEvent(const irr::SEvent& event) override;
+    virtual void OnRegisterSceneNode() override;
+    virtual void OnAnimate(irr::u32 timeMs) override;
 
     // Setup
-    virtual void setInputReceiverEnabled(bool enabled) { InputReceiverEnabled = enabled; }
-    virtual bool isInputReceiverEnabled() const;
+    virtual void setInputReceiverEnabled(bool enabled) override { InputReceiverEnabled = enabled; }
+    virtual bool isInputReceiverEnabled() const override;
 
     // Gets
-    virtual const irr::core::aabbox3d<irr::f32>& getBoundingBox() const { return BBox; }
-    virtual const irr::core::matrix4& getProjectionMatrix() const { return Projection; }
-    virtual const irr::scene::SViewFrustum* getViewFrustum() const { return &ViewArea; }
-    virtual const irr::core::matrix4& getViewMatrix() const { return View; }
-    virtual const irr::core::matrix4& getViewMatrixAffector() const { return Affector; }
-    virtual const irr::core::vector3df& getUpVector() const { return UpVector; }
-    virtual const irr::core::vector3df& getTarget() const { return Target; }
-    virtual irr::f32 getNearValue() const { return ZNear; }
-    virtual irr::f32 getFarValue() const { return ZFar; }
-    virtual irr::f32 getAspectRatio() const { return Aspect; }
-    virtual irr::f32 getFOV() const { return Fovy; }
+    virtual const irr::core::aabbox3d<irr::f32>& getBoundingBox() const override { return BBox; }
+    virtual const irr::core::matrix4& getProjectionMatrix() const override { return Projection; }
+    virtual const irr::scene::SViewFrustum* getViewFrustum() const override { return &ViewArea; }
+    virtual const irr::core::matrix4& getViewMatrix() const override { return View; }
+    virtual const irr::core::matrix4& getViewMatrixAffector() const override { return Affector; }
+    virtual const irr::core::vector3df& getUpVector() const override { return UpVector; }
+    virtual const irr::core::vector3df& getTarget() const override { return Target; }
+    virtual irr::f32 getNearValue() const override { return ZNear; }
+    virtual irr::f32 getFarValue() const override { return ZFar; }
+    virtual irr::f32 getAspectRatio() const override { return Aspect; }
+    virtual irr::f32 getFOV() const override { return Fovy; }
 
     // Sets
-    virtual void setNearValue(irr::f32 zn);
-    virtual void setFarValue(irr::f32 zf);
-    virtual void setAspectRatio(irr::f32 aspect);
-    virtual void setFOV(irr::f32 fovy);
-    virtual void setViewMatrixAffector(const irr::core::matrix4& affector);
-    virtual void setProjectionMatrix(const irr::core::matrix4& projection, bool isOrthogonal = false);
-    virtual void setPosition(const irr::core::vector3df& newpos);
-    virtual void setTarget(const irr::core::vector3df& newpos);
-    virtual void setRotation(const irr::core::vector3df& rotation) {}
+    virtual void setNearValue(irr::f32 zn) override;
+    virtual void setFarValue(irr::f32 zf) override;
+    virtual void setAspectRatio(irr::f32 aspect) override;
+    virtual void setFOV(irr::f32 fovy) override;
+    virtual void setViewMatrixAffector(const irr::core::matrix4& affector) override;
+    virtual void setProjectionMatrix(const irr::core::matrix4& projection, bool isOrthogonal = false) override;
+    virtual void setPosition(const irr::core::vector3df& newpos) override;
+    virtual void setTarget(const irr::core::vector3df& newpos) override;
+    virtual void setRotation(const irr::core::vector3df& rotation) override {}
     void setZUp();
 
-    virtual void setZoomSpeed(irr::f32 value);
-    virtual void setTranslateSpeed(irr::f32 value);
-    virtual void setRotationSpeed(irr::f32 value);
+    void setZoomSpeed(irr::f32 value);
+    void setTranslateSpeed(irr::f32 value);
+    void setRotationSpeed(irr::f32 value);
 
-    virtual void bindTargetAndRotation(bool bound) {}
-    virtual bool getTargetAndRotationBinding(void) const { return false; }
+    virtual void bindTargetAndRotation(bool bound) override {}
+    virtual bool getTargetAndRotationBinding(void) const override { return false; }
 
     // Helper Functions
     void pointCameraAtNode(ISceneNode* selectednode);
@@ -87,7 +87,7 @@ class ChApiIrr RTSCamera : public irr::scene::ICameraSceneNode {
     void setMaxZoom(irr::f32 amount);
 
     // Type Return
-    virtual irr::scene::ESCENE_NODE_TYPE getType() const { return irr::scene::ESNT_CAMERA; }
+    virtual irr::scene::ESCENE_NODE_TYPE getType() const override { return irr::scene::ESNT_CAMERA; }
 
     // Public Attributes
     bool atMinDistance;

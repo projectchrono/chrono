@@ -133,7 +133,7 @@ void SCMDeformableTerrain::SetSoilParameters(
     m_ground->m_Bekker_Kc = Bekker_Kc;
     m_ground->m_Bekker_n = Bekker_n;
     m_ground->m_Mohr_cohesion = Mohr_cohesion;
-    m_ground->m_Mohr_friction = Mohr_friction;
+    m_ground->m_Mohr_mu = std::tan(Mohr_friction * CH_C_DEG_TO_RAD);
     m_ground->m_Janosi_shear = Janosi_shear;
     m_ground->m_elastic_K = ChMax(elastic_K, Bekker_Kphi);
     m_ground->m_damping_R = damping_R;
@@ -146,13 +146,13 @@ void SCMDeformableTerrain::EnableBulldozing(bool val) {
 
 // Set parameters controlling the creation of side ruts (bulldozing effects).
 void SCMDeformableTerrain::SetBulldozingParameters(
-    double erosion_angle,     // angle of erosion of the displaced material (in degrees!)
+    double erosion_angle,     // angle of erosion of the displaced material [degrees]
     double flow_factor,       // growth of lateral volume relative to pressed volume
     int erosion_iterations,   // number of erosion refinements per timestep
     int erosion_propagations  // number of concentric vertex selections subject to erosion
 ) {
     m_ground->m_flow_factor = flow_factor;
-    m_ground->m_erosion_angle = erosion_angle;
+    m_ground->m_erosion_slope = std::tan(erosion_angle * CH_C_DEG_TO_RAD);
     m_ground->m_erosion_iterations = erosion_iterations;
     m_ground->m_erosion_propagations = erosion_propagations;
 }
@@ -291,6 +291,19 @@ void SCMDeformableTerrain::PrintStepStatistics(std::ostream& os) const {
 }
 
 // -----------------------------------------------------------------------------
+// Contactable user-data (contactable-soil parameters)
+// -----------------------------------------------------------------------------
+
+SCMContactableData::SCMContactableData(double area_ratio,
+                                       double Mohr_cohesion,
+                                       double Mohr_friction,
+                                       double Janosi_shear)
+    : area_ratio(area_ratio),
+      Mohr_cohesion(Mohr_cohesion),
+      Mohr_mu(std::tan(Mohr_friction * CH_C_DEG_TO_RAD)),
+      Janosi_shear(Janosi_shear) {}
+
+// -----------------------------------------------------------------------------
 // Implementation of SCMDeformableSoil
 // -----------------------------------------------------------------------------
 
@@ -318,7 +331,7 @@ SCMDeformableSoil::SCMDeformableSoil(ChSystem* system, bool visualization_mesh) 
     // Bulldozing effects
     m_bulldozing = false;
     m_flow_factor = 1.2;
-    m_erosion_angle = 40;
+    m_erosion_slope = std::tan(40.0 * CH_C_DEG_TO_RAD);
     m_erosion_iterations = 3;
     m_erosion_propagations = 10;
 
@@ -327,7 +340,7 @@ SCMDeformableSoil::SCMDeformableSoil(ChSystem* system, bool visualization_mesh) 
     m_Bekker_Kc = 0;
     m_Bekker_n = 1.1;
     m_Mohr_cohesion = 50;
-    m_Mohr_friction = 20;
+    m_Mohr_mu = std::tan(20.0 * CH_C_DEG_TO_RAD);
     m_Janosi_shear = 0.01;
     m_elastic_K = 50000000;
     m_damping_R = 0;
@@ -663,7 +676,7 @@ double SCMDeformableSoil::GetHeight(const ChVector2<int>& loc) const {
     // First query the hash-map
     auto p = m_grid_map.find(loc);
     if (p != m_grid_map.end())
-        return p->second.p_level;
+        return p->second.level;
 
     // Else return undeformed height
     return GetInitHeight(loc);
@@ -889,11 +902,11 @@ void SCMDeformableSoil::ComputeInternalForces() {
     // (required for bulldozing effects and for proper visualization coloring)
     for (const auto& ij : m_modified_nodes) {
         auto& nr = m_grid_map.at(ij);
-        nr.p_sigma = 0;
-        nr.p_sinkage_elastic = 0;
-        nr.p_step_plastic_flow = 0;
-        nr.p_erosion = false;
-        nr.p_hit_level = 1e9;
+        nr.sigma = 0;
+        nr.sinkage_elastic = 0;
+        nr.step_plastic_flow = 0;
+        nr.erosion = false;
+        nr.hit_level = 1e9;
 
         // Update visualization (only color changes relevant here)
         if (m_trimesh_shape && CheckMeshBounds(ij)) {
@@ -1097,7 +1110,7 @@ void SCMDeformableSoil::ComputeInternalForces() {
     double Bekker_Kc = m_Bekker_Kc;
     double Bekker_n = m_Bekker_n;
     double Mohr_cohesion = m_Mohr_cohesion;
-    double Mohr_friction = m_Mohr_friction;
+    double Mohr_mu = m_Mohr_mu;
     double Janosi_shear = m_Janosi_shear;
     double elastic_K = m_elastic_K;
     double damping_R = m_damping_R;
@@ -1106,8 +1119,8 @@ void SCMDeformableSoil::ComputeInternalForces() {
     for (auto& h : hits) {
         ChVector2<> ij = h.first;
 
-        auto& nr = m_grid_map.at(ij);        // node record
-        const double& ca = nr.p_normal.z();  // cosine of angle between local normal and SCM plane vertical
+        auto& nr = m_grid_map.at(ij);      // node record
+        const double& ca = nr.normal.z();  // cosine of angle between local normal and SCM plane vertical
 
         ChContactable* contactable = h.second.contactable;
         const ChVector<>& hit_point_abs = h.second.abs_point;
@@ -1116,27 +1129,21 @@ void SCMDeformableSoil::ComputeInternalForces() {
         auto hit_point_loc = m_plane.TransformPointParentToLocal(hit_point_abs);
 
         if (m_soil_fun) {
-            m_soil_fun->Set(hit_point_loc.x(), hit_point_loc.y());
-
-            Bekker_Kphi = m_soil_fun->m_Bekker_Kphi;
-            Bekker_Kc = m_soil_fun->m_Bekker_Kc;
-            Bekker_n = m_soil_fun->m_Bekker_n;
-            Mohr_cohesion = m_soil_fun->m_Mohr_cohesion;
-            Mohr_friction = m_soil_fun->m_Mohr_friction;
-            Janosi_shear = m_soil_fun->m_Janosi_shear;
-            elastic_K = m_soil_fun->m_elastic_K;
-            damping_R = m_soil_fun->m_damping_R;
+            double Mohr_friction;
+            m_soil_fun->Set(hit_point_loc, Bekker_Kphi, Bekker_Kc, Bekker_n, Mohr_cohesion, Mohr_friction, Janosi_shear,
+                            elastic_K, damping_R);
+            Mohr_mu = std::tan(Mohr_friction * CH_C_DEG_TO_RAD);
         }
 
-        nr.p_hit_level = hit_point_loc.z();                                // along SCM z axis
-        double p_hit_offset = ca * (nr.p_level_initial - nr.p_hit_level);  // along local normal direction
+        nr.hit_level = hit_point_loc.z();                              // along SCM z axis
+        double p_hit_offset = ca * (nr.level_initial - nr.hit_level);  // along local normal direction
 
         // Elastic try (along local normal direction)
-        nr.p_sigma = elastic_K * (p_hit_offset - nr.p_sinkage_plastic);
+        nr.sigma = elastic_K * (p_hit_offset - nr.sinkage_plastic);
 
         // Handle unilaterality
-        if (nr.p_sigma < 0) {
-            nr.p_sigma = 0;
+        if (nr.sigma < 0) {
+            nr.sigma = 0;
             continue;
         }
 
@@ -1144,48 +1151,64 @@ void SCMDeformableSoil::ComputeInternalForces() {
         m_modified_nodes.push_back(ij);
 
         // Calculate velocity at touched grid node
-        ChVector<> point_local(ij.x() * m_delta, ij.y() * m_delta, nr.p_level);
+        ChVector<> point_local(ij.x() * m_delta, ij.y() * m_delta, nr.level);
         ChVector<> point_abs = m_plane.TransformPointLocalToParent(point_local);
         ChVector<> speed_abs = contactable->GetContactPointSpeed(point_abs);
 
         // Calculate normal and tangent directions (expressed in absolute frame)
-        ChVector<> N = m_plane.TransformDirectionLocalToParent(nr.p_normal);
+        ChVector<> N = m_plane.TransformDirectionLocalToParent(nr.normal);
         double Vn = Vdot(speed_abs, N);
         ChVector<> T = -(speed_abs - Vn * N);
         T.Normalize();
 
-        nr.p_sinkage = p_hit_offset;
-        nr.p_level = nr.p_hit_level;
+        // Update total sinkage and current level for this hit node
+        nr.sinkage = p_hit_offset;
+        nr.level = nr.hit_level;
 
         // Accumulate shear for Janosi-Hanamoto (along local tangent direction)
-        nr.p_kshear += Vdot(speed_abs, -T) * GetSystem()->GetStep();
+        nr.kshear += Vdot(speed_abs, -T) * GetSystem()->GetStep();
 
         // Plastic correction (along local normal direction)
-        if (nr.p_sigma > nr.p_sigma_yield) {
+        if (nr.sigma > nr.sigma_yield) {
             // Bekker formula
-            nr.p_sigma = (contact_patches[patch_id].oob * Bekker_Kc + Bekker_Kphi) * pow(nr.p_sinkage, Bekker_n);
-            nr.p_sigma_yield = nr.p_sigma;
-            double old_sinkage_plastic = nr.p_sinkage_plastic;
-            nr.p_sinkage_plastic = nr.p_sinkage - nr.p_sigma / elastic_K;
-            nr.p_step_plastic_flow = (nr.p_sinkage_plastic - old_sinkage_plastic) / GetSystem()->GetStep();
+            nr.sigma = (contact_patches[patch_id].oob * Bekker_Kc + Bekker_Kphi) * pow(nr.sinkage, Bekker_n);
+            nr.sigma_yield = nr.sigma;
+            double old_sinkage_plastic = nr.sinkage_plastic;
+            nr.sinkage_plastic = nr.sinkage - nr.sigma / elastic_K;
+            nr.step_plastic_flow = (nr.sinkage_plastic - old_sinkage_plastic) / GetSystem()->GetStep();
         }
 
         // Elastic sinkage (along local normal direction)
-        nr.p_sinkage_elastic = nr.p_sinkage - nr.p_sinkage_plastic;
+        nr.sinkage_elastic = nr.sinkage - nr.sinkage_plastic;
 
-        // add compressive speed-proportional damping (not clamped by pressure yield)
+        // Add compressive speed-proportional damping (not clamped by pressure yield)
         ////if (Vn < 0) {
-        nr.p_sigma += -Vn * damping_R;
+        nr.sigma += -Vn * damping_R;
         ////}
 
         // Mohr-Coulomb
-        double tau_max = Mohr_cohesion + nr.p_sigma * tan(Mohr_friction * CH_C_DEG_TO_RAD);
+        double tau_max = Mohr_cohesion + nr.sigma * Mohr_mu;
 
         // Janosi-Hanamoto (along local tangent direction)
-        nr.p_tau = tau_max * (1.0 - exp(-(nr.p_kshear / Janosi_shear)));
+        nr.tau = tau_max * (1.0 - exp(-(nr.kshear / Janosi_shear)));
 
-        ChVector<> Fn = N * m_area * nr.p_sigma;  // along local normal direction
-        ChVector<> Ft = T * m_area * nr.p_tau;    // along local tangent direction
+        // Calculate normal and tangential forces (in local node directions).
+        // If specified, combine properties for soil-contactable interaction and soil-soil interaction.
+        ChVector<> Fn = N * m_area * nr.sigma;
+        ChVector<> Ft;
+
+        //// TODO:  take into account "tread height" (add to SCMContactableData)?
+
+        if (auto cprops = contactable->GetUserData<vehicle::SCMContactableData>()) {
+            // Use weighted sum of soil-contactable and soil-soil parameters
+            double c_tau_max = cprops->Mohr_cohesion + nr.sigma * cprops->Mohr_mu;
+            double c_tau = c_tau_max * (1.0 - exp(-(nr.kshear / cprops->Janosi_shear)));
+            double ratio = cprops->area_ratio;
+            Ft = T * m_area * ((1 - ratio) * nr.tau + ratio * c_tau);
+        } else {
+            // Use only soil-soil parameters
+            Ft = T * m_area * nr.tau;
+        }
 
         if (ChBody* rigidbody = dynamic_cast<ChBody*>(contactable)) {
             // [](){} Trick: no deletion for this shared ptr, since 'rigidbody' was not a new ChBody()
@@ -1226,7 +1249,7 @@ void SCMDeformableSoil::ComputeInternalForces() {
         }
 
         // Update grid node height (in local SCM frame, along SCM z axis)
-        nr.p_level = nr.p_level_initial - nr.p_sinkage / ca;
+        nr.level = nr.level_initial - nr.sinkage / ca;
 
     }  // end loop on ray hits
 
@@ -1244,7 +1267,7 @@ void SCMDeformableSoil::ComputeInternalForces() {
         typedef std::unordered_set<ChVector2<int>, CoordHash> NodeSet;
 
         // Maximum level change between neighboring nodes (smoothing phase)
-        double dy_lim = m_delta * std::tan(m_erosion_angle * CH_C_DEG_TO_RAD);
+        double dy_lim = m_delta * m_erosion_slope;
 
         // (1) Raise boundaries of each contact patch
         m_timer_bulldozing_boundary.start();
@@ -1255,18 +1278,18 @@ void SCMDeformableSoil::ComputeInternalForces() {
 
             // Calculate the displaced material from all touched nodes and identify boundary
             double tot_step_flow = 0;
-            for (const auto& ij : p.nodes) {                          // for each node in contact patch
-                const auto& nr = m_grid_map.at(ij);                   //   get node record
-                if (nr.p_sigma <= 0)                                  //   if node not touched
-                    continue;                                         //     skip (not in effective patch)
-                tot_step_flow += nr.p_step_plastic_flow;              //   accumulate displaced material
-                for (int k = 0; k < 4; k++) {                         //   check each node neighbor
-                    ChVector2<int> nbr_ij = ij + neighbors4[k];       //     neighbor node coordinates
+            for (const auto& ij : p.nodes) {                     // for each node in contact patch
+                const auto& nr = m_grid_map.at(ij);              //   get node record
+                if (nr.sigma <= 0)                               //   if node not touched
+                    continue;                                    //     skip (not in effective patch)
+                tot_step_flow += nr.step_plastic_flow;           //   accumulate displaced material
+                for (int k = 0; k < 4; k++) {                    //   check each node neighbor
+                    ChVector2<int> nbr_ij = ij + neighbors4[k];  //     neighbor node coordinates
                     ////if (!CheckMeshBounds(nbr_ij))                     //     if neighbor out of bounds
                     ////    continue;                                     //       skip neighbor
                     if (m_grid_map.find(nbr_ij) == m_grid_map.end())  //     if neighbor not yet recorded
                         p_boundary.insert(nbr_ij);                    //       set neighbor as boundary
-                    else if (m_grid_map.at(nbr_ij).p_sigma <= 0)      //     if neighbor not touched
+                    else if (m_grid_map.at(nbr_ij).sigma <= 0)        //     if neighbor not touched
                         p_boundary.insert(nbr_ij);                    //       set neighbor as boundary
                 }
             }
@@ -1284,9 +1307,9 @@ void SCMDeformableSoil::ComputeInternalForces() {
                     m_grid_map.insert(std::make_pair(ij, NodeRecord(z, z, n)));  //     add new node record
                     m_modified_nodes.push_back(ij);                              //     mark as modified
                 }                                                                //
-                auto& nr = m_grid_map.at(ij);                      //   node record
-                nr.p_erosion = true;                               //   add to erosion domain
-                AddMaterialToNode(diff, nr);                       //   add raise amount
+                auto& nr = m_grid_map.at(ij);                                    //   node record
+                nr.erosion = true;                                               //   add to erosion domain
+                AddMaterialToNode(diff, nr);                                     //   add raise amount
             }
 
             // Accumulate boundary
@@ -1302,24 +1325,24 @@ void SCMDeformableSoil::ComputeInternalForces() {
         NodeSet erosion_domain = boundary;
         NodeSet erosion_front = boundary;  // initialize erosion front to boundary nodes
         for (int i = 0; i < m_erosion_propagations; i++) {
-            NodeSet front;                                              // new erosion front
-            for (const auto& ij : erosion_front) {                      // for each node in current erosion front
-                for (int k = 0; k < 4; k++) {                           // check each of its neighbors
-                    ChVector2<int> nbr_ij = ij + neighbors4[k];         //   neighbor node coordinates
+            NodeSet front;                                       // new erosion front
+            for (const auto& ij : erosion_front) {               // for each node in current erosion front
+                for (int k = 0; k < 4; k++) {                    // check each of its neighbors
+                    ChVector2<int> nbr_ij = ij + neighbors4[k];  //   neighbor node coordinates
                     ////if (!CheckMeshBounds(nbr_ij))                       //   if out of bounds
                     ////    continue;                                       //     ignore neighbor
                     if (m_grid_map.find(nbr_ij) == m_grid_map.end()) {  //   if neighbor not yet recorded
                         double z = GetInitHeight(nbr_ij);               //     undeformed height at neighbor location
                         const ChVector<>& n = GetInitNormal(nbr_ij);    //     terrain normal at neighbor location
                         NodeRecord nr(z, z, n);                         //     create new record
-                        nr.p_erosion = true;                            //     include in erosion domain
+                        nr.erosion = true;                              //     include in erosion domain
                         m_grid_map.insert(std::make_pair(nbr_ij, nr));  //     add new node record
                         front.insert(nbr_ij);                           //     add neighbor to new front
                         m_modified_nodes.push_back(nbr_ij);             //     mark as modified
                     } else {                                            //   if neighbor previously recorded
                         NodeRecord& nr = m_grid_map.at(nbr_ij);         //     get existing record
-                        if (!nr.p_erosion && nr.p_sigma <= 0) {         //     if neighbor not touched
-                            nr.p_erosion = true;                        //       include in erosion domain
+                        if (!nr.erosion && nr.sigma <= 0) {             //     if neighbor not touched
+                            nr.erosion = true;                          //       include in erosion domain
                             front.insert(nbr_ij);                       //       add neighbor to new front
                             m_modified_nodes.push_back(nbr_ij);         //       mark as modified
                         }
@@ -1347,15 +1370,15 @@ void SCMDeformableSoil::ComputeInternalForces() {
                     auto& nbr_nr = rec->second;
 
                     // (3.1) Flow remaining material to neighbor
-                    double diff = 0.5 * (nr.p_massremainder - nbr_nr.p_massremainder) / 4;  //// TODO: rethink this!
+                    double diff = 0.5 * (nr.massremainder - nbr_nr.massremainder) / 4;  //// TODO: rethink this!
                     if (diff > 0) {
                         RemoveMaterialFromNode(diff, nr);
                         AddMaterialToNode(diff, nbr_nr);
                     }
 
                     // (3.2) Smoothing
-                    if (nbr_nr.p_sigma == 0) {
-                        double dy = (nr.p_level + nr.p_massremainder) - (nbr_nr.p_level + nbr_nr.p_massremainder);
+                    if (nbr_nr.sigma == 0) {
+                        double dy = (nr.level + nr.massremainder) - (nbr_nr.level + nbr_nr.massremainder);
                         diff = 0.5 * (std::abs(dy) - dy_lim) / 4;  //// TODO: rethink this!
                         if (diff > 0) {
                             if (dy > 0) {
@@ -1404,24 +1427,24 @@ void SCMDeformableSoil::ComputeInternalForces() {
 }
 
 void SCMDeformableSoil::AddMaterialToNode(double amount, NodeRecord& nr) {
-    if (amount > nr.p_hit_level - nr.p_level) {                        //   if not possible to assign all mass
-        nr.p_massremainder += amount - (nr.p_hit_level - nr.p_level);  //     material to be further propagated
-        amount = nr.p_hit_level - nr.p_level;                          //     clamp raise amount
-    }                                                                  //
-    nr.p_level += amount;                                              //   modify node level
-    nr.p_level_initial += amount;                                      //   reset node initial level
+    if (amount > nr.hit_level - nr.level) {                      //   if not possible to assign all mass
+        nr.massremainder += amount - (nr.hit_level - nr.level);  //     material to be further propagated
+        amount = nr.hit_level - nr.level;                        //     clamp raise amount
+    }                                                            //
+    nr.level += amount;                                          //   modify node level
+    nr.level_initial += amount;                                  //   reset node initial level
 }
 
 void SCMDeformableSoil::RemoveMaterialFromNode(double amount, NodeRecord& nr) {
-    if (nr.p_massremainder > amount) {                                   // if too much remainder material
-        nr.p_massremainder -= amount;                                    //   decrease remainder material
-        /*amount = 0;*/                                                  //   ???
-    } else if (nr.p_massremainder < amount && nr.p_massremainder > 0) {  // if not enough remainder material
-        amount -= nr.p_massremainder;                                    //   clamp removed amount
-        nr.p_massremainder = 0;                                          //   remainder material exhausted
-    }                                                                    //
-    nr.p_level -= amount;                                                //   modify node level
-    nr.p_level_initial -= amount;                                        //   reset node initial level
+    if (nr.massremainder > amount) {                                 // if too much remainder material
+        nr.massremainder -= amount;                                  //   decrease remainder material
+        /*amount = 0;*/                                              //   ???
+    } else if (nr.massremainder < amount && nr.massremainder > 0) {  // if not enough remainder material
+        amount -= nr.massremainder;                                  //   clamp removed amount
+        nr.massremainder = 0;                                        //   remainder material exhausted
+    }                                                                //
+    nr.level -= amount;                                              //   modify node level
+    nr.level_initial -= amount;                                      //   reset node initial level
 }
 
 // Update vertex position and color in visualization mesh
@@ -1431,53 +1454,53 @@ void SCMDeformableSoil::UpdateMeshVertexCoordinates(const ChVector2<int> ij, int
     std::vector<ChVector<float>>& colors = trimesh.getCoordsColors();
 
     // Update visualization mesh vertex position
-    vertices[iv] = m_plane.TransformPointLocalToParent(ChVector<>(ij.x() * m_delta, ij.y() * m_delta, nr.p_level));
+    vertices[iv] = m_plane.TransformPointLocalToParent(ChVector<>(ij.x() * m_delta, ij.y() * m_delta, nr.level));
 
     // Update visualization mesh vertex color
     if (m_plot_type != SCMDeformableTerrain::PLOT_NONE) {
         ChColor mcolor;
         switch (m_plot_type) {
             case SCMDeformableTerrain::PLOT_LEVEL:
-                mcolor = ChColor::ComputeFalseColor(nr.p_level, m_plot_v_min, m_plot_v_max);
+                mcolor = ChColor::ComputeFalseColor(nr.level, m_plot_v_min, m_plot_v_max);
                 break;
             case SCMDeformableTerrain::PLOT_LEVEL_INITIAL:
-                mcolor = ChColor::ComputeFalseColor(nr.p_level_initial, m_plot_v_min, m_plot_v_max);
+                mcolor = ChColor::ComputeFalseColor(nr.level_initial, m_plot_v_min, m_plot_v_max);
                 break;
             case SCMDeformableTerrain::PLOT_SINKAGE:
-                mcolor = ChColor::ComputeFalseColor(nr.p_sinkage, m_plot_v_min, m_plot_v_max);
+                mcolor = ChColor::ComputeFalseColor(nr.sinkage, m_plot_v_min, m_plot_v_max);
                 break;
             case SCMDeformableTerrain::PLOT_SINKAGE_ELASTIC:
-                mcolor = ChColor::ComputeFalseColor(nr.p_sinkage_elastic, m_plot_v_min, m_plot_v_max);
+                mcolor = ChColor::ComputeFalseColor(nr.sinkage_elastic, m_plot_v_min, m_plot_v_max);
                 break;
             case SCMDeformableTerrain::PLOT_SINKAGE_PLASTIC:
-                mcolor = ChColor::ComputeFalseColor(nr.p_sinkage_plastic, m_plot_v_min, m_plot_v_max);
+                mcolor = ChColor::ComputeFalseColor(nr.sinkage_plastic, m_plot_v_min, m_plot_v_max);
                 break;
             case SCMDeformableTerrain::PLOT_STEP_PLASTIC_FLOW:
-                mcolor = ChColor::ComputeFalseColor(nr.p_step_plastic_flow, m_plot_v_min, m_plot_v_max);
+                mcolor = ChColor::ComputeFalseColor(nr.step_plastic_flow, m_plot_v_min, m_plot_v_max);
                 break;
             case SCMDeformableTerrain::PLOT_K_JANOSI:
-                mcolor = ChColor::ComputeFalseColor(nr.p_kshear, m_plot_v_min, m_plot_v_max);
+                mcolor = ChColor::ComputeFalseColor(nr.kshear, m_plot_v_min, m_plot_v_max);
                 break;
             case SCMDeformableTerrain::PLOT_PRESSURE:
-                mcolor = ChColor::ComputeFalseColor(nr.p_sigma, m_plot_v_min, m_plot_v_max);
+                mcolor = ChColor::ComputeFalseColor(nr.sigma, m_plot_v_min, m_plot_v_max);
                 break;
             case SCMDeformableTerrain::PLOT_PRESSURE_YELD:
-                mcolor = ChColor::ComputeFalseColor(nr.p_sigma_yield, m_plot_v_min, m_plot_v_max);
+                mcolor = ChColor::ComputeFalseColor(nr.sigma_yield, m_plot_v_min, m_plot_v_max);
                 break;
             case SCMDeformableTerrain::PLOT_SHEAR:
-                mcolor = ChColor::ComputeFalseColor(nr.p_tau, m_plot_v_min, m_plot_v_max);
+                mcolor = ChColor::ComputeFalseColor(nr.tau, m_plot_v_min, m_plot_v_max);
                 break;
             case SCMDeformableTerrain::PLOT_MASSREMAINDER:
-                mcolor = ChColor::ComputeFalseColor(nr.p_massremainder, m_plot_v_min, m_plot_v_max);
+                mcolor = ChColor::ComputeFalseColor(nr.massremainder, m_plot_v_min, m_plot_v_max);
                 break;
             case SCMDeformableTerrain::PLOT_ISLAND_ID:
-                if (nr.p_erosion)
+                if (nr.erosion)
                     mcolor = ChColor(0, 0, 0);
-                if (nr.p_sigma > 0)
+                if (nr.sigma > 0)
                     mcolor = ChColor(1, 0, 0);
                 break;
             case SCMDeformableTerrain::PLOT_IS_TOUCHED:
-                if (nr.p_sigma > 0)
+                if (nr.sigma > 0)
                     mcolor = ChColor(1, 0, 0);
                 else
                     mcolor = ChColor(0, 0, 1);
@@ -1513,13 +1536,13 @@ std::vector<SCMDeformableTerrain::NodeLevel> SCMDeformableSoil::GetModifiedNodes
     std::vector<SCMDeformableTerrain::NodeLevel> nodes;
     if (all_nodes) {
         for (const auto& nr : m_grid_map) {
-            nodes.push_back(std::make_pair(nr.first, nr.second.p_level));
+            nodes.push_back(std::make_pair(nr.first, nr.second.level));
         }
     } else {
         for (const auto& ij : m_modified_nodes) {
             auto rec = m_grid_map.find(ij);
             assert(rec != m_grid_map.end());
-            nodes.push_back(std::make_pair(ij, rec->second.p_level));
+            nodes.push_back(std::make_pair(ij, rec->second.level));
         }
     }
     return nodes;

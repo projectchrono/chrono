@@ -31,7 +31,7 @@ namespace vehicle {
 // file.
 // -----------------------------------------------------------------------------
 MultiLink::MultiLink(const std::string& filename) : ChMultiLink(""), m_springForceCB(NULL), m_shockForceCB(NULL) {
-    Document d = ReadFileJSON(filename);
+    Document d; ReadFileJSON(filename, d);
     if (d.IsNull())
         return;
 

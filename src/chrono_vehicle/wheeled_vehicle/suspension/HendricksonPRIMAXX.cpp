@@ -33,7 +33,7 @@ namespace vehicle {
 // file.
 // -----------------------------------------------------------------------------
 HendricksonPRIMAXX::HendricksonPRIMAXX(const std::string& filename) : ChHendricksonPRIMAXX("") {
-    Document d = ReadFileJSON(filename);
+    Document d; ReadFileJSON(filename, d);
     if (d.IsNull())
         return;
 
