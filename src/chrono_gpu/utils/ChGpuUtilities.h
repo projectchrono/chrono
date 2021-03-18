@@ -37,7 +37,7 @@ extern size_t gran_approx_bytes_used;
         size_t new_size = vec.size();                                                                              \
         size_t byte_delta = item_size * (new_size - old_size);                                                     \
         gran_approx_bytes_used += byte_delta;                                                                      \
-        INFO_PRINTF("Resizing vector %s, old size %llu, new size %llu, byte delta %s\n", name, old_size, new_size, \
+        INFO_PRINTF("Resizing vector %s, old size %zu, new size %zu, byte delta %s\n", name, old_size, new_size, \
                     pretty_format_bytes(byte_delta).c_str());                                                      \
     }
 
