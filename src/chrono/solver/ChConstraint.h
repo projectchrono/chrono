@@ -65,13 +65,11 @@ class ChApi ChConstraint {
     double cfm_i;
 
   private:
-    bool valid;      ///< the link has no formal problems (references restored
-                     /// correctly, etc)
+    bool valid;      ///< the link has no formal problems (references restored correctly, etc)
     bool disabled;   ///< the user can turn on/off the link easily
     bool redundant;  ///< the constraint is redundant or singular
     bool broken;     ///< the constraint is broken (someone pulled too much..)
-    bool _active;    ///< Cached active state depending on previous flags. Internal
-                     /// update.
+    bool active;     ///< Cached active state depending on previous flags. Internal update.
 
   protected:
     eChConstraintMode mode;  ///< mode of the constraint: free / lock / complementar
@@ -90,7 +88,7 @@ class ChApi ChConstraint {
           disabled(false),
           redundant(false),
           broken(false),
-          _active(true),
+          active(true),
           mode(CONSTRAINT_LOCK) {}
 
     /// Copy constructor
@@ -108,40 +106,40 @@ class ChApi ChConstraint {
     bool operator==(const ChConstraint& other) const;
 
     /// Tells if the constraint data is currently valid.
-    virtual bool IsValid() const { return valid; }
+    bool IsValid() const { return valid; }
 
     /// Use this function to set the valid state (child class
     /// Children classes must use this function depending on
     /// the result of their implementations of RestoreReference();
-    virtual void SetValid(bool mon) {
+    void SetValid(bool mon) {
         valid = mon;
         UpdateActiveFlag();
     }
 
     /// Tells if the constraint is currently turned on or off by the user.
-    virtual bool IsDisabled() const { return disabled; }
+    bool IsDisabled() const { return disabled; }
 
     /// User can use this to enable/disable the constraint as desired
-    virtual void SetDisabled(bool mon) {
+    void SetDisabled(bool mon) {
         disabled = mon;
         UpdateActiveFlag();
     }
 
     /// Tells if the constraint is redundant or singular.
-    virtual bool IsRedundant() const { return redundant; }
+    bool IsRedundant() const { return redundant; }
 
     /// Solvers may use the following to mark a constraint as redundant
-    virtual void SetRedundant(bool mon) {
+    void SetRedundant(bool mon) {
         redundant = mon;
         UpdateActiveFlag();
     }
 
     /// Tells if the constraint is broken, for excess of pulling/pushing.
-    virtual bool IsBroken() const { return broken; }
+    bool IsBroken() const { return broken; }
 
     /// 3rd party software can set the 'broken' status via this method
     /// (by default, constraints never break);
-    virtual void SetBroken(bool mon) {
+    void SetBroken(bool mon) {
         broken = mon;
         UpdateActiveFlag();
     }
@@ -167,24 +165,10 @@ class ChApi ChConstraint {
     /// This method cumulates the effect of all flags (so a constraint may
     /// be not active either because 'disabled', or 'broken', o 'redundant', or
     /// not 'valid'.)
-    virtual bool IsActive() const {
-        /*
-                        return ( valid &&
-                                !disabled &&
-                                !redundant &&
-                                !broken &&
-                                mode!=(CONSTRAINT_FREE));
-                                */  // Optimized:
-                                    // booleans
-                                    // precomputed
-                                    // and cached
-                                    // in
-                                    // _active.
-        return _active;
-    }
+    inline bool IsActive() const { return active; }
 
     /// Set the status of the constraint to active
-    virtual void SetActive(bool isactive) { _active = isactive; }
+    void SetActive(bool isactive) { active = isactive; }
 
     /// Compute the residual of the constraint using the LINEAR expression
     /// <pre>
@@ -213,10 +197,10 @@ class ChApi ChConstraint {
     double Get_cfm_i() const { return cfm_i; }
 
     /// Sets the 'l_i' value (constraint reaction, see 'l' vector)
-    virtual void Set_l_i(double ml_i) { l_i = ml_i; }
+    void Set_l_i(double ml_i) { l_i = ml_i; }
 
     /// Return the 'l_i' value (constraint reaction, see 'l' vector)
-    virtual double Get_l_i() const { return l_i; }
+    double Get_l_i() const { return l_i; }
 
     // -----  Functions often used by iterative solvers:
 
@@ -310,7 +294,7 @@ class ChApi ChConstraint {
 
   private:
     void UpdateActiveFlag() {
-        this->_active = (valid && !disabled && !redundant && !broken && mode != (CONSTRAINT_FREE));
+        this->active = (valid && !disabled && !redundant && !broken && mode != (CONSTRAINT_FREE));
     }
 };
 
