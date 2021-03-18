@@ -19,7 +19,7 @@
 import math as m
 import pychrono as chrono
 import pychrono.fea as fea
-import pychrono.pardisomkl as mkl
+import pychrono.pardisomkl as pardiso
 import pychrono.irrlicht as chronoirr
 import os
 
@@ -246,8 +246,8 @@ application.AssetUpdateAll()
 # SIMULATION LOOP
 
 # Use a solver that can handle stiffnss matrices:
-mkl_solver = mkl.ChSolverPardisoMKL()
-my_system.SetSolver(mkl_solver)
+pardiso_solver = pardiso.ChSolverPardisoMKL()
+my_system.SetSolver(pardiso_solver)
 
 application.SetTimestep(0.001)
 application.SetVideoframeSaveInterval(10)
@@ -269,8 +269,8 @@ while (application.GetDevice().run()):
 
     application.DrawAll()
 
-    chronoirr.ChIrrTools.drawGrid(application.GetVideoDriver(), 0.05, 0.05, 20, 20, chrono.ChCoordsysD(chrono.VNULL, chrono.CH_C_PI_2, chrono.VECT_Z),
-                         chronoirr.SColor(50, 90, 90, 90), True)
+    chronoirr.drawGrid(application.GetVideoDriver(), 0.05, 0.05, 20, 20, chrono.ChCoordsysD(chrono.VNULL, chrono.CH_C_PI_2, chrono.VECT_Z),
+                       chronoirr.SColor(50, 90, 90, 90), True)
 
     application.DoStep()
 

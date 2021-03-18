@@ -108,7 +108,7 @@ myapplication.SetTryRealtime(True)
 while(myapplication.GetDevice().run()):
     myapplication.BeginScene()
     myapplication.DrawAll()
-    chronoirr.ChIrrTools.drawAllCOGs(mysystem, myapplication.GetVideoDriver(), 2)
+    chronoirr.drawAllCOGs(mysystem, myapplication.GetVideoDriver(), 2)
     myapplication.DoStep()
     myapplication.EndScene()
 

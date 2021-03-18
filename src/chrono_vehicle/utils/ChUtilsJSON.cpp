@@ -94,8 +94,7 @@ namespace vehicle {
 
 // -----------------------------------------------------------------------------
 
-Document ReadFileJSON(const std::string& filename) {
-    Document d;
+void ReadFileJSON(const std::string& filename, Document& d) {
     std::ifstream ifs(filename);
     if (!ifs.good()) {
         GetLog() << "ERROR: Could not open JSON file: " << filename << "\n";
@@ -106,7 +105,6 @@ Document ReadFileJSON(const std::string& filename) {
             GetLog() << "ERROR: Invalid JSON file: " << filename << "\n";
         }
     }
-    return d;
 }
 
 // -----------------------------------------------------------------------------
@@ -155,7 +153,7 @@ MaterialInfo ReadMaterialInfoJSON(const rapidjson::Value& mat) {
 std::shared_ptr<ChChassis> ReadChassisJSON(const std::string& filename) {
     std::shared_ptr<ChChassis> chassis;
 
-    Document d = ReadFileJSON(filename);
+    Document d;ReadFileJSON(filename, d);
     if (d.IsNull())
         return nullptr;
 
@@ -181,7 +179,7 @@ std::shared_ptr<ChChassis> ReadChassisJSON(const std::string& filename) {
 std::shared_ptr<ChChassisRear> ReadChassisRearJSON(const std::string& filename) {
     std::shared_ptr<ChChassisRear> chassis;
 
-    Document d = ReadFileJSON(filename);
+    Document d;ReadFileJSON(filename, d);
     if (d.IsNull())
         return nullptr;
 
@@ -207,7 +205,7 @@ std::shared_ptr<ChChassisRear> ReadChassisRearJSON(const std::string& filename) 
 std::shared_ptr<ChChassisConnector> ReadChassisConnectorJSON(const std::string& filename) {
     std::shared_ptr<ChChassisConnector> connector;
 
-    Document d = ReadFileJSON(filename);
+    Document d;ReadFileJSON(filename, d);
     if (d.IsNull())
         return nullptr;
 
@@ -237,7 +235,8 @@ std::shared_ptr<ChChassisConnector> ReadChassisConnectorJSON(const std::string& 
 std::shared_ptr<ChPowertrain> ReadPowertrainJSON(const std::string& filename) {
     std::shared_ptr<ChPowertrain> powertrain;
 
-    Document d = ReadFileJSON(filename);
+    Document d;
+    ReadFileJSON(filename, d);
     if (d.IsNull())
         return nullptr;
 
@@ -271,7 +270,7 @@ std::shared_ptr<ChPowertrain> ReadPowertrainJSON(const std::string& filename) {
 std::shared_ptr<ChSuspension> ReadSuspensionJSON(const std::string& filename) {
     std::shared_ptr<ChSuspension> suspension;
 
-    Document d = ReadFileJSON(filename);
+    Document d;ReadFileJSON(filename, d);
     if (d.IsNull())
         return nullptr;
 
@@ -327,7 +326,7 @@ std::shared_ptr<ChSuspension> ReadSuspensionJSON(const std::string& filename) {
 std::shared_ptr<ChSteering> ReadSteeringJSON(const std::string& filename) {
     std::shared_ptr<ChSteering> steering;
 
-    Document d = ReadFileJSON(filename);
+    Document d;ReadFileJSON(filename, d);
     if (d.IsNull())
         return nullptr;
 
@@ -357,7 +356,7 @@ std::shared_ptr<ChSteering> ReadSteeringJSON(const std::string& filename) {
 std::shared_ptr<ChDrivelineWV> ReadDrivelineWVJSON(const std::string& filename) {
     std::shared_ptr<ChDrivelineWV> driveline;
 
-    Document d = ReadFileJSON(filename);
+    Document d;ReadFileJSON(filename, d);
     if (d.IsNull())
         return nullptr;
 
@@ -389,7 +388,7 @@ std::shared_ptr<ChDrivelineWV> ReadDrivelineWVJSON(const std::string& filename) 
 std::shared_ptr<ChAntirollBar> ReadAntirollbarJSON(const std::string& filename) {
     std::shared_ptr<ChAntirollBar> antirollbar;
 
-    Document d = ReadFileJSON(filename);
+    Document d;ReadFileJSON(filename, d);
     if (d.IsNull())
         return nullptr;
 
@@ -415,7 +414,7 @@ std::shared_ptr<ChAntirollBar> ReadAntirollbarJSON(const std::string& filename) 
 std::shared_ptr<ChWheel> ReadWheelJSON(const std::string& filename) {
     std::shared_ptr<ChWheel> wheel;
 
-    Document d = ReadFileJSON(filename);
+    Document d;ReadFileJSON(filename, d);
     if (d.IsNull())
         return nullptr;
 
@@ -441,7 +440,7 @@ std::shared_ptr<ChWheel> ReadWheelJSON(const std::string& filename) {
 std::shared_ptr<ChBrake> ReadBrakeJSON(const std::string& filename) {
     std::shared_ptr<ChBrake> brake;
 
-    Document d = ReadFileJSON(filename);
+    Document d;ReadFileJSON(filename, d);
     if (d.IsNull())
         return nullptr;
 
@@ -469,7 +468,7 @@ std::shared_ptr<ChBrake> ReadBrakeJSON(const std::string& filename) {
 std::shared_ptr<ChTire> ReadTireJSON(const std::string& filename) {
     std::shared_ptr<ChTire> tire;
 
-    Document d = ReadFileJSON(filename);
+    Document d;ReadFileJSON(filename, d);
     if (d.IsNull())
         return nullptr;
 
@@ -515,7 +514,7 @@ std::shared_ptr<ChTire> ReadTireJSON(const std::string& filename) {
 std::shared_ptr<ChTrackAssembly> ReadTrackAssemblySON(const std::string& filename) {
     std::shared_ptr<ChTrackAssembly> track;
 
-    Document d = ReadFileJSON(filename);
+    Document d;ReadFileJSON(filename, d);
     if (d.IsNull())
         return nullptr;
 
@@ -547,7 +546,7 @@ std::shared_ptr<ChTrackAssembly> ReadTrackAssemblySON(const std::string& filenam
 std::shared_ptr<ChDrivelineTV> ReadDrivelineTVJSON(const std::string& filename) {
     std::shared_ptr<ChDrivelineTV> driveline;
 
-    Document d = ReadFileJSON(filename);
+    Document d;ReadFileJSON(filename, d);
     if (d.IsNull())
         return nullptr;
 
@@ -575,7 +574,7 @@ std::shared_ptr<ChDrivelineTV> ReadDrivelineTVJSON(const std::string& filename) 
 std::shared_ptr<ChTrackBrake> ReadTrackBrakeJSON(const std::string& filename) {
     std::shared_ptr<ChTrackBrake> brake;
 
-    Document d = ReadFileJSON(filename);
+    Document d;ReadFileJSON(filename, d);
     if (d.IsNull())
         return nullptr;
 
@@ -603,7 +602,7 @@ std::shared_ptr<ChTrackBrake> ReadTrackBrakeJSON(const std::string& filename) {
 std::shared_ptr<ChIdler> ReadIdlerJSON(const std::string& filename) {
     std::shared_ptr<ChIdler> idler;
 
-    Document d = ReadFileJSON(filename);
+    Document d;ReadFileJSON(filename, d);
     if (d.IsNull())
         return nullptr;
 
@@ -631,7 +630,7 @@ std::shared_ptr<ChIdler> ReadIdlerJSON(const std::string& filename) {
 std::shared_ptr<ChRoadWheelAssembly> ReadRoadWheelAssemblyJSON(const std::string& filename, bool has_shock) {
     std::shared_ptr<ChRoadWheelAssembly> suspension;
 
-    Document d = ReadFileJSON(filename);
+    Document d;ReadFileJSON(filename, d);
     if (d.IsNull())
         return nullptr;
 
@@ -659,7 +658,7 @@ std::shared_ptr<ChRoadWheelAssembly> ReadRoadWheelAssemblyJSON(const std::string
 std::shared_ptr<ChRoller> ReadRollerJSON(const std::string& filename) {
     std::shared_ptr<ChRoller> roller;
 
-    Document d = ReadFileJSON(filename);
+    Document d;ReadFileJSON(filename, d);
     if (d.IsNull())
         return nullptr;
 
@@ -685,7 +684,7 @@ std::shared_ptr<ChRoller> ReadRollerJSON(const std::string& filename) {
 std::shared_ptr<ChRoadWheel> ReadRoadWheelJSON(const std::string& filename) {
     std::shared_ptr<ChRoadWheel> wheel;
 
-    Document d = ReadFileJSON(filename);
+    Document d;ReadFileJSON(filename, d);
     if (d.IsNull())
         return nullptr;
 

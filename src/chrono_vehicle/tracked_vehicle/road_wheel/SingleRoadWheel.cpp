@@ -31,7 +31,7 @@ namespace vehicle {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 SingleRoadWheel::SingleRoadWheel(const std::string& filename) : ChSingleRoadWheel(""), m_has_mesh(false) {
-    Document d = ReadFileJSON(filename);
+    Document d; ReadFileJSON(filename, d);
     if (d.IsNull())
         return;
 

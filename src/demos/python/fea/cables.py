@@ -17,7 +17,6 @@
 import math as m
 import pychrono as chrono
 import pychrono.fea as fea
-import pychrono.mkl as mkl
 import pychrono.irrlicht as chronoirr
 
 # ----------------------------------------------------------------------------

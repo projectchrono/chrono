@@ -20,7 +20,6 @@ import math
 import numpy as np
 import pychrono as chrono
 import pychrono.robot as robosimian
-#import pychrono.mkl as mkl
 try:
    from pychrono import irrlicht as chronoirr
 except:

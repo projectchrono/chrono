@@ -41,7 +41,7 @@ ChSpeedController::ChSpeedController() : m_speed(0), m_err(0), m_erri(0), m_errd
 
 ChSpeedController::ChSpeedController(const std::string& filename)
     : m_speed(0), m_err(0), m_erri(0), m_errd(0), m_collect(false), m_csv(NULL) {
-    Document d = ReadFileJSON(filename);
+    Document d; ReadFileJSON(filename, d);
     if (d.IsNull())
         return;
 

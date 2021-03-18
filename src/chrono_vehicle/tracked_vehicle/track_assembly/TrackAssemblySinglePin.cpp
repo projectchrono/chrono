@@ -41,7 +41,7 @@ namespace vehicle {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void TrackAssemblySinglePin::ReadSprocket(const std::string& filename, int output) {
-    Document d = ReadFileJSON(filename);
+    Document d; ReadFileJSON(filename, d);
     if (d.IsNull())
         return;
 
@@ -69,7 +69,7 @@ void TrackAssemblySinglePin::ReadSprocket(const std::string& filename, int outpu
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void TrackAssemblySinglePin::ReadTrackShoes(const std::string& filename, int num_shoes, int output) {
-    Document d = ReadFileJSON(filename);
+    Document d; ReadFileJSON(filename, d);
     if (d.IsNull())
         return;
 
@@ -99,7 +99,7 @@ void TrackAssemblySinglePin::ReadTrackShoes(const std::string& filename, int num
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 TrackAssemblySinglePin::TrackAssemblySinglePin(const std::string& filename) : ChTrackAssemblySinglePin("", LEFT) {
-    Document d = ReadFileJSON(filename);
+    Document d; ReadFileJSON(filename, d);
     if (d.IsNull())
         return;
 

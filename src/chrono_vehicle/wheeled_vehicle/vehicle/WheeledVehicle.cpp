@@ -41,7 +41,7 @@ WheeledVehicle::WheeledVehicle(ChSystem* system, const std::string& filename) : 
 // -----------------------------------------------------------------------------
 void WheeledVehicle::Create(const std::string& filename) {
     // Open and parse the input file
-    Document d = ReadFileJSON(filename);
+    Document d; ReadFileJSON(filename, d);
     if (d.IsNull())
         return;
 

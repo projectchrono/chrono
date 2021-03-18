@@ -42,7 +42,7 @@ ChConstraint& ChConstraint::operator=(const ChConstraint& other) {
     l_i = other.l_i;
     cfm_i = other.cfm_i;
     valid = other.valid;
-    _active = other._active;
+    active = other.active;
     disabled = other.disabled;
     redundant = other.redundant;
     broken = other.broken;
@@ -52,7 +52,7 @@ ChConstraint& ChConstraint::operator=(const ChConstraint& other) {
 }
 
 bool ChConstraint::operator==(const ChConstraint& other) const {
-    return other.cfm_i == cfm_i && other.valid == valid && other._active == _active && other.disabled == disabled &&
+    return other.cfm_i == cfm_i && other.valid == valid && other.active == active && other.disabled == disabled &&
            other.redundant == redundant && other.broken == broken && other.mode == mode;
 }
 
