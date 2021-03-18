@@ -243,14 +243,8 @@ bool ChVSGApp::Initialize(int windowWidth, int windowHeight, const char* windowT
         vsg::Event::create(m_window->getOrCreateDevice());  // Vulkan creates vkEvent in an unsignled state
 
     // Add ScreenshotHandler to respond to keyboard and mouse events.
-    m_screenshotHandler = ChVSGScreenshotHandler::create(event);
-    m_viewer->addEventHandler(m_screenshotHandler);
 
-    auto commandGraph = vsg::createCommandGraphForView(m_window, camera, m_scenegraph);
     auto renderGraph = vsg::RenderGraph::create(m_window);
-    commandGraph->addChild(renderGraph);
-    if (event)
-        commandGraph->addChild(vsg::SetEvent::create(event, VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT));
 
     // create the normal 3D view of the scene
     renderGraph->addChild(vsg::View::create(camera, m_scenegraph));
@@ -267,6 +261,14 @@ bool ChVSGApp::Initialize(int windowWidth, int windowHeight, const char* windowT
 
     // add a trackball event handler to control the camera view use the mouse
     m_viewer->addEventHandler(::vsg::Trackball::create(camera));
+
+    auto commandGraph = vsg::createCommandGraphForView(m_window, camera, m_scenegraph);
+    commandGraph->addChild(renderGraph);
+
+    if (event)
+        commandGraph->addChild(vsg::SetEvent::create(event, VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT));
+    m_screenshotHandler = ChVSGScreenshotHandler::create(event);
+    m_viewer->addEventHandler(m_screenshotHandler);
 
     m_viewer->assignRecordAndSubmitTaskAndPresentation({commandGraph});
 
