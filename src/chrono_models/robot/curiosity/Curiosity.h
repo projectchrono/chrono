@@ -323,7 +323,7 @@ class CH_MODELS_API CuriosityRover {
     ChVector<> GetWheelAppliedTorque(WheelID id);
 
     /// Get DC motor applied torque on Power Shaft
-    float GetDCPowerShaftTorque(WheelID id);
+    double GetDCPowerShaftTorque(WheelID id);
 
     /// Get the chassis body
     std::shared_ptr<ChBodyAuxRef> GetChassisBody();

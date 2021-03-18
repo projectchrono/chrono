@@ -1113,8 +1113,8 @@ ChVector<> CuriosityRover::GetWheelAppliedTorque(WheelID id) {
     return m_wheels[id]->GetBody()->GetAppliedTorque();
 }
 
-float CuriosityRover::GetDCPowerShaftTorque(WheelID id) {
-    if (m_dc_motor_control == false) {
+double CuriosityRover::GetDCPowerShaftTorque(WheelID id) {
+    if (!m_dc_motor_control) {
         std::cout << "DC motor control is set to false::Invalid GetDCPowerShaftTorque() call" << std::endl;
         return -1;
     }
