@@ -37,7 +37,7 @@ class ChApiIrr RTSCamera : public irr::scene::ICameraSceneNode {
               irr::f32 zoomSpeed = 1.0f,
               irr::f32 translationSpeed = 0.003f);
 
-    virtual ~RTSCamera() {}
+    ~RTSCamera() {}
 
     // Events
     virtual void render() override;
@@ -52,7 +52,7 @@ class ChApiIrr RTSCamera : public irr::scene::ICameraSceneNode {
     // Gets
     virtual const irr::core::aabbox3d<irr::f32>& getBoundingBox() const override { return BBox; }
     virtual const irr::core::matrix4& getProjectionMatrix() const override { return Projection; }
-    virtual const irr::scene::SViewFrustum* getViewFrustum() const { return &ViewArea; }
+    virtual const irr::scene::SViewFrustum* getViewFrustum() const override { return &ViewArea; }
     virtual const irr::core::matrix4& getViewMatrix() const override { return View; }
     virtual const irr::core::matrix4& getViewMatrixAffector() const override { return Affector; }
     virtual const irr::core::vector3df& getUpVector() const override { return UpVector; }
@@ -78,8 +78,8 @@ class ChApiIrr RTSCamera : public irr::scene::ICameraSceneNode {
     void setTranslateSpeed(irr::f32 value);
     void setRotationSpeed(irr::f32 value);
 
-    void bindTargetAndRotation(bool bound) {}
-    bool getTargetAndRotationBinding(void) const { return false; }
+    virtual void bindTargetAndRotation(bool bound) override {}
+    virtual bool getTargetAndRotationBinding(void) const override { return false; }
 
     // Helper Functions
     void pointCameraAtNode(ISceneNode* selectednode);
