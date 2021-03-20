@@ -255,6 +255,7 @@ void ChVSGScreenshotHandler::screenshot_image(vsg::ref_ptr<vsg::Window> window) 
     const size_t channels = 3;  // we use RGB, RGBA seems to cause output problems
     size_t pixelsDataSize = width * height * channels;
     unsigned char* pixels = new unsigned char[pixelsDataSize];
+    std::cout << "Screenshot requested!" << std::endl;
     if (pixels) {
         size_t k = 0;
         for (size_t j = 0; j < imageData->dataSize(); j += 4) {

@@ -38,12 +38,21 @@ class ChVSGScreenshotHandler : public vsg::Inherit<vsg::Visitor, ChVSGScreenshot
     ChVSGScreenshotHandler(vsg::ref_ptr<vsg::Event> in_event);
 
     void apply(vsg::KeyPressEvent& keyPress) override {
+        #ifdef _WIN32
+        if (keyPress.keyBase == 80) {
+            do_image_capture = true;
+        }
+        if (keyPress.keyBase == 84) {
+            do_depth_capture = true;
+        }
+        #else
         if (keyPress.keyBase == 'p') {
             do_image_capture = true;
         }
         if (keyPress.keyBase == 't') {
             do_depth_capture = true;
         }
+#endif
     }
 
     void printInfo(vsg::ref_ptr<vsg::Window> window);
