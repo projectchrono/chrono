@@ -348,7 +348,7 @@ class ChApi ChSystemDescriptor {
     /// Method to allow de-serialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) {
         // version number
-        int version = marchive.VersionRead<ChSystemDescriptor>();
+        /*int version =*/ marchive.VersionRead<ChSystemDescriptor>();
         // deserialize parent class
         // stream in all member data:
     }

@@ -923,7 +923,7 @@ void ChSolverADMM::ArchiveOUT(ChArchiveOut& marchive) {
 
 void ChSolverADMM::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChSolverADMM>();
+    /*int version =*/ marchive.VersionRead<ChSolverADMM>();
     // deserialize parent class
     ChIterativeSolverVI::ArchiveIN(marchive);
     // stream in all member data:

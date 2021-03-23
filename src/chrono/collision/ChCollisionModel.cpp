@@ -177,7 +177,7 @@ void ChCollisionModel::ArchiveOUT(ChArchiveOut& marchive) {
 
 void ChCollisionModel::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChCollisionModel>();
+    /*int version =*/ marchive.VersionRead<ChCollisionModel>();
 
     // stream in all member data:
     marchive >> CHNVP(model_envelope);

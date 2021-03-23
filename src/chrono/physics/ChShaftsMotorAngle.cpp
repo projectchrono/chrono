@@ -169,7 +169,7 @@ void ChShaftsMotorAngle::ArchiveOUT(ChArchiveOut& marchive) {
 /// Method to allow de serialization of transient data from archives.
 void ChShaftsMotorAngle::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChShaftsMotorAngle>();
+    /*int version =*/ marchive.VersionRead<ChShaftsMotorAngle>();
 
     // deserialize parent class:
     ChShaftsMotorBase::ArchiveIN(marchive);

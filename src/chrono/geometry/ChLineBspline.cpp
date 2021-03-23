@@ -159,7 +159,7 @@ void ChLineBspline::ArchiveOUT(ChArchiveOut& marchive) {
 
 void ChLineBspline::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChLineBspline>();
+    /*int version =*/ marchive.VersionRead<ChLineBspline>();
     // deserialize parent class
     ChLine::ArchiveIN(marchive);
     // stream in all member data:

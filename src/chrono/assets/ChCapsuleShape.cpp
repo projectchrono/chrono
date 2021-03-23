@@ -32,7 +32,7 @@ void ChCapsuleShape::ArchiveOUT(ChArchiveOut& marchive) {
 /// Method to allow de serialization of transient data from archives.
 void ChCapsuleShape::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChCapsuleShape>();
+    /*int version =*/ marchive.VersionRead<ChCapsuleShape>();
     // deserialize parent class
     ChVisualization::ArchiveIN(marchive);
     // stream in all member data:

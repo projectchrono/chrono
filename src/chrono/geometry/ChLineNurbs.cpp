@@ -121,7 +121,7 @@ void ChLineNurbs::ArchiveOUT(ChArchiveOut& marchive) {
 
 void ChLineNurbs::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChLineNurbs>();
+    /*int version =*/ marchive.VersionRead<ChLineNurbs>();
     // deserialize parent class
     ChLine::ArchiveIN(marchive);
     // stream in all member data:

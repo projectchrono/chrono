@@ -49,7 +49,7 @@ void ChLinkRotSpringCB::ArchiveOUT(ChArchiveOut& marchive) {
 /// Method to allow de serialization of transient data from archives.
 void ChLinkRotSpringCB::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChLinkRotSpringCB>();
+    /*int version =*/ marchive.VersionRead<ChLinkRotSpringCB>();
 
     // deserialize parent class
     ChLinkMarkers::ArchiveIN(marchive);

@@ -160,7 +160,7 @@ void ChLinkRackpinion::ArchiveOUT(ChArchiveOut& marchive) {
 /// Method to allow de serialization of transient data from archives.
 void ChLinkRackpinion::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChLinkRackpinion>();
+    /*int version =*/ marchive.VersionRead<ChLinkRackpinion>();
 
     // deserialize parent class
     ChLinkMateGeneric::ArchiveIN(marchive);

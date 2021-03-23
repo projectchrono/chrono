@@ -258,7 +258,7 @@ void ChLinkSpringCB::ArchiveOUT(ChArchiveOut& marchive) {
 
 void ChLinkSpringCB::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChLinkSpringCB>();
+    /*int version =*/ marchive.VersionRead<ChLinkSpringCB>();
 
     // deserialize parent class
     ChLinkMarkers::ArchiveIN(marchive);

@@ -456,7 +456,7 @@ void ChLinkTSDA::ArchiveOUT(ChArchiveOut& marchive) {
 
 void ChLinkTSDA::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChLinkTSDA>();
+    /*int version =*/ marchive.VersionRead<ChLinkTSDA>();
 
     // deserialize parent class
     ChLink::ArchiveIN(marchive);

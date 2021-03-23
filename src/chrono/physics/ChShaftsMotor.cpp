@@ -33,7 +33,7 @@ void ChShaftsMotorBase::ArchiveOUT(ChArchiveOut& marchive) {
 /// Method to allow de serialization of transient data from archives.
 void ChShaftsMotorBase::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChShaftsMotorBase>();
+    /*int version =*/ marchive.VersionRead<ChShaftsMotorBase>();
 
     // deserialize parent class:
     ChShaftsCouple::ArchiveIN(marchive);
@@ -260,7 +260,7 @@ void ChShaftsMotor::ArchiveOUT(ChArchiveOut& marchive) {
 /// Method to allow de serialization of transient data from archives.
 void ChShaftsMotor::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChShaftsMotor>();
+    /*int version =*/ marchive.VersionRead<ChShaftsMotor>();
 
     // deserialize parent class:
     ChShaftsMotorBase::ArchiveIN(marchive);

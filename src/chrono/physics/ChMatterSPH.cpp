@@ -139,7 +139,7 @@ void ChNodeSPH::ArchiveOUT(ChArchiveOut& marchive) {
 // Method to allow de serialization of transient data from archives.
 void ChNodeSPH::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChNodeSPH>();
+    /*int version =*/ marchive.VersionRead<ChNodeSPH>();
 
     // deserialize parent class
     ChNodeXYZ::ArchiveIN(marchive);
@@ -184,7 +184,7 @@ void ChContinuumSPH::ArchiveOUT(ChArchiveOut& marchive) {
 // Method to allow de serialization of transient data from archives.
 void ChContinuumSPH::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChContinuumSPH>();
+    /*int version =*/ marchive.VersionRead<ChContinuumSPH>();
 
     // deserialize parent class
     ChContinuumMaterial::ArchiveIN(marchive);
@@ -667,7 +667,7 @@ void ChMatterSPH::ArchiveOUT(ChArchiveOut& marchive) {
 /// Method to allow de serialization of transient data from archives.
 void ChMatterSPH::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChMatterSPH>();
+    /*int version =*/ marchive.VersionRead<ChMatterSPH>();
 
     // deserialize parent class
     ChIndexedNodes::ArchiveIN(marchive);

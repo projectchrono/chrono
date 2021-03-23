@@ -422,7 +422,7 @@ void ChBezierCurve::ArchiveOUT(ChArchiveOut& marchive)
 void ChBezierCurve::ArchiveIN(ChArchiveIn& marchive)
 {
     // version number
-    int version = marchive.VersionRead<ChBezierCurve>();
+    /*int version =*/ marchive.VersionRead<ChBezierCurve>();
 
     // stream in all member data:
     marchive >> CHNVP(m_points);

@@ -239,7 +239,7 @@ class ChApi ChImplicitIterativeTimestepper : public ChImplicitTimestepper {
     /// Method to allow de-serialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& archive) {
         // version number
-        int version = archive.VersionRead();
+        /*int version =*/ archive.VersionRead();
         // stream in all member data:
         archive >> CHNVP(maxiters);
         archive >> CHNVP(reltol);

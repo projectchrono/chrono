@@ -1917,7 +1917,7 @@ void ChLinkLock::ArchiveOUT(ChArchiveOut& marchive) {
 
 void ChLinkLock::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChLinkLock>();
+    /*int version =*/ marchive.VersionRead<ChLinkLock>();
 
     // deserialize parent class
     ChLinkMarkers::ArchiveIN(marchive);
@@ -2488,7 +2488,7 @@ void ChLinkLockLock::ArchiveOUT(ChArchiveOut& marchive) {
 
 void ChLinkLockLock::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChLinkLockLock>();
+    /*int version =*/ marchive.VersionRead<ChLinkLockLock>();
 
     // deserialize parent class
     ChLinkMarkers::ArchiveIN(marchive);

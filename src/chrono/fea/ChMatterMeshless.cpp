@@ -724,7 +724,7 @@ void ChMatterMeshless::ArchiveOUT(ChArchiveOut& marchive) {
 
 void ChMatterMeshless::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChMatterMeshless>();
+    /*int version =*/ marchive.VersionRead<ChMatterMeshless>();
 
     // deserialize the parent class data too
     ChIndexedNodes::ArchiveIN(marchive);

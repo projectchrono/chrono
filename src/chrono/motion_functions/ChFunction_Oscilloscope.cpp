@@ -95,7 +95,7 @@ void ChFunction_Oscilloscope::ArchiveOUT(ChArchiveOut& marchive) {
 
 void ChFunction_Oscilloscope::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChFunction_Oscilloscope>();
+    /*int version =*/ marchive.VersionRead<ChFunction_Oscilloscope>();
     // deserialize parent class
     ChFunction::ArchiveIN(marchive);
     // stream in all member data:

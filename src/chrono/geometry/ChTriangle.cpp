@@ -135,7 +135,7 @@ void ChTriangle::ArchiveOUT(ChArchiveOut& marchive) {
 
 void ChTriangle::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChTriangle>();
+    /*int version =*/ marchive.VersionRead<ChTriangle>();
     // deserialize parent class
     ChGeometry::ArchiveIN(marchive);
     // stream in all member data:

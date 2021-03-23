@@ -38,7 +38,7 @@ void ChIndexedNodes::ArchiveOUT(ChArchiveOut& marchive) {
 
 void ChIndexedNodes::ArchiveIN(ChArchiveIn& marchive) {
     // class version number
-    int version = marchive.VersionRead<ChIndexedNodes>();
+    /*int version =*/ marchive.VersionRead<ChIndexedNodes>();
 
     // deserialize parent class too
     ChPhysicsItem::ArchiveIN(marchive);

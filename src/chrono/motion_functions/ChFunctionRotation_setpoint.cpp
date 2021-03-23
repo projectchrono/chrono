@@ -121,7 +121,7 @@ void ChFunctionRotation_setpoint::ArchiveOUT(ChArchiveOut& marchive) {
 
 void ChFunctionRotation_setpoint::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChFunctionRotation_setpoint>();
+    /*int version =*/ marchive.VersionRead<ChFunctionRotation_setpoint>();
     // deserialize parent class
     ChFunctionRotation::ArchiveIN(marchive);
     // deserialize all member data:

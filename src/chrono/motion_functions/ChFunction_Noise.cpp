@@ -44,7 +44,7 @@ void ChFunction_Noise::ArchiveOUT(ChArchiveOut& marchive) {
 
 void ChFunction_Noise::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChFunction_Noise>();
+    /*int version =*/ marchive.VersionRead<ChFunction_Noise>();
     // deserialize parent class
     ChFunction::ArchiveIN(marchive);
     // stream in all member data:

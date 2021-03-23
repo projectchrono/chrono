@@ -67,7 +67,7 @@ void ChEmitterAsset::ArchiveOUT(ChArchiveOut& marchive) {
 
 void ChEmitterAsset::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChEmitterAsset>();
+    /*int version =*/ marchive.VersionRead<ChEmitterAsset>();
     // deserialize parent class
     ChAsset::ArchiveIN(marchive);
     // stream in all member data:

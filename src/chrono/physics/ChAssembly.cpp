@@ -1221,7 +1221,7 @@ void ChAssembly::ArchiveOUT(ChArchiveOut& marchive) {
 
 void ChAssembly::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChAssembly>();
+    /*int version =*/ marchive.VersionRead<ChAssembly>();
 
     // deserialize parent class
     ChPhysicsItem::ArchiveIN(marchive);

@@ -1739,7 +1739,7 @@ void ChTriangleMeshConnected::ArchiveOUT(ChArchiveOut& marchive) {
 
 void ChTriangleMeshConnected::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChTriangleMeshConnected>();
+    /*int version =*/ marchive.VersionRead<ChTriangleMeshConnected>();
     // deserialize parent class
     ChTriangleMesh::ArchiveIN(marchive);
     // stream in all member data:

@@ -501,7 +501,7 @@ void ChSolverPMINRES::ArchiveOUT(ChArchiveOut& marchive) {
 
 void ChSolverPMINRES::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChSolverPMINRES>();
+    /*int version =*/ marchive.VersionRead<ChSolverPMINRES>();
     // deserialize parent class
     ChIterativeSolverVI::ArchiveIN(marchive);
     // stream in all member data:

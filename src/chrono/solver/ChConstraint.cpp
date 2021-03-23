@@ -100,7 +100,7 @@ void ChConstraint::ArchiveOUT(ChArchiveOut& marchive) {
 
 void ChConstraint::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChConstraint>();
+    /*int version =*/ marchive.VersionRead<ChConstraint>();
 
     // stream in all member data:
     marchive >> CHNVP(cfm_i);

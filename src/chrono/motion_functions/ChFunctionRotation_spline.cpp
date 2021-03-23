@@ -181,7 +181,7 @@ void ChFunctionRotation_spline::ArchiveOUT(ChArchiveOut& marchive) {
 
 void ChFunctionRotation_spline::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChFunctionRotation_spline>();
+    /*int version =*/ marchive.VersionRead<ChFunctionRotation_spline>();
 	// deserialize parent class
     ChFunctionRotation::ArchiveIN(marchive);
     // deserialize all member data:

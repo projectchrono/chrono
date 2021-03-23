@@ -137,7 +137,7 @@ void ChSurfaceNurbs::ArchiveOUT(ChArchiveOut& marchive) {
 
 void ChSurfaceNurbs::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChSurfaceNurbs>();
+    /*int version =*/ marchive.VersionRead<ChSurfaceNurbs>();
     // deserialize parent class
     ChSurface::ArchiveIN(marchive);
     // stream in all member data:

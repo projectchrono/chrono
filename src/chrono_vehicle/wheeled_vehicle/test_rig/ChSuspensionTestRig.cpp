@@ -185,8 +185,7 @@ ChSuspensionTestRig::ChSuspensionTestRig(const std::string& filename,
     // Extract the specified axle from the vehicle's list of suspension subsystems.
     // Note that we ignore antiroll bar and brake subsystems.
     // Create the suspension and wheel subsystems.
-    int num_axles = d["Axles"].Size();
-    assert(axle_index >= 0 && axle_index < num_axles);
+    assert(axle_index >= 0 && axle_index < d["Axles"].Size());
 
     std::string file_name = d["Axles"][axle_index]["Suspension Input File"].GetString();
     m_suspension = ReadSuspensionJSON(vehicle::GetDataFile(file_name));

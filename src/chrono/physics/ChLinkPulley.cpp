@@ -239,7 +239,7 @@ void ChLinkPulley::ArchiveOUT(ChArchiveOut& marchive) {
 /// Method to allow de serialization of transient data from archives.
 void ChLinkPulley::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChLinkPulley>();
+    /*int version =*/ marchive.VersionRead<ChLinkPulley>();
 
     // deserialize parent class
     ChLinkLockLock::ArchiveIN(marchive);
