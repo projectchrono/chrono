@@ -369,8 +369,7 @@ endif()
 
 
 if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-  message("ADDED CLANG FLAG!!!!")
-  add_definitions(-Wno-unknown-warning-option -Wno-reorder-ctor -Wno-pragma-pack)
+  add_definitions(-Wno-unknown-warning-option -Wno-reorder-ctor -Wno-pragma-pack -Wno-unused-local-typedef)
 endif()
 
 #-----------------------------------------------------------------------------
