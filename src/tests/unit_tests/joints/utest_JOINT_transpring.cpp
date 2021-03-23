@@ -128,7 +128,6 @@ bool TestTranSpring(
     // (MKS is used in this example)
 
     double mass = 1.0;                     // mass of pendulum
-    double length = 4.0;                   // length of pendulum
     ChVector<> inertiaXX(0.04, 0.1, 0.1);  // mass moments of inertia of pendulum (centroidal frame)
     double g = 9.80665;
 

@@ -64,7 +64,6 @@ class SystemFixture : public ::benchmark::Fixture {
         auto mesh = chrono_types::make_shared<ChMesh>();
         m_system->Add(mesh);
 
-        int n_nodes = 2 * (1 + N);
         double dx = length / N;
         ChVector<> dir(0, 1, 0);
 

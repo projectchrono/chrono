@@ -118,7 +118,6 @@ bool TestRackPinion(const ChVector<>& jointLoc,      // absolute location of joi
     ChVector<> inertiaXX_Pinion(0.1, 0.1, 0.04);  // mass moments of inertia of pinion (centroidal frame)
 
     double massRack = 1.0;                      // mass of pendulum
-    double lengthRack = 8.0;                    // length of pendulum
     ChVector<> inertiaXX_Rack(0.1, 0.1, 0.04);  // mass moments of inertia of pendulum (centroidal frame)
     double g = 9.80665;
 

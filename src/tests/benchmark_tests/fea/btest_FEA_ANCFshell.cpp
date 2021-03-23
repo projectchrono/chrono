@@ -212,7 +212,6 @@ ANCFshell<N>::ANCFshell(SolverType solver_type) {
     vis_node->SetSymbolsThickness(0.004);
     mesh->AddAsset(vis_node);
 
-    int n_nodes = 2 * (1 + N);
     double dx = length / N;
     ChVector<> dir(0, 1, 0);
 

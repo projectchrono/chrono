@@ -82,27 +82,27 @@ int main(int argc, char* argv[]) {
     // Create a mesh, that is a container for groups
     // of elements and their referenced nodes.
     auto my_mesh = chrono_types::make_shared<ChMesh>();
-    int numFlexBody = 1;
+
     // Geometry of the plate
     double plate_lenght_x = 1;
     double plate_lenght_y = 1;
     double plate_lenght_z = 0.01;  // small thickness
+
     // Specification of the mesh
     int numDiv_x = 4;
     int numDiv_y = 4;
     int numDiv_z = 1;
     int N_x = numDiv_x + 1;
-    int N_y = numDiv_y + 1;
-    int N_z = numDiv_z + 1;
+
     // Number of elements in the z direction is considered as 1
     int TotalNumElements = numDiv_x * numDiv_y;
     int TotalNumNodes = (numDiv_x + 1) * (numDiv_y + 1) * (numDiv_z + 1);
+
     // For uniform mesh
     double dx = plate_lenght_x / numDiv_x;
     double dy = plate_lenght_y / numDiv_y;
     double dz = plate_lenght_z / numDiv_z;
     int MaxMNUM = 1;
-    int MTYPE = 1;
     int MaxLayNum = 1;
 
     ChMatrixDynamic<double> COORDFlex(TotalNumNodes, 3);
@@ -147,7 +147,6 @@ int main(int argc, char* argv[]) {
         NumNodes(i, 6) = (numDiv_x + 1) * (numDiv_y + 1) + NumNodes(i, 2);
         NumNodes(i, 7) = (numDiv_x + 1) * (numDiv_y + 1) + NumNodes(i, 3);
 
-
         // All the elements have the same lenght in this example
         ElemLengthXY(i, 0) = dx;
         ElemLengthXY(i, 1) = dy;
@@ -179,7 +178,8 @@ int main(int argc, char* argv[]) {
     // Adding the nodes to the mesh
     int i = 0;
     while (i < TotalNumNodes) {
-        auto node = chrono_types::make_shared<ChNodeFEAxyz>(ChVector<>(COORDFlex(i, 0), COORDFlex(i, 1), COORDFlex(i, 2)));
+        auto node =
+            chrono_types::make_shared<ChNodeFEAxyz>(ChVector<>(COORDFlex(i, 0), COORDFlex(i, 1), COORDFlex(i, 2)));
         node->SetMass(0.0);
         // Fix nodes clamped to the ground
         my_mesh->AddNode(node);
@@ -215,9 +215,9 @@ int main(int argc, char* argv[]) {
         element->SetMooneyRivlin(false);  // turn on/off Mooney Rivlin (Linear Isotropic by default)
         ChVectorN<double, 9> stock_alpha_EAS;
         stock_alpha_EAS.setZero();
-        element->SetStockAlpha(stock_alpha_EAS(0), stock_alpha_EAS(1), stock_alpha_EAS(2),
-                               stock_alpha_EAS(3), stock_alpha_EAS(4), stock_alpha_EAS(5),
-                               stock_alpha_EAS(6), stock_alpha_EAS(7), stock_alpha_EAS(8));
+        element->SetStockAlpha(stock_alpha_EAS(0), stock_alpha_EAS(1), stock_alpha_EAS(2), stock_alpha_EAS(3),
+                               stock_alpha_EAS(4), stock_alpha_EAS(5), stock_alpha_EAS(6), stock_alpha_EAS(7),
+                               stock_alpha_EAS(8));
         my_mesh->AddElement(element);
         elemcount++;
     }
