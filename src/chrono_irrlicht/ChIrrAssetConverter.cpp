@@ -238,7 +238,7 @@ void ChIrrAssetConverter::_recursePopulateIrrlicht(std::vector<std::shared_ptr<C
                     buffer->drop();
 
                     ChIrrNodeProxyToAsset* mproxynode = new ChIrrNodeProxyToAsset(mysurf, mnode);
-                    ////ISceneNode* mchildnode = scenemanager->addMeshSceneNode(newmesh, mproxynode);
+                    /*ISceneNode* mchildnode =*/ scenemanager->addMeshSceneNode(newmesh, mproxynode);
                     newmesh->drop();
                     mproxynode->Update();  // force syncing of triangle positions & face indexes
                     mproxynode->drop();
@@ -272,7 +272,7 @@ void ChIrrAssetConverter::_recursePopulateIrrlicht(std::vector<std::shared_ptr<C
                     buffer->drop();
 
                     ChIrrNodeProxyToAsset* mproxynode = new ChIrrNodeProxyToAsset(myglyphs, mnode);
-                    ////ISceneNode* mchildnode = scenemanager->addMeshSceneNode(newmesh, mproxynode);
+                    /*ISceneNode* mchildnode =*/ scenemanager->addMeshSceneNode(newmesh, mproxynode);
                     newmesh->drop();
                     mproxynode->Update();  // force syncing of triangle positions & face indexes
                     mproxynode->drop();
@@ -288,7 +288,7 @@ void ChIrrAssetConverter::_recursePopulateIrrlicht(std::vector<std::shared_ptr<C
                     buffer->drop();
 
                     ChIrrNodeProxyToAsset* mproxynode = new ChIrrNodeProxyToAsset(k_asset, mnode);
-                    ////ISceneNode* mchildnode = scenemanager->addMeshSceneNode(newmesh, mproxynode);
+                    /*ISceneNode* mchildnode =*/ scenemanager->addMeshSceneNode(newmesh, mproxynode);
                     newmesh->drop();
                     mproxynode->Update();  // force syncing of triangle positions & face indexes
                     mproxynode->drop();
