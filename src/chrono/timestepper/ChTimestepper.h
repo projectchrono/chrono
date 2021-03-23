@@ -163,6 +163,9 @@ class ChApi ChTimestepperIIorder : public ChTimestepper {
         V.setZero(1, intgr);
         A.setZero(1, intgr);
     }
+
+  private:
+    using ChTimestepper::SetIntegrable;
 };
 
 /// Base class for implicit solvers (double inheritance)

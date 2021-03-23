@@ -258,7 +258,8 @@ class  ChNameValue {
             _value = other._value;
             _flags = other._flags;
         }
-        virtual ~ChNameValue() {};
+        
+        ~ChNameValue() {};
 
         const char * name() const {
             return this->_name;
