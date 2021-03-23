@@ -53,16 +53,16 @@ using namespace eprosima::fastrtps::rtps;
 namespace chrono {
 namespace synchrono {
 
-SynDDSCommunicator::SynDDSCommunicator(int node_id, std::string prefix) : m_prefix(prefix) {
+SynDDSCommunicator::SynDDSCommunicator(int node_id, const std::string& prefix) : m_prefix(prefix) {
     AgentKey agent_key = AgentKey(node_id, 0);
     InitQoS(m_prefix + agent_key.GetKeyString());
 }
 
-SynDDSCommunicator::SynDDSCommunicator(const std::string& name, std::string prefix) : m_prefix(prefix) {
+SynDDSCommunicator::SynDDSCommunicator(const std::string& name, const std::string& prefix) : m_prefix(prefix) {
     InitQoS(name);
 }
 
-SynDDSCommunicator::SynDDSCommunicator(eprosima::fastdds::dds::DomainParticipantQos& qos, std::string prefix)
+SynDDSCommunicator::SynDDSCommunicator(eprosima::fastdds::dds::DomainParticipantQos& qos, const std::string& prefix)
     : m_prefix(prefix) {
     CreateParticipant(qos);
 }
