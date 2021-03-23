@@ -228,8 +228,6 @@ void ChShaftsMotorSpeed::VariablesQbLoadSpeed() {
 }
 
 void ChShaftsMotorSpeed::VariablesQbSetSpeed(double step) {
-    double old_dt = aux_dt;
-
     // from 'qb' vector, sets body speed, and updates auxiliary data
     aux_dt = variable.Get_qb()(0);
 

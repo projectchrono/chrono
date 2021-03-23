@@ -389,7 +389,7 @@ btCollisionShape* btCollisionWorldImporter::convertCollisionShape(btCollisionSha
 				}
 
                 case CYLSHELL_SHAPE_PROXYTYPE: { /* ***CHRONO*** */
-                    btCylindricalShellShapeData* cylData = (btCylindricalShellShapeData*)shapeData;
+                    ////btCylindricalShellShapeData* cylData = (btCylindricalShellShapeData*)shapeData;
                     btVector3 halfExtents = implicitShapeDimensions + margin;
                     btScalar radius = halfExtents.getX();
                     btScalar hlen = halfExtents.getY();

@@ -256,7 +256,6 @@ class ChApi ChElementBrick_9 : public ChElementGeneric, public ChLoadableUVW {
 
     StrainFormulation m_strain_form;     ///< Enum for strain formulation
     PlasticityFormulation m_plast_form;  ///< Enum for plasticity formulation
-    bool m_Hencky;                       ///< flag activating Hencky strain formulation
     bool m_Plasticity;                   ///< flag activating Plastic deformation
     bool m_DP;                           ///< flag activating Drucker-Prager formulation
 

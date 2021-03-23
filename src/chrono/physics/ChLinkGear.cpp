@@ -114,8 +114,8 @@ void ChLinkGear::UpdateTime(double mytime) {
     ((ChFrame<double>*)Body2)->TransformLocalToParent(local_shaft2, abs_shaft2);
 
     ChVector<> vbdist = Vsub(Get_shaft_pos1(), Get_shaft_pos2());
-    ChVector<> Trad1 = Vnorm(Vcross(Get_shaft_dir1(), Vnorm(Vcross(Get_shaft_dir1(), vbdist))));
-    ChVector<> Trad2 = Vnorm(Vcross(Vnorm(Vcross(Get_shaft_dir2(), vbdist)), Get_shaft_dir2()));
+    ////ChVector<> Trad1 = Vnorm(Vcross(Get_shaft_dir1(), Vnorm(Vcross(Get_shaft_dir1(), vbdist))));
+    ////ChVector<> Trad2 = Vnorm(Vcross(Vnorm(Vcross(Get_shaft_dir2(), vbdist)), Get_shaft_dir2()));
 
     double dist = Vlength(vbdist);
 

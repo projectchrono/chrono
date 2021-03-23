@@ -100,7 +100,6 @@ void ChTrackShoeBand::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     // Express the tread body location and orientation in global frame.
     ChVector<> loc = chassis->TransformPointLocalToParent(location);
     ChQuaternion<> rot = chassis->GetRot() * rotation;
-    ChVector<> xdir = rot.GetXaxis();
 
     // Create the tread body
     m_shoe = std::shared_ptr<ChBody>(chassis->GetSystem()->NewBody());

@@ -19,7 +19,7 @@ namespace chrono {
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChLinkRotSpringCB)
 
-ChLinkRotSpringCB::ChLinkRotSpringCB() : m_torque(0), m_torque_fun(nullptr) {}
+ChLinkRotSpringCB::ChLinkRotSpringCB() : m_torque_fun(nullptr), m_torque(0) {}
 
 ChLinkRotSpringCB::ChLinkRotSpringCB(const ChLinkRotSpringCB& other) : ChLinkMarkers(other) {
     m_torque = other.m_torque;

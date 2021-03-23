@@ -437,8 +437,8 @@ int main(int argc, char* argv[]) {
     application.AddTypicalCamera(core::vector3df(-6, 3, -6));
 
     // add text with info
-    IGUIStaticText* textFPS = application.GetIGUIEnvironment()->addStaticText(
-        L"Keys: steer=Q,W; throttle=A,Z; lift=S,X; bank=D,C", rect<s32>(150, 10, 430, 40), true);
+    application.GetIGUIEnvironment()->addStaticText(L"Keys: steer=Q,W; throttle=A,Z; lift=S,X; bank=D,C",
+                                                    rect<s32>(150, 10, 430, 40), true);
 
     // Contact material for ground
     auto ground_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();

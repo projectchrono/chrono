@@ -37,7 +37,7 @@
 #include "chrono_models/vehicle/hmmwv/HMMWV.h"
 
 #ifdef CHRONO_POSTPROCESS
-#include "chrono_postprocess/ChGnuPlot.h"
+    #include "chrono_postprocess/ChGnuPlot.h"
 #endif
 
 using namespace chrono;
@@ -52,205 +52,202 @@ typedef enum { ISO3888_1, ISO3888_2 } DLC_Variant;
 // ISO 3888 helper class
 class ISO3888_Helper {
   public:
-    ISO3888_Helper(double xmin, double acc_length, double vehicle_width, DLC_Variant variant, bool left_turn = true)
-        : xmin(xmin), acc_length(acc_length), left_turn(left_turn), vehicle_width(vehicle_width) {
+    ISO3888_Helper(double xmin, double acc_length, double vehicle_width, DLC_Variant variant, bool left_turn = true) {
         switch (variant) {
             default:
             case ISO3888_1:
                 // gate A
-                lengthA = 15.0;
-                widthA = 1.1 * vehicle_width + 0.25;
+                m_lengthA = 15.0;
+                m_widthA = 1.1 * vehicle_width + 0.25;
                 // gate B
-                lengthAB = 30.0;
-                lengthB = 25.0;
-                widthB = 1.2 * vehicle_width + 0.25;
+                m_lengthAB = 30.0;
+                m_lengthB = 25.0;
+                m_widthB = 1.2 * vehicle_width + 0.25;
                 if (left_turn) {
-                    ofsB = widthB / 2.0 + 3.5;
+                    m_ofsB = m_widthB / 2.0 + 3.5;
                 } else {
-                    ofsB = -(widthB / 2.0 + 3.5);
+                    m_ofsB = -(m_widthB / 2.0 + 3.5);
                 }
                 // gate C
-                lengthBC = 25.0;
-                lengthC = 15.0;
-                widthC = 1.3 * vehicle_width + 0.25;
+                m_lengthBC = 25.0;
+                m_lengthC = 15.0;
+                m_widthC = 1.3 * vehicle_width + 0.25;
                 if (left_turn) {
-                    ofsC = (widthC - widthA) / 2;
+                    m_ofsC = (m_widthC - m_widthA) / 2;
                 } else {
-                    ofsC = (widthA - widthC) / 2;
+                    m_ofsC = (m_widthA - m_widthC) / 2;
                 }
                 break;
             case ISO3888_2:
                 // gate A
-                lengthA = 12.0;
-                widthA = 1.1 * vehicle_width + 0.25;
+                m_lengthA = 12.0;
+                m_widthA = 1.1 * vehicle_width + 0.25;
                 // gate B
-                lengthAB = 13.5;
-                lengthB = 11.0;
-                widthB = vehicle_width + 1.0;
+                m_lengthAB = 13.5;
+                m_lengthB = 11.0;
+                m_widthB = vehicle_width + 1.0;
                 if (left_turn) {
-                    ofsB = widthB / 2.0 + widthA / 2.0 + 1.0;
+                    m_ofsB = m_widthB / 2.0 + m_widthA / 2.0 + 1.0;
                 } else {
-                    ofsB = -(widthB / 2.0 + widthA / 2.0 + 1.0);
+                    m_ofsB = -(m_widthB / 2.0 + m_widthA / 2.0 + 1.0);
                 }
                 // gate C
-                lengthBC = 12.5;
-                lengthC = 12.0;
-                widthC = 3.0;
+                m_lengthBC = 12.5;
+                m_lengthC = 12.0;
+                m_widthC = 3.0;
                 if (left_turn) {
-                    ofsC = (widthC - widthA) / 2;
+                    m_ofsC = (m_widthC - m_widthA) / 2;
                 } else {
-                    ofsC = (widthA - widthC) / 2;
+                    m_ofsC = (m_widthA - m_widthC) / 2;
                 }
                 break;
         }
         //================== setup definition points ========================================
         double zl = 0.1;
         // P1
-        leftLine.push_back(ChVector<>(xmin + acc_length, widthA / 2.0, 0));
-        centerLine.push_back(ChVector<>(xmin, 0, 0));
-        rightLine.push_back(ChVector<>(xmin + acc_length, -widthA / 2.0, 0));
+        m_leftLine.push_back(ChVector<>(xmin + acc_length, m_widthA / 2.0, 0));
+        m_centerLine.push_back(ChVector<>(xmin, 0, 0));
+        m_rightLine.push_back(ChVector<>(xmin + acc_length, -m_widthA / 2.0, 0));
         // P2
-        leftLine.push_back(ChVector<>(xmin + acc_length + lengthA, widthA / 2.0, 0));
-        centerLine.push_back(ChVector<>(xmin + acc_length + lengthA, 0, zl));
-        rightLine.push_back(ChVector<>(xmin + acc_length + lengthA, -widthA / 2.0, 0));
+        m_leftLine.push_back(ChVector<>(xmin + acc_length + m_lengthA, m_widthA / 2.0, 0));
+        m_centerLine.push_back(ChVector<>(xmin + acc_length + m_lengthA, 0, zl));
+        m_rightLine.push_back(ChVector<>(xmin + acc_length + m_lengthA, -m_widthA / 2.0, 0));
         // P3
-        leftLine.push_back(ChVector<>(xmin + acc_length + lengthA + lengthAB, widthB / 2.0, 0));
-        centerLine.push_back(ChVector<>(xmin + acc_length + lengthA + lengthAB, 0, zl));
-        rightLine.push_back(ChVector<>(xmin + acc_length + lengthA + lengthAB, -widthB / 2.0, 0));
-        leftLine.back().y() += ofsB;
-        centerLine.back().y() += ofsB;
-        rightLine.back().y() += ofsB;
+        m_leftLine.push_back(ChVector<>(xmin + acc_length + m_lengthA + m_lengthAB, m_widthB / 2.0, 0));
+        m_centerLine.push_back(ChVector<>(xmin + acc_length + m_lengthA + m_lengthAB, 0, zl));
+        m_rightLine.push_back(ChVector<>(xmin + acc_length + m_lengthA + m_lengthAB, -m_widthB / 2.0, 0));
+        m_leftLine.back().y() += m_ofsB;
+        m_centerLine.back().y() += m_ofsB;
+        m_rightLine.back().y() += m_ofsB;
         // P4
-        leftLine.push_back(ChVector<>(xmin + acc_length + lengthA + lengthAB + lengthB, widthB / 2.0, 0));
-        centerLine.push_back(ChVector<>(xmin + acc_length + lengthA + lengthAB + lengthB, 0, zl));
-        rightLine.push_back(ChVector<>(xmin + acc_length + lengthA + lengthAB + lengthB, -widthB / 2.0, 0));
-        leftLine.back().y() += ofsB;
-        centerLine.back().y() += ofsB;
-        rightLine.back().y() += ofsB;
+        m_leftLine.push_back(ChVector<>(xmin + acc_length + m_lengthA + m_lengthAB + m_lengthB, m_widthB / 2.0, 0));
+        m_centerLine.push_back(ChVector<>(xmin + acc_length + m_lengthA + m_lengthAB + m_lengthB, 0, zl));
+        m_rightLine.push_back(ChVector<>(xmin + acc_length + m_lengthA + m_lengthAB + m_lengthB, -m_widthB / 2.0, 0));
+        m_leftLine.back().y() += m_ofsB;
+        m_centerLine.back().y() += m_ofsB;
+        m_rightLine.back().y() += m_ofsB;
         // P5
-        leftLine.push_back(ChVector<>(xmin + acc_length + lengthA + lengthAB + lengthB + lengthBC, widthC / 2.0, 0));
-        centerLine.push_back(ChVector<>(xmin + acc_length + lengthA + lengthAB + lengthB + lengthBC, 0, zl));
-        rightLine.push_back(ChVector<>(xmin + acc_length + lengthA + lengthAB + lengthB + lengthBC, -widthC / 2.0, 0));
-        leftLine.back().y() += ofsC;
-        centerLine.back().y() += ofsC;
-        rightLine.back().y() += ofsC;
+        m_leftLine.push_back(
+            ChVector<>(xmin + acc_length + m_lengthA + m_lengthAB + m_lengthB + m_lengthBC, m_widthC / 2.0, 0));
+        m_centerLine.push_back(ChVector<>(xmin + acc_length + m_lengthA + m_lengthAB + m_lengthB + m_lengthBC, 0, zl));
+        m_rightLine.push_back(
+            ChVector<>(xmin + acc_length + m_lengthA + m_lengthAB + m_lengthB + m_lengthBC, -m_widthC / 2.0, 0));
+        m_leftLine.back().y() += m_ofsC;
+        m_centerLine.back().y() += m_ofsC;
+        m_rightLine.back().y() += m_ofsC;
         // P6
-        leftLine.push_back(
-            ChVector<>(xmin + acc_length + lengthA + lengthAB + lengthB + lengthBC + lengthC, widthC / 2.0, 0));
-        centerLine.push_back(ChVector<>(xmin + acc_length + lengthA + lengthAB + lengthB + lengthBC + lengthC, 0, zl));
-        rightLine.push_back(
-            ChVector<>(xmin + acc_length + lengthA + lengthAB + lengthB + lengthBC + lengthC, -widthC / 2.0, 0));
-        leftLine.back().y() += ofsC;
-        centerLine.back().x() += 100.0;
-        centerLine.back().y() += ofsC;
-        rightLine.back().y() += ofsC;
+        m_leftLine.push_back(ChVector<>(xmin + acc_length + m_lengthA + m_lengthAB + m_lengthB + m_lengthBC + m_lengthC,
+                                        m_widthC / 2.0, 0));
+        m_centerLine.push_back(
+            ChVector<>(xmin + acc_length + m_lengthA + m_lengthAB + m_lengthB + m_lengthBC + m_lengthC, 0, zl));
+        m_rightLine.push_back(ChVector<>(
+            xmin + acc_length + m_lengthA + m_lengthAB + m_lengthB + m_lengthBC + m_lengthC, -m_widthC / 2.0, 0));
+        m_leftLine.back().y() += m_ofsC;
+        m_centerLine.back().x() += 100.0;
+        m_centerLine.back().y() += m_ofsC;
+        m_rightLine.back().y() += m_ofsC;
         // luxury: add some road cone positions like in the standard
-        leftCones.push_back(leftLine[0]);
-        leftCones.push_back((leftLine[0] + leftLine[1]) / 2);
-        leftCones.push_back(leftLine[1]);
-        leftCones.push_back(leftLine[2]);
-        leftCones.push_back((leftLine[2] + leftLine[3]) / 2);
-        leftCones.push_back(leftLine[3]);
-        leftCones.push_back(leftLine[4]);
-        leftCones.push_back((leftLine[4] + leftLine[5]) / 2);
-        leftCones.push_back(leftLine[5]);
+        m_leftCones.push_back(m_leftLine[0]);
+        m_leftCones.push_back((m_leftLine[0] + m_leftLine[1]) / 2);
+        m_leftCones.push_back(m_leftLine[1]);
+        m_leftCones.push_back(m_leftLine[2]);
+        m_leftCones.push_back((m_leftLine[2] + m_leftLine[3]) / 2);
+        m_leftCones.push_back(m_leftLine[3]);
+        m_leftCones.push_back(m_leftLine[4]);
+        m_leftCones.push_back((m_leftLine[4] + m_leftLine[5]) / 2);
+        m_leftCones.push_back(m_leftLine[5]);
 
-        rightCones.push_back(rightLine[0]);
-        rightCones.push_back((rightLine[0] + rightLine[1]) / 2);
-        rightCones.push_back(rightLine[1]);
-        rightCones.push_back(rightLine[2]);
-        rightCones.push_back((rightLine[2] + rightLine[3]) / 2);
-        rightCones.push_back(rightLine[3]);
-        rightCones.push_back(rightLine[4]);
-        rightCones.push_back((rightLine[4] + rightLine[5]) / 2);
-        rightCones.push_back(rightLine[5]);
+        m_rightCones.push_back(m_rightLine[0]);
+        m_rightCones.push_back((m_rightLine[0] + m_rightLine[1]) / 2);
+        m_rightCones.push_back(m_rightLine[1]);
+        m_rightCones.push_back(m_rightLine[2]);
+        m_rightCones.push_back((m_rightLine[2] + m_rightLine[3]) / 2);
+        m_rightCones.push_back(m_rightLine[3]);
+        m_rightCones.push_back(m_rightLine[4]);
+        m_rightCones.push_back((m_rightLine[4] + m_rightLine[5]) / 2);
+        m_rightCones.push_back(m_rightLine[5]);
 
         ////std::ofstream tst("bla.txt");
-        ////for (int i = 0; i < leftLine.size(); i++) {
-        ////    tst << leftLine[i].x() << "\t" << centerLine[i].x() << "\t" << leftLine[i].y() << "\t" << centerLine[i].y()
-        ////        << "\t" << rightLine[i].y() << std::endl;
+        ////for (int i = 0; i < m_leftLine.size(); i++) {
+        ////    tst << m_leftLine[i].x() << "\t" << centerLine[i].x() << "\t" << m_leftLine[i].y() << "\t" <<
+        ///centerLine[i].y() /        << "\t" << m_rightLine[i].y() << std::endl;
         ////}
         ////tst.close();
 
         // prepare path spline definition
-        ChVector<> offset(lengthB / 3, 0, 0);
-        for (size_t i = 0; i < centerLine.size(); i++) {
-            inCV.push_back(centerLine[i] - offset);
-            outCV.push_back(centerLine[i] + offset);
+        ChVector<> offset(m_lengthB / 3, 0, 0);
+        for (size_t i = 0; i < m_centerLine.size(); i++) {
+            m_inCV.push_back(m_centerLine[i] - offset);
+            m_outCV.push_back(m_centerLine[i] + offset);
         }
-        path = chrono_types::make_shared<ChBezierCurve>(centerLine, inCV, outCV);
+        m_path = chrono_types::make_shared<ChBezierCurve>(m_centerLine, m_inCV, m_outCV);
     }
 
     bool GateTestLeft(ChVector<>& p) {
-        if (p.x() >= leftLine[0].x() && p.x() <= leftLine[1].x()) {
-            if (p.y() > leftLine[0].y())
+        if (p.x() >= m_leftLine[0].x() && p.x() <= m_leftLine[1].x()) {
+            if (p.y() > m_leftLine[0].y())
                 return false;
         }
-        if (p.x() >= leftLine[2].x() && p.x() <= leftLine[3].x()) {
-            if (p.y() > leftLine[2].y())
+        if (p.x() >= m_leftLine[2].x() && p.x() <= m_leftLine[3].x()) {
+            if (p.y() > m_leftLine[2].y())
                 return false;
         }
-        if (p.x() >= leftLine[4].x() && p.x() <= leftLine[5].x()) {
-            if (p.y() > leftLine[4].y())
+        if (p.x() >= m_leftLine[4].x() && p.x() <= m_leftLine[5].x()) {
+            if (p.y() > m_leftLine[4].y())
                 return false;
         }
         return true;
     }
 
     bool GateTestRight(ChVector<>& p) {
-        if (p.x() >= leftLine[0].x() && p.x() <= leftLine[1].x()) {
-            if (p.y() < rightLine[0].y())
+        if (p.x() >= m_leftLine[0].x() && p.x() <= m_leftLine[1].x()) {
+            if (p.y() < m_rightLine[0].y())
                 return false;
         }
-        if (p.x() >= leftLine[2].x() && p.x() <= leftLine[3].x()) {
-            if (p.y() < rightLine[2].y())
+        if (p.x() >= m_leftLine[2].x() && p.x() <= m_leftLine[3].x()) {
+            if (p.y() < m_rightLine[2].y())
                 return false;
         }
-        if (p.x() >= leftLine[4].x() && p.x() <= leftLine[5].x()) {
-            if (p.y() < rightLine[4].y())
+        if (p.x() >= m_leftLine[4].x() && p.x() <= m_leftLine[5].x()) {
+            if (p.y() < m_rightLine[4].y())
                 return false;
         }
         return true;
     }
 
-    size_t GetConePositions() { return leftCones.size(); }
+    size_t GetConePositions() { return m_leftCones.size(); }
     ChVector<>& GetConePosition(size_t idx, bool left) {
         if (left)
-            return leftCones[idx];
+            return m_leftCones[idx];
         else
-            return rightCones[idx];
+            return m_rightCones[idx];
     }
 
     ~ISO3888_Helper() {}
 
-    double GetManeuverLength() { return leftLine[5].x() - leftLine[0].x(); }
-    double GetXmax() { return leftLine[5].x(); }
-    std::shared_ptr<ChBezierCurve> GetPath() { return path; }
+    double GetManeuverLength() { return m_leftLine[5].x() - m_leftLine[0].x(); }
+    double GetXmax() { return m_leftLine[5].x(); }
+    std::shared_ptr<ChBezierCurve> GetPath() { return m_path; }
 
   private:
-    std::vector<ChVector<>> leftLine;
-    std::vector<ChVector<>> centerLine;
-    std::vector<ChVector<>> rightLine;
-    std::vector<ChVector<>> leftCones;
-    std::vector<ChVector<>> rightCones;
-    double widthA;
-    double lengthA;
-    double widthB;
-    double lengthB;
-    double widthC;
-    double lengthC;
-    double lengthAB;
-    double lengthBC;
-    double ofsB;
-    double ofsC;
-    bool left_turn;
-    double vehicle_width;
-    double xmin;
-    double xmax;
-    double acc_length;
-    std::vector<ChVector<>> inCV;
-    std::vector<ChVector<>> outCV;
-    std::shared_ptr<ChBezierCurve> path;
+    std::vector<ChVector<>> m_leftLine;
+    std::vector<ChVector<>> m_centerLine;
+    std::vector<ChVector<>> m_rightLine;
+    std::vector<ChVector<>> m_leftCones;
+    std::vector<ChVector<>> m_rightCones;
+    double m_widthA;
+    double m_lengthA;
+    double m_widthB;
+    double m_lengthB;
+    double m_widthC;
+    double m_lengthC;
+    double m_lengthAB;
+    double m_lengthBC;
+    double m_ofsB;
+    double m_ofsC;
+    std::vector<ChVector<>> m_inCV;
+    std::vector<ChVector<>> m_outCV;
+    std::shared_ptr<ChBezierCurve> m_path;
 };
 // =============================================================================
 
@@ -503,7 +500,6 @@ int main(int argc, char* argv[]) {
     // Initialize simulation frame counter and simulation time
     int step_number = 0;
     double time = 0;
-    bool done = false;
     double xpos = 0;
     double xend = helper.GetXmax();
     while (app.GetDevice()->run()) {

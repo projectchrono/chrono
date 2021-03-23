@@ -39,8 +39,8 @@ UAZBUS::UAZBUS()
       m_tireType(TireModelType::RIGID),
       m_tire_step_size(-1),
       m_steeringType(SteeringTypeWV::PITMAN_ARM),
-      m_initFwdVel(0),
       m_initPos(ChCoordsys<>(ChVector<>(0, 0, 1), QUNIT)),
+      m_initFwdVel(0),
       m_initOmega({0, 0, 0, 0}),
       m_apply_drag(false) {}
 
@@ -55,8 +55,8 @@ UAZBUS::UAZBUS(ChSystem* system)
       m_tireType(TireModelType::RIGID),
       m_tire_step_size(-1),
       m_steeringType(SteeringTypeWV::PITMAN_ARM),
-      m_initFwdVel(0),
       m_initPos(ChCoordsys<>(ChVector<>(0, 0, 1), QUNIT)),
+      m_initFwdVel(0),
       m_initOmega({0, 0, 0, 0}),
       m_apply_drag(false) {}
 

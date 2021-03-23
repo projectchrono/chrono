@@ -494,7 +494,6 @@ class MyEventReceiver : public IEventReceiver {
         // check if user moved the sliders with mouse..
         if (event.EventType == EET_GUI_EVENT) {
             s32 id = event.GUIEvent.Caller->getID();
-            IGUIEnvironment* env = mdevice->getGUIEnvironment();
 
             switch (event.GUIEvent.EventType) {
                 case EGET_SCROLL_BAR_CHANGED:

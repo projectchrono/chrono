@@ -285,7 +285,6 @@ int main(int argc, char* argv[]) {
     ChVector<> locpos(0.1, 3.1, 1.1);
     ChVector<> locspeed(3.2, 9.2, 7.2);
     ChVector<> locacc(5.3, 3.3, 2.3);
-    ChVector<> parentpos = locpos >> testa;
 
     ChFrameMoving<> testPl(locpos, QUNIT);
     testPl.SetPos_dt(locspeed);
@@ -306,7 +305,7 @@ int main(int argc, char* argv[]) {
 
     ChTimer<double> timer;
 
-    int numcycles = 100000;
+    //int numcycles = 100000;
     int i;
 
     timer.start();

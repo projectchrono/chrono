@@ -35,8 +35,6 @@ using namespace irr;
 int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
-    double time_step = 1e-3;
-
     ChSystemSMC my_system;
     my_system.Set_G_acc(ChVector<>(0, 0, -9.8));
 
@@ -57,7 +55,6 @@ int main(int argc, char* argv[]) {
 
     // Create a mesh, that is a container for groups of elements and their referenced nodes.
     auto my_mesh = chrono_types::make_shared<ChMesh>();
-    int numFlexBody = 1;
     // Geometry of the plate
     double plate_lenght_x = 1;
     double plate_lenght_y = 0.1;

@@ -48,7 +48,6 @@ void UAZBUS_TMeasyTireFront::SetTMeasyParams() {
     // Tire Size = 37 x 12.5 x 16.5 Load Range D
     // Tire Load 3850 lbs at 50 psi (Goodyear Military Tire Brochure 6th Edition)
     
-    const double lbs2N = 4.4482216153;
     unsigned int li = 121;  // UAZ data
     const double in2m = 0.0254;
     double w = 0.225;
@@ -97,7 +96,6 @@ void UAZBUS_TMeasyTireRear::SetTMeasyParams() {
     // Tire Size = 37 x 12.5 x 16.5 Load Range D
     // Tire Load 3850 lbs at 50 psi (Goodyear Military Tire Brochure 6th Edition)
     
-    const double lbs2N = 4.4482216153;
     unsigned int li = 121;  // UAZ data
     const double in2m = 0.0254;
     double w = 0.225;

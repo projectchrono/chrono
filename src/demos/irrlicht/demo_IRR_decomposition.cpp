@@ -357,7 +357,6 @@ class MyEventReceiver : public IEventReceiver {
   private:
     ChIrrAppInterface* app;
 
-    gui::IGUIContextMenu* menu;
     gui::IGUIButton* button_decompose;
     gui::IGUIStaticText* text_algo_type;
     gui::IGUIStaticText* text_hacd_maxhullcount;

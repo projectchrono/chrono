@@ -1004,7 +1004,6 @@ int ChGeometryCollider::ComputeSphereBoxCollisions(
     } else {
         Vector pt_loc;
         bool done = false;
-        double dist = 0;
 
         if ((fabs(relC.x()) <= mgeo2.Size.x() + mgeo1.rad) && (fabs(relC.y()) <= mgeo2.Size.y()) &&
             (fabs(relC.z()) <= mgeo2.Size.z())) {
@@ -1261,7 +1260,7 @@ int ChGeometryCollider::ComputeBoxTriangleCollisions(
         bool is_into;
         double mu, mv;
 
-        double dist = utils::PointTriangleDistance(P1_w, v_1, v_2, v_3, mu, mv, is_into, P2_w);
+        /*double dist =*/ utils::PointTriangleDistance(P1_w, v_1, v_2, v_3, mu, mv, is_into, P2_w);
 
         Vector dir = P2_w - P1_w;
 

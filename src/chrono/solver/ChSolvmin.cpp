@@ -320,8 +320,6 @@ bool ChOptimizerLocal::DoOptimize() {
         //	System_to_Vars(xv);
     }
 
-    double inires = Eval_fx(xv);
-
     // call solver !!!!
 
     opt_fx = solvopt(nv,                   // numero di dimensioni
@@ -821,8 +819,6 @@ void ChOptimizerGenetic::Crossover() {
     ChGenotype child1(nv);
     ChGenotype child2(nv);
     ChGenotype bestparent(nv);
-    int selnum1 = 0;
-    int selnum2 = 0;
 
     par1 = NULL;
     par2 = NULL;
@@ -1480,7 +1476,6 @@ double solvopt(unsigned int n,
         i, j,                                                 /* loop counters                                  */
         k1 = 0, k2 = 0,                                       /* 1-D search step counters                       */
         kstop = 0,                                            /* termination counter                            */
-        nstop = 0,                                            /* zero-gradient events counter                   */
         kg = 0, kstore = 3, nzero = 0, nsteps[3] = {0, 0, 0}; /* counters used for step size change         */
     int countShowFun = 0;
 

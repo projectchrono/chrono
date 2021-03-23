@@ -669,29 +669,33 @@ void Brick9_Force::Evaluate(ChVectorN<double, 33>& result, const double x, const
                         double gsi;  // Coefficient multiplying 'current' cohesion value in yield function
                         double etab;
 
-                        if (m_element->m_DPHardening == 1) {  // Tension corresponding to Abaqus model
-                            eta = tan(phi) / sqrt(3.0);
-                            gsi = (1.0 + tan(phi) / 3.0) / sqrt(3.0);
-                            etab = tan(phi2) / sqrt(3.0);
-                        } else if (m_element->m_DPHardening == 2) {  // Compression corresponding to Abaqus model
-                            eta = tan(phi) / sqrt(3.0);
-                            gsi = (1.0 - tan(phi) / 3.0) / sqrt(3.0);
-                            etab = tan(phi2) / sqrt(3.0);
-                        } else if (m_element->m_DPHardening == 3) {  // Shear corresponding to Abaqus model
-                            eta = tan(phi) / sqrt(3.0);
-                            gsi = 1.0 / sqrt(3.0);
-                            etab = tan(phi2) / sqrt(3.0);
+                        switch (m_element->m_DPHardening) {
+                            case 1:  // Tension corresponding to Abaqus model
+                                eta = tan(phi) / sqrt(3.0);
+                                gsi = (1.0 + tan(phi) / 3.0) / sqrt(3.0);
+                                etab = tan(phi2) / sqrt(3.0);
+                                break;
+                            case 2:  // Compression corresponding to Abaqus model
+                                eta = tan(phi) / sqrt(3.0);
+                                gsi = (1.0 - tan(phi) / 3.0) / sqrt(3.0);
+                                etab = tan(phi2) / sqrt(3.0);
+                                break;
+                            case 3:  // Shear corresponding to Abaqus model
+                                eta = tan(phi) / sqrt(3.0);
+                                gsi = 1.0 / sqrt(3.0);
+                                etab = tan(phi2) / sqrt(3.0);
+                                break;
                         }
-                        double alpha1;
-                        double beta1;
+
                         if (etab == 0) {
                             etab = 0.000001;
                         }
-                        alpha1 = gsi / etab;
+                        double alpha1 = gsi / etab;
+
                         if (eta == 0) {
                             eta = 0.000001;
                         }
-                        beta1 = gsi / eta;
+                        double beta1 = gsi / eta;
 
                         // Yield function at trial stage
                         YieldFunc =
@@ -835,29 +839,33 @@ void Brick9_Force::Evaluate(ChVectorN<double, 33>& result, const double x, const
                         double gsi;  // Coefficient multiplying 'current' cohesion value in yield function
                         double etab;
 
-                        if (m_element->m_DPHardening == 1) {  // Tension corresponding to Abaqus model
-                            eta = tan(phi) / sqrt(3.0);
-                            gsi = (1.0 + tan(phi) / 3.0) / sqrt(3.0);
-                            etab = tan(phi2) / sqrt(3.0);
-                        } else if (m_element->m_DPHardening == 2) {  // Compression corresponding to Abaqus model
-                            eta = tan(phi) / sqrt(3.0);
-                            gsi = (1.0 - tan(phi) / 3.0) / sqrt(3.0);
-                            etab = tan(phi2) / sqrt(3.0);
-                        } else if (m_element->m_DPHardening == 3) {  // Shear corresponding to Abaqus model
-                            eta = tan(phi) / sqrt(3.0);
-                            gsi = 1.0 / sqrt(3.0);
-                            etab = tan(phi2) / sqrt(3.0);
+                        switch (m_element->m_DPHardening) {
+                            case 1:  // Tension corresponding to Abaqus model
+                                eta = tan(phi) / sqrt(3.0);
+                                gsi = (1.0 + tan(phi) / 3.0) / sqrt(3.0);
+                                etab = tan(phi2) / sqrt(3.0);
+                                break;
+                            case 2:  // Compression corresponding to Abaqus model
+                                eta = tan(phi) / sqrt(3.0);
+                                gsi = (1.0 - tan(phi) / 3.0) / sqrt(3.0);
+                                etab = tan(phi2) / sqrt(3.0);
+                                break;
+                            case 3:  // Shear corresponding to Abaqus model
+                                eta = tan(phi) / sqrt(3.0);
+                                gsi = 1.0 / sqrt(3.0);
+                                etab = tan(phi2) / sqrt(3.0);
+                                break;
                         }
-                        double alpha1;
-                        double beta1;
+
                         if (etab == 0) {
                             etab = 0.000001;
                         }
-                        alpha1 = gsi / etab;
+                        double alpha1 = gsi / etab;
+
                         if (eta == 0) {
                             eta = 0.000001;
                         }
-                        beta1 = gsi / eta;
+                        double beta1 = gsi / eta;
 
                         //-------------------------------//
                         // Yield function at trial stage //
@@ -1742,30 +1750,33 @@ void Brick9_Jacobian::Evaluate(ChMatrixNM<double, 33, 33>& result, const double 
                         double gsi;  // Coefficient multiplying 'current' cohesion value in yield function
                         double etab;
 
-                        if (m_element->m_DPHardening == 1) {  // Tension corresponding to Abaqus model
-                            eta = tan(phi) / sqrt(3.0);
-                            gsi = (1.0 + tan(phi) / 3.0) / sqrt(3.0);
-                            etab = tan(phi2) / sqrt(3.0);
-                        } else if (m_element->m_DPHardening == 2) {  // Compression corresponding to Abaqus model
-                            eta = tan(phi) / sqrt(3.0);
-                            gsi = (1.0 - tan(phi) / 3.0) / sqrt(3.0);
-                            etab = tan(phi2) / sqrt(3.0);
-                        } else if (m_element->m_DPHardening == 3) {  // Shear corresponding to Abaqus model
-                            eta = tan(phi) / sqrt(3.0);
-                            gsi = 1.0 / sqrt(3.0);
-                            etab = tan(phi2) / sqrt(3.0);
+                        switch (m_element->m_DPHardening) {
+                            case 1:  // Tension corresponding to Abaqus model
+                                eta = tan(phi) / sqrt(3.0);
+                                gsi = (1.0 + tan(phi) / 3.0) / sqrt(3.0);
+                                etab = tan(phi2) / sqrt(3.0);
+                                break;
+                            case 2:  // Compression corresponding to Abaqus model
+                                eta = tan(phi) / sqrt(3.0);
+                                gsi = (1.0 - tan(phi) / 3.0) / sqrt(3.0);
+                                etab = tan(phi2) / sqrt(3.0);
+                                break;
+                            case 3:  // Shear corresponding to Abaqus model
+                                eta = tan(phi) / sqrt(3.0);
+                                gsi = 1.0 / sqrt(3.0);
+                                etab = tan(phi2) / sqrt(3.0);
+                                break;
                         }
 
-                        double alpha1;
-                        double beta1;
                         if (etab == 0) {
                             etab = 0.000001;
                         }
-                        alpha1 = gsi / etab;
+                        double alpha1 = gsi / etab;
+
                         if (eta == 0) {
                             eta = 0.000001;
                         }
-                        beta1 = gsi / eta;
+                        double beta1 = gsi / eta;
 
                         // Yield function at trial stage
                         YieldFunc =
@@ -1916,29 +1927,33 @@ void Brick9_Jacobian::Evaluate(ChMatrixNM<double, 33, 33>& result, const double 
                         double gsi;  // Coefficient multiplying 'current' cohesion value in yield function
                         double etab;
 
-                        if (m_element->m_DPHardening == 1) {  // Tension corresponding to Abaqus model
-                            eta = tan(phi) / sqrt(3.0);
-                            gsi = (1.0 + tan(phi) / 3.0) / sqrt(3.0);
-                            etab = tan(phi2) / sqrt(3.0);
-                        } else if (m_element->m_DPHardening == 2) {  // Compression corresponding to Abaqus model
-                            eta = tan(phi) / sqrt(3.0);
-                            gsi = (1.0 - tan(phi) / 3.0) / sqrt(3.0);
-                            etab = tan(phi2) / sqrt(3.0);
-                        } else if (m_element->m_DPHardening == 3) {  // Shear corresponding to Abaqus model
-                            eta = tan(phi) / sqrt(3.0);
-                            gsi = 1.0 / sqrt(3.0);
-                            etab = tan(phi2) / sqrt(3.0);
+                        switch (m_element->m_DPHardening) {
+                            case 1:  // Tension corresponding to Abaqus model
+                                eta = tan(phi) / sqrt(3.0);
+                                gsi = (1.0 + tan(phi) / 3.0) / sqrt(3.0);
+                                etab = tan(phi2) / sqrt(3.0);
+                                break;
+                            case 2:  // Compression corresponding to Abaqus model
+                                eta = tan(phi) / sqrt(3.0);
+                                gsi = (1.0 - tan(phi) / 3.0) / sqrt(3.0);
+                                etab = tan(phi2) / sqrt(3.0);
+                                break;
+                            case 3:  // Shear corresponding to Abaqus model
+                                eta = tan(phi) / sqrt(3.0);
+                                gsi = 1.0 / sqrt(3.0);
+                                etab = tan(phi2) / sqrt(3.0);
+                                break;
                         }
-                        double alpha1;
-                        double beta1;
+
                         if (etab == 0) {
                             etab = 0.000001;
                         }
-                        alpha1 = gsi / etab;
+                        double alpha1 = gsi / etab;
+
                         if (eta == 0) {
                             eta = 0.000001;
                         }
-                        beta1 = gsi / eta;
+                        double beta1 = gsi / eta;
 
                         //-------------------------------//
                         // Yield function at trial stage //

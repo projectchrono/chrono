@@ -277,8 +277,8 @@ class  ChNameValue {
         }
 
   protected:
-        T* _value;
         const char* _name;
+        T* _value;
         char _flags;
 };
 
@@ -1328,7 +1328,7 @@ class  ChArchiveIn : public ChArchive {
       template<class T>
       void in     (ChNameValue<T*> bVal) {
           ChFunctorArchiveInSpecificPtr<T> specFuncA(&bVal.value());
-          void* newptr = this->in_ref(ChNameValue<ChFunctorArchiveIn>(bVal.name(), specFuncA, bVal.flags()) );
+          /*void* newptr =*/ this->in_ref(ChNameValue<ChFunctorArchiveIn>(bVal.name(), specFuncA, bVal.flags()) );
       }
 
         // trick to apply 'virtual in..' on C++ objects that has a function "ArchiveIN":

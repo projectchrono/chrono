@@ -92,15 +92,15 @@ static void ChPosMatrToBullet(const ChVector<>& pos, const ChMatrix33<>& rA, btT
     mtransform.setOrigin(btVector3((btScalar)pos.x(), (btScalar)pos.y(), (btScalar)pos.z()));
 }
 
-static void ChCoordsToBullet(const ChCoordsys<>& mcoords, btTransform& mtransform) {
-    ChMatrix33<> rA;
-    rA.Set_A_quaternion(mcoords.rot);
-    btMatrix3x3 basisA((btScalar)rA(0, 0), (btScalar)rA(0, 1), (btScalar)rA(0, 2), (btScalar)rA(1, 0),
-                       (btScalar)rA(1, 1), (btScalar)rA(1, 2), (btScalar)rA(2, 0), (btScalar)rA(2, 1),
-                       (btScalar)rA(2, 2));
-    mtransform.setBasis(basisA);
-    mtransform.setOrigin(btVector3((btScalar)mcoords.pos.x(), (btScalar)mcoords.pos.y(), (btScalar)mcoords.pos.z()));
-}
+////static void ChCoordsToBullet(const ChCoordsys<>& mcoords, btTransform& mtransform) {
+////    ChMatrix33<> rA;
+////    rA.Set_A_quaternion(mcoords.rot);
+////    btMatrix3x3 basisA((btScalar)rA(0, 0), (btScalar)rA(0, 1), (btScalar)rA(0, 2), (btScalar)rA(1, 0),
+////                       (btScalar)rA(1, 1), (btScalar)rA(1, 2), (btScalar)rA(2, 0), (btScalar)rA(2, 1),
+////                       (btScalar)rA(2, 2));
+////    mtransform.setBasis(basisA);
+////    mtransform.setOrigin(btVector3((btScalar)mcoords.pos.x(), (btScalar)mcoords.pos.y(), (btScalar)mcoords.pos.z()));
+////}
 
 static void ChBulletToCoords(const btTransform& mtransform, ChCoordsys<>& mcoords) {
     const btVector3& p = mtransform.getOrigin();

@@ -98,11 +98,6 @@ bool dbg_output = false;
 int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2021 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
-    const double inchToMeters = 0.0254;
-    const double MetersToInch = 1.0 / 0.0254;
-    const double mphToMetersPerSec = 0.44704;
-    const double MetersPerSecToMph = 2.2369362921;
-
     ChFunction_Recorder accTravel;
     accTravel.AddPoint(1.0, 1.0);
     accTravel.AddPoint(5.0, 10.0);
@@ -195,7 +190,6 @@ int main(int argc, char* argv[]) {
     ////marder.GetVehicle().SetContactCollection(true);
 
     // under belly points to estimate vehicle/ground interference
-    double heightCorr = 0.0;
     std::vector<ChVector<double> > bellyPts;
     bellyPts.push_back(ChVector<>(0.2332, 0, 0));
     bellyPts.push_back(ChVector<double>(-0.1043, 0, -0.3759));
@@ -331,8 +325,6 @@ int main(int argc, char* argv[]) {
     int step_number = 0;
     int render_frame = 0;
 
-    bool speed_found = false;
-    double contact_speed = 0.0;
     std::ofstream kurs("kurs.txt");
 
     ChTimer<> timer;

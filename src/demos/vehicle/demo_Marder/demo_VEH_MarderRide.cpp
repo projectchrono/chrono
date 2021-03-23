@@ -97,9 +97,7 @@ bool dbg_output = false;
 int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2021 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
-    const double inchToMeters = 0.0254;
     const double MetersToInch = 1.0 / 0.0254;
-    const double mphToMetersPerSec = 0.44704;
     const double MetersPerSecToMph = 2.2369362921;
 
     ChFunction_Recorder zeroLoad;
@@ -350,8 +348,6 @@ int main(int argc, char* argv[]) {
     int step_number = 0;
     int render_frame = 0;
 
-    bool speed_found = false;
-    double contact_speed = 0.0;
     std::ofstream kurs("kurs.txt");
 
     ChFunction_Recorder accLogger;

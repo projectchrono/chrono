@@ -56,7 +56,7 @@ int main(int argc, char* argv[]) {
     float object_restitution = 0.0f;
     float object_young_modulus = 1e7f;
     float object_poisson_ratio = 0.3f;
-    float object_adhesion = 0.0f;
+    ////float object_adhesion = 0.0f;
     float object_kn = 2e3;
     float object_gn = 40;
     float object_kt = 2e5;
@@ -66,7 +66,7 @@ int main(int argc, char* argv[]) {
     float ground_restitution = 0.0f;
     float ground_young_modulus = 1e7f;
     float ground_poisson_ratio = 0.3f;
-    float ground_adhesion = 0.0f;
+    ////float ground_adhesion = 0.0f;
     float ground_kn = 2e3;
     float ground_gn = 40;
     float ground_kt = 2e5;

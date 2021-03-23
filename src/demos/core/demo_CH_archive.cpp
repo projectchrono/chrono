@@ -93,6 +93,8 @@ class myEmployee {
         body(m_body),
         name(m_name) {};
 
+    virtual ~myEmployee() {}
+
     // MEMBER FUNCTIONS FOR BINARY I/O
     // NOTE!!!In order to allow serialization with Chrono approach,
     // at least implement these two functions, with the exact names

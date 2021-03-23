@@ -115,10 +115,6 @@ void ChLinkRackpinion::UpdateTime(double mytime) {
     ChVector<> abs_R = abs_Dr * this->GetPinionRadius();
     this->contact_pt = abs_pinion.GetPos() + abs_R;
 
-    double runX = Vdot(abs_distpr, abs_Dx);
-
-    // ChVector<> abs_runX    = Vdot( abs_distpr, abs_Dx );
-
     // Absolute frame of link reference
     ChMatrix33<> ma1(abs_Dx, abs_Dy, abs_Dz);
     ChFrame<> abs_contact(this->contact_pt, ma1);

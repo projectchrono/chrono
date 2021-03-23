@@ -98,9 +98,6 @@ bool ChTrackAssemblyDoublePin::Assemble(std::shared_ptr<ChBodyAuxRef> chassis) {
 
     // Set target points around the track.
     ChVector2<> sprocket_bottom = sprocket_pos - ChVector2<>(0, sprocket_radius);
-    ChVector2<> idler_top = idler_pos + ChVector2<>(0, idler_radius);
-    ChVector2<> idler_bottom = idler_pos - ChVector2<>(0, idler_radius);
-    ChVector2<> wheel_idler_bottom = wheel_idler_pos - ChVector2<>(0, wheel_radius);
     ChVector2<> wheel_sprocket_bottom = wheel_sprocket_pos - ChVector2<>(0, wheel_radius);
 
     // Keep track of the (x,z) locations of shoe body and connector bodies, as

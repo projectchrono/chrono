@@ -129,8 +129,8 @@ double ObsModTerrain::GetHeight(const ChVector<>& loc) const {
         int ix2 = -1;
         for (size_t i = 0; i < m_nx - 1; i++) {
             if (loc_ISO.x() >= m_x[i] && loc_ISO.x() < m_x[i + 1]) {
-                ix1 = i;
-                ix2 = i + 1;
+                ix1 = int(i);
+                ix2 = int(i + 1);
                 break;
             }
         }
@@ -141,8 +141,8 @@ double ObsModTerrain::GetHeight(const ChVector<>& loc) const {
         int jy2 = -1;
         for (size_t j = 0; j < m_ny - 1; j++) {
             if (loc_ISO.y() >= m_y[j] && loc_ISO.y() < m_y[j + 1]) {
-                jy1 = j;
-                jy2 = j + 1;
+                jy1 = int(j);
+                jy2 = int(j + 1);
                 break;
             }
         }
@@ -222,12 +222,12 @@ void ObsModTerrain::GenerateMesh() {
     }
     // Define the faces
     for (int i = 0; i < m_nx - 1; i++) {
-        int ofs = m_y.size() * i;
+        int ofs = (int)m_y.size() * i;
         for (int j = 0; j < m_y.size() - 1; j++) {
-            indices.push_back(ChVector<int>(j + ofs, j + m_y.size() + ofs, j + 1 + ofs));
-            indices.push_back(ChVector<int>(j + 1 + ofs, j + m_y.size() + ofs, j + 1 + m_y.size() + ofs));
-            normidx.push_back(ChVector<int>(j + ofs, j + m_y.size() + ofs, j + 1 + ofs));
-            normidx.push_back(ChVector<int>(j + 1 + ofs, j + m_y.size() + ofs, j + 1 + m_y.size() + ofs));
+            indices.push_back(ChVector<int>(j + ofs, j + (int)m_y.size() + ofs, j + 1 + ofs));
+            indices.push_back(ChVector<int>(j + 1 + ofs, j + (int)m_y.size() + ofs, j + 1 + (int)m_y.size() + ofs));
+            normidx.push_back(ChVector<int>(j + ofs, j + (int)m_y.size() + ofs, j + 1 + ofs));
+            normidx.push_back(ChVector<int>(j + 1 + ofs, j + (int)m_y.size() + ofs, j + 1 + (int)m_y.size() + ofs));
         }
     }
     auto vmesh = chrono_types::make_shared<ChTriangleMeshShape>();

@@ -87,9 +87,6 @@ class ChApi ChShaftsMotor : public ChShaftsMotorBase {
     double motor_set_rot;
     double motor_set_rot_dt;
 
-    double torque_react1;
-    double torque_react2;
-
     ChConstraintTwoGeneric constraint;  ///< used as an interface to the solver
 
   public:

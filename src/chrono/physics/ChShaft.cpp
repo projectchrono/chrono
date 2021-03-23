@@ -26,13 +26,13 @@ ChShaft::ChShaft()
       pos_dt(0),
       pos_dtdt(0),
       inertia(1),
-      fixed(false),
-      limitspeed(false),
       max_speed(10.0f),
       sleep_time(0.6f),
-      sleep_starttime(0),
       sleep_minspeed(0.1f),
       sleep_minwvel(0.04f),
+      sleep_starttime(0),
+      fixed(false),
+      limitspeed(false),
       sleeping(false) {
     SetUseSleeping(true);
     variables.SetShaft(this);

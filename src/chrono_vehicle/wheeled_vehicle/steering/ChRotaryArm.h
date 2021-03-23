@@ -142,9 +142,6 @@ class CH_VEHICLE_API ChRotaryArm : public ChSteering {
     // are provided in vehicle-aligned centroidal frames
     bool m_vehicle_frame_inertia;
 
-    bool m_pitman_arm_on_left_side;
-    bool m_steering_knuckle_on_left_side;
-
     // Points for arm visualization
     ChVector<> m_pC;
     ChVector<> m_pL;

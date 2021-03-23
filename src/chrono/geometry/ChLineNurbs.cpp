@@ -93,7 +93,6 @@ void ChLineNurbs::SetupData(
     this->p = morder;
     this->points = mpoints;
     int n = (int)points.size();
-    int k = n + p + 1;
 
     if (mknots)
         this->knots = *mknots;

@@ -73,14 +73,14 @@ class SprocketBandContactCB : public ChSystem::CustomCollisionCallback {
                           const ChVector<>& shoe_pin  ///< location of shoe guide pin center
                           )
         : m_track(track),
-          m_envelope(envelope),
-          m_gear_nteeth(gear_nteeth),
-          m_separation(separation),
           m_lateral_contact(lateral_contact),
           m_lateral_backlash(lateral_backlash),
           m_shoe_pin(shoe_pin) {
         m_sprocket = std::dynamic_pointer_cast<ChSprocketBand>(m_track->GetSprocket());
         auto shoe = std::dynamic_pointer_cast<ChTrackShoeBand>(track->GetTrackShoe(0));
+
+        ////m_gear_nteeth = gear_nteeth;
+        ////m_separation = separation;
 
         // The angle between the centers of two sequential teeth on the sprocket
         m_beta = CH_C_2PI / m_sprocket->GetNumTeeth();
@@ -206,10 +206,8 @@ class SprocketBandContactCB : public ChSystem::CustomCollisionCallback {
     ChTrackAssembly* m_track;                    // pointer to containing track assembly
     std::shared_ptr<ChSprocketBand> m_sprocket;  // handle to the sprocket
 
-    double m_envelope;  // collision detection envelope
-
-    int m_gear_nteeth;                            // sprocket gear, number of teeth
-    double m_separation;                          // separation distance between sprocket gears
+    ////int m_gear_nteeth;                            // sprocket gear, number of teeth
+    ////double m_separation;                          // separation distance between sprocket gears
     double m_gear_tread_broadphase_dist_squared;  // Tread body to Sprocket quick Broadphase distance squared check
 
     ChVector2<> m_gear_center_p;                 // center of (+x) arc, in sprocket body x-z plane
@@ -374,7 +372,6 @@ void SprocketBandContactCB::CheckTreadSegmentSprocket(std::shared_ptr<ChTrackSho
         tooth_center_p_end_angle += CH_C_2PI;
     }
 
-    double temp = m_sprocket->GetArcRadius();
     CheckTreadArcSprocketArc(shoe, sprocket_center_p, gear_center_p_start_angle, gear_center_p_end_angle,
                              m_sprocket->GetArcRadius(), tooth_center_p, tooth_center_p_start_angle,
                              tooth_center_p_end_angle, m_tread_arc_radius);
@@ -464,8 +461,8 @@ void SprocketBandContactCB::CheckTreadTipSprocketTip(std::shared_ptr<ChTrackShoe
               (tooth_tip_p_angle <= m_gear_outer_radius_arc_angle_end))) {
             // Clip tooth_tip_p so that it lies within the outer arc section of the sprocket profile since there is no
             // contact after this point
-            double clip_angle_start = m_gear_outer_radius_arc_angle_start +
-                                      tooth_tip_m_angle_adjust;  // Use m tip point, since that is in the correct arc
+            ////double clip_angle_start = m_gear_outer_radius_arc_angle_start +
+            ////                          tooth_tip_m_angle_adjust;  // Use m tip point, since that is in the correct arc
             double clip_angle_end = m_gear_outer_radius_arc_angle_end + tooth_tip_m_angle_adjust;
 
             ChVector<> vec_tooth = tooth_tip_p - tooth_tip_m;
@@ -486,7 +483,7 @@ void SprocketBandContactCB::CheckTreadTipSprocketTip(std::shared_ptr<ChTrackShoe
             // contact after this point
             double clip_angle_start = m_gear_outer_radius_arc_angle_start +
                                       tooth_tip_p_angle_adjust;  // Use p tip point, since that is in the correct arc
-            double clip_angle_end = m_gear_outer_radius_arc_angle_end + tooth_tip_p_angle_adjust;
+            ////double clip_angle_end = m_gear_outer_radius_arc_angle_end + tooth_tip_p_angle_adjust;
 
             ChVector<> vec_tooth = tooth_tip_m - tooth_tip_p;
 

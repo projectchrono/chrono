@@ -283,10 +283,6 @@ double ChSolverPMINRES::Solve(ChSystemDescriptor& sysd) {
 //////////////////////////////////////////////////////////////////////////////
 
 double ChSolverPMINRES::Solve_SupportingStiffness(ChSystemDescriptor& sysd) {
-    std::vector<ChConstraint*>& mconstraints = sysd.GetConstraintsList();
-    std::vector<ChVariables*>& mvariables = sysd.GetVariablesList();
-    std::vector<ChKblock*>& mstiffness = sysd.GetKblocksList();
-
     m_iterations = 0;
 
     // Allocate auxiliary vectors;

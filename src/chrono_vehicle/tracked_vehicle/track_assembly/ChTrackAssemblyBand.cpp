@@ -110,7 +110,6 @@ bool ChTrackAssemblyBand::FindAssemblyPoints(std::shared_ptr<ChBodyAuxRef> chass
     // Start building the path around the sprocket, idler, and wheels
 
     int Current_Circle = 0;
-    int NumCirclesOnPath = 0;
     
     // Tangent points (start and end) between consecutive circles
     std::vector<std::pair<ChVector2<>, ChVector2<>>> TangentPoints(CirclePosAll.size());

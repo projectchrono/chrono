@@ -74,7 +74,6 @@ void ChFunctionRotation_spline::SetupData(
     this->p = morder;
     this->rotations = mrotations;
     int n = (int)rotations.size();
-    int k = n + p + 1;
 
     if (mknots)
         this->knots = *mknots;

@@ -678,7 +678,6 @@ void ChSuspensionTestRigPlatform::UpdateActuators(double displ_left,
                                                   double displ_speed_left,
                                                   double displ_right,
                                                   double displ_speed_right) {
-    double time = GetSystem()->GetChTime();
     auto func_L = std::static_pointer_cast<ChFunction_Setpoint>(m_post_linact[LEFT]->GetMotionFunction());
     auto func_R = std::static_pointer_cast<ChFunction_Setpoint>(m_post_linact[RIGHT]->GetMotionFunction());
     func_L->SetSetpointAndDerivatives(displ_left, displ_speed_left, 0.0);
@@ -878,7 +877,6 @@ void ChSuspensionTestRigPushrod::UpdateActuators(double displ_left,
                                                  double displ_speed_left,
                                                  double displ_right,
                                                  double displ_speed_right) {
-    double time = GetSystem()->GetChTime();
     auto func_L = std::static_pointer_cast<ChFunction_Setpoint>(m_rod_linact[LEFT]->Get_dist_funct());
     auto func_R = std::static_pointer_cast<ChFunction_Setpoint>(m_rod_linact[RIGHT]->Get_dist_funct());
     func_L->SetSetpointAndDerivatives(displ_left, displ_speed_left, 0.0);

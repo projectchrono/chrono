@@ -17,7 +17,6 @@
 
 #include <vector>
 
-#include "chrono/parallel/ChThreadsSync.h"
 #include "chrono/solver/ChConstraint.h"
 #include "chrono/solver/ChKblock.h"
 #include "chrono/solver/ChVariables.h"
@@ -75,8 +74,6 @@ class ChApi ChSystemDescriptor {
     std::vector<ChConstraint*> vconstraints;  ///< list of pointers to all the ChConstraint in the current Chrono system
     std::vector<ChVariables*> vvariables;     ///< list of pointers to all the ChVariables in the current Chrono system
     std::vector<ChKblock*> vstiffness;        ///< list of pointers to all the ChKblock in the current Chrono system
-
-    ChSpinlock* spinlocktable;
 
     double c_a;  // coefficient form M mass matrices in vvariables
 

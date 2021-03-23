@@ -561,7 +561,6 @@ int ChBezierCurveTracker::calcClosestPoint(const ChVector<>& loc, ChFrame<>& tnb
 
     // Calculate TNB frame
     ChVector<> rp_rpp = Vcross(rp, rpp);
-    ChVector<> rp_rpp_rp = Vcross(rp_rpp, rp);
     double rp_norm = rp.Length();
     double rp_rpp_norm = rp_rpp.Length();
 

@@ -31,7 +31,7 @@ namespace fea {
 // Constructor
 // ------------------------------------------------------------------------------
 
-ChElementBeamANCF::ChElementBeamANCF() : m_gravity_on(false), m_thicknessY(0), m_thicknessZ(0), m_lenX(0), m_Alpha(0) {
+ChElementBeamANCF::ChElementBeamANCF() : m_lenX(0), m_thicknessY(0), m_thicknessZ(0), m_Alpha(0), m_gravity_on(false) {
     m_nodes.resize(3);
 }
 
@@ -1728,7 +1728,6 @@ ChVector<> ChElementBeamANCF::EvaluateBeamSectionStrains() {
     A2.Cross(A3, A1);
 
     // Direction for orthotropic material
-    double theta = 0.0;  // Fiber angle
     ChVector<double> AA1;
     ChVector<double> AA2;
     ChVector<double> AA3;
@@ -2130,10 +2129,6 @@ void ChMaterialBeamANCF::Calc_E_eps(const ChVector<>& E,
 void ChMaterialBeamANCF::Calc_E_eps_Nu(const ChVector<>& E, const ChVector<>& nu, const ChVector<>& G) {
     double delta = 1.0 - (nu.x() * nu.x()) * E.y() / E.x() - (nu.y() * nu.y()) * E.z() / E.x() -
                    (nu.z() * nu.z()) * E.z() / E.y() - 2.0 * nu.x() * nu.y() * nu.z() * E.z() / E.x();
-    double nu_yx = nu.x() * E.y() / E.x();
-    double nu_zx = nu.y() * E.z() / E.x();
-    double nu_zy = nu.z() * E.z() / E.y();
-
     m_E_eps_Nu.setZero();
     m_E_eps_Nu(0, 0) = E.x() * ((1.0 - (nu.z() * nu.z()) * E.z() / E.y()) / delta - 1.0);
     m_E_eps_Nu(1, 1) = E.y() * ((1.0 - (nu.y() * nu.y()) * E.z() / E.x()) / delta - 1.0);

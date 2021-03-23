@@ -72,7 +72,6 @@ double ChSolverADMM::_SolveBasic(ChSystemDescriptor& sysd) {
     double rho_i = this->rho;
 
     std::vector<ChConstraint*>& mconstraints = sysd.GetConstraintsList();
-    std::vector<ChVariables*>& mvariables = sysd.GetVariablesList();
 
     int nc = sysd.CountActiveConstraints();
     int nv = sysd.CountActiveVariables();
@@ -483,7 +482,6 @@ double ChSolverADMM::_SolveFast(ChSystemDescriptor& sysd) {
     double rho_i = this->rho;
 
     std::vector<ChConstraint*>& mconstraints = sysd.GetConstraintsList();
-    std::vector<ChVariables*>& mvariables = sysd.GetVariablesList();
 
     int nc = sysd.CountActiveConstraints();
     int nv = sysd.CountActiveVariables();

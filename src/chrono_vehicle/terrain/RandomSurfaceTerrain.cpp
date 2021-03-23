@@ -51,7 +51,6 @@ RandomSurfaceTerrain::RandomSurfaceTerrain(ChSystem* system, double length, doub
       m_friction(friction),
       m_rms(0.0),
       m_dx(0.1),
-      m_lambda_min(0.3),
       m_lambda_max(20.0),
       m_collision_mesh(false),
       m_start_length(0),

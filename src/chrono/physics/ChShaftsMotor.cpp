@@ -49,8 +49,7 @@ void ChShaftsMotorBase::ArchiveIN(ChArchiveIn& marchive) {
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChShaftsMotor)
 
-ChShaftsMotor::ChShaftsMotor() : motor_torque(0), motor_mode(MOT_MODE_TORQUE), motor_set_rot(0), motor_set_rot_dt(0) {
-}
+ChShaftsMotor::ChShaftsMotor() : motor_torque(0), motor_set_rot(0), motor_set_rot_dt(0), motor_mode(MOT_MODE_TORQUE) {}
 
 ChShaftsMotor::ChShaftsMotor(const ChShaftsMotor& other) : ChShaftsMotorBase(other) {
     motor_torque = other.motor_torque;

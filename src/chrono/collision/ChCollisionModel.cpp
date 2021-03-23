@@ -24,7 +24,7 @@ namespace collision {
 static double default_model_envelope = 0.03;
 static double default_safe_margin = 0.01;
 
-ChCollisionModel::ChCollisionModel() : family_group(1), family_mask(0x7FFF), mcontactable(nullptr) {
+ChCollisionModel::ChCollisionModel() : mcontactable(nullptr), family_group(1), family_mask(0x7FFF) {
     model_envelope = (float)default_model_envelope;
     model_safe_margin = (float)default_safe_margin;
 }

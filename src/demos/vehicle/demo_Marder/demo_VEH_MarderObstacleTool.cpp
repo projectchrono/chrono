@@ -103,8 +103,6 @@ int main(int argc, char* argv[]) {
 
     const double inchToMeters = 0.0254;
     const double MetersToInch = 1.0 / 0.0254;
-    const double mphToMetersPerSec = 0.44704;
-    const double MetersPerSecToMph = 2.2369362921;
     const double NewtonToLbf = 0.2248089431;
 
     ChFunction_Recorder accTravel;
@@ -244,7 +242,6 @@ int main(int argc, char* argv[]) {
                 // If enabled, the underlying Chrono contact processing does not compute any forces.
                 ////vehicle.EnableCustomContact(chrono_types::make_shared<MyCustomContact>(), false, true);
 
-                double heightCorr = 0.0;
                 std::vector<ChVector<double> > bellyPts;
                 bellyPts.push_back(ChVector<>(0.2332, 0, 0));
                 bellyPts.push_back(ChVector<double>(-0.1043, 0, -0.3759));
@@ -382,8 +379,6 @@ int main(int argc, char* argv[]) {
                 int step_number = 0;
                 int render_frame = 0;
 
-                bool speed_found = false;
-                double contact_speed = 0.0;
                 std::ofstream kurs("kurs.txt");
 
                 ChTimer<> timer;

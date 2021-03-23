@@ -29,18 +29,12 @@ ChSystemDescriptor::ChSystemDescriptor() : n_q(0), n_c(0), c_a(1.0), freeze_coun
     vconstraints.clear();
     vvariables.clear();
     vstiffness.clear();
-
-    spinlocktable = new ChSpinlock[CH_SPINLOCK_HASHSIZE];
 }
 
 ChSystemDescriptor::~ChSystemDescriptor() {
     vconstraints.clear();
     vvariables.clear();
     vstiffness.clear();
-
-    if (spinlocktable)
-        delete[] spinlocktable;
-    spinlocktable = 0;
 }
 
 void ChSystemDescriptor::ComputeFeasabilityViolation(double& resulting_maxviolation, double& resulting_feasability) {
@@ -166,7 +160,6 @@ void ChSystemDescriptor::ConvertToMatrixForm(ChSparseMatrix* Cq,
 
     // If some stiffness / hessian matrix has been added to H ,
     // also add it to the sparse H
-    int s_k = 0;
     if (H) {
         for (size_t ik = 0; ik < vs_size; ik++) {
             vstiffness[ik]->Build_K(*H, true);
@@ -233,7 +226,6 @@ void ChSystemDescriptor::ConvertToMatrixForm(ChSparseMatrix* Z, ChVectorDynamic<
         }
 
         // If present, add stiffness matrix K to upper-left block of Z.
-        int s_k = 0;
         for (size_t ik = 0; ik < vs_size; ik++) {
             vstiffness[ik]->Build_K(*Z, true);
         }

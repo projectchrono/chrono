@@ -184,8 +184,8 @@ class ChApi ChElasticityKirchhoffOrthotropic : public ChElasticityKirchhoff {
     double E_y;    ///< elasticity moduli
     double nu_xy;  ///< Poisson ratio
     double G_xy;   ///< Shear factor, in plane
-    double G_xz;   ///< Shear factor, out of plane
-    double G_yz;   ///< Shear factor, out of plane
+    ////double G_xz;   ///< Shear factor, out of plane
+    ////double G_yz;   ///< Shear factor, out of plane
 };
 
 

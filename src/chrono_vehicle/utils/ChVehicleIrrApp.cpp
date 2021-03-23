@@ -114,9 +114,9 @@ ChVehicleIrrApp::ChVehicleIrrApp(ChVehicle* vehicle,
       m_vehicle(vehicle),
       m_camera(vehicle->GetChassisBody()),
       m_stepsize(1e-3),
+      m_renderStats(true),
       m_HUD_x(700),
       m_HUD_y(20),
-      m_renderStats(true),
       m_steering(0),
       m_throttle(0),
       m_braking(0) {
@@ -197,8 +197,8 @@ void ChVehicleIrrApp::SetSkyBox() {
 void ChVehicleIrrApp::SetChaseCamera(const ChVector<>& ptOnChassis, double chaseDist, double chaseHeight) {
     m_camera.Initialize(ptOnChassis, m_vehicle->GetChassis()->GetLocalDriverCoordsys(), chaseDist, chaseHeight,
                         ChWorldFrame::Vertical(), ChWorldFrame::Forward());
-    ChVector<> cam_pos = m_camera.GetCameraPos();
-    ChVector<> cam_target = m_camera.GetTargetPos();
+    ////ChVector<> cam_pos = m_camera.GetCameraPos();
+    ////ChVector<> cam_target = m_camera.GetTargetPos(); 
 }
 
 // -----------------------------------------------------------------------------

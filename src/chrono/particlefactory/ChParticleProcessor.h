@@ -45,11 +45,9 @@ class ChParticleProcessor {
         particle_processor = chrono_types::make_shared<ChParticleProcessEventDoNothing>();
     }
 
-    /// This function process particles according to some rule,
-    /// defined by plugging appropriate ChParticleEventTrigger
+    /// This function process particles according to some rule, defined by plugging appropriate ChParticleEventTrigger
     /// and ChParticleProcessEvent.
-    /// Returns the number of processed particles (those that
-    /// triggered events.)
+    /// Returns the number of processed particles (those that triggered events.)
     virtual int ProcessParticles(ChSystem& msystem) {
         this->trigger->SetupPreProcess(msystem);
         this->particle_processor->SetupPreProcess(msystem);

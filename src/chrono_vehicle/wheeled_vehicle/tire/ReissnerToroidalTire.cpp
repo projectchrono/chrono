@@ -77,8 +77,8 @@ void ReissnerToroidalTire::CreateMesh(const ChFrameMoving<>& wheel_frame, Vehicl
 
     // Element dimensions
     double dz = m_thickness;
-    double dx = CH_C_2PI * (m_rim_radius + m_height) / (2 * m_div_circumference);
-    double dy = CH_C_PI * m_height / m_div_width;
+    ////double dx = CH_C_2PI * (m_rim_radius + m_height) / (2 * m_div_circumference);
+    ////double dy = CH_C_PI * m_height / m_div_width;
 
     // Create the Reissner shell elements
     for (int i = 0; i < m_div_circumference; i++) {

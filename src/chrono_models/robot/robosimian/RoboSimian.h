@@ -286,7 +286,7 @@ class CH_MODELS_API Link {
 };
 
 struct CH_MODELS_API LinkData {
-    LinkData(std::string myname, Link mylink, bool inc) : link(mylink), name(myname), include(inc) {}
+    LinkData(std::string myname, Link mylink, bool inc) : name(myname), link(mylink), include(inc) {}
     ////LinkData(LinkData&&) {}
 
     std::string name;
@@ -386,7 +386,6 @@ class CH_MODELS_API RS_Limb {
     /// Translate the limb bodies by the specified value.
     void Translate(const chrono::ChVector<>& shift);
 
-    LimbID m_id;
     std::string m_name;
     std::unordered_map<std::string, std::shared_ptr<RS_Part>> m_links;
     std::unordered_map<std::string, std::shared_ptr<chrono::ChLink>> m_joints;
@@ -653,7 +652,7 @@ class CH_MODELS_API RS_Driver {
 /// Robot driver callback to keep track of average speed and distance between phase changes.
 class CH_MODELS_API RS_DriverCallback : public RS_Driver::PhaseChangeCallback {
   public:
-    RS_DriverCallback(RoboSimian* robot) : m_robot(robot), m_start_x(0), m_start_time(0) {}
+    RS_DriverCallback(RoboSimian* robot) : m_start_x(0), m_start_time(0), m_robot(robot) {}
     virtual void OnPhaseChange(RS_Driver::Phase old_phase, RS_Driver::Phase new_phase) override;
 
     /// Get distance traveled from last phase change.

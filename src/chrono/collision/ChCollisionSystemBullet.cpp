@@ -149,7 +149,7 @@ void ChCollisionSystemBullet::Run() {
         bt_collision_world->performDiscreteCollisionDetection();
     }
 	
-	int numPairs = bt_collision_world->getBroadphase()->getOverlappingPairCache()->getNumOverlappingPairs();	
+	//int numPairs = bt_collision_world->getBroadphase()->getOverlappingPairCache()->getNumOverlappingPairs();	
 	//GetLog() << "tot pairs: " << numPairs << "\n";
 	
 }

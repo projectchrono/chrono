@@ -230,7 +230,6 @@ class CH_VEHICLE_API RandomSurfaceTerrain : public ChTerrain {
     ChMatrixDynamic<> m_a3;
     ChVectorDynamic<> m_classLimits;
 
-    double m_lambda_min;  ///< minimal spatial wavelength
     double m_lambda_max;  ///< maximal spatial wavelength
 
     double m_f_fft_min;

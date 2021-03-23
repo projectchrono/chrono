@@ -20,7 +20,7 @@ namespace chrono {
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChShaftsMotorAngle)
 
-ChShaftsMotorAngle::ChShaftsMotorAngle() : rot_offset(0), motor_torque(0), violation(0) {
+ChShaftsMotorAngle::ChShaftsMotorAngle() : rot_offset(0), violation(0), motor_torque(0) {
     // default motion function : a ramp
     this->f_rot = chrono_types::make_shared<ChFunction_Ramp>(
         0.0,   // default y(0)
@@ -29,9 +29,10 @@ ChShaftsMotorAngle::ChShaftsMotorAngle() : rot_offset(0), motor_torque(0), viola
     
 }
 
-ChShaftsMotorAngle::ChShaftsMotorAngle(const ChShaftsMotorAngle& other) : ChShaftsMotorBase(other), motor_torque(0), violation(0) {
-   this->f_rot = other.f_rot;
-   this->rot_offset = other.rot_offset;
+ChShaftsMotorAngle::ChShaftsMotorAngle(const ChShaftsMotorAngle& other)
+    : ChShaftsMotorBase(other), violation(0), motor_torque(0) {
+    this->f_rot = other.f_rot;
+    this->rot_offset = other.rot_offset;
 }
 
 bool ChShaftsMotorAngle::Initialize(std::shared_ptr<ChShaft> mshaft1, std::shared_ptr<ChShaft> mshaft2) {

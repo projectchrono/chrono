@@ -280,7 +280,6 @@ void ReissnerTire::CreateMesh(const ChFrameMoving<>& wheel_frame, VehicleSide si
             // Node direction
             ChVector<> tan_prf(std::cos(phi) * xp_prf, yp_prf, std::sin(phi) * xp_prf);
             ChVector<> nrm_prf = Vcross(tan_prf, nrm).GetNormalized();
-            ChVector<> dir = wheel_frame.TransformDirectionLocalToParent(nrm_prf);
             ChMatrix33<> mrot;
             mrot.Set_A_Xdir(tan_prf, nrm_prf);
             auto node = chrono_types::make_shared<ChNodeFEAxyzrot>(ChFrame<>(loc, mrot));

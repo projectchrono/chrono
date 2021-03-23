@@ -189,9 +189,6 @@ bool ChConvexDecompositionHACD::GetConvexHullResult(unsigned int hullIndex,
     size_t nPoints = myHACD->GetNPointsCH(hullIndex);
     size_t nTriangles = myHACD->GetNTrianglesCH(hullIndex);
 
-    float* vertices = new float[nPoints * 3];
-    unsigned int* triangles = new unsigned int[nTriangles * 3];
-
     HACD::Vec3<HACD::Real>* pointsCH = new HACD::Vec3<HACD::Real>[nPoints];
     HACD::Vec3<long>* trianglesCH = new HACD::Vec3<long>[nTriangles];
     myHACD->GetCH(hullIndex, pointsCH, trianglesCH);
@@ -217,9 +214,6 @@ bool ChConvexDecompositionHACD::GetConvexHullResult(unsigned int hullIndex, geom
 
     size_t nPoints = myHACD->GetNPointsCH(hullIndex);
     size_t nTriangles = myHACD->GetNTrianglesCH(hullIndex);
-
-    float* vertices = new float[nPoints * 3];
-    unsigned int* triangles = new unsigned int[nTriangles * 3];
 
     HACD::Vec3<HACD::Real>* pointsCH = new HACD::Vec3<HACD::Real>[nPoints];
     HACD::Vec3<long>* trianglesCH = new HACD::Vec3<long>[nTriangles];
@@ -255,9 +249,6 @@ void ChConvexDecompositionHACD::WriteConvexHullsAsWavefrontObj(ChStreamOutAscii&
 
         size_t nPoints = myHACD->GetNPointsCH(hullIndex);
         size_t nTriangles = myHACD->GetNTrianglesCH(hullIndex);
-
-        float* vertices = new float[nPoints * 3];
-        unsigned int* triangles = new unsigned int[nTriangles * 3];
 
         HACD::Vec3<HACD::Real>* pointsCH = new HACD::Vec3<HACD::Real>[nPoints];
         HACD::Vec3<long>* trianglesCH = new HACD::Vec3<long>[nTriangles];

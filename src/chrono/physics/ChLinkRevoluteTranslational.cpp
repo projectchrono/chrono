@@ -332,10 +332,10 @@ void ChLinkRevoluteTranslational::IntStateScatterReactions(const unsigned int of
     m_multipliers[3] = L(off_L + 3);
 
     // Also compute 'intuitive' reactions:
-    double lam_par1 = m_multipliers[0];
-    double lam_par2 = m_multipliers[1];
-    double lam_dot = m_multipliers[2];
-    double lam_dist = m_multipliers[3];
+    ////double lam_par1 = m_multipliers[0];
+    ////double lam_par2 = m_multipliers[1];
+    ////double lam_dot = m_multipliers[2];
+    ////double lam_dist = m_multipliers[3];
 
     ////
     //// TODO

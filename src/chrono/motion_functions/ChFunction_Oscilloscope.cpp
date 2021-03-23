@@ -60,7 +60,8 @@ double ChFunction_Oscilloscope::Get_y(double x) const {
     int i2 = i1 + 1;
     double p1x = start_x + dx * (double)i1;
     double p2x = start_x + dx * (double)i2;
-    double p2y, p1y = 0;
+    double p1y = 0;
+    double p2y = 0;
     int count = 0;
     std::list<double>::const_iterator iter = values.begin();
     while (iter != values.end()) {

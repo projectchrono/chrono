@@ -367,6 +367,12 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     endif()
 endif()
 
+
+if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+  message("ADDED CLANG FLAG!!!!")
+  add_definitions(-Wno-unknown-warning-option -Wno-reorder-ctor -Wno-pragma-pack)
+endif()
+
 #-----------------------------------------------------------------------------
 # HDF5 support (optional)
 #-----------------------------------------------------------------------------

@@ -30,7 +30,7 @@ using namespace geometry;
 CH_FACTORY_REGISTER(ChMatterMeshless)
 
 ChNodeMeshless::ChNodeMeshless()
-    : pos_ref(VNULL), UserForce(VNULL), h_rad(0.1), coll_rad(0.001), volume(0.01), hardening(0), container(NULL) {
+    : container(nullptr), pos_ref(VNULL), UserForce(VNULL), volume(0.01), h_rad(0.1), coll_rad(0.001), hardening(0) {
     collision_model = new ChCollisionModelBullet;
     collision_model->SetContactable(this);
 
@@ -139,7 +139,7 @@ ChPhysicsItem* ChNodeMeshless::GetPhysicsItem() {
 
 /// CLASS FOR Meshless NODE CLUSTER
 
-ChMatterMeshless::ChMatterMeshless() : do_collide(false), viscosity(0) {
+ChMatterMeshless::ChMatterMeshless() : viscosity(0), do_collide(false) {
     // Default: VonMises material
     material = chrono_types::make_shared<ChContinuumPlasticVonMises>();
 

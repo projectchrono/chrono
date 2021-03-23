@@ -153,7 +153,7 @@ std::shared_ptr<geometry::ChTriangleMeshConnected> ChSprocket::CreateVisualizati
     std::vector<ChVector<>>& normals = mesh->getCoordsNormals();
     std::vector<ChVector<int>>& idx_vertices = mesh->getIndicesVertexes();
     std::vector<ChVector<int>>& idx_normals = mesh->getIndicesNormals();
-    std::vector<ChVector<>>& uv_coords = mesh->getCoordsUV();
+    ////std::vector<ChVector<>>& uv_coords = mesh->getCoordsUV();
     std::vector<ChVector<float>>& colors = mesh->getCoordsColors();
 
     // Calculate number of vertices, normals, and faces. Resize mesh arrays.

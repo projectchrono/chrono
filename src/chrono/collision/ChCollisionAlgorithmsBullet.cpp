@@ -303,7 +303,6 @@ int addContactPoint(const btVector3& p,
     btVector3 v = p - q;
     btScalar dist = v.length();
     btVector3 n = v / dist;
-    btVector3 pc = q + n * r;
 
     btVector3 normal = X_box.getBasis() * (-n);
     btVector3 point = X_box(p);
@@ -350,8 +349,7 @@ void btCylshellBoxCollisionAlgorithm::processCollision(const btCollisionObjectWr
     btScalar radius = cyl->getRadius();    // cylinder radius
     btScalar hlen = cyl->getHalfLength();  // cylinder half-length
 
-    const btScalar parallel_tol = btScalar(1e-5);           // tolearance for parallelism tests
-    const btScalar near_tol = btScalar(1e-4) * (2 * hlen);  // tolerance for line parameters of near duplicate points
+    const btScalar parallel_tol = btScalar(1e-5);  // tolearance for parallelism tests
 
     int num_contacts = 0;
 
@@ -709,7 +707,6 @@ void btArcSegmentCollisionAlgorithm::processCollision(const btCollisionObjectWra
         local_P1 = local_arc_center + local_R;
         local_N2 = -local_CP2.normalized();
     }
-    btVector3 local_P1P2 = local_P1 - local_P2;
 
     double alpha = atan2(-local_N2.getY(), -local_N2.getX());
 
