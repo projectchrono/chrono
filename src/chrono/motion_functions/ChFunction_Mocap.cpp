@@ -173,7 +173,7 @@ void ChFunction_Mocap::ArchiveOUT(ChArchiveOut& marchive) {
 
 void ChFunction_Mocap::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChFunction_Mocap>();
+    /*int version =*/ marchive.VersionRead<ChFunction_Mocap>();
     // deserialize parent class
     ChFunction::ArchiveIN(marchive);
     // stream in all member data:

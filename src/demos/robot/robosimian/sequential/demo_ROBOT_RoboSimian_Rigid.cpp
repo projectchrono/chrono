@@ -190,9 +190,7 @@ int main(int argc, char* argv[]) {
     // Timed events
     // ------------
 
-    double time_create_terrain = duration_pose;                       // create terrain after robot assumes initial pose
-    double time_start = time_create_terrain + duration_settle_robot;  // start actual simulation after robot settling
-    double time_end = time_start + duration_sim;                      // end simulation after specified duration
+    double time_create_terrain = duration_pose;  // create terrain after robot assumes initial pose
 
     // -------------
     // Create system
@@ -344,7 +342,6 @@ int main(int argc, char* argv[]) {
     int output_steps = (int)std::ceil((1.0 / output_fps) / time_step);
     int render_steps = (int)std::ceil((1.0 / render_fps) / time_step);
     int sim_frame = 0;
-    int output_frame = 0;
     int render_frame = 0;
 
     bool terrain_created = false;

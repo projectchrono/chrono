@@ -53,7 +53,7 @@ void ChFunctionPosition::ArchiveOUT(ChArchiveOut& marchive) {
 
 void ChFunctionPosition::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChFunctionPosition>();
+    /*int version =*/ marchive.VersionRead<ChFunctionPosition>();
 }
 
 

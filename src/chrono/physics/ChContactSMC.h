@@ -201,7 +201,6 @@ class ChContactSMC : public ChContactTuple<Ta, Tb> {
                 if (use_mat_props) {
                     double sqrt_Rd = std::sqrt(delta);
                     double Sn = 2 * mat.E_eff * sqrt_Rd;
-                    double St = 8 * mat.G_eff * sqrt_Rd;
                     double loge = (mat.cr_eff < eps) ? std::log(eps) : std::log(mat.cr_eff);
                     double beta = loge / std::sqrt(loge * loge + CH_C_PI * CH_C_PI);
                     kn = (2.0 / 3) * Sn;

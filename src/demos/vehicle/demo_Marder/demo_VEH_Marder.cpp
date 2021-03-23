@@ -172,58 +172,6 @@ int main(int argc, char* argv[]) {
     // monitored parts.  Data can be written to a file by invoking ChTrackedVehicle::WriteContacts().
     ////marder.GetVehicle().SetContactCollection(true);
 
-    // Demonstration of using a callback for specifying contact between road wheels and track shoes.
-    // This particular implementation uses a simple SMC-like contact force (normal only).
-    class MyCustomContact : public ChTrackCustomContact {
-        virtual void ComputeForce(const collision::ChCollisionInfo& cinfo,
-                                  std::shared_ptr<ChBody> wheelBody,
-                                  std::shared_ptr<ChBody> shoeBody,
-                                  bool wheel_is_idler,
-                                  ChVector<>& forceShoe) override {
-            ////std::cout << (wheel_is_idler ? "IDLER " : "WHEEL ") << cinfo.modelA << " " << cinfo.modelB << " "
-            ////          << wheelBody->GetName() << " " << shoeBody->GetName() << std::endl;
-
-            if (cinfo.distance >= 0) {
-                forceShoe = VNULL;
-                return;
-            }
-
-            // Create a fictitious SMC composite contact material
-            // (do not use the shape materials, so that this can work with both an SMC and NSC system)
-            ChMaterialCompositeSMC mat;
-            mat.E_eff = 2e6f;
-            mat.cr_eff = 0.75f;
-
-            auto delta = -cinfo.distance;
-            auto normal_dir = cinfo.vN;
-            auto p1 = cinfo.vpA;
-            auto p2 = cinfo.vpB;
-            auto objA = cinfo.modelA->GetContactable();
-            auto objB = cinfo.modelB->GetContactable();
-            auto vel1 = objA->GetContactPointSpeed(p1);
-            auto vel2 = objB->GetContactPointSpeed(p2);
-
-            ChVector<> relvel = vel2 - vel1;
-            double relvel_n_mag = relvel.Dot(normal_dir);
-
-            double eff_radius = 0.1;
-            double eff_mass = objA->GetContactableMass() * objB->GetContactableMass() /
-                              (objA->GetContactableMass() + objB->GetContactableMass());
-            double Sn = 2 * mat.E_eff * std::sqrt(eff_radius * delta);
-            double loge = std::log(mat.cr_eff);
-            double beta = loge / std::sqrt(loge * loge + CH_C_PI * CH_C_PI);
-            double kn = (2.0 / 3) * Sn;
-            double gn = -2 * std::sqrt(5.0 / 6) * beta * std::sqrt(Sn * eff_mass);
-
-            double forceN = kn * delta - gn * relvel_n_mag;
-            forceShoe = (forceN < 0) ? VNULL : forceN * normal_dir;
-        }
-    };
-
-    // Enable custom contact force calculation for road wheel - track shoe collisions.
-    // If enabled, the underlying Chrono contact processing does not compute any forces.
-    ////vehicle.EnableCustomContact(chrono_types::make_shared<MyCustomContact>(), false, true);
-
     // ------------------
     // Create the terrain
     // ------------------

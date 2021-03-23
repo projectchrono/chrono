@@ -17,7 +17,7 @@
 namespace chrono {
 namespace fea {
 
-ChElementBar::ChElementBar() : area(0.01 * 0.01), density(1000), E(0.01e9), rdamping(0.01), length(0), mass(0) {
+ChElementBar::ChElementBar() : area(0.01 * 0.01), density(1000), E(0.01e9), rdamping(0.01), mass(0), length(0) {
     nodes.resize(2);
 }
 

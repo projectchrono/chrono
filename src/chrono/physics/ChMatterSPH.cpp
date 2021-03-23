@@ -33,7 +33,7 @@ using namespace geometry;
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChNodeSPH)
 
-ChNodeSPH::ChNodeSPH() : container(NULL), UserForce(VNULL), h_rad(0.1), coll_rad(0.001), volume(0.01), pressure(0) {
+ChNodeSPH::ChNodeSPH() : container(nullptr), UserForce(VNULL), volume(0.01), h_rad(0.1), coll_rad(0.001), pressure(0) {
     collision_model = new ChCollisionModelBullet;
     collision_model->SetContactable(this);
 
@@ -139,7 +139,7 @@ void ChNodeSPH::ArchiveOUT(ChArchiveOut& marchive) {
 // Method to allow de serialization of transient data from archives.
 void ChNodeSPH::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChNodeSPH>();
+    /*int version =*/ marchive.VersionRead<ChNodeSPH>();
 
     // deserialize parent class
     ChNodeXYZ::ArchiveIN(marchive);
@@ -184,7 +184,7 @@ void ChContinuumSPH::ArchiveOUT(ChArchiveOut& marchive) {
 // Method to allow de serialization of transient data from archives.
 void ChContinuumSPH::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChContinuumSPH>();
+    /*int version =*/ marchive.VersionRead<ChContinuumSPH>();
 
     // deserialize parent class
     ChContinuumMaterial::ArchiveIN(marchive);
@@ -667,7 +667,7 @@ void ChMatterSPH::ArchiveOUT(ChArchiveOut& marchive) {
 /// Method to allow de serialization of transient data from archives.
 void ChMatterSPH::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChMatterSPH>();
+    /*int version =*/ marchive.VersionRead<ChMatterSPH>();
 
     // deserialize parent class
     ChIndexedNodes::ArchiveIN(marchive);

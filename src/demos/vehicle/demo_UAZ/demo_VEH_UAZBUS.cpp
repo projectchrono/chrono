@@ -105,8 +105,8 @@ int main(int argc, char* argv[]) {
 
     {
         auto suspF = std::static_pointer_cast<ChToeBarLeafspringAxle>(uaz.GetVehicle().GetSuspension(0));
-        double leftAngle = suspF->GetKingpinAngleLeft();
-        double rightAngle = suspF->GetKingpinAngleRight();
+        ////double leftAngle = suspF->GetKingpinAngleLeft();
+        ////double rightAngle = suspF->GetKingpinAngleRight();
 
         auto springFL = suspF->GetSpring(VehicleSide::LEFT);
         auto shockFL = suspF->GetShock(VehicleSide::RIGHT);

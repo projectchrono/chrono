@@ -72,7 +72,7 @@ void ChSystemNSC::ArchiveOUT(ChArchiveOut& marchive) {
 // Method to allow de serialization of transient data from archives.
 void ChSystemNSC::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChSystemNSC>();
+    /*int version =*/ marchive.VersionRead<ChSystemNSC>();
 
     // deserialize parent class
     ChSystem::ArchiveIN(marchive);

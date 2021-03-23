@@ -29,6 +29,8 @@ namespace particlefactory {
 /// a box, etc.), or inherit your own class with custom triggering.
 class ChParticleEventTrigger {
   public:
+    virtual ~ChParticleEventTrigger() {}
+
     /// Children classes MUST implement this.
     /// Return true means that a ChParticleProcessEvent must
     /// be done, return false means that no ChParticleProcessEvent must be done.

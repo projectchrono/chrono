@@ -23,6 +23,10 @@ namespace vehicle {
 
 ChDrivelineWV::ChDrivelineWV(const std::string& name) : ChDriveline(name) {}
 
+void ChDrivelineWV::Synchronize(double torque) {
+    m_driveshaft->SetAppliedTorque(torque);
+}
+
 void ChDrivelineWV::LockAxleDifferential(int axle, bool lock) {
     GetLog() << "WARNING: Differential locking not yet implemented for " << GetTemplateName() << "\n";
 }

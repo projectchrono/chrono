@@ -159,8 +159,6 @@ bool ChIrrAppEventReceiver::OnEvent(const irr::SEvent& event) {
         }
     }
 
-    irr::core::dimension2d<irr::u32> ssize = app->GetVideoDriver()->getScreenSize();
-
     // Check if user moved the sliders with mouse.
     if (event.EventType == irr::EET_GUI_EVENT) {
         irr::s32 id = event.GUIEvent.Caller->getID();
@@ -319,7 +317,6 @@ ChIrrAppInterface::ChIrrAppInterface(ChSystem* psystem,
     y_up = vert == (VerticalDir::Y);
 
 #ifdef CHRONO_POSTPROCESS
-    pov_exporter = 0;
     povray_save = false;
     povray_each = 1;
     povray_num = 0;
@@ -334,13 +331,13 @@ ChIrrAppInterface::ChIrrAppInterface(ChSystem* psystem,
     params.Stencilbuffer = do_shadows;
     params.LoggingLevel = log_level;
 
-    device = irr::createDeviceEx(params);
+    device = std::unique_ptr<irr::IrrlichtDevice>(irr::createDeviceEx(params));
 
-    if (device == 0) {
+    if (!device) {
         GetLog() << "Cannot use default video driver - fall back to OpenGL \n";
         params.DriverType = irr::video::EDT_OPENGL;
 
-        device = irr::createDeviceEx(params);
+        device = std::unique_ptr<irr::IrrlichtDevice>(irr::createDeviceEx(params));
 
         if (!device)
             return;
@@ -348,9 +345,11 @@ ChIrrAppInterface::ChIrrAppInterface(ChSystem* psystem,
 
     // Xeffects for shadow maps!
     if (do_antialias)
-        effect = new EffectHandler(device, device->getVideoDriver()->getScreenSize() * 2, true, false, true);
+        effect = std::unique_ptr<EffectHandler>(
+            new EffectHandler(device.get(), device->getVideoDriver()->getScreenSize() * 2, true, false, true));
     else
-        effect = new EffectHandler(device, device->getVideoDriver()->getScreenSize(), true, false, true);
+        effect = std::unique_ptr<EffectHandler>(
+            new EffectHandler(device.get(), device->getVideoDriver()->getScreenSize(), true, false, true));
     // note: Irrlicht antialiasing does not work with Xeffects, but we could fake AA in Xeffects
     // by doubling the size of its buffer:  EffectHandler(device, device->getVideoDriver()->getScreenSize()*2
     effect->setAmbientColor(irr::video::SColor(255, 122, 122, 122));
@@ -548,13 +547,6 @@ ChIrrAppInterface::ChIrrAppInterface(ChSystem* psystem,
 // (including the Irrlicht scene nodes)
 ChIrrAppInterface::~ChIrrAppInterface() {
     device->drop();
-
-#ifdef CHRONO_POSTPROCESS
-    if (pov_exporter)
-        delete pov_exporter;
-#endif
-
-    // delete (receiver);
 }
 
 // Set integration time step.
@@ -572,12 +564,12 @@ void ChIrrAppInterface::SetTimestep(double val) {
 void ChIrrAppInterface::SetPOVraySave(bool val) {
     povray_save = val;
 
-    if (!povray_save && pov_exporter) {
-        delete pov_exporter;
+    if (!povray_save) {
         return;
     }
+
     if (povray_save && !pov_exporter) {
-        pov_exporter = new postprocess::ChPovRay(this->system);
+        pov_exporter = std::unique_ptr<postprocess::ChPovRay>(new postprocess::ChPovRay(system));
         pov_exporter->SetUseSingleAssetFile(false);
         // Important: set the path to the template:
         pov_exporter->SetTemplateFile(GetChronoDataFile("_template_POV.pov"));

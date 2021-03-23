@@ -33,7 +33,7 @@ class ChApi ChFaceTetra_4 : public ChLoadableUV {
     std::shared_ptr<ChElementTetra_4> melement;
 
   public:
-    ChFaceTetra_4(std::shared_ptr<ChElementTetra_4> mel, char mid) : melement(mel), face_id(mid) {}
+    ChFaceTetra_4(std::shared_ptr<ChElementTetra_4> mel, char mid) : face_id(mid), melement(mel) {}
 
     virtual ~ChFaceTetra_4() {}
 

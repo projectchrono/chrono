@@ -56,7 +56,6 @@ void create_items(ChIrrAppInterface& application) {
     bool do_spheres = true;
     bool do_heavyonside = true;
 
-    double sphrad = 0.2;
     double dens = 1000;
 
     if (do_stack) {

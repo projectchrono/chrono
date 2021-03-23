@@ -123,7 +123,6 @@ class CH_VEHICLE_API ChHumanDriver : public ChDriver {
     double m_u0;
     double m_umax;
     double m_uthres;
-    double m_ny;
     ChVector<> m_target;
     ChVector<> m_sentinel;
     size_t m_idx_curr;

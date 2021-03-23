@@ -626,7 +626,7 @@ int OBJ::ParseLine(int /*lineno*/,
                 mNormals.push_back(normalz);
             } else if (strcasecmp(argv[0], "f") == 0 && argc >= 4) {
                 // ***ALEX*** do not use the BuildMesh stuff
-                int vcount = argc - 1;
+                ////int vcount = argc - 1;
                 const char* argvT[3];
                 argvT[0] = argv[1];  // pivot for triangle fans when quad/poly face
                 for (int i = 1; i < argc; i++) {
@@ -1739,7 +1739,7 @@ void ChTriangleMeshConnected::ArchiveOUT(ChArchiveOut& marchive) {
 
 void ChTriangleMeshConnected::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChTriangleMeshConnected>();
+    /*int version =*/ marchive.VersionRead<ChTriangleMeshConnected>();
     // deserialize parent class
     ChTriangleMesh::ArchiveIN(marchive);
     // stream in all member data:

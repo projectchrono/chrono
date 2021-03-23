@@ -189,7 +189,7 @@ Brick_ForceAnalytical::Brick_ForceAnalytical(ChMatrixNM<double, 8, 3>* d_,
                                              ChMatrixNM<double, 6, 6>* T0_,
                                              double* detJ0C_,
                                              ChVectorN<double, 9>* alpha_eas_)
-    : d(d_), d0(d0_), element(element_), T0(T0_), detJ0C(detJ0C_), alpha_eas(alpha_eas_) {
+    : element(element_), d(d_), d0(d0_), T0(T0_), alpha_eas(alpha_eas_), detJ0C(detJ0C_) {
     E_eps.setZero();
     Gd.setZero();
     Sigm.setZero();
@@ -207,7 +207,7 @@ Brick_ForceAnalytical::Brick_ForceAnalytical(ChMatrixNM<double, 8, 3>* d_,
                                              ChVectorN<double, 9>* alpha_eas_,
                                              double* E_,
                                              double* v_)
-    : d(d_), d0(d0_), element(element_), T0(T0_), detJ0C(detJ0C_), alpha_eas(alpha_eas_), E(E_), v(v_) {
+    : element(element_), d(d_), d0(d0_), T0(T0_), alpha_eas(alpha_eas_), detJ0C(detJ0C_), E(E_), v(v_) {
     E_eps.setZero();
     Gd.setZero();
     Sigm.setZero();
@@ -734,7 +734,7 @@ Brick_ForceNumerical::Brick_ForceNumerical(ChMatrixNM<double, 8, 3>* d_,
                                            ChMatrixNM<double, 6, 6>* T0_,
                                            double* detJ0C_,
                                            ChVectorN<double, 9>* alpha_eas_)
-    : d(d_), d0(d0_), element(element_), T0(T0_), detJ0C(detJ0C_), alpha_eas(alpha_eas_) {
+    : element(element_), d(d_), d0(d0_), T0(T0_), alpha_eas(alpha_eas_), detJ0C(detJ0C_) {
     E_eps.setZero();
 
     Sx.setZero();
@@ -750,7 +750,7 @@ Brick_ForceNumerical::Brick_ForceNumerical(ChMatrixNM<double, 8, 3>* d_,
                                            ChVectorN<double, 9>* alpha_eas_,
                                            double* E_,
                                            double* v_)
-    : d(d_), d0(d0_), element(element_), T0(T0_), detJ0C(detJ0C_), alpha_eas(alpha_eas_), E(E_), v(v_) {
+    : element(element_), d(d_), d0(d0_), T0(T0_), alpha_eas(alpha_eas_), detJ0C(detJ0C_), E(E_), v(v_) {
     E_eps.setZero();
 
     Sx.setZero();
@@ -1523,7 +1523,7 @@ class Brick_Mass : public ChIntegrable3D<ChMatrixNM<double, 24, 24>> {
     virtual void Evaluate(ChMatrixNM<double, 24, 24>& result, const double x, const double y, const double z) override;
 };
 
-Brick_Mass::Brick_Mass(ChMatrixNM<double, 8, 3>* d0_, ChElementBrick* element_) : d0(d0_), element(element_) {
+Brick_Mass::Brick_Mass(ChMatrixNM<double, 8, 3>* d0_, ChElementBrick* element_) : element(element_), d0(d0_) {
     S.setZero();
 }
 
@@ -1591,7 +1591,7 @@ class BrickGravity : public ChIntegrable3D<ChVectorN<double, 24>> {
 };
 
 BrickGravity::BrickGravity(ChMatrixNM<double, 8, 3>* d0_, ChElementBrick* element_, const ChVector<> g_acc)
-    : d0(d0_), element(element_), gacc(g_acc) {}
+    : element(element_), d0(d0_), gacc(g_acc) {}
 
 void BrickGravity::Evaluate(ChVectorN<double, 24>& result, const double x, const double y, const double z) {
     element->ShapeFunctions(N, x, y, z);
@@ -1850,10 +1850,6 @@ void ChElementBrick::ComputeNF(
     ShapeFunctionsDerivativeX(Nx, U, V, W);
     ShapeFunctionsDerivativeY(Ny, U, V, W);
     ShapeFunctionsDerivativeZ(Nz, U, V, W);
-
-    ChMatrixNM<double, 1, 3> Nx_d0 = Nx * m_d0;
-    ChMatrixNM<double, 1, 3> Ny_d0 = Ny * m_d0;
-    ChMatrixNM<double, 1, 3> Nz_d0 = Nz * m_d0;
 
     ChMatrixNM<double, 3, 3> rd0;
     rd0.col(0) = m_d0.transpose() * Nx.transpose();

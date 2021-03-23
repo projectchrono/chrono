@@ -29,17 +29,20 @@
 #include "chrono/assets/ChColorAsset.h"
 
 #include "chrono_vehicle/tracked_vehicle/ChIdler.h"
+#include "chrono_vehicle/tracked_vehicle/ChTrackAssembly.h"
 
 namespace chrono {
 namespace vehicle {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-ChIdler::ChIdler(const std::string& name) : ChPart(name) {}
+ChIdler::ChIdler(const std::string& name) : ChPart(name), m_track(nullptr) {}
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChIdler::Initialize(std::shared_ptr<ChBodyAuxRef> chassis, const ChVector<>& location) {
+void ChIdler::Initialize(std::shared_ptr<ChBodyAuxRef> chassis, const ChVector<>& location, ChTrackAssembly* track) {
+    m_track = track;
+
     // Express the idler reference frame in the absolute coordinate system.
     ChFrame<> idler_to_abs(location);
     idler_to_abs.ConcatenatePreTransformation(chassis->GetFrame_REF_to_abs());

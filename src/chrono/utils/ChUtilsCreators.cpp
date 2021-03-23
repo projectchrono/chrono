@@ -105,7 +105,6 @@ void AddBiSphereGeometry(ChBody* body,
         frame = frame >> body_ar->GetFrame_REF_to_COG();
     }
     const ChVector<>& position = frame.GetPos();
-    const ChQuaternion<>& rotation = frame.GetRot();
 
     AddSphereGeometry(body, material, radius, position + ChVector<>(0, 0.5 * cDist, 0), rot, visualization);
     AddSphereGeometry(body, material, radius, position - ChVector<>(0, 0.5 * cDist, 0), rot, visualization);
@@ -169,7 +168,6 @@ void AddConeGeometry(ChBody* body,
         frame = frame >> body_ar->GetFrame_REF_to_COG();
     }
     const ChVector<>& position = frame.GetPos();
-    const ChQuaternion<>& rotation = frame.GetRot();
 
     ChVector<> posCollisionModel = position + ChVector<>(0, 0.25 * height, 0);
 
@@ -756,8 +754,6 @@ bool LoadConvexHulls(const std::string& file_name,
 
     if (!tinyobj::LoadObj(&att, &shapes, &materials, &warn, &err, file_name.c_str()))
         return false;
-
-    auto& positions = att.vertices;
 
     convex_hulls.resize(shapes.size());
 

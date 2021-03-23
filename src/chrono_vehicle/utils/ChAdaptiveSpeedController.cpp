@@ -42,13 +42,13 @@ namespace vehicle {
 // Implementation of the class ChAdaptiveSpeedController
 // -----------------------------------------------------------------------------
 ChAdaptiveSpeedController::ChAdaptiveSpeedController() 
-    : m_speed(0), m_err(0), m_erri(0), m_errd(0), m_collect(false), m_csv(NULL) {
+    : m_speed(0), m_err(0), m_errd(0), m_erri(0), m_csv(nullptr), m_collect(false) {
     // Default PID controller gains all zero (no control).
     SetGains(0, 0, 0);
 }
 
 ChAdaptiveSpeedController::ChAdaptiveSpeedController(const std::string& filename)
-    : m_speed(0), m_err(0), m_erri(0), m_errd(0), m_collect(false), m_csv(NULL) {
+    : m_speed(0), m_err(0), m_errd(0), m_erri(0), m_csv(nullptr), m_collect(false) {
     Document d; ReadFileJSON(filename, d);
     if (d.IsNull())
         return;

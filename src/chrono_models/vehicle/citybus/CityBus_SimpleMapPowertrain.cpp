@@ -66,15 +66,15 @@ void CityBus_SimpleMapPowertrain::SetEngineTorqueMaps(ChFunction_Recorder& map0,
     mapF.AddPoint(2200 * rpm2rads, -100.0 * lbft2nm);
 }
 
-void CityBus_SimpleMapPowertrain::SetGearRatios(std::vector<double>& fwd_gear_ratios, double& reverse_gear_ratio) {
-    reverse_gear_ratio = -.20;
+void CityBus_SimpleMapPowertrain::SetGearRatios(std::vector<double>& fwd, double& rev) {
+    rev = -0.20;
 
-    fwd_gear_ratios.push_back(.29);
-    fwd_gear_ratios.push_back(.54);
-    fwd_gear_ratios.push_back(.71);
-    fwd_gear_ratios.push_back(1.0);
-    fwd_gear_ratios.push_back(1.33);
-    fwd_gear_ratios.push_back(1.54);
+    fwd.push_back(0.29);
+    fwd.push_back(0.54);
+    fwd.push_back(0.71);
+    fwd.push_back(1.0);
+    fwd.push_back(1.33);
+    fwd.push_back(1.54);
 }
 
 void CityBus_SimpleMapPowertrain::SetShiftPoints(std::vector<std::pair<double, double>>& shift_bands) {

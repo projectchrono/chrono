@@ -47,7 +47,7 @@ void ChObj::ArchiveOUT(ChArchiveOut& marchive) {
 }
 
 void ChObj::ArchiveIN(ChArchiveIn& marchive) {
-    int version = marchive.VersionRead<ChObj>();
+    /*int version =*/ marchive.VersionRead<ChObj>();
 
     // stream out all member data
     marchive >> CHNVP(name);

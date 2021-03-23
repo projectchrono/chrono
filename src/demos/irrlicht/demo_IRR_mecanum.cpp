@@ -201,8 +201,8 @@ int main(int argc, char* argv[]) {
     application.AddTypicalCamera(core::vector3df(0, 14, -20));
 
     // create text with info
-    IGUIStaticText* textFPS = application.GetIGUIEnvironment()->addStaticText(
-        L"Use keys Q,W, A,Z, E,R to move the robot", rect<s32>(150, 10, 430, 40), true);
+    application.GetIGUIEnvironment()->addStaticText(L"Use keys Q,W, A,Z, E,R to move the robot",
+                                                    rect<s32>(150, 10, 430, 40), true);
 
     // This is for GUI tweaking of system parameters..
     MyEventReceiver receiver(&application);

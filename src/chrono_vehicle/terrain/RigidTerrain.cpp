@@ -47,9 +47,9 @@ namespace vehicle {
 RigidTerrain::RigidTerrain(ChSystem* system)
     : m_system(system),
       m_num_patches(0),
-      m_collision_family(14),
       m_use_friction_functor(false),
-      m_contact_callback(nullptr) {}
+      m_contact_callback(nullptr),
+      m_collision_family(14) {}
 
 // -----------------------------------------------------------------------------
 // Constructor from JSON file
@@ -57,11 +57,12 @@ RigidTerrain::RigidTerrain(ChSystem* system)
 RigidTerrain::RigidTerrain(ChSystem* system, const std::string& filename)
     : m_system(system),
       m_num_patches(0),
-      m_collision_family(14),
       m_use_friction_functor(false),
-      m_contact_callback(nullptr) {
+      m_contact_callback(nullptr),
+      m_collision_family(14) {
     // Open and parse the input file
-    Document d; ReadFileJSON(filename, d);
+    Document d;
+    ReadFileJSON(filename, d);
     if (d.IsNull())
         return;
 

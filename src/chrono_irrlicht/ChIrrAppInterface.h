@@ -61,12 +61,12 @@ class ChApiIrr ChIrrAppInterface {
     virtual ~ChIrrAppInterface();
 
     //// Accessor functions
-    irr::IrrlichtDevice* GetDevice() { return device; }
+    irr::IrrlichtDevice* GetDevice() { return device.get(); }
     irr::video::IVideoDriver* GetVideoDriver() { return device->getVideoDriver(); }
     irr::scene::ISceneManager* GetSceneManager() { return device->getSceneManager(); }
     irr::scene::ICameraSceneNode* GetActiveCamera() { return device->getSceneManager()->getActiveCamera(); }
     irr::gui::IGUIEnvironment* GetIGUIEnvironment() { return device->getGUIEnvironment(); }
-    EffectHandler* GetEffects() { return effect; }
+    EffectHandler* GetEffects() { return effect.get(); }
     irr::scene::ISceneNode* GetContainer() { return container; }
     ChSystem* GetSystem() { return system; }
 
@@ -125,7 +125,7 @@ class ChApiIrr ChIrrAppInterface {
 
     /// Access the internal ChPovRay exporter, for advanced tweaking.
     /// Returns 0 if not yet started (use SetPOVraySave(true) to start it)
-    postprocess::ChPovRay* GetPOVrayexporter() { return this->pov_exporter; }
+    postprocess::ChPovRay* GetPOVrayexporter() { return pov_exporter.get(); }
 
 #endif
 
@@ -232,16 +232,16 @@ class ChApiIrr ChIrrAppInterface {
 
   private:
     // The Irrlicht engine:
-    irr::IrrlichtDevice* device;
+    std::unique_ptr<irr::IrrlichtDevice> device;
 
     // Xeffects for shadow maps!
-    EffectHandler* effect;
+    std::unique_ptr<EffectHandler> effect;
     bool use_effects;
 
     // The ChronoEngine system:
     ChSystem* system;
 
-    ChIrrAppEventReceiver* receiver;
+    std::unique_ptr<ChIrrAppEventReceiver> receiver;
 
     std::vector<irr::IEventReceiver*> user_receivers;
 
@@ -264,7 +264,7 @@ class ChApiIrr ChIrrAppInterface {
 
 #ifdef CHRONO_POSTPROCESS
     bool povray_save;
-    postprocess::ChPovRay* pov_exporter;
+    std::unique_ptr<postprocess::ChPovRay> pov_exporter;
     int povray_num;
     int povray_each;
 #endif
@@ -297,8 +297,6 @@ class ChApiIrr ChIrrAppInterface {
     irr::gui::IGUIStaticText* gad_clamping_info;
     irr::gui::IGUIScrollBar* gad_minbounce;
     irr::gui::IGUIStaticText* gad_minbounce_info;
-    irr::gui::IGUIScrollBar* gad_dt;
-    irr::gui::IGUIStaticText* gad_dt_info;
     irr::gui::IGUICheckBox* gad_usesleep;
     irr::gui::IGUIComboBox* gad_ccpsolver;
     irr::gui::IGUIComboBox* gad_stepper;

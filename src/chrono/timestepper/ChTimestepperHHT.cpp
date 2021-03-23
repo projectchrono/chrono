@@ -445,7 +445,7 @@ void ChTimestepperHHT::ArchiveOUT(ChArchiveOut& archive) {
 
 void ChTimestepperHHT::ArchiveIN(ChArchiveIn& archive) {
     // version number
-    int version = archive.VersionRead<ChTimestepperHHT>();
+    /*int version =*/ archive.VersionRead<ChTimestepperHHT>();
     // deserialize parent class:
     ChTimestepperIIorder::ArchiveIN(archive);
     ChImplicitIterativeTimestepper::ArchiveIN(archive);

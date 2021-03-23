@@ -94,8 +94,6 @@ void ChVehicleGeometry::AddVisualizationAssets(std::shared_ptr<ChBody> body, Vis
 }
 
 void ChVehicleGeometry::AddCollisionShapes(std::shared_ptr<ChBody> body, int collision_family) {
-    auto contact_method = body->GetSystem()->GetContactMethod();
-
     body->SetCollide(true);
 
     body->GetCollisionModel()->ClearModel();

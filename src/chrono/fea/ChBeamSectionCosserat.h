@@ -1141,22 +1141,20 @@ private:
 
 class ChApi ChInertiaCosseratMassref : public ChInertiaCosseratAdvanced {
   public:
+    ChInertiaCosseratMassref() : phi(0), Jzz_m(1), Jyy_m(1) {}
 
-	ChInertiaCosseratMassref() 
-						: Jzz_m(1), Jyy_m(1), phi(0) {};
-
-	ChInertiaCosseratMassref(double mu_density,    ///< mass per unit length [kg/m] 
-		                    double c_y,             ///< displacement of center of mass Cm along Y
-                            double c_z,             ///< displacement of center of mass Cm along Z		
-                            double phi_massref,     ///< rotation of auxiliary mass reference Ym Zm respect to Y Z reference 
-                            double Jyy_massref,	    ///< moment of inertia per unit length, about Ym, with origin in Cm 
-							double Jzz_massref 	    ///< moment of inertia per unit length, about Zm, with origin in Cm  
-							) 
-    {
+    ChInertiaCosseratMassref(
+        double mu_density,   ///< mass per unit length [kg/m]
+        double c_y,          ///< displacement of center of mass Cm along Y
+        double c_z,          ///< displacement of center of mass Cm along Z
+        double phi_massref,  ///< rotation of auxiliary mass reference Ym Zm respect to Y Z reference
+        double Jyy_massref,  ///< moment of inertia per unit length, about Ym, with origin in Cm
+        double Jzz_massref   ///< moment of inertia per unit length, about Zm, with origin in Cm
+    ) {
         this->SetMassPerUnitLength(mu_density);
         this->SetCenterOfMass(c_y, c_z);
-        this->SetMainInertiasInMassReference(Jyy_massref, Jzz_massref, phi_massref); 
-    };
+        this->SetMainInertiasInMassReference(Jyy_massref, Jzz_massref, phi_massref);
+    }
 
     virtual ~ChInertiaCosseratMassref() {}
 

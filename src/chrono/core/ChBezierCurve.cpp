@@ -422,7 +422,7 @@ void ChBezierCurve::ArchiveOUT(ChArchiveOut& marchive)
 void ChBezierCurve::ArchiveIN(ChArchiveIn& marchive)
 {
     // version number
-    int version = marchive.VersionRead<ChBezierCurve>();
+    /*int version =*/ marchive.VersionRead<ChBezierCurve>();
 
     // stream in all member data:
     marchive >> CHNVP(m_points);
@@ -561,7 +561,6 @@ int ChBezierCurveTracker::calcClosestPoint(const ChVector<>& loc, ChFrame<>& tnb
 
     // Calculate TNB frame
     ChVector<> rp_rpp = Vcross(rp, rpp);
-    ChVector<> rp_rpp_rp = Vcross(rp_rpp, rp);
     double rp_norm = rp.Length();
     double rp_rpp_norm = rp_rpp.Length();
 

@@ -65,16 +65,16 @@ void Kraz_tractor_Powertrain::SetEngineTorqueMaps(ChFunction_Recorder& map0, ChF
     mapF.AddPoint(2400 * rpm2rads, -800.0 * tune);
 }
 
-void Kraz_tractor_Powertrain::SetGearRatios(std::vector<double>& fwd_gear_ratios, double& reverse_gear_ratio) {
-    reverse_gear_ratio = -0.162337662;
+void Kraz_tractor_Powertrain::SetGearRatios(std::vector<double>& fwd, double& rev) {
+    rev = -0.162337662;
 
-    fwd_gear_ratios.push_back(0.162337662);
-    fwd_gear_ratios.push_back(0.220750552);
-    fwd_gear_ratios.push_back(0.283286119);
-    fwd_gear_ratios.push_back(0.414937759);
-    fwd_gear_ratios.push_back(0.571428571);
-    fwd_gear_ratios.push_back(0.78125);
-    fwd_gear_ratios.push_back(1.0);
+    fwd.push_back(0.162337662);
+    fwd.push_back(0.220750552);
+    fwd.push_back(0.283286119);
+    fwd.push_back(0.414937759);
+    fwd.push_back(0.571428571);
+    fwd.push_back(0.78125);
+    fwd.push_back(1.0);
 }
 
 void Kraz_tractor_Powertrain::SetShiftPoints(std::vector<std::pair<double, double>>& shift_bands) {

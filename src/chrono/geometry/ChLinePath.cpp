@@ -155,7 +155,7 @@ void ChLinePath::ArchiveOUT(ChArchiveOut& marchive) {
 
 void ChLinePath::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChLinePath>();
+    /*int version =*/ marchive.VersionRead<ChLinePath>();
     // deserialize parent class
     ChLine::ArchiveIN(marchive);
     // stream in all member data:

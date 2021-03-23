@@ -739,7 +739,7 @@ void ChStreamVectorWrapper::Read(char* data, size_t n) {
         pos++;
     }
 }
-bool ChStreamVectorWrapper::End_of_stream() {
+bool ChStreamVectorWrapper::End_of_stream() const {
     if (pos >= vbuffer->size())
         return true;
     return false;

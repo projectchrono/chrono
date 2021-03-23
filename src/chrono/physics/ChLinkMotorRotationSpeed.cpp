@@ -247,8 +247,6 @@ void ChLinkMotorRotationSpeed::VariablesQbLoadSpeed() {
 }
 
 void ChLinkMotorRotationSpeed::VariablesQbSetSpeed(double step) {
-    double old_dt = aux_dt;
-
     // from 'qb' vector, sets body speed, and updates auxiliary data
     aux_dt = variable.Get_qb()(0);
 
@@ -270,7 +268,7 @@ void ChLinkMotorRotationSpeed::ArchiveOUT(ChArchiveOut& marchive) {
 /// Method to allow de serialization of transient data from archives.
 void ChLinkMotorRotationSpeed::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChLinkMotorRotationSpeed>();
+    /*int version =*/ marchive.VersionRead<ChLinkMotorRotationSpeed>();
 
     // deserialize parent class
     ChLinkMotorRotation::ArchiveIN(marchive);

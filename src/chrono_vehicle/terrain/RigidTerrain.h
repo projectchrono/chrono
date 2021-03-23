@@ -56,6 +56,8 @@ class CH_VEHICLE_API RigidTerrain : public ChTerrain {
     /// Definition of a patch in a rigid terrain model.
     class CH_VEHICLE_API Patch {
       public:
+        virtual ~Patch() {}
+
         /// Set visualization color.
         void SetColor(const ChColor& color  ///< [in] color of the visualization material
         );

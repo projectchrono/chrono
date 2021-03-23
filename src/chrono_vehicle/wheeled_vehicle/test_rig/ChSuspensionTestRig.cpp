@@ -185,8 +185,7 @@ ChSuspensionTestRig::ChSuspensionTestRig(const std::string& filename,
     // Extract the specified axle from the vehicle's list of suspension subsystems.
     // Note that we ignore antiroll bar and brake subsystems.
     // Create the suspension and wheel subsystems.
-    int num_axles = d["Axles"].Size();
-    assert(axle_index >= 0 && axle_index < num_axles);
+    assert(axle_index >= 0 && axle_index < d["Axles"].Size());
 
     std::string file_name = d["Axles"][axle_index]["Suspension Input File"].GetString();
     m_suspension = ReadSuspensionJSON(vehicle::GetDataFile(file_name));
@@ -678,7 +677,6 @@ void ChSuspensionTestRigPlatform::UpdateActuators(double displ_left,
                                                   double displ_speed_left,
                                                   double displ_right,
                                                   double displ_speed_right) {
-    double time = GetSystem()->GetChTime();
     auto func_L = std::static_pointer_cast<ChFunction_Setpoint>(m_post_linact[LEFT]->GetMotionFunction());
     auto func_R = std::static_pointer_cast<ChFunction_Setpoint>(m_post_linact[RIGHT]->GetMotionFunction());
     func_L->SetSetpointAndDerivatives(displ_left, displ_speed_left, 0.0);
@@ -878,7 +876,6 @@ void ChSuspensionTestRigPushrod::UpdateActuators(double displ_left,
                                                  double displ_speed_left,
                                                  double displ_right,
                                                  double displ_speed_right) {
-    double time = GetSystem()->GetChTime();
     auto func_L = std::static_pointer_cast<ChFunction_Setpoint>(m_rod_linact[LEFT]->Get_dist_funct());
     auto func_R = std::static_pointer_cast<ChFunction_Setpoint>(m_rod_linact[RIGHT]->Get_dist_funct());
     func_L->SetSetpointAndDerivatives(displ_left, displ_speed_left, 0.0);

@@ -1157,7 +1157,7 @@ RS_Limb::RS_Limb(const std::string& name,
                  std::shared_ptr<ChMaterialSurface> wheel_mat,
                  std::shared_ptr<ChMaterialSurface> link_mat,
                  ChSystem* system)
-    : m_name(name), m_id(id), m_collide_links(false), m_collide_wheel(true) {
+    : m_name(name), m_collide_links(false), m_collide_wheel(true) {
     for (int i = 0; i < num_links; i++) {
         bool is_wheel = (data[i].name.compare("link8") == 0);
 

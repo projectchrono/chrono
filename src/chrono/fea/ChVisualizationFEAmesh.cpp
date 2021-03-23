@@ -460,7 +460,6 @@ void ChVisualizationFEAmesh::Update(ChPhysicsItem* updater, const ChCoordsys<>& 
     unsigned int i_vcols = 0;
     unsigned int i_vnorms = 0;
     unsigned int i_triindex = 0;
-    unsigned int i_normindex = 0;
 
     //   In case of colormap drawing:
     if (this->fem_data_type != E_PLOT_NONE && this->fem_data_type != E_PLOT_LOADSURFACES &&
@@ -635,7 +634,6 @@ void ChVisualizationFEAmesh::Update(ChPhysicsItem* updater, const ChCoordsys<>& 
                 if (sectionshape) {
 
                     unsigned int ivert_el = i_verts;
-                    unsigned int inorm_el = i_vnorms;
                     int n_section_pts =0;
                     for (int i = 0; i < sectionshape->GetNofLines(); ++i)
                         n_section_pts += sectionshape->GetNofPoints(i);

@@ -1025,7 +1025,6 @@ void ChPacejkaTire::combinedSlipReactions() {
 
 void ChPacejkaTire::relaxationLengths() {
     double p_Ky4 = 2;  // according to Pac2002 model
-    double p_Ky5 = 0;
     double p_Ky6 = 2.5;  // 0.92;
     double p_Ky7 = 0.24;
 
