@@ -56,6 +56,7 @@ static void ComputeAABBBox(const real3& dim,
     maxp = pos + temp;
 }
 
+/*
 static void ComputeAABBCone(const real3& dim,
                             const real3& lpositon,
                             const real3& positon,
@@ -68,6 +69,8 @@ static void ComputeAABBCone(const real3& dim,
     minp = pos - temp;
     maxp = pos + temp;
 }
+*/
+
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 static void ComputeAABBConvex(const real3* convex_points,
                               const int start,

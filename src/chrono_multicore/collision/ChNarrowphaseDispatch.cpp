@@ -180,7 +180,6 @@ void ChCNarrowphaseDispatch::Dispatch_Init(uint index,
                                            ConvexShape* shapeB) {
     const custom_vector<uint>& obj_data_ID = data_manager->shape_data.id_rigid;
     const custom_vector<long long>& pair_shapeIDs = data_manager->host_data.pair_shapeIDs;
-    real3* convex_data = data_manager->shape_data.convex_rigid.data();
 
     // Unpack the identifiers for the two shapes involved in this collision
     long long p = pair_shapeIDs[index];
@@ -579,7 +578,6 @@ void ChCNarrowphaseDispatch::RigidSphereContact(const real sphere_radius,
                                                 custom_vector<int>& neighbor_rigid_sphere,
                                                 custom_vector<int>& contact_counts,
                                                 uint& num_contacts) {
-    int num_rigid_shapes = data_manager->num_rigid_shapes;
     real3 global_origin = data_manager->measures.collision.global_origin;
     vec3 bins_per_axis = data_manager->settings.collision.bins_per_axis;
     real3 inv_bin_size = data_manager->measures.collision.inv_bin_size;
@@ -724,7 +722,6 @@ void ChCNarrowphaseDispatch::RigidTetContact(custom_vector<real3>& norm_rigid_te
                                              custom_vector<real4>& face_rigid_tet,
                                              custom_vector<int>& contact_counts,
                                              uint& num_contacts) {
-    int num_rigid_shapes = data_manager->num_rigid_shapes;
     vec3 bins_per_axis = data_manager->settings.collision.bins_per_axis;
     real3 inv_bin_size = data_manager->measures.collision.inv_bin_size;
 

@@ -418,6 +418,7 @@ static bool SnapeToFaceBary(const real3& A,
     barycentric = real3(v, w, 1.0 - v - w);
     return false;
 }
+
 // Given a contact point P and a tetrahedron T compute the closest triangle to that point
 static void FindTriIndex(const real3& P, const uvec4& T, const real3* pos_node, int& face, real3& cb) {
     int i = T.x;

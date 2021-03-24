@@ -82,6 +82,8 @@ class CH_MULTICORE_API ChContactContainerMulticore : public ChContactContainer {
     int n_added_6_6;
     std::list<ChContact_6_6*> contactlist_6_6;
     std::list<ChContact_6_6*>::iterator lastcontact_6_6;
+
+    using ChContactContainer::AddContact;
 };
 
 /// @} multicore_colision

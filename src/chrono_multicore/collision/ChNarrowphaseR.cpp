@@ -666,7 +666,6 @@ int capsule_capsule(const real3& pos1,
     // Sum of radii
     real radSum = radius1 + radius2;
     real radSum_s = radSum + separation;
-    real radSum2 = radSum * radSum;
     real radSum_s2 = radSum_s * radSum_s;
 
     // If the two capsules intersect, there may be 1 or 2 contacts. Note that 2
@@ -853,7 +852,7 @@ int box_capsule(const real3& pos1,
     real t[2];
 
     for (int i = 0; i < 2; i++) {
-        uint code = snap_to_box(hdims1, locs[i]);
+        /*uint code =*/ snap_to_box(hdims1, locs[i]);
         t[i] = Clamp(Dot(locs[i] - pos, V), -hlen2, hlen2);
     }
 
@@ -995,7 +994,7 @@ int box_cylshell(const real3& pos1,
     real t[2];
 
     for (int i = 0; i < 2; i++) {
-        uint code = snap_to_box(hdims, locs[i]);
+        /*uint code =*/ snap_to_box(hdims, locs[i]);
         t[i] = Clamp(Dot(locs[i] - c, a), -hlen, hlen);
     }
 

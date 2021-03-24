@@ -31,9 +31,6 @@ uint ChSolverMulticoreCG::Solve(ChShurProduct& ShurProduct,
                                const uint size,
                                const DynamicVector<real>& b,
                                DynamicVector<real>& x) {
-    real& residual = data_manager->measures.solver.residual;
-    real& objective_value = data_manager->measures.solver.objective_value;
-
     r.resize(b.size());
     q.resize(b.size());
     s.resize(b.size());
