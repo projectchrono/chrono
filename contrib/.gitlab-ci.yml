@@ -228,7 +228,7 @@ linux:ubuntu1804:build:
         -DPYTHON_EXECUTABLE=/usr/bin/python3
         -DEIGEN3_INCLUDE_DIR=/usr/local/include/eigen3
         -DENABLE_MODULE_SENSOR=ON
-        -DOptiX_INSTALL_DIR=/opt/optix/6.5.0
+        -DOptiX_INSTALL_DIR=/opt/optix/7.2.0
     - make -j 8
   artifacts:
     expire_in: 60m
