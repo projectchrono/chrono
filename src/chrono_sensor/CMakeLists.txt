@@ -45,14 +45,10 @@ endif()
 
 SET(CH_SENSOR_INCLUDES
     ${CH_SENSOR_INCLUDES}
-    ${OptiX_INCLUDE}/optixu
     ${OptiX_INCLUDE}
     ${CUDA_INCLUDE_DIRS}
 )
 
-# add the necessary optix libraries to the list to link
-list(APPEND LIBRARIES ${optix_LIBRARY})
-list(APPEND LIBRARIES ${optix_rpath})
 list(APPEND LIBRARIES ${CUDA_nppc_LIBRARY})
 list(APPEND LIBRARIES ${CUDA_nppig_LIBRARY})
 list(APPEND LIBRARIES ${CUDA_nppidei_LIBRARY})
@@ -112,10 +108,10 @@ if(USE_CUDA_NVRTC)
   else()
     list(APPEND LIBRARIES ${CUDA_NVRTC_LIBRARY})
     add_definitions( -DUSE_CUDA_NVRTC )
-    add_definitions( -DSENSOR_CUDA_SRC_DIR="${CMAKE_CURRENT_SOURCE_DIR}/rtkernels/" )
+    add_definitions( -DSENSOR_CUDA_SRC_DIR="${CMAKE_CURRENT_SOURCE_DIR}/optix/shaders/" )
 
     #set(CUDA_NVRTC_FLAGS -arch compute_30 -use_fast_math -lineinfo -default-device -rdc true -D__x86_64 CACHE STRING "NVRTC flags as list." FORCE)
-    set(CUDA_NVRTC_FLAGS -use_fast_math -default-device -rdc true -D__x86_64 CACHE STRING "NVRTC flags as list." FORCE)
+    set(CUDA_NVRTC_FLAGS -use_fast_math -std=c++11 -default-device -rdc true -D__x86_64 CACHE STRING "NVRTC flags as list." FORCE)
     mark_as_advanced(CUDA_NVRTC_FLAGS)
 
     set(CUDA_NVRTC_FLAG_LIST)
@@ -128,7 +124,7 @@ if(USE_CUDA_NVRTC)
       ${OptiX_INCLUDE}
       ${OptiX_INCLUDE}/optixu
       ${CUDA_INCLUDE_DIRS}
-      ${CMAKE_CURRENT_SOURCE_DIR}/rtkernels
+      ${CMAKE_CURRENT_SOURCE_DIR}/optix/shaders
       ${CMAKE_SOURCE_DIR}/src CACHE STRING "NVRTC include dirs as list." FORCE)
     mark_as_advanced(CUDA_NVRTC_INCLUDE_DIRS)
 
@@ -158,22 +154,20 @@ install(FILES "${PROJECT_BINARY_DIR}/chrono_sensor/ChConfigSensor.h"
 # LIST CUDA FILES USED FOR RT PROGRAMS - TO BE COMPILED TO PTX SHADERS
 #-----------------------------------------------------------------------------
 set(ChronoEngine_sensor_RT_SOURCES
-    rtkernels/box.cu
-    rtkernels/sphere.cu
-    rtkernels/cylinder.cu
-    rtkernels/camera.cu
-    rtkernels/lidar.cu
-    rtkernels/miss.cu
-    rtkernels/exception.cu
-    rtkernels/triangle_mesh.cu
-    rtkernels/camera_shaders.cu
-    rtkernels/lidar_shaders.cu
-    rtkernels/shadow_shaders.cu
-    rtkernels/radar_shaders.cu
-    rtkernels/radar.cu
+    optix/shaders/box.cu
+    optix/shaders/sphere.cu
+    optix/shaders/cylinder.cu
+    optix/shaders/camera.cu
+    optix/shaders/lidar.cu
+    optix/shaders/miss.cu
+    optix/shaders/camera_shaders.cu
+    optix/shaders/lidar_shaders.cu
+    optix/shaders/shadow_shaders.cu
+    optix/shaders/radar_shaders.cu
+    optix/shaders/radar.cu
 )
 set(ChronoEngine_sensor_RT_HEADERS
-    rtkernels/ray_utils.h
+optix/shaders/device_utils.h
 
 )
 
@@ -228,7 +222,6 @@ set(ChronoEngine_sensor_SOURCES
     ChSensorManager.cpp
     ChDynamicsManager.cpp
     Sensor.cpp
-
 )
 set(ChronoEngine_sensor_HEADERS
   	ChApiSensor.h
@@ -244,7 +237,6 @@ set(ChronoEngine_sensor_HEADERS
     ChDynamicsManager.h
   	ChSensorBuffer.h
     Sensor.h
-
 )
 
 source_group("Source" FILES
@@ -256,11 +248,10 @@ source_group("Source" FILES
 # LIST THE FILES THAT MAKE THE CORE SENSOR LIBRARY
 #-----------------------------------------------------------------------------
 set(ChronoEngine_sensor_SCENE_SOURCES
-    scene/ChScene.cpp
+    optix/scene/ChScene.cpp
 )
 set(ChronoEngine_sensor_SCENE_HEADERS
-    scene/ChScene.h
-    scene/lights.h
+    optix/scene/ChScene.h
 )
 
 source_group("Scene" FILES
@@ -272,12 +263,19 @@ source_group("Scene" FILES
 # LIST THE FILES THAT MAKE THE SENSOR OPTIX LIBRARY
 #-----------------------------------------------------------------------------
 set(ChronoEngine_sensor_OPTIX_SOURCES
-    optixcpp/ChOptixEngine.cpp
-    optixcpp/ChOptixUtils.cpp
+    optix/ChOptixEngine.cpp
+    optix/ChOptixGeometry.cpp
+    optix/ChOptixPipeline.cpp
+    optix/ChOptixUtils.cpp
+    optix/ChFilterOptixRender.cpp
 )
 set(ChronoEngine_sensor_OPTIX_HEADERS
-    optixcpp/ChOptixEngine.h
-    optixcpp/ChOptixUtils.h
+    optix/ChOptixEngine.h
+    optix/ChOptixGeometry.h
+    optix/ChOptixPipeline.h
+    optix/ChOptixUtils.h
+    optix/ChFilterOptixRender.h
+    optix/ChOptixDefinitions.h
 )
 
 source_group("Optix" FILES
@@ -290,7 +288,6 @@ source_group("Optix" FILES
 #-----------------------------------------------------------------------------
 set(ChronoEngine_sensor_FILTERS_SOURCES
   	filters/ChFilter.cpp
-  	filters/ChFilterOptixRender.cpp
   	filters/ChFilterIMUUpdate.cpp
   	filters/ChFilterGPSUpdate.cpp
     filters/ChFilterCameraNoise.cpp
@@ -311,7 +308,6 @@ set(ChronoEngine_sensor_FILTERS_SOURCES
 )
 set(ChronoEngine_sensor_FILTERS_HEADERS
   	filters/ChFilter.h
-  	filters/ChFilterOptixRender.h
     filters/ChFilterIMUUpdate.h
   	filters/ChFilterGPSUpdate.h
     filters/ChFilterCameraNoise.h
@@ -492,9 +488,9 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     TARGET ChronoEngine_sensor POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E make_directory
             "${CMAKE_BINARY_DIR}/bin/$<CONFIGURATION>"
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different
-            "${optix_DLL}"
-            "${CMAKE_BINARY_DIR}/bin/$<CONFIGURATION>"
+    #COMMAND ${CMAKE_COMMAND} -E copy_if_different
+    #        "${optix_DLL}"
+    #        "${CMAKE_BINARY_DIR}/bin/$<CONFIGURATION>"
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
             "${CH_GLEW_DLL}"
             "${CMAKE_BINARY_DIR}/bin/$<CONFIGURATION>"
@@ -503,11 +499,11 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
   )
 
   # copy the dlls into the installed package to be on the safe side
-  install(FILES "${optix_DLL}" DESTINATION bin)
+  # install(FILES "${optix_DLL}" DESTINATION bin)
   install(FILES "${CH_GLEW_DLL}" DESTINATION bin)
 
   # Make variables visible from outside this directory
-  SET(CH_OPTIX_DLL "${optix_DLL}" PARENT_SCOPE)
+  #SET(CH_OPTIX_DLL "${optix_DLL}" PARENT_SCOPE)
   SET(CH_GLEW_DLL "${CH_GLEW_DLL}" PARENT_SCOPE)
 
 ENDIF()
@@ -521,19 +517,14 @@ install(TARGETS ChronoEngine_sensor
         ARCHIVE DESTINATION lib)
 
 install(FILES ${ChronoEngine_sensor_HEADERS}
-        DESTINATION include/chrono_sensor)
+		DESTINATION include/chrono_sensor)
 install(FILES ${ChronoEngine_sensor_UTILS_HEADERS}
-        DESTINATION include/chrono_sensor/utils)
+		DESTINATION include/chrono_sensor/utils)
 install(FILES ${ChronoEngine_sensor_OPTIX_HEADERS}
-        DESTINATION include/chrono_sensor/optixcpp)
+        DESTINATION include/chrono_sensor/optix)
 install(FILES ${ChronoEngine_sensor_FILTERS_HEADERS}
         DESTINATION include/chrono_sensor/filters)
 install(FILES ${ChronoEngine_sensor_CUDA_HEADERS}
-        DESTINATION include/chrono_sensor/cuda)
+      DESTINATION include/chrono_sensor/cuda)
 install(FILES ${ChronoEngine_sensor_SCENE_HEADERS}
-        DESTINATION include/chrono_sensor/scene)
-
-# Install required chrono_thirdparty headers
-install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/stb
-        DESTINATION include/chrono_thirdparty
-        FILES_MATCHING PATTERN "*.h" PATTERN "*.cuh" PATTERN "*.hpp" PATTERN "*.inl")
+      DESTINATION include/chrono_sensor/optix/scene)

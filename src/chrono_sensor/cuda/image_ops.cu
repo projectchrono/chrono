@@ -103,14 +103,41 @@ __global__ void image_alias_kernel(unsigned char* bufIn,
     }
 }
 
-void cuda_image_gauss_blur_char(void* buf, int w, int h, int c, int factor) {
+// merge pixels by the factor
+__global__ void image_alias_float_kernel(float* bufIn, float* bufOut, int w_out, int h_out, int factor, int pix_size) {
+    int out_index = (blockDim.x * blockIdx.x + threadIdx.x);  // index into output buffer
+
+    int w_in = w_out * factor;
+    //
+    // // only run for each output pixel
+    if (out_index < w_out * h_out * pix_size) {
+        int idc_out = out_index % pix_size;
+        int idx_out = (out_index / pix_size) % w_out;
+        int idy_out = (out_index / pix_size) / w_out;
+
+        float mean = 0.0;
+
+        for (int i = 0; i < factor; i++) {
+            for (int j = 0; j < factor; j++) {
+                int idc_in = idc_out;
+                int idx_in = idx_out * factor + j;
+                int idy_in = idy_out * factor + i;
+
+                int in_index = idy_in * w_in * pix_size + idx_in * pix_size + idc_in;
+                mean += bufIn[in_index];
+            }
+        }
+        bufOut[out_index] = mean / (factor * factor);
+    }
+}
+
+void cuda_image_gauss_blur_char(void* buf, int w, int h, int c, int factor, CUstream& stream) {
     const int nThreads = 512;
     int nBlocks = (w * h * c + nThreads - 1) / nThreads;
 
     float f_std = (float)factor / 4.f;
     int f_width = (int)(3.14f * f_std);
 
-    // float weight = exp(-i * i / (2 * f_std * f_std)) / sqrtf(2.f * 3.14f * f_std * f_std);
     int entries = 2 * f_width + 1;
 
     float* weights = new float[entries];
@@ -123,18 +150,32 @@ void cuda_image_gauss_blur_char(void* buf, int w, int h, int c, int factor) {
     cudaMalloc(&dweights, entries * sizeof(float));
     cudaMemcpy(dweights, weights, entries * sizeof(float), cudaMemcpyHostToDevice);
 
-    image_gauss_kernel_vert<<<nBlocks, nThreads>>>((unsigned char*)buf, w, h, c, f_width, dweights);
-    image_gauss_kernel_horiz<<<nBlocks, nThreads>>>((unsigned char*)buf, w, h, c, f_width, dweights);
+    image_gauss_kernel_vert<<<nBlocks, nThreads, 0, stream>>>((unsigned char*)buf, w, h, c, f_width, dweights);
+    image_gauss_kernel_horiz<<<nBlocks, nThreads, 0, stream>>>((unsigned char*)buf, w, h, c, f_width, dweights);
     cudaFree(dweights);
     delete[] weights;
 }
 
-void cuda_image_alias(void* bufIn, void* bufOut, int w_out, int h_out, int factor, int pix_size) {
+void cuda_image_alias(void* bufIn, void* bufOut, int w_out, int h_out, int factor, int pix_size, CUstream& stream) {
     const int nThreads = 512;
     int nBlocks = (w_out * h_out * pix_size + nThreads - 1) / nThreads;
 
-    image_alias_kernel<<<nBlocks, nThreads>>>((unsigned char*)bufIn, (unsigned char*)bufOut, w_out, h_out, factor,
-                                              pix_size);
+    image_alias_kernel<<<nBlocks, nThreads, 0, stream>>>((unsigned char*)bufIn, (unsigned char*)bufOut, w_out, h_out,
+                                                         factor, pix_size);
+}
+
+void cuda_image_alias_float(void* bufIn,
+                            void* bufOut,
+                            int w_out,
+                            int h_out,
+                            int factor,
+                            int pix_size,
+                            CUstream& stream) {
+    const int nThreads = 512;
+    int nBlocks = (w_out * h_out * pix_size + nThreads - 1) / nThreads;
+
+    image_alias_float_kernel<<<nBlocks, nThreads, 0, stream>>>((float*)bufIn, (float*)bufOut, w_out, h_out, factor,
+                                                               pix_size);
 }
 
 }  // namespace sensor

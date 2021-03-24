@@ -9,10 +9,10 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Han Wang 
+// Authors: Han Wang, Asher Elmquist
 // =============================================================================
 //
-// Container class for a lidar sensor
+// Container class for a radar sensor
 //
 // =============================================================================
 
@@ -21,21 +21,27 @@
 
 #include "chrono_sensor/ChOptixSensor.h"
 
-namespace chrono{
-namespace sensor{
+namespace chrono {
+namespace sensor {
 
-class CH_SENSOR_API ChRadarSensor : public ChOptixSensor{
-  /// Constructor for the base radar class
-  /// @param parent Body to which the sensor is attached
-  /// @param w Width in number of samples of a radar scan
-  /// @param h Height in number of samples of a radar scan
+class CH_SENSOR_API ChRadarSensor : public ChOptixSensor {
+    /// Constructor for the base radar class
+    /// @param parent Body to which the sensor is attached
+    /// @param w Width in number of samples of a radar scan
+    /// @param h Height in number of samples of a radar scan
+    /// @param clip_near Near clipping distance so that lidar sensor can be easily placed inside a visualization object
+    /// (sensor housing)
+    /// @param hfov Horizontal field of view of the lidar
+    /// @param max_vertical_angle Maximum vertical angle of the lidar
+    /// @param min_vertical_angle Minimum vertical angle of the lidar
+
   public:
-    ChRadarSensor(std::shared_ptr<chrono::ChBody> parent, 
-                  float updateRate, 
+    ChRadarSensor(std::shared_ptr<chrono::ChBody> parent,
+                  float updateRate,
                   chrono::ChFrame<double> offsetPose,
-                  unsigned int w, 
-                  unsigned int h, 
-                  float hfov, 
+                  unsigned int w,
+                  unsigned int h,
+                  float hfov,
                   float max_vertical_angle,
                   float min_vertical_angle,
                   float max_distance,
@@ -44,11 +50,15 @@ class CH_SENSOR_API ChRadarSensor : public ChOptixSensor{
     /// Class destructor
     ~ChRadarSensor();
 
-    float GetHFOV() const {return m_hFOV; }
-    
+    float GetHFOV() const { return m_hFOV; }
+
     float GetMaxVertAngle() const { return m_max_vert_angle; }
 
     float GetMinVertAngle() const { return m_min_vert_angle; }
+
+    float GetMaxDistance() const { return m_max_distance; }
+
+    float GetClipNear() const { return m_clip_near; }
 
   private:
     unsigned int m_vertical_samples;
@@ -60,7 +70,7 @@ class CH_SENSOR_API ChRadarSensor : public ChOptixSensor{
     float m_clip_near;
 };
 
-}
-}
+}  // namespace sensor
+}  // namespace chrono
 
 #endif

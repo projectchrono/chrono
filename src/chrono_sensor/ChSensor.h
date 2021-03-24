@@ -27,7 +27,7 @@
 #include "ChSensorBuffer.h"
 #include "chrono/physics/ChBody.h"
 #include "chrono_sensor/filters/ChFilter.h"
-#include "chrono_sensor/optixcpp/ChOptixUtils.h"
+#include "chrono_sensor/optix/ChOptixUtils.h"
 
 namespace chrono {
 namespace sensor {
@@ -124,6 +124,11 @@ class CH_SENSOR_API ChSensor {
     /// @param filter A filter that should be added to the filter list if the filter list is not yet locked. If the
     /// filter list has been locked (i.e. the sensor has started generating data) the new filter will be ignored.
     void PushFilter(std::shared_ptr<ChFilter> filter);
+
+    /// Add a filter to the front of the list on a sensor
+    /// @param filter A filter that should be added to the filter list if the filter list is not yet locked. If the
+    /// filter list has been locked (i.e. the sensor has started generating data) the new filter will be ignored.
+    void PushFilterFront(std::shared_ptr<ChFilter> filter);
 
     /// Gives ability to lock the filter list to prevent race conditions. This is called automatically when the sensor
     /// is added to the ChSensor manager. This is needed to prevent changing of filters while a worker thread is

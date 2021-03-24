@@ -16,9 +16,10 @@
 
 #include "chrono_sensor/filters/ChFilterGPSUpdate.h"
 #include "chrono/physics/ChSystem.h"
-#include "chrono_sensor/ChGPSSensor.h"
 #include "chrono_sensor/ChSensor.h"
 #include "chrono_sensor/ChNoiseModel.h"
+#include "chrono_sensor/ChGPSSensor.h"
+
 #include <chrono>
 
 namespace chrono {
@@ -27,34 +28,18 @@ namespace sensor {
 ChFilterGPSUpdate::ChFilterGPSUpdate(ChVector<double> gps_reference, std::shared_ptr<ChNoiseModel> noise_model)
     : m_ref(gps_reference), m_noise_model(noise_model), ChFilter("GPS Updater") {}
 
-CH_SENSOR_API void ChFilterGPSUpdate::Apply(std::shared_ptr<ChSensor> pSensor,
-                                            std::shared_ptr<SensorBuffer>& bufferInOut) {
-    // this filter is presumed to be the first filter in a sensor's filter list, so the bufferIn should be null.
-    assert(bufferInOut == nullptr);
-
-    auto pGPS = std::dynamic_pointer_cast<ChGPSSensor>(pSensor);
-
-    if (!pGPS) {
-        throw std::runtime_error("GPS Update filter can only be used on a GPS sensor\n");
-    }
-
-    if (!m_buffer) {
-        m_buffer = chrono_types::make_shared<SensorHostGPSBuffer>();
-        m_buffer->Buffer = std::make_unique<GPSData[]>(1);
-        m_buffer->Width = m_buffer->Height = 1;
-    }
-
+CH_SENSOR_API void ChFilterGPSUpdate::Apply() {
     ChVector<double> coords = {0, 0, 0};
     float ch_time = 0;
     float last_ch_time = 0;
-    if (pGPS->m_keyframes.size() > 0) {
-        for (auto c : pGPS->m_keyframes) {
+    if (m_GPSSensor->m_keyframes.size() > 0) {
+        for (auto c : m_GPSSensor->m_keyframes) {
             ch_time += std::get<0>(c);
             coords += std::get<1>(c);
             last_ch_time = std::get<0>(c);
         }
-        coords = coords / (double)(pGPS->m_keyframes.size());
-        ch_time = ch_time / (float)(pGPS->m_keyframes.size());
+        coords = coords / (double)(m_GPSSensor->m_keyframes.size());
+        ch_time = ch_time / (float)(m_GPSSensor->m_keyframes.size());
     }
 
     if (m_noise_model) {
@@ -64,15 +49,33 @@ CH_SENSOR_API void ChFilterGPSUpdate::Apply(std::shared_ptr<ChSensor> pSensor,
     Cartesian2GPS(coords, m_ref);
 
     // load GPS data
-    m_buffer->Buffer[0].Latitude = coords.y();
-    m_buffer->Buffer[0].Longitude = coords.x();
-    m_buffer->Buffer[0].Altitude = coords.z();
-    m_buffer->Buffer[0].Time = ch_time;
+    m_bufferOut->Buffer[0].Latitude = coords.y();
+    m_bufferOut->Buffer[0].Longitude = coords.x();
+    m_bufferOut->Buffer[0].Altitude = coords.z();
+    m_bufferOut->Buffer[0].Time = ch_time;
+    m_bufferOut->LaunchedCount = m_GPSSensor->GetNumLaunches();
+    m_bufferOut->TimeStamp = last_ch_time;
 
-    m_buffer->LaunchedCount = pSensor->GetNumLaunches();
-    m_buffer->TimeStamp = last_ch_time;
+}
 
-    bufferInOut = m_buffer;
+CH_SENSOR_API void ChFilterGPSUpdate::Initialize(std::shared_ptr<ChSensor> pSensor,
+                                                 std::shared_ptr<SensorBuffer>& bufferInOut) {
+    if (bufferInOut) {
+        throw std::runtime_error("GPS update filter must be first in filter graph");
+    }
+
+    m_GPSSensor = std::dynamic_pointer_cast<ChGPSSensor>(pSensor);
+    if (!m_GPSSensor) {
+        throw std::runtime_error("GPS Update filter can only be used on a GPS sensor\n");
+    }
+
+    m_bufferOut = chrono_types::make_shared<SensorHostGPSBuffer>();
+    m_bufferOut->Buffer = std::make_unique<GPSData[]>(1);
+    m_bufferOut->Width = m_bufferOut->Height = 1;
+    m_bufferOut->LaunchedCount = m_GPSSensor->GetNumLaunches();
+    m_bufferOut->TimeStamp = 0;
+
+    bufferInOut = m_bufferOut;
 }
 
 }  // namespace sensor

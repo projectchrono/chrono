@@ -21,7 +21,7 @@
 #include "chrono_sensor/utils/ChUtilsJSON.h"
 //
 #include "chrono_sensor/filters/ChFilter.h"
-#include "chrono_sensor/filters/ChFilterOptixRender.h"
+#include "chrono_sensor/optix/ChFilterOptixRender.h"
 #include "chrono_sensor/filters/ChFilterIMUUpdate.h"
 #include "chrono_sensor/filters/ChFilterGPSUpdate.h"
 #include "chrono_sensor/filters/ChFilterCameraNoise.h"
@@ -152,15 +152,15 @@ std::shared_ptr<ChCameraSensor> ReadCameraSensorJSON(const std::string& filename
     unsigned int h = properties["Height"].GetUint();
     float hFOV = properties["Horizontal Field of View"].GetFloat();
     unsigned int supersample_factor = 1;
-    CameraLensModelType lens_model = PINHOLE;
+    CameraLensModelType lens_model = CameraLensModelType::PINHOLE;
 
     if (properties.HasMember("Supersample Factor")) {
         supersample_factor = properties["Supersample Factor"].GetInt();
     }
     if (properties.HasMember("Lens Type")) {
         std::string l = properties["Lens Model"].GetString();
-        if (l == "SPHERICAL") {
-            lens_model = SPHERICAL;
+        if (l == "FOV_LENS") {
+            lens_model = CameraLensModelType::FOV_LENS;
         }
     }
 
@@ -384,11 +384,11 @@ std::shared_ptr<ChLidarSensor> ReadLidarSensorJSON(const std::string& filename,
     // float exposure_time = properties["Collection Window"].GetFloat();
 
     unsigned int sample_radius = 1;
-    std::string beam_shape = "rectangle";
+    LidarBeamShape beam_shape = LidarBeamShape::RECTANGULAR;
     float vert_divergence_angle = .003;
     float hori_divergence_angle = .003;
     LidarReturnMode return_mode = LidarReturnMode::STRONGEST_RETURN;
-    LidarModelType lidar_model = LidarModelType::RAYCAST;
+    float near_clip = 0.f;
 
     if (properties.HasMember("Sample Radius")) {
         sample_radius = properties["Sample Radius"].GetInt();
@@ -403,16 +403,19 @@ std::shared_ptr<ChLidarSensor> ReadLidarSensorJSON(const std::string& filename,
         std::string s = properties["Return Mode"].GetString();
         if (s == "MEAN_RETURN") {
             return_mode = LidarReturnMode::MEAN_RETURN;
+        } else if (s == "FIRST_RETURN") {
+            return_mode = LidarReturnMode::FIRST_RETURN;
+        } else if (s == "LAST_RETURN") {
+            return_mode = LidarReturnMode::LAST_RETURN;
         }
     }
-    if (properties.HasMember("Lidar Model")) {
-        std::string s = properties["Lidar Model"].GetString();
-        // for when we add raytraced lidar model
+    if (properties.HasMember("Near Clip")) {
+        near_clip = properties["Near Clip"].GetFloat();
     }
 
     auto lidar = chrono_types::make_shared<ChLidarSensor>(
         parent, updateRate, offsetPose, w, h, hfov, max_v_angle, min_v_angle, max_distance, beam_shape, sample_radius,
-        vert_divergence_angle, hori_divergence_angle, return_mode, lidar_model);
+        vert_divergence_angle, hori_divergence_angle, return_mode, near_clip);
 
     if (properties.HasMember("Lag")) {
         float lag = properties["Lag"].GetFloat();

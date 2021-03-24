@@ -46,7 +46,7 @@ unsigned int image_width = 720;
 unsigned int image_height = 720;
 
 // Camera's horizontal field of view
-float fov = (float) CH_C_PI / 3;
+float fov = (float)CH_C_PI / 3;
 
 // Lag (in seconds) between sensing and when data becomes accessible
 float lag = 0.f;
@@ -180,9 +180,6 @@ int main(int argc, char* argv[]) {
     // -----------------------
     auto manager = chrono_types::make_shared<ChSensorManager>(&mphysicalSystem);
     manager->scene->AddPointLight({-10, 0, 10}, {1, 1, 1}, 3000);
-
-    // Get the point lights
-    std::vector<PointLight>& lights = manager->scene->GetPointLights();
 
     // ------------------------------------------------
     // Create a camera and add it to the sensor manager

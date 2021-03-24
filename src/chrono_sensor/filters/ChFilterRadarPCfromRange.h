@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Han Wang 
+// Authors: Han Wang
 // =============================================================================
 //
 // =============================================================================
@@ -18,27 +18,32 @@
 #define CHFILTERRADARPCFROMRANGE_H
 
 #include "chrono_sensor/filters/ChFilter.h"
+#include <cuda.h>
 
-namespace chrono{
-namespace sensor{
+namespace chrono {
+namespace sensor {
 
 // forward declaration
 class ChSensor;
 
-class CH_SENSOR_API ChFilterRadarPCfromRange : public ChFilter{
-    public:
-        ChFilterRadarPCfromRange(std::string name = {});
+class CH_SENSOR_API ChFilterRadarPCfromRange : public ChFilter {
+  public:
+    ChFilterRadarPCfromRange(std::string name = "ChFilterRadarPCfromRange");
 
-        virtual void Apply(std::shared_ptr<ChSensor> pSensor, std::shared_ptr<SensorBuffer>& bufferInOut);
+    virtual void Apply();
 
-        virtual void Initialize(std::shared_ptr<ChSensor> pSensor){}
+    virtual void Initialize(std::shared_ptr<ChSensor> pSensor, std::shared_ptr<SensorBuffer>& bufferInOut);
 
-    private:
-        std::shared_ptr<SensorDeviceXYZIBuffer> m_buffer;
-
+  private:
+    std::shared_ptr<SensorDeviceRangeRcsBuffer> m_buffer_in;
+    std::shared_ptr<SensorDeviceXYZIBuffer> m_buffer_out;
+    CUstream m_cuda_stream;
+    float m_hFOV;
+    float m_max_vert_angle;
+    float m_min_vert_angle;
 };
 
-} // namespace sensor
-} // namespace chrono
+}  // namespace sensor
+}  // namespace chrono
 
 #endif

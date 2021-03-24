@@ -20,10 +20,12 @@
 
 #include "curand_utils.cuh"
 #include "camera_noise.cuh"
-#include "chrono_sensor/utils/CudaMallocHelper.h"
+// #include "chrono_sensor/utils/CudaMallocHelper.h"
 
-#include <chrono>
-#include <memory>
+#include "chrono_sensor/optix/shaders/device_utils.h"
+
+// #include <chrono>
+// #include <memory>
 
 namespace chrono {
 namespace sensor {
@@ -53,6 +55,11 @@ __global__ void const_normal_noise_kernel(unsigned char* bufPtr,
         float g = ((float)(pix_g)) / 255.0 + g_rand;
         float b = ((float)(pix_b)) / 255.0 + b_rand;
 
+        // prevent overflow
+        r = clamp(r, 0.f, 1.f);
+        g = clamp(g, 0.f, 1.f);
+        b = clamp(b, 0.f, 1.f);
+
         // convert back to char and save in image
         bufPtr[index * 4] = (unsigned char)(r * 255.999);
         bufPtr[index * 4 + 1] = (unsigned char)(g * 255.999);
@@ -75,9 +82,9 @@ __global__ void pix_dep_noise_kernel(unsigned char* bufPtr,
         unsigned char pix_g = bufPtr[index * 4 + 1];
         unsigned char pix_b = bufPtr[index * 4 + 2];
 
-        float r = ((float)(pix_r)) / 255.0;
-        float g = ((float)(pix_g)) / 255.0;
-        float b = ((float)(pix_b)) / 255.0;
+        float r = ((float)(pix_r)) / 255.f;
+        float g = ((float)(pix_g)) / 255.f;
+        float b = ((float)(pix_b)) / 255.f;
 
         // curand_normal(&rng_states[index]);
         float stdev_r = sqrtf((r * sigma_shot * sigma_shot) + (sigma_adc * sigma_adc));
@@ -87,10 +94,10 @@ __global__ void pix_dep_noise_kernel(unsigned char* bufPtr,
         float g_rand = curand_normal(&rng_states[index]) * stdev_g;
         float b_rand = curand_normal(&rng_states[index]) * stdev_b;
 
-        // convert to float and add noise
-        r = r + r_rand;
-        g = g + g_rand;
-        b = b + b_rand;
+        // convert to float and add noise (prevent overflow)
+        r = clamp(r + r_rand, 0.f, 1.f);
+        g = clamp(g + g_rand, 0.f, 1.f);
+        b = clamp(b + b_rand, 0.f, 1.f);
 
         // convert back to char and save in image
         bufPtr[index * 4] = (unsigned char)(r * 255.999);
@@ -104,11 +111,12 @@ void cuda_camera_noise_const_normal(unsigned char* bufPtr,
                                     int height,
                                     float mean,
                                     float stdev,
-                                    curandState_t* rng) {
+                                    curandState_t* rng,
+                                    CUstream& stream) {
     const int nThreads = 512;
     int nBlocks = (width * height + nThreads - 1) / nThreads;
 
-    const_normal_noise_kernel<<<nBlocks, nThreads>>>(bufPtr, width, height, mean, stdev, rng);
+    const_normal_noise_kernel<<<nBlocks, nThreads, 0, stream>>>(bufPtr, width, height, mean, stdev, rng);
 }
 
 void cuda_camera_noise_pixel_dependent(unsigned char* bufPtr,
@@ -117,11 +125,12 @@ void cuda_camera_noise_pixel_dependent(unsigned char* bufPtr,
                                        float gain,
                                        float sigma_read,
                                        float sigma_adc,
-                                       curandState_t* rng) {
+                                       curandState_t* rng,
+                                       CUstream& stream) {
     const int nThreads = 512;
     int nBlocks = (width * height + nThreads - 1) / nThreads;
 
-    pix_dep_noise_kernel<<<nBlocks, nThreads>>>(bufPtr, width, height, gain, sigma_read, sigma_adc, rng);
+    pix_dep_noise_kernel<<<nBlocks, nThreads, 0, stream>>>(bufPtr, width, height, gain, sigma_read, sigma_adc, rng);
 }
 
 }  // namespace sensor

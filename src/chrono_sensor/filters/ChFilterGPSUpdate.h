@@ -29,6 +29,7 @@ namespace sensor {
 // forward declaration
 class ChSensor;
 class ChNoiseModel;
+class ChGPSSensor;
 
 /// @addtogroup sensor_filters
 /// @{
@@ -42,18 +43,18 @@ class CH_SENSOR_API ChFilterGPSUpdate : public ChFilter {
     ChFilterGPSUpdate(ChVector<double> gps_reference, std::shared_ptr<ChNoiseModel> noise_model);
 
     /// Apply function. Generates GPS data.
-    /// @param pSensor A pointer to the sensor on which the filter is attached.
-    /// @param bufferInOut A buffer that is passed into the filter.
-    virtual void Apply(std::shared_ptr<ChSensor> pSensor, std::shared_ptr<SensorBuffer>& bufferInOut);
+    virtual void Apply();
 
     /// Initializes all data needed by the filter access apply function.
-    /// @param pSensor A pointer to the sensor.
-    virtual void Initialize(std::shared_ptr<ChSensor> pSensor) {}
+    /// @param pSensor A pointer to the sensor on which the filter is attached.
+    /// @param bufferInOut A buffer that is passed into the filter.
+    virtual void Initialize(std::shared_ptr<ChSensor> pSensor, std::shared_ptr<SensorBuffer>& bufferInOut);
 
   private:
-    std::shared_ptr<SensorHostGPSBuffer> m_buffer;  ///< buffer that will be used for passing to the next filter
-    std::shared_ptr<ChNoiseModel> m_noise_model;    ///< pointer to the noise model for augmenting GPS data
-    ChVector<double> m_ref;                         ///< for holding the reference location
+    std::shared_ptr<SensorHostGPSBuffer> m_bufferOut;  ///< buffer that will be used for passing to the next filter
+    std::shared_ptr<ChGPSSensor> m_GPSSensor;
+    std::shared_ptr<ChNoiseModel> m_noise_model;  ///< pointer to the noise model for augmenting GPS data
+    ChVector<double> m_ref;                       ///< for holding the reference location
 };
 
 /// @}

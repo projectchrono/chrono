@@ -64,6 +64,15 @@ CH_SENSOR_API void ChSensor::PushFilter(std::shared_ptr<ChFilter> filter) {
     }
 }
 
+CH_SENSOR_API void ChSensor::PushFilterFront(std::shared_ptr<ChFilter> filter) {
+    if (!m_filter_list_locked) {
+        m_filters.push_front(filter);
+    } else {
+        std::cerr << "WARNING: Filter list has been locked for safety. All filters should be added to "
+                     "sensor before sensor is added to ChSensorManager\n";
+    }
+}
+
 // -----------------------------------------------------------------------------
 // retriever function for image data in greyscale 8-bit format
 // -----------------------------------------------------------------------------

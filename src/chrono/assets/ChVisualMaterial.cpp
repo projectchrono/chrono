@@ -24,7 +24,7 @@ ChVisualMaterial::ChVisualMaterial()
       d(1),
       fresnel_exp(5),
       fresnel_max(1),
-      fresnel_min(0.4f),
+      fresnel_min(0.f),
       roughness(1),
       metallic(0),
       has_texture(false) {}

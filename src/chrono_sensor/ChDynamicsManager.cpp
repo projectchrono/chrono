@@ -40,11 +40,10 @@ CH_SENSOR_API void ChDynamicsManager::UpdateSensors() {
             if (m_system->GetChTime() >
                 pSen->GetNumLaunches() / pSen->GetUpdateRate() + pSen->GetCollectionWindow() - 1e-7) {
                 // pGPS->gps_key_frames = m_gps_collection_data[i];
-                std::shared_ptr<SensorBuffer> buffer;
                 pSen->IncrementNumLaunches();
                 // step through the filter list, applying each filter
                 for (auto filter : pSen->GetFilterList()) {
-                    filter->Apply(pSen, buffer);
+                    filter->Apply();
                 }
                 pSen->ClearKeyFrames();
             }
@@ -61,8 +60,9 @@ CH_SENSOR_API void ChDynamicsManager::AssignSensor(std::shared_ptr<ChSensor> sen
         }
         // add a GPS sensor
         m_sensor_list.push_back(sen);
+        std::shared_ptr<SensorBuffer> buffer;
         for (auto f : sen->GetFilterList()) {
-            f->Initialize(sen);
+            f->Initialize(sen, buffer);
         }
         sen->LockFilterList();
 

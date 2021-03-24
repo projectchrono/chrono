@@ -29,9 +29,9 @@ namespace sensor {
 /// @{
 
 /// The type of lens model that camera can use for rendering
-enum CameraLensModelType {
-    PINHOLE,   ///< traditional computer graphics ideal camera model.
-    SPHERICAL  ///< Wide angle lens model based on single spherical lens.
+enum class CameraLensModelType {
+    PINHOLE,  ///< traditional computer graphics ideal camera model.
+    FOV_LENS  ///< Wide angle lens model based on single spherical lens.
 };
 
 /// Camera class
@@ -55,7 +55,7 @@ class CH_SENSOR_API ChCameraSensor : public ChOptixSensor {
                    unsigned int h,                          // image height
                    float hFOV,                              // horizontal field of view
                    unsigned int supersample_factor = 1,     // number of samples per pixel for antialiasing
-                   CameraLensModelType lens_model = PINHOLE,
+                   CameraLensModelType lens_model = CameraLensModelType::PINHOLE,
                    bool use_gi = false);  // camera model to use for rendering
 
     /// camera class destructor
@@ -70,11 +70,14 @@ class CH_SENSOR_API ChCameraSensor : public ChOptixSensor {
     /// @return An enum specifying which lens model is being used. (0: PINHOLE, 1: SPHERICAL)
     CameraLensModelType GetLensModelType() const { return m_lens_model_type; }
 
+    bool GetUseGI() { return m_use_gi; }
+
   private:
     float m_hFOV;                           ///< the horizontal field of view of the sensor
     unsigned int m_supersample_factor;      ///< super sampling factor for antialiasing
     CameraLensModelType m_lens_model_type;  ///< lens model used by the camera
-};
+    bool m_use_gi;                          ///< to hold reference to whether user what to use GI or not
+ };
 
 /// @} sensor_sensors
 

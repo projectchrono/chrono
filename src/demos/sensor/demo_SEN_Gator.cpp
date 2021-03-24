@@ -278,7 +278,6 @@ int main(int argc, char* argv[]) {
 
     auto manager = chrono_types::make_shared<ChSensorManager>(gator.GetSystem());
     manager->scene->AddPointLight({100, 100, 100}, {2, 2, 2}, 5000);
-    manager->SetKeyframeSizeFromTimeStep((float)step_size, exposure_time);
 
     // third person camera
     auto cam = chrono_types::make_shared<ChCameraSensor>(
@@ -326,12 +325,11 @@ int main(int argc, char* argv[]) {
         lidar_vmax,                                                               // vertical field of view
         lidar_vmin,                                                               // vertical field of view
         100.0f,                                                                   // max distance
-        "rectangle",                                                              // beam shape
+        LidarBeamShape::RECTANGULAR,                                                              // beam shape
         1,                                                                        //
         0.0f,                                                                     //
         0.0f,
         LidarReturnMode::STRONGEST_RETURN,  //
-        LidarModelType::RAYCAST,            //
         0.1f                                //
     );
     lidar->SetName("Lidar Sensor");
@@ -355,20 +353,20 @@ int main(int argc, char* argv[]) {
         case NORMAL_DRIFT:
             // Set the imu noise model to a gaussian model
             acc_noise_model =
-                chrono_types::make_shared<ChNoiseNormalDrift>(100.f,                          // double updateRate,
-                                                              ChVector<float>({0., 0., 0.}),  // double mean,
-                                                              ChVector<float>({0.001, 0.001, 0.001}),  // double stdev,
+                chrono_types::make_shared<ChNoiseNormalDrift>(100.f,                           // double updateRate,
+                                                              ChVector<double>({0., 0., 0.}),  // double mean,
+                                                              ChVector<double>({0.001, 0.001, 0.001}),  // double stdev,
                                                               .0001,  // double bias_drift,
                                                               .1);    // double tau_drift,
             gyro_noise_model = chrono_types::make_shared<ChNoiseNormalDrift>(
-                100.f,                                      // float updateRate,
-                ChVector<float>({0., 0., 0.}),              // float mean,
-                ChVector<float>({0.0075, 0.0075, 0.0075}),  // float stdev,
-                .001,                                       // double bias_drift,
-                .1);                                        // double tau_drift,
+                100.f,                                       // float updateRate,
+                ChVector<double>({0., 0., 0.}),              // float mean,
+                ChVector<double>({0.0075, 0.0075, 0.0075}),  // float stdev,
+                .001,                                        // double bias_drift,
+                .1);                                         // double tau_drift,
             mag_noise_model =
-                chrono_types::make_shared<ChNoiseNormal>(ChVector<float>({0., 0., 0.}),            // float mean,
-                                                         ChVector<float>({0.001, 0.001, 0.001}));  // float stdev,
+                chrono_types::make_shared<ChNoiseNormal>(ChVector<double>({0., 0., 0.}),            // float mean,
+                                                         ChVector<double>({0.001, 0.001, 0.001}));  // float stdev,
             break;
         case IMU_NONE:
             // Set the imu noise model to none (does not affect the data)

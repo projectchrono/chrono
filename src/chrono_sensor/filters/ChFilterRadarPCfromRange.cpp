@@ -14,8 +14,6 @@
 //
 // =============================================================================
 
-
-
 #include "chrono_sensor/filters/ChFilterRadarPCfromRange.h"
 #include "chrono_sensor/ChRadarSensor.h"
 #include "chrono_sensor/utils/CudaMallocHelper.h"
@@ -24,71 +22,60 @@
 namespace chrono {
 namespace sensor {
 
-    ChFilterRadarPCfromRange::ChFilterRadarPCfromRange(std::string name) : ChFilter(name) {}
+ChFilterRadarPCfromRange::ChFilterRadarPCfromRange(std::string name) : ChFilter(name) {}
 
-    CH_SENSOR_API void ChFilterRadarPCfromRange::Apply(std::shared_ptr<ChSensor> pSensor,
-                                                  std::shared_ptr<SensorBuffer>& bufferInOut){
-        assert(bufferInOut != nullptr);
-        if(!bufferInOut)
-            throw std::runtime_error("The Radar Pointcloud fiter was not supplied an input buffer");
+CH_SENSOR_API void ChFilterRadarPCfromRange::Initialize(std::shared_ptr<ChSensor> pSensor,
+                                                        std::shared_ptr<SensorBuffer>& bufferInOut) {
+    if (!bufferInOut)
+        InvalidFilterGraphNullBuffer(pSensor);
 
-        // The sensor must be a radar 
-        std::shared_ptr<ChRadarSensor> pRadar = std::dynamic_pointer_cast<ChRadarSensor>(pSensor);
-        if (!pRadar){
-            throw std::runtime_error("This sensor must be a radar");
-        }
+    m_buffer_in = std::dynamic_pointer_cast<SensorDeviceRangeRcsBuffer>(bufferInOut);
+    if (!m_buffer_in)
+        InvalidFilterGraphBufferTypeMismatch(pSensor);
 
-        // get the pointer to the memory either from optix or from our device buffer
-        void* ptr;
-        if (auto pOpx = std::dynamic_pointer_cast<SensorOptixBuffer>(bufferInOut)){
-            if (pOpx->Buffer->getFormat() != RT_FORMAT_FLOAT2){
-                std::cout<<"Incoming Optix format: "<<pOpx->Buffer->getFormat()<<std::endl;
-                throw std::runtime_error(
-                    "The only Optix format that can be converted to pointcloud is FLOAT2 (Range and RCS)"
-                );
-            }
-            // we need id of first device for this context (should only have 1 anyway2)
-            int device_id = pOpx->Buffer->getContext()->getEnabledDevices()[0];
-            ptr = pOpx->Buffer->getDevicePointer(device_id); //hard coded to grab from device 0
-        } else if (auto pRI = std::dynamic_pointer_cast<SensorDeviceRangeRcsBuffer>(bufferInOut)){
-            ptr = (void*)pRI->Buffer.get();
-        } else {
-            throw std::runtime_error("The pointcloud filter cannot be run on the requested input buffer type");
-        }
-
-        if (!m_buffer){
-            m_buffer = chrono_types::make_shared<SensorDeviceXYZIBuffer>();
-            DeviceXYZIBufferPtr b(cudaMallocHelper<PixelXYZI>(bufferInOut->Width * bufferInOut->Height), 
-                                  cudaFreeHelper<PixelXYZI>);
-            m_buffer->Buffer = std::move(b);
-            m_buffer->Width = bufferInOut->Width;
-            m_buffer->Height = bufferInOut->Height;
-        }
-
-        cuda_pointcloud_from_depth(ptr, m_buffer->Buffer.get(), (int)bufferInOut->Width, (int)bufferInOut->Height, 
-                                   pRadar->GetHFOV(), pRadar->GetMaxVertAngle(), pRadar->GetMinVertAngle());
-
-        std::vector<float> buf(m_buffer->Width * m_buffer->Height * 4);
-        std::vector<float> new_buf(m_buffer->Width * m_buffer->Height * 4);
-
-        cudaMemcpy(buf.data(), m_buffer->Buffer.get(), m_buffer->Width * m_buffer->Height * sizeof(float) * 4, cudaMemcpyDeviceToHost);
-
-        m_buffer->Beam_return_count = 0;
-        for (unsigned int i = 0; i < m_buffer->Width * m_buffer->Height; i++){
-            if(buf.data()[i * 4 + 3] > 0){
-                new_buf.data()[m_buffer->Beam_return_count * 4] = buf.data()[i * 4];
-                new_buf.data()[m_buffer->Beam_return_count * 4 + 1] = buf.data()[i * 4 + 1];
-                new_buf.data()[m_buffer->Beam_return_count * 4 + 2] = buf.data()[i * 4 + 2];
-                new_buf.data()[m_buffer->Beam_return_count * 4 + 3] = buf.data()[i * 4 + 3];
-                m_buffer->Beam_return_count++;
-            }
-        }
-        cudaMemcpy(m_buffer->Buffer.get(), new_buf.data(), m_buffer->Beam_return_count * sizeof(float) * 4, cudaMemcpyHostToDevice);
-        
-        m_buffer->LaunchedCount = bufferInOut->LaunchedCount;
-        m_buffer->TimeStamp = bufferInOut->TimeStamp;
-        bufferInOut = m_buffer;
+    // The sensor must be a radar
+    if (auto pRadar = std::dynamic_pointer_cast<ChRadarSensor>(pSensor)) {
+        m_cuda_stream = pRadar->GetCudaStream();
+        m_hFOV = pRadar->GetHFOV();
+        m_max_vert_angle = pRadar->GetMaxVertAngle();
+        m_min_vert_angle = pRadar->GetMinVertAngle();
+    } else {
+        InvalidFilterGraphSensorTypeMismatch(pSensor);
     }
 
+    m_buffer_out = chrono_types::make_shared<SensorDeviceXYZIBuffer>();
+    DeviceXYZIBufferPtr b(cudaMallocHelper<PixelXYZI>(bufferInOut->Width * bufferInOut->Height),
+                          cudaFreeHelper<PixelXYZI>);
+    m_buffer_out->Buffer = std::move(b);
+    m_buffer_out->Width = bufferInOut->Width;
+    m_buffer_out->Height = bufferInOut->Height;
+    bufferInOut = m_buffer_out;
 }
+CH_SENSOR_API void ChFilterRadarPCfromRange::Apply() {
+    cuda_pointcloud_from_depth(m_buffer_in->Buffer.get(), m_buffer_out->Buffer.get(), (int)m_buffer_in->Width,
+                               (int)m_buffer_in->Height, m_hFOV, m_max_vert_angle, m_min_vert_angle, m_cuda_stream);
+
+    auto buf = std::vector<PixelXYZI>(m_buffer_out->Width * m_buffer_out->Height);
+    cudaMemcpyAsync(buf.data(), m_buffer_out->Buffer.get(),
+                    m_buffer_out->Width * m_buffer_out->Height * sizeof(PixelXYZI), cudaMemcpyDeviceToHost,
+                    m_cuda_stream);
+
+    auto new_buf = std::vector<PixelXYZI>(m_buffer_out->Width * m_buffer_out->Height);
+
+    cudaStreamSynchronize(m_cuda_stream);
+    m_buffer_out->Beam_return_count = 0;
+    for (unsigned int i = 0; i < buf.size(); i++) {
+        if (buf[i].intensity > 0) {
+            new_buf[m_buffer_out->Beam_return_count] = buf[i];
+            m_buffer_out->Beam_return_count++;
+        }
+    }
+    cudaMemcpyAsync(m_buffer_out->Buffer.get(), new_buf.data(), m_buffer_out->Beam_return_count * sizeof(PixelXYZI),
+                    cudaMemcpyHostToDevice, m_cuda_stream);
+
+    m_buffer_out->LaunchedCount = m_buffer_in->LaunchedCount;
+    m_buffer_out->TimeStamp = m_buffer_in->TimeStamp;
 }
+
+}  // namespace sensor
+}  // namespace chrono

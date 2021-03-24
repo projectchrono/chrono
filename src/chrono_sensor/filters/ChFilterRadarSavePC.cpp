@@ -16,7 +16,8 @@
 // =============================================================================
 
 #include "chrono_sensor/filters/ChFilterRadarSavePC.h"
-#include "chrono_sensor/ChSensor.h"
+#include "chrono_sensor/ChOptixSensor.h"
+#include "chrono_sensor/utils/CudaMallocHelper.h"
 
 #include "chrono_thirdparty/filesystem/path.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
@@ -24,45 +25,57 @@
 #include <vector>
 #include <sstream>
 
+#include <cuda_runtime_api.h>
+
 namespace chrono {
 namespace sensor {
 
-CH_SENSOR_API ChFilterRadarSavePC::ChFilterRadarSavePC(std::string data_path) : ChFilter("") {
+CH_SENSOR_API ChFilterRadarSavePC::ChFilterRadarSavePC(std::string data_path, std::string name) : ChFilter(name) {
     m_path = data_path;
 }
 
 CH_SENSOR_API ChFilterRadarSavePC::~ChFilterRadarSavePC() {}
 
-CH_SENSOR_API void ChFilterRadarSavePC::Apply(std::shared_ptr<ChSensor> pSensor,
-                                              std::shared_ptr<SensorBuffer>& bufferInOut) {
-    std::shared_ptr<SensorDeviceRangeRcsBuffer> pRR = std::dynamic_pointer_cast<SensorDeviceRangeRcsBuffer>(bufferInOut);
-
-    if (!pRR)
-        throw std::runtime_error("This buffer type cannot be saved as as a point cloud");
+CH_SENSOR_API void ChFilterRadarSavePC::Apply() {
+    cudaMemcpyAsync(m_host_buffer->Buffer.get(), m_buffer_in->Buffer.get(),
+                    m_host_buffer->Width * m_host_buffer->Height * (m_host_buffer->Dual_return + 1),
+                    cudaMemcpyDeviceToHost, m_cuda_stream);
 
     std::string filename = m_path + "frame_" + std::to_string(m_frame_number) + ".csv";
     m_frame_number++;
-
-    if (pRR) {
-        utils::CSV_writer csv_writer(",");
-        float* buf = new float[pRR->Beam_return_count * 2];
-
-        cudaMemcpy(buf, pRR->Buffer.get(), pRR->Beam_return_count * sizeof(PixelRangeRcs), cudaMemcpyDeviceToHost);
-
-        for (unsigned int i = 0; i < pRR->Beam_return_count; i++) {
-            for (int j = 0; j < 2; j++) {
-                csv_writer << buf[i * 2 + j];
-            }
-            csv_writer << std::endl;
-        }
-        csv_writer.write_to_file(filename);
-        delete[] buf;
+    utils::CSV_writer csv_writer(",");
+    cudaStreamSynchronize(m_cuda_stream);
+    for (unsigned int i = 0; i < m_buffer_in->Beam_return_count; i++) {
+        csv_writer << m_host_buffer->Buffer[i].x << m_host_buffer->Buffer[i].y << m_host_buffer->Buffer[i].z
+                   << m_host_buffer->Buffer[i].intensity << std::endl;
     }
+    csv_writer.write_to_file(filename);
 }
 
-CH_SENSOR_API void ChFilterRadarSavePC::Initialize(std::shared_ptr<ChSensor> pSensor) {
-    std::vector<std::string> split_string;
+CH_SENSOR_API void ChFilterRadarSavePC::Initialize(std::shared_ptr<ChSensor> pSensor,
+                                                   std::shared_ptr<SensorBuffer>& bufferInOut) {
+    if (!bufferInOut)
+        InvalidFilterGraphNullBuffer(pSensor);
 
+    m_buffer_in = std::dynamic_pointer_cast<SensorDeviceXYZIBuffer>(bufferInOut);
+    if (!m_buffer_in)
+        InvalidFilterGraphBufferTypeMismatch(pSensor);
+
+    if (auto pOpx = std::dynamic_pointer_cast<ChOptixSensor>(pSensor)) {
+        m_cuda_stream = pOpx->GetCudaStream();
+    } else {
+        InvalidFilterGraphSensorTypeMismatch(pSensor);
+    }
+
+    m_host_buffer = chrono_types::make_shared<SensorHostXYZIBuffer>();
+    std::shared_ptr<PixelXYZI[]> b(
+        cudaHostMallocHelper<PixelXYZI>(m_buffer_in->Width * m_buffer_in->Height * (m_buffer_in->Dual_return + 1)),
+        cudaHostFreeHelper<PixelXYZI>);
+    m_host_buffer->Buffer = std::move(b);
+    m_host_buffer->Width = m_buffer_in->Width;
+    m_host_buffer->Height = m_buffer_in->Height;
+
+    std::vector<std::string> split_string;
 #ifdef _WIN32
     std::istringstream istring(m_path);
 

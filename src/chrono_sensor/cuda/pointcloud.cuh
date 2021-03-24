@@ -28,13 +28,15 @@ namespace sensor {
 /// @param hfov The horizontal field of view of the lidar.
 /// @param max_v_angle The maximun vertical fov angle of the lidar
 /// @param min_v_angle The minimum vertical fov angle for the lidar
+/// @param stream The cuda stream for the kernel
 void cuda_pointcloud_from_depth(void* bufDI,
                                 void* bufOut,
                                 int width,
                                 int height,
                                 float hfov,
                                 float max_v_angle,
-                                float min_v_angle);
+                                float min_v_angle,
+                                CUstream& stream);
 
 /// Converts depth data to point cloud data for a lidar when the mode is dual return.
 /// @param bufDI A device pointer to depth/intensity data from a lidar.
@@ -44,13 +46,15 @@ void cuda_pointcloud_from_depth(void* bufDI,
 /// @param hfov The horizontal field of view of the lidar.
 /// @param max_v_angle The maximun vertical fov angle of the lidar
 /// @param min_v_angle The minimum vertical fov angle for the lidar
+/// @param stream The cuda stream for the kernel
 void cuda_pointcloud_from_depth_dual_return(void* bufDI,
-                                void* bufOut,
-                                int width,
-                                int height,
-                                float hfov,
-                                float max_v_angle,
-                                float min_v_angle);
+                                            void* bufOut,
+                                            int width,
+                                            int height,
+                                            float hfov,
+                                            float max_v_angle,
+                                            float min_v_angle,
+                                            CUstream& stream);
 
 int remove_no_return_beams(void* bufIn, unsigned int size);
 

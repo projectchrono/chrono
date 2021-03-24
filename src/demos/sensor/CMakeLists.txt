@@ -13,6 +13,7 @@ set(CHRONO_LINK_FLAGS ${CH_LINKERFLAG_EXE})
 SET(DEMOS
   demo_SEN_buildtest
   demo_SEN_Bedroom
+  demo_SEN_perf_meshes
   demo_SEN_camera
   demo_SEN_JSON
   demo_SEN_lidar
@@ -35,9 +36,7 @@ IF(ENABLE_MODULE_IRRLICHT AND ENABLE_MODULE_VEHICLE)
     list(APPEND CHRONO_LIBRARIES "ChronoEngine_vehicle")
     list(APPEND CHRONO_LIBRARIES "ChronoEngine_vehicle_irrlicht")
     list(APPEND CHRONO_LIBRARIES "ChronoModels_vehicle")
-
     set(CHRONO_COMPILE_FLAGS "${CHRONO_COMPILE_FLAGS} ${CH_IRRLICHT_CXX_FLAGS}" )
-
 ENDIF()
 
 #demos that require tensorrt

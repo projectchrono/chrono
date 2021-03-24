@@ -17,7 +17,7 @@
 // =============================================================================
 
 #include "chrono_sensor/ChCameraSensor.h"
-#include "chrono_sensor/filters/ChFilterOptixRender.h"
+#include "chrono_sensor/optix/ChFilterOptixRender.h"
 #include "chrono_sensor/filters/ChFilterImageOps.h"
 
 namespace chrono {
@@ -39,44 +39,24 @@ CH_SENSOR_API ChCameraSensor::ChCameraSensor(std::shared_ptr<chrono::ChBody> par
     : m_hFOV(hFOV),
       m_supersample_factor(supersample_factor),
       m_lens_model_type(lens_model),
-      ChOptixSensor(parent, updateRate, offsetPose, w * supersample_factor, h * supersample_factor, true) {
+      m_use_gi(use_gi),
+      ChOptixSensor(parent, updateRate, offsetPose, w * supersample_factor, h * supersample_factor) {
     // set the program to match the model requested
     switch (lens_model) {
-        case SPHERICAL:
-            m_program_string = {"camera", "fov_lens_camera"};
-            m_buffer_format = RT_FORMAT_FLOAT4;
-            ChOptixSensor::setGI(0);
-            // m_buffer_format = RT_FORMAT_UNSIGNED_BYTE4;
+        case CameraLensModelType::FOV_LENS:
+            m_pipeline_type = PipelineType::CAMERA_FOV_LENS;
             break;
-
-        default:  // same as PINHOLEP
-        {
-            if (use_gi) {
-                m_program_string = {"camera", "pinhole_gi_camera"};
-                m_buffer_format = RT_FORMAT_FLOAT4;
-                ChOptixSensor::setGI(use_gi);
-            } else {
-                m_program_string = {"camera", "pinhole_camera"};
-                m_buffer_format = RT_FORMAT_FLOAT4;
-                ChOptixSensor::setGI(0);
-            }
-            
-            // m_buffer_format = RT_FORMAT_UNSIGNED_BYTE4;
+        default:  // default to CameraLensModelType::PINHOLE
+            m_pipeline_type = PipelineType::CAMERA_PINHOLE;
             break;
-        }
     }
-
-    // convert from float4 to rgba8 format
-    m_filters.push_back(chrono_types::make_shared<ChFilterImageFloat4ToRGBA8>());
 
     if (m_supersample_factor > 1) {
-        m_filters.push_back(chrono_types::make_shared<ChFilterImgAlias>(m_supersample_factor));
-        // m_filters.push_back(chrono_types::make_shared<ChFilterImageResize>(w, h));
+        m_filters.push_back(
+            chrono_types::make_shared<ChFilterImgAlias>(m_supersample_factor, "Image antialias filter"));
     }
 
-    // list of parameters to pass to the ray generation program
-    m_ray_launch_params.push_back(
-        std::make_tuple<std::string, RTobjecttype, void*>("hFOV", RT_OBJECTTYPE_FLOAT, &m_hFOV));
+    m_filters.push_back(chrono_types::make_shared<ChFilterImageFloat4ToRGBA8>());
 
     SetCollectionWindow(0);
     SetLag(1 / updateRate);

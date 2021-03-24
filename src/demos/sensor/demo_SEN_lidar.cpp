@@ -56,11 +56,6 @@ enum NoiseModel {
 };
 NoiseModel noise_model = CONST_NORMAL_XYZI;
 
-// Lidar method for generating data
-// Just RAYCAST for now
-// TODO: implement PATH_TRACE
-LidarModelType lidar_model = LidarModelType::RAYCAST;
-
 // Lidar return mode
 // Either STRONGEST_RETURN, MEAN_RETURN, FIRST_RETURN, LAST_RETURN
 LidarReturnMode return_mode = LidarReturnMode::STRONGEST_RETURN;
@@ -151,7 +146,6 @@ int main(int argc, char* argv[]) {
     // -----------------------
     auto manager = chrono_types::make_shared<ChSensorManager>(&mphysicalSystem);
     manager->SetVerbose(false);
-    manager->SetKeyframeSizeFromTimeStep((float)step_size, .2f);
 
     // -----------------------------------------------
     // Create a lidar and add it to the sensor manager
@@ -226,15 +220,13 @@ int main(int argc, char* argv[]) {
                                                            32,              // number of vertical channels
                                                            horizontal_fov,  // horizontal field of view
                                                            max_vert_angle,
-                                                           min_vert_angle,         // vertical field of view
-                                                           100,                    // max distance
-                                                           "ellipse",              // beam shape
-                                                           sample_radius,          // sample radius
-                                                           vert_divergence_angle,  // vertical divergence angle
-                                                           hori_divergence_angle,  // horizontal divergence angle
-                                                           return_mode,            // return mode for the lidar
-                                                           lidar_model             // method/model to use for
-                                                                                   // generating data
+                                                           min_vert_angle,              // vertical field of view
+                                                           100,                         // max distance
+                                                           LidarBeamShape::ELLIPTICAL,  // beam shape
+                                                           sample_radius,               // sample radius
+                                                           vert_divergence_angle,       // vertical divergence angle
+                                                           hori_divergence_angle,       // horizontal divergence angle
+                                                           return_mode                  // return mode for the lidar
     );
     lidar2->SetName("Lidar Sensor 2");
     lidar2->SetLag(lag);

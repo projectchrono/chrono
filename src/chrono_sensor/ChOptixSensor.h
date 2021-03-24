@@ -22,6 +22,8 @@
 
 #include "chrono_sensor/ChSensor.h"
 
+#include "chrono_sensor/optix/ChOptixPipeline.h"
+
 namespace chrono {
 namespace sensor {
 
@@ -43,51 +45,24 @@ class CH_SENSOR_API ChOptixSensor : public ChSensor {
                   float updateRate,
                   chrono::ChFrame<double> offsetPose,
                   unsigned int w,
-                  unsigned int h,
-                  bool use_tonemapper = false);
+                  unsigned int h);
 
     /// camera class destructor
     virtual ~ChOptixSensor();
 
-    /// virtual function for getting the string used for generating the ray-laucnh program
-    /// @return The combination of file name and function name that specifies the render program
-    ProgramString& RenderProgramString() { return m_program_string; }
+    PipelineType GetPipelineType() { return m_pipeline_type; }
 
-    /// virtual function of getting the format for the output buffer
-    /// @return The buffer format type that the sensor uses.
-    RTformat& RenderBufferFormat() { return m_buffer_format; }
-
-    /// virtual function for getting any additional render parameters need by the sensor
-    /// @return the list of parameters that need to be passed to the ray launch program of the sensor.
-    std::vector<std::tuple<std::string, RTobjecttype, void*>>& RayLaunchParameters() { return m_ray_launch_params; }
-
-    void setGI(int use_gi) { m_use_gi = use_gi; }
+    unsigned int GetWidth() { return m_width; }
+    unsigned int GetHeight() { return m_height; }
+    CUstream GetCudaStream() { return m_cuda_stream; }
 
   protected:
-    ProgramString
-        m_program_string;      ///< the string tuple that specifies the file and name of the ray generation program
-    RTformat m_buffer_format;  ///< the format of the output buffer
-    std::vector<std::tuple<std::string, RTobjecttype, void*>>
-        m_ray_launch_params;  ///< holder of any additional ray generation parameters we need to pass to OptiX
+    PipelineType m_pipeline_type;  ///< the type of pipeline for rendering
 
   private:
-    /// Variables below are for friends only (i.e. they had better know what they are doing to use these)
-    /// Reason being that these must be used inside the render engine loop that is on a separate thread.
-    /// Since these objects cannot be easily locked and unlocked since they are effectively shared_ptrs.
-    optix::Context m_context;      ///< to hold a reference to the OptiX context that is rendering this sensor
-    optix::Program m_ray_gen;      ///< to hold a reference to the ray generation program used to generate the data
-    optix::Transform m_transform;  ///< ray gen transform
-
-    unsigned int m_width;         ///< to hold reference to the width for rendering
-    unsigned int m_height;        ///< to hold reference to the height for rendering
-    unsigned int m_launch_index;  ///< for holding the launch index that tells optix which sensor this is
-    float m_time_stamp;           ///< time stamp for when the data (render) was launched
-
-    bool m_use_gi;          ///< to hold reference to whether user what to use GI or not
-    bool m_use_tonemapper;  ///< whther the sensor should apply a tonemapper after rendering
-
-    friend class ChFilterOptixRender;  ///< ChFilterOptixRender is allowed to set and use the private members
-    friend class ChOptixEngine;        ///< ChOptixEngine is allowed to set and use the private members
+    unsigned int m_width;    ///< to hold reference to the width for rendering
+    unsigned int m_height;   ///< to hold reference to the height for rendering
+    CUstream m_cuda_stream;  ///< cuda stream for this buffer when applicable
 };
 
 /// @} sensor_sensors

@@ -16,133 +16,118 @@
 
 #include "chrono_sensor/filters/ChFilterIMUUpdate.h"
 #include "chrono/physics/ChSystem.h"
-#include "chrono_sensor/ChIMUSensor.h"
 #include "chrono_sensor/ChNoiseModel.h"
 #include "chrono_sensor/utils/ChGPSUtils.h"
+#include "chrono_sensor/ChIMUSensor.h"
 
 #include <chrono>
 
 namespace chrono {
 namespace sensor {
 
-// ChFilterIMUUpdate::ChFilterIMUUpdate(std::shared_ptr<ChNoiseModel> noise_model)
-//     : m_noise_model(noise_model), ChFilter("IMU Updater") {}
-
 ChFilterAccelerometerUpdate::ChFilterAccelerometerUpdate(std::shared_ptr<ChNoiseModel> noise_model)
     : m_noise_model(noise_model), ChFilter("Accelerometer Updater") {}
 
-ChFilterGyroscopeUpdate::ChFilterGyroscopeUpdate(std::shared_ptr<ChNoiseModel> noise_model)
-    : m_noise_model(noise_model), ChFilter("Gyroscope Updater") {}
-
-ChFilterMagnetometerUpdate::ChFilterMagnetometerUpdate(std::shared_ptr<ChNoiseModel> noise_model,
-                                                       ChVector<double> gps_reference)
-    : m_noise_model(noise_model), ChFilter("Magnetometer Updater"), m_gps_reference(gps_reference) {}
-
-CH_SENSOR_API void ChFilterAccelerometerUpdate::Apply(std::shared_ptr<ChSensor> pSensor,
-                                                      std::shared_ptr<SensorBuffer>& bufferInOut) {
-    // this filter is presumed to be the first filter in a sensor's filter list, so the bufferIn should be null.
-    assert(bufferInOut == nullptr);
-
-    auto pAcc = std::dynamic_pointer_cast<ChAccelerometerSensor>(pSensor);
-    if (!pAcc) {
-        throw std::runtime_error("Accelerometer Update filter can only be used on an accelerometer\n");
-    }
-
+CH_SENSOR_API void ChFilterAccelerometerUpdate::Apply() {
     // default sensor values
     ChVector<double> acc = {0, 0, 0};
 
-    if (pAcc->m_keyframes.size() > 0) {
-        for (auto c : pAcc->m_keyframes) {
+    if (m_accSensor->m_keyframes.size() > 0) {
+        for (auto c : m_accSensor->m_keyframes) {
             acc += c;
         }
-        acc /= (float)(pAcc->m_keyframes.size());
+        acc /= (float)(m_accSensor->m_keyframes.size());
     }
 
     if (m_noise_model) {
         m_noise_model->AddNoise(acc);
     }
 
-    if (!m_buffer) {
-        m_buffer = chrono_types::make_shared<SensorHostAccelBuffer>();
-        m_buffer->Buffer = std::make_unique<AccelData[]>(1);
-        m_buffer->Width = m_buffer->Height = 1;
-    }
-
     // load IMU data
-    m_buffer->Buffer[0].X = acc.x();
-    m_buffer->Buffer[0].Y = acc.y();
-    m_buffer->Buffer[0].Z = acc.z();
+    m_bufferOut->Buffer[0].X = acc.x();
+    m_bufferOut->Buffer[0].Y = acc.y();
+    m_bufferOut->Buffer[0].Z = acc.z();
 
-    m_buffer->LaunchedCount = pSensor->GetNumLaunches();
-    m_buffer->TimeStamp = (float)pSensor->GetParent()->GetSystem()->GetChTime();
-
-    bufferInOut = m_buffer;
+    m_bufferOut->LaunchedCount = m_accSensor->GetNumLaunches();
+    m_bufferOut->TimeStamp = (float)m_accSensor->GetParent()->GetSystem()->GetChTime();
 }
 
-CH_SENSOR_API void ChFilterGyroscopeUpdate::Apply(std::shared_ptr<ChSensor> pSensor,
-                                                  std::shared_ptr<SensorBuffer>& bufferInOut) {
-    // this filter is presumed to be the first filter in a sensor's filter list, so the bufferIn should be null.
-    assert(bufferInOut == nullptr);
-
-    auto pGyr = std::dynamic_pointer_cast<ChGyroscopeSensor>(pSensor);
-    if (!pGyr) {
-        throw std::runtime_error("Accelerometer Update filter can only be used on a gyroscope\n");
+CH_SENSOR_API void ChFilterAccelerometerUpdate::Initialize(std::shared_ptr<ChSensor> pSensor,
+                                                           std::shared_ptr<SensorBuffer>& bufferInOut) {
+    if (bufferInOut) {
+        throw std::runtime_error("Accelerometer update filter must be applied first in filter graph");
+    }
+    m_accSensor = std::dynamic_pointer_cast<ChAccelerometerSensor>(pSensor);
+    if (!m_accSensor) {
+        throw std::runtime_error("Accelerometer Update filter can only be used on an accelerometer\n");
     }
 
+    m_bufferOut = chrono_types::make_shared<SensorHostAccelBuffer>();
+    m_bufferOut->Buffer = std::make_unique<AccelData[]>(1);
+    m_bufferOut->Width = m_bufferOut->Height = 1;
+    m_bufferOut->LaunchedCount = m_accSensor->GetNumLaunches();
+    m_bufferOut->TimeStamp = 0.f;
+
+    bufferInOut = m_bufferOut;
+}
+
+ChFilterGyroscopeUpdate::ChFilterGyroscopeUpdate(std::shared_ptr<ChNoiseModel> noise_model)
+    : m_noise_model(noise_model), ChFilter("Gyroscope Updater") {}
+
+CH_SENSOR_API void ChFilterGyroscopeUpdate::Apply() {
     // default sensor values
     ChVector<double> ang_vel = {0, 0, 0};
 
-    if (pGyr->m_keyframes.size() > 0) {
-        for (auto c : pGyr->m_keyframes) {
+    if (m_gyroSensor->m_keyframes.size() > 0) {
+        for (auto c : m_gyroSensor->m_keyframes) {
             ang_vel += c;
         }
-        ang_vel = ang_vel / (double)(pGyr->m_keyframes.size());
+        ang_vel = ang_vel / (double)(m_gyroSensor->m_keyframes.size());
     }
 
     if (m_noise_model) {
         m_noise_model->AddNoise(ang_vel);
     }
 
-    if (!m_buffer) {
-        m_buffer = chrono_types::make_shared<SensorHostGyroBuffer>();
-        m_buffer->Buffer = std::make_unique<GyroData[]>(1);
-        m_buffer->Width = m_buffer->Height = 1;
-    }
-
     // load IMU data
-    m_buffer->Buffer[0].Roll = ang_vel.x();
-    m_buffer->Buffer[0].Pitch = ang_vel.y();
-    m_buffer->Buffer[0].Yaw = ang_vel.z();
-
-    m_buffer->LaunchedCount = pSensor->GetNumLaunches();
-    m_buffer->TimeStamp = (float)pSensor->GetParent()->GetSystem()->GetChTime();
-
-    bufferInOut = m_buffer;
+    m_bufferOut->Buffer[0].Roll = ang_vel.x();
+    m_bufferOut->Buffer[0].Pitch = ang_vel.y();
+    m_bufferOut->Buffer[0].Yaw = ang_vel.z();
+    m_bufferOut->LaunchedCount = m_gyroSensor->GetNumLaunches();
+    m_bufferOut->TimeStamp = (float)m_gyroSensor->GetParent()->GetSystem()->GetChTime();
 }
 
-CH_SENSOR_API void ChFilterMagnetometerUpdate::Apply(std::shared_ptr<ChSensor> pSensor,
-                                                     std::shared_ptr<SensorBuffer>& bufferInOut) {
-    // this filter is presumed to be the first filter in a sensor's filter list, so the bufferIn should be null.
-    assert(bufferInOut == nullptr);
-
-    auto pMag = std::dynamic_pointer_cast<ChMagnetometerSensor>(pSensor);
-    if (!pMag) {
-        throw std::runtime_error("Accelerometer Update filter can only be used on a magnetometer\n");
+CH_SENSOR_API void ChFilterGyroscopeUpdate::Initialize(std::shared_ptr<ChSensor> pSensor,
+                                                       std::shared_ptr<SensorBuffer>& bufferInOut) {
+    if (bufferInOut) {
+        throw std::runtime_error("Gyroscope update filter must be applied first in filter graph");
     }
 
+    m_gyroSensor = std::dynamic_pointer_cast<ChGyroscopeSensor>(pSensor);
+    if (!m_gyroSensor) {
+        throw std::runtime_error("Gyroscope update filter can only be used on a gyroscope\n");
+    }
+
+    m_bufferOut = chrono_types::make_shared<SensorHostGyroBuffer>();
+    m_bufferOut->Buffer = std::make_unique<GyroData[]>(1);
+    m_bufferOut->Width = m_bufferOut->Height = 1;
+    m_bufferOut->LaunchedCount = m_gyroSensor->GetNumLaunches();
+    m_bufferOut->TimeStamp = 0.f;
+    bufferInOut = m_bufferOut;
+}
+
+ChFilterMagnetometerUpdate::ChFilterMagnetometerUpdate(std::shared_ptr<ChNoiseModel> noise_model,
+                                                       ChVector<double> gps_reference)
+    : m_noise_model(noise_model), ChFilter("Magnetometer Updater"), m_gps_reference(gps_reference) {}
+
+CH_SENSOR_API void ChFilterMagnetometerUpdate::Apply() {
     // default sensor values
     ChVector<double> pos = {0, 0, 0};
-    if (pMag->m_keyframes.size() > 0) {
-        for (auto c : pMag->m_keyframes) {
+    if (m_magSensor->m_keyframes.size() > 0) {
+        for (auto c : m_magSensor->m_keyframes) {
             pos += c.GetPos();
         }
-        pos = pos / (float)(pMag->m_keyframes.size());
-    }
-
-    if (!m_buffer) {
-        m_buffer = chrono_types::make_shared<SensorHostMagnetBuffer>();
-        m_buffer->Buffer = std::make_unique<MagnetData[]>(1);
-        m_buffer->Width = m_buffer->Height = 1;
+        pos = pos / (float)(m_magSensor->m_keyframes.size());
     }
 
     Cartesian2GPS(pos, m_gps_reference);
@@ -170,22 +155,39 @@ CH_SENSOR_API void ChFilterMagnetometerUpdate::Apply(std::shared_ptr<ChSensor> p
 
     double ang;
     ChVector<double> axis;
-    pMag->m_keyframes[0].GetRot().Q_to_AngAxis(ang, axis);
-    ChVector<double> mag_field_sensor = pMag->m_keyframes[0].GetRot().Rotate(mag_field);
+    m_magSensor->m_keyframes[0].GetRot().Q_to_AngAxis(ang, axis);
+    ChVector<double> mag_field_sensor = m_magSensor->m_keyframes[0].GetRot().Rotate(mag_field);
 
     if (m_noise_model) {
         m_noise_model->AddNoise(mag_field_sensor);
     }
 
     // pack magnetometer data
-    m_buffer->Buffer[0].X = mag_field_sensor.x();  // units of Gauss
-    m_buffer->Buffer[0].Y = mag_field_sensor.y();  // units of Gauss
-    m_buffer->Buffer[0].Z = mag_field_sensor.z();  // units of Gauss
+    m_bufferOut->Buffer[0].X = mag_field_sensor.x();  // units of Gauss
+    m_bufferOut->Buffer[0].Y = mag_field_sensor.y();  // units of Gauss
+    m_bufferOut->Buffer[0].Z = mag_field_sensor.z();  // units of Gauss
+    m_bufferOut->LaunchedCount = m_magSensor->GetNumLaunches();
+    m_bufferOut->TimeStamp = (float)m_magSensor->GetParent()->GetSystem()->GetChTime();
+}
 
-    m_buffer->LaunchedCount = pSensor->GetNumLaunches();
-    m_buffer->TimeStamp = (float)pSensor->GetParent()->GetSystem()->GetChTime();
+CH_SENSOR_API void ChFilterMagnetometerUpdate::Initialize(std::shared_ptr<ChSensor> pSensor,
+                                                          std::shared_ptr<SensorBuffer>& bufferInOut) {
+    if (bufferInOut) {
+        throw std::runtime_error("Magenetometer update filter must be applied first in filter graph");
+    }
 
-    bufferInOut = m_buffer;
+    m_magSensor = std::dynamic_pointer_cast<ChMagnetometerSensor>(pSensor);
+    if (!m_magSensor) {
+        throw std::runtime_error("Magnetometer update filter can only be used on a magnetometer\n");
+    }
+
+    m_bufferOut = chrono_types::make_shared<SensorHostMagnetBuffer>();
+    m_bufferOut->Buffer = std::make_unique<MagnetData[]>(1);
+    m_bufferOut->Width = m_bufferOut->Height = 1;
+    m_bufferOut->LaunchedCount = m_magSensor->GetNumLaunches();
+    m_bufferOut->TimeStamp = 0.f;
+
+    bufferInOut = m_bufferOut;
 }
 
 }  // namespace sensor

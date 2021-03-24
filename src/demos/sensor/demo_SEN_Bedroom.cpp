@@ -53,7 +53,7 @@ NoiseModel noise_model = PIXEL_DEPENDENT;
 
 // Camera lens model
 // Either PINHOLE or SPHERICAL
-CameraLensModelType lens_model = PINHOLE;
+CameraLensModelType lens_model = CameraLensModelType::PINHOLE;
 
 // Update rate in Hz
 float update_rate = 30;
@@ -94,113 +94,153 @@ const std::string out_dir = "SENSOR_OUTPUT/";
 
 int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2020 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
-    // double x_ax = atof(argv[1]);
-    // double y_ax = atof(argv[2]);
-    // double z_ax = atof(argv[3]);
+
     // -----------------
     // Create the system
     // -----------------
     ChSystemNSC mphysicalSystem;
 
     // ---------------------------------------
-    // add a mesh to be visualized by a camera
+    // add set of boxes to be visualized by camera
     // ---------------------------------------
-    auto mmesh = chrono_types::make_shared<ChTriangleMeshConnected>();
-    // mmesh->LoadWavefrontMesh("C:/Users/15647/Documents/Chrono/3Dmodels/Highway/Highway_vis.obj", true, true);
-    mmesh->LoadWavefrontMesh(GetChronoDataFile("sensor/geometries/box.obj"), false, true);
-    // mmesh->Transform(ChVector<>(0, 0, 0), ChMatrix33<>(2));  // scale to a different size
-    // mmesh->Transform(ChVector<>(0, 0, 15), ChMatrix33<>(CH_C_PI_2, {1,0,0}));
 
-    auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
-    trimesh_shape->SetMesh(mmesh);
-    trimesh_shape->SetName("Room");
-    trimesh_shape->SetStatic(true);
+    auto red = chrono_types::make_shared<ChVisualMaterial>();
+    red->SetDiffuseColor({1, 0, 0});
+    red->SetSpecularColor({1.f, 1.f, 1.f});
 
-    auto mesh_body = chrono_types::make_shared<ChBody>();
-    mesh_body->SetPos({0, 0, 0});
-    mesh_body->AddAsset(trimesh_shape);
-    mesh_body->SetBodyFixed(true);
-    mphysicalSystem.Add(mesh_body);
+    auto green = chrono_types::make_shared<ChVisualMaterial>();
+    green->SetDiffuseColor({0, 1, 0});
+    green->SetSpecularColor({1.f, 1.f, 1.f});
 
-    // auto box_body = chrono_types::make_shared<ChBodyEasyBox>(1, 1, 1, 1000, true, false);
-    // // auto box_body = chrono_types::make_shared<ChBodyEasySphere>(.5, 1000, true, false);
-    // // auto box_body = chrono_types::make_shared<ChBodyEasyCylinder>(.25, 1, 1000, true, false);
-    // box_body->SetPos({0, 0, 2});
-    // box_body->SetBodyFixed(true);
-    // mphysicalSystem.Add(box_body);
+    auto grey = chrono_types::make_shared<ChVisualMaterial>();
+    grey->SetDiffuseColor({.5, .5, .5});
+    grey->SetSpecularColor({.5f, .5f, .5f});
 
-    auto ground_body = chrono_types::make_shared<ChBodyEasyBox>(1, 1, 1, 1000, false, false);
-    ground_body->SetPos({0, 0, 0});
-    ground_body->SetBodyFixed(true);
-    mphysicalSystem.Add(ground_body);
+    auto floor = chrono_types::make_shared<ChBodyEasyBox>(4, 4, .1, 1000, true, false);
+    floor->SetPos({0, 0, 0});
+    floor->SetBodyFixed(true);
+    mphysicalSystem.Add(floor);
+    {
+        auto asset = floor->GetAssets()[0];
+        if (auto visual_asset = std::dynamic_pointer_cast<ChVisualization>(asset)) {
+            visual_asset->material_list.push_back(grey);
+        }
+    }
+
+    auto ceiling = chrono_types::make_shared<ChBodyEasyBox>(4, 4, .1, 1000, true, false);
+    ceiling->SetPos({0, 0, 4});
+    ceiling->SetBodyFixed(true);
+    mphysicalSystem.Add(ceiling);
+    {
+        auto asset = ceiling->GetAssets()[0];
+        if (auto visual_asset = std::dynamic_pointer_cast<ChVisualization>(asset)) {
+            visual_asset->material_list.push_back(grey);
+        }
+    }
+
+    auto left_wall = chrono_types::make_shared<ChBodyEasyBox>(4, .1, 4, 1000, true, false);
+    left_wall->SetPos({0, 2, 2});
+    left_wall->SetBodyFixed(true);
+    mphysicalSystem.Add(left_wall);
+    {
+        auto asset = left_wall->GetAssets()[0];
+        if (auto visual_asset = std::dynamic_pointer_cast<ChVisualization>(asset)) {
+            visual_asset->material_list.push_back(red);
+        }
+    }
+
+    auto right_wall = chrono_types::make_shared<ChBodyEasyBox>(4, .1, 4, 1000, true, false);
+    right_wall->SetPos({0, -2, 2});
+    right_wall->SetBodyFixed(true);
+    mphysicalSystem.Add(right_wall);
+    {
+        auto asset = right_wall->GetAssets()[0];
+        if (auto visual_asset = std::dynamic_pointer_cast<ChVisualization>(asset)) {
+            visual_asset->material_list.push_back(green);
+        }
+    }
+
+    auto back_wall = chrono_types::make_shared<ChBodyEasyBox>(.1, 4, 4, 1000, true, false);
+    back_wall->SetPos({2, 0, 2});
+    back_wall->SetBodyFixed(true);
+    mphysicalSystem.Add(back_wall);
+    {
+        auto asset = back_wall->GetAssets()[0];
+        if (auto visual_asset = std::dynamic_pointer_cast<ChVisualization>(asset)) {
+            visual_asset->material_list.push_back(grey);
+        }
+    }
+
+    double box1_height = 2.5;
+    auto box1 = chrono_types::make_shared<ChBodyEasyBox>(1, 1, box1_height, 1000, true, false);
+    box1->SetPos({.75, .75, box1_height / 2});
+    box1->SetRot(Q_from_AngZ(CH_C_PI / 3));
+    box1->SetBodyFixed(true);
+    mphysicalSystem.Add(box1);
+    {
+        auto asset = box1->GetAssets()[0];
+        if (auto visual_asset = std::dynamic_pointer_cast<ChVisualization>(asset)) {
+            visual_asset->material_list.push_back(grey);
+        }
+    }
+
+    double box2_height = 1.5;
+    auto box2 = chrono_types::make_shared<ChBodyEasyBox>(1, 1, box2_height, 1000, true, false);
+    box2->SetPos({-.75, -.75, box2_height / 2});
+    box2->SetRot(Q_from_AngZ(-CH_C_PI / 3));
+    box2->SetBodyFixed(true);
+    mphysicalSystem.Add(box2);
+    {
+        auto asset = box2->GetAssets()[0];
+        if (auto visual_asset = std::dynamic_pointer_cast<ChVisualization>(asset)) {
+            visual_asset->material_list.push_back(grey);
+        }
+    }
 
     // -----------------------
     // Create a sensor manager
     // -----------------------
-    float intensity = 1;
     auto manager = chrono_types::make_shared<ChSensorManager>(&mphysicalSystem);
-    // manager->scene->AddPointLight({2, 2.5, 100}, {2, 1.8902, 1.7568}, 1500);
-    // manager->scene->AddPointLight({9, 2.5, 100}, {2, 1.8902, 1.7568}, 1500);
-    manager->scene->AddPointLight({0.0, 0.0, 3.8}, {2, 1.8902, 1.7568}, 3);
-
-    // manager->scene->AddPointLight({0.0, 0.0, 100}, {2, 1.8902, 1.7568}, 10000);
-    // manager->scene->AddPointLight({x_ax, y_ax, z_ax}, {intensity, intensity, intensity}, 10000);
-
-    // manager->scene->AddPointLight({.2, 0, 1.0}, {intensity * 3, intensity * 3, intensity * 3}, 50);
+    manager->scene->AddPointLight({0.0, 0.0, 3.8}, {2, 1.8902, 1.7568}, 5);
 
     // -------------------------------------------------------
-    // Create a second camera and add it to the sensor manager
+    // Create a camera and add it to the sensor manager
     // -------------------------------------------------------
-    ChQuaternion<> rotation = QUNIT;
-    // Highway
-    // ChQuaternion<> qA = Q_from_AngAxis(30 * CH_C_DEG_TO_RAD, VECT_Y);
-    // ChQuaternion<> qB = Q_from_AngAxis(135 * CH_C_DEG_TO_RAD, VECT_Z);
+    chrono::ChFrame<double> offset_pose2({-7, 0, 2}, QUNIT);
+    auto cam = chrono_types::make_shared<ChCameraSensor>(floor,         // body camera is attached to
+                                                         update_rate,   // update rate in Hz
+                                                         offset_pose2,  // offset pose
+                                                         image_width,   // image width
+                                                         image_height,  // image height
+                                                         fov,           // camera's horizontal field of view
+                                                         alias_factor,  // supersample factor for antialiasing
+                                                         lens_model,    // FOV
+                                                         true);         // use global illumination or not
+    cam->SetName("Antialiasing Camera Sensor");
+    cam->SetLag(lag);
+    cam->SetCollectionWindow(exposure_time);
+    if (vis)
+        cam->PushFilter(chrono_types::make_shared<ChFilterVisualize>(image_width, image_height, "Antialiased Image"));
+    if (save)
+        cam->PushFilter(chrono_types::make_shared<ChFilterSave>(out_dir + "bedroom/"));
+    manager->AddSensor(cam);
 
-    // bedroom 
-    // ChQuaternion<> qA = Q_from_AngAxis(CH_C_PI_2, {0, 1, 0});
-    // ChQuaternion<> qB =  Q_from_AngAxis(CH_C_PI_2, {0, 0, 1});
-
-    //Box
-    ChQuaternion<> qB = Q_from_AngAxis(90 * CH_C_DEG_TO_RAD, VECT_Z);
-
-    // city street
-    // ChQuaternion<> qA = Q_from_AngAxis(CH_C_PI_2, {0, 1, 0});
-    // ChQuaternion<> qB = Q_from_AngAxis(CH_C_PI_2, {0, 1, 0});
-    // ChQuaternion<> qC = Q_from_AngAxis(CH_C_PI, {0, 1, 0});
-
-    // rotation = rotation >> qA >> qB >> qC;
-
-    rotation = rotation >>  qB;
-    // bedroom 
-    // chrono::ChFrame<double> offset_pose2({1, 2, 0}, rotation);
-    // Highway
-    // chrono::ChFrame<double> offset_pose2({20, -40, 15}, rotation);
-    // Box
-    chrono::ChFrame<double> offset_pose2({0, -7, 2}, rotation);
-    auto cam2 = chrono_types::make_shared<ChCameraSensor>(ground_body,   // body camera is attached to
+    auto cam2 = chrono_types::make_shared<ChCameraSensor>(floor,         // body camera is attached to
                                                           update_rate,   // update rate in Hz
                                                           offset_pose2,  // offset pose
                                                           image_width,   // image width
                                                           image_height,  // image height
                                                           fov,           // camera's horizontal field of view
                                                           alias_factor,  // supersample factor for antialiasing
-                                                          lens_model, true);   // FOV
+                                                          lens_model,    // FOV
+                                                          false);        // use global illumination or not
     cam2->SetName("Antialiasing Camera Sensor");
     cam2->SetLag(lag);
     cam2->SetCollectionWindow(exposure_time);
-
-    // Render the antialiased image
     if (vis)
         cam2->PushFilter(chrono_types::make_shared<ChFilterVisualize>(image_width, image_height, "Antialiased Image"));
-
-    // Save the antialiased image
     if (save)
         cam2->PushFilter(chrono_types::make_shared<ChFilterSave>(out_dir + "bedroom/"));
-
-    // Provide the host access to the RGBA8 buffer
-    // cam2->PushFilter(chrono_types::make_shared<ChFilterRGBA8Access>());
-
-    // Add the second camera to the sensor manager
     manager->AddSensor(cam2);
 
     // ---------------
@@ -214,64 +254,7 @@ int main(int argc, char* argv[]) {
 
     std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
 
-    UserRGBA8BufferPtr rgba8_ptr;
-    UserR8BufferPtr r8_ptr;
-    int num_cam2_updates = 0;
-
     while (ch_time < end_time) {
-        // Rotate the cameras around the mesh at a fixed rate
-
-        // mesh_body->SetRot(Q_from_AngAxis(ch_time * orbit_rate, {0, 0, 1}));
-        // box_body->SetRot(Q_from_AngAxis(ch_time * orbit_rate, {0, 0, 1}));
-        // box_body->SetPos({sin(ch_time * orbit_rate), 0, 0});
-
-        // cam2->SetOffsetPose(chrono::ChFrame<double>(
-        //     {-orbit_radius * cos(ch_time * orbit_rate), -orbit_radius * sin(ch_time * orbit_rate), 2},
-        //     Q_from_AngAxis(ch_time * orbit_rate, {0, 0, 1})));
-
-        // Access the RGBA8 buffer from the first camera
-        // rgba8_ptr = cam->GetMostRecentBuffer<UserRGBA8BufferPtr>();
-        // if (rgba8_ptr->Buffer) {
-        //     std::cout << "RGBA8 buffer recieved from cam. Camera resolution: " << rgba8_ptr->Width << "x"
-        //               << rgba8_ptr->Height << ", frame= " << rgba8_ptr->LaunchedCount << ", t=" <<
-        //               rgba8_ptr->TimeStamp
-        //               << std::endl
-        //               << std::endl;
-        // }
-        //
-        // // Access the R8 buffer from the first camera
-        // r8_ptr = cam->GetMostRecentBuffer<UserR8BufferPtr>();
-        // if (r8_ptr->Buffer) {
-        //     // Calculate the average gray value in the buffer
-        //     unsigned int height = r8_ptr->Height;
-        //     unsigned int width = r8_ptr->Width;
-        //     uint8_t running_total = 0;
-        //     for (int i = 0; i < height; i++) {
-        //         for (int j = 0; j < width; j++) {
-        //             running_total += uint8_t(r8_ptr->Buffer[i * width + j]);
-        //         }
-        //     }
-        //     std::cout << "Average gray value: " << int(running_total) / double(height * width) << std::endl
-        //               << std::endl;
-        // }
-        //
-        // // Access the RGBA8 buffer from the second camera
-        // rgba8_ptr = cam2->GetMostRecentBuffer<UserRGBA8BufferPtr>();
-        // if (rgba8_ptr->Buffer) {
-        //     // Retreive and print the first RGBA pixel
-        //     PixelRGBA8 first_pixel = rgba8_ptr->Buffer[0];
-        //     std::cout << "First Pixel: [ " << unsigned(first_pixel.R) << ", " << unsigned(first_pixel.G) << ", "
-        //               << unsigned(first_pixel.B) << ", " << unsigned(first_pixel.A) << " ]" << std::endl
-        //               << std::endl;
-        //
-        //     // Retreive and print the last RGBA pixel
-        //     int buffer_length = rgba8_ptr->Height * rgba8_ptr->Width;
-        //     PixelRGBA8 last_pixel = rgba8_ptr->Buffer[buffer_length - 1];
-        //     std::cout << "Last Pixel: [ " << unsigned(last_pixel.R) << ", " << unsigned(last_pixel.G) << ", "
-        //               << unsigned(last_pixel.B) << ", " << unsigned(last_pixel.A) << " ]" << std::endl
-        //               << std::endl;
-        // }
-
         // Update sensor manager
         // Will render/save/filter automatically
         manager->Update();

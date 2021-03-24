@@ -27,13 +27,6 @@ namespace sensor {
 /// @addtogroup sensor_sensors
 /// @{
 
-/// Lidar model type. Currently supports a ray cast model that does not include material properties.
-// enum struct LidarModelType : unsigned int {
-//     RAYCAST  ///< Beams are raycast in the environment with no bounces
-// };           // TODO: implement PATH_TRACE, material properties
-
-enum class LidarModelType { RAYCAST };
-
 /// Lidar return mode when multiple objects are seen. Currently supported: strongest return (default), and mean return
 /// which averages all returned intensity and distance measurement data
 enum class LidarReturnMode {
@@ -41,19 +34,8 @@ enum class LidarReturnMode {
     MEAN_RETURN,       ///< average beam range
     FIRST_RETURN,      ///< shortest beam range
     LAST_RETURN,       ///< longest beam range
-    DUAL_RETURN        ///< shortest range and strongest beam
+    DUAL_RETURN        ///< first and strongest returns
 };
-
-// struct LidarReturnMode
-// {
-// 	enum Type
-// 	{
-//     STRONGEST_RETURN,  ///< range at peak intensity
-//     MEAN_RETURN,       ///< average beam range
-//     FIRST_RETURN,      ///< shorted beam range
-//     LAST_RETURN        ///< longest beam range
-// 	};
-// };
 
 /// Lidar class. This corresponds to a scanning lidar.
 class CH_SENSOR_API ChLidarSensor : public ChOptixSensor {
@@ -72,7 +54,6 @@ class CH_SENSOR_API ChLidarSensor : public ChOptixSensor {
     /// @param vert_divergence_angle The vertical divergence angle of the lidar's laser beam
     /// @param hori_divergence_angle The horizontal divergence angle of the lidar's laser beam
     /// @param return_mode The return mode for lidar data when multiple objects are visible
-    /// @param lidar_model The model to be used for generating lidar data
     /// @param clip_near Near clipping distance so that lidar sensor can be easily placed inside a visualization object
     /// (sensor housing)
 
@@ -85,12 +66,11 @@ class CH_SENSOR_API ChLidarSensor : public ChOptixSensor {
                   float max_vertical_angle,
                   float min_vertical_angle,
                   float max_distance,
-                  std::string beam_shape = "ellipse",
+                  LidarBeamShape beam_shape = LidarBeamShape::RECTANGULAR,
                   unsigned int sample_radius = 1,
                   float vert_divergence_angle = .003f,
                   float hori_divergence_angle = .003f,
-                  LidarReturnMode return_mode = LidarReturnMode::STRONGEST_RETURN,
-                  LidarModelType lidar_model = LidarModelType::RAYCAST,
+                  LidarReturnMode return_mode = LidarReturnMode::MEAN_RETURN,
                   float clip_near = 1e-3f);
 
     /// Class destructor
@@ -109,9 +89,29 @@ class CH_SENSOR_API ChLidarSensor : public ChOptixSensor {
     /// @return The angle of the lowest ray
     float GetMinVertAngle() const { return m_min_vert_angle; }
 
-    /// Returns the model type being used by the lidar for generating data.
-    /// @return The type of model that is being used for generating lidar data
-    LidarModelType GetModelType() const { return m_model_type; }
+    /// Returns the maximum range of the lidar
+    /// @return The maximum distance for the lidar
+    float GetMaxDistance() const { return m_max_distance; }
+
+    /// Returns the near clipping distance
+    /// @return the near clipping distance
+    float GetClipNear() const { return m_clip_near; }
+
+    /// Returns the beam cross section shape
+    /// @return the beam cross section shape
+    LidarBeamShape GetBeamShape() const { return m_beam_shape; }
+
+    /// Returns the beam sample radius
+    /// @return the beam sample radius
+    float GetSampleRadius() const { return m_sample_radius; }
+
+    /// Returns the horizontal beam divergence angle
+    /// @return the horizontal beam divergence angle
+    float GetHorizDivAngle() const { return m_hori_divergence_angle; }
+
+    /// Returns the vertical beam divergence angle
+    /// @return the vertical beam divergence angle
+    float GetVertDivAngle() const { return m_vert_divergence_angle; }
 
     bool DualReturnFlag() const {
       switch (m_return_mode){
@@ -129,9 +129,8 @@ class CH_SENSOR_API ChLidarSensor : public ChOptixSensor {
     float m_max_vert_angle;         ///< maximum vertical angle of the rays
     float m_min_vert_angle;         ///< minimum vertical angle of the rays
     float m_max_distance;           ///< maximum distance for lidar based on 90% reflectance
-    LidarModelType m_model_type;    ///< lens model used by the camera
     unsigned int m_sample_radius;   ///< radius of the beam samples
-    int m_beam_shape;               ///< lidar beam shape
+    LidarBeamShape m_beam_shape;    ///< lidar beam shape
     float m_vert_divergence_angle;  ///< vertical divergence angle of the beam
     float m_hori_divergence_angle;  ///< horizontal divergence angle of the beam
     LidarReturnMode m_return_mode;  ///< return mode of the lidar

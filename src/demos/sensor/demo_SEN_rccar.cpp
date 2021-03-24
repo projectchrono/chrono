@@ -251,10 +251,12 @@ int main(int argc, char* argv[]) {
     manager->scene->AddPointLight({100, 100, 100}, {1, 1, 1}, 500);
     manager->scene->AddPointLight({-100, 100, 100}, {1, 1, 1}, 500);
 
-    // set environment map
-    manager->scene->GetBackground().has_texture = true;
-    manager->scene->GetBackground().env_tex = "sensor/textures/cloud_layers_8k.hdr";
-    manager->scene->GetBackground().has_changed = true;
+    // set background
+    Background b;
+    b.mode = BackgroundMode::GRADIENT;
+    b.color_horizon = {.6, .7, .8};
+    b.color_zenith = {.4, .5, .6};
+    manager->scene->SetBackground(b);
 
     auto cam1 = chrono_types::make_shared<chrono::sensor::ChCameraSensor>(
         my_rccar.GetChassisBody(),                                           // body camera is attached to

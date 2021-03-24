@@ -132,8 +132,6 @@ def main():
     # ---------------------------------------------
     manager = sens.ChSensorManager(my_hmmwv.GetSystem())
     manager.scene.AddPointLight(chrono.ChVectorF(0, 0, 100), chrono.ChVectorF(2, 2, 2), 5000)
-    manager.SetKeyframeSizeFromTimeStep(.001,1/5)
-
     # ------------------------------------------------
     # Create a camera and add it to the sensor manager
     # ------------------------------------------------
@@ -169,7 +167,7 @@ def main():
     # Create an IMU sensor and add it to the manager
     # ----------------------------------------------
     offset_pose = chrono.ChFrameD(chrono.ChVectorD(-8, 0, 1), chrono.Q_from_AngAxis(0, chrono.ChVectorD(0, 1, 0)))
-    imu = sens.ChIMUSensor(my_hmmwv.GetChassisBody(),                     # body imu is attached to
+    imu = sens.ChAccelerometerSensor(my_hmmwv.GetChassisBody(),                     # body imu is attached to
                            imu_update_rate,         # update rate in Hz
                            offset_pose,             # offset pose
                            imu_noise_none          # noise model
@@ -179,7 +177,7 @@ def main():
     imu.SetCollectionWindow(imu_collection_time);
 
     # Provides the host access to the imu data
-    imu.PushFilter(sens.ChFilterIMUAccess())
+    imu.PushFilter(sens.ChFilterAccelAccess())
 
     # Add the imu to the sensor manager
     manager.AddSensor(imu)
@@ -285,8 +283,8 @@ gps_reference = chrono.ChVectorD(-89.400, 43.070, 260.0)
 
 # IMU and GPS noise models
 # Setting to none (does not affect the data)
-imu_noise_none = sens.ChIMUNoiseNone()
-gps_noise_none = sens.ChGPSNoiseNone()
+imu_noise_none = sens.ChNoiseNone()
+gps_noise_none = sens.ChNoiseNone()
 
 # ------------------
 # Vehicle parameters
@@ -310,16 +308,16 @@ wheel_vis_type = veh.VisualizationType_MESH
 tire_vis_type = veh.VisualizationType_MESH
 
 # Collision type for chassis (PRIMITIVES, MESH, or NONE)
-chassis_collision_type = veh.ChassisCollisionType_NONE
+chassis_collision_type = veh.CollisionType_NONE
 
 # Type of powertrain model (SHAFTS, SIMPLE)
 powertrain_model = veh.PowertrainModelType_SHAFTS
 
 # Drive type (FWD, RWD, or AWD)
-drive_type = veh.DrivelineType_AWD
+drive_type = veh.DrivelineTypeWV_AWD
 
 # Steering type (PITMAN_ARM or PITMAN_ARM_SHAFTS)
-steering_type = veh.SteeringType_PITMAN_ARM
+steering_type = veh.SteeringTypeWV_PITMAN_ARM
 
 # Type of tire model (RIGID, RIGID_MESH, PACEJKA, LUGRE, FIALA, PAC89)
 tire_model = veh.TireModelType_TMEASY

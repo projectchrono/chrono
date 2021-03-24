@@ -84,7 +84,7 @@ int main(int argc, char* argv[]) {
         1,                                                                 // number of horizontal samples
         1,                                                                 // number of vertical channels
         1,                                                                 // horizontal field of view
-        0, 0, 100, "rectangle"                                             // vertical field of view
+        0, 0, 100, LidarBeamShape::RECTANGULAR                             // vertical field of view
     );
     lidar1->SetName("Lidar Sensor");
     lidar1->PushFilter(std::make_shared<ChFilterDIAccess>());
@@ -97,16 +97,15 @@ int main(int argc, char* argv[]) {
         1,                                                                 // number of horizontal samples
         1,                                                                 // number of vertical channels
         1.f,                                                               // horizontal field of view
-        0.f, 0.f, 100.f, "rectangle",                                      // vertical field of view
-        10,                                 // radius of samples to use, 1->1 sample,2->9 samples, 3->25 samples...
-        .003f, .003f,                       // 3 mradius cited by velodyne
-        LidarReturnMode::STRONGEST_RETURN,  // return mode for the lidar
-        LidarModelType::RAYCAST             // method/model to use for generating data
+        0.f, 0.f, 100.f, LidarBeamShape::RECTANGULAR,                      // vertical field of view
+        10,                                // radius of samples to use, 1->1 sample,2->9 samples, 3->25 samples...
+        .003f, .003f,                      // 3 mradius cited by velodyne
+        LidarReturnMode::STRONGEST_RETURN  // return mode for the lidar
     );
     lidar2->SetName("Lidar Sensor");
     // lidar2->PushFilter(std::make_shared<ChFilterLidarNoiseXYZI>(.01f, .001f, .001f, .01f));
-    // lidar2->PushFilter(std::make_shared<ChFilterVisualize>(1000,100,"Raw Lidar Depth Data - reduced "));
-    // lidar2->PushFilter(std::make_shared<ChFilterDIAccess>());
+    // lidar2->PushFilter(std::make_shared<ChFilterVisualize>(1000, 100, "Raw Lidar Depth Data - reduced "));
+    lidar2->PushFilter(std::make_shared<ChFilterDIAccess>());
     manager->AddSensor(lidar2);
 
     auto lidar3 = chrono_types::make_shared<ChLidarSensor>(
@@ -116,16 +115,15 @@ int main(int argc, char* argv[]) {
         1,                                                                 // number of horizontal samples
         1,                                                                 // number of vertical channels
         1.f,                                                               // horizontal field of view
-        0.f, 0.f, 100.f, "rectangle",                                      // vertical field of view
-        5,                                  // radius of samples to use, 1->1 sample,2->9 samples, 3->25 samples...
-        .003f, .003f,                       // 3 mradius cited by velodyne
-        LidarReturnMode::STRONGEST_RETURN,  // return mode for the lidar
-        LidarModelType::RAYCAST             // method/model to use for generating data
+        0.f, 0.f, 100.f, LidarBeamShape::RECTANGULAR,                      // vertical field of view
+        5,                                 // radius of samples to use, 1->1 sample,2->9 samples, 3->25 samples...
+        .003f, .003f,                      // 3 mradius cited by velodyne
+        LidarReturnMode::STRONGEST_RETURN  // return mode for the lidar
     );
     lidar3->SetName("Lidar Sensor");
     // lidar2->PushFilter(std::make_shared<ChFilterLidarNoiseXYZI>(.01f, .001f, .001f, .01f));
-    // lidar2->PushFilter(std::make_shared<ChFilterVisualize>(1000,100,"Raw Lidar Depth Data - reduced "));
-    // lidar3->PushFilter(std::make_shared<ChFilterDIAccess>());
+    // lidar2->PushFilter(std::make_shared<ChFilterVisualize>(1000, 100, "Raw Lidar Depth Data - reduced "));
+    lidar3->PushFilter(std::make_shared<ChFilterDIAccess>());
     manager->AddSensor(lidar3);
 
     utils::CSV_writer csv(" ");
@@ -134,6 +132,7 @@ int main(int argc, char* argv[]) {
     UserDIBufferPtr data2 = lidar2->GetMostRecentBuffer<UserDIBufferPtr>();
     UserDIBufferPtr data3 = lidar3->GetMostRecentBuffer<UserDIBufferPtr>();
 
+    std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
     while (mphysicalSystem.GetChTime() < end_time) {
         // move the wall
 
@@ -167,16 +166,17 @@ int main(int argc, char* argv[]) {
                 << std::endl;
 
             first_wall->SetPos(first_wall->GetPos() + ChVector<>({0, .001, 0}));
-            std::cout << "y:" << first_wall->GetPos().y() << std::endl;
+            // std::cout << "y:" << first_wall->GetPos().y() << std::endl;
             data1->Buffer = NULL;
             data2->Buffer = NULL;
             data3->Buffer = NULL;
         }
     }
     csv.write_to_file("lidar_beam_results.csv");
-    // std::chrono::high_resolution_clock::time_point t2 = std::chrono::high_resolution_clock::now();
-    // std::chrono::duration<double> wall_time = std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1);
-    // std::cout << "Simulation time: " << ch_time << "s, wall time: " << wall_time.count() << "s.\n";
+    std::chrono::high_resolution_clock::time_point t2 = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double> wall_time = std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1);
+    std::cout << "Simulation time: " << mphysicalSystem.GetChTime() << " seconds, wall time: " << wall_time.count()
+              << " seconds.\n";
 
     return 0;
 }

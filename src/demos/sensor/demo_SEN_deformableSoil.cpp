@@ -38,9 +38,9 @@
 #include "chrono_sensor/ChCameraSensor.h"
 #include "chrono_sensor/ChSensorManager.h"
 #include "chrono_sensor/filters/ChFilterVisualize.h"
-#include "chrono_sensor/filters/ChFilterSave.h"
+// #include "chrono_sensor/filters/ChFilterSave.h"
 #include "chrono_sensor/utils/ChVisualMaterialUtils.h"
-#include "chrono_sensor/filters/ChFilterAccess.h"
+// #include "chrono_sensor/filters/ChFilterAccess.h"
 
 using namespace chrono;
 using namespace chrono::collision;
@@ -126,10 +126,10 @@ bool img_output = false;
 float end_time = 20.0f;
 
 // Save camera images
-bool save = true;
+bool save = false;
 
 // Render camera images
-bool vis = false;
+bool vis = true;
 
 // =============================================================================
 
@@ -200,6 +200,11 @@ void CreateLuggedGeometry(std::shared_ptr<ChBody> wheel_body, std::shared_ptr<Ch
     trimesh_shape->SetName("lugged_wheel");
     trimesh_shape->SetStatic(true);
     wheel_body->AddAsset(trimesh_shape);
+
+    auto vis_mat = chrono_types::make_shared<ChVisualMaterial>();
+    vis_mat->SetDiffuseColor({.3, .3, .3});
+    vis_mat->SetSpecularColor({.1f, .1f, .1f});
+    trimesh_shape->material_list.push_back(vis_mat);
 
     auto mcolor = chrono_types::make_shared<ChColorAsset>(0.3f, 0.3f, 0.3f);
     wheel_body->AddAsset(mcolor);
@@ -273,6 +278,7 @@ int main(int argc, char* argv[]) {
                               2e8,   // Elastic stiffness (Pa/m), before plastic yield
                               3e4    // Damping (Pa s/m), proportional to negative vertical speed (optional)
     );
+    terrain.GetMesh()->SetWireframe(false);
 
     ////terrain.SetBulldozingFlow(true);      // inflate soil at the border of the rut
     ////terrain.SetBulldozingParameters(55,   // angle of friction for erosion of displaced material at rut border
@@ -335,11 +341,11 @@ int main(int argc, char* argv[]) {
     manager->scene->AddPointLight({20, 20, 30}, {intensity, intensity, intensity}, 5000);
     manager->scene->AddPointLight({-20, 20, 30}, {intensity, intensity, intensity}, 5000);
 
-
     // Set up Camera
     chrono::ChFrame<double> offset_pose1({-8, 0, 3}, Q_from_AngAxis(.2, {0, 1, 0}));
-    auto cam = chrono_types::make_shared<ChCameraSensor>(my_hmmwv.GetChassisBody(), update_rate, offset_pose1,
-                                                         image_width, image_height, fov, 1, PINHOLE, 1);
+    auto cam =
+        chrono_types::make_shared<ChCameraSensor>(my_hmmwv.GetChassisBody(), update_rate, offset_pose1, image_width,
+                                                  image_height, fov, 1, CameraLensModelType::PINHOLE, false);
     cam->SetName("Camera Sensor");
     cam->SetLag(lag);
     cam->SetCollectionWindow(exposure_time);
@@ -350,10 +356,10 @@ int main(int argc, char* argv[]) {
                                                                      int(image_height * 3 / 4), "SCM Camera"));
 
     // Provides the host access to this RGBA8_buffer
-    cam->PushFilter(chrono_types::make_shared<ChFilterRGBA8Access>());
+    // cam->PushFilter(chrono_types::make_shared<ChFilterRGBA8Access>());
 
-    if (save)
-        cam->PushFilter(chrono_types::make_shared<ChFilterSave>(sens_dir + "/cam/"));
+    // if (save)
+    //     cam->PushFilter(chrono_types::make_shared<ChFilterSave>(sens_dir + "/cam/"));
 
     // Add sensor to the manager
     manager->AddSensor(cam);

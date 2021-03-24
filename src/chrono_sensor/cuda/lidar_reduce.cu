@@ -114,7 +114,7 @@ __global__ void strong_reduce_kernel(float* bufIn, float* bufOut, int w, int h, 
                 // raw_id++;
             }
         }
-//        printf("%s %f %f\n", "stron", strongest, intensity_at_strongest);
+        //        printf("%s %f %f\n", "stron", strongest, intensity_at_strongest);
         bufOut[2 * out_index] = strongest;
         bufOut[2 * out_index + 1] = intensity_at_strongest;
     }
@@ -145,7 +145,7 @@ __global__ void strong_reduce_kernel(float* bufIn, float* bufOut, int w, int h, 
     // delete[] raw_intensity;
 }
 
-__global__ void first_reduce_kernel(float* bufIn, float* bufOut, int w, int h, int r){
+__global__ void first_reduce_kernel(float* bufIn, float* bufOut, int w, int h, int r) {
     int out_index = (blockDim.x * blockIdx.x + threadIdx.x);  // index into output buffer
 
     int out_hIndex = out_index % w;
@@ -153,7 +153,7 @@ __global__ void first_reduce_kernel(float* bufIn, float* bufOut, int w, int h, i
 
     int d = r * 2 - 1;
 
-    if (out_index < w * h){
+    if (out_index < w * h) {
         float shortest = 1e10;
         float intensity_at_shortest = 0;
 
@@ -190,13 +190,13 @@ __global__ void first_reduce_kernel(float* bufIn, float* bufOut, int w, int h, i
                 }
             }
         }
-//        printf("%s %f %f\n", "first", shortest, intensity_at_shortest);
+        //        printf("%s %f %f\n", "first", shortest, intensity_at_shortest);
         bufOut[2 * out_index] = shortest;
         bufOut[2 * out_index + 1] = intensity_at_shortest;
     }
 }
 
-__global__ void dual_reduce_kernel(float* bufIn, float* bufOut, int w, int h, int r){
+__global__ void dual_reduce_kernel(float* bufIn, float* bufOut, int w, int h, int r) {
     int out_index = (blockDim.x * blockIdx.x + threadIdx.x);  // index into output buffer
 
     int out_hIndex = out_index % w;
@@ -204,12 +204,11 @@ __global__ void dual_reduce_kernel(float* bufIn, float* bufOut, int w, int h, in
 
     int d = r * 2 - 1;
 
-    if (out_index < w * h){
-        float shortest = 1e10; // very very far
+    if (out_index < w * h) {
+        float shortest = 1e10;  // very very far
         float intensity_at_shortest = 0;
         float strongest = 0;
         float intensity_at_strongest = 0;
-        
 
         // perform kernel operation to find max intensity
         float kernel_radius = .05;  // 10 cm total kernel width
@@ -242,14 +241,14 @@ __global__ void dual_reduce_kernel(float* bufIn, float* bufOut, int w, int h, in
                     intensity_at_shortest = local_intensity;
                     shortest = local_range;
                 }
-                if (local_intensity > intensity_at_strongest){
+                if (local_intensity > intensity_at_strongest) {
                     intensity_at_strongest = local_intensity;
                     strongest = local_range;
                 }
             }
         }
-//        printf("%s %f %f\n", "dualS", strongest, intensity_at_strongest);
-//        printf("%s %f %f\n", "dualF", shortest, intensity_at_shortest);
+        //        printf("%s %f %f\n", "dualS", strongest, intensity_at_strongest);
+        //        printf("%s %f %f\n", "dualF", shortest, intensity_at_shortest);
         bufOut[4 * out_index] = strongest;
         bufOut[4 * out_index + 1] = intensity_at_strongest;
         bufOut[4 * out_index + 2] = shortest;
@@ -257,64 +256,41 @@ __global__ void dual_reduce_kernel(float* bufIn, float* bufOut, int w, int h, in
     }
 }
 
-void cuda_lidar_mean_reduce(void* bufIn, void* bufOut, int width, int height, int radius) {
+void cuda_lidar_mean_reduce(void* bufIn, void* bufOut, int width, int height, int radius, CUstream& stream) {
     int w = width / (radius * 2 - 1);
     int h = height / (radius * 2 - 1);
     int numPixels = w * h;
     const int nThreads = 512;
     int nBlocks = (numPixels + nThreads - 1) / nThreads;
-
-    // printf("buffer dimensions: %d,%d\n", w, h);
-
-    // in one shot - each kernel does O(r^2):
-    mean_reduce_kernel<<<nBlocks, nThreads>>>((float*)bufIn, (float*)bufOut, w, h, radius);
-    // in two shots - each kernel does O(r)
+    mean_reduce_kernel<<<nBlocks, nThreads, 0, stream>>>((float*)bufIn, (float*)bufOut, w, h, radius);
 }
 
-void cuda_lidar_strong_reduce(void* bufIn, void* bufOut, int width, int height, int radius) {
+void cuda_lidar_strong_reduce(void* bufIn, void* bufOut, int width, int height, int radius, CUstream& stream) {
     int w = width / (radius * 2 - 1);
     int h = height / (radius * 2 - 1);
     int numPixels = w * h;
     const int nThreads = 512;
     int nBlocks = (numPixels + nThreads - 1) / nThreads;
-
-    // printf("buffer dimensions: %d,%d\n", w, h);
-
-    // in one shot - each kernel does O(r^2):
-    strong_reduce_kernel<<<nBlocks, nThreads>>>((float*)bufIn, (float*)bufOut, w, h, radius);
-    // in two shots - each kernel does O(r)
+    strong_reduce_kernel<<<nBlocks, nThreads, 0, stream>>>((float*)bufIn, (float*)bufOut, w, h, radius);
 }
 
-void cuda_lidar_first_reduce(void* bufIn, void* bufOut, int width, int height, int radius){
+void cuda_lidar_first_reduce(void* bufIn, void* bufOut, int width, int height, int radius, CUstream& stream) {
     int w = width / (radius * 2 - 1);
     int h = height / (radius * 2 - 1);
     int numPixels = w * h;
     const int nThreads = 512;
     int nBlocks = (numPixels + nThreads - 1) / nThreads;
-
-    // printf("buffer dimensions: %d,%d\n", w, h);
-
-    // in one shot - each kernel does O(r^2):
-    first_reduce_kernel<<<nBlocks, nThreads>>>((float*)bufIn, (float*)bufOut, w, h, radius);
-    // in two shots - each kernel does O(r)
-
+    first_reduce_kernel<<<nBlocks, nThreads, 0, stream>>>((float*)bufIn, (float*)bufOut, w, h, radius);
 }
 
-void cuda_lidar_dual_reduce(void* bufIn, void* bufOut, int width, int height, int radius){
+void cuda_lidar_dual_reduce(void* bufIn, void* bufOut, int width, int height, int radius, CUstream& stream) {
     int w = width / (radius * 2 - 1);
     int h = height / (radius * 2 - 1);
     int numPixels = w * h;
     const int nThreads = 512;
     int nBlocks = (numPixels + nThreads - 1) / nThreads;
-
-    // printf("buffer dimensions: %d,%d\n", w, h);
-
-    // in one shot - each kernel does O(r^2):
-    dual_reduce_kernel<<<nBlocks, nThreads>>>((float*)bufIn, (float*)bufOut, w, h, radius);
-    // in two shots - each kernel does O(r)
-
+    dual_reduce_kernel<<<nBlocks, nThreads, 0, stream>>>((float*)bufIn, (float*)bufOut, w, h, radius);
 }
-
 
 }  // namespace sensor
 }  // namespace chrono

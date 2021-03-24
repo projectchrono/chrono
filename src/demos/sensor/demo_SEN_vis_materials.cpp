@@ -83,9 +83,6 @@ int main(int argc, char* argv[]) {
     // -----------------------
     auto manager = chrono_types::make_shared<ChSensorManager>(&mphysicalSystem);
     manager->scene->AddPointLight({-100, 0, 100}, {1, 1, 1}, 500);
-    manager->scene->GetBackground().has_texture = true;
-    manager->scene->GetBackground().env_tex = "sensor/textures/cloud_layers_8k.hdr";
-    manager->scene->GetBackground().has_changed = true;
 
     // ------------------------------------------------
     // Create a camera and add it to the sensor manager

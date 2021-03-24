@@ -25,8 +25,7 @@
 namespace chrono {
 namespace sensor {
 
-CH_SENSOR_API ChSensorManager::ChSensorManager(ChSystem* chrono_system)
-    : m_verbose(true), m_optix_reflections(7), m_num_keyframes(2) {
+CH_SENSOR_API ChSensorManager::ChSensorManager(ChSystem* chrono_system) : m_verbose(false), m_optix_reflections(9) {
     // save the chrono system handle
     m_system = chrono_system;
     scene = chrono_types::make_shared<ChScene>();
@@ -34,16 +33,6 @@ CH_SENSOR_API ChSensorManager::ChSensorManager(ChSystem* chrono_system)
 }
 
 CH_SENSOR_API ChSensorManager::~ChSensorManager() {}
-
-CH_SENSOR_API void ChSensorManager::SetKeyframeSize(int size) {
-    m_num_keyframes = max(size, 2);
-}
-
-CH_SENSOR_API void ChSensorManager::SetKeyframeSizeFromTimeStep(float min_timestep, float max_collection_window) {
-    int conservative_estimate =
-        (int)(max_collection_window / min_timestep + 2);  // always allow set a couple extra frames just in case
-    m_num_keyframes = max(conservative_estimate, 2);
-}
 
 CH_SENSOR_API std::shared_ptr<ChOptixEngine> ChSensorManager::GetEngine(int context_id) {
     if (context_id < m_engines.size())
@@ -129,10 +118,10 @@ CH_SENSOR_API void ChSensorManager::AddSensor(std::shared_ptr<ChSensor> sensor) 
         if (!found_group) {
             if (m_engines.size() < m_allowable_groups) {
                 auto engine = chrono_types::make_shared<ChOptixEngine>(
-                    m_system, m_device_list[(int)m_engines.size()], m_optix_reflections, m_verbose,
-                    m_num_keyframes);  // limits to 2 gpus, TODO: check if device supports cuda
+                    m_system, m_device_list[(int)m_engines.size()], m_optix_reflections,
+                    m_verbose);  // limits to 2 gpus, TODO: check if device supports cuda
 
-                engine->ConstructScene();
+                // engine->ConstructScene();
                 engine->AssignSensor(pOptixSensor);
 
                 m_engines.push_back(engine);

@@ -27,6 +27,8 @@
 #include "chrono/physics/ChBody.h"
 #include "chrono/physics/ChSystem.h"
 
+#include "chrono_sensor/ChApiSensor.h"
+
 namespace chrono {
 namespace sensor {
 
@@ -38,16 +40,16 @@ namespace sensor {
 /// wouldn't look for. Assets will be added directly to the mesh shape.
 /// @param mesh_shape The ChTriangleMeshShape that contains a mesh for which we want to look up its additional
 /// information if any exist
-void CreateModernMeshAssets(std::shared_ptr<ChTriangleMeshShape> mesh_shape);
+CH_SENSOR_API void CreateModernMeshAssets(std::shared_ptr<ChTriangleMeshShape> mesh_shape);
 
 /// Convert assets attached to a ChBody to modern assets by creating all necessary parameters for reflections,
 /// refractions, etc
 /// @param body The body which should be parsed for old assets
-void ConvertToModernAssets(std::shared_ptr<ChBody> body);
+CH_SENSOR_API void ConvertToModernAssets(std::shared_ptr<ChBody> body);
 
 /// Parse all assets of a chrono system to do a full conversion to assets needed by OptiX
 /// @param sys A pointer to the Chrono system that should be parsed for old assets.
-void ConvertToModernAssets(ChSystem* sys);
+CH_SENSOR_API void ConvertToModernAssets(ChSystem* sys);
 
 /// @}
 

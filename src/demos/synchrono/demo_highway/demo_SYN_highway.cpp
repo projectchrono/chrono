@@ -277,7 +277,7 @@ int main(int argc, char* argv[]) {
             cam_res_height,                                 // image height
             (float)CH_C_PI / 3,                             // FOV
             1,                                              // samples per pixel for antialiasing
-            PINHOLE);                                       // camera type
+            CameraLensModelType::PINHOLE);                                       // camera type
 
         intersection_camera->SetName("Intersection Cam");
         intersection_camera->PushFilter(chrono_types::make_shared<ChFilterRGBA8Access>());

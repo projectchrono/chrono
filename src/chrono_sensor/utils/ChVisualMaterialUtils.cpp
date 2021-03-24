@@ -132,7 +132,11 @@ void CreateModernMeshAssets(std::shared_ptr<ChTriangleMeshShape> mesh_shape) {
                                                               shapes[i].mesh.indices[3 * j + 1].texcoord_index,
                                                               shapes[i].mesh.indices[3 * j + 2].texcoord_index));
             }
-            material_index_buffer.push_back(ChVector<int>(shapes[i].mesh.material_ids[j], 0, 0));
+            if (shapes[i].mesh.material_ids[j] < 0 || shapes[i].mesh.material_ids[j] >= material_list.size()) {
+                material_index_buffer.push_back(ChVector<int>(0, 0, 0));
+            } else {
+                material_index_buffer.push_back(ChVector<int>(shapes[i].mesh.material_ids[j], 0, 0));
+            }
         }
     }
 

@@ -23,6 +23,7 @@ import pychrono.sensor as sens
 import math
 import time
 
+
 def main():
     # -----------------
     # Create the system
@@ -54,17 +55,21 @@ def main():
     # -----------------------
     manager = sens.ChSensorManager(mphysicalSystem)
 
-    intensity = 1.0;
-    manager.scene.AddPointLight(chrono.ChVectorF(2, 2.5, 100), chrono.ChVectorF(intensity, intensity, intensity), 500.0)
-    manager.scene.AddPointLight(chrono.ChVectorF(9, 2.5, 100), chrono.ChVectorF(intensity, intensity, intensity), 500.0)
-    manager.scene.AddPointLight(chrono.ChVectorF(16, 2.5, 100), chrono.ChVectorF(intensity, intensity, intensity), 500.0)
-    manager.scene.AddPointLight(chrono.ChVectorF(23, 2.5, 100), chrono.ChVectorF(intensity, intensity, intensity), 500.0)
+    intensity = 1.0
+    manager.scene.AddPointLight(chrono.ChVectorF(
+        2, 2.5, 100), chrono.ChVectorF(intensity, intensity, intensity), 500.0)
+    manager.scene.AddPointLight(chrono.ChVectorF(
+        9, 2.5, 100), chrono.ChVectorF(intensity, intensity, intensity), 500.0)
+    manager.scene.AddPointLight(chrono.ChVectorF(
+        16, 2.5, 100), chrono.ChVectorF(intensity, intensity, intensity), 500.0)
+    manager.scene.AddPointLight(chrono.ChVectorF(
+        23, 2.5, 100), chrono.ChVectorF(intensity, intensity, intensity), 500.0)
 
-    # manager.SetKeyframeSizeFromTimeStep(.001,1/exposure_time)
     # ------------------------------------------------
     # Create a camera and add it to the sensor manager
     # ------------------------------------------------
-    offset_pose = chrono.ChFrameD(chrono.ChVectorD(-5, 0, 2), chrono.Q_from_AngAxis(2, chrono.ChVectorD(0, 1, 0)))
+    offset_pose = chrono.ChFrameD(
+        chrono.ChVectorD(-5, 0, 2), chrono.Q_from_AngAxis(2, chrono.ChVectorD(0, 1, 0)))
     cam = sens.ChCameraSensor(
         mesh_body,              # body camera is attached to
         update_rate,            # update rate in Hz
@@ -74,8 +79,8 @@ def main():
         fov                    # camera's horizontal field of view
     )
     cam.SetName("Camera Sensor")
-    cam.SetLag(lag);
-    cam.SetCollectionWindow(exposure_time);
+    cam.SetLag(lag)
+    cam.SetCollectionWindow(exposure_time)
 
     # ------------------------------------------------------------------
     # Create a filter graph for post-processing the data from the camera
@@ -90,7 +95,8 @@ def main():
 
     # Renders the image at current point in the filter graph
     if vis:
-        cam.PushFilter(sens.ChFilterVisualize(image_width, image_height, "Before Grayscale Filter"))
+        cam.PushFilter(sens.ChFilterVisualize(
+            image_width, image_height, "Before Grayscale Filter"))
 
     # Provides the host access to this RGBA8 buffer
     cam.PushFilter(sens.ChFilterRGBA8Access())
@@ -100,25 +106,26 @@ def main():
         cam.PushFilter(sens.ChFilterSave(out_dir + "rgb/"))
 
     # Filter the sensor to grayscale
-    cam.PushFilter(sens.ChFilterGrayscale());
+    cam.PushFilter(sens.ChFilterGrayscale())
 
     # Render the buffer again to see the new grayscaled image
     if vis:
-        cam.PushFilter(sens.ChFilterVisualize(int(image_width / 2), int(image_height / 2), "Grayscale Image"))
+        cam.PushFilter(sens.ChFilterVisualize(
+            int(image_width / 2), int(image_height / 2), "Grayscale Image"))
 
     # Save the grayscaled image at the specified path
     if save:
         cam.PushFilter(sens.ChFilterSave(out_dir + "gray/"))
 
     # Resizes the image to the provided width and height
-    cam.PushFilter(sens.ChFilterImageResize(int(image_width / 2), int(image_height / 2)))
+    cam.PushFilter(sens.ChFilterImageResize(
+        int(image_width / 2), int(image_height / 2)))
 
     # Access the grayscaled buffer as R8 pixels
     cam.PushFilter(sens.ChFilterR8Access())
 
     # add sensor to manager
     manager.AddSensor(cam)
-
 
     # ---------------
     # Simulate system
@@ -131,16 +138,17 @@ def main():
 
     while (ch_time < end_time):
         cam.SetOffsetPose(chrono.ChFrameD(
-            chrono.ChVectorD(-orbit_radius * math.cos(ch_time * orbit_rate), -orbit_radius * math.sin(ch_time * orbit_rate), 1),
+            chrono.ChVectorD(-orbit_radius * math.cos(ch_time * orbit_rate), -
+                             orbit_radius * math.sin(ch_time * orbit_rate), 1),
             chrono.Q_from_AngAxis(ch_time * orbit_rate, chrono.ChVectorD(0, 0, 1))))
 
         # Access the RGBA8 buffer from the camera
         rgba8_buffer = cam.GetMostRecentRGBA8Buffer()
         if (rgba8_buffer.HasData()):
             rgba8_data = rgba8_buffer.GetRGBA8Data()
-            print('RGBA8 buffer recieved from cam. Camera resolution: {0}x{1}'\
-                                        .format(rgba8_buffer.Width, rgba8_buffer.Height))
-            print('First Pixel: {0}'.format(rgba8_data[0,0,:]))
+            print('RGBA8 buffer recieved from cam. Camera resolution: {0}x{1}'
+                  .format(rgba8_buffer.Width, rgba8_buffer.Height))
+            print('First Pixel: {0}'.format(rgba8_data[0, 0, :]))
 
         # Update sensor manager
         # Will render/save/filter automatically
@@ -158,16 +166,17 @@ def main():
 # Camera parameters
 # -----------------
 
+
 # Noise model attached to the sensor
 # TODO: Noise models haven't been implemented in python
 # noise_model="CONST_NORMAL"      # Gaussian noise with constant mean and standard deviation
 # noise_model="PIXEL_DEPENDENT"   # Pixel dependent gaussian noise
 # noise_model="RESPONSE_FUNCTION" # Noise model based on camera's response and parameters
-noise_model="NONE"              # No noise model
+noise_model = "NONE"              # No noise model
 
 # Camera lens model
-# Either CameraLensModelType_PINHOLE or CameraLensModelType_SPHERICAL
-lens_model = sens.PINHOLE;
+# Either CameraLensModelType_PINHOLE or CameraLensModelType_FOV_LENS
+lens_model = sens.CameraLensModelType_PINHOLE
 
 # Update rate in Hz
 update_rate = 30

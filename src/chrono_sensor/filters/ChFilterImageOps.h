@@ -18,6 +18,8 @@
 #define CHFILTERIMAGEOPS_H
 
 #include "chrono_sensor/filters/ChFilter.h"
+#include <cuda.h>
+#include <npp.h>
 
 namespace chrono {
 namespace sensor {
@@ -36,16 +38,17 @@ class CH_SENSOR_API ChFilterImageFloat4ToRGBA8 : public ChFilter {
     ChFilterImageFloat4ToRGBA8(std::string name = {});
 
     /// Apply function. Applies the resize operation to the image.
-    /// @param pSensor A pointer to the sensor on which the filter is attached.
-    /// @param bufferInOut A buffer that is passed into the filter.
-    virtual void Apply(std::shared_ptr<ChSensor> pSensor, std::shared_ptr<SensorBuffer>& bufferInOut);
+    virtual void Apply();
 
     /// Initializes all data needed by the filter access apply function.
-    /// @param pSensor A pointer to the sensor.
-    virtual void Initialize(std::shared_ptr<ChSensor> pSensor) {}
+    /// @param pSensor A pointer to the sensor on which the filter is attached.
+    /// @param bufferInOut A buffer that is passed into the filter.
+    virtual void Initialize(std::shared_ptr<ChSensor> pSensor, std::shared_ptr<SensorBuffer>& bufferInOut);
 
   private:
-    std::shared_ptr<SensorDeviceRGBA8Buffer> m_buffer_rgba8;  ///< holder of the output RGBA8 image
+    std::shared_ptr<SensorDeviceFloat4Buffer> m_buffer_in;  ///< holder of the output RGBA8 image
+    std::shared_ptr<SensorDeviceRGBA8Buffer> m_buffer_out;  ///< holder of the intput RGBA float image
+    NppStreamContext m_cuda_stream;                         ///< reference to the cuda stream
 };
 
 /// A filter that, when applied to a sensor, resizes the image to the specified dimensions.
@@ -58,19 +61,21 @@ class CH_SENSOR_API ChFilterImageResize : public ChFilter {
     ChFilterImageResize(int w, int h, std::string name = {});
 
     /// Apply function. Applies the resize operation to the image.
-    /// @param pSensor A pointer to the sensor on which the filter is attached.
-    /// @param bufferInOut A buffer that is passed into the filter.
-    virtual void Apply(std::shared_ptr<ChSensor> pSensor, std::shared_ptr<SensorBuffer>& bufferInOut);
+    virtual void Apply();
 
     /// Initializes all data needed by the filter access apply function.
-    /// @param pSensor A pointer to the sensor.
-    virtual void Initialize(std::shared_ptr<ChSensor> pSensor) {}
+    /// @param pSensor A pointer to the sensor on which the filter is attached.
+    /// @param bufferInOut A buffer that is passed into the filter.
+    virtual void Initialize(std::shared_ptr<ChSensor> pSensor, std::shared_ptr<SensorBuffer>& bufferInOut);
 
   private:
-    std::shared_ptr<SensorDeviceRGBA8Buffer> m_buffer_rgba8;  ///< holder of an RGBA8 image
-    std::shared_ptr<SensorDeviceR8Buffer> m_buffer_r8;        ///< holder of an R8 image
-    int m_w;                                                  ///< desired image width
-    int m_h;                                                  ///< desired image height
+    std::shared_ptr<SensorDeviceRGBA8Buffer> m_buffer_rgba8_in;   ///< holder of an input RGBA8 image
+    std::shared_ptr<SensorDeviceRGBA8Buffer> m_buffer_rgba8_out;  ///< holder of an output RGBA8 image
+    std::shared_ptr<SensorDeviceR8Buffer> m_buffer_r8_in;         ///< holder of an R8 input image
+    std::shared_ptr<SensorDeviceR8Buffer> m_buffer_r8_out;        ///< holder of an R8 input image
+    NppStreamContext m_cuda_stream;                               ///< reference to the cuda stream
+    int m_w;                                                      ///< desired image width
+    int m_h;                                                      ///< desired image height
 };
 
 /// A filter that, when applied to a sensor, reduces the resolution for antialiasing
@@ -82,18 +87,22 @@ class CH_SENSOR_API ChFilterImgAlias : public ChFilter {
     ChFilterImgAlias(int factor, std::string name = {});
 
     /// Apply function. Applies the antialiasing reduction to the image.
-    /// @param pSensor A pointer to the sensor on which the filter is attached.
-    /// @param bufferInOut A buffer that is passed into the filter.
-    virtual void Apply(std::shared_ptr<ChSensor> pSensor, std::shared_ptr<SensorBuffer>& bufferInOut);
+    virtual void Apply();
 
     /// Initializes all data needed by the filter access apply function.
-    /// @param pSensor A pointer to the sensor.
-    virtual void Initialize(std::shared_ptr<ChSensor> pSensor) {}
+    /// @param pSensor A pointer to the sensor on which the filter is attached.
+    /// @param bufferInOut A buffer that is passed into the filter.
+    virtual void Initialize(std::shared_ptr<ChSensor> pSensor, std::shared_ptr<SensorBuffer>& bufferInOut);
 
   private:
-    std::shared_ptr<SensorDeviceRGBA8Buffer> m_buffer_rgba8;  ///< holder of an RGBA8 image
-    std::shared_ptr<SensorDeviceR8Buffer> m_buffer_r8;        ///< holder of an R8 image
-    int m_factor;                                             ///< reduction factor for antialiasing
+    std::shared_ptr<SensorDeviceRGBA8Buffer> m_buffer_rgba8_in;    ///< holder of an input RGBA8 image
+    std::shared_ptr<SensorDeviceRGBA8Buffer> m_buffer_rgba8_out;   ///< holder of an input RGBA8 image
+    std::shared_ptr<SensorDeviceR8Buffer> m_buffer_r8_in;           ///< holder of an R8 image
+    std::shared_ptr<SensorDeviceR8Buffer> m_buffer_r8_out;          ///< holder of an R8 image
+    std::shared_ptr<SensorDeviceFloat4Buffer> m_buffer_float4_in;   ///< holder of an R8 image
+    std::shared_ptr<SensorDeviceFloat4Buffer> m_buffer_float4_out;  ///< holder of an R8 image
+    CUstream m_cuda_stream;                                         ///< reference to the cuda stream
+    int m_factor;                                                   ///< reduction factor for antialiasing
 };
 
 /// @}
