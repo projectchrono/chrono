@@ -716,7 +716,6 @@ real3 ChSystemDistributed::GetBodyContactForce(uint gid) const {
     // Master rank receives from owning rank
     MPI_Request r_bar;
     MPI_Status s_bar;
-    int num_gids = 0;
     if (my_rank == master_rank) {
         MPI_Ibarrier(world, &r_bar);
         MPI_Status s_prob;
