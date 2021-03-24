@@ -360,10 +360,10 @@ int main(int argc, char* argv[]) {
 
     // set the background
     Background b;
-    b.mode = BackgroundMode::ENVIRONMENT_MAP;
+    b.mode = BackgroundMode::GRADIENT;
     b.color_zenith = {.5f, .6f, .7f};
     b.color_horizon = {.9f, .8f, .7f};
-    b.env_tex = GetChronoDataFile("sensor/textures/sky_2_4k.hdr");
+    // b.env_tex = GetChronoDataFile("sensor/textures/sky_2_4k.hdr");
     manager->scene->SetBackground(b);
 
     auto cam = chrono_types::make_shared<ChCameraSensor>(
