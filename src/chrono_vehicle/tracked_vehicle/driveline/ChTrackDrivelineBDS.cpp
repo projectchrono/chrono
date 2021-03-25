@@ -92,7 +92,7 @@ void ChTrackDrivelineBDS::CombineDriverInputs(const ChDriver::Inputs& driver_inp
 }
 
 void ChTrackDrivelineBDS::Synchronize(double steering, double torque) {
-    ChDriveline::Synchronize(torque);
+    ChDrivelineTV::Synchronize(steering, torque);
 }
 
 // -----------------------------------------------------------------------------

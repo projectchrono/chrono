@@ -123,6 +123,10 @@ class ChApi ChCollisionSystemBullet : public ChCollisionSystem {
     btBroadphaseInterface* bt_broadphase;
     btCollisionWorld* bt_collision_world;
 
+    btCollisionAlgorithmCreateFunc* m_collision_capsule_box;
+    btCollisionAlgorithmCreateFunc* m_collision_box_capsule;
+    btCollisionAlgorithmCreateFunc* m_collision_cylshell_box;
+    btCollisionAlgorithmCreateFunc* m_collision_box_cylshell;
     btCollisionAlgorithmCreateFunc* m_collision_arc_seg;
     btCollisionAlgorithmCreateFunc* m_collision_seg_arc;
     btCollisionAlgorithmCreateFunc* m_collision_arc_arc;

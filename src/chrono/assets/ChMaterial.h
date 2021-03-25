@@ -83,7 +83,7 @@ class ChApi ChMaterial {
     /// Method to allow de serialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) {
         // version number
-        int version = marchive.VersionRead<ChMaterial>();
+        /*int version =*/ marchive.VersionRead<ChMaterial>();
 
         // stream in all member data:
         marchive >> CHNVP(color);
@@ -120,7 +120,7 @@ class ChApi ChMaterial {
 
         /// Method to allow de-serialization of transient data from archives.
         virtual void ArchiveIN(ChArchiveIn& marchive) {
-            int version = marchive.VersionRead<material_option>();
+            /*int version =*/ marchive.VersionRead<material_option>();
             // deserialize all member data:
             marchive >> CHNVP(type);
             marchive >> CHNVP(parameter);

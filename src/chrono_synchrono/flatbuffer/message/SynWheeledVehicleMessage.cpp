@@ -134,7 +134,8 @@ FlatBufferMessage SynWheeledVehicleDescriptionMessage::ConvertToFlatBuffers(
 
 void SynWheeledVehicleDescriptionMessage::SetZombieVisualizationFilesFromJSON(const std::string& filename) {
     // Open and parse the input file
-    auto d = vehicle::ReadFileJSON(filename);
+    rapidjson::Document d;
+    vehicle::ReadFileJSON(filename, d);
     if (d.IsNull())
         throw ChException("Vehicle file not read properly in SetZombieVisualizationFilesFromJSON.");
 

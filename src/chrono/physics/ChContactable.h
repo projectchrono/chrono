@@ -104,6 +104,21 @@ class ChApi ChContactable {
     /// will be used instead of slow dynamic_cast<> to infer the type of ChContactable,
     /// if possible)
     virtual eChContactableType GetContactableType() const = 0;
+
+    /// Set user-data associated with this contactable.
+    void SetUserData(const std::shared_ptr<void>& data) { m_data = data; }
+
+    /// Check if this contactable has associated user-data.
+    bool HasData() const { return m_data != nullptr; }
+
+    /// Get the user-data using static cast to a known type.
+    template <typename T>
+    std::shared_ptr<T> GetUserData() const {
+        return std::static_pointer_cast<T>(m_data);
+    }
+
+  private:
+    std::shared_ptr<void> m_data;  ///< arbitrary user-data
 };
 
 // Note that template T1 is the number of DOFs in the referenced ChVariable, 

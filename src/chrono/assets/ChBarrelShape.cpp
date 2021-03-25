@@ -36,7 +36,7 @@ void ChBarrelShape::ArchiveOUT(ChArchiveOut& marchive) {
 /// Method to allow de serialization of transient data from archives.
 void ChBarrelShape::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChBarrelShape>();
+    /*int version =*/ marchive.VersionRead<ChBarrelShape>();
     // deserialize parent class
     ChVisualization::ArchiveIN(marchive);
     // stream in all member data:

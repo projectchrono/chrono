@@ -65,7 +65,7 @@ void ChSphere::ArchiveOUT(ChArchiveOut& marchive) {
 
 void ChSphere::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead();
+    /*int version =*/ marchive.VersionRead();
     // deserialize parent class
     ChGeometry::ArchiveIN(marchive);
     // stream in all member data:

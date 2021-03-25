@@ -101,7 +101,7 @@ void ChLinkMotorLinearForce::ArchiveOUT(ChArchiveOut& marchive) {
 /// Method to allow de serialization of transient data from archives.
 void ChLinkMotorLinearForce::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChLinkMotorLinearForce>();
+    /*int version =*/ marchive.VersionRead<ChLinkMotorLinearForce>();
 
     // deserialize parent class
     ChLinkMotorLinear::ArchiveIN(marchive);

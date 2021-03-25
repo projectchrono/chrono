@@ -83,6 +83,8 @@ void M113::Initialize() {
                          : new M113_Vehicle(m_fixed, m_shoe_type, m_driveline_type, m_brake_type, m_contactMethod,
                                             m_chassisCollisionType);
     m_vehicle->CreateTrack(m_create_track);
+    m_vehicle->GetTrackAssembly(LEFT)->SetWheelCollisionType(m_wheel_cyl[LEFT], m_idler_cyl[LEFT], true);
+    m_vehicle->GetTrackAssembly(RIGHT)->SetWheelCollisionType(m_wheel_cyl[RIGHT], m_idler_cyl[RIGHT], true);
     m_vehicle->Initialize(m_initPos, m_initFwdVel);
 
     // If specified, enable aerodynamic drag

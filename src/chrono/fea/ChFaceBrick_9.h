@@ -35,7 +35,7 @@ class ChApi ChFaceBrick_9 : public ChLoadableUV {
     std::shared_ptr<ChElementBrick_9> melement;
 
   public:
-    ChFaceBrick_9(std::shared_ptr<ChElementBrick_9> mel, char mid) : melement(mel), face_id(mid) {}
+    ChFaceBrick_9(std::shared_ptr<ChElementBrick_9> mel, char mid) : face_id(mid), melement(mel) {}
 
     virtual ~ChFaceBrick_9() {}
 

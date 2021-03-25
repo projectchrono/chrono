@@ -71,7 +71,7 @@ void ChFunctionRotation_axis::ArchiveOUT(ChArchiveOut& marchive) {
 
 void ChFunctionRotation_axis::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChFunctionRotation_axis>();
+    /*int version =*/ marchive.VersionRead<ChFunctionRotation_axis>();
 	// deserialize parent class
     ChFunctionRotation::ArchiveIN(marchive);
     // deserialize all member data:

@@ -29,7 +29,7 @@ class ChApi ChLinkBase : public ChPhysicsItem {
     bool broken;    ///< link is broken because of excessive pulling/pushing.
 
   public:
-    ChLinkBase() : broken(false), valid(true), disabled(false) {}
+    ChLinkBase() : disabled(false), valid(true), broken(false) {}
     ChLinkBase(const ChLinkBase& other);
     virtual ~ChLinkBase() {}
 

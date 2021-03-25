@@ -45,21 +45,19 @@ class SprocketDoublePinContactCB : public ChSystem::CustomCollisionCallback {
                                const ChVector<>& shoe_pin  ///< location of shoe guide pin center
                                )
         : m_track(track),
-          m_envelope(envelope),
           m_sprocket(m_track->GetSprocket()),
           m_gear_nteeth(gear_nteeth),
           m_gear_RT(gear_RT),
           m_gear_R(gear_R),
           m_gear_C(gear_C),
           m_gear_W(gear_W),
-          m_gear_Rhat(gear_R - envelope),
-          m_separation(separation),
           m_shoe_len(shoe_len),
           m_shoe_R(shoe_R),
           m_lateral_contact(lateral_contact),
           m_lateral_backlash(lateral_backlash),
-          m_shoe_pin(shoe_pin),
-          m_shoe_Rhat(shoe_R + envelope) {
+          m_shoe_pin(shoe_pin) {
+        ////m_gear_Rhat = gear_R - envelope;
+        ////m_shoe_Rhat = shoe_R + envelope;
         m_R_sum = (m_shoe_len + 2 * m_shoe_R) + m_gear_RT;
         m_gear_RC = std::sqrt(m_gear_C * m_gear_C + m_gear_W * m_gear_W);
         m_gear_D = m_gear_W - m_gear_R;
@@ -126,14 +124,11 @@ class SprocketDoublePinContactCB : public ChSystem::CustomCollisionCallback {
     ChTrackAssembly* m_track;                // pointer to containing track assembly
     std::shared_ptr<ChSprocket> m_sprocket;  // handle to the sprocket
 
-    double m_envelope;  // collision detection envelope
-
     int m_gear_nteeth;    // sprocket gear, number of teeth
     double m_gear_RT;     // sprocket gear, outer tooth radius (radius of addendum circle)
     double m_gear_R;      // sprocket gear, arc radius
     double m_gear_C;      // sprocket gear, arc center height
     double m_gear_W;      // sprocket gear, arc center offset
-    double m_separation;  // separation distance between sprocket gears
 
     double m_gear_D;   // tooth width (D = W - R)
     double m_gear_RC;  // radius of arc centers circle (RC^2 = C^2 + W^2)
@@ -149,8 +144,8 @@ class SprocketDoublePinContactCB : public ChSystem::CustomCollisionCallback {
     double m_lateral_backlash;  // backlash relative to shoe guiding pin
     ChVector<> m_shoe_pin;      // single-pin shoe, center of guiding pin
 
-    double m_gear_Rhat;  // adjusted gear arc radius
-    double m_shoe_Rhat;  // adjusted shoe cylinder radius
+    ////double m_gear_Rhat;  // adjusted gear arc radius
+    ////double m_shoe_Rhat;  // adjusted shoe cylinder radius
 
     double m_R_sum;  // test quantity for broadphase check
 
@@ -210,8 +205,6 @@ void SprocketDoublePinContactCB::CheckConnectorSprocket(std::shared_ptr<ChBody> 
     double angle = std::atan2(loc.x(), loc.z());
     // Find angle of closest tooth space
     double alpha = m_beta * std::round(angle / m_beta);
-    // Convert to degrees
-    double alpha_deg = alpha * 180 / CH_C_PI;
 
     // (4) Calculate the points that define the current tooth space.
     // Note that all these points will have Y = locC.y
@@ -469,7 +462,6 @@ std::shared_ptr<geometry::ChLinePath> ChSprocketDoublePin::GetProfile() const {
     double R_T = GetOuterRadius();
     double C = GetArcCenterHeight();
     double W = GetArcCenterOffset();
-    double R_C = std::sqrt(C * C + W * W);
     double R = GetArcRadius();
     double D = W - R;
 

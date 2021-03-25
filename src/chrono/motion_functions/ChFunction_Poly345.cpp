@@ -73,7 +73,7 @@ void ChFunction_Poly345::ArchiveOUT(ChArchiveOut& marchive) {
 
 void ChFunction_Poly345::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChFunction_Poly345>();
+    /*int version =*/ marchive.VersionRead<ChFunction_Poly345>();
     // deserialize parent class
     ChFunction::ArchiveIN(marchive);
     // stream in all member data:

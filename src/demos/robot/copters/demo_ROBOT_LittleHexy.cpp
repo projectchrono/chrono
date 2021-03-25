@@ -120,7 +120,7 @@ int main(int argc, char* argv[]) {
     application.AddTypicalCamera(core::vector3df(5, 5, 2));
 
     // create text with info
-    IGUIStaticText* textFPS = application.GetIGUIEnvironment()->addStaticText(
+    application.GetIGUIEnvironment()->addStaticText(
         L"Keys: NUMPAD 8 up; NUMPAD 2 down; A Roll Left; D Roll Right; A Roll Left; W Pitch Down; S Pitch Up; NUMPAD 4 "
         L"Yaw_Left; NUMPAD 6 Yaw_Right",
         rect<s32>(150, 10, 430, 40), true);

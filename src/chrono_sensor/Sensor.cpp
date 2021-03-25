@@ -29,7 +29,8 @@ CH_SENSOR_API std::shared_ptr<ChSensor> Sensor::CreateFromJSON(const std::string
                                                                std::shared_ptr<chrono::ChBody> parent,
                                                                chrono::ChFrame<double> offsetPose) {
     // Open and parse the input file
-    Document d = ReadFileJSON(filename);
+    Document d;
+    ReadFileJSON(filename, d);
     if (d.IsNull())
         return nullptr;
 

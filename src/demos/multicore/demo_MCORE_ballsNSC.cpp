@@ -134,9 +134,6 @@ int main(int argc, char* argv[]) {
 
     double gravity = 9.81;
     double time_step = 1e-3;
-    double time_end = 2;
-
-    double out_fps = 50;
 
     uint max_iteration = 300;
     real tolerance = 1e-3;
@@ -202,6 +199,7 @@ int main(int argc, char* argv[]) {
     }
 #else
     // Run simulation for specified time
+    double time_end = 2;
     int num_steps = (int)std::ceil(time_end / time_step);
     double time = 0;
 

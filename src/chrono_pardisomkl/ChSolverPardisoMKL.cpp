@@ -44,6 +44,9 @@ void ChSolverPardisoMKL::PrintErrorMessage() {
         case Eigen::InvalidInput:
             GetLog() << "inputs are invalid, or the algorithm has been improperly called";
             break;
+        case Eigen::NoConvergence:
+            // Not a possible error for Pardiso
+            break;
     }
 }
 

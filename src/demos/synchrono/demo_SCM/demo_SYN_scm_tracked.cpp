@@ -23,13 +23,11 @@
 // =============================================================================
 
 #include <cmath>
-#include <chrono>
 
 #include "chrono/core/ChRealtimeStep.h"
 
 #include "chrono_vehicle/ChConfigVehicle.h"
 #include "chrono_vehicle/ChVehicleModelData.h"
-#include "chrono_vehicle/terrain/RigidTerrain.h"
 #include "chrono_vehicle/terrain/SCMDeformableTerrain.h"
 #include "chrono_vehicle/driver/ChPathFollowerDriver.h"
 
@@ -44,15 +42,15 @@
 #include "chrono_synchrono/utils/SynLog.h"
 
 #ifdef CHRONO_IRRLICHT
-#include "chrono_vehicle/tracked_vehicle/utils/ChTrackedVehicleIrrApp.h"
+    #include "chrono_vehicle/tracked_vehicle/utils/ChTrackedVehicleIrrApp.h"
 #endif
 
 #ifdef CHRONO_SENSOR
-#include "chrono_sensor/ChSensorManager.h"
-#include "chrono_sensor/ChCameraSensor.h"
-#include "chrono_sensor/filters/ChFilterAccess.h"
-#include "chrono_sensor/filters/ChFilterSave.h"
-#include "chrono_sensor/filters/ChFilterVisualize.h"
+    #include "chrono_sensor/ChSensorManager.h"
+    #include "chrono_sensor/ChCameraSensor.h"
+    #include "chrono_sensor/filters/ChFilterAccess.h"
+    #include "chrono_sensor/filters/ChFilterSave.h"
+    #include "chrono_sensor/filters/ChFilterVisualize.h"
 using namespace chrono::sensor;
 #endif
 
@@ -63,34 +61,8 @@ using namespace chrono::vehicle;
 using namespace chrono::synchrono;
 using namespace chrono::vehicle::m113;
 
-// =============================================================================
-
-// Better conserve mass by displacing soil to the sides of a rut
-const bool bulldozing = true;
-
-// Contact method
-ChContactMethod contact_method = ChContactMethod::SMC;
-
-// Simulation step size
-double step_size = 1e-3;
-
-// Simulation end time
-double end_time = 1000;
-
-// Point on chassis tracked by the camera
-ChVector<> trackPoint(0.0, 0.0, 1.75);
-
-// Time interval between two render frames
-double render_step_size = 1.0 / 100;  // FPS = 50
-
-// How often SynChrono state messages are interchanged
-double heartbeat = 1e-2;  // 100[Hz]
-
-// Forward declares for straight forward helper functions
-void LogCopyright(bool show);
+// Forward declaration
 void AddCommandLineOptions(ChCLI& cli);
-std::string StringFromContactMethod(ChContactMethod contact);
-ChContactMethod ContactMethodFromString(std::string str);
 
 // =============================================================================
 
@@ -104,32 +76,35 @@ int main(int argc, char* argv[]) {
     SynChronoManager syn_manager(node_id, num_nodes, communicator);
 
     // Copyright
-    LogCopyright(node_id == 0);
+    if (node_id == 0) {
+        SynLog() << "Copyright (c) 2020 projectchrono.org\n";
+        SynLog() << "Chrono version: " << CHRONO_VERSION << "\n\n";
+    }
 
     // -----------------------------------------------------
     // CLI SETUP - Get most parameters from the command line
     // -----------------------------------------------------
 
     ChCLI cli(argv[0]);
-
     AddCommandLineOptions(cli);
     if (!cli.Parse(argc, argv, node_id == 0))
         return 0;
 
     // Normal simulation options
-    step_size = cli.GetAsType<double>("step_size");
-    end_time = cli.GetAsType<double>("end_time");
-    heartbeat = cli.GetAsType<double>("heartbeat");
-    contact_method = ContactMethodFromString(cli.GetAsType<std::string>("contact_method"));
-
-    const double size_x = cli.GetAsType<double>("sizeX");
-    const double size_y = cli.GetAsType<double>("sizeY");
-    const double cam_x = cli.GetAsType<std::vector<double>>("c_pos")[0];
-    const double cam_y = cli.GetAsType<std::vector<double>>("c_pos")[1];
-    const double dpu = cli.GetAsType<double>("dpu");
-    const int cam_res_width = cli.GetAsType<std::vector<int>>("res")[0];
-    const int cam_res_height = cli.GetAsType<std::vector<int>>("res")[1];
-    const bool use_scm = cli.Matches<std::string>("terrain_type", "SCM");
+    auto step_size = cli.GetAsType<double>("step_size");
+    auto end_time = cli.GetAsType<double>("end_time");
+    auto heartbeat = cli.GetAsType<double>("heartbeat");
+    auto contact_method =
+        (cli.Matches<std::string>("contact_method", "SMC") ? ChContactMethod::SMC : ChContactMethod::NSC);
+    auto size_x = cli.GetAsType<double>("sizeX");
+    auto size_y = cli.GetAsType<double>("sizeY");
+    auto cam_x = cli.GetAsType<std::vector<double>>("c_pos")[0];
+    auto cam_y = cli.GetAsType<std::vector<double>>("c_pos")[1];
+    auto dpu = cli.GetAsType<double>("dpu");
+    auto cam_res_width = cli.GetAsType<std::vector<int>>("res")[0];
+    auto cam_res_height = cli.GetAsType<std::vector<int>>("res")[1];
+    auto flat_patch = cli.Matches<std::string>("terrain_type", "Flat");
+    auto bulldozing = cli.GetAsType<bool>("bulldozing");
 
     // Change SynChronoManager settings
     syn_manager.SetHeartbeat(heartbeat);
@@ -164,6 +139,8 @@ int main(int argc, char* argv[]) {
     m113.SetInitPosition(ChCoordsys<>(initLoc, initRot));
     m113.SetTrackShoeType(TrackShoeType::SINGLE_PIN);
     m113.SetBrakeType(BrakeType::SIMPLE);
+    m113.SetDrivelineType(DrivelineTypeTV::BDS);
+    m113.SetPowertrainType(PowertrainModelType::SHAFTS);
     m113.Initialize();
 
     m113.SetChassisVisualizationType(VisualizationType::MESH);
@@ -185,74 +162,46 @@ int main(int argc, char* argv[]) {
     // ----------------------
     // Terrain specific setup
     // ----------------------
-    std::shared_ptr<ChTerrain> terrain;
-    if (use_scm) {
-        auto scm = chrono_types::make_shared<SCMDeformableTerrain>(m113.GetSystem());
+    auto terrain = chrono_types::make_shared<SCMDeformableTerrain>(m113.GetSystem());
 
-        // Configure the SCM terrain
-        if (bulldozing) {
-            scm->EnableBulldozing(bulldozing);
-            scm->SetBulldozingParameters(
-                55,   // angle of friction for erosion of displaced material at the border of the rut
-                1,    // displaced material vs downward pressed material.
-                5,    // number of erosion refinements per timestep
-                10);  // number of concentric vertex selections subject to erosion
-        }
-
-        // Only relevant for Irrlicht visualization, gives some nice colors
-        scm->SetPlotType(SCMDeformableTerrain::PLOT_SINKAGE, 0, 0.1);
-        scm->GetMesh()->SetWireframe(true);
-
-        // The physics do not change when you add a moving patch, you just make it much easier for the SCM
-        // implementation to do its job by restricting where it has to look for contacts
-        scm->AddMovingPatch(m113.GetVehicle().GetChassisBody(), ChVector<>(0, 0, 0), ChVector<>(10, 10, 1));
-
-        scm->Initialize(size_x, size_y, 1. / dpu);
-
-        // Create an SCMTerrainAgent and add it to the SynChrono manager
-        auto terrain_agent = chrono_types::make_shared<SynSCMTerrainAgent>(scm);
-        syn_manager.AddAgent(terrain_agent);
-
-        // Choice of soft parameters is arbitrary
-        SCMParameters params;
-        params.InitializeParametersAsSoft();
-        terrain_agent->SetSoilParametersFromStruct(&params);
-
-        // Add texture for the terrain
-        auto vis_mat = chrono_types::make_shared<ChVisualMaterial>();
-        vis_mat->SetSpecularColor({.1f, .1f, .1f});
-        vis_mat->SetKdTexture(GetChronoDataFile("sensor/textures/grass_texture.jpg"));
-        scm->GetMesh()->material_list.push_back(vis_mat);
-
-        terrain = scm;
-    } else {
-        MaterialInfo minfo;
-        minfo.mu = 0.9f;
-        minfo.cr = 0.01f;
-        minfo.Y = 2e7f;
-        auto patch_mat = minfo.CreateMaterial(contact_method);
-
-        auto rigid = chrono_types::make_shared<RigidTerrain>(m113.GetSystem());
-        auto patch = rigid->AddPatch(patch_mat, ChVector<>(0, 0, 0), ChVector<>(0, 0, 1), size_x, size_y);
-        rigid->Initialize();
-
-        // Terrain visualization
-        // For irrlicht
-        patch->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 200, 200);
-        // For sensor
-        auto patch_asset = patch->GetGroundBody()->GetAssets()[0];
-        if (auto visual_asset = std::dynamic_pointer_cast<ChVisualization>(patch_asset)) {
-            auto box_texture = chrono_types::make_shared<ChVisualMaterial>();
-            box_texture->SetKdTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"));
-            // FresnelMax and SpecularColor should make it less shiny
-            box_texture->SetFresnelMax(0.2f);
-            box_texture->SetSpecularColor({0.2f, 0.2f, 0.2f});
-
-            visual_asset->material_list.push_back(box_texture);
-        }
-
-        terrain = rigid;
+    // Configure the SCM terrain
+    if (bulldozing) {
+        terrain->EnableBulldozing(bulldozing);
+        terrain->SetBulldozingParameters(
+            55,   // angle of friction for erosion of displaced material at the border of the rut
+            1,    // displaced material vs downward pressed material.
+            5,    // number of erosion refinements per timestep
+            10);  // number of concentric vertex selections subject to erosion
     }
+
+    // Only relevant for Irrlicht visualization, gives some nice colors
+    terrain->SetPlotType(SCMDeformableTerrain::PLOT_SINKAGE, 0, 0.1);
+    terrain->GetMesh()->SetWireframe(true);
+
+    // The physics do not change when you add a moving patch, you just make it much easier for the SCM
+    // implementation to do its job by restricting where it has to look for contacts
+    terrain->AddMovingPatch(m113.GetVehicle().GetChassisBody(), ChVector<>(0, 0, 0), ChVector<>(10, 10, 1));
+
+    if (flat_patch) {
+        terrain->Initialize(size_x, size_y, 1 / dpu);
+    } else {
+        terrain->Initialize(vehicle::GetDataFile("terrain/height_maps/slope.bmp"), size_x, size_y, 0.0, 5.0, 1 / dpu);
+    }
+
+    // Create an SCMTerrainAgent and add it to the SynChrono manager
+    auto terrain_agent = chrono_types::make_shared<SynSCMTerrainAgent>(terrain);
+    syn_manager.AddAgent(terrain_agent);
+
+    // Choice of soft parameters is arbitrary
+    SCMParameters params;
+    params.InitializeParametersAsMid();
+    terrain_agent->SetSoilParametersFromStruct(&params);
+
+    // Add texture for the terrain
+    auto vis_mat = chrono_types::make_shared<ChVisualMaterial>();
+    vis_mat->SetSpecularColor({.1f, .1f, .1f});
+    vis_mat->SetKdTexture(GetChronoDataFile("sensor/textures/grass_texture.jpg"));
+    terrain->GetMesh()->material_list.push_back(vis_mat);
 
     // Create the driver for the vehicle
 
@@ -279,7 +228,7 @@ int main(int argc, char* argv[]) {
         app->SetSkyBox();
         app->AddTypicalLights(irr::core::vector3df(30.f, -30.f, 100.f), irr::core::vector3df(30.f, 50.f, 100.f), 250,
                               130);
-        app->SetChaseCamera(trackPoint, 10.0, 0.5);
+        app->SetChaseCamera(ChVector<>(0.0, 0.0, 1.75), 10.0, 0.5);
         app->SetTimestep(step_size);
         app->AssetBindAll();
         app->AssetUpdateAll();
@@ -339,19 +288,22 @@ int main(int argc, char* argv[]) {
     // ---------------
     // Simulation loop
     // ---------------
+    // Time interval between two render frames (1/FPS)
+    double render_step_size = 1.0 / 100;
+
+    // Number of simulation steps between miscellaneous events
+    int render_steps = (int)std::ceil(render_step_size / step_size);
 
     // Inter-module communication data
     TerrainForces shoe_forces_left(m113.GetVehicle().GetNumTrackShoes(LEFT));
     TerrainForces shoe_forces_right(m113.GetVehicle().GetNumTrackShoes(RIGHT));
 
-    // Number of simulation steps between miscellaneous events
-    int render_steps = (int)std::ceil(render_step_size / step_size);
-
     // Initialize simulation frame counters
     int step_number = 0;
 
     ChRealtimeStepTimer realtime_timer;
-    std::chrono::high_resolution_clock::time_point start = std::chrono::high_resolution_clock::now();
+    ChTimer<> timer;
+    timer.start();
 
     while (true) {
         double time = m113.GetSystem()->GetChTime();
@@ -366,7 +318,7 @@ int main(int argc, char* argv[]) {
             break;
 
         // Render scene
-        if (step_number % render_steps == 0 && app) {
+        if (app && step_number % render_steps == 0) {
             app->BeginScene(true, true, irr::video::SColor(255, 140, 161, 192));
             app->DrawAll();
             app->EndScene();
@@ -403,10 +355,7 @@ int main(int argc, char* argv[]) {
         step_number++;
 
         if ((int)step_number % 100 == 0 && node_id == 1) {
-            std::chrono::high_resolution_clock::time_point end = std::chrono::high_resolution_clock::now();
-            auto time_span = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
-
-            SynLog() << (time_span.count() / 1e3) / time << "\n";
+            SynLog() << timer.GetTimeSecondsIntermediate() / time << "\n";
         }
     }
     syn_manager.QuitSimulation();
@@ -414,25 +363,20 @@ int main(int argc, char* argv[]) {
     return 0;
 }
 
-void LogCopyright(bool show) {
-    if (!show)
-        return;
-
-    SynLog() << "Copyright (c) 2020 projectchrono.org\n";
-    SynLog() << "Chrono version: " << CHRONO_VERSION << "\n\n";
-}
-
 void AddCommandLineOptions(ChCLI& cli) {
     // Standard demo options
-    cli.AddOption<double>("Simulation", "s,step_size", "Step size", std::to_string(step_size));
-    cli.AddOption<double>("Simulation", "e,end_time", "End time", std::to_string(end_time));
-    cli.AddOption<double>("Simulation", "b,heartbeat", "Heartbeat", std::to_string(heartbeat));
-    cli.AddOption<std::string>("Simulation", "c,contact_method", "Contact Method",
-                               StringFromContactMethod(contact_method), "NSC/SMC");
+    cli.AddOption<double>("Simulation", "s,step_size", "Step size", "1e-3");
+    cli.AddOption<double>("Simulation", "e,end_time", "End time", "1000");
+    cli.AddOption<double>("Simulation", "b,heartbeat", "Heartbeat", "1e-2");
+    cli.AddOption<std::string>("Simulation", "c,contact_method", "Contact Method", "SMC", "NSC/SMC");
 
     // SCM specific options
     cli.AddOption<double>("Demo", "d,dpu", "Divisions per unit", "20");
-    cli.AddOption<std::string>("Demo", "t,terrain_type", "Terrain Type", "Rigid", "Rigid,SCM");
+    cli.AddOption<std::string>("Demo", "t,terrain_type", "Terrain Type", "Flat", "Flat,Hmap");
+
+    // Many more nodes are impacted with bulldozing and performance is tied to number of deformed nodes, so enabling
+    // this can cause a significant slowdown
+    cli.AddOption<bool>("Demo", "bulldozing", "Toggle bulldozing effects ON", "false");
 
     // Visualization is the only reason you should be shy about terrain size. The implementation can easily handle a
     // practically infinite terrain (provided you don't need to visualize it)
@@ -449,23 +393,4 @@ void AddCommandLineOptions(ChCLI& cli) {
 
     cli.AddOption<std::vector<int>>("Demo", "r,res", "Camera resolution", "1280,720", "width,height");
     cli.AddOption<std::vector<double>>("Demo", "c_pos", "Camera Position", "-15,-25", "X,Y");
-}
-
-ChContactMethod ContactMethodFromString(std::string str) {
-    if (str == "SMC")
-        return ChContactMethod::SMC;
-    if (str == "NSC")
-        return ChContactMethod::NSC;
-    throw ChException(str + " is not a valid ChContactMethod (SMC or NSC)");
-}
-
-std::string StringFromContactMethod(ChContactMethod contact) {
-    switch (contact) {
-        case ChContactMethod::NSC:
-            return "NSC";
-        case ChContactMethod::SMC:
-            return "SMC";
-        default:
-            throw ChException("ChContactMethod improperly enumerated in StringFromContactMethod");
-    }
 }

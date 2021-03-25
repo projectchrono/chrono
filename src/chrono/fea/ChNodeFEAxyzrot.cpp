@@ -223,7 +223,7 @@ void ChNodeFEAxyzrot::ArchiveOUT(ChArchiveOut& marchive) {
 
 void ChNodeFEAxyzrot::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChNodeFEAxyzrot>();
+    /*int version =*/ marchive.VersionRead<ChNodeFEAxyzrot>();
     // deserialize parent class
     ChNodeFEAbase::ArchiveIN(marchive);
     // serialize parent class

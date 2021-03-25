@@ -243,7 +243,7 @@ elseif(DETECTED_SSE_10)
 endif()
 
 
-if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX)
   if(DETECTED_SSE_42)
      set(SSE_FLAGS "${SSE_FLAGS} -msse4.2 -mfpmath=sse")
   elseif(DETECTED_SSE_41)
@@ -254,6 +254,22 @@ if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID 
      set(SSE_FLAGS "${SSE_FLAGS} -msse2 -mfpmath=sse")
   elseif(DETECTED_SSE_10)
      set(SSE_FLAGS "${SSE_FLAGS} -msse -mfpmath=sse")
+  else()
+     # Setting -ffloat-store to alleviate 32bit vs 64bit discrepancies on non-SSE platforms.
+     set(SSE_FLAGS "-ffloat-store")
+  endif()
+elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+  # clang does not require "-mfpmath" which is automatic
+  if(DETECTED_SSE_42)
+     set(SSE_FLAGS "${SSE_FLAGS} -msse4.2")
+  elseif(DETECTED_SSE_41)
+     set(SSE_FLAGS "${SSE_FLAGS} -msse4.1")
+  elseif(DETECTED_SSE_30)
+     set(SSE_FLAGS "${SSE_FLAGS} -msse3")
+  elseif(DETECTED_SSE_20)
+     set(SSE_FLAGS "${SSE_FLAGS} -msse2")
+  elseif(DETECTED_SSE_10)
+     set(SSE_FLAGS "${SSE_FLAGS} -msse")
   else()
      # Setting -ffloat-store to alleviate 32bit vs 64bit discrepancies on non-SSE platforms.
      set(SSE_FLAGS "-ffloat-store")

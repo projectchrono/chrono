@@ -10,6 +10,7 @@ SET(TESTS
     utest_CH_math
     utest_CH_sparsematrix
     utest_CH_ISO2631
+    utest_CH_collision
     #utest_CH_stream
 )
 

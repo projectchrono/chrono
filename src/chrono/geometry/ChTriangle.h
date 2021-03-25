@@ -65,41 +65,13 @@ class ChApi ChTriangle : public ChGeometry {
     bool Normal(ChVector<>& N) const;
     ChVector<> GetNormal() const;
 
-    /// Given point B and a generic triangle, computes the distance from the triangle plane,
-    /// returning also the projection of point on the plane and other infos
-    ///			\return the signed distance
-    static double PointTriangleDistance(ChVector<> B,           ///< point to be measured
-                                        ChVector<>& A1,         ///< point of triangle
-                                        ChVector<>& A2,         ///< point of triangle
-                                        ChVector<>& A3,         ///< point of triangle
-                                        double& mu,             ///< returns U parametric coord of projection
-                                        double& mv,             ///< returns V parametric coord of projection
-                                        bool& is_into,          ///< returns true if projection falls on the triangle
-                                        ChVector<>& Bprojected  ///< returns the position of the projected point
-    );
-
     /// Given point B, computes the distance from this triangle plane,
-    /// returning also the projection of point on the plane and other infos
-    ///			\return the signed distance
+    /// returning also the projection of point on the plane.
     double PointTriangleDistance(ChVector<> B,           ///< point to be measured
                                  double& mu,             ///< returns U parametric coord of projection
                                  double& mv,             ///< returns V parametric coord of projection
                                  bool& is_into,          ///< returns true if projection falls on the triangle
                                  ChVector<>& Bprojected  ///< returns the position of the projected point
-    ) {
-        return PointTriangleDistance(B, this->p1, this->p2, this->p3, mu, mv, is_into, Bprojected);
-    }
-
-    /// Calculate distance between a point p and a line identified
-    /// with segment dA,dB. Returns distance. Also, the mu value reference
-    /// tells if the nearest projection of point on line falls into segment (for mu 0...1)
-    ///			\return the distance
-    static double PointLineDistance(
-        ChVector<>& p,      ///< point to be measured
-        ChVector<>& dA,     ///< a point on the line
-        ChVector<>& dB,     ///< another point on the line
-        double& mu,         ///< parametric coord: if in 0..1 interval, projection is between dA and dB
-        bool& is_insegment  ///< returns true if projected point is between dA and dB
     );
 
     /// Method to allow serialization of transient data to archives.

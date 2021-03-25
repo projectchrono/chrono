@@ -33,7 +33,7 @@ void ChColorAsset::ArchiveOUT(ChArchiveOut& marchive) {
 /// Method to allow de-serialization of transient data from archives.
 void ChColorAsset::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChColorAsset>();
+    /*int version =*/ marchive.VersionRead<ChColorAsset>();
     // deserialize parent class
     ChAsset::ArchiveIN(marchive);
     // stream in all member data:

@@ -493,7 +493,7 @@ int main(int argc, char* argv[]) {
         application.DrawAll();
         application.DoStep();
         if (!application.GetPaused()) {
-            double time = my_system.GetChTime();
+            //double time = my_system.GetChTime();
             auto& posB = nodeB->GetPos();
             rec.AddPoint(posB.x(), posB.y());
 

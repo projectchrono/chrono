@@ -51,7 +51,7 @@ void ChFunction_Sine::ArchiveOUT(ChArchiveOut& marchive) {
 
 void ChFunction_Sine::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChFunction_Sine>();
+    /*int version =*/ marchive.VersionRead<ChFunction_Sine>();
     // deserialize parent class
     ChFunction::ArchiveIN(marchive);
     // stream in all member data:

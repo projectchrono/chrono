@@ -59,7 +59,7 @@ using namespace chrono::vehicle;
 using namespace chrono::synchrono;
 using namespace chrono::vehicle::hmmwv;
 
-// Forward declares for straight forward helper functions
+// Forward declaration
 void AddCommandLineOptions(ChCLI& cli);
 
 // =============================================================================

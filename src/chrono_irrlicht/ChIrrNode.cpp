@@ -104,7 +104,6 @@ void ChIrrNode::OnAnimate(u32 timeMs) {
                 // assets frame clones, and adjust it if not:
                 if (SetupClones()) {
                     // make each clone node match the corresponding asset frame :
-                    unsigned int nclones = physicsitem.lock()->GetAssetsFrameNclones();
                     unsigned int iclone = 0;
                     irr::core::list<ISceneNode*>::ConstIterator it = this->getChildren().begin();
                     for (; it != Children.end(); ++it) {

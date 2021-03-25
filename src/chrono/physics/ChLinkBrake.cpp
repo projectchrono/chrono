@@ -132,7 +132,7 @@ void ChLinkBrake::ArchiveOUT(ChArchiveOut& marchive) {
 /// Method to allow de serialization of transient data from archives.
 void ChLinkBrake::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChLinkBrake>();
+    /*int version =*/ marchive.VersionRead<ChLinkBrake>();
 
     // deserialize parent class
     ChLinkLock::ArchiveIN(marchive);

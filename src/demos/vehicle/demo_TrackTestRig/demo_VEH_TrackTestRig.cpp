@@ -281,8 +281,6 @@ int main(int argc, char* argv[]) {
     int step_number = 0;
 
     while (app.GetDevice()->run()) {
-        double time = rig->GetChTime();
-
         // Render scene
         app.BeginScene(true, true, irr::video::SColor(255, 140, 161, 192));
         app.DrawAll();

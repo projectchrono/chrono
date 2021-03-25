@@ -322,7 +322,7 @@ bool ParseJSON(const std::string& json_file, ChGpuSimulationParameters& params, 
     }
     if (doc.HasMember("verbose") && doc["verbose"].IsInt()) {
         params.verbose = (CHGPU_VERBOSITY)doc["verbose"].GetInt();
-        CONDITIONAL_PRINTF(verbose, "params.verbose %d\n", params.verbose);
+        CONDITIONAL_PRINTF(verbose, "params.verbose %d\n", (int)params.verbose);
     }
     if (doc.HasMember("psi_T") && doc["psi_T"].IsInt()) {
         params.psi_T = doc["psi_T"].GetInt();

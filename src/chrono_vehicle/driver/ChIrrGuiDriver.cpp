@@ -119,14 +119,14 @@ bool ChIrrGuiDriver::OnEvent(const SEvent& event) {
             if (m_app.m_vehicle->GetPowertrain()) {
                 if (event.JoystickEvent.IsButtonPressed(22)) {
                     /// Gear is set to reverse
-                    m_app.m_vehicle->GetPowertrain()->SetDriveMode(ChPowertrain::REVERSE);
+                    m_app.m_vehicle->GetPowertrain()->SetDriveMode(ChPowertrain::DriveMode::REVERSE);
                 } else if (event.JoystickEvent.IsButtonPressed(12) || event.JoystickEvent.IsButtonPressed(13) ||
                            event.JoystickEvent.IsButtonPressed(14) || event.JoystickEvent.IsButtonPressed(15) ||
                            event.JoystickEvent.IsButtonPressed(16) || event.JoystickEvent.IsButtonPressed(17)) {
                     // All 'forward' gears set drive mode to forward, regardless of gear
-                    m_app.m_vehicle->GetPowertrain()->SetDriveMode(ChPowertrain::FORWARD);
+                    m_app.m_vehicle->GetPowertrain()->SetDriveMode(ChPowertrain::DriveMode::FORWARD);
                 } else {
-                    m_app.m_vehicle->GetPowertrain()->SetDriveMode(ChPowertrain::NEUTRAL);
+                    m_app.m_vehicle->GetPowertrain()->SetDriveMode(ChPowertrain::DriveMode::NEUTRAL);
                 }
             }
         }
@@ -187,16 +187,40 @@ bool ChIrrGuiDriver::OnEvent(const SEvent& event) {
 
             case KEY_KEY_Z:
                 if (m_mode == KEYBOARD && m_app.m_vehicle->GetPowertrain())
-                    m_app.m_vehicle->GetPowertrain()->SetDriveMode(ChPowertrain::FORWARD);
+                    m_app.m_vehicle->GetPowertrain()->SetDriveMode(ChPowertrain::DriveMode::FORWARD);
                 return true;
             case KEY_KEY_X:
                 if (m_mode == KEYBOARD && m_app.m_vehicle->GetPowertrain())
-                    m_app.m_vehicle->GetPowertrain()->SetDriveMode(ChPowertrain::NEUTRAL);
+                    m_app.m_vehicle->GetPowertrain()->SetDriveMode(ChPowertrain::DriveMode::NEUTRAL);
                 return true;
             case KEY_KEY_C:
                 if (m_mode == KEYBOARD && m_app.m_vehicle->GetPowertrain())
-                    m_app.m_vehicle->GetPowertrain()->SetDriveMode(ChPowertrain::REVERSE);
+                    m_app.m_vehicle->GetPowertrain()->SetDriveMode(ChPowertrain::DriveMode::REVERSE);
                 return true;
+
+            case KEY_KEY_T:
+                if (m_mode == KEYBOARD && m_app.m_vehicle->GetPowertrain()) {
+                    switch (m_app.m_vehicle->GetPowertrain()->GetTransmissionMode()) {
+                        case ChPowertrain::TransmissionMode::MANUAL:
+                            m_app.m_vehicle->GetPowertrain()->SetTransmissionMode(
+                                ChPowertrain::TransmissionMode::AUTOMATIC);
+                            break;
+                        case ChPowertrain::TransmissionMode::AUTOMATIC:
+                            m_app.m_vehicle->GetPowertrain()->SetTransmissionMode(
+                                ChPowertrain::TransmissionMode::MANUAL);
+                            break;
+                    }
+                }
+                return true;
+            case KEY_PERIOD:
+                if (m_mode == KEYBOARD && m_app.m_vehicle->GetPowertrain())
+                    m_app.m_vehicle->GetPowertrain()->ShiftUp();
+                return true;
+            case KEY_COMMA:
+                if (m_mode == KEYBOARD && m_app.m_vehicle->GetPowertrain())
+                    m_app.m_vehicle->GetPowertrain()->ShiftDown();
+                return true;
+
             default:
                 break;
         }

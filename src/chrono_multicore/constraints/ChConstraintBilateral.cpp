@@ -58,8 +58,6 @@ void ChConstraintBilateral::Build_D() {
     // taking into account the type of each constraint.
     SubMatrixType D_b_T = _DBT_;
 
-    const CompressedMatrix<real>& M_inv = data_manager->host_data.M_inv;
-
     //#pragma omp parallel for
     for (int index = 0; index < (signed)data_manager->num_bilaterals; index++) {
         int cntr = data_manager->host_data.bilateral_mapping[index];

@@ -30,7 +30,7 @@ void ChObjShapeFile::ArchiveOUT(ChArchiveOut& marchive) {
 
 void ChObjShapeFile::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChObjShapeFile>();
+    /*int version =*/ marchive.VersionRead<ChObjShapeFile>();
     // deserialize parent class
     ChVisualization::ArchiveIN(marchive);
     // stream in all member data:

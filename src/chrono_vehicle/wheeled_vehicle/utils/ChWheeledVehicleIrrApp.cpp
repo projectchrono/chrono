@@ -44,34 +44,34 @@ ChWheeledVehicleIrrApp::ChWheeledVehicleIrrApp(ChVehicle* vehicle,
 void ChWheeledVehicleIrrApp::renderOtherStats(int left, int top) {
     char msg[100];
 
-    if (auto driveline = std::dynamic_pointer_cast<ChShaftsDriveline2WD>(m_wvehicle->GetDriveline())) {
+    if (auto driveline2 = std::dynamic_pointer_cast<ChShaftsDriveline2WD>(m_wvehicle->GetDriveline())) {
         double torque;
-        int axle = driveline->GetDrivenAxleIndexes()[0];
+        int axle = driveline2->GetDrivenAxleIndexes()[0];
 
-        torque = driveline->GetSpindleTorque(axle, LEFT);
+        torque = driveline2->GetSpindleTorque(axle, LEFT);
         sprintf(msg, "Torque wheel L: %+.2f", torque);
         renderLinGauge(std::string(msg), torque / 5000, false, left, top, 120, 15);
 
-        torque = driveline->GetSpindleTorque(axle, RIGHT);
+        torque = driveline2->GetSpindleTorque(axle, RIGHT);
         sprintf(msg, "Torque wheel R: %+.2f", torque);
         renderLinGauge(std::string(msg), torque / 5000, false, left, top + 20, 120, 15);
-    } else if (auto driveline = std::dynamic_pointer_cast<ChShaftsDriveline4WD>(m_wvehicle->GetDriveline())) {
+    } else if (auto driveline4 = std::dynamic_pointer_cast<ChShaftsDriveline4WD>(m_wvehicle->GetDriveline())) {
         double torque;
-        std::vector<int> axles = driveline->GetDrivenAxleIndexes();
+        std::vector<int> axles = driveline4->GetDrivenAxleIndexes();
 
-        torque = driveline->GetSpindleTorque(axles[0], LEFT);
+        torque = driveline4->GetSpindleTorque(axles[0], LEFT);
         sprintf(msg, "Torque wheel FL: %+.2f", torque);
         renderLinGauge(std::string(msg), torque / 5000, false, left, top, 120, 15);
 
-        torque = driveline->GetSpindleTorque(axles[0], RIGHT);
+        torque = driveline4->GetSpindleTorque(axles[0], RIGHT);
         sprintf(msg, "Torque wheel FR: %+.2f", torque);
         renderLinGauge(std::string(msg), torque / 5000, false, left, top + 20, 120, 15);
 
-        torque = driveline->GetSpindleTorque(axles[1], LEFT);
+        torque = driveline4->GetSpindleTorque(axles[1], LEFT);
         sprintf(msg, "Torque wheel RL: %+.2f", torque);
         renderLinGauge(std::string(msg), torque / 5000, false, left, top + 40, 120, 15);
 
-        torque = driveline->GetSpindleTorque(axles[1], RIGHT);
+        torque = driveline4->GetSpindleTorque(axles[1], RIGHT);
         sprintf(msg, "Torque wheel FR: %+.2f", torque);
         renderLinGauge(std::string(msg), torque / 5000, false, left, top + 60, 120, 15);
     }

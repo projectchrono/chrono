@@ -36,7 +36,7 @@ void ChContinuumMaterial::ArchiveOUT(ChArchiveOut& marchive) {
 
 void ChContinuumMaterial::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChContinuumMaterial>();
+    /*int version =*/ marchive.VersionRead<ChContinuumMaterial>();
     // deserialize parent class
     // stream in all member data:
     marchive >> CHNVP(density, "density");
@@ -140,7 +140,7 @@ void ChContinuumElastic::ArchiveOUT(ChArchiveOut& marchive) {
 
 void ChContinuumElastic::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChContinuumElastic>();
+    /*int version =*/ marchive.VersionRead<ChContinuumElastic>();
     // deserialize parent class
     ChContinuumMaterial::ArchiveIN(marchive);
     // stream in all member data:
@@ -163,7 +163,7 @@ void ChContinuumElastoplastic::ArchiveOUT(ChArchiveOut& marchive) {
 
 void ChContinuumElastoplastic::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChContinuumElastoplastic>();
+    /*int version =*/ marchive.VersionRead<ChContinuumElastoplastic>();
     // deserialize parent class
     ChContinuumElastic::ArchiveIN(marchive);
     // stream in all member data:
@@ -237,7 +237,7 @@ void ChContinuumPlasticVonMises::ArchiveOUT(ChArchiveOut& marchive) {
 
 void ChContinuumPlasticVonMises::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChContinuumPlasticVonMises>();
+    /*int version =*/ marchive.VersionRead<ChContinuumPlasticVonMises>();
     // deserialize parent class
     ChContinuumElastoplastic::ArchiveIN(marchive);
     // stream in all member data:
@@ -400,7 +400,7 @@ void ChContinuumDruckerPrager::ArchiveOUT(ChArchiveOut& marchive) {
 
 void ChContinuumDruckerPrager::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChContinuumDruckerPrager>();
+    /*int version =*/ marchive.VersionRead<ChContinuumDruckerPrager>();
     // deserialize parent class
     ChContinuumElastoplastic::ArchiveIN(marchive);
     // stream in all member data:

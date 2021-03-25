@@ -20,7 +20,7 @@
 #include "chrono/assets/ChObjShapeFile.h"
 #include "chrono/assets/ChSphereShape.h"
 #include "chrono/assets/ChTriangleMeshShape.h"
-#include "chrono/collision/ChCollisionUtils.h"
+#include "chrono/collision/ChCollisionUtilsBullet.h"
 
 namespace chrono {
 
@@ -151,7 +151,7 @@ ChBodyEasyConvexHull::ChBodyEasyConvexHull(std::vector<ChVector<>>& points,
                                            std::shared_ptr<collision::ChCollisionModel> collision_model)
     : ChBody(collision_model) {
     auto vshape = chrono_types::make_shared<ChTriangleMeshShape>();
-    collision::ChConvexHullLibraryWrapper lh;
+    collision::utils::ChConvexHullLibraryWrapper lh;
     lh.ComputeHull(points, *vshape->GetMesh());
     if (visualize) {
         vshape->SetName("chull_mesh_" + std::to_string(GetIdentifier()));
@@ -197,7 +197,7 @@ ChBodyEasyConvexHullAuxRef::ChBodyEasyConvexHullAuxRef(std::vector<ChVector<>>& 
                                                        std::shared_ptr<collision::ChCollisionModel> collision_model)
     : ChBodyAuxRef(collision_model) {
     auto vshape = chrono_types::make_shared<ChTriangleMeshShape>();
-    collision::ChConvexHullLibraryWrapper lh;
+    collision::utils::ChConvexHullLibraryWrapper lh;
     lh.ComputeHull(points, *vshape->GetMesh());
     if (visualize) {
         vshape->SetName("chull_mesh_" + std::to_string(GetIdentifier()));
