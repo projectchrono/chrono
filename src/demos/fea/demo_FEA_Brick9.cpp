@@ -214,7 +214,7 @@ void DPCapPress() {
         CCPInitial(8, k) = 1;
     }
     int jj = -1;
-    int kk;
+    int kk = -1;
     // Create the elements
     for (int i = 0; i < TotalNumElements; i++) {
         if (i % (numDiv_x * numDiv_y) == 0) {
@@ -536,7 +536,7 @@ void ShellBrickContact() {
         CCPInitial(8, k) = 1;
     }
     int jj = -1;
-    int kk;
+    int kk = 0;
 
     // Create the elements for the bricked plate (made up of 9-node brick elements).
     for (int i = 0; i < TotalNumElements; i++) {
@@ -848,7 +848,7 @@ void SimpleBoxContact() {
         CCPInitial(8, k) = 1;
     }
     int jj = -1;
-    int kk;
+    int kk = -1;
     // Create the elements
     for (int i = 0; i < TotalNumElements; i++) {
         if (i % (numDiv_x * numDiv_y) == 0) {
@@ -1146,7 +1146,7 @@ void SoilBin() {
         CCPInitial(8, k) = 1;
     }
     int jj = -1;
-    int kk;
+    int kk = -1;
     // Create the elements
     for (int i = 0; i < TotalNumElements; i++) {
         if (i % (numDiv_x * numDiv_y) == 0) {

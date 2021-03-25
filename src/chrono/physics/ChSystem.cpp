@@ -1671,15 +1671,10 @@ bool ChSystem::DoFrameDynamics(double end_time) {
 
     applied_forces_current = false;
 
-    double frame_step;
-    double old_step;
+    double old_step = 0;
     double left_time;
     bool restore_oldstep = false;
     int counter = 0;
-    double fixed_step_undo;
-
-    frame_step = (end_time - ch_time);
-    fixed_step_undo = step;
 
     while (ch_time < end_time) {
         restore_oldstep = false;
@@ -1750,7 +1745,7 @@ bool ChSystem::DoFrameKinematics(double end_time) {
 
     applied_forces_current = false;
 
-    double old_step;
+    double old_step = 0;
     double left_time;
     int restore_oldstep;
     int counter = 0;

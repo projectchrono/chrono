@@ -573,11 +573,8 @@ double ChPathSteeringControllerSR::Advance(const ChVehicle& vehicle, double step
     ChVector<> Pt = m_sentinel - S_l[m_idx_curr];
     double rt = R_l[m_idx_curr].Length();
 
-    bool crit = false;
     double t = std::abs(Pt.Dot(R_lu[m_idx_curr]));
-    if (t < rt) {
-        crit = true;
-    } else {
+    if (t >= rt) {
         while (t > rt) {
             m_idx_curr++;
             if (m_isClosedPath) {

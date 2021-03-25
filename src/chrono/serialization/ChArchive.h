@@ -1364,9 +1364,9 @@ class  ChArchiveIn : public ChArchive {
               return iv;
           if (this->cluster_class_versions) {
               if (this->class_versions.find(std::type_index(typeid(T))) == this->class_versions.end()) {
-                int iv = this->in_version(typeid(T));
-                this->class_versions[std::type_index(typeid(T))] = iv;
-                return iv;
+                int jv = this->in_version(typeid(T));
+                this->class_versions[std::type_index(typeid(T))] = jv;
+                return jv;
               } 
           } 
           else {

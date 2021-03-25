@@ -375,8 +375,6 @@ bool ChBinaryArchive::IsBigEndianMachine() {
     endian_test.word = 1;
     if (endian_test.byte != 1)
         return true;
-    else
-        return false;
 
     return false;
 }

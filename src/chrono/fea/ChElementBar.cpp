@@ -65,8 +65,8 @@ void ChElementBar::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfactor, doubl
 	if (true) {
 		double L_ref = (nodes[1]->GetX0() - nodes[0]->GetX0()).Length();
 		double L = (nodes[1]->GetPos() - nodes[0]->GetPos()).Length();
-		double Kstiffness = ((this->area * this->E) / this->length);
-		double internal_Kforce_local = Kstiffness * (L - L_ref);
+		double Kstiffness1 = ((this->area * this->E) / this->length);
+		double internal_Kforce_local = Kstiffness1 * (L - L_ref);
 
 		ChMatrix33<> kgV = Kfactor * (internal_Kforce_local / L_ref) * (ChMatrix33<>(1) - V);
 		H.block(0, 0, 3, 3) += kgV;

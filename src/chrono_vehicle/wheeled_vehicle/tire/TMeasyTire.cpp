@@ -62,7 +62,7 @@ void TMeasyTire::Create(const rapidjson::Document& d) {
 
     double p_li = 1.0;
     double p_use = 1.0;
-    bool pressure_info_found = false;
+    ////bool pressure_info_found = false;
 
     if (d.HasMember("Parameters")) {
         // Full parameterization
@@ -126,7 +126,7 @@ void TMeasyTire::Create(const rapidjson::Document& d) {
             p_use = 0.0;
         }
         if (p_use > 0.0 && p_li > 0.0) {
-            pressure_info_found = true;
+            ////pressure_info_found = true;
         } else {
             p_li = p_use = 1.0;
         }
@@ -151,7 +151,7 @@ void TMeasyTire::Create(const rapidjson::Document& d) {
             p_use = 0.0;
         }
         if (p_use > 0.0 && p_li > 0.0) {
-            pressure_info_found = true;
+            ////pressure_info_found = true;
         } else {
             p_use = 1.0;
             p_li = 1.0;

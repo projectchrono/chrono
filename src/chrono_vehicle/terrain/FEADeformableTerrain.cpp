@@ -173,7 +173,7 @@ void FEADeformableTerrain::Initialize(const ChVector<>& start_point,
         CCPInitial(8, k) = 1;
     }
     int jj = -1;
-    int kk;
+    int kk = 0;
     // Create the elements
     for (int i = 0; i < TotalNumElements; i++) {
         if (i % (numDiv_x * numDiv_y) == 0) {

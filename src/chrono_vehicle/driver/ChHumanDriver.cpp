@@ -267,11 +267,8 @@ void ChHumanDriver::Advance(double step) {  // distance in front of the vehicle.
     ChVector<> Pt = m_sentinel - m_S_l[m_idx_curr];
     double rt = m_R_l[m_idx_curr].Length();
 
-    bool crit = false;
     double t = std::abs(Pt.Dot(m_R_lu[m_idx_curr]));
-    if (t < rt) {
-        crit = true;
-    } else {
+    if (t >= rt) {
         while (t > rt) {
             m_idx_curr++;
             if (m_isClosedPath) {

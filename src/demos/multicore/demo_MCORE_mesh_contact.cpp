@@ -88,7 +88,7 @@ int main(int argc, char* argv[]) {
     double thickness = 0.1;
 
     // Create the system
-    ChSystemMulticore* sys;
+    ChSystemMulticore* sys = nullptr;
     switch (contact_method) {
         case ChContactMethod::NSC: {
             auto sysNSC = new ChSystemMulticoreNSC();

@@ -363,7 +363,7 @@ std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(std::shared_ptr<ChMa
     }
 
     // Calculate normals and then average the normals from all adjacent faces.
-    for (unsigned int it = 0; it < n_faces; ++it) {
+    for (it = 0; it < n_faces; ++it) {
         // Calculate the triangle normal as a normalized cross product.
         ChVector<> nrm = Vcross(vertices[idx_vertices[it][1]] - vertices[idx_vertices[it][0]],
                                 vertices[idx_vertices[it][2]] - vertices[idx_vertices[it][0]]);

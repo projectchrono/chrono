@@ -449,8 +449,8 @@ void ChConvexDecompositionHACDv2::WriteConvexHullsAsWavefrontObj(ChStreamOutAsci
         const HACD::HACD_API::Hull* hull = gHACD->getHull(i);
         if (hull) {
             baseVertex[i] = vertexCount;
-            for (hacd::HaU32 i = 0; i < hull->mVertexCount; i++) {
-                const hacd::HaF32* p = &hull->mVertices[i * 3];
+            for (hacd::HaU32 j = 0; j < hull->mVertexCount; j++) {
+                const hacd::HaF32* p = &hull->mVertices[j * 3];
                 sprintf(buffer, "v %0.9f %0.9f %0.9f\r\n", p[0], p[1], p[2]);
                 mstream << buffer;
             }

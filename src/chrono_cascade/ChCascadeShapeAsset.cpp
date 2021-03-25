@@ -47,7 +47,7 @@ void ChCascadeShapeAsset::ArchiveOUT(ChArchiveOut& marchive)
 void ChCascadeShapeAsset::ArchiveIN(ChArchiveIn& marchive)
 {
 	// version number
-	int version = marchive.VersionRead<ChCascadeShapeAsset>();
+	/*int version =*/ marchive.VersionRead<ChCascadeShapeAsset>();
 	// deserialize parent class
 	ChAsset::ArchiveIN(marchive);
 	// stream in all member data:

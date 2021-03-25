@@ -146,10 +146,10 @@ class ChContactSMC : public ChContactTuple<Ta, Tb> {
         // All models use the following formulas for normal and tangential forces:
         //     Fn = kn * delta_n - gn * v_n
         //     Ft = kt * delta_t - gt * v_t
-        double kn;
-        double kt;
-        double gn;
-        double gt;
+        double kn = 0;
+        double kt = 0;
+        double gn = 0;
+        double gt = 0;
 
         double eps = std::numeric_limits<double>::epsilon();
 

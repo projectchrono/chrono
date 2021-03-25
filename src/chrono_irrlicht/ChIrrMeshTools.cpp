@@ -696,11 +696,11 @@ void fillChTrimeshFromIrlichtMesh(chrono::geometry::ChTriangleMesh* chTrimesh, I
         } else if (mb->getVertexType() == irr::video::EVT_2TCOORDS) {
             // same but for S3DVertex2TCoords data
             irr::video::S3DVertex2TCoords* mb_vertices = (irr::video::S3DVertex2TCoords*)mb->getVertices();
-            u16* mb_indices = mb->getIndices();
-            s32 numVertices = mb->getVertexCount();
+            mb_indices = mb->getIndices();
+            numVertices = mb->getVertexCount();
             for (j = 0; j < mb->getIndexCount(); j += 3) {  // index into irrlicht data
                 for (k = 0; k < 3; k++) {
-                    s32 index = mb_indices[j + k];
+                    index = mb_indices[j + k];
                     if (index > numVertices)
                         throw(chrono::ChException(
                             "Cannot convert corrupted Irrlicht mesh in ChronoEngine ChTriangleMesh."));

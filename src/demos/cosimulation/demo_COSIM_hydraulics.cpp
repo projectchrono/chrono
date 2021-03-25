@@ -110,9 +110,9 @@ int main(int argc, char* argv[]) {
         GetLog() << " *** Waiting Simulink to start... *** \n     (load 'data/cosimulation/test_cosim_hydraulics.mdl' "
                     "in Simulink and press Start...)\n\n";
 
-        int PORTNUM = 50009;
+        int PORT_NUMBER = 50009;
 
-        cosimul_interface.WaitConnection(PORTNUM);
+        cosimul_interface.WaitConnection(PORT_NUMBER);
 
         double mytime = 0;
         double histime = 0;

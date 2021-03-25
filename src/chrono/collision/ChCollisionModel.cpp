@@ -130,20 +130,20 @@ bool ChCollisionModel::AddConvexHullsFromFile(std::shared_ptr<ChMaterialSurface>
         }
         bufdata[linechar + 1] = 0;
 
-        bool parsedline = false;
+        ////bool parsedline = false;
         if (bufdata[0] != *"#") {
-            parsedline = true;
+            ////parsedline = true;
         }
         if (strcmp(bufdata, "hull") == 0) {
             if (ptlist.size())
                 this->AddConvexHull(material, ptlist, pos, rot);
             ptlist.clear();
-            parsedline = true;
+            ////parsedline = true;
         }
         float vx, vy, vz;
         if (sscanf(bufdata, "%g %g %g", &vx, &vy, &vz) == 3) {
             ptlist.push_back(ChVector<>(vx, vy, vz));
-            parsedline = true;
+            ////parsedline = true;
         }
     }
     

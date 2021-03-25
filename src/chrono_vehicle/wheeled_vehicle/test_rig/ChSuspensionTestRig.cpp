@@ -203,7 +203,7 @@ ChSuspensionTestRig::ChSuspensionTestRig(const std::string& filename,
 
     // Create the steering subsystem, if needed.
     if (steering_index >= 0) {
-        std::string file_name = d["Steering Subsystems"][steering_index]["Input File"].GetString();
+        file_name = d["Steering Subsystems"][steering_index]["Input File"].GetString();
         m_steering = ReadSteeringJSON(vehicle::GetDataFile(file_name));
         m_steeringLoc = ReadVectorJSON(d["Steering Subsystems"][steering_index]["Location"]);
         m_steeringRot = ReadQuaternionJSON(d["Steering Subsystems"][steering_index]["Orientation"]);
@@ -211,7 +211,7 @@ ChSuspensionTestRig::ChSuspensionTestRig(const std::string& filename,
 
     // Create the anti-roll bar subsystem, if one exists.
     if (d["Axles"][axle_index].HasMember("Antirollbar Input File")) {
-        std::string file_name = d["Axles"][axle_index]["Antirollbar Input File"].GetString();
+        file_name = d["Axles"][axle_index]["Antirollbar Input File"].GetString();
         m_antirollbar = ReadAntirollbarJSON(vehicle::GetDataFile(file_name));
         m_antirollbarLoc = ReadVectorJSON(d["Axles"][axle_index]["Antirollbar Location"]);
     }
@@ -270,7 +270,7 @@ ChSuspensionTestRig::ChSuspensionTestRig(const std::string& filename,
 
     // Create the steering subsystem, if specified
     if (d.HasMember("Steering")) {
-        std::string file_name = d["Steering"]["Input File"].GetString();
+        file_name = d["Steering"]["Input File"].GetString();
         m_steering = ReadSteeringJSON(vehicle::GetDataFile(file_name));
         m_steeringLoc = ReadVectorJSON(d["Steering"]["Location"]);
         m_steeringRot = ReadQuaternionJSON(d["Steering"]["Orientation"]);
@@ -278,7 +278,7 @@ ChSuspensionTestRig::ChSuspensionTestRig(const std::string& filename,
 
     // Create the anti-roll bar subsystem, if one exists.
     if (d["Suspension"].HasMember("Antirollbar Input File")) {
-        std::string file_name = d["Suspension"]["Antirollbar Input File"].GetString();
+        file_name = d["Suspension"]["Antirollbar Input File"].GetString();
         m_antirollbar = ReadAntirollbarJSON(vehicle::GetDataFile(file_name));
         m_antirollbarLoc = ReadVectorJSON(d["Suspension"]["Antirollbar Location"]);
     }

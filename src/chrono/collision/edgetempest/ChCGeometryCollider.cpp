@@ -512,10 +512,10 @@ class BoxBoxCollisionTest2 {
             {
                 minimum_overlap = -10e30;
                 minimum_axis = 15;
-                for (unsigned int i = 0; i < 6; ++i) {
-                    if (overlap[i] > minimum_overlap) {
-                        minimum_overlap = overlap[i];
-                        minimum_axis = i;
+                for (unsigned int j = 0; j < 6; ++j) {
+                    if (overlap[j] > minimum_overlap) {
+                        minimum_overlap = overlap[j];
+                        minimum_axis = j;
                     }
                 }
             }
@@ -528,11 +528,11 @@ class BoxBoxCollisionTest2 {
         //--- This is definitely an edge-edge case
         if (minimum_axis >= 6) {
             //--- Find a point p_a on the edge from box A.
-            for (unsigned int i = 0; i < 3; ++i)
-                if (n.Dot(A[i]) > 0.)
-                    p_a += ext_a[i] * A[i];
+            for (int ci = 0; ci < 3; ++ci)
+                if (n.Dot(A[ci]) > 0.)
+                    p_a += ext_a[ci] * A[ci];
                 else
-                    p_a -= ext_a[i] * A[i];
+                    p_a -= ext_a[ci] * A[ci];
             //--- Find a point p_b on the edge from box B.
             for (int ci = 0; ci < 3; ++ci)
                 if (n.Dot(B[ci]) < 0.)
@@ -778,9 +778,9 @@ class BoxBoxCollisionTest2 {
             double w = ext_r[code3] + n_r_wcs.Dot(p_r);
 
             if (corners_A_in_B) {
-                for (unsigned int i = 0; i < 8; ++i) {
-                    if (AinB[i]) {
-                        Vector point = a[i];
+                for (unsigned int k = 0; k < 8; ++k) {
+                    if (AinB[k]) {
+                        Vector point = a[k];
                         double depth = n_r_wcs.Dot(point) - w;
                         if (depth < envelope) {
                             p[cnt] = point;
@@ -792,9 +792,9 @@ class BoxBoxCollisionTest2 {
                 end_corner_A = cnt;
             }
             if (corners_B_in_A) {
-                for (unsigned int i = 0; i < 8; ++i) {
-                    if (BinA[i]) {
-                        Vector point = b[i];
+                for (unsigned int k = 0; k < 8; ++k) {
+                    if (BinA[k]) {
+                        Vector point = b[k];
                         bool redundant = false;
                         for (unsigned int j = start_corner_A; j < end_corner_A; ++j) {
                             if (p[j].Equals(point, envelope)) {
@@ -1188,7 +1188,7 @@ int ChGeometryCollider::ComputeBoxTriangleCollisions(
     v_b[2] = ChTransform<>::TransformParentToLocal(v_3, aBoxPos, aBoxRot);
 
     double distc;
-    bool hit = false;
+    ////bool hit = false;
     Vector P1_b;
     Vector P2_b;
     Vector P1_w;
@@ -1203,7 +1203,7 @@ int ChGeometryCollider::ComputeBoxTriangleCollisions(
         P2_b = v_b[nv];
         if ((fabs(v_b[nv].x()) <= mbox.Size.x()) && (fabs(v_b[nv].y()) <= mbox.Size.y()) &&
             (fabs(v_b[nv].z()) <= mbox.Size.z())) {
-            hit = true;
+            ////hit = true;
             if (v_b[nv].x() - mbox.Size.x() > distc) {
                 distc = v_b[nv].x() - mbox.Size.x();
                 P1_b = v_b[nv];
@@ -1235,8 +1235,8 @@ int ChGeometryCollider::ComputeBoxTriangleCollisions(
                 P1_b.z() = -mbox.Size.z();
             }
 
-            Vector P1_w = ChTransform<>::TransformLocalToParent(P1_b, aBoxPos, aBoxRot);
-            Vector P2_w = ChTransform<>::TransformLocalToParent(P2_b, aBoxPos, aBoxRot);
+            P1_w = ChTransform<>::TransformLocalToParent(P1_b, aBoxPos, aBoxRot);
+            P2_w = ChTransform<>::TransformLocalToParent(P2_b, aBoxPos, aBoxRot);
             Vector mnormal = Vnorm(P1_w - P2_w);
             ChCollisionPair mcoll(&mbox, &mtri,  // geometries
                                   P1_w,          // p1
@@ -1275,7 +1275,7 @@ int ChGeometryCollider::ComputeBoxTriangleCollisions(
                 if (swap_pairs)
                     mcoll.SwapGeometries();
                 mcollider.AddCollisionPair(&mcoll);
-                hit = true;
+                ////hit = true;
             }
     }
 

@@ -109,7 +109,6 @@ static bool recurse_CascadeDoc(TDF_Label label,
 
     if (isref)  // ..maybe it references some shape: the name is stored there...
     {
-        Handle_TDataStd_Name N;
         if (reflabel.FindAttribute(TDataStd_Name::GetID(), N)) {
             N->Get().ToUTF8CString(mchastr);
         }
@@ -172,7 +171,7 @@ bool ChCascadeDoc::Load_STEP(const char* filename) {
     IFSelect_ReturnStatus aStatus = cafreader.ReadFile(filename);
 
     if (aStatus == IFSelect_RetDone) {
-        Standard_Boolean aRes = cafreader.Transfer((*doc));
+        /*Standard_Boolean aRes =*/ cafreader.Transfer((*doc));
         return true;
     }
     return false;

@@ -185,7 +185,7 @@ void ChSystemDescriptor::ConvertToMatrixForm(ChSparseMatrix* Cq,
                         if (auto mcon = dynamic_cast<ChConstraintTwoTuplesContactNall*>(mconstraints[ic]))
                             (*Frict)(s_c) =
                                 mcon->GetFrictionCoefficient();  // friction coeff only in row of normal component
-                        if (auto mcon = dynamic_cast<ChConstraintTwoTuplesFrictionTall*>(mconstraints[ic]))
+                        if (dynamic_cast<ChConstraintTwoTuplesFrictionTall*>(mconstraints[ic]))
                             (*Frict)(s_c) = -1;  // mark with -1 flag for rows of tangential components
                     }
                     s_c++;

@@ -512,7 +512,7 @@ void ChParserOpenSim::initFunctionTable() {
 
                 if (functionType == std::string("LinearFunction")) {
                     // ax + b style linear mapping
-                    auto elems = ChParserOpenSim::strToSTLVector<double>(
+                    elems = ChParserOpenSim::strToSTLVector<double>(
                         transforms->first_node("function")->first_node()->first_node("coefficients")->value());
                     transformValue = elems[0] * coordVals[coordNames.at(0)] + elems[1];
                 } else if (functionType == std::string("Constant")) {

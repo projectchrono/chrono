@@ -130,7 +130,7 @@ bool ChTrackAssemblyDoublePin::Assemble(std::shared_ptr<ChBodyAuxRef> chassis) {
     // ATTENTION:  USING SOME MAGIC NUMBERS HERE (angle adjustments)!!!!
     double delta = sign * CH_C_2PI / m_sprocket->GetNumTeeth();
     for (int is = 1; is <= m_sprocket->GetNumTeeth() / 2; is++) {
-        ChVector2<> A = sprocket_pos + sprocket_radius * ChVector2<>(std::sin(is * delta), -std::cos(is * delta));
+        A = sprocket_pos + sprocket_radius * ChVector2<>(std::sin(is * delta), -std::cos(is * delta));
         double angle = sign * std::atan2(A.y() - p2.y(), sign * (A.x() - p2.x()));
         as = angle - sign * 0.07;
         ac = angle + sign * 0.2;

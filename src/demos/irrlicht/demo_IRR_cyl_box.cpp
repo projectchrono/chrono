@@ -109,7 +109,7 @@ int main(int argc, char* argv[]) {
     std::cout << "-----------------------" << std::endl;
 
     // Create the system
-    ChSystem* system;
+    ChSystem* system = nullptr;
 
     switch (contact_method) {
         case ChContactMethod::NSC:

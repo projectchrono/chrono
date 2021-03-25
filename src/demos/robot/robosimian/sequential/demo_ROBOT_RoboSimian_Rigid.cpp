@@ -196,7 +196,7 @@ int main(int argc, char* argv[]) {
     // Create system
     // -------------
 
-    ChSystem* my_sys;
+    ChSystem* my_sys = nullptr;
     switch (contact_method) {
         case ChContactMethod::NSC:
             my_sys = new ChSystemNSC;

@@ -866,7 +866,7 @@ void btArcArcCollisionAlgorithm::processCollision(const btCollisionObjectWrapper
     double dist = 0;
     bool paired = false;
     double alpha = atan2(local_C1C2.getY(), local_C1C2.getX());
-    double alpha1, alpha2;
+    double alpha1 = 0, alpha2 = 0;
 
     // convex-convex
     if (arc1->get_counterclock() == false && arc2->get_counterclock() == false) {
@@ -1143,7 +1143,6 @@ void btCEtriangleShapeCollisionAlgorithm::processCollision(const btCollisionObje
     bool is_into;
     ChVector<> p_projected;
     double mu, mv;
-    double candid_mu, candid_mv;
 
     // Shortcut: if two degenerate 'skinny' triangles with points 2&3 coincident (ex. used to
     // represent chunks of beams) just do an edge-edge test (as capsule-capsule) and return:
@@ -1172,8 +1171,6 @@ void btCEtriangleShapeCollisionAlgorithm::processCollision(const btCollisionObje
                 min_dist = dist;
                 candid_pA = pA1;
                 candid_pB = p_projected;
-                candid_mu = mu;
-                candid_mv = mv;
             }
         }
     }
@@ -1243,7 +1240,7 @@ void btCEtriangleShapeCollisionAlgorithm::processCollision(const btCollisionObje
             }
         }
     }
-    double beta_A1, beta_A2, beta_A3, beta_B1, beta_B2, beta_B3;  // defaults for free edge
+    double beta_A1 = 0, beta_A2 = 0, beta_A3 = 0, beta_B1 = 0, beta_B2 = 0, beta_B3 = 0;  // defaults for free edge
     ChVector<> tA1, tA2, tA3, tB1, tB2, tB3;
     ChVector<> lA1, lA2, lA3, lB1, lB2, lB3;
 

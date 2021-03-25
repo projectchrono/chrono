@@ -309,14 +309,12 @@ bool TestDistance(
             // Translational Kinetic Energy (1/2*m*||v||^2)
             // Rotational Kinetic Energy (1/2 w'*I*w)
             // Delta Potential Energy (m*g*dz)
-            ChMatrix33<> inertia = pendulum->GetInertia();
-            ChVector<> angVelLoc = pendulum->GetWvel_loc();
-            double transKE = 0.5 * mass * velocity.Length2();
-            double rotKE = 0.5 * Vdot(angVelLoc, inertia * angVelLoc);
-            double deltaPE = mass * g * (position.z() - PendCSYS.pos.z());
+            angVelLoc = pendulum->GetWvel_loc();
+            transKE = 0.5 * mass * velocity.Length2();
+            rotKE = 0.5 * Vdot(angVelLoc, inertia * angVelLoc);
+            deltaPE = mass * g * (position.z() - PendCSYS.pos.z());
             double totalE = transKE + rotKE + deltaPE;
             out_energy << simTime << transKE << rotKE << deltaPE << totalE - totalE0 << std::endl;
-            ;
 
             // Constraint violations
             out_cnstr << simTime << distanceConstraint->GetC() << std::endl;

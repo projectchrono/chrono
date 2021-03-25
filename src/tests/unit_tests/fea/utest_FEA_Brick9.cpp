@@ -118,7 +118,7 @@ int main(int argc, char* argv[]) {
 
 // QuasiStatic
 bool BendingQuasiStatic(ChMatrixDynamic<> FileInputMat) {
-    FILE* outputfile;
+    FILE* outputfile = nullptr;
     ChSystemNSC my_system;
     my_system.Set_G_acc(ChVector<>(0, 0, -9.81));
     double time_step = 1e-3;
@@ -308,7 +308,7 @@ bool BendingQuasiStatic(ChMatrixDynamic<> FileInputMat) {
 
 // Swinging (Bricked) Shell
 bool SwingingShell(ChMatrixDynamic<> FileInputMat) {
-    FILE* outputfile;
+    FILE* outputfile = nullptr;
     double precision = 1e-3;  // Precision for test
     bool genRefFile = false;
     ChSystemNSC my_system;
@@ -502,7 +502,7 @@ bool SwingingShell(ChMatrixDynamic<> FileInputMat) {
 
 // J2 Flow Plasticity
 bool J2Plastic(ChMatrixDynamic<> FileInputMat) {
-    FILE* outputfile;
+    FILE* outputfile = nullptr;
     ChSystemNSC my_system;
     my_system.Set_G_acc(ChVector<>(0, 0, -9.81));
     double time_step = 1e-4;
@@ -706,7 +706,7 @@ bool J2Plastic(ChMatrixDynamic<> FileInputMat) {
 
 // Drucker-Prager Plasticity
 bool DruckerPragerPlastic(ChMatrixDynamic<> FileInputMat) {
-    FILE* outputfile;
+    FILE* outputfile = nullptr;
     ChSystemNSC my_system;
     my_system.Set_G_acc(ChVector<>(0, 0, -9.81));
     double time_step = 1e-4;

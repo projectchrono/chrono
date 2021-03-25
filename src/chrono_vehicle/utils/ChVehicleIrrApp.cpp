@@ -374,7 +374,7 @@ void ChVehicleIrrApp::renderStats() {
                 sprintf(msgT, "[M] ");
                 break;
             default:
-                sprintf(msgT, "");
+                sprintf(msgT, "    ");
                 break;
         }
 

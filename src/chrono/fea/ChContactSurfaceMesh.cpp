@@ -177,10 +177,9 @@ void ChContactTriangleXYZ::ContactForceLoadQ(const ChVector<>& F,
     ChVector<> A3(state_x.segment(6, 3));
 
     double s2, s3;
-    double dist;
     bool is_into;
     ChVector<> p_projected;
-    dist = collision::utils::PointTriangleDistance(point, A1, A2, A3, s2, s3, is_into, p_projected);
+    /*double dist =*/collision::utils::PointTriangleDistance(point, A1, A2, A3, s2, s3, is_into, p_projected);
     double s1 = 1 - s2 - s3;
     Q.segment(offset + 0, 3) = F.eigen() * s1;
     Q.segment(offset + 3, 3) = F.eigen() * s2;
@@ -195,11 +194,10 @@ void ChContactTriangleXYZ::ComputeJacobianForContactPart(const ChVector<>& abs_p
                                                          bool second) {
     // compute the triangular area-parameters s1 s2 s3:
     double s2, s3;
-    double dist;
     bool is_into;
     ChVector<> p_projected;
-    dist = collision::utils::PointTriangleDistance(abs_point, GetNode1()->pos, GetNode2()->pos, GetNode3()->pos, s2, s3,
-                                                   is_into, p_projected);
+    /*double dist =*/collision::utils::PointTriangleDistance(abs_point, GetNode1()->pos, GetNode2()->pos,
+                                                             GetNode3()->pos, s2, s3, is_into, p_projected);
     double s1 = 1 - s2 - s3;
 
     ChMatrix33<> Jx1 = contact_plane.transpose();
@@ -271,11 +269,10 @@ ChVector<> ChContactTriangleXYZ::ComputeNormal(const double U, const double V) {
 }
 
 void ChContactTriangleXYZ::ComputeUVfromP(const ChVector<> P, double& u, double& v) {
-    double dist;
     bool is_into;
     ChVector<> p_projected;
-    dist =
-        collision::utils::PointTriangleDistance(P, mnode1->pos, mnode2->pos, mnode3->pos, u, v, is_into, p_projected);
+    /*double dist =*/collision::utils::PointTriangleDistance(P, mnode1->pos, mnode2->pos, mnode3->pos, u, v, is_into,
+                                                             p_projected);
 }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -438,10 +435,9 @@ void ChContactTriangleXYZROT::ContactForceLoadQ(const ChVector<>& F,
     ChVector<> A3(state_x.segment(14, 3));
 
     double s2, s3;
-    double dist;
     bool is_into;
     ChVector<> p_projected;
-    dist = collision::utils::PointTriangleDistance(point, A1, A2, A3, s2, s3, is_into, p_projected);
+    /*double dist =*/collision::utils::PointTriangleDistance(point, A1, A2, A3, s2, s3, is_into, p_projected);
     double s1 = 1 - s2 - s3;
     Q.segment(offset + 0, 3) = F.eigen() * s1;
     Q.segment(offset + 6, 3) = F.eigen() * s2;
@@ -456,11 +452,10 @@ void ChContactTriangleXYZROT::ComputeJacobianForContactPart(const ChVector<>& ab
                                                             bool second) {
     // compute the triangular area-parameters s1 s2 s3:
     double s2, s3;
-    double dist;
     bool is_into;
     ChVector<> p_projected;
-    dist = collision::utils::PointTriangleDistance(abs_point, GetNode1()->coord.pos, GetNode2()->coord.pos,
-                                                   GetNode3()->coord.pos, s2, s3, is_into, p_projected);
+    /*double dist =*/collision::utils::PointTriangleDistance(abs_point, GetNode1()->coord.pos, GetNode2()->coord.pos,
+                                                             GetNode3()->coord.pos, s2, s3, is_into, p_projected);
     double s1 = 1 - s2 - s3;
 
     ChMatrix33<> Jx1 = contact_plane.transpose();
@@ -537,11 +532,10 @@ ChVector<> ChContactTriangleXYZROT::ComputeNormal(const double U, const double V
 }
 
 void ChContactTriangleXYZROT::ComputeUVfromP(const ChVector<> P, double& u, double& v) {
-    double dist;
     bool is_into;
     ChVector<> p_projected;
-    dist = collision::utils::PointTriangleDistance(P, mnode1->GetPos(), mnode2->GetPos(), mnode3->GetPos(), u, v,
-                                                   is_into, p_projected);
+    /*double dist =*/collision::utils::PointTriangleDistance(P, mnode1->GetPos(), mnode2->GetPos(), mnode3->GetPos(), u,
+                                                             v, is_into, p_projected);
 }
 
 // -----------------------------------------------------------------------------

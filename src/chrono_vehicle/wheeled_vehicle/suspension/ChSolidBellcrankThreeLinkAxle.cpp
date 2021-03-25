@@ -246,7 +246,7 @@ void ChSolidBellcrankThreeLinkAxle::InitializeSide(VehicleSide side,
         chassis->GetSystem()->AddBody(m_bellcrank);
 
         // create bellcrank rev joint on the axleTube
-        ChCoordsys<> rev_csys(m_pointsL[BELLCRANK_A], chassis->GetRot() * ChQuaternion<>(1, 0, 0, 0));
+        rev_csys = ChCoordsys<>(m_pointsL[BELLCRANK_A], chassis->GetRot() * ChQuaternion<>(1, 0, 0, 0));
         m_revBellcrank = chrono_types::make_shared<ChLinkLockRevolute>();
         m_revBellcrank->SetNameString(m_name + "m_revBellcrank");
         m_revBellcrank->Initialize(m_axleTube, m_bellcrank, rev_csys);

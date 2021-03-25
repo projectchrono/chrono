@@ -496,8 +496,7 @@ void ChFEAContainer::Project(real* gamma) {
 
                 gam.x += cohesion;
 
-                real mu = friction;
-                if (mu == 0) {
+                if (friction == 0) {
                     gam.x = gam.x < 0 ? 0 : gam.x - cohesion;
                     gam.y = gam.z = 0;
 
@@ -507,7 +506,7 @@ void ChFEAContainer::Project(real* gamma) {
                     continue;
                 }
 
-                if (Cone_generalized_rnode(gam.x, gam.y, gam.z, mu)) {
+                if (Cone_generalized_rnode(gam.x, gam.y, gam.z, friction)) {
                 }
 
                 gamma[start_boundary_node + index] = gam.x - cohesion;
@@ -541,8 +540,7 @@ void ChFEAContainer::Project(real* gamma) {
 
                 gam.x += cohesion;
 
-                real mu = friction;
-                if (mu == 0) {
+                if (friction == 0) {
                     gam.x = gam.x < 0 ? 0 : gam.x - cohesion;
                     gam.y = gam.z = 0;
 
@@ -552,7 +550,7 @@ void ChFEAContainer::Project(real* gamma) {
                     continue;
                 }
 
-                if (Cone_generalized_rnode(gam.x, gam.y, gam.z, mu)) {
+                if (Cone_generalized_rnode(gam.x, gam.y, gam.z, friction)) {
                 }
 
                 gamma[start_boundary_marker + index] = gam.x - cohesion;
@@ -1099,7 +1097,6 @@ void ChFEAContainer::GenerateSparsity() {
         custom_vector<int>& contact_counts = data_manager->host_data.c_counts_rigid_tet;
         custom_vector<real4>& face_rigid_tet = data_manager->host_data.face_rigid_tet;
         custom_vector<uint>& boundary_element_fea = data_manager->host_data.boundary_element_fea;
-        custom_vector<uvec4>& tet_indices = data_manager->host_data.tet_indices;
         for (int p = 0; p < num_boundary_tets; p++) {
             int start = contact_counts[p];
             int end = contact_counts[p + 1];
@@ -1182,7 +1179,6 @@ void ChFEAContainer::GenerateSparsity() {
         custom_vector<int>& contact_counts = data_manager->host_data.c_counts_marker_tet;
         custom_vector<real4>& face_marker_tet = data_manager->host_data.face_marker_tet;
         custom_vector<uint>& boundary_element_fea = data_manager->host_data.boundary_element_fea;
-        custom_vector<uvec4>& tet_indices = data_manager->host_data.tet_indices;
         for (int p = 0; p < num_boundary_tets; p++) {
             int start = contact_counts[p];
             int end = contact_counts[p + 1];

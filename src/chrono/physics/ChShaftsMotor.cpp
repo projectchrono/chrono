@@ -121,7 +121,7 @@ void ChShaftsMotor::IntLoadConstraint_C(const unsigned int off_L,  // offset in 
                                         double recovery_clamp      // value for min/max clamping of c*C
                                         ) {
     if (motor_mode != MOT_MODE_TORQUE) {
-        double res;
+        double res = 0;
 
         if (motor_mode == MOT_MODE_SPEED)
             res = 0;  // no need to stabilize positions
@@ -187,7 +187,7 @@ void ChShaftsMotor::ConstraintsBiLoad_C(double factor, double recovery_clamp, bo
     // if (!IsActive())
     //	return;
     if (motor_mode != MOT_MODE_TORQUE) {
-        double res;
+        double res = 0;
 
         if (motor_mode == MOT_MODE_SPEED)
             res = 0;  // no need to stabilize positions

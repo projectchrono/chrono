@@ -160,12 +160,12 @@ void function_CalcContactForces(
     //     Ft = kt * delta_t - gt * v_t
     // The stiffness and damping coefficients are obtained differently, based
     // on the force model and on how coefficients are specified.
-    real kn;
-    real kt;
-    real gn;
-    real gt;
-    real kn_simple;
-    real gn_simple;
+    real kn = 0;
+    real kt = 0;
+    real gn = 0;
+    real gt = 0;
+    real kn_simple = 0;
+    real gn_simple = 0;
 
     real t_contact = 0;
     real relvel_init = abs(relvel_n_mag);
@@ -173,8 +173,8 @@ void function_CalcContactForces(
     real3 delta_t = real3(0);
 
     int i;
-    int contact_id;
-    int shear_body1;
+    int contact_id = -1;
+    int shear_body1 = -1;
     int shear_body2;
     int shear_shape1;
     int shear_shape2;

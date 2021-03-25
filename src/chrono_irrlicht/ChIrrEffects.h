@@ -145,7 +145,8 @@ inline irr::core::array<SDefineExp> grabDefineExpressions(irr::core::stringc& sh
     irr::core::array<SDefineExp> DefineArray;
 
     // Dont bother stripping comments if theres no defines.
-    if ((CurrentSearchPos = shaderProgram.find("##ifdef") == -1))
+    CurrentSearchPos = shaderProgram.find("##ifdef");
+    if (CurrentSearchPos == -1)
         return DefineArray;
 
     // Strip all comments, they get in the way.
