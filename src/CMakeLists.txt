@@ -343,6 +343,8 @@ if(CUDA_FOUND)
 endif()
 
 #-----------------------------------------------------------------------------
+# Miscellaneous compiler flags
+#-----------------------------------------------------------------------------
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     if(MSVC)
@@ -368,8 +370,34 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 endif()
 
 
+# Compiler warning level and disbaled warnings
+
 if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-  add_definitions(-Wno-unknown-warning-option -Wno-reorder-ctor -Wno-pragma-pack -Wno-unused-local-typedef -Wno-unused-function)
+    message(STATUS "[Clang] Warning level set to default")
+    #add_compile_options(-Wall)
+    add_compile_options(-Wno-unknown-warning-option)
+    add_compile_options(-Wno-reorder-ctor)
+    add_compile_options(-Wno-pragma-pack)
+    add_compile_options(-Wno-unused-local-typedef)
+    add_compile_options(-Wno-unused-function)
+    add_compile_options(-Wno-unused-parameter)
+elseif(MSVC)
+    message(STATUS "[MSVC] Warning level set to /W4")
+    add_compile_options(/W4)
+    add_compile_options(/wd4100)   # unreferenced formal parameter
+    add_compile_options(/wd4127)   # conditional expression is constant
+    add_compile_options(/wd4201)   # nameless struct/union
+    add_compile_options(/wd4244)   # conversion; possible loss of data
+    add_compile_options(/wd4251)   # class needs to have dll-interface
+    add_compile_options(/wd4324)   # structure padded due to alignment specifier
+    add_compile_options(/wd4505)   # unreferenced local function
+    add_compile_options(/wd4458)   # declaration hides class member
+    add_compile_options(/wd4515)   # namespace uses itself
+else()
+    message(STATUS "Warning level set to -Wall")
+    add_compile_options(-Wall)
+    add_compile_options(-Wno-sign-compare)
+    add_compile_options(-Wno-reorder)
 endif()
 
 #-----------------------------------------------------------------------------
