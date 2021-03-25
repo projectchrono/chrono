@@ -23,19 +23,19 @@ CH_FACTORY_REGISTER(ChLinkTSDA)
 const double ChLinkTSDA::m_FD_delta = 1e-8;
 
 ChLinkTSDA::ChLinkTSDA()
-    : m_length(0),
+    : m_rest_length(0),
+      m_length(0),
       m_length_dt(0),
-      m_rest_length(0),
       m_stiff(false),
-      m_jacobians(nullptr),
-      m_f(0),
       m_k(0),
       m_r(0),
+      m_f(0),
+      m_force_fun(nullptr),
       m_force(0),
+      m_ode_fun(nullptr),
       m_nstates(0),
       m_variables(nullptr),
-      m_force_fun(nullptr),
-      m_ode_fun(nullptr) {}
+      m_jacobians(nullptr) {}
 
 ChLinkTSDA::ChLinkTSDA(const ChLinkTSDA& other) : ChLink(other) {
     m_rest_length = other.m_rest_length;
@@ -456,7 +456,7 @@ void ChLinkTSDA::ArchiveOUT(ChArchiveOut& marchive) {
 
 void ChLinkTSDA::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChLinkTSDA>();
+    /*int version =*/ marchive.VersionRead<ChLinkTSDA>();
 
     // deserialize parent class
     ChLink::ArchiveIN(marchive);

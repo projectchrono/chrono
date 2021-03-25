@@ -39,10 +39,7 @@ int main(int argc, char* argv[]) {
 
     // Global parameter for tire:
     double tire_rad = 0.5;
-    double tire_vel_z0 = -3;
     ChVector<> tire_center(0, tire_rad, 0);
-
-    double tire_w0 = tire_vel_z0/tire_rad;
 
     // Create a Chrono physical system
     ChSystemSMC my_system;

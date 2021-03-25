@@ -128,7 +128,6 @@ bool TestTranSpring(
     // (MKS is used in this example)
 
     double mass = 1.0;                     // mass of pendulum
-    double length = 4.0;                   // length of pendulum
     ChVector<> inertiaXX(0.04, 0.1, 0.1);  // mass moments of inertia of pendulum (centroidal frame)
     double g = 9.80665;
 
@@ -288,11 +287,10 @@ bool TestTranSpring(
             // Translational Kinetic Energy (1/2*m*||v||^2)
             // Rotational Kinetic Energy (1/2 w'*I*w)
             // Delta Potential Energy (m*g*dz)
-            ChMatrix33<> inertia = pendulum->GetInertia();
-            ChVector<> angVelLoc = pendulum->GetWvel_loc();
-            double transKE = 0.5 * mass * velocity.Length2();
-            double rotKE = 0.5 * Vdot(angVelLoc, inertia * angVelLoc);
-            double deltaPE = mass * g * (position.z() - PendCSYS.pos.z());
+            angVelLoc = pendulum->GetWvel_loc();
+            transKE = 0.5 * mass * velocity.Length2();
+            rotKE = 0.5 * Vdot(angVelLoc, inertia * angVelLoc);
+            deltaPE = mass * g * (position.z() - PendCSYS.pos.z());
             double totalE = transKE + rotKE + deltaPE;
             out_energy << simTime << transKE << rotKE << deltaPE << totalE - totalE0 << std::endl;
             ;

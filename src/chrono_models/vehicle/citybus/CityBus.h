@@ -89,6 +89,9 @@ class CH_MODELS_API CityBus {
     void DebugLog(int what) { m_vehicle->DebugLog(what); }
 
   protected:
+    ChSystem* m_system;
+    CityBus_Vehicle* m_vehicle;
+
     ChContactMethod m_contactMethod;
     CollisionType m_chassisCollisionType;
     bool m_fixed;
@@ -107,9 +110,6 @@ class CH_MODELS_API CityBus {
     double m_Cd;
     double m_area;
     double m_air_density;
-
-    ChSystem* m_system;
-    CityBus_Vehicle* m_vehicle;
 
     double m_tire_mass;
 };

@@ -13,7 +13,7 @@
 // =============================================================================
 // Class that inherits from ChLinkLock as a free joint. Compliances are added
 // to the relative motion between two rigid bodies. Out of the 6 possible dofs
-// available to apply compliance, only those corresponding the bushing type
+// available to apply compliance, only those corresponding to the bushing type
 // selected by the user are introduced.
 // =============================================================================
 
@@ -31,26 +31,26 @@ namespace chrono {
 /// the case of an ideal constraint.
 
 class ChApi ChLinkBushing : public ChLinkLock {
-
   public:
     enum bushing_joint {
         Mount,      ///< Mount bushing: 6 compliant degrees of freedom
         Spherical,  ///< Spherical bushing: 3 compliant degrees of freedom
     };
-    virtual ~ChLinkBushing();
-    // Default bushing 'joint' is Mount: Six applied compliances
+
+    /// Default bushing 'joint' is Mount: six applied compliances.
     ChLinkBushing(bushing_joint m_bushing_joint = ChLinkBushing::Mount);
+
+    virtual ~ChLinkBushing();
+
+    virtual ChLinkBushing* Clone() const override { return new ChLinkBushing(*this); }
+
     void Initialize(std::shared_ptr<ChBody> mbody1,
                     std::shared_ptr<ChBody> mbody2,
                     const ChCoordsys<>& mpos,
                     const ChMatrixNM<double, 6, 6>& K,
                     const ChMatrixNM<double, 6, 6>& R);
-    bushing_joint m_bushing_joint;  ///< Enum for bushing joint type
-    virtual ChLinkBushing* Clone() const override { return new ChLinkBushing(*this); }
 
-    //
-    // OTHER FUNCTIONS
-    //
+    bushing_joint m_bushing_joint;  ///< Enum for bushing joint type
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOUT(ChArchiveOut& marchive) override;
@@ -59,6 +59,8 @@ class ChApi ChLinkBushing : public ChLinkLock {
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
 
   private:
+    using ChLinkMarkers::Initialize;
+
     ChMatrixNM<double, 6, 6> m_constants_K;  ///< 6x6 matrices for linear stiffness- TODO, coupling terms
     ChMatrixNM<double, 6, 6> m_constants_R;  ///< 6x6 matrices for linear damping- TODO, coupling terms
 
@@ -66,7 +68,7 @@ class ChApi ChLinkBushing : public ChLinkLock {
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 };
 
-CH_CLASS_VERSION(ChLinkBushing,0)
+CH_CLASS_VERSION(ChLinkBushing, 0)
 
 }  // end namespace chrono
 

@@ -437,8 +437,8 @@ int main(int argc, char* argv[]) {
     application.AddTypicalCamera(core::vector3df(-6, 3, -6));
 
     // add text with info
-    IGUIStaticText* textFPS = application.GetIGUIEnvironment()->addStaticText(
-        L"Keys: steer=Q,W; throttle=A,Z; lift=S,X; bank=D,C", rect<s32>(150, 10, 430, 40), true);
+    application.GetIGUIEnvironment()->addStaticText(L"Keys: steer=Q,W; throttle=A,Z; lift=S,X; bank=D,C",
+                                                    rect<s32>(150, 10, 430, 40), true);
 
     // Contact material for ground
     auto ground_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
@@ -449,16 +449,14 @@ int main(int argc, char* argv[]) {
     my_system.Add(my_ground);
     my_ground->SetBodyFixed(true);
     my_ground->SetPos(ChVector<>(0, -1, 0));
-    auto mtexture = chrono_types::make_shared<ChTexture>(GetChronoDataFile("textures/concrete.jpg"));
-    my_ground->AddAsset(mtexture);
+    my_ground->AddAsset(chrono_types::make_shared<ChTexture>(GetChronoDataFile("textures/concrete.jpg")));
 
     // ..some obstacles on the ground:
     for (int i = 0; i < 6; i++) {
         auto my_obstacle = chrono_types::make_shared<ChBodyEasyBox>(1, 0.5, 1, 200, true, true, ground_mat);
         my_system.Add(my_obstacle);
         my_obstacle->SetPos(ChVector<>(20 * ChRandom(), 2, 20 * ChRandom()));
-        auto mtexture = chrono_types::make_shared<ChTexture>(GetChronoDataFile("textures/cubetexture_wood.png"));
-        my_obstacle->AddAsset(mtexture);
+        my_obstacle->AddAsset(chrono_types::make_shared<ChTexture>(GetChronoDataFile("textures/cubetexture_wood.png")));
     }
 
     // ..the forklift (this class - see above - is a 'set' of bodies and links, automatically added at creation)

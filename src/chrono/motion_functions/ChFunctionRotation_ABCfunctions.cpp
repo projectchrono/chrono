@@ -73,7 +73,7 @@ void ChFunctionRotation_ABCfunctions::ArchiveOUT(ChArchiveOut& marchive) {
 
 void ChFunctionRotation_ABCfunctions::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChFunctionRotation_ABCfunctions>();
+    /*int version =*/ marchive.VersionRead<ChFunctionRotation_ABCfunctions>();
 	// deserialize parent class
     ChFunctionRotation::ArchiveIN(marchive);
     // deserialize all member data:

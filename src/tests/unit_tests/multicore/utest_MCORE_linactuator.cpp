@@ -74,7 +74,6 @@ ChLinActuatorTest::ChLinActuatorTest() : animate(false) {
     int max_iteration_spinning = 0;
     bool clamp_bilaterals = false;
     double bilateral_clamp_speed = 1000;
-    double contact_recovery_speed = 1;
 
     // Create the mechanical system
     switch (cm) {
@@ -246,21 +245,20 @@ void ChLinActuatorTest::VerifySolution(double time) {
     // These are expressed in the link coordinate system. The reaction force
     // represents the force that needs to be applied to the plate in order to
     // maintain the prescribed constant velocity.
-    ChCoordsys<> linkCoordsysA = actuator->GetLinkRelativeCoords();
     ChVector<> rforceA = actuator->Get_react_force();
     ChVector<> rtorqueA = actuator->Get_react_torque();
 
     // Analytically, the driving force can be obtained from a force diagram along
     // the translation axis.
     double rforceA_an = mass * Vdot(acc_an - gravity, axis);
-    double rforceA_delta = (-rforceA.x()) - rforceA_an;
     ASSERT_NEAR(-rforceA.x(), rforceA_an, rforce_tol);
-    //////if (std::abs(rforceA_delta) > rforce_tol) {
-    //////    std::cout << "   at t = " << time << "   rforceA = " << -rforceA.x() << "  "
-    //////        << "   rforceA_an = " << rforceA_an << "  "
-    //////        << "   rforceA - rforceA_an = " << rforceA_delta << std::endl;
-    //////    return false;
-    //////}
+    ////double rforceA_delta = (-rforceA.x()) - rforceA_an;
+    ////if (std::abs(rforceA_delta) > rforce_tol) {
+    ////    std::cout << "   at t = " << time << "   rforceA = " << -rforceA.x() << "  "
+    ////        << "   rforceA_an = " << rforceA_an << "  "
+    ////        << "   rforceA - rforceA_an = " << rforceA_delta << std::endl;
+    ////    return false;
+    ////}
 
     ChVector<> rtorqueA_an = ChVector<>(0, 0, 0);
     ChVector<> rtorqueA_delta = rtorqueA - rtorqueA_an;
@@ -272,10 +270,10 @@ void ChLinActuatorTest::VerifySolution(double time) {
     ChVectorDynamic<> CP = prismatic->GetC();
     for (int i = 0; i < 5; i++) {
         ASSERT_NEAR(CP(i), 0.0, cnstr_tol);
-        //////if (std::abs(CP(i)) > cnstr_tol) {
-        //////    std::cout << "   at t = " << time << "  constraint violation (prismatic " << i  << ") = " << CP(i) << std::endl;
-        //////    return false;
-        //////}
+        ////if (std::abs(CP(i)) > cnstr_tol) {
+        ////    std::cout << "   at t = " << time << "  constraint violation (prismatic " << i  << ") = " << CP(i) << std::endl;
+        ////    return false;
+        ////}
     }
 
     // Constraint violations in linear actuator
@@ -283,11 +281,11 @@ void ChLinActuatorTest::VerifySolution(double time) {
 
     ChVectorDynamic<> CA = actuator->GetC();
     ASSERT_NEAR(CA(0), 0.0, cnstr_tol);
-    //////if (std::abs(CA(00)) > cnstr_tol) {
-    //////    std::cout << "   at t = " << time << "  constraint violation (actuator) = " << CA(0)
-    //////        << std::endl;
-    //////    return false;
-    //////}
+    ////if (std::abs(CA(00)) > cnstr_tol) {
+    ////    std::cout << "   at t = " << time << "  constraint violation (actuator) = " << CA(0)
+    ////        << std::endl;
+    ////    return false;
+    ////}
 }
 
 TEST_P(ChLinActuatorTest, simulate) {

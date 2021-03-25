@@ -85,7 +85,7 @@ void ChCollisionSystemDistributed::Add(ChCollisionModel* model) {
     // found == true => curr identifies a large-enough free chunk
 
     // The first index of the free chunk of body_shapes
-    int begin_shapes;
+    int begin_shapes = 0;
 
     // If a free portion of body_shapes was found, set up the body to use it
     if (found) {

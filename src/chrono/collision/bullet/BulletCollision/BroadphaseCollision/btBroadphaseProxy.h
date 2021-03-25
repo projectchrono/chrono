@@ -34,6 +34,7 @@ enum BroadphaseNativeTypes
 	CONVEX_HULL_SHAPE_PROXYTYPE,
 	CONVEX_POINT_CLOUD_SHAPE_PROXYTYPE,
 	CUSTOM_POLYHEDRAL_SHAPE_TYPE,
+
 	//implicit convex shapes
 	IMPLICIT_CONVEX_SHAPES_START_HERE,
 	SPHERE_SHAPE_PROXYTYPE,
@@ -42,30 +43,37 @@ enum BroadphaseNativeTypes
 	CONE_SHAPE_PROXYTYPE,
 	CONVEX_SHAPE_PROXYTYPE,
 	CYLINDER_SHAPE_PROXYTYPE,
-	UNIFORM_SCALING_SHAPE_PROXYTYPE,
+    UNIFORM_SCALING_SHAPE_PROXYTYPE,
 	MINKOWSKI_SUM_SHAPE_PROXYTYPE,
 	MINKOWSKI_DIFFERENCE_SHAPE_PROXYTYPE,
 	BOX_2D_SHAPE_PROXYTYPE,
 	CONVEX_2D_SHAPE_PROXYTYPE,
-	CUSTOM_CONVEX_SHAPE_TYPE,
-	BARREL_SHAPE_PROXYTYPE,   //***ALEX***
-    POINT_SHAPE_PROXYTYPE,   //***ALEX***
-    CE_TRIANGLE_SHAPE_PROXYTYPE,   //***ALEX***
-	//concave shapes
+    CUSTOM_CONVEX_SHAPE_TYPE,
+    CYLSHELL_SHAPE_PROXYTYPE,     /* ***CHRONO*** */
+    BARREL_SHAPE_PROXYTYPE,       /* ***CHRONO*** */
+    POINT_SHAPE_PROXYTYPE,        /* ***CHRONO*** */
+    CE_TRIANGLE_SHAPE_PROXYTYPE,  /* ***CHRONO*** */
+    
+	// concave shapes
 	CONCAVE_SHAPES_START_HERE,
 	//keep all the convex shapetype below here, for the check IsConvexShape in broadphase proxy!
 	TRIANGLE_MESH_SHAPE_PROXYTYPE,
 	SCALED_TRIANGLE_MESH_SHAPE_PROXYTYPE,
-	///used for demo integration FAST/Swift collision library and Bullet
+	
+	//used for demo integration FAST/Swift collision library and Bullet
 	FAST_CONCAVE_MESH_PROXYTYPE,
+	
 	//terrain
-	TERRAIN_SHAPE_PROXYTYPE,
-	// for 2d collision between polylines:
-    ARC_SHAPE_PROXYTYPE,   //***ALEX***
-    SEGMENT_SHAPE_PROXYTYPE,   //***ALEX***
-	///Used for GIMPACT Trimesh integration
+    TERRAIN_SHAPE_PROXYTYPE,
+    
+	// for 2d collision between polylines
+    ARC_SHAPE_PROXYTYPE,          /* ***CHRONO*** */
+    SEGMENT_SHAPE_PROXYTYPE,      /* ***CHRONO*** */
+    
+    // Used for GIMPACT Trimesh integration
 	GIMPACT_SHAPE_PROXYTYPE,
-	///Multimaterial mesh
+
+	//Multimaterial mesh
 	MULTIMATERIAL_TRIANGLE_MESH_PROXYTYPE,
 
 	EMPTY_SHAPE_PROXYTYPE,

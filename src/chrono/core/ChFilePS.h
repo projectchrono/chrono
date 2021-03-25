@@ -51,16 +51,6 @@ class ChApi ChFile_ps_color {
     static const ChFile_ps_color BLACK;
 };
 
-static char* ch_font_labels[] = {(char*)"/Times-Roman",
-                                 (char*)"/Times-Italic",
-                                 (char*)"/Times-Bold",
-                                 (char*)"/Times-BoldItalic",
-                                 (char*)"/Helvetica",
-                                 (char*)"/Helvetica-Oblique",
-                                 (char*)"/Helvetica-Bold",
-                                 (char*)"/Helvetica-BoldOblique",
-                                 0};
-
 /// Class for settings of an axis (x or y, or t) of a 2D
 /// plotting of a function on a EPS file.
 

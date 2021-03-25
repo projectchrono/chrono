@@ -108,7 +108,7 @@ void ArchiveOUT(chrono::ChArchiveOut& marchive) {
 void ArchiveIN(chrono::ChArchiveIn& marchive) {
 	
     // suggested: use versioning
-    int version = marchive.VersionRead<chrono::ChMatrix_dense_version_tag>(); // btw use the ChMatrixDynamic version tag also for all other templates.
+    /*int version =*/ marchive.VersionRead<chrono::ChMatrix_dense_version_tag>(); // btw use the ChMatrixDynamic version tag also for all other templates.
 	
     // stream in all member data
     size_t m_row; 

@@ -78,10 +78,9 @@ void SimpleMapPowertrain::Create(const rapidjson::Document& d) {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void SimpleMapPowertrain::SetGearRatios(std::vector<double>& gear_ratios, double& reverse_gear_ratio) {
-    reverse_gear_ratio = m_rev_gear;
-    for (unsigned int i = 0; i < m_fwd_gear.size(); i++)
-        gear_ratios.push_back(m_fwd_gear[i]);
+void SimpleMapPowertrain::SetGearRatios(std::vector<double>& fwd, double& rev) {
+    rev = m_rev_gear;
+    fwd = m_fwd_gear;
 }
 
 // -----------------------------------------------------------------------------

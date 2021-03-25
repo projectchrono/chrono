@@ -37,7 +37,7 @@ static const bool should_raise_an_assert = false;
 // Used to avoid to raise two exceptions at a time in which case the exception is not properly caught.
 // This may happen when a second exceptions is triggered in a destructor.
 static bool no_more_assert = false;
-static bool report_on_cerr_on_assert_failure = true;
+////static bool report_on_cerr_on_assert_failure = true;
 
 struct eigen_assert_exception {
     eigen_assert_exception(void) {}

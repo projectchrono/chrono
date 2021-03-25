@@ -12,19 +12,17 @@
 // Authors: Alessandro Tasora
 // =============================================================================
 
-
-
 #include "chrono/motion_functions/ChFunctionRotation_setpoint.h"
 #include "chrono/motion_functions/ChFunction_Const.h"
 
 namespace chrono {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-CH_FACTORY_REGISTER(ChFunctionRotation_setpoint) 
+CH_FACTORY_REGISTER(ChFunctionRotation_setpoint)
 
 ChFunctionRotation_setpoint::ChFunctionRotation_setpoint() {
     mode = eChSetpointMode::FOH;
-	this->Reset(0);
+    this->Reset(0);
 }
 
 ChFunctionRotation_setpoint::ChFunctionRotation_setpoint(const ChFunctionRotation_setpoint& other) {
@@ -38,9 +36,7 @@ ChFunctionRotation_setpoint::ChFunctionRotation_setpoint(const ChFunctionRotatio
     last_W = other.last_W;
 }
 
-ChFunctionRotation_setpoint::~ChFunctionRotation_setpoint() {
-
-}
+ChFunctionRotation_setpoint::~ChFunctionRotation_setpoint() {}
 
 void ChFunctionRotation_setpoint::Reset(double s) {
     S = s;
@@ -52,58 +48,56 @@ void ChFunctionRotation_setpoint::Reset(double s) {
     last_W = 0;
 }
 
-
 void ChFunctionRotation_setpoint::SetSetpoint(ChQuaternion<> q_setpoint, double s) {
-	
-	if (s > S) {  
-		// if successive setpoint time, scroll buffer of past samples
-		last_S = S;
-		last_Q = Q;
-		last_W = W;
-	}
-	else {
-		// if same s, just update last sample
-	}
+    if (s > S) {
+        // if successive setpoint time, scroll buffer of past samples
+        last_S = S;
+        last_Q = Q;
+        last_W = W;
+    } else {
+        // if same s, just update last sample
+    }
 
-	S = s;
-	Q = q_setpoint;
-	W = 0;
-	A = 0;
+    S = s;
+    Q = q_setpoint;
+    W = 0;
+    A = 0;
 
-	if (mode == ZOH) {
-		
-	}
-	if (mode == FOH) {
-		double ds = s - last_S;
-		if (ds > 0) {
-			W = (last_Q.GetConjugate() * Q).Q_to_Rotv() / ds;
-			A = 0;
-		}
-	}
-	/*
-	if (mode == SOH) {
-		double ds = s - last_s;
-		if (ds > 0) {
-			W = (Q - last_Q) / ds;
-			A = (W - last_W) / ds; //// TO DO - intrinsic W and lastW, but rotation Q might have changed too much.. require better formula?
-		}
-	}
-	*/
+    if (mode == ZOH) {
+    }
+    if (mode == FOH) {
+        double ds = s - last_S;
+        if (ds > 0) {
+            W = (last_Q.GetConjugate() * Q).Q_to_Rotv() / ds;
+            A = 0;
+        }
+    }
+    /*
+    if (mode == SOH) {
+        double ds = s - last_s;
+        if (ds > 0) {
+            W = (Q - last_Q) / ds;
+            A = (W - last_W) / ds; //// TO DO - intrinsic W and lastW, but rotation Q might have changed too much..
+    require better formula?
+        }
+    }
+    */
 }
-
 
 ChQuaternion<> ChFunctionRotation_setpoint::Get_q(double s) const {
     if (mode == eChSetpointMode::OVERRIDE)
         return Q;
-	ChQuaternion<> dQ;
-	dQ.Q_from_Rotv(W * (s - S)); // + A * pow((s - S), 2)); //// TO DO - intrinsic W and A, but rotation Q might have changed too much.. require better formula?
-	return Q*dQ; 
+    ChQuaternion<> dQ;
+    dQ.Q_from_Rotv(W * (s - S));  // + A * pow((s - S), 2)); //// TO DO - intrinsic W and A, but rotation Q might have
+                                  // changed too much.. require better formula?
+    return Q * dQ;
 }
 
 ChVector<> ChFunctionRotation_setpoint::Get_w_loc(double s) const {
     if (mode == eChSetpointMode::OVERRIDE)
         return W;
-	return W; // +A * (s - S); //// TO DO - intrinsic W and A, but rotation Q might have changed too much.. require better formula?
+    return W;  // +A * (s - S); //// TO DO - intrinsic W and A, but rotation Q might have changed too much.. require
+               // better formula?
 }
 
 ChVector<> ChFunctionRotation_setpoint::Get_a_loc(double s) const {
@@ -112,35 +106,30 @@ ChVector<> ChFunctionRotation_setpoint::Get_a_loc(double s) const {
     return A;
 }
 
-
-
 void ChFunctionRotation_setpoint::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChFunctionRotation_setpoint>();
-	// serialize parent class
+    // serialize parent class
     ChFunctionRotation::ArchiveOUT(marchive);
     // serialize all member data:
-	eChSetpointMode_mapper mmapper;
-	marchive << CHNVP(mmapper(mode), "mode");
+    eChSetpointMode_mapper mmapper;
+    marchive << CHNVP(mmapper(mode), "mode");
     marchive << CHNVP(Q);
-	marchive << CHNVP(W);
-	marchive << CHNVP(A);
-
+    marchive << CHNVP(W);
+    marchive << CHNVP(A);
 }
 
 void ChFunctionRotation_setpoint::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChFunctionRotation_setpoint>();
-	// deserialize parent class
+    /*int version =*/ marchive.VersionRead<ChFunctionRotation_setpoint>();
+    // deserialize parent class
     ChFunctionRotation::ArchiveIN(marchive);
     // deserialize all member data:
-	eChSetpointMode_mapper mmapper;
-	marchive >> CHNVP(mmapper(mode), "mode");
+    eChSetpointMode_mapper mmapper;
+    marchive >> CHNVP(mmapper(mode), "mode");
     marchive >> CHNVP(Q);
-	marchive >> CHNVP(W);
-	marchive >> CHNVP(A);
+    marchive >> CHNVP(W);
+    marchive >> CHNVP(A);
 }
-
-
 
 }  // end namespace chrono

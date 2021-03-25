@@ -56,6 +56,7 @@ static void ComputeAABBBox(const real3& dim,
     maxp = pos + temp;
 }
 
+/*
 static void ComputeAABBCone(const real3& dim,
                             const real3& lpositon,
                             const real3& positon,
@@ -68,6 +69,8 @@ static void ComputeAABBCone(const real3& dim,
     minp = pos - temp;
     maxp = pos + temp;
 }
+*/
+
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 static void ComputeAABBConvex(const real3* convex_points,
                               const int start,
@@ -149,7 +152,8 @@ void ChCAABBGenerator::GenerateAABB() {
                 ComputeAABBSphere(radius + collision_envelope, local_pos, position, body_rot[id], temp_min, temp_max);
 
             } else if (type == ChCollisionShape::Type::ELLIPSOID || type == ChCollisionShape::Type::BOX ||
-                       type == ChCollisionShape::Type::CYLINDER || type == ChCollisionShape::Type::CONE) {
+                       type == ChCollisionShape::Type::CYLINDER || type == ChCollisionShape::Type::CYLSHELL ||
+                       type == ChCollisionShape::Type::CONE) {
                 real3 B = data_manager->shape_data.box_like_rigid[start];
                 ComputeAABBBox(B + collision_envelope, local_pos, position, rotation, body_rot[id], temp_min, temp_max);
 

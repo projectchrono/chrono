@@ -96,12 +96,10 @@ void FEADeformableTerrain::Initialize(const ChVector<>& start_point,
 
     int N_x = numDiv_x + 1;
     int N_y = numDiv_y + 1;
-    int N_z = numDiv_z + 1;
 
     // Calculate total number of elements based on user input
     int TotalNumElements = numDiv_x * numDiv_y * numDiv_z;
     int XYNumNodes = (numDiv_x + 1) * (numDiv_y + 1);
-    int TotalNumNodes = (numDiv_z + 1) * XYNumNodes + TotalNumElements;
 
     // For uniform mesh
     double dx = terrain_dimension.x() / numDiv_x;
@@ -175,7 +173,7 @@ void FEADeformableTerrain::Initialize(const ChVector<>& start_point,
         CCPInitial(8, k) = 1;
     }
     int jj = -1;
-    int kk;
+    int kk = 0;
     // Create the elements
     for (int i = 0; i < TotalNumElements; i++) {
         if (i % (numDiv_x * numDiv_y) == 0) {

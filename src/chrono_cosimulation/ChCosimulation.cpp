@@ -98,7 +98,7 @@ bool ChCosimulation::ReceiveData(double& mtime, ChVectorRef in_data) {
     ChStreamInBinaryVector stream_in(&rbuffer);  // wrap the buffer, for easy formatting
 
     // -----> RECEIVE!!!
-    int numBytes = this->myClient->ReceiveBuffer(*stream_in.GetVector(), nbytes);
+    /*int numBytes =*/ this->myClient->ReceiveBuffer(*stream_in.GetVector(), nbytes);
 
     // Deserialize datas (little endian)...
 

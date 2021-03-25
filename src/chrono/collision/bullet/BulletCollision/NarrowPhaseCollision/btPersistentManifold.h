@@ -178,7 +178,7 @@ public:
 			m_pointCache[lastUsedIndex].m_appliedImpulseLateral2 = 0.f;
 			m_pointCache[lastUsedIndex].m_lifeTime = 0;
 
-			m_pointCache[lastUsedIndex].reactions_cache[0] = 0;  //***ALEX***
+			m_pointCache[lastUsedIndex].reactions_cache[0] = 0;  // ***CHRONO***
 			m_pointCache[lastUsedIndex].reactions_cache[1] = 0;
 			m_pointCache[lastUsedIndex].reactions_cache[2] = 0;
 			m_pointCache[lastUsedIndex].reactions_cache[3] = 0;
@@ -227,7 +227,7 @@ public:
 			btAssert(lifeTime >= 0);
 			void* cache = m_pointCache[insertIndex].m_userPersistentData;
 
-			float mx = m_pointCache[insertIndex].reactions_cache[0]; //***ALEX***
+			float mx = m_pointCache[insertIndex].reactions_cache[0]; // ***CHRONO***
 			float my = m_pointCache[insertIndex].reactions_cache[1];
 			float mz = m_pointCache[insertIndex].reactions_cache[2];
 			float mf = m_pointCache[insertIndex].reactions_cache[3];
@@ -240,7 +240,7 @@ public:
 			m_pointCache[insertIndex].m_appliedImpulseLateral1 = appliedLateralImpulse1;
 			m_pointCache[insertIndex].m_appliedImpulseLateral2 = appliedLateralImpulse2;
 
-			m_pointCache[insertIndex].reactions_cache[0] = mx;  //***ALEX***
+			m_pointCache[insertIndex].reactions_cache[0] = mx;  // ***CHRONO***
 			m_pointCache[insertIndex].reactions_cache[1] = my;
 			m_pointCache[insertIndex].reactions_cache[2] = mz;
 			m_pointCache[insertIndex].reactions_cache[3] = mf;

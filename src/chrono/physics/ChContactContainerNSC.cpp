@@ -756,7 +756,7 @@ void ChContactContainerNSC::ArchiveOUT(ChArchiveOut& marchive) {
 /// Method to allow de serialization of transient data from archives.
 void ChContactContainerNSC::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChContactContainerNSC>();
+    /*int version =*/ marchive.VersionRead<ChContactContainerNSC>();
     // deserialize parent class
     ChContactContainer::ArchiveIN(marchive);
     // stream in all member data:

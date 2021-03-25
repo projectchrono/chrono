@@ -173,12 +173,17 @@ inline real3 GetSupportPoint_RoundedCylinder(const real4& B, const real3& n) {
     return GetSupportPoint_Cylinder(real3(B.x, B.y, B.z), n) + GetSupportPoint_Sphere(B.w, n);
 }
 
+/// Support point for a cylindrical shell (for GJK and MPR).
+inline real3 GetSupportPoint_CylindricalShell(const real3& B, const real3& n) {
+    return GetSupportPoint_Cylinder(real3(B.x, B.y, B.z), n);
+}
+
 /// Support point for a rounded cone, i.e. a sphere-swept cone (for GJK and MPR).
 inline real3 GetSupportPoint_RoundedCone(const real4& B, const real3& n) {
     return GetSupportPoint_Cone(real3(B.x, B.y, B.z), n) + GetSupportPoint_Sphere(B.w, n);
 }
 
-/// Support point for a gneric convex sphae (for GJK and MPR).
+/// Support point for a generic convex shape (for GJK and MPR).
 inline real3 GetSupportPoint_Convex(const int size, const real3* convex_data, const real3& n) {
     real max_dot_p = -C_LARGE_REAL;
     real dot_p;
@@ -287,6 +292,9 @@ inline real3 SupportVertNoMargin(const chrono::collision::ConvexBase* Shape, con
             break;
         case ChCollisionShape::Type::ROUNDEDCYL:
             localSupport = GetSupportPoint_RoundedCylinder(Shape->Rbox(), n);
+            break;
+        case ChCollisionShape::Type::CYLSHELL:
+            localSupport = GetSupportPoint_CylindricalShell(Shape->Box(), n);
             break;
         case ChCollisionShape::Type::ROUNDEDCONE:
             localSupport = GetSupportPoint_RoundedCone(Shape->Rbox(), n);
@@ -410,6 +418,7 @@ static bool SnapeToFaceBary(const real3& A,
     barycentric = real3(v, w, 1.0 - v - w);
     return false;
 }
+
 // Given a contact point P and a tetrahedron T compute the closest triangle to that point
 static void FindTriIndex(const real3& P, const uvec4& T, const real3* pos_node, int& face, real3& cb) {
     int i = T.x;

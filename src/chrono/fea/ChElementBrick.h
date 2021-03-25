@@ -161,7 +161,6 @@ class ChApi ChElementBrick : public ChElementGeneric, public ChLoadableUVW {
     // Private Data
     std::vector<std::shared_ptr<ChNodeFEAxyz> > m_nodes;  ///< Element nodes
 
-    double m_thickness;
     std::shared_ptr<ChContinuumElastic> m_Material;  ///< Elastic Material
 
     ChMatrixNM<double, 24, 24> m_StiffnessMatrix;  ///< Stiffness matrix

@@ -387,6 +387,7 @@ class PDSampler : public Sampler<T> {
                 y = point.y() + radius * std::cos(angle);
                 z = point.z() + radius * std::sin(angle);
             } break;
+            default:
             case NONE: {
                 T radius = m_minDist * (1 + m_realDist(rengine()));
                 T angle1 = 2 * Pi<T> * m_realDist(rengine());

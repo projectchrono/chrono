@@ -67,14 +67,14 @@ void Gator_SimpleMapPowertrain::SetEngineTorqueMaps(ChFunction_Recorder& map0, C
     mapF.AddPoint(rpm2rads * 4200.0, -200.0);
 }
 
-void Gator_SimpleMapPowertrain::SetGearRatios(std::vector<double>& fwd_gear_ratios, double& reverse_gear_ratio) {
-    reverse_gear_ratio = -1.0 / 5.224;
+void Gator_SimpleMapPowertrain::SetGearRatios(std::vector<double>& fwd, double& rev) {
+    rev = -1.0 / 5.224;
 
-    fwd_gear_ratios.push_back(1.0 / 4.124 / 1.94);
-    fwd_gear_ratios.push_back(1.0 / 4.124);
-    fwd_gear_ratios.push_back(1.0 / 2.641);
-    fwd_gear_ratios.push_back(1.0 / 1.58);
-    fwd_gear_ratios.push_back(1.0);
+    fwd.push_back(1.0 / 4.124 / 1.94);
+    fwd.push_back(1.0 / 4.124);
+    fwd.push_back(1.0 / 2.641);
+    fwd.push_back(1.0 / 1.58);
+    fwd.push_back(1.0);
 }
 
 void Gator_SimpleMapPowertrain::SetShiftPoints(std::vector<std::pair<double, double>>& shift_bands) {

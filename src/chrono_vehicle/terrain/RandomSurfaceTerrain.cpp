@@ -11,82 +11,25 @@
 // =============================================================================
 // Authors: Rainer Gericke
 // =============================================================================
+// Terrain object representing an uneven area with controlled roughness.
 //
-// Simple flat horizontal terrain (infinite x-y extent) with an uneven area.
-// The uneven two-track surface is modeled by means of standard PSD spectra as
-// defined in the ISO 8608 standard. ISO 8608 defines 8 classes of uneven
-// roads all can be selected from preset configurations if the two tracks
-// shall be uncorrelated or independend. Tracks like this are used for
-// intensive vehicle testing, because they apply a high load to the vehicle
-// structure.
+// By default, this class implements a terrain modeled as an infinite horizontal plane at a specified height with the
+// uneven terrain lane of specified length and width starting at the origin. This type of terrain can be used in
+// conjunction with tire models that perform their own collision detection (e.g. ChPacejkaTire, ChFiala, and
+// ChLugreTire).
 //
-// If normal road surface conditions are prefered, correlated tracks are the
-// better choice. From test we know that the measured cohereny is a function of
-//  - vehicle track width
-//  - signal wavelength
-//  - unevenness
-//  - curve parameters omega_p, p and a.
-// ISO classes from A to E can be selected with correlation activated.
-// For classes F to H no correlated variants can be selected. This due to
-// the lack of test results with real road surfaces. As a tendency we can see
-// in the measured coherence its vanishing with increasing unevenness of the
-// road. That could mean uncorrelated F to H signals are realistic enough.
-//
-// We use the standard PSD function Phi = Phi_h0*(omega/omega0)^(-w)
-// where Phi_h0 is the unevenness and w is the waviness. ISO 8608 uses only w = 2.
-// omega is the spatial natural frequency. omega0 is defined to 1 rad/m.
-//
-// The transformation to spatial cordinates is done by inverse Fourier transform.
-// Care has been taken, that the signal does not repeat inside the demanded x
-// interval by selecting sufficient spectral coefficients.
-//
-// The measured coherence function:
-//  Xsi = (1.0 + (omega * trackWidth^a / omega_p)^waviness)^(-p)
-// Xsi is in the interval [0,1].
-//
-// To complete the conversion process from PSD to Fourier series, it is necessary
-// to generate a set of random phase angles in the range [0,2Pi] for every track.
-// We must use a uniform random number for this to avoid 'monster waves'.
-// Every track gets is own set of phase angles. If correlated signals are demanded
-// the phase angle sets left and right are blended whith the coherence function.
-//
-// For practical work it is necessary to limit the used wavelengths. The minimal
-// useful wavelength is 0.3 m. This is roughly the contact patch length of the tire.
-// Shorter wavelengths wouldn't give better results (smoothing of the tire) but
-// increase the amount of data.
-//
-// The maximal wavelength must also be limited. The disadvantage of the PSD
-// formula is the ability to increase the amplitude to infinity with decresing
-// spatial natural frequency. This can lead to enormous height differences
-// between left and right track that would tip the vehicle. For this reason
-// we limit the wavelength maximum to 20 m. As a side effect the RMS value this
-// class optionally reports is the so called 'Detrended RMS' from the WES method
-// for vehicle ride quality (6 Watt method). WES proposed to use 60 ft high pass
-// filter before calculating the RMS.
-//
-// Actually three initilizer methods can be used, a preset based one, an
-// unevenness/waviness based one and an IRI based one. The second one allows the
-// usage of non-ISO wavinesses. IRI must be given in [mm/m] to generate useful
-// results.
-//
-// Helpful literature:
-//
-// Löhe K., Zehelein Th.: "Modellierung und Parametrierung stochastischer Fahrbahnunebenheiten mit Hub-, Wank-, Nick-,
-// und Verspannanteil", Conference Paper 2005
-//
-// Quarz V.: "Die Generierung von Fahrbahnstörungen für vorgegebene Spektraldichen mit Hilfe orthogonaler Funktionen",
-// Diss. 2004
-//
-// ISO 8608: "Mechanical Vibration - Road surface profiles - Reporting of measured data", 2016
-//
-// Kropac O., Mucka P.: "Estimation of road waviness using the IRI algorithm", Strojnicky Casopis 55, 2004
-//
-// Mitschke M., Wallentowitz H.: "Dynamik der Kraftfahrzeuge", Springer 2014
-//
+// Alternatively, this terrain type can be represented as a collision mesh representing the uneven lane with an
+// optional flat starting lane.  This terrain type can be used with vehicles that require contact for the
+// vehicle-terrain interaction (wheeled vehicle with rigid tires or tracked vehicles).
 // ===================================================================================================================
 
 #include <random>
 #include <cmath>
+
+#include "chrono/assets/ChColorAsset.h"
+#include "chrono/assets/ChBoxShape.h"
+#include "chrono/assets/ChCylinderShape.h"
+#include "chrono/assets/ChTriangleMeshShape.h"
 
 #include "chrono_vehicle/terrain/RandomSurfaceTerrain.h"
 #include "chrono_vehicle/ChWorldFrame.h"
@@ -108,9 +51,10 @@ RandomSurfaceTerrain::RandomSurfaceTerrain(ChSystem* system, double length, doub
       m_friction(friction),
       m_rms(0.0),
       m_dx(0.1),
-      m_lambda_min(0.3),
       m_lambda_max(20.0),
-      m_useMesh(false) {
+      m_collision_mesh(false),
+      m_start_length(0),
+      m_sweep_sphere_radius(0) {
     m_xmin = 0.0;
     m_xmax = floor(length);
     m_ymin = -ceil(width / 2.0);
@@ -157,7 +101,8 @@ void RandomSurfaceTerrain::ApplyAmplitudes() {
         m_rms += A_right * A_right + A_left * A_left;
     }
     m_rms = std::sqrt(m_rms / (2.0 * m_nx));
-    m_iri = 2.21 * std::sqrt(m_unevenness * 1e6) * std::exp(-0.356 * (m_waviness - 2.0) + 0.13 * std::pow(m_waviness - 2.0, 2));
+    m_iri = 2.21 * std::sqrt(m_unevenness * 1e6) *
+            std::exp(-0.356 * (m_waviness - 2.0) + 0.13 * std::pow(m_waviness - 2.0, 2));
 }
 
 double RandomSurfaceTerrain::GetHeight(const ChVector<>& loc) const {
@@ -498,31 +443,11 @@ void RandomSurfaceTerrain::GenerateCurves() {
     m_road_right = chrono_types::make_shared<ChBezierCurve>(pr);
 }
 
-void RandomSurfaceTerrain::SetupLineGraphics() {
-    GenerateCurves();
-    auto mfloorcolor = chrono_types::make_shared<ChColorAsset>();
-    mfloorcolor->SetColor(ChColor(0.3f, 0.3f, 0.6f));
-    m_ground->AddAsset(mfloorcolor);
-
-    auto np = m_road_left->getNumPoints();
-    unsigned int num_render_points = std::max<unsigned int>(static_cast<unsigned int>(3 * np), 400);
-    auto bezier_line_left = chrono_types::make_shared<geometry::ChLineBezier>(m_road_left);
-    auto bezier_asset_left = chrono_types::make_shared<ChLineShape>();
-    bezier_asset_left->SetLineGeometry(bezier_line_left);
-    bezier_asset_left->SetNumRenderPoints(num_render_points);
-    bezier_asset_left->SetName(m_curve_left_name);
-    m_ground->AddAsset(bezier_asset_left);
-
-    auto bezier_line_right = chrono_types::make_shared<geometry::ChLineBezier>(m_road_right);
-    auto bezier_asset_right = chrono_types::make_shared<ChLineShape>();
-    bezier_asset_right->SetLineGeometry(bezier_line_right);
-    bezier_asset_right->SetNumRenderPoints(num_render_points);
-    bezier_asset_right->SetName(m_curve_right_name);
-    m_ground->AddAsset(bezier_asset_right);
-}
-
 // very simple normal calculation based on GetNormal()
-void RandomSurfaceTerrain::SetupMeshGraphics() {
+void RandomSurfaceTerrain::GenerateMesh() {
+    if (m_mesh)
+        return;
+
     m_mesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
     auto& coords = m_mesh->getCoordsVertices();
     auto& indices = m_mesh->getIndicesVertexes();
@@ -548,33 +473,98 @@ void RandomSurfaceTerrain::SetupMeshGraphics() {
             normidx.push_back(ChVector<int>(j + 1 + ysize * i, j + ysize + ysize * i, j + 1 + ysize + ysize * i));
         }
     }
-    auto vmesh = chrono_types::make_shared<ChTriangleMeshShape>();
-    vmesh->SetMesh(m_mesh);
-    vmesh->SetStatic(true);
-    vmesh->SetName("ISO_track");
+}
 
-    auto vcolor = chrono_types::make_shared<ChColorAsset>();
-    vcolor->SetColor(ChColor(0.6f, 0.6f, 0.8f));
+void RandomSurfaceTerrain::SetupVisualization(RandomSurfaceTerrain::VisualisationType vType) {
+    switch (vType) {
+        case RandomSurfaceTerrain::VisualisationType::NONE:
+            break;
 
-    m_ground->AddAsset(vcolor);
-    m_ground->AddAsset(vmesh);
+        case RandomSurfaceTerrain::VisualisationType::LINES: {
+            GenerateCurves();
+
+            auto mfloorcolor = chrono_types::make_shared<ChColorAsset>();
+            mfloorcolor->SetColor(ChColor(0.3f, 0.3f, 0.6f));
+            m_ground->AddAsset(mfloorcolor);
+
+            auto np = m_road_left->getNumPoints();
+            unsigned int num_render_points = std::max<unsigned int>(static_cast<unsigned int>(3 * np), 400);
+            auto bezier_line_left = chrono_types::make_shared<geometry::ChLineBezier>(m_road_left);
+            auto bezier_asset_left = chrono_types::make_shared<ChLineShape>();
+            bezier_asset_left->SetLineGeometry(bezier_line_left);
+            bezier_asset_left->SetNumRenderPoints(num_render_points);
+            bezier_asset_left->SetName(m_curve_left_name);
+            m_ground->AddAsset(bezier_asset_left);
+
+            auto bezier_line_right = chrono_types::make_shared<geometry::ChLineBezier>(m_road_right);
+            auto bezier_asset_right = chrono_types::make_shared<ChLineShape>();
+            bezier_asset_right->SetLineGeometry(bezier_line_right);
+            bezier_asset_right->SetNumRenderPoints(num_render_points);
+            bezier_asset_right->SetName(m_curve_right_name);
+
+            m_ground->AddAsset(bezier_asset_right);
+
+            break;
+        }
+
+        case RandomSurfaceTerrain::VisualisationType::MESH: {
+            GenerateMesh();
+
+            auto vmesh = chrono_types::make_shared<ChTriangleMeshShape>();
+            vmesh->SetMesh(m_mesh);
+            vmesh->SetStatic(true);
+            vmesh->SetName("ISO_track");
+
+            auto vcolor = chrono_types::make_shared<ChColorAsset>();
+            vcolor->SetColor(ChColor(0.6f, 0.6f, 0.8f));
+
+            m_ground->AddAsset(vcolor);
+            m_ground->AddAsset(vmesh);
+
+            break;
+        }
+    }
+}
+
+void RandomSurfaceTerrain::EnableCollisionMesh(std::shared_ptr<ChMaterialSurface> material,
+                                               double length,
+                                               double sweep_sphere_radius) {
+    m_material = material;
+    m_start_length = length;
+    m_sweep_sphere_radius = sweep_sphere_radius;
+    m_collision_mesh = true;
+}
+
+void RandomSurfaceTerrain::SetupCollision() {
+    GenerateMesh();
+
+    m_ground->SetCollide(true);
+    m_ground->GetCollisionModel()->ClearModel();
+
+    m_ground->GetCollisionModel()->AddTriangleMesh(m_material, m_mesh, true, false, VNULL, ChMatrix33<>(1),
+                                                   m_sweep_sphere_radius);
+
+    if (m_start_length > 0) {
+        double thickness = 1;
+        ChVector<> loc(-m_start_length / 2, 0, m_height - thickness / 2);
+        m_ground->GetCollisionModel()->AddBox(m_material, 0.5 * m_start_length, 0.5 * m_width, 0.5 * thickness, loc);
+
+        auto box = chrono_types::make_shared<ChBoxShape>();
+        box->GetBoxGeometry().SetLengths(ChVector<>(m_start_length, m_width, thickness));
+        box->Pos = loc;
+        m_ground->AddAsset(box);
+    }
+
+    m_ground->GetCollisionModel()->BuildModel();
 }
 
 void RandomSurfaceTerrain::Initialize(RandomSurfaceTerrain::SurfaceType surfType,
                                       double vehicleTrackWidth,
                                       RandomSurfaceTerrain::VisualisationType vType) {
     GenerateSurfaceFromPreset(surfType, vehicleTrackWidth);
-
-    switch (vType) {
-        case RandomSurfaceTerrain::VisualisationType::NONE:
-            break;
-        case RandomSurfaceTerrain::VisualisationType::LINES:
-            SetupLineGraphics();
-            break;
-        case RandomSurfaceTerrain::VisualisationType::MESH:
-            SetupMeshGraphics();
-            break;
-    }
+    SetupVisualization(vType);
+    if (m_collision_mesh)
+        SetupCollision();
 }
 
 void RandomSurfaceTerrain::Initialize(double iri,
@@ -669,16 +659,11 @@ void RandomSurfaceTerrain::Initialize(double unevenness,
             GenerateSurfaceCanonical(unevenness, waviness);
             break;
     }
-    switch (vType) {
-        case RandomSurfaceTerrain::VisualisationType::NONE:
-            break;
-        case RandomSurfaceTerrain::VisualisationType::LINES:
-            SetupLineGraphics();
-            break;
-        case RandomSurfaceTerrain::VisualisationType::MESH:
-            SetupMeshGraphics();
-            break;
-    }
+
+    SetupVisualization(vType);
+    if (m_collision_mesh)
+        SetupCollision();
 }
+
 }  // end namespace vehicle
 }  // end namespace chrono

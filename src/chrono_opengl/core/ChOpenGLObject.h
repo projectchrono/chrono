@@ -35,11 +35,13 @@ class CH_OPENGL_API ChOpenGLObject : public ChOpenGLBase {
   public:
     ChOpenGLObject();
     virtual ~ChOpenGLObject();
-    virtual void TakeDown();
-    virtual bool Initialize();
-    virtual bool PostGLInitialize(const GLvoid* ptr, GLsizeiptr size);
-    virtual void Draw(const glm::mat4& projection, const glm::mat4& modelview) = 0;
+
+    bool Initialize();
+    bool PostGLInitialize(const GLvoid* ptr, GLsizeiptr size);
     void AttachShader(ChOpenGLShader* new_shader);
+
+    virtual void TakeDown() override;
+    virtual void Draw(const glm::mat4& projection, const glm::mat4& modelview) = 0;
 
   protected:
     GLuint vertex_array_handle;

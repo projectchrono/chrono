@@ -61,7 +61,6 @@ class HmmwvDlcTest : public utils::ChBenchmarkTest {
 template <typename EnumClass, EnumClass TIRE_MODEL>
 HmmwvDlcTest<EnumClass, TIRE_MODEL>::HmmwvDlcTest() : m_step_veh(2e-3), m_step_tire(1e-3) {
     PowertrainModelType powertrain_model = PowertrainModelType::SHAFTS;
-    TireModelType tire_model = TireModelType::RIGID_MESH;
     DrivelineTypeWV drive_type = DrivelineTypeWV::AWD;
 
     // Create the HMMWV vehicle, set parameters, and initialize.

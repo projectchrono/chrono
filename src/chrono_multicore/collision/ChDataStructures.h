@@ -41,6 +41,7 @@ class ConvexBase {
     virtual real3 Box() const { return real3(0); }
     virtual real4 Rbox() const { return real4(0); }
     virtual real2 Capsule() const { return real2(0); }
+    virtual real3 Cylshell() const { return real3(0); }
     virtual uvec4 TetIndex() const { return _make_uvec4(0, 0, 0, 0); }
     virtual const real3* TetNodes() const { return 0; }
 };
@@ -60,6 +61,7 @@ class ConvexShape : public ConvexBase {
     virtual real Radius() const override { return data->sphere_rigid[start()]; }
     virtual real3 Box() const override { return data->box_like_rigid[start()]; }
     virtual real4 Rbox() const override { return data->rbox_like_rigid[start()]; }
+    virtual real3 Cylshell() const override { return data->box_like_rigid[start()]; }
     virtual real2 Capsule() const override { return data->capsule_rigid[start()]; }
     int index;
     shape_container* data;  // pointer to convex data;
