@@ -194,7 +194,7 @@ int main(int argc, char* argv[]) {
     // Create system
     // -------------
 
-    ChSystemMulticore* sys;
+    ChSystemMulticore* sys = nullptr;
     switch (contact_method) {
         case ChContactMethod::NSC: {
             auto my_sys = new ChSystemMulticoreNSC;
@@ -340,7 +340,7 @@ int main(int argc, char* argv[]) {
     bool robot_released = false;
     double x_max = 0;
 
-    double terrain_bottom_height;
+    double terrain_bottom_height = 0;
     std::pair<double, double> terrain_init_height;
     std::pair<double, double> terrain_settled_height;
 

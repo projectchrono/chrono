@@ -198,9 +198,9 @@ void progressbar(unsigned int x, unsigned int n, unsigned int w = 50) {
   unsigned int c = (unsigned int)(ratio * w);
 
   std::cout << std::setw(3) << (int)(ratio * 100) << "% [";
-  for (unsigned int x = 0; x < c; x++)
+  for (unsigned int ix = 0; ix < c; ix++)
     std::cout << "=";
-  for (unsigned int x = c; x < w; x++)
+  for (unsigned int ix = c; ix < w; ix++)
     std::cout << " ";
   std::cout << "]\r" << std::flush;
 }

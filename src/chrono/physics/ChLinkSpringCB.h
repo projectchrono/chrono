@@ -143,6 +143,8 @@ ChLinkSpringCB : public ChLinkMarkers {
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
 
   private:
+    using ChLinkMarkers::Initialize;
+
     virtual void Update(double mytime, bool update_assets = true) override;
 
     virtual int GetDOF() override { return m_nstates; }

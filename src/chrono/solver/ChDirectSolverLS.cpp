@@ -217,7 +217,7 @@ void ChDirectSolverLS::ArchiveOUT(ChArchiveOut& marchive) {
 
 void ChDirectSolverLS::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChDirectSolverLS>();
+    /*int version =*/ marchive.VersionRead<ChDirectSolverLS>();
 
     // deserialize parent class
     ChSolver::ArchiveIN(marchive);

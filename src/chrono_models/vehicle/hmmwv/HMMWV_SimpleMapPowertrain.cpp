@@ -60,15 +60,15 @@ void HMMWV_SimpleMapPowertrain::SetEngineTorqueMaps(ChFunction_Recorder& map0, C
     mapF.AddPoint(282.743, -800.0);
 }
 
-void HMMWV_SimpleMapPowertrain::SetGearRatios(std::vector<double>& fwd_gear_ratios, double& reverse_gear_ratio) {
-    reverse_gear_ratio = -0.2;
+void HMMWV_SimpleMapPowertrain::SetGearRatios(std::vector<double>& fwd, double& rev) {
+    rev = -0.2;
 
-    fwd_gear_ratios.push_back(0.1708);
-    fwd_gear_ratios.push_back(0.2791);
-    fwd_gear_ratios.push_back(0.4218);
-    fwd_gear_ratios.push_back(0.6223);
-    fwd_gear_ratios.push_back(1.0173);
-    fwd_gear_ratios.push_back(1.5361);
+    fwd.push_back(0.1708);
+    fwd.push_back(0.2791);
+    fwd.push_back(0.4218);
+    fwd.push_back(0.6223);
+    fwd.push_back(1.0173);
+    fwd.push_back(1.5361);
 }
 
 void HMMWV_SimpleMapPowertrain::SetShiftPoints(std::vector<std::pair<double, double>>& shift_bands) {

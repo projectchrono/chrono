@@ -90,15 +90,15 @@ void MAN_5t_SimpleMapPowertrain::SetEngineTorqueMaps(ChFunction_Recorder& map0, 
     mapF.AddPoint(2300.0 * rpm2rads, -100.0);
 }
 
-void MAN_5t_SimpleMapPowertrain::SetGearRatios(std::vector<double>& fwd_gear_ratios, double& reverse_gear_ratio) {
-    reverse_gear_ratio = -0.167;
+void MAN_5t_SimpleMapPowertrain::SetGearRatios(std::vector<double>& fwd, double& rev) {
+    rev = -0.167;
 
-    fwd_gear_ratios.push_back(0.157);
-    fwd_gear_ratios.push_back(0.275);
-    fwd_gear_ratios.push_back(0.415);
-    fwd_gear_ratios.push_back(0.588);
-    fwd_gear_ratios.push_back(0.787);
-    fwd_gear_ratios.push_back(1.0);
+    fwd.push_back(0.157);
+    fwd.push_back(0.275);
+    fwd.push_back(0.415);
+    fwd.push_back(0.588);
+    fwd.push_back(0.787);
+    fwd.push_back(1.0);
 }
 
 void MAN_5t_SimpleMapPowertrain::SetShiftPoints(std::vector<std::pair<double, double>>& shift_bands) {

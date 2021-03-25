@@ -201,10 +201,15 @@ int main(int argc, char* argv[]) {
         chrono::ChMatrix34<> res2 = rot * Gt.transpose();
         chrono::ChMatrix43<> res3 = Gt * rot;
         chrono::ChMatrix43<> res4 = G.transpose() * rot;
+        std::cout << "rot * G:\n" << res1 << std::endl;
+        std::cout << "rot * (G').transpose:\n" << res2 << std::endl;
+        std::cout << "G' * rot:\n" << res3 << std::endl;
+        std::cout << "G.transpose * rot:\n" << res4 << std::endl;
 
         chrono::ChMatrix44<> A44;
         A44.setRandom();
         chrono::ChQuaternion<> q2 = A44 * q;
+        std::cout << "Random 4x4 * q:\n" << q2 << std::endl; 
 
         chrono::ChStarMatrix44<> X(chrono::ChQuaternion<>(1, 2, 3, 4));
         std::cout << "4x4 star matrix X:\n" << X << std::endl;

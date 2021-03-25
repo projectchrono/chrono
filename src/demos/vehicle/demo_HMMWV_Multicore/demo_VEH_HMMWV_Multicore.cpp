@@ -224,8 +224,8 @@ void HMMWV_Driver::Advance(double step) {
     m_steering = out_steering;
 }
 
-void HMMWV_Driver::ExportPathPovray(const std::string& out_dir) {
-    chrono::utils::WriteCurvePovray(*m_steeringPID.GetPath(), "straight_path", out_dir, 0.04,
+void HMMWV_Driver::ExportPathPovray(const std::string& outdir) {
+    chrono::utils::WriteCurvePovray(*m_steeringPID.GetPath(), "straight_path", outdir, 0.04,
                                     chrono::ChColor(0.8f, 0.5f, 0.0f));
 }
 
@@ -603,9 +603,9 @@ void progressbar(unsigned int x, unsigned int n, unsigned int w) {
     unsigned int c = (unsigned int)(ratio * w);
 
     std::cout << std::setw(3) << (int)(ratio * 100) << "% [";
-    for (unsigned int x = 0; x < c; x++)
+    for (unsigned int ix = 0; ix < c; ix++)
         std::cout << "=";
-    for (unsigned int x = c; x < w; x++)
+    for (unsigned int ix = c; ix < w; ix++)
         std::cout << " ";
     std::cout << "]\r" << std::flush;
 }

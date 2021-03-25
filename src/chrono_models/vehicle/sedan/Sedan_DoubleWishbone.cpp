@@ -93,7 +93,6 @@ double Sedan_ShockForce::operator()(double time,
     double force = 0;
     double dcurve = 0;
     double ddcurve = 0;
-    double org_vel = vel;
 
     if ((vel >= m_MinVel) && (vel <= m_MaxVel)) {
         m_ShockTable.Evaluate(vel, force, dcurve, ddcurve);

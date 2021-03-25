@@ -27,6 +27,8 @@ class ChRandomParticleAlignment {
   public:
     ChRandomParticleAlignment() {}
 
+    virtual ~ChRandomParticleAlignment() {}
+
     /// Function that creates a random alignment (as a rotation quaternion) each
     /// time it is called.
     /// Note: it must be implemented by children classes!
@@ -41,7 +43,7 @@ class ChRandomParticleAlignmentUniform : public ChRandomParticleAlignment {
 
     /// Function that creates a random alignment (as a rotation quaternion) each
     /// time it is called. The alignment is a random polar rotation.
-    virtual ChQuaternion<> RandomAlignment() {
+    virtual ChQuaternion<> RandomAlignment() override {
         ChQuaternion<> mq(1. - ChRandom() * 2., 1. - ChRandom() * 2., 1. - ChRandom() * 2., 1. - ChRandom() * 2.);
         return mq.GetNormalized();
     }

@@ -51,7 +51,6 @@ uint ChSolverMulticoreSPGQP::Solve(ChShurProduct& ShurProduct,
 
     real& lastgoodres = data_manager->measures.solver.residual;
     real& objective_value = data_manager->measures.solver.objective_value;
-    real sigma_min = 0.1;
     real sigma_max = 0.9999;
     real gam = .1;
     int m = 10;

@@ -43,11 +43,13 @@ namespace vehicle {
 // Forward reference
 class ChVehicle;
 
-/// Template for a powertrain model using shaft elements. 
+/// Template for a powertrain model using shaft elements.
+/// This powertrain template includes a torque converter and a manumatic transmission.
 class CH_VEHICLE_API ChShaftsPowertrain : public ChPowertrain {
   public:
     /// Construct a shafts-based powertrain model.
-    ChShaftsPowertrain(const std::string& name, const ChVector<>& dir_motor_block = ChVector<>(1, 0, 0));
+    ChShaftsPowertrain(const std::string& name,
+                       const ChVector<>& dir_motor_block = ChVector<>(1, 0, 0));
 
     virtual ~ChShaftsPowertrain() {}
 
@@ -72,23 +74,12 @@ class CH_VEHICLE_API ChShaftsPowertrain : public ChPowertrain {
     /// Return the torque converter output shaft speed.
     virtual double GetTorqueConverterOutputSpeed() const override { return m_shaft_ingear->GetPos_dt(); }
 
-    /// Return the current transmission gear.
-    virtual int GetCurrentTransmissionGear() const override { return m_current_gear; }
-
     /// Return the output torque from the powertrain.
     /// This is the torque that is passed to a vehicle system, thus providing the
     /// interface between the powertrain and vehicle co-simulation modules.
     /// Since a ShaftsPowertrain is directly connected to the vehicle's driveline,
     /// this function returns 0.
     virtual double GetOutputTorque() const override { return 0; }
-
-    /// Use this function to set the mode of automatic transmission.
-    virtual void SetDriveMode(ChPowertrain::DriveMode mmode) override;
-
-    /// Use this function to shift from one gear to another.
-    /// A zero latency shift is assumed.
-    /// Note, index starts from 0.
-    void SetSelectedGear(int igear);
 
     /// Use this to define the gear shift latency, in seconds.
     void SetGearShiftLatency(double ml) { m_gear_shift_latency = ml; }
@@ -97,11 +88,6 @@ class CH_VEHICLE_API ChShaftsPowertrain : public ChPowertrain {
     double GetGearShiftLatency(double ml) { return m_gear_shift_latency; }
 
   protected:
-    /// Set up the gears, i.e. the transmission ratios of the various gears.
-    /// A derived class must populate the vector gear_ratios, using the 0 index
-    /// for reverse and 1,2,3,etc. for the forward gears.
-    virtual void SetGearRatios(std::vector<double>& gear_ratios) = 0;
-
     /// Inertias of the component ChShaft objects.
     virtual double GetMotorBlockInertia() const = 0;
     virtual double GetCrankshaftInertia() const = 0;
@@ -143,6 +129,12 @@ class CH_VEHICLE_API ChShaftsPowertrain : public ChPowertrain {
     /// state, this function does nothing.
     virtual void Advance(double step) override {}
 
+    /// Perform any action required on a gear shift (the new gear and gear ratio are available).
+    virtual void OnGearShift() override;
+
+    /// Perform any action required on placing the transmission in neutral.
+    virtual void OnNeutralShift() override;
+
     std::shared_ptr<ChShaftsBody> m_motorblock_to_body;
     std::shared_ptr<ChShaft> m_motorblock;
     std::shared_ptr<ChShaftsThermalEngine> m_engine;
@@ -151,9 +143,6 @@ class CH_VEHICLE_API ChShaftsPowertrain : public ChPowertrain {
     std::shared_ptr<ChShaftsTorqueConverter> m_torqueconverter;
     std::shared_ptr<ChShaft> m_shaft_ingear;
     std::shared_ptr<ChShaftsGearbox> m_gears;
-
-    int m_current_gear;
-    std::vector<double> m_gear_ratios;
 
     ChVector<> m_dir_motor_block;
 

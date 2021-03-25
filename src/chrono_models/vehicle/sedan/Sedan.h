@@ -91,6 +91,9 @@ class CH_MODELS_API Sedan {
     void DebugLog(int what) { m_vehicle->DebugLog(what); }
 
   protected:
+    ChSystem* m_system;
+    Sedan_Vehicle* m_vehicle;
+
     ChContactMethod m_contactMethod;
     CollisionType m_chassisCollisionType;
     bool m_fixed;
@@ -109,9 +112,6 @@ class CH_MODELS_API Sedan {
     double m_Cd;
     double m_area;
     double m_air_density;
-
-    ChSystem* m_system;
-    Sedan_Vehicle* m_vehicle;
 
     double m_tire_mass;
 };

@@ -31,7 +31,7 @@ void ChTexture::ArchiveOUT(ChArchiveOut& marchive) {
 
 void ChTexture::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChTexture>();
+    /*int version =*/ marchive.VersionRead<ChTexture>();
     // deserialize parent class
     ChAsset::ArchiveIN(marchive);
     // stream in all member data:

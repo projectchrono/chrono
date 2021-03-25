@@ -242,9 +242,6 @@ class ChApi ChBasisToolsBsplineSurfaces {
         ChVectorDynamic<> N_v(p_v + 1);
         ChBasisToolsBspline::BasisEvaluate(p_v, spanV, v, Knots_v, N_v);
 
-        int uind = spanU - p_u;
-        int vind = spanV - p_v;
-
         for (int iv = 0; iv <= p_v; iv++) {
             for (int iu = 0; iu <= p_u; iu++) {
                 R(iu, iv) = N_u(iu) * N_v(iv);
@@ -275,9 +272,6 @@ class ChApi ChBasisToolsBsplineSurfaces {
         ChBasisToolsBspline::BasisEvaluate(p_u, spanU, u, Knots_u, N_u);
         ChVectorDynamic<> N_v(p_v + 1);
         ChBasisToolsBspline::BasisEvaluate(p_v, spanV, v, Knots_v, N_v);
-
-        int uind = spanU - p_u;
-        int vind = spanV - p_v;
 
         for (int iv = 0; iv <= p_v; iv++) {
             for (int iu = 0; iu <= p_u; iu++) {
@@ -315,9 +309,6 @@ class ChApi ChBasisToolsBsplineSurfaces {
         ChBasisToolsBspline::BasisEvaluate(p_u, spanU, u, Knots_u, N_u);
         ChVectorDynamic<> N_v(p_v + 1);
         ChBasisToolsBspline::BasisEvaluate(p_v, spanV, v, Knots_v, N_v);
-
-        int uind = spanU - p_u;
-        int vind = spanV - p_v;
 
         for (int iv = 0; iv <= p_v; iv++) {
             for (int iu = 0; iu <= p_u; iu++) {

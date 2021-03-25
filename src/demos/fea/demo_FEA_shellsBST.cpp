@@ -365,8 +365,6 @@ int main(int argc, char* argv[]) {
     ChFunction_Recorder rec_X;
     ChFunction_Recorder rec_Y;
 
-    double mtime = 0;
-
     while (application.GetDevice()->run()) {
         application.BeginScene();
 

@@ -418,7 +418,7 @@ void ChLinkUniversal::ArchiveOUT(ChArchiveOut& marchive) {
 /// Method to allow de serialization of transient data from archives.
 void ChLinkUniversal::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChLinkUniversal>();
+    /*int version =*/ marchive.VersionRead<ChLinkUniversal>();
 
     // deserialize parent class
     ChLink::ArchiveIN(marchive);

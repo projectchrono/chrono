@@ -464,7 +464,7 @@ TEST(ChNarrowphaseMPR, cylinder_sphere) {
     real3 pt1;
     real3 pt2;
 
-    real oosqrt2 = sqrt(0.5);  // 1/sqrt(2)
+    ////real oosqrt2 = sqrt(0.5);  // 1/sqrt(2)
 
     {
         // sphere center inside cylinder
@@ -623,7 +623,7 @@ TEST(ChNarrowphaseMPR, roundedcyl_sphere) {
     real3 pt1;
     real3 pt2;
 
-    real oosqrt2 = sqrt(0.5);  // 1/sqrt(2)
+    ////real oosqrt2 = sqrt(0.5);  // 1/sqrt(2)
 
     {
         // sphere center inside cylinder
@@ -635,6 +635,7 @@ TEST(ChNarrowphaseMPR, roundedcyl_sphere) {
 
         bool res = MPRContact(shapeA, shapeB, envelope, norm, pt, depth);
         //// TODO: WHAT IS EXPECTED HERE?
+        ASSERT_TRUE(res || !res);  //// <- FIX ME!
 
         delete shapeA;
         delete shapeB;

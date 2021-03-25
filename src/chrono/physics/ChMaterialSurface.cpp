@@ -58,7 +58,7 @@ void ChMaterialSurface::ArchiveOUT(ChArchiveOut& marchive) {
 
 void ChMaterialSurface::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChMaterialSurface>();
+    /*int version =*/ marchive.VersionRead<ChMaterialSurface>();
 
     // stream in all member data:
     marchive >> CHNVP(static_friction);

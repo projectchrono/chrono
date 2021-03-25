@@ -24,7 +24,7 @@ namespace collision {
 static double default_model_envelope = 0.03;
 static double default_safe_margin = 0.01;
 
-ChCollisionModel::ChCollisionModel() : family_group(1), family_mask(0x7FFF), mcontactable(nullptr) {
+ChCollisionModel::ChCollisionModel() : mcontactable(nullptr), family_group(1), family_mask(0x7FFF) {
     model_envelope = (float)default_model_envelope;
     model_safe_margin = (float)default_safe_margin;
 }
@@ -130,20 +130,20 @@ bool ChCollisionModel::AddConvexHullsFromFile(std::shared_ptr<ChMaterialSurface>
         }
         bufdata[linechar + 1] = 0;
 
-        bool parsedline = false;
+        ////bool parsedline = false;
         if (bufdata[0] != *"#") {
-            parsedline = true;
+            ////parsedline = true;
         }
         if (strcmp(bufdata, "hull") == 0) {
             if (ptlist.size())
                 this->AddConvexHull(material, ptlist, pos, rot);
             ptlist.clear();
-            parsedline = true;
+            ////parsedline = true;
         }
         float vx, vy, vz;
         if (sscanf(bufdata, "%g %g %g", &vx, &vy, &vz) == 3) {
             ptlist.push_back(ChVector<>(vx, vy, vz));
-            parsedline = true;
+            ////parsedline = true;
         }
     }
     
@@ -177,7 +177,7 @@ void ChCollisionModel::ArchiveOUT(ChArchiveOut& marchive) {
 
 void ChCollisionModel::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChCollisionModel>();
+    /*int version =*/ marchive.VersionRead<ChCollisionModel>();
 
     // stream in all member data:
     marchive >> CHNVP(model_envelope);

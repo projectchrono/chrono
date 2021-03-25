@@ -79,7 +79,7 @@ void Ch3DOFContainer::SetPos_dt(const int& i, const real3& mposdt) {
     data_manager->host_data.vel_3dof[i] = mposdt;
 }
 
-void Ch3DOFContainer::Setup(int start_constraint) {
+void Ch3DOFContainer::Setup3DOF(int start_constraint) {
     start_row = start_constraint;
     if (data_manager) {
         num_fluid_contacts = data_manager->num_fluid_contacts;

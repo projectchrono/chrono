@@ -50,8 +50,6 @@ void ChIterativeSolverMulticore::ComputeInvMassMatrix() {
     const custom_vector<real>& shaft_inr = data_manager->host_data.shaft_inr;
 
     std::vector<std::shared_ptr<ChBody>>* body_list = data_manager->body_list;
-    std::vector<std::shared_ptr<ChLinkBase>>* link_list = data_manager->link_list;
-    std::vector<std::shared_ptr<ChPhysicsItem>>* other_physics_list = data_manager->other_physics_list;
 
     const DynamicVector<real>& hf = data_manager->host_data.hf;
     const DynamicVector<real>& v = data_manager->host_data.v;
@@ -142,8 +140,6 @@ void ChIterativeSolverMulticore::ComputeMassMatrix() {
     const custom_vector<real>& shaft_inr = data_manager->host_data.shaft_inr;
 
     std::vector<std::shared_ptr<ChBody>>* body_list = data_manager->body_list;
-    std::vector<std::shared_ptr<ChLinkBase>>* link_list = data_manager->link_list;
-    std::vector<std::shared_ptr<ChPhysicsItem>>* other_physics_list = data_manager->other_physics_list;
 
     CompressedMatrix<real>& M = data_manager->host_data.M;
 
@@ -243,8 +239,6 @@ void ChIterativeSolverMulticore::PerformStabilization() {
         uint num_3dof_3dof = data_manager->node_container->GetNumConstraints();
         uint start_tet = data_manager->num_unilaterals + data_manager->num_bilaterals + num_3dof_3dof;
         int num_constraints = data_manager->num_fea_tets * (6 + 1);
-        uint start_nodes = data_manager->num_rigid_bodies * 6 + data_manager->num_shafts + data_manager->num_motors +
-                           data_manager->num_fluid_bodies * 3;
 
         const DynamicVector<real> R_fem = blaze::subvector(R_full, start_tet, num_constraints);
         DynamicVector<real> gamma_fem = blaze::subvector(gamma, start_tet, num_constraints);

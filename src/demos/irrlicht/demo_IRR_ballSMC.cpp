@@ -66,7 +66,7 @@ int main(int argc, char* argv[]) {
     int binId = 200;
     double width = 2;
     double length = 2;
-    double height = 1;
+    ////double height = 1;
     double thickness = 0.1;
 
     // Create the system

@@ -167,6 +167,21 @@ int box_capsule(const real3& pos1,
                 real3* pt2,
                 real* eff_radius);
 
+/// Analytical box vs. cylindrical shell collision function.
+int box_cylshell(const real3& pos1,
+                 const quaternion& rot1,
+                 const real3& hdims1,
+                 const real3& pos2,
+                 const quaternion& rot2,
+                 const real& radius2,
+                 const real& hlen2,
+                 const real& separation,
+                 real3* norm,
+                 real* depth,
+                 real3* pt1,
+                 real3* pt2,
+                 real* eff_radius);
+
 /// Analytical box vs. box collision function (not yet completed).
 int box_box(const real3& pos1,
             const quaternion& rot1,

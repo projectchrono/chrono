@@ -47,9 +47,9 @@ namespace vehicle {
 RigidTerrain::RigidTerrain(ChSystem* system)
     : m_system(system),
       m_num_patches(0),
-      m_collision_family(14),
       m_use_friction_functor(false),
-      m_contact_callback(nullptr) {}
+      m_contact_callback(nullptr),
+      m_collision_family(14) {}
 
 // -----------------------------------------------------------------------------
 // Constructor from JSON file
@@ -57,11 +57,12 @@ RigidTerrain::RigidTerrain(ChSystem* system)
 RigidTerrain::RigidTerrain(ChSystem* system, const std::string& filename)
     : m_system(system),
       m_num_patches(0),
-      m_collision_family(14),
       m_use_friction_functor(false),
-      m_contact_callback(nullptr) {
+      m_contact_callback(nullptr),
+      m_collision_family(14) {
     // Open and parse the input file
-    Document d; ReadFileJSON(filename, d);
+    Document d;
+    ReadFileJSON(filename, d);
     if (d.IsNull())
         return;
 
@@ -362,7 +363,7 @@ std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(std::shared_ptr<ChMa
     }
 
     // Calculate normals and then average the normals from all adjacent faces.
-    for (unsigned int it = 0; it < n_faces; ++it) {
+    for (it = 0; it < n_faces; ++it) {
         // Calculate the triangle normal as a normalized cross product.
         ChVector<> nrm = Vcross(vertices[idx_vertices[it][1]] - vertices[idx_vertices[it][0]],
                                 vertices[idx_vertices[it][2]] - vertices[idx_vertices[it][0]]);

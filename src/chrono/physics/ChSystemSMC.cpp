@@ -116,7 +116,7 @@ void ChSystemSMC::ArchiveOUT(ChArchiveOut& marchive) {
 /// Method to allow de serialization of transient data from archives.
 void ChSystemSMC::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChSystemSMC>();
+    /*int version =*/ marchive.VersionRead<ChSystemSMC>();
 
     // deserialize parent class
     ChSystem::ArchiveIN(marchive);

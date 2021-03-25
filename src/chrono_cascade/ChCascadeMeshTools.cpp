@@ -78,7 +78,7 @@ void ChCascadeMeshTools::fillTriangleMeshFromCascadeFace(
 
     BRepAdaptor_Surface BS(F, Standard_False);
     Handle(BRepAdaptor_HSurface) gFace = new BRepAdaptor_HSurface(BS);
-    GeomAbs_SurfaceType thetype = BS.GetType();
+    ////GeomAbs_SurfaceType thetype = BS.GetType();
 
     Handle(Poly_Triangulation) T;
     TopLoc_Location theLocation;
@@ -240,9 +240,6 @@ void ChCascadeMeshTools::fillObjFileFromCascade(ChStreamOutAscii& objfile,
 
         if (!T.IsNull()) {
             Standard_Integer n[3];
-            gp_Pnt p;
-            gp_Vec V;
-
             const TColgp_Array1OfPnt& mNodes = T->Nodes();
 
             Poly::ComputeNormals(T);
@@ -250,9 +247,8 @@ void ChCascadeMeshTools::fillObjFileFromCascade(ChStreamOutAscii& objfile,
 
             int ivert = 0;
             for (int j = mNodes.Lower(); j <= mNodes.Upper(); j++) {
-                gp_Pnt p;
                 gp_Dir pn;
-                p = mNodes(j).Transformed(theLocation.Transformation());
+                gp_Pnt p = mNodes(j).Transformed(theLocation.Transformation());
                 chrono::ChVector<> pos(p.X(), p.Y(), p.Z());
                 chrono::ChVector<> nor(mNormals((j-1)*3+1), mNormals((j-1)*3+2), mNormals((j-1)*3+3));
                 if (F.Orientation() == TopAbs_REVERSED)

@@ -475,8 +475,8 @@ void ChCommDistributed::Exchange() {
     int num_recv_update_down;
     int num_recv_take_up;
     int num_recv_take_down;
-    int num_recv_shapes_up;
-    int num_recv_shapes_down;
+    int num_recv_shapes_up = 0;
+    int num_recv_shapes_down = 0;
 
     BodyExchange* recv_exchange_down = NULL;
     BodyExchange* recv_exchange_up = NULL;

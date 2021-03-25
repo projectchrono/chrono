@@ -271,6 +271,8 @@ int main(int argc, char* argv[]) {
             break;
         }
 #endif
+        default:
+            break;
     }
 
     rig->GetSystem()->SetTimestepperType(ChTimestepper::Type::HHT);

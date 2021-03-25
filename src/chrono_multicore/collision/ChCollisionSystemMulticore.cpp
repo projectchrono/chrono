@@ -70,6 +70,10 @@ void ChCollisionSystemMulticore::Add(ChCollisionModel* model) {
                     start = (int)data_manager->shape_data.box_like_rigid.size();
                     data_manager->shape_data.box_like_rigid.push_back(obB);
                     break;
+                case ChCollisionShape::Type::CYLSHELL:
+                    start = (int)data_manager->shape_data.box_like_rigid.size();
+                    data_manager->shape_data.box_like_rigid.push_back(obB);
+                    break;
                 case ChCollisionShape::Type::CONE:
                     start = (int)data_manager->shape_data.box_like_rigid.size();
                     data_manager->shape_data.box_like_rigid.push_back(obB);
@@ -145,37 +149,40 @@ void ChCollisionSystemMulticore::Remove(ChCollisionModel* model) {
 
 
                 switch (type) {
-                case chrono::collision::SPHERE:
+                case ChCollisionShape::Type::SPHERE:
                     ERASE_MACRO_LEN(data_manager->shape_data.sphere_rigid, start, length);
                     break;
-                case chrono::collision::ELLIPSOID:
+                case ChCollisionShape::Type::ELLIPSOID:
                     ERASE_MACRO_LEN(data_manager->shape_data.box_like_rigid, start, length);
                     break;
-                case chrono::collision::BOX:
+                case ChCollisionShape::Type::BOX:
                     ERASE_MACRO_LEN(data_manager->shape_data.box_like_rigid, start, length);
                     break;
-                case chrono::collision::CYLINDER:
+                case ChCollisionShape::Type::CYLINDER:
                     ERASE_MACRO_LEN(data_manager->shape_data.box_like_rigid, start, length);
                     break;
-                case chrono::collision::CONE:
+                case ChCollisionShape::Type::CYLSHELL:
                     ERASE_MACRO_LEN(data_manager->shape_data.box_like_rigid, start, length);
                     break;
-                case chrono::collision::CAPSULE:
+                case ChCollisionShape::Type::CONE:
+                    ERASE_MACRO_LEN(data_manager->shape_data.box_like_rigid, start, length);
+                    break;
+                case ChCollisionShape::Type::CAPSULE:
                     ERASE_MACRO_LEN(data_manager->shape_data.capsule_rigid, start, length);
                     break;
-                case chrono::collision::ROUNDEDBOX:
+                case ChCollisionShape::Type::ROUNDEDBOX:
                     ERASE_MACRO_LEN(data_manager->shape_data.rbox_like_rigid, start, length);
                     break;
-                case chrono::collision::ROUNDEDCYL:
+                case ChCollisionShape::Type::ROUNDEDCYL:
                     ERASE_MACRO_LEN(data_manager->shape_data.rbox_like_rigid, start, length);
                     break;
-                case chrono::collision::ROUNDEDCONE:
+                case ChCollisionShape::Type::ROUNDEDCONE:
                     ERASE_MACRO_LEN(data_manager->shape_data.rbox_like_rigid, start, length);
                     break;
-                case chrono::collision::CONVEX:
+                case ChCollisionShape::Type::CONVEX:
                     ERASE_MACRO_LEN(data_manager->shape_data.convex_rigid, start, length);
                     break;
-                case chrono::collision::TRIANGLE:
+                case ChCollisionShape::Type::TRIANGLE:
                     ERASE_MACRO_LEN(data_manager->shape_data.convex_rigid, start, 3);
                     break;
                 }
@@ -287,9 +294,8 @@ void ChCollisionSystemMulticore::ReportContacts(ChContactContainer* mcontactcont
     auto container = static_cast<ChContactContainerMulticore*>(mcontactcontainer);
 
     auto& bids = data_manager->host_data.bids_rigid_rigid;  // global IDs of bodies in contact
-    auto& abody = data_manager->host_data.active_rigid;     // flags for active bodies
     auto& sids = data_manager->host_data.contact_shapeIDs;  // global IDs of shapes in contact
-    auto& sindex = data_manager->shape_data.local_rigid;    // collision model indexes of shapes in contact
+    ////auto& sindex = data_manager->shape_data.local_rigid;    // collision model indexes of shapes in contact
 
     // Loop over all current contacts, create the composite material, and load material properties in the data manager
     // (on a per contact basis). Snce this is contact method-specific, we defer to the underlying contact container.
@@ -299,8 +305,8 @@ void ChCollisionSystemMulticore::ReportContacts(ChContactContainer* mcontactcont
         auto b2 = bids[i].y;                  //
         auto s1 = int(sids[i] >> 32);         // global IDs of shapes in contact
         auto s2 = int(sids[i] & 0xffffffff);  //
-        auto s1_index = sindex[s1];           // collision model indexes of shapes in contact
-        auto s2_index = sindex[s2];           //
+        ////auto s1_index = sindex[s1];           // collision model indexes of shapes in contact
+        ////auto s2_index = sindex[s2];           //
 
         container->AddContact(i, b1, s1, b2, s2);
     }

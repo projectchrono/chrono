@@ -711,7 +711,7 @@ int main(int argc, char* argv[]) {
     application.SetUserEventReceiver(&receiver);
 
     // Some help on the screen
-    auto gad_textFPS = application.GetIGUIEnvironment()->addStaticText(
+    application.GetIGUIEnvironment()->addStaticText(
         L" Press 1: static analysis \n Press 2: curved beam connected to body \n Press 3: plasticity \n Press 4: "
         L"Jeffcott rotor",
         irr::core::rect<irr::s32>(10, 80, 250, 150), false, true, 0);

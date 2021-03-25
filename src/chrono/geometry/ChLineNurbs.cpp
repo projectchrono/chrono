@@ -93,7 +93,6 @@ void ChLineNurbs::SetupData(
     this->p = morder;
     this->points = mpoints;
     int n = (int)points.size();
-    int k = n + p + 1;
 
     if (mknots)
         this->knots = *mknots;
@@ -122,7 +121,7 @@ void ChLineNurbs::ArchiveOUT(ChArchiveOut& marchive) {
 
 void ChLineNurbs::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChLineNurbs>();
+    /*int version =*/ marchive.VersionRead<ChLineNurbs>();
     // deserialize parent class
     ChLine::ArchiveIN(marchive);
     // stream in all member data:

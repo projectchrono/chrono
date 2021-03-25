@@ -59,8 +59,8 @@ class CH_MULTICORE_API Ch3DOFContainer : public ChPhysicsItem {
     Ch3DOFContainer& operator=(const Ch3DOFContainer& other);  // Assignment operator
 
     // Before Solve
-    virtual void Update(double ChTime){};
-    virtual void Setup(int start_constraint);
+    virtual void Update3DOF(double ChTime) {}
+    virtual void Setup3DOF(int start_constraint);
     virtual void Initialize() {}
     virtual void ComputeInvMass(int offset) {}
     virtual void ComputeMass(int offset) {}
@@ -141,31 +141,32 @@ class CH_MULTICORE_API ChFluidContainer : public Ch3DOFContainer {
     ~ChFluidContainer() {}
 
     void AddBodies(const std::vector<real3>& positions, const std::vector<real3>& velocities);
-    void Update(double ChTime);
-    void UpdatePosition(double ChTime);
-    int GetNumConstraints();
-    int GetNumNonZeros();
-    void Setup(int start_constraint);
-    void Initialize();
-    void PreSolve();
+    virtual void Update3DOF(double ChTime) override;
+    virtual void UpdatePosition(double ChTime) override;
+    virtual int GetNumConstraints() override;
+    virtual int GetNumNonZeros() override;
+    virtual void Setup3DOF(int start_constraint) override;
+    virtual void Initialize() override;
+    virtual void PreSolve() override;
     void Density_Fluid();
     void Density_FluidMPM();
     void DensityConstraint_FluidMPM();
     void Normalize_Density_Fluid();
-    void Build_D();
-    void Build_b();
-    void Build_E();
-    void Project(real* gamma);
-    void GenerateSparsity();
-    void ComputeInvMass(int offset);
-    void ComputeMass(int offset);
-    void PostSolve();
-    void CalculateContactForces();
-    real3 GetBodyContactForce(uint body_id);
-    real3 GetBodyContactTorque(uint body_id);
+    virtual void Build_D() override;
+    virtual void Build_b() override;
+    virtual void Build_E() override;
+    virtual void Project(real* gamma) override;
+    virtual void GenerateSparsity() override;
+    virtual void ComputeInvMass(int offset) override;
+    virtual void ComputeMass(int offset) override;
+    virtual void PostSolve() override;
+    virtual void CalculateContactForces() override;
+    virtual real3 GetBodyContactForce(uint body_id) override;
+    virtual real3 GetBodyContactTorque(uint body_id) override;
     void GetFluidDensity(custom_vector<real>& dens);
     void GetFluidPressure(custom_vector<real>& pres);
     void GetFluidForce(custom_vector<real3>& forc);
+
     custom_vector<Mat33> shear_tensor;
     custom_vector<real> shear_trace;
     custom_vector<real> density;
@@ -214,24 +215,24 @@ class CH_MULTICORE_API ChFEAContainer : public Ch3DOFContainer {
     void AddElements(const std::vector<uvec4>& indices);
     void AddConstraint(const uint node, std::shared_ptr<ChBody>& body);
     // Compute initial shape matrix
-    void Initialize();
-    void Setup(int start_constraint);
-    void Update(double ChTime);
-    void UpdatePosition(double ChTime);
-    void GenerateSparsity();
-    int GetNumConstraints();
-    int GetNumNonZeros();
-    void Project(real* gamma);
+    virtual void Initialize() override;
+    virtual void Setup3DOF(int start_constraint) override;
+    virtual void Update3DOF(double ChTime) override;
+    virtual void UpdatePosition(double ChTime) override;
+    virtual void GenerateSparsity() override;
+    virtual int GetNumConstraints() override;
+    virtual int GetNumNonZeros() override;
+    virtual void Project(real* gamma) override;
     void FindSurface();
-    void Build_D();
-    void Build_b();
-    void Build_E();
+    virtual void Build_D() override;
+    virtual void Build_b() override;
+    virtual void Build_E() override;
 
-    void PreSolve();
-    void PostSolve();
+    virtual void PreSolve() override;
+    virtual void PostSolve() override;
 
-    void ComputeInvMass(int offset);
-    void ComputeMass(int offset);
+    virtual void ComputeInvMass(int offset) override;
+    virtual void ComputeMass(int offset) override;
     custom_vector<Mat33> X0;  // Inverse of intial shape matrix
 
     int num_boundary_triangles;
@@ -271,24 +272,24 @@ class CH_MULTICORE_API ChParticleContainer : public Ch3DOFContainer {
     ~ChParticleContainer() {}
 
     void AddBodies(const std::vector<real3>& positions, const std::vector<real3>& velocities);
-    void Update(double ChTime);
-    void UpdatePosition(double ChTime);
-    int GetNumConstraints();
-    int GetNumNonZeros();
-    void Setup(int start_constraint);
-    void Initialize();
-    void PreSolve();
-    void Build_D();
-    void Build_b();
-    void Build_E();
-    void Project(real* gamma);
-    void GenerateSparsity();
-    void ComputeInvMass(int offset);
-    void ComputeMass(int offset);
-    void PostSolve();
-    void CalculateContactForces();
-    real3 GetBodyContactForce(uint body_id);
-    real3 GetBodyContactTorque(uint body_id);
+    virtual void Update3DOF(double ChTime) override;
+    virtual void UpdatePosition(double ChTime) override;
+    virtual int GetNumConstraints() override;
+    virtual int GetNumNonZeros() override;
+    virtual void Setup3DOF(int start_constraint) override;
+    virtual void Initialize() override;
+    virtual void PreSolve() override;
+    virtual void Build_D() override;
+    virtual void Build_b() override;
+    virtual void Build_E() override;
+    virtual void Project(real* gamma) override;
+    virtual void GenerateSparsity() override;
+    virtual void ComputeInvMass(int offset) override;
+    virtual void ComputeMass(int offset) override;
+    virtual void PostSolve() override;
+    virtual void CalculateContactForces() override;
+    virtual real3 GetBodyContactForce(uint body_id) override;
+    virtual real3 GetBodyContactTorque(uint body_id) override;
     void GetFluidForce(custom_vector<real3>& forc);
 
     uint start_boundary;

@@ -498,7 +498,7 @@ class ChFrameMoving : public ChFrame<Real> {
     /// Method to allow de serialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) override {
         // version number
-        int version = marchive.VersionRead<ChFrameMoving>();
+        /*int version =*/ marchive.VersionRead<ChFrameMoving>();
 
         // deserialize parent class
         ChFrame<Real>::ArchiveIN(marchive);

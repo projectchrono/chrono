@@ -57,6 +57,7 @@ subject to the following restrictions:
 #include "BulletCollision/CollisionShapes/btConeShape.h"
 #include "BulletCollision/CollisionShapes/btConvexTriangleMeshShape.h"
 #include "BulletCollision/CollisionShapes/btCylinderShape.h"
+#include "BulletCollision/CollisionShapes/btCylindricalShellShape.h"  /* ***CHRONO*** */
 #include "BulletCollision/CollisionShapes/btMultiSphereShape.h"
 #include "BulletCollision/CollisionShapes/btPolyhedralConvexShape.h"
 #include "BulletCollision/CollisionShapes/btSphereShape.h"
@@ -1321,7 +1322,7 @@ void btCollisionWorld::debugDrawObject(const btTransform& worldTransform, const 
 	{
 		switch (shape->getShapeType())
 		{
-			case CE_TRIANGLE_SHAPE_PROXYTYPE:	//***ALEX***
+			case CE_TRIANGLE_SHAPE_PROXYTYPE:	// ***CHRONO***
 			{
 				const btCEtriangleShape* triShape = static_cast<const btCEtriangleShape*>(shape);
 				chrono::ChVector<>* v1 = triShape->get_p1();
@@ -1395,7 +1396,13 @@ void btCollisionWorld::debugDrawObject(const btTransform& worldTransform, const 
 				getDebugDrawer()->drawCylinder(radius, halfHeight, upAxis, worldTransform, color);
 				break;
 			}
-
+            case CYLSHELL_SHAPE_PROXYTYPE: { /* ***CHRONO*** */
+                const btCylindricalShellShape* cylinder = static_cast<const btCylindricalShellShape*>(shape);
+				btScalar radius = cylinder->getRadius();
+                btScalar halfHeight = cylinder->getHalfExtentsWithMargin()[1];
+                getDebugDrawer()->drawCylinder(radius, halfHeight, 1, worldTransform, color);
+                break;
+            }
 			case STATIC_PLANE_PROXYTYPE:
 			{
 				const btStaticPlaneShape* staticPlaneShape = static_cast<const btStaticPlaneShape*>(shape);

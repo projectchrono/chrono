@@ -58,13 +58,13 @@ void M113_SimpleMapPowertrain::SetEngineTorqueMaps(ChFunction_Recorder& map0, Ch
     mapF.AddPoint(3200 * rpm2rads, -100 * lbft2Nm);  // fading out of engine torque
 }
 
-void M113_SimpleMapPowertrain::SetGearRatios(std::vector<double>& fwd_gear_ratios, double& reverse_gear_ratio) {
-    reverse_gear_ratio = -0.151;
+void M113_SimpleMapPowertrain::SetGearRatios(std::vector<double>& fwd, double& rev) {
+    rev = -0.151;
 
-    fwd_gear_ratios.push_back(0.240);  // 1st gear;
-    fwd_gear_ratios.push_back(0.427);  // 2nd gear;
-    fwd_gear_ratios.push_back(0.685);  // 3rd gear;
-    fwd_gear_ratios.push_back(0.962);  // 4th gear;
+    fwd.push_back(0.240);  // 1st gear;
+    fwd.push_back(0.427);  // 2nd gear;
+    fwd.push_back(0.685);  // 3rd gear;
+    fwd.push_back(0.962);  // 4th gear;
 }
 
 void M113_SimpleMapPowertrain::SetShiftPoints(std::vector<std::pair<double, double>>& shift_bands) {
