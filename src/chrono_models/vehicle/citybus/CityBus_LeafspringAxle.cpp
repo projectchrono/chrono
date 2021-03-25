@@ -33,11 +33,6 @@ namespace citybus {
 // Static variables
 // -----------------------------------------------------------------------------
 
-static const double in2m = 0.0254;
-static const double lb2kg = 0.453592;
-static const double lbf2N = 4.44822162;
-static const double lbfpin2Npm = 175.12677;
-
 const double CityBus_LeafspringAxle::m_axleTubeMass = 124.0 * 4.1;
 const double CityBus_LeafspringAxle::m_spindleMass = 14.705 * 4.1;
 

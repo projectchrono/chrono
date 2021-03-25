@@ -52,7 +52,6 @@ int main(int argc, char* argv[]) {
 
     // Create all the rigid bodies.
     double mradius = 0.5;
-    double density = 1000;
 
     // Create a texture asset. It can be shared between bodies.
     auto textureasset = chrono_types::make_shared<ChTexture>(GetChronoDataFile("textures/bluewhite.png"));

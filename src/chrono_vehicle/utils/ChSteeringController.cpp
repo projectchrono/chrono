@@ -44,14 +44,22 @@ namespace vehicle {
 // Implementation of the base class ChSteeringController
 // -----------------------------------------------------------------------------
 ChSteeringController::ChSteeringController()
-    : m_dist(0), m_sentinel(0, 0, 0), m_target(0, 0, 0), m_err(0), m_errd(0), m_erri(0), m_collect(false), m_csv(NULL) {
+    : m_dist(0),
+      m_sentinel(0, 0, 0),
+      m_target(0, 0, 0),
+      m_err(0),
+      m_erri(0),
+      m_errd(0),
+      m_csv(nullptr),
+      m_collect(false) {
     // Default PID controller gains all zero (no control).
     SetGains(0, 0, 0);
 }
 
 ChSteeringController::ChSteeringController(const std::string& filename)
-    : m_sentinel(0, 0, 0), m_target(0, 0, 0), m_err(0), m_errd(0), m_erri(0), m_collect(false), m_csv(NULL) {
-    Document d; ReadFileJSON(filename, d);
+    : m_sentinel(0, 0, 0), m_target(0, 0, 0), m_err(0), m_erri(0), m_errd(0), m_csv(nullptr), m_collect(false) {
+    Document d;
+    ReadFileJSON(filename, d);
     if (d.IsNull())
         return;
 
@@ -190,15 +198,15 @@ ChPathSteeringControllerXT::ChPathSteeringControllerXT(std::shared_ptr<ChBezierC
                                                        bool isClosedPath,
                                                        double max_wheel_turn_angle)
     : m_path(path),
-      m_filters_initialized(false),
       m_R_threshold(100000.0),
       m_max_wheel_turn_angle(25.0 * CH_C_DEG_TO_RAD),
-      m_res(0),
-      m_Kp(0.4),
+      m_filters_initialized(false),
       m_T1_delay(30.0 / 1000.0),
+      m_Kp(0.4),
       m_Wy(1),
       m_Wh(1),
-      m_Wa(1) {
+      m_Wa(1),
+      m_res(0) {
     // Create a tracker object associated with the given path.
     m_tracker = std::unique_ptr<ChBezierCurveTracker>(new ChBezierCurveTracker(path, isClosedPath));
     if (max_wheel_turn_angle > 0.0) {
@@ -211,22 +219,23 @@ ChPathSteeringControllerXT::ChPathSteeringControllerXT(const std::string& filena
                                                        bool isClosedPath,
                                                        double max_wheel_turn_angle)
     : m_path(path),
-      m_filters_initialized(false),
       m_R_threshold(100000.0),
       m_max_wheel_turn_angle(25.0 * CH_C_DEG_TO_RAD),
-      m_res(0),
+      m_filters_initialized(false),
       m_T1_delay(30.0 / 1000.0),
       m_Kp(0.4),
       m_Wy(1),
       m_Wh(1),
-      m_Wa(1) {
+      m_Wa(1),
+      m_res(0) {
     // Create a tracker object associated with the given path.
     m_tracker = std::unique_ptr<ChBezierCurveTracker>(new ChBezierCurveTracker(path, isClosedPath));
     if (max_wheel_turn_angle > 0.0) {
         m_max_wheel_turn_angle = max_wheel_turn_angle;
     }
 
-    Document d; ReadFileJSON(filename, d);
+    Document d;
+    ReadFileJSON(filename, d);
     if (d.IsNull())
         return;
 
@@ -463,7 +472,8 @@ ChPathSteeringControllerSR::ChPathSteeringControllerSR(const std::string& filena
     // retireve points
     CalcPathPoints();
 
-    Document d; ReadFileJSON(filename, d);
+    Document d;
+    ReadFileJSON(filename, d);
     if (d.IsNull())
         return;
 
@@ -563,11 +573,8 @@ double ChPathSteeringControllerSR::Advance(const ChVehicle& vehicle, double step
     ChVector<> Pt = m_sentinel - S_l[m_idx_curr];
     double rt = R_l[m_idx_curr].Length();
 
-    bool crit = false;
     double t = std::abs(Pt.Dot(R_lu[m_idx_curr]));
-    if (t < rt) {
-        crit = true;
-    } else {
+    if (t >= rt) {
         while (t > rt) {
             m_idx_curr++;
             if (m_isClosedPath) {
@@ -632,15 +639,15 @@ double ChPathSteeringControllerSR::Advance(const ChVehicle& vehicle, double step
 ChPathSteeringControllerStanley::ChPathSteeringControllerStanley(std::shared_ptr<ChBezierCurve> path,
                                                                  bool isClosedPath,
                                                                  double max_wheel_turn_angle)
-    : m_path(path),
+    : m_delayFilter(nullptr),
+      m_path(path),
       m_isClosedPath(isClosedPath),
       m_delta(0),
       m_delta_max(max_wheel_turn_angle),
       m_umin(1),
       m_Treset(30.0),
       m_deadZone(0.0),
-      m_Tdelay(0.4),
-      m_delayFilter(nullptr) {
+      m_Tdelay(0.4) {
     SetGains(0.0, 0.0, 0.0);
     m_tracker = std::unique_ptr<ChBezierCurveTracker>(new ChBezierCurveTracker(path, isClosedPath));
     if (m_isClosedPath) {
@@ -654,18 +661,19 @@ ChPathSteeringControllerStanley::ChPathSteeringControllerStanley(const std::stri
                                                                  std::shared_ptr<ChBezierCurve> path,
                                                                  bool isClosedPath,
                                                                  double max_wheel_turn_angle)
-    : m_path(path),
+    : m_delayFilter(nullptr),
+      m_path(path),
       m_isClosedPath(isClosedPath),
       m_delta(0),
       m_delta_max(max_wheel_turn_angle),
       m_umin(1),
       m_Treset(30.0),
       m_deadZone(0.0),
-      m_Tdelay(0.4),
-      m_delayFilter(nullptr) {
+      m_Tdelay(0.4) {
     SetGains(0.0, 0.0, 0.0);
     m_tracker = std::unique_ptr<ChBezierCurveTracker>(new ChBezierCurveTracker(path, isClosedPath));
-    Document d; ReadFileJSON(filename, d);
+    Document d;
+    ReadFileJSON(filename, d);
     if (d.IsNull())
         return;
 
@@ -694,8 +702,6 @@ void ChPathSteeringControllerStanley::SetGains(double Kp, double Ki, double Kd) 
 }
 
 double ChPathSteeringControllerStanley::Advance(const ChVehicle& vehicle, double step) {
-    const double g = 9.81;
-
     if (m_delayFilter == nullptr) {
         m_delayFilter = std::shared_ptr<utils::ChFilterPT1>(new utils::ChFilterPT1(step, m_Tdelay));
     }
@@ -779,8 +785,6 @@ double ChPathSteeringControllerStanley::CalcHeadingError(ChVector<>& a, ChVector
     ChWorldFrame::Project(b);
     a.Normalize();
     b.Normalize();
-
-    ChVector<> ab = a - b;
 
     ChVector<> vpc;
     vpc = Vcross(a, b);

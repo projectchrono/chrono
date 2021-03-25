@@ -228,9 +228,9 @@ TEST(LinearAlgebraTest, custom_matrices) {
     ASSERT_TRUE(2 * res1 == res2);
     ASSERT_TRUE(res3 == 2 * res4);
 
-    ChMatrix44<> A44;
-    A44.setRandom();
-    ChQuaternion<> q2 = A44 * q;
+    ////ChMatrix44<> A44;
+    ////A44.setRandom();
+    ////ChQuaternion<> q2 = A44 * q;
 
     ChStarMatrix44<> X(ChQuaternion<>(1, 2, 3, 4));
     cout << "4x4 star matrix X:\n" << X << endl;

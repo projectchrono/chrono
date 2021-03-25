@@ -43,8 +43,6 @@ class ChShaftTest : public ::testing::TestWithParam<ChContactMethod> {
         bool clamp_bilaterals = false;
         double bilateral_clamp_speed = 1000;
 
-        double contact_recovery_speed = 1;
-
         // Create the mechanical system
         switch (GetParam()) {
             case ChContactMethod::SMC:
@@ -312,11 +310,6 @@ TEST_P(ChShaftTest, clutch) {
     system->Add(clutchAB);
 
     // Perform the simulation and verify results.
-    double tol_pos = 1e-3;
-    double tol_vel = 1e-4;
-    double tol_acc = 1e-4;
-    double tol_trq = 1e-4;
-
     double time_end = 1.5;
     double time_step = 1e-3;
     double time = 0;
@@ -395,11 +388,6 @@ TEST_P(ChShaftTest, shaft_shaft_shaft) {
     system->Add(clutchBD);
 
     // Perform the simulation and verify results.
-    double tol_pos = 1e-3;
-    double tol_vel = 1e-4;
-    double tol_acc = 1e-4;
-    double tol_trq = 1e-4;
-
     double time_end = 0.5;
     double time_step = 1e-3;
     double time = 0;

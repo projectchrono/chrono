@@ -89,8 +89,6 @@ class MySimpleTank {
         double mx = 0;
 
         double shoelength = 0.2;
-        double shoethickness = 0.06;
-        double shoewidth = 0.3;
         double shoemass = 2;
         double radiustrack = 0.31;
         double wheeldiameter = 0.280 * 2;
@@ -125,9 +123,6 @@ class MySimpleTank {
         wheel_mat->SetFriction(1.0);
 
         // --- Right Front suspension ---
-
-        // Load a triangle mesh for wheel visualization
-        IAnimatedMesh* irmesh_wheel_view = msceneManager->getMesh(GetChronoDataFile("models/bulldozer/wheel_view.obj").c_str());
 
         // ..the tank right-front wheel
         wheelRF = chrono_types::make_shared<ChBodyEasyMesh>(               //
@@ -277,7 +272,6 @@ class MySimpleTank {
 
         ChVector<> mesh_displacement(shoelength * 0.5, 0, 0);    // as mesh origin is not in body center of mass
         ChVector<> joint_displacement(-shoelength * 0.5, 0, 0);  // pos. of shoe-shoe constraint, relative to COG.
-        ChVector<> pin_displacement = mesh_displacement + ChVector<>(0, 0.05, 0);
 
         chrono::ChVector<> position;
         chrono::ChQuaternion<> rotation;
@@ -475,7 +469,6 @@ class MyEventReceiver : public IEventReceiver {
         // check if user moved the sliders with mouse..
         if (event.EventType == EET_GUI_EVENT) {
             s32 id = event.GUIEvent.Caller->getID();
-            IGUIEnvironment* env = application->GetIGUIEnvironment();
 
             switch (event.GUIEvent.EventType) {
                 case EGET_SCROLL_BAR_CHANGED:

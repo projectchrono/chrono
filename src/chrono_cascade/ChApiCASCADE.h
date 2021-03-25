@@ -15,8 +15,6 @@
 #ifndef CHAPI_CASCADE_H
 #define CHAPI_CASCADE_H
 
-//#pragma warning(disable: 4251)
-
 #include "chrono/core/ChPlatform.h"
 
 // When compiling this library, remember to define CH_API_COMPILE_CASCADE

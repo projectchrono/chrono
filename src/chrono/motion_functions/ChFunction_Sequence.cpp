@@ -79,7 +79,7 @@ void ChFseqNode::ArchiveOUT(ChArchiveOut& marchive) {
 
 void ChFseqNode::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChFseqNode>();
+    /*int version =*/ marchive.VersionRead<ChFseqNode>();
 
     // stream in all member data:
     marchive >> CHNVP(fx);
@@ -345,7 +345,7 @@ void ChFunction_Sequence::ArchiveOUT(ChArchiveOut& marchive) {
 
 void ChFunction_Sequence::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChFunction_Sequence>();
+    /*int version =*/ marchive.VersionRead<ChFunction_Sequence>();
     // deserialize parent class
     ChFunction::ArchiveIN(marchive);
     // stream in all member data:

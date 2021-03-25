@@ -203,7 +203,6 @@ int main(int argc, char* argv[]) {
     application.AssetUpdateAll();
 
     // Simulation loop
-    double time = 0;
     double out_time = 0;
 
     while (application.GetDevice()->run()) {

@@ -258,7 +258,8 @@ class  ChNameValue {
             _value = other._value;
             _flags = other._flags;
         }
-        virtual ~ChNameValue() {};
+        
+        ~ChNameValue() {};
 
         const char * name() const {
             return this->_name;
@@ -277,8 +278,8 @@ class  ChNameValue {
         }
 
   protected:
-        T* _value;
         const char* _name;
+        T* _value;
         char _flags;
 };
 
@@ -1328,7 +1329,7 @@ class  ChArchiveIn : public ChArchive {
       template<class T>
       void in     (ChNameValue<T*> bVal) {
           ChFunctorArchiveInSpecificPtr<T> specFuncA(&bVal.value());
-          void* newptr = this->in_ref(ChNameValue<ChFunctorArchiveIn>(bVal.name(), specFuncA, bVal.flags()) );
+          /*void* newptr =*/ this->in_ref(ChNameValue<ChFunctorArchiveIn>(bVal.name(), specFuncA, bVal.flags()) );
       }
 
         // trick to apply 'virtual in..' on C++ objects that has a function "ArchiveIN":
@@ -1363,9 +1364,9 @@ class  ChArchiveIn : public ChArchive {
               return iv;
           if (this->cluster_class_versions) {
               if (this->class_versions.find(std::type_index(typeid(T))) == this->class_versions.end()) {
-                int iv = this->in_version(typeid(T));
-                this->class_versions[std::type_index(typeid(T))] = iv;
-                return iv;
+                int jv = this->in_version(typeid(T));
+                this->class_versions[std::type_index(typeid(T))] = jv;
+                return jv;
               } 
           } 
           else {

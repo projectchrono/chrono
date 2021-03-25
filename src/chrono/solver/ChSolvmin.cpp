@@ -320,8 +320,6 @@ bool ChOptimizerLocal::DoOptimize() {
         //	System_to_Vars(xv);
     }
 
-    double inires = Eval_fx(xv);
-
     // call solver !!!!
 
     opt_fx = solvopt(nv,                   // numero di dimensioni
@@ -821,8 +819,6 @@ void ChOptimizerGenetic::Crossover() {
     ChGenotype child1(nv);
     ChGenotype child2(nv);
     ChGenotype bestparent(nv);
-    int selnum1 = 0;
-    int selnum2 = 0;
 
     par1 = NULL;
     par2 = NULL;
@@ -902,6 +898,9 @@ void ChOptimizerGenetic::Mutation() {
                             mutval = a1;
                         else
                             mutval = a2;
+                        break;
+                    default:
+                        mutval = 0;
                         break;
                 }
 
@@ -1125,8 +1124,7 @@ bool ChOptimizerGradient::DoOptimize() {
     double nstep = initial_step;
     int dilationstep;
     int bisections;
-    double fx, fxguess, fxmid, fx1, fx2, lastgood, normGold, normGnew;
-    bool update_grad;
+    double fx, fxguess = 0, fxmid, fx1 = 0, fx2 = 0, lastgood, normGold = 0, normGnew;
 
     // count vars
     int nv = GetNumOfVars();
@@ -1152,8 +1150,6 @@ bool ChOptimizerGradient::DoOptimize() {
     // System_to_Vars(&mX);
 
     fx = Eval_fx(mX);
-
-    update_grad = true;
 
     // perform iterative optimization..
 
@@ -1468,7 +1464,7 @@ double solvopt(unsigned int n,
     double default_options[12] = {-1.e0, 1.e-6, 1.e-7, 5.e3, 0.e0, 2.001e0, 2.5e0, 1.e-100, 0.e0, 0.e0, 0.e0, 1000.0};
     // void null_entry();
     unsigned short gammadj, app, reset, termin;
-    double f, fi, f1, fopt, d, d1, dd, gamma, alpha, w, h1, h, hp, y, evstep;
+    double f, fi, f1, fopt, d, d1, dd, gamma, alpha, w, h1, h = 0, hp, y, evstep;
     double dx, e2g, e2gt, e2z, e2g1, gnp = 5.1e0, xrb, xlb;
     const double zero = 0.e0, one = 1.e0, eps = 1.e-15, maxf = 1.e100;
     double* B;                         /* space transformation matrix (allocatable)      */
@@ -1480,7 +1476,6 @@ double solvopt(unsigned int n,
         i, j,                                                 /* loop counters                                  */
         k1 = 0, k2 = 0,                                       /* 1-D search step counters                       */
         kstop = 0,                                            /* termination counter                            */
-        nstop = 0,                                            /* zero-gradient events counter                   */
         kg = 0, kstore = 3, nzero = 0, nsteps[3] = {0, 0, 0}; /* counters used for step size change         */
     int countShowFun = 0;
 

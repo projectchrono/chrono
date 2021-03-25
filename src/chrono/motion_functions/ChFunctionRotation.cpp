@@ -52,7 +52,7 @@ void ChFunctionRotation::ArchiveOUT(ChArchiveOut& marchive) {
 
 void ChFunctionRotation::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChFunctionRotation>();
+    /*int version =*/ marchive.VersionRead<ChFunctionRotation>();
 }
 
 

@@ -79,7 +79,7 @@ void ChFunction_Sigma::ArchiveOUT(ChArchiveOut& marchive) {
 
 void ChFunction_Sigma::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChFunction_Sigma>();
+    /*int version =*/ marchive.VersionRead<ChFunction_Sigma>();
     // deserialize parent class
     ChFunction::ArchiveIN(marchive);
     // stream in all member data:

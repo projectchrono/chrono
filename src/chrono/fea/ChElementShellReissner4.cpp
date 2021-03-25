@@ -988,8 +988,6 @@ void ChElementShellReissner4::ComputeInternalJacobians(double Kfactor, double Rf
     ChMatrixNM<double, IDOFS, 24> K_beta_q;
     ChMatrixNM<double, IDOFS, IDOFS> K_beta_beta;
 
-    ChMatrixNM<double, 12, 12> C;
-
     for (int i = 0; i < NUMIP; i++) {
         // GEOMETRIC STIFFNESS Kg:
 

@@ -50,7 +50,7 @@ void ChFunction_Mirror::ArchiveOUT(ChArchiveOut& marchive) {
 
 void ChFunction_Mirror::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChFunction_Mirror>();
+    /*int version =*/ marchive.VersionRead<ChFunction_Mirror>();
     // deserialize parent class
     ChFunction::ArchiveIN(marchive);
     // stream in all member data:

@@ -137,7 +137,7 @@ int main(int argc, char* argv[]) {
 
     // Global parameter for moving patch size:
     double wheel_range = 0.5;
-    double body_range = 1.2;
+    ////double body_range = 1.2;
 
     // Create a Chrono::Engine physical system
     ChSystemSMC my_system;

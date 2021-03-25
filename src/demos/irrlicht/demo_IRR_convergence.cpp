@@ -56,7 +56,6 @@ void create_items(ChIrrAppInterface& application) {
     bool do_spheres = true;
     bool do_heavyonside = true;
 
-    double sphrad = 0.2;
     double dens = 1000;
 
     if (do_stack) {
@@ -71,7 +70,6 @@ void create_items(ChIrrAppInterface& application) {
             double sphrad = sphrad_base;
             if (do_oddmass && bi == (nbodies - 1))
                 sphrad = sphrad * pow(oddfactor, 1. / 3.);
-            double dens = 1000;
 
             std::shared_ptr<ChBody> mrigidBody;
 
@@ -128,7 +126,6 @@ void create_items(ChIrrAppInterface& application) {
 
     if (do_heavyonside) {
         double sphrad = 0.2;
-        double dens = 1000;
         double hfactor = 100;
 
         auto mrigidHeavy = chrono_types::make_shared<ChBodyEasySphere>(sphrad,          // radius

@@ -342,20 +342,20 @@ class CH_VEHICLE_API SCMDeformableSoil : public ChLoadContainer {
         ~NodeRecord() {}
 
         NodeRecord(double init_level, double level, const ChVector<>& n)
-            : sigma(0),
-              sinkage_elastic(0),
-              sinkage_plastic(0),
-              step_plastic_flow(0),
-              erosion(false),
+            : level_initial(init_level),
               level(level),
-              level_initial(init_level),
               hit_level(1e9),
+              normal(n),
               sinkage(init_level - level),
-              kshear(0),
+              sinkage_plastic(0),
+              sinkage_elastic(0),
+              sigma(0),
               sigma_yield(0),
+              kshear(0),
               tau(0),
+              erosion(false),
               massremainder(0),
-              normal(n) {}
+              step_plastic_flow(0) {}
     };
 
     // Hash function for a pair of integer grid coordinates

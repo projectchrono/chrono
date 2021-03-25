@@ -51,10 +51,6 @@ double kernel_radius = .016 * 2;
 // to rotate at constant angular velocity.
 // -----------------------------------------------------------------------------
 void AddContainer(ChSystemMulticoreNSC* sys) {
-    // IDs for the two bodies
-    int binId = -200;
-    int mixerId = -201;
-
     // Create a common material
     auto mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
     mat->SetFriction(0.4f);
@@ -91,8 +87,6 @@ void AddFluid(ChSystemMulticoreNSC* sys) {
     fluid_container->collision_envelope = 0;  // fluid_container->kernel_ra dius * .05;
 
     real radius = .2;  //*5
-    real dens = 30;
-    real3 num_fluid = real3(10, 10, 10);
     real3 origin(0, 0, -.2);
     real vol;
 
@@ -126,12 +120,6 @@ int main(int argc, char* argv[]) {
     // ---------------------
 
     double gravity = 9.81;
-
-    double time_end = 1;
-
-    double out_fps = 50;
-
-    uint max_iteration = 30;
     real tolerance = 1e-3;
 
     // Create system
@@ -195,6 +183,7 @@ int main(int argc, char* argv[]) {
     }
 #else
     // Run simulation for specified time
+    double time_end = 1;
     int num_steps = (int)std::ceil(time_end / time_step);
 
     double time = 0;

@@ -31,7 +31,7 @@ class ChApi ChBox : public ChVolume {
     ChVector<> Size;   ///< box halflengths
 
   public:
-    ChBox() : Pos(VNULL), Size(VNULL), Rot(1) {}
+    ChBox() : Rot(1), Pos(VNULL), Size(VNULL) {}
     ChBox(const ChVector<>& mpos, const ChMatrix33<>& mrot, const ChVector<>& mlengths);
     ChBox(const ChVector<>& mC0, const ChVector<>& mC1, const ChVector<>& mC2, const ChVector<>& mC3);
     ChBox(const ChBox& source);

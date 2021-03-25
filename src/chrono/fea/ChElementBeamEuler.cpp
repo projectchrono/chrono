@@ -24,8 +24,8 @@ ChElementBeamEuler::ChElementBeamEuler()
       q_refrotB(QUNIT),
       q_element_abs_rot(QUNIT),
       q_element_ref_rot(QUNIT),
-      force_symmetric_stiffness(false),
       disable_corotate(false),
+      force_symmetric_stiffness(false),
       use_geometric_stiffness(true)
 {
     nodes.resize(2);
@@ -322,16 +322,9 @@ void ChElementBeamEuler::ComputeGeometricStiffnessMatrix() {
     //        https://www.scielo.br/pdf/lajss/v16n4/1679-7825-lajss-16-04-e185.pdf
     // Look also at: https://enercalc.com/3d_help/toc161394033.html or in Plesha, Malkus, Cook “Concepts and Applications of Finite Element Analysis”, 
     // or in W. McGuire & R.H. Gallagher & R.D. Ziemian, “Matrix Structural Analysis”
-      
-    double EA = this->section->GetAxialRigidity();
-    double EIyy = this->section->GetYbendingRigidity();
-    double EIzz = this->section->GetZbendingRigidity();
 
     double L = this->length;
-    double IzA = EIzz / EA;
-    double IyA = EIyy / EA;
 
-    double P_L      = 1. / L;
     double P6_5L_y  = 6. / (5.*L); // optional [2]: ...+ 12*IzA /(L*L*L);
     double P6_5L_z  = 6. / (5.*L); // optional [2]: ...+ 12*IyA /(L*L*L);
     double P_10_y   = 1. / (10.);  // optional [2]: ...+ 6*IzA /(L*L);
@@ -631,7 +624,6 @@ void ChElementBeamEuler::ComputeInternalForces(ChVectorDynamic<>& Fi) {
     ChVector<> mFcent_i;
     ChVector<> mTgyro_i;
     for (int i = 0; i < nodes.size(); ++i) {
-        int stride = i * 6;
         this->section->ComputeQuadraticTerms(mFcent_i, mTgyro_i, nodes[i]->GetWvel_loc());
         ChQuaternion<> q_i(nodes[i]->GetRot());
         Fi.segment(i * 6, 3)     -= node_multiplier * (nodes[i]->GetA() * mFcent_i).eigen();

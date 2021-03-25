@@ -35,9 +35,13 @@ const double MAN_7t_SimpleCVTPowertrain::m_fwd_gear_ratio = 1.0;
 const double MAN_7t_SimpleCVTPowertrain::m_rev_gear_ratio = -1.0;
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 MAN_7t_SimpleCVTPowertrain::MAN_7t_SimpleCVTPowertrain(const std::string& name)
     : ChSimpleCVTPowertrain(name) {}
+
+void MAN_7t_SimpleCVTPowertrain::SetGearRatios(std::vector<double>& fwd, double& rev) {
+    rev = m_rev_gear_ratio;
+    fwd.push_back(m_fwd_gear_ratio);
+}
 
 }  // namespace man
 }  // end namespace vehicle

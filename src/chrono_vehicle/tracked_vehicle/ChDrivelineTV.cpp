@@ -29,7 +29,7 @@ namespace vehicle {
 ChDrivelineTV::ChDrivelineTV(const std::string& name) : ChDriveline(name), m_gyration_mode(false) {}
 
 void ChDrivelineTV::Synchronize(double steering, double torque) { 
-    ChDriveline::Synchronize(torque);
+    m_driveshaft->SetAppliedTorque(torque);
 }
 
 void ChDrivelineTV::CombineDriverInputs(const ChDriver::Inputs& driver_inputs,

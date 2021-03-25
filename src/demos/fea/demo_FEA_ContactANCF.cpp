@@ -237,7 +237,6 @@ int main(int argc, char* argv[]) {
         ////std::cout << "n contacts: " << my_system.GetNcontacts() << "\t";
         ////std::cout << "pos.y = " << sampleNode->pos.y - y0 << "vs. " << -0.5 * 9.8 * pow(my_system.GetChTime(), 2)
         ////          << "\n";
-        double t_s = my_system.GetChTime();
 
         application.DoStep();
         application.EndScene();

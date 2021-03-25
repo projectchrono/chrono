@@ -72,7 +72,6 @@ double ChSolverADMM::_SolveBasic(ChSystemDescriptor& sysd) {
     double rho_i = this->rho;
 
     std::vector<ChConstraint*>& mconstraints = sysd.GetConstraintsList();
-    std::vector<ChVariables*>& mvariables = sysd.GetVariablesList();
 
     int nc = sysd.CountActiveConstraints();
     int nv = sysd.CountActiveVariables();
@@ -409,8 +408,8 @@ double ChSolverADMM::_SolveBasic(ChSystemDescriptor& sysd) {
 
             if ((rhofactor > this->stepadjust_threshold) || (rhofactor < 1.0 / this->stepadjust_threshold)) {
 
-                ChTimer<> m_timer_factorize;
-                m_timer_factorize.start();
+                ChTimer<> m_timer_refactorize;
+                m_timer_refactorize.start();
 
                 // Avoid rebuilding all sparse matrix: 
                 // A) just remove old rho with -= :
@@ -422,7 +421,7 @@ double ChSolverADMM::_SolveBasic(ChSystemDescriptor& sysd) {
 
                 // vrho(fric == -2) = rho_b; //  special step for bilateral joints
                 vrho.setConstant(rho_i);
-                int s_c = 0;
+                s_c = 0;
                 for (unsigned int ic = 0; ic < mconstraints.size(); ic++) {
                     if (mconstraints[ic]->IsActive()) {
                         if (mconstraints[ic]->GetMode()==eChConstraintMode::CONSTRAINT_LOCK)
@@ -442,8 +441,8 @@ double ChSolverADMM::_SolveBasic(ChSystemDescriptor& sysd) {
 
                 LS_solver->SetupCurrent();  // LU decomposition ++++++++++++++++++++++++++++++++++++++
 
-                m_timer_factorize.stop();
-                if (this->verbose) GetLog() << " Time for re-factorize : << " << m_timer_factorize.GetTimeSecondsIntermediate() << "s\n";
+                m_timer_refactorize.stop();
+                if (this->verbose) GetLog() << " Time for re-factorize : << " << m_timer_refactorize.GetTimeSecondsIntermediate() << "s\n";
             }
 
         } // end step adjust
@@ -483,7 +482,6 @@ double ChSolverADMM::_SolveFast(ChSystemDescriptor& sysd) {
     double rho_i = this->rho;
 
     std::vector<ChConstraint*>& mconstraints = sysd.GetConstraintsList();
-    std::vector<ChVariables*>& mvariables = sysd.GetVariablesList();
 
     int nc = sysd.CountActiveConstraints();
     int nv = sysd.CountActiveVariables();
@@ -834,8 +832,8 @@ double ChSolverADMM::_SolveFast(ChSystemDescriptor& sysd) {
 
             if ((rhofactor > this->stepadjust_threshold) || (rhofactor < 1.0 / this->stepadjust_threshold)) {
 
-                ChTimer<> m_timer_factorize;
-                m_timer_factorize.start();
+                ChTimer<> m_timer_refactorize;
+                m_timer_refactorize.start();
 
                 // Avoid rebuilding all sparse matrix: 
                 // A) just remove old rho with -= :
@@ -847,7 +845,7 @@ double ChSolverADMM::_SolveFast(ChSystemDescriptor& sysd) {
 
                 // vrho(fric == -2) = rho_b; //  special step for bilateral joints
                 vrho.setConstant(rho_i);
-                int s_c = 0;
+                s_c = 0;
                 for (unsigned int ic = 0; ic < mconstraints.size(); ic++) {
                     if (mconstraints[ic]->IsActive()) {
                         if (mconstraints[ic]->GetMode()==eChConstraintMode::CONSTRAINT_LOCK)
@@ -867,8 +865,8 @@ double ChSolverADMM::_SolveFast(ChSystemDescriptor& sysd) {
 
                 LS_solver->SetupCurrent();  // LU decomposition ++++++++++++++++++++++++++++++++++++++
 
-                m_timer_factorize.stop();
-                if (this->verbose) GetLog() << " Time for re-factorize : << " << m_timer_factorize.GetTimeSecondsIntermediate() << "s\n";
+                m_timer_refactorize.stop();
+                if (this->verbose) GetLog() << " Time for re-factorize : << " << m_timer_refactorize.GetTimeSecondsIntermediate() << "s\n";
             }
 
         } // end step adjust
@@ -925,7 +923,7 @@ void ChSolverADMM::ArchiveOUT(ChArchiveOut& marchive) {
 
 void ChSolverADMM::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChSolverADMM>();
+    /*int version =*/ marchive.VersionRead<ChSolverADMM>();
     // deserialize parent class
     ChIterativeSolverVI::ArchiveIN(marchive);
     // stream in all member data:

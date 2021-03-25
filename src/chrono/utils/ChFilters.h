@@ -80,7 +80,6 @@ class ChApi ChMovingAverage {
     double Get(int i) const { return m_out[i]; }
 
   private:
-    int m_n;
     std::valarray<double> m_out;
 };
 
@@ -322,7 +321,6 @@ class ChApi ChISO2631_1_Wk {
     double Filter(double u);
 
   private:
-    double m_Ts;
     static const double f1;
     static const double f2;
     static const double f3;
@@ -349,7 +347,6 @@ class ChApi ChISO2631_1_Wd {
     double Filter(double u);
 
   private:
-    double m_Ts;
     static const double f1;
     static const double f2;
     static const double f3;
@@ -371,7 +368,6 @@ class ChApi ChISO2631_1_Wf {
     double Filter(double u);
 
   private:
-    double m_Ts;
     static const double f1;
     static const double f2;
     static const double f4;

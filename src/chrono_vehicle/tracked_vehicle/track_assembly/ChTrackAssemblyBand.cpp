@@ -110,7 +110,6 @@ bool ChTrackAssemblyBand::FindAssemblyPoints(std::shared_ptr<ChBodyAuxRef> chass
     // Start building the path around the sprocket, idler, and wheels
 
     int Current_Circle = 0;
-    int NumCirclesOnPath = 0;
     
     // Tangent points (start and end) between consecutive circles
     std::vector<std::pair<ChVector2<>, ChVector2<>>> TangentPoints(CirclePosAll.size());
@@ -262,8 +261,6 @@ bool ChTrackAssemblyBand::FindAssemblyPoints(std::shared_ptr<ChBodyAuxRef> chass
 
     double ScaleMin = 0;
     double ScaleMax = 0;
-    double RemainingLenMinScale = 0;
-    double RemainingLenMaxScale = 0;
 
     // Start by calculating the original tangent(constant) and arc lengths (variable)
     // to determine the inital scale for sprocket/idler/road wheel circles
@@ -484,12 +481,10 @@ bool ChTrackAssemblyBand::FindAssemblyPoints(std::shared_ptr<ChBodyAuxRef> chass
         if (ExtraLength > 0) {
             if (DeltaRadius > ScaleMin) {
                 ScaleMin = DeltaRadius;
-                RemainingLenMinScale = ExtraLength;
             }
         } else {
             if ((DeltaRadius < ScaleMax) || (ScaleMax == 0)) {
                 ScaleMax = DeltaRadius;
-                RemainingLenMaxScale = ExtraLength;
             }
         }
 

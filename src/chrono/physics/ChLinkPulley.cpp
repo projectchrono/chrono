@@ -20,13 +20,13 @@ namespace chrono {
 CH_FACTORY_REGISTER(ChLinkPulley)
 
 ChLinkPulley::ChLinkPulley()
-    : a1(0),
-      a2(0),
+    : tau(1),
       r1(1),
       r2(1),
-      tau(1),
       phase(0),
       checkphase(false),
+      a1(0),
+      a2(0),
       shaft_dist(0),
       belt_up1(VNULL),
       belt_up2(VNULL),
@@ -205,9 +205,7 @@ void ChLinkPulley::UpdateTime(double mytime) {
     marker2->Impose_Abs_Coord(newmarkpos);  // move marker2 into teeth position
 
     double phase_correction_up = m_delta * r1;
-    double phase_correction_low = -phase_correction_up;
     double hU = Vlength(belt_up2 - belt_up1) + phase_correction_up;
-    double hL = Vlength(belt_low2 - belt_low1) + phase_correction_low;
 
     // imposed relative positions/speeds
     deltaC.pos = ChVector<>(-hU, 0, 0);
@@ -241,7 +239,7 @@ void ChLinkPulley::ArchiveOUT(ChArchiveOut& marchive) {
 /// Method to allow de serialization of transient data from archives.
 void ChLinkPulley::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChLinkPulley>();
+    /*int version =*/ marchive.VersionRead<ChLinkPulley>();
 
     // deserialize parent class
     ChLinkLockLock::ArchiveIN(marchive);

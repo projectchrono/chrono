@@ -219,7 +219,7 @@ void ChFunctionRotation_SQUAD::ArchiveOUT(ChArchiveOut& marchive) {
 
 void ChFunctionRotation_SQUAD::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChFunctionRotation_SQUAD>();
+    /*int version =*/ marchive.VersionRead<ChFunctionRotation_SQUAD>();
 	// deserialize parent class
     ChFunctionRotation::ArchiveIN(marchive);
     // deserialize all member data:

@@ -55,7 +55,7 @@ void ChTimestepper::ArchiveOUT(ChArchiveOut& archive) {
 
 void ChTimestepper::ArchiveIN(ChArchiveIn& archive) {
     // version number
-    int version = archive.VersionRead<ChTimestepper>();
+    /*int version =*/ archive.VersionRead<ChTimestepper>();
     // method type:
     my_enum_mappers::Type_mapper typemapper;
     Type type = GetType();
@@ -920,7 +920,7 @@ void ChTimestepperNewmark::ArchiveOUT(ChArchiveOut& archive) {
 
 void ChTimestepperNewmark::ArchiveIN(ChArchiveIn& archive) {
     // version number
-    int version = archive.VersionRead<ChTimestepperNewmark>();
+    /*int version =*/ archive.VersionRead<ChTimestepperNewmark>();
     // deserialize parent class:
     ChTimestepperIIorder::ArchiveIN(archive);
     ChImplicitIterativeTimestepper::ArchiveIN(archive);

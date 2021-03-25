@@ -118,7 +118,7 @@ int main(int argc, char* argv[]) {
 
 // QuasiStatic
 bool BendingQuasiStatic(ChMatrixDynamic<> FileInputMat) {
-    FILE* outputfile;
+    FILE* outputfile = nullptr;
     ChSystemNSC my_system;
     my_system.Set_G_acc(ChVector<>(0, 0, -9.81));
     double time_step = 1e-3;
@@ -142,12 +142,9 @@ bool BendingQuasiStatic(ChMatrixDynamic<> FileInputMat) {
     int numDiv_y = 4;
     int numDiv_z = 1;
     int N_x = numDiv_x + 1;
-    int N_y = numDiv_y + 1;
-    int N_z = numDiv_z + 1;
     // Number of elements in the z direction is considered as 1
     int TotalNumElements = numDiv_x * numDiv_y;
     int XYNumNodes = (numDiv_x + 1) * (numDiv_y + 1);
-    int TotalNumNodes = 2 * XYNumNodes + TotalNumElements;
     // For uniform mesh
     double dx = plate_lenght_x / numDiv_x;
     double dy = plate_lenght_y / numDiv_y;
@@ -311,7 +308,7 @@ bool BendingQuasiStatic(ChMatrixDynamic<> FileInputMat) {
 
 // Swinging (Bricked) Shell
 bool SwingingShell(ChMatrixDynamic<> FileInputMat) {
-    FILE* outputfile;
+    FILE* outputfile = nullptr;
     double precision = 1e-3;  // Precision for test
     bool genRefFile = false;
     ChSystemNSC my_system;
@@ -335,13 +332,10 @@ bool SwingingShell(ChMatrixDynamic<> FileInputMat) {
     int numDiv_y = 8;
     int numDiv_z = 1;
     int N_x = numDiv_x + 1;
-    int N_y = numDiv_y + 1;
-    int N_z = numDiv_z + 1;
 
     // Number of elements in the z direction is considered as 1
     int TotalNumElements = numDiv_x * numDiv_y;
     int XYNumNodes = (numDiv_x + 1) * (numDiv_y + 1);
-    int TotalNumNodes = 2 * XYNumNodes + TotalNumElements;
 
     // For uniform mesh
     double dx = plate_lenght_x / numDiv_x;
@@ -376,7 +370,6 @@ bool SwingingShell(ChMatrixDynamic<> FileInputMat) {
         my_mesh->AddNode(node);
     }
 
-    double force = 0.0;
     // Get a handle to the tip node.
     auto nodetip = std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(2 * XYNumNodes - 1));
     nodetip->SetForce(ChVector<>(0.0, 0.0, -0.0));
@@ -509,7 +502,7 @@ bool SwingingShell(ChMatrixDynamic<> FileInputMat) {
 
 // J2 Flow Plasticity
 bool J2Plastic(ChMatrixDynamic<> FileInputMat) {
-    FILE* outputfile;
+    FILE* outputfile = nullptr;
     ChSystemNSC my_system;
     my_system.Set_G_acc(ChVector<>(0, 0, -9.81));
     double time_step = 1e-4;
@@ -528,17 +521,17 @@ bool J2Plastic(ChMatrixDynamic<> FileInputMat) {
     double plate_lenght_x = 1;
     double plate_lenght_y = 0.05;
     double plate_lenght_z = 0.05;
+
     // Specification of the mesh
     int numDiv_x = 20;
     int numDiv_y = 1;
     int numDiv_z = 1;
     int N_x = numDiv_x + 1;
-    int N_y = numDiv_y + 1;
-    int N_z = numDiv_z + 1;
+
     // Number of elements in the z direction is considered as 1
     int TotalNumElements = numDiv_x * numDiv_y;
     int XYNumNodes = (numDiv_x + 1) * (numDiv_y + 1);
-    int TotalNumNodes = 2 * XYNumNodes + TotalNumElements;
+
     // For uniform mesh
     double dx = plate_lenght_x / numDiv_x;
     double dy = plate_lenght_y / numDiv_y;
@@ -713,7 +706,7 @@ bool J2Plastic(ChMatrixDynamic<> FileInputMat) {
 
 // Drucker-Prager Plasticity
 bool DruckerPragerPlastic(ChMatrixDynamic<> FileInputMat) {
-    FILE* outputfile;
+    FILE* outputfile = nullptr;
     ChSystemNSC my_system;
     my_system.Set_G_acc(ChVector<>(0, 0, -9.81));
     double time_step = 1e-4;
@@ -732,17 +725,17 @@ bool DruckerPragerPlastic(ChMatrixDynamic<> FileInputMat) {
     double plate_lenght_x = 1;
     double plate_lenght_y = 0.05;
     double plate_lenght_z = 0.05;
+
     // Specification of the mesh
     int numDiv_x = 20;
     int numDiv_y = 1;
     int numDiv_z = 1;
     int N_x = numDiv_x + 1;
-    int N_y = numDiv_y + 1;
-    int N_z = numDiv_z + 1;
+
     // Number of elements in the z direction is considered as 1
     int TotalNumElements = numDiv_x * numDiv_y;
     int XYNumNodes = (numDiv_x + 1) * (numDiv_y + 1);
-    int TotalNumNodes = 2 * XYNumNodes + TotalNumElements;
+
     // For uniform mesh
     double dx = plate_lenght_x / numDiv_x;
     double dy = plate_lenght_y / numDiv_y;

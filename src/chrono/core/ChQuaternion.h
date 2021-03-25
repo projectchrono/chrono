@@ -1345,7 +1345,7 @@ inline void ChQuaternion<Real>::ArchiveOUT(ChArchiveOut& marchive) {
 template <class Real>
 inline void ChQuaternion<Real>::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChQuaternion<double>>();  // must use specialized template (any)
+    /*int version =*/ marchive.VersionRead<ChQuaternion<double>>();  // must use specialized template (any)
     // stream in all member m_data
     marchive >> CHNVP(m_data[0], "e0");
     marchive >> CHNVP(m_data[1], "e1");

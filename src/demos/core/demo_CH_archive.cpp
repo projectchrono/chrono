@@ -93,6 +93,8 @@ class myEmployee {
         body(m_body),
         name(m_name) {};
 
+    virtual ~myEmployee() {}
+
     // MEMBER FUNCTIONS FOR BINARY I/O
     // NOTE!!!In order to allow serialization with Chrono approach,
     // at least implement these two functions, with the exact names
@@ -111,7 +113,7 @@ class myEmployee {
     virtual void ArchiveIN(ChArchiveIn& marchive)  //##### for Chrono serialization
     {
         // suggested: use versioning
-        int version = marchive.VersionRead<myEmployee>();
+        /*int version =*/ marchive.VersionRead<myEmployee>();
         // stream in all member data
         marchive >> CHNVP(age);
         marchive >> CHNVP(wages);
@@ -218,7 +220,7 @@ class myEmployeeCustomConstructor : public myEmployee {
     virtual void ArchiveIN(ChArchiveIn& marchive)  //##### for Chrono serialization
     {
         // suggested: use versioning
-        int version = marchive.VersionRead<myEmployeeCustomConstructor>();
+        /*int version =*/ marchive.VersionRead<myEmployeeCustomConstructor>();
         // remember to deserialize the parent class data too!!!
         myEmployee::ArchiveIN(marchive);
         // stream in member data (except data used in constructor, already saved in ArchiveOUTconstructor)
@@ -242,7 +244,7 @@ class myEmployeeCustomConstructor : public myEmployee {
     static void* ArchiveINconstructor(ChArchiveIn& marchive)
     {
         // suggested: use versioning
-        int version = marchive.VersionRead<myEmployeeCustomConstructor>();
+        /*int version =*/ marchive.VersionRead<myEmployeeCustomConstructor>();
 
         // 1) Deserialize the parameters of the constructor:
         // you need some auxiliary variables because this method is static 

@@ -88,9 +88,6 @@ static inline bool overlap(real3 Amin, real3 Amax, real3 Bmin, real3 Bmax) {
 static inline bool
 current_bin(real3 Amin, real3 Amax, real3 Bmin, real3 Bmax, real3 inv_bin_size_vec, vec3 bins_per_axis, uint bin) {
     real3 min_p = Max(Amin, Bmin);
-    real3 max_p = Min(Amax, Bmax);
-
-    real3 center = (min_p + max_p) * 0.5;  // center of contact volume
 
     if (Hash_Index(HashMin(min_p, inv_bin_size_vec), bins_per_axis) == bin) {
         return true;
@@ -116,6 +113,7 @@ static vec3 function_Compute_Grid_Resolution(uint num_aabb, real3 d, real k = .1
 
 // =========================================================================================================
 
+/*
 static bool function_Check_Sphere(real3 pos_a, real3 pos_b, real radius) {
     real3 delta = pos_b - pos_a;
     real dist2 = Dot(delta, delta);
@@ -125,7 +123,11 @@ static bool function_Check_Sphere(real3 pos_a, real3 pos_b, real radius) {
     }
     return true;
 }
+*/
+
 // TWO LEVEL FUNCTIONS==========================================================
+
+/*
 
 /// For each bin determine the grid size and store it.
 static void f_TL_Count_Leaves(const uint index,
@@ -241,6 +243,8 @@ static void f_TL_Write_AABB_Leaf_Intersection(const uint& index,
         }
     }
 }
+
+*/
 
 // ONE AND TWO LEVEL FUNCTIONS==========================================================
 

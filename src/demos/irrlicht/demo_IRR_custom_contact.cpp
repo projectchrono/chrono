@@ -114,16 +114,13 @@ int main(int argc, char* argv[]) {
 
     double ball_radius = 0.5;
     MyObstacle obstacle;
-    double obst_radius = 2.0;
     ChVector<> obst_center(2.9, 0, 2.9);
 
     // Create the system and the various contact materials
-    ChSystem* sys;
+    ChSystem* sys = nullptr;
     std::shared_ptr<ChMaterialSurface> ground_mat;
     std::shared_ptr<ChMaterialSurface> ball_mat;
     std::shared_ptr<ChMaterialSurface> obst_mat;
-    double time_step;
-    int frame_skip;
 
     switch (contact_method) {
         case ChContactMethod::NSC: {
@@ -143,9 +140,6 @@ int main(int argc, char* argv[]) {
             ball_mat = b_mat;
             obst_mat = o_mat;
 
-            time_step = 1e-3;
-            frame_skip = 10;
-
             break;
         }
         case ChContactMethod::SMC: {
@@ -164,9 +158,6 @@ int main(int argc, char* argv[]) {
             ground_mat = g_mat;
             ball_mat = b_mat;
             obst_mat = o_mat;
-
-            time_step = 1e-4;
-            frame_skip = 100;
 
             break;
         }

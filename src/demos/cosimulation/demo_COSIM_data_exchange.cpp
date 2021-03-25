@@ -37,7 +37,7 @@ int main(int argc, char* argv[]) {
 
     try {
         // Create a cosimulation interface and exchange some data with Simulink.
-        int PORTNUM = 50009;
+        int PORT_NUMBER = 50009;
 
         ChVectorDynamic<double> data_in(3);
         ChVectorDynamic<double> data_out(2);
@@ -56,7 +56,7 @@ int main(int argc, char* argv[]) {
         GetLog() << " *** Waiting Simulink to start... *** \n     (load 'data/cosimulation/test_cosimulation.mdl' in "
                     "Simulink and press Start...)\n\n";
 
-        cosimul_interface.WaitConnection(PORTNUM);
+        cosimul_interface.WaitConnection(PORT_NUMBER);
 
         double mytime = 0;
         double histime = 0;
