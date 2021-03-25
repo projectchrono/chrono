@@ -93,7 +93,7 @@ int main(int argc, char** argv) {
     int name_len;
     char procname[MPI_MAX_PROCESSOR_NAME];
 
-    auto err = MPI_Init(&argc, &argv);
+    /*auto err =*/MPI_Init(&argc, &argv);
     MPI_Comm_size(MPI_COMM_WORLD, &num_procs);
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     MPI_Get_processor_name(procname, &name_len);
