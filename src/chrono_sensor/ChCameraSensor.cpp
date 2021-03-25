@@ -51,12 +51,12 @@ CH_SENSOR_API ChCameraSensor::ChCameraSensor(std::shared_ptr<chrono::ChBody> par
             break;
     }
 
+    m_filters.push_back(chrono_types::make_shared<ChFilterImageHalf4ToRGBA8>());
+
     if (m_supersample_factor > 1) {
         m_filters.push_back(
             chrono_types::make_shared<ChFilterImgAlias>(m_supersample_factor, "Image antialias filter"));
     }
-
-    m_filters.push_back(chrono_types::make_shared<ChFilterImageFloat4ToRGBA8>());
 
     SetCollectionWindow(0);
     SetLag(1 / updateRate);

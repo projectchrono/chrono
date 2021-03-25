@@ -23,10 +23,7 @@
     #endif
 #endif
 
-// #include <optix.h>
-// #include <optixu/optixpp.h>  //needed to make sure things are in the right namespace. Must be done before
-// optixpp_namespace.h #include <optixu/optixpp_namespace.h>  //is covered by optixpp.h but will be removed from
-// optixpp.h in the future
+#include <cuda_fp16.h>
 #include <functional>
 #include <memory>
 
@@ -95,6 +92,22 @@ using DeviceFloat4BufferPtr = std::shared_ptr<PixelFloat4[]>;
 using SensorDeviceFloat4Buffer = SensorBufferT<DeviceFloat4BufferPtr>;
 /// pointer to an RGBA image on the host that has been moved for safety and can be given to the user
 using UserFloat4BufferPtr = std::shared_ptr<SensorHostFloat4Buffer>;
+
+/// A pixel as defined by RGBA float4 format
+struct PixelHalf4 {
+    __half R;  ///< Red value
+    __half G;  ///< Green value
+    __half B;  ///< Blue value
+    __half A;  ///< Transparency value
+};
+/// RGBA host buffer to be used for managing data on the host
+using SensorHostHalf4Buffer = SensorBufferT<std::shared_ptr<PixelHalf4[]>>;
+/// RGBA device buffer to be used by camera filters in the graph
+using DeviceHalf4BufferPtr = std::shared_ptr<PixelHalf4[]>;
+/// Sensor buffer wrapper of a DeviceHalf4BufferPtr
+using SensorDeviceHalf4Buffer = SensorBufferT<DeviceHalf4BufferPtr>;
+/// pointer to an RGBA image on the host that has been moved for safety and can be given to the user
+using UserHalf4BufferPtr = std::shared_ptr<SensorHostHalf4Buffer>;
 
 //================================
 // RGBA8 Camera Format and Buffers

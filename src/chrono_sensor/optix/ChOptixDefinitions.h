@@ -22,6 +22,14 @@
 #include <cuda_runtime_api.h>
 #include <curand_kernel.h>
 
+#include <cuda_fp16.h>
+struct half4 {
+    __half x;
+    __half y;
+    __half z;
+    __half w;
+};
+
 enum RayType {
     CAMERA_RAY_TYPE = 0,  // camera rays
     SHADOW_RAY_TYPE = 1,  // shadow rays
@@ -67,10 +75,10 @@ union MissParameters {
 
 struct CameraParameters {
     float hFOV;
-    float4* frame_buffer;
+    half4* frame_buffer;
     bool use_gi;                // whether to use global illumination
-    float4* albedo_buffer;      // only initialized if using global illumination
-    float4* normal_buffer;      // only initialized if using global illumination (screenspace normal)
+    half4* albedo_buffer;       // only initialized if using global illumination
+    half4* normal_buffer;       // only initialized if using global illumination (screenspace normal)
     curandState_t* rng_buffer;  // only initialized if using global illumination
 };
 

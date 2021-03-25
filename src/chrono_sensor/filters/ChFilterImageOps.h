@@ -31,11 +31,11 @@ class ChSensor;
 /// @{
 
 /// A filter that converts RGBA Float4 to RGBA8
-class CH_SENSOR_API ChFilterImageFloat4ToRGBA8 : public ChFilter {
+class CH_SENSOR_API ChFilterImageHalf4ToRGBA8 : public ChFilter {
   public:
     /// Class constructor
     /// @param name String name of the filter.
-    ChFilterImageFloat4ToRGBA8(std::string name = {});
+    ChFilterImageHalf4ToRGBA8(std::string name = {});
 
     /// Apply function. Applies the resize operation to the image.
     virtual void Apply();
@@ -46,9 +46,9 @@ class CH_SENSOR_API ChFilterImageFloat4ToRGBA8 : public ChFilter {
     virtual void Initialize(std::shared_ptr<ChSensor> pSensor, std::shared_ptr<SensorBuffer>& bufferInOut);
 
   private:
-    std::shared_ptr<SensorDeviceFloat4Buffer> m_buffer_in;  ///< holder of the output RGBA8 image
+    std::shared_ptr<SensorDeviceHalf4Buffer> m_buffer_in;   ///< holder of the output RGBA8 image
     std::shared_ptr<SensorDeviceRGBA8Buffer> m_buffer_out;  ///< holder of the intput RGBA float image
-    NppStreamContext m_cuda_stream;                         ///< reference to the cuda stream
+    CUstream m_cuda_stream;                                 ///< reference to the cuda stream
 };
 
 /// A filter that, when applied to a sensor, resizes the image to the specified dimensions.
@@ -95,8 +95,8 @@ class CH_SENSOR_API ChFilterImgAlias : public ChFilter {
     virtual void Initialize(std::shared_ptr<ChSensor> pSensor, std::shared_ptr<SensorBuffer>& bufferInOut);
 
   private:
-    std::shared_ptr<SensorDeviceRGBA8Buffer> m_buffer_rgba8_in;    ///< holder of an input RGBA8 image
-    std::shared_ptr<SensorDeviceRGBA8Buffer> m_buffer_rgba8_out;   ///< holder of an input RGBA8 image
+    std::shared_ptr<SensorDeviceRGBA8Buffer> m_buffer_rgba8_in;     ///< holder of an input RGBA8 image
+    std::shared_ptr<SensorDeviceRGBA8Buffer> m_buffer_rgba8_out;    ///< holder of an input RGBA8 image
     std::shared_ptr<SensorDeviceR8Buffer> m_buffer_r8_in;           ///< holder of an R8 image
     std::shared_ptr<SensorDeviceR8Buffer> m_buffer_r8_out;          ///< holder of an R8 image
     std::shared_ptr<SensorDeviceFloat4Buffer> m_buffer_float4_in;   ///< holder of an R8 image

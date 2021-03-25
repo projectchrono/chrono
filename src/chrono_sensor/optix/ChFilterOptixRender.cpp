@@ -81,26 +81,25 @@ CH_SENSOR_API void ChFilterOptixRender::Initialize(std::shared_ptr<ChSensor> pSe
     ChFrame<double> global_loc = f_body * f_offset;
 
     if (auto cam = std::dynamic_pointer_cast<ChCameraSensor>(pSensor)) {
-        auto bufferOut = chrono_types::make_shared<SensorDeviceFloat4Buffer>();
-        DeviceFloat4BufferPtr b(cudaMallocHelper<PixelFloat4>(pOptixSensor->GetWidth() * pOptixSensor->GetHeight()),
-                                cudaFreeHelper<PixelFloat4>);
+        auto bufferOut = chrono_types::make_shared<SensorDeviceHalf4Buffer>();
+        DeviceHalf4BufferPtr b(cudaMallocHelper<PixelHalf4>(pOptixSensor->GetWidth() * pOptixSensor->GetHeight()),
+                               cudaFreeHelper<PixelHalf4>);
         bufferOut->Buffer = std::move(b);
         m_raygen_record->data.specific.camera.hFOV = cam->GetHFOV();
-        m_raygen_record->data.specific.camera.frame_buffer = reinterpret_cast<float4*>(bufferOut->Buffer.get());
+        m_raygen_record->data.specific.camera.frame_buffer = reinterpret_cast<half4*>(bufferOut->Buffer.get());
         m_raygen_record->data.specific.camera.use_gi = cam->GetUseGI();
         m_bufferOut = bufferOut;
 
         if (cam->GetUseGI() && m_denoiser) {
-            float4* frame_buffer = cudaMallocHelper<float4>(pOptixSensor->GetWidth() * pOptixSensor->GetHeight());
-            float4* albedo_buffer = cudaMallocHelper<float4>(pOptixSensor->GetWidth() * pOptixSensor->GetHeight());
-            float4* normal_buffer = cudaMallocHelper<float4>(pOptixSensor->GetWidth() * pOptixSensor->GetHeight());
-
+            half4* frame_buffer = cudaMallocHelper<half4>(pOptixSensor->GetWidth() * pOptixSensor->GetHeight());
+            half4* albedo_buffer = cudaMallocHelper<half4>(pOptixSensor->GetWidth() * pOptixSensor->GetHeight());
+            half4* normal_buffer = cudaMallocHelper<half4>(pOptixSensor->GetWidth() * pOptixSensor->GetHeight());
             m_raygen_record->data.specific.camera.frame_buffer = frame_buffer;
             m_raygen_record->data.specific.camera.albedo_buffer = albedo_buffer;
             m_raygen_record->data.specific.camera.normal_buffer = normal_buffer;
 
             m_denoiser->Initialize(cam->GetWidth(), cam->GetHeight(), cam->GetCudaStream(), frame_buffer, albedo_buffer,
-                                   normal_buffer, reinterpret_cast<float4*>(bufferOut->Buffer.get()));
+                                   normal_buffer, reinterpret_cast<half4*>(bufferOut->Buffer.get()));
 
             // initialize rng buffer for ray bounces
             m_rng = std::shared_ptr<curandState_t>(
@@ -176,9 +175,7 @@ CH_SENSOR_API ChOptixDenoiser::ChOptixDenoiser(OptixDeviceContext context) : m_c
     OptixDenoiserOptions options = {};
     options.inputKind = OPTIX_DENOISER_INPUT_RGB_ALBEDO_NORMAL;
     OPTIX_ERROR_CHECK(optixDenoiserCreate(context, &options, &m_denoiser));
-    // OPTIX_ERROR_CHECK(optixDenoiserSetModel(m_denoiser, OPTIX_DENOISER_MODEL_KIND_HDR, nullptr, 0));
     OPTIX_ERROR_CHECK(optixDenoiserSetModel(m_denoiser, OPTIX_DENOISER_MODEL_KIND_LDR, nullptr, 0));
-    std::cout << "Constructed denoiser\n";
 }
 
 CH_SENSOR_API ChOptixDenoiser::~ChOptixDenoiser() {
@@ -187,23 +184,24 @@ CH_SENSOR_API ChOptixDenoiser::~ChOptixDenoiser() {
     cudaFree(reinterpret_cast<void*>(md_inputs[0].data));
     cudaFree(reinterpret_cast<void*>(md_inputs[1].data));
     cudaFree(reinterpret_cast<void*>(md_inputs[2].data));
+    cudaFree(reinterpret_cast<void*>(md_scratch));
+    cudaFree(reinterpret_cast<void*>(md_state));
     optixDenoiserDestroy(m_denoiser);
 }
 
 CH_SENSOR_API void ChOptixDenoiser::Initialize(unsigned int w,
                                                unsigned int h,
                                                CUstream stream,
-                                               float4* input_buffer,
-                                               float4* albedo_buffer,
-                                               float4* normal_buffer,
-                                               float4* output_buffer) {
+                                               half4* input_buffer,
+                                               half4* albedo_buffer,
+                                               half4* normal_buffer,
+                                               half4* output_buffer) {
     m_cuda_stream = stream;
 
     // intialize device memory for the denoiser
     OptixDenoiserSizes denoiser_sizes;
     OPTIX_ERROR_CHECK(optixDenoiserComputeMemoryResources(m_denoiser, w, h, &denoiser_sizes));
     m_scratch_size = static_cast<uint32_t>(denoiser_sizes.withoutOverlapScratchSizeInBytes);
-    CUDA_ERROR_CHECK(cudaMalloc(reinterpret_cast<void**>(&md_intensity), sizeof(float)));
     CUDA_ERROR_CHECK(cudaMalloc(reinterpret_cast<void**>(&md_scratch), m_scratch_size));
     CUDA_ERROR_CHECK(cudaMalloc(reinterpret_cast<void**>(&md_state), denoiser_sizes.stateSizeInBytes));
     m_state_size = static_cast<uint32_t>(denoiser_sizes.stateSizeInBytes);
@@ -213,43 +211,41 @@ CH_SENSOR_API void ChOptixDenoiser::Initialize(unsigned int w,
     md_inputs[0].data = reinterpret_cast<CUdeviceptr>(input_buffer);
     md_inputs[0].width = w;
     md_inputs[0].height = h;
-    md_inputs[0].rowStrideInBytes = w * sizeof(float4);
-    md_inputs[0].pixelStrideInBytes = sizeof(float4);
-    md_inputs[0].format = OPTIX_PIXEL_FORMAT_FLOAT4;
-    
+    md_inputs[0].rowStrideInBytes = w * sizeof(half4);
+    md_inputs[0].pixelStrideInBytes = sizeof(half4);
+    md_inputs[0].format = OPTIX_PIXEL_FORMAT_HALF4;
+
     md_inputs[1].data = reinterpret_cast<CUdeviceptr>(albedo_buffer);
     md_inputs[1].width = w;
     md_inputs[1].height = h;
-    md_inputs[1].rowStrideInBytes = w * sizeof(float4);
-    md_inputs[1].pixelStrideInBytes = sizeof(float4);
-    md_inputs[1].format = OPTIX_PIXEL_FORMAT_FLOAT4;
+    md_inputs[1].rowStrideInBytes = w * sizeof(half4);
+    md_inputs[1].pixelStrideInBytes = sizeof(half4);
+    md_inputs[1].format = OPTIX_PIXEL_FORMAT_HALF4;
 
     md_inputs[2].data = reinterpret_cast<CUdeviceptr>(normal_buffer);
     md_inputs[2].width = w;
     md_inputs[2].height = h;
-    md_inputs[2].rowStrideInBytes = w * sizeof(float4);
-    md_inputs[2].pixelStrideInBytes = sizeof(float4);
-    md_inputs[2].format = OPTIX_PIXEL_FORMAT_FLOAT4;
+    md_inputs[2].rowStrideInBytes = w * sizeof(half4);
+    md_inputs[2].pixelStrideInBytes = sizeof(half4);
+    md_inputs[2].format = OPTIX_PIXEL_FORMAT_HALF4;
 
     md_output = {};
     md_output.data = reinterpret_cast<CUdeviceptr>(output_buffer);
     md_output.width = w;
     md_output.height = h;
-    md_output.rowStrideInBytes = w * sizeof(float4);
-    md_output.pixelStrideInBytes = sizeof(float4);
-    md_output.format = OPTIX_PIXEL_FORMAT_FLOAT4;
+    md_output.rowStrideInBytes = w * sizeof(half4);
+    md_output.pixelStrideInBytes = sizeof(half4);
+    md_output.format = OPTIX_PIXEL_FORMAT_HALF4;
 
     OPTIX_ERROR_CHECK(
         optixDenoiserSetup(m_denoiser, m_cuda_stream, w, h, md_state, m_state_size, md_scratch, m_scratch_size));
     m_params.denoiseAlpha = 0;
-    m_params.hdrIntensity = md_intensity;
-    m_params.blendFactor = 0.0f;
+    m_params.hdrIntensity = 0;
+    m_params.blendFactor = 0.f;
 }
 
 CH_SENSOR_API void ChOptixDenoiser::Execute() {
-    OPTIX_ERROR_CHECK(optixDenoiserComputeIntensity(m_denoiser, m_cuda_stream, md_inputs.data(), md_intensity,
-                                                    md_scratch, m_scratch_size));
-
+    // will not compute intensity since we are assuming we don't have HDR images
     OPTIX_ERROR_CHECK(optixDenoiserInvoke(m_denoiser, m_cuda_stream, &m_params, md_state, m_state_size,
                                           md_inputs.data(), 3, 0, 0, &md_output, md_scratch, m_scratch_size));
 }

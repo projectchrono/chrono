@@ -66,13 +66,6 @@ CH_SENSOR_API std::vector<unsigned int> ChSensorManager::GetDeviceList() {
     return m_device_list;
 }
 
-CH_SENSOR_API void ChSensorManager::AddInstancedStaticSceneMeshes(std::vector<ChFrame<>>& frames,
-                                                                  std::shared_ptr<ChTriangleMeshShape> mesh) {
-    for (auto eng : m_engines) {
-        eng->AddInstancedStaticSceneMeshes(frames, mesh);
-    }
-}
-
 CH_SENSOR_API void ChSensorManager::ReconstructScenes() {
     for (auto eng : m_engines) {
         eng->ConstructScene();

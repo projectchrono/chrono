@@ -36,38 +36,13 @@ extern "C" {
 __constant__ ContextParameters params;
 }
 
-// static __device__ __inline__ PerRayData_camera make_camera_data(const float3& r_color,
-//                                                                 const float& r_contrib_to_first_hit,
-//                                                                 const float& r_rnd,
-//                                                                 const int& r_depth) {
-//     PerRayData_camera ray_data;
-//     ray_data.color = r_color;
-//     ray_data.contrib_to_first_hit = r_contrib_to_first_hit;
-//     ray_data.rnd = r_rnd;
-//     ray_data.depth = r_depth;
-//     return ray_data;
-// }
+__device__ __inline__ half4 make_half4(const float4& a) {
+    return {__float2half(a.x), __float2half(a.y), __float2half(a.z), __float2half(a.w)};
+}
 
-// static __device__ __inline__ PerRayData_lidar make_lidar_data(const float& r_range, const float& r_intensity) {
-//     PerRayData_lidar ray_data;
-//     ray_data.range = r_range;
-//     ray_data.intensity = r_intensity;
-//     return ray_data;
-// }
-
-// static __device__ __inline__ PerRayData_radar make_radar_data(const float& r_range, const float& r_rcs) {
-//     PerRayData_radar ray_data;
-//     ray_data.range = r_range;
-//     ray_data.rcs = r_rcs;
-//     return ray_data;
-// }
-
-// static __device__ __inline__ PerRayData_shadow make_shadow_data(const float3& r_attenuation) {
-//     //
-//     PerRayData_shadow ray_data;
-//     ray_data.attenuation = r_attenuation;
-//     return ray_data;
-// }
+__device__ __inline__ half4 make_half4(const float& a, const float& b, const float& c, const float& d) {
+    return {__float2half(a), __float2half(b), __float2half(c), __float2half(d)};
+}
 
 static __device__ __inline__ uchar4 make_color(const float3& c) {
     return make_uchar4(static_cast<unsigned char>(__saturatef(c.x) * 255.9999f),

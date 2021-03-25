@@ -18,6 +18,8 @@
 
 #include "chrono_sensor/optix/shaders/device_utils.h"
 
+// #include <cuda_fp16.h>
+
 extern "C" __global__ void __raygen__camera_pinhole() {
     const RaygenParameters* raygen = (RaygenParameters*)optixGetSbtDataPointer();
     const CameraParameters& camera = raygen->specific.camera;
@@ -54,12 +56,13 @@ extern "C" __global__ void __raygen__camera_pinhole() {
     optixTrace(params.root, ray_origin, ray_direction, params.scene_epsilon, 1e16f, t_traverse, OptixVisibilityMask(1),
                OPTIX_RAY_FLAG_NONE, CAMERA_RAY_TYPE, RAY_TYPE_COUNT, CAMERA_RAY_TYPE, opt1, opt2);
 
-    camera.frame_buffer[image_index] = make_float4(prd.color.x, prd.color.y, prd.color.z, 1.f);
+    camera.frame_buffer[image_index] = make_half4(prd.color.x, prd.color.y, prd.color.z, 1.f);
     if (camera.use_gi) {
-        camera.albedo_buffer[image_index] = make_float4(prd.albedo.x, prd.albedo.y, prd.albedo.z, 0.f);
-        float screen_n_x = -Dot(left, prd.normal);
-        float screen_n_y = -Dot(up, prd.normal);
-        camera.normal_buffer[image_index] = make_float4(screen_n_x, screen_n_y, 0.f, 0.f);
+        camera.albedo_buffer[image_index] = make_half4(prd.albedo.x, prd.albedo.y, prd.albedo.z, 0.f);
+        float screen_n_x = -Dot(left, prd.normal);     // screen space (x right)
+        float screen_n_y = Dot(up, prd.normal);        // screen space (y up)
+        float screen_n_z = -Dot(forward, prd.normal);  // screen space (-z forward)
+        camera.normal_buffer[image_index] = make_half4(screen_n_x, screen_n_y, screen_n_z, 0.f);
     }
 }
 
@@ -107,11 +110,13 @@ extern "C" __global__ void __raygen__camera_fov_lens() {
     optixTrace(params.root, ray_origin, ray_direction, params.scene_epsilon, 1e16f, t_traverse, OptixVisibilityMask(1),
                OPTIX_RAY_FLAG_NONE, CAMERA_RAY_TYPE, RAY_TYPE_COUNT, CAMERA_RAY_TYPE, opt1, opt2);
 
-    camera.frame_buffer[image_index] = make_float4(prd.color.x, prd.color.y, prd.color.z, 1.f);
+    camera.frame_buffer[image_index] =
+        make_half4(clamp(prd.color.x, 0.f, 1.f), clamp(prd.color.y, 0.f, 1.f), clamp(prd.color.z, 0.f, 1.f), 1.f);
     if (camera.use_gi) {
-        camera.albedo_buffer[image_index] = make_float4(prd.albedo.x, prd.albedo.y, prd.albedo.z, 0.f);
-        float screen_n_x = -Dot(left, prd.normal);
-        float screen_n_y = -Dot(up, prd.normal);
-        camera.normal_buffer[image_index] = make_float4(screen_n_x, screen_n_y, 0.f, 0.f);
+        camera.albedo_buffer[image_index] = make_half4(prd.albedo.x, prd.albedo.y, prd.albedo.z, 0.f);
+        float screen_n_x = -Dot(left, prd.normal);     // screen space (x right)
+        float screen_n_y = Dot(up, prd.normal);        // screen space (y up)
+        float screen_n_z = -Dot(forward, prd.normal);  // screen space (-z forward)
+        camera.normal_buffer[image_index] = make_half4(screen_n_x, screen_n_y, screen_n_z, 0.f);
     }
 }

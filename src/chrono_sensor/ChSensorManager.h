@@ -79,10 +79,6 @@ class CH_SENSOR_API ChSensorManager {
     /// @return A shared pointer to an OptiX engine the manager is using
     std::shared_ptr<ChOptixEngine> GetEngine(int context_id);
 
-    /// Add many environment meshes that bypass the requirement to have them in the Chrono system.
-    /// This adds meshes that only exist in OptiX. Meshes will be removed upon call to ReconstructScenes().
-    void AddInstancedStaticSceneMeshes(std::vector<ChFrame<>>& frames, std::shared_ptr<ChTriangleMeshShape> mesh);
-
     /// Calls on the sensor manager to rebuild the scene, translating all objects from the Chrono system into their
     /// appropriate optix objects.
     void ReconstructScenes();

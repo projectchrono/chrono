@@ -22,22 +22,20 @@
 namespace chrono {
 namespace sensor {
 
-CH_SENSOR_API ChFilterImageFloat4ToRGBA8::ChFilterImageFloat4ToRGBA8(std::string name) : ChFilter(name) {}
-CH_SENSOR_API void ChFilterImageFloat4ToRGBA8::Initialize(std::shared_ptr<ChSensor> pSensor,
-                                                          std::shared_ptr<SensorBuffer>& bufferInOut) {
+CH_SENSOR_API ChFilterImageHalf4ToRGBA8::ChFilterImageHalf4ToRGBA8(std::string name) : ChFilter(name) {}
+CH_SENSOR_API void ChFilterImageHalf4ToRGBA8::Initialize(std::shared_ptr<ChSensor> pSensor,
+                                                         std::shared_ptr<SensorBuffer>& bufferInOut) {
     if (!bufferInOut)
         InvalidFilterGraphNullBuffer(pSensor);
 
     if (auto pOpx = std::dynamic_pointer_cast<ChOptixSensor>(pSensor)) {
-        m_cuda_stream = {};
-        m_cuda_stream.hStream = pOpx->GetCudaStream();
-        m_cuda_stream.nCudaDeviceId = 0;  // TODO: allow multiple GPU usage
+        m_cuda_stream = pOpx->GetCudaStream();
 
     } else {
         InvalidFilterGraphSensorTypeMismatch(pSensor);
     }
 
-    m_buffer_in = std::dynamic_pointer_cast<SensorDeviceFloat4Buffer>(bufferInOut);
+    m_buffer_in = std::dynamic_pointer_cast<SensorDeviceHalf4Buffer>(bufferInOut);
     if (m_buffer_in) {
         m_buffer_out = chrono_types::make_shared<SensorDeviceRGBA8Buffer>();
         DeviceRGBA8BufferPtr b(cudaMallocHelper<PixelRGBA8>(m_buffer_in->Width * m_buffer_in->Height),
@@ -51,10 +49,9 @@ CH_SENSOR_API void ChFilterImageFloat4ToRGBA8::Initialize(std::shared_ptr<ChSens
     }
 }
 
-CH_SENSOR_API void ChFilterImageFloat4ToRGBA8::Apply() {
-    nppiScale_32f8u_C4R_Ctx((float*)m_buffer_in->Buffer.get(), m_buffer_out->Width * 4 * sizeof(float),
-                            (unsigned char*)m_buffer_out->Buffer.get(), m_buffer_out->Width * 4,
-                            NppiSize({(int)m_buffer_out->Width, (int)m_buffer_out->Height}), 0.f, 1.f, m_cuda_stream);
+CH_SENSOR_API void ChFilterImageHalf4ToRGBA8::Apply() {
+    cuda_image_half4_to_uchar4(m_buffer_in->Buffer.get(), m_buffer_out->Buffer.get(), m_buffer_out->Width,
+                               m_buffer_out->Height, m_cuda_stream);
 
     m_buffer_out->LaunchedCount = m_buffer_in->LaunchedCount;
     m_buffer_out->TimeStamp = m_buffer_in->TimeStamp;

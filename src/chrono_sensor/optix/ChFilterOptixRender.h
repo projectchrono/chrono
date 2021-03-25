@@ -41,16 +41,14 @@ class CH_SENSOR_API ChOptixDenoiser {
     void Initialize(unsigned int w,
                     unsigned int h,
                     CUstream stream,
-                    float4* input_buffer,
-                    float4* albedo_buffer,
-                    float4* normal_buffer,
-                    float4* output_buffer);
+                    half4* input_buffer,
+                    half4* albedo_buffer,
+                    half4* normal_buffer,
+                    half4* output_buffer);
     void Execute();
 
   private:
     CUstream m_cuda_stream;
-
-    // OptixDeviceContext m_context = nullptr;
     OptixDenoiser m_denoiser = nullptr;
     OptixDenoiserParams m_params = {};
     CUdeviceptr md_intensity = 0;
@@ -58,7 +56,6 @@ class CH_SENSOR_API ChOptixDenoiser {
     uint32_t m_scratch_size = 0;
     CUdeviceptr md_state = 0;
     uint32_t m_state_size = 0;
-
     std::vector<OptixImage2D> md_inputs;
     OptixImage2D md_output;
 };

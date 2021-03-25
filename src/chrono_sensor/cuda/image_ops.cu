@@ -16,6 +16,7 @@
 
 #include <cuda.h>
 #include "image_ops.cuh"
+#include "chrono_sensor/optix/shaders/device_utils.h"
 #include <iostream>
 
 namespace chrono {
@@ -130,6 +131,13 @@ __global__ void image_alias_float_kernel(float* bufIn, float* bufOut, int w_out,
         bufOut[out_index] = mean / (factor * factor);
     }
 }
+// merge pixels by the factor
+__global__ void image_half4_to_uchar4_kernel(__half* bufIn, unsigned char* bufOut, int N) {
+    int idx = (blockDim.x * blockIdx.x + threadIdx.x);  // index into output buffer
+    if (idx < N) {
+        bufOut[idx] = (unsigned char)(clamp(__half2float(bufIn[idx]), 0.f, 1.f) * 255.f);
+    }
+}
 
 void cuda_image_gauss_blur_char(void* buf, int w, int h, int c, int factor, CUstream& stream) {
     const int nThreads = 512;
@@ -176,6 +184,12 @@ void cuda_image_alias_float(void* bufIn,
 
     image_alias_float_kernel<<<nBlocks, nThreads, 0, stream>>>((float*)bufIn, (float*)bufOut, w_out, h_out, factor,
                                                                pix_size);
+}
+
+void cuda_image_half4_to_uchar4(void* bufIn, void* bufOut, int w, int h, CUstream& stream) {
+    const int nThreads = 512;
+    int nBlocks = (w * h * 4 + nThreads - 1) / nThreads;
+    image_half4_to_uchar4_kernel<<<nBlocks, nThreads, 0, stream>>>((__half*)bufIn, (unsigned char*)bufOut, w * h * 4);
 }
 
 }  // namespace sensor
