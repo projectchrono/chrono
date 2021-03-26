@@ -331,25 +331,24 @@ ChIrrAppInterface::ChIrrAppInterface(ChSystem* psystem,
     params.Stencilbuffer = do_shadows;
     params.LoggingLevel = log_level;
 
-    device = std::unique_ptr<irr::IrrlichtDevice>(irr::createDeviceEx(params));
-
+    device = irr::createDeviceEx(params);
     if (!device) {
         GetLog() << "Cannot use default video driver - fall back to OpenGL \n";
         params.DriverType = irr::video::EDT_OPENGL;
-
-        device = std::unique_ptr<irr::IrrlichtDevice>(irr::createDeviceEx(params));
-
+        device = irr::createDeviceEx(params);
         if (!device)
             return;
     }
 
+    device->grab();
+
     // Xeffects for shadow maps!
     if (do_antialias)
         effect = std::unique_ptr<EffectHandler>(
-            new EffectHandler(device.get(), device->getVideoDriver()->getScreenSize() * 2, true, false, true));
+            new EffectHandler(device, device->getVideoDriver()->getScreenSize() * 2, true, false, true));
     else
         effect = std::unique_ptr<EffectHandler>(
-            new EffectHandler(device.get(), device->getVideoDriver()->getScreenSize(), true, false, true));
+            new EffectHandler(device, device->getVideoDriver()->getScreenSize(), true, false, true));
     // note: Irrlicht antialiasing does not work with Xeffects, but we could fake AA in Xeffects
     // by doubling the size of its buffer:  EffectHandler(device, device->getVideoDriver()->getScreenSize()*2
     effect->setAmbientColor(irr::video::SColor(255, 122, 122, 122));
