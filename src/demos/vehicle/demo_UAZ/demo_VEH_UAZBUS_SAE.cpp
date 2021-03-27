@@ -59,7 +59,7 @@ VisualizationType wheel_vis_type = VisualizationType::MESH;
 VisualizationType tire_vis_type = VisualizationType::MESH;
 
 // Type of tire model (RIGID, TMEASY, PAC02)
-TireModelType tire_model = TireModelType::PAC02;
+TireModelType tire_model = TireModelType::TMEASY;
 
 // Point on chassis tracked by the camera
 ChVector<> trackPoint(0.0, 0.0, 1.75);

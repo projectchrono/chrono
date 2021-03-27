@@ -58,7 +58,7 @@ int main(int argc, char* argv[]) {
     my_sedan.SetChassisCollisionType(CollisionType::NONE);
     my_sedan.SetChassisFixed(false);
     my_sedan.SetInitPosition(ChCoordsys<>(ChVector<>(-40, 0, 1.0)));
-    my_sedan.SetTireType(TireModelType::PAC02);
+    my_sedan.SetTireType(TireModelType::TMEASY);
     my_sedan.SetTireStepSize(1e-3);
     my_sedan.Initialize();
 
