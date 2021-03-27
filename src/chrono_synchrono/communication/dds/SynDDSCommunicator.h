@@ -124,7 +124,15 @@ class SYN_API SynDDSCommunicator : public SynCommunicator {
     ///@param topic_prefix The prefix to use
     std::shared_ptr<SynDDSTopic> CreateTopic(const std::string& topic_name,
                                              eprosima::fastdds::dds::TopicDataType* data_type,
-                                             const std::string& topic_prefix = "/syn/");
+                                             const std::string& topic_prefix);
+	
+	///@brief Create a topic using the communicator's prefix
+    /// The topic will be registered with the participant, if desired
+    ///
+    ///@param topic_name The name associated with the topic
+    ///@param data_type The topic data type
+    std::shared_ptr<SynDDSTopic> CreateTopic(const std::string& topic_name,
+                                             eprosima::fastdds::dds::TopicDataType* data_type);
 
     ///@brief Create a subscription to the specified topic
     /// Will call the callback when a subscription is received

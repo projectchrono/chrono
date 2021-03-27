@@ -163,6 +163,12 @@ std::shared_ptr<SynDDSTopic> SynDDSCommunicator::CreateTopic(const std::string& 
     return topic;
 }
 
+std::shared_ptr<SynDDSTopic> SynDDSCommunicator::CreateTopic(const std::string& topic_name,
+                                                             TopicDataType* data_type) {
+    auto topic = this->CreateTopic(topic_name, data_type, m_prefix);
+    return topic;
+}
+
 std::shared_ptr<SynDDSSubscriber> SynDDSCommunicator::CreateSubscriber(std::shared_ptr<SynDDSTopic> topic,
                                                                        std::function<void(void*)> callback,
                                                                        void* message,
@@ -279,7 +285,7 @@ std::shared_ptr<SynDDSPublisher> SynDDSCommunicator::CreatePublisher(const std::
     }
 
     // Create the topic
-    auto topic = CreateTopic(topic_name, data_type);
+    auto topic = this->CreateTopic(topic_name, data_type);
     if (!topic->GetDDSTopic()) {
         SynLog() << "CreateSubscriber: Topic (" << topic_name << ") instantiation FAILED\n";
         return nullptr;
