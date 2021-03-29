@@ -45,7 +45,7 @@ class SynDDSThreadSafeCounter {
 /// Participant listener that will count the number of participants and store their names to be used later
 class SynDDSParticipantListener : public eprosima::fastdds::dds::DomainParticipantListener {
   public:
-    SynDDSParticipantListener() {}
+    SynDDSParticipantListener(const std::string& commprefix) : comm_prefix(commprefix) {}
 
     virtual void on_participant_discovery(eprosima::fastdds::dds::DomainParticipant* participant,
                                           eprosima::fastrtps::rtps::ParticipantDiscoveryInfo&& info) override;
@@ -66,6 +66,12 @@ class SynDDSParticipantListener : public eprosima::fastdds::dds::DomainParticipa
     std::vector<std::string> GetParticipantNames() const { return m_participant_names; }
 
   private:
+	///@brief Function used interally to check if the discovered 
+    ///partecipant's name matches the communicator prefix
+    bool CheckParticipantName(const std::string& name);
+
+	const std::string& comm_prefix;
+
     SynDDSThreadSafeCounter m_counter;
 
     std::vector<std::string> m_participant_names;

@@ -81,7 +81,7 @@ void SynDDSCommunicator::InitQoS(const std::string& name) {
 
 void SynDDSCommunicator::CreateParticipant(DomainParticipantQos& qos) {
     // Create the listener and mask
-    m_listener = new SynDDSParticipantListener();
+    m_listener = new SynDDSParticipantListener(m_prefix);
     auto mask = StatusMask::all();
     mask.set(9, false);
 

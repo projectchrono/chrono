@@ -40,12 +40,21 @@ int SynDDSThreadSafeCounter::GetSafe() {
 
 void SynDDSParticipantListener::on_participant_discovery(DomainParticipant* participant,
                                                          ParticipantDiscoveryInfo&& info) {
-    if (info.status == ParticipantDiscoveryInfo::DISCOVERED_PARTICIPANT) {
+    if (info.status == ParticipantDiscoveryInfo::DISCOVERED_PARTICIPANT && 
+			CheckParticipantName(std::string(info.info.m_participantName))) {
         m_participant_names.push_back(std::string(info.info.m_participantName));
         m_counter.Increment();
     } else if (info.status == ParticipantDiscoveryInfo::REMOVED_PARTICIPANT ||
                info.status == ParticipantDiscoveryInfo::DROPPED_PARTICIPANT) {
     }
+}
+
+bool SynDDSParticipantListener::CheckParticipantName(const std::string& name) {
+	std::size_t found = name.find(this->comm_prefix);
+    if (found == std::string::npos){
+            return false;
+		}
+	else{return true;}
 }
 
 // -----------------------------------------------------------------------------------
