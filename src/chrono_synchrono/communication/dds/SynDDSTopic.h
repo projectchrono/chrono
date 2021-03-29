@@ -39,11 +39,11 @@ class SynDDSTopic {
     ///@param topic_name The topic name
     ///@param data_type The topic data type
     ///@param participant the participant used to create the topic and register the type, if necessary
-    ///@param topic_prefix The prefix used. Will default to /syn/ if nothing passed
+    ///@param topic_prefix The prefix used.
     SynDDSTopic(const std::string& topic_name,
+				const std::string& topic_prefix,
                 eprosima::fastdds::dds::TopicDataType* data_type,
-                eprosima::fastdds::dds::DomainParticipant* participant = nullptr,
-                const std::string& topic_prefix = "/syn/");
+                eprosima::fastdds::dds::DomainParticipant* participant = nullptr);
 
     ///@brief Destructor
     ///
@@ -78,7 +78,7 @@ class SynDDSTopic {
     ///@param topic string representation of the topic with a prefix
     ///@param prefix the used prefix
     ///@return std::string the topic with the prefix removed
-    static std::string RemovePrefix(const std::string& topic, const std::string& prefix = "");
+    static std::string RemovePrefix(const std::string& topic, const std::string& prefix);
 
     // -----------------------------------------------------------------------------------------------
 
@@ -98,7 +98,7 @@ class SynDDSTopic {
     // -----------------------------------------------------------------------------------------------
 
     std::string m_topic_name;                    ///< The topic name
-    std::string m_topic_prefix;                  ///< The topic prefix (defaults to "/syn/")
+    std::string m_topic_prefix;                  ///< The topic prefix
     eprosima::fastdds::dds::Topic* m_dds_topic;  ///< ptr to the DDS topic object
 
     std::string m_type_name;                          ///< The type support name

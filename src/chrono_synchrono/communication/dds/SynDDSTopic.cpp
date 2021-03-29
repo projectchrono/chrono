@@ -10,15 +10,15 @@
 
 using namespace eprosima::fastdds::dds;
 
-static std::string default_prefix = "/syn/";
 
 namespace chrono {
 namespace synchrono {
 
 SynDDSTopic::SynDDSTopic(const std::string& topic_name,
+                         const std::string& topic_prefix,
                          TopicDataType* data_type,
-                         DomainParticipant* participant,
-                         const std::string& topic_prefix)
+                         DomainParticipant* participant
+)
     : m_topic_name(topic_name), m_dds_topic(nullptr), m_dds_type(new TypeSupport(data_type)) {
     m_topic_prefix = topic_prefix;
     m_type_name = m_dds_type->get_type_name();
@@ -58,13 +58,11 @@ void SynDDSTopic::SetPrefix(const std::string& prefix) {
 }
 
 std::string SynDDSTopic::RemovePrefix(const std::string& topic, const std::string& prefix) {
-    std::string topic_prefix = prefix.empty() ? default_prefix : prefix;
-
-    std::size_t pos = topic.find(topic_prefix);
+    std::size_t pos = topic.find(prefix);
     if (pos == std::string::npos)
         return topic;  // prefix not found
 
-    return topic.substr(topic_prefix.size());
+    return topic.substr(prefix.size());
 }
 
 // -----------------------------------------------------------------------------------------------

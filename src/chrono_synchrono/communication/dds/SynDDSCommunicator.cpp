@@ -157,7 +157,7 @@ std::shared_ptr<SynDDSTopic> SynDDSCommunicator::CreateTopic(const std::string& 
         return m_topics[topic_name];
     }
 
-    auto topic = chrono_types::make_shared<SynDDSTopic>(topic_name, data_type, m_participant, topic_prefix);
+    auto topic = chrono_types::make_shared<SynDDSTopic>(topic_name, topic_prefix, data_type, m_participant);
     m_topics[topic_name] = topic;
 
     return topic;
