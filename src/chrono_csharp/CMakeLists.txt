@@ -43,8 +43,7 @@ include(${SWIG_USE_FILE})
 
 # Add /bigobj flag to deal with large generated .cxx wrappers
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-  set(CMAKE_CXX_FLAGS_DEBUG   "${CMAKE_CXX_FLAGS_DEBUG}   /bigobj")
-  set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /bigobj")
+  set(CMAKE_CXX_FLAGS   "${CMAKE_CXX_FLAGS}   /bigobj")
 endif()
 
 # Set location of SWIG-generated files.

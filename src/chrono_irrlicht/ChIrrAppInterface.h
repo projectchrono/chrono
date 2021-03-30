@@ -61,7 +61,7 @@ class ChApiIrr ChIrrAppInterface {
     virtual ~ChIrrAppInterface();
 
     //// Accessor functions
-    irr::IrrlichtDevice* GetDevice() { return device.get(); }
+    irr::IrrlichtDevice* GetDevice() { return device; }
     irr::video::IVideoDriver* GetVideoDriver() { return device->getVideoDriver(); }
     irr::scene::ISceneManager* GetSceneManager() { return device->getSceneManager(); }
     irr::scene::ICameraSceneNode* GetActiveCamera() { return device->getSceneManager()->getActiveCamera(); }
@@ -232,7 +232,7 @@ class ChApiIrr ChIrrAppInterface {
 
   private:
     // The Irrlicht engine:
-    std::unique_ptr<irr::IrrlichtDevice> device;
+    irr::IrrlichtDevice* device;
 
     // Xeffects for shadow maps!
     std::unique_ptr<EffectHandler> effect;
