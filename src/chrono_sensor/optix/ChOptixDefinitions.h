@@ -147,7 +147,9 @@ struct MaterialParameters {
     float lidar_intensity;
     float radar_backscatter;
     cudaTextureObject_t kd_tex;
-    cudaTextureObject_t kn_tex;  // here since this modifies geometry (normals)
+    cudaTextureObject_t kn_tex;
+    cudaTextureObject_t metallic_tex;
+    cudaTextureObject_t roughness_tex;
 };
 
 struct ContextParameters {

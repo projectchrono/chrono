@@ -114,6 +114,16 @@ extern "C" __global__ void __closesthit__camera_shader() {
         }
     }
 
+    // query roughness and metalic values
+    float roughness = mat.roughness;
+    if (mat.roughness_tex) {
+        roughness = tex2D<float>(mat.roughness_tex, uv.x, uv.y);
+    }
+    float metallic = mat.metallic;
+    if (mat.metallic_tex) {
+        metallic = tex2D<float>(mat.metallic_tex, uv.x, uv.y);
+    }
+
     //=================
     // Diffuse color
     //=================
@@ -152,17 +162,18 @@ extern "C" __global__ void __closesthit__camera_shader() {
                     float NdH = Dot(world_normal, halfway);
                     float VdH = Dot(-ray_dir, halfway);
 
-                    // float3 F = make_float3(0.5f);
-
+                    float3 F = make_float3(0.5f);
                     // === dielectric workflow
-                    // float3 default_dielectrics_F0 = make_float3(0.04f);
-                    // F = mat.metallic * subsurface_albedo + (1 - mat.metallic) * default_dielectrics_F0;
-                    // subsurface_albedo =
-                    //     (1 - mat.metallic) * subsurface_albedo;  // since metals do not do subsurface reflection
-
-                    // === Ks workflow
-                    float3 F0 = mat.Ks * 0.08f;
-                    float3 F = fresnel_schlick(VdH, 5, F0, make_float3(1) /*make_float3(fresnel_max) it is usually 1*/);
+                    if (metallic > 0) {
+                        float3 default_dielectrics_F0 = make_float3(0.04f);
+                        F = metallic * subsurface_albedo + (1 - metallic) * default_dielectrics_F0;
+                        subsurface_albedo =
+                            (1 - metallic) * subsurface_albedo;  // since metals do not do subsurface reflection
+                    } else {                                     // default to specular workflow
+                        float3 F0 = mat.Ks * 0.08f;
+                        F = fresnel_schlick(VdH, 5.f, F0,
+                                            make_float3(1.f) /*make_float3(fresnel_max) it is usually 1*/);
+                    }
 
                     // === Fresnel_at_0 to Fresnel_at_90 workflow
                     // F = fresnel_schlick(VdH, mat.fresnel_exp, make_float3(mat.fresnel_min),
@@ -174,8 +185,8 @@ extern "C" __global__ void __closesthit__camera_shader() {
                     // F = fresnel_schlick(NdV, 5, F0, make_float3(1));
 
                     diffuse_color += (make_float3(1.f) - F) * subsurface_albedo * incoming_light_ray;
-                    float D = NormalDist(NdH, mat.roughness);        // 1/pi omitted
-                    float G = HammonSmith(NdV, NdL, mat.roughness);  // 4  * NdV * NdL omitted
+                    float D = NormalDist(NdH, roughness);        // 1/pi omitted
+                    float G = HammonSmith(NdV, NdL, roughness);  // 4  * NdV * NdL omitted
                     float3 f_ct = F * D * G;
                     diffuse_color += f_ct * incoming_light_ray;
                 }
@@ -224,16 +235,16 @@ extern "C" __global__ void __closesthit__camera_shader() {
 
     float3 next_contrib_to_first_hit = (make_float3(1.f) - F) * subsurface_albedo * NdL;
 
-    // float D = NormalDist(NdH, mat.roughness);  // 1/pi omitted
-    float G = HammonSmith(NdV, NdL, mat.roughness);  // 4  * NdV * NdL omitted
-    float D = NormalDist(NdH, mat.roughness) / CUDART_PI_F;
-    // float G = HammonSmith(NdV, NdL, mat.roughness) / (4 * NdV * NdL);
+    // float D = NormalDist(NdH, roughness);  // 1/pi omitted
+    float G = HammonSmith(NdV, NdL, roughness);  // 4  * NdV * NdL omitted
+    float D = NormalDist(NdH, roughness) / CUDART_PI_F;
+    // float G = HammonSmith(NdV, NdL, roughness) / (4 * NdV * NdL);
     float3 f_ct = F * D * G;
     next_contrib_to_first_hit += f_ct * NdL;
 
     if (!prd_camera->use_gi) {  // we need to account for the fact we didn't randomly sample the direction (heuristic
                                 // since this is not physical)
-        next_contrib_to_first_hit = (1.f - mat.roughness) * next_contrib_to_first_hit / (2 * CUDART_PI_F);
+        next_contrib_to_first_hit = (1.f - roughness) * next_contrib_to_first_hit / (2 * CUDART_PI_F);
     }
 
     // contribution should never exceed 1 or esle we are creating energy on reflection

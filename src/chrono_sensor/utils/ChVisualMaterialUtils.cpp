@@ -99,13 +99,24 @@ void CreateModernMeshAssets(std::shared_ptr<ChTriangleMeshShape> mesh_shape) {
             // std::cout << "Kd Map: " << mtl_base + materials[i].diffuse_texname << std::endl;
         }
 
+        // set normal map when called "bump_texname"
         if (materials[i].bump_texname != "") {
             mat->SetNormalMapTexture(mtl_base + materials[i].bump_texname);
             // std::cout << "Normal Map: " << mtl_base + materials[i].bump_texname << std::endl;
         }
-        // mat->SetFresnelExp(float exp);
-        // mat->SetFresnelMax(float max);
-        // mat->SetFresnelMin(float min);
+        // set normal map when called "normal_texname"
+        if (materials[i].normal_texname != "") {
+            mat->SetNormalMapTexture(mtl_base + materials[i].normal_texname);
+        }
+        // set roughness texture if it exists
+        if (materials[i].roughness_texname != "") {
+            mat->SetRoughnessTexture(mtl_base + materials[i].roughness_texname);
+        }
+        // set metallic texture if it exists
+        if (materials[i].metallic_texname != "") {
+            mat->SetMetallicTexture(mtl_base + materials[i].metallic_texname);
+        }
+
         mat->SetRoughness(materials[i].roughness);
 
         material_list.push_back(mat);

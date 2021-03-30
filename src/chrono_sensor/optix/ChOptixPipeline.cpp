@@ -996,6 +996,32 @@ unsigned int ChOptixPipeline::GetMaterial(std::shared_ptr<ChVisualMaterial> mat)
             material.kn_tex = 0;  // explicitely null
         }
 
+        // metalic texture
+        if (mat->GetMetallicTexture() != "") {
+            cudaTextureObject_t d_tex_sampler;
+            cudaArray_t d_img_array;
+            CreateDeviceTexture(d_tex_sampler, d_img_array, mat->GetMetallicTexture());
+            material.metallic_tex = d_tex_sampler;
+            // push the sampler and the image to places they can get destroyed later
+            m_texture_samplers.push_back(d_tex_sampler);
+            m_img_textures.push_back(d_img_array);
+        } else {
+            material.metallic_tex = 0;  // explicitely null
+        }
+
+        // roughness texture
+        if (mat->GetRoughnessTexture() != "") {
+            cudaTextureObject_t d_tex_sampler;
+            cudaArray_t d_img_array;
+            CreateDeviceTexture(d_tex_sampler, d_img_array, mat->GetRoughnessTexture());
+            material.roughness_tex = d_tex_sampler;
+            // push the sampler and the image to places they can get destroyed later
+            m_texture_samplers.push_back(d_tex_sampler);
+            m_img_textures.push_back(d_img_array);
+        } else {
+            material.roughness_tex = 0;  // explicitely null
+        }
+
         m_material_pool.push_back(material);
         return m_material_pool.size() - 1;
 
@@ -1014,6 +1040,8 @@ unsigned int ChOptixPipeline::GetMaterial(std::shared_ptr<ChVisualMaterial> mat)
             material.radar_backscatter = 1.f;
             material.kd_tex = 0;
             material.kn_tex = 0;
+            material.roughness_tex = 0;
+            material.metallic_tex = 0;
             m_material_pool.push_back(material);
             m_default_material_id = m_material_pool.size() - 1;
             m_default_material_inst = true;

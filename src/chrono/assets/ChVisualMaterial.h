@@ -38,7 +38,9 @@ class ChApi ChVisualMaterial : public ChAsset {
     void SetSpecularExponent(float exponent);
     void SetTransparency(float tr);
     void SetKdTexture(std::string filename) { kd_texture = filename; };
-    void SetNormalMapTexture(std::string filename){ normal_texture = filename; };
+    void SetNormalMapTexture(std::string filename) { normal_texture = filename; };
+    void SetMetallicTexture(std::string filename) { metallic_texture = filename; };
+    void SetRoughnessTexture(std::string filename) { roughness_texture = filename; };
     void SetFresnelExp(float exp);
     void SetFresnelMax(float max);
     void SetFresnelMin(float min);
@@ -52,7 +54,9 @@ class ChApi ChVisualMaterial : public ChAsset {
     float GetSpecularExponent() { return Ns; }
     float GetTransparency() { return d; }
     std::string GetKdTexture() { return kd_texture; };
-    std::string GetNormalMapTexture(){ return normal_texture; };
+    std::string GetNormalMapTexture() { return normal_texture; };
+    std::string GetMetallicTexture() { return metallic_texture; };
+    std::string GetRoughnessTexture() { return roughness_texture; };
     float GetFresnelExp() { return fresnel_exp; }
     float GetFresnelMax() { return fresnel_max; }
     float GetFresnelMin() { return fresnel_min; }
@@ -73,9 +77,10 @@ class ChApi ChVisualMaterial : public ChAsset {
     float roughness;
     float metallic;
 
-    bool has_texture;
     std::string kd_texture;
     std::string normal_texture;
+    std::string metallic_texture;
+    std::string roughness_texture;
 };
 
 }  // end namespace chrono
