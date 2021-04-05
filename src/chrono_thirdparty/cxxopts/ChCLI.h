@@ -107,7 +107,7 @@ class ChCLI {
     const T GetAsType(const std::string& option) {
         try {
             return (*m_result)[option].as<T>();
-        } catch (std::domain_error e) {
+        } catch (std::domain_error& e) {
             if (m_result->count(option) != 0) {
                 std::cerr << "ChCLI::GetAsType: Could not cast \"" << option << "\" as " << typeid(T).name() << std::endl;
             } else {
