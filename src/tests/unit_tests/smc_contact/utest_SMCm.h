@@ -105,7 +105,11 @@ std::shared_ptr<ChBody> AddWall(int id,
     return body;
 }
 
-void SetSimParameters(ChSystemMulticoreSMC* sys, const ChVector<>& gravity, ChSystemSMC::ContactForceModel fmodel) {
+void SetSimParameters(
+    ChSystemMulticoreSMC* sys,
+    const ChVector<>& gravity,
+    ChSystemSMC::ContactForceModel fmodel,
+    ChSystemSMC::TangentialDisplacementModel tmodel = ChSystemSMC::TangentialDisplacementModel::MultiStep) {
     // Set solver settings and collision detection parameters
     sys->Set_G_acc(gravity);
 
@@ -114,7 +118,7 @@ void SetSimParameters(ChSystemMulticoreSMC* sys, const ChVector<>& gravity, ChSy
 
     sys->GetSettings()->solver.contact_force_model = fmodel;  // Types: Hooke, Hertz, PlainCoulomb, Flores
     sys->GetSettings()->solver.adhesion_force_model = ChSystemSMC::AdhesionForceModel::Constant;
-    sys->GetSettings()->solver.tangential_displ_mode = ChSystemSMC::TangentialDisplacementModel::MultiStep;
+    sys->GetSettings()->solver.tangential_displ_mode = tmodel;
 
     sys->GetSettings()->collision.bins_per_axis = vec3(10, 10, 10);
     sys->GetSettings()->collision.narrowphase_algorithm = NarrowPhaseType::NARROWPHASE_HYBRID_MPR;
