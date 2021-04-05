@@ -174,7 +174,7 @@ int main(int argc, char* argv[]) {
 
     const int node_id = cli.GetAsType<int>("node_id");
     const int num_nodes = cli.GetAsType<int>("num_nodes");
-    const std::string ip = cli.GetAsType<std::string>("ip");
+    const std::vector<std::string> ip_list = cli.GetAsType<std::vector<std::string>>("ip");
 
     // Print help, if necessary
     if (cli.CheckHelp() && node_id == 1) {
@@ -186,7 +186,7 @@ int main(int argc, char* argv[]) {
     // -----------------------
     // Create the DomainParticipantQos
     DomainParticipantQos qos;
-    qos.name("/syn/node/" + std::to_string(node_id) + "0");
+    qos.name(std::to_string(node_id) + ".0");
 
     // Use UDP by default
     qos.transport().user_transports.push_back(chrono_types::make_shared<UDPv4TransportDescriptor>());
@@ -194,9 +194,11 @@ int main(int argc, char* argv[]) {
     qos.transport().use_builtin_transports = false;
 
     // Set the initialPeersList
-    Locator_t locator;
-    IPLocator::setIPv4(locator, ip);
-    qos.wire_protocol().builtin.initialPeersList.push_back(locator);
+    for (const auto& ip : ip_list) {
+        Locator_t locator;
+        IPLocator::setIPv4(locator, ip);
+        qos.wire_protocol().builtin.initialPeersList.push_back(locator);
+    }
 
     auto communicator = chrono_types::make_shared<SynDDSCommunicator>(qos);
     SynChronoManager syn_manager(node_id, num_nodes, communicator);
@@ -355,5 +357,5 @@ void AddCommandLineOptions(ChCLI& cli) {
     // DDS Specific
     cli.AddOption<int>("DDS", "d,node_id", "ID for this Node", "1");
     cli.AddOption<int>("DDS", "n,num_nodes", "Number of Nodes", "2");
-    cli.AddOption<std::string>("DDS", "ip", "IP Address for initialPeersList", "127.0.0.1");
+    cli.AddOption<std::vector<std::string>>("DDS", "ip", "IP Addresses for initialPeersList", "127.0.0.1");
 }
