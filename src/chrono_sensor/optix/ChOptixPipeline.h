@@ -99,7 +99,8 @@ class CH_SENSOR_API ChOptixPipeline {
     void CreateDeviceTexture(cudaTextureObject_t& d_tex_sampler,
                              cudaArray_t& d_img_array,
                              std::string file_name,
-                             bool mirror = false);
+                             bool mirror = false,
+                             bool exclude_from_material_cleanup = false);
 
     // Private class variables - DO NOT MODIFY THE CONTEXT
     OptixDeviceContext m_context;
@@ -181,10 +182,13 @@ class CH_SENSOR_API ChOptixPipeline {
     std::vector<CUdeviceptr> m_mesh_buffers_dptrs;  ///< for keeping a handle to free later
 
     // texture and image handles
-    std::vector<cudaTextureObject_t> m_texture_samplers;  ///< for keeping a handle to free later
-    std::vector<cudaArray_t> m_img_textures;              ///< for keeping a handle to free later
-    cudaTextureObject_t md_miss_texture_sampler = {};     ///< handle to the environment texture sampler
-    cudaArray_t md_miss_img_texture = {};                 ///< handle to the environment image texture
+    // std::vector<cudaTextureObject_t> m_texture_samplers;  ///< for keeping a handle to free later
+    // std::vector<cudaArray_t> m_img_textures;              ///< for keeping a handle to free later
+    std::unordered_map<std::string,cudaTextureObject_t> m_texture_samplers;  ///< for keeping a handle to free later
+    std::unordered_map<std::string,cudaArray_t> m_img_textures;              ///< for keeping a handle to free later
+
+    cudaTextureObject_t md_miss_texture_sampler = {};  ///< handle to the environment texture sampler
+    cudaArray_t md_miss_img_texture = {};              ///< handle to the environment image texture
 
     /// keep track of chrono meshes we've added and their corresponding mesh pool id
     std::vector<std::tuple<std::shared_ptr<geometry::ChTriangleMeshConnected>, unsigned int>> m_known_meshes;

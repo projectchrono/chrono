@@ -283,18 +283,29 @@ void ChOptixPipeline::CleanMaterials() {
     m_material_pool.clear();
 
     // clear out and free texture samplers
-    for (int i = 0; i < m_img_textures.size(); i++) {
-        if (m_img_textures[i]) {
-            CUDA_ERROR_CHECK(cudaFreeArray(m_img_textures[i]));
-        }
+    for (auto it : m_img_textures) {
+        if (it.second)
+            CUDA_ERROR_CHECK(cudaFreeArray(it.second));
     }
     m_img_textures.clear();
-
-    // clear out and free images on the device
-    for (int i = 0; i < m_texture_samplers.size(); i++) {
-        CUDA_ERROR_CHECK(cudaDestroyTextureObject(m_texture_samplers[i]));
+    for (auto it : m_texture_samplers) {
+        if (it.second)
+            CUDA_ERROR_CHECK(cudaDestroyTextureObject(it.second));
     }
     m_texture_samplers.clear();
+
+    // for (int i = 0; i < m_img_textures.size(); i++) {
+    //     if (m_img_textures[i]) {
+    //         CUDA_ERROR_CHECK(cudaFreeArray(m_img_textures[i]));
+    //     }
+    // }
+    // m_img_textures.clear();
+
+    // clear out and free images on the device
+    // for (int i = 0; i < m_texture_samplers.size(); i++) {
+    //     CUDA_ERROR_CHECK(cudaDestroyTextureObject(m_texture_samplers[i]));
+    // }
+    // m_texture_samplers.clear();
 
     // reset instanced record parameters
     m_default_box_record_inst = false;
@@ -635,7 +646,7 @@ void ChOptixPipeline::UpdateBackground(Background b) {
         if (md_miss_texture_sampler) {
             CUDA_ERROR_CHECK(cudaDestroyTextureObject(md_miss_texture_sampler));
         }
-        CreateDeviceTexture(md_miss_texture_sampler, md_miss_img_texture, b.env_tex);
+        CreateDeviceTexture(md_miss_texture_sampler, md_miss_img_texture, b.env_tex, false, false);
         miss_rec[0].data.camera_miss.env_map = md_miss_texture_sampler;
     }
 
@@ -975,10 +986,6 @@ unsigned int ChOptixPipeline::GetMaterial(std::shared_ptr<ChVisualMaterial> mat)
             cudaArray_t d_img_array;
             CreateDeviceTexture(d_tex_sampler, d_img_array, mat->GetKdTexture());
             material.kd_tex = d_tex_sampler;
-            // push the sampler and the image to places they can get destroyed later
-            m_texture_samplers.push_back(d_tex_sampler);
-            m_img_textures.push_back(d_img_array);
-
         } else {
             material.kd_tex = 0;  // explicitely null
         }
@@ -989,9 +996,6 @@ unsigned int ChOptixPipeline::GetMaterial(std::shared_ptr<ChVisualMaterial> mat)
             cudaArray_t d_img_array;
             CreateDeviceTexture(d_tex_sampler, d_img_array, mat->GetNormalMapTexture());
             material.kn_tex = d_tex_sampler;
-            // push the sampler and the image to places they can get destroyed later
-            m_texture_samplers.push_back(d_tex_sampler);
-            m_img_textures.push_back(d_img_array);
         } else {
             material.kn_tex = 0;  // explicitely null
         }
@@ -1002,9 +1006,6 @@ unsigned int ChOptixPipeline::GetMaterial(std::shared_ptr<ChVisualMaterial> mat)
             cudaArray_t d_img_array;
             CreateDeviceTexture(d_tex_sampler, d_img_array, mat->GetMetallicTexture());
             material.metallic_tex = d_tex_sampler;
-            // push the sampler and the image to places they can get destroyed later
-            m_texture_samplers.push_back(d_tex_sampler);
-            m_img_textures.push_back(d_img_array);
         } else {
             material.metallic_tex = 0;  // explicitely null
         }
@@ -1015,9 +1016,6 @@ unsigned int ChOptixPipeline::GetMaterial(std::shared_ptr<ChVisualMaterial> mat)
             cudaArray_t d_img_array;
             CreateDeviceTexture(d_tex_sampler, d_img_array, mat->GetRoughnessTexture());
             material.roughness_tex = d_tex_sampler;
-            // push the sampler and the image to places they can get destroyed later
-            m_texture_samplers.push_back(d_tex_sampler);
-            m_img_textures.push_back(d_img_array);
         } else {
             material.roughness_tex = 0;  // explicitely null
         }
@@ -1295,14 +1293,14 @@ unsigned int ChOptixPipeline::GetRigidMeshMaterial(CUdeviceptr& d_vertices,
         std::vector<float3> normal_buffer = std::vector<float3>(mesh->getCoordsNormals().size());
         std::vector<float2> uv_buffer = std::vector<float2>(mesh->getCoordsUV().size());
 
-        // unsigned int mesh_size_in_bytes = vertex_index_buffer.size() * sizeof(uint3);
-        // mesh_size_in_bytes += normal_index_buffer.size() * sizeof(uint3);
-        // mesh_size_in_bytes += uv_index_buffer.size() * sizeof(uint3);
-        // mesh_size_in_bytes += mat_index_buffer.size() * sizeof(uint);
-        // mesh_size_in_bytes += vertex_buffer.size() * sizeof(float3);
-        // mesh_size_in_bytes += normal_buffer.size() * sizeof(float3);
-        // mesh_size_in_bytes += uv_buffer.size() * sizeof(float2);
-        // std::cout << "Mesh with size = " << mesh_size_in_bytes << std::endl;
+        unsigned int mesh_size_in_bytes = vertex_index_buffer.size() * sizeof(uint3);
+        mesh_size_in_bytes += normal_index_buffer.size() * sizeof(uint3);
+        mesh_size_in_bytes += uv_index_buffer.size() * sizeof(uint3);
+        mesh_size_in_bytes += mat_index_buffer.size() * sizeof(uint);
+        mesh_size_in_bytes += vertex_buffer.size() * sizeof(float3);
+        mesh_size_in_bytes += normal_buffer.size() * sizeof(float3);
+        mesh_size_in_bytes += uv_buffer.size() * sizeof(float2);
+        // std::cout << "Unique mesh with size = " << mesh_size_in_bytes << std::endl;
         // std::cout << "vertex_index_buffer = " << vertex_index_buffer.size() << std::endl;
         // std::cout << "normal_index_buffer = " << normal_index_buffer.size() << std::endl;
         // std::cout << "uv_index_buffer = " << uv_index_buffer.size() << std::endl;
@@ -1529,18 +1527,34 @@ void ChOptixPipeline::UpdateDeformableMeshes() {
 void ChOptixPipeline::CreateDeviceTexture(cudaTextureObject_t& d_tex_sampler,
                                           cudaArray_t& d_img_array,
                                           std::string file_name,
-                                          bool mirror) {
+                                          bool mirror,
+                                          bool exclude_from_material_cleanup) {
     if (!filesystem::path(file_name).exists()) {
         throw std::runtime_error("Error, file not found: " + file_name);
+    }
+
+    // if we have already loaded this texture, instance the texture
+    if (m_texture_samplers.find(file_name) != m_texture_samplers.end() &&
+        m_img_textures.find(file_name) != m_img_textures.end()) {
+        d_tex_sampler = m_texture_samplers[file_name];
+        d_img_array = m_img_textures[file_name];
+        return;
     }
 
     auto img = LoadImage(file_name);
 
     // if image is not 4 channels, make it so
-    std::vector<unsigned char> img_data = std::vector<unsigned char>(img.h * img.w * 4);  // data for a hxwx4 image
+    std::vector<unsigned char> img_data;  // = std::vector<unsigned char>(img.h * img.w * 4);  // data for a hxwx4 image
+    int32_t pitch;  // = img.w * 4 * sizeof(unsigned char);                                    // requires 4 channels
+    cudaChannelFormatDesc channel_desc;
+    // channel_desc = cudaCreateChannelDesc<uchar4>();
+
     if (img.c == 4) {
         img_data = img.data;
+        channel_desc = cudaCreateChannelDesc<uchar4>();
+        pitch = img.w * 4 * sizeof(unsigned char);
     } else if (img.c == 3) {
+        img_data = std::vector<unsigned char>(img.h * img.w * 4);
         for (int i = 0; i < img.h; i++) {
             for (int j = 0; j < img.w; j++) {
                 img_data[i * img.w * 4 + j * 4 + 0] = img.data[(img.h - i - 1) * img.w * 3 + j * 3 + 0];
@@ -1549,7 +1563,10 @@ void ChOptixPipeline::CreateDeviceTexture(cudaTextureObject_t& d_tex_sampler,
                 img_data[i * img.w * 4 + j * 4 + 3] = 255;
             }
         }
+        channel_desc = cudaCreateChannelDesc<uchar4>();
+        pitch = img.w * 4 * sizeof(unsigned char);
     } else if (img.c == 2) {
+        img_data = std::vector<unsigned char>(img.h * img.w * 4);
         for (int i = 0; i < img.h; i++) {
             for (int j = 0; j < img.w; j++) {
                 img_data[i * img.w * 4 + j * 4 + 0] = img.data[(img.h - i - 1) * img.w * 2 + j * 2 + 0];
@@ -1558,7 +1575,10 @@ void ChOptixPipeline::CreateDeviceTexture(cudaTextureObject_t& d_tex_sampler,
                 img_data[i * img.w * 4 + j * 4 + 3] = img.data[(img.h - i - 1) * img.w * 2 + j * 2 + 1];
             }
         }
+        channel_desc = cudaCreateChannelDesc<uchar4>();
+        pitch = img.w * 4 * sizeof(unsigned char);
     } else if (img.c == 1) {
+        img_data = std::vector<unsigned char>(img.h * img.w);
         for (int i = 0; i < img.h; i++) {
             for (int j = 0; j < img.w; j++) {
                 img_data[i * img.w * 4 + j * 4 + 0] = img.data[(img.h - i - 1) * img.w + j];
@@ -1567,13 +1587,11 @@ void ChOptixPipeline::CreateDeviceTexture(cudaTextureObject_t& d_tex_sampler,
                 img_data[i * img.w * 4 + j * 4 + 3] = 255;
             }
         }
+        channel_desc = cudaCreateChannelDesc<uchar1>();
+        pitch = img.w * sizeof(unsigned char);
     } else {
         throw std::runtime_error("Error: invalid img channel size=" + std::to_string(img.c));
     }
-
-    int32_t pitch = img.w * 4 * sizeof(unsigned char);  // requires 4 channels
-    cudaChannelFormatDesc channel_desc;
-    channel_desc = cudaCreateChannelDesc<uchar4>();
 
     CUDA_ERROR_CHECK(cudaMallocArray(&d_img_array, &channel_desc, img.w, img.h));
     CUDA_ERROR_CHECK(
@@ -1602,8 +1620,14 @@ void ChOptixPipeline::CreateDeviceTexture(cudaTextureObject_t& d_tex_sampler,
     CUDA_ERROR_CHECK(cudaCreateTextureObject(&d_tex_sampler, &resource_description, &texture_description, nullptr));
     // m_texture_samplers.push_back(d_tex_sampler);
 
-    // std::cout << "Texture sampler addr: " << d_tex_sampler << std::endl;
-    // std::cout << "Image texture addr: " << d_img_array << std::endl;
+    // std::cout << "Created texture: " << file_name << " with size: " << img_data.size() << std::endl;
+
+    // push this to the vectors for cleanup unless specifically specified not to (background image)
+    if (!exclude_from_material_cleanup) {
+        // push the sampler and the image to places they can get destroyed later
+        m_texture_samplers[file_name] = d_tex_sampler;
+        m_img_textures[file_name] = d_img_array;
+    }
 }
 
 }  // namespace sensor
