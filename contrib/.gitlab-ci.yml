@@ -284,6 +284,7 @@ linux:ubuntu1804:deploy-python3.8:
   tags:
   - windows
   before_script:
+  - $Env:CONDA_INSTALL_LOCN= "C:\Users\builder\anaconda3"
   - echo $CI_PROJECT_DIR
   - git submodule init
   - git submodule update

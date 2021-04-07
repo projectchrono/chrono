@@ -81,7 +81,8 @@ std::string steering_controller_file("marder/driver/SteeringController.json");
 std::string speed_controller_file("marder/driver/SpeedController.json");
 
 // Output directories
-const std::string out_dir = GetChronoOutputPath() + "Marder";
+const std::string out_top_dir = GetChronoOutputPath() + "MARDER";
+const std::string out_dir = out_top_dir + "/SHOCK_TOOL";
 const std::string pov_dir = out_dir + "/POVRAY";
 const std::string img_dir = out_dir + "/IMG";
 
@@ -368,7 +369,8 @@ int main(int argc, char* argv[]) {
 
         bool speed_found = false;
         double contact_speed = 0.0;
-        std::ofstream kurs("kurs.txt");
+        std::ofstream kurs(out_dir + "/path.txt");
+
         // ChRealtimeStepTimer realtime_timer;
         ChFunction_Recorder accLogger;
         utils::ChButterworth_Lowpass lp(4, step_size, 30.0);

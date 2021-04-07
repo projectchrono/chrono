@@ -313,6 +313,9 @@ ChVector<float> ChSystemGpu::GetParticleVelocity(int nSphere) const {
 }
 
 ChVector<float> ChSystemGpu::GetParticleAngVelocity(int nSphere) const {
+    if (m_sys->gran_params->friction_mode == CHGPU_FRICTION_MODE::FRICTIONLESS)
+        return ChVector<float>(0);
+
     float3 omega = m_sys->GetParticleAngVelocity(nSphere);
     return ChVector<float>(omega.x, omega.y, omega.z);
 }

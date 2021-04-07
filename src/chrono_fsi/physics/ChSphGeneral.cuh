@@ -667,7 +667,7 @@ inline __device__ void grad_scalar(int i_idx,
 
                         Real h_j = sortedPosRad[j].w;
                         Real h_ij = 0.5 * (h_j + h_i);
-                        Real W3 = W3h(d, h_ij);
+                        ////Real W3 = W3h(d, h_ij);
                         Real3 grad_i_wij = GradWh(dist3, h_ij);
                         Real V_j = sumWij_inv[j];
                         Real3 common_part = mR3(0);
@@ -729,7 +729,7 @@ inline __device__ void grad_vector(int i_idx,
 
                         Real h_j = sortedPosRad[j].w;
                         Real h_ij = 0.5 * (h_j + h_i);
-                        Real W3 = W3h(d, h_ij);
+                        ////Real W3 = W3h(d, h_ij);
                         Real3 grad_i_wij = GradWh(dist3, h_ij);
                         Real V_j = sumWij_inv[j];
                         common_part.x = grad_i_wij.x * mGi[0] + grad_i_wij.y * mGi[1] + grad_i_wij.z * mGi[2];
