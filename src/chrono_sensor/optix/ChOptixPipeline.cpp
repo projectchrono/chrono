@@ -1026,7 +1026,7 @@ unsigned int ChOptixPipeline::GetMaterial(std::shared_ptr<ChVisualMaterial> mat)
     } else {
         if (!m_default_material_inst) {
             MaterialParameters material;
-            material.Kd = {1.f, 0.f, .5f};
+            material.Kd = {.5f, .5f, .5f};
             material.Ks = {.2f, .2f, .2f};
             material.fresnel_exp = 5.f;
             material.fresnel_min = 0.f;

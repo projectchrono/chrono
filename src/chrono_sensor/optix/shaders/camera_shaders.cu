@@ -105,7 +105,8 @@ extern "C" __global__ void __closesthit__camera_shader() {
             pointer_as_ints(&prd_refraction, opt1, opt2);
 
             // make_camera_data(make_float3(0), refract_importance, prd_camera.rnd, prd_camera.depth + 1);
-            float3 refract_dir = refract(optixGetWorldRayDirection(), world_normal, 1.f, 1.f);
+            // float3 refract_dir = refract(optixGetWorldRayDirection(), world_normal, 1.f, 1.f);
+            float3 refract_dir = ray_dir;  // pure transparency without refraction
 
             optixTrace(params.root, hit_point, refract_dir, params.scene_epsilon, 1e16f, optixGetRayTime(),
                        OptixVisibilityMask(1), OPTIX_RAY_FLAG_NONE, CAMERA_RAY_TYPE, RAY_TYPE_COUNT, CAMERA_RAY_TYPE,
