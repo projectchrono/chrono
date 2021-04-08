@@ -126,6 +126,9 @@ CH_SENSOR_API void ChFilterImgAlias::Initialize(std::shared_ptr<ChSensor> pSenso
 
     if (auto pCam = std::dynamic_pointer_cast<ChCameraSensor>(pSensor)) {
         m_cuda_stream = pCam->GetCudaStream();
+        // m_cuda_stream = {};
+        // m_cuda_stream.hStream = pCam->GetCudaStream();
+        // m_cuda_stream.nCudaDeviceId = 0;  // TODO: allow multiple GPU usage
     } else {
         InvalidFilterGraphSensorTypeMismatch(pSensor);
     }
@@ -162,6 +165,31 @@ CH_SENSOR_API void ChFilterImgAlias::Initialize(std::shared_ptr<ChSensor> pSenso
     }
 }
 CH_SENSOR_API void ChFilterImgAlias::Apply() {
+    // if (m_buffer_rgba8_in) {
+    //     nppiFilterBoxBorder_8u_AC4R_Ctx((unsigned char*)m_buffer_rgba8_in->Buffer.get(), Npp32s nSrcStep,
+    //                                     NppiSize({(int)m_buffer_rgba8_in->Width, (int)m_buffer_rgba8_in->Height}),
+    //                                     NppiPoint oSrcOffset, (unsigned char*)m_buffer_rgba8_out->Buffer.get(),
+    //                                     Npp32s nDstStep,
+    //                                     NppiRect({0, 0, (int)m_buffer_rgba8_in->Width,
+    //                                     (int)m_buffer_rgba8_in->Height}), NppiSize({m_factor+2,m_factor+2}),
+    //                                     NppiPoint({0, 0}), NppiBorderType eBorderType, m_cuda_stream);
+    //     // cuda_image_alias(m_buffer_rgba8_in->Buffer.get(), m_buffer_rgba8_out->Buffer.get(),
+    //     //                  (int)m_buffer_rgba8_out->Width, (int)m_buffer_rgba8_out->Height, m_factor,
+    //     //                  sizeof(PixelRGBA8), m_cuda_stream);
+    //     m_buffer_rgba8_out->LaunchedCount = m_buffer_rgba8_in->LaunchedCount;
+    //     m_buffer_rgba8_out->TimeStamp = m_buffer_rgba8_in->TimeStamp;
+    // } else if (m_buffer_r8_in) {
+    //     // cuda_image_alias(m_buffer_r8_in->Buffer.get(), m_buffer_r8_out->Buffer.get(), (int)m_buffer_r8_out->Width,
+    //     //                  (int)m_buffer_r8_out->Height, m_factor, sizeof(char), m_cuda_stream);
+    //     m_buffer_r8_out->LaunchedCount = m_buffer_r8_in->LaunchedCount;
+    //     m_buffer_r8_out->TimeStamp = m_buffer_r8_in->TimeStamp;
+    // } else if (m_buffer_float4_in) {
+    //     // cuda_image_alias_float(m_buffer_float4_in->Buffer.get(), m_buffer_float4_out->Buffer.get(),
+    //     //                        (int)m_buffer_float4_out->Width, (int)m_buffer_float4_out->Height, m_factor, 4,
+    //     //                        m_cuda_stream);
+    //     m_buffer_float4_out->LaunchedCount = m_buffer_float4_in->LaunchedCount;
+    //     m_buffer_float4_out->TimeStamp = m_buffer_float4_in->TimeStamp;
+    // }
     if (m_buffer_rgba8_in) {
         cuda_image_alias(m_buffer_rgba8_in->Buffer.get(), m_buffer_rgba8_out->Buffer.get(),
                          (int)m_buffer_rgba8_out->Width, (int)m_buffer_rgba8_out->Height, m_factor, sizeof(PixelRGBA8),

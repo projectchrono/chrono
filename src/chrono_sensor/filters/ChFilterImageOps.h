@@ -102,7 +102,8 @@ class CH_SENSOR_API ChFilterImgAlias : public ChFilter {
     std::shared_ptr<SensorDeviceFloat4Buffer> m_buffer_float4_in;   ///< holder of an R8 image
     std::shared_ptr<SensorDeviceFloat4Buffer> m_buffer_float4_out;  ///< holder of an R8 image
     CUstream m_cuda_stream;                                         ///< reference to the cuda stream
-    int m_factor;                                                   ///< reduction factor for antialiasing
+    // NppStreamContext m_cuda_stream;
+    int m_factor;  ///< reduction factor for antialiasing
 };
 
 /// @}

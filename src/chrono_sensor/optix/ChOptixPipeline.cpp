@@ -1544,13 +1544,21 @@ void ChOptixPipeline::CreateDeviceTexture(cudaTextureObject_t& d_tex_sampler,
     auto img = LoadImage(file_name);
 
     // if image is not 4 channels, make it so
-    std::vector<unsigned char> img_data;  // = std::vector<unsigned char>(img.h * img.w * 4);  // data for a hxwx4 image
-    int32_t pitch;  // = img.w * 4 * sizeof(unsigned char);                                    // requires 4 channels
+    std::vector<unsigned char> img_data;
+    int32_t pitch;
     cudaChannelFormatDesc channel_desc;
-    // channel_desc = cudaCreateChannelDesc<uchar4>();
 
     if (img.c == 4) {
-        img_data = img.data;
+        // need to flip the image to match typical texturing
+        img_data = std::vector<unsigned char>(img.h * img.w * 4);
+        for (int i = 0; i < img.h; i++) {
+            for (int j = 0; j < img.w; j++) {
+                img_data[i * img.w * 4 + j * 4 + 0] = img.data[(img.h - i - 1) * img.w * 4 + j * 4 + 0];
+                img_data[i * img.w * 4 + j * 4 + 1] = img.data[(img.h - i - 1) * img.w * 4 + j * 4 + 1];
+                img_data[i * img.w * 4 + j * 4 + 2] = img.data[(img.h - i - 1) * img.w * 4 + j * 4 + 2];
+                img_data[i * img.w * 4 + j * 4 + 3] = img.data[(img.h - i - 1) * img.w * 4 + j * 4 + 3];
+            }
+        }
         channel_desc = cudaCreateChannelDesc<uchar4>();
         pitch = img.w * 4 * sizeof(unsigned char);
     } else if (img.c == 3) {
@@ -1581,13 +1589,10 @@ void ChOptixPipeline::CreateDeviceTexture(cudaTextureObject_t& d_tex_sampler,
         img_data = std::vector<unsigned char>(img.h * img.w);
         for (int i = 0; i < img.h; i++) {
             for (int j = 0; j < img.w; j++) {
-                img_data[i * img.w * 4 + j * 4 + 0] = img.data[(img.h - i - 1) * img.w + j];
-                img_data[i * img.w * 4 + j * 4 + 1] = img.data[(img.h - i - 1) * img.w + j];
-                img_data[i * img.w * 4 + j * 4 + 2] = img.data[(img.h - i - 1) * img.w + j];
-                img_data[i * img.w * 4 + j * 4 + 3] = 255;
+                img_data[i * img.w + j] = img.data[(img.h - i - 1) * img.w + j];
             }
         }
-        channel_desc = cudaCreateChannelDesc<uchar1>();
+        channel_desc = cudaCreateChannelDesc<unsigned char>();
         pitch = img.w * sizeof(unsigned char);
     } else {
         throw std::runtime_error("Error: invalid img channel size=" + std::to_string(img.c));
@@ -1607,20 +1612,19 @@ void ChOptixPipeline::CreateDeviceTexture(cudaTextureObject_t& d_tex_sampler,
     texture_description.addressMode[1] = mirror ? cudaAddressModeMirror : cudaAddressModeWrap;
     texture_description.addressMode[2] = mirror ? cudaAddressModeMirror : cudaAddressModeWrap;
     texture_description.filterMode = cudaFilterModeLinear;
+    // texture_description.filterMode = cudaFilterModePoint;
     texture_description.readMode = cudaReadModeNormalizedFloat;
     texture_description.normalizedCoords = 1;
     texture_description.maxAnisotropy = 1;
     texture_description.maxMipmapLevelClamp = 99;
     texture_description.minMipmapLevelClamp = 0;
     texture_description.mipmapFilterMode = cudaFilterModePoint;
+    // texture_description.mipmapFilterMode = cudaFilterModeLinear;
     // texture_description.borderColor[0] = 1.0f;
     texture_description.sRGB = 0;
 
     // Create texture sampler
     CUDA_ERROR_CHECK(cudaCreateTextureObject(&d_tex_sampler, &resource_description, &texture_description, nullptr));
-    // m_texture_samplers.push_back(d_tex_sampler);
-
-    // std::cout << "Created texture: " << file_name << " with size: " << img_data.size() << std::endl;
 
     // push this to the vectors for cleanup unless specifically specified not to (background image)
     if (!exclude_from_material_cleanup) {

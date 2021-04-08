@@ -77,6 +77,7 @@ __global__ void image_alias_kernel(unsigned char* bufIn,
     int out_index = (blockDim.x * blockIdx.x + threadIdx.x);  // index into output buffer
 
     int w_in = w_out * factor;
+    int h_in = h_out * factor;
     //
     // // only run for each output pixel
     if (out_index < w_out * h_out * pix_size) {
@@ -86,17 +87,29 @@ __global__ void image_alias_kernel(unsigned char* bufIn,
 
         float mean = 0.0;
 
-        for (int i = 0; i < factor; i++) {
-            for (int j = 0; j < factor; j++) {
+        for (int i = -1; i < factor + 1; i++) {
+            for (int j = -1; j < factor + 1; j++) {
                 int idc_in = idc_out;
                 int idx_in = idx_out * factor + j;
                 int idy_in = idy_out * factor + i;
+
+                // reflect when out of range
+
+                if (idx_in < 0)
+                    idx_in = -idx_in - 1;
+                else if (idx_in >= w_in)
+                    idx_in = 2 * w_in - (idx_in + 1);
+                if (idy_in < 0)
+                    idy_in = -idy_in - 1;
+                else if (idy_in >= h_in)
+                    idy_in = 2 * h_in - (idy_in + 1);
 
                 int in_index = idy_in * w_in * pix_size + idx_in * pix_size + idc_in;
                 mean += (float)bufIn[in_index];
             }
         }
-        bufOut[out_index] = (unsigned char)(mean / (factor * factor));
+        // bufOut[out_index] = (unsigned char)(mean / (factor * factor));
+        bufOut[out_index] = (unsigned char)(mean / ((factor + 2) * (factor + 2)));
         if (idc_out == 3) {
             bufOut[out_index] = 255;
         }

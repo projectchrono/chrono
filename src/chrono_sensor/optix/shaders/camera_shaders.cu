@@ -83,19 +83,39 @@ extern "C" __global__ void __closesthit__camera_shader() {
     float3 hit_point = ray_orig + ray_dir * ray_dist;
 
     float3 subsurface_albedo = mat.Kd;
+    float transparency = mat.transparency;
     if (mat.kd_tex) {
         const float4 tex = tex2D<float4>(mat.kd_tex, uv.x, uv.y);
         subsurface_albedo = make_float3(tex.x, tex.y, tex.z);
+        // transparency = min(transparency, tex.w);
     }
 
     PerRayData_camera* prd_camera = getCameraPRD();
+
+    // if this is perfectly transparent, we ignore it and trace the next ray (handles things like tree leaves)
+    // if (transparency < .0001f) {
+    //     float refract_importance = prd_camera->contrib_to_first_hit;
+    //     if (refract_importance > params.importance_cutoff && prd_camera->depth + 1 < params.max_depth) {
+    //         PerRayData_camera prd_refraction = default_camera_prd();
+    //         prd_refraction.contrib_to_first_hit = refract_importance;
+    //         prd_refraction.rng = prd_camera->rng;
+    //         prd_refraction.depth = prd_camera->depth + 1;
+    //         unsigned int opt1, opt2;
+    //         pointer_as_ints(&prd_refraction, opt1, opt2);
+    //         optixTrace(params.root, hit_point, ray_dir, params.scene_epsilon, 1e16f, optixGetRayTime(),
+    //                    OptixVisibilityMask(1), OPTIX_RAY_FLAG_NONE, CAMERA_RAY_TYPE, RAY_TYPE_COUNT, CAMERA_RAY_TYPE,
+    //                    opt1, opt2);
+    //         prd_camera->color = prd_refraction.color;
+    //     }
+    //     return;
+    // }
 
     //=================
     // Refracted color
     //=================
     float3 refracted_color = make_float3(0);
-    if (mat.transparency < 0.99f) {
-        float refract_importance = prd_camera->contrib_to_first_hit * (1 - mat.transparency);
+    if (transparency < 0.99f) {
+        float refract_importance = prd_camera->contrib_to_first_hit * (1 - transparency);
         if (refract_importance > params.importance_cutoff && prd_camera->depth + 1 < params.max_depth) {
             PerRayData_camera prd_refraction = default_camera_prd();
             prd_refraction.contrib_to_first_hit = refract_importance;
@@ -225,14 +245,16 @@ extern "C" __global__ void __closesthit__camera_shader() {
     // NdV = Dot(world_normal, -ray_dir);
 
     // === Metallic workflow
-    // float3 default_dielectrics_F0 = make_float3(0.04f);
-    // float3 F = metallic * subsurface_albedo + (1 - metallic) * default_dielectrics_F0;
-    // subsurface_albedo = (1 - metallic) * subsurface_albedo;  // since metals do not do subsurface reflection
-
-    // === Ks Workflow
-    float3 F = fresnel_schlick(VdH, 5.f, mat.Ks * 0.08f, make_float3(1.f) /*make_float3(fresnel_max) it is usually 1*/);
-    // === Fresnel_at_0 to Fresnel_at_90 workflow
-    // float3 F = fresnel_schlick(VdH, fresnel_exp, make_float3(fresnel_min), make_float3(fresnel_max));
+    float3 F = make_float3(0.5f);
+    // === dielectric workflow
+    if (metallic > 0) {
+        float3 default_dielectrics_F0 = make_float3(0.04f);
+        F = metallic * subsurface_albedo + (1 - metallic) * default_dielectrics_F0;
+        subsurface_albedo = (1 - metallic) * subsurface_albedo;  // since metals do not do subsurface reflection
+    } else {                                                     // default to specular workflow
+        float3 F0 = mat.Ks * 0.08f;
+        F = fresnel_schlick(VdH, 5.f, F0, make_float3(1.f) /*make_float3(fresnel_max) it is usually 1*/);
+    }
 
     float3 next_contrib_to_first_hit = (make_float3(1.f) - F) * subsurface_albedo * NdL;
 
@@ -245,7 +267,7 @@ extern "C" __global__ void __closesthit__camera_shader() {
 
     if (!prd_camera->use_gi) {  // we need to account for the fact we didn't randomly sample the direction (heuristic
                                 // since this is not physical)
-        next_contrib_to_first_hit = (1.f - roughness) * next_contrib_to_first_hit / (2 * CUDART_PI_F);
+        next_contrib_to_first_hit = (1.f - roughness) * next_contrib_to_first_hit / (4 * CUDART_PI_F);
     }
 
     // contribution should never exceed 1 or esle we are creating energy on reflection
