@@ -72,8 +72,6 @@ void ChSolidThreeLinkAxle::Initialize(std::shared_ptr<ChChassis> chassis,
 
     // Calculate end points on the axle body, expressed in the absolute frame
     // (for visualization)
-    ////ChVector<> midpoint_local = 0.0;
-    ////ChVector<> outer_local(axleCOM_local.x(), midpoint_local.y(), axleCOM_local.z());
     ChVector<> outer_local(getLocation(SPINDLE));
     m_axleOuterL = suspension_to_abs.TransformPointLocalToParent(outer_local);
     outer_local.y() = -outer_local.y();
@@ -88,14 +86,6 @@ void ChSolidThreeLinkAxle::Initialize(std::shared_ptr<ChChassis> chassis,
     m_axleTube->SetInertiaXX(getAxleTubeInertia());
     chassis->GetBody()->GetSystem()->AddBody(m_axleTube);
 
-    // "Fix" the axle body to the chassis
-    /*
-    m_axleTubeGuide = chrono_types::make_shared<ChLinkLockFree>();
-    m_axleTubeGuide->SetNameString(m_name + "_freeAxleTube");
-    const ChQuaternion<>& guideRot = chassis->GetBody()->GetFrame_REF_to_abs().GetRot();
-    m_axleTubeGuide->Initialize(chassis->GetBody(), m_axleTube, ChCoordsys<>(axleCOM, guideRot * ChQuaternion<>(1, 0, 0,
-    0))); chassis->GetSystem()->AddLink(m_axleTubeGuide);
-    */
     // Transform all hardpoints to absolute frame.
     m_pointsL.resize(NUM_POINTS);
     m_pointsR.resize(NUM_POINTS);
@@ -109,7 +99,6 @@ void ChSolidThreeLinkAxle::Initialize(std::shared_ptr<ChChassis> chassis,
     // Fix the triangle body to the axle tube body
     ChVector<> pt_tri_axle = (m_pointsL[TRIANGLE_A] + m_pointsR[TRIANGLE_A]) / 2.0;
     ChVector<> pt_tri_chassis = (m_pointsL[TRIANGLE_C] + m_pointsR[TRIANGLE_C]) / 2.0;
-    pt_tri_chassis.y() = 0.0;
     ChVector<> pt_tri_cog = (pt_tri_axle + pt_tri_chassis) / 2.0;
     m_triangle_left_point = m_pointsL[TRIANGLE_C];
     m_triangle_right_point = m_pointsR[TRIANGLE_C];
@@ -124,16 +113,15 @@ void ChSolidThreeLinkAxle::Initialize(std::shared_ptr<ChChassis> chassis,
     m_triangleBody->SetInertiaXX(getTriangleInertia());
     chassis->GetBody()->GetSystem()->AddBody(m_triangleBody);
 
-    // Create and initialize the revolute joint between axle tube and triangle.
-    ChCoordsys<> rev_csys(pt_tri_axle,
-                          chassis->GetBody()->GetFrame_REF_to_abs().GetRot() * Q_from_AngAxis(CH_C_PI / 2.0, VECT_X));
+    // Create and initialize the revolute joint between chassis and triangle.
+    ChCoordsys<> rev_csys(pt_tri_chassis, chassis->GetBody()->GetFrame_REF_to_abs().GetRot() * Q_from_AngX(CH_C_PI_2));
     m_triangleRev = chrono_types::make_shared<ChLinkLockRevolute>();
     m_triangleRev->SetNameString(m_name + "_revoluteTriangle");
     m_triangleRev->Initialize(m_triangleBody, chassis->GetBody(), rev_csys);
     chassis->GetBody()->GetSystem()->AddLink(m_triangleRev);
 
-    // Create and initialize the revolute joint between axle tube and triangle.
-    ChCoordsys<> sph_csys(pt_tri_chassis, chassis->GetBody()->GetFrame_REF_to_abs().GetRot());
+    // Create and initialize the spherical joint between axle tube and triangle.
+    ChCoordsys<> sph_csys(pt_tri_axle, chassis->GetBody()->GetFrame_REF_to_abs().GetRot());
     m_triangleSph = chrono_types::make_shared<ChLinkLockSpherical>();
     m_triangleSph->SetNameString(m_name + "_sphericalTriangle");
     m_triangleSph->Initialize(m_triangleBody, m_axleTube, sph_csys);
@@ -226,17 +214,9 @@ void ChSolidThreeLinkAxle::InitializeSide(VehicleSide side,
     chassis->GetSystem()->AddLink(m_linkBodyToAxleTube[side]);
 
     // Create and initialize the spherical joint between axle tube and link body.
-    // ChCoordsys<> sph2_csys(points[LINK_C], chassisRot);
-    // m_linkBodyToChassis[side] = chrono_types::make_shared<ChLinkLockSpherical>();
-    // m_linkBodyToChassis[side]->SetNameString(m_name + "_sphericalLinkToChassis" + suffix);
-    // m_linkBodyToChassis[side]->Initialize(m_linkBody[side], chassis, sph2_csys);
-    // Create and initialize the draglink body (one side only).
-    // Determine the rotation matrix of the draglink based on the plane of the hard points
-    // (z-axis along the length of the draglink)
-    // v = Vcross(m_pointsL[BELLCRANK_D], m_pointsL[DRAGLINK_S]);
-    v = Vcross(m_pointsL[LINK_C] - m_pointsL[LINK_A], ChVector<>(0, 1, 0));
+    v = Vcross(points[LINK_C] - points[LINK_A], ChVector<>(0, 1, 0));
     v.Normalize();
-    w = m_pointsL[LINK_C] - m_pointsL[LINK_A];
+    w = points[LINK_C] - points[LINK_A];
     w.Normalize();
     u = Vcross(v, w);
     rot.Set_A_axis(u, v, w);
@@ -244,8 +224,7 @@ void ChSolidThreeLinkAxle::InitializeSide(VehicleSide side,
     // Create and initialize the universal joint between draglink and knuckle
     m_linkBodyToChassis[side] = chrono_types::make_shared<ChLinkUniversal>();
     m_linkBodyToChassis[side]->SetNameString(m_name + "_universalDraglink");
-    m_linkBodyToChassis[side]->Initialize(m_linkBody[side], chassis,
-                                          ChFrame<>(m_pointsL[LINK_C], rot.Get_A_quaternion()));
+    m_linkBodyToChassis[side]->Initialize(m_linkBody[side], chassis, ChFrame<>(points[LINK_C], rot.Get_A_quaternion()));
     chassis->GetSystem()->AddLink(m_linkBodyToChassis[side]);
 }
 
