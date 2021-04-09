@@ -21,7 +21,7 @@
 #define CH_SYSTEM_PBD_H
 
 #include "chrono/physics/ChSystem.h"
-#include "chrono/physics/PBD/ChPBDutils.h"
+#include "chrono/physics/ChPBDutils.h"
 
 namespace chrono {
 
@@ -52,7 +52,7 @@ class ChApi ChSystemPBD : public ChSystem {
 	/// Performs a single dynamical simulation step, according to
 	/// current values of:  Y, time, step  (and other minor settings)
 	/// Depending on the integration type, it switches to one of the following:
-	bool Integrate_Y() override;
+	virtual bool Integrate_Y() override;
 
     // SERIALIZATION
 
@@ -62,9 +62,10 @@ class ChApi ChSystemPBD : public ChSystem {
     /// Method to allow deserialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
 
-	// Get/Set the number of substeps
+	/// Get the number of substeps
 	int GetSubsteps() { return substeps; }
 
+	/// Set the number of substeps
 	void SetSubsteps(int s) { substeps = s; }
 
   private:
@@ -88,7 +89,7 @@ class ChApi ChSystemPBD : public ChSystem {
 
   protected:
 	double T = 0;
-	// number of substeps per step 
+	/// number of substeps per step 
 	int substeps = 20;
 	double h;
     /// Setup the PBD system

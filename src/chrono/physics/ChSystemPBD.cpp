@@ -19,8 +19,8 @@
 
 #include <algorithm>
 
-#include "chrono/physics/PBD/ChSystemPBD.h"
-#include "chrono/physics/PBD/ChContactContainerPBD.h"
+#include "chrono/physics/ChSystemPBD.h"
+#include "chrono/physics/ChContactContainerPBD.h"
 #include "chrono/physics/ChContactContainerNSC.h"
 #include "chrono/physics/ChProximityContainer.h"
 #include "chrono/physics/ChSystem.h"
@@ -97,12 +97,10 @@ bool ChSystemPBD::Integrate_Y() {
     // some body that is not in sleep state.
     // TODO: I had to change ChSystem::ManageSleepingBodies from private to protected.
     // Not sure if this is useful, maybe skip smth is abody is sleeping?
-    ManageSleepingBodies();
-    // Prepare lists of variables and constraints.
-    // TODO: check if this is needed by  PBD (constrint matrix is not, but maybe we process the state here)
-    DescriptorPrepareInject(*descriptor);
+    //ManageSleepingBodies();
 
     // If needed, update everything. No need to update visualization assets here.
+	// TODO: override setup initial
     if (!PBD_isSetup) {
         PBDSetup();
         PBD_isSetup = true;

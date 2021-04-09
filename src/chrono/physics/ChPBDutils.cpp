@@ -18,12 +18,12 @@
 
 #include <algorithm>
 
-#include "chrono/physics/PBD/ChPBDutils.h"
+#include "chrono/physics/ChPBDutils.h"
 #include "chrono/physics/ChContactContainerNSC.h"
 #include "chrono/physics/ChProximityContainer.h"
 #include "chrono/physics/ChSystem.h"
 #include "chrono/collision/ChCollisionSystemBullet.h"
-#include "chrono/physics/PBD/ChSystemPBD.h"
+#include "chrono/physics/ChSystemPBD.h"
 #include <Eigen/Core>
 
 

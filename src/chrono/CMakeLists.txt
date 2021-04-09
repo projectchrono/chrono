@@ -136,8 +136,6 @@ set(ChronoEngine_physics_SOURCES
     physics/ChProximityContainerSPH.cpp
     physics/ChConveyor.cpp
     physics/ChAssembly.cpp
-	physics/PBD/ChSystemPBD.cpp
-	physics/PBD/ChPBDutils.cpp
     )
 
 set(ChronoEngine_physics_HEADERS
@@ -164,9 +162,7 @@ set(ChronoEngine_physics_HEADERS
     physics/ChSystemSMC.h
     physics/ChAssembly.h
     physics/ChInertiaUtils.h
-	physics/PBD/ChSystemPBD.h
-	physics/PBD/ChPBDutils.h
-	physics/PBD/ChContactContainerPBD.h
+
     )
 
 source_group(physics FILES
@@ -360,6 +356,21 @@ set(ChronoEngine_physics_shafts_HEADERS
 source_group(physics\\shafts FILES
     ${ChronoEngine_physics_shafts_SOURCES}
     ${ChronoEngine_physics_shafts_HEADERS})
+
+set(ChronoEngine_physics_PBD_SOURCES
+	physics/ChSystemPBD.cpp
+	physics/ChPBDutils.cpp
+)
+
+set(ChronoEngine_physics_PBD_HEADERS
+    physics/ChSystemPBD.h
+	physics/ChPBDutils.h
+	physics/ChContactContainerPBD.h
+)
+
+source_group(physics\\PBD FILES
+    ${ChronoEngine_physics_PBD_SOURCES}
+    ${ChronoEngine_physics_PBD_HEADERS})
 
 # FEA group
 
@@ -1253,6 +1264,8 @@ set(ChronoEngine_FILES
     ${ChronoEngine_physics_loads_HEADERS}
     ${ChronoEngine_physics_shafts_SOURCES}
     ${ChronoEngine_physics_shafts_HEADERS}
+	${ChronoEngine_physics_PBD_SOURCES}
+	${ChronoEngine_physics_PBD_HEADERS}
     ${ChronoEngine_fea_SOURCES}
     ${ChronoEngine_fea_HEADERS}
     ${ChronoEngine_fea_nodes_SOURCES}
