@@ -61,6 +61,14 @@ class CH_MODELS_API Little_Hexy : public Copter<6> {
     /// Use a negative delta to decrease all.
     void Throttle(double delta);
 
+	/// Get the name of the Wavefront file with chassis visualization mesh.
+    /// An empty string is returned if no mesh was specified.
+    virtual const std::string& GetChassisMeshFilename() const override { return chassis_mesh_path; }
+
+    /// Get the name of the Wavefront file with propeller visualization mesh.
+    /// An empty string is returned if no mesh was specified.
+    virtual const std::string& GetPropellerMeshFilename() const override { return propeller_mesh_path; }
+
   protected:
     static std::vector<ChVector<>> getPosVect();
 

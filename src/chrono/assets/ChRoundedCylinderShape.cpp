@@ -30,7 +30,7 @@ void ChRoundedCylinderShape::ArchiveOUT(ChArchiveOut& marchive) {
 
 void ChRoundedCylinderShape::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChRoundedCylinderShape>();
+    /*int version =*/ marchive.VersionRead<ChRoundedCylinderShape>();
     // deserialize parent class
     ChVisualization::ArchiveIN(marchive);
     // stream in all member data:

@@ -230,22 +230,32 @@ class CH_GPU_API ChSystemGpuMesh : public ChSystemGpu {
     ChSystemGpuMesh(float sphere_rad, float density, float3 boxDims);
     ~ChSystemGpuMesh();
 
-    /// Load (from Wavefront OBJ files) triangle meshes into granular system.
-    /// MUST happen before initialize is called.
-    void LoadMeshes(std::vector<std::string> objfilenames,
-                    std::vector<ChMatrix33<float>> rotscale,
-                    std::vector<float3> translations,
-                    std::vector<float> masses);
+    /// Add a trimesh to the granular system.
+    /// The return value is a mesh identifier which can be used during the simulation to apply rigid body motion to the
+    /// mesh; see ApplyMeshMotion(). This function must be called before Initialize().
+    unsigned int AddMesh(std::shared_ptr<geometry::ChTriangleMeshConnected> mesh, float mass);
 
-    /// Set triangle meshes into granular system.
-    /// MUST happen before initialize is called.
-    void SetMeshes(const std::vector<geometry::ChTriangleMeshConnected>& all_meshes, std::vector<float> masses);
+    /// Add a trimesh from the specified Wavefront OBJ file to the granular system.
+    /// The return value is a mesh identifier which can be used during the simulation to apply rigid body motion to the
+    /// mesh; see ApplyMeshMotion(). This function must be called before Initialize().
+    unsigned int AddMesh(const std::string& filename,
+                         const ChVector<float>& translation,
+                         const ChMatrix33<float>& rotscale,
+                         float mass);
+
+    /// Add a set of trimeshes from Wavefront OBJ files into granular system.
+    /// The return value is a vector of mesh identifiers which can be used during the simulation to apply rigid body
+    /// motion to the mesh; see ApplyMeshMotion(). This function must be called before Initialize().
+    std::vector<unsigned int> AddMeshes(const std::vector<std::string>& objfilenames,
+                                        const std::vector<ChVector<float>>& translations,
+                                        const std::vector<ChMatrix33<float>>& rotscales,
+                                        const std::vector<float>& masses);
 
     /// Enable/disable mesh collision (for all defined meshes).
     void EnableMeshCollision(bool val);
 
     /// Apply rigid body motion to specified mesh.
-    void ApplyMeshMotion(unsigned int mesh,
+    void ApplyMeshMotion(unsigned int mesh_id,
                          const ChVector<>& pos,
                          const ChQuaternion<>& rot,
                          const ChVector<>& lin_vel,
@@ -253,6 +263,14 @@ class CH_GPU_API ChSystemGpuMesh : public ChSystemGpu {
 
     /// Return the number of meshes in the system.
     unsigned int GetNumMeshes() const;
+
+    /// Return the specified mesh in the system.
+    /// The mesh is assumed to have been added with one of the AddMesh() functions.
+    std::shared_ptr<geometry::ChTriangleMeshConnected> GetMesh(unsigned int mesh_id) const { return m_meshes[mesh_id]; }
+
+    /// Return the mass of the specified mesh.
+    /// The mesh is assumed to have been added with one of the AddMesh() functions.
+    float GetMeshMass(unsigned int mesh_id) const { return m_mesh_masses[mesh_id]; }
 
     /// Set sphere-to-mesh static friction coefficient.
     void SetStaticFrictionCoeff_SPH2MESH(float mu);
@@ -300,7 +318,12 @@ class CH_GPU_API ChSystemGpuMesh : public ChSystemGpu {
     void WriteMeshes(std::string outfilename) const;
 
   private:
-    CHGPU_MESH_VERBOSITY mesh_verbosity;  ///< mesh operations verbosity level
+    /// Set triangle meshes in underlying GPU system.
+    void SetMeshes();
+
+    CHGPU_MESH_VERBOSITY mesh_verbosity;                                       ///< mesh operations verbosity level
+    std::vector<std::shared_ptr<geometry::ChTriangleMeshConnected>> m_meshes;  ///< list of meshes used in cosimulation
+    std::vector<float> m_mesh_masses;                                          ///< associated mesh masses
 };
 
 /// @} gpu_physics

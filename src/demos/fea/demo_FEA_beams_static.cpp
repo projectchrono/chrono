@@ -47,7 +47,7 @@ int main(int argc, char* argv[]) {
 
     // Create the Irrlicht visualization (open the Irrlicht device,
     // bind a simple user interface, etc. etc.)
-    ChIrrApp application(&my_system, L"Statics of beam", core::dimension2d<u32>(800, 600), false, true);
+    ChIrrApp application(&my_system, L"Statics of beam", core::dimension2d<u32>(800, 600));
 
     // Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
     // application.AddTypicalLogo();
@@ -233,15 +233,15 @@ int main(int argc, char* argv[]) {
 
         application.DrawAll();
 
-        ChIrrTools::drawGrid(application.GetVideoDriver(), 0.05, 0.05, 10, 10,
+        tools::drawGrid(application.GetVideoDriver(), 0.05, 0.05, 10, 10,
                              ChCoordsys<>(ChVector<>(0.25, -0.20, 0), 0, VECT_Y), video::SColor(50, 120, 120, 120),
                              true);
 
-        ChIrrTools::drawGrid(application.GetVideoDriver(), 0.05, 0.05, 10, 10,
+        tools::drawGrid(application.GetVideoDriver(), 0.05, 0.05, 10, 10,
                              ChCoordsys<>(ChVector<>(0.25, -0.45, -0.25), CH_C_PI_2, VECT_X),
                              video::SColor(50, 120, 120, 120), true);
 
-        ChIrrTools::drawGrid(application.GetVideoDriver(), 0.05, 0.05, 10, 10,
+        tools::drawGrid(application.GetVideoDriver(), 0.05, 0.05, 10, 10,
                              ChCoordsys<>(ChVector<>(0.001, -0.20, -0.25), CH_C_PI_2, VECT_Y),
                              video::SColor(50, 160, 160, 160), true);
 

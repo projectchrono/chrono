@@ -47,15 +47,13 @@ class CH_MODELS_API Gator_SimplePowertrain : public ChPowertrain {
     virtual double GetTorqueConverterInputTorque() const override { return 0; }
     virtual double GetTorqueConverterOutputTorque() const override { return 0; }
     virtual double GetTorqueConverterOutputSpeed() const override { return 0; }
-    virtual int GetCurrentTransmissionGear() const override { return 1; }
     virtual double GetOutputTorque() const override { return m_shaftTorque; }
-    virtual void SetDriveMode(ChPowertrain::DriveMode mmode) override;
 
   private:
     virtual void Initialize(std::shared_ptr<ChChassis> chassis, std::shared_ptr<ChDriveline> driveline) override;
     virtual void Synchronize(double time, double throttle) override;
+    virtual void SetGearRatios(std::vector<double>& fwd, double& rev) override;
 
-    double m_current_gear_ratio;
     double m_motorSpeed;
     double m_motorTorque;
     double m_shaftTorque;

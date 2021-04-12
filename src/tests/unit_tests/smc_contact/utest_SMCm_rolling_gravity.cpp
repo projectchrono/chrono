@@ -78,9 +78,6 @@ class RollingGravityTest : public ::testing::TestWithParam<ChSystemSMC::ContactF
 
         body = AddSphere(++id, sys, mat, srad, smass, spos, init_v);
 
-        double time = 0.0;
-        double out_time = 0.0;
-
         // Let the sphere settle on the plate before giving it a push
         double t_end = 1;
         while (sys->GetChTime() < t_end) {

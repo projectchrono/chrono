@@ -24,7 +24,7 @@ namespace chrono {
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChLinkLock)
 
-ChLinkLock::ChLinkLock() : type(LinkType::FREE), ndoc_d(0), ndoc_c(0), ndoc(0), d_restlength(0) {
+ChLinkLock::ChLinkLock() : type(LinkType::FREE), ndoc(0), ndoc_c(0), ndoc_d(0), d_restlength(0) {
     // Need to zero out the bottom-right 4x3 block
     Cq1_temp.setZero();
     Cq2_temp.setZero();
@@ -925,7 +925,7 @@ void ChLinkLock::IntStateScatterReactions(const unsigned int off_L, const ChVect
 void ChLinkLock::IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L) {
     L.segment(off_L, react.size()) = react;
 
-    int local_off = this->GetDOC_c();
+    ////int local_off = this->GetDOC_c();
 
     // gather also the contribution from link limits
     // TODO not yet implemented
@@ -1917,7 +1917,7 @@ void ChLinkLock::ArchiveOUT(ChArchiveOut& marchive) {
 
 void ChLinkLock::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChLinkLock>();
+    /*int version =*/ marchive.VersionRead<ChLinkLock>();
 
     // deserialize parent class
     ChLinkMarkers::ArchiveIN(marchive);
@@ -2488,7 +2488,7 @@ void ChLinkLockLock::ArchiveOUT(ChArchiveOut& marchive) {
 
 void ChLinkLockLock::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChLinkLockLock>();
+    /*int version =*/ marchive.VersionRead<ChLinkLockLock>();
 
     // deserialize parent class
     ChLinkMarkers::ArchiveIN(marchive);

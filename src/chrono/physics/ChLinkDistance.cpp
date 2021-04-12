@@ -231,7 +231,7 @@ void ChLinkDistance::ArchiveOUT(ChArchiveOut& marchive) {
 /// Method to allow de serialization of transient data from archives.
 void ChLinkDistance::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChLinkDistance>();
+    /*int version =*/ marchive.VersionRead<ChLinkDistance>();
 
     // deserialize parent class
     ChLink::ArchiveIN(marchive);

@@ -209,8 +209,8 @@ std::shared_ptr<ChBezierCurve> ChBezierCurve::read(const std::string& filename) 
             double x, y, z;
 
             std::getline(ifile, line);
-            std::istringstream iss(line);
-            iss >> x >> y >> z;
+            std::istringstream jss(line);
+            jss >> x >> y >> z;
 
             points.push_back(ChVector<>(x, y, z));
         }
@@ -231,8 +231,8 @@ std::shared_ptr<ChBezierCurve> ChBezierCurve::read(const std::string& filename) 
             double outX, outY, outZ;
 
             std::getline(ifile, line);
-            std::istringstream iss(line);
-            iss >> x >> y >> z >> inX >> inY >> inZ >> outX >> outY >> outZ;
+            std::istringstream jss(line);
+            jss >> x >> y >> z >> inX >> inY >> inZ >> outX >> outY >> outZ;
 
             points.push_back(ChVector<>(x, y, z));
             inCV.push_back(ChVector<>(inX, inY, inZ));
@@ -422,7 +422,7 @@ void ChBezierCurve::ArchiveOUT(ChArchiveOut& marchive)
 void ChBezierCurve::ArchiveIN(ChArchiveIn& marchive)
 {
     // version number
-    int version = marchive.VersionRead<ChBezierCurve>();
+    /*int version =*/ marchive.VersionRead<ChBezierCurve>();
 
     // stream in all member data:
     marchive >> CHNVP(m_points);
@@ -561,7 +561,6 @@ int ChBezierCurveTracker::calcClosestPoint(const ChVector<>& loc, ChFrame<>& tnb
 
     // Calculate TNB frame
     ChVector<> rp_rpp = Vcross(rp, rpp);
-    ChVector<> rp_rpp_rp = Vcross(rp_rpp, rp);
     double rp_norm = rp.Length();
     double rp_rpp_norm = rp_rpp.Length();
 

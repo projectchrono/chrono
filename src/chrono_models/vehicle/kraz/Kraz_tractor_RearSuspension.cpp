@@ -32,9 +32,6 @@ namespace kraz {
 // -----------------------------------------------------------------------------
 
 static const double in2m = 0.0254;
-static const double lb2kg = 0.453592;
-static const double lbf2N = 4.44822162;
-static const double lbfpin2Npm = 175.12677;
 
 const double Kraz_tractor_RearSuspension::m_axleTubeMass = 717.0;
 const double Kraz_tractor_RearSuspension::m_spindleMass = 14.705;

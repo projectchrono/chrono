@@ -40,7 +40,7 @@ void ChBodyFrame::ArchiveOUT(ChArchiveOut& marchive) {
 
 void ChBodyFrame::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChBodyFrame>();
+    /*int version =*/ marchive.VersionRead<ChBodyFrame>();
 
     // deserialize parent class
     ChFrameMoving<double>::ArchiveIN(marchive);

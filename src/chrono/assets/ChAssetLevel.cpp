@@ -47,7 +47,7 @@ void ChAssetLevel::ArchiveOUT(ChArchiveOut& marchive) {
 
 void ChAssetLevel::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChAssetLevel>();
+    /*int version =*/ marchive.VersionRead<ChAssetLevel>();
     // deserialize parent class
     ChAsset::ArchiveIN(marchive);
     // stream in all member data:

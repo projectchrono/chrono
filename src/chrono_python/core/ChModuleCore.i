@@ -375,6 +375,7 @@ using namespace chrono::fea;
 %include "../../chrono/utils/ChFilters.h"
 %include "../../chrono/utils/ChUtilsCreators.h"
 
+%include "ChParticleFactory.i"
 //
 // C- DOWNCASTING OF SHARED POINTERS
 // 

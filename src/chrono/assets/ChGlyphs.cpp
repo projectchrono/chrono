@@ -104,7 +104,7 @@ void ChGlyphs::ArchiveOUT(ChArchiveOut& marchive) {
 
 void ChGlyphs::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChGlyphs>();
+    /*int version =*/ marchive.VersionRead<ChGlyphs>();
     // deserialize parent class
     ChVisualization::ArchiveIN(marchive);
     // stream in all member data:

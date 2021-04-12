@@ -28,7 +28,7 @@ namespace vehicle {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 ShaftsDriveline2WD::ShaftsDriveline2WD(const std::string& filename) : ChShaftsDriveline2WD("") {
-    Document d = ReadFileJSON(filename);
+    Document d; ReadFileJSON(filename, d);
     if (d.IsNull())
         return;
 

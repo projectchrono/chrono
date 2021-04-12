@@ -81,7 +81,7 @@ rev.GetLimit_Rz().SetMax(max_angle)
 rev.Initialize(ground, pend, chrono.ChCoordsysD(chrono.VNULL, chrono.QUNIT))
 
 # Create the Irrlicht application
-application = irr.ChIrrApp(system, "Limits on LinkLockRevolute demo", irr.dimension2du(800, 600), False, True)
+application = irr.ChIrrApp(system, "Limits on LinkLockRevolute demo", irr.dimension2du(800, 600))
 application.AddTypicalLogo()
 application.AddTypicalSky()
 application.AddTypicalLights()
@@ -101,7 +101,7 @@ application.SetTryRealtime(True)
 while (application.GetDevice().run()) :
     application.BeginScene()
     application.DrawAll()
-    irr.ChIrrTools.drawSegment(application.GetVideoDriver(), p0, p0 + p1 * 4, irr.SColor(255, 255, 150, 0), True);
-    irr.ChIrrTools.drawSegment(application.GetVideoDriver(), p0, p0 + p2 * 4, irr.SColor(255, 255, 150, 0), True);
+    irr.drawSegment(application.GetVideoDriver(), p0, p0 + p1 * 4, irr.SColor(255, 255, 150, 0), True);
+    irr.drawSegment(application.GetVideoDriver(), p0, p0 + p2 * 4, irr.SColor(255, 255, 150, 0), True);
     application.DoStep()
     application.EndScene()

@@ -68,7 +68,7 @@ void ChColor::ArchiveOUT(ChArchiveOut& marchive) {
 
 void ChColor::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChColor>();
+    /*int version =*/ marchive.VersionRead<ChColor>();
 
     // stream in all member data:
     marchive >> CHNVP(R);

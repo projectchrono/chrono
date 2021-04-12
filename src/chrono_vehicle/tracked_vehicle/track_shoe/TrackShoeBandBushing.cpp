@@ -33,7 +33,7 @@ namespace vehicle {
 // -----------------------------------------------------------------------------
 TrackShoeBandBushing::TrackShoeBandBushing(const std::string& filename)
     : ChTrackShoeBandBushing(""), m_has_mesh(false) {
-    Document d = ReadFileJSON(filename);
+    Document d; ReadFileJSON(filename, d);
     if (d.IsNull())
         return;
 

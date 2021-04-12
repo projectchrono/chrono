@@ -39,7 +39,7 @@ void ChTriangleMeshShape::ArchiveOUT(ChArchiveOut& marchive) {
 
 void ChTriangleMeshShape::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChTriangleMeshShape>();
+    /*int version =*/ marchive.VersionRead<ChTriangleMeshShape>();
     // deserialize parent class
     ChVisualization::ArchiveIN(marchive);
     // stream in all member data:

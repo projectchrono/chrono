@@ -27,13 +27,13 @@ namespace chrono {
 //CH_FACTORY_REGISTER(ChObj)  // NO! Abstract class!
 
 ChObj::ChObj() : ChTime(0) {
-    identifier = GetUniqueIntID();
+    m_identifier = GetUniqueIntID();
 }
 
 ChObj::ChObj(const ChObj& other) {
-    identifier = GetUniqueIntID();
+    m_identifier = GetUniqueIntID();
 
-    name = other.name;
+    m_name = other.m_name;
     ChTime = other.ChTime;
 }
 
@@ -41,17 +41,17 @@ void ChObj::ArchiveOUT(ChArchiveOut& marchive) {
     marchive.VersionWrite<ChObj>();
 
     // stream out all member data
-    marchive << CHNVP(name);
-    marchive << CHNVP(identifier);
+    marchive << CHNVP(m_name);
+    marchive << CHNVP(m_identifier);
     marchive << CHNVP(ChTime);
 }
 
 void ChObj::ArchiveIN(ChArchiveIn& marchive) {
-    int version = marchive.VersionRead<ChObj>();
+    /*int version =*/ marchive.VersionRead<ChObj>();
 
     // stream out all member data
-    marchive >> CHNVP(name);
-    marchive >> CHNVP(identifier);
+    marchive >> CHNVP(m_name);
+    marchive >> CHNVP(m_identifier);
     marchive >> CHNVP(ChTime);
 }
 

@@ -89,12 +89,21 @@ class ChApi ChCollisionModel {
         const ChMatrix33<>& rot = ChMatrix33<>(1)     ///< rotation in model coordinates
         ) = 0;
 
-    /// Add a cylinder to this collision model (default axis on Y direction).
+    /// Add a cylinder to this collision model (default axis in Y direction).
     virtual bool AddCylinder(                         //
         std::shared_ptr<ChMaterialSurface> material,  ///< surface contact material
         double rx,                                    ///< radius (X direction)
         double rz,                                    ///< radius (Z direction)
         double hy,                                    ///< half length
+        const ChVector<>& pos = ChVector<>(),         ///< center position in model coordinates
+        const ChMatrix33<>& rot = ChMatrix33<>(1)     ///< rotation in model coordinates
+        ) = 0;
+
+    /// Add a cylindrical shell to this collision model (default axis in Y direction).
+    virtual bool AddCylindricalShell(                 //
+        std::shared_ptr<ChMaterialSurface> material,  ///< surface contact material
+        double radius,                                ///< cylinder radius
+        double hlen,                                  ///< cylinder half length
         const ChVector<>& pos = ChVector<>(),         ///< center position in model coordinates
         const ChMatrix33<>& rot = ChMatrix33<>(1)     ///< rotation in model coordinates
         ) = 0;

@@ -38,12 +38,12 @@ ChPac02Tire::ChPac02Tire(const std::string& name)
       m_alpha(0),
       m_gamma(0),
       m_gamma_limit(3.0 * CH_C_DEG_TO_RAD),
-      m_mu(0),
-      m_use_mode(1),
-      m_Shf(0),
       m_use_friction_ellipsis(false),
+      m_mu(0),
+      m_Shf(0),
+      m_measured_side(LEFT),
       m_allow_mirroring(false),
-      m_measured_side(LEFT) {
+      m_use_mode(1) {
     m_tireforce.force = ChVector<>(0, 0, 0);
     m_tireforce.point = ChVector<>(0, 0, 0);
     m_tireforce.moment = ChVector<>(0, 0, 0);
@@ -680,7 +680,6 @@ double ChPac02Tire::CalcMzComb(double kappa, double alpha, double Fz, double gam
     double Kxk = Fz * (m_PacCoeff.pkx1 + m_PacCoeff.pkx2) * m_PacScal.lkx;
     double Kya = m_PacCoeff.pky1 * m_PacCoeff.FzNomin * sin(2.0 * atan(Fz / (m_PacCoeff.pky2 * Fz0s))) *
                  m_PacScal.lfz0 * m_PacScal.lky;
-    double alpha_teq = sqrt(pow(alpha_t, 2) + pow(Kxk, 2) * pow(kappa, 2) / pow(Kya, 2)) * ChSignum(alpha_t);
     double t = Dt * (Ct * atan(Bt * alpha_t - Et * (Bt * alpha_t - atan(Bt * alpha_t))));
     // residual moment
     double Shf = 0.0;  // todo!!

@@ -78,6 +78,9 @@ set(SYN_AGENT_FILES
 	agent/SynWheeledVehicleAgent.cpp
 	agent/SynTrackedVehicleAgent.h
 	agent/SynTrackedVehicleAgent.cpp
+	
+	agent/SynCopterAgent.h
+	agent/SynCopterAgent.cpp
 
 	agent/SynSCMTerrainAgent.h
 	agent/SynSCMTerrainAgent.cpp
@@ -119,6 +122,9 @@ set(SYN_FLATBUFFER_FILES
 	flatbuffer/message/SynWheeledVehicleMessage.cpp
 	flatbuffer/message/SynTrackedVehicleMessage.h
 	flatbuffer/message/SynTrackedVehicleMessage.cpp
+
+	flatbuffer/message/SynCopterMessage.h
+	flatbuffer/message/SynCopterMessage.cpp
 	
 	flatbuffer/message/SynSCMMessage.h
 	flatbuffer/message/SynSCMMessage.cpp

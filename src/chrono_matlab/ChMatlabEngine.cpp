@@ -18,11 +18,13 @@ namespace chrono {
 
 ChMatlabEngine::ChMatlabEngine() {
 #ifdef __APPLE__
-    if (!(ep = matlabengine::engOpen("matlab -automation -nosplash \0"))) {
+    ep = matlabengine::engOpen("matlab -automation -nosplash \0");
+    if (!ep) {
         throw ChException("Can't start MATLAB engine");
     }
 #else
-    if (!(ep = matlabengine::engOpen("-automation \0"))) {
+    ep = matlabengine::engOpen("-automation \0");
+    if (!ep) {
         throw ChException("Can't start MATLAB engine");
     }
 #endif
@@ -31,15 +33,16 @@ ChMatlabEngine::ChMatlabEngine() {
 ChMatlabEngine::~ChMatlabEngine() {
     if (ep)
         matlabengine::engClose(ep);
-    ep = 0;
+    ep = nullptr;
 }
-/// Return pointer to internal Matlab engine (avoid using it directly,
-/// if you can use other functions of this class that 'wrap' it.)
+
+// Return pointer to internal Matlab engine (avoid using it directly,
+// if you can use other functions of this class that 'wrap' it.)
 matlabengine::Engine* ChMatlabEngine::GetEngine() {
     return ep;
 }
 
-/// Evaluate a Matlab instruction (as a string). If error happens while executing, returns false.
+// Evaluate a Matlab instruction (as a string). If error happens while executing, returns false.
 bool ChMatlabEngine::Eval(std::string mstring) {
     if (matlabengine::engEvalString(ep, mstring.c_str()) == 0)
         return true;
@@ -47,7 +50,7 @@ bool ChMatlabEngine::Eval(std::string mstring) {
         return false;
 }
 
-/// Set visibility of GUI matlab window.
+// Set visibility of GUI matlab window.
 bool ChMatlabEngine::SetVisible(bool mvis) {
     if (matlabengine::engSetVisible(ep, mvis) == 0)
         return true;
@@ -55,8 +58,8 @@ bool ChMatlabEngine::SetVisible(bool mvis) {
         return false;
 }
 
-/// Put a matrix in Matlab environment, specifying its name as variable.
-/// If a variable with the same name already exist, it is overwritten.
+// Put a matrix in Matlab environment, specifying its name as variable.
+// If a variable with the same name already exist, it is overwritten.
 bool ChMatlabEngine::PutVariable(ChMatrixConstRef mmatr, std::string varname) {
     // elements in Matlab are column-major
     ChMatrixDynamic<> transfer = mmatr.transpose();
@@ -69,8 +72,8 @@ bool ChMatlabEngine::PutVariable(ChMatrixConstRef mmatr, std::string varname) {
     return true;
 }
 
-/// Put a sparse matrix in Matlab environment, specifying its name as variable.
-/// If a variable with the same name already exist, it is overwritten.
+// Put a sparse matrix in Matlab environment, specifying its name as variable.
+// If a variable with the same name already exist, it is overwritten.
 bool ChMatlabEngine::PutSparseMatrix(const ChSparseMatrix& mmatr, std::string varname) {
     int nels = 0;
     for (int ii = 0; ii < mmatr.rows(); ii++)
@@ -103,9 +106,9 @@ bool ChMatlabEngine::PutSparseMatrix(const ChSparseMatrix& mmatr, std::string va
     return true;
 }
 
-/// Fetch a matrix from Matlab environment, specifying its name as variable.
-/// The used matrix must be of ChMatrixDynamic<double> type because
-/// it might undergo resizing.
+// Fetch a matrix from Matlab environment, specifying its name as variable.
+// The used matrix must be of ChMatrixDynamic<double> type because
+// it might undergo resizing.
 bool ChMatlabEngine::GetVariable(ChMatrixDynamic<double>& mmatr, std::string varname) {
     ChMatrixDynamic<> transfer;  // elements in Matlab are column-major
 

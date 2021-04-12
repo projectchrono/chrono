@@ -431,7 +431,7 @@ void ChLinkRevoluteSpherical::ArchiveOUT(ChArchiveOut& marchive) {
 /// Method to allow de serialization of transient data from archives.
 void ChLinkRevoluteSpherical::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChLinkRevoluteSpherical>();
+    /*int version =*/ marchive.VersionRead<ChLinkRevoluteSpherical>();
 
     // deserialize parent class
     ChLink::ArchiveIN(marchive);

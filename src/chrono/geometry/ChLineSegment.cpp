@@ -41,7 +41,7 @@ void ChLineSegment::ArchiveOUT(ChArchiveOut& marchive) {
 
 void ChLineSegment::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChLineSegment>();
+    /*int version =*/ marchive.VersionRead<ChLineSegment>();
     // deserialize parent class
     ChLine::ArchiveIN(marchive);
     // stream in all member data:

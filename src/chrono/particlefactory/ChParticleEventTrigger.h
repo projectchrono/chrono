@@ -29,6 +29,8 @@ namespace particlefactory {
 /// a box, etc.), or inherit your own class with custom triggering.
 class ChParticleEventTrigger {
   public:
+    virtual ~ChParticleEventTrigger() {}
+
     /// Children classes MUST implement this.
     /// Return true means that a ChParticleProcessEvent must
     /// be done, return false means that no ChParticleProcessEvent must be done.
@@ -84,7 +86,7 @@ class ChParticleEventTriggerBox : public ChParticleEventTrigger {
 
 class _particle_last_pos {
   public:
-    _particle_last_pos();
+    _particle_last_pos() {}
     _particle_last_pos(const _particle_last_pos& source) { mbody = source.mbody, mpos = source.mpos; }
     _particle_last_pos(std::shared_ptr<ChBody> mb, ChVector<> mp) : mbody(mb), mpos(mp){};
 
@@ -110,7 +112,6 @@ class ChParticleEventFlowInRectangle : public ChParticleEventTrigger {
     /// This function triggers the a particle event according to the fact
     /// the the particle is crossing a rectangle.
     virtual bool TriggerEvent(std::shared_ptr<ChBody> mbody, ChSystem& msystem) {
-        ChVector<> particle_pos = mbody->GetPos();
         ChVector<> localpos = rectangle_csys.TransformParentToLocal(mbody->GetPos());
 
         // Is in lower part of rectangle?

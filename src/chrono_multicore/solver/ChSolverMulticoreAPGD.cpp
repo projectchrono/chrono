@@ -167,7 +167,6 @@ uint ChSolverMulticoreAPGD::Solve(ChShurProduct& ShurProduct,
 
         // Compute the residual
         temp = gamma_new - g_diff * (N_gamma_new - r);
-        real temp_dota = (real)(temp, temp);
         // ಠ_ಠ THIS PROJECTION IS IMPORTANT! (╯°□°)╯︵ ┻━┻
         // If turned off the residual will be very incorrect! Turning it off can cause the solver to effectively use the
         // solution found in the first step because the residual never get's smaller. (You can convince yourself of this

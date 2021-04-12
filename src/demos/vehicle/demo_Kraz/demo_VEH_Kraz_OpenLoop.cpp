@@ -50,9 +50,6 @@ double tire_step_size = 1e-3;
 // Time interval between two render frames
 double render_step_size = 1.0 / 50;  // FPS = 50
 
-// Time interval between two output frames
-double output_step_size = 1.0 / 1;  // once a second
-
 // Point on chassis tracked by the camera
 ChVector<> trackPoint(0.0, 0.0, 1.75);
 
@@ -110,9 +107,6 @@ int main(int argc, char* argv[]) {
     // Number of simulation steps between two 3D view render frames
     int render_steps = (int)std::ceil(render_step_size / step_size);
 
-    // Number of simulation steps between two output frames
-    int output_steps = (int)std::ceil(output_step_size / step_size);
-
     // Initialize simulation frame counter
     int step_number = 0;
 
@@ -126,7 +120,6 @@ int main(int argc, char* argv[]) {
 
         // Driver inputs
         ChDriver::Inputs driver_inputs = driver.GetInputs();
-        double braking_input = driver.GetBraking();
 
         // Update modules (process inputs from other modules)
         double time = truck.GetSystem()->GetChTime();

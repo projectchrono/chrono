@@ -44,16 +44,14 @@ int main(int argc, char* argv[]) {
     ChSystemNSC mphysicalSystem;
 
     // Create the Irrlicht visualization, attach camera and lights, set sky and logo
-    ChIrrApp application(&mphysicalSystem, L"Rolling friction", core::dimension2d<u32>(800, 600), false, true);
-    ChIrrWizard::add_typical_Logo(application.GetDevice());
-    ChIrrWizard::add_typical_Sky(application.GetDevice());
-    ChIrrWizard::add_typical_Lights(application.GetDevice(), vector3df(30.f, 100.f, 30.f),
-                                    vector3df(-30.f, 100.f, -30.f));
-    ChIrrWizard::add_typical_Camera(application.GetDevice(), core::vector3df(0, 14, -20));
+    ChIrrApp application(&mphysicalSystem, L"Rolling friction", core::dimension2d<u32>(800, 600));
+    application.AddTypicalLogo();
+    application.AddTypicalSky();
+    application.AddTypicalLights(vector3df(30.f, 100.f, 30.f), vector3df(-30.f, 100.f, -30.f));
+    application.AddTypicalCamera(vector3df(0, 14, -20));
 
     // Create all the rigid bodies.
     double mradius = 0.5;
-    double density = 1000;
 
     // Create a texture asset. It can be shared between bodies.
     auto textureasset = chrono_types::make_shared<ChTexture>(GetChronoDataFile("textures/bluewhite.png"));

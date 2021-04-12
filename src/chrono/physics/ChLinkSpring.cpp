@@ -118,7 +118,7 @@ void ChLinkSpring::ArchiveOUT(ChArchiveOut& marchive) {
 /// Method to allow de serialization of transient data from archives.
 void ChLinkSpring::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChLinkSpring>();
+    /*int version =*/ marchive.VersionRead<ChLinkSpring>();
 
     // deserialize parent class
     ChLinkMarkers::ArchiveIN(marchive);

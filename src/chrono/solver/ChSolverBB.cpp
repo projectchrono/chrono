@@ -45,7 +45,6 @@ double ChSolverBB::Solve(ChSystemDescriptor& sysd) {
     double neg_BB1_fallback = 0.11;
     double neg_BB2_fallback = 0.12;
 
-    int i_friction_comp = 0;
     m_iterations = 0;
     // Allocate auxiliary vectors;
 
@@ -139,7 +138,6 @@ double ChSolverBB::Solve(ChSystemDescriptor& sysd) {
     sysd.ConstraintsProject(ml);
 
     // Fallback solution
-    double lastgoodfval = 1e30;
     lastgoodres = 1e30;
     ml_candidate = ml;
 
@@ -363,7 +361,7 @@ void ChSolverBB::ArchiveOUT(ChArchiveOut& marchive) {
 
 void ChSolverBB::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChSolverBB>();
+    /*int version =*/ marchive.VersionRead<ChSolverBB>();
     // deserialize parent class
     ChIterativeSolverVI::ArchiveIN(marchive);
     // stream in all member data:

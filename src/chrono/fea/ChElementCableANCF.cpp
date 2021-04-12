@@ -186,8 +186,6 @@ void ChElementCableANCF::ComputeInternalJacobians(double Kfactor, double Rfactor
         double E = section->E;
         double I = section->I;
 
-        double l = this->length;
-
         ChVector<> pA = this->nodes[0]->GetPos();
         ChVector<> dA = this->nodes[0]->GetD();
         ChVector<> pB = this->nodes[1]->GetPos();
@@ -300,7 +298,6 @@ void ChElementCableANCF::ComputeInternalJacobians(double Kfactor, double Rfactor
                 double f = vf1.Length();
                 double g1 = vr_x.Length();
                 double g = pow(g1, 3);
-                double k = f / g;
 
                 g_e = (3 * g1) * Nd * (*d) * Sd;
 
@@ -455,8 +452,6 @@ void ChElementCableANCF::ComputeInternalForces_Impl(const ChVector<>& pA,
     double Area = section->Area;
     double E = section->E;
     double I = section->I;
-
-    double l = this->length;
 
     // this matrix will be used in both CableANCF_ForceAxial and CableANCF_ForceCurv integrators
     ChMatrixNM<double, 4, 3> d;
@@ -687,7 +682,7 @@ void ChElementCableANCF::EvaluateSectionForceTorque(const double eta, ChVector<>
     ShapeVector Nd;
     ShapeVector Ndd;
     // double xi = (eta*2 - 1.0);
-    double xi = (eta + 1.0) / 2.0;
+    // double xi = (eta + 1.0) / 2.0;
 
     /* To be completed*/
 }

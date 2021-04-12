@@ -108,8 +108,8 @@ class CH_VEHICLE_API SolidBellcrankThreeLinkAxle : public ChSolidBellcrankThreeL
 
     ChVector<> m_points[NUM_POINTS];
 
-    double m_damperDegressivityCompression;
-    double m_damperDegressivityExpansion;
+    ////double m_damperDegressivityCompression;
+    ////double m_damperDegressivityExpansion;
 
     double m_spindleMass;
     double m_axleTubeMass;

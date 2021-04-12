@@ -112,16 +112,15 @@ int main(int argc, char* argv[]) {
 
     double ball_radius = 0.5;
     MyObstacle obstacle;
-    double obst_radius = 2.0;
     ChVector<> obst_center(2.9, 0, 2.9);
 
     // Create the system and the various contact materials
-    ChSystemMulticore* sys;
+    ChSystemMulticore* sys = nullptr;
     std::shared_ptr<ChMaterialSurface> ground_mat;
     std::shared_ptr<ChMaterialSurface> ball_mat;
     std::shared_ptr<ChMaterialSurface> obst_mat;
-    double time_step;
-    int frame_skip;
+    double time_step = 0;
+    int frame_skip = 0;
 
     switch (contact_method) {
         case ChContactMethod::NSC: {
@@ -211,8 +210,7 @@ int main(int argc, char* argv[]) {
     sys->RegisterCustomCollisionCallback(my_collision);
 
     // Create the Irrlicht visualization
-    ChIrrApp application(sys, L"Custom contact demo (Chrono::Multicore)", irr::core::dimension2d<irr::u32>(800, 600),
-                         false, true);
+    ChIrrApp application(sys, L"Custom contact demo (Chrono::Multicore)", irr::core::dimension2d<irr::u32>(800, 600));
     application.AddTypicalLogo();
     application.AddTypicalSky();
     application.AddTypicalLights();

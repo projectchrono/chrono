@@ -117,7 +117,7 @@ spring.RegisterTorqueFunctor(torque)
 system.AddLink(spring);
 
 # Create the Irrlicht application
-application = irr.ChIrrApp(system, "ChLinkRotSpringCB demo", irr.dimension2du(800, 600), False, True)
+application = irr.ChIrrApp(system, "ChLinkRotSpringCB demo", irr.dimension2du(800, 600))
 application.AddTypicalLogo()
 application.AddTypicalSky()
 application.AddTypicalLights()
@@ -132,8 +132,8 @@ frame = 0
 while (application.GetDevice().run()) :
     application.BeginScene()
     application.DrawAll()
-    irr.ChIrrTools.drawAllCOGs(system, application.GetVideoDriver(), 1.0)
-    irr.ChIrrTools.drawAllLinkframes(system, application.GetVideoDriver(), 1.5)
+    irr.drawAllCOGs(system, application.GetVideoDriver(), 1.0)
+    irr.drawAllLinkframes(system, application.GetVideoDriver(), 1.5)
     application.DoStep()
 
     if (frame % 50 == 0) :

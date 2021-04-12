@@ -20,8 +20,6 @@
 #ifndef CHAPIPYPARSER_H
 #define CHAPIPYPARSER_H
 
-//#pragma warning(disable: 4251)
-
 #include "chrono/ChVersion.h"
 #include "chrono/core/ChPlatform.h"
 

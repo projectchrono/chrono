@@ -101,7 +101,7 @@ void ChShaftsDriveline4WD::Initialize(std::shared_ptr<ChChassis> chassis,
     // (the truss).
     m_rear_conicalgear = chrono_types::make_shared<ChShaftsGearboxAngled>();
     m_rear_conicalgear->Initialize(m_rear_shaft, m_rear_differentialbox, chassisBody, m_dir_motor_block, m_dir_axle);
-    m_rear_conicalgear->SetTransmissionRatio(GetRearConicalGearRatio());
+    m_rear_conicalgear->SetTransmissionRatio(-GetRearConicalGearRatio());
     sys->Add(m_rear_conicalgear);
 
     // Create a differential, i.e. an epicycloidal mechanism that connects three
@@ -137,7 +137,7 @@ void ChShaftsDriveline4WD::Initialize(std::shared_ptr<ChChassis> chassis,
     // (the truss).
     m_front_conicalgear = chrono_types::make_shared<ChShaftsGearboxAngled>();
     m_front_conicalgear->Initialize(m_front_shaft, m_front_differentialbox, chassisBody, m_dir_motor_block, m_dir_axle);
-    m_front_conicalgear->SetTransmissionRatio(GetFrontConicalGearRatio());
+    m_front_conicalgear->SetTransmissionRatio(-GetFrontConicalGearRatio());
     sys->Add(m_front_conicalgear);
 
     // Create a differential, i.e. an epicycloidal mechanism that connects three

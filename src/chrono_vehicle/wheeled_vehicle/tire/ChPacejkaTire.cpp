@@ -453,6 +453,10 @@ void ChPacejkaTire::update_W_frame(const ChTerrain& terrain) {
             m_in_contact = DiscTerrainCollisionEnvelope(terrain, m_tireState.pos, m_tireState.rot.GetYaxis(), m_R0,
                                                         m_areaDep, contact_frame, depth);
             break;
+        default:
+            m_in_contact = false;
+            depth = 0;
+            break;
     }
 
     // set the depth if there is contact with terrain
@@ -779,15 +783,12 @@ void ChPacejkaTire::evaluate_slips() {
 // after calculating all the reactions, evaluate output for any fishy business
 void ChPacejkaTire::evaluate_reactions(bool write_violations, bool enforce_threshold) {
     // any thresholds exceeded? then print some details about slip state
-    bool output_slip_to_console = false;
 
     if (std::abs(m_FM_combined.force.x()) > Fx_thresh) {
-        output_slip_to_console = true;
         if (enforce_threshold)
             m_FM_combined.force.x() = m_FM_combined.force.x() * (Fx_thresh / std::abs(m_FM_combined.force.x()));
     }
     if (std::abs(m_FM_combined.force.y()) > Fy_thresh) {
-        output_slip_to_console = true;
         if (enforce_threshold)
             m_FM_combined.force.y() = m_FM_combined.force.y() * (Fy_thresh / std::abs(m_FM_combined.force.y()));
     }
@@ -796,19 +797,16 @@ void ChPacejkaTire::evaluate_reactions(bool write_violations, bool enforce_thres
     // e.g., should never need t;his
     if (std::abs(m_Fz) > Fz_thresh) {
         ////GetLog() << "\n ***  !!!  ***  Fz exceeded threshold:, tire " << m_name << ", = " << m_Fz << "\n";
-        output_slip_to_console = true;
     }
 
     if (std::abs(m_FM_combined.moment.x()) > Mx_thresh) {
         if (enforce_threshold)
             m_FM_combined.moment.x() = m_FM_combined.moment.x() * (Mx_thresh / std::abs(m_FM_combined.moment.x()));
-        output_slip_to_console = true;
     }
 
     if (std::abs(m_FM_combined.moment.y()) > My_thresh) {
         if (enforce_threshold)
             m_FM_combined.moment.y() = m_FM_combined.moment.y() * (My_thresh / std::abs(m_FM_combined.moment.y()));
-        output_slip_to_console = true;
     }
 
     if (std::abs(m_FM_combined.moment.z()) > Mz_thresh) {
@@ -817,7 +815,6 @@ void ChPacejkaTire::evaluate_reactions(bool write_violations, bool enforce_thres
 
         ////GetLog() << " ***  !!!  ***  Mz exceeded threshold, tire " << m_name << ", = " << m_FM_combined.moment.z()
         ////         << "\n";
-        output_slip_to_console = true;
     }
 
     if (write_violations) {
@@ -1025,7 +1022,6 @@ void ChPacejkaTire::combinedSlipReactions() {
 
 void ChPacejkaTire::relaxationLengths() {
     double p_Ky4 = 2;  // according to Pac2002 model
-    double p_Ky5 = 0;
     double p_Ky6 = 2.5;  // 0.92;
     double p_Ky7 = 0.24;
 

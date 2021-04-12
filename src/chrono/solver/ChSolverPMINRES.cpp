@@ -283,10 +283,6 @@ double ChSolverPMINRES::Solve(ChSystemDescriptor& sysd) {
 //////////////////////////////////////////////////////////////////////////////
 
 double ChSolverPMINRES::Solve_SupportingStiffness(ChSystemDescriptor& sysd) {
-    std::vector<ChConstraint*>& mconstraints = sysd.GetConstraintsList();
-    std::vector<ChVariables*>& mvariables = sysd.GetVariablesList();
-    std::vector<ChKblock*>& mstiffness = sysd.GetKblocksList();
-
     m_iterations = 0;
 
     // Allocate auxiliary vectors;
@@ -505,7 +501,7 @@ void ChSolverPMINRES::ArchiveOUT(ChArchiveOut& marchive) {
 
 void ChSolverPMINRES::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChSolverPMINRES>();
+    /*int version =*/ marchive.VersionRead<ChSolverPMINRES>();
     // deserialize parent class
     ChIterativeSolverVI::ArchiveIN(marchive);
     // stream in all member data:

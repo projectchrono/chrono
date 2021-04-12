@@ -18,7 +18,6 @@
 
 import pychrono as chrono
 import pychrono.fea as fea
-#import pychrono.mkl as mkl
 import pychrono.irrlicht as chronoirr
 from cables import Model1, Model2, Model3
 
@@ -34,7 +33,7 @@ my_system = chrono.ChSystemSMC()
 
 # Create the Irrlicht visualization (open the Irrlicht device,
 # bind a simple user interface, etc. etc.)
-application = chronoirr.ChIrrApp(my_system, "Cables FEM", chronoirr.dimension2du(800, 600), False, True)
+application = chronoirr.ChIrrApp(my_system, "Cables FEM", chronoirr.dimension2du(800, 600))
 
 # Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
 application.AddTypicalLogo()

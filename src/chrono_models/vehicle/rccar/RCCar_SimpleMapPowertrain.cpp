@@ -57,10 +57,10 @@ void RCCar_SimpleMapPowertrain::SetEngineTorqueMaps(ChFunction_Recorder& map0, C
     map0.AddPoint(x1, 0);
 }
 
-void RCCar_SimpleMapPowertrain::SetGearRatios(std::vector<double>& fwd_gear_ratios, double& reverse_gear_ratio) {
-    reverse_gear_ratio = -0.2;
+void RCCar_SimpleMapPowertrain::SetGearRatios(std::vector<double>& fwd, double& rev) {
+    rev = -0.2;
 
-    fwd_gear_ratios.push_back(1.0 / 3);
+    fwd.push_back(1.0 / 3);
 }
 
 void RCCar_SimpleMapPowertrain::SetShiftPoints(std::vector<std::pair<double, double>>& shift_bands) {

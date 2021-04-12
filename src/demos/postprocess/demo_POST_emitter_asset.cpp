@@ -55,13 +55,11 @@ int main(int argc, char* argv[]) {
     // Create the Irrlicht visualization (open the Irrlicht device,
     // bind a simple user interface, etc. etc.)
     ChIrrApp application(&mphysicalSystem, L"Particle emitter: creation from various distributions",
-                         core::dimension2d<u32>(800, 600), false);
-
-    // Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
-    ChIrrWizard::add_typical_Logo(application.GetDevice());
-    ChIrrWizard::add_typical_Sky(application.GetDevice());
-    ChIrrWizard::add_typical_Lights(application.GetDevice());
-    ChIrrWizard::add_typical_Camera(application.GetDevice(), core::vector3df(0, 4, -6), core::vector3df(0, -2, 0));
+                         core::dimension2d<u32>(800, 600));
+    application.AddTypicalLogo();
+    application.AddTypicalSky();
+    application.AddTypicalLights();
+    application.AddTypicalCamera(core::vector3df(0, 4, -6), core::vector3df(0, -2, 0));
 
     // CREATE THE SYSTEM OBJECTS
 
@@ -80,9 +78,7 @@ int main(int argc, char* argv[]) {
     //    floorBody->GetCollisionModel()->AddBox(floor_mat, 10,12,1,ChVector<>( 0,0,5));
     floorBody->GetCollisionModel()->BuildModel();
 
-    auto mvisual = chrono_types::make_shared<ChColorAsset>();
-    mvisual->SetColor(ChColor(0.0f, 1.0f, (float)ChRandom()));
-    floorBody->AddAsset(mvisual);
+    floorBody->AddAsset(chrono_types::make_shared<ChColorAsset>(0.0f, 1.0f, (float)ChRandom()));
 
     // Custom rendering in POVray:
     auto mPOVcustom = chrono_types::make_shared<ChPovRayAssetCustom>();
@@ -115,9 +111,7 @@ int main(int argc, char* argv[]) {
         movingBody->SetWvel_par(ChVector<>(2 * cos(phase), 2, 2 * sin(phase)));
         mphysicalSystem.Add(movingBody);
 
-        auto mvisual = chrono_types::make_shared<ChColorAsset>();
-        mvisual->SetColor(ChColor(1.0f, 0.5f, 0.1f));
-        movingBody->AddAsset(mvisual);
+        movingBody->AddAsset(chrono_types::make_shared<ChColorAsset>(1.0f, 0.5f, 0.1f));
 
         // Create a  emitter asset, that contains a ChParticleEmitter, and that will follow the body:
         auto emitter_asset = chrono_types::make_shared<ChEmitterAsset>();
@@ -222,9 +216,7 @@ int main(int argc, char* argv[]) {
         boxbody->SetPos(ChVector<>(xpos, -4.1, 0));
         boxbody->SetBodyFixed(true);
         mphysicalSystem.Add(boxbody);
-        auto mvisual = chrono_types::make_shared<ChColorAsset>();
-        mvisual->SetColor(ChColor(1.0f, 0.5f, 0.1f));
-        boxbody->AddAsset(mvisual);
+        boxbody->AddAsset(chrono_types::make_shared<ChColorAsset>(1.0f, 0.5f, 0.1f));
 
         // ---Initialize the randomizer for alignments
         auto emitter_rotations = chrono_types::make_shared<ChRandomParticleAlignmentUniform>();
@@ -252,9 +244,7 @@ int main(int argc, char* argv[]) {
                                    ChCoordsys<> mcoords,
                                    ChRandomShapeCreator& mcreator) override {
                 // Ex.: attach some optional assets, ex for visualization
-                auto mvisual = chrono_types::make_shared<ChColorAsset>();
-                mvisual->SetColor(ChColor(0.4f, 0.4f, 0.4f));
-                mbody->AddAsset(mvisual);
+                mbody->AddAsset(chrono_types::make_shared<ChColorAsset>(0.4f, 0.4f, 0.4f));
 
                 auto mPOVcustom = chrono_types::make_shared<ChPovRayAssetCustom>();
                 mPOVcustom->SetCommands(" texture {finish { specular 0.9 } pigment{ color rgb<0.8,0.5,0.3>} }  \n");
@@ -279,9 +269,7 @@ int main(int argc, char* argv[]) {
                                    ChCoordsys<> mcoords,
                                    ChRandomShapeCreator& mcreator) override {
                 // Ex.: attach some optional assets, ex for visualization
-                auto mvisual = chrono_types::make_shared<ChColorAsset>();
-                mvisual->SetColor(ChColor(0.4f, 0.4f, 0.4f));
-                mbody->AddAsset(mvisual);
+                mbody->AddAsset(chrono_types::make_shared<ChColorAsset>(0.4f, 0.4f, 0.4f));
 
                 auto mPOVcustom = chrono_types::make_shared<ChPovRayAssetCustom>();
                 mPOVcustom->SetCommands(" texture {finish { specular 0.9 } pigment{ color rgb<0.3,0.4,0.6>} }  \n");

@@ -228,8 +228,6 @@ void ChShaftsMotorSpeed::VariablesQbLoadSpeed() {
 }
 
 void ChShaftsMotorSpeed::VariablesQbSetSpeed(double step) {
-    double old_dt = aux_dt;
-
     // from 'qb' vector, sets body speed, and updates auxiliary data
     aux_dt = variable.Get_qb()(0);
 
@@ -294,7 +292,7 @@ void ChShaftsMotorSpeed::ArchiveOUT(ChArchiveOut& marchive) {
 /// Method to allow de serialization of transient data from archives.
 void ChShaftsMotorSpeed::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChShaftsMotorSpeed>();
+    /*int version =*/ marchive.VersionRead<ChShaftsMotorSpeed>();
 
     // deserialize parent class:
     ChShaftsMotorBase::ArchiveIN(marchive);
