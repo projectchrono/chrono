@@ -162,7 +162,6 @@ class ChContactNSCrolling : public ChContactNSC<Ta, Tb> {
 
         //***TODO*** move to KRMmatricesLoad() the following, and only for !bounced case
         double alpha = this->dampingf;              // [R]=alpha*[K]
-        double inv_hpa = 1.0 / (h + alpha);         // 1/(h+a)
         double inv_hhpa = 1.0 / (h * (h + alpha));  // 1/(h*(h+a))
 
         this->Ru.Set_cfm_i((inv_hhpa) * this->complianceRoll);
@@ -225,7 +224,6 @@ class ChContactNSCrolling : public ChContactNSC<Ta, Tb> {
 
         //***TODO*** move to KRMmatricesLoad() the following, and only for !bounced case
         double alpha = this->dampingf;              // [R]=alpha*[K]
-        double inv_hpa = 1.0 / (h + alpha);         // 1/(h+a)
         double inv_hhpa = 1.0 / (h * (h + alpha));  // 1/(h*(h+a))
 
         this->Ru.Set_cfm_i((inv_hhpa) * this->complianceRoll);

@@ -62,7 +62,7 @@ const ChVector<> Marder_TrackAssemblySinglePin::m_supp_locs_R[3] = {
 // -----------------------------------------------------------------------------
 Marder_TrackAssemblySinglePin::Marder_TrackAssemblySinglePin(VehicleSide side, BrakeType brake_type)
     : ChTrackAssemblySinglePin("", side) {
-    size_t num_shoes;
+    size_t num_shoes = 0;
     std::string suspName("Marder_Suspension");
     std::string shoeName("Marder_TrackShoe");
     m_rollers.resize(3);

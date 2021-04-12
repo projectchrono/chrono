@@ -185,8 +185,7 @@ ChSuspensionTestRig::ChSuspensionTestRig(const std::string& filename,
     // Extract the specified axle from the vehicle's list of suspension subsystems.
     // Note that we ignore antiroll bar and brake subsystems.
     // Create the suspension and wheel subsystems.
-    int num_axles = d["Axles"].Size();
-    assert(axle_index >= 0 && axle_index < num_axles);
+    assert(axle_index >= 0 && axle_index < d["Axles"].Size());
 
     std::string file_name = d["Axles"][axle_index]["Suspension Input File"].GetString();
     m_suspension = ReadSuspensionJSON(vehicle::GetDataFile(file_name));
@@ -204,7 +203,7 @@ ChSuspensionTestRig::ChSuspensionTestRig(const std::string& filename,
 
     // Create the steering subsystem, if needed.
     if (steering_index >= 0) {
-        std::string file_name = d["Steering Subsystems"][steering_index]["Input File"].GetString();
+        file_name = d["Steering Subsystems"][steering_index]["Input File"].GetString();
         m_steering = ReadSteeringJSON(vehicle::GetDataFile(file_name));
         m_steeringLoc = ReadVectorJSON(d["Steering Subsystems"][steering_index]["Location"]);
         m_steeringRot = ReadQuaternionJSON(d["Steering Subsystems"][steering_index]["Orientation"]);
@@ -212,7 +211,7 @@ ChSuspensionTestRig::ChSuspensionTestRig(const std::string& filename,
 
     // Create the anti-roll bar subsystem, if one exists.
     if (d["Axles"][axle_index].HasMember("Antirollbar Input File")) {
-        std::string file_name = d["Axles"][axle_index]["Antirollbar Input File"].GetString();
+        file_name = d["Axles"][axle_index]["Antirollbar Input File"].GetString();
         m_antirollbar = ReadAntirollbarJSON(vehicle::GetDataFile(file_name));
         m_antirollbarLoc = ReadVectorJSON(d["Axles"][axle_index]["Antirollbar Location"]);
     }
@@ -271,7 +270,7 @@ ChSuspensionTestRig::ChSuspensionTestRig(const std::string& filename,
 
     // Create the steering subsystem, if specified
     if (d.HasMember("Steering")) {
-        std::string file_name = d["Steering"]["Input File"].GetString();
+        file_name = d["Steering"]["Input File"].GetString();
         m_steering = ReadSteeringJSON(vehicle::GetDataFile(file_name));
         m_steeringLoc = ReadVectorJSON(d["Steering"]["Location"]);
         m_steeringRot = ReadQuaternionJSON(d["Steering"]["Orientation"]);
@@ -279,7 +278,7 @@ ChSuspensionTestRig::ChSuspensionTestRig(const std::string& filename,
 
     // Create the anti-roll bar subsystem, if one exists.
     if (d["Suspension"].HasMember("Antirollbar Input File")) {
-        std::string file_name = d["Suspension"]["Antirollbar Input File"].GetString();
+        file_name = d["Suspension"]["Antirollbar Input File"].GetString();
         m_antirollbar = ReadAntirollbarJSON(vehicle::GetDataFile(file_name));
         m_antirollbarLoc = ReadVectorJSON(d["Suspension"]["Antirollbar Location"]);
     }
@@ -678,7 +677,6 @@ void ChSuspensionTestRigPlatform::UpdateActuators(double displ_left,
                                                   double displ_speed_left,
                                                   double displ_right,
                                                   double displ_speed_right) {
-    double time = GetSystem()->GetChTime();
     auto func_L = std::static_pointer_cast<ChFunction_Setpoint>(m_post_linact[LEFT]->GetMotionFunction());
     auto func_R = std::static_pointer_cast<ChFunction_Setpoint>(m_post_linact[RIGHT]->GetMotionFunction());
     func_L->SetSetpointAndDerivatives(displ_left, displ_speed_left, 0.0);
@@ -878,7 +876,6 @@ void ChSuspensionTestRigPushrod::UpdateActuators(double displ_left,
                                                  double displ_speed_left,
                                                  double displ_right,
                                                  double displ_speed_right) {
-    double time = GetSystem()->GetChTime();
     auto func_L = std::static_pointer_cast<ChFunction_Setpoint>(m_rod_linact[LEFT]->Get_dist_funct());
     auto func_R = std::static_pointer_cast<ChFunction_Setpoint>(m_rod_linact[RIGHT]->Get_dist_funct());
     func_L->SetSetpointAndDerivatives(displ_left, displ_speed_left, 0.0);

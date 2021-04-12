@@ -253,7 +253,7 @@ class MyEventReceiver : public IEventReceiver {
                     // a menu item was clicked
 
                     gui::IGUIContextMenu* menu = (gui::IGUIContextMenu*)event.GUIEvent.Caller;
-                    s32 id = menu->getItemCommandId(menu->getSelectedItem());
+                    id = menu->getItemCommandId(menu->getSelectedItem());
 
                     switch (id) {
                         case 90:
@@ -357,7 +357,6 @@ class MyEventReceiver : public IEventReceiver {
   private:
     ChIrrAppInterface* app;
 
-    gui::IGUIContextMenu* menu;
     gui::IGUIButton* button_decompose;
     gui::IGUIStaticText* text_algo_type;
     gui::IGUIStaticText* text_hacd_maxhullcount;

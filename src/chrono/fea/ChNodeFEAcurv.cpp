@@ -241,7 +241,7 @@ void ChNodeFEAcurv::ArchiveOUT(ChArchiveOut& marchive) {
 
 void ChNodeFEAcurv::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChNodeFEAcurv>();
+    /*int version =*/ marchive.VersionRead<ChNodeFEAcurv>();
     // deserialize parent class
     ChNodeFEAbase::ArchiveIN(marchive);
 

@@ -34,7 +34,7 @@ void ChContactContainer::ArchiveOUT(ChArchiveOut& marchive) {
 
 void ChContactContainer::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChContactContainer>();
+    /*int version =*/ marchive.VersionRead<ChContactContainer>();
     // deserialize parent class
     ChPhysicsItem::ArchiveIN(marchive);
     // stream in all member data:

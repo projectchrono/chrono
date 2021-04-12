@@ -124,8 +124,6 @@ void AppendRigidFluidBoundary(const real contact_mu,
     CompressedMatrix<real>& D_T = data_manager->host_data.D_T;
     uint num_rigid_fluid_contacts = data_manager->num_rigid_fluid_contacts;
     if (num_rigid_fluid_contacts > 0) {
-        int index_t = 0;
-
         custom_vector<int>& neighbor_rigid_fluid = data_manager->host_data.neighbor_rigid_fluid;
         custom_vector<int>& contact_counts = data_manager->host_data.c_counts_rigid_fluid;
 
@@ -257,7 +255,6 @@ void CorrectionRigidFluidBoundary(const real contact_mu,
     uint num_rigid_fluid_contacts = data_manager->num_rigid_fluid_contacts;
 
     if (num_rigid_fluid_contacts > 0) {
-        custom_vector<int>& neighbor_rigid_fluid = data_manager->host_data.neighbor_rigid_fluid;
         custom_vector<int>& contact_counts = data_manager->host_data.c_counts_rigid_fluid;
 
         if (contact_mu == 0) {

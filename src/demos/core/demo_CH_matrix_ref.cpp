@@ -83,17 +83,11 @@ int main(int argc, char* argv[]) {
     double ATcond = inv_cond(A.transpose());
     std::cout << Acond << " " << ATcond << std::endl;
 
-    auto AA = A.block<2, 2>(0, 0);
-    double AAcond = inv_cond(AA);
-
     ChMatrixNM<double, 2, 3> B;
     B = A;
     double Bcond = inv_cond(B);
     double BTcond = inv_cond(B.transpose());
     std::cout << Bcond << " " << BTcond << std::endl;
-
-    auto BB = B.block<2, 2>(0, 0);
-    double BBcond = inv_cond(BB);
 
     std::vector<BaseClass*> V;
 

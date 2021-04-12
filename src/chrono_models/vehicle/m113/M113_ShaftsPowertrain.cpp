@@ -45,13 +45,13 @@ M113_ShaftsPowertrain::M113_ShaftsPowertrain(const std::string& name) : ChShafts
 // Initialize vector of gear ratios
 // https://www.nsncenter.com/Files/library/TM/M113/TM-9-2520-272-34P/TM-9-2520-272-34P.pdf
 // -----------------------------------------------------------------------------
-void M113_ShaftsPowertrain::SetGearRatios(std::vector<double>& gear_ratios) {
+void M113_ShaftsPowertrain::SetGearRatios(std::vector<double>& fwd, double& rev) {
+    rev = -0.151;  // reverse gear;
 
-    gear_ratios.push_back(-0.151);  // 0: reverse gear;
-    gear_ratios.push_back(0.240);   // 1st gear;
-    gear_ratios.push_back(0.427);   // 2nd gear;
-    gear_ratios.push_back(0.685);   // 3rd gear;
-    gear_ratios.push_back(0.962);   // 4th gear;
+    fwd.push_back(0.240);   // 1st gear;
+    fwd.push_back(0.427);   // 2nd gear;
+    fwd.push_back(0.685);   // 3rd gear;
+    fwd.push_back(0.962);   // 4th gear;
 }
 
 // -----------------------------------------------------------------------------

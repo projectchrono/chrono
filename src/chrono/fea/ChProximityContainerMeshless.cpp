@@ -198,8 +198,6 @@ void ChProximityContainerMeshless::AccumulateStep2() {
         ChVector<> x_B = mnodeB->GetPos();
         ChVector<> x_Aref = mnodeA->GetPosReference();
         ChVector<> x_Bref = mnodeB->GetPosReference();
-        ChVector<> u_A = (x_A - x_Aref);
-        ChVector<> u_B = (x_B - x_Bref);
 
         ChVector<> d_BA = x_Bref - x_Aref;
 
@@ -220,11 +218,8 @@ void ChProximityContainerMeshless::AccumulateStep2() {
         ChVector<> r_BA = x_B - x_A;
         double r_length = r_BA.Length();
         double W_BA_visc = W_sq_visco(r_length, mnodeA->GetKernelRadius());
-        double W_AB_visc = W_sq_visco(r_length, mnodeB->GetKernelRadius());
         ChVector<> velBA = mnodeB->GetPos_dt() - mnodeA->GetPos_dt();
 
-        ChMatterMeshless* mmatA = (ChMatterMeshless*)(*iterproximity)->GetModelA()->GetPhysicsItem();
-        ChMatterMeshless* mmatB = (ChMatterMeshless*)(*iterproximity)->GetModelB()->GetPhysicsItem();
         double avg_viscosity =
             0.5 * (mnodeA->GetMatterContainer()->GetViscosity() + mnodeB->GetMatterContainer()->GetViscosity());
 
@@ -247,7 +242,7 @@ void ChProximityContainerMeshless::ArchiveOUT(ChArchiveOut& marchive) {
 /// Method to allow de serialization of transient data from archives.
 void ChProximityContainerMeshless::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChProximityContainerMeshless>();
+    /*int version =*/ marchive.VersionRead<ChProximityContainerMeshless>();
     // deserialize parent class
     ChProximityContainer::ArchiveIN(marchive);
     // stream in all member data:

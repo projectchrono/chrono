@@ -49,12 +49,8 @@ class CH_MODELS_API Sedan_SimpleMapPowertrain : public ChSimpleMapPowertrain {
                                      ChFunction_Recorder& mapF   ///< [out] engine map at full throttle
                                      ) override;
 
-    /// Set the gears, i.e. the transmission ratios of the various gears.
-    /// A concrete class must populate the vector of forward gear ratios, ordered as 1st, 2nd, etc.
-    /// and provide a value for the single reverse gear ratio.
-    virtual void SetGearRatios(std::vector<double>& fwd_gear_ratios,  ///< [out] list of forward gear ratios
-                               double& reverse_gear_ratio             ///< [out] single reverse gear ratio
-                               ) override;
+    /// Set the transmission gear ratios (one or more forward gear ratios and a single reverse gear ratio).
+    virtual void SetGearRatios(std::vector<double>& fwd, double& rev) override;
 
     /// Set the ideal shift points for automatic gear shifting.
     /// For each forward gear, specify a pair (min, max) with the minimum and

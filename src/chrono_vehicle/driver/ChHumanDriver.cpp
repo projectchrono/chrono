@@ -66,7 +66,6 @@ ChHumanDriver::ChHumanDriver(ChVehicle& vehicle,
       m_u0(10.0),
       m_umax(30.0),
       m_uthres(2.0),
-      m_ny(10.0 * CH_C_DEG_TO_RAD),
       m_target(0, 0, 0),
       m_sentinel(0, 0, 0),
       m_idx_curr(0),
@@ -107,7 +106,6 @@ ChHumanDriver::ChHumanDriver(const std::string& filename,
       m_u0(10.0),
       m_umax(30.0),
       m_uthres(2.0),
-      m_ny(10.0 * CH_C_DEG_TO_RAD),
       m_target(0, 0, 0),
       m_sentinel(0, 0, 0),
       m_idx_curr(0),
@@ -269,11 +267,8 @@ void ChHumanDriver::Advance(double step) {  // distance in front of the vehicle.
     ChVector<> Pt = m_sentinel - m_S_l[m_idx_curr];
     double rt = m_R_l[m_idx_curr].Length();
 
-    bool crit = false;
     double t = std::abs(Pt.Dot(m_R_lu[m_idx_curr]));
-    if (t < rt) {
-        crit = true;
-    } else {
+    if (t >= rt) {
         while (t > rt) {
             m_idx_curr++;
             if (m_isClosedPath) {

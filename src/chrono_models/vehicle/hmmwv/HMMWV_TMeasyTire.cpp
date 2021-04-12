@@ -49,7 +49,7 @@ void HMMWV_TMeasyTire::SetTMeasyParams() {
     // Tire Load 3850 lbs at 50 psi (Goodyear Military Tire Brochure 6th Edition)
 
     const double lbs2N = 4.4482216153;
-    unsigned int li = 108;  // guessed from load spec. of the vehicle
+    ////unsigned int li = 108;  // guessed from load spec. of the vehicle
     const double in2m = 0.0254;
     double h = (37.0 - 16.5) * in2m / 2.0;
     double w = 12.5 * in2m;

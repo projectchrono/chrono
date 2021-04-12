@@ -33,14 +33,18 @@ namespace opengl {
 class CH_OPENGL_API ChOpenGLText : public ChOpenGLObject {
   public:
     ChOpenGLText();
-    virtual bool Initialize(ChOpenGLMaterial mat, ChOpenGLShader* shader);
-    virtual void Draw(const glm::mat4& projection = glm::mat4(1), const glm::mat4& view = glm::mat4(1));
-    void TakeDown();
+    bool Initialize(ChOpenGLMaterial mat, ChOpenGLShader* shader);
+
+    virtual void Draw(const glm::mat4& projection = glm::mat4(1), const glm::mat4& view = glm::mat4(1)) override;
+    virtual void TakeDown() override;
+
     void Update();
     void GenerateFontIndex();
     void Render(const std::string& str, float x, float y, float sx, float sy);
 
   private:
+    typedef ChOpenGLObject super;
+
     glm::vec4 color;
     GLuint color_handle, texture_handle;
     std::vector<glm::vec4> text_data;
@@ -48,7 +52,6 @@ class CH_OPENGL_API ChOpenGLText : public ChOpenGLObject {
     GLuint vbo, vao;
 
     GLuint texture, sampler;
-    typedef ChOpenGLObject super;
 };
 
 /// @} opengl_module

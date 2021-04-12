@@ -201,7 +201,6 @@ void ChCBroadphase::OffsetAABB() {
 // Determine resolution of the top level grid
 void ChCBroadphase::ComputeTopLevelResolution() {
     const int num_shapes = data_manager->num_rigid_shapes;
-    const real3& min_bounding_point = data_manager->measures.collision.min_bounding_point;
     const real3& max_bounding_point = data_manager->measures.collision.max_bounding_point;
     const real3& global_origin = data_manager->measures.collision.global_origin;
     const real density = data_manager->settings.collision.grid_density;

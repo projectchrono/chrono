@@ -594,7 +594,7 @@ void ViperRover::Create() {
     // initialize steering rod
     double sr_lx = 0.5618 + 0.08;
     double sr_ly = 0.2067 + 0.32 + 0.0831;
-    double sr_lz = 0.0;
+    //double sr_lz = 0.0;
     ChVector<> sr_rel_pos[] = {
         ChVector<>(+sr_lx, +sr_ly, -cr_lz),  // LF
         ChVector<>(+sr_lx, -sr_ly, -cr_lz),  // RF
@@ -620,8 +620,8 @@ void ViperRover::Initialize() {
     // add all constraints to the system
     // redefine pos data for constraints
     double sr_lx = 0.5618 + 0.08;
-    double sr_ly = 0.2067 + 0.32 + 0.0831;
-    double sr_lz = 0.0;
+    //double sr_ly = 0.2067 + 0.32 + 0.0831;
+    //double sr_lz = 0.0;
     double sr_ly_joint = 0.2067 + 0.32;
 
     double cr_lx = 0.5618 + 0.08;

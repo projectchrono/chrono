@@ -32,6 +32,11 @@ const double FMTV_SimplePowertrain::m_rev_gear_ratio = -0.3;
 
 FMTV_SimplePowertrain::FMTV_SimplePowertrain(const std::string& name) : ChSimplePowertrain(name) {}
 
+void FMTV_SimplePowertrain::SetGearRatios(std::vector<double>& fwd, double& rev) {
+    rev = m_rev_gear_ratio;
+    fwd.push_back(m_fwd_gear_ratio);
+}
+
 }  // namespace fmtv
 }  // end namespace vehicle
 }  // end namespace chrono

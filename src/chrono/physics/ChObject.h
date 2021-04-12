@@ -39,8 +39,8 @@ class ChTag;
 /// Base class for items which can be named, deleted, copied. etc. as in the editor of a 3d modeler.
 class ChApi ChObj {
   private:
-    std::string name;  ///< name of object
-    int identifier;    ///< object identifier
+    std::string m_name;  ///< name of object
+    int m_identifier;    ///< object identifier
 
   protected:
     double ChTime;  ///< the time of simulation for the object
@@ -55,9 +55,9 @@ class ChApi ChObj {
     virtual ChObj* Clone() const = 0;
 
     /// Gets the numerical identifier of the object.
-    int GetIdentifier() const { return identifier; }
+    int GetIdentifier() const { return m_identifier; }
     /// Sets the numerical identifier of the object.
-    void SetIdentifier(int id) { identifier = id; }
+    void SetIdentifier(int id) { m_identifier = id; }
 
     /// Gets the simulation time of this object
     double GetChTime() const { return ChTime; }
@@ -65,14 +65,14 @@ class ChApi ChObj {
     void SetChTime(double m_time) { ChTime = m_time; }
 
     /// Gets the name of the object as C Ascii null-terminated string -for reading only!
-    const char* GetName() const { return name.c_str(); }
+    const char* GetName() const { return m_name.c_str(); }
     /// Sets the name of this object, as ascii string
-    void SetName(const char myname[]) { name = myname; }
+    void SetName(const char myname[]) { m_name = myname; }
 
     /// Gets the name of the object as C Ascii null-terminated string.
-    std::string GetNameString() const { return name; }
+    std::string GetNameString() const { return m_name; }
     /// Sets the name of this object, as std::string
-    void SetNameString(const std::string& myname) { name = myname; }
+    void SetNameString(const std::string& myname) { m_name = myname; }
 
     // Set-get generic LONG flags, passed as reference
 
@@ -92,7 +92,7 @@ class ChApi ChObj {
     virtual void ArchiveIN(ChArchiveIn& marchive);
 
     // Method to allow mnemonic names in (de)serialization of containers (std::vector, arrays, etc.)
-    virtual std::string& ArchiveContainerName() { return name; }
+    virtual std::string& ArchiveContainerName() { return m_name; }
 };
 
 CH_CLASS_VERSION(ChObj, 0)

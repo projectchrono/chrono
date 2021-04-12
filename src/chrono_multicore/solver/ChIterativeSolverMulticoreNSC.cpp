@@ -64,8 +64,8 @@ void ChIterativeSolverMulticoreNSC::RunTimeStep() {
     // Perform any setup tasks for all constraint types
     data_manager->rigid_rigid->Setup(data_manager);
     data_manager->bilateral->Setup(data_manager);
-    data_manager->node_container->Setup(data_manager->num_unilaterals + data_manager->num_bilaterals);
-    data_manager->fea_container->Setup(data_manager->num_unilaterals + data_manager->num_bilaterals + num_3dof_3dof);
+    data_manager->node_container->Setup3DOF(data_manager->num_unilaterals + data_manager->num_bilaterals);
+    data_manager->fea_container->Setup3DOF(data_manager->num_unilaterals + data_manager->num_bilaterals + num_3dof_3dof);
 
     // Clear and reset solver history data and counters
     solver->current_iteration = 0;
@@ -208,13 +208,8 @@ void ChIterativeSolverMulticoreNSC::ComputeD() {
         return;
     }
 
-    uint num_shafts = data_manager->num_shafts;
-    uint num_motors = data_manager->num_motors;
-    uint num_fluid_bodies = data_manager->num_fluid_bodies;
     uint num_dof = data_manager->num_dof;
     uint num_rigid_contacts = data_manager->num_rigid_contacts;
-    uint num_rigid_fluid_contacts = data_manager->num_rigid_fluid_contacts;
-    uint num_fluid_contacts = data_manager->num_fluid_contacts;
     uint num_bilaterals = data_manager->num_bilaterals;
     uint nnz_bilaterals = data_manager->nnz_bilaterals;
 
@@ -233,7 +228,6 @@ void ChIterativeSolverMulticoreNSC::ComputeD() {
     uint nnz_fem = data_manager->fea_container->GetNumNonZeros();
 
     CompressedMatrix<real>& D_T = data_manager->host_data.D_T;
-    CompressedMatrix<real>& D = data_manager->host_data.D;
     CompressedMatrix<real>& M_invD = data_manager->host_data.M_invD;
     const CompressedMatrix<real>& M_inv = data_manager->host_data.M_inv;
 
@@ -259,8 +253,6 @@ void ChIterativeSolverMulticoreNSC::ComputeD() {
     }
 
     CLEAR_RESERVE_RESIZE(D_T, nnz_total, num_rows, num_dof)
-    // D is automatically reserved during transpose!
-    // CLEAR_RESERVE_RESIZE(D, nnz_total, num_dof, num_rows)
     CLEAR_RESERVE_RESIZE(M_invD, nnz_total, num_dof, num_rows)
 
     data_manager->rigid_rigid->GenerateSparsity();
@@ -314,8 +306,8 @@ void ChIterativeSolverMulticoreNSC::ComputeR() {
         return;
     }
 
-    const DynamicVector<real>& M_invk = data_manager->host_data.M_invk;
-    const CompressedMatrix<real>& D_T = data_manager->host_data.D_T;
+    ////const DynamicVector<real>& M_invk = data_manager->host_data.M_invk;
+    ////const CompressedMatrix<real>& D_T = data_manager->host_data.D_T;
 
     DynamicVector<real>& R = data_manager->host_data.R_full;
 
@@ -329,7 +321,7 @@ void ChIterativeSolverMulticoreNSC::ComputeR() {
     data_manager->node_container->Build_b();
     data_manager->fea_container->Build_b();
     // update rhs after presolve!
-    // R = -b - D_T * M_invk;
+    ////R = -b - D_T * M_invk;
 
     data_manager->system_timer.stop("ChIterativeSolverMulticore_R");
 }
@@ -343,7 +335,6 @@ void ChIterativeSolverMulticoreNSC::ComputeN() {
     data_manager->system_timer.start("ChIterativeSolverMulticore_N");
     const CompressedMatrix<real>& D_T = data_manager->host_data.D_T;
     CompressedMatrix<real>& Nshur = data_manager->host_data.Nshur;
-    const CompressedMatrix<real>& M_inv = data_manager->host_data.M_inv;
     Nshur = D_T * data_manager->host_data.M_invD;
     data_manager->system_timer.stop("ChIterativeSolverMulticore_N");
 }
@@ -361,7 +352,6 @@ void ChIterativeSolverMulticoreNSC::SetR() {
     uint num_unilaterals = data_manager->num_unilaterals;
     uint num_bilaterals = data_manager->num_bilaterals;
     uint num_rigid_fluid = data_manager->num_rigid_fluid_contacts * 3;
-    uint num_fluid_fluid = data_manager->num_fluid_contacts;
     uint num_fluid_bodies = data_manager->num_fluid_bodies;
     R.resize(data_manager->num_constraints);
     reset(R);
@@ -404,7 +394,6 @@ void ChIterativeSolverMulticoreNSC::SetR() {
 
 void ChIterativeSolverMulticoreNSC::ComputeImpulses() {
     LOG(INFO) << "ChIterativeSolverMulticoreNSC::ComputeImpulses()";
-    const DynamicVector<real>& M_invk = data_manager->host_data.M_invk;
     const CompressedMatrix<real>& M_inv = data_manager->host_data.M_inv;
     const DynamicVector<real>& gamma = data_manager->host_data.gamma;
 

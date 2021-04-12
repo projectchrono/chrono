@@ -77,6 +77,7 @@ class ChApi ChVisualMaterial : public ChAsset {
     float roughness;
     float metallic;
 
+    ////bool has_texture;
     std::string kd_texture;
     std::string normal_texture;
     std::string metallic_texture;

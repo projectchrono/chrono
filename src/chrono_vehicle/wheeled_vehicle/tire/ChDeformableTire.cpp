@@ -31,13 +31,13 @@ using namespace chrono::fea;
 // -----------------------------------------------------------------------------
 ChDeformableTire::ChDeformableTire(const std::string& name)
     : ChTire(name),
+      m_connection_enabled(true),
       m_pressure_enabled(true),
       m_contact_enabled(true),
-      m_connection_enabled(true),
+      m_pressure(-1),
       m_contact_type(NODE_CLOUD),
       m_contact_node_radius(0.001),
-      m_contact_face_thickness(0.0),
-      m_pressure(-1) {}
+      m_contact_face_thickness(0.0) {}
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -151,7 +151,7 @@ TerrainForce ChDeformableTire::ReportTireForce(ChTerrain* terrain) const {
 
     for (size_t ic = 0; ic < m_connectionsD.size(); ic++) {
         ChCoordsys<> csys = m_connectionsD[ic]->GetLinkAbsoluteCoords();
-        ChVector<> moment = csys.TransformDirectionLocalToParent(m_connectionsD[ic]->GetReactionOnBody());
+        moment = csys.TransformDirectionLocalToParent(m_connectionsD[ic]->GetReactionOnBody());
         tire_force.moment += moment;
     }
 

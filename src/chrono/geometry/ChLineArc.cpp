@@ -65,7 +65,7 @@ void ChLineArc::ArchiveOUT(ChArchiveOut& marchive) {
 
 void ChLineArc::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChLineArc>();
+    /*int version =*/ marchive.VersionRead<ChLineArc>();
     // deserialize parent class
     ChLine::ArchiveIN(marchive);
     // stream in all member data:

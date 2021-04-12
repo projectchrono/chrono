@@ -45,7 +45,9 @@ class CH_OPENGL_API ChOpenGLHUD : public ChOpenGLBase {
     void GenerateRenderer();
     void GenerateStats(ChSystem* physics_system);
     void GenerateExtraStats(ChSystem* physics_system);
-    void TakeDown();
+    
+    virtual void TakeDown() override;
+
     void Update(const glm::ivec2& window_size,
                 const double& dpi,
                 const double& frame_per_sec,
@@ -61,7 +63,7 @@ class CH_OPENGL_API ChOpenGLHUD : public ChOpenGLBase {
     ChOpenGLShader bar_shader;
 
     float sx, sy;
-    float aspect, z_x, z_y;
+    float aspect;
     char buffer[50];
     ChOpenGLCamera* render_camera;
     double time_geometry, time_text, time_total, fps;

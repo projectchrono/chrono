@@ -146,10 +146,10 @@ class ChContactSMC : public ChContactTuple<Ta, Tb> {
         // All models use the following formulas for normal and tangential forces:
         //     Fn = kn * delta_n - gn * v_n
         //     Ft = kt * delta_t - gt * v_t
-        double kn;
-        double kt;
-        double gn;
-        double gt;
+        double kn = 0;
+        double kt = 0;
+        double gn = 0;
+        double gt = 0;
 
         double eps = std::numeric_limits<double>::epsilon();
 
@@ -201,7 +201,6 @@ class ChContactSMC : public ChContactTuple<Ta, Tb> {
                 if (use_mat_props) {
                     double sqrt_Rd = std::sqrt(delta);
                     double Sn = 2 * mat.E_eff * sqrt_Rd;
-                    double St = 8 * mat.G_eff * sqrt_Rd;
                     double loge = (mat.cr_eff < eps) ? std::log(eps) : std::log(mat.cr_eff);
                     double beta = loge / std::sqrt(loge * loge + CH_C_PI * CH_C_PI);
                     kn = (2.0 / 3) * Sn;

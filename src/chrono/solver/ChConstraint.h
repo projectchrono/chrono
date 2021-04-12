@@ -80,16 +80,16 @@ class ChApi ChConstraint {
     /// Default constructor
     ChConstraint()
         : c_i(0),
-          g_i(0),
-          b_i(0),
           l_i(0),
+          b_i(0),
           cfm_i(0),
           valid(false),
           disabled(false),
           redundant(false),
           broken(false),
           active(true),
-          mode(CONSTRAINT_LOCK) {}
+          mode(CONSTRAINT_LOCK),
+          g_i(0) {}
 
     /// Copy constructor
     ChConstraint(const ChConstraint& other);

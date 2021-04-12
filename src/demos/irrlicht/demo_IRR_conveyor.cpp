@@ -70,7 +70,6 @@ class MyEventReceiver : public IEventReceiver {
         // check if user moved the sliders with mouse..
         if (event.EventType == EET_GUI_EVENT) {
             s32 id = event.GUIEvent.Caller->getID();
-            IGUIEnvironment* env = application->GetIGUIEnvironment();
 
             switch (event.GUIEvent.EventType) {
                 case EGET_SCROLL_BAR_CHANGED:
@@ -111,22 +110,14 @@ void create_debris(ChIrrApp& application, double dt, double particles_second) {
 
     double box_fraction = 0.3;  // 30% cubes
     double cyl_fraction = 0.4;  // 40% cylinders
-    double sph_fraction = 1 - box_fraction - cyl_fraction;
 
-    double density = 1;
     double sphrad = 0.013;
-    double sphmass = (4 / 3) * CH_C_PI * pow(sphrad, 3) * density;
-    double sphinertia = pow(sphrad, 2) * sphmass;
 
     double exact_particles_dt = dt * particles_second;
     double particles_dt = floor(exact_particles_dt);
     double remaind = exact_particles_dt - particles_dt;
     if (remaind > ChRandom())
         particles_dt += 1;
-
-    video::ITexture* bluwhiteMap = application.GetVideoDriver()->getTexture(GetChronoDataFile("textures/bluewhite.png").c_str());
-    video::ITexture* pinkwhiteMap =
-        application.GetVideoDriver()->getTexture(GetChronoDataFile("textures/pinkwhite.png").c_str());
 
     auto sphere_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
     sphere_mat->SetFriction(0.2f);

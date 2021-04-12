@@ -41,7 +41,7 @@ const int ChElementShellANCF::m_maxIterationsEAS = 100;
 // ------------------------------------------------------------------------------
 
 ChElementShellANCF::ChElementShellANCF()
-    : m_gravity_on(false), m_numLayers(0), m_thickness(0), m_lenX(0), m_lenY(0), m_Alpha(0) {
+    : m_numLayers(0), m_lenX(0), m_lenY(0), m_thickness(0), m_Alpha(0), m_gravity_on(false) {
     m_nodes.resize(4);
 }
 
@@ -407,11 +407,9 @@ void ShellANCF_Force::Evaluate(ChVectorN<double, 54>& result, const double x, co
 
     ChVectorN<double, 8> ddNx = m_element->m_ddT * Nx.transpose();
     ChVectorN<double, 8> ddNy = m_element->m_ddT * Ny.transpose();
-    ChVectorN<double, 8> ddNz = m_element->m_ddT * Nz.transpose();
 
     ChVectorN<double, 8> d0d0Nx = m_element->m_d0d0T * Nx.transpose();
     ChVectorN<double, 8> d0d0Ny = m_element->m_d0d0T * Ny.transpose();
-    ChVectorN<double, 8> d0d0Nz = m_element->m_d0d0T * Nz.transpose();
 
     // Strain component
     ChVectorN<double, 6> strain_til;
@@ -754,11 +752,9 @@ void ShellANCF_Jacobian::Evaluate(ChVectorN<double, 696>& result, const double x
 
     ChVectorN<double, 8> ddNx = m_element->m_ddT * Nx.transpose();
     ChVectorN<double, 8> ddNy = m_element->m_ddT * Ny.transpose();
-    ChVectorN<double, 8> ddNz = m_element->m_ddT * Nz.transpose();
 
     ChVectorN<double, 8> d0d0Nx = m_element->m_d0d0T * Nx.transpose();
     ChVectorN<double, 8> d0d0Ny = m_element->m_d0d0T * Ny.transpose();
-    ChVectorN<double, 8> d0d0Nz = m_element->m_d0d0T * Nz.transpose();
 
     // Strain component
     ChVectorN<double, 6> strain_til;
@@ -842,8 +838,6 @@ void ShellANCF_Jacobian::Evaluate(ChVectorN<double, 696>& result, const double x
 
     tempB.setZero();
     for (int i = 0; i < 2; i++) {
-        int ij = i + 4;
-        int ij1 = i;
         tempB += S_ANS(0, i) * m_element->m_strainANS_D.row(i + 4);
     }
     strainD_til.row(5) = tempB;  // strainD for yz
@@ -1013,10 +1007,7 @@ void ChElementShellANCF::ComputeInternalJacobians(double Kfactor, double Rfactor
 // -----------------------------------------------------------------------------
 
 void ChElementShellANCF::ShapeFunctions(ShapeVector& N, double x, double y, double z) {
-    double a = GetLengthX();
-    double b = GetLengthY();
     double c = m_thickness;
-
     N(0) = 0.25 * (1.0 - x) * (1.0 - y);
     N(1) = z * c / 2.0 * 0.25 * (1.0 - x) * (1.0 - y);
     N(2) = 0.25 * (1.0 + x) * (1.0 - y);
@@ -1029,7 +1020,6 @@ void ChElementShellANCF::ShapeFunctions(ShapeVector& N, double x, double y, doub
 
 void ChElementShellANCF::ShapeFunctionsDerivativeX(ShapeVector& Nx, double x, double y, double z) {
     double a = GetLengthX();
-    double b = GetLengthY();
     double c = m_thickness;
 
     Nx(0) = 0.25 * (-2.0 / a) * (1.0 - y);
@@ -1043,7 +1033,6 @@ void ChElementShellANCF::ShapeFunctionsDerivativeX(ShapeVector& Nx, double x, do
 }
 
 void ChElementShellANCF::ShapeFunctionsDerivativeY(ShapeVector& Ny, double x, double y, double z) {
-    double a = GetLengthX();
     double b = GetLengthY();
     double c = m_thickness;
 
@@ -1058,10 +1047,6 @@ void ChElementShellANCF::ShapeFunctionsDerivativeY(ShapeVector& Ny, double x, do
 }
 
 void ChElementShellANCF::ShapeFunctionsDerivativeZ(ShapeVector& Nz, double x, double y, double z) {
-    double a = GetLengthX();
-    double b = GetLengthY();
-    double c = m_thickness;
-
     Nz(0) = 0.0;
     Nz(1) = 0.250 * (1.0 - x) * (1.0 - y);
     Nz(2) = 0.0;
@@ -1337,7 +1322,6 @@ ChStrainStress3D ChElementShellANCF::EvaluateSectionStrainStress(const ChVector<
     A2.Cross(A3, A1);
 
     // Direction for orthotropic material
-    double theta = 0.0;  // Fiber angle
     ChVector<double> AA1;
     ChVector<double> AA2;
     ChVector<double> AA3;
@@ -1385,17 +1369,12 @@ ChStrainStress3D ChElementShellANCF::EvaluateSectionStrainStress(const ChVector<
     beta(8) = Vdot(AA3, j03);
 
     // Transformation matrix, function of fiber angle
-    const ChMatrixNM<double, 6, 6>& T0 = this->GetLayer(layer_id).Get_T0();
-    // Determinant of the initial position vector gradient at the element center
-    double detJ0C = this->GetLayer(layer_id).Get_detJ0C();
 
     ChVectorN<double, 8> ddNx = m_ddT * Nx.transpose();
     ChVectorN<double, 8> ddNy = m_ddT * Ny.transpose();
-    ChVectorN<double, 8> ddNz = m_ddT * Nz.transpose();
 
     ChVectorN<double, 8> d0d0Nx = m_d0d0T * Nx.transpose();
     ChVectorN<double, 8> d0d0Ny = m_d0d0T * Ny.transpose();
-    ChVectorN<double, 8> d0d0Nz = m_d0d0T * Nz.transpose();
 
     // Strain component
     ChVectorN<double, 6> strain_til;

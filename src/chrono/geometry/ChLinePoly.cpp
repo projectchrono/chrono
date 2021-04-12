@@ -133,7 +133,7 @@ void ChLinePoly::ArchiveOUT(ChArchiveOut& marchive) {
 
 void ChLinePoly::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChLinePoly>();
+    /*int version =*/ marchive.VersionRead<ChLinePoly>();
     // deserialize parent class
     ChLine::ArchiveIN(marchive);
     // stream in all member data:

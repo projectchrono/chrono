@@ -189,7 +189,7 @@ Brick_ForceAnalytical::Brick_ForceAnalytical(ChMatrixNM<double, 8, 3>* d_,
                                              ChMatrixNM<double, 6, 6>* T0_,
                                              double* detJ0C_,
                                              ChVectorN<double, 9>* alpha_eas_)
-    : d(d_), d0(d0_), element(element_), T0(T0_), detJ0C(detJ0C_), alpha_eas(alpha_eas_) {
+    : element(element_), d(d_), d0(d0_), T0(T0_), alpha_eas(alpha_eas_), detJ0C(detJ0C_) {
     E_eps.setZero();
     Gd.setZero();
     Sigm.setZero();
@@ -207,7 +207,7 @@ Brick_ForceAnalytical::Brick_ForceAnalytical(ChMatrixNM<double, 8, 3>* d_,
                                              ChVectorN<double, 9>* alpha_eas_,
                                              double* E_,
                                              double* v_)
-    : d(d_), d0(d0_), element(element_), T0(T0_), detJ0C(detJ0C_), alpha_eas(alpha_eas_), E(E_), v(v_) {
+    : element(element_), d(d_), d0(d0_), T0(T0_), alpha_eas(alpha_eas_), detJ0C(detJ0C_), E(E_), v(v_) {
     E_eps.setZero();
     Gd.setZero();
     Sigm.setZero();
@@ -272,7 +272,6 @@ void Brick_ForceAnalytical::Evaluate(ChVectorN<double, 906>& result, const doubl
     ChVector<double> G2;
     ChVector<double> G3;
     ChVector<double> G1xG2;
-    double G1dotG1;
     G1[0] = rd0(0, 0);
     G2[0] = rd0(0, 1);
     G3[0] = rd0(0, 2);
@@ -283,7 +282,6 @@ void Brick_ForceAnalytical::Evaluate(ChVectorN<double, 906>& result, const doubl
     G2[2] = rd0(2, 1);
     G3[2] = rd0(2, 2);
     G1xG2.Cross(G1, G2);
-    G1dotG1 = Vdot(G1, G1);
 
     // Tangent Frame
     ChVector<> A1 = G1 / sqrt(G1[0] * G1[0] + G1[1] * G1[1] + G1[2] * G1[2]);
@@ -475,8 +473,6 @@ void Brick_ForceAnalytical::Evaluate(ChVectorN<double, 906>& result, const doubl
         // material)
         double I3 = CG(0, 0) * CG(1, 1) * CG(2, 2) - CG(0, 0) * CG(1, 2) * CG(2, 1) + CG(0, 1) * CG(1, 2) * CG(2, 0) -
                     CG(0, 1) * CG(1, 0) * CG(2, 2) + CG(0, 2) * CG(1, 0) * CG(2, 1) - CG(2, 0) * CG(1, 1) * CG(0, 2);
-        double I1BAR = I1 / (pow(I3, 1.0 / 3.0));  // First invariant of the deviatoric tensor
-        double I2BAR = I2 / (pow(I3, 2.0 / 3.0));  // Second invariant of the deviatoric tensor
         double J = sqrt(I3);
         // double CCOM1 = 551584.0;                                    // C10   not 0.551584
         // double CCOM2 = 137896.0;                                    // C01   not 0.137896
@@ -533,8 +529,6 @@ void Brick_ForceAnalytical::Evaluate(ChVectorN<double, 906>& result, const doubl
                  CGN(0, 1) * CGN(1, 2) * CGN(2, 0) - CGN(0, 1) * CGN(1, 0) * CGN(2, 2) +
                  CGN(0, 2) * CGN(1, 0) * CGN(2, 1) - CGN(2, 0) * CGN(1, 1) * CGN(0, 2);
             J = sqrt(I3);
-            I1BAR = I1 / (pow(I3, 1.0 / 3.0));
-            I2BAR = I2 / (pow(I3, 2.0 / 3.0));
             I1PCN = (ChMatrix33<>::Identity() - INVCGN * (1.0 / 3.0 * I1)) * pow(I3, -1.0 / 3.0);
             I2PCN = (((ChMatrix33<>::Identity() * I1) - CGN) - (INVCGN * (2.0 / 3.0) * I2)) * pow(I3, -2.0 / 3.0);
             JPCN = INVCGN * (J / 2.0);
@@ -734,7 +728,7 @@ Brick_ForceNumerical::Brick_ForceNumerical(ChMatrixNM<double, 8, 3>* d_,
                                            ChMatrixNM<double, 6, 6>* T0_,
                                            double* detJ0C_,
                                            ChVectorN<double, 9>* alpha_eas_)
-    : d(d_), d0(d0_), element(element_), T0(T0_), detJ0C(detJ0C_), alpha_eas(alpha_eas_) {
+    : element(element_), d(d_), d0(d0_), T0(T0_), alpha_eas(alpha_eas_), detJ0C(detJ0C_) {
     E_eps.setZero();
 
     Sx.setZero();
@@ -750,7 +744,7 @@ Brick_ForceNumerical::Brick_ForceNumerical(ChMatrixNM<double, 8, 3>* d_,
                                            ChVectorN<double, 9>* alpha_eas_,
                                            double* E_,
                                            double* v_)
-    : d(d_), d0(d0_), element(element_), T0(T0_), detJ0C(detJ0C_), alpha_eas(alpha_eas_), E(E_), v(v_) {
+    : element(element_), d(d_), d0(d0_), T0(T0_), alpha_eas(alpha_eas_), detJ0C(detJ0C_), E(E_), v(v_) {
     E_eps.setZero();
 
     Sx.setZero();
@@ -813,7 +807,6 @@ void Brick_ForceNumerical::Evaluate(ChVectorN<double, 330>& result, const double
     ChVector<double> G2;
     ChVector<double> G3;
     ChVector<double> G1xG2;
-    double G1dotG1;
     G1[0] = rd0(0, 0);
     G2[0] = rd0(0, 1);
     G3[0] = rd0(0, 2);
@@ -824,7 +817,6 @@ void Brick_ForceNumerical::Evaluate(ChVectorN<double, 330>& result, const double
     G2[2] = rd0(2, 1);
     G3[2] = rd0(2, 2);
     G1xG2.Cross(G1, G2);
-    G1dotG1 = Vdot(G1, G1);
 
     ////Tangent Frame
     ChVector<> A1 = G1 / sqrt(G1[0] * G1[0] + G1[1] * G1[1] + G1[2] * G1[2]);
@@ -1000,8 +992,6 @@ void Brick_ForceNumerical::Evaluate(ChVectorN<double, 330>& result, const double
                                          pow(CG(2, 2), 2)));
         double I3 = CG(0, 0) * CG(1, 1) * CG(2, 2) - CG(0, 0) * CG(1, 2) * CG(2, 1) + CG(0, 1) * CG(1, 2) * CG(2, 0) -
                     CG(0, 1) * CG(1, 0) * CG(2, 2) + CG(0, 2) * CG(1, 0) * CG(2, 1) - CG(2, 0) * CG(1, 1) * CG(0, 2);
-        double I1BAR = I1 / (pow(I3, 1.0 / 3.0));
-        double I2BAR = I2 / (pow(I3, 2.0 / 3.0));
         double J = sqrt(I3);
         // double CCOM1 = 551584.0;                                    // C10   not 0.551584
         // double CCOM2 = 137896.0;                                    // C01   not 0.137896
@@ -1047,8 +1037,6 @@ void Brick_ForceNumerical::Evaluate(ChVectorN<double, 330>& result, const double
                  CGN(0, 1) * CGN(1, 2) * CGN(2, 0) - CGN(0, 1) * CGN(1, 0) * CGN(2, 2) +
                  CGN(0, 2) * CGN(1, 0) * CGN(2, 1) - CGN(2, 0) * CGN(1, 1) * CGN(0, 2);
             J = sqrt(I3);
-            I1BAR = I1 / (pow(I3, 1.0 / 3.0));
-            I2BAR = I2 / (pow(I3, 2.0 / 3.0));
             I1PCN = (ChMatrix33<>::Identity() - INVCGN * (1.0 / 3.0 * I1)) * pow(I3, -1.0 / 3.0);
             I2PCN = (((ChMatrix33<>::Identity() * I1) - CGN) - (INVCGN * (2.0 / 3.0) * I2)) * pow(I3, -2.0 / 3.0);
             JPCN = INVCGN * (J / 2.0);
@@ -1099,7 +1087,7 @@ void Brick_ForceNumerical::Evaluate(ChVectorN<double, 330>& result, const double
 // -----------------------------------------------------------------------------
 
 void ChElementBrick::ComputeInternalForces(ChVectorDynamic<>& Fi) {
-    int i = GetElemNum();
+    int ie = GetElemNum();
 
     ChVector<> pA = m_nodes[0]->GetPos();
     ChVector<> pB = m_nodes[1]->GetPos();
@@ -1229,7 +1217,7 @@ void ChElementBrick::ComputeInternalForces(ChVectorDynamic<>& Fi) {
                 ResidHE = KALPHA1.colPivHouseholderQr().solve(HE);
             }
             if (m_flag_HE == ANALYTICAL && count > 2) {
-                GetLog() << i << "  count " << count << "  NormHE " << norm_HE << "\n";
+                GetLog() << ie << "  count " << count << "  NormHE " << norm_HE << "\n";
             }
         }
         Fi = -Finternal;
@@ -1523,7 +1511,7 @@ class Brick_Mass : public ChIntegrable3D<ChMatrixNM<double, 24, 24>> {
     virtual void Evaluate(ChMatrixNM<double, 24, 24>& result, const double x, const double y, const double z) override;
 };
 
-Brick_Mass::Brick_Mass(ChMatrixNM<double, 8, 3>* d0_, ChElementBrick* element_) : d0(d0_), element(element_) {
+Brick_Mass::Brick_Mass(ChMatrixNM<double, 8, 3>* d0_, ChElementBrick* element_) : element(element_), d0(d0_) {
     S.setZero();
 }
 
@@ -1591,7 +1579,7 @@ class BrickGravity : public ChIntegrable3D<ChVectorN<double, 24>> {
 };
 
 BrickGravity::BrickGravity(ChMatrixNM<double, 8, 3>* d0_, ChElementBrick* element_, const ChVector<> g_acc)
-    : d0(d0_), element(element_), gacc(g_acc) {}
+    : element(element_), d0(d0_), gacc(g_acc) {}
 
 void BrickGravity::Evaluate(ChVectorN<double, 24>& result, const double x, const double y, const double z) {
     element->ShapeFunctions(N, x, y, z);
@@ -1687,7 +1675,6 @@ void ChElementBrick::T0DetJElementCenterForEAS(ChMatrixNM<double, 8, 3>& d0,
     ChVector<double> G2;
     ChVector<double> G3;
     ChVector<double> G1xG2;
-    double G1dotG1;
     G1[0] = rd0(0, 0);
     G2[0] = rd0(0, 1);
     G3[0] = rd0(0, 2);
@@ -1698,7 +1685,6 @@ void ChElementBrick::T0DetJElementCenterForEAS(ChMatrixNM<double, 8, 3>& d0,
     G2[2] = rd0(2, 1);
     G3[2] = rd0(2, 2);
     G1xG2.Cross(G1, G2);
-    G1dotG1 = Vdot(G1, G1);
 
     // Tangent Frame
     ChVector<> A1 = G1 / sqrt(G1[0] * G1[0] + G1[1] * G1[1] + G1[2] * G1[2]);
@@ -1850,10 +1836,6 @@ void ChElementBrick::ComputeNF(
     ShapeFunctionsDerivativeX(Nx, U, V, W);
     ShapeFunctionsDerivativeY(Ny, U, V, W);
     ShapeFunctionsDerivativeZ(Nz, U, V, W);
-
-    ChMatrixNM<double, 1, 3> Nx_d0 = Nx * m_d0;
-    ChMatrixNM<double, 1, 3> Ny_d0 = Ny * m_d0;
-    ChMatrixNM<double, 1, 3> Nz_d0 = Nz * m_d0;
 
     ChMatrixNM<double, 3, 3> rd0;
     rd0.col(0) = m_d0.transpose() * Nx.transpose();

@@ -238,13 +238,13 @@ void ChIrrAssetConverter::_recursePopulateIrrlicht(std::vector<std::shared_ptr<C
                     buffer->drop();
 
                     ChIrrNodeProxyToAsset* mproxynode = new ChIrrNodeProxyToAsset(mysurf, mnode);
-                    ISceneNode* mchildnode = scenemanager->addMeshSceneNode(newmesh, mproxynode);
+                    /*ISceneNode* mchildnode =*/ scenemanager->addMeshSceneNode(newmesh, mproxynode);
                     newmesh->drop();
                     mproxynode->Update();  // force syncing of triangle positions & face indexes
                     mproxynode->drop();
 
-                    //mchildnode->setMaterialFlag(video::EMF_WIREFRAME, mysurf->IsWireframe());
-                    // mchildnode->setMaterialFlag(video::EMF_BACK_FACE_CULLING, mysurf->IsBackfaceCull());
+                    ////mchildnode->setMaterialFlag(video::EMF_WIREFRAME, mysurf->IsWireframe());
+                    ////mchildnode->setMaterialFlag(video::EMF_BACK_FACE_CULLING, mysurf->IsBackfaceCull());
                 } else if (auto mybarrel = std::dynamic_pointer_cast<ChBarrelShape>(k_asset)) {
                     auto mbarrelmesh =
                         createEllipticalMesh((irr::f32)(mybarrel->GetRhor()), (irr::f32)(mybarrel->GetRvert()),
@@ -272,13 +272,13 @@ void ChIrrAssetConverter::_recursePopulateIrrlicht(std::vector<std::shared_ptr<C
                     buffer->drop();
 
                     ChIrrNodeProxyToAsset* mproxynode = new ChIrrNodeProxyToAsset(myglyphs, mnode);
-                    ISceneNode* mchildnode = scenemanager->addMeshSceneNode(newmesh, mproxynode);
+                    /*ISceneNode* mchildnode =*/ scenemanager->addMeshSceneNode(newmesh, mproxynode);
                     newmesh->drop();
                     mproxynode->Update();  // force syncing of triangle positions & face indexes
                     mproxynode->drop();
 
-                    // mchildnode->setMaterialFlag(video::EMF_WIREFRAME,  mytrimesh->IsWireframe() );
-                    // mchildnode->setMaterialFlag(video::EMF_BACK_FACE_CULLING, mytrimesh->IsBackfaceCull() );
+                    ////mchildnode->setMaterialFlag(video::EMF_WIREFRAME,  mytrimesh->IsWireframe() );
+                    ////mchildnode->setMaterialFlag(video::EMF_BACK_FACE_CULLING, mytrimesh->IsBackfaceCull() );
                 } else if (std::dynamic_pointer_cast<ChPathShape>(k_asset) ||
                            std::dynamic_pointer_cast<ChLineShape>(k_asset)) {
                     CDynamicMeshBuffer* buffer =
@@ -288,13 +288,13 @@ void ChIrrAssetConverter::_recursePopulateIrrlicht(std::vector<std::shared_ptr<C
                     buffer->drop();
 
                     ChIrrNodeProxyToAsset* mproxynode = new ChIrrNodeProxyToAsset(k_asset, mnode);
-                    ISceneNode* mchildnode = scenemanager->addMeshSceneNode(newmesh, mproxynode);
+                    /*ISceneNode* mchildnode =*/ scenemanager->addMeshSceneNode(newmesh, mproxynode);
                     newmesh->drop();
                     mproxynode->Update();  // force syncing of triangle positions & face indexes
                     mproxynode->drop();
 
-                    // mchildnode->setMaterialFlag(video::EMF_WIREFRAME,  mytrimesh->IsWireframe() );
-                    // mchildnode->setMaterialFlag(video::EMF_BACK_FACE_CULLING, mytrimesh->IsBackfaceCull() );
+                    ////mchildnode->setMaterialFlag(video::EMF_WIREFRAME,  mytrimesh->IsWireframe() );
+                    ////mchildnode->setMaterialFlag(video::EMF_BACK_FACE_CULLING, mytrimesh->IsBackfaceCull() );
                 } else if (auto mysphere = std::dynamic_pointer_cast<ChSphereShape>(k_asset)) {
                     if (sphereMesh) {
                         ISceneNode* mproxynode = new ChIrrNodeProxyToAsset(mysphere, mnode);

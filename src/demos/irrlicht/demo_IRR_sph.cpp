@@ -181,7 +181,7 @@ int main(int argc, char* argv[]) {
                     auto mnode = std::dynamic_pointer_cast<ChNodeSPH>(myfluid->GetNode(ip));
 
                     ChVector<> mv = mnode->GetPos();
-                    float rad = (float)mnode->GetKernelRadius();
+                    ////float rad = (float)mnode->GetKernelRadius();
                     core::vector3df mpos((irr::f32)mv.x(), (irr::f32)mv.y(), (irr::f32)mv.z());
                     core::position2d<s32> spos =
                         application.GetSceneManager()->getSceneCollisionManager()->getScreenCoordinatesFrom3DPosition(

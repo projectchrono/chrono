@@ -74,7 +74,6 @@ void ChFunctionRotation_spline::SetupData(
     this->p = morder;
     this->rotations = mrotations;
     int n = (int)rotations.size();
-    int k = n + p + 1;
 
     if (mknots)
         this->knots = *mknots;
@@ -182,7 +181,7 @@ void ChFunctionRotation_spline::ArchiveOUT(ChArchiveOut& marchive) {
 
 void ChFunctionRotation_spline::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChFunctionRotation_spline>();
+    /*int version =*/ marchive.VersionRead<ChFunctionRotation_spline>();
 	// deserialize parent class
     ChFunctionRotation::ArchiveIN(marchive);
     // deserialize all member data:

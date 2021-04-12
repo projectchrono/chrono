@@ -57,7 +57,6 @@ double kernel_radius = .016 * 2;
 void AddBody(ChSystemMulticoreNSC* sys) {
     // IDs for the two bodies
     int binId = -200;
-    int mixerId = -201;
 
     // Create a common material
     auto mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
@@ -88,7 +87,6 @@ void AddBody(ChSystemMulticoreNSC* sys) {
 void AddContainer(ChSystemMulticoreNSC* sys) {
     // IDs for the two bodies
     int binId = -200;
-    int mixerId = -201;
 
     // Create a common material
     auto mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
@@ -223,18 +221,6 @@ void AddMPMContainer(ChSystemMulticoreNSC* sys) {
 int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
-    // Simulation parameters
-    // ---------------------
-
-    double gravity = 9.81;
-
-    double time_end = 1;
-
-    double out_fps = 50;
-
-    uint max_iteration = 30;
-    real tolerance = 1e-3;
-
     // Create system
     // -------------
 
@@ -244,6 +230,7 @@ int main(int argc, char* argv[]) {
     msystem.SetNumThreads(8);
 
     // Set gravitational acceleration
+    double gravity = 9.81;
     msystem.Set_G_acc(ChVector<>(0, 0, -gravity));
 
     // Set solver parameters
@@ -298,6 +285,7 @@ int main(int argc, char* argv[]) {
     }
 #else
     // Run simulation for specified time
+    double time_end = 1;
     int num_steps = (int)std::ceil(time_end / time_step);
 
     double time = 0;

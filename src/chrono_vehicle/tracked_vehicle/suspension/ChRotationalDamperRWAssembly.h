@@ -68,7 +68,8 @@ class CH_VEHICLE_API ChRotationalDamperRWAssembly : public ChRoadWheelAssembly {
     /// reference frame is always centered at the location of the road wheel and
     /// aligned with the chassis reference frame.
     virtual void Initialize(std::shared_ptr<ChBodyAuxRef> chassis,  ///< [in] handle to the chassis body
-                            const ChVector<>& location              ///< [in] location relative to the chassis frame
+                            const ChVector<>& location,             ///< [in] location relative to the chassis frame
+                            ChTrackAssembly* track                  ///< [in] containing track assembly
                             ) override;
 
     /// Add visualization assets for the suspension subsystem.

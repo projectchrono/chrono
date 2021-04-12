@@ -31,8 +31,8 @@ void add_typical_Lights(IrrlichtDevice* device,
                         irr::video::SColorf col1,
                         irr::video::SColorf col2) {
     // create lights
-    scene::ILightSceneNode* mlight1 = device->getSceneManager()->addLightSceneNode(0, pos1, col1, (f32)rad1);
-
+    /*scene::ILightSceneNode* mlight1 = */
+    device->getSceneManager()->addLightSceneNode(0, pos1, col1, (f32)rad1);
     scene::ILightSceneNode* mlight2 = device->getSceneManager()->addLightSceneNode(0, pos2, col2, (f32)rad2);
 
     mlight2->enableCastShadow(false);

@@ -204,7 +204,7 @@ void ChLinkLinActuator::ArchiveOUT(ChArchiveOut& marchive) {
 /// Method to allow de serialization of transient data from archives.
 void ChLinkLinActuator::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChLinkLinActuator>();
+    /*int version =*/ marchive.VersionRead<ChLinkLinActuator>();
 
     // deserialize parent class
     ChLinkLockLock::ArchiveIN(marchive);

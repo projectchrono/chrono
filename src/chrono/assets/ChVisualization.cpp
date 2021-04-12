@@ -33,7 +33,7 @@ void ChVisualization::ArchiveOUT(ChArchiveOut& marchive) {
 
 void ChVisualization::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChVisualization>();
+    /*int version =*/ marchive.VersionRead<ChVisualization>();
     // deserialize parent class
     ChAsset::ArchiveIN(marchive);
     // stream in all member data:

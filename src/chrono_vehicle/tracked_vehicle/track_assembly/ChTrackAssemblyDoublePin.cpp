@@ -98,9 +98,6 @@ bool ChTrackAssemblyDoublePin::Assemble(std::shared_ptr<ChBodyAuxRef> chassis) {
 
     // Set target points around the track.
     ChVector2<> sprocket_bottom = sprocket_pos - ChVector2<>(0, sprocket_radius);
-    ChVector2<> idler_top = idler_pos + ChVector2<>(0, idler_radius);
-    ChVector2<> idler_bottom = idler_pos - ChVector2<>(0, idler_radius);
-    ChVector2<> wheel_idler_bottom = wheel_idler_pos - ChVector2<>(0, wheel_radius);
     ChVector2<> wheel_sprocket_bottom = wheel_sprocket_pos - ChVector2<>(0, wheel_radius);
 
     // Keep track of the (x,z) locations of shoe body and connector bodies, as
@@ -133,7 +130,7 @@ bool ChTrackAssemblyDoublePin::Assemble(std::shared_ptr<ChBodyAuxRef> chassis) {
     // ATTENTION:  USING SOME MAGIC NUMBERS HERE (angle adjustments)!!!!
     double delta = sign * CH_C_2PI / m_sprocket->GetNumTeeth();
     for (int is = 1; is <= m_sprocket->GetNumTeeth() / 2; is++) {
-        ChVector2<> A = sprocket_pos + sprocket_radius * ChVector2<>(std::sin(is * delta), -std::cos(is * delta));
+        A = sprocket_pos + sprocket_radius * ChVector2<>(std::sin(is * delta), -std::cos(is * delta));
         double angle = sign * std::atan2(A.y() - p2.y(), sign * (A.x() - p2.x()));
         as = angle - sign * 0.07;
         ac = angle + sign * 0.2;

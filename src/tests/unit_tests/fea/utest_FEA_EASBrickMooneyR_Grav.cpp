@@ -47,7 +47,7 @@ using namespace fea;
 const double step_size = 1e-3;  // Step size
 double sim_time = 2;            // Simulation time for generation of reference file
 double precision = 3e-6;        // Precision value used to assess results
-double sim_time_UT = 0.015;      // Simulation time for unit test 0.015
+double sim_time_UT = 0.015;     // Simulation time for unit test 0.015
 
 int main(int argc, char* argv[]) {
     bool output = 0;  // Determines whether it tests (0) or generates golden file (1)
@@ -84,22 +84,22 @@ int main(int argc, char* argv[]) {
     double plate_lenght_x = 1;
     double plate_lenght_y = 0.1;
     double plate_lenght_z = 0.01;
+
     // Specification of the mesh
     int numDiv_x = 10;  // 10 elements along the length of the beam
     int numDiv_y = 1;
     int numDiv_z = 1;
     int N_x = numDiv_x + 1;
-    int N_y = numDiv_y + 1;
-    int N_z = numDiv_z + 1;
+
     // Number of elements in the z direction is considered as 1
     int TotalNumElements = numDiv_x;
     int TotalNumNodes = (numDiv_x + 1) * 4;  // 4 nodes per brick face
+
     // For uniform mesh
     double dx = plate_lenght_x / numDiv_x;
     double dy = plate_lenght_y / numDiv_y;
     double dz = plate_lenght_z / numDiv_z;
     int MaxMNUM = 1;
-    int MTYPE = 1;
     int MaxLayNum = 1;
     ChMatrixDynamic<double> COORDFlex(TotalNumNodes, 3);
     ChMatrixDynamic<double> VELCYFlex(TotalNumNodes, 3);
@@ -112,7 +112,7 @@ int main(int argc, char* argv[]) {
     //!------------ Material Data-----------------
 
     for (int i = 0; i < MaxMNUM; i++) {
-        MPROP(i, 0) = 1000;      // Density [kg/m3]
+        MPROP(i, 0) = 1000;     // Density [kg/m3]
         MPROP(i, 1) = 2.1E+07;  // E (Pa)
         MPROP(i, 2) = 0.3;      // nu
     }
@@ -175,7 +175,8 @@ int main(int argc, char* argv[]) {
     // Adding the nodes to the mesh
     int i = 0;
     while (i < TotalNumNodes) {
-        auto node = chrono_types::make_shared<ChNodeFEAxyz>(ChVector<>(COORDFlex(i, 0), COORDFlex(i, 1), COORDFlex(i, 2)));
+        auto node =
+            chrono_types::make_shared<ChNodeFEAxyz>(ChVector<>(COORDFlex(i, 0), COORDFlex(i, 1), COORDFlex(i, 2)));
         node->SetMass(0.0);
         my_mesh->AddNode(node);
         if (NDR(i, 0) == 1 && NDR(i, 1) == 1 && NDR(i, 2) == 1) {
@@ -213,9 +214,9 @@ int main(int argc, char* argv[]) {
         element->SetMRCoefficients(551584.0, 137896.0);  // Set two coefficients for Mooney-Rivlin
         ChVectorN<double, 9> stock_alpha_EAS;
         stock_alpha_EAS.setZero();
-        element->SetStockAlpha(stock_alpha_EAS(0), stock_alpha_EAS(1), stock_alpha_EAS(2),
-                               stock_alpha_EAS(3), stock_alpha_EAS(4), stock_alpha_EAS(5),
-                               stock_alpha_EAS(6), stock_alpha_EAS(7), stock_alpha_EAS(8));
+        element->SetStockAlpha(stock_alpha_EAS(0), stock_alpha_EAS(1), stock_alpha_EAS(2), stock_alpha_EAS(3),
+                               stock_alpha_EAS(4), stock_alpha_EAS(5), stock_alpha_EAS(6), stock_alpha_EAS(7),
+                               stock_alpha_EAS(8));
         my_mesh->AddElement(element);
         elemcount++;
     }

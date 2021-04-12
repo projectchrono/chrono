@@ -1071,7 +1071,8 @@ int ChSocketTCP::sendMessage(std::string& message) {
 
     // Sends the message to the connected host
     try {
-        if (numBytes = send(socketId, sendMsg.c_str(), (int)sendMsg.size(), 0) == -1) {
+        numBytes = send(socketId, sendMsg.c_str(), (int)sendMsg.size(), 0);
+        if (numBytes == -1) {
 #ifdef WINDOWS_XP
             int errorCode = 0;
             std::string errorMsg = "error calling send():\n";
@@ -1180,8 +1181,6 @@ int ChSocketTCP::XPrecieveMessage(std::string& message)
 int ChSocketTCP::XPrecieveMessage(std::string& message) {
     int received = 0;            // The number of bytes received
     int msgSize = MAX_RECV_LEN;  // The number of bytes wanted to receive
-    int numBytes = 0;            // The number of bytes currently received
-    int totalRecvNum = 0;
     bool headerFinished = false;
 
     char charMsg[MAX_RECV_LEN + 1];
@@ -1191,7 +1190,7 @@ int ChSocketTCP::XPrecieveMessage(std::string& message) {
 
     try {
         while (received < msgSize) {
-            numBytes = recv(socketId, charMsg + received, 1, 0);
+            int numBytes = recv(socketId, charMsg + received, 1, 0);
             if (numBytes == -1) {
                 int errorCode = 0;
                 std::string errorMsg = "error calling recv():\n";
@@ -1278,10 +1277,9 @@ int ChSocketTCP::SendBuffer(std::vector<char>& source_buf) {
     else
         data = "";  // stub, in case null length messages, stl vector has no [0] element address
 
-    int sentBytes = 0;
-
     // Sends the message to the connected host
-    if (sentBytes = send(socketId, data, nbytes, 0) == -1) {
+    int sentBytes = send(socketId, data, nbytes, 0);
+    if (sentBytes == -1) {
 #ifdef WINDOWS_XP
         int errorCode = 0;
         std::string errorMsg = "error calling send():\n";

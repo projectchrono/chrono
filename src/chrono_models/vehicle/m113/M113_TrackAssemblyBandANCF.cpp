@@ -54,7 +54,7 @@ const ChVector<> M113_TrackAssemblyBandANCF::m_susp_locs_R[5] = {  //
 // -----------------------------------------------------------------------------
 M113_TrackAssemblyBandANCF::M113_TrackAssemblyBandANCF(VehicleSide side, BrakeType brake_type)
     : ChTrackAssemblyBandANCF("", side) {
-    size_t num_shoes;
+    size_t num_shoes = 0;
     std::string suspName("M113_Suspension");
     std::string shoeName("M113_TrackShoe");
     switch (side) {

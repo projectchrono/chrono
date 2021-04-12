@@ -222,7 +222,7 @@ void ChProximityContainerSPH::ArchiveOUT(ChArchiveOut& marchive) {
 /// Method to allow de serialization of transient data from archives.
 void ChProximityContainerSPH::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChProximityContainerSPH>();
+    /*int version =*/ marchive.VersionRead<ChProximityContainerSPH>();
     // deserialize parent class
     ChProximityContainer::ArchiveIN(marchive);
     // stream in all member data:

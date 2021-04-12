@@ -303,8 +303,6 @@ int main(int argc, char* argv[]) {
     // Initialize simulation frame counters
     int step_number = 0;
 
-    std::chrono::high_resolution_clock::time_point start = std::chrono::high_resolution_clock::now();
-
     while (true) {
         double time = vehicle.GetSystem()->GetChTime();
 

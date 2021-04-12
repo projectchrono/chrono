@@ -70,7 +70,7 @@ void ChMaterialSurfaceSMC::ArchiveOUT(ChArchiveOut& marchive) {
 
 void ChMaterialSurfaceSMC::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChMaterialSurfaceSMC>();
+    /*int version =*/ marchive.VersionRead<ChMaterialSurfaceSMC>();
 
     // deserialize parent class
     ChMaterialSurface::ArchiveIN(marchive);
