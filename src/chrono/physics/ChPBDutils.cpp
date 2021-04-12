@@ -92,29 +92,26 @@ namespace chrono {
 			ChVector<> r1 = Body1->TransformDirectionLocalToParent(f1.coord.pos);
 			ChVector<> r2 = Body2->TransformDirectionLocalToParent(f2.coord.pos);
 			ChVector<> n0 = Body1->GetPos() + r1 - (Body2->GetPos() + r2);
-            ChVector<> nt;
-            double C = 0;
-            if (!dist_constr){
-				// Rotation of the link frame w.r.t. global frame
-				//ChQuaternion<> q = f1.coord.rot * Body1->GetRot();
-				ChMatrix33<> M = f1.GetA() * Body1->GetA();
-				// get rid of unconstrained directions by element wise multiplication in the link frame reference
-				ChVector<> n_loc = (M.transpose()*n0)*p_dir;
-				// Add the correction due to limit violation
-				if (is_displ_limited || displ_actuated) n_loc -= ApplyDisplLimAct(n0);
-				// Now we bring the violation back in global coord and normaize it after saving its length
-				nt = M*n_loc;
-				C = nt.Length();
-			}
-            else {
-                C = n0.Length();
-                nt = n0;
+
+			// Rotation of the link frame w.r.t. global frame
+			//ChQuaternion<> q = f1.coord.rot * Body1->GetRot();
+			ChMatrix33<> M = f1.GetA() * Body1->GetA();
+			// get rid of unconstrained directions by element wise multiplication in the link frame reference
+			ChVector<> n_loc = (M.transpose()*n0)*p_dir;
+			// Add the correction due to limit violation to non dist constr
+			if (is_displ_limited || (displ_actuated && !dist_constr)) n_loc -= ApplyDisplLimAct(M.transpose()*n0);
+			// Now we bring the violation back in global coord and normaize it after saving its length
+			ChVector<> nt = M*n_loc;
+			double C = nt.Length();
+			if (dist_constr){
 				if (displ_actuated)
-                    dist = motor_func->Get_y(PBDsys->T);
-				C = C - dist;
-                if (abs(C) < 1E-3) {
-                    return;
+					dist = motor_func->Get_y(PBDsys->T);
+				C -= dist;
+				if (abs(C) < 1E-12) {
+					return;
 					}
+				nt *= (C/abs(C));
+				C = abs(C);
 			}
 
 			if (nt.Normalize()) {
@@ -576,7 +573,7 @@ namespace chrono {
         EvalMasses();
         dist_constr = true;
         dist = link->GetImposedDistance();
-        alpha = 1E-3;
+        //alpha = 1E-3;
         // displ_lims_low[0] = d - 1E-4;
         // displ_lims_high[0] = d + 1E-4;
     }
