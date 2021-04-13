@@ -186,7 +186,7 @@ int main(int argc, char* argv[]) {
     // -----------------------
     // Create the DomainParticipantQos
     DomainParticipantQos qos;
-    qos.name(std::to_string(node_id) + ".0");
+    qos.name("/syn/node/" + std::to_string(node_id) + ".0");
 
     // Use UDP by default
     qos.transport().user_transports.push_back(chrono_types::make_shared<UDPv4TransportDescriptor>());

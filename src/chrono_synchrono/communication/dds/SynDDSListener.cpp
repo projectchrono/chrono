@@ -50,11 +50,7 @@ void SynDDSParticipantListener::on_participant_discovery(DomainParticipant* part
 }
 
 bool SynDDSParticipantListener::CheckParticipantName(const std::string& name) {
-	std::size_t found = name.find(this->comm_prefix);
-    if (found == std::string::npos){
-            return false;
-		}
-	else{return true;}
+    return name.find(this->comm_prefix) != std::string::npos;
 }
 
 // -----------------------------------------------------------------------------------
