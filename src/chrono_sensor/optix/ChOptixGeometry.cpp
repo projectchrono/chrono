@@ -138,7 +138,7 @@ void ChOptixGeometry::AddBox(std::shared_ptr<ChBody> body,
         CUDA_ERROR_CHECK(cudaMemcpy(reinterpret_cast<void*>(d_aabb), &aabb, sizeof(OptixAabb), cudaMemcpyHostToDevice));
         uint32_t aabb_input_flags[] = {OPTIX_GEOMETRY_FLAG_DISABLE_ANYHIT};
         // uint32_t aabb_input_flags[] = {OPTIX_GEOMETRY_FLAG_NONE};
-        const uint32_t sbt_index[] = {0};  // TODO: may need to check this when we have multiple types of ojbects
+        // const uint32_t sbt_index[] = {0};  // TODO: may need to check this when we have multiple types of ojbects
         // CUdeviceptr d_sbt_index;
         // CUDA_ERROR_CHECK(cudaMalloc(reinterpret_cast<void**>(&d_sbt_index), sizeof(sbt_index)));
         // CUDA_ERROR_CHECK(
@@ -220,7 +220,7 @@ void ChOptixGeometry::AddSphere(std::shared_ptr<ChBody> body,
         CUDA_ERROR_CHECK(cudaMemcpy(reinterpret_cast<void*>(d_aabb), &aabb, sizeof(OptixAabb), cudaMemcpyHostToDevice));
         uint32_t aabb_input_flags[] = {OPTIX_GEOMETRY_FLAG_DISABLE_ANYHIT};
         // uint32_t aabb_input_flags[] = {OPTIX_GEOMETRY_FLAG_NONE};
-        const uint32_t sbt_index[] = {0};
+        // const uint32_t sbt_index[] = {0};
         OptixBuildInput aabb_input = {};
         aabb_input.type = OPTIX_BUILD_INPUT_TYPE_CUSTOM_PRIMITIVES;
         aabb_input.customPrimitiveArray.aabbBuffers = &d_aabb;
@@ -297,7 +297,7 @@ void ChOptixGeometry::AddCylinder(std::shared_ptr<ChBody> body,
         CUDA_ERROR_CHECK(cudaMemcpy(reinterpret_cast<void*>(d_aabb), &aabb, sizeof(OptixAabb), cudaMemcpyHostToDevice));
         uint32_t aabb_input_flags[] = {OPTIX_GEOMETRY_FLAG_DISABLE_ANYHIT};
         // uint32_t aabb_input_flags[] = {OPTIX_GEOMETRY_FLAG_NONE};
-        const uint32_t sbt_index[] = {0};
+        // const uint32_t sbt_index[] = {0};
         OptixBuildInput aabb_input = {};
         aabb_input.type = OPTIX_BUILD_INPUT_TYPE_CUSTOM_PRIMITIVES;
         aabb_input.customPrimitiveArray.aabbBuffers = &d_aabb;
@@ -442,14 +442,14 @@ unsigned int ChOptixGeometry::BuildTrianglesGAS(std::shared_ptr<ChTriangleMeshSh
     mesh_input.triangleArray.numVertices = mesh->getCoordsVertices().size();
     mesh_input.triangleArray.vertexFormat = OPTIX_VERTEX_FORMAT_FLOAT3;
     // TODO: if vertices get padded to float4, this need to reflect that
-    mesh_input.triangleArray.vertexStrideInBytes = sizeof(float3);
+    mesh_input.triangleArray.vertexStrideInBytes = sizeof(float4);  // sizeof(float3);
 
     // index data/params
     mesh_input.triangleArray.indexBuffer = d_indices;
     mesh_input.triangleArray.numIndexTriplets = mesh->getIndicesVertexes().size();
     mesh_input.triangleArray.indexFormat = OPTIX_INDICES_FORMAT_UNSIGNED_INT3;
     // TODO: if vertices get padded to uint4, this need to reflect that
-    mesh_input.triangleArray.indexStrideInBytes = sizeof(uint3);
+    mesh_input.triangleArray.indexStrideInBytes = sizeof(uint4);  // sizeof(uint3);
 
     mesh_input.triangleArray.flags = triangle_flags;
     mesh_input.triangleArray.numSbtRecords = 1;
@@ -550,7 +550,9 @@ OptixTraversableHandle ChOptixGeometry::CreateRootStructure() {
     instance_input.instanceArray.numInstances = m_instances.size();
     OptixAccelBuildOptions accel_options = {};
     // accel_options.buildFlags = OPTIX_BUILD_FLAG_NONE;
-    accel_options.buildFlags = OPTIX_BUILD_FLAG_ALLOW_UPDATE;
+    // accel_options.buildFlags = OPTIX_BUILD_FLAG_ALLOW_UPDATE;
+    // accel_options.buildFlags = OPTIX_BUILD_FLAG_PREFER_FAST_TRACE || OPTIX_BUILD_FLAG_ALLOW_UPDATE;
+    accel_options.buildFlags = OPTIX_BUILD_FLAG_PREFER_FAST_TRACE;  // || OPTIX_BUILD_FLAG_ALLOW_UPDATE;
     accel_options.operation = OPTIX_BUILD_OPERATION_BUILD;
     accel_options.motionOptions.numKeys = 2;               // default at start
     accel_options.motionOptions.timeBegin = m_start_time;  // default at start
@@ -598,6 +600,8 @@ OptixTraversableHandle ChOptixGeometry::CreateRootStructure() {
 // rebuilding the structure without creating anything new
 void ChOptixGeometry::RebuildRootStructure() {
     // std::chrono::high_resolution_clock::time_point t0 = std::chrono::high_resolution_clock::now();
+    // double max_pos_diff = 0;
+    // double pos_diff_threshold = 1.0;
     for (int i = 0; i < m_motion_transforms.size(); i++) {
         // update the motion transforms
         const ChFrame<double> f_start = m_obj_body_frames_start[i] * m_obj_asset_frames[i];
@@ -612,6 +616,11 @@ void ChOptixGeometry::RebuildRootStructure() {
         m_motion_transforms[i].motionOptions.timeBegin = m_start_time;  // default at start, will be updated
         m_motion_transforms[i].motionOptions.timeEnd = m_end_time;      // default at start, will be updated
         m_motion_transforms[i].motionOptions.flags = OPTIX_MOTION_FLAG_NONE;
+
+        // ChVector<> old_pos = {m_motion_transforms[i].transform[0][3], m_motion_transforms[i].transform[0][7],
+        //                       m_motion_transforms[i].transform[0][11]};
+        // ChVector<> diff = old_pos - f_start.GetPos();
+        // max_pos_diff = std::max(max_pos_diff, diff.Length());
 
         GetT3x4FromSRT(m_obj_scales[i], rot_mat_start, pos_start, m_motion_transforms[i].transform[0]);
         GetT3x4FromSRT(m_obj_scales[i], rot_mat_end, pos_end, m_motion_transforms[i].transform[1]);
@@ -633,11 +642,18 @@ void ChOptixGeometry::RebuildRootStructure() {
     instance_input.instanceArray.numInstances = m_instances.size();
     OptixAccelBuildOptions accel_options = {};
     // accel_options.buildFlags = OPTIX_BUILD_FLAG_NONE;
-    // accel_options.buildFlags = OPTIX_BUILD_FLAG_PREFER_FAST_TRACE;
+    // accel_options.buildFlags = OPTIX_BUILD_FLAG_PREFER_FAST_TRACE || OPTIX_BUILD_FLAG_ALLOW_UPDATE;
+    accel_options.buildFlags = OPTIX_BUILD_FLAG_PREFER_FAST_TRACE;
     // accel_options.buildFlags = OPTIX_BUILD_FLAG_PREFER_FAST_BUILD;
-    accel_options.buildFlags = OPTIX_BUILD_FLAG_ALLOW_UPDATE;
+    // accel_options.buildFlags = OPTIX_BUILD_FLAG_ALLOW_UPDATE;
+    // if (max_pos_diff > pos_diff_threshold) {
     accel_options.operation = OPTIX_BUILD_OPERATION_BUILD;
-    // accel_options.operation = OPTIX_BUILD_OPERATION_UPDATE;
+    // std::cout << "Building scene\n";
+    // } else {
+    //     accel_options.operation = OPTIX_BUILD_OPERATION_UPDATE;
+    //     std::cout << "Updating scene\n";
+    // }
+
     accel_options.motionOptions.numKeys = 2;  // default at start TODO: should this always be 2?
     accel_options.motionOptions.timeBegin = m_start_time;
     accel_options.motionOptions.timeEnd = m_end_time;

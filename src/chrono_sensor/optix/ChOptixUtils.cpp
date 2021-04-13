@@ -219,7 +219,7 @@ void optix_log_callback(unsigned int level, const char* tag, const char* message
 // }
 // #endif
 
-ByteImageData LoadImage(std::string filename) {
+ByteImageData LoadByteImage(std::string filename) {
     ByteImageData img_data;
     int w;
     int h;

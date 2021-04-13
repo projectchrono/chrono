@@ -55,7 +55,9 @@ extern "C" __global__ void __raygen__camera_pinhole() {
 
     optixTrace(params.root, ray_origin, ray_direction, params.scene_epsilon, 1e16f, t_traverse, OptixVisibilityMask(1),
                OPTIX_RAY_FLAG_NONE, CAMERA_RAY_TYPE, RAY_TYPE_COUNT, CAMERA_RAY_TYPE, opt1, opt2);
-
+    // optixTrace(params.root, ray_origin, ray_direction, params.scene_epsilon, 50.f, t_traverse,
+    // OptixVisibilityMask(1),
+    //            OPTIX_RAY_FLAG_NONE, CAMERA_RAY_TYPE, RAY_TYPE_COUNT, CAMERA_RAY_TYPE, opt1, opt2);
     camera.frame_buffer[image_index] = make_half4(prd.color.x, prd.color.y, prd.color.z, 1.f);
     if (camera.use_gi) {
         camera.albedo_buffer[image_index] = make_half4(prd.albedo.x, prd.albedo.y, prd.albedo.z, 0.f);

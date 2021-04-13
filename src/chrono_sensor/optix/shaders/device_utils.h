@@ -235,6 +235,10 @@ __device__ __inline__ float3 make_float3(const float& a) {
     return make_float3(a, a, a);
 }
 
+__device__ __inline__ float3 make_float3(const float4& a) {
+    return make_float3(a.x, a.y, a.z);
+}
+
 /// =======================
 /// float3-float operators
 /// =======================
@@ -447,39 +451,42 @@ __device__ __inline__ void GetTriangleData(float3& normal,
     const float2 bary_coord = optixGetTriangleBarycentrics();
 
     const MeshParameters& mesh_params = params.mesh_pool[mesh_id];
-    const uint3& vertex_idx = mesh_params.vertex_index_buffer[tri_id];
+    const uint4& vertex_idx = mesh_params.vertex_index_buffer[tri_id];
+
+    const float3& v1 = make_float3(mesh_params.vertex_buffer[vertex_idx.x]);
+    const float3& v2 = make_float3(mesh_params.vertex_buffer[vertex_idx.y]);
+    const float3& v3 = make_float3(mesh_params.vertex_buffer[vertex_idx.z]);
 
     // calculate normales either from normal buffer or vertex positions
     if (mesh_params.normal_index_buffer &&
         mesh_params.normal_buffer) {  // use vertex normals if normal index buffer exists
-        const uint3& normal_idx = mesh_params.normal_index_buffer[tri_id];
+        const uint4& normal_idx = mesh_params.normal_index_buffer[tri_id];
 
-        normal = normalize(mesh_params.normal_buffer[normal_idx.y] * bary_coord.x +
-                           mesh_params.normal_buffer[normal_idx.z] * bary_coord.y +
-                           mesh_params.normal_buffer[normal_idx.x] * (1.0f - bary_coord.x - bary_coord.y));
+        normal = normalize(make_float3(mesh_params.normal_buffer[normal_idx.y]) * bary_coord.x +
+                           make_float3(mesh_params.normal_buffer[normal_idx.z]) * bary_coord.y +
+                           make_float3(mesh_params.normal_buffer[normal_idx.x]) * (1.0f - bary_coord.x - bary_coord.y));
 
     } else {  // else use face normals calculated from vertices
-        const float3& v1 = mesh_params.vertex_buffer[vertex_idx.x];
-        const float3& v2 = mesh_params.vertex_buffer[vertex_idx.y];
-        const float3& v3 = mesh_params.vertex_buffer[vertex_idx.z];
         normal = normalize(Cross(v2 - v1, v3 - v1));
     }
 
     // calculate texcoords if they exist
     if (mesh_params.uv_index_buffer && mesh_params.uv_buffer) {  // use vertex normals if normal index buffer exists
-        const uint3& uv_idx = mesh_params.uv_index_buffer[tri_id];
-        uv = mesh_params.uv_buffer[uv_idx.y] * bary_coord.x + mesh_params.uv_buffer[uv_idx.z] * bary_coord.y +
-             mesh_params.uv_buffer[uv_idx.x] * (1.0f - bary_coord.x - bary_coord.y);
-        float3 e1 = mesh_params.vertex_buffer[vertex_idx.y] - mesh_params.vertex_buffer[vertex_idx.x];
-        float3 e2 = mesh_params.vertex_buffer[vertex_idx.z] - mesh_params.vertex_buffer[vertex_idx.x];
-        float2 delta_uv1 = mesh_params.uv_buffer[uv_idx.y] - mesh_params.uv_buffer[uv_idx.x];
-        float2 delta_uv2 = mesh_params.uv_buffer[uv_idx.z] - mesh_params.uv_buffer[uv_idx.x];
+        const uint4& uv_idx = mesh_params.uv_index_buffer[tri_id];
+        const float2& uv1 = mesh_params.uv_buffer[uv_idx.x];
+        const float2& uv2 = mesh_params.uv_buffer[uv_idx.y];
+        const float2& uv3 = mesh_params.uv_buffer[uv_idx.z];
+
+        uv = uv2 * bary_coord.x + uv3 * bary_coord.y + uv1 * (1.0f - bary_coord.x - bary_coord.y);
+        float3 e1 = v2 - v1;
+        float3 e2 = v3 - v1;
+        float2 delta_uv1 = uv2 - uv1;
+        float2 delta_uv2 = uv3 - uv1;
         float f = 1.f / (delta_uv1.x * delta_uv2.y - delta_uv2.x * delta_uv1.y);
         tangent.x = f * (delta_uv2.y * e1.x - delta_uv1.y * e2.x);
         tangent.y = f * (delta_uv2.y * e1.y - delta_uv1.y * e2.y);
         tangent.z = f * (delta_uv2.y * e1.z - delta_uv1.y * e2.z);
         tangent = normalize(tangent);
-
     } else {
         uv = make_float2(0.f);
         tangent = make_float3(0.f);

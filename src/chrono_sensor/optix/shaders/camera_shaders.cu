@@ -144,6 +144,8 @@ extern "C" __global__ void __closesthit__camera_shader() {
     if (mat.metallic_tex) {
         metallic = tex2D<float>(mat.metallic_tex, uv.x, uv.y);
     }
+    // metallic = 0.f;
+    // roughness = 1.f;
 
     //=================
     // Diffuse color
@@ -215,8 +217,6 @@ extern "C" __global__ void __closesthit__camera_shader() {
         }
     }
 
-    // In ambient light mode
-
     float NdV = Dot(world_normal, -ray_dir);
     diffuse_color = diffuse_color + params.ambient_light_color * make_float3(NdV) * subsurface_albedo;
 
@@ -258,16 +258,18 @@ extern "C" __global__ void __closesthit__camera_shader() {
 
     float3 next_contrib_to_first_hit = (make_float3(1.f) - F) * subsurface_albedo * NdL;
 
-    // float D = NormalDist(NdH, roughness);  // 1/pi omitted
+    // float D = NormalDist(NdH, roughness);        // 1/pi omitted
     float G = HammonSmith(NdV, NdL, roughness);  // 4  * NdV * NdL omitted
     float D = NormalDist(NdH, roughness) / CUDART_PI_F;
     // float G = HammonSmith(NdV, NdL, roughness) / (4 * NdV * NdL);
     float3 f_ct = F * D * G;
+
     next_contrib_to_first_hit += f_ct * NdL;
 
     if (!prd_camera->use_gi) {  // we need to account for the fact we didn't randomly sample the direction (heuristic
-                                // since this is not physical)
+        // since this is not physical)
         next_contrib_to_first_hit = (1.f - roughness) * next_contrib_to_first_hit / (4 * CUDART_PI_F);
+        // next_contrib_to_first_hit = next_contrib_to_first_hit / (CUDART_PI_F * 4);
     }
 
     // contribution should never exceed 1 or esle we are creating energy on reflection

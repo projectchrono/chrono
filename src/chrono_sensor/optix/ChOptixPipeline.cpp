@@ -1285,21 +1285,29 @@ unsigned int ChOptixPipeline::GetRigidMeshMaterial(CUdeviceptr& d_vertices,
 
         // move the chrono data to contiguous data structures to be copied to gpu
         // TODO: should these buffer be padded to float4 or int4?
-        std::vector<uint3> vertex_index_buffer = std::vector<uint3>(mesh->getIndicesVertexes().size());
-        std::vector<uint3> normal_index_buffer = std::vector<uint3>(mesh->getIndicesNormals().size());
-        std::vector<uint3> uv_index_buffer = std::vector<uint3>(mesh->getIndicesUV().size());
+        // std::vector<uint3> vertex_index_buffer = std::vector<uint3>(mesh->getIndicesVertexes().size());
+        // std::vector<uint3> normal_index_buffer = std::vector<uint3>(mesh->getIndicesNormals().size());
+        // std::vector<uint3> uv_index_buffer = std::vector<uint3>(mesh->getIndicesUV().size());
+        // std::vector<unsigned int> mat_index_buffer = std::vector<unsigned int>(mesh->getIndicesColors().size());
+        // std::vector<float3> vertex_buffer = std::vector<float3>(mesh->getCoordsVertices().size());
+        // std::vector<float3> normal_buffer = std::vector<float3>(mesh->getCoordsNormals().size());
+        // std::vector<float2> uv_buffer = std::vector<float2>(mesh->getCoordsUV().size());
+
+        std::vector<uint4> vertex_index_buffer = std::vector<uint4>(mesh->getIndicesVertexes().size());
+        std::vector<uint4> normal_index_buffer = std::vector<uint4>(mesh->getIndicesNormals().size());
+        std::vector<uint4> uv_index_buffer = std::vector<uint4>(mesh->getIndicesUV().size());
         std::vector<unsigned int> mat_index_buffer = std::vector<unsigned int>(mesh->getIndicesColors().size());
-        std::vector<float3> vertex_buffer = std::vector<float3>(mesh->getCoordsVertices().size());
-        std::vector<float3> normal_buffer = std::vector<float3>(mesh->getCoordsNormals().size());
+        std::vector<float4> vertex_buffer = std::vector<float4>(mesh->getCoordsVertices().size());
+        std::vector<float4> normal_buffer = std::vector<float4>(mesh->getCoordsNormals().size());
         std::vector<float2> uv_buffer = std::vector<float2>(mesh->getCoordsUV().size());
 
-        unsigned int mesh_size_in_bytes = vertex_index_buffer.size() * sizeof(uint3);
-        mesh_size_in_bytes += normal_index_buffer.size() * sizeof(uint3);
-        mesh_size_in_bytes += uv_index_buffer.size() * sizeof(uint3);
-        mesh_size_in_bytes += mat_index_buffer.size() * sizeof(uint);
-        mesh_size_in_bytes += vertex_buffer.size() * sizeof(float3);
-        mesh_size_in_bytes += normal_buffer.size() * sizeof(float3);
-        mesh_size_in_bytes += uv_buffer.size() * sizeof(float2);
+        // unsigned int mesh_size_in_bytes = vertex_index_buffer.size() * sizeof(uint3);
+        // mesh_size_in_bytes += normal_index_buffer.size() * sizeof(uint3);
+        // mesh_size_in_bytes += uv_index_buffer.size() * sizeof(uint3);
+        // mesh_size_in_bytes += mat_index_buffer.size() * sizeof(unsigned ints);
+        // mesh_size_in_bytes += vertex_buffer.size() * sizeof(float3);
+        // mesh_size_in_bytes += normal_buffer.size() * sizeof(float3);
+        // mesh_size_in_bytes += uv_buffer.size() * sizeof(float2);
         // std::cout << "Unique mesh with size = " << mesh_size_in_bytes << std::endl;
         // std::cout << "vertex_index_buffer = " << vertex_index_buffer.size() << std::endl;
         // std::cout << "normal_index_buffer = " << normal_index_buffer.size() << std::endl;
@@ -1311,43 +1319,43 @@ unsigned int ChOptixPipeline::GetRigidMeshMaterial(CUdeviceptr& d_vertices,
 
         // not optional for vertex indices
         for (int i = 0; i < mesh->getIndicesVertexes().size(); i++) {
-            vertex_index_buffer[i] = make_uint3((unsigned int)mesh->getIndicesVertexes()[i].x(),  //
+            vertex_index_buffer[i] = make_uint4((unsigned int)mesh->getIndicesVertexes()[i].x(),  //
                                                 (unsigned int)mesh->getIndicesVertexes()[i].y(),  //
-                                                (unsigned int)mesh->getIndicesVertexes()[i].z());
+                                                (unsigned int)mesh->getIndicesVertexes()[i].z(), 0);
         }
-        uint3* d_vertex_index_buffer = {};
+        uint4* d_vertex_index_buffer = {};
         CUDA_ERROR_CHECK(
-            cudaMalloc(reinterpret_cast<void**>(&d_vertex_index_buffer), sizeof(uint3) * vertex_index_buffer.size()));
+            cudaMalloc(reinterpret_cast<void**>(&d_vertex_index_buffer), sizeof(uint4) * vertex_index_buffer.size()));
         CUDA_ERROR_CHECK(cudaMemcpy(reinterpret_cast<void*>(d_vertex_index_buffer), vertex_index_buffer.data(),
-                                    sizeof(uint3) * vertex_index_buffer.size(), cudaMemcpyHostToDevice));
+                                    sizeof(uint4) * vertex_index_buffer.size(), cudaMemcpyHostToDevice));
         m_mesh_buffers_dptrs.push_back(reinterpret_cast<CUdeviceptr>(d_vertex_index_buffer));
         d_indices = reinterpret_cast<CUdeviceptr>(d_vertex_index_buffer);
 
-        uint3* d_normal_index_buffer = {};
+        uint4* d_normal_index_buffer = {};
         if (normal_index_buffer.size() > 0) {  // optional whether there are normal indices
             for (int i = 0; i < mesh->getIndicesNormals().size(); i++) {
-                normal_index_buffer[i] = make_uint3((unsigned int)mesh->getIndicesNormals()[i].x(),  //
+                normal_index_buffer[i] = make_uint4((unsigned int)mesh->getIndicesNormals()[i].x(),  //
                                                     (unsigned int)mesh->getIndicesNormals()[i].y(),  //
-                                                    (unsigned int)mesh->getIndicesNormals()[i].z());
+                                                    (unsigned int)mesh->getIndicesNormals()[i].z(), 0);
             }
             CUDA_ERROR_CHECK(cudaMalloc(reinterpret_cast<void**>(&d_normal_index_buffer),
-                                        sizeof(uint3) * normal_index_buffer.size()));
+                                        sizeof(uint4) * normal_index_buffer.size()));
             CUDA_ERROR_CHECK(cudaMemcpy(reinterpret_cast<void*>(d_normal_index_buffer), normal_index_buffer.data(),
-                                        sizeof(uint3) * normal_index_buffer.size(), cudaMemcpyHostToDevice));
+                                        sizeof(uint4) * normal_index_buffer.size(), cudaMemcpyHostToDevice));
             m_mesh_buffers_dptrs.push_back(reinterpret_cast<CUdeviceptr>(d_normal_index_buffer));
         }
 
-        uint3* d_uv_index_buffer = {};
+        uint4* d_uv_index_buffer = {};
         if (uv_index_buffer.size() > 0) {  // optional whether there are uv indices
             for (int i = 0; i < mesh->getIndicesUV().size(); i++) {
-                uv_index_buffer[i] = make_uint3((unsigned int)mesh->getIndicesUV()[i].x(),  //
+                uv_index_buffer[i] = make_uint4((unsigned int)mesh->getIndicesUV()[i].x(),  //
                                                 (unsigned int)mesh->getIndicesUV()[i].y(),  //
-                                                (unsigned int)mesh->getIndicesUV()[i].z());
+                                                (unsigned int)mesh->getIndicesUV()[i].z(), 0);
             }
             CUDA_ERROR_CHECK(
-                cudaMalloc(reinterpret_cast<void**>(&d_uv_index_buffer), sizeof(uint3) * uv_index_buffer.size()));
+                cudaMalloc(reinterpret_cast<void**>(&d_uv_index_buffer), sizeof(uint4) * uv_index_buffer.size()));
             CUDA_ERROR_CHECK(cudaMemcpy(reinterpret_cast<void*>(d_uv_index_buffer), uv_index_buffer.data(),
-                                        sizeof(uint3) * uv_index_buffer.size(), cudaMemcpyHostToDevice));
+                                        sizeof(uint4) * uv_index_buffer.size(), cudaMemcpyHostToDevice));
             m_mesh_buffers_dptrs.push_back(reinterpret_cast<CUdeviceptr>(d_uv_index_buffer));
         }
 
@@ -1366,29 +1374,29 @@ unsigned int ChOptixPipeline::GetRigidMeshMaterial(CUdeviceptr& d_vertices,
 
         // there have to be some vertices for this to be a mesh (not optional)
         for (int i = 0; i < mesh->getCoordsVertices().size(); i++) {
-            vertex_buffer[i] = make_float3((float)mesh->getCoordsVertices()[i].x(),  //
+            vertex_buffer[i] = make_float4((float)mesh->getCoordsVertices()[i].x(),  //
                                            (float)mesh->getCoordsVertices()[i].y(),  //
-                                           (float)mesh->getCoordsVertices()[i].z());
+                                           (float)mesh->getCoordsVertices()[i].z(), 0.f);
         }
-        float3* d_vertex_buffer = {};
-        CUDA_ERROR_CHECK(cudaMalloc(reinterpret_cast<void**>(&d_vertex_buffer), sizeof(float3) * vertex_buffer.size()));
+        float4* d_vertex_buffer = {};
+        CUDA_ERROR_CHECK(cudaMalloc(reinterpret_cast<void**>(&d_vertex_buffer), sizeof(float4) * vertex_buffer.size()));
         CUDA_ERROR_CHECK(cudaMemcpy(reinterpret_cast<void*>(d_vertex_buffer), vertex_buffer.data(),
-                                    sizeof(float3) * vertex_buffer.size(), cudaMemcpyHostToDevice));
+                                    sizeof(float4) * vertex_buffer.size(), cudaMemcpyHostToDevice));
         m_mesh_buffers_dptrs.push_back(reinterpret_cast<CUdeviceptr>(d_vertex_buffer));
         d_vertices =
             reinterpret_cast<CUdeviceptr>(d_vertex_buffer);  // we will reuse this for constructing the geometry
 
-        float3* d_normal_buffer = {};
+        float4* d_normal_buffer = {};
         if (normal_buffer.size() > 0) {  // optional for there to be vertex normals
             for (int i = 0; i < mesh->getCoordsNormals().size(); i++) {
-                normal_buffer[i] = make_float3((float)mesh->getCoordsNormals()[i].x(),  //
+                normal_buffer[i] = make_float4((float)mesh->getCoordsNormals()[i].x(),  //
                                                (float)mesh->getCoordsNormals()[i].y(),  //
-                                               (float)mesh->getCoordsNormals()[i].z());
+                                               (float)mesh->getCoordsNormals()[i].z(), 0.f);
             }
             CUDA_ERROR_CHECK(
-                cudaMalloc(reinterpret_cast<void**>(&d_normal_buffer), sizeof(float3) * normal_buffer.size()));
+                cudaMalloc(reinterpret_cast<void**>(&d_normal_buffer), sizeof(float4) * normal_buffer.size()));
             CUDA_ERROR_CHECK(cudaMemcpy(reinterpret_cast<void*>(d_normal_buffer), normal_buffer.data(),
-                                        sizeof(float3) * normal_buffer.size(), cudaMemcpyHostToDevice));
+                                        sizeof(float4) * normal_buffer.size(), cudaMemcpyHostToDevice));
             m_mesh_buffers_dptrs.push_back(reinterpret_cast<CUdeviceptr>(d_normal_buffer));
         }
         float2* d_uv_buffer = {};
@@ -1541,7 +1549,7 @@ void ChOptixPipeline::CreateDeviceTexture(cudaTextureObject_t& d_tex_sampler,
         return;
     }
 
-    auto img = LoadImage(file_name);
+    ByteImageData img = LoadByteImage(file_name);
 
     // if image is not 4 channels, make it so
     std::vector<unsigned char> img_data;
@@ -1632,6 +1640,11 @@ void ChOptixPipeline::CreateDeviceTexture(cudaTextureObject_t& d_tex_sampler,
         m_texture_samplers[file_name] = d_tex_sampler;
         m_img_textures[file_name] = d_img_array;
     }
+
+    // std::cout << "Size of cudaTextureObject_t: " << sizeof(cudaTextureObject_t) << std::endl;
+    // std::cout << "Size of MaterialParameters: " << sizeof(MaterialParameters) << std::endl;
+    // std::cout << "Size of MeshParameters: " << sizeof(MeshParameters) << std::endl;
+    // std::cout << "Size of MaterialRecordParameters: " << sizeof(MaterialRecordParameters) << std::endl;
 }
 
 }  // namespace sensor

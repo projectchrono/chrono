@@ -128,7 +128,7 @@ CH_SENSOR_API void optix_log_callback(unsigned int level, const char* tag, const
 
 /// loads image to struct ByteImageData, returns an empty struct with 0 values if loading failed
 /// @param filename
-ByteImageData LoadImage(std::string filename);
+CH_SENSOR_API ByteImageData LoadByteImage(std::string filename);
 
 /// creates an empty optix transform::node
 /// @param context the optix context

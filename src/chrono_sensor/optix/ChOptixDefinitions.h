@@ -23,7 +23,7 @@
 #include <curand_kernel.h>
 
 #include <cuda_fp16.h>
-struct half4 {
+struct __align__(8) half4 {
     __half x;
     __half y;
     __half z;
@@ -125,17 +125,18 @@ struct RaygenParameters {
     } specific;
 };
 
-struct MeshParameters {
-    float3* vertex_buffer;
-    float3* normal_buffer;
+struct __align__(16) MeshParameters {
+    float4* vertex_buffer;
+    float4* normal_buffer;
     float2* uv_buffer;
-    uint3* vertex_index_buffer;
-    uint3* normal_index_buffer;
-    uint3* uv_index_buffer;
+    uint4* vertex_index_buffer;
+    uint4* normal_index_buffer;
+    uint4* uv_index_buffer;
     unsigned int* mat_index_buffer;
+    float pad;  // pads to 64 bytes
 };
 
-struct MaterialParameters {
+struct __align__(16) MaterialParameters {  // TODO: pad for alignment
     float3 Kd;
     float3 Ks;
     float fresnel_exp;
@@ -150,6 +151,7 @@ struct MaterialParameters {
     cudaTextureObject_t kn_tex;
     cudaTextureObject_t metallic_tex;
     cudaTextureObject_t roughness_tex;
+    float pad;  // pads to 96 bytes
 };
 
 struct ContextParameters {
