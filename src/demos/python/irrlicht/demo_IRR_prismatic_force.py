@@ -148,6 +148,6 @@ while application.GetDevice().run():
 
     application.BeginScene()
     application.DrawAll()
-    irr.ChIrrTools_drawAllLinkframes(system, application.GetVideoDriver(), 1)
+    irr.drawAllLinkframes(system, application.GetVideoDriver(), 1)
     application.DoStep()
     application.EndScene()

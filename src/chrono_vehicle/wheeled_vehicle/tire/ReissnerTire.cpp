@@ -33,7 +33,7 @@ namespace vehicle {
 // Constructors for ReissnerTire
 // -----------------------------------------------------------------------------
 ReissnerTire::ReissnerTire(const std::string& filename) : ChReissnerTire("") {
-    Document d = ReadFileJSON(filename);
+    Document d; ReadFileJSON(filename, d);
     if (d.IsNull())
         return;
 
@@ -56,7 +56,7 @@ void ReissnerTire::ProcessJSON(const rapidjson::Document& d) {
     assert(d.HasMember("Name"));
 
     SetName(d["Name"].GetString());
-    
+
     // Read geometric dimensions
     m_tire_radius = d["Tire Radius"].GetDouble();
     m_rim_radius = d["Rim Radius"].GetDouble();
@@ -66,7 +66,7 @@ void ReissnerTire::ProcessJSON(const rapidjson::Document& d) {
     assert(d.HasMember("Contact Material"));
     m_mat_info = ReadMaterialInfoJSON(d["Contact Material"]);
 
-	// Structural damping
+    // Structural damping
     m_alpha = d["Structural Damping Coefficient"].GetDouble();
 
     // Read the list of materials (note that order is important)
@@ -79,21 +79,24 @@ void ReissnerTire::ProcessJSON(const rapidjson::Document& d) {
             double E = d["Materials"][i]["E"].GetDouble();
             double nu = d["Materials"][i]["nu"].GetDouble();
             m_materials[i] = chrono_types::make_shared<ChMaterialShellReissnerIsothropic>(rho, E, nu);
-			auto mdamping = chrono_types::make_shared<ChDampingReissnerRayleigh>(m_materials[i]->GetElasticity(),m_alpha);
-			m_materials[i]->SetDamping(mdamping);
+            auto mdamping =
+                chrono_types::make_shared<ChDampingReissnerRayleigh>(m_materials[i]->GetElasticity(), m_alpha);
+            m_materials[i]->SetDamping(mdamping);
         } else if (type.compare("Orthotropic") == 0) {
             double rho = d["Materials"][i]["Density"].GetDouble();
             double Ex = d["Materials"][i]["Ex"].GetDouble();
             double Ey = d["Materials"][i]["Ey"].GetDouble();
             double nu = d["Materials"][i]["nu"].GetDouble();
-            double Gxy =d["Materials"][i]["Gxy"].GetDouble();
-            double Gxz =d["Materials"][i]["Gxz"].GetDouble();
-            double Gyz =d["Materials"][i]["Gyz"].GetDouble();
-            m_materials[i] = chrono_types::make_shared<ChMaterialShellReissnerOrthotropic>(rho, Ex, Ey, nu, Gxy, Gxz, Gyz);
-			auto mdamping = chrono_types::make_shared<ChDampingReissnerRayleigh>(m_materials[i]->GetElasticity(),m_alpha);
-			m_materials[i]->SetDamping(mdamping);
+            double Gxy = d["Materials"][i]["Gxy"].GetDouble();
+            double Gxz = d["Materials"][i]["Gxz"].GetDouble();
+            double Gyz = d["Materials"][i]["Gyz"].GetDouble();
+            m_materials[i] =
+                chrono_types::make_shared<ChMaterialShellReissnerOrthotropic>(rho, Ex, Ey, nu, Gxy, Gxz, Gyz);
+            auto mdamping =
+                chrono_types::make_shared<ChDampingReissnerRayleigh>(m_materials[i]->GetElasticity(), m_alpha);
+            m_materials[i]->SetDamping(mdamping);
         }
-    }  
+    }
 
     // Default tire pressure
     m_default_pressure = d["Default Pressure"].GetDouble();
@@ -187,68 +190,56 @@ void ReissnerTire::ProcessJSON(const rapidjson::Document& d) {
             m_lugs_hb[i][j] = d["Lugs"][i][j][5u].GetDouble();
         }
     }
-    // read lugs material 
-    lugs_young   = d["Lugs Material"]["Young Modulus"].GetDouble();
+    // read lugs material
+    lugs_young = d["Lugs Material"]["Young Modulus"].GetDouble();
     lugs_poisson = d["Lugs Material"]["Poisson Ratio"].GetDouble();
     lugs_density = d["Lugs Material"]["Density"].GetDouble();
     lugs_damping = d["Lugs Material"]["Structural Damping Coefficient"].GetDouble();
 }
 
-
 // Create the 'best fit' stitching constraint between a node and shells in a mesh
-void AttachNodeToShell(std::shared_ptr<ChMesh> m_mesh, std::shared_ptr<ChNodeFEAxyz> m_node)
-{
-    //std::shared_ptr<ChElementShellReissner4> best_fit_shell;
+void AttachNodeToShell(std::shared_ptr<ChMesh> m_mesh, std::shared_ptr<ChNodeFEAxyz> m_node) {
+    // std::shared_ptr<ChElementShellReissner4> best_fit_shell;
     std::shared_ptr<ChNodeFEAxyzrot> best_fit_n1;
     std::shared_ptr<ChNodeFEAxyzrot> best_fit_n2;
     std::shared_ptr<ChNodeFEAxyzrot> best_fit_n3;
     double best_fit_val = 1e23;
-    for (unsigned int ie=0; ie< m_mesh->GetNelements(); ++ie) {
-         if (auto mshell = std::dynamic_pointer_cast<ChElementShellReissner4>(m_mesh->GetElement(ie)) ) {
-             double val, u,v,w;
-             int is_into;
-             ChVector<> p_projected;
+    for (unsigned int ie = 0; ie < m_mesh->GetNelements(); ++ie) {
+        if (auto mshell = std::dynamic_pointer_cast<ChElementShellReissner4>(m_mesh->GetElement(ie))) {
+            double val, u, v, w;
+            bool is_into;
+            ChVector<> p_projected;
 
-             val = collision::ChCollisionUtils::PointTriangleDistance(
-                m_node->pos, 
-                mshell->GetNodeA()->GetCoord().pos,
-                mshell->GetNodeB()->GetCoord().pos,
-                mshell->GetNodeC()->GetCoord().pos,
-                u, v, 
-                is_into, 
-                p_projected);
-             val = fabs(val);
-             w = 1-u-v;
-             if (!is_into) 
-                 //val += ChMax(ChMax(0.0,u-1.0),-ChMin(0.0,u)) + ChMax(ChMax(0.0,v-1.0),-ChMin(0.0,v));
-                 val += ChMax(0.0,-u) + ChMax(0.0,-v) + ChMax(0.0,-w);
-             if (val < best_fit_val) {
-                 best_fit_val = val;
-                 best_fit_n1 = mshell->GetNodeA();
-                 best_fit_n2 = mshell->GetNodeB();
-                 best_fit_n3 = mshell->GetNodeC();
-             }
+            val = collision::utils::PointTriangleDistance(
+                m_node->pos, mshell->GetNodeA()->GetCoord().pos, mshell->GetNodeB()->GetCoord().pos,
+                mshell->GetNodeC()->GetCoord().pos, u, v, is_into, p_projected);
+            val = fabs(val);
+            w = 1 - u - v;
+            if (!is_into)
+                // val += ChMax(ChMax(0.0,u-1.0),-ChMin(0.0,u)) + ChMax(ChMax(0.0,v-1.0),-ChMin(0.0,v));
+                val += ChMax(0.0, -u) + ChMax(0.0, -v) + ChMax(0.0, -w);
+            if (val < best_fit_val) {
+                best_fit_val = val;
+                best_fit_n1 = mshell->GetNodeA();
+                best_fit_n2 = mshell->GetNodeB();
+                best_fit_n3 = mshell->GetNodeC();
+            }
 
-             val = collision::ChCollisionUtils::PointTriangleDistance(
-                m_node->pos, 
-                mshell->GetNodeC()->GetCoord().pos,
-                mshell->GetNodeD()->GetCoord().pos,
-                mshell->GetNodeA()->GetCoord().pos,
-                u, v, 
-                is_into, 
-                p_projected);
-             val = fabs(val);
-             w = 1-u-v;
-             if (!is_into) 
-                 //val += ChMax(ChMax(0.0,u-1.0),-ChMin(0.0,u)) + ChMax(ChMax(0.0,v-1.0),-ChMin(0.0,v));
-                 val += ChMax(0.0,-u) + ChMax(0.0,-v) + ChMax(0.0,-w);
-             if (val < best_fit_val) {
-                 best_fit_val = val;
-                 best_fit_n1 = mshell->GetNodeC();
-                 best_fit_n2 = mshell->GetNodeD();
-                 best_fit_n3 = mshell->GetNodeA();
-             }
-         }
+            val = collision::utils::PointTriangleDistance(
+                m_node->pos, mshell->GetNodeC()->GetCoord().pos, mshell->GetNodeD()->GetCoord().pos,
+                mshell->GetNodeA()->GetCoord().pos, u, v, is_into, p_projected);
+            val = fabs(val);
+            w = 1 - u - v;
+            if (!is_into)
+                // val += ChMax(ChMax(0.0,u-1.0),-ChMin(0.0,u)) + ChMax(ChMax(0.0,v-1.0),-ChMin(0.0,v));
+                val += ChMax(0.0, -u) + ChMax(0.0, -v) + ChMax(0.0, -w);
+            if (val < best_fit_val) {
+                best_fit_val = val;
+                best_fit_n1 = mshell->GetNodeC();
+                best_fit_n2 = mshell->GetNodeD();
+                best_fit_n3 = mshell->GetNodeA();
+            }
+        }
     }
     auto mlink = chrono_types::make_shared<ChLinkPointTrifaceRot>();
     mlink->Initialize(m_node, best_fit_n1, best_fit_n2, best_fit_n3);
@@ -289,8 +280,8 @@ void ReissnerTire::CreateMesh(const ChFrameMoving<>& wheel_frame, VehicleSide si
             // Node direction
             ChVector<> tan_prf(std::cos(phi) * xp_prf, yp_prf, std::sin(phi) * xp_prf);
             ChVector<> nrm_prf = Vcross(tan_prf, nrm).GetNormalized();
-            ChVector<> dir = wheel_frame.TransformDirectionLocalToParent(nrm_prf);
-            ChMatrix33<> mrot; mrot.Set_A_Xdir(tan_prf,nrm_prf);
+            ChMatrix33<> mrot;
+            mrot.Set_A_Xdir(tan_prf, nrm_prf);
             auto node = chrono_types::make_shared<ChNodeFEAxyzrot>(ChFrame<>(loc, mrot));
 
             // Node velocity
@@ -350,9 +341,8 @@ void ReissnerTire::CreateMesh(const ChFrameMoving<>& wheel_frame, VehicleSide si
                 }
             }
 
-
-            //***TODO*** add gravity load 
-            //element->SetGravityOn(true); 
+            //***TODO*** add gravity load
+            // element->SetGravityOn(true);
 
             // Add element to mesh
             m_mesh->AddElement(element);
@@ -365,7 +355,7 @@ void ReissnerTire::CreateMesh(const ChFrameMoving<>& wheel_frame, VehicleSide si
 
     // Create a material for lugs
     auto m_lugs_material = chrono_types::make_shared<ChContinuumElastic>();
-    m_lugs_material->Set_E(lugs_young);  
+    m_lugs_material->Set_E(lugs_young);
     m_lugs_material->Set_v(lugs_poisson);
     m_lugs_material->Set_RayleighDampingK(lugs_damping);
     m_lugs_material->Set_density(lugs_density);
@@ -374,7 +364,7 @@ void ReissnerTire::CreateMesh(const ChFrameMoving<>& wheel_frame, VehicleSide si
     for (unsigned int p = 0; p < m_num_lugs_copies; ++p) {
         double phi = (CH_C_2PI * p) / m_num_lugs_copies;
         // maybe each slice has more than one lug geometry;
-        //double pre_ua, pre_ub, pre_
+        // double pre_ua, pre_ub, pre_
         for (unsigned int il = 0; il < m_num_lugs; ++il) {
             // scan through all lug a,b points (lug as a ribbon)
             std::shared_ptr<ChNodeFEAxyz> n1;
@@ -385,14 +375,14 @@ void ReissnerTire::CreateMesh(const ChFrameMoving<>& wheel_frame, VehicleSide si
                 double t_prf, alpha;
                 double x_prf, xp_prf, xpp_prf;
                 double y_prf, yp_prf, ypp_prf;
-                double x,y,z;
+                double x, y, z;
 
                 // Create the 4 nodes of a slice of the lug as  'ribbon' of quadrilateral section
 
-                t_prf =        m_lugs_ua[il][is];
+                t_prf = m_lugs_ua[il][is];
                 splineX.Evaluate(t_prf, x_prf, xp_prf, xpp_prf);
                 splineY.Evaluate(t_prf, y_prf, yp_prf, ypp_prf);
-                alpha = phi +  m_lugs_va[il][is] * (CH_C_2PI/m_num_lugs_copies);
+                alpha = phi + m_lugs_va[il][is] * (CH_C_2PI / m_num_lugs_copies);
                 // Node position with respect to rim center
                 x = (m_rim_radius + x_prf) * std::cos(alpha);
                 y = y_prf;
@@ -406,10 +396,10 @@ void ReissnerTire::CreateMesh(const ChFrameMoving<>& wheel_frame, VehicleSide si
                 // attach to underlying shells
                 AttachNodeToShell(m_mesh, node1);
 
-                t_prf =        m_lugs_ub[il][is];
+                t_prf = m_lugs_ub[il][is];
                 splineX.Evaluate(t_prf, x_prf, xp_prf, xpp_prf);
                 splineY.Evaluate(t_prf, y_prf, yp_prf, ypp_prf);
-                alpha = phi +  m_lugs_vb[il][is] * (CH_C_2PI/m_num_lugs_copies);
+                alpha = phi + m_lugs_vb[il][is] * (CH_C_2PI / m_num_lugs_copies);
                 // Node position with respect to rim center
                 x = (m_rim_radius + x_prf) * std::cos(alpha);
                 y = y_prf;
@@ -423,10 +413,10 @@ void ReissnerTire::CreateMesh(const ChFrameMoving<>& wheel_frame, VehicleSide si
                 // attach to underlying shells
                 AttachNodeToShell(m_mesh, node2);
 
-                t_prf =        m_lugs_ub[il][is];
+                t_prf = m_lugs_ub[il][is];
                 splineX.Evaluate(t_prf, x_prf, xp_prf, xpp_prf);
                 splineY.Evaluate(t_prf, y_prf, yp_prf, ypp_prf);
-                alpha = phi +  m_lugs_vb[il][is] * (CH_C_2PI/m_num_lugs_copies);
+                alpha = phi + m_lugs_vb[il][is] * (CH_C_2PI / m_num_lugs_copies);
                 // Node position with respect to rim center
                 x = (m_rim_radius + x_prf + m_lugs_hb[il][is]) * std::cos(alpha);
                 y = y_prf;
@@ -438,10 +428,10 @@ void ReissnerTire::CreateMesh(const ChFrameMoving<>& wheel_frame, VehicleSide si
                 node3->SetPos_dt(vel);
                 m_mesh->AddNode(node3);
 
-                t_prf =        m_lugs_ua[il][is];
+                t_prf = m_lugs_ua[il][is];
                 splineX.Evaluate(t_prf, x_prf, xp_prf, xpp_prf);
                 splineY.Evaluate(t_prf, y_prf, yp_prf, ypp_prf);
-                alpha = phi +  m_lugs_va[il][is] * (CH_C_2PI/m_num_lugs_copies);
+                alpha = phi + m_lugs_va[il][is] * (CH_C_2PI / m_num_lugs_copies);
                 // Node position with respect to rim center
                 x = (m_rim_radius + x_prf + m_lugs_ha[il][is]) * std::cos(alpha);
                 y = y_prf;
@@ -454,7 +444,7 @@ void ReissnerTire::CreateMesh(const ChFrameMoving<>& wheel_frame, VehicleSide si
                 m_mesh->AddNode(node4);
 
                 // create the hexahedron element
-                if (is>0) {
+                if (is > 0) {
                     auto helement1 = chrono_types::make_shared<ChElementHexa_8>();
                     helement1->SetNodes(n1, n2, n3, n4, node1, node2, node3, node4);
                     helement1->SetMaterial(m_lugs_material);
@@ -468,7 +458,6 @@ void ReissnerTire::CreateMesh(const ChFrameMoving<>& wheel_frame, VehicleSide si
             }
         }
     }
-
 
     // Switch off automatic gravity
     m_mesh->SetAutomaticGravity(false);
@@ -501,7 +490,6 @@ void ReissnerTire::CreateContactMaterial() {
     m_contact_mat->SetKt(m_mat_info.kt);
     m_contact_mat->SetGt(m_mat_info.gt);
 }
-
 
 }  // end namespace vehicle
 }  // end namespace chrono

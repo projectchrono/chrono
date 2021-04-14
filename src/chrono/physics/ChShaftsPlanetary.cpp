@@ -200,7 +200,7 @@ void ChShaftsPlanetary::ArchiveOUT(ChArchiveOut& marchive) {
 /// Method to allow de serialization of transient data from archives.
 void ChShaftsPlanetary::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChShaftsPlanetary>();
+    /*int version =*/ marchive.VersionRead<ChShaftsPlanetary>();
 
     // deserialize parent class:
     ChPhysicsItem::ArchiveIN(marchive);

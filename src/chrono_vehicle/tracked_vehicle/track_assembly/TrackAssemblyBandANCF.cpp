@@ -41,7 +41,7 @@ namespace vehicle {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void TrackAssemblyBandANCF::ReadSprocket(const std::string& filename, int output) {
-    Document d = ReadFileJSON(filename);
+    Document d; ReadFileJSON(filename, d);
     if (d.IsNull())
         return;
 
@@ -69,7 +69,7 @@ void TrackAssemblyBandANCF::ReadSprocket(const std::string& filename, int output
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void TrackAssemblyBandANCF::ReadTrackShoes(const std::string& filename, int num_shoes, int output) {
-    Document d = ReadFileJSON(filename);
+    Document d; ReadFileJSON(filename, d);
     if (d.IsNull())
         return;
 
@@ -99,7 +99,7 @@ void TrackAssemblyBandANCF::ReadTrackShoes(const std::string& filename, int num_
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 TrackAssemblyBandANCF::TrackAssemblyBandANCF(const std::string& filename) : ChTrackAssemblyBandANCF("", LEFT) {
-    Document d = ReadFileJSON(filename);
+    Document d; ReadFileJSON(filename, d);
     if (d.IsNull())
         return;
 

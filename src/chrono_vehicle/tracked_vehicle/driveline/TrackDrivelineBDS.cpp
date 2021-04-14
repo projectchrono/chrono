@@ -28,7 +28,7 @@ namespace vehicle {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 TrackDrivelineBDS::TrackDrivelineBDS(const std::string& filename) : ChTrackDrivelineBDS("") {
-    Document d = ReadFileJSON(filename);
+    Document d; ReadFileJSON(filename, d);
     if (d.IsNull())
         return;
 

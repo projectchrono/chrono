@@ -94,8 +94,6 @@ void ChVehicleGeometry::AddVisualizationAssets(std::shared_ptr<ChBody> body, Vis
 }
 
 void ChVehicleGeometry::AddCollisionShapes(std::shared_ptr<ChBody> body, int collision_family) {
-    auto contact_method = body->GetSystem()->GetContactMethod();
-
     body->SetCollide(true);
 
     body->GetCollisionModel()->ClearModel();
@@ -103,23 +101,26 @@ void ChVehicleGeometry::AddCollisionShapes(std::shared_ptr<ChBody> body, int col
     body->GetCollisionModel()->SetFamily(collision_family);
 
     for (auto& sphere : m_coll_spheres) {
-        assert(m_materials[sphere.m_matID] && m_materials[sphere.m_matID]->GetContactMethod() == contact_method);
+        assert(m_materials[sphere.m_matID] &&
+               m_materials[sphere.m_matID]->GetContactMethod() == body->GetSystem()->GetContactMethod());
         body->GetCollisionModel()->AddSphere(m_materials[sphere.m_matID], sphere.m_radius, sphere.m_pos);
     }
     for (auto& box : m_coll_boxes) {
-        assert(m_materials[box.m_matID] && m_materials[box.m_matID]->GetContactMethod() == contact_method);
+        assert(m_materials[box.m_matID] &&
+               m_materials[box.m_matID]->GetContactMethod() == body->GetSystem()->GetContactMethod());
         ChVector<> hdims = box.m_dims / 2;
         body->GetCollisionModel()->AddBox(m_materials[box.m_matID], hdims.x(), hdims.y(), hdims.z(), box.m_pos,
                                           box.m_rot);
     }
     for (auto& cyl : m_coll_cylinders) {
-        assert(m_materials[cyl.m_matID] && m_materials[cyl.m_matID]->GetContactMethod() == contact_method);
+        assert(m_materials[cyl.m_matID] &&
+               m_materials[cyl.m_matID]->GetContactMethod() == body->GetSystem()->GetContactMethod());
         body->GetCollisionModel()->AddCylinder(m_materials[cyl.m_matID], cyl.m_radius, cyl.m_radius, cyl.m_length / 2,
                                                cyl.m_pos, cyl.m_rot);
     }
     for (auto& hulls_group : m_coll_hulls) {
         assert(m_materials[hulls_group.m_matID] &&
-               m_materials[hulls_group.m_matID]->GetContactMethod() == contact_method);
+               m_materials[hulls_group.m_matID]->GetContactMethod() == body->GetSystem()->GetContactMethod());
         geometry::ChTriangleMeshConnected mesh;
         std::vector<std::vector<ChVector<>>> hulls;
         utils::LoadConvexHulls(vehicle::GetDataFile(hulls_group.m_filename), mesh, hulls);

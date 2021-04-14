@@ -66,8 +66,6 @@ TEST(ChronoMulticore, bodyauxref) {
     bool clamp_bilaterals = false;
     double bilateral_clamp_speed = 1000;
 
-    double contact_recovery_speed = 1;
-
     // Create the mechanical system
     ChSystemMulticoreNSC* system = new ChSystemMulticoreNSC();
     system->Set_G_acc(ChVector<>(0, 0, -9.81));

@@ -98,7 +98,7 @@ class ChApi ChShaftsCouple : public ChPhysicsItem {
     /// Method to allow de serialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) override {
         // version number
-        int version = marchive.VersionRead<ChShaftsCouple>();
+        /*int version =*/ marchive.VersionRead<ChShaftsCouple>();
 
         // deserialize parent class:
         ChPhysicsItem::ArchiveIN(marchive);

@@ -55,7 +55,7 @@ const ChVector<> M113_TrackAssemblyDoublePin::m_susp_locs_R[5] = {
 // -----------------------------------------------------------------------------
 M113_TrackAssemblyDoublePin::M113_TrackAssemblyDoublePin(VehicleSide side, BrakeType brake_type)
     : ChTrackAssemblyDoublePin("", side) {
-    size_t num_shoes;
+    size_t num_shoes = 0;
     std::string suspName("M113_Suspension");
     std::string shoeName("M113_TrackShoe");
     switch (side) {

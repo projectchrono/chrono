@@ -75,7 +75,7 @@ void ChLinkForce::ArchiveOUT(ChArchiveOut& marchive) {
 
 void ChLinkForce::ArchiveIN(ChArchiveIn& marchive) {
     // class version number
-    int version = marchive.VersionRead<ChLinkForce>();
+    /*int version =*/ marchive.VersionRead<ChLinkForce>();
 
     // stream in all member data
     marchive >> CHNVP(m_active);

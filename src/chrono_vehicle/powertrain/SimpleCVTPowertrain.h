@@ -37,8 +37,8 @@ class CH_VEHICLE_API SimpleCVTPowertrain : public ChSimpleCVTPowertrain {
     SimpleCVTPowertrain(const rapidjson::Document& d);
     ~SimpleCVTPowertrain() {}
 
-    virtual double GetForwardGearRatio() const override { return m_fwd_gear_ratio; }
-    virtual double GetReverseGearRatio() const override { return m_rev_gear_ratio; }
+    virtual void SetGearRatios(std::vector<double>& fwd, double& rev) override;
+
     virtual double GetMaxTorque() const override { return m_max_torque; }
     virtual double GetMaxPower() const override { return m_max_power; }
     virtual double GetMaxSpeed() const override { return m_max_speed; }

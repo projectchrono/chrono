@@ -189,7 +189,6 @@ void ChConstraintRigidRigid::Setup(ChMulticoreDataManager* dm) {
     // Readability replacements
     auto& bids = data_manager->host_data.bids_rigid_rigid;  // global IDs of bodies in contact
     auto& abody = data_manager->host_data.active_rigid;     // flags for active bodies
-    auto& blist = *data_manager->body_list;
 
 #pragma omp parallel for
     for (int i = 0; i < (signed)num_contacts; i++) {
@@ -312,18 +311,7 @@ void ChConstraintRigidRigid::Build_s() {
     const DynamicVector<real>& M_invk = data_manager->host_data.M_invk;
     const DynamicVector<real>& gamma = data_manager->host_data.gamma;
 
-    const SubMatrixType& M_invD_n = _MINVDN_;
-    const SubMatrixType& M_invD_t = _MINVDT_;
-    const SubMatrixType& M_invD_s = _MINVDS_;
-    const SubMatrixType& M_invD_b = _MINVDB_;
     const CompressedMatrix<real, blaze::columnMajor>& M_invD = data_manager->host_data.M_invD;
-
-    uint num_contacts = data_manager->num_rigid_contacts;
-    uint num_unilaterals = data_manager->num_unilaterals;
-    uint num_bilaterals = data_manager->num_bilaterals;
-
-    ConstSubVectorType gamma_b = subvector(gamma, num_unilaterals, num_bilaterals);
-    ConstSubVectorType gamma_n = subvector(gamma, 0, num_contacts);
 
     v_new = M_invk + M_invD * gamma;
 
@@ -397,19 +385,11 @@ void ChConstraintRigidRigid::Build_E() {
 void ChConstraintRigidRigid::Build_D() {
     LOG(INFO) << "ChConstraintRigidRigid::Build_D";
     real3* norm = data_manager->host_data.norm_rigid_rigid.data();
-    real3* ptA = data_manager->host_data.cpta_rigid_rigid.data();
-    real3* ptB = data_manager->host_data.cptb_rigid_rigid.data();
-    real3* pos_data = data_manager->host_data.pos_rigid.data();
     vec2* ids = data_manager->host_data.bids_rigid_rigid.data();
-    quaternion* rot = data_manager->host_data.rot_rigid.data();
 
     CompressedMatrix<real>& D_T = data_manager->host_data.D_T;
 
-    const CompressedMatrix<real>& M_inv = data_manager->host_data.M_inv;
-
     SolverMode solver_mode = data_manager->settings.solver.solver_mode;
-
-    const std::vector<std::shared_ptr<ChBody>>* body_list = data_manager->body_list;
 
 #pragma omp parallel for
     for (int index = 0; index < (signed)data_manager->num_rigid_contacts; index++) {
@@ -552,21 +532,17 @@ void ChConstraintRigidRigid::GenerateSparsity() {
 
 void ChConstraintRigidRigid::Dx(const DynamicVector<real>& gam, DynamicVector<real>& XYZUVW) {
     const int& num_rigid_contacts = data_manager->num_rigid_contacts;
-    custom_vector<char>& active_rigid = data_manager->host_data.active_rigid;
     real3* norm = data_manager->host_data.norm_rigid_rigid.data();
-    real3* ptA = data_manager->host_data.cpta_rigid_rigid.data();
-    real3* ptB = data_manager->host_data.cptb_rigid_rigid.data();
-    real3* pos = data_manager->host_data.pos_rigid.data();
-    vec2* bids_rigid_rigid = data_manager->host_data.bids_rigid_rigid.data();
-    quaternion* rot = data_manager->host_data.rot_rigid.data();
+    ////custom_vector<char>& active_rigid = data_manager->host_data.active_rigid;
+    ////vec2* bids_rigid_rigid = data_manager->host_data.bids_rigid_rigid.data();
 
 #pragma omp parallel for
     for (int i = 0; i < num_rigid_contacts; i++) {
         const real3& U = real3(norm[i]);
         real3 V, W;
         Orthogonalize(U, V, W);
-        // int id_a = bids_rigid_rigid[i].x;
-        // int id_b = bids_rigid_rigid[i].y;
+        ////int id_a = bids_rigid_rigid[i].x;
+        ////int id_b = bids_rigid_rigid[i].y;
 
         real3 T3, T4, T5, T6, T7, T8;
         real3 g = real3(gam[i], gam[num_rigid_contacts + i * 2 + 0], gam[num_rigid_contacts + i * 2 + 1]);
@@ -577,7 +553,7 @@ void ChConstraintRigidRigid::Dx(const DynamicVector<real>& gam, DynamicVector<re
             T4 = Cross(Rotate(V, q_a), sbar.v);
             T5 = Cross(Rotate(W, q_a), sbar.v);
 
-            // if (active_rigid[id_a] != 0)
+            ////if (active_rigid[id_a] != 0)
 
             real3 res = -U * g.x - V * g.y - W * g.z;
 
@@ -630,13 +606,13 @@ void ChConstraintRigidRigid::Dx(const DynamicVector<real>& gam, DynamicVector<re
 
 void ChConstraintRigidRigid::D_Tx(const DynamicVector<real>& XYZUVW, DynamicVector<real>& out_vector) {
     const int& num_rigid_contacts = data_manager->num_rigid_contacts;
-    custom_vector<char>& active_rigid = data_manager->host_data.active_rigid;
     real3* norm = data_manager->host_data.norm_rigid_rigid.data();
-    real3* ptA = data_manager->host_data.cpta_rigid_rigid.data();
-    real3* ptB = data_manager->host_data.cptb_rigid_rigid.data();
-    real3* pos = data_manager->host_data.pos_rigid.data();
-    vec2* bids_rigid_rigid = data_manager->host_data.bids_rigid_rigid.data();
-    quaternion* rot = data_manager->host_data.rot_rigid.data();
+    ////custom_vector<char>& active_rigid = data_manager->host_data.active_rigid;
+    ////real3* ptA = data_manager->host_data.cpta_rigid_rigid.data();
+    ////real3* ptB = data_manager->host_data.cptb_rigid_rigid.data();
+    ////real3* pos = data_manager->host_data.pos_rigid.data();
+    ////vec2* bids_rigid_rigid = data_manager->host_data.bids_rigid_rigid.data();
+    ////quaternion* rot = data_manager->host_data.rot_rigid.data();
 
 #pragma omp parallel for
     for (int i = 0; i < num_rigid_contacts; i++) {
@@ -645,9 +621,9 @@ void ChConstraintRigidRigid::D_Tx(const DynamicVector<real>& XYZUVW, DynamicVect
         Orthogonalize(U, V, W);
         real temp[3] = {0, 0, 0};
 
-        // real3 pA = ptA[i];
-        // int id_a = bids_rigid_rigid[i].x;
-        // if (active_rigid[id_a] != 0)
+        ////real3 pA = ptA[i];
+        ////int id_a = bids_rigid_rigid[i].x;
+        ////if (active_rigid[id_a] != 0)
         {
             const real3_int& sbar = rotated_point_a[i];
             const quaternion& quaternion_conjugate = quat_a[i];
@@ -663,12 +639,12 @@ void ChConstraintRigidRigid::D_Tx(const DynamicVector<real>& XYZUVW, DynamicVect
             temp[1] = Dot(XYZ, -V) + Dot(UVW, T2);
             temp[2] = Dot(XYZ, -W) + Dot(UVW, T3);
 
-            // Jacobian<false>(rot[id_a], U, V, W, ptA[i] - pos[id_a], &XYZUVW[id_a * 6 + 0], temp);
+            ////Jacobian<false>(rot[id_a], U, V, W, ptA[i] - pos[id_a], &XYZUVW[id_a * 6 + 0], temp);
         }
 
-        // real3 pB = ptB[i];
-        // int id_b = bids_rigid_rigid[i].y;
-        // if (active_rigid[id_b] != 0)
+        ////real3 pB = ptB[i];
+        ////int id_b = bids_rigid_rigid[i].y;
+        ////if (active_rigid[id_b] != 0)
         {
             const real3_int& sbar = rotated_point_b[i];
             const quaternion& quaternion_conjugate = quat_b[i];

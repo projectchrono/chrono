@@ -96,12 +96,15 @@ int main(int argc, char* argv[]) {
     // Construct the M113 vehicle
     // --------------------------
 
+    bool fix_chassis = false;
+    bool create_track = true;
+
     ChContactMethod contact_method = ChContactMethod::SMC;
     CollisionType chassis_collision_type = CollisionType::NONE;
     TrackShoeType shoe_type = TrackShoeType::SINGLE_PIN;
     BrakeType brake_type = BrakeType::SIMPLE;
-    DrivelineTypeTV driveline_type = DrivelineTypeTV::SIMPLE;
-    PowertrainModelType powertrain_type = PowertrainModelType::SIMPLE_CVT;
+    DrivelineTypeTV driveline_type = DrivelineTypeTV::BDS;
+    PowertrainModelType powertrain_type = PowertrainModelType::SHAFTS;
 
     //// TODO
     //// When using SMC, a double-pin shoe type requires MKL or MUMPS.
@@ -118,8 +121,8 @@ int main(int argc, char* argv[]) {
     m113.SetPowertrainType(powertrain_type);
     m113.SetChassisCollisionType(chassis_collision_type);
 
-    ////m113.SetChassisFixed(true);
-    ////m113.CreateTrack(false);
+    m113.SetChassisFixed(fix_chassis);
+    m113.CreateTrack(create_track);
 
     // Disable gravity in this simulation
     ////m113.GetSystem()->Set_G_acc(ChVector<>(0, 0, 0));
@@ -166,21 +169,53 @@ int main(int argc, char* argv[]) {
     // Monitor only contacts involving the chassis.
     ////m113.GetVehicle().MonitorContacts(TrackedCollisionFlag::CHASSIS);
 
+    // Monitor contacts involving one of the sprockets.
+    ////m113.GetVehicle().MonitorContacts(TrackedCollisionFlag::SPROCKET_LEFT | TrackedCollisionFlag::SPROCKET_RIGHT);
+
+    // Monitor only contacts involving the left idler.
+    ////m113.GetVehicle().MonitorContacts(TrackedCollisionFlag::IDLER_LEFT);
+    
     // Collect contact information.
     // If enabled, number of contacts and local contact point locations are collected for all
     // monitored parts.  Data can be written to a file by invoking ChTrackedVehicle::WriteContacts().
     ////m113.GetVehicle().SetContactCollection(true);
 
-    // Demonstration of using a callback for specifying contact between road wheels and track shoes.
+    // Demonstration of user callback for specifying contact between track shoe and
+    // idlers and/or road wheels and/or ground.
     // This particular implementation uses a simple SMC-like contact force (normal only).
     class MyCustomContact : public ChTrackCustomContact {
-        virtual void ComputeForce(const collision::ChCollisionInfo& cinfo,
-                                  std::shared_ptr<ChBody> wheelBody,
-                                  std::shared_ptr<ChBody> shoeBody,
-                                  bool wheel_is_idler,
-                                  ChVector<>& forceShoe) override {
-            ////std::cout << (wheel_is_idler ? "IDLER " : "WHEEL ") << cinfo.modelA << " " << cinfo.modelB << " "
-            ////          << wheelBody->GetName() << " " << shoeBody->GetName() << std::endl;
+      public:
+        virtual bool OverridesIdlerContact() const override { return false; }
+        virtual bool OverridesWheelContact() const override { return true; }
+        virtual bool OverridesGroundContact() const override { return false; }
+
+        virtual void ComputeIdlerContactForce(const collision::ChCollisionInfo& cinfo,
+                                              std::shared_ptr<ChBody> wheelBody,
+                                              std::shared_ptr<ChBody> shoeBody,
+                                              ChVector<>& forceShoe) override {
+            ComputeContactForce(cinfo, wheelBody, shoeBody, forceShoe);
+        };
+
+        virtual void ComputeWheelContactForce(const collision::ChCollisionInfo& cinfo,
+                                              std::shared_ptr<ChBody> wheelBody,
+                                              std::shared_ptr<ChBody> shoeBody,
+                                              ChVector<>& forceShoe) override {
+            ComputeContactForce(cinfo, wheelBody, shoeBody, forceShoe);
+        };
+
+        virtual void ComputeGroundContactForce(const collision::ChCollisionInfo& cinfo,
+                                               std::shared_ptr<ChBody> groundBody,
+                                               std::shared_ptr<ChBody> shoeBody,
+                                               ChVector<>& forceShoe) override {
+            ComputeContactForce(cinfo, groundBody, shoeBody, forceShoe);
+        };
+
+      private:
+        void ComputeContactForce(const collision::ChCollisionInfo& cinfo,
+                                 std::shared_ptr<ChBody> other,
+                                 std::shared_ptr<ChBody> shoe,
+                                 ChVector<>& forceShoe) {
+            ////std::cout << other->GetName() << " " << shoe->GetName() << std::endl;
 
             if (cinfo.distance >= 0) {
                 forceShoe = VNULL;
@@ -190,8 +225,8 @@ int main(int argc, char* argv[]) {
             // Create a fictitious SMC composite contact material
             // (do not use the shape materials, so that this can work with both an SMC and NSC system)
             ChMaterialCompositeSMC mat;
-            mat.E_eff = 2e6f;
-            mat.cr_eff = 0.1f;
+            mat.E_eff = 2e7f;
+            mat.cr_eff = 0.2f;
 
             auto delta = -cinfo.distance;
             auto normal_dir = cinfo.vN;
@@ -221,7 +256,7 @@ int main(int argc, char* argv[]) {
 
     // Enable custom contact force calculation for road wheel - track shoe collisions.
     // If enabled, the underlying Chrono contact processing does not compute any forces.
-    ////vehicle.EnableCustomContact(chrono_types::make_shared<MyCustomContact>(), false, true);
+    ////m113.GetVehicle().EnableCustomContact(chrono_types::make_shared<MyCustomContact>());
 
     // ------------------
     // Create the terrain
@@ -230,7 +265,7 @@ int main(int argc, char* argv[]) {
     RigidTerrain terrain(m113.GetSystem());
     MaterialInfo minfo;
     minfo.mu = 0.9f;
-    minfo.cr = 0.01f;
+    minfo.cr = 0.2f;
     minfo.Y = 2e7f;
     auto patch_mat = minfo.CreateMaterial(contact_method);
     auto patch = terrain.AddPatch(patch_mat, ChVector<>(0, 0, 0), ChVector<>(0, 0, 1), terrainLength, terrainWidth);
@@ -242,8 +277,8 @@ int main(int argc, char* argv[]) {
     // Add fixed and/or falling objects
     // --------------------------------
 
-    ////AddFixedObstacles(vehicle.GetSystem());
-    ////AddFallingObjects(vehicle.GetSystem());
+    ////AddFixedObstacles(m113.GetSystem());
+    ////AddFallingObjects(m113.GetSystem());
 
     // ---------------------------------------
     // Create the vehicle Irrlicht application
@@ -253,7 +288,7 @@ int main(int argc, char* argv[]) {
     app.SetSkyBox();
     app.AddTypicalLights(irr::core::vector3df(30.f, -30.f, 100.f), irr::core::vector3df(30.f, 50.f, 100.f), 250, 130);
     app.SetChaseCamera(trackPoint, 6.0, 0.5);
-    ////app.SetChaseCameraPosition(vehicle.GetVehiclePos() + ChVector<>(0, 2, 0));
+    ////app.SetChaseCameraPosition(m113.GetVehicle().GetVehiclePos() + ChVector<>(0, 2, 0));
     app.SetChaseCameraMultipliers(1e-4, 10);
     app.SetTimestep(step_size);
     app.AssetBindAll();
@@ -381,10 +416,14 @@ int main(int argc, char* argv[]) {
             {
                 const ChVector<>& i_pos_abs = track_L->GetIdler()->GetWheelBody()->GetPos();
                 const ChVector<>& s_pos_abs = track_L->GetSprocket()->GetGearBody()->GetPos();
+                const ChVector<>& s_omg_rel = track_L->GetSprocket()->GetGearBody()->GetWvel_loc();
+                auto s_appl_trq = track_L->GetSprocket()->GetAxle()->GetAppliedTorque();
                 ChVector<> i_pos_rel = c_ref.TransformPointParentToLocal(i_pos_abs);
                 ChVector<> s_pos_rel = c_ref.TransformPointParentToLocal(s_pos_abs);
                 cout << "      L idler:    " << i_pos_rel.x() << "  " << i_pos_rel.y() << "  " << i_pos_rel.z() << endl;
                 cout << "      L sprocket: " << s_pos_rel.x() << "  " << s_pos_rel.y() << "  " << s_pos_rel.z() << endl;
+                cout << "      L sprocket omg: " << s_omg_rel << endl;
+                cout << "      L sprocket trq: " << s_appl_trq << endl;
             }
             {
                 const ChVector<>& i_pos_abs = track_R->GetIdler()->GetWheelBody()->GetPos();

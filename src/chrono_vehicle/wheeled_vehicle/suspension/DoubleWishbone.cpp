@@ -32,7 +32,7 @@ namespace vehicle {
 // -----------------------------------------------------------------------------
 DoubleWishbone::DoubleWishbone(const std::string& filename)
     : ChDoubleWishbone(""), m_springForceCB(NULL), m_shockForceCB(NULL) {
-    Document d = ReadFileJSON(filename);
+    Document d; ReadFileJSON(filename, d);
     if (d.IsNull())
         return;
 

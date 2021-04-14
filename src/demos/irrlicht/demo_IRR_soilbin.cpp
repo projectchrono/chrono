@@ -215,7 +215,6 @@ class ParticleGenerator {
 
     // output in the same order as in class list
     std::vector<double> getStatistics() {
-        int nStats = 9;
         std::vector<double> out;
         out.resize(9);
         out[0] = pRadMean;
@@ -675,7 +674,6 @@ class MyEventReceiver : public IEventReceiver {
         // check if user moved the sliders with mouse..
         if (event.EventType == EET_GUI_EVENT) {
             s32 id = event.GUIEvent.Caller->getID();
-            gui::IGUIEnvironment* env = mapp->GetIGUIEnvironment();
 
             switch (event.GUIEvent.EventType) {
                 case EGET_SCROLL_BAR_CHANGED:
@@ -888,10 +886,12 @@ class MyEventReceiver : public IEventReceiver {
     gui::IGUIStaticText* text_createParticles;
     gui::IGUICheckBox* checkbox_wheelCollision;  // id = 2112
     gui::IGUIStaticText* text_wheelCollision;
+    /*
     gui::IGUICheckBox* checkbox_particlesVisible;  // id = 2114
     gui::IGUIStaticText* text_particlesVisible;
     gui::IGUICheckBox* checkbox_wheelVisible;  // id = 2115
     gui::IGUIStaticText* text_wheelVisible;
+    */
 
     // scroll bars, ids are: 1xxx
     IGUIScrollBar* scrollbar_pSize;  // particle size, id = 1101

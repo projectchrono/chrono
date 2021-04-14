@@ -709,8 +709,8 @@ void ChTMeasyTire::WritePlots(const std::string& plName, const std::string& plTi
     std::string titleName = std::string("TMEasy Tire ") + this->GetName() + ": ";
     titleName += plTitle;
     std::ofstream plot(plName);
-    double plen1 = 2.0 * sqrt(m_unloaded_radius * m_TMeasyCoeff.pn / m_TMeasyCoeff.cz);
-    double plen2 = 2.0 * sqrt(m_unloaded_radius * 2.0 * m_TMeasyCoeff.pn / m_TMeasyCoeff.cz);
+    ////double plen1 = 2.0 * sqrt(m_unloaded_radius * m_TMeasyCoeff.pn / m_TMeasyCoeff.cz);
+    ////double plen2 = 2.0 * sqrt(m_unloaded_radius * 2.0 * m_TMeasyCoeff.pn / m_TMeasyCoeff.cz);
     int ndat = 101;
     double step = 0.01;
     plot << "a = " << m_a1 << std::endl;

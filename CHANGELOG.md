@@ -5,6 +5,9 @@ Change Log
 ==========
 
 - [Unreleased (development version)](#unreleased-development-branch)
+  - [SCM deformable terrain improvements](#changed-scm-deformable-terrain-improvements)
+  - [Miscellaneous fixes to Chrono::Vehicle API](#changed-miscellaneous-fixes-to-chronovehicle-api)
+  - [New tracked vehicle model](#added-new-tracked-vehicle-model)
   - [Support for Z up camera in Chrono::Irrlicht](#changed-support-for-z-up-camera-in-chronoirrlicht)
   - [Reading and writing collision meshes in Chrono::Gpu](#changed-reading-and-writing-collision-meshes-in-chronogpu)
 - [Release 6.0.0](#release-600---2021-02-10) 
@@ -36,6 +39,54 @@ Change Log
 - [Release 4.0.0](#release-400---2019-02-22)
 
 ## Unreleased (development branch)
+
+### [Changed] SCM deformable terrain improvements
+
+The reference frame for calculation of normal and tangential forces has been changed to be aligned with the local normal (as opposed to always being aligned with the SCM frame).  This fixes the generated terrain forces for SCM patches defined from height maps.  The Bekker forces are aligned with the local terrain normal, while the tangential shear forces (Janosi-Hanamoto) lie in the local tangent plane.  Note that the normal at each grid node is based on the undeformed terrain.
+
+In addition, the SCM implementation was changed to extend the logical grid beyond the (horizontal) limits specified by the user during initialization; this continuation is done by extending to infinity the logical patch using the terrain height and normal from the closest grid node within the specified domain.
+
+Finally, support was added for inclusion of tire-soil parameters (in addition to soil-soil parameters), if these are available. To provide this information, attach a structure of type `SCMContactableData` as user-data to the desired contactable object (e.g. a tire or track shoe body):
+```cpp
+    auto tire_data = chrono_types::make_shared<chrono::vehicle::SCMContactableData>(Aratio, Mcoh, Mfric, Jshear);
+    tire_body->SetUserData(tire_data);
+```
+The necessary data includes the SCM tangential force parameters, Mohr cohesion (Pa), friction angle (degrees), and the Janosi shear parameter (m), as well as a ratio that represents the weight of the tire-soil parameters in calculating the tangential force (using linear interpolation). A ratio value of 0 indicates using only the soil-soil parameters, while a value of 1 indicates using only the tire-soil parameters.  Typically, this ratio is set as the area ratio of tread surface over tire surface.  
+
+### [Changed] Miscellaneous fixes to Chrono::Vehicle API
+
+- Changed enum class names for suspension, driveline, and steering types to properly differentiate between wheeled and tracked vehicles.
+   The new enum classes, defined in `ChSubsysDefs.h` are SuspensionTypeWV, DrivelineTypeWV, and SteeringTypeWV for wheeled vehicles and DrivelineTypeTV for tracked vehicles.
+
+- Eliminated the setting for differential ratio in the various driveline templates.
+   To model a differential using the Chrono class `ChShaftsPlanetary`, this value must always be -1 (and represents the speed ratio of the inverted planetary) and is therefore hard-coded.
+   This affects driveline models that use the Chrono 1-D shaft modeling elements and the schema of associated JSON specifation files.
+
+- Modified all shafts-based driveline templates to expect a positive value for the conical gear ratios.
+
+- Added option (`ChPowertrain::SetTransmissionMode`) for setting the transmission mode of a powertrain to either `AUTOMATIC` or `MANUAL` (the latter modeling a manumatic-type transmission).  
+   If in `MANUAL` mode, gear shifting can be controlled with `ChPowertrain::ShiftUp`  and `ChPowertrain::ShiftDown`.
+
+- Modified the "Simple CVT" powertrain template.
+   In the new template specification, a parameter for max engine speed was added and the parameter for critical engine speed was removed.
+
+- Added utility function to programatically generate a sprocket visualization mesh (`ChSprocket::CreateVisualizationMesh`).
+   All Chrono::Vehicle sprocket profiles are defined as a succession of line segments and circle arcs. The default visualization is of type `VisualizationType::PRIMITIVES` and is a 3-D line for the profile.  The utility function `ChSprocket::CreateVisualizationMesh` creates a trimesh that can be used to visualize the sprocket when in `VisualizationType::MESH` mode.
+
+- Changed sign of sprocket angular speed reported by GetSprocketSpeed so that a positive value corresponds to forward vehicle movement.
+   This change was made simply for convenience and consistency.
+
+- Completed the braked differential steering driveline for tracked vehicles (`ChTrackDrivelineBDS`) to properly implement steering.
+    In this driveline model, steering is achieved through braking; this is implemented through a driveline-specific utility function that combines the steering and braking controls.
+
+- Added function `RandomSurfaceTerrain::EnableCollisionMesh` to optionally generate a terrain collision mesh.
+    This is necessary for tracked vehicles or wheeled vehicles with rigid tires (which rely on the underlying Chrono contact system).
+
+### [Added] New tracked vehicle model
+
+The Marder ("marten" in German) is a tracked infantry fighting vehicle used by the German Bundeswehr since 1969. It has a running gear with 12 road wheels, sprocket, idler and 3 support rollers. The first two and the last two road wheels on every side are damped by telescopic dampers. It is driven by a 444 kW Diesel engine, torque converter with lockup and 4 gear automatic gearbox. It carries up to nine soldiers (commander, gunner, driver and six infantrymen).
+
+The Chrono::Vehicle model is based only on public data available online and information found in literature. Although the original vehicle emplys double-pin tracks, the current Chrono model only implements a single-pin track.
 
 ### [Changed] Support for Z up camera in Chrono::Irrlicht
 

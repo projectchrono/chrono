@@ -18,8 +18,8 @@ cmake -G "Visual Studio 16 2019" ^
  -DPYTHON_EXECUTABLE:FILEPATH="%PYTHON%" ^
  -DPYTHON_INCLUDE_DIR:PATH="%PREFIX%"/include ^
  -DPYTHON_LIBRARY:FILEPATH="%PREFIX%"/libs/python%MY_PY_VER%.lib ^
- -DSWIG_DIR="%CONDA_INSTALL_LOCN%"\pkgs\swig-4.0.2-0\Library\bin\Lib\ ^
- -DSWIG_EXECUTABLE="%CONDA_INSTALL_LOCN%"\pkgs\swig-4.0.2-0\Library\bin\swig.exe ^
+ -DSWIG_DIR="%CONDA_INSTALL_LOCN%"/Library/bin/Lib ^
+ -DSWIG_EXECUTABLE="%CONDA_INSTALL_LOCN%"/Library/bin/swig.exe ^
  -DCMAKE_BUILD_TYPE="%CONFIGURATION%" ^
  -DENABLE_MODULE_IRRLICHT=ON ^
  -DENABLE_MODULE_POSTPROCESS=ON ^
@@ -31,7 +31,7 @@ cmake -G "Visual Studio 16 2019" ^
  -DBUILD_BENCHMARKING=OFF ^
  -DIRRLICHT_ROOT="C:\Users\builder\Documents\irrlicht-1.8.4" ^
  -DIRRLICHT_LIBRARY="C:\Users\builder\Documents\irrlicht-1.8.4\lib\Win64-visualStudio\Irrlicht.lib" ^
- -DEIGEN3_INCLUDE_DIR="C:\Users\builder\Documents\eigen-3.3.7" ^
+ -DEIGEN3_INCLUDE_DIR="C:\Users\builder\Documents\eigen-3.3.9" ^
  -DENABLE_MODULE_CASCADE=ON ^
  -DCASCADE_INCLUDE_DIR="%CONDA_INSTALL_LOCN%"\Library\include\opencascade ^
  -DCASCADE_LIBDIR="%CONDA_INSTALL_LOCN%"\Library\lib ^

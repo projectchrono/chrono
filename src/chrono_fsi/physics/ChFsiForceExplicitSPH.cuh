@@ -28,15 +28,12 @@ namespace fsi {
 class CH_FSI_API ChFsiForceExplicitSPH : public ChFsiForce {
   public:
     ChFsiForceExplicitSPH(
-        std::shared_ptr<ChBce> otherBceWorker,  ///< Pointer to the ChBce object that handles BCE markers
-        std::shared_ptr<SphMarkerDataD>
-            otherSortedSphMarkersD,  ///< Information of markers in the sorted array on device
-        std::shared_ptr<ProximityDataD>
-            otherMarkersProximityD,  ///< Pointer to the object that holds the proximity of the markers on device
-        std::shared_ptr<FsiGeneralData> otherFsiGeneralData,  ///< Pointer to the sph general data
-        std::shared_ptr<SimParams> otherParamsH,              ///< Pointer to the simulation parameters on host
-        std::shared_ptr<NumberOfObjects>
-            otherNumObjects  ///< Pointer to number of objects, fluid and boundary markers, etc.
+        std::shared_ptr<ChBce> otherBceWorker,                    ///< Pointer to the ChBce object that handles BCE markers
+        std::shared_ptr<SphMarkerDataD> otherSortedSphMarkersD,   ///< Information of markers in the sorted array on device
+        std::shared_ptr<ProximityDataD> otherMarkersProximityD,   ///< Pointer to the object that holds the proximity of the markers on device
+        std::shared_ptr<FsiGeneralData> otherFsiGeneralData,      ///< Pointer to the sph general data
+        std::shared_ptr<SimParams> otherParamsH,                  ///< Pointer to the simulation parameters on host
+        std::shared_ptr<NumberOfObjects> otherNumObjects          ///< Pointer to number of objects, fluid and boundary markers, etc.
     );
 
     ~ChFsiForceExplicitSPH();

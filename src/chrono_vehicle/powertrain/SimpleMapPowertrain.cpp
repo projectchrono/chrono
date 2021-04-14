@@ -35,7 +35,7 @@ const double rpm2rads = CH_C_PI / 30;
 // Constructor for a powertrain using data from the specified JSON file.
 // -----------------------------------------------------------------------------
 SimpleMapPowertrain::SimpleMapPowertrain(const std::string& filename) : ChSimpleMapPowertrain("") {
-    Document d = ReadFileJSON(filename);
+    Document d; ReadFileJSON(filename, d);
     if (d.IsNull())
         return;
 
@@ -78,10 +78,9 @@ void SimpleMapPowertrain::Create(const rapidjson::Document& d) {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void SimpleMapPowertrain::SetGearRatios(std::vector<double>& gear_ratios, double& reverse_gear_ratio) {
-    reverse_gear_ratio = m_rev_gear;
-    for (unsigned int i = 0; i < m_fwd_gear.size(); i++)
-        gear_ratios.push_back(m_fwd_gear[i]);
+void SimpleMapPowertrain::SetGearRatios(std::vector<double>& fwd, double& rev) {
+    rev = m_rev_gear;
+    fwd = m_fwd_gear;
 }
 
 // -----------------------------------------------------------------------------

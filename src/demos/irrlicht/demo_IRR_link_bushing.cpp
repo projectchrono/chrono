@@ -43,11 +43,9 @@ int main(int argc, char* argv[]) {
     auto ground = chrono_types::make_shared<ChBodyEasyBox>(0.6, 0.6, 0.15, 10000, true, false);
     system.Add(ground);
     ground->SetBodyFixed(true);
-    
-
 
     // Create a moving body that will 'bounce' thanks to a flexible bushing.
-    // Give it an initial angular velocity and attach also a small sphere 
+    // Give it an initial angular velocity and attach also a small sphere
     // to show the anchoring of the bushing.
     auto body = chrono_types::make_shared<ChBodyEasyBox>(0.9, 0.9, 0.15, 1000, true, false);
     system.Add(body);
@@ -57,17 +55,16 @@ int main(int argc, char* argv[]) {
     body->SetPos_dt(ChVector<>(1.0, -0.4, 0.2));
 
     auto symbol_bushing = chrono_types::make_shared<ChSphereShape>();
-    symbol_bushing->GetSphereGeometry().center = ChVector<>(-1,0,0);
-    symbol_bushing->GetSphereGeometry().rad =0.1;
+    symbol_bushing->GetSphereGeometry().center = ChVector<>(-1, 0, 0);
+    symbol_bushing->GetSphereGeometry().rad = 0.1;
     body->AddAsset(symbol_bushing);
 
     auto body_col = chrono_types::make_shared<ChColorAsset>();
     body_col->SetColor(ChColor(0.6f, 0, 0));
     body->AddAsset(body_col);
 
-
     // Now create the bushing. It will connect "ground" and "body".
-    // A bushing is like an invisible connection between two bodies; 
+    // A bushing is like an invisible connection between two bodies;
     // but differently from constraints, it has some compliance.
     // In the following you will see different examples: just uncomment
     // the my_loadcontainer->Add(..); line to use the associated bushing.
@@ -77,11 +74,10 @@ int main(int argc, char* argv[]) {
     auto my_loadcontainer = chrono_types::make_shared<ChLoadContainer>();
     system.Add(my_loadcontainer);
 
-
     // EXAMPLE 1: use  ChLoadBodyBodyBushingGeneric
     //
     // This type of bushing requires two 6x6 matrices for generic stiffness and
-    // damping, for both translation and rotation. 
+    // damping, for both translation and rotation.
     // Optionally, it also supports initial pre-displacement and pre-stress
 
     ChMatrixNM<double, 6, 6> K_matrix;
@@ -105,11 +101,10 @@ int main(int argc, char* argv[]) {
     my_loadbushingg->NeutralDisplacement().SetPos(ChVector<>(0.02, 0, 0));
     my_loadcontainer->Add(my_loadbushingg);
 
-
     // EXAMPLE 2: use  ChLoadBodyBodyBushingMate
     //
-    // This type of bushing is like a simplified version of 
-    // ChLoadBodyBodyBushingGeneric, it adds compliance to both translation 
+    // This type of bushing is like a simplified version of
+    // ChLoadBodyBodyBushingGeneric, it adds compliance to both translation
     // and rotation, using three x y z and three Rx Ry Rz stiffness values.
 
     auto my_loadbushing = chrono_types::make_shared<ChLoadBodyBodyBushingMate>(
@@ -125,7 +120,7 @@ int main(int argc, char* argv[]) {
 
     // EXAMPLE 3: use  ChLoadBodyBodyBushingPlastic
     //
-    // A special type of ChLoadBodyBodyBushingSpherical 
+    // A special type of ChLoadBodyBodyBushingSpherical
     // that also provides plastic deformation with a plastic yeld.
 
     auto my_loadbushingp = chrono_types::make_shared<ChLoadBodyBodyBushingPlastic>(
@@ -141,25 +136,28 @@ int main(int argc, char* argv[]) {
     // EXAMPLE 4: use  ChLinkBushing
     //
     // Note, the ChLinkBushing is inherited from the ChLink classes. Differently from the
-    // previous example, it dies NOT support stiffness matrices, so it should NOT be used
-    // for very stiff problems. 
+    // previous example, it does NOT support stiffness matrices, so it should NOT be used
+    // for very stiff problems.
     // This behaves in various ways according to the types in its enums:
     // ChLinkBushing::Spherical: Rotational dofs are free, translational defined by stiffness/damping matrices
     // ChLinkBushing::Revolute: One rotational dof is free, rest of dofs defined by stiffness/damping matrices
     // ChLinkBushing::Mount: All six dofs defined by stiffness/damping matrices
 
+    /*
     auto my_linkbushing = chrono_types::make_shared<ChLinkBushing>(ChLinkBushing::Mount);
-    my_linkbushing->Initialize( body,   // body A 
-                                ground, // body B 
-                                ChCoordsys<>(ChVector<>(0.5, 0.0, 0.0), ChQuaternion<>(1, 0, 0, 0)), //initial frame of bushing in abs space    
-                                K_matrix,  // the 6x6 (translation+rotation) K matrix in local frame
-                                R_matrix); // the 6x6 (translation+rotation) R matrix in local frame
-    //system.Add(my_linkbushing);
-
+    my_linkbushing->Initialize(
+        body,                                                                 // body A
+        ground,                                                               // body B
+        ChCoordsys<>(ChVector<>(0.5, 0.0, 0.0), ChQuaternion<>(1, 0, 0, 0)),  // initial frame of bushing in abs space
+        K_matrix,   // the 6x6 (translation+rotation) K matrix in local frame
+        R_matrix);  // the 6x6 (translation+rotation) R matrix in local frame
+    system.Add(my_linkbushing);
+    */
 
     // Finally, add a force that tends to bend the body:
 
-    auto my_loadforce = chrono_types::make_shared<ChLoadBodyForce>(body, ChVector<>(0, 0, -8000), false, ChVector<>(1, 0, 0));
+    auto my_loadforce =
+        chrono_types::make_shared<ChLoadBodyForce>(body, ChVector<>(0, 0, -8000), false, ChVector<>(1, 0, 0));
     my_loadcontainer->Add(my_loadforce);
 
     // Create the Irrlicht application
@@ -167,7 +165,7 @@ int main(int argc, char* argv[]) {
     application.AddTypicalLogo();
     application.AddTypicalSky();
     application.AddTypicalLights();
-    application.AddTypicalCamera(irr::core::vector3df(3, 3, 0), irr::core::vector3df(0,0,0));
+    application.AddTypicalCamera(irr::core::vector3df(3, 3, 0), irr::core::vector3df(0, 0, 0));
 
     application.AssetBindAll();
     application.AssetUpdateAll();

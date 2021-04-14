@@ -76,23 +76,27 @@ void SynTrackedVehicleStateMessage::ConvertFromFlatBuffers(const SynFlatBuffers:
 }
 
 /// Generate FlatBuffers message from this message's state
-FlatBufferMessage SynTrackedVehicleStateMessage::ConvertToFlatBuffers(flatbuffers::FlatBufferBuilder& builder) {
+FlatBufferMessage SynTrackedVehicleStateMessage::ConvertToFlatBuffers(flatbuffers::FlatBufferBuilder& builder) const {
     auto chassis = this->chassis.ToFlatBuffers(builder);
 
     std::vector<flatbuffers::Offset<SynFlatBuffers::Pose>> track_shoes;
-    for (auto& track_shoe : this->track_shoes)
+    track_shoes.reserve(this->track_shoes.size());
+    for (const auto& track_shoe : this->track_shoes)
         track_shoes.push_back(track_shoe.ToFlatBuffers(builder));
 
     std::vector<flatbuffers::Offset<SynFlatBuffers::Pose>> sprockets;
-    for (auto& sprocket : this->sprockets)
+    sprockets.reserve(this->sprockets.size());
+    for (const auto& sprocket : this->sprockets)
         sprockets.push_back(sprocket.ToFlatBuffers(builder));
 
     std::vector<flatbuffers::Offset<SynFlatBuffers::Pose>> idlers;
-    for (auto& idler : this->idlers)
+    idlers.reserve(this->idlers.size());
+    for (const auto& idler : this->idlers)
         idlers.push_back(idler.ToFlatBuffers(builder));
 
     std::vector<flatbuffers::Offset<SynFlatBuffers::Pose>> road_wheels;
-    for (auto& road_wheel : this->road_wheels)
+    road_wheels.reserve(this->road_wheels.size());
+    for (const auto& road_wheel : this->road_wheels)
         road_wheels.push_back(road_wheel.ToFlatBuffers(builder));
 
     auto vehicle_type = Agent::Type_TrackedVehicle_State;
@@ -152,7 +156,8 @@ void SynTrackedVehicleDescriptionMessage::ConvertFromFlatBuffers(const SynFlatBu
 }
 
 /// Generate FlatBuffers message from this agent's description
-FlatBufferMessage SynTrackedVehicleDescriptionMessage::ConvertToFlatBuffers(flatbuffers::FlatBufferBuilder& builder) {
+FlatBufferMessage SynTrackedVehicleDescriptionMessage::ConvertToFlatBuffers(
+    flatbuffers::FlatBufferBuilder& builder) const {
     auto flatbuffer_json = builder.CreateString(this->json);
     auto flatbuffer_type = Agent::Type_TrackedVehicle_Description;
 
@@ -186,7 +191,8 @@ FlatBufferMessage SynTrackedVehicleDescriptionMessage::ConvertToFlatBuffers(flat
 
 void SynTrackedVehicleDescriptionMessage::SetZombieVisualizationFilesFromJSON(const std::string& filename) {
     // Open and parse the input file
-    auto d = vehicle::ReadFileJSON(filename);
+    rapidjson::Document d;
+    vehicle::ReadFileJSON(filename, d);
     if (d.IsNull())
         throw ChException("Vehicle file not read properly in SetZombieVisualizationFilesFromJSON.");
 

@@ -32,7 +32,7 @@ namespace vehicle {
 // -----------------------------------------------------------------------------
 ThreeLinkIRS::ThreeLinkIRS(const std::string& filename)
     : ChThreeLinkIRS(""), m_springForceCB(nullptr), m_shockForceCB(nullptr) {
-    Document d = ReadFileJSON(filename);
+    Document d; ReadFileJSON(filename, d);
     if (d.IsNull())
         return;
 

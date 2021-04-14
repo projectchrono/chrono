@@ -333,6 +333,8 @@ class ChApi ChLinkMateSpherical : public ChLinkMateGeneric {
     /// "Virtual" copy constructor (covariant return type).
     virtual ChLinkMateSpherical* Clone() const override { return new ChLinkMateSpherical(*this); }
 
+    using ChLinkMateGeneric::Initialize;
+
     /// Specialized initialization for coincident mate, given the two bodies to be connected, and two points
     /// (each expressed in body or abs. coordinates). 
     void Initialize(std::shared_ptr<ChBodyFrame> mbody1,  ///< first body to link
@@ -365,6 +367,8 @@ class ChApi ChLinkMateXdistance : public ChLinkMateGeneric {
     void SetDistance(double msep) { distance = msep; }
     /// Get the requested distance on X of frame 2
     double GetDistance() const { return distance; }
+
+    using ChLinkMateGeneric::Initialize;
 
     /// Specialized initialization for X distance mate, given the two bodies to be connected, and two points
     /// (each expressed in body or abs. coordinates).
@@ -488,6 +492,8 @@ class ChApi ChLinkMateFix : public ChLinkMateGeneric {
 
     /// "Virtual" copy constructor (covariant return type).
     virtual ChLinkMateFix* Clone() const override { return new ChLinkMateFix(*this); }
+
+    using ChLinkMateGeneric::Initialize;
 
     /// Specialized initialization for "fix" mate, given the two bodies to be connected, the positions of the two
     /// auxiliary frames where the two bodies are connected are both automatically initialized as the current absolute

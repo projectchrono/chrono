@@ -354,7 +354,7 @@ class MyEventReceiver : public IEventReceiver {
                     // a menu item was clicked
 
                     gui::IGUIContextMenu* menu = (gui::IGUIContextMenu*)event.GUIEvent.Caller;
-                    s32 id = menu->getItemCommandId(menu->getSelectedItem());
+                    id = menu->getItemCommandId(menu->getSelectedItem());
 
                     switch (id) {
                         case 90:

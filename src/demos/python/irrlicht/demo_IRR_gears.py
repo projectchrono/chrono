@@ -203,14 +203,14 @@ while (application.GetDevice().run()):
     application.DrawAll();
 
     # Draw some segments for a simplified representation of pulley
-    chronoirr.ChIrrTools.drawSegment(application.GetVideoDriver(),
-                                     link_pulleyDE.Get_belt_up1(),
-                                     link_pulleyDE.Get_belt_up2(),
-                                     chronoirr.SColor(255, 0, 255, 0), True);
-    chronoirr.ChIrrTools.drawSegment(application.GetVideoDriver(),
-                                     link_pulleyDE.Get_belt_low1(),
-                                     link_pulleyDE.Get_belt_low2(),
-                                     chronoirr.SColor(255, 0, 255, 0), True);
+    chronoirr.drawSegment(application.GetVideoDriver(),
+                          link_pulleyDE.Get_belt_up1(),
+                          link_pulleyDE.Get_belt_up2(),
+                          chronoirr.SColor(255, 0, 255, 0), True);
+    chronoirr.drawSegment(application.GetVideoDriver(),
+                          link_pulleyDE.Get_belt_low1(),
+                          link_pulleyDE.Get_belt_low2(),
+                          chronoirr.SColor(255, 0, 255, 0), True);
 
     # Advance simulation for one step
     application.DoStep();

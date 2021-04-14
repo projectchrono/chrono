@@ -46,23 +46,25 @@ void SynMAPMessage::ConvertFromFlatBuffers(const SynFlatBuffers::Message* messag
     }
 }
 
-FlatBufferMessage SynMAPMessage::ConvertToFlatBuffers(flatbuffers::FlatBufferBuilder& builder) {
+FlatBufferMessage SynMAPMessage::ConvertToFlatBuffers(flatbuffers::FlatBufferBuilder& builder) const {
     std::vector<flatbuffers::Offset<SynFlatBuffers::MAP::intersection>> flatbuffer_intersections;
-    for (auto intersection : intersections) {
+    flatbuffer_intersections.reserve(intersections.size());
+    for (const auto& intersection : intersections) {
         std::vector<flatbuffers::Offset<SynFlatBuffers::Approach::State>> flatbuffer_approaches;
-        for (auto approach : intersection.approaches) {
+        flatbuffer_approaches.reserve(intersection.approaches.size());
+        for (const auto& approach : intersection.approaches) {
             std::vector<flatbuffers::Offset<SynFlatBuffers::Approach::Lane>> flatbuffer_lanes;
-            for (auto lane : approach->lanes) {
+            flatbuffer_lanes.reserve(approach->lanes.size());
+            for (const auto& lane : approach->lanes) {
                 std::vector<flatbuffers::Offset<SynFlatBuffers::Vector>> flatbuffer_control_points;
-
-                for (auto point : lane.controlPoints) {
+                flatbuffer_control_points.reserve(lane.controlPoints.size());
+                for (const auto& point : lane.controlPoints) {
                     flatbuffer_control_points.push_back(
                         SynFlatBuffers::CreateVector(builder, point.x(), point.y(), point.z()));
                 }
                 flatbuffer_lanes.push_back(
                     SynFlatBuffers::Approach::CreateLaneDirect(builder, lane.width, &flatbuffer_control_points));
             }
-
             flatbuffer_approaches.push_back(
                 SynFlatBuffers::Approach::CreateStateDirect(builder, approach->time, &flatbuffer_lanes));
         }

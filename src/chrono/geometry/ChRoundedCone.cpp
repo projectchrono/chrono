@@ -41,7 +41,7 @@ void ChRoundedCone::ArchiveOUT(ChArchiveOut& marchive) {
 
 void ChRoundedCone::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChRoundedCone>();
+    /*int version =*/ marchive.VersionRead<ChRoundedCone>();
     // deserialize parent class
     ChGeometry::ArchiveIN(marchive);
     // stream in all member data:

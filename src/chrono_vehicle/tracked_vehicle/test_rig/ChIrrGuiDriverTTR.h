@@ -47,8 +47,6 @@ class CH_VEHICLE_API ChIrrGuiDriverTTR : public ChDriverTTR, public irr::IEventR
     virtual bool OnEvent(const irr::SEvent& event) override;
     virtual std::string GetInfoMessage() const override { return m_msg; }
 
-    irrlicht::ChIrrApp& m_app;
-
     double m_throttleDelta;
     double m_displDelta;
     int m_current_post;

@@ -66,7 +66,7 @@ void ChFunction_Matlab::ArchiveOUT(ChArchiveOut& marchive) {
 
 void ChFunction_Matlab::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChFunction_Matlab>();
+    /*int version =*/ marchive.VersionRead<ChFunction_Matlab>();
     // deserialize parent class
     ChFunction::ArchiveIN(marchive);
     // stream in all member data:

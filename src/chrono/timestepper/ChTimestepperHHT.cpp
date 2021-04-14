@@ -116,7 +116,7 @@ void ChTimestepperHHT::Advance(const double dt) {
         Prepare(mintegrable, scaling_factor);
 
         // Newton-Raphson for state at T+h
-        bool converged;
+        bool converged = false;
         int it;
 
         for (it = 0; it < maxiters; it++) {
@@ -445,7 +445,7 @@ void ChTimestepperHHT::ArchiveOUT(ChArchiveOut& archive) {
 
 void ChTimestepperHHT::ArchiveIN(ChArchiveIn& archive) {
     // version number
-    int version = archive.VersionRead<ChTimestepperHHT>();
+    /*int version =*/ archive.VersionRead<ChTimestepperHHT>();
     // deserialize parent class:
     ChTimestepperIIorder::ArchiveIN(archive);
     ChImplicitIterativeTimestepper::ArchiveIN(archive);

@@ -317,7 +317,7 @@ void ChLine::ArchiveOUT(ChArchiveOut& marchive) {
 
 void ChLine::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChLine>();
+    /*int version =*/ marchive.VersionRead<ChLine>();
     // deserialize parent class
     ChGeometry::ArchiveIN(marchive);
     // stream in all member data:

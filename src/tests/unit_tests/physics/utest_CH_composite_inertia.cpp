@@ -26,10 +26,10 @@ double tol = 1e-4;
 
 // ====================================================================================
 
-static void TestVector(const ChVector<>& v1, const ChVector<>& v2, double tol) {
-    ASSERT_NEAR(v1.x(), v2.x(), tol);
-    ASSERT_NEAR(v1.y(), v2.y(), tol);
-    ASSERT_NEAR(v1.z(), v2.z(), tol);
+static void TestVector(const ChVector<>& v1, const ChVector<>& v2, double tolerance) {
+    ASSERT_NEAR(v1.x(), v2.x(), tolerance);
+    ASSERT_NEAR(v1.y(), v2.y(), tolerance);
+    ASSERT_NEAR(v1.z(), v2.z(), tolerance);
 }
 
 // ====================================================================================

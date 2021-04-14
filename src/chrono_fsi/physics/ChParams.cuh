@@ -53,6 +53,7 @@ struct SimParams {
     uint numBodies;       ///<
     Real3 boxDims;        ///<  Dimensions of the domain. How big is the box that the domain is in.
     Real HSML;            ///<  Interaction Radius. (or h)
+    Real INVHSML;         ///<  1.0/h
     Real MULT_INITSPACE;  ///<  Multiplier to hsml to determine the initial separation of the fluid particles and the
                           ///<  fixed
                           ///<     separation for the boundary particles. This means that the separation will always be
@@ -88,7 +89,9 @@ struct SimParams {
                        ///<    directly, but instead they are affected indirectly through the fluid.
 
     Real rho0;       ///<  Density
+    Real invrho0;    ///<  Density's inverse
     Real rho_solid;  ///<  Solid Density
+    Real volume0;    ///<  Volume
 
     Real markerMass;  ///<  marker mass
     Real mu0;         ///<  Viscosity
@@ -220,6 +223,7 @@ struct SimParams {
     Real Q_FA;          ///< material constants calculate from frictional angle
     Real Q_DA;          ///< material constants calculate from dilate angle
     Real K_FA;          ///< material constants calculate from frictional angle and cohesion coefficient
+    Real C_Wi;          ///< threshold of the integration of the kernel function
 
     ////< Dimension of the space domain
     Real boxDimX;

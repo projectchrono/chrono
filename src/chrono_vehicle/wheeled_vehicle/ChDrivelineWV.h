@@ -46,6 +46,11 @@ class CH_VEHICLE_API ChDrivelineWV : public ChDriveline {
                             const std::vector<int>& driven_axles  ///< indexes of the driven vehicle axles
                             ) = 0;
 
+    /// Update the driveline subsystem.
+    /// The motor torque represents the input to the driveline subsystem from the powertrain system.
+    /// The default implementation applies this torque to the driveline's driveshaft.
+    virtual void Synchronize(double torque);
+
     /// Lock/unlock the differential on the specified axle.
     /// By convention, axles are counted front to back, starting with index 0 for the front-most axle.
     virtual void LockAxleDifferential(int axle, bool lock);

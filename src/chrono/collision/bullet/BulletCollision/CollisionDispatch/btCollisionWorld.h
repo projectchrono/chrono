@@ -81,10 +81,8 @@ class btSerializer;
 #include "BulletCollision/BroadphaseCollision/btOverlappingPairCache.h"
 #include "LinearMath/btAlignedObjectArray.h"
 
-//***RADU***
-#include "chrono/core/ChTimer.h"
-//***ALEX***
-#include "chrono/utils/ChProfiler.h"
+#include "chrono/core/ChTimer.h"      // ***CHRONO***
+#include "chrono/utils/ChProfiler.h"  // ***CHRONO***
 
 ///CollisionWorld is interface and container for the collision detection
 class btCollisionWorld
@@ -514,7 +512,7 @@ public:
 	///Preliminary serialization test for Bullet 2.76. Loading those files requires a separate parser (Bullet/Demos/SerializeDemo)
 	virtual void serialize(btSerializer* serializer);
 
-	//***RADU***
+	// ***CHRONO***
     chrono::ChTimer<double> timer_collision_broad;
     chrono::ChTimer<double> timer_collision_narrow;
 };

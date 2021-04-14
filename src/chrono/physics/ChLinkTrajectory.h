@@ -78,6 +78,9 @@ class ChApi ChLinkTrajectory : public ChLinkLockLock {
 
     /// Method to allow deserialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
+
+  private:
+    using ChLinkMarkers::Initialize;
 };
 
 CH_CLASS_VERSION(ChLinkTrajectory,0)

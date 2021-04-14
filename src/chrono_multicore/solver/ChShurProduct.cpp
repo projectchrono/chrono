@@ -25,7 +25,6 @@ void ChShurProduct::operator()(const DynamicVector<real>& x, DynamicVector<real>
     const DynamicVector<real>& E = data_manager->host_data.E;
 
     uint num_rigid_contacts = data_manager->num_rigid_contacts;
-    uint num_rigid_fluid_contacts = data_manager->num_rigid_contacts;
     uint num_unilaterals = data_manager->num_unilaterals;
     uint num_bilaterals = data_manager->num_bilaterals;
     output.reset();

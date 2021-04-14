@@ -27,7 +27,7 @@ namespace vehicle {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 TrackBrakeSimple::TrackBrakeSimple(const std::string& filename) : ChTrackBrakeSimple("") {
-    Document d = ReadFileJSON(filename);
+    Document d; ReadFileJSON(filename, d);
     if (d.IsNull())
         return;
 

@@ -152,7 +152,6 @@ class CH_MULTICORE_API ChCNarrowphaseDispatch {
 
     real collision_envelope;
     NarrowPhaseType narrowphase_algorithm;
-    SystemType system_type;
 
     custom_vector<uint> f_bin_intersections;
     custom_vector<uint> f_bin_number;

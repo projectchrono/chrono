@@ -87,7 +87,7 @@ void ChTriangleMeshSoup::ArchiveOUT(ChArchiveOut& marchive) {
 
 void ChTriangleMeshSoup::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChTriangleMeshSoup>();
+    /*int version =*/ marchive.VersionRead<ChTriangleMeshSoup>();
     // deserialize parent class
     ChTriangleMesh::ArchiveIN(marchive);
     // stream in all member data:

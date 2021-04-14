@@ -61,7 +61,7 @@ void ChIndexedParticles::ArchiveOUT(ChArchiveOut& marchive) {
 
 void ChIndexedParticles::ArchiveIN(ChArchiveIn& marchive) {
     // class version number
-    int version = marchive.VersionRead<ChIndexedParticles>();
+    /*int version =*/ marchive.VersionRead<ChIndexedParticles>();
 
     // deserialize parent class too
     ChPhysicsItem::ArchiveIN(marchive);
