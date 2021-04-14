@@ -1,0 +1,22 @@
+{
+	"sphere_radius": 0.5,
+	"sphere_density": 7800,
+	"step_size": 1e-7,
+	"time_end": 5,
+	"grav_X": 0,
+	"grav_Y": 0,
+	"grav_Z": -980,
+	"normalStiffS2S": 1e11,
+	"normalStiffS2W": 1e11,
+    "normalStiffS2M": 1e11,
+	"normalDampS2S": 1e4,
+	"normalDampS2W": 1e4,
+    "normalDampS2M": 1e4,
+
+    "verbose": false,
+
+	"psi_T": 32,
+	"psi_L": 16,
+
+	"write_mode": "none"
+}

@@ -14,7 +14,11 @@ SET(LIBRARIES
 # ------------------------------------------------------------------------------
 
 SET(TESTS
-    utest_GPU_mini
+    #utest_GPU_mini
+    utest_GPU_frictionsliding
+    utest_GPU_meshsliding
+    utest_GPU_ballistic
+    utest_GPU_stack
 )
 
 # ------------------------------------------------------------------------------
@@ -36,8 +40,11 @@ FOREACH(PROGRAM ${TESTS})
     SET_PROPERTY(TARGET ${PROGRAM} PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:${PROGRAM}>")
     TARGET_LINK_LIBRARIES(${PROGRAM} ${LIBRARIES})
     ADD_DEPENDENCIES(${PROGRAM} ${LIBRARIES})
-
-    #ADD_TEST(${PROGRAM} ${PROJECT_BINARY_DIR}/bin/${PROGRAM})
+    TARGET_LINK_LIBRARIES(${PROGRAM} ${LIBRARIES} gtest_main)
+    ADD_TEST(${PROGRAM} ${PROJECT_BINARY_DIR}/bin/${PROGRAM})
 
     INSTALL(TARGETS ${PROGRAM} DESTINATION ${CH_INSTALL_DEMO})
+    
+
+    
 ENDFOREACH(PROGRAM)

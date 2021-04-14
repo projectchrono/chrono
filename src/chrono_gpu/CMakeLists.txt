@@ -100,6 +100,7 @@ set(ChronoEngine_GPU_BASE
     ChGpuDefines.h
     ChGpuData.h
     ChGpuData.cpp
+    ChGpuDemoUtils.hpp
     )
 
 source_group("" FILES ${ChronoEngine_GPU_BASE})
