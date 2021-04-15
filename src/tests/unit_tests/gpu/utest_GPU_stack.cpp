@@ -25,12 +25,10 @@
 #include <string>
 #include <cstdlib>
 
-// Include definition of chdir(...)
 #ifdef _WIN32
-    #include <direct.h>
+    #include <windows.h>
     #define NATIVE_PWD "CD"
 #else
-    #include <unistd.h>
     #define NATIVE_PWD "PWD"
 #endif
 
@@ -77,13 +75,16 @@ void ShowUsage(std::string name) {
 }
 
 int main(int argc, char* argv[]) {
-    filesystem::path bindir = filesystem::path(std::getenv(NATIVE_PWD)) / filesystem::path("bin");
-    std::cout << bindir.str() << "\n";
-    if (bindir.exists()) {
-        std::cout << "Changing to bin directory...\n";
-        chdir(bindir.str().c_str());
-    }
     string json_dir = GetChronoDataFile("gpu/utest_GPU_stack/utest_GPU_stack.json");
+#ifdef _WIN32
+    char filemame_dummy[] = "dummy.txt";
+    char fullFilename_dummy[MAX_PATH];
+    GetFullPathName(filemame_dummy, MAX_PATH, fullFilename_dummy, nullptr);
+    string name_str_dummy = fullFilename_dummy;
+    if (name_str_dummy.find("bin") == std::string::npos) {
+        json_dir = "../../../../bin/Release/" + GetChronoDataFile("gpu/utest_GPU_stack/utest_GPU_stack.json");
+    }
+#endif
 
     const char* c_buff = json_dir.c_str();
     // Some of the default values are overwritten by user via command line
@@ -138,7 +139,7 @@ int main(int argc, char* argv[]) {
     gpu_sys.SetGt_SPH2WALL(params.tangentDampS2W);
     gpu_sys.SetStaticFrictionCoeff_SPH2SPH(params.static_friction_coeffS2S);
     gpu_sys.SetStaticFrictionCoeff_SPH2WALL(params.static_friction_coeffS2W);
-    filesystem::create_directory(filesystem::path(params.output_dir));
+    // filesystem::create_directory(filesystem::path(params.output_dir));
 
     gpu_sys.SetCohesionRatio(params.cohesion_ratio);
     gpu_sys.SetAdhesionRatio_SPH2WALL(params.adhesion_ratio_s2w);
@@ -334,6 +335,15 @@ TEST(gpuStack, endPos) {
 TEST(granularStack, comprehensivePos) {
     std::vector<chrono::ChVector<float>> ground_truth;
     std::string dir = GetChronoDataFile("gpu/utest_GT/stack/stack_groundtruth.csv");
+#ifdef _WIN32
+    char filemame_dummy[] = "dummy.txt";
+    char fullFilename_dummy[MAX_PATH];
+    GetFullPathName(filemame_dummy, MAX_PATH, fullFilename_dummy, nullptr);
+    string name_str_dummy = fullFilename_dummy;
+    if (name_str_dummy.find("bin") == std::string::npos) {
+        dir = "../../../../bin/Release/" + GetChronoDataFile("gpu/utest_GT/stack/stack_groundtruth.csv");
+    }
+#endif
     ground_truth = loadPositionCheckpoint<float>(dir);
 
     EXPECT_EQ(ground_truth.size(), pos_Data.size());
@@ -368,6 +378,15 @@ TEST(granularStack, comprehensivePos) {
 TEST(gpuStack, comprehensiveVel) {
     std::vector<chrono::ChVector<float>> ground_truth;
     std::string dir = GetChronoDataFile("gpu/utest_GT/stack/stack_groundtruth.csv");
+#ifdef _WIN32
+    char filemame_dummy[] = "dummy.txt";
+    char fullFilename_dummy[MAX_PATH];
+    GetFullPathName(filemame_dummy, MAX_PATH, fullFilename_dummy, nullptr);
+    string name_str_dummy = fullFilename_dummy;
+    if (name_str_dummy.find("bin") == std::string::npos) {
+        dir = "../../../../bin/Release/" + GetChronoDataFile("gpu/utest_GT/stack/stack_groundtruth.csv");
+    }
+#endif
     ground_truth = loadVelocityCheckpoint<float>(dir);
 
     EXPECT_EQ(ground_truth.size(), vel_Data.size());

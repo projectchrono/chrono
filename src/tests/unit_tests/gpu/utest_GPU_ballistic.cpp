@@ -33,12 +33,11 @@
 
 #include "gtest/gtest.h"
 #include <cstdlib>
-// Include definition of chdir(...)
+
 #ifdef _WIN32
-    #include <direct.h>
+    #include <windows.h>
     #define NATIVE_PWD "CD"
 #else
-    #include <unistd.h>
     #define NATIVE_PWD "PWD"
 #endif
 
@@ -53,13 +52,16 @@ void ShowUsage(std::string name) {
 }
 
 int main(int argc, char* argv[]) {
-    filesystem::path bindir = filesystem::path(std::getenv(NATIVE_PWD)) / filesystem::path("bin");
-    std::cout << bindir.str() << "\n";
-    if (bindir.exists()) {
-        std::cout << "Changing to bin directory...\n";
-        chdir(bindir.str().c_str());
-    }
     string json_dir = GetChronoDataFile("gpu/utest_GPU_ballistic/utest_GPU_ballistic.json");
+#ifdef _WIN32
+    char filemame_dummy[] = "dummy.txt";
+    char fullFilename_dummy[MAX_PATH];
+    GetFullPathName(filemame_dummy, MAX_PATH, fullFilename_dummy, nullptr);
+    string name_str_dummy = fullFilename_dummy;
+    if (name_str_dummy.find("bin") == std::string::npos) {
+        json_dir = "../../../../bin/Release/" + GetChronoDataFile("gpu/utest_GPU_ballistic/utest_GPU_ballistic.json");
+    }
+#endif
 
     const char* c_buff = json_dir.c_str();
 
@@ -84,6 +86,13 @@ int main(int argc, char* argv[]) {
     std::string mesh_filename;
 
     mesh_filename = GetChronoDataFile("gpu/utest_GPU_ballistic/one_facet.obj");
+
+#ifdef _WIN32
+    if (name_str_dummy.find("bin") == std::string::npos) {
+        mesh_filename = "../../../../bin/Release/" + GetChronoDataFile("gpu/utest_GPU_ballistic/one_facet.obj");
+    }
+#endif
+
     mesh_filenames.push_back(mesh_filename);
 
     std::vector<ChMatrix33<float>> mesh_rotscales;
