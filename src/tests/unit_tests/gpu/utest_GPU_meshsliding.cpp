@@ -22,6 +22,9 @@
 #include <cmath>
 #include <iostream>
 #include <string>
+#include <unistd.h>
+#include <stdio.h>
+#include <limits.h>
 
 #include "chrono/core/ChGlobal.h"
 #include "chrono/utils/ChUtilsSamplers.h"
@@ -66,6 +69,12 @@ int main(int argc, char* argv[]) {
         json_dir =
             "../../../../bin/Release/" + GetChronoDataFile("gpu/utest_GPU_meshsliding/utest_GPU_meshsliding.json");
     }
+#else
+    char pwd[PATH_MAX];
+    string name_str_dummy = pwd;
+    if (name_str_dummy.find("bin") == std::string::npos) {
+        json_dir = "../../../" + GetChronoDataFile("gpu/utest_GPU_meshsliding/utest_GPU_meshsliding.json");
+    }
 #endif
     const char* c_buff = json_dir.c_str();
 
@@ -93,6 +102,10 @@ int main(int argc, char* argv[]) {
 #ifdef _WIN32
     if (name_str_dummy.find("bin") == std::string::npos) {
         mesh_filename = "../../../../bin/Release/" + GetChronoDataFile("gpu/utest_GPU_meshsliding/one_facet.obj");
+    }
+#else
+    if (name_str_dummy.find("bin") == std::string::npos) {
+        mesh_filename = "../../../" + GetChronoDataFile("gpu/utest_GPU_meshsliding/one_facet.obj");
     }
 #endif
     mesh_filenames.push_back(mesh_filename);
@@ -222,6 +235,12 @@ TEST(gpuMeshSliding, comprehensivePos) {
     if (name_str_dummy.find("bin") == std::string::npos) {
         dir = "../../../../bin/Release/" + GetChronoDataFile("gpu/utest_GT/meshsliding/meshsliding_groundtruth.csv");
     }
+#else
+    char pwd[PATH_MAX];
+    string name_str_dummy = pwd;
+    if (name_str_dummy.find("bin") == std::string::npos) {
+        dir = "../../../" + GetChronoDataFile("gpu/utest_GT/meshsliding/meshsliding_groundtruth.csv");
+    }
 #endif
     ground_truth = loadPositionCheckpoint<float>(dir);
 
@@ -268,6 +287,12 @@ TEST(gpuMeshSliding, comprehensiveABSV) {
     if (name_str_dummy.find("bin") == std::string::npos) {
         dir = "../../../../bin/Release/" + GetChronoDataFile("gpu/utest_GT/meshsliding/meshsliding_groundtruth.csv");
     }
+#else
+    char pwd[PATH_MAX];
+    string name_str_dummy = pwd;
+    if (name_str_dummy.find("bin") == std::string::npos) {
+        dir = "../../../" + GetChronoDataFile("gpu/utest_GT/meshsliding/meshsliding_groundtruth.csv");
+    }
 #endif
     ground_truth = loadColumnCheckpoint(dir, 3);
 
@@ -309,6 +334,12 @@ TEST(gpuMeshSliding, comprehensiveAngularVel) {
     string name_str_dummy = fullFilename_dummy;
     if (name_str_dummy.find("bin") == std::string::npos) {
         dir = "../../../../bin/Release/" + GetChronoDataFile("gpu/utest_GT/meshsliding/meshsliding_groundtruth.csv");
+    }
+#else
+    char pwd[PATH_MAX];
+    string name_str_dummy = pwd;
+    if (name_str_dummy.find("bin") == std::string::npos) {
+        dir = "../../../" + GetChronoDataFile("gpu/utest_GT/meshsliding/meshsliding_groundtruth.csv");
     }
 #endif
     ground_truth_wx = loadColumnCheckpoint(dir, 4);

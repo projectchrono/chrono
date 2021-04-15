@@ -23,6 +23,9 @@
 #include <iostream>
 #include <string>
 #include <cstdlib>
+#include <unistd.h>
+#include <stdio.h>
+#include <limits.h>
 
 #ifdef _WIN32
     #include <windows.h>
@@ -81,6 +84,12 @@ int main(int argc, char* argv[]) {
     if (name_str_dummy.find("bin") == std::string::npos) {
         json_dir = "../../../../bin/Release/" +
                    GetChronoDataFile("gpu/utest_GPU_frictionsliding/utest_GPU_frictionsliding.json");
+    }
+#else
+    char pwd[PATH_MAX];
+    string name_str_dummy = pwd;
+    if (name_str_dummy.find("bin") == std::string::npos) {
+        json_dir = "../../../" + GetChronoDataFile("gpu/utest_GPU_frictionsliding/utest_GPU_frictionsliding.json");
     }
 #endif
 
@@ -279,6 +288,12 @@ TEST(gpuFrictionSLiding, comprehensivePos) {
         dir = "../../../../bin/Release/" +
               GetChronoDataFile("gpu/utest_GT/frictionsliding/frictionsliding_groundtruth.csv");
     }
+#else
+    char pwd[PATH_MAX];
+    string name_str_dummy = pwd;
+    if (name_str_dummy.find("bin") == std::string::npos) {
+        dir = "../../../" + GetChronoDataFile("gpu/utest_GT/frictionsliding/frictionsliding_groundtruth.csv");
+    }
 #endif
     ground_truth = loadPositionCheckpoint<float>(dir);
 
@@ -321,6 +336,12 @@ TEST(gpuFrictionSLiding, comprehensiveVel) {
     if (name_str_dummy.find("bin") == std::string::npos) {
         dir = "../../../../bin/Release/" +
               GetChronoDataFile("gpu/utest_GT/frictionsliding/frictionsliding_groundtruth.csv");
+    }
+#else
+    char pwd[PATH_MAX];
+    string name_str_dummy = pwd;
+    if (name_str_dummy.find("bin") == std::string::npos) {
+        dir = "../../../" + GetChronoDataFile("gpu/utest_GT/frictionsliding/frictionsliding_groundtruth.csv");
     }
 #endif
     ground_truth = loadVelocityCheckpoint<float>(dir);

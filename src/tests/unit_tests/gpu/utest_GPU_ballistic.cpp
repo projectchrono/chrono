@@ -20,6 +20,9 @@
 #include <cmath>
 #include <iostream>
 #include <string>
+#include <unistd.h>
+#include <stdio.h>
+#include <limits.h>
 
 #include "chrono/core/ChGlobal.h"
 #include "chrono_gpu/ChGpuDemoUtils.hpp"
@@ -61,6 +64,12 @@ int main(int argc, char* argv[]) {
     if (name_str_dummy.find("bin") == std::string::npos) {
         json_dir = "../../../../bin/Release/" + GetChronoDataFile("gpu/utest_GPU_ballistic/utest_GPU_ballistic.json");
     }
+#else
+    char pwd[PATH_MAX];
+    string name_str_dummy = pwd;
+    if (name_str_dummy.find("bin") == std::string::npos) {
+        json_dir = "../../../" + GetChronoDataFile("gpu/utest_GPU_ballistic/utest_GPU_ballistic.json");
+    }
 #endif
 
     const char* c_buff = json_dir.c_str();
@@ -90,6 +99,10 @@ int main(int argc, char* argv[]) {
 #ifdef _WIN32
     if (name_str_dummy.find("bin") == std::string::npos) {
         mesh_filename = "../../../../bin/Release/" + GetChronoDataFile("gpu/utest_GPU_ballistic/one_facet.obj");
+    }
+#else
+    if (name_str_dummy.find("bin") == std::string::npos) {
+        mesh_filename = "../../../" + GetChronoDataFile("gpu/utest_GPU_ballistic/one_facet.obj");
     }
 #endif
 
