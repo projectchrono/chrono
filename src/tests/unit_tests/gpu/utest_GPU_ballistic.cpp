@@ -20,7 +20,6 @@
 #include <cmath>
 #include <iostream>
 #include <string>
-#include <unistd.h>
 #include <stdio.h>
 #include <limits.h>
 
@@ -41,6 +40,7 @@
     #include <windows.h>
     #define NATIVE_PWD "CD"
 #else
+    #include <unistd.h>
     #define NATIVE_PWD "PWD"
 #endif
 
@@ -66,6 +66,7 @@ int main(int argc, char* argv[]) {
     }
 #else
     char pwd[PATH_MAX];
+    getcwd(pwd, sizeof(pwd));
     string name_str_dummy = pwd;
     if (name_str_dummy.find("bin") == std::string::npos) {
         json_dir = "../../../" + GetChronoDataFile("gpu/utest_GPU_ballistic/utest_GPU_ballistic.json");
