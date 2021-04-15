@@ -337,6 +337,10 @@ size_t ChSystemGpu::GetNumParticles() const {
     return m_sys->nSpheres;
 }
 
+float ChSystemGpu::GetParticleRadius() const {
+    return m_sys->sphere_radius_UU;
+}
+
 ChVector<float> ChSystemGpu::GetParticlePosition(int nSphere) const {
     float3 pos = m_sys->GetParticlePosition(nSphere);
     return ChVector<float>(pos.x, pos.y, pos.z);
@@ -1508,7 +1512,7 @@ void ChSystemGpuMesh::WriteMesh(const std::string& outfilename, unsigned int i) 
         return;
     }
     if (i >= m_meshes.size()) {
-        printf("WARNING: attempted to write mesh %u, yet only %u meshes present. No mesh file generated.\n", i,
+        printf("WARNING: attempted to write mesh %u, yet only %zu meshes present. No mesh file generated.\n", i,
                m_meshes.size());
         return;
     }
@@ -1572,7 +1576,7 @@ void ChSystemGpuMesh::WriteMeshes(const std::string& outfilename) const {
     unsigned int total_f = 0;
     unsigned int total_v = 0;
 
-    printf("Writing %u mesh(es)...\n", m_meshes.size());
+    printf("Writing %zu mesh(es)...\n", m_meshes.size());
     std::string ofile;
     if (outfilename.substr(outfilename.length() - std::min(outfilename.length(), (size_t)4)) != ".vtk" &&
         outfilename.substr(outfilename.length() - std::min(outfilename.length(), (size_t)4)) != ".VTK")

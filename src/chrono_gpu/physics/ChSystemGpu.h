@@ -208,6 +208,9 @@ class CH_GPU_API ChSystemGpu {
     /// Return the maximum Z position over all particles.
     double GetMaxParticleZ() const;
 
+    /// Return the radius of a spherical particle.
+    float GetParticleRadius() const;
+
     /// Return particle position.
     ChVector<float> GetParticlePosition(int nSphere) const;
 
