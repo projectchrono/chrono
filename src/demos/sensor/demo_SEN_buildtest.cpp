@@ -109,6 +109,7 @@ int main(int argc, char* argv[]) {
         // vis_mat->SetAmbientColor(.2 * vis_mat->GetDiffuseColor());
         vis_mat->SetSpecularColor({1.f, 1.f, 1.f});
         vis_mat->SetRoughness(0);
+        vis_mat->SetMetallic(.9);
         visual_asset->material_list.push_back(vis_mat);
     }
 
@@ -127,6 +128,7 @@ int main(int argc, char* argv[]) {
         // vis_mat->SetAmbientColor(.2 * vis_mat->GetDiffuseColor());
         vis_mat->SetSpecularColor({1.f, 1.f, 1.f});
         vis_mat->SetRoughness(0);
+        vis_mat->SetMetallic(.9);
         visual_asset->material_list.push_back(vis_mat);
     }
     // add a mesh

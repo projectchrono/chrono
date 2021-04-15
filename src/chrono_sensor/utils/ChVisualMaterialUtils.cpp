@@ -96,13 +96,11 @@ void CreateModernMeshAssets(std::shared_ptr<ChTriangleMeshShape> mesh_shape) {
 
         if (materials[i].diffuse_texname != "") {
             mat->SetKdTexture(mtl_base + materials[i].diffuse_texname);
-            // std::cout << "Kd Map: " << mtl_base + materials[i].diffuse_texname << std::endl;
         }
 
         // set normal map when called "bump_texname"
         if (materials[i].bump_texname != "") {
             mat->SetNormalMapTexture(mtl_base + materials[i].bump_texname);
-            // std::cout << "Normal Map: " << mtl_base + materials[i].bump_texname << std::endl;
         }
         // set normal map when called "normal_texname"
         if (materials[i].normal_texname != "") {
@@ -115,6 +113,12 @@ void CreateModernMeshAssets(std::shared_ptr<ChTriangleMeshShape> mesh_shape) {
         // set metallic texture if it exists
         if (materials[i].metallic_texname != "") {
             mat->SetMetallicTexture(mtl_base + materials[i].metallic_texname);
+        }
+        // set opacity texture if it exists
+        // NOTE: need to make sure alpha and diffuse names are different to prevent 4 channel opacity textures in
+        // Chrono::Sensor
+        if (materials[i].alpha_texname != "" && materials[i].alpha_texname != materials[i].diffuse_texname) {
+            mat->SetOpacityTexture(mtl_base + materials[i].alpha_texname);
         }
 
         mat->SetRoughness(materials[i].roughness);

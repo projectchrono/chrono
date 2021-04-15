@@ -22,9 +22,9 @@
 #include <vector>
 
 #ifdef _WIN32
-#ifndef NOMINMAX
-#define NOMINMAX
-#endif
+    #ifndef NOMINMAX
+        #define NOMINMAX
+    #endif
 #endif
 
 // #include <optix.h>
@@ -88,6 +88,14 @@ class CH_SENSOR_API ChScene {
     /// @param b a new background for the scene
     void SetBackground(Background b);
 
+    /// Function for setting the ambient light color
+    /// @param color the color+intensity of ambient light
+    void SetAmbientLight(ChVector<float> color) { m_ambient_light = color; }
+
+    /// Function for setting the ambient light color
+    /// @return the ambient light in the scene
+    ChVector<float> GetAmbientLight() { return m_ambient_light; }
+
     /// Function for resetting the lights changed variable
     void ResetLightsChanged() { lights_changed = false; }
     /// Function for getting the lights changed variable
@@ -101,6 +109,7 @@ class CH_SENSOR_API ChScene {
   private:
     std::vector<PointLight> m_pointlights;  //< list of point lights in the scene
     Background m_background;                ///< The background object
+    ChVector<float> m_ambient_light;        ///< ambient light color used in the scene
 
     bool lights_changed;      ///< for detecting if lights changed
     bool background_changed;  ///< for detecting if background changed

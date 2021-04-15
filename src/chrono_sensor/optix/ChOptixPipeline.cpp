@@ -1020,6 +1020,16 @@ unsigned int ChOptixPipeline::GetMaterial(std::shared_ptr<ChVisualMaterial> mat)
             material.roughness_tex = 0;  // explicitely null
         }
 
+        // opacity texture
+        if (mat->GetOpacityTexture() != "") {
+            cudaTextureObject_t d_tex_sampler;
+            cudaArray_t d_img_array;
+            CreateDeviceTexture(d_tex_sampler, d_img_array, mat->GetOpacityTexture());
+            material.opacity_tex = d_tex_sampler;
+        } else {
+            material.opacity_tex = 0;  // explicitely null
+        }
+
         m_material_pool.push_back(material);
         return m_material_pool.size() - 1;
 
@@ -1040,6 +1050,7 @@ unsigned int ChOptixPipeline::GetMaterial(std::shared_ptr<ChVisualMaterial> mat)
             material.kn_tex = 0;
             material.roughness_tex = 0;
             material.metallic_tex = 0;
+            material.opacity_tex = 0;
             m_material_pool.push_back(material);
             m_default_material_id = m_material_pool.size() - 1;
             m_default_material_inst = true;
@@ -1284,15 +1295,6 @@ unsigned int ChOptixPipeline::GetRigidMeshMaterial(CUdeviceptr& d_vertices,
         }
 
         // move the chrono data to contiguous data structures to be copied to gpu
-        // TODO: should these buffer be padded to float4 or int4?
-        // std::vector<uint3> vertex_index_buffer = std::vector<uint3>(mesh->getIndicesVertexes().size());
-        // std::vector<uint3> normal_index_buffer = std::vector<uint3>(mesh->getIndicesNormals().size());
-        // std::vector<uint3> uv_index_buffer = std::vector<uint3>(mesh->getIndicesUV().size());
-        // std::vector<unsigned int> mat_index_buffer = std::vector<unsigned int>(mesh->getIndicesColors().size());
-        // std::vector<float3> vertex_buffer = std::vector<float3>(mesh->getCoordsVertices().size());
-        // std::vector<float3> normal_buffer = std::vector<float3>(mesh->getCoordsNormals().size());
-        // std::vector<float2> uv_buffer = std::vector<float2>(mesh->getCoordsUV().size());
-
         std::vector<uint4> vertex_index_buffer = std::vector<uint4>(mesh->getIndicesVertexes().size());
         std::vector<uint4> normal_index_buffer = std::vector<uint4>(mesh->getIndicesNormals().size());
         std::vector<uint4> uv_index_buffer = std::vector<uint4>(mesh->getIndicesUV().size());
@@ -1640,11 +1642,6 @@ void ChOptixPipeline::CreateDeviceTexture(cudaTextureObject_t& d_tex_sampler,
         m_texture_samplers[file_name] = d_tex_sampler;
         m_img_textures[file_name] = d_img_array;
     }
-
-    // std::cout << "Size of cudaTextureObject_t: " << sizeof(cudaTextureObject_t) << std::endl;
-    // std::cout << "Size of MaterialParameters: " << sizeof(MaterialParameters) << std::endl;
-    // std::cout << "Size of MeshParameters: " << sizeof(MeshParameters) << std::endl;
-    // std::cout << "Size of MaterialRecordParameters: " << sizeof(MaterialRecordParameters) << std::endl;
 }
 
 }  // namespace sensor

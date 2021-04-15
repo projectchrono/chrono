@@ -151,7 +151,7 @@ struct __align__(16) MaterialParameters {  // TODO: pad for alignment
     cudaTextureObject_t kn_tex;
     cudaTextureObject_t metallic_tex;
     cudaTextureObject_t roughness_tex;
-    float pad;  // pads to 96 bytes
+    cudaTextureObject_t opacity_tex;
 };
 
 struct ContextParameters {

@@ -63,10 +63,12 @@ int main(int argc, char* argv[]) {
             if (std::shared_ptr<ChVisualization> visual_asset =
                     std::dynamic_pointer_cast<ChVisualization>(sphere_asset1)) {
                 auto color = chrono_types::make_shared<ChVisualMaterial>();
-                color->SetDiffuseColor({j / (float)y_dim, 0.0, 1 - j / (float)y_dim});
-                color->SetSpecularColor({j / (float)y_dim, 0.0, 1 - j / (float)y_dim});
-                color->SetFresnelMax(i / (float)x_dim);
-                color->SetFresnelMin((float)(.9 * i / x_dim));
+                color->SetDiffuseColor({.8, .2, .1});
+                // color->SetSpecularColor({j / (float)y_dim, 0.0, 1 - j / (float)y_dim});
+                // color->SetFresnelMax(i / (float)x_dim);
+                // color->SetFresnelMin((float)(.9 * i / x_dim));
+                color->SetMetallic((float)i / x_dim);
+                color->SetRoughness(1 - (float)j / y_dim);
                 visual_asset->material_list.push_back(color);
             }
             mphysicalSystem.Add(sphere1);
@@ -83,6 +85,12 @@ int main(int argc, char* argv[]) {
     // -----------------------
     auto manager = chrono_types::make_shared<ChSensorManager>(&mphysicalSystem);
     manager->scene->AddPointLight({-100, 0, 100}, {1, 1, 1}, 500);
+    Background b;
+    b.mode = BackgroundMode::ENVIRONMENT_MAP;  // GRADIENT
+    b.color_zenith = {.5f, .6f, .7f};
+    b.color_horizon = {.9f, .8f, .7f};
+    b.env_tex = GetChronoDataFile("sensor/textures/sky_2_4k.hdr");
+    manager->scene->SetBackground(b);
 
     // ------------------------------------------------
     // Create a camera and add it to the sensor manager
@@ -92,24 +100,25 @@ int main(int argc, char* argv[]) {
         sphere2,                                                             // body camera is attached to
         30.0f,                                                               // update rate in Hz
         chrono::ChFrame<double>({-12, 0, 0}, Q_from_AngAxis(0, {0, 1, 0})),  // offset pose
-        1280,                                                                // image width
-        720,                                                                 // image height
+        1920,                                                                // image width
+        1080,                                                                // image height
         (float)CH_C_PI / 3                                                   // FOV
     );
     cam->SetName("Camera Sensor");
-    // cam->SetLag(0);
-    // cam->SetCollectionWindow(0);
-
-    // --------------------------------------------------------------------
-    // Create a filter graph for post-processing the images from the camera
-    // --------------------------------------------------------------------
-
-    // we want to visualize this sensor right after rendering, so add the visualize filter to the filter list.
     cam->PushFilter(chrono_types::make_shared<ChFilterVisualize>(1280, 720, "For user display"));
-    // cam->PushFilter(chrono_types::make_shared<ChFilterSave>());
-
-    // add sensor to the manager
     manager->AddSensor(cam);
+
+    auto cam_g = chrono_types::make_shared<ChCameraSensor>(
+        sphere2,                                                             // body camera is attached to
+        30.0f,                                                               // update rate in Hz
+        chrono::ChFrame<double>({-12, 0, 0}, Q_from_AngAxis(0, {0, 1, 0})),  // offset pose
+        1920,                                                                // image width
+        1080,                                                                // image height
+        (float)CH_C_PI / 3, 1, CameraLensModelType::PINHOLE, true            // FOV
+    );
+    cam_g->SetName("Camera Sensor");
+    cam_g->PushFilter(chrono_types::make_shared<ChFilterVisualize>(1280, 720, "For user display"));
+    manager->AddSensor(cam_g);
 
     // ---------------
     // Simulate system

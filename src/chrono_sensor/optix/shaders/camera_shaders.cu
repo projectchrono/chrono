@@ -87,28 +87,33 @@ extern "C" __global__ void __closesthit__camera_shader() {
     if (mat.kd_tex) {
         const float4 tex = tex2D<float4>(mat.kd_tex, uv.x, uv.y);
         subsurface_albedo = make_float3(tex.x, tex.y, tex.z);
-        // transparency = min(transparency, tex.w);
+        if (tex.w < 1e-6)
+            transparency = 0.f;  // to handle transparent card textures such as tree leaves
+    }
+
+    if (mat.opacity_tex) {
+        transparency = tex2D<float>(mat.opacity_tex, uv.x, uv.y);
     }
 
     PerRayData_camera* prd_camera = getCameraPRD();
 
-    // if this is perfectly transparent, we ignore it and trace the next ray (handles things like tree leaves)
-    // if (transparency < .0001f) {
-    //     float refract_importance = prd_camera->contrib_to_first_hit;
-    //     if (refract_importance > params.importance_cutoff && prd_camera->depth + 1 < params.max_depth) {
-    //         PerRayData_camera prd_refraction = default_camera_prd();
-    //         prd_refraction.contrib_to_first_hit = refract_importance;
-    //         prd_refraction.rng = prd_camera->rng;
-    //         prd_refraction.depth = prd_camera->depth + 1;
-    //         unsigned int opt1, opt2;
-    //         pointer_as_ints(&prd_refraction, opt1, opt2);
-    //         optixTrace(params.root, hit_point, ray_dir, params.scene_epsilon, 1e16f, optixGetRayTime(),
-    //                    OptixVisibilityMask(1), OPTIX_RAY_FLAG_NONE, CAMERA_RAY_TYPE, RAY_TYPE_COUNT, CAMERA_RAY_TYPE,
-    //                    opt1, opt2);
-    //         prd_camera->color = prd_refraction.color;
-    //     }
-    //     return;
-    // }
+    // if this is perfectly transparent, we ignore it and trace the next ray (handles things like tree leaf cards)
+    if (transparency < 1e-6) {
+        float refract_importance = prd_camera->contrib_to_first_hit;
+        if (refract_importance > params.importance_cutoff && prd_camera->depth + 1 < params.max_depth) {
+            PerRayData_camera prd_refraction = default_camera_prd();
+            prd_refraction.contrib_to_first_hit = refract_importance;
+            prd_refraction.rng = prd_camera->rng;
+            prd_refraction.depth = prd_camera->depth + 1;
+            unsigned int opt1, opt2;
+            pointer_as_ints(&prd_refraction, opt1, opt2);
+            optixTrace(params.root, hit_point, ray_dir, params.scene_epsilon, 1e16f, optixGetRayTime(),
+                       OptixVisibilityMask(1), OPTIX_RAY_FLAG_NONE, CAMERA_RAY_TYPE, RAY_TYPE_COUNT, CAMERA_RAY_TYPE,
+                       opt1, opt2);
+            prd_camera->color = prd_refraction.color;
+        }
+        return;
+    }
 
     //=================
     // Refracted color
@@ -144,8 +149,6 @@ extern "C" __global__ void __closesthit__camera_shader() {
     if (mat.metallic_tex) {
         metallic = tex2D<float>(mat.metallic_tex, uv.x, uv.y);
     }
-    // metallic = 0.f;
-    // roughness = 1.f;
 
     //=================
     // Diffuse color
@@ -198,15 +201,6 @@ extern "C" __global__ void __closesthit__camera_shader() {
                                             make_float3(1.f) /*make_float3(fresnel_max) it is usually 1*/);
                     }
 
-                    // === Fresnel_at_0 to Fresnel_at_90 workflow
-                    // F = fresnel_schlick(VdH, mat.fresnel_exp, make_float3(mat.fresnel_min),
-                    //                     make_float3(mat.fresnel_max));
-
-                    // === IoF workflow
-                    // float3 ratio = (iof1 - iof2) / (iof1 + iof2); // one of them should be air (iof = 1)
-                    // float3 F0 = ratio * ratio;
-                    // F = fresnel_schlick(NdV, 5, F0, make_float3(1));
-
                     diffuse_color += (make_float3(1.f) - F) * subsurface_albedo * incoming_light_ray;
                     float D = NormalDist(NdH, roughness);        // 1/pi omitted
                     float G = HammonSmith(NdV, NdL, roughness);  // 4  * NdV * NdL omitted
@@ -218,7 +212,14 @@ extern "C" __global__ void __closesthit__camera_shader() {
     }
 
     float NdV = Dot(world_normal, -ray_dir);
-    diffuse_color = diffuse_color + params.ambient_light_color * make_float3(NdV) * subsurface_albedo;
+    // diffuse_color = diffuse_color + params.ambient_light_color * make_float3(NdV) * subsurface_albedo;
+    // diffuse_color = diffuse_color + params.ambient_light_color *
+    //                                     make_float3(Dot(world_normal, make_float3(0, 0, 1)) * .5f + .5f) *
+    //                                     subsurface_albedo;
+    diffuse_color =
+        diffuse_color + params.ambient_light_color *
+                            (make_float3(NdV) + make_float3(Dot(world_normal, make_float3(0, 0, 1)) * .5f + .5f)) *
+                            subsurface_albedo;
 
     if (prd_camera->depth == 2) {
         prd_camera->albedo = subsurface_albedo;
@@ -258,23 +259,24 @@ extern "C" __global__ void __closesthit__camera_shader() {
 
     float3 next_contrib_to_first_hit = (make_float3(1.f) - F) * subsurface_albedo * NdL;
 
-    // float D = NormalDist(NdH, roughness);        // 1/pi omitted
+    float D = NormalDist(NdH, roughness);        // 1/pi omitted
     float G = HammonSmith(NdV, NdL, roughness);  // 4  * NdV * NdL omitted
-    float D = NormalDist(NdH, roughness) / CUDART_PI_F;
-    // float G = HammonSmith(NdV, NdL, roughness) / (4 * NdV * NdL);
     float3 f_ct = F * D * G;
 
     next_contrib_to_first_hit += f_ct * NdL;
 
+    // for whitted ray tracing, add reflection based on how smooth the material is (non-physical, sharp reflections)
     if (!prd_camera->use_gi) {  // we need to account for the fact we didn't randomly sample the direction (heuristic
         // since this is not physical)
-        next_contrib_to_first_hit = (1.f - roughness) * next_contrib_to_first_hit / (4 * CUDART_PI_F);
-        // next_contrib_to_first_hit = next_contrib_to_first_hit / (CUDART_PI_F * 4);
-    }
+        next_contrib_to_first_hit =
+            clamp(next_contrib_to_first_hit / (CUDART_PI_F * 4), make_float3(0.f), make_float3(1.f)) *
+            prd_camera->contrib_to_first_hit;
 
-    // contribution should never exceed 1 or esle we are creating energy on reflection
-    next_contrib_to_first_hit =
-        clamp(next_contrib_to_first_hit, make_float3(0.f), make_float3(1.f)) * prd_camera->contrib_to_first_hit;
+        next_contrib_to_first_hit =
+            (1.f - roughness) * (1.f - roughness) * metallic * metallic * next_contrib_to_first_hit;
+    } else {
+        next_contrib_to_first_hit = next_contrib_to_first_hit * prd_camera->contrib_to_first_hit;
+    }
 
     // russian roulette termination of rays
     // if (prd_camera->depth >= 3 && curand_uniform(&prd_camera->rng) >= luminance(next_contrib_to_first_hit)) {

@@ -47,7 +47,17 @@ extern "C" __global__ void __closesthit__shadow_shader() {
 
     PerRayData_shadow* prd = getShadowPRD();
 
-    float atten = 1.f - mat.transparency;  // TODO: figure out the attenuation from the material transparency
+    float transparency = mat.transparency;
+    if (mat.kd_tex) {
+        const float4 tex = tex2D<float4>(mat.kd_tex, uv.x, uv.y);
+        if (tex.w < 1e-6)
+            transparency = 0.f;  // to handle transparent card textures such as tree leaves
+    }
+    if (mat.opacity_tex) {
+        transparency = tex2D<float>(mat.opacity_tex, uv.x, uv.y);
+    }
+
+    float atten = 1.f - transparency;  // TODO: figure out the attenuation from the material transparency
 
     // if the occlusion amount is below the
     prd->attenuation = prd->attenuation * atten;
@@ -67,14 +77,4 @@ extern "C" __global__ void __closesthit__shadow_shader() {
 
         prd->attenuation = prd_shadow.attenuation;
     }
-
-    // prd->attenuation = make_float3(0.f, 0.f, 0.f);
-
-    // setShadowPRD(prd);
 }
-
-// extern "C" __global__ void __anyhit__shadow_shader() {
-//     PerRayData_shadow prd = getShadowPRD();
-//     prd.attenuation = make_float3(0.f, 0.f, 0.f);
-//     // setShadowPRD(prd);
-// }

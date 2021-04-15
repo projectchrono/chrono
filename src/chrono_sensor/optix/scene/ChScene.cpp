@@ -26,6 +26,8 @@ CH_SENSOR_API ChScene::ChScene() {
     m_background.color_zenith = {0.4f, 0.5f, 0.6f};
     m_background.color_horizon = {0.7f, 0.8f, 0.9f};
     m_background.env_tex = "";
+
+    m_ambient_light = ChVector<float>({.2, .2, .2});
     m_pointlights = std::vector<PointLight>();
     lights_changed = true;
     background_changed = true;

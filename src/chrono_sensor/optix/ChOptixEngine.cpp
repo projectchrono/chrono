@@ -96,7 +96,7 @@ void ChOptixEngine::Initialize() {
     // defaults to no lights
     m_params.lights = {};
     m_params.num_lights = 0;
-    m_params.ambient_light_color = make_float3(0.3f, 0.3f, 0.3f);
+    m_params.ambient_light_color = make_float3(0.3f, 0.3f, 0.3f);  // default value
     m_params.max_depth = m_recursions;
     m_params.scene_epsilon = 1.e-3f;    // TODO: determine a good value for this
     m_params.importance_cutoff = .01f;  /// TODO: determine a good value for this
@@ -729,6 +729,8 @@ void ChOptixEngine::UpdateSceneDescription(std::shared_ptr<ChScene> scene) {
         cudaMemcpy(reinterpret_cast<void*>(m_params.lights), l.data(), l.size() * sizeof(PointLight),
                    cudaMemcpyHostToDevice);
         m_params.num_lights = l.size();
+        m_params.ambient_light_color = {scene->GetAmbientLight().x(), scene->GetAmbientLight().y(),
+                                        scene->GetAmbientLight().z()};
         cudaMemcpy(reinterpret_cast<void*>(md_params), &m_params, sizeof(ContextParameters), cudaMemcpyHostToDevice);
         scene->ResetLightsChanged();
     }
