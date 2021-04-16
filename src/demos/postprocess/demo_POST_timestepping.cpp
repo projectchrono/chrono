@@ -351,6 +351,8 @@ void example4(const std::string& out_dir) {
         };
 
         /// compute  dy/dt=f(y,t)
+        /// (this function is optional: if not implemented the integrator can solve
+        /// for acceleration also using StateSolveCorrection, although a bit less efficient)
         virtual bool StateSolveA(ChStateDelta& dvdt,        ///< result: computed accel. a=dv/dt
                                  ChVectorDynamic<>& L,      ///< result: computed lagrangian multipliers, if any
                                  const ChState& x,          ///< current state, x
@@ -488,11 +490,11 @@ void example4(const std::string& out_dir) {
     mplot.Plot(logfile.c_str(), 1, 2, "Euler implicit", " with lines");
     mplot.Plot(logfile.c_str(), 1, 4, "Trapezoidal", " with lines");
     mplot.Plot(logfile.c_str(), 1, 6, "Euler expl.IIorder", " with lines");
-    mplot.Plot(logfile.c_str(), 1, 8, "HHT alpha=0", " with lines");
-    mplot.Plot(logfile.c_str(), 1, 10, "HHT alpha=-0.33", " with lines");
-    mplot.Plot(logfile.c_str(), 1, 12, "Newmark g=0.5, b=1/4", " with lines");
-    mplot.Plot(logfile.c_str(), 1, 14, "Newmark g=0.5, b=1/6", " with lines");
-    mplot.Plot(logfile.c_str(), 1, 16, "Newmark g=1.0, b=1/4", " with lines");
+    mplot.Plot(logfile.c_str(), 1, 8, "HHT alpha=0", " with lines dt 2");
+    mplot.Plot(logfile.c_str(), 1, 10, "HHT alpha=-0.33", " with lines dt 2");
+    mplot.Plot(logfile.c_str(), 1, 12, "Newmark g=0.5, b=1/4", " with lines dt 4");
+    mplot.Plot(logfile.c_str(), 1, 14, "Newmark g=0.5, b=1/6", " with lines dt 4");
+    mplot.Plot(logfile.c_str(), 1, 16, "Newmark g=1.0, b=1/4", " with lines dt 4");
 }
 
 void example5(const std::string& out_dir) {
@@ -519,9 +521,9 @@ void example5(const std::string& out_dir) {
 
       public:
         MyIntegrable() {
-            mlength = 1;
+            mlength = 10000;
             M = 1;
-            K = 2;
+            K = 10;
             R = 0;
             mT = 0;
             mpx = 0;
@@ -610,7 +612,7 @@ void example5(const std::string& out_dir) {
         void LoadResidual_F(ChVectorDynamic<>& R,  ///< result: the R residual, R += c*F
                             const double c         ///< a scaling factor
                             ) override {
-            R(0) += c * (sin(mT * 20) * 0.000 - this->K * mpx - this->R * mvx);
+            R(0) += c * (- this->K * mpx - this->R * mvx);
             R(1) += c * -5;  // vertical force
         };
 
@@ -671,24 +673,27 @@ void example5(const std::string& out_dir) {
     ChTimestepperTrapezoidal mystepper3(&mintegrable3);
     ChTimestepperHHT mystepper4(&mintegrable4);
     mystepper4.SetAlpha(0);  // HHT with no dissipation -> trapezoidal
+    //mystepper4.SetVerbose(true);
     ChTimestepperHHT mystepper5(&mintegrable5);
-    mystepper5.SetAlpha(-0.2);  // HHT with dissipation
-    ////mystepper5.SetVerbose(true);
+    mystepper5.SetAlpha(-0.3);  // HHT with dissipation
+    //mystepper5.SetVerbose(true);
     ////mystepper5.SetMode(ChTimestepperHHT::POSITION);
     ChTimestepperNewmark mystepper6(&mintegrable6);
-    mystepper6.SetGammaBeta(0.6, 0.3);  // Newmark
+    mystepper6.SetGammaBeta(0.5, 0.25);  // Newmark, Gamma: in [1/2, 1] where 1/2 no damping, beta in [0,1]. For (0.5, 0.25) -> trapezoidal
+    //mystepper6.SetVerbose(true);
 
     // Execute the time integration
     while (mystepper1.GetTime() < 12) {
-        mystepper1.Advance(0.05);
-        mystepper2.Advance(0.05);
-        mystepper3.Advance(0.05);
-        mystepper4.Advance(0.05);
-        mystepper5.Advance(0.05);
-        mystepper6.Advance(0.05);
+        double timestep = 0.01;
+        mystepper1.Advance(timestep);
+        mystepper2.Advance(timestep);
+        mystepper3.Advance(timestep);
+        mystepper4.Advance(timestep);
+        mystepper5.Advance(timestep);
+        mystepper6.Advance(timestep);
 
-        GetLog() << "T = " << mystepper1.GetTime() << "  x=" << mystepper1.get_X()(0) << "  y=" << mystepper1.get_X()(1)
-                 << "\n";
+        //GetLog() << "T = " << mystepper1.GetTime() << "  x=" << mystepper1.get_X()(0) << "  y=" << mystepper1.get_X()(1)
+        //         << "\n";
         log_file5 << mystepper1.GetTime() << ", " << mystepper1.get_X()(0) << ", " << mystepper1.get_X()(1) << ", "
                   << mystepper1.get_V()(0) << ", " << mystepper1.get_V()(1) << ", " << mystepper2.get_X()(0) << ", "
                   << mystepper2.get_X()(1) << ", " << mystepper2.get_V()(0) << ", " << mystepper2.get_V()(1) << ", "
@@ -713,9 +718,9 @@ void example5(const std::string& out_dir) {
     mplot.Plot(logfile5.c_str(), 1, 2, "Euler impl. lineariz.", " with lines");
     mplot.Plot(logfile5.c_str(), 1, 6, "Euler impl.", " with lines");
     mplot.Plot(logfile5.c_str(), 1, 10, "Trapezoidal*", " with lines");
-    mplot.Plot(logfile5.c_str(), 1, 14, "HHT alpha=0", " with lines");
-    mplot.Plot(logfile5.c_str(), 1, 18, "HHT alpha=-0.2", " with lines");
-    mplot.Plot(logfile5.c_str(), 1, 22, "Newmark g=0.6,b=0.3", " with lines");
+    mplot.Plot(logfile5.c_str(), 1, 14, "HHT alpha=0", " with lines dt 2");
+    mplot.Plot(logfile5.c_str(), 1, 18, "HHT alpha=-0.2", " with lines dt 2");
+    mplot.Plot(logfile5.c_str(), 1, 22, "Newmark g=0.5,b=0.25", " with lines dt 4");
 
     mplot.OutputWindow(1);
     mplot.SetGrid();
@@ -725,17 +730,17 @@ void example5(const std::string& out_dir) {
     mplot.Plot(logfile5r.c_str(), 1, 2, "Euler impl. lineariz.", " with lines");
     mplot.Plot(logfile5r.c_str(), 1, 3, "Euler impl.", " with lines");
     mplot.Plot(logfile5r.c_str(), 1, 4, "Trapezoidal*", " with lines");
-    mplot.Plot(logfile5r.c_str(), 1, 5, "HHT alpha=0", " with lines");
-    mplot.Plot(logfile5r.c_str(), 1, 6, "HHT alpha=-0.2", " with lines");
-    mplot.Plot(logfile5r.c_str(), 1, 7, "Newmark g=0.6,b=0.3", " with lines");
+    mplot.Plot(logfile5r.c_str(), 1, 5, "HHT alpha=0", " with lines dt 2");
+    mplot.Plot(logfile5r.c_str(), 1, 6, "HHT alpha=-0.2", " with lines dt 2");
+    mplot.Plot(logfile5r.c_str(), 1, 7, "Newmark g=0.5,b=0.25", " with lines dt 4");
 
     mplot.OutputWindow(2);
     mplot.SetGrid();
     mplot.SetTitle("Test: DAE, constrained pendulum trajectory");
     mplot.SetLabelX("x");
     mplot.SetLabelY("y");
-    mplot.SetRangeX(-0.15, 0.15);
-    mplot.SetRangeY(-1.025, -0.95);
+    //mplot.SetRangeX(-0.15, 0.15);
+    //mplot.SetRangeY(-1.025, -0.95);
     mplot.SetCommand("set size ratio 0.5");
     mplot.Plot(logfile5.c_str(), 2, 3, "Euler impl. lineariz.", " pt 0");
     mplot.Plot(logfile5.c_str(), 6, 7, "Euler impl.", " pt 1");
