@@ -157,7 +157,7 @@ int main(int argc, char* argv[]) {
     std::cout << "frame step is " << frame_step << std::endl;
     while (curr_time < params.time_end) {
         gpu_sys.AdvanceSimulation(frame_step);
-
+		
         if (render && gpu_vis.Render())
             break;
 

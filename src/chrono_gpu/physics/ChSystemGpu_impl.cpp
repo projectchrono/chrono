@@ -432,9 +432,9 @@ void ChSystemGpu_impl::WriteH5Particles(H5::H5File& ptFile) const {
 #endif
 
 void ChSystemGpu_impl::WriteContactInfoFile(const std::string& outfilename) const {
-    if (gran_params->recording_contactInfo == false) {
-        printf("ERROR: recording_contactInfo set to false!\n");
-        exit(1);
+    if ((gran_params->recording_contactInfo == false) || 
+        (gran_params->friction_mode == CHGPU_FRICTION_MODE::FRICTIONLESS)) {
+        CHGPU_ERROR("ERROR! You did not enable contact info recording or are using frictionless model!\n");
     } else {
         // write contact info as an csv style in the following format
         // body i, body j, n_mag, fx, fy, fz, mx, my, mz

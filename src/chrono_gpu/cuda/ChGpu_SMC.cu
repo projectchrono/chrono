@@ -160,9 +160,11 @@ __host__ void ChSystemGpu_impl::defragment_initial_positions() {
     sphere_vel_y_tmp.resize(nSpheres);
     sphere_vel_z_tmp.resize(nSpheres);
 
-    sphere_angv_x_tmp.resize(nSpheres);
-    sphere_angv_y_tmp.resize(nSpheres);
-    sphere_angv_z_tmp.resize(nSpheres);
+    if (gran_params->friction_mode != CHGPU_FRICTION_MODE::FRICTIONLESS) {
+        sphere_angv_x_tmp.resize(nSpheres);
+        sphere_angv_y_tmp.resize(nSpheres);
+        sphere_angv_z_tmp.resize(nSpheres);
+    }
 
     sphere_fixed_tmp.resize(nSpheres);
     sphere_owner_SDs_tmp.resize(nSpheres);
@@ -177,16 +179,18 @@ __host__ void ChSystemGpu_impl::defragment_initial_positions() {
         sphere_vel_y_tmp.at(i) = (float)pos_Y_dt.at(sphere_ids.at(i));
         sphere_vel_z_tmp.at(i) = (float)pos_Z_dt.at(sphere_ids.at(i));
 
-        sphere_angv_x_tmp.at(i) = (float)sphere_Omega_X.at(sphere_ids.at(i));
-        sphere_angv_y_tmp.at(i) = (float)sphere_Omega_Y.at(sphere_ids.at(i));
-        sphere_angv_z_tmp.at(i) = (float)sphere_Omega_Z.at(sphere_ids.at(i));
+        if (gran_params->friction_mode != CHGPU_FRICTION_MODE::FRICTIONLESS) {
+            sphere_angv_x_tmp.at(i) = (float)sphere_Omega_X.at(sphere_ids.at(i));
+            sphere_angv_y_tmp.at(i) = (float)sphere_Omega_Y.at(sphere_ids.at(i));
+            sphere_angv_z_tmp.at(i) = (float)sphere_Omega_Z.at(sphere_ids.at(i));
+        }
 
         sphere_fixed_tmp.at(i) = sphere_fixed.at(sphere_ids.at(i));
         sphere_owner_SDs_tmp.at(i) = sphere_owner_SDs.at(sphere_ids.at(i));
     }
 
     // swap into the correct data structures
-    sphere_local_pos_X.swap(sphere_pos_x_tmp);
+	sphere_local_pos_X.swap(sphere_pos_x_tmp);
     sphere_local_pos_Y.swap(sphere_pos_y_tmp);
     sphere_local_pos_Z.swap(sphere_pos_z_tmp);
 
@@ -194,9 +198,11 @@ __host__ void ChSystemGpu_impl::defragment_initial_positions() {
     pos_Y_dt.swap(sphere_vel_y_tmp);
     pos_Z_dt.swap(sphere_vel_z_tmp);
 
-    sphere_Omega_X.swap(sphere_angv_x_tmp);
-    sphere_Omega_Y.swap(sphere_angv_y_tmp);
-    sphere_Omega_Z.swap(sphere_angv_z_tmp);
+    if (gran_params->friction_mode != CHGPU_FRICTION_MODE::FRICTIONLESS) {
+        sphere_Omega_X.swap(sphere_angv_x_tmp);
+        sphere_Omega_Y.swap(sphere_angv_y_tmp);
+        sphere_Omega_Z.swap(sphere_angv_z_tmp);
+    }
 
     sphere_fixed.swap(sphere_fixed_tmp);
     sphere_owner_SDs.swap(sphere_owner_SDs_tmp);
@@ -263,10 +269,10 @@ __host__ void ChSystemGpu_impl::setupSphereDataStructures() {
         bool user_provided_fixed = user_sphere_fixed.size() != 0;
         bool user_provided_vel = user_sphere_vel.size() != 0;
         if (user_provided_fixed && user_sphere_fixed.size() != nSpheres)
-            CHGPU_ERROR("Provided fixity array has length %u, but there are %u spheres!\n", user_sphere_fixed.size(),
+            CHGPU_ERROR("Provided fixity array has length %zu, but there are %u spheres!\n", user_sphere_fixed.size(),
                         nSpheres);
         if (user_provided_vel && user_sphere_vel.size() != nSpheres)
-            CHGPU_ERROR("Provided velocity array has length %u, but there are %u spheres!\n", user_sphere_vel.size(),
+            CHGPU_ERROR("Provided velocity array has length %zu, but there are %u spheres!\n", user_sphere_vel.size(),
                         nSpheres);
 
         std::vector<int64_t, cudallocator<int64_t>> sphere_global_pos_X;
@@ -327,7 +333,7 @@ __host__ void ChSystemGpu_impl::setupSphereDataStructures() {
         {
             bool user_provided_ang_vel = user_sphere_ang_vel.size() != 0;
             if (user_provided_ang_vel && user_sphere_ang_vel.size() != nSpheres)
-                CHGPU_ERROR("Provided angular velocity array has length %u, but there are %u spheres!\n",
+                CHGPU_ERROR("Provided angular velocity array has length %zu, but there are %u spheres!\n",
                             user_sphere_ang_vel.size(), nSpheres);
             if (user_provided_ang_vel) {
                 for (unsigned int i = 0; i < nSpheres; i++) {
@@ -356,7 +362,7 @@ __host__ void ChSystemGpu_impl::setupSphereDataStructures() {
     // If this is a new-boot, we usually want to do this defragment.
     // But if this is a restart, then probably no. We do not want every time the simulation restarts,
     // we have the order of particles completely changed: it may be bad for visualization or debugging
-    if (defragment_on_start) {
+	if (defragment_on_start) {
         defragment_initial_positions();
     }
 
@@ -370,7 +376,7 @@ __host__ void ChSystemGpu_impl::setupSphereDataStructures() {
         // If the user provides a checkpointed history array, we load it here
         bool user_provided_partner_map = user_partner_map.size() != 0;
         if (user_provided_partner_map && user_partner_map.size() != MAX_SPHERES_TOUCHED_BY_SPHERE * nSpheres)
-            CHGPU_ERROR("ERROR! The user provided contact partner map has size %u. It needs to be %u * %u!\n",
+            CHGPU_ERROR("ERROR! The user provided contact partner map has size %zu. It needs to be %u * %u!\n",
                         user_partner_map.size(), MAX_SPHERES_TOUCHED_BY_SPHERE, nSpheres);
 
         // Hope that using .at (instead of []) gives better err msg when things go wrong,
@@ -395,7 +401,7 @@ __host__ void ChSystemGpu_impl::setupSphereDataStructures() {
         // If the user provides a checkpointed history array, we load it here
         bool user_provided_friction_history = user_friction_history.size() != 0;
         if (user_provided_friction_history && user_friction_history.size() != MAX_SPHERES_TOUCHED_BY_SPHERE * nSpheres)
-            CHGPU_ERROR("ERROR! The user provided contact friction history has size %u. It needs to be %u * %u!\n",
+            CHGPU_ERROR("ERROR! The user provided contact friction history has size %zu. It needs to be %u * %u!\n",
                         user_friction_history.size(), MAX_SPHERES_TOUCHED_BY_SPHERE, nSpheres);
 
         if (user_provided_friction_history) {
