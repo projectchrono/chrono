@@ -23,17 +23,6 @@
 #include <cmath>
 #include <iostream>
 #include <string>
-#include <cstdlib>
-#include <stdio.h>
-#include <limits.h>
-
-#ifdef _WIN32
-    #include <windows.h>
-    #define NATIVE_PWD "CD"
-#else
-    #include <unistd.h>
-    #define NATIVE_PWD "PWD"
-#endif
 
 #include "chrono/core/ChGlobal.h"
 #include "chrono/utils/ChUtilsSamplers.h"
@@ -48,6 +37,8 @@ using namespace chrono;
 using namespace chrono::gpu;
 
 ChGpuSimulationParameters params;
+
+// declare global variables
 float target_ke = -1;
 
 float zero_vel_barrier = 1e-3;
@@ -78,26 +69,11 @@ void ShowUsage(std::string name) {
 }
 
 int main(int argc, char* argv[]) {
-    string json_dir = GetChronoDataFile("gpu/utest_GPU_stack/utest_GPU_stack.json");
-#ifdef _WIN32
-    char filemame_dummy[] = "dummy.txt";
-    char fullFilename_dummy[MAX_PATH];
-    GetFullPathName(filemame_dummy, MAX_PATH, fullFilename_dummy, nullptr);
-    string name_str_dummy = fullFilename_dummy;
-    if (name_str_dummy.find("bin") == std::string::npos) {
-        json_dir = "../../../../bin/Release/" + GetChronoDataFile("gpu/utest_GPU_stack/utest_GPU_stack.json");
-    }
-#else
-    char pwd[PATH_MAX];
-    getcwd(pwd, sizeof(pwd));
-    string name_str_dummy = pwd;
-    if (name_str_dummy.find("bin") == std::string::npos) {
-        json_dir = "../../../" + GetChronoDataFile("gpu/utest_GPU_stack/utest_GPU_stack.json");
-    }
-#endif
+    string json_dir = GetChronoDataFile("testing/gpu/utest_GPU_stack/utest_GPU_stack.json");
 
     const char* c_buff = json_dir.c_str();
-    // Some of the default values are overwritten by user via command line
+    // check whether JSON parameters file is valid
+    // Parse JSON parameters to the gpu system
     if (ParseJSON(c_buff, params) == false) {
         ShowUsage(argv[0]);
         return 1;
@@ -191,8 +167,7 @@ int main(int argc, char* argv[]) {
 
     printf("time, ball_px, ball_py, ball_pz, absv, KE, omega.x, omega.y, omega.z\n");
     while (curr_time < params.time_end && currframe < 1000) {
-        // test: get vel of every particle involved
-
+        // get velocity of every particle involved
         for (int i = 0; i < 5; i++) {
             pos_Data.push_back(gpu_sys.GetParticlePosition(i));
             vel_Data.push_back(gpu_sys.GetParticleVelocity(i));
@@ -226,6 +201,7 @@ int main(int argc, char* argv[]) {
 }
 
 // test 1 - check end abs velocity of each particle
+// the end velocities of all particles should be close to 0, within a barrier
 TEST(gpuStack, endVel) {
     float diff_1 = curr_body_vel_1 - 0;
     bool zero_1 = false;
@@ -257,11 +233,6 @@ TEST(gpuStack, endVel) {
         zero_5 = true;
     }
 
-    // TEST 1 DEBUG
-    float sum_1 = diff_1 + diff_2 + diff_3 + diff_4 + diff_5;
-    // std::cout << "TEST1 - sum_1 = " << sum_1 << std::endl;
-    // END
-
     EXPECT_EQ(true, zero_1);
     EXPECT_EQ(true, zero_2);
     EXPECT_EQ(true, zero_3);
@@ -270,6 +241,7 @@ TEST(gpuStack, endVel) {
 }
 
 // test 2 - check the end position of the bottom 3 particles
+// test pass if all end positions are within a tolerance barrier
 TEST(gpuStack, endPos) {
     float diff_1_x = abs(curr_body_pos_1.x());
     bool zero_1_x = false;
@@ -325,11 +297,6 @@ TEST(gpuStack, endPos) {
         zero_3_z = true;
     }
 
-    // TEST2 DEBUG
-    float sum_2 = diff_1_x + diff_1_y + diff_1_z + diff_2_x + diff_2_y + diff_2_z + diff_3_x + diff_3_y + diff_3_z;
-    // std::cout << "TEST2 - sum_2 = " << sum_2 << std::endl;
-    // END
-
     EXPECT_EQ(true, zero_1_x);
     EXPECT_EQ(true, zero_1_y);
     EXPECT_EQ(true, zero_1_z);
@@ -344,30 +311,11 @@ TEST(gpuStack, endPos) {
 // test 3 - comprehensive position check, compare with ground truth
 TEST(granularStack, comprehensivePos) {
     std::vector<chrono::ChVector<float>> ground_truth;
-    std::string dir = GetChronoDataFile("gpu/utest_GT/stack/stack_groundtruth.csv");
-#ifdef _WIN32
-    char filemame_dummy[] = "dummy.txt";
-    char fullFilename_dummy[MAX_PATH];
-    GetFullPathName(filemame_dummy, MAX_PATH, fullFilename_dummy, nullptr);
-    string name_str_dummy = fullFilename_dummy;
-    if (name_str_dummy.find("bin") == std::string::npos) {
-        dir = "../../../../bin/Release/" + GetChronoDataFile("gpu/utest_GT/stack/stack_groundtruth.csv");
-    }
-#else
-    char pwd[PATH_MAX];
-    getcwd(pwd, sizeof(pwd));
-    string name_str_dummy = pwd;
-    if (name_str_dummy.find("bin") == std::string::npos) {
-        dir = "../../../" + GetChronoDataFile("gpu/utest_GT/stack/stack_groundtruth.csv");
-    }
-#endif
+    std::string dir = GetChronoDataFile("testing/gpu/utest_GT/stack/stack_groundtruth.csv");
+
     ground_truth = loadPositionCheckpoint<float>(dir);
 
     EXPECT_EQ(ground_truth.size(), pos_Data.size());
-
-    // TEST3 - DEBUG
-    float sum_3 = 0;
-    // TEST PAUSE
 
     for (int i = 0; i < ground_truth.size(); i++) {
         float diff_x = ground_truth[i].x() - pos_Data[i].x();
@@ -377,46 +325,23 @@ TEST(granularStack, comprehensivePos) {
         diff_y = abs(diff_y);
         diff_z = abs(diff_z);
 
-        // TEST
-        sum_3 = sum_3 + diff_x + diff_y + diff_z;
-
         bool comp_res = false;
+        // if all x,y,z position components are within zero barrier, set compare result to true
         if ((diff_x < zero_pos_comp_barrier) && (diff_y < zero_pos_comp_barrier) && (diff_z < zero_pos_comp_barrier)) {
             comp_res = true;
         }
         EXPECT_EQ(true, comp_res);
     }
-
-    // TEST
-    // std::cout << "TEST3 - sum_3 = " << sum_3 << std::endl;
 }
 
 // test 4 - comprehensive particle volocities check, compare with ground truth
 TEST(gpuStack, comprehensiveVel) {
     std::vector<chrono::ChVector<float>> ground_truth;
-    std::string dir = GetChronoDataFile("gpu/utest_GT/stack/stack_groundtruth.csv");
-#ifdef _WIN32
-    char filemame_dummy[] = "dummy.txt";
-    char fullFilename_dummy[MAX_PATH];
-    GetFullPathName(filemame_dummy, MAX_PATH, fullFilename_dummy, nullptr);
-    string name_str_dummy = fullFilename_dummy;
-    if (name_str_dummy.find("bin") == std::string::npos) {
-        dir = "../../../../bin/Release/" + GetChronoDataFile("gpu/utest_GT/stack/stack_groundtruth.csv");
-    }
-#else
-    char pwd[PATH_MAX];
-    getcwd(pwd, sizeof(pwd));
-    string name_str_dummy = pwd;
-    if (name_str_dummy.find("bin") == std::string::npos) {
-        dir = "../../../" + GetChronoDataFile("gpu/utest_GT/stack/stack_groundtruth.csv");
-    }
-#endif
+    std::string dir = GetChronoDataFile("testing/gpu/utest_GT/stack/stack_groundtruth.csv");
+
     ground_truth = loadVelocityCheckpoint<float>(dir);
 
     EXPECT_EQ(ground_truth.size(), vel_Data.size());
-
-    // TEST4 - DEBUG
-    float sum_4 = 0;
 
     for (int i = 0; i < ground_truth.size(); i++) {
         float diff_x = ground_truth[i].x() - vel_Data[i].x();
@@ -425,15 +350,11 @@ TEST(gpuStack, comprehensiveVel) {
         diff_x = abs(diff_x);
         diff_y = abs(diff_y);
         diff_z = abs(diff_z);
-        // TEST
-        sum_4 = sum_4 + diff_x + diff_y + diff_z;
         bool comp_res = false;
+        // if all x,y,z velocity components are within zero barrier, set compare result to true
         if ((diff_x < zero_vel_comp_barrier) && (diff_y < zero_vel_comp_barrier) && (diff_z < zero_vel_comp_barrier)) {
             comp_res = true;
         }
         EXPECT_EQ(true, comp_res);
     }
-
-    // TEST
-    // std::cout << "TEST4 - sum_4 = " << sum_4 << std::endl;
 }

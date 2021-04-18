@@ -15,11 +15,22 @@ SET(LIBRARIES
 
 SET(TESTS
     #utest_GPU_mini
-    utest_GPU_frictionsliding
-    utest_GPU_meshsliding
+    utest_GPU_frictionrolling
+    utest_GPU_meshrolling
     utest_GPU_ballistic
     utest_GPU_stack
 )
+
+# A hack to set the working directory in which to execute the CTest
+# runs.  This is needed for tests that need to access the Chrono data
+# directory (since we use a relative path to it)
+
+if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+  set(MY_WORKING_DIR "${EXECUTABLE_OUTPUT_PATH}/Release")
+else()
+  set(MY_WORKING_DIR ${EXECUTABLE_OUTPUT_PATH})
+endif()
+
 
 # ------------------------------------------------------------------------------
 # Add all executables
@@ -45,6 +56,6 @@ FOREACH(PROGRAM ${TESTS})
 
     INSTALL(TARGETS ${PROGRAM} DESTINATION ${CH_INSTALL_DEMO})
     
-
+    set_tests_properties(${PROGRAM} PROPERTIES WORKING_DIRECTORY ${MY_WORKING_DIR})
     
 ENDFOREACH(PROGRAM)

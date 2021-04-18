@@ -11,7 +11,7 @@
 // =============================================================================
 // Authors: Jason Zhou
 // =============================================================================
-// Five particles sliding on the box surface
+// Five particles rolling on the box surface
 // utilizes gtest infrustructure
 // test 1 : check abs velocities of each particle after 5s
 // test 2 : comprehensive pos check compared with ground truth
@@ -22,17 +22,6 @@
 #include <cmath>
 #include <iostream>
 #include <string>
-#include <cstdlib>
-#include <stdio.h>
-#include <limits.h>
-
-#ifdef _WIN32
-    #include <windows.h>
-    #define NATIVE_PWD "CD"
-#else
-    #include <unistd.h>
-    #define NATIVE_PWD "PWD"
-#endif
 
 #include "chrono/core/ChGlobal.h"
 #include "chrono/utils/ChUtilsSamplers.h"
@@ -47,6 +36,8 @@ using namespace chrono;
 using namespace chrono::gpu;
 
 ChGpuSimulationParameters params;
+
+// declare global variables
 float target_ke = -1;
 
 float zero_vel_barrier = 5e-3;
@@ -74,29 +65,12 @@ void ShowUsage(std::string name) {
 }
 
 int main(int argc, char* argv[]) {
-    string json_dir = GetChronoDataFile("gpu/utest_GPU_frictionsliding/utest_GPU_frictionsliding.json");
-
-#ifdef _WIN32
-    char filemame_dummy[] = "dummy.txt";
-    char fullFilename_dummy[MAX_PATH];
-    GetFullPathName(filemame_dummy, MAX_PATH, fullFilename_dummy, nullptr);
-    string name_str_dummy = fullFilename_dummy;
-    if (name_str_dummy.find("bin") == std::string::npos) {
-        json_dir = "../../../../bin/Release/" +
-                   GetChronoDataFile("gpu/utest_GPU_frictionsliding/utest_GPU_frictionsliding.json");
-    }
-#else
-    char pwd[PATH_MAX];
-    getcwd(pwd, sizeof(pwd));
-    string name_str_dummy = pwd;
-    if (name_str_dummy.find("bin") == std::string::npos) {
-        json_dir = "../../../" + GetChronoDataFile("gpu/utest_GPU_frictionsliding/utest_GPU_frictionsliding.json");
-    }
-#endif
+    string json_dir = GetChronoDataFile("testing/gpu/utest_GPU_frictionsliding/utest_GPU_frictionsliding.json");
 
     const char* c_buff = json_dir.c_str();
 
-    // Some of the default values are overwritten by user via command line
+    // check whether JSON parameters file is valid
+    // Parse JSON parameters to the gpu system
     if (ParseJSON(c_buff, params) == false) {
         ShowUsage(argv[0]);
         return 1;
@@ -234,37 +208,33 @@ int main(int argc, char* argv[]) {
 }
 
 // test 1 - check end abs velocity of each particle
+// test pass if the end velocity is within a barrier
 TEST(gpuFrictionSLiding, endVel) {
     float diff_1 = curr_body_vel_1 - 0;
-    // std::cout << "diff_1:" << diff_1 << std::endl;
     bool zero_1 = false;
     if (diff_1 < zero_vel_barrier) {
         zero_1 = true;
     }
 
     float diff_2 = curr_body_vel_2 - 0;
-    // std::cout << "diff_2:" << diff_2 << std::endl;
     bool zero_2 = false;
     if (diff_2 < zero_vel_barrier) {
         zero_2 = true;
     }
 
     float diff_3 = curr_body_vel_3 - 0;
-    // std::cout << "diff_3:" << diff_3 << std::endl;
     bool zero_3 = false;
     if (diff_3 < zero_vel_barrier) {
         zero_3 = true;
     }
 
     float diff_4 = curr_body_vel_4 - 0;
-    // std::cout << "diff_4:" << diff_4 << std::endl;
     bool zero_4 = false;
     if (diff_4 < zero_vel_barrier) {
         zero_4 = true;
     }
 
     float diff_5 = curr_body_vel_5 - 0;
-    // std::cout << "diff_5:" << diff_5 << std::endl;
     bool zero_5 = false;
     if (diff_5 < zero_vel_barrier) {
         zero_5 = true;
@@ -278,25 +248,10 @@ TEST(gpuFrictionSLiding, endVel) {
 
 // test 2 - comprehensive position check, compare with ground truth
 TEST(gpuFrictionSLiding, comprehensivePos) {
+    // load in ground truth file
     std::vector<chrono::ChVector<float>> ground_truth;
-    std::string dir = GetChronoDataFile("gpu/utest_GT/frictionsliding/frictionsliding_groundtruth.csv");
-#ifdef _WIN32
-    char filemame_dummy[] = "dummy.txt";
-    char fullFilename_dummy[MAX_PATH];
-    GetFullPathName(filemame_dummy, MAX_PATH, fullFilename_dummy, nullptr);
-    string name_str_dummy = fullFilename_dummy;
-    if (name_str_dummy.find("bin") == std::string::npos) {
-        dir = "../../../../bin/Release/" +
-              GetChronoDataFile("gpu/utest_GT/frictionsliding/frictionsliding_groundtruth.csv");
-    }
-#else
-    char pwd[PATH_MAX];
-    getcwd(pwd, sizeof(pwd));
-    string name_str_dummy = pwd;
-    if (name_str_dummy.find("bin") == std::string::npos) {
-        dir = "../../../" + GetChronoDataFile("gpu/utest_GT/frictionsliding/frictionsliding_groundtruth.csv");
-    }
-#endif
+    std::string dir = GetChronoDataFile("testing/gpu/utest_GT/frictionsliding/frictionsliding_groundtruth.csv");
+
     ground_truth = loadPositionCheckpoint<float>(dir);
 
     EXPECT_EQ(ground_truth.size(), pos_Data.size());
@@ -315,11 +270,13 @@ TEST(gpuFrictionSLiding, comprehensivePos) {
             comp_res = true;
         }
         if (comp_res == false) {
+            // add to out-of-range data count
             false_count++;
         }
     }
 
     bool res_ind = false;
+    // max false tolerance is 10
     if (false_count < 10) {
         res_ind = true;
     }
@@ -329,24 +286,8 @@ TEST(gpuFrictionSLiding, comprehensivePos) {
 // test 3 - comprehensive particle volocities check, compare with ground truth
 TEST(gpuFrictionSLiding, comprehensiveVel) {
     std::vector<chrono::ChVector<float>> ground_truth;
-    std::string dir = GetChronoDataFile("gpu/utest_GT/frictionsliding/frictionsliding_groundtruth.csv");
-#ifdef _WIN32
-    char filemame_dummy[] = "dummy.txt";
-    char fullFilename_dummy[MAX_PATH];
-    GetFullPathName(filemame_dummy, MAX_PATH, fullFilename_dummy, nullptr);
-    string name_str_dummy = fullFilename_dummy;
-    if (name_str_dummy.find("bin") == std::string::npos) {
-        dir = "../../../../bin/Release/" +
-              GetChronoDataFile("gpu/utest_GT/frictionsliding/frictionsliding_groundtruth.csv");
-    }
-#else
-    char pwd[PATH_MAX];
-    getcwd(pwd, sizeof(pwd));
-    string name_str_dummy = pwd;
-    if (name_str_dummy.find("bin") == std::string::npos) {
-        dir = "../../../" + GetChronoDataFile("gpu/utest_GT/frictionsliding/frictionsliding_groundtruth.csv");
-    }
-#endif
+    std::string dir = GetChronoDataFile("testing/gpu/utest_GT/frictionsliding/frictionsliding_groundtruth.csv");
+
     ground_truth = loadVelocityCheckpoint<float>(dir);
 
     EXPECT_EQ(ground_truth.size(), vel_Data.size());
@@ -364,11 +305,13 @@ TEST(gpuFrictionSLiding, comprehensiveVel) {
             comp_res = true;
         }
         if (comp_res == false) {
+            // add to out-of-range data count
             false_count++;
         }
     }
 
     bool res_ind = false;
+    // max false tolerance is 10
     if (false_count < 10) {
         res_ind = true;
     }

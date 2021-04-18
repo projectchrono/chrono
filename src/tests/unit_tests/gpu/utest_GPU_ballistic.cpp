@@ -20,8 +20,6 @@
 #include <cmath>
 #include <iostream>
 #include <string>
-#include <stdio.h>
-#include <limits.h>
 
 #include "chrono/core/ChGlobal.h"
 #include "chrono_gpu/ChGpuDemoUtils.hpp"
@@ -34,19 +32,10 @@
 #include "chrono_thirdparty/filesystem/path.h"
 
 #include "gtest/gtest.h"
-#include <cstdlib>
-
-#ifdef _WIN32
-    #include <windows.h>
-    #define NATIVE_PWD "CD"
-#else
-    #include <unistd.h>
-    #define NATIVE_PWD "PWD"
-#endif
-
 using namespace chrono;
 using namespace chrono::gpu;
 
+// declare global variables
 float hit_time = -1;
 float penetration_time = -1;
 
@@ -55,29 +44,12 @@ void ShowUsage(std::string name) {
 }
 
 int main(int argc, char* argv[]) {
-    string json_dir = GetChronoDataFile("gpu/utest_GPU_ballistic/utest_GPU_ballistic.json");
-#ifdef _WIN32
-    char filemame_dummy[] = "dummy.txt";
-    char fullFilename_dummy[MAX_PATH];
-    GetFullPathName(filemame_dummy, MAX_PATH, fullFilename_dummy, nullptr);
-    string name_str_dummy = fullFilename_dummy;
-    if (name_str_dummy.find("bin") == std::string::npos) {
-        json_dir = "../../../../bin/Release/" + GetChronoDataFile("gpu/utest_GPU_ballistic/utest_GPU_ballistic.json");
-    }
-#else
-    char pwd[PATH_MAX];
-    getcwd(pwd, sizeof(pwd));
-    string name_str_dummy = pwd;
-    if (name_str_dummy.find("bin") == std::string::npos) {
-        json_dir = "../../../" + GetChronoDataFile("gpu/utest_GPU_ballistic/utest_GPU_ballistic.json");
-    }
-#endif
-
+    string json_dir = GetChronoDataFile("testing/gpu/utest_GPU_ballistic/utest_GPU_ballistic.json");
     const char* c_buff = json_dir.c_str();
-
     ChGpuSimulationParameters params;
 
-    // Some of the default values are overwritten by user via command line
+    // check whether JSON parameters file is valid
+    // Parse JSON parameters to the gpu system
     if (ParseJSON(c_buff, params) == false) {
         ShowUsage(argv[0]);
         return 1;
@@ -95,17 +67,7 @@ int main(int argc, char* argv[]) {
     std::vector<string> mesh_filenames;
     std::string mesh_filename;
 
-    mesh_filename = GetChronoDataFile("gpu/utest_GPU_ballistic/one_facet.obj");
-
-#ifdef _WIN32
-    if (name_str_dummy.find("bin") == std::string::npos) {
-        mesh_filename = "../../../../bin/Release/" + GetChronoDataFile("gpu/utest_GPU_ballistic/one_facet.obj");
-    }
-#else
-    if (name_str_dummy.find("bin") == std::string::npos) {
-        mesh_filename = "../../../" + GetChronoDataFile("gpu/utest_GPU_ballistic/one_facet.obj");
-    }
-#endif
+    mesh_filename = GetChronoDataFile("testing/gpu/utest_GPU_ballistic/one_facet.obj");
 
     mesh_filenames.push_back(mesh_filename);
 
@@ -157,7 +119,6 @@ int main(int argc, char* argv[]) {
     float curr_time = 0;
     ChVector<float> pos;
     ChVector<float> velo;
-    // ChVector<float> omega;
 
     unsigned int currframe = 0;
     unsigned int curstep = 0;
@@ -174,12 +135,11 @@ int main(int argc, char* argv[]) {
 
         pos = gpu_sys.GetParticlePosition(0);
         velo = gpu_sys.GetParticleVelocity(0);
-        // if frictionless, you can't call getAngVelo
-        // omega = apiSMC.getAngularVelo(0);
 
         if (curstep % out_steps == 0) {
             char filename[100];
             sprintf(filename, "%s/step%06u", params.output_dir.c_str(), currframe++);
+            // the following lines are used to obtain ground truth data
             // gpu_sys.writeFile(std::string(filename));
             // gpu_sys.write_meshes(std::string(filename));
         }
