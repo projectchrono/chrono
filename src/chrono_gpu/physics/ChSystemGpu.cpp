@@ -502,7 +502,6 @@ void ChSystemGpuMesh::SetMeshes() {
             pMeshSoup->omega[i] = make_float3(0, 0, 0);
         }
     }
-
 }
 
 void ChSystemGpuMesh::ApplyMeshMotion(unsigned int mesh_id,
@@ -799,11 +798,11 @@ bool diff(float3 a, float3 b) {
 // Use hash to find matching indentifier and load parameters. Return 0 if not change compared to current system, return
 // 1 if overwrote a current parameter setting
 bool ChSystemGpu::SetParamsFromIdentifier(const std::string& identifier, std::istringstream& iss1, bool overwrite) {
-    unsigned int i;  // integer holder
-    float f;         // float holder
-    float3 f3;       // float3 holder
-    double d;        // double holder
-    bool b;          // bool holder
+    unsigned int i;        // integer holder
+    float f;               // float holder
+    float3 f3;             // float3 holder
+    double d;              // double holder
+    bool b;                // bool holder
     bool anomaly = false;  // flag unknown identifier
     bool incst = false;    // flag parameter changes compared to current system
 

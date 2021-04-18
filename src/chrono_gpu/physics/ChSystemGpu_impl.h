@@ -48,7 +48,7 @@ class ChSolverStateData {
 
     /// vector of unsigned int that lives on the device; used by CUB or by anybody else that needs scrap space.
     /// Please pay attention to the type the vector stores.
-    std::vector<char, cudallocator<char>> deviceScratchSpace; 
+    std::vector<char, cudallocator<char>> deviceScratchSpace;
 
     /// current integration time step
     float crntStepSize_SU;  // DN: needs to be brought here from GranParams
@@ -72,8 +72,8 @@ class ChSolverStateData {
     inline unsigned int MaxNumberSpheresInAnySDThusFar() const { return largestMaxNumberSpheresInAnySD_thusFar; }
     /// reports the largest number of spheres that touched any SD at the most recent broadphase CD function call
     inline unsigned int currentMaxNumberSpheresInAnySD() const { return crntMaxNumberSpheresInAnySD; }
-    
-    ///return raw pointer to swath of device memory that is at least "sizeNeeded" large
+
+    /// return raw pointer to swath of device memory that is at least "sizeNeeded" large
     inline char* pDeviceMemoryScratchSpace(size_t sizeNeeded) {
         if (deviceScratchSpace.size() < sizeNeeded) {
             deviceScratchSpace.resize(sizeNeeded, 0);
@@ -81,7 +81,6 @@ class ChSolverStateData {
         return deviceScratchSpace.data();
     }
 };
-    
 
 // Underlying implementation of the Chrono::Gpu system.
 // used to control and dispatch the GPU sphere-only solver.

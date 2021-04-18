@@ -124,30 +124,30 @@ class CH_GPU_API ChSystemGpu {
     /// Set sphere-to-wall spinning friction coefficient -- units and use vary by spinning friction mode.
     void SetSpinningCoeff_SPH2WALL(float mu);
 
-    /// Set sphere-to-sphere normal contact stiffness
+    /// Set sphere-to-sphere normal contact stiffness.
     void SetKn_SPH2SPH(double someValue);
-    /// Set sphere-to-wall normal contact stiffness
+    /// Set sphere-to-wall normal contact stiffness.
     void SetKn_SPH2WALL(double someValue);
 
-    /// Set sphere-to-sphere normal damping coefficient
+    /// Set sphere-to-sphere normal damping coefficient.
     void SetGn_SPH2SPH(double someValue);
-    /// Set sphere-to-wall normal damping coefficient
+    /// Set sphere-to-wall normal damping coefficient.
     void SetGn_SPH2WALL(double someValue);
 
-    /// Set sphere-to-sphere tangential contact stiffness
+    /// Set sphere-to-sphere tangential contact stiffness.
     void SetKt_SPH2SPH(double someValue);
-    /// Set sphere-to-sphere tangential damping coefficient
+    /// Set sphere-to-sphere tangential damping coefficient.
     void SetGt_SPH2SPH(double someValue);
 
-    /// Set sphere-to-wall tangential contact stiffness
+    /// Set sphere-to-wall tangential contact stiffness.
     void SetKt_SPH2WALL(double someValue);
-    /// Set sphere-to-wall tangential damping coefficient
+    /// Set sphere-to-wall tangential damping coefficient.
     void SetGt_SPH2WALL(double someValue);
 
-    /// Set the ratio of cohesion to gravity for monodisperse spheres. Assumes a constant cohesion model
+    /// Set the ratio of cohesion to gravity for monodisperse spheres. Assumes a constant cohesion model.
     void SetCohesionRatio(float someValue);
 
-    /// Set the ratio of adhesion to gravity for sphere to wall. Assumes a constant cohesion model
+    /// Set the ratio of adhesion to gravity for sphere to wall. Assumes a constant cohesion model.
     void SetAdhesionRatio_SPH2WALL(float someValue);
 
     /// Safety check velocity to ensure the simulation is still stable.
@@ -162,7 +162,7 @@ class CH_GPU_API ChSystemGpu {
     /// Enable/disable recording of contact info.
     void SetRecordingContactInfo(bool record);
 
-    /// Manually set the simulation time (mainly used for restarted simulation)
+    /// Manually set the simulation time (mainly used for restarted simulation).
     void SetSimTime(float time);
 
     /// Set simualtion verbosity level.
@@ -244,9 +244,6 @@ class CH_GPU_API ChSystemGpu {
 
     /// Write a one-stop checkpoint file for Chrono::Gpu.
     /// All information defining a simulation is in this file.
-    /// Users can restart a simulation by constructing an empty ChSytemGpu,
-    /// then read this file and Initialize().
-    /// Note this function is not const, because it temporarily modifies the particle output flags.
     void WriteCheckpointFile(const std::string& outfilename);
 
     /// Write particle positions according to the system output mode.
@@ -269,7 +266,7 @@ class CH_GPU_API ChSystemGpu {
 
     ChSystemGpu_impl* m_sys;  ///< underlying system implementation
 
-    /// Set particle positions, velocities and angular velocities from a csv ifstream.
+    /// Set particle positions, velocities and angular velocities from a CSV ifstream.
     /// Methods that read sphere position/velocity info from a file serve as its wrapper.
     void ReadCsvParticles(std::ifstream& ifile, unsigned int totRow = UINT_MAX);
 
@@ -284,7 +281,7 @@ class CH_GPU_API ChSystemGpu {
     virtual bool SetParamsFromIdentifier(const std::string& identifier, std::istringstream& iss1, bool overwrite);
 
     // Set simulation params from a DAT checkpoint file stream. Returns the number of particles.
-    // If instructed to overwrite, then overwrite cuurent simulation parameters with the values in the checkpoint file;
+    // If instructed to overwrite, then overwrite current simulation parameters with the values in the checkpoint file;
     // else, when an inconsistency is found, throw an error.
     // ReadCheckpointFile() is its wrapper.
     unsigned int ReadDatParams(std::ifstream& ifile, bool overwrite);
@@ -342,7 +339,7 @@ class CH_GPU_API ChSystemGpuMesh : public ChSystemGpu {
     /// Enable/disable mesh collision (for all defined meshes).
     void EnableMeshCollision(bool val);
 
-    /// Enable/disable mesh normal-based orientation correction, see use_mesh_normals
+    /// Enable/disable mesh normal-based orientation correction.
     void UseMeshNormals(bool val) { use_mesh_normals = val; }
 
     /// Apply rigid body motion to specified mesh.
@@ -370,14 +367,14 @@ class CH_GPU_API ChSystemGpuMesh : public ChSystemGpu {
     /// Set sphere-to-mesh spinning friction coefficient.
     void SetSpinningCoeff_SPH2MESH(float mu);
 
-    /// Set sphere-to-mesh normal contact stiffness
+    /// Set sphere-to-mesh normal contact stiffness.
     void SetKn_SPH2MESH(double someValue);
-    /// Set sphere-to-mesh normal damping coefficient
+    /// Set sphere-to-mesh normal damping coefficient.
     void SetGn_SPH2MESH(double someValue);
 
-    /// Set sphere-to-mesh tangential contact stiffness
+    /// Set sphere-to-mesh tangential contact stiffness.
     void SetKt_SPH2MESH(double someValue);
-    /// Set sphere-to-mesh tangential damping coefficient
+    /// Set sphere-to-mesh tangential damping coefficient.
     void SetGt_SPH2MESH(double someValue);
 
     /// Set the ratio of adhesion force to sphere weight for sphere to mesh.
@@ -411,10 +408,10 @@ class CH_GPU_API ChSystemGpuMesh : public ChSystemGpu {
     /// GpuMesh version of checkpoint generating subroutine. Has a bit more content than parent.
     void WriteCheckpointFile(const std::string& outfilename);
 
-    /// Write the i-th mesh cached in m_meshes, with the current position
+    /// Write the i-th mesh cached in m_meshes, with the current position.
     void WriteMesh(const std::string& outfilename, unsigned int i) const;
 
-    /// Write all the meshes cached in m_meshes into a combined file, with their current positions
+    /// Write all the meshes cached in m_meshes into a combined file, with their current positions.
     void WriteMeshes(const std::string& outfilename) const;
 
   private:
@@ -422,10 +419,10 @@ class CH_GPU_API ChSystemGpuMesh : public ChSystemGpu {
     void SetMeshes();
 
     CHGPU_MESH_VERBOSITY mesh_verbosity;                                       ///< mesh operations verbosity level
-    bool use_mesh_normals =
-        false;  ///< true: use mesh normals in file to correct mesh orientation; false: do nothing, implicitly use RHR
     std::vector<std::shared_ptr<geometry::ChTriangleMeshConnected>> m_meshes;  ///< list of meshes used in cosimulation
     std::vector<float> m_mesh_masses;                                          ///< associated mesh masses
+    bool use_mesh_normals =
+        false;  ///< true: use mesh normals in file to correct mesh orientation; false: do nothing, implicitly use RHR
 
     /// GpuMesh version of setting simulation params based on identifiers in the checkpoint file.
     bool SetParamsFromIdentifier(const std::string& identifier, std::istringstream& iss1, bool overwrite);
