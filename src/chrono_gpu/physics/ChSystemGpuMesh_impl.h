@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Conlain Kelly, Nic Olsen, Dan Negrut, Radu Serban, Ruochun Zhang
+// Authors: Conlain Kelly, Nic Olsen, Ruochun Zhang, Dan Negrut, Radu Serban
 // =============================================================================
 
 #pragma once
@@ -118,9 +118,6 @@ class ChSystemGpuMesh_impl : public ChSystemGpu_impl {
                          const double* lin_vel,
                          const double* ang_vel);
 
-    /// Write visualization files for triangle meshes with current positions
-    void WriteMeshes(std::string outfilename) const;
-
     /// Initialize trimeshes before starting simulation (typically called by initialize).
     void initializeTriangles();
 
@@ -158,10 +155,10 @@ class ChSystemGpuMesh_impl : public ChSystemGpu_impl {
     double Gamma_t_s2m_UU;
 
     /// Rolling friction coefficient for sphere-to-mesh -- units and effect depend on rolling resistance model
-    double rolling_coeff_s2m_UU;
+    float rolling_coeff_s2m_UU;
 
     /// Spinning friction coefficient for sphere-to-mesh -- units and effect depend on spinning resistance model
-    double spinning_coeff_s2m_UU;
+    float spinning_coeff_s2m_UU;
 
     /// Ratio of sphere-to-mesh adhesion to gravity (constant adhesion model)
     float adhesion_s2m_over_gravity;
