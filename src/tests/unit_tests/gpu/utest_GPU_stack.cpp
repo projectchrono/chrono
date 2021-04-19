@@ -69,7 +69,7 @@ void ShowUsage(std::string name) {
 }
 
 int main(int argc, char* argv[]) {
-    string json_dir = GetChronoDataFile("testing/gpu/utest_GPU_stack/utest_GPU_stack.json");
+    string json_dir = GetChronoDataPath() + "testing/gpu/utest_GPU_stack/utest_GPU_stack.json";
 
     const char* c_buff = json_dir.c_str();
     // check whether JSON parameters file is valid
@@ -311,7 +311,7 @@ TEST(gpuStack, endPos) {
 // test 3 - comprehensive position check, compare with ground truth
 TEST(granularStack, comprehensivePos) {
     std::vector<chrono::ChVector<float>> ground_truth;
-    std::string dir = GetChronoDataFile("testing/gpu/utest_GT/stack/stack_groundtruth.csv");
+    std::string dir = GetChronoDataPath() + "testing/gpu/utest_GT/stack/stack_groundtruth.csv";
 
     ground_truth = loadPositionCheckpoint<float>(dir);
 
@@ -337,7 +337,7 @@ TEST(granularStack, comprehensivePos) {
 // test 4 - comprehensive particle volocities check, compare with ground truth
 TEST(gpuStack, comprehensiveVel) {
     std::vector<chrono::ChVector<float>> ground_truth;
-    std::string dir = GetChronoDataFile("testing/gpu/utest_GT/stack/stack_groundtruth.csv");
+    std::string dir = GetChronoDataPath() + "testing/gpu/utest_GT/stack/stack_groundtruth.csv";
 
     ground_truth = loadVelocityCheckpoint<float>(dir);
 

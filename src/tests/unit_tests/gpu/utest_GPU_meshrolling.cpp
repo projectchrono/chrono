@@ -48,7 +48,7 @@ void ShowUsage(std::string name) {
 }
 
 int main(int argc, char* argv[]) {
-    string json_dir = GetChronoDataFile("testing/gpu/utest_GPU_meshsliding/utest_GPU_meshsliding.json");
+    string json_dir = GetChronoDataPath() + "testing/gpu/utest_GPU_meshsliding/utest_GPU_meshsliding.json";
 
     const char* c_buff = json_dir.c_str();
 
@@ -73,7 +73,7 @@ int main(int argc, char* argv[]) {
     std::vector<string> mesh_filenames;
     std::string mesh_filename;
 
-    mesh_filename = GetChronoDataFile("testing/gpu/utest_GPU_meshsliding/one_facet.obj");
+    mesh_filename = GetChronoDataPath() + "testing/gpu/utest_GPU_meshsliding/one_facet.obj";
 
     mesh_filenames.push_back(mesh_filename);
 
@@ -187,7 +187,7 @@ int main(int argc, char* argv[]) {
 
 TEST(gpuMeshSliding, comprehensivePos) {
     std::vector<chrono::ChVector<float>> ground_truth;
-    std::string dir = GetChronoDataFile("testing/gpu/utest_GT/meshsliding/meshsliding_groundtruth.csv");
+    std::string dir = GetChronoDataPath() + "testing/gpu/utest_GT/meshsliding/meshsliding_groundtruth.csv";
 
     ground_truth = loadPositionCheckpoint<float>(dir);
 
@@ -225,7 +225,7 @@ TEST(gpuMeshSliding, comprehensivePos) {
 
 TEST(gpuMeshSliding, comprehensiveABSV) {
     std::vector<float> ground_truth;
-    std::string dir = GetChronoDataFile("testing/gpu/utest_GT/meshsliding/meshsliding_groundtruth.csv");
+    std::string dir = GetChronoDataPath() + "testing/gpu/utest_GT/meshsliding/meshsliding_groundtruth.csv";
 
     ground_truth = loadColumnCheckpoint(dir, 3);
 
@@ -259,7 +259,7 @@ TEST(gpuMeshSliding, comprehensiveAngularVel) {
     std::vector<float> ground_truth_wx;
     std::vector<float> ground_truth_wy;
     std::vector<float> ground_truth_wz;
-    std::string dir = GetChronoDataFile("testing/gpu/utest_GT/meshsliding/meshsliding_groundtruth.csv");
+    std::string dir = GetChronoDataPath() + "testing/gpu/utest_GT/meshsliding/meshsliding_groundtruth.csv";
 
     ground_truth_wx = loadColumnCheckpoint(dir, 4);
     ground_truth_wy = loadColumnCheckpoint(dir, 5);

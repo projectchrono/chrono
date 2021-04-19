@@ -44,7 +44,7 @@ void ShowUsage(std::string name) {
 }
 
 int main(int argc, char* argv[]) {
-    string json_dir = GetChronoDataFile("testing/gpu/utest_GPU_ballistic/utest_GPU_ballistic.json");
+    string json_dir = GetChronoDataPath() + "testing/gpu/utest_GPU_ballistic/utest_GPU_ballistic.json";
     const char* c_buff = json_dir.c_str();
     ChGpuSimulationParameters params;
 
@@ -67,7 +67,7 @@ int main(int argc, char* argv[]) {
     std::vector<string> mesh_filenames;
     std::string mesh_filename;
 
-    mesh_filename = GetChronoDataFile("testing/gpu/utest_GPU_ballistic/one_facet.obj");
+    mesh_filename = GetChronoDataPath() + "testing/gpu/utest_GPU_ballistic/one_facet.obj";
 
     mesh_filenames.push_back(mesh_filename);
 

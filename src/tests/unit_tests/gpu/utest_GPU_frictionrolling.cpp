@@ -65,7 +65,7 @@ void ShowUsage(std::string name) {
 }
 
 int main(int argc, char* argv[]) {
-    string json_dir = GetChronoDataFile("testing/gpu/utest_GPU_frictionsliding/utest_GPU_frictionsliding.json");
+    string json_dir = GetChronoDataPath() + "testing/gpu/utest_GPU_frictionsliding/utest_GPU_frictionsliding.json";
 
     const char* c_buff = json_dir.c_str();
 
@@ -250,7 +250,7 @@ TEST(gpuFrictionSLiding, endVel) {
 TEST(gpuFrictionSLiding, comprehensivePos) {
     // load in ground truth file
     std::vector<chrono::ChVector<float>> ground_truth;
-    std::string dir = GetChronoDataFile("testing/gpu/utest_GT/frictionsliding/frictionsliding_groundtruth.csv");
+    std::string dir = GetChronoDataPath() + "testing/gpu/utest_GT/frictionsliding/frictionsliding_groundtruth.csv";
 
     ground_truth = loadPositionCheckpoint<float>(dir);
 
@@ -286,7 +286,7 @@ TEST(gpuFrictionSLiding, comprehensivePos) {
 // test 3 - comprehensive particle volocities check, compare with ground truth
 TEST(gpuFrictionSLiding, comprehensiveVel) {
     std::vector<chrono::ChVector<float>> ground_truth;
-    std::string dir = GetChronoDataFile("testing/gpu/utest_GT/frictionsliding/frictionsliding_groundtruth.csv");
+    std::string dir = GetChronoDataPath() + "testing/gpu/utest_GT/frictionsliding/frictionsliding_groundtruth.csv";
 
     ground_truth = loadVelocityCheckpoint<float>(dir);
 
