@@ -76,10 +76,6 @@ extern "C" __global__ void __closesthit__camera_shader() {
 
     float3 world_normal = normalize(optixTransformNormalFromObjectToWorldSpace(object_normal));
 
-    if (Dot(world_normal, -ray_dir) < 0) {
-        world_normal = -world_normal;
-    }
-
     float3 hit_point = ray_orig + ray_dir * ray_dist;
 
     float3 subsurface_albedo = mat.Kd;
