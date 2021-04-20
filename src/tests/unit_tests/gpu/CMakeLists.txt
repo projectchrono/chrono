@@ -41,8 +41,9 @@ MESSAGE(STATUS "Test programs for Gpu module...")
 FOREACH(PROGRAM ${TESTS})
     MESSAGE(STATUS "...add ${PROGRAM}")
 
-    ADD_EXECUTABLE(${PROGRAM}  "${PROGRAM}.cpp")
-    SOURCE_GROUP(""  FILES "${PROGRAM}.cpp")
+    set(FILES ${PROGRAM}.cpp unit_testing.h)
+    ADD_EXECUTABLE(${PROGRAM}  ${FILES})
+    SOURCE_GROUP(""  FILES ${FILES})
 
     SET_TARGET_PROPERTIES(${PROGRAM} PROPERTIES
          FOLDER demos

@@ -30,7 +30,8 @@
 #include "chrono_gpu/utils/ChGpuJsonParser.h"
 
 #include "chrono_thirdparty/filesystem/path.h"
-#include "chrono_gpu/ChGpuDemoUtils.hpp"
+
+#include "unit_testing.h"
 
 using namespace chrono;
 using namespace chrono::gpu;

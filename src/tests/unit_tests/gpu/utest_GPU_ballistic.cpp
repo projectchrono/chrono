@@ -22,7 +22,6 @@
 #include <string>
 
 #include "chrono/core/ChGlobal.h"
-#include "chrono_gpu/ChGpuDemoUtils.hpp"
 #include "chrono/utils/ChUtilsSamplers.h"
 
 #include "chrono_gpu/ChGpuData.h"
@@ -31,7 +30,10 @@
 
 #include "chrono_thirdparty/filesystem/path.h"
 
+#include "unit_testing.h"
+
 #include "gtest/gtest.h"
+
 using namespace chrono;
 using namespace chrono::gpu;
 
