@@ -61,7 +61,7 @@ linux:arch-gcc:test:
   script:
   - cd build
   - export OMP_NUM_THREADS=8
-  - make test
+  - make CTEST_OUTPUT_ON_FAILURE=1 test
   dependencies: ["linux:arch-gcc:build"]
 
 
@@ -137,7 +137,7 @@ linux:arch-llvm:test:
   - pacman -S --noconfirm llvm clang openmp
   - cd build
   - export OMP_NUM_THREADS=8
-  - make test
+  - make CTEST_OUTPUT_ON_FAILURE=1 test
   dependencies: ["linux:arch-llvm:build"]
 
 
@@ -248,7 +248,7 @@ linux:ubuntu1804:test:
   script:
     - cd build
     - export OMP_NUM_THREADS=8
-    - make test
+    - make CTEST_OUTPUT_ON_FAILURE=1 test
   dependencies: ["linux:ubuntu1804:build"]
 
 
