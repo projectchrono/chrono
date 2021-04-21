@@ -28,6 +28,7 @@
 #include "chrono/physics/ChLinkLock.h"
 #include "chrono/physics/ChLinkMotorRotationAngle.h"
 #include "chrono/physics/ChSystemSMC.h"
+#include "chrono/utils/ChFilters.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 
 #include "chrono/fea/ChLoadContactSurfaceMesh.h"
@@ -67,6 +68,9 @@ class CH_VEHICLE_API ChVehicleCosimRigNode : public ChVehicleCosimBaseNode {
 
     /// Enable/disable tire pressure (default: true).
     void EnableTirePressure(bool val);
+
+    /// Set window (in seconds) for the running average filter for drawbar pull reporting (default: 0.1 s).
+    void SetDBPfilterWindow(double window) { m_dbp_filter_window = window; }
 
     /// Initialize this node.
     /// This function allows the node to initialize itself and, optionally, perform an
@@ -118,6 +122,10 @@ class CH_VEHICLE_API ChVehicleCosimRigNode : public ChVehicleCosimBaseNode {
 
     double m_init_vel;  ///< initial wheel forward linear velocity
     double m_slip;      ///< prescribed longitudinal slip for wheel
+
+    utils::ChRunningAverage* m_dbp_filter;  ///< running average filter for DBP
+    double m_dbp_filter_window;             ///< window (span) for the DBP filter
+    double m_dbp;                           ///< current value of filtered DBP
 
     // Communication data
     std::shared_ptr<ChMaterialSurfaceSMC> m_contact_mat;  ///< tire contact material

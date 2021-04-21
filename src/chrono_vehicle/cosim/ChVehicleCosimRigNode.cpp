@@ -110,7 +110,14 @@ std::string ChVehicleCosimRigNode::GetTypeAsString(Type type) {
 // - create the (sequential) Chrono system and set solver parameters
 // -----------------------------------------------------------------------------
 ChVehicleCosimRigNode::ChVehicleCosimRigNode(Type type, double init_vel, double slip, int num_threads)
-    : ChVehicleCosimBaseNode("RIG"), m_type(type), m_init_vel(init_vel), m_slip(slip), m_constructed(false) {
+    : ChVehicleCosimBaseNode("RIG"),
+      m_type(type),
+      m_init_vel(init_vel),
+      m_slip(slip),
+      m_dbp_filter(nullptr),
+      m_dbp_filter_window(0.1),
+      m_dbp(0),
+      m_constructed(false) {
     cout << "[Rig node    ] init_vel = " << init_vel << " slip = " << slip << " num_threads = " << num_threads << endl;
 
     // ------------------------
@@ -151,6 +158,7 @@ ChVehicleCosimRigNode::ChVehicleCosimRigNode(Type type, double init_vel, double 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 ChVehicleCosimRigNode::~ChVehicleCosimRigNode() {
+    delete m_dbp_filter;
     delete m_system;
 }
 
@@ -348,6 +356,13 @@ void ChVehicleCosimRigNode::Construct() {
     // ---------------
 
     ConstructTire();
+
+    // ---------------------------------
+    // Create DBP running average filter
+    // ---------------------------------
+
+    int nw = static_cast<int>(std::round(m_dbp_filter_window / m_step_size));
+    m_dbp_filter = new utils::ChRunningAverage(nw);
 
     // ---------------------------------
     // Write file with rig node settings
@@ -713,6 +728,7 @@ void ChVehicleCosimRigNodeFlexibleTire::Advance(double step_size) {
     m_timer.start();
     double t = 0;
     while (t < step_size) {
+        m_dbp = m_dbp_filter->Add(m_lin_actuator->Get_react_force().x());
         m_tire->GetMesh()->ResetCounters();
         m_tire->GetMesh()->ResetTimers();
         double h = std::min<>(m_step_size, step_size - t);
@@ -728,6 +744,7 @@ void ChVehicleCosimRigNodeRigidTire::Advance(double step_size) {
     m_timer.start();
     double t = 0;
     while (t < step_size) {
+        m_dbp = m_dbp_filter->Add(m_lin_actuator->Get_react_force().x());
         double h = std::min<>(m_step_size, step_size - t);
         m_system->DoStepDynamics(h);
         t += h;
@@ -761,6 +778,8 @@ void ChVehicleCosimRigNode::OutputData(int frame) {
         m_outf << rim_vel.x() << del << rim_vel.y() << del << rim_vel.z() << del;
         m_outf << rim_angvel.x() << del << rim_angvel.y() << del << rim_angvel.z() << del;
         m_outf << chassis_pos.x() << del << chassis_pos.y() << del << chassis_pos.z() << del;
+        // Filtered actuator force X component (drawbar pull)
+        m_outf << m_dbp << del;
         // Joint reactions
         m_outf << rfrc_prsm.x() << del << rfrc_prsm.y() << del << rfrc_prsm.z() << del;
         m_outf << rtrq_prsm.x() << del << rtrq_prsm.y() << del << rtrq_prsm.z() << del;

@@ -191,6 +191,7 @@ int main(int argc, char** argv) {
                 auto rig = new ChVehicleCosimRigNodeRigidTire(init_vel, slip, nthreads_rig);
                 rig->SetTireJSONFile(vehicle::GetDataFile("hmmwv/tire/HMMWV_RigidMeshTire_CoarseClosed.json"));
                 rig->SetBodyMasses(1, 1, sys_mass, 15);
+                rig->SetDBPfilterWindow(0.2);
                 node = rig;
                 break;
             }
@@ -199,6 +200,7 @@ int main(int argc, char** argv) {
                 rig->SetTireJSONFile(vehicle::GetDataFile("hmmwv/tire/HMMWV_ANCFTire.json"));
                 rig->SetBodyMasses(1, 1, sys_mass, 15);
                 rig->EnableTirePressure(true);
+                rig->SetDBPfilterWindow(0.2);
                 node = rig;
                 break;
             }
