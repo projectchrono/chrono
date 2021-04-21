@@ -22,8 +22,8 @@
 #ifndef TESTRIG_TERRAINNODE_GRANULAR_OMP_H
 #define TESTRIG_TERRAINNODE_GRANULAR_OMP_H
 
+#include "chrono/utils/ChUtilsSamplers.h"
 #include "chrono_multicore/physics/ChSystemMulticore.h"
-
 #include "chrono_vehicle/cosim/ChVehicleCosimTerrainNode.h"
 
 namespace chrono {
@@ -44,9 +44,8 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularOMP : public ChVehicleCosi
     void SetWallThickness(double thickness);
 
     /// Set properties of granular material.
-    void SetGranularMaterial(double radius,   ///< particle radius (default: 0.01)
-                             double density,  ///< particle material density (default: 2000)
-                             int num_layers   ///< number of generated particle layers (default: 5)
+    void SetGranularMaterial(double radius,  ///< particle radius (default: 0.01)
+                             double density  ///< particle material density (default: 2000)
     );
 
     /// Set the material properties for terrain.
@@ -59,13 +58,21 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularOMP : public ChVehicleCosi
     /// Note that this setting is only relevant when using the SMC method.
     void UseMaterialProperties(bool flag);
 
-    /// Set the normal contact force model (default: Hertz)
+    /// Set the normal contact force model (default: Hertz).
     /// Note that this setting is only relevant when using the SMC method.
     void SetContactForceModel(ChSystemSMC::ContactForceModel model);
-    
-    /// Set the tangential contact displacement model (default: OneStep)
+
+    /// Set the tangential contact displacement model (default: OneStep).
     /// Note that this setting is only relevant when using the SMC method.
     void SetTangentialDisplacementModel(ChSystemSMC::TangentialDisplacementModel model);
+
+    /// Set sampling method for generation of granular material.
+    /// The granular material is created in the volume defined by the x-y dimensions of the terrain patch and the
+    /// specified initial height, using the specified sampling type, layer by layer or all at once.
+    void SetSamplingMethod(utils::SamplingType type,  ///< volume sampling type (default POISSON_DISK)
+                           double init_height,        ///< height of granular material at initialization (default 0.2)
+                           bool in_layers = false     ///< initialize material in layers
+    );
 
     /// Set sweeping sphere radius for proxy bodies (default 5e-3).
     /// This value is used as a "thickness" for collision meshes (a non-zero value can improve robustness of the
@@ -102,11 +109,14 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularOMP : public ChVehicleCosi
 
     double m_radius_p;  ///< radius for a proxy body
 
+    utils::SamplingType m_sampling_type;  ///< sampling method for generation of particles
+    double m_init_depth;                  ///< height of granular maerial initialization volume
+    bool m_in_layers;                     ///< initialize material layer-by-layer (true) or all at once (false)
+
     bool m_use_checkpoint;              ///< initialize granular terrain from checkpoint file
     std::string m_checkpoint_filename;  ///< name of input checkpoint file
 
     int m_Id_g;                    ///< first identifier for granular material bodies
-    int m_num_layers;              ///< number of generated particle layers
     unsigned int m_num_particles;  ///< number of granular material bodies
     double m_radius_g;             ///< radius of one particle of granular material
     double m_rho_g;                ///< particle material density
@@ -139,7 +149,7 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularOMP : public ChVehicleCosi
     virtual void OnOutputData(int frame) override;
     virtual void OnRender(double time) override;
 
-    /// Calculate current height of granular terrain. 
+    /// Calculate current height of granular terrain.
     double CalcCurrentHeight();
 
     void WriteParticleInformation(utils::CSV_writer& csv);

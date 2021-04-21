@@ -33,7 +33,7 @@
 #include "chrono_vehicle/cosim/ChVehicleCosimTerrainNodeGranularGPU.h"
 
 #ifdef CHRONO_OPENGL
-#include "chrono_opengl/ChOpenGLWindow.h"
+    #include "chrono_opengl/ChOpenGLWindow.h"
 #endif
 
 using std::cout;
@@ -44,6 +44,8 @@ namespace vehicle {
 
 ChVehicleCosimTerrainNodeGranularGPU::ChVehicleCosimTerrainNodeGranularGPU()
     : ChVehicleCosimTerrainNode(Type::GRANULAR_GPU, ChContactMethod::SMC),
+      m_sampling_type(utils::SamplingType::POISSON_DISK),
+      m_in_layers(false),
       m_constructed(false),
       m_use_checkpoint(false),
       m_settling_output(false),
@@ -54,7 +56,7 @@ ChVehicleCosimTerrainNodeGranularGPU::ChVehicleCosimTerrainNodeGranularGPU()
     // Default granular material properties
     m_radius_g = 0.01;
     m_rho_g = 2000;
-    m_num_layers = 5;
+    m_init_depth = 0.2;
     m_time_settling = 0.4;
 
     // Default granular system settings
@@ -66,7 +68,6 @@ ChVehicleCosimTerrainNodeGranularGPU::ChVehicleCosimTerrainNodeGranularGPU()
     m_system->Set_G_acc(ChVector<>(0, 0, m_gacc));
 
     // Defer construction of the granular system to Construct
-    //// TODO: why can I not modify parameters AFTER construction?!?
     m_systemGPU = nullptr;
 }
 
@@ -77,10 +78,9 @@ ChVehicleCosimTerrainNodeGranularGPU ::~ChVehicleCosimTerrainNodeGranularGPU() {
 
 // -----------------------------------------------------------------------------
 
-void ChVehicleCosimTerrainNodeGranularGPU::SetGranularMaterial(double radius, double density, int num_layers) {
+void ChVehicleCosimTerrainNodeGranularGPU::SetGranularMaterial(double radius, double density) {
     m_radius_g = radius;
     m_rho_g = density;
-    m_num_layers = num_layers;
 }
 
 ////void ChVehicleCosimTerrainNodeGranularGPU::SetContactForceModel(ChSystemSMC::ContactForceModel model) {
@@ -92,6 +92,14 @@ void ChVehicleCosimTerrainNodeGranularGPU::SetIntegratorType(gpu::CHGPU_TIME_INT
 
 void ChVehicleCosimTerrainNodeGranularGPU::SetTangentialDisplacementModel(gpu::CHGPU_FRICTION_MODE model) {
     m_tangential_model = model;
+}
+
+void ChVehicleCosimTerrainNodeGranularGPU::SetSamplingMethod(utils::SamplingType type,
+                                                             double init_height,
+                                                             bool in_layers) {
+    m_sampling_type = type;
+    m_init_depth = init_height;
+    m_in_layers = in_layers;
 }
 
 void ChVehicleCosimTerrainNodeGranularGPU::SetMaterialSurface(const std::shared_ptr<ChMaterialSurfaceSMC>& mat) {
@@ -119,22 +127,16 @@ void ChVehicleCosimTerrainNodeGranularGPU::Construct() {
     if (m_constructed)
         return;
 
-    // Create granular system here
-    //// TODO: why can I not modify parameters AFTER construction?!?
-    //// TODO: there's an implicit assumption that the origin is at the center of the box!?!
-    //// TODO: why is not ChGranularChronoTriMeshAPI in the chrono::granular namespace?!?
-    //// TODO: what is the point of this "API" wrapper?!?
-    //// TODO: Why can I not specify output mode when I actually do output?!?!
-
     // Calculate domain size
     float separation_factor = 1.2f;
     float r = separation_factor * (float)m_radius_g;
     float delta = 2.0f * r;
     float dimX = 2.0f * (float)m_hdimX;
     float dimY = 2.0f * (float)m_hdimY;
-    float dimZ = (m_num_layers + 1) * delta;
-
+    float dimZ = m_init_depth;
     auto box = make_float3(dimX, dimY, dimZ);
+
+    // Create granular system here
     m_systemGPU = new gpu::ChSystemGpuMesh((float)m_radius_g, (float)m_rho_g, box);
     m_systemGPU->SetGravitationalAcceleration(ChVector<float>(0, 0, (float)m_gacc));
     m_systemGPU->SetTimeIntegrator(m_integrator_type);
@@ -187,18 +189,39 @@ void ChVehicleCosimTerrainNodeGranularGPU::Construct() {
 
         cout << "[Terrain node] read " << checkpoint_filename << "   num. particles = " << m_num_particles << endl;
     } else {
-        // Generate particles in layers using a Poisson disk sampler
-        utils::PDSampler<float> sampler(delta);
-        ChVector<float> hdims(dimX / 2 - r, dimY / 2 - r, 0);
-        ChVector<float> center(0, 0, -dimZ / 2 + delta);
-        for (int il = 0; il < m_num_layers; il++) {
-            auto p = sampler.SampleBox(center, hdims);
-            pos.insert(pos.end(), p.begin(), p.end());
-            center.z() += delta;
+        // Generate particles using the specified volume sampling type
+        utils::Sampler<float>* sampler;
+        switch (m_sampling_type) {
+            case utils::SamplingType::POISSON_DISK:
+                sampler = new utils::PDSampler<float>(delta);
+                break;
+            case utils::SamplingType::HCP_PACK:
+                sampler = new utils::HCPSampler<float>(delta);
+                break;
+            case utils::SamplingType::REGULAR_GRID:
+                sampler = new utils::GridSampler<float>(delta);
+                break;
         }
+
+        if (m_in_layers) {
+            ChVector<float> hdims(dimX / 2 - r, dimY / 2 - r, 0);
+            double z = delta;
+            while (z < m_init_depth) {
+                auto p = sampler->SampleBox(ChVector<>(0, 0, z - dimZ / 2), hdims);
+                pos.insert(pos.end(), p.begin(), p.end());
+                cout << "   z =  " << z << "\tnum particles = " << pos.size() << endl;
+                z += delta;
+            }
+        } else {
+            ChVector<> hdims(m_hdimX - r, m_hdimY - r, m_init_depth / 2 - r);
+            auto p = sampler->SampleBox(ChVector<>(0, 0, 0), hdims);
+            pos.insert(pos.end(), p.begin(), p.end());
+        }
+
         m_systemGPU->SetParticlePositions(pos);
         m_num_particles = (unsigned int)pos.size();
         cout << "[Terrain node] Generated num particles = " << m_num_particles << endl;
+        delete sampler;
     }
 
     m_systemGPU->SetBDFixed(true);
@@ -265,7 +288,6 @@ void ChVehicleCosimTerrainNodeGranularGPU::Construct() {
     outf << "Granular material properties" << endl;
     outf << "   particle radius  = " << m_radius_g << endl;
     outf << "   particle density = " << m_rho_g << endl;
-    outf << "   number layers    = " << m_num_layers << endl;
     outf << "   number particles = " << m_num_particles << endl;
 }
 

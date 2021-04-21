@@ -42,7 +42,7 @@
 #include "chrono_vehicle/cosim/ChVehicleCosimTerrainNodeGranularOMP.h"
 
 #ifdef CHRONO_OPENGL
-#include "chrono_opengl/ChOpenGLWindow.h"
+    #include "chrono_opengl/ChOpenGLWindow.h"
 #endif
 
 using std::cout;
@@ -56,10 +56,12 @@ namespace vehicle {
 // - create the (multicore) Chrono system and set solver parameters
 // - create the OpenGL visualization window
 // -----------------------------------------------------------------------------
-ChVehicleCosimTerrainNodeGranularOMP::ChVehicleCosimTerrainNodeGranularOMP(ChContactMethod method,
-                                                                           int num_threads)
+ChVehicleCosimTerrainNodeGranularOMP::ChVehicleCosimTerrainNodeGranularOMP(ChContactMethod method, int num_threads)
     : ChVehicleCosimTerrainNode(Type::GRANULAR_OMP, method),
       m_radius_p(5e-3),
+      m_sampling_type(utils::SamplingType::POISSON_DISK),
+      m_in_layers(false),
+      m_Id_g(10000),
       m_constructed(false),
       m_use_checkpoint(false),
       m_settling_output(false),
@@ -79,7 +81,7 @@ ChVehicleCosimTerrainNodeGranularOMP::ChVehicleCosimTerrainNodeGranularOMP(ChCon
     // Default granular material properties
     m_radius_g = 0.01;
     m_rho_g = 2000;
-    m_num_layers = 5;
+    m_init_depth = 0.2;
     m_time_settling = 0.4;
 
     // ---------------------------
@@ -141,10 +143,9 @@ void ChVehicleCosimTerrainNodeGranularOMP::SetWallThickness(double thickness) {
     m_hthick = thickness / 2;
 }
 
-void ChVehicleCosimTerrainNodeGranularOMP::SetGranularMaterial(double radius, double density, int num_layers) {
+void ChVehicleCosimTerrainNodeGranularOMP::SetGranularMaterial(double radius, double density) {
     m_radius_g = radius;
     m_rho_g = density;
-    m_num_layers = num_layers;
     m_system->GetSettings()->collision.collision_envelope = 0.1 * radius;
 }
 
@@ -162,6 +163,14 @@ void ChVehicleCosimTerrainNodeGranularOMP::SetTangentialDisplacementModel(
     ChSystemSMC::TangentialDisplacementModel model) {
     assert(m_system->GetContactMethod() == ChContactMethod::SMC);
     m_system->GetSettings()->solver.tangential_displ_mode = model;
+}
+
+void ChVehicleCosimTerrainNodeGranularOMP::SetSamplingMethod(utils::SamplingType type,
+                                                             double init_height,
+                                                             bool in_layers) {
+    m_sampling_type = type;
+    m_init_depth = init_height;
+    m_in_layers = in_layers;
 }
 
 void ChVehicleCosimTerrainNodeGranularOMP::SetMaterialSurface(const std::shared_ptr<ChMaterialSurface>& mat) {
@@ -191,10 +200,10 @@ void ChVehicleCosimTerrainNodeGranularOMP::Construct() {
         return;
 
     // Calculate container (half) height
-    double separation_factor = 1.01;
+    double separation_factor = 1.2;
     double r = separation_factor * m_radius_g;
     double delta = 2.0f * r;
-    double hdimZ = 0.5 * (m_num_layers + 1) * delta;
+    double hdimZ = 0.5 * m_init_depth;
 
     // Estimates for number of bins for broad-phase.
     int factor = 2;
@@ -256,15 +265,20 @@ void ChVehicleCosimTerrainNodeGranularOMP::Construct() {
     m1->setDefaultSize(m_radius_g);
 
     // Set starting value for body identifiers
-    m_Id_g = 10000;
     gen.setBodyIdentifier(m_Id_g);
 
-    // Create particles in layers using a Poisson disk sampler
-    ChVector<> hdims(m_hdimX - r, m_hdimY - r, 0);
-    ChVector<> center(0, 0, delta);
-    for (int il = 0; il < m_num_layers; il++) {
-        gen.createObjectsBox(utils::SamplingType::POISSON_DISK, delta, center, hdims);
-        center.z() += delta;
+    // Create particles using the specified volume sampling type
+    if (m_in_layers) {
+        ChVector<> hdims(m_hdimX - r, m_hdimY - r, 0);
+        double z = delta;
+        while (z < m_init_depth) {
+            gen.createObjectsBox(m_sampling_type, delta, ChVector<>(0, 0, z), hdims);
+            cout << "   z =  " << z << "\tnum particles = " << gen.getTotalNumBodies() << endl;
+            z += delta;
+        }
+    } else {
+        ChVector<> hdims(m_hdimX - r, m_hdimY - r, m_init_depth / 2 - r);
+        gen.createObjectsBox(m_sampling_type, delta, ChVector<>(0, 0, m_init_depth / 2), hdims);
     }
 
     m_num_particles = gen.getTotalNumBodies();
@@ -334,7 +348,7 @@ void ChVehicleCosimTerrainNodeGranularOMP::Construct() {
     if (m_render) {
         opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
         gl_window.Initialize(1280, 720, "Terrain Node (GranularOMP)", m_system);
-        gl_window.SetCamera(ChVector<>(0, -2, 0), ChVector<>(0, 0, 0), ChVector<>(0, 0, 1), 0.05f);
+        gl_window.SetCamera(ChVector<>(0, -3, 0), ChVector<>(0, 0, 0), ChVector<>(0, 0, 1), 0.05f);
         gl_window.SetRenderMode(opengl::WIREFRAME);
     }
 #endif
@@ -376,7 +390,6 @@ void ChVehicleCosimTerrainNodeGranularOMP::Construct() {
     outf << "Granular material properties" << endl;
     outf << "   particle radius  = " << m_radius_g << endl;
     outf << "   particle density = " << m_rho_g << endl;
-    outf << "   number layers    = " << m_num_layers << endl;
     outf << "   number particles = " << m_num_particles << endl;
     outf << "Proxy body properties" << endl;
     outf << "   proxies fixed? " << (m_fixed_proxies ? "YES" : "NO") << endl;

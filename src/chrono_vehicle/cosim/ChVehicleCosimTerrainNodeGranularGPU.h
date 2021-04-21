@@ -23,6 +23,7 @@
 #define TESTRIG_TERRAINNODE_GRANULAR_GPU_H
 
 #include "chrono/physics/ChSystemSMC.h"
+#include "chrono/utils/ChUtilsSamplers.h"
 #include "chrono_gpu/physics/ChSystemGpu.h"
 #include "chrono_vehicle/cosim/ChVehicleCosimTerrainNode.h"
 
@@ -39,9 +40,8 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularGPU : public ChVehicleCosi
     virtual ChSystem* GetSystem() override { return m_system; }
 
     /// Set properties of granular material.
-    void SetGranularMaterial(double radius,   ///< particle radius (default: 0.01)
-                             double density,  ///< particle material density (default: 2000)
-                             int num_layers   ///< number of generated particle layers (default: 5)
+    void SetGranularMaterial(double radius,  ///< particle radius (default: 0.01)
+                             double density  ///< particle material density (default: 2000)
     );
 
     /// Set the material properties for terrain.
@@ -49,11 +49,19 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularGPU : public ChVehicleCosi
     /// Tire contact material is received from the rig node.
     void SetMaterialSurface(const std::shared_ptr<ChMaterialSurfaceSMC>& mat);
 
-    /// Set the normal contact force model (default: Hertz)
+    /// Set the normal contact force model (default: Hertz).
     ////void SetContactForceModel(ChSystemSMC::ContactForceModel model);
 
-    /// Set the tangential contact displacement model (default: SINGLE_STEP)
+    /// Set the tangential contact displacement model (default: SINGLE_STEP).
     void SetTangentialDisplacementModel(gpu::CHGPU_FRICTION_MODE model);
+
+    /// Set sampling method for generation of granular material.
+    /// The granular material is created in the volume defined by the x-y dimensions of the terrain patch and the
+    /// specified initial height, using the specified sampling type, layer by layer or all at once.
+    void SetSamplingMethod(utils::SamplingType type,  ///< volume sampling type (default POISSON_DISK)
+                           double init_height,        ///< height of granular material at initialization (default 0.2)
+                           bool in_layers = false     ///< initialize material in layers
+    );
 
     /// Set the integrator type (default: CENTERED_DIFFERENCE)
     void SetIntegratorType(gpu::CHGPU_TIME_INTEGRATOR type);
@@ -87,6 +95,10 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularGPU : public ChVehicleCosi
 
     gpu::CHGPU_TIME_INTEGRATOR m_integrator_type;
     gpu::CHGPU_FRICTION_MODE m_tangential_model;
+
+    utils::SamplingType m_sampling_type;  ///< sampling method for generation of particles
+    double m_init_depth;                  ///< height of granular maerial initialization volume
+    bool m_in_layers;                     ///< initialize material layer-by-layer (true) or all at once (false)
 
     bool m_use_checkpoint;              ///< initialize granular terrain from checkpoint file
     std::string m_checkpoint_filename;  ///< name of input checkpoint file
