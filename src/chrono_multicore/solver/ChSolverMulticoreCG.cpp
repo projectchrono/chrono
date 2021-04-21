@@ -35,7 +35,7 @@ uint ChSolverMulticoreCG::Solve(ChShurProduct& ShurProduct,
     q.resize(b.size());
     s.resize(b.size());
 
-    real rho_old = FLT_MAX;
+    real rho_old = C_LARGE_REAL;
     real convergence_norm = 0;
     real tolerance = 1e-4;  // Max(1e-4 * Convergence_Norm(b), 1e-6);
     uint min_iterations = 0;
@@ -71,7 +71,7 @@ uint ChSolverMulticoreCG::Solve(ChShurProduct& ShurProduct,
         ShurProduct(s, q);
         // Project(r.data());
         real s_dot_q = (s, q);
-        real alpha = s_dot_q ? rho / s_dot_q : (real)FLT_MAX;
+        real alpha = s_dot_q ? rho / s_dot_q : C_LARGE_REAL;
         x = alpha * s + x;
         r = -alpha * q + r;
         rho_old = rho;

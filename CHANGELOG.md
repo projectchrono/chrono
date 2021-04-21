@@ -9,7 +9,7 @@ Change Log
   - [Miscellaneous fixes to Chrono::Vehicle API](#changed-miscellaneous-fixes-to-chronovehicle-api)
   - [New tracked vehicle model](#added-new-tracked-vehicle-model)
   - [Support for Z up camera in Chrono::Irrlicht](#changed-support-for-z-up-camera-in-chronoirrlicht)
-  - [Specifying collision meshes in Chrono::Gpu](#changed-specifying-collision-meshes-in-chronogpu)
+  - [Reading and writing collision meshes in Chrono::Gpu](#changed-reading-and-writing-collision-meshes-in-chronogpu)
 - [Release 6.0.0](#release-600---2021-02-10) 
   - [New Chrono::Csharp module](#added-new-chronocsharp-module)
   - [RoboSimian, Viper, and LittleHexy models](#added-robosimian-viper-and-littlehexy-models)
@@ -103,7 +103,7 @@ Rotating with the left mouse button and panning with the arrow and PageUp/PageDw
 
 This API change also eliminates classes with only static methods (ChIrrTools and ChIrrWizard), replacing them with free functions in the `chrono::irrlicht::tools` namespace.  See the various Chrono demos for required changes to user code.
 
-### [Changed] Specifying collision meshes in Chrono::Gpu
+### [Changed] Reading and writing collision meshes in Chrono::Gpu
 
 The mechanism for specifying collision meshes in a `ChSystemGpuMesh` was changed to allow adding meshes in a sequential manner, at any point and as many times as desired, prior to invoking `ChSystemGpuMesh::Initialize()`. Various different functions are provided for adding a mesh from memory:
 ```cpp
@@ -126,6 +126,19 @@ or adding multiple meshes from a list of Wavefront OBJ files:
 ```
 
 All meshes such specified are offloaded to the GPU upon calling `ChSystemGpuMesh::Initialize()`.  Note that these functions return an integral mesh identifier which can be used in subsequent function calls (e.g., `ChSystemGpuMesh::ApplyMeshMotion()`) to identify a particular mesh.
+
+The Wavefront OBJ file format requirement is changed. The nodal normal information of the meshes, a.k.a. the `vn` lines, are no longer needed by default. The meshes are still directional in contact force calculation, and the normal directions are now implicitly determined by orderings of facet nodes, using the Right-Hand Rule (RHR).
+
+This should not impact the usage of meshes, since for a properly generated OBJ mesh, the orderings of nodes are in line with the outward normals. The users can however, restore the old behavior by calling `ChSystemGpuMesh::UseMeshNormals(true)` before `ChSystemGpuMesh::Initialize()`. If it is called, Chrono::Gpu module will try to rearrange the orderings of facet nodes so that the RHR normals agree with the normals given by the corresponding `vn` lines. 
+
+Chrono::Gpu module now outputs VTK meshes correctly by writing to files the nodal coordinates and connectivities, instead of triangle soups. It also no longer appends `_mesh` to the output filenames. Users can still write all meshes to a single file by 
+```cpp
+    void WriteMeshes(const std::string& outfilename) const;
+```
+or write a particular mesh to a file by
+```cpp
+    void WriteMesh(const std::string& outfilename, unsigned int i) const;
+```
 
 ## Release 6.0.0 - 2021-02-10
 

@@ -20,7 +20,7 @@
 //          |  sphere   box   rbox   capsule   cylinder   rcyl   trimesh
 // ---------+----------------------------------------------------------
 // sphere   |    Y       Y      Y       Y         Y        Y        Y
-// box      |           WIP     N       Y         N        N        N
+// box      |            Y      N       Y         N        N        N
 // rbox     |                   N       N         N        N        N
 // capsule  |                           Y         N        N        N
 // cylinder |                                     N        N        N
@@ -124,17 +124,17 @@ bool roundedbox_sphere(const real3& pos1,
                        real& eff_radius);
 
 /// Analytical triangle face vs. sphere collision function.
-bool face_sphere(const real3& A1,
-                 const real3& B1,
-                 const real3& C1,
-                 const real3& pos2,
-                 const real& radius2,
-                 const real& separation,
-                 real3& norm,
-                 real& depth,
-                 real3& pt1,
-                 real3& pt2,
-                 real& eff_radius);
+bool triangle_sphere(const real3& A1,
+                     const real3& B1,
+                     const real3& C1,
+                     const real3& pos2,
+                     const real& radius2,
+                     const real& separation,
+                     real3& norm,
+                     real& depth,
+                     real3& pt1,
+                     real3& pt2,
+                     real& eff_radius);
 
 /// Analytical capsule vs. capsule collision function.
 int capsule_capsule(const real3& pos1,
@@ -182,13 +182,14 @@ int box_cylshell(const real3& pos1,
                  real3* pt2,
                  real* eff_radius);
 
-/// Analytical box vs. box collision function (not yet completed).
+/// Analytical box vs. box collision function.
 int box_box(const real3& pos1,
             const quaternion& rot1,
             const real3& hdims1,
             const real3& pos2,
             const quaternion& rot2,
             const real3& hdims2,
+            const real& separation,
             real3* norm,
             real* depth,
             real3* pt1,
@@ -206,7 +207,7 @@ bool RCollision(const ConvexBase* shapeA,  ///< first candidate shape
                 real* ct_depth,            ///< [output] penetration depth (per contact pair)
                 real* ct_eff_rad,          ///< [output] effective contact radius (per contact pair)
                 int& nC                    ///< [output] number of contacts found
-                );
+);
 
 /// Set the fictitious radius of curvature used for collision with a corner or an edge.
 CH_MULTICORE_API
@@ -218,5 +219,5 @@ real GetDefaultEdgeRadius();
 
 /// @} multicore_colision
 
-} // end namespace collision
-} // end namespace chrono
+}  // end namespace collision
+}  // end namespace chrono

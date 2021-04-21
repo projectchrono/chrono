@@ -30,10 +30,10 @@ namespace sedan {
 // Static variables
 // -----------------------------------------------------------------------------
 
-const double Sedan_Wheel::m_mass = 11.0;
+const double Sedan_Wheel::m_mass = 13.2;
 const ChVector<> Sedan_Wheel::m_inertia(0.100, 0.100, 0.100);
 
-const double Sedan_Wheel::m_radius = 0.3365;
+const double Sedan_Wheel::m_radius = 0.2286;
 const double Sedan_Wheel::m_width = 0.205;
 
 // -----------------------------------------------------------------------------

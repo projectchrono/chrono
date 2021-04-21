@@ -509,12 +509,14 @@ class ChApi ChTimestepperNewmark : public ChTimestepperIIorder, public ChImplici
     ChVectorDynamic<> R;
     ChVectorDynamic<> Rold;
     ChVectorDynamic<> Qc;
+    bool modified_Newton;
 
   public:
     /// Constructors (default empty)
     ChTimestepperNewmark(ChIntegrableIIorder* intgr = nullptr)
         : ChTimestepperIIorder(intgr), ChImplicitIterativeTimestepper() {
         SetGammaBeta(0.6, 0.3);  // default values with some damping, and that works also with DAE constraints
+        modified_Newton = true; // default use modified Newton with jacobian factorization only at beginning
     }
 
     virtual Type GetType() const override { return Type::NEWMARK; }
@@ -532,6 +534,12 @@ class ChApi ChTimestepperNewmark : public ChTimestepperIIorder, public ChImplici
     double GetGamma() { return gamma; }
 
     double GetBeta() { return beta; }
+
+    /// Enable/disable modified Newton.
+    /// If enabled, the Newton matrix is evaluated, assembled, and factorized only once per step.
+    /// If disabled, the Newton matrix is evaluated at every iteration of the nonlinear solver.
+    /// Modified Newton iteration is enabled by default.
+    void SetModifiedNewton(bool val) { modified_Newton = val; }
 
     /// Performs an integration timestep
     virtual void Advance(const double dt  ///< timestep to advance
