@@ -309,6 +309,7 @@ int main(int argc, char** argv) {
 
                 terrain->SetGranularMaterial(radius, 2500);
                 terrain->SetSamplingMethod(utils::SamplingType::POISSON_DISK, 0.5, true);
+                ////terrain->SetSamplingMethod(utils::SamplingType::HCP_PACK, 0.5, false);
 
                 switch (method) {
                     case ChContactMethod::SMC: {
@@ -372,6 +373,7 @@ int main(int argc, char** argv) {
                 terrain->SetGranularMaterial(radius, 2500);
                 terrain->SetTangentialDisplacementModel(gpu::CHGPU_FRICTION_MODE::MULTI_STEP);
                 terrain->SetSamplingMethod(utils::SamplingType::POISSON_DISK, 0.5, true);
+                ////terrain->SetSamplingMethod(utils::SamplingType::HCP_PACK, 0.5, false);
 
                 auto material = chrono_types::make_shared<ChMaterialSurfaceSMC>();
                 material->SetFriction(0.9f);

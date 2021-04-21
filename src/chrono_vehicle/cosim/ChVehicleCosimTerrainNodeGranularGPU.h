@@ -58,6 +58,7 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularGPU : public ChVehicleCosi
     /// Set sampling method for generation of granular material.
     /// The granular material is created in the volume defined by the x-y dimensions of the terrain patch and the
     /// specified initial height, using the specified sampling type, layer by layer or all at once.
+    /// Note: for correct HCP, do not initialize in layers!
     void SetSamplingMethod(utils::SamplingType type,  ///< volume sampling type (default POISSON_DISK)
                            double init_height,        ///< height of granular material at initialization (default 0.2)
                            bool in_layers = false     ///< initialize material in layers
@@ -87,6 +88,10 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularGPU : public ChVehicleCosi
 
     /// Write checkpoint to the specified file (which will be created in the output directory).
     virtual void WriteCheckpoint(const std::string& filename) const override;
+
+    /// Estimate packing density (eta) of granular material in current configuration.
+    /// Note that porosity is phi=1-eta and void ratio is e=(1-eta)/eta=phi/(1-phi).
+    double CalculatePackingDensity();
 
   private:
     ChSystemSMC* m_system;              ///< system for proxy bodies

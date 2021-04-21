@@ -418,6 +418,9 @@ void ChVehicleCosimTerrainNodeGranularOMP::Construct() {
 void ChVehicleCosimTerrainNodeGranularOMP::Settle() {
     Construct();
 
+    // Packing density at initial configuration
+    double eta0 = CalculatePackingDensity();
+
     // Simulate settling of granular terrain
     int sim_steps = (int)std::ceil(m_time_settling / m_step_size);
     int output_steps = (int)std::ceil(1 / (m_settling_fps * m_step_size));
@@ -459,6 +462,10 @@ void ChVehicleCosimTerrainNodeGranularOMP::Settle() {
     // Find "height" of granular material after settling
     m_init_height = CalcCurrentHeight() + m_radius_g;
     cout << "[Terrain node] initial height = " << m_init_height << endl;
+
+    // Packing density after settling
+    double eta1 = CalculatePackingDensity();
+    cout << "[Terrain node] packing density before and after settling: " << eta0 << " -> " << eta1 << endl;
 }
 
 // -----------------------------------------------------------------------------
@@ -470,6 +477,24 @@ double ChVehicleCosimTerrainNodeGranularOMP::CalcCurrentHeight() {
             height = body->GetPos().z();
     }
     return height;
+}
+
+//// TODO: Consider looking only at particles below a certain fraction of the
+//// height of the highest particle.  This would eliminate errors in estimating
+//// the total volume stemming from a "non-smooth" top surface or stray particles.
+double ChVehicleCosimTerrainNodeGranularOMP::CalculatePackingDensity() {
+    // Find height of granular material
+    double z_max = CalcCurrentHeight();
+    double z_min = 0;
+
+    // Find total volume of granular material
+    double Vt = (2 * m_hdimX) * (2 * m_hdimY) * (z_max - z_min);
+
+    // Find volume of granular particles
+    double Vs = m_num_particles * (4.0 / 3) * CH_C_PI * std::pow(m_radius_g, 3);
+
+    // Packing density = Vs/Vt
+    return Vs / Vt;
 }
 
 // -----------------------------------------------------------------------------
