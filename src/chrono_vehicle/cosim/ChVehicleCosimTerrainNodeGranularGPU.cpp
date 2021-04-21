@@ -192,6 +192,7 @@ void ChVehicleCosimTerrainNodeGranularGPU::Construct() {
         // Generate particles using the specified volume sampling type
         utils::Sampler<float>* sampler;
         switch (m_sampling_type) {
+            default:
             case utils::SamplingType::POISSON_DISK:
                 sampler = new utils::PDSampler<float>(delta);
                 break;
@@ -221,6 +222,7 @@ void ChVehicleCosimTerrainNodeGranularGPU::Construct() {
         m_systemGPU->SetParticlePositions(pos);
         m_num_particles = (unsigned int)pos.size();
         cout << "[Terrain node] Generated num particles = " << m_num_particles << endl;
+
         delete sampler;
     }
 

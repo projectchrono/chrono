@@ -268,17 +268,31 @@ void ChVehicleCosimTerrainNodeGranularOMP::Construct() {
     gen.setBodyIdentifier(m_Id_g);
 
     // Create particles using the specified volume sampling type
+    utils::Sampler<double>* sampler;
+    switch (m_sampling_type) {
+        default:
+        case utils::SamplingType::POISSON_DISK:
+            sampler = new utils::PDSampler<double>(delta);
+            break;
+        case utils::SamplingType::HCP_PACK:
+            sampler = new utils::HCPSampler<double>(delta);
+            break;
+        case utils::SamplingType::REGULAR_GRID:
+            sampler = new utils::GridSampler<double>(delta);
+            break;
+    }
+
     if (m_in_layers) {
         ChVector<> hdims(m_hdimX - r, m_hdimY - r, 0);
         double z = delta;
         while (z < m_init_depth) {
-            gen.createObjectsBox(m_sampling_type, delta, ChVector<>(0, 0, z), hdims);
+            gen.CreateObjectsBox(*sampler, ChVector<>(0, 0, z), hdims);
             cout << "   z =  " << z << "\tnum particles = " << gen.getTotalNumBodies() << endl;
             z += delta;
         }
     } else {
         ChVector<> hdims(m_hdimX - r, m_hdimY - r, m_init_depth / 2 - r);
-        gen.createObjectsBox(m_sampling_type, delta, ChVector<>(0, 0, m_init_depth / 2), hdims);
+        gen.CreateObjectsBox(*sampler, ChVector<>(0, 0, m_init_depth / 2), hdims);
     }
 
     m_num_particles = gen.getTotalNumBodies();
