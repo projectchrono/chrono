@@ -51,9 +51,6 @@ using namespace chrono::vehicle;
 
 // =============================================================================
 
-// Cosimulation step size
-double step_size = 1e-4;  // 1e-3;
-
 // Output frequency (frames per second)
 double output_fps = 100;
 
@@ -63,17 +60,16 @@ double render_fps = 100;
 // Tire type
 ChVehicleCosimRigNode::Type tire_type = ChVehicleCosimRigNode::Type::RIGID;
 
-// Terrain type
-ChVehicleCosimTerrainNode::Type terrain_type = ChVehicleCosimTerrainNode::Type::SCM;
-
 // =============================================================================
 
 // Forward declarations
 bool GetProblemSpecs(int argc,
                      char** argv,
                      int rank,
+                     ChVehicleCosimTerrainNode::Type& terrain_type,
                      int& nthreads_rig,
                      int& nthreads_terrain,
+                     double& step_size,
                      double& sim_time,
                      double& init_vel,
                      double& slip,
@@ -93,7 +89,7 @@ int main(int argc, char** argv) {
     int name_len;
     char procname[MPI_MAX_PROCESSOR_NAME];
 
-    /*auto err =*/MPI_Init(&argc, &argv);
+    MPI_Init(&argc, &argv);
     MPI_Comm_size(MPI_COMM_WORLD, &num_procs);
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     MPI_Get_processor_name(procname, &name_len);
@@ -111,6 +107,26 @@ int main(int argc, char** argv) {
         if (rank == 0)
             std::cout << "\n\nSingle wheel cosimulation code must be run on exactly 2 ranks!\n\n" << std::endl;
         MPI_Abort(MPI_COMM_WORLD, 1);
+        return 1;
+    }
+
+    // Parse command line arguments
+    ChVehicleCosimTerrainNode::Type terrain_type = ChVehicleCosimTerrainNode::Type::RIGID;
+    int nthreads_rig = 1;
+    int nthreads_terrain = 1;
+    double step_size = 1e-4;  // 1e-3
+    double sim_time = 10;
+    double init_vel = 0.5;
+    double slip = 0;
+    double coh_pressure = 0;  // 8e4;
+    bool use_checkpoint = false;
+    bool output = true;
+    bool render = true;
+    double sys_mass = 200;
+    std::string suffix = "";
+    if (!GetProblemSpecs(argc, argv, rank, terrain_type, nthreads_rig, nthreads_terrain, step_size, sim_time, init_vel,
+                         slip, coh_pressure, sys_mass, use_checkpoint, output, render, suffix)) {
+        MPI_Finalize();
         return 1;
     }
 
@@ -140,24 +156,6 @@ int main(int argc, char** argv) {
         return 1;
     }
 #endif
-
-    // Parse command line arguments
-    int nthreads_rig = 1;
-    int nthreads_terrain = 1;
-    double sim_time = 10;
-    double init_vel = 0.5;
-    double slip = 0;
-    double coh_pressure = 0;  // 8e4;
-    bool use_checkpoint = false;
-    bool output = true;
-    bool render = true;
-    double sys_mass = 200;
-    std::string suffix = "";
-    if (!GetProblemSpecs(argc, argv, rank, nthreads_rig, nthreads_terrain, sim_time, init_vel, slip, coh_pressure,
-                         sys_mass, use_checkpoint, output, render, suffix)) {
-        MPI_Finalize();
-        return 1;
-    }
 
     // Prepare output directory.
     std::string out_dir_top = GetChronoOutputPath() + "RIG_COSIM";
@@ -291,7 +289,7 @@ int main(int argc, char** argv) {
 
             case ChVehicleCosimTerrainNode::Type::GRANULAR_OMP: {
 #ifdef CHRONO_MULTICORE
-                auto method = ChContactMethod::NSC;
+                auto method = ChContactMethod::SMC;
                 auto terrain = new ChVehicleCosimTerrainNodeGranularOMP(method, nthreads_terrain);
                 terrain->SetStepSize(step_size);
                 terrain->SetOutDir(out_dir, suffix);
@@ -309,7 +307,8 @@ int main(int argc, char** argv) {
                 double radius = 0.02;
                 double coh_force = CH_C_PI * radius * radius * coh_pressure;
 
-                terrain->SetGranularMaterial(radius, 2500, 8);
+                terrain->SetGranularMaterial(radius, 2500);
+                terrain->SetSamplingMethod(utils::SamplingType::POISSON_DISK, 0.5, true);
 
                 switch (method) {
                     case ChContactMethod::SMC: {
@@ -319,13 +318,14 @@ int main(int argc, char** argv) {
                         material->SetYoungModulus(8e5f);
                         material->SetPoissonRatio(0.3f);
                         material->SetAdhesion(static_cast<float>(coh_force));
-                        material->SetKn(1.0e6f);
-                        material->SetGn(6.0e1f);
-                        material->SetKt(4.0e5f);
-                        material->SetGt(4.0e1f);
+                        material->SetKn(1.0e7f);
+                        material->SetGn(1.0e4f);
+                        material->SetKt(1.0e7f);
+                        material->SetGt(1.0e4f);
                         terrain->SetMaterialSurface(material);
-                        terrain->UseMaterialProperties(false);
-                        terrain->SetContactForceModel(ChSystemSMC::PlainCoulomb);
+                        terrain->UseMaterialProperties(true);
+                        terrain->SetContactForceModel(ChSystemSMC::Hertz);
+                        terrain->SetTangentialDisplacementModel(ChSystemSMC::TangentialDisplacementModel::MultiStep);
                         break;
                     }
                     case ChContactMethod::NSC: {
@@ -341,7 +341,7 @@ int main(int argc, char** argv) {
                 if (use_checkpoint) {
                     terrain->SetInputFromCheckpoint("checkpoint_settled.dat");
                 } else {
-                    terrain->SetSettlingTime(0.2);
+                    terrain->SetSettlingTime(0.4);
                     terrain->EnableSettlingOutput(false, output_fps);
                     terrain->Settle();
                     terrain->WriteCheckpoint("checkpoint_settled.dat");
@@ -369,8 +369,9 @@ int main(int argc, char** argv) {
                 double radius = 0.02;
                 double coh_force = CH_C_PI * radius * radius * coh_pressure;
 
-                terrain->SetGranularMaterial(radius, 2500, 12);
+                terrain->SetGranularMaterial(radius, 2500);
                 terrain->SetTangentialDisplacementModel(gpu::CHGPU_FRICTION_MODE::MULTI_STEP);
+                terrain->SetSamplingMethod(utils::SamplingType::POISSON_DISK, 0.5, true);
 
                 auto material = chrono_types::make_shared<ChMaterialSurfaceSMC>();
                 material->SetFriction(0.9f);
@@ -469,8 +470,10 @@ int main(int argc, char** argv) {
 bool GetProblemSpecs(int argc,
                      char** argv,
                      int rank,
+                     ChVehicleCosimTerrainNode::Type& terrain_type,
                      int& nthreads_rig,
                      int& nthreads_terrain,
+                     double& step_size,
                      double& sim_time,
                      double& init_vel,
                      double& slip,
@@ -482,7 +485,10 @@ bool GetProblemSpecs(int argc,
                      std::string& suffix) {
     ChCLI cli(argv[0]);
 
-    cli.AddOption<double>("Demo", "sim_time", "Simulation length after robot release [s]", std::to_string(sim_time));
+    cli.AddOption<int>("Demo", "terrain_type", "0: RIGID, 1: SCM, 2: GRAN_OMP, 3: GRAN_GPU, 4: GRAN_SPH", "0");
+
+    cli.AddOption<double>("Demo", "sim_time", "Simulation length after settling phase [s]", std::to_string(sim_time));
+    cli.AddOption<double>("Demo", "step_size", "Integration step size [s]", std::to_string(step_size));
 
     cli.AddOption<double>("Demo", "init_vel", "Initial tire linear velocity [m/s]", std::to_string(init_vel));
     cli.AddOption<double>("Demo", "slip", "Longitudinal slip", std::to_string(slip));
@@ -506,7 +512,29 @@ bool GetProblemSpecs(int argc,
         return false;
     }
 
+    switch (cli.GetAsType<int>("terrain_type")) {
+        case 0:
+            terrain_type = ChVehicleCosimTerrainNode::Type::RIGID;
+            break;
+        case 1:
+            terrain_type = ChVehicleCosimTerrainNode::Type::SCM;
+            break;
+        case 2:
+            terrain_type = ChVehicleCosimTerrainNode::Type::GRANULAR_OMP;
+            break;
+        case 3:
+            terrain_type = ChVehicleCosimTerrainNode::Type::GRANULAR_GPU;
+            break;
+        case 4:
+            terrain_type = ChVehicleCosimTerrainNode::Type::GRANULAR_SPH;
+            break;
+        case 5:
+            terrain_type = ChVehicleCosimTerrainNode::Type::GRANULAR_MPI;
+            break;
+    }
+
     sim_time = cli.GetAsType<double>("sim_time");
+    step_size = cli.GetAsType<double>("step_size");
 
     init_vel = cli.GetAsType<double>("init_vel");
     slip = cli.GetAsType<double>("slip");
