@@ -237,7 +237,7 @@ void SynChronoManager::CreateAgentsFromDescriptions() {
                 }
                 it = messages.erase(it);
 
-            } catch (ChException err) {
+            } catch (ChException& err) {
                 ++it;
             }
         }

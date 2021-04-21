@@ -342,6 +342,8 @@ set(CVM_SEDAN_FILES
     sedan/Sedan_Vehicle.cpp
     sedan/Sedan_Wheel.cpp
     sedan/Sedan_Wheel.h
+    sedan/Sedan_AIDriver.cpp
+    sedan/Sedan_AIDriver.h
 )
 source_group("sedan" FILES ${CVM_SEDAN_FILES})
 
