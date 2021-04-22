@@ -65,7 +65,6 @@ class CH_GPU_API ChSystemGpu {
 
     /// Set particle contact friction history from a file.
     void ReadContactHistoryFile(const std::string& infilename);
-    void ReadContactHerstoryFile(const std::string& infilename) { ReadContactHistoryFile(infilename); }
 
     // Read in a (Chrono::Gpu generated) checkpoint file to restart a simulation.
     void ReadCheckpointFile(const std::string& infilename, bool overwrite = false);
@@ -248,11 +247,9 @@ class CH_GPU_API ChSystemGpu {
 
     /// Write particle positions according to the system output mode.
     void WriteParticleFile(const std::string& outfilename) const;
-    void WriteFile(const std::string& outfilename) const { WriteParticleFile(outfilename); }
 
     /// Write contact pair history to a file.
     void WriteContactHistoryFile(const std::string& outfilename) const;
-    void WriteContactHerstoryFile(const std::string& outfilename) const { WriteContactHistoryFile(outfilename); }
 
     /// Write contact force and torque to a file.
     void WriteContactInfoFile(const std::string& outfilename) const;
@@ -274,16 +271,16 @@ class CH_GPU_API ChSystemGpu {
     /// Methods that read history info from a file serve as its wrapper.
     void ReadHstHistory(std::ifstream& ifile, unsigned int totItem = UINT_MAX);
 
-    // Give a string identifier, set the corresponding simulation parameter, using a switch statement.
-    // ReadDatParams() is its wrapper.
-    // It must be virtual, because derived classes also use it (and may call it from a inherited method), and read some
-    // more data (thus built on top of it). We must ensure those derived classes call the correct version of it.
+    /// Give a string identifier, set the corresponding simulation parameter, using a switch statement.
+    /// ReadDatParams() is its wrapper.
+    /// It must be virtual, because derived classes also use it (and may call it from a inherited method), and read some
+    /// more data (thus built on top of it). We must ensure those derived classes call the correct version of it.
     virtual bool SetParamsFromIdentifier(const std::string& identifier, std::istringstream& iss1, bool overwrite);
 
-    // Set simulation params from a DAT checkpoint file stream. Returns the number of particles.
-    // If instructed to overwrite, then overwrite current simulation parameters with the values in the checkpoint file;
-    // else, when an inconsistency is found, throw an error.
-    // ReadCheckpointFile() is its wrapper.
+    /// Set simulation params from a DAT checkpoint file stream. Returns the number of particles.
+    /// If instructed to overwrite, then overwrite current simulation parameters with the values in the checkpoint file;
+    /// else, when an inconsistency is found, throw an error.
+    /// ReadCheckpointFile() is its wrapper.
     unsigned int ReadDatParams(std::ifstream& ifile, bool overwrite);
 
     /// Write simulation params to a stream. WriteCheckpointFile() is its wrapper.

@@ -82,7 +82,7 @@ int main(int argc, char* argv[]) {
     // padding in sampler
     float fill_epsilon = 2.02f;
     // padding at top of fill
-    float drop_height = 0.f;
+    ////float drop_height = 0.f;
     float spacing = fill_epsilon * params.sphere_radius;
     chrono::utils::PDSampler<float> sampler(spacing);
 
@@ -99,7 +99,7 @@ int main(int argc, char* argv[]) {
     float fill_bottom = bottom_z + spacing;
     float fill_width = 5.f;
     float fill_height = 2.f * fill_width;
-    float fill_top = fill_bottom + fill_height;
+    ////float fill_top = fill_bottom + fill_height;
 
     ChVector<float> center(0.f, 0.f, fill_bottom + fill_height / 2.f);
     material_points = sampler.SampleCylinderZ(center, fill_width, fill_height / 2.f);
@@ -146,7 +146,7 @@ int main(int argc, char* argv[]) {
     // write an initial frame
     char filename[100];
     sprintf(filename, "%s/step%06d", out_dir.c_str(), currframe);
-    gpu_sys.WriteFile(std::string(filename));
+    gpu_sys.WriteParticleFile(std::string(filename));
 
     char contactFilename[100];
     sprintf(contactFilename, "%s/contact%06d", out_dir.c_str(), currframe);
@@ -163,7 +163,7 @@ int main(int argc, char* argv[]) {
 
         printf("Output frame %u of %u\n", currframe, total_frames);
         sprintf(filename, "%s/step%06d", out_dir.c_str(), currframe);
-        gpu_sys.WriteFile(std::string(filename));
+        gpu_sys.WriteParticleFile(std::string(filename));
 
         char contactFilename[100];
         sprintf(contactFilename, "%s/contact%06d", out_dir.c_str(), currframe);

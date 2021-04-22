@@ -439,13 +439,7 @@ void ChSystemGpu_impl::WriteContactInfoFile(const std::string& outfilename) cons
         // write contact info as an csv style in the following format
         // body i, body j, n_mag, fx, fy, fz, mx, my, mz
 
-        std::string ofile;
-        if (outfilename.substr(outfilename.length() - std::min(outfilename.length(), (size_t)4)) != ".csv" &&
-            outfilename.substr(outfilename.length() - std::min(outfilename.length(), (size_t)4)) != ".CSV")
-            ofile = outfilename + ".csv";
-        else
-            ofile = outfilename;
-        std::ofstream ptFile(ofile, std::ios::out);
+        std::ofstream ptFile(outfilename, std::ios::out);
         // Dump to a stream, write to file only at end
         std::ostringstream outstrstream;
         outstrstream << "bi, bj, n_mag";

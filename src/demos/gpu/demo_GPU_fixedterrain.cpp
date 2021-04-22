@@ -161,7 +161,7 @@ int main(int argc, char* argv[]) {
         std::cout << "Rendering frame " << (currframe + 1) << " of " << total_frames << std::endl;
         char filename[100];
         sprintf(filename, "%s/step%06d", out_dir.c_str(), currframe);
-        gpu_sys.WriteFile(std::string(filename));
+        gpu_sys.WriteParticleFile(std::string(filename));
 
         gpu_sys.AdvanceSimulation((float)frame_step);
     }
