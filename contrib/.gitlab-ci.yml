@@ -81,8 +81,8 @@ linux:doxygen:deploy:
     - chmod 0700 ~/.ssh
 # This private key is only useable from specific IPs, so it should be okay to
 # be included here.
-    - cp $API_PRIVATE_KEY ~/.ssh/id_rsa
-    - chmod 0600 ~/.ssh/id_rsa
+    - cp $API_PRIVATE_KEY ~/.ssh/id_ed25519
+    - chmod 0600 ~/.ssh/id_ed25519
 # Remove any duplicate host key entries, if necessary
     - if test -f ~/.ssh/known_hosts; then ssh-keygen -R $API_REINDEX_ENDPOINT; fi
 # Cache a verified host pubkey from file to avoid MITM attacks
