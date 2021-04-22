@@ -524,28 +524,30 @@ class HCPSampler : public Sampler<T> {
     virtual PointVector Sample(VolumeType t) override {
         PointVector out_points;
 
-        ChVector<T> bl = this->m_center - this->m_size;
+        ChVector<T> bl = this->m_center - this->m_size;  // start corner of sampling domain
 
-        T cos30 = sqrt((T)3) / 2;
-        int nx = (int)(2 * this->m_size.x() / (this->m_separation)) + 1;
-        int ny = (int)(2 * this->m_size.y() / (cos30 * this->m_separation)) + 1;
-        int nz = (int)(2 * this->m_size.z() / (cos30 * this->m_separation)) + 1;
-        T offset_x = 0, offset_y = 0;
+        T dx = this->m_separation;                              // distance between two points in X direction
+        T dy = this->m_separation * (T)(std::sqrt(3.0) / 2);    // distance between two rows in Y direction
+        T dz = this->m_separation * (T)(std::sqrt(2.0 / 3.0));  // distance between two layers in Z direction
+
+        int nx = (int)(2 * this->m_size.x() / dx) + 1;
+        int ny = (int)(2 * this->m_size.y() / dy) + 1;
+        int nz = (int)(2 * this->m_size.z() / dz) + 1;
+
         for (int k = 0; k < nz; k++) {
-            // need to offset each alternate layer by radius in both x and y direction
-            offset_x = offset_y = (k % 2 == 0) ? 0 : this->m_separation / 2;
+            // Y offsets for alternate layers
+            T offset_y = (k % 2 == 0) ? 0 : dy / 3;
             for (int j = 0; j < ny; j++) {
-                // need to offset alternate rows by radius
-                T offset = (j % 2 == 0) ? 0 : this->m_separation / 2;
+                // X offset for current row and layer
+                T offset_x = ((j + k) % 2 == 0) ? 0 : dx / 2;
                 for (int i = 0; i < nx; i++) {
-                    ChVector<T> p = bl + ChVector<T>(i * this->m_separation + offset + offset_x,   //
-                                                     j * (cos30 * this->m_separation) + offset_y,  //
-                                                     k * (cos30 * this->m_separation));
+                    ChVector<T> p = bl + ChVector<T>(offset_x + i * dx, offset_y + j * dy, k * dz);
                     if (this->accept(t, p))
                         out_points.push_back(p);
                 }
             }
         }
+
         return out_points;
     }
 };
