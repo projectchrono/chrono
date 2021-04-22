@@ -95,6 +95,13 @@ linux:doxygen:deploy:
     - rsync -ra /tmp/chrono_doxygen/html/* $API_HTML_ENDPOINT
     - rsync /tmp/chrono_doxygen/searchdata.xml $API_SEARCH_ENDPOINT
     - ssh $API_REINDEX_ENDPOINT /var/www/cgi-bin/doxyindexer.cgi /var/www/cgi-bin/searchdata.xml
+  needs:
+    - job: linux:arch-gcc:test
+      artifacts: false
+    - job: macos:bigsur:test
+      artifacts: false
+    - job: windows:vs2019:test
+      artifacts: false
   environment:
     name: doxygen
     url: http://api.projectchrono.org/
