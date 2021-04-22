@@ -128,12 +128,15 @@ void ChVehicleCosimTerrainNodeGranularGPU::Construct() {
         return;
 
     // Calculate domain size
+    //// TODO: For now, we need to hack in a larger dimZ to accomodate any wheels that will only show up later.
+    ////       This limitations needs to be removed in Chrono::Gpu!
+    ////       Second, we are limited to creating this domain centered at the origin!?!
     float separation_factor = 1.001f;
     float r = separation_factor * (float)m_radius_g;
     float delta = 2.0f * r;
     float dimX = 2.0f * (float)m_hdimX;
     float dimY = 2.0f * (float)m_hdimY;
-    float dimZ = m_init_depth;
+    float dimZ = m_init_depth + 1;
     auto box = make_float3(dimX, dimY, dimZ);
 
     // Create granular system here
@@ -215,7 +218,7 @@ void ChVehicleCosimTerrainNodeGranularGPU::Construct() {
             }
         } else {
             ChVector<> hdims(m_hdimX - r, m_hdimY - r, m_init_depth / 2 - r);
-            auto p = sampler->SampleBox(ChVector<>(0, 0, 0), hdims);
+            auto p = sampler->SampleBox(ChVector<>(0, 0, m_init_depth / 2 - dimZ / 2), hdims);
             pos.insert(pos.end(), p.begin(), p.end());
         }
 
