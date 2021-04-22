@@ -266,21 +266,21 @@ class PDSampler : public Sampler<T> {
         // Check 2D/3D. If the size in one direction (e.g. z) is less than the
         // minimum distance, we switch to a 2D sampling. All sample points will
         // have p.z() = m_center.z()
-        if (this->m_size.z() < m_separation) {
+        if (this->m_size.z() < this->m_separation) {
             m_2D = Z_DIR;
-            m_cellSize = m_separation / std::sqrt((T)2);
+            m_cellSize = this->m_separation / std::sqrt((T)2);
             this->m_size.z() = 0;
-        } else if (this->m_size.y() < m_separation) {
+        } else if (this->m_size.y() < this->m_separation) {
             m_2D = Y_DIR;
-            m_cellSize = m_separation / std::sqrt((T)2);
+            m_cellSize = this->m_separation / std::sqrt((T)2);
             this->m_size.y() = 0;
-        } else if (this->m_size.x() < m_separation) {
+        } else if (this->m_size.x() < this->m_separation) {
             m_2D = X_DIR;
-            m_cellSize = m_separation / std::sqrt((T)2);
+            m_cellSize = this->m_separation / std::sqrt((T)2);
             this->m_size.x() = 0;
         } else {
             m_2D = NONE;
-            m_cellSize = m_separation / std::sqrt((T)3);
+            m_cellSize = this->m_separation / std::sqrt((T)3);
         }
 
         m_bl = this->m_center - this->m_size;
@@ -354,7 +354,7 @@ class PDSampler : public Sampler<T> {
                     if (m_grid.IsCellEmpty(i, j, k))
                         continue;
                     ChVector<T> dist = q - m_grid.GetCellPoint(i, j, k);
-                    if (dist.Length2() < m_separation * m_separation)
+                    if (dist.Length2() < this->m_separation * this->m_separation)
                         return false;
                 }
             }
@@ -371,26 +371,26 @@ class PDSampler : public Sampler<T> {
     }
 
     /// Return a random point in spherical anulus between sep and 2*sep centered at given point.
-    ChVector<T> GenerateRandomNeighbor(const ChVector<T>& point) const {
+    ChVector<T> GenerateRandomNeighbor(const ChVector<T>& point) {
         T x, y, z;
 
         switch (m_2D) {
             case Z_DIR: {
-                T radius = m_separation * (1 + m_realDist(rengine()));
+                T radius = this->m_separation * (1 + m_realDist(rengine()));
                 T angle = 2 * Pi<T> * m_realDist(rengine());
                 x = point.x() + radius * std::cos(angle);
                 y = point.y() + radius * std::sin(angle);
                 z = this->m_center.z();
             } break;
             case Y_DIR: {
-                T radius = m_separation * (1 + m_realDist(rengine()));
+                T radius = this->m_separation * (1 + m_realDist(rengine()));
                 T angle = 2 * Pi<T> * m_realDist(rengine());
                 x = point.x() + radius * std::cos(angle);
                 y = this->m_center.y();
                 z = point.z() + radius * std::sin(angle);
             } break;
             case X_DIR: {
-                T radius = m_separation * (1 + m_realDist(rengine()));
+                T radius = this->m_separation * (1 + m_realDist(rengine()));
                 T angle = 2 * Pi<T> * m_realDist(rengine());
                 x = this->m_center.x();
                 y = point.y() + radius * std::cos(angle);
@@ -398,7 +398,7 @@ class PDSampler : public Sampler<T> {
             } break;
             default:
             case NONE: {
-                T radius = m_separation * (1 + m_realDist(rengine()));
+                T radius = this->m_separation * (1 + m_realDist(rengine()));
                 T angle1 = 2 * Pi<T> * m_realDist(rengine());
                 T angle2 = 2 * Pi<T> * m_realDist(rengine());
                 x = point.x() + radius * std::cos(angle1) * std::sin(angle2);
@@ -524,28 +524,30 @@ class HCPSampler : public Sampler<T> {
     virtual PointVector Sample(VolumeType t) override {
         PointVector out_points;
 
-        ChVector<T> bl = this->m_center - this->m_size;
+        ChVector<T> bl = this->m_center - this->m_size;  // start corner of sampling domain
 
-        T cos30 = sqrt((T)3) / 2;
-        int nx = (int)(2 * this->m_size.x() / (m_separation)) + 1;
-        int ny = (int)(2 * this->m_size.y() / (cos30 * m_separation)) + 1;
-        int nz = (int)(2 * this->m_size.z() / (cos30 * m_separation)) + 1;
-        T offset_x = 0, offset_y = 0;
+        T dx = this->m_separation;                              // distance between two points in X direction
+        T dy = this->m_separation * (T)(std::sqrt(3.0) / 2);    // distance between two rows in Y direction
+        T dz = this->m_separation * (T)(std::sqrt(2.0 / 3.0));  // distance between two layers in Z direction
+
+        int nx = (int)(2 * this->m_size.x() / dx) + 1;
+        int ny = (int)(2 * this->m_size.y() / dy) + 1;
+        int nz = (int)(2 * this->m_size.z() / dz) + 1;
+
         for (int k = 0; k < nz; k++) {
-            // need to offset each alternate layer by radius in both x and y direction
-            offset_x = offset_y = (k % 2 == 0) ? 0 : m_separation / 2;
+            // Y offsets for alternate layers
+            T offset_y = (k % 2 == 0) ? 0 : dy / 3;
             for (int j = 0; j < ny; j++) {
-                // need to offset alternate rows by radius
-                T offset = (j % 2 == 0) ? 0 : m_separation / 2;
+                // X offset for current row and layer
+                T offset_x = ((j + k) % 2 == 0) ? 0 : dx / 2;
                 for (int i = 0; i < nx; i++) {
-                    ChVector<T> p = bl + ChVector<T>(i * m_separation + offset + offset_x,   //
-                                                     j * (cos30 * m_separation) + offset_y,  //
-                                                     k * (cos30 * m_separation));
+                    ChVector<T> p = bl + ChVector<T>(offset_x + i * dx, offset_y + j * dy, k * dz);
                     if (this->accept(t, p))
                         out_points.push_back(p);
                 }
             }
         }
+
         return out_points;
     }
 };

@@ -156,7 +156,7 @@ int main(int argc, char* argv[]) {
     // write an initial frame
     char filename[100];
     sprintf(filename, "%s/step%06d", out_dir.c_str(), currframe++);
-    gpu_sys.WriteFile(std::string(filename));
+    gpu_sys.WriteParticleFile(std::string(filename));
 
     std::cout << "frame step is " << frame_step << std::endl;
 
@@ -166,7 +166,7 @@ int main(int argc, char* argv[]) {
         curr_time += frame_step;
         printf("rendering frame %u of %u\n", currframe, total_frames + 1);
         sprintf(filename, "%s/step%06d", out_dir.c_str(), currframe++);
-        gpu_sys.WriteFile(std::string(filename));
+        gpu_sys.WriteParticleFile(std::string(filename));
     }
     std::chrono::high_resolution_clock::time_point end = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> time_sec = std::chrono::duration_cast<std::chrono::duration<double>>(end - start);

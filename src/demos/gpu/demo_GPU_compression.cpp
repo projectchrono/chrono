@@ -54,7 +54,7 @@ int main(int argc, char* argv[]) {
     // creat cylinder boundary of Radius 5
     ChVector<float> cyl_center(0.0f, 0.0f, 0.0f);
     float cyl_rad = std::min(params.box_X, params.box_Y) / 2.0f;
-    size_t cyl_id = gpu_sys.CreateBCCylinderZ(cyl_center, cyl_rad, false, true);
+    gpu_sys.CreateBCCylinderZ(cyl_center, cyl_rad, false, true);
 
     // initialize sampler, set distance between center of spheres as 2.1r
     utils::HCPSampler<float> sampler(2.1f * params.sphere_radius);
@@ -171,7 +171,7 @@ int main(int argc, char* argv[]) {
         // write position
         char filename[100];
         sprintf(filename, "%s/step%06d", out_dir.c_str(), curr_frame);
-        gpu_sys.WriteFile(std::string(filename));
+        gpu_sys.WriteParticleFile(std::string(filename));
         gpu_sys.AdvanceSimulation(frame_step);
 
         platePos = gpu_sys.GetBCPlanePosition(topWall);

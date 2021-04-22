@@ -177,7 +177,7 @@ int main(int argc, char* argv[]) {
             char mesh_filename[100];
             sprintf(filename, "%s/step%06u", out_dir.c_str(), currframe);
             sprintf(mesh_filename, "%s/step%06u_mesh", out_dir.c_str(), currframe++);
-            gpu_sys.WriteFile(std::string(filename));
+            gpu_sys.WriteParticleFile(std::string(filename));
             gpu_sys.WriteMeshes(std::string(mesh_filename));
 
             ChVector<> force;

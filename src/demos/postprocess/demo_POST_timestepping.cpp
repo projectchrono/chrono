@@ -22,6 +22,8 @@
 #include "chrono/core/ChGlobal.h"
 #include "chrono/timestepper/ChTimestepper.h"
 #include "chrono/timestepper/ChTimestepperHHT.h"
+#include "chrono/physics/ChSystemNSC.h"
+#include "chrono/solver/ChDirectSolverLS.h"
 
 #include "chrono_postprocess/ChGnuPlot.h"
 
@@ -322,6 +324,7 @@ void example4(const std::string& out_dir) {
         double mT;
         double mx;
         double mv;
+        double ma;
 
       public:
         MyIntegrable() {
@@ -331,6 +334,7 @@ void example4(const std::string& out_dir) {
             R = 0;
             mx = 0;
             mv = 0.6;
+            ma = 0;
         }
 
         /// the number of coordinates in the state, x position part:
@@ -349,6 +353,14 @@ void example4(const std::string& out_dir) {
             mv = v(0);
             mT = T;
         };
+
+        // gather/scatter of accelerations not needed for some solvers (exEuler linearized) but needed for others, ex. HHT 
+        virtual void StateGatherAcceleration(ChStateDelta& a) override {
+            a(0) = ma;
+        }
+        virtual void StateScatterAcceleration(const ChStateDelta& a) override {
+            ma = a(0);
+        }
 
         /// compute  dy/dt=f(y,t)
         /// (this function is optional: if not implemented the integrator can solve
@@ -500,6 +512,8 @@ void example4(const std::string& out_dir) {
 void example5(const std::string& out_dir) {
     GetLog() << "\n\n Example 5: integrate pendulum DAE \n";
 
+    // A) - a minimalistic pendulum DAE:
+    //
     // Define a class inherited from ChIntegrableIIorder,
     // it will represent the differential equations
     // by implementing the interfaces to implicit solvers.
@@ -516,20 +530,24 @@ void example5(const std::string& out_dir) {
         double mpy;
         double mvx;
         double mvy;
+        double max;
+        double may;
         double mlength;
         double mreaction;
 
       public:
         MyIntegrable() {
-            mlength = 10000;
-            M = 1;
-            K = 10;
+            mlength = 5;
+            M = 2;
+            K = 0;
             R = 0;
             mT = 0;
             mpx = 0;
             mpy = -mlength;
             mvx = 0.2;
             mvy = 0;
+            max = 0;
+            may = 0;
             mreaction = 0;
         }
 
@@ -548,11 +566,6 @@ void example5(const std::string& out_dir) {
             T = mT;
         };
 
-        virtual void StateGatherAcceleration(ChStateDelta& a) override {
-            a(0) = 0;
-            a(1) = 0;
-        }
-
         /// state -> system
         virtual void StateScatter(const ChState& x, const ChStateDelta& v, const double T, bool full_update) override {
             mpx = x(0);
@@ -561,6 +574,15 @@ void example5(const std::string& out_dir) {
             mvy = v(1);
             mT = T;
         };
+
+        virtual void StateGatherAcceleration(ChStateDelta& a) override {
+            a(0) = max;
+            a(1) = may;
+        }
+        virtual void StateScatterAcceleration(const ChStateDelta& a) override {
+            max = a(0);
+            may = a(1);
+        }
 
         /// Some timesteppers exploit persistence of reaction information
         virtual void StateGatherReactions(ChVectorDynamic<>& L) override { L(0) = mreaction; };
@@ -613,7 +635,7 @@ void example5(const std::string& out_dir) {
                             const double c         ///< a scaling factor
                             ) override {
             R(0) += c * (- this->K * mpx - this->R * mvx);
-            R(1) += c * -5;  // vertical force
+            R(1) += c * -9.8 * this->M;  // vertical force
         };
 
         ///    R += c*M*w
@@ -682,30 +704,63 @@ void example5(const std::string& out_dir) {
     mystepper6.SetGammaBeta(0.5, 0.25);  // Newmark, Gamma: in [1/2, 1] where 1/2 no damping, beta in [0,1]. For (0.5, 0.25) -> trapezoidal
     //mystepper6.SetVerbose(true);
 
+
+    // B) - same pendulum, but multibody:
+    //
+    // Ok, let's create the same pendulum but using the multibody toolset of Chrono,
+    // that is using the ChBody, ChLinkLockRevolute and ChSystem classes:
+
+    ChSystemNSC my_system;
+    auto my_body_A = chrono_types::make_shared<ChBody>();
+    auto my_body_B = chrono_types::make_shared<ChBody>();
+    my_system.AddBody(my_body_A);
+    my_system.AddBody(my_body_B);
+
+    my_body_A->SetBodyFixed(true);  
+    my_body_B->SetMass(2.0);
+    my_body_B->SetInertiaXX(ChVector<>(1e-7, 1e-7, 1e-7)); // to approximate point-like mass as in MyIntegrable
+    my_body_B->SetPos(ChVector<>(0, -5, 0));
+    my_body_B->SetPos_dt(ChVector<>(0.2, 0, 0));
+
+    auto my_link_AB = chrono_types::make_shared<ChLinkLockRevolute>();
+    my_link_AB->Initialize(my_body_A, my_body_B, ChCoordsys<>());
+    my_system.AddLink(my_link_AB);
+
+    // use a precise linear solver
+    auto msolver = chrono_types::make_shared<ChSolverSparseQR>();
+    my_system.SetSolver(msolver);
+    // use the HHT timestepper to compare with HHT in previous MyIntegrable simple case
+    auto mstepper4b = chrono_types::make_shared<ChTimestepperHHT>(&my_system);
+    mstepper4b->SetAlpha(-0.3);  // HHT dissipation 
+    my_system.SetTimestepper(mstepper4b);
+
     // Execute the time integration
     while (mystepper1.GetTime() < 12) {
-        double timestep = 0.01;
+        double timestep = 0.05;
         mystepper1.Advance(timestep);
         mystepper2.Advance(timestep);
         mystepper3.Advance(timestep);
         mystepper4.Advance(timestep);
         mystepper5.Advance(timestep);
         mystepper6.Advance(timestep);
+        my_system.DoStepDynamics(timestep);
 
-        //GetLog() << "T = " << mystepper1.GetTime() << "  x=" << mystepper1.get_X()(0) << "  y=" << mystepper1.get_X()(1)
-        //         << "\n";
-        log_file5 << mystepper1.GetTime() << ", " << mystepper1.get_X()(0) << ", " << mystepper1.get_X()(1) << ", "
-                  << mystepper1.get_V()(0) << ", " << mystepper1.get_V()(1) << ", " << mystepper2.get_X()(0) << ", "
-                  << mystepper2.get_X()(1) << ", " << mystepper2.get_V()(0) << ", " << mystepper2.get_V()(1) << ", "
-                  << mystepper3.get_X()(0) << ", " << mystepper3.get_X()(1) << ", " << mystepper3.get_V()(0) << ", "
-                  << mystepper3.get_V()(1) << ", " << mystepper4.get_X()(0) << ", " << mystepper4.get_X()(1) << ", "
-                  << mystepper4.get_V()(0) << ", " << mystepper4.get_V()(1) << ", " << mystepper5.get_X()(0) << ", "
-                  << mystepper5.get_X()(1) << ", " << mystepper5.get_V()(0) << ", " << mystepper5.get_V()(1) << ", "
-                  << mystepper6.get_X()(0) << ", " << mystepper6.get_X()(1) << ", " << mystepper6.get_V()(0) << ", "
-                  << mystepper6.get_V()(1) << "\n";
+        GetLog() << "T = " << mystepper1.GetTime() << "  x=" << mystepper1.get_X()(0) << "  y=" << mystepper1.get_X()(1)
+                 << "\n";
+        GetLog() << "  = " << mystepper1.GetTime() << "  x=" << my_body_B->GetPos().x() << "  y=" << my_body_B->GetPos().y()
+                 << "\n";
+        log_file5 << mystepper1.GetTime() << ", "
+            << mystepper1.get_X()(0) << ", " << mystepper1.get_X()(1) << ", " << mystepper1.get_V()(0) << ", " << mystepper1.get_V()(1) << ", "
+            << mystepper2.get_X()(0) << ", " << mystepper2.get_X()(1) << ", " << mystepper2.get_V()(0) << ", " << mystepper2.get_V()(1) << ", "
+            << mystepper3.get_X()(0) << ", " << mystepper3.get_X()(1) << ", " << mystepper3.get_V()(0) << ", " << mystepper3.get_V()(1) << ", "
+            << mystepper4.get_X()(0) << ", " << mystepper4.get_X()(1) << ", " << mystepper4.get_V()(0) << ", " << mystepper4.get_V()(1) << ", "
+            << mystepper5.get_X()(0) << ", " << mystepper5.get_X()(1) << ", " << mystepper5.get_V()(0) << ", " << mystepper5.get_V()(1) << ", "
+            << mystepper6.get_X()(0) << ", " << mystepper6.get_X()(1) << ", " << mystepper6.get_V()(0) << ", " << mystepper6.get_V()(1) << ", "
+            << my_body_B->GetPos().x() << ", " << my_body_B->GetPos().y() << ", " << my_body_B->GetPos_dt().x() << ", " << my_body_B->GetPos_dt().y() 
+            << "\n";
         log_file5r << mystepper1.GetTime() << ", " << mystepper1.get_L()(0) << ", " << mystepper2.get_L()(0) << ", "
                    << mystepper3.get_L()(0) << ", " << mystepper4.get_L()(0) << ", " << mystepper5.get_L()(0) << ", "
-                   << mystepper6.get_L()(0) << "\n";
+                   << mystepper6.get_L()(0) << ", " << my_link_AB->Get_react_force().y() << "\n";
     }
 
     std::string gplfile = out_dir + "/tmp_timestepping_5.gpl";
@@ -719,8 +774,9 @@ void example5(const std::string& out_dir) {
     mplot.Plot(logfile5.c_str(), 1, 6, "Euler impl.", " with lines");
     mplot.Plot(logfile5.c_str(), 1, 10, "Trapezoidal*", " with lines");
     mplot.Plot(logfile5.c_str(), 1, 14, "HHT alpha=0", " with lines dt 2");
-    mplot.Plot(logfile5.c_str(), 1, 18, "HHT alpha=-0.2", " with lines dt 2");
+    mplot.Plot(logfile5.c_str(), 1, 18, "HHT alpha=-0.3", " with lines dt 2");
     mplot.Plot(logfile5.c_str(), 1, 22, "Newmark g=0.5,b=0.25", " with lines dt 4");
+    mplot.Plot(logfile5.c_str(), 1, 26, "HHT alpha=-0.3 in ChSystem", " with lines dt 6");
 
     mplot.OutputWindow(1);
     mplot.SetGrid();
@@ -731,8 +787,9 @@ void example5(const std::string& out_dir) {
     mplot.Plot(logfile5r.c_str(), 1, 3, "Euler impl.", " with lines");
     mplot.Plot(logfile5r.c_str(), 1, 4, "Trapezoidal*", " with lines");
     mplot.Plot(logfile5r.c_str(), 1, 5, "HHT alpha=0", " with lines dt 2");
-    mplot.Plot(logfile5r.c_str(), 1, 6, "HHT alpha=-0.2", " with lines dt 2");
+    mplot.Plot(logfile5r.c_str(), 1, 6, "HHT alpha=-0.3", " with lines dt 2");
     mplot.Plot(logfile5r.c_str(), 1, 7, "Newmark g=0.5,b=0.25", " with lines dt 4");
+    mplot.Plot(logfile5r.c_str(), 1, 8, "HHT alpha=-0.3 in ChSystem", " with lines dt 6");
 
     mplot.OutputWindow(2);
     mplot.SetGrid();
@@ -750,7 +807,7 @@ void example5(const std::string& out_dir) {
 }
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    GetLog() << "Copyright (c) 2021 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
     GetLog() << "CHRONO demo about low-level time integration of differential equations: \n\n";
 
