@@ -1,4 +1,4 @@
-// =============================================================================
+﻿// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2019 projectchrono.org
@@ -977,18 +977,9 @@ unsigned int ChOptixPipeline::GetMaterial(std::shared_ptr<ChVisualMaterial> mat)
         material.transparency = mat->GetTransparency();
         material.roughness = mat->GetRoughness();
         material.metallic = mat->GetMetallic();
+        material.use_specular_workfloat = mat->GetUseSpecularWorkflow();
         material.lidar_intensity = 1.f;    // TODO: allow setting of this in the visual material chrono-side
         material.radar_backscatter = 1.f;  // TODO: allow setting of this in the visual material chrono-side
-
-        // diffuse texture
-        if (mat->GetKdTexture() != "") {
-            cudaTextureObject_t d_tex_sampler;
-            cudaArray_t d_img_array;
-            CreateDeviceTexture(d_tex_sampler, d_img_array, mat->GetKdTexture());
-            material.kd_tex = d_tex_sampler;
-        } else {
-            material.kd_tex = 0;  // explicitely null
-        }
 
         // normal texture
         if (mat->GetNormalMapTexture() != "") {
@@ -1000,6 +991,25 @@ unsigned int ChOptixPipeline::GetMaterial(std::shared_ptr<ChVisualMaterial> mat)
             material.kn_tex = 0;  // explicitely null
         }
 
+        // diffuse texture
+        if (mat->GetKdTexture() != "") {
+            cudaTextureObject_t d_tex_sampler;
+            cudaArray_t d_img_array;
+            CreateDeviceTexture(d_tex_sampler, d_img_array, mat->GetKdTexture());
+            material.kd_tex = d_tex_sampler;
+        } else {
+            material.kd_tex = 0;  // explicitely null
+        }
+
+        // specular texture
+        if (mat->GetKsTexture() != "") {
+            cudaTextureObject_t d_tex_sampler;
+            cudaArray_t d_img_array;
+            CreateDeviceTexture(d_tex_sampler, d_img_array, mat->GetKsTexture());
+            material.ks_tex = d_tex_sampler;
+        } else {
+            material.ks_tex = 0;  // explicitely null
+        }
         // metalic texture
         if (mat->GetMetallicTexture() != "") {
             cudaTextureObject_t d_tex_sampler;
@@ -1047,10 +1057,12 @@ unsigned int ChOptixPipeline::GetMaterial(std::shared_ptr<ChVisualMaterial> mat)
             material.lidar_intensity = 1.f;
             material.radar_backscatter = 1.f;
             material.kd_tex = 0;
+            material.ks_tex = 0;
             material.kn_tex = 0;
             material.roughness_tex = 0;
             material.metallic_tex = 0;
             material.opacity_tex = 0;
+            material.use_specular_workfloat = 1;
             m_material_pool.push_back(material);
             m_default_material_id = m_material_pool.size() - 1;
             m_default_material_inst = true;

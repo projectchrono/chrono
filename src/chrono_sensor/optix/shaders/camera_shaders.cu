@@ -52,6 +52,7 @@ extern "C" __global__ void __closesthit__camera_shader() {
     float3 tangent;
 
     unsigned int material_id = mat_params->material_pool_id;
+    PerRayData_camera* prd_camera = getCameraPRD();
 
     // check if we hit a triangle
     if (optixIsTriangleHit()) {
@@ -80,6 +81,9 @@ extern "C" __global__ void __closesthit__camera_shader() {
 
     float3 subsurface_albedo = mat.Kd;
     float transparency = mat.transparency;
+    float3 specular = mat.Ks;
+    int use_specular_workfloat = mat.use_specular_workfloat;
+
     if (mat.kd_tex) {
         const float4 tex = tex2D<float4>(mat.kd_tex, uv.x, uv.y);
         subsurface_albedo = make_float3(tex.x, tex.y, tex.z);
@@ -87,11 +91,17 @@ extern "C" __global__ void __closesthit__camera_shader() {
             transparency = 0.f;  // to handle transparent card textures such as tree leaves
     }
 
+    if (mat.ks_tex) {
+        const float4 tex = tex2D<float4>(mat.ks_tex, uv.x, uv.y);
+        specular = make_float3(tex.x, tex.y, tex.z);
+    }
+  
+
     if (mat.opacity_tex) {
         transparency = tex2D<float>(mat.opacity_tex, uv.x, uv.y);
     }
 
-    PerRayData_camera* prd_camera = getCameraPRD();
+    
 
     // if this is perfectly transparent, we ignore it and trace the next ray (handles things like tree leaf cards)
     if (transparency < 1e-6) {
@@ -186,16 +196,19 @@ extern "C" __global__ void __closesthit__camera_shader() {
 
                     float3 F = make_float3(0.5f);
                     // === dielectric workflow
-                    if (metallic > 0) {
+                    if (use_specular_workfloat) {
+                        float3 F0 = specular * 0.08f;
+                        F = fresnel_schlick(VdH, 5.f, F0,
+                                            make_float3(1.f) /*make_float3(fresnel_max) it is usually 1*/);
+                        
+                    }
+                    else {
                         float3 default_dielectrics_F0 = make_float3(0.04f);
                         F = metallic * subsurface_albedo + (1 - metallic) * default_dielectrics_F0;
                         subsurface_albedo =
                             (1 - metallic) * subsurface_albedo;  // since metals do not do subsurface reflection
-                    } else {                                     // default to specular workflow
-                        float3 F0 = mat.Ks * 0.08f;
-                        F = fresnel_schlick(VdH, 5.f, F0,
-                                            make_float3(1.f) /*make_float3(fresnel_max) it is usually 1*/);
-                    }
+                    }                                            // default to specular workflow
+                        
 
                     diffuse_color += (make_float3(1.f) - F) * subsurface_albedo * incoming_light_ray;
                     float D = NormalDist(NdH, roughness);        // 1/pi omitted

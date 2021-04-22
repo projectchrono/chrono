@@ -93,11 +93,24 @@ void CreateModernMeshAssets(std::shared_ptr<ChTriangleMeshShape> mesh_shape) {
         mat->SetSpecularColor({materials[i].specular[0], materials[i].specular[1], materials[i].specular[2]});
         mat->SetMetallic(materials[i].metallic);
         mat->SetTransparency(materials[i].dissolve);
+        mat->SetRoughness(materials[i].roughness);
+
+        // If metallic and roughness is set to default, use 
+        // specular workflow
+        if (materials[i].metallic == 0 && materials[i].roughness == 1) {
+            mat->SetUseSpecularWorkflow(true);
+        } else {
+            mat->SetUseSpecularWorkflow(false);
+        }
 
         if (materials[i].diffuse_texname != "") {
             mat->SetKdTexture(mtl_base + materials[i].diffuse_texname);
         }
 
+        if (materials[i].specular_texname != "") {
+            mat->SetKsTexture(mtl_base + materials[i].specular_texname);
+            mat->SetUseSpecularWorkflow(true);
+        }
         // set normal map when called "bump_texname"
         if (materials[i].bump_texname != "") {
             mat->SetNormalMapTexture(mtl_base + materials[i].bump_texname);
@@ -109,6 +122,7 @@ void CreateModernMeshAssets(std::shared_ptr<ChTriangleMeshShape> mesh_shape) {
         // set roughness texture if it exists
         if (materials[i].roughness_texname != "") {
             mat->SetRoughnessTexture(mtl_base + materials[i].roughness_texname);
+            mat->SetUseSpecularWorkflow(false);
         }
         // set metallic texture if it exists
         if (materials[i].metallic_texname != "") {
@@ -120,8 +134,6 @@ void CreateModernMeshAssets(std::shared_ptr<ChTriangleMeshShape> mesh_shape) {
         if (materials[i].alpha_texname != "" && materials[i].alpha_texname != materials[i].diffuse_texname) {
             mat->SetOpacityTexture(mtl_base + materials[i].alpha_texname);
         }
-
-        mat->SetRoughness(materials[i].roughness);
 
         material_list.push_back(mat);
     }

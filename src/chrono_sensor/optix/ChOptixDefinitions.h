@@ -147,8 +147,10 @@ struct __align__(16) MaterialParameters {  // TODO: pad for alignment
     float metallic;
     float lidar_intensity;
     float radar_backscatter;
+    int use_specular_workfloat;
     cudaTextureObject_t kd_tex;
     cudaTextureObject_t kn_tex;
+    cudaTextureObject_t ks_tex;
     cudaTextureObject_t metallic_tex;
     cudaTextureObject_t roughness_tex;
     cudaTextureObject_t opacity_tex;
