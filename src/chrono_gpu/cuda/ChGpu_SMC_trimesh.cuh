@@ -352,5 +352,4 @@ __global__ void finalizeSD_numTrianglesTouching(const unsigned int* d_SDs_touche
     }
 }
 
-
 /// @} gpu_cuda

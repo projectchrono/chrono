@@ -150,6 +150,17 @@ CUDA_HOST_DEVICE inline real Clamp(real x, real low, real high) {
     return Max(low, Min(x, high));
 }
 
+/// Clamps a given value a between user specified minimum and maximum values.
+CUDA_HOST_DEVICE inline void ClampValue(real& x, real low, real high) {
+    if (low > high) {
+        Swap(low, high);
+    }
+    if (x < low)
+        x = low;
+    else if (x > high)
+        x = high;
+}
+
 CUDA_HOST_DEVICE inline real ClampMin(real x, real low) {
     return Max(low, x);
 }

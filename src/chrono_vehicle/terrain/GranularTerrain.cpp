@@ -410,6 +410,7 @@ void GranularTerrain::Initialize(const ChVector<>& center,
 
     // Create particles, in layers, until exceeding the specified number.
     double r = safety_factor * radius;
+    utils::PDSampler<double> sampler(2 * r);
     unsigned int layer = 0;
     ChVector<> layer_hdims(length / 2 - r, width / 2 - r, 0);
     ChVector<> layer_center = center;
@@ -418,7 +419,7 @@ void GranularTerrain::Initialize(const ChVector<>& center,
     while (layer < num_layers || m_num_particles < m_min_num_particles) {
         if (m_verbose)
             GetLog() << "Create layer at height: " << layer_center.z() << "\n";
-        generator.createObjectsBox(utils::SamplingType::POISSON_DISK, 2 * r, layer_center, layer_hdims, init_vel);
+        generator.CreateObjectsBox(sampler, layer_center, layer_hdims, init_vel);
         layer_center.z() += 2 * r;
         m_num_particles = generator.getTotalNumBodies();
         layer++;

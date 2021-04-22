@@ -76,7 +76,7 @@ ChContactMethod contact_method = ChContactMethod::SMC;
 bool contact_vis = false;
 
 // Simulation step sizes
-double step_size = 3e-3;
+double step_size = 2e-3;
 double tire_step_size = 1e-3;
 
 // Simulation end time
