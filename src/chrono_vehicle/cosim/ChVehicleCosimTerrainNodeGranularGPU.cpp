@@ -128,7 +128,7 @@ void ChVehicleCosimTerrainNodeGranularGPU::Construct() {
         return;
 
     // Calculate domain size
-    float separation_factor = 1.2f;
+    float separation_factor = 1.001f;
     float r = separation_factor * (float)m_radius_g;
     float delta = 2.0f * r;
     float dimX = 2.0f * (float)m_hdimX;

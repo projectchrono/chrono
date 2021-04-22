@@ -200,7 +200,7 @@ void ChVehicleCosimTerrainNodeGranularOMP::Construct() {
         return;
 
     // Calculate container (half) height
-    double separation_factor = 1.2;
+    double separation_factor = 1.001;
     double r = separation_factor * m_radius_g;
     double delta = 2.0f * r;
     double hdimZ = 0.5 * m_init_depth;
