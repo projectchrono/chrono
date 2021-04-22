@@ -329,7 +329,7 @@ void ChVehicleCosimTerrainNodeGranularGPU::Settle() {
             m_systemGPU->SetOutputFlags(gpu::CHGPU_OUTPUT_FLAGS::VEL_COMPONENTS |
                                         gpu::CHGPU_OUTPUT_FLAGS::ANG_VEL_COMPONENTS |
                                         gpu::CHGPU_OUTPUT_FLAGS::FORCE_COMPONENTS);
-            m_systemGPU->WriteFile(filename);
+            m_systemGPU->WriteParticleFile(filename);
             output_frame++;
         }
 
@@ -567,7 +567,7 @@ void ChVehicleCosimTerrainNodeGranularGPU::OnOutputData(int frame) {
     sprintf(filename, "%s/data_%04d", m_node_out_dir.c_str(), frame + 1);
     m_systemGPU->SetOutputFlags(gpu::CHGPU_OUTPUT_FLAGS::VEL_COMPONENTS | gpu::CHGPU_OUTPUT_FLAGS::ANG_VEL_COMPONENTS |
                                 gpu::CHGPU_OUTPUT_FLAGS::FORCE_COMPONENTS);
-    m_systemGPU->WriteFile(filename);
+    m_systemGPU->WriteParticleFile(filename);
 }
 
 // -----------------------------------------------------------------------------
