@@ -47,6 +47,7 @@ linux:arch-gcc:build:
     -DCMAKE_C_COMPILER=/usr/bin/gcc 
     -DCMAKE_CXX_COMPILER=/usr/bin/g++ 
     -DEIGEN3_INCLUDE_DIR=/usr/include/eigen3
+    -DBUILD_TESTING_GPU=FALSE
   - make -j 8
   artifacts:
     expire_in: 60m
@@ -122,6 +123,7 @@ linux:arch-llvm:build:
     -DCMAKE_CXX_COMPILER=/usr/bin/clang++ 
     -DEIGEN3_INCLUDE_DIR=/usr/include/eigen3
     -DCUDA_HOST_COMPILER=/usr/bin/gcc
+    -DBUILD_TESTING_GPU=FALSE
   - make -j 8
   artifacts:
     expire_in: 60m
@@ -303,7 +305,7 @@ windows:vs2019:build:
   script:
   # Build flatbuffers
   - cd $CI_PROJECT_DIR/src/chrono_thirdparty/flatbuffers
-  - cmake -G "Visual Studio 16 2019" -DCMAKE_BUILD_TYPE=Release .
+  - cmake -G "Visual Studio 16 2019" -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING_GPU=FALSE .
   - '& "C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\MSBuild\Current\Bin\MSBuild.exe" FlatBuffers.sln -maxcpucount:8 -property:Configuration=Release'
   # Main build
   - cd $CI_PROJECT_DIR/build
@@ -323,7 +325,7 @@ windows:vs2019:test:
   extends: .windows
   script:
   - cd build
-  - ctest
+  - ctest --output-on-failure
   dependencies: ["windows:vs2019:build"]
 
 
@@ -365,7 +367,7 @@ windows:vs2017:build:
   script:
     # Build flatbuffers
   - cd $CI_PROJECT_DIR/src/chrono_thirdparty/flatbuffers
-  - cmake -G "Visual Studio 16 2019" -DCMAKE_BUILD_TYPE=Release .
+  - cmake -G "Visual Studio 16 2019" -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING_GPU=FALSE .
   - '& "C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\MSBuild\Current\Bin\MSBuild.exe" FlatBuffers.sln -maxcpucount:8 -property:Configuration=Release'
   - cd $CI_PROJECT_DIR/build
   - cmake --preset=windowsci-vs2017 ..
@@ -440,7 +442,7 @@ macos:bigsur:test:
   extends: .macos
   script:
   - cd build
-  - make test
+  - make CTEST_OUTPUT_ON_FAILURE=1 test
   dependencies: ["macos:bigsur:build"]
 
 
