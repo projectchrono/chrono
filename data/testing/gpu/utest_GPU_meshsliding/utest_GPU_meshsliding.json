@@ -1,7 +1,7 @@
 {
 	"sphere_radius": 0.5,
 	"sphere_density": 7.8,
-	"step_size": 5e-5,
+	"step_size": 1e-4,
 	"time_end": 1,
 	"grav_X": 0,
 	"grav_Y": 0,

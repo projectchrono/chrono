@@ -40,27 +40,12 @@ using namespace chrono::gpu;
 ChGpuSimulationParameters params;
 
 // declare global variables
-float target_ke = -1;
+float radius;
+float precision_vel = 1e-3;
+float precision_pos = 1e-2;
 
-float zero_vel_barrier = 1e-3;
-float zero_pos_barrier = 2e-2;
-float zero_pos_comp_barrier = 1e-3;
-float zero_vel_comp_barrier = 2e-2;
-
-float curr_body_vel_1 = -1;
-float curr_body_vel_2 = -1;
-float curr_body_vel_3 = -1;
-float curr_body_vel_4 = -1;
-float curr_body_vel_5 = -1;
-
-ChVector<float> curr_body_pos_1;
-ChVector<float> curr_body_pos_2;
-ChVector<float> curr_body_pos_3;
-ChVector<float> curr_body_pos_4;
-ChVector<float> curr_body_pos_5;
-
-std::vector<chrono::ChVector<float>> pos_Data;
-std::vector<chrono::ChVector<float>> vel_Data;
+std::vector<float> end_vel;
+std::vector<ChVector<float>> end_pos;
 
 float settled_pos;
 float penetration;
@@ -98,6 +83,8 @@ int main(int argc, char* argv[]) {
 
     params.psi_L = psi_L;
 
+    // Read particle radius
+    radius = params.sphere_radius;
     // Setup simulation
     ChSystemGpu gpu_sys(params.sphere_radius, params.sphere_density,
                         make_float3(params.box_X, params.box_Y, params.box_Z));
@@ -168,35 +155,18 @@ int main(int argc, char* argv[]) {
 
     printf("time, ball_px, ball_py, ball_pz, absv, KE, omega.x, omega.y, omega.z\n");
     while (curr_time < params.time_end && currframe < 1000) {
-        // get velocity of every particle involved
-        for (int i = 0; i < 5; i++) {
-            pos_Data.push_back(gpu_sys.GetParticlePosition(i));
-            vel_Data.push_back(gpu_sys.GetParticleVelocity(i));
-        }
-
         gpu_sys.AdvanceSimulation(frame_step);
 
+        std::cout << "current step: " << curr_time << "  tot: 2" << std::endl;
         curr_time += frame_step;
         currframe++;
-        std::cout << "curr step: " << curr_time << "  tot: 3" << std::endl;
     }
 
-    curr_body_vel_1 = gpu_sys.GetParticleVelocity(0).Length();
-    curr_body_vel_2 = gpu_sys.GetParticleVelocity(1).Length();
-    curr_body_vel_3 = gpu_sys.GetParticleVelocity(2).Length();
-    curr_body_vel_4 = gpu_sys.GetParticleVelocity(3).Length();
-    curr_body_vel_5 = gpu_sys.GetParticleVelocity(4).Length();
-    curr_body_pos_1 = gpu_sys.GetParticlePosition(0);
-    curr_body_pos_2 = gpu_sys.GetParticlePosition(1);
-    curr_body_pos_3 = gpu_sys.GetParticlePosition(2);
-    curr_body_pos_4 = gpu_sys.GetParticlePosition(3);
-    curr_body_pos_5 = gpu_sys.GetParticlePosition(4);
+    for (int i = 0; i < 5; i++) {
+        end_vel.push_back(gpu_sys.GetParticleVelocity(i).Length());
+        end_pos.push_back(gpu_sys.GetParticlePosition(i));
+    }
 
-    std::cout << "vel_1:" << curr_body_vel_1 << std::endl;
-    std::cout << "vel_2:" << curr_body_vel_2 << std::endl;
-    std::cout << "vel_3:" << curr_body_vel_3 << std::endl;
-    std::cout << "vel_4:" << curr_body_vel_4 << std::endl;
-    std::cout << "vel_5:" << curr_body_vel_5 << std::endl;
     testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();
 }
@@ -204,158 +174,17 @@ int main(int argc, char* argv[]) {
 // test 1 - check end abs velocity of each particle
 // the end velocities of all particles should be close to 0, within a barrier
 TEST(gpuStack, endVel) {
-    float diff_1 = curr_body_vel_1 - 0;
-    bool zero_1 = false;
-    if (diff_1 < zero_vel_barrier) {
-        zero_1 = true;
+    for (int i = 0; i < 5; i++) {
+        EXPECT_NEAR(end_vel[i], 0, precision_vel);
     }
-
-    float diff_2 = curr_body_vel_2 - 0;
-    bool zero_2 = false;
-    if (diff_2 < zero_vel_barrier) {
-        zero_2 = true;
-    }
-
-    float diff_3 = curr_body_vel_3 - 0;
-    bool zero_3 = false;
-    if (diff_3 < zero_vel_barrier) {
-        zero_3 = true;
-    }
-
-    float diff_4 = curr_body_vel_4 - 0;
-    bool zero_4 = false;
-    if (diff_4 < zero_vel_barrier) {
-        zero_4 = true;
-    }
-
-    float diff_5 = curr_body_vel_5 - 0;
-    bool zero_5 = false;
-    if (diff_5 < zero_vel_barrier) {
-        zero_5 = true;
-    }
-
-    EXPECT_EQ(true, zero_1);
-    EXPECT_EQ(true, zero_2);
-    EXPECT_EQ(true, zero_3);
-    EXPECT_EQ(true, zero_4);
-    EXPECT_EQ(true, zero_5);
 }
 
-// test 2 - check the end position of the bottom 3 particles
+// test 2 - check the end position of each particle
 // test pass if all end positions are within a tolerance barrier
 TEST(gpuStack, endPos) {
-    float diff_1_x = abs(curr_body_pos_1.x());
-    bool zero_1_x = false;
-    if (diff_1_x < zero_pos_barrier) {
-        zero_1_x = true;
-    }
-
-    float diff_1_y = abs(curr_body_pos_1.y());
-    bool zero_1_y = false;
-    if (diff_1_y < zero_pos_barrier) {
-        zero_1_y = true;
-    }
-
-    float diff_1_z = abs(curr_body_pos_1.z() - (settled_pos));
-    bool zero_1_z = false;
-    if (diff_1_z < zero_pos_barrier) {
-        zero_1_z = true;
-    }
-
-    float diff_2_x = abs(curr_body_pos_2.x());
-    bool zero_2_x = false;
-    if (diff_2_x < zero_pos_barrier) {
-        zero_2_x = true;
-    }
-
-    float diff_2_y = abs(curr_body_pos_2.y());
-    bool zero_2_y = false;
-    if (diff_2_y < zero_pos_barrier) {
-        zero_2_y = true;
-    }
-
-    float diff_2_z = abs(curr_body_pos_2.z() - (settled_pos + params.sphere_radius * 2 - penetration));
-    bool zero_2_z = false;
-    if (diff_2_z < zero_pos_barrier) {
-        zero_2_z = true;
-    }
-
-    float diff_3_x = abs(curr_body_pos_3.x());
-    bool zero_3_x = false;
-    if (diff_3_x < zero_pos_barrier) {
-        zero_3_x = true;
-    }
-
-    float diff_3_y = abs(curr_body_pos_3.y());
-    bool zero_3_y = false;
-    if (diff_3_y < zero_pos_barrier) {
-        zero_3_y = true;
-    }
-
-    float diff_3_z = abs(curr_body_pos_3.z() - (settled_pos + params.sphere_radius * 4) - 2 * penetration);
-    bool zero_3_z = false;
-    if (diff_3_z < zero_pos_barrier) {
-        zero_3_z = true;
-    }
-
-    EXPECT_EQ(true, zero_1_x);
-    EXPECT_EQ(true, zero_1_y);
-    EXPECT_EQ(true, zero_1_z);
-    EXPECT_EQ(true, zero_2_x);
-    EXPECT_EQ(true, zero_2_y);
-    EXPECT_EQ(true, zero_2_z);
-    EXPECT_EQ(true, zero_3_x);
-    EXPECT_EQ(true, zero_3_y);
-    EXPECT_EQ(true, zero_3_z);
-}
-
-// test 3 - comprehensive position check, compare with ground truth
-TEST(granularStack, comprehensivePos) {
-    std::vector<chrono::ChVector<float>> ground_truth;
-    std::string dir = GetChronoDataPath() + "testing/gpu/utest_GT/stack/stack_groundtruth.csv";
-
-    ground_truth = loadPositionCheckpoint<float>(dir);
-
-    EXPECT_EQ(ground_truth.size(), pos_Data.size());
-
-    for (int i = 0; i < ground_truth.size(); i++) {
-        float diff_x = ground_truth[i].x() - pos_Data[i].x();
-        float diff_y = ground_truth[i].y() - pos_Data[i].y();
-        float diff_z = ground_truth[i].z() - pos_Data[i].z();
-        diff_x = abs(diff_x);
-        diff_y = abs(diff_y);
-        diff_z = abs(diff_z);
-
-        bool comp_res = false;
-        // if all x,y,z position components are within zero barrier, set compare result to true
-        if ((diff_x < zero_pos_comp_barrier) && (diff_y < zero_pos_comp_barrier) && (diff_z < zero_pos_comp_barrier)) {
-            comp_res = true;
-        }
-        EXPECT_EQ(true, comp_res);
-    }
-}
-
-// test 4 - comprehensive particle volocities check, compare with ground truth
-TEST(gpuStack, comprehensiveVel) {
-    std::vector<chrono::ChVector<float>> ground_truth;
-    std::string dir = GetChronoDataPath() + "testing/gpu/utest_GT/stack/stack_groundtruth.csv";
-
-    ground_truth = loadVelocityCheckpoint<float>(dir);
-
-    EXPECT_EQ(ground_truth.size(), vel_Data.size());
-
-    for (int i = 0; i < ground_truth.size(); i++) {
-        float diff_x = ground_truth[i].x() - vel_Data[i].x();
-        float diff_y = ground_truth[i].y() - vel_Data[i].y();
-        float diff_z = ground_truth[i].z() - vel_Data[i].z();
-        diff_x = abs(diff_x);
-        diff_y = abs(diff_y);
-        diff_z = abs(diff_z);
-        bool comp_res = false;
-        // if all x,y,z velocity components are within zero barrier, set compare result to true
-        if ((diff_x < zero_vel_comp_barrier) && (diff_y < zero_vel_comp_barrier) && (diff_z < zero_vel_comp_barrier)) {
-            comp_res = true;
-        }
-        EXPECT_EQ(true, comp_res);
+    for (int i = 0; i < 5; i++) {
+        EXPECT_NEAR(end_pos[i].x(), 0, precision_pos);
+        EXPECT_NEAR(end_pos[i].y(), 0, precision_pos);
+        EXPECT_NEAR(end_pos[i].z(), settled_pos + radius * 2 * i - penetration * i, precision_pos);
     }
 }
