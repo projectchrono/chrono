@@ -139,10 +139,10 @@ int main(int argc, char* argv[]) {
     gpu_sys.SetRollingCoeff_SPH2SPH(params.rolling_friction_coeffS2S);
     gpu_sys.SetRollingCoeff_SPH2WALL(params.rolling_friction_coeffS2W);
 
-    gpu_sys.SetOutputMode(params.write_mode);
+    gpu_sys.SetParticleOutputMode(params.write_mode);
     gpu_sys.SetVerbosity(params.verbose);
-    gpu_sys.SetOutputFlags(CHGPU_OUTPUT_FLAGS::ABSV | CHGPU_OUTPUT_FLAGS::ANG_VEL_COMPONENTS |
-                           CHGPU_OUTPUT_FLAGS::FIXITY);
+    gpu_sys.SetParticleOutputFlags(CHGPU_OUTPUT_FLAGS::ABSV | CHGPU_OUTPUT_FLAGS::ANG_VEL_COMPONENTS |
+                                   CHGPU_OUTPUT_FLAGS::FIXITY);
 
     // Create data directory
     std::string out_dir = GetChronoOutputPath() + "GPU/";

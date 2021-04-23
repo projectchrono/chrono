@@ -76,11 +76,14 @@ sys2.ReadCheckpointFile("checkpoint.dat");
 */
 ```
 
-`ChSystemGpu::ReadParticleFile` is used to load particle positions and velocities from a CSV file. It is useful if the particle information is meant to be supplied from a file rather than using scripts.
-
-Note that these `Read` and `Write` methods work in `ChSystemGpuMesh` system as well.
+`ChSystemGpu::ReadParticleFile` is used to load particle positions and velocities from a CSV file. It is useful if the particle information is meant to be supplied from a file rather than programatically.
 
 See demo_GPU_ballcosim for an example of using checkpointing.
+
+Function renames:
+- `ChSystemGpu::WriteFile` renamed to `ChSystemGpu::WriteParticleFile`
+- `ChSystemGpu::SetOutputFlags` renamed to `ChSystemGpu::SetParticleOutputFlags`
+- `ChSystemGpu::SetOutputMode` renamed to `ChSystemGpu::SetParticleOutputMode`
 
 Notes:
 - Default output flags are set to write particle positions and velocity magnitudes only, excluding angular velocity components. The output flags can be set by `ChSystemGpu::SetParticleOutputFlags`.

@@ -63,7 +63,7 @@ int main(int argc, char* argv[]) {
     gpu_sys.SetAdhesionRatio_SPH2WALL(params.adhesion_ratio_s2w);
 
     gpu_sys.SetGravitationalAcceleration(ChVector<float>(params.grav_X, params.grav_Y, params.grav_Z));
-    gpu_sys.SetOutputMode(params.write_mode);
+    gpu_sys.SetParticleOutputMode(params.write_mode);
 
     std::string out_dir = GetChronoOutputPath() + "GPU/";
     filesystem::create_directory(filesystem::path(out_dir));

@@ -247,7 +247,7 @@ int main(int argc, char* argv[]) {
     // gpu_sys.SetRollingCoeff_SPH2WALL(params.rolling_friction_coeffS2W);
     // gpu_sys.SetRollingCoeff_SPH2MESH(params.rolling_friction_coeffS2M);
 
-    gpu_sys.SetOutputMode(params.write_mode);
+    gpu_sys.SetParticleOutputMode(params.write_mode);
     gpu_sys.SetVerbosity(params.verbose);
     gpu_sys.SetBDFixed(true);
 
