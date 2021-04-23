@@ -742,16 +742,8 @@ void ChSystemGpu::ReadHstHistory(std::ifstream& ifile, unsigned int totItem) {
 }
 
 // Read in particle friction contact history through a file.
-// Now it works with hst format (a custom format) only. Potentially more
-// formats can be added in the future.
+// Now it works with a custom format only. Potentially more formats can be added in the future.
 void ChSystemGpu::ReadContactHistoryFile(const std::string& infilename) {
-    if (infilename.substr(infilename.length() - std::min(infilename.length(), (size_t)4)) != ".hst" &&
-        infilename.substr(infilename.length() - std::min(infilename.length(), (size_t)4)) != ".HST") {
-        CHGPU_ERROR(
-            "ERROR! Checkpointing file (contact history) must be a HST file (a custom format) generated with "
-            "Chrono::Gpu!\n");
-    }
-
     std::ifstream ifile(infilename.c_str());
     if (!ifile.is_open()) {
         CHGPU_ERROR("ERROR! Checkpoint file (contact history) did not open successfully!\n");
@@ -763,13 +755,6 @@ void ChSystemGpu::ReadContactHistoryFile(const std::string& infilename) {
 // Read in particle positions, velocity and angular velocity through a file.
 // Now it works with csv format only. Potentially more formats can be added in the future.
 void ChSystemGpu::ReadParticleFile(const std::string& infilename) {
-    // We cannot process formats other than CSV for now
-    if (infilename.substr(infilename.length() - std::min(infilename.length(), (size_t)4)) != ".csv" &&
-        infilename.substr(infilename.length() - std::min(infilename.length(), (size_t)4)) != ".CSV") {
-        CHGPU_ERROR("ERROR! Checkpointing (kinematics) does not support non-CSV formats as of now!\n");
-    }
-
-    // Open the file
     std::ifstream ifile(infilename.c_str());
     if (!ifile.is_open()) {
         CHGPU_ERROR("ERROR! Checkpoint file (kinematics) did not open successfully!\n");
@@ -1015,12 +1000,6 @@ unsigned int ChSystemGpu::ReadDatParams(std::ifstream& ifile, bool overwrite) {
 // Read in a (Chrono::Gpu generated) checkpoint file to restart a simulation. It calls ReadHstHistory, ReadCsvParticles
 // and ReadDatParams to parse in the entire checkpoint file.
 void ChSystemGpu::ReadCheckpointFile(const std::string& infilename, bool overwrite) {
-    // We cannot process formats other than CSV for now
-    if (infilename.substr(infilename.length() - std::min(infilename.length(), (size_t)4)) != ".dat" &&
-        infilename.substr(infilename.length() - std::min(infilename.length(), (size_t)4)) != ".DAT") {
-        CHGPU_ERROR("ERROR! Checkpointing file must be a DAT file (a custom format) generated with Chrono::Gpu!\n");
-    }
-
     // Open the file
     std::ifstream ifile(infilename.c_str());
     if (!ifile.is_open()) {
@@ -1121,12 +1100,6 @@ bool ChSystemGpuMesh::SetParamsFromIdentifier(const std::string& identifier, std
 
 // GpuMesh version of checkpointing loading subroutine.
 void ChSystemGpuMesh::ReadCheckpointFile(const std::string& infilename, bool overwrite) {
-    // We cannot process formats other than CSV for now
-    if (infilename.substr(infilename.length() - std::min(infilename.length(), (size_t)4)) != ".dat" &&
-        infilename.substr(infilename.length() - std::min(infilename.length(), (size_t)4)) != ".DAT") {
-        CHGPU_ERROR("ERROR! Checkpointing file must be a DAT file (a custom format) generated with Chrono::Gpu!\n");
-    }
-
     // Open the file
     std::ifstream ifile(infilename.c_str());
     if (!ifile.is_open()) {
@@ -1268,16 +1241,8 @@ void ChSystemGpu::WriteCheckpointParams(std::ofstream& cpFile) const {
 }
 
 void ChSystemGpu::WriteCheckpointFile(const std::string& outfilename) {
-    std::string ofile;
-    // If not ending with ".dat", append ".dat" to the name
-    if (outfilename.substr(outfilename.length() - std::min(outfilename.length(), (size_t)4)) != ".dat" &&
-        outfilename.substr(outfilename.length() - std::min(outfilename.length(), (size_t)4)) != ".DAT")
-        ofile = outfilename + ".dat";
-    else
-        ofile = outfilename;
-    // Let the user know what file we are writing to
-    printf("Writing checkpoint data to file \"%s\"\n", ofile.c_str());
-    std::ofstream cpFile(ofile, std::ios::out);
+    printf("Writing checkpoint data to file \"%s\"\n", outfilename.c_str());
+    std::ofstream cpFile(outfilename, std::ios::out);
 
     // Header, indicating the system (so meshed system will have something different)
     cpFile << std::string("ChSystemGpu\n");
@@ -1323,47 +1288,18 @@ void ChSystemGpu::WriteH5Particles(H5::H5File ptFile) const {
 void ChSystemGpu::WriteParticleFile(const std::string& outfilename) const {
     // The file writes are a pretty big slowdown in CSV mode
     if (m_sys->file_write_mode == CHGPU_OUTPUT_MODE::BINARY) {
-        // Write the data as binary to a file, requires later postprocessing that can be done in parallel, this is a
-        // much faster write due to no formatting
-        std::string ofile;
-        if (outfilename.substr(outfilename.length() - std::min(outfilename.length(), (size_t)4)) != ".raw" &&
-            outfilename.substr(outfilename.length() - std::min(outfilename.length(), (size_t)4)) != ".RAW")
-            ofile = outfilename + ".raw";
-        else
-            ofile = outfilename;
-        std::ofstream ptFile(ofile, std::ios::out | std::ios::binary);
-
-        // Write to this file stream
+        std::ofstream ptFile(outfilename, std::ios::out | std::ios::binary);
         WriteRawParticles(ptFile);
     } else if (m_sys->file_write_mode == CHGPU_OUTPUT_MODE::CSV) {
-        // CSV is much slower but requires less postprocessing
-        std::string ofile;
-        if (outfilename.substr(outfilename.length() - std::min(outfilename.length(), (size_t)4)) != ".csv" &&
-            outfilename.substr(outfilename.length() - std::min(outfilename.length(), (size_t)4)) != ".CSV")
-            ofile = outfilename + ".csv";
-        else
-            ofile = outfilename;
-        std::ofstream ptFile(ofile, std::ios::out);
-
-        // Write to this file stream
+        std::ofstream ptFile(outfilename, std::ios::out);
         WriteCsvParticles(ptFile);
     } else if (m_sys->file_write_mode == CHGPU_OUTPUT_MODE::HDF5) {
 #ifdef USE_HDF5
-        std::string ofile;
-        if (outfilename.substr(outfilename.length() - std::min(outfilename.length(), (size_t)3)) != ".h5" &&
-            outfilename.substr(outfilename.length() - std::min(outfilename.length(), (size_t)3)) != ".H5")
-            ofile = outfilename + ".h5";
-        else
-            ofile = outfilename;
-        H5::H5File ptFile(ofile.c_str(), H5F_ACC_TRUNC);
-
-        // Call H5 subroutine to write it
+        H5::H5File ptFile(outfilename.c_str(), H5F_ACC_TRUNC);
         WriteH5Particles(ptFile);
 #else
         CHGPU_ERROR("ERROR! HDF5 Installation not found. Recompile with HDF5.\n");
 #endif
-    } else if (m_sys->file_write_mode == CHGPU_OUTPUT_MODE::NONE) {
-        // Do nothing, only here for symmetry
     }
 }
 
@@ -1427,17 +1363,8 @@ void ChSystemGpu::WriteHstHistory(std::ofstream& histFile) const {
 }
 
 void ChSystemGpu::WriteContactHistoryFile(const std::string& outfilename) const {
-    // For now, we'll use ASCII files for history record.
-    std::string ofile;
-    if (outfilename.substr(outfilename.length() - std::min(outfilename.length(), (size_t)4)) != ".hst" &&
-        outfilename.substr(outfilename.length() - std::min(outfilename.length(), (size_t)4)) != ".HST")
-        ofile = outfilename + ".hst";
-    else
-        ofile = outfilename;
-    // Let the user know what file we are writing to.
-    printf("Writing contact pair/history data to file \"%s\"\n", ofile.c_str());
-
-    std::ofstream histFile(ofile, std::ios::out);
+    printf("Writing contact pair/history data to file \"%s\"\n", outfilename.c_str());
+    std::ofstream histFile(outfilename, std::ios::out);
 
     // Call a subroutine to write. This subroutine can be used in checkpointing as well.
     WriteHstHistory(histFile);
@@ -1464,16 +1391,8 @@ void ChSystemGpuMesh::WriteCheckpointMeshParams(std::ofstream& cpFile) const {
 }
 // GpuMesh version of checkpoint writing
 void ChSystemGpuMesh::WriteCheckpointFile(const std::string& outfilename) {
-    std::string ofile;
-    // If not ending with ".dat", append ".dat" to the name
-    if (outfilename.substr(outfilename.length() - std::min(outfilename.length(), (size_t)4)) != ".dat" &&
-        outfilename.substr(outfilename.length() - std::min(outfilename.length(), (size_t)4)) != ".DAT")
-        ofile = outfilename + ".dat";
-    else
-        ofile = outfilename;
-    // Let the user know what file we are writing to
-    printf("Writing checkpoint data to file \"%s\"\n", ofile.c_str());
-    std::ofstream cpFile(ofile, std::ios::out);
+    printf("Writing checkpoint data to file \"%s\"\n", outfilename.c_str());
+    std::ofstream cpFile(outfilename, std::ios::out);
 
     // Header, indicating the system
     cpFile << std::string("ChSystemGpuMesh\n");

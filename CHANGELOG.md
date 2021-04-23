@@ -5,6 +5,9 @@ Change Log
 ==========
 
 - [Unreleased (development version)](#unreleased-development-branch)
+  - [Analytical box-box collision detection algorithm in Chrono::Multicore](#added-analytical-box-box-collision-detection-algorithm-in-chronomulticore)
+  - [Checkpointing capabilities in Chrono::Gpu](#added-checkpointing-capabilities-in-chronogpu)
+  - [Fixes to particle volume samplers and generators](#fixed-fixes-to-particle-volume-samplers-and-generators)
   - [SCM deformable terrain improvements](#changed-scm-deformable-terrain-improvements)
   - [Miscellaneous fixes to Chrono::Vehicle API](#changed-miscellaneous-fixes-to-chronovehicle-api)
   - [New tracked vehicle model](#added-new-tracked-vehicle-model)
@@ -39,6 +42,71 @@ Change Log
 - [Release 4.0.0](#release-400---2019-02-22)
 
 ## Unreleased (development branch)
+
+### [Added] Analytical box box collision detection algorithm in Chrono::Multicore
+
+A new algorithm for analytical collision detection for box-box interactions was added to the parallel collision system implemented in Chrono:Multicore.
+For collisions involving two boxes, this new algorithm is now used instead of the default MPR algorithm (when using narrow phase type `NARROWPHASE_R` or `NARROWPHASE_HYBRID_MPR`).
+
+The new algorithm relies on the 15-axes test of Gottschalk, Lin, and Manocha (Siggraph 1996) for finding the direction of minimum intersection between two oriented boxes and then the collision detection is special-cased for all possible combinations of interacting features from the two boxes (9 different cases).
+The analytical algorithm can produce up to 8 collision pairs and works with or without a collision envelope (thus being appropriate for both SMC and NSC contact forumlations).
+
+### [Added] Checkpointing capabilities in Chrono::Gpu
+
+Chrono::Gpu can now output a checkpoint file to store the current simulation state, then re-start the simulation from that stage. The checkpointed information includes the simulation parameters such as sphere radius and density, the positions and velocities of particles, and the friction history if using a frictional model.
+
+To use checkpointing, at any point after `ChSystemGpu::Initialize()` , call `ChSystemGpu::WriteCheckpointFile(filename)` to generate a checkpoint file named `filename`. Then, a new simulation can be generated from this file, by either:
+- constructing a new `ChSystemGpu` system from a checkpoint file; or
+- calling `ChSystemGpu::ReadCheckpointFile(filename)` to load the checkpointed state to a existing system (before calling `ChSystemGpu::Initialize()`). This will check if the loaded simulation parameters conflict with the existing system, and throw an error if so; or
+- calling `ChSystemGpu::ReadCheckpointFile(filename, true)`, which is similar to above, but overwrites existing simulation parameters with those from the checkpoint file.
+
+A simple example:
+```cpp
+ChSystemGpu sys1(radius, density, make_float3(box_X, box_Y, box_Z));
+/* Set simulation parameters */
+sys1.Initialize();
+sys1.AdvanceSimulation(1.0);
+sys1.WriteCheckpointFile("checkpoint.dat");
+
+ChSystemGpu sys2("checkpoint.dat");
+/* Or load checkpoint manually...
+ChSystemGpu sys2(radius, density, make_float3(box_X, box_Y, box_Z));
+Set simulation parameters...
+sys2.ReadCheckpointFile("checkpoint.dat");  
+*/
+```
+
+`ChSystemGpu::ReadParticleFile` is used to load particle positions and velocities from a CSV file. It is useful if the particle information is meant to be supplied from a file rather than using scripts.
+
+Note that these `Read` and `Write` methods work in `ChSystemGpuMesh` system as well.
+
+See demo_GPU_ballcosim for an example of using checkpointing.
+
+Notes:
+- Default output flags are set to write particle positions and velocity magnitudes only, excluding angular velocity components. The output flags can be set by `ChSystemGpu::SetParticleOutputFlags`.
+- If the simulation loads a checkpoint file or a CSV particle file, it will not do the defragment process during `Initialize()`; otherwise it will. The defragment process tries to re-order the particle numbering such that the particles belong to a SD become close together in system arrays. It is by default disabled for re-started simulations to not change the numbering from the previous simulation. The user can manually enforce the defragment process by calling `ChSystemGpu::SetDefragmentOnInitialize(true)`.
+
+Known issues:
+- Support for `CHGPU_TIME_INTEGRATOR::CHUNG` is partial. The checkpoint file does not store velocities of the previous time step, so if a checkpoint is loaded while `CHGPU_TIME_INTEGRATOR::CHUNG` is in use, the physics will change. It is therefore best to avoid `CHGPU_TIME_INTEGRATOR::CHUNG` if checkpointing is needed. No demo uses `CHGPU_TIME_INTEGRATOR::CHUNG`.
+- The checkpoint file does not store any manually defined boundaries (those defined by `ChSystemGpu::CreateBC*`) or meshes (those defined by `ChSystemGpuMesh::AddMesh`). For now, these need to be manually added before initializing the re-started simulation.
+
+
+### [Fixed] Fixes to particle volume samplers and generators
+
+- An incorrect implementation of the HCP (Hexagonally Close Packed) sampler, `utils::HCPSampler`, resulting in the wrong lattice was fixed. 
+
+- The API of the various particle generator functions `utils::Generator::CreateObjects***` was changed to take as first argument a reference to a volume sampler.  Previous code such as:
+```cpp
+    utils::Generator gen(system);
+    gen.createObjectsBox(utils::SamplingType::POISSON_DISK, sep, center, hdims);
+```
+should be changed to:
+```cpp
+   utils::PDSampler<double> sampler(sep);
+   utils::Generator gen(system);
+   gen.CreateObjectsBox(sampler, center, hdims);
+```
+  This change was necessary to obtain proper randomization (where applicable) when generating particles in successive layers; indeed, the previous implementation created a new sampler at each function invocation resulting in layers with the same distribution of particle positions.  
 
 ### [Changed] SCM deformable terrain improvements
 

@@ -123,7 +123,7 @@ int main(int argc, char* argv[]) {
 
     char filename[100];
     sprintf(filename, "%s/step%06d", out_dir.c_str(), currframe++);
-    gpu_sys.WriteFile(std::string(filename));
+    gpu_sys.WriteParticleFile(std::string(filename));
 
     std::cout << "frame step is " << frame_step << std::endl;
 
@@ -134,7 +134,7 @@ int main(int argc, char* argv[]) {
         printf("rendering frame %u of %u\n", currframe, total_frames);
         char filename[100];
         sprintf(filename, "%s/step%06d", out_dir.c_str(), currframe++);
-        gpu_sys.WriteFile(std::string(filename));
+        gpu_sys.WriteParticleFile(std::string(filename));
     }
 
     return 0;

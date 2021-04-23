@@ -162,8 +162,7 @@ class ChApi Generator {
     /// Create bodies, according to the current mixture setup, with initial positions given by the specified sampler in
     /// the box domain specified by 'pos' and 'hdims'. Optionally, a constant initial linear velocity can be set for all
     /// created bodies.
-    void createObjectsBox(SamplingType sType,
-                          double dist,
+    void CreateObjectsBox(Sampler<double>& sampler,
                           const ChVector<>& pos,
                           const ChVector<>& hdims,
                           const ChVector<>& vel = ChVector<>(0, 0, 0));
@@ -171,7 +170,7 @@ class ChApi Generator {
     /// Create bodies, according to the current mixture setup, with initial positions on a uniform grid with given
     /// separations (in x,y,z directions) in the box domain specified by 'pos' and 'hdims'. Optionally, a constant
     /// initial linear velocity can be set for all created bodies.
-    void createObjectsBox(const ChVector<>& dist,
+    void CreateObjectsBox(const ChVector<>& dist,
                           const ChVector<>& pos,
                           const ChVector<>& hdims,
                           const ChVector<>& vel = ChVector<>(0, 0, 0));
@@ -179,8 +178,7 @@ class ChApi Generator {
     /// Create bodies, according to the current mixture setup, with initial positions given by the specified sampler in
     /// the X-aligned cylinder domain specified by 'pos', 'radius' and 'halfHeight'. Optionally, a constant initial
     /// linear velocity can be set for all created bodies.
-    void createObjectsCylinderX(SamplingType sType,
-                                double dist,
+    void CreateObjectsCylinderX(Sampler<double>& sampler,
                                 const ChVector<>& pos,
                                 float radius,
                                 float halfHeight,
@@ -189,8 +187,7 @@ class ChApi Generator {
     /// Create bodies, according to the current mixture setup, with initial positions given by the specified sampler in
     /// the Y-aligned cylinder domain specified by 'pos', 'radius' and 'halfHeight'. Optionally, a constant initial
     /// linear velocity can be set for all created bodies.
-    void createObjectsCylinderY(SamplingType sType,
-                                double dist,
+    void CreateObjectsCylinderY(Sampler<double>& sampler,
                                 const ChVector<>& pos,
                                 float radius,
                                 float halfHeight,
@@ -199,12 +196,19 @@ class ChApi Generator {
     /// Create bodies, according to the current mixture setup, with initial positions given by the specified sampler in
     /// the Z-aligned cylinder domain specified by 'pos', 'radius' and 'halfHeight'. Optionally, a constant initial
     /// linear velocity can be set for all created bodies.
-    void createObjectsCylinderZ(SamplingType sType,
-                                double dist,
+    void CreateObjectsCylinderZ(Sampler<double>& sampler,
                                 const ChVector<>& pos,
                                 float radius,
                                 float halfHeight,
                                 const ChVector<>& vel = ChVector<>(0, 0, 0));
+
+    /// Create bodies, according to the current mixture setup, with initial positions given by the specified sampler in
+    /// the spherical domain specified by 'pos' and 'radius'. Optionally, a constant initial linear velocity can be set
+    /// for all created bodies.
+    void CreateObjectsSphere(Sampler<double>& sampler,
+                             const ChVector<>& pos,
+                             float radius,
+                             const ChVector<>& vel = ChVector<>(0, 0, 0));
 
     /// Class to be used as a callback interface for user-defined filtering of initial positions.
     class ChApi CreateObjectsCallback {

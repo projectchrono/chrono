@@ -439,13 +439,7 @@ void ChSystemGpu_impl::WriteContactInfoFile(const std::string& outfilename) cons
         // write contact info as an csv style in the following format
         // body i, body j, n_mag, fx, fy, fz, mx, my, mz
 
-        std::string ofile;
-        if (outfilename.substr(outfilename.length() - std::min(outfilename.length(), (size_t)4)) != ".csv" &&
-            outfilename.substr(outfilename.length() - std::min(outfilename.length(), (size_t)4)) != ".CSV")
-            ofile = outfilename + ".csv";
-        else
-            ofile = outfilename;
-        std::ofstream ptFile(ofile, std::ios::out);
+        std::ofstream ptFile(outfilename, std::ios::out);
         // Dump to a stream, write to file only at end
         std::ostringstream outstrstream;
         outstrstream << "bi, bj, n_mag";
@@ -724,12 +718,12 @@ void ChSystemGpu_impl::setBCOffset(const BC_type& bc_type,
             printf("ERROR: Unsupported BC Type!\n");
             exit(1);
         }
-
-            // do midpoint approx for velocity
-            params_SU.vel_SU.x = (new_pos.x - old_pos.x) / stepSize_SU;
-            params_SU.vel_SU.y = (new_pos.y - old_pos.y) / stepSize_SU;
-            params_SU.vel_SU.z = (new_pos.z - old_pos.z) / stepSize_SU;
     }
+
+    // do midpoint approx for velocity
+    params_SU.vel_SU.x = (new_pos.x - old_pos.x) / stepSize_SU;
+    params_SU.vel_SU.y = (new_pos.y - old_pos.y) / stepSize_SU;
+    params_SU.vel_SU.z = (new_pos.z - old_pos.z) / stepSize_SU;
 }
 
 float3 ChSystemGpu_impl::GetBCPlanePosition(size_t plane_id) const {
