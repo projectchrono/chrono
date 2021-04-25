@@ -50,9 +50,6 @@ std::vector<ChVector<float>> end_pos;
 float settled_pos;
 float penetration;
 
-void ShowUsage(std::string name) {
-    std::cout << "usage: " + name + " <json_file> <mu_s> <mu_r> <normal stiffness> <psi_L> " << std::endl;
-}
 
 int main(int argc, char* argv[]) {
     string json_dir = GetChronoDataPath() + "testing/gpu/utest_GPU_stack/utest_GPU_stack.json";
@@ -61,7 +58,6 @@ int main(int argc, char* argv[]) {
     // check whether JSON parameters file is valid
     // Parse JSON parameters to the gpu system
     if (ParseJSON(c_buff, params) == false) {
-        ShowUsage(argv[0]);
         return 1;
     }
 
@@ -113,7 +109,6 @@ int main(int argc, char* argv[]) {
     gpu_sys.SetGt_SPH2WALL(params.tangentDampS2W);
     gpu_sys.SetStaticFrictionCoeff_SPH2SPH(params.static_friction_coeffS2S);
     gpu_sys.SetStaticFrictionCoeff_SPH2WALL(params.static_friction_coeffS2W);
-    // filesystem::create_directory(filesystem::path(params.output_dir));
 
     gpu_sys.SetCohesionRatio(params.cohesion_ratio);
     gpu_sys.SetAdhesionRatio_SPH2WALL(params.adhesion_ratio_s2w);
@@ -121,7 +116,7 @@ int main(int argc, char* argv[]) {
     gpu_sys.SetOutputMode(params.write_mode);
     gpu_sys.SetOutputFlags(
         CHGPU_OUTPUT_FLAGS::VEL_COMPONENTS | CHGPU_OUTPUT_FLAGS::FIXITY |
-        CHGPU_OUTPUT_FLAGS::FORCE_COMPONENTS);  // NOTE: original test used custom FORCE_COMPONENTS output
+        CHGPU_OUTPUT_FLAGS::FORCE_COMPONENTS); 
 
     gpu_sys.SetFrictionMode(CHGPU_FRICTION_MODE::MULTI_STEP);
     gpu_sys.SetTimeIntegrator(CHGPU_TIME_INTEGRATOR::CHUNG);

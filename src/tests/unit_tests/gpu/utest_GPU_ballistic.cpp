@@ -12,14 +12,14 @@
 // Authors: Ruochun Zhang, Jason Zhou
 // =============================================================================
 // validation test: high velocity sphere punching through a mesh facet
-//
-// utilizes gtest infrustructure
-// test 1 : check ball hit result/time and penetration results/time
 // =============================================================================
 
 #include <cmath>
 #include <iostream>
 #include <string>
+
+#include "gtest/gtest.h"
+#include "unit_testing.h"
 
 #include "chrono/core/ChGlobal.h"
 #include "chrono/utils/ChUtilsSamplers.h"
@@ -30,20 +30,12 @@
 
 #include "chrono_thirdparty/filesystem/path.h"
 
-#include "unit_testing.h"
-
-#include "gtest/gtest.h"
-
 using namespace chrono;
 using namespace chrono::gpu;
 
 // declare global variables
 float hit_time = -1;
 float penetration_time = -1;
-
-void ShowUsage(std::string name) {
-    std::cout << "usage: " + name + " <json_file> \n " << std::endl;
-}
 
 int main(int argc, char* argv[]) {
     string json_dir = GetChronoDataPath() + "testing/gpu/utest_GPU_ballistic/utest_GPU_ballistic.json";
@@ -53,7 +45,6 @@ int main(int argc, char* argv[]) {
     // check whether JSON parameters file is valid
     // Parse JSON parameters to the gpu system
     if (ParseJSON(c_buff, params) == false) {
-        ShowUsage(argv[0]);
         return 1;
     }
 
@@ -86,6 +77,7 @@ int main(int argc, char* argv[]) {
     gpu_sys.EnableMeshCollision(true);
 
     // assign initial condition for the sphere
+    // set the initial velocity to be very high
     float initialVelo = 1e4;
     std::vector<ChVector<float>> body_point;
     body_point.push_back(ChVector<float>(1.0f, -1.0f, 4.f));
@@ -168,6 +160,8 @@ int main(int argc, char* argv[]) {
     return RUN_ALL_TESTS();
 }
 
+// A comprehensive check on expected hit and penetration time
+// The particle should hit and penetrate the mesh facet
 TEST(gpuBallistic, resultTimePointCheck) {
     float diff_hit = hit_time - (float)0.00035;
     float diff_pene = penetration_time - (float)0.00045;

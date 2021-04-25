@@ -19,6 +19,7 @@ SET(TESTS
     utest_GPU_meshrolling
     utest_GPU_ballistic
     utest_GPU_stack
+    utest_GPU_pyramid
 )
 
 # A hack to set the working directory in which to execute the CTest
