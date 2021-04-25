@@ -80,7 +80,7 @@ int main(int argc, char* argv[]) {
     std::vector<string> mesh_filenames;
     std::string mesh_filename;
 
-    mesh_filename = GetChronoDataPath() + "testing/gpu/utest_GPU_meshsliding/one_facet.obj";
+    mesh_filename = GetChronoDataPath() + "testing/gpu/one_facet.obj";
 
     mesh_filenames.push_back(mesh_filename);
 
@@ -170,9 +170,11 @@ int main(int argc, char* argv[]) {
     while (curr_time < params.time_end) {
         gpu_sys.AdvanceSimulation(params.step_size);
         curr_time += params.step_size;
+
+        std::cout << "\r" << std::fixed << std::setprecision(6) << curr_time << std::flush;
+
         if (gpu_sys.GetParticleVelocity(0) < precision_vel) {
-            std::cout << "the particle's linear velocity drops below threshold 1e-2 at time = " << curr_time
-                      << std::endl;
+            std::cout << "\nLinear velocity drops below threshold at time = " << curr_time << std::endl;
             break;
         }
     }
@@ -189,16 +191,16 @@ int main(int argc, char* argv[]) {
 // test that the ball stops rolling
 TEST(gpuMeshSliding, endPos) {
     // check position y and z component
-    EXPECT_NEAR(end_pos.y(), -1, precision_pos);
-    EXPECT_NEAR(end_pos.z(), settled_pos, precision_pos);
+    ASSERT_NEAR(end_pos.y(), -1, precision_pos);
+    ASSERT_NEAR(end_pos.z(), settled_pos, precision_pos);
 
     // check end velocity
-    EXPECT_NEAR(end_vel.x(), 0, precision_vel);
-    EXPECT_NEAR(end_vel.y(), 0, precision_vel);
-    EXPECT_NEAR(end_vel.z(), 0, precision_vel);
+    ASSERT_NEAR(end_vel.x(), 0, precision_vel);
+    ASSERT_NEAR(end_vel.y(), 0, precision_vel);
+    ASSERT_NEAR(end_vel.z(), 0, precision_vel);
 
     // check ang velocity
-    EXPECT_NEAR(end_ang_vel.x(), 0, precision_ang);
-    EXPECT_NEAR(end_ang_vel.y(), 0, precision_ang);
-    EXPECT_NEAR(end_ang_vel.z(), 0, precision_ang);
+    ASSERT_NEAR(end_ang_vel.x(), 0, precision_ang);
+    ASSERT_NEAR(end_ang_vel.y(), 0, precision_ang);
+    ASSERT_NEAR(end_ang_vel.z(), 0, precision_ang);
 }

@@ -170,7 +170,7 @@ int main(int argc, char* argv[]) {
 // the end velocities of all particles should be close to 0, within a barrier
 TEST(gpuStack, endVel) {
     for (int i = 0; i < 5; i++) {
-        EXPECT_NEAR(end_vel[i], 0, precision_vel);
+        ASSERT_NEAR(end_vel[i], 0, precision_vel);
     }
 }
 
@@ -178,8 +178,8 @@ TEST(gpuStack, endVel) {
 // test pass if all end positions are within a tolerance barrier
 TEST(gpuStack, endPos) {
     for (int i = 0; i < 5; i++) {
-        EXPECT_NEAR(end_pos[i].x(), 0, precision_pos);
-        EXPECT_NEAR(end_pos[i].y(), 0, precision_pos);
-        EXPECT_NEAR(end_pos[i].z(), settled_pos + radius * 2 * i - penetration * i, precision_pos);
+        ASSERT_NEAR(end_pos[i].x(), 0, precision_pos);
+        ASSERT_NEAR(end_pos[i].y(), 0, precision_pos);
+        ASSERT_NEAR(end_pos[i].z(), settled_pos + radius * 2 * i - penetration * i, precision_pos);
     }
 }

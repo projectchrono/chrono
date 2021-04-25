@@ -166,16 +166,16 @@ int main(int argc, char* argv[]) {
 // test that the ball stops rolling
 TEST(gpuFrictionSliding, check) {
     // check position y and z component
-    EXPECT_NEAR(end_pos.y(), 0, precision_pos);
-    EXPECT_NEAR(end_pos.z(), settled_pos, precision_pos);
+    ASSERT_NEAR(end_pos.y(), 0, precision_pos);
+    ASSERT_NEAR(end_pos.z(), settled_pos, precision_pos);
 
     // check end velocity
-    EXPECT_NEAR(end_vel.x(), 0, precision_vel);
-    EXPECT_NEAR(end_vel.y(), 0, precision_vel);
-    EXPECT_NEAR(end_vel.z(), 0, precision_vel);
+    ASSERT_NEAR(end_vel.x(), 0, precision_vel);
+    ASSERT_NEAR(end_vel.y(), 0, precision_vel);
+    ASSERT_NEAR(end_vel.z(), 0, precision_vel);
 
     // check ang velocity
-    EXPECT_NEAR(end_ang_vel.x(), 0, precision_ang);
-    EXPECT_NEAR(end_ang_vel.y(), 0, precision_ang);
-    EXPECT_NEAR(end_ang_vel.z(), 0, precision_ang);
+    ASSERT_NEAR(end_ang_vel.x(), 0, precision_ang);
+    ASSERT_NEAR(end_ang_vel.y(), 0, precision_ang);
+    ASSERT_NEAR(end_ang_vel.z(), 0, precision_ang);
 }
